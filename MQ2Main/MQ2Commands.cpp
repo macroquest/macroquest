@@ -4470,6 +4470,7 @@ VOID Exec(PSPAWNINFO pChar,PCHAR szLine) {
    }
 } 
 
+// /keypress
 VOID DoMappable(PSPAWNINFO pChar, PCHAR szLine)
 {
 	if (szLine[0]==0)
@@ -4498,12 +4499,13 @@ VOID DoMappable(PSPAWNINFO pChar, PCHAR szLine)
 		ExecuteCmd(N,0,0);
 }
 
+// /popup
 VOID PopupText(PSPAWNINFO pChar, PCHAR szLine)
 {
    DisplayOverlayText(szLine, CONCOLOR_LIGHTBLUE, 100, 500,500,3000);
 }
 
-
+// /multiline
 VOID MultilineCommand(PSPAWNINFO pChar, PCHAR szLine)
 {
 	if (szLine[0]==0)
@@ -4526,4 +4528,28 @@ VOID MultilineCommand(PSPAWNINFO pChar, PCHAR szLine)
 	}
 }
 
+// /ranged
+VOID do_ranged(PSPAWNINFO pChar, PCHAR szLine)
+{
+	EQPlayer *pRangedTarget=pTarget;
+	if (szLine[0])
+	{
+		pRangedTarget=GetSpawnByID(atoi(szLine));
+		if (!pRangedTarget)
+		{
+			WriteChatColor("Invalid spawn ID.  Use /ranged with no parameters, or with a spawn ID");
+			return;
+		}
+	}
+	if (!pRangedTarget)
+	{
+		WriteChatColor("No target for ranged attack");
+		return;
+	}
+	if (gbRangedAttackReady)
+	{
+		pSpawnListTail->DoAttack(0x0B,0,pRangedTarget);
+		gbRangedAttackReady=0;
+	}
+}
 

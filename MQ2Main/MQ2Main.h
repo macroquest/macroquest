@@ -253,8 +253,8 @@ EQLIB_API BOOL IsMouseWaitingForButton();
 EQLIB_API VOID InitializeMQ2KeyBinds();
 EQLIB_API VOID ShutdownMQ2KeyBinds();
 EQLIB_API BOOL PressMQ2KeyBind(PCHAR name, BOOL Hold);
-EQLIB_API BOOL SetMQ2KeyBind(PCHAR name, BOOL Alternate, KeyCombo *pCombo);
-EQLIB_API BOOL AddMQ2KeyBind(PCHAR name, fMQExecuteCmd Function, KeyCombo *pNormalDefault=0, KeyCombo *pAltDefault=0);
+EQLIB_API BOOL SetMQ2KeyBind(PCHAR name, BOOL Alternate, KeyCombo &Combo);
+EQLIB_API BOOL AddMQ2KeyBind(PCHAR name, fMQExecuteCmd Function);
 EQLIB_API BOOL RemoveMQ2KeyBind(PCHAR name);
 EQLIB_API BOOL GetMQ2KeyBind(PCHAR name, BOOL Alt, KeyCombo &Combo);
 
@@ -460,6 +460,7 @@ EQLIB_API DWORD parmPet							(PCHAR, PCHAR, PSPAWNINFO);
 EQLIB_API DOUBLE Calculate(PCHAR szFormula);
 
 /* COMMANDS */
+EQLIB_API VOID do_ranged(PSPAWNINFO pChar, PCHAR szLine);
 EQLIB_API VOID DoMappable(PSPAWNINFO pChar, PCHAR szLine);
 EQLIB_API VOID MQ2KeyBindCommand(PSPAWNINFO pChar, PCHAR szLine);
 EQLIB_API VOID MultilineCommand(PSPAWNINFO pChar, PCHAR szLine);

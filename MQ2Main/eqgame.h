@@ -55,6 +55,7 @@
 #define __EQP_IDArray								0x6D2278
 #define __CurrentMapLabel							0x79E044
 #define __BindList									0x611608
+#define __RangeAttackReady							0x6D6028
 
 
 ////
@@ -230,6 +231,7 @@
 // EQPlayer
 #define EQPlayer__EQPlayer                               0x48AA55
 #define EQPlayer__dEQPlayer                              0x488EF9
+#define EQPlayer__DoAttack								 0x485D0E
 
 // CXStr
 // WARNING:  Be sure that none of these offsets are identical!  Otherwise, you

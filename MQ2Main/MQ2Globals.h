@@ -158,6 +158,9 @@ EQLIB_VAR PMOUSECLICK EQADDR_MOUSECLICK;
 EQLIB_VAR PMAPLABEL *ppCurrentMapLabel;
 #define pCurrentMapLabel (*ppCurrentMapLabel)
 
+EQLIB_VAR PBOOL gpbRangedAttackReady;
+#define gbRangedAttackReady (*gpbRangedAttackReady)
+
 EQLIB_VAR PCHAR *EQMappableCommandList;
 
 EQLIB_VAR DWORD EQADDR_DIMAIN;

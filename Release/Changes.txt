@@ -2,6 +2,8 @@
 ** into eqgame.h.  The client DATE/TIME are in eqgame.h also.
 
 14 Mar 2004 by Lax
+- Added /ranged [#] command.  Run with no parameters to do a ranged attack on your current
+  target, or with a spawn ID to do a ranged attack on that spawn.
 - Modified MQ2Spawns, hopefully this will solve the remaining stack corruption problems...
 - Introduction of the new MQ2 key binding system
   * New command /bind <list|eqlist|[~]name <combo|clear>>
@@ -10,13 +12,19 @@
   * The following work on both MQ2 and EQ binds the same way
   * "/bind <name> <combo>" will set a bind's normal key combo (example: "/bind forward e")
   * "/bind ~<name> <combo>" will set a bind's alternate key combo (example: "/bind ~forward up")
+  * Combos use any combination of "alt", "shift" and "ctrl" plus a key.  Specific keys follow the 
+    same rules as the /sendkey and /press 
+    Example combos:
+    shift+n
+    alt+shift+f1
+    -- Always separate with +'s or spaces.
   * Note that "clear" combo is to clear the bind, and also note that changing EQ binds will not
     immediately update the display in the options window.  Change the bind list selection in the
     options window to see the updated keys.
   * /keypress works the same way with all MQ2 and non-MQ2 binds
   * API additions include:
-     BOOL AddMQ2KeyBind(PCHAR name, fMQExecuteCmd Function, KeyCombo *pNormalDefault, KeyCombo *pAltDefault);
-     BOOL SetMQ2KeyBind(PCHAR name, BOOL Alternate, KeyCombo *pCombo);
+     BOOL AddMQ2KeyBind(PCHAR name, fMQExecuteCmd Function);
+     BOOL SetMQ2KeyBind(PCHAR name, BOOL Alternate, KeyCombo &Combo);
      BOOL RemoveMQ2KeyBind(PCHAR name);
      BOOL ParseKeyCombo(PCHAR text, KeyCombo &Dest);
      PCHAR DescribeKeyCombo(KeyCombo &Combo, PCHAR szDest);
@@ -26,8 +34,21 @@
         MQ2 bind function make sure to account for this.  The "Name" parameter is the name of the
         bind
   * /hotkey command is now removed, the new bind system will take over
- 
-
+- MQ2CustomBinds plugin is now live.  This plugin allows you to specify custom commands to execute
+  on a key combination.  There may be a command for the keys being pressed (down), and another for them
+  being released (up).
+  * /custombind <list|add <name>|delete <name>|clear <name><-down|-up>|set <name><-down|-up> <command>>
+  * "/custombind list" will list all of your custom binds names and commands (the key combinations must be set using /bind)
+  * "/custombind add <name>" will add a new bind name for use here, with /keypress, /bind, etc.
+  * "/custombind delete <name>" will remove a custom bind
+  * "/custombind clear <name><-down|-up>" will clear a specific command for a custom bind.  If up or down is not specified, defaults to down.
+  * "/custombind set <name><-down|up> <command>" will set a specific command for a custom bind.  If up or down is not specified, defaults to down.
+  * Example usage (NOTE: MQ2's very first bind command is "RANGED" so you do not need to do this, but for example...)
+    /custombind add mybind
+    /custombind set mybind /ranged
+    /bind bind n
+    -- To set the real RANGED bind, do "/bind ranged <key>"
+   
 13 Mar 2004 by Lax
 - Added /multiline <delimiter> <command[delimiter[command[delimiter[...]]]]>
   Executes all commands.  Example: /multiline ; /stand;/rude;/sit

@@ -153,6 +153,7 @@ public:
 	}
 };
 /**/
+VOID DoRangedBind(PCHAR Name,BOOL Down);
 
 void InitializeMQ2KeyBinds()
 {
@@ -162,6 +163,8 @@ void InitializeMQ2KeyBinds()
 		InjectMQ2Binds(pOptionsWnd);
 	}
 /**/
+	AddMQ2KeyBind("RANGED",DoRangedBind);
+
 	EasyClassDetour(KeyPressHandler__HandleKeyDown,KeyPressHandlerHook,HandleKeyDown_Hook,bool,(class KeyCombo const &Combo),HandleKeyDown_Trampoline);
 	EasyClassDetour(KeyPressHandler__HandleKeyUp,KeyPressHandlerHook,HandleKeyUp_Hook,bool,(class KeyCombo const &Combo),HandleKeyUp_Trampoline);
 }
@@ -173,7 +176,7 @@ void ShutdownMQ2KeyBinds()
 	RemoveDetour(KeyPressHandler__HandleKeyUp);
 }
 
-BOOL AddMQ2KeyBind(PCHAR name, fMQExecuteCmd Function, KeyCombo *pNormalDefault, KeyCombo *pAltDefault)
+BOOL AddMQ2KeyBind(PCHAR name, fMQExecuteCmd Function)
 {
 	DebugSpew("AddMQ2KeyBind(%s)",name);
 	if (KeyBindByName(name))
@@ -185,14 +188,16 @@ BOOL AddMQ2KeyBind(PCHAR name, fMQExecuteCmd Function, KeyCombo *pNormalDefault,
 	MQ2KeyBind* pBind = new MQ2KeyBind;
 	strncpy(pBind->Name,name,32);
 	pBind->Name[31]=0;
-	if (pNormalDefault)
-	{
-		pBind->Normal=*pNormalDefault;
-	}
-	if (pAltDefault)
-	{
-		pBind->Alt=*pAltDefault;
-	}
+	CHAR szBuffer[MAX_STRING]={0};
+	CHAR szName[MAX_STRING]={0};
+	
+	sprintf(szName,"%s_%s",pBind->Name,"Nrm");
+	GetPrivateProfileString("Key Binds",szName,"clear",szBuffer,MAX_STRING,gszINIFilename);	
+	ParseKeyCombo(szBuffer,pBind->Normal);
+	sprintf(szName,"%s_%s",pBind->Name,"Alt");
+	GetPrivateProfileString("Key Binds",szName,"clear",szBuffer,MAX_STRING,gszINIFilename);	
+	ParseKeyCombo(szBuffer,pBind->Alt);
+
 	pBind->Function=Function;
 
 	unsigned long N=BindList.GetUnused();
@@ -246,28 +251,23 @@ BOOL PressMQ2KeyBind(PCHAR name, BOOL Hold)
 	return false;
 }
 
-BOOL SetMQ2KeyBind(PCHAR name, BOOL Alternate, KeyCombo *pCombo)
+BOOL SetMQ2KeyBind(PCHAR name, BOOL Alternate, KeyCombo &Combo)
 {
 	if (MQ2KeyBind *pBind=KeyBindByName(name))
 	{
+		CHAR szName[MAX_STRING]={0};
+		CHAR szBuffer[MAX_STRING]={0};
 		if (!Alternate)
 		{
-			if (pCombo)
-			{
-				pBind->Normal=*pCombo;
-			}
-			else
-				pBind->Normal.Data[3]=0;
+			sprintf(szName,"%s_Nrm",pBind->Name);
+			pBind->Normal=Combo;
 		}
 		else
 		{
-			if (pCombo)
-			{
-				pBind->Alt=*pCombo;
-			}
-			else
-				pBind->Alt.Data[3]=0;
+			sprintf(szName,"%s_Alt",pBind->Name);
+			pBind->Alt=Combo;
 		}
+		WritePrivateProfileString("Key Binds",szName,DescribeKeyCombo(Combo,szBuffer),gszINIFilename);
 		return true;
 	}
 	return false;
@@ -327,25 +327,21 @@ VOID MQ2KeyBindCommand(PSPAWNINFO pChar, PCHAR szLine)
 		WriteChatColor("End EQ Binds");
 		return;
 	}
-	if (MQ2KeyBind *pBind=KeyBindByName(szArg))
+	KeyCombo NewCombo;
+	if (!ParseKeyCombo(szRest,NewCombo))
 	{
-		// set mq2 bind
-		KeyCombo *pCombo;
-		if (AltKey)
-			pCombo=&pBind->Alt;
-		else
-			pCombo=&pBind->Normal;
-		if (ParseKeyCombo(szRest,*pCombo))
-		{
-			sprintf(szArg1,"%s %s now bound as %s",AltKey?"Alternate":"Normal",pBind->Name,DescribeKeyCombo(*pCombo,szBuffer));
-			WriteChatColor(szArg1);			
-		}
-		else
-		{
-			WriteChatColor("Invalid key combination");
-		}
+		WriteChatColor("Invalid key combination");
 		return;
 	}
+
+	if (SetMQ2KeyBind(szArg,AltKey,NewCombo))
+	{
+		MQ2KeyBind *pBind=KeyBindByName(szArg);
+		sprintf(szArg1,"%s %s now bound as %s",AltKey?"Alternate":"Normal",pBind->Name,DescribeKeyCombo(NewCombo,szBuffer));
+		WriteChatColor(szArg1);			
+		return;
+	}
+
 	int N=FindMappableCommand(szArg);
 	if (N<0)
 	{
@@ -353,12 +349,6 @@ VOID MQ2KeyBindCommand(PSPAWNINFO pChar, PCHAR szLine)
 		return;
 	}
 	// set eq bind
-	KeyCombo NewCombo;
-	if (!ParseKeyCombo(szRest,NewCombo))
-	{
-		WriteChatColor("Invalid key combination");
-		return;
-	}
 	if (AltKey)
 	{
 		pKeypressHandler->AttachAltKeyToEqCommand(NewCombo,N);
@@ -370,6 +360,15 @@ VOID MQ2KeyBindCommand(PSPAWNINFO pChar, PCHAR szLine)
 		pKeypressHandler->AttachKeyToEqCommand(NewCombo,N);
 		sprintf(szArg1,"Normal %s now bound as %s",EQMappableCommandList[N],DescribeKeyCombo(pKeypressHandler->NormalKey[N],szBuffer));
 		WriteChatColor(szArg1);		
+	}
+}
+
+VOID DoRangedBind(PCHAR Name,BOOL Down)
+{
+	if (Down && pTarget && gbRangedAttackReady)
+	{
+		pSpawnListTail->DoAttack(0x0B,0,pTarget);
+		gbRangedAttackReady=0;
 	}
 }
 

@@ -456,6 +456,7 @@ void InitializeMQ2Commands()
         {"/popup",      PopupText,1,1},
 		{"/multiline",  MultilineCommand,1,0},
 		{"/bind",       MQ2KeyBindCommand,1,0},
+		{"/ranged",		do_ranged,1,1},
 		{NULL,          NULL,0,1},
     };
 

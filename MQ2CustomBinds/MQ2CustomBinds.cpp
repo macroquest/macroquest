@@ -36,7 +36,7 @@ int FindCustomBind(PCHAR Name)
 
 PCUSTOMBIND AddCustomBind(PCHAR Name, PCHAR CommandDown, PCHAR CommandUp)
 {
-	if (AddMQ2KeyBind(Name,ExecuteCustomBind,0,0))
+	if (AddMQ2KeyBind(Name,ExecuteCustomBind))
 	{
 		PCUSTOMBIND pBind = new CUSTOMBIND;
 		ZeroMemory(pBind,sizeof(CUSTOMBIND));
@@ -131,18 +131,6 @@ VOID LoadCustomBinds()
 		{
 			strcpy(NewBind.CommandDown,&szLine[5]);
 		}
-		else if (!stricmp(szLine,"nrm"))
-		{
-			KeyCombo Combo;
-			if (ParseKeyCombo(&szLine[4],Combo))
-				SetMQ2KeyBind(NewBind.Name,false,&Combo);
-		}
-		else if (!stricmp(szLine,"alt"))
-		{
-			KeyCombo Combo;
-			if (ParseKeyCombo(&szLine[4],Combo))
-				SetMQ2KeyBind(NewBind.Name,true,&Combo);
-		}
 	}
 
 	fclose(file);
@@ -157,20 +145,10 @@ VOID SaveCustomBinds()
 	if (!file)
 		return;
 
-	KeyCombo Alt;
-	KeyCombo Nrm;
-	CHAR szBuffer[MAX_STRING]={0};
 	for (unsigned long N = 0 ; N < CustomBinds.Size ; N++)
 	if (PCUSTOMBIND pBind=CustomBinds[N])
 	{
-		GetMQ2KeyBind(pBind->Name,false,Nrm);
-		GetMQ2KeyBind(pBind->Name,true,Alt);
-		fprintf(file,"name=%s\ndown=%s\nup=%s\nnrm=%s\n",pBind->Name,pBind->CommandDown,pBind->CommandUp,
-			DescribeKeyCombo(Nrm,szBuffer)
-			);
-		fprintf(file,"alt=%s\n",
-			DescribeKeyCombo(Alt,szBuffer)
-			);
+		fprintf(file,"name=%s\ndown=%s\nup=%s\n",pBind->Name,pBind->CommandDown,pBind->CommandUp);
 	}	
 	fclose(file);
 }
