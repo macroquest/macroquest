@@ -3057,16 +3057,15 @@ DWORD parmIf(PCHAR szVar, PCHAR szOutput, PSPAWNINFO pChar)
 DWORD parmMerchantName(PCHAR szVar, PCHAR szOutput, PSPAWNINFO pChar)
 {
     DWORD i=0;
-    DebugSpewNoFile("in parmMerchantName");
     // $merchant(name)
     CHAR szTemp[MAX_STRING] = {0};
     CHAR* szOut;
     i += 13;
-    if (!ppActiveMerchant || !pActiveMerchant) {
-        strcat(szOutput,"NULL");
+    if (!(DWORD)pinstActiveMerchant || !*(DWORD *)pinstActiveMerchant) {
+        strcat(szOutput,"NULL\0");
         return i;
     }
-    sprintf(szTemp,"%s",*pActiveMerchant);
+    sprintf(szTemp,"%s",*(DWORD *)pinstActiveMerchant);
     szOut = (char*)&szTemp[1];
     CleanupName(szOut);
     strcat(szOutput,szOut);

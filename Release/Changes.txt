@@ -1,3 +1,6 @@
+20 Nov 2003 by EqMule
+fix for $merchant(name)
+
 20 Nov 2003 by Lax
 *** MacroQuest2.exe is now pre-compiled, you no longer compile this yourself.  MQ2Auth implemented.  Run it before compiling on each machine.
 
