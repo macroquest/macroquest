@@ -58,6 +58,7 @@ typedef struct _SEARCHSPAWN {
     BOOL bTargNext;
     BOOL bTargPrev;
 	BOOL bGroup;
+	BOOL bGM;
     DWORD NotID;
     DWORD NotNearAlertList;
     DWORD NearAlertList;

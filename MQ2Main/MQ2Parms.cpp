@@ -2161,7 +2161,7 @@ DWORD parmChar(PCHAR szVar, PCHAR szOutput, PSPAWNINFO pChar)
         i+=13; 
         if ((gbMoving) && (pChar->SpeedRun==0.0f) && (pCharInfo->pSpawn->pActorInfo->Mount ==  NULL )) { 
             strcpy(szOutput,"TRUE"); 
-    } else if ((fabs(FindSpeed(pChar)) > 0.0f ) && (pCharInfo->pSpawn->pActorInfo->Mount !=  NULL )) { 
+    } else if ((fabs(FindSpeed(pChar)) > 0.0f ) && (pCharInfo->pSpawn->pActorInfo->Mount !=  NULL )) {
         strcpy(szOutput,"TRUE"); 
     } else if (fabs(FindSpeed(pChar)) > 0.0f ) { 
         strcpy(szOutput,"TRUE"); 

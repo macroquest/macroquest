@@ -443,6 +443,30 @@ bool MQ2SpawnType::GetMember(MQ2VARPTR VarPtr, PCHAR Member, PCHAR Index, MQ2TYP
 			return true;
 		}
 		return false;
+	case Swimming:
+		Dest.DWord=(pSpawn->pActorInfo->Swimming==5);
+		Dest.Type=pBoolType;
+		return true;
+	case FeetWet:
+		Dest.DWord=(pSpawn->pActorInfo->FeetWet==5);
+		Dest.Type=pBoolType;
+		return true;
+	case Underwater:
+		Dest.DWord=(pSpawn->pActorInfo->UnderWater==5);
+		Dest.Type=pBoolType;
+		return true;
+	case Animation:
+		Dest.DWord=pSpawn->pActorInfo->Animation;
+		Dest.Type=pIntType;
+		return true;
+	case Holding:
+		Dest.DWord=pSpawn->Holding;
+		Dest.Type=pIntType;
+		return true;
+	case Look:
+		Dest.Float=pSpawn->CameraAngle;
+		Dest.Type=pFloatType;
+		return true;
 	}
 	return false;
 #undef pSpawn
@@ -656,7 +680,11 @@ bool MQ2CharacterType::GetMember(MQ2VARPTR VarPtr, PCHAR Member, PCHAR Index, MQ
 		return true;
 	case PctExp:
 		Dest.Float=(float)pChar->Exp/3.30f;
-		Dest.Type=pIntType;
+		Dest.Type=pFloatType;
+		return true;
+	case PctAAExp:
+		Dest.Float=(float)pChar->AAExp/3.30f;
+		Dest.Type=pFloatType;
 		return true;
 	case Spawn:
 		Dest.Ptr=pChar->pSpawn;
@@ -900,6 +928,10 @@ bool MQ2CharacterType::GetMember(MQ2VARPTR VarPtr, PCHAR Member, PCHAR Index, MQ
 			}
 		}
 		return false;
+	case Moving:
+		Dest.DWord=((((gbMoving) && ((PSPAWNINFO)pCharSpawn)->SpeedRun==0.0f) && ((PCHARINFO)pCharData)->pSpawn->pActorInfo->Mount ==  NULL ) || (fabs(FindSpeed((PSPAWNINFO)pCharSpawn)) > 0.0f ));
+		Dest.Type=pBoolType;
+		return true;
 		/*
 		Book=20,
 		Skill=21,

@@ -1,3 +1,18 @@
+31 Mar 2004 by Lax (more)
+- Fixed character member PctExp
+- Added character members:
+  float PctAAExp: % AA exp..
+  bool Moving: Moving? (includes the mount hack so you're not constantly "moving" when sitting on a mount)
+- Added spawn members:
+  bool Swimming: Swimming?
+  bool Underwater: Underwater?
+  bool FeetWet: Feet at least wet?
+  int Animation: Animation id
+  int Holding: Holding id
+  float Look: Look angle
+- Added "gm" to standard searchspawn, works with anything that uses that including MQ2Map commands,
+  /target, ${Spawn[search]}, etc
+
 31 Mar 2004 by Lax
 - Fixed /newif so variables/parms/data get parsed
 - string.Mid and string.Find are now 1-based instead of 0-based

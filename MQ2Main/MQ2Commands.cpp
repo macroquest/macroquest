@@ -3364,6 +3364,7 @@ PCHAR FormatSearchSpawn(PCHAR Buffer, PSEARCHSPAWN pSearchSpawn)
         sprintf(szTemp," NotNearAlert:%d",pSearchSpawn->NotNearAlertList);
         strcat(Buffer,szTemp);
     }
+    if (pSearchSpawn->bGM) strcat(Buffer," GM");
     if (pSearchSpawn->bTrader) strcat(Buffer," Trader");
     if (pSearchSpawn->bLFG) strcat(Buffer," LFG");
     if (pSearchSpawn->bTargInvis) strcat(Buffer," Invis");
@@ -3430,6 +3431,9 @@ PSPAWNINFO SearchThroughSpawns(PSEARCHSPAWN pSearchSpawn, PSPAWNINFO pChar)
             ) && (
                 (!pSearchSpawn->bLFG) ||
                 (pSpawn->LFG)
+            ) && (
+                (!pSearchSpawn->bGM) ||
+                (pSpawn->GM)
             ) && (
                 (!pSearchSpawn->bTrader) ||
                 (pSpawn->pActorInfo->Trader)
@@ -3569,6 +3573,9 @@ BOOL SpawnMatchesSearch(PSEARCHSPAWN pSearchSpawn, PSPAWNINFO pChar, PSPAWNINFO 
                 (!pSearchSpawn->bLFG) ||
                 (pSpawn->LFG)
             ) && (
+                (!pSearchSpawn->bGM) ||
+                (pSpawn->GM)
+            ) && (
                 (!pSearchSpawn->bGroup) ||
                 (IsInGroup(pSpawn))
             ) && (
@@ -3656,6 +3663,8 @@ PCHAR ParseSearchSpawnArgs(PCHAR szArg, PCHAR szRest, PSEARCHSPAWN pSearchSpawn)
             pSearchSpawn->bTargPrev = TRUE;
         } else if (!strcmp(szArg,"lfg")) {
             pSearchSpawn->bLFG = TRUE;
+        } else if (!strcmp(szArg,"gm")) {
+            pSearchSpawn->bGM = TRUE;
         } else if (!strcmp(szArg,"group")) {
             pSearchSpawn->bGroup = TRUE;
         } else if (!strcmp(szArg,"trader")) {

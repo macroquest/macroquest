@@ -397,6 +397,12 @@ public:
 		AARank=42,
 		Casting=43,
 		Mount=44,
+		Swimming=45,
+		Underwater=46,
+		FeetWet=47,
+		Animation=48,
+		Holding=49,
+		Look=50,
 	};
 	MQ2SpawnType():MQ2Type("spawn")
 	{
@@ -442,6 +448,12 @@ public:
 		TypeMember(AARank);
 		TypeMember(Casting);
 		TypeMember(Mount);
+		TypeMember(Swimming);
+		TypeMember(Underwater);
+		TypeMember(FeetWet);
+		TypeMember(Animation);
+		TypeMember(Holding);
+		TypeMember(Look);
 	}
 
 	~MQ2SpawnType()
@@ -536,6 +548,8 @@ public:
 		BaseWIS=71,
 		PracticePoints=72,
 		PctExp=73,
+		PctAAExp=74,
+		Moving=75,
 	};
 	MQ2CharacterType():MQ2Type("character")
 	{
@@ -611,6 +625,8 @@ public:
 		TypeMember(BaseWIS);//57,
 		TypeMember(PracticePoints);
 		TypeMember(PctExp);
+		TypeMember(PctAAExp);
+		TypeMember(Moving);
 	}
 
 	~MQ2CharacterType()
