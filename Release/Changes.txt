@@ -3,6 +3,9 @@
   before putting up the update but didn't in an exact copy of it above it.  Lax truly lacks. ;)
 - Added pet weapon procced pet body type to the list of known body types.
 - Fixed captioncolors not working correctly
+- /who <level> will work properly, as you would have expected previously.  e.g. /who 65.
+  Coincidentally this now works with the other spawn searches, /who /target /highlight /mapshow
+  /maphide, ${Spawn[search]} etc.
 
 27 May 2004 by Lax:
 - Added "chest" to the standard spawn searches used by /who, /target, /highlight, /mapshow, 

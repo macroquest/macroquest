@@ -3107,6 +3107,9 @@ PCHAR ParseSearchSpawnArgs(PCHAR szArg, PCHAR szRest, PSEARCHSPAWN pSearchSpawn)
             } else {
                 szRest = GetNextArg(szRest,1);
             }
+		} else if (IsNumber(szArg)) {
+			pSearchSpawn->MinLevel=atoi(szArg);
+			pSearchSpawn->MaxLevel=pSearchSpawn->MinLevel;
         } else {
 			for (DWORD N=1;N<17;N++)
 			{
