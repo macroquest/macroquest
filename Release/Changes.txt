@@ -1,6 +1,9 @@
 09 May 2004 by Lax (more):
 - Fixed VS6 compile errors in Blech
 - Fixed reported crash bug
+- Fixed possible crash with HUDs
+- Added MQ2HUD "type" 8, for character select screen.  This should fix some potential
+  crashes when using custom HUDs and entering char select.
 
 09 May 2004 by Lax:
 - Removed remnants of MQ2Parms system.  Rest in peace.  Phase 4.

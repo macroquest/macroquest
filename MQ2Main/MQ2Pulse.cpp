@@ -246,12 +246,6 @@ void Heartbeat()
 		FixStringTable();
 		gStringTableFixed=TRUE;
 	}
-	UpdateMQ2SpawnSort();
-	DrawHUD();
-	if (!bMouseLook && ScreenMode==3)
-	{
-		pWndMgr->DrawCursor();
-	}
 
 	DebugTry(int GameState=GetGameState());
 	if (GameState!=-1)
@@ -262,6 +256,12 @@ void Heartbeat()
 			gGameState=GameState;
 			Benchmark(bmPluginsSetGameState,PluginsSetGameState(GameState));
 		}
+	}
+	UpdateMQ2SpawnSort();
+	DrawHUD();
+	if (gGameState==GAMESTATE_INGAME && !bMouseLook && ScreenMode==3)
+	{
+		pWndMgr->DrawCursor();
 	}
 
     bRunNextCommand   = TRUE;

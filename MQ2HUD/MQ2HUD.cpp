@@ -21,6 +21,7 @@ typedef struct _HUDELEMENT {
 #define HUDTYPE_NORMAL		1
 #define HUDTYPE_FULLSCREEN	2
 #define HUDTYPE_CURSOR		4
+#define HUDTYPE_CHARSELECT  8
 
 PreSetup("MQ2HUD");
 
@@ -179,22 +180,31 @@ PLUGIN_API VOID OnDrawHUD(VOID)
 	}	
 	CHAR szBuffer[MAX_STRING]={0};
 	PHUDELEMENT pElement=pHud;
+
+	DWORD X,Y;
 	while(pElement)
 	{
-		strcpy(szBuffer,pElement->Text);
-		ParseMacroParameter(GetCharInfo()->pSpawn,szBuffer);		
-		if (szBuffer[0] && strcmp(szBuffer,"NULL"))
+		if ((gGameState==GAMESTATE_CHARSELECT && pElement->Type&HUDTYPE_CHARSELECT) ||
+			(gGameState==GAMESTATE_INGAME && (
+			(pElement->Type&HUDTYPE_NORMAL && ScreenMode!=3) ||
+			(pElement->Type&HUDTYPE_FULLSCREEN && ScreenMode==3))))
 		{
-			if ((pElement->Type&HUDTYPE_NORMAL && ScreenMode!=3) ||
-				(pElement->Type&HUDTYPE_FULLSCREEN && ScreenMode==3))
+			if (pElement->Type&HUDTYPE_CURSOR)
 			{
-				if (pElement->Type&HUDTYPE_CURSOR)
-				{
 					PMOUSEINFO pMouse = (PMOUSEINFO)EQADDR_MOUSE;
-					DrawHUDText(szBuffer,pMouse->X+pElement->X,pMouse->Y+pElement->Y,pElement->Color);
-				}
-				else
-					DrawHUDText(szBuffer,SX+pElement->X,SY+pElement->Y,pElement->Color);
+					X=pMouse->X+pElement->X;
+					Y=pMouse->Y+pElement->Y;
+			}
+			else
+			{
+				X=SX+pElement->X;
+				Y=SX+pElement->Y;
+			}
+			strcpy(szBuffer,pElement->Text);
+			ParseMacroParameter(GetCharInfo()->pSpawn,szBuffer);		
+			if (szBuffer[0] && strcmp(szBuffer,"NULL"))
+			{
+				DrawHUDText(szBuffer,X,Y,pElement->Color);
 			}
 		}
 
