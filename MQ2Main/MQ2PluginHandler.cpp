@@ -53,7 +53,6 @@ CRITICAL_SECTION gPluginCS;
 DWORD LoadMQ2Plugin(const PCHAR Filename)
 {
 //	CAutoLock Lock(&gPluginCS);
-//		fMQWriteChatColor WCC=(fMQWriteChatColor)GetProcAddress(pPlugin->hModule,"ChatHook");
 	DebugSpew("LoadMQ2Plugin(%s)",Filename);
 	CHAR FullFilename[MAX_STRING]={0};
 	sprintf(FullFilename,"%s\\%s",gszINIPath,Filename);
@@ -83,10 +82,8 @@ DWORD LoadMQ2Plugin(const PCHAR Filename)
 	pPlugin->WriteChatColor=(fMQWriteChatColor)GetProcAddress(hmod,"OnWriteChatColor");
 	pPlugin->Zoned=(fMQZoned)GetProcAddress(hmod,"OnZoned");
 
-	DebugSpew("Calling pPlugin->Initialize");
 	if (pPlugin->Initialize)
 		pPlugin->Initialize();
-	DebugSpew("Called pPlugin->Initialize");
 
 	pPlugin->pLast=0;
 	pPlugin->pNext=pPlugins;
@@ -118,19 +115,17 @@ BOOL UnloadMQ2Plugin(const PCHAR Filename)
 
 VOID InitializeMQ2Plugins()
 {
+	DebugSpew("Initializing plugins");
 	InitializeCriticalSection(&gPluginCS);
-
-	// TO BE REMOVED, THIS IS ONLY FOR DEMONSTRATION/TESTING
-//	CHAR szFilename[MAX_STRING]={0};
-//	sprintf(szFilename,"%s\\%s",gszINIPath,"MQ2Template.DLL"); 
-//	LoadMQ2Plugin(szFilename);
 
 	CHAR PluginList[MAX_STRING*10] = {0};
     CHAR szBuffer[MAX_STRING] = {0};
-	GetPrivateProfileString("Plugins",NULL,"",PluginList,MAX_STRING*10,gszINIPath);
+    CHAR MainINI[MAX_STRING] = {0};
+    sprintf(MainINI,"%s\\macroquest.ini",gszINIPath);
+	GetPrivateProfileString("Plugins",NULL,"",PluginList,MAX_STRING*10,MainINI);
     PCHAR pPluginList = PluginList;
     while (pPluginList[0]!=0) {
-        GetPrivateProfileString("Plugins",pPluginList,"",szBuffer,MAX_STRING,gszINIPath);
+        GetPrivateProfileString("Plugins",pPluginList,"",szBuffer,MAX_STRING,MainINI);
         if (szBuffer[0]!=0) {
 			LoadMQ2Plugin(szBuffer);
         }

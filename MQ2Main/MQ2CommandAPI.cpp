@@ -229,7 +229,7 @@ BOOL RemoveCommand(PCHAR Command)
 
 void AddAlias(PCHAR ShortCommand, PCHAR LongCommand)
 {
-	
+	DebugSpew("AddAlias(%s,%s)",ShortCommand,LongCommand);
 	// perform insertion sort
 	if (!pAliases)
 	{
@@ -446,10 +446,12 @@ void InitializeMQ2Commands()
 
 	CHAR AliasList[MAX_STRING*10] = {0};
     CHAR szBuffer[MAX_STRING] = {0};
-	GetPrivateProfileString("Aliases",NULL,"",AliasList,MAX_STRING*10,gszINIPath);
+    CHAR MainINI[MAX_STRING] = {0};
+    sprintf(MainINI,"%s\\macroquest.ini",gszINIPath);
+	GetPrivateProfileString("Aliases",NULL,"",AliasList,MAX_STRING*10,MainINI);
     PCHAR pAliasList = AliasList;
     while (pAliasList[0]!=0) {
-        GetPrivateProfileString("Aliases",pAliasList,"",szBuffer,MAX_STRING,gszINIPath);
+        GetPrivateProfileString("Aliases",pAliasList,"",szBuffer,MAX_STRING,MainINI);
         if (szBuffer[0]!=0) {
 			AddAlias(pAliasList,szBuffer);
         }
