@@ -128,7 +128,7 @@ typedef struct _CSIDLWNDVFTABLE {
 } CSIDLWNDVFTABLE, *PCSIDLWNDVFTABLE;
 
 // Lax
-// Actual Size 0x110  3-16-2004
+// Actual Size 0x118  3-23-2004
 typedef struct _CXWNDVFTABLE {
 /*0000*/ LPVOID IsValid;
 /*0004*/ LPVOID  vector_deleting_destructor;
@@ -603,12 +603,15 @@ typedef struct _EQLOOTWINDOW {
 /*0x24c*/
 } EQLOOTWINDOW, *PEQLOOTWINDOW;
 
-//Size: 0x2e8 (02/10/2004)
+//Size: 0x2f8 (03/25/2004)
 typedef struct _EQPETINFOWINDOW {
 /*0x000*/ struct _CSIDLWND Wnd;
-/*0x148*/ BYTE  Unknown0x148[0x124];
-/*0x26c*/ int   Buff[0x1e]; // Spell ID# of each buff -- 30 total
-/*0x2e4*/ DWORD Unknown0x2e4;
+/*0x150*/ DWORD Unknown0x150;
+/*0x154*/ DWORD Unknown0x154; // pet's spawnid# ??
+/*0x158*/ DWORD Unknown0x158; // 1
+/*0x15c*/ BYTE  Unknown0x15c[0x120];
+/*0x27c*/ int   Buff[0x1e]; // Spell ID# of each buff -- 30 total
+/*0x2f4*/ DWORD Unknown0x2f4;  
 } EQPETINFOWINDOW, *PEQPETINFOWINDOW;
 
 typedef struct _EQTRADESKILLRECIPE {
