@@ -1,3 +1,8 @@
+05 Max 2004 by Lax:
+- Updated for patch and added README.CHM. This is not QUITE the latest revision of the readme
+  but Wassup is afk and I'm updating the zip.  Keep an eye out, we should have the manual
+  available in more formats (including printable) soon
+
 04 May 2004 by Lax:
 - New command
   Usage: /hud <normal|underui|always>
