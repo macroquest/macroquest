@@ -37,8 +37,23 @@ static inline PCHAR GetBodyTypeDesc(DWORD BodyTypeID)
 	{
 	case 0:
 		return "BODYTYPE ZERO";
+	case 9:
+	case 10:
+	case 16:
+	case 17:
+	case 18:
+	case 30:
+	case 32:
+	case 33:
+		return "MOSTLY HARMLESS";
 	case 29:
 		return "Dragon";
+	case 31:
+		return "Wizard Familiar";
+	case 27:
+		return "Mage Pet";
+	case 8:
+		return "Necro Pet";
 	default:
 	return pEverQuest->GetBodyTypeDesc(BodyTypeID);
 	}

@@ -513,14 +513,14 @@ CHAR *parse(CHAR *rawmsg) { //take raw irc protocol message and return human rea
 		if(!strcmp(IrcNick, param[0])) {
 			sprintf(buff,"\ab[\ap%s\ab(\a-pmsg\ab)]\a-w %s\0", prefix, param[1]);
 
-			sprintf(Arg1,"%s tells you, '%s'", prefix, param[1]);
-			CheckChatForEvent(Arg1);
+//			sprintf(Arg1,"%s tells you, '%s'", prefix, param[1]);
+//			CheckChatForEvent(Arg1);
 			return buff;
 		} else {
 			if(!strcmp(*mychan, param[0])) {
 				sprintf(buff,"\ag<\a-w%s\ag>\a-w %s\0", prefix, param[1]);
-				sprintf(Arg1,"%s tells the group, '%s'", prefix, param[1]);
-				CheckChatForEvent(Arg1);
+//				sprintf(Arg1,"%s tells the group, '%s'", prefix, param[1]);
+//				CheckChatForEvent(Arg1);
 				return buff;
 			} else {
 				sprintf(buff,"\ag<\a-w%s\ag/\a-w%s\ag>\a-w %s\0", prefix, param[0], param[1]);

@@ -2295,7 +2295,7 @@ bool MQ2ItemType::GetMember(MQ2VARPTR VarPtr, PCHAR Member, PCHAR Index, MQ2TYPE
 	case BuyPrice:
 		if (pActiveMerchant)
 		{
-			Dest.DWord=(DWORD)((FLOAT)pItem->Item->Cost*((PEQMERCHWINDOW)pMerchantWnd)->Markup);
+			Dest.DWord=pItem->Price;
 			Dest.Type=pIntType;
 			return true;
 		}

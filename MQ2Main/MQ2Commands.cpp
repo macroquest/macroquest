@@ -3992,6 +3992,20 @@ VOID DoCtrlCmd(PSPAWNINFO pChar, PCHAR szLine)
 	((PCXWNDMGR)pWndMgr)->KeyboardFlags[1]=Old;
 }
 
+VOID NoModKeyCmd(PSPAWNINFO pChar, PCHAR szLine)
+{
+	if (!szLine[0])
+	{
+		SyntaxError("Usage: /nomodkey <command>");
+		return;
+	}
+	bool KeyboardFlags[4];
+	*(DWORD*)&KeyboardFlags=*(DWORD*)&((PCXWNDMGR)pWndMgr)->KeyboardFlags;
+	*(DWORD*)&((PCXWNDMGR)pWndMgr)->KeyboardFlags=0;	
+	DoCommand(pChar,szLine);
+	*(DWORD*)&((PCXWNDMGR)pWndMgr)->KeyboardFlags=*(DWORD*)&KeyboardFlags;
+}
+
  // ***************************************************************************
 // Function:    DoSocial
 // Description: '/dosocial' command

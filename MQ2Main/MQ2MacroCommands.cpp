@@ -1027,8 +1027,14 @@ PCHAR GetFuncParam(PCHAR szMacroLine, DWORD ParamNum, PCHAR szParamName, PCHAR s
 	{
 		CHAR Temp[MAX_STRING]={0};
         GetArg(Temp,szSubParamNamePointer,ParamNum+1,TRUE,TRUE,TRUE,',');
+		DebugSpew("GetFuncParam(%d): '%s'",ParamNum+1,Temp);
         if (Temp[strlen(Temp)-1]==')') 
 			Temp[strlen(Temp)-1]=0;
+		PCHAR pStart=&Temp[0];
+		while(*pStart==' ') 
+			++pStart;
+		if (pStart!=&Temp[0])
+			memmove(Temp,pStart,MAX_STRING-1);
 		if (PCHAR pSpace=strchr(Temp,' '))
 		{
 			*pSpace=0;

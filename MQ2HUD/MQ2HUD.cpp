@@ -28,6 +28,8 @@ PreSetup("MQ2HUD");
 PHUDELEMENT pHud=0;
 struct _stat LastRead;
 
+char HUDName[MAX_STRING]="Elements";
+
 BOOL Stat(PCHAR Filename, struct _stat &Dest)
 {
     int client = _open(Filename,_O_RDONLY);
@@ -126,10 +128,10 @@ VOID LoadElements()
 	ClearElements();
 	CHAR ElementList[MAX_STRING*10] = {0};
     CHAR szBuffer[MAX_STRING] = {0};
-	GetPrivateProfileString("Elements",NULL,"",ElementList,MAX_STRING*10,INIFileName);
+	GetPrivateProfileString(HUDName,NULL,"",ElementList,MAX_STRING*10,INIFileName);
     PCHAR pElementList = ElementList;
     while (pElementList[0]!=0) {
-        GetPrivateProfileString("Elements",pElementList,"",szBuffer,MAX_STRING,INIFileName);
+        GetPrivateProfileString(HUDName,pElementList,"",szBuffer,MAX_STRING,INIFileName);
         if (szBuffer[0]!=0) {
 			AddElement(szBuffer);
         }
@@ -141,13 +143,36 @@ VOID LoadElements()
 		ZeroMemory(&LastRead,sizeof(struct _stat));
 }
 
+VOID DefaultHUD(PSPAWNINFO pChar, PCHAR szline)
+{
+   strcpy(HUDName, "Elements");
+   WritePrivateProfileString("MQ2HUD","Last",HUDName,INIFileName);
+   LoadElements();
+} 
+
+VOID ChangeHUD(PSPAWNINFO pChar, PCHAR szLine) 
+{
+	strcpy(HUDName,szLine);
+    WritePrivateProfileString("MQ2HUD","Last",HUDName,INIFileName);
+	LoadElements();
+}
+
+BOOL dataHUD(PCHAR szIndex, MQ2TYPEVAR &Ret)
+{
+	Ret.Ptr=HUDName;
+	Ret.Type=pStringType;
+	return true;
+}
 
 // Called once, when the plugin is to initialize
 PLUGIN_API VOID InitializePlugin(VOID)
 {
 	DebugSpewAlways("Initializing MQ2HUD");
+	GetPrivateProfileString("MQ2HUD","Last","Elements",HUDName,MAX_STRING,INIFileName); 
 	LoadElements();
-
+	AddCommand("/defaulthud",DefaultHUD);
+	AddCommand("/loadhud",ChangeHUD);
+	AddMQ2Data("HUD",dataHUD);
 }
 
 // Called once, when the plugin is to shutdown
@@ -155,6 +180,9 @@ PLUGIN_API VOID ShutdownPlugin(VOID)
 {
 	DebugSpewAlways("Shutting down MQ2HUD");
 	ClearElements();
+	RemoveCommand("/loadhud");
+	RemoveCommand("/defaulthud");
+	RemoveMQ2Data("HUD");
 }
 
 // Called every frame that the "HUD" is drawn -- e.g. net status / packet loss bar

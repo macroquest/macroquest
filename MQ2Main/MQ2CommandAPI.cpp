@@ -467,6 +467,7 @@ void InitializeMQ2Commands()
 		{"/caption",	CaptionCmd,0,0},
 		{"/captioncolor",CaptionColorCmd,1,0},
 		{"/noparse",    NoParseCmd,0,0},
+		{"/nomodkey",   NoModKeyCmd,0,0},
 		{NULL,          NULL,0,1},
     };
 

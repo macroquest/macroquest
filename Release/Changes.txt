@@ -1,9 +1,26 @@
-12 May 2004 by Lax (more):
+13 May 2004 by Lax:
 - Fixed "by class" caption colors
-- Fixed bodytype 29 (dragons) being identified as triggers
+- Fixed some bodytypes being identified as triggers (note that untargetable NPCs *are* 
+  triggers)
 - Fixed target caption leakage (would stay drawn after switching targets)
-- /who will show "invisible" spawns if any parameters are given.  Spawn search functions,
+- /who will show "invis" spawns if any parameters are given.  Spawn search functions,
   including /who and /target, will probably get updated soon.	
+- Fixed problem with leading spaces in sub parameter declarations
+- MQ2HUD now allows for different HUDs.  Each different HUD is stored in MQ2HUD.ini, but
+  in different sections.  The default HUD is "Elements" because that's what it originally
+  used.  To load a different HUD, the command is "/loadhud <name>" like "/loadhud bard".
+  In this case, the [bard] section (not case sensitive, so it could also be [BARD]) of
+  MQ2HUD.ini will be used.  To load the default HUD specifically, the command is 
+  "/defaulthud".  MQ2HUD also now adds the following MQ2Data Top-Level Object:
+  string HUD: Name of currently loaded HUD.
+- MQ2FPS now fixes the bug where CTRL ALT and SHIFT keys stick when you switch windows.
+  This is a bug in EQ that happens because the release of the key is not captured by EQ after
+  it has been swapped to the background.  MQ2FPS now releases the keys as soon as EQ goes
+  to the background, so this will no longer be an issue.
+- New command to complement the /ctrlkey /altkey /shiftkey commands:
+  Usage: /nomodkey <command>
+  This command will release all ctrl/alt/shift keys for the duration of executing the 
+  given command.
 
 12 May 2004 by Lax:
 - Fixed the mysteriously disappearing #event handling in macros ;)
