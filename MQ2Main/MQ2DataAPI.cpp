@@ -311,9 +311,11 @@ BOOL ParseMacroData(PCHAR szOriginal)
 	PCHAR pBrace=strstr(szOriginal,"${");
 	if (!pBrace)
 		return false;
-	
+	unsigned long NewLength;
 	BOOL Changed=false;
-
+	PCHAR pPos;
+	PCHAR pStart;
+	PCHAR pIndex;
 	CHAR szCurrent[MAX_STRING]={0};
 
 	do
@@ -363,9 +365,9 @@ BOOL ParseMacroData(PCHAR szOriginal)
 		CurrentVar.Type=0;
 		CurrentVar.Ptr=0;
 		// Find [] before a . or null
-		PCHAR pPos=&szCurrent[0];
-		PCHAR pStart=pPos;
-		PCHAR pIndex="";
+		pPos=&szCurrent[0];
+		pStart=pPos;
+		pIndex="";
 		while(1)
 		{
 			if (*pPos==0)
@@ -378,7 +380,7 @@ BOOL ParseMacroData(PCHAR szOriginal)
 						strcpy(szCurrent,"NULL");
 						goto pmdinsert;
 					}
-					CurrentVar.Type->ToString(CurrentVar.Ptr,szCurrent);
+					CurrentVar.Type->ToString(*(MQ2VARPTR*)&CurrentVar.Ptr,szCurrent);
 					goto pmdinsert;
 				}
 				else
@@ -401,7 +403,7 @@ BOOL ParseMacroData(PCHAR szOriginal)
 					}
 					else
 					{
-						if (!CurrentVar.Type->GetMember(CurrentVar.Ptr,pStart,pIndex,CurrentVar))
+						if (!CurrentVar.Type->GetMember(*(MQ2VARPTR*)&CurrentVar.Ptr,pStart,pIndex,CurrentVar))
 						{
 							// error
 							strcpy(szCurrent,"NULL");
@@ -409,7 +411,7 @@ BOOL ParseMacroData(PCHAR szOriginal)
 						}
 					}
 				}
-				CurrentVar.Type->ToString(CurrentVar.Ptr,szCurrent);
+				CurrentVar.Type->ToString(*(MQ2VARPTR*)&CurrentVar.Ptr,szCurrent);
 
 				// done processing
 				goto pmdinsert;
@@ -424,7 +426,7 @@ BOOL ParseMacroData(PCHAR szOriginal)
 						strcpy(szCurrent,"NULL");
 						goto pmdinsert;
 					}
-					CurrentVar.Type->ToString(CurrentVar.Ptr,szCurrent);
+					CurrentVar.Type->ToString(*(MQ2VARPTR*)&CurrentVar.Ptr,szCurrent);
 					goto pmdinsert;
 				}
 				else
@@ -448,7 +450,7 @@ BOOL ParseMacroData(PCHAR szOriginal)
 					}
 					else
 					{
-						if (!CurrentVar.Type->GetMember(CurrentVar.Ptr,pStart,pIndex,CurrentVar))
+						if (!CurrentVar.Type->GetMember(*(MQ2VARPTR*)&CurrentVar.Ptr,pStart,pIndex,CurrentVar))
 						{
 							// error
 							strcpy(szCurrent,"NULL");
@@ -487,7 +489,7 @@ BOOL ParseMacroData(PCHAR szOriginal)
 					pStart=&pPos[1];
 				else if (!pPos[1])
 				{
-					CurrentVar.Type->ToString(CurrentVar.Ptr,szCurrent);
+					CurrentVar.Type->ToString(*(MQ2VARPTR*)&CurrentVar.Ptr,szCurrent);
 					goto pmdinsert;
 				}
 				else
@@ -556,7 +558,7 @@ BOOL ParseMacroData(PCHAR szOriginal)
 						strcpy(szCurrent,"NULL");
 						goto pmdinsert;
 					}
-					CurrentVar.Type->ToString(CurrentVar.Ptr,szCurrent);
+					CurrentVar.Type->ToString(*(MQ2VARPTR*)&CurrentVar.Ptr,szCurrent);
 					goto pmdinsert;
 				}
 				else
@@ -580,7 +582,7 @@ BOOL ParseMacroData(PCHAR szOriginal)
 					}
 					else
 					{
-						if (!CurrentVar.Type->GetMember(CurrentVar.Ptr,pStart,pIndex,CurrentVar))
+						if (!CurrentVar.Type->GetMember(*(MQ2VARPTR*)&CurrentVar.Ptr,pStart,pIndex,CurrentVar))
 						{
 							// error
 							strcpy(szCurrent,"NULL");
@@ -595,11 +597,13 @@ BOOL ParseMacroData(PCHAR szOriginal)
 
 		// insert szCurrent into current position
 pmdinsert:;
-		unsigned long NewLength=strlen(szCurrent);
+		  {
+			NewLength=strlen(szCurrent);
 
-		memmove(&pBrace[NewLength],&pEnd[1],strlen(&pEnd[1])+1);
-		strncpy(pBrace,szCurrent,NewLength);
-		Changed=true;
+			memmove(&pBrace[NewLength],&pEnd[1],strlen(&pEnd[1])+1);
+			strncpy(pBrace,szCurrent,NewLength);
+			Changed=true;
+		  }
 pmdbottom:;
 	} while (pBrace=strstr(&pBrace[1],"${"));
 
