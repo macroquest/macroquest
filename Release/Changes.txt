@@ -1,3 +1,6 @@
+22 Feb 2004 by Amadeus
+- Updated readme.html [thanks Wassup!]
+
 22 Feb 2004 by Lax
 - Updated license notice in each source file for 2004 and made sure each had one
 - Added MQ2Spawns.cpp, which gives us hooks when a spawn is added to or removed from a zone.
@@ -5,7 +8,6 @@
   PLUGIN_API VOID OnAddSpawn(PSPAWNINFO pNewSpawn)
   PLUGIN_API VOID OnRemoveSpawn(PSPAWNINFO pSpawn)
   
-
 19 Feb 2004 by Amadeus
 - General Cleanup and offset updates for 02/18/2004 patch
 - Added Endurance to CHARINFO and $char(endurance,cur)  [Teh_ish]
