@@ -91,11 +91,6 @@ VOID ProcessFrame()
 
 	DWORD FirstFrame=0;
 	DWORD Frames=CurrentFrame;
-	if (CurrentFrame>FRAME_COUNT)
-	{
-		CurrentFrame=0;
-		bFrameArrayFilled=1;
-	}
 	if (bFrameArrayFilled)
 	{
 		FirstFrame=CurrentFrame+1;
@@ -153,7 +148,11 @@ VOID ProcessFrame()
 	else
 		FPS=999.0f;
 	// advance frame count
-	CurrentFrame++; 
+	if (++CurrentFrame>FRAME_COUNT)
+	{
+		CurrentFrame=0;
+		bFrameArrayFilled=1;
+	}
 }
 
 // This is called every time MQ pulses
