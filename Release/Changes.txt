@@ -3,6 +3,7 @@
 - Sub parameters (including those for events) are now allowed to have a type other than 
   string, when MQ2DataVars is enabled, like so:
   Sub MySub(int A, string B, float C)
+- Fixed out-of-bounds by 1 crash in MQ2DataVar arrays
 - MQ2FPS now allows you to disable the framerate display with /fps off (/fps on to enable again)
 - MQ2EQIM feature set adjusted.  Now keeps your list of buddies (per character) and the last
   time they were seen online or on eqim (by any character).  Your friends list is automatically

@@ -759,7 +759,7 @@ public:
 			if (strchr(Index,','))
 				return -1;
 			Element=atoi(Index)-1;
-			if (Element>TotalElements)
+			if (Element>=TotalElements)
 				return -1;
 			return Element;
 		}
@@ -788,7 +788,7 @@ public:
 					*pComma=0;
 				
 				DWORD Temp=atoi(pStart)-1;
-				if (Temp>pExtents[N])
+				if (Temp>=pExtents[N])
 					return -1;
 				if (N<nExtents-1)
 					Temp*=pExtents[N];
@@ -799,6 +799,12 @@ public:
 					*pComma=',';
 					pStart=&pComma[1];
 				}
+			}
+			if (Element>=TotalElements)
+			{
+				// bug in array logic
+				OutputDebugString("Bug in array logic");
+				return -1;
 			}
 			return Element;
 		}
@@ -812,7 +818,7 @@ public:
 			if (strchr(Index,','))
 				return FALSE;
 			Element=atoi(Index)-1;
-			if (Element>TotalElements)
+			if (Element>=TotalElements)
 				return FALSE;
 			Dest.Type=pType;
 			Dest.VarPtr=pData[Element];
@@ -843,7 +849,7 @@ public:
 					*pComma=0;
 				
 				DWORD Temp=atoi(pStart)-1;
-				if (Temp>pExtents[N])
+				if (Temp>=pExtents[N])
 					return FALSE;
 				if (N<nExtents-1)
 					Temp*=pExtents[N];
@@ -854,6 +860,12 @@ public:
 					*pComma=',';
 					pStart=&pComma[1];
 				}
+			}
+			if (Element>=TotalElements)
+			{
+				// bug in array logic
+				OutputDebugString("Bug in array logic");
+				return FALSE;
 			}
 			Dest.Type=pType;
 			Dest.VarPtr=pData[Element];

@@ -2399,7 +2399,7 @@ int FindInvSlotForContents(PCONTENTS pContents)
 //			DebugSpew("pInvSlotMgr->SlotArray[%d]->pContents==0x%08X",N,*pInvMgr->SlotArray[N]->ppContents);
 			if (*pInvMgr->SlotArray[N]->ppContents==pContents)
 			{
-				if (pInvMgr->SlotArray[N]->pInvSlotWnd)
+				if (pInvMgr->SlotArray[N]->pInvSlotWnd && pInvMgr->SlotArray[N]->pInvSlotWnd->InvSlot>=0)
 					return pInvMgr->SlotArray[N]->pInvSlotWnd->InvSlot; 
 				break;
 			}
@@ -2415,6 +2415,7 @@ int FindInvSlotForContents(PCONTENTS pContents)
 			{
 				for (unsigned long nItem=0 ; nItem < pPack->Item->Slots ; nItem++)
 				{
+					DebugSpew("Pack[%d]->Contents[%d]==0x%08X",nPack,nItem,pPack->Contents[nItem]);
 					if (pPack->Contents[nItem]==pContents)
 					{
 						return 251+(nPack*10)+nItem;

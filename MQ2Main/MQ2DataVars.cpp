@@ -54,14 +54,14 @@ inline PDATAVAR FindMQ2DataVariable(PCHAR Name)
 		PDATAVAR pVar=gMacroStack->Parameters;
 		while(pVar)
 		{
-			if (!stricmp(pVar->szName,Name))
+			if (!strcmp(pVar->szName,Name))
 				return pVar;
 			pVar=pVar->pNext;
 		}
 		pVar=gMacroStack->LocalVariables;
 		while(pVar)
 		{
-			if (!stricmp(pVar->szName,Name))
+			if (!strcmp(pVar->szName,Name))
 				return pVar;
 			pVar=pVar->pNext;
 		}
