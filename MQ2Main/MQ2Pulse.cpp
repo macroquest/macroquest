@@ -227,7 +227,7 @@ void Heartbeat()
 	int GameState=GetGameState();
 	if (GameState!=-1)
 	{
-		if (GameState!=gGameState)
+		if ((DWORD)GameState!=gGameState)
 		{
 			DebugSpew("GetGameState()=%d vs %d",GameState,gGameState);
 			gGameState=GameState;
