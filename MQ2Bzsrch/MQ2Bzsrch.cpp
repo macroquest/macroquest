@@ -177,11 +177,14 @@ struct _types {
     "wind instrument", 23,
 };
 
+DWORD BzCount = 0;
+struct _BazaarSearchResponsePacket BzArray[200];
 
 PreSetup("MQ2Bzsrch");
 
 void BzSrchMe(PSPAWNINFO pChar, PCHAR szLine);
 void MQ2BzSrch(PSPAWNINFO pChar, PCHAR szLine);
+DWORD parmBazaar(PCHAR szVar, PCHAR szOutput, PSPAWNINFO pChar);
 
 // we need to specify a class because we are hooking a class member 
 // function.  This should preserve ecx (*this).   We don't ever 
@@ -196,7 +199,6 @@ public:
     // an item list but a request to resort the list
     void BzDetour(char *itemarray,int count) 
     {
-        int i;
         struct _BazaarSearchResponsePacket *ptr = (struct _BazaarSearchResponsePacket *) itemarray;
 
         DebugSpewAlways("count = %d\n", count);
@@ -204,13 +206,20 @@ public:
         // future: copy these to a list that we keep here for so that
         // they may be retrieved with a $bazaar parm
         if (ptr->BSSmsg == 7) {
-            for(i=0;(i<5) && (i<(int)(count/sizeof(struct _BazaarSearchResponsePacket)));i++, ptr++)
+#if 0
+            for(int i=0;(i<5) && (i<(int)(count/sizeof(struct _BazaarSearchResponsePacket)));i++, ptr++)
                 DebugSpewAlways("item %d: %s msg %d n %d, itemid %d, value %d", i, 
                     ptr->BSSName,
                     ptr->BSSmsg,
                     ptr->BSSQuantity,
                     ptr->BSSItemID,
                     ptr->BSSValue);
+#endif
+            BzCount = count/sizeof(struct _BazaarSearchResponsePacket);
+            memcpy(BzArray, ptr, count);
+        } else {
+            // this is an end of list packet but there is only 200
+            // suppored now, it comes in one packet.
         }
 
         BzTrampoline(itemarray, count);
@@ -227,7 +236,7 @@ PLUGIN_API VOID InitializePlugin(VOID)
     // Add commands, macro parameters, hooks, etc.
     AddCommand("/bzsrch",BzSrchMe);
     AddCommand("/mq2bzsrch",MQ2BzSrch);
-    // AddParm("$bazaar(x)",MyParm);
+    AddParm("bazaar",parmBazaar);
     void (BzSrchHook::*pfDetour)(char *,int) = BzSrchHook::BzDetour; 
     void (BzSrchHook::*pfTrampoline)(char *,int) = BzSrchHook::BzTrampoline; 
     AddDetour(CBazaarSearchWnd__HandleBazaarMsg,
@@ -242,7 +251,7 @@ PLUGIN_API VOID ShutdownPlugin(VOID)
 
     // Remove commands, macro parameters, hooks, etc.
     RemoveDetour(CBazaarSearchWnd__HandleBazaarMsg);
-    // RemoveParm("$bazaar(x)");
+    RemoveParm("bazaar");
     RemoveCommand("/bzsrchme");
 }
 
@@ -258,6 +267,14 @@ VOID MQ2BzSrch(PSPAWNINFO pChar, PCHAR szLine)
     WriteChatColor("    [slot  any|ammo|arms|back|charm|chest|ear|face|feet|fingers|hands|head|legs|neck|primary|range|secondary|shoulders|waist|wrist]", USERCOLOR_WHO);
     WriteChatColor("    [type  any|1h slashing|1h blunt|2h blunt|2h slashing|2h piercing|alcohol|all effects|armor|arrow|bandages|book|bow|brass instrument|combinable|drink|flowing thought|focus effect|food|haste|jewelry|key|light|martial|misc|note|percussion instrument|piercing|potion|scroll|shield|stringed instrument|throwing|wind instrument]", USERCOLOR_WHO);
     WriteChatColor("    [price <low> <high>]", USERCOLOR_WHO);
+    WriteChatColor("", USERCOLOR_WHO);
+    WriteChatColor("values are returned in $bazaar variable", USERCOLOR_WHO);
+    WriteChatColor("$bazaar() -- TRUE if there are search results", USERCOLOR_WHO);
+    WriteChatColor("$bazaar(count) -- number of search results", USERCOLOR_WHO);
+    WriteChatColor("$bazaar(n,name) -- name of the nth item", USERCOLOR_WHO);
+    WriteChatColor("$bazaar(n,price) -- price of the nth item", USERCOLOR_WHO);
+    WriteChatColor("$bazaar(n,id) -- id of the nth item", USERCOLOR_WHO);
+    WriteChatColor("$bazaar(n,trader) -- trader id of the nth item", USERCOLOR_WHO);
 }
 
 VOID BzSrchMe(PSPAWNINFO pChar, PCHAR szLine)
@@ -418,9 +435,62 @@ VOID BzSrchMe(PSPAWNINFO pChar, PCHAR szLine)
         }
     }
     
+    BzCount = 0;
     send_message(EQADDR_GWORLD,0x1ec, &bsrp, sizeof(bsrp), TRUE);
     return;
 
 error_out:
     return;
+}
+
+DWORD parmBazaar(PCHAR szVar, PCHAR szOutput, PSPAWNINFO pChar)
+{
+    DWORD i=0;
+
+    if (!strncmp("bazaar()", szVar, 8)) {
+        i+=7;
+        if (!BzCount) {
+            strcat(szOutput,"FALSE");
+        } else {
+            strcat(szOutput,"TRUE");
+        }
+    } else if (!strncmp("bazaar(count)", szVar, 13)) {
+        CHAR szTemp[MAX_STRING] = {0};
+        i+=12;
+        itoa(BzCount, szTemp, 10);
+        strcat(szOutput, szTemp);
+    } else if (!strncmp("bazaar(", szVar, 7)) {
+        CHAR szTemp[MAX_STRING] = {0};
+        DWORD index = atoi(szVar+7);
+        PCHAR tmp = strstr(szVar, ",");
+        if (index >= 200 || index >= BzCount || !tmp) {
+            DebugSpewNoFile("parmBazaar -- Bad $bazaar() '%s'",szVar);
+            return PMP_ERROR_BADPARM;
+        }
+        tmp++;
+        if (!strncmp("name",tmp,4)) {
+            strcat(szOutput, BzArray[index].BSSName);
+        } else if (!strncmp("price",tmp,5)) {
+            itoa(BzArray[index].BSSPrice, szTemp, 10);
+            strcat(szOutput, szTemp);
+        } else if (!strncmp("id",tmp,2)) {
+            itoa(BzArray[index].BSSItemID, szTemp, 10);
+            strcat(szOutput, szTemp);
+        } else if (!strncmp("trader",tmp,6)) {
+            itoa(BzArray[index].BSSTraderID, szTemp, 10);
+            strcat(szOutput, szTemp);
+        } else {
+            DebugSpewNoFile("parmBazaar -- Bad $bazaar() '%s'",szVar);
+            return PMP_ERROR_BADPARM;
+        }
+        tmp = strstr(szVar,")");
+        if (!tmp)  {
+            DebugSpewNoFile("parmBazaar -- Bad $bazaar() '%s'",szVar);
+            return PMP_ERROR_BADPARM;
+        } else {
+            i = (tmp - szVar);
+        }
+    }
+
+    return i;
 }
