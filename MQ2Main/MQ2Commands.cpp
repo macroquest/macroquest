@@ -4424,3 +4424,9 @@ VOID PluginCommand(PSPAWNINFO pChar, PCHAR szLine)
 
 
 }
+
+VOID EQDestroyHeldItemOrMoney(PSPAWNINFO pChar, PCHAR szLine)
+{
+	(*ppPCData)->DestroyHeldItemOrMoney();
+	return;
+}

@@ -1,3 +1,9 @@
+19 Nov 2003 by EqMule
++Added new command /destroy
+will destroy whatever you have on your cursor. Use with care.
+example: /if "$cursor(name)"~~"rusty" /destroy
+In order to get that to work I had to declare EQ_PC (MQ2Globals.h(250):EQLIB_VAR EQ_PC **ppPCData;)
+
 19 Nov 2003 by Lax
 - Fixed MQ2Telnet to not crash on unload (probably).  Critical sections were getting deleted twice.
 - Fixed aliases to work when given parameters

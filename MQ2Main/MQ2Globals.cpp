@@ -357,6 +357,7 @@ PCHAR szItemName[] = {
 
 CEverQuest **ppEverQuest=(CEverQuest**)pinstCEverQuest;
 CDisplay **ppDisplay=(CDisplay**)pinstCDisplay;
+EQ_PC **ppPCData=(EQ_PC**)pinstPCData;
 EQ_Character **ppCharData=(EQ_Character**)pinstCharData;
 EQPlayer **ppCharSpawn=(EQPlayer**)pinstCharSpawn;
 EQPlayer **ppActiveMerchant=(EQPlayer**)pinstActiveMerchant;

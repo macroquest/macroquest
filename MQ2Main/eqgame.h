@@ -84,6 +84,7 @@
 
 #define pinstCDisplay					0x0071D8DC
 #define pinstCEverQuest					0x0077B298
+#define pinstPCData						0x0071D8B8
 #define pinstCharData					0x0071D8B8
 #define pinstCharSpawn                  0x0071D8B0
 #define pinstSpawnList					0x0071D878
@@ -225,4 +226,6 @@
 // MapViewMap
 #define MapViewMap__SaveEx						0x004FB065
 //    GetPrivateProfileString("Function Locations","WriteMapfile","0",szBuffer,MAX_STRING,ClientINI); EQADDR_WRITEMAPFILE = (DWORD)strtoul(szBuffer,NULL,16);
+// /destroy
+#define EQ_PC__DestroyHeldItemOrMoney			0x00431D57
 

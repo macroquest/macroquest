@@ -353,7 +353,6 @@ void InitializeMQ2Commands()
         {"/alias",      Alias,0},
         {"/hotkey",     Hotkey,0},
         {"/filter",     Filter,1},
-//        {"/mapfilter",  MapFilters,1},
 		{"/whofilter",	SWhoFilter,1},
         {"/spewfile",   DebugSpewFile,1},
         {"/charinfo",   CharInfo,1},
@@ -386,8 +385,6 @@ void InitializeMQ2Commands()
         {"/doortarget", DoorTarget,1},
         {"/beep",       MacroBeep,1},
         {"/cast",       Cast,1},
-//        {"/telnet",     ListConnections,1},
-//        {"/breakin",    Breakin,1},
         {"/mqlog",      MacroLog,1},
         {"/seterror",   SetError,1},
         {"/varcalc",    VarCalc,1},
@@ -424,7 +421,7 @@ void InitializeMQ2Commands()
 		{"/windowstate", WindowState,1},
         {"/editmacro",  EditMacro,1},
 		{"/plugin",     PluginCommand,1},
-//		{"/maxfps",     MaxFPS,1},
+		{"/destroy",     EQDestroyHeldItemOrMoney,1},
         {NULL,          NULL,0}
     };
 

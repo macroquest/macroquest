@@ -237,6 +237,8 @@ EQLIB_VAR CEverQuest **ppEverQuest;
 #define pEverQuest (*ppEverQuest)
 EQLIB_VAR CDisplay **ppDisplay;
 #define pDisplay (*ppDisplay)
+EQLIB_VAR EQ_PC **ppPCData;
+#define pPCData (*ppPCData)
 EQLIB_VAR EQ_Character **ppCharData;
 #define pCharData (*ppCharData)
 EQLIB_VAR EQPlayer **ppCharSpawn;
