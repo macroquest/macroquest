@@ -1107,11 +1107,15 @@ VOID Click(PSPAWNINFO pChar, PCHAR szLine) {
     
    //parse location for click location (szMouseLoc) here 
    if (szMouseLoc && szMouseLoc[0]!=0) { 
-      if (!strnicmp(szMouseLoc, "target", 6)) { 
+      if (!strnicmp(szMouseLoc, "target", 6)) {      
+      if (!pTarget) { 
+        WriteChatColor("You must have a target selected for /click x target.",CONCOLOR_RED); 
+        return; 
+      } 
          if (!strnicmp(szArg1, "left", 4)) { 
-             pEverQuest->LeftClickedOnPlayer(pTarget);
+             pEverQuest->LeftClickedOnPlayer(pTarget); 
          } else if (!strnicmp(szArg1, "right", 5)) { 
-			 pEverQuest->RightClickedOnPlayer(pTarget);
+          pEverQuest->RightClickedOnPlayer(pTarget); 
          } 
          return; 
 	  } else if (!strnicmp(szMouseLoc, "item", 4)) {

@@ -1,3 +1,6 @@
+05 Dec 2003 by Mckorr
++Fix for CTD when using /click left|right target when nothing was targetted (motd2k)
+
 05 Dec 2003 by EqMule
 +Fixed $searchspawn(pc,loc:x:y,radius:100) using Ohmz code. see
 http://macroquest.sourceforge.net/phpBB2/viewtopic.php?t=3394&highlight=searchspawn+loc
