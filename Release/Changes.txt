@@ -1,5 +1,6 @@
 16 Feb 2004 by Amadeus
-- * Fixed EQ_CONTAINERWND_MANAGER  (Thereby Fixing $envopen )
+- Fixed EQ_CONTAINERWND_MANAGER  (Thereby Fixing $envopen )
+- Added "Frenzy" to skills.h [daerck]
 
 15 Feb 2004 by Amadeus
 - 'Grouped' location fixed in CHARINFO (thereby fixing $char(grouped))
