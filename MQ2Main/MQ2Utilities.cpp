@@ -986,8 +986,8 @@ DWORD ConColor(WORD CharLevel, WORD SpawnLevel, BYTE SpawnType)
     for (i=0;ConLevels[i][0]!=0;i++) {
         if (CharLevel<=ConLevels[i][0]) {
 //          DebugSpew("ConColor - i = %d",i);
-            if (Diff>=ConLevels[i][2]) return CONCOLOR_BLUE;
-            if (Diff>=ConLevels[i][1]) return CONCOLOR_LIGHTBLUE;
+            if (Diff>ConLevels[i][2]) return CONCOLOR_BLUE;
+            if (Diff>ConLevels[i][1]) return CONCOLOR_LIGHTBLUE;
             return CONCOLOR_GREEN;
         }
     }
