@@ -203,7 +203,7 @@ VOID EndMacro(PSPAWNINFO pChar, PCHAR szLine)
 		KeyCombo TempCombo;
         for (i=0;gDiKeyID[i].szName[0];i++) 
 		{
-			TempCombo.Data[3]=gDiKeyID[i].Id;
+			TempCombo.Data[3]=(unsigned char)gDiKeyID[i].Id;
 			MQ2HandleKeyUp(TempCombo);
         }
     }
