@@ -1,4 +1,4 @@
-#define VersionString "20031126"
+#define VersionString "20031126a"
 #define DebugHeader "[MQ2]"
 #define LoadedString "MQ2 Loaded."
 #define ToUnloadString "MQ2 Unloading..."
