@@ -244,6 +244,7 @@
 #define KeypressHandler__ClearCommandStateArray            0x4AFDB8
 
 // EQ_Character
+#define EQ_Character__Max_Endurance						   0x41D02D
 #define EQ_Character__Max_Mana                             0x4209AE
 #define EQ_Character__Max_HP                               0x4207F9
 #define EQ_Character__Cur_HP                               0x422374

@@ -115,7 +115,7 @@ VOID HideDoCommand(PSPAWNINFO pChar, PCHAR szLine, BOOL delayed)
 			}
 			else
 				pCommand->Function(pChar,szParam);
-			strcpy(szLastCommand,szLine);
+			strcpy(szLastCommand,szOriginalLine);
 			return;
 		}
 		pCommand=pCommand->pNext;
@@ -125,7 +125,7 @@ VOID HideDoCommand(PSPAWNINFO pChar, PCHAR szLine, BOOL delayed)
         return;
     }
 
-	strcpy(szLastCommand,szLine);
+	strcpy(szLastCommand,szOriginalLine);
     sprintf(szCmd,"Couldn't parse '%s'",szOriginalLine);
     DebugSpew("DoCommand - Bad command: %s",szCmd);
     WriteChatColor(szCmd,CONCOLOR_RED);

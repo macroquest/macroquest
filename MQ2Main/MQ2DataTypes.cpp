@@ -1001,8 +1001,13 @@ bool MQ2CharacterType::GetMember(MQ2VARPTR VarPtr, PCHAR Member, PCHAR Index, MQ
 		Dest.Type=pIntType;
 		return true;
 	case PctMana:
-		Dest.DWord=pChar->Mana*100/GetMaxMana();
-		Dest.Type=pIntType;
+		{
+			if (unsigned long Temp=GetMaxMana())
+				Dest.DWord=pChar->Mana*100/Temp;
+			else
+				Dest.DWord=0;
+			Dest.Type=pIntType;
+		}
 		return true;
 	case Buff:
 		if (!Index[0])
@@ -1076,6 +1081,19 @@ bool MQ2CharacterType::GetMember(MQ2VARPTR VarPtr, PCHAR Member, PCHAR Index, MQ
 	case Endurance:
 		Dest.DWord=pChar->Endurance;
 		Dest.Type=pIntType;
+		return true;
+	case MaxEndurance:
+		Dest.DWord=GetMaxEndurance();
+		Dest.Type=pIntType;
+		return true;
+	case PctEndurance:
+		{
+			if (unsigned long Temp=GetMaxEndurance())
+				Dest.DWord=pChar->Endurance/Temp;
+			else
+				Dest.DWord=0;
+			Dest.Type=pIntType;
+		}
 		return true;
 	case GukEarned:
 		Dest.DWord=pChar->GukEarned;

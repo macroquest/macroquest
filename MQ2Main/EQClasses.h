@@ -5376,6 +5376,7 @@ EQLIB_OBJECT int EQ_Character::ItemSpellAffects(int);
 EQLIB_OBJECT int EQ_Character::max_encumbrance(void);
 EQLIB_OBJECT int EQ_Character::Max_HP(int);
 EQLIB_OBJECT int EQ_Character::Max_Mana(void);
+EQLIB_OBJECT int EQ_Character::Max_Endurance(void); // lax 4-25-2004
 EQLIB_OBJECT int EQ_Character::NoBashMe(int);
 EQLIB_OBJECT int EQ_Character::NoMezMe(int,class EQPlayer *,class EQ_Spell *);
 EQLIB_OBJECT int EQ_Character::offense(unsigned char);

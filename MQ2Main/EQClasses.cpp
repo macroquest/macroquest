@@ -31,7 +31,9 @@ REVERSE_DETOUR(class CXSize& CStmlWnd::AppendSTML(class CXSize*,class CXStr),CSt
 #ifdef EQ_Item__CanDrop
 REVERSE_DETOUR(int EQ_Item::CanDrop(int),EQ_Item__CanDrop); // Lax 4-21-2004
 #endif
-
+#ifdef EQ_Character__Max_Endurance
+REVERSE_DETOUR(int  EQ_Character::Max_Endurance(void),EQ_Character__Max_Endurance);
+#endif
 REVERSE_VIRTUAL_DETOUR(void CChatWindow::operator delete[](void*),0x04);
 
 REVERSE_VIRTUAL_DETOUR(bool CXWnd::IsValid(void)const,0);

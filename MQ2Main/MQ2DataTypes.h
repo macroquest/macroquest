@@ -712,6 +712,8 @@ public:
 		Stunned=88,
 		RangedReady=89,
 		AltTimerReady=90,
+		MaxEndurance=91,
+		PctEndurance=92,
 	};
 	MQ2CharacterType():MQ2Type("character")
 	{
@@ -804,6 +806,8 @@ public:
 		TypeMember(Stunned);
 		TypeMember(RangedReady);
 		TypeMember(AltTimerReady);
+		TypeMember(MaxEndurance);
+		TypeMember(PctEndurance);
 	}
 
 	~MQ2CharacterType()
