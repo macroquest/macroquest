@@ -1,6 +1,7 @@
 20 Nov 2003 by Lax
 - MacroQuest program will no longer use loadlibrary, it loads our library directly.
 - The version number is now stored in MQ2Main.h as the top line, and not in macroquest.ini.  When compiled it becomes a global variable.  Comparing the global variable gszVersion with the #define in MQ2Main.h will cause the tray icon tooltip to suggest recompiling if necessary.
+- Removed EQADDR_SLOTLIST, which is now ppInvSlotMgr/pInvSlotMgr
 
 19 Nov 2003 by EqMule
 +Added new command /destroy

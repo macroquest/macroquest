@@ -206,7 +206,7 @@ BOOL ParseINIFile(PCHAR lpINIPath)
 //    GetPrivateProfileString("Memory Locations","SpellFavorites","0",szBuffer,MAX_STRING,ClientINI);            EQADDR_SPELLFAVORITES = (PSPELLFAVORITE)strtoul(szBuffer,NULL,16);
 //    GetPrivateProfileString("Memory Locations","ActiveMerchant","0",szBuffer,MAX_STRING,ClientINI);            EQADDR_ACTIVEMERCHANT = (PCHAR*)strtoul(szBuffer,NULL,16);
 //    GetPrivateProfileString("Memory Locations","ActiveCorpse","0",szBuffer,MAX_STRING,ClientINI);            EQADDR_ACTIVECORPSE = (PCHAR*)strtoul(szBuffer,NULL,16);
-    GetPrivateProfileString("Memory Locations","SlotList","0",szBuffer,MAX_STRING,ClientINI);            EQADDR_SLOTLIST = (PDWORD)strtoul(szBuffer,NULL,16);
+//    GetPrivateProfileString("Memory Locations","SlotList","0",szBuffer,MAX_STRING,ClientINI);            EQADDR_SLOTLIST = (PDWORD)strtoul(szBuffer,NULL,16);
     GetPrivateProfileString("Memory Locations","Clicks","0",szBuffer,MAX_STRING,ClientINI);             EQADDR_MOUSECLICK = (PMOUSECLICK)strtoul(szBuffer,NULL,16);
     GetPrivateProfileString("Memory Locations","HWnd","0",szBuffer,MAX_STRING,ClientINI);             EQADDR_HWND = (DWORD)strtoul(szBuffer,NULL,16);
 

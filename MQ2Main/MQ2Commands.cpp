@@ -812,7 +812,7 @@ DWORD SelectFind(char* szSearch, char* szOption )
 	DWORD BagCounter = 21;
 	gLastFind = LASTFIND_NOTFOUND; 
 	gLastFindSlot[0]=0;
-	PEQSLOTLIST pSlotList = (PEQSLOTLIST)*EQADDR_SLOTLIST;
+	PEQSLOTLIST pSlotList = (PEQSLOTLIST)pInvSlotMgr;
 	PEQCURRENTSELECTION CurrentSelection = NULL;
 	if (NULL == (pCharInfo = GetCharInfo())) return (0);
 	char Link[256];
@@ -909,7 +909,7 @@ DWORD SelectFind(char* szSearch, char* szOption )
 VOID SelectItem(PSPAWNINFO pChar, PCHAR szLine)
 {
 	bRunNextCommand = FALSE;
-	PEQSLOTLIST pSlotList = (PEQSLOTLIST)*EQADDR_SLOTLIST;
+	PEQSLOTLIST pSlotList = (PEQSLOTLIST)pInvSlotMgr;
 	PEQCURRENTSELECTION CurrentSelection = NULL;
 	PEQCURRENTSELECTION FixedSelection = NULL;
 	PCSIDLWND Slot = NULL;
