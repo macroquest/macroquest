@@ -1332,11 +1332,11 @@ FLOAT DistanceToPoint(PSPAWNINFO pSpawn, FLOAT xLoc, FLOAT yLoc)
 // Usage:       Used by ShowSpellSlotInfo to list limited effect types 
 // Author:      Koad [Taken from his MQ2SpellSearch Plugin
 // *************************************************************************** 
-PCHAR GetSpellEffectName(DWORD EffectID, PCHAR szBuffer) 
+PCHAR GetSpellEffectName(LONG EffectID, PCHAR szBuffer) 
 { 
    CHAR szBuff[MAX_STRING]={0}; 
    CHAR szTemp[MAX_STRING]={0}; 
-   switch(EffectID) 
+   switch(abs(EffectID))
    { 
    case 0: 
       strcat(szBuff,"Hitpoints"); 
