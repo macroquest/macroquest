@@ -52,6 +52,7 @@ MAPFILTER MapFilterOptions[] = {
     {"Untargetable", FALSE,0x404040,   TRUE,MAPFILTER_All,TRUE,   "Displays Untargetable NPCs"},
     {"Pet",          FALSE,0x707070,   TRUE,MAPFILTER_All,TRUE,   "Displays pets"},
     {"Corpse",       FALSE,0x00C000,   TRUE,MAPFILTER_All,TRUE,   "Displays corpses"},
+    {"Chest",        FALSE,0xC08000,   TRUE,MAPFILTER_All,TRUE,   "Displays chestesses"},
     {"Trigger",      FALSE,0xC08000,   TRUE,MAPFILTER_All,TRUE,   "Displays hidden triggers"},
     {"Trap",		 FALSE,0xC08000,   TRUE,MAPFILTER_All,TRUE,    "Displays hidden traps"},
     {"Timer",	     FALSE,0xC08000,   TRUE,MAPFILTER_All,TRUE,   "Displays hidden timers"},

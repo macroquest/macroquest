@@ -507,6 +507,7 @@ BOOL SetNameSpriteState(PSPAWNINFO pSpawn, bool Show)
 		case CORPSE:
 			SetCaption(gszSpawnCorpseName);
 			break;
+		case CHEST:
 		case UNTARGETABLE:
 		case TRAP:
 		case TIMER:

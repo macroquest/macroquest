@@ -117,6 +117,8 @@ static inline eSpawnType GetSpawnType(PSPAWNINFO pSpawn)
 		{
 		case 11:
 			return UNTARGETABLE;
+		case 33:
+			return CHEST;
 		case 65:
 			return TRAP;
 		case 66:

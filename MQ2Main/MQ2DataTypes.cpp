@@ -432,6 +432,10 @@ bool MQ2SpawnType::GetMember(MQ2VARPTR VarPtr, PCHAR Member, PCHAR Index, MQ2TYP
 			Dest.Ptr="PC";
 			Dest.Type=pStringType;
 			return true;
+		case CHEST:
+			Dest.Ptr="Chest";
+			Dest.Type=pStringType;
+			return true;
 		case TRAP:
 			Dest.Ptr="Trap";
 			Dest.Type=pStringType;

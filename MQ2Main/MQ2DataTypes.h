@@ -16,10 +16,8 @@
 // (non-mq2data) command to clear macro return value
 // networking
 // macro line continuation e.g. \
-// more work on window lists (grab names from XMLData?)
 // command to set raid class colors
 // /cast list
-// chest bodytype settings
 //
 // mq2data todo:
 // -------------

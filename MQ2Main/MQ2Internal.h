@@ -34,6 +34,7 @@ enum eSpawnType
 	TRAP,
 	TIMER,
 	UNTARGETABLE,
+	CHEST,
 	ITEM
 };
 

@@ -156,6 +156,7 @@ void InitializeMQ2Data()
 	AddMQ2Data("AltAbility",dataAltAbility);
 	AddMQ2Data("Raid",dataRaid);
 	AddMQ2Data("NamingSpawn",dataNamingSpawn);
+	AddMQ2Data("SpawnCount",dataSpawnCount);
 }
 
 

@@ -507,6 +507,26 @@ BOOL dataNearestSpawn(PCHAR szIndex, MQ2TYPEVAR &Ret)
 	return false;
 }
 
+BOOL dataSpawnCount(PCHAR szIndex, MQ2TYPEVAR &Ret)
+{
+	if (szIndex[0])
+	{
+		SEARCHSPAWN ssSpawn;
+		ClearSearchSpawn(&ssSpawn);
+		ParseSearchSpawn(szIndex,&ssSpawn);
+		
+		Ret.DWord=CountMatchingSpawns(&ssSpawn,GetCharInfo()->pSpawn,TRUE);
+		Ret.Type=pIntType;
+		return true;
+	}
+	else
+	{
+		Ret.DWord=gSpawnCount;
+		Ret.Type=pIntType;
+		return true;
+	}
+}
+
 BOOL dataTime(PCHAR szIndex, MQ2TYPEVAR &Ret)
 {
     time_t CurTime;

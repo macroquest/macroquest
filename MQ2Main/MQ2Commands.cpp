@@ -1729,14 +1729,8 @@ VOID SuperWhoDisplay(PSPAWNINFO pSpawn, DWORD Color)
 		if (gFilterSWho.Distance) 
 		{
 	        INT Angle = (INT)((atan2f(GetCharInfo()->pSpawn->X - pSpawn->X, GetCharInfo()->pSpawn->Y - pSpawn->Y) * 180.0f / PI + 360.0f) / 22.5f + 0.5f) % 16;
-			sprintf(szTemp," \a-u(\ax%1.2f %s", GetDistance(GetCharInfo()->pSpawn,pSpawn), szHeadingShort[Angle]);
+			sprintf(szTemp," \a-u(\ax%1.2f %s\a-u,\ax %1.2fZ\a-u)\ax", GetDistance(GetCharInfo()->pSpawn,pSpawn), szHeadingShort[Angle], pSpawn->Z-GetCharInfo()->pSpawn->Z);
 			strcat(szMsg,szTemp);
-//	        if ((!pFilter) && (Padding == 0)) 
-//			{
-//			    sprintf(szTemp,"\a-u,\ax %1.2fZ", pSpawn->Z-pChar->Z);
-//				strcat(szMsg,szTemp);
-//			}
-			strcat(szMsg,"\a-u)\ax");
 		}
 		if (gFilterSWho.SpawnID) 
 		{
@@ -1767,6 +1761,9 @@ VOID SuperWhoDisplay(PSPAWNINFO pSpawn, DWORD Color)
 
 		switch(GetSpawnType(pSpawn))
 		{
+		case CHEST:
+			strcat(szMsg," \ar*CHEST*\ax");
+			break;
 		case TRAP:
 			strcat(szMsg," \ar*TRAP*\ax");
 			break;
@@ -1925,6 +1922,9 @@ VOID SuperWhoDisplay(PSPAWNINFO pChar, PSEARCHSPAWN pSearchSpawn, DWORD Color)
 		case TRAP:
 			pszSpawnType="trap";
 			break;
+		case CHEST:
+			pszSpawnType="chest";
+			break;
 		case TIMER:
 			pszSpawnType="timer";
 			break;
@@ -1962,12 +1962,17 @@ VOID SuperWhoTarget(PSPAWNINFO pChar, PCHAR szLine)
         psTarget = (PSPAWNINFO)pTarget;
     }
 
+	
+
     if (!psTarget) {
 		MacroError("You must have a target selected for /whotarget.");
         return;
     }
     DebugSpew("SuperWhoTarget - %s",psTarget->Name);
+	BOOL Temp=gFilterSWho.Distance;
+	gFilterSWho.Distance=TRUE;
 	SuperWhoDisplay(psTarget,USERCOLOR_WHO);
+	gFilterSWho.Distance=Temp;
 //    SuperWhoDisplay(pChar,NULL,psTarget,0,TRUE);
 }
 
@@ -2673,6 +2678,9 @@ PCHAR FormatSearchSpawn(PCHAR Buffer, PSEARCHSPAWN pSearchSpawn)
 		case TRAP:
 			pszSpawnType="trap";
 			break;
+		case CHEST:
+			pszSpawnType="chest";
+			break;
 		case TIMER:
 			pszSpawnType="timer";
 			break;
@@ -2814,6 +2822,41 @@ PSPAWNINFO NthNearestSpawn(PSEARCHSPAWN pSearchSpawn, DWORD Nth, PSPAWNINFO pOri
 	return pSpawn;
 }
 
+DWORD CountMatchingSpawns(PSEARCHSPAWN pSearchSpawn, PSPAWNINFO pOrigin, BOOL IncludeOrigin)
+{
+	if (!pSearchSpawn || !pOrigin)
+		return 0;
+	DWORD TotalMatching=0;
+	PSPAWNINFO pSpawn=(PSPAWNINFO)pSpawnList;
+	if (IncludeOrigin)
+	{
+		while (pSpawn)
+		{
+			if (SpawnMatchesSearch(pSearchSpawn,pOrigin,pSpawn))
+			{
+				TotalMatching++;
+			}
+
+			pSpawn=pSpawn->pNext;
+		}
+	}
+	else
+	{
+		while (pSpawn)
+		{
+			if (pSpawn!=pOrigin && SpawnMatchesSearch(pSearchSpawn,pOrigin,pSpawn))
+			{
+				// matches search, add to our set
+				TotalMatching++;
+			}
+
+			pSpawn=pSpawn->pNext;
+		}
+	}
+	return TotalMatching;
+}
+
+
 PSPAWNINFO SearchThroughSpawns(PSEARCHSPAWN pSearchSpawn, PSPAWNINFO pChar)
 {
     PSPAWNINFO pFromSpawn = NULL;
@@ -2953,6 +2996,8 @@ PCHAR ParseSearchSpawnArgs(PCHAR szArg, PCHAR szRest, PSEARCHSPAWN pSearchSpawn)
             pSearchSpawn->SpawnType = UNTARGETABLE;
         } else if (!stricmp(szArg,"trap")) {
             pSearchSpawn->SpawnType = TRAP;
+        } else if (!stricmp(szArg,"chest")) {
+            pSearchSpawn->SpawnType = CHEST;
         } else if (!stricmp(szArg,"timer")) {
             pSearchSpawn->SpawnType = TIMER;
         } else if (!stricmp(szArg,"any")) {

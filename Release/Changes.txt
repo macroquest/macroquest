@@ -1,3 +1,13 @@
+27 May 2004 by Lax:
+- Added "chest" to the standard spawn searches used by /who, /target, /highlight, /mapshow, 
+  /maphide, etc
+- Fixed some problems with the window suff introduced in the May 16 zip
+- Added/changed MQ2Data members:
+  string spawn.Type: PC NPC Untargetable Mount Pet Corpse Chest Trigger Trap Timer Item 
+- New MQ2Data Top-Level Object:
+  int SpawnCount: Total number of spawns in current zone
+  int SpawnCount[search]: Total number of spawns in current zone matching the search
+
 24 May 2004 by DKAA:
 -Fixed a couple problems with the makefiles (mq2chat wasn't building)
 -A special update for mq2safe users
