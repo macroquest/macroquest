@@ -101,6 +101,7 @@
 #define instKeypressHandler                                0x789D00
 #define pinstStringTable                                   0x73CEB0
 #define pinstAltAdvManager                                 0x627918
+#define instCRaid										   0x7451D0
 
 ////
 //Section 2:  UI Related Offsets

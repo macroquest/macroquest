@@ -174,11 +174,14 @@ DETOUR_TRAMPOLINE_EMPTY(VOID EQPlayerHook::EQPlayer_Trampoline(DWORD,DWORD,DWORD
 VOID InitializeMQ2Spawns()
 {
 	DebugSpew("Initializing Spawn-related Hooks");
-	EasyClassDetour(EQPlayer__EQPlayer,EQPlayerHook,EQPlayer_Detour,VOID,(DWORD,DWORD,DWORD,DWORD,DWORD),EQPlayer_Trampoline);
-	EasyClassDetour(EQPlayer__dEQPlayer,EQPlayerHook,dEQPlayer_Detour,VOID,(VOID),dEQPlayer_Trampoline);
-
-	EasyClassDetour(EQItemList__EQItemList,EQItemListHook,EQItemList_Detour,VOID,(VOID),EQItemList_Trampoline);
-	EasyClassDetour(EQItemList__dEQItemList,EQItemListHook,dEQItemList_Detour,VOID,(VOID),dEQItemList_Trampoline);
+//	EasyClassDetour(EQPlayer__EQPlayer,EQPlayerHook,EQPlayer_Detour,VOID,(DWORD,DWORD,DWORD,DWORD,DWORD),EQPlayer_Trampoline);
+	EzDetour(EQPlayer__EQPlayer,EQPlayerHook::EQPlayer_Detour,EQPlayerHook::EQPlayer_Trampoline);
+//	EasyClassDetour(EQPlayer__dEQPlayer,EQPlayerHook,dEQPlayer_Detour,VOID,(VOID),dEQPlayer_Trampoline);
+	EzDetour(EQPlayer__dEQPlayer,EQPlayerHook::dEQPlayer_Detour,EQPlayerHook::dEQPlayer_Trampoline);
+//	EasyClassDetour(EQItemList__EQItemList,EQItemListHook,EQItemList_Detour,VOID,(VOID),EQItemList_Trampoline);
+	EzDetour(EQItemList__EQItemList,EQItemListHook::EQItemList_Detour,EQItemListHook::EQItemList_Trampoline);
+//	EasyClassDetour(EQItemList__dEQItemList,EQItemListHook,dEQItemList_Detour,VOID,(VOID),dEQItemList_Trampoline);
+	EzDetour(EQItemList__dEQItemList,EQItemListHook::dEQItemList_Detour,EQItemListHook::dEQItemList_Trampoline);
 
 	InitializeCriticalSection(&csPendingGrounds);
 	ProcessPending=true;

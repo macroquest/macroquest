@@ -972,7 +972,7 @@ typedef struct _CHARINFO {
 /*0x992c*/  BYTE  		field_992C[0x18];
 /*0x9944*/  BYTE  		field_9944[0x40];
 /*0x9984*/  BYTE  		field_9984[0x13c];
-/*0x9ac0*/  BYTE  		field_9AC0[0x154];
+/*0x9ac0*/  BYTE  		field_9AC0[0x154];// group leadership
 /*0x9c14*/  DWORD 		field_9C14;
 /*0x9c18*/  DWORD 		field_9C18;
 /*0x9c1c*/
@@ -1037,62 +1037,63 @@ typedef struct _CAMERAINFO {
 } CAMERAINFO, *PCAMERAINFO;
 
 // actual size 0x54F4h  4-28-2004
-typedef struct _ACTORINFO { 
-/*0x0000*/   struct     _CAMERAINFO *pCamera; 
-/*0x0004*/   DWORD		T3D_POINTLIGHT; 
-/*0x0008*/   CHAR		ActorDef[0x40]; 
-/*0x0048*/   FLOAT		Z;  // Z coordinates for the floor where standing 
-/*0x004c*/   BYTE       Unknown0x04c[0x4]; 
-/*0x0050*/   DWORD      TimeStamp;     // Some kind of timestamp in microseconds. Updates as fast as my display can refresh. 
-/*0x0054*/   DWORD      Unknown0x054;  // Being set to TimeStamp about once per second 
-/*0x0058*/   DWORD      LastTick;      // Being set to TimeStamp on every tick? 
-/*0x005c*/   DWORD      Unknown0x05c;  // Being set to TimeStamp at unknown intervals 
-/*0x0060*/   BYTE       Unknown0x060[0x14]; 
-/*0x0074*/   DWORD      Unknown0x074;  // Being set to TimeStamp at unknown intervals 
-/*0x0078*/   DWORD      Unknown0x078;  // Being set to TimeStamp at unknown intervals 
-/*0x007c*/   BYTE       Unknown0x07c[0x20]; 
+typedef struct _ACTORINFO {
+/*0x0000*/   struct     _CAMERAINFO *pCamera;
+/*0x0004*/   DWORD      T3D_POINTLIGHT;
+/*0x0008*/   CHAR      ActorDef[0x40];
+/*0x0048*/   FLOAT      Z;  // Z coordinates for the floor where standing
+/*0x004c*/   BYTE       Unknown0x04c[0x4];
+/*0x0050*/   DWORD      TimeStamp;     // Some kind of timestamp in microseconds. Updates as fast as my display can refresh.
+/*0x0054*/   DWORD      Unknown0x054;  // Being set to TimeStamp about once per second
+/*0x0058*/   DWORD      LastTick;      // Being set to TimeStamp on every tick?
+/*0x005c*/   DWORD      Unknown0x05c;  // Being set to TimeStamp at unknown intervals
+/*0x0060*/   BYTE       Unknown0x060[0x14];
+/*0x0074*/   DWORD      Unknown0x074;  // Being set to TimeStamp at unknown intervals
+/*0x0078*/   DWORD      Unknown0x078;  // Being set to TimeStamp at unknown intervals
+/*0x007c*/   BYTE       Unknown0x07c[0x20];
 /*0x0090*/ // FLOAT Unknown
 /*0x0094*/ // FLOAT Unknown
-/*0x009c*/   DWORD		UnderWaterMirror; //copy of UnderWater 
-/*0x00a0*/   DWORD		SwimmingMirror; //copy of Swimming 
-/*0x00a4*/   DWORD		FeetWetMirror; //copy of FeetWet 
-/*0x00a8*/   BYTE       UnderWater;    // 5 = Underwater; otherwise zero 
-/*0x00a9*/   BYTE       Swimming;      // 5 = Swimming (under or on top of water); otherwise zero 
-/*0x00aa*/   BYTE       FeetWet;        // 5 = Feet are in the water; otherwise zero 
-/*0x00ab*/   BYTE       LeftWater;     // 5 = Just got out of water, but still very close to shore 
-/*0x00ac*/   BYTE       Unknown0x0ac[0x28]; 
-/*0x00d4*/   DWORD      SpellETA;      // Calculated TimeStamp when current spell being casted lands. 0 while not casting. 
-/*0x00d8*/   BYTE       Unknown0x0d4[0xb0]; 
+/*0x009c*/   DWORD      UnderWaterMirror; //copy of UnderWater
+/*0x00a0*/   DWORD      SwimmingMirror; //copy of Swimming
+/*0x00a4*/   DWORD      FeetWetMirror; //copy of FeetWet
+/*0x00a8*/   BYTE       UnderWater;    // 5 = Underwater; otherwise zero
+/*0x00a9*/   BYTE       Swimming;      // 5 = Swimming (under or on top of water); otherwise zero
+/*0x00aa*/   BYTE       FeetWet;        // 5 = Feet are in the water; otherwise zero
+/*0x00ab*/   BYTE       LeftWater;     // 5 = Just got out of water, but still very close to shore
+/*0x00ac*/   BYTE       Unknown0x0ac[0x28];
+/*0x00d4*/   DWORD      SpellETA;      // Calculated TimeStamp when current spell being cast will land. 0 while not casting.
+/*0x00d8*/   BYTE       Unknown0x0d4[0xb0];
 /*0x0108*/  // LAYHANDS/HARMTOUCH TIMER
 /*0x0170*/  // BACKSTAB/BASH/SLAM TIMER
-/*0x0188*/   VOID		*FaceRelatedActorStruct; 
-/*0x018c*/   DWORD      Unknown0x0188; 
-/*0x0190*/   DWORD      Animation; 
-/*0x0194*/   DWORD      Unknown0x190; 
-/*0x0198*/   BYTE		Unknown0x198[0x1c];    
-/*0x01b4*/   struct     _SPAWNINFO   *Mount;   // NULL if no mount present 
-/*0x01b8*/   BYTE		Unknown0x01b8[0xc]; 
-/*0x01c4*/   DWORD		PetID; 
-/*0x01c8*/   BYTE		Unknown0x01c4[0x28]; 
+/*0x0188*/   VOID      *FaceRelatedActorStruct;
+/*0x018c*/   DWORD      Unknown0x0188;
+/*0x0190*/   DWORD      Animation;
+/*0x0194*/   DWORD      Unknown0x190;
+/*0x0198*/   BYTE      Unknown0x198[0x1c];   
+/*0x01b4*/   struct     _SPAWNINFO   *Mount;   // NULL if no mount present
+/*0x01b8*/   BYTE      Unknown0x01b8[0xc];
+/*0x01c4*/   DWORD      PetID;
+/*0x01c8*/   BYTE      Unknown0x01c4[0x28];
 /*0x01f0*/   struct     _SPAWNINFO *pTargetOfTarget;
 /*0x01f4*/   BYTE       Unknown0x01f4[0x502d];
-/*0x5221*/   CHAR		NameOfLastSuccessfulTargetHit[0x40]; 
-/*0x5261*/   BYTE		Unknown0x5234[0x6f]; 
-/*0x52D0*/   DWORD      InvitedToGroup; // 1 = currently invited to group 
-/*0x52d4*/   BYTE		Unknown0x52d4[0x8]; 
-/*0x52dc*/   DWORD      CastingSpellID; // -1 = not casting a spell 
-/*0x52e0*/   DWORD      Unknown0x52e0[0x02]; 
-/*0x52e8*/   struct     _MODELINFO *Model[0x14]; 
-/*0x5338*/   BYTE		Unknown0x5338[0x1c]; 
-/*0x5354*/   struct     _SPAWNINFO   *WhoFollowing;  // NULL if autofollow off 
-/*0x5358*/   FLOAT      Unknown0x5358; 
-/*0x535c*/   DWORD      Unknown0x535c; 
-/*0x5360*/   FLOAT      Unknown0x5360; 
-/*0x5364*/   BYTE       Unknown0x5364[0x140]; 
+/*0x5221*/   CHAR      NameOfLastSuccessfulTargetHit[0x40];
+/*0x5261*/   BYTE      Unknown0x5234[0xf];
+/*0x5270*/    struct   _MODELINFO *Model[0x15];
+/*0x52c4*/    BYTE   Unknown0x52c4[0x0c];
+/*0x52d0*/   DWORD      InvitedToGroup; // 1 = currently invited to group
+/*0x52d4*/   DWORD   Unknown0x52d4[0x2];
+/*0x52dc*/   DWORD      CastingSpellID; // -1 = not casting a spell
+/*0x52e0*/   DWORD      Unknown0x52e0[0x8];
+/*0x5300*/    struct     _SPAWNINFO   *WhoFollowing;  // NULL if autofollow off
+/*0x5304*/    DWORD   Unknown0x5304[0x13];
+/*0x5338*/   BYTE      Unknown0x5338[0x20];
+/*0x5358*/   FLOAT      Unknown0x5358;
+/*0x535c*/   DWORD      Unknown0x535c;
+/*0x5360*/   FLOAT      Unknown0x5360;
+/*0x5364*/   BYTE       Unknown0x5364[0x128];
 /*0x54a4*/   DWORD      Trader;           //0=normal 1=trader -->54A4
-/*0x54a8*/   BYTE		Unknown0x54a8[0x4c]; 
-// Amadeus -- size 0x28f4 03/23/2004
-} ACTORINFO, *PACTORINFO;
+/*0x54a8*/   BYTE      Unknown0x54a8[0x4c];
+} ACTORINFO, *PACTORINFO; 
 
 #define MODEL_LABEL         0 
 #define MODEL_LABELINFO     1
@@ -1684,6 +1685,58 @@ typedef struct _ALTADVMGR {
 /*0x000*/ PALTABILITY Abilities[NUM_ALT_ABILITIES];
 /*0x4D4*/
 } ALTADVMGR, *PALTADVMGR;
+
+// size 0xD8
+typedef struct _EQRAIDMEMBER {
+/*0x00*/ CHAR Name[0x40]; // 
+/*0x40*/ CHAR Level[0x08];
+/*0x48*/ CHAR Class[0x20];
+/*0x68*/ BYTE Unknown0x68[0x60];
+/*0xC8*/ DWORD Field_C8;
+/*0xCC*/ BYTE  RaidLeader;
+/*0xCD*/ BYTE  GroupLeader;
+/*0xCE*/ BYTE  Field_CE;
+/*0xCF*/ BYTE  Field_CF;
+/*0xD0*/ BYTE  Field_D0;
+/*0xD1*/ BYTE  Padding0xD1[0x3];
+/*0xD4*/ DWORD GroupNumber;
+/*0xD8*/
+} EQRAIDMEMBER, *PEQRAIDMEMBER;
+
+// sizeof(_EQRAID) is 0x44b8
+typedef struct _EQRAID {
+/*0x0000*/  BYTE  		Unknown0x0[0x154];
+/*0x0154*/  CHAR  		RaidMemberUsed[0x48];
+/*0x019c*/  struct		_EQRAIDMEMBER RaidMember[0x48];
+/*0x3e5c*/  DWORD 		field_3E5C;
+/*0x3e60*/  DWORD 		RaidMemberCount;
+/*0x3e64*/  CHAR  		RaidLeaderName[0x40];
+/*0x3ea4*/  BYTE  		Unknown0x3ea4[0x140];
+/*0x3fe4*/  DWORD 		field_3FE4;
+/*0x3fe8*/  BYTE  		Unknown0x3fe8;
+/*0x3fe9*/  BYTE  		IsRaidLeader;
+/*0x3fea*/  BYTE  		Unknown0x3fea[0x2];
+/*0x3fec*/  DWORD 		RaidTarget;
+/*0x3ff0*/  DWORD 		LootType;
+/*0x3ff4*/  CHAR  		RaidLooters[0x13][0x40];
+/*0x44b4*/  DWORD 		TotalRaidMemberLevels;
+/*0x44b8*/
+} EQRAID, *PEQRAID;
+
+// size 0x08
+typedef struct _EQSTRING {
+/*0x00*/	DWORD ID;
+/*0x04*/	PCHAR String;
+} EQSTRING, *PEQSTRING;
+
+// size 0x10 4-28-2004 lax
+typedef struct _EQSTRINGTABLE {
+/*0x00*/ struct _EQSTRING **StringItems;
+/*0x04*/ DWORD Size;
+/*0x08*/ DWORD Count;
+/*0x0c*/ DWORD Unknown0x0c;
+/*0x10*/
+} EQSTRINGTABLE, *PEQSTRINGTABLE;
 
 };
 using namespace EQData;

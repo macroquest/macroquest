@@ -265,7 +265,9 @@ void MapClear()
 		}
 
 		if (pActiveSpawns->pSpawn->Type==FAKESPAWNTYPE) // fake!
+		{
 			delete pActiveSpawns->pSpawn;
+		}
 
 		DeleteSpawn(pActiveSpawns);
 		pActiveSpawns=pNextActive;

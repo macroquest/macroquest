@@ -3,7 +3,6 @@
 	ProjectType="Visual C++"
 	Version="7.00"
 	Name="MQ2Template"
-	ProjectGUID="{D43171FB-8208-4E52-860A-6BAE2A2FA573}"
 	Keyword="Win32Proj">
 	<Platforms>
 		<Platform

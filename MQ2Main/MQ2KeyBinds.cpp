@@ -233,9 +233,12 @@ void InitializeMQ2KeyBinds()
 /**/
 	AddMQ2KeyBind("RANGED",DoRangedBind);
 
-	EasyClassDetour(KeypressHandler__ClearCommandStateArray,KeypressHandlerHook,ClearCommandStateArray_Hook,void,(void),ClearCommandStateArray_Trampoline);
-	EasyClassDetour(KeypressHandler__HandleKeyDown,KeypressHandlerHook,HandleKeyDown_Hook,bool,(class KeyCombo const &Combo),HandleKeyDown_Trampoline);
-	EasyClassDetour(KeypressHandler__HandleKeyUp,KeypressHandlerHook,HandleKeyUp_Hook,bool,(class KeyCombo const &Combo),HandleKeyUp_Trampoline);
+//	EasyClassDetour(KeypressHandler__ClearCommandStateArray,KeypressHandlerHook,ClearCommandStateArray_Hook,void,(void),ClearCommandStateArray_Trampoline);
+	EzDetour(KeypressHandler__ClearCommandStateArray,KeypressHandlerHook::ClearCommandStateArray_Hook,KeypressHandlerHook::ClearCommandStateArray_Trampoline);
+//	EasyClassDetour(KeypressHandler__HandleKeyDown,KeypressHandlerHook,HandleKeyDown_Hook,bool,(class KeyCombo const &Combo),HandleKeyDown_Trampoline);
+	EzDetour(KeypressHandler__HandleKeyDown,KeypressHandlerHook::HandleKeyDown_Hook,KeypressHandlerHook::HandleKeyDown_Trampoline);
+//	EasyClassDetour(KeypressHandler__HandleKeyUp,KeypressHandlerHook,HandleKeyUp_Hook,bool,(class KeyCombo const &Combo),HandleKeyUp_Trampoline);
+	EzDetour(KeypressHandler__HandleKeyUp,KeypressHandlerHook::HandleKeyUp_Hook,KeypressHandlerHook::HandleKeyUp_Trampoline);
 }
 
 void ShutdownMQ2KeyBinds()

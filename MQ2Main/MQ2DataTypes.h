@@ -13,14 +13,10 @@
 ******************************************************************************/
 
 // TODO
-// add actual macro parameters to macro type (subs and main)
 // (non-mq2data) command to clear macro return value
-// container empty slots, size of containable items
-// "bind" type
+// "bind" type (key binds)
 // Friend TLO
 // Ignore TLO
-// raid...
-// alt abilities
 
 EQLIB_VAR class MQ2FloatType *pFloatType;
 EQLIB_VAR class MQ2StringType *pStringType;
@@ -67,6 +63,10 @@ EQLIB_VAR class MQ2ArrayType *pArrayType;
 EQLIB_VAR class MQ2TimerType *pTimerType;
 #endif
 EQLIB_VAR class MQ2PluginType *pPluginType;
+
+EQLIB_VAR class MQ2RaidType *pRaidType;
+EQLIB_VAR class MQ2RaidMemberType *pRaidMemberType;
+
 
 #define UseTemp(mystring) strcpy(DataTypeTemp,mystring)
 #define TypeMember(name) AddMember((DWORD)name,""#name)
@@ -417,7 +417,6 @@ public:
 		PMQ2TYPEMEMBER pMember=Members[N];
 		if (!pMember)
 			return false;
-		static CHAR Temp[128];
 		switch((TicksMembers)pMember->ID)
 		{
 		case Hours:
@@ -437,8 +436,13 @@ public:
 				int Secs=nTicks*6;
 				int Mins=Secs/60;
 				Secs=Secs%60;
-				sprintf(Temp,"%d:%02d",Mins,Secs);
-				Dest.Ptr=&Temp[0];
+				int Hrs=(Secs/3600);
+				Secs=Secs%60;
+				if (Hrs)
+					sprintf(DataTypeTemp,"%d:%02d:%02d",Hrs,Mins,Secs);
+				else
+					sprintf(DataTypeTemp,"%02d:%02d",Mins,Secs);
+				Dest.Ptr=&DataTypeTemp[0];
 				Dest.Type=pStringType;
 			}
 			return true;
@@ -783,6 +787,7 @@ public:
 		AltAbilityTimer=95,
 		CombatAbility=96,
 		CombatAbilityTimer=97,
+		LargestFreeInventory=98,
 	};
 	MQ2CharacterType():MQ2Type("character")
 	{
@@ -882,6 +887,7 @@ public:
 		TypeMember(AltAbilityTimer);
 		TypeMember(CombatAbility);
 		TypeMember(CombatAbilityTimer);
+		TypeMember(LargestFreeInventory);
 	}
 
 	~MQ2CharacterType()
@@ -1042,7 +1048,7 @@ public:
 		if (!VarPtr.Ptr)
 			return false;
 		strcpy(Destination,((PSPELL)VarPtr.Ptr)->Name);
-		return false;
+		return true;
 	}
 	void InitVariable(MQ2VARPTR &VarPtr) 
 	{
@@ -1620,8 +1626,6 @@ public:
 		Return=4,
 		Params=5,
 		Param=6,
-		SubParams=7,
-		SubParam=8,
 	};
 	MQ2MacroType():MQ2Type("macro")
 	{
@@ -1630,8 +1634,6 @@ public:
 		TypeMember(Return);
 		TypeMember(Params);
 		TypeMember(Param);
-		TypeMember(SubParams);
-		TypeMember(SubParam);
 	}
 
 	~MQ2MacroType()
@@ -2601,3 +2603,102 @@ public:
 	}
 }; 
 
+class MQ2RaidType : public MQ2Type
+{
+public:
+   static enum RaidMembers
+   {
+	   Member=1,
+	   Members=2,
+	   Target=3,
+	   Leader=4,
+	   TotalLevels=5,
+	   AverageLevel=6,
+	   LootType=7,
+	   Looter=8,
+	   Looters=9,
+   };
+   MQ2RaidType():MQ2Type("raid")
+   {
+	  TypeMember(Member);
+	  TypeMember(Members);
+	  TypeMember(Target);
+	  TypeMember(Leader);
+	  TypeMember(TotalLevels);
+	  TypeMember(AverageLevel);
+	  TypeMember(LootType);
+	  TypeMember(Looter);
+	  TypeMember(Looters);
+   }
+
+   ~MQ2RaidType()
+   {
+   }
+
+   bool GetMember(MQ2VARPTR VarPtr, PCHAR Member, PCHAR Index, MQ2TYPEVAR &Dest);
+
+   bool ToString(MQ2VARPTR VarPtr, PCHAR Destination)
+   {
+	   return false;
+   }
+	bool FromData(MQ2VARPTR &VarPtr, MQ2TYPEVAR &Source)
+	{
+		return false;
+	}
+	bool FromString(MQ2VARPTR &VarPtr, PCHAR Source)
+	{
+		return false;
+	}
+}; 
+
+class MQ2RaidMemberType : public MQ2Type
+{
+public:
+   static enum RaidMemberMembers
+   {
+	   Name=1,
+	   Group=3,
+	   GroupLeader=4,
+	   RaidLeader=5,
+	   Spawn=6,
+	   Looter=7,
+   };
+   MQ2RaidMemberType():MQ2Type("raidmember")
+   {
+	  TypeMember(Name);
+	  TypeMember(Group);
+	  TypeMember(GroupLeader);
+	  TypeMember(RaidLeader);
+	  TypeMember(Spawn);
+	  TypeMember(Looter);
+   }
+
+   ~MQ2RaidMemberType()
+   {
+   }
+
+   bool GetMember(MQ2VARPTR VarPtr, PCHAR Member, PCHAR Index, MQ2TYPEVAR &Dest);
+
+   bool ToString(MQ2VARPTR VarPtr, PCHAR Destination)
+   {
+		DWORD nRaidMember=VarPtr.DWord-1;
+		if (VarPtr.DWord>=72)
+			return false;
+		if (!pRaid->RaidMemberUsed[nRaidMember])
+			return false;
+		PEQRAIDMEMBER pRaidMember=&pRaid->RaidMember[nRaidMember];
+	   strcpy(Destination,pRaidMember->Name);
+	   return true;
+   }
+	bool FromData(MQ2VARPTR &VarPtr, MQ2TYPEVAR &Source)
+	{
+		if (Source.Type!=pRaidMemberType)
+			return false;
+		VarPtr.Ptr=Source.Ptr;
+		return true;
+	}
+	bool FromString(MQ2VARPTR &VarPtr, PCHAR Source)
+	{
+		return false;
+	}
+}; 

@@ -208,10 +208,12 @@ void InitializeMQ2Windows()
 	AddSlotArray(inspect,31,8000);
 #undef AddSlotArray
 
-	EasyClassDetour(CXMLSOMDocumentBase__XMLRead,CXMLSOMDocumentBaseHook,XMLRead,int,(CXStr *A, CXStr *B, CXStr *C),XMLRead_Trampoline);
-
-	EasyClassDetour(CSidlScreenWnd__SetScreen,SetScreenHook,SetScreen_Detour,void,(class CXStr *),SetScreen_Trampoline);
-	EasyClassDetour(CXWndManager__RemoveWnd,CXWndManagerHook,RemoveWnd_Detour,int,(class CXWnd *),RemoveWnd_Trampoline);
+//	EasyClassDetour(CXMLSOMDocumentBase__XMLRead,CXMLSOMDocumentBaseHook,XMLRead,int,(CXStr *A, CXStr *B, CXStr *C),XMLRead_Trampoline);
+	EzDetour(CXMLSOMDocumentBase__XMLRead,CXMLSOMDocumentBaseHook::XMLRead,CXMLSOMDocumentBaseHook::XMLRead_Trampoline);
+//	EasyClassDetour(CSidlScreenWnd__SetScreen,SetScreenHook,SetScreen_Detour,void,(class CXStr *),SetScreen_Trampoline);
+	EzDetour(CSidlScreenWnd__SetScreen,SetScreenHook::SetScreen_Detour,SetScreenHook::SetScreen_Trampoline);
+//	EasyClassDetour(CXWndManager__RemoveWnd,CXWndManagerHook,RemoveWnd_Detour,int,(class CXWnd *),RemoveWnd_Trampoline);
+	EzDetour(CXWndManager__RemoveWnd,CXWndManagerHook::RemoveWnd_Detour,CXWndManagerHook::RemoveWnd_Trampoline);
 
 	AddCommand("/windows",ListWindows,false,true,false);
 	AddCommand("/notify",WndNotify,false,true,false);

@@ -217,6 +217,24 @@ VOID MQ2DataError(PCHAR szFormat, ...)
 	}
 }
 
+VOID FixStringTable()
+{
+	PEQSTRINGTABLE pTable=(PEQSTRINGTABLE)pStringTable;
+	for (DWORD N=0 ; N<pTable->Count ; N++)
+	if (PEQSTRING pStr=pTable->StringItems[N])
+	if (PCHAR p=pStr->String)
+	{
+		while(*p)
+			p++;
+		p--;
+		while(*p==' ' && p!=pStr->String)
+		{
+			*p=0;
+			p--;
+		}
+	}
+}
+
 // ***************************************************************************
 // Function:    GetNextArg
 // Description: Returns a pointer to the next argument

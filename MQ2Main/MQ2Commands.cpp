@@ -562,7 +562,18 @@ VOID MemSpell(PSPAWNINFO pChar, PCHAR szLine)
    if (Gem<1 || Gem>8) return;
    Gem--;
 
-   PSPELL pSpell = GetSpellByName(SpellName);
+   pCharInfo->SpellBook;
+   PSPELL pSpell=0;
+	for (DWORD N = 0 ; N < NUM_BOOK_SLOTS ; N++)
+	if (PSPELL pTempSpell=GetSpellByID(pCharInfo->SpellBook[N]))
+	{
+		if (!stricmp(SpellName,pTempSpell->Name))
+		{
+			pSpell=pTempSpell;
+			break;
+		}
+	}
+
     if (!pSpell) return;
     if (pSpell->Level[pChar->Class-1]>pChar->Level) return;
 
@@ -3206,7 +3217,7 @@ PSPAWNINFO NthNearestSpawn(PSEARCHSPAWN pSearchSpawn, DWORD Nth, PSPAWNINFO pOri
 	DWORD TotalMatching=0;
 	while (pSpawn)
 	{
-		if (pSpawn!=pOrigin && SpawnMatchesSearch(pSearchSpawn,(PSPAWNINFO)pCharSpawn,pSpawn))
+		if (pSpawn!=pOrigin && SpawnMatchesSearch(pSearchSpawn,pOrigin,pSpawn))
 		{
 			// matches search, add to our set
 			TotalMatching++;

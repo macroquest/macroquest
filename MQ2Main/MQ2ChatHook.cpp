@@ -60,8 +60,8 @@ VOID InitializeChatHook()
 {
 	DebugSpew("Initializing chat hook");
 
-	EasyClassDetour(CEverQuest__dsp_chat,CChatHook,Detour,void,(PCHAR szMsg, DWORD dwColor, DWORD dwUnknown),Trampoline);
-
+//	EasyClassDetour(CEverQuest__dsp_chat,CChatHook,Detour,void,(PCHAR szMsg, DWORD dwColor, DWORD dwUnknown),Trampoline);
+	EzDetour(CEverQuest__dsp_chat,CChatHook::Detour,CChatHook::Trampoline);
 }
 
 VOID ShutdownChatHook()

@@ -40,7 +40,7 @@ EQLIB_VAR PDATAVAR pMacroVariables;
 
 EQLIB_VAR BOOL bAllErrorsFatal;
 EQLIB_VAR BOOL bAllErrorsDumpStack;
-
+EQLIB_API CHAR DataTypeTemp[MAX_STRING];
 
 EQLIB_API CHAR gszVersion[32];
 
@@ -49,6 +49,8 @@ EQLIB_API ePVPServer PVPServer;
 
 EQLIB_VAR BOOL g_Loaded;
 EQLIB_VAR DWORD ThreadID;
+
+EQLIB_VAR BOOL gStringTableFixed;
 
 EQLIB_VAR HMODULE ghModule;
 EQLIB_VAR HINSTANCE ghInstance;
@@ -348,6 +350,7 @@ EQLIB_VAR CXWndManager **ppWndMgr;
 #define pWndMgr (*ppWndMgr)
 
 EQLIB_VAR KeypressHandler *pKeypressHandler;
+EQLIB_VAR PEQRAID pRaid;
 
 EQLIB_VAR PINT pgCurrentSocial;
 #define gCurrentSocial (*pgCurrentSocial)

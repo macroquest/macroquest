@@ -60,7 +60,9 @@ class MQ2TimerType *pTimerType=0;
 
 class MQ2PluginType *pPluginType=0;
 
-CHAR DataTypeTemp[MAX_STRING]={0};
+class MQ2RaidType *pRaidType=0;
+class MQ2RaidMemberType *pRaidMemberType=0;
+
 
 void InitializeMQ2DataTypes()
 {	
@@ -101,6 +103,9 @@ void InitializeMQ2DataTypes()
 	pPluginType = new MQ2PluginType;
 	pSkillType = new MQ2SkillType;
 	pAltAbilityType = new MQ2AltAbilityType;
+	pRaidType = new MQ2RaidType;
+	pRaidMemberType = new MQ2RaidMemberType;
+
 
 	// NOTE: SetInheritance does NOT make it inherit, just notifies the syntax checker...
 	pCharacterType->SetInheritance(pSpawnType);
@@ -146,6 +151,8 @@ void ShutdownMQ2DataTypes()
 	delete pPluginType;
 	delete pSkillType;
 	delete pAltAbilityType;
+	delete pRaidType;
+	delete pRaidMemberType;
 }
 
 bool MQ2FloatType::GetMember(MQ2VARPTR VarPtr, PCHAR Member, PCHAR Index, MQ2TYPEVAR &Dest)
@@ -1751,9 +1758,89 @@ bool MQ2CharacterType::GetMember(MQ2VARPTR VarPtr, PCHAR Member, PCHAR Index, MQ
 		Dest.DWord=(pChar->Stunned==1);
 		Dest.Type=pBoolType;
 		return true;
+	case LargestFreeInventory:
+		Dest.DWord=0;
+		Dest.Type=pIntType;
+		for (DWORD slot=22;slot<30;slot++) 
+		{
+			if (PCONTENTS pItem = pChar->InventoryArray[slot]) 
+			{
+				if (pItem->Item->Type==ITEMTYPE_PACK && pItem->Item->SizeCapacity>Dest.DWord) 
+				{
+					for (DWORD pslot=0;pslot<(pItem->Item->Slots);pslot++) 
+					{
+						if (!pItem->Contents[pslot])
+						{
+							Dest.DWord=pItem->Item->SizeCapacity;
+							break;// break the loop for this pack
+						}
+					}
+				}
+			} 
+			else 
+			{
+				Dest.DWord=4;
+				return true;
+			}
+		}
+		return true;
+	case FreeInventory:
+		if (Index[0])
+		{
+			DWORD nSize=atoi(Index);
+			if (nSize>4)
+				nSize=4;
+			Dest.DWord=0;
+			for (DWORD slot=22;slot<30;slot++) 
+			{
+				if (PCONTENTS pItem = pChar->InventoryArray[slot]) 
+				{
+					if (pItem->Item->Type==ITEMTYPE_PACK && pItem->Item->SizeCapacity>=nSize) 
+					{
+						for (DWORD pslot=0;pslot<(pItem->Item->Slots);pslot++) 
+						{
+							if (!pItem->Contents[pslot]) 
+								Dest.DWord++;
+						}
+					}
+				} 
+				else 
+				{
+					Dest.DWord++;
+				}
+			}
+			Dest.Type=pIntType; 
+			return true;
+		}
+		else
+		{
+			Dest.DWord=0;
+			for (DWORD slot=22;slot<30;slot++) 
+			{
+				if (PCONTENTS pItem = pChar->InventoryArray[slot]) 
+				{
+					if (pItem->Item->Type==ITEMTYPE_PACK) 
+					{
+						for (DWORD pslot=0;pslot<(pItem->Item->Slots);pslot++) 
+						{
+							if (!pItem->Contents[pslot]) 
+								Dest.DWord++;
+						}
+					}
+				} 
+				else 
+				{
+					Dest.DWord++;
+				}
+			}
+			Dest.Type=pIntType; 
+			return true;
+		}
+	case Drunk:
+		Dest.DWord=pChar->Drunkenness;
+		Dest.Type=pIntType;
+		return true;
 		/*
-		FreeInventory
-		Drunk,
 		STR=51,
 		STA=52,
 		CHA=53,
@@ -2871,11 +2958,19 @@ bool MQ2MacroType::GetMember(MQ2VARPTR VarPtr, PCHAR Member, PCHAR Index, MQ2TYP
 		strcpy(DataTypeTemp,gMacroStack->Return);
 		Dest.Type=pStringType;
 		return true;
+	case Params:
+		Dest.DWord=0;
+		{
+			PDATAVAR pVar=gMacroStack->Parameters;
+			while(pVar)
+			{
+				Dest.DWord++;
+				pVar=pVar->pNext;
+			}
+		}
+		return true;
 	/*
-		TypeMember(Params);
 		TypeMember(Param);
-		TypeMember(SubParams);
-		TypeMember(SubParam);
 	/**/
 	}
 	return false;
@@ -3701,12 +3796,50 @@ bool MQ2SkillType::GetMember(MQ2VARPTR VarPtr, PCHAR Member, PCHAR Index, MQ2TYP
 		Dest.DWord=pSkill->AltTimer;
 		Dest.Type=pIntType;
 		return true;
-		/*
-	   MinLevel=5,
-	   StartingSkill=6,
-	   SkillCapPre50=7,
-	   SkillCapPost50=8,
-	   /**/
+	case MinLevel:
+		if (Index[0])
+		{
+			return false;
+		}
+		else
+		{
+			Dest.DWord=pSkill->MinLevel[((PCHARINFO)pCharData)->Class];
+			Dest.Type=pIntType;
+			return true;
+		}
+	case StartingSkill:
+		if (Index[0])
+		{
+			return false;
+		}
+		else
+		{
+			Dest.DWord=pSkill->StartingSkill[((PCHARINFO)pCharData)->Class];
+			Dest.Type=pIntType;
+			return true;
+		}
+	case SkillCapPre50:
+		if (Index[0])
+		{
+			return false;
+		}
+		else
+		{
+			Dest.DWord=pSkill->SkillCapsPre50[((PCHARINFO)pCharData)->Class];
+			Dest.Type=pIntType;
+			return true;
+		}
+	case SkillCapPost50:
+		if (Index[0])
+		{
+			return false;
+		}
+		else
+		{
+			Dest.DWord=pSkill->SkillCapsPost50[((PCHARINFO)pCharData)->Class];
+			Dest.Type=pIntType;
+			return true;
+		}
 	}
 	return false;
 }
@@ -3793,6 +3926,202 @@ bool MQ2AltAbilityType::GetMember(MQ2VARPTR VarPtr, PCHAR Member, PCHAR Index, M
 		Dest.DWord=pAbility->Type;
 		Dest.Type=pIntType;
 		return true;
+	}
+	return false;
+}
+
+bool MQ2RaidType::GetMember(MQ2VARPTR VarPtr, PCHAR sMember, PCHAR Index, MQ2TYPEVAR &Dest)
+{
+	if (!pRaid)
+		return false;
+	PMQ2TYPEMEMBER pMember=MQ2RaidType::FindMember(sMember);
+	if (!pMember)
+		return false;
+	switch((RaidMembers)pMember->ID)
+	{
+	case Member:
+		if (Index[0])
+		{
+			if (IsNumber(Index))
+			{
+				DWORD Count=atoi(Index);
+				if (!Count || Count>pRaid->RaidMemberCount)
+					return false;
+				for (DWORD nMember = 0 ; nMember < 72 ; nMember++)
+				{
+					if (pRaid->RaidMemberUsed[nMember])
+					{
+						Count--;
+						if (!Count)
+						{
+							Dest.DWord=nMember+1;
+							Dest.Type=pRaidMemberType;
+							return true;
+						}
+					}
+				}
+			}
+			else
+			{
+				// by name
+				for (DWORD nMember=0 ; nMember < 72 ; nMember++)
+				{
+					if (pRaid->RaidMemberUsed[nMember] && !stricmp(pRaid->RaidMember[nMember].Name,Index))
+					{
+						Dest.DWord=nMember+1;
+						Dest.Type=pRaidMemberType;
+						return true;
+					}
+				}
+			}
+		}
+		return false;
+	case Members:
+		Dest.DWord=pRaid->RaidMemberCount;
+		Dest.Type=pIntType;
+		return true;
+	case Target:
+		Dest.DWord=pRaid->RaidTarget+1;
+		Dest.Type=pRaidMemberType;
+		return true;
+	case Leader:
+		{
+			for (DWORD nMember=0 ; nMember < 72 ; nMember++)
+			{
+				if (pRaid->RaidMemberUsed[nMember] && !stricmp(pRaid->RaidMember[nMember].Name,pRaid->RaidLeaderName))
+				{
+					Dest.DWord=nMember+1;
+					Dest.Type=pRaidMemberType;
+					return true;
+				}
+			}
+		}
+		return false;
+	case TotalLevels:
+		Dest.DWord=pRaid->TotalRaidMemberLevels;
+		Dest.Type=pIntType;
+		return true;
+	case AverageLevel:
+		Dest.Float=(FLOAT)pRaid->TotalRaidMemberLevels/(FLOAT)pRaid->RaidMemberCount;
+		Dest.Type=pFloatType;
+		return true;
+	case LootType:
+		Dest.DWord=pRaid->LootType;
+		Dest.Type=pIntType;
+		return true;
+	case Looters:
+		{
+			Dest.DWord=0;
+			for (unsigned long N = 0 ; N < 0x13 ; N++)
+			{
+				if (pRaid->RaidLooters[N][0])
+					Dest.DWord++;
+			}
+			Dest.Type=pIntType;
+			return true;
+		}
+	case Looter:
+		if (Index[0])
+		{
+			if (IsNumber(Index))
+			{
+				DWORD Count=atoi(Index);
+				if (!Count)
+					return 0;
+				for (DWORD nLooter=0; nLooter<0x13 ; nLooter++)
+				{
+					if (pRaid->RaidLooters[nLooter][0])
+					{
+						Count--;
+						if (Count==0)
+						{
+							Dest.Ptr=&pRaid->RaidLooters[nLooter][0];
+							Dest.Type=pStringType;
+							return true;
+						}
+					}
+				}
+			}
+			// by name?
+		}
+		return false;
+	}
+	/**/
+	return false;
+}
+
+bool MQ2RaidMemberType::GetMember(MQ2VARPTR VarPtr, PCHAR Member, PCHAR Index, MQ2TYPEVAR &Dest)
+{
+	DWORD nRaidMember=VarPtr.DWord-1;
+	if (VarPtr.DWord>=72)
+		return false;
+	if (!pRaid->RaidMemberUsed[nRaidMember])
+		return false;
+	PEQRAIDMEMBER pRaidMember=&pRaid->RaidMember[nRaidMember];
+	PMQ2TYPEMEMBER pMember=MQ2RaidMemberType::FindMember(Member);
+	if (!pMember)
+		return false;
+	switch((RaidMemberMembers)pMember->ID)
+	{
+	case Name:
+		Dest.Ptr=pRaidMember->Name;
+		Dest.Type=pStringType;
+		return true;
+	case Group:
+		Dest.DWord=pRaidMember->GroupNumber+1;
+		Dest.Type=pIntType;
+		return true;
+	case GroupLeader:
+		Dest.DWord=pRaidMember->GroupLeader;
+		Dest.Type=pBoolType;
+		return true;
+	case RaidLeader:
+		Dest.DWord=pRaidMember->RaidLeader;
+		Dest.Type=pBoolType;
+		return true;
+	case Looter:
+		if (pRaidMember->RaidLeader)
+		{
+			Dest.DWord=1;
+			Dest.Type=pBoolType;
+			return true;
+		}
+		if (pRaid->LootType==2)
+		{
+			Dest.DWord=pRaidMember->GroupLeader;
+			Dest.Type=pBoolType;
+			return true;
+		}
+		if (pRaid->LootType==3)
+		{
+			for (DWORD N = 0 ; N < 0x13 ; N++)
+			{
+				if (!stricmp(pRaid->RaidLooters[N],pRaidMember->Name))
+				{
+					Dest.DWord=1;
+					Dest.Type=pBoolType;
+					return true;
+				}
+			}
+		}
+		Dest.DWord=0;
+		Dest.Type=pBoolType;
+		return true;
+	case Spawn:
+		{
+			PSPAWNINFO pSpawn=(PSPAWNINFO)pSpawnList;
+			while(pSpawn)
+			{
+				if (!stricmp(pSpawn->Name,pRaidMember->Name))
+				{
+					Dest.Ptr=pSpawn;
+					Dest.Type=pSpawnType;
+					return true;
+				}
+				pSpawn=pSpawn->pNext;
+			}
+		}
+		return false;
 	}
 	return false;
 }

@@ -86,22 +86,22 @@ extern DWORD CountMallocs;
 extern DWORD CountFrees;
 #endif
 
-#define REVERSE_DETOUR(function,offset) __declspec(naked) function\
+#define FUNCTION_AT_ADDRESS(function,offset) __declspec(naked) function\
 {\
 	__asm{mov eax, offset};\
 	__asm{jmp eax};\
 }
 
-#define REVERSE_VARIABLE_DETOUR(function,variable) __declspec(naked) function\
+#define FUNCTION_AT_VARIABLE_ADDRESS(function,variable) __declspec(naked) function\
 {\
 	__asm{mov eax, [variable]};\
 	__asm{jmp eax};\
 }
 
-#define REVERSE_VIRTUAL_DETOUR(function,offset) __declspec(naked) function\
+#define FUNCTION_AT_VIRTUAL_ADDRESS(function,virtualoffset) __declspec(naked) function\
 {\
 	__asm{mov eax, [ecx]};\
-	__asm{lea eax, [eax+offset]};\
+	__asm{lea eax, [eax+virtualoffset]};\
 	__asm{mov eax, [eax]};\
 	__asm{jmp eax};\
 }
@@ -129,6 +129,21 @@ extern DWORD CountFrees;
 	SetvfTable(32,*(DWORD*)&pfWndNotification);\
 }
 
+#define EzDetour(offset,detour,trampoline) \
+{\
+	PBYTE pDetour;\
+	PBYTE pTrampoline;\
+	__asm{push detour};\
+	__asm{pop [pDetour]};\
+	__asm{push trampoline};\
+	__asm{pop [pTrampoline]};\
+	AddDetour((DWORD)offset,pDetour,pTrampoline);\
+};
+
+//#define EasyClassDetour(offset,detourclass,detourname,returntype,parameters,trampolinename) EzDetour(offset,detourclass::detourname,detourclass::trampolinename)
+//#define EasyDetour(offset,detourname,returntype,parameters,trampolinename) EzDetour(offset,detourname,trampolinename)
+
+/*
 #define EasyClassDetour(offset,detourclass,detourname,returntype,parameters,trampolinename)\
 {\
 	returntype (detourclass::*pfDetour)parameters = detourclass::detourname; \
@@ -142,6 +157,7 @@ extern DWORD CountFrees;
 	returntype (*pfTrampoline)parameters = trampolinename; \
 	AddDetour((DWORD)offset,*(PBYTE*)&pfDetour,*(PBYTE*)&pfTrampoline);\
 }
+/**/
 
 #ifndef DOUBLE
 typedef double DOUBLE;
@@ -262,7 +278,6 @@ EQLIB_API VOID Echo									(PSPAWNINFO,PCHAR);
 /* MACRO PARSING */
 #define PMP_ERROR_BADPARM 10000
 EQLIB_API PCHAR ParseMacroParameter(PSPAWNINFO pChar, PCHAR szOriginal);
-//EQLIB_API VOID GracefullyEndBadMacro(PSPAWNINFO pChar, PMACROBLOCK pBadLine, PCHAR szFormat, ...);
 EQLIB_API VOID FailIf(PSPAWNINFO pChar, PCHAR szCommand, PMACROBLOCK pStartLine, BOOL All=FALSE);
 EQLIB_API VOID InitializeParser();
 EQLIB_API VOID ShutdownParser();
@@ -302,6 +317,7 @@ EQLIB_API VOID InitializeMQ2Pulse();
 EQLIB_API VOID ShutdownMQ2Pulse();
 
 /* UTILITIES */
+EQLIB_API VOID FixStringTable();
 EQLIB_API VOID DebugSpew(PCHAR szFormat, ...);
 EQLIB_API VOID DebugSpewAlways(PCHAR szFormat, ...);
 EQLIB_API VOID DebugSpewNoFile(PCHAR szFormat, ...);
@@ -563,6 +579,7 @@ EQLIB_API BOOL dataGroupLeader(PCHAR szIndex, MQ2TYPEVAR &Ret);
 EQLIB_API BOOL dataGroupLeaderName(PCHAR szIndex, MQ2TYPEVAR &Ret);
 EQLIB_API BOOL dataSkill(PCHAR szIndex, MQ2TYPEVAR &Ret);
 EQLIB_API BOOL dataAltAbility(PCHAR szIndex, MQ2TYPEVAR &Ret);
+EQLIB_API BOOL dataRaid(PCHAR szIndex, MQ2TYPEVAR &Ret);
 
 /* COMMANDS */
 
@@ -641,11 +658,8 @@ EQLIB_API VOID MyVarSub                            (PSPAWNINFO,PCHAR);
 #endif
 EQLIB_API VOID Next                                (PSPAWNINFO,PCHAR);
 EQLIB_API VOID PluginCommand						(PSPAWNINFO pChar, PCHAR szLine);
-//EQLIB_API VOID Press                               (PSPAWNINFO,PCHAR);
 EQLIB_API VOID Return                              (PSPAWNINFO,PCHAR);
-//EQLIB_API VOID SelectItem                          (PSPAWNINFO,PCHAR);
 EQLIB_API VOID SellItem                            (PSPAWNINFO,PCHAR);
-//EQLIB_API VOID SendKey                             (PSPAWNINFO,PCHAR);
 EQLIB_API VOID SetAutoRun                          (PSPAWNINFO,PCHAR);
 EQLIB_API VOID SetError                            (PSPAWNINFO,PCHAR);
 EQLIB_API VOID Skills                              (PSPAWNINFO,PCHAR);

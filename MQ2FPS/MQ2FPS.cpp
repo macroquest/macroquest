@@ -91,7 +91,7 @@ public:
 	}
 	VOID Render(VOID);
 };
-REVERSE_VARIABLE_DETOUR(VOID CMyDisplay::Render(VOID),PreDetour);
+FUNCTION_AT_VARIABLE_ADDRESS(VOID CMyDisplay::Render(VOID),PreDetour);
 
 // Called once, when the plugin is to initialize
 PLUGIN_API VOID InitializePlugin(VOID)

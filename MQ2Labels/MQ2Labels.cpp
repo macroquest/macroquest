@@ -149,7 +149,9 @@ PLUGIN_API VOID InitializePlugin(VOID)
 	DebugSpewAlways("Initializing MQ2Labels");
 
 	// Add commands, macro parameters, hooks, etc.
-	EasyClassDetour(CLabel__Draw,CLabelHook,Draw_Detour,VOID,(VOID),Draw_Trampoline);
+	//EasyClassDetour(CLabel__Draw,CLabelHook,Draw_Detour,VOID,(VOID),Draw_Trampoline);
+	EzDetour(CLabel__Draw,CLabelHook::Draw_Detour,CLabelHook::Draw_Trampoline);
+
 
 // currently in testing:
 //	EasyClassDetour(CGauge__Draw,CGaugeHook,Draw_Detour,VOID,(VOID),Draw_Trampoline);

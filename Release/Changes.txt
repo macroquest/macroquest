@@ -1,3 +1,47 @@
+02 May 2004 by Lax:
+- Added a popup box to the crash detected hook, explaining that the user should visit the
+  MQ2::Bug Reports forum.
+- Removed EasyDetour and EasyClassDetour.  There is a single replacement for the both of them
+  called EzDetour.  EzDetour(offset,detour,trampoline).  Examples (which are all over in MQ2Main
+  and plugins):
+  EzDetour(ProcessGameEvents,Detour_ProcessGameEvents,Trampoline_ProcessGameEvents);
+  EzDetour(CEverQuest__EnterZone,CEverQuestHook::EnterZone_Detour,CEverQuestHook::EnterZone_Trampoline);
+- Renamed the REVERSE_DETOUR functions to reduce confusion.  These really had nothing to do
+  with detours.  What it really does is lets you call a function at a given offset.  
+  So, they are now:
+  FUNCTION_AT_ADDRESS(function,offset)
+  FUNCTION_AT_VARIABLE_ADDRESS(function,variable)
+  FUNCTION_AT_VIRTUAL_ADDRESS(function,offset)
+- Fixed small issue in MQ2Data parser
+- Fixed /memspell not finding some spells correctly (Heroic Bond for example)
+- MQ2 will now fix the string table by removing extraneous spaces from the end of strings,
+  since EQ isnt smart enough to do it itself.  This fixes issues such as finding the AA
+  "Bestial Alignment", which has two spaces after it in eqstr_us.txt.  
+  ${AltAbility[Bestial Alignment]} previously did not work because of this issue.  It works
+  now because of this fix.
+- Added MQ2Data types
+  raid, raidmember   (see reference for members)
+- Added MQ2Data Top-Level Objects
+  raid Raid: Raid you're in...
+- Added/changed MQ2Data members
+  string ticks.Time: Time in the form hh:mm:ss (if there are no hours, the form will be mm:ss)
+  int skill.MinLevel: Minimum level for your class
+  int skill.StartingSkill: Base skill level for your class
+  int skill.SkillCapPre50: Skill cap pre-50 for your class
+  int skill.SkillCapPost50: Skill cap post-50 for your class
+  int character.FreeInventory: Count of free inventory spaces
+  int character.FreeInventory[n]: Count of free inventory spaces of at least this size (giant=4)
+  int character.LargestFreeInventory: Size of largest free inventory space
+- LaxColor is now defaulted to off since most people now realize that it exists.  If you wish
+  to turn it back on, LaxColor=1 in MacroQuest.ini.
+- Fixed spawn.NearestSpawn issues
+- Fixed ${Ini} absolute path issues
+- Fixed some other issues that were brought up on the boards
+
+30 Apr 2004 by Lax:
+- Added MQ2Data members
+  int macro.Params: Number of parameters to current sub
+
 29 Apr 2004 by Lax (even more):
 - Added option so that MQ2Data errors and normal errors (but not syntax errors that show
   /usage etc) will dump the macro stack.  This is ON by default.  To turn it off, set

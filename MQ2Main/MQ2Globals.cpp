@@ -56,6 +56,7 @@ DWORD gGameState = 0;
 DWORD ThreadID = 0;
 BOOL g_Loaded = FALSE;
 
+BOOL gStringTableFixed=FALSE;
 PCHATBUF gDelayedCommands = 0;
 
 HMODULE ghModule = NULL;
@@ -230,6 +231,7 @@ DWORD *pScreenY=(DWORD*)__ScreenY;
 
 PMOUSEINFO EQADDR_MOUSE=(PMOUSEINFO)__Mouse;
 PMOUSECLICK EQADDR_MOUSECLICK=(PMOUSECLICK)__Clicks;
+CHAR DataTypeTemp[MAX_STRING]={0};
 
 
 MQRANK EQP_DistArray[3000];
@@ -761,6 +763,7 @@ CTextOverlay **ppTextOverlay=(CTextOverlay**)pinstCTextOverlay;
 CSidlManager **ppSidlMgr=(CSidlManager **)pinstCSidlManager;
 CXWndManager **ppWndMgr=(CXWndManager**)pinstCXWndManager;
 KeypressHandler *pKeypressHandler=(KeypressHandler*)instKeypressHandler;
+PEQRAID pRaid=(PEQRAID)instCRaid;
 
 PMQPLUGIN pPlugins=0;
 PMQXMLFILE pXMLFiles=0;

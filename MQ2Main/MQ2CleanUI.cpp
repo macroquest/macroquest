@@ -86,12 +86,16 @@ VOID InitializeDisplayHook()
 {
 	DebugSpew("Initializing Display Hooks");
 
-	EasyClassDetour(CDisplay__CleanGameUI,CDisplayHook,CleanUI_Detour,VOID,(VOID),CleanUI_Trampoline);
-	EasyClassDetour(CDisplay__ReloadUI,CDisplayHook,ReloadUI_Detour,VOID,(BOOL),ReloadUI_Trampoline);
-	EasyClassDetour(CDisplay__GetWorldFilePath,CDisplayHook,GetWorldFilePath_Detour,bool,(char*,char*),GetWorldFilePath_Trampoline);
-	EasyDetour(DrawNetStatus,DrawHUD_Detour,DWORD,(DWORD,DWORD,DWORD,DWORD),DrawHUD_Trampoline);
-	EasyClassDetour(EQ_LoadingS__WriteTextHD,EQ_LoadingSHook,WriteTextHD_Detour,VOID,(char *,int,int,int),WriteTextHD_Trampoline);
-
+//	EasyClassDetour(CDisplay__CleanGameUI,CDisplayHook,CleanUI_Detour,VOID,(VOID),CleanUI_Trampoline);
+	EzDetour(CDisplay__CleanGameUI,CDisplayHook::CleanUI_Detour,CDisplayHook::CleanUI_Trampoline);
+//	EasyClassDetour(CDisplay__ReloadUI,CDisplayHook,ReloadUI_Detour,VOID,(BOOL),ReloadUI_Trampoline);
+	EzDetour(CDisplay__ReloadUI,CDisplayHook::ReloadUI_Detour,CDisplayHook::ReloadUI_Trampoline);
+//	EasyClassDetour(CDisplay__GetWorldFilePath,CDisplayHook,GetWorldFilePath_Detour,bool,(char*,char*),GetWorldFilePath_Trampoline);
+	EzDetour(CDisplay__GetWorldFilePath,CDisplayHook::GetWorldFilePath_Detour,CDisplayHook::GetWorldFilePath_Trampoline);
+//	EasyDetour(DrawNetStatus,DrawHUD_Detour,DWORD,(DWORD,DWORD,DWORD,DWORD),DrawHUD_Trampoline);
+	EzDetour(DrawNetStatus,DrawHUD_Detour,DrawHUD_Trampoline);
+//	EasyClassDetour(EQ_LoadingS__WriteTextHD,EQ_LoadingSHook,WriteTextHD_Detour,VOID,(char *,int,int,int),WriteTextHD_Trampoline);
+	EzDetour(EQ_LoadingS__WriteTextHD,EQ_LoadingSHook::WriteTextHD_Detour,EQ_LoadingSHook::WriteTextHD_Trampoline);
 }
 
 VOID ShutdownDisplayHook()

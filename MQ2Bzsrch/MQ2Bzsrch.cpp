@@ -235,7 +235,6 @@ DETOUR_TRAMPOLINE_EMPTY(VOID BzSrchHook::BzTrampoline(char *,int));
 class MQ2BazaarType *pBazaarType=0;
 class MQ2BazaarItemType *pBazaarItemType=0;
 
-
 class MQ2BazaarItemType : public MQ2Type
 {
 public:
@@ -296,7 +295,10 @@ public:
 			Dest.Type=pIntType;
 			return true;
 		case Name:
-			Dest.Ptr=&pBzrItem->BSSName[0];
+			strcpy(DataTypeTemp, &pBzrItem->BSSName[0]);
+			if (PCHAR ptr = strrchr(DataTypeTemp,'('))
+				*ptr = '\0';
+			Dest.Ptr=&DataTypeTemp[0];
 			Dest.Type=pStringType;
 			return true;
 		}
@@ -307,7 +309,11 @@ public:
 
 	 bool ToString(MQ2VARPTR VarPtr, PCHAR Destination)
 	{
+		if (!VarPtr.Ptr)
+			return false;
 		strcpy(Destination,((_BazaarSearchResponsePacket*)VarPtr.Ptr)->BSSName);
+		if (PCHAR ptr = strrchr(Destination,'('))
+			*ptr = '\0';
 		return true;
 	}
 	void InitVariable(MQ2VARPTR &VarPtr) 
@@ -417,7 +423,9 @@ PLUGIN_API VOID InitializePlugin(VOID)
 #else
    AddMQ2Data("Bazaar",dataBazaar); // cc - added, but not using TLO yet
 #endif
-   EasyClassDetour(CBazaarSearchWnd__HandleBazaarMsg,BzSrchHook,BzDetour,void,(char*,int),BzTrampoline);
+
+//   EasyClassDetour(CBazaarSearchWnd__HandleBazaarMsg,BzSrchHook,BzDetour,void,(char*,int),BzTrampoline);
+   EzDetour(CBazaarSearchWnd__HandleBazaarMsg,BzSrchHook::BzDetour,BzSrchHook::BzTrampoline);
 
    pBazaarType = new MQ2BazaarType;
    pBazaarItemType = new MQ2BazaarItemType;
@@ -433,7 +441,7 @@ PLUGIN_API VOID ShutdownPlugin(VOID)
 #ifdef USEMQ2PARMS
     RemoveParm("bazaar"); //cc - removed to add MQ2Data
 #else
-   RemoveMQ2Data("bazaar");
+   RemoveMQ2Data("Bazaar");
 #endif
    RemoveCommand("/mq2bzsrch");
    RemoveCommand("/bzsrch");

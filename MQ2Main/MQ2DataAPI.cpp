@@ -154,6 +154,7 @@ void InitializeMQ2Data()
 	AddMQ2Data("GroupLeaderName",dataGroupLeaderName);
 	AddMQ2Data("Skill",dataSkill);
 	AddMQ2Data("AltAbility",dataAltAbility);
+	AddMQ2Data("Raid",dataRaid);
 }
 
 
@@ -731,9 +732,7 @@ BOOL ParseMacroData(PCHAR szOriginal)
 		}
 
 		MQ2TYPEVAR Result;
-		if (ParseMQ2DataPortion(szCurrent,Result))
-			Result.Type->ToString(Result.VarPtr,szCurrent);
-		else
+		if (!ParseMQ2DataPortion(szCurrent,Result) || !Result.Type->ToString(Result.VarPtr,szCurrent))
 			strcpy(szCurrent,"NULL");
 
 		NewLength=strlen(szCurrent);

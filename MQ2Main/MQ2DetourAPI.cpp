@@ -225,7 +225,8 @@ VOID HookMemChecker(BOOL Patch)
         (*(PBYTE*)&memcheck3_tramp) = DetourFunction( (PBYTE) EQADDR_MEMCHECK3,
                                                     (PBYTE) memcheck3);
 
-		EasyDetour((DWORD)send_message,memcheck4,VOID,(PVOID,DWORD,PCHAR,DWORD,BOOL),memcheck4_tramp);
+//		EasyDetour((DWORD)send_message,memcheck4,VOID,(PVOID,DWORD,PCHAR,DWORD,BOOL),memcheck4_tramp);
+		EzDetour(send_message,memcheck4,memcheck4_tramp);
     } else {
         DetourRemove((PBYTE) memcheck0_tramp,
                      (PBYTE) memcheck0);
@@ -783,6 +784,7 @@ int __cdecl memcheck3(unsigned char *buffer, int count, struct mckey key)
 VOID __cdecl CrashDetected_Trampoline(DWORD,DWORD,DWORD,DWORD,DWORD); 
 VOID __cdecl CrashDetected_Detour(DWORD a,DWORD b,DWORD c,DWORD d,DWORD e) 
 { 
+	MessageBox(0,"MacroQuest2 is blocking the 'send Sony crash info?' box for your safety and privacy.  Crashes are usually bugs either in EQ or in MacroQuest2.  It is generally not something that you yourself did, unless you have custom MQ2 plugins loaded.  If you want to submit a bug report to the MacroQuest2 message boards, please follow the instructions on how to submit a crash bug report at the top of the MQ2::Bug Reports forum.","EverQuest Crash Detected",MB_OK);
 } 
 DETOUR_TRAMPOLINE_EMPTY(VOID CrashDetected_Trampoline(DWORD,DWORD,DWORD,DWORD,DWORD)); 
 
@@ -790,7 +792,8 @@ void InitializeMQ2Detours()
 {
 	InitializeCriticalSection(&gDetourCS);
 	HookMemChecker(TRUE);
-	EasyDetour(CrashDetected,CrashDetected_Detour,VOID,(DWORD,DWORD,DWORD,DWORD,DWORD),CrashDetected_Trampoline);
+//	EasyDetour(CrashDetected,CrashDetected_Detour,VOID,(DWORD,DWORD,DWORD,DWORD,DWORD),CrashDetected_Trampoline);
+	EzDetour(CrashDetected,CrashDetected_Detour,CrashDetected_Trampoline);
 }
 
 void ShutdownMQ2Detours()

@@ -21,8 +21,6 @@
 
 #include "MQ2Main.h"
 
-extern CHAR DataTypeTemp[MAX_STRING];
-
 BOOL dataSpawn(PCHAR szIndex, MQ2TYPEVAR &Ret)
 {
 	if (szIndex[0])
@@ -559,6 +557,9 @@ BOOL dataIni(PCHAR szIndex, MQ2TYPEVAR &Ret)
 
 	if (pIniFile[0]!='\\' && !strchr(pIniFile,':'))
 		sprintf(FileName,"%s\\%s",gszMacroPath,pIniFile);
+	else
+		strcpy(FileName,pIniFile);
+
 	if (!strchr(pIniFile,'.'))
 		strcat(FileName,".ini");
 
@@ -1093,5 +1094,9 @@ BOOL dataAltAbility(PCHAR szIndex, MQ2TYPEVAR &Ret)
 	return false;
 }
 
-
-
+BOOL dataRaid(PCHAR szIndex, MQ2TYPEVAR &Ret)
+{
+	Ret.DWord=0;
+	Ret.Type=pRaidType;
+	return true;
+}
