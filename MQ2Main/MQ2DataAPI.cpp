@@ -352,7 +352,8 @@ BOOL ParseMQ2DataPortion(PCHAR szOriginal, MQ2TYPEVAR &Result)
 	// Find [] before a . or null
 	PCHAR pPos=&szOriginal[0];
 	PCHAR pStart=pPos;
-	PCHAR pIndex="";
+	CHAR Index[MAX_STRING]={0};
+	PCHAR pIndex=&Index[0];
 	BOOL Quote=FALSE;
 	while(1)
 	{
@@ -532,47 +533,57 @@ BOOL ParseMQ2DataPortion(PCHAR szOriginal, MQ2TYPEVAR &Result)
 			// index
 			*pPos=0;
 			++pPos;
-			// check for quote
-			if (*pPos=='\"')
+
+			Quote=false;
+			BOOL BeginParam=true;
+			while(1)
 			{
-				Quote=true;
-				// find matching quote, we know it has one
-				++pPos;
-				pIndex=pPos;
-				while(*pPos!='\"')
+				if (*pPos==0)
 				{
-					if (*pPos==0)
-					{
-						// error
-						MQ2DataError("Unmatched quote found in index: '%s'",pIndex);
-						return FALSE;
-					}
-					++pPos;
-				}
-				// here's the end of the index, close it off
-				*pPos=0;
-				// and advance pointer again
-				++pPos;
-			}
-			else
-				pIndex=pPos;
-			while(*pPos!=']')
-			{
-				if (!*pPos)
-				{
-					// error
-					MQ2DataError("Unmatched bracket found in index: '%s'",pIndex);
+					MQ2DataError("Unmatched bracket or invalid character following bracket found in index: '%s'",pIndex);
 					return FALSE;
 				}
+				
+				if (BeginParam)
+				{
+					BeginParam=false;
+					if (*pPos=='\"')
+					{
+						Quote=true;
+						++pPos;
+						continue;
+					}
+				}
+				if (Quote)
+				{
+					if (*pPos=='\"')
+					{
+						if (pPos[1]==']' || pPos[1]==',')
+						{
+							Quote=false;
+							++pPos;
+							continue;
+						}
+					}
+				}
+				else
+				{
+					if (*pPos==']')
+					{
+						if (pPos[1]=='.' || pPos[1]=='(' || pPos[1]==0)
+							break;// valid end
+					}
+					else if (*pPos==',')
+						BeginParam=true;
+				}
+				*pIndex=*pPos;
+				++pIndex;
 				++pPos;
 			}
+
+			*pIndex=0;
+			pIndex=&Index[0];
 			*pPos=0;
-			if (pPos[1]!=0 && pPos[1]!='.' && pPos[1]!='(')
-			{
-				// broken!
-				MQ2DataError("Invalid character found after index ']%s'",&pPos[1]);
-				return FALSE;
-			}
 		}
 		else
 		if (*pPos=='.')
@@ -659,28 +670,48 @@ BOOL ParseMacroData(PCHAR szOriginal)
 		// find this brace's end
 		PCHAR pEnd=&pBrace[1];
 		BOOL Quote=false;
+		BOOL BeginParam=false;
 		int nBrace=1;
 		while(nBrace)
 		{
 			++pEnd;
+			if (BeginParam)
+			{
+				BeginParam=false;
+				if (*pEnd=='\"')
+				{
+					Quote=true;
+				}
+				continue;
+			}
 			if (*pEnd==0)
 			{// unmatched brace or quote
 				goto pmdbottom;
 			}
-			if (*pEnd=='}')
+			if (Quote)
 			{
-				if (!Quote)
+				if (*pEnd=='\"')
+				{
+					if (pEnd[1]==']' || pEnd[1]==',')
+					{
+						Quote=false;
+					}
+				}
+			}
+			else
+			{
+				if (*pEnd=='}')
+				{
 					nBrace--;
-			}
-			else if (*pEnd=='{')
-			{
-				if (!Quote)
+				}
+				else if (*pEnd=='{')
+				{
 					nBrace++;
+				}
+				else if (*pEnd=='[' || *pEnd==',')
+					BeginParam=true;
 			}
-			else if (*pEnd=='\"')
-			{
-				Quote=!Quote;
-			}
+
 		}
 		*pEnd=0;
 		strcpy(szCurrent,&pBrace[2]);

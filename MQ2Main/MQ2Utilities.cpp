@@ -224,19 +224,6 @@ PSTR GetArg(PSTR szDest, PCSTR szSrc, DWORD dwNumber, BOOL LeaveQuotes, BOOL ToP
    return szDest;
 }
 
-PCHAR GetFuncParamName(PCHAR szMacroLine, DWORD ParamNum, PCHAR szParamName)
-{
-    if (strnicmp(szMacroLine,"sub ",4)) return NULL;
-    PCHAR szSubParamNamePointer = szMacroLine+4;
-    while ((szSubParamNamePointer[0]!='(') && (szSubParamNamePointer[0]!=0)) szSubParamNamePointer++;
-    if (szSubParamNamePointer[0]=='(') szSubParamNamePointer++;
-    if (szSubParamNamePointer[0]!=0) {
-        GetArg(szParamName,szSubParamNamePointer,ParamNum+1,TRUE,TRUE,TRUE);
-        if (szParamName[strlen(szParamName)-1]==')') szParamName[strlen(szParamName)-1]=0;
-    }
-    if (szParamName[0]==0) sprintf(szParamName,"Param%d",ParamNum);
-    return szParamName;
-}
 
 
 

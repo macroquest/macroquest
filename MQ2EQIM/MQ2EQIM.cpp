@@ -17,6 +17,8 @@ PreSetup("MQ2EQIM");
 #define BUDDY_ONLINE    5
 #define BUDDY_ONLINEAFK 6
 
+BOOL AnnounceBuddies=true;
+
 PCHAR szBuddyStatus[]=
 {
 	"\a-wRemoved from list\ax",
@@ -43,10 +45,14 @@ struct EQIMBuddy
 {
 	CHAR Name[MAX_STRING];
 	DWORD Status;
+	time_t LastSeen;
 };
 
 
 CIndex<EQIMBuddy*> BuddyList(10);
+CHAR Character[MAX_STRING]={0};
+BOOL BuddiesLoaded=false;
+
 
 int FindEQIMBuddy(PCHAR Name)
 {
@@ -61,6 +67,8 @@ int FindEQIMBuddy(PCHAR Name)
 	return -1;
 }
 
+extern CHAR DataTypeTemp[MAX_STRING];
+
 class MQ2BuddyType : public MQ2Type
 {
 public:
@@ -69,13 +77,15 @@ public:
 		Name=1,
 		Status=2,
 		StatusID=3,
+		LastSeen=4,
 	};
 
 	MQ2BuddyType():MQ2Type("buddy")
 	{
-		AddMember((DWORD)Name,"Name");
-		AddMember((DWORD)Status,"Status");
-		AddMember((DWORD)StatusID,"StatusID");
+		TypeMember(Name);
+		TypeMember(Status);
+		TypeMember(StatusID);
+		TypeMember(LastSeen);
 	}
 
 	~MQ2BuddyType()
@@ -103,6 +113,10 @@ public:
 		case StatusID:
 			Dest.DWord=pBuddy->Status;
 			Dest.Type=pIntType;
+			return true;
+		case LastSeen:
+			Dest.Ptr= localtime((time_t*) &pBuddy->LastSeen ); 	
+			Dest.Type=pTimeType;
 			return true;
 		}
 
@@ -167,7 +181,9 @@ BOOL dataBuddy(PCHAR szIndex, MQ2TYPEVAR &Ret)
 VOID OnBuddyStatusChange(char *Buddy, DWORD Status);
 DWORD PreDetour[10]={0};
 BOOL Detoured=false;
-// Called once, when the plugin is to initialize
+VOID SaveBuddyList();
+VOID LoadBuddyList();
+VOID BuddiesCmd(PSPAWNINFO pChar, PCHAR Line);
 
 void SetVTable(DWORD index, DWORD value)
 {
@@ -203,6 +219,7 @@ PLUGIN_API VOID InitializePlugin(VOID)
 	pBuddyType = new MQ2BuddyType;	
 	AddMQ2Data("Buddy",dataBuddy);
 	AddMQ2Data("Buddies",dataBuddies);
+	AddCommand("/buddies",BuddiesCmd);
 }
 
 // Called once, when the plugin is to shutdown
@@ -217,8 +234,11 @@ PLUGIN_API VOID ShutdownPlugin(VOID)
 		SetVTable(8,PreDetour[8]);
 	RemoveMQ2Data("Buddy");
 	RemoveMQ2Data("Buddies");
+	if (BuddiesLoaded)
+		SaveBuddyList();
 	BuddyList.Cleanup();
 	delete pBuddyType;
+	RemoveCommand("/buddies");
 }
 
 // Called once directly after initialization, and then every time the gamestate changes
@@ -226,15 +246,27 @@ PLUGIN_API VOID ShutdownPlugin(VOID)
 PLUGIN_API VOID SetGameState(DWORD GameState)
 {
 //	DebugSpewAlways("MQ2EQIM::SetGameState()");
-	if (GameState==GAMESTATE_INGAME && !Detoured)
+	if (GameState==GAMESTATE_INGAME)
 	{
-		PreDetour[8]=GetVTable(8);
-		SetVTable(8,(DWORD)OnBuddyStatusChange);
-		GetVTable(8);
-		Detoured=true;
+		if (!Detoured)
+		{
+			PreDetour[8]=GetVTable(8);
+			SetVTable(8,(DWORD)OnBuddyStatusChange);
+			GetVTable(8);
+			Detoured=true;
+		}
+		if (!BuddiesLoaded)
+		{
+			BuddiesLoaded=true;
+			LoadBuddyList();
+		}
 	}
 	else if (GameState==GAMESTATE_CHARSELECT)
 	{
+		if (BuddiesLoaded)
+		{
+			BuddiesLoaded=false;
+		}
 		BuddyList.Cleanup();
 	}
 }
@@ -247,26 +279,163 @@ VOID OnBuddyStatusChange(char *Buddy, DWORD Status)
 		EQIMBuddy *pBuddy = new EQIMBuddy;
 		strcpy(pBuddy->Name,Buddy);
 		pBuddy->Status=Status;
+		if (Status==BUDDY_OFFLINE)
+			pBuddy->LastSeen=0;
+		else
+			pBuddy->LastSeen=time(0);
 		BuddyList+=pBuddy;
 	}
 	else
 	{
 		BuddyList[N]->Status=Status;
+		if (Status==BUDDY_OFFLINE)
+			BuddyList[N]->LastSeen=0;
+		else
+			BuddyList[N]->LastSeen=time(0);
+
 		if (Status==0) // removed from list
 		{
 			delete BuddyList[N];
 			BuddyList[N]=0;
 		}
 	}
+	SaveBuddyList();
 
-
-	char out[MAX_STRING]={0};
-	if (Status<=6)
+	if (AnnounceBuddies)
 	{
-		sprintf(out,"\ar*\ax %s: %s",Buddy,szBuddyStatus[Status]);
+		char out[MAX_STRING]={0};
+		if (Status<=6)
+		{
+			sprintf(out,"\ar*\ax %s: %s",Buddy,szBuddyStatus[Status]);
+		}
+		else
+			sprintf(out,"\ar*\ax %s: Unknown Status(%d)",Status);
+		WriteChatColor(out);
 	}
-	else
-		sprintf(out,"\ar*\ax %s: Unknown Status(%d)",Status);
-	WriteChatColor(out);
+}
+
+VOID LoadBuddyList()
+{
+	BuddyList.Cleanup();
+	
+	sprintf(Character,"%s.%s",EQADDR_SERVERNAME,((PCHARINFO)pCharData)->Name);
+
+	// load buddies per char
+	CHAR FullList[MAX_STRING*10] = {0};
+    CHAR szBuffer[MAX_STRING] = {0};
+	CHAR szCommand[MAX_STRING] = {0};
+	GetPrivateProfileString(Character,NULL,"",FullList,MAX_STRING*10,INIFileName);
+    PCHAR pFullList = FullList;
+    while (pFullList[0]!=0) {
+        GetPrivateProfileString(Character,FullList,"",szBuffer,MAX_STRING,INIFileName);
+        if (szBuffer[0]!=0) {
+			//LoadMQ2Plugin(szBuffer);
+			if (FindEQIMBuddy(szBuffer)==-1)
+			{
+				sprintf(szCommand,";buddy %s",szBuffer);
+				DoCommand((PSPAWNINFO)pCharSpawn,szCommand);
+				EQIMBuddy *pBuddy = new EQIMBuddy;
+				strcpy(pBuddy->Name,szBuffer);
+				pBuddy->Status=BUDDY_OFFLINE;
+				pBuddy->LastSeen=0;
+				BuddyList+=pBuddy;
+			}
+        }
+        pFullList+=strlen(pFullList)+1;
+    }	
+
+	// import friends list
+	unsigned long N;
+	for (N = 0 ; N < 100 ; N++)
+	{
+		if (pFriendsList->Name[N][0])
+		{
+			sprintf(szCommand,";buddy %s",pFriendsList->Name[N]);
+			DoCommand((PSPAWNINFO)pCharSpawn,szCommand);
+		}
+	}
+
+	// import "last seen" global
+	for ( N = 0 ; N < BuddyList.Size ; N++)
+	{
+		if (EQIMBuddy *pBuddy = BuddyList[N])
+		{
+			pBuddy->LastSeen=GetPrivateProfileInt("LastSeen",pBuddy->Name,0,INIFileName);
+		}
+	}
+}
+
+VOID SaveBuddyList()
+{
+	CHAR Buffer[MAX_STRING]={0};
+
+	// save buddies per char and "last seen" global
+	WritePrivateProfileSection(Character,"",INIFileName);
+
+	for (unsigned long N = 0 ; N < BuddyList.Size ; N++)
+	{
+		if (EQIMBuddy *pBuddy = BuddyList[N])
+		{
+			WritePrivateProfileString(Character,pBuddy->Name,pBuddy->Name,INIFileName);
+			WritePrivateProfileString("LastSeen",pBuddy->Name,itoa(pBuddy->LastSeen,Buffer,10),INIFileName);
+		}
+	}
+}
+
+VOID BuddiesCmd(PSPAWNINFO pChar, PCHAR Line)
+{
+	BOOL bOnline=true;
+	BOOL bOffline=false;
+	BOOL bEQIM=true;
+	CHAR Buffer[MAX_STRING]={0};
+	if (Line[0])
+	{
+		strcpy(Buffer,Line);
+		strlwr(Buffer);
+		bOnline=(strstr(Buffer,"on")!=0);
+		bEQIM=(strstr(Buffer,"eqim")!=0);
+		bOffline=(strstr(Buffer,"off")!=0);
+	}
+	unsigned long Count=0;
+	WriteChatColor("List of Buddies");
+	WriteChatColor("---------------");
+	for (unsigned long N = 0 ; N < BuddyList.Size ; N++)
+	{
+		if (EQIMBuddy *pBuddy = BuddyList[N])
+		{
+			switch(pBuddy->Status)
+			{
+			case BUDDY_OFFLINE:
+				if (bOffline)
+				{
+					struct tm *pTime=localtime((time_t*)&pBuddy->LastSeen);
+					Count++;
+					sprintf(Buffer,"\ar*\ax %s: %s - Last Seen %02d:%02d:%02d %02d/%02d/%04d",pBuddy->Name,szBuddyStatus[pBuddy->Status],pTime->tm_hour,pTime->tm_min, pTime->tm_sec,pTime->tm_mon+1,pTime->tm_mday, pTime->tm_year+1900);
+					WriteChatColor(Buffer);
+				}
+				break;
+			case BUDDY_EQIM:
+			case BUDDY_EQIMAFK:
+				if (bEQIM)
+				{
+					Count++;
+					sprintf(Buffer,"\ar*\ax %s: %s",pBuddy->Name,szBuddyStatus[pBuddy->Status]);
+					WriteChatColor(Buffer);
+				}
+				break;
+			case BUDDY_ONLINE:
+			case BUDDY_ONLINEAFK:
+				if (bOnline)
+				{
+					Count++;
+					sprintf(Buffer,"\ar*\ax %s: %s",pBuddy->Name,szBuddyStatus[pBuddy->Status]);
+					WriteChatColor(Buffer);
+				}
+				break;
+			}
+		}
+	}
+	sprintf(Buffer,"\ag%d\ax buddies matching\at%s%s%s\ax",Count,bEQIM?" EQIM":"",bOffline?" offline":"",bOnline?" online":"");
+	WriteChatColor(Buffer);
 }
 

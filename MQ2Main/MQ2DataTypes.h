@@ -16,6 +16,9 @@
 // add actual macro parameters to macro type (subs and main)
 // (non-mq2data) command to clear macro return value
 // container empty slots, size of containable items
+// "bind" type
+// Friend TLO
+// Ignore TLO
 
 EQLIB_VAR class MQ2FloatType *pFloatType;
 EQLIB_VAR class MQ2StringType *pStringType;

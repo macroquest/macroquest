@@ -429,6 +429,19 @@ VOID Echo(PSPAWNINFO pChar, PCHAR szLine)
 
 #ifndef USEMQ2DATAVARS
 /* MQ2USERVARS */
+PCHAR GetFuncParamName(PCHAR szMacroLine, DWORD ParamNum, PCHAR szParamName)
+{
+    if (strnicmp(szMacroLine,"sub ",4)) return NULL;
+    PCHAR szSubParamNamePointer = szMacroLine+4;
+    while ((szSubParamNamePointer[0]!='(') && (szSubParamNamePointer[0]!=0)) szSubParamNamePointer++;
+    if (szSubParamNamePointer[0]=='(') szSubParamNamePointer++;
+    if (szSubParamNamePointer[0]!=0) {
+        GetArg(szParamName,szSubParamNamePointer,ParamNum+1,TRUE,TRUE,TRUE);
+        if (szParamName[strlen(szParamName)-1]==')') szParamName[strlen(szParamName)-1]=0;
+    }
+    if (szParamName[0]==0) sprintf(szParamName,"Param%d",ParamNum);
+    return szParamName;
+}
 
 // ***************************************************************************
 // Function:    Goto
@@ -1073,19 +1086,17 @@ VOID EndMacro(PSPAWNINFO pChar, PCHAR szLine)
     PEVENTSTACK pEvent;
     PEVENTLIST pEventL;
     BOOL bKeepKeys = gKeepKeys;
-    BOOL bKeepVars = TRUE;
     if (szLine[0]!=0) {
         GetArg(Buffer,szLine,1);
         szLine = GetNextArg(szLine);
         if (stricmp(Buffer,"keep")) {
-            SyntaxError("Usage: /endmacro [keep [vars] [keys]]");
+            SyntaxError("Usage: /endmacro [keep keys]");
             return;
         }
         while (szLine[0]!=0) {
             GetArg(Buffer,szLine,1);
             szLine = GetNextArg(szLine);
             if (!stricmp(Buffer,"keys")) bKeepKeys = TRUE;
-            if (!stricmp(Buffer,"vars")) bKeepVars = TRUE;
         }
     }
 
@@ -1141,9 +1152,7 @@ VOID EndMacro(PSPAWNINFO pChar, PCHAR szLine)
         }
     }
 
-    if (!bKeepVars ) {
-        ZapVars(pChar,"");
-    }
+    ClearMQ2DataVariables(&pMacroVariables);
 
     DebugSpewNoFile("EndMacro - Ended");
 	if (gFilterMacro != FILTERMACRO_NONE)
@@ -1197,10 +1206,17 @@ VOID Call(PSPAWNINFO pChar, PCHAR szLine)
             while (SubParam[0]!=0) 
 			{
 				CHAR szParamName[MAX_STRING] = {0};
+				CHAR szParamType[MAX_STRING] = {0};
 				CHAR szNewValue[MAX_STRING]={0};
 				GetArg(szNewValue,SubParam,1);
-				GetFuncParamName(gMacroBlock->Line,StackNum,szParamName);
-				AddMQ2DataVariable(szParamName,"",pStringType,&gMacroStack->Parameters,szNewValue);
+
+
+				GetFuncParam(gMacroBlock->Line,StackNum,szParamName,szParamType);
+				MQ2Type *pType = FindMQ2DataType(szParamType);
+				if (!pType)
+					pType=pStringType;
+
+				AddMQ2DataVariable(szParamName,"",pType,&gMacroStack->Parameters,szNewValue);
                 SubParam = GetNextArg(SubParam);
                 StackNum++;
             }
@@ -1604,5 +1620,41 @@ VOID Next(PSPAWNINFO pChar, PCHAR szLine)
 }
 
 
+PCHAR GetFuncParam(PCHAR szMacroLine, DWORD ParamNum, PCHAR szParamName, PCHAR szParamType)
+{
+	szParamName[0]=0;
+	szParamType[0]=0;
+    if (strnicmp(szMacroLine,"sub ",4)) 
+		return NULL;
+    PCHAR szSubParamNamePointer = szMacroLine+4;
+    while ((szSubParamNamePointer[0]!='(') && (szSubParamNamePointer[0]!=0)) 
+	{
+		szSubParamNamePointer++;
+	}
+    if (szSubParamNamePointer[0]=='(') 
+		szSubParamNamePointer++;
+    if (szSubParamNamePointer[0]!=0) 
+	{
+		CHAR Temp[MAX_STRING]={0};
+        GetArg(Temp,szSubParamNamePointer,ParamNum+1,TRUE,TRUE,TRUE,',');
+        if (Temp[strlen(Temp)-1]==')') 
+			Temp[strlen(Temp)-1]=0;
+		if (PCHAR pSpace=strchr(Temp,' '))
+		{
+			*pSpace=0;
+			strcpy(szParamType,Temp);
+			strcpy(szParamName,&pSpace[1]);
+		}
+		else
+		{
+			strcpy(szParamName,Temp);
+		}
+    }
+	if (szParamType[0]==0)
+		strcpy(szParamType,"string");
+    if (szParamName[0]==0) 
+		sprintf(szParamName,"Param%d",ParamNum);
+    return szParamName;
+}
 
 #endif

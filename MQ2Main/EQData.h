@@ -1236,6 +1236,10 @@ typedef struct _EQSOCIAL {
 /*0x0510*/   BYTE   Color; 
 } EQSOCIAL, *PEQSOCIAL;
 
+typedef struct _EQFRIENDSLIST {
+/*0x0000*/ CHAR Name[0x64][0x40];
+/*0x1900*/
+} EQFRIENDSLIST, *PEQFRIENDSLIST;
 
 };
 using namespace EQData;

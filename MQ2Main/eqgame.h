@@ -69,7 +69,8 @@
 #define __GroupLeader									   0x7340A4
 #define __SkillDict										   0x620808
 #define __DrawHandler									   0x7A7F34
-
+#define __FriendsList									   0x709C1C
+#define __IgnoreList									   0x70B51C
 ////
 //Section 1: Vital Offsets
 ////

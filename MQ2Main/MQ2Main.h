@@ -308,7 +308,6 @@ EQLIB_API VOID DebugSpewNoFile(PCHAR szFormat, ...);
 EQLIB_API PSTR GetNextArg(PCSTR szLine, DWORD dwNumber = 1, BOOL CSV = FALSE, CHAR Separator = 0);
 EQLIB_API PSTR GetArg(PSTR szDest, PCSTR szSrc, DWORD dwNumber, BOOL LeaveQuotes = FALSE, BOOL ToParen = FALSE, BOOL CSV = FALSE, CHAR Separator = 0, BOOL AnyNonAlphaNum = FALSE);
 EQLIB_API VOID AddCustomEvent(PEVENTLIST pEList, PCHAR szLine);
-EQLIB_API PCHAR GetFuncParamName(PCHAR szMacroLine, DWORD ParamNum, PCHAR szParamName);
 EQLIB_API FLOAT DistanceToSpawn(PSPAWNINFO pChar, PSPAWNINFO pSpawn);
 EQLIB_API PCHAR GetEQPath(PCHAR szBuffer);
 #define DoCommand(pspawninfo,commandtoexecute) HideDoCommand(pspawninfo,commandtoexecute,FromPlugin)
@@ -363,9 +362,9 @@ EQLIB_API VOID SyntaxError(PCHAR szFormat, ...);
 EQLIB_API VOID MacroError(PCHAR szFormat, ...);
 EQLIB_API VOID MQ2DataError(PCHAR szFormat, ...);
 
-
 #ifdef USEMQ2DATAVARS
 /* MQ2DATAVARS */
+EQLIB_API PCHAR GetFuncParam(PCHAR szMacroLine, DWORD ParamNum, PCHAR szParamName, PCHAR szParamType);
 EQLIB_API PDATAVAR FindMQ2DataVariable(PCHAR Name);
 EQLIB_API BOOL AddMQ2DataVariable(PCHAR Name, PCHAR Index, MQ2Type *pType, PDATAVAR *ppHead, PCHAR Default);
 EQLIB_API PDATAVAR *FindVariableScope(PCHAR Name);
@@ -378,6 +377,7 @@ EQLIB_API VOID NewVarcalc(PSPAWNINFO pChar, PCHAR szLine);
 EQLIB_API VOID NewVardata(PSPAWNINFO pChar, PCHAR szLine);
 #else
 /* USERVARS */
+EQLIB_API PCHAR GetFuncParamName(PCHAR szMacroLine, DWORD ParamNum, PCHAR szParamName);
 EQLIB_API VOID FreeVarStrings(PVARSTRINGS pVarStrings);
 EQLIB_API VOID FreeVarArrays();
 EQLIB_API VOID FreeTimers();

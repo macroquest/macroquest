@@ -1,7 +1,22 @@
 26 Apr 2004 by Lax:
+- Various error messages have been updated to be more specific.
+- Sub parameters (including those for events) are now allowed to have a type other than 
+  string, when MQ2DataVars is enabled, like so:
+  Sub MySub(int A, string B, float C)
+- MQ2FPS now allows you to disable the framerate display with /fps off (/fps on to enable again)
+- MQ2EQIM feature set adjusted.  Now keeps your list of buddies (per character) and the last
+  time they were seen online or on eqim (by any character).  Your friends list is automatically
+  added as buddies.  A member was also added to the "buddy" type EQIM adds, time buddy.LastSeen.
 - ${Ini} will allow either relative or absolute paths.  Also slightly modified what it gives
   you when you try to get a list of keys and supply a default (previously it would ignore
   the default and give NULL if there was no list).
+- Improved parsing of " and ] within MQ2Data indexing.
+  ${String["hi"]}: hi
+  ${String["hi","hi"]}: hi,hi
+  ${String[""hi""]}: "hi"
+  ${String[hi"hi"hi]}: hi"hi"hi
+  ${String[[MQ2] - Hi]}: [MQ2] - Hi
+  ${String["""]}: "
 - MQ2BzSrch plugin is now updated for MQ2Data.
   MQ2Data reference for MQ2BzSrch (because it's a plugin, not in main reference)
   -------

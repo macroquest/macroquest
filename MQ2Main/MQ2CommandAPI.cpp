@@ -91,6 +91,11 @@ VOID HideDoCommand(PSPAWNINFO pChar, PCHAR szLine, BOOL delayed)
         }
         return;
     }
+	if (szCmd[0]==';')
+	{
+		pEverQuest->InterpretCmd((EQPlayer*)pChar,szOriginalLine);
+		return;
+	}
 
 
 
@@ -436,6 +441,7 @@ void InitializeMQ2Commands()
         {"/varlshift",  VarLShift,1,0},
 		{"/deletevar",  DeleteVarCmd,1,0},
         {"/declare",    DeclareVar,1,0},
+        {"/zapvars",    ZapVars,1,0},
 #else
 		{"/declare",    NewDeclareVar,1,0},
 		{"/deletevar",  NewDeleteVarCmd,1,0},
@@ -443,7 +449,6 @@ void InitializeMQ2Commands()
 		{"/varset",     NewVarset,1,0},
 		{"/vardata",	NewVardata,1,0},
 #endif
-        {"/zapvars",    ZapVars,1,0},
 //        {"/press",      Press,1,0},
 //        {"/sendkey",    SendKey,1,0},
         {"/delay",      Delay,1,0},
