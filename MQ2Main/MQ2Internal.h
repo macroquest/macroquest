@@ -467,10 +467,23 @@ public:
 	CRITICAL_SECTION CS;
 };
 
+typedef struct _MQ2VarPtr
+{
+	union {
+		PVOID Ptr;
+		FLOAT Float;
+		DWORD DWord;
+		ARGBCOLOR Argb;
+		int   Int;
+		UCHAR Array[4];
+	};
+} MQ2VARPTR, *PMQ2VARPTR;
+
 typedef struct _MQ2TypeVar
 {
 	class MQ2Type *Type;
 	union {
+		MQ2VARPTR VarPtr;
 		PVOID Ptr;
 		FLOAT Float;
 		DWORD DWord;
@@ -522,14 +535,14 @@ public:
 		Members.Cleanup();
 	}
 
-	virtual bool GetMember(PVOID Ptr, PCHAR Member, PCHAR Index, MQ2TYPEVAR &Dest)=0;
+	virtual bool GetMember(MQ2VARPTR VarPtr, PCHAR Member, PCHAR Index, MQ2TYPEVAR &Dest)=0;
 //	virtual bool SetMember(PVOID Ptr, PCHAR Member, DWORD Index, MQ2TYPEVAR &Data)=0;
-	virtual bool ToString(PVOID Ptr, PCHAR Destination)
+	virtual bool ToString(MQ2VARPTR VarPtr, PCHAR Destination)
 	{
 		strcpy(Destination,TypeName);
 		return true;
 	}
-	virtual bool FromString(PVOID Ptr, PCHAR Data)
+	virtual bool FromString(MQ2VARPTR VarPtr, PCHAR Data)
 	{
 		return false;
 	}

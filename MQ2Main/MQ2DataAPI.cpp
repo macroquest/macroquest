@@ -380,7 +380,7 @@ BOOL ParseMacroData(PCHAR szOriginal)
 						strcpy(szCurrent,"NULL");
 						goto pmdinsert;
 					}
-					CurrentVar.Type->ToString(*(MQ2VARPTR*)&CurrentVar.Ptr,szCurrent);
+					CurrentVar.Type->ToString(CurrentVar.VarPtr,szCurrent);
 					goto pmdinsert;
 				}
 				else
@@ -403,7 +403,7 @@ BOOL ParseMacroData(PCHAR szOriginal)
 					}
 					else
 					{
-						if (!CurrentVar.Type->GetMember(*(MQ2VARPTR*)&CurrentVar.Ptr,pStart,pIndex,CurrentVar))
+						if (!CurrentVar.Type->GetMember(CurrentVar.VarPtr,pStart,pIndex,CurrentVar))
 						{
 							// error
 							strcpy(szCurrent,"NULL");
@@ -411,7 +411,7 @@ BOOL ParseMacroData(PCHAR szOriginal)
 						}
 					}
 				}
-				CurrentVar.Type->ToString(*(MQ2VARPTR*)&CurrentVar.Ptr,szCurrent);
+				CurrentVar.Type->ToString(CurrentVar.VarPtr,szCurrent);
 
 				// done processing
 				goto pmdinsert;
@@ -426,7 +426,7 @@ BOOL ParseMacroData(PCHAR szOriginal)
 						strcpy(szCurrent,"NULL");
 						goto pmdinsert;
 					}
-					CurrentVar.Type->ToString(*(MQ2VARPTR*)&CurrentVar.Ptr,szCurrent);
+					CurrentVar.Type->ToString(CurrentVar.VarPtr,szCurrent);
 					goto pmdinsert;
 				}
 				else
@@ -450,7 +450,7 @@ BOOL ParseMacroData(PCHAR szOriginal)
 					}
 					else
 					{
-						if (!CurrentVar.Type->GetMember(*(MQ2VARPTR*)&CurrentVar.Ptr,pStart,pIndex,CurrentVar))
+						if (!CurrentVar.Type->GetMember(CurrentVar.VarPtr,pStart,pIndex,CurrentVar))
 						{
 							// error
 							strcpy(szCurrent,"NULL");
@@ -489,7 +489,7 @@ BOOL ParseMacroData(PCHAR szOriginal)
 					pStart=&pPos[1];
 				else if (!pPos[1])
 				{
-					CurrentVar.Type->ToString(*(MQ2VARPTR*)&CurrentVar.Ptr,szCurrent);
+					CurrentVar.Type->ToString(CurrentVar.VarPtr,szCurrent);
 					goto pmdinsert;
 				}
 				else
@@ -558,7 +558,7 @@ BOOL ParseMacroData(PCHAR szOriginal)
 						strcpy(szCurrent,"NULL");
 						goto pmdinsert;
 					}
-					CurrentVar.Type->ToString(*(MQ2VARPTR*)&CurrentVar.Ptr,szCurrent);
+					CurrentVar.Type->ToString(CurrentVar.VarPtr,szCurrent);
 					goto pmdinsert;
 				}
 				else
@@ -582,7 +582,7 @@ BOOL ParseMacroData(PCHAR szOriginal)
 					}
 					else
 					{
-						if (!CurrentVar.Type->GetMember(*(MQ2VARPTR*)&CurrentVar.Ptr,pStart,pIndex,CurrentVar))
+						if (!CurrentVar.Type->GetMember(CurrentVar.VarPtr,pStart,pIndex,CurrentVar))
 						{
 							// error
 							strcpy(szCurrent,"NULL");
