@@ -33,16 +33,16 @@ void Pulse()
     PSPAWNINFO pChar = pCharOrMount = (PSPAWNINFO)pCharSpawn;
 	if (pCharInfo && pCharInfo->pSpawn) pChar=pCharInfo->pSpawn;
 
-	WORD LastZone=-1;
+	static WORD LastZone=-1;
 	
-    PSPAWNINFO pCharOld = NULL;
-    FLOAT LastX = 0.0f;
-    FLOAT LastY = 0.0f;
-	DWORD LastMoveTick = 0;
-    DWORD MapDelay = 0;
+    static PSPAWNINFO pCharOld = NULL;
+   static  FLOAT LastX = 0.0f;
+    static FLOAT LastY = 0.0f;
+	static DWORD LastMoveTick = 0;
+    static DWORD MapDelay = 0;
 
-	DWORD LastHealth = 0;
-	DWORD LastMana = 0;
+	static DWORD LastHealth = 0;
+	static DWORD LastMana = 0;
 
 
 
