@@ -23,6 +23,9 @@ every command, most general-use commands will be implemented into the main DLL
 rather than plugins.&nbsp; Commands specific to plugins with other functionality 
 will of course go in the plugin itself.</p>
 <p><b>Creating a new plugin</b></p>
+<p><b>Before selecting an option, read the paragraph under &quot;The functionses, my 
+precious&quot; that says <font size="4">TAKE OUT THE ONES YOUR PLUGIN DOES NOT USE</font> 
+at the end.</b></p>
 <blockquote>
 <p><b>OPTION 1:</b> MQ2Template is an empty plugin, and will always contain the newest possible 
 plugin template.&nbsp; The absolute first thing to do is to copy the contents of 
@@ -56,7 +59,8 @@ be, and sets up your plugin's DllMain and sets the INI filename and path.</p>
 <p>The MQ2 Plugin system is based on <b>callback</b> functions.&nbsp; This means 
 that MQ2 is going to call certain functions in your plugin, if they exist.&nbsp; 
 None of the callbacks are absolutely mandatory, but you will at least want 
-InitializePlugin and ShutdownPlugin.</p>
+InitializePlugin and ShutdownPlugin. <b><font size="4">TAKE OUT THE ONES YOUR 
+PLUGIN DOES NOT USE.</font></b></p>
 <p>PLUGIN_API VOID InitializePlugin(VOID)&nbsp; </p>
 <p>This function is called immediately after your plugin is loaded by the 
 system.&nbsp; Add any commands, aliases, detours, macro params here.&nbsp; It is 
