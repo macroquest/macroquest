@@ -1,7 +1,7 @@
 <!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
 <html>
 <head>
-<title>Macroquest2 Documentation</title>
+<title>Macroquest 2 Documentation</title>
 <style type="text/css">	<!--
 	table {
 		border-collapse: collapse;
@@ -362,7 +362,7 @@ Performs a system beep<br><br>
   document.write("/bind forward e\t\t\tBinds the forward command to key e\r")
   document.write("/bind ~forward up\t\t\tBinds the forward command to alternate key uparrow\r")
   document.write("/bind forward clear\t\t\tClears the key used for the forward command\r")
-  document.write("/bind ''Cast gem'' 1 shift+1\tBinds ''Cast gem 1'' to shift 1 key combination\r")
+  document.write("/bind '/bind cast1 shift+1\tBinds ''Cast gem 1'' to shift 1 key combination\r")
   document.write("</XMP>")
   </SCRIPT>
   </blockquote>
@@ -459,6 +459,9 @@ Lists all doors in the zone<br><br>
 <span class="command">/doortarget</span> <span class="arg">id#</span> | "<span class="arg">filter</span>"<br>
 "Targets" a door for use with /face door and $door()<br><br>
 
+<span class="command">/dumpbinds</span> <span class="arg">name</span><br>
+Dumps all current binds to Configs\<span class="arg">name</span>.cfg which can be used to load later.<br><br>
+
 <a name="e" id="e"></a>
 <span class="command">/echo</span> <span class="arg">text</span><br>
 Echo's the specified text and or variable values to the EQ client<br><br>
@@ -496,7 +499,7 @@ document.write("</XMP>")
 [<span class="opt">skills</span> <span class="opt">all</span> | <span class="opt">increase</span> | <span class="opt">none</span>]
 [<span class="opt">target</span> | <span class="opt">money</span> | <span class="opt">food</span> | <span class="opt">encumber</span> | <span class="opt">debug</span> <span class="arg">on</span> | <span class="arg">off</span>] 
 [<span class="arg">name</span> [<span class="opt">add</span> <span class="arg">text</span>] | <span class="opt">remove</span> ] 
-[<span class="opt">zrange</span> <span class="arg">#</span>]<br><br>
+[<span class="opt">zrange</span> <span class="arg">#</span>] [<span class="opt">mq</span> <span class="opt">on</span>|<span class="opt">off</span>]<br><br>
 
 <span class="command">/finditem</span> [<span class="opt">similar</span>] "<span class="arg">itemname</span>"<br>
 Finds an item in your inventory by name. /finditem will open a pack, click the item, and
@@ -917,6 +920,20 @@ Lists your skills, or your skill level when <span class="command">/skills</span>
 </blockquote>
 <span class="command">/spew</span> <span class="opt">on</span>|<span class="opt">off</span><br>
 Enables or disables the output of Debug Spew to a file<br><br>
+
+<span class="command">/squelch</span> <span class="command"><span class="arg">command</span></span><br>
+Executes a command and prevents any output from the command. This does the following:<br>
+<span class="tab">1: Turns mq filter off</span><br>
+<span class="tab">2: Executes the command </span><br>
+<span class="tab">3: Turns mq filter back to the state it was in before step 1</span><br><br>
+
+** It is recommended that you do the following in your .CFG files that you dont want to see output from<br>
+<blockquote>
+/squelch /filter mq on<br>
+< do your stuff here><br>
+/squelch /filter mq off<br>
+</blockquote>
+
 <a name="t" id="t"></a>
 <span class="command">/target</span> [<span class="opt">pc</span>|<span class="opt">npc</span> [corpse]|<span class="opt">corpse</span>|<span class="opt">pet</span>] 
                                      [<span class="opt">class</span> <span class="arg">class</span>] 
@@ -2402,7 +2419,7 @@ MQ2 has a modular structure that allows different plugins to be loaded and unloa
 Allows you to specify custom commands to execute on a key combination.<br>
 There may be a command for the keys being pressed (down), and another for them being released (up).<br>
 <span class="command">/custombind</span> <span class="opt">list</span> | 
-                                       [ <span class="opt">add</span>|<span class="opt">delete</span>|<span class="opt">clear</span>] <span class="arg">name</span>
+                                       [<span class="opt">add</span>|<span class="opt">delete</span>|<span class="opt">clear</span>] <span class="arg">name</span>
 									   [<span class="opt">-down</span>|<span class="opt">-up</span>] |
 									   <span class="opt">set</span> <span class="arg">name</span> 
 									   [ <span class="opt">-down</span>|<span class="opt">-up</span> ] <span class="arg">command</span><br><br>
@@ -3234,7 +3251,10 @@ Q: Why can't I find the .dll files in the Release folder after I compile?<br>
 A: Make sure you do not have "hide sys files" set in your folder options.<br><br>
 
 Q: Why won't /click left corpse 1, /click left pack 1, or /click left &ltinvslot&gt work?<br>
-A: Make sure you have the file <span class="txtbold">locations.txt</span> from the release folder in your MQ2 folder.
+A: Make sure you have the file <span class="txtbold">locations.txt</span> from the release folder in your MQ2 folder.<br><br>
+
+Q: How do I create macro's that work on the non-US servers? My macro's require text with umlauts and accents.<br>
+A: Use the correct spelling with accents, umlauts and such in your corresponding language and save the macro as UTF-8 instead of ANSI.
 
 </body>
 </html>
