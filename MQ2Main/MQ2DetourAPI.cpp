@@ -439,7 +439,7 @@ int __cdecl memcheck1(unsigned char *buffer, int count, struct mckey key)
 //                and     eax, ecx
     eax = ((int)eax >> 8) & 0xffffff;
 //                xor     eax, encryptpad1[edx*4]
-    eax = extern_array1[edx];
+    eax ^= extern_array1[edx];
 //                mov     edi, eax
 //
     } else { // key.x != 0
