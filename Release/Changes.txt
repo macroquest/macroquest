@@ -1,3 +1,12 @@
+2 July 2004 by Amadeus:
+- Fixed "/who guild <guildname>" on some servers (It seems that on some servers, SOE
+  removed guilds but left the entry giving bogus guild entries in the list where the
+  'name' was blank, thus ending the search loop prematurely.)
+- Added "/who knight"  (returns Paladins and Shadowknights in the zone)
+- Added "/who healer"  (returns druids and clerics in the zone)
+- Added "/who dps"     (returns wizards, rangers, and rogues in the zone)
+- Added "/who slower"  (returns shamans, enchanters, and beastlords in the zone)
+
 30 June 2004 by Amadeus:
 - Refined "/who npc named" to work a bit better
 - Added "/who npc merchant"
