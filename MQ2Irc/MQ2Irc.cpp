@@ -7,6 +7,7 @@
 
 
 
+#pragma comment(lib,"wsock32.lib")
 #include "../MQ2Plugin.h"
 #include "../MQ2Main/MQ2Globals.h"
 
@@ -30,8 +31,51 @@ CHAR buffz[512];
 CHAR buff[512];
 char version[] = "MQ2Irc 11262003";
 
+unsigned long IRCChatColor=111111;
+
+
+CRITICAL_SECTION ConnectCS;
+bool bConnecting=false;
+bool bTriedConnect=false;
+bool bConnected=false;
+SOCKADDR_IN serverInfo;
+DWORD WINAPI IRCConnectThread(LPVOID lpParam)
+{
+	EnterCriticalSection(&ConnectCS);
+	bConnecting=true;
+	nret = connect(theSocket,(LPSOCKADDR)&serverInfo,sizeof(struct sockaddr));
+	if (nret == SOCKET_ERROR) {
+		bConnected=false;
+	}
+	else
+	{
+		unsigned long nonblocking = 1;
+		ioctlsocket(theSocket,FIONBIO,&nonblocking);
+		Sleep((clock_t)2 * CLOCKS_PER_SEC/2);
+
+		sprintf(buffz,"NICK %s\n\0",szIrcNick);
+		send(theSocket,buffz,strlen(buffz),0);
+		sprintf(buffz,"USER %s %s %s %s\n\0",szIrcNick,szIrcNick,szIrcNick,szIrcNick);
+		send(theSocket,buffz,strlen(buffz),0);
+		sprintf(buffz,"JOIN %s\n\0",IrcChan);
+		send(theSocket,buffz,strlen(buffz),0);
+		bConnected=true;
+	}
+	bTriedConnect=true;
+
+	bConnecting=false;
+	LeaveCriticalSection(&ConnectCS);
+	return 0;
+}
+
+
 VOID IrcConnect(PSPAWNINFO pChar, PCHAR szLine)
 { // /iconnect server port chan nick OR /iconnect inikey
+	if (bConnecting)
+	{
+		WriteChatColor("\ar#\ax Already trying to connect! Hold on a minute there",IRCChatColor);
+		return;
+	}
 	CHAR Arg1[MAX_STRING] = {0};
 	CHAR Arg2[MAX_STRING] = {0};
 	CHAR Arg3[MAX_STRING] = {0};
@@ -88,23 +132,26 @@ VOID IrcConnect(PSPAWNINFO pChar, PCHAR szLine)
 	WSAStartup(sockVersion, &wsaData);
 	hostEntry = gethostbyname(IrcServer);
 	if (!hostEntry) {
-		WriteChatColor("\ar#\ax gethostbyname error",1111111,1);
+		WriteChatColor("\ar#\ax gethostbyname error",IRCChatColor);
 		WSACleanup();
 		return;
 	}
 	theSocket = socket(AF_INET,SOCK_STREAM,IPPROTO_TCP);
 	if (theSocket == INVALID_SOCKET) {
-		WriteChatColor("\ar#\ax Socket error",111111,1);
+		WriteChatColor("\ar#\ax Socket error",IRCChatColor);
 		WSACleanup();
 		return;
 	}
-	SOCKADDR_IN serverInfo;
+//	SOCKADDR_IN serverInfo;
 	serverInfo.sin_family = AF_INET;
 	serverInfo.sin_addr = *((LPIN_ADDR)*hostEntry->h_addr_list);
 	serverInfo.sin_port = htons(atoi(IrcPort));
+	DWORD ThreadId; 
+	CreateThread(NULL,0,&IRCConnectThread,0,0,&ThreadId); 
+/*
 	nret = connect(theSocket,(LPSOCKADDR)&serverInfo,sizeof(struct sockaddr));
 	if (nret == SOCKET_ERROR) {
-		WriteChatColor("\ar#\ax Couldnt Connect!",111111,1);
+		WriteChatColor("\ar#\ax Couldnt Connect!",IRCChatColor);
 		WSACleanup();
 		return;
 	}
@@ -116,9 +163,10 @@ VOID IrcConnect(PSPAWNINFO pChar, PCHAR szLine)
 	send(theSocket,buffz,strlen(buffz),0);
 	sprintf(buffz,"USER %s %s %s %s\n\0",IrcNick,IrcNick,IrcNick,IrcNick);
 	send(theSocket,buffz,strlen(buffz),0);
-	WriteChatColor("\ar#\ax Connected!",111111,1);
+	WriteChatColor("\ar#\ax Connected!",IRCChatColor);
 	sprintf(buffz,"JOIN %s\n\0",IrcChan);
 	send(theSocket,buffz,strlen(buffz),0);
+/**/
 	return;
 }
 
@@ -164,24 +212,24 @@ VOID IrcCmd(PSPAWNINFO pChar, PCHAR szLine)
 		return;
 	} else if(!strcmp(strupr(z[0]),"HELP")) {
 		sprintf(buffz,"\ar#\ax Supported Commands:\n\ar#\ax NICK JOIN PART WHOIS MSG SAY RAW QUIT NAMES HELP");
-		WriteChatColor(buffz,111111,1);
+		WriteChatColor(buffz,IRCChatColor);
 		return;
 	} else if(!strcmp(strupr(z[0]),"QUIT")) {
 		sprintf(buffz,"QUIT :%s\n\0",z[1]);
 		send(theSocket,buffz,strlen(buffz),0);
-		WriteChatColor("\ar#\ax Connection Closed, you can unload MQ2Irc now.",111111,1);
+		WriteChatColor("\ar#\ax Connection Closed, you can unload MQ2Irc now.",IRCChatColor);
 		return;
 	} else if(!strcmp(strupr(z[0]),"RAW")) {
 		sprintf(buffz,"%s\n\0",z[1]);
 		sprintf(buff,"\ab[\a-yraw\ab(\ay%s\ab)]\a-w %s\0", IrcServer, z[1]);
-		WriteChatColor(buff,111111,1);
+		WriteChatColor(buff,IRCChatColor);
 		send(theSocket,buffz,strlen(buffz),0);
 		return;
 	} else if(!strcmp(strupr(z[0]),"SAY")) {
 		sprintf(buffz,"PRIVMSG %s :%s\n\0",IrcChan,z[1]);
 		send(theSocket,buffz,strlen(buffz),0);
 		sprintf(buffz,"\ag<\aw%s\ag>\a-w %s\0",IrcNick,z[1]);
-		WriteChatColor(buffz,111111,1);
+		WriteChatColor(buffz,IRCChatColor);
 		return;
 	} else if(!strcmp(strupr(z[0]),"NAMES")) {
 		sprintf(buffz,"NAMES %s\n\0",IrcChan);
@@ -200,10 +248,10 @@ VOID IrcCmd(PSPAWNINFO pChar, PCHAR szLine)
 		sprintf(buffz,"PRIVMSG %s :%s\n\0", z[1],z[2]);
 		send(theSocket,buffz,strlen(buffz),0);
 		sprintf(buffz,"\ab[\a-rmsg\ab(\ar%s\ab)]\a-w %s\0", z[1], z[2]);
-		WriteChatColor(buffz,111111,1);
+		WriteChatColor(buffz,IRCChatColor);
 		return;
 	} else {
-		WriteChatColor("\ar#\a-w Invalid Command, /i help for a list of commands",111111,1);
+		WriteChatColor("\ar#\a-w Invalid Command, /i help for a list of commands",IRCChatColor);
 	}
 }
 
@@ -456,12 +504,12 @@ default: //if its not one of those, its a numeric we havnt set up, just
 	return buffz;
 		}
 	} else { //wasnt a normal command, and wasnt numeric.. something didnt work right
-		WriteChatColor("DEBUG Couldnt parse correctly...",111111,1);
+		WriteChatColor("DEBUG Couldnt parse correctly...",IRCChatColor);
 		sprintf(buff,"DEBUG: command = %s\0", command);
-		WriteChatColor(buff,111111,1);
+		WriteChatColor(buff,IRCChatColor);
 		for(y = 0; y<x;) {
 			sprintf(buff,"DEBUG param[%i] = %s\0", y, param[y]);
-			WriteChatColor(buff,111111,1);
+			WriteChatColor(buff,IRCChatColor);
 			y++;
 		}
 		return buffz;
@@ -475,15 +523,16 @@ PLUGIN_API VOID InitializePlugin(VOID)
 	DebugSpewAlways("Initializing MQ2Irc");
 	AddCommand("/i",IrcCmd);
 	AddCommand("/iconnect",IrcConnect);
-	WriteChatColor("Loading MQ2Irc...",111111,1);
+	WriteChatColor("Loading MQ2Irc...",IRCChatColor);
 
-	WriteChatColor("\ar#\ax MQ2Irc loaded, all commands are run with /i <command>",111111,1);
-	WriteChatColor("\ar#\ax /i help for a list of commands",111111,1);
-	WriteChatColor("\ar#\ax To connect to a server, type /iconnect <server> <port> <channel> <nick>",111111,1);
+	WriteChatColor("\ar#\ax MQ2Irc loaded, all commands are run with /i <command>",IRCChatColor);
+	WriteChatColor("\ar#\ax /i help for a list of commands",IRCChatColor);
+	WriteChatColor("\ar#\ax To connect to a server, type /iconnect <server> <port> <channel> <nick>",IRCChatColor);
 	GetPrivateProfileString("Last Connect","Server","irc.forever-hacking.net",szIrcServer,MAX_STRING,INIFileName);
 	GetPrivateProfileString("Last Connect","Port","6667",szIrcPort,MAX_STRING,INIFileName);
 	GetPrivateProfileString("Last Connect","Chan","MyChan",szIrcChan,MAX_STRING,INIFileName);
 	GetPrivateProfileString("Last Connect","Nick","What-Ini",szIrcNick,MAX_STRING,INIFileName);
+	InitializeCriticalSection(&ConnectCS);
 }
 
 // Called once, when the plugin is to shutdown
@@ -492,14 +541,30 @@ PLUGIN_API VOID ShutdownPlugin(VOID)
 	DebugSpewAlways("Shutting down MQ2Irc");
 	RemoveCommand("/i");
 	RemoveCommand("/iconnect");
+
+	// make sure we're not trying to connect...
+	EnterCriticalSection(&ConnectCS);
+	LeaveCriticalSection(&ConnectCS);
+	DeleteCriticalSection(&ConnectCS);
 }
 
 PLUGIN_API VOID OnPulse(VOID)
 {
 	char *message;
 	int i,err;
-	//recv(theSocket, Buffer, sizeof(Buffer), 0);
-	//pEverQuest->dsp_chat(Buffer,111111,1);
+	if (bTriedConnect)
+	{
+		bTriedConnect=false;
+		if (bConnected)
+		{
+			WriteChatColor("\ar#\ax Connected!",IRCChatColor);
+		}
+		else
+		{
+			WriteChatColor("\ar#\ax Could not connect.",IRCChatColor);
+		}
+	}
+
 	// Fill the input buffer with new data, if any.
 
 	for (i=0;i<512;i++) {
@@ -508,7 +573,7 @@ PLUGIN_API VOID OnPulse(VOID)
 			if (ireadbuf[i] == '\n') {
 				ireadbuf[i] = '\0';
 				if((message = parse(ireadbuf)) != NULL) {
-					WriteChatColor(message,111111,1);
+					WriteChatColor(message,IRCChatColor);
 				}
 
 			}
