@@ -207,6 +207,7 @@
 #define __NewUIINI                                         0x524D9E
 #define __ExecuteCmd                                       0x44D11C
 #define __GetGaugeValueFromEQ							   0x523603
+#define __get_melee_range								   0x451C33
 
 // EQ_LoadingS
 #define EQ_LoadingS__WriteTextHD                           0x431F86

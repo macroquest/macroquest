@@ -265,6 +265,7 @@ static _ClassInfo ClassInfo[]=
 #define CWS_TRANSPARENT 0x400
 //#define CWS_UNKNOWN 0x800
 #define CWS_NOMOVE      0x8000
+#define CWS_UNKNOWN     0x40000
 #define ToggleBit(field,bit) field^=bit;
 #define BitOn(field,bit) field|=bit;
 #define BitOff(field,bit) field&=~bit;

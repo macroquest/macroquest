@@ -3961,7 +3961,17 @@ VOID IniOutput(PSPAWNINFO pChar, PCHAR szLine)
    GetArg(szArg4,szLine,4);
 
    DebugSpew("/ini input -- %s %s %s %s",szArg1,szArg2,szArg3,szArg4);
-    if (!strstr(szArg1,"\\")) {
+	PCHAR pTemp=szArg1;
+	while(pTemp[0])
+	{
+		if (pTemp[0]=='/')
+			pTemp[0]='\\';
+		pTemp++;
+	}
+
+
+    if (szArg1[0]!='\\' && !strchr(szArg1,':')) 
+	{
         sprintf(szOutput,"%s\\%s",gszMacroPath, szArg1);
         strcpy(szArg1,szOutput);
     }

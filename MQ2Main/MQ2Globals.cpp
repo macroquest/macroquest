@@ -174,6 +174,7 @@ fEQNewUIINI       NewUIINI   =  (fEQNewUIINI)__NewUIINI;
 fEQProcGameEvts   ProcessGameEvents = (fEQProcGameEvts)__ProcessGameEvents;
 fEQSendMessage    send_message = (fEQSendMessage)__SendMessage;
 fEQExecuteCmd	  ExecuteCmd = (fEQExecuteCmd)__ExecuteCmd;
+fEQGetMelee    get_melee_range = (fEQGetMelee)__get_melee_range;
 
 // EQ Address Initialization
 PCHAR GroupLeader=(PCHAR)__GroupLeader;

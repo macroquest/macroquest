@@ -540,6 +540,8 @@ BOOL dataIni(PCHAR szIndex, MQ2TYPEVAR &Ret)
 				if (!strcmp(pKey,"-1"))
 					pKey=0;
 				pDefault=strtok(NULL,"¦");
+				if (!pDefault)
+					pDefault="";
 			}
 		}
 	}
@@ -561,7 +563,16 @@ BOOL dataIni(PCHAR szIndex, MQ2TYPEVAR &Ret)
 		strcat(FileName,".ini");
 
 	if (!_FileExists(FileName))
+	{
+		if (pDefault[0])
+		{
+			strcpy(DataTypeTemp,pDefault);
+			Ret.Ptr=&DataTypeTemp[0];
+			Ret.Type=pStringType;
+			return true;
+		}
 		return false;
+	}
 
 	if (DWORD nSize=GetPrivateProfileString(pSection,pKey,pDefault,DataTypeTemp,MAX_STRING,FileName))
 	{

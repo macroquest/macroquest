@@ -17,7 +17,7 @@
 #endif
 
 #define DBG_SPEW
-#define DEBUG_TRY
+//#define DEBUG_TRY
 
 #include "MQ2Main.h"
 #include <map>

@@ -1,3 +1,13 @@
+27 Apr 2004 by Lax:
+- spawn.MaxRange now uses the proper melee range algorithm
+- Fixed a crash bug in the Ini TLO
+- Added proper relative/absolute path detection to /ini
+- Fixed window.Checked
+- Added MQ2Data members:
+  int window.Style: Window style code
+  bool window.Enabled: Enabled?
+  bool window.Highlighted: Highlighted/mouse over?
+
 26 Apr 2004 by Lax:
 - Various error messages have been updated to be more specific.
 - Fixed "outer" scope not being cleared by /endmacro.  Removed /zapvars in MQ2DataVars 

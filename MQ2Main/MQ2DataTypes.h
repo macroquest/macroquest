@@ -1530,6 +1530,9 @@ public:
 		Tooltip=22,
 		List=23,
 		Checked=24,
+		Style=25,
+		Enabled=26,
+		Highlighted=27,
 	};
 	MQ2WindowType():MQ2Type("window")
 	{
@@ -1556,6 +1559,9 @@ public:
 		TypeMember(Tooltip);//22,
 		TypeMember(List);
 		TypeMember(Checked);
+		TypeMember(Style);
+		TypeMember(Enabled);
+		TypeMember(Highlighted);
  	}
 
 	~MQ2WindowType()

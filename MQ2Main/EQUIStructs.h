@@ -45,6 +45,7 @@ typedef struct _EQCURRENTSELECTION {
 } EQCURRENTSELECTION, *PEQCURRENTSELECTION;
 
 // TO BE REMOVED.
+/*
 typedef struct _EQSLOTLIST {
             DWORD   Parent;
             DWORD   InvSlots[372];//0-21 inv 22-30 bags
@@ -314,68 +315,69 @@ typedef struct _CSIDLWND {
 /*0x05a*/   BYTE    MouseOver;
 /*0x05b*/   BYTE    Unknown0x05b;
 /*0x05c*/   DWORD   WindowStyle; // bit 1 - vertical scroll, bit 2 - horizontal scroll, bit 4 - title bar?, bit 8 - border
-/*0x060*/   DWORD   Unknown0x060;// -> 0x60
-			DWORD   Unknown0x064;
-			DWORD   Unknown0x068;
-/*0x   */   struct _CXSTR  *WindowText; // -> 0x6C
-/*0x068*/   struct _CXSTR  *Tooltip;
-/*0x06c*/   DWORD   Unknown0x06c; // CXWnd::SetLookLikeParent
-/*0x070*/   ARGBCOLOR BGColor; // "BGTint.Red", green, blue
-/*0x074*/   BYTE    Unknown0x074[0x10];
-/*0x084*/   DWORD   BGType; // "BGType" in ini // -->84
-/*0x088*/   struct _CXSTR  *XMLToolTip;
-/*0x08c*/   BYTE    Unknown0x08c[0x14];
-/*0x0a0*/   BYTE    Alpha; // "Alpha" in ini // -> a0
-/*0x0a1*/   BYTE    Fades; // "Fades" in ini
-/*0x0a2*/   BYTE    Unknown0x0a2;
-/*0x0a3*/   BYTE    Unknown0x0a3;
-/*0x0a4*/   BYTE    Unknown0x0a4[0x0c];
-/*0x0b0*/   DWORD   ZLayer; // --> b0
-/*0x0b4*/   DWORD   Unknown0x0b4;
-/*0x0b8*/   LPVOID  DrawTemplate; // 0xb8
-/*0x0bc*/   BYTE    Unknown0x0b0[0xc];
-/*0x0c8*/   union {
+/*0x060*/   DWORD   Unknown0x060;//
+/*0x064*/	DWORD   Unknown0x064;
+/*0x068*/	DWORD   Unknown0x068;
+/*0x06C*/   struct _CXSTR  *WindowText; // 
+/*0x070*/   struct _CXSTR  *Tooltip;
+/*0x074*/   DWORD   Unknown0x074; // CXWnd::SetLookLikeParent
+/*0x078*/   ARGBCOLOR BGColor; // "BGTint.Red", green, blue
+/*0x07c*/   BYTE    Unknown0x07c[0x10];
+/*0x08c*/   DWORD   BGType; // "BGType" in ini 
+/*0x090*/   struct _CXSTR  *XMLToolTip;
+/*0x094*/   BYTE    Unknown0x094[0x14];
+/*0x0a8*/   BYTE    Alpha; // "Alpha" in ini 
+/*0x0a9*/   BYTE    Fades; // "Fades" in ini
+/*0x0aa*/   BYTE    Unknown0x0aa;
+/*0x0ab*/   BYTE    Unknown0x0ab;
+/*0x0ac*/   BYTE    Unknown0x0ac[0x0c];
+/*0x0b8*/   DWORD   ZLayer; // 
+/*0x0bc*/   DWORD   Unknown0x0bc;
+/*0x0c0*/   LPVOID  DrawTemplate; //
+/*0x0c4*/   BYTE    Unknown0x0c4[0xc];
+/*0x0d0*/   union {
 					_ITEMINFO* Item;
 					_CSIDLWND* InvDescription;
 			};
-/*0x0c */   BYTE    Unknown0x0c0[0xc];
-/*0x0d */   DWORD   Unknown0x0cc; // CXWnd::StartFade, CXWnd::Minimize
-/*0x0d */   BYTE    Unknown0x0d0[0x10];
-/*0x0e */   DWORD   FadeTickCount; // -> 0x0ec
-/*0x0f */   BYTE    Unknown0x0e4; // CXWnd::StartFade  // 0xf0
-/*0x0f */   BYTE    Unknown0x0e5; // CXWnd::StartFade  // 0xf1
-/*0x0f */   BYTE    Unknown0x0e6; 
-/*0x0f */   BYTE    Unknown0x0e7;
-/*0x0f */   DWORD   Unknown0x0e8;// CXWnd::StartFade, CXWnd::Minimize // 0xf4
-/*0x0f */   DWORD   VScrollMax; // -> 0xf8
-/*0x0f */   DWORD   VScrollPos; // -> 0xfc
-/*0x10 */   DWORD   HScrollMax; // -> 0x100
-/*0x10 */   DWORD   HScrollPos; // -> 0x104
-/*0x10 */   BYTE    ValidCXWnd; // -> 0x108
-/*0x10 */   BYTE    Unused0x0f9[0x3];
-/*0x10 */   struct _CXSTR  *SidlText; 
-/*0x11 */   union { 
+/*0x0d4*/   BYTE    Unknown0x0d4[0xc];
+/*0x0e0*/   DWORD   Unknown0x0e0; // CXWnd::StartFade, CXWnd::Minimize
+/*0x0e4*/   BYTE    Unknown0x0e4[0x10];
+/*0x0f4*/   DWORD   FadeTickCount; // -> 0x0
+/*0x0f8*/   BYTE    Unknown0x0f8; // CXWnd::StartFade  // 0x
+/*0x0f9*/   BYTE    Unknown0x0f9; // CXWnd::StartFade  // 0x
+/*0x0fa*/   BYTE    Unknown0x0fa; 
+/*0x0fb*/   BYTE    Unknown0x0fb;
+/*0x0fc*/   DWORD   Unknown0x0fc;// CXWnd::StartFade, CXWnd::Minimize // 0x
+/*0x100*/   DWORD   VScrollMax; // -> 0x
+/*0x104*/   DWORD   VScrollPos; // -> 0x
+/*0x108*/   DWORD   HScrollMax; // -> 0x
+/*0x10c*/   DWORD   HScrollPos; // -> 0x
+/*0x110*/   BYTE    ValidCXWnd; // -> 0x
+/*0x111*/   BYTE    Unused0x0f9[0x3];
+/*0x114*/   struct _CXSTR  *SidlText; 
+/*0x118*/   union { 
 			   struct _CXSTR  *SidlScreen; 
                DWORD   SlotID; 
          }; 
-/*0x11 */   LPVOID SidlPiece;   // CScreenPieceTemplate (important)  
-/*0x11 */   DWORD   Checked; // CRadioGroup
-/*0x11 */   DWORD   TextureAnim; // used in CSidlScreenWnd::AddButtonToRadioGroup
-/*0x12 */   DWORD   Unknown0x120;
-/*0x12 */   DWORD   Selector;
-/*0x12 */   DWORD   PushToSelector;
-/*0x12 */   DWORD   EnableINIStorage;
-/*0x13 */   struct _CXSTR *INIStorageName;// -->0x130
-/*0x13 */   DWORD   Unknown0x134;
-/*0x13 */   DWORD   Unknown0x138;
-/*0x13 */   LPVOID  ContextMenu;
-/*0x14 */	DWORD   Unknown0x140;
-/*0x14 */	DWORD   Unknown0x144;
-/*0x   */
+/*0x11C*/   LPVOID SidlPiece;   // CScreenPieceTemplate (important)  
+/*0x120*/   BYTE    Checked;
+/*0x121*/   BYTE    Highlighted;
+/*0x122*/   BYTE    Unused0x122[0x2];
+/*0x124*/   DWORD   TextureAnim; // used in CSidlScreenWnd::AddButtonToRadioGroup
+/*0x128*/   DWORD   Unknown0x12c;
+/*0x12C*/   DWORD   Selector;
+/*0x130*/   DWORD   PushToSelector;
+/*0x134*/   DWORD   EnableINIStorage;
+/*0x138*/   struct _CXSTR *INIStorageName;// -->
+/*0x13C*/   DWORD   Unknown0x13C;// CTextureAnimation
+/*0x140*/   DWORD   Unknown0x140;// CTextureAnimation
+/*0x144*/   LPVOID  ContextMenu; // CTextureAnimation
+/*0x148*/	DWORD   Unknown0x148;// CTextureAnimation
+/*0x14C*/	DWORD   Unknown0x14C;// CTextureAnimation
+/*0x150*/
 } CSIDLWND, *PCSIDLWND;
 
 
-// todo...
 //11-6-2003 lax
 //Actual size 0x108 3-25-2004
 typedef struct _CXWNDMGR {
@@ -512,7 +514,7 @@ typedef struct _EQBUFFWINDOW
 // actual size 0x148
 typedef struct _EQINVSLOTWND {
 /*0x000*/   struct _CXWND Wnd;
-/*0x110*/	DWORD InvSlot;
+/*0x110*/	LONG InvSlot;
 /*0x114*/   BYTE Unknown0x114[0x28];
 /*0x13C*/   BOOL ProcessClick;
 } EQINVSLOTWND, *PEQINVSLOTWND;

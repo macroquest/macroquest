@@ -248,6 +248,7 @@ EQLIB_VAR fEQNewUIINI        NewUIINI;
 EQLIB_VAR fEQProcGameEvts    ProcessGameEvents;
 EQLIB_VAR fEQSendMessage     send_message;
 EQLIB_VAR fEQExecuteCmd		 ExecuteCmd;
+EQLIB_VAR fEQGetMelee    get_melee_range;
 
 EQLIB_VAR PCHAR szItemName[];
 EQLIB_VAR PCHAR szItemName4xx[];

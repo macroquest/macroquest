@@ -371,7 +371,7 @@ bool MQ2SpawnType::GetMember(MQ2VARPTR VarPtr, PCHAR Member, PCHAR Index, MQ2TYP
 		Dest.Type=pFloatType;
 		return true;
 	case MaxRange:
-		Dest.Float=(float)((pSpawn->AvatarHeight+((PSPAWNINFO)pCharSpawn)->AvatarHeight)*1.3333333333);
+		Dest.Float=get_melee_range(pLocalPlayer,(EQPlayer*)pSpawn); 
 		Dest.Type=pFloatType;
 		return true;
 	case Guild:
@@ -2246,8 +2246,20 @@ bool MQ2WindowType::GetMember(MQ2VARPTR VarPtr, PCHAR Member, PCHAR Index, MQ2TY
 		Dest.Type=pStringType;
 		return true;
 	case Checked:
-		Dest.Int=(pWnd->Checked!=0);
+		Dest.Int=pWnd->Checked;
 		Dest.Type=pBoolType;
+		return true;
+	case Highlighted:
+		Dest.Int=pWnd->Highlighted;
+		Dest.Type=pBoolType;
+		return true;
+	case Enabled:
+		Dest.Int=(pWnd->Enabled!=0);
+		Dest.Type=pBoolType;
+		return true;
+	case Style:
+		Dest.DWord=pWnd->WindowStyle;
+		Dest.Type=pIntType;
 		return true;
 	case List:
 		if (Index[0]>='0' && Index[0]<='9')
