@@ -361,6 +361,11 @@ VOID PluginsSetGameState(DWORD GameState)
 	}
 	else if (GameState==GAMESTATE_CHARSELECT)
 	{
+		if (!AutoExec)
+		{
+			AutoExec=true;
+			LoadCfgFile("AutoExec",false);
+		}
 		CharSelect=true;
 		LoadCfgFile("CharSelect",false);
 	}

@@ -2254,8 +2254,8 @@ BOOL LoadCfgFile(PCHAR Filename, BOOL Delayed)
 	FILE *file;
 	CHAR szFilename[MAX_STRING]={0};
 	strcpy(szFilename,Filename);
-	if (!strchr(Filename,'.'))
-		strcat(Filename,".cfg");
+	if (!strchr(szFilename,'.'))
+		strcat(szFilename,".cfg");
 	CHAR szFull[MAX_STRING]={0};
 #define TryFile(name)  \
 	{\
@@ -2274,8 +2274,9 @@ havecfgfile:
 	CHAR szBuffer[MAX_STRING]={0};
 	while(fgets(szBuffer,MAX_STRING,file))
 	{
-		if (szBuffer[0])
-			HideDoCommand(((PSPAWNINFO)pSpawnListTail),szBuffer,Delayed);
+		PCHAR Cmd=strtok(szBuffer,"\r\n");
+		if (Cmd && Cmd[0])
+			HideDoCommand(((PSPAWNINFO)pSpawnListTail),Cmd,Delayed);
 	}
 	return true;
 }
