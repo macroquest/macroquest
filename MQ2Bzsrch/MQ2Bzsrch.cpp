@@ -509,7 +509,7 @@ VOID bzpc(PSPAWNINFO pChar, PCHAR szLine)
         *ptr = '\0';
     if (pg_Item) memset(pg_Item, 0, sizeof(ITEMINFO));
     DebugSpewAlways("id = %d, name = %s\n", pc.id, pc.name);
-    send_message(EQADDR_GWORLD,0x1f3, &pc, sizeof(pc), TRUE);
+    send_message(EQADDR_GWORLD,0x1f4, &pc, sizeof(pc), TRUE);
 } 
 
 
