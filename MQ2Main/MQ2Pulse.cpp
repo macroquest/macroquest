@@ -192,6 +192,7 @@ void Pulse()
         }
 
         if (TurnNotDone) {
+			bRunNextCommand=FALSE;
             IsMouseWaiting();
             return;
         }
@@ -235,11 +236,11 @@ void Heartbeat()
 		}
 	}
 
+    bRunNextCommand   = TRUE;
 	Pulse();
     Benchmark(bmPluginsPulse,DebugTry(PulsePlugins()));
 	ProcessPendingGroundItems();
 
-    bRunNextCommand   = TRUE;
 	DWORD CurTurbo=0;
 
 	if (gDelayedCommands)

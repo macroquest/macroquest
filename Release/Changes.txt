@@ -4,6 +4,8 @@
     bool Defined[name]
   - Fixed all variable parsing when MQ2Parms is not on
 - Fixed a major problem with /newif, should now "work as intended"
+- Fixed (I think) problem with /face which let the macro continue before facing the target
+  completed
 
 7 Apr 2004 by Lax
 - Changes to MQ2Data system:

@@ -2816,6 +2816,7 @@ VOID Face(PSPAWNINFO pChar, PCHAR szLine)
     BOOL Look = TRUE;
     BOOL Parsing = TRUE;
     DOUBLE Distance;
+	bRunNextCommand=FALSE;
 
     _strlwr(strcpy(szLLine,szLine));
     while (bArg) {
