@@ -307,6 +307,13 @@ PLUGIN_API VOID OnPulse(VOID)
 		
 		if (GetForegroundWindow()==EQhWnd)
 		{
+			if (!InForeground)
+			{
+				// just switched to foreground, release ctrl/alt/shift
+				((PCXWNDMGR)pWndMgr)->KeyboardFlags[0]=0;
+				((PCXWNDMGR)pWndMgr)->KeyboardFlags[1]=0;
+				((PCXWNDMGR)pWndMgr)->KeyboardFlags[2]=0;
+			}
 			InForeground=true;
 			CurMax=gFG_MAX;
 			CurrentRate=gFG_Rate;

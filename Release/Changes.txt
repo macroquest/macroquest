@@ -1,3 +1,7 @@
+12 May 2004 by Lax (more):
+- Fixed bodytype 29 (dragons) being identified as triggers
+- Fixed target caption leakage (would stay drawn after switching targets)
+
 12 May 2004 by Lax:
 - Fixed the mysteriously disappearing #event handling in macros ;)
 

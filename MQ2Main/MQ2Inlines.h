@@ -35,6 +35,8 @@ static inline PCHAR GetBodyTypeDesc(DWORD BodyTypeID)
 {
 	if (!BodyTypeID)
 		return "BODYTYPE ZERO";
+	if (BodyTypeID==29)
+		return "Dragon";
 	return pEverQuest->GetBodyTypeDesc(BodyTypeID);
 }
 

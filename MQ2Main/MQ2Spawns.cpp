@@ -654,7 +654,17 @@ VOID UpdateMQ2SpawnSort()
 	qsort(&EQP_DistArray[0],gSpawnCount,sizeof(MQRANK),MQRankFloatCompare);
 	ExitMQ2Benchmark(bmUpdateSpawnSort);
 	static unsigned long nCaptions=100;
+	static unsigned long LastTarget=0;
 	++nCaptions;
+	if (LastTarget)
+	{
+		if (PSPAWNINFO pSpawn=(PSPAWNINFO)GetSpawnByID(LastTarget))
+		{
+			if (pSpawn!=(PSPAWNINFO)pTarget)
+				SetNameSpriteState(pSpawn,false);
+		}
+		LastTarget=0;
+	}
 	if (gGameState==GAMESTATE_INGAME && nCaptions>7)
 	{
 		nCaptions=0;
@@ -662,6 +672,7 @@ VOID UpdateMQ2SpawnSort()
 	}
 	if (pTarget)
 	{
+		LastTarget=((PSPAWNINFO)pTarget)->SpawnID;
 		((EQPlayerHook*)pTarget)->SetNameSpriteTint_Trampoline();
 		SetNameSpriteState((PSPAWNINFO)pTarget,true);
 	}

@@ -17,6 +17,7 @@
 // "bind" type (key binds)
 // Friend TLO
 // Ignore TLO
+// key state (ctrl/shift/alt)
 
 
 EQLIB_VAR class MQ2FloatType *pFloatType;

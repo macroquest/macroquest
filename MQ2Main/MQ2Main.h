@@ -236,8 +236,6 @@ EQLIB_API VOID DrawHUD();
 EQLIB_API VOID InitializeMQ2Commands();
 EQLIB_API VOID ShutdownMQ2Commands();
 EQLIB_API VOID AddCommand(PCHAR Command, fEQCommand Function, BOOL EQ=0, BOOL Parse=1, BOOL InGame=0);
-EQLIB_API VOID AddParm(PCHAR Name, fMQParm Function);
-EQLIB_API VOID RemoveParm(PCHAR Name);
 EQLIB_API VOID AddAlias(PCHAR ShortCommand, PCHAR LongCommand);
 EQLIB_API BOOL RemoveAlias(PCHAR ShortCommand);
 EQLIB_API BOOL RemoveCommand(PCHAR Command);
