@@ -387,6 +387,7 @@ typedef struct _SPELLBUFF {
 } SPELLBUFF, *PSPELLBUFF;
 
 #define      NUM_BANK_SLOTS         18
+#define      NUM_BOOK_SLOTS         0x200
 
 // 11-5-2003 Amadeus
 // Size 0x9E48
@@ -420,7 +421,7 @@ typedef struct _CHARINFO {
 /*0x00d8*/    BYTE       Unknown0x00d8[0x24]; 
 /*0x00fc*/   BYTE        languages[0x20];            // List of languages
 /*0x011c*/    struct       _SPELLBUFF   Buff[0x0f];
-/*0x020c*/    DWORD       SpellBook[0x200];
+/*0x020c*/    DWORD       SpellBook[NUM_BOOK_SLOTS];
 /*0x0a0c*/    DWORD       MemorizedSpells[0x8];
 /*0x0a2c*/    BYTE        Unknown0x0a2c[0x24];
 /*0x0a50*/    FLOAT       y;

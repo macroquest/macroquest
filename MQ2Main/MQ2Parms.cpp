@@ -2283,7 +2283,7 @@ DWORD parmChar(PCHAR szVar, PCHAR szOutput, PSPAWNINFO pChar)
             if (Gem==0 && szArg[0]!='0') {
                 if (szArg[0]=='"') szArg++;
                 DWORD sp;
-                for (sp=0;sp<250;sp++) {
+                for (sp=0;sp<NUM_BOOK_SLOTS;sp++) {
                     if (pCharInfo->SpellBook[sp] != 0xFFFFFFFF) {
                         PCHAR SpellName = GetSpellByID(pCharInfo->SpellBook[sp]);
                         if (!strnicmp(szArg,SpellName,strlen(SpellName))) {
@@ -2292,7 +2292,7 @@ DWORD parmChar(PCHAR szVar, PCHAR szOutput, PSPAWNINFO pChar)
                     }
                 }
             } else {
-                if (Gem>0 && Gem<251) {
+                if (Gem>0 && Gem<=NUM_BOOK_SLOTS) {
                     if (pCharInfo->SpellBook[Gem-1] != 0xFFFFFFFF) {
                         strcpy(szTemp,GetSpellByID(pCharInfo->SpellBook[Gem-1]));
                     } else {
