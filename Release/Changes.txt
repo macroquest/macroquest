@@ -1,4 +1,4 @@
-29 Feb 2004 by Zaphod
+01 Mar 2004 by Zaphod
 - Another bugfix in MQ2DetourAPI.cpp. 
 
 29 Feb 2004 by Zaphod
