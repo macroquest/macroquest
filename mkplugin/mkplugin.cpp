@@ -59,12 +59,12 @@ void Filter(const char *from, char *to, const char *plugin)
 		return;
 	}
 	*/
-	int i=0,o=0,plen=strlen(plugin);
+	int i=0,o=0,plen=(int)strlen(plugin);
 	for (i ; from[i] ; i++)
 	{ //               12345678901
 		if (!strnicmp("MQ2Template",&from[i],11)) // fuck it we dont need to be incredibly efficient for this program!
 		{
-			i+=strlen("MQ2Template")-1;
+			i+=(int)strlen("MQ2Template")-1;
 			for (int x = 0 ; x < plen ; x++)
 			{
 				to[o++]=plugin[x];
@@ -125,6 +125,10 @@ void MakePlugin(const char *xname)
 
 	strcpy(infile,"MQ2Template\\MQ2Template.dep");
 	sprintf(outfile,"%s\\%s.dep",name,name);
+	FailMake(CreateFileFromTemplate(infile,outfile,name));
+
+	strcpy(infile,"MQ2Template\\makefile");
+	sprintf(outfile,"%s\\makefile",name);
 	FailMake(CreateFileFromTemplate(infile,outfile,name));
 
 	strcpy(infile,"MQ2Template\\MQ2Template.cpp");
