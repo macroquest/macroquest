@@ -1,110 +1,56 @@
-| - Fish.mac -
-|
+|***************************************************************************************|
+| - YodaFish.mac -                                                                     *|
+| - By: Yoda                                                                           *|
+| - v1.0                                                                               *|
+|                                                                                      *|
+| Usage:                                                                               *|
+| To Fish and Gate if anything attacks you.                                            *|
+| Will Sit and camp out when you run out of bait.                                      *|
+| To be used with a Fisherman's Companion.                                             *|
+|                                                                                      *|
+|***************************************************************************************|
+
 #turbo
+
+#event BrokenPole "You can't fish without a fishing pole, go buy one."
 #event NoBait "You can't fish without fishing bait, go buy some."
-#event Cast "You cast your line."
-#event Skillup "You have become better at Fishing"
-#chat tell
 
-Sub Main 
-   /declare StatSandal global
-   /declare StatDagger global
-   /declare StatScales global
-   /declare StatFresh global
-   /declare StatZone global
-   /declare Skillups global
-   /declare Casts global
-   /declare NoPoles local
-   /declare NoBait global
-
-   /call ClearStats
-   /varset v99 0
-   /varset t1 5m
-   /doevents flush
+Sub Main
+   /cleanup
    :Fish
-      /call CheckPole
-      /varset NoPoles $return
-      /doevents NoBait
-      /if n @NoPoles==1 /call DoLog "Aborting: Out of poles..."
-      /if n @NoBait==1 /call DoLog "Aborting: Out of bait..."
-      /if n $calc(@NoPoles+@NoBait)>0 /call Event_Timer
-      /if n $calc(@NoPoles+@NoBait)>0 /return
-      /if $char(ability,fishing)>0 /if $cursor()==NULL /doability Fishing
-      /if $cursor()==TRUE /call KeepStats "$cursor(name)"
-      /if "$cursor(name)"=="Tattered Cloth Sandal" /call Destroy
-      /if "$cursor(name)"=="Rusty Dagger" /call Destroy
-      /if $cursor()==TRUE /call KeepItem
+      /call CheckPole 
+      /doability Fishing
+      /delay 65 
       /doevents
-    /goto :Fish
-/return
 
-Sub Destroy
-   /click left destroy 
-   /delay 1s
+      /if "$cursor(name)"=="Tattered Cloth Sandal" /destroy
+      /delay 1
+      /if "$cursor(name)"=="Rusty Dagger" /destroy
+      /delay 1
+      /if $cursor()==TRUE /call KeepItem
+   /goto :Fish
 /return
-
-Sub CheckPole
-   /if "$equip(primary,name)"~~"Fishing Pole" /return 0
-   /finditem similar "Fishing Pole"
-   /if "$cursor()"=="NULL" /return 1
-   /click left primary
-   /delay 1s
-   /if "$cursor()"!="NULL" /autoinventory
-/return 0
 
 Sub KeepItem
    /if "$cursor(name)"!="Fish Scales" /call DoLog "Caught $cursor(name)..."
    /autoinventory
 /return
 
-Sub KeepStats(Item)
-   /if "@Item"~~"cloth sandal" {
-      /varadd StatSandal 1
-   } else /if "@Item"~~"rusty dagger" {
-      /varadd StatDagger 1
-   } else /if "@Item"~~"fish scales" {
-      /varadd StatScales 1
-   } else /if "@Item"~~"fresh fish" {
-      /varadd StatFresh 1
-   } else {
-      /varadd StatZone 1
-   }
+Sub CheckPole
+   /if "$equip(primary,name)"~~"Fishing Pole" /return
 /return
 
-Sub Event_NoBait
-  /varset NoBait 1
-/return
-
-Sub Event_Cast
-  /varadd Casts 1
-/return
-
-Sub Event_Skillup
-  /varadd Skillups 1
-/return
-
-Sub Event_Timer(Timer,Value)
-   /call DoLog "Run time: $calc($running/60) min - Casts: $int(@Casts) - Skill ups: $int(@Skillups)"
-   /call DoLog "Found: $int(@StatSandal) sandals - $int(@StatDagger) daggers - $int(@StatScales) scales - $int(@StatFresh) fresh fish - $int(@StatZone) zone items"
-   /varset @Timer @Value
-/return
-
-Sub ClearStats
-   /varset StatSandal 0
-   /varset StatDagger 0
-   /varset StatScales 0
-   /varset StatFresh 0
-   /varset StatZone 0
-   /varset Skillups 0
-   /varset Casts 0
-/return
-
-Sub Event_Chat(Channel,Sender,Text)
-   /mqlog ** @Sender: '@Text'
-/return
-
+ 
 Sub DoLog(Text)
    /mqlog @Text
    /echo @Text
 /return
-   
+
+Sub Event_BrokenPole
+   /endmacro
+/return
+
+Sub Event_NoBait
+   /call GateMe
+/return
+

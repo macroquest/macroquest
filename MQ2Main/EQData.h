@@ -667,7 +667,7 @@ typedef struct _OLDCHARINFO {
 /*0xA020*/
 } OLDCHARINFO, *POLDCHARINFO; 
 
-// sizeof(_CHARINFO) is 0x9c1c
+// sizeof(_CHARINFO) is 0x9c2c 5-5-2004
 typedef struct _CHARINFO {
 /*0x0000*/  BYTE  		field_0;
 /*0x0001*/  BYTE  		Padding0x1;
@@ -868,113 +868,115 @@ typedef struct _CHARINFO {
 /*0x1710*/  DWORD 		field_1710;
 /*0x1714*/  DWORD 		field_1714;
 /*0x1718*/  DWORD 		field_1718;
-/*0x171c*/  CHAR		Server[0x20];
-/*0x173c*/  DWORD 		field_173C;
-/*0x1740*/  BYTE  		field_1740[0x14];
-/*0x1754*/  BYTE  		field_1754[0x14];
-/*0x1768*/  DWORD 		field_1768;
-/*0x176c*/  DWORD 		field_176C;
-/*0x1770*/  DWORD 		field_1770;
-/*0x1774*/  DWORD 		field_1774;
-/*0x1778*/  DWORD 		field_1778;
-/*0x177c*/  DWORD 		field_177C;
-/*0x1780*/  DWORD 		field_1780;
-/*0x1784*/  DWORD 		field_1784;
-/*0x1788*/  DWORD 		field_1788;
-/*0x178c*/  BYTE  		field_178C[0x30];
-/*0x17bc*/  BYTE  		field_17BC[0x30];
-/*0x17ec*/  BYTE  		field_17EC[0x30];
-/*0x181c*/  BYTE  		field_181C[0x30];
-/*0x184c*/  DWORD 		field_184C;
-/*0x1850*/  DWORD 		field_1850;
-/*0x1854*/  BYTE  		field_1854[0x30];
-/*0x1884*/  DWORD 		field_1884;
-/*0x1888*/  DWORD 		field_1888;
-/*0x188c*/  DWORD 		field_188C;
-/*0x1890*/  DWORD 		field_1890;
-/*0x1894*/  DWORD 		field_1894;
-/*0x1898*/  DWORD 		field_1898;
-/*0x189c*/  DWORD 		field_189C;
-/*0x18a0*/  DWORD 		field_18A0;
-/*0x18a4*/  DWORD 		field_18A4;
-/*0x18a8*/  BYTE  		Padding0x18a8[0xc];
-/*0x18b4*/  DWORD 		field_18B4;
-/*0x18b8*/  DWORD 		field_18B8;
-/*0x18bc*/  DWORD 		field_18BC;
-/*0x18c0*/  DWORD 		field_18C0;
-/*0x18c4*/  DWORD 		field_18C4;
-/*0x18c8*/  DWORD 		field_18C8;
-/*0x18cc*/  DWORD 		field_18CC;
-/*0x18d0*/  DWORD 		field_18D0;
-/*0x18d4*/  DWORD 		field_18D4;
-/*0x18d8*/  DWORD 		field_18D8;
-/*0x18dc*/  DWORD 		field_18DC;
-/*0x18e0*/  DWORD 		field_18E0;
-/*0x18e4*/  DWORD 		field_18E4;
-/*0x18e8*/  DWORD 		field_18E8;
-/*0x18ec*/  DWORD 		field_18EC;
-/*0x18f0*/  DWORD 		field_18F0;
-/*0x18f4*/  DWORD 		field_18F4;
-/*0x18f8*/  DWORD 		field_18F8;
-/*0x18fc*/  DWORD 		field_18FC;
-/*0x1900*/  DWORD 		field_1900;
-/*0x1904*/  DWORD 		field_1904;
-/*0x1908*/  DWORD 		field_1908;
-/*0x190c*/  DWORD 		field_190C;
-/*0x1910*/  DWORD 		field_1910;
-/*0x1914*/  BYTE  		field_1914[0x2000];
-/*0x3914*/  BYTE  		field_3914[0x4e20];//in-pack slots in this structure
-/*0x8734*/  BYTE  		field_8734[0xbb8];
-/*0x92ec*/  BYTE  		field_92EC[0x28];
-/*0x9314*/  DWORD 		field_9314;
-/*0x9318*/  DWORD       CareerFavor; // NOTE: 64-bit # 
-/*0x931c*/  DWORD 		field_931C;
-/*0x9320*/  DWORD       CurrFavor; // NOTE: 64-bit #
-/*0x9324*/  DWORD 		field_9324;
-/*0x9328*/  DWORD       CombatAbilities[0x32];//
-/*0x93f0*/  DWORD       CombatAbilityTimes[0x14]; // ??
-/*0x9440*/  DWORD       CombatAbilityTimes2[0x14]; // ??
-/*0x9490*/  DWORD       GroupLeadershipExp;      // 0-999
-/*0x9494*/  DWORD       RaidLeadershipExp;       // 0-999
-/*0x9498*/  DWORD       GroupLeadershipPoints;   // 0-8  // 
-/*0x949c*/  DWORD       RaidLeadershipPoints;    // 0-10
-/*0x94a0*/  BYTE  		field_94A0[0x100];
-/*0x95a0*/  BYTE  		field_95A0;
-/*0x95a1*/  BYTE  		Padding0x95a1[0x3];
-/*0x95a4*/  DWORD 		field_95A4;
-/*0x95a8*/  BYTE  		Padding0x95a8[0x18];
-/*0x95c0*/  DWORD 		field_95C0;
-/*0x95c4*/  DWORD 		field_95C4;
-/*0x95c8*/  DWORD 		field_95C8;
-/*0x95cc*/  DWORD 		field_95CC;
-/*0x95d0*/  DWORD 		field_95D0;
-/*0x95d4*/  DWORD 		field_95D4;
-/*0x95d8*/  DWORD 		field_95D8;
-/*0x95dc*/  DWORD 		field_95DC;
-/*0x95e0*/  BYTE  		field_95E0[0x58];
-/*0x9638*/  BYTE  		field_9638[0x58];
-/*0x9690*/  DWORD 		field_9690;
-/*0x9694*/  BYTE  		Padding0x9694[0xc];
-/*0x96a0*/  DWORD 		field_96A0;
-/*0x96a4*/  BYTE  		field_96A4;
-/*0x96a5*/  BYTE  		Padding0x96a5[0x3];
-/*0x96a8*/  DWORD 		field_96A8;
-/*0x96ac*/  DWORD 		field_96AC;
-/*0x96b0*/  DWORD 		field_96B0;
-/*0x96b4*/  BYTE  		Padding0x96b4[0x8];
-/*0x96bc*/  struct		_CONTENTS* Bank[NUM_BANK_SLOTS];
-/*0x9704*/  BYTE  		field_9704[0x90];
-/*0x9794*/  DWORD 		field_9794;
-/*0x9798*/  BYTE  		Padding0x9798[0x10];
-/*0x97a8*/  DWORD 		field_97A8;
-/*0x97ac*/  BYTE  		Grouped;
-/*0x97ad*/  BYTE        field_97AD[0x17F];// NOTE group info 97ac-992c
-/*0x992c*/  BYTE  		field_992C[0x18];
-/*0x9944*/  BYTE  		field_9944[0x40];
-/*0x9984*/  BYTE  		field_9984[0x13c];
-/*0x9ac0*/  BYTE  		field_9AC0[0x154];// group leadership
-/*0x9c14*/  DWORD 		field_9C14;
-/*0x9c18*/  DWORD 		field_9C18;
+/*0x171c*/  BYTE        UnknownInsertionPoint[0x8];
+/*0x1724*/  CHAR		Server[0x20];//-->1724
+/*0x17  */  DWORD 		field_173C;
+/*0x174 */  BYTE  		field_1740[0x14];
+/*0x175 */  BYTE  		field_1754[0x14];
+/*0x176 */  DWORD 		field_1768;
+/*0x176 */  DWORD 		field_176C;
+/*0x177 */  DWORD 		field_1770;
+/*0x177 */  DWORD 		field_1774;
+/*0x177 */  DWORD 		field_1778;
+/*0x177 */  DWORD 		field_177C;
+/*0x178 */  DWORD 		field_1780;
+/*0x178 */  DWORD 		field_1784;
+/*0x178 */  DWORD 		field_1788;
+/*0x178 */  BYTE  		field_178C[0x30];
+/*0x17b */  BYTE  		field_17BC[0x30];
+/*0x17e */  BYTE  		field_17EC[0x30];
+/*0x181 */  BYTE  		field_181C[0x30];
+/*0x184 */  DWORD 		field_184C;
+/*0x185 */  DWORD 		field_1850;
+/*0x185 */  BYTE  		field_1854[0x30];
+/*0x188 */  DWORD 		field_1884;
+/*0x188 */  DWORD 		field_1888;
+/*0x188 */  DWORD 		field_188C;
+/*0x189 */  DWORD 		field_1890;
+/*0x189 */  DWORD 		field_1894;
+/*0x189 */  DWORD 		field_1898;
+/*0x189 */  DWORD 		field_189C;
+/*0x18a */  DWORD 		field_18A0;
+/*0x18a */  DWORD 		field_18A4;
+/*0x18a */  BYTE  		Padding0x18a8[0xc];
+/*0x18b */  DWORD 		field_18B4;
+/*0x18b */  DWORD 		field_18B8;
+/*0x18b */  DWORD 		field_18BC;
+/*0x18c */  DWORD 		field_18C0;
+/*0x18c */  DWORD 		field_18C4;
+/*0x18c */  DWORD 		field_18C8;
+/*0x18c */  DWORD 		field_18CC;
+/*0x18d */  DWORD 		field_18D0;
+/*0x18d */  DWORD 		field_18D4;
+/*0x18d */  DWORD 		field_18D8;
+/*0x18d */  DWORD 		field_18DC;
+/*0x18e */  DWORD 		field_18E0;
+/*0x18e */  DWORD 		field_18E4;
+/*0x18e */  DWORD 		field_18E8;
+/*0x18e */  DWORD 		field_18EC;
+/*0x18f */  DWORD 		field_18F0;
+/*0x18f */  DWORD 		field_18F4;
+/*0x18f */  DWORD 		field_18F8;
+/*0x18f */  DWORD 		field_18FC;
+/*0x190 */  DWORD 		field_1900;
+/*0x190 */  DWORD 		field_1904;
+/*0x190 */  DWORD 		field_1908;
+/*0x190 */  DWORD 		field_190C;
+/*0x191 */  DWORD 		field_1910;
+/*0x191 */  BYTE  		field_1914[0x2000];
+/*0x391 */  BYTE  		field_3914[0x4e20];//in-pack slots in this structure
+/*0x873 */  BYTE  		field_8734[0xbb8];
+/*0x92e */  BYTE  		field_92EC[0x28];
+/*0x931 */  DWORD 		field_9314;
+/*0x931 */  DWORD       CareerFavor; // NOTE: 64-bit #   -->9320
+/*0x931 */  DWORD 		field_931C;
+/*0x932 */  DWORD       CurrFavor; // NOTE: 64-bit #   -->9328
+/*0x932 */  DWORD 		field_9324;
+/*0x932 */  DWORD       CombatAbilities[0x32];//
+/*0x93f */  DWORD       CombatAbilityTimes[0x14]; // ??
+/*0x944 */  DWORD       CombatAbilityTimes2[0x14]; // ??
+/*0x949 */  DWORD       GroupLeadershipExp;      // 0-999
+/*0x949 */  DWORD       RaidLeadershipExp;       // 0-999
+/*0x949 */  DWORD       GroupLeadershipPoints;   // 0-8  // 
+/*0x949 */  DWORD       RaidLeadershipPoints;    // 0-10
+/*0x94a */  BYTE  		field_94A0[0x100];
+/*0x95a */  BYTE  		field_95A0;
+/*0x95a */  BYTE  		Padding0x95a1[0x3];
+/*0x95a */  DWORD 		field_95A4;
+/*0x95a */  BYTE  		Padding0x95a8[0x18];
+/*0x95c */  DWORD 		field_95C0;
+/*0x95c */  DWORD 		field_95C4;
+/*0x95c */  DWORD 		field_95C8;
+/*0x95c */  DWORD 		field_95CC;
+/*0x95d */  DWORD 		field_95D0;
+/*0x95d */  DWORD 		field_95D4;
+/*0x95d */  DWORD 		field_95D8;
+/*0x95d */  DWORD 		field_95DC;
+/*0x95e */  BYTE  		field_95E0[0x58];
+/*0x963 */  BYTE  		field_9638[0x58];
+/*0x969 */  DWORD 		field_9690;
+/*0x969 */  BYTE  		Padding0x9694[0xc];
+/*0x96a */  DWORD 		field_96A0;
+/*0x96a */  BYTE  		field_96A4;
+/*0x96a */  BYTE  		Padding0x96a5[0x3];
+/*0x96a */  DWORD 		field_96A8;
+/*0x96a */  DWORD 		field_96AC;
+/*0x96b */  DWORD 		field_96B0;
+/*0x96b */  BYTE  		Padding0x96b4[0x8];
+/*0x96c4*/  BYTE        UnknownInsertionPt2[0x8];
+/*0x96cc*/  struct		_CONTENTS* Bank[NUM_BANK_SLOTS];  //-->96cc
+/*0x970 */  BYTE  		field_9704[0x90];
+/*0x979 */  DWORD 		field_9794;
+/*0x979 */  BYTE  		Padding0x9798[0x10];
+/*0x97a */  DWORD 		field_97A8;
+/*0x97a */  BYTE  		Grouped;
+/*0x97a */  BYTE        field_97AD[0x17F];// NOTE group info 97ac-992c
+/*0x992 */  BYTE  		field_992C[0x18];
+/*0x994 */  BYTE  		field_9944[0x40];
+/*0x998 */  BYTE  		field_9984[0x13c];
+/*0x9ac */  BYTE  		field_9AC0[0x154];// group leadership
+/*0x9c1 */  DWORD 		field_9C14;
+/*0x9c1 */  DWORD 		field_9C18;
 /*0x9c1c*/
 } CHARINFO, *PCHARINFO;
 

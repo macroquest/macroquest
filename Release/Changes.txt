@@ -11,6 +11,8 @@
 - DKAA fixed the bzsrch problems
 - Added MQ2Data member:
   bool spawn.GroupLeader: Is this your group's leader?
+- Fixed CHARINFO struct.  Some Stuff appeared slightly wrong, like leadership exp and bank
+  stuff.
 
 05 May 2004 by Lax (more):
 - Fixed crash on zoning relating to the new HUD functionality. Dont ask.
