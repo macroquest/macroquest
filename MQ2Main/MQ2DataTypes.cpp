@@ -748,6 +748,10 @@ bool MQ2SpawnType::GetMember(MQ2VARPTR VarPtr, PCHAR Member, PCHAR Index, MQ2TYP
 		Dest.DWord=(pSpawn->Anon==2);
 		Dest.Type=pBoolType;
 		return true;
+	case xLineOfSight:
+		Dest.DWord=(LineOfSight(GetCharInfo()->pSpawn,pSpawn));
+		Dest.Type=pBoolType;
+		return true;
 	}
 	return false;
 }
@@ -3251,6 +3255,10 @@ bool MQ2SwitchType::GetMember(MQ2VARPTR VarPtr, PCHAR Member, PCHAR Index, MQ2TY
 		Dest.Float=GetDistance(pSwitch->X,pSwitch->Y);
 		Dest.Type=pFloatType;
 		return true;
+	case xLineOfSight:
+		Dest.DWord=(CastRay(GetCharInfo()->pSpawn,pSwitch->Y,pSwitch->X,pSwitch->Z));
+		Dest.Type=pBoolType;
+		return true;
 	}
 	return false;
 #undef pSwitch
@@ -3303,6 +3311,10 @@ bool MQ2GroundType::GetMember(MQ2VARPTR VarPtr, PCHAR Member, PCHAR Index, MQ2TY
 		else if (Dest.Float>=360.0f) 
 			Dest.Float -= 360.0f;
 		Dest.Type=pHeadingType;
+		return true;
+	case xLineOfSight:
+		Dest.DWord=(CastRay(GetCharInfo()->pSpawn,pGround->Y,pGround->X,pGround->Z));
+		Dest.Type=pBoolType;
 		return true;
 	}
 	return false;

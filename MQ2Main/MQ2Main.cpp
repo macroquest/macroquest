@@ -490,3 +490,8 @@ VOID InjectDisable()
     UnhookWindowsHookEx( g_hHook );
     g_hHook = NULL;
 }
+
+/* OTHER FUNCTIONS IMPORTED FROM EQ */
+#ifdef __CastRay
+FUNCTION_AT_ADDRESS(int CastRay(PSPAWNINFO,float y,float x,float z),__CastRay);
+#endif

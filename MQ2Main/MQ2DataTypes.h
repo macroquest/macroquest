@@ -13,7 +13,7 @@
 ******************************************************************************/
 
 // non-mq2data TODO
-// (non-mq2data) command to clear macro return value
+// command to clear macro return value
 // networking
 // macro line continuation e.g. \
 // command to set raid class colors
@@ -586,6 +586,7 @@ public:
 		Assist=79,
 		Anonymous=80,
 		Roleplaying=81,
+		xLineOfSight=82,
 	};
 	MQ2SpawnType():MQ2Type("spawn")
 	{
@@ -667,7 +668,7 @@ public:
 		TypeMember(Assist);
 		TypeMember(Anonymous);
 		TypeMember(Roleplaying);
-
+		AddMember(xLineOfSight,"LineOfSight");
 	}
 
 	~MQ2SpawnType()
@@ -1363,6 +1364,7 @@ public:
 		DefaultN=17,
 		DefaultW=18,
 		DefaultU=19,
+		xLineOfSight=20,
 	};
 	MQ2SwitchType():MQ2Type("switch")
 	{
@@ -1379,6 +1381,7 @@ public:
 		TypeMember(Open);//11,
 		TypeMember(HeadingTo);//12,
 		TypeMember(Name);//13,
+		AddMember(xLineOfSight,"LineOfSight");
 	}
 
 	~MQ2SwitchType()
@@ -1435,6 +1438,7 @@ public:
 		N=9,
 		W=10,
 		U=11,
+		xLineOfSight=12,
 	};
 	MQ2GroundType():MQ2Type("ground")
 	{
@@ -1446,6 +1450,7 @@ public:
 		TypeMember(Heading);//6,
 		TypeMember(Name);//7,
 		TypeMember(HeadingTo);
+		AddMember(xLineOfSight,"LineOfSight");
 	}
 
 	~MQ2GroundType()

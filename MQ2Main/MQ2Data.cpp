@@ -1134,3 +1134,72 @@ BOOL dataNamingSpawn(PCHAR szIndex, MQ2TYPEVAR &Ret)
 	}
 	return false;
 }
+
+BOOL dataLineOfSight(PCHAR szIndex, MQ2TYPEVAR &Ret)
+{
+	if (!GetCharInfo()->pSpawn)
+		return FALSE;
+	if (szIndex[0])
+	{
+		FLOAT P1[3];
+		FLOAT P2[3];
+		P1[0]=P2[0]=((PSPAWNINFO)pCharSpawn)->Y;
+		P1[1]=P2[1]=((PSPAWNINFO)pCharSpawn)->X;
+		P1[2]=P2[2]=((PSPAWNINFO)pCharSpawn)->Z;
+		if (PCHAR pColon=strchr(szIndex,':'))
+		{
+			*pColon=0;
+			if (PCHAR pComma=strchr(&pColon[1],','))
+			{
+				*pComma=0;
+				P2[0]=(FLOAT)atof(&pColon[1]);
+				*pComma=',';
+				if (PCHAR pComma2=strchr(&pComma[1],','))
+				{
+					*pComma2=0;
+					P2[1]=(FLOAT)atof(&pComma[1]);
+					*pComma2=',';
+					P2[2]=(FLOAT)atof(&pComma2[1]);
+				}
+				else
+				{
+					P2[1]=(FLOAT)atof(&pComma[1]);
+				}
+			}
+			else
+				P2[0]=(FLOAT)atof(&pColon[1]);
+		}
+
+
+		if (PCHAR pComma=strchr(szIndex,','))
+		{
+			*pComma=0;
+			P1[0]=(FLOAT)atof(szIndex);
+			*pComma=',';
+			if (PCHAR pComma2=strchr(&pComma[1],','))
+			{
+				*pComma2=0;
+				P1[1]=(FLOAT)atof(&pComma[1]);
+				*pComma2=',';
+				P1[2]=(FLOAT)atof(&pComma2[1]);
+			}
+			else
+			{
+				P1[1]=(FLOAT)atof(&pComma[1]);
+			}
+		}
+		else
+			P1[0]=(FLOAT)atof(szIndex);
+
+
+//		DebugSpew("GetDistance3D(%1.0f,%1.0f,%1.0f,%1.0f,%1.0f,%1.0f)",P1[0],P1[1],P1[2],P2[0],P2[1],P2[2]);
+		SPAWNINFO Temp=*GetCharInfo()->pSpawn;
+		Temp.Y=P2[0];
+		Temp.X=P2[1];
+		Temp.Z=P2[2];
+		Ret.DWord=CastRay(&Temp,P1[0],P1[1],P1[2]);
+		Ret.Type=pBoolType;
+		return true;
+	}
+	return false;
+}

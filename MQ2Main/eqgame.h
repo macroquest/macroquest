@@ -215,6 +215,7 @@
 #define __ExecuteCmd                                       0x44D8F4
 #define __GetGaugeValueFromEQ                              0x52B7BA
 #define __get_melee_range                                  0x45236A
+#define __CastRay										   0x460C2A
 
 // EQ_LoadingS
 #define EQ_LoadingS__WriteTextHD                           0x433D9D
@@ -550,6 +551,7 @@
 
 // CTextOverlay
 #define CTextOverlay__DisplayText                          0x401406
+
 
 /*
 CListWnd__GetCurCol

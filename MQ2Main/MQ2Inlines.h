@@ -262,3 +262,8 @@ static inline BOOL IsNumberToComma(PCHAR String)
 	}
 	return TRUE;
 }
+
+static inline BOOL LineOfSight(PSPAWNINFO Origin, PSPAWNINFO CanISeeThis)
+{
+	return CastRay(Origin,CanISeeThis->Y,CanISeeThis->X,CanISeeThis->Z);
+}

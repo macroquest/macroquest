@@ -301,6 +301,9 @@ EQLIB_API BOOL MQ2HandleKeyUp(class KeyCombo const &Combo);
 EQLIB_API VOID InitializeMQ2Pulse();
 EQLIB_API VOID ShutdownMQ2Pulse();
 
+/* OTHER IMPORTED FROM EQ */
+EQLIB_API int CastRay(PSPAWNINFO,float y,float x,float z);
+
 /* UTILITIES */
 EQLIB_API VOID ConvertCR(PCHAR Text);
 EQLIB_API VOID DrawHUDText(PCHAR Text, DWORD X, DWORD Y, DWORD Argb);
@@ -395,7 +398,6 @@ EQLIB_API VOID ParseSearchSpawn(PCHAR Buffer, PSEARCHSPAWN pSearchSpawn);
 EQLIB_API PCHAR FormatSearchSpawn(PCHAR Buffer, PSEARCHSPAWN pSearchSpawn);
 EQLIB_API BOOL IsPCNear(PSPAWNINFO pSpawn, FLOAT Radius);
 EQLIB_API BOOL IsInGroup(PSPAWNINFO pSpawn);
-EQLIB_API BOOL IsNamed(PSPAWNINFO pSpawn);
 EQLIB_API BOOL IsAlert(PSPAWNINFO pChar, PSPAWNINFO pSpawn, DWORD List);
 
 EQLIB_API VOID        OverwriteTable          (DWORD Address);
@@ -464,6 +466,7 @@ EQLIB_API BOOL dataAltAbility(PCHAR szIndex, MQ2TYPEVAR &Ret);
 EQLIB_API BOOL dataRaid(PCHAR szIndex, MQ2TYPEVAR &Ret);
 EQLIB_API BOOL dataNamingSpawn(PCHAR szIndex, MQ2TYPEVAR &Ret);
 EQLIB_API BOOL dataSpawnCount(PCHAR szIndex, MQ2TYPEVAR &Ret);
+EQLIB_API BOOL dataLineOfSight(PCHAR szIndex, MQ2TYPEVAR &Ret);
 
 /* COMMANDS */
 EQLIB_API VOID NoModKeyCmd(PSPAWNINFO pChar, PCHAR szLine);
@@ -553,6 +556,7 @@ EQLIB_API VOID Where                               (PSPAWNINFO,PCHAR);
 EQLIB_API VOID ZapVars                             (PSPAWNINFO,PCHAR);
 EQLIB_API VOID PopupText                           (PSPAWNINFO,PCHAR);
 EQLIB_API void DisplayOverlayText(PCHAR szText, DWORD dwColor, DWORD dwTransparency, DWORD msFadeIn, DWORD msFadeOut, DWORD msHold);
+
 // OTHER SHIT
 
 #define LIGHT_COUNT     13
