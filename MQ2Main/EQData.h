@@ -470,24 +470,23 @@ typedef struct _ITEMINFO {
 /*0x238*/
 } ITEMINFO, *PITEMINFO; 
 
-typedef struct _CONTENTS {
-/*0x00*/ struct _ITEMINFO *Item;
-	union {
-/*0x04*/ struct _CONTENTS *Contents[0x0a]; //addresses to whats inside the bag if its a bag
-/*0x04*/ struct _ITEMINFO *Augments[0x0a]; //Only 1-5 are actually used (for now)
-	};
-	union {
-/*0x2c*/  DWORD   StackCount;
-/*0x2c*/  DWORD   Charges;
-    };
-/*0x30*/  DWORD   ItemSlot;// slotid for Player Items
-/*0x34*/  BYTE    Unknown0x34[0xc];
-/*0x40*/  BYTE	  Unknown0x40[0x8];
-/*0x48*/  DWORD   ItemSlot2;// slotid for Merchant Items
-/*0x4c*/  DWORD	  Unknown0x4c;
-/*0x50*/  DWORD   Price; //price a player vendor set the item at 
-/*0x54*/  DWORD   Open;
-/*0x58*/
+typedef struct _CONTENTS { 
+/*0x00*/ struct _ITEMINFO *Item; 
+   union { 
+/*0x04*/ struct _CONTENTS *Contents[0x0a]; //addresses to whats inside the bag if its a bag 
+/*0x04*/ struct _ITEMINFO *Augments[0x0a]; //Only 1-5 are actually used (for now) 
+   }; 
+/*0x2c*/  DWORD   StackCount; 
+/*0x30*/  BYTE    Unknown0x30[0xc]; 
+/*0x3c*/  DWORD   Charges; 
+/*0x40*/  DWORD   ItemSlot;// slotid for Player Items 
+/*0x44*/  BYTE    Unknown0x34[0xc]; 
+/*0x50*/  BYTE    Unknown0x40[0x8]; 
+/*0x58*/  DWORD   ItemSlot2;// slotid for Merchant Items 
+/*0x5c*/  DWORD   Unknown0x4c; 
+/*0x60*/  DWORD   Price; //price a player vendor set the item at 
+/*0x64*/  DWORD   Open; 
+/*0x68*/ 
 } CONTENTS, *PCONTENTS;
 
 // 6-11-2003 Amadeus
