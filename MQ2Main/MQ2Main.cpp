@@ -88,7 +88,7 @@ BOOL ParseINIFile(PCHAR lpINIPath)
     CHAR FilterList[MAX_STRING*10] = {0};
     struct _stat stat;
     int client;
-    BOOL clientOverride = FALSE;
+//    BOOL clientOverride = FALSE;
    GetEQPath(gszEQPath);
 
 
@@ -109,7 +109,7 @@ BOOL ParseINIFile(PCHAR lpINIPath)
 
     DebugSpewAlways("Expected Client version: %s",__ClientVersion);
     DebugSpewAlways("    Real Client version: %s",ctime(&stat.st_mtime));
-    if (!clientOverride && !CompareTimes(ctime(&stat.st_mtime),__ClientVersion)) {
+    if (!__ClientOverride && !CompareTimes(ctime(&stat.st_mtime),__ClientVersion)) {
         sprintf(szBuffer,"Incorrect client version:\n%s",ctime(&stat.st_mtime));
         MessageBox(NULL,__ClientVersion,"MacroQuest",MB_OK);
         return FALSE;

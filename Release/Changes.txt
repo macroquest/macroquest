@@ -1,5 +1,10 @@
 ** eqgame.ini is no longer used/needed by MQ2!  All offsets have been integrated 
-** into eqgame.h
+** into eqgame.h.  The client DATE/TIME are in eqgame.h also.
+
+12 Mar 2004 by Lax
+- MQ2Map overhaul completed
+- Fixed /keypress crash bug when you're an idiot and type an invalid command name :)
+- Fixed client override problem
 
 11 Mar 2004 by Lax 
 - I forgot to update the changes.txt file, so Amadeus is putting this here
