@@ -40,7 +40,7 @@ DWORD FullClassToShort(CHAR szLongClass[MAX_STRING]) {
 	} else if (!strnicmp(szLongClass, "Druid", 5)) {
         strcpy(szShortClass,"DRU");
 	} else if (!strnicmp(szLongClass, "Shaman", 6)) {
-        strcpy(szShortClass,"SHA");
+        strcpy(szShortClass,"SHM");
 	} else if (!strnicmp(szLongClass, "Beastlord", 9)) {
         strcpy(szShortClass,"BST");
 	} else if (!strnicmp(szLongClass, "Paladin", 7)) {
@@ -51,6 +51,8 @@ DWORD FullClassToShort(CHAR szLongClass[MAX_STRING]) {
         strcpy(szShortClass,"MNK");
 	} else if (!strnicmp(szLongClass, "Ranger", 6)) {
         strcpy(szShortClass,"RNG");
+	} else if (!strnicmp(szLongClass, "Rogue", 5)) {
+		strcpy(szShortClass,"ROG");
 	} else {
 		strcpy(szShortClass,"UNK");
 	}
@@ -1627,6 +1629,14 @@ DWORD parmSpawn(PCHAR szVar, PCHAR szOutput, PSPAWNINFO pChar)
                 i+=strstr(szVar,")")-szVar;
                 CHAR szTemp[MAX_STRING] = {0};
                 strcpy(szTemp,pEverQuest->GetClassDesc(pSpawn->Class));
+                strcat(szOutput,szTemp);
+
+			// $spawn(#,sclass)
+			} else if (!strncmp("sclass)",szRest,7)) {
+				i+=strstr(szVar,")")-szVar;
+                CHAR szTemp[MAX_STRING] = {0};
+                strcpy(szTemp,pEverQuest->GetClassDesc(pSpawn->Class));
+                FullClassToShort(szTemp);
                 strcat(szOutput,szTemp);
 
             // $spawn(#,race)

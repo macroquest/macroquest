@@ -1,3 +1,7 @@
+02 Dec 2003 by Mckorr
+- Fixed SHA in short classes, is now SHM.  Added Rogue/ROG (I missed that one before)
+- Added $spawn(#,sclass)
+
 27 Nov 2003 by Lax
 - / command correctly does EQ /who by default
 - MQ2Telnet redone.
@@ -35,8 +39,8 @@ In order to get that to work I had to declare EQ_PC (MQ2Globals.h(250):EQLIB_VAR
 
 18 Nov 2003 by EqMule
 +fix: mouseto and click by changing ScreenX and ScreenY to ScrX and ScrY)
-+Added	EQLIB_API VOID AddParm(PCHAR Name, fMQParm Function);
-	EQLIB_API VOID RemoveParm(PCHAR Name);
++Added  EQLIB_API VOID AddParm(PCHAR Name, fMQParm Function);
+    EQLIB_API VOID RemoveParm(PCHAR Name);
 to MQ2Main.h so that custom plugins will find them...
 +updated $merchant(has,xxx) with HanzO's code for it, thank you.
 +Updated $selecteditem() with new (count) for easier usage of /sellitem and /buyitem
