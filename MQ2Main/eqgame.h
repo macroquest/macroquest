@@ -83,7 +83,7 @@
 
 #define pinstCSidlManager           0x0078FCEC
 #define pinstCDisplay               0x0071E8E4
-#define pinstCEverQuest               0x0077BE30   // UNCHANGED !?
+#define pinstCEverQuest               0x0077BE30   // UNCHANGED !? -- yes
 #define pinstPCData               0x0071E8C0
 #define pinstCharData               0x0071E8C0
 #define pinstCharSpawn                        0x0071E8B8

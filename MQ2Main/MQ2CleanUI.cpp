@@ -1,6 +1,6 @@
 /*****************************************************************************
-    eqlib.dll: MacroQuest's extension DLL for EverQuest
-    Copyright (C) 2002-2003 Plazmic
+    MQ2Main.dll: MacroQuest2's extension DLL for EverQuest
+    Copyright (C) 2002-2003 Plazmic, 2003 Lax
 
     This program is free software; you can redistribute it and/or modify
     it under the terms of the GNU General Public License, version 2, as published by
@@ -27,7 +27,7 @@ public:
 	VOID CleanUI_Trampoline(VOID); 
 	VOID CleanUI_Detour(VOID) 
 	{ 
-		DebugTry(PluginsCleanUI());
+		Benchmark(bmPluginsCleanUI,DebugTry(PluginsCleanUI()));
 		DebugTry(CleanUI_Trampoline());
 	} 
 
@@ -35,7 +35,7 @@ public:
 	VOID ReloadUI_Detour(BOOL UseINI)
 	{
 		DebugTry(ReloadUI_Trampoline(UseINI));
-		DebugTry(PluginsReloadUI());
+		Benchmark(bmPluginsReloadUI,DebugTry(PluginsReloadUI()));
 	}
 
 }; 
@@ -44,7 +44,7 @@ DWORD __cdecl DrawHUD_Trampoline(DWORD,DWORD,DWORD,DWORD);
 DWORD __cdecl DrawHUD_Detour(DWORD a,DWORD b,DWORD c,DWORD d) 
 { 
 	int Ret = DrawHUD_Trampoline(a,b,c,d);
-	PluginsDrawHUD();
+	Benchmark(bmPluginsDrawHUD,PluginsDrawHUD());
 	return Ret;
 } 
 

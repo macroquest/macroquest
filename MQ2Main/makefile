@@ -8,6 +8,8 @@ CLEAN :
 	-@erase "$(INTDIR)\EQClasses.sbr"
 	-@erase "$(INTDIR)\MQ2Auth.obj"
 	-@erase "$(INTDIR)\MQ2Auth.sbr"
+	-@erase "$(INTDIR)\MQ2Benchmarks.obj"
+	-@erase "$(INTDIR)\MQ2Benchmarks.sbr"
 	-@erase "$(INTDIR)\MQ2ChatHook.obj"
 	-@erase "$(INTDIR)\MQ2ChatHook.sbr"
 	-@erase "$(INTDIR)\MQ2CleanUI.obj"
@@ -54,6 +56,7 @@ LINK32_FLAGS=kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi3
 LINK32_OBJS= \
 	"$(INTDIR)\EQClasses.obj" \
 	"$(INTDIR)\MQ2Auth.obj" \
+	"$(INTDIR)\MQ2Benchmarks.obj" \
 	"$(INTDIR)\MQ2ChatHook.obj" \
 	"$(INTDIR)\MQ2CleanUI.obj" \
 	"$(INTDIR)\MQ2CommandAPI.obj" \
@@ -94,6 +97,10 @@ SOURCE=.\EQClasses.cpp
 SOURCE=.\MQ2Auth.cpp
 
 "$(INTDIR)\MQ2Auth.obj"	        "$(INTDIR)\MQ2Auth.sbr" : $(SOURCE) "$(INTDIR)"
+
+SOURCE=.\MQ2Benchmarks.cpp
+
+"$(INTDIR)\MQ2Benchmarks.obj"	"$(INTDIR)\MQ2Benchmarks.sbr" : $(SOURCE) "$(INTDIR)"
 
 SOURCE=.\MQ2ChatHook.cpp
 

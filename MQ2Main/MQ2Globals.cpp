@@ -1,6 +1,6 @@
 /*****************************************************************************
-    eqlib.dll: MacroQuest's extension DLL for EverQuest
-    Copyright (C) 2002-2003 Plazmic
+    MQ2Main.dll: MacroQuest2's extension DLL for EverQuest
+    Copyright (C) 2002-2003 Plazmic, 2003 Lax
 
     This program is free software; you can redistribute it and/or modify
     it under the terms of the GNU General Public License, version 2, as published by
@@ -26,6 +26,19 @@
 #include "MQ2Main.h"
 namespace MQ2Globals
 {
+
+
+/* BENCHMARKS */
+DWORD bmWriteChatColor=0;
+DWORD bmPluginsIncomingChat=0;
+DWORD bmPluginsPulse=0;
+DWORD bmPluginsOnZoned=0;
+DWORD bmPluginsCleanUI=0;
+DWORD bmPluginsReloadUI=0;
+DWORD bmPluginsDrawHUD=0;
+DWORD bmPluginsSetGameState=0;
+DWORD bmParseMacroParameter=0;
+
 CHAR gszVersion[32]=VersionString;
 
 DWORD gGameState = 0;
@@ -61,7 +74,7 @@ CHAR szLastCommand[MAX_STRING] = {0};
 DWORD gEventChat = 0;
 DWORD gRunning = 0;
 BOOL gbMoving = FALSE;
-DWORD gMaxTurbo = 0;
+DWORD gMaxTurbo = 10;
 BOOL gInClick = FALSE;
 BOOL gZoning = FALSE;
 BOOL WereWeZoning = TRUE;

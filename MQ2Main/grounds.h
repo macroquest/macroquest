@@ -1,5 +1,5 @@
 /*****************************************************************************
-    eqlib.dll: MacroQuest's extension DLL for EverQuest
+    MQ2Main.dll: MacroQuest2's extension DLL for EverQuest
     Copyright (C) 2002-2003 Plazmic
 
     This program is free software; you can redistribute it and/or modify

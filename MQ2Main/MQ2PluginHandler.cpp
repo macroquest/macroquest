@@ -1,6 +1,6 @@
 /*****************************************************************************
-    eqlib.dll: MacroQuest's extension DLL for EverQuest
-    Copyright (C) 2002-2003 Plazmic
+    MQ2Main.dll: MacroQuest2's extension DLL for EverQuest
+    Copyright (C) 2002-2003 Plazmic, 2003 Lax
 
     This program is free software; you can redistribute it and/or modify
     it under the terms of the GNU General Public License, version 2, as published by
@@ -20,6 +20,20 @@
 
 
 #include "MQ2Main.h"
+
+/*
+	pPlugin->Initialize=(fMQInitializePlugin)GetProcAddress(hmod,"InitializePlugin");
+	pPlugin->Shutdown=(fMQShutdownPlugin)GetProcAddress(hmod,"ShutdownPlugin");
+	pPlugin->IncomingChat=(fMQIncomingChat)GetProcAddress(hmod,"OnIncomingChat");
+	pPlugin->Pulse=(fMQPulse)GetProcAddress(hmod,"OnPulse");
+	pPlugin->WriteChatColor=(fMQWriteChatColor)GetProcAddress(hmod,"OnWriteChatColor");
+	pPlugin->Zoned=(fMQZoned)GetProcAddress(hmod,"OnZoned");
+	pPlugin->CleanUI=(fMQCleanUI)GetProcAddress(hmod,"OnCleanUI");
+	pPlugin->ReloadUI=(fMQReloadUI)GetProcAddress(hmod,"OnReloadUI");
+	pPlugin->DrawHUD=(fMQDrawHUD)GetProcAddress(hmod,"OnDrawHUD");
+	pPlugin->SetGameState=(fMQSetGameState)GetProcAddress(hmod,"SetGameState");
+/**/
+
 
 
 CRITICAL_SECTION gPluginCS;
@@ -144,6 +158,15 @@ VOID RewriteMQ2Plugins(VOID)
 VOID InitializeMQ2Plugins()
 {
 	DebugSpew("Initializing plugins");
+	bmWriteChatColor=AddMQ2Benchmark("WriteChatColor");
+	bmPluginsIncomingChat=AddMQ2Benchmark("PluginsIncomingChat");
+	bmPluginsPulse=AddMQ2Benchmark("PluginsPulse");
+	bmPluginsOnZoned=AddMQ2Benchmark("PluginsOnZoned");
+	bmPluginsCleanUI=AddMQ2Benchmark("PluginsCleanUI");
+	bmPluginsReloadUI=AddMQ2Benchmark("PluginsReloadUI");
+	bmPluginsDrawHUD=AddMQ2Benchmark("PluginsDrawHUD");
+	bmPluginsSetGameState=AddMQ2Benchmark("PluginsSetGameState");
+
 	InitializeCriticalSection(&gPluginCS);
 	bPluginCS=1;
 
@@ -180,6 +203,7 @@ VOID WriteChatColor(PCHAR Line, DWORD Color, DWORD Filter)
 {
 	if (!bPluginCS)
 		return;
+	EnterMQ2Benchmark(bmWriteChatColor);
 	DebugSpew("WriteChatColor(%s)",Line);
 	CAutoLock Lock(&gPluginCS);
 
@@ -192,24 +216,27 @@ VOID WriteChatColor(PCHAR Line, DWORD Color, DWORD Filter)
 		}
 		pPlugin=pPlugin->pNext;
 	}
+	ExitMQ2Benchmark(bmWriteChatColor);
 }
 
-VOID PluginsIncomingChat(PCHAR Line, DWORD Color)
+BOOL PluginsIncomingChat(PCHAR Line, DWORD Color)
 {
 	if (!bPluginCS)
-		return;
+		return 0;
     if(!Line[0])
-        return;
+        return 0;
 	CAutoLock Lock(&gPluginCS);
 	PMQPLUGIN pPlugin=pPlugins;
+	BOOL Ret=0;
 	while(pPlugin)
 	{
 		if (pPlugin->IncomingChat)
 		{
-			pPlugin->IncomingChat(Line,Color);
+			Ret|=pPlugin->IncomingChat(Line,Color);
 		}
 		pPlugin=pPlugin->pNext;
 	}
+	return Ret;
 }
 
 VOID PulsePlugins()

@@ -1,6 +1,6 @@
 /*****************************************************************************
-    eqlib.dll: MacroQuest's extension DLL for EverQuest
-    Copyright (C) 2002-2003 Plazmic
+    MQ2Main.dll: MacroQuest2's extension DLL for EverQuest
+    Copyright (C) 2002-2003 Plazmic, 2003 Lax
 
     This program is free software; you can redistribute it and/or modify
     it under the terms of the GNU General Public License, version 2, as published by
@@ -51,8 +51,9 @@ public:
 
 		if (!Filtered) { 
 //			if (gTelnetServer && gTelnetConnection && !gPauseTelnetOutput) TelnetServer_Write(szMsg); 
-			PluginsIncomingChat(szMsg,dwColor);
-			Trampoline(szMsg, dwColor, dwUnknown); 
+			Benchmark(bmPluginsIncomingChat,BOOL SkipTrampoline=PluginsIncomingChat(szMsg,dwColor));
+			if (!SkipTrampoline)
+				Trampoline(szMsg, dwColor, dwUnknown); 
 		} 
 		gbInChat = FALSE; 
 	} 

@@ -1,6 +1,6 @@
 /*****************************************************************************
-    eqlib.dll: MacroQuest's extension DLL for EverQuest
-    Copyright (C) 2002-2003 Plazmic
+    MQ2Main.dll: MacroQuest2's extension DLL for EverQuest
+    Copyright (C) 2002-2003 Plazmic, 2003 Lax
 
     This program is free software; you can redistribute it and/or modify
     it under the terms of the GNU General Public License, version 2, as published by
@@ -21,8 +21,33 @@
 
 //#define DEBUG_TRY 1
 #include "MQ2Main.h"
+BOOL TurnNotDone=FALSE;
 
-
+BOOL DoNextCommand()
+{
+     if (!ppCharSpawn || !pCharSpawn) return FALSE;
+	 PSPAWNINFO pCharOrMount = NULL;
+	PCHARINFO pCharInfo = GetCharInfo();
+    PSPAWNINFO pChar = pCharOrMount = (PSPAWNINFO)pCharSpawn;
+	if (pCharInfo && pCharInfo->pSpawn) pChar=pCharInfo->pSpawn;
+    if ((!pChar) || (gZoning)/* || (gDelayZoning)*/) return FALSE;
+    if (((gFaceAngle != 10000.0f) || (gLookAngle != 10000.0f)) && (TurnNotDone)) return FALSE;
+	 if (IsMouseWaiting()) return FALSE;
+	if (!gDelay && !gMacroPause && (!gMQPauseOnChat || *EQADDR_NOTINCHATMODE) &&
+        gMacroBlock && gMacroStack) {
+            gMacroStack->Location=gMacroBlock;
+            DoCommand(pChar,gMacroBlock->Line);
+            if (gMacroBlock) {
+                if (!gMacroBlock->pNext) {
+                    GracefullyEndBadMacro(pChar,gMacroBlock,"Reached end of macro.");
+                } else {
+                    gMacroBlock = gMacroBlock->pNext;
+                }
+            }
+			return TRUE;
+    }
+	return FALSE;
+}
 
 
 void Pulse()
@@ -65,7 +90,7 @@ void Pulse()
 		LastMana=0;
 		ManaGained=0;
 		HealthGained=0;
-		PluginsZoned();
+		Benchmark(bmPluginsSetGameState,PluginsZoned());
 
     } else if ((LastX!=pChar->X) || (LastY!=pChar->Y) || LastMoveTick>GetTickCount()-100) {
 		if ((LastX!=pChar->X) || (LastY!=pChar->Y)) LastMoveTick=GetTickCount();
@@ -75,7 +100,6 @@ void Pulse()
     } else {
         gbMoving = FALSE;
     }
-// TODO
 
 	DWORD CurrentHealth=GetCurHPS();
 	if (LastHealth && CurrentHealth>LastHealth)
@@ -95,7 +119,6 @@ void Pulse()
 		}
 	}
 	LastMana=pCharInfo->Mana;
-/**/
 
     if (gbDoAutoRun && pChar && pChar->pCharInfo) {
         gbDoAutoRun = FALSE;
@@ -109,14 +132,14 @@ void Pulse()
     }
 
     if ((gFaceAngle != 10000.0f) || (gLookAngle != 10000.0f)) {
-        BOOL NotDone = FALSE;
+        TurnNotDone = FALSE;
     if (gFaceAngle != 10000.0f) {
         if (abs((INT)(pCharOrMount->Heading - gFaceAngle)) < 10.0f) {
             pCharOrMount->Heading = (FLOAT)gFaceAngle;
             pCharOrMount->SpeedHeading = 0.0f;
             gFaceAngle = 10000.0f;
         } else {
-                NotDone = TRUE;
+                TurnNotDone = TRUE;
             DOUBLE c1 = pCharOrMount->Heading + 256.0f;
             DOUBLE c2 = gFaceAngle;
             if (c2<pChar->Heading) c2 += 512.0f;
@@ -138,7 +161,7 @@ void Pulse()
                 pChar->CameraAngle = (FLOAT)gLookAngle;
                 gLookAngle = 10000.0f;
             } else {
-                NotDone = TRUE;
+                TurnNotDone = TRUE;
                 FLOAT c1 = pChar->CameraAngle;
                 FLOAT c2 = (FLOAT)gLookAngle;
 
@@ -153,13 +176,12 @@ void Pulse()
             }
         }
 
-        if (NotDone) {
+        if (TurnNotDone) {
             IsMouseWaiting();
             return;
         }
     }
 
-    if (IsMouseWaiting()) return;
 
 	if (gDelayedCommands)
 	{// execute one delayed command
@@ -169,18 +191,6 @@ void Pulse()
 		gDelayedCommands=pNext;
 	}
 
-	if (!gDelay && !gMacroPause && (!gMQPauseOnChat || *EQADDR_NOTINCHATMODE) &&
-        gMacroBlock && gMacroStack) {
-            gMacroStack->Location=gMacroBlock;
-            DoCommand(pChar,gMacroBlock->Line);
-            if (gMacroBlock) {
-                if (!gMacroBlock->pNext) {
-                    GracefullyEndBadMacro(pChar,gMacroBlock,"Reached end of macro.");
-                } else {
-                    gMacroBlock = gMacroBlock->pNext;
-                }
-            }
-    }
 }
 
 DWORD GetGameState(VOID)
@@ -212,7 +222,7 @@ void Heartbeat()
 		{
 			DebugSpew("GetGameState()=%d vs %d",GameState,gGameState);
 			gGameState=GameState;
-			PluginsSetGameState(GameState);
+			Benchmark(bmPluginsSetGameState,PluginsSetGameState(GameState));
 		}
 	}
 
@@ -220,11 +230,12 @@ void Heartbeat()
     DWORD CurTurbo=0;
 	while ((!gKeyStack)   && (bRunNextCommand)) {
         bRunNextCommand   = FALSE;
-		Pulse();
-        if (!gTurbo) bRunNextCommand = FALSE;
-		if (++CurTurbo>gMaxTurbo) bRunNextCommand =   FALSE;
+		if (!DoNextCommand()) break;
+        if (!gTurbo) break;//bRunNextCommand = FALSE;
+		if (++CurTurbo>gMaxTurbo) break;//bRunNextCommand =   FALSE;
 	}
-    DebugTry(PulsePlugins());
+	Pulse();
+    Benchmark(bmPluginsPulse,DebugTry(PulsePlugins()));
 }
 
 // *************************************************************************** 
@@ -254,7 +265,7 @@ public:
 	{
 //		DebugSpew("SetGameState_Detour(%d)",GameState);
 		SetGameState_Trampoline(GameState);
-		PluginsSetGameState(GameState);
+		Benchmark(bmPluginsSetGameState,PluginsSetGameState(GameState));
 	}
 };
 

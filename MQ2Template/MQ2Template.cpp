@@ -21,6 +21,7 @@ PLUGIN_API VOID InitializePlugin(VOID)
 	// AddCommand("/mycommand",MyCommand);
 	// AddParm("$myparm(x)",MyParm);
 	// AddXMLFile("MQUI_MyXMLFile.xml");
+	// bmMyBenchmark=AddMQ2Benchmark("My Benchmark Name");
 }
 
 // Called once, when the plugin is to shutdown
@@ -29,6 +30,7 @@ PLUGIN_API VOID ShutdownPlugin(VOID)
 	DebugSpewAlways("Shutting down MQ2Template");
 
 	// Remove commands, macro parameters, hooks, etc.
+	// RemoveMQ2Benchmark(bmMyBenchmark);
 	// RemoveParm("$myparm(x)");
 	// RemoveCommand("/mycommand");
 	// RemoveXMLFile("MQUI_MyXMLFile.xml");

@@ -9,7 +9,7 @@
 
 #pragma comment(lib,"wsock32.lib")
 #include "../MQ2Plugin.h"
-#include "../MQ2Main/MQ2Globals.h"
+#include <list>
 
 PreSetup("MQ2Irc");
 
@@ -21,6 +21,9 @@ CHAR IrcServer[MAX_STRING] = {0};
 CHAR IrcNick[MAX_STRING] = {0};
 CHAR IrcPort[MAX_STRING] = {0};
 CHAR IrcChan[MAX_STRING] = {0};
+CHAR Version[MAX_STRING] = {0};
+CHAR Username[MAX_STRING] = {0};
+CHAR Realname[MAX_STRING] = {0};
 WORD sockVersion;
 WSADATA wsaData;
 int nret;
@@ -29,7 +32,10 @@ SOCKET theSocket;
 CHAR *ireadbuf = new CHAR[512];
 CHAR buffz[512];
 CHAR buff[512];
-char version[] = "MQ2Irc 11262003";
+std::list<char *> channels;
+std::list<char *>::iterator mychan;
+void *pchan;
+
 
 unsigned long IRCChatColor=111111;
 
@@ -39,6 +45,38 @@ bool bConnecting=false;
 bool bTriedConnect=false;
 bool bConnected=false;
 SOCKADDR_IN serverInfo;
+class CIRCWnd : public CCustomWnd 
+{ 
+public: 
+	CIRCWnd():CCustomWnd("ChatWindow") 
+   { 
+		StmlOut = (CStmlWnd *)GetChildItem(CXStr("CWChatOutput"));
+		OutWnd = GetChildItem(CXStr("CWChatOutput"));
+		OutStruct = (_CSIDLWND *)GetChildItem(CXStr("CWChatOutput"));
+		//Input = (CEditWnd *)GetChildItem(CXStr("CWChatInput"));
+   } 
+
+   ~CIRCWnd() 
+   { 
+   } 
+    //CEditWnd *Input;    //this is going to take some work.
+	CStmlWnd *StmlOut;
+	CXWnd *OutWnd;
+	struct _CSIDLWND *OutStruct;
+};
+CIRCWnd *MyWnd=0;
+void ircout(char *text) {
+	if(MyWnd) {
+		char processed[MAX_STRING];
+		MQToSTML(text,processed,MAX_STRING);
+		strcat(processed,"<br>");
+		CXStr NewText(processed);
+		CXSize Whatever; 
+		(MyWnd->StmlOut)->AppendSTML(&Whatever,NewText);
+		(MyWnd->OutWnd)->SetVScrollPos(MyWnd->OutStruct->VScrollMax);
+	}
+	return;
+}
 DWORD WINAPI IRCConnectThread(LPVOID lpParam)
 {
 	EnterCriticalSection(&ConnectCS);
@@ -53,9 +91,9 @@ DWORD WINAPI IRCConnectThread(LPVOID lpParam)
 		ioctlsocket(theSocket,FIONBIO,&nonblocking);
 		Sleep((clock_t)2 * CLOCKS_PER_SEC/2);
 
-		sprintf(buffz,"NICK %s\n\0",szIrcNick);
+		sprintf(buffz,"NICK %s\n\0",IrcNick);
 		send(theSocket,buffz,strlen(buffz),0);
-		sprintf(buffz,"USER %s %s %s %s\n\0",szIrcNick,szIrcNick,szIrcNick,szIrcNick);
+		sprintf(buffz,"USER %s %s %s :%s\n\0",Username,szIrcNick,szIrcNick,Realname);
 		send(theSocket,buffz,strlen(buffz),0);
 		sprintf(buffz,"JOIN %s\n\0",IrcChan);
 		send(theSocket,buffz,strlen(buffz),0);
@@ -73,7 +111,7 @@ VOID IrcConnect(PSPAWNINFO pChar, PCHAR szLine)
 { // /iconnect server port chan nick OR /iconnect inikey
 	if (bConnecting)
 	{
-		WriteChatColor("\ar#\ax Already trying to connect! Hold on a minute there",IRCChatColor);
+		ircout("\ar#\ax Already trying to connect! Hold on a minute there");
 		return;
 	}
 	CHAR Arg1[MAX_STRING] = {0};
@@ -85,7 +123,6 @@ VOID IrcConnect(PSPAWNINFO pChar, PCHAR szLine)
 	GetArg(Arg2,szLine,2);
 	GetArg(Arg3,szLine,3);
 	GetArg(Arg4,szLine,4);
-
 	if (Arg1[0]==0 && Arg2[0]==0 && Arg3[0]==0 && Arg4[0]==0) {
 		GetPrivateProfileString("Last Connect","Server","irc.forever-hacking.net",szIrcServer,MAX_STRING,INIFileName);
 		GetPrivateProfileString("Last Connect","Port","6667",szIrcPort,MAX_STRING,INIFileName);
@@ -128,17 +165,24 @@ VOID IrcConnect(PSPAWNINFO pChar, PCHAR szLine)
 	WritePrivateProfileString(IrcServer,"Port",IrcPort,INIFileName);
 	WritePrivateProfileString(IrcServer,"Chan",IrcChan,INIFileName);
 	WritePrivateProfileString(IrcServer,"Nick",IrcNick,INIFileName);
+	WritePrivateProfileString("Settings","Version",Version,INIFileName);
+	WritePrivateProfileString("Settings","Username",Username,INIFileName);
+	WritePrivateProfileString("Settings","Realname",Realname,INIFileName);
+	if(MyWnd) {
+		sprintf(buff,"%s [%s]",IrcChan,IrcServer);
+		SetCXStr(&MyWnd->OutStruct->WindowText,buff);
+	}
 	sockVersion = MAKEWORD(1, 1);
 	WSAStartup(sockVersion, &wsaData);
 	hostEntry = gethostbyname(IrcServer);
 	if (!hostEntry) {
-		WriteChatColor("\ar#\ax gethostbyname error",IRCChatColor);
+		ircout("\ar#\ax gethostbyname error");
 		WSACleanup();
 		return;
 	}
 	theSocket = socket(AF_INET,SOCK_STREAM,IPPROTO_TCP);
 	if (theSocket == INVALID_SOCKET) {
-		WriteChatColor("\ar#\ax Socket error",IRCChatColor);
+		ircout("\ar#\ax Socket error");
 		WSACleanup();
 		return;
 	}
@@ -195,15 +239,15 @@ VOID IrcCmd(PSPAWNINFO pChar, PCHAR szLine)
 		WritePrivateProfileString(IrcServer,"Nick",IrcNick,INIFileName);
 		return;
 	} else if(!strcmp(strupr(z[0]),"JOIN")) {
-		sprintf(buff,"PART %s\n\0",IrcChan);
-		send(theSocket,buff,strlen(buff),0);
+		//sprintf(buff,"PART %s\n\0",IrcChan);
+		//send(theSocket,buff,strlen(buff),0);
 		sprintf(buffz,"JOIN %s\n\0",z[1]);
 		send(theSocket,buffz,strlen(buffz),0);
 		WritePrivateProfileString("Last Connect","Chan",IrcChan,INIFileName);
 		WritePrivateProfileString(IrcServer,"Chan",IrcChan,INIFileName);
 		return;
 	} else if(!strcmp(strupr(z[0]),"PART")) {
-		sprintf(buffz,"PART %s\n\0",IrcChan);
+		sprintf(buffz,"PART %s\n\0",*mychan);
 		send(theSocket,buffz,strlen(buffz),0);
 		return;
 	} else if(!strcmp(strupr(z[0]),"WHOIS")) {
@@ -211,30 +255,45 @@ VOID IrcCmd(PSPAWNINFO pChar, PCHAR szLine)
 		send(theSocket,buffz,strlen(buffz),0);
 		return;
 	} else if(!strcmp(strupr(z[0]),"HELP")) {
-		sprintf(buffz,"\ar#\ax Supported Commands:\n\ar#\ax NICK JOIN PART WHOIS MSG SAY RAW QUIT NAMES HELP");
-		WriteChatColor(buffz,IRCChatColor);
+		sprintf(buffz,"\ar#\ax Supported Commands:\n\ar#\ax NICK JOIN PART WHOIS MSG SAY RAW QUIT NAMES X HELP");
+		ircout(buffz);
 		return;
 	} else if(!strcmp(strupr(z[0]),"QUIT")) {
 		sprintf(buffz,"QUIT :%s\n\0",z[1]);
 		send(theSocket,buffz,strlen(buffz),0);
-		WriteChatColor("\ar#\ax Connection Closed, you can unload MQ2Irc now.",IRCChatColor);
+		ircout("\ar#\ax Connection Closed, you can unload MQ2Irc now.");
 		return;
 	} else if(!strcmp(strupr(z[0]),"RAW")) {
 		sprintf(buffz,"%s\n\0",z[1]);
 		sprintf(buff,"\ab[\a-yraw\ab(\ay%s\ab)]\a-w %s\0", IrcServer, z[1]);
-		WriteChatColor(buff,IRCChatColor);
+		ircout(buff);
 		send(theSocket,buffz,strlen(buffz),0);
 		return;
 	} else if(!strcmp(strupr(z[0]),"SAY")) {
-		sprintf(buffz,"PRIVMSG %s :%s\n\0",IrcChan,z[1]);
-		send(theSocket,buffz,strlen(buffz),0);
-		sprintf(buffz,"\ag<\aw%s\ag>\a-w %s\0",IrcNick,z[1]);
-		WriteChatColor(buffz,IRCChatColor);
-		return;
+		if(channels.size()<1) {
+			ircout("\ar#\a-w You are not on any channels.");
+			return;
+		} else {
+			sprintf(buffz,"PRIVMSG %s :%s\n\0",*mychan,z[1]);
+			send(theSocket,buffz,strlen(buffz),0);
+			sprintf(buffz,"\ag<\aw%s\ag>\a-w %s\0",IrcNick,z[1]);
+			ircout(buffz);
+			return;
+		}
 	} else if(!strcmp(strupr(z[0]),"NAMES")) {
 		sprintf(buffz,"NAMES %s\n\0",IrcChan);
 		send(theSocket,buffz,strlen(buffz),0);
 		return;
+	} else if(!strcmp(strupr(z[0]),"X")) {
+		mychan++;
+		if(mychan == channels.end())
+			mychan = channels.begin();
+		if(MyWnd) {
+			sprintf(buff,"%s [%s]",*mychan,IrcServer);
+			SetCXStr(&MyWnd->OutStruct->WindowText,buff);
+		}
+		sprintf(buff, "\ar#\a-w Now speaking in \aw%s\a-w.", *mychan);
+		ircout(buff);
 	} else if(!strcmp(strupr(z[0]),"MSG")) {
 		for (y = 2; *szLine != '\0'; ) {
 			if (*szLine == ' ') {
@@ -248,10 +307,10 @@ VOID IrcCmd(PSPAWNINFO pChar, PCHAR szLine)
 		sprintf(buffz,"PRIVMSG %s :%s\n\0", z[1],z[2]);
 		send(theSocket,buffz,strlen(buffz),0);
 		sprintf(buffz,"\ab[\a-rmsg\ab(\ar%s\ab)]\a-w %s\0", z[1], z[2]);
-		WriteChatColor(buffz,IRCChatColor);
+		ircout(buffz);
 		return;
 	} else {
-		WriteChatColor("\ar#\a-w Invalid Command, /i help for a list of commands",IRCChatColor);
+		ircout("\ar#\a-w Invalid Command, /i help for a list of commands");
 	}
 }
 
@@ -350,6 +409,8 @@ CHAR *parse(CHAR *rawmsg) { //take raw irc protocol message and return human rea
 		if(!strcmp(IrcNick,prefix)) {
 			sprintf(IrcNick,"%s\0",param[0]);
 			IrcNick[strlen(IrcNick)-1] = '\0';
+			WritePrivateProfileString("Last Connect","Nick",IrcNick,INIFileName);
+			WritePrivateProfileString(IrcServer,"Nick",IrcNick,INIFileName); 
 		}
 		sprintf(buff,"\ar*\a-w %s changed nickname to \aw%s\a-w.\0", prefix, param[0]);
 		return buff;
@@ -357,10 +418,42 @@ CHAR *parse(CHAR *rawmsg) { //take raw irc protocol message and return human rea
 		if(!strcmp(IrcNick,prefix)) {
 			sprintf(IrcChan,"%s\0",param[0]);
 			IrcChan[strlen(IrcChan)-1] = '\0';
+			pchan = malloc(sizeof(IrcChan));
+			sprintf((char *)pchan, "%s", IrcChan);
+			channels.push_front((char *)pchan);
+			mychan = channels.begin();
+			if(MyWnd) {
+				sprintf(buff,"%s [%s]",*mychan,IrcServer);
+				SetCXStr(&MyWnd->OutStruct->WindowText,buff);
+			}
+			WritePrivateProfileString("Last Connect","Chan",*mychan,INIFileName);
+		    WritePrivateProfileString(IrcServer,"Chan",*mychan,INIFileName); 
+			sprintf(buff,"\ar#\a-w Now speaking in \aw%s\a-w.", *mychan);
+			ircout(buff);
 		}
 		sprintf(buff,"\ar*\aw %s\a-w joined %s.\0", prefix, param[0]);
 		return buff;
 	} else if(!strcmp(command,"PART")) {
+		param[0][strlen(param[0])-1] = '\0';
+		if(!strcmp(IrcNick,prefix)) {
+			channels.erase(mychan);
+			if(channels.size()<1) {
+				if(MyWnd) {
+					sprintf(buff,"No Channel [%s]",IrcServer);
+					SetCXStr(&MyWnd->OutStruct->WindowText,buff);
+				}
+				sprintf(buff,"\ar#\a-w No longer on any channels.");
+				return buff;
+			} else {
+				mychan = channels.begin();
+				if(MyWnd) {
+					sprintf(buff,"%s [%s]",*mychan,IrcServer);
+					SetCXStr(&MyWnd->OutStruct->WindowText,buff);
+				}
+			    sprintf(buff,"\ar#\a-w Now speaking in \aw%s\a-w.", *mychan);
+			    return buff;
+			}
+		}
 		sprintf(buff,"\ar*\aw %s\a-w left %s\0", prefix, param[0]);
 		return buff;
 	} else if(!strcmp(command,"MODE")) {
@@ -372,7 +465,7 @@ CHAR *parse(CHAR *rawmsg) { //take raw irc protocol message and return human rea
 	} else if(!strcmp(command,"PRIVMSG")) {
 		param[1][strlen(param[1])-1] = '\0';
 		if(!strcmp(param[1],"\001VERSION\001")) {
-			sprintf(buff,"NOTICE %s :\001VERSION %s\001\n\0",prefix,version);
+			sprintf(buff,"NOTICE %s :\001VERSION %s\001\n\0",prefix,Version);
 			send(theSocket,buff,strlen(buff),0);
 			sprintf(buff,"\ab[\ao%s\ab(\a-octcp\ab)]\a-w VERSION", prefix);
 			return buff;
@@ -380,14 +473,19 @@ CHAR *parse(CHAR *rawmsg) { //take raw irc protocol message and return human rea
 		if(!strcmp(IrcNick, param[0])) {
 			sprintf(buff,"\ab[\ap%s\ab(\a-pmsg\ab)]\a-w %s\0", prefix, param[1]);
 
-			sprintf(Arg1,"%s tells the group, '%s'", prefix, param[1]);
+			sprintf(Arg1,"%s tells you, '%s'", prefix, param[1]);
 			CheckChatForEvent(Arg1);
 			return buff;
 		} else {
-			sprintf(buff,"\ag<\a-w%s\ag>\a-w %s\0", prefix, param[1]);
-			sprintf(Arg1,"%s tells the group, '%s'", prefix, param[1]);
-			CheckChatForEvent(Arg1);
-			return buff;
+			if(!strcmp(*mychan, param[0])) {
+				sprintf(buff,"\ag<\a-w%s\ag>\a-w %s\0", prefix, param[1]);
+				sprintf(Arg1,"%s tells the group, '%s'", prefix, param[1]);
+				CheckChatForEvent(Arg1);
+				return buff;
+			} else {
+				sprintf(buff,"\ag<\a-w%s\ag/\a-w%s\ag>\a-w %s\0", prefix, param[0], param[1]);
+				return buff;
+			}
 		}
 	} else if(!strcmp(command,"NOTICE")) {
 		sprintf(buff,"\ab[\ao%s\ab(\a-onotice\ab)]\a-w %s\0", prefix, param[1]);
@@ -526,7 +624,6 @@ PLUGIN_API VOID InitializePlugin(VOID)
 	AddCommand("/i",IrcCmd);
 	AddCommand("/iconnect",IrcConnect);
 	WriteChatColor("Loading MQ2Irc...",IRCChatColor);
-
 	WriteChatColor("\ar#\ax MQ2Irc loaded, all commands are run with /i <command>",IRCChatColor);
 	WriteChatColor("\ar#\ax /i help for a list of commands",IRCChatColor);
 	WriteChatColor("\ar#\ax To connect to a server, type /iconnect <server> <port> <channel> <nick>",IRCChatColor);
@@ -534,6 +631,9 @@ PLUGIN_API VOID InitializePlugin(VOID)
 	GetPrivateProfileString("Last Connect","Port","6667",szIrcPort,MAX_STRING,INIFileName);
 	GetPrivateProfileString("Last Connect","Chan","MyChan",szIrcChan,MAX_STRING,INIFileName);
 	GetPrivateProfileString("Last Connect","Nick","What-Ini",szIrcNick,MAX_STRING,INIFileName);
+	GetPrivateProfileString("Settings","Version","MQ2Irc 120403b",Version,MAX_STRING,INIFileName);
+	GetPrivateProfileString("Settings","Username","What-Ini",Username,MAX_STRING,INIFileName);
+	GetPrivateProfileString("Settings","Realname","mq2irc",Realname,MAX_STRING,INIFileName);
 	InitializeCriticalSection(&ConnectCS);
 }
 
@@ -575,7 +675,7 @@ PLUGIN_API VOID OnPulse(VOID)
 			if (ireadbuf[i] == '\n') {
 				ireadbuf[i] = '\0';
 				if((message = parse(ireadbuf)) != NULL) {
-					WriteChatColor(message,IRCChatColor);
+					ircout(message);
 				}
 
 			}
@@ -583,3 +683,31 @@ PLUGIN_API VOID OnPulse(VOID)
 		}
 	}
 }
+PLUGIN_API VOID OnCleanUI(VOID) 
+{ 
+   DebugSpewAlways("MQ2WndTest::OnCleanUI()"); 
+   if (MyWnd) 
+   { 
+      delete MyWnd; 
+      MyWnd=0; 
+   } 
+} 
+PLUGIN_API VOID SetGameState(DWORD GameState) 
+{ 
+//   DebugSpewAlways("MQ2WndTest::SetGameState()"); 
+   if (GameState==GAMESTATE_INGAME && !MyWnd) 
+   { 
+      //if (pSidlMgr->FindScreenPieceTemplate("ChatWindow")) 
+         MyWnd=new CIRCWnd; 
+   } 
+} 
+
+PLUGIN_API VOID OnReloadUI() 
+{ 
+//   DebugSpewAlways("MQ2WndTest::OnReloadUI()"); 
+   if (!MyWnd) 
+   { 
+      //if (pSidlMgr->FindScreenPieceTemplate("TestWindow")) 
+         MyWnd=new CIRCWnd; 
+   } 
+} 

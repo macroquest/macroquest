@@ -1,5 +1,30 @@
 namespace MQ2Globals
 {
+/* BENCHMARK HANDLES */
+
+EQLIB_API DWORD bmWriteChatColor;
+EQLIB_API DWORD bmPluginsIncomingChat;
+EQLIB_API DWORD bmPluginsPulse;
+EQLIB_API DWORD bmPluginsOnZoned;
+EQLIB_API DWORD bmPluginsCleanUI;
+EQLIB_API DWORD bmPluginsReloadUI;
+EQLIB_API DWORD bmPluginsDrawHUD;
+EQLIB_API DWORD bmPluginsSetGameState;
+EQLIB_API DWORD bmParseMacroParameter;
+/*
+EQLIB_API DWORD bm;
+EQLIB_API DWORD bm;
+EQLIB_API DWORD bm;
+EQLIB_API DWORD bm;
+EQLIB_API DWORD bm;
+EQLIB_API DWORD bm;
+EQLIB_API DWORD bm;
+EQLIB_API DWORD bm;
+EQLIB_API DWORD bm;
+/**/
+
+/* OTHER */
+
 EQLIB_API CHAR gszVersion[32];
 
 EQLIB_API DWORD gGameState;

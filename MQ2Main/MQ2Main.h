@@ -1,4 +1,4 @@
-#define VersionString "20031203a"
+#define VersionString "20031206"
 #define DebugHeader "[MQ2]"
 #define LoadedString "MQ2 Loaded."
 #define ToUnloadString "MQ2 Unloading..."
@@ -7,6 +7,9 @@
 #define WIN32_LEAN_AND_MEAN
 #define _WIN32_WINNT 0x510
 #define DIRECTINPUT_VERSION 0x800
+
+// uncomment this line to turn off the single-line benchmark macro
+// #define DISABLE_BENCHMARKS
 
 // Windows Header Files:
 #include <windows.h>
@@ -119,6 +122,21 @@ typedef double DOUBLE;
 #include "MQ2Internal.h"
 #include "MQ2Globals.h"
 
+/* BENCHMARKING */
+#ifdef DISABLE_BENCHMARKS
+#define Benchmark(BMHandle,code) code
+#else
+#define Benchmark(BMHandle,code) EnterMQ2Benchmark(BMHandle);code;ExitMQ2Benchmark(BMHandle)
+#endif
+EQLIB_API VOID ShutdownMQ2Benchmarks();
+EQLIB_API VOID InitializeMQ2Benchmarks();
+EQLIB_API BOOL GetMQ2Benchmark(DWORD BMHandle, MQBENCH &Dest);
+EQLIB_API VOID ExitMQ2Benchmark(DWORD BMHandle);
+EQLIB_API VOID EnterMQ2Benchmark(DWORD BMHandle);
+EQLIB_API VOID RemoveMQ2Benchmark(DWORD BMHandle);
+EQLIB_API DWORD AddMQ2Benchmark(PCHAR Name);
+
+
 /* WINDOWS */
 EQLIB_API VOID InitializeMQ2Windows();
 EQLIB_API VOID ShutdownMQ2Windows();
@@ -143,7 +161,7 @@ EQLIB_API VOID ShutdownMQ2Plugins();
 EQLIB_API VOID WriteChatColor(PCHAR Line, DWORD Color=USERCOLOR_DEFAULT, DWORD Filter=0);
 EQLIB_API VOID PulsePlugins();
 EQLIB_API VOID PluginsZoned();
-EQLIB_API VOID PluginsIncomingChat(PCHAR Line, DWORD Color);
+EQLIB_API BOOL PluginsIncomingChat(PCHAR Line, DWORD Color);
 EQLIB_API VOID RewriteMQ2Plugins(VOID);
 EQLIB_API VOID PluginsCleanUI();
 EQLIB_API VOID PluginsReloadUI();
@@ -477,6 +495,8 @@ EQLIB_API VOID ZapVars                             (PSPAWNINFO,PCHAR);
 #define GAMESTATE_UNLOADING     255
 
 #define XWM_LCLICK				1
+#define XWM_RCLICK				3
+#define XWM_NEWVALUE	        14
 
 #define MAX_ITEM4xx			416
 

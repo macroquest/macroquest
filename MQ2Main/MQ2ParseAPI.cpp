@@ -1,6 +1,6 @@
 /*****************************************************************************
-    eqlib.dll: MacroQuest's extension DLL for EverQuest
-    Copyright (C) 2002-2003 Plazmic
+    MQ2Main.dll: MacroQuest2's extension DLL for EverQuest
+    Copyright (C) 2002-2003 Plazmic, 2003 Lax
 
     This program is free software; you can redistribute it and/or modify
     it under the terms of the GNU General Public License, version 2, as published by
@@ -201,6 +201,7 @@ VOID InitializeParser()
 	{
 		AddParm(Parms[i].szName,Parms[i].fAddress);
 	}
+	bmParseMacroParameter=AddMQ2Benchmark("ParseMacroParameter");
 }
 
 VOID ShutdownParser()
@@ -273,7 +274,7 @@ PCHAR ParseMacroParameter(PSPAWNINFO pChar, PCHAR szOriginal)
     INT j,j2;
     PCHARINFO pCharInfo = NULL;
     if (NULL == (pCharInfo = GetCharInfo())) return szOriginal;
-
+	EnterMQ2Benchmark(bmParseMacroParameter);
     while (strstr(szOriginal,"$") || strstr(szOriginal,"@")) {
 //        DebugSpewNoFile("PMP - Current string - '%s'",szOriginal);
         ZeroMemory(szOutput,MAX_STRING);
@@ -388,6 +389,7 @@ PCHAR ParseMacroParameter(PSPAWNINFO pChar, PCHAR szOriginal)
         if (szOriginal[kount]=='ÿ') szOriginal[kount]='$';
         if (szOriginal[kount]=='²') szOriginal[kount]='@';
     }
+	ExitMQ2Benchmark(bmParseMacroParameter);
     return (szOriginal);
 }
 

@@ -3744,6 +3744,8 @@ EQLIB_OBJECT static bool CSidlScreenWnd::m_useIniFile;
 
 // data members
 struct _CSIDLWND Data;
+
+	inline CXWnd *pXWnd() {return (CXWnd*)this;};
 };
 
 class CSkillsSelectWnd

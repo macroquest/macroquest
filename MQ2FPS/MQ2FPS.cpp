@@ -200,16 +200,16 @@ PLUGIN_API VOID OnPulse(VOID)
 	// DONT leave in this debugspew, even if you leave in all the others
 //	DebugSpewAlways("MQ2FPS::OnPulse()");
 	DebugTry(ProcessFrame());
-	if (gGameState!=GAMESTATE_INGAME || gZoning || IsMouseWaiting())
+	if (IsMouseWaiting())
 		return;
 
 
-	if (!gDelay && !gMacroPause && (!gMQPauseOnChat || *EQADDR_NOTINCHATMODE) &&
-        gMacroBlock && gMacroStack) {
-		InMacro=true;
-		Sleep(0);
-    }
-	else
+//	if (!gDelay && !gMacroPause && (!gMQPauseOnChat || *EQADDR_NOTINCHATMODE) &&
+//        gMacroBlock && gMacroStack) {
+//		InMacro=true;
+//		Sleep(0);
+//    }
+//	else
 	{ 
 		InMacro=false;
 		HWND EQhWnd=*(HWND*)EQADDR_HWND;

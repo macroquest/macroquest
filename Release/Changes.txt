@@ -1,3 +1,12 @@
+06 Dec 2003 by Lax
+- Added benchmark system.
+- Modified pulse behavior so that executing macro commands is separate from other pulse stuff
+- Modified MQ2FPS to take the above into account (it no longer needs to know about macros)
+- Updated MQ2IRC to be current with the version posted in forums
+- Added /bench command which with no parameters outputs currently active benchmark stats to chat
+  When used with parameters, /bench will benchmark a command.  /bench [command]
+  Example: /bench /who all friends
+
 05 Dec 2003 by Mckorr
 +Fix for CTD when using /click left|right target when nothing was targetted (motd2k)
 

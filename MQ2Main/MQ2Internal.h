@@ -227,6 +227,15 @@ typedef struct _MQXMLFile
 	_MQXMLFile *pNext;
 } MQXMLFILE, *PMQXMLFILE;
 
+typedef struct _MQBENCH
+{
+	CHAR szName[64];
+	DWORD Entry;
+	DWORD LastTime;
+	DWORD TotalTime;
+	DWORD Count;
+} MQBENCH, *PMQBENCH;
+
 typedef struct _MQPlugin
 {
 	char szFilename[MAX_PATH];
@@ -248,8 +257,8 @@ typedef struct _MQPlugin
 
 class CAutoLock {
 public:
-    void Lock() { if (!bLocked) { EnterCriticalSection(pLock); bLocked = TRUE; }}
-    void Unlock() { if (bLocked) { LeaveCriticalSection(pLock); bLocked = FALSE; }}
+    inline void Lock() { if (!bLocked) { EnterCriticalSection(pLock); bLocked = TRUE; }}
+    inline void Unlock() { if (bLocked) { LeaveCriticalSection(pLock); bLocked = FALSE; }}
     CAutoLock(LPCRITICAL_SECTION _pLock) { bLocked = FALSE; pLock = _pLock; Lock(); }
     ~CAutoLock() { Unlock(); }
 
@@ -302,10 +311,108 @@ public:
 		vtable[index]=value;
 	}
 
-	inline CXWnd *pXWnd() {return (CXWnd*)this;};
-
 	PCSIDLWNDVFTABLE OldvfTable;
 };
+
+/* CIndex class stolen from teqim - Lax */
+template <class Any>
+class CIndex
+{
+public:
+	CIndex()
+	{
+		InitializeCriticalSection(&CS);
+		Size=0;
+		List=0;
+	}
+
+	CIndex(unsigned long InitialSize)
+	{
+		InitializeCriticalSection(&CS);
+		Size=0;
+		List=0;
+		Resize(InitialSize);
+	}
+
+	~CIndex()
+	{// user is responsible for managing elements
+		CAutoLock L(&CS);
+		if (List)
+			free(List);
+		List=0;
+		Size=0;
+		DeleteCriticalSection(&CS);
+	}
+
+	void Cleanup()
+	{
+		for (unsigned long i = 0 ; i < Size ; i++)
+		{
+			if (List[i])
+			{
+				delete List[i];
+				List[i]=0;
+			}
+		}
+	}
+
+	void Resize(unsigned long NewSize)
+	{
+		CAutoLock L(&CS);
+		if (List)
+		{
+			if (NewSize>Size)
+			{
+				// because we want to zero out the unused portions, we wont use realloc
+				Any *NewList=(Any*)malloc(NewSize*sizeof(Any));
+				memset(NewList,0,NewSize*sizeof(Any));
+				memcpy(NewList,List,Size*sizeof(Any));
+				free(List);
+				List=NewList;
+				Size=NewSize;
+			}
+		}
+		else
+		{
+			List=(Any*)malloc(NewSize*sizeof(Any));
+			memset(List,0,NewSize*sizeof(Any));
+			Size=NewSize;
+		}
+	}
+
+	// gets the next unused index, resizing if necessary
+	inline unsigned long GetUnused()
+	{
+		CAutoLock L(&CS);
+		for (unsigned long i = 0 ; i < Size ; i++)
+		{
+			if (!List[i])
+				return i;
+		}
+		Resize(Size+10);
+		return i;
+	}
+
+	unsigned long Count()
+	{
+		CAutoLock L(&CS);
+		unsigned long ret=0
+		for (unsigned long i = 0 ; i < Size ; i++)
+		{
+			if (List[i])
+				ret++;
+		}
+		return ret;
+	}
+
+	unsigned long Size;
+	Any *List;
+
+	inline Any& operator+=(Any& Value){return List[GetUnused()]=Value;}
+	inline Any& operator[](unsigned long Index){return List[Index];}
+	CRITICAL_SECTION CS;
+};
+
 
 };
 using namespace MQ2Internal;
