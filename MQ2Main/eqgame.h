@@ -363,7 +363,7 @@
 #define CContainerWnd__vftable                             0x5EE9B0
 
 // CSidlScreenWnd
-#define CSidlScreenWnd__CSidlScreenWnd1                    0x581410
+#define CSidlScreenWnd__CSidlScreenWnd1                    0x55d880
 #define CSidlScreenWnd__dCSidlScreenWnd                    0x55CF20
 #define CSidlScreenWnd__CreateChildrenFromSidl             0x55C290
 #define CSidlScreenWnd__WndNotification                    0x55BE10
