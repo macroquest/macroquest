@@ -238,8 +238,7 @@ bool MQ2SpawnType::GetMember(MQ2VARPTR VarPtr, PCHAR Member, PCHAR Index, MQ2TYP
 	{
 		return false;
 	}
-
-#define pSpawn ((PSPAWNINFO)VarPtr.Ptr)
+	PSPAWNINFO pSpawn=(PSPAWNINFO)VarPtr.Ptr;
 	switch((SpawnMembers)pMember->ID)
 	{
 	case Level:
@@ -322,7 +321,10 @@ bool MQ2SpawnType::GetMember(MQ2VARPTR VarPtr, PCHAR Member, PCHAR Index, MQ2TYP
 		Dest.Int=pSpawn->HPCurrent*100/pSpawn->HPMax;
 		return true;
 	case AARank:
-		Dest.Int=pSpawn->AARank;
+		if (pSpawn->AARank!=0xFF)
+			Dest.Int=pSpawn->AARank;
+		else
+			Dest.Int=0;
 		Dest.Type=pIntType;
 		return true;
 	case Speed:
@@ -605,13 +607,6 @@ bool MQ2SpawnType::GetMember(MQ2VARPTR VarPtr, PCHAR Member, PCHAR Index, MQ2TYP
 		}
 		Dest.Type=pStringType;
 		return true;
-	case TargetOfTarget:
-		if (Dest.Ptr=pSpawn->pActorInfo->pTargetOfTarget)
-		{
-			Dest.Type=pSpawnType;
-			return true;
-		}
-		return false;
 	case Invited:
 		Dest.DWord=(pSpawn->pActorInfo->InvitedToGroup);
 		Dest.Type=pBoolType;
@@ -681,9 +676,60 @@ bool MQ2SpawnType::GetMember(MQ2VARPTR VarPtr, PCHAR Member, PCHAR Index, MQ2TYP
 		Dest.DWord=(pSpawn->Type==SPAWN_PLAYER && !stricmp(GroupLeader,pSpawn->Name));
 		Dest.Type=pBoolType;
 		return true;
+	case Assist:
+		if (gGameState==GAMESTATE_INGAME)
+		{
+			DWORD nAssist;
+			PACTORINFO pCharActor=GetCharInfo()->pSpawn->pActorInfo;
+//			for (nAssist=0 ; nAssist < 1 ; nAssist++)
+			{
+				if (pCharActor->pGroupAssistNPC[0]==pSpawn)
+				{
+					Dest.DWord=1;
+					Dest.Type=pBoolType;
+					return true;
+				}
+			}
+			for (nAssist=0 ; nAssist < 3 ; nAssist++)
+			{
+				if (pCharActor->pRaidAssistNPC[nAssist]==pSpawn)
+				{
+					Dest.DWord=1;
+					Dest.Type=pBoolType;
+					return true;
+				}
+			}
+		}
+		Dest.DWord=0;
+		Dest.Type=pBoolType;
+		return true;
+	case Mark:
+		if (gGameState==GAMESTATE_INGAME)
+		{
+			DWORD nMark;
+			PACTORINFO pCharActor=GetCharInfo()->pSpawn->pActorInfo;
+			for (nMark=0 ; nMark < 3 ; nMark++)
+			{
+				if (pCharActor->pRaidMarkNPC[nMark]==pSpawn)
+				{
+					Dest.DWord=nMark+1;
+					Dest.Type=pIntType;
+					return true;
+				}
+			}
+			for (nMark=0 ; nMark < 3 ; nMark++)
+			{
+				if (pCharActor->pGroupMarkNPC[nMark]==pSpawn)
+				{
+					Dest.DWord=nMark+1;
+					Dest.Type=pIntType;
+					return true;
+				}
+			}
+		}
+		return false;
 	}
 	return false;
-#undef pSpawn
 }
 
 bool MQ2BuffType::GetMember(MQ2VARPTR VarPtr, PCHAR Member, PCHAR Index, MQ2TYPEVAR &Dest)
@@ -1875,7 +1921,73 @@ bool MQ2CharacterType::GetMember(MQ2VARPTR VarPtr, PCHAR Member, PCHAR Index, MQ
 		Dest.DWord=pChar->Drunkenness;
 		Dest.Type=pIntType;
 		return true;
+	case TargetOfTarget:
+		if (gGameState==GAMESTATE_INGAME)
+		if (Dest.Ptr=pChar->pSpawn->pActorInfo->pTargetOfTarget)
+		{
+			Dest.Type=pSpawnType;
+			return true;
+		}
+		return false;
+	case RaidAssistTarget:
+		if (gGameState==GAMESTATE_INGAME)
+		if (Index[0] && IsNumber(Index))
+		{
+			DWORD N=atoi(Index)-1;
+			if (N>=3)
+				return false;
+			if (Dest.Ptr=pChar->pSpawn->pActorInfo->pRaidAssistNPC[N])
+			{
+				Dest.Type=pSpawnType;
+				return true;
+			}
+		}
+		return false;
+	case GroupAssistTarget:
+		if (gGameState==GAMESTATE_INGAME)
+		{
+			if (Dest.Ptr=pChar->pSpawn->pActorInfo->pGroupAssistNPC[0])
+			{
+				Dest.Type=pSpawnType;
+				return true;
+			}
+		}
+		return false;
+	case RaidMarkNPC:
+		if (gGameState==GAMESTATE_INGAME)
+		if (Index[0] && IsNumber(Index))
+		{
+			DWORD N=atoi(Index)-1;
+			if (N>=3)
+				return false;
+			if (Dest.Ptr=pChar->pSpawn->pActorInfo->pRaidMarkNPC[N])
+			{
+				Dest.Type=pSpawnType;
+				return true;
+			}
+		}
+		return false;
+	case GroupMarkNPC:
+		if (gGameState==GAMESTATE_INGAME)
+		if (Index[0] && IsNumber(Index))
+		{
+			DWORD N=atoi(Index)-1;
+			if (N>=3)
+				return false;
+			if (Dest.Ptr=pChar->pSpawn->pActorInfo->pGroupMarkNPC[N])
+			{
+				Dest.Type=pSpawnType;
+				return true;
+			}
+		}
+		return false;
 		/*
+		RaidAssistTarget=100,
+		GroupAssistTarget=101,
+		RaidMarkNPC=102,
+		GroupMarkNPC=103
+
+
 		STR=51,
 		STA=52,
 		CHA=53,
@@ -3003,6 +3115,7 @@ bool MQ2MacroType::GetMember(MQ2VARPTR VarPtr, PCHAR Member, PCHAR Index, MQ2TYP
 				pVar=pVar->pNext;
 			}
 		}
+		Dest.Type=pIntType;
 		return true;
 	/*
 		TypeMember(Param);

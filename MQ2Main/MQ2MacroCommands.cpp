@@ -171,6 +171,9 @@ PMACROBLOCK AddMacroLine(PCHAR szLine)
             if ((szArg1[0]!=0) && (szArg2[0]!=0)) {
                 sprintf(pEvent->szName,"Sub Event_%s",szArg1);
                 strcpy(pEvent->szMatch,szArg2);
+#ifdef USEBLECHEVENTS
+				pEvent->BlechID=pEventBlech->AddEvent(pEvent->szMatch,EventBlechCallback,pEvent);
+#endif
                 pEvent->pEventFunc = NULL;
                 pEvent->pNext = pEventList;
                 pEventList = pEvent;
@@ -222,7 +225,6 @@ PMACROBLOCK AddMacroLine(PCHAR szLine)
             pEvent = pEvent->pNext;
         }
     }
-
     if (!gMacroBlock) {
         gMacroBlock=pBlock;
     } else {
@@ -1137,6 +1139,9 @@ VOID EndMacro(PSPAWNINFO pChar, PCHAR szLine)
         free(pEventList);
         pEventList = pEventL;
     }
+#ifdef USEBLECHEVENTS
+	pEventBlech->Reset();
+#endif
     for  (i=0;i<NUM_EVENTS;i++) {
         gEventFunc[i]=NULL;
     }

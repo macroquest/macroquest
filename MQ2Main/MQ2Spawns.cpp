@@ -155,92 +155,85 @@ public:
 			pop ecx;
 			call [tmp];
 		};
-/*
-		PSPAWNINFO pSpawn;
-		__asm {mov [pSpawn], ecx};
-		__asm {push ecx};
-//		PreserveRegisters(PluginsRemoveSpawn((PSPAWNINFO)pSpawn));
-		PluginsRemoveSpawn((PSPAWNINFO)pSpawn);
-		__asm {pop ecx};
-		dEQPlayer_Trampoline();
-/**/
 	}
 
-	int ChangeBoneStringSprite_Trampoline(int T3D_Dag,char *pszCaption);
-	int ChangeBoneStringSprite_Detour(int T3D_Dag,char *pszCaption)
+	int SetNameSpriteState_Trampoline(bool Show);
+	int SetNameSpriteState_Detour(bool Show)
 	{
+		if (gGameState!=GAMESTATE_INGAME)// || !Show)
+			return SetNameSpriteState_Trampoline(Show);
+		return 1;
+	}
+
+	int SetNameSpriteState(bool Show)
+	{
+		PSPAWNINFO pSpawn;
+		__asm{mov [pSpawn], ecx};
 #define SetCaption(CaptionString) \
 		{\
 			if (CaptionString[0])\
 			{\
 				strcpy(NewCaption,CaptionString);\
-				pNamingSpawn=(PSPAWNINFO)this;\
+				pNamingSpawn=pSpawn;\
 				ParseMacroParameter(GetCharInfo()->pSpawn,NewCaption);\
 				pNamingSpawn=0;\
-				return ChangeBoneStringSprite_Trampoline(T3D_Dag,NewCaption);\
+				((EQPlayer*)pSpawn)->ChangeBoneStringSprite(0,NewCaption);\
+				return 1;\
 			}\
 		}
-
-		if (gGameState == GAMESTATE_INGAME && pszCaption) 
+		CHAR NewCaption[MAX_STRING]={0};
+		switch(GetSpawnType((PSPAWNINFO)pSpawn))
 		{
-			PSPAWNINFO pChar=GetCharInfo()->pSpawn;
-			if (!pChar || GetDistance(GetCharInfo()->pSpawn,(PSPAWNINFO)this)>=100.0f)
-				return ChangeBoneStringSprite_Trampoline(T3D_Dag,pszCaption);
-			CHAR NewCaption[MAX_STRING]={0};
-			switch(GetSpawnType((PSPAWNINFO)this))
-			{
-			case NPC:
-				SetCaption(gszSpawnNPCName);
-				break;
-			case PC:
-				SetCaption(gszSpawnPlayerName[gShowNames]);
-				break;
-			case CORPSE:
-				SetCaption(gszSpawnCorpseName);
-				break;
-			case MOUNT:
-				SetCaption(gszSpawnMountName);
-				break;
-			case PET:
-				SetCaption(gszSpawnPetName);
-				break;
-			}
-/*
-			if (this==(EQPlayerHook*)pTarget)
-			{
-				if (gszSpawnTargetName[0])
-				{
-					strcpy(NewCaption,gszSpawnTargetName);
-					pNamingSpawn=(PSPAWNINFO)this;
-					ParseMacroParameter(GetCharInfo()->pSpawn,NewCaption);
-					pNamingSpawn=0;
-					return ChangeBoneStringSprite_Trampoline(T3D_Dag,NewCaption);
-				}
-			}
-			else
-			{
-				if (gszSpawnName[0])
-				{
-					strcpy(NewCaption,gszSpawnName);
-					pNamingSpawn=(PSPAWNINFO)this;
-					ParseMacroParameter(GetCharInfo()->pSpawn,NewCaption);
-					pNamingSpawn=0;
-					return ChangeBoneStringSprite_Trampoline(T3D_Dag,NewCaption);
-				}
-			}
-	/**/
+		case NPC:
+			SetCaption(gszSpawnNPCName);
+			break;
+		case PC:
+			SetCaption(gszSpawnPlayerName[gShowNames]);
+			break;
+		case CORPSE:
+			SetCaption(gszSpawnCorpseName);
+			break;
+		case MOUNT:
+			SetCaption(gszSpawnMountName);
+			break;
+		case PET:
+			SetCaption(gszSpawnPetName);
+			break;
 		}
-		return ChangeBoneStringSprite_Trampoline(T3D_Dag,pszCaption);
+		return SetNameSpriteState_Trampoline(Show);
+#undef SetCaption
 	}
+
 };
 
-DETOUR_TRAMPOLINE_EMPTY(int EQPlayerHook::ChangeBoneStringSprite_Trampoline(int,char*)); 
+VOID UpdateSpawnCaptions()
+{
+	DWORD N;
+	for (N = 0 ; N < gMaxSpawnCaptions ; N++)
+	{
+		if (EQPlayerHook* pSpawn=(EQPlayerHook*)EQP_DistArray[N].VarPtr.Ptr)
+		if (EQP_DistArray[N].Value.Float<=80.0f)
+		{
+			pSpawn->SetNameSpriteState(true);
+			((EQPlayer*)pSpawn)->SetNameSpriteTint();
+		}
+		else
+		{
+			return;
+		}
+	}
+}
+
+DETOUR_TRAMPOLINE_EMPTY(int EQPlayerHook::SetNameSpriteState_Trampoline(bool Show));
 DETOUR_TRAMPOLINE_EMPTY(VOID EQPlayerHook::dEQPlayer_Trampoline(VOID)); 
 DETOUR_TRAMPOLINE_EMPTY(VOID EQPlayerHook::EQPlayer_Trampoline(DWORD,DWORD,DWORD,DWORD,DWORD)); 
 
 VOID InitializeMQ2Spawns()
 {
 	DebugSpew("Initializing Spawn-related Hooks");
+	bmUpdateSpawnSort=AddMQ2Benchmark("UpdateSpawnSort");
+	bmUpdateSpawnCaptions=AddMQ2Benchmark("UpdateSpawnCaptions");
+
 //	EasyClassDetour(EQPlayer__EQPlayer,EQPlayerHook,EQPlayer_Detour,VOID,(DWORD,DWORD,DWORD,DWORD,DWORD),EQPlayer_Trampoline);
 	EzDetour(EQPlayer__EQPlayer,EQPlayerHook::EQPlayer_Detour,EQPlayerHook::EQPlayer_Trampoline);
 //	EasyClassDetour(EQPlayer__dEQPlayer,EQPlayerHook,dEQPlayer_Detour,VOID,(VOID),dEQPlayer_Trampoline);
@@ -250,13 +243,12 @@ VOID InitializeMQ2Spawns()
 //	EasyClassDetour(EQItemList__dEQItemList,EQItemListHook,dEQItemList_Detour,VOID,(VOID),dEQItemList_Trampoline);
 	EzDetour(EQItemList__dEQItemList,EQItemListHook::dEQItemList_Detour,EQItemListHook::dEQItemList_Trampoline);
 
-	EzDetour(EQPlayer__ChangeBoneStringSprite,EQPlayerHook::ChangeBoneStringSprite_Detour,EQPlayerHook::ChangeBoneStringSprite_Trampoline);
+	EzDetour(EQPlayer__SetNameSpriteState,EQPlayerHook::SetNameSpriteState_Detour,EQPlayerHook::SetNameSpriteState_Trampoline);
 
 	InitializeCriticalSection(&csPendingGrounds);
 	ProcessPending=true;
 	ZeroMemory(&EQP_DistArray,sizeof(EQP_DistArray));
 	gSpawnCount=0;
-	bmUpdateSpawnSort=AddMQ2Benchmark("UpdateSpawnSort");
 }
 
 VOID ShutdownMQ2Spawns()
@@ -266,7 +258,7 @@ VOID ShutdownMQ2Spawns()
 	RemoveDetour(EQPlayer__dEQPlayer);
 	RemoveDetour(EQItemList__EQItemList);
 	RemoveDetour(EQItemList__dEQItemList);
-	RemoveDetour(EQPlayer__ChangeBoneStringSprite);
+	RemoveDetour(EQPlayer__SetNameSpriteState);
 	ProcessPending=false;
 	EnterCriticalSection(&csPendingGrounds);
 	DeleteCriticalSection(&csPendingGrounds);
@@ -279,6 +271,7 @@ VOID ShutdownMQ2Spawns()
 	ZeroMemory(EQP_DistArray,sizeof(EQP_DistArray));
 	gSpawnCount=0;
 	RemoveMQ2Benchmark(bmUpdateSpawnSort);
+	RemoveMQ2Benchmark(bmUpdateSpawnCaptions);
 }
 
 VOID ProcessPendingGroundItems()
@@ -313,6 +306,13 @@ VOID UpdateMQ2SpawnSort()
 	// quicksort!
 	qsort(&EQP_DistArray[0],gSpawnCount,sizeof(MQRANK),MQRankFloatCompare);
 	ExitMQ2Benchmark(bmUpdateSpawnSort);
+	static unsigned long nCaptions=100;
+	++nCaptions;
+	if (gGameState==GAMESTATE_INGAME && nCaptions>7)
+	{
+		nCaptions=0;
+		Benchmark(bmUpdateSpawnCaptions,UpdateSpawnCaptions());
+	}
 }
 
 

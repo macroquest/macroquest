@@ -4598,7 +4598,7 @@ VOID CaptionCmd(PSPAWNINFO pChar, PCHAR szLine)
 	GetArg(Arg1,szLine,1);
 	if (!Arg1[0])
 	{
-		SyntaxError("Usage: /caption <list|type <value>>");
+		SyntaxError("Usage: /caption <list|type <value>|update #>");
 		return;
 	}
 	if (!stricmp(Arg1,"list"))
@@ -4639,6 +4639,16 @@ VOID CaptionCmd(PSPAWNINFO pChar, PCHAR szLine)
 	} else if (!stricmp(Arg1,"Mount"))
 	{
 		pCaption=gszSpawnMountName;
+	} else if (!stricmp(Arg1,"Update"))
+	{
+		gMaxSpawnCaptions=atoi(GetNextArg(szLine));
+		if (gMaxSpawnCaptions<8)
+			gMaxSpawnCaptions=8;
+		if (gMaxSpawnCaptions>70)
+			gMaxSpawnCaptions=70;
+		WritePrivateProfileString("Captions","Update",itoa(gMaxSpawnCaptions,Arg1,10),gszINIFilename);
+		WriteChatf("\ay%d\ax nearest spawns will have their caption updated each pass.",gMaxSpawnCaptions);
+		return;
 	}
 	else
 	{

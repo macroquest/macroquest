@@ -548,7 +548,6 @@ public:
 		Trader=63,
 		AFK=64,
 		xConColor=65,
-		TargetOfTarget=66,
 		Standing=67,
 		Sitting=68,
 		Ducking=69,
@@ -560,6 +559,8 @@ public:
 		DisplayName=75,
 		AATitle=76,
 		xGroupLeader=77,
+		Mark=78,
+		Assist=79,
 	};
 	MQ2SpawnType():MQ2Type("spawn")
 	{
@@ -626,7 +627,6 @@ public:
 		TypeMember(Trader);
 		TypeMember(AFK);
 		AddMember(xConColor,"ConColor");
-		TypeMember(TargetOfTarget);
 		TypeMember(Standing);//=67,
 		TypeMember(Sitting);//68,
 		TypeMember(Ducking);//=69,
@@ -638,6 +638,8 @@ public:
 		TypeMember(DisplayName);
 		TypeMember(AATitle);
 		AddMember(xGroupLeader,"GroupLeader");
+		TypeMember(Mark);
+		TypeMember(Assist);
 	}
 
 	~MQ2SpawnType()
@@ -793,6 +795,11 @@ public:
 		CombatAbility=96,
 		CombatAbilityTimer=97,
 		LargestFreeInventory=98,
+		TargetOfTarget=99,
+		RaidAssistTarget=100,
+		GroupAssistTarget=101,
+		RaidMarkNPC=102,
+		GroupMarkNPC=103
 	};
 	MQ2CharacterType():MQ2Type("character")
 	{
@@ -893,6 +900,11 @@ public:
 		TypeMember(CombatAbility);
 		TypeMember(CombatAbilityTimer);
 		TypeMember(LargestFreeInventory);
+		TypeMember(TargetOfTarget);
+		TypeMember(RaidAssistTarget);//=100,
+		TypeMember(GroupAssistTarget);//=101,
+		TypeMember(RaidMarkNPC);//=102,
+		TypeMember(GroupMarkNPC);//=103
 	}
 
 	~MQ2CharacterType()

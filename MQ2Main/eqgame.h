@@ -275,6 +275,8 @@
 #define EQPlayer__dEQPlayer                                0x4875B0
 #define EQPlayer__DoAttack                                 0x483C35
 #define EQPlayer__ChangeBoneStringSprite                   0x465D92
+#define EQPlayer__SetNameSpriteState					   0x48223B
+#define EQPlayer__SetNameSpriteTint						   0x465DFE
 
 // CXStr
 // WARNING:  Be sure that none of these offsets are identical!

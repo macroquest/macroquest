@@ -27,6 +27,7 @@ EQLIB_API DWORD bmPluginsDrawHUD;
 EQLIB_API DWORD bmPluginsSetGameState;
 EQLIB_API DWORD bmParseMacroParameter;
 EQLIB_API DWORD bmUpdateSpawnSort;
+EQLIB_API DWORD bmUpdateSpawnCaptions;
 
 /* OTHER */
 
@@ -52,6 +53,7 @@ EQLIB_VAR BOOL g_Loaded;
 EQLIB_VAR DWORD ThreadID;
 
 EQLIB_VAR BOOL gStringTableFixed;
+EQLIB_VAR DWORD gMaxSpawnCaptions;
 
 EQLIB_VAR HMODULE ghModule;
 EQLIB_VAR HINSTANCE ghInstance;
@@ -128,6 +130,11 @@ EQLIB_VAR BOOL gFilterMQ2DataErrors;
 EQLIB_VAR DOUBLE DegToRad;
 EQLIB_VAR DOUBLE PI;
 
+#ifdef USEBLECHEVENTS
+EQLIB_VAR Blech *pEventBlech;
+EQLIB_VAR CHAR EventMsg[MAX_STRING];
+#endif
+EQLIB_VAR PEVENTLIST pEventList;
 
 EQLIB_VAR PKEYPRESS gKeyStack;
 EQLIB_VAR PTIMER gTimer;
@@ -143,7 +150,6 @@ EQLIB_VAR PITEMDB gItemDB;
 EQLIB_VAR BOOL bRunNextCommand;
 EQLIB_VAR BOOL gTurbo;
 EQLIB_VAR PDEFINE pDefines;
-EQLIB_VAR PEVENTLIST pEventList;
 //EQLIB_VAR CHAR gLastFindSlot[MAX_STRING];
 //EQLIB_VAR CHAR gLastError[MAX_STRING];
 //EQLIB_VAR HWND ghWnd;

@@ -1053,8 +1053,6 @@ typedef struct _ACTORINFO {
 /*0x0074*/   DWORD      Unknown0x074;  // Being set to TimeStamp at unknown intervals
 /*0x0078*/   DWORD      Unknown0x078;  // Being set to TimeStamp at unknown intervals
 /*0x007c*/   BYTE       Unknown0x07c[0x20];
-/*0x0090*/ // FLOAT Unknown
-/*0x0094*/ // FLOAT Unknown
 /*0x009c*/   DWORD      UnderWaterMirror; //copy of UnderWater
 /*0x00a0*/   DWORD      SwimmingMirror; //copy of Swimming
 /*0x00a4*/   DWORD      FeetWetMirror; //copy of FeetWet
@@ -1065,8 +1063,6 @@ typedef struct _ACTORINFO {
 /*0x00ac*/   BYTE       Unknown0x0ac[0x28];
 /*0x00d4*/   DWORD      SpellETA;      // Calculated TimeStamp when current spell being cast will land. 0 while not casting.
 /*0x00d8*/   BYTE       Unknown0x0d4[0xb0];
-/*0x0108*/  // LAYHANDS/HARMTOUCH TIMER
-/*0x0170*/  // BACKSTAB/BASH/SLAM TIMER
 /*0x0188*/   VOID      *FaceRelatedActorStruct;
 /*0x018c*/   DWORD      Unknown0x0188;
 /*0x0190*/   DWORD      Animation;
@@ -1075,7 +1071,10 @@ typedef struct _ACTORINFO {
 /*0x01b4*/   struct     _SPAWNINFO   *Mount;   // NULL if no mount present
 /*0x01b8*/   BYTE      Unknown0x01b8[0xc];
 /*0x01c4*/   DWORD      PetID;
-/*0x01c8*/   BYTE      Unknown0x01c4[0x28];
+/*0x01c8*/   struct     _SPAWNINFO *pGroupAssistNPC[1];// note: this is how its defined in EQ, dont blame me - lax
+/*0x01cc*/   struct     _SPAWNINFO *pRaidAssistNPC[3];
+/*0x01d8*/   struct		_SPAWNINFO *pGroupMarkNPC[3];
+/*0x01e4*/   struct		_SPAWNINFO *pRaidMarkNPC[3];
 /*0x01f0*/   struct     _SPAWNINFO *pTargetOfTarget;
 /*0x01f4*/   BYTE       Unknown0x01f4[0x502d];
 /*0x5221*/   CHAR      NameOfLastSuccessfulTargetHit[0x40];

@@ -19,10 +19,10 @@
 
 #include <map>
 
-#ifdef WIN32
+//#ifdef WIN32
 #ifdef BLECH_DEBUG
-#pragma message(BLECHVERSION)
-#pragma message("Blech: Debug Mode")
+//#pragma message(BLECHVERSION)
+//#pragma message("Blech: Debug Mode")
 #include <windows.h>
 #define BLECHASSERT(x) if (!(x)) {BlechDebug("Blech Assertion failure: %s",#x); __asm{int 3};}
 void BlechDebug(char *szFormat, ...)
@@ -43,19 +43,19 @@ void BlechDebug(char *szFormat, ...)
 #endif
 
 #ifdef BLECH_CASE_SENSITIVE
-#pragma message("Blech: Case Sensitive")
+//#pragma message("Blech: Case Sensitive")
 #define STRCMP(A,B) strcmp(A,B)
 #define STRNCMP(A,B,LENGTH) strncmp(A,B,LENGTH)
 #define STRFIND(HAYSTACK,NEEDLE) strstr(HAYSTACK,NEEDLE)
 #else
-#pragma message("Blech: Case Insensitive")
+//#pragma message("Blech: Case Insensitive")
 #define STRCMP(A,B) stricmp(A,B)
 #define STRNCMP(A,B,LENGTH) strnicmp(A,B,LENGTH)
 #define STRFIND(HAYSTACK,NEEDLE) stristr(HAYSTACK,NEEDLE)
 #endif
-#else
-#error Non-Win32 defines not yet available
-#endif
+//#else
+//#error Non-Win32 defines not yet available
+//#endif
 
 
 enum eBlechStringType
@@ -253,20 +253,17 @@ public:
 		Initialize();
 	}
 
+	void Reset()
+	{
+		Cleanup();
+		Event.clear();
+		Initialize();
+	}
+
 	~Blech(void)
 	{
 		BlechDebug("~Blech()");
-		for (unsigned long N = 0 ; N < 256 ; N++)
-		{
-			delete Tree[N];
-		}
-		for (BLECHEVENTMAP::iterator i=Event.begin(); i != Event.end(); i++)
-		{
-			PBLECHEVENT pEvent=i->second;
-			BLECHASSERT(pEvent);
-			BlechTry(free(pEvent->OriginalString));
-			delete pEvent;
-		}
+		Cleanup();
 	}
 
 	unsigned long Feed(char * Input)
@@ -353,8 +350,25 @@ public:
 		return true;
 	}
 
+	char Version[32];
 
 private:
+	inline void Cleanup()
+	{
+		for (unsigned long N = 0 ; N < 256 ; N++)
+		{
+			delete Tree[N];
+		}
+		for (BLECHEVENTMAP::iterator i=Event.begin(); i != Event.end(); i++)
+		{
+			PBLECHEVENT pEvent=i->second;
+			BLECHASSERT(pEvent);
+			BlechTry(free(pEvent->OriginalString));
+			delete pEvent;
+		}
+	}
+
+
 	char *stristr(char *haystack,char *needle)
 	{
 		BlechDebug("stristr(%s,%s)",haystack,needle);
@@ -685,8 +699,6 @@ feedernomatch:
 	BlechNode *Tree[256];
 
 	BLECHEVENTMAP Event;
-
-	char Version[32];
 
 	unsigned long LastID;
 

@@ -237,10 +237,15 @@ VOID WriteChatColor(PCHAR Line, DWORD Color, DWORD Filter)
 {
 	if (!bPluginCS)
 		return;
-	EnterMQ2Benchmark(bmWriteChatColor);
 	if (gFilterMQ)
 		return;
+	EnterMQ2Benchmark(bmWriteChatColor);
+	CHAR PlainText[MAX_STRING]={0};
+	StripMQChat(Line,PlainText);
+	CheckChatForEvent(PlainText);
+	
 	DebugSpew("WriteChatColor(%s)",Line);
+
 	CAutoLock Lock(&gPluginCS);
 
 	PMQPLUGIN pPlugin=pPlugins;

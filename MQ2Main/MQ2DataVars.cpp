@@ -505,6 +505,51 @@ VOID AddEvent(DWORD Event, PCHAR FirstArg, ...)
 	} 
 } 
 
+#ifdef USEBLECHEVENTS
+void __cdecl EventBlechCallback(unsigned long ID, void * pData, PBLECHVALUE pValues)
+{
+	PEVENTLIST pEList=(PEVENTLIST)pData;
+    PEVENTSTACK pEvent = NULL;
+    if (!pEList->pEventFunc) return;
+    pEvent = (PEVENTSTACK)malloc(sizeof(EVENTSTACK));
+    if (!pEvent) return;
+    ZeroMemory(pEvent,sizeof(EVENTSTACK));
+    pEvent->Type = EVENT_CUSTOM;
+    pEvent->pEventList = pEList;
+    CHAR szParamName[MAX_STRING] = {0};
+	CHAR szParamType[MAX_STRING] = {0};
+	GetFuncParam(pEList->pEventFunc->Line,0,szParamName,szParamType);
+	MQ2Type *pType = FindMQ2DataType(szParamType);
+	if (!pType)
+		pType=pStringType;
+
+	AddMQ2DataEventVariable(szParamName,"",pType,&pEvent->Parameters,EventMsg);
+	DWORD nParam=1;
+	while(pValues)
+	{
+		if (pValues->Name[0]!='*')
+		{
+			GetFuncParam(pEList->pEventFunc->Line,atoi(pValues->Name),szParamName,szParamType);
+			MQ2Type *pType = FindMQ2DataType(szParamType);
+			if (!pType)
+				pType=pStringType;
+			AddMQ2DataEventVariable(szParamName,"",pType,&pEvent->Parameters,pValues->Value);	
+		}
+		pValues=pValues->pNext;
+	}
+
+    if (!gEventStack) {
+        gEventStack = pEvent;
+    } else {
+        PEVENTSTACK pTemp = NULL;
+        for (pTemp = gEventStack;pTemp->pNext;pTemp=pTemp->pNext);
+        pTemp->pNext = pEvent;
+    }
+
+}
+#endif
+
+
 VOID AddCustomEvent(PEVENTLIST pEList, PCHAR szLine)
 {
     PEVENTSTACK pEvent = NULL;
@@ -586,6 +631,7 @@ VOID CheckChatForEvent(PCHAR szMsg)
 				strcpy(Arg2,strstr(Arg3,", '")+3); 
 				Arg3[strstr(Arg3,":")-Arg3]=0; 
 				AddEvent(EVENT_CHAT,Arg3,Arg1,Arg2,NULL); 
+#ifndef USEBLECHEVENTS
 			} else { 
 				PEVENTLIST pEvent = pEventList; 
 				while (pEvent) { 
@@ -595,6 +641,12 @@ VOID CheckChatForEvent(PCHAR szMsg)
 					pEvent = pEvent->pNext; 
 				} 
 			} 
+#else // blech
+			}
+			strcpy(EventMsg,szMsg);
+			pEventBlech->Feed(szMsg);
+			EventMsg[0]=0;
+#endif
 		} 
 }
 
@@ -616,7 +668,6 @@ VOID DropTimers(VOID)
 		pTimer=pTimer->pNext;
 	}
 }
-
 
 #else
 PDATAVAR FindMQ2DataVariable(PCHAR Name)

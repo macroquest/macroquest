@@ -164,11 +164,11 @@ void InitializeMQ2Windows()
 	ItemSlotMap["rightear"]=4;
 	ItemSlotMap["neck"]=5;
 	ItemSlotMap["shoulder"]=6;
-	ItemSlotMap["arm"]=7;
+	ItemSlotMap["arms"]=7;
 	ItemSlotMap["back"]=8;
 	ItemSlotMap["leftwrist"]=9;
 	ItemSlotMap["rightwrist"]=10;
-	ItemSlotMap["range"]=11;
+	ItemSlotMap["ranged"]=11;
 	ItemSlotMap["hand"]=12;
 	ItemSlotMap["mainhand"]=13;
 	ItemSlotMap["offhand"]=14;
@@ -437,6 +437,7 @@ bool SendWndClick(CXWnd *pWnd, PCHAR ClickNotification)
 				DebugTry(pWnd->HandleLButtonUp(&pt,0));
 				return true;
 			case 2:
+				DebugTry(pWnd->HandleLButtonDown(&pt,0));
 				DebugTry(pWnd->HandleLButtonHeld(&pt,0));
 				return true;
 			case 3:

@@ -216,6 +216,7 @@ VOID InitializeParser()
 
 VOID ShutdownParser()
 {
+	RemoveDetour(EQPlayer__SetNameSpriteState); // put here so it doesnt crash :)
 #ifdef	USEMQ2DATATYPES
 	ShutdownMQ2Data();
 	ShutdownMQ2DataTypes();

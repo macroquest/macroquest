@@ -1,3 +1,29 @@
+07 May 2004 by Lax:
+- Added "Lax/Blech" support to custom events.  The Blech system allows much easier parsing of
+  incoming chat.  Custom events will now support more parameters that are automatically
+  parsed based on the match text.  
+- Fixed up EQ's handling of spawn captions (name above their head). Only the nearest 35 spawn
+  captions will be updated by default (and even then, only those close enough that you'd see 
+  their name).  EQ itself constantly updates the name of every spawn in the zone, even though 
+  only a small portion of those are displayed.
+- Added an option to /caption command
+  Usage: /caption <list|type <value>|update #>
+  "/caption update #" will set the number of nearest spawns for MQ2 to update the name of
+  each pass.  By default, this is 35.  If you have performance issues after this update,
+  please post about it on the forums.  Find a happy update number and let us know.
+- Added marked NPC and assist target leadership stuff to default captions, also put guilds on
+  the line below the name.  The defaults should mostly look like EQ's now.
+- Fixed macro.Params
+- Fixed invslot names
+- Added/Changed MQ2Data Members:
+	spawn character.TargetOfTarget: Target of target   (moved to character type)
+	bool spawn.Assist: Current Raid or Group assist target?
+	int spawn.Mark: Current Raid or Group marked npc mark number (raid first)
+	spawn character.RaidAssistTarget[n]: Current raid assist target (1-3)
+	spawn character.GroupAssistTarget: Current group assist target
+	spawn character.RaidMarkNPC[n]: Current raid marked NPC (1-3)
+	spawn character.GroupMarkNPC[n]: Current group marked NPC (1-3)
+
 05 May 2004 by Lax (even more):
 - Plenty of positive feedback on the custom spawn captioning.  Plenty also asking why shownames
   was not working properly.  There are now 4 levels of captions for Players, according to the

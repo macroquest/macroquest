@@ -267,6 +267,9 @@ typedef struct _EVENTLIST {
     CHAR szName[MAX_STRING];
     CHAR szMatch[MAX_STRING];
     PMACROBLOCK pEventFunc;
+#ifdef USEBLECHEVENTS
+	DWORD BlechID;
+#endif
 } EVENTLIST, *PEVENTLIST;
 
 
