@@ -170,8 +170,17 @@ bool MQ2IntType::GetMember(void *Ptr, PCHAR Member, PCHAR Index, MQ2TYPEVAR &Des
 		Dest.Type=pStringType;
 		return true;
 	case Reverse:
-		Dest.Int=ntohl((u_long)Ptr);
-		Dest.Type=pIntType;
+		{
+			struct EndSwitch
+			{
+				UCHAR Array[4];
+			};
+			Dest.Array[0]=(*(EndSwitch*)&Ptr).Array[3];
+			Dest.Array[1]=(*(EndSwitch*)&Ptr).Array[2];
+			Dest.Array[2]=(*(EndSwitch*)&Ptr).Array[1];
+			Dest.Array[3]=(*(EndSwitch*)&Ptr).Array[0];
+			Dest.Type=pIntType;
+		}
 		return true;
 	}
 	return false;

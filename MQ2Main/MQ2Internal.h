@@ -476,6 +476,7 @@ typedef struct _MQ2TypeVar
 		DWORD DWord;
 		ARGBCOLOR Argb;
 		int   Int;
+		UCHAR Array[4];
 	};
 } MQ2TYPEVAR, *PMQ2TYPEVAR;
 
