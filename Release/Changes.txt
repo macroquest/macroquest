@@ -9,6 +9,8 @@
 - Undid MQ2EQBugFix, which was currently creating a bug (note to self: in future bug fixes,
   make sure it's only going to try to fix it for the correct version)
 - Fixed an offset
+- Standard search spawn now allows multi-word names.
+- /mqlog no longer adds an extra line
 
 3 June 2004 by Lax:
 - Fixed string.Arg, string.Token, NearestSpawn, spawn.NearestSpawn, LastSpawn

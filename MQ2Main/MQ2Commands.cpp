@@ -2143,7 +2143,7 @@ VOID MacroLog(PSPAWNINFO pChar, PCHAR szLine)
 
 	sprintf(szBuffer, "[${Time.Date} ${Time.Time24}] %s",szLine);
     ParseMacroParameter(pChar,szBuffer);
-    fprintf(fOut,"%s\r\n", szBuffer);
+    fprintf(fOut,"%s\n", szBuffer);
     DebugSpew("MacroLog - %s", szBuffer);
 
     fclose(fOut);
@@ -3121,7 +3121,13 @@ PCHAR ParseSearchSpawnArgs(PCHAR szArg, PCHAR szRest, PSEARCHSPAWN pSearchSpawn)
 					return szRest;
 				}
 			}
-            strcpy(pSearchSpawn->szName,szArg);
+			if (pSearchSpawn->szName[0])
+			{// multiple word name
+				strcat(pSearchSpawn->szName," ");
+				strcat(pSearchSpawn->szName,szArg);
+			}
+			else
+				strcpy(pSearchSpawn->szName,szArg);
         }
     }
     return szRest;

@@ -3133,8 +3133,8 @@ BOOL EvaluateRPN(_CalcOp *pList, int Size, DOUBLE &Result)
 {
 	if (!Size)
 		return 0;
-	int StackSize=(sizeof(DOUBLE)*Size)/2+1;
-	DOUBLE *pStack = (DOUBLE*) malloc(sizeof(DOUBLE)*Size);
+	int StackSize=(sizeof(DOUBLE)*(Size/2+2));
+	DOUBLE *pStack = (DOUBLE*) malloc(StackSize);
 	int nStack=0;
 #define StackEmpty() (nStack==0)
 #define StackTop() (pStack[nStack])
@@ -3282,7 +3282,7 @@ BOOL FastCalculate(PCHAR szFormula, DOUBLE &Result)
 	if (!szFormula || !szFormula[0])
 		return false;
 	int Length=(int)strlen(szFormula);
-	int MaxOps=(Length);
+	int MaxOps=(Length+1);
 	int ListSize=sizeof(_CalcOp)*MaxOps;
 	int StackSize=sizeof(eCalcOp)*MaxOps;
 	_CalcOp *pOpList=(_CalcOp *)malloc(ListSize);

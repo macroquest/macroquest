@@ -226,7 +226,7 @@ DWORD GetGameState(VOID)
 //		DebugSpew("Could not retrieve gamestate in GetGameState()");
 		return -1;
 	}
-	DWORD GameState=*(DWORD*)(0x5B4+pEverQuest);
+	DWORD GameState=*(DWORD*)(0xB54+pEverQuest);
 	return GameState;
 }
 

@@ -322,7 +322,7 @@ enum MOUSE_DATA_TYPES {
    MD_Button1
 };
 
-#define nEQMappableCommands 0xBA
+#define nEQMappableCommands 0xBB
 
 
 // ***************************************************************************
