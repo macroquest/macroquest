@@ -40,6 +40,7 @@ EQLIB_VAR class MQ2MerchantType *pMerchantType;
 EQLIB_VAR class MQ2ZoneType *pZoneType;
 EQLIB_VAR class MQ2ItemType *pItemType;
 EQLIB_VAR class MQ2DeityType *pDeityType;
+EQLIB_VAR class MQ2ArgbType *pArgbType;
 
 #define UseTemp(mystring) strcpy(DataTypeTemp,mystring)
 #define TypeMember(name) AddMember((DWORD)name,""#name)
@@ -73,19 +74,22 @@ public:
 class MQ2IntType : public MQ2Type
 {
 public:
+	static enum IntMembers
+	{
+		Float=1,
+		Hex=2,
+	};
 	MQ2IntType():MQ2Type("int")
 	{
+		TypeMember(Float);
+		TypeMember(Hex);
 	}
 
 	~MQ2IntType()
 	{
 	}
 
-	// pure type, no members
-	bool GetMember(void *Ptr, PCHAR Member, PCHAR Index, MQ2TYPEVAR &Dest)
-	{
-		return false;
-	}
+	bool GetMember(void *Ptr, PCHAR Member, PCHAR Index, MQ2TYPEVAR &Dest);
 
 	 bool ToString(void *Ptr, PCHAR Destination)
 	{
@@ -93,6 +97,72 @@ public:
 		return true;
 	}
 };
+class MQ2ArgbType : public MQ2Type
+{
+public:
+	static enum ArgbMembers
+	{
+		A=0,
+		R=1,
+		G=2,
+		B=3,
+		Int=4,
+	};
+	MQ2ArgbType():MQ2Type("argb")
+	{
+		TypeMember(A);
+		TypeMember(R);
+		TypeMember(G);
+		TypeMember(B);
+		TypeMember(Int);
+	}
+
+	~MQ2ArgbType()
+	{
+	}
+
+
+	bool GetMember(void *Ptr, PCHAR Member, PCHAR Index, MQ2TYPEVAR &Dest)
+	{
+		unsigned long N=MemberMap[Member];
+		if (!N)
+			return false;
+		N--;
+		PMQ2TYPEMEMBER pMember=Members[N];
+		if (!pMember)
+			return false;
+		switch((ArgbMembers)pMember->ID)
+		{
+		case A:
+			Dest.DWord=(*(ARGBCOLOR*)&Ptr).A;
+			Dest.Type=pIntType;
+			return true;
+		case R:
+			Dest.DWord=(*(ARGBCOLOR*)&Ptr).R;
+			Dest.Type=pIntType;
+			return true;
+		case G:
+			Dest.DWord=(*(ARGBCOLOR*)&Ptr).G;
+			Dest.Type=pIntType;
+			return true;
+		case B:
+			Dest.DWord=(*(ARGBCOLOR*)&Ptr).B;
+			Dest.Type=pIntType;
+			return true;
+		case Int:
+			Dest.Type=pIntType;
+			return true;
+		}
+		return false;
+	}
+
+	 bool ToString(void *Ptr, PCHAR Destination)
+	{
+		sprintf(Destination,"%X",Ptr);
+		return true;
+	}
+};
+
 class MQ2ByteType : public MQ2Type
 {
 public:
@@ -330,6 +400,7 @@ public:
 		Height=40,
 		MaxRange=41,
 		AARank=42,
+		Zone=43,
 	};
 	MQ2SpawnType():MQ2Type("spawn")
 	{
@@ -373,6 +444,7 @@ public:
 		TypeMember(Height);//40,
 		TypeMember(MaxRange);//41,
 		TypeMember(AARank);
+		TypeMember(Zone);
 	}
 
 	~MQ2SpawnType()
@@ -432,6 +504,7 @@ public:
 		Endurance=38,
 		Inventory=39,
 		Bank=40,
+		Bound=41,
 	};
 	MQ2CharacterType():MQ2Type("character")
 	{
@@ -474,6 +547,7 @@ public:
 		TypeMember(Endurance);//38,
 		TypeMember(Inventory);
 		TypeMember(Bank);
+		TypeMember(Bound);
 	}
 
 	~MQ2CharacterType()
@@ -575,6 +649,7 @@ public:
 
 	 bool ToString(void *Ptr, PCHAR Destination)
 	{
+		strcpy(Destination,((PSPELL)Ptr)->Name);
 		return false;
 	}
 };
@@ -769,10 +844,42 @@ public:
 	static enum WindowMembers
 	{
 		Open=1,
+		Child=2,
+		VScrollMax=3,
+		VScrollPos=4,
+		VScrollPct=5,
+		HScrollMax=6,
+		HScrollPos=7,
+		HScrollPct=8,
+		Children=9,
+		Siblings=10,
+		Parent=11,
+		FirstChild=12,
+		Next=13,
+		Minimized=14,
+		X=15,
+		Y=16,
+		Height=17,
+		Width=18,
+		MouseOver=19,
+		BGColor=20
 	};
 	MQ2WindowType():MQ2Type("window")
 	{
 		TypeMember(Open);
+		TypeMember(Child);
+		TypeMember(VScrollMax);
+		TypeMember(VScrollPos);
+		TypeMember(VScrollPct);
+		TypeMember(HScrollMax);
+		TypeMember(HScrollPos);
+		TypeMember(HScrollPct);
+		TypeMember(Children);
+		TypeMember(Siblings);
+		TypeMember(FirstChild);
+		TypeMember(Next);
+
+		
 	}
 
 	~MQ2WindowType()
@@ -783,7 +890,8 @@ public:
 
 	 bool ToString(void *Ptr, PCHAR Destination)
 	{
-		return false;
+		strcpy(Destination,"TRUE");
+		return true;
 	}
 };
 

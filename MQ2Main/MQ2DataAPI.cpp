@@ -21,15 +21,45 @@
 
 #include "MQ2Main.h"
 
+
+
+map<string,DWORD> MQ2DataTypeMap;
+CIndex<MQ2Type*> MQ2DataTypes;
+
+inline MQ2Type *FindMQ2DataType(PCHAR Name)
+{
+	unsigned long N=MQ2DataTypeMap[Name];
+	if (!N)
+		return 0;
+	N--;
+	return MQ2DataTypes[N];
+}
+
 namespace MQ2Internal
 {
 	BOOL AddMQ2Type(MQ2Type &Type)
 	{
+		if (FindMQ2DataType(Type.GetName()))	
+			return false;
+		unsigned long N=MQ2DataTypes.GetUnused();
+		MQ2DataTypes[N]=&Type;
+		MQ2DataTypeMap[Type.GetName()]=N+1;
 		return true;
 	}
 
-	VOID RemoveMQ2Type(MQ2Type &Type)
+	BOOL RemoveMQ2Type(MQ2Type &Type)
 	{
+		unsigned long N=MQ2DataTypeMap[Type.GetName()];
+		if (!N)
+			return 0;
+		N--;
+		if (MQ2Type *pType=MQ2DataTypes[N])
+		{
+			MQ2DataTypes[N]=0;
+			return false;
+		}
+		MQ2DataTypeMap[Type.GetName()]=0;
+		return true;
 	}
 };
 
@@ -70,7 +100,7 @@ BOOL RemoveMQ2Data(PCHAR szName)
 		delete pItem;
 	}
 	MQ2DataMap[szName]=0;
-	return false;
+	return true;
 }
 
 void InitializeMQ2Data()
@@ -88,6 +118,10 @@ void InitializeMQ2Data()
 	AddMQ2Data("Math",dataMath);
 	AddMQ2Data("Zone",dataZone);
 	AddMQ2Data("Group",dataGroup);
+	AddMQ2Data("String",dataString);
+	AddMQ2Data("Int",dataInt);
+	AddMQ2Data("Bool",dataBool);
+	AddMQ2Data("Float",dataFloat);
 }
 
 
@@ -335,29 +369,40 @@ BOOL ParseMacroData(PCHAR szOriginal)
 			if (*pPos==0)
 			{
 				// end completely. process
-				if (!CurrentVar.Type)
+				if (pStart==pPos-1)
 				{
-					PMQ2DATAITEM DataItem=FindMQ2Data(pStart);
-					if (!DataItem)
+					if (!CurrentVar.Type)
 					{
-						// error
-						strcpy(szCurrent,"NULL");
-						goto pmdinsert;
-					}
-					if (!DataItem->Function(pIndex,CurrentVar))
-					{
-						// error
 						strcpy(szCurrent,"NULL");
 						goto pmdinsert;
 					}
 				}
 				else
 				{
-					if (!CurrentVar.Type->GetMember(CurrentVar.Ptr,pStart,pIndex,CurrentVar))
+					if (!CurrentVar.Type)
 					{
-						// error
-						strcpy(szCurrent,"NULL");
-						goto pmdinsert;
+						PMQ2DATAITEM DataItem=FindMQ2Data(pStart);
+						if (!DataItem)
+						{
+							// error
+							strcpy(szCurrent,"NULL");
+							goto pmdinsert;
+						}
+						if (!DataItem->Function(pIndex,CurrentVar))
+						{
+							// error
+							strcpy(szCurrent,"NULL");
+							goto pmdinsert;
+						}
+					}
+					else
+					{
+						if (!CurrentVar.Type->GetMember(CurrentVar.Ptr,pStart,pIndex,CurrentVar))
+						{
+							// error
+							strcpy(szCurrent,"NULL");
+							goto pmdinsert;
+						}
 					}
 				}
 				CurrentVar.Type->ToString(CurrentVar.Ptr,szCurrent);
@@ -365,6 +410,76 @@ BOOL ParseMacroData(PCHAR szOriginal)
 				// done processing
 				goto pmdinsert;
 			}
+			if (*pPos=='(')
+			{
+				*pPos=0;
+				if (pStart==pPos-1)
+				{
+					if (!CurrentVar.Type)
+					{
+						strcpy(szCurrent,"NULL");
+						goto pmdinsert;
+					}
+				}
+				else
+				{
+					if (!CurrentVar.Type)
+					{
+						PMQ2DATAITEM DataItem=FindMQ2Data(pStart);
+						if (!DataItem)
+						{
+							// error
+							strcpy(szCurrent,"NULL");
+							goto pmdinsert;
+						}
+						if (!DataItem->Function(pIndex,CurrentVar))
+						{
+							// error
+							strcpy(szCurrent,"NULL");
+							goto pmdinsert;
+						}
+						
+					}
+					else
+					{
+						if (!CurrentVar.Type->GetMember(CurrentVar.Ptr,pStart,pIndex,CurrentVar))
+						{
+							// error
+							strcpy(szCurrent,"NULL");
+							goto pmdinsert;
+						}
+					}
+				}
+				if (!CurrentVar.Type)
+				{
+					// error
+					strcpy(szCurrent,"NULL");
+					goto pmdinsert;
+				}
+				*pPos=0;
+				++pPos;
+				PCHAR pType=pPos;
+				while(*pPos!=')')
+				{
+					if (!*pPos)
+					{
+						// error
+						strcpy(szCurrent,"NULL");
+						goto pmdinsert;
+					}
+					++pPos;
+				}
+				*pPos=0;
+				CurrentVar.Type=FindMQ2DataType(pType);
+				if (!CurrentVar.Type)
+				{
+					// error
+					strcpy(szCurrent,"NULL");
+					goto pmdinsert;
+				}
+				pStart=&pPos[1];
+			}
+			else
 			if (*pPos=='[')
 			{
 				// index
@@ -377,7 +492,16 @@ BOOL ParseMacroData(PCHAR szOriginal)
 					// find matching quote, we know it has one
 					++pPos;
 					pIndex=pPos;
-					while(*pPos!='\"') ++pPos;
+					while(*pPos!='\"')
+					{
+						if (*pPos==0)
+						{
+							// error
+							strcpy(szCurrent,"NULL");
+							goto pmdinsert;
+						}
+						++pPos;
+					}
 					// here's the end of the index, close it off
 					*pPos=0;
 					// and advance pointer again
@@ -385,43 +509,64 @@ BOOL ParseMacroData(PCHAR szOriginal)
 				}
 				else
 					pIndex=pPos;
-				while(*pPos!=']') ++pPos;
+				while(*pPos!=']')
+				{
+					if (!*pPos)
+					{
+						// error
+						strcpy(szCurrent,"NULL");
+						goto pmdinsert;
+					}
+					++pPos;
+				}
 				*pPos=0;
-				if (pPos[1]!=0 && pPos[1]!='.')
+				if (pPos[1]!=0 && pPos[1]!='.' && pPos[1]!='(')
 				{
 					// broken!
 					strcpy(szCurrent,"NULL");
 					goto pmdinsert;
 				}
 			}
+			else
 			if (*pPos=='.')
 			{
 				// end of this one, but more to come!
 				*pPos=0;
-				if (!CurrentVar.Type)
+				if (pStart==pPos-1)
 				{
-					PMQ2DATAITEM DataItem=FindMQ2Data(pStart);
-					if (!DataItem)
+					if (!CurrentVar.Type)
 					{
-						// error
 						strcpy(szCurrent,"NULL");
 						goto pmdinsert;
 					}
-					if (!DataItem->Function(pIndex,CurrentVar))
-					{
-						// error
-						strcpy(szCurrent,"NULL");
-						goto pmdinsert;
-					}
-					
 				}
 				else
 				{
-					if (!CurrentVar.Type->GetMember(CurrentVar.Ptr,pStart,pIndex,CurrentVar))
+					if (!CurrentVar.Type)
 					{
-						// error
-						strcpy(szCurrent,"NULL");
-						goto pmdinsert;
+						PMQ2DATAITEM DataItem=FindMQ2Data(pStart);
+						if (!DataItem)
+						{
+							// error
+							strcpy(szCurrent,"NULL");
+							goto pmdinsert;
+						}
+						if (!DataItem->Function(pIndex,CurrentVar))
+						{
+							// error
+							strcpy(szCurrent,"NULL");
+							goto pmdinsert;
+						}
+						
+					}
+					else
+					{
+						if (!CurrentVar.Type->GetMember(CurrentVar.Ptr,pStart,pIndex,CurrentVar))
+						{
+							// error
+							strcpy(szCurrent,"NULL");
+							goto pmdinsert;
+						}
 					}
 				}
 				pStart=&pPos[1];

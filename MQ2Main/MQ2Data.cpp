@@ -21,6 +21,7 @@
 
 #include "MQ2Main.h"
 
+extern CHAR DataTypeTemp[MAX_STRING];
 
 BOOL dataSpawn(PCHAR szIndex, MQ2TYPEVAR &Ret)
 {
@@ -73,25 +74,6 @@ BOOL dataCharacter(PCHAR szIndex, MQ2TYPEVAR &Ret)
 	}
 	return false;
 }
-
-/*
-BOOL dataPet(PCHAR szIndex, MQ2TYPEVAR &Ret)
-{
-   if (pCharSpawn) 
-   {
-      DWORD PetID;
-      if (PetID=((PSPAWNINFO)pCharSpawn)->pActorInfo->PetID)
-      {
-         if (Ret.Ptr=GetSpawnByID(PetID))
-         {
-            Ret.Type=pSpawnType;
-            return true;
-         }
-      }
-   }
-   return false;
-}
-/**/
 
 BOOL dataSpell(PCHAR szIndex, MQ2TYPEVAR &Ret)
 {
@@ -190,9 +172,39 @@ BOOL dataMath(PCHAR szIndex, MQ2TYPEVAR &Ret)
 
 BOOL dataZone(PCHAR szIndex, MQ2TYPEVAR &Ret)
 {
-
 	Ret.DWord=instEQZoneInfo;
 	Ret.Type=pZoneType;
+	return true;
+}
+
+BOOL dataInt(PCHAR szIndex, MQ2TYPEVAR &Ret)
+{
+	Ret.DWord=atol(szIndex);
+	Ret.Type=pIntType;
+	return true;
+}
+
+BOOL dataString(PCHAR szIndex, MQ2TYPEVAR &Ret)
+{
+	strcpy(DataTypeTemp,szIndex);
+	Ret.Ptr=&DataTypeTemp[0];
+	Ret.Type=pStringType;
+	return true;
+}
+
+BOOL dataFloat(PCHAR szIndex, MQ2TYPEVAR &Ret)
+{
+	Ret.Float=(FLOAT)atof(szIndex);
+	Ret.Type=pFloatType;
+	return true;
+}
+
+BOOL dataBool(PCHAR szIndex, MQ2TYPEVAR &Ret)
+{
+	Ret.DWord=(strcmp(szIndex,"NULL") && 
+				strcmp(szIndex,"FALSE") &&
+				strcmp(szIndex,"0"));
+	Ret.Type=pBoolType;
 	return true;
 }
 

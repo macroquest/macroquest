@@ -493,7 +493,7 @@ typedef struct _MQ2DataItem
 } MQ2DATAITEM, *PMQ2DATAITEM;
 
 EQLIB_API BOOL AddMQ2Type(class MQ2Type &Type);
-EQLIB_API VOID RemoveMQ2Type(class MQ2Type &Type);
+EQLIB_API BOOL RemoveMQ2Type(class MQ2Type &Type);
 
 class MQ2Type
 {
@@ -532,7 +532,7 @@ public:
 		return false;
 	}
 
-
+	inline PCHAR GetName() {return &TypeName[0];}
 
 protected:
 	inline BOOL AddMember(DWORD ID, PCHAR Name)

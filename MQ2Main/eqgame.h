@@ -414,6 +414,8 @@
 #define CComboWnd__SetChoice                               0x57E760
 
 // CListWnd
+#define CListWnd__AddColumn								   0x56D320
+#define CListWnd__AddColumn1							   0x59A650
 #define CListWnd__AddLine                                  0x56CA40
 #define CListWnd__AddString                                0x56CBC0
 #define CListWnd__CalculateFirstVisibleLine                0x56A070
@@ -431,6 +433,7 @@
 #define CListWnd__EnsureVisible                            0x56A0C0
 #define CListWnd__ExtendSel                                0x56AFF0
 #define CListWnd__GetColumnFlags                           0x569370
+#define CListWnd__GetColumnJustification				   0x569510 
 #define CListWnd__GetColumnMinWidth                        0x5694A0
 #define CListWnd__GetColumnWidth                           0x5693D0
 #define CListWnd__GetCurSel                                0x5691B0
@@ -445,13 +448,14 @@
 #define CListWnd__GetSelList                               0x56CD60
 #define CListWnd__GetSeparatorRect                         0x56A900
 #define CListWnd__IsLineEnabled                            0x569990
+#define CListWnd__RemoveLine							   0x56CD10
 #define CListWnd__SetColors                                0x568F60
 #define CListWnd__SetColumnWidth                           0x569450
+#define CListWnd__SetColumnJustification				   0x569570 
 #define CListWnd__SetCurSel                                0x5697C0
 #define CListWnd__SetItemColor                             0x56C680
 #define CListWnd__SetItemData                              0x569950
 #define CListWnd__SetItemText                              0x56C5C0
-#define CListWnd__SetVScrollPos                            0x56AB50
 #define CListWnd__ShiftColumnSeparator                     0x56AF60
 #define CListWnd__Sort                                     0x578CD0
 #define CListWnd__ToggleSel                                0x5697E0
