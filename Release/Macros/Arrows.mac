@@ -1,56 +1,100 @@
+|
 | - Arrows.mac -
 |
+| you need a fletching kit, fletchings, nocks, shafts and points in your 
+| inventory.  this macro combines until it runs out of fletchings.
+|
 #turbo
-#event CombineFail "You lacked the skills to fashion the items together."
-#event CombineSuceed "You have fashioned the items together to create something new!"
+#event CombineFail "#*#You lacked the skills to fashion the items together.#*#"
+#event CombineSuceed "#*#You have fashioned the items together to create something new!#*#"
 
 Sub Main
-   /call FindCombiner Fletching
-   /varset v80 $return
-   /if n $v80==99 /return
 
-   /cleanup
-   /click right inv $return
-   :MakeArrows
-      /sendkey down ctrl
+/declare v80 int outer 99
+/declare islot int outer
+/declare v61 int outer
+/declare x int outer
 
-      /finditem similar "Fletching"
-      /click left pack $v80 0
+    /call FindCombiner Fletching
+    /varset v80 ${Macro.Return}
+    /if (${v80}==99) {
+        /echo could not find a Fletching combiner!
+        /return
+    }
 
-      /finditem similar "Nock"
-      /click left pack $v80 1
+    /cleanup
+    /delay 1s
 
-      /finditem similar "Shaft"
-      /click left pack $v80 2
+    | open inv and the pack
+    | /click right inv $return
 
-      /finditem similar "Arrowhead"
-      /click left pack $v80 3
+    /keypress i
+    /delay 1s
 
-      /sendkey up ctrl
-      /click left pack $return combine
+    /for x 0 to 7 
+        |/echo click right inv ${x}
+        |/click right inv ${x}
+        /itemnotify ${Math.Calc[22+${x}]} rightmouseup
+        /delay 1
+    /next x
+
+    | assume that the combiner is open and empty now
+
+:MakeArrows
+
+    |/finditem similar "Fletchings"
+    |/click left pack $v80 0
+
+    /varset islot ${FindItem[Fletchings].InvSlot}
+    /if (${islot}) {
+        /ctrl /itemnotify ${islot} leftmouseup
+        /itemn in pack${v80} 1 leftmouseup
+    } else {
+        /echo could not find Fletchings
+        /endm
+    }
+
+    |/finditem similar "Nock"
+    |/click left pack $v80 1
+
+    /varset islot ${FindItem[Nock].InvSlot}
+    /ctrl /itemnotify ${islot} leftmouseup
+    /itemn in pack${v80} 2 leftmouseup
+
+    /varset islot ${FindItem[Shaft].InvSlot}
+    /ctrl /itemnotify ${islot} leftmouseup
+    /itemn in pack${v80} 3 leftmouseup
+
+    /varset islot ${FindItem[Arrowhead].InvSlot}
+    /ctrl /itemnotify ${islot} leftmouseup
+    /itemn in pack${v80} 4 leftmouseup
 
 
-      /if "$item($v80,0,name)"~~"Arrowhead" /if "$item($v80,1,name)"~~"Shaft" /if "$item($v80,2,name)"~~"Fletching" /if "$item($v80,3,name)"~~"nock" /goto :DoCombine 
-      /sendkey up ctrl
-      /return 
+    /doevents flush
 
-      :DoCombine 
-      /varset v61 0 
-      /doevents flush
-      /varset t9 30s
-      /click left pack $v80 combine 
-      /goto :DropArrows 
-      
-      :DropArrows 
-         /doevents
-      /if n $v61==0 /if n $t9>0 /goto :DropArrows 
-      /doevents flush
-      /if $cursor()!=TRUE /if n $v61<2 /goto :MakeArrows
-      :WaitCursor
-	 /delay 0
-      /if $cursor()!=TRUE /goto :WaitCursor
-      /click left auto 
-   /goto :MakeArrows 
+    /varset v61 0
+    |/click left pack $v80 combine 
+
+:redo
+
+    /notify pack${v80} Container_Combine leftmouseup
+
+    /delay 5
+    /doevents
+
+    | limiter on the combines per second so keep retrying
+    /if (${Me.Inventory[pack${v80}].Item[1].ID}) /goto :redo
+
+    /if (${v61}==2) {
+:WaitCursor
+        /delay 1
+        /if (${Cursor.ID}) {
+            /notify InventoryWindow IW_CharacterView leftmouseup
+            /delay 3
+            /goto :WaitCursor
+        }
+    }
+    /goto :MakeArrows 
 /return
 
 Sub Event_CombineFail 
@@ -62,8 +106,11 @@ Sub Event_CombineSuceed
 /return 
 
 Sub FindCombiner 
-   /varset p2 99 
-   /for v99 0 to 7 
-      /if "$pack($v99,combine)"=="$p0" /varset p2 $v99 
+/declare v99 int local
+
+   /for v99 1 to 8 
+      | /echo  ${Me.Inventory[pack${v99}].Type}
+      /if (${Me.Inventory[pack${v99}].Type.Equal[${Param0}]}) /return ${v99}
    /next v99 
-/return $p2 
+
+/return 99 
