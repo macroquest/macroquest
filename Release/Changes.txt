@@ -9,6 +9,6 @@
 to MQ2Main.h so that custom plugins will find them...
 +updated $merchant(has,xxx) with HanzO's code for it, thank you.
 +Updated $selecteditem() with new (count) for easier usage of /sellitem and /buyitem
-example: /buyitem $selecteditem(count) merchant
+example: /sellitem $selecteditem(count) self
 +misc fixes...
 
