@@ -54,7 +54,7 @@ DECLARE_API ( pchar )
     KP(Exp); 
     KP(PracticePoints); 
     KP(Mana); 
-	KP(Unknown0x00a8);
+	KP(Endurance);
     KP(BaseHP); 
     KP(Stunned); 
     KP(BaseSTR); 
