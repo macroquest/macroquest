@@ -105,8 +105,10 @@ DWORD __declspec(naked) CMyMapViewWnd__Destructor(BOOL Deallocate)
    push ecx;
    push eax;
    }
-   delete pMapViewWnd->pvfTable;
-   pMapViewWnd->pvfTable=CMyMapViewWnd__OldvfTable;
+	if (CMyMapViewWnd__OldvfTable) { 
+	   delete pMapViewWnd->pvfTable;
+		pMapViewWnd->pvfTable=CMyMapViewWnd__OldvfTable;
+	}
    __asm
    {
    pop eax;
@@ -193,8 +195,10 @@ public:
 	void RestoreVFTable()
 	{
 		CMapViewWnd *pWnd=(CMapViewWnd*)this;
-	   delete pWnd->pvfTable;
-	   pWnd->pvfTable=CMyMapViewWnd__OldvfTable;
+		if (CMyMapViewWnd__OldvfTable) { 
+			delete pWnd->pvfTable;
+			pWnd->pvfTable=CMyMapViewWnd__OldvfTable;
+		}
 	}
 };
 
