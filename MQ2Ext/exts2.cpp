@@ -110,11 +110,11 @@ DECLARE_API ( pchar )
     KP(Diety); 
     KP(GuildID); 
 	KP(GuildStatus);
+	KP(Drunkedness);
     KP(Grouped);
 	KP(AAExp);
 	KP(PercentEXPtoAA);
 	KP(AAPoints);
-    KP(GuildStatus);
     KPs(Server); 
 	KP(GukEarned);
 	KP(MirEarned);
@@ -136,7 +136,7 @@ DECLARE_API ( pspawn )
     ReadMemory((PARAM1)p,&ci,sizeof(ci),&cb); 
 
    dprintf("\n\n\n"); 
-   KPs(Name); 
+   KPs(Lastname);
    KPf(Y); 
    KPf(X); 
    KPf(Z); 
@@ -145,9 +145,10 @@ DECLARE_API ( pspawn )
    KPf(SpeedZ); 
    KPf(SpeedRun); 
    KPf(Heading);
-   KPf(Unknown0x088);
-   KPf(SpeedHeading); 
    KPf(CameraAngle); 
+   KPs(Name); 
+   KPs(DisplayedName);
+   KPf(SpeedHeading); 
    KP(pActorInfo); 
    KP(Sneak);
    KP(Linkdead);
@@ -159,11 +160,11 @@ DECLARE_API ( pspawn )
    KP(pNext); 
    KP(pCharInfo); 
    KP(pPrev);
-   KPf(Unknownf0x158);
-   KPf(Unknownf0x15c);
-   KPf(Unknownf0x160);
+   KPf(Unknownf0x198);
+   KPf(Unknownf0x19c);
+   KPf(Unknownf0x1a0);
    KPf(AvatarHeight);
-   KPf(Unknownf0x168);
+   KPf(Unknownf0x1a8);
    KP(Type); 
    KP(Face);
    KP(BeardColor);
@@ -174,6 +175,7 @@ DECLARE_API ( pspawn )
    KP(Level);
    KP(FaceHair);
    KP(Gender);
+   KP(PvPFlag);
    KP(HideMode);
    KP(StandState);
    KP(Class);
@@ -205,7 +207,7 @@ DECLARE_API ( pitem )
     ReadMemory((PARAM1)p,&ci,sizeof(ci),&cb); 
 
    dprintf("\n\n\n"); 
-    KPs(Name); 
+   KPs(Name); 
    KPs(LoreName); 
    KPs(IDFile); 
    KP(ItemNumber); 
@@ -254,16 +256,34 @@ DECLARE_API ( pitem )
    KP(Damage); 
    KP(ItemType); 
    KP(Material); 
+   KP(AugSlot1);
+   KP(AugSlot2);
+   KP(AugSlot3);
+   KP(AugSlot4);
+   KP(AugSlot5);
+   KP(AugType);
+   KP(AugRestrictions);
+   KP(LDTheme);
+   KP(LDCost);
    KPs(CharmFile); 
    KPf(QuestValue);
+   KP(CombatEffects);
+   KP(Shielding);
+   KP(StunResist);
+   KP(StrikeThrough);
+   KP(SpellShield);
+   KP(Avoidance);
    KP(FocusId); 
    KP(CastTime); 
    KP(Stackable); 
    KP(EffectType); 
+   KPs(BookFile);
+   KP(Skill);
    KP(Combine); 
    KP(Slots); 
    KP(SizeCapacity); 
    KP(WeightReduction); 
+   KP(Favor);
 } 
 
 DECLARE_API ( pgroundspawn ) 
@@ -385,7 +405,7 @@ DECLARE_API ( pspell )
    KP(Location);
    KP(Environment);
    KP(TimeOfDay);
-   for (i=0; i < 15; i++) 
+   for (i=0; i < 16; i++) 
       dprintf("Level(Class %d) = %d (offset 0x%x)\n", i+1, ci.Level[i], &pnull->Level[i]); 
    KP(CastingAnim); 
    KP(descnum);
@@ -395,7 +415,6 @@ DECLARE_API ( pspell )
    KP(DurationWindow);
    KP(Unknown144);
    KP(Unknown145);
-   KP(Unknown0x15c);
    ReadMemory((PARAM1)ci.Name, tmp, 128, &cb ); 
    dprintf("Name = %s (offset *0x%x)\n", tmp, &pnull->Name); 
    ReadMemory((PARAM1)ci.Target, tmp, 128, &cb ); 
@@ -468,10 +487,10 @@ DECLARE_API ( pzoneinfo )
    KPs(CharacterName); 
    KPs(ShortName); 
    KPs(LongName); 
-   //KP(FogRed);
-   //KP(FogGreen);
-   //KP(FogBlue);
-   KP(Unknown0x183); 
+   KP(ZoneType);
+   KP(FogRed);
+   KP(FogGreen);
+   KP(FogBlue);
    for (int i=0; i < 4; i++) 
       dprintf("Unknown0x184[%d] = %f (offset 0x%x)\n", i, ci.Unknown0x184[i], &pnull->Unknown0x184[i]); 
    for (i=0; i < 4; i++) 
@@ -480,13 +499,6 @@ DECLARE_API ( pzoneinfo )
    for (i=0; i < 15; i++) 
       dprintf("Unknown0x1ac[%d] = %d (offset 0x%x)\n", i, ci.Unknown0x1ac[i], &pnull->Unknown0x1ac[i]); 
    KPf(ZoneExpModifier); 
-   KPf(SafeYLoc);
-   KPf(SafeXLoc);
-   KPf(SafeZLoc);
-   KPf(Ceiling);
-   KPf(Floor);
-   KPf(MinClip);
-   KPf(MaxClip);
    for (i=0; i < 6; i++) 
       dprintf("Unknown0x208[%d] = %d (offset 0x%x)\n", i, ci.Unknown0x208[i], &pnull->Unknown0x208[i]); 
    for (i=0; i < 14; i++) 
