@@ -291,7 +291,7 @@ VOID BzSrchMe(PSPAWNINFO pChar, PCHAR szLine)
 
     // clear out the old list or the new entries will be
     // added to them
-    class CListWnd *ptr = *(class CListWnd **) ((char *)pBazaarSearchWnd+0x39a8);
+    class CListWnd *ptr = *(class CListWnd **) ((char *)pBazaarSearchWnd+0x39B0);
     ptr->DeleteAll();
 
 
