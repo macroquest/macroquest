@@ -26,13 +26,14 @@ BOOL APIENTRY DllMain( HANDLE hModule,
 PLUGIN_API VOID InitializePlugin(VOID)
 {
 	DebugSpewAlways("Initializing MQ2FPS");
+	SetINIFileName("MQ2FPS.ini");
 
 	// Add commands, macro parameters, hooks, etc.
 	// INI Settings
     DWORD Temp=0;
-    Temp = GetPrivateProfileInt("MQ2FPS","ForegroundMaxFPS",0,FPSINIFile);
+    Temp = GetPrivateProfileInt("MQ2FPS","ForegroundMaxFPS",0,INIFileName);
     SetForegroundMaxFPS(Temp);
-    Temp = GetPrivateProfileInt("MQ2FPS","BackgroundMaxFPS",0,FPSINIFile);
+    Temp = GetPrivateProfileInt("MQ2FPS","BackgroundMaxFPS",0,INIFileName);
     SetBackgroundMaxFPS(Temp);
 
 	// Commands
@@ -144,12 +145,12 @@ VOID MaxFPS(PSPAWNINFO pChar, PCHAR szLine)
    if (!stricmp(Arg1,"fg"))
    {
      SetForegroundMaxFPS(NewMax);
-       WritePrivateProfileString("MQ2FPS","ForegroundMaxFPS",Arg2,FPSINIFile);
+       WritePrivateProfileString("MQ2FPS","ForegroundMaxFPS",Arg2,INIFileName);
    }
    else if (!stricmp(Arg1,"bg"))
    {
        SetBackgroundMaxFPS(NewMax);
-       WritePrivateProfileString("MQ2FPS","BackgroundMaxFPS",Arg2,FPSINIFile);
+       WritePrivateProfileString("MQ2FPS","BackgroundMaxFPS",Arg2,INIFileName);
    }
        sprintf(szCmd,"\aw\ayMaxFPS\ax\a-u:\ax \a-u[\ax\at%d\ax Foreground\a-u]\ax \a-u[\ax\at%d\ax Background\a-u]\ax",gFG_SLEEP?1000/gFG_SLEEP:0,gBG_SLEEP?1000/gBG_SLEEP:0);
     WriteChatColor(szCmd,USERCOLOR_DEFAULT);

@@ -26,7 +26,12 @@ PLUGIN_API VOID InitializePlugin(VOID)
 {
 	DebugSpewAlways("Initializing MQ2Template");
 
+	// Set INI file name
+	SetINIFileName("MQ2Template.ini");
+
 	// Add commands, macro parameters, hooks, etc.
+	// AddCommand("/mycommand",MyCommand);
+	// AddParm("$myparm(x)",MyParm);
 }
 
 // Called once, when the plugin is to shutdown
@@ -35,6 +40,8 @@ PLUGIN_API VOID ShutdownPlugin(VOID)
 	DebugSpewAlways("Shutting down MQ2Template");
 
 	// Remove commands, macro parameters, hooks, etc.
+	// RemoveParm("$myparm(x)");
+	// RemoveCommand("/mycommand");
 }
 
 // Called after entering a new zone

@@ -1,4 +1,4 @@
-#define MapINIFile "mq2map.ini"
+//#define MapINIFile "mq2map.ini"
 
 typedef struct _LABELALLOC {
     struct _LABELALLOC *pNext;

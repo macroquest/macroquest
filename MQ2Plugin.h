@@ -10,3 +10,7 @@
 #endif
 
 #define PLUGIN_API extern "C" __declspec(dllexport)
+
+CHAR INIFileName[MAX_PATH]={0};
+
+#define SetINIFileName(ini) sprintf(INIFileName,"%s\\%s",gszINIPath,ini);

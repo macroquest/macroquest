@@ -46,6 +46,7 @@ DETOUR_TRAMPOLINE_EMPTY(VOID MapViewMapHook::SaveEx_Trampoline(PCHAR szZonename,
 PLUGIN_API VOID InitializePlugin(VOID)
 {
 	DebugSpewAlways("Initializing MQ2Map");
+	SetINIFileName("MQ2Map.ini");
 
 	// Add commands, macro parameters, hooks, etc.
 
@@ -53,8 +54,8 @@ PLUGIN_API VOID InitializePlugin(VOID)
 	CHAR szBuffer[MAX_STRING]={0};
     for (DWORD i=0;gMapFilterOptions[i].szName;i++) {
         sprintf(szBuffer,"%s-Color",gMapFilterOptions[i].szName);
-        gMapFilters[gMapFilterOptions[i].Index] = GetPrivateProfileInt("Map Filters",gMapFilterOptions[i].szName,0,MapINIFile);
-        gMapFiltersColor[gMapFilterOptions[i].Index] = GetPrivateProfileInt("Map Filters",szBuffer,gMapFilterOptions[i].DefaultColor,MapINIFile) | 0xFF000000;
+        gMapFilters[gMapFilterOptions[i].Index] = GetPrivateProfileInt("Map Filters",gMapFilterOptions[i].szName,0,INIFileName);
+        gMapFiltersColor[gMapFilterOptions[i].Index] = GetPrivateProfileInt("Map Filters",szBuffer,gMapFilterOptions[i].DefaultColor,INIFileName) | 0xFF000000;
     }
     // Do not use Custom, since the string isn't stored
     gMapFilters[MAPFILTER_UserFilter] = 0;
@@ -351,7 +352,7 @@ VOID MapFilterSetting(PSPAWNINFO pChar, PMAPFILTER pMapFilter, PCHAR szValue)
     WriteChatColor(szBuffer,USERCOLOR_DEFAULT);
     if (szValue) {
         itoa(gMapFilters[pMapFilter->Index],szBuffer,10);
-        WritePrivateProfileString("Map Filters",pMapFilter->szName,szBuffer,MapINIFile);
+        WritePrivateProfileString("Map Filters",pMapFilter->szName,szBuffer,INIFileName);
     }
 }
 
@@ -405,7 +406,7 @@ VOID MapFilters(PSPAWNINFO pChar, PCHAR szLine)
                         WriteChatColor(szBuffer,USERCOLOR_DEFAULT);
                         itoa(gMapFiltersColor[gMapFilterOptions[i].Index] & 0xFFFFFF,szBuffer,10);
                         sprintf(szBuffer2,"%s-Color",gMapFilterOptions[i].szName);
-                        WritePrivateProfileString("Map Filters",szBuffer2,szBuffer,MapINIFile);
+                        WritePrivateProfileString("Map Filters",szBuffer2,szBuffer,INIFileName);
                         gMapFiltersColor[gMapFilterOptions[i].Index] |= 0xFF000000;
                     }
                 } else {
