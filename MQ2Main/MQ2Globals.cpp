@@ -488,7 +488,7 @@ PCHAR szBodyType[] = {
    "Magical", //7
    "Undead Pet", //8
    "Bane Giant", //9
-   "*UNKNOWN BODYTYPE 10", //10
+   "Dain", //10
    "Untargetable", //11
    "Vampyre", //12
    "Atenha Ra", //13

@@ -1,3 +1,7 @@
+2 June 2004 by Lax:
+- Fixed some stuff, yadda yadda.  I forget now.
+- Bodytype 10 has been identified as Dain, thank you for the reports
+
 29 May 2004 by EqMule:
 - Fixed EQ_INTERACTGROUNDITEM so click left item works again...
 - Updated zipit.lst (personal reminder: dir * /s /N /A-D /B > zipit.lst)

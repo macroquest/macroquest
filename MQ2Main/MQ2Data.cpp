@@ -25,7 +25,7 @@ BOOL dataSpawn(PCHAR szIndex, MQ2TYPEVAR &Ret)
 {
 	if (szIndex[0])
 	{
-		if (szIndex[0]>='0' && szIndex[0]<='9')
+		if (IsNumber(szIndex))
 		{
 			if (Ret.Ptr=GetSpawnByID(atoi(szIndex)))
 			{
@@ -77,7 +77,7 @@ BOOL dataSpell(PCHAR szIndex, MQ2TYPEVAR &Ret)
 {
 	if (szIndex[0])
 	{
-		if (szIndex[0]>='0' && szIndex[0]<='9')
+		if (IsNumber(szIndex))
 		{
 			if (Ret.Ptr=GetSpellByID(atoi(szIndex)))
 			{
@@ -190,7 +190,7 @@ BOOL dataZone(PCHAR szIndex, MQ2TYPEVAR &Ret)
       Ret.Type=pCurrentZoneType;
       return true;
    } 
-   else if (szIndex[0]>='0' && szIndex[0]<='9')
+   else if (IsNumber(szIndex))
    {
 	   if (nIndex = atoi(szIndex))
 	   {
@@ -415,7 +415,7 @@ BOOL dataLastSpawn(PCHAR szIndex, MQ2TYPEVAR &Ret)
 {
 	if (szIndex[0])
 	{
-		if (szIndex[0]>='0' && szIndex[0]<='9')
+		if (IsNumber(szIndex))
 		{
 			unsigned long N=atoi(szIndex)-1;
 			if (PSPAWNINFO pSpawn=(PSPAWNINFO)pSpawnList)
@@ -477,7 +477,7 @@ BOOL dataNearestSpawn(PCHAR szIndex, MQ2TYPEVAR &Ret)
 		}
 		else
 		{
-			if (szIndex[0]>='0' && szIndex[0]<='9')
+			if (IsNumber(szIndex))
 			{
 				nth=atoi(szIndex);
 			}
@@ -987,7 +987,7 @@ BOOL dataInvSlot(PCHAR szIndex, MQ2TYPEVAR &Ret)
 {
 	if (!szIndex[0])
 		return false;
-	if (szIndex[0]>='0' && szIndex[0]<='9')
+	if (IsNumber(szIndex))
 	{
 		Ret.DWord=atoi(szIndex);
 		Ret.Type=pInvSlotType;
@@ -1011,7 +1011,7 @@ BOOL dataPlugin(PCHAR szIndex, MQ2TYPEVAR &Ret)
 {
 	if (!szIndex[0])
 		return false;
-	if (szIndex[0]>='0' && szIndex[0]<='9')
+	if (IsNumber(szIndex))
 	{
 		unsigned long N = atoi(szIndex)-1;
 		PMQPLUGIN pPlugin=pPlugins;

@@ -18,6 +18,7 @@
 // macro line continuation e.g. \
 // command to set raid class colors
 // /cast list
+// #chat tell
 //
 // mq2data todo:
 // -------------

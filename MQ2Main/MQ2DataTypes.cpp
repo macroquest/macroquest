@@ -181,7 +181,7 @@ bool MQ2FloatType::GetMember(MQ2VARPTR VarPtr, PCHAR Member, PCHAR Index, MQ2TYP
 		Dest.Int=(int)(VarPtr.Float);
 		return true;
 	case Precision:
-		if (Index[0]>='0' && Index[0]<='9')
+		if (IsNumber(Index))
 		{
 			sprintf(DataTypeTemp,"%.*f",atoi(Index),VarPtr.Float);
 			Dest.Type=pStringType;
@@ -644,7 +644,7 @@ bool MQ2SpawnType::GetMember(MQ2VARPTR VarPtr, PCHAR Member, PCHAR Index, MQ2TYP
 			}
 			else
 			{
-				if (Index[0]>='0' && Index[0]<='9')
+				if (IsNumber(Index))
 				{
 					nth=atoi(Index);
 				}
@@ -1030,7 +1030,7 @@ bool MQ2StringType::GetMember(MQ2VARPTR VarPtr, PCHAR Member, PCHAR Index, MQ2TY
 		}
 		return false;
 	case Arg:
-		if (Index[0]>='0' && Index[0]<='9')
+		if (IsNumber(Index))
 		{
 			CHAR Temp[MAX_STRING]={0};
 			strcpy(Temp,(char *)VarPtr.Ptr);
@@ -1059,7 +1059,7 @@ bool MQ2StringType::GetMember(MQ2VARPTR VarPtr, PCHAR Member, PCHAR Index, MQ2TY
 		}
 		return false;
 	case Token:
-		if (Index[0]>='0' && Index[0]<='9')
+		if (IsNumber(Index))
 		{
 			DWORD N=atoi(Index);
 			if (!N)
@@ -1192,7 +1192,7 @@ bool MQ2CharacterType::GetMember(MQ2VARPTR VarPtr, PCHAR Member, PCHAR Index, MQ
 	case Buff:
 		if (!Index[0])
 			return false;
-		if (Index[0]>='0' && Index[0]<='9')
+		if (IsNumber(Index))
 		{
 			unsigned long nBuff=atoi(Index)-1;
 			if (nBuff>=15)
@@ -1222,7 +1222,7 @@ bool MQ2CharacterType::GetMember(MQ2VARPTR VarPtr, PCHAR Member, PCHAR Index, MQ
 	case Song:
 		if (!Index[0])
 			return false;
-		if (Index[0]>='0' && Index[0]<='9')
+		if (IsNumber(Index))
 		{
 			unsigned long nBuff=atoi(Index)-1;
 			if (nBuff>=6)
@@ -1316,7 +1316,7 @@ bool MQ2CharacterType::GetMember(MQ2VARPTR VarPtr, PCHAR Member, PCHAR Index, MQ
 	case Inventory:
 		if (Index[0])
 		{
-			if (Index[0]>='0' && Index[0]<='9')
+			if (IsNumber(Index))
 			{
 				unsigned long nSlot=atoi(Index)%0x1E;
 				if (nSlot<0x1E)
@@ -1347,7 +1347,7 @@ bool MQ2CharacterType::GetMember(MQ2VARPTR VarPtr, PCHAR Member, PCHAR Index, MQ
 	case Bank:
 		if (Index[0])
 		{
-			if (Index[0]>='0' && Index[0]<='9')
+			if (IsNumber(Index))
 			{
 				unsigned long nSlot=atoi(Index)-1;
 				if (nSlot<NUM_BANK_SLOTS)
@@ -1444,7 +1444,7 @@ bool MQ2CharacterType::GetMember(MQ2VARPTR VarPtr, PCHAR Member, PCHAR Index, MQ
 	case Gem:
 		if (!Index[0])
 			return false;
-		if (Index[0]>='0' && Index[0]<='9')
+		if (IsNumber(Index))
 		{
 			// number
 			unsigned long nGem=atoi(Index)-1;
@@ -1477,7 +1477,7 @@ bool MQ2CharacterType::GetMember(MQ2VARPTR VarPtr, PCHAR Member, PCHAR Index, MQ
 	case CombatAbility:
 		if (!Index[0])
 			return false;
-		if (Index[0]>='0' && Index[0]<='9')
+		if (IsNumber(Index))
 		{
 			// number
 			unsigned long nCombatAbility=atoi(Index)-1;
@@ -1525,7 +1525,7 @@ bool MQ2CharacterType::GetMember(MQ2VARPTR VarPtr, PCHAR Member, PCHAR Index, MQ
 	case AltAbilityTimer:
 		if (Index[0])
 		{
-			if (Index[0]>='0' && Index[0]<='9')
+			if (IsNumber(Index))
 			{
 				// numeric
 				unsigned long nAbility=atoi(Index);
@@ -1573,7 +1573,7 @@ bool MQ2CharacterType::GetMember(MQ2VARPTR VarPtr, PCHAR Member, PCHAR Index, MQ
 	case AltAbilityReady:
 		if (Index[0])
 		{
-			if (Index[0]>='0' && Index[0]<='9')
+			if (IsNumber(Index))
 			{
 				// numeric
 				unsigned long nAbility=atoi(Index);
@@ -1615,7 +1615,7 @@ bool MQ2CharacterType::GetMember(MQ2VARPTR VarPtr, PCHAR Member, PCHAR Index, MQ
 	case AltAbility:
 		if (Index[0])
 		{
-			if (Index[0]>='0' && Index[0]<='9')
+			if (IsNumber(Index))
 			{
 				// numeric
 				unsigned long nAbility=atoi(Index);
@@ -1650,7 +1650,7 @@ bool MQ2CharacterType::GetMember(MQ2VARPTR VarPtr, PCHAR Member, PCHAR Index, MQ
 	case Skill:
 		if (Index[0])
 		{
-			if (Index[0]>='0' && Index[0]<='9')
+			if (IsNumber(Index))
 			{
 				// numeric
 				unsigned long nSkill=atoi(Index)-1;
@@ -1677,7 +1677,7 @@ bool MQ2CharacterType::GetMember(MQ2VARPTR VarPtr, PCHAR Member, PCHAR Index, MQ
 	case Ability:
 		if (Index[0])
 		{
-			if (Index[0]>='0' && Index[0]<='9')
+			if (IsNumber(Index))
 			{
 				// numeric
 				if (unsigned long nSkill=atoi(Index))
@@ -1727,7 +1727,7 @@ bool MQ2CharacterType::GetMember(MQ2VARPTR VarPtr, PCHAR Member, PCHAR Index, MQ
 	case AbilityReady:
 		if (Index[0])
 		{
-			if (Index[0]>='0' && Index[0]<='9')
+			if (IsNumber(Index))
 			{
 				// numeric
 				if (unsigned long nSkill=atoi(Index))
@@ -1792,7 +1792,7 @@ bool MQ2CharacterType::GetMember(MQ2VARPTR VarPtr, PCHAR Member, PCHAR Index, MQ
 	case Book:
 		if (Index[0])
 		{
-			if (Index[0]>='0' && Index[0]<='9')
+			if (IsNumber(Index))
 			{
 				// numeric
 				unsigned long nSpell=atoi(Index)-1;
@@ -1822,7 +1822,7 @@ bool MQ2CharacterType::GetMember(MQ2VARPTR VarPtr, PCHAR Member, PCHAR Index, MQ
 	case SpellReady:
 		if (pCastSpellWnd && Index[0])
 		{
-			if (Index[0]>='0' && Index[0]<='9')
+			if (IsNumber(Index))
 			{
 				// numeric
 				unsigned long nGem=atoi(Index)-1;
@@ -1854,7 +1854,7 @@ bool MQ2CharacterType::GetMember(MQ2VARPTR VarPtr, PCHAR Member, PCHAR Index, MQ
 		if (!Index[0] || !pPetInfoWnd)
 			return false;
 #define pPetInfoWindow ((PEQPETINFOWINDOW)pPetInfoWnd)
-		if (Index[0]>='0' && Index[0]<='9')
+		if (IsNumber(Index))
 		{
 			unsigned long nBuff=atoi(Index)-1;
 			if (nBuff>29)
@@ -2102,7 +2102,7 @@ bool MQ2SpellType::GetMember(MQ2VARPTR VarPtr, PCHAR Member, PCHAR Index, MQ2TYP
 		}
 		else
 		{
-			if (Index[0]>='0' && Index[0]<='9')
+			if (IsNumber(Index))
 			{
 				unsigned long nIndex=atoi(Index)-1;
 				Dest.DWord=pSpell->Level[nIndex];
@@ -2334,7 +2334,7 @@ bool MQ2ItemType::GetMember(MQ2VARPTR VarPtr, PCHAR Member, PCHAR Index, MQ2TYPE
 		}
 		return false;
 	case Item:
-		if (pItem->Item->Type == ITEMTYPE_PACK && Index[0]>='0' && Index[0]<='9')
+		if (pItem->Item->Type == ITEMTYPE_PACK && IsNumber(Index))
 		{
 			unsigned long N=atoi(Index);
 			N--;
@@ -2839,7 +2839,7 @@ bool MQ2WindowType::GetMember(MQ2VARPTR VarPtr, PCHAR Member, PCHAR Index, MQ2TY
 	case List:
 		if (((CXWnd*)pWnd)->GetType()!=UI_Listbox)
 			return false;
-		if (Index[0]>='0' && Index[0]<='9')
+		if (IsNumber(Index))
 		{
 			unsigned long nIndex=atoi(Index);
 			if (!nIndex)
@@ -3442,7 +3442,7 @@ bool MQ2TypeType::GetMember(MQ2VARPTR VarPtr, PCHAR Member, PCHAR Index, MQ2TYPE
 	case TypeMember:
 		if (Index[0])
 		{
-			if (Index[0]>='0' && Index[0]<='9')
+			if (IsNumber(Index))
 			{
 				// name by number
 				if (Dest.Ptr=pType->GetMemberName(atoi(Index)))
@@ -3595,7 +3595,7 @@ bool MQ2CorpseType::GetMember(MQ2VARPTR VarPtr, PCHAR Member, PCHAR Index, MQ2TY
 	case Item:
 		if (Index[0])
 		{
-			if (Index[0]>='0' && Index[0]<='9')
+			if (IsNumber(Index))
 			{
 				unsigned long nIndex=atoi(Index)-1;
 				if (nIndex<31)
@@ -3683,7 +3683,7 @@ bool MQ2MerchantType::GetMember(MQ2VARPTR VarPtr, PCHAR Member, PCHAR Index, MQ2
 	case Item:
 		if (Index[0])
 		{
-			if (Index[0]>='0' && Index[0]<='9')
+			if (IsNumber(Index))
 			{
 				unsigned long nIndex=atoi(Index)-1;
 				if (nIndex<80)
