@@ -1140,16 +1140,21 @@ VOID STMLToPlainText(PCHAR in, PCHAR out)
 VOID ClearSearchSpawn(PSEARCHSPAWN pSearchSpawn)
 {
     if (!pSearchSpawn) return;
-    pSearchSpawn->MinLevel = 0;
+	ZeroMemory(pSearchSpawn,sizeof(SEARCHSPAWN));
+	// 0? fine. set anything thats NOT zero.
     pSearchSpawn->MaxLevel = 100;
     pSearchSpawn->SpawnType = SPAWN_ANY;
+    pSearchSpawn->GuildID = 0xFFFF;
+    pSearchSpawn->ZRadius = 10000.0f;
+    pSearchSpawn->FRadius = 10000.0f;
+	/*
+    pSearchSpawn->MinLevel = 0;
     pSearchSpawn->SpawnID = 0;
     pSearchSpawn->Radius = 0.0f;
     pSearchSpawn->szName[0] = 0;
     pSearchSpawn->szBodyType[0] = 0;
     pSearchSpawn->szClass[0] = 0;
     pSearchSpawn->szRace[0] = 0;
-    pSearchSpawn->GuildID = 0xFFFF;
     pSearchSpawn->bNotNearAlert = FALSE;
     pSearchSpawn->bNearAlert = FALSE;
     pSearchSpawn->bNoAlert = FALSE;
@@ -1166,14 +1171,13 @@ VOID ClearSearchSpawn(PSEARCHSPAWN pSearchSpawn)
     pSearchSpawn->NearAlertList = 0;
     pSearchSpawn->NoAlertList = 0;
     pSearchSpawn->AlertList = 0;
-    pSearchSpawn->ZRadius = 10000.0f;
-    pSearchSpawn->FRadius = 10000.0f;
     pSearchSpawn->xLoc = 0.0f;
     pSearchSpawn->yLoc = 0.0f;
     pSearchSpawn->bKnownLocation = FALSE;
     pSearchSpawn->FromSpawnID = 0;
     pSearchSpawn->bNoPet = FALSE; 
     pSearchSpawn->SortBy = 0; 
+	/**/
 }
 
 // *************************************************************************** 
