@@ -1,4 +1,4 @@
-all: traverse
+all: mq2main/mq2auth.h traverse 
 
 clean: traverse_clean
 
@@ -14,6 +14,10 @@ DIRECTORIES=\
     MQ2Template \
     mq2telnet
 
+mq2main/mq2auth.h: mq2auth.exe always
+    -chmod +x mq2auth.exe
+    mq2auth
+
 traverse: $(DIRECTORIES)
     for %a in ($(DIRECTORIES)) do nmake DIRECTORY=%a COMMAND=all traverse_directory
 
@@ -24,3 +28,6 @@ traverse_clean: $(DIRECTORIES)
 traverse_directory:
     cd $(MAKEDIR)\$(DIRECTORY)
     nmake $(COMMAND)
+
+
+always:
