@@ -85,7 +85,7 @@
 #define pinstSwitchManager                            0x6CED74 
 #define pinstEQItemList                               0x7314CC 
 #define pinstSpellSets                                0x72F2C4 
-#define instEQZoneInfo                                0x6CF034 
+#define instEQZoneInfo                                0x6CEFF4 
 #define pinstCXWndManager                             0x7A301C 
 #define instKeypressHandler							  0x77E2F0
 
