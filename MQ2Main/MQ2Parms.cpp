@@ -3257,17 +3257,6 @@ DWORD parmZone(PCHAR szVar, PCHAR szOutput, PSPAWNINFO pChar)
         } else if (!strncmp("zone(bound)",szVar,11)) {
             i+=10;
             strcpy(szOutput,GetFullZone(pCharInfo->ZoneBoundId));
-        // $zone(zem)
-        } else if (!strncmp("zone(zem)",szVar,9)) {
-            i+=8;
-            FLOAT zem = 0.0f;
-
-            if (pZoneInfo && ((PZONEINFO)pZoneInfo)->ZoneExpModifier) {
-                zem = ((PZONEINFO)pZoneInfo)->ZoneExpModifier;
-            }
-            CHAR szTemp[MAX_STRING] = {0};
-            sprintf(szTemp,"%1.2f",zem);
-            strcpy(szOutput,szTemp);
 
         // $zone(Unknown)
         } else {

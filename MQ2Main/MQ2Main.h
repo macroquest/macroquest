@@ -494,7 +494,6 @@ EQLIB_API VOID DeclareVar                          (PSPAWNINFO,PCHAR);
 EQLIB_API VOID Delay                               (PSPAWNINFO,PCHAR);
 EQLIB_API VOID EQDestroyHeldItemOrMoney				(PSPAWNINFO,PCHAR);
 EQLIB_API VOID DisplayLoginName						(PSPAWNINFO,PCHAR);
-EQLIB_API VOID DisplayZem                          (PSPAWNINFO,PCHAR);
 EQLIB_API VOID DoAbility                           (PSPAWNINFO,PCHAR);
 EQLIB_API VOID DoEvents                            (PSPAWNINFO,PCHAR);
 EQLIB_API VOID DoSocial                           (PSPAWNINFO,PCHAR);

@@ -442,7 +442,6 @@ void InitializeMQ2Commands()
         {"/updateitems",UpdateItemInfo,1,1},
 		{"/ini",        IniOutput,1,0},
 		{"/dumpstack",    DumpStack,1,0},
-		{"/zem",      DisplayZem,1,1},                  //2003-05-17 anOrcPawn00
         {"/setautorun", SetAutoRun,0,1},
         {"/banklist",   BankList,1,1},
         {"/look",       Look,1,1},

@@ -4216,31 +4216,6 @@ VOID IniOutput(PSPAWNINFO pChar, PCHAR szLine)
 }
 
 // ***************************************************************************
-// Function:   DisplayZem
-// Description: Displays the ZEM of the current zone to chat screen
-// 2003-05-17   anOrcPawn00
-// ***************************************************************************
-VOID DisplayZem(PSPAWNINFO pChar, PCHAR szLine)
-{
-   float BASE_ZEM = 75.0;
-   float zem = 0;
-   float bonus = 0;
-
-   if (!pZoneInfo) return;
-
-   CHAR out[MAX_STRING] = {0};
-
-   PZONEINFO ZoneInfo = (PZONEINFO)pZoneInfo;
-
-   if (ZoneInfo && ZoneInfo->ZoneExpModifier) {
-      zem = ZoneInfo->ZoneExpModifier * 100;
-      bonus = zem - BASE_ZEM;
-      sprintf(out, "\awZone experience modifier: \ag%.1f%%\ax (\a%c%.1f%% %s\ax)", zem, (bonus<0) ? 'r' : 't', (bonus<0) ? 0-bonus : bonus, (bonus<0) ? "penalty" : "bonus" ); 
-      WriteChatColor(out,0);
-   }
-}
-
-// ***************************************************************************
 // Function:        BankList
 // Description:     Our /banklist command. Lists bank contents to chat buffer.
 // 2003-08-30       Valerian
