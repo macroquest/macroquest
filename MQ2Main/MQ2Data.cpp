@@ -738,14 +738,22 @@ BOOL dataFindItemCount(PCHAR szIndex, MQ2TYPEVAR &Ret)
 			{
 				if (!stricmp(Name,pItem->Item->Name))
 				{
-					Count++;
+                    if ((pItem->Item->Type != ITEMTYPE_NORMAL) ||
+                        (pItem->Item->Stackable != 1))
+						Count++;
+                    else
+                        Count+=pItem->StackCount;
 				}
 			}
 			else 
 			{
 				if(strstr(strlwr(strcpy(Temp,pItem->Item->Name)),Name))
 				{
-					Count++;
+                    if ((pItem->Item->Type != ITEMTYPE_NORMAL) ||
+                        (pItem->Item->Stackable != 1))
+						Count++;
+                    else
+                        Count+=pItem->StackCount;
 				}
 			}
 		}
@@ -765,14 +773,22 @@ BOOL dataFindItemCount(PCHAR szIndex, MQ2TYPEVAR &Ret)
 						{
 							if (!stricmp(Name,pItem->Item->Name))
 							{
-								Count++;
+                                if ((pItem->Item->Type != ITEMTYPE_NORMAL) ||
+                                    (pItem->Item->Stackable != 1))
+								    Count++;
+                                else
+                                    Count+=pItem->StackCount;
 							}
 						}
 						else 
 						{
 							if(strstr(strlwr(strcpy(Temp,pItem->Item->Name)),Name))
 							{
-								Count++;
+                                if ((pItem->Item->Type != ITEMTYPE_NORMAL) ||
+                                    (pItem->Item->Stackable != 1))
+								    Count++;
+                                else
+                                    Count+=pItem->StackCount;
 							}
 						}
 					}
