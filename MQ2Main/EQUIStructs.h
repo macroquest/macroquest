@@ -12,7 +12,8 @@
     GNU General Public License for more details.
 ******************************************************************************/
 
-
+namespace EQUIStructs
+{
 // ***************************************************************************
 // Structures
 // ***************************************************************************
@@ -651,3 +652,5 @@ typedef struct _LOOTCORPSE {
 // I think there might be pointers at 0x0e0..but no clue what to
 } LOOTCORPSE, *PLOOTCORPSE;
 
+};
+using namespace EQUIStructs;

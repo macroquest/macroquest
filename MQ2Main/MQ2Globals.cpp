@@ -24,7 +24,8 @@
 #define DBG_SPEW
 
 #include "MQ2Main.h"
-
+namespace MQ2Globals
+{
 DWORD gGameState = 0;
 
 DWORD ThreadID = 0;
@@ -452,3 +453,9 @@ CPetitionQWnd **ppPetitionQWnd=(CPetitionQWnd**)pinstCPetitionQWnd;
 CSoulmarkWnd **ppSoulmarkWnd=(CSoulmarkWnd**)pinstCSoulmarkWnd;
 CTimeLeftWnd **ppTimeLeftWnd=(CTimeLeftWnd**)pinstCTimeLeftWnd;
 
+PMQPLUGIN pPlugins=0;
+DWORD ManaGained=0;
+DWORD HealthGained=0;
+PALIAS pAliases=0;
+PMQCOMMAND pCommands=0;
+};

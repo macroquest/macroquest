@@ -1,3 +1,6 @@
+namespace EQData
+{
+
 // ***************************************************************************
 // Defines
 // ***************************************************************************
@@ -946,3 +949,5 @@ typedef struct _CMDLIST {
     DWORD Category;
 } CMDLIST, *PCMDLIST;
 
+};
+using namespace EQData;

@@ -1,3 +1,5 @@
+namespace MQ2Globals
+{
 EQLIB_API DWORD gGameState;
 
 EQLIB_VAR BOOL g_Loaded;
@@ -430,3 +432,5 @@ EQLIB_VAR CTimeLeftWnd **ppTimeLeftWnd;
 #define pPetitionQWnd (*ppPetitionQWnd)
 #define pSoulmarkWnd (*ppSoulmarkWnd)
 #define pTimeLeftWnd (*ppTimeLeftWnd)
+}
+using namespace MQ2Globals;

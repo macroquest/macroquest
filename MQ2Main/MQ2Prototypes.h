@@ -1,3 +1,5 @@
+namespace MQ2Prototypes
+{
 typedef PCHAR   (__stdcall *fEQGetStringByID)(DWORD);
 typedef VOID    (__cdecl *fEQCommand)(PSPAWNINFO, PCHAR);
 typedef HRESULT (__stdcall *fGetDeviceState)(THIS_ DWORD, LPVOID);
@@ -25,3 +27,5 @@ typedef VOID  (__cdecl *fMQZoned)(VOID);
 typedef VOID  (__cdecl *fMQCleanUI)(VOID);
 typedef VOID  (__cdecl *fMQDrawHUD)(VOID);
 typedef VOID  (__cdecl *fMQSetGameState)(DWORD GameState);
+};
+using namespace MQ2Prototypes;

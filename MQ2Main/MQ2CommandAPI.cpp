@@ -21,8 +21,6 @@
 
 #include "MQ2Main.h"
 
-PALIAS pAliases=0;
-PMQCOMMAND pCommands=0;
 CRITICAL_SECTION gCommandCS;
 
 

@@ -23,8 +23,6 @@
 #include "MQ2Main.h"
 
 
-DWORD ManaGained=0;
-DWORD HealthGained=0;
 
 
 void Pulse()

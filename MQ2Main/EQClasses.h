@@ -1,3 +1,5 @@
+namespace EQClasses
+{
 // Other
 class CXSize
 {
@@ -6679,3 +6681,5 @@ EQLIB_OBJECT char * ZoneNPCLoadTextManager::GetS3DName(int);
 EQLIB_OBJECT void ZoneNPCLoadTextManager::LoadText(char *);
 };
 
+};
+using namespace EQClasses;

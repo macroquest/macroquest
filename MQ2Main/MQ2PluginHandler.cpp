@@ -22,7 +22,6 @@
 #include "MQ2Main.h"
 
 
-PMQPLUGIN pPlugins=0;
 CRITICAL_SECTION gPluginCS;
 BOOL bPluginCS=0;
 

@@ -73,7 +73,6 @@ typedef double DOUBLE;
 #include "MQ2Globals.h"
 
 
-
 /* API FOR THE INJECTOR ONLY */
 EQLIB_API VOID  InjectEnable();
 EQLIB_API VOID  InjectDisable();
@@ -419,8 +418,6 @@ EQLIB_API VOID VarRShift                           (PSPAWNINFO,PCHAR);
 EQLIB_API VOID VarSet                              (PSPAWNINFO,PCHAR);
 EQLIB_API VOID Where                               (PSPAWNINFO,PCHAR);
 EQLIB_API VOID ZapVars                             (PSPAWNINFO,PCHAR);
-
-
 // OTHER SHIT
 
 #define LIGHT_COUNT     13
