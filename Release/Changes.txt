@@ -1,5 +1,9 @@
 3 July 2004 by Amadeus:
-- Added new command:  /substitute
+- Added new command:  /substitute 
+  ** Syntax: 
+  **        - /substitute list
+  **        - /substitute <orig> delete
+  **        - /substitute <orig> <substitution>   (see examples below)
   ** This new command allows you to create custom midline substitutions that will work
   ** anywhere in a command.  It works VERY similarly to aliases in some respects, esp.
   ** in how it is saved in the .ini file and how the commandline syntax is structured. 
