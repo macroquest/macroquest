@@ -2230,13 +2230,13 @@ VOID Face(PSPAWNINFO pChar, PCHAR szLine)
             pSpawnClosest->X = (FLOAT)atof(szFilter);
         } else if (!stricmp(szArg, "item")) {
         if (EnviroTarget.Name[0]==0) {
-            MacroError("Face: item but no item targetted.");
+            MacroError("Face: item specified but no item targetted.");
             return;
         }
         pSpawnClosest = &EnviroTarget;
         } else if (!stricmp(szArg, "door")) {
         if (DoorEnviroTarget.Name[0]==0) {
-            MacroError("Face: item but no item targetted.");
+            MacroError("Face: door specified but no door targetted.");
             return;
         }
         pSpawnClosest = &DoorEnviroTarget;
