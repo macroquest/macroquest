@@ -151,8 +151,9 @@
 #define CEverQuest__LeftClickedOnPlayer             0x4A8C40 
 #define CEverQuest__GetRaceDesc						0x491A58 
 #define CEverQuest__GetClassDesc					0x4911D5 
+#define CEverQuest__GetClassThreeLetterCode         0x4915F0 
 #define CEverQuest__GetDeityDesc					0x4931E6 
-#define CEverQuest__GetBodyTypeDesc					0x4915F0 
+#define CEverQuest__GetBodyTypeDesc					0x491753
 #define CEverQuest__SetGameState					0x4978FB 
 
 // CXWndManager
