@@ -1,0 +1,2569 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+
+<html>
+<head>
+<title>Macroquest Documentation</title>
+<style type="text/css">	<!--
+	table {
+		border-collapse: collapse;
+	}
+	body {
+		background-image: url(http://macroquest.sourceforge.net/bg.png);
+		background-position: 50% 50%;
+		background-repeat: no-repeat;
+		background-attachment: fixed;
+		background-color: white;
+		color: black;
+		font-size: 16px;
+		font-family: Arial;
+	}
+	.arg {
+		font-style: italic;
+	}
+	.boldtype {
+		font-weight: bold;
+	}
+	.command {
+		color: Black;
+		font-weight: bold;
+	}
+	.doubletab {
+		padding: 40px;
+	}
+	.labelid {
+		color: #0061BD;
+		font-weight: bold;
+	}
+	.opt {
+		color: #0000CD;
+	}
+	.spacercom {
+		padding: 30px:
+	}
+	.spacervar {
+		padding: 37px:
+	}
+	.tab {
+		padding: 20px;
+	}
+	.tripletab {
+		padding: 60px;
+	}
+	.txtbold {
+		font-weight: bold;
+	}
+	-->
+</style>
+</head>
+
+<body>
+<div align="center">
+<span class="txtbold">MacroQuest Manual</span><br>
+Last Updated: November 14th, 2003<br>
+<a href="http://macroquest.sf.net/" target="_blank">http://macroquest.sf.net/</a>
+</div>
+<span class="txtbold">Table of Contents</span>
+
+<blockquote>
+<p>
+<a href="#downloading">Downloading MacroQuest Source Files</a><br>
+<a href="#compiling">Compiling MacroQuest and eqlib.dll</a><br>
+<a href="#install">Installing Macroquest</a><br>
+<a href="#using">Starting MacroQuest</a><br>
+<a href="#updates">Updating Macroquest</a><br>
+<a href="#macrofunda">Macro fundamentals</a><br>
+<span class="tab"></span><a href="#comments">Comments</a><br>
+<span class="tab"></span><a href="#poundcom">Pound commands</a><br>
+<span class="tab"></span><a href="#subrouti">Subroutines</a><br>
+<a href="#commands">Macro commands</a><span class="spacercom"></span>
+<a href="#a">a</a>&nbsp;
+<a href="#b">b</a>&nbsp;
+<a href="#c">c</a>&nbsp;
+<a href="#d">d</a>&nbsp;
+<a href="#e">e</a>&nbsp;
+<a href="#f">f</a>&nbsp;
+<a href="#g">g</a>&nbsp;
+<a href="#h">h</a>&nbsp;
+<a href="#i">i</a>&nbsp;
+<a href="#j">j</a>&nbsp;
+<a href="#k">k</a>&nbsp;
+<a href="#l">l</a>&nbsp;
+<a href="#m">m</a>&nbsp;
+<a href="#n">n</a>&nbsp;
+<a href="#o">o</a>&nbsp;
+<a href="#p">p</a>&nbsp;
+<a href="#q">q</a>&nbsp;
+<a href="#r">r</a>&nbsp;
+<a href="#s">s</a>&nbsp;
+<a href="#t">t</a>&nbsp;
+<a href="#u">u</a>&nbsp;
+<a href="#v">v</a>&nbsp;
+<a href="#w">w</a>&nbsp;
+<a href="#x">x</a>&nbsp;
+<a href="#y">y</a>&nbsp;
+<a href="#z">z</a><br>
+<a href="#variables">Macro variables</a><span class="spacervar"></span>
+<a href="#av">a</a>&nbsp;
+<a href="#bv">b</a>&nbsp;
+<a href="#cv">c</a>&nbsp;
+<a href="#dv">d</a>&nbsp;
+<a href="#ev">e</a>&nbsp;
+<a href="#fv">f</a>&nbsp;
+<a href="#gv">g</a>&nbsp;
+<a href="#hv">h</a>&nbsp;
+<a href="#iv">i</a>&nbsp;
+<a href="#jv">j</a>&nbsp;
+<a href="#kv">k</a>&nbsp;
+<a href="#lv">l</a>&nbsp;
+<a href="#mv">m</a>&nbsp;
+<a href="#nv">n</a>&nbsp;
+<a href="#ov">o</a>&nbsp;
+<a href="#pv">p</a>&nbsp;
+<a href="#qv">q</a>&nbsp;
+<a href="#rv">r</a>&nbsp;
+<a href="#sv">s</a>&nbsp;
+<a href="#tv">t</a>&nbsp;
+<a href="#uv">u</a>&nbsp;
+<a href="#vv">v</a>&nbsp;
+<a href="#wv">w</a>&nbsp;
+<a href="#hv">x</a>&nbsp;
+<a href="#yv">y</a>&nbsp;
+<a href="#zv">z</a><br>
+<a href="#uiref">MQ and the UI</a><br>
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#labelid">Using label id's</a><br>
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#tooltype">Using the tooltype</a><br>
+<a href="#telnet">Telnet Server</a><br>
+<a href="#compareop">Appendix A: Comparison Operators</a><br>
+<a href="#mathop">Appendix B: Math Operators</a><br>
+<a href="#sendkeylist">Appendix C: Sendkey list</a><br>
+<a href="#skilllist">Appendix D: Skill list</a><br>
+<a href="#containerslist">Appendix E: Containers list</a><br>
+<a href="#slotnames">Appendix F: Equipment Slot Names</a><br>
+<a href="#credits">Credits and How to help</a></p>
+</blockquote>
+
+<a name="downloading" id="downloading"></a>
+<span class="txtbold">Downloading MacroQuest Source Files</span><br>
+There are two ways to get the source files needed to compile MacroQuest.<br><br>
+The most convenient way to get the source files is to download them from the MacroQuest home page:
+<a href="http://macroquest.sourceforge.net/downloads/IRC-latest.zip" target="_blank">Macroquest Archive</a><br><br>
+The second way is to get updates directly from Sourceforge using a CVS client.<br><br>
+<span class="txtbold">CVS</span><br>
+A common CVS client used on Windows is <a href="http://www.wincvs.org/" target="_blank">WinCVS</a><br><br>
+
+<span class="txtbold">Directions for using WinCVS to download the source files:</span><br>
+<span class="tab">1. Install WinCVS by running setup.exe. Keep clicking on <span class="txtbold">Next</span> until the install is completed.</span><br>
+<span class="tab">2. Run WinCVS</span><br>
+<span class="tab">3. When WinCVS starts open Admin -> Preferences. In the General tab paste:</span><br><br>
+<span class="doubletab"><span class="txtbold">anonymous@cvs.sourceforge.net:/cvsroot/macroquest</span></span><br><br>
+<span class="doubletab">in the 'Enter the CVSROOT' field</span><br><br>
+<span class="tab">4. In the Authentication field choose the '"passwd" file on the cvs server' option</span><br>
+<span class="tab">5. Now click on the Globals tab and check the box at the bottom which says: 'Checkout textfiles with the UNIX LX (0xa)'</span><br>
+<span class="tab">6. Click OK</span><br>
+<span class="tab">7. Goto menu Admin -> Login. When the password requester window opens press <span class="txtbold">Enter</span></span><br>
+<span class="tab">8. Goto menu Admin -> Command Line... and paste:</span><br><br>
+<span class="doubletab"><span class="txtbold">cvs -z3 -d:pserver:anonymous@cvs.sourceforge.net:/cvsroot/macroquest co macroquest</span></span><br><br>
+<span class="tab">9. Press Enter</span><br>
+<span class="tab">10. The source should be downloaded to you computer...</span><br><br>
+
+<a name="compiling" id="compiling"></a>
+<span class="txtbold">Compiling Macroquest</span><br>
+Macroquest requires VC 6 or VC.net to be compiled.<br><br>
+<span class="txtbold">To compile with VC6</span><br>
+<span class="tab">1. Install Visual C++ 6.0 or Visual Studio 6.0</strong></span><br>
+<span class="tab">2. Download the MacroQuest source files</strong></span><br>
+<span class="tab">3. Unzip it into any new folder</strong></span><br>
+<span class="tab">4. Go to the newly created folder and double-click the macroquest.dsw file</strong></span><br>
+<span class="tab">5. It will open Visual C++ or in Visual Studio.</strong></span><br>
+<span class="tab">6. Go to the menu called <span class="txtbold">Build</span> and click on it</strong></span><br>
+<span class="tab">7. On that menu go to Set Active Configuration click on it...</strong></span><br>
+<span class="tab">8. Set the active configuration to macroquest - Win32 Release and press ok</strong></span><br>
+<span class="tab">9. Go to Build menu again and click it.</strong></span><br>
+<span class="tab">10. Select Build macroquest.exe</span><br><br>
+
+<span class="txtbold">To compile with VC.net</span>:<br>
+<span class="tab">1. Install Visual VC.NET</span><br>
+<span class="tab">2. Download the MacroQuest source files</span><br>
+<span class="tab">3. Unzip it into any new folder</span><br>
+<span class="tab">3. Right click the folder, select Properties, and remove the Read only flag</span><br>
+<span class="tab">4. Go to the newly created folder and double-click the macroquest.sln file</span><br>
+<span class="tab">5. VC.net will open the MacroQuest project</span><br>
+<span class="tab">6. Go to the menu called <span class="txtbold">Build</span> and select <span class="txtbold">Batch Build</span></span><br>
+<span class="tab">7. In the Batch Build window select the shown files to compile:</span><br><br>
+<span class="doubletab"><img src="http://macroquest.sourceforge.net/batchbuild.png"></span><br>
+<span class="tab">8. Click the <span class="txtbold">Build</span> button</span><br>
+<span class="tab">9. The eqlib.dll and MacroQuest.exe files should compile.</span><br><br>
+
+<a name="install" id="install"></a>
+<span class="txtbold">Installing MacroQuest</span><br>
+1. Create a new folder anywhere, such as c:\MQ<br>
+2. Create three new folders within this folder, named <em>ini</em>, <em>logs</em>, and <em>macros</em><br>
+3. Copy the files <span class="txtbold">MacroQuest.exe</span>, 
+                  <span class="txtbold">eqlib.dll     </span>, 
+				  <span class="txtbold">eqgame.ini    </span>, 
+				  <span class="txtbold">macroquest.ini</span>, and 
+				  <span class="txtbold">locations.txt</span> 
+				  from the Release folder to c:\MQ<br><br> 
+<span class="doubletab"><img src="http://macroquest.sourceforge.net/files.png"></span><br><br>
+
+<a name="using" id="using"></a>
+<span class="txtbold">Starting MacroQuest</span><br>
+To run MacroQuest simply double click on MacroQuest.exe. You do not have to start MacroQuest before Everquest.<br>
+The MQ icon will appear in the system tray.<br><br> 
+
+<a name="updates" id="updates"></a>
+<span class="txtbold">Updates to MacroQuest</span><br>
+When there is a patch to Everquest check the forums to see if there has been a change to MacroQuest. All that is usually
+required is updating the eqclient.ini with new offsets.<br><br>
+
+The MacroQuest developers also update current features or add new features to MacroQuest.
+Download the latest CVS or zipfile and recompile when this occurs.<br><br>
+
+<a name="macrofunda" id="macrofunda"></a>
+<span class="txtbold">Macro Fundamentals</span><br><br>
+
+<a name="comments" id="comments"></a>
+<span class="txtbold">Comments</span><br>
+Comments are descriptive lines in a macro to make reading easier. These are not executed when the macro runs.<br><br>
+
+Single line comments start with <span class="txtbold">|</span><br><br>
+<span class="tab"><span class="txtbold">|</span> This is a single line comment</span><br><br>
+
+Multi line comments start with <span class="txtbold">|**</span> and end with **<span class="txtbold">|</span><br><br>
+<span class="tab"><span class="txtbold">|**</span> This is a multiple</span><br>
+<span class="tab">line comment where</span><br>
+<span class="tab">you could use this</span><br>
+<span class="tab">form of commenting <span class="txtbold">**|</span></span><br><br>
+
+<a name="poundcom" id="poundcom"></a>
+<span class="txtbold">Pound(#) Commands</span><br>
+Pound commands are pre-execution commands that are not run during the macro.<br><br>
+
+<span class="command">#turbo</span> [<span class="arg">#</span>]<br>
+This will prevent bad macros from locking up the client by allowing you to limit the number of commands per iteration.<br>
+The default is 500. A value of 1 will essentially disable #turbo.<br><br>
+
+<span class="command">#define</span> <span class="arg">short</span> <span class="arg">replacement</span><br>
+Replaces all occurrences of <em>short</em> with <em>replacement</em> throughout the macro.<br><br>
+
+<span class="command">#include</span> "<span class="arg">filename</span>"<br>
+Allows you to use functions from another macro file by using /call.<br><br>
+
+<span class="command">#event</span> <span class="arg">varname</span> "<span class="arg">string</span>"<br>
+Creates a custom event (Sub Event_varname) that occurs whenever string is sent to the chat box. A matching Sub must be used.<br><br>
+
+<a name="subrouti" id="subrouti"></a>
+<span class="txtbold">Subroutines</span><br>
+Every macro has a Sub Main that defines the macro's entry point.<br><br>
+<span class="tab"><span class="txtbold">Sub Main</span></span><br>
+<span class="doubletab"><span class="txtbold">.</span></span><br>
+<span class="doubletab">&lt;code&gt;</span><br>
+<span class="doubletab"><span class="txtbold">.</span></span><br>
+<span class="tab"><span class="txtbold">/return</span></span><br><br>
+
+Additional Subs can be defined and /called. Upon return the macro will return to the statement after the call.<br><br>
+<span class="tab"><span class="txtbold">Sub Main</span></span><br>
+<span class="doubletab"><span class="command">/call</span> <span class="arg">MySub</span> <span class="arg">@var1 @var2 @var3</span></span><br>
+<span class="doubletab"><span class="command">/echo</span> This value was returned from MySub<span class="txtbold">:</span>&nbsp; <span class="command">$return</span></span><br>
+<span class="tab"><span class="command">/return</span></span><br><br>
+<span class="tab"><span class="txtbold">Sub <span class="arg">MySub</span></span>[(<span class="arg">Param0</span>,...[<span class="arg">Param_n</span>]</span>)]<br>
+<span class="doubletab">execute this code when /call <span class="arg">MySub</span> is executed. Parameters are not necessary.</span><br>
+<span class="tab"><span class="txtbold">/return</span> [<span class="arg">value</span>|<span class="arg">@varname</span>]</span><br><br>
+
+Special subroutines starting with Event_ are used by <span class="command">/doevents</span> (Chat and Timers)<br><br>
+<span class="tab"><span class="txtbold">Sub <span class="arg">Event_Chat</span></span>[(<span class="arg">ChatType</span>,<span class="arg">Sender</span>,<span class="arg">ChatText</span>)]</span><br>
+<span class="doubletab">This code is executed when <span class="command">/doevents</span> finds(queues) text in the channel defined by #chat "<span class="arg">channel</span>"</span><br>
+<span class="tab"><span class="txtbold">/return</span> [value]</span><br><br>
+
+<span class="tab"><span class="txtbold">Sub</span> <span class="arg">Event_Timer</span>[(<span class="arg">Timer</span>,<span class="arg">OriginalValue</span>)]</span><br>
+<span class="doubletab">This code is executed when /doevents detects(queues) any defined timer reaching 0</span><br>
+<span class="tab"><span class="txtbold">/return</span> [value]</span><br><br>
+
+<span class="tab"><span class="txtbold">Sub</span> <span class="arg">Event_Chat</span>[(<span class="arg">ChatType,Sender,ChatText</span>)]</span><br>
+<span class="doubletab">ChatType : Channel of message</span><br>
+<span class="doubletab">Sender   : Name of the person who sent the message</span><br>
+<span class="doubletab">ChatText : Text they sent</span><br><br>
+
+<span class="tab"><span class="txtbold">Sub</span> <span class="arg">Event_Timer</span>[(<span class="arg">Timer,OriginalValue</span>)]</span><br>
+<span class="doubletab">Timer         : Timer that fired</span><br>
+<span class="doubletab">OriginalValue : Value timer was originally set to</span><br><br>
+
+<a name="commands" id="commands"></a>
+<span class="txtbold">MacroQuest commands</span><br>
+
+All commands/variables are listed showing their usage in the following format:<br><br>
+
+<span class="command">name</span> [<span class="opt">options</span>] <span class="arg">argument</span><br>
+Description<br>
+<em>Example</em><br><br>
+<a name="a" id="a"></a>
+<span class="command">/alert</span> <span class="opt">add</span> <span class="arg">#</span> [<span class="opt">pc</span>|<span class="opt">npc</span>|<span class="opt">corpse</span>|<span class="opt">any</span>] 
+                                          [<span class="opt">radius</span> <span class="arg">#</span>] 
+										  [<span class="opt">range</span> <span class="arg">min max</span>] "<span class="arg">spawnname</span>" 
+										  [<span class="opt">clear</span>|<span class="opt">list</span> <span class="arg">#</span>]<br>
+Used to manipulate alert lists which 'watch' for spawns. See $alert<br><br>
+<blockquote>
+<SCRIPT LANGUAGE="Javascript">
+document.write("<XMP>")
+document.write("/alert add 1 'spawnname'\t\t\t\t\tAdds 'spawnname' to alert list 1\r")
+document.write("/alert clear # \t\t\t\t\t\tClears all members from alert list 1\r")
+document.write("/alert list #\t\t\t\t\t\tLists all members of alert list 1\r")
+document.write("/alert add 1 npc radius 300 'spawnname'\t\tSets alert(1) to TRUE if 'spawnname' is within radius of 300 from your location\r")
+document.write("/alert add 2 npc range 30 200 'spawnname'\t\tSets alert(2) to TRUE if any 'spawnname' are within 30 to 200 range from your location\r")
+document.write("</XMP>")
+</SCRIPT>
+</blockquote>
+
+<span class="command">/alias</span> [<span class="opt">list</span>|<span class="opt">delete</span> 
+                                    <span class="arg">aliasname</span>] [<span class="arg">name</span> <span class="arg">command</span>]<br>
+Useful for creating shorter versions of a command.
+<blockquote>
+<span class="command">/alias</span> <span class="opt">list</span><br>
+Lists all aliases<br><br>
+
+<span class="command">/alias</span> <span class="opt">hp</span> <span class="command">/echo</span> <span class="arg">My health is</span>
+<span class="command">$char</span>(<span class="opt">hp</span>,<span class="opt">pct</span>)<br>
+Typing hp in the EQ chat box will display: My health is % in the EQ chat window<br><br>
+
+<span class="command">/alias</span> <span class="opt">delete</span> <span class="arg">aliasname</span><br>
+Deletes <em>aliasname</em> from Macroquest.ini
+</blockquote>
+
+<a name="b" id="b"></a>
+<span class="txtbold">/breakin</span> **No idea if this works<br>
+__asm int 3 (You must have a debugger attached)<br><br>
+
+<span class="command">/banklist</span><br>
+Displays an inventory of the currently logged in character in this format:<br><br>
+<span class="tab">Bankslot#:Typeofcontainer</span><br>
+<span class="tab">-ContainerSlot1:Item</span><br>
+<span class="tab">-Containerslot2:Item</span><br>
+<span class="tab">-etc</span><br><br>
+
+<span class="command">/beep</span><br>
+Performs a system beep<br><br>
+
+<span class="command">/buyitem</span> <span class="arg">#</span><br>
+Buys # of the items selected in the merchant inventory (stackable only)<br><br>
+
+<a name="c" id="c"></a>
+<span class="command">/call</span> <span class="arg">subroutine</span> [<span class="arg">Param0</span>... [<span class="arg">Param#</span>]]<br>
+Calls a subroutine (defined by Sub &lt;name>)<br><br>
+<blockquote>
+<SCRIPT LANGUAGE="Javascript">
+document.write("<XMP>")
+document.write("/call MySub left\t\t\t\t\t\tExecutes Sub MySub\r")
+document.write("/call MySub varname1 varname2 ...[varname#]\t\tExecutes Sub Mysub and passes parameters\r")
+document.write("</XMP>")
+</SCRIPT>
+</blockquote>
+
+<span class="command">/cast</span> ["<span class="arg">spellname</span>"|"<span class="arg">@varname</span>"] [<span class="opt">list</span>] [<span class="opt">item</span> "<span class="arg">itemname</span>"]<br>
+Will cast the specified spell, or perform a right click of an item that has a right click spell
+<blockquote>
+/cast "complete heal"<br>
+/cast item "mana robe"<br>
+/cast "@SpellName"<br>
+/cast list<br><br>
+</blockquote>
+
+<span class="command">/charinfo</span><br>
+Returns Your current bind zone and location.<br>
+<span class="tab">You are bound in zonename at x, y, z</span><br><br>
+
+<span class="command">/cleanup</span><br>
+Closes all open windows and then opens inventory window<br><br>
+
+<span class="command">/click</span> <span class="opt">left</span>|<span class="opt">right</span> [<span class="opt">corpse</span>|<span class="opt">target</span>|<span class="opt">windowloc</span>] 
+[[<span class="opt">+-</span>]<span class="arg">x</span> [<span class="opt">+-</span>]<span class="arg">y</span>] [<span class="arg">slotname</span>]
+[<span class="opt">pack</span> <span class="arg">#</span> [<span class="arg">slot#</span> <span class="opt">combine</span>|<span class="opt">done</span>]]<br>
+Clicks the left/right mouse button at coordinates or a defined location.<br><br>
+Examples:<br>
+<blockquote>
+<SCRIPT LANGUAGE="Javascript">
+document.write("<XMP>")
+document.write("/click left\t\t\tPerforms a left mouse click at the current mouse position\r")
+document.write("/click left 100 100\t\tPerforms a left mouse click at 100 100\r")
+document.write("/click left +30 -30\t\tPerforms a left mouse click 30 pixels right and 30 pixels up from the current location\r")
+document.write("/click right lfinger\tPerforms a right click of the left finger slot\r")
+document.write("/click left pack 4 done\tPerforms a left click on the DONE button of pack 4\r")
+document.write("/click right target\t\tPerforms a right click on your current target\r")
+document.write("</XMP>")
+</SCRIPT>
+</blockquote>
+
+<a name="d" id="d"></a>
+<span class="command">/declare</span> <span class="arg">varname</span> <span class="opt">global</span> | <span class="opt">local</span> | <span class="opt">timer</span> | <span class="opt">array</span> | <span class="opt">array2</span><br>
+Sets varname as a global, local, timer, one dimensional array or two dimensional array<br><br>
+
+<span class="command">/delay</span>&nbsp;&nbsp;<span class="arg">#</span> | <span class="arg">@varname</span>[<span class="opt">s</span> | <span class="opt">m</span>]<br>
+Fully pauses macro for a set amount of time. #|@varname is in 10ths of a second (or suffixes s/m)
+<blockquote>
+<SCRIPT LANGUAGE="Javascript">
+document.write("<XMP>")
+document.write("/delay 5\t\t\tDelays the macro execution for 5 tenths of a second\r")
+document.write("/delay 1s\t\t\tDelays the macro for 1 second\r")
+document.write("/delay 1m\t\t\tDelays the macro for one minute\r")
+document.write("</XMP>")
+</SCRIPT>
+</blockquote>
+
+<span class="command">/doevents</span> [<span class="opt">flush</span> | <span class="arg">specificevent</span>]<br>
+Runs any events that have queued up or flushes queued events<br>
+If specificevent is used, only those events will run (/doevents chat )<br>
+<blockquote>
+<SCRIPT LANGUAGE="Javascript">
+document.write("<XMP>")
+document.write("/doevents chat\t\tdoevents will only run chat events\r")
+document.write("/doevents flush\t\tClears all events in the /doevents queue\r")
+document.write("/doevents SpellFizzle\tdoevents will only run SpellFizzle events\r")
+document.write("</XMP>")
+</SCRIPT>
+</blockquote>
+
+<span class="command">/doors</span> ["<span class="arg">filter</span>"]<br>
+Lists all doors in the zone<br><br>
+
+<span class="command">/doortarget</span> <span class="arg">id#</span> | "<span class="arg">filter</span>"<br>
+"Targets" a door for use with /face door and $door()<br><br>
+
+<a name="e" id="e"></a>
+<span class="command">/echo</span> <span class="arg">text</span><br>
+Echo's the specified text and or variable values to the EQ client<br><br>
+Example:<br>
+<span class="tab">/echo My current health is at $char(hp,pct)</span><br><br>
+
+<span class="command">/editmacro</span> <span class="opt">notes</span> | <span class="opt">load</span> &lt;"<span class="arg">filename</span>"&gt; | save &lt;"<span class="arg">filename</span>"&gt; (uses Notes Window)<br>
+Allows you to edit text files from within the EQ client<br><br>
+
+<span class="command">/endmacro</span><br>
+Stops the macro<br><br>
+
+<a name="f" id="f"></a>
+<span class="command">/face</span> [<span class="opt">predict</span>] [<span class="opt">fast</span>] [<span class="opt">look</span>] [<span class="opt">away</span>] 
+[<span class="opt">alert</span> <span class="arg">#</span> | <span class="opt">loc</span> <span class="arg">y</span>,<span class="arg">x</span> | <span class="opt">heading</span> <span class="arg">angle</span> | <span class="opt">item</span> | <span class="opt">door</span> | <span class="opt">id</span> <span class="arg">#</span> | <span class="arg">name</span>]<br>
+Turns your character to face your target<br>
+Using look will change your view elevation to face and look at the target at it's z axis location<br>
+Using predict will return estimated distances, unless the target is stationary
+<blockquote>
+<SCRIPT LANGUAGE="Javascript">
+document.write("<XMP>")
+document.write("/face\t\t\t\tTurns you to face your selected target\r")
+document.write("/face look\t\t\tFaces your target and changes your vertical view angle to look at the target\r")
+document.write("/face fast\t\t\tImmediately turns your character to face the target\r")
+document.write("/face fast predict\t\tImmediately turns your character to face the targets estimated position\r")
+document.write("/face fast look\t\tImmediately turns your character to face and look at your target\r")
+document.write("/face fast look predict\tImmediately turns your character to face and look at your targets estimated position\r")
+document.write("/face item\t\t\tFaces the item from /itemtarget\r")
+document.write("/face fast item\t\tImmediately faces the item from /itemtarget\r")
+document.write("</XMP>")
+</SCRIPT>
+</blockquote>
+
+<span class="command">/filter</span> [<span class="opt">macros</span> <span class="opt">all</span>|<span class="opt">enhanced</span>|<span class="opt">none</span>] 
+[<span class="opt">skills</span> <span class="opt">all</span> | <span class="opt">increase</span> | <span class="opt">none</span>]
+[<span class="opt">target</span> | <span class="opt">money</span> | <span class="opt">food</span> | <span class="opt">encumber</span> | <span class="opt">debug</span> <span class="arg">on</span> | <span class="arg">off</span>] 
+[<span class="arg">name</span> [<span class="opt">add</span> <span class="arg">text</span>] | <span class="opt">remove</span> ] 
+[<span class="opt">zrange</span> <span class="arg">#</span>]<br><br>
+
+<span class="command">/finditem</span> [<span class="opt">similar</span>] "<span class="arg">itemname</span>"<br>
+Finds an item in your inventory by name. /finditem will open a pack, click the item, and
+then close the pack if it was already closed.<br>
+Using similar triggers a search for substrings in &lt;"itemname">
+<blockquote>
+If there was an item on the cursor, $getlasterror is set to FIND_HANDSFULL<br>
+If it was unable to open a pack, $getlasterror is set to FIND_PACKNOTOPEN<br>
+If the item wasn't found, $getlasterror is set to FIND_NOTFOUND<br><br>
+</blockquote>
+
+<span class="command">/for</span> <span class="arg">varname val1</span> <span class="opt">to</span>|<span class="opt">downto</span> <span class="arg">val2</span> [<span class="opt">step</span> <span class="arg">val3</span>]<br>
+Runs commands while changing varname from val1 to val2 in steps of val3 (default is 1)
+<blockquote>
+<span class="txtbold">/for</span> varname <em>value1</em> to|downto <em>value2</em> [step <em>val3</em>]<br>
+<span class="tab"><span class="txtbold">.</span></span><br>
+<span class="tab">commands</span><br>
+<span class="tab"><span class="txtbold">.</span></span><br>
+<span class="txtbold">/next</span> varname
+</blockquote>
+
+<a name="g" id="g"></a>
+<span class="command">/goto</span> <span class="txtbold">:</span><span class="arg">labelname</span><span class="txtbold"></span><br>
+Moves macro execution to a label
+<blockquote>
+/goto <span class="txtbold">:</span>MyLabel
+</blockquote>
+
+<a name="h" id="h"></a>
+<span class="command">/help</span> macro<br>
+Lists all commands available to the client<br><br>
+
+<span class="command">/hotkey</span> <span class="arg">keyname</span> <span class="opt">delete</span> | <span class="arg">command</span>
+<blockquote>
+<SCRIPT LANGUAGE="Javascript">
+document.write("<XMP>")
+document.write("/hotkey keyname delete\t\t\tDeletes the hotkey from the hotkey list\r")
+document.write("/hotkey keyname command\t\t\tAdds the hotkey to the hotkey list\r")
+document.write("</XMP>")
+</SCRIPT>
+</blockquote>
+
+<a name="i" id="i"></a>
+<span class="command">/identify</span><br>
+Cross between the Identify spell and right-clicking an item for info<br><br>
+
+<span class="command">/if</span> [<span class="opt">n</span>] &lt;<span class="arg">comparison</span>&gt; &lt;<span class="arg">command</span>&gt;<br>
+Runs &lt;command&gt; if the condition is true. (n makes the comparison numeric)<br><br>
+Multiple commands can be surrounded by { }, allowing multiple commands to be executed if the comparison is true.<br>
+} can be followed by else and a command.<br><br>
+Example:
+<blockquote>
+/if "@firstvar"=="This is true" {<br>
+<span class="tab">/echo TRUE</span><br>
+} else /if @secondvar==FALSE {<br>
+<span class="tab">/echo FALSE</span><br>
+<span class="tab">/mqlog secondvar equals: @secondvar</span><br>
+} else {<br>
+<span class="tab">/echo It's Something else</span><br>
+}<br><br>
+/if n @MyVar>=1 /goto :labelname<br>
+</blockquote>
+
+<span class="command">/ini</span> "<span class="arg">ini filename</span>" "<span class="arg">keyname</span>" "<span class="arg">valuename</span>" "<span class="arg">value</span>"<br>
+Writes data to the specified ini file. Also see <span class="command">$ini</span><br>
+<blockquote>
+stuff.ini contains:<br><br>
+[MySection]<br>
+Key1=123<br>
+Key2=This is cool!<br>
+Key3=Wheeee... 15<br><br>
+
+/ini "stuff.ini" "Section2" "ANewKey" "Some Data!"<br><br>
+stuff.ini after the above command is executed:<br><br>
+[MySection]<br>
+Key1=123<br>
+Key2=This is cool!<br>
+Key3=Wheeee... 15<br><br>
+[Section2]<br>
+ANewKey=Some Data!<br>
+</blockquote>
+
+<span class="command">/items</span> ["<span class="arg">filter</span>"]<br>
+Lists all ground spawns in the zone if "<span class="arg">filter</span>" is not used<br><br>
+
+<span class="command">/itemtarget</span> "<span class="arg">itemname</span>"<br>
+"Targets" a ground spawn or environmental container<br><br>
+<span class="tab"></span>/itemtarget &lt;"itemname"&gt;<br><br>
+
+<a name="j" id="j"></a>
+<a name="k" id="k"></a>
+<span class="command">/keepkeys</span> [<span class="opt">off</span>|<span class="opt">on</span>]<br>
+***NEED DESCRIPTION OF WHAT THIS DOES***<br><br>
+<span class="tab">/keepkeys<span class="doubletab"></span>Gives the state of keepkeys</span><br><br>
+
+<a name="l" id="l"></a>
+<span class="command">/listmacros</span> ["<span class="arg">filter</span>"]<br>
+Lists macro files that are in the 'macros' directory (listed alphabetically)<br><br>
+
+<span class="command">/loadspells</span> "<span class="arg">spellset</span>"<br>
+Will load one of your memorized sets of spells<br><br>
+
+<span class="command">/location</span><br>
+Returns your x,y location and the cardinal direction you are facing.<br><br>
+<span class="indent">Resulting message:  Your Location is x, y, z, and are heading south</span><br><br>
+
+<span class="command">/loginname</span><br>
+Displays the login name of the account you are currently logged into<br><br>
+
+<span class="command">/look</span> [[<span class="arg">-</span>]<span class="arg">angle</span>]<br>
+Changes the angle you are looking. &lt;angle> can be any value between -128 and 128. Default for &lt;angle> is 0.<br><br>
+<blockquote>
+<SCRIPT LANGUAGE="Javascript">
+document.write("<XMP>")
+document.write("/look 50\t\tChanges your look angle to +50\r")
+document.write("/look -75\t\tChanges your look angle to -50 (down)\r")
+document.write("</XMP>")
+</SCRIPT>
+</blockquote>
+
+<a name="m" id="m"></a>
+<span class="command">/macro</span> <span class="arg">filename</span> [<span class="arg">Param0</span> [<span class="arg">Param1</span>...]]<br>
+Starts running a macro. Calling a macro from another macro will end the calling macro.<br><br>
+<span class="tab">/macro mymacro</span><br>
+<span class="tab">/macro mymacro "water flask" "metal bits"</span><br><br>
+
+<span class="command">/mapfilter</span> [<span class="opt">all</span>|<span class="opt">refresh</span> <span class="arg">#</span> | <span class="opt">pc</span> 
+                                        | <span class="opt">npc</span> | <span class="opt">corpse</span> | <span class="opt">ground</span> | <span class="opt">pet</span>
+										| <span class="opt">castradius</span> <span class="arg">#</span> | <span class="opt">spawnradius</span> <span class="arg">#</span>
+										| <span class="opt">vector</span>] [<span class="opt">hide</span>|<span class="opt">show</span>]
+										|[<span class="opt">custom</span> <span class="opt">npc</span><span class="opt">range</span> <span class="arg">min</span> <span class="arg">max</span>]<br>
+Toggles the display of the respective items on the in game map.
+<blockquote>
+<SCRIPT LANGUAGE="Javascript">
+document.write("<XMP>")
+document.write("/mapfilter all show \t\t\tEnables the display of all items on the in game map\r")
+document.write("/mapfilter npc show\t\t\t\tEnables the display of npc's on your map\r")
+document.write("/mapfilter castradius 250\t\t\tDraws a circle of radius 250 around your character\r")
+document.write("/mapfilter pet hide\t\t\t\tHides all pets on the in game map\r")
+document.write("/mapfilter spawnradius 500\t\tDisplays all spawns in a radius of 500 from your character(down)\r")
+document.write("/mapfilter spawnradius hide\t\tHides all npcs on the in game map\r")
+document.write("/mapfilter refresh 3\t\t\tChanges the refresh interval for the map to 3\r")
+document.write("/mapfilter custom npc range 20 40\tShows all npcs in range of 20 to 40 on map\r")
+document.write("</XMP>")
+</SCRIPT>
+</blockquote>
+
+<span class="command">/maxfps</span> <span class="opt">fg</span>|<span class="opt">bg</span> <span class="arg">#</span><br>
+Changes the frames per second of the Everquest screen when it is in focus and when it is in the background.<br> This frees CPU processing time for other tasks. This is most useful when you run multiple instances of<br>Everquest on one computer, or if
+you need to use an application when Everquest is minimized. The default<br>setting is foreground: 50 background:20.<br><br>
+
+<span class="command">/memspell</span> <span class="arg">gem#</span>&nbsp;&nbsp;"<span class="arg">spell name</span>"<br>
+Attempts to memorize "<span class="arg">spell name</span>" into <span class="arg">gem#</span><br><br>
+<span class="tab"></span>/memspell 1 "complete heal" memorizes Complete Heal in spell gem 1<br><br>
+
+<span class="command">/mouseclickl</span><br>
+Clicks the left mouse button at the current mouse position<br><br>
+
+<span class="command">/mouseclickr</span><br>
+Clicks the right mouse button at the current mouse position<br><br>
+
+<span class="command">/mouseto</span><br>
+Moves the mouse to specified locations<br><br>
+
+<table width="100%" border="1" cellpadding="2" cellspacing="0">
+  <tbody>
+  <tr>
+    <td width="104">[+-]<span class="arg">x</span> [+-]<span class="arg">y</span></td>
+    <td width="404">Moves the mouse to <em>x y</em> (+|- is relative to the current position)</td>
+  </tr>
+
+  <tr>
+    <td><span class="opt">auto</span>|<span class="opt">destroy</span>|<span class="opt">done</span></td>
+    <td>Moves the mouse to the autoequip location, Destroy button, or Done button in the inventory window.</td>
+  </tr>
+
+  <tr>
+    <td>[<span class="opt">bank</span>|<span class="opt">pack</span> <span class="arg">pack#</span> <span class="arg">slot#</span>]</td>
+    <td>Moves the mouse to <span class="arg">slot#</span> of <span class="arg">pack#</span> in the bank or your inventory</td>
+  </tr>
+
+  <tr>
+    <td>[<span class="opt">bank</span>] <span class="opt">plat</span>
+	                                    |<span class="opt">gold</span>
+	                                    |<span class="opt">silver</span>
+	                                    |<span class="opt">copper</span></td>
+    <td>Moves the mouse to the selected coin slot. Player is default</td>
+  </tr>
+
+  <tr>
+    <td>[<span class="opt">enviro</span> <span class="arg">slot#</span>|<span class="opt">combine</span>|<span class="opt">done</span>]</td>
+    <td>moves the mouse to the selected slot or button of the enviro container</td>
+  </tr>
+
+  <tr>
+    <td>[<span class="opt">merchant buy</span>|<span class="opt">sell</span>|<span class="arg">slot#</span>]</td>
+    <td>Moves the mouse to the BUY or SELL button, or slot# of the merchant window</td>
+  </tr>
+
+  <tr>
+    <td>[<span class="opt">equipslot</span>]</td>
+    <td>Moves the mouse to an equipment position in the inventory window. See Appendix F</td>
+  </tr>
+
+  <tr>
+    <td>[<span class="opt">target</span>]</td>
+    <td>Moves the mouse to the target or corpse, if visible on your screen</td>
+  </tr>
+
+  <tr>
+    <td>[<span class="opt">corpse</span>|<span class="opt">inv</span> <span class="arg">slot#</span>]</td>
+    <td>Moves the mouse to corpse or inv slot#</td>
+  </tr>
+
+  <tr>
+    <td>[<span class="opt">npctrade</span> <span class="arg">slot#</span>|<span class="opt">give</span>]</td>
+    <td>Moves the mouse to the npc give window slot# or give button</td>
+  </tr>
+
+  <tr>
+    <td>[<span class="opt">notid</span>|<span class="opt">id</span> <span class="arg">spawnid</span>]</td>
+    <td>***NEED TO FILL THIS DESCRIPTION IN***</td>
+  </tr>
+  
+  <tr> 
+    <td>["<span class="arg">spawnname</span>"]</td>
+    <td>Targets the specified "<span class="arg">spawnname</span>"</td>
+  </tr>
+  
+  <tr> 
+    <td>[<span class="opt">alert</span> <span class="arg">#</span>]</td>
+    <td>Targets any spawn that exists in the specified alert #</td>
+  </tr>
+  
+    <tr> 
+    <td>[<span class="opt">myself</span>|<span class="opt">mycorpse</span>]</td>
+    <td>Targets the specified keyword</td>
+  </tr>
+</tbody>
+</table><br><br>
+
+<span class="command">/mqlog</span> <span class="arg">text</span>|<span class="opt">clear</span><br>
+Logs text to 'logs'directory or clears the log file. The log file will be saved in the logs folder.<br><br>
+<span class="tab"></span>/mqlog The number of combines completed is: @CombineCount<br><br>
+
+<span class="command">/mqpause</span> [<span class="opt">on</span>|<span class="opt">off</span>]<br>
+Pauses/resumes a macro to aid in debugging or chatting. Not using a parameter will toggle pausing on/off<br><br>
+
+<a name="n" id="n"></a>
+<a name="o" id="o"></a>
+<a name="p" id="p"></a>
+<span class="command">/press</span> <span class="opt">key</span><br>
+Presses the selected key. See Appendix C for a list of keynames.<br><br>
+<blockquote>
+/press ctrl         Presses the CTRL key
+/press F1           Presses the F1 key
+</blockquote>
+
+<a name="q" id="q"></a>
+<a name="r" id="r"></a>
+<span class="command">/return</span> [<span class="arg">value</span>|<span class="arg">@varname</span>]<br>
+Returns to the line immediately following the call. Can return values or variables.<br>
+<blockquote>
+Sub MySub<br>
+<span class="tab"><span class="txtbold">.</span></span><br>
+<span class="tab">&lt;code&gt;</span><br>
+<span class="tab"><span class="txtbold">.</span></span><br>
+/return [value|@varname]
+</blockquote>
+
+<a name="s" id="s"></a>
+<span class="command">/selectitem</span> "<span class="arg">item name</span>"|<span class="arg">slot#</span> 
+                                         [<span class="opt">merchant</span>|<span class="opt">self</span>]<br>
+Finds an item in merchant inventory or your inventory by name or in a specific slot#<br>
+<blockquote>
+/selectitem "emerald" merchant
+/selectitem slot 5 merchant
+</blockquote>
+
+<span class="command">/sellitem</span> <span class="arg">1</span>|<span class="arg">#</span><br>
+Sells the selected item. If # is specified it will sell that # of a stacked item.<br><br>
+
+<span class="command">/sendkey</span> <span class="opt">down</span>|<span class="opt">up</span> <span class="opt">key</span><br>
+Presses and holds <span class="opt">key</span>[<span class="opt">down</span>] or releases a <span class="opt">key</span>[<span class="opt">up</span>].
+For a list of keys, see Appendix B.
+<blockquote>
+<span class="command">/sendkey</span> <span class="opt">down</span> <span class="opt">F1</span><br>
+<span class="command">/sendkey</span> <span class="opt">up</span> <span class="opt">F1</span>
+</blockquote>
+
+<span class="command">/setautorun</span><br><br>
+
+<span class="command">/seterror</span> <span class="arg">errormsg</span><br>
+Sets $getlasterror to <span class="arg">errormsg</span><br><br>
+
+<span class="command">/seterror</span> <span class="opt">clear</span><br>
+Clears $getlasterror<br><br>
+
+<span class="command">/skills</span> ["<span class="arg">skillname</span>"] (Skills are listed in Appendix C)<br>
+Lists your skills, or your skill level when <span class="command">/skills</span> "<span class="arg">skillname</span>" is used
+<blockquote>
+/skills               Lists all of your skills with skill level<br>
+/skills pottery       Shows your pottery skill
+</blockquote>
+<span class="command">/spew</span> <span class="opt">on</span>|<span class="opt">off</span><br>
+Enables or disables the output of Debug Spew to a file<br><br>
+<a name="t" id="t"></a>
+<span class="command">/target</span> [<span class="opt">pc</span>|<span class="opt">npc</span>|<span class="opt">corpse</span>|<span class="opt">pet</span>] 
+                                     [<span class="opt">class</span> <span class="arg">class</span>] 
+									 [<span class="opt">race</span> <span class="arg">race</span>] 
+									 [<span class="opt">range</span> <span class="arg">min</span> <span class="arg">max</span>]
+                                     [<span class="opt">noalert</span> <span class="arg">alert#</span>] 
+									 [<span class="opt">nearalert</span> <span class="arg">alert#</span>] 
+									 [<span class="opt">notnearalert</span> <span class="arg">alert#</span>]<br>
+									 [<span class="opt">zradius</span> <span class="arg">zheight</span>] 
+									 [<span class="opt">radius</span> <span class="arg">distance</span>]
+                                     [<span class="opt">nopcnear</span> <span class="arg">radius</span>] 
+									 [<span class="opt">notid</span>|<span class="opt">id</span> <span class="arg">spawnid</span>] 
+									 ["<span class="arg">spawnname</span>"]
+									 [<span class="opt">myself</span>|<span class="opt">mycorpse</span>] 
+									 [<span class="opt">alert</span> <span class="arg">alert#</span>]<br><br>
+<table width="100%" border="1" cellpadding="2" cellspacing="0">
+  <tbody>
+  <tr>
+    <td width="104">[<span class="opt">pc</span>|<span class="opt">npc</span>|<span class="opt">corpse</span>|<span class="opt">pet</span>]</td>
+    <td width="404">Selects the spawn type to target</td>
+  </tr>
+
+  <tr>
+    <td>[<span class="opt">class</span> <span class="arg">class</span>]</td>
+    <td>Selects the nearest <em>class</em> match to target</td>
+  </tr>
+
+  <tr>
+    <td>[<span class="opt">race</span> <span class="arg">race</span>]</td>
+    <td>Selects nearest <em>race</em> to target</td>
+  </tr>
+
+  <tr>
+    <td>[<span class="opt">range</span> <span class="arg">min</span> <span class="arg">max</span>]</td>
+    <td>Sets the minimum and maximum range to target in</td>
+  </tr>
+
+  <tr>
+    <td>[<span class="opt">noalert</span> <span class="arg">alert#</span>]</td>
+    <td>***NEED TO FILL THIS DESCRIPTION IN***</td>
+  </tr>
+
+  <tr>
+    <td>[<span class="opt">nearalert</span> <span class="arg">alert#</span>]</td>
+    <td>***NEED TO FILL THIS DESCRIPTION IN***</td>
+  </tr>
+
+  <tr>
+    <td>[<span class="opt">notnearalert</span> <span class="arg">alert#</span>]</td>
+    <td>***NEED TO FILL THIS DESCRIPTION IN***</td>
+  </tr>
+
+  <tr>
+    <td>[<span class="opt">zradius</span> <span class="arg">zheight</span>]</td>
+    <td>Targets the spawn if it is within the height value</td>
+  </tr>
+
+  <tr>
+    <td>[<span class="opt">radius</span> <span class="arg">distance</span>]</td>
+    <td>Targets the spawn if it is within the 2D <em>distance</em></td>
+  </tr>
+
+  <tr>
+    <td>[<span class="opt">nopcnear</span> <span class="arg">radius</span>]</td>
+    <td>***NEED TO FILL THIS DESCRIPTION IN***</td>
+  </tr>
+
+  <tr>
+    <td>[<span class="opt">notid</span>|<span class="opt">id</span> <span class="arg">spawnid</span>]</td>
+    <td>***NEED TO FILL THIS DESCRIPTION IN***</td>
+  </tr>
+  
+  <tr> 
+    <td>[<span class="arg">spawnname</span>]</td>
+    <td>Targets the specified keyword</td>
+  </tr>
+  
+  <tr> 
+    <td>[<span class="opt">myself</span>|<span class="opt">mycorpse</span>]</td>
+    <td>Targets the specified keyword</td>
+  </tr>
+  
+  <tr> 
+    <td>[<span class="opt">alert</span> <span class="arg">alert#</span>]</td>
+    <td>Targets the specified keyword</td>
+  </tr>
+  
+  
+</tbody>
+</table><br>	
+
+<span class="command">/telnet</span><br>
+Displays a list of all remote IP addresses for open telnet sessions.<br><br>
+
+<a name="u" id="u"></a>
+<span class="command">/unload</span><br>
+Unloads MacroQuest<br><br>
+
+<span class="command">/updateitems</span><br>
+Walks through the characters inventory and bank and collects item id's and names.<br>
+The item id and name is placed in ItemDB.txt if it does not already exist.<br><br>
+
+<a name="v" id="v"></a>
+<span class="command">/varadd</span> <span class="arg">varname1</span> <span class="arg">value</span>|<span class="arg">@varname2</span><br>
+Adds <span class="arg">value</span> or <span class="arg">@varname2</span> to varname1<br><br>
+<blockquote>
+<SCRIPT LANGUAGE="Javascript">
+document.write("<XMP>")
+document.write("/varadd myvar 25\t\t\tAdds 25 to myvar\r")
+document.write("/varadd array(3) 10\t\t\tAdds 10 to array(3)\r")
+document.write("/varadd casttimer 30\t\tAdds 3 seconds to the current value of casttimer\r")
+document.write("/varadd casttimer 3s\t\tAdds 3 seconds to the current value of casttimer\r")
+document.write("/varadd casttimer 3m\t\tAdds 3 minutes to the current value of casttimer\r")
+document.write("</XMP>")
+</SCRIPT>
+</blockquote> 
+
+<span class="command">/varand</span> <span class="arg">varname1</span> <span class="arg">value</span>|<span class="arg">@varname2</span><br>
+Performs a bitwise AND operation on <span class="arg">varname1</span> and stores the result in <span class="arg">varname1</span><br><br>
+Examples:
+<blockquote>
+<span class="txtbold">Sub Main</span><br>
+<span class="tab">/declare varname1 local</span><br>
+<span class="tab">/varset varname1 2</span><br>
+<span class="tab">/varand varname1 3</span><br>
+<span class="tab">/echo 2&amp3 is 2 -> @varname1</span><br>
+<span class="command">/return</span><br><br>
+<span class="txtbold">Sub Main</span><br>
+<span class="tab">/declare varname1 local</span><br>
+<span class="tab">/declare varname2 local</span><br>
+<span class="tab">/varset varname1 2</span><br>
+<span class="tab">/varset varname2 3</span><br>
+<span class="tab">/varand varname1 @varname2</span><br>
+<span class="tab">/echo 2&amp3 is 2 -> @varname1</span><br>
+<span class="txtbold">/return</span>
+</blockquote>
+
+<span class="command">/varcalc</span> <span class="arg">varname</span> <span class="arg">equation</span><br>
+Calculates the value of <em>equation</em> and stores the result in varname<br><br>
+<span class="tab"></span><span class="command">/varcalc</span> MyVar <em>$char(mana,cur)-$spell("complete heal",mana)</em><br><br>
+
+<span class="command">/varcat</span> <span class="arg">varname1</span> <span class="arg">value</span>|<span class="arg">@varname2</span><br>
+Appends <span class="arg">value</span>|<span class="arg">@varname2</span> to <span class="arg">varname1</span>. If <span class="arg">value</span> or <span class="arg">@varname</span> contain spaces, the first word will be appended.<br><br>
+Example:
+<blockquote>
+<span class="txtbold">Sub Main</span><br>
+<span class="tab"></span>/declare FirstVar local<br>
+<span class="tab"></span>/declare SecondVar local<br>
+<span class="tab"></span>/declare Result local<br>
+<span class="tab"></span>/varset FirstVar "First Variable"<br>
+<span class="tab"></span>/varset SecondVar "Second Variable"<br>
+<span class="tab"></span>/varcat Result @FirstVar<br>
+<span class="tab"></span>/varcat Result @SecondVar<br>
+<span class="tab"></span>/varcat Result 999<br>
+<span class="tab"></span>/varcat Result "10 25 16"<br>
+<span class="tab"></span>/echo Result is FirstSecond99910 -> @Result<br>
+<span class="txtbold">/return</span><br>
+</blockquote>
+
+<span class="command">/varlshift</span> <span class="arg">varname</span> <span class="arg">n</span>|<span class="arg">@varname2</span> (same result as @varname*2^n)<br>
+Performs a bitwise lshift operation on varname <span class="arg">n</span> times and stores in <span class="arg">varname</span><br><br>
+Examples:
+<blockquote>
+<span class="txtbold">Sub Main</span><br>
+<span class="tab">/declare MyVar local</span><br>
+<span class="tab">/varset MyVar 13</span><br>
+<span class="tab">/varlshift MyVar 2</span><br>
+<span class="tab">/echo 13 left shift 2 is 52 -> @MyVar</span><br>
+<span class="txtbold">/return</span><br><br>
+
+<span class="txtbold">Sub Main</span><br>
+<span class="tab">/declare MyVar local</span><br>
+<span class="tab">/declare Shift local</span><br>
+<span class="tab">/varset MyVar 13</span><br>
+<span class="tab">/varset Shift 2</span><br>
+<span class="tab">/varlshift MyVar @Shift</span><br>
+<span class="tab">/echo 13 left shift 2 is 52 -> @MyVar</span><br>
+<span class="txtbold">/return</span><br>
+</blockquote>
+
+<span class="command">/varor</span> <span class="arg">varname1</span> <span class="arg">value</span>|<span class="arg">@varname2</span><br>
+Performs a bitwise OR operation of two values and stores in <span class="arg">varname1</span><br><br>
+Examples:<br>
+<blockquote>
+<span class="txtbold">Sub Main</span><br>
+<span class="tab">/declare varname1 local</span><br>
+<span class="tab">/varset varname1 1</span><br>
+<span class="tab">/varor varname1 2</span><br>
+<span class="tab">/echo 1|2 is 3 -> @varname1</span><br>
+<span class="txtbold">/return</span><br><br>
+
+<span class="txtbold">Sub Main</span><br>
+<span class="tab">/declare varname1 local</span><br>
+<span class="tab">/declare varname2 local</span><br>
+<span class="tab">/varset varname1 1</span><br>
+<span class="tab">/varset varname2 2</span><br>
+<span class="tab">/varor varname1 @varname2</span><br>
+<span class="tab">/echo 1|2 is 3 -> @varname1</span><br>
+<span class="txtbold">/return</span><br>
+</blockquote>
+
+<span class="command">/varrshift</span> <span class="arg">varname1</span> <span class="arg">n</span>|<span class="arg">@varname2</span> (same result as @varname/2^n).<br>
+Performs a bitwise rshift operation on varname <span class="arg">n</span> times and stores in <span class="arg">varname1</span>. Truncates any decimal value without rounding.<br><br>
+Examples:
+<blockquote>
+<span class="txtbold">Sub Main</span><br>
+<span class="tab">/declare MyVar local</span><br>
+<span class="tab">/varset MyVar 13</span><br>
+<span class="tab">/varrshift MyVar 2</span><br>
+<span class="tab">/echo 13 right shift 2 is 3 -> @MyVar</span><br>
+<span class="txtbold">/return</span><br><br>
+
+<span class="txtbold">Sub Main</span><br>
+<span class="tab">/declare MyVar local</span><br>
+<span class="tab">/declare Shift local</span><br>
+<span class="tab">/varset MyVar 13</span><br>
+<span class="tab">/varset Shift 2</span><br>
+<span class="tab">/varrshift MyVar @Shift</span><br>
+<span class="tab">/echo 13 right shift 2 is 3 -> @MyVar</span><br>
+<span class="txtbold">/return</span><br>
+</blockquote>
+
+<span class="command">/varset</span> <span class="arg">varname</span> <span class="arg">value</span>|<span class="arg">@varname2</span><br>
+Sets <span class="arg">varname</span> to the specified value. If the variable is a timer, value can be in 10ths of a<br>
+second, suffix s for seconds, m for minutes.
+<blockquote>
+<SCRIPT LANGUAGE="Javascript">
+document.write("<XMP>")
+document.write("/varset myvar 25\t\tSets myvar to 25\r")
+document.write("/varset array(3) 10\t\tSets array(3) to 10\r")
+document.write("/varset casttimer 30\tSets the timer to 3 seconds\r")
+document.write("/varset casttimer 3s\tSets the timer to 3 seconds\r")
+document.write("/varset casttimer 3m\tSets the Timer to 3 minutes\r")
+document.write("</XMP>")
+</SCRIPT>
+</blockquote> 
+
+<span class="command">/varsub</span> <span class="arg">varname</span> <span class="arg">value</span><br>
+Subtracts <span class="arg">value</span> from varname
+<blockquote>
+<SCRIPT LANGUAGE="Javascript">
+document.write("<XMP>")
+document.write("/varsub myvar 25\t\tSubtracts 25 from myvar\r")
+document.write("/varsub array(3) 10\t\tSubtracts 10 from array(3)\r")
+document.write("/varsub casttimer 30\tSubtracts 3 seconds from the current value of casttimer\r")
+document.write("/varsub casttimer 3s\tSubtracts 3 seconds from the current value of casttimer\r")
+document.write("/varsub casttimer 3m\tSubtracts 3 minutes from the current value of casttimer\r")
+document.write("</XMP>")
+</SCRIPT>
+</blockquote>
+
+<a name="w" id="w"></a>
+<span class="command">/where</span> [<span class="opt">pc</span>|<span class="opt">npc</span>|"<span class="arg">spawn name</span>"]<br>
+Lists where the closest spawn or pc is<br><br>
+<blockquote>
+<SCRIPT LANGUAGE="Javascript">
+document.write("<XMP>")
+document.write("/where\t\t\t\t\tLists the closest pc or npc\r")
+document.write("/where pc\t\t\t\tLists the closest pc\r")
+document.write("/where npc\t\t\t\tLists the closest npc\r")
+document.write("/where npc ''orc pawn''\t\tLists where the closest orc pawn is\r")
+document.write("</XMP>")
+</SCRIPT>
+</blockquote>
+<span class="tab">The message returned is:</span><br>
+<span class="tab">The closest 'spawnname' is a level # &lt;race&gt; &lt;class&gt; and &lt;distance&gt;
+                  away to the &lt;direction&gt;, Z difference = #.##.</span><br><br>
+
+<span class="command">/who</span> [<span class="opt">group</span>|<span class="opt">pc</span>|<span class="opt">npc</span> [invis]|<span class="opt">corpse</span>|<span class="opt">any</span>] 
+								  [<span class="opt">range</span> <span class="opt">min max</span>]
+								  [<span class="opt">radius</span> <span class="opt">radius</span>]
+								  [<span class="opt">guild</span>]
+								  [<span class="opt">lfg</span>] 
+								  [<span class="arg">name</span>] 
+								  [<span class="opt">alert</span> <span class="arg">#</span>] 
+								  [<span class="opt">noalert</span> <span class="arg">#</span>]<br><br>
+
+<table width="100%" border="1" cellpadding="2" cellspacing="0">
+  <tbody>
+  <tr> 
+    <td width="140">[<span class="opt">group</span>|<span class="opt">pc</span>|<span class="opt">npc</span>|<span class="opt">corpse</span>|<span class="opt">any</span>]</td>
+    <td width="404">Lists all matches in the zone for the option used</td>
+  </tr>
+  <tr> 
+    <td>[<span class="opt">range</span> <span class="opt">min max</span>]</td>
+    <td>Lists all matches for the option used that are within the range designated.</td>
+  </tr>
+  <tr> 
+    <td>[<span class="opt">radius</span> <span class="opt">radius</span>]</td>
+    <td>Lists all matches for the option used that are within the radius designated.</td>
+  </tr>
+  <tr> 
+    <td>[<span class="opt">guild</span>]</td>
+    <td>Lists all guild members in the zone</td>
+  </tr>
+  <tr> 
+    <td>[<span class="opt">lfg</span>]</td>
+    <td>Lists all characters who are looking for a group in the zone</td>
+  </tr>
+  <tr> 
+    <td>[<span class="arg">name</span>]</td>
+    <td>Lists the character with the name <em>name</em> if he/she/it is in the zone</td>
+  </tr>
+  <tr> 
+    <td>[<span class="opt">alert</span> <span class="arg">#</span>] </td>
+    <td>Lists any npc/pc on alert <em>#</em></td>
+  </tr>
+  <tr> 
+    <td>[<span class="opt">noalert</span> <span class="arg">#</span>]</td>
+    <td>***NEED THIS DESCRIPTION FILLED IN***</td>
+  </tr>
+</tbody></table><br>
+
+<span class="command">/whofilter</span> afk|anon|class|concolor|gm|guild|holding|invisible|lastname|level|ld|lfg|npctag|race|spawnid|trader [on|off]<br>
+Toggles the display of the specified option when using /who<br><br>
+
+<span class="command">/whotarget</span><br>
+MacroQuest enhances this command by allowing you to use it on any target (including NPC's) and displays the<br>
+target's class, race, level, guild, con color, and distance (even if the player is in anonymous or roleplaying mode).<br><br>
+
+<span class="command">/windowstate</span> <span class="opt">window</span> [<span class="arg">open</span>|<span class="arg">close</span>]
+Opens or closes the selected window.<br>
+<span class="opt">window</span> can be: inventory, merchant, corpse, spellbook, map, or notes<br><br>
+<a name="x" id="x"></a>
+<a name="y" id="y"></a>
+<a name="z" id="z"></a>
+<span class="command">/zapvars</span> [<span class="opt">novars</span>|<span class="opt">noarrays</span>|<span class="opt">notimers</span>]<br>
+Clears all variables, arrays, and timers<br><br>
+
+<span class="command">/zem</span><br>
+Returns the zone experience modifier<br><br>
+
+<a name="variables" id="variables"></a>
+<span class="txtbold">Macroquest Variables</span><br><br>
+
+<a name="av" id="av"></a>
+<span class="command">$abs</span>(<span class="arg">value</span>|<span class="arg">@varname</span>)<br>
+Returns the absolute value of value or @varname<br><br>
+<span class="tab"></span>$abs(-35) returns 35<br><br>
+
+<span class="command">$acos</span>(<span class="arg">value</span>|<span class="arg">@varname</span>)<br>
+Returns the acos of value or @varname<br><br>
+
+<span class="command">$alert</span>(<span class="arg">#</span> [,<span class="opt">id</span>])<br>
+Returns information on alert lists.
+
+<blockquote>
+<SCRIPT LANGUAGE="Javascript">
+document.write("<XMP>")
+document.write("$alert(1)\t\t\t\tReturns TRUE if 'spawnname' from /alert add 1 'spawnname' spawns\r")
+document.write("$alert(1,id)\t\t\t\tReturn the id of the closest 'spawnname' from alert list 1\r")
+document.write("</XMP>")
+</SCRIPT>
+</blockquote>
+
+<span class="command">$arg</span>(<span class="arg">#</span>,"<span class="arg">string</span>"[,<span class="arg">separator</span>])<br>
+Returns a space delimited substring.<br><br>
+
+<span class="tab">$arg(2,"Am I here?") will return "I"</span><br>
+<span class="tab">$arg(3,"Am I here?") will return "here?"</span><br><br>
+
+<span class="command">$asin</span>(<span class="arg">value</span>|<span class="arg">@varname</span>)<br>
+Returns the asin of value or @varname<br><br>
+
+<span class="command">$atan</span>(<span class="arg">value</span>|<span class="arg">@varname</span>)<br>
+Returns the atan of value or @varname<br><br>
+
+<a name="bv" id="bv"></a>
+<span class="command">$banker</span>(open)<br><br>
+Returns TRUE if the bank window is open
+<a name="cv" id="cv"></a>
+<span class="command">$calc</span>(formula)<br>
+Returns the value of an equation<br><br>
+
+<span class="tab">$calc($char(mana,cur)-$spell("complete heal",mana))
+<span class="doubletab"></span>Returns mana after casting a complete heal</span><br><br>
+
+<span class="command">$char</span>(<span class="opt">option</span> [,<span class="arg">"param"</span>)
+<table width="100%" border="1" cellpadding="2" cellspacing="0">
+  <tbody>
+  <tr> 
+    <td width="140"><span class="opt">aa,exp</span>|<span class="opt">points</span>|<span class="opt">rank</span></td>
+    <td width="404">Returns Alternate Advancement information: exp, points, rank</td>
+  </tr>
+  <tr> 
+    <td><span class="opt">ability,"ability name"</span></td>
+    <td> Returns what /doability # you have a skill set to (see Appendix C)</td>
+  </tr>
+  <tr> 
+    <td><span class="opt">ability</span>,<span class="arg">#</span></td>
+    <td>
+	    Returns the ability name in a specific /doability slot<br>
+	    Can also return:<br>
+        <span class="tab">&nbsp;0: Skill not on an ability button</span><br>
+        <span class="tab">-1: You do not have that skill</span><br>
+        <span class="tab">-2: The ability is on a button but unusable right now</span><br>
+	</td>
+  </tr>
+  <tr> 
+    <td><span class="opt">animation</span></td>
+    <td>Returns the numeric value of the characters current animation</td>
+  </tr>
+  
+  <tr> 
+    <td><span class="opt">book</span>,<span class="arg">#</span> | <span class="arg">"spellname"</span></td>
+    <td>Returns the spell name for a spell book slot #, or spell book slot # for "spell name"</td>
+  </tr>
+  
+  <tr> 
+    <td><span class="opt">buff</span>,<span class="arg">#</span> | "<span class="arg">spellname</span>"[,<span class="opt">option</span>]</td>
+    <td>Returns the buff/detrimental spell in the effects slot,or the effect slot of "spellname"<br>
+	    Use option to return alternate information. <span class="opt">option</span> can be: spellid, level, mod (bard song modifier), duration (in ticks remaining), durationsecs (in mm:ss).<br>
+    </td>
+  </tr>
+  <tr> 
+    <td><span class="opt">cash</span>|<span class="opt">plat</span>|<span class="opt">gold</span>|<span class="opt">silver</span>|<span class="opt">copper</span>[<span class="opt">,bank</span>]</td>
+    <td>Returns values for cash, plat, gold, silver, or copper. Default is player without [,bank]</td>
+  </tr>
+  <tr> 
+    <td><span class="opt">casting</span></td>
+    <td>Returns TRUE if casting, FALSE if not casting</td>
+  </tr>
+  <tr> 
+    <td><span class="opt">class</span>|<span class="opt">race</span>|<span class="opt">type</span></td>
+    <td>Returns your character class,race,type(pc,npc)</td>
+  </tr>
+  <tr> 
+    <td><span class="opt">dar</span></td>
+    <td>Returns the amount of damage absorbtion remaining</td>
+  </tr>
+  <tr> 
+    <td><span class="opt">deity</span>[<span class="opt">,team</span>]</td>
+    <td>Returns your deity, or what team (good, neutral, evil) if ,team is used.</td>
+  </tr>
+  <tr> 
+    <td><span class="opt">exp</span></td>
+    <td>Returns your characters current experience</td>
+  </tr>
+  <tr> 
+    <td><span class="opt">feetwet</span></td>
+    <td>Returns 5 if your character is standing in water or swimming</td>
+  </tr>
+  <tr> 
+    <td><span class="opt">following</span></td>
+    <td>Returns TRUE if the character is auto-following, FALSE if not.</td>
+  </tr>
+  <tr> 
+    <td><span class="opt">gem</span>,"<span class="arg">spell name</span>"</td>
+    <td>Returns the casting gem for a spell.Also can return:<br>
+        <span class="tab"></span>&nbsp;0: Spell not on an gem<br>
+       <span class="tab"></span>-2: The spell is on a gem but unusable right now
+	</td>
+  </tr>
+  <tr> 
+    <td><span class="opt">gem</span>,<span class="arg">#</span></td>
+    <td>Returns the spell name for a casting gem</td>
+  </tr>
+  <tr> 
+    <td><span class="opt">gender</span>|<span class="opt">id</span>|<span class="opt">ismoving</span>
+	    |<span class="opt">level</span>|<span class="opt">name</span>|<span class="opt">race</span>
+		|<span class="opt">speed</span>|<span class="opt">state</span>|<span class="opt">surname</span></td>
+    <td>Returns information on your character</td>
+  </tr>
+  <tr> 
+    <td><span class="opt">grouped</span></td>
+    <td>Returns 1 if the character is currently in a group, zero otherwise</td>
+  </tr>
+  <tr> 
+    <td><span class="opt">heading</span></td>
+    <td>Returns the direction your character is facing, in degrees</td>
+  </tr>
+  <tr> 
+    <td><span class="opt">held</span>,<span class="opt">left</span>|<span class="opt">right</span>|<span class="opt">shield</span></td>
+    <td>Returns the model name for a held slot</td>
+  </tr>
+  <tr> 
+    <td><span class="opt">holding</span></td>
+    <td>Returns a value describing if Pri and/or Secondary slots are used<br>
+	    0: Nothing is in either slot<br>
+		1: ?<br>
+		2: ?<br>
+		3: Primary and Secondary slots have items<br>
+		4: Primary slot has an item<br>
+		5: Secondary slot has an item
+    </td>
+  </tr>
+  <tr> 
+    <td><span class="opt">hotbutton</span>,<span class="arg">#</span></td>
+    <td>Currently CTD's the EQ Client</td>
+  </tr>
+  <tr> 
+    <td><span class="opt">hp</span>,<span class="opt">cur</span>|<span class="opt">max</span>|<span class="opt">pct</span>|<span class="opt">regen</span></td>
+    <td>Returns your hp: cur, max, pct, or hp regen</td>
+  </tr>
+  <tr> 
+    <td><span class="opt">invited</span></td>
+    <td>Returns 1 if you have an invite pending, 0 if not invited to a group</td>
+  </tr>
+  <tr> 
+    <td><span class="opt">ismoving</span></td>
+    <td>Returns whether your character is moving (TRUE|FALSE)</td>
+  </tr>
+  <tr> 
+    <td><span class="opt">light</span></td>
+    <td>Returns what light source you have equipped<br>
+	<span class="tab"></span>LL for Large Lantern<br>
+	<span class="tab"></span>SL for Small Lantern<br>
+	<span class="tab"></span>LS for Lightstone</td>
+  </tr>
+  <tr> 
+    <td><span class="opt">look</span></td>
+    <td>Returns the vertical angle your character is looking (-128 to 128)</td>
+  </tr>
+  <tr> 
+    <td><span class="opt">mana</span>,<span class="opt">cur</span>|<span class="opt">max</span>|<span class="opt">pct</span>|<span class="opt">regen</span></td>
+    <td>Returns your mana: cur, max, pct, or regen rate</td>
+  </tr>
+  <tr> 
+    <td><span class="opt">mounted</span></td>
+    <td>Returns TRUE if on a mount, FALSE if not</td>
+  </tr>
+  <tr> 
+    <td><span class="opt">pet</span></td>
+    <td>Returns the id number of your pet. 0 if no pet.</td>
+  </tr>
+  <tr>
+    <td><span class="opt">plat</span>,<span class="opt">shared</span></td>
+	<td>Returns the platinum in the banks shared platinum slot</td></tr>
+  <tr> 
+    <td><span class="opt">skill</span>,"<span class="arg">skill name</span>"</td>
+    <td>Returns skill level (see Appendix C)</td>
+  </tr>
+  <tr> 
+    <td><span class="opt">song</span>,<span class="arg">#</span></td>
+    <td>Returns the song name in Bard effect slot # NULL if none</td>
+  </tr>
+  <tr> 
+    <td><span class="opt">song</span>,"<span class="arg">songname</span>"[,<span class="opt">option</span>]</td>
+    <td>Returns the Bard effect slot of <span class="arg">songname</span>
+	    Use option to return alternate information. <span class="opt">option</span> can be: spellid, level, mod (bard song modifier), duration (in ticks remaining), durationsecs (in mm:ss).</td>
+  </tr>
+  <tr> 
+    <td><span class="opt">speed</span></td>
+    <td>Returns the speed your character is moving</td>
+  </tr>
+  <tr> 
+    <td><span class="opt">spellbook</span></td>
+    <td>Returns TRUE if spellbook is open, FALSE if spellbook not open</td>
+  </tr>
+  <tr> 
+    <td><span class="opt">state</span></td>
+    <td>Returns STAND, SIT, DUCK, BIND, FEIGN, DEAD, STUN</td>
+  </tr>
+  <tr> 
+    <td><span class="opt">stamina</span>,<span class="opt">cur</span>|<span class="opt">max</span>|<span class="opt">pct</span></td>
+    <td>Returns 0 -- Returns your stamina: cur, max, pct</td>
+  </tr>
+  <tr> 
+    <td><span class="opt">swimming</span></td>
+    <td>Returns the value 5 if the character is swimming</td>
+  </tr>
+  <tr> 
+    <td><span class="opt">underwater</span></td>
+    <td></td>
+  </tr>
+  <tr> 
+    <td><span class="opt">x</span>|<span class="opt">y</span>|<span class="opt">z</span></td>
+    <td>Returns your characters x y z  coordinate</td>
+  </tr>
+</tbody>
+</table>
+<br>
+<span class="command">$combat</span><br>
+Returns TRUE if you are in attack mode, FALSE if not.<br><br>
+
+<span class="command">$corpse</span>([<span class="opt">has</span>,"<span class="arg">itemname</span>"] [<span class="opt">empty</span>])<br>
+Returns information about the corpse loot window.<br><br>
+
+<span class="command">$corpse</span>()<span class="doubletab"></span><span class="tab"></span>&nbsp;<span class="doubletab"> Return TRUE if the corpse loot window is open, FALSE if not.</span><br>
+<span class="command">$corpse</span>(<span class="opt">has</span>,"<span class="arg">itemname</span>")&nbsp;&nbsp;<span class="doubletab">Returns TRUE if "itemname" exists in the corpse loot window</span><br>
+<span class="command">$corpse</span>(<span class="opt">empty</span>)<span class="doubletab"></span><span class="doubletab">Returns TRUE if there are no items in the corpse loot window.</span><br><br>
+
+<span class="command">$cos</span>(<span class="arg">value</span>|<span class="arg">@varname</span>)<br>
+Returns the cos of value or @varname<br><br>
+
+<span class="command">$count</span>("<span class="arg">itemname</span>")<br>
+Returns the total count of "itemname" in your inventory<br><br>
+
+<span class="command">$count</span>(<span class="opt">id</span>,<span class="arg">id#</span>)<br>
+Returns the count of id# in your inventory.<br><br>
+
+<span class="command">$cursor</span>(<span class="opt">option</span>)<br>
+Returns cursor item information<br>
+<span class="opt">option</span> can be: id, lore, magic, name, nodrop, norent, size, stack, type, value, weight
+<blockquote>
+<SCRIPT LANGUAGE="Javascript">
+document.write("<XMP>")
+document.write("$cursor()\t\t\tReturns TRUE or FALSE. TRUE if the cursor has an item on it.\r")
+document.write("$cursor(nodrop)\t\tReturns TRUE if the item on the cursor is NODROP\r")
+document.write("</XMP>")
+</SCRIPT>
+</blockquote>  
+
+<a name="dv" id="dv"></a>
+<span class="command">$date</span>([<span class="opt">y</span>|<span class="opt">m</span>|<span class="opt">d</span>])<br>
+Returns the date.
+<blockquote>
+<SCRIPT LANGUAGE="Javascript">
+document.write("<XMP>")
+document.write("$date()\t\t\tReturns yyyy/mm/dd\r")
+document.write("$date(y)\t\t\tReturns  yyyy\r")
+document.write("$date(m)\t\t\tReturns  mm\r")
+document.write("$date(d)\t\t\tReturns  dd\r")
+document.write("</XMP>")
+</SCRIPT>
+</blockquote> 
+
+<span class="command">$dec</span>(<span class="arg">#</span>|<span class="arg">@varname</span>)<br>
+Returns the hexadecimal equivalent of base 10 integer.<br><br>
+<span class="tab">/echo The hexadecimal value of 15 is 0f -> $dec(15)</span><br>
+<span class="tab">/echo The decimal value of varname is $dec(@varname)</span><br><br>
+
+<span class="command">$defined</span>(<span class="arg">varname</span>)<br>
+Returns whether varname has been defined
+<blockquote>
+<SCRIPT LANGUAGE="Javascript">
+document.write("<XMP>")
+document.write("$defined(varname)\t\tReturns TRUE if varname was declared\r")
+document.write("$defined(Param0)\t\tReturns TRUE if a parameter was passed to the Sub\r")
+document.write("$defined(Param1)\t\tReturns TRUE if two parameters were passed to the Sub\r")
+document.write("</XMP>")
+</SCRIPT>
+</blockquote> 
+
+<span class="command">$distance</span>(<span class="opt">y</span>,<span class="opt">x</span>|<span class="opt">item</span>|<span class="opt">door</span>)<br>
+Returns the distance to the specified target<br>
+<blockquote>
+<SCRIPT LANGUAGE="Javascript">
+document.write("<XMP>")
+document.write("$distance(y, x)\t\tReturns the distance to a location\r")
+document.write("$distance(item)\t\tReturns the distance to last /itemtarget\r")
+document.write("$distance(door)\t\tReturns the distance to last /doortarget\r")
+document.write("</XMP>")
+</SCRIPT>
+</blockquote> 
+
+<span class="command">$door</span>(<span class="opt">option</span>)<br>
+Returns information on the last /doortarget<br>
+<span class="opt">option</span> can be: name, id, x, y, z, heading, defaultx, defaulty, defaultz, defaultheading, headingto, distance, open
+<blockquote>
+<SCRIPT LANGUAGE="Javascript">
+document.write("<XMP>")
+document.write("$door(name)\t\t\tReturns the name of the door\r")
+document.write("$door(id)\t\t\tReturns the id number of the door\r")
+document.write("$door(x|y|z)\t\t\tReturns the x|y|z location of the door\r")
+document.write("$door(heading)\t\tReturns the direction to the door, in degrees\r")
+document.write("$door(defaultx)\t\tReturns the x location of the door\r")
+document.write("$door(defaulty)\t\tReturns the y location of the door\r")
+document.write("$door(defaultz)\t\tReturns the z location of the door\r")
+document.write("$door(defaultheading)\tReturns the direction to the door, in degrees\r")
+document.write("$door(headingto)\t\tReturns the direction to the door, in degrees\r")
+document.write("$door(distance)\t\tReturns the distance to the door\r")
+document.write("$door(open)\t\t\tReturns TRUE or FALSE\r")
+document.write("</XMP>")
+</SCRIPT>
+</blockquote>
+
+<a name="ev" id="ev"></a>
+<span class="command">$envopen</span><br>
+Returns TRUE if an environmental container is open<br><br>
+
+<span class="command">$equip</span>(<span class="opt">equipslot</span>[,<span class="opt">option</span>])<br>
+Returns information on an equipment slot or an equipped item. See Appendix F for equipment slot names.<br>
+<span class="opt">option</span> can be: lore, name, nodrop, norent, magic,size, stack, weight, value
+<blockquote>
+<SCRIPT LANGUAGE="Javascript">
+document.write("<XMP>")
+document.write("$equip(primary)\t\tDo you have something equiped in your primary hand.\r")
+document.write("$equip(arms,name)\t\tName of item equiped in arm slot.\r")
+document.write("</XMP>")
+</SCRIPT>
+</blockquote>
+
+<a name="fv" id="fv"></a>
+<span class="command">$find</span>(["<span class="arg">itemname</span>"])<br>
+Returns status of the last /finditem command<br><br>
+<span class="tab"></span>/finditem("heliotrope")<br>
+<span class="tab"></span>/if $find()==TRUE{<br>
+<span class="doubletab"></span>/echo Heliotrope was found<br>
+<span class="tab"></span>}<br><br>
+
+<span class="command">$freeinv</span>(<span class="opt">space</span>|<span class="opt">size</span>)<br>
+Returns information about free pack space
+<blockquote>
+<SCRIPT LANGUAGE="Javascript">
+document.write("<XMP>")
+document.write("$freeinv(space)\t\tReturns how many free inventory slots you have\r")
+document.write("</XMP>")
+</SCRIPT>
+</blockquote>
+
+<a name="gv" id="gv"></a>
+<span class="command">$gamestate</span><br>
+Returns CHARSELECT or INGAME depending on what the game state is<br><br>
+
+<span class="command">$getlasterror</span><br>
+Returns the last error<br><br>
+
+<span class="command">$getlastfindslot</span><br>
+Returns the slot of the pack where the items was found<br><br>
+
+<span class="command">$gm</span><br>
+Returns TRUE if a GM or Guide is in the zone<br><br>
+
+<span class="command">$ground</span>([<span class="opt">name</span>|<span class="opt">id</span>|<span class="opt">x</span>|<span class="opt">y</span>|<span class="opt">z</span>])<br>
+Returns information on the last /itemtarget
+<blockquote>
+<SCRIPT LANGUAGE="Javascript">
+document.write("<XMP>")
+document.write("$ground(name)\t\tReturns the name from the last /itemtarget\r")
+document.write("$ground(id)\t\t\tReturns the id number of the last /itemtarget\r")
+document.write("$ground(x)\t\t\treturns the x location of the last /itemtarget\r")
+document.write("</XMP>")
+</SCRIPT>
+</blockquote>
+
+<span class="command">$group</span>(<span class="opt">count</span>)<br>
+Returns number of members in your group, will always return at least 1 (yourself)<br><br>
+
+<span class="command">$group</span>(<span class="arg">0-5</span>)<br>
+Returns the spawn ID for a group member, 0 if they are out of the zone, or -1 if that group member doesn't exist<br>
+0 is yourself, 1-5 are the other members.
+<blockquote>
+<SCRIPT LANGUAGE="Javascript">
+document.write("<XMP>")
+document.write("$group(2)\t\tReturns the spawn ID for group member 2\r")
+document.write("</XMP>")
+</SCRIPT>
+</blockquote>
+
+<a name="hv" id="hv"></a>
+<span class="command">$heading</span>(<span class="arg">y</span>,<span class="arg">x</span>)<br>
+Returns the heading to a location<br><br>
+
+<span class="command">$hex</span>(<span class="arg">#</span> | <span class="arg">@varname</span>)<br>
+Returns the Base 10 equivalent of a hexadecimal number.<br><br>
+<span class="tab">/echo The decimal value of 20 is 32 -> $hex(20)</span><br>
+<span class="tab">/echo The decimal value of varname is $hex(@varname)</span><br><br>
+
+<a name="iv" id="iv"></a>
+<span class="command">$id</span>(<span class="arg">n</span>)<br>
+Returns the ID for the N'th spawn.<br><br>
+
+<span class="command">$id</span>("<span class="arg">spawnname</span>")<br>
+Returns the ID for the first spawn named spawnname<br><br>
+
+<span class="command">$if</span>([<span class="opt">n</span>,]<span class="arg">condition</span>,[<span class="arg">truestr</span>,<span class="arg">falsestr</span>])<br>
+If <em>condition</em> is true (n does a numeric comparison), returns truestr else returns falsestr<br><br>
+<span class="tab">$if(n,@var1&lt;@var2,@var1,@var2)</span><span class="doubletab">Returns the smaller of var1/var2</span><br><br>
+<span class="tab">/echo There $if(n,@myvar=&nbsp;=1,is a,are) @myvar fl$if(n,@myvar=&nbsp;=1,y,ies) here.</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Returns 'There is a fly here.' if myvar=&nbsp;=1 otherwise returns 'There are flies here.'<br><br>
+
+<span class="command">$ini</span> ("<span class="arg">ini filename</span>" [,"<span class="arg">keyname</span>"[,"<span class="arg">valuename</span>"]])<br>
+Retrieves information from an ini file of name "<span class="arg">ini filename</span>"<br>
+Example:
+<blockquote>
+sample.ini contains:<br>
+[KeyOne]<br>
+value1=foo<br>
+value2=bar<br><br>
+
+[KeyTwo]<br>
+Value3=foobar<br><br>
+
+$ini(sample.ini,KeyOne,value1) returns "foo"<br>
+$ini(sample.ini,KeyOne) returns "value1|value2||"<br>
+$ini(sample.ini) returns "KeyOne|KeyTwo||"<br>
+</blockquote>
+
+<span class="txtbold">$instr</span>(<span class="arg">word</span>,"<span class="arg">string</span>"|"<span class="arg">@varname</span>")<br>
+Returns the location of word inside string, returns -1 if not found<br><br>
+<span class="tab"></span>$instr(here,"Am I here?") will return 5<br><br>
+
+<span class="command">$int</span>(<span class="arg">value</span>|<span class="arg">@varname</span>)<br>
+Truncates value to an integer<br><br>
+
+<span class="command">$invpanel</span><br>
+Returns TRUE if your inventory is open, FALSE if not<br><br>
+
+<span class="command">$item</span>([<span class="opt">bank,</span>]<span class="opt">inv</span>|<span class="arg">pack#</span>,<span class="arg">slot#</span>,[<span class="opt">option</span>])<br>
+Returns inventory item information, use "e" for pack to get environmental pack information<br>
+<span class="opt">option</span> can be: lore, name, nodrop, norent, magic,size, stack, weight, value
+<blockquote>
+<SCRIPT LANGUAGE="Javascript">
+document.write("<XMP>")
+document.write("$item(3,5,value)\t\tReturns the value of the item in slot 5 of pack 3\r")
+document.write("$item(inv,7,name)\t\tReturns the name of the item in inventory slot 7\r")
+document.write("$item(e,0)\t\t\tReturns TRUE if there is an item in enviromental pack slot 0\r")
+document.write("$item(bank,0,4,weight)\tReturns the weight of the item in slot 4 of bank pack 0\r")
+document.write("$item(bank,inv,2)\t\tReturns TRUE if there is an item in bank slot 2\r")
+document.write("</XMP>")
+</SCRIPT>
+</blockquote>
+
+<a name="jv" id="jv"></a>
+<a name="kv" id="kv"></a>
+<a name="lv" id="lv"></a>
+<span class="command">$lastcommand</span><br>
+Returns the last command run<br><br>
+
+<span class="command">$lasttell</span><br>
+Returns the name of the last person to send you a tell<br><br>
+
+<span class="command">$lcase</span>("<span class="arg">string</span>|<span class="arg">@varname</span>")<br>
+Returns the string in lowercase<br><br>
+<span class="tab"></span>$lcase("<span class="arg">Am I here?</span>") will return "am i here?"<br><br>
+
+<span class="command">$left</span>(<span class="arg">#</span>,"<span class="arg">string</span>")<br>
+Returns a couple of the characters from the left side of string<br><br>
+<span class="tab"></span>$left(4,"Am I here?") will return "Am I"<br><br>
+
+<span class="command">$loginname</span><br>
+Returns the login name of the account you are currently logged into<br><br>
+
+<a name="mv" id="mv"></a>
+<span class="command">$macro</span><br>
+Returns the name of the currently running macro, or "None" if one is not running.<br><br>
+
+<span class="command">$merchant</span>([<span class="opt">open</span>])<br>
+Returns TRUE if a merchant window is open.
+<blockquote>
+/if $merchant(open)==FALSE {<br>
+<span class="tab"></span>/echo No merchant window is open<br>
+}<br>
+/if $merchant("Bodbin Gimple")==TRUE /call mybuyroutine<br>
+/if $merchant(open)==TRUE /call mybuyroutine<br>
+</blockquote>
+
+<span class="command">$merchant</span>(<span class="opt">has</span>,"<span class="arg">itemname</span>")<br>
+Returns TRUE if merchant has "itemname", FALSE if not.<br><br>
+
+<span class="command">$mid</span>(<span class="arg">loc</span>,<span class="arg">#</span>,"<span class="arg">string</span>")<br>
+Returns a part of string based on start and num<br><br>
+<span class="tab"></span>$mid(5,4,"Am I here?") will return "here"<br><br>
+
+<span class="command">$mouse</span>([<span class="opt">x</span>|<span class="opt">y</span>])<br>
+Returns the current mouse coords.<br><br>
+
+<a name="nv" id="nv"></a>
+<a name="ov" id="ov"></a>
+<a name="pv" id="pv"></a><br>
+<span class="command">$pack</span>([bank,]pack,<span class="arg">pack#</span>, <span class="opt">option</span>)<br>
+Returns pack information, use "e" for pack to get environmental pack information.<br>
+<span class="opt">option</span> can be: name, open, size, slots, weight, space, empty<br><br>
+
+<a name="qv" id="qv"></a>
+<a name="rv" id="rv"></a>
+<span class="command">$rand</span>(<span class="arg">max#</span>)<br>
+Returns a random number between 0 and <span class="arg">max#</span><br><br>
+
+<span class="command">$return</span><br>
+Returns the return value from the last /call. NULL if no value returned.<br><br>
+
+<span class="command">$right</span>(<span class="arg">#</span>,"<span class="arg">string</span>"|"<span class="arg">@varname</span>")<br>
+Returns a couple of the characters from the right side of string<br><br>
+<span class="tab"></span>$right(4,"Am I here?") will return "ere?"<br><br>
+
+<span class="command">$running</span><br>
+Returns the number of seconds the macro has been running<br><br>
+
+<a name="sv" id="sv"></a>
+<span class="command">$searchspawn</span>()<br>
+Uses the same options as /target, but works like this:
+<blockquote>	
+$searchspawn(npc,range:40:45,nopcnear:100)<br>
+$searchspawn(npc,class:banker)<br>
+$searchspawn(alert:3,noalert:2)<br>
+$searchspawn("<span class="arg">npcname</span>",npc)
+</blockquote>
+
+<span class="command">$selecteditem</span>([<span class="opt">count</span>])<br>
+Returns the name or count of currently selected item when "shopping"<br>
+<blockquote>
+/if $selecteditem90==NULL {<br>
+<span class="tab">/echo Nothing is selected</span><br>
+<span class="tab">/endmacro</span>
+}
+| Sell all of $selecteditem()<br>
+/sellitem $selecteditem(count)<br>
+</blockquote>
+
+<span class="command">$sin</span>(<span class="arg">value</span>|<span class="arg">@varname</span>)<br>
+Return the sin of value or @varname<br><br>
+
+<span class="command">$spawn</span>(id,<span class="opt">option</span>)<br>
+Returns information on a spawn<br>
+<table width="100%" border="1" cellpadding="2" cellspacing="0">
+  <tbody>
+  <tr> 
+    <td width="140"><span class="opt">class</span></td>
+    <td width="404">Returns the spawn's class</td>
+  </tr>
+  <tr> 
+    <td><span class="opt">distance</span>[,<span class="opt">predict</span>
+	                      |<span class="opt">x</span>|<span class="opt">y</span>
+						  |<span class="opt">z</span>]
+	</td>
+    <td> Returns distance information on the spawn</td>
+  </tr>
+  <tr> 
+    <td><span class="opt">gender</span></td>
+    <td>Returns the gender of the spawn</td>
+  </tr>
+  <tr> 
+    <td><span class="opt">gm</span></td>
+    <td>************* NEED INFO ON THIS *****************</td>
+  </tr>
+  <tr> 
+    <td><span class="opt">heading</span></td>
+    <td>Returns the heading for the spawn</td>
+  </tr>
+  <tr> 
+    <td><span class="opt">headingto</span></td>
+    <td>Returns the direction to the spawn from your location.</td>
+  </tr>
+  <tr> 
+    <td><span class="opt">held</span>,<span class="opt">option</span></td>
+    <td>Returns the model name for a held slot<br><span class="opt">option</span> can be: right, left, shield<br></td>
+  </tr>  
+  <tr> 
+    <td><span class="opt">hp</span>,<span class="opt">option</span></td>
+    <td>Returns the current hp of the spawn<br>
+	    <span class="opt">option</span> can be: cur, max, pct
+    </td>
+  </tr>
+  <tr> 
+    <td><span class="opt">master</span>]</td>
+    <td>Returns the name of the npc's master</td>
+  </tr>
+  <tr> 
+    <td><span class="opt">name[,clean]</span>]</td>
+    <td>Returns the name of the spawn without the _00</td>
+  </tr>
+  <tr> 
+    <td><span class="opt">next</span>|<span class="opt">prev</span>]</td>
+    <td>Returns the id of the next|previous spawn.</td>
+  </tr>
+  <tr> 
+    <td><span class="opt">level</span>|<span class="opt">light</span>|<span class="opt">pet</span>
+	    |<span class="opt">race</span>|<span class="opt">speed</span>|<span class="opt">state</span>
+		|<span class="opt">surname</span>|<span class="opt">type</span>]
+	</td>
+    <td>Returns the specified information of the spawn.<br>
+	    state can return: STAND, SIT, DUCK, BIND, FEIGN, DEAD</td>
+  </tr>  
+</tbody>
+</table><br>
+
+<span class="command">$spell</span>("<span class="arg">spellname</span>",<span class="opt">option</span>)<br>
+Returns information on a spell<br><br>
+<span class="opt">option</span> can be: id, level, mana, range, casttime, recoverytime, recasttime, duration<br>
+<span class="doubletab">&nbsp;&nbsp;&nbsp;casttime, recoverytime, recasttime, and duration are in seconds</span><br>
+<span class="doubletab">&nbsp;&nbsp;&nbsp;duration can also return INSTANT, PERMANENT or UNKNOWN</span><br><br>
+<span class="tab"></span>$spell("spell name",mana) returns the mana cost of the spell<br><br>
+
+<span class="command">$strlen</span>("<span class="arg">string</span>")<br>
+Returns the length of the string<br><br>
+<span class="tab"></span>$strlen("Am I here?") will return 10<br><br>
+
+<a name="tv" id="tv"></a>
+<span class="command">$tan</span>(<span class="arg">value</span>|<span class="arg">@varname</span>)<br>
+Return the tan of value or @varname<br><br>
+
+<span class="command">$target</span>(<span class="opt">option</span>)<br>
+Returns information on the current target<br>
+<table width="100%" border="1" cellpadding="2" cellspacing="0">
+  <tbody>
+  <tr> 
+    <td width="140"><span class="opt">animation</span></td>
+    <td width="404">Returns the animation number currently playing for the target's avatar (see chart below)<br><br>
+	                <span class="txtbold">Confirmed animations</span><br>
+                    17 - moving forward<br>
+					18 - moving backwards<br>
+					18 - running<br>
+					20 - in the middle of a jump (jumping?)<br>
+					24 - ducking<br>
+					25 - not moving while in water (ie, swimming in place)<br>
+					32 - just stopped moving while standing, and then standing thereafter.<br>
+					33 - sitting<br>
+					37 - swimming<br>
+					43 - Just finished casting a spell (?)<br>
+					71 - just stood up before moving at all  (then it changes to 32)<br>
+					74 - mounted<br>
+					78 - galloping while mounted<br><br>
+					<span class="txtbold">Guesses</span><br>
+					34 - just finished turning while standing (unsure)<br><br>
+					<span class="txtbold">Combat Related</span><br>
+					5 - ??<br>
+					7 - ??<br>
+					8 - swinging one arm (??)<br>
+					13 - casting spell (??)<br>
+					44 - ??<br><br>
+	 </td>
+  </tr>
+  <tr> 
+    <td><span class="opt">class</span></td>
+    <td> Returns the class of your target</td>
+  </tr>
+  <tr> 
+    <td><span class="opt">direction</span></td>
+    <td> Returns the cardinal direction to your target</td>
+  </tr>
+  <tr> 
+    <td><span class="opt">distance[,predict|x|y|z</span></td>
+    <td> Returns distance information on the target</td>
+  </tr>
+  <tr> 
+    <td><span class="opt">gender</span></td>
+    <td> Returns the gender of your target</td>
+  </tr>
+  <tr> 
+    <td><span class="opt">gm</span></td>
+    <td> Returns TRUE or FALSE</td>
+  </tr>
+  <tr> 
+    <td><span class="opt">holding</span></td>
+    <td>Returns:<br>
+	    0 if target is holding nothing.<br>
+		3 if target is holding an object in primary and secondary<br>
+		4 if target is holding an object in primary<br>
+		5 if target is holding an object in secondary
+     </td>
+  </tr>
+  <tr> 
+    <td><span class="opt">level</span></td>
+    <td>Returns the level of your target</td>
+  </tr>
+  <tr> 
+    <td><span class="opt">light</span></td>
+    <td>Returns the light source the target is holding</td>
+  </tr>
+  <tr> 
+    <td><span class="opt">master</span></td>
+    <td>Returns the id of the pet's master</td>
+  </tr>
+  <tr> 
+    <td><span class="opt">name[,clean]</span></td>
+    <td>Returns the name of your target. Using ,clean removes _ and #.</td>
+  </tr>
+  <tr> 
+    <td><span class="opt">pet</span></td>
+    <td>Returns the id of your targets pet, 0 if no pet.</td>
+  </tr>
+  <tr> 
+    <td><span class="opt">surname</span></td>
+    <td>Returns the last name of the target</td>
+  </tr>
+  <tr> 
+    <td><span class="opt">id</span></td>
+    <td>Returns the id of your target</td>
+  </tr>
+  <tr> 
+    <td><span class="opt">heading</span></td>
+    <td>Returns the heading the target is facing in degrees</td>
+  </tr>
+  <tr> 
+    <td><span class="opt">headingto</span></td>
+    <td>Returns the direction to your target in degrees</td>
+  </tr>
+  <tr> 
+    <td><span class="opt">hp</span>,<span class="opt">option</span></td>
+    <td>Returns the current hp of the spawn<br>
+	    <span class="opt">option</span> can be: cur, max, pct
+    </td>
+  </tr>
+  <tr> 
+    <td><span class="opt">level</span>|<span class="opt">light</span>|<span class="opt">pet</span>
+	    |<span class="opt">race</span>|<span class="opt">speed</span>|<span class="opt">state</span>
+		|<span class="opt">surname</span>|<span class="opt">type</span>]
+	</td>
+    <td>Returns the specified information of the spawn.<br>
+	    state can return: STAND, SIT, DUCK, BIND, FEIGN, DEAD</td>
+  </tr>
+  <tr> 
+    <td><span class="opt">master</span>]</td>
+    <td>Returns the name of the npc's master</td>
+  </tr>
+  <tr> 
+    <td><span class="opt">name[,clean]</span>]</td>
+    <td>Returns the name of the spawn without the _00</td>
+  </tr>
+  <tr> 
+    <td><span class="opt">next</span>|<span class="opt">prev</span>]</td>
+    <td>Returns the id of the next|previous spawn.</td>
+  </tr>
+  <tr> 
+    <td><span class="opt">race</span></td>
+    <td>Returns the race of your target</td>
+  </tr>
+  <tr> 
+    <td><span class="opt">state</span></td>
+    <td>Returns STAND, SIT, DUCK, BIND, FEIGN, DEAD</td>
+  </tr>
+  <tr> 
+    <td><span class="opt">speed</span></td>
+    <td>Returns the movement speed fo your target</td>
+  </tr>
+  <tr> 
+    <td><span class="opt">type</span></td>
+    <td>Returns player or NPC</td>
+  </tr>
+  <tr> 
+    <td><span class="opt"> x|y|z</span></td>
+    <td>Returns the x,y,or z coordinate of your target</td>
+  </tr>
+</tbody>
+</table><br>
+
+<span class="command">$time</span>([<span class="opt">h</span>|<span class="opt">m</span>|<span class="opt">s</span>])<br>
+Returns the time. Dependent on your system clock
+<blockquote>
+<SCRIPT LANGUAGE="Javascript">
+document.write("<XMP>")
+document.write("/echo $time()\t\tEchos the current time to the EQ client\r")
+document.write("/echo $time(h)\t\tEchos the current hour to the EQ client\r")
+document.write("</XMP>")
+</SCRIPT>
+</blockquote>
+
+<a name="uv" id="uv"></a>
+<span class="command">$ucase</span>("<span class="arg">string</span>")<br>
+Returns the string in uppercase<br><br>
+<span class="tab">$ucase("Am I here?") will return AM I HERE?</span><br><br>
+
+<a name="vv" id="vv"></a>
+<a name="wv" id="wv"></a>
+<a name="xv" id="xv"></a>
+<a name="yv" id="yv"></a>
+<a name="zv" id="zv"></a>
+<span class="command">$zone</span>([<span class="opt">bound</span>|<span class="opt">birth</span>])<br>
+Returns your current zone without switches
+<blockquote>
+$zone() returns the zone you are currently in<br>
+$zone(bound) returns the zone you are bound in<br>
+$zone(birth) returns the zone your character was born in
+</blockquote>
+
+<a name="uiref" id="uiref"></a>
+<span class="txtbold">MacroQuest and the UI</span><br>
+MacroQuest allows the use of custom label ids to insert $ variables into your UI windows.<br>
+The addition is recent and is undergoing development so there will almost certainly be changes to how<br>
+these labels are utilized by MQ.<br><br>
+
+The use of these label id's or the tooltype will involve some ability to edit the xml files that describe your windows.<br><br>
+
+Currently there are two ways to add information to your UI windows.<br>
+1. Through the use of specific id's that are contained within MacroQuest<br>
+2. Through the use of a 'blanket' id, that allows you to include any $ variable in your UI.<br><br>
+
+<a name="labelid" id="labelid"></a>
+The current built-in label ids are:<br><br>
+
+<span class="labelid">1000</span>: $char(mana,cur)<br>
+<span class="labelid">1001</span>: $char(mana,max)<br> 
+<span class="labelid">1002</span>: $char(state)<br> 
+<span class="labelid">1003</span>: $char(speed)<br>
+<span class="labelid">1004</span>: $char(heading)<br> 
+<span class="labelid">1005</span>: $char(x)<br> 
+<span class="labelid">1006</span>: $char(y)<br> 
+<span class="labelid">1007</span>: $char(z)<br> 
+<span class="labelid">1008</span>: $char(dar)<br> 
+<span class="labelid">1009</span>: $char(cash)<br> 
+<span class="labelid">1010</span>: $char(cash,bank)<br> 
+<span class="labelid">1011</span>: $char(plat,bank)<br> 
+<span class="labelid">1012</span>: $char(plat,shared)<br> 
+<span class="labelid">1013</span>: $char(gold,bank)<br> 
+<span class="labelid">1014</span>: $char(silver,bank)<br> 
+<span class="labelid">1015</span>: $char(copper,bank)<br><br> 
+
+<span class="labelid">2000</span>: $target(level)<br> 
+<span class="labelid">2001</span>: $target(class)<br> 
+<span class="labelid">2002</span>: $target(race)<br> 
+<span class="labelid">2003</span>: $target(distance)<br> 
+<span class="labelid">2004</span>: $target(lastattacked)<br> 
+<span class="labelid">2005</span>: $target(state)<br> 
+<span class="labelid">2006</span>: $target(x)<br> 
+<span class="labelid">2007</span>: $target(y)<br> 
+<span class="labelid">2008</span>: $target(z)<br> 
+<span class="labelid">2009</span>: $target(heading)<br> 
+<span class="labelid">2010</span>: $target(speed)<br> 
+<span class="labelid">2011</span>: $target(id)<br><br> 
+<span class="labelid">3000</span>: $zone()<br> 
+<span class="labelid">3001</span>: $zone(zem)<br> 
+<span class="labelid">3002</span>: $zone(bound)<br> 
+<span class="labelid">3003</span>: $time()<br> 
+<span class="labelid">3004</span>: $time(h)<br> 
+<span class="labelid">3005</span>: $time(m)<br> 
+<span class="labelid">3006</span>: $time(s)<br> 
+<span class="labelid">3007</span>: $date()<br> 
+<span class="labelid">3008</span>: $date(y)<br> 
+<span class="labelid">3009</span>: $date(m)<br> 
+<span class="labelid">3010</span>: $date(d)<br> 
+<span class="labelid">3011</span>: $gm<br> 
+<span class="labelid">3012</span>: $freeinv(space)<br><br>
+
+<span class="labelid">4000</span>: $macro<br>
+<span class="labelid">4001</span>: $running<br><br>
+
+<span class="boldtype">Example</span>:<br><br>
+<blockquote>
+&lt;Label item ="Target_Level"&gt;<br> 
+<span class="tab">&lt;ScreenID&gt;TargetLevel&lt;/ScreenID&gt;</span><br>
+<span class="tab">&lt;EQType&gt;<span class="labelid">2000</span>&lt;/EQType&gt;</span><br> 
+<span class="tab">&lt;Font&gt;2&lt;/Font&gt;</span><br>
+<span class="tab">&lt;RelativePosition&gt;true&lt;/RelativePosition&gt;</span><br> 
+<span class="tab">&lt;Location&gt;</span><br> 
+<span class="doubletab">&lt;X&gt;24&lt;/X&gt;</span><br> 
+<span class="doubletab">&lt;Y&gt;33&lt;/Y&gt;</span><br> 
+<span class="tab">&lt;/Location&gt;</span><br> 
+<span class="tab">&lt;Size&gt;</span><br> 
+<span class="doubletab">&lt;CX&gt;22&lt;/CX&gt;</span><br> 
+<span class="doubletab">&lt;CY&gt;14&lt;/CY&gt;</span><br> 
+<span class="tab">&lt;/Size&gt;</span><br> 
+<span class="tab">&lt;Text&gt;0&lt;/Text&gt;</span><br> 
+<span class="tab">&lt;TextColor&gt;</span><br> 
+<span class="doubletab">&lt;R&gt;255&lt;/R&gt;</span><br>
+<span class="doubletab">&lt;G&gt;255&lt;/G&gt;</span><br> 
+<span class="doubletab">&lt;B&gt;0&lt;/B&gt;</span><br> 
+<span class="tab">&lt;/TextColor&gt;</span><br> 
+<span class="tab">&lt;NoWrap&gt;true&lt;/NoWrap&gt;</span><br> 
+<span class="tab">&lt;AlignCenter&gt;false&lt;/AlignCenter&gt;</span><br> 
+<span class="tab">&lt;AlignRight&gt;true&lt;/AlignRight&gt;</span><br> 
+<span class="tab">&lt;AlignLeft&gt;false&lt;/AlignLeft&gt;</span><br>
+&lt;/Label&gt;<br><br> 
+</blockquote>
+
+<a name="tooltype" id="tooltype"></a>
+The other option is to use the following tooltype in your UI:<br><br>
+&lt;EQType&gt;9999&lt;/EQType&gt;<br>
+&lt;TooltipReference&gt;<span class="arg">$variable</span>%&lt;/TooltipReference&gt;<br><br>
+
+<span class="boldtype">Example</span>:<br><br>
+<blockquote>
+&lt;Label item ="BW_Buff0_Duration"&gt;</span><br> 
+<span class="tab">&lt;ScreenID&gt;Buff0Duration&lt;/ScreenID&gt;</span><br> 
+<span class="tab">&lt;EQType&gt;9999&lt;/EQType&gt;</span><br> 
+<span class="doubletab">&lt;TooltipReference&gt;<span class="arg">$char(buff,1,durationsecs)</span>&lt;/TooltipReference&gt;</span><br> 
+<span class="tab">&lt;Font&gt;2&lt;/Font&gt;</span><br> 
+<span class="tab">&lt;RelativePosition&gt;true&lt;/RelativePosition&gt;</span><br> 
+<span class="tab">&lt;Location&gt;</span><br> 
+<span class="doubletab">&lt;X&gt;23&lt;/X&gt;</span><br> 
+<span class="doubletab">&lt;Y&gt;3&lt;/Y&gt;</span><br> 
+<span class="tab">&lt;/Location&gt;</span><br> 
+<span class="tab">&lt;Size&gt;</span><br> 
+<span class="doubletab">&lt;CX&gt;153&lt;/CX&gt;</span><br> 
+<span class="doubletab">&lt;CY&gt;14&lt;/CY&gt;</span><br> 
+<span class="tab">&lt;/Size&gt;</span><br> 
+<span class="tab">&lt;Text&gt;&lt;/Text&gt;</span><br> 
+<span class="tab">&lt;TextColor&gt;</span><br> 
+<span class="doubletab">&lt;R&gt;255&lt;/R&gt;</span><br> 
+<span class="doubletab">&lt;G&gt;255&lt;/G&gt;</span><br> 
+<span class="doubletab">&lt;B&gt;255&lt;/B&gt;</span><br> 
+<span class="tab">&lt;/TextColor&gt;</span><br> 
+<span class="tab">&lt;NoWrap&gt;true&lt;/NoWrap&gt;</span><br> 
+<span class="tab">&lt;AlignCenter&gt;false&lt;/AlignCenter&gt;</span><br> 
+<span class="tab">&lt;AlignRight&gt;false&lt;/AlignRight&gt;</span><br> 
+&lt;/Label&gt;<br><br> 
+</blockquote>
+
+<a name="telnet" id="telnet"></a>
+<span class="txtbold">Telnet Server</span><br><br>
+<span class="txtbold">Enabling</span><br>
+You must enable the telnet server in macroquest.ini's [Telnet
+Server] section.<br>
+Set <span class="txtbold">Enabled=1</span> and set a valid <span class="txtbold">Port=###</span><br>
+Also, please set a "<span class="command">Welcome=message</span>"
+and definitely a private "<span class="command">Password=junk</span>"<br><br>
+
+<span class="txtbold">Using telnet</span><br>
+Use a real telnet client. (Putty works well for this)<br>
+Connect to the system running EQ/MQ using the port you have in your ini.<br>
+You should see your Welcome message and a password prompt. (Enter it ;)<br>
+Anything you type into the telnet session will be sent to the client and executed
+directly (like a macro statement)<br><br>
+Any chat output will be sent to your telnet session.<br><br>
+
+<span class="txtbold">Slash Commands</span><br>
+<span class="txtbold">/telnet</span><span class="tab">Displays a list of all remote IP addresses
+for open telnet sessions.</span><br><br>
+
+<span class="txtbold">Ending</span><br>
+Close the telnet client, MacroQuest will clean up when it notices the socket is gone.<br><br>
+
+<a name="compareop" id="compareop"></a><br><br>
+<span class="txtbold">Appendix A</span>:  Comparison Operators
+<table width="100%" border="1" cellpadding="2" cellspacing="0">
+  <tbody>
+  <tr>
+    <td width="104"><span class="doubletab">==</span></td>
+    <td width="404">Equal to</td>
+  </tr>
+  <tr>
+    <td><span class="doubletab">!=</span></td>
+    <td>Not equal to</td>
+  </tr>
+  <tr>
+    <td><span class="doubletab">&gt;</span></td>
+    <td>Greater than</td>
+  </tr>
+  <tr>
+    <td><span class="doubletab">&lt;</span></td>
+    <td>Less than</td>
+  </tr>
+  <tr>
+    <td><span class="doubletab">&gt;=</span></td>
+    <td>Greater than or equal to</td>
+  </tr>
+  <tr>
+    <td><span class="doubletab">&lt;=</span></td>
+    <td>Less than or equal to</td>
+  </tr>
+  <tr>
+    <td><span class="doubletab">~~</span></td>
+    <td>Contains operator (string only)</td>
+  </tr>
+  <tr>
+    <td><span class="doubletab">!~</span></td>
+    <td>Does not contain operator (string only)</td>
+  </tr>
+</tbody></table>
+
+<a name="mathop" id="mathop"></a><br><br>
+<span class="txtbold">Appendix B</span>: Mathematical operators<br><br>
+<table width="100%" border="1" cellpadding="2" cellspacing="0">
+  <tbody>
+  <tr>
+    <td width="104"><span class="doubletab">+</span></td>
+    <td width="404">Addition</td>
+  </tr>
+  <tr>
+    <td><span class="doubletab"><span class="txtbold">-</span></span></td>
+    <td>Subtraction</td>
+  </tr>
+  <tr>
+    <td><span class="doubletab"><span class="txtbold">/</span></span></td>
+    <td>Division</td>
+  </tr>
+  <tr>
+    <td><span class="doubletab"><span class="txtbold">\</span></span></td>
+    <td>Integer Division</td>
+  </tr>
+  <tr>
+    <td><span class="doubletab"><span class="txtbold">*</span></span></td>
+    <td>Multiplication</td>
+  </tr>
+  <tr>
+    <td><span class="doubletab"><span class="txtbold">%</span></span></td>
+    <td>mod</td>
+  </tr>
+  <tr>
+    <td><span class="doubletab"><span class="txtbold">^</span></span></td>
+    <td>Exponent</td>
+  </tr>
+  </tbody></table><br><br>
+  
+<a name="sendkeylist" id="sendkeylist"></a>
+<span class="txtbold">Appendix C</span>: Sendkey List<br><br>
+<table style="border-collapse: collapse;" cellspacing="1" cellpadding="1" width="100%" border="1">
+  <tbody><tr>
+    <td>Esc</td>
+    <td bgcolor="#000033"></td>
+    <td>F1</td>
+    <td>F2</td>
+    <td>F3</td>
+    <td>F4</td>
+    <td>F5</td>
+    <td>F6</td>
+    <td>F7</td>
+    <td>F8</td>
+    <td>F9</td>
+    <td>F10</td>
+    <td>F11</td>
+    <td>F12</td>
+  </tr>
+  <tr>
+    <td>`</td>
+    <td>1</td>
+    <td>2</td>
+    <td>3</td>
+    <td>4</td>
+    <td>5</td>
+    <td>6</td>
+    <td>7</td>
+    <td>8</td>
+    <td>9</td>
+    <td>0</td>
+    <td>-</td>
+    <td>=</td>
+    <td>Backspace</td>
+  </tr>
+  <tr>
+    <td>Tab</td>
+    <td>Q</td>
+    <td>W</td>
+    <td>E</td>
+    <td>R</td>
+    <td>T</td>
+    <td>Y</td>
+    <td>U</td>
+    <td>I</td>
+    <td>O</td>
+    <td>P</td>
+    <td>[</td>
+    <td>]</td>
+    <td>\</td>
+  </tr>
+  <tr>
+    <td>Caps_Lock</td>
+    <td>A</td>
+    <td>S</td>
+    <td>D</td>
+    <td>F</td>
+    <td>G</td>
+    <td>H</td>
+    <td>J</td>
+    <td>K</td>
+    <td>L</td>
+    <td>;</td>
+    <td>'</td>
+    <td colspan="2">Enter</td>
+  </tr>
+  <tr>
+    <td colspan="2">Shift</td>
+    <td>Z</td>
+    <td>X</td>
+    <td>C</td>
+    <td>V</td>
+    <td>B</td>
+    <td>N</td>
+    <td>M</td>
+    <td>,</td>
+    <td>.</td>
+    <td>/</td>
+    <td colspan="2">Right_Shift</td>
+  </tr>
+  <tr>
+    <td colspan="2">Ctrl</td>
+    <td colspan="2">Alt</td>
+    <td colspan="6">Space</td>
+    <td colspan="2">Right_Alt</td>
+    <td colspan="2">Right_Ctrl</td>
+  </tr>
+</tbody></table><br><br>
+
+<table style="border-collapse: collapse;" cellspacing="1" cellpadding="1" width="100%" border="1">
+  <tbody><tr>
+    <td>Prnt_Scrn</td>
+    <td>Scroll_Lock</td>
+    <td bgcolor="#000033"></td>
+    <td bgcolor="#000033"></td>
+    <td bgcolor="#000033"></td>
+    <td bgcolor="#000033"></td>
+    <td bgcolor="#000033"></td>
+    <td bgcolor="#000033"></td>
+  </tr>
+  <tr>
+    <td bgcolor="#808080"></td>
+    <td bgcolor="#808080"></td>
+    <td bgcolor="#000033"></td>
+    <td bgcolor="#000033"></td>
+    <td bgcolor="#000033"></td>
+    <td bgcolor="#000033"></td>
+    <td bgcolor="#000033"></td>
+    <td bgcolor="#000033"></td>
+  </tr>
+  <tr>
+    <td>Insert</td>
+    <td>Home</td>
+    <td>Page_Up</td>
+    <td bgcolor="#000033"></td>
+    <td>Num_Lock</td>
+    <td>Num_/</td>
+    <td>Num_*</td>
+    <td>Num_-</td>
+  </tr>
+  <tr>
+    <td>Delete</td>
+    <td>End</td>
+    <td>Page_Down</td>
+    <td bgcolor="#000033"></td>
+    <td>Num_7</td>
+    <td>Num_8</td>
+    <td>Num_9</td>
+    <td rowspan="2">Num_+</td>
+  </tr>
+  <tr>
+    <td bgcolor="#000033"></td>
+    <td bgcolor="#000033"></td>
+    <td bgcolor="#000033"></td>
+    <td bgcolor="#000033"></td>
+    <td>Num_4</td>
+    <td>Num_5</td>
+    <td>Num_6</td>
+  </tr>
+  <tr>
+    <td bgcolor="#000033"></td>
+    <td>Up</td>
+    <td bgcolor="#000033"></td>
+    <td width="20" bgcolor="#000033"></td>
+    <td>Num_1</td>
+    <td>Num_2</td>
+    <td>Num_3</td>
+    <td rowspan="2">Num_Enter</td>
+  </tr>
+  <tr>
+    <td>Left</td>
+    <td>Down</td>
+    <td>Right</td>
+    <td bgcolor="#000033"></td>
+    <td colspan="2">Num_0</td>
+    <td>Num_Del</td>
+  </tr>
+</tbody></table><br><br>
+
+<a name="skilllist" id="skilllist"></a>
+<span class="txtbold">Appendix D</span>:  Skills list<br><br>
+<table id="TableSkills" cellspacing="0" cellpadding="0" width="100%" border="0">
+  <tbody>
+  <tr>
+    <td>1H Blunt</td>
+    <td>1H Slashing</td>
+    <td>2H Blunt</td>
+  </tr>
+  <tr>
+    <td>2H Slashing</td>
+    <td>Abjuration</td>
+    <td>Alteration</td>
+  </tr>
+  
+  <tr>
+    <td>Apply Poison</td>
+    <td>Archery</td>
+    <td>Backstab</td>
+  </tr>
+  
+  <tr>
+    <td>Bind Wound</td>
+    <td>Bash</td>
+    <td>Block</td>
+  </tr>
+  <tr>
+    <td>Brass Instruments</td>
+    <td>Channeling</td>
+    <td>Conjuration</td>
+  </tr>
+  <tr>
+    <td>Defense</td>
+    <td>Disarm</td>
+    <td>Disarm Traps</td>
+  </tr>
+  <tr>
+    <td>Divination</td>
+    <td>Dodge</td>
+    <td>Double Attack</td>
+  </tr>
+  <tr>
+    <td>Dragon Punch</td>
+    <td>Duel Wield</td>
+    <td>Eagle Strike</td>
+  </tr>
+  <tr>
+    <td>Evocation</td>
+    <td>Feign Death</td>
+    <td>Flying Kick</td>
+  </tr>
+  <tr>
+    <td>Forage</td>
+    <td>Hand To Hand</td>
+    <td>Hide</td>
+  </tr>
+  <tr>
+    <td>Kick</td>
+    <td>Meditate</td>
+    <td>Mend</td>
+  </tr>
+  <tr>
+    <td>Offense</td>
+    <td>Parry</td>
+    <td>Pick Lock</td>
+  </tr>
+  <tr>
+    <td>Piercing</td>
+    <td>Riposte</td>
+    <td>Round Kick</td>
+  </tr>
+  <tr>
+    <td>Safe Fall</td>
+    <td>Sense Heading</td>
+    <td>Sing</td>
+  </tr>
+  <tr>
+    <td>Sneak</td>
+    <td>Specialize Abjure</td>
+    <td>Specialize Alteration</td>
+  </tr>
+  <tr>
+    <td>Specialize Conjuration</td>
+    <td>Specialize Divination</td>
+    <td>Specialize Evocation</td>
+  </tr>
+  <tr>
+    <td>Pick Pockets</td>
+    <td>Stringed Instruments</td>
+    <td>Throwing</td>
+  </tr>
+  <tr>
+    <td>Tiger Claw</td>
+    <td>Tracking</td>
+    <td>Wind Instruments</td>
+  </tr>
+  <tr>
+    <td>Fishing</td>
+    <td>Make Poison</td>
+    <td>Tinkering</td>
+  </tr>
+  <tr>
+    <td>Research</td>
+    <td>Alchemy</td>
+    <td>Baking</td>
+  </tr>
+  <tr>
+    <td>Tailoring</td>
+    <td>Sense Traps</td>
+    <td>Blacksmithing</td>
+  </tr>
+  <tr>
+    <td>Fletching</td>
+    <td>Brewing</td>
+    <td>Alcohol Tolerance</td>
+  </tr>
+  <tr>
+    <td>Begging</td>
+    <td>Jewelry Making</td>
+    <td>Pottery</td>
+  </tr>
+  <tr>
+    <td>Percussion Instruments</td>
+    <td>Intimidation</td>
+    <td>Berserking</td>
+  </tr>
+  <tr>
+    <td>Taunt</td>
+    <td>Slam</td>
+    <td></td>
+  </tr>
+</tbody></table><br><br>
+
+<a name="containerslist" id="containerslist"></a>
+<span class="txtbold">Appendix E</span>: Containers List <br><br>
+<table id="Table1" cellspacing="0" cellpadding="0" width="100%" border="0">
+  <tbody><tr> 
+    <td>Regular</td>
+    <td>Medicine</td>
+    <td></td>
+  </tr>
+  <tr> 
+    <td>Quest</td>
+    <td>Alchemy</td>
+    <td></td>
+  </tr>
+  <tr> 
+    <td>Merchant</td>
+    <td>Mixing</td>
+    <td></td>
+  </tr>
+  <tr> 
+    <td></td>
+    <td>Baking</td>
+    <td></td>
+  </tr>
+  <tr> 
+    <td>Research WIZ</td>
+    <td>Make Poison</td>
+    <td></td>
+  </tr>
+  <tr> 
+    <td>Research MAG</td>
+    <td>Fishing</td>
+    <td></td>
+  </tr>
+  <tr> 
+    <td>Research NEC</td>
+    <td>Tinkering</td>
+    <td></td>
+  </tr>
+  <tr> 
+    <td>Research ENC</td>
+    <td>Fletching</td>
+    <td></td>
+  </tr>
+  <tr> 
+    <td>Research Practice</td>
+    <td>Fletching WoodElf</td>
+    <td></td>
+  </tr>
+  <tr> 
+    <td>Research ???</td>
+    <td>Tailoring</td>
+    <td></td>
+  </tr>
+  <tr> 
+    <td></td>
+    <td>Tailoring Halfling</td>
+    <td></td>
+  </tr>
+  <tr> 
+    <td></td>
+    <td>Jewelry Making</td>
+    <td></td>
+  </tr>
+  <tr> 
+    <td></td>
+    <td>Blacksmithing</td>
+    <td></td>
+  </tr>
+  <tr> 
+    <td></td>
+    <td>Pottery</td>
+    <td></td>
+  </tr>
+  <tr> 
+    <td></td>
+    <td>Firing</td>
+    <td></td>
+  </tr>
+  <tr> 
+    <td></td>
+    <td>Brewing</td>
+    <td></td>
+  </tr>
+</tbody></table><br><br>
+
+<a name="slotnames" id="slotnames"></a>
+<span class="txtbold">Appendix F</span>: Equipment Slot Names <br><br>
+Left Ear: lear<br>
+Right Ear: rear<br>
+Neck: neck<br>
+Face: face<br>
+Head: head<br>
+Left Finger: lfinger<br>
+Right Finger: rfinger<br>
+Left Wrist: lwrist<br>
+Right Wrist: rwrist<br>
+Arms: arms<br>
+Hands: hands<br>
+Shoulder: shoulder<br>
+Chest: chest<br>
+Back: back<br>
+Waist: waist<br>
+Legs: legs<br>
+Feet: feet<br>
+Primary: primary<br>
+Secondary: secondary<br>
+Ranged: ranged<br>
+Ammo: ammo<br><br>
+
+<a name="credits" id="credits"></a>
+<span class="txtbold">Credits and How to Help</span><br><br>
+
+<span class="txtbold">Contributions</span>(in no particular order)<br>
+(<span class="txtbold">needs to be updated, so many changes lately!</span>)<br><br>
+EQMule:<br>
+Plazmic:<br>
+Amadeus:<br>
+McKorr:<br> 
+dkaa:<br>
+Lax: <br>
+Macrofiend:<br>
+ap50:<br> 
+Blueskies:<br>
+L124RD for bug hunting and doing most of the backend for the website<br>
+tuxracer for designing the website and formatting the manual<br>
+Syn for disassembly work<br>
+Domosan for finding detours on MS's site<br>
+ShowEQ's source for some ideas on how things might be stored in memory (similar to the packet structure).<br>
+Decal's source for 9x compatible DLL injection.<br>
+Rizwank's prettying up the original manual and adding macro walkthroughs.<br>
+Sparr's excellent job at finding offsets for 7/24 and other cool feats.<br>
+m0nk for many crazy ideas<br>
+Xaanin for finding all the memory addresses while I was gone<br>
+Dohpaz for the first patch submission!<br>
+DeathSpiral for taking over the SF portion of the site<br>
+
+</body>
+</html>
+
