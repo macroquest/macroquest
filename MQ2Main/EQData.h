@@ -450,7 +450,7 @@ typedef struct _SPELLBUFF {
 /*0x01*/    BYTE      Level;
 /*0x02*/    CHAR      Modifier; // bard song modifier, divide by 10 to get 2.8 etc
 /*0x03*/    CHAR      DamageShield;  // maybe.. I've noticed this is -1 on a lot of ds's.
-/*0x04*/    DWORD     SpellID;
+/*0x04*/    LONG      SpellID;// -1 or 0 for no spell..
 /*0x08*/    DWORD     Duration;
 /*0x0c*/    DWORD     DamageAbsorbRemaining;  // Melee or Spellshield type
 /*0x10*/

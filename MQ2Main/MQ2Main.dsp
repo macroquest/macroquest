@@ -131,10 +131,6 @@ SOURCE=.\MQ2Mouse.cpp
 # End Source File
 # Begin Source File
 
-SOURCE=.\MQ2Parms.cpp
-# End Source File
-# Begin Source File
-
 SOURCE=.\MQ2ParseAPI.cpp
 # End Source File
 # Begin Source File
@@ -148,10 +144,6 @@ SOURCE=.\MQ2Pulse.cpp
 # Begin Source File
 
 SOURCE=.\MQ2Spawns.cpp
-# End Source File
-# Begin Source File
-
-SOURCE=.\MQ2UserVars.cpp
 # End Source File
 # Begin Source File
 

@@ -17,7 +17,6 @@
 // "bind" type (key binds)
 // Friend TLO
 // Ignore TLO
-// Mouse x/y
 // count buffs
 
 EQLIB_VAR class MQ2FloatType *pFloatType;
@@ -61,9 +60,7 @@ EQLIB_VAR class MQ2HeadingType *pHeadingType;
 EQLIB_VAR class MQ2InvSlotType *pInvSlotType;
 
 EQLIB_VAR class MQ2ArrayType *pArrayType;
-#ifdef USEMQ2DATAVARS
 EQLIB_VAR class MQ2TimerType *pTimerType;
-#endif
 EQLIB_VAR class MQ2PluginType *pPluginType;
 
 EQLIB_VAR class MQ2RaidType *pRaidType;
@@ -393,6 +390,7 @@ public:
 		TotalMinutes=5,
 		TotalSeconds=6,
 		Ticks=7,
+		TimeHMS=8,
 	};
 	MQ2TicksType():MQ2Type("ticks")
 	{
@@ -403,6 +401,7 @@ public:
 		TypeMember(TotalMinutes);
 		TypeMember(TotalSeconds);
 		TypeMember(Ticks);
+		TypeMember(TimeHMS);
 	}
 
 	~MQ2TicksType()
@@ -433,7 +432,7 @@ public:
 			Dest.DWord=(nTicks*6)%60;
 			Dest.Type=pIntType;
 			return true;
-		case Time:
+		case TimeHMS:
 			{
 				int Secs=nTicks*6;
 				int Mins=(Secs/60)%60;
@@ -443,6 +442,16 @@ public:
 					sprintf(DataTypeTemp,"%d:%02d:%02d",Hrs,Mins,Secs);
 				else
 					sprintf(DataTypeTemp,"%d:%02d",Mins,Secs);
+				Dest.Ptr=&DataTypeTemp[0];
+				Dest.Type=pStringType;
+			}
+			return true;
+		case Time:
+			{
+				int Secs=nTicks*6;
+				int Mins=(Secs/60);
+				Secs=Secs%60;
+				sprintf(DataTypeTemp,"%d:%02d",Mins,Secs);
 				Dest.Ptr=&DataTypeTemp[0];
 				Dest.Type=pStringType;
 			}
@@ -801,7 +810,8 @@ public:
 		RaidAssistTarget=100,
 		GroupAssistTarget=101,
 		RaidMarkNPC=102,
-		GroupMarkNPC=103
+		GroupMarkNPC=103,
+		CountBuffs=104,
 	};
 	MQ2CharacterType():MQ2Type("character")
 	{
@@ -907,6 +917,7 @@ public:
 		TypeMember(GroupAssistTarget);//=101,
 		TypeMember(RaidMarkNPC);//=102,
 		TypeMember(GroupMarkNPC);//=103
+		TypeMember(CountBuffs);
 	}
 
 	~MQ2CharacterType()
@@ -2494,7 +2505,6 @@ public:
 	}
 }; 
 
-#ifdef USEMQ2DATAVARS
 class MQ2TimerType : public MQ2Type
 {
 public:
@@ -2580,7 +2590,6 @@ public:
 		return true;
 	}
 }; 
-#endif
 
 class MQ2ArrayType : public MQ2Type
 {

@@ -418,11 +418,7 @@ PLUGIN_API VOID InitializePlugin(VOID)
    // Add commands, macro parameters, hooks, etc.
    AddCommand("/bzsrch",BzSrchMe);
    AddCommand("/mq2bzsrch",MQ2BzSrch);
-#ifdef USEMQ2PARMS
-    AddParm("bazaar",parmBazaar); // cc - removed to add MQ2Data
-#else
    AddMQ2Data("Bazaar",dataBazaar); // cc - added, but not using TLO yet
-#endif
 
 //   EasyClassDetour(CBazaarSearchWnd__HandleBazaarMsg,BzSrchHook,BzDetour,void,(char*,int),BzTrampoline);
    EzDetour(CBazaarSearchWnd__HandleBazaarMsg,BzSrchHook::BzDetour,BzSrchHook::BzTrampoline);
@@ -438,11 +434,7 @@ PLUGIN_API VOID ShutdownPlugin(VOID)
 
    // Remove commands, macro parameters, hooks, etc.
    RemoveDetour(CBazaarSearchWnd__HandleBazaarMsg);
-#ifdef USEMQ2PARMS
-    RemoveParm("bazaar"); //cc - removed to add MQ2Data
-#else
    RemoveMQ2Data("Bazaar");
-#endif
    RemoveCommand("/mq2bzsrch");
    RemoveCommand("/bzsrch");
    delete pBazaarType;
@@ -647,129 +639,5 @@ BOOL dataBazaar(PCHAR szName, MQ2TYPEVAR &Ret)
 	Ret.DWord=1;
 	Ret.Type=pBazaarType;
 	return true;
-	/*
-   DWORD i=0;
-   if (strlen(szName) == 0) {
-      if (!BzDone) {
-         Ret.Int=0;
-         Ret.Type=pBoolType;
-         return true;
-      } else {
-         Ret.Int=1;
-         Ret.Type=pBoolType;
-         return true;
-      }
-   } else
-   if (!strncmp("count", szName, 5)) {
-      CHAR szTemp[MAX_STRING] = {0};
-      i+=12;
-      Ret.DWord=BzCount;
-      Ret.Type=pIntType;
-      return true;
-   } else {
-      DWORD index = atoi(szName);
-      PCHAR tmp = strstr(szName, ",");
-      CHAR szOutput[64] = {0};
-      tmp++;
-      char *ptr;
-      strcpy(szOutput, BzArray[index].BSSName);
-      if (ptr = strrchr(szOutput,'('))
-            *ptr = '\0';
-      
-      if (!strncmp("name", tmp, 4)) {
-         Ret.Ptr=&szOutput;
-         Ret.Type=pStringType;
-         return true;
-      }
-      if (!strncmp("price", tmp, 5)) {
-         Ret.Int=BzArray[index].BSSPrice;
-         Ret.Type=pIntType;
-         return true;
-      }
-      if (!strncmp("itemid", tmp, 6)) {
-         Ret.Int=BzArray[index].BSSItemID;
-         Ret.Type=pIntType;
-         return true;
-      }
-      if (!strncmp("msg", tmp, 3)) {
-         Ret.Int=BzArray[index].BSSmsg;
-         Ret.Type=pIntType;
-         return true;
-      }
-      if (!strncmp("quantity", tmp, 8)) {
-         Ret.Int=BzArray[index].BSSQuantity;
-         Ret.Type=pIntType;
-         return true;
-      }
-      if (!strncmp("traderid", tmp, 8)) {
-         Ret.Int=BzArray[index].BSSTraderID;
-         Ret.Type=pIntType;
-         return true;
-      }
-      if (!strncmp("value", tmp, 5)) {
-         Ret.Int=BzArray[index].BSSValue;
-         Ret.Type=pIntType;
-         return true;
-      }
-   }
-   return false;
-   /**/
 }
 
-DWORD parmBazaar(PCHAR szVar, PCHAR szOutput, PSPAWNINFO pChar)
-{
-   DWORD i=0;
-
-   if (!strncmp("bazaar()", szVar, 8)) {
-      i+=7;
-      if (!BzDone) {
-         strcat(szOutput,"FALSE");
-      } else {
-         strcat(szOutput,"TRUE");
-      }
-   } else if (!strncmp("bazaar(count)", szVar, 13)) {
-      CHAR szTemp[MAX_STRING] = {0};
-      i+=12;
-      itoa(BzCount, szTemp, 10);
-      strcat(szOutput, szTemp);
-   } else if (!strncmp("bazaar(", szVar, 7)) {
-      CHAR szTemp[MAX_STRING] = {0};
-      DWORD index = atoi(szVar+7);
-      PCHAR tmp = strstr(szVar, ",");
-      if (index >= 200 || index >= BzCount || !tmp) {
-         DebugSpewNoFile("parmBazaar -- Bad $bazaar() '%s'",szVar);
-         return PMP_ERROR_BADPARM;
-      }
-      tmp++;
-      if (!strncmp("name",tmp,4)) {
-         char *ptr;
-         strcat(szOutput, BzArray[index].BSSName);
-         if (ptr = strrchr(szOutput,'('))
-            *ptr = '\0';
-      } else if (!strncmp("price",tmp,5)) {
-         itoa(BzArray[index].BSSPrice, szTemp, 10);
-         strcat(szOutput, szTemp);
-      } else if (!strncmp("id",tmp,2)) {
-         itoa(BzArray[index].BSSItemID, szTemp, 10);
-         strcat(szOutput, szTemp);
-      } else if (!strncmp("trader",tmp,6)) {
-         itoa(BzArray[index].BSSTraderID, szTemp, 10);
-         strcat(szOutput, szTemp);
-      } else if (!strncmp("quantity",tmp,8)) {
-         itoa(BzArray[index].BSSQuantity, szTemp, 10);
-         strcat(szOutput, szTemp);
-      } else {
-         DebugSpewNoFile("parmBazaar -- Bad $bazaar() '%s'",szVar);
-         return PMP_ERROR_BADPARM;
-      }
-      tmp = strstr(szVar,")");
-      if (!tmp)  {
-         DebugSpewNoFile("parmBazaar -- Bad $bazaar() '%s'",szVar);
-         return PMP_ERROR_BADPARM;
-      } else {
-         i = (tmp - szVar);
-      }
-   }
-
-   return i;
-}

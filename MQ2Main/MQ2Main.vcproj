@@ -138,9 +138,6 @@
 				RelativePath="MQ2Mouse.cpp">
 			</File>
 			<File
-				RelativePath="MQ2Parms.cpp">
-			</File>
-			<File
 				RelativePath="MQ2ParseAPI.cpp">
 			</File>
 			<File
@@ -151,9 +148,6 @@
 			</File>
 			<File
 				RelativePath="MQ2Spawns.cpp">
-			</File>
-			<File
-				RelativePath="MQ2UserVars.cpp">
 			</File>
 			<File
 				RelativePath="MQ2Utilities.cpp">

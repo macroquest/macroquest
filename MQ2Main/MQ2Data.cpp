@@ -602,11 +602,7 @@ BOOL dataDefined(PCHAR szIndex, MQ2TYPEVAR &Ret)
 {
 	if (!szIndex[0])
 		return false;
-#ifdef USEMQ2DATAVARS
 	Ret.DWord=(FindMQ2DataVariable(szIndex)!=0);
-#else
-	Ret.DWord=IsVariableDefined(szIndex);
-#endif
 	Ret.Type=pBoolType;
 	return true;
 }

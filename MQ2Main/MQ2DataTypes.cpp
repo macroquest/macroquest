@@ -97,9 +97,7 @@ void InitializeMQ2DataTypes()
 	pHeadingType = new MQ2HeadingType;
 	pInvSlotType = new MQ2InvSlotType;
 	pArrayType = new MQ2ArrayType;
-#ifdef USEMQ2DATAVARS
 	pTimerType = new MQ2TimerType;
-#endif
 	pPluginType = new MQ2PluginType;
 	pSkillType = new MQ2SkillType;
 	pAltAbilityType = new MQ2AltAbilityType;
@@ -145,9 +143,7 @@ void ShutdownMQ2DataTypes()
 	delete pTimeType;
 	delete pHeadingType;
 	delete pArrayType;
-#ifdef USEMQ2DATAVARS
 	delete pTimerType;
-#endif
 	delete pPluginType;
 	delete pSkillType;
 	delete pAltAbilityType;
@@ -1114,6 +1110,17 @@ bool MQ2CharacterType::GetMember(MQ2VARPTR VarPtr, PCHAR Member, PCHAR Index, MQ
 			Dest.Type=pIntType;
 		}
 		return true;
+	case CountBuffs:
+		Dest.DWord=0;
+		{
+			for (unsigned long nBuff=0 ; nBuff<15 ; nBuff++)
+			{
+				if (pChar->Buff[nBuff].SpellID>0)
+					Dest.DWord++;
+			}
+			Dest.Type=pIntType;
+		}
+		return true;
 	case Buff:
 		if (!Index[0])
 			return false;
@@ -1122,7 +1129,7 @@ bool MQ2CharacterType::GetMember(MQ2VARPTR VarPtr, PCHAR Member, PCHAR Index, MQ
 			unsigned long nBuff=atoi(Index)-1;
 			if (nBuff>=15)
 				return false;
-			if (pChar->Buff[nBuff].SpellID==0xFFFFFFFF || pChar->Buff[nBuff].SpellID==0)
+			if (pChar->Buff[nBuff].SpellID<=0)
 				return false;
 			Dest.Ptr=&pChar->Buff[nBuff];
 			Dest.Type=pBuffType;
@@ -1152,7 +1159,7 @@ bool MQ2CharacterType::GetMember(MQ2VARPTR VarPtr, PCHAR Member, PCHAR Index, MQ
 			unsigned long nBuff=atoi(Index)-1;
 			if (nBuff>=6)
 				return false;
-			if (pChar->ShortBuff[nBuff].SpellID==0xFFFFFFFF || pChar->ShortBuff[nBuff].SpellID==0x0)
+			if (pChar->ShortBuff[nBuff].SpellID<=0)
 				return false;
 
 			Dest.Ptr=&pChar->ShortBuff[nBuff];
@@ -3867,7 +3874,6 @@ bool MQ2ArrayType::GetMember(MQ2VARPTR VarPtr, PCHAR Member, PCHAR Index, MQ2TYP
 #undef pArray
 }
 
-#ifdef USEMQ2DATAVARS
 bool MQ2TimerType::GetMember(MQ2VARPTR VarPtr, PCHAR Member, PCHAR Index, MQ2TYPEVAR &Dest)
 {
 #define pTimer ((PTIMER)VarPtr.Ptr)
@@ -3890,7 +3896,6 @@ bool MQ2TimerType::GetMember(MQ2VARPTR VarPtr, PCHAR Member, PCHAR Index, MQ2TYP
 	return false;
 #undef pTimer
 }
-#endif
 
 bool MQ2PluginType::GetMember(MQ2VARPTR VarPtr, PCHAR Member, PCHAR Index, MQ2TYPEVAR &Dest)
 {

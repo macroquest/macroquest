@@ -194,49 +194,12 @@ typedef struct _ALERTLIST {
     struct _ALERTLIST *pNext;
 } ALERTLIST, *PALERTLIST;
 
-#ifndef USEMQ2DATAVARS
-typedef struct _VARSTRINGS {
-    CHAR szName[MAX_VARNAME];
-    CHAR szVar[MAX_STRING];
-    struct _VARSTRINGS *pNext;
-//	struct _VARSTRINGS *pPrev;
-	BOOL Macro;
-} VARSTRINGS, *PVARSTRINGS;
-
-typedef struct _VARARRAYS {
-    CHAR szName[MAX_VARNAME];
-    BOOL OneDimension;
-    PVARSTRINGS pVarStrings;
-    struct _VARARRAYS *pNext;
-//	struct _VARARRAYS *pPrev;
-	BOOL Macro;
-} VARARRAYS, *PVARARRAYS;
-
-typedef struct _MACROSTACK {
-    PMACROBLOCK Location;
-    struct _MACROSTACK *pNext;
-    CHAR Return[MAX_STRING];
-    PVARSTRINGS StackStr;
-    PVARSTRINGS LocalStr;
-} MACROSTACK, *PMACROSTACK;
-
-typedef struct _EVENTSTACK {
-    struct _EVENTSTACK *pNext;
-    DWORD Type;
-    struct _EVENTLIST *pEventList;
-    PVARSTRINGS EventStr;
-} EVENTSTACK, *PEVENTSTACK;
-
-#endif
-
 typedef struct _TIMER {
     CHAR szName[MAX_VARNAME];
     ULONG Original;
     ULONG Current;
     struct _TIMER *pNext;
-#ifdef USEMQ2DATAVARS
 	struct _TIMER *pPrev;
-#endif
 } TIMER, *PTIMER;
 
 typedef struct _KEYPRESS {
@@ -949,7 +912,6 @@ static int MQRankCompareReverse(const void *A, const void *B)
 }
 
 
-#ifdef USEMQ2DATAVARS
 typedef struct _MACROSTACK {
     PMACROBLOCK Location;
     struct _MACROSTACK *pNext;
@@ -965,7 +927,6 @@ typedef struct _EVENTSTACK {
     PDATAVAR Parameters;
 } EVENTSTACK, *PEVENTSTACK;
 
-#endif
 
 };
 using namespace MQ2Internal;

@@ -31,13 +31,8 @@ EQLIB_API DWORD bmUpdateSpawnCaptions;
 
 /* OTHER */
 
-#ifndef USEMQ2DATAVARS
-EQLIB_VAR PVARSTRINGS gMacroStr;
-EQLIB_VAR PVARARRAYS gArray;
-#else
 EQLIB_VAR PDATAVAR pGlobalVariables;
 EQLIB_VAR PDATAVAR pMacroVariables;
-#endif
 
 EQLIB_VAR BOOL bAllErrorsFatal;
 EQLIB_VAR BOOL bAllErrorsDumpStack;

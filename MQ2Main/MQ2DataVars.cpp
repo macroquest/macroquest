@@ -21,7 +21,6 @@
 
 #include "MQ2Main.h"
 
-#ifdef USEMQ2DATAVARS
 
 
 
@@ -670,9 +669,3 @@ VOID DropTimers(VOID)
 	}
 }
 
-#else
-PDATAVAR FindMQ2DataVariable(PCHAR Name)
-{
-	return 0;
-}
-#endif

@@ -61,11 +61,9 @@ CLEAN :
 	-@erase "$(INTDIR)\MQ2MacroCommands.obj"
 	-@erase "$(INTDIR)\MQ2Main.obj"
 	-@erase "$(INTDIR)\MQ2Mouse.obj"
-	-@erase "$(INTDIR)\MQ2Parms.obj"
 	-@erase "$(INTDIR)\MQ2ParseAPI.obj"
 	-@erase "$(INTDIR)\MQ2PluginHandler.obj"
 	-@erase "$(INTDIR)\MQ2Pulse.obj"
-	-@erase "$(INTDIR)\MQ2UserVars.obj"
 	-@erase "$(INTDIR)\MQ2Utilities.obj"
 	-@erase "$(INTDIR)\MQ2Spawns.obj"
 	-@erase "$(INTDIR)\vc60.idb"
@@ -138,11 +136,9 @@ LINK32_OBJS= \
 	"$(INTDIR)\MQ2MacroCommands.obj" \
 	"$(INTDIR)\MQ2Main.obj" \
 	"$(INTDIR)\MQ2Mouse.obj" \
-	"$(INTDIR)\MQ2Parms.obj" \
 	"$(INTDIR)\MQ2ParseAPI.obj" \
 	"$(INTDIR)\MQ2PluginHandler.obj" \
 	"$(INTDIR)\MQ2Pulse.obj" \
-	"$(INTDIR)\MQ2UserVars.obj" \
 	"$(INTDIR)\MQ2Utilities.obj" \
 	"$(INTDIR)\MQ2Spawns.obj"
 
@@ -241,11 +237,6 @@ SOURCE=.\MQ2Mouse.cpp
 "$(INTDIR)\MQ2Mouse.obj" : $(SOURCE) "$(INTDIR)"
 
 
-SOURCE=.\MQ2Parms.cpp
-
-"$(INTDIR)\MQ2Parms.obj" : $(SOURCE) "$(INTDIR)"
-
-
 SOURCE=.\MQ2ParseAPI.cpp
 
 "$(INTDIR)\MQ2ParseAPI.obj" : $(SOURCE) "$(INTDIR)"
@@ -259,11 +250,6 @@ SOURCE=.\MQ2PluginHandler.cpp
 SOURCE=.\MQ2Pulse.cpp
 
 "$(INTDIR)\MQ2Pulse.obj" : $(SOURCE) "$(INTDIR)"
-
-
-SOURCE=.\MQ2UserVars.cpp
-
-"$(INTDIR)\MQ2UserVars.obj" : $(SOURCE) "$(INTDIR)"
 
 
 SOURCE=.\MQ2Utilities.cpp
