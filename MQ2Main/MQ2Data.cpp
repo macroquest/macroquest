@@ -473,7 +473,7 @@ BOOL dataGameTime(PCHAR szIndex, MQ2TYPEVAR &Ret)
 	pTime->tm_hour=((PWORLDDATA)pWorldData)->Hour-1;
 	pTime->tm_min=((PWORLDDATA)pWorldData)->Minute;
 	pTime->tm_mon=((PWORLDDATA)pWorldData)->Month;
-	pTime->tm_year=((PWORLDDATA)pWorldData)->Year;
+	pTime->tm_year=((PWORLDDATA)pWorldData)->Year-1900;
 	Ret.Ptr=pTime;
 	Ret.Type=pTimeType;
 	return true;

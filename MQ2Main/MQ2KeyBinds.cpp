@@ -62,6 +62,27 @@ inline void RemoveKeyBindNameMap(char *Name)
 	BindNameMap[Lwr]=0;
 }
 
+BOOL SetEQKeyBindByNumber(DWORD N, BOOL Alternate, KeyCombo &Combo)
+{
+	if (N<nEQMappableCommands)
+	{
+		if (Alternate)
+			pKeypressHandler->AltKey[N] = Combo;
+		else
+			pKeypressHandler->NormalKey[N] = Combo;
+
+		if(N < gnNormalEQMappableCommands)
+			pKeypressHandler->SaveKeymapping( N, Combo, Alternate );
+		return TRUE;
+	}
+	return FALSE;
+}
+
+inline BOOL SetEQKeyBind(PCHAR name, BOOL Alternate, KeyCombo &Combo )
+{
+   return SetEQKeyBindByNumber(FindMappableCommand(name),Alternate,Combo);
+} 
+
 BOOL MQ2HandleKeyDown(class KeyCombo const &Combo)
 {
 	unsigned long N;
@@ -341,7 +362,7 @@ VOID MQ2KeyBindCommand(PSPAWNINFO pChar, PCHAR szLine)
 		AltKey=true;
 		szArg=&szArg1[1];
 	}
-
+	unsigned long i;
 	if (!stricmp(szArg,"list"))
 	{
 		// list binds
@@ -349,7 +370,7 @@ VOID MQ2KeyBindCommand(PSPAWNINFO pChar, PCHAR szLine)
 		CHAR szAlt[MAX_STRING]={0};
 		WriteChatColor("MQ2 Binds");
 		WriteChatColor("--------------");
-		for (unsigned long i = 0 ; i < BindList.Size ; i++)
+		for (i = 0 ; i < BindList.Size ; i++)
 		{
 			if (MQ2KeyBind *pBind = BindList[i])
 			{
@@ -368,7 +389,7 @@ VOID MQ2KeyBindCommand(PSPAWNINFO pChar, PCHAR szLine)
 		// list eq binds
 		WriteChatColor("EQ Binds");
 		WriteChatColor("--------------");
-		for (unsigned long i = 0 ; i < nEQMappableCommands ; i++)
+		for (i = 0 ; i < nEQMappableCommands ; i++)
 		{
 			sprintf(szArg1,"[\ay%s\ax] Nrm:\at%s\ax Alt:\at%s\ax",szEQMappableCommands[i],DescribeKeyCombo(pKeypressHandler->NormalKey[i],szNormal),DescribeKeyCombo(pKeypressHandler->AltKey[i],szAlt));
 			WriteChatColor(szArg1);			
@@ -377,12 +398,54 @@ VOID MQ2KeyBindCommand(PSPAWNINFO pChar, PCHAR szLine)
 		WriteChatColor("End EQ Binds");
 		return;
 	}
+
 	KeyCombo NewCombo;
 	if (!ParseKeyCombo(szRest,NewCombo))
 	{
 		WriteChatColor("Invalid key combination");
 		return;
 	}
+
+   if (!stricmp(szArg,"clearcombo")) 
+   {
+        KeyCombo ClearCombo;
+        // mq2 binds
+        for (i = 0; i < BindList.Size; i++) 
+		{
+            MQ2KeyBind* pBind = BindList[i];
+            if (pBind) 
+			{
+                if (pBind->Alt == NewCombo && SetMQ2KeyBind(pBind->Name,true,ClearCombo)) 
+				{
+					sprintf(szArg1,"Alternate %s cleared",pBind->Name);
+					WriteChatColor(szArg1);
+                }
+                if (pBind->Normal == NewCombo && SetMQ2KeyBind(pBind->Name,false,ClearCombo))
+				{
+					sprintf(szArg1,"Normal %s cleared",pBind->Name);
+					WriteChatColor(szArg1);
+                }
+            }
+        }
+
+        // eq binds
+        for (i = 0; i < nEQMappableCommands; i++) 
+		{
+            if (pKeypressHandler->AltKey[i] == NewCombo && SetEQKeyBindByNumber(i,true,ClearCombo)) 
+			{
+				sprintf(szArg1,"Alternate %s cleared",szEQMappableCommands[i] );
+				WriteChatColor(szArg1);
+            }
+            if (pKeypressHandler->NormalKey[i] == NewCombo && SetEQKeyBindByNumber(i,false,ClearCombo))
+			{
+				sprintf(szArg1,"Normal %s cleared", szEQMappableCommands[i]);
+				WriteChatColor(szArg1);
+            }
+        }
+        return;
+    } 
+
+
 
 	if (SetMQ2KeyBind(szArg,AltKey,NewCombo))
 	{
@@ -398,24 +461,13 @@ VOID MQ2KeyBindCommand(PSPAWNINFO pChar, PCHAR szLine)
 		WriteChatColor("Unknown bind command name");
 		return;
 	}
-	// set eq bind
-	if (AltKey)
+
+    if (SetEQKeyBindByNumber(N,AltKey,NewCombo))
 	{
-		//pKeypressHandler->AttachAltKeyToEqCommand(NewCombo,N);
-		pKeypressHandler->AltKey[N]=NewCombo;
-		if ((DWORD)N<gnNormalEQMappableCommands)
-			pKeypressHandler->SaveKeymapping(N,NewCombo,1);
-		sprintf(szArg1,"Alternate %s now bound as %s",szEQMappableCommands[N],DescribeKeyCombo(pKeypressHandler->AltKey[N],szBuffer));
-		WriteChatColor(szArg1);		
-	}
-	else
-	{
-		//pKeypressHandler->AttachKeyToEqCommand(NewCombo,N);
-		pKeypressHandler->NormalKey[N]=NewCombo;
-		if ((DWORD)N<gnNormalEQMappableCommands)
-			pKeypressHandler->SaveKeymapping(N,NewCombo,0);
-		sprintf(szArg1,"Normal %s now bound as %s",szEQMappableCommands[N],DescribeKeyCombo(pKeypressHandler->NormalKey[N],szBuffer));
-		WriteChatColor(szArg1);		
+		sprintf( szArg1,"%s %s now bound as %s", 
+			(AltKey)?("Alternate"):("Normal"), 
+			szEQMappableCommands[N],
+			DescribeKeyCombo((AltKey)?(pKeypressHandler->AltKey[N]):(pKeypressHandler->NormalKey[N]),szBuffer));
 	}
 }
 

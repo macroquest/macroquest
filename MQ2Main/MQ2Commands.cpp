@@ -2765,7 +2765,7 @@ VOID MacroLog(PSPAWNINFO pChar, PCHAR szLine)
         return;
     }
 
-    sprintf(szBuffer, "[$date() $time()] %s",szLine);
+	sprintf(szBuffer, "[${Time.Date} ${Time.Time24}] %s",szLine);
     ParseMacroParameter(pChar,szBuffer);
     fprintf(fOut,"%s\r\n", szBuffer);
     DebugSpew("MacroLog - %s", szBuffer);

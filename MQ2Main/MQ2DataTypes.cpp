@@ -991,7 +991,7 @@ bool MQ2CharacterType::GetMember(MQ2VARPTR VarPtr, PCHAR Member, PCHAR Index, MQ
 			}
 		}
 		return false;
-	case PlatShared:
+	case PlatinumShared:
 		Dest.DWord=pChar->BankSharedPlat;
 		Dest.Type=pIntType;
 		return true;
@@ -2462,7 +2462,7 @@ bool MQ2TimeType::GetMember(MQ2VARPTR VarPtr, PCHAR Member, PCHAR Index, MQ2TYPE
 		Dest.Type=pIntType;
 		return true;
 	case Year:
-		Dest.DWord=pTime->tm_year;
+		Dest.DWord=pTime->tm_year+1900;
 		Dest.Type=pIntType;
 		return true;
 	case Time12:
@@ -2481,7 +2481,7 @@ bool MQ2TimeType::GetMember(MQ2VARPTR VarPtr, PCHAR Member, PCHAR Index, MQ2TYPE
 		Dest.Type=pStringType; 
 		return true;
 	case Date:
-		sprintf(DataTypeTemp,"%02d/%02d/%04d",pTime->tm_mon,pTime->tm_mday, pTime->tm_year);
+		sprintf(DataTypeTemp,"%02d/%02d/%04d",pTime->tm_mon,pTime->tm_mday, pTime->tm_year+1900);
 		Dest.Ptr=&DataTypeTemp[0],
 		Dest.Type=pStringType; 
 		return true;
@@ -2664,9 +2664,11 @@ bool MQ2InvSlotType::GetMember(MQ2VARPTR VarPtr, PCHAR Member, PCHAR Index, MQ2T
 			{
 				if (((PEQINVSLOT)pSlot)->ppContents)
 				{
-					Dest.Ptr=*((PEQINVSLOT)pSlot)->ppContents;
-					Dest.Type=pItemType;
-					return true;
+					if (Dest.Ptr=*((PEQINVSLOT)pSlot)->ppContents)
+					{
+						Dest.Type=pItemType;
+						return true;
+					}
 				}
 			}
 			else
