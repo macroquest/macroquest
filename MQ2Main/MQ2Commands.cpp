@@ -1100,6 +1100,7 @@ VOID SelectItem(PSPAWNINFO pChar, PCHAR szLine)
 				if (!TextureAnim) return;
 				if (!SelectSlot) return;
 			}
+			//pMerchantWnd->SelectBuySellSlot(SelectSlot,TextureAnim)
 			__asm {
 				push ecx;
 				push TextureAnim;
@@ -1136,6 +1137,7 @@ VOID BuyItem(PSPAWNINFO pChar, PCHAR szLine)
    GetArg(szQty,szLine,1);
    Qty = (DWORD)atoi(szQty);
    if (Qty > 20 || Qty < 1) return;
+   //pMerchantWnd->RequestBuyItem(Qty);
    __asm {
       push ecx;
       mov ecx, dword ptr [MerchTraderWnd];
@@ -1168,6 +1170,7 @@ VOID SellItem(PSPAWNINFO pChar, PCHAR szLine)
     GetArg(szQty,szLine,1);
     Qty = (DWORD)atoi(szQty);
     if (Qty > 20 || Qty < 1) return;
+   //pMerchantWnd->RequestSellItem(Qty);
     __asm {
         push ecx;
         mov ecx, dword ptr [MerchTraderWnd];
@@ -3116,7 +3119,6 @@ VOID LoadSpells(PSPAWNINFO pChar, PCHAR szLine)
     DoIndex = FindSpellListByName(szArg1);
     if (DoIndex!=-1) {
         Index = (DWORD)&EQADDR_SPELLFAVORITES[DoIndex];
-
         __asm {
             push ecx;
             mov ecx, dword ptr [SpellBookWnd];
@@ -3185,6 +3187,8 @@ if (!stricmp(szArg1,"item"))
                break;
             }
       }
+	  //pEQ_Character->CastSpell(10,0,item,slot);
+	  // ^^ ^ ^ ^ ^^ pCharInfo!
       if (FOUND) {
          __asm {
             push eax;

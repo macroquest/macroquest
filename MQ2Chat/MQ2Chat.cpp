@@ -48,7 +48,6 @@ PLUGIN_API DWORD OnWriteChatColor(PCHAR Line, DWORD Color, DWORD Filter)
 	if (!pEverQuest) 
 		return 0;
 	pEverQuest->dsp_chat(Stripped,Color,1);
-
 /*
 	DWORD clsEverQuest = *EQADDR_CLSEVERQUEST;
 	DWORD saddr=(DWORD)&Stripped[0];

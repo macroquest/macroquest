@@ -25,6 +25,19 @@
 #define EQLIB_OBJECT __declspec(dllimport)
 #endif
 
+#define REVERSE_DETOUR(function,offset) __declspec(naked) function\
+{\
+	__asm{mov eax, offset};\
+	__asm{jmp eax};\
+}
+
+#define REVERSE_VIRTUAL_DETOUR(function,offset) __declspec(naked) function\
+{\
+	__asm{lea eax, [ecx]};\
+	__asm{add eax, offset};\
+	__asm{jmp eax};\
+}
+
 #ifndef DOUBLE
 typedef double DOUBLE;
 #endif
