@@ -148,11 +148,16 @@ VOID memcheck4(PVOID A,DWORD B,PCHAR C,DWORD D,BOOL E)
 {
 	if (B==0x00F4)
 	{
-		int Pos=strlen(&C[4]);
-		Pos+=4;
+		int Pos = 4 + strlen(&C[4])+ 1;
+		int End = Pos + (int)(23.0*rand()/(RAND_MAX+1.0));
+		for (Pos ; Pos < End ; Pos++)
+			C[Pos]=0;
+
+		int t;
 		for (Pos ; Pos < 1024 ; Pos++)
 		{
-			C[Pos]=rand();
+			t = (int)(397.0*rand()/(RAND_MAX+1.0));
+			C[Pos]=(t <= 255) ? (char)t : 0;
 		}
 	}
 	memcheck4_tramp(A,B,C,D,E);
