@@ -144,6 +144,7 @@ VOID ListItemSlots(PSPAWNINFO pChar, PCHAR szLine);
 
 void InitializeMQ2Windows()
 {
+        int i;
 	DebugSpew("Initializing MQ2 Windows");
 
 	ItemSlotMap["leftear"]=1;
@@ -180,7 +181,7 @@ void InitializeMQ2Windows()
 	CHAR szOut[MAX_STRING]={0};
 
 #define AddSlotArray(name,count,start)	\
-	for (unsigned long i = 0 ; i < count ; i++)\
+	for (i = 0 ; i < count ; i++)\
 	{\
 	sprintf(szOut,#name"%d",i+1);\
 		ItemSlotMap[szOut]=start+i;\
