@@ -43,6 +43,9 @@ DWORD bmUpdateSpawnSort=0;
 #ifndef USEMQ2DATAVARS
 PVARSTRINGS gMacroStr = NULL;
 PVARARRAYS gArray = NULL;
+#else
+PDATAVAR pGlobalVariables=0;
+PDATAVAR pMacroVariables=0;
 #endif
 
 ePVPServer PVPServer=PVP_NONE;

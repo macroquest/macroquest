@@ -397,7 +397,7 @@ BOOL ParseMQ2DataPortion(PCHAR szOriginal, MQ2TYPEVAR &Result)
 					}
 					else
 					{
-						MQ2DataError("No such Top-Level Object '%s'",pStart);
+						//MQ2DataError("No such Top-Level Object '%s'",pStart);
 						return FALSE;
 					}
 				}
@@ -459,7 +459,7 @@ BOOL ParseMQ2DataPortion(PCHAR szOriginal, MQ2TYPEVAR &Result)
 					}
 					else
 					{
-						MQ2DataError("No such Top-Level Object '%s'",pStart);
+						//MQ2DataError("No such Top-Level Object '%s'",pStart);
 						return FALSE;
 					}
 					
@@ -617,7 +617,7 @@ BOOL ParseMQ2DataPortion(PCHAR szOriginal, MQ2TYPEVAR &Result)
 					}
 					else
 					{
-						MQ2DataError("No such Top-Level Object '%s'",pStart);
+						//MQ2DataError("No such Top-Level Object '%s'",pStart);
 						return FALSE;
 					}
 					
@@ -711,6 +711,10 @@ BOOL ParseMacroData(PCHAR szOriginal)
 
 pmdbottom:;
 	} while (pBrace=strstr(&pBrace[1],"${"));
+	if (Changed)
+		while(ParseMacroData(szOriginal))
+		{
+		}
 	return Changed;
 }
 

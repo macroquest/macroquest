@@ -234,6 +234,9 @@ typedef struct _TIMER {
     ULONG Original;
     ULONG Current;
     struct _TIMER *pNext;
+#ifdef USEMQ2DATAVARS
+	struct _TIMER *pPrev;
+#endif
 } TIMER, *PTIMER;
 
 typedef struct _KEYPRESS {
@@ -726,6 +729,7 @@ public:
 		for (N = 0 ; N < TotalElements ; N++)
 		{
 			pType->InitVariable(pData[N]);
+			pType->FromString(pData[N],Default);
 		}
 
 	}
@@ -936,7 +940,6 @@ typedef struct _MACROSTACK {
     struct _MACROSTACK *pNext;
     CHAR Return[MAX_STRING];
     PDATAVAR Parameters;
-	DWORD nParameters;
     PDATAVAR LocalVariables;
 } MACROSTACK, *PMACROSTACK;
 
@@ -944,7 +947,7 @@ typedef struct _EVENTSTACK {
     struct _EVENTSTACK *pNext;
     DWORD Type;
     PEVENTLIST pEventList;
-    PDATAVAR EventVar;
+    PDATAVAR Parameters;
 } EVENTSTACK, *PEVENTSTACK;
 
 #endif

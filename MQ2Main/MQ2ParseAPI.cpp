@@ -428,7 +428,9 @@ PCHAR ParseMacroParameter(PSPAWNINFO pChar, PCHAR szOriginal)
     }
 #endif
 #ifdef USEMQ2DATATYPES
+#ifndef USEMQ2DATAVARS
 	ParseMacroVariables(szOriginal);
+#endif
 	ParseMacroData(szOriginal);
 #endif
 	ExitMQ2Benchmark(bmParseMacroParameter);

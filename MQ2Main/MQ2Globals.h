@@ -33,6 +33,9 @@ EQLIB_API DWORD bmUpdateSpawnSort;
 #ifndef USEMQ2DATAVARS
 EQLIB_VAR PVARSTRINGS gMacroStr;
 EQLIB_VAR PVARARRAYS gArray;
+#else
+EQLIB_VAR PDATAVAR pGlobalVariables;
+EQLIB_VAR PDATAVAR pMacroVariables;
 #endif
 
 

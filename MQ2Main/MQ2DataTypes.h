@@ -57,7 +57,9 @@ EQLIB_VAR class MQ2HeadingType *pHeadingType;
 EQLIB_VAR class MQ2InvSlotType *pInvSlotType;
 
 EQLIB_VAR class MQ2ArrayType *pArrayType;
+#ifdef USEMQ2DATAVARS
 EQLIB_VAR class MQ2TimerType *pTimerType;
+#endif
 EQLIB_VAR class MQ2PluginType *pPluginType;
 
 #define UseTemp(mystring) strcpy(DataTypeTemp,mystring)
@@ -91,7 +93,8 @@ public:
 
 	bool FromData(MQ2VARPTR &VarPtr, MQ2TYPEVAR &Source)
 	{
-		return false;
+		VarPtr.DWord=Source.DWord;
+		return true;
 	}
 	bool FromString(MQ2VARPTR &VarPtr, PCHAR Source)
 	{
@@ -132,7 +135,8 @@ public:
 	}
 	bool FromData(MQ2VARPTR &VarPtr, MQ2TYPEVAR &Source)
 	{
-		return false;
+		VarPtr.Int=Source.Int;
+		return true;
 	}
 
 	bool FromString(MQ2VARPTR &VarPtr, PCHAR Source)
@@ -208,11 +212,13 @@ public:
 	}
 	bool FromData(MQ2VARPTR &VarPtr, MQ2TYPEVAR &Source)
 	{
-		return false;
+		VarPtr.DWord=Source.DWord;
+		return true;
 	}
 	bool FromString(MQ2VARPTR &VarPtr, PCHAR Source)
 	{
-		return false;
+		sscanf(Source,"%x",&VarPtr.Int);
+		return true;
 	}
 };
 
@@ -240,11 +246,13 @@ public:
 	}
 	bool FromData(MQ2VARPTR &VarPtr, MQ2TYPEVAR &Source)
 	{
-		return false;
+		VarPtr.DWord=Source.DWord%0xFF;
+		return true;
 	}
 	bool FromString(MQ2VARPTR &VarPtr, PCHAR Source)
 	{
-		return false;
+		VarPtr.DWord=atoi(Source)%0xFF;
+		return true;
 	}
 };
 class MQ2StringType : public MQ2Type
@@ -297,13 +305,26 @@ public:
 		strcpy(Destination,(const char *)VarPtr.Ptr);
 		return true;
 	}
+	void InitVariable(MQ2VARPTR &VarPtr) 
+	{
+		VarPtr.Ptr=malloc(MAX_STRING);
+		ZeroMemory(VarPtr.Ptr,MAX_STRING);
+	}
+	void FreeVariable(MQ2VARPTR &VarPtr)
+	{
+		free(VarPtr.Ptr);
+	}
 	bool FromData(MQ2VARPTR &VarPtr, MQ2TYPEVAR &Source)
 	{
-		return false;
+		if (Source.Type!=pStringType)
+			return false;
+		strcpy((char*)VarPtr.Ptr,(char*)Source.Ptr);
+		return true;
 	}
 	bool FromString(MQ2VARPTR &VarPtr, PCHAR Source)
 	{
-		return false;
+		strcpy((char*)VarPtr.Ptr,Source);
+		return true;
 	}
 };
 class MQ2FloatType : public MQ2Type
@@ -340,11 +361,16 @@ public:
 	}
 	bool FromData(MQ2VARPTR &VarPtr, MQ2TYPEVAR &Source)
 	{
-		return false;
+		if (Source.Type!=pFloatType && Source.Type!=(MQ2Type*)pHeadingType)
+			VarPtr.Float=(FLOAT)Source.DWord;
+		else
+			VarPtr.Float=Source.Float;
+		return true;
 	}
 	bool FromString(MQ2VARPTR &VarPtr, PCHAR Source)
 	{
-		return false;
+		VarPtr.Float=(FLOAT)atof(Source);
+		return true;
 	}
 };
 class MQ2TicksType : public MQ2Type
@@ -434,11 +460,13 @@ public:
 	}
 	bool FromData(MQ2VARPTR &VarPtr, MQ2TYPEVAR &Source)
 	{
-		return false;
+		VarPtr.DWord=Source.DWord;
+		return true;
 	}
 	bool FromString(MQ2VARPTR &VarPtr, PCHAR Source)
 	{
-		return false;
+		VarPtr.DWord=atoi(Source);
+		return true;
 	}
 };
 
@@ -608,12 +636,40 @@ public:
 		strcpy(Destination,((PSPAWNINFO)VarPtr.Ptr)->Name);
 		return true;
 	}
+	void InitVariable(MQ2VARPTR &VarPtr) 
+	{
+		VarPtr.Ptr=malloc(sizeof(SPAWNINFO));
+		ZeroMemory(VarPtr.Ptr,sizeof(SPAWNINFO));
+	}
+	void FreeVariable(MQ2VARPTR &VarPtr) 
+	{
+		free(VarPtr.Ptr);
+	}
+
 	bool FromData(MQ2VARPTR &VarPtr, MQ2TYPEVAR &Source)
 	{
+		if (Source.Type==pSpawnType)
+		{
+			memcpy(VarPtr.Ptr,Source.Ptr,sizeof(SPAWNINFO));
+			return true;
+		}
+		else
+		{
+			if (PSPAWNINFO pOther=(PSPAWNINFO)GetSpawnByID(Source.DWord))
+			{
+				memcpy(VarPtr.Ptr,pOther,sizeof(SPAWNINFO));
+				return true;
+			}
+		}
 		return false;
 	}
 	bool FromString(MQ2VARPTR &VarPtr, PCHAR Source)
 	{
+		if (PSPAWNINFO pOther=(PSPAWNINFO)GetSpawnByID(atoi(Source)))
+		{
+			memcpy(VarPtr.Ptr,pOther,sizeof(SPAWNINFO));
+			return true;
+		}
 		return false;
 	}
 };
@@ -823,9 +879,22 @@ public:
 		strcpy(Destination,((PCHARINFO)VarPtr.Ptr)->Name);
 		return true;
 	}
+	void InitVariable(MQ2VARPTR &VarPtr) 
+	{
+		VarPtr.Ptr=malloc(sizeof(CHARINFO));
+		ZeroMemory(VarPtr.Ptr,sizeof(CHARINFO));
+	}
+	void FreeVariable(MQ2VARPTR &VarPtr) 
+	{
+		free(VarPtr.Ptr);
+	}
+
 	bool FromData(MQ2VARPTR &VarPtr, MQ2TYPEVAR &Source)
 	{
-		return false;
+		if (Source.Type!=pCharacterType)
+			return false;
+		memcpy(VarPtr.Ptr,Source.Ptr,sizeof(CHARINFO));
+		return true;
 	}
 	bool FromString(MQ2VARPTR &VarPtr, PCHAR Source)
 	{
@@ -875,9 +944,22 @@ public:
 		}
 		return false;
 	}
+	void InitVariable(MQ2VARPTR &VarPtr) 
+	{
+		VarPtr.Ptr=malloc(sizeof(SPELLBUFF));
+		ZeroMemory(VarPtr.Ptr,sizeof(SPELLBUFF));
+	}
+	void FreeVariable(MQ2VARPTR &VarPtr)
+	{
+		free(VarPtr.Ptr);
+	}
+
 	bool FromData(MQ2VARPTR &VarPtr, MQ2TYPEVAR &Source)
 	{
-		return false;
+		if (Source.Type!=pBuffType)
+			return false;
+		memcpy(VarPtr.Ptr,Source.Ptr,sizeof(SPELLBUFF));
+		return true;
 	}
 	bool FromString(MQ2VARPTR &VarPtr, PCHAR Source)
 	{
@@ -944,9 +1026,22 @@ public:
 		strcpy(Destination,((PSPELL)VarPtr.Ptr)->Name);
 		return false;
 	}
+	void InitVariable(MQ2VARPTR &VarPtr) 
+	{
+		VarPtr.Ptr=malloc(sizeof(SPELL));
+		ZeroMemory(VarPtr.Ptr,sizeof(SPELL));
+	}
+	void FreeVariable(MQ2VARPTR &VarPtr) 
+	{
+		free(VarPtr.Ptr);
+	}
+
 	bool FromData(MQ2VARPTR &VarPtr, MQ2TYPEVAR &Source)
 	{
-		return false;
+		if (Source.Type!=pSpellType)
+			return false;
+		memcpy(VarPtr.Ptr,Source.Ptr,sizeof(PSPELL));
+		return true;
 	}
 	bool FromString(MQ2VARPTR &VarPtr, PCHAR Source)
 	{
@@ -1139,9 +1234,22 @@ public:
 		strcpy(Destination,((PCONTENTS)VarPtr.Ptr)->Item->Name);
 		return true;
 	}
+	void InitVariable(MQ2VARPTR &VarPtr) 
+	{
+		VarPtr.Ptr=malloc(sizeof(CONTENTS));
+		ZeroMemory(VarPtr.Ptr,sizeof(CONTENTS));
+	}
+	void FreeVariable(MQ2VARPTR &VarPtr) 
+	{
+		free(VarPtr.Ptr);
+	}
+
 	bool FromData(MQ2VARPTR &VarPtr, MQ2TYPEVAR &Source)
 	{
-		return false;
+		if (Source.Type!=pItemType)
+			return false;
+		memcpy(VarPtr.Ptr,Source.Ptr,sizeof(CONTENTS));
+		return true;
 	}
 	bool FromString(MQ2VARPTR &VarPtr, PCHAR Source)
 	{
@@ -1207,9 +1315,22 @@ public:
 		}
 		return false;
 	}
+	void InitVariable(MQ2VARPTR &VarPtr) 
+	{
+		VarPtr.Ptr=malloc(sizeof(DOOR));
+		ZeroMemory(VarPtr.Ptr,sizeof(DOOR));
+	}
+	void FreeVariable(MQ2VARPTR &VarPtr) 
+	{
+		free(VarPtr.Ptr);
+	}
+
 	bool FromData(MQ2VARPTR &VarPtr, MQ2TYPEVAR &Source)
 	{
-		return false;
+		if (Source.Type!=pSwitchType)
+			return false;
+		memcpy(VarPtr.Ptr,Source.Ptr,sizeof(DOOR));
+		return true;
 	}
 	bool FromString(MQ2VARPTR &VarPtr, PCHAR Source)
 	{
@@ -1261,9 +1382,22 @@ public:
 		}
 		return false;
 	}
+	void InitVariable(MQ2VARPTR &VarPtr) 
+	{
+		VarPtr.Ptr=malloc(sizeof(GROUNDITEM));
+		ZeroMemory(VarPtr.Ptr,sizeof(GROUNDITEM));
+	}
+	void FreeVariable(MQ2VARPTR &VarPtr) 
+	{
+		free(VarPtr.Ptr);
+	}
+
 	bool FromData(MQ2VARPTR &VarPtr, MQ2TYPEVAR &Source)
 	{
-		return false;
+		if (Source.Type!=pGroundType)
+			return false;
+		memcpy(VarPtr.Ptr,Source.Ptr,sizeof(GROUNDITEM));
+		return true;
 	}
 	bool FromString(MQ2VARPTR &VarPtr, PCHAR Source)
 	{
@@ -1306,6 +1440,7 @@ public:
 		}
 		return true;
 	}
+
 	bool FromData(MQ2VARPTR &VarPtr, MQ2TYPEVAR &Source)
 	{
 		return false;
@@ -1434,12 +1569,18 @@ public:
 			strcpy(Destination,"FALSE");
 		return true;
 	}
+
 	bool FromData(MQ2VARPTR &VarPtr, MQ2TYPEVAR &Source)
 	{
-		return false;
+		if (Source.Type!=pWindowType)
+			return false;
+		VarPtr.Ptr=Source.Ptr;
+		return true;
 	}
 	bool FromString(MQ2VARPTR &VarPtr, PCHAR Source)
 	{
+		if (VarPtr.Ptr=FindMQ2Window(Source))
+			return true;
 		return false;
 	}
 };
@@ -1524,6 +1665,16 @@ public:
    }
 	bool FromData(MQ2VARPTR &VarPtr, MQ2TYPEVAR &Source)
 	{
+		if (Source.Type==pZoneType)
+		{
+			VarPtr.Ptr=Source.Ptr;
+			return true;
+		}
+		if (Source.Type==(MQ2Type*)pCurrentZoneType)
+		{
+			VarPtr.Ptr=&((PWORLDDATA)pWorldData)->ZoneArray[GetCharInfo()->zoneId];
+			return true;
+		}
 		return false;
 	}
 	bool FromString(MQ2VARPTR &VarPtr, PCHAR Source)
@@ -1564,6 +1715,10 @@ public:
 		TypeMember(SafeZ);//8,
 		TypeMember(MinClip);//9,
 		TypeMember(MaxClip);//10,
+		TypeMember(ID);
+		TypeMember(SafeN);
+		TypeMember(SafeW);
+		TypeMember(SafeU);
 	}
 
 	~MQ2CurrentZoneType()
@@ -1579,7 +1734,10 @@ public:
 	}
 	bool FromData(MQ2VARPTR &VarPtr, MQ2TYPEVAR &Source)
 	{
-		return false;
+		if (Source.Type!=pCurrentZoneType)
+			return false;
+		VarPtr.Ptr=Source.Ptr;
+		return true;
 	}
 	bool FromString(MQ2VARPTR &VarPtr, PCHAR Source)
 	{
@@ -1721,11 +1879,13 @@ public:
 	}
 	bool FromData(MQ2VARPTR &VarPtr, MQ2TYPEVAR &Source)
 	{
-		return false;
+		VarPtr.DWord=Source.DWord;
+		return true;
 	}
 	bool FromString(MQ2VARPTR &VarPtr, PCHAR Source)
 	{
-		return false;
+		VarPtr.DWord=atoi(Source);
+		return true;
 	}
 };
 
@@ -1773,11 +1933,13 @@ public:
 	}
 	bool FromData(MQ2VARPTR &VarPtr, MQ2TYPEVAR &Source)
 	{
-		return false;
+		VarPtr.DWord=Source.DWord;
+		return true;
 	}
 	bool FromString(MQ2VARPTR &VarPtr, PCHAR Source)
 	{
-		return false;
+		VarPtr.DWord=atoi(Source);
+		return true;
 	}
 };
 class MQ2BodyType : public MQ2Type
@@ -1808,11 +1970,13 @@ public:
 	}
 	bool FromData(MQ2VARPTR &VarPtr, MQ2TYPEVAR &Source)
 	{
-		return false;
+		VarPtr.DWord=Source.DWord;
+		return true;
 	}
 	bool FromString(MQ2VARPTR &VarPtr, PCHAR Source)
 	{
-		return false;
+		VarPtr.DWord=atoi(Source);
+		return true;
 	}
 };
 class MQ2DeityType : public MQ2Type
@@ -1845,11 +2009,13 @@ public:
 	}
 	bool FromData(MQ2VARPTR &VarPtr, MQ2TYPEVAR &Source)
 	{
-		return false;
+		VarPtr.DWord=Source.DWord;
+		return true;
 	}
 	bool FromString(MQ2VARPTR &VarPtr, PCHAR Source)
 	{
-		return false;
+		VarPtr.DWord=atoi(Source);
+		return true;
 	}
 };
 
@@ -1899,9 +2065,22 @@ public:
 		sprintf(Destination,"%02d:%02d:%02d",Now->tm_hour,Now->tm_min, Now->tm_sec);
 		return true;
 	}
+	void InitVariable(MQ2VARPTR &VarPtr) 
+	{
+		VarPtr.Ptr=malloc(sizeof(struct tm));
+		ZeroMemory(VarPtr.Ptr,sizeof(struct tm));
+	}
+	void FreeVariable(MQ2VARPTR &VarPtr) 
+	{
+		free(VarPtr.Ptr);
+	}
+
 	bool FromData(MQ2VARPTR &VarPtr, MQ2TYPEVAR &Source)
 	{
-		return false;
+		if (Source.Type!=pTimeType)
+			return false;
+		memcpy(VarPtr.Ptr,Source.Ptr,sizeof(struct tm));
+		return true;
 	}
 	bool FromString(MQ2VARPTR &VarPtr, PCHAR Source)
 	{
@@ -1936,10 +2115,13 @@ public:
    }
 	bool FromData(MQ2VARPTR &VarPtr, MQ2TYPEVAR &Source)
 	{
-		return false;
+		VarPtr.Ptr=Source.Type;
+		return true;
 	}
 	bool FromString(MQ2VARPTR &VarPtr, PCHAR Source)
 	{
+		if (VarPtr.Ptr=FindMQ2DataType(Source))
+			return true;
 		return false;
 	}
 }; 
@@ -1977,11 +2159,16 @@ public:
    }
 	bool FromData(MQ2VARPTR &VarPtr, MQ2TYPEVAR &Source)
 	{
-		return false;
+		if (Source.Type!=pHeadingType && Source.Type!=pFloatType)
+			VarPtr.Float=(FLOAT)Source.DWord;
+		else
+			VarPtr.Float=Source.Float;
+		return true;
 	}
 	bool FromString(MQ2VARPTR &VarPtr, PCHAR Source)
 	{
-		return false;
+		VarPtr.Float=(FLOAT)atof(Source);
+		return true;
 	}
 }; 
 
@@ -2022,10 +2209,26 @@ public:
    }
 	bool FromData(MQ2VARPTR &VarPtr, MQ2TYPEVAR &Source)
 	{
-		return false;
+		VarPtr.DWord=Source.DWord;
+		return true;
 	}
 	bool FromString(MQ2VARPTR &VarPtr, PCHAR Source)
 	{
+		if (IsNumber(Source))
+		{
+			VarPtr.DWord=atoi(Source);
+			return true;
+		}
+		else
+		{
+			CHAR Temp[MAX_STRING]={0};
+			strlwr(strcpy(Temp,Source));
+			VarPtr.DWord=ItemSlotMap[Temp];
+			if (VarPtr.DWord || !stricmp(Temp,"charm"))
+			{
+				return true;
+			}
+		}
 		return false;
 	}
 }; 
@@ -2059,7 +2262,10 @@ public:
    }
 	bool FromData(MQ2VARPTR &VarPtr, MQ2TYPEVAR &Source)
 	{
-		return false;
+		if (Source.Type!=pPluginType)
+			return false;
+		VarPtr.Ptr=Source.Ptr;
+		return true;
 	}
 	bool FromString(MQ2VARPTR &VarPtr, PCHAR Source)
 	{
@@ -2099,10 +2305,16 @@ public:
    }
 	bool FromData(MQ2VARPTR &VarPtr, MQ2TYPEVAR &Source)
 	{
-		return false;
+		VarPtr.DWord=Source.DWord;
+		return true;
 	}
 	bool FromString(MQ2VARPTR &VarPtr, PCHAR Source)
 	{
+		if (IsNumber(Source))
+		{
+			VarPtr.DWord=atoi(Source);
+			return true;
+		}
 		return false;
 	}
 }; 
@@ -2155,7 +2367,10 @@ public:
    }
 	bool FromData(MQ2VARPTR &VarPtr, MQ2TYPEVAR &Source)
 	{
-		return false;
+		if (Source.Type!=pSkillType)
+			return false;
+		VarPtr.Ptr=Source.Ptr;
+		return true;
 	}
 	bool FromString(MQ2VARPTR &VarPtr, PCHAR Source)
 	{
@@ -2163,7 +2378,7 @@ public:
 	}
 }; 
 
-
+#ifdef USEMQ2DATAVARS
 class MQ2TimerType : public MQ2Type
 {
 public:
@@ -2186,15 +2401,66 @@ public:
    {
 	   return false;
    }
+	void InitVariable(MQ2VARPTR &VarPtr) 
+	{
+		PTIMER pVar = (PTIMER)malloc(sizeof(TIMER));
+		pVar->szName[0]=0;
+		pVar->Current = 0;
+		pVar->Original= 0;
+		pVar->pNext = gTimer;
+		pVar->pPrev=0;
+		if (gTimer)
+			gTimer->pPrev=pVar;
+		gTimer=pVar;
+		VarPtr.Ptr=pVar;
+	}
+	void FreeVariable(MQ2VARPTR &VarPtr) 
+	{
+		PTIMER pVar=(PTIMER)VarPtr.Ptr;
+		if (pVar->pPrev)
+			pVar->pPrev->pNext=pVar->pNext;
+		else
+			gTimer=pVar->pNext;
+		if (pVar->pNext)
+			pVar->pNext->pPrev=pVar->pPrev;
+		free(VarPtr.Ptr);
+	}
+
 	bool FromData(MQ2VARPTR &VarPtr, MQ2TYPEVAR &Source)
 	{
-		return false;
+		PTIMER pTimer=(PTIMER)VarPtr.Ptr;
+		if (Source.Type==pFloatType)
+		{
+			pTimer->Current=(DWORD)Source.Float;
+			pTimer->Original=pTimer->Current;
+		}
+		else
+		{
+			pTimer->Current=Source.DWord;
+			pTimer->Original=pTimer->Current;
+		}
+		return true;
 	}
 	bool FromString(MQ2VARPTR &VarPtr, PCHAR Source)
 	{
-		return false;
+		PTIMER pTimer=(PTIMER)VarPtr.Ptr;
+
+
+        FLOAT VarValue = (FLOAT)atof(Source);
+            switch (Source[strlen(Source)-1]) {
+                case 'm':
+                case 'M':
+                    VarValue *= 60;
+                case 's':
+                case 'S':
+                    VarValue *= 10;
+            }
+        pTimer->Current = (DWORD)VarValue;
+        pTimer->Original = pTimer->Current;
+		return true;
 	}
 }; 
+#endif
 
 class MQ2ArrayType : public MQ2Type
 {
@@ -2218,6 +2484,16 @@ public:
    {
 	   return false;
    }
+
+    void InitVariable(MQ2VARPTR &VarPtr) 
+    { 
+    }
+	void FreeVariable(MQ2VARPTR &VarPtr) 
+	{
+		CDataArray *pArray=(CDataArray*)VarPtr.Ptr;
+		delete pArray;
+	}
+
 	bool FromData(MQ2VARPTR &VarPtr, MQ2TYPEVAR &Source)
 	{
 		return false;

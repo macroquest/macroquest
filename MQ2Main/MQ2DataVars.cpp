@@ -25,9 +25,7 @@
 
 
 
-PDATAVAR pGlobalVariables=0;
-PDATAVAR pMacroVariables=0;
-PMACROSTACK pNewMacroStack=0;
+
 
 map<string,PDATAVAR> VariableMap;
 
@@ -50,16 +48,16 @@ inline PDATAVAR FindMQ2DataVariable(PCHAR Name)
 	if (pFind)
 		return pFind;
 	// local?
-	if (pNewMacroStack)
+	if (gMacroStack)
 	{
-		PDATAVAR pVar=pNewMacroStack->Parameters;
+		PDATAVAR pVar=gMacroStack->Parameters;
 		while(pVar)
 		{
 			if (!stricmp(pVar->szName,Name))
 				return pVar;
 			pVar=pVar->pNext;
 		}
-		pVar=pNewMacroStack->LocalVariables;
+		pVar=gMacroStack->LocalVariables;
 		while(pVar)
 		{
 			if (!stricmp(pVar->szName,Name))
@@ -67,7 +65,50 @@ inline PDATAVAR FindMQ2DataVariable(PCHAR Name)
 			pVar=pVar->pNext;
 		}
 	}
+	return 0;
 }
+
+BOOL AddMQ2DataEventVariable(PCHAR Name, PCHAR Index, MQ2Type *pType, PDATAVAR *ppHead, PCHAR Default)
+{
+	if (!ppHead || !Name[0])
+		return FALSE;
+	if (!Index)
+		Index="";
+	if (!Default)
+		Default="";
+	if (FindMQ2Data(Name) || FindMQ2DataType(Name))
+		return FALSE; // name in use
+	if (!pType)
+		return FALSE;
+
+	// create variable
+	PDATAVAR pVar = new DATAVAR;
+	pVar->ppHead=ppHead;
+	pVar->pNext=*ppHead;
+	*ppHead=pVar;
+	pVar->pPrev=0;
+	if (pVar->pNext)
+		pVar->pNext->pPrev=pVar;
+	strcpy(pVar->szName,Name);
+	if (Index[0])
+	{
+		CDataArray *pArray=new CDataArray(pType,Index,Default);
+		pVar->Var.Ptr=pArray;
+
+	}
+	else
+	{
+		pVar->Var.Type=pType;
+		pType->InitVariable(pVar->Var.VarPtr);
+		pType->FromString(pVar->Var.VarPtr,Default);
+	}
+	if (!(gMacroStack && (ppHead==&gMacroStack->LocalVariables || ppHead==&gMacroStack->Parameters)))
+	{
+		VariableMap[Name]=pVar;
+	}
+	return TRUE;
+}
+
 
 BOOL AddMQ2DataVariable(PCHAR Name, PCHAR Index, MQ2Type *pType, PDATAVAR *ppHead, PCHAR Default)
 {
@@ -95,7 +136,7 @@ BOOL AddMQ2DataVariable(PCHAR Name, PCHAR Index, MQ2Type *pType, PDATAVAR *ppHea
 	{
 		CDataArray *pArray=new CDataArray(pType,Index,Default);
 		pVar->Var.Ptr=pArray;
-
+		pVar->Var.Type=pArrayType;
 	}
 	else
 	{
@@ -103,7 +144,7 @@ BOOL AddMQ2DataVariable(PCHAR Name, PCHAR Index, MQ2Type *pType, PDATAVAR *ppHea
 		pType->InitVariable(pVar->Var.VarPtr);
 		pType->FromString(pVar->Var.VarPtr,Default);
 	}
-	if (!(pNewMacroStack && (ppHead==&pNewMacroStack->LocalVariables || ppHead==&pNewMacroStack->Parameters)))
+	if (!(gMacroStack && (ppHead==&gMacroStack->LocalVariables || ppHead==&gMacroStack->Parameters)))
 	{
 		VariableMap[Name]=pVar;
 	}
@@ -116,8 +157,8 @@ PDATAVAR *FindVariableScope(PCHAR Name)
 		return &pGlobalVariables;
 	if (!stricmp(Name,"outer"))
 		return &pMacroVariables;
-	if (pNewMacroStack && !stricmp(Name,"local"))
-		return &pNewMacroStack->LocalVariables;
+	if (gMacroStack && !stricmp(Name,"local"))
+		return &gMacroStack->LocalVariables;
 	return 0;
 }
 
@@ -136,8 +177,9 @@ VOID ClearMQ2DataVariables(PDATAVAR *ppHead)
 	PDATAVAR pVar=*ppHead;
 	while(pVar)
 	{
+		PDATAVAR pNext=pVar->pNext;
 		DeleteMQ2DataVariable(pVar);
-		pVar=pVar->pNext;
+		pVar=pNext;
 	}
 	*ppHead=0;
 }
@@ -169,12 +211,12 @@ VOID NewDeclareVar(PSPAWNINFO pChar, PCHAR szLine)
 		if (pScope=FindVariableScope(Arg))
 		{
 			// next is default
-			pDefault=GetNextArg(szLine,4);
+			pDefault=GetNextArg(szLine,3);
 		}
 		else
 		{
 			// this is default
-			pDefault=GetNextArg(szLine,3);
+			pDefault=GetNextArg(szLine,2);
 		}
 	}
 	else
@@ -184,8 +226,8 @@ VOID NewDeclareVar(PSPAWNINFO pChar, PCHAR szLine)
 	}
 	if (!pScope)
 	{ 
-		if (pNewMacroStack)
-			pScope=&pNewMacroStack->LocalVariables;
+		if (gMacroStack)
+			pScope=&gMacroStack->LocalVariables;
 		else
 		{
 			WriteChatColor("/declare failed.  No macro in execution and no variable scope given");
@@ -206,12 +248,24 @@ VOID NewDeclareVar(PSPAWNINFO pChar, PCHAR szLine)
 		*pBracket=0;
 		strcpy(szIndex,&pBracket[1]);
 		szIndex[strlen(szIndex)-1]=0;
-		*pBracket='[';
+	}
+	if (pType==pTimerType && szIndex[0])
+	{
+		MacroError("Cannot /declare an array of timers");
+		return;
 	}
 
 	if (!AddMQ2DataVariable(szName,szIndex,pType,pScope,pDefault))
 	{
-		WriteChatColor("/declare failed.  No macro in execution and no variable scope given");
+		MacroError("/declare failed");
+	}
+	else
+	{
+		if (pType==pTimerType)
+		{
+			PTIMER pTimer=(PTIMER)((*pScope)->Var.Ptr);
+			strcpy(pTimer->szName,szName);
+		}
 	}
 }
 
@@ -242,17 +296,11 @@ VOID NewVarset(PSPAWNINFO pChar, PCHAR szLine)
 	CHAR szName[MAX_STRING]={0};
 	GetArg(szName,szLine,1);
 	PCHAR szRest=GetNextArg(szLine);
-	if (!szRest || !szRest[0])
-	{
-		SyntaxError("Usage: /varset <varname> <new value>");
-		return;
-	}
 	CHAR szIndex[MAX_STRING]={0};
 	if (PCHAR pBracket=strchr(szName,'['))
 	{
 		*pBracket=0;
 		strcpy(szIndex,&pBracket[1]);
-		*pBracket='[';
 	}
 	PDATAVAR pVar=FindMQ2DataVariable(szName);
 	if (!pVar)
@@ -417,20 +465,6 @@ VOID NewVardata(PSPAWNINFO pChar, PCHAR szLine)
 	}
 }
 
-/*
-PCHAR GetEventStr(PEVENTSTACK pEvent, PCHAR szName, BOOL Create)
-{
-	if (!gMacroStack) return NULL;
-	PCHAR szLocal = GetVarString(pEvent->EventStr,szName);
-	if (szLocal || !Create) return szLocal;
-	PVARSTRINGS pVar = NewVarString(szName,"EVENT");
-	if (!pVar) return NULL;
-	pVar->pNext = pEvent->EventStr;
-	pEvent->EventStr = pVar;
-	return pVar->szVar;
-}
-/**/
-
 VOID AddEvent(DWORD Event, PCHAR FirstArg, ...)
 { 
 	PEVENTSTACK pEvent = NULL; 
@@ -448,8 +482,8 @@ VOID AddEvent(DWORD Event, PCHAR FirstArg, ...)
 
 		while (CurrentArg) {
 			CHAR szParamName[MAX_STRING] = {0};
-			// TODO
-//			strcpy(GetEventStr(pEvent,GetFuncParamName(gEventFunc[Event]->Line,i,szParamName),TRUE),CurrentArg); 
+			GetFuncParamName(gEventFunc[Event]->Line,i,szParamName);
+			AddMQ2DataEventVariable(szParamName,"",pStringType,&pEvent->Parameters,CurrentArg);
 			i++;
 			CurrentArg = va_arg(marker,PCHAR);
 		}
@@ -475,8 +509,8 @@ VOID AddCustomEvent(PEVENTLIST pEList, PCHAR szLine)
     pEvent->Type = EVENT_CUSTOM;
     pEvent->pEventList = pEList;
     CHAR szParamName[MAX_STRING] = {0};
-	// TODO
-//    strcpy(GetEventStr(pEvent,GetFuncParamName(pEList->pEventFunc->Line,0,szParamName),TRUE),szLine);
+	GetFuncParamName(pEList->pEventFunc->Line,0,szParamName);
+	AddMQ2DataEventVariable(szParamName,"",pStringType,&pEvent->Parameters,szLine);
 
     if (!gEventStack) {
         gEventStack = pEvent;
@@ -572,6 +606,49 @@ VOID DropTimers(VOID)
 	}
 }
 
+// ***************************************************************************
+// Function:    ZapVars
+// Description: Our '/zapvars' command
+// Usage:       /zapvars
+// ***************************************************************************
+VOID ZapVars(PSPAWNINFO pChar, PCHAR szLine)
+{
+	ClearMQ2DataVariables(&pMacroVariables);
+	/*
+    BOOL bTimers = TRUE;
+    BOOL bVars = TRUE;
+    BOOL bArrays = TRUE;
+    CHAR Arg[MAX_STRING] = {0};
+    PCHAR pArgs = szLine;
+    if (pArgs) {
+        while (pArgs[0]) {
+            GetArg(Arg,pArgs,1);
+            pArgs = GetNextArg(pArgs);
+            if (!stricmp(Arg,"notimers")) bTimers = FALSE;
+            if (!stricmp(Arg,"novars")) bVars = FALSE;
+            if (!stricmp(Arg,"noarrays")) bArrays = FALSE;
+        }
+    }
+    bRunNextCommand = TRUE;
+    if (bVars) { FreeVarStrings(gMacroStr); gMacroStr=NULL; }
+    if (bArrays) { FreeVarArrays(); gArray=NULL; }
+    if (bTimers) FreeTimers();
+
+	if (gFilterMacro != FILTERMACRO_NONE)
+	{
+		if (!bArrays && !bVars && !bTimers) {
+			WriteChatColor("Command did nothing.",USERCOLOR_DEFAULT);
+		} else {
+			CHAR szTemp[MAX_STRING] = {0};
+			strcpy(szTemp,"Cleared the following:");
+			if (bTimers) strcat(szTemp," Timers");
+			if (bVars) strcat(szTemp," Vars");
+			if (bArrays) strcat(szTemp," Arrays");
+			WriteChatColor(szTemp,USERCOLOR_DEFAULT);
+		}
+	}
+	/**/
+}
 
 #else
 PDATAVAR FindMQ2DataVariable(PCHAR Name)

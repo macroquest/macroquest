@@ -63,7 +63,7 @@ using namespace std;
 //#define USEMQ2PARMS
 #define USEMQ2DATATYPES
 
-// MQ2DataVars not yet ready
+// MQ2DataVars *READY*
 //#define USEMQ2DATAVARS
 
 
@@ -280,6 +280,7 @@ EQLIB_API PMQ2DATAITEM FindMQ2Data(PCHAR szName);
 EQLIB_API PDATAVAR FindMQ2DataVariable(PCHAR szName);
 EQLIB_API BOOL ParseMQ2DataPortion(PCHAR szOriginal, MQ2TYPEVAR &Result);
 
+
 /* MOUSE */
 EQLIB_API BOOL IsMouseWaiting(VOID);
 EQLIB_API BOOL IsMouseWaitingForButton();
@@ -363,8 +364,20 @@ EQLIB_API VOID MacroError(PCHAR szFormat, ...);
 EQLIB_API VOID MQ2DataError(PCHAR szFormat, ...);
 
 
+#ifdef USEMQ2DATAVARS
+/* MQ2DATAVARS */
+EQLIB_API PDATAVAR FindMQ2DataVariable(PCHAR Name);
+EQLIB_API BOOL AddMQ2DataVariable(PCHAR Name, PCHAR Index, MQ2Type *pType, PDATAVAR *ppHead, PCHAR Default);
+EQLIB_API PDATAVAR *FindVariableScope(PCHAR Name);
+EQLIB_API BOOL DeleteMQ2DataVariable(PCHAR Name);
+EQLIB_API VOID ClearMQ2DataVariables(PDATAVAR *ppHead);
+EQLIB_API VOID NewDeclareVar(PSPAWNINFO pChar, PCHAR szLine);
+EQLIB_API VOID NewDeleteVarCmd(PSPAWNINFO pChar, PCHAR szLine);
+EQLIB_API VOID NewVarset(PSPAWNINFO pChar, PCHAR szLine);
+EQLIB_API VOID NewVarcalc(PSPAWNINFO pChar, PCHAR szLine);
+EQLIB_API VOID NewVardata(PSPAWNINFO pChar, PCHAR szLine);
+#else
 /* USERVARS */
-#ifndef USEMQ2DATAVARS
 EQLIB_API VOID FreeVarStrings(PVARSTRINGS pVarStrings);
 EQLIB_API VOID FreeVarArrays();
 EQLIB_API VOID FreeTimers();

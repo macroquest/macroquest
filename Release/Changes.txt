@@ -1,3 +1,8 @@
+25 Apr 2004 by Lax (revision C changes):
+- Fixed merchant.Item[=name] and corpse.Item[=name]
+- Fixed character.PctEndurance
+- MQ2DataVars is READY.  Keep an eye out for important announcements about this!
+
 25 Apr 2004 by Lax (even more):
 - Hopefully fixed crash caused by fixing the "LastCommand" stuff...
 - Added MQ2Data Members:

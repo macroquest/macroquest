@@ -95,13 +95,16 @@ void InitializeMQ2DataTypes()
 	pHeadingType = new MQ2HeadingType;
 	pInvSlotType = new MQ2InvSlotType;
 	pArrayType = new MQ2ArrayType;
+#ifdef USEMQ2DATAVARS
 	pTimerType = new MQ2TimerType;
+#endif
 	pPluginType = new MQ2PluginType;
 	pSkillType = new MQ2SkillType;
 
 	// NOTE: SetInheritance does NOT make it inherit, just notifies the syntax checker...
 	pCharacterType->SetInheritance(pSpawnType);
 	pBuffType->SetInheritance(pSpellType);
+	pCurrentZoneType->SetInheritance(pZoneType);
 }
 
 void ShutdownMQ2DataTypes()
@@ -136,7 +139,9 @@ void ShutdownMQ2DataTypes()
 	delete pTimeType;
 	delete pHeadingType;
 	delete pArrayType;
+#ifdef USEMQ2DATAVARS
 	delete pTimerType;
+#endif
 	delete pPluginType;
 	delete pSkillType;
 }
@@ -1089,7 +1094,7 @@ bool MQ2CharacterType::GetMember(MQ2VARPTR VarPtr, PCHAR Member, PCHAR Index, MQ
 	case PctEndurance:
 		{
 			if (unsigned long Temp=GetMaxEndurance())
-				Dest.DWord=pChar->Endurance/Temp;
+				Dest.DWord=(pChar->Endurance*100)/Temp;
 			else
 				Dest.DWord=0;
 			Dest.Type=pIntType;
@@ -2955,7 +2960,9 @@ bool MQ2CorpseType::GetMember(MQ2VARPTR VarPtr, PCHAR Member, PCHAR Index, MQ2TY
 				if (*pName=='=')
 				{
 					bExact=TRUE;
+					pName++;
 				}
+				strlwr(pName);
 				CHAR Temp[MAX_STRING]={0};
 				for (unsigned long nIndex = 0 ; nIndex < 31 ; nIndex++)
 				{
@@ -3041,7 +3048,9 @@ bool MQ2MerchantType::GetMember(MQ2VARPTR VarPtr, PCHAR Member, PCHAR Index, MQ2
 				if (*pName=='=')
 				{
 					bExact=TRUE;
+					pName++;
 				}
+				strlwr(pName);
 				CHAR Temp[MAX_STRING]={0};
 				for (unsigned long nIndex = 0 ; nIndex < 80 ; nIndex++)
 				{
@@ -3402,6 +3411,7 @@ bool MQ2ArrayType::GetMember(MQ2VARPTR VarPtr, PCHAR Member, PCHAR Index, MQ2TYP
 #undef pArray
 }
 
+#ifdef USEMQ2DATAVARS
 bool MQ2TimerType::GetMember(MQ2VARPTR VarPtr, PCHAR Member, PCHAR Index, MQ2TYPEVAR &Dest)
 {
 	return false;
@@ -3417,6 +3427,7 @@ bool MQ2TimerType::GetMember(MQ2VARPTR VarPtr, PCHAR Member, PCHAR Index, MQ2TYP
 	return false;
 #undef pTimer
 }
+#endif
 
 bool MQ2PluginType::GetMember(MQ2VARPTR VarPtr, PCHAR Member, PCHAR Index, MQ2TYPEVAR &Dest)
 {
