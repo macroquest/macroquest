@@ -5166,7 +5166,7 @@ class CXPoint
 {
 public:
 EQLIB_OBJECT class CXPoint CXPoint::operator=(class CXPoint);
-DWORD A,B,C,D;
+DWORD A,B;
 };
 
 class CXRect
@@ -5181,6 +5181,7 @@ EQLIB_OBJECT class CXRect CXRect::operator|(class CXRect)const;
 EQLIB_OBJECT int CXRect::Width(void)const;
 EQLIB_OBJECT void CXRect::Move(class CXPoint);
 EQLIB_OBJECT void CXRect::Normalize(void);
+DWORD A,B,C,D;
 };
 
 

@@ -22,7 +22,7 @@ DWORD FPSIndicatorY=25;
 
 bool InForeground=false;
 
-DWORD gFG_Rate=3;
+DWORD gFG_Rate=1;
 DWORD gBG_Rate=0;
 BOOL  ReverseFG_Rate=true;// skip every nth frame vs show every nth frame
 BOOL  ReverseBG_Rate=false;
@@ -112,10 +112,10 @@ PLUGIN_API VOID InitializePlugin(VOID)
     FPSIndicatorX = GetPrivateProfileInt("MQ2FPS","IndicatorX",5,INIFileName);
     FPSIndicatorY = GetPrivateProfileInt("MQ2FPS","IndicatorY",25,INIFileName);
 
-	gBG_Rate = GetPrivateProfileInt("Rendering","BGRate",0,INIFileName);
+	gBG_Rate = GetPrivateProfileInt("Rendering","BGRate",30,INIFileName);
 	ReverseBG_Rate = GetPrivateProfileInt("Rendering","ReverseBGRate",0,INIFileName);
-	gFG_Rate = GetPrivateProfileInt("Rendering","FGRate",5,INIFileName);
-	ReverseFG_Rate = GetPrivateProfileInt("Rendering","ReverseFGRate",1,INIFileName);
+	gFG_Rate = GetPrivateProfileInt("Rendering","FGRate",1,INIFileName);
+	ReverseFG_Rate = GetPrivateProfileInt("Rendering","ReverseFGRate",0,INIFileName);
 
 	// Commands
 	AddCommand("/maxfps",MaxFPS,0,1);

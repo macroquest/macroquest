@@ -46,7 +46,27 @@ inline VOID DeleteMQ2DataVariable(PDATAVAR pVar)
 
 inline PDATAVAR FindMQ2DataVariable(PCHAR Name)
 {
-	return VariableMap[Name];
+	PDATAVAR pFind=VariableMap[Name];
+	if (pFind)
+		return pFind;
+	// local?
+	if (pNewMacroStack)
+	{
+		PDATAVAR pVar=pNewMacroStack->Parameters;
+		while(pVar)
+		{
+			if (!stricmp(pVar->szName,Name))
+				return pVar;
+			pVar=pVar->pNext;
+		}
+		pVar=pNewMacroStack->LocalVariables;
+		while(pVar)
+		{
+			if (!stricmp(pVar->szName,Name))
+				return pVar;
+			pVar=pVar->pNext;
+		}
+	}
 }
 
 BOOL AddMQ2DataVariable(PCHAR Name, PCHAR Index, MQ2Type *pType, PDATAVAR *ppHead, PCHAR Default)
@@ -82,6 +102,10 @@ BOOL AddMQ2DataVariable(PCHAR Name, PCHAR Index, MQ2Type *pType, PDATAVAR *ppHea
 		pVar->Var.Type=pType;
 		pType->InitVariable(pVar->Var.VarPtr);
 		pType->FromString(pVar->Var.VarPtr,Default);
+	}
+	if (!(pNewMacroStack && (ppHead==&pNewMacroStack->LocalVariables || ppHead==&pNewMacroStack->Parameters)))
+	{
+		VariableMap[Name]=pVar;
 	}
 	return TRUE;
 }
@@ -212,7 +236,7 @@ VOID NewVarset(PSPAWNINFO pChar, PCHAR szLine)
 {
 	if (!szLine[0])
 	{
-		WriteChatColor("Usage: /varset <varname> <new value>");
+		SyntaxError("Usage: /varset <varname> <new value>");
 		return;
 	}
 	CHAR szName[MAX_STRING]={0};
@@ -220,7 +244,7 @@ VOID NewVarset(PSPAWNINFO pChar, PCHAR szLine)
 	PCHAR szRest=GetNextArg(szLine);
 	if (!szRest || !szRest[0])
 	{
-		WriteChatColor("Usage: /varset <varname> <new value>");
+		SyntaxError("Usage: /varset <varname> <new value>");
 		return;
 	}
 	CHAR szIndex[MAX_STRING]={0};
@@ -233,33 +257,99 @@ VOID NewVarset(PSPAWNINFO pChar, PCHAR szLine)
 	PDATAVAR pVar=FindMQ2DataVariable(szName);
 	if (!pVar)
 	{
-		WriteChatColor("/varset failed, variable not found",CONCOLOR_RED);
+		MacroError("/varset failed, variable '%s' not found",szName);
 		return;
 	}
 	if (szIndex[0])
 	{
 		if (pVar->Var.Type!=pArrayType)
 		{
-			WriteChatColor("/varset failed, array form on non-array",CONCOLOR_RED);
+			MacroError("/varset failed, array form on non-array");
 			return;
 		}
 		CDataArray *pArray=(CDataArray*)pVar->Var.Ptr;
 		int N=pArray->GetElement(szIndex);
 		if (N==-1)
 		{
-			WriteChatColor("/varset failed, out of bounds on array",CONCOLOR_RED);
+			MacroError("/varset failed, out of bounds on array");
 			return;
 		}
 		if (!pArray->pType->FromString(pArray->pData[N],szRest))
 		{
-			WriteChatColor("/varset failed, array element type rejected new value",CONCOLOR_RED);
+			MacroError("/varset failed, array element type rejected new value");
 		}
 	}
 	else
 	{
 		if (!pVar->Var.Type->FromString(pVar->Var.VarPtr,szRest))
 		{
-			WriteChatColor("/varset failed, variable type rejected new value",CONCOLOR_RED);
+			MacroError("/varset failed, variable type rejected new value");
+		}
+	}
+}
+
+VOID NewVarcalc(PSPAWNINFO pChar, PCHAR szLine)
+{
+	if (!szLine[0])
+	{
+		SyntaxError("Usage: /varcalc <varname> <new value>");
+		return;
+	}
+	CHAR szName[MAX_STRING]={0};
+	GetArg(szName,szLine,1);
+	PCHAR szRest=GetNextArg(szLine);
+	if (!szRest || !szRest[0])
+	{
+		SyntaxError("Usage: /varcalc <varname> <new value>");
+		return;
+	}
+
+	DOUBLE Result;
+	if (!Calculate(szRest,Result))
+	{
+		MacroError("/varcalc failed.  Could not calculate '%s'",szRest);
+		return;
+	}
+	sprintf(szRest,"%f",Result);
+
+
+	CHAR szIndex[MAX_STRING]={0};
+	if (PCHAR pBracket=strchr(szName,'['))
+	{
+		*pBracket=0;
+		strcpy(szIndex,&pBracket[1]);
+		*pBracket='[';
+	}
+	PDATAVAR pVar=FindMQ2DataVariable(szName);
+	if (!pVar)
+	{
+		MacroError("/varcalc failed, variable '%s' not found",szName);
+		return;
+	}
+	if (szIndex[0])
+	{
+		if (pVar->Var.Type!=pArrayType)
+		{
+			MacroError("/varcalc failed, array form on non-array");
+			return;
+		}
+		CDataArray *pArray=(CDataArray*)pVar->Var.Ptr;
+		int N=pArray->GetElement(szIndex);
+		if (N==-1)
+		{
+			MacroError("/varcalc failed, out of bounds on array");
+			return;
+		}
+		if (!pArray->pType->FromString(pArray->pData[N],szRest))
+		{
+			MacroError("/varcalc failed, array element type rejected new value");
+		}
+	}
+	else
+	{
+		if (!pVar->Var.Type->FromString(pVar->Var.VarPtr,szRest))
+		{
+			MacroError("/varcalc failed, variable type rejected new value");
 		}
 	}
 }
@@ -327,6 +417,141 @@ VOID NewVardata(PSPAWNINFO pChar, PCHAR szLine)
 	}
 }
 
+/*
+PCHAR GetEventStr(PEVENTSTACK pEvent, PCHAR szName, BOOL Create)
+{
+	if (!gMacroStack) return NULL;
+	PCHAR szLocal = GetVarString(pEvent->EventStr,szName);
+	if (szLocal || !Create) return szLocal;
+	PVARSTRINGS pVar = NewVarString(szName,"EVENT");
+	if (!pVar) return NULL;
+	pVar->pNext = pEvent->EventStr;
+	pEvent->EventStr = pVar;
+	return pVar->szVar;
+}
+/**/
+
+VOID AddEvent(DWORD Event, PCHAR FirstArg, ...)
+{ 
+	PEVENTSTACK pEvent = NULL; 
+	if (!gEventFunc[Event]) {	return; }
+	pEvent = (PEVENTSTACK)malloc(sizeof(EVENTSTACK)); 
+	if (!pEvent) {	return; }
+	ZeroMemory(pEvent,sizeof(EVENTSTACK)); 
+	pEvent->Type = Event; 
+	pEvent->pEventList = NULL; 
+	if (FirstArg) {
+		va_list marker;
+		DWORD i=0;
+		PCHAR CurrentArg = FirstArg;
+		va_start(marker, FirstArg);
+
+		while (CurrentArg) {
+			CHAR szParamName[MAX_STRING] = {0};
+			// TODO
+//			strcpy(GetEventStr(pEvent,GetFuncParamName(gEventFunc[Event]->Line,i,szParamName),TRUE),CurrentArg); 
+			i++;
+			CurrentArg = va_arg(marker,PCHAR);
+		}
+		va_end(marker);
+	}
+
+	if (!gEventStack) { 
+		gEventStack = pEvent; 
+	} else { 
+		PEVENTSTACK pTemp = NULL; 
+		for (pTemp = gEventStack;pTemp->pNext;pTemp=pTemp->pNext); 
+		pTemp->pNext = pEvent; 
+	} 
+} 
+
+VOID AddCustomEvent(PEVENTLIST pEList, PCHAR szLine)
+{
+    PEVENTSTACK pEvent = NULL;
+    if (!pEList->pEventFunc) return;
+    pEvent = (PEVENTSTACK)malloc(sizeof(EVENTSTACK));
+    if (!pEvent) return;
+    ZeroMemory(pEvent,sizeof(EVENTSTACK));
+    pEvent->Type = EVENT_CUSTOM;
+    pEvent->pEventList = pEList;
+    CHAR szParamName[MAX_STRING] = {0};
+	// TODO
+//    strcpy(GetEventStr(pEvent,GetFuncParamName(pEList->pEventFunc->Line,0,szParamName),TRUE),szLine);
+
+    if (!gEventStack) {
+        gEventStack = pEvent;
+    } else {
+        PEVENTSTACK pTemp = NULL;
+        for (pTemp = gEventStack;pTemp->pNext;pTemp=pTemp->pNext);
+        pTemp->pNext = pEvent;
+    }
+}
+
+VOID CheckChatForEvent(PCHAR szMsg)
+{
+		if ((gMacroBlock) && (!gMacroPause) && (!gbUnload) && (!gZoning)) { 
+			CHAR Arg1[MAX_STRING] = {0}; 
+			CHAR Arg2[MAX_STRING] = {0}; 
+			CHAR Arg3[MAX_STRING] = {0}; 
+
+			if ((strstr(szMsg," tells the guild, '")) && (CHATEVENT(CHAT_GUILD))) { 
+				strncpy(Arg1,szMsg,(DWORD)(strstr(szMsg," tells the guild, '")-szMsg)); 
+				strcpy(Arg2,strstr(szMsg," tells the guild, '")+19); 
+				Arg2[strlen(Arg2)-1]=0; 
+				AddEvent(EVENT_CHAT,"guild",Arg1,Arg2,NULL); 
+			} else if ((strstr(szMsg," tells the group, '")) && (CHATEVENT(CHAT_GROUP))) { 
+				strncpy(Arg1,szMsg,(DWORD)(strstr(szMsg," tells the group, '")-szMsg)); 
+				strcpy(Arg2,strstr(szMsg," tells the group, '")+19); 
+				Arg2[strlen(Arg2)-1]=0; 
+				AddEvent(EVENT_CHAT,"group",Arg1,Arg2,NULL); 
+			} else if ((strstr(szMsg," tells you, '")) && (CHATEVENT(CHAT_TELL))) { 
+				strncpy(Arg1,szMsg,(DWORD)(strstr(szMsg," tells you, '")-szMsg)); 
+				strcpy(Arg2,strstr(szMsg," tells you, '")+13); 
+				Arg2[strlen(Arg2)-1]=0; 
+				AddEvent(EVENT_CHAT,"tell",Arg1,Arg2,NULL); 
+			} else if ((strstr(szMsg," says out of character, '")) && (CHATEVENT(CHAT_OOC))) { 
+				strncpy(Arg1,szMsg,(DWORD)(strstr(szMsg," says out of character, '")-szMsg)); 
+				strcpy(Arg2,strstr(szMsg," says out of character, '")+25); 
+				Arg2[strlen(Arg2)-1]=0; 
+				AddEvent(EVENT_CHAT,"ooc",Arg1,Arg2,NULL); 
+			} else if ((strstr(szMsg," shouts, '")) && (CHATEVENT(CHAT_SHOUT))) { 
+				strncpy(Arg1,szMsg,(DWORD)(strstr(szMsg," shouts, '")-szMsg)); 
+				strcpy(Arg2,strstr(szMsg," shouts, '")+10); 
+				Arg2[strlen(Arg2)-1]=0; 
+				AddEvent(EVENT_CHAT,"shout",Arg1,Arg2,NULL); 
+			} else if ((strstr(szMsg," auctions, '")) && (CHATEVENT(CHAT_AUC))) { 
+				strncpy(Arg1,szMsg,(DWORD)(strstr(szMsg," auctions, '")-szMsg)); 
+				strcpy(Arg2,strstr(szMsg," auctions, '")+12); 
+				Arg2[strlen(Arg2)-1]=0; 
+				AddEvent(EVENT_CHAT,"auc",Arg1,Arg2,NULL); 
+			} else if ((strstr(szMsg," says '")) && (CHATEVENT(CHAT_SAY))) { 
+				strncpy(Arg1,szMsg,(DWORD)(strstr(szMsg," says '")-szMsg)); 
+				strcpy(Arg2,strstr(szMsg," says '")+7); 
+				Arg2[strlen(Arg2)-1]=0; 
+				AddEvent(EVENT_CHAT,"say",Arg1,Arg2,NULL); 
+			} else if ((strstr(szMsg," says, '")) && (CHATEVENT(CHAT_SAY))) { 
+				strncpy(Arg1,szMsg,(DWORD)(strstr(szMsg," says, '")-szMsg)); 
+				strcpy(Arg2,strstr(szMsg," says, '")+8); 
+				Arg2[strlen(Arg2)-1]=0; 
+				AddEvent(EVENT_CHAT,"say",Arg1,Arg2,NULL); 
+			} else if ( (strstr(szMsg," tells ")) && (strstr(szMsg,":")) && (strstr(szMsg,", '")) && (CHATEVENT(CHAT_CHAT)) ) {
+				strncpy(Arg1,szMsg,(DWORD)(strstr(szMsg," tells ")-szMsg)); 
+				strcpy(Arg3,strstr(szMsg," tells ")+7); 
+				Arg3[strlen(Arg3)-1]=0; 
+				strcpy(Arg2,strstr(Arg3,", '")+3); 
+				Arg3[strstr(Arg3,":")-Arg3]=0; 
+				AddEvent(EVENT_CHAT,Arg3,Arg1,Arg2,NULL); 
+			} else { 
+				PEVENTLIST pEvent = pEventList; 
+				while (pEvent) { 
+					if (strstr(szMsg,pEvent->szMatch)) { 
+						AddCustomEvent(pEvent,szMsg); 
+					} 
+					pEvent = pEvent->pNext; 
+				} 
+			} 
+		} 
+}
 
 VOID DropTimers(VOID)
 {
@@ -340,8 +565,7 @@ VOID DropTimers(VOID)
 			if (!pTimer->Current)
 			{
 				itoa(pTimer->Original,szOrig,10);
-				// TODO
-//				AddEvent(EVENT_TIMER,pTimer->szName,szOrig,NULL);
+				AddEvent(EVENT_TIMER,pTimer->szName,szOrig,NULL);
 			}
 		}
 		pTimer=pTimer->pNext;

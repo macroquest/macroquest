@@ -583,6 +583,7 @@ VOID VarCalc(PSPAWNINFO pChar, PCHAR szLine)
     PTIMER pTimer = NULL;
     GetVariable(szVar,&szResult,&pTimer);
     if (!szResult && !pTimer) {
+		MacroError("No variable named '%s'",szVar);
         GracefullyEndBadMacro(pChar,gMacroBlock, "Bad variable in /var function.");
         return;
         }
@@ -615,6 +616,7 @@ VOID VarSet(PSPAWNINFO pChar, PCHAR szLine)
     PTIMER pTimer = NULL;
     GetVariable(szVar,&szResult,&pTimer);
     if (!szResult && !pTimer) {
+		MacroError("No variable named '%s'",szVar);
         GracefullyEndBadMacro(pChar,gMacroBlock, "Bad variable in /var function.");
         return;
     }
@@ -654,6 +656,7 @@ VOID MyVarAdd(PSPAWNINFO pChar, PCHAR szLine)
     PTIMER pTimer = NULL;
     GetVariable(szVar,&szResult,&pTimer);
     if (!szResult && !pTimer) {
+		MacroError("No variable named '%s'",szVar);
         GracefullyEndBadMacro(pChar,gMacroBlock, "Bad variable in /var function.");
         return;
     }
@@ -694,6 +697,7 @@ VOID MyVarCat(PSPAWNINFO pChar, PCHAR szLine)
 	PTIMER pTimer = NULL;
 	GetVariable(szVar,&szResult,&pTimer);
 	if (!szResult) {
+		MacroError("No variable named '%s'",szVar);
 		GracefullyEndBadMacro(pChar,gMacroBlock, "Bad variable in /var function.");
 		return;
 	}
@@ -720,7 +724,8 @@ VOID MyVarSub(PSPAWNINFO pChar, PCHAR szLine)
     PTIMER pTimer = NULL;
     GetVariable(szVar,&szResult,&pTimer);
     if (!szResult && !pTimer) {
-        GracefullyEndBadMacro(pChar,gMacroBlock, "Bad variable in /var function.");
+        MacroError("No variable named '%s'",szVar);
+		GracefullyEndBadMacro(pChar,gMacroBlock, "Bad variable in /var function.");
         return;
     }
     if (szResult) {
@@ -761,6 +766,7 @@ VOID MyVarAnd(PSPAWNINFO pChar, PCHAR szLine)
     PTIMER pTimer = NULL;
     GetVariable(szVar,&szResult,&pTimer);
     if (!szResult && !pTimer) {
+		MacroError("No variable named '%s'",szVar);
         GracefullyEndBadMacro(pChar,gMacroBlock, "Bad variable in /var function.");
         return;
     }
@@ -802,6 +808,7 @@ VOID MyVarOr(PSPAWNINFO pChar, PCHAR szLine)
     PTIMER pTimer = NULL;
     GetVariable(szVar,&szResult,&pTimer);
     if (!szResult && !pTimer) {
+		MacroError("No variable named '%s'",szVar);
         GracefullyEndBadMacro(pChar,gMacroBlock, "Bad variable in /var function.");
         return;
     }
@@ -843,6 +850,7 @@ VOID VarRShift(PSPAWNINFO pChar, PCHAR szLine)
     PTIMER pTimer = NULL;
     GetVariable(szVar,&szResult,&pTimer);
     if (!szResult && !pTimer) {
+		MacroError("No variable named '%s'",szVar);
         GracefullyEndBadMacro(pChar,gMacroBlock, "Bad variable in /var function.");
         return;
     }
@@ -884,6 +892,7 @@ VOID VarLShift(PSPAWNINFO pChar, PCHAR szLine)
     PTIMER pTimer = NULL;
     GetVariable(szVar,&szResult,&pTimer);
     if (!szResult && !pTimer) {
+		MacroError("No variable named '%s'",szVar);
         GracefullyEndBadMacro(pChar,gMacroBlock, "Bad variable in /var function.");
         return;
     }
