@@ -3072,14 +3072,25 @@ DWORD parmChar(PCHAR szVar, PCHAR szOutput, PSPAWNINFO pChar)
         sprintf(szTemp,"%1.2f",pChar->AvatarHeight); 
        strcat(szOutput,szTemp); 
 
+   // $char(favor,cur) 
+   } else if (!strncmp("char(favor,cur)",szVar,15)) { 
+        i+=14; 
+        CHAR szTemp[MAX_STRING] = {0}; 
+        itoa(pCharInfo->CurrFavor,szTemp,10); 
+        strcat(szOutput,szTemp); 
 
+   // $char(favor,career) 
+   } else if (!strncmp("char(favor,career)",szVar,18)) { 
+        i+=17; 
+        CHAR szTemp[MAX_STRING] = {0}; 
+        itoa(pCharInfo->CareerFavor,szTemp,10); 
+        strcat(szOutput,szTemp); 
 
 	// $char(unknown)
     } else {
         DebugSpewNoFile("PMP - Bad $char() '%s'",szVar);
             return PMP_ERROR_BADPARM;
     }
-
 
     return i;
 }

@@ -559,9 +559,11 @@ union{
 /*0x1d84*/	DWORD		TakEarned; 
 /*0x1d8c*/  BYTE  		Unknown0x1d8c[0x18];
 /*0x1da0*/	DWORD		LDoNPoints;   
-/*0x1da4*/  BYTE		Unknown0x1da4[0x7cc8];
-/*0x9a6c*/  BYTE		UnknownData0x9a6c[0x0c];  // There is new data here!  Testing needed
-/*0x9a78*/  BYTE		Unknown0x9a78[0x34];
+/*0x1da4*/  BYTE        Unknown0x1da4[0x7a90]; 
+/*0x9834*/  DWORD       CareerFavor; 
+/*0x9838*/  DWORD       Unknown0x9838; 
+/*0x983C*/  DWORD       CurrFavor; 
+/*0x9840*/  BYTE        Unknown0x9840[0x26c]; 
 /*0x9aac*/	struct		_CONTENTS* Bank[NUM_BANK_SLOTS]; 
 } CHARINFO, *PCHARINFO; 
 
