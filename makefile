@@ -1,4 +1,4 @@
-all: mq2auth traverse
+all: traverse
 
 clean: traverse_clean
 
@@ -13,9 +13,6 @@ DIRECTORIES=\
     MQ2Map \
     MQ2Template \
     mq2telnet
-
-mq2auth:
-    mq2auth.exe
 
 traverse: $(DIRECTORIES)
     for %a in ($(DIRECTORIES)) do nmake DIRECTORY=%a COMMAND=all traverse_directory
