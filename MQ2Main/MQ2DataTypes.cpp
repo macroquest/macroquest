@@ -561,7 +561,7 @@ bool MQ2StringType::GetMember(MQ2VARPTR VarPtr, PCHAR Member, PCHAR Index, MQ2TY
 			strlwr(B);
 			if (char *pFound=strstr(A,B))
 			{
-				Dest.DWord=pFound-&A[0];
+				Dest.DWord=(pFound-&A[0])+1;
 				Dest.Type=pIntType;
 				return true;
 			}
@@ -594,7 +594,7 @@ bool MQ2StringType::GetMember(MQ2VARPTR VarPtr, PCHAR Member, PCHAR Index, MQ2TY
 				*pComma=0;
 				pComma++;
 				PCHAR pStr=(char *)VarPtr.Ptr;
-				unsigned long nStart=atoi(Index);
+				unsigned long nStart=atoi(Index)-1;
 				unsigned long Len=atoi(pComma);
 				if (nStart>=strlen(pStr))
 				{
@@ -1252,14 +1252,19 @@ bool MQ2MathType::GetMember(MQ2VARPTR VarPtr, PCHAR Member, PCHAR Index, MQ2TYPE
 		return false;
 	if (!Index[0])
 		return false;
+	DOUBLE CalcResult;
 	switch((MathMembers)pMember->ID)
 	{
 	case Abs:
-		Dest.Float=(FLOAT)Calculate(Index);
-		if (Dest.Float<0)
-			Dest.Float*=-1;
-		Dest.Type=pFloatType;
-		return true;
+		if (Calculate(Index,CalcResult))
+		{
+			Dest.Float=(FLOAT)CalcResult;
+			if (Dest.Float<0)
+				Dest.Float*=-1;
+			Dest.Type=pFloatType;
+			return true;
+		}
+		return false;
 	case Rand:
 		Dest.DWord=atol(Index);
 		if (Dest.DWord==0 || Dest.DWord==0xFFFFFFFF)
@@ -1268,33 +1273,61 @@ bool MQ2MathType::GetMember(MQ2VARPTR VarPtr, PCHAR Member, PCHAR Index, MQ2TYPE
 		Dest.Type=pIntType;
 		return true;
 	case Calc:
-		Dest.Float=(float)Calculate(Index);
-		Dest.Type=pFloatType;
-		return true;
+		if (Calculate(Index,CalcResult))
+		{
+			Dest.Float=(FLOAT)CalcResult;
+			Dest.Type=pFloatType;
+			return true;
+		}
+		return false;
 	case Sin:
-		Dest.Float=(float)sin(Calculate(Index)/DegToRad);
-		Dest.Type=pFloatType;
-		return true;
+		if (Calculate(Index,CalcResult))
+		{
+			Dest.Float=(float)sin(CalcResult/DegToRad);
+			Dest.Type=pFloatType;
+			return true;
+		}
+		return false;
 	case Cos:
-		Dest.Float=(float)cos(Calculate(Index)/DegToRad);
-		Dest.Type=pFloatType;
-		return true;
+		if (Calculate(Index,CalcResult))
+		{
+			Dest.Float=(float)cos(CalcResult/DegToRad);
+			Dest.Type=pFloatType;
+			return true;
+		}
+		return false;
 	case Tan:
-		Dest.Float=(float)tan(Calculate(Index)/DegToRad);
-		Dest.Type=pFloatType;
-		return true;
+		if (Calculate(Index,CalcResult))
+		{
+			Dest.Float=(float)tan(CalcResult/DegToRad);
+			Dest.Type=pFloatType;
+			return true;
+		}
+		return false;
 	case Asin:
-		Dest.Float=(float)(asin(Calculate(Index))*DegToRad);
-		Dest.Type=pFloatType;
-		return true;
+		if (Calculate(Index,CalcResult))
+		{
+			Dest.Float=(float)(asin(CalcResult)*DegToRad);
+			Dest.Type=pFloatType;
+			return true;
+		}
+		return false;
 	case Acos:
-		Dest.Float=(float)(acos(Calculate(Index))*DegToRad);
-		Dest.Type=pFloatType;
-		return true;
+		if (Calculate(Index,CalcResult))
+		{
+			Dest.Float=(float)(acos(CalcResult)*DegToRad);
+			Dest.Type=pFloatType;
+			return true;
+		}
+		return false;
 	case Atan:
-		Dest.Float=(float)(atan(Calculate(Index))*DegToRad);
-		Dest.Type=pFloatType;
-		return true;
+		if (Calculate(Index,CalcResult))
+		{
+			Dest.Float=(float)(atan(CalcResult)*DegToRad);
+			Dest.Type=pFloatType;
+			return true;
+		}
+		return false;
 	case Not:
 		Dest.DWord=~atol(Index);
 		Dest.Type=pIntType;

@@ -473,7 +473,7 @@ void InitializeMQ2Commands()
 		{"/altkey",		DoAltCmd,0,0},
 		{"/shiftkey",      DoShiftCmd,0,0},
 		{"/timed",		DoTimedCmd,0,0},
-		{"/newif",		NewIf,0,0},
+		{"/newif",		NewIf,1,0},
 		{NULL,          NULL,0,1},
     };
 

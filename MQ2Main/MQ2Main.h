@@ -60,8 +60,8 @@ using namespace std;
 #define FromPlugin 0
 #endif
 
-#define USEMQ2PARMS
-//#define USEMQ2DATATYPES
+//#define USEMQ2PARMS
+#define USEMQ2DATATYPES
 
 
 // reroute malloc/free
@@ -481,7 +481,7 @@ EQLIB_API DWORD parmMacro                  (PCHAR, PCHAR, PSPAWNINFO);
 EQLIB_API DWORD parmEvent                  (PCHAR, PCHAR, PSPAWNINFO);
 EQLIB_API DWORD parmBanker						(PCHAR, PCHAR, PSPAWNINFO);
 EQLIB_API DWORD parmPet							(PCHAR, PCHAR, PSPAWNINFO);
-EQLIB_API DOUBLE Calculate(PCHAR szFormula);
+EQLIB_API BOOL Calculate(PCHAR szFormula, DOUBLE& Dest);
 
 /* DATA ITEMS */
 EQLIB_API BOOL dataSpawn(PCHAR szIndex, MQ2TYPEVAR &Ret);

@@ -4552,8 +4552,9 @@ DWORD parmCalc(PCHAR szVar, PCHAR szOutput, PSPAWNINFO pChar)
             strncpy(Formula,szArg,i-5);
             Formula[i-5] = 0;
         }
-        sprintf(Formula,"%1.*f",PrecVal,Calculate(Formula));
-      strcpy(szOutput,Formula);
+		DOUBLE Result=-1.0f;
+		Calculate(Formula,Result);
+		sprintf(szOutput,"%1.*f",PrecVal,Result);
     }
     return i;
 }
@@ -4571,9 +4572,10 @@ DWORD parmInt(PCHAR szVar, PCHAR szOutput, PSPAWNINFO pChar)
         while (szVar[i]!=')') i++;
         strcpy(Formula,szVar+4);
         Formula[strstr(Formula,")")-Formula] = 0;
-        LONG Val = (LONG)Calculate(Formula);
-        itoa(Val,Formula,10);
-        strcpy(szOutput,Formula);
+		DOUBLE Result=-1.0f;
+		Calculate(Formula,Result);
+	    LONG Val = (LONG) Result;
+		itoa(Val,szOutput,10);
     }
     return i;
 }
@@ -4680,10 +4682,10 @@ DWORD parmAbs(PCHAR szVar, PCHAR szOutput, PSPAWNINFO pChar)
             strncpy(Formula,szArg,i-4);
             Formula[i-4] = 0;
         }
-        DOUBLE Val = Calculate(Formula);
-        if (Val<0) Val *= -1;
-        sprintf(Formula,"%1.*f",PrecVal,Val);
-        strcpy(szOutput,Formula);
+        DOUBLE Val=-1.0f;
+		Calculate(Formula,Val);
+	    if (Val<0) Val *= -1;
+		sprintf(szOutput,"%1.*f",PrecVal,Val);
     }
     return i;
 }
@@ -4711,8 +4713,10 @@ DWORD parmSin(PCHAR szVar, PCHAR szOutput, PSPAWNINFO pChar)
             strncpy(Formula,szArg,i-4);
             Formula[i-4] = 0;
         }
-        sprintf(Formula,"%1.*f",PrecVal,(sin(Calculate(Formula)/DegToRad)));
-        strcpy(szOutput,Formula);
+		DOUBLE Result=-1.0f;
+		Calculate(Formula,Result);
+	    sprintf(szOutput,"%1.*f",PrecVal,(sin(Result/DegToRad)));
+			
     }
     return i;
 }
@@ -4740,8 +4744,9 @@ DWORD parmCos(PCHAR szVar, PCHAR szOutput, PSPAWNINFO pChar)
             strncpy(Formula,szArg,i-4);
             Formula[i-4] = 0;
         }
-        sprintf(Formula,"%1.*f",PrecVal,(cos(Calculate(Formula)/DegToRad)));
-        strcpy(szOutput,Formula);
+		DOUBLE Result=-1.0f;
+		Calculate(Formula,Result);
+        sprintf(szOutput,"%1.*f",PrecVal,(cos(Result/DegToRad)));
     }
     return i;
 }
@@ -4769,8 +4774,9 @@ DWORD parmTan(PCHAR szVar, PCHAR szOutput, PSPAWNINFO pChar)
             strncpy(Formula,szArg,i-4);
             Formula[i-4] = 0;
         }
-        sprintf(Formula,"%1.*f",PrecVal,(tan(Calculate(Formula)/DegToRad)));
-        strcpy(szOutput,Formula);
+		DOUBLE Result=-1.0f;
+		Calculate(Formula,Result);
+        sprintf(szOutput,"%1.*f",PrecVal,(tan(Result/DegToRad)));
     }
     return i;
 }
@@ -4798,8 +4804,9 @@ DWORD parmAsin(PCHAR szVar, PCHAR szOutput, PSPAWNINFO pChar)
             strncpy(Formula,szArg,i-5);
             Formula[i-5] = 0;
         }
-        sprintf(Formula,"%1.*f",PrecVal,(asin(Calculate(Formula))*DegToRad));
-        strcpy(szOutput,Formula);
+		DOUBLE Result=-1.0f;
+		Calculate(Formula,Result);
+        sprintf(szOutput,"%1.*f",PrecVal,(asin(Result)*DegToRad));
     }
     return i;
 }
@@ -4827,8 +4834,9 @@ DWORD parmAcos(PCHAR szVar, PCHAR szOutput, PSPAWNINFO pChar)
             strncpy(Formula,szArg,i-5);
             Formula[i-5] = 0;
         }
-        sprintf(Formula,"%1.*f",PrecVal,(acos(Calculate(Formula))*DegToRad));
-        strcpy(szOutput,Formula);
+		DOUBLE Result=-1.0f;
+		Calculate(Formula,Result);
+        sprintf(szOutput,"%1.*f",PrecVal,(acos(Result)*DegToRad));
     }
     return i;
 }
@@ -4856,8 +4864,9 @@ DWORD parmAtan(PCHAR szVar, PCHAR szOutput, PSPAWNINFO pChar)
             strncpy(Formula,szArg,i-5);
             Formula[i-5] = 0;
         }
-        sprintf(Formula,"%1.*f",PrecVal,(atan(Calculate(Formula))*DegToRad));
-        strcpy(szOutput,Formula);
+		DOUBLE Result=-1.0f;
+		Calculate(Formula,Result);
+        sprintf(szOutput,"%1.*f",PrecVal,(atan(Result)*DegToRad));
     }
     return i;
 }
@@ -5427,8 +5436,9 @@ DWORD parmSqrt(PCHAR szVar, PCHAR szOutput, PSPAWNINFO pChar)
             strncpy(Formula,szArg,i-5);
             Formula[i-5] = 0;
         }
-        sprintf(Formula,"%1.*f",PrecVal,(sqrt(Calculate(Formula))));
-        strcpy(szOutput,Formula);
+		DOUBLE Result=-1.0f;
+		Calculate(Formula,Result);
+        sprintf(szOutput,"%1.*f",PrecVal,(sqrt(Result)));
     }
     return i;
 } 
