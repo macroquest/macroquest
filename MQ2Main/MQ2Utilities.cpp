@@ -1069,8 +1069,8 @@ DWORD ConColor(PSPAWNINFO pSpawn)
         {24, -9, -7},
         {35,-13,-10},
         {40,-14,-11},
-        {42,-15,-11},
-        {44,-16,-12},
+		{42,-15,-12}, 
+		{44,-16,-12},
         {48,-17,-13},
         {51,-18,-14},
         {54,-19,-15},
@@ -3310,7 +3310,7 @@ BOOL FastCalculate(PCHAR szFormula, DOUBLE &Result)
 #define StackTop() (pStack[nStack])
 #define StackPush(op) {nStack++;pStack[nStack]=op;}
 #define StackPop() {if (!nStack) {FatalError("Illegal arithmetic in calculation");free(pOpList);free(pStack);return 0;} nStack--;}
-#define HasPrecedence(a,b) (CalcOpPrecedence[a]>CalcOpPrecedence[b])
+#define HasPrecedence(a,b) (CalcOpPrecedence[a]>=CalcOpPrecedence[b])
 #define MoveStack(op)  \
 	{ \
 		while(!StackEmpty() && StackTop()!=CO_OPENPARENS && HasPrecedence(StackTop(),op)) \

@@ -17,9 +17,8 @@ PLUGIN_API VOID InitializePlugin(VOID)
 {
 	DebugSpewAlways("Initializing MQ2Template");
 
-	// Add commands, macro parameters, hooks, etc.
+	// Add commands, MQ2Data items, hooks, etc.
 	// AddCommand("/mycommand",MyCommand);
-	// AddParm("$myparm(x)",MyParm);
 	// AddXMLFile("MQUI_MyXMLFile.xml");
 	// bmMyBenchmark=AddMQ2Benchmark("My Benchmark Name");
 }
@@ -29,9 +28,8 @@ PLUGIN_API VOID ShutdownPlugin(VOID)
 {
 	DebugSpewAlways("Shutting down MQ2Template");
 
-	// Remove commands, macro parameters, hooks, etc.
+	// Remove commands, MQ2Data items, hooks, etc.
 	// RemoveMQ2Benchmark(bmMyBenchmark);
-	// RemoveParm("$myparm(x)");
 	// RemoveCommand("/mycommand");
 	// RemoveXMLFile("MQUI_MyXMLFile.xml");
 }

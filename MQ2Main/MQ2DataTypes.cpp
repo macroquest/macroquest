@@ -2837,7 +2837,9 @@ bool MQ2WindowType::GetMember(MQ2VARPTR VarPtr, PCHAR Member, PCHAR Index, MQ2TY
 		Dest.Type=pIntType;
 		return true;
 	case List:
-		if (((CXWnd*)pWnd)->GetType()!=UI_Listbox)
+		if (((CXWnd*)pWnd)->GetType()==UI_Combobox)
+			VarPtr.Ptr=pWnd->SidlText;
+		else if (((CXWnd*)pWnd)->GetType()!=UI_Listbox)
 			return false;
 		if (IsNumber(Index))
 		{
@@ -2934,6 +2936,18 @@ bool MQ2WindowType::GetMember(MQ2VARPTR VarPtr, PCHAR Member, PCHAR Index, MQ2TY
 			}
 		}
 		return false;
+	case Items:
+		if (((CXWnd*)pWnd)->GetType()==UI_Listbox)
+		{
+			Dest.DWord=((CSidlScreenWnd*)pWnd)->SlotID;
+			Dest.Type=pIntType;
+		}
+		else if (((CXWnd*)pWnd)->GetType()==UI_Combobox)
+		{
+			Dest.DWord=((CSidlScreenWnd*)pWnd->SidlText)->SlotID;
+			Dest.Type=pIntType;
+		}
+		return true;
 	}
 
 	return false;

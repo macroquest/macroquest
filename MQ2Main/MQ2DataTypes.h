@@ -1614,6 +1614,7 @@ public:
 		Name=28,
 		ScreenID=29,
 		Type=30,
+		Items=31,
 	};
 	MQ2WindowType():MQ2Type("window")
 	{
@@ -1646,6 +1647,7 @@ public:
 		TypeMember(Name);
 		TypeMember(ScreenID);
 		TypeMember(Type);
+		TypeMember(Items);
  	}
 
 	~MQ2WindowType()

@@ -1,3 +1,12 @@
+23 June 2004 by Lax:
+- Fixed Bank stuff in CHARINFO
+- "listselect" notify now works in combo boxes
+- Fixed minor problem with operator precedence in Calculate (1-1-1 previously evaluated to
+  positive 1, now it correctly evaluates to negative 1)
+- Changed/Added MQ2Data members:
+  int window.Items: Number of items in a list or combo box
+  int window.List[text]: Find an item in a list or combo box by partial match (use window.List[=text] for exact)  Example: ${Window[TradeskillWnd].Child[RecipeList].List[=Inky Shadow Silk]}
+
 21 june 2004 by DKAA:
 - Fixed a crash in echo when the lines are longer than 2043
 

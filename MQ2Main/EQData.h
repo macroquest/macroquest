@@ -704,10 +704,10 @@ typedef struct _OLDCHARINFO {
 /*0x9a08*/  DWORD       GroupLeadershipPoints;   // 0-8  // 
 /*0x9a0c*/  DWORD       RaidLeadershipPoints;    // 0-10
 /*0x9a10*/	BYTE		field_9a10[0x100];
-/*0x9b10*/  BYTE        Unknown0x9b10[0x118];
-/*0x9C28*/	struct		_CONTENTS* Bank[NUM_BANK_SLOTS]; // -> 96BC
-/*0x9C70*/	BYTE		Unknown0x9b08[0xa8];//-->97AC
-/*0x9D18*/	BYTE		Grouped;
+/*0x9b  */  BYTE        Unknown0x9b10[0x124];
+/*0x9C  */	struct		_CONTENTS* Bank[NUM_BANK_SLOTS]; // -> 96BC
+/*0x9C  */	BYTE		Unknown0x9b08[0xa8];//-->97AC
+/*0x9D  */	BYTE		Grouped;
 /*...   */
 /*0xA020*/
 } OLDCHARINFO, *POLDCHARINFO; 

@@ -617,7 +617,15 @@ bool SendListSelect(PCHAR WindowName, PCHAR ScreenID, DWORD Value)
 			MacroError("Window '%s' child '%s' not found.",WindowName,ScreenID);
 			return false;
 		}
-		pList->SetCurSel(Value);
+		if (((CXWnd*)pList)->GetType()==UI_Listbox)
+			pList->SetCurSel(Value);
+		else if (((CXWnd*)pList)->GetType()==UI_Combobox)
+			((CComboWnd*)pList)->SetChoice(Value);
+		else
+		{
+			MacroError("Window '%s' child '%s' cannot accept this notification.",WindowName,ScreenID);
+			return false;
+		}
 		return true;
 	}
 	return false;
