@@ -120,6 +120,8 @@ DWORD LoadMQ2Plugin(const PCHAR pszFilename)
 		pPlugins->pLast=pPlugin;
 	pPlugins=pPlugin;
 
+	sprintf(FullFilename,"%s-AutoExec",Filename);
+	LoadCfgFile(FullFilename,false);
 	return 1;
 }
 
@@ -293,6 +295,7 @@ VOID PluginsZoned()
 		}
 		pPlugin=pPlugin->pNext;
 	}
+	LoadCfgFile(((PZONEINFO)pZoneInfo)->ShortName,false);
 }
 
 VOID PluginsCleanUI()
@@ -331,6 +334,8 @@ VOID PluginsReloadUI()
 
 VOID PluginsSetGameState(DWORD GameState)
 {
+	static bool AutoExec=false;
+	static bool CharSelect=true;
 	if (!bPluginCS)
 		return;
 	gGameState=GameState;
@@ -338,6 +343,26 @@ VOID PluginsSetGameState(DWORD GameState)
 	{
 		gZoning=false;
 		gbDoAutoRun=TRUE;
+		if (!AutoExec)
+		{
+			AutoExec=true;
+			LoadCfgFile("AutoExec",false);
+		}
+		if (CharSelect)
+		{
+			CharSelect=false;
+			CHAR szBuffer[MAX_STRING]={0};
+			if (PCHARINFO pCharInfo=GetCharInfo())
+			{
+				sprintf(szBuffer,"%s_%s",EQADDR_SERVERNAME,pCharInfo->Name);
+				LoadCfgFile(szBuffer,false);
+			}
+		}
+	}
+	else if (GameState==GAMESTATE_CHARSELECT)
+	{
+		CharSelect=true;
+		LoadCfgFile("CharSelect",false);
 	}
 
 	CAutoLock Lock(&gPluginCS);

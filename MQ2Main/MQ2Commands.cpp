@@ -4553,3 +4553,18 @@ VOID do_ranged(PSPAWNINFO pChar, PCHAR szLine)
 	}
 }
 
+// /loadcfg
+VOID LoadCfgCommand(PSPAWNINFO pChar, PCHAR szLine)
+{
+	if (!szLine[0])
+	{
+		WriteChatColor("Usage: /loadcfg <filename>");
+		return;
+	}
+	
+	if (LoadCfgFile(szLine,false))
+		return;
+	CHAR szBuffer[MAX_STRING]={0};
+	sprintf(szBuffer,"Could not /loadcfg '%s'",szLine);
+}
+

@@ -337,7 +337,8 @@ EQLIB_API BOOL SearchArrays(PCHAR szVar,PCHAR szOutput);
 EQLIB_API VOID CheckVariableRecursion(PCHAR szVar);
 EQLIB_API BOOL IsVariableDefined(PCHAR szVar);
 
-/* COMMANDS */
+EQLIB_API BOOL LoadCfgFile(PCHAR Filename, BOOL Delayed=FromPlugin);
+
 EQLIB_API PCHAR GetFriendlyNameForGroundItem(PGROUNDITEM pItem, PCHAR szName);
 EQLIB_API VOID ClearSearchSpawn(PSEARCHSPAWN pSearchSpawn);
 EQLIB_API PSPAWNINFO SearchThroughSpawns(PSEARCHSPAWN pSearchSpawn, PSPAWNINFO pChar);
@@ -460,6 +461,7 @@ EQLIB_API DWORD parmPet							(PCHAR, PCHAR, PSPAWNINFO);
 EQLIB_API DOUBLE Calculate(PCHAR szFormula);
 
 /* COMMANDS */
+EQLIB_API VOID LoadCfgCommand(PSPAWNINFO pChar, PCHAR szLine);
 EQLIB_API VOID do_ranged(PSPAWNINFO pChar, PCHAR szLine);
 EQLIB_API VOID DoMappable(PSPAWNINFO pChar, PCHAR szLine);
 EQLIB_API VOID MQ2KeyBindCommand(PSPAWNINFO pChar, PCHAR szLine);

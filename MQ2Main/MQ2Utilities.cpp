@@ -2229,7 +2229,7 @@ PCHAR DescribeKeyCombo(KeyCombo &Combo, PCHAR szDest)
 		}
 
 		strcpy(&szDest[pos],"alt");
-		pos+=4;
+		pos+=3;
 	}
 
 	if (pos)
@@ -2247,6 +2247,37 @@ PCHAR DescribeKeyCombo(KeyCombo &Combo, PCHAR szDest)
 	}
 
 	return &szDest[0];	
+}
+
+BOOL LoadCfgFile(PCHAR Filename, BOOL Delayed)
+{
+	FILE *file;
+	CHAR szFilename[MAX_STRING]={0};
+	strcpy(szFilename,Filename);
+	if (!strchr(Filename,'.'))
+		strcat(Filename,".cfg");
+	CHAR szFull[MAX_STRING]={0};
+#define TryFile(name)  \
+	{\
+		if (file=fopen(name,"rt"))\
+			goto havecfgfile;\
+	}
+	sprintf(szFull,"%s\\Configs\\%s",gszINIPath,szFilename);
+	TryFile(szFull);	
+	sprintf(szFull,"%s\\%s",gszINIPath,szFilename);
+	TryFile(szFull);
+	TryFile(szFilename);
+	TryFile(Filename);
+#undef TryFile
+	return false;
+havecfgfile:
+	CHAR szBuffer[MAX_STRING]={0};
+	while(fgets(szBuffer,MAX_STRING,file))
+	{
+		if (szBuffer[0])
+			HideDoCommand(((PSPAWNINFO)pSpawnListTail),szBuffer,Delayed);
+	}
+	return true;
 }
 
 

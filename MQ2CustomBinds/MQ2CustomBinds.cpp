@@ -58,8 +58,8 @@ VOID RemoveCustomBind(unsigned long N)
 	if (PCUSTOMBIND pBind=CustomBinds[N])
 	{
 		RemoveMQ2KeyBind(pBind->Name);
-		CustomBinds[N];
 		delete pBind;
+		CustomBinds[N]=0;
 	}
 }
 

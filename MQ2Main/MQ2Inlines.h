@@ -63,3 +63,5 @@ static inline eSpawnType GetSpawnType(PSPAWNINFO pSpawn)
 		return ITEM;
 	}
 }
+
+#define _FileExists(filename) ( (_access( filename, 0 )) != -1 )
