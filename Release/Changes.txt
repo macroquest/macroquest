@@ -1,3 +1,6 @@
+28 May 2004 by DKAA:
+- Fixed the message ID for mq2bzsrch.
+
 27 May 2004 by Lax (more):
 - Fixed stack overflow bug in one of the functions that handles window names.  I fixed it in one
   before putting up the update but didn't in an exact copy of it above it.  Lax truly lacks. ;)
