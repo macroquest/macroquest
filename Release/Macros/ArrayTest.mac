@@ -1,13 +1,19 @@
 | - ArrayTest.mac -
 
 Sub Main
-   /declare index global
-   /declare quotes array
-   /declare authors array
-   /for index 0 to 9
-      /varset quotes(@index) "Sample Quote #@index"
-      /varset authors(@index) "Author@index"
+   /declare index int outer
+   /declare quotes[10] string
+   /declare authors[10] string
+
+   | indices start at 1
+   /for index 1 to 10
+      | use " when there is a space involve
+      /varset quotes[${index}] "Sample Quote #${index}"
+
+      | don't need " here
+      /varset authors[${index}] Author${index}
+
    /next index
-   /varset index $rand(10)
-   /echo @quotes(@index) -@authors(@index)
+   /varcalc index ${Math.Rand[10]}+1
+   /echo ${quotes[${index}]} --${authors[${index}]}
 /return
