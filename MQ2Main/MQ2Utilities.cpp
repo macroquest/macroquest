@@ -2158,3 +2158,95 @@ void DisplayOverlayText(PCHAR szText, DWORD dwColor, DWORD dwTransparency, DWORD
       msFadeOut,
       msHold);
 }
+
+BOOL ParseKeyCombo(PCHAR text, KeyCombo &Dest)
+{
+	KeyCombo Ret;
+	if (!stricmp(text,"clear"))
+	{
+		Dest=Ret;
+		return true;
+	}
+	CHAR Copy[MAX_STRING];
+	strcpy(Copy,text);
+	text=strtok(Copy,"+ ");
+	while(text)
+	{
+		if (!stricmp(text,"alt"))
+			Ret.Data[0]=1;
+		else if (!stricmp(text,"ctrl"))
+			Ret.Data[1]=1;
+		else if (!stricmp(text,"shift"))
+			Ret.Data[2]=1;
+		else
+		{
+			for (unsigned long i=0 ; gDiKeyID[i].Id ; i++)
+			{
+				if (!stricmp(text,gDiKeyID[i].szName))
+				{
+					Ret.Data[3]=(char)gDiKeyID[i].Id;
+					break;
+				}
+			}
+		}
+		text=strtok(NULL,"+ ");
+	}
+	if (Ret.Data[3])
+	{
+		Dest=Ret;
+		return true;
+	}
+	return false;
+}
+
+PCHAR DescribeKeyCombo(KeyCombo &Combo, PCHAR szDest)
+{
+	unsigned long pos=0;
+	szDest[0]=0;
+	if (Combo.Data[2])
+	{
+		strcpy(&szDest[pos],"shift");
+		pos+=5;
+	}
+	if (Combo.Data[1])
+	{
+		if (pos)
+		{
+			szDest[pos]='+';
+			pos++;
+		}
+
+		strcpy(&szDest[pos],"ctrl");
+		pos+=4;
+	}
+
+	if (Combo.Data[0])
+	{
+		if (pos)
+		{
+			szDest[pos]='+';
+			pos++;
+		}
+
+		strcpy(&szDest[pos],"alt");
+		pos+=4;
+	}
+
+	if (pos)
+	{
+		szDest[pos]='+';
+		pos++;
+	}
+	if (Combo.Data[3])
+	{
+		strcpy(&szDest[pos],gDiKeyName[Combo.Data[3]]);
+	}
+	else
+	{
+		strcpy(&szDest[pos],"cleared");
+	}
+
+	return &szDest[0];	
+}
+
+

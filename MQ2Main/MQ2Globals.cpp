@@ -50,7 +50,7 @@ PCHATBUF gDelayedCommands = 0;
 
 HMODULE ghModule = NULL;
 HINSTANCE ghInstance = NULL;
-PHOTKEY pHotkey = NULL;
+//PHOTKEY pHotkey = NULL;
 BOOL gbUnload = FALSE;
 DWORD gpHook = NULL;
 PMACROBLOCK gMacroBlock = NULL;
@@ -215,6 +215,7 @@ DIKEYID gDiKeyID[] = {
     {NULL,0}
 };
 
+PCHAR gDiKeyName[256];
 
 PCHAR szHeading[] = {
     "south",                //0
@@ -538,6 +539,7 @@ CTextOverlay **ppTextOverlay=(CTextOverlay**)pinstCTextOverlay;
 
 CSidlManager **ppSidlMgr=(CSidlManager **)pinstCSidlManager;
 CXWndManager **ppWndMgr=(CXWndManager**)pinstCXWndManager;
+KeypressHandler *pKeypressHandler=(KeypressHandler*)instKeypressHandler;
 
 PMQPLUGIN pPlugins=0;
 PMQXMLFILE pXMLFiles=0;

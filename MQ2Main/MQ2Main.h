@@ -249,6 +249,14 @@ EQLIB_API VOID ShutdownParser();
 EQLIB_API BOOL IsMouseWaiting(VOID);
 EQLIB_API BOOL IsMouseWaitingForButton();
 
+/* KEY BINDS */
+EQLIB_API VOID InitializeMQ2KeyBinds();
+EQLIB_API VOID ShutdownMQ2KeyBinds();
+EQLIB_API BOOL PressMQ2KeyBind(PCHAR name, BOOL Hold);
+EQLIB_API BOOL SetMQ2KeyBind(PCHAR name, BOOL Alternate, KeyCombo *pCombo);
+EQLIB_API BOOL AddMQ2KeyBind(PCHAR name, PCHAR description, fMQExecuteCmd Function, KeyCombo *pNormalDefault, KeyCombo *pAltDefault);
+EQLIB_API BOOL RemoveMQ2KeyBind(PCHAR name);
+
 /* PULSING */
 EQLIB_API VOID InitializeMQ2Pulse();
 EQLIB_API VOID ShutdownMQ2Pulse();
@@ -280,6 +288,8 @@ EQLIB_API VOID DefaultFilters(VOID);
 EQLIB_API PCHAR ConvertHotkeyNameToKeyName(PCHAR szName);
 EQLIB_API VOID CheckChatForEvent(PCHAR szMsg);
 EQLIB_API VOID ConvertItemTags(CXStr &cxstr);
+EQLIB_API BOOL ParseKeyCombo(PCHAR text, KeyCombo &Dest);
+EQLIB_API PCHAR DescribeKeyCombo(KeyCombo &Combo, PCHAR szDest);
 
 int FindMappableCommand(const char *name);
 
@@ -327,7 +337,6 @@ EQLIB_API VOID CheckVariableRecursion(PCHAR szVar);
 EQLIB_API BOOL IsVariableDefined(PCHAR szVar);
 
 /* COMMANDS */
-EQLIB_API VOID MultilineCommand(PSPAWNINFO pChar, PCHAR szLine);
 EQLIB_API PCHAR GetFriendlyNameForGroundItem(PGROUNDITEM pItem, PCHAR szName);
 EQLIB_API VOID ClearSearchSpawn(PSEARCHSPAWN pSearchSpawn);
 EQLIB_API PSPAWNINFO SearchThroughSpawns(PSEARCHSPAWN pSearchSpawn, PSPAWNINFO pChar);
@@ -338,7 +347,6 @@ EQLIB_API PCHAR FormatSearchSpawn(PCHAR Buffer, PSEARCHSPAWN pSearchSpawn);
 EQLIB_API BOOL IsPCNear(PSPAWNINFO pSpawn, FLOAT Radius);
 EQLIB_API BOOL IsInGroup(PSPAWNINFO pSpawn);
 EQLIB_API BOOL IsAlert(PSPAWNINFO pChar, PSPAWNINFO pSpawn, DWORD List);
-EQLIB_API VOID DoMappable(PSPAWNINFO pChar, PCHAR szLine);
 
 EQLIB_API VOID        OverwriteTable          (DWORD Address);
 EQLIB_API DWORD       Include                 (PCHAR szFile);
@@ -451,6 +459,9 @@ EQLIB_API DWORD parmPet							(PCHAR, PCHAR, PSPAWNINFO);
 EQLIB_API DOUBLE Calculate(PCHAR szFormula);
 
 /* COMMANDS */
+EQLIB_API VOID DoMappable(PSPAWNINFO pChar, PCHAR szLine);
+EQLIB_API VOID MQ2KeyBindCommand(PSPAWNINFO pChar, PCHAR szLine);
+EQLIB_API VOID MultilineCommand(PSPAWNINFO pChar, PCHAR szLine);
 EQLIB_API VOID Alert                               (PSPAWNINFO,PCHAR);
 EQLIB_API VOID Alias                               (PSPAWNINFO,PCHAR);
 EQLIB_API VOID BankList                            (PSPAWNINFO,PCHAR);

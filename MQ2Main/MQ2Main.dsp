@@ -99,6 +99,10 @@ SOURCE=.\MQ2Globals.cpp
 # End Source File
 # Begin Source File
 
+SOURCE=.\MQ2KeyBinds.cpp
+# End Source File
+# Begin Source File
+
 SOURCE=.\MQ2MacroCommands.cpp
 # End Source File
 # Begin Source File

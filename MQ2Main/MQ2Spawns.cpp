@@ -25,74 +25,81 @@ PMQGROUNDPENDING pPendingGrounds=0;
 CRITICAL_SECTION csPendingGrounds;
 BOOL ProcessPending=false;
 
+void AddGroundItem()
+{
+	PGROUNDITEM pGroundItem=(PGROUNDITEM)pItemList;
+	EnterCriticalSection(&csPendingGrounds);
+	PMQGROUNDPENDING pPending=new MQGROUNDPENDING;
+	pPending->pGroundItem=pGroundItem;
+	pPending->pNext=pPendingGrounds;
+	pPending->pLast=0;
+	if (pPendingGrounds)
+		pPendingGrounds->pLast=pPending;
+	pPendingGrounds=pPending;
+	LeaveCriticalSection(&csPendingGrounds);
+}
+
+void RemoveGroundItem(PGROUNDITEM pGroundItem)
+{
+	if (pPendingGrounds)
+	{
+		EnterCriticalSection(&csPendingGrounds);
+		PMQGROUNDPENDING pPending=pPendingGrounds;
+		while(pPending)
+		{
+			if (pGroundItem==pPending->pGroundItem)
+			{
+				if (pPending->pNext)
+					pPending->pNext->pLast=pPending->pLast;
+				if (pPending->pLast)
+					pPending->pLast->pNext=pPending->pNext;
+				else
+					pPendingGrounds=pPending->pNext;
+				delete pPending;
+				break;
+			}
+			pPending=pPending->pNext;
+		}
+		LeaveCriticalSection(&csPendingGrounds);
+	}
+	PluginsRemoveGroundItem((PGROUNDITEM)pGroundItem);
+}
+
 class EQItemListHook
 {
 public:
 	DWORD EQItemList_Trampoline();
 	DWORD EQItemList_Detour()
 	{
-		PGROUNDITEM pGroundItem;
 		__asm {
-			mov [pGroundItem], ecx;
+			call EQItemList_Trampoline;
+			push eax;
+			push ebx;
 			push ecx;
-		};
-		DWORD Ret=EQItemList_Trampoline();
-		EnterCriticalSection(&csPendingGrounds);
-		PMQGROUNDPENDING pPending=new MQGROUNDPENDING;
-		pPending->pGroundItem=pGroundItem;
-		pPending->pNext=pPendingGrounds;
-		pPending->pLast=0;
-		if (pPendingGrounds)
-			pPendingGrounds->pLast=pPending;
-		pPendingGrounds=pPending;
-		LeaveCriticalSection(&csPendingGrounds);
-		__asm {
+			push edx;
+			push esi;
+			push edi;
+			call AddGroundItem;
+			pop edi;
+			pop esi;
+			pop edx;
 			pop ecx;
+			pop ebx;
+			pop eax;
 		};
-		return Ret;
 	}
 
 	void dEQItemList_Trampoline();
 	void dEQItemList_Detour()
 	{
-		PGROUNDITEM pGroundItem;
 		__asm {
-			mov [pGroundItem], ecx;
 			push ecx;
-		};
-		// check pending ground items
-		if (pPendingGrounds)
-		{
-			EnterCriticalSection(&csPendingGrounds);
-			PMQGROUNDPENDING pPending=pPendingGrounds;
-			while(pPending)
-			{
-				if (pGroundItem==pPending->pGroundItem)
-				{
-					if (pPending->pNext)
-						pPending->pNext->pLast=pPending->pLast;
-					if (pPending->pLast)
-						pPending->pLast->pNext=pPending->pNext;
-					else
-						pPendingGrounds=pPending->pNext;
-					delete pPending;
-					LeaveCriticalSection(&csPendingGrounds);
-					__asm {
-						pop ecx;
-					};
-					dEQItemList_Trampoline();
-					return;
-				}
-				pPending=pPending->pNext;
-			}
-			LeaveCriticalSection(&csPendingGrounds);
-		}
-		PluginsRemoveGroundItem((PGROUNDITEM)pGroundItem);
-		__asm
-		{
+			push ecx;
+			call RemoveGroundItem;
 			pop ecx;
+			pop ecx;
+			call dEQItemList_Trampoline;
 		};
-		dEQItemList_Trampoline();
 	}
 };
 
@@ -103,6 +110,7 @@ class EQPlayerHook
 {
 public:
 
+	
 	void EQPlayer_ExtraDetour(PSPAWNINFO pSpawn)
 	{// note: we need to keep the original registers.
 		__asm {push eax};
@@ -119,21 +127,31 @@ public:
 		__asm {pop ebx};
 		__asm {pop eax};
 	}
+	/**/
 
-	void EQPlayer_Trampoline(class EQPlayer *,unsigned char,unsigned int,unsigned char,char *);
-	void EQPlayer_Detour(class EQPlayer *a,unsigned char b,unsigned int c,unsigned char d,char * e)
+	void EQPlayer_Trampoline(DWORD,DWORD,DWORD,DWORD,DWORD);
+	void EQPlayer_Detour(DWORD a,DWORD b,DWORD c,DWORD d,DWORD e)
 	{
 		PSPAWNINFO pSpawn;
 		__asm {mov [pSpawn], ecx};
 
 		EQPlayer_Trampoline(a,b,c,d,e);
 		EQPlayer_ExtraDetour(pSpawn);
-		//PreserveRegisters(PluginsAddSpawn((PSPAWNINFO)pSpawn));
+		/**/
 	}
 
 	void dEQPlayer_Trampoline(void);
 	void dEQPlayer_Detour(void)
 	{
+		__asm {
+			push ecx;
+			push ecx;
+			call PluginsRemoveSpawn;
+			pop ecx;
+			pop ecx;
+			call dEQPlayer_Trampoline;
+		};
+/*
 		PSPAWNINFO pSpawn;
 		__asm {mov [pSpawn], ecx};
 		__asm {push ecx};
@@ -141,17 +159,18 @@ public:
 		PluginsRemoveSpawn((PSPAWNINFO)pSpawn);
 		__asm {pop ecx};
 		dEQPlayer_Trampoline();
+/**/
 	}
 
 };
 
 DETOUR_TRAMPOLINE_EMPTY(VOID EQPlayerHook::dEQPlayer_Trampoline(VOID)); 
-DETOUR_TRAMPOLINE_EMPTY(VOID EQPlayerHook::EQPlayer_Trampoline(class EQPlayer *,unsigned char,unsigned int,unsigned char,char *)); 
+DETOUR_TRAMPOLINE_EMPTY(VOID EQPlayerHook::EQPlayer_Trampoline(DWORD,DWORD,DWORD,DWORD,DWORD)); 
 
 VOID InitializeMQ2Spawns()
 {
 	DebugSpew("Initializing Spawn-related Hooks");
-	EasyClassDetour(EQPlayer__EQPlayer,EQPlayerHook,EQPlayer_Detour,VOID,(class EQPlayer *,unsigned char,unsigned int,unsigned char,char *),EQPlayer_Trampoline);
+	EasyClassDetour(EQPlayer__EQPlayer,EQPlayerHook,EQPlayer_Detour,VOID,(DWORD,DWORD,DWORD,DWORD,DWORD),EQPlayer_Trampoline);
 	EasyClassDetour(EQPlayer__dEQPlayer,EQPlayerHook,dEQPlayer_Detour,VOID,(VOID),dEQPlayer_Trampoline);
 
 	EasyClassDetour(EQItemList__EQItemList,EQItemListHook,EQItemList_Detour,DWORD,(VOID),EQItemList_Trampoline);

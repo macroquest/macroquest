@@ -3983,7 +3983,7 @@ VOID SetAutoRun(PSPAWNINFO pChar, PCHAR szLine)
 //              Add command hotkeys
 // Usage:       /hotkey name [delete|command]
 // ***************************************************************************
-
+/*
 VOID WriteHotkeyProfile(PCHAR szName, PCHAR szCommand)
 {
     CHAR szHotkey[MAX_STRING] = {0};
@@ -4084,7 +4084,7 @@ VOID Hotkey(PSPAWNINFO pChar, PCHAR szLine)
         WriteChatColor(szBuffer,USERCOLOR_DEFAULT);
     }
 }
-
+/**/
 
 // ***************************************************************************
 // Function:    Alias
@@ -4482,9 +4482,10 @@ VOID DoMappable(PSPAWNINFO pChar, PCHAR szLine)
 
     GetArg(szArg1,szLine,1);
     GetArg(szArg2,szLine,2);
+	BOOL Hold=(stricmp(szArg2,"hold")==0);
 
 	int N=FindMappableCommand(szArg1);
-	if (N<0)
+	if (N<0 && !PressMQ2KeyBind(szArg1,Hold))
 	{
 		CHAR szOut[MAX_STRING]={0};
 		sprintf(szOut,"Invalid mappable command '%s'",szArg1);
@@ -4492,15 +4493,9 @@ VOID DoMappable(PSPAWNINFO pChar, PCHAR szLine)
 		return;
 	}
 
-	if (!stricmp(szArg2,"hold"))
-	{
-		ExecuteCmd(N,1,0);
-	}
-	else
-	{
-		ExecuteCmd(N,1,0);
+	ExecuteCmd(N,1,0);
+	if (!Hold)
 		ExecuteCmd(N,0,0);
-	}
 }
 
 VOID PopupText(PSPAWNINFO pChar, PCHAR szLine)

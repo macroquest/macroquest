@@ -114,6 +114,9 @@
 				RelativePath="MQ2Globals.cpp">
 			</File>
 			<File
+				RelativePath="MQ2KeyBinds.cpp">
+			</File>
+			<File
 				RelativePath="MQ2MacroCommands.cpp">
 			</File>
 			<File

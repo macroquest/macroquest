@@ -775,6 +775,7 @@ typedef struct _LOOTCORPSE {
 // I think there might be pointers at 0x0e0..but no clue what to
 } LOOTCORPSE, *PLOOTCORPSE;
 
+// size 0x180 3-10-2004
 typedef struct _EQCOMPASSWINDOW {
 /*0x000*/	struct _CSIDLWND Wnd;
 /*0x148*/	struct _CSIDLWND *pStrip1;
@@ -785,8 +786,27 @@ typedef struct _EQCOMPASSWINDOW {
 /*0x174*/	DWORD LineRed;
 /*0x178*/	DWORD LineGreen;
 /*0x17C*/	DWORD LineBlue;
+/*0x180*/
 } EQCOMPASSWINDOW, *PEQCOMPASSWINDOW;
 
+// used by options window
+typedef struct _EQKBASSIGN
+{
+/*0x00*/	struct _CXSTR *pDescription;
+/*0x04*/	DWORD nAssignmentNumber;
+/*0x08*/
+} EQKBASSIGN, *PEQKBASSIGN;
+
+// size 0x904 3-10-2004
+typedef struct _EQOPTIONSWINDOW {
+/*0x000*/	struct _CSIDLWND Wnd;
+/*0x148*/
+
+/*0x264*/ struct _EQKBASSIGN Binds[0xA1];
+/*0x508*/
+
+/*0x904*/
+} EQOPTIONSWINDOW, *PEQOPTIONSWINDOW;
 
 
 };

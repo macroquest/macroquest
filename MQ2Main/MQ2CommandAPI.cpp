@@ -382,7 +382,7 @@ void InitializeMQ2Commands()
         {"/help",       Help,1,0},
         {"/target",     Target,1,1},
         {"/alias",      Alias,0,0},
-        {"/hotkey",     Hotkey,0,0},
+//        {"/hotkey",     Hotkey,0,0},
         {"/filter",     Filter,1,0},
 		{"/whofilter",	SWhoFilter,1,1},
         {"/spewfile",   DebugSpewFile,1,0},
@@ -455,6 +455,7 @@ void InitializeMQ2Commands()
 		{"/keypress",   DoMappable,1,0},
         {"/popup",      PopupText,1,1},
 		{"/multiline",  MultilineCommand,1,0},
+		{"/bind",       MQ2KeyBindCommand,1,0},
 		{NULL,          NULL,0,1},
     };
 

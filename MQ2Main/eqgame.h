@@ -79,7 +79,7 @@
 #define pinstSpellSets                                0x7356D4
 #define instEQZoneInfo                                0x6D5404 
 #define pinstCXWndManager							  0x7A939C
-
+#define instKeypressHandler							  0x784708
 ////
 //Section 2:  UI Related Offsets
 ////
@@ -213,6 +213,12 @@
 #define CXWndManager__RemoveWnd                  0x56CA20
 #define CXWndManager__GetKeyboardFlags			 0x56C640
 
+// KeyPressHandler
+#define KeyPressHandler__HandleKeyDown			0x4AEEFE
+#define KeyPressHandler__HandleKeyUp			0x4AF1A2
+#define KeypressHandler__AttachKeyToEqCommand		0x4B0560
+#define KeypressHandler__AttachAltKeyToEqCommand	0x4B059D
+
 // EQ_Character
 #define EQ_Character__Max_Mana                           0x421A0B
 #define EQ_Character__Max_HP                             0x421856
@@ -295,7 +301,7 @@
 #define EQItemList__EQItemList                   0x450384
 #define EQItemList__dEQItemList                  0x450400
 
-//
+// EQ_PC
 #define EQ_PC__DestroyHeldItemOrMoney            0x435983
 
 // CSidlScreenWnd

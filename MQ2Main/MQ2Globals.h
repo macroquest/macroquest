@@ -50,7 +50,7 @@ EQLIB_VAR DWORD ThreadID;
 EQLIB_VAR HMODULE ghModule;
 EQLIB_VAR HINSTANCE ghInstance;
 EQLIB_VAR BOOL gbEQWLoaded;
-EQLIB_VAR PHOTKEY pHotkey;
+//EQLIB_VAR PHOTKEY pHotkey;
 EQLIB_VAR BOOL gbUnload;
 EQLIB_VAR DWORD gpHook;
 EQLIB_VAR PMACROBLOCK gMacroBlock;
@@ -129,6 +129,7 @@ EQLIB_VAR BOOL g_bInDXMouse;
 EQLIB_VAR PMOUSESPOOF gMouseData;
 
 EQLIB_VAR DIKEYID gDiKeyID[];
+EQLIB_VAR PCHAR gDiKeyName[256];
 
 
 EQLIB_VAR DWORD ManaGained;
@@ -270,6 +271,9 @@ EQLIB_VAR CSidlManager **ppSidlMgr;
 
 EQLIB_VAR CXWndManager **ppWndMgr;
 #define pWndMgr (*ppWndMgr)
+
+EQLIB_VAR KeypressHandler *pKeypressHandler;
+
 
 EQLIB_VAR DWORD *pScreenX;
 #define ScreenX (*pScreenX)

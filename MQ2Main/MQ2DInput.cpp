@@ -24,6 +24,7 @@ GNU General Public License for more details.
 // Function:    DInputDataDetour
 // Description: Our DirectInput GetDeviceState Hook
 // ***************************************************************************
+/*
 VOID TestHotkeys(LPDIDEVICEOBJECTDATA rgdod, DWORD Count)
 {
     DWORD index;
@@ -41,6 +42,7 @@ VOID TestHotkeys(LPDIDEVICEOBJECTDATA rgdod, DWORD Count)
         }
     }
 }
+/**/
 
 HRESULT (__stdcall *DInputDataTrampoline)(IDirectInputDevice8A* This, DWORD cbObjectData, LPDIDEVICEOBJECTDATA rgdod, LPDWORD pdwInOut, DWORD dwFlags);
 HRESULT __stdcall DInputDataDetour(IDirectInputDevice8A* This, DWORD cbObjectData, LPDIDEVICEOBJECTDATA rgdod, LPDWORD pdwInOut, DWORD dwFlags)
@@ -160,7 +162,9 @@ HRESULT __stdcall DInputDataDetour(IDirectInputDevice8A* This, DWORD cbObjectDat
       gbInDInput = FALSE;
       return hResult;
    }
-   if (EQADDR_DIKEYBOARD && (This == *EQADDR_DIKEYBOARD) && EQADDR_NOTINCHATMODE && *EQADDR_NOTINCHATMODE && pHotkey) TestHotkeys(&(rgdod[didAdd]),*pdwInOut);
+   
+   // hotkeys now use the bind system
+//   if (EQADDR_DIKEYBOARD && (This == *EQADDR_DIKEYBOARD) && EQADDR_NOTINCHATMODE && *EQADDR_NOTINCHATMODE && pHotkey) TestHotkeys(&(rgdod[didAdd]),*pdwInOut);
    gbInDInput = FALSE;
    return hResult;
 }

@@ -24,6 +24,8 @@ CLEAN :
 	-@erase "$(INTDIR)\MQ2DInput.sbr"
 	-@erase "$(INTDIR)\MQ2Globals.obj"
 	-@erase "$(INTDIR)\MQ2Globals.sbr"
+	-@erase "$(INTDIR)\MQ2KeyBinds.obj"
+	-@erase "$(INTDIR)\MQ2KeyBinds.sbr"
 	-@erase "$(INTDIR)\MQ2MacroCommands.obj"
 	-@erase "$(INTDIR)\MQ2MacroCommands.sbr"
 	-@erase "$(INTDIR)\MQ2Main.obj"
@@ -66,6 +68,7 @@ LINK32_OBJS= \
 	"$(INTDIR)\MQ2DetourAPI.obj" \
 	"$(INTDIR)\MQ2DInput.obj" \
 	"$(INTDIR)\MQ2Globals.obj" \
+	"$(INTDIR)\MQ2KeyBinds.obj" \
 	"$(INTDIR)\MQ2MacroCommands.obj" \
 	"$(INTDIR)\MQ2Main.obj" \
 	"$(INTDIR)\MQ2Mouse.obj" \
@@ -138,6 +141,11 @@ SOURCE=.\MQ2DInput.cpp
 SOURCE=.\MQ2Globals.cpp
 
 "$(INTDIR)\MQ2Globals.obj"	"$(INTDIR)\MQ2Globals.sbr" : $(SOURCE) "$(INTDIR)"
+
+
+SOURCE=.\MQ2KeyBinds.cpp
+
+"$(INTDIR)\MQ2KeyBinds.obj"	"$(INTDIR)\MQ2KeyBinds.sbr" : $(SOURCE) "$(INTDIR)"
 
 
 SOURCE=.\MQ2MacroCommands.cpp

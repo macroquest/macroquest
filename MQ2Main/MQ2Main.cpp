@@ -84,7 +84,7 @@ BOOL ParseINIFile(PCHAR lpINIPath)
     CHAR szBuffer[MAX_STRING] = {0};
     CHAR ClientName[MAX_STRING] = {0};
     CHAR AliasList[MAX_STRING*10] = {0};
-    CHAR HotkeyList[MAX_STRING*10] = {0};
+//    CHAR HotkeyList[MAX_STRING*10] = {0};
     CHAR FilterList[MAX_STRING*10] = {0};
     struct _stat stat;
     int client;
@@ -175,7 +175,7 @@ BOOL ParseINIFile(PCHAR lpINIPath)
         }
         pFilterList+=strlen(pFilterList)+1;
     }
-
+/*
     GetPrivateProfileString("Hotkeys",NULL,"",HotkeyList,MAX_STRING*10,Filename);
     PCHAR pHotkeyList = HotkeyList;
     while (pHotkeyList[0]!=0) {
@@ -196,6 +196,7 @@ BOOL ParseINIFile(PCHAR lpINIPath)
         }
         pHotkeyList+=strlen(pHotkeyList)+1;
     }
+/**/
 
 	sprintf(Filename,"%s\\ItemDB.txt",lpINIPath);
     FILE *fDB = fopen(Filename,"rt");
@@ -235,6 +236,11 @@ DWORD WINAPI MQ2Start(LPVOID lpParameter)
     }
 
     srand(time(0));
+	ZeroMemory(gDiKeyName,sizeof(gDiKeyName));
+	for (unsigned long i = 0 ; gDiKeyID[i].Id ; i++)
+	{
+		gDiKeyName[gDiKeyID[i].Id]=gDiKeyID[i].szName;
+	}
 
 	InitializeMQ2Benchmarks();
 	InitializeParser();
@@ -244,6 +250,7 @@ DWORD WINAPI MQ2Start(LPVOID lpParameter)
 	InitializeMQ2Pulse();
 	InitializeMQ2Commands();
 	InitializeMQ2Windows();
+	InitializeMQ2KeyBinds();
 	InitializeMQ2Plugins();
 	InitializeMQ2Spawns();
 
@@ -261,6 +268,7 @@ DWORD WINAPI MQ2Start(LPVOID lpParameter)
     WriteChatColor(UnloadedString,USERCOLOR_DEFAULT);
     DebugSpewAlways(UnloadedString);
 
+	DebugTry(InitializeMQ2KeyBinds());
 	DebugTry(ShutdownMQ2Spawns());
 	DebugTry(ShutdownDisplayHook());
 	DebugTry(ShutdownMQ2DInput());

@@ -6067,23 +6067,52 @@ class KeyCombo
 {
 public:
 EQLIB_OBJECT KeyCombo::KeyCombo(int);
-EQLIB_OBJECT KeyCombo::KeyCombo(unsigned char,bool,bool,bool);
+inline EQLIB_OBJECT KeyCombo::KeyCombo(unsigned char keycode,bool alt,bool ctrl,bool shift)
+{	
+	Data[3]= keycode;
+	Data[0]=alt;
+	Data[1]=ctrl;
+	Data[2]=shift;
+}
 EQLIB_OBJECT KeyCombo::KeyCombo(unsigned int,unsigned int,bool,bool,bool);
-EQLIB_OBJECT KeyCombo::KeyCombo(void);
+inline EQLIB_OBJECT KeyCombo::KeyCombo(void)
+{
+	*(unsigned long*)&Data[0]=0;
+}
+inline EQLIB_OBJECT KeyCombo::Clear(void)
+{
+	*(unsigned long*)&Data[0]=0;
+}
 EQLIB_OBJECT KeyCombo::operator int(void)const;
 EQLIB_OBJECT bool KeyCombo::GetPrintableLetter(unsigned short *)const;
-EQLIB_OBJECT bool KeyCombo::UsesAlt(void)const;
-EQLIB_OBJECT bool KeyCombo::UsesCtrl(void)const;
-EQLIB_OBJECT bool KeyCombo::UsesShift(void)const;
+inline EQLIB_OBJECT bool KeyCombo::UsesAlt(void)const
+{
+	return (Data[0]!=0);
+}
+inline EQLIB_OBJECT bool KeyCombo::UsesCtrl(void)const
+{
+	return (Data[1]!=0);
+}
+inline EQLIB_OBJECT bool KeyCombo::UsesShift(void)const
+{
+	return (Data[2]!=0);
+}
 EQLIB_OBJECT class CXStr KeyCombo::GetTextDescription(void)const;
 EQLIB_OBJECT class KeyCombo const & KeyCombo::operator=(int);
-EQLIB_OBJECT int KeyCombo::operator==(class KeyCombo const &)const;
-EQLIB_OBJECT unsigned int KeyCombo::GetKey(void)const;
+inline EQLIB_OBJECT int KeyCombo::operator==(class KeyCombo const &Combo)
+{
+	return ((*(unsigned long*)&Data)==(*(unsigned long*)&Combo.Data));
+}
+inline EQLIB_OBJECT unsigned int KeyCombo::GetKey(void)const
+{
+	return Data[3];
+}
 // private
 EQLIB_OBJECT bool KeyCombo::GetPrintableLetterFromScanCode(unsigned char,bool,bool,unsigned short *)const;
 EQLIB_OBJECT bool KeyCombo::GetPrintableLetterFromVirtualKey(unsigned int,unsigned int,bool,bool,unsigned short *)const;
 EQLIB_OBJECT bool KeyCombo::GetScanCodeFromVirtualKey(unsigned int,unsigned int,unsigned char *)const;
 EQLIB_OBJECT bool KeyCombo::GetVirtualKeyFromScanCode(unsigned char,int *)const;
+	unsigned char Data[4];
 };
 
 class KeypressHandler
@@ -6107,6 +6136,9 @@ EQLIB_OBJECT class CXStr KeypressHandler::GetEqCommandSaveName(unsigned int,int)
 EQLIB_OBJECT void KeypressHandler::ClearCommandStateArray(void);
 EQLIB_OBJECT void KeypressHandler::LoadAndSetKeymappings(void);
 EQLIB_OBJECT void KeypressHandler::SaveKeymapping(unsigned int,class KeyCombo const &,int);
+/*0x000*/   class KeyCombo NormalKey[nEQMappableCommands];
+/*0x2D4*/   class KeyCombo AltKey[nEQMappableCommands];
+/*0x5A8*/	char CommandState[nEQMappableCommands];
 };
 
 class LogicalPacket

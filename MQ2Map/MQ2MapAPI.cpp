@@ -193,6 +193,13 @@ void AddGroundItem(PGROUNDITEM pGroundItem)
     pFakeSpawn->X = pGroundItem->X;
     pFakeSpawn->Y = pGroundItem->Y;
     pFakeSpawn->Z = pGroundItem->Z;
+
+	pFakeSpawn->HPCurrent = 1;
+	pFakeSpawn->HPMax = 1;
+	pFakeSpawn->pActorInfo = &EnviroActor;
+	pFakeSpawn->Heading=pGroundItem->Heading;
+	pFakeSpawn->Race = pGroundItem->DropID;
+
 	pFakeSpawn->Type=FAKESPAWNTYPE;
 	PMAPSPAWN pMapSpawn=AddSpawn(pFakeSpawn);
 	if (pMapSpawn)
@@ -298,7 +305,7 @@ void MapUpdate()
 
 	if (pLastTarget && pLastTarget->pSpawn!=(PSPAWNINFO)pTarget)
 	{
-		if (!CanDisplaySpawn(pLastTarget->SpawnType,pLastTarget->pSpawn))
+		if (pLastTarget->pSpawn==&EnviroTarget || !CanDisplaySpawn(pLastTarget->SpawnType,pLastTarget->pSpawn))
 		{
 			RemoveSpawn(pLastTarget);
 		}
@@ -533,19 +540,11 @@ void MapSelectTarget()
 		{
 			if (pMapSpawn->SpawnType==ITEM)
 			{
-				PGROUNDITEM pItem = (PGROUNDITEM)pMapSpawn->pSpawn;
-				ZeroMemory(&EnviroTarget,sizeof(EnviroTarget));
-				strcpy(EnviroTarget.Name,pMapSpawn->pMapLabel->Label);
-				EnviroTarget.Y=pItem->Y;
-				EnviroTarget.X=pItem->X;
-				EnviroTarget.Z=pItem->Z;
+				EnviroTarget=*pMapSpawn->pSpawn;
 				EnviroTarget.Type = SPAWN_NPC;
-				EnviroTarget.HPCurrent = 1;
-				EnviroTarget.HPMax = 1;
-				EnviroTarget.pActorInfo = &EnviroActor;
-				EnviroTarget.Heading=pItem->Heading;
-				EnviroTarget.Race = pItem->DropID;
-				pTarget = (EQPlayer*)&EnviroTarget; 				}
+				EnviroTarget.SpawnID=3999;
+				pTarget = (EQPlayer*)&EnviroTarget; 				
+			}
 			else
 			{
 				DWORD Flags=pWndMgr->GetKeyboardFlags();
@@ -642,6 +641,9 @@ PCHAR GenerateSpawnName(PSPAWNINFO pSpawn, PCHAR NameString)
 				break;
 			case 'C':
 				AddString(pEverQuest->GetClassDesc(pSpawn->Class));
+				break;
+			case 'c':
+				AddString(pEverQuest->GetClassThreeLetterCode(pSpawn->Class));
 				break;
 			case 'l':
 				AddInt(pSpawn->Level);

@@ -224,12 +224,14 @@ typedef struct _MQCOMMAND {
 	struct _MQCOMMAND* pNext;
 } MQCOMMAND, *PMQCOMMAND;
 
+/*
 typedef struct _HOTKEY {
     struct _HOTKEY *pNext;
     CHAR szName[MAX_STRING];
     DWORD DIKey;
     CHAR szCommand[MAX_STRING];
 } HOTKEY, *PHOTKEY;
+/**/
 
 typedef struct _EVENTSTACK {
     struct _EVENTSTACK *pNext;

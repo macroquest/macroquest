@@ -63,4 +63,3 @@ static inline eSpawnType GetSpawnType(PSPAWNINFO pSpawn)
 		return ITEM;
 	}
 }
-
