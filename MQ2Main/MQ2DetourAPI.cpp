@@ -182,8 +182,6 @@ VOID HookMemChecker(BOOL Patch)
     if ((!EQADDR_MEMCHECK0) ||
         (!EQADDR_MEMCHECK1) ||
         (!EQADDR_MEMCHECK2) ||
-        (!EQADDR_MEMCHECKADDR1) ||
-        (!EQADDR_MEMCHECKADDR2) ||
         (!EQADDR_MEMCHECK3)) {
         _asm int 3
     }
