@@ -1,7 +1,7 @@
 <!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
 <html>
 <head>
-<title>Macroquest 2 Documentation</title>
+<title>Macroquest2 Documentation</title>
 <style type="text/css">	<!--
 	table {
 		border-collapse: collapse;
@@ -16,25 +16,31 @@
 		font-size: 16px;
 		font-family: Arial;
 	}
-	.arg {
-		font-style: italic;
-	}
-	.boldtype {
+	.txtbold {
 		font-weight: bold;
 	}
 	.command {
 		color: Black;
 		font-weight: bold;
 	}
+	.opt {
+		color: #0000CD;
+	}
+	.arg {
+		font-style: italic;
+	}
+	.tab {
+		padding: 20px;
+	}
 	.doubletab {
 		padding: 40px;
+	}
+	.tripletab {
+		padding: 60px;
 	}
 	.labelid {
 		color: #0061BD;
 		font-weight: bold;
-	}
-	.opt {
-		color: #0000CD;
 	}
 	.spacercom {
 		padding: 30px:
@@ -42,23 +48,15 @@
 	.spacervar {
 		padding: 37px:
 	}
-	.tab {
-		padding: 20px;
-	}
-	.tripletab {
-		padding: 60px;
-	}
-	.txtbold {
-		font-weight: bold;
-	}
+	
 	-->
 </style>
 </head>
 
 <body>
 <div align="center">
-<span class="txtbold">MacroQuest 2 Manual</span><br>
-Last Updated: February 20, 2004<br>
+<span class="txtbold">MacroQuest2 Manual</span><br>
+Last Updated: March 13, 2004<br>
 <a href="http://macroquest.sf.net/" target="_blank">http://macroquest.sf.net/</a><br>
 PM Wassup on the MQ website if you have comments or suggestions about the manual<br><br>
 </div>
@@ -66,11 +64,11 @@ PM Wassup on the MQ website if you have comments or suggestions about the manual
 
 <blockquote>
 <p>
-<a href="#downloading">Downloading MacroQuest 2 Source Files</a><br>
-<a href="#compiling">Compiling MacroQuest 2</a><br>
-<a href="#install">Installing Macroquest 2</a><br>
-<a href="#using">Starting MacroQuest 2</a><br>
-<a href="#updates">Updating Macroquest 2</a><br>
+<a href="#downloading">Downloading MacroQuest2 Source Files</a><br>
+<a href="#compiling">Compiling MacroQuest2</a><br>
+<a href="#install">Installing Macroquest2</a><br>
+<a href="#using">Starting MacroQuest2</a><br>
+<a href="#updates">Updating Macroquest2</a><br>
 <a href="#faq">FAQ</a><br>
 <a href="#macrofunda">Macro fundamentals</a><br>
 <span class="tab"></span><a href="#comments">Comments</a><br>
@@ -130,31 +128,32 @@ PM Wassup on the MQ website if you have comments or suggestions about the manual
 <a href="#hv">x</a>&nbsp;
 <a href="#yv">y</a>&nbsp;
 <a href="#zv">z</a><br>
-<a href="#uiref">MacroQuest 2 and the UI</a><br>
-&nbsp;&nbsp;&nbsp;&nbsp;<a href="#labelid">Using label id's</a><br>
-&nbsp;&nbsp;&nbsp;&nbsp;<a href="#tooltype">Using the tooltype</a><br>
+<a href="#uiref">MacroQuest2 and the UI</a><br>
+<span class="tab"></span><a href="#labelid">Using label id's</a><br>
+<span class="tab"></span><a href="#tooltype">Using the tooltype</a><br>
 <a href="#mqplug">MacroQuest2 Plugins</a><br>
 <a href="#telnet">Telnet Server</a><br>
 <a href="#compareop">Appendix A: Comparison Operators</a><br>
 <a href="#mathop">Appendix B: Math Operators</a><br>
 <a href="#sendkeylist">Appendix C: Sendkey list</a><br>
-<a href="#skilllist">Appendix D: Skill list</a><br>
-<a href="#containerslist">Appendix E: Containers list</a><br>
-<a href="#slotnames">Appendix F: Equipment Slot Names</a><br>
+<a href="#keypress">Appendix D: Keypress list</a><br>
+<a href="#skilllist">Appendix E: Skill list</a><br>
+<a href="#containerslist">Appendix F: Containers list</a><br>
+<a href="#slotnames">Appendix G: Equipment Slot Names</a><br>
 <a href="#credits">Credits and How to help</a></p>
 </blockquote>
 
 <a name="downloading" id="downloading"></a>
-<span class="txtbold">Downloading MacroQuest 2 Source Files</span><br>
+<span class="txtbold">Downloading MacroQuest2 Source Files</span><br>
 To get the source files download them from the MacroQuest home page at:
 <a href="http://macroquest.sourceforge.net/downloads/MQ2-latest.zip" target="_blank">Macroquest Archive</a><br><br>
 
 <a name="compiling" id="compiling"></a>
-<span class="txtbold">Compiling MacroQuest 2</span><br>
+<span class="txtbold">Compiling MacroQuest2</span><br>
 Macroquest requires VC 6 or VC.net to be compiled.<br><br>
 <span class="txtbold">To compile with VC6</span><br>
 <span class="tab">1. Install Visual C++ 6.0 or Visual Studio 6.0</strong></span><br>
-<span class="tab">2. Download the MacroQuest 2 source files</strong></span><br>
+<span class="tab">2. Download the MacroQuest2 source files</strong></span><br>
 <span class="tab">3. Unzip it into any new folder</strong></span><br>
 <span class="tab">4. Go to the newly created folder and double click MQ2Auth.exe</span><br>
 <span class="tab">5. Double click macroquest2.dsw file. This will Open Visual C++</span><br>
@@ -164,20 +163,20 @@ Macroquest requires VC 6 or VC.net to be compiled.<br><br>
 
 <span class="txtbold">To compile with VC.net</span>:<br>
 <span class="tab">1. Install Visual VC.NET</span><br>
-<span class="tab">2. Download the MacroQuest 2 source files</span><br>
+<span class="tab">2. Download the MacroQuest2 source files</span><br>
 <span class="tab">3. Unzip it into any new folder</span><br>
 <span class="tab">3. Right click the folder, select Properties, and remove the Read only flag</span><br>
 <span class="tab">4. Double-click MQ2Auth.exe. This will create the file necessary for compiling MQ2 in the MQ2Main folder.</span><br>
 <span class="tab">4. Double-click the Macroquest2.sln file. VC.net will open the MacroQuest project</span><br>
-<span class="tab">6. Go <span class="txtbold">Build</span> menu and select <span class="txtbold">Configuration Manager</span></span><br>
+<span class="tab">6. Go to the <span class="txtbold">Build</span> menu and select <span class="txtbold">Configuration Manager</span></span><br>
 <span class="tab">7. Select Release, and place a check in each dll you want compiled. Click the <span class="txtbold">Close</span> button</span><br><br>
 <span class="tab"><img src="http://macroquest.sourceforge.net/cfgmgr.png"><br><br></span><br>
-<span class="tab">8. Go <span class="txtbold">Build</span> menu and select <span class="txtbold">Build Solution</span></span><br>
+<span class="tab">8. Go to the <span class="txtbold">Build</span> menu and select <span class="txtbold">Build Solution</span></span><br>
 <span class="tab">9. The dll files should compile.</span><br><br>
 
 <a name="install" id="install"></a>
-<span class="txtbold">Installing MacroQuest 2</span><br>
-After compiling Macroquest 2:<br><br>
+<span class="txtbold">Installing MacroQuest2</span><br>
+After compiling Macroquest2:<br><br>
 
 1. Create a new folder anywhere, such as c:\MQ2<br>
 2. Create three new folders within this folder, named <em>ini</em>, <em>logs</em>, and <em>macros</em><br>
@@ -185,15 +184,15 @@ After compiling Macroquest 2:<br><br>
 <span class="doubletab"><img src="http://macroquest.sourceforge.net/files2.png"></span><br><br>
 
 <a name="using" id="using"></a>
-<span class="txtbold">Starting MacroQuest 2</span><br>
+<span class="txtbold">Starting MacroQuest2</span><br>
 To run MacroQuest2 simply double click on MacroQuest2.exe. You do not have to start MacroQuest2 before Everquest.<br>
 The MacroQuest2 icon will appear in the system tray.<br><br> 
 
 <a name="updates" id="updates"></a>
-<span class="txtbold">Updates to MacroQuest 2</span><br>
-When there is a patch to Everquest check the forums to see if there has been a change to MacroQuest 2.<br><br>
+<span class="txtbold">Updates to MacroQuest2</span><br>
+When there is a patch to Everquest check the forums to see if there has been a change to MacroQuest2.<br><br>
 
-The MacroQuest 2 developers also update current features or add new features to MacroQuest 2 occasionally.
+The MacroQuest2 developers also update current features or add new features to MacroQuest2 occasionally.
 Download the latest zipfile and recompile when this occurs.<br><br>
 
 <a name="macrofunda" id="macrofunda"></a>
@@ -354,7 +353,7 @@ Closes all open windows and then opens inventory window<br><br>
 <span class="command">/click</span> <span class="opt">left</span>|<span class="opt">right</span> [<span class="opt">corpse</span>|<span class="opt">target</span>|<span class="opt">windowloc</span>] 
 [ [<span class="opt">+-</span>]<span class="arg">x</span> [<span class="opt">+-</span>]<span class="arg">y</span> ] [<span class="arg">slotname</span>]
 [<span class="opt">pack</span> <span class="arg">#</span> [ <span class="opt">combine</span>|<span class="opt">done</span>] [<span class="arg">slot#</span>] ] <br>
-Clicks the left/right mouse button at coordinates or a defined location.<br><br>
+Clicks the left/right mouse button at coordinates or a defined location. Used to interact with objects.<br><br>
 Examples:<br>
 <blockquote>
 <SCRIPT LANGUAGE="Javascript">
@@ -510,6 +509,40 @@ Example:
 /if n @MyVar>=1 /goto :labelname<br>
 </blockquote>
 
+Examples of using && or ||:<br>
+
+<blockquote>
+| String AND comparisons<br>
+/if ("@Blah"=="Hey You" && "@BlahVar2"~~"Text") {<br>
+    Do Whatever if both of these were true<br>
+}<br><br>
+
+| Numeric AND comparisons<br>
+/if (n @Blah==3 && n @BlahVar2=>3) {<br>
+    <span class="tab">Do Whatever if both of these were true</span><br>
+}<br><br>
+
+| String OR comparisons<br>
+/if ("@Blah"=="Hey You" || "@BlahVar2"~~"Text") {<br>
+    <span class="tab">Do Whatever if one of these were true</span><br>
+}<br><br>
+
+| Numeric OR comparisons<br>
+/if (n @Blah==3 || n @BlahVar2>=3) {<br>
+   <span class="tab"> Do Whatever if one of these were true</span><br>
+}<br><br>
+
+| Mixed String and Numeric AND comparison<br>
+/if ("@Blah"=="Hey You" && n @BlahVar2>>3) {<br>
+    <span class="tab">Do Whatever if both of these were true</span><br>
+}<br><br>
+
+| Mixed String and Numeric OR comparison<br> 
+/if ("@Blah"=="Hey You" || n @BlahVar2>=3) {<br>
+    <span class="tab">Do Whatever if one of these were true</span><br>
+}
+</blockquote>
+
 <span class="command">/ini</span> "<span class="arg">ini filename</span>" "<span class="arg">keyname</span>" "<span class="arg">valuename</span>" "<span class="arg">value</span>"<br>
 Writes data to the specified ini file. Also see <span class="command">$ini</span><br>
 <blockquote>
@@ -529,6 +562,39 @@ Key3=Wheeee... 15<br><br>
 ANewKey=Some Data!<br>
 </blockquote>
 
+<span class="command">/itemnotify</span> <span class="arg">slot</span> | <span class="arg">slot#</span> <span class="opt">&nbsp;notification</span><br>
+Similar to the /click function, but does not involve the use of the mouse.<br>
+<span class="arg">slot</span> can be an inventory slot name, while <span class="arg">slot#</span> can be pack1-pack8, bank1-bank16 (sharedbank1,<br>
+sharedbank2 and trade1-trade8 are not yet implemented in /itemnotify)<br>
+
+<blockquote>
+<span class="opt">notification</span> can be:<br>
+<SCRIPT LANGUAGE="Javascript">
+document.write("<XMP>")
+document.write("leftmouse\t\tNo action\r")
+document.write("leftmouseup\t\tRemoves the item and puts it on cursor (same as left clicking it)\r")
+document.write("leftmouseheld\tFor making hotkeys (you know, hold down left button)\r")
+document.write("leftmouseheldup\tNo action\r")
+document.write("rightmouse\t\tNo action\r")
+document.write("rightmouseup\t\tCasts the effect, or opens the container (same as right clicking it)\r")
+document.write("rightmouseheld\tOpens item display window\r")
+document.write("rightmouseheldup\tCloses the item display window for that item\r")
+document.write("</XMP>")
+</SCRIPT>
+</blockquote>
+
+<span class="tab"><span class="txtbold">Examples</span></span>:<br><br>
+<span class="tab">Exchange of item in primary slot:</span><br>
+<blockquote>
+/<span class="command">itemn</span> <span class="arg">pack8</span> <span class="opt">leftmouseup</span><br>
+/<span class="command">itemn</span> <span class="arg">mainhand</span> <span class="opt">leftmouseup</span><br>
+/<span class="command">itemn</span> <span class="arg">pack8</span> <span class="opt">leftmouseup</span><br>
+</blockquote>
+<span class="tab">Click grim aura earring:</span> <br>
+<blockquote>
+/<span class="command">itemn</span> <span class="arg">rightear</span> <span class="opt">rightmouseup</span>
+</blockquote>
+
 <span class="command">/items</span> ["<span class="arg">filter</span>"]<br>
 Lists all ground spawns in the zone if "<span class="arg">filter</span>" is not used<br><br>
 
@@ -541,6 +607,20 @@ Lists all ground spawns in the zone if "<span class="arg">filter</span>" is not 
 <span class="command">/keepkeys</span> [<span class="opt">off</span>|<span class="opt">on</span>]<br>
 ***NEED DESCRIPTION OF WHAT THIS DOES***<br><br>
 <span class="tab">/keepkeys<span class="doubletab"></span>Gives the state of keepkeys</span><br><br>
+
+<span class="command">/keypress</span> <span class="arg">name</span> [<span class="opt">hold</span>]<br>
+/keypress is used strictly for the keys that are mapped by the EQ client. /keypress does not actually emulate<br>
+the key being pressed and therefore will not interfere if you're typing. See Appendix D for the list of mapped key names<br>
+See <span class="txtbold">/press</span> or <span class="txtbold">/sendkey</span> for using unmapped keys.<br><br>
+<blockquote>
+<SCRIPT LANGUAGE="Javascript">
+document.write("<XMP>")
+document.write("/keypress jump\t\tTaps the key mapped as the jump key\r")
+document.write("/keypress forward hold\tHolds down the mapped forward key\r")
+document.write("/keypress forward\t\tReleases the mapped forward key after /keypress forward hold\r")
+document.write("</XMP>")
+</SCRIPT>
+</blockquote>
 
 <a name="l" id="l"></a>
 <span class="command">/listmacros</span> ["<span class="arg">filter</span>"]<br>
@@ -648,7 +728,7 @@ Moves the mouse to specified locations<br><br>
 
   <tr>
     <td>[<span class="opt">equipslot</span>]</td>
-    <td>Moves the mouse to an equipment position in the inventory window. See Appendix F</td>
+    <td>Moves the mouse to an equipment position in the inventory window. See Appendix G</td>
   </tr>
 
   <tr>
@@ -696,16 +776,40 @@ Logs text to 'logs'directory or clears the log file. The log file will be saved 
 Pauses/resumes a macro to aid in debugging or chatting. Not using a parameter will toggle pausing on/off<br><br>
 
 <a name="n" id="n"></a>
+<span class="command">/notify</span> <span class="arg">window</span> 
+                                     <span class="arg">control</span>|0 
+									 <span class="opt">notification</span> 
+									 [<span class="arg">data</span>]<br>
+/notify is used to interact with UI windows directly instead of using the mouse. /notify cannot be used to interact with objects.<br>
+Currently <span class="opt">notification</span> can be: leftmouse, leftmouseup, leftmousehold, rightmouse, enter, close, newvalue, mouseover,<br>
+or history. The use of <span class="arg">data</span> will usually not be necessary unless you are notifying a slider control.<br>
+Entering "0" for control would send the message to the window itself (used for "close" at least, possibly others). See /windows.<br><br>
+<blockquote>
+<SCRIPT LANGUAGE="Javascript">
+document.write("<XMP>")
+document.write("/notify hotbuttonwnd HB_Button1 leftmouse\t\tActivates the first hotkey\r")
+document.write("/notify somewindow SomeSlider newvalue 100\t\tMoves the referenced slider in the window to 100\r")
+document.write("/notify trackingwnd 0 close\t\t\t\tCloses the tracking window\r")
+document.write("</XMP>")
+</SCRIPT>
+</blockquote> 
+
 <a name="o" id="o"></a>
 <a name="p" id="p"></a>
 <span class="command">/plugin</span>
 <span class="opt"><i>name</i> [unload]|list</span><br>
 Loads, lists, and unloads plugins.<br>
 <br>
+<span class="command">/popup</span> <span class="arg">text</span><br>
+Displays <span class="arg">text</span> in the center of your screen. Currently the text is fixed font and color.<br><br>
+<blockquote>
+/popup Current Mana: $char(mana,cur)<br>
+/popup Run away! Run away!
+</blockquote>
 <span class="command">/press</span> <span class="opt">key</span><br>
 Presses the selected key. See Appendix C for a list of keynames.<br><br>
 <blockquote>
-/press ctrl         Presses the CTRL key
+/press ctrl         Presses the CTRL key<br>
 /press F1           Presses the F1 key
 </blockquote>
 
@@ -726,7 +830,7 @@ Sub MySub<br>
                                          [<span class="opt">merchant</span>|<span class="opt">self</span>]<br>
 Finds an item in merchant inventory or your inventory by name or in a specific slot#<br>
 <blockquote>
-/selectitem "emerald" merchant
+/selectitem "emerald" merchant<br>
 /selectitem slot 5 merchant
 </blockquote>
 
@@ -753,12 +857,12 @@ Clears $getlasterror<br><br>
 Lists your skills, or your skill level when <span class="command">/skills</span> "<span class="arg">skillname</span>" is used
 <blockquote>
 /skills               Lists all of your skills with skill level<br>
-/skills pottery       Shows your pottery skill
+/skills pottery       Returns your pottery skill
 </blockquote>
 <span class="command">/spew</span> <span class="opt">on</span>|<span class="opt">off</span><br>
 Enables or disables the output of Debug Spew to a file<br><br>
 <a name="t" id="t"></a>
-<span class="command">/target</span> [<span class="opt">pc</span>|<span class="opt">npc</span>|<span class="opt">corpse</span>|<span class="opt">pet</span>] 
+<span class="command">/target</span> [<span class="opt">pc</span>|<span class="opt">npc</span> [corpse]|<span class="opt">corpse</span>|<span class="opt">pet</span>] 
                                      [<span class="opt">class</span> <span class="arg">class</span>] 
 									 [<span class="opt">race</span> <span class="arg">race</span>] 
 									 [<span class="opt">range</span> <span class="arg">min</span> <span class="arg">max</span>]
@@ -775,76 +879,82 @@ Enables or disables the output of Debug Spew to a file<br><br>
 <table width="100%" border="1" cellpadding="2" cellspacing="0">
   <tbody>
   <tr>
-    <td width="104">[<span class="opt">pc</span>|<span class="opt">npc</span>|<span class="opt">corpse</span>|<span class="opt">pet</span>]</td>
-    <td width="404">Selects the spawn type to target</td>
+    <td width="115"><span class="opt">pc</span>|<span class="opt">npc</span> [<span class="opt">corpse</span>]</td>
+    <td>Selects nearest pc or npc. Using <span class="opt">corpse</span> will select the nearest pc or npc corpse</td>
+  </tr>
+  <tr>
+    <td><span class="opt">corpse</span></td>
+    <td>Selects the nearest corpse</td>
+  </tr>
+  <tr>
+    <td><span class="opt">pet</span></td>
+    <td>Selects the nearest pet</td>
   </tr>
 
   <tr>
-    <td>[<span class="opt">class</span> <span class="arg">class</span>]</td>
+    <td><span class="opt">class</span> <span class="arg">class</span></td>
     <td>Selects the nearest <em>class</em> match to target</td>
   </tr>
 
   <tr>
-    <td>[<span class="opt">race</span> <span class="arg">race</span>]</td>
+    <td><span class="opt">race</span> <span class="arg">race</span></td>
     <td>Selects nearest <em>race</em> to target</td>
   </tr>
 
   <tr>
-    <td>[<span class="opt">range</span> <span class="arg">min</span> <span class="arg">max</span>]</td>
+    <td><span class="opt">range</span> <span class="arg">min</span> <span class="arg">max</span></td>
     <td>Sets the minimum and maximum range to target in</td>
   </tr>
 
   <tr>
-    <td>[<span class="opt">noalert</span> <span class="arg">alert#</span>]</td>
+    <td><span class="opt">noalert</span> <span class="arg">alert#</span></td>
     <td>***NEED TO FILL THIS DESCRIPTION IN***</td>
   </tr>
 
   <tr>
-    <td>[<span class="opt">nearalert</span> <span class="arg">alert#</span>]</td>
+    <td><span class="opt">nearalert</span> <span class="arg">alert#</span></td>
     <td>***NEED TO FILL THIS DESCRIPTION IN***</td>
   </tr>
 
   <tr>
-    <td>[<span class="opt">notnearalert</span> <span class="arg">alert#</span>]</td>
+    <td><span class="opt">notnearalert</span> <span class="arg">alert#</span></td>
     <td>***NEED TO FILL THIS DESCRIPTION IN***</td>
   </tr>
 
   <tr>
-    <td>[<span class="opt">zradius</span> <span class="arg">zheight</span>]</td>
+    <td><span class="opt">zradius</span> <span class="arg">zheight</span></td>
     <td>Targets the spawn if it is within the height value</td>
   </tr>
 
   <tr>
-    <td>[<span class="opt">radius</span> <span class="arg">distance</span>]</td>
+    <td><span class="opt">radius</span> <span class="arg">distance</span></td>
     <td>Targets the spawn if it is within the 2D <em>distance</em></td>
   </tr>
 
   <tr>
-    <td>[<span class="opt">nopcnear</span> <span class="arg">radius</span>]</td>
+    <td><span class="opt">nopcnear</span> <span class="arg">radius</span></td>
     <td>***NEED TO FILL THIS DESCRIPTION IN***</td>
   </tr>
 
   <tr>
-    <td>[<span class="opt">notid</span>|<span class="opt">id</span> <span class="arg">spawnid</span>]</td>
+    <td><span class="opt">notid</span>|<span class="opt">id</span> <span class="arg">spawnid</span></td>
     <td>***NEED TO FILL THIS DESCRIPTION IN***</td>
   </tr>
   
   <tr> 
-    <td>[<span class="arg">spawnname</span>]</td>
-    <td>Targets the specified keyword</td>
+    <td><span class="arg">spawnname</span></td>
+    <td>Targets the nearest specified spawnname</td>
   </tr>
   
   <tr> 
-    <td>[<span class="opt">myself</span>|<span class="opt">mycorpse</span>]</td>
-    <td>Targets the specified keyword</td>
+    <td><span class="opt">myself</span>|<span class="opt">mycorpse</span></td>
+    <td>Targets the yourself or your corpse</td>
   </tr>
   
   <tr> 
-    <td>[<span class="opt">alert</span> <span class="arg">alert#</span>]</td>
+    <td><span class="opt">alert</span> <span class="arg">alert#</span></td>
     <td>Targets the specified keyword</td>
-  </tr>
-  
-  
+  </tr>  
 </tbody>
 </table><br>	
 
@@ -1076,6 +1186,9 @@ Toggles the display of the specified option when using /who<br><br>
 <span class="command">/whotarget</span><br>
 MacroQuest enhances this command by allowing you to use it on any target (including NPC's) and displays the<br>
 target's class, race, level, guild, con color, and distance (even if the player is in anonymous or roleplaying mode).<br><br>
+
+<span class="command">/windows</span><br>
+List all available UI windows. See /notify.<br><br>
 
 <span class="command">/windowstate</span> <span class="opt">window</span> [<span class="arg">open</span>|<span class="arg">close</span>]
 Opens or closes the selected window.<br>
@@ -1396,7 +1509,7 @@ Returns cursor item information<br>
 <blockquote>
 <SCRIPT LANGUAGE="Javascript">
 document.write("<XMP>")
-document.write("$cursor()\t\t\tReturns TRUE or FALSE. TRUE if the cursor has an item on it.\r")
+document.write("$cursor()\t\t\tReturns TRUE or NULL. TRUE if the cursor has an item on it.\r")
 document.write("$cursor(nodrop)\t\tReturns TRUE if the item on the cursor is NODROP\r")
 document.write("</XMP>")
 </SCRIPT>
@@ -1490,7 +1603,7 @@ document.write("</XMP>")
 Returns TRUE if an environmental container is open<br><br>
 
 <span class="command">$equip</span>(<span class="opt">equipslot</span>[,<span class="opt">option</span>])<br>
-Returns information on an equipment slot or an equipped item. See Appendix F for equipment slot names.<br>
+Returns information on an equipment slot or an equipped item. See Appendix G for equipment slot names.<br>
 <span class="opt">option</span> can be: lore, name, nodrop, norent, magic,size, stack, weight, value
 <blockquote>
 <SCRIPT LANGUAGE="Javascript">
@@ -1527,7 +1640,8 @@ Returns CHARSELECT or INGAME depending on what the game state is<br><br>
 Returns the last error<br><br>
 
 <span class="command">$getlastfindslot</span><br>
-Returns the slot of the pack where the items was found<br><br>
+Returns the pack and slot of the pack where the item was found. The format of the return is <span class="txtbold">pack#</span>,<span class="txtbold">slot#</span><br><br>
+
 
 <span class="command">$gm</span><br>
 Returns TRUE if a GM or Guide is in the zone<br><br>
@@ -2148,7 +2262,7 @@ The current built-in label ids are:<br><br>
 <span class="labelid">4000</span>: $macro<br>
 <span class="labelid">4001</span>: $running<br><br>
 
-<span class="boldtype">Example</span>:<br><br>
+<span class="txtbold">Example</span>:<br><br>
 <blockquote>
 &lt;Label item ="Target_Level"&gt;<br> 
 <span class="tab">&lt;ScreenID&gt;TargetLevel&lt;/ScreenID&gt;</span><br>
@@ -2181,7 +2295,7 @@ The other option is to use the following tooltype in your UI:<br><br>
 &lt;EQType&gt;9999&lt;/EQType&gt;<br>
 &lt;TooltipReference&gt;<span class="arg">$variable</span>%&lt;/TooltipReference&gt;<br><br>
 
-<span class="boldtype">Example</span>:<br><br>
+<span class="txtbold">Example</span>:<br><br>
 <blockquote>
 &lt;Label item ="BW_Buff0_Duration"&gt;</span><br> 
 <span class="tab">&lt;ScreenID&gt;Buff0Duration&lt;/ScreenID&gt;</span><br> 
@@ -2209,28 +2323,24 @@ The other option is to use the following tooltype in your UI:<br><br>
 &lt;/Label&gt;<br><br> 
 </blockquote>
 
-<a id="mqplug" name="mqplugin"></a>
-<span class="txtbold">MacroQuest2 Plugins</span>
-<br>
-<br>
-MQ2 has a modular structure that allows different plugins to be loaded
-and unloaded on demand.<br>
+<a name="#mqplug" id="mqplug"></a>
+<span class="txtbold">MacroQuest2 Plugins</span><br><br>
+
+MQ2 has a modular structure that allows different plugins to be loaded and unloaded on demand.<br>
+
 <ul>
 <li>MQ2Bzsrch -- a bazaar search plugin</li>
 <li>MQ2Chat -- put MQ2 output in regular chat window</li>
 <li>MQ2ChatWnd -- put MQ2 output in special chat window (safer)</li>
 <li>MQ2EQBugFix -- fix a crash(!) when exiting with no journal entries</li>
-<li>MQ2EQIM -- EQIM <br>
-</li>
+<li>MQ2EQIM -- EQIM </li>
 <li>MQ2FPS -- frame limiter (similar to EQPlayNice)</li>
 <li>MQ2IRC -- IRC plugin</li>
 <li>MQ2ItemDisplay -- Add extra data to item windows</li>
 <li>MQ2Label -- allow custom UI labels</li>
 <li>MQ2Map -- enhanced map</li>
-<li>MQ2Telnet -- act as a telnet server for macro output<br>
-</li>
+<li>MQ2Telnet -- act as a telnet server for macro output</li>
 </ul>
-<br>
 
 <a name="telnet" id="telnet"></a>
 <span class="txtbold">Telnet Server</span><br><br>
@@ -2487,8 +2597,274 @@ Close the telnet client, MacroQuest will clean up when it notices the socket is 
   </tr>
 </tbody></table><br><br>
 
+<a name="keypress" id="keypress"></a>
+<span class="txtbold">Appendix D</span>:   Keypress list<br><br>
+<table id="SendKeys" cellspacing="0" cellpadding="0" width="100%" border="0">
+<tbody>
+ <tr>
+	<td>abilities</td>
+	<td>cmdmode_emote</td>
+	<td>hotpage5</td>
+	<td>right_cam</td>
+	<td>toggle_leadershipwin</td>
+ </tr>
+  
+ <tr>
+ 	<td>add_route</td>
+	<td>cmdmode_say</td>
+	<td>hotpage6</td>
+	<td>rotate_stats</td>
+	<td>toggle_lfgwin</td>
+ </tr>
+  
+ <tr>
+	<td>autoprim</td>
+	<td>combat</td>
+	<td>hotpage7</td>
+	<td>rtarget</td>
+	<td>toggle_mainmenuwin</td>
+ </tr>
+  
+  <tr>
+ 	<td>autorun</td>
+	<td>confirm_no</td>
+	<td>hotpage8</td>
+	<td>run_walk</td>
+	<td>toggle_mapwin</td>
+  </tr>
+  
+  <tr>
+	<td>back</td>
+	<td>confirm_yes</td>
+	<td>hotpage9</td>
+	<td>screencap</td>
+	<td>toggle_meminfo</td>
+  </tr>
+  
+  <tr>
+  	<td>back_cam</td>
+	<td>consider</td>
+	<td>hotpage10</td>
+	<td>sit_stand</td>
+	<td>toggle_musicplayerwin</td>
+  </tr>
+  
+  <tr>
+	<td>backdrop</td>
+	<td>cyclereply</td>
+	<td>inventory</td>
+	<td>socials</td>
+	<td>toggle_optionswin</td>
+  </tr>
+  
+  <tr>
+	<td>camp</td>
+	<td>cyclereply_back</td>
+	<td>invite_follow</td>
+	<td>spellbook</td>
+	<td>toggle_partywin</td>
+  </tr>
+  
+  <tr>
+	<td>cast1</td>
+	<td>disband</td>
+	<td>jump</td>
+	<td>strafe_left</td>
+	<td>toggle_petinfowin</td>
+  </tr>
+  
+  <tr>
+  	<td>cast2</td>
+	<td>duck</td>
+	<td>lay_link</td>
+	<td>strafe_right</td>
+	<td>toggle_petition</td>
+  </tr>
+  
+  <tr>
+  	<td>cast3</td>
+	<td>first_person_camera</td>
+	<td>lay_ppoint</td>
+	<td>target_next_npc</td>
+	<td>toggle_playerwin</td>
+  </tr>
+  
+  <tr>
+  	<td>cast4</td>
+	<td>fly_down</td>
+	<td>left</td>
+	<td>target_prev_npc</td>
+	<td>toggle_raidwin</td>
+  </tr>
+  
+  <tr>
+  	<td>cast5</td>
+	<td>fly_up</td>
+	<td>left_cam</td>
+	<td>targetme</td>
+	<td>toggle_sdbuffwin</td>
+  </tr>
+  
+  <tr>
+	<td>cast6</td>
+	<td>forward</td>
+	<td>lock_windows</td>
+	<td>targetnpc</td>
+	<td>toggle_selectorwin</td>
+  </tr>
+  
+  <tr>
+	<td>cast7</td>
+	<td>forward_cam</td>
+	<td>main</td>
+	<td>targetpc</td>
+	<td>toggle_spellswin</td>
+  </tr>
+  
+  <tr>
+	<td>cast8</td>
+	<td>fullscreen</td>
+	<td>mouselook</td>
+	<td>tell</td>
+	<td>toggle_storywin</td>
+  </tr>
+  
+  <tr>
+	<td>centerview</td>
+	<td>hail</td>
+	<td>mouselook_engage</td>
+	<td>tether_camera</td>
+	<td>toggle_targetwin</td>
+  </tr>
+  
+  <tr>
+	<td>chase_camera</td>
+	<td>history_down</td>
+	<td>netstat</td>
+	<td>toggle_advrequestwin</td>
+	<td>toggle_tributebenefitwin</td>
+  </tr>
+  
+  <tr>
+	<td>clear_target</td>
+	<td>history_up</td>
+	<td>overhead_camera</td>
+	<td>toggle_altadvwin</td>
+	<td>toggle_videomodewin</td>
+  </tr>
+  
+  <tr>
+	<td>clip_in</td>
+	<td>hot1</td>
+	<td>pagedown</td>
+	<td>toggle_avatar</td>
+	<td>togglecam</td>
+  </tr>
+  
+  <tr>
+	<td>clip_out</td>
+	<td>hot2</td>
+	<td>pageup</td>
+	<td>toggle_bazaarsearchwin</td>
+	<td>toggletarget</td>
+  </tr>
+  
+  <tr>
+	<td>close_top_window</td>
+	<td>hot3</td>
+	<td>party1</td>
+	<td>toggle_bazaarwin</td>
+	<td>toggletwotargets</td>
+  </tr>
+  
+  <tr>
+	<td>cmd_opening_attack1</td>
+	<td>hot4</td>
+	<td>party2</td>
+	<td>toggle_buffwin</td>
+	<td>use</td>
+  </tr>
+  
+  <tr>
+	<td>cmd_opening_attack2</td>
+	<td>hot5</td>
+	<td>party3</td>
+	<td>toggle_chatwin</td>
+	<td>user1_camera</td>
+  </tr>
+  
+  <tr>
+	<td>cmd_opening_attack3</td>
+	<td>hot6</td>
+	<td>party4</td>
+	<td>toggle_compasswin</td>
+	<td>user2_camera</td>
+  </tr>
+  
+  <tr>
+	<td>cmd_opening_attack4</td>
+	<td>hot7</td>
+	<td>party5</td>
+	<td>toggle_contextmenus</td>
+	<td>voice_on</td>
+  </tr>
+  
+  <tr>
+	<td>cmd_opening_attack5</td>
+	<td>hot8</td>
+	<td>pitchdown</td>
+	<td>toggle_dev_window</td>
+	<td>who</td>
+ </tr>
+  
+  <tr>
+	<td>cmd_opening_attack6</td>
+	<td>hot9</td>
+	<td>pitchdown_cam</td>
+	<td>toggle_fps</td>
+	<td>zoomin</td>
+  </tr>
+  
+  <tr>
+	<td>cmd_opening_attack7</td>
+	<td>hot10</td>
+	<td>pitchup</td>
+	<td>toggle_friendswin</td>
+	<td>zoomout</td>
+  </tr>
+  
+  <tr>
+	<td>cmd_opening_attack8</td>
+	<td>hotpage1</td>
+	<td>pitchup_cam</td>
+	<td>toggle_guildmgmtwin</td>
+  </tr>
+  
+  <tr>
+	<td>cmd_toggle_combat_ability_win</td>
+	<td>hotpage2</td>
+	<td>release_mouse_cursor</td>
+	<td>toggle_helpwin</td>
+  </tr>
+  
+  <tr>
+  	<td>cmd_toggle_dynamic_zone_win</td>
+	<td>hotpage3</td>
+	<td>reply</td>
+	<td>toggle_hotboxwin</td>
+  </tr>
+  
+  <tr>
+  	<td>cmd_toggle_find_window</td>
+	<td>hotpage4</td>
+	<td>right</td>
+	<td>toggle_journal</td>
+  </tr>
+ </tbody>
+</table><br><br>
+
 <a name="skilllist" id="skilllist"></a>
-<span class="txtbold">Appendix D</span>:  Skills list<br><br>
+<span class="txtbold">Appendix E</span>:  Skills list<br><br>
 <table id="TableSkills" cellspacing="0" cellpadding="0" width="100%" border="0">
   <tbody>
   <tr>
@@ -2621,7 +2997,7 @@ Close the telnet client, MacroQuest will clean up when it notices the socket is 
 </tbody></table><br><br>
 
 <a name="containerslist" id="containerslist"></a>
-<span class="txtbold">Appendix E</span>: Containers List <br><br>
+<span class="txtbold">Appendix F</span>: Containers List <br><br>
 <table id="Table1" cellspacing="0" cellpadding="0" width="100%" border="0">
   <tbody><tr> 
     <td>Regular</td>
@@ -2706,7 +3082,7 @@ Close the telnet client, MacroQuest will clean up when it notices the socket is 
 </tbody></table><br><br>
 
 <a name="slotnames" id="slotnames"></a>
-<span class="txtbold">Appendix F</span>: Equipment Slot Names <br><br>
+<span class="txtbold">Appendix G</span>: Equipment Slot Names <br><br>
 Left Ear: lear<br>
 Right Ear: rear<br>
 Neck: neck<br>
@@ -2732,29 +3108,22 @@ Ammo: ammo<br><br>
 <a name="credits" id="credits"></a>
 <span class="txtbold">Credits and How to Help</span><br><br>
 
-<span class="txtbold">Contributions</span>(in no particular order)<br>
-(<span class="txtbold">needs to be updated, so many changes lately!</span>)<br><br>
-EQMule:<br>
-Plazmic:<br>
-Amadeus:<br>
+<span class="txtbold">Contributions</span>(in no particular order)<br><br>
+(<span class="txtbold">Send Wassup a PM for any corrections/updates that are needed</span>)<br><br>
+EQMule: /finditem, /selectitem<br>
+Plazmic: Original Map code<br>
+Amadeus: Original Parser Code<br>
 McKorr:<br> 
 dkaa:<br>
-Lax: <br>
+Lax: Optimized Map Code, /keypress, /itemnotify<br>
 Macrofiend:<br>
+Zaphod: Optimized Parser code
 ap50:<br> 
 Blueskies:<br>
 L124RD for bug hunting and doing most of the backend for the website<br>
 tuxracer for designing the website and formatting the manual<br>
 Syn for disassembly work<br>
-Domosan for finding detours on MS's site<br>
-ShowEQ's source for some ideas on how things might be stored in memory (similar to the packet structure).<br>
-Decal's source for 9x compatible DLL injection.<br>
-Rizwank's prettying up the original manual and adding macro walkthroughs.<br>
-Sparr's excellent job at finding offsets for 7/24 and other cool feats.<br>
-m0nk for many crazy ideas<br>
-Xaanin for finding all the memory addresses while I was gone<br>
-Dohpaz for the first patch submission!<br>
-DeathSpiral for taking over the SF portion of the site<br><br>
+<br>
 
 <a name="faq" id="faq"></a>
 <span class="txtbold">FAQ</span><br><br>
@@ -2785,6 +3154,10 @@ A: Any file with extensions other than dll, exe, ini, and .txt<br><br>
 
 Q: Why can't I find the .dll files in the Release folder after I compile?<br>
 A: Make sure you do not have "hide sys files" set in your folder options.<br><br>
+
+Q: Why won't /click left corpse 1, /click left pack 1, or /click left &ltinvslot&gt work?<br>
+A: Make sure you have the file <span class="txtbold">locations.txt</span> from the release folder in your MQ2 folder.
+
 </body>
 </html>
 
