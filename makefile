@@ -26,7 +26,7 @@ traverse_clean: $(DIRECTORIES)
 
 
 traverse_directory:
-    cd $(MAKEDIR)\$(DIRECTORY)
+    cd "$(MAKEDIR)\$(DIRECTORY)"
     nmake $(COMMAND)
 
 
