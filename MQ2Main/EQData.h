@@ -422,7 +422,7 @@ typedef struct _CHARINFO {
 /*0x009c*/	DWORD		Exp; 
 /*0x00a0*/	DWORD		PracticePoints; 
 /*0x00a4*/	DWORD		Mana; 
-/*0x00a8*/	DWORD		Unknown0x00a8;   // Possibly Endurance?
+/*0x00a8*/	DWORD		Endurance;
 /*0x00ac*/	DWORD		BaseHP; 
 /*0x00b0*/	BYTE		Stunned; 
 /*0x00b1*/	BYTE		Unknown0x00b1[3]; 
