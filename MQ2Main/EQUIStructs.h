@@ -566,6 +566,49 @@ typedef struct _EQLOOTWINDOW {
 /*0x24c*/
 } EQLOOTWINDOW, *PEQLOOTWINDOW;
 
+//Size: 0x2e8 (02/10/2004)
+typedef struct _EQPETINFOWINDOW {
+/*0x000*/ struct _CSIDLWND Wnd;
+/*0x148*/ BYTE  Unknown0x148[0x124];
+/*0x26c*/ int   Buff[0x1e]; // Spell ID# of each buff -- 30 total
+/*0x2e4*/ DWORD Unknown0x2e4;
+} EQPETINFOWINDOW, *PEQPETINFOWINDOW;
+
+typedef struct _EQTRADESKILLRECIPE {
+/*0x00*/ DWORD Unknown0x00;
+/*0x04*/ DWORD Trivial;
+/*0x08*/ DWORD Unknown0x08;
+/*0x0c*/ DWORD Unknown0x0c;
+/*0x10*/ DWORD Unknown0x10;
+/*0x14*/ CHAR  Name[0x40];
+/*0x54*/ DWORD Unknown0x54;
+/*0x58*/ DWORD Ingredient[0xa];  // ID# of ingredient(s)
+/*0x80*/ DWORD IngredientIcon[0xa]; //Icon# of ingredient(s) (Note: 499 is blank)
+} EQTRADESKILLRECIPE, *PEQTRADESKILLRECIPE;
+
+//Size 0x3d8 (02/10/2004)
+typedef struct _EQTRADESKILLWINDOW {
+/*0x000*/   struct _CSIDLWND Wnd;
+/*0x148*/ DWORD Unknown0x148[0x1b];  
+/*0x1b4*/ PEQTRADESKILLRECIPE SearchResults[0x64]; 
+/*0x344*/ DWORD	Unknown0x344;
+/*0x348*/ DWORD Unknown0x348;
+/*0x34c*/ DWORD Unknown0x34c;
+/*0x350*/ PCONTENTS Container;
+/*0x354*/ DWORD Unknown0x354;
+/*0x358*/ PEQTRADESKILLRECIPE SelectedRecipe;
+/*0x35c*/ DWORD Unknown0x35c;
+/*0x360*/ DWORD SkillLevel;
+/*0x364*/ DWORD Unknown0x364;
+/*0x368*/ DWORD Unknown0x368;
+/*0x36c*/ BYTE  Unknown0x36c[0x58];
+/*0x3c4*/ DWORD Unknown0x3c4;
+/*0x3c8*/ DWORD Unknown0x3c8;
+/*0x3cc*/ BYTE  Unknonw0x3cc[0x8];
+/*0x3d4*/ DWORD Unknown0x3d4;
+/*0x3d8*/ DWORD Unknown0x3d8;
+} EQTRADESKILLWINDOW, *PTRADESKILLWINDOW;
+
 typedef struct _EQNOTESWINDOW {
 /*0x000*/ struct _CSIDLWND Wnd;
 /*0x148*/ BYTE  Unknown0x148[0x04];
@@ -602,9 +645,6 @@ typedef struct _EQMAPWINDOW {
 /*0x1F8*/ BYTE Unknown0x1f8[0x34];
 /*0x22c*/
 } EQMAPWINDOW, *PEQMAPWINDOW;
-
-
-
 
 // onetimehero 09-17-03
 // Spell Window
@@ -657,4 +697,5 @@ typedef struct _LOOTCORPSE {
 } LOOTCORPSE, *PLOOTCORPSE;
 
 };
+
 using namespace EQUIStructs;
