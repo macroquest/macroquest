@@ -468,17 +468,25 @@ DECLARE_API ( pzoneinfo )
    KPs(CharacterName); 
    KPs(ShortName); 
    KPs(LongName); 
-   for (int i=0; i < 11; i++) 
-      dprintf("Unknown0x177[%d] = %d (offset 0x%x)\n", i, ci.Unknown0x177[i], &pnull->Unknown0x177[i]); 
-   KP(Unknown0x182); 
-   for (i=0; i < 4; i++) 
+   //KP(FogRed);
+   //KP(FogGreen);
+   //KP(FogBlue);
+   KP(Unknown0x183); 
+   for (int i=0; i < 4; i++) 
       dprintf("Unknown0x184[%d] = %f (offset 0x%x)\n", i, ci.Unknown0x184[i], &pnull->Unknown0x184[i]); 
    for (i=0; i < 4; i++) 
       dprintf("Unknown0x194[%d] = %f (offset 0x%x)\n", i, ci.Unknown0x194[i], &pnull->Unknown0x194[i]); 
-   KPf(Unknown0x1a4); 
+   KPf(ZoneGravity);
    for (i=0; i < 15; i++) 
       dprintf("Unknown0x1ac[%d] = %d (offset 0x%x)\n", i, ci.Unknown0x1ac[i], &pnull->Unknown0x1ac[i]); 
    KPf(ZoneExpModifier); 
+   KPf(SafeYLoc);
+   KPf(SafeXLoc);
+   KPf(SafeZLoc);
+   KPf(Ceiling);
+   KPf(Floor);
+   KPf(MinClip);
+   KPf(MaxClip);
    for (i=0; i < 6; i++) 
       dprintf("Unknown0x208[%d] = %d (offset 0x%x)\n", i, ci.Unknown0x208[i], &pnull->Unknown0x208[i]); 
    for (i=0; i < 14; i++) 
