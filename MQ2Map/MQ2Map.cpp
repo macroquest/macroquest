@@ -587,6 +587,8 @@ VOID UpdateMap()
 
 VOID GenerateMap()
 {
+	if (!gMapFilters[MAPFILTER_All])
+		return;
 	PSPAWNINFO pSpawn=(PSPAWNINFO)pSpawnList;
 	while(pSpawn)
 	{
@@ -604,6 +606,8 @@ VOID GenerateMap()
 
 BOOL CanDisplaySpawn(eSpawnType Type, PSPAWNINFO pSpawn)
 {
+	if (!gMapFilters[MAPFILTER_All])
+		return FALSE;
 	if (gMapFilters[MAPFILTER_Custom])
 	{
 		if (PCHARINFO pCharInfo=GetCharInfo())
@@ -847,6 +851,7 @@ VOID MapFilters(PSPAWNINFO pChar, PCHAR szLine)
 		else
 		{
 			ClearMap();
+			
 			GenerateMap();
 		}
     }
