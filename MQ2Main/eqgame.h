@@ -215,12 +215,13 @@
 #define CXWndManager__GetKeyboardFlags			 0x56C640
 #define CXWndManager__HandleKeyboardMsg			 0x56CB10
 
-// KeyPressHandler
-#define KeyPressHandler__HandleKeyDown			0x4AEEFE
-#define KeyPressHandler__HandleKeyUp			0x4AF1A2
+// KeypressHandler
+#define KeypressHandler__HandleKeyDown			0x4AEEFE
+#define KeypressHandler__HandleKeyUp			0x4AF1A2
 #define KeypressHandler__AttachKeyToEqCommand		0x4B0560
 #define KeypressHandler__AttachAltKeyToEqCommand	0x4B059D
 #define KeypressHandler__SaveKeymapping				0x4B0448
+#define KeypressHandler__ClearCommandStateArray		0x4AF191
 
 // EQ_Character
 #define EQ_Character__Max_Mana                           0x421A0B

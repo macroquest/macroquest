@@ -73,7 +73,7 @@ PLUGIN_API VOID InitializePlugin(VOID)
 	DebugSpewAlways("Initializing MQ2CustomBinds");
 	LoadCustomBinds();
 
-	AddCommand("/custombind",CustomBindCmd);
+	AddCommand("/custombind",CustomBindCmd,0,0,0);
 	// Add commands, macro parameters, hooks, etc.
 	// AddCommand("/mycommand",MyCommand);
 	// AddParm("$myparm(x)",MyParm);

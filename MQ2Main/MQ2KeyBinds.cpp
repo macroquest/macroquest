@@ -32,6 +32,7 @@ struct MQ2KeyBind
 	KeyCombo Normal;
 	KeyCombo Alt;
 	fMQExecuteCmd Function;
+	BOOL State;
 };
 
 CIndex<MQ2KeyBind*> BindList(10);
@@ -61,9 +62,23 @@ inline void RemoveKeyBindNameMap(char *Name)
 	BindNameMap[Lwr]=0;
 }
 
-class KeyPressHandlerHook
+class KeypressHandlerHook
 {
 public:
+	void ClearCommandStateArray_Trampoline(void);
+	void ClearCommandStateArray_Hook(void)
+	{
+		unsigned long N;
+		for (N = 0 ; N < BindList.Size ; N++)
+		if (MQ2KeyBind *pBind=BindList[N])
+		{
+			pBind->State=false;
+		}
+		ZeroMemory(&pKeypressHandler->CommandState[0],sizeof(pKeypressHandler->CommandState));
+		//ClearCommandStateArray_Trampoline();
+	}
+
+
 //	bool AttachAltKeyToEqCommand_Trampoline(class KeyCombo const &,unsigned int);
 //	bool AttachKeyToEqCommand_Trampoline(class KeyCombo const &,unsigned int);
 //	class KeyCombo const & GetAltKeyAttachedToEqCommand_Trampoline(unsigned int);
@@ -79,10 +94,11 @@ public:
 		bool Ret=false;
 		for ( N = 0 ; N < nEQMappableCommands ; N++)
 		{
-			if (!pKeypressHandler->CommandState[N] && (pKeypressHandler->NormalKey[N]==Combo ||		
+			if (pKeypressHandler->CommandState[N]==0 && (pKeypressHandler->NormalKey[N]==Combo ||		
 				pKeypressHandler->AltKey[N]==Combo))
 			{
 				ExecuteCmd(N,1,0);
+				pKeypressHandler->CommandState[N]=1;
 				Ret=true;
 			}
 		}
@@ -90,9 +106,10 @@ public:
 		{
 			if (MQ2KeyBind *pBind=BindList[N])
 			{
-				if (pBind->Normal==Combo || pBind->Alt==Combo)
+				if (pBind->State==0 && (pBind->Normal==Combo || pBind->Alt==Combo))
 				{
 					pBind->Function(pBind->Name,true);
+					pBind->State=1;
 					Ret=true;
 				}
 			}
@@ -101,16 +118,17 @@ public:
 	}
 	bool HandleKeyUp_Hook(class KeyCombo const &Combo)
 	{
-		if (!pWndMgr->HandleKeyboardMsg(Combo.Data[3],0))
-			return true;
-		unsigned long N;
 		bool Ret=false;
+		if (!pWndMgr->HandleKeyboardMsg(Combo.Data[3],0))
+			Ret=true;
+		unsigned long N;
 		for ( N = 0 ; N < nEQMappableCommands ; N++)
 		{
-			if (pKeypressHandler->NormalKey[N]==Combo ||		
-				pKeypressHandler->AltKey[N]==Combo)
+			if (pKeypressHandler->CommandState[N] && (pKeypressHandler->NormalKey[N].Data[3]==Combo.Data[3] ||		
+				pKeypressHandler->AltKey[N].Data[3]==Combo.Data[3]))
 			{
 				ExecuteCmd(N,0,0);
+				pKeypressHandler->CommandState[N]=0;
 				Ret=true;
 			}
 		}
@@ -118,9 +136,10 @@ public:
 		{
 			if (MQ2KeyBind *pBind=BindList[N])
 			{
-				if (pBind->Normal==Combo || pBind->Alt==Combo)
+				if (pBind->State==1 && (pBind->Normal.Data[3]==Combo.Data[3] || pBind->Alt.Data[3]==Combo.Data[3]))
 				{
 					pBind->Function(pBind->Name,false);
+					pBind->State=0;
 					Ret=true;
 				}
 			}
@@ -147,8 +166,9 @@ public:
 /**/
 };
 
-DETOUR_TRAMPOLINE_EMPTY(bool KeyPressHandlerHook::HandleKeyDown_Trampoline(class KeyCombo const &));
-DETOUR_TRAMPOLINE_EMPTY(bool KeyPressHandlerHook::HandleKeyUp_Trampoline(class KeyCombo const &));
+DETOUR_TRAMPOLINE_EMPTY(void KeypressHandlerHook::ClearCommandStateArray_Trampoline(void));
+DETOUR_TRAMPOLINE_EMPTY(bool KeypressHandlerHook::HandleKeyDown_Trampoline(class KeyCombo const &));
+DETOUR_TRAMPOLINE_EMPTY(bool KeypressHandlerHook::HandleKeyUp_Trampoline(class KeyCombo const &));
 
 
 /*
@@ -181,15 +201,17 @@ void InitializeMQ2KeyBinds()
 /**/
 	AddMQ2KeyBind("RANGED",DoRangedBind);
 
-	EasyClassDetour(KeyPressHandler__HandleKeyDown,KeyPressHandlerHook,HandleKeyDown_Hook,bool,(class KeyCombo const &Combo),HandleKeyDown_Trampoline);
-	EasyClassDetour(KeyPressHandler__HandleKeyUp,KeyPressHandlerHook,HandleKeyUp_Hook,bool,(class KeyCombo const &Combo),HandleKeyUp_Trampoline);
+	EasyClassDetour(KeypressHandler__ClearCommandStateArray,KeypressHandlerHook,ClearCommandStateArray_Hook,void,(void),ClearCommandStateArray_Trampoline);
+	EasyClassDetour(KeypressHandler__HandleKeyDown,KeypressHandlerHook,HandleKeyDown_Hook,bool,(class KeyCombo const &Combo),HandleKeyDown_Trampoline);
+	EasyClassDetour(KeypressHandler__HandleKeyUp,KeypressHandlerHook,HandleKeyUp_Hook,bool,(class KeyCombo const &Combo),HandleKeyUp_Trampoline);
 }
 
 void ShutdownMQ2KeyBinds()
 {
 	BindList.Cleanup();
-	RemoveDetour(KeyPressHandler__HandleKeyDown);
-	RemoveDetour(KeyPressHandler__HandleKeyUp);
+	RemoveDetour(KeypressHandler__ClearCommandStateArray);
+	RemoveDetour(KeypressHandler__HandleKeyDown);
+	RemoveDetour(KeypressHandler__HandleKeyUp);
 }
 
 BOOL AddMQ2KeyBind(PCHAR name, fMQExecuteCmd Function)
@@ -202,6 +224,7 @@ BOOL AddMQ2KeyBind(PCHAR name, fMQExecuteCmd Function)
 	}
 
 	MQ2KeyBind* pBind = new MQ2KeyBind;
+	pBind->State=false;
 	strncpy(pBind->Name,name,32);
 	pBind->Name[31]=0;
 	CHAR szBuffer[MAX_STRING]={0};
@@ -369,7 +392,7 @@ VOID MQ2KeyBindCommand(PSPAWNINFO pChar, PCHAR szLine)
 	{
 		//pKeypressHandler->AttachAltKeyToEqCommand(NewCombo,N);
 		pKeypressHandler->AltKey[N]=NewCombo;
-		if (N<gnNormalEQMappableCommands)
+		if ((DWORD)N<gnNormalEQMappableCommands)
 			pKeypressHandler->SaveKeymapping(N,NewCombo,1);
 		sprintf(szArg1,"Alternate %s now bound as %s",szEQMappableCommands[N],DescribeKeyCombo(pKeypressHandler->AltKey[N],szBuffer));
 		WriteChatColor(szArg1);		
@@ -378,7 +401,7 @@ VOID MQ2KeyBindCommand(PSPAWNINFO pChar, PCHAR szLine)
 	{
 		//pKeypressHandler->AttachKeyToEqCommand(NewCombo,N);
 		pKeypressHandler->NormalKey[N]=NewCombo;
-		if (N<gnNormalEQMappableCommands)
+		if ((DWORD)N<gnNormalEQMappableCommands)
 			pKeypressHandler->SaveKeymapping(N,NewCombo,0);
 		sprintf(szArg1,"Normal %s now bound as %s",szEQMappableCommands[N],DescribeKeyCombo(pKeypressHandler->NormalKey[N],szBuffer));
 		WriteChatColor(szArg1);		
