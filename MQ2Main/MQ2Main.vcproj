@@ -18,10 +18,10 @@
 			CharacterSet="2">
 			<Tool
 				Name="VCCLCompilerTool"
-				AdditionalOptions="/DCINTERFACE"
-				Optimization="2"
+				AdditionalOptions="/DCINTERFACE /Oi /Ot /Oy /Ob2 /Gs /GF /Gy"
+				Optimization="4"
 				GlobalOptimizations="FALSE"
-				InlineFunctionExpansion="1"
+				InlineFunctionExpansion="0"
 				FavorSizeOrSpeed="0"
 				OmitFramePointers="FALSE"
 				OptimizeForProcessor="0"
