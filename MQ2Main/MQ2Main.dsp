@@ -99,6 +99,10 @@ SOURCE=.\MQ2DataTypes.cpp
 # End Source File
 # Begin Source File
 
+SOURCE=.\MQ2DataVars.cpp
+# End Source File
+# Begin Source File
+
 SOURCE=.\MQ2DetourAPI.cpp
 # End Source File
 # Begin Source File

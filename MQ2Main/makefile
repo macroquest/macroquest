@@ -24,6 +24,8 @@ CLEAN :
 	-@erase "$(INTDIR)\MQ2DataAPI.sbr"
 	-@erase "$(INTDIR)\MQ2DataTypes.obj"
 	-@erase "$(INTDIR)\MQ2DataTypes.sbr"
+	-@erase "$(INTDIR)\MQ2DataVars.obj"
+	-@erase "$(INTDIR)\MQ2DataVars.sbr"
 	-@erase "$(INTDIR)\MQ2DetourAPI.obj"
 	-@erase "$(INTDIR)\MQ2DetourAPI.sbr"
 	-@erase "$(INTDIR)\MQ2DInput.obj"
@@ -74,6 +76,7 @@ LINK32_OBJS= \
 	"$(INTDIR)\MQ2Data.obj" \
 	"$(INTDIR)\MQ2DataAPI.obj" \
 	"$(INTDIR)\MQ2DataTypes.obj" \
+	"$(INTDIR)\MQ2DataVars.obj" \
 	"$(INTDIR)\MQ2DetourAPI.obj" \
 	"$(INTDIR)\MQ2DInput.obj" \
 	"$(INTDIR)\MQ2Globals.obj" \
@@ -150,6 +153,11 @@ SOURCE=.\MQ2DataAPI.cpp
 SOURCE=.\MQ2DataTypes.cpp
 
 "$(INTDIR)\MQ2DataTypes.obj"	"$(INTDIR)\MQ2DataTypes.sbr" : $(SOURCE) "$(INTDIR)"
+
+
+SOURCE=.\MQ2DataVars.cpp
+
+"$(INTDIR)\MQ2DataVars.obj"	"$(INTDIR)\MQ2DataVars.sbr" : $(SOURCE) "$(INTDIR)"
 
 
 SOURCE=.\MQ2DetourAPI.cpp
