@@ -929,8 +929,16 @@ bool MQ2CharacterType::GetMember(MQ2VARPTR VarPtr, PCHAR Member, PCHAR Index, MQ
 		}
 		return false;
 	case Moving:
-		Dest.DWord=((((gbMoving) && ((PSPAWNINFO)pCharSpawn)->SpeedRun==0.0f) && ((PCHARINFO)pCharData)->pSpawn->pActorInfo->Mount ==  NULL ) || (fabs(FindSpeed((PSPAWNINFO)pCharSpawn)) > 0.0f ));
+		Dest.DWord=((((gbMoving) && ((PSPAWNINFO)pCharSpawn)->SpeedRun==0.0f) && (pChar->pSpawn->pActorInfo->Mount ==  NULL )) || (fabs(FindSpeed((PSPAWNINFO)pCharSpawn)) > 0.0f ));
 		Dest.Type=pBoolType;
+		return true;
+	case Hunger:
+		Dest.DWord=pChar->hungerlevel;
+		Dest.Type=pIntType;
+		return true;
+	case Thirst:
+		Dest.DWord=pChar->thirstlevel;
+		Dest.Type=pIntType;
 		return true;
 		/*
 		Book=20,
@@ -955,8 +963,6 @@ bool MQ2CharacterType::GetMember(MQ2VARPTR VarPtr, PCHAR Member, PCHAR Index, MQ
 		svCold=60,
 		svPoison=61,
 		svDisease=62
-		Hunger
-		Thirst
 		/**/
 	}
 	return false;
