@@ -9,6 +9,23 @@
   pick up an entire stack: /shift /itemnotify pack1 leftmouseup
   Because they execute a command, they can also be used together, as in 
   /ctrl /alt /shift <command>...
+- Fixed character.Buff[slot]
+- Fixed character.Gem[name]
+- Fixed If top level object crashing on false
+- Added MQ2CHAT bind to start typing in the MQ2 Chat Window, also added MQ2CSCHAT bind which
+  gets forced to bind as "/" at character select, and does not exist while in game.
+- Added /timed command, which executes a command after a specified duration (in deciseconds like pause)
+  /timed <deciseconds> <command>
+  Example: /timed 10 /echo 1 second has passed
+  Note: This does NOT "pause" successive commands.
+- Added /newif command, which ONLY does numeric compares -- use MQ2Data string comparison to 
+  turn string compares into numeric compares -- and note that this means you do NOT use the "n"
+  stuff.  This will replace the current /if command in MQ2Data phase 3.  Until then, you may 
+  "/alias /if /newif" if you wish to use newif exclusively.
+  /newif <calculations> <command>
+  <calculations> gets evaluated down to a single term from however many terms there are (You
+  may use && and || freely.).  
+  
 
 29 Mar 2004 by Lax (more)
 - Added < <= == >= > && & || | to the Calculate function (someone rewrite if please... 
