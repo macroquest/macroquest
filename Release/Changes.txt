@@ -1,3 +1,20 @@
+29 Mar 2004 by Lax
+- Phase 1 of MQ2Data system rollout begins! Please start updating macros and plugins to 
+  use this sytem.
+  To use MQ2Data modify these MQ2Main lines
+   #define USEMQ2PARMS
+   //#define USEMQ2DATATYPES  
+  Uncomment the USEMQ2DATATYPES #define to allow MQ2Data parsing.  If you wish to disable
+  MQ2Parms parsing, comment the USEMQ2PARMS #define.  You may use both or just one.
+  See this thread to see how MQ2Parms will be phased out 
+      http://macroquest.sourceforge.net/phpBB2/viewtopic.php?t=6008
+  See this thread to see how to use MQ2Data instead 
+      http://macroquest.sourceforge.net/phpBB2/viewtopic.php?t=6022
+  Specific information for plugins to add types and Top Level Objects will be available soon
+- Moved a few functions to MQ2Inlines.h
+- Fixed a performance issue in GetSpellByName
+- Trying to detour an already detoured address will now fail instead of crashing
+
 23 Mar 2004 by Amadeus
 - Removed DisplayZem function and calls and $zone(ZEM)  ...rest in peace.
 
