@@ -137,6 +137,7 @@ DETOUR_TRAMPOLINE_EMPTY(int CXMLSOMDocumentBaseHook::XMLRead_Trampoline(CXStr *A
 
 VOID ListWindows(PSPAWNINFO pChar, PCHAR szLine);
 VOID WndNotify(PSPAWNINFO pChar, PCHAR szLine);
+VOID ItemNotify(PSPAWNINFO pChar, PCHAR szLine);
 
 void InitializeMQ2Windows()
 {
@@ -150,6 +151,7 @@ void InitializeMQ2Windows()
 
 	AddCommand("/windows",ListWindows,false,true,false);
 	AddCommand("/notify",WndNotify,false,true,false);
+	AddCommand("/itemnotify",ItemNotify,false,true,false);
 }
 
 void ShutdownMQ2Windows()
@@ -157,6 +159,7 @@ void ShutdownMQ2Windows()
 	DebugSpew("Shutting down MQ2 Windows");
 	RemoveCommand("/windows");
 	RemoveCommand("/notify");
+	RemoveCommand("/itemnotify");
 	RemoveDetour(CXMLSOMDocumentBase__XMLRead);
 	RemoveDetour(CSidlScreenWnd__SetScreen);
 	RemoveDetour(CXWndManager__RemoveWnd);
@@ -269,9 +272,27 @@ void RemoveXMLFile(const char *filename)
 	}
 }
 
+CXWnd *FindContainerWnd(struct _CONTENTS *pContents)
+{
+	if (!pContents)
+		return 0;
+
+	for (int i = 0 ; i < 0x19 ; i++)
+	{
+		if (PEQCONTAINERWINDOW pWnd=((PEQ_CONTAINERWND_MANAGER)pContainerMgr)->pPCContainers[i])
+		{
+			if (pWnd->pContents==pContents)
+				return (CXWnd*)pWnd;
+		}
+	}
+
+	return 0;
+}
+
 bool SendWndNotification(PCHAR WindowName, PCHAR ScreenID, DWORD Notification, VOID *Data)
 {
 	CHAR szOut[MAX_STRING] = {0};
+	CXWnd *pWnd;
 
 	string Name=WindowName;
 	MakeLower(Name);
@@ -279,6 +300,24 @@ bool SendWndNotification(PCHAR WindowName, PCHAR ScreenID, DWORD Notification, V
 	unsigned long N = WindowMap[Name];
 	if (!N)
 	{
+		if (!stricmp(WindowName,"item"))
+		{
+			unsigned long ItemSlot=atoi(ScreenID);
+			CInvSlot *pSlot=pInvSlotMgr->FindInvSlot(ItemSlot);
+			if (!pSlot)
+			{
+			}
+			pWnd=*(CXWnd**)(((unsigned long)pSlot)+4);
+			if (!pWnd)
+			{
+				sprintf(szOut,"Item %d not available.",ItemSlot);
+				WriteChatColor(szOut,USERCOLOR_DEFAULT);
+				return false;
+			}
+			pWnd->WndNotification(0,Notification,Data);
+			return true;
+		}
+
 		sprintf(szOut,"Window '%s' not available.",WindowName);
 		WriteChatColor(szOut,USERCOLOR_DEFAULT);
 		return false;
@@ -294,7 +333,6 @@ bool SendWndNotification(PCHAR WindowName, PCHAR ScreenID, DWORD Notification, V
 		return false;
 	}
 	
-	CXWnd *pWnd;
 	if (pInfo->pWnd)
 	{
 		pWnd=pInfo->pWnd;
@@ -472,7 +510,7 @@ VOID WndNotify(PSPAWNINFO pChar, PCHAR szLine)
 
 	if (!szArg3[0])
 	{
-		WriteChatColor("Syntax: /notify <window> <control|0> <notification> [notification data]");
+		WriteChatColor("Syntax: /notify <window|\"item\"> <control|0> <notification> [notification data]");
 		return;
 	}
 	unsigned long Data=0;
@@ -501,9 +539,150 @@ VOID WndNotify(PSPAWNINFO pChar, PCHAR szLine)
 	}
 	sprintf(szOut,"Invalid notification '%s'",szArg3);
 	WriteChatColor(szOut);
-//bool SendWndNotification(PCHAR WindowName, PCHAR ScreenID, DWORD Notification, VOID *Data)
-	
-
-
 }
 
+PCHAR szItemNotification[] = { 
+	"leftmouse",		//0
+	"leftmouseup",		//1
+	"leftmouseheld",	//2
+	"leftmouseheldup",	//3
+	"rightmouse",		//4
+	"rightmouseup",		//5
+	"rightmouseheld",	//6
+	"rightmouseheldup",	//7
+}; 
+
+PCHAR szItemSlots[] = {
+	0,
+	"leftear",
+	"head",
+	"face",
+	"rightear",
+	"neck",
+	"shoulder",
+	"arm",
+	"back",
+	"leftwrist",
+	"rightwrist",
+	"range",
+	"hand",
+	"mainhand",
+	"offhand",
+	"leftfinger",
+	"rightfinger",
+	"chest",
+	"leg",
+	"feet",
+	"waist",
+	"ammo",
+	"pack1",
+	"pack2",
+	"pack3",
+	"pack4",
+	"pack5",
+	"pack6",
+	"pack7",
+	"pack8",
+	"charm",
+	0
+};
+
+VOID ItemNotify(PSPAWNINFO pChar, PCHAR szLine)
+{
+	CHAR szArg1[MAX_STRING] = {0}; 
+	CHAR szArg2[MAX_STRING] = {0}; 
+	CHAR szOut[MAX_STRING] = {0};
+
+	GetArg(szArg1, szLine, 1);
+	GetArg(szArg2, szLine, 2);
+
+	if (!szArg2[0])
+	{
+		WriteChatColor("Syntax: /itemnotify <slot|#> <notification>");
+		return;
+	}
+
+	unsigned long Slot=atoi(szArg1);
+	if (Slot==0)
+	{
+		for (unsigned long i = 1 ; szItemSlots[i] ; i++)
+		{
+			if (!strnicmp(szItemSlots[i],szArg1,strlen(szItemSlots[i]))) // allow "legs" instead of "leg" etc
+			{
+				Slot=i;
+				break;
+			}
+		}
+		if (Slot==0)
+		{
+			sprintf(szOut,"Invalid item slot '%s'",szArg1);
+			WriteChatColor(szOut);
+			return;
+		}
+	}
+
+	for (unsigned long i = 0 ; i < 8 ; i++)
+	{
+		if (!stricmp(szItemNotification[i],szArg2))
+		{
+			CInvSlot *pSlot=pInvSlotMgr->FindInvSlot(Slot);
+			if (!pSlot)
+			{
+				sprintf(szOut,"Could not send notification to %s %s",szArg1,szArg2);
+				WriteChatColor(szOut);
+				return;
+			}
+
+			CXWnd *pWnd=*(CXWnd**)(((unsigned long)pSlot)+4);
+			if (!pWnd)
+			{
+				sprintf(szOut,"Could not send notification to %s %s",szArg1,szArg2);
+				WriteChatColor(szOut);
+			}
+			else
+			{
+				CXRect rect= pWnd->GetScreenRect();
+				CXPoint pt=rect.CenterPoint();
+				switch(i)
+				{
+				case 0:
+					((CSidlScreenWnd*)pWnd)->INIStorageName=(PCXSTR)1;
+					pWnd->HandleLButtonDown(&pt);
+					break;
+				case 1:
+					((CSidlScreenWnd*)pWnd)->INIStorageName=(PCXSTR)1;
+					pWnd->HandleLButtonUp(&pt);
+					break;
+				case 2:
+					((CSidlScreenWnd*)pWnd)->INIStorageName=(PCXSTR)1;
+					pWnd->HandleLButtonHeld(&pt);
+					break;
+				case 3:
+					((CSidlScreenWnd*)pWnd)->INIStorageName=(PCXSTR)1;
+					pWnd->HandleLButtonUpAfterHeld(&pt);
+					break;
+				case 4:
+					((CSidlScreenWnd*)pWnd)->INIStorageName=(PCXSTR)1;
+					pWnd->HandleRButtonDown(&pt);
+					break;
+				case 5:
+					((CSidlScreenWnd*)pWnd)->INIStorageName=(PCXSTR)1;
+					pWnd->HandleRButtonUp(&pt);
+					break;
+				case 6:
+					((CSidlScreenWnd*)pWnd)->INIStorageName=(PCXSTR)1;
+					pWnd->HandleRButtonHeld(&pt);
+					break;
+				case 7:
+					((CSidlScreenWnd*)pWnd)->INIStorageName=(PCXSTR)1;
+					pWnd->HandleRButtonUpAfterHeld(&pt);
+					break;
+				};
+			}
+			return;
+		}
+	}
+	sprintf(szOut,"Invalid item notification '%s'",szArg2);
+	WriteChatColor(szOut);
+
+}

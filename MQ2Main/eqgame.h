@@ -263,6 +263,9 @@
 // CXMLSOMDocumentBase 
 #define CXMLSOMDocumentBase__XMLRead              0x55CB50        
 
+// CXRect
+#define CXRect__CenterPoint					0x4CE386
+
 // CXWnd 
 #define CXWnd__Bottom                      0x554D20 
 #define CXWnd__BringToTop                    0x5511F0 
