@@ -3146,20 +3146,7 @@ DWORD parmSpell(PCHAR szVar, PCHAR szOutput, PSPAWNINFO pChar)
         } else if (!strncmp(szArg,"fizzletime",10)) {
             sprintf(szTemp,"%1.2f",(FLOAT)pSpell->FizzleTime/1000);
         } else if (!strncmp(szArg,"mycasttime",10)) {
-//            DWORD CharInfo = NULL;
-//            CharInfo = (DWORD)pCharData;
             DWORD mycasttime = pCharData->GetFocusCastingTimeModifier((EQ_Spell*)pSpell,0);
-			/*
-            __asm{
-                push ecx;
-                mov ecx, dword ptr [CharInfo];
-                push 0;
-                push dword ptr [pSpell];
-                call dword ptr [EQADDR_GETFOCUSCASTINGTIMEMODIFIER];
-                mov [mycasttime], eax;
-                pop ecx;
-            };
-			/**/
             mycasttime = pSpell->CastTime + mycasttime;
             DebugSpewNoFile("mycasttime %d pSpell->CastTime = %d",mycasttime,pSpell->CastTime);
             sprintf(szTemp,"%1.2f",(FLOAT)mycasttime/1000);

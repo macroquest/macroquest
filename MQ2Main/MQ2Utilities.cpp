@@ -228,17 +228,7 @@ VOID AddCustomEvent(PEVENTLIST pEList, PCHAR szLine)
 }
 
 
-// ***************************************************************************
-// Function:    DistanceToSpawn
-// Description: Return the distance between two spawns
-// ***************************************************************************
-FLOAT DistanceToSpawn(PSPAWNINFO pChar, PSPAWNINFO pSpawn)
-{
-    FLOAT X = pChar->X - pSpawn->X;
-    FLOAT Y = pChar->Y - pSpawn->Y;
-    //FLOAT Z = pChar->Z - pSpawn->Z;
-    return sqrtf(X*X + Y*Y);// + Z*Z);
-}
+
 
 PCHAR GetEQPath(PCHAR szBuffer)
 {

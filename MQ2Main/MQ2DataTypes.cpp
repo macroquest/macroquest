@@ -323,18 +323,39 @@ bool MQ2SpawnType::GetMember(void *Ptr, PCHAR Member, PCHAR Index, MQ2TYPEVAR &D
 		Dest.Ptr=GetFullZone(pSpawn->Zone);
 		Dest.Type=pStringType;
 		return true;
-/*
-	static enum SpawnMembers
-	{
-		DistanceX=7,
-		DistanceY=8,
-		DistanceZ=9,
-		Distance=10,
-		Distance3D=11,
-		DistancePredict=12,
-		HeadingTo=19,
-	};
-/**/
+	case Distance:
+		Dest.Float=GetDistance(pSpawn->X,pSpawn->Y);
+		Dest.Type=pFloatType;
+		return true;
+	case Distance3D:
+		Dest.Float=DistanceToSpawn3D((PSPAWNINFO)pCharSpawn,pSpawn);
+		Dest.Type=pFloatType;
+		return true;
+	case DistancePredict:
+		Dest.Float=EstimatedDistanceToSpawn((PSPAWNINFO)pCharSpawn,pSpawn);
+		Dest.Type=pFloatType;
+		return true;
+	case DistanceX:
+		Dest.Float=(FLOAT)fabs(((PSPAWNINFO)pCharSpawn)->X-pSpawn->X);
+		Dest.Type=pFloatType;
+		return true;
+	case DistanceY:
+		Dest.Float=(FLOAT)fabs(((PSPAWNINFO)pCharSpawn)->Y-pSpawn->Y);
+		Dest.Type=pFloatType;
+		return true;
+	case DistanceZ:
+		Dest.Float=(FLOAT)fabs(((PSPAWNINFO)pCharSpawn)->Z-pSpawn->Z);
+		Dest.Type=pFloatType;
+		return true;
+	case HeadingTo:
+        Dest.Float=(FLOAT)(atan2f(((PSPAWNINFO)pCharSpawn)->Y - pSpawn->Y, pSpawn->X - ((PSPAWNINFO)pCharSpawn)->X) * 180.0f / PI + 90.0f);
+        if (Dest.Float<0.0f) 
+			Dest.Float += 360.0f;
+		else if (Dest.Float>=360.0f) 
+			Dest.Float -= 360.0f;
+		Dest.Type=pFloatType;
+		return true;
+
 	}
 	return false;
 #undef pSpawn
@@ -458,9 +479,10 @@ bool MQ2StringType::GetMember(void *Ptr, PCHAR Member, PCHAR Index, MQ2TYPEVAR &
 		Dest.Ptr=&DataTypeTemp[0];
 		Dest.Type=pStringType;
 		return true;
-	case Arg:
-	case Mid:
-		return false;
+	/*
+	Arg
+	Mid
+	/**/
 	}
 	return false;
 }
@@ -793,10 +815,14 @@ bool MQ2SpellType::GetMember(void *Ptr, PCHAR Member, PCHAR Index, MQ2TYPEVAR &D
 		Dest.Ptr=szSkills[pSpell->Skill];
 		Dest.Type=pStringType;
 		return true;
-		/*
-		MyCastTime=12,
-		Duration=15,
-		/**/
+	case MyCastTime:
+		Dest.Float=(FLOAT)(pCharData->GetFocusCastingTimeModifier((EQ_Spell*)pSpell,0)+pSpell->CastTime)/1000.0f;
+		Dest.Type=pFloatType;
+		return true;
+	case Duration:
+		Dest.DWord=GetSpellDuration(pSpell,(PSPAWNINFO)pCharSpawn);
+		Dest.Type=pTicksType;
+		return true;
 	}
 	return false;
 #undef pSpell
@@ -978,10 +1004,6 @@ bool MQ2MathType::GetMember(void *Ptr, PCHAR Member, PCHAR Index, MQ2TYPEVAR &De
 	}
 	return false;
 }
-bool MQ2MerchantType::GetMember(void *Ptr, PCHAR Member, PCHAR Index, MQ2TYPEVAR &Dest)
-{
-	return false;
-}
 bool MQ2WindowType::GetMember(void *Ptr, PCHAR Member, PCHAR Index, MQ2TYPEVAR &Dest)
 {
 #define pWnd ((PCSIDLWND)Ptr)
@@ -1014,6 +1036,20 @@ bool MQ2WindowType::GetMember(void *Ptr, PCHAR Member, PCHAR Index, MQ2TYPEVAR &
 			return true;
 		}
 		return false;
+	case FirstChild:
+		if (Dest.Ptr=pWnd->pChildren)
+		{
+			Dest.Type=pWindowType;
+			return true;
+		}
+		return false;
+	case Next:
+		if (Dest.Ptr=pWnd->pSiblings)
+		{
+			Dest.Type=pWindowType;
+			return true;
+		}
+		return false;
 	case VScrollMax:
 		Dest.DWord=pWnd->VScrollMax;
 		Dest.Type=pIntType;
@@ -1038,6 +1074,52 @@ bool MQ2WindowType::GetMember(void *Ptr, PCHAR Member, PCHAR Index, MQ2TYPEVAR &
 		Dest.DWord=(pWnd->HScrollPos*100)/pWnd->HScrollMax;
 		Dest.Type=pIntType;
 		return true;
+	case Children:
+		Dest.DWord=pWnd->HasChildren;
+		Dest.Type=pBoolType;
+		return true;
+	case Siblings:
+		Dest.DWord=pWnd->HasSiblings;
+		Dest.Type=pBoolType;
+		return true;
+	case Minimized:
+		Dest.DWord=pWnd->Minimized;
+		Dest.Type=pBoolType;
+		return true;
+	case MouseOver:
+		Dest.DWord=pWnd->MouseOver;
+		Dest.Type=pBoolType;
+		return true;
+	case X:
+		Dest.DWord=pWnd->Location.left;
+		Dest.Type=pIntType;
+		return true;
+	case Y:
+		Dest.DWord=pWnd->Location.top;
+		Dest.Type=pIntType;
+		return true;
+	case Width:
+		Dest.DWord=pWnd->Location.right-pWnd->Location.left;
+		Dest.Type=pIntType;
+		return true;
+	case Height:
+		Dest.DWord=pWnd->Location.bottom-pWnd->Location.top;
+		Dest.Type=pIntType;
+		return true;
+	case BGColor:
+		Dest.Argb=pWnd->BGColor;
+		Dest.Type=pArgbType;
+		return true;
+	case Text:
+		GetCXStr(pWnd->WindowText,DataTypeTemp,MAX_STRING);
+		Dest.Ptr=&DataTypeTemp[0];
+		Dest.Type=pStringType;
+		return true;
+	case Tooltip:
+		GetCXStr(pWnd->Tooltip,DataTypeTemp,MAX_STRING);
+		Dest.Ptr=&DataTypeTemp[0];
+		Dest.Type=pStringType;
+		return true;
 	}
 
 	return false;
@@ -1045,29 +1127,278 @@ bool MQ2WindowType::GetMember(void *Ptr, PCHAR Member, PCHAR Index, MQ2TYPEVAR &
 }
 bool MQ2ZoneType::GetMember(void *Ptr, PCHAR Member, PCHAR Index, MQ2TYPEVAR &Dest)
 {
+#define pZone ((PZONEINFO)pZoneInfo)
+	unsigned long N=MemberMap[Member];
+	if (!N)
+		return false;
+	N--;
+	PMQ2TYPEMEMBER pMember=Members[N];
+	if (!pMember)
+		return false;
+	switch((ZoneMembers)pMember->ID)
+	{
+	case Name:
+		Dest.Ptr=&pZone->LongName[0];
+		Dest.Type=pStringType;
+		return true;
+	case ShortName:
+		Dest.Ptr=&pZone->ShortName[0];
+		Dest.Type=pStringType;
+		return true;
+	case Type:
+		Dest.DWord=pZone->ZoneType;
+		Dest.Type=pIntType;
+		return true;
+	case Gravity:
+		Dest.Float=pZone->ZoneGravity;
+		Dest.Type=pFloatType;
+		return true;
+	case SkyType:
+		Dest.DWord=pZone->SkyType;
+		Dest.Type=pIntType;
+		return true;
+	case SafeY:
+		Dest.Float=pZone->SafeYLoc;
+		Dest.Type=pFloatType;
+		return true;
+	case SafeX:
+		Dest.Float=pZone->SafeXLoc;
+		Dest.Type=pFloatType;
+		return true;
+	case SafeZ:
+		Dest.Float=pZone->SafeZLoc;
+		Dest.Type=pFloatType;
+		return true;
+	case MinClip:
+		Dest.Float=pZone->MinClip;
+		Dest.Type=pFloatType;
+		return true;
+	case MaxClip:
+		Dest.Float=pZone->MaxClip;
+		Dest.Type=pFloatType;
+		return true;
+	}
 	return false;
+#undef pZone
 }
 bool MQ2BodyType::GetMember(void *Ptr, PCHAR Member, PCHAR Index, MQ2TYPEVAR &Dest)
 {
+	unsigned long N=MemberMap[Member];
+	if (!N)
+		return false;
+	N--;
+	PMQ2TYPEMEMBER pMember=Members[N];
+	if (!pMember)
+		return false;
+	switch((BodyMembers)pMember->ID)
+	{
+	case ID:
+		Dest.Ptr=Ptr;
+		Dest.Type=pIntType;
+		return true;
+	case Name:
+		Dest.Ptr=pEverQuest->GetBodyTypeDesc((int)Ptr);
+		Dest.Type=pStringType;
+		return true;
+	}
 	return false;
 }
 bool MQ2DeityType::GetMember(void *Ptr, PCHAR Member, PCHAR Index, MQ2TYPEVAR &Dest)
 {
+	unsigned long N=MemberMap[Member];
+	if (!N)
+		return false;
+	N--;
+	PMQ2TYPEMEMBER pMember=Members[N];
+	if (!pMember)
+		return false;
+	switch((DeityMembers)pMember->ID)
+	{
+	case ID:
+		Dest.Ptr=Ptr;
+		Dest.Type=pIntType;
+		return true;
+	case Name:
+		Dest.Ptr=pEverQuest->GetDeityDesc((int)Ptr);
+		Dest.Type=pStringType;
+		return true;
+	case Team:
+		Dest.Ptr=szDeityTeam[GetDeityTeamByID((int)Ptr)];
+		Dest.Type=pStringType;
+		return true;
+	}
 	return false;
 }
 bool MQ2ClassType::GetMember(void *Ptr, PCHAR Member, PCHAR Index, MQ2TYPEVAR &Dest)
 {
+	unsigned long N=MemberMap[Member];
+	if (!N)
+		return false;
+	N--;
+	PMQ2TYPEMEMBER pMember=Members[N];
+	if (!pMember)
+		return false;
+	switch((ClassMembers)pMember->ID)
+	{
+	case ID:
+		Dest.Ptr=Ptr;
+		Dest.Type=pIntType;
+		return true;
+	case Name:
+		Dest.Ptr=pEverQuest->GetClassDesc((int)Ptr);
+		Dest.Type=pStringType;
+		return true;
+	case ShortName:
+		Dest.Ptr=pEverQuest->GetClassThreeLetterCode((int)Ptr);
+		Dest.Type=pStringType;
+		return true;
+	}
 	return false;
 }
 bool MQ2RaceType::GetMember(void *Ptr, PCHAR Member, PCHAR Index, MQ2TYPEVAR &Dest)
 {
+	unsigned long N=MemberMap[Member];
+	if (!N)
+		return false;
+	N--;
+	PMQ2TYPEMEMBER pMember=Members[N];
+	if (!pMember)
+		return false;
+	switch((RaceMembers)pMember->ID)
+	{
+	case ID:
+		Dest.Ptr=Ptr;
+		Dest.Type=pIntType;
+		return true;
+	case Name:
+		Dest.Ptr=pEverQuest->GetRaceDesc((int)Ptr);
+		Dest.Type=pStringType;
+		return true;
+	}
 	return false;
 }
 bool MQ2SwitchType::GetMember(void *Ptr, PCHAR Member, PCHAR Index, MQ2TYPEVAR &Dest)
 {
+#define pSwitch ((PDOOR)Ptr)
+	if (!Ptr)
+		return false;
+	unsigned long N=MemberMap[Member];
+	if (!N)
+		return false;
+	N--;
+	PMQ2TYPEMEMBER pMember=Members[N];
+	if (!pMember)
+		return false;
+	switch((SwitchMembers)pMember->ID)
+	{
+	case ID:
+		Dest.DWord=pSwitch->ID;
+		Dest.Type=pIntType;
+		return true;
+	case X:
+		Dest.Float=pSwitch->X;
+		Dest.Type=pFloatType;
+		return true;
+	case Y:
+		Dest.Float=pSwitch->Y;
+		Dest.Type=pFloatType;
+		return true;
+	case Z:
+		Dest.Float=pSwitch->Z;
+		Dest.Type=pFloatType;
+		return true;
+	case DefaultX:
+		Dest.Float=pSwitch->DefaultX;
+		Dest.Type=pFloatType;
+		return true;
+	case DefaultY:
+		Dest.Float=pSwitch->DefaultY;
+		Dest.Type=pFloatType;
+		return true;
+	case DefaultZ:
+		Dest.Float=pSwitch->DefaultZ;
+		Dest.Type=pFloatType;
+		return true;
+	case Heading:
+		Dest.Float=pSwitch->Heading*0.703125f;
+		Dest.Type=pFloatType;
+		return true;
+	case DefaultHeading:
+		Dest.Float=pSwitch->DefaultHeading*0.703125f;
+		Dest.Type=pFloatType;
+		return true;
+	case Open:
+		Dest.DWord=((pSwitch->DefaultHeading != pSwitch->Heading) ||
+                (pSwitch->DefaultZ != pSwitch->Z));
+		Dest.Type=pBoolType;
+		return true;
+	case HeadingTo:
+        Dest.Float=(FLOAT)(atan2f(((PSPAWNINFO)pCharSpawn)->Y - pSwitch->Y, pSwitch->X - ((PSPAWNINFO)pCharSpawn)->X) * 180.0f / PI + 90.0f);
+        if (Dest.Float<0.0f) 
+			Dest.Float += 360.0f;
+		else if (Dest.Float>=360.0f) 
+			Dest.Float -= 360.0f;
+		Dest.Type=pFloatType;
+		return true;
+	case Name:
+		Dest.Ptr=&pSwitch->Name[0];
+		Dest.Type=pStringType;
+		return true;
+	case Distance:
+		Dest.Float=GetDistance(pSwitch->X,pSwitch->Y);
+		Dest.Type=pFloatType;
+		return true;
+	}
 	return false;
+#undef pSwitch
 }
 bool MQ2GroundType::GetMember(void *Ptr, PCHAR Member, PCHAR Index, MQ2TYPEVAR &Dest)
+{
+#define pGround ((PGROUNDITEM)Ptr)
+	if (!Ptr)
+		return false;
+	unsigned long N=MemberMap[Member];
+	if (!N)
+		return false;
+	N--;
+	PMQ2TYPEMEMBER pMember=Members[N];
+	if (!pMember)
+		return false;
+	switch((GroundMembers)pMember->ID)
+	{
+	case ID:
+		Dest.DWord=pGround->ID;
+		Dest.Type=pIntType;
+		return true;
+	case X:
+		Dest.Float=pGround->X;
+		Dest.Type=pFloatType;
+		return true;
+	case Y:
+		Dest.Float=pGround->Y;
+		Dest.Type=pFloatType;
+		return true;
+	case Z:
+		Dest.Float=pGround->Z;
+		Dest.Type=pFloatType;
+		return true;
+	case Name:
+		Dest.Ptr=&pGround->Name[0];
+		Dest.Type=pStringType;
+		return true;
+	case Heading:
+		Dest.Float=pGround->Heading*0.703125f;
+		Dest.Type=pStringType;
+		return true;
+	case Distance:
+		Dest.Float=GetDistance(pGround->X,pGround->Y);
+		Dest.Type=pFloatType;
+		return true;
+	}
+	return false;
+#undef pGround
+}
+bool MQ2MerchantType::GetMember(void *Ptr, PCHAR Member, PCHAR Index, MQ2TYPEVAR &Dest)
 {
 	return false;
 }

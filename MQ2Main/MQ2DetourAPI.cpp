@@ -39,12 +39,29 @@ typedef struct _OurDetours {
 OurDetours *ourdetours=0;
 CRITICAL_SECTION gDetourCS;
 
+OurDetours *FindDetour(DWORD address)
+{
+	OurDetours *pDetour=ourdetours;
+	while(pDetour)
+	{
+		if (pDetour->addr=address)
+			return pDetour;
+		pDetour=pDetour->pNext;
+	}
+	return 0;
+}
 
 BOOL AddDetour(DWORD address, PBYTE pfDetour, PBYTE pfTrampoline, DWORD Count)
 {
 	CAutoLock Lock(&gDetourCS);
 	BOOL Ret=TRUE;
 	DebugSpew("AddDetour(0x%X,0x%X,0x%X)",address,pfDetour,pfTrampoline);
+	if (FindDetour(address))
+	{
+
+		DebugSpew("Already detoured.");
+		return FALSE;
+	}
 	OurDetours *detour = new OurDetours;
 	detour->addr=address;
 	detour->count=Count;

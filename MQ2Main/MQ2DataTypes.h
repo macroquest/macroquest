@@ -862,7 +862,9 @@ public:
 		Height=17,
 		Width=18,
 		MouseOver=19,
-		BGColor=20
+		BGColor=20,
+		Text=21,
+		Tooltip=22,
 	};
 	MQ2WindowType():MQ2Type("window")
 	{
@@ -878,9 +880,16 @@ public:
 		TypeMember(Siblings);
 		TypeMember(FirstChild);
 		TypeMember(Next);
-
-		
-	}
+		TypeMember(Minimized);//14,
+		TypeMember(X);//15,
+		TypeMember(Y);//16,
+		TypeMember(Height);//17,
+		TypeMember(Width);//18,
+		TypeMember(MouseOver);//19,
+		TypeMember(BGColor);//20,
+		TypeMember(Text);//21,
+		TypeMember(Tooltip);//22,
+ 	}
 
 	~MQ2WindowType()
 	{
@@ -926,10 +935,28 @@ public:
 	static enum ZoneMembers
 	{
 		Name=1,
+		ShortName=2,
+		Type=3,
+		Gravity=4,
+		SkyType=5,
+		SafeY=6,
+		SafeX=7,
+		SafeZ=8,
+		MinClip=9,
+		MaxClip=10,
 	};
 	MQ2ZoneType():MQ2Type("zone")
 	{
 		TypeMember(Name);
+		TypeMember(ShortName);//2,
+		TypeMember(Type);//3,
+		TypeMember(Gravity);//4,
+		TypeMember(SkyType);//5,
+		TypeMember(SafeY);//6,
+		TypeMember(SafeX);//7,
+		TypeMember(SafeZ);//8,
+		TypeMember(MinClip);//9,
+		TypeMember(MaxClip);//10,
 	}
 
 	~MQ2ZoneType()
@@ -1019,15 +1046,13 @@ class MQ2RaceType : public MQ2Type
 public:
 	static enum RaceMembers
 	{
-		Short=1,
-		Long=2,
-		Number=3
+		Name=1,
+		ID=2,
 	};
 	MQ2RaceType():MQ2Type("race")
 	{
-		TypeMember(Short);
-		TypeMember(Long);
-		TypeMember(Number);
+		TypeMember(Name);
+		TypeMember(ID);
 	}
 
 	~MQ2RaceType()
@@ -1049,15 +1074,15 @@ class MQ2ClassType : public MQ2Type
 public:
 	static enum ClassMembers
 	{
-		Short=1,
-		Long=2,
-		Number=3
+		Name=1,
+		ShortName=2,
+		ID=3
 	};
 	MQ2ClassType():MQ2Type("class")
 	{
-		TypeMember(Short);
-		TypeMember(Long);
-		TypeMember(Number);
+		TypeMember(Name);
+		TypeMember(ShortName);
+		TypeMember(ID);
 	}
 
 	~MQ2ClassType()
@@ -1078,15 +1103,13 @@ class MQ2BodyType : public MQ2Type
 public:
 	static enum BodyMembers
 	{
-		Short=1,
-		Long=2,
-		Number=3
+		Name=1,
+		ID=2
 	};
 	MQ2BodyType():MQ2Type("body")
 	{
-		TypeMember(Short);
-		TypeMember(Long);
-		TypeMember(Number);
+		TypeMember(Name);
+		TypeMember(ID);
 	}
 
 	~MQ2BodyType()

@@ -69,4 +69,32 @@ static inline PCHARINFO GetCharInfo(VOID) {
     return (PCHARINFO)pCharData;
 }
 
+static inline FLOAT GetDistance(FLOAT X1,FLOAT Y1)
+{
+	FLOAT dX=X1-((PSPAWNINFO)pCharSpawn)->X;
+	FLOAT dY=Y1-((PSPAWNINFO)pCharSpawn)->Y;
+	return sqrtf(dX*dX + dY*dY);
+}
+
+static inline FLOAT GetDistance(FLOAT X1,FLOAT Y1,FLOAT X2,FLOAT Y2)
+{
+	FLOAT dX=X1-X2;
+	FLOAT dY=Y1-Y2;
+	return sqrtf(dX*dX + dY*dY);
+}
+
+// ***************************************************************************
+// Function:    DistanceToSpawn
+// Description: Return the distance between two spawns
+// ***************************************************************************
+static inline FLOAT GetDistance(PSPAWNINFO pChar, PSPAWNINFO pSpawn)
+{
+    FLOAT X = pChar->X - pSpawn->X;
+    FLOAT Y = pChar->Y - pSpawn->Y;
+    //FLOAT Z = pChar->Z - pSpawn->Z;
+    return sqrtf(X*X + Y*Y);// + Z*Z);
+}
+
+#define DistanceToSpawn(pChar,pSpawn) GetDistance(pChar,pSpawn)
+
 #define _FileExists(filename) ( (_access( filename, 0 )) != -1 )
