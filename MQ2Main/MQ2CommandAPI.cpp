@@ -84,10 +84,10 @@ VOID HideDoCommand(PSPAWNINFO pChar, PCHAR szLine, BOOL delayed)
 			if (stricmp(szCmd,"else")) {
 				GracefullyEndBadMacro(pChar,gMacroBlock,"} and { seen on the same line without an else present");
 			}
-            DebugSpew("DoCommand - handing {} off to FailIf");
+  //          DebugSpew("DoCommand - handing {} off to FailIf");
             FailIf(pChar,"{",gMacroBlock,TRUE);
         } else {
-            DebugSpew("DoCommand - } seen");
+//            DebugSpew("DoCommand - } seen");
             bRunNextCommand = TRUE;
         }
         return;

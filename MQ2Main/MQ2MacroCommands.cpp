@@ -1374,6 +1374,7 @@ VOID DumpStack(PSPAWNINFO pChar, PCHAR szLine)
 // Description: Our '/if' command
 // Usage:       /if [n] <a>==<b> <command>
 // ***************************************************************************
+
 VOID FailIf(PSPAWNINFO pChar, PCHAR szCommand, PMACROBLOCK pStartLine, BOOL All)
 {
     DWORD Scope = 0;
@@ -1387,17 +1388,17 @@ VOID FailIf(PSPAWNINFO pChar, PCHAR szCommand, PMACROBLOCK pStartLine, BOOL All)
         //DebugSpewNoFile("FailIf - Starting macroblock: %s",gMacroBlock->Line);
         gMacroBlock = gMacroBlock->pNext;
         while ((Scope>0)) {
-            if (strstr(gMacroBlock->Line,"}")) Scope--;
-            if (All) if (strstr(gMacroBlock->Line,"{")) Scope++;
+            if (gMacroBlock->Line[0]=='}') Scope--;
+            if (All) if (gMacroBlock->Line[strlen(gMacroBlock->Line)-1]=='{') Scope++;
             if (Scope>0) {
-                if (!All) if (strstr(gMacroBlock->Line,"{")) Scope++;
+                if (!All) if (gMacroBlock->Line[strlen(gMacroBlock->Line)-1]=='{') Scope++;
                 //DebugSpewNoFile("FailIf - Skipping(%d): %s",Scope,gMacroBlock->Line);
                 if (!strnicmp(gMacroBlock->Line,"sub ",4)) {
                     GracefullyEndBadMacro(pChar,pStartLine,"{} pairing ran into anther subroutine");
                     return;
                 }
                 if (!gMacroBlock->pNext) {
-                    GracefullyEndBadMacro(pChar,pStartLine,"Bad {} pairing");
+                    GracefullyEndBadMacro(pChar,pStartLine,"Bad {} block pairing");
                     return;
                 }
                 gMacroBlock = gMacroBlock->pNext;
@@ -1678,8 +1679,10 @@ VOID NewIf(PSPAWNINFO pChar, PCHAR szLine)
 	BOOL True=true;
 	if ((szCond[0]>='0' && szCond[0]<='9') || szCond[0]=='-')
 	{
-		DOUBLE Result;
-		True=(Calculate(szCond,Result) && Result!=0);
+		DOUBLE Result=0;
+		if (!Calculate(szCond,Result))
+			FailIfParsing();
+		True=(Result!=0);
 	}
 	else if (!stricmp(szCond,"NULL") ||
 				!stricmp(szCond,"FALSE"))

@@ -12,6 +12,7 @@
   float Look: Look angle
 - Added "gm" to standard searchspawn, works with anything that uses that including MQ2Map commands,
   /target, ${Spawn[search]}, etc
+- Modified the if block parsing in FailIf so that it only looks for } and { as the first and last characters on a line
 
 31 Mar 2004 by Lax
 - Fixed /newif so variables/parms/data get parsed
