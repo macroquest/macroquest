@@ -773,6 +773,12 @@ BOOL CanDisplaySpawn(eSpawnType Type, PSPAWNINFO pSpawn)
 		return IsOptionEnabled(MAPFILTER_Corpse);
 	case ITEM:
 		return IsOptionEnabled(MAPFILTER_Ground);
+	case UNTARGETABLE:
+		return IsOptionEnabled(MAPFILTER_Untargetable);
+	case TIMER:
+		return IsOptionEnabled(MAPFILTER_Timer);
+	case TRAP:
+		return IsOptionEnabled(MAPFILTER_Trap);
 	case TRIGGER:
 		return IsOptionEnabled(MAPFILTER_Trigger);
 	case PET:
@@ -801,8 +807,14 @@ inline DWORD GetSpawnColor(eSpawnType Type, PSPAWNINFO pSpawn)
 		return MapFilterOptions[MAPFILTER_NPC].Color;
 	case CORPSE:
 		return MapFilterOptions[MAPFILTER_Corpse].Color;
+	case UNTARGETABLE:
+		return MapFilterOptions[MAPFILTER_Untargetable].Color;
 	case TRIGGER:
 		return MapFilterOptions[MAPFILTER_Trigger].Color;
+	case TIMER:
+		return MapFilterOptions[MAPFILTER_Timer].Color;
+	case TRAP:
+		return MapFilterOptions[MAPFILTER_Trap].Color;
 	case ITEM:
 		return MapFilterOptions[MAPFILTER_Ground].Color;
 	case MOUNT:

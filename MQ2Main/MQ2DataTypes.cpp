@@ -420,6 +420,10 @@ bool MQ2SpawnType::GetMember(MQ2VARPTR VarPtr, PCHAR Member, PCHAR Index, MQ2TYP
 			Dest.Ptr="Mount";
 			Dest.Type=pStringType;
 			return true;
+		case UNTARGETABLE:
+			Dest.Ptr="Untargetable";
+			Dest.Type=pStringType;
+			return true;
 		case NPC:
 			Dest.Ptr="NPC";
 			Dest.Type=pStringType;
@@ -428,8 +432,16 @@ bool MQ2SpawnType::GetMember(MQ2VARPTR VarPtr, PCHAR Member, PCHAR Index, MQ2TYP
 			Dest.Ptr="PC";
 			Dest.Type=pStringType;
 			return true;
+		case TRAP:
+			Dest.Ptr="Trap";
+			Dest.Type=pStringType;
+			return true;
 		case TRIGGER:
 			Dest.Ptr="Trigger";
+			Dest.Type=pStringType;
+			return true;
+		case TIMER:
+			Dest.Ptr="Timer";
 			Dest.Type=pStringType;
 			return true;
 		case PET:
@@ -3964,7 +3976,7 @@ bool MQ2ArrayType::GetMember(MQ2VARPTR VarPtr, PCHAR Member, PCHAR Index, MQ2TYP
 
 bool MQ2TimerType::GetMember(MQ2VARPTR VarPtr, PCHAR Member, PCHAR Index, MQ2TYPEVAR &Dest)
 {
-#define pTimer ((PTIMER)VarPtr.Ptr)
+#define pTimer ((PMQTIMER)VarPtr.Ptr)
 	if (!pTimer)
 		return false;
 	PMQ2TYPEMEMBER pMember=MQ2TimerType::FindMember(Member);

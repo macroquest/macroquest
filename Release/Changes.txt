@@ -1,3 +1,23 @@
+14 May 2004 by Lax:
+- MQ2ChatWnd (the MQ2 Chat Window support) got some upgrades.  First of all the window was not
+  limiting the size of its scrollback, so after so much went on in the MQ2 window, your framerate
+  would drop like a rock.  To achieve proper scrollback limiting without lagging you too much,
+  I put in a system to make it buffer the chat that goes to it, and only display so many lines
+  per frame.  The MQ2ChatWnd font size option now works somewhat...  The font sizes are not the
+  same as EQ's chat window sizes yet, so be aware of that.  I'll work on it ;)  You will probably
+  want somewhere from -3 to 2.  /mqfont <#>
+- MQ2Map filters added: untargetable, trap, timer
+- /who has been changed a little bit.  When a TRIGGER, TRAP, TIMER, or UNTARGETABLE is listed,
+  that will be noted at the end of the line in red (very helpful).  The routine has also been
+  updated for efficiency, so there is less lag with large /who result sets.
+- Standard spawn searches (This includes /who, /target, ${Spawn[search]}, etc) have been 
+  slightly modified.  "invis" is NO LONGER A VALID KEYWORD.  If you have this in macros, etc 
+  you will need to change it.  The updated spawn types ARE valid keywords (trigger, trap, 
+  timer, untargetable). If your search is for type "npc" you WILL get untargetable types in
+  your search results (particularly helpful for /who).
+- Added/changed MQ2Data members:
+  string spawn.Type: PC NPC Untargetable Mount Pet Corpse Trigger Trap Timer Item 
+
 13 May 2004 by Lax:
 - Fixed "by class" caption colors
 - Fixed some bodytypes being identified as triggers (note that untargetable NPCs *are* 

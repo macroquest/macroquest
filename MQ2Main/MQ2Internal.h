@@ -31,16 +31,16 @@ enum eSpawnType
 	NPC,
 	CORPSE,
 	TRIGGER,
-//	TRAP,
-//	TIMER,
-//	UNTARGETABLE,
+	TRAP,
+	TIMER,
+	UNTARGETABLE,
 	ITEM
 };
 
 typedef struct _SEARCHSPAWN {
     DWORD MinLevel;
     DWORD MaxLevel;
-    DWORD SpawnType;
+    eSpawnType SpawnType;
     DWORD SpawnID;
     DWORD FromSpawnID;
     FLOAT Radius;
@@ -57,7 +57,6 @@ typedef struct _SEARCHSPAWN {
     BOOL bLFG;
     BOOL bTrader;
     BOOL bLight;
-    BOOL bTargInvis;
     BOOL bTargNext;
     BOOL bTargPrev;
 	BOOL bGroup;
@@ -197,13 +196,13 @@ typedef struct _ALERTLIST {
     struct _ALERTLIST *pNext;
 } ALERTLIST, *PALERTLIST;
 
-typedef struct _TIMER {
+typedef struct _MQTIMER {
     CHAR szName[MAX_VARNAME];
     ULONG Original;
     ULONG Current;
-    struct _TIMER *pNext;
-	struct _TIMER *pPrev;
-} TIMER, *PTIMER;
+    struct _MQTIMER *pNext;
+	struct _MQTIMER *pPrev;
+} MQTIMER, *PMQTIMER;
 
 typedef struct _KEYPRESS {
     WORD KeyId;

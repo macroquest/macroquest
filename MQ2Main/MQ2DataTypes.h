@@ -2535,13 +2535,13 @@ public:
 
    bool ToString(MQ2VARPTR VarPtr, PCHAR Destination)
    {
-	   PTIMER pTimer=(PTIMER)VarPtr.Ptr;
+	   PMQTIMER pTimer=(PMQTIMER)VarPtr.Ptr;
 	   itoa(pTimer->Current,Destination,10);
 	   return true;
    }
 	void InitVariable(MQ2VARPTR &VarPtr) 
 	{
-		PTIMER pVar = (PTIMER)malloc(sizeof(TIMER));
+		PMQTIMER pVar = (PMQTIMER)malloc(sizeof(MQTIMER));
 		pVar->szName[0]=0;
 		pVar->Current = 0;
 		pVar->Original= 0;
@@ -2554,7 +2554,7 @@ public:
 	}
 	void FreeVariable(MQ2VARPTR &VarPtr) 
 	{
-		PTIMER pVar=(PTIMER)VarPtr.Ptr;
+		PMQTIMER pVar=(PMQTIMER)VarPtr.Ptr;
 		if (pVar->pPrev)
 			pVar->pPrev->pNext=pVar->pNext;
 		else
@@ -2566,7 +2566,7 @@ public:
 
 	bool FromData(MQ2VARPTR &VarPtr, MQ2TYPEVAR &Source)
 	{
-		PTIMER pTimer=(PTIMER)VarPtr.Ptr;
+		PMQTIMER pTimer=(PMQTIMER)VarPtr.Ptr;
 		if (Source.Type==pFloatType)
 		{
 			pTimer->Current=(DWORD)Source.Float;
@@ -2581,7 +2581,7 @@ public:
 	}
 	bool FromString(MQ2VARPTR &VarPtr, PCHAR Source)
 	{
-		PTIMER pTimer=(PTIMER)VarPtr.Ptr;
+		PMQTIMER pTimer=(PMQTIMER)VarPtr.Ptr;
 
 
         FLOAT VarValue = (FLOAT)atof(Source);

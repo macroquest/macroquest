@@ -38,6 +38,7 @@ FUNCTION_AT_VIRTUAL_ADDRESS(void CChatWindow::operator delete[](void*),0x04);
 
 FUNCTION_AT_VIRTUAL_ADDRESS(bool CXWnd::IsValid(void)const,0);
 FUNCTION_AT_VIRTUAL_ADDRESS(int CXWnd::WndNotification(class CXWnd *,unsigned __int32,void *),0x80);
+FUNCTION_AT_VIRTUAL_ADDRESS(int CXWnd::OnResize(int,int),0x094);
 FUNCTION_AT_VIRTUAL_ADDRESS(int CXWnd::Show(bool,bool),0x0C0);
 FUNCTION_AT_VIRTUAL_ADDRESS(int CXWnd::SetVScrollPos(int),0x100);
 FUNCTION_AT_VIRTUAL_ADDRESS(void CXWnd::SetWindowTextA(class CXStr &),0xfc);

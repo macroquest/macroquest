@@ -504,6 +504,9 @@ BOOL SetNameSpriteState(PSPAWNINFO pSpawn, bool Show)
 		case CORPSE:
 			SetCaption(gszSpawnCorpseName);
 			break;
+		case UNTARGETABLE:
+		case TRAP:
+		case TIMER:
 		case TRIGGER:// trigger names make it crash!
 			return 0;
 		case MOUNT://mount names make it crash!

@@ -106,23 +106,24 @@ static inline eSpawnType GetSpawnType(PSPAWNINFO pSpawn)
 	{
 	case SPAWN_PLAYER:
 		{
-			if (strstr(pSpawn->Name,"s_Mount"))
-			{
-//				DebugSpew("PC Mount BodyType %d",pSpawn->BodyType);
-				return MOUNT;
-			}
 			return PC;
 		}
 	case SPAWN_NPC:
 		if (strstr(pSpawn->Name,"s_Mount"))
 		{
-//			DebugSpew("NPC Mount BodyType %d",pSpawn->BodyType);
 			return MOUNT;
 		}
-		if (GetBodyTypeDesc(pSpawn->BodyType)[0]=='*')
-			return TRIGGER;
-		else
+		switch(pSpawn->BodyType)
 		{
+		case 11:
+			return UNTARGETABLE;
+		case 65:
+			return TRAP;
+		case 66:
+			return TIMER;
+		case 67:
+			return TRIGGER;
+		default:
 			if (pSpawn->MasterID)
 				return PET;
 			else

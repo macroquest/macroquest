@@ -1600,6 +1600,7 @@ PCHAR CleanupName(PCHAR szName, BOOL Article)
 // Function:    SwapSWho
 // Description: Swaps two PSWHOSORTs
 // ***************************************************************************
+#if 0
 VOID SwapSWho(PSWHOSORT pSWho1, PSWHOSORT pSWho2)
 {
     SWHOSORT SWhoTemp;
@@ -1713,7 +1714,6 @@ VOID SortSWho(PSWHOSORT pSWhoSort, DWORD SpawnCount, DWORD SortBy)
     }
 }
 
-
 // ***************************************************************************
 // Function:    SuperWhoFindPets
 // Description: Find pets to display
@@ -1736,13 +1736,361 @@ VOID SuperWhoFindPets(PSPAWNINFO pChar, DWORD SpawnID, BOOL Color)
     DebugSpew("SuperWhoFindPets - Spawn%d has pet %s",SpawnID,pPet->Name);
     SuperWhoDisplay(pChar, NULL, pPet, 5, Color);
 }
+#endif
 
 
 // ***************************************************************************
 // Function:    SuperWhoDisplay
 // Description: Displays our SuperWho / SuperWhoTarget
 // ***************************************************************************
-VOID SuperWhoDisplay(PSPAWNINFO pChar, PSEARCHSPAWN pFilter, PSPAWNINFO psTarget, WORD Padding, DWORD Color)
+VOID SuperWhoDisplay(PSPAWNINFO pSpawn, DWORD Color)
+{
+	CHAR szName[MAX_STRING]={0};
+	CHAR szMsg[MAX_STRING]={0};
+	CHAR szMsgL[MAX_STRING]={0};
+	CHAR szTemp[MAX_STRING]={0};
+        strcpy(szName,pSpawn->Name);
+        if (pSpawn->Type == SPAWN_PLAYER) {
+            if (gFilterSWho.Lastname && strlen(pSpawn->Lastname)>0) {
+                strcat(szName," ");
+                strcat(szName,pSpawn->Lastname);
+            }
+            if (gFilterSWho.Guild && pSpawn->GuildID < MAX_GUILDS && pGuildList) {
+                strcat(szName," <");
+                strcat(szName,GetGuildByID(pSpawn->GuildID));
+                strcat(szName,">");
+            }
+        } else {
+            CleanupName(szName);
+            if (gFilterSWho.Lastname && strlen(pSpawn->Lastname)>0) {
+                strcat(szName," (");
+                strcat(szName,pSpawn->Lastname);
+                strcat(szName,")");
+            }
+        }
+        CHAR GM[MAX_STRING] = {0};
+
+		if (gFilterSWho.GM && pSpawn->GM) {
+            if (pSpawn->Level >= 50) {
+                strcpy(GM,"\ay*GM*\ax");
+			} else if (pSpawn->Level == 20) {
+                strcpy(GM,"\a-y*Guide Applicant*\ax");
+            } else {
+                strcpy(GM,"\a-y*Guide*\ax");
+            }
+        }
+
+		szMsg[0]='\a';
+		szMsg[2]=0;
+		if (Color || gFilterSWho.ConColor)
+		{
+			switch(ConColor(pSpawn))
+			{
+			case CONCOLOR_BLACK:
+				szMsg[1]='w';
+				break;
+			case CONCOLOR_YELLOW:
+				szMsg[1]='y';
+				break;
+			case CONCOLOR_RED:
+				szMsg[1]='r';
+				break;
+			case CONCOLOR_BLUE:
+				szMsg[1]='u';
+				break;
+			case CONCOLOR_LIGHTBLUE:
+				szMsg[1]='t';
+				break;
+			case CONCOLOR_GREEN:
+				szMsg[1]='g';
+				break;
+			default:
+				szMsg[1]='m';
+				break;
+			}
+		}
+		else
+		{
+			szMsg[1]='w';
+		}
+		if (gFilterSWho.GM) strcat(szMsg,GM);
+		if (gFilterSWho.Level || gFilterSWho.Race || gFilterSWho.Body || gFilterSWho.Class) {
+			strcat(szMsg,"\a-u[\ax");
+			if (gFilterSWho.Level) {
+				itoa(pSpawn->Level,szTemp,10);
+				strcat(szMsg,szTemp);
+				strcat(szMsg," ");
+			}
+			if (gFilterSWho.Race) {
+				strcat(szMsg,pEverQuest->GetRaceDesc(pSpawn->Race));
+				strcat(szMsg," ");
+			}
+			if (gFilterSWho.Body) {
+				strcat(szMsg,GetBodyTypeDesc(pSpawn->BodyType));
+				strcat(szMsg," ");
+			}
+			if (gFilterSWho.Class) {
+				strcat(szMsg,GetClassDesc(pSpawn->Class));
+				strcat(szMsg," ");
+			}
+			szMsg[strlen(szMsg)-1]=0;
+			strcat(szMsg,"\a-u]\ax");
+		}
+		strcat(szMsg," ");
+		strcat(szMsg,szName);
+//		strcat(szMsg,"\ax");
+		
+        if (pSpawn->Type == SPAWN_PLAYER) {
+            if (gFilterSWho.Anon && pSpawn->Anon>0) {
+                if (pSpawn->Anon==2) {
+                    strcat(szMsg," \ag*RP*\ax");
+                } else {
+                    strcat(szMsg," \ag*Anon*\ax");
+                }
+            }
+            if (gFilterSWho.LD && pSpawn->Linkdead) strcat(szMsg," \ag<LD>\ax");
+			if (gFilterSWho.Sneak && pSpawn->Sneak) strcat(szMsg," \ag<Sneak>\ax"); 
+            if (gFilterSWho.AFK && pSpawn->AFK) strcat(szMsg," \ag<AFK>\ax");
+            if (gFilterSWho.LFG && pSpawn->LFG) strcat(szMsg," \ag<LFG>\ax");
+            if (gFilterSWho.Trader && pSpawn->pActorInfo->Trader) strcat(szMsg," \ag<Trader>\ax");
+        } else if (gFilterSWho.NPCTag && pSpawn->Type == SPAWN_NPC) {
+            if (pSpawn->MasterID != 0) {
+                strcat(szMsg," <PET>");
+            } else {
+                strcat(szMsg," <NPC>");
+            }
+        }
+		if (gFilterSWho.Light) {
+			PCHAR szLight = GetLightForSpawn(pSpawn);
+			if (stricmp(szLight,"NONE")) {
+				strcat(szMsg," (");
+				strcat(szMsg,szLight);
+				strcat(szMsg,")");
+			}
+		}
+        strcpy(szMsgL,szMsg);
+		if (gFilterSWho.Distance) 
+		{
+	        INT Angle = (INT)((atan2f(GetCharInfo()->pSpawn->X - pSpawn->X, GetCharInfo()->pSpawn->Y - pSpawn->Y) * 180.0f / PI + 360.0f) / 22.5f + 0.5f) % 16;
+			sprintf(szTemp," \a-u(\ax%1.2f %s", GetDistance(GetCharInfo()->pSpawn,pSpawn), szHeadingShort[Angle]);
+			strcat(szMsg,szTemp);
+//	        if ((!pFilter) && (Padding == 0)) 
+//			{
+//			    sprintf(szTemp,"\a-u,\ax %1.2fZ", pSpawn->Z-pChar->Z);
+//				strcat(szMsg,szTemp);
+//			}
+			strcat(szMsg,"\a-u)\ax");
+		}
+		if (gFilterSWho.SpawnID) 
+		{
+			strcat(szMsg," \a-u(\axID:");
+			itoa(pSpawn->SpawnID,szTemp,10);
+			strcat(szMsg,szTemp);
+			strcat(szMsg,"\a-u)\ax");
+        }
+		if (gFilterSWho.Holding && (pSpawn->Equipment.Primary || pSpawn->Equipment.Offhand )) 
+		{
+			strcat(szMsg," \a-u(\ax");
+			if (pSpawn->Equipment.Primary)
+			{
+				itoa(pSpawn->Equipment.Primary,szTemp,10);
+				strcat(szMsg,"Pri: ");
+				strcat(szMsg,szTemp);
+				if (pSpawn->Equipment.Offhand)
+					strcat(szMsg," ");
+			}
+			if (pSpawn->Equipment.Offhand)
+			{
+				itoa(pSpawn->Equipment.Offhand,szTemp,10);
+				strcat(szMsg,"Off: ");
+				strcat(szMsg,szTemp);
+			}
+			strcat(szMsg,"\a-u)\ax");
+		}
+
+		switch(GetSpawnType(pSpawn))
+		{
+		case TRAP:
+			strcat(szMsg," \ar*TRAP*\ax");
+			break;
+		case TRIGGER:
+			strcat(szMsg," \ar*TRIGGER*\ax");
+			break;
+		case TIMER:
+			strcat(szMsg," \ar*TIMER*\ax");
+			break;
+		case UNTARGETABLE:
+			strcat(szMsg," \ar*UNTARGETABLE*\ax");
+			break;
+		}
+
+	WriteChatColor(szMsg,USERCOLOR_WHO);
+}
+
+DWORD SWhoSortValue=0;
+PSPAWNINFO SWhoSortOrigin=0;
+
+static int pWHOSORTCompare(const void *A, const void *B)
+{
+	PSPAWNINFO SpawnA=*(PSPAWNINFO*)A;
+	PSPAWNINFO SpawnB=*(PSPAWNINFO*)B;
+	switch(SWhoSortValue)
+	{
+	/*
+			PCHAR szSortBy[] = { 
+				"level",   // Default sort by 
+				"name", 
+				"race", 
+				"class", 
+				"distance", 
+				"guild", 
+				"id", 
+				NULL }; 
+	/**/
+	case 0://level
+		if (SpawnA->Level>SpawnB->Level)
+			return 1;
+		if (SpawnA->Level<SpawnB->Level)
+			return -1;
+		break;
+//	case 1://name   done at the bottom ;)
+//		break;
+	case 2://race
+		{
+			int RaceCompare=stricmp(pEverQuest->GetRaceDesc(SpawnA->Race),pEverQuest->GetRaceDesc(SpawnB->Race));
+			if (RaceCompare)
+				return RaceCompare;
+		}
+		break;
+	case 3://class
+		{
+			int ClassCompare=stricmp(GetClassDesc(SpawnA->Class),GetClassDesc(SpawnB->Class));
+			if (ClassCompare)
+				return ClassCompare;
+		}
+		break;
+	case 4://distance
+		{
+			FLOAT DistA=GetDistance(SWhoSortOrigin,SpawnA);
+			FLOAT DistB=GetDistance(SWhoSortOrigin,SpawnB);
+			if (DistA>DistB)
+				return 1;
+			if (DistA<DistB)
+				return -1;
+		}
+		break;
+	case 5://guild
+		{
+			int GuildCompare=stricmp(GetGuildByID(SpawnA->GuildID),GetGuildByID(SpawnB->GuildID));
+			if (GuildCompare)
+				return GuildCompare;
+		}
+		break;
+	case 6://id
+		if (SpawnA->SpawnID>SpawnB->SpawnID)
+			return 1;
+		if (SpawnA->SpawnID<SpawnB->SpawnID)
+			return -1;
+		break;
+	}
+	CHAR szNameA[MAX_STRING]={0};
+	CHAR szNameB[MAX_STRING]={0};
+	CleanupName(strcpy(szNameA,SpawnA->Name));
+	CleanupName(strcpy(szNameB,SpawnB->Name));
+	return stricmp(szNameA,szNameB);
+}
+
+VOID SuperWhoDisplay(PSPAWNINFO pChar, PSEARCHSPAWN pSearchSpawn, DWORD Color)
+{
+	if (!pSearchSpawn)
+		return;
+	CIndex<PSPAWNINFO> SpawnSet;
+	PSPAWNINFO pSpawn=(PSPAWNINFO)pSpawnList;
+	PSPAWNINFO pOrigin;
+	// create our set
+	DWORD TotalMatching=0;
+	if (pSearchSpawn->FromSpawnID)
+		pOrigin=(PSPAWNINFO)GetSpawnByID(pSearchSpawn->FromSpawnID);
+	if (!pOrigin)
+		pOrigin=pChar;
+	while (pSpawn)
+	{
+		if (SpawnMatchesSearch(pSearchSpawn,pOrigin,pSpawn))
+		{
+			// matches search, add to our set
+			TotalMatching++;
+			SpawnSet+=pSpawn;
+		}
+
+		pSpawn=pSpawn->pNext;
+	}
+	if (TotalMatching)
+	{
+		if (TotalMatching>1)
+		{
+			// sort our list
+			SWhoSortValue=pSearchSpawn->SortBy;
+			SWhoSortOrigin=pOrigin;
+			qsort(&SpawnSet.List[0],TotalMatching,sizeof(PSPAWNINFO),pWHOSORTCompare);
+		}
+
+		WriteChatColor("List of matching spawns",USERCOLOR_WHO);
+        WriteChatColor("--------------------------------",USERCOLOR_WHO);
+		for (DWORD N=0 ; N < TotalMatching ; N++)
+		{
+			SuperWhoDisplay(SpawnSet[N],Color);
+		}
+		PCHAR pszSpawnType;
+		switch(pSearchSpawn->SpawnType)
+		{
+		case NONE:
+		default:
+			pszSpawnType="any";
+			break;
+		case PC:
+			pszSpawnType="pc";
+			break;
+		case MOUNT:
+			pszSpawnType="mount";
+			break;
+		case PET:
+			pszSpawnType="pet";
+			break;
+		case NPC:
+			pszSpawnType="npc";
+			break;
+		case CORPSE:
+			pszSpawnType="corpse";
+			break;
+		case TRIGGER:
+			pszSpawnType="trigger";
+			break;
+		case TRAP:
+			pszSpawnType="trap";
+			break;
+		case TIMER:
+			pszSpawnType="timer";
+			break;
+		case UNTARGETABLE:
+			pszSpawnType="untargetable";
+			break;
+		}
+		WriteChatf("There %s \ag%d\ax %s%s in %s.",(TotalMatching == 1)?"is":"are",TotalMatching, pszSpawnType, (TotalMatching==1)?"":"s", GetFullZone(pChar->Zone));
+
+	}
+	else
+	{
+		WriteChatColor("List of matching spawns",USERCOLOR_WHO);
+        WriteChatColor("--------------------------------",USERCOLOR_WHO);
+		CHAR szMsg[MAX_STRING]={0};
+		FormatSearchSpawn(szMsg,pSearchSpawn);
+		strcat(szMsg," was not found.");
+		WriteChatColor(szMsg,USERCOLOR_WHO);
+	}
+}
+
+#if 0
+VOID OLDSuperWhoDisplay(PSPAWNINFO pChar, PSEARCHSPAWN pFilter, PSPAWNINFO psTarget, WORD Padding, DWORD Color)
 {
     PSPAWNINFO pSpawn = NULL;
     CHAR szMsg[MAX_STRING] = {0};
@@ -1776,8 +2124,8 @@ VOID SuperWhoDisplay(PSPAWNINFO pChar, PSEARCHSPAWN pFilter, PSPAWNINFO psTarget
 			if ((pFilter->bLight) && (pFilter->szLight[0]) && (stricmp(GetLightForSpawn(pSpawn),pFilter->szLight))) continue;
             if ((pFilter->bLFG) && (!pSpawn->LFG)) continue;
             if ((pFilter->bGroup) && (!IsInGroup(pSpawn))) continue;
-			if ((!pFilter->bTargInvis) && (!gFilterSWho.Invisible) && (GetBodyTypeDesc(pSpawn->BodyType)[0]=='*')) continue;
-			if ((!pFilter->bTargInvis) && (GetBodyTypeDesc(pSpawn->BodyType)[0]=='*')) continue;
+//			if ((!pFilter->bTargInvis) && (!gFilterSWho.Invisible) && (GetBodyTypeDesc(pSpawn->BodyType)[0]=='*')) continue;
+//			if ((!pFilter->bTargInvis) && (GetBodyTypeDesc(pSpawn->BodyType)[0]=='*')) continue;
             if ((pFilter->bTrader) && (!pSpawn->pActorInfo->Trader)) continue;
             if ((pFilter->bAlert) && (!IsAlert(pChar,pSpawn,pFilter->AlertList))) continue;
             if ((pFilter->bNoAlert) && (IsAlert(pChar,pSpawn,pFilter->NoAlertList))) continue;
@@ -1959,7 +2307,7 @@ VOID SuperWhoDisplay(PSPAWNINFO pChar, PSEARCHSPAWN pFilter, PSPAWNINFO psTarget
     }
     if (pFilter) {
         WriteChatColor(" ",USERCOLOR_WHO);
-        if (pFilter->SpawnType == SPAWN_ANY) {
+        if (pFilter->SpawnType == NONE) {
             WriteChatColor("List of all spawns",USERCOLOR_WHO);
         } else {
             sprintf(szMsg,"List of %ss",szSpawnType[pFilter->SpawnType]);
@@ -1980,13 +2328,13 @@ VOID SuperWhoDisplay(PSPAWNINFO pChar, PSEARCHSPAWN pFilter, PSPAWNINFO psTarget
             FormatSearchSpawn(szMsg,pFilter);
             strcat(szMsg," was not found.");
         } else {
-            sprintf(szMsg,"There %s \ag%d\ax%s %s%s in %s.",(SpawnCount == 1)?"is":"are",SpawnCount,(SpawnCount<500)?"":" (cut short)", (pFilter->SpawnType==SPAWN_ANY)?"spawn":szSpawnType[pFilter->SpawnType], (SpawnCount==1)?"":"s", GetFullZone(pChar->Zone));
+            sprintf(szMsg,"There %s \ag%d\ax%s %s%s in %s.",(SpawnCount == 1)?"is":"are",SpawnCount,(SpawnCount<500)?"":" (cut short)", (pFilter->SpawnType==NONE)?"spawn":szSpawnType[pFilter->SpawnType], (SpawnCount==1)?"":"s", GetFullZone(pChar->Zone));
         }
         WriteChatColor(szMsg,USERCOLOR_WHO);
     }
     free(pSWhoSort);
 }
-
+#endif
 // ***************************************************************************
 // Function:    SuperWhoTarget
 // Description: Our '/whotarget' command
@@ -2008,7 +2356,8 @@ VOID SuperWhoTarget(PSPAWNINFO pChar, PCHAR szLine)
         return;
     }
     DebugSpew("SuperWhoTarget - %s",psTarget->Name);
-    SuperWhoDisplay(pChar,NULL,psTarget,0,TRUE);
+	SuperWhoDisplay(psTarget,USERCOLOR_WHO);
+//    SuperWhoDisplay(pChar,NULL,psTarget,0,TRUE);
 }
 
 // ***************************************************************************
@@ -2029,7 +2378,7 @@ VOID SuperWho(PSPAWNINFO pChar, PCHAR szLine)
 
     _strlwr(strcpy(szLLine,szLine));
     ClearSearchSpawn(&SearchSpawn);
-    SearchSpawn.SpawnType = SPAWN_PLAYER;
+    SearchSpawn.SpawnType = PC;
 
 
     if ((!stricmp(szLine,"all")) ||
@@ -2040,10 +2389,10 @@ VOID SuperWho(PSPAWNINFO pChar, PCHAR szLine)
         cmdWho(pChar, szLine);
         return;
     }
-	if (szLine[0])
-	{
-		SearchSpawn.bTargInvis=true;
-	}
+//	if (szLine[0])
+//	{
+//		SearchSpawn.bTargInvis=true;
+//	}
 
     while (Parsing) {
         GetArg(szArg,szRest,1);
@@ -2081,7 +2430,8 @@ VOID SuperWho(PSPAWNINFO pChar, PCHAR szLine)
     }
 
     DebugSpew("SuperWho - filtering %s",SearchSpawn.szName);
-    SuperWhoDisplay(pChar, &SearchSpawn,0,0,bConColor);
+	SuperWhoDisplay(pChar,&SearchSpawn,bConColor);
+    //SuperWhoDisplay(pChar, &SearchSpawn,0,0,bConColor);
 
 }
 
@@ -2684,8 +3034,43 @@ PCHAR FormatSearchSpawn(PCHAR Buffer, PSEARCHSPAWN pSearchSpawn)
     CHAR szTemp[MAX_STRING] = {0};
     if (!Buffer) return NULL;
     if (!pSearchSpawn) return strcpy(Buffer,"None");
+		PCHAR pszSpawnType;
+		switch(pSearchSpawn->SpawnType)
+		{
+		case NONE:
+		default:
+			pszSpawnType="any";
+			break;
+		case PC:
+			pszSpawnType="pc";
+			break;
+		case MOUNT:
+			pszSpawnType="mount";
+			break;
+		case PET:
+			pszSpawnType="pet";
+			break;
+		case NPC:
+			pszSpawnType="npc";
+			break;
+		case CORPSE:
+			pszSpawnType="corpse";
+			break;
+		case TRIGGER:
+			pszSpawnType="trigger";
+			break;
+		case TRAP:
+			pszSpawnType="trap";
+			break;
+		case TIMER:
+			pszSpawnType="timer";
+			break;
+		case UNTARGETABLE:
+			pszSpawnType="untargetable";
+			break;
+		}
 
-    sprintf(Buffer,"(%d-%d) %s",pSearchSpawn->MinLevel,pSearchSpawn->MaxLevel,szSpawnType[pSearchSpawn->SpawnType]);
+    sprintf(Buffer,"(%d-%d) %s",pSearchSpawn->MinLevel,pSearchSpawn->MaxLevel,pszSpawnType);
 
     if (pSearchSpawn->szName[0]!=0) {
         sprintf(szTemp," %s",pSearchSpawn->szName);
@@ -2750,7 +3135,7 @@ PCHAR FormatSearchSpawn(PCHAR Buffer, PSEARCHSPAWN pSearchSpawn)
     if (pSearchSpawn->bGM) strcat(Buffer," GM");
     if (pSearchSpawn->bTrader) strcat(Buffer," Trader");
     if (pSearchSpawn->bLFG) strcat(Buffer," LFG");
-    if (pSearchSpawn->bTargInvis) strcat(Buffer," Invis");
+//    if (pSearchSpawn->bTargInvis) strcat(Buffer," Invis");
 	if (pSearchSpawn->bLight) {
 		strcat(Buffer," Light");
 		if (pSearchSpawn->szLight[0]) {
@@ -2801,26 +3186,35 @@ PSPAWNINFO NthNearestSpawn(PSEARCHSPAWN pSearchSpawn, DWORD Nth, PSPAWNINFO pOri
 
 PSPAWNINFO SearchThroughSpawns(PSEARCHSPAWN pSearchSpawn, PSPAWNINFO pChar)
 {
-    PSPAWNINFO pSpawnInfo = (PSPAWNINFO)pSpawnList;
-    PSPAWNINFO pSpawn, pSpawnClosest = NULL;
+//    PSPAWNINFO pSpawnInfo = (PSPAWNINFO)pSpawnList;
+//    PSPAWNINFO pSpawn, pSpawnClosest = NULL;
     PSPAWNINFO pFromSpawn = NULL;
-    CHAR szName[MAX_STRING] = {0};
-    FLOAT Distance = 50000.0f;
-        FLOAT DistanceToTarget = 0.0f;
+//    CHAR szName[MAX_STRING] = {0};
+//    FLOAT Distance = 50000.0f;
+//        FLOAT DistanceToTarget = 0.0f;
 
-    if (pSearchSpawn->bTargPrev) {
-            DistanceToTarget = 50000.0f;
-            Distance = 0.0f;
-        }
+    //if (pSearchSpawn->bTargPrev) {
+      //      DistanceToTarget = 50000.0f;
+        //    Distance = 0.0f;
+        //}
 
-    if (pSearchSpawn->FromSpawnID>0) {
+    if (pSearchSpawn->FromSpawnID>0) 
+	{
 		pFromSpawn=(PSPAWNINFO)GetSpawnByID(pSearchSpawn->FromSpawnID);
         if (!pFromSpawn) return NULL;
-    }
+		return NthNearestSpawn(pSearchSpawn,1,pFromSpawn);
+		
+	}
+	return NthNearestSpawn(pSearchSpawn,1,pChar);
+
+
+	/*
 
     if (pFromSpawn) DistanceToTarget = DistanceToSpawn(pChar,pFromSpawn);
 
-        for (pSpawn = pSpawnInfo; pSpawn; pSpawn=pSpawn->pNext) {
+        for (pSpawn = pSpawnInfo; pSpawn; pSpawn=pSpawn->pNext) 
+		{
+			eSpawnType SpawnType=GetSpawnType(pSpawn);
             if (((strstr(_strlwr(strcpy(szName,pSpawn->Name)),pSearchSpawn->szName)) ||
             (strstr(CleanupName(_strlwr(strcpy(szName,pSpawn->Name)),FALSE),pSearchSpawn->szName))) &&
                 (!strstr(CleanupName(_strlwr(strcpy(szName,pSpawn->Name)),FALSE),"`s mount")) &&
@@ -2857,10 +3251,7 @@ PSPAWNINFO SearchThroughSpawns(PSEARCHSPAWN pSearchSpawn, PSPAWNINFO pChar)
             ) && (
                 (!pSearchSpawn->bTrader) ||
                 (pSpawn->pActorInfo->Trader)
-            ) && (
-                (pSearchSpawn->bTargInvis) ||
-                    (GetBodyTypeDesc(pSpawn->BodyType)[0]!='*')
-                ) && ( 
+            )  && ( 
                     ( 
                     (pSearchSpawn->bKnownLocation == FALSE) 
                                         ) || ( 
@@ -2875,22 +3266,13 @@ PSPAWNINFO SearchThroughSpawns(PSEARCHSPAWN pSearchSpawn, PSPAWNINFO pChar)
                                 ) && (
                                         (
                         (
-                        (pSearchSpawn->SpawnType==SPAWN_ANY)
+                        (pSearchSpawn->SpawnType==NONE)
                         ) || (
-                        (pSearchSpawn->SpawnType == SPAWN_PLAYER) &&
-                            (pSpawn->Type == SPAWN_PLAYER)
+                        (pSearchSpawn->SpawnType == SpawnType)
                         ) || (
-                        (pSearchSpawn->SpawnType == SPAWN_NPC) &&
-                            (pSpawn->Type == SPAWN_NPC) &&
-                            (pSpawn->MasterID == 0)
-                        ) || (
-                        (pSearchSpawn->SpawnType == SPAWN_PET) &&
-                            (pSpawn->Type == SPAWN_NPC) &&
-                            (pSpawn->MasterID != 0)
-                        ) || (
-                        (pSearchSpawn->SpawnType == SPAWN_CORPSE) &&
-                            (pSpawn->Type == SPAWN_CORPSE)
-                        )
+                        (pSearchSpawn->SpawnType == NPC) &&
+                            (SpawnType == UNTARGETABLE) 
+                        ) 
                     )
                 )
             ) {
@@ -2956,139 +3338,104 @@ PSPAWNINFO SearchThroughSpawns(PSEARCHSPAWN pSearchSpawn, PSPAWNINFO pChar)
             }
         }
     return (pSpawnClosest);
+	/**/
 }
 
 BOOL SpawnMatchesSearch(PSEARCHSPAWN pSearchSpawn, PSPAWNINFO pChar, PSPAWNINFO pSpawn)
 {
     CHAR szName[MAX_STRING] = {0};
-
-    if (
-            ((strstr(_strlwr(strcpy(szName,pSpawn->Name)),pSearchSpawn->szName)) ||
-			(strstr(CleanupName(_strlwr(strcpy(szName,pSpawn->Name)),FALSE),pSearchSpawn->szName))) &&
-                (!strstr(CleanupName(_strlwr(strcpy(szName,pSpawn->Name)),FALSE),"`s mount")) &&
-            (pSpawn->Level >= pSearchSpawn->MinLevel) &&
-            (pSpawn->Level <= pSearchSpawn->MaxLevel) &&
-                (
-                    (
-                        (pSpawn != pChar) &&
-                    (pSearchSpawn->SpawnID == 0)
-                    ) || (
-                    (pSearchSpawn->SpawnID == pSpawn->SpawnID)
-                    )
-                ) && (
-                (pSearchSpawn->NotID == 0) ||
-                (pSearchSpawn->NotID != pSpawn->SpawnID)
-                ) && (
-                (pSearchSpawn->szClass[0] == 0) ||
-                (!strnicmp(pSearchSpawn->szClass, GetClassDesc(pSpawn->Class),strlen(pSearchSpawn->szClass)))
-                ) && (
-                (pSearchSpawn->szBodyType[0] == 0) ||
-                (!strnicmp(pSearchSpawn->szBodyType, GetBodyTypeDesc(pSpawn->BodyType),strlen(pSearchSpawn->szBodyType)))
-                ) && (
-                (pSearchSpawn->szRace[0] == 0) ||
-                (!strnicmp(pSearchSpawn->szRace, pEverQuest->GetRaceDesc(pSpawn->Race),strlen(pSearchSpawn->szRace)))
-                ) && (
-                (pSearchSpawn->GuildID == 0xFFFF) ||
-                (pSearchSpawn->GuildID == pSpawn->GuildID)
-            ) && (
-                (!pSearchSpawn->bLFG) ||
-                (pSpawn->LFG)
-            ) && (
-                (!pSearchSpawn->bGM) ||
-                (pSpawn->GM)
-            ) && (
-                (!pSearchSpawn->bGroup) ||
-                (IsInGroup(pSpawn))
-            ) && (
-                (!pSearchSpawn->bTrader) ||
-                (pSpawn->pActorInfo->Trader)
-            ) && (
-                (pSearchSpawn->bTargInvis) ||
-                    (GetBodyTypeDesc(pSpawn->BodyType)[0]!='*')
-                ) && (
-                    (
-                    (pSearchSpawn->bKnownLocation == FALSE)
-                                        ) || (
-                    (pSearchSpawn->bKnownLocation == TRUE) &&
-                    (pSpawn->X == pSearchSpawn->xLoc) &&
-                    (pSpawn->Y == pSearchSpawn->yLoc)
-                                        )
-                                ) && (
-                                        (
-                        (
-                        (pSearchSpawn->SpawnType==SPAWN_ANY)
-                        ) || (
-                        (pSearchSpawn->SpawnType == SPAWN_PLAYER) &&
-                            (pSpawn->Type == SPAWN_PLAYER)
-                        ) || (
-                        (pSearchSpawn->SpawnType == SPAWN_NPC) &&
-                            (pSpawn->Type == SPAWN_NPC) &&
-                            (pSpawn->MasterID == 0)
-                        ) || (
-                        (pSearchSpawn->SpawnType == SPAWN_PET) &&
-                            (pSpawn->Type == SPAWN_NPC) &&
-                            (pSpawn->MasterID != 0)
-                        ) || (
-                        (pSearchSpawn->SpawnType == SPAWN_CORPSE) &&
-                            (pSpawn->Type == SPAWN_CORPSE)
-                        )
-                    )
-                )
-            )
+	eSpawnType SpawnType = GetSpawnType(pSpawn);
+	if (pSearchSpawn->SpawnType!=SpawnType && pSearchSpawn->SpawnType!=NONE)
 	{
+		if (pSearchSpawn->SpawnType!=NPC || SpawnType!=UNTARGETABLE)
+			return FALSE;
+	}
+	_strlwr(strcpy(szName,pSpawn->Name));
+	if (!strstr(szName,pSearchSpawn->szName) && !strstr(CleanupName(szName,FALSE),pSearchSpawn->szName))
+		return FALSE;
+	if (pSpawn->Level<pSearchSpawn->MinLevel)
+		return FALSE;
+	if (pSpawn->Level>pSearchSpawn->MaxLevel)
+		return FALSE;
+	if (pSearchSpawn->NotID==pSpawn->SpawnID)
+		return FALSE;
+	if (pSearchSpawn->SpawnID && pSearchSpawn->SpawnID!=pSpawn->SpawnID)
+		return FALSE;
+	if (pSearchSpawn->GuildID!=0xFFFF && pSearchSpawn->GuildID!=pSpawn->GuildID)
+		return FALSE;
+	if (pSearchSpawn->bGM && !pSpawn->GM)
+		return FALSE;
+	if (pSearchSpawn->bLFG && !pSpawn->LFG)
+		return FALSE;
+	if (pSearchSpawn->bTrader && !pSpawn->pActorInfo->Trader)
+		return FALSE;
+	if (pSearchSpawn->bKnownLocation && (pSearchSpawn->xLoc!=pSpawn->X || pSearchSpawn->yLoc!=pSpawn->Y))
+		return FALSE;
+	if (pSearchSpawn->Radius>0.0f && IsPCNear(pSpawn,pSearchSpawn->Radius))
+		return FALSE;
+	if (gZFilter<10000.0f && ( (pSpawn->Z > pChar->Z + gZFilter) || (pSpawn->Z < pChar->Z - gZFilter)))
+		return FALSE;
+	if (pSearchSpawn->ZRadius<10000.0f &&  (pSpawn->Z > pChar->Z + pSearchSpawn->ZRadius) ||(pSpawn->Z < pChar->Z - pSearchSpawn->ZRadius))
+		return FALSE;
+	if (pSearchSpawn->FRadius<10000.0f && DistanceToSpawn(pChar, pSpawn)>pSearchSpawn->FRadius)
+		return FALSE;
+	if (pSearchSpawn->bLight) 
+	{
+		PCHAR pLight=GetLightForSpawn(pSpawn);
+		if (!stricmp(pLight,"NONE")) 
+			return FALSE;
+		if (pSearchSpawn->szLight[0] && stricmp(pLight,pSearchSpawn->szLight)) 
+			return FALSE;
+	}
+	if ((pSearchSpawn->bAlert) && (GetAlert(pSearchSpawn->AlertList))) 
+	{
+		if (!IsAlert(pChar,pSpawn,pSearchSpawn->AlertList)) 
+			return FALSE;
+	}
+	if ((pSearchSpawn->bNoAlert) && (GetAlert(pSearchSpawn->NoAlertList))) 
+	{
+		if (IsAlert(pChar,pSpawn,pSearchSpawn->NoAlertList)) 
+			return FALSE;
+	}
+	if ((pSearchSpawn->bNotNearAlert) && (GetClosestAlert(pSpawn, pSearchSpawn->NotNearAlertList,NULL))) 
+		return FALSE;
+	if ((pSearchSpawn->bNearAlert) && (!GetClosestAlert(pSpawn,pSearchSpawn->NearAlertList,NULL))) 
+		return FALSE;
+	
+	if (pSearchSpawn->szClass[0] && stricmp(pSearchSpawn->szClass,GetClassDesc(pSpawn->Class)))
+		return FALSE;
+	if (pSearchSpawn->szBodyType[0] && stricmp(pSearchSpawn->szBodyType,GetBodyTypeDesc(pSpawn->BodyType)))
+		return FALSE;
+	if (pSearchSpawn->szRace[0] && stricmp(pSearchSpawn->szRace,pEverQuest->GetRaceDesc(pSpawn->Race)))
+		return FALSE;
 
-            if (pSearchSpawn->Radius>0.0f) {
-				if (IsPCNear(pSpawn,pSearchSpawn->Radius)) return FALSE;
-	        }
-			if (gZFilter<10000.0f) {
-				if ((pSpawn->Z > pChar->Z + gZFilter) ||
-					(pSpawn->Z < pChar->Z - gZFilter)) return FALSE;
-			}
-            if (pSearchSpawn->ZRadius<10000.0f) {
-				if ((pSpawn->Z > pChar->Z + pSearchSpawn->ZRadius) ||
-					(pSpawn->Z < pChar->Z - pSearchSpawn->ZRadius)) return FALSE;
-            }
-			if (pSearchSpawn->FRadius<10000.0f) {
-				if (DistanceToSpawn(pChar, pSpawn)>pSearchSpawn->FRadius) return FALSE;
-            }
-			if (pSearchSpawn->bLight) {
-				if (!stricmp(GetLightForSpawn(pSpawn),"NONE")) return FALSE;
-				if (pSearchSpawn->szLight[0] && stricmp(GetLightForSpawn(pSpawn),pSearchSpawn->szLight)) return FALSE;
-			}
 
-                if ((pSearchSpawn->bAlert) && (GetAlert(pSearchSpawn->AlertList))) {
-                    if (!IsAlert(pChar,pSpawn,pSearchSpawn->AlertList)) return FALSE;
-                    }
-                if ((pSearchSpawn->bNoAlert) && (GetAlert(pSearchSpawn->NoAlertList))) {
-                    if (IsAlert(pChar,pSpawn,pSearchSpawn->NoAlertList)) return FALSE;
-                    }
-
-                if ((pSearchSpawn->bNotNearAlert) && (GetClosestAlert(pSpawn, pSearchSpawn->NotNearAlertList,NULL))) return FALSE;
-                if ((pSearchSpawn->bNearAlert) && (!GetClosestAlert(pSpawn,pSearchSpawn->NearAlertList,NULL))) return FALSE;
-
-		return TRUE;
-
-    }
-    return FALSE;
+	return TRUE;
 }
 
 PCHAR ParseSearchSpawnArgs(PCHAR szArg, PCHAR szRest, PSEARCHSPAWN pSearchSpawn)
 {
     if (szArg && pSearchSpawn) {
         if (!strcmp(szArg,"pc")) {
-            pSearchSpawn->SpawnType = SPAWN_PLAYER;
+            pSearchSpawn->SpawnType = PC;
         } else if (!strcmp(szArg,"npc")) {
-            pSearchSpawn->SpawnType = SPAWN_NPC;
+            pSearchSpawn->SpawnType = NPC;
         } else if (!strcmp(szArg,"pet")) {
-            pSearchSpawn->SpawnType = SPAWN_PET;
+            pSearchSpawn->SpawnType = PET;
         } else if (!strcmp(szArg,"nopet")) { 
             pSearchSpawn->bNoPet = TRUE; 
         } else if (!strcmp(szArg,"corpse")) {
-            pSearchSpawn->SpawnType = SPAWN_CORPSE;
+            pSearchSpawn->SpawnType = CORPSE;
+        } else if (!strcmp(szArg,"trigger")) {
+            pSearchSpawn->SpawnType = TRIGGER;
+        } else if (!strcmp(szArg,"untargetable")) {
+            pSearchSpawn->SpawnType = UNTARGETABLE;
+        } else if (!strcmp(szArg,"trap")) {
+            pSearchSpawn->SpawnType = TRAP;
+        } else if (!strcmp(szArg,"timer")) {
+            pSearchSpawn->SpawnType = TIMER;
         } else if (!strcmp(szArg,"any")) {
-            pSearchSpawn->SpawnType = SPAWN_ANY;
-        } else if (!strcmp(szArg,"invis")) {
-            pSearchSpawn->bTargInvis = TRUE;
+            pSearchSpawn->SpawnType = NONE;
         } else if (!strcmp(szArg,"next")) {
             pSearchSpawn->bTargNext = TRUE;
         } else if (!strcmp(szArg,"prev")) {

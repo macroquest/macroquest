@@ -76,12 +76,22 @@ static _ClassInfo ClassInfo[]=
 	{0,0,0,0,0,0,0,15},//ber
 };
 
+#define BI_TARGETABLE  1
+#define BI_TRIGGER	   2 
+#define BI_TRAP		   4
+#define BI_TIMER	   8
+
+typedef struct _BodyInfo
+{
+	PCHAR Name;
+	DWORD Flags;
+} BODYINFO, *PBODYINFO;
 
 #define SPAWN_PLAYER                    0
 #define SPAWN_NPC                       1
 #define SPAWN_CORPSE                    2
-#define SPAWN_ANY                       3
-#define SPAWN_PET                       4
+//#define SPAWN_ANY                       3
+//#define SPAWN_PET                       4
 
 #define ITEM_NORMAL1                    0x0031
 #define ITEM_NORMAL2                    0x0036

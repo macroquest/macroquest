@@ -263,7 +263,7 @@ VOID NewDeclareVar(PSPAWNINFO pChar, PCHAR szLine)
 	{
 		if (pType==pTimerType)
 		{
-			PTIMER pTimer=(PTIMER)((*pScope)->Var.Ptr);
+			PMQTIMER pTimer=(PMQTIMER)((*pScope)->Var.Ptr);
 			strcpy(pTimer->szName,szName);
 		}
 	}
@@ -676,7 +676,7 @@ VOID CheckChatForEvent(PCHAR szMsg)
 
 VOID DropTimers(VOID)
 {
-	PTIMER pTimer=gTimer;
+	PMQTIMER pTimer=gTimer;
 	CHAR szOrig[MAX_STRING] = {0};
 	while(pTimer)
 	{
