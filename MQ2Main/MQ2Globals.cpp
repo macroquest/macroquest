@@ -62,7 +62,7 @@ BOOL gbUnload = FALSE;
 DWORD gpHook = NULL;
 PMACROBLOCK gMacroBlock = NULL;
 PMACROSTACK gMacroStack = NULL;
-PEVENTSTACK gEventStack = NULL;
+PEVENTQUEUE gEventQueue = NULL;
 PMACROBLOCK gEventFunc[NUM_EVENTS] = {NULL};
 UCHAR gLastFind = 0;
 DOUBLE gZFilter=10000.0f;
@@ -236,7 +236,7 @@ PMOUSEINFO EQADDR_MOUSE=(PMOUSEINFO)__Mouse;
 PMOUSECLICK EQADDR_MOUSECLICK=(PMOUSECLICK)__Clicks;
 CHAR DataTypeTemp[MAX_STRING]={0};
 
-
+map<string,PSPAWNINFO> SpawnByName;
 MQRANK EQP_DistArray[3000];
 DWORD gSpawnCount=0;
 
@@ -477,6 +477,7 @@ PCHAR szDmgBonusType[] = {
     "Disease" 
 }; 
 
+/*
 PCHAR szBaneDmgType[] = { 
    "Humanoid", 
    "Lycanthrope", 
@@ -507,6 +508,7 @@ PCHAR szBaneDmgType[] = {
    "UNKNOWN BODYTYPE", 
    "Summoned Creature" 
 }; 
+/**/
 
 PCHAR szAugRestrictions[] = { 
 	"None",

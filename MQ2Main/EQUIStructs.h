@@ -662,11 +662,13 @@ typedef struct _EQTRADESKILLWINDOW {
 /*0x3d8*/ DWORD Unknown0x3d8;
 } EQTRADESKILLWINDOW, *PTRADESKILLWINDOW;
 
-//Size: 0x224 (02/18/2004)  *Todo
+//Size: 0x234 (05/11/2004) 
 typedef struct _EQRAIDWINDOW {
 /*0x000*/ struct _CSIDLWND Wnd;
-/*0x148*/ BYTE  Unknown0x148[0xdc];
-/*0x224*/
+/*0x158*/ BYTE  Unknown0x158[0x4c];
+/*0x1A4*/ DWORD ClassColors[0x10];
+/*0x1E4*/
+/*0x234*/
 } EQRAIDWINDOW, *PEQRAIDWINDOW;
 
 typedef struct _GUILDMEMBERINFO {

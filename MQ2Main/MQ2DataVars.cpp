@@ -468,11 +468,14 @@ VOID NewVardata(PSPAWNINFO pChar, PCHAR szLine)
 
 VOID AddEvent(DWORD Event, PCHAR FirstArg, ...)
 { 
-	PEVENTSTACK pEvent = NULL; 
-	if (!gEventFunc[Event]) {	return; }
-	pEvent = (PEVENTSTACK)malloc(sizeof(EVENTSTACK)); 
-	if (!pEvent) {	return; }
-	ZeroMemory(pEvent,sizeof(EVENTSTACK)); 
+	PEVENTQUEUE pEvent = NULL; 
+	if (!gEventFunc[Event]) 
+		return; 
+	pEvent = (PEVENTQUEUE)malloc(sizeof(EVENTQUEUE)); 
+	if (!pEvent) 
+		return;
+
+	ZeroMemory(pEvent,sizeof(EVENTQUEUE)); 
 	pEvent->Type = Event; 
 	pEvent->pEventList = NULL; 
 	if (FirstArg) {
@@ -481,7 +484,8 @@ VOID AddEvent(DWORD Event, PCHAR FirstArg, ...)
 		PCHAR CurrentArg = FirstArg;
 		va_start(marker, FirstArg);
 
-		while (CurrentArg) {
+		while (CurrentArg) 
+		{
 			CHAR szParamName[MAX_STRING] = {0};
 			CHAR szParamType[MAX_STRING] = {0};
 			GetFuncParam(gEventFunc[Event]->Line,i,szParamName,szParamType);
@@ -495,12 +499,16 @@ VOID AddEvent(DWORD Event, PCHAR FirstArg, ...)
 		va_end(marker);
 	}
 
-	if (!gEventStack) { 
-		gEventStack = pEvent; 
-	} else { 
-		PEVENTSTACK pTemp = NULL; 
-		for (pTemp = gEventStack;pTemp->pNext;pTemp=pTemp->pNext); 
+	if (!gEventQueue) 
+	{ 
+		gEventQueue = pEvent; 
+	} 
+	else 
+	{ 
+		PEVENTQUEUE pTemp = NULL; 
+		for (pTemp = gEventQueue;pTemp->pNext;pTemp=pTemp->pNext); 
 		pTemp->pNext = pEvent; 
+		pEvent->pPrev=pTemp;
 	} 
 } 
 
@@ -509,11 +517,16 @@ void __stdcall EventBlechCallback(unsigned long ID, void * pData, PBLECHVALUE pV
 {
 	DebugSpew("EventBlechCallback(%d,%X,%X) msg='%s'",ID,pData,pValues,EventMsg);
 	PEVENTLIST pEList=(PEVENTLIST)pData;
-    PEVENTSTACK pEvent = NULL;
-    if (!pEList->pEventFunc) return;
-    pEvent = (PEVENTSTACK)malloc(sizeof(EVENTSTACK));
-    if (!pEvent) return;
-    ZeroMemory(pEvent,sizeof(EVENTSTACK));
+    PEVENTQUEUE pEvent = NULL;
+    if (!pEList->pEventFunc) 
+	{
+		DebugSpew("EventBlechCallback() -- pEventFunc is NULL, cannot call event sub");
+		return;
+	}
+    pEvent = (PEVENTQUEUE)malloc(sizeof(EVENTQUEUE));
+    if (!pEvent) 
+		return;
+    ZeroMemory(pEvent,sizeof(EVENTQUEUE));
     pEvent->Type = EVENT_CUSTOM;
     pEvent->pEventList = pEList;
     CHAR szParamName[MAX_STRING] = {0};
@@ -538,25 +551,27 @@ void __stdcall EventBlechCallback(unsigned long ID, void * pData, PBLECHVALUE pV
 		pValues=pValues->pNext;
 	}
 
-    if (!gEventStack) {
-        gEventStack = pEvent;
-    } else {
-        PEVENTSTACK pTemp = NULL;
-        for (pTemp = gEventStack;pTemp->pNext;pTemp=pTemp->pNext);
+    if (!gEventQueue) 
+	{
+        gEventQueue = pEvent;
+    } 
+	else 
+	{
+        PEVENTQUEUE pTemp;
+        for (pTemp = gEventQueue;pTemp->pNext;pTemp=pTemp->pNext);
         pTemp->pNext = pEvent;
+		pEvent->pPrev=pTemp;
     }
 
 }
-#endif
-
-
+#else
 VOID AddCustomEvent(PEVENTLIST pEList, PCHAR szLine)
 {
-    PEVENTSTACK pEvent = NULL;
+    PEVENTQUEUE pEvent = NULL;
     if (!pEList->pEventFunc) return;
-    pEvent = (PEVENTSTACK)malloc(sizeof(EVENTSTACK));
+    pEvent = (PEVENTQUEUE)malloc(sizeof(EVENTQUEUE));
     if (!pEvent) return;
-    ZeroMemory(pEvent,sizeof(EVENTSTACK));
+    ZeroMemory(pEvent,sizeof(EVENTQUEUE));
     pEvent->Type = EVENT_CUSTOM;
     pEvent->pEventList = pEList;
     CHAR szParamName[MAX_STRING] = {0};
@@ -568,14 +583,19 @@ VOID AddCustomEvent(PEVENTLIST pEList, PCHAR szLine)
 
 	AddMQ2DataEventVariable(szParamName,"",pType,&pEvent->Parameters,szLine);
 
-    if (!gEventStack) {
-        gEventStack = pEvent;
-    } else {
-        PEVENTSTACK pTemp = NULL;
-        for (pTemp = gEventStack;pTemp->pNext;pTemp=pTemp->pNext);
+    if (!gEventQueue) 
+	{
+        gEventQueue = pEvent;
+    } 
+	else 
+	{
+        PEVENTQUEUE pTemp;
+        for (pTemp = gEventQueue;pTemp->pNext;pTemp=pTemp->pNext);
         pTemp->pNext = pEvent;
+		pEvent->pPrev=pTemp;
     }
 }
+#endif
 
 VOID CheckChatForEvent(PCHAR szMsg)
 {

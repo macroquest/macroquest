@@ -408,6 +408,7 @@ VOID PluginsDrawHUD()
 VOID PluginsAddSpawn(PSPAWNINFO pNewSpawn)
 {
 //	DebugSpew("PluginsAddSpawn(%s,%d,%d)",pNewSpawn->Name,pNewSpawn->Race,pNewSpawn->BodyType);
+	SpawnByName[pNewSpawn->Name]=pNewSpawn;
 	if (!bPluginCS)
 		return;
 	if (gGameState>GAMESTATE_CHARSELECT)
@@ -427,6 +428,7 @@ VOID PluginsAddSpawn(PSPAWNINFO pNewSpawn)
 VOID PluginsRemoveSpawn(PSPAWNINFO pSpawn)
 {
 //	DebugSpew("PluginsRemoveSpawn(%s)",pSpawn->Name);
+	SpawnByName.erase(pSpawn->Name);
 	if (!bPluginCS)
 		return;
 	CAutoLock Lock(&gPluginCS);

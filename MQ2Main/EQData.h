@@ -40,6 +40,9 @@ enum PlayerClass
 	TotalClasses=16,
 };
 
+// class 60   LDoN Recruiter
+// class 61   LDoN Merchant
+
 typedef struct _ClassInfo
 {
 	bool CanCast;
@@ -49,28 +52,28 @@ typedef struct _ClassInfo
 	bool NecroType;
 	bool ClericType;
 	bool ShamanType;
-	bool WizardType;
+	char RaidColorOrder;
 } CLASSINFO, *PCLASSINFO;
 
 static _ClassInfo ClassInfo[]=
 {
-	{0,0,0,0,0,0,0},//unk
-	{0,0,0,0,0,0,0},//war
-	{1,1,0,0,0,1,0},//clr
-	{1,0,0,0,0,1,0},//pal
-	{1,0,0,1,0,0,0},//rng
-	{1,0,0,0,1,0,0},//shd
-	{1,1,0,1,0,0,0},//dru
-	{0,0,0,0,0,0,0},//mnk
-	{1,0,0,0,0,0,0},//brd
-	{0,0,0,0,0,0,0},//rog
-	{1,1,1,0,0,0,1},//shm
-	{1,1,1,0,1,0,0},//nec
-	{1,1,0,0,0,0,0},//wiz
-	{1,1,1,0,0,0,0},//mag
-	{1,1,0,0,0,0,0},//enc
-	{1,0,1,0,0,0,1},//bst
-	{0,0,0,0,0,0,0},//ber
+	{0,0,0,0,0,0,0,0},//unk
+	{0,0,0,0,0,0,0,13},//war
+	{1,1,0,0,0,1,0,2},//clr
+	{1,0,0,0,0,1,0,8},//pal
+	{1,0,0,1,0,0,0,9},//rng
+	{1,0,0,0,1,0,0,11},//shd
+	{1,1,0,1,0,0,0,3},//dru
+	{0,0,0,0,0,0,0,6},//mnk
+	{1,0,0,0,0,0,0,0},//brd
+	{0,0,0,0,0,0,0,10},//rog
+	{1,1,1,0,0,0,1,12},//shm
+	{1,1,1,0,1,0,0,7},//nec
+	{1,1,0,0,0,0,0,14},//wiz
+	{1,1,1,0,0,0,0,5},//mag
+	{1,1,0,0,0,0,0,4},//enc
+	{1,0,1,0,0,0,1,1},//bst
+	{0,0,0,0,0,0,0,15},//ber
 };
 
 
@@ -1698,7 +1701,7 @@ typedef struct _EQRAIDMEMBER {
 /*0x40*/ CHAR Level[0x08];
 /*0x48*/ CHAR Class[0x20];
 /*0x68*/ BYTE Unknown0x68[0x60];
-/*0xC8*/ DWORD Field_C8;
+/*0xC8*/ DWORD nClass;
 /*0xCC*/ BYTE  RaidLeader;
 /*0xCD*/ BYTE  GroupLeader;
 /*0xCE*/ BYTE  Field_CE;

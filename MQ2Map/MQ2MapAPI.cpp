@@ -727,7 +727,7 @@ PCHAR GenerateSpawnName(PSPAWNINFO pSpawn, PCHAR NameString)
 				AddString(pEverQuest->GetRaceDesc(pSpawn->Race));
 				break;
 			case 'C':
-				AddString(pEverQuest->GetClassDesc(pSpawn->Class));
+				AddString(GetClassDesc(pSpawn->Class));
 				break;
 			case 'c':
 				AddString(pEverQuest->GetClassThreeLetterCode(pSpawn->Class));

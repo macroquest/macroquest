@@ -920,12 +920,13 @@ typedef struct _MACROSTACK {
     PDATAVAR LocalVariables;
 } MACROSTACK, *PMACROSTACK;
 
-typedef struct _EVENTSTACK {
-    struct _EVENTSTACK *pNext;
+typedef struct _EVENTQUEUE {
+    struct _EVENTQUEUE *pPrev;
+	struct _EVENTQUEUE *pNext;
     DWORD Type;
     PEVENTLIST pEventList;
     PDATAVAR Parameters;
-} EVENTSTACK, *PEVENTSTACK;
+} EVENTQUEUE, *PEVENTQUEUE;
 
 
 };

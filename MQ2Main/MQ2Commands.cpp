@@ -1671,7 +1671,7 @@ VOID SortSWho(PSWHOSORT pSWhoSort, DWORD SpawnCount, DWORD SortBy)
          //Sort by Class 
          for (Index1=0;Index1<SpawnCount;Index1++) { 
             for (Index2=SpawnCount-1;Index2>Index1;Index2--) { 
-               if (stricmp(pEverQuest->GetClassDesc(pSWhoSort[Index2].Class), pEverQuest->GetClassDesc(pSWhoSort[Index2-1].Class))<0) { 
+               if (stricmp(GetClassDesc(pSWhoSort[Index2].Class), GetClassDesc(pSWhoSort[Index2-1].Class))<0) { 
                   SwapSWho(&pSWhoSort[Index2], &pSWhoSort[Index2-1]); 
                } 
             } 
@@ -1768,16 +1768,16 @@ VOID SuperWhoDisplay(PSPAWNINFO pChar, PSEARCHSPAWN pFilter, PSPAWNINFO psTarget
             if ((pFilter->FRadius<10000.0f) && (DistanceToSpawn(pChar,pSpawn)>pFilter->FRadius)) continue;
             if (pFilter->MinLevel> pSpawn->Level) continue;
             if (pFilter->MaxLevel< pSpawn->Level) continue;
-            if ((pFilter->szBodyType[0]!=0) && (strnicmp(pFilter->szBodyType,pEverQuest->GetBodyTypeDesc(pSpawn->BodyType),strlen(pFilter->szBodyType)))) continue;
+            if ((pFilter->szBodyType[0]!=0) && (strnicmp(pFilter->szBodyType,GetBodyTypeDesc(pSpawn->BodyType),strlen(pFilter->szBodyType)))) continue;
             if ((pFilter->szRace[0]!=0) && (strnicmp(pFilter->szRace,pEverQuest->GetRaceDesc(pSpawn->Race),strlen(pFilter->szRace)))) continue;
-            if ((pFilter->szClass[0]!=0) && (strnicmp(pFilter->szClass,pEverQuest->GetClassDesc(pSpawn->Class),strlen(pFilter->szClass)))) continue;
+            if ((pFilter->szClass[0]!=0) && (strnicmp(pFilter->szClass,GetClassDesc(pSpawn->Class),strlen(pFilter->szClass)))) continue;
             if ((pFilter->GuildID != 0xFFFF) && (pFilter->GuildID!=pSpawn->GuildID)) continue;
 			if ((pFilter->bLight) && (!stricmp(GetLightForSpawn(pSpawn),"NONE"))) continue;
 			if ((pFilter->bLight) && (pFilter->szLight[0]) && (stricmp(GetLightForSpawn(pSpawn),pFilter->szLight))) continue;
             if ((pFilter->bLFG) && (!pSpawn->LFG)) continue;
             if ((pFilter->bGroup) && (!IsInGroup(pSpawn))) continue;
-			if ((!pFilter->bTargInvis) && (!gFilterSWho.Invisible) && (!stricmp(pEverQuest->GetBodyTypeDesc(pSpawn->BodyType),"UNKNOWN BODYTYPE"))) continue;
-			if ((!pFilter->bTargInvis) && (!stricmp(pEverQuest->GetBodyTypeDesc(pSpawn->BodyType),"UNKNOWN BODYTYPE"))) continue;
+			if ((!pFilter->bTargInvis) && (!gFilterSWho.Invisible) && (!stricmp(GetBodyTypeDesc(pSpawn->BodyType),"UNKNOWN BODYTYPE"))) continue;
+			if ((!pFilter->bTargInvis) && (!stricmp(GetBodyTypeDesc(pSpawn->BodyType),"UNKNOWN BODYTYPE"))) continue;
             if ((pFilter->bTrader) && (!pSpawn->pActorInfo->Trader)) continue;
             if ((pFilter->bAlert) && (!IsAlert(pChar,pSpawn,pFilter->AlertList))) continue;
             if ((pFilter->bNoAlert) && (IsAlert(pChar,pSpawn,pFilter->NoAlertList))) continue;
@@ -1862,11 +1862,11 @@ VOID SuperWhoDisplay(PSPAWNINFO pChar, PSEARCHSPAWN pFilter, PSPAWNINFO psTarget
 				strcat(szMsg," ");
 			}
 			if (gFilterSWho.Body) {
-				strcat(szMsg,pEverQuest->GetBodyTypeDesc(pSpawn->BodyType));
+				strcat(szMsg,GetBodyTypeDesc(pSpawn->BodyType));
 				strcat(szMsg," ");
 			}
 			if (gFilterSWho.Class) {
-				strcat(szMsg,pEverQuest->GetClassDesc(pSpawn->Class));
+				strcat(szMsg,GetClassDesc(pSpawn->Class));
 				strcat(szMsg," ");
 			}
 			szMsg[strlen(szMsg)-1]=0;
@@ -2422,7 +2422,7 @@ VOID Where(PSPAWNINFO pChar, PCHAR szLine)
             CleanupName(strcpy(szName,pSpawnClosest->Name),FALSE),
             pSpawnClosest->Level,
             pEverQuest->GetRaceDesc(pSpawnClosest->Race),
-            pEverQuest->GetClassDesc(pSpawnClosest->Class),
+            GetClassDesc(pSpawnClosest->Class),
             DistanceToSpawn(pChar,pSpawnClosest),
             szHeading[Angle],
             pSpawnClosest->Z-pChar->Z);
@@ -2833,10 +2833,10 @@ PSPAWNINFO SearchThroughSpawns(PSEARCHSPAWN pSearchSpawn, PSPAWNINFO pChar)
                 (pSearchSpawn->NotID != pSpawn->SpawnID)
                 ) && (
                 (pSearchSpawn->szClass[0] == 0) ||
-                (!strnicmp(pSearchSpawn->szClass, pEverQuest->GetClassDesc(pSpawn->Class),strlen(pSearchSpawn->szClass)))
+                (!strnicmp(pSearchSpawn->szClass, GetClassDesc(pSpawn->Class),strlen(pSearchSpawn->szClass)))
                 ) && (
                 (pSearchSpawn->szBodyType[0] == 0) ||
-                (!strnicmp(pSearchSpawn->szBodyType, pEverQuest->GetBodyTypeDesc(pSpawn->BodyType),strlen(pSearchSpawn->szBodyType)))
+                (!strnicmp(pSearchSpawn->szBodyType, GetBodyTypeDesc(pSpawn->BodyType),strlen(pSearchSpawn->szBodyType)))
                 ) && (
                 (pSearchSpawn->szRace[0] == 0) ||
                 (!strnicmp(pSearchSpawn->szRace, pEverQuest->GetRaceDesc(pSpawn->Race),strlen(pSearchSpawn->szRace)))
@@ -2854,7 +2854,7 @@ PSPAWNINFO SearchThroughSpawns(PSEARCHSPAWN pSearchSpawn, PSPAWNINFO pChar)
                 (pSpawn->pActorInfo->Trader)
             ) && (
                 (pSearchSpawn->bTargInvis) ||
-                    (stricmp(pEverQuest->GetBodyTypeDesc(pSpawn->BodyType),"UNKNOWN BODYTYPE"))
+                    (stricmp(GetBodyTypeDesc(pSpawn->BodyType),"UNKNOWN BODYTYPE"))
                 ) && ( 
                     ( 
                     (pSearchSpawn->bKnownLocation == FALSE) 
@@ -2975,10 +2975,10 @@ BOOL SpawnMatchesSearch(PSEARCHSPAWN pSearchSpawn, PSPAWNINFO pChar, PSPAWNINFO 
                 (pSearchSpawn->NotID != pSpawn->SpawnID)
                 ) && (
                 (pSearchSpawn->szClass[0] == 0) ||
-                (!strnicmp(pSearchSpawn->szClass, pEverQuest->GetClassDesc(pSpawn->Class),strlen(pSearchSpawn->szClass)))
+                (!strnicmp(pSearchSpawn->szClass, GetClassDesc(pSpawn->Class),strlen(pSearchSpawn->szClass)))
                 ) && (
                 (pSearchSpawn->szBodyType[0] == 0) ||
-                (!strnicmp(pSearchSpawn->szBodyType, pEverQuest->GetBodyTypeDesc(pSpawn->BodyType),strlen(pSearchSpawn->szBodyType)))
+                (!strnicmp(pSearchSpawn->szBodyType, GetBodyTypeDesc(pSpawn->BodyType),strlen(pSearchSpawn->szBodyType)))
                 ) && (
                 (pSearchSpawn->szRace[0] == 0) ||
                 (!strnicmp(pSearchSpawn->szRace, pEverQuest->GetRaceDesc(pSpawn->Race),strlen(pSearchSpawn->szRace)))
@@ -2999,7 +2999,7 @@ BOOL SpawnMatchesSearch(PSEARCHSPAWN pSearchSpawn, PSPAWNINFO pChar, PSPAWNINFO 
                 (pSpawn->pActorInfo->Trader)
             ) && (
                 (pSearchSpawn->bTargInvis) ||
-                    (stricmp(pEverQuest->GetBodyTypeDesc(pSpawn->BodyType),"UNKNOWN BODYTYPE"))
+                    (stricmp(GetBodyTypeDesc(pSpawn->BodyType),"UNKNOWN BODYTYPE"))
                 ) && (
                     (
                     (pSearchSpawn->bKnownLocation == FALSE)
@@ -3584,6 +3584,7 @@ VOID BankList(PSPAWNINFO pChar, PCHAR szLine)
 // ***************************************************************************
 VOID WindowState(PSPAWNINFO pChar, PCHAR szLine)
 {
+	/*
 	struct _WINDOWSTATELIST 
 		{ PCHAR szName;	PCSIDLWND* pWindow; }
 	WindowList[] = {
@@ -3596,15 +3597,16 @@ VOID WindowState(PSPAWNINFO pChar, PCHAR szLine)
 		{ "notes",		(PCSIDLWND*)ppNoteWnd },
 		{ NULL, NULL }
 	};
+	/**/
 
 	CHAR Arg1[MAX_STRING] = {0};
 	CHAR Arg2[MAX_STRING] = {0};
-	DWORD i;
+//	DWORD i;
 	GetArg(Arg1,szLine,1);
 	GetArg(Arg2,szLine,2);
-	if (Arg1[0]!=0) for (i=0;WindowList[i].szName;i++) {
-		if (!strnicmp(WindowList[i].szName,Arg1,strlen(Arg1))) {
-			PCSIDLWND pWnd = *WindowList[i].pWindow;
+
+	if (PCSIDLWND pWnd=(PCSIDLWND)FindMQ2Window(Arg1)) 
+	{
 			DWORD ShowWindow = (DWORD)pWnd->pvfTable->ShowWindow;
 			CHAR szBuffer[MAX_STRING] = {0};
 			BYTE State=99;
@@ -3632,7 +3634,6 @@ VOID WindowState(PSPAWNINFO pChar, PCHAR szLine)
 			WriteChatColor(szBuffer,USERCOLOR_DEFAULT);
 			return;
 		}
-	}
 	SyntaxError("Usage: /windowstate <window> [open|close]");
 }
 

@@ -17,8 +17,7 @@
 // "bind" type (key binds)
 // Friend TLO
 // Ignore TLO
-// count buffs
-// item worn slots
+
 
 EQLIB_VAR class MQ2FloatType *pFloatType;
 EQLIB_VAR class MQ2StringType *pStringType;
@@ -1190,6 +1189,8 @@ public:
 		Stackable=79,
 		InvSlot=80,
 		SellPrice=81,
+		WornSlot=82,
+		WornSlots=83,
 	};
 	MQ2ItemType():MQ2Type("Item")
 	{
@@ -1274,6 +1275,8 @@ public:
 		TypeMember(Stackable);
 		TypeMember(InvSlot);
 		TypeMember(SellPrice);
+		TypeMember(WornSlot);
+		TypeMember(WornSlots);
 	}
 
 	~MQ2ItemType()
@@ -1988,7 +1991,7 @@ public:
 
 	 bool ToString(MQ2VARPTR VarPtr, PCHAR Destination)
 	{
-		PCHAR pDesc=pEverQuest->GetClassDesc(VarPtr.DWord);
+		PCHAR pDesc=GetClassDesc(VarPtr.DWord);
 		strcpy(Destination,pDesc);
 		return true;
 	}
@@ -2025,7 +2028,7 @@ public:
 
 	 bool ToString(MQ2VARPTR VarPtr, PCHAR Destination)
 	{
-		PCHAR pDesc=pEverQuest->GetBodyTypeDesc(VarPtr.DWord);
+		PCHAR pDesc=GetBodyTypeDesc(VarPtr.DWord);
 		strcpy(Destination,pDesc);
 		return true;
 	}
@@ -2261,12 +2264,8 @@ public:
 
    bool ToString(MQ2VARPTR VarPtr, PCHAR Destination)
    {
-	   if (VarPtr.Int)
-	   {
-		  itoa(VarPtr.Int,Destination,10);
-		  return true;
-	   }
-	   return false;
+		itoa(VarPtr.Int,Destination,10);
+		return true;
    }
 	bool FromData(MQ2VARPTR &VarPtr, MQ2TYPEVAR &Source)
 	{
@@ -2695,6 +2694,8 @@ public:
 	   RaidLeader=5,
 	   Spawn=6,
 	   Looter=7,
+	   Class=8,
+	   Level=9,
    };
    MQ2RaidMemberType():MQ2Type("raidmember")
    {
@@ -2704,6 +2705,8 @@ public:
 	  TypeMember(RaidLeader);
 	  TypeMember(Spawn);
 	  TypeMember(Looter);
+	  TypeMember(Class);
+	  TypeMember(Level);
    }
 
    ~MQ2RaidMemberType()

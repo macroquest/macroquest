@@ -52,7 +52,6 @@ class MQ2ArgbType *pArgbType=0;
 class MQ2TypeType *pTypeType=0;
 class MQ2TimeType *pTimeType=0;
 class MQ2HeadingType *pHeadingType=0;
-
 class MQ2InvSlotType *pInvSlotType=0;
 
 class MQ2ArrayType *pArrayType=0;
@@ -109,6 +108,7 @@ void InitializeMQ2DataTypes()
 	pCharacterType->SetInheritance(pSpawnType);
 	pBuffType->SetInheritance(pSpellType);
 	pCurrentZoneType->SetInheritance(pZoneType);
+	pRaidMemberType->SetInheritance(pSpawnType);
 }
 
 void ShutdownMQ2DataTypes()
@@ -2308,6 +2308,55 @@ bool MQ2ItemType::GetMember(MQ2VARPTR VarPtr, PCHAR Member, PCHAR Index, MQ2TYPE
 			return true;
 		}
 		return false;
+	case WornSlot:
+		if (Index[0])
+		{
+			if (IsNumber(Index))
+			{
+				DWORD Count=atoi(Index);
+				if (!Count)
+					return false;
+				DWORD cmp=pItem->Item->EquipSlots;
+				for (DWORD N = 0 ; N < 32 ; N++)
+				{
+					if (cmp&(1<<N))
+					{
+						Count--;
+						if (Count==0)
+						{
+							Dest.DWord=N;
+							Dest.Type=pInvSlotType;
+							return true;
+						}
+					}
+				}
+			}
+			else
+			{
+				// by name
+				DWORD nInvSlot=ItemSlotMap[Index];
+				if ((nInvSlot || !stricmp(Index,"charm")) && nInvSlot<32)
+				{
+					Dest.DWord=(pItem->Item->EquipSlots&(1<<nInvSlot));
+					Dest.Type=pBoolType;
+					return true;
+				}
+			}
+		}
+		return false;
+	case WornSlots:
+		{
+			Dest.DWord=0;
+			// count bits
+			DWORD cmp=pItem->Item->EquipSlots;
+			for (DWORD N = 0 ; N < 32 ; N++)
+			{
+				if (cmp&(1<<N))
+					Dest.DWord++;
+			}
+			Dest.Type=pIntType;
+			return true;
+		}
 	/*
 		Haste=16,
 		Endurance=17,
@@ -2369,6 +2418,8 @@ bool MQ2ItemType::GetMember(MQ2VARPTR VarPtr, PCHAR Member, PCHAR Index, MQ2TYPE
 		Artifact=73,
 		PendingLore=74,
 		LoreText=75,
+		WornSlot=82,
+		WornSlots=83,
 	/**/
 	}
 	return false;
@@ -2830,7 +2881,7 @@ bool MQ2BodyType::GetMember(MQ2VARPTR VarPtr, PCHAR Member, PCHAR Index, MQ2TYPE
 		Dest.Type=pIntType;
 		return true;
 	case Name:
-		Dest.Ptr=pEverQuest->GetBodyTypeDesc(VarPtr.DWord);
+		Dest.Ptr=GetBodyTypeDesc(VarPtr.DWord);
 		Dest.Type=pStringType;
 		return true;
 	}
@@ -2870,7 +2921,7 @@ bool MQ2ClassType::GetMember(MQ2VARPTR VarPtr, PCHAR Member, PCHAR Index, MQ2TYP
 		Dest.Type=pIntType;
 		return true;
 	case Name:
-		Dest.Ptr=pEverQuest->GetClassDesc(VarPtr.DWord);
+		Dest.Ptr=GetClassDesc(VarPtr.DWord);
 		Dest.Type=pStringType;
 		return true;
 	case ShortName:
@@ -3761,7 +3812,7 @@ bool MQ2InvSlotType::GetMember(MQ2VARPTR VarPtr, PCHAR Member, PCHAR Index, MQ2T
 			Dest.Ptr="ammo";
 			Dest.Type=pStringType;
 			return true;
-		case 30:
+		case 0:
 			Dest.Ptr="charm";
 			Dest.Type=pStringType;
 			return true;
@@ -4215,7 +4266,10 @@ bool MQ2RaidMemberType::GetMember(MQ2VARPTR VarPtr, PCHAR Member, PCHAR Index, M
 	PEQRAIDMEMBER pRaidMember=&pRaid->RaidMember[nRaidMember];
 	PMQ2TYPEMEMBER pMember=MQ2RaidMemberType::FindMember(Member);
 	if (!pMember)
-		return false;
+	{
+		return pSpawnType->GetMember(*(MQ2VARPTR*)&SpawnByName[pRaidMember->Name],Member,Index,Dest);
+	}
+
 	switch((RaidMemberMembers)pMember->ID)
 	{
 	case Name:
@@ -4263,20 +4317,32 @@ bool MQ2RaidMemberType::GetMember(MQ2VARPTR VarPtr, PCHAR Member, PCHAR Index, M
 		Dest.Type=pBoolType;
 		return true;
 	case Spawn:
+		if (Dest.Ptr=SpawnByName[pRaidMember->Name])
 		{
-			PSPAWNINFO pSpawn=(PSPAWNINFO)pSpawnList;
-			while(pSpawn)
-			{
-				if (!stricmp(pSpawn->Name,pRaidMember->Name))
-				{
-					Dest.Ptr=pSpawn;
-					Dest.Type=pSpawnType;
-					return true;
-				}
-				pSpawn=pSpawn->pNext;
-			}
+			Dest.Type=pSpawnType;
+			return true;
 		}
 		return false;
+	case Level:
+		Dest.DWord=atoi(pRaidMember->Level);
+		Dest.Type=pIntType;
+		return true;
+	case Class:
+		Dest.DWord=pRaidMember->nClass;
+		Dest.Type=pClassType;
+		return true;
+		/*
+		{
+			if (PSPAWNINFO pSpawn=SpawnByName[pRaidMember->Name])
+			{
+				Dest.DWord=pSpawn->Class;
+				Dest.Type=pIntType;
+				return true;
+			}
+			pCharData->KunarkClass(0,0,0x18C,1);
+		}
+		return false;
+		/**/
 	}
 	return false;
 }

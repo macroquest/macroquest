@@ -64,7 +64,7 @@ Using Blech:
 
 #pragma once
 
-#define BLECHVERSION "Lax/Blech 1.5.0"
+#define BLECHVERSION "Lax/Blech 1.5.1"
 
 #include <map>
 #include <string>
@@ -269,35 +269,25 @@ public:
 								return pChild;
 							}
 							// old child needs to be child of new child!
-
-
-							// remove pChild
-							if (pChild->pPrev)
-							{
-								pChild->pPrev->pNext=pChild->pNext;
-								pChild->pPrev=0;
-							}
-							else
-								pChildren=pChild->pNext;
-							if (pChild->pNext)
-							{
-								pChild->pNext->pPrev=pChild->pPrev;
-								pChild->pNext=0;
-							}
-
+							
 							// make new child, redo pChild as child of new child...
 							BlechNode *pNode = new BlechNode(this,ppRoot,NewString,NewStringType);
 							BLECHASSERT(pNode);
-							pNode->pNext=pChildren;
-							if (pChildren)
-								pChildren->pPrev=pNode;
-							pChildren=pNode;
+							if (pNode->pNext=pChild->pNext)
+								pNode->pNext->pPrev=pNode;
+							if (pNode->pPrev=pChild->pPrev)
+								pNode->pPrev->pNext=pNode;
+							else
+								pChildren=pNode;
+							pChild->pNext=0;
+							pChild->pPrev=0;
 
-							pChild->pParent=pChildren;
-							pChildren->pChildren=pChild;
+							pChild->pParent=pNode;
+							pNode->pChildren=pChild;
 							memmove(pChild->pString,&pChild->pString[Eq],pChild->Length-Eq+1);
 							pChild->Length-=Eq;
-							return pChildren;
+
+							return pNode;
 							// and return that new child
 						}
 						else if (Eq==pChild->Length)
@@ -307,38 +297,28 @@ public:
 						}
 						// both children (new and old) need to be children of a new child
 
-						// remove pChild
-						if (pChild->pPrev)
-						{
-							pChild->pPrev->pNext=pChild->pNext;
-							pChild->pPrev=0;
-						}
-						else
-							pChildren=pChild->pNext;
-						if (pChild->pNext)
-						{
-							pChild->pNext->pPrev=pChild->pPrev;
-							pChild->pNext=0;
-						}
-
 						// make new child, redo pChild as child of new child...
 						char Temp=pChild->pString[Eq];
 						pChild->pString[Eq]=0;
 						BlechNode *pNode = new BlechNode(this,ppRoot,pChild->pString,NewStringType);
 						pChild->pString[Eq]=Temp;
 						BLECHASSERT(pNode);
-						pNode->pNext=pChildren;
-						if (pChildren)
-							pChildren->pPrev=pNode;
-						pChildren=pNode;
+						if (pNode->pNext=pChild->pNext)
+							pNode->pNext->pPrev=pNode;
+						if (pNode->pPrev=pChild->pPrev)
+							pNode->pPrev->pNext=pNode;
+						else
+							pChildren=pNode;
+						pChild->pNext=0;
+						pChild->pPrev=0;
 
 
-						pChild->pParent=pChildren;
-						pChildren->pChildren=pChild;
+						pChild->pParent=pNode;
+						pNode->pChildren=pChild;
 
 						memmove(pChild->pString,&pChild->pString[Eq],pChild->Length-Eq+1);
 						pChild->Length-=Eq;
-						return pChildren->AddChild(&NewString[Eq],NewStringType);
+						return pNode->AddChild(&NewString[Eq],NewStringType);
 						// and return a very new child!
 					}
 				}
@@ -953,35 +933,25 @@ feedernomatch:
 								return pChild;
 							}
 							// old child needs to be child of new child!
-
-
-							// remove pChild
-							if (pChild->pPrev)
-							{
-								pChild->pPrev->pNext=pChild->pNext;
-								pChild->pPrev=0;
-							}
-							else
-								Tree[nRoot]=pChild->pNext;
-							if (pChild->pNext)
-							{
-								pChild->pNext->pPrev=pChild->pPrev;
-								pChild->pNext=0;
-							}
-
+							
 							// make new child, redo pChild as child of new child...
 							BlechNode *pNode = new BlechNode(0,&Tree[nRoot],String,StringType);
 							BLECHASSERT(pNode);
-							pNode->pNext=Tree[nRoot];
-							if (Tree[nRoot])
-								Tree[nRoot]->pPrev=pNode;
-							Tree[nRoot]=pNode;
+							if (pNode->pNext=pChild->pNext)
+								pNode->pNext->pPrev=pNode;
+							if (pNode->pPrev=pChild->pPrev)
+								pNode->pPrev->pNext=pNode;
+							else
+								Tree[nRoot]=pNode;
+							pChild->pNext=0;
+							pChild->pPrev=0;
 
-							pChild->pParent=Tree[nRoot];
-							Tree[nRoot]->pChildren=pChild;
+							pChild->pParent=pNode;
+							pNode->pChildren=pChild;
 							memmove(pChild->pString,&pChild->pString[Eq],pChild->Length-Eq+1);
 							pChild->Length-=Eq;
-							return Tree[nRoot];
+
+							return pNode;
 							// and return that new child
 						}
 						else if (Eq==pChild->Length)
@@ -991,38 +961,28 @@ feedernomatch:
 						}
 						// both children (new and old) need to be children of a new child
 
-						// remove pChild
-						if (pChild->pPrev)
-						{
-							pChild->pPrev->pNext=pChild->pNext;
-							pChild->pPrev=0;
-						}
-						else
-							Tree[nRoot]=pChild->pNext;
-						if (pChild->pNext)
-						{
-							pChild->pNext->pPrev=pChild->pPrev;
-							pChild->pNext=0;
-						}
-
 						// make new child, redo pChild as child of new child...
 						char Temp=pChild->pString[Eq];
 						pChild->pString[Eq]=0;
 						BlechNode *pNode = new BlechNode(0,&Tree[nRoot],pChild->pString,StringType);
 						pChild->pString[Eq]=Temp;
 						BLECHASSERT(pNode);
-						pNode->pNext=Tree[nRoot];
-						if (Tree[nRoot])
-							Tree[nRoot]->pPrev=pNode;
-						Tree[nRoot]=pNode;
+						if (pNode->pNext=pChild->pNext)
+							pNode->pNext->pPrev=pNode;
+						if (pNode->pPrev=pChild->pPrev)
+							pNode->pPrev->pNext=pNode;
+						else
+							Tree[nRoot]=pNode;
+						pChild->pNext=0;
+						pChild->pPrev=0;
 
 
-						pChild->pParent=Tree[nRoot];
-						Tree[nRoot]->pChildren=pChild;
+						pChild->pParent=pNode;
+						pNode->pChildren=pChild;
 
 						memmove(pChild->pString,&pChild->pString[Eq],pChild->Length-Eq+1);
 						pChild->Length-=Eq;
-						return Tree[nRoot]->AddChild(&String[Eq],StringType);
+						return pNode->AddChild(&String[Eq],StringType);
 						// and return a very new child!
 					}
 				}

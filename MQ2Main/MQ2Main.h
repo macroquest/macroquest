@@ -405,7 +405,7 @@ EQLIB_API DWORD WINAPI InsertCommands         (LPVOID lpParameter);
 EQLIB_API VOID        UpdateMonitoredSpawns   (VOID);
 EQLIB_API PCHAR       GetModel                (PSPAWNINFO pSpawn, DWORD Slot);
 EQLIB_API PSPAWNINFO  GetPet                  (DWORD OwnerID);
-EQLIB_API BOOL        IfCompare               (PCHAR szCond);
+//EQLIB_API BOOL        IfCompare               (PCHAR szCond);
 
 
 
@@ -453,6 +453,7 @@ EQLIB_API BOOL dataRaid(PCHAR szIndex, MQ2TYPEVAR &Ret);
 EQLIB_API BOOL dataNamingSpawn(PCHAR szIndex, MQ2TYPEVAR &Ret);
 
 /* COMMANDS */
+EQLIB_API VOID CaptionColorCmd(PSPAWNINFO pChar, PCHAR szLine);
 EQLIB_API VOID NoParseCmd(PSPAWNINFO pChar, PCHAR szLine);
 EQLIB_API VOID CaptionCmd(PSPAWNINFO pChar, PCHAR szLine);
 EQLIB_API VOID HudCmd(PSPAWNINFO pChar, PCHAR szLine);

@@ -12,6 +12,11 @@
     GNU General Public License for more details.
 ******************************************************************************/
 
+static inline PCHARINFO GetCharInfo(VOID) {
+ //   if (!ppCharData) return NULL;
+    return (PCHARINFO)pCharData;
+}
+
 static inline EQPlayer *GetSpawnByID(DWORD dwSpawnID)
 {
 	if (dwSpawnID<3000)
@@ -24,6 +29,70 @@ static inline PSPELL GetSpellByID(DWORD dwSpellID)
 	if (dwSpellID==0 || dwSpellID >= TOTAL_SPELL_COUNT)
 		return 0;
 	return &(*((PSPELLMGR)pSpellMgr)->Spells[dwSpellID]);
+}
+
+static inline PCHAR GetBodyTypeDesc(DWORD BodyTypeID)
+{
+	if (!BodyTypeID)
+		return "BODYTYPE ZERO";
+	return pEverQuest->GetBodyTypeDesc(BodyTypeID);
+}
+
+static inline PCHAR GetClassDesc(DWORD ClassID)
+{
+	if (ClassID==60)
+		return "LDoN Recruiter";
+	if (ClassID==61)
+		return "LDoN Merchant";
+	return pEverQuest->GetClassDesc(ClassID);
+}
+
+static inline BOOL IsAssistNPC(PSPAWNINFO pSpawn)
+{
+	if (GetCharInfo()->pSpawn)
+	{
+		DWORD nAssist;
+		PACTORINFO pCharActor=GetCharInfo()->pSpawn->pActorInfo;
+//			for (nAssist=0 ; nAssist < 1 ; nAssist++)
+		{
+			if (pCharActor->pGroupAssistNPC[0]==pSpawn)
+			{
+				return true;
+			}
+		}
+		for (nAssist=0 ; nAssist < 3 ; nAssist++)
+		{
+			if (pCharActor->pRaidAssistNPC[nAssist]==pSpawn)
+			{
+				return true;
+			}
+		}
+	}
+	return false;
+}
+
+static inline BOOL IsMarkedNPC(PSPAWNINFO pSpawn)
+{
+	if (GetCharInfo()->pSpawn)
+	{
+		DWORD nMark;
+		PACTORINFO pCharActor=GetCharInfo()->pSpawn->pActorInfo;
+		for (nMark=0 ; nMark < 3 ; nMark++)
+		{
+			if (pCharActor->pRaidMarkNPC[nMark]==pSpawn)
+			{
+				return true;
+			}
+		}
+		for (nMark=0 ; nMark < 3 ; nMark++)
+		{
+			if (pCharActor->pGroupMarkNPC[nMark]==pSpawn)
+			{
+				return true;
+			}
+		}
+	}
+	return false;
 }
 
 #define GetMaxMana() pCharData->Max_Mana()
@@ -48,7 +117,7 @@ static inline eSpawnType GetSpawnType(PSPAWNINFO pSpawn)
 		{
 			return MOUNT;
 		}
-		if (!stricmp(pEverQuest->GetBodyTypeDesc(pSpawn->BodyType),"UNKNOWN BODYTYPE"))
+		if (pSpawn->BodyType && !stricmp(pEverQuest->GetBodyTypeDesc(pSpawn->BodyType),"UNKNOWN BODYTYPE"))
 			return TRIGGER;
 		else
 		{
@@ -63,11 +132,6 @@ static inline eSpawnType GetSpawnType(PSPAWNINFO pSpawn)
 	default:
 		return ITEM;
 	}
-}
-
-static inline PCHARINFO GetCharInfo(VOID) {
- //   if (!ppCharData) return NULL;
-    return (PCHARINFO)pCharData;
 }
 
 static inline FLOAT GetDistance(FLOAT X1,FLOAT Y1)
@@ -141,6 +205,26 @@ static inline DWORD ConColorToARGB(DWORD ConColor)
         default:
             return 0xFFFF0000;
     }
+}
+
+static inline BOOL IsRaidMember(PSPAWNINFO pSpawn)
+{
+	for (DWORD N = 0 ; N < 72 ; N++)
+	{
+		if (pRaid->RaidMemberUsed[N] && !stricmp(pSpawn->Name,pRaid->RaidMember[N].Name))
+			return 1;
+	}
+	return 0;
+}
+
+static inline BOOL IsGroupMember(PSPAWNINFO pSpawn)
+{
+	for (DWORD N = 0 ; N < 6 ; N++)
+	{
+		if (pSpawn==(PSPAWNINFO)ppGroup[N])
+			return 1;
+	}
+	return 0;
 }
 
 static inline BOOL IsNumber(PCHAR String)

@@ -215,7 +215,7 @@ public:
      { 
       if (pSpell->Level[j]>0 && pSpell->Level[j]<=65) 
       { 
-		 sprintf(temp,"%s(%d)&nbsp;&nbsp;&nbsp;&nbsp;", pEverQuest->GetClassDesc(j+1), pSpell->Level[j]); 
+		 sprintf(temp,"%s(%d)&nbsp;&nbsp;&nbsp;&nbsp;", GetClassDesc(j+1), pSpell->Level[j]); 
          strcat(out, temp); 
       } 
      }

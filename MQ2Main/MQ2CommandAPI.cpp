@@ -465,6 +465,7 @@ void InitializeMQ2Commands()
 		{"/drop",		DropCmd,1,0},
 		{"/hud",        HudCmd,1,0},
 		{"/caption",	CaptionCmd,0,0},
+		{"/captioncolor",CaptionColorCmd,1,0},
 		{"/noparse",    NoParseCmd,0,0},
 		{NULL,          NULL,0,1},
     };

@@ -1,3 +1,30 @@
+11 May 2004 by Lax:
+- Fixed problem with events mysteriously having parameters disappear
+- Updated Blech to fix a bug with some #events disappearing (and not firing)
+- Your target's caption will now always be drawn
+- Added LDoN Recruiters and Merchants to the list of full class names.
+- Added /captioncolor command, which allows a lot of custom spawn caption coloring.  For example,
+  the caption of marked NPCs or assist NPCs can be a specific color.. the caption of bankers and
+  merchants can be a set color.  NPCs can be done by con color.  All spawns can be done by
+  CLASS color (using the raid settings).  Note that you can only set the raid class colors right
+  now through the raid options window.  You can open this window by typing
+  /windowstate raidoptionswindow show
+  Usage: /captioncolor <list|<name off|on|#>>
+  Examples:
+  /captioncolor list
+  /captioncolor pcclass on
+  /captioncolor pctrader on
+  /captioncolor pctrader 255 128 0
+- Changed /windowstate command to use the window mapping used by ${Window[name]}, /windows, etc.
+- Fixed issues with "charm" and the invslot type
+- raidmember MQ2Data type now inherits "spawn" (when they are in zone)
+- Added/changed MQ2Data members:
+  class raidmember.Class: Raid member's class (works without being in zone)
+  int raidmember.Level: Raid member's level (works without being in zone)
+  int item.WornSlots: The number of invslots this item can be worn in (fingers/ears count as 2 slots)
+  invslot item.WornSlot[n]: The nth invslot this item can be worn in (fingers/ears count as 2 slots)
+  bool item.WornSlot[name]: Can item be worn in invslot with this name? (worn slots only..)
+
 10 May 2004 by Lax (more):
 - Fixed once and for all the crash bugs relating to spawn captions (WHICH ARE *NOT* THE HUD)
 

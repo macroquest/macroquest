@@ -162,7 +162,7 @@ PMACROBLOCK AddMacroLine(PCHAR szLine)
             } else {
                 MacroError("Bad #define: %s",szLine);
             }
-        } else if (!strnicmp(szLine,"#event ",7)) {
+        } else if (!strnicmp(szLine,"",7)) {
             CHAR szArg1[MAX_STRING] = {0};
             CHAR szArg2[MAX_STRING] = {0};
             PEVENTLIST pEvent = (PEVENTLIST)malloc(sizeof(EVENTLIST));
@@ -472,7 +472,7 @@ VOID EndMacro(PSPAWNINFO pChar, PCHAR szLine)
     DWORD i;
     PMACROBLOCK pPrev;
     PMACROSTACK pStack;
-    PEVENTSTACK pEvent;
+    PEVENTQUEUE pEvent;
     PEVENTLIST pEventL;
     BOOL bKeepKeys = gKeepKeys;
     if (szLine[0]!=0) {
@@ -508,10 +508,10 @@ VOID EndMacro(PSPAWNINFO pChar, PCHAR szLine)
         free(gMacroStack);
         gMacroStack = pStack;
     }
-    while (gEventStack) {
-        pEvent = gEventStack->pNext;
-        free(gEventStack);
-        gEventStack = pEvent;
+    while (gEventQueue) {
+        pEvent = gEventQueue->pNext;
+        free(gEventQueue);
+        gEventQueue = pEvent;
     }
     while (pEventList) {
         pEventL = pEventList->pNext;
@@ -731,115 +731,109 @@ VOID NewIf(PSPAWNINFO pChar, PCHAR szLine)
 // ***************************************************************************
 VOID DoEvents(PSPAWNINFO pChar, PCHAR szLine)
 {
-    if (!gEventStack) return;
-    if (!gMacroStack) return;
+    if (!gEventQueue || !gMacroStack) 
+		return;
 
-    DWORD sNum=0;
-    CHAR sEvent[MAX_STRING]={0};
-    PEVENTSTACK pEventNext = gEventStack->pNext;
-    PEVENTSTACK pEventToRun = gEventStack;
-    PEVENTSTACK *ppEventToRun = &gEventStack;
-    PEVENTSTACK pEventPrev = NULL;
-    PMACROSTACK pStack = NULL;
-    PMACROBLOCK pMacro = NULL;
-    CHAR SpecificEvent[MAX_STRING] = {0};
-    BOOL Flush = FALSE;
-    CHAR szTemp[MAX_STRING]= {0};
-    DWORD NumEvents = 0;
-    BOOL bCustomNum = FALSE;
+	CHAR Arg1[MAX_STRING]={0};
+	CHAR Arg2[MAX_STRING]={0};
 
-    GetArg(szTemp,szLine,1);
-    for (DWORD i=2;szTemp[0]!='\0';GetArg(szTemp,szLine,i++)) {
-        if (szTemp[0]!='\0') {
-            if (!stricmp(szTemp,"flush"))
-                Flush=TRUE;
-            else if (szTemp[0]>='0' && szTemp[0]<='9') {
-                NumEvents=atoi(szTemp);
-            } else
-                sprintf(SpecificEvent,"Sub Event_%s",szTemp);
-        }
-    }
-    if (stricmp(sEvent,SpecificEvent)) {
-        strcpy(sEvent,SpecificEvent);
-        sNum=NumEvents;
-    }
+	GetArg(Arg1,szLine,1);
 
-    if (NumEvents)
-        bCustomNum = TRUE;
-    DebugSpewNoFile("DoEvents: Parms = '%s' Flush = %d -- SpecificEvent = %s -- NumEvents = %d",szLine,Flush,SpecificEvent,NumEvents);
-    if (Flush) {
-        if (SpecificEvent[0]=='\0') {
-            while (gEventStack) {
-                pEventNext = gEventStack->pNext;
-				ClearMQ2DataVariables(&gEventStack->Parameters);
-                free(gEventStack);
-                gEventStack = pEventNext;
-            }
-        } else {
-            PEVENTSTACK pPrev=NULL;
-            while (pEventToRun) {
-                pEventNext = pEventToRun->pNext;
-                DebugSpewNoFile("DoEvents.FlushSpecific: checking '%d\\%s' against '%s'",pEventToRun->Type,(pEventToRun->pEventList)?pEventToRun->pEventList->szName:"NULL",SpecificEvent);
-                if (
-                    ((pEventToRun->Type == EVENT_CHAT) && (!stricmp("Sub Event_Chat",SpecificEvent))) ||
-                    ((pEventToRun->Type == EVENT_TIMER) && (!stricmp("Sub Event_Timer",SpecificEvent))) ||
-                    ((pEventToRun->Type == EVENT_CUSTOM) && (!stricmp(pEventToRun->pEventList->szName,SpecificEvent)))
-                    ) {
-                    DebugSpewNoFile("DoEvents.FlushSpecific: found one");
-                    PEVENTSTACK pThis=pEventToRun;
-                    pEventToRun = pPrev->pNext = pThis->pNext;
-					ClearMQ2DataVariables(&pThis->Parameters);
-                    free(pThis);
-                } else {
-                    pPrev = pEventToRun;
-                    pEventToRun = pEventToRun->pNext;
-                }
-            }
-        }
-        bRunNextCommand = TRUE;
-        return;
-    }
-    BOOL Found = FALSE;
-    if (SpecificEvent[0]) {
-        DebugSpewNoFile("NumEvents: %d sNum: %d",NumEvents,sNum);
-        if ((NumEvents && sNum) || (!NumEvents && !sNum)) {
-            while (pEventToRun && !Found) {
-                pEventNext = pEventToRun->pNext;
-                DebugSpewNoFile("DoEvents.SpecificEvent: checking '%d\\%s' against '%s'",pEventToRun->Type,(pEventToRun->pEventList)?pEventToRun->pEventList->szName:"NULL",SpecificEvent);
-                if (
-                    ((pEventToRun->Type == EVENT_CHAT) && (!stricmp("Sub Event_Chat",SpecificEvent))) ||
-                    ((pEventToRun->Type == EVENT_TIMER) && (!stricmp("Sub Event_Timer",SpecificEvent))) ||
-                    ((pEventToRun->Type == EVENT_CUSTOM) && (!stricmp(pEventToRun->pEventList->szName,SpecificEvent)))
-                ) {
-                    DebugSpewNoFile("DoEvents.SpecificEvent: found one");
-                    Found = TRUE;
-                    if (sNum) sNum--;
-                } else {
-                    ppEventToRun = &pEventToRun->pNext;
-                    pEventToRun = pEventToRun->pNext;
-                }
-            }
-        }
-    }
-    if (!pEventToRun || (SpecificEvent[0] && !Found)) return;
-    DebugSpewNoFile("DoEvents: Running event %d\\%s = 0x%p",pEventToRun->Type,(pEventToRun->pEventList)?pEventToRun->pEventList->szName:"NULL",pEventToRun);
+	if (!stricmp(Arg1,"flush"))
+	{
+		GetArg(Arg2,szLine,2);
+		if (Arg2[0])
+		{
+			sprintf(Arg1,"Sub Event_%s",Arg2);
+			PEVENTQUEUE pEvent=gEventQueue;
+			while (pEvent) 
+			{
+				if (
+                (pEvent->Type == EVENT_CHAT && !stricmp("Sub Event_Chat",Arg1)) ||
+                (pEvent->Type == EVENT_TIMER && !stricmp("Sub Event_Timer",Arg1)) ||
+                (pEvent->Type == EVENT_CUSTOM && !stricmp(pEvent->pEventList->szName,Arg1))
+				) 
+				{
+					PEVENTQUEUE pEventNext;
+					if (pEventNext = pEvent->pNext)
+						pEventNext->pPrev=pEvent->pPrev;
+					if (pEvent->pPrev)
+						pEvent->pPrev->pNext=pEvent->pNext;
+					else
+						gEventQueue=pEvent->pNext;
+					ClearMQ2DataVariables(&pEvent->Parameters);
+					free(pEvent);
+					pEvent=pEventNext;
+					continue;
+				}
+				pEvent = pEvent->pNext;
+			}
+		}
+		else
+		{
+			while (gEventQueue) 
+			{
+				PEVENTQUEUE pEventNext = gEventQueue->pNext;
+				ClearMQ2DataVariables(&gEventQueue->Parameters);
+				free(gEventQueue);
+				gEventQueue = pEventNext;
+			}
+		}
+		return;
+	}
+	PEVENTQUEUE pEvent=gEventQueue;
+	if (Arg1[0])
+	{
+		sprintf(Arg2,"Sub Event_%s",Arg1);
+		while(pEvent)
+		{
+			if (
+            (pEvent->Type == EVENT_CHAT && !stricmp("Sub Event_Chat",Arg2)) ||
+            (pEvent->Type == EVENT_TIMER && !stricmp("Sub Event_Timer",Arg2)) ||
+            (pEvent->Type == EVENT_CUSTOM && !stricmp(pEvent->pEventList->szName,Arg2))
+			) 
+			{
+				break;
+			}
+			pEvent=pEvent->pNext;
+		}
+		if (!pEvent)
+			return;// no event found
+	}
 
-    pStack = (PMACROSTACK)malloc(sizeof(MACROSTACK));
+	if (pEvent->pPrev)
+		pEvent->pPrev->pNext=pEvent->pNext;
+	else
+		gEventQueue=pEvent->pNext;
+	if (pEvent->pNext)
+		pEvent->pNext->pPrev=pEvent->pPrev;
+
+	DebugSpewNoFile("DoEvents: Running event type %d (%s) = 0x%p",pEvent->Type,(pEvent->pEventList)?pEvent->pEventList->szName:"NONE",pEvent);
+
+    PMACROSTACK pStack = (PMACROSTACK)malloc(sizeof(MACROSTACK));
     gMacroStack->Location = gMacroStack->Location->pPrev;
     pStack->Location = gMacroBlock;
     pStack->Return[0] = 0;
-    pStack->Parameters = pEventToRun->Parameters;
+    pStack->Parameters = pEvent->Parameters;
+	PDATAVAR pParam=pStack->Parameters;
+	while(pParam) // FIX THE HEAD ON EVERY VAR WE MOVED
+	{
+		pParam->ppHead=&pStack->Parameters;
+		pParam=pParam->pNext;
+	}
     pStack->LocalVariables = NULL;
     pStack->pNext = gMacroStack;
     gMacroStack = pStack;
-    if (pEventToRun->Type == EVENT_CUSTOM) {
-        gMacroBlock = pEventToRun->pEventList->pEventFunc;
-    } else {
-        gMacroBlock = gEventFunc[pEventToRun->Type];
+    if (pEvent->Type == EVENT_CUSTOM) 
+	{
+        gMacroBlock = pEvent->pEventList->pEventFunc;
+    }
+	else 
+	{
+        gMacroBlock = gEventFunc[pEvent->Type];
     }
     DebugSpewNoFile("DoEvents - Called event: %s",gMacroBlock->Line);
-    free(pEventToRun);
-    *ppEventToRun = pEventNext;
+    free(pEvent);
     bRunNextCommand = FALSE;
 }
 
@@ -853,23 +847,25 @@ VOID Return(PSPAWNINFO pChar, PCHAR szLine)
 {
     bRunNextCommand = TRUE;
     PMACROSTACK pStack = gMacroStack;
-    if (!gMacroBlock) {
+    if (!gMacroBlock) 
+	{
         MacroError("Cannot return when a macro isn't running.");
         return;
     }
-    if ((!pStack) || (!pStack->pNext)) {
+    if (!pStack->pNext) 
+	{
         // Top of stack (ie. returning from Sub Main)
         EndMacro(pChar,"");
         return;
     }
-
-    strcpy(pStack->pNext->Return,szLine);
-    gMacroBlock = pStack->pNext->Location;
-    gMacroStack = pStack->pNext;
     if (pStack->LocalVariables) 
 		ClearMQ2DataVariables(&pStack->LocalVariables);
     if (pStack->Parameters) 
 		ClearMQ2DataVariables(&pStack->Parameters);
+
+    strcpy(pStack->pNext->Return,szLine);
+    gMacroBlock = pStack->pNext->Location;
+    gMacroStack = pStack->pNext;
     free(pStack);
     DebugSpewNoFile("Return - Returned to %s",gMacroBlock->Line);
 
