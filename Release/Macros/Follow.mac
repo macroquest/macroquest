@@ -1,10 +1,9 @@
 #turbo
 Sub Main
    :Loop
-      /if n $target(distance)>60 /sendkey down up
-      /if n $target(distance)<40 /sendkey up up
+      /if (${Target.Distance}>60) /keypress up hold
+      /if (${Target.Distance}<40) /keypress up 
       /face fast
-      /delay 0
-   /if "$target()"=="TRUE" /goto :Loop
-
+      /delay 2
+   /if (${Target.ID}) /goto :Loop
 /return
