@@ -28,12 +28,20 @@ char *szFPSModes[]=
 	"Calculate"
 };
 
+HMODULE EQWhMod=0;
+typedef HWND   (__stdcall *fEQW_GetDisplayWindow)(VOID);
+fEQW_GetDisplayWindow EQW_GetDisplayWindow=0;
+
 
 // Called once, when the plugin is to initialize
 PLUGIN_API VOID InitializePlugin(VOID)
 {
 	DebugSpewAlways("Initializing MQ2FPS");
-
+	if (EQWhMod=GetModuleHandle("eqw.dll"))
+	{
+		EQW_GetDisplayWindow=(fEQW_GetDisplayWindow)GetProcAddress(EQWhMod,"EQW_GetDisplayWindow");
+	}
+	
 	// Add commands, macro parameters, hooks, etc.
 	// INI Settings
     DWORD Temp=0;
@@ -213,18 +221,8 @@ PLUGIN_API VOID OnPulse(VOID)
 	{ 
 		InMacro=false;
 		HWND EQhWnd=*(HWND*)EQADDR_HWND;
-		HMODULE hMod=GetModuleHandle("eqw.dll");
-		if (hMod)
-		{
-			DWORD GetEQWHWND=(DWORD)hMod+0x12C0;
-			__asm
-			{
-				push eax;
-				call [GetEQWHWND];
-				mov [EQhWnd], eax;
-				pop eax;
-			};
-		}
+		if (EQW_GetDisplayWindow)
+			EQhWnd=EQW_GetDisplayWindow();
 		
 		if (GetForegroundWindow()==EQhWnd)
 		{
