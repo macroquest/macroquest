@@ -85,7 +85,6 @@ public:
    {
       PCSIDLWND pThisLabel = (PCSIDLWND)this;
       Draw_Trampoline();
-
       CHAR Buffer[MAX_STRING] = {0};
       BOOL Found=FALSE;
       DWORD index;
