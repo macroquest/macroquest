@@ -42,6 +42,7 @@ BOOL APIENTRY DllMain( HANDLE hModule,
 PLUGIN_API VOID InitializePlugin(VOID)
 {
     DebugSpewAlways("Initializing mq2telnet");
+	SetINIFileName("MQ2Telnet.ini");
     InitializeCriticalSection(&gDoCommand_Lock);
     InitializeCriticalSection(&gTelnet_CS_Recv);
     InitializeCriticalSection(&gTelnet_CS_Send);
@@ -309,10 +310,10 @@ VOID SetupServer()
 {
     SOCKADDR_IN saServer;
     gTelnetConnection = NULL;
-    gTelnetPort = GetPrivateProfileInt("Telnet Server","Port",23,gszINIFilename);
-    gTelnetLocal = GetPrivateProfileInt("Telnet Server","LocalOnly",1,gszINIFilename);
-    GetPrivateProfileString("Telnet Server","Welcome","MacroQuest telnet server",gTelnetWelcome,MAX_STRING,gszINIFilename);
-    GetPrivateProfileString("Telnet Server","Password","macroquest",gTelnetPassword,MAX_STRING,gszINIFilename);
+    gTelnetPort = GetPrivateProfileInt("Telnet Server","Port",23,INIFileName);
+    gTelnetLocal = GetPrivateProfileInt("Telnet Server","LocalOnly",1,INIFileName);
+    GetPrivateProfileString("Telnet Server","Welcome","MacroQuest telnet server",gTelnetWelcome,MAX_STRING,INIFileName);
+    GetPrivateProfileString("Telnet Server","Password","macroquest",gTelnetPassword,MAX_STRING,INIFileName);
     if (!WSAOpen()) {
         DebugSpewAlways("SetupServer: Unable to start WSA");
         gTelnetServer=0;
