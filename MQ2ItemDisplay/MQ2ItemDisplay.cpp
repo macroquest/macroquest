@@ -10,6 +10,10 @@
 #include "../MQ2Plugin.h"
 PreSetup("MQ2ItemDisplay");
 
+extern "C" {
+__declspec(dllexport) ITEMINFO g_Item;
+}
+
 
 // *************************************************************************** 
 // Function:    ItemDisplayHook
@@ -28,7 +32,10 @@ public:
       PCHAR lore = NULL;
       SetItem_Trampoline(pitem,unknown);
 
-     strcpy(out,"<BR><c \"#00FFFF\">");
+      // keep a global copy of the last item displayed...
+      memcpy(&g_Item, Item, 0x200);
+
+      strcpy(out,"<BR><c \"#00FFFF\">");
 	 if (Item->Cost>0) {
 		  DWORD cp = Item->Cost;
 		  DWORD sp = cp/10; cp=cp%10;
