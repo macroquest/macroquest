@@ -191,14 +191,14 @@ VOID IrcConnect(PSPAWNINFO pChar, PCHAR szLine)
 	GetArg(Arg3,szLine,3);
 	GetArg(Arg4,szLine,4);
 	if (Arg1[0]==0 && Arg2[0]==0 && Arg3[0]==0 && Arg4[0]==0) {
-		GetPrivateProfileString("Last Connect","Server","irc.forever-hacking.net",IrcServer,MAX_STRING,INIFileName);
+		GetPrivateProfileString("Last Connect","Server","irc.ipdn.org",IrcServer,MAX_STRING,INIFileName);
 		GetPrivateProfileString("Last Connect","Port","6667",IrcPort,MAX_STRING,INIFileName);
-		GetPrivateProfileString("Last Connect","Chan","MyChan",IrcChan,MAX_STRING,INIFileName);
+		GetPrivateProfileString("Last Connect","Chan","#macroquest",IrcChan,MAX_STRING,INIFileName);
 		GetPrivateProfileString("Last Connect","Nick","What-Ini",IrcNick,MAX_STRING,INIFileName);
 	} else if (Arg2[0]==0 && Arg3[0]==0 && Arg4[0]==0) {
-		GetPrivateProfileString(Arg1,"Server","irc.forever-hacking.net",IrcServer,MAX_STRING,INIFileName);
+		GetPrivateProfileString(Arg1,"Server","irc.ipdn.org",IrcServer,MAX_STRING,INIFileName);
 		GetPrivateProfileString(Arg1,"Port","6667",IrcPort,MAX_STRING,INIFileName);
-		GetPrivateProfileString(Arg1,"Chan","MyChan",IrcChan,MAX_STRING,INIFileName);
+		GetPrivateProfileString(Arg1,"Chan","#macroquest",IrcChan,MAX_STRING,INIFileName);
 		GetPrivateProfileString(Arg1,"Nick","What-Ini",IrcNick,MAX_STRING,INIFileName);
 	} else if (Arg3[0]==0 && Arg4[0]==0) {
 		sprintf(IrcServer,"%s",Arg1);
@@ -666,9 +666,9 @@ PLUGIN_API VOID InitializePlugin(VOID)
 	ircout("\ar#\ax MQ2Irc loaded, all commands are run with /i <command>");
 	ircout("\ar#\ax /i help for a list of commands");
 	ircout("\ar#\ax To connect to a server, type /iconnect <server> <port> <channel> <nick>");
-	GetPrivateProfileString("Last Connect","Server","irc.forever-hacking.net",IrcServer,MAX_STRING,INIFileName);
+	GetPrivateProfileString("Last Connect","Server","irc.ipdn.org",IrcServer,MAX_STRING,INIFileName);
 	GetPrivateProfileString("Last Connect","Port","6667",IrcPort,MAX_STRING,INIFileName);
-	GetPrivateProfileString("Last Connect","Chan","MyChan",IrcChan,MAX_STRING,INIFileName);
+	GetPrivateProfileString("Last Connect","Chan","#macroquest",IrcChan,MAX_STRING,INIFileName);
 	GetPrivateProfileString("Last Connect","Nick","What-Ini",IrcNick,MAX_STRING,INIFileName);
 	GetPrivateProfileString("Settings","Version","MQ2Irc 120703",Version,MAX_STRING,INIFileName);
 	GetPrivateProfileString("Settings","Username","What-Ini",Username,MAX_STRING,INIFileName);
