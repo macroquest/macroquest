@@ -1,6 +1,7 @@
 16 Feb 2004 by Amadeus
-- Fixed EQ_CONTAINERWND_MANAGER  (Thereby Fixing $envopen )
+- Fixed EQ_CONTAINERWND_MANAGER  (which fixes $envopen )
 - Added "Frenzy" to skills.h [daerck]
+- Fixed EQLOOTWINDOW struct (which fixes $corpse(empty) and $corpse(has,xxx)
 
 15 Feb 2004 by Amadeus
 - 'Grouped' location fixed in CHARINFO (thereby fixing $char(grouped))
