@@ -12,6 +12,22 @@
 
 PreSetup("MQ2FPS");
 
+#define FPS_ABSOLUTE  0
+#define FPS_CALCULATE 1
+
+DWORD MaxFPSMode=FPS_CALCULATE;
+
+DWORD FPSIndicatorX=5;
+DWORD FPSIndicatorY=25;
+
+BOOL InMacro=false;
+
+char *szFPSModes[]=
+{
+	"Absolute",
+	"Calculate"
+};
+
 
 // Called once, when the plugin is to initialize
 PLUGIN_API VOID InitializePlugin(VOID)
@@ -25,11 +41,15 @@ PLUGIN_API VOID InitializePlugin(VOID)
     SetForegroundMaxFPS(Temp);
     Temp = GetPrivateProfileInt("MQ2FPS","BackgroundMaxFPS",30,INIFileName);
     SetBackgroundMaxFPS(Temp);
+    MaxFPSMode = GetPrivateProfileInt("MQ2FPS","Mode",FPS_CALCULATE,INIFileName);
+    FPSIndicatorX = GetPrivateProfileInt("MQ2FPS","IndicatorX",5,INIFileName);
+    FPSIndicatorY = GetPrivateProfileInt("MQ2FPS","IndicatorY",25,INIFileName);
 
 	// Commands
 	AddCommand("/maxfps",MaxFPS,0,1);
+	AddCommand("/fps",FPSCommand,0,1);
 }
-
+/*
 PLUGIN_API VOID SetGameState(DWORD GameState)
 {
 	if (GameState==GAMESTATE_INGAME)
@@ -40,6 +60,7 @@ PLUGIN_API VOID SetGameState(DWORD GameState)
 		}
 	}
 }
+/**/
 
 // Called once, when the plugin is to shutdown
 PLUGIN_API VOID ShutdownPlugin(VOID)
@@ -48,6 +69,7 @@ PLUGIN_API VOID ShutdownPlugin(VOID)
 
 	// Remove commands, macro parameters, hooks, etc.
 	RemoveCommand("/maxfps");
+	RemoveCommand("/fps");
 }
 
 DWORD gFG_MAX=0;
@@ -61,6 +83,23 @@ DWORD LastSleep=0;
 BOOL bFrameArrayFilled=0;
 float FPS=0.0f;
 
+VOID SetMode(DWORD Mode)
+{
+	if (Mode<2)
+	{
+		MaxFPSMode=Mode;
+		if (Mode==FPS_ABSOLUTE) // i dont really want to use sprintf here, suck it
+		{
+			WriteChatColor("FPS Limiter mode now absolute");
+			WritePrivateProfileString("MQ2FPS","Mode","0",INIFileName);
+		}
+		else
+		{
+			WriteChatColor("FPS Limiter mode now calculate");
+			WritePrivateProfileString("MQ2FPS","Mode","1",INIFileName);
+		}
+	}
+}
 
 VOID SetForegroundMaxFPS(DWORD MaxFPS)
 {
@@ -167,9 +206,12 @@ PLUGIN_API VOID OnPulse(VOID)
 
 	if (!gDelay && !gMacroPause && (!gMQPauseOnChat || *EQADDR_NOTINCHATMODE) &&
         gMacroBlock && gMacroStack) {
+		InMacro=true;
+		Sleep(0);
     }
 	else
 	{ 
+		InMacro=false;
 		HWND EQhWnd=*(HWND*)EQADDR_HWND;
 		HMODULE hMod=GetModuleHandle("eqw.dll");
 		if (hMod)
@@ -189,16 +231,23 @@ PLUGIN_API VOID OnPulse(VOID)
 			CurMax=gFG_MAX;
 			if (gFG_MAX)
 			{
-				// assume last frame time is constant, so a 30ms frame = 33 fps
-				// 
-				
-				int SleepTime=(int)(1000.0f/(float)gFG_MAX);
-				SleepTime-=(FrameTime-LastSleep);
-				/**/
-				if (SleepTime<0)
-					SleepTime=0;
-				Sleep(SleepTime);
-				LastSleep=SleepTime;
+				if (MaxFPSMode==FPS_CALCULATE)
+				{
+					// assume last frame time is constant, so a 30ms frame = 33 fps
+					// 
+					
+					int SleepTime=(int)(1000.0f/(float)gFG_MAX);
+					SleepTime-=(FrameTime-LastSleep);
+					/**/
+					if (SleepTime<0)
+						SleepTime=0;
+					Sleep(SleepTime);
+					LastSleep=SleepTime;
+				}
+				else
+				{
+					Sleep(1000/gFG_MAX);
+				}
 			}
 			else
 				Sleep(0);
@@ -208,13 +257,20 @@ PLUGIN_API VOID OnPulse(VOID)
 			CurMax=gBG_MAX;
 			if (gBG_MAX)
 			{
-				int SleepTime=(int)(1000.0f/(float)gBG_MAX);
-				SleepTime-=(FrameTime-LastSleep);
-				/**/
-				if (SleepTime<0)
-					SleepTime=0;
-				Sleep(SleepTime);
-				LastSleep=SleepTime;
+				if (MaxFPSMode==FPS_CALCULATE)
+				{
+					int SleepTime=(int)(1000.0f/(float)gBG_MAX);
+					SleepTime-=(FrameTime-LastSleep);
+					/**/
+					if (SleepTime<0)
+						SleepTime=0;
+					Sleep(SleepTime);
+					LastSleep=SleepTime;
+				}
+				else
+				{
+					Sleep(1000/gBG_MAX);
+				}
 			}
 			else
 				Sleep(0);
@@ -230,11 +286,12 @@ PLUGIN_API VOID OnDrawHUD(VOID)
 {
 	// DONT leave in this debugspew, even if you leave in all the others
 //	DebugSpewAlways("MQ2Template::OnDrawHUD()");
+	if (!pDisplay)
+		return; // even though its 100% impossible to call this without there being a pDisplay..
 	CHAR szBuffer[MAX_STRING];
 
 	
 	// Display
-	sprintf(szBuffer,"%d/%d FPS",(DWORD)FPS,CurMax);
 	DWORD SX=0;
 	DWORD SY=0;
 	if (pScreenX && pScreenY)
@@ -242,11 +299,65 @@ PLUGIN_API VOID OnDrawHUD(VOID)
 		SX=ScreenX;
 		SY=ScreenY;
 	}
-	if (pDisplay)
+	
+	if (InMacro)
+		sprintf(szBuffer,"%d/MACRO FPS",(DWORD)FPS);
+	else
 	{
-		DebugTry(pDisplay->WriteTextHD2(szBuffer,SX+5,SY+25,0x0d));
+		if (MaxFPSMode==FPS_ABSOLUTE)
+		{
+			sprintf(szBuffer,"%d/%d* FPS",(DWORD)FPS,CurMax);
+		}
+		else
+		{
+			sprintf(szBuffer,"%d/%d FPS",(DWORD)FPS,CurMax);
+		}
 	}
 
+
+
+	DebugTry(pDisplay->WriteTextHD2(szBuffer,SX+FPSIndicatorX,SY+FPSIndicatorY,0x0d));
+
+}
+
+VOID FPSCommand(PSPAWNINFO pChar, PCHAR szLine)
+{
+   bRunNextCommand = TRUE;
+   CHAR szCmd[MAX_STRING] = {0};
+    CHAR Arg1[MAX_STRING] = {0};
+    GetArg(Arg1,szLine,1);
+   if (Arg1[0]==0) {
+        WriteChatColor("Usage: /fps <mode|absolute|calculate|x,y>",USERCOLOR_DEFAULT);
+        return;
+   }
+
+	if (!strnicmp(Arg1,"absolute",strlen(Arg1)))
+	{
+		SetMode(FPS_ABSOLUTE);
+		return;
+	}
+	else
+	if (!strnicmp(Arg1,"calculate",strlen(Arg1)))
+	{
+		SetMode(FPS_CALCULATE);
+		return;
+	}
+	else
+	if (!strnicmp(Arg1,"mode",strlen(Arg1)))
+	{
+		SetMode(MaxFPSMode==0);
+		return;
+	}
+
+	if (strchr(szLine,','))
+	{
+		sscanf(szLine,"%d,%d",&FPSIndicatorX,&FPSIndicatorY);
+//		itoa(FPSIndicatorX,szCmd,10);
+		WritePrivateProfileString("MQ2FPS","IndicatorX",itoa(FPSIndicatorX,szCmd,10),INIFileName);
+		WritePrivateProfileString("MQ2FPS","IndicatorY",itoa(FPSIndicatorY,szCmd,10),INIFileName);
+		return;
+	}
+        WriteChatColor("Usage: /fps <mode|absolute|calculate|x,y>",USERCOLOR_DEFAULT);
 }
 
 
@@ -267,7 +378,7 @@ VOID MaxFPS(PSPAWNINFO pChar, PCHAR szLine)
 
 
    if (Arg1[0]==0 || Arg2[0]==0) {
-       sprintf(szCmd,"\aw\ayMaxFPS\ax\a-u:\ax \a-u[\ax\at%d\ax Foreground\a-u]\ax \a-u[\ax\at%d\ax Background\a-u]\ax",gFG_MAX,gBG_MAX);
+	    sprintf(szCmd,"\aw\ayMaxFPS\ax\a-u:\ax \a-u[\ax\at%d\ax Foreground\a-u]\ax \a-u[\ax\at%d\ax Background\a-u]\ax \a-u[\ax%s Mode\a-u]\ax",gFG_MAX,gBG_MAX,szFPSModes[MaxFPSMode]);
         WriteChatColor(szCmd,USERCOLOR_DEFAULT);
         WriteChatColor("Usage: /maxfps <fg|bg> <#>",USERCOLOR_DEFAULT);
         return;
@@ -289,6 +400,6 @@ VOID MaxFPS(PSPAWNINFO pChar, PCHAR szLine)
        SetBackgroundMaxFPS(NewMax);
        WritePrivateProfileString("MQ2FPS","BackgroundMaxFPS",Arg2,INIFileName);
    }
-    sprintf(szCmd,"\aw\ayMaxFPS\ax\a-u:\ax \a-u[\ax\at%d\ax Foreground\a-u]\ax \a-u[\ax\at%d\ax Background\a-u]\ax",gFG_MAX,gBG_MAX);
+    sprintf(szCmd,"\aw\ayMaxFPS\ax\a-u:\ax \a-u[\ax\at%d\ax Foreground\a-u]\ax \a-u[\ax\at%d\ax Background\a-u]\ax \a-u[\ax%s Mode\a-u]\ax",gFG_MAX,gBG_MAX,szFPSModes[MaxFPSMode]);
     WriteChatColor(szCmd,USERCOLOR_DEFAULT);
 }

@@ -1,3 +1,9 @@
+25 Nov 2003 by Lax
+- MQ2FPS now has a /fps command that can change some other settings.  Selecting "absolute" mode will switch to "cpu limiter" style, while "calculate" mode will switch to "fps limiter" style.  FPS limiter is default.  The same command will allow you to reposition the FPS indicator display.
+- MQ2FPS display now shows a * if using absolute mode, and will show /MACRO if a macro is being executed that causes the limiting to be minimal
+- Added aliases /g and /gu to the default list
+- Macroquest2.exe now pops up a message box if the system failed to load MQ2Main.dll
+
 20 Nov 2003 by EqMule
 fix for $merchant(name)
 
