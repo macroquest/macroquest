@@ -1477,21 +1477,22 @@ typedef struct _ALTADVMGR {
 /*0x4D4*/
 } ALTADVMGR, *PALTADVMGR;
 
-// size 0xD8
-typedef struct _EQRAIDMEMBER {
-/*0x00*/ CHAR Name[0x40]; // 
-/*0x40*/ CHAR Level[0x08];
-/*0x48*/ CHAR Class[0x20];
-/*0x68*/ BYTE Unknown0x68[0x60];
-/*0xC8*/ DWORD nClass;
-/*0xCC*/ BYTE  RaidLeader;
-/*0xCD*/ BYTE  GroupLeader;
-/*0xCE*/ BYTE  Field_CE;
-/*0xCF*/ BYTE  Field_CF;
-/*0xD0*/ BYTE  Field_D0;
-/*0xD1*/ BYTE  Padding0xD1[0x3];
-/*0xD4*/ DWORD GroupNumber;
-/*0xD8*/
+// size 0x118 
+typedef struct _EQRAIDMEMBER { 
+/*0x00*/ CHAR Name[0x40]; 
+/*0x40*/ CHAR RaidNote[0x40]; 
+/*0x80*/ CHAR Level[0x08]; 
+/*0x88*/ CHAR Class[0x20]; 
+/*0xC8*/ BYTE Unknown0xC8[0x60]; 
+/*0x108*/ DWORD nClass; 
+/*0x10C*/ BYTE  RaidLeader; 
+/*0x10D*/ BYTE  GroupLeader; 
+/*0x10E*/ BYTE  Field_10E; 
+/*0x10F*/ BYTE  Field_10F; 
+/*0x110*/ BYTE  Field_110; 
+/*0x111*/ BYTE  Padding0x111[0x3]; 
+/*0x114*/ DWORD GroupNumber; 
+/*0x118*/ 
 } EQRAIDMEMBER, *PEQRAIDMEMBER;
 
 // sizeof(_EQRAID) is 0x44b8
