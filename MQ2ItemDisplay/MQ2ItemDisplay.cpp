@@ -209,7 +209,7 @@ public:
 
 	 //show usable classes routine by Koad//
 	 strcat(out, "<br>" );
-     for (int j=0; j<=16; j++) 
+     for (int j=0; j<16; j++) 
      { 
       if (pSpell->Level[j]>0 && pSpell->Level[j]<=65) 
       { 
