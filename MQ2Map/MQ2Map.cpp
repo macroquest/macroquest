@@ -176,9 +176,10 @@ VOID AddSpawnToMap(PSPAWNINFO pSpawn, DWORD Color)
 VOID AddItemToMap(PGROUNDITEM pItem, DWORD Color)
 {
     SPAWNINFO ItemSpawn = {0};
-    PCHAR szName = GetFriendlyNameForGroundItem(pItem);
+	CHAR szName[MAX_STRING] = {0};
+	GetFriendlyNameForGroundItem(pItem,szName);
     strcpy(ItemSpawn.Name,szName);
-    free(szName);
+//    free(szName);
     ItemSpawn.X = pItem->X;
     ItemSpawn.Y = pItem->Y;
     ItemSpawn.Z = pItem->Z;

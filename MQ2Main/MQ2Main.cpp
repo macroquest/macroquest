@@ -405,3 +405,33 @@ DWORD WINAPI MQ2Start(LPVOID lpParameter)
 }
 
 
+#ifdef DEBUG_ALLOC
+DWORD CountMallocs=0;
+DWORD CountFrees=0;
+#endif
+
+#ifdef malloc
+#undef malloc
+#endif
+
+void *MQ2Malloc(size_t size)
+{
+#ifdef DEBUG_ALLOC
+	CountMallocs++;
+#else
+	return malloc(size);
+#endif
+}
+
+#ifdef free
+#undef free
+#endif
+
+void MQ2Free(void *memblock)
+{
+#ifdef DEBUG_ALLOC
+	CountFrees++;
+#endif
+	free(memblock);
+}
+

@@ -40,6 +40,24 @@
 #define FromPlugin 0
 #endif
 
+// reroute malloc/free
+EQLIB_API VOID *MQ2Malloc(size_t size);
+EQLIB_API VOID MQ2Free(VOID *memblock);
+#ifdef MQ2PLUGIN
+#define malloc(x) MQ2Malloc(x)
+#define free(x) MQ2Free(x)
+#else
+#ifdef DEBUG_ALLOC
+#define malloc(x) MQ2Malloc(x)
+#define free(x) MQ2Free(x)
+#endif
+#endif
+
+#ifdef DEBUG_ALLOC
+extern DWORD CountMallocs;
+extern DWORD CountFrees;
+#endif
+
 #define REVERSE_DETOUR(function,offset) __declspec(naked) function\
 {\
 	__asm{mov eax, offset};\
@@ -122,7 +140,6 @@ EQLIB_API VOID RemoveParm(PCHAR Name);
 EQLIB_API VOID AddAlias(PCHAR ShortCommand, PCHAR LongCommand);
 EQLIB_API BOOL RemoveAlias(PCHAR ShortCommand);
 EQLIB_API BOOL RemoveCommand(PCHAR Command);
-
 /* MACRO COMMANDS */
 EQLIB_API VOID DumpStack                           (PSPAWNINFO,PCHAR);
 EQLIB_API VOID EndMacro                            (PSPAWNINFO,PCHAR);
@@ -222,7 +239,7 @@ EQLIB_API VOID CheckVariableRecursion(PCHAR szVar);
 EQLIB_API BOOL IsVariableDefined(PCHAR szVar);
 
 /* COMMANDS */
-EQLIB_API PCHAR GetFriendlyNameForGroundItem(PGROUNDITEM pItem);
+EQLIB_API PCHAR GetFriendlyNameForGroundItem(PGROUNDITEM pItem, PCHAR szName);
 EQLIB_API VOID ClearSearchSpawn(PSEARCHSPAWN pSearchSpawn);
 EQLIB_API PSPAWNINFO SearchThroughSpawns(PSEARCHSPAWN pSearchSpawn, PSPAWNINFO pChar);
 EQLIB_API BOOL SpawnMatchesSearch(PSEARCHSPAWN pSearchSpawn, PSPAWNINFO pChar, PSPAWNINFO pSpawn);

@@ -108,9 +108,9 @@ VOID ListMacros(PSPAWNINFO pChar, PCHAR szLine)
 //              Lists ground item info
 // Usage:       /items <filter>
 // ***************************************************************************
-PCHAR GetFriendlyNameForGroundItem(PGROUNDITEM pItem)
+PCHAR GetFriendlyNameForGroundItem(PGROUNDITEM pItem, PCHAR szName)
 {
-    CHAR szName[MAX_STRING] = {0};
+	szName[0]=0;
         PITEMDB ItemDB=gItemDB;
     DWORD Item = atoi(pItem->Name + 2);
         while ((ItemDB) && (pItem->ID != ItemDB->ID)) {
@@ -127,7 +127,7 @@ PCHAR GetFriendlyNameForGroundItem(PGROUNDITEM pItem)
         } else {
             sprintf(szName,"Drop%04d/%d",Item,pItem->ID);
         }
-    return strdup(szName);
+    return &szName[0];
 }
 
 VOID Items(PSPAWNINFO pChar, PCHAR szLine)
@@ -139,11 +139,11 @@ VOID Items(PSPAWNINFO pChar, PCHAR szLine)
     PGROUNDITEM pItem = (PGROUNDITEM)pItemList;
     DWORD Count=0;
     CHAR szBuffer[MAX_STRING] = {0};
-    PCHAR szName = NULL;
+	CHAR szName[MAX_STRING]={0};
     WriteChatColor("Items on the ground:", USERCOLOR_DEFAULT);
     WriteChatColor("---------------------------", USERCOLOR_DEFAULT);
     while (pItem) {
-        szName = GetFriendlyNameForGroundItem(pItem);
+        GetFriendlyNameForGroundItem(pItem,szName);
 
         if ((szLine[0]==0) || (!strnicmp(szName,szLine,strlen(szLine)))) {
             SPAWNINFO TempSpawn;
@@ -160,7 +160,6 @@ VOID Items(PSPAWNINFO pChar, PCHAR szLine)
             WriteChatColor(szBuffer,USERCOLOR_DEFAULT);
             Count++;
         }
-        free(szName);
 
         pItem = pItem->pNext;
     }
@@ -189,14 +188,14 @@ VOID ItemTarget(PSPAWNINFO pChar, PCHAR szLine)
     CHAR Arg1[MAX_STRING] = {0};
     CHAR Arg2[MAX_STRING] = {0};
     CHAR szBuffer[MAX_STRING] = {0};
-    PCHAR szName = NULL;
+	CHAR szName[MAX_STRING]={0};
     FLOAT cDistance = 100000.0f;
     ZeroMemory(&EnviroTarget,sizeof(EnviroTarget));
     pGroundTarget = NULL;
     GetArg(Arg1,szLine,1);
     GetArg(Arg2,szLine,2);
     while (pItem) {
-        szName = GetFriendlyNameForGroundItem(pItem);
+        GetFriendlyNameForGroundItem(pItem,szName);
         if (
                 (
                     (szLine[0]==0) ||
