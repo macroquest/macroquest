@@ -1,4 +1,4 @@
-/*****************************************************************************
+	/*****************************************************************************
     MQ2Main.dll: MacroQuest2's extension DLL for EverQuest
     Copyright (C) 2002-2003 Plazmic, 2003-2004 Lax
 
@@ -1199,6 +1199,61 @@ FLOAT DistanceToPoint(PSPAWNINFO pSpawn, FLOAT xLoc, FLOAT yLoc)
    return sqrtf(X*X + Y*Y); 
 }
 
+// *************************************************************************** 
+// Function:    GetSpellEffectName 
+// Description: Return spell effect string 
+// Usage:       Used by ShowSpellSlotInfo to list limited effect types 
+// Author:      Koad [Taken from his MQ2SpellSearch Plugin
+// *************************************************************************** 
+PCHAR GetSpellEffectName(DWORD EffectID, PCHAR szBuffer) 
+{ 
+   CHAR szBuff[MAX_STRING]={0}; 
+   CHAR szTemp[MAX_STRING]={0}; 
+   switch(abs(EffectID)) 
+   { 
+   case 0: 
+      strcat(szBuff,"Hitpoints"); 
+      break; 
+   case 1: 
+      strcat(szBuff,"AC"); 
+      break; 
+   case 2: 
+      strcat(szBuff,"ATK"); 
+      break; 
+   case 32: 
+      strcat(szBuff,"Summon Item"); 
+      break; 
+   case 40: 
+      strcat(szBuff,"Invunerability"); 
+      break; 
+   case 47: 
+      strcat(szBuff,"Cold Resist"); 
+      break; 
+   case 59: 
+      strcat(szBuff,"Damage Shield"); 
+      break; 
+   case 69: 
+      strcat(szBuff,"Max Hitpoints"); 
+      break; 
+   case 86: 
+      strcat(szBuff,"Reaction Radius"); 
+      break; 
+   case 101: 
+      strcat(szBuff,"Complete Heal (with duration)"); 
+      break; 
+   case 147: 
+      strcat(szBuff,"Percentage Heal"); 
+      break; 
+   default: 
+      sprintf(szTemp, "UndefinedEffect%03d", abs(EffectID)); 
+      strcat(szBuff,szTemp); 
+      break; 
+   } 
+   strcpy(szBuffer, szBuff); 
+   return szBuffer; 
+} 
+
+
 
 // *************************************************************************** 
 // Function:    ShowSpellSlotInfo
@@ -1208,6 +1263,7 @@ PCHAR ShowSpellSlotInfo(PSPELL pSpell, PCHAR szBuffer)
 { 
    CHAR szTemp[MAX_STRING]={0}; 
    CHAR szBuff[MAX_STRING]={0}; 
+   CHAR buf[MAX_STRING]={0};
    int szBase=0; 
    bool bSlotIsPH=false; 
    PITEMDB ItemDB=gItemDB; 
@@ -1317,6 +1373,9 @@ PCHAR ShowSpellSlotInfo(PSPELL pSpell, PCHAR szBuffer)
          sprintf(szTemp, "See Invisible(%d)", pSpell->Base[i]); 
          strcat(szBuff, szTemp); 
          break; 
+      case 14: //Water Breathing 
+         strcat(szBuff, "Water Breathing"); 
+         break; 
       case 15: //mana +/- 
          if ( pSpell->Base[i] < 0 ) strcat(szBuff, "Decrease "); 
          if ( pSpell->Base[i] > 0 ) strcat(szBuff, "Increase "); 
@@ -1333,6 +1392,9 @@ PCHAR ShowSpellSlotInfo(PSPELL pSpell, PCHAR szBuffer)
          strcat(szBuff, "Faction by "); 
          SlotValueCalculate(szBuff, pSpell, i, 1); 
          break; 
+      case 20: //Blindness 
+         strcat(szBuff, "Blindness"); 
+         break; 
       case 21: //stun  time = base in ms 
          sprintf(szTemp, "Stun(%.1f sec/%d)", (float)(pSpell->Base[i] / 1000), pSpell->Max[i]); 
          strcat(szBuff, szTemp); 
@@ -1344,6 +1406,15 @@ PCHAR ShowSpellSlotInfo(PSPELL pSpell, PCHAR szBuffer)
       case 23: //Fear(c) 
          sprintf(szTemp, "Fear(%d)", pSpell->Base[i]); 
          strcat(szBuff, szTemp); 
+         break; 
+      case 24: //Stamina Loss 
+         if ( pSpell->Base[i] < 0 ) strcat(szBuff, "Decrease "); 
+         if ( pSpell->Base[i] > 0 ) strcat(szBuff, "Increase "); 
+         strcat(szBuff, "Stamina Loss by "); 
+         SlotValueCalculate(szBuff, pSpell, i, 1); 
+         break; 
+      case 25: //Bind Affinity 
+         strcat(szBuff, "Bind Affinity"); 
          break; 
       case 26: //Gate 
          strcat(szBuff, "Gate"); 
@@ -1506,6 +1577,9 @@ PCHAR ShowSpellSlotInfo(PSPELL pSpell, PCHAR szBuffer)
       case 73: //Bind Sight 
          strcat(szBuff, "Bind Sight"); 
          break; 
+      case 74: //Feign Death 
+         strcat(szBuff, "Feign Death"); 
+         break; 
       case 75: //Voice Graft 
          strcat(szBuff, "Voice Graft"); 
          break; 
@@ -1545,7 +1619,7 @@ PCHAR ShowSpellSlotInfo(PSPELL pSpell, PCHAR szBuffer)
          strcat(szBuff, szTemp); 
          break; 
       case 85: //Add Proc 
-         sprintf(szTemp,"Add Proc: %s (id: %d)", GetSpellNameByID(pSpell->Base[i]), pSpell->Base[i]); 
+         sprintf(szTemp,"Add Proc: \au%s \axid:\ay%d", GetSpellNameByID(pSpell->Base[i]), pSpell->Base[i]); 
          strcat(szBuff, szTemp); 
          break; 
       case 86: //Reaction Radius(c/level) 
@@ -1587,6 +1661,9 @@ PCHAR ShowSpellSlotInfo(PSPELL pSpell, PCHAR szBuffer)
          break; 
       case 93: //Stop Rain 
          strcat(szBuff, "Stop Rain"); 
+         break; 
+      case 94: //Make Fragile 
+         strcat(szBuff, "Make Fragile"); 
          break; 
       case 95: //Sacrifice 
          strcat(szBuff, "Sacrifice"); 
@@ -1631,6 +1708,14 @@ PCHAR ShowSpellSlotInfo(PSPELL pSpell, PCHAR szBuffer)
             pSpell->Base[1], pSpell->Base[2], pSpell->Base[3], pSpell->Extra, szHeading[pSpell->Base[4]]); 
          strcat(szBuff, szTemp); 
          break; 
+      case 105: //Anti-Gate 
+         sprintf(szTemp, "Anti-Gate(%d)",pSpell->Base[i]); 
+         strcat(szBuff, szTemp); 
+         break; 
+      case 106: //Summon Warder 
+         sprintf(szTemp, "Summon Warder: %s", pSpell->Extra); 
+         strcat(szBuff, szTemp); 
+         break; 
       case 108: //Summon Familiar 
          sprintf(szTemp, "Summon Familiar: %s", pSpell->Extra); 
          strcat(szBuff, szTemp); 
@@ -1640,6 +1725,10 @@ PCHAR ShowSpellSlotInfo(PSPELL pSpell, PCHAR szBuffer)
          if ( pSpell->Base[i] > 0 ) strcat(szBuff, "Increase "); 
          strcat(szBuff, "Effective Casting Level by "); 
          SlotValueCalculate(szBuff, pSpell, i , 1); 
+         break; 
+      case 113: //Summon Horse 
+         sprintf(szTemp, "Summon Horse: %s", pSpell->Extra); 
+         strcat(szBuff, szTemp); 
          break; 
       case 111: //resist all 
          if ( pSpell->Base[i] < 0 ) strcat(szBuff, "Decrease "); 
@@ -1662,6 +1751,9 @@ PCHAR ShowSpellSlotInfo(PSPELL pSpell, PCHAR szBuffer)
          if ( pSpell->Base[i] > 0 ) strcat(szBuff, "Increase "); 
          strcat(szBuff, "Curse Counter by "); 
          SlotValueCalculate(szBuff, pSpell, i, 1); 
+         break; 
+      case 117: //Make Weapons Magical 
+         strcat(szBuff, "Make Weapons Magical"); 
          break; 
       case 118: //Singing Skill 
          if ( pSpell->Base[i] < 0 ) strcat(szBuff, "Decrease "); 
@@ -1727,6 +1819,11 @@ PCHAR ShowSpellSlotInfo(PSPELL pSpell, PCHAR szBuffer)
          _itoa(abs(pSpell->Base[i]), szTemp, 10); strcat(szBuff, szTemp); 
          strcat(szBuff, "%"); 
          break; 
+      case 131: //Decrease Chance of Using Reagent 
+         strcat(szBuff, "Decrease Chance of Using Reagent by "); 
+         _itoa(abs(pSpell->Base[i]), szTemp, 10); strcat(szBuff, szTemp); 
+         strcat(szBuff, "%"); 
+         break; 
       case 132: //Spell Mana Cost - signs reversed 
          if ( pSpell->Base[i] > 0 ) strcat(szBuff, "Decrease "); 
          if ( pSpell->Base[i] < 0 ) strcat(szBuff, "Increase "); 
@@ -1743,107 +1840,16 @@ PCHAR ShowSpellSlotInfo(PSPELL pSpell, PCHAR szBuffer)
          break; 
       case 136: //limit target types this affects 
          strcat(szBuff, "Limit: Target("); 
-         switch(abs(pSpell->Base[i])) 
-         { 
-         case 0: 
-            strcat(szBuff, "Rag`Zhezum Special"); 
-            break; 
-         case 1: 
-            strcat(szBuff, "Line of Sight"); 
-            break; 
-         case 2: 
-            strcat(szBuff, "AE PC v1"); 
-            break; 
-         case 3: 
-            strcat(szBuff, "Group v1"); 
-            break; 
-         case 4: 
-            strcat(szBuff, "PBAE"); 
-            break; 
-         case 5: 
-            strcat(szBuff, "Single"); 
-            break; 
-         case 6: 
-            strcat(szBuff, "Self"); 
-            break; 
-         case 8: 
-            strcat(szBuff, "Targeted AE"); 
-            break; 
-         case 9: 
-            strcat(szBuff, "Animal"); 
-            break; 
-         case 10: 
-            strcat(szBuff, "Undead"); 
-            break; 
-         case 11: 
-            strcat(szBuff, "Summoned"); 
-            break; 
-         case 13: 
-            strcat(szBuff, "Lifetap"); 
-            break; 
-         case 14: 
-            strcat(szBuff, "Pet"); 
-            break; 
-         case 15: 
-            strcat(szBuff, "Corpse"); 
-            break; 
-         case 16: 
-            strcat(szBuff, "Plant"); 
-            break; 
-         case 17: 
-            strcat(szBuff, "Uber Giants"); 
-            break; 
-         case 18: 
-            strcat(szBuff, "Uber Dragons"); 
-            break; 
-         case 20: 
-            strcat(szBuff, "Targeted AE, Tap"); 
-            break; 
-         case 24: 
-            strcat(szBuff, "AE Undead"); 
-            break; 
-         case 25: 
-            strcat(szBuff, "AE Summoned"); 
-            break; 
-         case 40: 
-            strcat(szBuff, "AE PC v2"); 
-            break; 
-         case 41: 
-            strcat(szBuff, "Group v2"); 
-            break; 
-         default: 
-            sprintf(szTemp, "Unknown%03d", pSpell->Base[i]); 
-            strcat(szBuff, szTemp); 
-            break; 
-         } 
+		 sprintf(buf, "$spell(%d,targettype)", pSpell->TargetType);
+		 parmSpell(buf, szTemp, NULL );		strcat(szBuff,szTemp);
+         //GetTargetType(pSpell->Base[i],szTemp);       strcat(szBuff,szTemp); 
          if ( pSpell->Base[i] > 0 )  strcat(szBuff, " allowed"); 
          if ( pSpell->Base[i] < 0 )  strcat(szBuff, " excluded"); 
          strcat(szBuff, ")"); 
          break; 
       case 137: //limit effect types this affects 
          strcat(szBuff, "Limit: Effect("); 
-         switch(abs(pSpell->Base[i])) 
-         { 
-         case 0: 
-            strcat(szBuff,"Hitpoints"); 
-            break; 
-         case 40: 
-            strcat(szBuff,"Invunerability"); 
-            break; 
-         case 86: 
-            strcat(szBuff,"Reaction Radius"); 
-            break; 
-         case 101: 
-            strcat(szBuff,"Complete Heal (with duration)"); 
-            break; 
-         case 147: 
-            strcat(szBuff,"Percentage Heal"); 
-            break; 
-         default: 
-            sprintf(szTemp, "Unknown%d", pSpell->Base[i]); 
-            strcat(szBuff,szTemp); 
-            break; 
-         } 
+         GetSpellEffectName(pSpell->Base[i],szTemp);       strcat(szBuff,szTemp); 
          if ( pSpell->Base[i] > 0 )  strcat(szBuff, " allowed"); 
          if ( pSpell->Base[i] < 0 )  strcat(szBuff, " excluded"); 
          strcat(szBuff, ")"); 
@@ -1871,7 +1877,7 @@ PCHAR ShowSpellSlotInfo(PSPELL pSpell, PCHAR szBuffer)
       case 139: //limit spell this affects 
          strcat(szBuff, "Limit: Spell("); 
          // changed this case to work for any future changes by referencing 
-         // the spell array for the name instead of hardcoded names 
+         // the spell array for the name 
          strcat(szBuff, GetSpellByID(abs(pSpell->Base[i]))->Name); 
          if ( pSpell->Base[i] > 0 )  strcat(szBuff, " allowed"); 
          if ( pSpell->Base[i] < 0 )  strcat(szBuff, " excluded"); 
@@ -1884,8 +1890,17 @@ PCHAR ShowSpellSlotInfo(PSPELL pSpell, PCHAR szBuffer)
       case 141: //limit to instant spells only 
          strcat(szBuff, "Limit: Instant spells only"); 
          break; 
+      case 142: //Limit: Min Level 
+         sprintf(szTemp, "Limit: Min Level(%d)", pSpell->Base[i]); 
+         strcat(szBuff, szTemp); 
+         break; 
       case 143: //limit min casting time of spells this affects (base= seconds in ms) 
          sprintf(szTemp, "Limit: Min Cast Time(%.1f sec)", (float)(pSpell->Base[i] / 1000)); 
+         strcat(szBuff, szTemp); 
+         break; 
+      case 145: //Teleportv2 
+         sprintf(szTemp, "Teleportv2 to %d, %d, %d in %s facing %s", 
+            pSpell->Base[1], pSpell->Base[2], pSpell->Base[3], pSpell->Extra, szHeading[pSpell->Base[4]]); 
          strcat(szBuff, szTemp); 
          break; 
       case 147: //Hit Points (75% Max) 
@@ -1894,30 +1909,22 @@ PCHAR ShowSpellSlotInfo(PSPELL pSpell, PCHAR szBuffer)
          sprintf(szTemp, "Hitpoints by %d (%dpct max)", pSpell->Max[i], pSpell->Base[i]); 
          strcat(szBuff, szTemp); 
          break; 
-      case 148: //Stacking 149 is stacking too 
-         sprintf(szTemp, "Stacking: Block new spell if slot %d is effect ", pSpell->Calc[i]-200); 
+      case 148: //Stacking: Block 
+         sprintf(szTemp, "Stacking: Block new spell if slot %d is effect '", pSpell->Calc[i]-200); 
          strcat(szBuff, szTemp); 
-         switch(pSpell->Base[i]) 
-         { 
-         case 1: 
-            strcat(szBuff,"'AC'"); 
-            break; 
-         case 2: 
-            strcat(szBuff,"'ATK'"); 
-            break; 
-         case 59: 
-            strcat(szBuff,"'Damage Shield'"); 
-            break; 
-         case 69: 
-            strcat(szBuff,"'Max Hitpoints'"); 
-            break; 
-         default: 
-            sprintf(szTemp, "Unknown%03d", pSpell->Base[i]); 
-            strcat(szBuff,szTemp); 
-            break; 
-         } 
+         GetSpellEffectName(pSpell->Base[i],szTemp);       strcat(szBuff,szTemp); 
          if ( pSpell->Max[i] > 0) { 
-            strcat(szBuff, " and < "); 
+            strcat(szBuff, "' and < "); 
+            _itoa(abs(pSpell->Max[i]), szTemp, 10); 
+            strcat(szBuff, szTemp); 
+         } 
+         break; 
+      case 149: //Stacking: Overwrite 
+         sprintf(szTemp, "Stacking: Overwrite existing spell if slot %d is effect '", pSpell->Calc[i]-200); 
+         strcat(szBuff, szTemp); 
+         GetSpellEffectName(pSpell->Base[i],szTemp);       strcat(szBuff,szTemp); 
+         if ( pSpell->Max[i] > 0) { 
+            strcat(szBuff, "' and < "); 
             _itoa(abs(pSpell->Max[i]), szTemp, 10); 
             strcat(szBuff, szTemp); 
          } 
@@ -1925,6 +1932,23 @@ PCHAR ShowSpellSlotInfo(PSPELL pSpell, PCHAR szBuffer)
       case 150: //Death Save - Restore Full Health 
          sprintf(szTemp, "Death Save - Restore Full Health"); 
          strcat(szBuff, szTemp); 
+         break; 
+      case 151: //Suspended Minion 
+         strcat(szBuff, "Suspended Minion ("); 
+         switch(pSpell->Base[i]) 
+         { 
+         case 0: 
+            strcat(szBuff,"Current HP Only"); 
+            break; 
+         case 1: 
+            strcat(szBuff,"Current HP, Buffs, Weapons"); 
+            break; 
+         default: 
+            sprintf(szTemp, "Unknown%03d", pSpell->Base[i]); 
+            strcat(szBuff,szTemp); 
+            break; 
+         } 
+         strcat(szBuff, ")"); 
          break; 
       case 152: //Summon Pets (swarm) 
          sprintf(szTemp, "Summon Pets: %s x%d for %dsec", pSpell->Extra, pSpell->Base[i], pSpell->Max[i]); 
@@ -1938,12 +1962,54 @@ PCHAR ShowSpellSlotInfo(PSPELL pSpell, PCHAR szBuffer)
          sprintf(szTemp, "Remove Detrimental(%d)", pSpell->Base[i]); 
          strcat(szBuff, szTemp); 
          break; 
+      case 156: //Illusion: Target 
+         sprintf(szTemp, "Illusion: Target"); 
+         strcat(szBuff, szTemp); 
+         break; 
+      case 157: //Spell-Damage Shield 
+         sprintf(szTemp, "Spell-Damage Shield(%d)", pSpell->Base[i]); 
+         strcat(szBuff, szTemp); 
+         break; 
       case 158: //Chance to Reflect Spell 
          if ( pSpell->Base[i] < 0 ) strcat(szBuff, "Decrease "); 
          if ( pSpell->Base[i] > 0 ) strcat(szBuff, "Increase "); 
          strcat(szBuff, "Chance to Reflect Spell by "); 
          _itoa(abs(pSpell->Base[i]), szTemp, 10); strcat(szBuff, szTemp); 
          strcat(szBuff, "%"); 
+         break; 
+      case 159: //Stats 
+         if ( pSpell->Base[i] < 0 ) strcat(szBuff, "Decrease "); 
+         if ( pSpell->Base[i] > 0 ) strcat(szBuff, "Increase "); 
+         sprintf(szTemp, "Stats by %d", abs(pSpell->Base[i])); 
+         strcat(szBuff, szTemp); 
+         break; 
+      case 161: //Mitigate Spell Damage 
+         sprintf(szTemp, "Mitigate Spell Damage by %dpct until %d absorbed", pSpell->Base[i], pSpell->Max[i]); 
+         strcat(szBuff, szTemp); 
+         break; 
+      case 162: //Mitigate Melee Damage 
+         sprintf(szTemp, "Mitigate Melee Damage by %dpct until %d absorbed", pSpell->Base[i], pSpell->Max[i]); 
+         strcat(szBuff, szTemp); 
+         break; 
+      case 163: //Absorb damage 
+         sprintf(szTemp, "Absorb Damage (melee or spell, calc unknown)"); 
+         strcat(szBuff, szTemp); 
+         break; 
+      case 164: //Attempt Sense (Cursed) Trap 
+         sprintf(szTemp, "Attempt Sense (Cursed) Trap(%d,%d)", pSpell->Base[i], pSpell->Max[i]); 
+         strcat(szBuff, szTemp); 
+         break; 
+      case 165: //Attempt Disarm (Cursed) Trap 
+         sprintf(szTemp, "Attempt Disarm (Cursed) Trap(%d,%d)", pSpell->Base[i], pSpell->Max[i]); 
+         strcat(szBuff, szTemp); 
+         break; 
+      case 166: //Attempt Destroy (Cursed) Lock 
+         sprintf(szTemp, "Attempt Destroy (Cursed) Lock(%d,%d)", pSpell->Base[i], pSpell->Max[i]); 
+         strcat(szBuff, szTemp); 
+         break; 
+      case 167: //Increase Pet Power 
+         sprintf(szTemp, "Increase Pet Power(%d)", pSpell->Base[i]); 
+         strcat(szBuff, szTemp); 
          break; 
       case 254: //placeholder of some kind 
          bSlotIsPH=true; 
@@ -1962,7 +2028,7 @@ PCHAR ShowSpellSlotInfo(PSPELL pSpell, PCHAR szBuffer)
 } 
 
 // *************************************************************************** 
-// Function:    SlotValueCalculate 
+// Function:    SlotValueCalculateulate 
 // Author:      Koad (used in his SpellSearch Plugin)
 // Description: Interpret calc formula for spell slot effect i 
 // Usage:       Used by ShowSpellSlotInfo to show scaling values 
@@ -2116,6 +2182,10 @@ VOID SlotValueCalculate(PCHAR szBuff, PSPELL pSpell, int i, double mp)
       sprintf(szTemp, "%d (L%d)", szValue, level); 
       strcat(szBuff, szTemp); 
       break; 
+   case 121: // correct?
+      sprintf(szTemp, "%d", abs(pSpell->Max[i]));
+	  strcat(szBuff, szTemp);
+	  break;
    case 123: // Base to Max (random) 
       sprintf(szTemp, "%d to %d (random)", abs(szBase), abs(pSpell->Max[i])); 
       strcat(szBuff, szTemp); 
@@ -2124,6 +2194,7 @@ VOID SlotValueCalculate(PCHAR szBuff, PSPELL pSpell, int i, double mp)
       sprintf(szTemp, "UnknownCalc%03d", pSpell->Calc[i]); 
       strcat(szBuff, szTemp); 
       break; 
+
    } 
 } 
 
