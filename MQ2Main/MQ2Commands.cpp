@@ -2975,6 +2975,18 @@ BOOL SpawnMatchesSearch(PSEARCHSPAWN pSearchSpawn, PSPAWNINFO pChar, PSPAWNINFO 
 		return FALSE;
 	if (pSearchSpawn->bTributeMaster && pSpawn->Class != 63 )
 		return FALSE;
+	if (pSearchSpawn->bKnight && pSearchSpawn->SpawnType != NPC) 
+		if (pSpawn->Class != 3 && pSpawn->Class != 5 )
+			return FALSE;
+	if (pSearchSpawn->bHealer && pSearchSpawn->SpawnType != NPC)
+		if (pSpawn->Class != 2 && pSpawn->Class != 6)
+			return FALSE;
+	if (pSearchSpawn->bDps && pSearchSpawn->SpawnType != NPC)
+		if (pSpawn->Class != 4 && pSpawn->Class != 9 && pSpawn->Class != 12 )
+			return FALSE;
+	if (pSearchSpawn->bSlower && pSearchSpawn->SpawnType != NPC)
+		if (pSpawn->Class != 10 && pSpawn->Class != 14 && pSpawn->Class != 15)
+			return FALSE;
 	if (pSearchSpawn->bLFG && !pSpawn->LFG)
 		return FALSE;
 	if (pSearchSpawn->bTrader && !pSpawn->pActorInfo->Trader)
@@ -3076,6 +3088,14 @@ PCHAR ParseSearchSpawnArgs(PCHAR szArg, PCHAR szRest, PSEARCHSPAWN pSearchSpawn)
 			pSearchSpawn->bMerchant = TRUE;
 		} else if (!stricmp(szArg,"tribute")) {
 			pSearchSpawn->bTributeMaster = TRUE;
+		} else if (!stricmp(szArg,"knight")) {
+			pSearchSpawn->bKnight = TRUE;
+		} else if (!stricmp(szArg,"healer")) {
+			pSearchSpawn->bHealer = TRUE;
+		} else if (!stricmp(szArg,"dps")) {
+			pSearchSpawn->bDps = TRUE;
+		} else if (!stricmp(szArg,"slower")) {
+			pSearchSpawn->bSlower = TRUE;
         } else if (!stricmp(szArg,"range")) {
             GetArg(szArg,szRest,1);
             pSearchSpawn->MinLevel = atoi(szArg);
