@@ -1,3 +1,8 @@
+11 Feb 2004 by Amadeus
+- Fixed Attacks offset in eqgame.ini
+- Added an emergency placeholder in the ACTORINFO struct to fix $char(casting)
+  (This structure will be fixed soon.)
+
 11 Feb 2004 by Zaphod (dohpaZ)
 - Added Beserker to the classes and Gates of Discord to the expansions.
 - Fixed my name in the readme.html
