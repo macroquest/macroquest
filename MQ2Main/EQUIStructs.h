@@ -354,51 +354,51 @@ typedef struct _CSIDLWND {
 /*0x0b1*/   BYTE    Fades; // "Fades" in ini
 /*0x0b2*/   BYTE    Unknown0x0aa;
 /*0x0b3*/   BYTE    Unknown0x0ab;
-/*0x0a4*/   BYTE    Unknown0x0ac[0x0c];
-/*0x0b0*/   DWORD   ZLayer; // 
-/*0x0b4*/   DWORD   Unknown0x0bc;
-/*0x0b8*/   LPVOID  DrawTemplate; //
-/*0x0bc*/   BYTE    Unknown0x0c4[0xc];
-/*0x0d0*/   union {
+/*0x0b4*/   BYTE    Unknown0x0ac[0x0c];
+/*0x0c0*/   DWORD   ZLayer; // 
+/*0x0c4*/   DWORD   Unknown0x0bc;
+/*0x0c8*/   LPVOID  DrawTemplate; //
+/*0x0cc*/   BYTE    Unknown0x0c4[0xc];
+/*0x0d8*/   union {
 					_ITEMINFO* Item;
 					_CSIDLWND* InvDescription;
 			};
-/*0x0d4*/   BYTE    Unknown0x0d4[0xc];
-/*0x0e0*/   DWORD   Unknown0x0e0; // CXWnd::StartFade, CXWnd::Minimize
-/*0x0e4*/   BYTE    Unknown0x0e4[0x10];
-/*0x0f4*/   DWORD   FadeTickCount; // -> 0x0
-/*0x0f8*/   BYTE    Unknown0x0f8; // CXWnd::StartFade  // 0x
-/*0x0f9*/   BYTE    Unknown0x0f9; // CXWnd::StartFade  // 0x
-/*0x0fa*/   BYTE    Unknown0x0fa; 
-/*0x0fb*/   BYTE    Unknown0x0fb;
-/*0x0fc*/   DWORD   Unknown0x0fc;// CXWnd::StartFade, CXWnd::Minimize // 0x
-/*0x100*/   DWORD   VScrollMax; // -> 0x
-/*0x104*/   DWORD   VScrollPos; // -> 0x
-/*0x108*/   DWORD   HScrollMax; // -> 0x
-/*0x10c*/   DWORD   HScrollPos; // -> 0x
-/*0x110*/   BYTE    ValidCXWnd; // -> 0x
-/*0x111*/   BYTE    Unused0x0f9[0x3];
-/*0x114*/   struct _CXSTR  *SidlText; 
-/*0x118*/   union { 
+/*0x0dc*/   BYTE    Unknown0x0d4[0xc];
+/*0x0e8*/   DWORD   Unknown0x0e0; // CXWnd::StartFade, CXWnd::Minimize
+/*0x0ec*/   BYTE    Unknown0x0e4[0x10];
+/*0x0fc*/   DWORD   FadeTickCount; // -> 0x0
+/*0x100*/   BYTE    Unknown0x0f8; // CXWnd::StartFade  // 0x
+/*0x101*/   BYTE    Unknown0x0f9; // CXWnd::StartFade  // 0x
+/*0x102*/   BYTE    Unknown0x0fa; 
+/*0x103*/   BYTE    Unknown0x0fb;
+/*0x104*/   DWORD   Unknown0x0fc;// CXWnd::StartFade, CXWnd::Minimize // 0x
+/*0x108*/   DWORD   VScrollMax; // -> 0x
+/*0x10c*/   DWORD   VScrollPos; // -> 0x
+/*0x110*/   DWORD   HScrollMax; // -> 0x
+/*0x114*/   DWORD   HScrollPos; // -> 0x
+/*0x118*/   BYTE    ValidCXWnd; // -> 0x
+/*0x119*/   BYTE    Unused0x0f9[0x3];
+/*0x11c*/   struct _CXSTR  *SidlText; 
+/*0x120*/   union { 
 			   struct _CXSTR  *SidlScreen; 
                DWORD   SlotID; 
          }; //-->120
-/*0x11c*/   LPVOID SidlPiece;   // CScreenPieceTemplate (important)  // -->124
-/*0x120*/   BYTE    Checked;
-/*0x121*/   BYTE    Highlighted;
-/*0x122*/   BYTE    Unused0x122[0x2];
-/*0x124*/   DWORD   TextureAnim; // used in CSidlScreenWnd::AddButtonToRadioGroup
-/*0x128*/   struct _CXSTR *   InputText;
-/*0x12c*/   DWORD   Selector;
-/*0x130*/   DWORD   PushToSelector;
-/*0x134*/   DWORD   EnableINIStorage;
-/*0x138*/   struct _CXSTR *INIStorageName;// -->
-/*0x13c*/   DWORD   Unknown0x13C;// CTextureAnimation
-/*0x140*/   DWORD   Unknown0x140;// CTextureAnimation
-/*0x144*/   LPVOID  ContextMenu; // CTextureAnimation
-/*0x148*/	DWORD   Unknown0x148;// CTextureAnimation
-/*0x14c*/	DWORD   Unknown0x14C;// CTextureAnimation
-/*0x150*/
+/*0x124*/   LPVOID SidlPiece;   // CScreenPieceTemplate (important)  // -->124
+/*0x128*/   BYTE    Checked;
+/*0x129*/   BYTE    Highlighted;
+/*0x12a*/   BYTE    Unused0x122[0x2];
+/*0x12c*/   DWORD   TextureAnim; // used in CSidlScreenWnd::AddButtonToRadioGroup
+/*0x130*/   struct _CXSTR *   InputText;
+/*0x134*/   DWORD   Selector;
+/*0x138*/   DWORD   PushToSelector;
+/*0x13c*/   DWORD   EnableINIStorage;
+/*0x140*/   struct _CXSTR *INIStorageName;// -->
+/*0x144*/   DWORD   Unknown0x13C;// CTextureAnimation
+/*0x148*/   DWORD   Unknown0x140;// CTextureAnimation
+/*0x14c*/   LPVOID  ContextMenu; // CTextureAnimation
+/*0x150*/	DWORD   Unknown0x148;// CTextureAnimation
+/*0x154*/	DWORD   Unknown0x14C;// CTextureAnimation
+/*0x158*/
 } CSIDLWND, *PCSIDLWND;
 
 // size 0x268  5-12-2004 lax
@@ -428,7 +428,7 @@ typedef struct _CXWNDMGR {
 // 06-16-2004 dkaa - size is 0x404
 typedef struct _EQMERCHWINDOW {
 /*0x000*/   struct _CSIDLWND Wnd;
-/*0x150*/   BYTE    Unknown0x150[0x10];
+/*0x158*/   BYTE    Unknown0x150[0x8];
 /*0x160*/   PCONTENTS   ItemDesc[0x50];     // the mainwindow has pointers
                                             // directly to the items in the
                                             // slots...
