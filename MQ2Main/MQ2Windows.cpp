@@ -362,27 +362,41 @@ bool SendWndNotification(PCHAR WindowName, PCHAR ScreenID, DWORD Notification, V
 	unsigned long N = WindowMap[Name];
 	if (!N)
 	{
-		if (!stricmp(WindowName,"item"))
+		PCONTENTS pPack=0;
+		if (!strnicmp(WindowName,"bank",4))
 		{
-			unsigned long ItemSlot=atoi(ScreenID);
-			CInvSlot *pSlot=pInvSlotMgr->FindInvSlot(ItemSlot);
-			if (!pSlot)
+			unsigned long nPack=atoi(&WindowName[4]);
+			if (nPack && nPack<=NUM_BANK_SLOTS)
 			{
+				pPack=((PCHARINFO)pCharData)->Bank[nPack-1];
 			}
-			pWnd=*(CXWnd**)(((unsigned long)pSlot)+4);
-			if (!pWnd)
-			{
-				sprintf(szOut,"Item %d not available.",ItemSlot);
-				WriteChatColor(szOut,USERCOLOR_DEFAULT);
-				return false;
-			}
-			pWnd->WndNotification(0,Notification,Data);
-			return true;
 		}
-
-		sprintf(szOut,"Window '%s' not available.",WindowName);
-		WriteChatColor(szOut,USERCOLOR_DEFAULT);
-		return false;
+		else if (!strnicmp(WindowName,"pack",4))
+		{
+			unsigned long nPack=atoi(&WindowName[4]);
+			if (nPack && nPack<=8)
+			{
+				pPack=((PCHARINFO)pCharData)->Inventory.Pack[nPack-1];
+			}
+		}
+		else if (!stricmp(WindowName,"enviro"))
+		{
+			pPack=((PEQ_CONTAINERWND_MANAGER)pContainerMgr)->pWorldContents;
+		}
+		if (!pPack)
+		{
+			sprintf(szOut,"Window '%s' not available.",WindowName);
+			WriteChatColor(szOut,USERCOLOR_DEFAULT);
+			return false;
+		}
+		PEQCONTAINERWINDOW pWnd=FindContainerForContents(pPack);
+		if (!pWnd)
+		{
+			sprintf(szOut,"No container at '%s' open",WindowName);
+			WriteChatColor(szOut);
+			return false;
+		}
+		goto swngotpwnd;
 	}
 	N--;
 
@@ -423,7 +437,7 @@ bool SendWndNotification(PCHAR WindowName, PCHAR ScreenID, DWORD Notification, V
 		}
 	}
 
-
+swngotpwnd:;
 
 	CXWnd *pButton=0;
 	if (ScreenID && ScreenID[0])
@@ -709,6 +723,11 @@ VOID ItemNotify(PSPAWNINFO pChar, PCHAR szLine)
 				pPack=pChar->pCharInfo->Inventory.Pack[nPack-1];
 			}
 		}
+		else if (!stricmp(szArg2,"enviro"))
+		{
+			pPack=((PEQ_CONTAINERWND_MANAGER)pContainerMgr)->pWorldContents;
+		}
+
 		if (!pPack)
 		{
 			sprintf(szOut,"No item at '%s'",szArg2);
