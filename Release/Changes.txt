@@ -3,6 +3,7 @@
   removed guilds but left the entry giving bogus guild entries in the list where the
   'name' was blank, thus ending the search loop prematurely.)
 - Added "/who knight"  (returns Paladins and Shadowknights in the zone)
+- Added "/who tank"    (returns paladins, shadowknights, and warriors in the zone)
 - Added "/who healer"  (returns druids and clerics in the zone)
 - Added "/who dps"     (returns wizards, rangers, and rogues in the zone)
 - Added "/who slower"  (returns shamans, enchanters, and beastlords in the zone)

@@ -66,6 +66,7 @@ typedef struct _SEARCHSPAWN {
 	BOOL bMerchant;
 	BOOL bTributeMaster;
 	BOOL bKnight;
+	BOOL bTank;
 	BOOL bHealer;
 	BOOL bDps;
 	BOOL bSlower;

@@ -2978,6 +2978,9 @@ BOOL SpawnMatchesSearch(PSEARCHSPAWN pSearchSpawn, PSPAWNINFO pChar, PSPAWNINFO 
 	if (pSearchSpawn->bKnight && pSearchSpawn->SpawnType != NPC) 
 		if (pSpawn->Class != 3 && pSpawn->Class != 5 )
 			return FALSE;
+	if (pSearchSpawn->bTank && pSearchSpawn->SpawnType != NPC) 
+		if (pSpawn->Class != 3 && pSpawn->Class != 5 && pSpawn->Class != 1 )
+			return FALSE;
 	if (pSearchSpawn->bHealer && pSearchSpawn->SpawnType != NPC)
 		if (pSpawn->Class != 2 && pSpawn->Class != 6)
 			return FALSE;
@@ -3090,6 +3093,8 @@ PCHAR ParseSearchSpawnArgs(PCHAR szArg, PCHAR szRest, PSEARCHSPAWN pSearchSpawn)
 			pSearchSpawn->bTributeMaster = TRUE;
 		} else if (!stricmp(szArg,"knight")) {
 			pSearchSpawn->bKnight = TRUE;
+		} else if (!stricmp(szArg,"tank")) {
+			pSearchSpawn->bTank = TRUE;
 		} else if (!stricmp(szArg,"healer")) {
 			pSearchSpawn->bHealer = TRUE;
 		} else if (!stricmp(szArg,"dps")) {
