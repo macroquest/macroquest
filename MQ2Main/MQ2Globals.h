@@ -305,6 +305,7 @@ EQLIB_VAR CQuantityWnd **ppQuantityWnd;
 EQLIB_VAR CTextEntryWnd **ppTextEntryWnd;
 EQLIB_VAR CFileSelectionWnd **ppFileSelectionWnd;
 EQLIB_VAR CLootWnd **ppLootWnd;
+EQLIB_VAR CPetInfoWnd **ppPetInfoWnd;
 EQLIB_VAR CActionsWnd **ppActionsWnd;
 //EQLIB_VAR CCombatAbilityWnd **ppCombatAbilityWnd;
 EQLIB_VAR CMerchantWnd **ppMerchantWnd;
@@ -389,6 +390,7 @@ EQLIB_VAR CTimeLeftWnd **ppTimeLeftWnd;
 #define pTextEntryWnd (*ppTextEntryWnd)
 #define pFileSelectionWnd (*ppFileSelectionWnd)
 #define pLootWnd (*ppLootWnd)
+#define pPetInfoWnd (*ppPetInfoWnd)
 #define pActionsWnd (*ppActionsWnd)
 #define pCombatAbilityWnd (*ppCombatAbilityWnd)
 #define pMerchantWnd (*ppMerchantWnd)
