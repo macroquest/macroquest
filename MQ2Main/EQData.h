@@ -550,9 +550,9 @@ union{
 /*0x0ebc*/  DWORD       AttackSpeed;  // From gear only
 /*0x0ec0*/  DWORD       field_EC0;     // This is some sort of pointer
 /*0x0ec4*/  BYTE        UnknownData0xec4;  // data here'
-/*0x0ec5*/  BYTE        Unknown0xec5[0x13];
-/*0x0ed8*/  SPELLBUFF   ShortBuff[0x6];
-/*0x0f38*/  BYTE        Unknown0x0f34[0xf8];
+/*0x0ec5*/  BYTE        Unknown0xec5[0x3];
+/*0x0ec8*/  SPELLBUFF   ShortBuff[0x6];
+/*0x0f48*/  BYTE        Unknown0x0f34[0x108];
 /*0x1030*/  DWORD       ZoneBoundId; 
 /*0x1034*/	BYTE		Unknown0x1034[0x10]; 
 /*0x1044*/	FLOAT		ZoneBoundY; 
