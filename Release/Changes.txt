@@ -1,3 +1,7 @@
+19 Feb 2004 by Amadeus
+- General Cleanup and offset updates for 02/18/2004 patch
+- Added Endurance to CHARINFO and $char(endurance,cur)  [Teh_ish]
+
 17 Feb 2004 by Amadeus
 - Added initial EQTRADESKILLWINDOW & EQTRADESKILLRECIPE struct
 - Added pet window to the /windowstate command (ie:  /windowstate pet open/close)
