@@ -40,11 +40,15 @@ PLUGIN_API VOID InitializePlugin(VOID)
 	// Add commands, macro parameters, hooks, etc.
 	// AddCommand("/mycommand",MyCommand);
 	// AddParm("$myparm(x)",MyParm);
+	// removed after 11-25 patch
+	/*
 	DWORD (__cdecl *pfDetour)(DWORD) = JournalNPCCrash_Detour; 
 	DWORD (__cdecl *pfTrampoline)(DWORD) = JournalNPCCrash_Trampoline; 
 
 	if (pinstCEverQuest==0x0077B298)
 		AddDetour(JournalNPCCrash,*(PBYTE*)&pfDetour,*(PBYTE*)&pfTrampoline);
+	*/
+	// do nothing at this time.
 }
 
 // Called once, when the plugin is to shutdown
@@ -55,6 +59,6 @@ PLUGIN_API VOID ShutdownPlugin(VOID)
 	// Remove commands, macro parameters, hooks, etc.
 	// RemoveParm("$myparm(x)");
 	// RemoveCommand("/mycommand");
-	RemoveDetour(JournalNPCCrash);
+	//RemoveDetour(JournalNPCCrash);
 }
 

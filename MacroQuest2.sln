@@ -1,6 +1,4 @@
 Microsoft Visual Studio Solution File, Format Version 7.00
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "MQ2Template", "MQ2Template\MQ2Template.vcproj", "{D43171FB-8208-4E52-860A-6BAE2A2FA573}"
-EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "MQ2Chat", "MQ2Chat\MQ2Chat.vcproj", "{D43171FB-8208-4E52-860A-6BAE2A2FA573}"
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "MQ2Labels", "MQ2Labels\MQ2Labels.vcproj", "{D43171FB-8208-4E52-860A-6BAE2A2FA573}"
@@ -31,15 +29,10 @@ Global
 		{D43171FB-8208-4E52-860A-6BAE2A2FA573}.0 = {2A0A06A4-E9C6-4229-82EE-BD2D4E0A7221}
 		{D43171FB-8208-4E52-860A-6BAE2A2FA573}.0 = {2A0A06A4-E9C6-4229-82EE-BD2D4E0A7221}
 		{D43171FB-8208-4E52-860A-6BAE2A2FA573}.0 = {2A0A06A4-E9C6-4229-82EE-BD2D4E0A7221}
-		{D43171FB-8208-4E52-860A-6BAE2A2FA573}.0 = {2A0A06A4-E9C6-4229-82EE-BD2D4E0A7221}
 		{1DA0A350-C188-4810-B903-3B603CA2E7D7}.0 = {2A0A06A4-E9C6-4229-82EE-BD2D4E0A7221}
 		{D43171FB-8208-4E52-860A-6BAE2A2FA573}.0 = {2A0A06A4-E9C6-4229-82EE-BD2D4E0A7221}
 	EndGlobalSection
 	GlobalSection(ProjectConfiguration) = postSolution
-		{D43171FB-8208-4E52-860A-6BAE2A2FA573}.Debug.ActiveCfg = Release|Win32
-		{D43171FB-8208-4E52-860A-6BAE2A2FA573}.Debug.Build.0 = Release|Win32
-		{D43171FB-8208-4E52-860A-6BAE2A2FA573}.Release.ActiveCfg = Release|Win32
-		{D43171FB-8208-4E52-860A-6BAE2A2FA573}.Release.Build.0 = Release|Win32
 		{D43171FB-8208-4E52-860A-6BAE2A2FA573}.Debug.ActiveCfg = Release|Win32
 		{D43171FB-8208-4E52-860A-6BAE2A2FA573}.Debug.Build.0 = Release|Win32
 		{D43171FB-8208-4E52-860A-6BAE2A2FA573}.Release.ActiveCfg = Release|Win32
@@ -78,12 +71,13 @@ Global
 		{2A0A06A4-E9C6-4229-82EE-BD2D4E0A7221}.Release.Build.0 = Release|Win32
 	EndGlobalSection
 	GlobalSection(SolutionItems) = postSolution
-		Item:1 = Release\Custom.ini
-		Item:2 = Release\eqgame.ini
-		Item:3 = Release\GPL.txt
-		Item:4 = Release\ItemDB.txt
-		Item:5 = Release\locations.txt
-		Item:6 = Release\MacroQuest.ini
+		Item:1 = Release\Changes.txt
+		Item:2 = Release\Custom.ini
+		Item:3 = Release\eqgame.ini
+		Item:4 = Release\GPL.txt
+		Item:5 = Release\ItemDB.txt
+		Item:6 = Release\locations.txt
+		Item:7 = Release\MacroQuest.ini
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 	EndGlobalSection

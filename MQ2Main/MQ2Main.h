@@ -1,4 +1,4 @@
-#define VersionString "Thanksgiving2003"
+#define VersionString "20031128"
 #define DebugHeader "[MQ2]"
 #define LoadedString "MQ2 Loaded."
 #define ToUnloadString "MQ2 Unloading..."
@@ -32,6 +32,12 @@
 #define EQLIB_API extern "C" __declspec(dllimport)
 #define EQLIB_VAR extern "C" __declspec(dllimport)
 #define EQLIB_OBJECT __declspec(dllimport)
+#endif
+
+#ifdef MQ2PLUGIN
+#define FromPlugin 1
+#else
+#define FromPlugin 0
 #endif
 
 #define REVERSE_DETOUR(function,offset) __declspec(naked) function\
@@ -155,7 +161,8 @@ EQLIB_API VOID AddCustomEvent(PEVENTLIST pEList, PCHAR szLine);
 EQLIB_API PCHAR GetFuncParamName(PCHAR szMacroLine, DWORD ParamNum, PCHAR szParamName);
 EQLIB_API FLOAT DistanceToSpawn(PSPAWNINFO pChar, PSPAWNINFO pSpawn);
 EQLIB_API PCHAR GetEQPath(PCHAR szBuffer);
-EQLIB_API VOID DoCommand(PSPAWNINFO pChar, PCHAR szLine);
+#define DoCommand(pspawninfo,commandtoexecute) HideDoCommand(pspawninfo,commandtoexecute,FromPlugin)
+EQLIB_API VOID HideDoCommand(PSPAWNINFO pChar, PCHAR szLine, BOOL delayed);
 EQLIB_API VOID AppendCXStr(PCXSTR *cxstr, PCHAR text); 
 EQLIB_API VOID SetCXStr(PCXSTR *cxstr, PCHAR text); 
 EQLIB_API VOID GetCXStr(PCXSTR pCXStr, PCHAR szBuffer, DWORD maxlen=MAX_STRING);

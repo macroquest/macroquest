@@ -231,22 +231,25 @@ PLUGIN_API VOID OnPulse(VOID)
 			CurMax=gFG_MAX;
 			if (gFG_MAX)
 			{
+				int SleepTime=(int)(1000.0f/(float)gFG_MAX);
 				if (MaxFPSMode==FPS_CALCULATE)
 				{
 					// assume last frame time is constant, so a 30ms frame = 33 fps
 					// 
 					
-					int SleepTime=(int)(1000.0f/(float)gFG_MAX);
 					SleepTime-=(FrameTime-LastSleep);
 					/**/
 					if (SleepTime<0)
 						SleepTime=0;
+					else if (SleepTime>300)
+						SleepTime=300;
 					Sleep(SleepTime);
 					LastSleep=SleepTime;
 				}
 				else
 				{
-					Sleep(1000/gFG_MAX);
+					Sleep(SleepTime);
+					LastSleep=SleepTime;
 				}
 			}
 			else
@@ -257,19 +260,22 @@ PLUGIN_API VOID OnPulse(VOID)
 			CurMax=gBG_MAX;
 			if (gBG_MAX)
 			{
+				int SleepTime=(int)(1000.0f/(float)gBG_MAX);
 				if (MaxFPSMode==FPS_CALCULATE)
 				{
-					int SleepTime=(int)(1000.0f/(float)gBG_MAX);
 					SleepTime-=(FrameTime-LastSleep);
 					/**/
 					if (SleepTime<0)
 						SleepTime=0;
+					else if (SleepTime>300)
+						SleepTime=300;
 					Sleep(SleepTime);
 					LastSleep=SleepTime;
 				}
 				else
 				{
-					Sleep(1000/gBG_MAX);
+					Sleep(SleepTime);
+					LastSleep=SleepTime;
 				}
 			}
 			else
@@ -333,18 +339,24 @@ VOID FPSCommand(PSPAWNINFO pChar, PCHAR szLine)
 
 	if (!strnicmp(Arg1,"absolute",strlen(Arg1)))
 	{
+		CurrentFrame=0;
+		bFrameArrayFilled=0;
 		SetMode(FPS_ABSOLUTE);
 		return;
 	}
 	else
 	if (!strnicmp(Arg1,"calculate",strlen(Arg1)))
 	{
+		CurrentFrame=0;
+		bFrameArrayFilled=0;
 		SetMode(FPS_CALCULATE);
 		return;
 	}
 	else
 	if (!strnicmp(Arg1,"mode",strlen(Arg1)))
 	{
+		CurrentFrame=0;
+		bFrameArrayFilled=0;
 		SetMode(MaxFPSMode==0);
 		return;
 	}

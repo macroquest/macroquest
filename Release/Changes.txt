@@ -1,3 +1,11 @@
+27 Nov 2003 by Lax
+- / command correctly does EQ /who by default
+- MQ2Telnet redone.
+- Plugins using DoCommand() will execute it on the next pulse instead of immediately (corrects problems unloading the plugin)
+- VS .NET will automatically run MQ2Auth for you before compiling.  This is not possible in VS6, sorry.
+- MQ2FPS shouldn't cause major problems when switching from absolute to calculate mode
+- MQ2Template removed from VS6 workspace and .NET solution
+
 25 Nov 2003 by Lax
 - MQ2FPS now has a /fps command that can change some other settings.  Selecting "absolute" mode will switch to "cpu limiter" style, while "calculate" mode will switch to "fps limiter" style.  FPS limiter is default.  The same command will allow you to reposition the FPS indicator display.
 - MQ2FPS display now shows a * if using absolute mode, and will show /MACRO if a macro is being executed that causes the limiting to be minimal

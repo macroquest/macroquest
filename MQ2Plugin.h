@@ -1,3 +1,4 @@
+#define MQ2PLUGIN
 #include "MQ2Main/MQ2Main.h"
 #include "MQ2Main/MQ2Globals.h"
 
@@ -11,11 +12,13 @@
 
 #define PLUGIN_API extern "C" __declspec(dllexport)
 
-CHAR INIFileName[MAX_PATH]={0};
+
 
 //#define SetINIFileName(ini) sprintf(INIFileName,"%s\\%s",gszINIPath,ini);
+extern CHAR INIFileName[MAX_PATH];
 
-#define PreSetup(pluginname) BOOL APIENTRY DllMain( HANDLE hModule, \
+#define PreSetup(pluginname) CHAR INIFileName[MAX_PATH]={0};\
+BOOL APIENTRY DllMain( HANDLE hModule, \
                        DWORD  ul_reason_for_call, \
                        LPVOID lpReserved\
 					 )\

@@ -25,8 +25,24 @@ CRITICAL_SECTION gCommandCS;
 
 
 
-VOID DoCommand(PSPAWNINFO pChar, PCHAR szLine)
+VOID HideDoCommand(PSPAWNINFO pChar, PCHAR szLine, BOOL delayed)
 {
+	if (delayed)
+	{
+		PCHATBUF pChat = (PCHATBUF)malloc(sizeof(CHATBUF));
+		if (pChat) {
+			strcpy(pChat->szText,szLine);
+			pChat->pNext = NULL;
+			if (!gDelayedCommands) {
+				gDelayedCommands = pChat;
+			} else {
+				PCHATBUF pCurrent;
+				for (pCurrent = gDelayedCommands;pCurrent->pNext;pCurrent=pCurrent->pNext);
+				pCurrent->pNext = pChat;
+			}
+		}
+		return;
+	}
     CAutoLock DoCommandLock(&gCommandCS);
     CHAR szCmd[MAX_STRING] = {0};
     CHAR szParam[MAX_STRING] = {0};
@@ -317,6 +333,7 @@ void InitializeMQ2Commands()
     for (int i=0;pCmdListOrig[i].fAddress != 0;i++) {
         if (!strcmp(pCmdListOrig[i].szName,"/who")) {
             cmdWho  = (fEQCommand)pCmdListOrig[i].fAddress;
+			AddCommand("/",pCmdListOrig[i].fAddress,TRUE); // make sure / does EQ who by default
         } else if (!strcmp(pCmdListOrig[i].szName,"/whotarget")) {
             cmdWhoTarget  = (fEQCommand)pCmdListOrig[i].fAddress;
         } else if (!strcmp(pCmdListOrig[i].szName,"/location")) {
@@ -333,8 +350,6 @@ void InitializeMQ2Commands()
             cmdDoAbility = (fEQCommand)pCmdListOrig[i].fAddress;
         } else if (!strcmp(pCmdListOrig[i].szName,"/cast")) {
             cmdCast = (fEQCommand)pCmdListOrig[i].fAddress;
-        } else if (!strcmp(pCmdListOrig[i].szName,"/who")) {
-			AddCommand("/",pCmdListOrig[i].fAddress,TRUE); // make sure / does EQ who by default
         }
 		AddCommand(pCmdListOrig[i].szName,pCmdListOrig[i].fAddress,TRUE);
 	}	

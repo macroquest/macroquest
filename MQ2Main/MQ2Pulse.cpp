@@ -161,6 +161,14 @@ void Pulse()
 
     if (IsMouseWaiting()) return;
 
+	if (gDelayedCommands)
+	{// execute one delayed command
+		DoCommand(pChar,gDelayedCommands->szText);
+		PCHATBUF pNext=gDelayedCommands->pNext;
+		free(gDelayedCommands);
+		gDelayedCommands=pNext;
+	}
+
 	if (!gDelay && !gMacroPause && (!gMQPauseOnChat || *EQADDR_NOTINCHATMODE) &&
         gMacroBlock && gMacroStack) {
             gMacroStack->Location=gMacroBlock;

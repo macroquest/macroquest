@@ -33,6 +33,8 @@ DWORD gGameState = 0;
 DWORD ThreadID = 0;
 BOOL g_Loaded = FALSE;
 
+PCHATBUF gDelayedCommands = 0;
+
 HMODULE ghModule = NULL;
 HINSTANCE ghInstance = NULL;
 PHOTKEY pHotkey = NULL;

@@ -37,6 +37,8 @@ EQLIB_VAR DWORD gRunning;
 EQLIB_VAR BOOL gbMoving;
 EQLIB_VAR DWORD gMaxTurbo;
 
+EQLIB_VAR PCHATBUF gDelayedCommands;
+
 EQLIB_VAR BOOL gZoning;
 EQLIB_VAR BOOL WereWeZoning;
 EQLIB_VAR BOOL gbInDInput;
