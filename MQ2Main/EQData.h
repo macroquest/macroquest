@@ -723,9 +723,15 @@ union {
 /*0x9a29*/	 BYTE	 Unknown0x9a29[0x99b];
 /*0xa3c4*/   struct  _CONTENTS*   Bank[NUM_BANK_SLOTS]; 
 /*0xa40c*/   BYTE    Unknown0xa40c[0xa8];
-/*0xa4b4*/   BYTE    Grouped;    
-/*0xa4b5*/   BYTE    Unknown0xa4b5[0x46f];
-/*0xa924*/
+/*0xa4b4*/   CHAR    GroupMember1[0x40];   
+/*0xa4f4*/   CHAR    GroupMember2[0x40]; 
+/*0xa534*/   CHAR    GroupMember3[0x40]; 
+/*0xa574*/   CHAR    GroupMember4[0x40]; 
+/*0xa5b4*/   CHAR    GroupMember5[0x40]; 
+/*0xa5f4*/   BYTE    Unknown0xa5f4[0x58]; 
+/*0xa64c*/   CHAR    GroupLeader[0x40]; 
+/*0xa68c*/   BYTE    Unknown0xa68c[0x298]; 
+/*0xa924*/	
 } CHARINFO, *PCHARINFO;
 
 typedef struct _MODELINFONAME {
@@ -905,8 +911,8 @@ typedef struct _EQUIPMENT {
 
 // sizeof(_SPAWNINFO) is 0x290 (7/14/2004) 
 typedef struct _SPAWNINFO { 
-/*0x000*/   BYTE   Unknown0x0; 
-/*0x001*/   CHAR   Lastname[0x27];  // // Surname on PCs, Newbie Tag on NPCs 
+/*0x000*/   BYTE	Unknown0x0; 
+/*0x001*/   CHAR	Lastname[0x27];  // // Surname on PCs, Newbie Tag on NPCs 
 /*0x028*/   FLOAT   Y; 
 /*0x02c*/   FLOAT   X; 
 /*0x030*/   FLOAT   Z; 
@@ -916,48 +922,48 @@ typedef struct _SPAWNINFO {
 /*0x040*/   FLOAT   SpeedRun; 
 /*0x044*/   FLOAT   Heading; 
 /*0x048*/   FLOAT   field_48; 
-/*0x04c*/   DWORD    field_4C; 
-/*0x050*/   DWORD    field_50; 
+/*0x04c*/   DWORD   field_4C; 
+/*0x050*/   DWORD   field_50; 
 /*0x054*/   FLOAT   CameraAngle; 
-/*0x058*/   BYTE     Unknown0x58[0x88]; 
+/*0x058*/   BYTE    Unknown0x58[0x88]; 
 /*0x0e0*/   CHAR    Name[0x40]; // ie priest_of_discord00 
 /*0x120*/   CHAR    DisplayedName[0x40]; // ie Priest of Discord 
 /*0x160*/   FLOAT   SpeedHeading;  
 /*0x164*/   struct  _ACTORINFO   *pActorInfo; 
-/*0x168*/   DWORD    field_168; 
-/*0x16c*/   BYTE     CanFindLocation; 
+/*0x168*/   DWORD   field_168; 
+/*0x16c*/   BYTE    CanFindLocation; 
 /*0x16d*/   BYTE    Sneak;  // returns 01 on both Sneak and Shroud of Stealth 
 /*0x16e*/   BYTE    Linkdead;  // Uncharmable flag when used on mobs? 
-/*0x16f*/   BYTE     field_16F; 
+/*0x16f*/   BYTE    field_16F; 
 /*0x170*/   BYTE    LFG; 
-/*0x171*/   BYTE     field_171; 
-/*0x172*/   BYTE   IsABoat; // 1 = a type of boat 
-/*0x173*/   BYTE     Unknown0x173; 
+/*0x171*/   BYTE    field_171; 
+/*0x172*/   BYTE	IsABoat; // 1 = a type of boat 
+/*0x173*/   BYTE    Unknown0x173; 
 /*0x174*/   ARGBCOLOR ArmorColor[0x9];  // Armor Dye if custom, otherwise Item Tint 
 /*0x178*/   struct  _EQUIPMENT Equipment; 
 /*0x1bc*/   WORD    Zone; 
 /*0x1be*/   WORD    Instance; 
-/*0x1c0*/   DWORD    field_1c0; 
+/*0x1c0*/   DWORD   field_1c0; 
 /*0x1c4*/   struct  _SPAWNINFO *pNext; 
 /*0x1c8*/   struct  _CHARINFO  *pCharInfo; 
-/*0x1cc*/   DWORD    field_1cC; 
+/*0x1cc*/   DWORD   field_1cC; 
 /*0x1d0*/   struct  _SPAWNINFO *pPrev; 
-/*0x1d4*/   BYTE     Unknown0x1d4[0x4]; 
-/*0x1d8*/   FLOAT    field_1d8; 
-/*0x1dc*/   DWORD    field_1dC; 
-/*0x1e0*/   FLOAT    RunSpeed; 
-/*0x1e4*/   FLOAT    field_1e4; 
-/*0x1e8*/   FLOAT    field_1e8; 
+/*0x1d4*/   BYTE    Unknown0x1d4[0x4]; 
+/*0x1d8*/   FLOAT   field_1d8; 
+/*0x1dc*/   DWORD   field_1dC; 
+/*0x1e0*/   FLOAT   RunSpeed; 
+/*0x1e4*/   FLOAT   field_1e4; 
+/*0x1e8*/   FLOAT   field_1e8; 
 /*0x1ec*/   FLOAT   AvatarHeight;  // height of avatar from ground when standing 
-/*0x1f0*/   FLOAT    WalkSpeed; 
+/*0x1f0*/   FLOAT   WalkSpeed; 
 /*0x1f4*/   BYTE    Type; 
-/*0x1f5*/   BYTE    Face;      // Needs Testing 
-/*0x1f6*/   BYTE   BeardColor; 
-/*0x1f7*/   BYTE   Field_1f7; 
+/*0x1f5*/   BYTE    HairColor;      
+/*0x1f6*/   BYTE	BeardColor; 
+/*0x1f7*/   BYTE	Field_1f7; 
 /*0x1f8*/   BYTE    Eyes; 
-/*0x1f9*/   BYTE   Hair;      // Hair with no headgear (?) 
-/*0x1fa*/   BYTE   BeardType; 
-/*0x1fb*/   BYTE   Holding;   // 0=holding/wielding nothing 
+/*0x1f9*/   BYTE    Eyes2;     
+/*0x1fa*/   BYTE    BeardType; 
+/*0x1fb*/   BYTE    Holding;   // 0=holding/wielding nothing 
 /*0x1fc*/   BYTE    Level; 
 /*0x1fd*/   BYTE    FaceHair;  // Face/Hair combination with headgear 
 /*0x1fe*/   BYTE    Gender; 
@@ -1313,41 +1319,43 @@ typedef struct _EQFRIENDSLIST {
 /*0x1900*/
 } EQFRIENDSLIST, *PEQFRIENDSLIST;
 
-// size 0x50
 typedef struct _ALTABILITY {
-/*0x00*/ DWORD nShortName;
-/*0x04*/ DWORD nShorterName;
-/*0x08*/ DWORD nName;
-/*0x0C*/ DWORD nDesc;
-/*0x10*/ DWORD MinLevel;
-/*0x14*/ DWORD Cost;//cost?
-/*0x18*/ LONG RequiresAbility;//requires ability? (-1 for no)
-/*0x1C*/ DWORD RequiresAbilityPoints;//requires points in this ability?
-/*0x20*/ DWORD MaxRank;//BYTE
-/*0x24*/ DWORD AARankRequired;
-/*0x28*/ DWORD Unknown0x28;//BYTE
-/*0x2C*/ LONG  SpellID;// -1 for no
-/*0x30*/ BYTE  Unused0x30;
-/*0x31*/ BYTE  Type;
-/*0x32*/ BYTE  Unknown0x32[0x2];
-/*0x34*/ DWORD Unused0x34;
-/*0x38*/ DWORD Unknown0x38;//
-/*0x3C*/ DWORD Unknown0x3C;
-/*0x40*/ DWORD Unknown0x40;// aa level needed?
-/*0x44*/ BYTE Unknown0x44;//BYTE
-/*0x45*/ BYTE Unknown0x45;//BYTE
-/*0x46*/ BYTE Unknown0x46;//BYTE
-/*0x47*/ BYTE Unknown0x47;//BYTE
-/*0x48*/ LONG ReuseTimer;// in seconds
-/*0x4C*/ DWORD Unknown0x4C;//
-/*0x50*/
+/*0x00*/ BYTE  Unknown0x00[0x4];
+/*0x04*/ DWORD UnknownData0x04;
+/*0x08*/ DWORD UnknownData0x08;
+/*0x0c*/ BYTE  Unknown0x0c[0xc];
+/*0x18*/ DWORD UnknownData0x18;
+/*0x1c*/ DWORD nShortName;
+/*0x20*/ DWORD nShorterName;
+/*0x24*/ DWORD nName;
+/*0x28*/ DWORD nDesc;
+/*0x2c*/ DWORD MinLevel;
+/*0x30*/ DWORD UnknownData0x30;
+/*0x34*/ DWORD MyAltAbilityIndex;     
+/*0x38*/ DWORD UnknownData0x38;
+/*0x3c*/ LONG  RequiresAbility;        //requires ability? (-1 for no)  
+/*0x40*/ DWORD RequiresAbilityPoints;  //requires points in this ability? 
+/*0x44*/ DWORD Type;
+/*0x48*/ DWORD UnknownData0x48;
+/*0x4c*/ DWORD UnknownData0x4c;
+/*0x50*/ DWORD UnknownData0x50;
+/*0x54*/ LONG  ReuseTimer;
+/*0x58*/ DWORD UnknownData0x58;
+/*0x5c*/ DWORD MaxRank;
+/*0x60*/ DWORD Cost;     
+/*0x64*/ LONG  SpellID;// -1 for no
+/*0x68*/ DWORD UnknownData0x68;
+/*0x6c*/ DWORD UnknownData0x6c;
+/*0x70*/ DWORD Unknown0x70;
+/*0x74*/ DWORD Unknown0x74;
+/*0x78*/ DWORD Unknown0x78;
+/* Still Missing:  AARankRequired */
 } ALTABILITY, *PALTABILITY;
 
-// total size 0x4D4 04-21-2004 lax
-#define NUM_ALT_ABILITIES 0x135
+#define NUM_ALT_ABILITIES 0x1f4
 typedef struct _ALTADVMGR {
-/*0x000*/ PALTABILITY Abilities[NUM_ALT_ABILITIES];
-/*0x4D4*/
+/*0x00*/ BYTE Unknown0x00[0x24];
+/*0x28*/ PALTABILITY Abilities[NUM_ALT_ABILITIES];
 } ALTADVMGR, *PALTADVMGR;
 
 // size 0x118 

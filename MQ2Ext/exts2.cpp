@@ -142,7 +142,12 @@ DECLARE_API ( pchar )
 	KP(RaidAbilities);
 	KP(LeadershipExpON);
     KP(Bank);
-	KP(Grouped);
+	KPs(GroupMember1);
+	KPs(GroupMember2);
+	KPs(GroupMember3);
+	KPs(GroupMember4);
+	KPs(GroupMember5);
+	KPs(GroupLeader);
 } 
 
 DECLARE_API ( pspawn ) 
@@ -182,10 +187,10 @@ DECLARE_API ( pspawn )
    KP(pPrev);
    KPf(AvatarHeight);
    KP(Type); 
-   KP(Face);
+   KP(HairColor);
    KP(BeardColor);
    KP(Eyes);
-   KP(Hair);
+   KP(Eyes2);
    KP(BeardType);
    KP(Holding);
    KP(Level);
@@ -799,6 +804,20 @@ DECLARE_API ( pguildmemberinfo )
    KP(UnknownData0x266);
 }
 
+DECLARE_API ( praidwnd ) 
+{ 
+   EQRAIDWINDOW *p, *pnull=NULL, ci; 
+   DWORD cb; 
+
+   // read param from command line 
+   p = (EQRAIDWINDOW *)GetExpression(args); 
+
+   ReadMemory((PARAM1)p,&ci,sizeof(ci),&cb); 
+
+   dprintf("\n\n\n"); 
+   KP(ClassColors);
+}
+
 DECLARE_API ( ptmp ) 
 { 
    CHARINFO *p, *pnull=NULL, ci; 
@@ -816,5 +835,4 @@ DECLARE_API ( ptmp )
     dprintf("\n\n\n"); 
 
     KPs(Name); 
-
 } 
