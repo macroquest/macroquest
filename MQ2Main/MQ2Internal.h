@@ -474,8 +474,6 @@ typedef struct _MQ2TypeVar
 		PVOID Ptr;
 		FLOAT Float;
 		DWORD DWord;
-		BYTE  Byte;
-		CHAR  Char;
 		int   Int;
 	};
 } MQ2TYPEVAR, *PMQ2TYPEVAR;

@@ -187,6 +187,7 @@ EQLIB_API void AddXMLFile(const char *filename);
 EQLIB_API bool SendWndNotification(PCHAR WindowName, PCHAR ScreenID, DWORD Notification, VOID *Data=0);
 EQLIB_API void AddWindow(char *WindowName, CXWnd **ppWindow);
 EQLIB_API void RemoveWindow(char *WindowName);
+EQLIB_API CXWnd *FindMQ2Window(PCHAR Name);
 
 /* CHAT HOOK */
 EQLIB_API VOID InitializeChatHook();

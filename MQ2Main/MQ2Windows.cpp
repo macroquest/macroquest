@@ -332,29 +332,8 @@ void RemoveXMLFile(const char *filename)
 	}
 }
 
-/*
-inline CXWnd *FindContainerWnd(struct _CONTENTS *pContents)
+CXWnd *FindMQ2Window(PCHAR WindowName)
 {
-	if (!pContents)
-		return 0;
-
-	for (int i = 0 ; i < 0x19 ; i++)
-	{
-		if (PEQCONTAINERWINDOW pWnd=((PEQ_CONTAINERWND_MANAGER)pContainerMgr)->pPCContainers[i])
-		{
-			if (pWnd->pContents==pContents)
-				return (CXWnd*)pWnd;
-		}
-	}
-
-	return 0;
-}
-/**/
-
-bool SendWndNotification(PCHAR WindowName, PCHAR ScreenID, DWORD Notification, VOID *Data)
-{
-	CHAR szOut[MAX_STRING] = {0};
-	CXWnd *pWnd;
 	_WindowInfo *pInfo = NULL;
 
 	string Name=WindowName;
@@ -386,18 +365,10 @@ bool SendWndNotification(PCHAR WindowName, PCHAR ScreenID, DWORD Notification, V
 		}
 		if (!pPack)
 		{
-			sprintf(szOut,"Window '%s' not available.",WindowName);
-			WriteChatColor(szOut,USERCOLOR_DEFAULT);
-			return false;
+			return 0;
 		}
-		PEQCONTAINERWINDOW pWnd=FindContainerForContents(pPack);
-		if (!pWnd)
-		{
-			sprintf(szOut,"No container at '%s' open",WindowName);
-			WriteChatColor(szOut);
-			return false;
-		}
-		goto swngotpwnd;
+		return (CXWnd*)FindContainerForContents(pPack);
+		
 	}
 	N--;
 
@@ -405,26 +376,18 @@ bool SendWndNotification(PCHAR WindowName, PCHAR ScreenID, DWORD Notification, V
 	if (!pInfo)
 	{
 		WindowMap[Name]=0;
-		sprintf(szOut,"Window '%s' not available.",WindowName);
-		WriteChatColor(szOut,USERCOLOR_DEFAULT);
-		return false;
+		return 0;
 	}
 	
 	if (pInfo->pWnd)
 	{
-		pWnd=pInfo->pWnd;
+		return pInfo->pWnd;
 	}
 	else
 	{
 		if (pInfo->ppWnd)
 		{
-			pWnd=*pInfo->ppWnd;
-			if (!pWnd)
-			{
-				sprintf(szOut,"Window '%s' not available.",WindowName);
-				WriteChatColor(szOut,USERCOLOR_DEFAULT);
-				return false;
-			}
+			return *pInfo->ppWnd;
 		}
 		else
 		{
@@ -432,14 +395,22 @@ bool SendWndNotification(PCHAR WindowName, PCHAR ScreenID, DWORD Notification, V
 			delete pInfo;
 			WindowList[N]=0;
 			WindowMap[Name]=0;
-			sprintf(szOut,"Window '%s' not available.",WindowName);
-			WriteChatColor(szOut,USERCOLOR_DEFAULT);
-			return false;
+			return 0;
 		}
 	}
 
-swngotpwnd:;
+	return 0;
+}
 
+bool SendWndNotification(PCHAR WindowName, PCHAR ScreenID, DWORD Notification, VOID *Data)
+{
+	CHAR szOut[MAX_STRING] = {0};
+	CXWnd *pWnd=FindMQ2Window(WindowName);
+	if (!pWnd)
+	{
+		sprintf(szOut,"Window '%s' not available.",WindowName);
+		return false;
+	}
 	CXWnd *pButton=0;
 	if (ScreenID && ScreenID[0])
 	{
@@ -789,35 +760,34 @@ VOID ItemNotify(PSPAWNINFO pChar, PCHAR szLine)
 				switch(i)
 				{
 				case 0:
-					((CSidlScreenWnd*)pWnd)->INIStorageName=(PCXSTR)1;
 					pWnd->HandleLButtonDown(&pt,0);
 					break;
 				case 1:
-					((CSidlScreenWnd*)pWnd)->INIStorageName=(PCXSTR)1;
+					pWnd->HandleLButtonDown(&pt,0);
 					pWnd->HandleLButtonUp(&pt,0);
 					break;
 				case 2:
-					((CSidlScreenWnd*)pWnd)->INIStorageName=(PCXSTR)1;
 					pWnd->HandleLButtonHeld(&pt,0);
 					break;
 				case 3:
-					((CSidlScreenWnd*)pWnd)->INIStorageName=(PCXSTR)1;
+					pWnd->HandleLButtonDown(&pt,0);
+					pWnd->HandleLButtonHeld(&pt,0);
 					pWnd->HandleLButtonUpAfterHeld(&pt,0);
 					break;
 				case 4:
-					((CSidlScreenWnd*)pWnd)->INIStorageName=(PCXSTR)1;
 					pWnd->HandleRButtonDown(&pt,0);
 					break;
 				case 5:
-					((CSidlScreenWnd*)pWnd)->INIStorageName=(PCXSTR)1;
+					pWnd->HandleRButtonDown(&pt,0);
 					pWnd->HandleRButtonUp(&pt,0);
 					break;
 				case 6:
-					((CSidlScreenWnd*)pWnd)->INIStorageName=(PCXSTR)1;
+					pWnd->HandleRButtonDown(&pt,0);
 					pWnd->HandleRButtonHeld(&pt,0);
 					break;
 				case 7:
-					((CSidlScreenWnd*)pWnd)->INIStorageName=(PCXSTR)1;
+					pWnd->HandleRButtonDown(&pt,0);
+					pWnd->HandleRButtonHeld(&pt,0);
 					pWnd->HandleRButtonUpAfterHeld(&pt,0);
 					break;
 				};

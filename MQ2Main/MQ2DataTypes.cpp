@@ -32,6 +32,17 @@ class MQ2TicksType *pTicksType=0;
 class MQ2CharacterType *pCharacterType=0;
 class MQ2ClassType *pClassType=0;
 class MQ2RaceType *pRaceType=0;
+class MQ2GroundType *pGroundType=0;
+class MQ2SwitchType *pSwitchType=0;
+
+class MQ2MacroType *pMacroType=0;
+class MQ2MacroQuestType *pMacroQuestType=0;
+class MQ2MathType *pMathType=0;
+class MQ2WindowType *pWindowType=0;
+class MQ2MerchantType *pMerchantType=0;
+class MQ2ZoneType *pZoneType=0;
+
+CHAR DataTypeTemp[MAX_STRING]={0};
 
 void InitializeMQ2DataTypes()
 {	
@@ -46,6 +57,14 @@ void InitializeMQ2DataTypes()
 	pCharacterType = new MQ2CharacterType;
 	pClassType=new MQ2ClassType;
 	pRaceType=new MQ2RaceType;
+	pGroundType = new MQ2GroundType;
+	pSwitchType = new MQ2SwitchType;
+	pMacroType = new MQ2MacroType;
+	pMacroQuestType = new MQ2MacroQuestType;
+	pMathType = new MQ2MathType;
+	pWindowType = new MQ2WindowType;
+	pMerchantType = new MQ2MerchantType;
+	pZoneType = new MQ2ZoneType;
 }
 
 void ShutdownMQ2DataTypes()
@@ -61,6 +80,14 @@ void ShutdownMQ2DataTypes()
 	delete pCharacterType;
 	delete pClassType;
 	delete pRaceType;
+	delete pGroundType;
+	delete pSwitchType;
+	delete pMacroType;
+	delete pMacroQuestType;
+	delete pMathType;
+	delete pWindowType;
+	delete pMerchantType;
+	delete pZoneType;
 }
 
 bool MQ2SpawnType::GetMember(void *Ptr, PCHAR Member, PCHAR Index, MQ2TYPEVAR &Dest)
@@ -114,7 +141,7 @@ bool MQ2SpawnType::GetMember(void *Ptr, PCHAR Member, PCHAR Index, MQ2TYPEVAR &D
 	{
 	case Level:
 		Dest.Type=pByteType;
-		Dest.Byte=pSpawn->Level;
+		Dest.DWord=pSpawn->Level;
 		return true;
 	case ID:
 		Dest.Type=pIntType;
@@ -155,7 +182,7 @@ bool MQ2SpawnType::GetMember(void *Ptr, PCHAR Member, PCHAR Index, MQ2TYPEVAR &D
 	case PctHPs:
 		Dest.Type=pIntType;
 		Dest.Int=pSpawn->HPCurrent*100/pSpawn->HPMax;
-		break;
+		return true;
 	}
 	return false;
 #undef pSpawn
@@ -180,18 +207,26 @@ bool MQ2BuffType::GetMember(void *Ptr, PCHAR Member, PCHAR Index, MQ2TYPEVAR &De
 		Dest.Type=pIntType;
 		return true;
 	case Level:
+		if (((PSPELLBUFF)Ptr)->SpellID==0xFFFFFFFF)
+			return false;
 		Dest.DWord=((PSPELLBUFF)Ptr)->Level;
 		Dest.Type=pIntType;
 		return true;
 	case Spell:
+		if (((PSPELLBUFF)Ptr)->SpellID==0xFFFFFFFF)
+			return false;
 		Dest.Ptr=GetSpellByID(((PSPELLBUFF)Ptr)->SpellID);
 		Dest.Type=pSpellType;
 		return true;
 	case Mod:
+		if (((PSPELLBUFF)Ptr)->SpellID==0xFFFFFFFF)
+			return false;
 		Dest.Float=(((float)((PSPELLBUFF)Ptr)->Modifier)/10.0f);
 		Dest.Type=pFloatType;
 		return true;
 	case Duration:
+		if (((PSPELLBUFF)Ptr)->SpellID==0xFFFFFFFF)
+			return false;
 		Dest.DWord=((PSPELLBUFF)Ptr)->Duration;
 		Dest.Type=pTicksType;
 		return true;
@@ -201,16 +236,6 @@ bool MQ2BuffType::GetMember(void *Ptr, PCHAR Member, PCHAR Index, MQ2TYPEVAR &De
 
 bool MQ2StringType::GetMember(void *Ptr, PCHAR Member, PCHAR Index, MQ2TYPEVAR &Dest)
 {
-/*
-		Arg=1,
-		Mid=2,
-		Left=3,
-		Right=4,
-		Find=5,
-		Length=6,
-		Upper=7,
-		Lower=8,
-/**/
 	if (!Ptr)
 		return false;
 	unsigned long N=MemberMap[Member];
@@ -220,24 +245,188 @@ bool MQ2StringType::GetMember(void *Ptr, PCHAR Member, PCHAR Index, MQ2TYPEVAR &
 	PMQ2TYPEMEMBER pMember=Members[N];
 	if (!pMember)
 		return false;
-	static CHAR Temp[MAX_STRING];
 	switch((StringMembers)pMember->ID)
 	{
+	case Length:
+		Dest.DWord=strlen((const char *)Ptr);
+		Dest.Type=pIntType;
+		return true;
+	case Left:
+		if (!Index)
+			return false;
+		{
+			unsigned long Len=atoi(Index);
+			memmove(DataTypeTemp,(char *)Ptr,Len);
+			DataTypeTemp[Len]=0;
+			Dest.Ptr=&DataTypeTemp[0];
+			Dest.Type=pStringType;
+		}
+		return true;
+	case Right:
+		if (!Index)
+			return false;
+		{	
+			// index=5
+
+			// 01234567
+			// abcdefg
+			unsigned long Len=atoi(Index);
+			char *pStart=(char*)Ptr;
+			pStart=&pStart[strlen(pStart)-Len];
+			if (pStart<Ptr)
+				pStart=(char*)Ptr;
+			memmove(DataTypeTemp,pStart,Len+1);
+			Dest.Ptr=&DataTypeTemp[0];
+			Dest.Type=pStringType;
+		}
+		return true;
+	case Find:
+		if (!Index)
+			return false;
+		{
+			char A[MAX_STRING]={0};
+			char B[MAX_STRING]={0};
+			strcpy(A,(char*)Ptr);
+			strcpy(B,(char*)Index);
+			strlwr(A);
+			strlwr(B);
+			if (char *pFound=strstr(A,B))
+			{
+				Dest.DWord=pFound-&A[0];
+				Dest.Type=pIntType;
+				return true;
+			}
+		}
+		return false;
+	case Upper:
+		strcpy(DataTypeTemp,(char*)Ptr);
+		strupr(DataTypeTemp);
+		Dest.Ptr=&DataTypeTemp[0];
+		Dest.Type=pStringType;
+		return true;
+	case Lower:
+		strcpy(DataTypeTemp,(char*)Ptr);
+		strlwr(DataTypeTemp);
+		Dest.Ptr=&DataTypeTemp[0];
+		Dest.Type=pStringType;
+		return true;
 	case Arg:
 	case Mid:
-	case Left:
-	case Right:
-	case Find:
-	case Length:
-	case Upper:
-	case Lower:
 		return false;
 	}
 	return false;
 }
 bool MQ2CharacterType::GetMember(void *Ptr, PCHAR Member, PCHAR Index, MQ2TYPEVAR &Dest)
 {
+	#define pChar ((PCHARINFO)Ptr)
+	if (!Ptr)
+		return false;
+	unsigned long N=MemberMap[Member];
+	if (!N)
+		return pSpawnType->GetMember(pChar->pSpawn,Member,Index,Dest);
+	N--;
+	PMQ2TYPEMEMBER pMember=Members[N];
+	if (!pMember)
+		return false;
+	switch((CharacterMembers)pMember->ID)
+	{
+	case ID:
+		Dest.DWord=pChar->pSpawn->SpawnID;
+		Dest.Type=pIntType;
+		return true;
+	case Name:
+		Dest.Ptr=&pChar->Name[0];
+		Dest.Type=pStringType;
+		return true;
+	case Level:
+		Dest.DWord=pChar->Level;
+		Dest.Type=pIntType;
+		return true;
+	case Exp:
+		Dest.DWord=pChar->Exp;
+		Dest.Type=pIntType;
+		return true;
+	case Spawn:
+		Dest.Ptr=pChar->pSpawn;
+		Dest.Type=pSpawnType;
+		return true;
+	case CurrentHPs:
+		Dest.DWord=pChar->pSpawn->HPCurrent;
+		Dest.Type=pIntType;
+		return true;
+	case MaxHPs:
+		Dest.Type=pIntType;
+		Dest.Int=pChar->pSpawn->HPMax;
+		return true;
+	case PctHPs:
+		Dest.Type=pIntType;
+		Dest.Int=pChar->pSpawn->HPCurrent*100/pChar->pSpawn->HPMax;
+		return true;
+	case CurrentMana:
+		Dest.DWord=pChar->Mana;
+		Dest.Type=pIntType;
+		return true;
+	case MaxMana:
+		Dest.DWord=GetMaxMana();
+		Dest.Type=pIntType;
+		return true;
+	case PctMana:
+		Dest.DWord=pChar->Mana*100/GetMaxMana();
+		Dest.Type=pIntType;
+		return true;
+	case Buff:
+		if (Index)
+		{
+			unsigned long nBuff=atoi(Index)-1;
+			if (nBuff>16)
+				return false;
+			Dest.Ptr=&pChar->Buff[Buff];
+			Dest.Type=pBuffType;
+			return true;
+		}
+		return false;
+	case Song:
+		if (Index)
+		{
+			unsigned long nBuff=atoi(Index)-1;
+			if (nBuff>6)
+				return false;
+			Dest.Ptr=&pChar->Buff[Buff];
+			Dest.Type=pBuffType;
+			return true;
+		}
+		return false;
+		/*
+		Dar=6,
+		AAExp=7,
+		AAPoints=8,
+		AARank=9,
+		HPRegen=12,
+		ManaRegen=16,
+		Buff=18,
+		Song=19,
+		Book=20,
+		Skill=21,
+		Ability=22,
+		Surname=23,
+		Cash=24,
+		CashBank=25,
+		PlatShared=26,
+		Grouped=27,
+		HPBonus=28,
+		ManaBonus=29,
+		GukEarned=30,
+		MMEarned=31,
+		RujEarned=32,
+		TakEarned=33,
+		LDonPoints=34,
+		CurrentFavor=35,
+		CareerFavor=36,
+		Endurance=37,
+		/**/
+	}
 	return false;
+#undef pChar
 }
 bool MQ2SpellType::GetMember(void *Ptr, PCHAR Member, PCHAR Index, MQ2TYPEVAR &Dest)
 {
@@ -257,3 +446,36 @@ bool MQ2RaceType::GetMember(void *Ptr, PCHAR Member, PCHAR Index, MQ2TYPEVAR &De
 {
 	return false;
 }
+bool MQ2SwitchType::GetMember(void *Ptr, PCHAR Member, PCHAR Index, MQ2TYPEVAR &Dest)
+{
+	return false;
+}
+bool MQ2GroundType::GetMember(void *Ptr, PCHAR Member, PCHAR Index, MQ2TYPEVAR &Dest)
+{
+	return false;
+}
+bool MQ2MacroType::GetMember(void *Ptr, PCHAR Member, PCHAR Index, MQ2TYPEVAR &Dest)
+{
+	return false;
+}
+bool MQ2MacroQuestType::GetMember(void *Ptr, PCHAR Member, PCHAR Index, MQ2TYPEVAR &Dest)
+{
+	return false;
+}
+bool MQ2MathType::GetMember(void *Ptr, PCHAR Member, PCHAR Index, MQ2TYPEVAR &Dest)
+{
+	return false;
+}
+bool MQ2MerchantType::GetMember(void *Ptr, PCHAR Member, PCHAR Index, MQ2TYPEVAR &Dest)
+{
+	return false;
+}
+bool MQ2WindowType::GetMember(void *Ptr, PCHAR Member, PCHAR Index, MQ2TYPEVAR &Dest)
+{
+	return false;
+}
+bool MQ2ZoneType::GetMember(void *Ptr, PCHAR Member, PCHAR Index, MQ2TYPEVAR &Dest)
+{
+	return false;
+}
+

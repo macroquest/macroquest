@@ -26,10 +26,25 @@ BOOL dataSpawn(PCHAR szIndex, MQ2TYPEVAR &Ret)
 {
 	if (szIndex[0])
 	{
-		if (Ret.Ptr=GetSpawnByID(atoi(szIndex)))
+		if (szIndex[0]>='0' && szIndex[0]<='9')
 		{
-			Ret.Type=pSpawnType;
-			return true;
+			if (Ret.Ptr=GetSpawnByID(atoi(szIndex)))
+			{
+				Ret.Type=pSpawnType;
+				return true;
+			}
+		}
+		else
+		{
+			// set up search spawn
+			SEARCHSPAWN ssSpawn;
+			ClearSearchSpawn(&ssSpawn);
+			ParseSearchSpawn(szIndex,&ssSpawn);
+			if (Ret.Ptr=SearchThroughSpawns(&ssSpawn,(PSPAWNINFO)pCharSpawn))
+			{
+				Ret.Type=pSpawnType;
+				return true;
+			}
 		}
 	}
 	// No spawn
@@ -54,6 +69,162 @@ BOOL dataCharacter(PCHAR szIndex, MQ2TYPEVAR &Ret)
 	{
 		Ret.Ptr=pCharData;
 		Ret.Type=pCharacterType;
+		return true;
+	}
+	return false;
+}
+
+/*
+BOOL dataPet(PCHAR szIndex, MQ2TYPEVAR &Ret)
+{
+   if (pCharSpawn) 
+   {
+      DWORD PetID;
+      if (PetID=((PSPAWNINFO)pCharSpawn)->pActorInfo->PetID)
+      {
+         if (Ret.Ptr=GetSpawnByID(PetID))
+         {
+            Ret.Type=pSpawnType;
+            return true;
+         }
+      }
+   }
+   return false;
+}
+/**/
+
+BOOL dataSpell(PCHAR szIndex, MQ2TYPEVAR &Ret)
+{
+	if (szIndex[0])
+	{
+		if (szIndex[0]>='0' && szIndex[0]<='9')
+		{
+			if (Ret.Ptr=GetSpellByID(atoi(szIndex)))
+			{
+				Ret.Type=pSpellType;
+				return true;
+			}
+		}
+		else
+		{
+			if (Ret.Ptr=GetSpellByName(szIndex))
+			{
+				Ret.Type=pSpellType;
+				return true;
+			}
+		}
+	}
+   return false;
+} 
+
+BOOL dataSwitch(PCHAR szIndex, MQ2TYPEVAR &Ret)
+{
+	if (pDoorTarget)
+	{
+		Ret.Ptr=pDoorTarget;
+		Ret.Type=pSwitchType;
+		return true;
+	}
+	return false;
+}
+
+BOOL dataGroundItem(PCHAR szIndex, MQ2TYPEVAR &Ret)
+{
+	if (pGroundTarget)
+	{
+		Ret.Ptr=pGroundTarget;
+		Ret.Type=pGroundType;
+		return true;
+	}
+	return false;
+}
+
+BOOL dataMerchant(PCHAR szIndex, MQ2TYPEVAR &Ret)
+{
+	if (pActiveMerchant)
+	{
+		Ret.Ptr=pActiveMerchant;
+		Ret.Type=pMerchantType;
+		return true;
+	}
+	return false;
+}
+
+BOOL dataWindow(PCHAR szIndex, MQ2TYPEVAR &Ret)
+{
+	if (szIndex[0])
+	{
+		if (Ret.Ptr=FindMQ2Window(szIndex))
+		{
+			Ret.Type=pWindowType;
+			return true;
+		}
+	}
+	return false;
+}
+
+BOOL dataMacro(PCHAR szIndex, MQ2TYPEVAR &Ret)
+{
+	if (gRunning)
+	{
+		Ret.Ptr=0;
+		Ret.Type=pMacroType;
+		return true;
+	}
+	return false;
+}
+
+BOOL dataMacroQuest(PCHAR szIndex, MQ2TYPEVAR &Ret)
+{
+	Ret.Ptr=0;
+	Ret.Type=pMacroQuestType;
+	return true;
+}
+
+BOOL dataMath(PCHAR szIndex, MQ2TYPEVAR &Ret)
+{
+	Ret.Ptr=0;
+	Ret.Type=pMathType;
+	return true;
+}
+
+BOOL dataZone(PCHAR szIndex, MQ2TYPEVAR &Ret)
+{
+
+	Ret.DWord=instEQZoneInfo;
+	Ret.Type=pZoneType;
+	return true;
+}
+
+BOOL dataGroup(PCHAR szIndex, MQ2TYPEVAR &Ret)
+{
+	if (szIndex[0])
+	{
+		DWORD N=atoi(szIndex);
+		if (N>5)
+			return false;
+		for (unsigned long i=0; i<5 ; i++)
+		{
+			if (EQADDR_GROUPCOUNT[i])
+			{
+				N--;
+				if (N==0)
+				{
+					Ret.Ptr=ppGroup[i];
+					Ret.Type=pSpawnType;
+					return true;
+				}
+			}
+		}
+		return false;
+	}
+	else
+	{
+		Ret.DWord=0;
+		for (int index=0;index<5;index++) 
+			if (EQADDR_GROUPCOUNT[index]) 
+				Ret.DWord++;
+		Ret.Type=pIntType;
 		return true;
 	}
 	return false;

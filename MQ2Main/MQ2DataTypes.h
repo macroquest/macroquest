@@ -24,7 +24,18 @@ EQLIB_VAR class MQ2TicksType *pTicksType;
 
 EQLIB_VAR class MQ2ClassType *pClassType;
 EQLIB_VAR class MQ2RaceType *pRaceType;
+EQLIB_VAR class MQ2GroundType *pGroundType;
+EQLIB_VAR class MQ2SwitchType *pSwitchType;
 
+EQLIB_VAR class MQ2MacroType *pMacroType;
+EQLIB_VAR class MQ2MacroQuestType *pMacroQuestType;
+EQLIB_VAR class MQ2MathType *pMathType;
+
+EQLIB_VAR class MQ2WindowType *pWindowType;
+EQLIB_VAR class MQ2MerchantType *pMerchantType;
+EQLIB_VAR class MQ2ZoneType *pZoneType;
+
+#define UseTemp(mystring) strcpy(DataTypeTemp,mystring)
 #define TypeMember(name) AddMember((DWORD)name,""#name)
 
 class MQ2IntType : public MQ2Type
@@ -142,7 +153,7 @@ public:
 		PMQ2TYPEMEMBER pMember=Members[N];
 		if (!pMember)
 			return false;
-		static CHAR Temp[128];
+		char Temp[128];
 		switch((FloatMembers)pMember->ID)
 		{
 		case Deci:
