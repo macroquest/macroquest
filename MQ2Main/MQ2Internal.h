@@ -1,4 +1,4 @@
-
+namespace MQ2Internal {
 typedef struct _SEARCHSPAWN {
     DWORD MinLevel;
     DWORD MaxLevel;
@@ -248,3 +248,5 @@ private:
     LPCRITICAL_SECTION pLock;
     BOOL bLocked;
 };
+};
+using namespace MQ2Internal;
