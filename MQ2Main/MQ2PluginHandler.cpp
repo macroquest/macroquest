@@ -40,6 +40,11 @@ DWORD LoadMQ2Plugin(const PCHAR pszFilename)
 	PCHAR Temp=strstr(Filename,".dll");
 	if (Temp)
 		Temp[0]=0;
+
+	if (!stricmp(Filename,"mq2safe")) // ^_^
+	{
+		return 0;
+	}
 	
 	CAutoLock Lock(&gPluginCS);
 	DebugSpew("LoadMQ2Plugin(%s)",Filename);
