@@ -1,3 +1,6 @@
+10 Feb 2004 by Amadeus
+- Updated structs and offsets
+
 09 Feb 2004 by Amadeus
 - UPDATED SOURCEFORGE CVS!
 - Small additions to the structs from suggestions on the message boards and
