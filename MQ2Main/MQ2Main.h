@@ -104,6 +104,7 @@ EQLIB_API VOID WriteChatColor(PCHAR Line, DWORD Color, DWORD Filter=0);
 EQLIB_API VOID PulsePlugins();
 EQLIB_API VOID PluginsZoned();
 EQLIB_API VOID PluginsIncomingChat(PCHAR Line, DWORD Color);
+EQLIB_API VOID RewriteMQ2Plugins(VOID);
 
 /* DIRECT INPUT */
 EQLIB_API VOID InitializeMQ2DInput();
@@ -411,6 +412,7 @@ EQLIB_API VOID MyVarCat                            (PSPAWNINFO,PCHAR);
 EQLIB_API VOID MyVarOr                             (PSPAWNINFO,PCHAR);
 EQLIB_API VOID MyVarSub                            (PSPAWNINFO,PCHAR);
 EQLIB_API VOID Next                                (PSPAWNINFO,PCHAR);
+EQLIB_API VOID PluginCommand						(PSPAWNINFO pChar, PCHAR szLine);
 EQLIB_API VOID Press                               (PSPAWNINFO,PCHAR);
 EQLIB_API VOID Return                              (PSPAWNINFO,PCHAR);
 EQLIB_API VOID SelectItem                          (PSPAWNINFO,PCHAR);

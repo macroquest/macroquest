@@ -416,6 +416,7 @@ void InitializeMQ2Commands()
         {"/keepkeys",   KeepKeys,1},
 		{"/windowstate", WindowState,1},
         {"/editmacro",  EditMacro,1},
+		{"/plugin",     PluginCommand,1},
 //		{"/maxfps",     MaxFPS,1},
         {NULL,          NULL,0}
     };

@@ -31,21 +31,6 @@ ShutdownMQPlugin
 
 
 
-typedef struct _MQPlugin
-{
-	char szFilename[MAX_PATH];
-	HMODULE hModule;
-
-	fMQInitializePlugin Initialize;
-	fMQShutdownPlugin Shutdown;
-	fMQZoned Zoned;
-	fMQWriteChatColor WriteChatColor;
-	fMQPulse Pulse;
-	fMQIncomingChat IncomingChat;
-
-	struct _MQPlugin* pLast;
-	struct _MQPlugin* pNext;
-} MQPLUGIN, *PMQPLUGIN;
 
 PMQPLUGIN pPlugins=0;
 CRITICAL_SECTION gPluginCS;
@@ -106,11 +91,31 @@ BOOL UnloadMQ2Plugin(const PCHAR Filename)
 			if (pPlugin->Shutdown)
 				pPlugin->Shutdown();
 			FreeLibrary(pPlugin->hModule);
+			if (pPlugin->pLast)
+				pPlugin->pLast->pNext=pPlugin->pNext;
+			else
+				pPlugins=pPlugin->pNext;
+			if (pPlugin->pNext)
+				pPlugin->pNext->pLast=pPlugin->pLast;
+			delete pPlugin;
+			return 1;
 		}
 		pPlugin=pPlugin->pNext;
 	}
 
 	return 0;
+}
+
+VOID RewriteMQ2Plugins(VOID)
+{
+    WritePrivateProfileSection("Plugins","",gszINIFilename);
+    PMQPLUGIN pLoop = pPlugins;
+	if (!pLoop)
+		return;
+    while (pLoop) {
+        WritePrivateProfileString("Plugins",pLoop->szFilename,pLoop->szFilename,gszINIFilename);
+        pLoop = pLoop->pNext;
+    }
 }
 
 VOID InitializeMQ2Plugins()

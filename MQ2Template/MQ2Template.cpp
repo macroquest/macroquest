@@ -44,7 +44,7 @@ PLUGIN_API VOID OnZoned(VOID)
 PLUGIN_API VOID OnPulse(VOID)
 {
 	// DONT leave in this debugspew, even if you leave in all the others
-	DebugSpewAlways("MQ2Template::OnPulse()");
+//	DebugSpewAlways("MQ2Template::OnPulse()");
 	// This is called every time MQ pulses
 }
 

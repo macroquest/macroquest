@@ -251,3 +251,18 @@ typedef struct _PARMLIST {
 	DWORD (__cdecl *fAddress)(PCHAR, PCHAR, PSPAWNINFO);
 } PARMLIST, *PPARMLIST;
 
+typedef struct _MQPlugin
+{
+	char szFilename[MAX_PATH];
+	HMODULE hModule;
+
+	fMQInitializePlugin Initialize;
+	fMQShutdownPlugin Shutdown;
+	fMQZoned Zoned;
+	fMQWriteChatColor WriteChatColor;
+	fMQPulse Pulse;
+	fMQIncomingChat IncomingChat;
+
+	struct _MQPlugin* pLast;
+	struct _MQPlugin* pNext;
+} MQPLUGIN, *PMQPLUGIN;

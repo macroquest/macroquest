@@ -4344,3 +4344,70 @@ VOID DisplayLoginName(PSPAWNINFO pChar, PCHAR szLine)
 	}
 	WriteChatBuffer(Buffer,USERCOLOR_DEFAULT);
 }
+
+// ***************************************************************************
+// Function:      PluginCommand
+// Description:   Our /plugin command.
+// ***************************************************************************
+
+
+
+VOID PluginCommand(PSPAWNINFO pChar, PCHAR szLine) 
+{
+    CHAR szBuffer[MAX_STRING] = {0};
+    CHAR szName[MAX_STRING] = {0};
+    PCHAR szCommand = NULL;
+    GetArg(szName,szLine,1);
+    szCommand = GetNextArg(szLine);
+    if (!stricmp(szName,"list")) {
+        PMQPLUGIN pLoop = pPlugins;
+        DWORD Count=0;
+        WriteChatColor("Active Plugins",USERCOLOR_WHO);
+        WriteChatColor("--------------------------",USERCOLOR_WHO);
+        while (pLoop) {
+            sprintf(szName,"%s",pLoop->szFilename);
+            WriteChatColor(szName,USERCOLOR_WHO);
+            Count++;
+            pLoop = pLoop->pNext;
+        }
+        if (Count==0) {
+            WriteChatColor("No Plugins defined.",USERCOLOR_WHO);
+        } else {
+            sprintf(szName,"%d Plugin%s displayed.",Count,(Count==1)?"":"s");
+            WriteChatColor(szName,USERCOLOR_WHO);
+        }
+        return;
+    }
+    if (szName[0]==0) {
+        WriteChatBuffer("Usage: /Plugin name [unload], or /Plugin list",USERCOLOR_DEFAULT);
+        return;
+    }
+
+    if (!stricmp(szCommand,"unload")) {
+		if (UnloadMQ2Plugin(szName))
+		{
+            sprintf(szBuffer,"Plugin '%s' unloaded.",szName);
+            RewriteMQ2Plugins();
+            WriteChatBuffer(szBuffer,USERCOLOR_DEFAULT);
+		}
+		else
+		{
+	        sprintf(szBuffer,"Plugin '%s' not found.",szName);
+			WriteChatBuffer(szBuffer,USERCOLOR_DEFAULT);
+		}
+    } else {
+		if (LoadMQ2Plugin(szName))
+		{
+			sprintf(szBuffer,"Plugin '%s' loaded.",szName);
+			WriteChatBuffer(szBuffer,USERCOLOR_DEFAULT);
+			RewriteMQ2Plugins();
+		}
+		else
+		{
+			sprintf(szBuffer,"Plugin '%s' could not be loaded.",szName);
+			WriteChatBuffer(szBuffer,USERCOLOR_DEFAULT);
+		}
+    }
+
+
+}
