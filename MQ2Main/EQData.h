@@ -1222,20 +1222,22 @@ typedef struct _GROUNDITEM {
 // 5-15-2003    Amadeus
 #define   MAX_ZONES                                    0x129   
 extern    PCHAR szZoneExpansionName[];     //defined in LibEQ_Utilities.cpp
-typedef struct _ZONELIST {
-/*0x000*/   DWORD   Header;
-/*0x004*/   DWORD   Expansion;          // szZoneExpansionName[]
-/*0x008*/   WORD    Id;
-/*0x00a*/   WORD    Instance;
-/*0x00c*/   CHAR    ShortName[0x81];
-/*0x08d*/   CHAR    LongName[0x103];
-/*0x190*/   DWORD   Flags;              // (Flags & 0x100000) = HasMinLevel, 0x4000 no air, 0x2 newbie zone, 0x20 no bind, 0x400000 something
-/*0x194*/   DWORD   Id2;                // This is Id+2242
-/*0x198*/   DWORD   PoPValue;           // This has something to do with PoP zones.
-/*0x19c*/   DWORD   MinLevel;           // Minimum level to access
-/*0x1a0*/   WORD    Unknown0x1a0;         
-/*0x1a2*/   BYTE    Unknown0x1a2[0x6];   
-/*0x1a8     Next Zone in list */
+typedef struct _ZONELIST { 
+/*0x000*/   DWORD   Header; 
+/*0x004*/   DWORD   Expansion;          // szZoneExpansionName[] 
+/*0x008*/   WORD    Id; 
+/*0x00a*/   WORD    Instance; 
+/*0x00c*/   CHAR    ShortName[0x81]; 
+/*0x08d*/   CHAR    LongName[0x103]; 
+/*0x190*/   DWORD   Flags;              // (Flags & 0x100000) = HasMinLevel, 0x4000 no air, 0x2 newbie zone, 0x20 no bind, 0x400000 something 
+/*0x194*/   DWORD   Id2;                // This is Id+2242 
+/*0x198*/   DWORD   PoPValue;           // This has something to do with PoP zones. 
+/*0x19c*/   DWORD   MinLevel;           // Minimum level to access 
+/*0x1a0*/   WORD    Unknown0x1a0;          
+/*0x1a2*/   BYTE    Unknown0x1a2[0x6];    
+/*0x1a8*/   DWORD   Unknown0x1a8; 
+/*0x1ac*/   DWORD   Unknown0x1ac; 
+/*0x1b0      next zone in list*/ 
 } ZONELIST, *PZONELIST;
 
 typedef struct _WORLDDATA {
@@ -1494,24 +1496,26 @@ typedef struct _EQRAIDMEMBER {
 /*0x118*/ 
 } EQRAIDMEMBER, *PEQRAIDMEMBER;
 
-// sizeof(_EQRAID) is 0x44b8
-typedef struct _EQRAID {
-/*0x0000*/  BYTE  		Unknown0x0[0x154];
-/*0x0154*/  CHAR  		RaidMemberUsed[0x48];
-/*0x019c*/  struct		_EQRAIDMEMBER RaidMember[0x48];
-/*0x3e5c*/  DWORD 		field_3E5C;
-/*0x3e60*/  DWORD 		RaidMemberCount;
-/*0x3e64*/  CHAR  		RaidLeaderName[0x40];
-/*0x3ea4*/  BYTE  		Unknown0x3ea4[0x140];
-/*0x3fe4*/  DWORD 		field_3FE4;
-/*0x3fe8*/  BYTE  		Unknown0x3fe8;
-/*0x3fe9*/  BYTE  		IsRaidLeader;
-/*0x3fea*/  BYTE  		Unknown0x3fea[0x2];
-/*0x3fec*/  DWORD 		RaidTarget;
-/*0x3ff0*/  DWORD 		LootType;
-/*0x3ff4*/  CHAR  		RaidLooters[0x13][0x40];
-/*0x44b4*/  DWORD 		TotalRaidMemberLevels;
-/*0x44b8*/
+// sizeof(_EQRAID) is 0x49b8 
+typedef struct _EQRAID { 
+/*0x0000*/  BYTE        Unknown0x0[0x154]; 
+/*0x0154*/  CHAR        RaidMemberUsed[0x48]; 
+/*0x019c*/  struct      _EQRAIDMEMBER RaidMember[0x48]; 
+/*0x3e5c*/  DWORD       field_3E5C; 
+/*0x3e60*/  DWORD       RaidMemberCount; 
+/*0x3e64*/  CHAR        RaidLeaderName[0x40]; 
+/*0x3ea4*/  BYTE        Unknown3ea4[0x100]; 
+/*0x3fa4*/  CHAR        RaidMOTD[0x400]; 
+/*0x43a4*/  BYTE        Unknown0x43a4[0x140]; 
+/*0x44e4*/  DWORD       field_44E4; 
+/*0x44e8*/  BYTE        Unknown0x44e8; 
+/*0x44e9*/  BYTE        IsRaidLeader; 
+/*0x44ea*/  BYTE        Unknown0x44ea[0x2]; 
+/*0x44ec*/  DWORD       RaidTarget; 
+/*0x44f0*/  DWORD       LootType; 
+/*0x44f4*/  CHAR        RaidLooters[0x13][0x40]; 
+/*0x49b4*/  DWORD       TotalRaidMemberLevels; 
+/*0x49b8*/ 
 } EQRAID, *PEQRAID;
 
 // size 0x08
