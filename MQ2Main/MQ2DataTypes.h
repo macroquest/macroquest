@@ -12,6 +12,12 @@
     GNU General Public License for more details.
 ******************************************************************************/
 
+// TODO
+// benchmark type
+// plugin type
+// add item window to item type
+// add actual macro parameters to macro type (subs and main)
+// add concolor to spawn
 
 EQLIB_VAR class MQ2FloatType *pFloatType;
 EQLIB_VAR class MQ2StringType *pStringType;
@@ -429,6 +435,11 @@ public:
 		DistanceN=57,
 		DistanceW=58,
 		DistanceU=59,
+		Invis=60,
+		Linkdead=61,
+		LFG=62,
+		Trader=63,
+		AFK=64,
 	};
 	MQ2SpawnType():MQ2Type("spawn")
 	{
@@ -489,6 +500,11 @@ public:
 		TypeMember(DistanceN);//7,
 		TypeMember(DistanceW);//8,
 		TypeMember(DistanceU);//9,
+		TypeMember(Invis);
+		TypeMember(LinkDead);
+		TypeMember(LFG);
+		TypeMember(Trader);
+		TypeMember(AFK);
 	}
 
 	~MQ2SpawnType()
@@ -1639,7 +1655,7 @@ public:
 
    bool ToString(MQ2VARPTR VarPtr, PCHAR Destination)
    {
-	  strcpy(Destination,szHeadingNormalShort[(INT)(VarPtr.Float/ 22.5f + 0.5f)%16]);
+	  strcpy(Destination,szHeadingShort[(INT)(VarPtr.Float/ 22.5f + 0.5f)%16]);
       return true;
    }
 }; 

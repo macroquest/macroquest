@@ -333,6 +333,10 @@ bool MQ2SpawnType::GetMember(MQ2VARPTR VarPtr, PCHAR Member, PCHAR Index, MQ2TYP
 		Dest.DWord=pSpawn->Sneak;
 		Dest.Type=pBoolType;
 		return true;
+	case Invis:
+		Dest.DWord=pSpawn->HideMode;
+		Dest.Type=pBoolType;
+		return true;
 	case Height:
 		Dest.Float=pSpawn->AvatarHeight;
 		Dest.Type=pFloatType;
@@ -497,6 +501,12 @@ bool MQ2SpawnType::GetMember(MQ2VARPTR VarPtr, PCHAR Member, PCHAR Index, MQ2TYP
 		Dest.Float=pSpawn->CameraAngle;
 		Dest.Type=pFloatType;
 		return true;
+	/*
+	Trader
+	AFK
+	LFG
+	Linkdead
+	/**/
 	}
 	return false;
 #undef pSpawn
@@ -831,6 +841,7 @@ bool MQ2CharacterType::GetMember(MQ2VARPTR VarPtr, PCHAR Member, PCHAR Index, MQ
 				}
 			}
 		}
+		return false;
 	case Song:
 		if (!Index[0])
 			return false;
@@ -861,6 +872,7 @@ bool MQ2CharacterType::GetMember(MQ2VARPTR VarPtr, PCHAR Member, PCHAR Index, MQ
 				}
 			}
 		}
+		return false;
 	case HPBonus:
 		Dest.DWord=pChar->HPBonus;
 		Dest.Type=pIntType;
@@ -2334,7 +2346,7 @@ bool MQ2TimeType::GetMember(MQ2VARPTR VarPtr, PCHAR Member, PCHAR Index, MQ2TYPE
 			unsigned long Hour=pTime->tm_hour%12;
 			if (!Hour)
 				Hour=12;
-			sprintf(DataTypeTemp,"%02d:%02d:%02d",pTime->tm_hour,pTime->tm_min, pTime->tm_sec);
+			sprintf(DataTypeTemp,"%02d:%02d:%02d",Hour,pTime->tm_min, pTime->tm_sec);
 			Dest.Ptr=&DataTypeTemp[0],
 			Dest.Type=pStringType; 
 		}

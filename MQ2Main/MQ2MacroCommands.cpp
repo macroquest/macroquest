@@ -550,12 +550,12 @@ BOOL ActualCalculate(PCHAR szFormula, DOUBLE &Result) {
 				if (i==0)
 				{
 			        for (k=i+1;k<j;k++) 
-						strcpy(Arg[k],Arg[k+1]);
+						strcpy(Arg[k],Arg[k+2]);
 				}
 				else
 				{
 			        for (k=i+1;k<j;k++) 
-						strcpy(Arg[k],Arg[k+1]);
+						strcpy(Arg[k],Arg[k+2]);
 				}
 				j--;
         }

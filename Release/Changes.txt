@@ -1,3 +1,8 @@
+13 Apr 2004 by Lax:
+- Fixed ! in Calculate (worked most of the time, but not in some special cases)
+- Fixed heading's "To String" to give the correct heading.  heading.Name/heading.ShortName were fine
+- Fixed time.Time12 to be 12 hour (oops)
+
 9 Apr 2004 by Lax:
 - Fixed != in Calculate (and therefore in /newif, math.Calc, etc), and implemented ! as
   the unary NOT operator.  This gives 0 if your calculation is non-zero, or 1 if your
