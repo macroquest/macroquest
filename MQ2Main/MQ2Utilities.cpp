@@ -1209,7 +1209,7 @@ PCHAR GetSpellEffectName(DWORD EffectID, PCHAR szBuffer)
 { 
    CHAR szBuff[MAX_STRING]={0}; 
    CHAR szTemp[MAX_STRING]={0}; 
-   switch(abs(EffectID)) 
+   switch(EffectID) 
    { 
    case 0: 
       strcat(szBuff,"Hitpoints"); 
@@ -1245,7 +1245,7 @@ PCHAR GetSpellEffectName(DWORD EffectID, PCHAR szBuffer)
       strcat(szBuff,"Percentage Heal"); 
       break; 
    default: 
-      sprintf(szTemp, "UndefinedEffect%03d", abs(EffectID)); 
+      sprintf(szTemp, "UndefinedEffect%03d", EffectID); 
       strcat(szBuff,szTemp); 
       break; 
    } 
