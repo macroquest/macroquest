@@ -1,3 +1,8 @@
+15 Dec 2003 by Amadeus
+- Fix for $target(sclass)
+- Fix for FullClassToShort
+* Thanks to Schark for these*
+
 13 Dec 2003 by Amadeus
 - Added MQ2Ext to the project
 
