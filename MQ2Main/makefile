@@ -6,6 +6,8 @@ ALL : "$(OUTDIR)\MQ2Main.dll"
 CLEAN :
 	-@erase "$(INTDIR)\EQClasses.obj"
 	-@erase "$(INTDIR)\EQClasses.sbr"
+	-@erase "$(INTDIR)\MQ2Auth.obj"
+	-@erase "$(INTDIR)\MQ2Auth.sbr"
 	-@erase "$(INTDIR)\MQ2ChatHook.obj"
 	-@erase "$(INTDIR)\MQ2ChatHook.sbr"
 	-@erase "$(INTDIR)\MQ2CleanUI.obj"
@@ -49,6 +51,7 @@ LINK32=link.exe
 LINK32_FLAGS=kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib ..\Detours\lib60\detours.lib /nologo /dll /incremental:no /pdb:"$(OUTDIR)\MQ2Main.pdb" /debug /machine:I386 /out:"$(OUTDIR)\MQ2Main.dll" /implib:"$(OUTDIR)\MQ2Main.lib" /OPT:NOICF /OPT:NOREF 
 LINK32_OBJS= \
 	"$(INTDIR)\EQClasses.obj" \
+	"$(INTDIR)\MQ2Auth.obj" \
 	"$(INTDIR)\MQ2ChatHook.obj" \
 	"$(INTDIR)\MQ2CleanUI.obj" \
 	"$(INTDIR)\MQ2CommandAPI.obj" \
@@ -84,6 +87,10 @@ SOURCE=.\EQClasses.cpp
 
 "$(INTDIR)\EQClasses.obj"	"$(INTDIR)\EQClasses.sbr" : $(SOURCE) "$(INTDIR)"
 
+
+SOURCE=.\MQ2Auth.cpp
+
+"$(INTDIR)\MQ2Auth.obj"	        "$(INTDIR)\MQ2Auth.sbr" : $(SOURCE) "$(INTDIR)"
 
 SOURCE=.\MQ2ChatHook.cpp
 

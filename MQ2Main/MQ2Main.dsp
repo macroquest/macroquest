@@ -67,6 +67,10 @@ SOURCE=.\EQClasses.cpp
 # End Source File
 # Begin Source File
 
+SOURCE=.\MQ2Auth.cpp
+# End Source File
+# Begin Source File
+
 SOURCE=.\MQ2ChatHook.cpp
 # End Source File
 # Begin Source File
