@@ -1,7 +1,9 @@
-** eqgame.ini is no longer used/needed by MQ2!  All offsets have been integrated 
-** into eqgame.h.  The client DATE/TIME are in eqgame.h also.
+23 Mar 2004 by Amadeus
+- Removed DisplayZem function and calls and $zone(ZEM)  ...rest in peace.
 
 20 Mar 2004 by Lax
+** eqgame.ini is no longer used/needed by MQ2!  All offsets have been integrated 
+   into eqgame.h.  The client DATE/TIME are in eqgame.h also.
 - Fixed /itemnotify
 - Renamed the "SpawnListTail" stuff to "LocalPlayer", added "ControlledPlayer".  These are
   both EQPlayer and correspond to .. you.  If you're on a mount, the one thats moving is
