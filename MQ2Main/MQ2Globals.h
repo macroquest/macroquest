@@ -117,6 +117,8 @@ EQLIB_VAR CHAR gLastError[MAX_STRING];
 //EQLIB_VAR HWND ghWnd;
 EQLIB_VAR PFILTER gpFilters;
 
+EQLIB_VAR map<string,unsigned long> ItemSlotMap;
+
 EQLIB_VAR BOOL g_bInDXMouse;
 EQLIB_VAR PMOUSESPOOF gMouseData;
 

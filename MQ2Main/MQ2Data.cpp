@@ -543,8 +543,195 @@ BOOL dataDefined(PCHAR szIndex, MQ2TYPEVAR &Ret)
 	return true;
 }
 
-// todo
-BOOL dataFindItem(PCHAR szIndex, MQ2TYPEVAR &Ret)
+BOOL dataSelectedItem(PCHAR szIndex, MQ2TYPEVAR &Ret)
 {
+	if (pSelectedItem && ((PEQCURRENTSELECTION)pSelectedItem)->TextureAnim)
+	{
+		Ret.Ptr=*(PCONTENTS *)((PEQCURRENTSELECTION)pSelectedItem)->TextureAnim;
+		Ret.Type=pItemType;
+		return true;
+	}
 	return false;
 }
+
+BOOL dataFindItemBank(PCHAR szIndex, MQ2TYPEVAR &Ret)
+{
+	if (!szIndex[0])
+		return false;
+	DWORD N=1;
+	PCHAR pName=&szIndex[0];
+	BOOL bExact=false;
+
+	if (*pName=='=')
+	{
+		bExact=true;
+		pName++;
+	}
+	CHAR Name[MAX_STRING]={0};
+	CHAR Temp[MAX_STRING]={0};
+	strlwr(strcpy(Name,pName));
+	PCHARINFO pCharInfo=GetCharInfo();
+
+
+	for (unsigned long nPack=0 ; nPack < NUM_BANK_SLOTS ; nPack++)
+	{
+		PCHARINFO pCharInfo=GetCharInfo();
+		if (PCONTENTS pPack=pCharInfo->Bank[nPack])
+		{
+			if (bExact)
+			{
+				if (!stricmp(Name,pPack->Item->Name))
+				{
+					Ret.Ptr=pPack;
+					Ret.Type=pItemType;
+					return true;
+				}
+			}
+			else 
+			{
+				if(strstr(strlwr(strcpy(Temp,pPack->Item->Name)),Name))
+				{
+					Ret.Ptr=pPack;
+					Ret.Type=pItemType;
+					return true;
+				}
+			}
+			if (pPack->Item->Type==ITEMTYPE_PACK)
+			{
+				for (unsigned long nItem=0 ; nItem < pPack->Item->Slots ; nItem++)
+				{
+					if (PCONTENTS pItem=pPack->Contents[nItem])
+					{
+						if (bExact)
+						{
+							if (!stricmp(Name,pItem->Item->Name))
+							{
+								Ret.Ptr=pItem;
+								Ret.Type=pItemType;
+								return true;
+							}
+						}
+						else 
+						{
+							if(strstr(strlwr(strcpy(Temp,pItem->Item->Name)),Name))
+							{
+								Ret.Ptr=pItem;
+								Ret.Type=pItemType;
+								return true;
+							}
+						}
+					}
+				}
+			}
+		}
+	}
+
+
+	return false;
+}
+
+BOOL dataFindItem(PCHAR szIndex, MQ2TYPEVAR &Ret)
+{
+	if (!szIndex[0])
+		return false;
+	DWORD N=1;
+	PCHAR pName=&szIndex[0];
+	BOOL bExact=false;
+
+	if (*pName=='=')
+	{
+		bExact=true;
+		pName++;
+	}
+	CHAR Name[MAX_STRING]={0};
+	CHAR Temp[MAX_STRING]={0};
+	strlwr(strcpy(Name,pName));
+	PCHARINFO pCharInfo=GetCharInfo();
+
+	for (unsigned long nSlot=0 ; nSlot < 0x1E ; nSlot++)
+	{
+		if (PCONTENTS pItem=pCharInfo->InventoryArray[nSlot])
+		{
+			if (bExact)
+			{
+				if (!stricmp(Name,pItem->Item->Name))
+				{
+					Ret.Ptr=pItem;
+					Ret.Type=pItemType;
+					return true;
+				}
+			}
+			else 
+			{
+				if(strstr(strlwr(strcpy(Temp,pItem->Item->Name)),Name))
+				{
+					Ret.Ptr=pItem;
+					Ret.Type=pItemType;
+					return true;
+				}
+			}
+		}
+	}
+
+	for (unsigned long nPack=0 ; nPack < 8 ; nPack++)
+	{
+		if (PCONTENTS pPack=pCharInfo->Inventory.Pack[nPack])
+		{
+			if (pPack->Item->Type==ITEMTYPE_PACK)
+			{
+				for (unsigned long nItem=0 ; nItem < pPack->Item->Slots ; nItem++)
+				{
+					if (PCONTENTS pItem=pPack->Contents[nItem])
+					{
+						if (bExact)
+						{
+							if (!stricmp(Name,pItem->Item->Name))
+							{
+								Ret.Ptr=pItem;
+								Ret.Type=pItemType;
+								return true;
+							}
+						}
+						else 
+						{
+							if(strstr(strlwr(strcpy(Temp,pItem->Item->Name)),Name))
+							{
+								Ret.Ptr=pItem;
+								Ret.Type=pItemType;
+								return true;
+							}
+						}
+					}
+				}
+			}
+		}
+	}
+
+	return false;
+}
+
+BOOL dataInvSlot(PCHAR szIndex, MQ2TYPEVAR &Ret)
+{
+	if (!szIndex[0])
+		return false;
+	if (szIndex[0]>='0' && szIndex[0]<='9')
+	{
+		Ret.DWord=atoi(szIndex);
+		Ret.Type=pInvSlotType;
+		return true;
+	}
+	else
+	{
+		CHAR Temp[MAX_STRING]={0};
+		strlwr(strcpy(Temp,szIndex));
+		if (Ret.DWord=ItemSlotMap[Temp])
+		{
+			Ret.Type=pInvSlotType;
+			return true;
+		}
+	}
+	return false;
+}
+
+
+

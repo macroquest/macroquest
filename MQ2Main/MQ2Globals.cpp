@@ -196,6 +196,7 @@ PMAPLABEL *ppCurrentMapLabel=(PMAPLABEL*)__CurrentMapLabel;
 PCHAR *EQMappableCommandList=(PCHAR*)__BindList;
 DWORD gnNormalEQMappableCommands;
 PCHAR szEQMappableCommands[nEQMappableCommands];
+map<string,unsigned long> ItemSlotMap;
 
 PBYTE EQADDR_ENCRYPTPAD0=(PBYTE)__EncryptPad0;
 PBYTE EQADDR_ENCRYPTPAD1=(PBYTE)__EncryptPad1;

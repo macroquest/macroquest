@@ -1,7 +1,18 @@
 17 Apr 2004 by Lax:
 - Fixed "window" data type's "To String"
 - Fixed all VC6 project files so PDB/MAP files are produced for debugging
-
+- New MQ2Data type
+  invslot - Inventory slot (not necessarily "in your inventory", this may be in merchant window, bank, etc)
+  see reference for current list of members.
+- Added/changed MQ2Data members
+  invslot item.InvSlot: Inventory slot for this item
+- New MQ2Data Top-Level Objects
+  invslot InvSlot[name]: Inventory slot by name
+  invslot InvSlot[#]: Inventory slot by number
+  item FindItem[name]: Find item on character by partial name match.  FindItem[=name] will find exact
+  item FindItemBank[name]: Find item in bank by partial name match.  FindItem[=name] will find exact
+  item SelectedItem: When using a merchant, etc. this is the selected item
+  
 15 Apr 2004 by Lax:
 - Fixed /destroy crash
 - Fixed "random" crash on zoning with MQ2Map loaded, due to a bug in the recently revised ConColor

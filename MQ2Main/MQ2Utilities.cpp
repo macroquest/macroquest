@@ -2415,3 +2415,157 @@ havecfgfile:
 }
 
 
+int FindInvSlotForContents(PCONTENTS pContents)
+{
+	DebugSpew("FindInvSlotForContents(0x%08X) (0x%08X)",pContents,pContents->Item);
+	PEQINVSLOTMGR pInvMgr=(PEQINVSLOTMGR)pInvSlotMgr;
+	for (unsigned long N = 0 ; N < 0x400 ; N++)
+	{
+		if (pInvMgr->SlotArray[N] && pInvMgr->SlotArray[N]->ppContents)
+		{
+//			DebugSpew("pInvSlotMgr->SlotArray[%d]->pContents==0x%08X",N,*pInvMgr->SlotArray[N]->ppContents);
+			if (*pInvMgr->SlotArray[N]->ppContents==pContents)
+			{
+				if (pInvMgr->SlotArray[N]->pInvSlotWnd)
+					return pInvMgr->SlotArray[N]->pInvSlotWnd->InvSlot; 
+				break;
+			}
+		}
+	}
+
+	for (unsigned long nPack=0 ; nPack < 8 ; nPack++)
+	{
+		PCHARINFO pCharInfo=GetCharInfo();
+		if (PCONTENTS pPack=pCharInfo->Inventory.Pack[nPack])
+		{
+			if (pPack->Item->Type==ITEMTYPE_PACK)
+			{
+				for (unsigned long nItem=0 ; nItem < pPack->Item->Slots ; nItem++)
+				{
+					if (pPack->Contents[nItem]==pContents)
+					{
+						return 251+(nPack*10)+nItem;
+					}
+				}
+			}
+		}
+	}
+
+	for (nPack=0 ; nPack < NUM_BANK_SLOTS ; nPack++)
+	{
+		PCHARINFO pCharInfo=GetCharInfo();
+		if (PCONTENTS pPack=pCharInfo->Bank[nPack])
+		{
+			if (pPack==pContents)
+			{
+				if (nPack<0x10)
+					return 2000+nPack;
+				return 2500+nPack-0x10;
+			}
+			if (pPack->Item->Type==ITEMTYPE_PACK)
+			{
+				for (unsigned long nItem=0 ; nItem < pPack->Item->Slots ; nItem++)
+				{
+					if (pPack->Contents[nItem]==pContents)
+					{
+						if (nPack<0x10)
+							return 2031+(nPack*10)+nItem;
+						return 2531-0xa0+(nPack*10)+nItem;
+					}
+				}
+			}
+		}		
+	}
+
+
+	return -1;
+}
+
+DWORD LastFoundInvSlot=-1;
+
+int FindInvSlot(PCHAR pName, BOOL Exact)
+{
+	CHAR Name[MAX_STRING]={0};
+	strlwr(strcpy(Name,pName));
+	CHAR szTemp[MAX_STRING]={0};
+
+	PEQINVSLOTMGR pInvMgr=(PEQINVSLOTMGR)pInvSlotMgr;
+	for (unsigned long N = 0 ; N < 0x400 ; N++)
+	{
+		if (pInvMgr->SlotArray[N])
+		{
+			if (pInvMgr->SlotArray[N]->ppContents && *pInvMgr->SlotArray[N]->ppContents)
+			{
+				if (!Exact)
+				{
+					_strlwr(strcpy(szTemp,(*pInvMgr->SlotArray[N]->ppContents)->Item->Name));
+					if (strstr(szTemp,Name))
+					{
+						if (pInvMgr->SlotArray[N]->pInvSlotWnd)
+						{
+							LastFoundInvSlot=N;
+							return pInvMgr->SlotArray[N]->pInvSlotWnd->InvSlot;
+						}
+						// let it try to find it in an open slot if this fails
+					}
+				}
+				else if (!stricmp(Name,(*pInvMgr->SlotArray[N]->ppContents)->Item->Name))
+				{
+					if (pInvMgr->SlotArray[N]->pInvSlotWnd)
+					{
+						LastFoundInvSlot=N;
+						return pInvMgr->SlotArray[N]->pInvSlotWnd->InvSlot;
+					}
+					// let it try to find it in an open slot if this fails
+				}
+				
+			}
+		}
+	}
+
+	LastFoundInvSlot=-1;
+	return -1;
+}
+
+int FindNextInvSlot(PCHAR pName, BOOL Exact)
+{
+	CHAR szTemp[MAX_STRING]={0};
+	CHAR Name[MAX_STRING]={0};
+	strlwr(strcpy(Name,pName));
+
+	PEQINVSLOTMGR pInvMgr=(PEQINVSLOTMGR)pInvSlotMgr;
+	for (unsigned long N = LastFoundInvSlot+1 ; N < 0x400 ; N++)
+	{
+		if (pInvMgr->SlotArray[N])
+		{
+			if (pInvMgr->SlotArray[N]->ppContents && *pInvMgr->SlotArray[N]->ppContents)
+			{
+				if (!Exact)
+				{
+					_strlwr(strcpy(szTemp,(*pInvMgr->SlotArray[N]->ppContents)->Item->Name));
+					if (strstr(szTemp,Name))
+					{
+						if (pInvMgr->SlotArray[N]->pInvSlotWnd)
+						{
+							LastFoundInvSlot=N;
+							return pInvMgr->SlotArray[N]->pInvSlotWnd->InvSlot;
+						}
+						// let it try to find it in an open slot if this fails
+					}
+				}
+				else if (!stricmp(Name,(*pInvMgr->SlotArray[N]->ppContents)->Item->Name))
+				{
+					if (pInvMgr->SlotArray[N]->pInvSlotWnd)
+					{
+						LastFoundInvSlot=N;
+						return pInvMgr->SlotArray[N]->pInvSlotWnd->InvSlot;
+					}
+					// let it try to find it in an open slot if this fails
+				}
+				
+			}
+		}
+	}
+	LastFoundInvSlot=-1;
+	return -1;
+}

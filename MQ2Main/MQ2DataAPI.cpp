@@ -144,6 +144,10 @@ void InitializeMQ2Data()
 	AddMQ2Data("Heading",dataHeading);
 	AddMQ2Data("Defined",dataDefined);
 	AddMQ2Data("LastSpawn",dataLastSpawn);
+	AddMQ2Data("FindItem",dataFindItem);
+	AddMQ2Data("FindItemBank",dataFindItemBank);
+	AddMQ2Data("InvSlot",dataInvSlot);
+	AddMQ2Data("SelectedItem",dataSelectedItem);
 }
 
 

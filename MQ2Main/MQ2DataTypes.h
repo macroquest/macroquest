@@ -886,6 +886,7 @@ public:
 		Item=77,
 		Container=78,
 		Stackable=79,
+		InvSlot=80,
 	};
 	MQ2ItemType():MQ2Type("Item")
 	{
@@ -968,6 +969,7 @@ public:
 		TypeMember(Item);
 		TypeMember(Container);
 		TypeMember(Stackable);
+		TypeMember(InvSlot);
 	}
 
 	~MQ2ItemType()
@@ -1666,11 +1668,17 @@ public:
    {
 	   Pack=1,
 	   Slot=2,
+	   ID=3,
+	   Name=4,
+	   Item=5,
    };
    MQ2InvSlotType():MQ2Type("type")
    {
       TypeMember(Pack);
 	  TypeMember(Slot);
+	  TypeMember(ID);
+	  TypeMember(Name);
+	  TypeMember(Item);
    }
 
    ~MQ2InvSlotType()
@@ -1681,8 +1689,12 @@ public:
 
    bool ToString(MQ2VARPTR VarPtr, PCHAR Destination)
    {
-	//  strcpy(Destination,((MQ2Type*)VarPtr.Ptr)->GetName());
-      return false;
+	   if (VarPtr.Int)
+	   {
+		  itoa(VarPtr.Int,Destination,10);
+		  return true;
+	   }
+	   return false;
    }
 }; 
 

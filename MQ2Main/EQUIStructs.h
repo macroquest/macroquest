@@ -523,7 +523,7 @@ typedef struct _EQINVSLOT {
 /*0x04*/	struct _EQINVSLOTWND *pInvSlotWnd;
 /*0x08*/	DWORD Unknown0x08;
 /*0x0C*/	DWORD Unknown0x0C;
-/*0x10*/	DWORD Unknown0x10;
+/*0x10*/	PCONTENTS *ppContents;
 /*0x14*/
 } EQINVSLOT, *PEQINVSLOT;
 

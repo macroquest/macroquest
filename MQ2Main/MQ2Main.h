@@ -315,7 +315,9 @@ EQLIB_API VOID CheckChatForEvent(PCHAR szMsg);
 EQLIB_API VOID ConvertItemTags(CXStr &cxstr, BOOL Tag=TRUE);
 EQLIB_API BOOL ParseKeyCombo(PCHAR text, KeyCombo &Dest);
 EQLIB_API PCHAR DescribeKeyCombo(KeyCombo &Combo, PCHAR szDest);
-
+EQLIB_API int FindInvSlotForContents(PCONTENTS pContents);
+EQLIB_API int FindInvSlot(PCHAR Name, BOOL Exact);
+EQLIB_API int FindNextInvSlot(PCHAR Name, BOOL Exact);
 EQLIB_API int FindMappableCommand(const char *name);
 
 EQLIB_API PCHAR GetSpellNameByID(DWORD dwSpellID);
@@ -512,6 +514,10 @@ EQLIB_API BOOL dataIni(PCHAR szIndex, MQ2TYPEVAR &Ret);
 EQLIB_API BOOL dataHeading(PCHAR szIndex, MQ2TYPEVAR &Ret);
 EQLIB_API BOOL dataDefined(PCHAR szIndex, MQ2TYPEVAR &Ret);
 EQLIB_API BOOL dataLastSpawn(PCHAR szIndex, MQ2TYPEVAR &Ret);
+EQLIB_API BOOL dataInvSlot(PCHAR szIndex, MQ2TYPEVAR &Ret);
+EQLIB_API BOOL dataFindItem(PCHAR szIndex, MQ2TYPEVAR &Ret);
+EQLIB_API BOOL dataSelectedItem(PCHAR szIndex, MQ2TYPEVAR &Ret);
+EQLIB_API BOOL dataFindItemBank(PCHAR szIndex, MQ2TYPEVAR &Ret);
 
 /* COMMANDS */
 EQLIB_VAR VOID DeleteVarCmd(PSPAWNINFO pChar, PCHAR szLine);

@@ -27,7 +27,7 @@ using namespace std;
 
 map<string,unsigned long> WindowMap;
 
-map<string,unsigned long> ItemSlotMap;
+
 
 PCHAR szClickNotification[] = { 
 	"leftmouse",		//0

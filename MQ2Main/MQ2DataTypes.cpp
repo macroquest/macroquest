@@ -1543,6 +1543,14 @@ bool MQ2ItemType::GetMember(MQ2VARPTR VarPtr, PCHAR Member, PCHAR Index, MQ2TYPE
 		Dest.DWord=pItem->Item->Stackable;
 		Dest.Type=pBoolType;
 		return true;
+	case InvSlot:
+		Dest.Int=FindInvSlotForContents(pItem);
+		if (Dest.Int>=0)
+		{
+			Dest.Type=pInvSlotType;
+			return true;
+		}
+		return false;
 	/*
 		Price=15,
 		Haste=16,
@@ -2520,5 +2528,102 @@ bool MQ2MerchantType::GetMember(MQ2VARPTR VarPtr, PCHAR Member, PCHAR Index, MQ2
 }
 bool MQ2InvSlotType::GetMember(MQ2VARPTR VarPtr, PCHAR Member, PCHAR Index, MQ2TYPEVAR &Dest)
 {
+#define nInvSlot (VarPtr.Int)
+	if (!VarPtr.Int)
+		return false;
+	PMQ2TYPEMEMBER pMember=MQ2InvSlotType::FindMember(Member);
+	if (!pMember)
+		return false;
+	switch((InvSlotMembers)pMember->ID)
+	{
+	case ID:
+		Dest.DWord=VarPtr.Int;
+		Dest.Type=pIntType;
+		return true;
+	case Item:
+		{
+			if (CInvSlot *pSlot=pInvSlotMgr->FindInvSlot(nInvSlot))
+			{
+				if (((PEQINVSLOT)pSlot)->ppContents)
+				{
+					Dest.Ptr=*((PEQINVSLOT)pSlot)->ppContents;
+					Dest.Type=pItemType;
+					return true;
+				}
+			}
+			else
+			{
+				PCHARINFO pCharInfo=(PCHARINFO)pCharData;
+				if (nInvSlot>=251 && nInvSlot<361)
+				{
+					unsigned long nPack=(nInvSlot-251)/10;
+					unsigned long nSlot=(nInvSlot-1)%10;
+					if (PCONTENTS pPack=pCharInfo->Inventory.Pack[nPack])
+					if (pPack->Item->Type==ITEMTYPE_PACK && nSlot<pPack->Item->Slots)
+					{
+						if (Dest.Ptr=pPack->Contents[nSlot])
+						{
+							Dest.Type=pItemType;
+							return true;
+						}
+					}
+				} 
+				else if (nInvSlot>=2031 && nInvSlot<2191)
+				{
+					unsigned long nPack=(nInvSlot-2031)/10;
+					unsigned long nSlot=(nInvSlot-1)%10;
+					if (PCONTENTS pPack=pCharInfo->Bank[nPack])
+					if (pPack->Item->Type==ITEMTYPE_PACK && nSlot<pPack->Item->Slots)
+					{
+						if (Dest.Ptr=pPack->Contents[nSlot])
+						{
+							Dest.Type=pItemType;
+							return true;
+						}
+					}
+				}
+				else if (nInvSlot>=2531 && nInvSlot<2551)
+				{
+					unsigned long nPack=16+((nInvSlot-2531)/10);
+					unsigned long nSlot=(nInvSlot-1)%10;
+					if (PCONTENTS pPack=pCharInfo->Bank[nPack])
+					if (pPack->Item->Type==ITEMTYPE_PACK && nSlot<pPack->Item->Slots)
+					{
+						if (Dest.Ptr=pPack->Contents[nSlot])
+						{
+							Dest.Type=pItemType;
+							return true;
+						}
+					}
+				}
+				else if (nInvSlot>=2000 && nInvSlot<=2015)
+				{
+					if (Dest.Ptr=pCharInfo->Bank[nInvSlot-2000])
+					{
+						Dest.Type=pItemType;
+						return true;
+					}
+				}
+				else if (nInvSlot==2500 || nInvSlot==2501)
+				{
+					if (Dest.Ptr=pCharInfo->Bank[nInvSlot-2500+16])
+					{
+						Dest.Type=pItemType;
+						return true;
+					}
+				}
+			}
+		}
+		return false;
+	/*
+	Pack=1,
+	Slot=2,
+	Name=4,
+	/**/
+	}
+
 	return false;
+#undef nInvSlot
 }
+
+
