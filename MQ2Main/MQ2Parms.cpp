@@ -67,9 +67,9 @@ DWORD parmGetLastFindSlot(PCHAR szVar, PCHAR szOutput, PSPAWNINFO pChar)
 {
     // $getlastfindslot
     if (gLastFindSlot[0] == 0) {
-        strcat(szOutput,"NULL");
+        strcpy(szOutput,"NULL");
     } else {
-        strcat(szOutput,gLastFindSlot);
+        strcpy(szOutput,gLastFindSlot);
     }
     return 14;
 }
@@ -89,66 +89,66 @@ DWORD parmCursor(PCHAR szVar, PCHAR szOutput, PSPAWNINFO pChar)
         return PMP_ERROR_BADPARM;
     } else if (!pItem) {
         while ((szVar[i] != ')') && (szVar[i] != 0)) i++;
-        strcat(szOutput,"NULL");
+        strcpy(szOutput,"NULL");
 
     // $cursor()
     } else if (!strncmp("cursor()",szVar,8)) {
         i+=7;
-        strcat(szOutput,"TRUE");
+        strcpy(szOutput,"TRUE");
 
     // $cursor(nodrop)
     } else if (!strncmp("cursor(nodrop)",szVar,14)) {
         i+=13;
         if (!pItem->NoDrop) {
-            strcat(szOutput,"TRUE");
+            strcpy(szOutput,"TRUE");
         } else {
-            strcat(szOutput,"FALSE");
+            strcpy(szOutput,"FALSE");
         }
 
     // $cursor(norent)
     } else if (!strncmp("cursor(norent)",szVar,14)) {
         i+=13;
         if (!pItem->NoRent) {
-            strcat(szOutput,"TRUE");
+            strcpy(szOutput,"TRUE");
         } else {
-            strcat(szOutput,"FALSE");
+            strcpy(szOutput,"FALSE");
         }
 
     // $cursor(magic)
     } else if (!strncmp("cursor(magic)",szVar,13)) {
         i+=12;
         if ((pItem->Type == ITEMTYPE_NORMAL) && (pItem->Magic)) {
-            strcat(szOutput,"TRUE");
+            strcpy(szOutput,"TRUE");
         } else {
-            strcat(szOutput,"FALSE");
+            strcpy(szOutput,"FALSE");
         }
 
     // $cursor(name)
     } else if (!strncmp("cursor(name)",szVar,12)) {
         i+=11;
-        strcat(szOutput,pItem->Name);
+        strcpy(szOutput,pItem->Name);
 
     // $cursor(type)
     } else if (!strncmp("cursor(type)",szVar, 12)) {
         i+=11;
         if (pItem->Type == ITEMTYPE_NORMAL) {
             if ((pItem->ItemType < MAX_ITEMTYPES) && (szItemTypes[pItem->ItemType] != NULL)) {
-                strcat(szOutput,szItemTypes[pItem->ItemType]);
+                strcpy(szOutput,szItemTypes[pItem->ItemType]);
             } else {
                 sprintf(szTmp,"*UnknownType%d",pItem->ItemType);
-                strcat(szOutput, szTmp);
+                strcpy(szOutput, szTmp);
             }
         }
         else if (pItem->Type == ITEMTYPE_PACK) {
             if ((pItem->Combine < MAX_COMBINES) && (szCombineTypes[pItem->Combine] != NULL)) {
-                strcat(szOutput,szCombineTypes[pItem->Combine]);
+                strcpy(szOutput,szCombineTypes[pItem->Combine]);
             } else {
                 sprintf(szTmp,"*UnknownType%d",pItem->Combine);
-                strcat(szOutput, szTmp);
+                strcpy(szOutput, szTmp);
             }
         }
         else if (pItem->Type == ITEMTYPE_BOOK) {
-            strcat(szOutput, "Book");
+            strcpy(szOutput, "Book");
         }
 
     // $cursor(value)
@@ -156,21 +156,21 @@ DWORD parmCursor(PCHAR szVar, PCHAR szOutput, PSPAWNINFO pChar)
         i+=12;
         CHAR szTemp[MAX_STRING] = {0};
         itoa(pItem->Cost,szTemp,10);
-        strcat(szOutput,szTemp);
+        strcpy(szOutput,szTemp);
 
     // $cursor(size)
     } else if (!strncmp("cursor(size)",szVar,12)) {
         i+=11;
         CHAR szTemp[MAX_STRING] = {0};
         itoa(pItem->Size,szTemp,10);
-        strcat(szOutput,szTemp);
+        strcpy(szOutput,szTemp);
 
     // $cursor(weight)
     } else if (!strncmp("cursor(weight)",szVar,14)) {
         i+=13;
         CHAR szTemp[MAX_STRING] = {0};
         itoa(pItem->Weight,szTemp,10);
-        strcat(szOutput,szTemp);
+        strcpy(szOutput,szTemp);
 
     // $cursor(stack)
     } else if (!strncmp("cursor(stack)",szVar,13)) {
@@ -181,24 +181,24 @@ DWORD parmCursor(PCHAR szVar, PCHAR szOutput, PSPAWNINFO pChar)
         } else {
             itoa(pCharInfo->Cursor->StackCount,szTemp,10);
         }
-        strcat(szOutput,szTemp);
+        strcpy(szOutput,szTemp);
 
     // $cursor(id)
     } else if (!strncmp("cursor(id)",szVar,10)) {
         i+=9;
         CHAR szTemp[MAX_STRING] = {0};
         sprintf(szTemp,"%d",pItem->ItemNumber);
-        strcat(szOutput,szTemp);
+        strcpy(szOutput,szTemp);
 
 	// $cursor(LDTheme)
     } else if (!strncmp("cursor(LDTheme)",szVar,15)) {
 		i+=14;
-		strcat(szOutput,szTheme[pItem->LDTheme]);
+		strcpy(szOutput,szTheme[pItem->LDTheme]);
 
 	// $cursor(DmgBonusType)
     } else if (!strncmp("cursor(DmgBonusType)",szVar,20)) {
 		i+=19;
-		strcat(szOutput,szDmgBonusType[pItem->DmgBonusType]);
+		strcpy(szOutput,szDmgBonusType[pItem->DmgBonusType]);
 
     // $cursor(unknown)
     } else {
@@ -277,65 +277,65 @@ DWORD parmItem(PCHAR szVar, PCHAR szOutput, PSPAWNINFO pChar)
         }
         if (!pItem) {
             while ((szVar[i] != ')') && (szVar[i] != 0)) i++;
-            strcat(szOutput,"NULL");
+            strcpy(szOutput,"NULL");
 
         // $item()
         } else if (!strncmp(")",szVar+Offset,1)) {
             i+=Offset;
-            strcat(szOutput,"TRUE");
+            strcpy(szOutput,"TRUE");
 
         // $item(nodrop)
         } else if (!strncmp("nodrop)",szVar+Offset,7)) {
             i+=Offset+6;
             if (!pItem->Item->NoDrop) {
-                strcat(szOutput,"TRUE");
+                strcpy(szOutput,"TRUE");
             } else {
-                strcat(szOutput,"FALSE");
+                strcpy(szOutput,"FALSE");
             }
 
         // $item(norent)
         } else if (!strncmp("norent)",szVar+Offset,7)) {
             i+=Offset+6;
             if (!pItem->Item->NoRent) {
-                strcat(szOutput,"TRUE");
+                strcpy(szOutput,"TRUE");
             } else {
-                strcat(szOutput,"FALSE");
+                strcpy(szOutput,"FALSE");
             }
 
         // $item(magic)
         } else if (!strncmp("magic)",szVar+Offset,7)) {
             i+=Offset+6;
             if ((pItem->Item->Type == ITEMTYPE_NORMAL) && (pItem->Item->Magic)) {
-                strcat(szOutput,"TRUE");
+                strcpy(szOutput,"TRUE");
             } else {
-                strcat(szOutput,"FALSE");
+                strcpy(szOutput,"FALSE");
             }
 
         // $item(name)
         } else if (!strncmp("name)",szVar+Offset,5)) {
             i+=Offset+4;
-            strcat(szOutput,pItem->Item->Name);
+            strcpy(szOutput,pItem->Item->Name);
 
         // $item(value)
         } else if (!strncmp("value)",szVar+Offset,6)) {
             i+=Offset+5;
             CHAR szTemp[MAX_STRING] = {0};
             itoa(pItem->Item->Cost,szTemp,10);
-            strcat(szOutput,szTemp);
+            strcpy(szOutput,szTemp);
 
         // $item(size)
         } else if (!strncmp("size)",szVar+Offset,5)) {
             i+=Offset+4;
             CHAR szTemp[MAX_STRING] = {0};
             itoa(pItem->Item->Size,szTemp,10);
-            strcat(szOutput,szTemp);
+            strcpy(szOutput,szTemp);
 
         // $item(weight)
         } else if (!strncmp("weight)",szVar+Offset,7)) {
             i+=Offset+6;
             CHAR szTemp[MAX_STRING] = {0};
             itoa(pItem->Item->Weight,szTemp,10);
-            strcat(szOutput,szTemp);
+            strcpy(szOutput,szTemp);
 
         // $item(stack)
         } else if (!strncmp("stack)",szVar+Offset,6)) {
@@ -346,7 +346,7 @@ DWORD parmItem(PCHAR szVar, PCHAR szOutput, PSPAWNINFO pChar)
             } else {
                 itoa(pItem->StackCount,szTemp,10);
             }
-            strcat(szOutput,szTemp);
+            strcpy(szOutput,szTemp);
 
         // $item(charges)
         } else if (!strncmp("charges)",szVar+Offset,6)) {
@@ -357,24 +357,24 @@ DWORD parmItem(PCHAR szVar, PCHAR szOutput, PSPAWNINFO pChar)
             } else {
                 itoa(pItem->Charges,szTemp,10);
             }
-            strcat(szOutput,szTemp);
+            strcpy(szOutput,szTemp);
 
         // $item(id)
         } else if (!strncmp("id)",szVar+Offset,3)) {
             i+=Offset+2;
             CHAR szTemp[MAX_STRING] = {0};
             sprintf(szTemp,"%d",pItem->Item->ItemNumber);
-            strcat(szOutput,szTemp);
+            strcpy(szOutput,szTemp);
 
 		// $item(ldtheme)
 		} else if (!strncmp("ldtheme)",szVar+Offset,8)) {
 			i+=Offset+7;
-			strcat(szOutput,szTheme[pItem->Item->LDTheme]);
+			strcpy(szOutput,szTheme[pItem->Item->LDTheme]);
 
 		// $item(dmgbonustype)
 		} else if (!strncmp("dmgbonustype)",szVar+Offset,13)) {
 			i+=Offset+12;
-			strcat(szOutput,szDmgBonusType[pItem->Item->DmgBonusType]);
+			strcpy(szOutput,szDmgBonusType[pItem->Item->DmgBonusType]);
 
         // $item(type)
         } else if (!strncmp("type)",szVar+Offset,5)) {
@@ -382,22 +382,22 @@ DWORD parmItem(PCHAR szVar, PCHAR szOutput, PSPAWNINFO pChar)
             CHAR szTmp[MAX_STRING] = {0};
             if ((pItem->Item->Type == ITEMTYPE_PACK) || Enviro) {
                 if ((pItem->Item->Combine < MAX_COMBINES) && (szCombineTypes[pItem->Item->Combine] != NULL)) {
-                    strcat(szOutput,szCombineTypes[pItem->Item->Combine]);
+                    strcpy(szOutput,szCombineTypes[pItem->Item->Combine]);
                 } else {
                     sprintf(szTmp,"*UnknownType%d",pItem->Item->Combine);
-                    strcat(szOutput, szTmp);
+                    strcpy(szOutput, szTmp);
                 }
             }
             else if (pItem->Item->Type == ITEMTYPE_NORMAL) {
                 if ((pItem->Item->ItemType < MAX_ITEMTYPES) && (szItemTypes[pItem->Item->ItemType] != NULL)) {
-                    strcat(szOutput,szItemTypes[pItem->Item->ItemType]);
+                    strcpy(szOutput,szItemTypes[pItem->Item->ItemType]);
                 } else {
                     sprintf(szTmp,"*UnknownType%d",pItem->Item->ItemType);
-                    strcat(szOutput, szTmp);
+                    strcpy(szOutput, szTmp);
                 }
             }
             else if (pItem->Item->Type == ITEMTYPE_BOOK) {
-                strcat(szOutput, "Book");
+                strcpy(szOutput, "Book");
             }
 
         // $item(unknown)
@@ -460,81 +460,81 @@ DWORD parmEquip(PCHAR szVar, PCHAR szOutput, PSPAWNINFO pChar)
         if (Slot!=99 && pCharInfo->InventoryArray[Slot]) pItem = pCharInfo->InventoryArray[Slot];
         if (!pItem) {
             while ((szVar[i] != ')') && (szVar[i] != 0)) i++;
-            strcat(szOutput,"NULL");
+            strcpy(szOutput,"NULL");
 
         // $equip()
         } else if (!strncmp(")",szVar+Offset,1)) {
             i+=Offset;
-            strcat(szOutput,"TRUE");
+            strcpy(szOutput,"TRUE");
 
         // $equip(lore)
         } else if (!strncmp("lore)",szVar+Offset,5)) {
             i+=Offset+4;
             if (pItem->Item->LoreName[0]=='*') {
-                strcat(szOutput,"TRUE");
+                strcpy(szOutput,"TRUE");
             } else {
-                strcat(szOutput,"FALSE");
+                strcpy(szOutput,"FALSE");
             }
 
         // $equip(nodrop)
         } else if (!strncmp("nodrop)",szVar+Offset,7)) {
             i+=Offset+6;
             if (!pItem->Item->NoDrop) {
-                strcat(szOutput,"TRUE");
+                strcpy(szOutput,"TRUE");
             } else {
-                strcat(szOutput,"FALSE");
+                strcpy(szOutput,"FALSE");
             }
 
         // $equip(norent)
         } else if (!strncmp("norent)",szVar+Offset,7)) {
             i+=Offset+6;
             if (!pItem->Item->NoRent) {
-                strcat(szOutput,"TRUE");
+                strcpy(szOutput,"TRUE");
             } else {
-                strcat(szOutput,"FALSE");
+                strcpy(szOutput,"FALSE");
             }
 
         // $equip(magic)
         } else if (!strncmp("magic)",szVar+Offset,7)) {
             i+=Offset+6;
             if ((pItem->Item->Type == ITEMTYPE_NORMAL) && (pItem->Item->Magic)) {
-                strcat(szOutput,"TRUE");
+                strcpy(szOutput,"TRUE");
             } else {
-                strcat(szOutput,"FALSE");
+                strcpy(szOutput,"FALSE");
             }
 
         // $equip(name)
         } else if (!strncmp("name)",szVar+Offset,5)) {
             i+=Offset+4;
-            strcat(szOutput,pItem->Item->Name);
+            strcpy(szOutput,pItem->Item->Name);
 
         // $equip(id)
         } else if (!strncmp("id)",szVar+Offset,3)) {
             i+=Offset+2;
             CHAR szTemp[MAX_STRING] = {0};
             itoa(pItem->Item->ItemNumber,szTemp,10);
-            strcat(szOutput,szTemp);
+            strcpy(szOutput,szTemp);
 
         // $equip(value)
         } else if (!strncmp("value)",szVar+Offset,6)) {
             i+=Offset+5;
             CHAR szTemp[MAX_STRING] = {0};
             itoa(pItem->Item->Cost,szTemp,10);
-            strcat(szOutput,szTemp);
+            strcpy(szOutput,szTemp);
 
         // $equip(size)
         } else if (!strncmp("size)",szVar+Offset,5)) {
             i+=Offset+4;
             CHAR szTemp[MAX_STRING] = {0};
             itoa(pItem->Item->Size,szTemp,10);
-            strcat(szOutput,szTemp);
+            strcpy(szOutput,szTemp);
 
         // $equip(weight)
         } else if (!strncmp("weight)",szVar+Offset,7)) {
             i+=Offset+6;
             CHAR szTemp[MAX_STRING] = {0};
             itoa(pItem->Item->Weight,szTemp,10);
-            strcat(szOutput,szTemp);
+            strcpy(szOutput,szTemp);
 
         // $equip(stack)
         } else if (!strncmp("stack)",szVar+Offset,6)) {
@@ -545,7 +545,7 @@ DWORD parmEquip(PCHAR szVar, PCHAR szOutput, PSPAWNINFO pChar)
             } else {
                 itoa(pItem->StackCount,szTemp,10);
             }
-            strcat(szOutput,szTemp);
+            strcpy(szOutput,szTemp);
 
         // $equip(type)
         } else if (!strncmp("type)",szVar+Offset,5)) {
@@ -553,22 +553,22 @@ DWORD parmEquip(PCHAR szVar, PCHAR szOutput, PSPAWNINFO pChar)
             i+=Offset+4;
             if (pItem->Item->Type == ITEMTYPE_NORMAL) {
                 if ((pItem->Item->ItemType < MAX_ITEMTYPES) && (szItemTypes[pItem->Item->ItemType] != NULL)) {
-                    strcat(szOutput,szItemTypes[pItem->Item->ItemType]);
+                    strcpy(szOutput,szItemTypes[pItem->Item->ItemType]);
                 } else {
                     sprintf(szTmp,"*UnknownType%d",pItem->Item->ItemType);
-                    strcat(szOutput, szTmp);
+                    strcpy(szOutput, szTmp);
                 }
             }
             else if (pItem->Item->Type == ITEMTYPE_PACK) {
                 if ((pItem->Item->Combine < MAX_COMBINES) && (szCombineTypes[pItem->Item->Combine] != NULL)) {
-                    strcat(szOutput,szCombineTypes[pItem->Item->Combine]);
+                    strcpy(szOutput,szCombineTypes[pItem->Item->Combine]);
                 } else {
                     sprintf(szTmp,"*UnknownType%d",pItem->Item->Combine);
-                    strcat(szOutput, szTmp);
+                    strcpy(szOutput, szTmp);
                 }
             }
             else if (pItem->Item->Type == ITEMTYPE_BOOK) {
-                strcat(szOutput, "Book");
+                strcpy(szOutput, "Book");
             }
 
         // $equip(unknown)
@@ -596,7 +596,7 @@ DWORD parmGroup(PCHAR szVar, PCHAR szOutput, PSPAWNINFO pChar)
         CHAR szTemp[MAX_STRING] = {0};
         if (EQADDR_GROUPCOUNT) for (index=0;index<5;index++) if (EQADDR_GROUPCOUNT[index]) c++;
         itoa(c,szTemp,10);
-        strcat(szOutput,szTemp);
+        strcpy(szOutput,szTemp);
 
     // $group(#)
     } else if (strstr(szVar,")")) {
@@ -612,16 +612,16 @@ DWORD parmGroup(PCHAR szVar, PCHAR szOutput, PSPAWNINFO pChar)
                 if (!c) index=d;
             }
             if (index==6) {
-                strcat(szTemp,"-1");
+                strcpy(szTemp,"-1");
             } else if (ppGroup[index]) {
                 itoa(((PSPAWNINFO)ppGroup[index])->SpawnID,szTemp,10);
             } else {
-                strcat(szTemp,"0");
+                strcpy(szTemp,"0");
             }
         } else {
-            strcat(szTemp,"-1");
+            strcpy(szTemp,"-1");
         }
-        strcat(szOutput,szTemp);
+        strcpy(szOutput,szTemp);
 
     // $group(unknown)
     } else {
@@ -644,22 +644,22 @@ DWORD parmTarget(PCHAR szVar, PCHAR szOutput, PSPAWNINFO pChar)
     if (!strncmp("target()",szVar,8)) {
         i+=7;
         if (!psTarget) {
-            strcat(szOutput,"FALSE");
+            strcpy(szOutput,"FALSE");
         } else {
-            strcat(szOutput,"TRUE");
+            strcpy(szOutput,"TRUE");
         }
 
    // $target(animation)
     } else if (!strncmp("target(animation)",szVar,17)) {
 		if (!psTarget)
 		{
-			strcat(szOutput,"0");
+			strcpy(szOutput,"0");
 		} else
 		{
         CHAR szTemp[MAX_STRING] = {0};
         i+=16;
       itoa(psTarget->pActorInfo->Animation,szTemp,10);
-        strcat(szOutput,szTemp);
+        strcpy(szOutput,szTemp);
 		}
     // $target(distance,x)
     } else if (!strncmp("target(distance,x)",szVar,18)) {
@@ -667,10 +667,10 @@ DWORD parmTarget(PCHAR szVar, PCHAR szOutput, PSPAWNINFO pChar)
         i+=17;
 
         if (!psTarget) {
-            strcat(szOutput,"0");
+            strcpy(szOutput,"0");
         } else {
             itoa((INT)fabs(pChar->X-psTarget->X),szTemp,10);
-            strcat(szOutput,szTemp);
+            strcpy(szOutput,szTemp);
         }
 
     // $target(distance,y)
@@ -679,10 +679,10 @@ DWORD parmTarget(PCHAR szVar, PCHAR szOutput, PSPAWNINFO pChar)
         i+=17;
 
         if (!psTarget) {
-            strcat(szOutput,"0");
+            strcpy(szOutput,"0");
         } else {
             itoa((INT)fabs(pChar->Y-psTarget->Y),szTemp,10);
-            strcat(szOutput,szTemp);
+            strcpy(szOutput,szTemp);
         }
 
     // $target(distance,z)
@@ -691,10 +691,10 @@ DWORD parmTarget(PCHAR szVar, PCHAR szOutput, PSPAWNINFO pChar)
         i+=17;
 
         if (!psTarget) {
-            strcat(szOutput,"0");
+            strcpy(szOutput,"0");
         } else {
             itoa((INT)fabs(pChar->Z-psTarget->Z),szTemp,10);
-            strcat(szOutput,szTemp);
+            strcpy(szOutput,szTemp);
         }
 
     // $target(distance)
@@ -703,10 +703,10 @@ DWORD parmTarget(PCHAR szVar, PCHAR szOutput, PSPAWNINFO pChar)
         i+=15;
 
         if (!psTarget) {
-            strcat(szOutput,"0");
+            strcpy(szOutput,"0");
         } else {
             itoa((INT)DistanceToSpawn(pChar,psTarget),szTemp,10);
-            strcat(szOutput,szTemp);
+            strcpy(szOutput,szTemp);
         }
 
     // $target(distance,3d)
@@ -715,10 +715,10 @@ DWORD parmTarget(PCHAR szVar, PCHAR szOutput, PSPAWNINFO pChar)
         i+=18;
 
         if (!psTarget) {
-            strcat(szOutput,"0");
+            strcpy(szOutput,"0");
         } else {
             itoa((INT)DistanceToSpawn3D(pChar,psTarget),szTemp,10);
-            strcat(szOutput,szTemp);
+            strcpy(szOutput,szTemp);
         }
 
     // $target(distance,predict)
@@ -727,22 +727,22 @@ DWORD parmTarget(PCHAR szVar, PCHAR szOutput, PSPAWNINFO pChar)
         i+=23;
 
         if (!psTarget) {
-            strcat(szOutput,"0");
+            strcpy(szOutput,"0");
         } else {
             itoa((INT)EstimatedDistanceToSpawn(pChar,psTarget),szTemp,10);
-            strcat(szOutput,szTemp);
+            strcpy(szOutput,szTemp);
         }
 
      // $target(direction)   
     } else if (!strncmp("target(direction)",szVar,17)) {
         i+=16;
         if (!psTarget) {
-            strcat(szOutput,"NULL");
+            strcpy(szOutput,"NULL");
         } else {
       CHAR szTemp[MAX_STRING] = {0};
       INT Angle = (INT)((atan2f(pChar->X - psTarget->X, pChar->Y - psTarget->Y) * 180.0f / PI + 360.0f) / 22.5f + 0.5f) % 16;
       sprintf(szTemp,szHeadingShort[Angle]);
-        strcat(szOutput,szTemp);
+        strcpy(szOutput,szTemp);
            }
 
     // $target(holding)   returns 0 if target is holding NOTHING in their primary,
@@ -755,14 +755,14 @@ DWORD parmTarget(PCHAR szVar, PCHAR szOutput, PSPAWNINFO pChar)
     } else if (!strncmp("target(holding)",szVar,15)) {
 		if (!psTarget)
 		{
-			strcat(szOutput,"0");
+			strcpy(szOutput,"0");
 		}
 		else
 		{
 			CHAR szTemp[MAX_STRING] = {0};
 			i+=14;
 		itoa(psTarget->Holding,szTemp,10);
-			strcat(szOutput,szTemp);
+			strcpy(szOutput,szTemp);
 		}
 
     // $target(level)
@@ -770,10 +770,10 @@ DWORD parmTarget(PCHAR szVar, PCHAR szOutput, PSPAWNINFO pChar)
         CHAR szTemp[MAX_STRING] = {0};
         i+=12;
         if (!psTarget) {
-            strcat(szOutput,"0");
+            strcpy(szOutput,"0");
         } else {
             itoa(psTarget->Level,szTemp,10);
-            strcat(szOutput,szTemp);
+            strcpy(szOutput,szTemp);
         }
 
     // $target(id)
@@ -781,10 +781,10 @@ DWORD parmTarget(PCHAR szVar, PCHAR szOutput, PSPAWNINFO pChar)
         CHAR szTemp[MAX_STRING] = {0};
         i+=9;
         if (!psTarget) {
-            strcat(szOutput,"0");
+            strcpy(szOutput,"0");
         } else {
             itoa(psTarget->SpawnID,szTemp,10);
-            strcat(szOutput,szTemp);
+            strcpy(szOutput,szTemp);
         }
 
     // $target(next)
@@ -792,12 +792,12 @@ DWORD parmTarget(PCHAR szVar, PCHAR szOutput, PSPAWNINFO pChar)
         CHAR szTemp[MAX_STRING] = {0};
         i+=11;
         if (!psTarget) {
-            strcat(szOutput,"0");
+            strcpy(szOutput,"0");
         } else if (!psTarget->pNext) {
-            strcat(szOutput,"0");
+            strcpy(szOutput,"0");
         } else {
             itoa(psTarget->pNext->SpawnID,szTemp,10);
-            strcat(szOutput,szTemp);
+            strcpy(szOutput,szTemp);
         }
 
     // $target(prev)
@@ -805,12 +805,12 @@ DWORD parmTarget(PCHAR szVar, PCHAR szOutput, PSPAWNINFO pChar)
         CHAR szTemp[MAX_STRING] = {0};
         i+=11;
         if (!psTarget) {
-            strcat(szOutput,"0");
+            strcpy(szOutput,"0");
         } else if (!psTarget->pPrev) {
-            strcat(szOutput,"0");
+            strcpy(szOutput,"0");
         } else {
             itoa(psTarget->pPrev->SpawnID,szTemp,10);
-            strcat(szOutput,szTemp);
+            strcpy(szOutput,szTemp);
         }
 
     // $target(x)
@@ -818,10 +818,10 @@ DWORD parmTarget(PCHAR szVar, PCHAR szOutput, PSPAWNINFO pChar)
         CHAR szTemp[MAX_STRING] = {0};
         i+=8;
         if (!psTarget) {
-            strcat(szOutput,"0");
+            strcpy(szOutput,"0");
         } else {
             sprintf(szTemp,"%1.2f",psTarget->X);
-            strcat(szOutput,szTemp);
+            strcpy(szOutput,szTemp);
         }
 
     // $target(y)
@@ -829,10 +829,10 @@ DWORD parmTarget(PCHAR szVar, PCHAR szOutput, PSPAWNINFO pChar)
         CHAR szTemp[MAX_STRING] = {0};
         i+=8;
         if (!psTarget) {
-            strcat(szOutput,"0");
+            strcpy(szOutput,"0");
         } else {
             sprintf(szTemp,"%1.2f",psTarget->Y);
-            strcat(szOutput,szTemp);
+            strcpy(szOutput,szTemp);
         }
 
     // $target(z)
@@ -840,10 +840,10 @@ DWORD parmTarget(PCHAR szVar, PCHAR szOutput, PSPAWNINFO pChar)
         CHAR szTemp[MAX_STRING] = {0};
         i+=8;
         if (!psTarget) {
-            strcat(szOutput,"0");
+            strcpy(szOutput,"0");
         } else {
             sprintf(szTemp,"%1.2f",psTarget->Z);
-            strcat(szOutput,szTemp);
+            strcpy(szOutput,szTemp);
         }
 
     // $target(heading)
@@ -851,10 +851,10 @@ DWORD parmTarget(PCHAR szVar, PCHAR szOutput, PSPAWNINFO pChar)
         CHAR szTemp[MAX_STRING] = {0};
         i+=14;
         if (!psTarget) {
-            strcat(szOutput,"0");
+            strcpy(szOutput,"0");
         } else {
             sprintf(szTemp,"%1.2f",psTarget->Heading*0.703125f);
-            strcat(szOutput,szTemp);
+            strcpy(szOutput,szTemp);
         }
 
     // $target(speed)
@@ -862,10 +862,10 @@ DWORD parmTarget(PCHAR szVar, PCHAR szOutput, PSPAWNINFO pChar)
         CHAR szTemp[MAX_STRING] = {0};
         i+=12;
         if (!psTarget) {
-            strcat(szOutput,"0");
+            strcpy(szOutput,"0");
         } else {
             sprintf(szTemp,"%1.2f",FindSpeed(psTarget));
-            strcat(szOutput,szTemp);
+            strcpy(szOutput,szTemp);
         }
 
     // $target(headingto)
@@ -873,52 +873,52 @@ DWORD parmTarget(PCHAR szVar, PCHAR szOutput, PSPAWNINFO pChar)
         CHAR szTemp[MAX_STRING] = {0};
         i+=16;
         if (!psTarget) {
-            strcat(szOutput,"0");
+            strcpy(szOutput,"0");
         } else {
             DOUBLE HeadingTo = atan2f(pChar->Y - psTarget->Y, psTarget->X - pChar->X) * 180.0f / PI + 90.0f;
             if (HeadingTo<0.0f) HeadingTo += 360.0f;
             if (HeadingTo>=360.0f) HeadingTo -= 360.0f;
             sprintf(szTemp,"%1.2f",HeadingTo);
-            strcat(szOutput,szTemp);
+            strcpy(szOutput,szTemp);
         }
 
     // $target(light)
     } else if (!strncmp("target(light)",szVar,13)) {
         i+=12;
         if (!psTarget) {
-            strcat(szOutput,"NONE");
+            strcpy(szOutput,"NONE");
         } else {
             PCHAR szLight = GetLightForSpawn(psTarget);
-            strcat(szOutput,szLight);
+            strcpy(szOutput,szLight);
         }
 
     // $target(state)
     } else if (!strncmp("target(state)",szVar,13)) {
         i+=12;
         if (!psTarget) {
-            strcat(szOutput,"UNKNOWN");
+            strcpy(szOutput,"UNKNOWN");
         } else {
             switch (psTarget->StandState) {
                 case STANDSTATE_STAND:
-                    strcat(szOutput,"STAND");
+                    strcpy(szOutput,"STAND");
                     break;
                 case STANDSTATE_SIT:
-                    strcat(szOutput,"SIT");
+                    strcpy(szOutput,"SIT");
                     break;
                 case STANDSTATE_DUCK:
-                    strcat(szOutput,"DUCK");
+                    strcpy(szOutput,"DUCK");
                     break;
                 case STANDSTATE_BIND:
-                    strcat(szOutput,"BIND");
+                    strcpy(szOutput,"BIND");
                     break;
                 case STANDSTATE_FEIGN:
-                    strcat(szOutput,"FEIGN");
+                    strcpy(szOutput,"FEIGN");
                     break;
                 case STANDSTATE_DEAD:
-                    strcat(szOutput,"DEAD");
+                    strcpy(szOutput,"DEAD");
                     break;
                 default:
-                    strcat(szOutput,"UNKNOWN");
+                    strcpy(szOutput,"UNKNOWN");
                     break;
             }
         }
@@ -930,9 +930,9 @@ DWORD parmTarget(PCHAR szVar, PCHAR szOutput, PSPAWNINFO pChar)
         i+=17;
         PCHAR Model = GetModel(psTarget,MODEL_HELD_R);
         if (Model) {
-            strcat(szOutput,Model);
+            strcpy(szOutput,Model);
         } else {
-            strcat(szOutput,"NULL");
+            strcpy(szOutput,"NULL");
         }
 
     // $target(held,left)
@@ -940,9 +940,9 @@ DWORD parmTarget(PCHAR szVar, PCHAR szOutput, PSPAWNINFO pChar)
         i+=16;
         PCHAR Model = GetModel(psTarget,MODEL_HELD_L);
         if (Model) {
-            strcat(szOutput,Model);
+            strcpy(szOutput,Model);
         } else {
-            strcat(szOutput,"NULL");
+            strcpy(szOutput,"NULL");
         }
 
     // $target(held,shield)
@@ -950,9 +950,9 @@ DWORD parmTarget(PCHAR szVar, PCHAR szOutput, PSPAWNINFO pChar)
         i+=18;
         PCHAR Model = GetModel(psTarget,MODEL_SHIELD);
         if (Model) {
-            strcat(szOutput,Model);
+            strcpy(szOutput,Model);
         } else {
-            strcat(szOutput,"NULL");
+            strcpy(szOutput,"NULL");
         }
 */
 
@@ -960,106 +960,106 @@ DWORD parmTarget(PCHAR szVar, PCHAR szOutput, PSPAWNINFO pChar)
     } else if (!strncmp("target(held,right)",szVar,18)) {
 		if (!psTarget)
 		{
-			strcat(szOutput,"Nothing");
+			strcpy(szOutput,"Nothing");
 		}
 		else
 		{
 			CHAR szTemp[MAX_STRING] = {0};
 			i+=17;
 			if (psTarget->Equipment.Primary <= 0)
-				strcat(szOutput, "Nothing" );
+				strcpy(szOutput, "Nothing" );
 			else if (psTarget->Equipment.Primary > MAX_WEAPONS || szItemName[psTarget->Equipment.Primary] == NULL ) {
 				sprintf(szTemp, "Unknown Item: %d", psTarget->Equipment.Primary );
-				strcat(szOutput, szTemp);
+				strcpy(szOutput, szTemp);
 			}
 			else
-				strcat(szOutput, szItemName[psTarget->Equipment.Primary]);
+				strcpy(szOutput, szItemName[psTarget->Equipment.Primary]);
 		}
     // $target(held,left)
     } else if (!strncmp("target(held,left)",szVar,17)) {
 		if (!psTarget)
 		{
-			strcat(szOutput,"Nothing");
+			strcpy(szOutput,"Nothing");
 		}
 		else
 		{
 			CHAR szTemp[MAX_STRING] = {0};
 			i+=16;
 			if (psTarget->Equipment.Offhand <= 0)
-				strcat(szOutput, "Nothing" );
+				strcpy(szOutput, "Nothing" );
 			else if (psTarget->Equipment.Offhand > MAX_WEAPONS || szItemName[psTarget->Equipment.Offhand] == NULL ) {
 				sprintf(szTemp, "Unknown Item: %d", psTarget->Equipment.Offhand );
-				strcat(szOutput, szTemp);
+				strcpy(szOutput, szTemp);
 			}
 			else
-				strcat(szOutput, szItemName[psTarget->Equipment.Offhand]);
+				strcpy(szOutput, szItemName[psTarget->Equipment.Offhand]);
 		}
     // $target(held,shield)
     } else if (!strncmp("target(held,shield)",szVar,19)) {
 		if (!psTarget)
 		{
-			strcat(szOutput,"Nothing");
+			strcpy(szOutput,"Nothing");
 		}
 		else
 		{
 			CHAR szTemp[MAX_STRING] = {0};
 			i+=18;
 			if (psTarget->Equipment.Offhand <= 0)
-				strcat(szOutput, "Nothing" );
+				strcpy(szOutput, "Nothing" );
 			else if (psTarget->Equipment.Offhand > MAX_WEAPONS || szItemName[psTarget->Equipment.Offhand] == NULL ) {
 				sprintf(szTemp, "Unknown Item: %d", psTarget->Equipment.Offhand );
-				strcat(szOutput, szTemp);
+				strcpy(szOutput, szTemp);
 			}
 			else
-				strcat(szOutput, szItemName[psTarget->Equipment.Offhand]);
+				strcpy(szOutput, szItemName[psTarget->Equipment.Offhand]);
 		}
     // $target(held,primary)
     } else if (!strncmp("target(held,primary)",szVar,20)) {
 		if (!psTarget)
 		{
-			strcat(szOutput,"Nothing");
+			strcpy(szOutput,"Nothing");
 		}
 		else
 		{
 			CHAR szTemp[MAX_STRING] = {0};
 			i+=19;
 			if (psTarget->Equipment.Primary <= 0)
-				strcat(szOutput, "Nothing" );
+				strcpy(szOutput, "Nothing" );
 			else if (psTarget->Equipment.Primary > MAX_WEAPONS || szItemName[psTarget->Equipment.Primary] == NULL ) {
 				sprintf(szTemp, "Unknown Item: %d", psTarget->Equipment.Primary );
-				strcat(szOutput, szTemp);
+				strcpy(szOutput, szTemp);
 			}
 			else
-				strcat(szOutput, szItemName[psTarget->Equipment.Primary]);
+				strcpy(szOutput, szItemName[psTarget->Equipment.Primary]);
 		}
     // $target(held,offhand)
     } else if (!strncmp("target(held,offhand)",szVar,20)) {
 		if (!psTarget)
 		{
-			strcat(szOutput,"Nothing");
+			strcpy(szOutput,"Nothing");
 		}
 		else
 		{
 			CHAR szTemp[MAX_STRING] = {0};
 			i+=19;
 			if (psTarget->Equipment.Offhand <= 0)
-				strcat(szOutput, "Nothing" );
+				strcpy(szOutput, "Nothing" );
 			else if (psTarget->Equipment.Offhand > MAX_WEAPONS || szItemName[psTarget->Equipment.Offhand] == NULL ) {
 				sprintf(szTemp, "Unknown Item: %d", psTarget->Equipment.Offhand );
-				strcat(szOutput, szTemp);
+				strcpy(szOutput, szTemp);
 			}
 			else
-				strcat(szOutput, szItemName[psTarget->Equipment.Offhand]);
+				strcpy(szOutput, szItemName[psTarget->Equipment.Offhand]);
 		}
     // $target(hp,cur)
     } else if (!strncmp("target(hp,cur)",szVar,14)) {
         CHAR szTemp[MAX_STRING] = {0};
         i+=13;
         if (!psTarget) {
-            strcat(szOutput,"0");
+            strcpy(szOutput,"0");
         } else {
             itoa((INT)(psTarget->HPCurrent),szTemp,10);
-            strcat(szOutput,szTemp);
+            strcpy(szOutput,szTemp);
         }
 
     // $target(hp,max)
@@ -1067,10 +1067,10 @@ DWORD parmTarget(PCHAR szVar, PCHAR szOutput, PSPAWNINFO pChar)
         CHAR szTemp[MAX_STRING] = {0};
         i+=13;
         if (!psTarget) {
-            strcat(szOutput,"0");
+            strcpy(szOutput,"0");
         } else {
             itoa((INT)(psTarget->HPMax),szTemp,10);
-            strcat(szOutput,szTemp);
+            strcpy(szOutput,szTemp);
         }
 
     // $target(hp,pct)
@@ -1078,67 +1078,67 @@ DWORD parmTarget(PCHAR szVar, PCHAR szOutput, PSPAWNINFO pChar)
         CHAR szTemp[MAX_STRING] = {0};
         i+=13;
         if (!psTarget) {
-            strcat(szOutput,"0");
+            strcpy(szOutput,"0");
         } else {
             itoa((INT)(psTarget->HPCurrent*100/psTarget->HPMax),szTemp,10);
-            strcat(szOutput,szTemp);
+            strcpy(szOutput,szTemp);
         }
 
     // return NULL for all following $target(xxx) commands if no target
     } else if (!psTarget) {
         while ((szVar[i] != ')') && (szVar[i] != 0)) i++;
-        strcat(szOutput,"NULL");
+        strcpy(szOutput,"NULL");
 
     // $target(deity)
     } else if (!strncmp("target(deity)",szVar,13)) {
         i+=12;
         CHAR szTemp[MAX_STRING] = {0};
         strcpy(szTemp,pEverQuest->GetDeityDesc(psTarget->Deity));
-        strcat(szOutput,szTemp);
+        strcpy(szOutput,szTemp);
 
     // $target(deity,team)
     } else if (!strncmp("target(deity,team)",szVar,18)) {
         i+=17;
         CHAR szTemp[MAX_STRING] = {0};
         strcpy(szTemp,szDeityTeam[GetDeityTeamByID(psTarget->Deity)]);
-        strcat(szOutput,szTemp);
+        strcpy(szOutput,szTemp);
 
     // $target(type)
     } else if (!strncmp("target(type)",szVar,12)) {
         i+=11;
-        strcat(szOutput,szSpawnType[psTarget->Type]);
+        strcpy(szOutput,szSpawnType[psTarget->Type]);
 
     // $target(body)
     } else if (!strncmp("target(body)",szVar,12)) {
         i+=11;
-        strcat(szOutput,pEverQuest->GetBodyTypeDesc(psTarget->BodyType));
+        strcpy(szOutput,pEverQuest->GetBodyTypeDesc(psTarget->BodyType));
 
     // $target(name)
     } else if (!strncmp("target(name)",szVar,12)) {
         i+=11;
-        strcat(szOutput,psTarget->Name);
+        strcpy(szOutput,psTarget->Name);
 
     // $target(surname)
     } else if (!strncmp("target(surname)",szVar,15)) {
         i+=14;
-        strcat(szOutput,psTarget->Lastname);
+        strcpy(szOutput,psTarget->Lastname);
 
     // $target(guild)
     } else if (!strncmp("target(guild)",szVar,13)) {
         i+=12;
         if (psTarget->GuildID < 0xFFFE && EQADDR_GUILDLIST) {
-            strcat(szOutput,GetGuildByID(psTarget->GuildID));
+            strcpy(szOutput,GetGuildByID(psTarget->GuildID));
         } else {
-            strcat(szOutput,"NULL");
+            strcpy(szOutput,"NULL");
         }
 
     // $target(guild,status)
     } else if (!strncmp("target(guild,status)",szVar,20)) {
         i+=19;
         if (psTarget->GuildID < 0xFFFE && EQADDR_GUILDLIST) {
-            strcat(szOutput,szGuildStatus[psTarget->GuildStatus]);
+            strcpy(szOutput,szGuildStatus[psTarget->GuildStatus]);
         } else {
-            strcat(szOutput,"NULL");
+            strcpy(szOutput,"NULL");
         }
 
     // $target(name,clean)
@@ -1146,20 +1146,20 @@ DWORD parmTarget(PCHAR szVar, PCHAR szOutput, PSPAWNINFO pChar)
         CHAR szName[MAX_STRING] = {0};
         i+=17;
         strcpy(szName,psTarget->Name);
-        strcat(szOutput,CleanupName(szName,FALSE));
+        strcpy(szOutput,CleanupName(szName,FALSE));
 
 
     // $target(surname)
     } else if (!strncmp("target(surname)",szVar,15)) {
         i+=14;
-        strcat(szOutput,psTarget->Lastname);
+        strcpy(szOutput,psTarget->Lastname);
 
     // $target(master)
     } else if (!strncmp("target(master)",szVar,14)) {
         i+=13;
         CHAR szMaster[MAX_STRING] = {0};
         ltoa(psTarget->MasterID,szMaster,10);
-        strcat(szOutput,szMaster);
+        strcpy(szOutput,szMaster);
 
     // $target(pet)
     } else if (!strncmp("target(pet)",szVar,11)) {
@@ -1168,9 +1168,9 @@ DWORD parmTarget(PCHAR szVar, PCHAR szOutput, PSPAWNINFO pChar)
         if (pPet) {
             CHAR szPet[MAX_STRING] = {0};
             ltoa(pPet->SpawnID,szPet,10);
-            strcat(szOutput,szPet);
+            strcpy(szOutput,szPet);
         } else {
-            strcat(szOutput,"0");
+            strcpy(szOutput,"0");
         }
 
     // $target(class)
@@ -1178,7 +1178,7 @@ DWORD parmTarget(PCHAR szVar, PCHAR szOutput, PSPAWNINFO pChar)
         i+=12;
         CHAR szTemp[MAX_STRING] = {0};
         strcpy(szTemp,pEverQuest->GetClassDesc(psTarget->Class));
-        strcat(szOutput,szTemp);
+        strcpy(szOutput,szTemp);
 
 	// $target(sclass)
 	} else if (!strncmp("target(sclass)",szVar,14)) {
@@ -1186,29 +1186,29 @@ DWORD parmTarget(PCHAR szVar, PCHAR szOutput, PSPAWNINFO pChar)
 		CHAR szTemp[MAX_STRING] = {0};
 		strcpy(szTemp,pEverQuest->GetClassDesc(psTarget->Class));
 		FullClassToShort(szTemp);
-		strcat(szOutput,szTemp);
+		strcpy(szOutput,szTemp);
 
     // $target(race)
     } else if (!strncmp("target(race)",szVar,12)) {
         i+=11;
         CHAR szTemp[MAX_STRING] = {0};
         strcpy(szTemp,pEverQuest->GetRaceDesc(psTarget->Race));
-        strcat(szOutput,szTemp);
+        strcpy(szOutput,szTemp);
 
     // $target(gender)
     } else if (!strncmp("target(gender)",szVar,14)) {
         i+=13;
         CHAR szTemp[MAX_STRING] = {0};
         strcpy(szTemp,szGender[psTarget->Gender]);
-        strcat(szOutput,szTemp);
+        strcpy(szOutput,szTemp);
 
     // $target(gm)
     } else if (!strncmp("target(gm)",szVar,10)) {
         i+=9;
         if (psTarget->GM) {
-            strcat(szOutput,"TRUE");
+            strcpy(szOutput,"TRUE");
         } else {
-            strcat(szOutput,"FALSE");
+            strcpy(szOutput,"FALSE");
         }
 
 	// $target(levitating)
@@ -1216,12 +1216,12 @@ DWORD parmTarget(PCHAR szVar, PCHAR szOutput, PSPAWNINFO pChar)
         CHAR szTemp[MAX_STRING] = {0};
         i+=17;
         if (!psTarget) {
-            strcat(szOutput,"Hello! Pick a target first...geez!");
+            strcpy(szOutput,"Hello! Pick a target first...geez!");
         } else {
 			if ( psTarget->Levitate == 0 || psTarget->Levitate == 3 )
-				strcat(szOutput, "FALSE" );
+				strcpy(szOutput, "FALSE" );
 			else if ( psTarget->Levitate == 2 )
-				strcat(szOutput, "TRUE" );
+				strcpy(szOutput, "TRUE" );
         }
 
 	// $target(sneaking)
@@ -1229,12 +1229,12 @@ DWORD parmTarget(PCHAR szVar, PCHAR szOutput, PSPAWNINFO pChar)
         CHAR szTemp[MAX_STRING] = {0};
         i+=15;
         if (!psTarget) {
-            strcat(szOutput,"You might need a target picked for this...");
+            strcpy(szOutput,"You might need a target picked for this...");
         } else {
 			if ( psTarget->Sneak== 0 )
-				strcat(szOutput, "FALSE" );
+				strcpy(szOutput, "FALSE" );
 			else if ( psTarget->Sneak == 1 )
-				strcat(szOutput, "TRUE" );
+				strcpy(szOutput, "TRUE" );
         }
 
     // $target(height) 
@@ -1242,10 +1242,10 @@ DWORD parmTarget(PCHAR szVar, PCHAR szOutput, PSPAWNINFO pChar)
         CHAR szTemp[MAX_STRING] = {0}; 
         i+=13; 
         if (!psTarget) { 
-            strcat(szOutput,"0"); 
+            strcpy(szOutput,"0"); 
         } else { 
             sprintf(szTemp,"%1.2f",psTarget->AvatarHeight); 
-            strcat(szOutput,szTemp); 
+            strcpy(szOutput,szTemp); 
         } 
 
     // $target(maxrange) 
@@ -1254,11 +1254,11 @@ DWORD parmTarget(PCHAR szVar, PCHAR szOutput, PSPAWNINFO pChar)
         DOUBLE MaxRange = 0; 
         i+=15; 
         if (!psTarget) { 
-            strcat(szOutput,"0"); 
+            strcpy(szOutput,"0"); 
         } else { 
             MaxRange = ((psTarget->AvatarHeight+pChar->AvatarHeight)*1.3333333333); 
             sprintf(szTemp,"%1.2f",MaxRange); 
-            strcat(szOutput,szTemp); 
+            strcpy(szOutput,szTemp); 
         } 
 
 
@@ -1382,10 +1382,10 @@ DWORD parmSearchSpawn(PCHAR szVar, PCHAR szOutput, PSPAWNINFO pChar)
         }
 
         if (!(pSpawn = SearchThroughSpawns(&SearchSpawn,pChar))) {
-            strcat(szOutput,"0");
+            strcpy(szOutput,"0");
         } else {
             itoa(pSpawn->SpawnID,szTemp,10);
-            strcat(szOutput,szTemp);
+            strcpy(szOutput,szTemp);
         }
     }
     return i;
@@ -1410,23 +1410,23 @@ DWORD parmSpawn(PCHAR szVar, PCHAR szOutput, PSPAWNINFO pChar)
         if (!strstr(szVar,",")) {
             i+=strstr(szVar,")")-szVar;
             if (!pSpawn) {
-                strcat(szOutput,"FALSE");
+                strcpy(szOutput,"FALSE");
             } else {
-                strcat(szOutput,"TRUE");
+                strcpy(szOutput,"TRUE");
             }
         } else {
             PCHAR szRest = strstr(szVar,",")+1;
             // $spawn(#,distance,x)
-            DebugSpewNoFile("$spawn(): id=%d (%p), rest=%s (len=%d)",ID,pSpawn,szRest,strlen(szRest));
+            //DebugSpewNoFile("$spawn(): id=%d (%p), rest=%s (len=%d)",ID,pSpawn,szRest,strlen(szRest));
             if (!strncmp("distance,x)",szRest,11)) {
                 CHAR szTemp[MAX_STRING] = {0};
                 i+=strstr(szVar,")")-szVar;
 
                 if (!pSpawn) {
-                    strcat(szOutput,"0");
+                    strcpy(szOutput,"0");
                 } else {
                     itoa((INT)fabs(pChar->X-pSpawn->X),szTemp,10);
-                    strcat(szOutput,szTemp);
+                    strcpy(szOutput,szTemp);
                 }
 
             // $spawn(#,distance,y)
@@ -1435,10 +1435,10 @@ DWORD parmSpawn(PCHAR szVar, PCHAR szOutput, PSPAWNINFO pChar)
                 i+=strstr(szVar,")")-szVar;
 
                 if (!pSpawn) {
-                    strcat(szOutput,"0");
+                    strcpy(szOutput,"0");
                 } else {
                     itoa((INT)fabs(pChar->Y-pSpawn->Y),szTemp,10);
-                    strcat(szOutput,szTemp);
+                    strcpy(szOutput,szTemp);
                 }
 
             // $spawn(#,distance,z)
@@ -1447,10 +1447,10 @@ DWORD parmSpawn(PCHAR szVar, PCHAR szOutput, PSPAWNINFO pChar)
                 i+=strstr(szVar,")")-szVar;
 
                 if (!pSpawn) {
-                    strcat(szOutput,"0");
+                    strcpy(szOutput,"0");
                 } else {
                     itoa((INT)fabs(pChar->Z-pSpawn->Z),szTemp,10);
-                    strcat(szOutput,szTemp);
+                    strcpy(szOutput,szTemp);
                 }
 
             // $spawn(#,distance)
@@ -1459,10 +1459,10 @@ DWORD parmSpawn(PCHAR szVar, PCHAR szOutput, PSPAWNINFO pChar)
                 i+=strstr(szVar,")")-szVar;
 
                 if (!pSpawn) {
-                    strcat(szOutput,"0");
+                    strcpy(szOutput,"0");
                 } else {
                     itoa((INT)DistanceToSpawn(pChar,pSpawn),szTemp,10);
-                    strcat(szOutput,szTemp);
+                    strcpy(szOutput,szTemp);
                 }
 
             // $spawn(#,distance,3d)
@@ -1471,10 +1471,10 @@ DWORD parmSpawn(PCHAR szVar, PCHAR szOutput, PSPAWNINFO pChar)
                 i+=strstr(szVar,")")-szVar;
 
                 if (!pSpawn) {
-                    strcat(szOutput,"0");
+                    strcpy(szOutput,"0");
                 } else {
                     itoa((INT)DistanceToSpawn3D(pChar,pSpawn),szTemp,10);
-                    strcat(szOutput,szTemp);
+                    strcpy(szOutput,szTemp);
                 }
 
             // $spawn(#,distance,predict)
@@ -1483,10 +1483,10 @@ DWORD parmSpawn(PCHAR szVar, PCHAR szOutput, PSPAWNINFO pChar)
                 i+=strstr(szVar,")")-szVar;
 
                 if (!pSpawn) {
-                    strcat(szOutput,"0");
+                    strcpy(szOutput,"0");
                 } else {
                     itoa((INT)EstimatedDistanceToSpawn(pChar,pSpawn),szTemp,10);
-                    strcat(szOutput,szTemp);
+                    strcpy(szOutput,szTemp);
                 }
 
             // $spawn(#,level)
@@ -1494,10 +1494,10 @@ DWORD parmSpawn(PCHAR szVar, PCHAR szOutput, PSPAWNINFO pChar)
                 CHAR szTemp[MAX_STRING] = {0};
                 i+=strstr(szVar,")")-szVar;
                 if (!pSpawn) {
-                    strcat(szOutput,"0");
+                    strcpy(szOutput,"0");
                 } else {
                     itoa(pSpawn->Level,szTemp,10);
-                    strcat(szOutput,szTemp);
+                    strcpy(szOutput,szTemp);
                 }
 
             // $spawn(#,id)
@@ -1505,10 +1505,10 @@ DWORD parmSpawn(PCHAR szVar, PCHAR szOutput, PSPAWNINFO pChar)
                 CHAR szTemp[MAX_STRING] = {0};
                 i+=strstr(szVar,")")-szVar;
                 if (!pSpawn) {
-                    strcat(szOutput,"0");
+                    strcpy(szOutput,"0");
                 } else {
                     itoa(pSpawn->SpawnID,szTemp,10);
-                    strcat(szOutput,szTemp);
+                    strcpy(szOutput,szTemp);
                 }
 
             // $spawn(#,next)
@@ -1516,12 +1516,12 @@ DWORD parmSpawn(PCHAR szVar, PCHAR szOutput, PSPAWNINFO pChar)
                 CHAR szTemp[MAX_STRING] = {0};
                 i+=strstr(szVar,")")-szVar;
                 if (!pSpawn) {
-                    strcat(szOutput,"0");
+                    strcpy(szOutput,"0");
                 } else if (!pSpawn->pNext) {
-                    strcat(szOutput,"0");
+                    strcpy(szOutput,"0");
                 } else {
                     itoa(pSpawn->pNext->SpawnID,szTemp,10);
-                    strcat(szOutput,szTemp);
+                    strcpy(szOutput,szTemp);
                 }
 
             // $spawn(#,prev)
@@ -1529,12 +1529,12 @@ DWORD parmSpawn(PCHAR szVar, PCHAR szOutput, PSPAWNINFO pChar)
                 CHAR szTemp[MAX_STRING] = {0};
                 i+=strstr(szVar,")")-szVar;
                 if (!pSpawn) {
-                    strcat(szOutput,"0");
+                    strcpy(szOutput,"0");
                 } else if (!pSpawn->pPrev) {
-                    strcat(szOutput,"0");
+                    strcpy(szOutput,"0");
                 } else {
                     itoa(pSpawn->pPrev->SpawnID,szTemp,10);
-                    strcat(szOutput,szTemp);
+                    strcpy(szOutput,szTemp);
                 }
 
             // $spawn(#,x)
@@ -1542,10 +1542,10 @@ DWORD parmSpawn(PCHAR szVar, PCHAR szOutput, PSPAWNINFO pChar)
                 CHAR szTemp[MAX_STRING] = {0};
                 i+=strstr(szVar,")")-szVar;
                 if (!pSpawn) {
-                    strcat(szOutput,"0");
+                    strcpy(szOutput,"0");
                 } else {
                     sprintf(szTemp,"%1.2f",pSpawn->X);
-                    strcat(szOutput,szTemp);
+                    strcpy(szOutput,szTemp);
                 }
 
             // $spawn(#,y)
@@ -1553,10 +1553,10 @@ DWORD parmSpawn(PCHAR szVar, PCHAR szOutput, PSPAWNINFO pChar)
                 CHAR szTemp[MAX_STRING] = {0};
                 i+=strstr(szVar,")")-szVar;
                 if (!pSpawn) {
-                    strcat(szOutput,"0");
+                    strcpy(szOutput,"0");
                 } else {
                     sprintf(szTemp,"%1.2f",pSpawn->Y);
-                    strcat(szOutput,szTemp);
+                    strcpy(szOutput,szTemp);
                 }
 
             // $spawn(#,z)
@@ -1564,10 +1564,10 @@ DWORD parmSpawn(PCHAR szVar, PCHAR szOutput, PSPAWNINFO pChar)
                 CHAR szTemp[MAX_STRING] = {0};
                 i+=strstr(szVar,")")-szVar;
                 if (!pSpawn) {
-                    strcat(szOutput,"0");
+                    strcpy(szOutput,"0");
                 } else {
                     sprintf(szTemp,"%1.2f",pSpawn->Z);
-                    strcat(szOutput,szTemp);
+                    strcpy(szOutput,szTemp);
                 }
 
             // $spawn(#,heading)
@@ -1575,10 +1575,10 @@ DWORD parmSpawn(PCHAR szVar, PCHAR szOutput, PSPAWNINFO pChar)
                 CHAR szTemp[MAX_STRING] = {0};
                 i+=strstr(szVar,")")-szVar;
                 if (!pSpawn) {
-                    strcat(szOutput,"0");
+                    strcpy(szOutput,"0");
                 } else {
                     sprintf(szTemp,"%1.2f",pSpawn->Heading*0.703125f);
-                    strcat(szOutput,szTemp);
+                    strcpy(szOutput,szTemp);
                 }
 
             // $spawn(#,speed)
@@ -1586,10 +1586,10 @@ DWORD parmSpawn(PCHAR szVar, PCHAR szOutput, PSPAWNINFO pChar)
                 CHAR szTemp[MAX_STRING] = {0};
                 i+=strstr(szVar,")")-szVar;
                 if (!pSpawn) {
-                    strcat(szOutput,"0");
+                    strcpy(szOutput,"0");
                 } else {
                     sprintf(szTemp,"%1.2f",FindSpeed(pSpawn));
-                    strcat(szOutput,szTemp);
+                    strcpy(szOutput,szTemp);
                 }
 
             // $spawn(#,levitating)
@@ -1597,12 +1597,12 @@ DWORD parmSpawn(PCHAR szVar, PCHAR szOutput, PSPAWNINFO pChar)
                 CHAR szTemp[MAX_STRING] = {0};
                 i+=strstr(szVar,")")-szVar;
                 if (!pSpawn) {
-                    strcat(szOutput,"That Spawn does not Exist.");
+                    strcpy(szOutput,"That Spawn does not Exist.");
                 } else {
 					if (pSpawn->Levitate == 2)
-						strcat(szOutput, "TRUE" );
+						strcpy(szOutput, "TRUE" );
 					else
-						strcat(szOutput, "FALSE" );
+						strcpy(szOutput, "FALSE" );
                 }
 
             // $spawn(#,sneaking)
@@ -1610,12 +1610,12 @@ DWORD parmSpawn(PCHAR szVar, PCHAR szOutput, PSPAWNINFO pChar)
                 CHAR szTemp[MAX_STRING] = {0};
                 i+=strstr(szVar,")")-szVar;
                 if (!pSpawn) {
-                    strcat(szOutput,"That Spawn does not Exist.");
+                    strcpy(szOutput,"That Spawn does not Exist.");
                 } else {
 					if (pSpawn->Sneak == 1)
-						strcat(szOutput, "TRUE" );
+						strcpy(szOutput, "TRUE" );
 					else
-						strcat(szOutput, "FALSE" );
+						strcpy(szOutput, "FALSE" );
                 }
 
 // Leaving this here for reference
@@ -1625,9 +1625,9 @@ DWORD parmSpawn(PCHAR szVar, PCHAR szOutput, PSPAWNINFO pChar)
                 i+=strstr(szVar,")")-szVar;
                 PCHAR Model = GetModel(pSpawn,MODEL_HELD_R);
                 if (Model) {
-                    strcat(szOutput,Model);
+                    strcpy(szOutput,Model);
                 } else {
-                    strcat(szOutput,"NULL");
+                    strcpy(szOutput,"NULL");
                 }
 
             // $spawn(#,held,left)
@@ -1635,9 +1635,9 @@ DWORD parmSpawn(PCHAR szVar, PCHAR szOutput, PSPAWNINFO pChar)
                 i+=strstr(szVar,")")-szVar;
                 PCHAR Model = GetModel(pSpawn,MODEL_HELD_L);
                 if (Model) {
-                    strcat(szOutput,Model);
+                    strcpy(szOutput,Model);
                 } else {
-                    strcat(szOutput,"NULL");
+                    strcpy(szOutput,"NULL");
                 }
 
             // $spawn(#,held,shield)
@@ -1645,9 +1645,9 @@ DWORD parmSpawn(PCHAR szVar, PCHAR szOutput, PSPAWNINFO pChar)
                 i+=strstr(szVar,")")-szVar;
                 PCHAR Model = GetModel(pSpawn,MODEL_SHIELD);
                 if (Model) {
-                    strcat(szOutput,Model);
+                    strcpy(szOutput,Model);
                 } else {
-                    strcat(szOutput,"NULL");
+                    strcpy(szOutput,"NULL");
                 }
 */
 
@@ -1656,16 +1656,16 @@ DWORD parmSpawn(PCHAR szVar, PCHAR szOutput, PSPAWNINFO pChar)
                 CHAR szTemp[MAX_STRING] = {0};
                 i+=strstr(szVar,")")-szVar;
                 if (!pSpawn) {
-                    strcat(szOutput,"That Spawn does not Exist.");
+                    strcpy(szOutput,"That Spawn does not Exist.");
                 } else {
 					if ( pSpawn->Equipment.Primary <= 0 )
-						strcat(szOutput, "Nothing" );
+						strcpy(szOutput, "Nothing" );
 					else if (pSpawn->Equipment.Primary > MAX_WEAPONS || szItemName[pSpawn->Equipment.Primary] == NULL ) {
 						sprintf(szTemp, "Unknown Item: %d", pSpawn->Equipment.Primary );
-						strcat(szOutput, szTemp);
+						strcpy(szOutput, szTemp);
 					}
 					else
-						strcat(szOutput, szItemName[pSpawn->Equipment.Primary]);
+						strcpy(szOutput, szItemName[pSpawn->Equipment.Primary]);
 				  }
 
             // $spawn(#,held,left)
@@ -1673,16 +1673,16 @@ DWORD parmSpawn(PCHAR szVar, PCHAR szOutput, PSPAWNINFO pChar)
                 CHAR szTemp[MAX_STRING] = {0};
                 i+=strstr(szVar,")")-szVar;
                 if (!pSpawn) {
-                    strcat(szOutput,"That Spawn does not Exist");
+                    strcpy(szOutput,"That Spawn does not Exist");
                 } else {
 					if ( pSpawn->Equipment.Offhand <= 0 )
-						strcat(szOutput, "Nothing" );
+						strcpy(szOutput, "Nothing" );
 					else if (pSpawn->Equipment.Offhand > MAX_WEAPONS || szItemName[pSpawn->Equipment.Offhand] == NULL) {
 						sprintf(szTemp, "Unknown Item: %d", pSpawn->Equipment.Offhand );
-						strcat(szOutput, szTemp);
+						strcpy(szOutput, szTemp);
 					}
 					else
-						strcat(szOutput, szItemName[pSpawn->Equipment.Offhand]);
+						strcpy(szOutput, szItemName[pSpawn->Equipment.Offhand]);
 					}
 
             // $spawn(#,held,shield)
@@ -1690,16 +1690,16 @@ DWORD parmSpawn(PCHAR szVar, PCHAR szOutput, PSPAWNINFO pChar)
                 CHAR szTemp[MAX_STRING] = {0};
                 i+=strstr(szVar,")")-szVar;
                 if (!pSpawn) {
-                    strcat(szOutput,"That Spawn does not Exist");
+                    strcpy(szOutput,"That Spawn does not Exist");
                 } else {
 					if ( pSpawn->Equipment.Offhand <= 0 )
-						strcat(szOutput, "Nothing" );
+						strcpy(szOutput, "Nothing" );
 					else if (pSpawn->Equipment.Offhand > MAX_WEAPONS || szItemName[pSpawn->Equipment.Offhand] == NULL) {
 						sprintf(szTemp, "Unknown Item: %d", pSpawn->Equipment.Offhand );
-						strcat(szOutput, szTemp);
+						strcpy(szOutput, szTemp);
 					}
 					else
-						strcat(szOutput, szItemName[pSpawn->Equipment.Offhand]);
+						strcpy(szOutput, szItemName[pSpawn->Equipment.Offhand]);
 					}
 
             // $spawn(#,held,primary)
@@ -1707,16 +1707,16 @@ DWORD parmSpawn(PCHAR szVar, PCHAR szOutput, PSPAWNINFO pChar)
                 CHAR szTemp[MAX_STRING] = {0};
                 i+=strstr(szVar,")")-szVar;
                 if (!pSpawn) {
-                    strcat(szOutput,"That Spawn does not Exist.");
+                    strcpy(szOutput,"That Spawn does not Exist.");
                 } else {
 					if ( pSpawn->Equipment.Primary <= 0 )
-						strcat(szOutput, "Nothing" );
+						strcpy(szOutput, "Nothing" );
 					else if (pSpawn->Equipment.Primary > MAX_WEAPONS || szItemName[pSpawn->Equipment.Primary] == NULL ) {
 						sprintf(szTemp, "Unknown Item: %d", pSpawn->Equipment.Primary );
-						strcat(szOutput, szTemp);
+						strcpy(szOutput, szTemp);
 					}
 					else
-						strcat(szOutput, szItemName[pSpawn->Equipment.Primary]);
+						strcpy(szOutput, szItemName[pSpawn->Equipment.Primary]);
 				  }
 
             // $spawn(#,held,offhand)
@@ -1724,16 +1724,16 @@ DWORD parmSpawn(PCHAR szVar, PCHAR szOutput, PSPAWNINFO pChar)
                 CHAR szTemp[MAX_STRING] = {0};
                 i+=strstr(szVar,")")-szVar;
                 if (!pSpawn) {
-                    strcat(szOutput,"That Spawn does not Exist");
+                    strcpy(szOutput,"That Spawn does not Exist");
                 } else {
 					if ( pSpawn->Equipment.Offhand <= 0 )
-						strcat(szOutput, "Nothing" );
+						strcpy(szOutput, "Nothing" );
 					else if (pSpawn->Equipment.Offhand > MAX_WEAPONS || szItemName[pSpawn->Equipment.Offhand] == NULL) {
 						sprintf(szTemp, "Unknown Item: %d", pSpawn->Equipment.Offhand );
-						strcat(szOutput, szTemp);
+						strcpy(szOutput, szTemp);
 					}
 					else
-						strcat(szOutput, szItemName[pSpawn->Equipment.Offhand]);
+						strcpy(szOutput, szItemName[pSpawn->Equipment.Offhand]);
 					}
 
             // $spawn(#,headingto)
@@ -1741,61 +1741,61 @@ DWORD parmSpawn(PCHAR szVar, PCHAR szOutput, PSPAWNINFO pChar)
                 CHAR szTemp[MAX_STRING] = {0};
                 i+=strstr(szVar,")")-szVar;
                 if (!pSpawn) {
-                    strcat(szOutput,"0");
+                    strcpy(szOutput,"0");
                 } else {
                     DOUBLE HeadingTo = atan2f(pChar->Y - pSpawn->Y, pSpawn->X - pChar->X) * 180.0f / PI + 90.0f;
                     if (HeadingTo<0.0f) HeadingTo += 360.0f;
                     if (HeadingTo>=360.0f) HeadingTo -= 360.0f;
                     sprintf(szTemp,"%1.2f",HeadingTo);
-                    strcat(szOutput,szTemp);
+                    strcpy(szOutput,szTemp);
                 }
 
             // $spawn(light)
             } else if (!strncmp("light)",szRest,6)) {
                 i+=strstr(szVar,")")-szVar;
                 if (!pSpawn) {
-                    strcat(szOutput,"NONE");
+                    strcpy(szOutput,"NONE");
                 } else {
                     PCHAR szLight = GetLightForSpawn(pSpawn);
-                    strcat(szOutput,szLight);
+                    strcpy(szOutput,szLight);
                 }
 
             // $spawn(body)
             } else if (!strncmp("body)",szRest,5)) {
                 i+=strstr(szVar,")")-szVar;
                 if (!pSpawn) {
-                    strcat(szOutput,"NONE");
+                    strcpy(szOutput,"NONE");
                 } else {
-                    strcat(szOutput,pEverQuest->GetBodyTypeDesc(pSpawn->BodyType));
+                    strcpy(szOutput,pEverQuest->GetBodyTypeDesc(pSpawn->BodyType));
                 }
 
             // $spawn(state)
             } else if (!strncmp("state)",szRest,6)) {
                 i+=strstr(szVar,")")-szVar;
                 if (!pSpawn) {
-                    strcat(szOutput,"UNKNOWN");
+                    strcpy(szOutput,"UNKNOWN");
                 } else {
                     switch (pSpawn->StandState) {
                         case STANDSTATE_STAND:
-                            strcat(szOutput,"STAND");
+                            strcpy(szOutput,"STAND");
                             break;
                         case STANDSTATE_SIT:
-                            strcat(szOutput,"SIT");
+                            strcpy(szOutput,"SIT");
                             break;
                         case STANDSTATE_DUCK:
-                            strcat(szOutput,"DUCK");
+                            strcpy(szOutput,"DUCK");
                             break;
                         case STANDSTATE_BIND:
-                            strcat(szOutput,"BIND");
+                            strcpy(szOutput,"BIND");
                             break;
                         case STANDSTATE_FEIGN:
-                            strcat(szOutput,"FEIGN");
+                            strcpy(szOutput,"FEIGN");
                             break;
                         case STANDSTATE_DEAD:
-                            strcat(szOutput,"DEAD");
+                            strcpy(szOutput,"DEAD");
                             break;
                         default:
-                            strcat(szOutput,"UNKNOWN");
+                            strcpy(szOutput,"UNKNOWN");
                             break;
                     }
                 }
@@ -1805,10 +1805,10 @@ DWORD parmSpawn(PCHAR szVar, PCHAR szOutput, PSPAWNINFO pChar)
                 CHAR szTemp[MAX_STRING] = {0};
                 i+=strstr(szVar,")")-szVar;
                 if (!pSpawn) {
-                    strcat(szOutput,"0");
+                    strcpy(szOutput,"0");
                 } else {
                     itoa((INT)(pSpawn->HPCurrent),szTemp,10);
-                    strcat(szOutput,szTemp);
+                    strcpy(szOutput,szTemp);
                 }
 
             // $spawn(#,hp,max)
@@ -1816,10 +1816,10 @@ DWORD parmSpawn(PCHAR szVar, PCHAR szOutput, PSPAWNINFO pChar)
                 CHAR szTemp[MAX_STRING] = {0};
                 i+=strstr(szVar,")")-szVar;
                 if (!pSpawn) {
-                    strcat(szOutput,"0");
+                    strcpy(szOutput,"0");
                 } else {
                     itoa((INT)(pSpawn->HPMax),szTemp,10);
-                    strcat(szOutput,szTemp);
+                    strcpy(szOutput,szTemp);
                 }
 
             // $spawn(#,hp,pct)
@@ -1827,82 +1827,82 @@ DWORD parmSpawn(PCHAR szVar, PCHAR szOutput, PSPAWNINFO pChar)
                 CHAR szTemp[MAX_STRING] = {0};
                 i+=strstr(szVar,")")-szVar;
                 if (!pSpawn) {
-                    strcat(szOutput,"0");
+                    strcpy(szOutput,"0");
                 } else {
                     itoa((INT)(pSpawn->HPCurrent*100/pSpawn->HPMax),szTemp,10);
-                    strcat(szOutput,szTemp);
+                    strcpy(szOutput,szTemp);
                 }
 
             // return NULL for all following $spawn(#,xxx) commands if no spawn
             } else if (!pSpawn) {
                 while ((szVar[i] != ')') && (szVar[i] != 0)) i++;
-                strcat(szOutput,"NULL");
+                strcpy(szOutput,"NULL");
 
             // $spawn(#,deity)
             } else if (!strncmp("deity)",szRest,6)) {
                 i+=strstr(szVar,")")-szVar;
                 CHAR szTemp[MAX_STRING] = {0};
                 strcpy(szTemp,pEverQuest->GetDeityDesc(pSpawn->Deity));
-                strcat(szOutput,szTemp);
+                strcpy(szOutput,szTemp);
 
             // $spawn(#,deity,team)
             } else if (!strncmp("deity,team)",szRest,11)) {
                 i+=strstr(szVar,")")-szVar;
                 CHAR szTemp[MAX_STRING] = {0};
                 strcpy(szTemp,szDeityTeam[GetDeityTeamByID(pSpawn->Deity)]);
-                strcat(szOutput,szTemp);
+                strcpy(szOutput,szTemp);
 
             // $spawn(#,type)
             } else if (!strncmp("type)",szRest,5)) {
                 i+=strstr(szVar,")")-szVar;
-                strcat(szOutput,szSpawnType[pSpawn->Type]);
+                strcpy(szOutput,szSpawnType[pSpawn->Type]);
 
             // $spawn(#,name)
             } else if (!strncmp("name)",szRest,5)) {
                 i+=strstr(szVar,")")-szVar;
-                strcat(szOutput,pSpawn->Name);
+                strcpy(szOutput,pSpawn->Name);
 
             // $spawn(#,name,clean)
             } else if (!strncmp("name,clean)",szRest,11)) {
                 CHAR szName[MAX_STRING] = {0};
                 i+=strstr(szVar,")")-szVar;
                 strcpy(szName,pSpawn->Name);
-                strcat(szOutput,CleanupName(szName,FALSE));
+                strcpy(szOutput,CleanupName(szName,FALSE));
 
             // $spawn(#,surname)
             } else if (!strncmp("surname)",szRest,8)) {
                 i+=strstr(szVar,")")-szVar;
-                strcat(szOutput,pSpawn->Lastname);
+                strcpy(szOutput,pSpawn->Lastname);
 
             // $spawn(#,guild)
             } else if (!strncmp("guild)",szRest,6)) {
                 i+=strstr(szVar,")")-szVar;
                 if (pSpawn->GuildID < 0xFFFE && EQADDR_GUILDLIST) {
-                    strcat(szOutput,GetGuildByID(pSpawn->GuildID));
+                    strcpy(szOutput,GetGuildByID(pSpawn->GuildID));
                 } else {
-                    strcat(szOutput,"NULL");
+                    strcpy(szOutput,"NULL");
                 }
 
             // $spawn(#,guild,status)
 			} else if (!strncmp("guild,status)",szRest,13)) {
 				i+=strstr(szVar,")")-szVar;
                 if (pSpawn->GuildID < 0xFFFE) {
-                    strcat(szOutput,szGuildStatus[pSpawn->GuildStatus]);
+                    strcpy(szOutput,szGuildStatus[pSpawn->GuildStatus]);
                 } else {
-                    strcat(szOutput,"NULL");
+                    strcpy(szOutput,"NULL");
                 }
 
             // $spawn(#,surname)
             } else if (!strncmp("surname)",szRest,8)) {
                 i+=strstr(szVar,")")-szVar;
-                strcat(szOutput,pSpawn->Lastname);
+                strcpy(szOutput,pSpawn->Lastname);
 
             // $spawn(#,master)
             } else if (!strncmp("master)",szRest,7)) {
                 i+=strstr(szVar,")")-szVar;
                 CHAR szMaster[MAX_STRING] = {0};
                 ltoa(pSpawn->MasterID,szMaster,10);
-                strcat(szOutput,szMaster);
+                strcpy(szOutput,szMaster);
 
             // $spawn(#,pet)
             } else if (!strncmp("pet)",szRest,4)) {
@@ -1911,9 +1911,9 @@ DWORD parmSpawn(PCHAR szVar, PCHAR szOutput, PSPAWNINFO pChar)
                 if (pPet) {
                     CHAR szPet[MAX_STRING] = {0};
                     ltoa(pPet->SpawnID,szPet,10);
-                    strcat(szOutput,szPet);
+                    strcpy(szOutput,szPet);
                 } else {
-                    strcat(szOutput,"0");
+                    strcpy(szOutput,"0");
                 }
 
             // $spawn(#,class)
@@ -1921,7 +1921,7 @@ DWORD parmSpawn(PCHAR szVar, PCHAR szOutput, PSPAWNINFO pChar)
                 i+=strstr(szVar,")")-szVar;
                 CHAR szTemp[MAX_STRING] = {0};
                 strcpy(szTemp,pEverQuest->GetClassDesc(pSpawn->Class));
-                strcat(szOutput,szTemp);
+                strcpy(szOutput,szTemp);
 
 			// $spawn(#,sclass)
 			} else if (!strncmp("sclass)",szRest,7)) {
@@ -1929,29 +1929,29 @@ DWORD parmSpawn(PCHAR szVar, PCHAR szOutput, PSPAWNINFO pChar)
                 CHAR szTemp[MAX_STRING] = {0};
                 strcpy(szTemp,pEverQuest->GetClassDesc(pSpawn->Class));
                 FullClassToShort(szTemp);
-                strcat(szOutput,szTemp);
+                strcpy(szOutput,szTemp);
 
             // $spawn(#,race)
             } else if (!strncmp("race)",szRest,5)) {
                 i+=strstr(szVar,")")-szVar;
                 CHAR szTemp[MAX_STRING] = {0};
                 strcpy(szTemp,pEverQuest->GetRaceDesc(pSpawn->Race));
-                strcat(szOutput,szTemp);
+                strcpy(szOutput,szTemp);
 
             // $spawn(#,gender)
             } else if (!strncmp("gender)",szRest,7)) {
                 i+=strstr(szVar,")")-szVar;
                 CHAR szTemp[MAX_STRING] = {0};
                 strcpy(szTemp,szGender[pSpawn->Gender]);
-                strcat(szOutput,szTemp);
+                strcpy(szOutput,szTemp);
 
             // $spawn(#,gm)
             } else if (!strncmp("gm)",szRest,3)) {
                 i+=strstr(szVar,")")-szVar;
                 if (pSpawn->GM) {
-                    strcat(szOutput,"TRUE");
+                    strcpy(szOutput,"TRUE");
                 } else {
-                    strcat(szOutput,"FALSE");
+                    strcpy(szOutput,"FALSE");
                 }
 
 			// $spawn(#,height) 
@@ -1959,10 +1959,10 @@ DWORD parmSpawn(PCHAR szVar, PCHAR szOutput, PSPAWNINFO pChar)
 				CHAR szTemp[MAX_STRING] = {0}; 
 				i+=strstr(szVar,")")-szVar; 
 				if (!pSpawn) { 
-				strcat(szOutput,"0"); 
+				strcpy(szOutput,"0"); 
 				} else { 
 					sprintf(szTemp,"%1.2f",pSpawn->AvatarHeight); 
-					strcat(szOutput,szTemp); 
+					strcpy(szOutput,szTemp); 
 				} 
 
 			// $spawn(#,maxrange) 
@@ -1971,11 +1971,11 @@ DWORD parmSpawn(PCHAR szVar, PCHAR szOutput, PSPAWNINFO pChar)
 				DOUBLE MaxRange = 0; 
 				i+=strstr(szVar,")")-szVar; 
 				if (!pSpawn) { 
-					strcat(szOutput,"0"); 
+					strcpy(szOutput,"0"); 
 				} else { 
 					MaxRange = ((pSpawn->AvatarHeight+pChar->AvatarHeight)*1.3333333333); 
 					sprintf(szTemp,"%1.2f",MaxRange); 
-					strcat(szOutput,szTemp); 
+					strcpy(szOutput,szTemp); 
 				} 
 
             // $spawn(#,unknown)
@@ -2004,7 +2004,7 @@ DWORD parmHeading(PCHAR szVar, PCHAR szOutput, PSPAWNINFO pChar)
         if (HeadingTo<0.0f) HeadingTo += 360.0f;
         if (HeadingTo>=360.0f) HeadingTo -= 360.0f;
         sprintf(szTemp,"%1.2f",HeadingTo);
-        strcat(szOutput,szTemp);
+        strcpy(szOutput,szTemp);
     }
     return i;
 }
@@ -2044,11 +2044,11 @@ DWORD parmID(PCHAR szVar, PCHAR szOutput, PSPAWNINFO pChar)
             }
         }
         if (!pSpawn) {
-            strcat(szOutput,"0");
+            strcpy(szOutput,"0");
         } else {
             CHAR szID[MAX_STRING] = {0};
             itoa(pSpawn->SpawnID,szID,10);
-            strcat(szOutput,szID);
+            strcpy(szOutput,szID);
         }
     }
     return i;
@@ -2066,13 +2066,13 @@ DWORD parmMouse(PCHAR szVar, PCHAR szOutput, PSPAWNINFO pChar)
     if (!strncmp("mouse(x)",szVar,8)) {
         i+=7;
         itoa(pMouse->X,szTemp,10);
-        strcat(szOutput,szTemp);
+        strcpy(szOutput,szTemp);
 
     // $mouse(y)
     } else if (!strncmp("mouse(y)",szVar,8)) {
         i+=7;
         itoa(pMouse->Y,szTemp,10);
-        strcat(szOutput,szTemp);
+        strcpy(szOutput,szTemp);
 
     // $mouse(unknown)
     } else {
@@ -2094,14 +2094,14 @@ DWORD parmChar(PCHAR szVar, PCHAR szOutput, PSPAWNINFO pChar)
         CHAR szTemp[MAX_STRING] = {0};
         i+=10;
         itoa(GetCharInfo()->pSpawn->Level,szTemp,10);
-        strcat(szOutput,szTemp);
+        strcpy(szOutput,szTemp);
 
     // $char(id)
     } else if (!strncmp("char(id)",szVar,8)) {
         CHAR szTemp[MAX_STRING] = {0};
         i+=7;
         itoa(GetCharInfo()->pSpawn->SpawnID,szTemp,10);
-        strcat(szOutput,szTemp);
+        strcpy(szOutput,szTemp);
 
     // $char(dar)
     } else if (!strncmp("char(dar)",szVar,9)) {
@@ -2111,97 +2111,97 @@ DWORD parmChar(PCHAR szVar, PCHAR szOutput, PSPAWNINFO pChar)
         for ( int l=0; l <= 14; l++ )
             k += pCharInfo->Buff[l].DamageAbsorbRemaining;
         itoa(k,szTemp,10);
-        strcat(szOutput,szTemp);
+        strcpy(szOutput,szTemp);
 
     // $char(x)
     } else if (!strncmp("char(x)",szVar,7)) {
         CHAR szTemp[MAX_STRING] = {0};
         i+=6;
         sprintf(szTemp,"%1.2f",pChar->X);
-        strcat(szOutput,szTemp);
+        strcpy(szOutput,szTemp);
 
     // $char(y)
     } else if (!strncmp("char(y)",szVar,7)) {
         CHAR szTemp[MAX_STRING] = {0};
         i+=6;
         sprintf(szTemp,"%1.2f",pChar->Y);
-        strcat(szOutput,szTemp);
+        strcpy(szOutput,szTemp);
 
     // $char(z)
     } else if (!strncmp("char(z)",szVar,7)) {
         CHAR szTemp[MAX_STRING] = {0};
         i+=6;
         sprintf(szTemp,"%1.2f",pChar->Z);
-        strcat(szOutput,szTemp);
+        strcpy(szOutput,szTemp);
 
    // $char(look)
    } else if (!strncmp("char(look)",szVar,10)) {
       CHAR szTemp[MAX_STRING] = {0};
       i+=9;
       sprintf(szTemp,"%1.2f",pChar->CameraAngle);
-      strcat(szOutput,szTemp);
+      strcpy(szOutput,szTemp);
 
     // $char(heading)
     } else if (!strncmp("char(heading)",szVar,13)) {
         CHAR szTemp[MAX_STRING] = {0};
         i+=12;
         sprintf(szTemp,"%1.2f",pChar->Heading*0.703125f);
-        strcat(szOutput,szTemp);
+        strcpy(szOutput,szTemp);
 
     // $char(speed)
     } else if (!strncmp("char(speed)",szVar,11)) {
         CHAR szTemp[MAX_STRING] = {0};
         i+=10;
         sprintf(szTemp,"%1.2f",FindSpeed(pChar) );
-       strcat(szOutput,szTemp);
+       strcpy(szOutput,szTemp);
 
     // $char(ismoving) 
     } else if (!strncmp("char(ismoving)",szVar,14)) { 
         CHAR szTemp[MAX_STRING] = {0}; 
         i+=13; 
         if ((gbMoving) && (pChar->SpeedRun==0.0f) && (pCharInfo->pSpawn->pActorInfo->Mount ==  NULL )) { 
-            strcat(szOutput,"TRUE"); 
+            strcpy(szOutput,"TRUE"); 
     } else if ((fabs(FindSpeed(pChar)) > 0.0f ) && (pCharInfo->pSpawn->pActorInfo->Mount !=  NULL )) { 
-        strcat(szOutput,"TRUE"); 
+        strcpy(szOutput,"TRUE"); 
     } else if (fabs(FindSpeed(pChar)) > 0.0f ) { 
-        strcat(szOutput,"TRUE"); 
+        strcpy(szOutput,"TRUE"); 
     } else { 
-        strcat(szOutput,"FALSE"); 
+        strcpy(szOutput,"FALSE"); 
     }
 
     // $char(light)
     } else if (!strncmp("char(light)",szVar,11)) {
         i+=10;
         PCHAR szLight = GetLightForSpawn(pChar);
-        strcat(szOutput,szLight);
+        strcpy(szOutput,szLight);
 
     // $char(state)
     } else if (!strncmp("char(state)",szVar,11)) {
         i+=10;
         if (pCharInfo->Stunned==1) {
-            strcat(szOutput,"STUN");
+            strcpy(szOutput,"STUN");
         } else {
             switch (GetCharInfo()->pSpawn->StandState) {
                 case STANDSTATE_STAND:
-                    strcat(szOutput,"STAND");
+                    strcpy(szOutput,"STAND");
                     break;
                 case STANDSTATE_SIT:
-                    strcat(szOutput,"SIT");
+                    strcpy(szOutput,"SIT");
                     break;
                 case STANDSTATE_DUCK:
-                    strcat(szOutput,"DUCK");
+                    strcpy(szOutput,"DUCK");
                     break;
                 case STANDSTATE_BIND:
-                    strcat(szOutput,"BIND");
+                    strcpy(szOutput,"BIND");
                     break;
                 case STANDSTATE_FEIGN:
-                    strcat(szOutput,"FEIGN");
+                    strcpy(szOutput,"FEIGN");
                     break;
                 case STANDSTATE_DEAD:
-                    strcat(szOutput,"DEAD");
+                    strcpy(szOutput,"DEAD");
                     break;
                 default:
-                    strcat(szOutput,"UNKNOWN");
+                    strcpy(szOutput,"UNKNOWN");
                     break;
             }
         }
@@ -2213,9 +2213,9 @@ DWORD parmChar(PCHAR szVar, PCHAR szOutput, PSPAWNINFO pChar)
         i+=15;
         PCHAR Model = GetModel(pChar,MODEL_HELD_R);
         if (Model) {
-            strcat(szOutput,Model);
+            strcpy(szOutput,Model);
         } else {
-            strcat(szOutput,"NULL");
+            strcpy(szOutput,"NULL");
         }
 
 	// $char(held,left)
@@ -2223,9 +2223,9 @@ DWORD parmChar(PCHAR szVar, PCHAR szOutput, PSPAWNINFO pChar)
         i+=14;
         PCHAR Model = GetModel(pChar,MODEL_HELD_L);
         if (Model) {
-            strcat(szOutput,Model);
+            strcpy(szOutput,Model);
         } else {
-            strcat(szOutput,"NULL");
+            strcpy(szOutput,"NULL");
         }
 
     // $char(held,shield)
@@ -2233,9 +2233,9 @@ DWORD parmChar(PCHAR szVar, PCHAR szOutput, PSPAWNINFO pChar)
         i+=16;
         PCHAR Model = GetModel(pChar,MODEL_SHIELD);
         if (Model) {
-            strcat(szOutput,Model);
+            strcpy(szOutput,Model);
         } else {
-            strcat(szOutput,"NULL");
+            strcpy(szOutput,"NULL");
         }
 */
 
@@ -2244,163 +2244,163 @@ DWORD parmChar(PCHAR szVar, PCHAR szOutput, PSPAWNINFO pChar)
         CHAR szTemp[MAX_STRING] = {0};
         i+=15;
 		if (pChar->Equipment.Primary <= 0 )
-			strcat(szOutput, "Nothing" );
+			strcpy(szOutput, "Nothing" );
 		else if (pChar->Equipment.Primary > MAX_WEAPONS || szItemName[pChar->Equipment.Primary] == NULL ) {
 			sprintf(szTemp, "Unknown Item: %d", pChar->Equipment.Primary );
-			strcat(szOutput, szTemp);
+			strcpy(szOutput, szTemp);
 		}
 		else
-			strcat(szOutput, szItemName[pChar->Equipment.Primary]);
+			strcpy(szOutput, szItemName[pChar->Equipment.Primary]);
 
 	// $char(held,left)
     } else if (!strncmp("char(held,left)",szVar,15)) {
         CHAR szTemp[MAX_STRING] = {0};
         i+=14;
 		if (pChar->Equipment.Offhand <= 0 )
-			strcat(szOutput, "Nothing" );
+			strcpy(szOutput, "Nothing" );
 		else if (pChar->Equipment.Offhand > MAX_WEAPONS || szItemName[pChar->Equipment.Offhand] == NULL ) {
 			sprintf(szTemp, "Unknown Item: %d", pChar->Equipment.Offhand );
-			strcat(szOutput, szTemp);
+			strcpy(szOutput, szTemp);
 		}
 		else
-			strcat(szOutput, szItemName[pChar->Equipment.Offhand]);
+			strcpy(szOutput, szItemName[pChar->Equipment.Offhand]);
 
 	// $char(held,shield)
     } else if (!strncmp("char(held,shield)",szVar,17)) {
         CHAR szTemp[MAX_STRING] = {0};
         i+=16;
 		if (pChar->Equipment.Offhand <= 0 )
-			strcat(szOutput, "Nothing" );
+			strcpy(szOutput, "Nothing" );
 		else if (pChar->Equipment.Offhand > MAX_WEAPONS || szItemName[pChar->Equipment.Offhand] == NULL ) {
 			sprintf(szTemp, "Unknown Item: %d", pChar->Equipment.Offhand );
-			strcat(szOutput, szTemp);
+			strcpy(szOutput, szTemp);
 		}
 		else
-			strcat(szOutput, szItemName[pChar->Equipment.Offhand]);
+			strcpy(szOutput, szItemName[pChar->Equipment.Offhand]);
 
 	// $char(held,primary)
     } else if (!strncmp("char(held,primary)",szVar,18)) {
         CHAR szTemp[MAX_STRING] = {0};
         i+=17;
 		if (pChar->Equipment.Primary <= 0 )
-			strcat(szOutput, "Nothing" );
+			strcpy(szOutput, "Nothing" );
 		else if (pChar->Equipment.Primary > MAX_WEAPONS || szItemName[pChar->Equipment.Primary] == NULL ) {
 			sprintf(szTemp, "Unknown Item: %d", pChar->Equipment.Primary );
-			strcat(szOutput, szTemp);
+			strcpy(szOutput, szTemp);
 		}
 		else
-			strcat(szOutput, szItemName[pChar->Equipment.Primary]);
+			strcpy(szOutput, szItemName[pChar->Equipment.Primary]);
 
 	// $char(held,offhand)
     } else if (!strncmp("char(held,offhand)",szVar,18)) {
         CHAR szTemp[MAX_STRING] = {0};
         i+=17;
 		if (pChar->Equipment.Offhand <= 0 )
-			strcat(szOutput, "Nothing" );
+			strcpy(szOutput, "Nothing" );
 		else if (pChar->Equipment.Offhand > MAX_WEAPONS || szItemName[pChar->Equipment.Offhand] == NULL ) {
 			sprintf(szTemp, "Unknown Item: %d", pChar->Equipment.Offhand );
-			strcat(szOutput, szTemp);
+			strcpy(szOutput, szTemp);
 		}
 		else
-			strcat(szOutput, szItemName[pChar->Equipment.Offhand]);
+			strcpy(szOutput, szItemName[pChar->Equipment.Offhand]);
 
     // $char(type)
     } else if (!strncmp("char(type)",szVar,10)) {
         i+=9;
         CHAR szType[MAX_STRING] = {0};
         strcpy(szType, "PC");
-        strcat(szOutput,szType);
+        strcpy(szOutput,szType);
 
     // $char(exp)
     } else if (!strncmp("char(exp)",szVar,9)) {
         i+=8;
         CHAR szExp[MAX_STRING] = {0};
         sprintf(szExp,"%1.2f",(DOUBLE)pCharInfo->Exp/3.30f);
-        strcat(szOutput,szExp);
+        strcpy(szOutput,szExp);
 
 	// $char(exp,val)  -- i.e. out of 330
     } else if (!strncmp("char(exp,val)",szVar,13)) {
         i+=12;
         CHAR szExp[MAX_STRING] = {0};
 		itoa(pCharInfo->Exp,szExp,10);
-        strcat(szOutput,szExp);
+        strcpy(szOutput,szExp);
 
     // $char(aa,exp)
     } else if (!strncmp("char(aa,exp)",szVar,12)) {
         i+=11;
         CHAR szExp[MAX_STRING] = {0};
         sprintf(szExp,"%1.2f",(DOUBLE)pCharInfo->AAExp/3.30f);
-        strcat(szOutput,szExp);
+        strcpy(szOutput,szExp);
 
 	// $char(aa,exp,val)  -- i.e. out of 330
     } else if (!strncmp("char(aa,exp,val)",szVar,16)) {
         i+=15;
         CHAR szExp[MAX_STRING] = {0};
 		itoa(pCharInfo->AAExp,szExp,10);
-        strcat(szOutput,szExp);
+        strcpy(szOutput,szExp);
 
 	// $char(aa,points)
     } else if (!strncmp("char(aa,points)",szVar,15)) {
         i+=14;
         CHAR szPoints[MAX_STRING] = {0};
         itoa(pCharInfo->AAPoints,szPoints,10);
-        strcat(szOutput,szPoints);
+        strcpy(szOutput,szPoints);
 
     // $char(aa,rank)
     } else if (!strncmp("char(aa,rank)",szVar,13)) {
         i+=12;
         CHAR szRank[MAX_STRING] = {0};
         itoa(GetCharInfo()->pSpawn->AARank,szRank,10);
-        strcat(szOutput,szRank);
+        strcpy(szOutput,szRank);
 
     // $char(hp,max)
     } else if (!strncmp("char(hp,max)",szVar,12)) {
         i+=11;
         CHAR szTemp[MAX_STRING] = {0};
         itoa(GetMaxHPS(),szTemp,10);
-        strcat(szOutput,szTemp);
+        strcpy(szOutput,szTemp);
 
     // $char(hp,cur)
     } else if (!strncmp("char(hp,cur)",szVar,12)) {
         i+=11;
         CHAR szTemp[MAX_STRING] = {0};
         itoa(GetCurHPS(),szTemp,10);
-        strcat(szOutput,szTemp);
+        strcpy(szOutput,szTemp);
 
     // $char(hp,regen)     note: heals count in this "regen"
     } else if (!strncmp("char(hp,regen)",szVar,14)) {
         i+=13;
         CHAR szTemp[MAX_STRING] = {0};
         itoa(HealthGained,szTemp,10);
-        strcat(szOutput,szTemp);
+        strcpy(szOutput,szTemp);
 
 	// $char(hp,pct)
     } else if (!strncmp("char(hp,pct)",szVar,12)) {
         i+=11;
         CHAR szTemp[MAX_STRING] = {0};
         itoa((INT)(GetCurHPS()*100/GetMaxHPS()),szTemp,10);
-        strcat(szOutput,szTemp);
+        strcpy(szOutput,szTemp);
 
     // $char(mana,max)
     } else if (!strncmp("char(mana,max)",szVar,14)) {
         i+=13;
         CHAR szTemp[MAX_STRING] = {0};
         itoa(GetMaxMana(),szTemp,10);
-        strcat(szOutput,szTemp);
+        strcpy(szOutput,szTemp);
 
     // $char(mana,cur)
     } else if (!strncmp("char(mana,cur)",szVar,14)) {
         i+=13;
         CHAR szTemp[MAX_STRING] = {0};
         itoa(pCharInfo->Mana,szTemp,10);
-        strcat(szOutput,szTemp);
+        strcpy(szOutput,szTemp);
 
     // $char(mana,regen)
     } else if (!strncmp("char(mana,regen)",szVar,16)) {
         i+=15;
         CHAR szTemp[MAX_STRING] = {0};
         itoa(ManaGained,szTemp,10);
-        strcat(szOutput,szTemp);
+        strcpy(szOutput,szTemp);
 
     // $char(mana,pct)
     } else if (!strncmp("char(mana,pct)",szVar,14)) {
@@ -2412,21 +2412,21 @@ DWORD parmChar(PCHAR szVar, PCHAR szOutput, PSPAWNINFO pChar)
         } else {
             itoa((INT)(100*(FLOAT)pCharInfo->Mana/(FLOAT)MaxMana),szTemp,10);
         }
-        strcat(szOutput,szTemp);
+        strcpy(szOutput,szTemp);
 
     // $char(deity)
     } else if (!strncmp("char(deity)",szVar,11)) {
         i+=10;
         CHAR szTemp[MAX_STRING] = {0};
         strcpy(szTemp,pEverQuest->GetDeityDesc(GetCharInfo()->pSpawn->Deity));
-        strcat(szOutput,szTemp);
+        strcpy(szOutput,szTemp);
 
     // $char(deity,team)
     } else if (!strncmp("char(deity,team)",szVar,16)) {
         i+=15;
         CHAR szTemp[MAX_STRING] = {0};
         strcpy(szTemp,szDeityTeam[GetDeityTeamByID(GetCharInfo()->pSpawn->Deity)]);
-        strcat(szOutput,szTemp);
+        strcpy(szOutput,szTemp);
 
 // Leaving this for reference -- more efficient method of obtaining this information below
 /*
@@ -2437,9 +2437,9 @@ DWORD parmChar(PCHAR szVar, PCHAR szOutput, PSPAWNINFO pChar)
         PCSIDLWND pCastingWindow = NULL;
         pCastingWindow = (PCSIDLWND)pCastingWnd;
         if (pCastingWindow->Show==1) {
-            strcat(szOutput,"TRUE");
+            strcpy(szOutput,"TRUE");
         } else {
-            strcat(szOutput,"FALSE");
+            strcpy(szOutput,"FALSE");
         }
 */
 
@@ -2447,9 +2447,9 @@ DWORD parmChar(PCHAR szVar, PCHAR szOutput, PSPAWNINFO pChar)
     } else if (!strncmp("char(casting)",szVar,13)) {
         i+=12;
         if (pChar->pActorInfo->CastingSpellID == -1 )
-			strcat(szOutput,"FALSE");
+			strcpy(szOutput,"FALSE");
 		else
-			strcat(szOutput,"TRUE");
+			strcpy(szOutput,"TRUE");
 
     // $char(gem,xxx)
     } else if (!strncmp("char(gem,",szVar,9)) {
@@ -2495,7 +2495,7 @@ DWORD parmChar(PCHAR szVar, PCHAR szOutput, PSPAWNINFO pChar)
                     strcpy(szTemp,"NULL");
                 }
             }
-            strcat(szOutput,szTemp);
+            strcpy(szOutput,szTemp);
         }
     // $char(hotbutton,x) example: /echo $char(hotbutton,1)
     } else if (!strncmp("char(hotbutton,",szVar,15)) {
@@ -2530,7 +2530,7 @@ DWORD parmChar(PCHAR szVar, PCHAR szOutput, PSPAWNINFO pChar)
             } else {
                 strcpy(szTemp,"offset error");
             }
-            strcat(szOutput,szTemp);
+            strcpy(szOutput,szTemp);
         }
 
     // $char(buff,xxx)
@@ -2590,7 +2590,7 @@ DWORD parmChar(PCHAR szVar, PCHAR szOutput, PSPAWNINFO pChar)
                     strcpy(szTemp,"NULL");
                 }
             }
-            strcat(szOutput,szTemp);
+            strcpy(szOutput,szTemp);
         }
 
     // $char(song,xxx)
@@ -2645,7 +2645,7 @@ DWORD parmChar(PCHAR szVar, PCHAR szOutput, PSPAWNINFO pChar)
                     strcpy(szTemp,"NULL");
                 }
             }
-            strcat(szOutput,szTemp);
+            strcpy(szOutput,szTemp);
         }
 
     // $char(book,xxx)
@@ -2680,7 +2680,7 @@ DWORD parmChar(PCHAR szVar, PCHAR szOutput, PSPAWNINFO pChar)
                     strcpy(szTemp,"NULL");
                 }
             }
-            strcat(szOutput,szTemp);
+            strcpy(szOutput,szTemp);
         }
 
     // $char(skill,xxx)
@@ -2697,7 +2697,7 @@ DWORD parmChar(PCHAR szVar, PCHAR szOutput, PSPAWNINFO pChar)
             for (sk=0;szSkills[sk];sk++) {
                 if (!strnicmp(szArg,szSkills[sk],strlen(szSkills[sk]))) itoa(pCharInfo->Skill[sk],szTemp,10);
             }
-            strcat(szOutput,szTemp);
+            strcpy(szOutput,szTemp);
         }
 
     // $char(ability,xxx)
@@ -2752,35 +2752,35 @@ DWORD parmChar(PCHAR szVar, PCHAR szOutput, PSPAWNINFO pChar)
                     strcpy(szTemp,"NULL");
                 }
             }
-            strcat(szOutput,szTemp);
+            strcpy(szOutput,szTemp);
         }
 
     // $char(name)
     } else if (!strncmp("char(name)",szVar,10)) {
         i+=9;
-        strcat(szOutput,GetCharInfo()->pSpawn->Name);
+        strcpy(szOutput,GetCharInfo()->pSpawn->Name);
 
     // $char(surname)
     } else if (!strncmp("char(surname)",szVar,13)) {
         i+=12;
-        strcat(szOutput,GetCharInfo()->pSpawn->Lastname);
+        strcpy(szOutput,GetCharInfo()->pSpawn->Lastname);
 
     // $char(guild)
     } else if (!strncmp("char(guild)",szVar,11)) {
         i+=10;
         if (GetCharInfo()->pSpawn->GuildID < 0xFFFE && EQADDR_GUILDLIST) {
-            strcat(szOutput,GetGuildByID(GetCharInfo()->pSpawn->GuildID));
+            strcpy(szOutput,GetGuildByID(GetCharInfo()->pSpawn->GuildID));
         } else {
-            strcat(szOutput,"NULL");
+            strcpy(szOutput,"NULL");
         }
 
     // $char(guild,status)
     } else if (!strncmp("char(guild,status)",szVar,18)) {
         i+=17;
         if (GetCharInfo()->pSpawn->GuildID < 0xFFFE && EQADDR_GUILDLIST) {
-            strcat(szOutput,szGuildStatus[GetCharInfo()->pSpawn->GuildStatus]);
+            strcpy(szOutput,szGuildStatus[GetCharInfo()->pSpawn->GuildStatus]);
         } else {
-            strcat(szOutput,"NULL");
+            strcpy(szOutput,"NULL");
         }
 
     // $char(pet)
@@ -2790,9 +2790,9 @@ DWORD parmChar(PCHAR szVar, PCHAR szOutput, PSPAWNINFO pChar)
         if (pPet) {
             CHAR szPet[MAX_STRING] = {0};
             ltoa(pPet->SpawnID,szPet,10);
-            strcat(szOutput,szPet);
+            strcpy(szOutput,szPet);
         } else {
-            strcat(szOutput,"0");
+            strcpy(szOutput,"0");
         }
 
     // $char(class)
@@ -2800,7 +2800,7 @@ DWORD parmChar(PCHAR szVar, PCHAR szOutput, PSPAWNINFO pChar)
         i+=10;
         CHAR szTemp[MAX_STRING] = {0};
         strcpy(szTemp,pEverQuest->GetClassDesc(GetCharInfo()->pSpawn->Class));
-        strcat(szOutput,szTemp);
+        strcpy(szOutput,szTemp);
 
 	// $char(sclass)
 	} else if (!strncmp("char(sclass)",szVar,12)) {
@@ -2808,98 +2808,98 @@ DWORD parmChar(PCHAR szVar, PCHAR szOutput, PSPAWNINFO pChar)
 		CHAR szTemp[MAX_STRING] = {0};
 		strcpy(szTemp,pEverQuest->GetClassDesc(GetCharInfo()->pSpawn->Class));
 		FullClassToShort(szTemp);
-		strcat(szOutput,szTemp);
+		strcpy(szOutput,szTemp);
 
     // $char(race)
     } else if (!strncmp("char(race)",szVar,10)) {
         i+=9;
         CHAR szTemp[MAX_STRING] = {0};
         strcpy(szTemp,pEverQuest->GetRaceDesc(GetCharInfo()->pSpawn->Race));
-        strcat(szOutput,szTemp);
+        strcpy(szOutput,szTemp);
 
     // $char(gender)
     } else if (!strncmp("char(gender)",szVar,12)) {
         i+=11;
         CHAR szTemp[MAX_STRING] = {0};
         strcpy(szTemp,szGender[GetCharInfo()->pSpawn->Gender]);
-        strcat(szOutput,szTemp);
+        strcpy(szOutput,szTemp);
 
     // $char(cash)
     } else if (!strncmp("char(cash)",szVar,10)) {
         CHAR szTemp[MAX_STRING] = {0};
         i+=9;
         itoa(pCharInfo->Plat*1000+pCharInfo->Gold*100+pCharInfo->Silver*10+pCharInfo->Copper,szTemp,10);
-        strcat(szOutput,szTemp);
+        strcpy(szOutput,szTemp);
 
     // $char(cash,bank)
     } else if (!strncmp("char(cash,bank)",szVar,15)) {
         CHAR szTemp[MAX_STRING] = {0};
         i+=14;
         itoa(pCharInfo->BankPlat*1000+pCharInfo->BankGold*100+pCharInfo->BankSilver*10+pCharInfo->BankCopper,szTemp,10);
-        strcat(szOutput,szTemp);
+        strcpy(szOutput,szTemp);
 
     // $char(plat)
     } else if (!strncmp("char(plat)",szVar,10)) {
         CHAR szTemp[MAX_STRING] = {0};
         i+=9;
         itoa(pCharInfo->Plat,szTemp,10);
-        strcat(szOutput,szTemp);
+        strcpy(szOutput,szTemp);
 
     // $char(plat,bank)
     } else if (!strncmp("char(plat,bank)",szVar,15)) {
         CHAR szTemp[MAX_STRING] = {0};
         i+=14;
         itoa(pCharInfo->BankPlat,szTemp,10);
-        strcat(szOutput,szTemp);
+        strcpy(szOutput,szTemp);
 
 	// $char(plat,shared) 
     } else if (!strncmp("char(plat,shared)",szVar,17)) { 
         CHAR szTemp[MAX_STRING] = {0}; 
         i+=16; 
         itoa(GetCharInfo()->BankSharedPlat,szTemp,10); 
-        strcat(szOutput,szTemp); 
+        strcpy(szOutput,szTemp); 
 
     // $char(gold)
     } else if (!strncmp("char(gold)",szVar,10)) {
         CHAR szTemp[MAX_STRING] = {0};
         i+=9;
         itoa(pCharInfo->Gold,szTemp,10);
-        strcat(szOutput,szTemp);
+        strcpy(szOutput,szTemp);
 
     // $char(gold,bank)
     } else if (!strncmp("char(gold,bank)",szVar,15)) {
         CHAR szTemp[MAX_STRING] = {0};
         i+=14;
         itoa(pCharInfo->BankGold,szTemp,10);
-        strcat(szOutput,szTemp);
+        strcpy(szOutput,szTemp);
 
     // $char(silver)
     } else if (!strncmp("char(silver)",szVar,12)) {
         CHAR szTemp[MAX_STRING] = {0};
         i+=11;
         itoa(pCharInfo->Silver,szTemp,10);
-        strcat(szOutput,szTemp);
+        strcpy(szOutput,szTemp);
 
     // $char(silver,bank)
     } else if (!strncmp("char(silver,bank)",szVar,17)) {
         CHAR szTemp[MAX_STRING] = {0};
         i+=16;
         itoa(pCharInfo->BankSilver,szTemp,10);
-        strcat(szOutput,szTemp);
+        strcpy(szOutput,szTemp);
 
     // $char(copper)
     } else if (!strncmp("char(copper)",szVar,12)) {
         CHAR szTemp[MAX_STRING] = {0};
         i+=11;
         itoa(pCharInfo->Copper,szTemp,10);
-        strcat(szOutput,szTemp);
+        strcpy(szOutput,szTemp);
 
     // $char(copper,bank)
     } else if (!strncmp("char(copper,bank)",szVar,17)) {
         CHAR szTemp[MAX_STRING] = {0};
         i+=16;
         itoa(pCharInfo->BankCopper,szTemp,10);
-        strcat(szOutput,szTemp);
+        strcpy(szOutput,szTemp);
 
     // $char(spellbook)
    } else if (!strncmp("char(spellbook)",szVar,15)) {
@@ -2910,9 +2910,9 @@ DWORD parmChar(PCHAR szVar, PCHAR szOutput, PSPAWNINFO pChar)
       PCSIDLWND pBookWindow = NULL;
       pBookWindow = (PCSIDLWND)pSpellBookWnd;
       if (pBookWindow->Show==1) {
-         strcat(szOutput,"TRUE");
+         strcpy(szOutput,"TRUE");
       } else {
-         strcat(szOutput,"FALSE");
+         strcpy(szOutput,"FALSE");
       }
 
     // $char(holding)
@@ -2920,178 +2920,178 @@ DWORD parmChar(PCHAR szVar, PCHAR szOutput, PSPAWNINFO pChar)
         CHAR szTemp[MAX_STRING] = {0};
         i+=12;
       itoa(pCharInfo->pSpawn->Holding,szTemp,10);
-        strcat(szOutput,szTemp);
+        strcpy(szOutput,szTemp);
 
    // $char(underwater) returns 5 if the character is completely under water, zero otherwise
     } else if (!strncmp("char(underwater)",szVar,16)) {
         CHAR szTemp[MAX_STRING] = {0};
         i+=15;
       itoa(pCharInfo->pSpawn->pActorInfo->UnderWater,szTemp,10);
-        strcat(szOutput,szTemp);
+        strcpy(szOutput,szTemp);
 
    // $char(swimming) returns 5 if the character is currently swimming, zero otherwise
     } else if (!strncmp("char(swimming)",szVar,14)) {
         CHAR szTemp[MAX_STRING] = {0};
         i+=13;
       itoa(pCharInfo->pSpawn->pActorInfo->Swimming,szTemp,10);
-        strcat(szOutput,szTemp);
+        strcpy(szOutput,szTemp);
 
    // $char(feetwet) returns 5 if the character's feet are just in the water
     } else if (!strncmp("char(feetwet)",szVar,13)) {
         CHAR szTemp[MAX_STRING] = {0};
         i+=12;
       itoa(pCharInfo->pSpawn->pActorInfo->FeetWet,szTemp,10);
-        strcat(szOutput,szTemp);
+        strcpy(szOutput,szTemp);
 
    // $char(animation) returns the animation number currently playing for the target's avatar
     } else if (!strncmp("char(animation)",szVar,15)) {
         CHAR szTemp[MAX_STRING] = {0};
         i+=14;
       itoa(pCharInfo->pSpawn->pActorInfo->Animation,szTemp,10);
-        strcat(szOutput,szTemp);
+        strcpy(szOutput,szTemp);
 
    // $char(mounted)
     } else if (!strncmp("char(mounted)",szVar,13)) {
         CHAR szTemp[MAX_STRING] = {0};
         i+=12;
       if(pCharInfo->pSpawn->pActorInfo->Mount ==  NULL )
-         strcat(szOutput, "FALSE" );
+         strcpy(szOutput, "FALSE" );
       else
-         strcat(szOutput, "TRUE" );
+         strcpy(szOutput, "TRUE" );
 
    // $char(invited)
     } else if (!strncmp("char(invited)",szVar,13)) {
         CHAR szTemp[MAX_STRING] = {0};
         i+=12;
       itoa(pCharInfo->pSpawn->pActorInfo->InvitedToGroup,szTemp,10);
-        strcat(szOutput,szTemp);
+        strcpy(szOutput,szTemp);
 
    // $char(following)
     } else if (!strncmp("char(following)",szVar,15)) {
         CHAR szTemp[MAX_STRING] = {0};
         i+=14;
       if(pCharInfo->pSpawn->pActorInfo->WhoFollowing == NULL )
-         strcat(szOutput, "FALSE" );
+         strcpy(szOutput, "FALSE" );
       else
-         strcat(szOutput, "TRUE" );
+         strcpy(szOutput, "TRUE" );
 
    // $char(grouped)
     } else if (!strncmp("char(grouped)",szVar,13)) {
         CHAR szTemp[MAX_STRING] = {0};
         i+=12;
       if(pCharInfo->Grouped != 0 )
-         strcat(szOutput, "1" );
+         strcpy(szOutput, "1" );
       else
-         strcat(szOutput, "0" );
+         strcpy(szOutput, "0" );
 
     // $char(hpbonus)
     } else if (!strncmp("char(hpbonus)",szVar,13)) {
         CHAR szTemp[MAX_STRING] = {0};
         i+=12;
         itoa(pCharInfo->HPBonus,szTemp,10);
-        strcat(szOutput,szTemp);
+        strcpy(szOutput,szTemp);
 
     // $char(manabonus)
     } else if (!strncmp("char(manabonus)",szVar,15)) {
         CHAR szTemp[MAX_STRING] = {0};
         i+=14;
         itoa(pCharInfo->ManaBonus,szTemp,10);
-        strcat(szOutput,szTemp);
+        strcpy(szOutput,szTemp);
 
     // $char(percentexptoaa)
     } else if (!strncmp("char(percentexptoaa)",szVar,20)) {
         CHAR szTemp[MAX_STRING] = {0};
         i+=19;
         itoa(pCharInfo->PercentEXPtoAA,szTemp,10);
-        strcat(szOutput,szTemp);
+        strcpy(szOutput,szTemp);
 
     // $char(gukearned)
     } else if (!strncmp("char(gukearned)",szVar,15)) {
         CHAR szTemp[MAX_STRING] = {0};
         i+=14;
         itoa(pCharInfo->GukEarned,szTemp,10);
-        strcat(szOutput,szTemp);
+        strcpy(szOutput,szTemp);
 
     // $char(mmearned)
     } else if (!strncmp("char(mmearned)",szVar,14)) {
         CHAR szTemp[MAX_STRING] = {0};
         i+=13;
         itoa(pCharInfo->MMEarned,szTemp,10);
-        strcat(szOutput,szTemp);
+        strcpy(szOutput,szTemp);
 
     // $char(rujearned)
     } else if (!strncmp("char(rujearned)",szVar,15)) {
         CHAR szTemp[MAX_STRING] = {0};
         i+=14;
         itoa(pCharInfo->RujEarned,szTemp,10);
-        strcat(szOutput,szTemp);
+        strcpy(szOutput,szTemp);
 
     // $char(takearned)
     } else if (!strncmp("char(takearned)",szVar,15)) {
         CHAR szTemp[MAX_STRING] = {0};
         i+=14;
         itoa(pCharInfo->TakEarned,szTemp,10);
-        strcat(szOutput,szTemp);
+        strcpy(szOutput,szTemp);
 
     // $char(ldonpoints)
     } else if (!strncmp("char(ldonpoints)",szVar,16)) {
         CHAR szTemp[MAX_STRING] = {0};
         i+=15;
         itoa(pCharInfo->LDoNPoints,szTemp,10);
-        strcat(szOutput,szTemp);
+        strcpy(szOutput,szTemp);
 
    // $char(castingspellid)
     } else if (!strncmp("char(castingspellid)",szVar,20)) {
         CHAR szTemp[MAX_STRING] = {0};
         i+=19;
 		itoa(pCharInfo->pSpawn->pActorInfo->CastingSpellID,szTemp,10);
-		strcat(szOutput, szTemp);
+		strcpy(szOutput, szTemp);
 
    // $char(levitating)
     } else if (!strncmp("char(levitating)",szVar,16)) {
         CHAR szTemp[MAX_STRING] = {0};
         i+=15;
       if(pCharInfo->pSpawn->Levitate == 0 )
-         strcat(szOutput, "FALSE" );
+         strcpy(szOutput, "FALSE" );
       else if ( pCharInfo->pSpawn->Levitate == 2 )
-         strcat(szOutput, "TRUE" );
+         strcpy(szOutput, "TRUE" );
 
    // $char(sneaking)
     } else if (!strncmp("char(sneaking)",szVar,14)) {
         CHAR szTemp[MAX_STRING] = {0};
         i+=13;
       if(pCharInfo->pSpawn->Sneak == 0 )
-         strcat(szOutput, "FALSE" );
+         strcpy(szOutput, "FALSE" );
       else if ( pCharInfo->pSpawn->Sneak == 1 )
-         strcat(szOutput, "TRUE" );
+         strcpy(szOutput, "TRUE" );
 
     // $char(height) 
     } else if (!strncmp("char(height)",szVar,12)) { 
         CHAR szTemp[MAX_STRING] = {0}; 
         i+=11; 
         sprintf(szTemp,"%1.2f",pChar->AvatarHeight); 
-       strcat(szOutput,szTemp); 
+       strcpy(szOutput,szTemp); 
 
    // $char(favor,cur) 
    } else if (!strncmp("char(favor,cur)",szVar,15)) { 
         i+=14; 
         CHAR szTemp[MAX_STRING] = {0}; 
         itoa(pCharInfo->CurrFavor,szTemp,10); 
-        strcat(szOutput,szTemp); 
+        strcpy(szOutput,szTemp); 
 
    // $char(favor,career) 
    } else if (!strncmp("char(favor,career)",szVar,18)) { 
         i+=17; 
         CHAR szTemp[MAX_STRING] = {0}; 
         itoa(pCharInfo->CareerFavor,szTemp,10); 
-        strcat(szOutput,szTemp); 
+        strcpy(szOutput,szTemp); 
 
    // $char(endurance,cur) 
    } else if (!strncmp("char(endurance,cur)",szVar,19)) { 
       i+=18; 
       CHAR szTemp[MAX_STRING] = {0}; 
       itoa(pCharInfo->Endurance,szTemp,10); 
-      strcat(szOutput,szTemp);
+      strcpy(szOutput,szTemp);
 
 	// $char(unknown)
     } else {
@@ -3211,7 +3211,7 @@ DWORD parmSpell(PCHAR szVar, PCHAR szOutput, PSPAWNINFO pChar)
         } else {
             strcpy(szTemp,"0");
         }
-        strcat(szOutput,szTemp);
+        strcpy(szOutput,szTemp);
     }
     return i;
 }
@@ -3222,9 +3222,9 @@ DWORD parmReturn(PCHAR szVar, PCHAR szOutput, PSPAWNINFO pChar)
     // $return
     i+=5;
     if (gMacroStack) {
-        strcat(szOutput,gMacroStack->Return);
+        strcpy(szOutput,gMacroStack->Return);
     } else
-        strcat(szOutput,"NULL");
+        strcpy(szOutput,"NULL");
     return i;
 }
 
@@ -3239,11 +3239,11 @@ DWORD parmZone(PCHAR szVar, PCHAR szOutput, PSPAWNINFO pChar)
         // $zone()
         if (!strncmp("zone()",szVar,6)) {
             i+=5;
-            strcat(szOutput,GetFullZone(GetCharInfo()->pSpawn->Zone));
+            strcpy(szOutput,GetFullZone(GetCharInfo()->pSpawn->Zone));
         // $zone(bound)
         } else if (!strncmp("zone(bound)",szVar,11)) {
             i+=10;
-            strcat(szOutput,GetFullZone(pCharInfo->ZoneBoundId));
+            strcpy(szOutput,GetFullZone(pCharInfo->ZoneBoundId));
         // $zone(zem)
         } else if (!strncmp("zone(zem)",szVar,9)) {
             i+=8;
@@ -3254,7 +3254,7 @@ DWORD parmZone(PCHAR szVar, PCHAR szOutput, PSPAWNINFO pChar)
             }
             CHAR szTemp[MAX_STRING] = {0};
             sprintf(szTemp,"%1.2f",zem);
-            strcat(szOutput,szTemp);
+            strcpy(szOutput,szTemp);
 
         // $zone(Unknown)
         } else {
@@ -3264,7 +3264,7 @@ DWORD parmZone(PCHAR szVar, PCHAR szOutput, PSPAWNINFO pChar)
     // $zone
     } else {
         i+=3;
-        strcat(szOutput,GetFullZone(GetCharInfo()->pSpawn->Zone));
+        strcpy(szOutput,GetFullZone(GetCharInfo()->pSpawn->Zone));
     }
     return i;
 }
@@ -3277,20 +3277,20 @@ DWORD parmFind(PCHAR szVar, PCHAR szOutput, PSPAWNINFO pChar)
     if (!strncmp("find()",szVar,6)) {
         i+=5;
         if (gLastFind == LASTFIND_NOTFOUND) {
-            strcat(szOutput,"FALSE");
+            strcpy(szOutput,"FALSE");
         } else {
-            strcat(szOutput,"TRUE");
+            strcpy(szOutput,"TRUE");
         }
 
     // $find(pack)
     } else if (!strncmp("find(pack)",szVar,10)) {
         i+=9;
         if ((gLastFind == LASTFIND_PRIMARY) || (gLastFind == LASTFIND_NOTFOUND)) {
-            strcat(szOutput,"FALSE");
+            strcpy(szOutput,"FALSE");
         } else {
             CHAR szTemp[MAX_STRING] = {0};
             itoa(gLastFind,szTemp,10);
-            strcat(szOutput,szTemp);
+            strcpy(szOutput,szTemp);
         }
 
     // $find(Unknown)
@@ -3315,7 +3315,7 @@ DWORD parmAlert(PCHAR szVar, PCHAR szOutput, PSPAWNINFO pChar)
         GetClosestAlert(pChar,atoi(szArg),&dwCount);
         CHAR szTemp[MAX_STRING] = {0};
         itoa(dwCount,szTemp,10);
-        strcat(szOutput,szTemp);
+        strcpy(szOutput,szTemp);
     } else if (strstr(szVar,",id)")) {
         PCHAR szArg = szVar+6;
         PSPAWNINFO pSpawn = NULL;
@@ -3325,14 +3325,14 @@ DWORD parmAlert(PCHAR szVar, PCHAR szOutput, PSPAWNINFO pChar)
         if (pSpawn) dwID = pSpawn->SpawnID;
         CHAR szTemp[MAX_STRING] = {0};
         itoa(dwID,szTemp,10);
-        strcat(szOutput,szTemp);
+        strcpy(szOutput,szTemp);
     } else {
         PCHAR szArg = szVar+6;
         i += (strstr(szVar,")")-szVar);
         if (!GetClosestAlert(pChar,atoi(szArg),NULL)) {
-            strcat(szOutput,"FALSE");
+            strcpy(szOutput,"FALSE");
         } else {
-            strcat(szOutput,"TRUE");
+            strcpy(szOutput,"TRUE");
         }
     }
     return i;
@@ -3354,9 +3354,9 @@ DWORD parmGM(PCHAR szVar, PCHAR szOutput, PSPAWNINFO pChar)
         pSpawn = pSpawn->pNext;
     }
     if (bGM) {
-        strcat(szOutput,"TRUE");
+        strcpy(szOutput,"TRUE");
     } else {
-        strcat(szOutput,"FALSE");
+        strcpy(szOutput,"FALSE");
     }
     return i;
 }
@@ -3369,9 +3369,9 @@ DWORD parmCombat(PCHAR szVar, PCHAR szOutput, PSPAWNINFO pChar)
     BYTE bAttack = *EQADDR_ATTACK;
     i+=5;
     if (bAttack) {
-        strcat(szOutput,"TRUE");
+        strcpy(szOutput,"TRUE");
     } else {
-        strcat(szOutput,"FALSE");
+        strcpy(szOutput,"FALSE");
     }
     return i;
 }
@@ -3401,7 +3401,7 @@ DWORD parmFreeInv(PCHAR szVar, PCHAR szOutput, PSPAWNINFO pChar)
             }
         }
         itoa(count,szTemp,10);
-        strcat(szOutput,szTemp);
+        strcpy(szOutput,szTemp);
 
     // $freeinv(size)
     } else if (!strncmp("freeinv(size)",szVar,13)) {
@@ -3424,7 +3424,7 @@ DWORD parmFreeInv(PCHAR szVar, PCHAR szOutput, PSPAWNINFO pChar)
             }
         }
         itoa(size,szTemp,10);
-        strcat(szOutput,szTemp);
+        strcpy(szOutput,szTemp);
 
     // $freeinv(Unknown)
     } else {
@@ -3447,7 +3447,7 @@ DWORD parmDistance(PCHAR szVar, PCHAR szOutput, PSPAWNINFO pChar)
             DWORD Distance = (DWORD)DistanceToSpawn(pChar,&EnviroTarget);
             i +=13;
             itoa(Distance,szTemp,10);
-            strcat(szOutput,szTemp);
+            strcpy(szOutput,szTemp);
         }
 
     // $distance(door)
@@ -3460,7 +3460,7 @@ DWORD parmDistance(PCHAR szVar, PCHAR szOutput, PSPAWNINFO pChar)
             DWORD Distance = (DWORD)DistanceToSpawn(pChar,&DoorEnviroTarget);
             i +=13;
             itoa(Distance,szTemp,10);
-            strcat(szOutput,szTemp);
+            strcpy(szOutput,szTemp);
         }
 
   // $distance(y,x[,z][:y,x[,z]]) 
@@ -3494,7 +3494,7 @@ DWORD parmDistance(PCHAR szVar, PCHAR szOutput, PSPAWNINFO pChar)
                if (LocSpawnA.Z != 0) LocSpawnB.Z = pChar->Z; 
            } 
            itoa((INT)DistanceToSpawn3D(&LocSpawnA,&LocSpawnB),szTemp,10); 
-           strcat(szOutput,szTemp); 
+           strcpy(szOutput,szTemp); 
        } 
     } 
 
@@ -3519,7 +3519,7 @@ DWORD parmRand(PCHAR szVar, PCHAR szOutput, PSPAWNINFO pChar)
             return PMP_ERROR_BADPARM;
         }
         itoa(rand() % j,szTemp,10);
-        strcat(szOutput,szTemp);
+        strcpy(szOutput,szTemp);
     }
     return i;
 }
@@ -3530,9 +3530,9 @@ DWORD parmGetLastError(PCHAR szVar, PCHAR szOutput, PSPAWNINFO pChar)
     // $GetLastError
     i += 11;
     if (gLastError[0] == 0) {
-        strcat(szOutput,"NULL");
+        strcpy(szOutput,"NULL");
     } else {
-        strcat(szOutput,gLastError);
+        strcpy(szOutput,gLastError);
     }
     return i;
 }
@@ -3543,9 +3543,9 @@ DWORD parmLastTell(PCHAR szVar, PCHAR szOutput, PSPAWNINFO pChar)
     // $lasttell
     i += 7;
 	if (EQADDR_LASTTELL && EQADDR_LASTTELL[0]!=0) {
-		strcat(szOutput,EQADDR_LASTTELL);
+		strcpy(szOutput,EQADDR_LASTTELL);
     } else {
-        strcat(szOutput,"NULL");
+        strcpy(szOutput,"NULL");
     }
     return i;
 }
@@ -3555,7 +3555,7 @@ DWORD parmLastCommand(PCHAR szVar, PCHAR szOutput, PSPAWNINFO pChar)
     DWORD i=0;
     // $lastcommand
     i += 10;
-    strcat(szOutput,szLastCommand);
+    strcpy(szOutput,szLastCommand);
     return i;
 }
 
@@ -3571,9 +3571,9 @@ DWORD parmInvPanel(PCHAR szVar, PCHAR szOutput, PSPAWNINFO pChar)
     DWORD PanelStatus = pInvWindow->Show;
     i += 7;
     if (PanelStatus == 1) {
-        strcat(szOutput,"TRUE");
+        strcpy(szOutput,"TRUE");
     } else {
-        strcat(szOutput,"FALSE");
+        strcpy(szOutput,"FALSE");
     }
     return i;
 }
@@ -3612,7 +3612,7 @@ DWORD parmIfN(PCHAR szVar, PCHAR szOutput, PSPAWNINFO pChar)
             } else {
                 GetArg(szOut,szFalse,1,FALSE);
             }
-            strcat(szOutput,szOut);
+            strcpy(szOutput,szOut);
         } else {
             return PMP_ERROR_BADPARM;
         }
@@ -3653,7 +3653,7 @@ DWORD parmIf(PCHAR szVar, PCHAR szOutput, PSPAWNINFO pChar)
             } else {
                 GetArg(szOut,szFalse,1,FALSE);
             }
-            strcat(szOutput,szOut);
+            strcpy(szOutput,szOut);
         } else {
             DebugSpewNoFile("PMP - Bad $if() '%s'",szVar);
             return PMP_ERROR_BADPARM;
@@ -3670,13 +3670,13 @@ DWORD parmMerchantName(PCHAR szVar, PCHAR szOutput, PSPAWNINFO pChar)
     CHAR* szOut;
     i += 13;
     if (!(DWORD)pinstActiveMerchant || !*(DWORD *)pinstActiveMerchant) {
-        strcat(szOutput,"NULL\0");
+        strcpy(szOutput,"NULL\0");
         return i;
     }
     sprintf(szTemp,"%s",*(DWORD *)pinstActiveMerchant);
     szOut = (char*)&szTemp[1];
     CleanupName(szOut);
-    strcat(szOutput,szOut);
+    strcpy(szOutput,szOut);
     return i;
 }
 
@@ -3692,7 +3692,7 @@ DWORD parmMerchantXXX(PCHAR szVar, PCHAR szOutput, PSPAWNINFO pChar)
         i += 13;
         if (!ppMerchantWnd) return PMP_ERROR_BADPARM;
         if (!pMerchantWnd) {
-            strcat(szOutput,"0");
+            strcpy(szOutput,"0");
         }
         PEQMERCHWINDOW pMerchWindow = NULL;
 		pMerchWindow = (PEQMERCHWINDOW)pMerchantWnd;
@@ -3708,9 +3708,9 @@ DWORD parmMerchantXXX(PCHAR szVar, PCHAR szOutput, PSPAWNINFO pChar)
 			}
 			if (Found) {
 					itoa(SlotsFree,szTemp,10);
-					strcat(szOutput,szTemp); 
+					strcpy(szOutput,szTemp); 
 			} else { 
-					strcat(szOutput,"0"); 
+					strcpy(szOutput,"0"); 
 			}
 		}
 		return i;
@@ -3719,13 +3719,13 @@ DWORD parmMerchantXXX(PCHAR szVar, PCHAR szOutput, PSPAWNINFO pChar)
         i += 13;
         if (!ppMerchantWnd) return PMP_ERROR_BADPARM;
         if (!pMerchantWnd) {
-            strcat(szOutput,"FALSE");
+            strcpy(szOutput,"FALSE");
         }
         PCSIDLWND pWind = (PCSIDLWND )pMerchantWnd;
         if (pWind->Show==1) {
-            strcat(szOutput,"TRUE");
+            strcpy(szOutput,"TRUE");
         } else {
-            strcat(szOutput,"FALSE");
+            strcpy(szOutput,"FALSE");
         }
         return i;
     // $merchant(has,xxx)
@@ -3758,12 +3758,12 @@ DWORD parmMerchantXXX(PCHAR szVar, PCHAR szOutput, PSPAWNINFO pChar)
                     } 
                 } 
                 if (Found) { 
-                    strcat(szOutput,"TRUE"); 
+                    strcpy(szOutput,"TRUE"); 
                 } else { 
-                    strcat(szOutput,"FALSE"); 
+                    strcpy(szOutput,"FALSE"); 
                 } 
             } else { 
-                strcat(szOutput,"NULL"); 
+                strcpy(szOutput,"NULL"); 
             } 
         } 
         return i; 
@@ -3772,15 +3772,15 @@ DWORD parmMerchantXXX(PCHAR szVar, PCHAR szOutput, PSPAWNINFO pChar)
         i += 15;
         if (!ppMerchantWnd) return PMP_ERROR_BADPARM;
         if (!pMerchantWnd) {
-            strcat(szOutput,"NULL");
+            strcpy(szOutput,"NULL");
         }
 		sprintf(szTemp,"%.3f",((PEQMERCHWINDOW)pMerchantWnd)->Markup);
-		strcat(szOutput,szTemp);
+		strcpy(szOutput,szTemp);
         return i;
 	}
     if (!strstr(szVar,")")) {
         sprintf(szTemp,"PMP - Bad $merchant() '%s'",szVar);
-        strcat(szOutput,szTemp);
+        strcpy(szOutput,szTemp);
         return PMP_ERROR_BADPARM;
     // $merchant("merchname here") || $merchant()
     // example1: /if $merchant()==TRUE /call mybuyroutine
@@ -3793,16 +3793,16 @@ DWORD parmMerchantXXX(PCHAR szVar, PCHAR szOutput, PSPAWNINFO pChar)
             szArg[strlen(szArg)-1]=0;
         DebugSpewNoFile("$merchant(xxx) szArg = %s",szArg);
         if (!ppActiveMerchant || !pActiveMerchant) {
-            strcat(szOutput,"FALSE");
+            strcpy(szOutput,"FALSE");
             return i;
         }
         sprintf(szTemp,"%s",pActiveMerchant);
         szOut = (char*)&szTemp[1];
         CleanupName(szOut);
         if (!_stricmp(szOut, szArg) || strlen(szArg)==0) {
-            strcat(szOutput,"TRUE");
+            strcpy(szOutput,"TRUE");
         } else {
-            strcat(szOutput,"FALSE");
+            strcpy(szOutput,"FALSE");
         }
     }
     return i;
@@ -3821,9 +3821,9 @@ DWORD parmCorpse(PCHAR szVar, PCHAR szOutput, PSPAWNINFO pChar)
    if (!strncmp("corpse()",szVar,8)) {
       i += 7;
       if (pLootWindow->Wnd.Show == 1) {
-         strcat(szOutput,"TRUE");
+         strcpy(szOutput,"TRUE");
       } else {
-         strcat(szOutput,"FALSE");
+         strcpy(szOutput,"FALSE");
       }
    // $corpse(has,xxx)
    } else if (!strncmp("corpse(has,",szVar,11)) {
@@ -3848,12 +3848,12 @@ DWORD parmCorpse(PCHAR szVar, PCHAR szOutput, PSPAWNINFO pChar)
                }
             }
             if (Found) {
-               strcat(szOutput,"TRUE");
+               strcpy(szOutput,"TRUE");
             } else {
-               strcat(szOutput,"FALSE");
+               strcpy(szOutput,"FALSE");
             }
          } else {
-            strcat(szOutput,"FALSE");
+            strcpy(szOutput,"FALSE");
          }
       }
    // $corpse(empty)
@@ -3870,12 +3870,12 @@ DWORD parmCorpse(PCHAR szVar, PCHAR szOutput, PSPAWNINFO pChar)
          }
          if (Found) {
             DebugSpewNoFile("Corpse is not empty");
-            strcat(szOutput,"FALSE");
+            strcpy(szOutput,"FALSE");
          } else {
-            strcat(szOutput,"TRUE");
+            strcpy(szOutput,"TRUE");
          }
       } else {
-         strcat(szOutput,"TRUE");
+         strcpy(szOutput,"TRUE");
       }
    // $corpse(Unknown)
    } else {
@@ -3900,7 +3900,7 @@ DWORD parmRunning(PCHAR szVar, PCHAR szOutput, PSPAWNINFO pChar)
     i += 6;
     if (gRunning>0) Running = (DWORD)((GetTickCount()-gRunning)/1000);
     itoa(Running,szTemp,10);
-    strcat(szOutput,szTemp);
+    strcpy(szOutput,szTemp);
     return i;
 }
 
@@ -3918,28 +3918,28 @@ DWORD parmTime(PCHAR szVar, PCHAR szOutput, PSPAWNINFO pChar)
         i+=5;
         CHAR szTemp[MAX_STRING] = {0};
         sprintf(szTemp,"%02d:%02d:%02d",tmTime.tm_hour,tmTime.tm_min, tmTime.tm_sec);
-        strcat(szOutput,szTemp);
+        strcpy(szOutput,szTemp);
 
         // $time(h)
     } else if (!strncmp("time(h)",szVar,7)) {
         i+=6;
         CHAR szTemp[MAX_STRING] = {0};
         itoa(tmTime.tm_hour,szTemp,10);
-        strcat(szOutput,szTemp);
+        strcpy(szOutput,szTemp);
 
     // $time(m)
     } else if (!strncmp("time(m)",szVar,7)) {
         i+=6;
         CHAR szTemp[MAX_STRING] = {0};
         itoa(tmTime.tm_min,szTemp,10);
-        strcat(szOutput,szTemp);
+        strcpy(szOutput,szTemp);
 
     // $time(s)
     } else if (!strncmp("time(s)",szVar,7)) {
         i+=6;
         CHAR szTemp[MAX_STRING] = {0};
         itoa(tmTime.tm_sec,szTemp,10);
-        strcat(szOutput,szTemp);
+        strcpy(szOutput,szTemp);
 
     // $time(Unknown)
     } else {
@@ -3963,28 +3963,28 @@ DWORD parmDate(PCHAR szVar, PCHAR szOutput, PSPAWNINFO pChar)
         i+=5;
         CHAR szTemp[MAX_STRING] = {0};
         sprintf(szTemp,"%04d/%02d/%02d",tmTime.tm_year+1900,tmTime.tm_mon+1, tmTime.tm_mday);
-        strcat(szOutput,szTemp);
+        strcpy(szOutput,szTemp);
 
         // $date(y)
     } else if (!strncmp("date(y)",szVar,7)) {
         i+=6;
         CHAR szTemp[MAX_STRING] = {0};
         itoa(tmTime.tm_year+1900,szTemp,10);
-        strcat(szOutput,szTemp);
+        strcpy(szOutput,szTemp);
 
     // $date(m)
     } else if (!strncmp("date(m)",szVar,7)) {
         i+=6;
         CHAR szTemp[MAX_STRING] = {0};
         itoa(tmTime.tm_mon+1,szTemp,10);
-        strcat(szOutput,szTemp);
+        strcpy(szOutput,szTemp);
 
     // $date(d)
     } else if (!strncmp("date(d)",szVar,7)) {
         i+=6;
         CHAR szTemp[MAX_STRING] = {0};
         itoa(tmTime.tm_mday,szTemp,10);
-        strcat(szOutput,szTemp);
+        strcpy(szOutput,szTemp);
 
     // $date(Unknown)
     } else {
@@ -4056,19 +4056,19 @@ DWORD parmPack(PCHAR szVar, PCHAR szOutput, PSPAWNINFO pChar)
             }
         }
             if (!pItem) {
-                strcat(szOutput,"NULL");
+                strcpy(szOutput,"NULL");
         } else if ((pItem->Item->Type != ITEMTYPE_PACK) && !Enviro) {
-                strcat(szOutput,"NULL");
+                strcpy(szOutput,"NULL");
             } else {
 
                 // $pack(#)
                 DebugSpewNoFile("Pack-- szTemp=='%s'",szTemp);
                 if (szTemp[0]=='\0') {
-                    strcat(szOutput,"TRUE");
+                    strcpy(szOutput,"TRUE");
 
                 // $pack(#,name)
                 } else if (!strncmp(szTemp,"name)",5)) {
-                    strcat(szOutput,pItem->Item->Name);
+                    strcpy(szOutput,pItem->Item->Name);
 
                 // $pack(#,combine)
                 } else if (!strncmp(szTemp,"combine)",8)) {
@@ -4078,33 +4078,33 @@ DWORD parmPack(PCHAR szVar, PCHAR szOutput, PSPAWNINFO pChar)
                     } else {
                         sprintf(szCombine,"*Unknown%d",pItem->Item->Combine);
                     }
-                    strcat(szOutput,szCombine);
+                    strcpy(szOutput,szCombine);
 
                 // $pack(#,open)
                 } else if (!strncmp(szTemp,"open)",5)) {
                     if (pItem->Open) {
-                        strcat(szOutput,"TRUE");
+                        strcpy(szOutput,"TRUE");
                     } else {
-                        strcat(szOutput,"FALSE");
+                        strcpy(szOutput,"FALSE");
                     }
 
                 // $pack(#,size)
                 } else if (!strncmp(szTemp,"size)",5)) {
                     CHAR szTemp[MAX_STRING] = {0};
                     itoa(pItem->Item->SizeCapacity,szTemp,10);
-                    strcat(szOutput,szTemp);
+                    strcpy(szOutput,szTemp);
 
                 // $pack(#,weight)
                 } else if (!strncmp(szTemp,"weight)",7)) {
                     CHAR szTemp[MAX_STRING] = {0};
                     itoa(pItem->Item->WeightReduction,szTemp,10);
-                    strcat(szOutput,szTemp);
+                    strcpy(szOutput,szTemp);
 
                 // $pack(#,slots)
                 } else if (!strncmp(szTemp,"slots)",6)) {
                     CHAR szTemp[MAX_STRING] = {0};
                     itoa(pItem->Item->Slots,szTemp,10);
-                    strcat(szOutput,szTemp);
+                    strcpy(szOutput,szTemp);
 
                 // $pack(#,space)
                 } else if (!strncmp(szTemp,"space)",6)) {
@@ -4114,7 +4114,7 @@ DWORD parmPack(PCHAR szVar, PCHAR szOutput, PSPAWNINFO pChar)
                     for (i=0;i<pItem->Item->Slots;i++)
                     if (pItem->Contents[i]) Free--;
                     itoa(Free,szTemp,10);
-                    strcat(szOutput,szTemp);
+                    strcpy(szOutput,szTemp);
 
                 // $pack(#,empty)
                 } else if (!strncmp(szTemp,"empty)",5)) {
@@ -4124,9 +4124,9 @@ DWORD parmPack(PCHAR szVar, PCHAR szOutput, PSPAWNINFO pChar)
                     for (i=0;i<pItem->Item->Slots;i++)
                     if (pItem->Contents[i]) Free--;
                     if (Free==pItem->Item->Slots) {
-                        strcat(szOutput,"TRUE");
+                        strcpy(szOutput,"TRUE");
                     } else {
-                        strcat(szOutput,"FALSE");
+                        strcpy(szOutput,"FALSE");
                     }
 
                 // $pack(#,Unknown)
@@ -4169,7 +4169,7 @@ DWORD parmArg(PCHAR szVar, PCHAR szOutput, PSPAWNINFO pChar)
 
         num = atoi(szVar+4);
         GetArg(szTemp,szArg,num,FALSE,FALSE,FALSE,szTemp[0]);
-        strcat(szOutput,szTemp);
+        strcpy(szOutput,szTemp);
     }
     return i;
 }
@@ -4200,7 +4200,7 @@ DWORD parmLeft(PCHAR szVar, PCHAR szOutput, PSPAWNINFO pChar)
         strcpy(szArg,strstr(szTemp,",")+1);
         ZeroMemory(szTemp,MAX_STRING);
         strncpy(szTemp,szArg,num);
-        strcat(szOutput,szTemp);
+        strcpy(szOutput,szTemp);
     }
     return i;
 }
@@ -4233,7 +4233,7 @@ DWORD parmMid(PCHAR szVar, PCHAR szOutput, PSPAWNINFO pChar)
         strcpy(szArg,strstr(strstr(szTemp,",")+1,",")+1);
         ZeroMemory(szTemp,MAX_STRING);
         strncpy(szTemp,szArg+start,num);
-        strcat(szOutput,szTemp);
+        strcpy(szOutput,szTemp);
     }
     return i;
 }
@@ -4267,7 +4267,7 @@ DWORD parmRight(PCHAR szVar, PCHAR szOutput, PSPAWNINFO pChar)
         } else {
             strcpy(szTemp,szArg + strlen(szArg) - num);
         }
-        strcat(szOutput,szTemp);
+        strcpy(szOutput,szTemp);
     }
     return i;
 }
@@ -4306,7 +4306,7 @@ DWORD parmInstr(PCHAR szVar, PCHAR szOutput, PSPAWNINFO pChar)
         }
         DebugSpewNoFile("$instr(): '%s' found in '%s' at location %d",szSearch,szArg,zz);
         itoa(zz,szTemp,10);
-        strcat(szOutput,szTemp);
+        strcpy(szOutput,szTemp);
     }
     return i;
 }
@@ -4333,7 +4333,7 @@ DWORD parmStrLen(PCHAR szVar, PCHAR szOutput, PSPAWNINFO pChar)
             }
         }
         itoa(strlen(szArg+7),szTemp,10);
-        strcat(szOutput,szTemp);
+        strcpy(szOutput,szTemp);
     }
     return i;
 }
@@ -4363,7 +4363,7 @@ DWORD parmUcase(PCHAR szVar, PCHAR szOutput, PSPAWNINFO pChar)
                 InQuote = !InQuote;
             }
         }
-        strcat(szOutput,szTemp+6);
+        strcpy(szOutput,szTemp+6);
     }
     return i;
 }
@@ -4393,7 +4393,7 @@ DWORD parmLcase(PCHAR szVar, PCHAR szOutput, PSPAWNINFO pChar)
                 InQuote = !InQuote;
             }
         }
-        strcat(szOutput,szTemp+6);
+        strcpy(szOutput,szTemp+6);
     }
     return i;
 }
@@ -4441,14 +4441,14 @@ DWORD parmSpawnName(PCHAR szVar, PCHAR szOutput, PSPAWNINFO pChar)
     }
     if (pSpawn) {
         DebugSpewNoFile("PMP - SpawnName - Spawn '%s' FOUND!",pSpawn->Name);
-        if (!bID && !bFullName) strcat(szOutput,"TRUE");
-        else if (bFullName) strcat(szOutput,strcpy(szTemp,pSpawn->Name));
-        else if (bID) strcat(szOutput,itoa((int)pSpawn->SpawnID,szTemp,10));
+        if (!bID && !bFullName) strcpy(szOutput,"TRUE");
+        else if (bFullName) strcpy(szOutput,strcpy(szTemp,pSpawn->Name));
+        else if (bID) strcpy(szOutput,itoa((int)pSpawn->SpawnID,szTemp,10));
     } else {
         DebugSpewNoFile("PMP - SpawnName - Spawn '%s' NOT found!",szTemp);
-        if (!bID && !bFullName) strcat(szOutput,"FALSE");
-        else if (bFullName) strcat(szOutput,"NULL");
-        else if (bID) strcat(szOutput,"NULL");
+        if (!bID && !bFullName) strcpy(szOutput,"FALSE");
+        else if (bFullName) strcpy(szOutput,"NULL");
+        else if (bID) strcpy(szOutput,"NULL");
     }
 
     return i;
@@ -4500,7 +4500,7 @@ DWORD parmCount(PCHAR szVar, PCHAR szOutput, PSPAWNINFO pChar)
             }
         }
         itoa(c, szTemp, 10);
-        strcat(szOutput,szTemp);
+        strcpy(szOutput,szTemp);
 
     // $count(itemname)
     } else {
@@ -4535,7 +4535,7 @@ DWORD parmCount(PCHAR szVar, PCHAR szOutput, PSPAWNINFO pChar)
             }
         }
         itoa(c, szTemp, 10);
-        strcat(szOutput,szTemp);
+        strcpy(szOutput,szTemp);
     }
     return i;
 }
@@ -4564,7 +4564,7 @@ DWORD parmCalc(PCHAR szVar, PCHAR szOutput, PSPAWNINFO pChar)
             Formula[i-5] = 0;
         }
         sprintf(Formula,"%1.*f",PrecVal,Calculate(Formula));
-      strcat(szOutput,Formula);
+      strcpy(szOutput,Formula);
     }
     return i;
 }
@@ -4584,7 +4584,7 @@ DWORD parmInt(PCHAR szVar, PCHAR szOutput, PSPAWNINFO pChar)
         Formula[strstr(Formula,")")-Formula] = 0;
         LONG Val = (LONG)Calculate(Formula);
         itoa(Val,Formula,10);
-        strcat(szOutput,Formula);
+        strcpy(szOutput,Formula);
     }
     return i;
 }
@@ -4664,7 +4664,7 @@ DWORD parmSpellItem(PCHAR szVar, PCHAR szOutput, PSPAWNINFO pChar)
       } else {
          strcpy(szTemp,"0");
       }
-      strcat(szOutput,szTemp);
+      strcpy(szOutput,szTemp);
    }
    return i;
 }
@@ -4694,7 +4694,7 @@ DWORD parmAbs(PCHAR szVar, PCHAR szOutput, PSPAWNINFO pChar)
         DOUBLE Val = Calculate(Formula);
         if (Val<0) Val *= -1;
         sprintf(Formula,"%1.*f",PrecVal,Val);
-        strcat(szOutput,Formula);
+        strcpy(szOutput,Formula);
     }
     return i;
 }
@@ -4723,7 +4723,7 @@ DWORD parmSin(PCHAR szVar, PCHAR szOutput, PSPAWNINFO pChar)
             Formula[i-4] = 0;
         }
         sprintf(Formula,"%1.*f",PrecVal,(sin(Calculate(Formula)/DegToRad)));
-        strcat(szOutput,Formula);
+        strcpy(szOutput,Formula);
     }
     return i;
 }
@@ -4752,7 +4752,7 @@ DWORD parmCos(PCHAR szVar, PCHAR szOutput, PSPAWNINFO pChar)
             Formula[i-4] = 0;
         }
         sprintf(Formula,"%1.*f",PrecVal,(cos(Calculate(Formula)/DegToRad)));
-        strcat(szOutput,Formula);
+        strcpy(szOutput,Formula);
     }
     return i;
 }
@@ -4781,7 +4781,7 @@ DWORD parmTan(PCHAR szVar, PCHAR szOutput, PSPAWNINFO pChar)
             Formula[i-4] = 0;
         }
         sprintf(Formula,"%1.*f",PrecVal,(tan(Calculate(Formula)/DegToRad)));
-        strcat(szOutput,Formula);
+        strcpy(szOutput,Formula);
     }
     return i;
 }
@@ -4810,7 +4810,7 @@ DWORD parmAsin(PCHAR szVar, PCHAR szOutput, PSPAWNINFO pChar)
             Formula[i-5] = 0;
         }
         sprintf(Formula,"%1.*f",PrecVal,(asin(Calculate(Formula))*DegToRad));
-        strcat(szOutput,Formula);
+        strcpy(szOutput,Formula);
     }
     return i;
 }
@@ -4839,7 +4839,7 @@ DWORD parmAcos(PCHAR szVar, PCHAR szOutput, PSPAWNINFO pChar)
             Formula[i-5] = 0;
         }
         sprintf(Formula,"%1.*f",PrecVal,(acos(Calculate(Formula))*DegToRad));
-        strcat(szOutput,Formula);
+        strcpy(szOutput,Formula);
     }
     return i;
 }
@@ -4868,7 +4868,7 @@ DWORD parmAtan(PCHAR szVar, PCHAR szOutput, PSPAWNINFO pChar)
             Formula[i-5] = 0;
         }
         sprintf(Formula,"%1.*f",PrecVal,(atan(Calculate(Formula))*DegToRad));
-        strcat(szOutput,Formula);
+        strcpy(szOutput,Formula);
     }
     return i;
 }
@@ -4883,9 +4883,9 @@ DWORD parmDoor(PCHAR szVar, PCHAR szOutput, PSPAWNINFO pChar)
     if (!strncmp("door()",szVar,6)) {
         i+=5;
         if (!pDoorTarget) {
-            strcat(szOutput,"FALSE");
+            strcpy(szOutput,"FALSE");
         } else {
-            strcat(szOutput,"TRUE");
+            strcpy(szOutput,"TRUE");
         }
 
     // $door(distance)
@@ -4894,10 +4894,10 @@ DWORD parmDoor(PCHAR szVar, PCHAR szOutput, PSPAWNINFO pChar)
         i+=13;
 
         if (!pDoorTarget) {
-            strcat(szOutput,"0");
+            strcpy(szOutput,"0");
         } else {
             itoa((INT)DistanceToSpawn(pChar,&DoorEnviroTarget),szTemp,10);
-            strcat(szOutput,szTemp);
+            strcpy(szOutput,szTemp);
         }
 
     // $door(id)
@@ -4905,10 +4905,10 @@ DWORD parmDoor(PCHAR szVar, PCHAR szOutput, PSPAWNINFO pChar)
         CHAR szTemp[MAX_STRING] = {0};
         i+=7;
         if (!pDoorTarget) {
-            strcat(szOutput,"0");
+            strcpy(szOutput,"0");
         } else {
             itoa(pDoorTarget->ID,szTemp,10);
-            strcat(szOutput,szTemp);
+            strcpy(szOutput,szTemp);
         }
 
     // $door(x)
@@ -4916,10 +4916,10 @@ DWORD parmDoor(PCHAR szVar, PCHAR szOutput, PSPAWNINFO pChar)
         CHAR szTemp[MAX_STRING] = {0};
         i+=6;
         if (!pDoorTarget) {
-            strcat(szOutput,"0");
+            strcpy(szOutput,"0");
         } else {
             sprintf(szTemp,"%1.2f",pDoorTarget->X);
-            strcat(szOutput,szTemp);
+            strcpy(szOutput,szTemp);
         }
 
     // $door(y)
@@ -4927,10 +4927,10 @@ DWORD parmDoor(PCHAR szVar, PCHAR szOutput, PSPAWNINFO pChar)
         CHAR szTemp[MAX_STRING] = {0};
         i+=6;
         if (!pDoorTarget) {
-            strcat(szOutput,"0");
+            strcpy(szOutput,"0");
         } else {
             sprintf(szTemp,"%1.2f",pDoorTarget->Y);
-            strcat(szOutput,szTemp);
+            strcpy(szOutput,szTemp);
         }
 
     // $door(z)
@@ -4938,10 +4938,10 @@ DWORD parmDoor(PCHAR szVar, PCHAR szOutput, PSPAWNINFO pChar)
         CHAR szTemp[MAX_STRING] = {0};
         i+=6;
         if (!pDoorTarget) {
-            strcat(szOutput,"0");
+            strcpy(szOutput,"0");
         } else {
             sprintf(szTemp,"%1.2f",pDoorTarget->Z);
-            strcat(szOutput,szTemp);
+            strcpy(szOutput,szTemp);
         }
 
     // $door(heading)
@@ -4949,10 +4949,10 @@ DWORD parmDoor(PCHAR szVar, PCHAR szOutput, PSPAWNINFO pChar)
         CHAR szTemp[MAX_STRING] = {0};
         i+=12;
         if (!pDoorTarget) {
-            strcat(szOutput,"0");
+            strcpy(szOutput,"0");
         } else {
             sprintf(szTemp,"%1.2f",pDoorTarget->Heading*0.703125f);
-            strcat(szOutput,szTemp);
+            strcpy(szOutput,szTemp);
         }
 
     // $door(defaultx)
@@ -4960,10 +4960,10 @@ DWORD parmDoor(PCHAR szVar, PCHAR szOutput, PSPAWNINFO pChar)
         CHAR szTemp[MAX_STRING] = {0};
         i+=13;
         if (!pDoorTarget) {
-            strcat(szOutput,"0");
+            strcpy(szOutput,"0");
         } else {
             sprintf(szTemp,"%1.2f",pDoorTarget->DefaultX);
-            strcat(szOutput,szTemp);
+            strcpy(szOutput,szTemp);
         }
 
     // $door(defaulty)
@@ -4971,10 +4971,10 @@ DWORD parmDoor(PCHAR szVar, PCHAR szOutput, PSPAWNINFO pChar)
         CHAR szTemp[MAX_STRING] = {0};
         i+=13;
         if (!pDoorTarget) {
-            strcat(szOutput,"0");
+            strcpy(szOutput,"0");
         } else {
             sprintf(szTemp,"%1.2f",pDoorTarget->DefaultY);
-            strcat(szOutput,szTemp);
+            strcpy(szOutput,szTemp);
         }
 
     // $door(defaultz)
@@ -4982,10 +4982,10 @@ DWORD parmDoor(PCHAR szVar, PCHAR szOutput, PSPAWNINFO pChar)
         CHAR szTemp[MAX_STRING] = {0};
         i+=13;
         if (!pDoorTarget) {
-            strcat(szOutput,"0");
+            strcpy(szOutput,"0");
         } else {
             sprintf(szTemp,"%1.2f",pDoorTarget->DefaultZ);
-            strcat(szOutput,szTemp);
+            strcpy(szOutput,szTemp);
         }
 
     // $door(defaultheading)
@@ -4993,10 +4993,10 @@ DWORD parmDoor(PCHAR szVar, PCHAR szOutput, PSPAWNINFO pChar)
         CHAR szTemp[MAX_STRING] = {0};
         i+=19;
         if (!pDoorTarget) {
-            strcat(szOutput,"0");
+            strcpy(szOutput,"0");
         } else {
             sprintf(szTemp,"%1.2f",pDoorTarget->DefaultHeading*0.703125f);
-            strcat(szOutput,szTemp);
+            strcpy(szOutput,szTemp);
         }
 
     // $door(open)
@@ -5004,13 +5004,13 @@ DWORD parmDoor(PCHAR szVar, PCHAR szOutput, PSPAWNINFO pChar)
         CHAR szTemp[MAX_STRING] = {0};
         i+=9;
         if (!pDoorTarget) {
-            strcat(szOutput,"FALSE");
+            strcpy(szOutput,"FALSE");
         } else {
             if ((pDoorTarget->DefaultHeading != pDoorTarget->Heading) ||
                 (pDoorTarget->DefaultZ != pDoorTarget->Z)) {
-                strcat(szOutput,"TRUE");
+                strcpy(szOutput,"TRUE");
             } else {
-                strcat(szOutput,"FALSE");
+                strcpy(szOutput,"FALSE");
             }
         }
 
@@ -5019,25 +5019,25 @@ DWORD parmDoor(PCHAR szVar, PCHAR szOutput, PSPAWNINFO pChar)
         CHAR szTemp[MAX_STRING] = {0};
         i+=14;
         if (!pDoorTarget) {
-            strcat(szOutput,"0");
+            strcpy(szOutput,"0");
         } else {
             DOUBLE HeadingTo = atan2f(pChar->Y - pDoorTarget->Y, pDoorTarget->X - pChar->X) * 180.0f / PI + 90.0f;
             if (HeadingTo<0.0f) HeadingTo += 360.0f;
             if (HeadingTo>=360.0f) HeadingTo -= 360.0f;
             sprintf(szTemp,"%1.2f",HeadingTo);
-            strcat(szOutput,szTemp);
+            strcpy(szOutput,szTemp);
         }
 
 
     // return NULL for all following $door(xxx) commands if no door
     } else if (!pDoorTarget) {
         while ((szVar[i] != ')') && (szVar[i] != 0)) i++;
-        strcat(szOutput,"NULL");
+        strcpy(szOutput,"NULL");
 
     // $door(name)
     } else if (!strncmp("door(name)",szVar,10)) {
         i+=9;
-        strcat(szOutput,pDoorTarget->Name);
+        strcpy(szOutput,pDoorTarget->Name);
 
     // $door(unknown)
     } else {
@@ -5056,9 +5056,9 @@ DWORD parmGround(PCHAR szVar, PCHAR szOutput, PSPAWNINFO pChar)
     if (!strncmp("ground()",szVar,8)) {
         i+=7;
         if (!pGroundTarget) {
-            strcat(szOutput,"FALSE");
+            strcpy(szOutput,"FALSE");
         } else {
-            strcat(szOutput,"TRUE");
+            strcpy(szOutput,"TRUE");
         }
 
     // $ground(distance)
@@ -5067,10 +5067,10 @@ DWORD parmGround(PCHAR szVar, PCHAR szOutput, PSPAWNINFO pChar)
         i+=15;
 
         if (!pGroundTarget) {
-            strcat(szOutput,"0");
+            strcpy(szOutput,"0");
         } else {
             itoa((INT)DistanceToSpawn(pChar,&EnviroTarget),szTemp,10);
-            strcat(szOutput,szTemp);
+            strcpy(szOutput,szTemp);
         }
 
     // $ground(id)
@@ -5078,10 +5078,10 @@ DWORD parmGround(PCHAR szVar, PCHAR szOutput, PSPAWNINFO pChar)
         CHAR szTemp[MAX_STRING] = {0};
         i+=9;
         if (!pGroundTarget) {
-            strcat(szOutput,"0");
+            strcpy(szOutput,"0");
         } else {
             itoa(pGroundTarget->ID,szTemp,10);
-            strcat(szOutput,szTemp);
+            strcpy(szOutput,szTemp);
         }
 
     // $ground(x)
@@ -5089,10 +5089,10 @@ DWORD parmGround(PCHAR szVar, PCHAR szOutput, PSPAWNINFO pChar)
         CHAR szTemp[MAX_STRING] = {0};
         i+=8;
         if (!pGroundTarget) {
-            strcat(szOutput,"0");
+            strcpy(szOutput,"0");
         } else {
             sprintf(szTemp,"%1.2f",pGroundTarget->X);
-            strcat(szOutput,szTemp);
+            strcpy(szOutput,szTemp);
         }
 
     // $ground(y)
@@ -5100,10 +5100,10 @@ DWORD parmGround(PCHAR szVar, PCHAR szOutput, PSPAWNINFO pChar)
         CHAR szTemp[MAX_STRING] = {0};
         i+=8;
         if (!pGroundTarget) {
-            strcat(szOutput,"0");
+            strcpy(szOutput,"0");
         } else {
             sprintf(szTemp,"%1.2f",pGroundTarget->Y);
-            strcat(szOutput,szTemp);
+            strcpy(szOutput,szTemp);
         }
 
     // $ground(z)
@@ -5111,10 +5111,10 @@ DWORD parmGround(PCHAR szVar, PCHAR szOutput, PSPAWNINFO pChar)
         CHAR szTemp[MAX_STRING] = {0};
         i+=8;
         if (!pGroundTarget) {
-            strcat(szOutput,"0");
+            strcpy(szOutput,"0");
         } else {
             sprintf(szTemp,"%1.2f",pGroundTarget->Z);
-            strcat(szOutput,szTemp);
+            strcpy(szOutput,szTemp);
         }
 
     // $ground(heading)
@@ -5122,19 +5122,19 @@ DWORD parmGround(PCHAR szVar, PCHAR szOutput, PSPAWNINFO pChar)
         CHAR szTemp[MAX_STRING] = {0};
         i+=14;
         if (!pGroundTarget) {
-            strcat(szOutput,"0");
+            strcpy(szOutput,"0");
         } else {
             sprintf(szTemp,"%1.2f",pGroundTarget->Heading*0.703125f);
-            strcat(szOutput,szTemp);
+            strcpy(szOutput,szTemp);
         }
 
     // $ground(name)
     } else if (!strncmp("ground(name)",szVar,12)) {
         i+=11;
         if (!pGroundTarget) {
-            strcat(szOutput,"NULL");
+            strcpy(szOutput,"NULL");
         } else {
-            strcat(szOutput,pGroundTarget->Name);
+            strcpy(szOutput,pGroundTarget->Name);
         }
 
     // $ground(unknown)
@@ -5155,7 +5155,7 @@ DWORD parmHex(PCHAR szVar, PCHAR szOutput, PSPAWNINFO pChar)
     sscanf(szArg, "%x", &dwCount);
     CHAR szTemp[MAX_STRING] = {0};
     itoa(dwCount,szTemp,10);
-    strcat(szOutput,szTemp);
+    strcpy(szOutput,szTemp);
     return i;
 }
 
@@ -5178,7 +5178,7 @@ DWORD parmDec(PCHAR szVar, PCHAR szOutput, PSPAWNINFO pChar)
 		DebugSpewNoFile("$dec szName = %s",szName);
 		int szTest = atoi(szName);
 		sprintf(szBuffer,"%x",szTest);
-        strcat(szOutput,szBuffer);
+        strcpy(szOutput,szBuffer);
     }
     return i;
 }
@@ -5194,7 +5194,7 @@ DWORD parmNot(PCHAR szVar, PCHAR szOutput, PSPAWNINFO pChar)
     dwCount = ~dwCount;
     CHAR szTemp[MAX_STRING] = {0};
     itoa(dwCount,szTemp,10);
-    strcat(szOutput,szTemp);
+    strcpy(szOutput,szTemp);
     return i;
 }
 
@@ -5245,7 +5245,7 @@ DWORD parmIni(PCHAR szVar, PCHAR szOutput, PSPAWNINFO pChar)
                 if (szBuffer[k]==0) szBuffer[k] = '|';
             strcat(szBuffer,"||");
         }
-        strcat(szOutput,szBuffer);
+        strcpy(szOutput,szBuffer);
 
         //DebugSpewNoFile("PMP - $ini(%s,%s,%s) returned '%s'",szArg1,szArg2,szArg3,szBuffer);
     }
@@ -5261,9 +5261,9 @@ DWORD parmMerchant(PCHAR szVar, PCHAR szOutput, PSPAWNINFO pChar)
     pMerchWindow = (PCSIDLWND)pMerchantWnd;
     i += 7;
     if (pMerchWindow->Show == 1) {
-        strcat(szOutput,"TRUE");
+        strcpy(szOutput,"TRUE");
     } else {
-        strcat(szOutput,"FALSE");
+        strcpy(szOutput,"FALSE");
     }
 return i;
 }
@@ -5300,7 +5300,7 @@ DWORD parmFinditemBank(PCHAR szVar, PCHAR szOutput, PSPAWNINFO pChar)
                 (!Exact && strstr(szSearch,szTemp)))
             {
                 sprintf(szTemp,"%d",a);
-                strcat(szOutput,szTemp);
+                strcpy(szOutput,szTemp);
                 return i;
             }
             for (int b=0;b<10;b++)
@@ -5312,14 +5312,14 @@ DWORD parmFinditemBank(PCHAR szVar, PCHAR szOutput, PSPAWNINFO pChar)
                         (!Exact && strstr(szSearch,szTemp)))
                     {
                         sprintf(szTemp,"%d %d",a,b);
-                        strcat(szOutput,szTemp);
+                        strcpy(szOutput,szTemp);
                         return i;
                     }
                 }
             }
         }
     }
-    strcat(szOutput,"FALSE");
+    strcpy(szOutput,"FALSE");
     return i;
 }
 
@@ -5355,7 +5355,7 @@ DWORD parmFinditem(PCHAR szVar, PCHAR szOutput, PSPAWNINFO pChar)
                 (!Exact && strstr(szSearch,szTemp)))
             {
                 sprintf(szTemp,"%d",a);
-                strcat(szOutput,szTemp);
+                strcpy(szOutput,szTemp);
                 return i;
             }
             for (int b=0;b<10;b++)
@@ -5367,7 +5367,7 @@ DWORD parmFinditem(PCHAR szVar, PCHAR szOutput, PSPAWNINFO pChar)
                         (!Exact && strstr(szSearch,szTemp)))
                     {
                         sprintf(szTemp,"%d %d",a,b);
-                        strcat(szOutput,szTemp);
+                        strcpy(szOutput,szTemp);
                         return i;
                     }
                 }
@@ -5383,7 +5383,7 @@ DWORD parmEQPath(PCHAR szVar, PCHAR szOutput, PSPAWNINFO pChar)
     CHAR szEQPath[MAX_STRING]={0};
     PCHAR pSearch = GetEQPath(szEQPath);
     if (pSearch) {
-        strcat(szOutput,szEQPath);
+        strcpy(szOutput,szEQPath);
         i+=5;
     }
     else
@@ -5395,7 +5395,7 @@ DWORD parmEQPath(PCHAR szVar, PCHAR szOutput, PSPAWNINFO pChar)
 DWORD parmMacroPath(PCHAR szVar, PCHAR szOutput, PSPAWNINFO pChar)
 {
     DWORD i=0;
-    strcat(szOutput,gszMacroPath);
+    strcpy(szOutput,gszMacroPath);
     i+=8;
     return i;
 }
@@ -5403,7 +5403,7 @@ DWORD parmMacroPath(PCHAR szVar, PCHAR szOutput, PSPAWNINFO pChar)
 DWORD parmMQPath(PCHAR szVar, PCHAR szOutput, PSPAWNINFO pChar)
 {
     DWORD i=0;
-    strcat(szOutput,gszINIPath);
+    strcpy(szOutput,gszINIPath);
     i+=5;
     return i;
 }
@@ -5411,7 +5411,7 @@ DWORD parmMQPath(PCHAR szVar, PCHAR szOutput, PSPAWNINFO pChar)
 DWORD parmLogPath(PCHAR szVar, PCHAR szOutput, PSPAWNINFO pChar)
 {
     DWORD i=0;
-    strcat(szOutput,gszLogPath);
+    strcpy(szOutput,gszLogPath);
     i+=6;
     return i;
 }
@@ -5439,7 +5439,7 @@ DWORD parmSqrt(PCHAR szVar, PCHAR szOutput, PSPAWNINFO pChar)
             Formula[i-5] = 0;
         }
         sprintf(Formula,"%1.*f",PrecVal,(sqrt(Calculate(Formula))));
-        strcat(szOutput,Formula);
+        strcpy(szOutput,Formula);
     }
     return i;
 } 
@@ -5466,9 +5466,9 @@ DWORD parmDefined(PCHAR szVar, PCHAR szOutput, PSPAWNINFO pChar)
 
 
         if (IsVariableDefined(szName)) {
-                strcat(szOutput,"TRUE");
+                strcpy(szOutput,"TRUE");
             } else {
-                strcat(szOutput,"FALSE");
+                strcpy(szOutput,"FALSE");
         }
     }
     return i;
@@ -5484,18 +5484,18 @@ DWORD parmEnvOpen(PCHAR szVar, PCHAR szOutput, PSPAWNINFO pChar)
     if(!ppContainerMgr || !pContainerMgr) return PMP_ERROR_BADPARM;
     ContainerMgr = (PEQ_CONTAINERWND_MANAGER)pContainerMgr;
     if(!ContainerMgr->pWorldContents) {
-        strcat(szOutput,"ENVIRO_NOT_OPEN");
+        strcpy(szOutput,"ENVIRO_NOT_OPEN");
         return i;
     }
     if(!*(DWORD *)ContainerMgr->pWorldContents)  {
-        strcat(szOutput,"ENVIRO_NOT_OPEN");
+        strcpy(szOutput,"ENVIRO_NOT_OPEN");
         return i;
     }
     pEnvinfo = *(PITEMINFO *)ContainerMgr->pWorldContents;
     if(pEnvinfo) {
-        strcat(szOutput,pEnvinfo->Name);
+        strcpy(szOutput,pEnvinfo->Name);
     } else {
-        strcat(szOutput,"ENVIRO_NOT_OPEN");
+        strcpy(szOutput,"ENVIRO_NOT_OPEN");
     }
     return i;
 }
@@ -5512,9 +5512,9 @@ DWORD parmGiveWnd(PCHAR szVar, PCHAR szOutput, PSPAWNINFO pChar)
 	DWORD PanelStatus = pGivWindow->Show;
     i += 7;
     if (PanelStatus == 1) {
-        strcat(szOutput,"TRUE");
+        strcpy(szOutput,"TRUE");
     } else {
-        strcat(szOutput,"FALSE");
+        strcpy(szOutput,"FALSE");
     }
     return i;
 }
@@ -5529,7 +5529,7 @@ DWORD parmSelectedItem(PCHAR szVar, PCHAR szOutput, PSPAWNINFO pChar)
 
 	pSelectedSlot = (PEQCURRENTSELECTION)pSelectedItem;
     if(!pSelectedSlot || !pSelectedSlot->TextureAnim || !*(DWORD *)pSelectedSlot->TextureAnim || !**(DWORD **)pSelectedSlot->TextureAnim) {
-		strcat(szOutput,"NULL\0");
+		strcpy(szOutput,"NULL\0");
 		i+=strstr(szVar,")")-szVar;
 		return i;
     }
@@ -5541,14 +5541,14 @@ DWORD parmSelectedItem(PCHAR szVar, PCHAR szOutput, PSPAWNINFO pChar)
 		if (pSelectedItemCont) {
 			if(pSelectedItemCont->StackCount) {
 				itoa( pSelectedItemCont->StackCount, szName, 10 );
-				strcat(szOutput,szName);
+				strcpy(szOutput,szName);
 				DebugSpewNoFile("pSelectedItemInfo = %x",pSelectedItemInfo);
 				DebugSpewNoFile("pSelectedItemCont = %x",pSelectedItemCont);
 			} else {
-				strcat(szOutput,"NOT_STACKABLE\0");
+				strcpy(szOutput,"NOT_STACKABLE\0");
 			}
 		} else {
-			strcat(szOutput,"NULL\0");
+			strcpy(szOutput,"NULL\0");
 		}
         return i;
     // $selecteditem(ItemSlot2)
@@ -5557,19 +5557,19 @@ DWORD parmSelectedItem(PCHAR szVar, PCHAR szOutput, PSPAWNINFO pChar)
 		if (pSelectedItemCont) {
 			if(pSelectedItemCont->ItemSlot2) {
 				itoa( pSelectedItemCont->ItemSlot2, szName, 10 );
-				strcat(szOutput,szName);
+				strcpy(szOutput,szName);
 			} else {
-				strcat(szOutput,"NOT_APPLICABLE\0");
+				strcpy(szOutput,"NOT_APPLICABLE\0");
 			}
 		} else {
-			strcat(szOutput,"NULL\0");
+			strcpy(szOutput,"NULL\0");
 		}
         return i;
     }
 	// $selecteditem()
     if (!strstr(szVar,")")) {
         sprintf(szName,"PMP - Bad $selecteditem() '%s'",szVar);
-        strcat(szOutput,szName);
+        strcpy(szOutput,szName);
         return PMP_ERROR_BADPARM;
     } else {
         i+=strstr(szVar,")")-szVar;
@@ -5580,9 +5580,9 @@ DWORD parmSelectedItem(PCHAR szVar, PCHAR szOutput, PSPAWNINFO pChar)
         DebugSpewNoFile("$selecteditem(xxx) szArg = %s",szArg);
 
         if (pSelectedItemInfo) {
-			strcat(szOutput,pSelectedItemInfo->Name);
+			strcpy(szOutput,pSelectedItemInfo->Name);
 		} else {
-			strcat(szOutput,"NULL");
+			strcpy(szOutput,"NULL");
 		}
     }
     return i;
@@ -5591,7 +5591,7 @@ DWORD parmSelectedItem(PCHAR szVar, PCHAR szOutput, PSPAWNINFO pChar)
 DWORD parmServerName(PCHAR szVar, PCHAR szOutput, PSPAWNINFO pChar)
 {
     // $servername
-    strcat(szOutput,EQADDR_SERVERNAME);
+    strcpy(szOutput,EQADDR_SERVERNAME);
     return 9;
 }
 
@@ -5600,9 +5600,9 @@ DWORD parmLoginName(PCHAR szVar, PCHAR szOutput, PSPAWNINFO pChar)
     // $loginname
 	PCHAR szLogin = GetLoginName();
 	if (!szLogin) {
-		strcat(szOutput,"NULL");
+		strcpy(szOutput,"NULL");
 	} else {
-		strcat(szOutput,szLogin);
+		strcpy(szOutput,szLogin);
 		free(szLogin);
 	}
     return 8; 
@@ -5613,13 +5613,13 @@ DWORD parmGameState(PCHAR szVar, PCHAR szOutput, PSPAWNINFO pChar)
 	DWORD GameState = gGameState;
 	switch (GameState) {
 		case GAMESTATE_CHARSELECT:
-			strcat(szOutput,"CHARSELECT");
+			strcpy(szOutput,"CHARSELECT");
 			break;
 		case GAMESTATE_INGAME:
-			strcat(szOutput,"INGAME");
+			strcpy(szOutput,"INGAME");
 			break;
 		default:
-			strcat(szOutput,"UNKNOWN");
+			strcpy(szOutput,"UNKNOWN");
  	}
     return 8; 
 }
@@ -5633,14 +5633,14 @@ DWORD parmBanker(PCHAR szVar, PCHAR szOutput, PSPAWNINFO pChar)
         i += 11;
         if (!pinstCBankWnd) return PMP_ERROR_BADPARM;
         if (!*(DWORD *)pinstCBankWnd) {
-            strcat(szOutput,"FALSE");
+            strcpy(szOutput,"FALSE");
 			return i;
         }
         PCSIDLWND pWind = *(PCSIDLWND *)pinstCBankWnd;
         if (pWind->Show==1) {
-            strcat(szOutput,"TRUE");
+            strcpy(szOutput,"TRUE");
         } else {
-            strcat(szOutput,"FALSE");
+            strcpy(szOutput,"FALSE");
         }
 	}
 	return i;
@@ -5649,9 +5649,9 @@ DWORD parmBanker(PCHAR szVar, PCHAR szOutput, PSPAWNINFO pChar)
 DWORD parmMacro(PCHAR szVar, PCHAR szOutput, PSPAWNINFO pChar)
 {
    if (!gRunning) {
-      strcat(szOutput,"None");
+      strcpy(szOutput,"None");
    } else {
-        strcat(szOutput,gszMacroName);
+        strcpy(szOutput,gszMacroName);
    }
    return 8;
 } 
@@ -5672,12 +5672,12 @@ DWORD parmEvent(PCHAR szVar, PCHAR szOutput, PSPAWNINFO pChar)
     SpecificEvent[strlen(SpecificEvent)-1]=0;
 
     if (!gEventStack) {
-        strcat(szOutput,"FALSE");
+        strcpy(szOutput,"FALSE");
         return i;
     }
 
     if (SpecificEvent[0]==0) {
-        strcat(szOutput,"TRUE");
+        strcpy(szOutput,"TRUE");
         return i;
     }
 
@@ -5687,12 +5687,12 @@ DWORD parmEvent(PCHAR szVar, PCHAR szOutput, PSPAWNINFO pChar)
                ((pEvent->Type == EVENT_TIMER)  && (!stricmp(SpecificEvent,"timer"))) ||
                ((pEvent->Type == EVENT_CUSTOM) && (!stricmp(SpecificEvent,pEvent->pEventList->szName)))
            ) {
-            strcat(szOutput,"TRUE");
+            strcpy(szOutput,"TRUE");
             return i;
         }
     }   
    
-    strcat(szOutput,"FALSE");
+    strcpy(szOutput,"FALSE");
     return i;
 }
 
@@ -5713,98 +5713,98 @@ DWORD parmPet(PCHAR szVar, PCHAR szOutput, PSPAWNINFO pChar)
    if (!strncmp("pet()",szVar,5)) {
       i += 4;
       if (pPetInfoWindow->Wnd.Show == 1) {
-         strcat(szOutput,"TRUE");
+         strcpy(szOutput,"TRUE");
       } else {
-         strcat(szOutput,"FALSE");
+         strcpy(szOutput,"FALSE");
       }
 
    // $pet(level)
    } else if (!strncmp("pet(level)",szVar,10)) {
       i += 9;
       if (!pPet)
-		  strcat(szOutput,"0");
+		  strcpy(szOutput,"0");
 	  else {
           itoa(pPet->Level,szTemp,10);
-          strcat(szOutput,szTemp);
+          strcpy(szOutput,szTemp);
 	  }
 
    // $pet(id)
    } else if (!strncmp("pet(id)",szVar,7)) {
       i += 6;
       if (!pPet)
-		  strcat(szOutput,"0");
+		  strcpy(szOutput,"0");
 	  else {
           itoa(pPet->SpawnID,szTemp,10);
-          strcat(szOutput,szTemp);
+          strcpy(szOutput,szTemp);
 	  }
 
    // $pet(x)
    } else if (!strncmp("pet(x)",szVar,6)) {
       i += 5;
       if (!pPet)
-		  strcat(szOutput,"0");
+		  strcpy(szOutput,"0");
 	  else {
           sprintf(szTemp,"%1.2f",pPet->X);
-          strcat(szOutput,szTemp);
+          strcpy(szOutput,szTemp);
 	  }
 
    // $pet(y)
    } else if (!strncmp("pet(y)",szVar,6)) {
       i += 5;
       if (!pPet)
-		  strcat(szOutput,"0");
+		  strcpy(szOutput,"0");
 	  else {
           sprintf(szTemp,"%1.2f",pPet->Y);
-          strcat(szOutput,szTemp);
+          strcpy(szOutput,szTemp);
 	  }
 
    // $pet(z)
    } else if (!strncmp("pet(z)",szVar,6)) {
       i += 5;
       if (!pPet)
-		  strcat(szOutput,"0");
+		  strcpy(szOutput,"0");
 	  else {
           sprintf(szTemp,"%1.2f",pPet->Z);
-          strcat(szOutput,szTemp);
+          strcpy(szOutput,szTemp);
 	  }
 
    // $pet(name)
    } else if (!strncmp("pet(name)",szVar,9)) {
       i += 8;
       if (!pPet)
-		  strcat(szOutput,"0");
+		  strcpy(szOutput,"0");
 	  else {
-		  strcat(szOutput,pPet->DisplayedName);
+		  strcpy(szOutput,pPet->DisplayedName);
 	  }
 
    // $pet(level)
    } else if (!strncmp("pet(level)",szVar,10)) {
       i += 9;
       if (!pPet)
-		  strcat(szOutput,"0");
+		  strcpy(szOutput,"0");
 	  else {
           strcpy(szTemp,pPet->Name);
-          strcat(szOutput,CleanupName(szTemp,FALSE));
+          strcpy(szOutput,CleanupName(szTemp,FALSE));
 	  }
 
    // $pet(class)
    } else if (!strncmp("pet(class)",szVar,10)) {
       i += 9;
       if (!pPet)
-		  strcat(szOutput,"0");
+		  strcpy(szOutput,"0");
 	  else {
           strcpy(szTemp,pEverQuest->GetClassDesc(pPet->Class));
-          strcat(szOutput,szTemp);
+          strcpy(szOutput,szTemp);
 	  }
 
    // $pet(race)
    } else if (!strncmp("pet(race)",szVar,9)) {
       i += 8;
       if (!pPet)
-		  strcat(szOutput,"0");
+		  strcpy(szOutput,"0");
 	  else {
           strcpy(szTemp,pEverQuest->GetRaceDesc(pPet->Race));
-          strcat(szOutput,szTemp);
+          strcpy(szOutput,szTemp);
 	  }
 
 
@@ -5848,7 +5848,7 @@ DWORD parmPet(PCHAR szVar, PCHAR szOutput, PSPAWNINFO pChar)
                     strcpy(szTemp,"NULL");
                 }
             }
-            strcat(szOutput,szTemp);
+            strcpy(szOutput,szTemp);
         }
 
    // $pet(Unknown)

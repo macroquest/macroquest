@@ -267,21 +267,26 @@ VOID ShutdownParser()
  *           "myparm(thisoption," is acceptable.                             *
  *****************************************************************************/
 
-int FindLastParameter(PCHAR szOriginal, PCHAR& szCurPos, size_t& len)
+int FindLastParameter(PCSTR szOriginal, PCSTR& szRetCurPos, size_t& len)
 {
-	// get the strings length
-	len = strlen(szOriginal);
+	PCSTR szCurPos;
+	PCSTR szParamPos = NULL;
 
-	// iterate over string from the end until you pass the beginning
-	for (szCurPos = &szOriginal[len]; szCurPos >= szOriginal; --szCurPos)
-	{
-		// stop if a parameter is found
-		if ((*szCurPos == '$') || (*szCurPos == '@'))
-			break;
-	}
+	// iterate over the entire string
+	for (szCurPos = szOriginal; *szCurPos; szCurPos++)
+		if ((*szCurPos == '$') || (*szCurPos == '@')) // note parameter position
+			szParamPos = szCurPos;
 
-	// return offset into string, -1 if no parameter found
-	return szCurPos - szOriginal;
+	// calculate the strings length
+	len = (size_t)(szCurPos - szOriginal - 1);
+
+	// return the parameters position
+	szRetCurPos = szParamPos;
+
+	if (szParamPos) // return offset into string if paramater found
+		return (int)(szParamPos - szOriginal);
+
+	return -1; // no parameter found
 }
 
 PCHAR ParseMacroParameter(PSPAWNINFO pChar, PCHAR szOriginal)
@@ -290,7 +295,8 @@ PCHAR ParseMacroParameter(PSPAWNINFO pChar, PCHAR szOriginal)
     CHAR szOutput[MAX_STRING];
     CHAR szVar[MAX_STRING];
     INT outPos, l;
-	PCHAR szOriginalCurPos, szOutputCurPos;
+	PSTR szOutputCurPos;
+	PCSTR szOriginalCurPos;
 	size_t originalLen;
     PCHARINFO pCharInfo = NULL;
     if (NULL == (pCharInfo = GetCharInfo())) return szOriginal;
@@ -305,18 +311,12 @@ PCHAR ParseMacroParameter(PSPAWNINFO pChar, PCHAR szOriginal)
 		if (*szOriginalCurPos == '@') 
 		{
             szOriginalCurPos++;
-            if ((*szOriginalCurPos == 0) || (*szOriginalCurPos == ' ')) 
-			{
-                DebugSpewNoFile("PMP - Bad @ '%s'", szVar);
-				szOriginalCurPos--;
-                *szOutputCurPos++ = '²';
-            }
-			else 
+            if ((*szOriginalCurPos) && (*szOriginalCurPos != ' ')) 
 			{
                 GetArg(szVar, szOriginalCurPos, 1, TRUE, TRUE, TRUE, 0, TRUE);
 				size_t varLen = strlen(szVar)-1;
                 if (szVar[varLen] == ')') szVar[varLen]=0;
-                DebugSpewNoFile("PMP - Current variable - '%s'", szVar);
+                //DebugSpewNoFile("PMP - Current variable - '%s'", szVar);
                 FoundNewCmd = true;
 				
 				do // this is a non-looping loop used purely for control flow
@@ -345,18 +345,18 @@ PCHAR ParseMacroParameter(PSPAWNINFO pChar, PCHAR szOriginal)
 					szOriginalCurPos += strlen(szVar) - 1;
 					szOutputCurPos += strlen(szOutputCurPos);
 				}
+            }
+			else 
+			{
+                DebugSpewNoFile("PMP - Bad @ '%s'", szVar);
+				szOriginalCurPos--;
+                *szOutputCurPos++ = '²';
 			}
         } 
 		else /* if (*szOriginalCurPos == '$') */ 
 		{
             szOriginalCurPos++;
-            if ((*szOriginalCurPos == 0) || (*szOriginalCurPos == ' ')) 
-			{
-                DebugSpewNoFile("PMP - Bad $ '%s'", szVar);
-                szOriginalCurPos--;
-                *szOutputCurPos++ = 'ÿ';
-            } 
-			else
+            if ((*szOriginalCurPos) && (*szOriginalCurPos != ' ')) 
 			{
                 GetArg(szVar, szOriginalCurPos, 1, TRUE, TRUE);
 //                DebugSpewNoFile("PMP - Current param - '%s'", szVar);
@@ -388,6 +388,12 @@ PCHAR ParseMacroParameter(PSPAWNINFO pChar, PCHAR szOriginal)
                     szOriginalCurPos--;
                     *szOutputCurPos++ = 'ÿ';
                 }
+            } 
+			else
+			{
+                DebugSpewNoFile("PMP - Bad $ '%s'", szVar);
+                szOriginalCurPos--;
+                *szOutputCurPos++ = 'ÿ';
             }
 		}
 

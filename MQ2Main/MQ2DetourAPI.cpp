@@ -146,7 +146,7 @@ DETOUR_TRAMPOLINE_EMPTY(VOID memcheck4_tramp(PVOID,DWORD,PCHAR,DWORD,BOOL));
 
 VOID memcheck4(PVOID A,DWORD B,PCHAR C,DWORD D,BOOL E)
 {
-	if (B==0xEB)
+	if (B==0x00F4)
 	{
 		int Pos=strlen(&C[4]);
 		Pos+=4;

@@ -93,9 +93,9 @@ EQLIB_API VOID DebugSpewNoFile(PCHAR szFormat, ...)
 // Function:    GetNextArg
 // Description: Returns a pointer to the next argument
 // ***************************************************************************
-PCHAR GetNextArg(PCHAR szLine, DWORD dwNumber, BOOL CSV, CHAR Separator)
+PSTR GetNextArg(PCSTR szLine, DWORD dwNumber, BOOL CSV, CHAR Separator)
 {
-   PCHAR szNext = szLine;
+   PCSTR szNext = szLine;
    BOOL CustomSep = FALSE;
    BOOL InQuotes = FALSE;
    if (Separator!=0) CustomSep=TRUE;
@@ -107,7 +107,7 @@ PCHAR GetNextArg(PCHAR szLine, DWORD dwNumber, BOOL CSV, CHAR Separator)
       || ((!CustomSep) && (CSV) && (szNext[0]==','))
       ) szNext++;
 
-   if ((INT)dwNumber < 1) return szNext;
+   if ((INT)dwNumber < 1) return (PSTR)szNext;
    for (dwNumber;dwNumber>0;dwNumber--) {
       while ((
             ((CustomSep) || (szNext[0] != ' '))
@@ -120,7 +120,7 @@ PCHAR GetNextArg(PCHAR szLine, DWORD dwNumber, BOOL CSV, CHAR Separator)
          ) {
          if ((szNext[0] == 0) && (InQuotes)) {
             DebugSpew("GetNextArg - No matching quote, returning empty string");
-            return szNext;
+            return (PSTR)szNext;
          }
          if (szNext[0] == '"') InQuotes = !InQuotes;
          szNext++;
@@ -132,20 +132,20 @@ PCHAR GetNextArg(PCHAR szLine, DWORD dwNumber, BOOL CSV, CHAR Separator)
          || ((!CustomSep) && (CSV) && (szNext[0]==','))
          ) szNext++;
    }
-   return szNext;
+   return (PSTR)szNext;
 }
 
 // ***************************************************************************
 // Function:    GetArg
 // Description: Returns a pointer to the current argument in szDest
 // ***************************************************************************
-PCHAR GetArg(PCHAR szDest, PCHAR szSrc, DWORD dwNumber, BOOL LeaveQuotes, BOOL ToParen, BOOL CSV, CHAR Separator, BOOL AnyNonAlphaNum)
+PSTR GetArg(PSTR szDest, PCSTR szSrc, DWORD dwNumber, BOOL LeaveQuotes, BOOL ToParen, BOOL CSV, CHAR Separator, BOOL AnyNonAlphaNum)
 {
    DWORD i=0;
    DWORD j=0;
    BOOL CustomSep = FALSE;
    BOOL InQuotes = FALSE;
-   PCHAR szTemp = szSrc;
+   PCSTR szTemp = szSrc;
    ZeroMemory(szDest,MAX_STRING);
 
    if (Separator!=0) CustomSep=TRUE;
