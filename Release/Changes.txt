@@ -1,0 +1,10 @@
+18 Nov 2003 by EqMule
++fix: mouseto and click by changing ScreenX and ScreenY to ScrX and ScrY)
++Added	EQLIB_API VOID AddParm(PCHAR Name, fMQParm Function);
+	EQLIB_API VOID RemoveParm(PCHAR Name);
+to MQ2Main.h so that custom plugins will find them...
++updated $merchant(has,xxx) with HanzO's code for it, thank you.
++Updated $selecteditem() with new (count) for easier usage of /sellitem and /buyitem
+example: /buyitem $selecteditem(count) merchant
++misc fixes...
+
