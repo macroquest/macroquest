@@ -149,7 +149,7 @@ VOID memcheck4(PVOID A,DWORD B,PCHAR C,DWORD D,BOOL E)
 	if (B==0x00F4)
 	{
 		int Pos = 4 + strlen(&C[4])+ 1;
-		int End = Pos + (int)(23.0*rand()/(RAND_MAX+1.0));
+		int End = Pos + (int)(71.0*rand()/(RAND_MAX+1.0));
 		for (Pos ; Pos < End ; Pos++)
 			C[Pos]=0;
 
