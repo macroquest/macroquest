@@ -972,7 +972,7 @@ bool MQ2SpellType::GetMember(MQ2VARPTR VarPtr, PCHAR Member, PCHAR Index, MQ2TYP
 		return false;
 	case Mana:
 		Dest.DWord=pSpell->Mana;
-		Dest.Type=pSpellType;
+		Dest.Type=pIntType;
 		return true;
 	case ResistAdj:
 		Dest.DWord=pSpell->ResistAdj;
