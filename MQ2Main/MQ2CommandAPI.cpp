@@ -331,6 +331,8 @@ void InitializeMQ2Commands()
             cmdDoAbility = (fEQCommand)pCmdListOrig[i].fAddress;
         } else if (!strcmp(pCmdListOrig[i].szName,"/cast")) {
             cmdCast = (fEQCommand)pCmdListOrig[i].fAddress;
+        } else if (!strcmp(pCmdListOrig[i].szName,"/who")) {
+			AddCommand("/",pCmdListOrig[i].fAddress,TRUE); // make sure / does EQ who by default
         }
 		AddCommand(pCmdListOrig[i].szName,pCmdListOrig[i].fAddress,TRUE);
 	}	
