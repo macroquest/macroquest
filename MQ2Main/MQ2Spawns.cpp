@@ -68,11 +68,12 @@ void RemoveGroundItem(PGROUNDITEM pGroundItem)
 class EQItemListHook
 {
 public:
-	DWORD EQItemList_Trampoline();
-	DWORD EQItemList_Detour()
+	VOID EQItemList_Trampoline();
+	VOID EQItemList_Detour()
 	{
+		VOID (EQItemListHook::*tmp)(void) = EQItemList_Trampoline; 
 		__asm {
-			call EQItemList_Trampoline;
+			call [tmp];
 			push eax;
 			push ebx;
 			push ecx;
@@ -92,18 +93,19 @@ public:
 	void dEQItemList_Trampoline();
 	void dEQItemList_Detour()
 	{
+		void (EQItemListHook::*tmp)(void) = dEQItemList_Trampoline;
 		__asm {
 			push ecx;
 			push ecx;
 			call RemoveGroundItem;
 			pop ecx;
 			pop ecx;
-			call dEQItemList_Trampoline;
+			call [tmp];
 		};
 	}
 };
 
-DETOUR_TRAMPOLINE_EMPTY(DWORD EQItemListHook::EQItemList_Trampoline(VOID)); 
+DETOUR_TRAMPOLINE_EMPTY(VOID EQItemListHook::EQItemList_Trampoline(VOID)); 
 DETOUR_TRAMPOLINE_EMPTY(VOID EQItemListHook::dEQItemList_Trampoline(VOID)); 
 
 class EQPlayerHook
@@ -143,13 +145,14 @@ public:
 	void dEQPlayer_Trampoline(void);
 	void dEQPlayer_Detour(void)
 	{
+		void (EQPlayerHook::*tmp)(void) = dEQPlayer_Trampoline; 
 		__asm {
 			push ecx;
 			push ecx;
 			call PluginsRemoveSpawn;
 			pop ecx;
 			pop ecx;
-			call dEQPlayer_Trampoline;
+			call [tmp];
 		};
 /*
 		PSPAWNINFO pSpawn;
@@ -173,7 +176,7 @@ VOID InitializeMQ2Spawns()
 	EasyClassDetour(EQPlayer__EQPlayer,EQPlayerHook,EQPlayer_Detour,VOID,(DWORD,DWORD,DWORD,DWORD,DWORD),EQPlayer_Trampoline);
 	EasyClassDetour(EQPlayer__dEQPlayer,EQPlayerHook,dEQPlayer_Detour,VOID,(VOID),dEQPlayer_Trampoline);
 
-	EasyClassDetour(EQItemList__EQItemList,EQItemListHook,EQItemList_Detour,DWORD,(VOID),EQItemList_Trampoline);
+	EasyClassDetour(EQItemList__EQItemList,EQItemListHook,EQItemList_Detour,VOID,(VOID),EQItemList_Trampoline);
 	EasyClassDetour(EQItemList__dEQItemList,EQItemListHook,dEQItemList_Detour,VOID,(VOID),dEQItemList_Trampoline);
 
 	InitializeCriticalSection(&csPendingGrounds);
