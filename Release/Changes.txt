@@ -1,3 +1,15 @@
+29 Apr 2004 by Lax:
+- Fixed SPAWNINFO structure.
+- NOTICE: Some MQ2Data members are currently MIA.  They may come back soon.  These include:
+  character.Hunger
+  character.Thirst
+  character.GukEarned
+  character.MMEarned
+  character.RujEarned
+  character.TakEarned
+  character.MirEarned
+  character.LDoNPoints
+
 27 Apr 2004 by Lax (more):
 - MQ2DataVars is now default.  Share and enjoy, share and enjoy!
 - Fixed timer type member availability
