@@ -62,11 +62,30 @@ public:
 
      // This really should be a compare against some field in the item...
      if (strstr(This->ItemInfo->Text,"(Combat)")) {
-      sprintf(temp,"Procs at %d<BR>",Item->Level);
-      strcat(out,temp);
+	   if (Item->Level == 0 )
+		   sprintf(temp, "Procs at level 1 (Proc rate modifier: %d)<BR>", Item->ProcRate );
+	   else
+	       sprintf(temp,"Procs at level %d (Proc rate modifier: %d)<BR>",Item->Level, Item->ProcRate);
+       strcat(out,temp);
      } else if (Item->SpellId==/*Haste*/998) {
       sprintf(temp,"%d%% Haste<BR>",Item->Level+1);
       strcat(out,temp);
+     }
+	
+	 // Just in case...
+	 if ( (!strstr(This->ItemInfo->Text,"(Combat)")) && Item->ProcRate > 0 )
+	 {
+		 sprintf(temp, "Proc rate Modifier: %d<BR>", Item->ProcRate );
+		 strcat(out,temp);
+	 }
+
+	 // Teh_Ish (02/08/2004) 
+     if ( Item->EffectType==4 || Item->EffectType==1 || Item->EffectType==5) {
+        if ( Item->Level == 0 )
+			sprintf(temp, "Clickable at level 1<br>", Item->Level );
+		else
+            sprintf(temp,"Clickable at level %d<BR>",Item->Level); 
+        strcat(out,temp); 
      }
 
 	 // TheColonel (12/24/2003)
@@ -136,7 +155,7 @@ public:
 			 strcat(out, "<br>");
 	 }
 
-	 if (pSpell->PushBack > 0.0f ) {
+	 if (pSpell->PushBack != 0.0f ) {
 		 if (pSpell->Range > 0.0f ) 
 			 strcat(out, "&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;" );
 		 sprintf(temp, "PushBack: %1.1f", pSpell->PushBack );
