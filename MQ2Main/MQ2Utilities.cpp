@@ -2214,7 +2214,7 @@ VOID SlotValueCalculate(PCHAR szBuff, PSPELL pSpell, int i, double mp)
          szValue = (level * 5) + abs(szBase); 
          if ( abs(szValue) >= abs(pSpell->Max[i]) || level==65 ) 
          { 
-            sprintf(szTemp, "%d (L%d)", abs(szValue), level); 
+            sprintf(szTemp, "%d (L%d)", abs(szValue) >= abs(pSpell->Max[i]) ? abs(pSpell->Max[i]) : abs(szValue), level); 
             strcat(szBuff, szTemp); 
             break; 
          } 
@@ -2229,7 +2229,7 @@ VOID SlotValueCalculate(PCHAR szBuff, PSPELL pSpell, int i, double mp)
          szValue = (level * 6) + abs(szBase); 
          if ( abs(szValue) >= abs(pSpell->Max[i]) || level==65 ) 
          { 
-            sprintf(szTemp, "%d (L%d)", abs(szValue), level); 
+            sprintf(szTemp, "%d (L%d)", abs(szValue) >= abs(pSpell->Max[i]) ? abs(pSpell->Max[i]) : abs(szValue), level); 
             strcat(szBuff, szTemp); 
             break; 
          } 
@@ -2253,49 +2253,49 @@ VOID SlotValueCalculate(PCHAR szBuff, PSPELL pSpell, int i, double mp)
          szValue = (long)(level / 2) + abs(szBase); 
          if ( abs(szValue) >= abs(pSpell->Max[i]) || level==65 ) 
          { 
-            sprintf(szTemp, "%d (L%d)", abs(szValue), level); 
+            sprintf(szTemp, "%d (L%d)", abs(szValue) >= abs(pSpell->Max[i]) ? abs(pSpell->Max[i]) : abs(szValue), level); 
             strcat(szBuff, szTemp); 
             break; 
          } 
       } 
       break; 
    case 102: // Level + Base 
-      sprintf(szTemp, "%d (L%d) to ", abs(szBase), minlevel); 
+      sprintf(szTemp, "%d (L%d) to ", abs(szBase+(minlevel)), minlevel); 
       strcat(szBuff, szTemp); 
       for (level = minlevel; level <= 65; level++) 
       { 
          if ( pSpell->Max[i] ==0 ) level=65;  
          szValue = level + abs(szBase); 
          if ( abs(szValue) >= abs(pSpell->Max[i]) || level==65 ) { 
-            sprintf(szTemp, "%d (L%d)", abs(szValue), level); 
+            sprintf(szTemp, "%d (L%d)", abs(szValue) >= abs(pSpell->Max[i]) ? abs(pSpell->Max[i]) : abs(szValue), level); 
             strcat(szBuff, szTemp); 
             break; 
          } 
       } 
       break; 
    case 103: // Level*2 + Base 
-      sprintf(szTemp, "%d (L%d) to ", abs(szBase), minlevel); 
+      sprintf(szTemp, "%d (L%d) to ", abs(szBase+(minlevel*2)), minlevel); 
       strcat(szBuff, szTemp); 
       for (level = minlevel; level <= 65; level++) 
       { 
          if ( pSpell->Max[i] ==0 ) level=65;  
          szValue = (level*2) + abs(szBase); 
          if ( abs(szValue) >= abs(pSpell->Max[i]) || level==65 ) { 
-            sprintf(szTemp, "%d (L%d)", abs(szValue), level); 
+            sprintf(szTemp, "%d (L%d)", abs(szValue) >= abs(pSpell->Max[i]) ? abs(pSpell->Max[i]) : abs(szValue), level); 
             strcat(szBuff, szTemp); 
             break; 
          } 
       } 
       break; 
    case 104: // Level*3 + Base 
-      sprintf(szTemp, "%d (L%d) to ", abs(szBase), minlevel); 
+      sprintf(szTemp, "%d (L%d) to ", abs(szBase+(minlevel*3)), minlevel); 
       strcat(szBuff, szTemp); 
       for (level = minlevel; level <= 65; level++) 
       { 
          if ( pSpell->Max[i]==0 ) level=65; 
          szValue = (level*3) + abs(szBase); 
          if ( abs(szValue) >= abs(pSpell->Max[i]) || level==65 ) { 
-            sprintf(szTemp, "%d (L%d)", abs(szValue), level); 
+            sprintf(szTemp, "%d (L%d)", abs(szValue) >= abs(pSpell->Max[i]) ? abs(pSpell->Max[i]) : abs(szValue), level); 
             strcat(szBuff, szTemp); 
             break; 
          } 
