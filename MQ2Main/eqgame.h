@@ -29,14 +29,14 @@
 #define __MacroQuestWinName                      "MacroQuest"
 
 // Memory Protection 
-#define __MemChecker1                                0x4BDCEB 
-#define __MemChecker2                                0x4C4434 
-#define __MemChecker3                                0x4C26A3 
-#define __MemCheckAddr1                              0x4C449B 
-#define __MemCheckAddr2                              0x4C44C9
-#define __EncryptPad1                                0x618028 
-#define __EncryptPad2                                0x618EE0 
-#define __EncryptPad3                                0x618428 
+#define __MemChecker0                                0x4BED2A 
+#define __MemChecker1                                0x4C390D 
+#define __MemChecker2                                0x4C56E9 
+#define __MemChecker3                                0x4C5786 
+#define __EncryptPad0                                0x6119D8 
+#define __EncryptPad1                                0x611DD8 
+#define __EncryptPad2                                0x612890 
+#define __EncryptPad3                                0x612C90 
 
 #define DI8__Main                                    0x795684 
 #define DI8__Keyboard                                0x795688 

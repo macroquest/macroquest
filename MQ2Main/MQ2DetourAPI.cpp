@@ -130,14 +130,17 @@ struct mckey {
     union {
         int x;
         unsigned char a[4];
+        char sa[4];
     };
 };
 
 // pointer to encryption pad for memory checker
-unsigned int *extern_array = NULL;
+unsigned int *extern_array0 = NULL;
+unsigned int *extern_array1 = NULL;
 unsigned int *extern_array2 = NULL;
 unsigned int *extern_array3 = NULL;
-int __cdecl memcheck(unsigned char *buffer, int count, struct mckey key);
+int __cdecl memcheck0(unsigned char *buffer, int count, struct mckey key);
+int __cdecl memcheck1(unsigned char *buffer, int count, struct mckey key);
 int __cdecl memcheck2(unsigned char *buffer, int count, struct mckey key);
 int __cdecl memcheck3(unsigned char *buffer, int count, struct mckey key);
 
@@ -167,7 +170,8 @@ VOID memcheck4(PVOID A,DWORD B,PCHAR C,DWORD D,BOOL E)
 // Function:    HookMemChecker
 // Description: Hook MemChecker
 // ***************************************************************************
-int (__cdecl *memcheck_tramp)(unsigned char *buffer, int count, struct mckey key);
+int (__cdecl *memcheck0_tramp)(unsigned char *buffer, int count, struct mckey key);
+int (__cdecl *memcheck1_tramp)(unsigned char *buffer, int count, struct mckey key);
 int (__cdecl *memcheck2_tramp)(unsigned char *buffer, int count, struct mckey key);
 int (__cdecl *memcheck3_tramp)(unsigned char *buffer, int count, struct mckey key);
 
@@ -175,7 +179,8 @@ VOID HookMemChecker(BOOL Patch)
 {
     // hit the debugger if we don't hook this
     // take no chances
-    if ((!EQADDR_MEMCHECK) ||
+    if ((!EQADDR_MEMCHECK0) ||
+        (!EQADDR_MEMCHECK1) ||
         (!EQADDR_MEMCHECK2) ||
         (!EQADDR_MEMCHECKADDR1) ||
         (!EQADDR_MEMCHECKADDR2) ||
@@ -185,10 +190,15 @@ VOID HookMemChecker(BOOL Patch)
     DebugSpew("HookMemChecker - %satching",(Patch)?"P":"Unp");
     if (Patch) {
 
-		AddDetour((DWORD)EQADDR_MEMCHECK);
+		AddDetour((DWORD)EQADDR_MEMCHECK0);
 
-        (*(PBYTE*)&memcheck_tramp) = DetourFunction( (PBYTE) EQADDR_MEMCHECK,
-                                                    (PBYTE) memcheck);
+        (*(PBYTE*)&memcheck0_tramp) = DetourFunction( (PBYTE) EQADDR_MEMCHECK0,
+                                                    (PBYTE) memcheck0);
+
+		AddDetour((DWORD)EQADDR_MEMCHECK1);
+
+        (*(PBYTE*)&memcheck1_tramp) = DetourFunction( (PBYTE) EQADDR_MEMCHECK1,
+                                                    (PBYTE) memcheck1);
 
 		AddDetour((DWORD)EQADDR_MEMCHECK2);
 
@@ -202,11 +212,16 @@ VOID HookMemChecker(BOOL Patch)
 
 		EasyDetour((DWORD)send_message,memcheck4,VOID,(PVOID,DWORD,PCHAR,DWORD,BOOL),memcheck4_tramp);
     } else {
-        DetourRemove((PBYTE) memcheck_tramp,
-                     (PBYTE) memcheck);
-		RemoveDetour(EQADDR_MEMCHECK);
+        DetourRemove((PBYTE) memcheck0_tramp,
+                     (PBYTE) memcheck0);
+        memcheck0_tramp = NULL;
+		RemoveDetour(EQADDR_MEMCHECK0);
 
-        memcheck_tramp = NULL;
+        DetourRemove((PBYTE) memcheck1_tramp,
+                     (PBYTE) memcheck1);
+        memcheck1_tramp = NULL;
+		RemoveDetour(EQADDR_MEMCHECK1);
+
         DetourRemove((PBYTE) memcheck2_tramp,
                      (PBYTE) memcheck2);
         memcheck2_tramp = NULL;
@@ -227,17 +242,17 @@ VOID HookMemChecker(BOOL Patch)
 //  004F7D2A: 56                 push        esi
 
 
-int __cdecl memcheck(unsigned char *buffer, int count, struct mckey key)
+int __cdecl memcheck0(unsigned char *buffer, int count, struct mckey key)
 {
     unsigned int x, i;
     unsigned int ecx;
     unsigned int eax = ~key.a[0] & 0xff;
 
-    if (!extern_array) {
-        if (!EQADDR_ENCRYPTPAD) {
+    if (!extern_array0) {
+        if (!EQADDR_ENCRYPTPAD0) {
             //_asm int 3
         } else {
-          extern_array = (unsigned int *)EQADDR_ENCRYPTPAD;
+          extern_array0 = (unsigned int *)EQADDR_ENCRYPTPAD0;
         }
     }
 
@@ -248,7 +263,7 @@ int __cdecl memcheck(unsigned char *buffer, int count, struct mckey key)
 //  004F7D34: 8B 04 85 6C 7B 5C  mov         eax,dword ptr [eax*4+005C7B6Ch]
 //            00
 
-    eax = extern_array[eax];
+    eax = extern_array0[eax];
 
 //  004F7D3B: BE FF FF FF 00     mov         esi,0FFFFFFh
 //  004F7D40: 33 C6              xor         eax,esi
@@ -267,7 +282,7 @@ int __cdecl memcheck(unsigned char *buffer, int count, struct mckey key)
 
 //  004F7D52: 8B 0C 8D 6C 7B 5C  mov         ecx,dword ptr [ecx*4+005C7B6Ch]
 //            00
-    ecx = extern_array[ecx];
+    ecx = extern_array0[ecx];
 
 //  004F7D59: C1 F8 08           sar         eax,8
 //  004F7D5C: 23 C6              and         eax,esi
@@ -286,7 +301,7 @@ int __cdecl memcheck(unsigned char *buffer, int count, struct mckey key)
 
 //  004F7D69: 8B 14 85 6C 7B 5C  mov         edx,dword ptr [eax*4+005C7B6Ch]
 //            00
-    edx = extern_array[eax];
+    edx = extern_array0[eax];
 
 //  004F7D70: 23 CE              and         ecx,esi
 //  004F7D72: 33 D1              xor         edx,ecx
@@ -303,7 +318,7 @@ int __cdecl memcheck(unsigned char *buffer, int count, struct mckey key)
 //  004F7D84: 8B 04 85 6C 7B 5C  mov         eax,dword ptr [eax*4+005C7B6Ch]
 //            00
 
-    eax = extern_array[(edx & 0xff) ^ ecx];
+    eax = extern_array0[(edx & 0xff) ^ ecx];
 
 //  004F7D8B: 23 D6              and         edx,esi
 //  004F7D8D: 33 C2              xor         eax,edx
@@ -354,12 +369,130 @@ int __cdecl memcheck(unsigned char *buffer, int count, struct mckey key)
         if (!detour) tmp = buffer[i];
         x = (int)tmp ^ (eax & 0xff);
         eax = ((int)eax >> 8) & 0xffffff;
-        x = extern_array[x];
+        x = extern_array0[x];
         eax ^= x;
     }
     return ~eax;
 }
 
+int __cdecl memcheck1(unsigned char *buffer, int count, struct mckey key);
+int __cdecl memcheck1(unsigned char *buffer, int count, struct mckey key) 
+{
+    unsigned int i;
+    unsigned int ebx, eax, edx;
+
+    if (!extern_array1) {
+        if (!EQADDR_ENCRYPTPAD1) {
+            //_asm int 3
+        } else {
+          extern_array1 = (unsigned int *)EQADDR_ENCRYPTPAD1;
+        }
+    }
+//                push    ebp
+//                mov     ebp, esp
+//                push    esi
+//                push    edi
+//                or      edi, 0FFFFFFFFh
+//                cmp     [ebp+arg_8], 0
+    if (key.x != 0) {
+//                mov     esi, 0FFh
+//                mov     ecx, 0FFFFFFh
+//                jz      short loc_4C3978
+//                xor     eax, eax
+//                mov     al, byte ptr [ebp+arg_8]
+//                xor     edx, edx
+//                mov     dl, byte ptr [ebp+arg_8+1]
+    edx = key.a[1];
+//                not     eax
+//                and     eax, esi
+    eax = ~key.a[0] & 0xff;
+//                mov     eax, encryptpad1[eax*4]
+    eax = extern_array1[eax];
+//                xor     eax, ecx
+    eax ^= 0xffffff;
+//                xor     edx, eax
+//                and     edx, esi
+    edx = (edx ^ eax) & 0xff;
+//                sar     eax, 8
+//                and     eax, ecx
+    eax = ((int)eax >> 8) & 0xffffff;
+//                xor     eax, encryptpad1[edx*4]
+    eax ^= extern_array1[edx];
+//                xor     edx, edx
+//                mov     dl, byte ptr [ebp+arg_8+2]
+    edx = key.a[2];
+//                xor     edx, eax
+//                sar     eax, 8
+//                and     edx, esi
+    edx = (edx ^ eax) & 0xff;
+//                and     eax, ecx
+    eax = ((int)eax >> 8) & 0xffffff;
+//                xor     eax, encryptpad1[edx*4]
+    eax ^= extern_array1[edx];
+//                xor     edx, edx
+//                mov     dl, byte ptr [ebp+arg_8+3]
+    edx = key.a[3];
+//                xor     edx, eax
+//                sar     eax, 8
+//                and     edx, esi
+    edx = (edx ^ eax) & 0xff;
+//                and     eax, ecx
+    eax = ((int)eax >> 8) & 0xffffff;
+//                xor     eax, encryptpad1[edx*4]
+    eax = extern_array1[edx];
+//                mov     edi, eax
+//
+    } else { // key.x != 0
+        eax = 0xffffffff;
+    }
+//loc_4C3978:                             ; CODE XREF: new_memcheck1+16j
+//                mov     edx, [ebp+arg_0]
+//                mov     eax, [ebp+arg_4]
+//                add     eax, edx
+//                cmp     edx, eax
+//                jnb     short loc_4C399F
+//                push    ebx
+//
+//loc_4C3985:                             ; CODE XREF: new_memcheck1+8Fj
+//                xor     ebx, ebx
+//                mov     bl, [edx]
+//                xor     ebx, edi
+//                sar     edi, 8
+//                and     ebx, esi
+//                and     edi, ecx
+//                xor     edi, encryptpad1[ebx*4]
+//                inc     edx
+//                cmp     edx, eax
+//                jb      short loc_4C3985
+//                pop     ebx
+//
+//loc_4C399F:                             ; CODE XREF: new_memcheck1+75j
+//                mov     eax, edi
+//                pop     edi
+//                not     eax
+//                pop     esi
+//                pop     ebp
+//                retn
+//
+    for (i=0;i<(unsigned int)count;i++) {
+        unsigned char tmp;
+        OurDetours *detour = ourdetours;
+        unsigned int b=(int) &buffer[i];
+        while(detour) {
+            if (detour->count && (b >= detour->addr) &&
+                 (b < detour->addr+detour->count) ) {
+                tmp = detour->array[b - detour->addr];
+                break;
+            }
+            detour=detour->pNext;
+        }
+        if (!detour) tmp = buffer[i];
+        ebx = ((int)tmp ^ eax) & 0xff;
+        eax = ((int)eax >> 8) & 0xffffff;
+        eax ^= extern_array1[ebx];
+    }
+    return ~eax;
+}
 
 //
 // detour 4F77B2 to memcheck2 for 4/8
@@ -386,7 +519,7 @@ int __cdecl memcheck2(unsigned char *buffer, int count, struct mckey key);
 int __cdecl memcheck2(unsigned char *buffer, int count, struct mckey key)
 {
     unsigned int i;
-    unsigned int ecx, ebx, edx, eax;
+    unsigned int ebx, edx, eax;
 
     //DebugSpewAlways("memcheck2: 0x%x", buffer);
 
@@ -397,138 +530,109 @@ int __cdecl memcheck2(unsigned char *buffer, int count, struct mckey key)
           extern_array2 = (unsigned int *)EQADDR_ENCRYPTPAD2;
         }
     }
-//_memcheck2 PROC NEAR
-//        push        ebp
-//        mov         ebp,esp
-//        mov         al,byte ptr [ebp+10h]
-//        push        ebx
-//        not         al
-//        movzx       eax,al
+//                push    ebp
+//                mov     ebp, esp
+//                push    ecx
+//                xor     eax, eax
+//                mov     al, [ebp+arg_8]
+//                xor     edx, edx
+//                mov     dl, [ebp+arg_9]
+    edx = key.a[1];
+//                push    ebx
+//                push    esi
+//                mov     esi, 0FFh
+//                mov     ecx, 0FFFFFFh
+//                not     eax
+//                and     eax, esi
     eax = ~key.a[0] & 0xff;
-
-//        movzx       edx,byte ptr [ebp+11h]
-    edx = key.a[1] & 0xff;
-
-//        mov         eax,dword ptr [eax*4+_extern_array2]
+//                mov     eax, encryptpad2[eax*4]
     eax = extern_array2[eax];
-
-//        push        esi
-//        mov         esi,0FFFFFFh
-//        push        edi
-//        xor         eax,esi
+//                xor     eax, ecx
     eax ^= 0xffffff;
-
-//        mov         edi,0FFh
-//        mov         ecx,eax
-//        and         ecx,edi
-    ecx = eax & 0xff;
-
-//        xor         ecx,edx
-    ecx ^= edx;
-
-//        movzx       edx,byte ptr [ebp+12h]
-    edx = key.a[2] & 0xff;
-
-//        mov         ecx,dword ptr [ecx*4+_extern_array2]
-    ecx = extern_array2[ecx];
-
-//        sar         eax,8
-//        and         eax,esi
-    eax = ((int)eax>>8) & 0xffffff;
-
-//        xor         ecx,eax
-    ecx ^= eax;
-
-//        mov         eax,ecx
-//        and         eax,edi
-//        xor         eax,edx
-    eax = (ecx & 0xff) ^ edx;
-
-//        movzx       edx,byte ptr [ebp+13h]
-    edx = key.a[3] & 0xff;
-
-//        mov         eax,dword ptr [eax*4+_extern_array2]
-    eax = extern_array2[eax];
-
-//        sar         ecx,8
-//        and         ecx,esi
-    ecx = ((int)ecx>>8) & 0xffffff;
-
-//        xor         eax,ecx
-    eax ^= ecx;
-
-//        mov         ecx,eax
-//        and         ecx,edi
-//        xor         ecx,edx
-    ecx = (eax & 0xff) ^ edx;
-
-//        sar         eax,8
-    eax = ((int)eax>>8) & 0xffffff;
-//        mov         ebx,dword ptr [ecx*4+_extern_array2]
-//        and         eax,esi
-    ebx = extern_array2[ecx];
-
-//        xor         ebx,eax
-    ebx ^= eax;
-    ebx ^= EQADDR_MEMCHECKADDR1;
-//        call        getret
-//        mov         ecx,dword ptr [ebp+0Ch]
-//        xor         ebx,eax
-//        mov         eax,dword ptr [ebp+8]
-//        add         ecx,eax
-//        mov         dword ptr [ebp+10h],eax
-//        cmp         eax,ecx
-    if (count == 0) goto done;
-//        jae         done
-//myloop:
-//        mov         edx,dword ptr [ebp+10h]
-//        mov         eax,ebx
-//        and         eax,edi
-//        movzx       edx,byte ptr [edx]
-//        xor         eax,edx
-//        sar         ebx,8
-//        mov         eax,dword ptr [eax*4+_extern_array2]
+//                xor     edx, eax
+    edx = (edx ^ eax) & 0xff;
+//                sar     eax, 8
+//                and     edx, esi
+//                and     eax, ecx
+    eax = ((int)eax >> 8) & 0xffffff;
+//                xor     eax, encryptpad2[edx*4]
+    eax ^= extern_array2[edx];
+//                xor     edx, edx
+//                mov     dl, [ebp+arg_A]
+    edx = key.a[2];
+//                push    edi
+//                xor     edx, eax
+    edx = (edx ^ eax) & 0xff;
+//                sar     eax, 8
+//                and     edx, esi
+//                and     eax, ecx
+    eax = ((int)eax >> 8) & 0xffffff;
+//                xor     eax, encryptpad2[edx*4]
+//                mov     edx, eax
+    edx = eax ^ extern_array2[edx];
+//                call    null_sub_ret_0
+    eax = 0;
+//                mov     edi, [ebp+arg_0]
+//                xor     ebx, ebx
+//                mov     bl, [ebp+arg_B]
+    ebx = key.a[3];
+//                mov     [ebp+var_4], eax
+//                xor     ebx, edx
+    ebx = (edx ^ ebx) & 0xff;
+//                sar     edx, 8
+//                and     edx, ecx
+//                and     ebx, esi
+    edx = ((int)edx >> 8) & 0xffffff;
+//                xor     edx, encryptpad2[ebx*4]
+    edx ^= extern_array2[ebx];
+//                xor     edx, eax
+    edx ^= eax;
+//                mov     eax, [ebp+arg_4]
+//                add     eax, edi
+//                jmp     short loc_4C5776
+//; ---------------------------------------------------------------------------
 //
-//        and         ebx,esi
-//        xor         ebx,eax
-//        inc         dword ptr [ebp+10h]
-//        cmp         dword ptr [ebp+10h],ecx
-//        jb          myloop
+//loc_4C5761:                             ; CODE XREF: new_memcheck2+8Fj
+//                xor     ebx, ebx
+//                mov     bl, [edi]
+//                xor     ebx, edx
+//                sar     edx, 8
+//                and     ebx, esi
+//                and     edx, ecx
+//                xor     edx, encryptpad2[ebx*4]
+//                inc     edi
+//
+//loc_4C5776:                             ; CODE XREF: new_memcheck2+76j
+//                cmp     edi, eax
+//                jb      short loc_4C5761
+//                pop     edi
+//                mov     eax, edx
+//                not     eax
+//                xor     eax, [ebp+var_4]
+//                pop     esi
+//                pop     ebx
+//                leave
+//                retn
+
     for (i=0;i<(unsigned int)count;i++) {
         unsigned char tmp = buffer[i];
-		OurDetours *detour = ourdetours;
+        OurDetours *detour = ourdetours;
         unsigned int b=(int) &buffer[i];
-		while(detour)
-		{
-			if (detour->count && (b >= detour->addr) &&
-                 (b < detour->addr+detour->count) ) {
-                 tmp = detour->array[b - detour->addr];
-                 break;
+        while(detour) {
+            if (detour->count && (b >= detour->addr) &&
+               (b < detour->addr+detour->count) ) {
+                tmp = detour->array[b - detour->addr];
+                break;
             }
-			detour=detour->pNext;
-		}
+            detour=detour->pNext;
+        }
         if (!detour) tmp = buffer[i];
-        eax = (int) tmp ^ (ebx & 0xff);
-        ebx = ((int)ebx >> 8) & 0xffffff;
-        eax = extern_array2[eax];
-        ebx ^= eax;
+        ebx = ((int) tmp ^ edx) & 0xff;
+        edx = ((int)edx >> 8) & 0xffffff;
+        edx ^= extern_array2[ebx];
     }
-//done:
-done:
-//        call        getret
-    eax = EQADDR_MEMCHECKADDR2;
-    eax ^= ~ebx;
+    eax = ~edx ^ 0;
     return eax;
-//        not         ebx
-//        pop         edi
-//        xor         eax,ebx
-//        pop         esi
-//        pop         ebx
-//        pop         ebp
-//        ret
-//_memcheck2  ENDP
-//_TEXT   ENDS
-//END
 }
 
 
@@ -546,10 +650,7 @@ done:
 
 int __cdecl memcheck3(unsigned char *buffer, int count, struct mckey key)
 {
-    unsigned int fake; // use instead of eax
-    unsigned int ecx, edx, i;
-
-    __asm mov fake,eax
+    unsigned int eax, ebx, edx, i;
 
     if (!extern_array3) {
         if (!EQADDR_ENCRYPTPAD3) {
@@ -558,135 +659,110 @@ int __cdecl memcheck3(unsigned char *buffer, int count, struct mckey key)
           extern_array3 = (unsigned int *)EQADDR_ENCRYPTPAD3;
         }
     }
-
-//  004F4AC0: 83 7D 10 00        cmp         dword ptr [ebp+10h],0
-    if (key.x)  {
-//  004F4AC4: 57                 push        edi
-//  004F4AC5: BE FF FF FF 00     mov         esi,0FFFFFFh
-//  004F4ACA: BF FF 00 00 00     mov         edi,0FFh
-//  004F4ACF: 74 59              je          004F4B2A
-
-//  004F4AD1: 8A 45 10           mov         al,byte ptr [ebp+10h]
-//  004F4AD4: F6 D0              not         al
-//  004F4AD6: 0F B6 C0           movzx       eax,al
-    fake = ~key.a[0] & 0xff;
-
-//  004F4AD9: 0F B6 55 11        movzx       edx,byte ptr [ebp+11h]
-    edx = key.a[1] & 0xff;
-
-//  004F4ADD: 8B 04 85 98 0E 5C  mov         eax,dword ptr [eax*4+005C0E98h]
-//            00
-    fake = extern_array3[fake];
-
-//  004F4AE4: 33 C6              xor         eax,esi
-    fake ^= 0xffffff;
-
-//  004F4AE6: 8B C8              mov         ecx,eax
-//  004F4AE8: 23 CF              and         ecx,edi
-//  004F4AEA: 33 CA              xor         ecx,edx
-    ecx = (fake & 0xff) ^ edx;
-
-//  004F4AEC: 0F B6 55 12        movzx       edx,byte ptr [ebp+12h]
-    edx = key.a[2] & 0xff;
-
-//  004F4AF0: 8B 0C 8D 98 0E 5C  mov         ecx,dword ptr [ecx*4+005C0E98h]
-//            00
-    ecx = extern_array3[ecx];
-
-//  004F4AF7: C1 F8 08           sar         eax,8
-//  004F4AFA: 23 C6              and         eax,esi
-    fake = ((int)fake>>8) & 0xffffff;
-
-//  004F4AFC: 33 C8              xor         ecx,eax
-    ecx ^= fake;
-
-//  004F4AFE: 8B C1              mov         eax,ecx
-//  004F4B00: 23 C7              and         eax,edi
-//  004F4B02: 33 C2              xor         eax,edx
-    fake = (ecx & 0xff) ^ edx;
-
-//  004F4B04: C1 F9 08           sar         ecx,8
-    ecx = (int) ecx >> 8;
-
-//  004F4B07: 8B 14 85 98 0E 5C  mov         edx,dword ptr [eax*4+005C0E98h]
-//            00
-    edx = extern_array3[fake];
-
-//  004F4B0E: 23 CE              and         ecx,esi
-//  004F4B10: 33 D1              xor         edx,ecx
-    edx ^= ecx & 0xffffff;
-
-//  004F4B12: 0F B6 4D 13        movzx       ecx,byte ptr [ebp+13h]
-    ecx = key.a[3] & 0xff;
-
-//  004F4B16: 8B C2              mov         eax,edx
-//  004F4B18: 23 C7              and         eax,edi
-//  004F4B1A: 33 C1              xor         eax,ecx
-//  004F4B1C: C1 FA 08           sar         edx,8
-//  004F4B1F: 8B 04 85 98 0E 5C  mov         eax,dword ptr [eax*4+005C0E98h]
-//            00
-
-    fake = extern_array3[(edx & 0xff) ^ ecx];
-
-//  004F4B26: 23 D6              and         edx,esi
-//  004F4B28: 33 C2              xor         eax,edx
-    fake ^= ((int) edx>>8) & 0xffffff;
-
-    } else { // if (!key.x)
-        fake |= 0xffffffff;
-    }
-    // fake = eax here
-
-//  004F4B2A: 8B 4D 08           mov         ecx,dword ptr [ebp+8]
-//  004F4B2D: 8B 55 0C           mov         edx,dword ptr [ebp+0Ch]
-//  004F4B30: 03 D1              add         edx,ecx
-//  004F4B32: 3B CA              cmp         ecx,edx
-//  004F4B34: 89 55 10           mov         dword ptr [ebp+10h],edx
-//  004F4B37: 73 1F              jae         004F4B58
-    if (count == 0) return ~fake;
-
-//  004F4B39: 53                 push        ebx
-//  004F4B3A: 0F B6 19           movzx       ebx,byte ptr [ecx]
-//  004F4B3D: 8B D0              mov         edx,eax
-//  004F4B3F: 23 D7              and         edx,edi
-//  004F4B41: 33 D3              xor         edx,ebx
-//  004F4B43: C1 F8 08           sar         eax,8
-//  004F4B46: 8B 14 95 98 0E 5C  mov         edx,dword ptr [edx*4+005C0E98h]
-//            00
-//  004F4B4D: 23 C6              and         eax,esi
-//  004F4B4F: 33 C2              xor         eax,edx
-//  004F4B51: 41                 inc         ecx
-//  004F4B52: 3B 4D 10           cmp         ecx,dword ptr [ebp+10h]
-//  004F4B55: 72 E3              jb          004F4B3A
-
+//                push    ebp
+//                mov     ebp, esp
+//                push    ecx
+//                xor     eax, eax
+//                mov     al, [ebp+arg_8]
+//                xor     edx, edx
+//                mov     dl, [ebp+arg_9]
+    edx = key.a[1];
+//                push    ebx
+//                push    esi
+//                mov     esi, 0FFh
+//                mov     ecx, 0FFFFFFh
+//                not     eax
+//                and     eax, esi
+    eax = ~key.a[0] & 0xff;
+//                mov     eax, encryptpad3[eax*4]
+    eax = extern_array3[eax];
+//                xor     eax, ecx
+    eax ^= 0xffffff;
+//                xor     edx, eax
+//                sar     eax, 8
+//                and     edx, esi
+    edx = (edx ^ eax) & 0xff;
+//                and     eax, ecx
+    eax = ((int)eax>>8) & 0xffffff;
+//                xor     eax, encryptpad3[edx*4]
+    eax ^= extern_array3[edx];
+//                xor     edx, edx
+//                mov     dl, [ebp+arg_A]
+    edx = key.a[2];
+//                push    edi
+//                xor     edx, eax
+    edx = (edx ^ eax) & 0xff;
+//                sar     eax, 8
+//                and     edx, esi
+//                and     eax, ecx
+    eax = ((int)eax>>8) & 0xffffff;
+//                xor     eax, encryptpad3[edx*4]
+//                mov     edx, eax
+    edx = eax ^ extern_array3[edx];
+    
+//                call    null_sub_ret_0
+    eax = 0;
+//                mov     edi, [ebp+arg_0]
+//                xor     ebx, ebx
+//                mov     bl, [ebp+arg_B]
+    ebx = key.a[3];
+//                mov     [ebp+var_4], eax
+//                xor     ebx, edx
+//                sar     edx, 8
+//                and     edx, ecx
+//                and     ebx, esi
+    ebx = (ebx ^ edx) & 0xff;
+    edx = ((int)edx>>8) & 0xffffff;
+//                xor     edx, encryptpad3[ebx*4]
+    edx ^= extern_array3[ebx];
+//                xor     edx, eax
+    edx ^= eax;
+//                mov     eax, [ebp+arg_4]
+//                add     eax, edi
+//                jmp     short loc_4C5813
+//; ---------------------------------------------------------------------------
+//
+//loc_4C57FE:                             ; CODE XREF: new_memcheck3+8Fj
+//                xor     ebx, ebx
+//                mov     bl, [edi]
+//                xor     ebx, edx
+//                sar     edx, 8
+//                and     ebx, esi
+//                and     edx, ecx
+//                xor     edx, encryptpad3[ebx*4]
+//                inc     edi
+//
     for (i=0;i<(unsigned int)count;i++) {
         unsigned char tmp;
-		OurDetours *detour = ourdetours;
+        OurDetours *detour = ourdetours;
         unsigned int b=(int) &buffer[i];
-		while(detour)
-		{
-			if (detour->count && (b >= detour->addr) &&
+        while(detour)
+        {
+            if (detour->count && (b >= detour->addr) &&
                  (b < detour->addr+detour->count) ) {
                  tmp = detour->array[b - detour->addr];
                  break;
             }
-			detour=detour->pNext;
-		}
+            detour=detour->pNext;
+        }
         if (!detour) tmp = buffer[i];
-        edx = (int)tmp ^ (fake & 0xff);
-        fake = ((int)fake >> 8) & 0xffffff;
-        edx = extern_array3[edx];
-        fake ^= edx;
+        ebx = (tmp ^ edx) & 0xff;
+        edx = ((int)edx >> 8) & 0xffffff;
+        edx ^= extern_array3[ebx];
     }
-    return ~fake;
-
-
-//  004F4B57: 5B                 pop         ebx
-//  004F4B58: 5F                 pop         edi
-//  004F4B59: 5E                 pop         esi
-//  004F4B5A: F7 D0              not         eax
-//  004F4B5C: 5D                 pop         ebp
-//  004F4B5D: C3                 ret
+//loc_4C5813:                             ; CODE XREF: new_memcheck3+76j
+//                cmp     edi, eax
+//                jb      short loc_4C57FE
+//                pop     edi
+//                mov     eax, edx
+//                not     eax
+//                xor     eax, [ebp+var_4]
+    eax = ~edx ^ 0;
+    return eax;
+//                pop     esi
+//                pop     ebx
+//                leave
+//                retn
 }
 
 VOID __cdecl CrashDetected_Trampoline(DWORD,DWORD,DWORD,DWORD,DWORD); 
