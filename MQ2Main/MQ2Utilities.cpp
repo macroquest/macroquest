@@ -36,6 +36,7 @@ VOID DebugSpew(PCHAR szFormat, ...)
     va_start( vaList, szFormat );
     vsprintf(szOutput,szFormat, vaList);
     DebugSpewAlways(szOutput);
+    memset(szOutput, 0, sizeof(szOutput));
 #endif
 }
 
@@ -51,7 +52,7 @@ VOID DebugSpewAlways(PCHAR szFormat, ...)
     OutputDebugString("\n");
 
 #ifdef DBG_SPEW
-    if (!gSpewToFile) return;
+    if (gSpewToFile) {
 
     FILE *fOut = NULL;
     CHAR Filename[MAX_STRING] = {0};
@@ -71,6 +72,8 @@ VOID DebugSpewAlways(PCHAR szFormat, ...)
 #endif
     fclose(fOut);
 #endif
+    }
+    memset(szOutput, 0, sizeof(szOutput));
 }
 
 EQLIB_API VOID DebugSpewNoFile(PCHAR szFormat, ...)
@@ -84,6 +87,7 @@ EQLIB_API VOID DebugSpewNoFile(PCHAR szFormat, ...)
     vsprintf(szOutput,szFormat, vaList);
     OutputDebugString(szOutput);
     OutputDebugString("\n");
+    memset(szOutput, 0, sizeof(szOutput));
 #endif
 }
 
