@@ -377,8 +377,36 @@ BOOL MoveMouse(DWORD x, DWORD y)
 	return FALSE;
 } 
 
-
 BOOL ParseMouseLoc(PCHARINFO pCharInfo, PCHAR szMouseLoc) 
+{
+	CHAR szArg1[MAX_STRING] = {0};
+	CHAR szArg2[MAX_STRING] = {0};
+	int ClickX; //actual location to click, calculated from ButtonX 
+	int ClickY; //actual location to click, calculated from ButtonY 
+
+	// determine mouse location - x and y given
+	if ((szMouseLoc[0]=='+') || (szMouseLoc[0]=='-') || ((szMouseLoc[0]>='0') && (szMouseLoc[0]<='9')))
+	{ // x and y were given so lets convert them and move mouse
+		GetArg(szArg1,szMouseLoc,1);
+		GetArg(szArg2,szMouseLoc,2);
+		ClickX = atoi(szArg1);
+		ClickY = atoi(szArg2);
+		if ((szArg1[0]=='+') || (szArg1[0]=='-') || (szArg2[0]=='+') || (szArg2[0]=='-'))
+		{ // relative location was passed so offset from current
+			ClickX += EQADDR_MOUSE->X;
+			ClickY += EQADDR_MOUSE->Y;
+			DebugSpew("Moving mouse by relative offset");
+		} else {
+			DebugSpew("Moving mouse to absolute position");
+		}
+		return MoveMouse(ClickX,ClickY);
+		
+	}
+	MacroError("'%s' mouse click is either invalid or should be done using /notify",szMouseLoc);
+	return FALSE;
+}
+
+BOOL OldParseMouseLoc(PCHARINFO pCharInfo, PCHAR szMouseLoc) 
 {
 	CHAR ClickLocation[MAX_STRING];	//the parsed named location to find
 	CHAR ButtonX[MAX_STRING] = {0}; //the parsed X coordinate for the desired click location 
@@ -522,19 +550,7 @@ BOOL ParseMouseLoc(PCHARINFO pCharInfo, PCHAR szMouseLoc)
 			return FALSE;
 		}
 		GetArg(szArg1,szRest,1);
-//		DWORD BankWnd = pBankWnd;
 		DWORD NumBankSlots = pBankWnd->GetNumBankSlots();
-		/*
-		__asm {
-	        push eax;
-			push ecx;
-			mov ecx, dword ptr [BankWnd];
-			call dword ptr [EQADDR_GETNUMBANKSLOTS];
-			mov [NumBankSlots], eax;
-			pop ecx;
-			pop eax;
-		}
-		/**/
 		DebugSpew("NumBankSlots = %d",NumBankSlots);
 		if(NumBankSlots>=16) {
 			Bank = 15;
@@ -814,20 +830,6 @@ BOOL ParseMouseLoc(PCHARINFO pCharInfo, PCHAR szMouseLoc)
       for (y=0;(y<Rect.bottom) && (!Found);y+=2*(1+Mode)) { 
          for (x=0;(x<Rect.right) && (!Found);x+=2*(1+Mode)) { 
 			 ID=(DWORD)pDisplay->GetClickedActor(x,y,0);
-			 /*
-            __asm { 
-               push ecx 
-               push eax 
-               push 0 
-               push [y] 
-               push [x] 
-               mov ecx, dword ptr [clsItems] 
-               call dword ptr[ScreenItem] 
-               mov [ID], eax 
-               pop eax 
-               pop ecx 
-            } 
-			/**/
 
             if (ID == EnviroTarget.GuildID) { 
                MouseInfo->X = x; 
@@ -845,19 +847,6 @@ BOOL ParseMouseLoc(PCHARINFO pCharInfo, PCHAR szMouseLoc)
       for (y=0;(y<Rect.bottom) && (!Found);y+=2*(1+Mode)) { 
          for (x=0;(x<Rect.right) && (!Found);x+=2*(1+Mode)) { 
 			 ID=(DWORD)pEverQuest->ClickedPlayer(x,y);
-			 /*
-            __asm { 
-               push ecx 
-               push eax 
-               push [y] 
-               push [x] 
-               mov ecx, dword ptr [EQADDR_CLSSPAWNS] 
-               call dword ptr[ScreenSpawn] 
-               mov [ID], eax 
-               pop eax 
-               pop ecx 
-            } 
-			/**/
             if (ID == (DWORD)psTarget) { 
                MouseInfo->X = x; 
                MouseInfo->Y = y; 

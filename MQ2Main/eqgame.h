@@ -221,6 +221,7 @@
 #define CEverQuest__LeftClickedOnPlayer                    0x4A9DA0
 #define CEverQuest__RightClickedOnPlayer                   0x4A29D3
 #define CEverQuest__SetGameState                           0x4986DE
+#define CEverQuest__DropHeldItemOnGround				   0x49ACDD
 
 // CXWndManager
 #define CXWndManager__RemoveWnd                            0x5720D0
@@ -289,6 +290,7 @@
 
 // EQ_Item
 #define EQ_Item__GetItemLinkHash                           0x431A7D
+#define EQ_Item__CanDrop								   0x431B75
 
 // CBankWnd
 #define CBankWnd__GetNumBankSlots                          0x4D1268
@@ -319,6 +321,10 @@
 
 // EQ_PC
 #define EQ_PC__DestroyHeldItemOrMoney                      0x434AC3
+
+// CContainerWnd
+#define CContainerWnd__HandleCombine					   0x4E6A2A
+#define CContainerWnd__vftable							   0x5E3510
 
 // CSidlScreenWnd
 #define CSidlScreenWnd__CSidlScreenWnd1                    0x555ED0

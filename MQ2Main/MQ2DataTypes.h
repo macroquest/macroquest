@@ -56,6 +56,7 @@ EQLIB_VAR class MQ2InvSlotType *pInvSlotType;
 
 EQLIB_VAR class MQ2ArrayType *pArrayType;
 EQLIB_VAR class MQ2TimerType *pTimerType;
+EQLIB_VAR class MQ2PluginType *pPluginType;
 
 #define UseTemp(mystring) strcpy(DataTypeTemp,mystring)
 #define TypeMember(name) AddMember((DWORD)name,""#name)
@@ -506,6 +507,13 @@ public:
 		Trader=63,
 		AFK=64,
 		xConColor=65,
+		TargetOfTarget=66,
+		Standing=67,
+		Sitting=68,
+		Ducking=69,
+		Feigning=70,
+		Binding=71,
+		Invited=72,
 	};
 	MQ2SpawnType():MQ2Type("spawn")
 	{
@@ -572,6 +580,13 @@ public:
 		TypeMember(Trader);
 		TypeMember(AFK);
 		AddMember(xConColor,"ConColor");
+		TypeMember(TargetOfTarget);
+		TypeMember(Standing);//=67,
+		TypeMember(Sitting);//68,
+		TypeMember(Ducking);//=69,
+		TypeMember(Feigning);//=70,
+		TypeMember(Binding);//=71,
+		TypeMember(Invited);
 	}
 
 	~MQ2SpawnType()
@@ -686,6 +701,9 @@ public:
 		GoldBank=83,
 		SilverBank=84,
 		CopperBank=85,
+		PctGroupLeaderExp=86,
+		PctRaidLeaderExp=87,
+		Stunned=88,
 	};
 	MQ2CharacterType():MQ2Type("character")
 	{
@@ -773,6 +791,9 @@ public:
 		TypeMember(GoldBank);
 		TypeMember(SilverBank);
 		TypeMember(CopperBank);
+		TypeMember(PctGroupLeaderExp);
+		TypeMember(PctRaidLeaderExp);
+		TypeMember(Stunned);
 	}
 
 	~MQ2CharacterType()
@@ -938,7 +959,7 @@ public:
 		Charges=12,
 		LDoNTheme=13,
 		DMGBonusType=14,
-		Price=15,
+		BuyPrice=15,
 		Haste=16,
 		Endurance=17,
 		Attack=18,
@@ -1004,6 +1025,7 @@ public:
 		Container=78,
 		Stackable=79,
 		InvSlot=80,
+		SellPrice=81,
 	};
 	MQ2ItemType():MQ2Type("Item")
 	{
@@ -1021,7 +1043,7 @@ public:
 		TypeMember(Charges);//12,
 		TypeMember(LDoNTheme);//13,
 		TypeMember(DMGBonusType);//14,
-		TypeMember(Price);//15,
+		TypeMember(BuyPrice);//15,
 		TypeMember(Haste);//16,
 		TypeMember(Endurance);//17,
 		TypeMember(Attack);//18,
@@ -1087,6 +1109,7 @@ public:
 		TypeMember(Container);
 		TypeMember(Stackable);
 		TypeMember(InvSlot);
+		TypeMember(SellPrice);
 	}
 
 	~MQ2ItemType()
@@ -1556,6 +1579,9 @@ public:
 		Server=3,
 		LastCommand=4,
 		LastTell=5,
+		Error=6,
+		SyntaxError=7,
+		MQ2DataError=8,
 	};
 	MQ2MacroQuestType():MQ2Type("macroquest")
 	{
@@ -1564,6 +1590,9 @@ public:
 		TypeMember(Server);
 		TypeMember(LastCommand);
 		TypeMember(LastTell);
+		TypeMember(Error);
+		TypeMember(SyntaxError);
+		TypeMember(MQ2DataError);
 	}
 
 	~MQ2MacroQuestType()
@@ -1604,6 +1633,7 @@ public:
 		Dec=11,
 		Not=12,
 		Distance=13,
+		Sqrt=14,
 	};
 	MQ2MathType():MQ2Type("math")
 	{
@@ -1620,6 +1650,7 @@ public:
 		TypeMember(Dec);//11,
 		TypeMember(Not);//12,
 		TypeMember(Distance);
+		TypeMember(Sqrt);
 	}
 
 	~MQ2MathType()
@@ -1686,24 +1717,26 @@ public:
 		Name=1,
 		ShortName=2,
 		ID=3,
-		CanGate=4,
+		PureCaster=4,
 		CanCast=5,
 		DruidType=6,
 		NecromancerType=7,
 		ShamanType=8,
 		ClericType=9,
+		PetClass=10,
 	};
 	MQ2ClassType():MQ2Type("class")
 	{
 		TypeMember(Name);
 		TypeMember(ShortName);
 		TypeMember(ID);
-		TypeMember(CanGate);
+		TypeMember(PureCaster);
 		TypeMember(CanCast);
 		TypeMember(DruidType);
 		TypeMember(NecromancerType);
 		TypeMember(ShamanType);
 		TypeMember(ClericType);
+		TypeMember(PetClass);
 	}
 
 	~MQ2ClassType()
@@ -1997,6 +2030,11 @@ public:
 
    bool ToString(MQ2VARPTR VarPtr, PCHAR Destination)
    {
+	   if (VarPtr.Ptr)
+	   {
+		   strcpy(Destination,((PMQPLUGIN)VarPtr.Ptr)->szFilename);
+		   return true;
+	   }
 	   return false;
    }
 	bool FromData(MQ2VARPTR &VarPtr, MQ2TYPEVAR &Source)
@@ -2113,4 +2151,3 @@ public:
 	}
 }; 
 
-#undef TypeMember

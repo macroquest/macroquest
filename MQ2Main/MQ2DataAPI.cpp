@@ -168,7 +168,7 @@ const UCHAR EndVariable[256]=
 /*0x20-0x2F*/1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,
 /*0x30-0x3F*/0,0,0,0,0,0,0,0,0,0,1,1,1,1,1,1,
 /*0x40-0x4F*/1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
-/*0x50-0x5F*/0,0,0,0,0,0,0,0,0,0,0,1,1,1,1,1,
+/*0x50-0x5F*/0,0,0,0,0,0,0,0,0,0,0,1,1,1,1,0,
 /*0x60-0x6F*/1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
 /*0x70-0x7F*/0,0,0,0,0,0,0,0,0,0,0,1,1,1,1,1,
 /*0x80-0x8F*/1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,
@@ -361,6 +361,7 @@ BOOL ParseMQ2DataPortion(PCHAR szOriginal, MQ2TYPEVAR &Result)
 			{
 				if (!Result.Type)
 				{
+					MQ2DataError("Nothing to parse");
 					return FALSE;
 				}
 //				Result.Type->ToString(Result.VarPtr,szCurrent);
@@ -394,6 +395,7 @@ BOOL ParseMQ2DataPortion(PCHAR szOriginal, MQ2TYPEVAR &Result)
 					}
 					else
 					{
+						MQ2DataError("No such Top-Level Object '%s'",pStart);
 						return FALSE;
 					}
 				}
@@ -401,7 +403,10 @@ BOOL ParseMQ2DataPortion(PCHAR szOriginal, MQ2TYPEVAR &Result)
 				{
 					if (!Result.Type->GetMember(Result.VarPtr,pStart,pIndex,Result))
 					{
-						// error
+						if (!Result.Type->FindMember(pStart) && !Result.Type->InheritedMember(pStart))
+						{
+							MQ2DataError("No such '%s' member '%s'",Result.Type->GetName(),pStart);
+						}
 						return FALSE;
 					}
 				}
@@ -418,6 +423,7 @@ BOOL ParseMQ2DataPortion(PCHAR szOriginal, MQ2TYPEVAR &Result)
 			{
 				if (!Result.Type)
 				{
+					MQ2DataError("Encountered typecast without object to cast");
 					return FALSE;
 				}
 //				Result.Type->ToString(Result.VarPtr,szCurrent);
@@ -451,6 +457,7 @@ BOOL ParseMQ2DataPortion(PCHAR szOriginal, MQ2TYPEVAR &Result)
 					}
 					else
 					{
+						MQ2DataError("No such Top-Level Object '%s'",pStart);
 						return FALSE;
 					}
 					
@@ -459,7 +466,10 @@ BOOL ParseMQ2DataPortion(PCHAR szOriginal, MQ2TYPEVAR &Result)
 				{
 					if (!Result.Type->GetMember(Result.VarPtr,pStart,pIndex,Result))
 					{
-						// error
+						if (!Result.Type->FindMember(pStart) && !Result.Type->InheritedMember(pStart))
+						{
+							MQ2DataError("No such '%s' member '%s'",Result.Type->GetName(),pStart);
+						}
 						return FALSE;
 					}
 				}
@@ -477,6 +487,7 @@ BOOL ParseMQ2DataPortion(PCHAR szOriginal, MQ2TYPEVAR &Result)
 				if (!*pPos)
 				{
 					// error
+					MQ2DataError("Encountered unmatched parenthesis");
 					return FALSE;
 				}
 				++pPos;
@@ -486,6 +497,7 @@ BOOL ParseMQ2DataPortion(PCHAR szOriginal, MQ2TYPEVAR &Result)
 			if (!pNewType)
 			{
 				// error
+				MQ2DataError("Unknown type '%s'",pType);
 				return FALSE;
 			}
 			if (pNewType==pTypeType)
@@ -508,6 +520,7 @@ BOOL ParseMQ2DataPortion(PCHAR szOriginal, MQ2TYPEVAR &Result)
 			}
 			else
 			{
+				MQ2DataError("Invalid character found after typecast '%c'",pPos[1]);
 				return FALSE;
 			}
 		}
@@ -529,6 +542,7 @@ BOOL ParseMQ2DataPortion(PCHAR szOriginal, MQ2TYPEVAR &Result)
 					if (*pPos==0)
 					{
 						// error
+						MQ2DataError("Unmatched quote found in index: '%s'",pIndex);
 						return FALSE;
 					}
 					++pPos;
@@ -545,6 +559,7 @@ BOOL ParseMQ2DataPortion(PCHAR szOriginal, MQ2TYPEVAR &Result)
 				if (!*pPos)
 				{
 					// error
+					MQ2DataError("Unmatched bracket found in index: '%s'",pIndex);
 					return FALSE;
 				}
 				++pPos;
@@ -553,6 +568,7 @@ BOOL ParseMQ2DataPortion(PCHAR szOriginal, MQ2TYPEVAR &Result)
 			if (pPos[1]!=0 && pPos[1]!='.' && pPos[1]!='(')
 			{
 				// broken!
+				MQ2DataError("Invalid character found after index '%c'",pPos[1]);
 				return FALSE;
 			}
 		}
@@ -565,6 +581,7 @@ BOOL ParseMQ2DataPortion(PCHAR szOriginal, MQ2TYPEVAR &Result)
 			{
 				if (!Result.Type)
 				{
+					MQ2DataError("Encountered member access without object");
 					return FALSE;
 				}
 //				Result.Type->ToString(Result.VarPtr,szCurrent);
@@ -598,6 +615,7 @@ BOOL ParseMQ2DataPortion(PCHAR szOriginal, MQ2TYPEVAR &Result)
 					}
 					else
 					{
+						MQ2DataError("No such Top-Level Object '%s'",pStart);
 						return FALSE;
 					}
 					
@@ -606,7 +624,10 @@ BOOL ParseMQ2DataPortion(PCHAR szOriginal, MQ2TYPEVAR &Result)
 				{
 					if (!Result.Type->GetMember(Result.VarPtr,pStart,pIndex,Result))
 					{
-						// error
+						if (!Result.Type->FindMember(pStart) && !Result.Type->InheritedMember(pStart))
+						{
+							MQ2DataError("No such '%s' member '%s'",Result.Type->GetName(),pStart);
+						}
 						return FALSE;
 					}
 				}

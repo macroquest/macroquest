@@ -28,6 +28,9 @@ REVERSE_DETOUR(char * EQ_Item::GetItemLinkHash(char *),EQ_Item__GetItemLinkHash)
 #ifdef CStmlWnd__AppendSTML
 REVERSE_DETOUR(class CXSize& CStmlWnd::AppendSTML(class CXSize*,class CXStr),CStmlWnd__AppendSTML);
 #endif
+#ifdef EQ_Item__CanDrop
+REVERSE_DETOUR(int EQ_Item::CanDrop(int),EQ_Item__CanDrop); // Lax 4-21-2004
+#endif
 
 REVERSE_VIRTUAL_DETOUR(void CChatWindow::operator delete[](void*),0x04);
 

@@ -400,7 +400,7 @@ void InitializeMQ2Commands()
         {"/skills",     Skills,1,1},
         {"/unload",     Unload,1,0},
         {"/macro",      Macro,1,0},
-        {"/selectitem", SelectItem,1,1},
+//        {"/selectitem", SelectItem,1,1},
         {"/buyitem",    BuyItem,1,1},
         {"/sellitem",   SellItem,1,1},
         {"/memspell",   MemSpell,1,1},
@@ -413,7 +413,7 @@ void InitializeMQ2Commands()
         {"/alert",      Alert,1,1},
         {"/click",      Click,1,0},
         {"/mouseto",    MouseTo,1,0},
-        {"/finditem",   FindItem,1,1},
+//        {"/finditem",   FindItem,1,1},
         {"/mqpause",    MacroPause,1,0},
         {"/items",      Items,1,1},
         {"/itemtarget", ItemTarget,1,1},
@@ -474,6 +474,9 @@ void InitializeMQ2Commands()
 		{"/shiftkey",   DoShiftCmd,0,0},
 		{"/timed",		DoTimedCmd,0,0},
 		{"/if",			NewIf,1,0},
+		{"/combine",    CombineCmd,1,1},
+		{"/clearerrors", ClearErrorsCmd,1,0},
+		{"/drop",		DropCmd,1,0},
 		{NULL,          NULL,0,1},
     };
 

@@ -560,6 +560,7 @@ public:
 		strncpy(TypeName,NewName,32);
 		TypeName[31]=0;
 		Official=AddMQ2Type(*this);
+		pInherits=0;
 	}
 
 	inline InitializeMembers(PMQ2TYPEMEMBER MemberArray)
@@ -623,6 +624,17 @@ public:
 		N--;
 		return Members[N];
 	}
+	BOOL InheritedMember(PCHAR Name)
+	{
+		if (!pInherits || !pInherits->FindMember(Name))
+			return FALSE;
+		return TRUE;
+	}
+	void SetInheritance(MQ2Type *pNewInherit)
+	{
+		pInherits=pNewInherit;
+	}
+
 protected:
 
 
@@ -655,6 +667,7 @@ protected:
 	BOOL Official;
 	CIndex<PMQ2TYPEMEMBER> Members;
 	map<string,DWORD> MemberMap;
+	MQ2Type *pInherits;
 };
 
 class CDataArray

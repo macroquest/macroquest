@@ -232,15 +232,13 @@ VOID ItemTarget(PSPAWNINFO pChar, PCHAR szLine)
     }
     if (EnviroTarget.Name[0]!=0) {
         sprintf(szBuffer,"Item '%s' targeted.",EnviroTarget.Name);
-        gLastError[0]=0;
         WriteChatColor(szBuffer,USERCOLOR_DEFAULT);
         if (stricmp(Arg2,"notarget") && ppTarget) pTarget = (EQPlayer*)&EnviroTarget;
     } else {
         if (ppTarget && (pTarget == (EQPlayer*)&EnviroTarget))
             pTarget = NULL;
-        sprintf(szBuffer,"Couldn't find '%s'.",szLine);
-        strcpy(gLastError,"ITEM_NOTFOUND");
-        WriteChatColor(szBuffer,CONCOLOR_RED);
+		MacroError("Couldn't find '%s' to target.",szLine);
+//        strcpy(gLastError,"ITEM_NOTFOUND");
     }
 
 }
@@ -323,8 +321,8 @@ VOID DoorTarget(PSPAWNINFO pChar, PCHAR szLine)
    GetArg(Arg2,szLine,2);
    if (!stricmp(Arg1, "id")) {
       if (Arg2[0]==0) {
-         WriteChatColor("DoorTarget: id specified but no number provided.", CONCOLOR_RED);
-         strcpy(gLastError, "DOORTARGET_BADCOMMAND");
+         MacroError("DoorTarget: id specified but no number provided.");
+//         strcpy(gLastError, "DOORTARGET_BADCOMMAND");
          return;
       }
 
@@ -378,14 +376,12 @@ VOID DoorTarget(PSPAWNINFO pChar, PCHAR szLine)
 
    if (DoorEnviroTarget.Name[0]!=0) {
       sprintf(szBuffer,"Door %d '%s' targeted.", pDoorTarget->ID, DoorEnviroTarget.Name);
-      gLastError[0]=0;
       WriteChatColor(szBuffer,USERCOLOR_DEFAULT);
 	  if (stricmp(Arg2,"notarget") && ppTarget) pTarget = (EQPlayer*)&DoorEnviroTarget;
    } else {
       if (ppTarget) pTarget = NULL;
-      sprintf(szBuffer,"Couldn't find door '%s'.",szLine);
-      strcpy(gLastError,"ITEM_NOTFOUND");
-      WriteChatColor(szBuffer,CONCOLOR_RED);
+      MacroError("Couldn't find door '%s' to target.",szLine);
+//      strcpy(gLastError,"ITEM_NOTFOUND");
    }
 }
 
@@ -576,103 +572,6 @@ VOID MemSpell(PSPAWNINFO pChar, PCHAR szLine)
     for (sp=0;sp<8;sp++) MemSpellFavorite.SpellId[sp]=0xFFFFFFFF;
     MemSpellFavorite.SpellId[Gem] = pSpell->ID;
 	pSpellBookWnd->MemorizeSet((int*)Favorite,8);
-/*
-   __asm {
-    push ecx;
-    mov ecx, dword ptr [SpellBookWnd];
-        push 8;
-        push dword ptr [Favorite];
-        call dword ptr [cmdLoadSpells];
-    pop ecx;
-   }
-/**/
-}
-
-// ***************************************************************************
-// Function:    Macro
-// Description: Our '/macro' command
-// Usage:       /macro <filename>
-// ***************************************************************************
-VOID Macro(PSPAWNINFO pChar, PCHAR szLine)
-{
-    bRunNextCommand = TRUE;
-    CHAR szTemp[MAX_STRING] = {0};
-    CHAR Filename[MAX_STRING] = {0};
-    PCHAR Params = NULL;
-    PCHAR szNext = NULL;
-    BOOL InBlockComment = FALSE;
-    if (szLine[0] == 0) {
-        WriteChatColor("Usage: /macro <filename> [param [param...]]", USERCOLOR_DEFAULT);
-        return;
-    }
-	gMaxTurbo=20;
-	gTurbo=true;
-    GetArg(szTemp,szLine,1);
-    Params = GetNextArg(szLine);
-
-    strcpy(gszMacroName,szTemp);
-    if (!strstr(szTemp,".")) strcat(szTemp,".mac");
-    sprintf(Filename,"%s\\%s",gszMacroPath, szTemp);
-
-    FILE *fMacro = fopen(Filename,"rt");
-    if (!fMacro) {
-        sprintf(szTemp,"Couldn't open macro file: %s",Filename);
-        WriteChatColor(szTemp,CONCOLOR_RED);
-        gszMacroName[0]=0;
-        gRunning = 0;
-        return;
-    }
-    if (gMacroBlock) EndMacro(pChar,"keep keys vars arrays timers");
-    gRunning = GetTickCount();
-    gEventChat = 0;
-    strcpy(gszMacroName,szTemp);
-    DebugSpew("Macro - Loading macro: %s",Filename);
-    DWORD LineNumber = 0;
-    PMACROBLOCK pAddedLine = NULL;
-    while (!feof(fMacro)) {
-        fgets(szTemp,MAX_STRING,fMacro);
-        LineNumber++;
-        while ((strlen(szTemp)>0) && (szTemp[strlen(szTemp)-1] < 32)) szTemp[strlen(szTemp)-1]=0;
-        if (!strncmp(szTemp,"|**",3)) {
-            InBlockComment=TRUE;
-        }
-        if (!InBlockComment) {
-            if (NULL == (pAddedLine=AddMacroLine(szTemp))) {
-                WriteChatColor("Unable to add macro line.",CONCOLOR_RED);
-                fclose(fMacro);
-                gszMacroName[0]=0;
-                gRunning = 0;
-                return;
-            } else if (1 != (DWORD)pAddedLine) {
-                pAddedLine->LineNumber = LineNumber;
-                strcpy(pAddedLine->SourceFile, GetFilenameFromFullPath(Filename));
-            }
-        } else {
-            DebugSpew("Macro - BlockComment: %s",szTemp);
-            if (!strncmp(&szTemp[strlen(szTemp)-3],"**|",3)) {
-                InBlockComment=FALSE;
-            }
-        }
-    }
-    fclose(fMacro);
-    PDEFINE pDef;
-    while (pDefines) {
-        pDef = pDefines->pNext;
-        free(pDefines);
-        pDefines = pDef;
-    }
-    strcpy(szTemp, "Main");
-    if (Params[0] !=0) {
-        strcat(szTemp, " ");
-        strcat(szTemp, Params);
-    }
-    DebugSpew("Macro - Starting macro with '/call %s'",szTemp);
-    Call(pChar, szTemp);
-    if ((gMacroBlock) && (gMacroBlock->pNext)) gMacroBlock = gMacroBlock->pNext;
-    if ((!gMacroBlock) || (!gMacroStack)) {
-        gszMacroName[0]=0;
-        gRunning = 0;
-    }
 }
 
 
@@ -682,6 +581,7 @@ VOID Macro(PSPAWNINFO pChar, PCHAR szLine)
 //              Brings the named item onto the cursor.
 // Usage:       /finditem itemname
 // ***************************************************************************
+/*
 VOID FindItem(PSPAWNINFO pChar, PCHAR szLine)
 {
    bRunNextCommand = TRUE;
@@ -697,12 +597,12 @@ VOID FindItem(PSPAWNINFO pChar, PCHAR szLine)
    if (NULL == (pCharInfo = GetCharInfo())) return;
    if (szLine[0] == 0) {
       WriteChatColor("Usage: /finditem [similar|id] \"item name\"|\"item id\"",USERCOLOR_DEFAULT);
-      strcpy(gLastError,"FIND_NOTFOUND");
+//      strcpy(gLastError,"FIND_NOTFOUND");
       return;
    }
    if (pCharInfo->Cursor) {
       WriteChatColor("Your hands must be empty to find an item.",CONCOLOR_RED);
-      strcpy(gLastError,"FIND_HANDSFULL");
+//      strcpy(gLastError,"FIND_HANDSFULL");
       return;
    }
    GetArg(szSearch,szLine,1);
@@ -741,7 +641,6 @@ VOID FindItem(PSPAWNINFO pChar, PCHAR szLine)
          sprintf(gLastFindSlot,"inv,%d",PriSlot);
          sprintf(szBuf,"left inv %d",PriSlot);
          Click(pChar,szBuf);
-         gLastError[0]=0;
          return;
       }
       if (pSlot->Item->Type == ITEMTYPE_PACK) { 
@@ -775,7 +674,7 @@ VOID FindItem(PSPAWNINFO pChar, PCHAR szLine)
                   WasOpen = TRUE;
              }
              if (pContainer->Open == 0) {
-                  strcpy(gLastError,"FIND_PACKNOTOPEN");
+//                  strcpy(gLastError,"FIND_PACKNOTOPEN");
                 return;
                }
                sprintf(gLastFindSlot,"%d,%d",PriSlot,BagSlot);
@@ -785,17 +684,16 @@ VOID FindItem(PSPAWNINFO pChar, PCHAR szLine)
                   sprintf(szBuf,"left pack %d done",PriSlot);
                   Click(pChar,szBuf);
                }
-               gLastError[0]=0;
                return;
             }
          }
       }
    }
    sprintf(szBuffer,"Couldn't find a '%s'",szSearch);
-   strcpy(gLastError,"FIND_NOTFOUND");
+//   strcpy(gLastError,"FIND_NOTFOUND");
    WriteChatColor(szBuffer,CONCOLOR_RED);
 }
-
+/**/
 
 // ***************************************************************************
 // Function:    SelectItem
@@ -805,6 +703,7 @@ VOID FindItem(PSPAWNINFO pChar, PCHAR szLine)
 // ***************************************************************************
 // uses public: void __thiscall CMerchantWnd::SelectBuySellSlot(int,class CTextureAnimation *)
 // ***************************************************************************
+/*
 DWORD SelectFind(char* szSearch, char* szOption )
 {
 	UCHAR PriSlot;
@@ -853,13 +752,12 @@ DWORD SelectFind(char* szSearch, char* szOption )
 				pInvWindow = (PCSIDLWND)pInventoryWnd;
 				gLastFind = LASTFIND_PRIMARY;
 				sprintf(gLastFindSlot,"inv %d",PriSlot); 
-				gLastError[0]=0;
 				if (!ppInventoryWnd || !pInvWindow)
-					strcpy(gLastError,"ppInventoryWnd bad offset");
+//					strcpy(gLastError,"ppInventoryWnd bad offset");
 				if(pInvWindow->Show) {
 					return (BagCounter);
 				} else {
-					strcpy(gLastError,"INV_NOTOPEN");
+//					strcpy(gLastError,"INV_NOTOPEN");
 				}
 			}
 		}
@@ -893,11 +791,10 @@ DWORD SelectFind(char* szSearch, char* szOption )
 					{
 						gLastFind = PriSlot; 
 						sprintf(gLastFindSlot,"pack %d %d",PriSlot,BagSlot);
-						gLastError[0]=0;
 						if (pContainer->Open) {
 							return (slotcounter);
 						} else {
-							strcpy(gLastError,"PACK_NOTOPEN");
+//							strcpy(gLastError,"PACK_NOTOPEN");
 						}
 
 					}
@@ -906,7 +803,7 @@ DWORD SelectFind(char* szSearch, char* szOption )
 		}
 	}
 	sprintf(szBuffer,"Couldn't find a '%s'",szSearch); 
-	strcpy(gLastError,"FIND_NOTFOUND"); 
+//	strcpy(gLastError,"FIND_NOTFOUND"); 
 	WriteChatColor(szBuffer,CONCOLOR_RED);
 	return (59999);
 }
@@ -935,7 +832,7 @@ VOID SelectItem(PSPAWNINFO pChar, PCHAR szLine)
 	DebugSpew("/selectitem : yes the command works at least to this point");
 	if (szLine[0] == 0) {
 		WriteChatColor("Usage: /selectitem 'item name' merchant || self : slot <number> merchant || self : list merchant || self",USERCOLOR_DEFAULT);
-		strcpy(gLastError,"FIND_NOTFOUND");
+//		strcpy(gLastError,"FIND_NOTFOUND");
 		return;
 	}
 	if (NULL == (pCharInfo = GetCharInfo())) return;
@@ -1108,20 +1005,11 @@ VOID SelectItem(PSPAWNINFO pChar, PCHAR szLine)
 				if (!SelectSlot) return;
 			}
 			pMerchantWnd->SelectBuySellSlot(SelectSlot,(CTextureAnimation*)TextureAnim);
-				/*
-			__asm {
-				push ecx;
-				push TextureAnim;
-				mov ecx, dword ptr [MerchTraderWnd];
-				push SelectSlot;
-				call dword ptr [cmdSelectItem];
-				pop ecx;
-			}
-			*/
 		}
 	}
 	return;   
 }
+/**/
 
 // ***************************************************************************
 // Function:    buyitem
@@ -1144,15 +1032,6 @@ VOID BuyItem(PSPAWNINFO pChar, PCHAR szLine)
    Qty = (DWORD)atoi(szQty);
    if (Qty > 20 || Qty < 1) return;
    pMerchantWnd->RequestBuyItem(Qty);
-   /*
-   __asm {
-      push ecx;
-      mov ecx, dword ptr [MerchTraderWnd];
-      push Qty;
-        call dword ptr [cmdBuyItem];
-      pop ecx;
-   }
-   */
    return;
 }
 // ***************************************************************************
@@ -1170,7 +1049,6 @@ VOID SellItem(PSPAWNINFO pChar, PCHAR szLine)
     CHAR szQty[MAX_STRING] = {0};
     PCHARINFO pCharInfo = NULL;
     DWORD Qty;
-    DebugSpew("/sellitem : yes the command works at least to this point");
 
 //    if (!pMerchantWnd || !cmdSellItem) return;
     if (NULL == (pCharInfo = GetCharInfo())) return;
@@ -1178,15 +1056,6 @@ VOID SellItem(PSPAWNINFO pChar, PCHAR szLine)
     Qty = (DWORD)atoi(szQty);
     if (Qty > 20 || Qty < 1) return;
    pMerchantWnd->RequestSellItem(Qty);
-   /*
-    __asm {
-        push ecx;
-        mov ecx, dword ptr [MerchTraderWnd];
-        push Qty;
-        call dword ptr [cmdSellItem];
-        pop ecx;
-    }
-	/**/
     return;
 }
 // ***************************************************************************
@@ -1306,7 +1175,7 @@ VOID SWhoFilter(PSPAWNINFO pChar, PCHAR szLine)
 	} else if (!stricmp(szArg,"invisible")) {
       SetDisplaySWhoFilter(&gFilterSWho.Invisible,"Invisible",szToggle);
     } else {
-      WriteChatColor("Usage: /whofilter <lastname|class|race|level|gm|guild|holding|ld|sneak|anon|lfg|npctag|spawnid|trader|afk|concolor|invisible> [on|off]",USERCOLOR_DEFAULT);
+      SyntaxError("Usage: /whofilter <lastname|class|race|level|gm|guild|holding|ld|sneak|anon|lfg|npctag|spawnid|trader|afk|concolor|invisible> [on|off]");
    } 
 }
 
@@ -1405,7 +1274,7 @@ VOID Filter(PSPAWNINFO pChar, PCHAR szLine)
                 return;
             }
         }
-        WriteChatColor("Usage: /filter skills [all|increase|none]",USERCOLOR_DEFAULT);
+        SyntaxError("Usage: /filter skills [all|increase|none]");
 
     } else if (!stricmp("macros",szArg)) {
         if (szRest[0]==0) {
@@ -1422,7 +1291,7 @@ VOID Filter(PSPAWNINFO pChar, PCHAR szLine)
                 return;
             }
         }
-        WriteChatColor("Usage: /filter macros [all|enhanced|none]",USERCOLOR_DEFAULT);
+        SyntaxError("Usage: /filter macros [all|enhanced|none]");
 	} else if (!stricmp("mq",szArg)) {
         if (szRest[0]==0) {
             sprintf(szCmd,"Filtering of MQ is set to: %s",szUseChat[gFilterMQ]);
@@ -1439,7 +1308,25 @@ VOID Filter(PSPAWNINFO pChar, PCHAR szLine)
                 return;
             }
         }
-        WriteChatColor("Usage: /filter mq [on|off]",USERCOLOR_DEFAULT);
+        SyntaxError("Usage: /filter mq [on|off]");
+	} else if (!stricmp("mq2data",szArg)) {
+        if (szRest[0]==0) {
+            sprintf(szCmd,"Filtering of MQ2Data Errors is set to: %s",szUseChat[gFilterMQ2DataErrors]);
+            WriteChatColor(szCmd,USERCOLOR_DEFAULT);
+            return;
+        }
+        for (Command=0;szUseChat[Command];Command++) {
+            if (!stricmp(szRest,szUseChat[Command])) {
+                gFilterMQ2DataErrors = Command;
+                sprintf(szCmd,"Filtering of MQ changed to: %s",szUseChat[gFilterMQ2DataErrors]);
+                WriteChatColor(szCmd,USERCOLOR_DEFAULT);
+                itoa(gFilterMQ2DataErrors,szCmd,10); 
+				WritePrivateProfileString("MacroQuest","FilterMQ2Data",szCmd,gszINIFilename);
+                return;
+            }
+        }
+        SyntaxError("Usage: /filter mq2data [on|off]");
+
 
     } else if (!stricmp("target",szArg)) {
         if (szRest[0]==0) {
@@ -1456,7 +1343,7 @@ VOID Filter(PSPAWNINFO pChar, PCHAR szLine)
                 return;
             }
         }
-        WriteChatColor("Usage: /filter target [on|off]",USERCOLOR_DEFAULT);
+        SyntaxError("Usage: /filter target [on|off]");
 
     } else if (!stricmp("debug",szArg)) {
         if (szRest[0]==0) {
@@ -1473,7 +1360,7 @@ VOID Filter(PSPAWNINFO pChar, PCHAR szLine)
                 return;
             }
         }
-        WriteChatColor("Usage: /filter debug [on|off]",USERCOLOR_DEFAULT);
+        SyntaxError("Usage: /filter debug [on|off]");
 
     } else if (!stricmp("money",szArg)) {
         if (szRest[0]==0) {
@@ -1490,7 +1377,7 @@ VOID Filter(PSPAWNINFO pChar, PCHAR szLine)
                 return;
             }
         }
-        WriteChatColor("Usage: /filter money [on|off]",USERCOLOR_DEFAULT);
+        SyntaxError("Usage: /filter money [on|off]");
     } else if (!stricmp("encumber",szArg)) {
         if (szRest[0]==0) {
             sprintf(szCmd,"Filtering of encumber messages is set to: %s",szFilterTarget[gFilterEncumber]);
@@ -1506,7 +1393,7 @@ VOID Filter(PSPAWNINFO pChar, PCHAR szLine)
                 return;
             }
         }
-        WriteChatColor("Usage: /filter encumber [on|off]",USERCOLOR_DEFAULT);
+        SyntaxError("Usage: /filter encumber [on|off]");
     } else if (!stricmp("food",szArg)) {
         if (szRest[0]==0) {
             sprintf(szCmd,"Filtering of food messages is set to: %s",szFilterTarget[gFilterFood]);
@@ -1522,7 +1409,7 @@ VOID Filter(PSPAWNINFO pChar, PCHAR szLine)
                 return;
             }
         }
-        WriteChatColor("Usage: /filter food [on|off]",USERCOLOR_DEFAULT);
+        SyntaxError("Usage: /filter food [on|off]");
     } else if (!stricmp("name",szArg)) {
         if (szRest[0]==0) {
             WriteChatColor("Names currently filtered:", USERCOLOR_DEFAULT);
@@ -1616,7 +1503,7 @@ VOID Filter(PSPAWNINFO pChar, PCHAR szLine)
                 WriteChatColor(szCmd,USERCOLOR_DEFAULT);
                 return;
             } else {
-                WriteChatColor("Usage: /filter name on|off|add|remove <name>",USERCOLOR_DEFAULT);
+                SyntaxError("Usage: /filter name on|off|add|remove <name>");
                 return;
             }
         }
@@ -1678,7 +1565,7 @@ VOID Identify(PSPAWNINFO pChar, PCHAR szLine)
     PCHARINFO pCharInfo = NULL;
     if (NULL == (pCharInfo = GetCharInfo())) return;
     if (!pCharInfo->Cursor) {
-        WriteChatColor("You must be holding an item to identify it.",CONCOLOR_RED);
+        MacroError("You must be holding an item to identify it.");
         return;
     }
 
@@ -2046,7 +1933,7 @@ VOID Alert(PSPAWNINFO pChar, PCHAR szLine)
                 List = atoi(szArg);
                 PALERT pAlert = (PALERT)malloc(sizeof(ALERT));
                 if (!pAlert) {
-                    WriteChatColor("Couldn't create alert.",CONCOLOR_RED);
+                    MacroError("Couldn't create alert.");
                     DebugSpew("Alert - Unable to allocate memory for new alert.");
                     return;
                 }
@@ -2089,28 +1976,10 @@ VOID Alert(PSPAWNINFO pChar, PCHAR szLine)
         }
     }
     if (!DidSomething) {
-        WriteChatColor("Usage: /alert [clear #] [list #] [add # [pc|npc|corpse|any] [radius radius] [zradius radius] [range min max] spawn]",USERCOLOR_DEFAULT);
+        SyntaxError("Usage: /alert [clear #] [list #] [add # [pc|npc|corpse|any] [radius radius] [zradius radius] [range min max] spawn]");
     }
 }
 
-
-// ***************************************************************************
-// Function:    Breakin
-// Description: Our '/breakin' command
-//              Breaks into the debugger
-// Usage:       /breakin
-// ***************************************************************************
-/*
-VOID Breakin(PSPAWNINFO pChar, PCHAR szLine)
-{
-    if (!IsDebuggerPresent()) {
-        WriteChatColor("Cannot break in when a debugger is not present.",CONCOLOR_RED);
-        return;
-    }
-    DebugSpewAlways("Breakin - pChar=%p, gMacroBlock=%p, gMacroStack=%p",pChar,gMacroBlock,gMacroStack);
-    DebugBreak();
-}
-/**/
 
 // ***************************************************************************
 // Function:    CleanupName
@@ -2191,6 +2060,7 @@ VOID SortSWho(PSWHOSORT pSWhoSort, DWORD SpawnCount, DWORD SortBy)
       NULL 
    }; 
 */ 
+// bubble sort.... is this why superwho is slow? :)
 
    // Pre-sort the entire list by name 
    for (Index1=0;Index1<SpawnCount;Index1++) { 
@@ -2287,19 +2157,6 @@ PSPAWNINFO GetPet(DWORD OwnerID)
 	if (!pSpawn)
 		return 0;
 	return (PSPAWNINFO)GetSpawnByID(pSpawn->pActorInfo->PetID);
-	/*
-    PSPAWNINFO pSpawn = NULL;
-    if (ppSpawnList && pSpawnList) {
-        pSpawn = (PSPAWNINFO)pSpawnList;
-    }
-    while (pSpawn) {
-        if ((pSpawn->MasterID == OwnerID) && (pSpawn->Type != SPAWN_PLAYER) && (pSpawn->Type != SPAWN_CORPSE)){
-            return pSpawn;
-        }
-        pSpawn = pSpawn->pNext;
-    }
-    return NULL;
-	/**/
 }
 
 
@@ -2307,9 +2164,7 @@ VOID SuperWhoFindPets(PSPAWNINFO pChar, DWORD SpawnID, BOOL Color)
 {
     PSPAWNINFO pPet = GetPet(SpawnID);
     if (!pPet) return;
-//    DWORD dwColor=USERCOLOR_WHO;
     DebugSpew("SuperWhoFindPets - Spawn%d has pet %s",SpawnID,pPet->Name);
-//    if (Color) dwColor=ConColor(pChar->Level, pPet->Level);
     SuperWhoDisplay(pChar, NULL, pPet, 5, Color);
 }
 
@@ -2399,38 +2254,30 @@ VOID SuperWhoDisplay(PSPAWNINFO pChar, PSEARCHSPAWN pFilter, PSPAWNINFO psTarget
 			switch(ConColor(pSpawn))
 			{
 			case CONCOLOR_BLACK:
-				//strcpy(szMsg,"\aw-");
 				szMsg[1]='w';
 				break;
 			case CONCOLOR_YELLOW:
 				szMsg[1]='y';
-//				strcpy(szMsg,"\ay-");
 				break;
 			case CONCOLOR_RED:
 				szMsg[1]='r';
-//				strcpy(szMsg,"\ar-");
 				break;
 			case CONCOLOR_BLUE:
 				szMsg[1]='u';
-//				strcpy(szMsg,"\au-");
 				break;
 			case CONCOLOR_LIGHTBLUE:
 				szMsg[1]='t';
-//				strcpy(szMsg,"\at-");
 				break;
 			case CONCOLOR_GREEN:
 				szMsg[1]='g';
-//				strcpy(szMsg,"\ag-");
 				break;
 			default:
 				szMsg[1]='m';
-//				strcpy(szMsg,"\am-");
 				break;
 			}
 		}
 		else
 		{
-//			strcpy(szMsg,"\aw-");
 			szMsg[1]='w';
 		}
 		if (gFilterSWho.GM) strcat(szMsg,GM);
@@ -2590,7 +2437,7 @@ VOID SuperWhoTarget(PSPAWNINFO pChar, PCHAR szLine)
     }
 
     if (!psTarget) {
-        WriteChatColor("You must have a target selected for /whotarget.",CONCOLOR_RED);
+		MacroError("You must have a target selected for /whotarget.");
         return;
     }
     DebugSpew("SuperWhoTarget - %s",psTarget->Name);
@@ -2625,13 +2472,6 @@ VOID SuperWho(PSPAWNINFO pChar, PCHAR szLine)
         cmdWho(pChar, szLine);
         return;
     }
-/*
-	if (gFilterMacro == FILTERMACRO_NONE) {
-		gPauseTelnetOutput = TRUE;
-		cmdWho(pChar, szLine);
-		gPauseTelnetOutput = FALSE;
-	}
-/**/
 
     while (Parsing) {
         GetArg(szArg,szRest,1);
@@ -2678,16 +2518,17 @@ VOID SuperWho(PSPAWNINFO pChar, PCHAR szLine)
 // Description: Our '/seterror' command
 // Usage:       /seterror <clear|errormsg>
 // ***************************************************************************
+
 VOID SetError(PSPAWNINFO pChar, PCHAR szLine)
 {
     bRunNextCommand = TRUE;
     if ((szLine[0]==0) || (stricmp(szLine,"clear"))) {
-        gLastError[0]=0;
+        gszLastError[0]=0;
     } else {
-        strcpy(gLastError,szLine);
+        strcpy(gszLastError,szLine);
     }
 }
-
+/**/
 
 // ***************************************************************************
 // Function:    MQMsgBox
@@ -2841,37 +2682,36 @@ VOID Face(PSPAWNINFO pChar, PCHAR szLine)
         pSpawnClosest = &LocSpawn;
         strcpy(LocSpawn.Name,"location");
             if ((szFilter[0]==0) || (!strstr(szFilter,","))) {
-            WriteChatColor("Face: loc specified but <y>,<x> not found.",CONCOLOR_RED);
-            strcpy(gLastError,"FACE_BADCOMMAND");
+            MacroError("Face: loc specified but <y>,<x> not found.");
             return;
         }
             pSpawnClosest->Y = (FLOAT)atof(szFilter);
             while ((szFilter[0]!=',') && (szFilter[0]!=0)) szFilter++;
             if (szFilter[0]==0) {
-            WriteChatColor("Face: loc specified but <y>,<x> not found.",CONCOLOR_RED);
-            strcpy(gLastError,"FACE_BADCOMMAND");
+            MacroError("Face: loc specified but <y>,<x> not found.");
+            //strcpy(gLastError,"FACE_BADCOMMAND");
             return;
         }
             szFilter++;
             pSpawnClosest->X = (FLOAT)atof(szFilter);
         } else if (!stricmp(szArg, "item")) {
         if (EnviroTarget.Name[0]==0) {
-            WriteChatColor("Face: item but no item targetted.",CONCOLOR_RED);
-            strcpy(gLastError,"FACE_NOITEM");
+            MacroError("Face: item but no item targetted.");
+            //strcpy(gLastError,"FACE_NOITEM");
             return;
         }
         pSpawnClosest = &EnviroTarget;
         } else if (!stricmp(szArg, "door")) {
         if (DoorEnviroTarget.Name[0]==0) {
-            WriteChatColor("Face: item but no item targetted.",CONCOLOR_RED);
-            strcpy(gLastError,"FACE_NOITEM");
+            MacroError("Face: item but no item targetted.");
+            //strcpy(gLastError,"FACE_NOITEM");
             return;
         }
         pSpawnClosest = &DoorEnviroTarget;
         } else if (!stricmp(szArg, "heading")) {
             if (szFilter[0]==0) {
-                WriteChatColor("Face: heading specified but angle not found.",CONCOLOR_RED);
-                strcpy(gLastError,"FACE_BADCOMMAND");
+                MacroError("Face: heading specified but angle not found.");
+                //strcpy(gLastError,"FACE_BADCOMMAND");
     } else {
                 FLOAT Heading = (FLOAT)(atof(szFilter));
                 gFaceAngle = Heading/0.703125f;
@@ -2885,7 +2725,7 @@ VOID Face(PSPAWNINFO pChar, PCHAR szLine)
                 }
             return;
         } else if (!strcmp(szArg,"help")) {
-            WriteChatColor("Usage: /face [spawn] [item] [door] [id #] [heading <ang>] [loc <y>,<x>] [away] [alert #]",USERCOLOR_DEFAULT);
+            SyntaxError("Usage: /face [spawn] [item] [door] [id #] [heading <ang>] [loc <y>,<x>] [away] [alert #]");
             bRunNextCommand = TRUE;
             return;
         } else {
@@ -2904,9 +2744,11 @@ VOID Face(PSPAWNINFO pChar, PCHAR szLine)
         }
     }
 
+	szMsg[0]=0;
+
     if (!pSpawnClosest) {
-        sprintf(szMsg,"There were no matches for: %s",FormatSearchSpawn(szArg,&SearchSpawn));
-        strcpy(gLastError,"FACE_NOTFOUND");
+        MacroError("There were no matches for: %s",FormatSearchSpawn(szArg,&SearchSpawn));
+        //strcpy(gLastError,"FACE_NOTFOUND");
     } else {
         if (Predict) {
             Distance = DistanceToSpawn(pChar, pSpawnClosest);
@@ -2944,11 +2786,10 @@ VOID Face(PSPAWNINFO pChar, PCHAR szLine)
         }
         sprintf(szMsg,"Facing %s'%s'...",(Away)?"away from ":"", CleanupName(strcpy(szName,pSpawnClosest->Name),FALSE));
     }
-    gLastError[0]=0;
     if (ppTarget && pTarget) {
         psTarget = (PSPAWNINFO)pTarget;
     }
-    if ((pSpawnClosest != &LocSpawn) && ((Away) || (pSpawnClosest != psTarget))) WriteChatColor(szMsg,USERCOLOR_WHO);
+    if (szMsg[0] && ((pSpawnClosest != &LocSpawn) && ((Away) || (pSpawnClosest != psTarget)))) WriteChatColor(szMsg,USERCOLOR_WHO);
     DebugSpew("Face - %s",szMsg);
     return;
 }
@@ -3159,18 +3000,7 @@ VOID LoadSpells(PSPAWNINFO pChar, PCHAR szLine)
 
     DoIndex = FindSpellListByName(szArg1);
     if (DoIndex!=-1) {
-//        Index = (DWORD)&pSpellSets[DoIndex];
 		pSpellBookWnd->MemorizeSet((int*)&pSpellSets[DoIndex],8);
-		/*
-        __asm {
-            push ecx;
-            mov ecx, dword ptr [SpellBookWnd];
-            push 8;
-            push dword ptr [Index];
-            call dword ptr [cmdLoadSpells];
-            pop ecx;
-        }
-		/**/
     } else {
         sprintf(szBuffer,"Unable to find favorite list '%s'",szArg1);
         WriteChatColor(szBuffer,USERCOLOR_DEFAULT);
@@ -3233,23 +3063,6 @@ if (!stricmp(szArg1,"item"))
       }
       if (FOUND) {
 		  pCharData->CastSpell(10,0,(EQ_Item**)item,slot);
-		  /*
-         __asm {
-            push eax;
-            push ecx;
-            push edi;
-            mov ecx, dword ptr [pCharInfo];
-            mov edi, dword ptr [SpawnFooter];
-            push slot;//slot item is in
-            push item; //the address of InventoryArray[i] in charinfo that points to the item
-            push 0x00000000;//always 0
-            push 0x0000000A;//always 10
-            call dword ptr [EQADDR_CASTSPELL];
-            pop edi;
-            pop ecx;
-            pop eax;
-         }
-		 /**/
          return;
       }
    }
@@ -3858,7 +3671,7 @@ VOID Target(PSPAWNINFO pChar, PCHAR szLine)
     if (!pSpawnClosest) {
         CHAR szTemp[MAX_STRING] = {0};
         sprintf(szMsg,"There are no spawns matching: %s",FormatSearchSpawn(szTemp,&SearchSpawn));
-        strcpy(gLastError,"TARGET_NOTFOUND");
+        //strcpy(gLastError,"TARGET_NOTFOUND");
     } else {
         PSPAWNINFO *psTarget = NULL;
         if (ppTarget) {
@@ -3868,10 +3681,9 @@ VOID Target(PSPAWNINFO pChar, PCHAR szLine)
 //            sprintf(szMsg,"Selected '%s'...",CleanupName(strcpy(szArg,pSpawnClosest->Name),FALSE));
 //			sprintf(szMsg,"Selected '%s'...",CleanupName(strcpy(szArg,pSpawnClosest->Name),FALSE));
 			szMsg[0]=0;
-            gLastError[0]=0;
         } else {
             sprintf(szMsg,"Unable to target, address = 0");
-            strcpy(gLastError,"TARGET_NOTFOUND");
+            //strcpy(gLastError,"TARGET_NOTFOUND");
         }
     }
 	if (szMsg[0])
@@ -4021,116 +3833,6 @@ VOID SetAutoRun(PSPAWNINFO pChar, PCHAR szLine)
     WriteChatColor(szServerAndName,USERCOLOR_DEFAULT);
 }
 
-
-// ***************************************************************************
-// Function:    Hotkey
-// Description: Our '/hotkey' command
-//              Add command hotkeys
-// Usage:       /hotkey name [delete|command]
-// ***************************************************************************
-/*
-VOID WriteHotkeyProfile(PCHAR szName, PCHAR szCommand)
-{
-    CHAR szHotkey[MAX_STRING] = {0};
-    strcpy(szHotkey,szName);
-    if (!stricmp(szHotkey,"=")) strcpy(szHotkey,"EQUALSIGN");
-    if (!stricmp(szHotkey,";")) strcpy(szHotkey,"SEMICOLON");
-    if (!stricmp(szHotkey,"[")) strcpy(szHotkey,"LEFTBRACKET");
-    WritePrivateProfileString("Hotkeys",szHotkey,szCommand,gszINIFilename);
-}
-
-VOID RewriteHotkeys(VOID)
-{
-    PHOTKEY pLoop = pHotkey;
-    WritePrivateProfileSection("Hotkeys","",gszINIFilename);
-    while (pLoop) {
-        WriteHotkeyProfile(pLoop->szName,pLoop->szCommand);
-        pLoop = pLoop->pNext;
-    }
-}
-
-
-VOID Hotkey(PSPAWNINFO pChar, PCHAR szLine)
-{
-    CHAR szBuffer[MAX_STRING] = {0};
-    CHAR szName[MAX_STRING] = {0};
-    PCHAR szCommand = NULL;
-    GetArg(szName,szLine,1);
-    szCommand = GetNextArg(szLine);
-    if (!stricmp(szName,"list")) {
-        PHOTKEY pLoop = pHotkey;
-        DWORD Count=0;
-        WriteChatColor("Hotkeys",USERCOLOR_WHO);
-        WriteChatColor("--------------------------",USERCOLOR_WHO);
-        while (pLoop) {
-            sprintf(szName,"%s: %s",pLoop->szName,pLoop->szCommand);
-            WriteChatColor(szName,USERCOLOR_WHO);
-            Count++;
-            pLoop = pLoop->pNext;
-        }
-        if (Count==0) {
-            WriteChatColor("No hotkeys defined.",USERCOLOR_WHO);
-        } else {
-            sprintf(szName,"%d hotkey%s displayed.",Count,(Count==1)?"":"s");
-            WriteChatColor(szName,USERCOLOR_WHO);
-        }
-        return;
-    }
-    if ((szName[0]==0) || (szCommand[0]==0)) {
-        WriteChatColor("Usage: /hotkey name [delete|command], or /hotkey list",USERCOLOR_DEFAULT);
-        return;
-    }
-
-    if (!stricmp(szCommand,"delete")) {
-        PHOTKEY pLoop = pHotkey;
-        PHOTKEY pLast = NULL;
-        while (pLoop) {
-            if (!stricmp(pLoop->szName,szName)) {
-
-                if (!pLast) {
-                    pHotkey = pLoop->pNext;
-                } else {
-                    pLast->pNext = pLoop->pNext;
-                }
-                free(pLoop);
-                sprintf(szBuffer,"Hotkey '%s' deleted.",szName);
-                RewriteHotkeys();
-                WriteChatColor(szBuffer,USERCOLOR_DEFAULT);
-                return;
-            }
-            pLast = pLoop;
-            pLoop = pLoop->pNext;
-        }
-        sprintf(szBuffer,"Hotkey '%s' not found.",szName);
-        WriteChatColor(szBuffer,USERCOLOR_DEFAULT);
-    } else {
-        PHOTKEY pNewHotkey = pHotkey;
-        PHOTKEY pNew = NULL;
-        while (pNewHotkey) {
-            if (!stricmp(szName,pNewHotkey->szName)) break;
-            pNewHotkey = pNewHotkey->pNext;
-        }
-        if (!pNewHotkey) {
-            pNew = (PHOTKEY)malloc(sizeof(HOTKEY));
-            pNewHotkey = pNew;
-            pNew->pNext = pHotkey;
-            pHotkey=pNew;
-        }
-        strcpy(pNewHotkey->szName,szName);
-        strcpy(pNewHotkey->szCommand,szCommand);
-        DWORD i;
-        for (i=0;gDiKeyID[i].szName[0];i++) {
-            if (!stricmp(gDiKeyID[i].szName,szName)) {
-                pNewHotkey->DIKey = gDiKeyID[i].Id;
-            }
-        }
-        WriteHotkeyProfile(szName,szCommand);
-        sprintf(szBuffer,"Hotkey '%s' %sed.",szName,(pNew)?"add":"updat");
-        WriteChatColor(szBuffer,USERCOLOR_DEFAULT);
-    }
-}
-/**/
-
 // ***************************************************************************
 // Function:    Alias
 // Description: Our '/alias' command
@@ -4176,7 +3878,7 @@ VOID Alias(PSPAWNINFO pChar, PCHAR szLine)
         return;
     }
     if ((szName[0]==0) || (szCommand[0]==0)) {
-        WriteChatColor("Usage: /alias name [delete|command], or /alias list",USERCOLOR_DEFAULT);
+        SyntaxError("Usage: /alias name [delete|command], or /alias list");
         return;
     }
 
@@ -4333,7 +4035,7 @@ VOID WindowState(PSPAWNINFO pChar, PCHAR szLine)
 			return;
 		}
 	}
-	WriteChatColor("Usage: /windowstate <window> [open|close]",USERCOLOR_DEFAULT);
+	SyntaxError("Usage: /windowstate <window> [open|close]");
 }
 
 // ***************************************************************************
@@ -4370,7 +4072,7 @@ VOID KeepKeys(PSPAWNINFO pChar, PCHAR szLine)
          return;
       }
    }
-   WriteChatColor("Usage: /keepkeys [on|off]",USERCOLOR_DEFAULT);
+   SyntaxError("Usage: /keepkeys [on|off]");
 }
 
 
@@ -4383,12 +4085,12 @@ VOID DisplayLoginName(PSPAWNINFO pChar, PCHAR szLine)
 	CHAR Buffer[MAX_STRING] = {0};
 	PCHAR szLogin = GetLoginName();
 	if (!szLogin) {
-		strcpy(Buffer,"Unable to retrieve login name.");
+		MacroError("Unable to retrieve login name.");
 	} else {
 		sprintf(Buffer,"Login name: \ay%s\ax",szLogin);
+		WriteChatColor(Buffer,USERCOLOR_DEFAULT);
 		free(szLogin);
 	}
-	WriteChatColor(Buffer,USERCOLOR_DEFAULT);
 }
 
 // ***************************************************************************
@@ -4425,7 +4127,7 @@ VOID PluginCommand(PSPAWNINFO pChar, PCHAR szLine)
         return;
     }
     if (szName[0]==0) {
-        WriteChatColor("Usage: /Plugin name [unload], or /Plugin list",USERCOLOR_DEFAULT);
+        SyntaxError("Usage: /Plugin name [unload], or /Plugin list");
         return;
     }
 
@@ -4438,8 +4140,7 @@ VOID PluginCommand(PSPAWNINFO pChar, PCHAR szLine)
 		}
 		else
 		{
-	        sprintf(szBuffer,"Plugin '%s' not found.",szName);
-			WriteChatColor(szBuffer,USERCOLOR_DEFAULT);
+			MacroError("Plugin '%s' not found.",szName);
 		}
     } else {
 		if (LoadMQ2Plugin(szName))
@@ -4450,8 +4151,7 @@ VOID PluginCommand(PSPAWNINFO pChar, PCHAR szLine)
 		}
 		else
 		{
-			sprintf(szBuffer,"Plugin '%s' could not be loaded.",szName);
-			WriteChatColor(szBuffer,USERCOLOR_DEFAULT);
+			MacroError("Plugin '%s' could not be loaded.",szName);
 		}
     }
 
@@ -4461,7 +4161,6 @@ VOID PluginCommand(PSPAWNINFO pChar, PCHAR szLine)
 VOID EQDestroyHeldItemOrMoney(PSPAWNINFO pChar, PCHAR szLine)
 {
 	(pPCData)->DestroyHeldItemOrMoney();
-	return;
 }
 
 VOID Exec(PSPAWNINFO pChar,PCHAR szLine) {
@@ -4495,7 +4194,7 @@ VOID DoMappable(PSPAWNINFO pChar, PCHAR szLine)
 {
 	if (szLine[0]==0)
 	{
-		WriteChatColor("Usage: /keypress <eqcommand|keycombo> [hold|chat]");
+		SyntaxError("Usage: /keypress <eqcommand|keycombo> [hold|chat]");
 		return;
 	}
 	CHAR szArg1[MAX_STRING]={0};
@@ -4532,9 +4231,7 @@ VOID DoMappable(PSPAWNINFO pChar, PCHAR szLine)
 			return;
 		}
 
-		CHAR szOut[MAX_STRING]={0};
-		sprintf(szOut,"Invalid mappable command or key combo '%s'",szArg1);
-		WriteChatColor(szOut);
+		MacroError("Invalid mappable command or key combo '%s'",szArg1);
 		return;
 	}
 }
@@ -4550,7 +4247,7 @@ VOID MultilineCommand(PSPAWNINFO pChar, PCHAR szLine)
 {
 	if (szLine[0]==0)
 	{
-		WriteChatColor("Usage: /multiline <delimiter> <command>[delimiter<command>[delimiter<command>[. . .]]]");
+		SyntaxError("Usage: /multiline <delimiter> <command>[delimiter<command>[delimiter<command>[. . .]]]");
 		return;
 	}
     CHAR szArg[MAX_STRING] = {0}; // delimiter(s)
@@ -4577,13 +4274,13 @@ VOID do_ranged(PSPAWNINFO pChar, PCHAR szLine)
 		pRangedTarget=GetSpawnByID(atoi(szLine));
 		if (!pRangedTarget)
 		{
-			WriteChatColor("Invalid spawn ID.  Use /ranged with no parameters, or with a spawn ID");
+			MacroError("Invalid spawn ID.  Use /ranged with no parameters, or with a spawn ID");
 			return;
 		}
 	}
 	if (!pRangedTarget)
 	{
-		WriteChatColor("No target for ranged attack");
+		MacroError("No target for ranged attack");
 		return;
 	}
 	if (gbRangedAttackReady)
@@ -4598,14 +4295,13 @@ VOID LoadCfgCommand(PSPAWNINFO pChar, PCHAR szLine)
 {
 	if (!szLine[0])
 	{
-		WriteChatColor("Usage: /loadcfg <filename>");
+		SyntaxError("Usage: /loadcfg <filename>");
 		return;
 	}
 	
 	if (LoadCfgFile(szLine,false))
 		return;
-	CHAR szBuffer[MAX_STRING]={0};
-	sprintf(szBuffer,"Could not /loadcfg '%s'",szLine);
+	MacroError("Could not /loadcfg '%s'",szLine);
 }
 
 // /dumpbinds
@@ -4613,14 +4309,14 @@ VOID DumpBindsCommand(PSPAWNINFO pChar, PCHAR szLine)
 {
 	if (!szLine[0])
 	{
-		WriteChatColor("Usage /dumpbinds <filename>");
+		SyntaxError("Usage /dumpbinds <filename>");
 		return;
 	}
 	CHAR szBuffer[MAX_STRING]={0};
 	if (!DumpBinds(szLine))
 	{
-		sprintf(szBuffer,"Could not dump binds to %s",szLine);
-		WriteChatColor(szBuffer);
+		MacroError("Could not dump binds to %s",szLine);
+		return;
 	}
 	WriteChatColor("Binds dumped to file.");
 }
@@ -4630,7 +4326,7 @@ VOID SquelchCommand(PSPAWNINFO pChar, PCHAR szLine)
 {
 	if (!szLine[0])
 	{
-		WriteChatColor("Usage: /squelch <command>");
+		SyntaxError("Usage: /squelch <command>");
 		return;
 	}
 	BOOL Temp=gFilterMQ;
@@ -4644,7 +4340,7 @@ VOID DoCommandCmd(PSPAWNINFO pChar, PCHAR szLine)
 {
 	if (!szLine[0])
 	{
-		WriteChatColor("Usage: /docommand <command>");
+		SyntaxError("Usage: /docommand <command>");
 		return;
 	}
 	DoCommand(pChar,szLine);
@@ -4655,7 +4351,7 @@ VOID DoAltCmd(PSPAWNINFO pChar, PCHAR szLine)
 {
 	if (!szLine[0])
 	{
-		WriteChatColor("Usage: /alt <command>");
+		SyntaxError("Usage: /alt <command>");
 		return;
 	}
 	bool Old=((PCXWNDMGR)pWndMgr)->KeyboardFlags[3];
@@ -4669,7 +4365,7 @@ VOID DoShiftCmd(PSPAWNINFO pChar, PCHAR szLine)
 {
 	if (!szLine[0])
 	{
-		WriteChatColor("Usage: /shift <command>");
+		SyntaxError("Usage: /shift <command>");
 		return;
 	}
 	bool Old=((PCXWNDMGR)pWndMgr)->KeyboardFlags[3];
@@ -4683,7 +4379,7 @@ VOID DoCtrlCmd(PSPAWNINFO pChar, PCHAR szLine)
 {
 	if (!szLine[0])
 	{
-		WriteChatColor("Usage: /ctrl <command>");
+		SyntaxError("Usage: /ctrl <command>");
 		return;
 	}
 	bool Old=((PCXWNDMGR)pWndMgr)->KeyboardFlags[3];
@@ -4751,7 +4447,7 @@ VOID DoSocial(PSPAWNINFO pChar, PCHAR szLine)
 			sprintf( szBuffer, "Invalid Argument(s): %s", szLine );
 			WriteChatColor(szBuffer,USERCOLOR_DEFAULT);
 		}
-		WriteChatColor("Usage: /dosocial <list|\"social name\">",USERCOLOR_DEFAULT );
+		SyntaxError("Usage: /dosocial <list|\"social name\">",USERCOLOR_DEFAULT );
 	}
    }
 } 
@@ -4761,7 +4457,7 @@ VOID DoTimedCmd(PSPAWNINFO pChar, PCHAR szLine)
 {
 	if (!szLine[0])
 	{
-		WriteChatColor("Usage: /timed <deciseconds> <command>");
+		SyntaxError("Usage: /timed <deciseconds> <command>");
 		return;
 	}
     CHAR szArg[MAX_STRING] = {0}; // delay
@@ -4772,55 +4468,42 @@ VOID DoTimedCmd(PSPAWNINFO pChar, PCHAR szLine)
 	TimedCommand(szRest,atoi(szArg)*100);
 }
 
-// ***************************************************************************
-// Function:    SendKey
-// Description: Our '/sendkey' command
-//              Sends a key up or down
-// Usage:       /sendkey <u|d> <key>
-// ***************************************************************************
-/*
-VOID SendKey(PSPAWNINFO pChar, PCHAR szLine)
+VOID ClearErrorsCmd(PSPAWNINFO pChar, PCHAR szLine)
 {
-	static bool UpdateSendKeyMessageGiven=false;
- 	if (!UpdateSendKeyMessageGiven)
-	{
-		WriteChatColor("Warning: /sendkey is now obsolete. please use /keypress instead. /sendkey will soon be removed entirely.",CONCOLOR_RED);
-		UpdateSendKeyMessageGiven=true;
-	}
-	
-	WORD i;
-    CHAR Arg1[MAX_STRING];
-    CHAR Arg2[MAX_STRING];
-    GetArg(Arg1,szLine,1);
-    GetArg(Arg2,szLine,2);
-
-    if ((Arg1[0]==0) || (Arg2[0]==0) || ((!strnicmp(Arg1,"down",strlen(Arg1))) && (!strnicmp(Arg1,"up",strlen(Arg1))))) {
-        GracefullyEndBadMacro(pChar,gMacroBlock, "Bad SendKey command");
-        return;
-    }
-
-    for (i=0;gDiKeyID[i].szName[0];i++) {
-        if (!stricmp(gDiKeyID[i].szName,Arg2)) {
-            PKEYPRESS pNext = (PKEYPRESS)malloc(sizeof(KEYPRESS));
-            pNext->KeyId = i;
-            pNext->Pressed = !strnicmp(Arg1,"down",strlen(Arg1));
-            pNext->pNext = NULL;
-
-            //DebugSpewNoFile("SendKey - Queuing '%s' as %s",gDiKeyID[i].szName,Arg1);
-            if (!gKeyStack) {
-                gKeyStack = pNext;
-                return;
-            } else {
-                PKEYPRESS pList = gKeyStack;
-                while (pList->pNext) pList = pList->pNext;
-                pList->pNext = pNext;
-                return;
-            }
-        }
-    }
-
-    //TODO: User Spew
-    DebugSpewNoFile("Unknown key: %s",Arg2);
-    return;
+	gszLastError[0]=0;
+	gszLastSyntaxError[0]=0;
+	gszLastMQ2DataError[0]=0;
 }
-/**/
+
+VOID CombineCmd(PSPAWNINFO pChar, PCHAR szLine)
+{
+	if (!szLine[0])
+	{
+		SyntaxError("Usage: /combine <pack>");
+		return;
+	}
+	CXWnd *pWnd=FindMQ2Window(szLine);
+	if (!pWnd)
+	{
+		MacroError("Window '%s' not open",szLine);
+		return;
+	}
+	if ((DWORD)pWnd->pvfTable!=CContainerWnd__vftable)
+	{
+		MacroError("Window '%s' not container window",szLine);
+		return;
+	}
+	((CContainerWnd*)pWnd)->HandleCombine();
+}
+
+VOID DropCmd(PSPAWNINFO pChar, PCHAR szLine)
+{
+	if (((PCHARINFO)pCharData)->Cursor)
+	{
+		if (((EQ_Item*)((PCHARINFO)pCharData)->Cursor)->CanDrop(1))
+		{
+			pEverQuest->DropHeldItemOnGround(1);
+		}
+	}
+}
+

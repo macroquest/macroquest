@@ -330,12 +330,11 @@ VOID FailIf(PSPAWNINFO pChar, PCHAR szCommand, PMACROBLOCK pStartLine, BOOL All)
 VOID NewIf(PSPAWNINFO pChar, PCHAR szLine)
 {
     CHAR szCond[MAX_STRING] = {0};
-//    CHAR szCommand[MAX_STRING] = {0};
 
 	if (szLine[0]!='(')
 	{
-	    GracefullyEndBadMacro(((PCHARINFO)pCharData)->pSpawn,gMacroBlock, "Failed to parse /if command");
-	    WriteChatColor("Usage: /if (<conditions>) <command>",CONCOLOR_RED);
+	    GracefullyEndBadMacro(((PCHARINFO)pCharData)->pSpawn,gMacroBlock, "Failed to parse /if command.  Expected () around conditions.");
+	    SyntaxError("Usage: /if (<conditions>) <command>");
         return;
 	}
 	
@@ -353,8 +352,8 @@ VOID NewIf(PSPAWNINFO pChar, PCHAR szLine)
 				pEnd++;
 				if (*pEnd!=' ')
 				{
-					GracefullyEndBadMacro(((PCHARINFO)pCharData)->pSpawn,gMacroBlock, "Failed to parse /if command");
-					WriteChatColor("Usage: /if (<conditions>) <command>",CONCOLOR_RED);
+					GracefullyEndBadMacro(((PCHARINFO)pCharData)->pSpawn,gMacroBlock, "Failed to parse /if command.  Could not find command to execute.");
+					SyntaxError("Usage: /if (<conditions>) <command>");
 					return;
 				}
 				break;
@@ -362,8 +361,8 @@ VOID NewIf(PSPAWNINFO pChar, PCHAR szLine)
 		}
 		else if (*pEnd==0)
 		{
-			GracefullyEndBadMacro(((PCHARINFO)pCharData)->pSpawn,gMacroBlock, "Failed to parse /if command");
-			WriteChatColor("Usage: /if (<conditions>) <command>",CONCOLOR_RED);
+			GracefullyEndBadMacro(((PCHARINFO)pCharData)->pSpawn,gMacroBlock, "Failed to parse /if command.  Could not find command to execute.");
+			SyntaxError("Usage: /if (<conditions>) <command>");
 			return;
 		}
 		++pEnd;
@@ -597,37 +596,6 @@ DWORD Include(PCHAR szFile)
 
 
 // ***************************************************************************
-// Function:    Press
-// Description: Our '/press' command
-//              Sends a key up and down
-// Usage:       /press <key>
-// ***************************************************************************
-/*
-VOID Press(PSPAWNINFO pChar, PCHAR szLine)
-{
-    CHAR szCmd[MAX_STRING] = {0};
-    CHAR szKey[MAX_STRING] = {0};
-    GetArg(szKey,szLine,1);
-    if (szKey[0]==0) {
-        WriteChatColor("Usage: /press <key>",USERCOLOR_DEFAULT);
-        return;
-    }
-	static bool UpdatePressMessageGiven=false;
-	if (!UpdatePressMessageGiven)
-	{
-		CHAR szOut[MAX_STRING]={0};
-		sprintf(szOut,"Warning: /press is now obsolete. please use '/keypress %s' instead. /press will soon be removed entirely.",szLine);
-		WriteChatColor(szOut,CONCOLOR_RED);
-		UpdatePressMessageGiven=true;
-	}
-    sprintf(szCmd,"d %s",szKey);
-    SendKey(pChar,szCmd);
-    sprintf(szCmd,"u %s",szKey);
-    SendKey(pChar,szCmd);
-}
-/**/
-
-// ***************************************************************************
 // Function:    Cleanup
 // Description: Our '/cleanup' command
 //              Sends i, esc, esc, esc, esc, i
@@ -785,3 +753,90 @@ VOID Next(PSPAWNINFO pChar, PCHAR szLine)
     GracefullyEndBadMacro(pChar, gMacroBlock, "/next without matching /for");
 }
 
+
+// ***************************************************************************
+// Function:    Macro
+// Description: Our '/macro' command
+// Usage:       /macro <filename>
+// ***************************************************************************
+VOID Macro(PSPAWNINFO pChar, PCHAR szLine)
+{
+    bRunNextCommand = TRUE;
+    CHAR szTemp[MAX_STRING] = {0};
+    CHAR Filename[MAX_STRING] = {0};
+    PCHAR Params = NULL;
+    PCHAR szNext = NULL;
+    BOOL InBlockComment = FALSE;
+    if (szLine[0] == 0) {
+        WriteChatColor("Usage: /macro <filename> [param [param...]]", USERCOLOR_DEFAULT);
+        return;
+    }
+	gMaxTurbo=20;
+	gTurbo=true;
+    GetArg(szTemp,szLine,1);
+    Params = GetNextArg(szLine);
+
+    strcpy(gszMacroName,szTemp);
+    if (!strstr(szTemp,".")) strcat(szTemp,".mac");
+    sprintf(Filename,"%s\\%s",gszMacroPath, szTemp);
+
+    FILE *fMacro = fopen(Filename,"rt");
+    if (!fMacro) {
+        sprintf(szTemp,"Couldn't open macro file: %s",Filename);
+        WriteChatColor(szTemp,CONCOLOR_RED);
+        gszMacroName[0]=0;
+        gRunning = 0;
+        return;
+    }
+    if (gMacroBlock) EndMacro(pChar,"keep keys vars arrays timers");
+    gRunning = GetTickCount();
+    gEventChat = 0;
+    strcpy(gszMacroName,szTemp);
+    DebugSpew("Macro - Loading macro: %s",Filename);
+    DWORD LineNumber = 0;
+    PMACROBLOCK pAddedLine = NULL;
+    while (!feof(fMacro)) {
+        fgets(szTemp,MAX_STRING,fMacro);
+        LineNumber++;
+        while ((strlen(szTemp)>0) && (szTemp[strlen(szTemp)-1] < 32)) szTemp[strlen(szTemp)-1]=0;
+        if (!strncmp(szTemp,"|**",3)) {
+            InBlockComment=TRUE;
+        }
+        if (!InBlockComment) {
+            if (NULL == (pAddedLine=AddMacroLine(szTemp))) {
+                WriteChatColor("Unable to add macro line.",CONCOLOR_RED);
+                fclose(fMacro);
+                gszMacroName[0]=0;
+                gRunning = 0;
+                return;
+            } else if (1 != (DWORD)pAddedLine) {
+                pAddedLine->LineNumber = LineNumber;
+                strcpy(pAddedLine->SourceFile, GetFilenameFromFullPath(Filename));
+            }
+        } else {
+            DebugSpew("Macro - BlockComment: %s",szTemp);
+            if (!strncmp(&szTemp[strlen(szTemp)-3],"**|",3)) {
+                InBlockComment=FALSE;
+            }
+        }
+    }
+    fclose(fMacro);
+    PDEFINE pDef;
+    while (pDefines) {
+        pDef = pDefines->pNext;
+        free(pDefines);
+        pDefines = pDef;
+    }
+    strcpy(szTemp, "Main");
+    if (Params[0] !=0) {
+        strcat(szTemp, " ");
+        strcat(szTemp, Params);
+    }
+    DebugSpew("Macro - Starting macro with '/call %s'",szTemp);
+    Call(pChar, szTemp);
+    if ((gMacroBlock) && (gMacroBlock->pNext)) gMacroBlock = gMacroBlock->pNext;
+    if ((!gMacroBlock) || (!gMacroStack)) {
+        gszMacroName[0]=0;
+        gRunning = 0;
+    }
+}

@@ -107,6 +107,7 @@ BOOL ParseINIFile(PCHAR lpINIPath)
 	gFilterSkillsAll = 0!=GetPrivateProfileInt("MacroQuest","FilterSkills",0,Filename);
     gFilterSkillsIncrease = 2==GetPrivateProfileInt("MacroQuest","FilterSkills",0,Filename);
     gFilterDebug  = 1==GetPrivateProfileInt("MacroQuest","FilterDebug",0,Filename);
+    gFilterMQ2DataErrors  = 1==GetPrivateProfileInt("MacroQuest","FilterMQ2Data",0,Filename);
     gFilterTarget = 1==GetPrivateProfileInt("MacroQuest","FilterTarget",0,Filename);
     gFilterMoney  = 1==GetPrivateProfileInt("MacroQuest","FilterMoney",0,Filename);
     gFilterFood   = 1==GetPrivateProfileInt("MacroQuest","FilterFood",0,Filename);

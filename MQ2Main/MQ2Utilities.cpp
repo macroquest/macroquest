@@ -88,6 +88,38 @@ EQLIB_API VOID DebugSpewNoFile(PCHAR szFormat, ...)
 #endif
 }
 
+VOID SyntaxError(PCHAR szFormat, ...)
+{
+	CHAR szOutput[MAX_STRING] = {0};
+    va_list vaList;
+    va_start( vaList, szFormat );
+    vsprintf(szOutput,szFormat, vaList);
+	WriteChatColor(szOutput,CONCOLOR_YELLOW);
+	strcpy(gszLastSyntaxError,szOutput);
+}
+
+VOID MacroError(PCHAR szFormat, ...)
+{
+	CHAR szOutput[MAX_STRING] = {0};
+    va_list vaList;
+    va_start( vaList, szFormat );
+    vsprintf(szOutput,szFormat, vaList);
+	WriteChatColor(szOutput,CONCOLOR_RED);
+	strcpy(gszLastError,szOutput);
+}
+
+VOID MQ2DataError(PCHAR szFormat, ...)
+{
+	CHAR szOutput[MAX_STRING] = {0};
+    va_list vaList;
+    va_start( vaList, szFormat );
+    vsprintf(szOutput,szFormat, vaList);
+	if (gFilterMQ2DataErrors)
+		DebugSpew(szOutput);
+	else
+		WriteChatColor(szOutput,CONCOLOR_RED);
+	strcpy(gszLastMQ2DataError,szOutput);
+}
 
 // ***************************************************************************
 // Function:    GetNextArg
@@ -247,20 +279,6 @@ VOID AppendCXStr(PCXSTR *cxstr, PCHAR text)
 
 //	cxstr+=text;
 
-	/*
-   __asm 
-   { 
-      push eax; 
-      push ecx; 
-	  push edx;
-      mov ecx, cxstr; 
-      push text; 
-      call [EQADDR_CXSTRAPPEND]; 
-	  pop edx;
-      pop ecx; 
-      pop eax; 
-   } 
-   */
 } 
 
 // YES THIS NEEDS TO BE PCXSTR * 
@@ -271,22 +289,6 @@ VOID SetCXStr(PCXSTR *cxstr, PCHAR text)
 	CXStr *Str=(CXStr*)cxstr;
 	(*Str)=text;
 	cxstr=(PCXSTR*)Str;
-	/*
-	__asm{push esi};
-   __asm 
-   { 
-      push eax; 
-      push ecx; 
-	  push edx;
-      mov ecx, cxstr; 
-      push text; 
-      call [EQADDR_CXSTRSET]; 
-	  pop edx;
-      pop ecx; 
-      pop eax; 
-   } 
-	__asm{pop esi};
-	*/
 } 
 
 VOID GetCXStr(PCXSTR pCXStr, PCHAR szBuffer, DWORD maxlen)
@@ -2734,7 +2736,7 @@ BOOL ActualCalculate(PCHAR szFormula, DOUBLE &Result) {
   //              GracefullyEndBadMacro(((PCHARINFO)pCharData)->pSpawn,gMacroBlock, "Calculate encountered a unparsed variable '%s'",&(Buffer[i]));
 				return false;
             default:
-    //            GracefullyEndBadMacro(((PCHARINFO)pCharData)->pSpawn,gMacroBlock, "Calculate encountered unparsable text '%s'",Arg[j]);
+                GracefullyEndBadMacro(((PCHARINFO)pCharData)->pSpawn,gMacroBlock, "Calculate encountered unparsable text '%s'",Arg[j]);
                 return false;
         }
     }
@@ -2991,3 +2993,4 @@ BOOL Calculate(PCHAR szFormula, DOUBLE &Result)
 	}
 	return ActualCalculate(Buffer,Result);
 }
+

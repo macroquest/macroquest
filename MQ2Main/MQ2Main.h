@@ -352,6 +352,10 @@ EQLIB_API VOID SlotValueCalculate(PCHAR szBuff, PSPELL pSpell, int i, double mp)
 EQLIB_API PCHAR GetSpellEffectName(DWORD EffectID, PCHAR szBuffer);
 EQLIB_API VOID GetGameDate(int* Month, int* Day, int* Year);
 EQLIB_API VOID GetGameTime(int* Hour, int* Minute, int* Night);
+EQLIB_API VOID SyntaxError(PCHAR szFormat, ...);
+EQLIB_API VOID MacroError(PCHAR szFormat, ...);
+EQLIB_API VOID MQ2DataError(PCHAR szFormat, ...);
+
 
 /* USERVARS */
 #ifndef USEMQ2DATAVARS
@@ -535,7 +539,11 @@ EQLIB_API BOOL dataFindItemBank(PCHAR szIndex, MQ2TYPEVAR &Ret);
 EQLIB_API BOOL dataFindItemCount(PCHAR szIndex, MQ2TYPEVAR &Ret);
 EQLIB_API BOOL dataFindItemBankCount(PCHAR szIndex, MQ2TYPEVAR &Ret);
 /* COMMANDS */
-EQLIB_VAR VOID DeleteVarCmd(PSPAWNINFO pChar, PCHAR szLine);
+
+EQLIB_API VOID DropCmd(PSPAWNINFO pChar, PCHAR szLine);
+EQLIB_API VOID CombineCmd(PSPAWNINFO pChar, PCHAR szLine);
+EQLIB_API VOID ClearErrorsCmd(PSPAWNINFO pChar, PCHAR szLine);
+EQLIB_API VOID DeleteVarCmd(PSPAWNINFO pChar, PCHAR szLine);
 EQLIB_API VOID NewIf(PSPAWNINFO pChar, PCHAR szLine);
 EQLIB_API VOID DoTimedCmd(PSPAWNINFO pChar, PCHAR szLine);
 EQLIB_API VOID DoShiftCmd(PSPAWNINFO pChar, PCHAR szLine);
@@ -576,7 +584,7 @@ EQLIB_API VOID EndMacro                            (PSPAWNINFO,PCHAR);
 EQLIB_API VOID Exec                                (PSPAWNINFO,PCHAR); 
 EQLIB_API VOID Face                                (PSPAWNINFO,PCHAR);
 EQLIB_API VOID Filter                              (PSPAWNINFO,PCHAR);
-EQLIB_API VOID FindItem                            (PSPAWNINFO,PCHAR);
+//EQLIB_API VOID FindItem                            (PSPAWNINFO,PCHAR);
 EQLIB_API VOID For                                 (PSPAWNINFO,PCHAR);
 EQLIB_API VOID Goto                                (PSPAWNINFO,PCHAR);
 EQLIB_API VOID Help                                (PSPAWNINFO,PCHAR);
@@ -609,7 +617,7 @@ EQLIB_API VOID Next                                (PSPAWNINFO,PCHAR);
 EQLIB_API VOID PluginCommand						(PSPAWNINFO pChar, PCHAR szLine);
 //EQLIB_API VOID Press                               (PSPAWNINFO,PCHAR);
 EQLIB_API VOID Return                              (PSPAWNINFO,PCHAR);
-EQLIB_API VOID SelectItem                          (PSPAWNINFO,PCHAR);
+//EQLIB_API VOID SelectItem                          (PSPAWNINFO,PCHAR);
 EQLIB_API VOID SellItem                            (PSPAWNINFO,PCHAR);
 //EQLIB_API VOID SendKey                             (PSPAWNINFO,PCHAR);
 EQLIB_API VOID SetAutoRun                          (PSPAWNINFO,PCHAR);

@@ -17,6 +17,63 @@ namespace EQData
 // ***************************************************************************
 // Defines
 // ***************************************************************************
+
+enum PlayerClass
+{
+	Unknown=0,
+	Warrior=1,
+	Cleric=2,
+	Paladin=3,
+	Ranger=4,
+	Shadowknight=5,
+	Druid=6,
+	Monk=7,
+	Bard=8,
+	Rogue=9,
+	Shaman=10,
+	Necromancer=11,
+	Wizard=12,
+	Mage=13,
+	Enchanter=14,
+	Beastlord=15,
+	Berserker=16,
+	TotalClasses=16,
+};
+
+typedef struct _ClassInfo
+{
+	bool CanCast;
+	bool PureCaster;
+	bool PetClass;
+	bool DruidType;
+	bool NecroType;
+	bool ClericType;
+	bool ShamanType;
+	bool WizardType;
+} CLASSINFO, *PCLASSINFO;
+
+static _ClassInfo ClassInfo[]=
+{
+	{0,0,0,0,0,0,0},//unk
+	{0,0,0,0,0,0,0},//war
+	{1,1,0,0,0,1,0},//clr
+	{1,0,0,0,0,1,0},//pal
+	{1,0,0,1,0,0,0},//rng
+	{1,0,0,0,1,0,0},//shd
+	{1,1,0,1,0,0,0},//dru
+	{0,0,0,0,0,0,0},//mnk
+	{1,0,0,0,0,0,0},//brd
+	{0,0,0,0,0,0,0},//rog
+	{1,1,1,0,0,0,1},//shm
+	{1,1,1,0,1,0,0},//nec
+	{1,1,0,0,0,0,0},//wiz
+	{1,1,1,0,0,0,0},//mag
+	{1,1,0,0,0,0,0},//enc
+	{1,0,1,0,0,0,1},//bst
+	{0,0,0,0,0,0,0},//ber
+};
+
+
 #define SPAWN_PLAYER                    0
 #define SPAWN_NPC                       1
 #define SPAWN_CORPSE                    2
@@ -697,7 +754,9 @@ typedef struct _ACTORINFO {
 /*0x01b4*/   struct     _SPAWNINFO   *Mount;   // NULL if no mount present 
 /*0x01b8*/   BYTE		Unknown0x01b8[0xc]; 
 /*0x01c4*/   DWORD		PetID; 
-/*0x01c8*/   BYTE		Unknown0x01c4[0x2459]; 
+/*0x01c8*/   BYTE		Unknown0x01c4[0x28]; 
+/*0x01f0*/   struct     _SPAWNINFO *pTargetOfTarget;
+/*0x01f4*/   BYTE       Unknown0x01f4[0x242d];
 /*0x01f8*/ // class EQMobileEmitter *pMobileEmitter;
 /*0x2604*/ // FLOAT unknown
 /*0x2608*/ // FLOAT unknown

@@ -1,3 +1,55 @@
+22 Apr 2004 by Lax:
+- Readme.html has been removed from the zip by request of its author.  It is being worked on
+  and will return.
+- /selectitem GONE
+- /finditem GONE
+- /click functionality has been SEVERELY reduced.  It will now function given an x,y,
+  and on an item or spawn (target).  Upgrade to /notify for UI interaction.
+  /notify <window> <button screen id> <notification>
+  example:
+  /notify LootWnd DoneButton leftmouseup
+  Window names and control ScreenID's are found in the XML files, and are NOT screwed up
+  by custom interfaces (unless your UI does not have the button)
+- Fixed item slot name discrepancies.  What was previously "primary" and "secondary" is
+  "mainhand" and "offhand".  It was one thing in some places, but not in others.  Should
+  be all the same now.
+- Underscores(_) are again valid in variable names
+- Added "STUN" to spawn.State
+- Fixed Ini Top-Level Object
+- ** Added/changed MQ2Data type members
+  string macroquest.Error: Last normal error message (replaces $getlasterror but will NOT have the old values!)
+  string macroquest.SyntaxError: Last syntax error message (usage: /blahblah)
+  string macroquest.MQ2DataError: Last MQ2Data parsing error message
+  spawn spawn.TargetOfTarget: Target of target (May only work in "Me": ${Me.TargetOfTarget.PctHps}, etc)
+  int item.BuyPrice: Price to buy this item at this merchant
+  int item.SellPrice: Price to sell this item at this merchant
+  item merchant.Item[name]: Finds an item by partial name at this merchant (use merchant.Item[=name] for exact)
+  item corpse.Item[name]: Finds an item by partial name in this corpse (use corpse.Item[=name] for exact)
+  float character.PctGroupLeaderExp: Group leadership exp as a %
+  float character.PctRaidLeaderExp: Raid leadership exp as a %- bool character.Stunned: Stunned?
+  bool spawn.Sitting: Sitting?
+  bool spawn.Standing: Standing?
+  bool spawn.Ducking: Ducking?
+  bool spawn.Binding: Binding wounds?
+  bool spawn.Feigning: Feigning?
+  bool spawn.Invited: Invited to group?
+  bool class.PetClass: Pet class? (shaman, necromancer, mage, beastlord)
+  bool class.PureCaster: Pure caster? (can gate!)
+  bool class.CanCast: Can usually cast? (not melee only)
+  bool class.DruidType: Druid/Ranger?
+  bool class.ShamanType: Shaman/Beastlord?
+  bool class.NecromancerType: Necromancer/Shadowknight?
+  bool class.ClericType: Cleric/Paladin?
+  float math.Sqrt[formula]: The square root of formula
+- New MQ2Data type "plugin"
+- New TLOs
+  plugin Plugin[name]: Finds plugin by name
+  plugin Plugin[n]: Plugin by number, starting with 1 and stopping whenever the list runs out of plugins.
+- Fixed LastSpawn[n] and LastSpawn[-n], also added them to reference.
+- New command: /combine <pack> - hits combine on this container
+- New command: /drop - drops item on cursor
+- New command: /clearerrors - clears each of the "last errors"
+
 21 Apr 2004 by Lax:
 - Fixed if/newif
 

@@ -362,9 +362,8 @@ BOOL dataIf(PCHAR szIndex, MQ2TYPEVAR &Ret)
 
 BOOL dataCursor(PCHAR szIndex, MQ2TYPEVAR &Ret)
 {
-	if (((PCHARINFO)pCharData)->Cursor)
+	if (Ret.Ptr=((PCHARINFO)pCharData)->Cursor)
 	{
-		Ret.Ptr=((PCHARINFO)pCharData)->Cursor;
 		Ret.Type=pItemType;
 		return true;
 	}
@@ -378,25 +377,35 @@ BOOL dataLastSpawn(PCHAR szIndex, MQ2TYPEVAR &Ret)
 		if (szIndex[0]>='0' && szIndex[0]<='9')
 		{
 			unsigned long N=atoi(szIndex)-1;
-			PSPAWNINFO pSpawn=(PSPAWNINFO)pSpawnList;
-			while(N)
+			if (PSPAWNINFO pSpawn=(PSPAWNINFO)pSpawnList)
 			{
-				pSpawn=pSpawn->pNext;
-				if (!pSpawn)
-					return false;
-				N--;
+				while(N)
+				{
+					pSpawn=pSpawn->pNext;
+					if (!pSpawn)
+						return false;
+					N--;
+				}
+				Ret.Ptr=pSpawn;
+				Ret.Type=pSpawnType;
+				return true;
 			}
 		}
 		else if (szIndex[0]=='-')
 		{
 			unsigned long N=atoi(&szIndex[1])-1;
-			PSPAWNINFO pSpawn=(PSPAWNINFO)pLocalPlayer;
-			while(N)
+			if (PSPAWNINFO pSpawn=(PSPAWNINFO)pLocalPlayer)
 			{
-				pSpawn=pSpawn->pPrev;
-				if (!pSpawn)
-					return false;
-				N--;
+				while(N)
+				{
+					pSpawn=pSpawn->pPrev;
+					if (!pSpawn)
+						return false;
+					N--;
+				}
+				Ret.Ptr=pSpawn;
+				Ret.Type=pSpawnType;
+				return true;
 			}
 		}
 	}
@@ -508,17 +517,12 @@ BOOL dataIni(PCHAR szIndex, MQ2TYPEVAR &Ret)
 		strcat(FileName,".ini");
 	if (DWORD nSize=GetPrivateProfileString(pSection,pKey,pDefault,DataTypeTemp,MAX_STRING,FileName))
 	{
-		if (nSize==MAX_STRING-1)
-		{
-			DataTypeTemp[MAX_STRING-2]='|';
-			DataTypeTemp[MAX_STRING-1]='0';
-		}
-		else if ( nSize==MAX_STRING-2 && (!pSection || !pKey))
-		{
-			DataTypeTemp[MAX_STRING-3]='|';
-			DataTypeTemp[MAX_STRING-2]='|';
-			DataTypeTemp[MAX_STRING-1]='0';
-		}
+		if (nSize>2)
+		for (unsigned long N = 0 ; N < nSize-2 ; N++)
+			if (DataTypeTemp[N]==0)
+				DataTypeTemp[N]='|';
+		if (nSize<MAX_STRING-3)
+			strcat(DataTypeTemp,"||");
 
 		Ret.Ptr=&DataTypeTemp[0];
 		Ret.Type=pStringType;
@@ -913,5 +917,39 @@ BOOL dataInvSlot(PCHAR szIndex, MQ2TYPEVAR &Ret)
 	return false;
 }
 
-
-
+BOOL dataPlugin(PCHAR szIndex, MQ2TYPEVAR &Ret)
+{
+	if (!szIndex[0])
+		return false;
+	if (szIndex[0]>='0' && szIndex[0]<='9')
+	{
+		unsigned long N = atoi(szIndex)-1;
+		PMQPLUGIN pPlugin=pPlugins;
+		while(N)
+		{
+			pPlugin=pPlugin->pNext;
+			if (!pPlugin)
+				return false;
+			N--;
+		}
+		Ret.Ptr=pPlugin;
+		Ret.Type=pPluginType;
+		return true;
+	}
+	else
+	{
+		// name
+		PMQPLUGIN pPlugin=pPlugins;
+		while(pPlugin)
+		{
+			if (!stricmp(pPlugin->szFilename,szIndex))
+			{
+				Ret.Ptr=pPlugin;
+				Ret.Type=pPluginType;
+				return true;
+			}
+			pPlugin=pPlugin->pNext;
+		}
+	}
+	return false;
+}

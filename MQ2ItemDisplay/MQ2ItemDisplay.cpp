@@ -33,7 +33,7 @@ public:
       SetItem_Trampoline(pitem,unknown);
 
       // keep a global copy of the last item displayed...
-      memcpy(&g_Item, Item, 0x200);
+      memcpy(&g_Item, Item, sizeof(ITEMINFO));
 
       strcpy(out,"<BR><c \"#00FFFF\">");
 	 if (Item->Cost>0) {

@@ -54,7 +54,7 @@ Id_PMP[] = {
 	{3008,   "${Time.Year}"},
 	{3009,   "${Time.Month}"},
 	{3010,   "${Time.Day}"},
-	{3011,   "${If[Spawn[gm].ID,TRUE,FALSE]}"},
+	{3011,   "${If[${Spawn[gm].ID},TRUE,FALSE]}"},
      {3012,   "$freeinv(space)"},
 
     // 9999: custom (TooltipReference)

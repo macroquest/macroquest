@@ -200,7 +200,9 @@ PLUGIN_API VOID InitializePlugin(VOID)
 	// Add commands, macro parameters, hooks, etc.
 	// AddCommand("/mycommand",MyCommand);
 	// AddParm("$myparm(x)",MyParm);
-	pBuddyType = new MQ2BuddyType;		
+	pBuddyType = new MQ2BuddyType;	
+	AddMQ2Data("Buddy",dataBuddy);
+	AddMQ2Data("Buddies",dataBuddies);
 }
 
 // Called once, when the plugin is to shutdown
@@ -213,6 +215,8 @@ PLUGIN_API VOID ShutdownPlugin(VOID)
 	// RemoveCommand("/mycommand");
 	if (Detoured && pEverQuest)
 		SetVTable(8,PreDetour[8]);
+	RemoveMQ2Data("Buddy");
+	RemoveMQ2Data("Buddies");
 	BuddyList.Cleanup();
 	delete pBuddyType;
 }

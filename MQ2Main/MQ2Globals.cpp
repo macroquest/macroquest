@@ -76,6 +76,12 @@ CHAR gszINIFilename[MAX_STRING] = {0};
 CHAR gszItemDB[MAX_STRING] = {0};
 CHAR gszMacroName[MAX_STRING] = {0};
 CHAR szLastCommand[MAX_STRING] = {0};
+
+CHAR gszLastError[MAX_STRING] = {0};
+CHAR gszLastSyntaxError[MAX_STRING] = {0};
+CHAR gszLastMQ2DataError[MAX_STRING] = {0};
+
+
 DWORD gEventChat = 0;
 DWORD gRunning = 0;
 BOOL gbMoving = FALSE;
@@ -102,6 +108,7 @@ BOOL gbDoAutoRun = FALSE;
 BOOL gMQPauseOnChat = FALSE;
 BOOL gKeepKeys = FALSE;
 SWHOFILTER gFilterSWho = {0};
+EQLIB_VAR BOOL gFilterMQ2DataErrors=FALSE;
 
 DOUBLE DegToRad = 57.295779513082320876846364344191;
 DOUBLE PI = 3.1415926535;
@@ -123,7 +130,7 @@ BOOL gTurbo = FALSE;
 PDEFINE pDefines = NULL;
 PEVENTLIST pEventList = NULL;
 CHAR gLastFindSlot[MAX_STRING]={0};
-CHAR gLastError[MAX_STRING] = {0};
+//CHAR gLastError[MAX_STRING] = {0};
 //HWND ghWnd = NULL;
 PFILTER gpFilters = NULL;
 
@@ -497,8 +504,8 @@ PCHAR szItemSlot[] = {
     "rightwrist",
     "ranged",
     "hands",
-    "primary",
-    "secondary",
+    "mainhand",
+    "offhand",
     "leftfinger",
     "rightfinger",
     "chest",

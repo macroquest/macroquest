@@ -57,6 +57,8 @@ class MQ2InvSlotType *pInvSlotType=0;
 class MQ2ArrayType *pArrayType=0;
 class MQ2TimerType *pTimerType=0;
 
+class MQ2PluginType *pPluginType=0;
+
 CHAR DataTypeTemp[MAX_STRING]={0};
 
 void InitializeMQ2DataTypes()
@@ -93,6 +95,11 @@ void InitializeMQ2DataTypes()
 	pInvSlotType = new MQ2InvSlotType;
 	pArrayType = new MQ2ArrayType;
 	pTimerType = new MQ2TimerType;
+	pPluginType = new MQ2PluginType;
+
+	// NOTE: SetInheritance does NOT make it inherit, just notifies the syntax checker...
+	pCharacterType->SetInheritance(pSpawnType);
+	pBuffType->SetInheritance(pSpellType);
 }
 
 void ShutdownMQ2DataTypes()
@@ -128,6 +135,7 @@ void ShutdownMQ2DataTypes()
 	delete pHeadingType;
 	delete pArrayType;
 	delete pTimerType;
+	delete pPluginType;
 }
 
 bool MQ2FloatType::GetMember(MQ2VARPTR VarPtr, PCHAR Member, PCHAR Index, MQ2TYPEVAR &Dest)
@@ -267,13 +275,19 @@ bool MQ2SpawnType::GetMember(MQ2VARPTR VarPtr, PCHAR Member, PCHAR Index, MQ2TYP
 		Dest.Float=pSpawn->Z;
 		return true;
 	case Next:
-		Dest.Type=pSpawnType;
-		Dest.Ptr=pSpawn->pNext;
-		return true;
+		if (Dest.Ptr=pSpawn->pNext)
+		{
+			Dest.Type=pSpawnType;
+			return true;
+		}
+		return false;
 	case Prev:
-		Dest.Type=pSpawnType;
-		Dest.Ptr=pSpawn->pPrev;
-		return true;
+		if (Dest.Ptr=pSpawn->pPrev)
+		{
+			Dest.Type=pSpawnType;
+			return true;
+		}
+		return false;
 	case CurrentHPs:
 		Dest.Type=pIntType;
 		Dest.Int=pSpawn->HPCurrent;
@@ -406,6 +420,11 @@ bool MQ2SpawnType::GetMember(MQ2VARPTR VarPtr, PCHAR Member, PCHAR Index, MQ2TYP
 		Dest.Type=pStringType;
 		return true;
 	case State:
+		if (pSpawn->pCharInfo && pSpawn->pCharInfo->Stunned==1)
+		{
+			Dest.Ptr="STUN";
+		}
+		else
         switch (pSpawn->StandState) {
             case STANDSTATE_STAND:
                 Dest.Ptr="STAND";
@@ -430,6 +449,26 @@ bool MQ2SpawnType::GetMember(MQ2VARPTR VarPtr, PCHAR Member, PCHAR Index, MQ2TYP
                 break;
 		}
 		Dest.Type=pStringType;
+		return true;
+	case Standing:
+		Dest.DWord=pSpawn->StandState==STANDSTATE_STAND;
+		Dest.Type=pBoolType;
+		return true;
+	case Sitting:
+		Dest.DWord=pSpawn->StandState==STANDSTATE_SIT;
+		Dest.Type=pBoolType;
+		return true;
+	case Ducking:
+		Dest.DWord=pSpawn->StandState==STANDSTATE_DUCK;
+		Dest.Type=pBoolType;
+		return true;
+	case Feigning:
+		Dest.DWord=pSpawn->StandState==STANDSTATE_FEIGN;
+		Dest.Type=pBoolType;
+		return true;
+	case Binding:
+		Dest.DWord=pSpawn->StandState==STANDSTATE_BIND;
+		Dest.Type=pBoolType;
 		return true;
 	case Deity:
 		Dest.DWord=pSpawn->Deity;
@@ -533,6 +572,17 @@ bool MQ2SpawnType::GetMember(MQ2VARPTR VarPtr, PCHAR Member, PCHAR Index, MQ2TYP
 		}
 		Dest.Type=pStringType;
 		return true;
+	case TargetOfTarget:
+		if (Dest.Ptr=pSpawn->pActorInfo->pTargetOfTarget)
+		{
+			Dest.Type=pSpawnType;
+			return true;
+		}
+		return false;
+	case Invited:
+		Dest.DWord=(pSpawn->pActorInfo->InvitedToGroup);
+		Dest.Type=pBoolType;
+		return true;
 	/*
 	Trader
 	AFK
@@ -580,8 +630,12 @@ bool MQ2BuffType::GetMember(MQ2VARPTR VarPtr, PCHAR Member, PCHAR Index, MQ2TYPE
 		return false;
 	case Mod:
 		Dest.Float=(((float)pBuff->Modifier)/10.0f);
-		Dest.Type=pFloatType;
-		return true;
+		if (Dest.Float!=1.0f)
+		{
+			Dest.Type=pFloatType;
+			return true;
+		}
+		return false;
 	case Duration:
 		Dest.DWord=pBuff->Duration+1;// 0 is actually 6 seconds ;)
 		Dest.Type=pTicksType;
@@ -957,9 +1011,11 @@ bool MQ2CharacterType::GetMember(MQ2VARPTR VarPtr, PCHAR Member, PCHAR Index, MQ
 				unsigned long nSlot=atoi(Index)%0x1E;
 				if (nSlot<0x1E)
 				{
-					Dest.Ptr=pChar->InventoryArray[nSlot];
-					Dest.Type=pItemType;
-					return true;
+					if (Dest.Ptr=pChar->InventoryArray[nSlot])
+					{
+						Dest.Type=pItemType;
+						return true;
+					}
 				}
 			}
 			else
@@ -968,9 +1024,11 @@ bool MQ2CharacterType::GetMember(MQ2VARPTR VarPtr, PCHAR Member, PCHAR Index, MQ
 				{
 					if (!stricmp(Index,szItemSlot[nSlot]))
 					{
-						Dest.Ptr=pChar->InventoryArray[nSlot];
-						Dest.Type=pItemType;
-						return true;
+						if (Dest.Ptr=pChar->InventoryArray[nSlot])
+						{
+							Dest.Type=pItemType;
+							return true;
+						}
 					}
 				}
 			}
@@ -984,9 +1042,11 @@ bool MQ2CharacterType::GetMember(MQ2VARPTR VarPtr, PCHAR Member, PCHAR Index, MQ
 				unsigned long nSlot=atoi(Index)-1;
 				if (nSlot<NUM_BANK_SLOTS)
 				{
-					Dest.Ptr=pChar->Bank[nSlot];
-					Dest.Type=pItemType;
-					return true;
+					if (Dest.Ptr=pChar->Bank[nSlot])
+					{
+						Dest.Type=pItemType;
+						return true;
+					}
 				}
 			}
 		}
@@ -1347,6 +1407,14 @@ bool MQ2CharacterType::GetMember(MQ2VARPTR VarPtr, PCHAR Member, PCHAR Index, MQ
 		Dest.DWord=pChar->RaidLeadershipExp;
 		Dest.Type=pIntType;
 		return true;
+	case PctGroupLeaderExp:
+		Dest.Float=(float)pChar->GroupLeadershipExp/3.30f;
+		Dest.Type=pFloatType;
+		return true;
+	case PctRaidLeaderExp:
+		Dest.Float=(float)pChar->RaidLeadershipExp/3.30f;
+		Dest.Type=pFloatType;
+		return true;
 	case GroupLeaderPoints:
 		Dest.DWord=pChar->GroupLeadershipPoints;
 		Dest.Type=pIntType;
@@ -1354,6 +1422,10 @@ bool MQ2CharacterType::GetMember(MQ2VARPTR VarPtr, PCHAR Member, PCHAR Index, MQ
 	case RaidLeaderPoints:
 		Dest.DWord=pChar->RaidLeadershipPoints;
 		Dest.Type=pIntType;
+		return true;
+	case Stunned:
+		Dest.DWord=(pChar->Stunned==1);
+		Dest.Type=pBoolType;
 		return true;
 		/*
 		FreeInventory
@@ -1661,8 +1733,22 @@ bool MQ2ItemType::GetMember(MQ2VARPTR VarPtr, PCHAR Member, PCHAR Index, MQ2TYPE
 			return true;
 		}
 		return false;
+	case BuyPrice:
+		if (pActiveMerchant)
+		{
+			Dest.DWord=(DWORD)((FLOAT)pItem->Item->Cost*((PEQMERCHWINDOW)pMerchantWnd)->Markup);
+			Dest.Type=pIntType;
+			return true;
+		}
+	case SellPrice:
+		if (pActiveMerchant)
+		{
+			Dest.DWord=(DWORD)((FLOAT)pItem->Item->Cost*(1.0f/((PEQMERCHWINDOW)pMerchantWnd)->Markup));
+			Dest.Type=pIntType;
+			return true;
+		}
+		return false;
 	/*
-		Price=15,
 		Haste=16,
 		Endurance=17,
 		Attack=18,
@@ -1757,6 +1843,14 @@ bool MQ2MathType::GetMember(MQ2VARPTR VarPtr, PCHAR Member, PCHAR Index, MQ2TYPE
 		Dest.DWord=rand() % Dest.DWord;
 		Dest.Type=pIntType;
 		return true;
+	case Sqrt:
+		if (Calculate(Index,CalcResult))
+		{
+			Dest.Float=(FLOAT)sqrt(CalcResult);
+			Dest.Type=pFloatType;
+			return true;
+		}
+		return false;
 	case Calc:
 		if (Calculate(Index,CalcResult))
 		{
@@ -2151,16 +2245,61 @@ bool MQ2ClassType::GetMember(MQ2VARPTR VarPtr, PCHAR Member, PCHAR Index, MQ2TYP
 		Dest.Type=pStringType;
 		return true;
 	case CanCast:
-//		Dest.DWord=(VarPtr.DWord==
+		if (VarPtr.DWord<=16)
+		{
+			Dest.DWord=ClassInfo[VarPtr.DWord].CanCast;
+			Dest.Type=pBoolType;
+			return true;
+		}
 		return false;
-		/*TODO
-		CanGate=4,
-		CanCast=5,
-		DruidType=6,
-		NecromancerType=7,
-		ShamanType=8,
-		ClericType=9,
-		/**/
+	case PureCaster:
+		if (VarPtr.DWord<=16)
+		{
+			Dest.DWord=ClassInfo[VarPtr.DWord].PureCaster;
+			Dest.Type=pBoolType;
+			return true;
+		}
+		return false;
+	case PetClass:
+		if (VarPtr.DWord<=16)
+		{
+			Dest.DWord=ClassInfo[VarPtr.DWord].PetClass;
+			Dest.Type=pBoolType;
+			return true;
+		}
+		return false;
+	case DruidType:
+		if (VarPtr.DWord<=16)
+		{
+			Dest.DWord=ClassInfo[VarPtr.DWord].DruidType;
+			Dest.Type=pBoolType;
+			return true;
+		}
+		return false;
+	case ShamanType:
+		if (VarPtr.DWord<=16)
+		{
+			Dest.DWord=ClassInfo[VarPtr.DWord].ShamanType;
+			Dest.Type=pBoolType;
+			return true;
+		}
+		return false;
+	case NecromancerType:
+		if (VarPtr.DWord<=16)
+		{
+			Dest.DWord=ClassInfo[VarPtr.DWord].NecroType;
+			Dest.Type=pBoolType;
+			return true;
+		}
+		return false;
+	case ClericType:
+		if (VarPtr.DWord<=16)
+		{
+			Dest.DWord=ClassInfo[VarPtr.DWord].ClericType;
+			Dest.Type=pBoolType;
+			return true;
+		}
+		return false;
 	}
 	return false;
 }
@@ -2360,10 +2499,15 @@ bool MQ2MacroQuestType::GetMember(MQ2VARPTR VarPtr, PCHAR Member, PCHAR Index, M
 		Dest.Type=pStringType;
 		return true;
 	case LoginName:
-		if (Dest.Ptr=GetLoginName())
 		{
-			Dest.Type=pStringType;
-			return true;
+			if (PCHAR pTemp=GetLoginName())
+			{
+				strcpy(DataTypeTemp,pTemp);
+				free(pTemp);
+				Dest.Ptr=&DataTypeTemp[0];
+				Dest.Type=pStringType;
+				return true;
+			}
 		}
 		return false;
 	case Server:
@@ -2378,6 +2522,30 @@ bool MQ2MacroQuestType::GetMember(MQ2VARPTR VarPtr, PCHAR Member, PCHAR Index, M
 		if (EQADDR_LASTTELL[0])
 		{
 			Dest.Ptr=&EQADDR_LASTTELL[0];
+			Dest.Type=pStringType;
+			return true;
+		}
+		return false;
+	case Error:
+		if (gszLastError[0])
+		{
+			Dest.Ptr=&gszLastError[0];
+			Dest.Type=pStringType;
+			return true;
+		}
+		return false;
+	case SyntaxError:
+		if (gszLastSyntaxError[0])
+		{
+			Dest.Ptr=&gszLastSyntaxError[0];
+			Dest.Type=pStringType;
+			return true;
+		}
+		return false;
+	case MQ2DataError:
+		if (gszLastMQ2DataError[0])
+		{
+			Dest.Ptr=&gszLastMQ2DataError[0];
 			Dest.Type=pStringType;
 			return true;
 		}
@@ -2458,7 +2626,7 @@ bool MQ2TimeType::GetMember(MQ2VARPTR VarPtr, PCHAR Member, PCHAR Index, MQ2TYPE
 		Dest.Type=pIntType;
 		return true;
 	case Month:
-		Dest.DWord=pTime->tm_mon;
+		Dest.DWord=pTime->tm_mon+1;
 		Dest.Type=pIntType;
 		return true;
 	case Year:
@@ -2481,7 +2649,7 @@ bool MQ2TimeType::GetMember(MQ2VARPTR VarPtr, PCHAR Member, PCHAR Index, MQ2TYPE
 		Dest.Type=pStringType; 
 		return true;
 	case Date:
-		sprintf(DataTypeTemp,"%02d/%02d/%04d",pTime->tm_mon,pTime->tm_mday, pTime->tm_year+1900);
+		sprintf(DataTypeTemp,"%02d/%02d/%04d",pTime->tm_mon+1,pTime->tm_mday, pTime->tm_year+1900);
 		Dest.Ptr=&DataTypeTemp[0],
 		Dest.Type=pStringType; 
 		return true;
@@ -2570,6 +2738,38 @@ bool MQ2CorpseType::GetMember(MQ2VARPTR VarPtr, PCHAR Member, PCHAR Index, MQ2TY
 			else
 			{
 				// name
+				BOOL bExact=FALSE;
+				PCHAR pName=Index;
+				if (*pName=='=')
+				{
+					bExact=TRUE;
+				}
+				CHAR Temp[MAX_STRING]={0};
+				for (unsigned long nIndex = 0 ; nIndex < 31 ; nIndex++)
+				{
+					if (PCONTENTS pContents=pLoot->ItemDesc[nIndex])
+					{
+						if (bExact)
+						{
+							if (!stricmp(pName,pContents->Item->Name))
+							{
+								Dest.Ptr=pContents;
+								Dest.Type=pItemType;
+								return true;
+							}
+						}
+						else
+						{
+							if(strstr(strlwr(strcpy(Temp,pContents->Item->Name)),pName))
+							{
+								Dest.Ptr=pContents;
+								Dest.Type=pItemType;
+								return true;
+							}
+						}
+					}
+				}
+
 			}
 		}
 		return false;
@@ -2624,6 +2824,37 @@ bool MQ2MerchantType::GetMember(MQ2VARPTR VarPtr, PCHAR Member, PCHAR Index, MQ2
 			else
 			{
 				// name
+				BOOL bExact=FALSE;
+				PCHAR pName=Index;
+				if (*pName=='=')
+				{
+					bExact=TRUE;
+				}
+				CHAR Temp[MAX_STRING]={0};
+				for (unsigned long nIndex = 0 ; nIndex < 80 ; nIndex++)
+				{
+					if (PCONTENTS pContents=pMerch->ItemDesc[nIndex])
+					{
+						if (bExact)
+						{
+							if (!stricmp(pName,pContents->Item->Name))
+							{
+								Dest.Ptr=pContents;
+								Dest.Type=pItemType;
+								return true;
+							}
+						}
+						else
+						{
+							if(strstr(strlwr(strcpy(Temp,pContents->Item->Name)),pName))
+							{
+								Dest.Ptr=pContents;
+								Dest.Type=pItemType;
+								return true;
+							}
+						}
+					}
+				}
 			}
 		}
 		return false;
@@ -2805,7 +3036,7 @@ bool MQ2InvSlotType::GetMember(MQ2VARPTR VarPtr, PCHAR Member, PCHAR Index, MQ2T
 			Dest.Type=pStringType;
 			return true;
 		case 7:
-			Dest.Ptr="arm";
+			Dest.Ptr="arms";
 			Dest.Type=pStringType;
 			return true;
 		case 8:
@@ -2933,9 +3164,6 @@ bool MQ2InvSlotType::GetMember(MQ2VARPTR VarPtr, PCHAR Member, PCHAR Index, MQ2T
 			return true;
 		}
 		return false;
-	/*
-	Name=4,
-	/**/
 	}
 
 	return false;
@@ -2974,6 +3202,25 @@ bool MQ2TimerType::GetMember(MQ2VARPTR VarPtr, PCHAR Member, PCHAR Index, MQ2TYP
 //	switch((TimerMembers)pMember->ID)
 //	{
 //	}
+	return false;
+#undef pTimer
+}
+
+bool MQ2PluginType::GetMember(MQ2VARPTR VarPtr, PCHAR Member, PCHAR Index, MQ2TYPEVAR &Dest)
+{
+#define pPlugin ((PMQPLUGIN)VarPtr.Ptr)
+	if (!pPlugin)
+		return false;
+	PMQ2TYPEMEMBER pMember=MQ2PluginType::FindMember(Member);
+	if (!pMember)
+		return false;
+	switch((PluginMembers)pMember->ID)
+	{
+	case Name:
+		Dest.Ptr=pPlugin->szFilename;
+		Dest.Type=pStringType;
+		return true;
+	}
 	return false;
 #undef pTimer
 }
