@@ -4953,3 +4953,53 @@ DWORD parmBanker(PCHAR szVar, PCHAR szOutput, PSPAWNINFO pChar)
 	}
 	return i;
 }
+
+DWORD parmMacro(PCHAR szVar, PCHAR szOutput, PSPAWNINFO pChar)
+{
+   if (!gRunning) {
+      strcat(szOutput,"None");
+   } else {
+        strcat(szOutput,gszMacroName);
+   }
+   return 8;
+} 
+
+DWORD parmEvent(PCHAR szVar, PCHAR szOutput, PSPAWNINFO pChar)
+{
+    int i=0;
+    CHAR SpecificEvent[MAX_STRING] = {0};
+    PEVENTSTACK pEvent;
+
+    if (!strstr(szVar,")")) {
+        DebugSpewNoFile("PMP - Bad $event() '%s'",szVar);
+        return PMP_ERROR_BADPARM;
+    }
+
+    while ((szVar[i] != ')') && (szVar[i] != 0)) i++;
+    if (i>7) strncpy(SpecificEvent,szVar+6,i-7);
+    SpecificEvent[strlen(SpecificEvent)-1]=0;
+
+    if (!gEventStack) {
+        strcat(szOutput,"FALSE");
+        return i;
+    }
+
+    if (SpecificEvent[0]==0) {
+        strcat(szOutput,"TRUE");
+        return i;
+    }
+
+    for (pEvent = gEventStack;pEvent;pEvent = pEvent->pNext) {
+        if (
+               ((pEvent->Type == EVENT_CHAT)   && (!stricmp(SpecificEvent,"chat"))) ||
+               ((pEvent->Type == EVENT_TIMER)  && (!stricmp(SpecificEvent,"timer"))) ||
+               ((pEvent->Type == EVENT_CUSTOM) && (!stricmp(SpecificEvent,pEvent->pEventList->szName)))
+           ) {
+            strcat(szOutput,"TRUE");
+            return i;
+        }
+    }   
+   
+    strcat(szOutput,"FALSE");
+    return i;
+}

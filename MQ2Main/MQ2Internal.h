@@ -56,6 +56,7 @@ typedef struct _SWHOFILTER {
 	BOOL Light;
 	BOOL Holding;
 	BOOL ConColor;
+	BOOL Invisible;
 } SWHOFILTER, *PSWHOFILTER;
 
 typedef struct _SWHOSORT {

@@ -129,7 +129,7 @@
 #define CXStr__CXStr3               0x00587490
 #define CXStr__dCXStr               0x004C4B45
 #define CXStr__operator_plus_equal1         0x00588520
-#define   CXStr__operator_equal1            0x00587490
+#define   CXStr__operator_equal1            0x00587650
 
 // CStmlWnd
 #define CStmlWnd__AppendSTML            0x0055F860

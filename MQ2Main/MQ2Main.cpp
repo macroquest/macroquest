@@ -282,6 +282,7 @@ BOOL ParseINIFile(PCHAR lpINIPath)
 	gFilterSWho.SpawnID = GetPrivateProfileInt("SWho Filter","SpawnID",0,Filename);
 	gFilterSWho.Holding = GetPrivateProfileInt("SWho Filter","Holding",0,Filename);
 	gFilterSWho.ConColor= GetPrivateProfileInt("SWho Filter","ConColor",0,Filename);
+	gFilterSWho.Invisible= GetPrivateProfileInt("SWho Filter","Invisible",0,Filename);
 
     GetPrivateProfileString("MacroQuest","MacroPath",".",szBuffer,MAX_STRING,Filename);
     if (szBuffer[0]=='.') {

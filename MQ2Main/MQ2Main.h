@@ -82,7 +82,7 @@ EQLIB_API VOID ShutdownChatHook();
 /* DETOURING API */
 EQLIB_API VOID InitializeMQ2Detours();
 EQLIB_API VOID ShutdownMQ2Detours();
-EQLIB_API BOOL AddDetour(DWORD address, PBYTE pfDetour=0, PBYTE pfTrampoline=0);
+EQLIB_API BOOL AddDetour(DWORD address, PBYTE pfDetour=0, PBYTE pfTrampoline=0, DWORD Count=20);
 EQLIB_API VOID RemoveDetour(DWORD address);
 
 /* PLUGIN HANDLING */
@@ -332,6 +332,8 @@ EQLIB_API DWORD parmSelectedItem					(PCHAR, PCHAR, PSPAWNINFO);
 EQLIB_API DWORD parmServerName						(PCHAR, PCHAR, PSPAWNINFO);
 EQLIB_API DWORD parmLoginName						(PCHAR, PCHAR, PSPAWNINFO);
 EQLIB_API DWORD parmGameState						(PCHAR, PCHAR, PSPAWNINFO);
+EQLIB_API DWORD parmMacro                  (PCHAR, PCHAR, PSPAWNINFO);
+EQLIB_API DWORD parmEvent                  (PCHAR, PCHAR, PSPAWNINFO);
 EQLIB_API DWORD parmBanker						(PCHAR, PCHAR, PSPAWNINFO);
 EQLIB_API DOUBLE Calculate(PCHAR szFormula);
 

@@ -1297,9 +1297,11 @@ VOID SWhoFilter(PSPAWNINFO pChar, PCHAR szLine)
 		SetDisplaySWhoFilter(&gFilterSWho.Holding,"Holding",szToggle);
 	} else if (!stricmp(szArg,"ConColor")) { 
         SetDisplaySWhoFilter(&gFilterSWho.ConColor,"ConColor",szToggle); 
-	} else { 
-        WriteChatColor("Usage: /whofilter <lastname|class|race|level|gm|guild|holding|ld|anon|lfg|npctag|spawnid|trader|afk|concolor> [on|off]",USERCOLOR_DEFAULT); 
-	}
+	} else if (!stricmp(szArg,"invisible")) {
+      SetDisplaySWhoFilter(&gFilterSWho.Invisible,"Invisible",szToggle);
+   } else {
+      WriteChatColor("Usage: /whofilter <lastname|class|race|level|gm|guild|holding|ld|anon|lfg|npctag|spawnid|trader|afk|concolor|invisible> [on|off]",USERCOLOR_DEFAULT);
+   } 
 }
 
 // ***************************************************************************
@@ -2321,6 +2323,7 @@ VOID SuperWhoDisplay(PSPAWNINFO pChar, PSEARCHSPAWN pFilter, PSPAWNINFO psTarget
 			if ((pFilter->bLight) && (pFilter->szLight[0]) && (stricmp(GetLightForSpawn(pSpawn),pFilter->szLight))) continue;
             if ((pFilter->bLFG) && (!pSpawn->LFG)) continue;
             if ((pFilter->bGroup) && (!IsInGroup(pSpawn))) continue;
+			if ((!pFilter->bTargInvis) && (!gFilterSWho.Invisible) && (pSpawn->BodyType>0x40)) continue;
 			if ((!pFilter->bTargInvis) && (pSpawn->BodyType>0x40)) continue;
             if ((pFilter->bTrader) && (!pSpawn->pActorInfo->Trader)) continue;
             if ((pFilter->bAlert) && (!IsAlert(pChar,pSpawn,pFilter->AlertList))) continue;

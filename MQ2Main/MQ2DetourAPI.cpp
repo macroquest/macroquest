@@ -40,15 +40,15 @@ OurDetours *ourdetours=0;
 CRITICAL_SECTION gDetourCS;
 
 
-BOOL AddDetour(DWORD address, PBYTE pfDetour, PBYTE pfTrampoline)
+BOOL AddDetour(DWORD address, PBYTE pfDetour, PBYTE pfTrampoline, DWORD Count)
 {
 	CAutoLock Lock(&gDetourCS);
 	BOOL Ret=TRUE;
 	DebugSpew("AddDetour(0x%X,0x%X,0x%X)",address,pfDetour,pfTrampoline);
 	OurDetours *detour = new OurDetours;
 	detour->addr=address;
-	detour->count=20;
-	memcpy(detour->array,(char *)address, 20);
+	detour->count=Count;
+	memcpy(detour->array,(char *)address, Count);
 	detour->pNext=ourdetours;
 	if (ourdetours)
 		ourdetours->pLast=detour;

@@ -51,6 +51,8 @@ DWORD LoadMQ2Plugin(const PCHAR pszFilename)
 		if (hmod==pPlugin->hModule)
 		{
 			DebugSpew("LoadMQ2Plugin(%s) already loaded",Filename);
+			// LoadLibrary count must match FreeLibrary count for unloading to work.
+			FreeLibrary(hmod);
 			return 2; // already loaded
 		}
 		pPlugin=pPlugin->pNext;
