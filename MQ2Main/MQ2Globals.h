@@ -139,6 +139,7 @@ EQLIB_VAR PEVENTLIST pEventList;
 EQLIB_VAR PKEYPRESS gKeyStack;
 EQLIB_VAR PTIMER gTimer;
 EQLIB_VAR LONG gDelay;
+EQLIB_VAR CHAR gDelayCondition[MAX_STRING];
 EQLIB_VAR PALERTLIST gpAlertList;
 EQLIB_VAR BOOL gMacroPause;
 EQLIB_VAR SPAWNINFO EnviroTarget;
@@ -148,6 +149,7 @@ EQLIB_VAR SPAWNINFO DoorEnviroTarget;
 EQLIB_VAR PDOOR pDoorTarget;
 EQLIB_VAR PITEMDB gItemDB;
 EQLIB_VAR BOOL bRunNextCommand;
+EQLIB_VAR BOOL bAllowCommandParse;
 EQLIB_VAR BOOL gTurbo;
 EQLIB_VAR PDEFINE pDefines;
 //EQLIB_VAR CHAR gLastFindSlot[MAX_STRING];
@@ -217,6 +219,8 @@ EQLIB_VAR PCHAR gpbShowNetStatus;
 #define gbShowNetStatus (*gpbShowNetStatus)
 EQLIB_VAR DWORD *gpShowNames;
 #define gShowNames (*gpShowNames)
+EQLIB_VAR DWORD *gpPCNames;
+#define gPCNames (*gpPCNames)
 
 
 EQLIB_VAR DWORD *g_ppDrawHandler;

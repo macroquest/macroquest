@@ -1,7 +1,24 @@
+09 May 2004 by Lax:
+- Added optional parameter to /delay.
+  Usage: /delay <time> [condition to end early]
+  This lets you use a delay that has a possibility to end early.  For example...
+  /keypress forward hold
+  /delay 1s ${Spawn[1234].Distance}<${Spawn[1234].MaxMeleeTo}
+  /keypress forward
+- New command /noparse
+  Usage: /noparse <command>
+  Prevents a command from being parsed for MQ2Data.  For example..
+  /noparse /ini blah blah blah ${stuff}
+  Will actually write the ${stuff} literally instead of changing it to the current value
+  of stuff.
+- Added MQ2Data members:
+  int macroquest.MouseX: Mouse's x location
+  int macroquest.MouseY: Mouse's y location
+
 07 May 2004 by Lax:
 - Added "Lax/Blech" support to custom events.  The Blech system allows much easier parsing of
   incoming chat.  Custom events will now support more parameters that are automatically
-  parsed based on the match text.  This system is not currently enabled by default
+  parsed based on the match text.
 - Fixed up EQ's handling of spawn captions (name above their head). Only the nearest 35 spawn
   captions will be updated by default (and even then, only those close enough that you'd see 
   their name).  EQ itself constantly updates the name of every spawn in the zone, even though 

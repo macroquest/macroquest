@@ -154,6 +154,8 @@ DOUBLE PI = 3.1415926535;
 PKEYPRESS gKeyStack = NULL;
 PTIMER gTimer = NULL;
 LONG gDelay = 0;
+CHAR gDelayCondition[MAX_STRING]={0};
+BOOL bAllowCommandParse=TRUE;
 LONG gDelayZoning = 0;
 PALERTLIST gpAlertList = NULL;
 BOOL gMacroPause = FALSE;
@@ -244,6 +246,7 @@ PCHAR gpbShowNetStatus=(PCHAR)__NetStatusToggle;
 PCHAR gpbAltTimerReady=(PCHAR)__AltTimerReady;
 DWORD *g_ppDrawHandler=(DWORD*)__DrawHandler;
 DWORD *gpShowNames=(DWORD*)__ShowNames;
+DWORD *gpPCNames=(DWORD*)__PCNames;
 
 
 PVOID EQADDR_GWORLD=(PVOID)__gWorld;

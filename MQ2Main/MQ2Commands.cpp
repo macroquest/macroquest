@@ -4661,3 +4661,14 @@ VOID CaptionCmd(PSPAWNINFO pChar, PCHAR szLine)
 	WriteChatf("\ay%s\ax caption set.",Arg1);
 }
 
+VOID NoParseCmd(PSPAWNINFO pChar, PCHAR szLine)
+{
+	if (!szLine[0])
+	{
+		SyntaxError("Usage: /noparse <command>");
+		return;
+	}
+	bAllowCommandParse=false;
+	DoCommand(pChar,szLine);
+	bAllowCommandParse=true;
+}

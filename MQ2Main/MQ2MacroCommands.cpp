@@ -388,7 +388,7 @@ VOID Cleanup(PSPAWNINFO pChar, PCHAR szLine)
 // ***************************************************************************
 // Function:    Delay
 // Description: Our '/delay' command
-// Usage:       /delay <time>
+// Usage:       /delay <time> [condition to end early]
 // ***************************************************************************
 VOID Delay(PSPAWNINFO pChar, PCHAR szLine)
 {
@@ -396,10 +396,12 @@ VOID Delay(PSPAWNINFO pChar, PCHAR szLine)
     LONG VarValue;
 
     if (szLine[0]==0) {
-        SyntaxError("Usage: /delay <time>");
+        SyntaxError("Usage: /delay <time> [condition to end early]");
         return;
     }
     GetArg(szVal,szLine,1);
+	ParseMacroParameter(GetCharInfo()->pSpawn,szVal);
+	strcpy(gDelayCondition,GetNextArg(szLine));
     VarValue = atol(szVal);
     switch (szVal[strlen(szVal)-1]) {
         case 'm':
@@ -410,6 +412,7 @@ VOID Delay(PSPAWNINFO pChar, PCHAR szLine)
             VarValue *= 10;
     }
     gDelay = VarValue;
+	bRunNextCommand=false;
 //    DebugSpewNoFile("Delay - %d",gDelay);
 }
 

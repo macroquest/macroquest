@@ -17,6 +17,8 @@
 // "bind" type (key binds)
 // Friend TLO
 // Ignore TLO
+// Mouse x/y
+// count buffs
 
 EQLIB_VAR class MQ2FloatType *pFloatType;
 EQLIB_VAR class MQ2StringType *pStringType;
@@ -1802,6 +1804,8 @@ public:
 		SyntaxError=7,
 		MQ2DataError=8,
 		Running=9,
+		MouseX=10,
+		MouseY=11,
 	};
 	MQ2MacroQuestType():MQ2Type("macroquest")
 	{
@@ -1814,6 +1818,8 @@ public:
 		TypeMember(SyntaxError);
 		TypeMember(MQ2DataError);
 		TypeMember(Running);
+		TypeMember(MouseX);
+		TypeMember(MouseY);
 	}
 
 	~MQ2MacroQuestType()

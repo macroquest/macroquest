@@ -122,7 +122,8 @@ public:
 		__asm {push edx};
 		__asm {push esi};
 		__asm {push edi};
-		PluginsAddSpawn((PSPAWNINFO)pSpawn);
+		SetNameSpriteState(1);
+		PluginsAddSpawn(pSpawn);
 		__asm {pop edi};
 		__asm {pop esi};
 		__asm {pop edx};
@@ -188,6 +189,8 @@ public:
 			SetCaption(gszSpawnNPCName);
 			break;
 		case PC:
+			if (!gPCNames) 
+				return 0;
 			SetCaption(gszSpawnPlayerName[gShowNames]);
 			break;
 		case CORPSE:
@@ -209,13 +212,21 @@ public:
 VOID UpdateSpawnCaptions()
 {
 	DWORD N;
-	for (N = 0 ; N < gMaxSpawnCaptions ; N++)
+	DWORD Count=0;
+	for (N = 0 ; N < 120 ; N++)
 	{
 		if (EQPlayerHook* pSpawn=(EQPlayerHook*)EQP_DistArray[N].VarPtr.Ptr)
 		if (EQP_DistArray[N].Value.Float<=80.0f)
 		{
-			pSpawn->SetNameSpriteState(true);
-			((EQPlayer*)pSpawn)->SetNameSpriteTint();
+			if (pSpawn->SetNameSpriteState(true))
+			{
+				((EQPlayer*)pSpawn)->SetNameSpriteTint();
+				Count++;
+				if (Count>=gMaxSpawnCaptions)
+				{
+					return;
+				}
+			}
 		}
 		else
 		{

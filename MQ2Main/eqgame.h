@@ -75,7 +75,7 @@
 #define __IgnoreList                                       0x714BA4
 #define __NetStatusToggle                                  0x6DC9E4
 #define __ShowNames										   0x6DD978 
-
+#define __PCNames										   0x6DDA28
 ////
 //Section 1: Vital Offsets
 ////

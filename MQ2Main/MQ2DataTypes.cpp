@@ -3203,6 +3203,14 @@ bool MQ2MacroQuestType::GetMember(MQ2VARPTR VarPtr, PCHAR Member, PCHAR Index, M
 		Dest.DWord=(DWORD)clock();
 		Dest.Type=pIntType;
 		return true;
+	case MouseX:
+		Dest.DWord=((PMOUSEINFO)EQADDR_MOUSE)->X;
+		Dest.Type=pIntType;
+		return true;
+	case MouseY:
+		Dest.DWord=((PMOUSEINFO)EQADDR_MOUSE)->Y;
+		Dest.Type=pIntType;
+		return true;
 	}
 	return false;
 }

@@ -114,7 +114,7 @@ VOID HideDoCommand(PSPAWNINFO pChar, PCHAR szLine, BOOL delayed)
 		}
 		if (Pos==0)
 		{
-			if (pCommand->Parse)
+			if (pCommand->Parse && bAllowCommandParse)
 			{
 				pCommand->Function(pChar,ParseMacroParameter(pChar,szParam)); 
 			}
@@ -176,7 +176,7 @@ public:
 				}
 				if (Pos==0)
 				{
-					if (pCommand->Parse)
+					if (pCommand->Parse && bAllowCommandParse)
 						ParseMacroParameter(pChar,szArgs); 
 					if (pCommand->EQ)
 					{
@@ -446,7 +446,7 @@ void InitializeMQ2Commands()
 #endif
 //        {"/press",      Press,1,0},
 //        {"/sendkey",    SendKey,1,0},
-        {"/delay",      Delay,1,0},
+		{"/delay",      Delay,0,0}, // do not parse
         {"/cleanup",    Cleanup,1,0},
         {"/doevents",   DoEvents,1,0},
         {"/goto",       Goto,1,0},

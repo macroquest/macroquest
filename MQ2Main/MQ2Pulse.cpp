@@ -33,6 +33,23 @@ BOOL DoNextCommand()
     if ((!pChar) || (gZoning)/* || (gDelayZoning)*/) return FALSE;
     if (((gFaceAngle != 10000.0f) || (gLookAngle != 10000.0f)) && (TurnNotDone)) return FALSE;
 	 if (IsMouseWaiting()) return FALSE;
+    if (gDelay && gDelayCondition[0])
+	{
+		CHAR szCond[MAX_STRING];
+		strcpy(szCond,gDelayCondition);
+		ParseMacroParameter(GetCharInfo()->pSpawn,szCond);
+		DOUBLE Result;
+		if (!Calculate(szCond,Result))
+		{
+			FatalError("Failed to parse /delay condition '%s', non-numeric encountered",szCond);
+			return false;
+		}
+		if (Result!=0)
+		{
+			DebugSpewNoFile("/delay ending early, conditions met");
+			gDelay=0;
+		}
+	}
 	if (!gDelay && !gMacroPause && (!gMQPauseOnChat || *EQADDR_NOTINCHATMODE) &&
         gMacroBlock && gMacroStack) {
             gMacroStack->Location=gMacroBlock;
