@@ -166,11 +166,11 @@ DECLARE_API ( pspawn )
    KP(pNext); 
    KP(pCharInfo); 
    KP(pPrev);
-   KPf(Unknownf0x198);
-   KPf(Unknownf0x19c);
-   KPf(Unknownf0x1a0);
+   KPf(Unknownf0x1d0);
+   KPf(Unknownf0x1d4);
+   KPf(Unknownf0x1d8);
    KPf(AvatarHeight);
-   KPf(Unknownf0x1a8);
+   KPf(Unknownf0x1e0);
    KP(Type); 
    KP(Face);
    KP(BeardColor);
@@ -196,6 +196,7 @@ DECLARE_API ( pspawn )
    KP(BodyType); 
    KP(HPCurrent); 
    KP(AARank); 
+   KP(GuildStatus);
    KP(Deity); 
    KP(HPMax); 
    KP(GuildID); 
@@ -574,6 +575,7 @@ DECLARE_API ( pactorinfo )
    KP(UnderWater);
    KP(FeetWet);
    KP(LeftWater);
+   KP(Unknown0x0a8[0x20]); 
    KP(SpellETA);
    KP(Animation);
    KP(Mount);
