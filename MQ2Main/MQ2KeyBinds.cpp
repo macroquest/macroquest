@@ -38,7 +38,7 @@ struct MQ2KeyBind
 CIndex<MQ2KeyBind*> BindList(10);
 map<string,unsigned long> BindNameMap;
 
-inline MQ2KeyBind *KeyBindByName(char *Name)
+/*inline/**/ MQ2KeyBind *KeyBindByName(char *Name)
 {
 	string Lwr=Name;
 	MakeLower(Lwr);
@@ -60,6 +60,64 @@ inline void RemoveKeyBindNameMap(char *Name)
 	string Lwr=Name;
 	MakeLower(Lwr);
 	BindNameMap[Lwr]=0;
+}
+
+BOOL MQ2HandleKeyDown(class KeyCombo const &Combo)
+{
+	unsigned long N;
+	bool Ret=false;
+	for ( N = 0 ; N < nEQMappableCommands ; N++)
+	{
+		if (pKeypressHandler->CommandState[N]==0 && (pKeypressHandler->NormalKey[N]==Combo ||		
+			pKeypressHandler->AltKey[N]==Combo))
+		{
+			ExecuteCmd(N,1,0);
+			pKeypressHandler->CommandState[N]=1;
+			Ret=true;
+		}
+	}
+	for ( N = 0 ; N < BindList.Size ; N++)
+	{
+		if (MQ2KeyBind *pBind=BindList[N])
+		{
+			if (pBind->State==0 && (pBind->Normal==Combo || pBind->Alt==Combo))
+			{
+				pBind->Function(pBind->Name,true);
+				pBind->State=1;
+				Ret=true;
+			}
+		}
+	}
+	return Ret;
+}
+
+BOOL MQ2HandleKeyUp(class KeyCombo const &Combo)
+{
+	unsigned long N;
+	bool Ret=false;
+	for ( N = 0 ; N < nEQMappableCommands ; N++)
+	{
+		if (pKeypressHandler->CommandState[N] && (pKeypressHandler->NormalKey[N].Data[3]==Combo.Data[3] ||		
+			pKeypressHandler->AltKey[N].Data[3]==Combo.Data[3]))
+		{
+			ExecuteCmd(N,0,0);
+			pKeypressHandler->CommandState[N]=0;
+			Ret=true;
+		}
+	}
+	for ( N = 0 ; N < BindList.Size ; N++)
+	{
+		if (MQ2KeyBind *pBind=BindList[N])
+		{
+			if (pBind->State==1 && (pBind->Normal.Data[3]==Combo.Data[3] || pBind->Alt.Data[3]==Combo.Data[3]))
+			{
+				pBind->Function(pBind->Name,false);
+				pBind->State=0;
+				Ret=true;
+			}
+		}
+	}
+	return Ret;
 }
 
 class KeypressHandlerHook
@@ -90,61 +148,14 @@ public:
 	{
 		if (!pWndMgr->HandleKeyboardMsg(Combo.Data[3],1))
 			return true;
-		unsigned long N;
-		bool Ret=false;
-		for ( N = 0 ; N < nEQMappableCommands ; N++)
-		{
-			if (pKeypressHandler->CommandState[N]==0 && (pKeypressHandler->NormalKey[N]==Combo ||		
-				pKeypressHandler->AltKey[N]==Combo))
-			{
-				ExecuteCmd(N,1,0);
-				pKeypressHandler->CommandState[N]=1;
-				Ret=true;
-			}
-		}
-		for ( N = 0 ; N < BindList.Size ; N++)
-		{
-			if (MQ2KeyBind *pBind=BindList[N])
-			{
-				if (pBind->State==0 && (pBind->Normal==Combo || pBind->Alt==Combo))
-				{
-					pBind->Function(pBind->Name,true);
-					pBind->State=1;
-					Ret=true;
-				}
-			}
-		}
-		return Ret;
+		return (MQ2HandleKeyDown(Combo)!=0);
 	}
 	bool HandleKeyUp_Hook(class KeyCombo const &Combo)
 	{
 		bool Ret=false;
 		if (!pWndMgr->HandleKeyboardMsg(Combo.Data[3],0))
 			Ret=true;
-		unsigned long N;
-		for ( N = 0 ; N < nEQMappableCommands ; N++)
-		{
-			if (pKeypressHandler->CommandState[N] && (pKeypressHandler->NormalKey[N].Data[3]==Combo.Data[3] ||		
-				pKeypressHandler->AltKey[N].Data[3]==Combo.Data[3]))
-			{
-				ExecuteCmd(N,0,0);
-				pKeypressHandler->CommandState[N]=0;
-				Ret=true;
-			}
-		}
-		for ( N = 0 ; N < BindList.Size ; N++)
-		{
-			if (MQ2KeyBind *pBind=BindList[N])
-			{
-				if (pBind->State==1 && (pBind->Normal.Data[3]==Combo.Data[3] || pBind->Alt.Data[3]==Combo.Data[3]))
-				{
-					pBind->Function(pBind->Name,false);
-					pBind->State=0;
-					Ret=true;
-				}
-			}
-		}
-		return Ret;
+		return (MQ2HandleKeyUp(Combo) || Ret);
 	}
 /*
 	bool AttachAltKeyToEqCommand_Hook(class KeyCombo const &Combo,unsigned int nCommand)

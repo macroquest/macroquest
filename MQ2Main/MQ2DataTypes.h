@@ -1655,7 +1655,7 @@ public:
 
    bool ToString(MQ2VARPTR VarPtr, PCHAR Destination)
    {
-	  strcpy(Destination,szHeadingShort[(INT)(VarPtr.Float/ 22.5f + 0.5f)%16]);
+	  strcpy(Destination,szHeadingNormalShort[(INT)((360.0f-VarPtr.Float)/ 22.5f + 0.5f)%16]);
       return true;
    }
 }; 

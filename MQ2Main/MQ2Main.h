@@ -61,7 +61,7 @@ using namespace std;
 #endif
 
 #define USEMQ2PARMS
-	//#define USEMQ2DATATYPES
+//#define USEMQ2DATATYPES
 
 
 // reroute malloc/free
@@ -280,6 +280,8 @@ EQLIB_API BOOL AddMQ2KeyBind(PCHAR name, fMQExecuteCmd Function);
 EQLIB_API BOOL RemoveMQ2KeyBind(PCHAR name);
 EQLIB_API BOOL GetMQ2KeyBind(PCHAR name, BOOL Alt, KeyCombo &Combo);
 EQLIB_API BOOL DumpBinds(PCHAR Filename);
+EQLIB_API BOOL MQ2HandleKeyDown(class KeyCombo const &Combo);
+EQLIB_API BOOL MQ2HandleKeyUp(class KeyCombo const &Combo);
 
 /* PULSING */
 EQLIB_API VOID InitializeMQ2Pulse();

@@ -471,7 +471,7 @@ bool SendWndClick(PCHAR WindowName, PCHAR ScreenID, PCHAR ClickNotification)
 		sprintf(szOut,"Window '%s' not available.",WindowName);
 		return false;
 	}
-	if (ScreenID && ScreenID[0])
+	if (ScreenID && ScreenID[0] && ScreenID[0]!='0')
 	{
 		CXWnd *pButton=((CSidlScreenWnd*)(pWnd))->GetChildItem(CXStr(ScreenID));
 		if (!pButton)

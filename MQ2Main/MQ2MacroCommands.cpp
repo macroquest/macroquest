@@ -1295,7 +1295,14 @@ VOID ZapVars(PSPAWNINFO pChar, PCHAR szLine)
 // ***************************************************************************
 VOID SendKey(PSPAWNINFO pChar, PCHAR szLine)
 {
-    WORD i;
+	static bool UpdateSendKeyMessageGiven=false;
+ 	if (!UpdateSendKeyMessageGiven)
+	{
+		WriteChatColor("Warning: /sendkey is now obsolete. please use /keypress instead. /sendkey will soon be removed entirely.",CONCOLOR_RED);
+		UpdateSendKeyMessageGiven=true;
+	}
+	
+	WORD i;
     CHAR Arg1[MAX_STRING];
     CHAR Arg2[MAX_STRING];
     GetArg(Arg1,szLine,1);
@@ -1740,6 +1747,8 @@ VOID NewIf(PSPAWNINFO pChar, PCHAR szLine)
     CHAR szCommand[MAX_STRING] = {0};
 
     if (!ParseIfLine(szLine, szCond, szCommand)) {
+	    GracefullyEndBadMacro(((PCHARINFO)pCharData)->pSpawn,gMacroBlock, "Failed to parse /newif command");
+	    WriteChatColor("Usage: /newif <condition> <command>",CONCOLOR_RED);
         FailIfParsing();
         return;
     }
@@ -1747,7 +1756,9 @@ VOID NewIf(PSPAWNINFO pChar, PCHAR szLine)
 	DOUBLE Result=0;
 	if (!Calculate(szCond,Result))
 	{
-//		FailIfParsing();
+		sprintf(szCommand,"Failed to parse /newif condition '%s', non-numeric encountered",szCond);
+		GracefullyEndBadMacro(((PCHARINFO)pCharData)->pSpawn,gMacroBlock, szCommand);
+		return;
 	}
 
 
@@ -2030,6 +2041,14 @@ VOID Press(PSPAWNINFO pChar, PCHAR szLine)
         WriteChatColor("Usage: /press <key>",USERCOLOR_DEFAULT);
         return;
     }
+	static bool UpdatePressMessageGiven=false;
+	if (!UpdatePressMessageGiven)
+	{
+		CHAR szOut[MAX_STRING]={0};
+		sprintf(szOut,"Warning: /press is now obsolete. please use '/keypress %s' instead. /press will soon be removed entirely.",szLine);
+		WriteChatColor(szOut,CONCOLOR_RED);
+		UpdatePressMessageGiven=true;
+	}
     sprintf(szCmd,"d %s",szKey);
     SendKey(pChar,szCmd);
     sprintf(szCmd,"u %s",szKey);

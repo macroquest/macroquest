@@ -337,6 +337,10 @@ VOID DoorTarget(PSPAWNINFO pChar, PCHAR szLine)
             DoorEnviroTarget.X = pDoorTable->pDoor[Count]->X;
             DoorEnviroTarget.Z = pDoorTable->pDoor[Count]->Z;
             DoorEnviroTarget.Heading = pDoorTable->pDoor[Count]->Heading;
+			DoorEnviroTarget.Type = SPAWN_NPC;
+			DoorEnviroTarget.HPCurrent = 1;
+			DoorEnviroTarget.HPMax = 1;
+			DoorEnviroTarget.pActorInfo = &EnviroActor;
             pDoorTarget = pDoorTable->pDoor[Count];
             break;
          }
@@ -2961,6 +2965,8 @@ VOID Look(PSPAWNINFO pChar, PCHAR szLine)
    FLOAT fLookAngle=0.0f;
 
    GetArg(szLookAngle,szLine,1);
+
+
    fLookAngle = (FLOAT)atof(szLookAngle);
 
    if (fLookAngle>128.0f || fLookAngle<-128.0f) {
@@ -2970,7 +2976,7 @@ VOID Look(PSPAWNINFO pChar, PCHAR szLine)
    }
 
    pChar->CameraAngle = fLookAngle;
-
+	gLookAngle = 10000.0f;
 }
 
 
@@ -3250,7 +3256,7 @@ if (!stricmp(szArg1,"item"))
    for (Index=0;Index<8;Index++) {
       if (pCharInfo->MemorizedSpells[Index]!=0xFFFFFFFF) {
          PCHAR SpellName = GetSpellNameByID(pCharInfo->MemorizedSpells[Index]);
-         if (!strnicmp(szBuffer,SpellName,strlen(SpellName))) {
+         if (!stricmp(szBuffer,SpellName)) {
             DebugSpew("SpellName = %s",SpellName);
             cmdCast(pChar,itoa(Index+1,szBuffer,10));
             DebugSpew("pChar = %x SpellName = %s %s",pChar,SpellName,itoa(Index+1,szBuffer,10));
@@ -4477,7 +4483,7 @@ VOID DoMappable(PSPAWNINFO pChar, PCHAR szLine)
 {
 	if (szLine[0]==0)
 	{
-		WriteChatColor("Usage: /keypress <eqcommand> [hold]");
+		WriteChatColor("Usage: /keypress <eqcommand|keycombo> [hold|chat]");
 		return;
 	}
 	CHAR szArg1[MAX_STRING]={0};
@@ -4487,18 +4493,38 @@ VOID DoMappable(PSPAWNINFO pChar, PCHAR szLine)
     GetArg(szArg2,szLine,2);
 	BOOL Hold=(stricmp(szArg2,"hold")==0);
 
-	int N=FindMappableCommand(szArg1);
-	if (N<0 && !PressMQ2KeyBind(szArg1,Hold))
+	if (!PressMQ2KeyBind(szArg1,Hold))
 	{
+		int N=FindMappableCommand(szArg1);
+		if (N>=0)
+		{
+			ExecuteCmd(N,1,0);
+			if (!Hold)
+				ExecuteCmd(N,0,0);
+			return;
+		}
+		KeyCombo Temp;
+		if (ParseKeyCombo(szArg1,Temp))
+		{
+			if (!stricmp(szArg2,"chat"))
+			{
+				pWndMgr->HandleKeyboardMsg(Temp.Data[3],1);
+				pWndMgr->HandleKeyboardMsg(Temp.Data[3],0);
+			}
+			else
+			{
+				MQ2HandleKeyDown(Temp);
+				if (!Hold)
+					MQ2HandleKeyUp(Temp);
+			}
+			return;
+		}
+
 		CHAR szOut[MAX_STRING]={0};
-		sprintf(szOut,"Invalid mappable command '%s'",szArg1);
+		sprintf(szOut,"Invalid mappable command or key combo '%s'",szArg1);
 		WriteChatColor(szOut);
 		return;
 	}
-
-	ExecuteCmd(N,1,0);
-	if (!Hold)
-		ExecuteCmd(N,0,0);
 }
 
 // /popup

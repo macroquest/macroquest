@@ -593,9 +593,9 @@ union{
 /*0x988c*/  DWORD       Unknown0x984c; 
 /*0x9890*/  DWORD       CurrFavor; // NOTE: 64-bit # -> 9890
 /*0x9894*/  BYTE        Unknown0x9854[0x16c];  
-/*0x9a00*/  DWORD       GroupLeadershipExp;      // 0-499 or 0x000-0x1FF? need confirmation // 99f8
-/*0x9a04*/  DWORD       RaidLeadershipExp;       // 0-999/0x3FF for display, 0-1999/0x7FF for actual value?  // -> 99fc
-/*0x9a08*/  DWORD       GroupLeadershipPoints;   // 0-8  // -> 9a00
+/*0x9a00*/  DWORD       GroupLeadershipExp;      // 0-499 or 0x000-0x1FF? need confirmation
+/*0x9a04*/  DWORD       RaidLeadershipExp;       // 0-999/0x3FF for display, 0-1999/0x7FF for actual value?  
+/*0x9a08*/  DWORD       GroupLeadershipPoints;   // 0-8  // 
 /*0x9a0c*/  DWORD       RaidLeadershipPoints;    // 0-10
 /*0x9a10*/	BYTE		Unknown0x9980[0x140];
 /*0x9b50*/	struct		_CONTENTS* Bank[NUM_BANK_SLOTS]; // -> 9B50
@@ -1018,13 +1018,13 @@ typedef struct _ZONEINFO {
 /*0x240*/
 } ZONEINFO, *PZONEINFO;
 
-#define   TOTAL_SPELL_COUNT         0x11E0       // # of spells in game
+#define   TOTAL_SPELL_COUNT         0x157C       // # of spells in game
 // note: fuck using TOTAL_SPELL_COUNT in the struct, but keep it for users to use
 // because they cant figure out how to use pSpellMgr->InvalidSpell
 typedef struct _SPELLMGR {
             BYTE                unknown[0x24];
-            struct  _SPELL*     Spells[0x1388];
-            struct  _SPELL*     Spells2[0x1388];
+            struct  _SPELL*     Spells[TOTAL_SPELL_COUNT];
+            struct  _SPELL*     Spells2[TOTAL_SPELL_COUNT];
 			struct _SPELL*		InvalidSpell;
 } SPELLMGR, *PSPELLMGR;
 

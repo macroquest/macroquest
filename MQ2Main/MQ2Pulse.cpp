@@ -175,6 +175,7 @@ void Pulse()
             if (abs((INT)(pChar->CameraAngle - gLookAngle)) < 5.0f) {
                 pChar->CameraAngle = (FLOAT)gLookAngle;
                 gLookAngle = 10000.0f;
+				TurnNotDone = FALSE;
             } else {
                 TurnNotDone = TRUE;
                 FLOAT c1 = pChar->CameraAngle;

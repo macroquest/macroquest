@@ -273,8 +273,8 @@ BOOL dataHeading(PCHAR szIndex, MQ2TYPEVAR &Ret)
 		return true;
 	}
 
-	Ret.Float=360.0f-(FLOAT)atof(szIndex);
-	Ret.Type=pFloatType;
+	Ret.Float=(FLOAT)atof(szIndex);
+	Ret.Type=pHeadingType;
 	return true;
 }
 
@@ -508,7 +508,7 @@ BOOL dataIni(PCHAR szIndex, MQ2TYPEVAR &Ret)
 	else
 		return false;
 	CHAR FileName[MAX_STRING]={0};
-	if (!strchr(pIniFile,'\\') && !strchr(pIniFile,'/'))
+//	if (!strchr(pIniFile,'\\') && !strchr(pIniFile,'/'))// always insert macro path, screw whoever's using the absolute path.
 		sprintf(FileName,"%s\\%s",gszMacroPath,pIniFile);
 	if (!strchr(pIniFile,'.'))
 		strcat(FileName,".ini");

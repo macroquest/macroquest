@@ -1,3 +1,22 @@
+15 Apr 2004 by Lax:
+- Fixed /destroy crash
+- Fixed "random" crash on zoning with MQ2Map loaded, due to a bug in the recently revised ConColor
+- Fixed /cast issue casting "Bane" instead of "Bane of Nife" etc
+- Fixed spell manager structure
+- Fixed /doortarget id #, which would invariably crash
+- Fixed and changed /keypress so that it also accepts key combinations, and will not crash no matter how hard you try.
+  /keypress with key combinations will have the same effect as /keypress using the command name, it will not
+  type the key into the chat window.  If you need to type into a window specifically (chat windows, social edit, etc)
+  /keypress <key> chat
+  example: /keypress e chat
+  Note that you cannot use both hold and chat, and chat is only valid for the key not a command name.
+  ** /sendkey and /press will give a warning the first time per session they are used that they are
+     now completely obsolete and you should switch to /keypress.  they will be removed soon.
+- Fixed and tested "heading" type's "To String"
+- /newif will no longer quietly execute the "false" branch when it fails to parse the conditions.  The conditions
+  after parsing MQ2Data/MQ2Parm will be displayed in an error message, and the macro will end.
+- Other minor issues fixed
+
 14 Apr 2004 by Lax:
 - Fixed MQ2KeyBinds
 - Fixed MQ2ChatWnd.ini

@@ -2430,7 +2430,7 @@ bool MQ2CorpseType::GetMember(MQ2VARPTR VarPtr, PCHAR Member, PCHAR Index, MQ2TY
 			if (Index[0]>='0' && Index[0]<='9')
 			{
 				unsigned long nIndex=atoi(Index)-1;
-				if (nIndex<80)
+				if (nIndex<31)
 				{
 					if (Dest.Ptr=pLoot->ItemDesc[nIndex])
 					{

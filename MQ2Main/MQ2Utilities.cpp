@@ -909,6 +909,8 @@ FLOAT EstimatedDistanceToSpawn(PSPAWNINFO pChar, PSPAWNINFO pSpawn)
 DWORD ConColor(PSPAWNINFO pSpawn)
 {
 	PSPAWNINFO pChar=(PSPAWNINFO)pLocalPlayer;
+	if (!pChar)
+		return CONCOLOR_BLACK; // its you
       int Diff = pSpawn->Level-pChar->Level;
    if (PVPServer!=PVP_NONE && pSpawn->Type==SPAWN_PLAYER)
    {
