@@ -20,6 +20,10 @@ PEQCHATWINDOW MQChatWnd=0;
 #define DebugTry(x) x
 #endif
 
+
+PLUGIN_API VOID OnCleanUI(VOID);
+PLUGIN_API VOID SetGameState(DWORD GameState);
+
 BOOL APIENTRY DllMain( HANDLE hModule, 
                        DWORD  ul_reason_for_call, 
                        LPVOID lpReserved
@@ -101,8 +105,6 @@ PLUGIN_API VOID InitializePlugin(VOID)
 	// Add commands, macro parameters, hooks, etc.
 }
 
-PLUGIN_API VOID OnCleanUI(VOID);
-
 PLUGIN_API VOID ShutdownPlugin(VOID)
 {
 	DebugSpewAlways("Shutting down MQ2ChatWnd");
@@ -120,7 +122,14 @@ PLUGIN_API DWORD OnWriteChatColor(PCHAR Line, DWORD Color, DWORD Filter)
 {
 	DebugSpewAlways("MQ2ChatWnd::OnWriteChatColor(%s)",Line);
 	if (!MQChatWnd)
-		return 0; // no need to check gamestate, we have it hooked
+	{
+		if (gGameState==GAMESTATE_INGAME)
+		{
+			SetGameState(gGameState);
+		}
+		if (!MQChatWnd)
+			return 0; 
+	}
 
 	PFILTER pFilter = gpFilters; 
 
@@ -161,6 +170,7 @@ PLUGIN_API VOID OnCleanUI(VOID)
 			call [destructor]; 
 			pop ecx; 
 		}; 
+		MQChatWnd=0;
 	}
 }
 
