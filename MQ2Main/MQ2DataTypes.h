@@ -39,6 +39,7 @@ EQLIB_VAR class MQ2CorpseType *pCorpseType;
 EQLIB_VAR class MQ2WindowType *pWindowType;
 EQLIB_VAR class MQ2MerchantType *pMerchantType;
 EQLIB_VAR class MQ2ZoneType *pZoneType;
+EQLIB_VAR class MQ2CurrentZoneType *pCurrentZoneType;
 EQLIB_VAR class MQ2ItemType *pItemType;
 EQLIB_VAR class MQ2DeityType *pDeityType;
 EQLIB_VAR class MQ2ArgbType *pArgbType;
@@ -1173,10 +1174,40 @@ public:
 	}
 };
 
+
 class MQ2ZoneType : public MQ2Type
 {
 public:
-	static enum ZoneMembers
+   static enum ZoneMembers
+   {
+      Name=1,
+      ShortName=2,
+      ID=3,
+   };
+   MQ2ZoneType():MQ2Type("zone")
+   {
+      TypeMember(Name);
+      TypeMember(ShortName);//2,
+      TypeMember(ID);//3,
+   }
+
+   ~MQ2ZoneType()
+   {
+   }
+
+   bool GetMember(MQ2VARPTR VarPtr, PCHAR Member, PCHAR Index, MQ2TYPEVAR &Dest);
+
+    bool ToString(MQ2VARPTR VarPtr, PCHAR Destination)
+   {
+      strcpy(Destination,&((PZONELIST)VarPtr.Int)->LongName[0]);
+      return true;
+   }
+}; 
+
+class MQ2CurrentZoneType : public MQ2Type
+{
+public:
+	static enum CurrentZoneMembers
 	{
 		Name=1,
 		ShortName=2,
@@ -1188,8 +1219,9 @@ public:
 		SafeZ=8,
 		MinClip=9,
 		MaxClip=10,
+		ID=11,
 	};
-	MQ2ZoneType():MQ2Type("zone")
+	MQ2CurrentZoneType():MQ2Type("currentzone")
 	{
 		TypeMember(Name);
 		TypeMember(ShortName);//2,
@@ -1203,7 +1235,7 @@ public:
 		TypeMember(MaxClip);//10,
 	}
 
-	~MQ2ZoneType()
+	~MQ2CurrentZoneType()
 	{
 	}
 
@@ -1408,6 +1440,60 @@ public:
 		PCHAR pDesc=pEverQuest->GetDeityDesc(VarPtr.DWord);
 		strcpy(Destination,pDesc);
 		return true;
+	}
+};
+
+class MQ2TimeType : public MQ2Type
+{
+public:
+	static enum TimeMembers
+	{
+		Hour=1,
+		Minute=2,
+		Second=3,
+		DayOfWeek=4,
+		Day=5,
+		Month=6,
+		Year=7,
+		Time12=8,
+		Time24=9,
+		Date=10,
+		GameHour=11,
+		GameMinute=12,
+		GameNight=13,
+		GameMonth=14,
+		GameDay=15,
+		GameYear=16,
+	};
+	MQ2TimeType():MQ2Type("time")
+	{
+		TypeMember(Hour);
+		TypeMember(Minute);
+		TypeMember(Second);
+		TypeMember(DayOfWeek);
+		TypeMember(Day);
+		TypeMember(Month);
+		TypeMember(Year);
+		TypeMember(Time12);
+		TypeMember(Time24);
+		TypeMember(Date);
+		TypeMember(GameHour);
+		TypeMember(GameMinute);
+		TypeMember(GameNight);
+		TypeMember(GameMonth);
+		TypeMember(GameDay);
+		TypeMember(GameYear);
+	}
+
+	~MQ2TimeType()
+	{
+	}
+
+	bool GetMember(MQ2VARPTR VarPtr, PCHAR Member, PCHAR Index, MQ2TYPEVAR &Dest);
+
+	 bool ToString(MQ2VARPTR VarPtr, PCHAR Destination)
+	{
+		return false;
 	}
 };
 

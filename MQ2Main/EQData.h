@@ -960,8 +960,7 @@ typedef struct _GROUNDITEM {
 } GROUNDITEM, *PGROUNDITEM;
 
 // 5-15-2003    Amadeus
-#define   ZONELIST_STARTOFFSET						0x1c
-#define   MAX_ZONES                                 0x129   
+#define   MAX_ZONES                                    0x129   
 extern    PCHAR szZoneExpansionName[];     //defined in LibEQ_Utilities.cpp
 typedef struct _ZONELIST {
 /*0x000*/   DWORD   Header;
@@ -970,14 +969,25 @@ typedef struct _ZONELIST {
 /*0x00a*/   WORD    Instance;
 /*0x00c*/   CHAR    ShortName[0x81];
 /*0x08d*/   CHAR    LongName[0x103];
-/*0x190*/   DWORD   Flags;             
+/*0x190*/   DWORD   Flags;              // (Flags & 0x100000) = HasMinLevel
 /*0x194*/   DWORD   Id2;                // This is Id+2242
 /*0x198*/   DWORD   PoPValue;           // This has something to do with PoP zones.
 /*0x19c*/   DWORD   MinLevel;           // Minimum level to access
 /*0x1a0*/   WORD    Unknown0x1a0;         
 /*0x1a2*/   BYTE    Unknown0x1a2[0x6];   
 /*0x1a8     Next Zone in list */
-} ZONELIST, *PZONELIST; 
+} ZONELIST, *PZONELIST;
+
+typedef struct _WORLDDATA {
+/*0x000*/ PVOID lpvTable;
+/*0x004*/ BYTE Hour;
+/*0x005*/ BYTE Minute;
+/*0x006*/ BYTE Day;
+/*0x007*/ BYTE Month;
+/*0x008*/ DWORD Year;
+/*0x00C*/ BYTE Unknown0x00c[0x10];
+/*0x01C*/ PZONELIST ZoneArray[MAX_ZONES];
+} WORLDDATA, *PWORLDDATA;
 
 // 5-15-2003    Amadeus (discovered by Lax)
 // Actual Size 0x240, old

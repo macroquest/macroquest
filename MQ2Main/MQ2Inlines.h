@@ -107,3 +107,37 @@ static inline FLOAT GetDistance(PSPAWNINFO pChar, PSPAWNINFO pSpawn)
 #define DistanceToSpawn(pChar,pSpawn) GetDistance(pChar,pSpawn)
 
 #define _FileExists(filename) ( (_access( filename, 0 )) != -1 )
+
+// ***************************************************************************
+// FindMount(PSPAWNINFO) - Used to find the mount of a spawn, if one
+//                         exists. returns the spawn if one does not.
+// ***************************************************************************
+static inline PSPAWNINFO FindMount(PSPAWNINFO pSpawn)
+{
+   if (!pSpawn->pActorInfo || !pSpawn->pActorInfo->Mount) return pSpawn;
+   return pSpawn->pActorInfo->Mount; 
+}
+
+
+// ***************************************************************************
+// Function:    ConColorToRGB
+// Description: Returns the RGB color for a con color
+// ***************************************************************************
+static inline DWORD ConColorToARGB(DWORD ConColor)
+{
+    switch (ConColor) {
+        case CONCOLOR_GREEN:
+            return 0xFF00FF00;
+        case CONCOLOR_LIGHTBLUE:
+            return 0xFF00FFFF;
+        case CONCOLOR_BLUE:
+            return 0xFF0000FF;
+        case CONCOLOR_BLACK:
+            return 0xFFFFFFFF;
+        case CONCOLOR_YELLOW:
+            return 0xFFFFFF00;
+        case CONCOLOR_RED:
+        default:
+            return 0xFFFF0000;
+    }
+}

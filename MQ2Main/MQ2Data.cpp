@@ -183,9 +183,28 @@ BOOL dataMath(PCHAR szIndex, MQ2TYPEVAR &Ret)
 
 BOOL dataZone(PCHAR szIndex, MQ2TYPEVAR &Ret)
 {
-	Ret.DWord=instEQZoneInfo;
-	Ret.Type=pZoneType;
-	return true;
+   int nIndex=0;
+   PZONELIST pZone = NULL;
+
+   if (szIndex[0]==0) 
+   {
+      Ret.DWord = instEQZoneInfo;
+      Ret.Type=pCurrentZoneType;
+      return true;
+   } 
+   else if (0<(nIndex = atoi(szIndex)) || szIndex[0]=='0') 
+   {
+      Ret.Ptr = ((PWORLDDATA)pWorldData)->ZoneArray[nIndex];
+      Ret.Type=pZoneType;
+      return true;
+   } 
+   else if (-1 != (nIndex=GetZoneID(szIndex))) 
+   {
+      Ret.Ptr = ((PWORLDDATA)pWorldData)->ZoneArray[nIndex];
+      Ret.Type=pZoneType;
+      return true;
+   }   
+   return false; 
 }
 
 BOOL dataInt(PCHAR szIndex, MQ2TYPEVAR &Ret)

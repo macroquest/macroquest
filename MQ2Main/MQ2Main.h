@@ -325,13 +325,11 @@ EQLIB_API PMACROBLOCK AddMacroLine(PCHAR szLine);
 EQLIB_API PCHAR GetLightForSpawn(PSPAWNINFO pSpawn);
 EQLIB_API DWORD GetSpellDuration(PSPELL pSpell, PSPAWNINFO pSpawn);
 EQLIB_API DWORD GetDeityTeamByID(DWORD DeityID);
-EQLIB_API DWORD ConColorToARGB(DWORD ConColor);
-EQLIB_API DWORD ConColor(DWORD CharLevel, DWORD SpawnLevel, BYTE SpawnType);
+EQLIB_API DWORD ConColor(PSPAWNINFO pSpawn);
 EQLIB_API PCHAR GetGuildByID(DWORD GuildID);
 EQLIB_API DWORD GetGuildIDByName(PCHAR szGuild);
 EQLIB_API PCONTENTS GetEnviroContainer();
 EQLIB_API PEQCONTAINERWINDOW FindContainerForContents(PCONTENTS pContents);
-EQLIB_API PSPAWNINFO FindMount(PSPAWNINFO pSpawn);
 EQLIB_API FLOAT FindSpeed(PSPAWNINFO pSpawn);
 EQLIB_API VOID GetItemLinkHash(PCONTENTS Item, PCHAR Buffer);
 EQLIB_API VOID GetItemLink(PCONTENTS Item, PCHAR Buffer);
@@ -341,7 +339,8 @@ EQLIB_API FLOAT DistanceToPoint(PSPAWNINFO pSpawn, FLOAT xLoc, FLOAT yLoc);
 EQLIB_API PCHAR ShowSpellSlotInfo(PSPELL pSpell, PCHAR szBuffer);
 EQLIB_API VOID SlotValueCalculate(PCHAR szBuff, PSPELL pSpell, int i, double mp);
 EQLIB_API PCHAR GetSpellEffectName(DWORD EffectID, PCHAR szBuffer);
-
+EQLIB_API VOID GetGameDate(int* Month, int* Day, int* Year);
+EQLIB_API VOID GetGameTime(int* Hour, int* Minute, int* Night);
 
 /* USERVARS */
 EQLIB_API VOID FreeVarStrings(PVARSTRINGS pVarStrings);

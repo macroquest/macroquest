@@ -2391,7 +2391,7 @@ VOID SuperWhoDisplay(PSPAWNINFO pChar, PSEARCHSPAWN pFilter, PSPAWNINFO psTarget
 		szMsg[2]=0;
 		if (Color || gFilterSWho.ConColor)
 		{
-			switch(ConColor(pChar->Level,pSpawn->Level,pSpawn->Type))
+			switch(ConColor(pSpawn))
 			{
 			case CONCOLOR_BLACK:
 				//strcpy(szMsg,"\aw-");

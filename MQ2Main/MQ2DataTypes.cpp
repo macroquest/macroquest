@@ -44,6 +44,7 @@ class MQ2MathType *pMathType=0;
 class MQ2WindowType *pWindowType=0;
 class MQ2MerchantType *pMerchantType=0;
 class MQ2ZoneType *pZoneType=0;
+class MQ2CurrentZoneType *pCurrentZoneType=0;
 class MQ2ItemType *pItemType=0;
 class MQ2DeityType *pDeityType=0;
 class MQ2ArgbType *pArgbType=0;
@@ -77,6 +78,7 @@ void InitializeMQ2DataTypes()
 	pDeityType = new MQ2DeityType;
 	pArgbType = new MQ2ArgbType;
 	pCorpseType = new MQ2CorpseType;
+	pCurrentZoneType = new MQ2CurrentZoneType;
 }
 
 void ShutdownMQ2DataTypes()
@@ -106,6 +108,7 @@ void ShutdownMQ2DataTypes()
 	delete pDeityType;
 	delete pArgbType;
 	delete pCorpseType;
+	delete pCurrentZoneType;
 }
 
 bool MQ2FloatType::GetMember(MQ2VARPTR VarPtr, PCHAR Member, PCHAR Index, MQ2TYPEVAR &Dest)
@@ -222,11 +225,11 @@ bool MQ2SpawnType::GetMember(MQ2VARPTR VarPtr, PCHAR Member, PCHAR Index, MQ2TYP
 		return true;
 	case X:
 		Dest.Type=pFloatType;
-		Dest.Float=pSpawn->X;
+		Dest.Float=pSpawn->Y; // in-game ordering
 		return true;
 	case Y:
 		Dest.Type=pFloatType;
-		Dest.Float=pSpawn->Y;
+		Dest.Float=pSpawn->X; // in-game ordering
 		return true;
 	case Z:
 		Dest.Type=pFloatType;
@@ -410,11 +413,11 @@ bool MQ2SpawnType::GetMember(MQ2VARPTR VarPtr, PCHAR Member, PCHAR Index, MQ2TYP
 		Dest.Type=pFloatType;
 		return true;
 	case DistanceX:
-		Dest.Float=(FLOAT)fabs(((PSPAWNINFO)pCharSpawn)->X-pSpawn->X);
+		Dest.Float=(FLOAT)fabs(((PSPAWNINFO)pCharSpawn)->Y-pSpawn->Y); // in-game ordering
 		Dest.Type=pFloatType;
 		return true;
 	case DistanceY:
-		Dest.Float=(FLOAT)fabs(((PSPAWNINFO)pCharSpawn)->Y-pSpawn->Y);
+		Dest.Float=(FLOAT)fabs(((PSPAWNINFO)pCharSpawn)->X-pSpawn->X); // in-game ordering
 		Dest.Type=pFloatType;
 		return true;
 	case DistanceZ:
@@ -868,9 +871,9 @@ bool MQ2CharacterType::GetMember(MQ2VARPTR VarPtr, PCHAR Member, PCHAR Index, MQ
 		Dest.Type=pIntType;
 		return true;
 	case Bound:
-		Dest.Ptr=GetFullZone(pChar->ZoneBoundId);
-		Dest.Type=pStringType;
-		return true;
+		Dest.Ptr = ((PWORLDDATA)pWorldData)->ZoneArray[pChar->ZoneBoundId];
+		Dest.Type=pZoneType;
+		return true; 
 	case Combat:
 		Dest.DWord=*EQADDR_ATTACK;
 		Dest.Type=pBoolType;
@@ -1384,8 +1387,8 @@ bool MQ2MathType::GetMember(MQ2VARPTR VarPtr, PCHAR Member, PCHAR Index, MQ2TYPE
 		{
 			FLOAT P1[3];
 			FLOAT P2[3];
-			P1[0]=P2[0]=((PSPAWNINFO)pCharSpawn)->X;
-			P1[1]=P2[1]=((PSPAWNINFO)pCharSpawn)->Y;
+			P1[0]=P2[0]=((PSPAWNINFO)pCharSpawn)->Y;// swapped X/Y on purpose! in-game ordering.
+			P1[1]=P2[1]=((PSPAWNINFO)pCharSpawn)->X;
 			P1[2]=P2[2]=((PSPAWNINFO)pCharSpawn)->Z;
 			if (PCHAR pColon=strchr(Index,':'))
 			{
@@ -1565,7 +1568,7 @@ bool MQ2WindowType::GetMember(MQ2VARPTR VarPtr, PCHAR Member, PCHAR Index, MQ2TY
 	return false;
 #undef pWnd
 }
-bool MQ2ZoneType::GetMember(MQ2VARPTR VarPtr, PCHAR Member, PCHAR Index, MQ2TYPEVAR &Dest)
+bool MQ2CurrentZoneType::GetMember(MQ2VARPTR VarPtr, PCHAR Member, PCHAR Index, MQ2TYPEVAR &Dest)
 {
 #define pZone ((PZONEINFO)pZoneInfo)
 	unsigned long N=MemberMap[Member];
@@ -1575,8 +1578,13 @@ bool MQ2ZoneType::GetMember(MQ2VARPTR VarPtr, PCHAR Member, PCHAR Index, MQ2TYPE
 	PMQ2TYPEMEMBER pMember=Members[N];
 	if (!pMember)
 		return false;
-	switch((ZoneMembers)pMember->ID)
+//		return pZoneType->GetMember(*(MQ2VARPTR*)&((PWORLDDATA)pWorldData)->ZoneArray[GetCharInfo()->zoneId],Member,Index,Dest);
+	switch((CurrentZoneMembers)pMember->ID)
 	{
+   case ID:
+		Dest.Int = GetCharInfo()->zoneId;
+		Dest.Type=pIntType;
+		return true; 
 	case Name:
 		Dest.Ptr=&pZone->LongName[0];
 		Dest.Type=pStringType;
@@ -1598,11 +1606,11 @@ bool MQ2ZoneType::GetMember(MQ2VARPTR VarPtr, PCHAR Member, PCHAR Index, MQ2TYPE
 		Dest.Type=pIntType;
 		return true;
 	case SafeY:
-		Dest.Float=pZone->SafeYLoc;
+		Dest.Float=pZone->SafeXLoc; // in-game ordering
 		Dest.Type=pFloatType;
 		return true;
 	case SafeX:
-		Dest.Float=pZone->SafeXLoc;
+		Dest.Float=pZone->SafeYLoc; // in-game ordering
 		Dest.Type=pFloatType;
 		return true;
 	case SafeZ:
@@ -1621,6 +1629,36 @@ bool MQ2ZoneType::GetMember(MQ2VARPTR VarPtr, PCHAR Member, PCHAR Index, MQ2TYPE
 	return false;
 #undef pZone
 }
+
+bool MQ2ZoneType::GetMember(MQ2VARPTR VarPtr, PCHAR Member, PCHAR Index, MQ2TYPEVAR &Dest)
+{
+   unsigned long N=MemberMap[Member];
+#define pZone ((PZONELIST)VarPtr.Ptr)
+   if (!N)
+      return false;
+   N--;
+   PMQ2TYPEMEMBER pMember=Members[N];
+   if (!pMember)
+      return false;
+   switch((ZoneMembers)pMember->ID)
+   {
+   case Name:
+      Dest.Ptr=&pZone->LongName[0];
+      Dest.Type=pStringType;
+      return true;
+   case ShortName:
+      Dest.Ptr=&pZone->ShortName[0];
+      Dest.Type=pStringType;
+      return true;
+   case ID:
+      Dest.Int=pZone->Id;
+      Dest.Type=pIntType;
+      return true;
+   }
+      return false;
+#undef pZone
+} 
+
 bool MQ2BodyType::GetMember(MQ2VARPTR VarPtr, PCHAR Member, PCHAR Index, MQ2TYPEVAR &Dest)
 {
 	unsigned long N=MemberMap[Member];
@@ -1736,11 +1774,11 @@ bool MQ2SwitchType::GetMember(MQ2VARPTR VarPtr, PCHAR Member, PCHAR Index, MQ2TY
 		Dest.Type=pIntType;
 		return true;
 	case X:
-		Dest.Float=pSwitch->X;
+		Dest.Float=pSwitch->Y; // In-game ordering
 		Dest.Type=pFloatType;
 		return true;
 	case Y:
-		Dest.Float=pSwitch->Y;
+		Dest.Float=pSwitch->X; // In-game ordering
 		Dest.Type=pFloatType;
 		return true;
 	case Z:
@@ -1748,11 +1786,11 @@ bool MQ2SwitchType::GetMember(MQ2VARPTR VarPtr, PCHAR Member, PCHAR Index, MQ2TY
 		Dest.Type=pFloatType;
 		return true;
 	case DefaultX:
-		Dest.Float=pSwitch->DefaultX;
+		Dest.Float=pSwitch->DefaultY; // In-game ordering
 		Dest.Type=pFloatType;
 		return true;
 	case DefaultY:
-		Dest.Float=pSwitch->DefaultY;
+		Dest.Float=pSwitch->DefaultX; // In-game ordering
 		Dest.Type=pFloatType;
 		return true;
 	case DefaultZ:
@@ -1811,11 +1849,11 @@ bool MQ2GroundType::GetMember(MQ2VARPTR VarPtr, PCHAR Member, PCHAR Index, MQ2TY
 		Dest.Type=pIntType;
 		return true;
 	case X:
-		Dest.Float=pGround->X;
+		Dest.Float=pGround->Y; // In-game ordering
 		Dest.Type=pFloatType;
 		return true;
 	case Y:
-		Dest.Float=pGround->Y;
+		Dest.Float=pGround->X; // In-game ordering
 		Dest.Type=pFloatType;
 		return true;
 	case Z:
@@ -1885,9 +1923,9 @@ bool MQ2MacroQuestType::GetMember(MQ2VARPTR VarPtr, PCHAR Member, PCHAR Index, M
 	switch((MacroQuestMembers)pMember->ID)
 	{
 	case GameState:
-		if (GameState==GAMESTATE_CHARSELECT)
+		if (gGameState==GAMESTATE_CHARSELECT)
 			Dest.Ptr="CHARSELECT";
-		else if (GameState==GAMESTATE_INGAME)
+		else if (gGameState==GAMESTATE_INGAME)
 			Dest.Ptr="INGAME";
 		else
 			Dest.Ptr="UNKNOWN";
@@ -1928,3 +1966,7 @@ bool MQ2MerchantType::GetMember(MQ2VARPTR VarPtr, PCHAR Member, PCHAR Index, MQ2
 	return false;
 }
 
+bool MQ2TimeType::GetMember(MQ2VARPTR VarPtr, PCHAR Member, PCHAR Index, MQ2TYPEVAR &Dest)
+{
+	return false;
+}

@@ -706,11 +706,11 @@ inline DWORD GetSpawnColor(eSpawnType Type, PSPAWNINFO pSpawn)
 	{
 	case PC:
 		if (IsOptionEnabled(MAPFILTER_PCConColor))
-			return ConColorToARGB(ConColor(pChar->Level,pSpawn->Level,pSpawn->Type));
+			return ConColorToARGB(ConColor(pSpawn));
 		return MapFilterOptions[MAPFILTER_PC].Color;
 	case NPC:
 		if (IsOptionEnabled(MAPFILTER_NPCConColor))
-			return ConColorToARGB(ConColor(pChar->Level,pSpawn->Level,pSpawn->Type));
+			return ConColorToARGB(ConColor(pSpawn));
 		return MapFilterOptions[MAPFILTER_NPC].Color;
 	case CORPSE:
 		return MapFilterOptions[MAPFILTER_Corpse].Color;

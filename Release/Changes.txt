@@ -1,3 +1,15 @@
+7 Apr 2004 by Lax
+(im going to fill this in later, too tired right now)
+- Changes to MQ2Data system:
+  Zone
+  Zone[id]
+  Zone[name]
+  character.Bound
+  Time
+- ConColor changed to take 1 parameter
+- FindMount tweaked/inlined
+
+
 31 Mar 2004 by Lax (more)
 - Fixed character member PctExp
 - Added character members:

@@ -673,11 +673,10 @@ PCHAR ConvertHotkeyNameToKeyName(PCHAR szName)
 // ***************************************************************************
 PCHAR GetFullZone(DWORD ZoneID)
 {
-    PZONELIST *pZone = NULL;
     if (!ppWorldData | !pWorldData) return NULL;
-    pZone = (PZONELIST*) (pWorldData + ZONELIST_STARTOFFSET);
+    PZONELIST pZone = ((PWORLDDATA)pWorldData)->ZoneArray[ZoneID];
 
-    return (*pZone[ZoneID]).LongName;
+    return pZone->LongName;
 }
 // ***************************************************************************
 // Function:    GetShortZone
@@ -685,11 +684,10 @@ PCHAR GetFullZone(DWORD ZoneID)
 // ***************************************************************************
 PCHAR GetShortZone(DWORD ZoneID)
 {
-    PZONELIST *pZone = NULL;
     if (!ppWorldData | !pWorldData) return NULL;
-    pZone = (PZONELIST*) (pWorldData + ZONELIST_STARTOFFSET);
+    PZONELIST pZone = ((PWORLDDATA)pWorldData)->ZoneArray[ZoneID];
 
-    return (*pZone[ZoneID]).ShortName;
+    return pZone->ShortName; 
 }
 // ***************************************************************************
 // Function:    GetZoneID
@@ -698,16 +696,44 @@ PCHAR GetShortZone(DWORD ZoneID)
 
 DWORD GetZoneID(PCHAR ZoneShortName)
 {
-    PZONELIST *pZone = NULL;
-    if (!ppWorldData | !pWorldData) return NULL;
-    pZone = (PZONELIST*) (pWorldData + ZONELIST_STARTOFFSET);
+    PZONELIST pZone = NULL;
+    if (!ppWorldData | !pWorldData) return -1;
     for (int nIndex=0; nIndex < MAX_ZONES+1; nIndex++) {
-        if(pZone[nIndex])
-            if (!_stricmp((*pZone[nIndex]).ShortName,ZoneShortName)) {
+      pZone = ((PWORLDDATA)pWorldData)->ZoneArray[nIndex];
+        if(pZone )
+            if (!_stricmp(pZone->ShortName,ZoneShortName)) {
                 return nIndex;
             }
     }
-    return NULL;
+    return -1; 
+}
+
+// ***************************************************************************
+// Function:    GetGameTime
+// Description: Returns Current Game Time
+// ***************************************************************************
+VOID GetGameTime(int* Hour, int* Minute, int* Night)
+{
+   int eqHour = 0;
+   int eqMinute = 0;
+   if (!ppWorldData | !pWorldData) return;
+   eqHour=((PWORLDDATA)pWorldData)->Hour - 1; // Midnight = 1 in EQ time
+   eqMinute=((PWORLDDATA)pWorldData)->Minute;
+   if (Hour) *Hour = eqHour;
+   if (Minute) *Minute = eqMinute;
+   if (Night) *Night = (eqHour < 7 || eqHour > 18)?TRUE:FALSE;
+}
+
+// ***************************************************************************
+// Function:    GetGameDate
+// Description: Returns Current Game Time
+// ***************************************************************************
+VOID GetGameDate(int* Month, int* Day, int* Year)
+{
+   if (!ppWorldData | !pWorldData) return;
+   if (Month) *Month=((PWORLDDATA)pWorldData)->Month;
+   if (Day) *Day=((PWORLDDATA)pWorldData)->Day;
+   if (Year) *Year=((PWORLDDATA)pWorldData)->Year;
 }
 
 
@@ -873,76 +899,59 @@ FLOAT EstimatedDistanceToSpawn(PSPAWNINFO pChar, PSPAWNINFO pSpawn)
 
 
 
-// ***************************************************************************
-// Function:    ConColorToRGB
-// Description: Returns the RGB color for a con color
-// ***************************************************************************
-DWORD ConColorToARGB(DWORD ConColor)
-{
-    switch (ConColor) {
-        case CONCOLOR_GREEN:
-            return 0xFF00FF00;
-        case CONCOLOR_LIGHTBLUE:
-            return 0xFF00FFFF;
-        case CONCOLOR_BLUE:
-            return 0xFF0000FF;
-        case CONCOLOR_BLACK:
-            return 0xFFFFFFFF;
-        case CONCOLOR_YELLOW:
-            return 0xFFFFFF00;
-        case CONCOLOR_RED:
-        default:
-            return 0xFFFF0000;
-    }
-}
+
 
 
 // ***************************************************************************
 // Function:    ConColor
 // Description: Returns the con color for a spawn's level
 // ***************************************************************************
-DWORD ConColor(DWORD CharLevel, DWORD SpawnLevel, BYTE SpawnType)
+DWORD ConColor(PSPAWNINFO pSpawn)
 {
-	if (PVPServer!=PVP_NONE && SpawnType==0)
-	{
-		// whiny fuckin baby pvp server logic
-		if (CharLevel <= 5)
-		{
-			if (SpawnLevel > 5)
-				return CONCOLOR_RED;
-			return CONCOLOR_GREEN;
-		}
-		if (SpawnLevel < 5)
-			return CONCOLOR_GREEN;
-		
-      int Diff = SpawnLevel-CharLevel;
+	PSPAWNINFO pChar=(PSPAWNINFO)pCharSpawn;
+      int Diff = pSpawn->Level-pChar->Level;
+   if (PVPServer!=PVP_NONE && pSpawn->Type==SPAWN_PLAYER)
+   {
+      // whiny fuckin baby pvp server logic
+      if (pChar->Level <= 5)
+      {
+         if (pSpawn->Level > 5)
+            return CONCOLOR_RED;
+         return CONCOLOR_GREEN;
+      }
+      if (pSpawn->Level < 5)
+         return CONCOLOR_GREEN;
+
       if (PVPServer==PVP_TEAM) {
-		  // TODO: consider teams...
-		  if (Diff<=8)
-		  {
-			  if (Diff>=-8) 
-				  return CONCOLOR_BLACK;
-			  return CONCOLOR_GREEN;
-		  }
-		  return CONCOLOR_RED;
+        if (GetDeityTeamByID(pChar->Deity) == GetDeityTeamByID(pSpawn->Deity))
+        {
+           return CONCOLOR_GREEN; // What should your own teammates be for a color?
+        }
+        if (Diff<=8)
+        {
+           if (Diff>=-8)
+              return CONCOLOR_BLACK;
+           return CONCOLOR_GREEN;
+        }
+        return CONCOLOR_RED;
       } else if (PVPServer==PVP_RALLOS) {
-		  if (Diff<=4)
-		  {
-			  if (Diff>=-4)
-				  return CONCOLOR_BLACK;
-			  return CONCOLOR_GREEN;
-		  }
-		  return CONCOLOR_RED;
+        if (Diff<=4)
+        {
+           if (Diff>=-4)
+              return CONCOLOR_BLACK;
+           return CONCOLOR_GREEN;
+        }
+        return CONCOLOR_RED;
       } else if (PVPServer==PVP_SULLON) {
-		  if (Diff<=5)
-		  {
-			  if (Diff>=-5)
-				  return CONCOLOR_BLACK;
-			  return CONCOLOR_GREEN;
-		  }
-		  return CONCOLOR_RED;
-      } 
-	}
+        if (Diff<=5)
+        {
+           if (Diff>=-5)
+              return CONCOLOR_BLACK;
+           return CONCOLOR_GREEN;
+        }
+        return CONCOLOR_RED;
+      }
+   }
     int ConLevels[][3] = {
     //  {Lv,Grn,LtB},
         { 7, -4, -4},
@@ -962,7 +971,6 @@ DWORD ConColor(DWORD CharLevel, DWORD SpawnLevel, BYTE SpawnType)
         {65,-21,-16},
         {0,0,0}
     };
-    int Diff = SpawnLevel-CharLevel;
     int i;
 //  DebugSpew("ConColor - Char = %d, Spawn = %d, Diff = %d",CharLevel, SpawnLevel, Diff);
     if (Diff==0) return CONCOLOR_BLACK;
@@ -972,7 +980,7 @@ DWORD ConColor(DWORD CharLevel, DWORD SpawnLevel, BYTE SpawnType)
     }
 
     for (i=0;ConLevels[i][0]!=0;i++) {
-        if (CharLevel<=(DWORD)ConLevels[i][0]) {
+        if (pChar->Level<=ConLevels[i][0]) {
 //          DebugSpew("ConColor - i = %d",i);
             if (Diff>ConLevels[i][2]) return CONCOLOR_BLUE;
             if (Diff>ConLevels[i][1]) return CONCOLOR_LIGHTBLUE;
@@ -981,7 +989,6 @@ DWORD ConColor(DWORD CharLevel, DWORD SpawnLevel, BYTE SpawnType)
     }
 
     return COLOR_PURPLE;
-
 }
 
 PCONTENTS GetEnviroContainer()
@@ -1004,35 +1011,6 @@ PEQCONTAINERWINDOW FindContainerForContents(PCONTENTS pContents)
          return (pMgr->pPCContainers[j]);
    }
    return NULL;
-}
-
-// ***************************************************************************
-// FindMount(PSPAWNINFO) - Used to find the mount of a spawn, if one
-//                         exists. returns the spawn if one does not.
-// ***************************************************************************
-PSPAWNINFO FindMount(PSPAWNINFO pSpawn)
-{
-   if (!ppSpawnList || !pSpawnList) return NULL;
-   PSPAWNINFO pChar = NULL;
-   PSPAWNINFO pSpawnInfo = (PSPAWNINFO)pSpawnList;
-   CHAR szName[MAX_STRING] = {0};
-   CHAR szTemp[MAX_STRING] = {0};
-
-
-   sprintf(szName, "%s`s Mount",pSpawn->Name);
-
-   for (pChar = pSpawnInfo; pChar; pChar=pChar->pNext) {
-      strcpy(szTemp,pChar->Name);
-      if (strstr(strlwr(szTemp),"'s mount"))
-         WriteChatColor(szTemp,USERCOLOR_WHO);
-
-      if (!stricmp(CleanupName(szTemp, FALSE), szName)) {
-         return pChar;
-      }
-   }
-
-
-   return pSpawn;
 }
 
 // ***************************************************************************
