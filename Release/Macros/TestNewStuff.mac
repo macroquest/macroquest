@@ -1,0 +1,24 @@
+#define szTest "Just a define test"
+#define varTest v10
+#define constValue 4
+
+Sub Main
+   /varset varTest constValue
+   /echo [szTest] Comparing $varTest to 5
+   /if n $varTest>5 {
+      /echo Higher
+   } else /if n $varTest<5 {
+      /echo Lower
+   } else /if n $varTest==0 {
+      /echo Zero
+   } else {
+      /echo Equal
+   }
+   /echo this should be 'a': $arg(2,"szTest")
+   /echo Your 'Jewelry Making' is at: $char(skill,"jewelry making")
+
+   /echo $varTest
+   /zapvars
+   /echo $varTest
+
+/return

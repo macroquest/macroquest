@@ -1,0 +1,9 @@
+#turbo
+Sub Main
+   /echo Char: $char(name)($char(level)) HP: $char(hp,pct)% ($char(hp,cur)/$char(hp,max)) Mana: $char(mana,pct)% ($char(mana,cur)/$char(mana,max))
+   /if n $char(pet)!=0 {
+      /echo Pet: $spawn($char(pet),name,clean)($spawn($char(pet),level)) HP: $spawn($char(pet),hp,pct)%
+   }
+   /echo Target: $target(name,clean)($target(level)) HP: $target(hp,pct)%
+   /endmacro keep keys
+/return

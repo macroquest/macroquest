@@ -1,0 +1,13 @@
+| - ArrayTest.mac -
+
+Sub Main
+   /declare index global
+   /declare quotes array
+   /declare authors array
+   /for index 0 to 9
+      /varset quotes(@index) "Sample Quote #@index"
+      /varset authors(@index) "Author@index"
+   /next index
+   /varset index $rand(10)
+   /echo @quotes(@index) -@authors(@index)
+/return

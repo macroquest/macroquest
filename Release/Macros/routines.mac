@@ -1,0 +1,131 @@
+| - routines.mac - 
+| Generic routines that may be used a lot. 
+| ---------------------------- 
+| Original Version by: Plazmic 
+| Improved by: L124RD 
+
+
+Sub BuyItems 
+
+   /sendkey down shift 
+
+   /for l1 1 to $p0 
+      /click left merchant buy 
+      /varset l2 $char(cash)
+      :BuyItems_Wait
+         /delay 0
+      /if n $l2==$char(cash) /goto :BuyItems_Wait
+   /next l1 
+
+   /sendkey up shift 
+
+/return 
+
+
+| ---------------------------- 
+
+
+Sub SellItem 
+   /sendkey down shift 
+   :SellItem 
+      /finditem $p0 
+      /if $find()==FALSE /goto :DoneSellItem 
+      /click left merchant sell 
+      /delay $rand(3) 
+   /goto :SellItem 
+   :DoneSellItem 
+   /sendkey up shift 
+/return 
+
+
+| ---------------------------- 
+
+
+Sub BackPedal 
+   /if $p0==$v79 /return 
+   /varset v79 $p0 
+   /if $p0==1 /sendkey down up 
+   /if $p0==0 /sendkey up up 
+/return 
+
+
+| ---------------------------- 
+
+
+Sub AutoRun 
+   /if $p0==$v80 /return 
+   /varset v80 $p0 
+   /if $p0==1 /sendkey down up 
+   /if $p0==0 /sendkey up up 
+/return 
+
+
+| ---------------------------- 
+
+
+Sub GotoLoc 
+   /varset v91 $rand(5) 
+   :GotoLocLoop 
+      /face loc $p0 
+      /if "$p1"=="u" /Press u 
+      /call AutoRun 1 
+   /if n $distance($p0)>$v91 /goto :GotoLocLoop 
+   /call AutoRun 0 
+/return 
+
+
+| ---------------------------- 
+
+
+Sub GotoTarg 
+    /varset v91 $rand(5) 
+   /target $p0 
+   :GotoTargLoop 
+      /face 
+      /if "$p1"=="u" /Press u 
+      /call AutoRun 1 
+   /if n $target(distance)>$v91 /goto :GotoTargLoop 
+   /call AutoRun 0 
+/return 
+
+| ---------------------------- 
+
+Sub BuyItems 
+   /press down shift 
+   /for p1 1 to $p0 
+      /varcalc p2 $char(plat)*1000+$char(gold)*100+$char(silver)*10+$char(copper) 
+      /click left merchant buy 
+      :BuyItemsLoop 
+         /delay 0 
+      /if n $calc($char(plat)*1000+$char(gold)*100+$char(silver)*10+$char(copper))==$p2 /goto :BuyItemsLoop 
+   /next p1 
+   /press up shift 
+/return 
+
+| ---------------------------- 
+
+Sub SellItem 
+   /sendkey down shift 
+   :SellItem 
+      /finditem $p0 
+      /if $find()==FALSE /goto :DoneSellItem 
+      /varcalc p2 $char(plat)*1000+$char(gold)*100+$char(silver)*10+$char(copper) 
+      /click left merchant sell 
+      :SellItemLoop 
+         /delay 0 
+      /if n $calc($char(plat)*1000+$char(gold)*100+$char(silver)*10+$char(copper))==$p2 /goto :SellItemLoop      
+   /goto :SellItem 
+   :DoneSellItem 
+   /sendkey up shift 
+/return 
+
+| ---------------------------- 
+
+Sub FindCombiner 
+   /for p1 7 downto 0 
+      /if "$pack($p1,combine)"=="$p0" /return $p1 
+   /next p1 
+   /echo You do not appear to have a valid $p0 container. 
+/return 99 
+
+| End of routines.mac

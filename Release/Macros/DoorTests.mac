@@ -1,0 +1,12 @@
+Sub Main
+    /mqlog Testing on Door ID=@Param0
+	/doortarget id @Param0
+	/face door
+	/delay 6
+	/mqlog Target Door Information: id=$door(id) name=$door(name) state=$door(open) loc=$door(y), $door(x), $door(z) heading=$door(heading)
+	/mqlog             (continued): defaultloc=$door(defaulty), $door(defaultx), $door(defaultz) defaultheading=$door(defaultheading)
+	/mqlog             (continued): headingto=$door(headingto) distance=$door(distance) distance2=$distance(door)
+	/press u
+	/delay 5
+	/mqlog             (after use): state=$door(open) loc=$door(y), $door(x), $door(z) heading=$door(heading)
+/return

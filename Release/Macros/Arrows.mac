@@ -1,0 +1,69 @@
+| - Arrows.mac -
+|
+#turbo
+#event CombineFail "You lacked the skills to fashion the items together."
+#event CombineSuceed "You have fashioned the items together to create something new!"
+
+Sub Main
+   /call FindCombiner Fletching
+   /varset v80 $return
+   /if n $v80==99 /return
+
+   /cleanup
+   /click right inv $return
+   :MakeArrows
+      /sendkey down ctrl
+
+      /finditem similar "Fletching"
+      /click left pack $v80 0
+
+      /finditem similar "Nock"
+      /click left pack $v80 1
+
+      /finditem similar "Shaft"
+      /click left pack $v80 2
+
+      /finditem similar "Arrowhead"
+      /click left pack $v80 3
+
+      /sendkey up ctrl
+      /click left pack $return combine
+
+
+      /if "$item($v80,0,name)"~~"Arrowhead" /if "$item($v80,1,name)"~~"Shaft" /if "$item($v80,2,name)"~~"Fletching" /if "$item($v80,3,name)"~~"nock" /goto :DoCombine 
+      /sendkey up ctrl
+      /return 
+
+      :DoCombine 
+      /varset v61 0 
+      /doevents flush
+      /varset t9 30s
+      /click left pack $v80 combine 
+      /goto :DropArrows 
+      
+      :DropArrows 
+         /doevents
+      /if n $v61==0 /if n $t9>0 /goto :DropArrows 
+      /doevents flush
+      /if $cursor()!=TRUE /if n $v61<2 /goto :MakeArrows
+      :WaitCursor
+	 /delay 0
+      /if $cursor()!=TRUE /goto :WaitCursor
+      /click left auto 
+   /goto :MakeArrows 
+/return
+
+Sub Event_CombineFail 
+   /varset v61 1
+/return 
+
+Sub Event_CombineSuceed 
+   /varset v61 2 
+/return 
+
+Sub FindCombiner 
+   /varset p2 99 
+   /for v99 0 to 7 
+      /if "$pack($v99,combine)"=="$p0" /varset p2 $v99 
+   /next v99 
+/return $p2 

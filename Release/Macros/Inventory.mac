@@ -1,0 +1,67 @@
+| -- Inventory.mac --
+|
+#turbo
+Sub Main
+   /declare index local
+   /echo Taking $char(name)'s Inventory...
+   /mqlog
+   /mqlog
+   /mqlog
+   /mqlog -- $char(name) - $char(level) $char(race) $char(class) --
+   /mqlog Head: $equip(head,name)
+   /mqlog Face: $equip(face,name)
+   /mqlog Neck: $equip(neck,name)
+   /mqlog Earrings: $equip(ear1,name), $equip(ear2,name)
+   /mqlog Arms: $equip(arms,name)
+   /mqlog Hands: $equip(hands,name)
+   /mqlog Wrists: $equip(wrist1,name), $equip(wrist2,name)
+   /mqlog Fingers: $equip(finger1,name), $equip(finger2,name)
+   /mqlog Shoulders: $equip(shoulder,name)
+   /mqlog Back: $equip(back,name)
+   /mqlog Chest: $equip(chest,name)
+   /mqlog Waist: $equip(waist,name)
+   /mqlog Legs: $equip(legs,name)
+   /mqlog Feet: $equip(feet,name)
+   /mqlog Primary: $equip(primary,name)
+   /mqlog Secondary: $equip(secondary,name)
+   /mqlog Range: $equip(range,name)
+   /mqlog Ammo: $equip(ammo,name)
+   /mqlog
+   /mqlog Cash on hand: $char(plat)pp, $char(gold)gp, $char(silver)sp, $char(copper)cp
+   /mqlog Cash in bank: $char(plat,bank)pp, $char(gold,bank)gp, $char(silver,bank)sp, $char(copper,bank)cp
+   /mqlog
+   /mqlog Inventory:
+   /for index 0 to 7
+      /if $pack(@index)==TRUE /call MainPack @index
+      /if $pack(@index)!=TRUE /if $item(inv,@index)==TRUE /mqlog @index) $item(inv,@index,stack)x $item(inv,@index,name)
+   /next index
+   /mqlog
+   /mqlog Bank Items:
+   /for index 0 to 17
+      /if $pack(bank,@index)==TRUE /call BankPack @index
+      /if $pack(bank,@index)!=TRUE /if $item(bank,inv,@index)==TRUE /mqlog @index) $item(bank,inv,@index,stack)x $item(bank,inv,@index,name)
+   /next index
+   /echo Done...
+/return
+
+Sub MainPack(PackSlot)
+   /declare index local
+   /declare max local
+   /mqlog @PackSlot) $pack(@PackSlot,name) has $pack(@PackSlot,space)/$pack(@PackSlot,slots) slots free, combine type: $pack(@PackSlot,combine)
+   /varcalc max $pack(@PackSlot,slots)-1
+   /for index 0 to @max
+      /if $item(@PackSlot,@index)==TRUE /mqlog $item(@PackSlot,@index,stack)x $item(@PackSlot,@index,name)
+   /next index
+/return
+
+Sub BankPack(PackSlot)
+   /declare index local
+   /declare max local
+   /mqlog @PackSlot) $pack(bank,@PackSlot,name) has $pack(bank,@PackSlot,space)/$pack(bank,@PackSlot,slots) slots free, combine type: $pack(bank,@PackSlot,combine)
+   /varcalc max $pack(bank,@PackSlot,slots)-1
+   /for index 0 to @max
+      /if $item(bank,@PackSlot,@index)==TRUE /mqlog $item(bank,@PackSlot,@index,stack)x $item(bank,@PackSlot,@index,name)
+   /next index
+/return
+
+| End of PackTest.mac

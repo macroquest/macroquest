@@ -1,0 +1,35 @@
+| - Cams.mac -
+|
+#include routines.mac
+
+Sub Main
+   /call FindCombiner Tinkering
+   /if $return==99 /return
+
+   /cleanup
+   /click right inv $return
+
+   /sendkey down ctrl
+   :MakeCams
+      /click left auto
+      /finditem "Gears"
+      /if $find()==FALSE /goto :Done
+      /click left pack $return 0
+      /finditem "Grease"
+      /if $find()==FALSE /goto :Done
+      /click left pack $return 1
+      /finditem "Gnomish Bolts"
+      /if $find()==FALSE /goto :Done
+      /click left pack $return 2
+      /click left pack $return combine
+      :WaitCams
+         /delay 1
+      /if $pack($return,empty)==FALSE /goto :WaitCams
+      /delay 1
+      /click left auto
+   /goto :MakeCams
+
+  :Done
+  /sendkey up ctrl
+/return
+
