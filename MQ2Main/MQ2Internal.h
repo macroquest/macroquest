@@ -31,6 +31,9 @@ enum eSpawnType
 	NPC,
 	CORPSE,
 	TRIGGER,
+//	TRAP,
+//	TIMER,
+//	UNTARGETABLE,
 	ITEM
 };
 

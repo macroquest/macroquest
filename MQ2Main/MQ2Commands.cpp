@@ -1776,8 +1776,8 @@ VOID SuperWhoDisplay(PSPAWNINFO pChar, PSEARCHSPAWN pFilter, PSPAWNINFO psTarget
 			if ((pFilter->bLight) && (pFilter->szLight[0]) && (stricmp(GetLightForSpawn(pSpawn),pFilter->szLight))) continue;
             if ((pFilter->bLFG) && (!pSpawn->LFG)) continue;
             if ((pFilter->bGroup) && (!IsInGroup(pSpawn))) continue;
-			if ((!pFilter->bTargInvis) && (!gFilterSWho.Invisible) && (!stricmp(GetBodyTypeDesc(pSpawn->BodyType),"UNKNOWN BODYTYPE"))) continue;
-			if ((!pFilter->bTargInvis) && (!stricmp(GetBodyTypeDesc(pSpawn->BodyType),"UNKNOWN BODYTYPE"))) continue;
+			if ((!pFilter->bTargInvis) && (!gFilterSWho.Invisible) && (GetBodyTypeDesc(pSpawn->BodyType)[0]=='*')) continue;
+			if ((!pFilter->bTargInvis) && (GetBodyTypeDesc(pSpawn->BodyType)[0]=='*')) continue;
             if ((pFilter->bTrader) && (!pSpawn->pActorInfo->Trader)) continue;
             if ((pFilter->bAlert) && (!IsAlert(pChar,pSpawn,pFilter->AlertList))) continue;
             if ((pFilter->bNoAlert) && (IsAlert(pChar,pSpawn,pFilter->NoAlertList))) continue;
@@ -2859,7 +2859,7 @@ PSPAWNINFO SearchThroughSpawns(PSEARCHSPAWN pSearchSpawn, PSPAWNINFO pChar)
                 (pSpawn->pActorInfo->Trader)
             ) && (
                 (pSearchSpawn->bTargInvis) ||
-                    (stricmp(GetBodyTypeDesc(pSpawn->BodyType),"UNKNOWN BODYTYPE"))
+                    (GetBodyTypeDesc(pSpawn->BodyType)[0]!='*')
                 ) && ( 
                     ( 
                     (pSearchSpawn->bKnownLocation == FALSE) 
@@ -3004,7 +3004,7 @@ BOOL SpawnMatchesSearch(PSEARCHSPAWN pSearchSpawn, PSPAWNINFO pChar, PSPAWNINFO 
                 (pSpawn->pActorInfo->Trader)
             ) && (
                 (pSearchSpawn->bTargInvis) ||
-                    (stricmp(GetBodyTypeDesc(pSpawn->BodyType),"UNKNOWN BODYTYPE"))
+                    (GetBodyTypeDesc(pSpawn->BodyType)[0]!='*')
                 ) && (
                     (
                     (pSearchSpawn->bKnownLocation == FALSE)

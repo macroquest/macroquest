@@ -477,36 +477,78 @@ PCHAR szDmgBonusType[] = {
     "Disease" 
 }; 
 
-/*
-PCHAR szBaneDmgType[] = { 
-   "Humanoid", 
-   "Lycanthrope", 
-   "Undead", 
-   "Giant", 
-   "Construct", 
-   "Extraplanar", 
-   "Magical", 
-   "UNKNOWN BODYTYPE", 
-   "UNKNOWN BODYTYPE", 
-   "UNKNOWN BODYTYPE", 
-   "UNKNOWN BODYTYPE", 
-   "Vampyre", 
-   "Atenha Ra", 
-   "Greater Akheva", 
-   "Khati Sha", 
-   "UNKNOWN BODYTYPE", 
-   "UNKNOWN BODYTYPE", 
-   "UNKNOWN BODYTYPE", 
-   "Zek", 
-   "Luggald", 
-   "Animal", 
-   "Insect", 
-   "Monster", 
-   "Elemental", 
-   "Plant", 
-   "Dragon", 
-   "UNKNOWN BODYTYPE", 
-   "Summoned Creature" 
+PCHAR szBodyType[] = { 
+   "Player",//0
+   "Humanoid", //1
+   "Lycanthrope", //2
+   "Undead", //3
+   "Giant", //4
+   "Golem", //5
+   "Extraplanar", //6
+   "Magical", //7
+   "Undead Pet", //8
+   "Bane Giant", //9
+   "*UNKNOWN BODYTYPE 10", //10
+   "*Untargetable", //11
+   "Vampyre", //12
+   "Atenha Ra", //13
+   "Greater Akheva",//14
+   "Khati Sha", //15
+   "Seru", //16
+   "*UNKNOWN BODYTYPE 17", //17
+   "*UNKNOWN BODYTYPE 18", //18
+   "Zek", //19
+   "Luggald", //20
+   "Animal", //21
+   "Insect", //22
+   "Monster", //23
+   "Elemental", //24
+   "Plant", //25
+   "Dragonkin", //26
+   "Elemental", //27
+   "Summoned Creature",//28
+   "Dragon",//29
+   "Bane Dragon",//30
+   "Familiar",//31
+	"*UNKNOWN BODYTYPE 32",
+	"*UNKNOWN BODYTYPE 33",
+	"*UNKNOWN BODYTYPE 34",
+	"*UNKNOWN BODYTYPE 35",
+	"*UNKNOWN BODYTYPE 36",
+	"*UNKNOWN BODYTYPE 37",
+	"*UNKNOWN BODYTYPE 38",
+	"*UNKNOWN BODYTYPE 39",
+	"*UNKNOWN BODYTYPE 40",
+	"*UNKNOWN BODYTYPE 41",
+	"*UNKNOWN BODYTYPE 42",
+	"*UNKNOWN BODYTYPE 43",
+	"*UNKNOWN BODYTYPE 44",
+	"*UNKNOWN BODYTYPE 45",
+	"*UNKNOWN BODYTYPE 46",
+	"*UNKNOWN BODYTYPE 47",
+	"*UNKNOWN BODYTYPE 48",
+	"*UNKNOWN BODYTYPE 49",
+	"*UNKNOWN BODYTYPE 50",
+	"*UNKNOWN BODYTYPE 51",
+	"*UNKNOWN BODYTYPE 52",
+	"*UNKNOWN BODYTYPE 53",
+	"*UNKNOWN BODYTYPE 54",
+	"*UNKNOWN BODYTYPE 55",
+	"*UNKNOWN BODYTYPE 56",
+	"*UNKNOWN BODYTYPE 57",
+	"*UNKNOWN BODYTYPE 58",
+	"*UNKNOWN BODYTYPE 59",
+	"*UNKNOWN BODYTYPE 60",
+	"*UNKNOWN BODYTYPE 61",
+	"*UNKNOWN BODYTYPE 62",
+	"*UNKNOWN BODYTYPE 63",
+	"*UNKNOWN BODYTYPE 64",
+	"*Trap",
+	"*Timer",
+	"*Trigger",
+	"*UNKNOWN BODYTYPE 68",
+	"*UNKNOWN BODYTYPE 69",
+	"*UNKNOWN BODYTYPE 70",
 }; 
 /**/
 

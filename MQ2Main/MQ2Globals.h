@@ -280,7 +280,7 @@ EQLIB_VAR PCHAR szItemName[];
 EQLIB_VAR PCHAR szItemName4xx[];
 EQLIB_VAR PCHAR szTheme[]; 
 EQLIB_VAR PCHAR szDmgBonusType[];
-//EQLIB_VAR PCHAR szBaneDmgType[];
+EQLIB_VAR PCHAR szBodyType[];
 EQLIB_VAR PCHAR szAugRestrictions[];
 EQLIB_VAR PCHAR szItemSlot[];
 

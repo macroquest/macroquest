@@ -33,30 +33,9 @@ static inline PSPELL GetSpellByID(DWORD dwSpellID)
 
 static inline PCHAR GetBodyTypeDesc(DWORD BodyTypeID)
 {
-	switch(BodyTypeID)
-	{
-	case 0:
-		return "BODYTYPE ZERO";
-	case 9:
-	case 10:
-	case 16:
-	case 17:
-	case 18:
-	case 30:
-	case 32:
-	case 33:
-		return "MOSTLY HARMLESS";
-	case 29:
-		return "Dragon";
-	case 31:
-		return "Wizard Familiar";
-	case 27:
-		return "Mage Pet";
-	case 8:
-		return "Necro Pet";
-	default:
-	return pEverQuest->GetBodyTypeDesc(BodyTypeID);
-	}
+	if (BodyTypeID<70)
+		return szBodyType[BodyTypeID];
+	return "*UNKNOWN BODYTYPE";
 }
 
 static inline PCHAR GetClassDesc(DWORD ClassID)
@@ -129,6 +108,7 @@ static inline eSpawnType GetSpawnType(PSPAWNINFO pSpawn)
 		{
 			if (strstr(pSpawn->Name,"s_Mount"))
 			{
+				DebugSpew("PC Mount BodyType %d",pSpawn->BodyType);
 				return MOUNT;
 			}
 			return PC;
@@ -136,9 +116,10 @@ static inline eSpawnType GetSpawnType(PSPAWNINFO pSpawn)
 	case SPAWN_NPC:
 		if (strstr(pSpawn->Name,"s_Mount"))
 		{
+			DebugSpew("NPC Mount BodyType %d",pSpawn->BodyType);
 			return MOUNT;
 		}
-		if (pSpawn->BodyType && !stricmp(pEverQuest->GetBodyTypeDesc(pSpawn->BodyType),"UNKNOWN BODYTYPE"))
+		if (GetBodyTypeDesc(pSpawn->BodyType)[0]=='*')
 			return TRIGGER;
 		else
 		{

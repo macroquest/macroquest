@@ -724,6 +724,14 @@ bool MQ2SpawnType::GetMember(MQ2VARPTR VarPtr, PCHAR Member, PCHAR Index, MQ2TYP
 			}
 		}
 		return false;
+	case Anonymous:
+		Dest.DWord=(pSpawn->Anon==1);
+		Dest.Type=pBoolType;
+		return true;
+	case Roleplaying:
+		Dest.DWord=(pSpawn->Anon==2);
+		Dest.Type=pBoolType;
+		return true;
 	}
 	return false;
 }
@@ -1027,6 +1035,35 @@ bool MQ2StringType::GetMember(MQ2VARPTR VarPtr, PCHAR Member, PCHAR Index, MQ2TY
 				GetArg(DataTypeTemp,Temp,atoi(Index));
 				if (DataTypeTemp[0])
 				{
+					Dest.Ptr=&DataTypeTemp[0];
+					Dest.Type=pStringType;
+					return true;
+				}
+			}
+		}
+		return false;
+	case Token:
+		if (Index[0]>='0' && Index[0]<='9')
+		{
+			DWORD N=atoi(Index);
+			if (!N)
+				return false;
+			CHAR Temp[MAX_STRING]={0};
+			strcpy(Temp,(char *)VarPtr.Ptr);
+			if (PCHAR pComma=strchr(Index,','))
+			{
+				*pComma=0;
+				PCHAR pPos=strtok(Temp,&pComma[1]);
+				N--;
+				while(N && pPos)
+				{
+					pPos=strtok(NULL,&pComma[1]);
+					N--;
+				}
+				*pComma=',';
+				if (pPos)
+				{
+					strcpy(DataTypeTemp,pPos);
 					Dest.Ptr=&DataTypeTemp[0];
 					Dest.Type=pStringType;
 					return true;

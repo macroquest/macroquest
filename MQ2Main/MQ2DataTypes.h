@@ -281,6 +281,7 @@ public:
 		EqualCS=13,
 		NotEqualCS=14,
 		Count=15,
+		Token=16,
 	};
 
 	MQ2StringType():MQ2Type("string")
@@ -300,6 +301,7 @@ public:
 		TypeMember(EqualCS);
 		TypeMember(NotEqualCS);
 		TypeMember(Count);
+		TypeMember(Token);
 	}
 
 	~MQ2StringType()
@@ -573,6 +575,8 @@ public:
 		xGroupLeader=77,
 		Mark=78,
 		Assist=79,
+		Anonymous=80,
+		Roleplaying=81,
 	};
 	MQ2SpawnType():MQ2Type("spawn")
 	{
@@ -652,6 +656,9 @@ public:
 		AddMember(xGroupLeader,"GroupLeader");
 		TypeMember(Mark);
 		TypeMember(Assist);
+		TypeMember(Anonymous);
+		TypeMember(Roleplaying);
+
 	}
 
 	~MQ2SpawnType()
