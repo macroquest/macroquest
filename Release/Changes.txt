@@ -1,3 +1,7 @@
+11 Feb 2004 by Zaphod (dohpaZ)
+- Added Beserker to the classes and Gates of Discord to the expansions.
+- Fixed my name in the readme.html
+
 10 Feb 2004 by Amadeus
 - Updated structs and offsets
 - Added 'favor' (Tribute Value) to ITEMINFO
