@@ -142,6 +142,21 @@ int __cdecl memcheck2(unsigned char *buffer, int count, struct mckey key);
 int __cdecl memcheck3(unsigned char *buffer, int count, struct mckey key);
 
 
+DETOUR_TRAMPOLINE_EMPTY(VOID memcheck4_tramp(PVOID,DWORD,PCHAR,DWORD,BOOL)); 
+
+VOID memcheck4(PVOID A,DWORD B,PCHAR C,DWORD D,BOOL E)
+{
+	if (B==0xEB)
+	{
+		int Pos=strlen(&C[4]);
+		Pos+=4;
+		for (Pos ; Pos < 1024 ; Pos++)
+		{
+			C[Pos]=rand();
+		}
+	}
+	memcheck4_tramp(A,B,C,D,E);
+}
 
 // ***************************************************************************
 // Function:    HookMemChecker
@@ -179,6 +194,8 @@ VOID HookMemChecker(BOOL Patch)
 
         (*(PBYTE*)&memcheck3_tramp) = DetourFunction( (PBYTE) EQADDR_MEMCHECK3,
                                                     (PBYTE) memcheck3);
+
+		EasyDetour((DWORD)send_message,memcheck4,VOID,(PVOID,DWORD,PCHAR,DWORD,BOOL),memcheck4_tramp);
     } else {
         DetourRemove((PBYTE) memcheck_tramp,
                      (PBYTE) memcheck);
@@ -194,6 +211,7 @@ VOID HookMemChecker(BOOL Patch)
                      (PBYTE) memcheck3);
         memcheck3_tramp = NULL;
 		RemoveDetour(EQADDR_MEMCHECK3);
+		RemoveDetour((DWORD)send_message);
     }
 }
 

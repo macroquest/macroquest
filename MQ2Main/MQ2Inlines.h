@@ -29,3 +29,38 @@ static inline PSPELL GetSpellByID(DWORD dwSpellID)
 #define GetMaxMana() pCharData->Max_Mana()
 #define GetMaxHPS() pCharData->Max_HP(0)
 #define GetCurHPS() pCharData->Cur_HP(0)
+
+static inline eSpawnType GetSpawnType(PSPAWNINFO pSpawn)
+{
+	switch(pSpawn->Type)
+	{
+	case SPAWN_PLAYER:
+		{
+			if (strstr(pSpawn->Name,"s_Mount"))
+			{
+				return MOUNT;
+			}
+			return PC;
+		}
+	case SPAWN_NPC:
+		if (strstr(pSpawn->Name,"s_Mount"))
+		{
+			return MOUNT;
+		}
+		if (pSpawn->BodyType>0x40)
+			return TRIGGER;
+		else
+		{
+			if (pSpawn->MasterID)
+				return PET;
+			else
+				return NPC;
+		}
+		return NPC;
+	case SPAWN_CORPSE:
+		return CORPSE;
+	default:
+		return ITEM;
+	}
+}
+

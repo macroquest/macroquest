@@ -125,6 +125,7 @@ typedef double DOUBLE;
 #define DebugTry(x) x
 #endif
 
+#define MakeLower(yourstring) transform (yourstring.begin(),yourstring.end(), yourstring.begin(), tolower);
 
 #define MAX_VARNAME 64
 #define MAX_STRING            2048
@@ -161,6 +162,9 @@ EQLIB_API VOID InitializeMQ2Windows();
 EQLIB_API VOID ShutdownMQ2Windows();
 EQLIB_API void RemoveXMLFile(const char *filename);
 EQLIB_API void AddXMLFile(const char *filename);
+EQLIB_API bool SendWndNotification(PCHAR WindowName, PCHAR ScreenID, DWORD Notification, VOID *Data=0);
+EQLIB_API void AddWindow(char *WindowName, CXWnd **ppWindow);
+EQLIB_API void RemoveWindow(char *WindowName);
 
 /* CHAT HOOK */
 EQLIB_API VOID InitializeChatHook();

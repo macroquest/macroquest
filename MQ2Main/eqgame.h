@@ -155,6 +155,9 @@
 #define CEverQuest__GetBodyTypeDesc                0x4915F0 
 #define CEverQuest__SetGameState                0x4978FB 
 
+// CXWndManager
+#define CXWndManager__RemoveWnd					0x56CDB0
+
 // EQ_Character 
 #define EQ_Character__Max_Mana                  0x41E176 
 #define EQ_Character__Max_HP                  0x41DF69 
@@ -225,6 +228,9 @@
 
 // MapViewMap 
 #define MapViewMap__SaveEx                    0x5066FE 
+#define MapViewMap__Clear						0x0506184
+
+//
 #define EQ_PC__DestroyHeldItemOrMoney              0x4352EB 
 
 // CSidlScreenWnd 

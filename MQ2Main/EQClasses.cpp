@@ -32,6 +32,7 @@ REVERSE_DETOUR(class CXSize& CStmlWnd::AppendSTML(class CXSize*,class CXStr),CSt
 REVERSE_VIRTUAL_DETOUR(void CChatWindow::operator delete[](void*),0x04);
 
 REVERSE_VIRTUAL_DETOUR(bool CXWnd::IsValid(void)const,0);
+REVERSE_VIRTUAL_DETOUR(int CXWnd::WndNotification(class CXWnd *,unsigned __int32,void *),0x80);
 REVERSE_VIRTUAL_DETOUR(int CXWnd::Show(bool,bool),0x0C0);
 REVERSE_VIRTUAL_DETOUR(int CXWnd::SetVScrollPos(int),0x0FC);
 REVERSE_VIRTUAL_DETOUR(void CXWnd::SetWindowTextA(class CXStr),0x108);
@@ -6924,7 +6925,7 @@ REVERSE_DETOUR(void  CSidlScreenWnd::Init(class CXWnd *,unsigned __int32,class C
 REVERSE_DETOUR(void  CSidlScreenWnd::Init(class CXWnd *,class CXStr,int,char *),CSidlScreenWnd__Init1);
 #endif
 #ifdef CSidlScreenWnd__SetScreen
-REVERSE_DETOUR(void  CSidlScreenWnd::SetScreen(class CXStr),CSidlScreenWnd__SetScreen);
+REVERSE_DETOUR(void  CSidlScreenWnd::SetScreen(class CXStr*),CSidlScreenWnd__SetScreen);
 #endif
 #ifdef CSidlScreenWnd__LoadSidlScreen
 REVERSE_DETOUR(void  CSidlScreenWnd::LoadSidlScreen(void),CSidlScreenWnd__LoadSidlScreen);

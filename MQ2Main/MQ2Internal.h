@@ -22,6 +22,18 @@ enum ePVPServer
 	PVP_SULLON = 3,
 };
 
+enum eSpawnType
+{
+	NONE=0,
+	PC,
+	MOUNT,
+	PET,
+	NPC,
+	CORPSE,
+	TRIGGER,
+	ITEM
+};
+
 typedef struct _SEARCHSPAWN {
     DWORD MinLevel;
     DWORD MaxLevel;

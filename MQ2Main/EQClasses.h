@@ -652,7 +652,7 @@ EQLIB_OBJECT void CSidlScreenWnd::EnableIniStorage(int,char *);
 EQLIB_OBJECT void CSidlScreenWnd::Init(class CXWnd *,class CXStr,int,char *);
 EQLIB_OBJECT void CSidlScreenWnd::Init(class CXWnd *,unsigned __int32,class CXRect,class CXStr,int,char *);
 EQLIB_OBJECT void CSidlScreenWnd::LoadIniListWnd(class CListWnd *,char *);
-EQLIB_OBJECT void CSidlScreenWnd::SetScreen(class CXStr);
+EQLIB_OBJECT void CSidlScreenWnd::SetScreen(class CXStr*);
 EQLIB_OBJECT void CSidlScreenWnd::StoreIniListWnd(class CListWnd const *,char *);
 EQLIB_OBJECT void CSidlScreenWnd::StoreIniVis(void);
 // virtual

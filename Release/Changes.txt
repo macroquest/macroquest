@@ -1,6 +1,13 @@
+28 Feb 2004 by Lax
+- Added API to automatically maintain a list of all initialized windows 
+  This will only have the most recent one initialized for each "screen item" name
+  Functions are in place to add/remove windows to the list with different names, etc.
+- Added /notify and /windows commands
+- eSpawnType enum (NONE,PC,MOUNT,PET,NPC,CORPSE,TRIGGER,ITEM) and GetSpawnType function 
+
 28 Feb 2004 by Zaphod
- - Major optimization/cleanup of ParseMacroParameter().
- 
+- Major optimization/cleanup of ParseMacroParameter().
+
 22 Feb 2004 by Amadeus
 - Updated readme.html [thanks Wassup!]
 

@@ -20,9 +20,94 @@
 
 
 #include "MQ2Main.h"
+#include <map>
+#include <string>
+#include <algorithm>
+using namespace std;
+
+map<string,unsigned long> WindowMap;
+
+struct _WindowInfo
+{
+	char Name[128];
+	CXWnd *pWnd;
+	CXWnd **ppWnd;
+};
+
+CIndex <_WindowInfo*> WindowList(10);
+
+
 
 bool GenerateMQUI();
 void DestroyMQUI();
+
+class SetScreenHook
+{
+public:
+	void SetScreen_Detour(class CXStr *pName)
+	{
+		CHAR Name[MAX_STRING]={0};
+		GetCXStr((PCXSTR)pName,Name,MAX_STRING);
+		string WindowName=Name;
+		MakeLower((WindowName));
+
+		unsigned long N=WindowMap[WindowName];
+		if (N)
+		{
+			N--;
+			_WindowInfo *pWnd = WindowList[N];
+			pWnd->pWnd=(CXWnd*)this;
+			pWnd->ppWnd=0;
+			DebugSpew("Updating WndNotification target '%s'",Name);
+		}
+		else
+		{
+			_WindowInfo *pWnd = new _WindowInfo;
+			strcpy(pWnd->Name,Name);
+			pWnd->pWnd=(CXWnd*)this;
+			pWnd->ppWnd=0;
+			
+			N=WindowList.GetUnused();
+			WindowList[N]=pWnd;
+
+			WindowMap[WindowName]=N+1;
+			DebugSpew("Adding WndNotification target '%s'",Name);
+		}
+		SetScreen_Trampoline(pName);
+	}
+	void SetScreen_Trampoline(class CXStr*);
+};
+DETOUR_TRAMPOLINE_EMPTY(void SetScreenHook::SetScreen_Trampoline(class CXStr*));
+
+class CXWndManagerHook
+{
+public:
+	int RemoveWnd_Detour(class CXWnd *pWnd)
+	{
+		if (pWnd)
+		{
+			for (unsigned long N = 0 ; N < WindowList.Size ; N++)
+				if (_WindowInfo* pInfo=WindowList[N])
+				{
+					if (pWnd==pInfo->pWnd)
+					{
+						DebugSpew("Removing WndNotification target '%s'",pInfo->Name);
+						string Name=pInfo->Name;
+						MakeLower(Name);
+						WindowMap[Name]=0;
+						delete pInfo;
+						WindowList[N]=0;
+						break;
+					}
+				}
+		}
+		return RemoveWnd_Trampoline(pWnd);
+	}
+	int RemoveWnd_Trampoline(class CXWnd *);
+
+};
+DETOUR_TRAMPOLINE_EMPTY(int CXWndManagerHook::RemoveWnd_Trampoline(class CXWnd *));
+
 
 class CXMLSOMDocumentBaseHook
 {
@@ -50,22 +135,32 @@ DETOUR_TRAMPOLINE_EMPTY(int CXMLSOMDocumentBaseHook::XMLRead_Trampoline(CXStr *A
 
 
 
+VOID ListWindows(PSPAWNINFO pChar, PCHAR szLine);
+VOID WndNotify(PSPAWNINFO pChar, PCHAR szLine);
 
 void InitializeMQ2Windows()
 {
+	
 	DebugSpew("Initializing MQ2 Windows");
-	/*
-	int (CXMLSOMDocumentBaseHook::*pfDetour)(CXStr *A, CXStr *B, CXStr *C) = CXMLSOMDocumentBaseHook::XMLRead; 
-	int (CXMLSOMDocumentBaseHook::*pfTrampoline)(CXStr *A, CXStr *B, CXStr *C) = CXMLSOMDocumentBaseHook::XMLRead_Trampoline; 
-	AddDetour(CXMLSOMDocumentBase__XMLRead,*(PBYTE*)&pfDetour,*(PBYTE*)&pfTrampoline);
-	/**/
+
 	EasyClassDetour(CXMLSOMDocumentBase__XMLRead,CXMLSOMDocumentBaseHook,XMLRead,int,(CXStr *A, CXStr *B, CXStr *C),XMLRead_Trampoline);
+
+	EasyClassDetour(CSidlScreenWnd__SetScreen,SetScreenHook,SetScreen_Detour,void,(class CXStr *),SetScreen_Trampoline);
+	EasyClassDetour(CXWndManager__RemoveWnd,CXWndManagerHook,RemoveWnd_Detour,int,(class CXWnd *),RemoveWnd_Trampoline);
+
+	AddCommand("/windows",ListWindows,false,true,false);
+	AddCommand("/notify",WndNotify,false,true,false);
 }
 
 void ShutdownMQ2Windows()
 {
 	DebugSpew("Shutting down MQ2 Windows");
+	RemoveCommand("/windows");
+	RemoveCommand("/notify");
 	RemoveDetour(CXMLSOMDocumentBase__XMLRead);
+	RemoveDetour(CSidlScreenWnd__SetScreen);
+	RemoveDetour(CXWndManager__RemoveWnd);
+	WindowList.Cleanup();
 }
 
 bool GenerateMQUI()
@@ -172,5 +267,243 @@ void RemoveXMLFile(const char *filename)
 		}
 		pFile=pFile->pNext;
 	}
+}
+
+bool SendWndNotification(PCHAR WindowName, PCHAR ScreenID, DWORD Notification, VOID *Data)
+{
+	CHAR szOut[MAX_STRING] = {0};
+
+	string Name=WindowName;
+	MakeLower(Name);
+
+	unsigned long N = WindowMap[Name];
+	if (!N)
+	{
+		sprintf(szOut,"Window '%s' not available.",WindowName);
+		WriteChatColor(szOut,USERCOLOR_DEFAULT);
+		return false;
+	}
+	N--;
+
+	_WindowInfo *pInfo=WindowList[N];
+	if (!pInfo)
+	{
+		WindowMap[Name]=0;
+		sprintf(szOut,"Window '%s' not available.",WindowName);
+		WriteChatColor(szOut,USERCOLOR_DEFAULT);
+		return false;
+	}
+	
+	CXWnd *pWnd;
+	if (pInfo->pWnd)
+	{
+		pWnd=pInfo->pWnd;
+	}
+	else
+	{
+		if (pInfo->ppWnd)
+		{
+			pWnd=*pInfo->ppWnd;
+			if (!pWnd)
+			{
+				sprintf(szOut,"Window '%s' not available.",WindowName);
+				WriteChatColor(szOut,USERCOLOR_DEFAULT);
+				return false;
+			}
+		}
+		else
+		{
+			WindowMap[Name]=0;
+			delete pInfo;
+			WindowList[N]=0;
+			WindowMap[Name]=0;
+			sprintf(szOut,"Window '%s' not available.",WindowName);
+			WriteChatColor(szOut,USERCOLOR_DEFAULT);
+			return false;
+		}
+	}
+
+
+
+	CXWnd *pButton=0;
+	if (ScreenID && ScreenID[0])
+	{
+		pButton=((CSidlScreenWnd*)(pWnd))->GetChildItem(CXStr(ScreenID));
+		if (!pButton)
+		{
+			sprintf(szOut,"Window '%s' child '%s' not found.",WindowName,ScreenID);
+			WriteChatColor(szOut,USERCOLOR_DEFAULT);
+			return false;
+		}
+	}
+	
+	((CXWnd*)(pWnd))->WndNotification(pButton,Notification,Data);
+
+	return true;
+}
+
+void AddWindow(char *WindowName, CXWnd **ppWindow)
+{
+	string Name=WindowName;
+	MakeLower(Name);
+
+	unsigned long N=WindowMap[Name];
+	if (N)
+	{
+		N--;
+		_WindowInfo *pWnd = WindowList[N];
+		pWnd->pWnd=0;
+		pWnd->ppWnd=ppWindow;
+		DebugSpew("Updating WndNotification target '%s'",WindowName);
+	}
+	else
+	{
+		_WindowInfo *pWnd = new _WindowInfo;
+		strcpy(pWnd->Name,WindowName);
+		pWnd->pWnd=0;
+		pWnd->ppWnd=ppWindow;
+		
+		N=WindowList.GetUnused();
+		WindowList[N]=pWnd;
+
+		WindowMap[WindowName]=N+1;
+		DebugSpew("Adding WndNotification target '%s'",Name);
+	}
+
+}
+
+void RemoveWindow(char *WindowName)
+{
+	string Name=WindowName;
+	MakeLower(Name);
+
+	unsigned long N=WindowMap[Name];
+	if (N)
+	{
+		N--;
+		WindowMap[Name]=0;
+		if (_WindowInfo *pInfo=WindowList[N])
+		{
+			delete pInfo;
+			WindowList[N]=0;
+		}
+	}
+}
+
+VOID ListWindows(PSPAWNINFO pChar, PCHAR szLine)
+{
+	CHAR szOut[MAX_STRING]={0};
+	if (!szLine || !szLine[0])
+	{
+		unsigned long Count=0;
+		WriteChatColor("List of available windows");
+		WriteChatColor("-------------------------");
+		for (unsigned long N = 0 ; N < WindowList.Size ; N++)
+			if (_WindowInfo *pInfo=WindowList[N])
+			{
+				sprintf(szOut,"%s",pInfo->Name);
+				WriteChatColor(szOut);
+				Count++;
+			}
+		sprintf(szOut,"%d available windows",Count);
+		WriteChatColor(szOut);
+	}
+	else
+	{
+		// list children of..
+		string WindowName=szLine;
+		MakeLower(WindowName);
+		unsigned long N = WindowMap[WindowName];
+		if (!N)
+		{
+			sprintf(szOut,"Window '%s' not available",szLine);
+			WriteChatColor(szOut);
+			return;
+		}
+		WriteChatColor("Listing of child windows not yet implemented");
+	}
+}
+
+PCHAR szWndNotification[] = { 
+	0,			//0 
+	"leftmouse",	//1
+	"leftmouseup",	//2
+	"rightmouse",		//3
+	0,		//4
+	0,		//5
+	"enter",		//6
+	0,		//7
+	0,		//8
+	0,		//9
+	"close",		//10
+	0,		//11
+	0,		//12
+	0,		//13
+	"newvalue",		//14
+	0,		//15
+	0,		//16
+	0,		//17
+	0,		//18
+	0,		//19
+	0,		//20
+	"mouseover",	//21
+	"history",		//22
+	"leftmousehold",	//23
+	0,		//24
+	0,		//25
+	0,		//26
+	0,		//27
+	0,		//28
+	0,		//29
+}; 
+
+VOID WndNotify(PSPAWNINFO pChar, PCHAR szLine)
+{
+	CHAR szArg1[MAX_STRING] = {0}; 
+	CHAR szArg2[MAX_STRING] = {0}; 
+	CHAR szArg3[MAX_STRING] = {0}; 
+	CHAR szArg4[MAX_STRING] = {0}; 
+	CHAR szOut[MAX_STRING] = {0};
+
+	GetArg(szArg1, szLine, 1);
+	GetArg(szArg2, szLine, 2);
+	GetArg(szArg3, szLine, 3);
+	GetArg(szArg4, szLine, 4);
+
+	if (!szArg3[0])
+	{
+		WriteChatColor("Syntax: /notify <window> <control|0> <notification> [notification data]");
+		return;
+	}
+	unsigned long Data=0;
+	if (szArg4[0])
+		Data=atoi(szArg4);
+
+	for (unsigned long i = 0 ; i < 30 ; i++)
+	{
+		if (szWndNotification[i] && !stricmp(szWndNotification[i],szArg3))
+		{
+			if (szArg2[0]=='0')
+			{
+				if (!SendWndNotification(szArg1,0,i,(void*)Data))
+				{
+					sprintf(szOut,"Could not send notification to %s %s",szArg1,szArg2);
+					WriteChatColor(szOut);
+				}
+			}
+			else if (!SendWndNotification(szArg1,szArg2,i,(void*)Data))
+			{
+				sprintf(szOut,"Could not send notification to %s %s",szArg1,szArg2);
+				WriteChatColor(szOut);
+			}
+			return;
+		}
+	}
+	sprintf(szOut,"Invalid notification '%s'",szArg3);
+	WriteChatColor(szOut);
+//bool SendWndNotification(PCHAR WindowName, PCHAR ScreenID, DWORD Notification, VOID *Data)
+	
+
+
 }
 
