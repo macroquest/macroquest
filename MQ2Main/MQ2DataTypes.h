@@ -22,29 +22,11 @@ EQLIB_VAR class MQ2BuffType *pBuffType;
 EQLIB_VAR class MQ2SpellType *pSpellType;
 EQLIB_VAR class MQ2TicksType *pTicksType;
 
-class MQ2FloatType : public MQ2Type
-{
-public:
-	MQ2FloatType():MQ2Type("float")
-	{
-	}
+EQLIB_VAR class MQ2ClassType *pClassType;
+EQLIB_VAR class MQ2RaceType *pRaceType;
 
-	~MQ2FloatType()
-	{
-	}
+#define TypeMember(name) AddMember((DWORD)name,""#name)
 
-	// pure type, no members
-	bool GetMember(void *Ptr, PCHAR Member, PCHAR Index, MQ2TYPEVAR &Dest)
-	{
-		return false;
-	}
-
-	 bool ToString(void *Ptr, PCHAR Destination)
-	{
-		sprintf(Destination,"%.3f",Ptr);
-		return true;
-	}
-};
 class MQ2IntType : public MQ2Type
 {
 public:
@@ -108,23 +90,90 @@ public:
 
 	MQ2StringType():MQ2Type("string")
 	{
+		TypeMember(Arg);
+		TypeMember(Mid);
+		TypeMember(Left);
+		TypeMember(Right);
+		TypeMember(Find);
+		TypeMember(Length);
+		TypeMember(Upper);
+		TypeMember(Lower);
 	}
 
 	~MQ2StringType()
 	{
 	}
-
-	bool GetMember(void *Ptr, PCHAR Member, PCHAR Index, MQ2TYPEVAR &Dest)
-	{
-		return false;
-	}
+	bool MQ2StringType::GetMember(void *Ptr, PCHAR Member, PCHAR Index, MQ2TYPEVAR &Dest);
 	 bool ToString(void *Ptr, PCHAR Destination)
 	{
 		strcpy(Destination,(const char *)Ptr);
 		return true;
 	}
 };
+class MQ2FloatType : public MQ2Type
+{
+public:
+	static enum FloatMembers
+	{
+		Deci=1,
+		Centi=2,
+		Milli=3,
+		Int=4,
+	};
 
+	MQ2FloatType():MQ2Type("float")
+	{
+		TypeMember(Deci);
+		TypeMember(Centi);
+		TypeMember(Milli);
+		TypeMember(Int);
+	}
+
+	~MQ2FloatType()
+	{
+	}
+
+	bool GetMember(void *Ptr, PCHAR Member, PCHAR Index, MQ2TYPEVAR &Dest)
+	{
+		unsigned long N=MemberMap[Member];
+		if (!N)
+			return false;
+		N--;
+		PMQ2TYPEMEMBER pMember=Members[N];
+		if (!pMember)
+			return false;
+		static CHAR Temp[128];
+		switch((FloatMembers)pMember->ID)
+		{
+		case Deci:
+			sprintf(Temp,"%.1f",Ptr);
+			Dest.Type=pStringType;
+			Dest.Ptr=&Temp[0];
+			return true;
+		case Centi:
+			sprintf(Temp,"%.2f",Ptr);
+			Dest.Type=pStringType;
+			Dest.Ptr=&Temp[0];
+			return true;
+		case Milli:
+			sprintf(Temp,"%.3f",Ptr);
+			Dest.Type=pStringType;
+			Dest.Ptr=&Temp[0];
+			return true;
+		case Int:
+			Dest.Type=pIntType;
+			Dest.Int=(int)(*(float*)&Ptr);
+			return true;
+		}
+		return false;
+	}
+
+	 bool ToString(void *Ptr, PCHAR Destination)
+	{
+		sprintf(Destination,"%.3f",Ptr);
+		return true;
+	}
+};
 class MQ2TicksType : public MQ2Type
 {
 public:
@@ -137,14 +186,10 @@ public:
 	};
 	MQ2TicksType():MQ2Type("ticks")
 	{
-		AddMember(Hours,"Hours");
-		AddMember(Minutes,"Minutes");
-		AddMember(Seconds,"Seconds");
-		AddMember(Time,"Time");
-	}
-	inline BOOL AddMember(enum TicksMembers ID, PCHAR Name)
-	{
-		return MQ2Type::AddMember((DWORD)ID,Name);
+		TypeMember(Hours);
+		TypeMember(Minutes);
+		TypeMember(Seconds);
+		TypeMember(Time);
 	}
 
 	~MQ2TicksType()
@@ -164,15 +209,15 @@ public:
 		switch((TicksMembers)pMember->ID)
 		{
 		case Hours:
-			Dest.Ptr=(PVOID)(((int)Ptr)/600);
+			Dest.DWord=((int)Ptr)/600;
 			Dest.Type=pIntType;
 			return true;
 		case Minutes:
-			Dest.Ptr=(PVOID)(((int)Ptr)/10);
+			Dest.DWord=((int)Ptr)/10;
 			Dest.Type=pIntType;
 			return true;
 		case Seconds:
-			Dest.Ptr=(PVOID)(((int)Ptr)*6);
+			Dest.DWord=((int)Ptr)*6;
 			Dest.Type=pIntType;
 			return true;
 		case Time:
@@ -246,13 +291,47 @@ public:
 	};
 	MQ2SpawnType():MQ2Type("spawn")
 	{
-		AddMember(ID,"ID");
-		AddMember(Name,"Name");
-		AddMember(Level,"Level");
-	}
-	inline BOOL AddMember(enum SpawnMembers ID, PCHAR Name)
-	{
-		return MQ2Type::AddMember((DWORD)ID,Name);
+		TypeMember(ID);//1,
+		TypeMember(Name);//2,
+		TypeMember(Level);//3,
+		TypeMember(X);//4,
+		TypeMember(Y);//5,
+		TypeMember(Z);//6,
+		TypeMember(DistanceX);//7,
+		TypeMember(DistanceY);//8,
+		TypeMember(DistanceZ);//9,
+		TypeMember(Distance);//10,
+		TypeMember(Distance3D);//11,
+		TypeMember(DistancePredict);//12,
+		TypeMember(Next);//13,
+		TypeMember(Prev);//14,
+		TypeMember(Heading);//15,
+		TypeMember(Speed);//16,
+		TypeMember(Levitating);//17,
+		TypeMember(Sneaking);//18,
+		TypeMember(HeadingTo);//19,
+		TypeMember(Light);//20,
+		TypeMember(Body);//21,
+		TypeMember(State);//22,
+		TypeMember(CurrentHPs);//23,
+		TypeMember(MaxHPs);//24,
+		TypeMember(PctHPs);//25,
+		TypeMember(Deity);//26,
+		TypeMember(DeityTeam);//27,
+		TypeMember(Type);//28,
+		TypeMember(CleanName);//29,
+		TypeMember(Surname);//30,
+		TypeMember(Guild);//31,
+		TypeMember(GuildStatus);//32,
+		TypeMember(Master);//33,
+		TypeMember(Pet);//34,
+		TypeMember(Race);//35,
+		TypeMember(Class);//36,
+		TypeMember(ShortClass);//37,
+		TypeMember(Gender);//38,
+		TypeMember(GM);//39,
+		TypeMember(Height);//40,
+		TypeMember(MaxRange);//41,
 	}
 
 	~MQ2SpawnType()
@@ -313,23 +392,50 @@ public:
 	};
 	MQ2CharacterType():MQ2Type("character")
 	{
-		AddMember(ID,"ID");
-		AddMember(Name,"Name");
-		AddMember(Level,"Level");
-	}
-	inline BOOL AddMember(enum CharacterMembers ID, PCHAR Name)
-	{
-		return MQ2Type::AddMember((DWORD)ID,Name);
+		TypeMember(ID);//1,
+		TypeMember(Name);//2,
+		TypeMember(Level);//3,
+		TypeMember(Exp);//4,
+		TypeMember(Spawn);//5,
+		TypeMember(Dar);//6,
+		TypeMember(AAExp);//7,
+		TypeMember(AAPoints);//8,
+		TypeMember(AARank);//9,
+		TypeMember(CurrentHPs);//10,
+		TypeMember(MaxHPs);//11,
+		TypeMember(HPRegen);//12,
+		TypeMember(PctHPs);//13,
+		TypeMember(CurrentMana);//14,
+		TypeMember(MaxMana);//15,
+		TypeMember(ManaRegen);//16,
+		TypeMember(PctMana);//17,
+		TypeMember(Buff);//18,
+		TypeMember(Song);//19,
+		TypeMember(Book);//20,
+		TypeMember(Skill);//21,
+		TypeMember(Ability);//22,
+		TypeMember(Surname);//23,
+		TypeMember(Cash);//24,
+		TypeMember(CashBank);//25,
+		TypeMember(PlatShared);//26,
+		TypeMember(Grouped);//27,
+		TypeMember(HPBonus);//28,
+		TypeMember(ManaBonus);//29,
+		TypeMember(GukEarned);//30,
+		TypeMember(MMEarned);//31,
+		TypeMember(RujEarned);//32,
+		TypeMember(TakEarned);//33,
+		TypeMember(LDonPoints);//34,
+		TypeMember(CurrentFavor);//35,
+		TypeMember(CareerFavor);//36,
+		TypeMember(Endurance);//37,
 	}
 
 	~MQ2CharacterType()
 	{
 	}
 
-	bool GetMember(void *Ptr, PCHAR Member, PCHAR Index, MQ2TYPEVAR &Dest)
-	{
-		return false;
-	}
+	bool GetMember(void *Ptr, PCHAR Member, PCHAR Index, MQ2TYPEVAR &Dest);
 
 	 bool ToString(void *Ptr, PCHAR Destination)
 	{
@@ -351,15 +457,11 @@ public:
 	};
 	MQ2BuffType():MQ2Type("buff")
 	{
-		AddMember(ID,"ID");
-		AddMember(Spell,"Spell");
-		AddMember(Level,"Level");
-		AddMember(Mod,"Mod");
-		AddMember(Duration,"Duration");
-	}
-	inline BOOL AddMember(enum BuffMembers ID, PCHAR Name)
-	{
-		return MQ2Type::AddMember((DWORD)ID,Name);
+		TypeMember(ID);
+		TypeMember(Level);
+		TypeMember(Spell);
+		TypeMember(Mod);
+		TypeMember(Duration);
 	}
 
 	~MQ2BuffType()
@@ -400,21 +502,31 @@ public:
 	};
 	MQ2SpellType():MQ2Type("spell")
 	{
-		AddMember(ID,"ID");
-	}
-	inline BOOL AddMember(enum SpellMembers ID, PCHAR Name)
-	{
-		return MQ2Type::AddMember((DWORD)ID,Name);
+		TypeMember(ID);//1,
+		TypeMember(Name);//2,
+		TypeMember(Level);//3,
+		TypeMember(Skill);//4,
+		TypeMember(Mana);//5,
+		TypeMember(ResistAdj);//6,
+		TypeMember(Range);//7,
+		TypeMember(AERange);//8,
+		TypeMember(PushBack);//9,
+		TypeMember(CastTime);//10,
+		TypeMember(FizzleTime);//11,
+		TypeMember(MyCastTime);//12,
+		TypeMember(RecoveryTime);//13,
+		TypeMember(RecastTime);//14,
+		TypeMember(Duration);//15,
+		TypeMember(SpellType);//16,
+		TypeMember(TargetType);//17,
+		TypeMember(ResistType);//18,
 	}
 
 	~MQ2SpellType()
 	{
 	}
 
-	bool GetMember(void *Ptr, PCHAR Member, PCHAR Index, MQ2TYPEVAR &Dest)
-	{
-		return false;
-	}
+	bool GetMember(void *Ptr, PCHAR Member, PCHAR Index, MQ2TYPEVAR &Dest);
 
 	 bool ToString(void *Ptr, PCHAR Destination)
 	{
@@ -444,21 +556,27 @@ public:
 	};
 	MQ2ItemType():MQ2Type("Item")
 	{
-		AddMember(ID,"ID");
-	}
-	inline BOOL AddMember(enum ItemMembers ID, PCHAR Name)
-	{
-		return MQ2Type::AddMember((DWORD)ID,Name);
+		TypeMember(ID);//1,
+		TypeMember(Name);//2,
+		TypeMember(Lore);//3,
+		TypeMember(NoDrop);//4,
+		TypeMember(NoRent);//5,
+		TypeMember(Magic);//6,
+		TypeMember(Value);//7,
+		TypeMember(Size);//8,
+		TypeMember(Weight);//9,
+		TypeMember(Stack);//10,
+		TypeMember(Type);//11,
+		TypeMember(Charges);//12,
+		TypeMember(LDoNTheme);//13,
+		TypeMember(DMGBonusType);//14,
 	}
 
 	~MQ2ItemType()
 	{
 	}
 
-	bool GetMember(void *Ptr, PCHAR Member, PCHAR Index, MQ2TYPEVAR &Dest)
-	{
-		return false;
-	}
+	bool GetMember(void *Ptr, PCHAR Member, PCHAR Index, MQ2TYPEVAR &Dest);
 
 	 bool ToString(void *Ptr, PCHAR Destination)
 	{
@@ -488,21 +606,26 @@ public:
 	};
 	MQ2SwitchType():MQ2Type("switch")
 	{
-		AddMember(ID,"ID");
-	}
-	inline BOOL AddMember(enum SwitchMembers ID, PCHAR Name)
-	{
-		return MQ2Type::AddMember((DWORD)ID,Name);
+		TypeMember(ID);//1,
+		TypeMember(Distance);//2,
+		TypeMember(X);//3,
+		TypeMember(Y);//4,
+		TypeMember(Z);//5,
+		TypeMember(Heading);//6,
+		TypeMember(DefaultX);//7,
+		TypeMember(DefaultY);//8,
+		TypeMember(DefaultZ);//9,
+		TypeMember(DefaultHeading);//10,
+		TypeMember(Open);//11,
+		TypeMember(HeadingTo);//12,
+		TypeMember(Name);//13,
 	}
 
 	~MQ2SwitchType()
 	{
 	}
 
-	bool GetMember(void *Ptr, PCHAR Member, PCHAR Index, MQ2TYPEVAR &Dest)
-	{
-		return false;
-	}
+	bool GetMember(void *Ptr, PCHAR Member, PCHAR Index, MQ2TYPEVAR &Dest);
 
 	 bool ToString(void *Ptr, PCHAR Destination)
 	{
@@ -525,21 +648,20 @@ public:
 	};
 	MQ2GroundType():MQ2Type("ground")
 	{
-		AddMember(ID,"ID");
-	}
-	inline BOOL AddMember(enum GroundMembers ID, PCHAR Name)
-	{
-		return MQ2Type::AddMember((DWORD)ID,Name);
+		TypeMember(ID);//1,
+		TypeMember(Distance);//2,
+		TypeMember(X);//3,
+		TypeMember(Y);//4,
+		TypeMember(Z);//5,
+		TypeMember(Heading);//6,
+		TypeMember(Name);//7,
 	}
 
 	~MQ2GroundType()
 	{
 	}
 
-	bool GetMember(void *Ptr, PCHAR Member, PCHAR Index, MQ2TYPEVAR &Dest)
-	{
-		return false;
-	}
+	bool GetMember(void *Ptr, PCHAR Member, PCHAR Index, MQ2TYPEVAR &Dest);
 
 	 bool ToString(void *Ptr, PCHAR Destination)
 	{
@@ -557,21 +679,14 @@ public:
 	};
 	MQ2CorpseType():MQ2Type("corpse")
 	{
-		AddMember(ID,"ID");
-	}
-	inline BOOL AddMember(enum CorpseMembers ID, PCHAR Name)
-	{
-		return MQ2Type::AddMember((DWORD)ID,Name);
+		TypeMember(ID);
 	}
 
 	~MQ2CorpseType()
 	{
 	}
 
-	bool GetMember(void *Ptr, PCHAR Member, PCHAR Index, MQ2TYPEVAR &Dest)
-	{
-		return false;
-	}
+	bool GetMember(void *Ptr, PCHAR Member, PCHAR Index, MQ2TYPEVAR &Dest);
 
 	 bool ToString(void *Ptr, PCHAR Destination)
 	{
@@ -588,21 +703,14 @@ public:
 	};
 	MQ2MerchantType():MQ2Type("merchant")
 	{
-		AddMember(ID,"ID");
-	}
-	inline BOOL AddMember(enum MerchantMembers ID, PCHAR Name)
-	{
-		return MQ2Type::AddMember((DWORD)ID,Name);
+		TypeMember(ID);
 	}
 
 	~MQ2MerchantType()
 	{
 	}
 
-	bool GetMember(void *Ptr, PCHAR Member, PCHAR Index, MQ2TYPEVAR &Dest)
-	{
-		return false;
-	}
+	bool GetMember(void *Ptr, PCHAR Member, PCHAR Index, MQ2TYPEVAR &Dest);
 
 	 bool ToString(void *Ptr, PCHAR Destination)
 	{
@@ -619,21 +727,14 @@ public:
 	};
 	MQ2WindowType():MQ2Type("window")
 	{
-		AddMember(Open,"Open");
-	}
-	inline BOOL AddMember(enum WindowMembers ID, PCHAR Name)
-	{
-		return MQ2Type::AddMember((DWORD)ID,Name);
+		TypeMember(Open);
 	}
 
 	~MQ2WindowType()
 	{
 	}
 
-	bool GetMember(void *Ptr, PCHAR Member, PCHAR Index, MQ2TYPEVAR &Dest)
-	{
-		return false;
-	}
+	bool GetMember(void *Ptr, PCHAR Member, PCHAR Index, MQ2TYPEVAR &Dest);
 
 	 bool ToString(void *Ptr, PCHAR Destination)
 	{
@@ -651,21 +752,14 @@ public:
 	};
 	MQ2MacroType():MQ2Type("macro")
 	{
-		AddMember(Name,"Name");
-	}
-	inline BOOL AddMember(enum MacroMembers ID, PCHAR Name)
-	{
-		return MQ2Type::AddMember((DWORD)ID,Name);
+		TypeMember(Name);
 	}
 
 	~MQ2MacroType()
 	{
 	}
 
-	bool GetMember(void *Ptr, PCHAR Member, PCHAR Index, MQ2TYPEVAR &Dest)
-	{
-		return false;
-	}
+	bool GetMember(void *Ptr, PCHAR Member, PCHAR Index, MQ2TYPEVAR &Dest);
 
 	 bool ToString(void *Ptr, PCHAR Destination)
 	{
@@ -682,21 +776,14 @@ public:
 	};
 	MQ2ZoneType():MQ2Type("zone")
 	{
-		AddMember(Name,"Name");
-	}
-	inline BOOL AddMember(enum ZoneMembers ID, PCHAR Name)
-	{
-		return MQ2Type::AddMember((DWORD)ID,Name);
+		TypeMember(Name);
 	}
 
 	~MQ2ZoneType()
 	{
 	}
 
-	bool GetMember(void *Ptr, PCHAR Member, PCHAR Index, MQ2TYPEVAR &Dest)
-	{
-		return false;
-	}
+	bool GetMember(void *Ptr, PCHAR Member, PCHAR Index, MQ2TYPEVAR &Dest);
 
 	 bool ToString(void *Ptr, PCHAR Destination)
 	{
@@ -713,21 +800,14 @@ public:
 	};
 	MQ2MacroQuestType():MQ2Type("macroquest")
 	{
-		AddMember(Name,"Name");
-	}
-	inline BOOL AddMember(enum MacroQuestMembers ID, PCHAR Name)
-	{
-		return MQ2Type::AddMember((DWORD)ID,Name);
+		TypeMember(Name);
 	}
 
 	~MQ2MacroQuestType()
 	{
 	}
 
-	bool GetMember(void *Ptr, PCHAR Member, PCHAR Index, MQ2TYPEVAR &Dest)
-	{
-		return false;
-	}
+	bool GetMember(void *Ptr, PCHAR Member, PCHAR Index, MQ2TYPEVAR &Dest);
 
 	 bool ToString(void *Ptr, PCHAR Destination)
 	{
@@ -755,24 +835,86 @@ public:
 	};
 	MQ2MathType():MQ2Type("math")
 	{
-		AddMember(Abs,"Abs");
-	}
-	inline BOOL AddMember(enum MathMembers ID, PCHAR Name)
-	{
-		return MQ2Type::AddMember((DWORD)ID,Name);
+		TypeMember(Abs);
+		TypeMember(Rand);//2,
+		TypeMember(Calc);//3,
+		TypeMember(Sin);//4,
+		TypeMember(Cos);//5,
+		TypeMember(Tan);//6,
+		TypeMember(Asin);//7,
+		TypeMember(Acos);//8,
+		TypeMember(Atan);//9,
+		TypeMember(Hex);//10,
+		TypeMember(Dec);//11,
+		TypeMember(Not);//12,
 	}
 
 	~MQ2MathType()
 	{
 	}
 
-	bool GetMember(void *Ptr, PCHAR Member, PCHAR Index, MQ2TYPEVAR &Dest)
-	{
-		return false;
-	}
+	bool GetMember(void *Ptr, PCHAR Member, PCHAR Index, MQ2TYPEVAR &Dest);
 
 	 bool ToString(void *Ptr, PCHAR Destination)
 	{
 		return false;
 	}
 };
+
+class MQ2RaceType : public MQ2Type
+{
+public:
+	static enum RaceMembers
+	{
+		Short=1,
+		Long=2,
+		Number=3
+	};
+	MQ2RaceType():MQ2Type("race")
+	{
+		TypeMember(Short);
+		TypeMember(Long);
+		TypeMember(Number);
+	}
+
+	~MQ2RaceType()
+	{
+	}
+
+	bool GetMember(void *Ptr, PCHAR Member, PCHAR Index, MQ2TYPEVAR &Dest);
+
+	 bool ToString(void *Ptr, PCHAR Destination)
+	{
+		return false;
+	}
+};
+
+class MQ2ClassType : public MQ2Type
+{
+public:
+	static enum ClassMembers
+	{
+		Short=1,
+		Long=2,
+		Number=3
+	};
+	MQ2ClassType():MQ2Type("class")
+	{
+		TypeMember(Short);
+		TypeMember(Long);
+		TypeMember(Number);
+	}
+
+	~MQ2ClassType()
+	{
+	}
+
+	bool GetMember(void *Ptr, PCHAR Member, PCHAR Index, MQ2TYPEVAR &Dest);
+
+	 bool ToString(void *Ptr, PCHAR Destination)
+	{
+		return false;
+	}
+};
+
+#undef TypeMember

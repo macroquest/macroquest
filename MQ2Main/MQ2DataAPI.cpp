@@ -66,6 +66,7 @@ bool RemoveMQ2Data(PCHAR szName)
 void InitializeMQ2Data()
 {
 	AddMQ2Data("Spawn",dataSpawn);
+	AddMQ2Data("Target",dataTarget);
 	AddMQ2Data("Me",dataCharacter);
 }
 

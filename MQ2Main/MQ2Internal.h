@@ -470,7 +470,14 @@ public:
 typedef struct _MQ2TypeVar
 {
 	class MQ2Type *Type;
-	PVOID Ptr;
+	union {
+		PVOID Ptr;
+		FLOAT Float;
+		DWORD DWord;
+		BYTE  Byte;
+		CHAR  Char;
+		int   Int;
+	};
 } MQ2TYPEVAR, *PMQ2TYPEVAR;
 
 typedef struct _MQ2TypeMember

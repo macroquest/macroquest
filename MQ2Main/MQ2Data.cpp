@@ -37,6 +37,17 @@ BOOL dataSpawn(PCHAR szIndex, MQ2TYPEVAR &Ret)
 	return false;
 }
 
+BOOL dataTarget(PCHAR szIndex, MQ2TYPEVAR &Ret)
+{
+	if (pTarget)
+	{
+		Ret.Ptr=pTarget;
+		Ret.Type=pSpawnType;
+		return true;
+	}
+	return false;
+}
+
 BOOL dataCharacter(PCHAR szIndex, MQ2TYPEVAR &Ret)
 {
 	if (pCharData)

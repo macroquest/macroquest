@@ -467,6 +467,7 @@ EQLIB_API DOUBLE Calculate(PCHAR szFormula);
 
 /* DATA ITEMS */
 EQLIB_API BOOL dataSpawn(PCHAR szIndex, MQ2TYPEVAR &Ret);
+EQLIB_API BOOL dataTarget(PCHAR szIndex, MQ2TYPEVAR &Ret);
 EQLIB_API BOOL dataCharacter(PCHAR szIndex, MQ2TYPEVAR &Ret);
 
 
