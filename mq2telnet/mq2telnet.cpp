@@ -19,7 +19,7 @@ CRITICAL_SECTION gTelnet_CS_Recv;
 CRITICAL_SECTION gTelnet_CS_Connection;
 CRITICAL_SECTION gTelnet_CS_Send;
 CRITICAL_SECTION gTelnet_CS_Lock;
-CRITICAL_SECTION gDoCommand_Lock;
+//CRITICAL_SECTION gDoCommand_Lock;
 
 
 VOID SetupServer();
@@ -33,7 +33,7 @@ PreSetup("MQ2Telnet");
 PLUGIN_API VOID InitializePlugin(VOID)
 {
     DebugSpewAlways("Initializing mq2telnet");
-    InitializeCriticalSection(&gDoCommand_Lock);
+//    InitializeCriticalSection(&gDoCommand_Lock);
     InitializeCriticalSection(&gTelnet_CS_Recv);
     InitializeCriticalSection(&gTelnet_CS_Send);
     SetupServer();
@@ -45,7 +45,7 @@ PLUGIN_API VOID ShutdownPlugin(VOID)
     CloseServer();
     DeleteCriticalSection(&gTelnet_CS_Send);
     DeleteCriticalSection(&gTelnet_CS_Recv);
-    DeleteCriticalSection(&gDoCommand_Lock);
+//    DeleteCriticalSection(&gDoCommand_Lock);
 }
 
 PLUGIN_API VOID OnPulse(VOID)
@@ -330,8 +330,8 @@ VOID SetupServer()
         gTelnetServer=0;
         return;
     }
-    InitializeCriticalSection(&gTelnet_CS_Connection);
-    InitializeCriticalSection(&gTelnet_CS_Lock);
+//    InitializeCriticalSection(&gTelnet_CS_Connection);
+//    InitializeCriticalSection(&gTelnet_CS_Lock);
     DWORD ThreadId; 
     CreateThread(NULL,0,&ListenThread,NULL,0,&ThreadId);
     CreateThread(NULL,0,&SendThread,NULL,0,&ThreadId);
@@ -348,8 +348,8 @@ VOID CloseServer()
         LeaveCriticalSection(&gTelnet_CS_Lock);
         if (Locks>0) Sleep(500);
     }
-    DeleteCriticalSection(&gTelnet_CS_Lock);
-    DeleteCriticalSection(&gTelnet_CS_Connection);
+//    DeleteCriticalSection(&gTelnet_CS_Lock);
+//    DeleteCriticalSection(&gTelnet_CS_Connection);
 
     PCHATBUF NextQueue = NULL;
     PCONNECTION NextConn = NULL;
