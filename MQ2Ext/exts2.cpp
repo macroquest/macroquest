@@ -111,7 +111,6 @@ DECLARE_API ( pchar )
     KP(GuildID); 
 	KP(GuildStatus);
 	KP(Drunkedness);
-    KP(Grouped);
 	KP(AAExp);
 	KP(PercentEXPtoAA);
 	KP(AAPoints);
@@ -122,7 +121,14 @@ DECLARE_API ( pchar )
 	KP(RujEarned);
 	KP(TakEarned);
 	KP(LDoNPoints);
+	KP(CareerFavor);
+	KP(CurrFavor);
+	KP(LeadershipRelated1);
+	KP(LeadershipRelated2);
+	KP(LeadershipRelated3);
+	KP(LeadershipRelated4);
     KP(Bank);
+	KP(Grouped);
 } 
 
 DECLARE_API ( pspawn ) 
@@ -565,6 +571,7 @@ DECLARE_API ( pactorinfo )
    KP(SpellETA);
    KP(Animation);
    KP(Mount);
+   KP(PetID);
    KPs(NameOfLastSuccessfulTargetHit);
    KP(InvitedToGroup);
    KP(CastingSpellID);
