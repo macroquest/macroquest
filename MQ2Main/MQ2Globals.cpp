@@ -86,7 +86,14 @@ CHAR gszLastSyntaxError[MAX_STRING] = {0};
 CHAR gszLastMQ2DataError[MAX_STRING] = {0};
 
 PSPAWNINFO pNamingSpawn=0;
-CHAR gszSpawnPlayerName[MAX_STRING]="${If[${NamingSpawn.Trader},Trader ,]}${If[${NamingSpawn.AARank},${NamingSpawn.AATitle} ,]}${If[${NamingSpawn.Invis},(${NamingSpawn.DisplayName}),${NamingSpawn.DisplayName}]}${If[${NamingSpawn.Surname.Length}, ${NamingSpawn.Surname},]}${If[${NamingSpawn.AFK}, AFK,]}${If[${NamingSpawn.Linkdead}, LD,]}${If[${NamingSpawn.LFG}, LFG,]}${If[${NamingSpawn.Guild.Length}, <${If[${NamingSpawn.GuildStatus.NotEqual[member]},${NamingSpawn.GuildStatus} of ,]}${NamingSpawn.Guild}>,]}";
+CHAR gszSpawnPlayerName[5][MAX_STRING]={
+"",//0
+"${If[${NamingSpawn.Trader},Trader ,]}${If[${NamingSpawn.Invis},(${NamingSpawn.DisplayName}),${NamingSpawn.DisplayName}]}${If[${NamingSpawn.AFK}, AFK,]}${If[${NamingSpawn.Linkdead}, LD,]}${If[${NamingSpawn.LFG}, LFG,]}${If[${NamingSpawn.GroupLeader}, LDR,]}",//1
+"${If[${NamingSpawn.Trader},Trader ,]}${If[${NamingSpawn.Invis},(${NamingSpawn.DisplayName}),${NamingSpawn.DisplayName}]}${If[${NamingSpawn.Surname.Length}, ${NamingSpawn.Surname},]}${If[${NamingSpawn.AFK}, AFK,]}${If[${NamingSpawn.Linkdead}, LD,]}${If[${NamingSpawn.LFG}, LFG,]}${If[${NamingSpawn.GroupLeader}, LDR,]}",//2
+"${If[${NamingSpawn.Trader},Trader ,]}${If[${NamingSpawn.Invis},(${NamingSpawn.DisplayName}),${NamingSpawn.DisplayName}]}${If[${NamingSpawn.Surname.Length}, ${NamingSpawn.Surname},]}${If[${NamingSpawn.AFK}, AFK,]}${If[${NamingSpawn.Linkdead}, LD,]}${If[${NamingSpawn.LFG}, LFG,]}${If[${NamingSpawn.GroupLeader}, LDR,]}${If[${NamingSpawn.Guild.Length}, <${If[${NamingSpawn.GuildStatus.NotEqual[member]},${NamingSpawn.GuildStatus} of ,]}${NamingSpawn.Guild}>,]}",//3
+"${If[${NamingSpawn.Trader},Trader ,]}${If[${NamingSpawn.AARank},${NamingSpawn.AATitle} ,]}${If[${NamingSpawn.Invis},(${NamingSpawn.DisplayName}),${NamingSpawn.DisplayName}]}${If[${NamingSpawn.Surname.Length}, ${NamingSpawn.Surname},]}${If[${NamingSpawn.AFK}, AFK,]}${If[${NamingSpawn.Linkdead}, LD,]}${If[${NamingSpawn.LFG}, LFG,]}${If[${NamingSpawn.GroupLeader}, LDR,]}${If[${NamingSpawn.Guild.Length}, <${If[${NamingSpawn.GuildStatus.NotEqual[member]},${NamingSpawn.GuildStatus} of ,]}${NamingSpawn.Guild}>,]}"//4
+}
+;
 CHAR gszSpawnNPCName[MAX_STRING]="${NamingSpawn.DisplayName}${If[${NamingSpawn.Surname.Length},\n(${NamingSpawn.Surname}),]}";
 CHAR gszSpawnMountName[MAX_STRING]="${NamingSpawn.DisplayName}";
 CHAR gszSpawnPetName[MAX_STRING]="${NamingSpawn.DisplayName}${If[${NamingSpawn.Master.Type.Equal[PC]},\n(${NamingSpawn.Master}),]}";
@@ -218,6 +225,9 @@ PCHAR gpbRangedAttackReady=(PCHAR)__RangeAttackReady;
 PCHAR gpbShowNetStatus=(PCHAR)__NetStatusToggle;
 PCHAR gpbAltTimerReady=(PCHAR)__AltTimerReady;
 DWORD *g_ppDrawHandler=(DWORD*)__DrawHandler;
+DWORD *gpShowNames=(DWORD*)__ShowNames;
+
+
 PVOID EQADDR_GWORLD=(PVOID)__gWorld;
 //PDOORTABLE *EQADDR_DOORS=0;
 PDWORD EQADDR_DOABILITYLIST=(PDWORD)__DoAbilityList;
@@ -361,9 +371,9 @@ PCHAR szSpawnType[] = {
 };
 
 PCHAR szGuildStatus[] = {
-	"member",
-	"officer",
-	"leader",
+	"Member",
+	"Officer",
+	"Leader",
 	NULL
 };
 

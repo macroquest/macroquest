@@ -559,7 +559,7 @@ public:
 		MaxRangeTo=74,
 		DisplayName=75,
 		AATitle=76,
-		GroupLeader=77,
+		xGroupLeader=77,
 	};
 	MQ2SpawnType():MQ2Type("spawn")
 	{
@@ -637,7 +637,7 @@ public:
 		TypeMember(MaxRangeTo);
 		TypeMember(DisplayName);
 		TypeMember(AATitle);
-		TypeMember(GroupLeader);
+		AddMember(xGroupLeader,"GroupLeader");
 	}
 
 	~MQ2SpawnType()

@@ -484,6 +484,7 @@ void InitializeMQ2Commands()
 		{"/clearerrors", ClearErrorsCmd,1,0},
 		{"/drop",		DropCmd,1,0},
 		{"/hud",        HudCmd,1,0},
+		{"/caption",	CaptionCmd,0,0},
 		{NULL,          NULL,0,1},
     };
 

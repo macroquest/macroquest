@@ -52,7 +52,7 @@ FUNCTION_AT_VIRTUAL_ADDRESS(int CXWnd::HandleRButtonHeld(class CXPoint *,unsigne
 FUNCTION_AT_VIRTUAL_ADDRESS(int CXWnd::HandleRButtonUpAfterHeld(class CXPoint *,unsigned __int32),0x50);
 
 
-FUNCTION_AT_VIRTUAL_ADDRESS(void CListWnd::DeleteAll(void),0x128);
+FUNCTION_AT_VIRTUAL_ADDRESS(void CListWnd::DeleteAll(void),0x12c);
 
 
 // AUTO IMPORTS

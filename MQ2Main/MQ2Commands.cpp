@@ -4592,3 +4592,61 @@ VOID HudCmd(PSPAWNINFO pChar, PCHAR szLine)
 	}
 }
 
+VOID CaptionCmd(PSPAWNINFO pChar, PCHAR szLine)
+{
+	CHAR Arg1[MAX_STRING]={0};
+	GetArg(Arg1,szLine,1);
+	if (!Arg1[0])
+	{
+		SyntaxError("Usage: /caption <list|type <value>>");
+		return;
+	}
+	if (!stricmp(Arg1,"list"))
+	{
+		WriteChatf("\ayPlayer1\ax: \ag%s\ax",gszSpawnPlayerName[1]);
+		WriteChatf("\ayPlayer2\ax: \ag%s\ax",gszSpawnPlayerName[2]);
+		WriteChatf("\ayPlayer3\ax: \ag%s\ax",gszSpawnPlayerName[3]);
+		WriteChatf("\ayPlayer4\ax: \ag%s\ax",gszSpawnPlayerName[4]);
+
+		WriteChatf("\ayNPC\ax: \ag%s\ax",gszSpawnNPCName);
+		WriteChatf("\ayPet\ax: \ag%s\ax",gszSpawnPetName);
+		WriteChatf("\ayCorpse\ax: \ag%s\ax",gszSpawnCorpseName);
+		WriteChatf("\ayMount\ax: \ag%s\ax",gszSpawnMountName);
+		return;
+	}
+	PCHAR pCaption=0;
+	if (!stricmp(Arg1,"Player1"))
+	{
+		pCaption=gszSpawnPlayerName[1];
+	} else if (!stricmp(Arg1,"Player2"))
+	{
+		pCaption=gszSpawnPlayerName[2];
+	} else if (!stricmp(Arg1,"Player3"))
+	{
+		pCaption=gszSpawnPlayerName[3];
+	} else if (!stricmp(Arg1,"Player4"))
+	{
+		pCaption=gszSpawnPlayerName[4];
+	} else if (!stricmp(Arg1,"Pet"))
+	{
+		pCaption=gszSpawnPetName;
+	} else if (!stricmp(Arg1,"NPC"))
+	{
+		pCaption=gszSpawnNPCName;
+	} else if (!stricmp(Arg1,"Corpse"))
+	{
+		pCaption=gszSpawnCorpseName;
+	} else if (!stricmp(Arg1,"Mount"))
+	{
+		pCaption=gszSpawnMountName;
+	}
+	else
+	{
+		MacroError("Invalid caption type '%s'",Arg1);
+		return;
+	}
+    strcpy(pCaption, GetNextArg(szLine));
+	WritePrivateProfileString("Captions",Arg1,pCaption,gszINIFilename);
+	WriteChatf("\ay%s\ax caption set.",Arg1);
+}
+

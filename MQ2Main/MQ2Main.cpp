@@ -143,12 +143,18 @@ BOOL ParseINIFile(PCHAR lpINIPath)
 
 
 	GetPrivateProfileString("Captions","NPC",gszSpawnNPCName,gszSpawnNPCName,MAX_STRING,Filename);
-	GetPrivateProfileString("Captions","Player",gszSpawnPlayerName,gszSpawnPlayerName,MAX_STRING,Filename);
+	GetPrivateProfileString("Captions","Player1",gszSpawnPlayerName[1],gszSpawnPlayerName[1],MAX_STRING,Filename);
+	GetPrivateProfileString("Captions","Player2",gszSpawnPlayerName[2],gszSpawnPlayerName[2],MAX_STRING,Filename);
+	GetPrivateProfileString("Captions","Player3",gszSpawnPlayerName[3],gszSpawnPlayerName[3],MAX_STRING,Filename);
+	GetPrivateProfileString("Captions","Player4",gszSpawnPlayerName[4],gszSpawnPlayerName[4],MAX_STRING,Filename);
 	GetPrivateProfileString("Captions","Corpse",gszSpawnCorpseName,gszSpawnCorpseName,MAX_STRING,Filename);
 	GetPrivateProfileString("Captions","Mount",gszSpawnMountName,gszSpawnMountName,MAX_STRING,Filename);
 	GetPrivateProfileString("Captions","Pet",gszSpawnPetName,gszSpawnPetName,MAX_STRING,Filename);
 	ConvertCR(gszSpawnNPCName);
-	ConvertCR(gszSpawnPlayerName);
+	ConvertCR(gszSpawnPlayerName[1]);
+	ConvertCR(gszSpawnPlayerName[2]);
+	ConvertCR(gszSpawnPlayerName[3]);
+	ConvertCR(gszSpawnPlayerName[4]);
 	ConvertCR(gszSpawnCorpseName);
 	ConvertCR(gszSpawnMountName);
 	ConvertCR(gszSpawnPetName);

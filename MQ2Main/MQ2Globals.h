@@ -83,7 +83,7 @@ EQLIB_VAR CHAR gszLastMQ2DataError[MAX_STRING];
 
 EQLIB_VAR PSPAWNINFO pNamingSpawn;
 EQLIB_VAR CHAR gszSpawnNPCName[MAX_STRING];
-EQLIB_VAR CHAR gszSpawnPlayerName[MAX_STRING];
+EQLIB_VAR CHAR gszSpawnPlayerName[5][MAX_STRING];
 EQLIB_VAR CHAR gszSpawnMountName[MAX_STRING];
 EQLIB_VAR CHAR gszSpawnPetName[MAX_STRING];
 EQLIB_VAR CHAR gszSpawnCorpseName[MAX_STRING];
@@ -209,6 +209,8 @@ EQLIB_VAR PCHAR gpbAltTimerReady;
 #define gbAltTimerReady (*gpbAltTimerReady)
 EQLIB_VAR PCHAR gpbShowNetStatus;
 #define gbShowNetStatus (*gpbShowNetStatus)
+EQLIB_VAR DWORD *gpShowNames;
+#define gShowNames (*gpShowNames)
 
 
 EQLIB_VAR DWORD *g_ppDrawHandler;

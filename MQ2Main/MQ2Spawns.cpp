@@ -193,7 +193,7 @@ public:
 				SetCaption(gszSpawnNPCName);
 				break;
 			case PC:
-				SetCaption(gszSpawnPlayerName);
+				SetCaption(gszSpawnPlayerName[gShowNames]);
 				break;
 			case CORPSE:
 				SetCaption(gszSpawnCorpseName);

@@ -39,6 +39,16 @@ VOID DebugSpew(PCHAR szFormat, ...)
 #endif
 }
 
+VOID WriteChatf(PCHAR szFormat, ...)
+{
+    CHAR szOutput[MAX_STRING] = {0};
+    va_list vaList;
+    va_start( vaList, szFormat );
+    vsprintf(szOutput,szFormat, vaList);
+	WriteChatColor(szOutput);
+}
+
+
 VOID DebugSpewAlways(PCHAR szFormat, ...)
 {
     CHAR szOutput[MAX_STRING] = {0};
@@ -3103,5 +3113,4 @@ BOOL Calculate(PCHAR szFormula, DOUBLE &Result)
 	}
 	return ActualCalculate(Buffer,Result);
 }
-
 

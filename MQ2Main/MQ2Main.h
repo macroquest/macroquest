@@ -238,6 +238,7 @@ EQLIB_API DWORD LoadMQ2Plugin(const PCHAR pszFilename);
 EQLIB_API BOOL UnloadMQ2Plugin(const PCHAR pszFilename);
 EQLIB_API VOID UnloadMQ2Plugins();
 EQLIB_API VOID ShutdownMQ2Plugins();
+EQLIB_API VOID WriteChatf(PCHAR Format, ...);
 EQLIB_API VOID WriteChatColor(PCHAR Line, DWORD Color=USERCOLOR_DEFAULT, DWORD Filter=0);
 EQLIB_API VOID PulsePlugins();
 EQLIB_API VOID PluginsZoned();
@@ -591,6 +592,7 @@ EQLIB_API BOOL dataNamingSpawn(PCHAR szIndex, MQ2TYPEVAR &Ret);
 
 /* COMMANDS */
 
+EQLIB_API VOID CaptionCmd(PSPAWNINFO pChar, PCHAR szLine);
 EQLIB_API VOID HudCmd(PSPAWNINFO pChar, PCHAR szLine);
 EQLIB_API VOID DropCmd(PSPAWNINFO pChar, PCHAR szLine);
 EQLIB_API VOID CombineCmd(PSPAWNINFO pChar, PCHAR szLine);
