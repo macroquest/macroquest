@@ -3317,7 +3317,7 @@ BOOL FastCalculate(PCHAR szFormula, DOUBLE &Result)
 		} \
 	}
 
-#define FinishString() {if (pToken!=&CurrentToken[0]) {*pToken=0;ValueToList(atof(CurrentToken));pToken=&CurrentToken[0];}}
+#define FinishString() {if (pToken!=&CurrentToken[0]) {*pToken=0;ValueToList(atof(CurrentToken));pToken=&CurrentToken[0];*pToken=0;}}
 #define NewOp(op) {FinishString();MoveStack(op);StackPush(op);}
 #define NextChar(ch) {*pToken=ch;pToken++;}
 
