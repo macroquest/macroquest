@@ -1,3 +1,7 @@
+17 Apr 2004 by Lax:
+- Fixed "window" data type's "To String"
+- Fixed all VC6 project files so PDB/MAP files are produced for debugging
+
 15 Apr 2004 by Lax:
 - Fixed /destroy crash
 - Fixed "random" crash on zoning with MQ2Map loaded, due to a bug in the recently revised ConColor

@@ -1228,7 +1228,7 @@ public:
 
 	 bool ToString(MQ2VARPTR VarPtr, PCHAR Destination)
 	{
-		if (VarPtr.Ptr)
+		if (VarPtr.Ptr && ((PCSIDLWND)VarPtr.Ptr)->Show)
 			strcpy(Destination,"TRUE");
 		else
 			strcpy(Destination,"FALSE");
@@ -1357,15 +1357,14 @@ public:
 		Server=3,
 		LastCommand=4,
 		LastTell=5,
-		Merchant=6,
-		Corpse=7,
-		TradeTarget=8,
-		Banker=9,
-
 	};
 	MQ2MacroQuestType():MQ2Type("macroquest")
 	{
 		TypeMember(GameState);
+		TypeMember(LoginName);
+		TypeMember(Server);
+		TypeMember(LastCommand);
+		TypeMember(LastTell);
 	}
 
 	~MQ2MacroQuestType()

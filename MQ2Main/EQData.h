@@ -677,6 +677,8 @@ typedef struct _ACTORINFO {
 /*0x0074*/   DWORD      Unknown0x074;  // Being set to TimeStamp at unknown intervals 
 /*0x0078*/   DWORD      Unknown0x078;  // Being set to TimeStamp at unknown intervals 
 /*0x007c*/   BYTE       Unknown0x07c[0x20]; 
+/*0x0090*/ // FLOAT Unknown
+/*0x0094*/ // FLOAT Unknown
 /*0x009c*/   DWORD		UnderWaterMirror; //copy of UnderWater 
 /*0x00a0*/   DWORD		SwimmingMirror; //copy of Swimming 
 /*0x00a4*/   DWORD		FeetWetMirror; //copy of FeetWet 
@@ -696,6 +698,9 @@ typedef struct _ACTORINFO {
 /*0x01b8*/   BYTE		Unknown0x01b8[0xc]; 
 /*0x01c4*/   DWORD		PetID; 
 /*0x01c8*/   BYTE		Unknown0x01c4[0x2459]; 
+/*0x01f8*/ // class EQMobileEmitter *pMobileEmitter;
+/*0x2604*/ // FLOAT unknown
+/*0x2608*/ // FLOAT unknown
 /*0x2621*/   CHAR		NameOfLastSuccessfulTargetHit[0x40]; 
 /*0x2661*/   BYTE		Unknown0x2634[0x6f]; 
 /*0x26D0*/   DWORD      InvitedToGroup; // 1 = currently invited to group 
@@ -795,7 +800,8 @@ typedef struct _SPAWNINFO {
 /*0x110*/	CHAR    DisplayedName[0x40]; // ie Priest of Discord 
 /*0x150*/	FLOAT   SpeedHeading;  
 /*0x154*/   struct  _ACTORINFO   *pActorInfo;
-/*0x158*/   BYTE    Unknown0x158[0x5];
+/*0x158*/   BYTE    Unknown0x158[0x4];
+/*0x15c*/   BYTE	AllowFind;
 /*0x15d*/   BYTE    Sneak;  // returns 01 on both Sneak and Shroud of Stealth
 /*0x15e*/   BYTE    Linkdead;  // Uncharmable flag when used on mobs?
 /*0x15f*/   BYTE	Unknown0x15f;
@@ -966,7 +972,7 @@ typedef struct _ZONELIST {
 /*0x00a*/   WORD    Instance;
 /*0x00c*/   CHAR    ShortName[0x81];
 /*0x08d*/   CHAR    LongName[0x103];
-/*0x190*/   DWORD   Flags;              // (Flags & 0x100000) = HasMinLevel
+/*0x190*/   DWORD   Flags;              // (Flags & 0x100000) = HasMinLevel, 0x4000 no air, 0x2 newbie zone, 0x20 no bind, 0x400000 something
 /*0x194*/   DWORD   Id2;                // This is Id+2242
 /*0x198*/   DWORD   PoPValue;           // This has something to do with PoP zones.
 /*0x19c*/   DWORD   MinLevel;           // Minimum level to access

@@ -338,39 +338,39 @@ typedef struct _CSIDLWND {
 					_ITEMINFO* Item;
 					_CSIDLWND* InvDescription;
 			};
-/*0x0cc*/   BYTE    Unknown0x0c0[0xc];
-/*0x0d8*/   DWORD   Unknown0x0cc; // CXWnd::StartFade, CXWnd::Minimize
-/*0x0dc*/   BYTE    Unknown0x0d0[0x10];
-/*0x0ec*/   DWORD   FadeTickCount; // -> 0x0ec
-/*0x0f0*/   BYTE    Unknown0x0e4; // CXWnd::StartFade  // 0xf0
-/*0x0f1*/   BYTE    Unknown0x0e5; // CXWnd::StartFade  // 0xf1
-/*0x0f2*/   BYTE    Unknown0x0e6; 
-/*0x0f3*/   BYTE    Unknown0x0e7;
-/*0x0f4*/   DWORD   Unknown0x0e8;// CXWnd::StartFade, CXWnd::Minimize // 0xf4
-/*0x0f8*/   DWORD   VScrollMax; // -> 0xf8
-/*0x0fc*/   DWORD   VScrollPos; // -> 0xfc
-/*0x100*/   DWORD   HScrollMax; // -> 0x100
-/*0x104*/   DWORD   HScrollPos; // -> 0x104
-/*0x108*/   BYTE    ValidCXWnd; // -> 0x108
-/*0x109*/   BYTE    Unused0x0f9[0x3];
-/*0x10C*/   struct _CXSTR  *SidlText; 
-/*0x110*/   union { 
+/*0x0c */   BYTE    Unknown0x0c0[0xc];
+/*0x0d */   DWORD   Unknown0x0cc; // CXWnd::StartFade, CXWnd::Minimize
+/*0x0d */   BYTE    Unknown0x0d0[0x10];
+/*0x0e */   DWORD   FadeTickCount; // -> 0x0ec
+/*0x0f */   BYTE    Unknown0x0e4; // CXWnd::StartFade  // 0xf0
+/*0x0f */   BYTE    Unknown0x0e5; // CXWnd::StartFade  // 0xf1
+/*0x0f */   BYTE    Unknown0x0e6; 
+/*0x0f */   BYTE    Unknown0x0e7;
+/*0x0f */   DWORD   Unknown0x0e8;// CXWnd::StartFade, CXWnd::Minimize // 0xf4
+/*0x0f */   DWORD   VScrollMax; // -> 0xf8
+/*0x0f */   DWORD   VScrollPos; // -> 0xfc
+/*0x10 */   DWORD   HScrollMax; // -> 0x100
+/*0x10 */   DWORD   HScrollPos; // -> 0x104
+/*0x10 */   BYTE    ValidCXWnd; // -> 0x108
+/*0x10 */   BYTE    Unused0x0f9[0x3];
+/*0x10 */   struct _CXSTR  *SidlText; 
+/*0x11 */   union { 
 			   struct _CXSTR  *SidlScreen; 
                DWORD   SlotID; 
          }; 
-/*0x114*/   LPVOID SidlPiece;   // CScreenPieceTemplate (important)  
-/*0x118*/   DWORD   Checked; // CRadioGroup
-/*0x11c*/   DWORD   TextureAnim; // used in CSidlScreenWnd::AddButtonToRadioGroup
-/*0x120*/   DWORD   Unknown0x120;
-/*0x124*/   DWORD   Selector;
-/*0x128*/   DWORD   PushToSelector;
-/*0x12c*/   DWORD   EnableINIStorage;
-/*0x130*/   struct _CXSTR *INIStorageName;// -->0x130
-/*0x134*/   DWORD   Unknown0x134;
-/*0x138*/   DWORD   Unknown0x138;
-/*0x13c*/   LPVOID  ContextMenu;
-/*0x140*/	DWORD   Unknown0x140;
-/*0x144*/	DWORD   Unknown0x144;
+/*0x11 */   LPVOID SidlPiece;   // CScreenPieceTemplate (important)  
+/*0x11 */   DWORD   Checked; // CRadioGroup
+/*0x11 */   DWORD   TextureAnim; // used in CSidlScreenWnd::AddButtonToRadioGroup
+/*0x12 */   DWORD   Unknown0x120;
+/*0x12 */   DWORD   Selector;
+/*0x12 */   DWORD   PushToSelector;
+/*0x12 */   DWORD   EnableINIStorage;
+/*0x13 */   struct _CXSTR *INIStorageName;// -->0x130
+/*0x13 */   DWORD   Unknown0x134;
+/*0x13 */   DWORD   Unknown0x138;
+/*0x13 */   LPVOID  ContextMenu;
+/*0x14 */	DWORD   Unknown0x140;
+/*0x14 */	DWORD   Unknown0x144;
 /*0x   */
 } CSIDLWND, *PCSIDLWND;
 

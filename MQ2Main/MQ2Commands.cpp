@@ -606,6 +606,7 @@ VOID Macro(PSPAWNINFO pChar, PCHAR szLine)
         return;
     }
 	gMaxTurbo=20;
+	gTurbo=true;
     GetArg(szTemp,szLine,1);
     Params = GetNextArg(szLine);
 
