@@ -1365,7 +1365,7 @@ VOID Filter(PSPAWNINFO pChar, PCHAR szLine)
     szRest = GetNextArg(szRest,1);
     if (szArg[0] == 0) {
         cmdFilter(pChar,szArg);
-        if (gFilterMacro != FILTERMACRO_NONE) WriteChatColor("skills, target, money, encumber, food, name, zrange, macros, map, debug", USERCOLOR_DEFAULT);
+        if (gFilterMacro != FILTERMACRO_NONE) WriteChatColor("skills, target, money, encumber, food, name, zrange, macros, mq, debug", USERCOLOR_DEFAULT);
         return;
     }
 
@@ -1376,8 +1376,8 @@ VOID Filter(PSPAWNINFO pChar, PCHAR szLine)
         (stricmp("food",szArg)) &&
         (stricmp("money",szArg)) &&
         (stricmp("encumber",szArg)) &&
+        (stricmp("mq",szArg)) &&
         (stricmp("debug",szArg)) &&
-		(stricmp("mqchat",szArg)) &&
         (stricmp("zrange",szArg))) {
         cmdFilter(pChar,szArg);
         return;
@@ -1418,7 +1418,7 @@ VOID Filter(PSPAWNINFO pChar, PCHAR szLine)
             }
         }
         WriteChatColor("Usage: /filter macros [all|enhanced|none]",USERCOLOR_DEFAULT);
-    } else if (!stricmp("mq",szArg)) {
+	} else if (!stricmp("mq",szArg)) {
         if (szRest[0]==0) {
             sprintf(szCmd,"Filtering of MQ is set to: %s",szUseChat[gFilterMQ]);
             WriteChatColor(szCmd,USERCOLOR_DEFAULT);
@@ -1427,8 +1427,8 @@ VOID Filter(PSPAWNINFO pChar, PCHAR szLine)
         for (Command=0;szUseChat[Command];Command++) {
             if (!stricmp(szRest,szUseChat[Command])) {
                 gFilterMQ = Command;
-//                sprintf(szCmd,"Filtering of MQ changed to: %s",szUseChat[gFilterMQ]);
-//                WriteChatColor(szCmd,USERCOLOR_DEFAULT);
+                sprintf(szCmd,"Filtering of MQ changed to: %s",szUseChat[gFilterMQ]);
+                WriteChatColor(szCmd,USERCOLOR_DEFAULT);
                 itoa(gFilterMQ,szCmd,10); 
 				WritePrivateProfileString("MacroQuest","FilterMQ",szCmd,gszINIFilename);
                 return;

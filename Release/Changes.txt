@@ -13,6 +13,11 @@
   * Step 2: executes the command
   * Step 3: turns mq filter back to the state it was in before step 1
   In other words, executes a command and prevents any output from the command
+  
+  ** It is recommended that you do this in your .CFG files that you dont want to see output from
+  /squelch /filter mq on
+  < do your stuff here>
+  /squelch /filter mq off
 - I promise this is my last update for a few days at least!
 
 15 Mar 2004 by Lax
