@@ -592,12 +592,12 @@ union{
 /*0x9888*/  DWORD       CareerFavor; // NOTE: 64-bit # -> 9888
 /*0x988c*/  DWORD       Unknown0x984c; 
 /*0x9890*/  DWORD       CurrFavor; // NOTE: 64-bit # -> 9890
-/*0x9894*/  BYTE        Unknown0x9854[0x164];  
-/*0x99f8*/  DWORD       GroupLeadershipExp;      // 0-499 or 0x000-0x1FF? need confirmation // 99f8
-/*0x99fc*/  DWORD       RaidLeadershipExp;       // 0-999/0x3FF for display, 0-1999/0x7FF for actual value?  // -> 99fc
-/*0x9a00*/  DWORD       GroupLeadershipPoints;   // 0-8  // -> 9a00
-/*0x9a04*/  DWORD       RaidLeadershipPoints;    // 0-10
-/*0x9a08*/	BYTE		Unknown0x9980[0x148];
+/*0x9894*/  BYTE        Unknown0x9854[0x16c];  
+/*0x9a00*/  DWORD       GroupLeadershipExp;      // 0-499 or 0x000-0x1FF? need confirmation // 99f8
+/*0x9a04*/  DWORD       RaidLeadershipExp;       // 0-999/0x3FF for display, 0-1999/0x7FF for actual value?  // -> 99fc
+/*0x9a08*/  DWORD       GroupLeadershipPoints;   // 0-8  // -> 9a00
+/*0x9a0c*/  DWORD       RaidLeadershipPoints;    // 0-10
+/*0x9a10*/	BYTE		Unknown0x9980[0x140];
 /*0x9b50*/	struct		_CONTENTS* Bank[NUM_BANK_SLOTS]; // -> 9B50
 /*0x9b98*/	BYTE		Unknown0x9b08[0xa8];
 /*0x9c40*/	BYTE		Grouped;
