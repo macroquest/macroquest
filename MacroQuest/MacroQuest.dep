@@ -1,9 +1,0 @@
-# Microsoft Developer Studio Generated Dependency File, included by MacroQuest.mak
-
-.\MacroQuest.cpp : \
-	
-
-.\MacroQuest.rc : \
-	".\EQ.ico"\
-	".\icon2.ico"\
-	
