@@ -1,3 +1,8 @@
+9 Apr 2004 by Lax:
+- MQ2Data changes:
+  * Swapped Y and X back to being backwards-backwards or backwards-forwards, or whatever they
+    originally were
+
 8 Apr 2004 by Lax (more)
 - MQ2Data changes:
   Top level objects:

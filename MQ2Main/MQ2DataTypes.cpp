@@ -234,11 +234,11 @@ bool MQ2SpawnType::GetMember(MQ2VARPTR VarPtr, PCHAR Member, PCHAR Index, MQ2TYP
 		return true;
 	case X:
 		Dest.Type=pFloatType;
-		Dest.Float=pSpawn->Y; // in-game ordering
+		Dest.Float=pSpawn->X; 
 		return true;
 	case Y:
 		Dest.Type=pFloatType;
-		Dest.Float=pSpawn->X; // in-game ordering
+		Dest.Float=pSpawn->Y; 
 		return true;
 	case Z:
 		Dest.Type=pFloatType;
@@ -422,11 +422,11 @@ bool MQ2SpawnType::GetMember(MQ2VARPTR VarPtr, PCHAR Member, PCHAR Index, MQ2TYP
 		Dest.Type=pFloatType;
 		return true;
 	case DistanceX:
-		Dest.Float=(FLOAT)fabs(((PSPAWNINFO)pCharSpawn)->Y-pSpawn->Y); // in-game ordering
+		Dest.Float=(FLOAT)fabs(((PSPAWNINFO)pCharSpawn)->X-pSpawn->X);
 		Dest.Type=pFloatType;
 		return true;
 	case DistanceY:
-		Dest.Float=(FLOAT)fabs(((PSPAWNINFO)pCharSpawn)->X-pSpawn->X); // in-game ordering
+		Dest.Float=(FLOAT)fabs(((PSPAWNINFO)pCharSpawn)->Y-pSpawn->Y);
 		Dest.Type=pFloatType;
 		return true;
 	case DistanceZ:
@@ -1644,7 +1644,7 @@ bool MQ2MathType::GetMember(MQ2VARPTR VarPtr, PCHAR Member, PCHAR Index, MQ2TYPE
 		{
 			FLOAT P1[3];
 			FLOAT P2[3];
-			P1[0]=P2[0]=((PSPAWNINFO)pCharSpawn)->Y;// swapped X/Y on purpose! in-game ordering.
+			P1[0]=P2[0]=((PSPAWNINFO)pCharSpawn)->Y;
 			P1[1]=P2[1]=((PSPAWNINFO)pCharSpawn)->X;
 			P1[2]=P2[2]=((PSPAWNINFO)pCharSpawn)->Z;
 			if (PCHAR pColon=strchr(Index,':'))
@@ -1698,9 +1698,6 @@ bool MQ2MathType::GetMember(MQ2VARPTR VarPtr, PCHAR Member, PCHAR Index, MQ2TYPE
 			return true;
 		}
 		return false;
-	/*
-		Distance
-	/**/
 	}
 	return false;
 }
@@ -1855,11 +1852,11 @@ bool MQ2CurrentZoneType::GetMember(MQ2VARPTR VarPtr, PCHAR Member, PCHAR Index, 
 		Dest.Type=pIntType;
 		return true;
 	case SafeY:
-		Dest.Float=pZone->SafeXLoc; // in-game ordering
+		Dest.Float=pZone->SafeXLoc;
 		Dest.Type=pFloatType;
 		return true;
 	case SafeX:
-		Dest.Float=pZone->SafeYLoc; // in-game ordering
+		Dest.Float=pZone->SafeYLoc;
 		Dest.Type=pFloatType;
 		return true;
 	case SafeZ:
@@ -2010,11 +2007,11 @@ bool MQ2SwitchType::GetMember(MQ2VARPTR VarPtr, PCHAR Member, PCHAR Index, MQ2TY
 		Dest.Type=pIntType;
 		return true;
 	case X:
-		Dest.Float=pSwitch->Y; // In-game ordering
+		Dest.Float=pSwitch->X;
 		Dest.Type=pFloatType;
 		return true;
 	case Y:
-		Dest.Float=pSwitch->X; // In-game ordering
+		Dest.Float=pSwitch->Y;
 		Dest.Type=pFloatType;
 		return true;
 	case Z:
@@ -2022,11 +2019,11 @@ bool MQ2SwitchType::GetMember(MQ2VARPTR VarPtr, PCHAR Member, PCHAR Index, MQ2TY
 		Dest.Type=pFloatType;
 		return true;
 	case DefaultX:
-		Dest.Float=pSwitch->DefaultY; // In-game ordering
+		Dest.Float=pSwitch->DefaultX;
 		Dest.Type=pFloatType;
 		return true;
 	case DefaultY:
-		Dest.Float=pSwitch->DefaultX; // In-game ordering
+		Dest.Float=pSwitch->DefaultY;
 		Dest.Type=pFloatType;
 		return true;
 	case DefaultZ:
@@ -2081,11 +2078,11 @@ bool MQ2GroundType::GetMember(MQ2VARPTR VarPtr, PCHAR Member, PCHAR Index, MQ2TY
 		Dest.Type=pIntType;
 		return true;
 	case X:
-		Dest.Float=pGround->Y; // In-game ordering
+		Dest.Float=pGround->X;
 		Dest.Type=pFloatType;
 		return true;
 	case Y:
-		Dest.Float=pGround->X; // In-game ordering
+		Dest.Float=pGround->Y;
 		Dest.Type=pFloatType;
 		return true;
 	case Z:
