@@ -554,16 +554,19 @@ VOID ZapVars(PSPAWNINFO pChar, PCHAR szLine)
     if (bArrays) { FreeVarArrays(); gArray=NULL; }
     if (bTimers) FreeTimers();
 
-    if (!bArrays && !bVars && !bTimers) {
-        WriteChatColor("Command did nothing.",USERCOLOR_DEFAULT);
-    } else {
-        CHAR szTemp[MAX_STRING] = {0};
-        strcpy(szTemp,"Cleared the following:");
-        if (bTimers) strcat(szTemp," Timers");
-        if (bVars) strcat(szTemp," Vars");
-        if (bArrays) strcat(szTemp," Arrays");
-        WriteChatColor(szTemp,USERCOLOR_DEFAULT);
-    }
+	if (gFilterMacro != FILTERMACRO_NONE)
+	{
+		if (!bArrays && !bVars && !bTimers) {
+			WriteChatColor("Command did nothing.",USERCOLOR_DEFAULT);
+		} else {
+			CHAR szTemp[MAX_STRING] = {0};
+			strcpy(szTemp,"Cleared the following:");
+			if (bTimers) strcat(szTemp," Timers");
+			if (bVars) strcat(szTemp," Vars");
+			if (bArrays) strcat(szTemp," Arrays");
+			WriteChatColor(szTemp,USERCOLOR_DEFAULT);
+		}
+	}
 }
 
 VOID VarCalc(PSPAWNINFO pChar, PCHAR szLine)

@@ -2,6 +2,8 @@
 - /if is now GONE.  /if is now the same as what /newif was.  /newif is aliased to /if.
 - /sendkey and /press are now GONE.  Please update to /keypress, which as of 15 Apr 2004 allows
   pressing key combinations as well as the actual command.  Example:  /keypress alt+f
+- /filter macros will now hide the output of /endmacro (if successful) and /zapvars (always)
+- MQ2Labels updated for MQ2Data
 - Fixed time.Year and time.Date
 - Fixed charm invslot (number 0)
 - Fixed ${If[]} handling of conditions

@@ -217,7 +217,8 @@ VOID EndMacro(PSPAWNINFO pChar, PCHAR szLine)
     }
 
     DebugSpewNoFile("EndMacro - Ended");
-    WriteChatColor("The current macro has ended.",USERCOLOR_DEFAULT);
+	if (gFilterMacro != FILTERMACRO_NONE)
+	    WriteChatColor("The current macro has ended.",USERCOLOR_DEFAULT);
 }
 
 
