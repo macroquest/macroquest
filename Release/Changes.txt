@@ -1,3 +1,6 @@
+16 Feb 2004 by Amadeus
+- * Fixed EQ_CONTAINERWND_MANAGER  (Thereby Fixing $envopen )
+
 15 Feb 2004 by Amadeus
 - 'Grouped' location fixed in CHARINFO (thereby fixing $char(grouped))
 - Fixed WhoFollowing in Actorinfo (thereby fixing $char(following)
