@@ -841,7 +841,7 @@ union {
 /*0x99c4*/   BYTE   Grouped;    
 /*0x97c5*/   BYTE   field_0x97c5[0x17F];   // NOTE group info 97ac-992c 
 /*0x9944*/   BYTE   field_0x9944[0x18];    
-/*0x995c*/   BYTE   field_0x995c0x40];    
+/*0x995c*/   BYTE   field_0x995c[0x40];    
 /*0x999c*/   BYTE   field_0x999c[0x13c];    
 /*0x9ad8*/   BYTE   field_0x9ad8[0x154];   // group leadership 
 /*0x9c2c*/   DWORD   field_0x9c2c;    
