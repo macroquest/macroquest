@@ -1,3 +1,6 @@
+12 Feb 2004 by Amadeus
+- ACTORINFO struct fixes :: fixed $char(pet)
+
 11 Feb 2004 by Amadeus
 - Fixed Attacks offset in eqgame.ini
 - Added an emergency placeholder in the ACTORINFO struct to fix $char(casting)

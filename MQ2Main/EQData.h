@@ -622,8 +622,8 @@ typedef struct _CAMERAINFO {
 /*0x20*/
 } CAMERAINFO, *PCAMERAINFO;
 
-// 4-30-2003  build      eqmule
-// 10-28-2003 build      Amadeus
+
+// 02-10-2004 build      Amadeus
 typedef struct _ACTORINFO {
 /*0x0000*/   struct		_CAMERAINFO *pCamera;
 /*0x0004*/   DWORD		Unknown0000;
@@ -651,28 +651,24 @@ typedef struct _ACTORINFO {
 /*0x0190*/   DWORD		Unknown0x190;
 /*0x0194*/   BYTE		Unknown0x194[0x1c];	
 /*0x01b0*/   struct		_SPAWNINFO   *Mount;   // NULL if no mount present
-/*0x01b4*/   BYTE		Unknown0x01b4[0x2434];
-/*0x25e8*/	 DWORD      PetID;
+/*0x01b4*/	 BYTE		Unknown0x01b4[0xc];
+/*0x01c0*/	 DWORD		PetID;
+/*0x01c4*/	 BYTE		Unknown0x01c4[0x2428];
 /*0x25ec*/	 BYTE       Unknown0x25ec[0x8];
 /*0x25f4*/   CHAR		NameOfLastSuccessfulTargetHit[0x40];
 /*0x2634*/   BYTE		Unknown0x2634[0x006c];
 /*0x26a0*/   DWORD		InvitedToGroup; // 1 = currently invited to group
-/*0c26a4*/   DWORD		UnknownGroupRelatedFlag;
-
-//This is an emergency placeholder to fix $char(casting)
-//This structure will be fixed soon {Amadeus}
-	BYTE	PlaceHolder[0x30];
-
-
-/*0x26a8*/   DWORD      CastingSpellID; // -1 = not casting a spell
-/*0x26ac*/   DWORD      Unknown0x26ac[0x02];
-/*0x26b4*/	 DWORD		UnknownModelRelatedPointer;  //research this later
-/*0x26b8*/   struct		_MODELINFO *Model[0x14]; 
-/*0x270c*/   BYTE		Unknown0x270c[0x28];
-/*0x2730*/   struct		_SPAWNINFO   *WhoFollowing;  // NULL if autofollow off
-/*0x2734*/   BYTE		Unknown0x2734[0x190];
-/*0x28c4*/   DWORD		Trader;                      //0=normal 1=trader
-/*0x28c8*/   BYTE		Unknown0x28c8[0x50];
+/*0x26a4*/   DWORD		UnknownGroupRelatedFlag;
+/*0x26a8*/	 BYTE		Unknown0x26a8[0x30];
+/*0x26d8*/   DWORD      CastingSpellID; // -1 = not casting a spell
+/*0x26dc*/   DWORD      Unknown0x26dc[0x02];
+/*0x26e4*/	 DWORD		UnknownModelRelatedPointer;  //research this later
+/*0x26e8*/   struct		_MODELINFO *Model[0x14]; 
+/*0x2738*/   BYTE		Unknown0x2738[0x28];
+/*0x2760*/   struct		_SPAWNINFO   *WhoFollowing;  // NULL if autofollow off
+/*0x2764*/   BYTE		Unknown0x2764[0x190];
+/*0x28f4*/   DWORD		Trader;                      //0=normal 1=trader
+/*0x28f8*/   BYTE		Unknown0x28f8[0x50];
 } ACTORINFO, *PACTORINFO; 
 
 #define MODEL_LABEL         0 
