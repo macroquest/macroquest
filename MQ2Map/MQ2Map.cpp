@@ -34,7 +34,7 @@ public:
 	VOID SaveEx_Detour(PCHAR szZonename, DWORD Layer) 
 	{ 
 		// clear our list before writing...
-//		ClearMapAllocs();
+		ClearMapAllocs();
 		SaveEx_Trampoline(szZonename, Layer);
 	}
 };
@@ -78,31 +78,30 @@ PLUGIN_API VOID ShutdownPlugin(VOID)
 	RemoveDetour(MapViewMap__SaveEx);
 }
 
-// Called after entering a new zone
-PLUGIN_API VOID OnZoned(VOID)
-{
-	DebugSpewAlways("MQ2Map::OnZoned()");
-}
-
 // Called once directly before shutdown of the cleanui system, and also
 // every time the game calls CDisplay::CleanGameUI()
 PLUGIN_API VOID OnCleanUI(VOID)
 {
 	DebugSpewAlways("MQ2Map::OnCleanUI()");
+	ClearMapAllocs();
 }
-
-// Called once directly after initialization, and then every time the gamestate changes
-PLUGIN_API VOID SetGameState(DWORD GameState)
-{
-	DebugSpewAlways("MQ2Map::SetGameState()");
-}
-
 
 // This is called every time MQ pulses
 PLUGIN_API VOID OnPulse(VOID)
 {
 	// DONT leave in this debugspew, even if you leave in all the others
 //	DebugSpewAlways("MQ2Map::OnPulse()");
+	static DWORD MapDelay=0;
+
+    if (gMapFilters[MAPFILTER_Refresh]>0) {
+        if (++MapDelay>gMapFilters[MAPFILTER_Refresh]) MapDelay=0;
+    } else MapDelay=0;
+
+    if (ppMapViewWnd && pMapViewWnd && ((PCSIDLWND)pMapViewWnd)->Open && ppSpawnList && pSpawnList && !MapDelay) {
+            ClearMapAllocs();
+            if (gMapFilters[MAPFILTER_All]) HandleMapLabelAdditions();
+            if (gMapFilters[MAPFILTER_CastRadius] > 0) HandleMapCastRadius();
+        }
 }
 
 VOID AddLabel(PSPAWNINFO pSpawn, DWORD Color)

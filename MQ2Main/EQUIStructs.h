@@ -343,7 +343,8 @@ typedef struct _CSIDLWND {
 /*0x100*/   DWORD   HScrollMax; // -> 0x100
 /*0x104*/   DWORD   HScrollPos; // -> 0x104
 /*0x108*/   BYTE    ValidCXWnd; // -> 0x108
-/*0x109*/   BYTE    Unused0x0f9[0x7];
+/*0x109*/   BYTE    Unused0x0f9[0x3];
+/*0x10C*/   struct _CXSTR  *SidlText;
 /*0x110*/   union {
 					struct _CXSTR  *SidlScreen; 
 					DWORD   SlotID;

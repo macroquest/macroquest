@@ -91,10 +91,7 @@ BOOL ParseINIFile(PCHAR lpINIPath)
 
     sprintf(Filename,"%s\\MacroQuest.ini",lpINIPath);
     sprintf(ClientINI,"%s\\eqgame.ini",lpINIPath);
-    sprintf(MQChatSettings,"%s\\MQchat.ini",lpINIPath);
-    sprintf(CustomSettings,"%s\\Custom.ini",lpINIPath);
     strcpy(gszINIFilename,Filename);
-    strcpy(gszINIMQchat,MQChatSettings);
     GetPrivateProfileString("MacroQuest","ClientOverride","0",szBuffer,MAX_STRING,ClientINI);       clientOverride = atoi(szBuffer);
     GetPrivateProfileString("MacroQuest","ClientVersion","0",szBuffer,MAX_STRING,ClientINI);
     GetPrivateProfileString("MacroQuest","ClientName","eqgame",ClientName,MAX_STRING,ClientINI);
@@ -375,6 +372,7 @@ DWORD WINAPI MQ2Start(LPVOID lpParameter)
 	while (gGameState != GAMESTATE_INGAME) Sleep(500);
 	InitializeMQ2DInput();
 
+
     WriteChatColor(LoadedString,USERCOLOR_DEFAULT);
     DebugSpewAlways(LoadedString);
 
@@ -390,10 +388,11 @@ DWORD WINAPI MQ2Start(LPVOID lpParameter)
 	ShutdownChatHook();
 	ShutdownMQ2Pulse();
 	ShutdownMQ2Plugins();
+	ShutdownParser();
 	ShutdownMQ2Commands();
 	ShutdownMQ2Detours();
-	ShutdownParser();
 
+	DebugSpew("Shutdown completed");
     free(lpINIPath);
     g_Loaded = FALSE;
     return 0;

@@ -173,8 +173,9 @@ void Pulse()
                 }
             }
     }
+	/*
 	else
-	{ /* TEMPORARILY LEAVING THIS IN HERE, IT WILL BE A PLUGIN. */
+	{ // TEMPORARILY LEAVING THIS IN HERE, IT WILL BE A PLUGIN.
 		HWND EQhWnd=*(HWND*)EQADDR_HWND;
 		HMODULE hMod=GetModuleHandle("eqw.dll");
 		if (hMod)
@@ -198,6 +199,18 @@ void Pulse()
 			Sleep(50);
 		}
 	}
+	/**/
+}
+
+DWORD GetGameState(VOID)
+{
+	if (!ppEverQuest || !pEverQuest) 
+	{
+//		DebugSpew("Could not retrieve gamestate in GetGameState()");
+		return -1;
+	}
+	DWORD GameState=*(DWORD*)(0x5B4+pEverQuest);
+	return GameState;
 }
 
 void Heartbeat()
@@ -210,6 +223,17 @@ void Heartbeat()
         if (gDelay>0) gDelay--;
 		DropTimers();
     }
+
+	int GameState=GetGameState();
+	if (GameState!=-1)
+	{
+		if (GameState!=gGameState)
+		{
+			DebugSpew("GetGameState()=%d vs %d",GameState,gGameState);
+			gGameState=GameState;
+			PluginsSetGameState(GameState);
+		}
+	}
 
     bRunNextCommand   = TRUE;
     DWORD CurTurbo=0;
@@ -247,7 +271,7 @@ public:
 	VOID SetGameState_Trampoline(DWORD GameState);
 	VOID SetGameState_Detour(DWORD GameState)
 	{
-		gGameState=GameState;
+//		DebugSpew("SetGameState_Detour(%d)",GameState);
 		SetGameState_Trampoline(GameState);
 		PluginsSetGameState(GameState);
 	}

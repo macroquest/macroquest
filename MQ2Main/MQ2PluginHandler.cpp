@@ -21,19 +21,10 @@
 
 #include "MQ2Main.h"
 
-/*
-Plugin Interface Specification
-GetName
-InitializeMQPlugin
-ShutdownMQPlugin
-
-*/
-
-
-
 
 PMQPLUGIN pPlugins=0;
 CRITICAL_SECTION gPluginCS;
+BOOL bPluginCS=0;
 
 DWORD LoadMQ2Plugin(const PCHAR pszFilename)
 {
@@ -43,8 +34,8 @@ DWORD LoadMQ2Plugin(const PCHAR pszFilename)
 	PCHAR Temp=strstr(Filename,".dll");
 	if (Temp)
 		Temp[0]=0;
-
-//	CAutoLock Lock(&gPluginCS);
+	
+	CAutoLock Lock(&gPluginCS);
 	DebugSpew("LoadMQ2Plugin(%s)",Filename);
 	CHAR FullFilename[MAX_STRING]={0};
 	sprintf(FullFilename,"%s\\%s",gszINIPath,Filename);
@@ -95,6 +86,7 @@ DWORD LoadMQ2Plugin(const PCHAR pszFilename)
 
 BOOL UnloadMQ2Plugin(const PCHAR pszFilename)
 {
+	DebugSpew("UnloadMQ2Plugin");
 	CHAR Filename[MAX_PATH]={0};
 	strcpy(Filename,pszFilename);
 	strlwr(Filename);
@@ -102,21 +94,23 @@ BOOL UnloadMQ2Plugin(const PCHAR pszFilename)
 	if (Temp)
 		Temp[0]=0;
 	// find plugin in list
-//	CAutoLock Lock(&gPluginCS);
+	CAutoLock Lock(&gPluginCS);
 	PMQPLUGIN pPlugin=pPlugins;
 	while(pPlugin)
 	{
 		if (!stricmp(Filename,pPlugin->szFilename))
 		{
-			if (pPlugin->Shutdown)
-				pPlugin->Shutdown();
-			FreeLibrary(pPlugin->hModule);
 			if (pPlugin->pLast)
 				pPlugin->pLast->pNext=pPlugin->pNext;
 			else
 				pPlugins=pPlugin->pNext;
+
 			if (pPlugin->pNext)
 				pPlugin->pNext->pLast=pPlugin->pLast;
+
+			if (pPlugin->Shutdown)
+				pPlugin->Shutdown();
+			FreeLibrary(pPlugin->hModule);
 			delete pPlugin;
 			return 1;
 		}
@@ -128,6 +122,7 @@ BOOL UnloadMQ2Plugin(const PCHAR pszFilename)
 
 VOID RewriteMQ2Plugins(VOID)
 {
+	CAutoLock Lock(&gPluginCS);
     WritePrivateProfileSection("Plugins","",gszINIFilename);
     PMQPLUGIN pLoop = pPlugins;
 	if (!pLoop)
@@ -145,6 +140,7 @@ VOID InitializeMQ2Plugins()
 {
 	DebugSpew("Initializing plugins");
 	InitializeCriticalSection(&gPluginCS);
+	bPluginCS=1;
 
 	CHAR PluginList[MAX_STRING*10] = {0};
     CHAR szBuffer[MAX_STRING] = {0};
@@ -163,6 +159,7 @@ VOID InitializeMQ2Plugins()
 
 VOID ShutdownMQ2Plugins()
 {
+	bPluginCS=0;
 	{
 	//	CAutoLock Lock(&gPluginCS);
 		while(pPlugins)
@@ -175,20 +172,17 @@ VOID ShutdownMQ2Plugins()
 
 VOID WriteChatColor(PCHAR Line, DWORD Color, DWORD Filter)
 {
+	if (!bPluginCS)
+		return;
 	DebugSpew("WriteChatColor(%s)",Line);
-//	CAutoLock Lock(&gPluginCS);
+	CAutoLock Lock(&gPluginCS);
 
 	PMQPLUGIN pPlugin=pPlugins;
 	while(pPlugin)
 	{
-		DebugSpew("WriteChatColor trying plugin %s",pPlugin->szFilename);
 		if (pPlugin->WriteChatColor)
 		{
 			pPlugin->WriteChatColor(Line,Color,Filter);
-		}
-		else
-		{
-			DebugSpew("Plugin had no OnWriteChatColor",pPlugin->szFilename);
 		}
 		pPlugin=pPlugin->pNext;
 	}
@@ -196,7 +190,9 @@ VOID WriteChatColor(PCHAR Line, DWORD Color, DWORD Filter)
 
 VOID PluginsIncomingChat(PCHAR Line, DWORD Color)
 {
-//	CAutoLock Lock(&gPluginCS);
+	if (!bPluginCS)
+		return;
+	CAutoLock Lock(&gPluginCS);
 	PMQPLUGIN pPlugin=pPlugins;
 	while(pPlugin)
 	{
@@ -210,7 +206,9 @@ VOID PluginsIncomingChat(PCHAR Line, DWORD Color)
 
 VOID PulsePlugins()
 {
-//	CAutoLock Lock(&gPluginCS);
+	if (!bPluginCS)
+		return;
+	CAutoLock Lock(&gPluginCS);
 	PMQPLUGIN pPlugin=pPlugins;
 	while(pPlugin)
 	{
@@ -219,12 +217,14 @@ VOID PulsePlugins()
 			pPlugin->Pulse();
 		}
 		pPlugin=pPlugin->pNext;
-	}
+	}	
 }
 
 VOID PluginsZoned()
 {
-//	CAutoLock Lock(&gPluginCS);
+	if (!bPluginCS)
+		return;
+	CAutoLock Lock(&gPluginCS);
 	PMQPLUGIN pPlugin=pPlugins;
 	while(pPlugin)
 	{
@@ -238,6 +238,9 @@ VOID PluginsZoned()
 
 VOID PluginsCleanUI()
 {
+	if (!bPluginCS)
+		return;
+	CAutoLock Lock(&gPluginCS);
 	PMQPLUGIN pPlugin=pPlugins;
 	while(pPlugin)
 	{
@@ -251,6 +254,11 @@ VOID PluginsCleanUI()
 
 VOID PluginsSetGameState(DWORD GameState)
 {
+	if (!bPluginCS)
+		return;
+	gGameState=GameState;
+	CAutoLock Lock(&gPluginCS);
+	DebugSpew("PluginsSetGameState(%d)",GameState);
 	PMQPLUGIN pPlugin=pPlugins;
 	while(pPlugin)
 	{

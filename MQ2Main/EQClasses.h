@@ -1,7 +1,7 @@
 // Other
 class CXSize
 {
-	DWORD A,B,C,D;
+	DWORD A,B,C,D,E,F;
 };
 
 
@@ -888,8 +888,11 @@ EQLIB_OBJECT int CChatWindow::OnProcessFrame(void);
 EQLIB_OBJECT int CChatWindow::OnSetFocus(class CXWnd *);
 EQLIB_OBJECT int CChatWindow::WndNotification(class CXWnd *,unsigned __int32,void *);
 //EQLIB_OBJECT void * CChatWindow::`scalar deleting destructor'(unsigned int);
-//EQLIB_OBJECT void * CChatWindow::`vector deleting destructor'(unsigned int);
+EQLIB_OBJECT void CChatWindow::operator delete[](void *);
 EQLIB_OBJECT void CChatWindow::Deactivate(void);
+
+
+EQLIB_OBJECT void *CChatWindow::operator new(size_t stAllocateBlock) {return malloc(sizeof(EQCHATWINDOW));} // 11-15-2003 lax
 };
 
 class CCheckBoxWnd
@@ -4031,7 +4034,7 @@ class CStmlWnd
 public:
 EQLIB_OBJECT CStmlWnd::CStmlWnd(class CXWnd *,unsigned __int32,class CXRect);
 EQLIB_OBJECT bool CStmlWnd::CanGoBackward(void);
-EQLIB_OBJECT class CXSize CStmlWnd::AppendSTML(class CXStr);
+EQLIB_OBJECT class CXSize& CStmlWnd::AppendSTML(class CXSize*,class CXStr); // lax 11-15-2003
 EQLIB_OBJECT class CXStr CStmlWnd::GetSTMLText(void)const;
 EQLIB_OBJECT class CXStr CStmlWnd::GetVisiableText(class CXStr,class CXRect)const;
 EQLIB_OBJECT static class CXStr __cdecl CStmlWnd::MakeStmlColorTag(unsigned long);
@@ -4826,6 +4829,8 @@ EQLIB_OBJECT void CXStr::FreeRep(struct CStrRep *);
 EQLIB_OBJECT void CXStr::FreeRepNoLock(struct CStrRep *);
 // private
 EQLIB_OBJECT void CXStr::CheckNoLock(void);
+
+	PCXSTR Ptr;
 };
 
 class CXStrSingleton

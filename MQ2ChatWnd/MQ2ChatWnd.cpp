@@ -5,11 +5,20 @@
 
 
 #include "../MQ2Plugin.h"
+#define ChatINIFile "MQ2ChatWnd.ini"
 
 PEQCHATWINDOW MQChatWnd=0;
 #define pMQChatWnd ((CChatWindow*)MQChatWnd)
-#define pStmlWnd ((CStmlWnd*)MQChatWnd)
+#define pOutStmlWnd ((CStmlWnd*)MQChatWnd->OutputWnd)
+#define pOutXWnd ((CXWnd*)MQChatWnd->OutputWnd)
 #define pXWnd ((CXWnd*)MQChatWnd)
+
+//#define DEBUG_TRY 1
+#ifdef DEBUG_TRY
+#define DebugTry(x) DebugSpew("Trying %s",#x);x;DebugSpew("%s complete",#x)
+#else
+#define DebugTry(x) x
+#endif
 
 BOOL APIENTRY DllMain( HANDLE hModule, 
                        DWORD  ul_reason_for_call, 
@@ -23,6 +32,68 @@ BOOL APIENTRY DllMain( HANDLE hModule,
     return TRUE;
 }
 
+
+CHAR szChatINISection[MAX_STRING] = {0};
+void LoadChatFromINI(PCSIDLWND pWindow)
+{
+	CHAR Buffer[MAX_STRING] = {0};
+    sprintf(szChatINISection,"%s.%s",((PCHARINFO)pCharData)->Server,((PCHARINFO)pCharData)->Name);
+	pWindow->Location.top		= GetPrivateProfileInt(szChatINISection,"ChatTop",    10,ChatINIFile);
+	pWindow->Location.bottom	= GetPrivateProfileInt(szChatINISection,"ChatBottom",210,ChatINIFile);
+	pWindow->Location.left		= GetPrivateProfileInt(szChatINISection,"ChatLeft",   10,ChatINIFile);
+	pWindow->Location.right 	= GetPrivateProfileInt(szChatINISection,"ChatRight", 410,ChatINIFile);
+	pWindow->Locked			 	= GetPrivateProfileInt(szChatINISection,"Locked",	   0,ChatINIFile);
+
+	pWindow->Fades			 	= GetPrivateProfileInt(szChatINISection,"Fades",	   1,ChatINIFile);
+	pWindow->TimeMouseOver	 	= GetPrivateProfileInt(szChatINISection,"Delay",	 2000,ChatINIFile);
+	pWindow->FadeDuration	 	= GetPrivateProfileInt(szChatINISection,"Duration",	   500,ChatINIFile);
+	pWindow->Alpha				= GetPrivateProfileInt(szChatINISection,"Alpha",	   255,ChatINIFile);
+	pWindow->FadeToAlpha		= GetPrivateProfileInt(szChatINISection,"FadeToAlpha",	   255,ChatINIFile);
+	pWindow->BGType				= GetPrivateProfileInt(szChatINISection,"BGType",	   1,ChatINIFile);
+	pWindow->BGColor.R				= GetPrivateProfileInt(szChatINISection,"BGTint.red",	   255,ChatINIFile);
+	pWindow->BGColor.G				= GetPrivateProfileInt(szChatINISection,"BGTint.green",	   255,ChatINIFile);
+	pWindow->BGColor.B				= GetPrivateProfileInt(szChatINISection,"BGTint.blue",	   255,ChatINIFile);
+
+	GetPrivateProfileString(szChatINISection,"WindowTitle","MQ",Buffer,MAX_STRING,ChatINIFile);
+	SetCXStr(&pWindow->WindowText,Buffer);
+}
+
+void SaveChatToINI(PCSIDLWND pWindow)
+{
+	CHAR szTemp[MAX_STRING] = {0};
+	if (pWindow->Minimized)
+	{
+		WritePrivateProfileString(szChatINISection,"ChatTop",	itoa(pWindow->OldLocation.top,		szTemp,10),ChatINIFile);
+		WritePrivateProfileString(szChatINISection,"ChatBottom",itoa(pWindow->OldLocation.bottom,	szTemp,10),ChatINIFile);
+		WritePrivateProfileString(szChatINISection,"ChatLeft",	itoa(pWindow->OldLocation.left,		szTemp,10),ChatINIFile);
+		WritePrivateProfileString(szChatINISection,"ChatRight",	itoa(pWindow->OldLocation.right,	szTemp,10),ChatINIFile);
+	}
+	else
+	{
+		WritePrivateProfileString(szChatINISection,"ChatTop",	itoa(pWindow->Location.top,		szTemp,10),ChatINIFile);
+		WritePrivateProfileString(szChatINISection,"ChatBottom",itoa(pWindow->Location.bottom,	szTemp,10),ChatINIFile);
+		WritePrivateProfileString(szChatINISection,"ChatLeft",	itoa(pWindow->Location.left,	szTemp,10),ChatINIFile);
+		WritePrivateProfileString(szChatINISection,"ChatRight",	itoa(pWindow->Location.right,	szTemp,10),ChatINIFile);
+	}
+	WritePrivateProfileString(szChatINISection,"Locked",	itoa(pWindow->Locked,			szTemp,10),ChatINIFile);
+
+	GetCXStr(pWindow->WindowText,szTemp);
+	WritePrivateProfileString(szChatINISection,"WindowTitle",	szTemp				  ,ChatINIFile);
+
+	WritePrivateProfileString(szChatINISection,"Fades",	itoa(pWindow->Fades,			szTemp,10),ChatINIFile);
+	WritePrivateProfileString(szChatINISection,"Delay",	itoa(pWindow->MouseOver,			szTemp,10),ChatINIFile);
+	WritePrivateProfileString(szChatINISection,"Duration",	itoa(pWindow->FadeDuration,			szTemp,10),ChatINIFile);
+	WritePrivateProfileString(szChatINISection,"Alpha",	itoa(pWindow->Alpha,			szTemp,10),ChatINIFile);
+	WritePrivateProfileString(szChatINISection,"FadeToAlpha",	itoa(pWindow->FadeToAlpha,			szTemp,10),ChatINIFile);
+	WritePrivateProfileString(szChatINISection,"BGType",	itoa(pWindow->BGType,			szTemp,10),ChatINIFile);
+	WritePrivateProfileString(szChatINISection,"BGTint.red",	itoa(pWindow->BGColor.R,			szTemp,10),ChatINIFile);
+	WritePrivateProfileString(szChatINISection,"BGTint.green",	itoa(pWindow->BGColor.G,			szTemp,10),ChatINIFile);
+	WritePrivateProfileString(szChatINISection,"BGTint.blue",	itoa(pWindow->BGColor.B,			szTemp,10),ChatINIFile);
+
+}
+
+
+
 PLUGIN_API VOID InitializePlugin(VOID)
 {
 	DebugSpewAlways("Initializing MQ2ChatWnd");
@@ -30,19 +101,17 @@ PLUGIN_API VOID InitializePlugin(VOID)
 	// Add commands, macro parameters, hooks, etc.
 }
 
+PLUGIN_API VOID OnCleanUI(VOID);
+
 PLUGIN_API VOID ShutdownPlugin(VOID)
 {
 	DebugSpewAlways("Shutting down MQ2ChatWnd");
 
 	// Remove commands, macro parameters, hooks, etc.
-	if (MQChatWnd)
-	{
-		DebugSpewAlways("MQ2ChatWnd: OnCleanUI not called!");
-		// hmmm this wasnt destroyed!
-		delete pMQChatWnd;
-		MQChatWnd=0;
-	}
+	SaveChatToINI((PCSIDLWND)MQChatWnd);
+	OnCleanUI();
 }
+
 
 // This is called every time WriteChatColor is called by MQ2Main or any plugin,
 // IGNORING FILTERS, IF YOU NEED THEM MAKE SURE TO IMPLEMENT THEM. IF YOU DONT
@@ -61,6 +130,7 @@ PLUGIN_API DWORD OnWriteChatColor(PCHAR Line, DWORD Color, DWORD Filter)
 		} 
 		pFilter = pFilter->pNext; 
 	} 
+	Color=pChatManager->GetRGBAFromIndex(Color);
 
 	CHAR szProcessed[MAX_STRING];
 	StripMQChat(Line,szProcessed);
@@ -68,9 +138,10 @@ PLUGIN_API DWORD OnWriteChatColor(PCHAR Line, DWORD Color, DWORD Filter)
 	MQToSTML(Line,szProcessed,MAX_STRING,Color);
 	strcat(szProcessed,"<br>");
 	CXStr NewText(szProcessed);
-	ConvertItemTags(NewText);
-	pStmlWnd->AppendSTML(NewText);
-	pXWnd->SetVScrollPos(MQChatWnd->OutputWnd->VScrollMax);
+	DebugTry(ConvertItemTags(NewText));
+	CXSize Whatever;
+	DebugTry(pOutStmlWnd->AppendSTML(&Whatever,NewText));
+	DebugTry(pOutXWnd->SetVScrollPos(MQChatWnd->OutputWnd->VScrollMax));
 	return 0;
 }
 
@@ -82,8 +153,14 @@ PLUGIN_API VOID OnCleanUI(VOID)
 	// destroy chat window
 	if (MQChatWnd)
 	{
-		delete pMQChatWnd;
-		MQChatWnd=0;
+		DWORD destructor=(DWORD)MQChatWnd->Wnd.pvfTable->vector_deleting_destructor; 
+		__asm { 
+			push ecx; 
+			mov ecx, MQChatWnd; 
+			push 1; 
+			call [destructor]; 
+			pop ecx; 
+		}; 
 	}
 }
 
@@ -98,12 +175,13 @@ PLUGIN_API VOID SetGameState(DWORD GameState)
 			DebugSpewAlways("MQChatWnd: In-game and no pChatManager, sorry!");
 			return; // fuck.. how did thishappen while in game?!
 		}
-
-		MQChatWnd=(PEQCHATWINDOW)new CChatWindow(0);
-		MQChatWnd->Wnd.ContextMenu=(LPVOID)pChatManager->InitContextMenu(pMQChatWnd);
-		((CXWnd*)MQChatWnd)->Show(1,1);
-		BitOff(MQChatWnd->Wnd.WindowStyle,CWS_CLOSE);
+		DebugTry(MQChatWnd=(PEQCHATWINDOW)new CChatWindow(0));
+		DebugTry(MQChatWnd->Wnd.ContextMenu=(LPVOID)pChatManager->InitContextMenu(pMQChatWnd));
+		MQChatWnd->ChatManager=(PEQCHATMGR)pChatManager;
+		DebugTry(((CXWnd*)MQChatWnd)->Show(1,1));
+		DebugTry(BitOff(MQChatWnd->Wnd.WindowStyle,CWS_CLOSE));
 		// load from INI
+		LoadChatFromINI((PCSIDLWND)MQChatWnd);
 	}
 }
 

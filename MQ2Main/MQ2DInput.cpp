@@ -244,6 +244,10 @@ extern HRESULT __stdcall DInputStateDetour(IDirectInputDevice8A* This, DWORD cbD
 extern HRESULT (__stdcall *DInputAcquireTrampoline)(IDirectInputDevice8A* This); 
 extern HRESULT __stdcall DInputAcquireDetour(IDirectInputDevice8A* This); 
 
+DWORD GetDeviceData=0;
+DWORD GetDeviceState=0;
+DWORD Acquire=0;
+
 VOID InitializeMQ2DInput() 
 {
 	DebugSpew("Initializing DInput");
@@ -263,18 +267,18 @@ VOID InitializeMQ2DInput()
    } 
    if ((EQADDR_DIKEYBOARD) && (*EQADDR_DIKEYBOARD)) { 
       IDIDevice = *EQADDR_DIKEYBOARD; 
-			AddDetour((unsigned int) IDIDevice->lpVtbl->GetDeviceData);
-			AddDetour((unsigned int) IDIDevice->lpVtbl->GetDeviceState);
-			AddDetour((unsigned int) IDIDevice->lpVtbl->Acquire);
+			AddDetour(GetDeviceData=(unsigned int) IDIDevice->lpVtbl->GetDeviceData);
+			AddDetour(GetDeviceState=(unsigned int) IDIDevice->lpVtbl->GetDeviceState);
+			AddDetour(Acquire=(unsigned int) IDIDevice->lpVtbl->Acquire);
                         
          //Grab GetDeviceData 
-         (*(PBYTE*)&DInputDataTrampoline) = DetourFunction((PBYTE)IDIDevice->lpVtbl->GetDeviceData, 
+         (*(PBYTE*)&DInputDataTrampoline) = DetourFunction((PBYTE)GetDeviceData, 
             (PBYTE)DInputDataDetour); 
          //Grab GetDeviceState 
-         (*(PBYTE*)&DInputStateTrampoline) = DetourFunction((PBYTE)IDIDevice->lpVtbl->GetDeviceState, 
+         (*(PBYTE*)&DInputStateTrampoline) = DetourFunction((PBYTE)GetDeviceState, 
             (PBYTE)DInputStateDetour); 
          //Grab Acquire 
-         (*(PBYTE*)&DInputAcquireTrampoline) = DetourFunction((PBYTE)IDIDevice->lpVtbl->Acquire, 
+         (*(PBYTE*)&DInputAcquireTrampoline) = DetourFunction((PBYTE)Acquire, 
             (PBYTE)DInputAcquireDetour); 
    }
 }
@@ -283,17 +287,26 @@ VOID ShutdownMQ2DInput()
 {
          if (DetourRemove((PBYTE)DInputDataTrampoline, 
             (PBYTE)DInputDataDetour)) 
+			{
+				RemoveDetour(GetDeviceData);
             DInputDataTrampoline = NULL; 
+			}
          else 
             DebugSpewAlways("Failed to unhook DInputData"); 
          if (DetourRemove((PBYTE)DInputStateTrampoline, 
             (PBYTE)DInputStateDetour)) 
+			{
+				RemoveDetour(GetDeviceState);
             DInputStateTrampoline = NULL; 
+			}
          else 
             DebugSpewAlways("Failed to unhook DInputState"); 
          if (DetourRemove((PBYTE)DInputAcquireTrampoline, 
             (PBYTE)DInputAcquireDetour)) 
+			{
+				RemoveDetour(Acquire);
             DInputAcquireTrampoline = NULL; 
+			}
          else 
             DebugSpewAlways("Failed to unhook DInputAcquire"); 
 }

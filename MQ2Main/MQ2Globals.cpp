@@ -51,7 +51,6 @@ CHAR gszVersion[MAX_STRING] = {0};
 CHAR gszLogPath[MAX_STRING] = {0};
 CHAR gszINIPath[MAX_STRING] = {0};
 CHAR gszINIFilename[MAX_STRING] = {0};
-CHAR gszINIMQchat[MAX_STRING] = {0};
 CHAR gszItemDB[MAX_STRING] = {0};
 CHAR gszMacroName[MAX_STRING] = {0};
 CHAR szLastCommand[MAX_STRING] = {0};

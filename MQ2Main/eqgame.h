@@ -150,6 +150,7 @@
 
 // CXStr
 #define CXStr__CXStr							0x0040104C
+#define CXStr__CXStr1							0x00401046
 #define CXStr__CXStr3							0x00586BB0
 //    GetPrivateProfileString("Function Locations","CXStrConstructor","0",szBuffer,MAX_STRING,ClientINI);   EQADDR_CXSTRCONSTRUCTOR = (DWORD)strtoul(szBuffer,NULL,16);
 #define CXStr__dCXStr							0x00401076
@@ -162,7 +163,6 @@
 // CStmlWnd
 #define CStmlWnd__AppendSTML					0x0055EFB0
 //    GetPrivateProfileString("Function Locations","CStmlWndAppend","0",szBuffer,MAX_STRING,ClientINI);   EQADDR_APPENDSTML = (DWORD)strtoul(szBuffer,NULL,16);
-
 
 // CChatWindow
 #define CChatWindow__CChatWindow				0x004D7D96

@@ -37,10 +37,12 @@ typedef struct _OurDetours {
 } OurDetours;
 
 OurDetours *ourdetours=0;
+CRITICAL_SECTION gDetourCS;
 
 
 BOOL AddDetour(DWORD address, PBYTE pfDetour, PBYTE pfTrampoline)
 {
+	CAutoLock Lock(&gDetourCS);
 	BOOL Ret=TRUE;
 	DebugSpew("AddDetour(0x%X,0x%X,0x%X)",address,pfDetour,pfTrampoline);
 	OurDetours *detour = new OurDetours;
@@ -48,6 +50,8 @@ BOOL AddDetour(DWORD address, PBYTE pfDetour, PBYTE pfTrampoline)
 	detour->count=20;
 	memcpy(detour->array,(char *)address, 20);
 	detour->pNext=ourdetours;
+	if (ourdetours)
+		ourdetours->pLast=detour;
 	detour->pLast=0;
     if (pfDetour && !DetourFunctionWithEmptyTrampoline(pfTrampoline, 
          (PBYTE)address, 
@@ -70,6 +74,7 @@ BOOL AddDetour(DWORD address, PBYTE pfDetour, PBYTE pfTrampoline)
 
 void RemoveDetour(DWORD address)
 {
+	CAutoLock Lock(&gDetourCS);
 	DebugSpew("RemoveDetour(%X)",address);
 	OurDetours *detour = ourdetours;
 	while (detour)
@@ -80,23 +85,27 @@ void RemoveDetour(DWORD address)
 			{
 		      DetourRemove(detour->pfTrampoline, 
 				detour->pfDetour); 		
+			}
 			  if (detour->pLast)
 				detour->pLast->pNext=detour->pNext;
 			  else
 				  ourdetours=detour->pNext;
+
 			  if (detour->pNext)
 				  detour->pNext->pLast=detour->pLast;
-
+			delete detour;
 			  DebugSpew("Detour removed.");
-			}
+			  return;
 		}
 		detour=detour->pNext;
 	}
+	DebugSpew("Detour not found in RemoveDetour()");
 }
 
 void RemoveOurDetours()
 {
-	OurDetours *detour = NULL;
+	CAutoLock Lock(&gDetourCS);
+	DebugSpew("RemoveOurDetours()");
 	if (!ourdetours)
 		return;
 	while (ourdetours)
@@ -106,9 +115,12 @@ void RemoveOurDetours()
 			DetourRemove(ourdetours->pfTrampoline, 
 			ourdetours->pfDetour); 				
 		}
-		detour=ourdetours->pNext;
-		delete ourdetours;
-		ourdetours=detour;
+		else
+		{
+			OurDetours *pNext=ourdetours->pNext;
+			delete ourdetours;
+			ourdetours=pNext;
+		}
 	}
 }
 
@@ -170,15 +182,18 @@ VOID HookMemChecker(BOOL Patch)
     } else {
         DetourRemove((PBYTE) memcheck_tramp,
                      (PBYTE) memcheck);
+		RemoveDetour(EQADDR_MEMCHECK);
 
         memcheck_tramp = NULL;
         DetourRemove((PBYTE) memcheck2_tramp,
                      (PBYTE) memcheck2);
         memcheck2_tramp = NULL;
+		RemoveDetour(EQADDR_MEMCHECK2);
 
 		DetourRemove((PBYTE) memcheck3_tramp,
                      (PBYTE) memcheck3);
         memcheck3_tramp = NULL;
+		RemoveDetour(EQADDR_MEMCHECK3);
     }
 }
 
@@ -653,6 +668,7 @@ int __cdecl memcheck3(unsigned char *buffer, int count, struct mckey key)
 
 void InitializeMQ2Detours()
 {
+	InitializeCriticalSection(&gDetourCS);
 	HookMemChecker(TRUE);
 
 }
@@ -661,4 +677,5 @@ void ShutdownMQ2Detours()
 {
 	HookMemChecker(FALSE);
 	RemoveOurDetours();
+	DeleteCriticalSection(&gDetourCS);
 }

@@ -216,12 +216,6 @@ VOID AddCustomEvent(PEVENTLIST pEList, PCHAR szLine)
     }
 }
 
-DWORD GetGameState(VOID)
-{
-	if (!ppEverQuest || !pEverQuest) return 0;
-	return *(DWORD*)(0x5B4+pEverQuest);
-}
-
 
 // ***************************************************************************
 // Function:    DistanceToSpawn

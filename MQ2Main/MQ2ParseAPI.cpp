@@ -111,6 +111,7 @@ VOID RemoveParm(PCHAR Name)
 
 VOID InitializeParser()
 {
+	DebugSpew("InitializeParser()");
 	struct _PARMLIST Parms[] = {
 	{"getlastfindslot",		parmGetLastFindSlot},
 	{"cursor",				parmCursor},
@@ -201,6 +202,7 @@ VOID InitializeParser()
 
 VOID ShutdownParser()
 {
+	DebugSpew("ShutdownParser()");
 	while(pParmList)
 	{
 		PPARM pNext=pParmList->pNext;
@@ -270,7 +272,7 @@ PCHAR ParseMacroParameter(PSPAWNINFO pChar, PCHAR szOriginal)
     if (NULL == (pCharInfo = GetCharInfo())) return szOriginal;
 
     while (strstr(szOriginal,"$") || strstr(szOriginal,"@")) {
-        DebugSpew("PMP - Current string - '%s'",szOriginal);
+//        DebugSpew("PMP - Current string - '%s'",szOriginal);
         ZeroMemory(szOutput,MAX_STRING);
         ZeroMemory(szVar,MAX_STRING);
         i=0;
@@ -344,7 +346,7 @@ PCHAR ParseMacroParameter(PSPAWNINFO pChar, PCHAR szOriginal)
                     j++;
                 } else {
                     GetArg(szVar,szOriginal+i,1,TRUE,TRUE);
-                    DebugSpew("PMP - Current param - '%s'",szVar);
+//                    DebugSpew("PMP - Current param - '%s'",szVar);
                     FoundNewCmd = FALSE;
 					PPARM pParm=pParmList;
 					while(pParm)

@@ -57,6 +57,7 @@ REVERSE_DETOUR(void CXStr::operator+=(char const *),[CXStr__operator_plus_equal1
 REVERSE_DETOUR(class CXStr & CXStr::operator=(char const *),[CXStr__operator_equal1]);
 REVERSE_DETOUR(CXStr::CXStr(char const *),[CXStr__CXStr3]);
 REVERSE_DETOUR(CXStr::~CXStr(void),[CXStr__dCXStr]);
+REVERSE_DETOUR(CXStr::CXStr(void),[CXStr__CXStr1]);
 REVERSE_DETOUR(CXStr::CXStr(class CXStr const &),[CXStr__CXStr]);
 
 // CChatManager
@@ -66,9 +67,12 @@ REVERSE_DETOUR(int CChatManager::InitContextMenu(class CChatWindow *),CChatManag
 // CChatWindow
 REVERSE_DETOUR(CChatWindow::CChatWindow(class CXWnd *),CChatWindow__CChatWindow);
 REVERSE_DETOUR(CChatWindow::~CChatWindow(void),CChatWindow__dCChatWindow);
+REVERSE_VIRTUAL_DETOUR(void CChatWindow::operator delete[](void*),0x04);
+
 
 // CStmlWnd
-REVERSE_DETOUR(class CXSize CStmlWnd::AppendSTML(class CXStr),CStmlWnd__AppendSTML);
+//REVERSE_DETOUR(class CXSize CStmlWnd::AppendSTML(class CXStr),CStmlWnd__AppendSTML);
+REVERSE_DETOUR(class CXSize& CStmlWnd::AppendSTML(class CXSize*,class CXStr),CStmlWnd__AppendSTML);
 
 // CDisplay
 REVERSE_DETOUR(void CDisplay::CleanGameUI(void),CDisplay__CleanGameUI);

@@ -36,8 +36,9 @@
 
 #define REVERSE_VIRTUAL_DETOUR(function,offset) __declspec(naked) function\
 {\
-	__asm{lea eax, [ecx]};\
-	__asm{add eax, offset};\
+	__asm{mov eax, [ecx]};\
+	__asm{lea eax, [eax+offset]};\
+	__asm{mov eax, [eax]};\
 	__asm{jmp eax};\
 }
 
@@ -57,9 +58,9 @@ typedef double DOUBLE;
 #define MAX_STRING            2048
 
 
-#include "EQClasses.h"
 #include "EQData.h"
 #include "EQUIStructs.h"
+#include "EQClasses.h"
 
 #include "MQ2Prototypes.h"
 #include "MQ2Internal.h"

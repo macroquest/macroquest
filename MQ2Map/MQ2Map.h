@@ -62,3 +62,5 @@ MAPFILTER gMapFilterOptions[] = {
 VOID ClearMapAllocs();
 VOID MapFilters(PSPAWNINFO pChar, PCHAR szLine);
 VOID MapFilterSetting(PSPAWNINFO pChar, PMAPFILTER pMapFilter, PCHAR szValue=NULL);
+VOID HandleMapCastRadius();
+VOID HandleMapLabelAdditions();

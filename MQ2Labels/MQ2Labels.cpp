@@ -83,7 +83,9 @@ public:
    VOID Draw_Trampoline(VOID);
    VOID Draw_Detour(VOID)
    {
-      PCSIDLWND pThisLabel = (PCSIDLWND)this;
+      PCSIDLWND pThisLabel;
+	  __asm {mov [pThisLabel], ecx};
+//		  (PCSIDLWND)this;
       Draw_Trampoline();
       CHAR Buffer[MAX_STRING] = {0};
       BOOL Found=FALSE;
