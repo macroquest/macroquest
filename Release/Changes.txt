@@ -1,3 +1,6 @@
+3 July 2004 by DKAA
+- added /who noguild
+
 3 July 2004 by Amadeus:
 - Added new command:  /substitute 
   ** Syntax: 
