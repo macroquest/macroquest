@@ -33,11 +33,15 @@ static inline PSPELL GetSpellByID(DWORD dwSpellID)
 
 static inline PCHAR GetBodyTypeDesc(DWORD BodyTypeID)
 {
-	if (!BodyTypeID)
+	switch(BodyTypeID)
+	{
+	case 0:
 		return "BODYTYPE ZERO";
-	if (BodyTypeID==29)
+	case 29:
 		return "Dragon";
+	default:
 	return pEverQuest->GetBodyTypeDesc(BodyTypeID);
+	}
 }
 
 static inline PCHAR GetClassDesc(DWORD ClassID)

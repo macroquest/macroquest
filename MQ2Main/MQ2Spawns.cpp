@@ -388,7 +388,7 @@ VOID SetNameSpriteTint(PSPAWNINFO pSpawn)
 		else if (CaptionColors[CC_PCGroupColor].Enabled && IsGroupMember(pSpawn))
 			NewColor=CaptionColors[CC_PCGroupColor].Color;
 		else if (CaptionColors[CC_PCClassColor].Enabled)
-			NewColor=((PEQRAIDWINDOW)pRaidWnd)->ClassColors[pSpawn->Class];
+			NewColor=((PEQRAIDWINDOW)pRaidWnd)->ClassColors[ClassInfo[pSpawn->Class].RaidColorOrder];
 		else if (CaptionColors[CC_PCRaidColor].Enabled && IsRaidMember(pSpawn))
 			NewColor=CaptionColors[CC_PCRaidColor].Color;
 		else if (CaptionColors[CC_PCPVPTeamColor].Enabled)
@@ -424,7 +424,7 @@ VOID SetNameSpriteTint(PSPAWNINFO pSpawn)
 		else if (CaptionColors[CC_NPCMerchant].Enabled && (pSpawn->Class==41 || pSpawn->Class==61))
 			NewColor=CaptionColors[CC_NPCMerchant].Color;
 		else if (CaptionColors[CC_NPCClassColor].Enabled && pSpawn->Class<0x10)
-			NewColor=((PEQRAIDWINDOW)pRaidWnd)->ClassColors[pSpawn->Class];
+			NewColor=((PEQRAIDWINDOW)pRaidWnd)->ClassColors[ClassInfo[pSpawn->Class].RaidColorOrder];
 		else if (CaptionColors[CC_NPCConColor].Enabled)
 			NewColor=ConColorToARGB(ConColor(pSpawn));
 		else if (CaptionColors[CC_NPC].Enabled)
@@ -437,7 +437,7 @@ VOID SetNameSpriteTint(PSPAWNINFO pSpawn)
 		break;
 	case CORPSE:
 		if (CaptionColors[CC_CorpseClassColor].Enabled)
-			NewColor=((PEQRAIDWINDOW)pRaidWnd)->ClassColors[pSpawn->Class];
+			NewColor=((PEQRAIDWINDOW)pRaidWnd)->ClassColors[ClassInfo[pSpawn->Class].RaidColorOrder];
 		else if (CaptionColors[CC_Corpse].Enabled)
 			NewColor=CaptionColors[CC_Corpse].Color;
 		else
@@ -448,7 +448,7 @@ VOID SetNameSpriteTint(PSPAWNINFO pSpawn)
 		break;
 	case PET:
 		if (CaptionColors[CC_PetClassColor].Enabled)
-			NewColor=((PEQRAIDWINDOW)pRaidWnd)->ClassColors[pSpawn->Class];
+			NewColor=((PEQRAIDWINDOW)pRaidWnd)->ClassColors[ClassInfo[pSpawn->Class].RaidColorOrder];
 		else if (CaptionColors[CC_PetConColor].Enabled)
 			NewColor=ConColorToARGB(ConColor(pSpawn));
 		else if (CaptionColors[CC_PetNPC].Enabled && ((PSPAWNINFO)GetSpawnByID(pSpawn->MasterID))->Type==SPAWN_NPC)
