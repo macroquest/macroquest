@@ -5688,3 +5688,164 @@ DWORD parmEvent(PCHAR szVar, PCHAR szOutput, PSPAWNINFO pChar)
     strcat(szOutput,"FALSE");
     return i;
 }
+
+DWORD parmPet(PCHAR szVar, PCHAR szOutput, PSPAWNINFO pChar)
+{
+   int i=0;
+   PCHARINFO pCharInfo = NULL;
+   if (NULL == (pCharInfo = GetCharInfo())) return PMP_ERROR_BADPARM;
+   if (!ppPetInfoWnd) return PMP_ERROR_BADPARM;
+   PEQPETINFOWINDOW pPetInfoWindow = NULL;
+   pPetInfoWindow = (PEQPETINFOWINDOW)pPetInfoWnd;
+   PSPAWNINFO pPet = NULL;
+   if (pCharInfo->pSpawn->pActorInfo->PetID > 0)
+	   pPet = (PSPAWNINFO)GetSpawnByID(pCharInfo->pSpawn->pActorInfo->PetID);
+   CHAR szTemp[MAX_STRING] = {0};
+
+   // $pet(xxx)
+   if (!strncmp("pet()",szVar,5)) {
+      i += 4;
+      if (pPetInfoWindow->Wnd.Show == 1) {
+         strcat(szOutput,"TRUE");
+      } else {
+         strcat(szOutput,"FALSE");
+      }
+
+   // $pet(level)
+   } else if (!strncmp("pet(level)",szVar,10)) {
+      i += 9;
+      if (!pPet)
+		  strcat(szOutput,"0");
+	  else {
+          itoa(pPet->Level,szTemp,10);
+          strcat(szOutput,szTemp);
+	  }
+
+   // $pet(id)
+   } else if (!strncmp("pet(id)",szVar,7)) {
+      i += 6;
+      if (!pPet)
+		  strcat(szOutput,"0");
+	  else {
+          itoa(pPet->SpawnID,szTemp,10);
+          strcat(szOutput,szTemp);
+	  }
+
+   // $pet(x)
+   } else if (!strncmp("pet(x)",szVar,6)) {
+      i += 5;
+      if (!pPet)
+		  strcat(szOutput,"0");
+	  else {
+          sprintf(szTemp,"%1.2f",pPet->X);
+          strcat(szOutput,szTemp);
+	  }
+
+   // $pet(y)
+   } else if (!strncmp("pet(y)",szVar,6)) {
+      i += 5;
+      if (!pPet)
+		  strcat(szOutput,"0");
+	  else {
+          sprintf(szTemp,"%1.2f",pPet->Y);
+          strcat(szOutput,szTemp);
+	  }
+
+   // $pet(z)
+   } else if (!strncmp("pet(z)",szVar,6)) {
+      i += 5;
+      if (!pPet)
+		  strcat(szOutput,"0");
+	  else {
+          sprintf(szTemp,"%1.2f",pPet->Z);
+          strcat(szOutput,szTemp);
+	  }
+
+   // $pet(name)
+   } else if (!strncmp("pet(name)",szVar,9)) {
+      i += 8;
+      if (!pPet)
+		  strcat(szOutput,"0");
+	  else {
+		  strcat(szOutput,pPet->DisplayedName);
+	  }
+
+   // $pet(level)
+   } else if (!strncmp("pet(level)",szVar,10)) {
+      i += 9;
+      if (!pPet)
+		  strcat(szOutput,"0");
+	  else {
+          strcpy(szTemp,pPet->Name);
+          strcat(szOutput,CleanupName(szTemp,FALSE));
+	  }
+
+   // $pet(class)
+   } else if (!strncmp("pet(class)",szVar,10)) {
+      i += 9;
+      if (!pPet)
+		  strcat(szOutput,"0");
+	  else {
+          strcpy(szTemp,pEverQuest->GetClassDesc(pPet->Class));
+          strcat(szOutput,szTemp);
+	  }
+
+   // $pet(race)
+   } else if (!strncmp("pet(race)",szVar,9)) {
+      i += 8;
+      if (!pPet)
+		  strcat(szOutput,"0");
+	  else {
+          strcpy(szTemp,pEverQuest->GetRaceDesc(pPet->Race));
+          strcat(szOutput,szTemp);
+	  }
+
+
+   // Remember:  The charm spell used to charm a pet will show up as one of the buffs.
+   //            Usually, it will be in the first buff slot.
+   // $pet(buff,xxx)
+    } else if (!strncmp("pet(buff,",szVar,9)) {
+        if (!strstr(szVar,")")) {
+            DebugSpewNoFile("PMP - Bad $pet() '%s'",szVar);
+            return PMP_ERROR_BADPARM;
+        } else {
+            i += (strstr(szVar,")")-szVar);
+            CHAR szTemp[MAX_STRING] = "0";
+            PCHAR szArg = szVar+9;
+            WORD Buff = atoi(szArg);
+            if (Buff==0 && szArg[0]!='0') {
+                if (szArg[0]=='"') szArg++;
+                DWORD bf;
+                for (bf=0;bf<30;bf++) {
+					if (pPetInfoWindow->Buff[bf] > 0 ) {
+						PCHAR SpellName = GetSpellNameByID(pPetInfoWindow->Buff[bf]);
+                        if (!strnicmp(szArg,SpellName,strlen(SpellName))) {
+                            itoa(bf+1,szTemp,10);
+                        }
+                    }
+                }
+            } else {
+                if (Buff>0 && Buff<31) {
+                    if (pPetInfoWindow->Buff[Buff-1] > 0) {
+                        itoa(Buff,szTemp,10);
+                        szArg += strlen(szTemp);
+                        if (!strncmp(szArg,",id)",4)) {
+                            itoa(pPetInfoWindow->Buff[Buff-1],szTemp,10);
+                        }
+                    } else {
+                        strcpy(szTemp,"NULL");
+                    }
+                } else {
+                    strcpy(szTemp,"NULL");
+                }
+            }
+            strcat(szOutput,szTemp);
+        }
+
+   // $pet(Unknown)
+   } else {
+      DebugSpewNoFile("PMP - Bad $pet() '%s'",szVar);
+      return PMP_ERROR_BADPARM;
+   }
+   return i;
+}
