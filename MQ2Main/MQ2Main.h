@@ -254,8 +254,9 @@ EQLIB_API VOID InitializeMQ2KeyBinds();
 EQLIB_API VOID ShutdownMQ2KeyBinds();
 EQLIB_API BOOL PressMQ2KeyBind(PCHAR name, BOOL Hold);
 EQLIB_API BOOL SetMQ2KeyBind(PCHAR name, BOOL Alternate, KeyCombo *pCombo);
-EQLIB_API BOOL AddMQ2KeyBind(PCHAR name, PCHAR description, fMQExecuteCmd Function, KeyCombo *pNormalDefault, KeyCombo *pAltDefault);
+EQLIB_API BOOL AddMQ2KeyBind(PCHAR name, fMQExecuteCmd Function, KeyCombo *pNormalDefault=0, KeyCombo *pAltDefault=0);
 EQLIB_API BOOL RemoveMQ2KeyBind(PCHAR name);
+EQLIB_API BOOL GetMQ2KeyBind(PCHAR name, BOOL Alt, KeyCombo &Combo);
 
 /* PULSING */
 EQLIB_API VOID InitializeMQ2Pulse();

@@ -3,7 +3,7 @@
 
 // Single-window MQ Chat
 
-#define DEBUG_TRY 1
+//#define DEBUG_TRY 1
 #include "../MQ2Plugin.h"
 
 void SaveChatToINI(PCSIDLWND pWindow);
@@ -201,7 +201,7 @@ PLUGIN_API VOID ShutdownPlugin(VOID)
 // CALL CEverQuest::dsp_chat MAKE SURE TO IMPLEMENT EVENTS HERE
 PLUGIN_API DWORD OnWriteChatColor(PCHAR Line, DWORD Color, DWORD Filter)
 {
-	DebugSpewAlways("MQ2ChatWnd::OnWriteChatColor(%s)",Line);
+//	DebugSpewAlways("MQ2ChatWnd::OnWriteChatColor(%s)",Line);
 	
 	if (!MQChatWnd)
 	{

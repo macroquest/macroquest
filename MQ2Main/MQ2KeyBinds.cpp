@@ -73,6 +73,8 @@ public:
 
 	bool HandleKeyDown_Hook(class KeyCombo const &Combo)
 	{
+		if (HandleKeyDown_Trampoline(Combo))
+			return true;
 		for (unsigned long N = 0 ; N < BindList.Size ; N++)
 		{
 			if (MQ2KeyBind *pBind=BindList[N])
@@ -87,10 +89,12 @@ public:
 				}
 			}
 		}
-		return HandleKeyDown_Trampoline(Combo);
+		return false;
 	}
 	bool HandleKeyUp_Hook(class KeyCombo const &Combo)
 	{
+		if (HandleKeyUp_Trampoline(Combo))
+			return true;
 		for (unsigned long N = 0 ; N < BindList.Size ; N++)
 		{
 			if (MQ2KeyBind *pBind=BindList[N])
@@ -105,7 +109,7 @@ public:
 				}
 			}
 		}
-		return HandleKeyUp_Trampoline(Combo);
+		return false;
 	}
 /*
 	bool AttachAltKeyToEqCommand_Hook(class KeyCombo const &Combo,unsigned int nCommand)
@@ -196,6 +200,19 @@ BOOL AddMQ2KeyBind(PCHAR name, fMQExecuteCmd Function, KeyCombo *pNormalDefault,
 	SetKeyBindNameMap(name,N);
 	
 	return true;
+}
+
+BOOL GetMQ2KeyBind(PCHAR name, BOOL Alt, KeyCombo &Combo)
+{
+	if (MQ2KeyBind *pBind=KeyBindByName(name))
+	{
+		if (Alt)
+			Combo=pBind->Alt;
+		else
+			Combo=pBind->Normal;
+		return true;
+	}
+	return false;
 }
 
 BOOL RemoveMQ2KeyBind(PCHAR name)

@@ -390,7 +390,7 @@ VOID StripMQChat(PCHAR in, PCHAR out)
 
 DWORD MQToSTML(PCHAR in, PCHAR out, DWORD maxlen, DWORD ColorOverride)
 {
-	DebugSpew("MQToSTML(%s)",in);
+//	DebugSpew("MQToSTML(%s)",in);
 	// 1234567890123
 	// <c "#123456">
 	if (maxlen>14)
@@ -2243,7 +2243,7 @@ PCHAR DescribeKeyCombo(KeyCombo &Combo, PCHAR szDest)
 	}
 	else
 	{
-		strcpy(&szDest[pos],"cleared");
+		strcpy(&szDest[pos],"clear");
 	}
 
 	return &szDest[0];	
