@@ -126,6 +126,24 @@ Package=<4>
 
 ###############################################################################
 
+Project: "MQ2Telnet"=.\mq2telnet\mq2telnet.dsp - Package Owner=<4>
+
+Package=<5>
+{{{
+}}}
+
+Package=<4>
+{{{
+    Begin Project Dependency
+    Project_Dep_Name macroquest
+    End Project Dependency
+    Begin Project Dependency
+    Project_Dep_Name MQ2Main
+    End Project Dependency
+}}}
+
+###############################################################################
+
 Project: "MQ2Template"=.\MQ2Template\MQ2Template.dsp - Package Owner=<4>
 
 Package=<5>
