@@ -1555,7 +1555,7 @@ typedef struct _SPELLMGR {
 } SPELLMGR, *PSPELLMGR;
 
 
-// size 0x1f4 2004-05-05 lax
+// size 0x200 2004-06-02 lax
 typedef struct _SPELL { 
 /*0x000*/   DWORD   ID; 
 /*0x004*/   FLOAT   Range; 
@@ -1609,8 +1609,8 @@ typedef struct _SPELL {
 /*0x164*/   BYTE    Unknown0x164;
 /*0x165*/	BYTE	Unknown0x165;  //data here on detrimental spells
 /*0x166*/	BYTE	Unknown0x166;  //data here on detrimental spells 
-/*0x167*/	BYTE	Unknown0x167[0x45];////184->184  1a0->1a4
-/*0x1ac*/   CHAR	*Name;// -->1ac
+/*0x167*/	BYTE	Unknown0x167[0x51];////184->184  1a0->1a4
+/*0x1ac*/   CHAR	*Name;// -->1b8
 /*0x1  */   CHAR	*Target; 
 /*0x1a */   CHAR	*Extra;			// This is 'Extra' from Lucy (portal shortnames etc)
 /*0x1a */   CHAR	*Unknown0x1a8; //
