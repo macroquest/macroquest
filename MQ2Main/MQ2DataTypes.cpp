@@ -1341,6 +1341,65 @@ bool MQ2MathType::GetMember(MQ2VARPTR VarPtr, PCHAR Member, PCHAR Index, MQ2TYPE
 		sscanf(Index,"%x",&Dest.DWord);
 		Dest.Type=pIntType;
 		return true;
+	case Distance:
+		if (Index[0])
+		{
+			FLOAT P1[3];
+			FLOAT P2[3];
+			P1[0]=P2[0]=((PSPAWNINFO)pCharSpawn)->X;
+			P1[1]=P2[1]=((PSPAWNINFO)pCharSpawn)->Y;
+			P1[2]=P2[2]=((PSPAWNINFO)pCharSpawn)->Z;
+			if (PCHAR pColon=strchr(Index,':'))
+			{
+				*pColon=0;
+				if (PCHAR pComma=strchr(&pColon[1],','))
+				{
+					*pComma=0;
+					P2[0]=(FLOAT)atof(&pColon[1]);
+					*pComma=',';
+					if (PCHAR pComma2=strchr(&pComma[1],','))
+					{
+						*pComma2=0;
+						P2[1]=(FLOAT)atof(&pComma[1]);
+						*pComma2=',';
+						P2[2]=(FLOAT)atof(&pComma2[1]);
+					}
+					else
+					{
+						P2[1]=(FLOAT)atof(&pComma[1]);
+					}
+				}
+				else
+					P2[0]=(FLOAT)atof(&pColon[1]);
+			}
+
+
+			if (PCHAR pComma=strchr(Index,','))
+			{
+				*pComma=0;
+				P1[0]=(FLOAT)atof(Index);
+				*pComma=',';
+				if (PCHAR pComma2=strchr(&pComma[1],','))
+				{
+					*pComma2=0;
+					P1[1]=(FLOAT)atof(&pComma[1]);
+					*pComma2=',';
+					P1[2]=(FLOAT)atof(&pComma2[1]);
+				}
+				else
+				{
+					P1[1]=(FLOAT)atof(&pComma[1]);
+				}
+			}
+			else
+				P1[0]=(FLOAT)atof(Index);
+
+			DebugSpew("GetDistance3D(%1.0f,%1.0f,%1.0f,%1.0f,%1.0f,%1.0f)",P1[0],P1[1],P1[2],P2[0],P2[1],P2[2]);
+			Dest.Float=(FLOAT)GetDistance3D(P1[0],P1[1],P1[2],P2[0],P2[1],P2[2]);
+			Dest.Type=pFloatType;
+			return true;
+		}
+		return false;
 	/*
 		Distance
 	/**/

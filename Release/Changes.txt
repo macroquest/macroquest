@@ -1,8 +1,9 @@
-30 Mar 2004 by Lax
+31 Mar 2004 by Lax
 - Fixed /newif so variables/parms/data get parsed
 - string.Mid and string.Find are now 1-based instead of 0-based
 - Calculate (and stuff that uses it) now supports parentheses, and will treat 
   "NULL" and "FALSE" as 0, and "TRUE" as 1
+- Added float math.Distance[x,y,z:x,y,z]: Performs distance calculations in 1, 2 or 3 dimensions.  Any not given will default to your character's current x y or z.
 
 30 Mar 2004 by Lax
 - Added a distance-sorted spawn list in MQ2Main

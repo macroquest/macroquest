@@ -83,6 +83,15 @@ static inline FLOAT GetDistance(FLOAT X1,FLOAT Y1,FLOAT X2,FLOAT Y2)
 	return sqrtf(dX*dX + dY*dY);
 }
 
+static inline FLOAT GetDistance3D(FLOAT X1, FLOAT Y1, FLOAT Z1, FLOAT X2, FLOAT Y2, FLOAT Z2)
+{
+    FLOAT dX = X1 - X2;
+    FLOAT dY = Y1 - Y2;
+    FLOAT dZ = Z1 - Z2;
+    return sqrtf(dX*dX + dY*dY + dZ*dZ);
+}
+
+
 // ***************************************************************************
 // Function:    DistanceToSpawn
 // Description: Return the distance between two spawns
