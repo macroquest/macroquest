@@ -1,3 +1,20 @@
+17 Feb 2004 by Amadeus
+- Added initial EQTRADESKILLWINDOW & EQTRADESKILLRECIPE struct
+- Added pet window to the /windowstate command (ie:  /windowstate pet open/close)
+- Added initial EQPETINFOWINDOW struct 
+- Updated the mq2irc plugin to have the new irc server information
+- Added a bunch of new parameters:
+  * $pet(buff,"<spellname>")   [returns buff slot number]
+  * $pet(buff,#,id)            [returns the spellID for the buff slot # given]
+  * $pet(level)
+  * $pet(id)
+  * $pet(x)
+  * $pet(y)
+  * $pet(z)
+  * $pet(name)
+  * $pet(class)
+  * $pet(race)
+
 16 Feb 2004 by Amadeus
 - Fixed EQ_CONTAINERWND_MANAGER  (which fixes $envopen )
 - Added "Frenzy" to skills.h [daerck]
