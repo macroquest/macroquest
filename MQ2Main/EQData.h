@@ -1501,7 +1501,7 @@ typedef struct _SPELLMGR {
 } SPELLMGR, *PSPELLMGR;
 
 
-// size 0x1ec 2004-04-28 lax
+// size 0x1f4 2004-05-05 lax
 typedef struct _SPELL { 
 /*0x000*/   DWORD   ID; 
 /*0x004*/   FLOAT   Range; 
@@ -1555,17 +1555,17 @@ typedef struct _SPELL {
 /*0x164*/   BYTE    Unknown0x164;
 /*0x165*/	BYTE	Unknown0x165;  //data here on detrimental spells
 /*0x166*/	BYTE	Unknown0x166;  //data here on detrimental spells 
-/*0x167*/	BYTE	Unknown0x167[0x41];//184-->184
-/*0x1a8*/   CHAR	*Name;// -->1a8
+/*0x167*/	BYTE	Unknown0x167[0x45];////184->184  1a0->1a4
+/*0x1ac*/   CHAR	*Name;// -->1ac
 /*0x1  */   CHAR	*Target; 
 /*0x1a */   CHAR	*Extra;			// This is 'Extra' from Lucy (portal shortnames etc)
-/*0x1a */   CHAR	*Unknown0x1a8; //-->1b4
+/*0x1a */   CHAR	*Unknown0x1a8; //
 /*0x1a */   CHAR	*Unknown0x1ac;      
 /*0x1b */   CHAR	*CastOnYou; 
 /*0x1b */   CHAR	*CastOnAnother; 
 /*0x1b */   CHAR	*WearOff; 
-/*0x1b */   CHAR	*Unknown0x1bc; //--> 1c8     
-/*0x1c */   DWORD   spaindex; //--> 1cc
+/*0x1b */   CHAR	*Unknown0x1bc; //  
+/*0x1c */   DWORD   spaindex; //
 /*0x1c */   CHAR	*Unknown0x1c4;      
 /*0x1c */   DWORD   SpellAnim; 
 /*0x1c */   DWORD   Unknown0x1cc; 

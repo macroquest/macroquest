@@ -62,7 +62,7 @@ public:
 	
 		InputBox=(CTextEntryWnd*)GetChildItem("CWChatInput");
 		InputBox->WindowStyle|=0x800C0;
-		InputBox->Unknown0x06c|=0xFFFFFFFF;
+		InputBox->UnknownCW|=0xFFFFFFFF;
 		InputBox->SetMaxChars(512);
 		BitOff(WindowStyle,CWS_CLOSE);
    } 

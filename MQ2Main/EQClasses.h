@@ -560,7 +560,7 @@ EQLIB_OBJECT static class CXWndManager * & CXWnd::sm_pMgr;
 // private
 EQLIB_OBJECT static unsigned char CXWnd::sm_byCurrentAlpha;
 
-// data members
+// Data members
 /*0x000*/   struct _CXWNDVFTABLE   *pvfTable;
 /*0x004*/   DWORD   Unknown0x004;   // set to 0 in CXWnd::Refade
 /*0x008*/   DWORD   Unknown0x008;
@@ -568,72 +568,70 @@ EQLIB_OBJECT static unsigned char CXWnd::sm_byCurrentAlpha;
 /*0x010*/   DWORD   FadeDuration;      //  "Duration" in ini
 /*0x014*/   BYTE    FadeToAlpha;      // set to 1 in CXWnd::Refade
 /*0x015*/   BYTE    Unknown0x015;     // Faded?
-/*0x016*/   BYTE    Locked; // -> 0x16
+/*0x016*/   BYTE    Locked; // 
 /*0x017*/   BYTE    Unknown0x017;
 /*0x018*/   BYTE    Unknown0x018;
 /*0x019*/   BYTE    Unknown0x019;
 /*0x01a*/   BYTE    Unknown0x01a;
 /*0x01b*/   BYTE    Unknown0x01b;
-/*0x01c*/   BYTE    Unknown0x01c[0x4];
-/*0x020*/   struct  _CSIDLWND *pParentWindow;  // If this is NULL, coordinates are absolute...
-/*0x024*/   struct  _CSIDLWND *pChildren;
-/*0x028*/   struct  _CSIDLWND *pSiblings;  // its a tree.  // ->0x28
-/*0x02c*/   BYTE    HasChildren;
-/*0x02d*/   BYTE    HasSiblings; // ->0x2d
-/*0x02e*/   BYTE    Unknown0x02e[0x2];
-/*0x030*/   DWORD   XMLIndex;
-/*0x034*/   RECT    Location;
-/*0x044*/   RECT    OldLocation;
-/*0x054*/   BYTE    bShow;       // -> 0x54
-/*0x055*/   BYTE    Enabled;
-/*0x056*/   BYTE    Minimized;  // -> 0x56
-/*0x057*/   BYTE    Unknown0x057; // ontilebox
-/*0x058*/   BYTE    Unknown0x058;
-/*0x059*/   BYTE    Unknown0x059;
-/*0x05a*/   BYTE    MouseOver;
-/*0x05b*/   BYTE    Unknown0x05b;
-/*0x05c*/   DWORD   WindowStyle; // bit 1 - vertical scroll, bit 2 - horizontal scroll, bit 4 - title bar?, bit 8 - border
-/*0x060*/   DWORD   Unknown0x060;// -> 0x60
+/*0x01c*/   BYTE    Unknown0x01c[0xc];
+/*0x028*/   struct  _CSIDLWND *pParentWindow;  // If this is NULL, coordinates are absolute...
+/*0x02c*/   struct  _CSIDLWND *pChildren;
+/*0x030*/   struct  _CSIDLWND *pSiblings;  // its a tree. 
+/*0x034*/   BYTE    HasChildren;
+/*0x035*/   BYTE    HasSiblings; // 
+/*0x036*/   BYTE    Unknown0x02e[0x2];
+/*0x038*/   DWORD   XMLIndex;
+/*0x03 */   RECT    Location;
+/*0x04 */   RECT    OldLocation;
+/*0x05 */   BYTE    bShow;       // 
+/*0x05 */   BYTE    Enabled;
+/*0x05 */   BYTE    Minimized;  // 
+/*0x05 */   BYTE    Unknown0x057; // ontilebox
+/*0x05 */   BYTE    Unknown0x058;
+/*0x05 */   BYTE    Unknown0x059;
+/*0x05 */   BYTE    MouseOver;
+/*0x05 */   BYTE    Unknown0x05b;
+/*0x05 */   DWORD   WindowStyle; // bit 1 - vertical scroll, bit 2 - horizontal scroll, bit 4 - title bar?, bit 8 - border 
+/*0x06 */   DWORD   Unknown0x060;// -> 0x60
 			DWORD   Unknown0x064;
 			DWORD   Unknown0x068;
 /*0x   */   struct _CXSTR  *WindowText; // -> 0x6C
-/*0x068*/   struct _CXSTR *   Tooltip;
-/*0x06c*/   DWORD   Unknown0x06c; // CXWnd::SetLookLikeParent
-/*0x070*/   ARGBCOLOR BGColor; // "BGTint.Red", green, blue
-/*0x074*/   BYTE    Unknown0x074[0x10];
-/*0x084*/   DWORD   BGType; // "BGType" in ini
-/*0x088*/   struct _CXSTR *   XMLToolTip;
-/*0x08c*/   BYTE    Unknown0x08c[0x14];
-/*0x0a0*/   BYTE    Alpha; // "Alpha" in ini
-/*0x0a1*/   BYTE    Fades; // "Fades" in ini
-/*0x0a2*/   BYTE    Unknown0x0a2;
-/*0x0a3*/   BYTE    Unknown0x0a3;
-/*0x0a4*/   BYTE    Unknown0x0a4[0x0c];
-/*0x0b0*/   DWORD   ZLayer; // --> b0
-/*0x0b4*/   DWORD   Unknown0x0b4;
-/*0x0b8*/   LPVOID  DrawTemplate; // 0xb8
-/*0x0bc*/   BYTE    Unknown0x0b0[0xc];
-/*0x0c8*/   union {
+/*0x0  */   struct _CXSTR  *Tooltip; // -> 0x70
+/*0x06 */   DWORD   UnknownCW; // CXWnd::SetLookLikeParent
+/*0x07 */   ARGBCOLOR BGColor; // "BGTint.Red", green, blue
+/*0x07 */   BYTE    Unknown0x074[0x10];
+/*0x08 */   DWORD   BGType; // "BGType" in ini
+/*0x08 */   struct _CXSTR  *XMLToolTip;// -> 0x90
+/*0x08 */   BYTE    Unknown0x08c[0x14];
+/*0x0a */   BYTE    Alpha; // "Alpha" in ini
+/*0x0a */   BYTE    Fades; // "Fades" in ini
+/*0x0a */   BYTE    Unknown0x0a2;
+/*0x0a */   BYTE    Unknown0x0a3;
+/*0x0a */   BYTE    Unknown0x0a4[0x0c];
+/*0x0b */   DWORD   ZLayer; // 
+/*0x0b */   DWORD   Unknown0x0b4;
+/*0x0b */   LPVOID  DrawTemplate; //
+/*0x0b */   BYTE    Unknown0x0b0[0xc];
+/*0x0c */   union {
 					_ITEMINFO* Item;
 					_CSIDLWND* InvDescription;
 			};
-/*0x0cc*/   BYTE    Unknown0x0c0[0xc];
-/*0x0d8*/   DWORD   Unknown0x0cc; // CXWnd::StartFade, CXWnd::Minimize
-/*0x0dc*/   BYTE    Unknown0x0d0[0x10];
-/*0x0ec*/   DWORD   FadeTickCount; // -> 0x0ec
-/*0x0f0*/   BYTE    Unknown0x0e4; // CXWnd::StartFade  // 0xf0
-/*0x0f1*/   BYTE    Unknown0x0e5; // CXWnd::StartFade  // 0xf1
-/*0x0f2*/   BYTE    Unknown0x0e6; 
-/*0x0f3*/   BYTE    Unknown0x0e7;
-/*0x0f4*/   DWORD   Unknown0x0e8;// CXWnd::StartFade, CXWnd::Minimize // 0xf4
-/*0x0f8*/   DWORD   VScrollMax; // -> 0xf8
-/*0x0fc*/   DWORD   VScrollPos; // -> 0xfc
-/*0x100*/   DWORD   HScrollMax; // -> 0x100
-/*0x104*/   DWORD   HScrollPos; // -> 0x104
-/*0x108*/   BYTE    ValidCXWnd; // -> 0x108
-/*0x109*/   BYTE    Unused0x109[0x3];
-/*0x10C*/   struct _CXSTR *   SidlText; 
-/*0x110*/
+/*0x0c */   BYTE    Unknown0x0c0[0xc];
+/*0x0d */   DWORD   Unknown0x0cc; // CXWnd::StartFade, CXWnd::Minimize
+/*0x0d */   BYTE    Unknown0x0d0[0x10];
+/*0x0e */   DWORD   FadeTickCount; // 
+/*0x0f */   BYTE    Unknown0x0e4; // CXWnd::StartFade  
+/*0x0f */   BYTE    Unknown0x0e5; // CXWnd::StartFade 
+/*0x0f */   BYTE    Unknown0x0e6; 
+/*0x0f */   BYTE    Unknown0x0e7;
+/*0x0f */   DWORD   Unknown0x0e8;// CXWnd::StartFade, CXWnd::Minimize 
+/*0x0f */   DWORD   VScrollMax; //
+/*0x0f */   DWORD   VScrollPos; //
+/*0x10 */   DWORD   HScrollMax; // 
+/*0x10 */   DWORD   HScrollPos; // 
+/*0x10 */   BYTE    ValidCXWnd; //
+/*0x10 */   BYTE    Unused0x0f9[0x7];
 };
 
 class CSidlScreenWnd
@@ -680,91 +678,92 @@ EQLIB_OBJECT static bool CSidlScreenWnd::m_useIniFile;
 /*0x008*/   DWORD   Unknown0x008;
 /*0x00c*/   DWORD   TimeMouseOver;     // "Delay" in ini
 /*0x010*/   DWORD   FadeDuration;      //  "Duration" in ini
-/*0x014*/   BYTE    FadeToAlpha;      // set to 1 in CXWnd::Refade
+/*0x014*/   BYTE    FadeToAlpha;      // set to 1 in CXWnd::Refade   // -->0x14
 /*0x015*/   BYTE    Unknown0x015;     // Faded?
-/*0x016*/   BYTE    Locked; // -> 0x16
+/*0x016*/   BYTE    Locked; // 
 /*0x017*/   BYTE    Unknown0x017;
 /*0x018*/   BYTE    Unknown0x018;
 /*0x019*/   BYTE    Unknown0x019;
 /*0x01a*/   BYTE    Unknown0x01a;
 /*0x01b*/   BYTE    Unknown0x01b;
-/*0x01c*/   BYTE    Unknown0x01c[0x4];
-/*0x020*/   struct  _CSIDLWND *pParentWindow;  // If this is NULL, coordinates are absolute...
-/*0x024*/   struct  _CSIDLWND *pChildren;
-/*0x028*/   struct  _CSIDLWND *pSiblings;  // its a tree.  // ->0x28
-/*0x02c*/   BYTE    HasChildren;
-/*0x02d*/   BYTE    HasSiblings; // ->0x2d
-/*0x02e*/   BYTE    Unknown0x02e[0x2];
-/*0x030*/   DWORD   XMLIndex;
-/*0x034*/   RECT    Location;
-/*0x044*/   RECT    OldLocation;
-/*0x054*/   BYTE    Show;       // -> 0x54
-/*0x055*/   BYTE    Enabled;
-/*0x056*/   BYTE    Minimized;  // -> 0x56
-/*0x057*/   BYTE    Unknown0x057; // ontilebox
-/*0x058*/   BYTE    Unknown0x058;
-/*0x059*/   BYTE    Unknown0x059;
-/*0x05a*/   BYTE    MouseOver;
-/*0x05b*/   BYTE    Unknown0x05b;
-/*0x05c*/   DWORD   WindowStyle; // bit 1 - vertical scroll, bit 2 - horizontal scroll, bit 4 - title bar?, bit 8 - border
-/*0x060*/   DWORD   Unknown0x060;// -> 0x60
-			DWORD   Unknown0x064;
-			DWORD   Unknown0x068;
-/*0x   */   struct _CXSTR  *WindowText; // -> 0x6C
-/*0x068*/   struct _CXSTR *   Tooltip;
-/*0x06c*/   DWORD   Unknown0x06c; // CXWnd::SetLookLikeParent
-/*0x070*/   ARGBCOLOR BGColor; // "BGTint.Red", green, blue
-/*0x074*/   BYTE    Unknown0x074[0x10];
-/*0x084*/   DWORD   BGType; // "BGType" in ini
-/*0x088*/   struct _CXSTR *   XMLToolTip;
-/*0x08c*/   BYTE    Unknown0x08c[0x14];
-/*0x0a0*/   BYTE    Alpha; // "Alpha" in ini
-/*0x0a1*/   BYTE    Fades; // "Fades" in ini
-/*0x0a2*/   BYTE    Unknown0x0a2;
-/*0x0a3*/   BYTE    Unknown0x0a3;
-/*0x0a4*/   BYTE    Unknown0x0a4[0x0c];
-/*0x0b0*/   DWORD   ZLayer; // --> b0
-/*0x0b4*/   DWORD   Unknown0x0b4;
-/*0x0b8*/   LPVOID  DrawTemplate; // 0xb8
-/*0x0bc*/   BYTE    Unknown0x0b0[0xc];
-/*0x0c8*/   union {
+/*0x01c*/   BYTE    Unknown0x01c[0x0c];//-->1c
+/*0x028*/   struct  _CSIDLWND *pParentWindow;  // If this is NULL, coordinates are absolute...  //-->28
+/*0x02c*/   struct  _CSIDLWND *pChildren;
+/*0x0  */   struct  _CSIDLWND *pSiblings;  // its a tree.  // ->0x28
+/*0x02 */   BYTE    HasChildren;
+/*0x02 */   BYTE    HasSiblings; // ->0x2d
+/*0x02 */   BYTE    Unknown0x02e[0x2];
+/*0x03 */   DWORD   XMLIndex;
+/*0x03 */   RECT    Location;
+/*0x04 */   RECT    OldLocation;
+/*0x05 */   BYTE    Show;       // -> 0x54
+/*0x05 */   BYTE    Enabled;
+/*0x05 */   BYTE    Minimized;  // -> 0x56
+/*0x05 */   BYTE    Unknown0x057; // ontilebox
+/*0x05 */   BYTE    Unknown0x058;
+/*0x05 */   BYTE    Unknown0x059;
+/*0x05 */   BYTE    MouseOver;
+/*0x05 */   BYTE    Unknown0x05b;
+/*0x05 */   DWORD   WindowStyle; // bit 1 - vertical scroll, bit 2 - horizontal scroll, bit 4 - title bar?, bit 8 - border
+/*0x06 */   DWORD   Unknown0x060;//
+/*0x06 */	DWORD   Unknown0x064;
+/*0x06 */	DWORD   Unknown0x068;
+/*0x06 */   struct _CXSTR  *WindowText; // 
+/*0x07 */   struct _CXSTR  *Tooltip;
+/*0x07 */   DWORD   UnknownCW; // CXWnd::SetLookLikeParent
+/*0x07 */   ARGBCOLOR BGColor; // "BGTint.Red", green, blue
+/*0x07 */   BYTE    Unknown0x07c[0x10];
+/*0x08 */   DWORD   BGType; // "BGType" in ini 
+/*0x09 */   struct _CXSTR  *XMLToolTip;
+/*0x09 */   BYTE    Unknown0x094[0x14];
+/*0x0a */   BYTE    Alpha; // "Alpha" in ini 
+/*0x0a */   BYTE    Fades; // "Fades" in ini
+/*0x0a */   BYTE    Unknown0x0aa;
+/*0x0a */   BYTE    Unknown0x0ab;
+/*0x0a */   BYTE    Unknown0x0ac[0x0c];
+/*0x0b */   DWORD   ZLayer; // 
+/*0x0b */   DWORD   Unknown0x0bc;
+/*0x0c */   LPVOID  DrawTemplate; //
+/*0x0c */   BYTE    Unknown0x0c4[0xc];
+/*0x0d */   union {
 					_ITEMINFO* Item;
 					_CSIDLWND* InvDescription;
 			};
-/*0x0cc*/   BYTE    Unknown0x0c0[0xc];
-/*0x0d8*/   DWORD   Unknown0x0cc; // CXWnd::StartFade, CXWnd::Minimize
-/*0x0dc*/   BYTE    Unknown0x0d0[0x10];
-/*0x0ec*/   DWORD   FadeTickCount; // -> 0x0ec
-/*0x0f0*/   BYTE    Unknown0x0e4; // CXWnd::StartFade  // 0xf0
-/*0x0f1*/   BYTE    Unknown0x0e5; // CXWnd::StartFade  // 0xf1
-/*0x0f2*/   BYTE    Unknown0x0e6; 
-/*0x0f3*/   BYTE    Unknown0x0e7;
-/*0x0f4*/   DWORD   Unknown0x0e8;// CXWnd::StartFade, CXWnd::Minimize // 0xf4
-/*0x0f8*/   DWORD   VScrollMax; // -> 0xf8
-/*0x0fc*/   DWORD   VScrollPos; // -> 0xfc
-/*0x100*/   DWORD   HScrollMax; // -> 0x100
-/*0x104*/   DWORD   HScrollPos; // -> 0x104
-/*0x108*/   BYTE    ValidCXWnd; // -> 0x108
-/*0x109*/   BYTE    Unused0x109[0x3];
-/*0x10C*/   struct _CXSTR *   SidlText; 
-/*0x110*/   union { 
-			   struct _CXSTR *  SidlScreen; 
+/*0x0d */   BYTE    Unknown0x0d4[0xc];
+/*0x0e */   DWORD   Unknown0x0e0; // CXWnd::StartFade, CXWnd::Minimize
+/*0x0e */   BYTE    Unknown0x0e4[0x10];
+/*0x0f */   DWORD   FadeTickCount; // -> 0x0
+/*0x0f */   BYTE    Unknown0x0f8; // CXWnd::StartFade  // 0x
+/*0x0f */   BYTE    Unknown0x0f9; // CXWnd::StartFade  // 0x
+/*0x0f */   BYTE    Unknown0x0fa; 
+/*0x0f */   BYTE    Unknown0x0fb;
+/*0x0f */   DWORD   Unknown0x0fc;// CXWnd::StartFade, CXWnd::Minimize // 0x
+/*0x10 */   DWORD   VScrollMax; // -> 0x
+/*0x10 */   DWORD   VScrollPos; // -> 0x
+/*0x10 */   DWORD   HScrollMax; // -> 0x
+/*0x10 */   DWORD   HScrollPos; // -> 0x
+/*0x11 */   BYTE    ValidCXWnd; // -> 0x
+/*0x11 */   BYTE    Unused0x0f9[0x3];
+/*0x11 */   struct _CXSTR  *SidlText; 
+/*0x11 */   union { 
+			   struct _CXSTR  *SidlScreen; 
                DWORD   SlotID; 
-         }; 
-/*0x114*/   LPVOID SidlPiece;   // CScreenPieceTemplate (important)  
-/*0x118*/   DWORD   Checked; // CRadioGroup
-/*0x11c*/   DWORD   TextureAnim; // used in CSidlScreenWnd::AddButtonToRadioGroup
-/*0x120*/   struct _CXSTR *   InputText;
-/*0x124*/   DWORD   Selector;
-/*0x128*/   DWORD   PushToSelector;
-/*0x12c*/   DWORD   EnableINIStorage;
-/*0x130*/   struct _CXSTR *   INIStorageName;// -->0x130
-/*0x134*/   DWORD   Unknown0x134;
-/*0x138*/   DWORD   Unknown0x138;
-/*0x13c*/   LPVOID  ContextMenu;
-/*0x140*/	DWORD   Unknown0x140;
-/*0x144*/	DWORD   Unknown0x144;
-/*0x148*/
+         }; //-->120
+/*0x11 */   LPVOID SidlPiece;   // CScreenPieceTemplate (important)  // -->124
+/*0x12 */   BYTE    Checked;
+/*0x12 */   BYTE    Highlighted;
+/*0x12 */   BYTE    Unused0x122[0x2];
+/*0x12 */   DWORD   TextureAnim; // used in CSidlScreenWnd::AddButtonToRadioGroup
+/*0x12 */   struct _CXSTR *   InputText;
+/*0x12 */   DWORD   Selector;
+/*0x13 */   DWORD   PushToSelector;
+/*0x13 */   DWORD   EnableINIStorage;
+/*0x13 */   struct _CXSTR *INIStorageName;// -->
+/*0x13 */   DWORD   Unknown0x13C;// CTextureAnimation
+/*0x14 */   DWORD   Unknown0x140;// CTextureAnimation
+/*0x14 */   LPVOID  ContextMenu; // CTextureAnimation
+/*0x14 */	DWORD   Unknown0x148;// CTextureAnimation
+/*0x14 */	DWORD   Unknown0x14C;// CTextureAnimation
 
 	inline CXWnd *pXWnd() {return (CXWnd*)this;};
 };
@@ -4630,14 +4629,14 @@ EQLIB_OBJECT void CTextEntryWnd::Deactivate(void);
 // private
 EQLIB_OBJECT void CTextEntryWnd::UpdateButtons(void);
 
-/*0x148*/	DWORD Unknown0x148;
-/*0x14C*/ DWORD Unknown0x14c;
-/*0x150*/ PCXSTR Data;
-/*0x154*/ DWORD Unknown0x154;
-/*0x158*/ CSidlScreenWnd *Entry;
-/*0x15c*/ CSidlScreenWnd *Prompt;
-/*0x160*/ CSidlScreenWnd *OK;
-/*0x164*/ CSidlScreenWnd *Cancel;
+/*0x148*///	DWORD Unknown0x148;
+/*0x14C*/// DWORD Unknown0x14c;
+/*0x150*/// PCXSTR Data;
+/*0x154*/// DWORD Unknown0x154;
+/*0x158*/// CSidlScreenWnd *Entry;
+/*0x15c*/// CSidlScreenWnd *Prompt;
+/*0x160*/// CSidlScreenWnd *OK;
+/*0x164*/// CSidlScreenWnd *Cancel;
 };
 
 class CTextureAnimation
