@@ -282,11 +282,13 @@ BOOL ParseMacroVariables(PCHAR szOriginal)
 		goto pmvbottom;
 		// insert szCurrent into current position
 pmvinsert:;
-		unsigned long NewLength=strlen(szCurrent);
+		{
+			unsigned long NewLength=strlen(szCurrent);
 
-		memmove(&pAt[NewLength],&pEnd,strlen(pEnd)+1);
-		strncpy(pAt,szCurrent,NewLength);
-		Changed=true;
+			memmove(&pAt[NewLength],&pEnd,strlen(pEnd)+1);
+			strncpy(pAt,szCurrent,NewLength);
+			Changed=true;
+		}
 pmvbottom:;
 	} while (pAt=strstr(&pAt[1],"${"));
 /*
