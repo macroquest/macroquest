@@ -1056,4 +1056,42 @@ BOOL dataSkill(PCHAR szIndex, MQ2TYPEVAR &Ret)
 	return false;
 }
 
+BOOL dataAltAbility(PCHAR szIndex, MQ2TYPEVAR &Ret)
+{
+	if (!szIndex[0])
+		return false;
+	if (IsNumber(szIndex))
+	{
+		unsigned long nAbility=atoi(szIndex);
+		if (nAbility>=NUM_ALT_ABILITIES || !nAbility)
+			return false;
+		if (Ret.Ptr=&((PALTADVMGR)pAltAdvManager)->Abilities[nAbility])
+		{
+			Ret.Type=pAltAbilityType;
+			return true;
+		}
+	}
+	else
+	{
+		for (unsigned long nAbility=1 ; nAbility<NUM_ALT_ABILITIES ; nAbility++)
+		{
+			if (PALTABILITY pAbility=((PALTADVMGR)pAltAdvManager)->Abilities[nAbility])
+			{
+				if (PCHAR pName=pStringTable->getString(pAbility->nName,0))
+				{
+					if (!stricmp(szIndex,pName))
+					{
+						Ret.Ptr=&((PALTADVMGR)pAltAdvManager)->Abilities[nAbility];
+						Ret.Type=pAltAbilityType;
+						return true;
+					}
+				}
+			}
+		}
+	}
+
+	return false;
+}
+
+
 

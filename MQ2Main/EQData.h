@@ -572,10 +572,10 @@ typedef struct _CHARINFO {
 /*0x0d7c*/	WORD		zoneId; 
 /*0x0d7e*/	WORD		Instance; 
 /*0x0d80*/	struct		_SPAWNINFO* pSpawn;  
-union{ 
+	union { 
      /*0x0d84*/ struct	_INVENTORY	Inventory; 
      /*0x0d84*/ struct	_CONTENTS*	InventoryArray[0x1e]; 
-}; 
+	}; 
 /*0x0dfc*/	struct		_CONTENTS* Cursor; 
 /*0x0e00*/  BYTE		Unknown0xe00[0x14];
 /*0x0e14*/  BYTE		field_E14;
@@ -650,12 +650,16 @@ union{
 /*0x9888*/  DWORD       CareerFavor; // NOTE: 64-bit #
 /*0x988c*/  DWORD       Unknown0x984c; 
 /*0x9890*/  DWORD       CurrFavor; // NOTE: 64-bit #
-/*0x9894*/  BYTE        Unknown0x9854[0x16c];  
+/*0x9894*/  BYTE        Unknown0x9854[0x4];  
+/*0x9898*/  DWORD       CombatAbilities[0x32];
+/*0x9960*/  DWORD       CombatAbilityTimes[0x14]; // ??
+/*0x99B0*/  DWORD       CombatAbilityTimes2[0x14]; // ??
 /*0x9a00*/  DWORD       GroupLeadershipExp;      // 0-499 or 0x000-0x1FF? need confirmation
 /*0x9a04*/  DWORD       RaidLeadershipExp;       // 0-999/0x3FF for display, 0-1999/0x7FF for actual value?  
 /*0x9a08*/  DWORD       GroupLeadershipPoints;   // 0-8  // 
 /*0x9a0c*/  DWORD       RaidLeadershipPoints;    // 0-10
-/*0x9a10*/	BYTE		Unknown0x9980[0x218];
+/*0x9a10*/	BYTE		field_9a10[0x100];
+/*0x9b10*/  BYTE        Unknown0x9b10[0x118];
 /*0x9C28*/	struct		_CONTENTS* Bank[NUM_BANK_SLOTS]; // -> 9C28
 /*0x9C70*/	BYTE		Unknown0x9b08[0xa8];
 /*0x9D18*/	BYTE		Grouped;
@@ -820,8 +824,7 @@ typedef struct _ARGBCOLOR {
 
 // 10-22-2003 Lax
 typedef struct _EQUIPMENT {
-   union
-   {
+   union {
       struct// EQUIPARRAY
       {
          DWORD Item[9];
@@ -1241,6 +1244,43 @@ typedef struct _EQFRIENDSLIST {
 /*0x0000*/ CHAR Name[0x64][0x40];
 /*0x1900*/
 } EQFRIENDSLIST, *PEQFRIENDSLIST;
+
+// size 0x50
+typedef struct _ALTABILITY {
+/*0x00*/ DWORD nShortName;
+/*0x04*/ DWORD nShorterName;
+/*0x08*/ DWORD nName;
+/*0x0C*/ DWORD nDesc;
+/*0x10*/ DWORD MinLevel;
+/*0x14*/ DWORD Cost;//cost?
+/*0x18*/ LONG RequiresAbility;//requires ability? (-1 for no)
+/*0x1C*/ DWORD RequiresAbilityPoints;//requires points in this ability?
+/*0x20*/ DWORD MaxRank;//BYTE
+/*0x24*/ DWORD AARankRequired;
+/*0x28*/ DWORD Unknown0x28;//BYTE
+/*0x2C*/ LONG  SpellID;// -1 for no
+/*0x30*/ BYTE  Unused0x30;
+/*0x31*/ BYTE  Type;
+/*0x32*/ BYTE  Unknown0x32[0x2];
+/*0x34*/ DWORD Unused0x34;
+/*0x38*/ DWORD Unknown0x38;//
+/*0x3C*/ DWORD Unknown0x3C;
+/*0x40*/ DWORD Unknown0x40;// aa level needed?
+/*0x44*/ BYTE Unknown0x44;//BYTE
+/*0x45*/ BYTE Unknown0x45;//BYTE
+/*0x46*/ BYTE Unknown0x46;//BYTE
+/*0x47*/ BYTE Unknown0x47;//BYTE
+/*0x48*/ LONG ReuseTimer;// in seconds
+/*0x4C*/ DWORD Unknown0x4C;//
+/*0x50*/
+} ALTABILITY, *PALTABILITY;
+
+// total size 0x4D4 04-21-2004 lax
+#define NUM_ALT_ABILITIES 0x135
+typedef struct _ALTADVMGR {
+/*0x000*/ PALTABILITY Abilities[NUM_ALT_ABILITIES];
+/*0x4D4*/
+} ALTADVMGR, *PALTADVMGR;
 
 };
 using namespace EQData;

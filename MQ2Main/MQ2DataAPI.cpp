@@ -153,6 +153,7 @@ void InitializeMQ2Data()
 	AddMQ2Data("GroupLeader",dataGroupLeader);	
 	AddMQ2Data("GroupLeaderName",dataGroupLeaderName);
 	AddMQ2Data("Skill",dataSkill);
+	AddMQ2Data("AltAbility",dataAltAbility);
 }
 
 
@@ -646,6 +647,7 @@ BOOL ParseMQ2DataPortion(PCHAR szOriginal, MQ2TYPEVAR &Result)
 				}
 			}
 			pStart=&pPos[1];
+			Index[0]=0;
 		}
 		++pPos;
 	}

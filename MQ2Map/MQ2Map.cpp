@@ -56,6 +56,7 @@ MAPFILTER MapFilterOptions[] = {
     {"Target",       FALSE,0xC00000,   TRUE,MAPFILTER_All,FALSE,   "Displays your target"},
     {"TargetLine",   FALSE,0x808080,   TRUE,MAPFILTER_Target,FALSE,  "Displays a line to your target"},
     {"TargetRadius", FALSE,0x808080,   FALSE,MAPFILTER_Target,FALSE,  "Sets radius of a circle around your target to # (omit or set to 0 to disable)"},
+	{"TargetMelee",  FALSE,0xFF8080,   FALSE,MAPFILTER_Target,FALSE,  "Draws a melee-range circle around your target"},
     {"Vector",       FALSE,-1,         TRUE,MAPFILTER_All,TRUE,   "Displays heading vectors"},
     {"Custom",       FALSE,-1,         FALSE,MAPFILTER_All,TRUE,  "Sets custom filter (omit to disable)"},
     {"CastRadius",   FALSE,0x808080,   FALSE,MAPFILTER_All,FALSE,  "Sets radius of casting circle to # (omit or set to 0 to disable)"},

@@ -100,6 +100,7 @@
 #define pinstCXWndManager                                  0x7A765C
 #define instKeypressHandler                                0x782800
 #define pinstStringTable								   0x7359B0
+#define pinstAltAdvManager								   0x620420
 
 ////
 //Section 2:  UI Related Offsets
@@ -231,7 +232,11 @@
 #define CEverQuest__SetGameState                           0x4986DE
 #define CEverQuest__DropHeldItemOnGround				   0x49ACDD
 
+// StringTable
 #define StringTable__getString							   0x4BD566
+
+// AltAdvManager
+#define AltAdvManager__IsAbilityReady					   0x41CE88
 
 // CXWndManager
 #define CXWndManager__RemoveWnd                            0x5720D0
@@ -254,6 +259,7 @@
 #define EQ_Character__GetFocusCastingTimeModifier          0x428338
 #define EQ_Character__GetAACastingTimeModifier             0x4286D1
 #define EQ_Character__CastSpell                            0x42C218
+#define EQ_Character__GetAbility						   0x420267
 
 // EQPlayer
 #define EQPlayer__EQPlayer                                 0x4873F4

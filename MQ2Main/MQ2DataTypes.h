@@ -19,6 +19,8 @@
 // "bind" type
 // Friend TLO
 // Ignore TLO
+// raid...
+// alt abilities
 
 EQLIB_VAR class MQ2FloatType *pFloatType;
 EQLIB_VAR class MQ2StringType *pStringType;
@@ -32,6 +34,7 @@ EQLIB_VAR class MQ2SpellType *pSpellType;
 EQLIB_VAR class MQ2TicksType *pTicksType;
 
 EQLIB_VAR class MQ2SkillType *pSkillType;
+EQLIB_VAR class MQ2AltAbilityType *pAltAbilityType;
 
 EQLIB_VAR class MQ2ClassType *pClassType;
 EQLIB_VAR class MQ2RaceType *pRaceType;
@@ -550,6 +553,7 @@ public:
 		Binding=71,
 		Invited=72,
 		NearestSpawn=73,
+		MaxRangeTo=74,
 	};
 	MQ2SpawnType():MQ2Type("spawn")
 	{
@@ -624,6 +628,7 @@ public:
 		TypeMember(Binding);//=71,
 		TypeMember(Invited);
 		TypeMember(NearestSpawn);
+		TypeMember(MaxRangeTo);
 	}
 
 	~MQ2SpawnType()
@@ -773,6 +778,11 @@ public:
 		AltTimerReady=90,
 		MaxEndurance=91,
 		PctEndurance=92,
+		AltAbility=93,
+		AltAbilityReady=94,
+		AltAbilityTimer=95,
+		CombatAbility=96,
+		CombatAbilityTimer=97,
 	};
 	MQ2CharacterType():MQ2Type("character")
 	{
@@ -867,6 +877,11 @@ public:
 		TypeMember(AltTimerReady);
 		TypeMember(MaxEndurance);
 		TypeMember(PctEndurance);
+		TypeMember(AltAbility);
+		TypeMember(AltAbilityReady);
+		TypeMember(AltAbilityTimer);
+		TypeMember(CombatAbility);
+		TypeMember(CombatAbilityTimer);
 	}
 
 	~MQ2CharacterType()
@@ -2377,6 +2392,73 @@ public:
 	bool FromData(MQ2VARPTR &VarPtr, MQ2TYPEVAR &Source)
 	{
 		if (Source.Type!=pSkillType)
+			return false;
+		VarPtr.Ptr=Source.Ptr;
+		return true;
+	}
+	bool FromString(MQ2VARPTR &VarPtr, PCHAR Source)
+	{
+		return false;
+	}
+}; 
+
+class MQ2AltAbilityType : public MQ2Type
+{
+public:
+   static enum AltAbilityMembers
+   {
+	   Name=1,
+	   ShortName=2,
+	   Description=3,
+	   MinLevel=4,
+	   Cost=5,
+	   RequiresAbility=6,
+	   RequiresAbilityPoints=7,
+	   MaxRank=8,
+	   AARankRequired=9,
+	   Spell=10,
+	   Type=11,
+	   ReuseTime=12,
+	   ID=13,
+   };
+   MQ2AltAbilityType():MQ2Type("altability")
+   {
+	  TypeMember(Name);
+	  TypeMember(ShortName);
+	  TypeMember(Description);
+	  TypeMember(MinLevel);
+	  TypeMember(Cost);
+	  TypeMember(RequiresAbility);
+	  TypeMember(RequiresAbilityPoints);
+	  TypeMember(MaxRank);
+	  TypeMember(AARankRequired);
+	  TypeMember(Spell);
+	  TypeMember(Type);
+	  TypeMember(ReuseTime);
+	  TypeMember(ID);
+   }
+
+   ~MQ2AltAbilityType()
+   {
+   }
+
+   bool GetMember(MQ2VARPTR VarPtr, PCHAR Member, PCHAR Index, MQ2TYPEVAR &Dest);
+
+   bool ToString(MQ2VARPTR VarPtr, PCHAR Destination)
+   {
+	   if (!VarPtr.Ptr)
+		   return false;
+	   if (PALTABILITY pAbility=*(PALTABILITY*)VarPtr.Ptr)
+	   if (PCHAR pName=pStringTable->getString(pAbility->nName,0))
+	   {
+		   strcpy(Destination,pName);
+		   return true;
+	   }
+	   return false;
+   }
+	bool FromData(MQ2VARPTR &VarPtr, MQ2TYPEVAR &Source)
+	{
+		if (Source.Type!=pAltAbilityType)
 			return false;
 		VarPtr.Ptr=Source.Ptr;
 		return true;

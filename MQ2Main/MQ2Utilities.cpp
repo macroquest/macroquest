@@ -88,12 +88,47 @@ EQLIB_API VOID DebugSpewNoFile(PCHAR szFormat, ...)
 #endif
 }
 
+VOID StrReplaceSection(PCHAR szInsert,DWORD Length,PCHAR szNewString)
+{
+	DWORD NewLength=strlen(szNewString);
+	memmove(&szInsert[NewLength],&szInsert[Length],strlen(&szInsert[Length])+1);
+	strncpy(szInsert,szNewString,NewLength);
+}
+
+VOID Flavorator(PCHAR szLine)
+{
+	PCHAR pSpot;
+	while(pSpot=strstr(szLine,"%e"))
+	{
+		StrReplaceSection(pSpot,2,szColorExpletive[rand()%nColorExpletive]);
+	}
+	while(pSpot=strstr(szLine,"%a"))
+	{
+		StrReplaceSection(pSpot,2,szColorAdjective[rand()%nColorAdjective]);
+	}
+	while(pSpot=strstr(szLine,"%y"))
+	{
+		StrReplaceSection(pSpot,2,szColorAdjectiveYou[rand()%nColorAdjectiveYou]);
+	}
+
+}
+
 VOID SyntaxError(PCHAR szFormat, ...)
 {
 	CHAR szOutput[MAX_STRING] = {0};
     va_list vaList;
     va_start( vaList, szFormat );
     vsprintf(szOutput,szFormat, vaList);
+	if (bLaxColor)
+	{
+		CHAR szColor[MAX_STRING]={0};
+		strcpy(szColor,szColorSyntaxError[rand()%nColorSyntaxError]);
+		if (szColor[0])
+		{
+			Flavorator(szColor);
+			WriteChatColor(szColor);
+		}
+	}
 	WriteChatColor(szOutput,CONCOLOR_YELLOW);
 	strcpy(gszLastSyntaxError,szOutput);
 }
@@ -104,6 +139,16 @@ VOID MacroError(PCHAR szFormat, ...)
     va_list vaList;
     va_start( vaList, szFormat );
     vsprintf(szOutput,szFormat, vaList);
+	if (bLaxColor)
+	{
+		CHAR szColor[MAX_STRING]={0};
+		strcpy(szColor,szColorMacroError[rand()%nColorMacroError]);
+		if (szColor[0])
+		{
+			Flavorator(szColor);
+			WriteChatColor(szColor);
+		}
+	}
 	WriteChatColor(szOutput,CONCOLOR_RED);
 	strcpy(gszLastError,szOutput);
 }
@@ -117,7 +162,19 @@ VOID MQ2DataError(PCHAR szFormat, ...)
 	if (gFilterMQ2DataErrors)
 		DebugSpew(szOutput);
 	else
+	{
+		if (bLaxColor)
+		{
+			CHAR szColor[MAX_STRING]={0};
+			strcpy(szColor,szColorMQ2DataError[rand()%nColorMQ2DataError]);
+			if (szColor[0])
+			{
+				Flavorator(szColor);
+				WriteChatColor(szColor);
+			}
+		}
 		WriteChatColor(szOutput,CONCOLOR_RED);
+	}
 	strcpy(gszLastMQ2DataError,szOutput);
 }
 

@@ -146,6 +146,8 @@ BOOL ParseINIFile(PCHAR lpINIPath)
         strcat(gszMacroPath,szBuffer);
     }
 
+	bLaxColor=GetPrivateProfileInt("MacroQuest","LaxColor",1,Filename);
+
     GetPrivateProfileString("MacroQuest","LogPath",".",szBuffer,MAX_STRING,Filename);
     if (szBuffer[0]=='.') {
         sprintf(gszLogPath,"%s%s",lpINIPath,szBuffer+1);
@@ -234,6 +236,15 @@ DWORD WINAPI MQ2Start(LPVOID lpParameter)
 	szEQMappableCommands[0xB5]="UNKNOWN0xB5";
 	szEQMappableCommands[0xB6]="UNKNOWN0xB6";
 	szEQMappableCommands[0xB7]="UNKNOWN0xB7";
+
+	for (nColorAdjective=0 ; szColorAdjective[nColorAdjective] ; nColorAdjective++){}
+	for (nColorAdjectiveYou=0 ; szColorAdjectiveYou[nColorAdjectiveYou] ; nColorAdjectiveYou++) {}
+	for (nColorExpletive=0 ; szColorExpletive[nColorExpletive] ; nColorExpletive++) {}
+	for (nColorSyntaxError=0 ; szColorSyntaxError[nColorSyntaxError] ; nColorSyntaxError++) {}
+	for (nColorMacroError=0 ; szColorMacroError[nColorMacroError] ; nColorMacroError++) {}
+	for (nColorMQ2DataError=0 ; szColorMQ2DataError[nColorMQ2DataError] ; nColorMQ2DataError++) {}
+
+
 
 	InitializeMQ2Benchmarks();
 	InitializeParser();

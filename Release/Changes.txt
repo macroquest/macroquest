@@ -1,3 +1,26 @@
+27 Apr 2004 by Lax (more):
+- Fixed timer type member availability
+- Added MQ2Data type: altability
+- Added MQ2Data Top-Level Objects:
+  altability AltAbility[n]: Alt ability by number
+  altability AltAbility[name]: Alt ability by name
+- Changed/Added MQ2Data Members:
+  float spawn.MaxRange: Max distance from this spawn for it to hit you
+  float spawn.MaxRangeTo: Max distance from this spawn for you to hit it
+  int character.AltAbility[n]: Alt ability rank by number
+  int character.AltAbility[name]: Alt ability rank by name
+  bool character.AltAbilityReady[n]: Alt ability readiness by number
+  bool character.AltAbilityReady[name]: Alt ability readiness by name
+  int character.AltAbilityTimer[n]: Alt ability reuse time (seconds) left by number
+  int character.AltAbilityTimer[name]: Alt ability reuse time (seconds) left by name
+  spell character.CombatAbility[n]: Combat ability by number in your list (not same as others lists!)
+  int character.CombatAbility[name]: Combat ability number in your list by name (not same as others lists!)
+- Added an option to MQ2Map:  The "TargetMelee" mapfilter when set to 1 will draw a circle 
+  representing how close to this spawn you must be to hit it.  Set to anything but 0 or 1 
+  will draw a circle representing how close to this spawn you must be for it to hit you.
+- Added some flavor for error messages.  Set LaxColor=0 in MacroQuest.ini [MacroQuest] to
+  disable.  It's on by default or it wouldn't be as fun.
+
 27 Apr 2004 by Lax:
 - spawn.MaxRange now uses the proper melee range algorithm
 - Fixed a crash bug in the Ini TLO

@@ -35,7 +35,7 @@ class MQ2ClassType *pClassType=0;
 class MQ2RaceType *pRaceType=0;
 class MQ2BodyType *pBodyType=0;
 class MQ2SkillType *pSkillType=0;
-
+class MQ2AltAbilityType *pAltAbilityType=0;
 class MQ2GroundType *pGroundType=0;
 class MQ2SwitchType *pSwitchType=0;
 class MQ2CorpseType *pCorpseType=0;
@@ -100,6 +100,7 @@ void InitializeMQ2DataTypes()
 #endif
 	pPluginType = new MQ2PluginType;
 	pSkillType = new MQ2SkillType;
+	pAltAbilityType = new MQ2AltAbilityType;
 
 	// NOTE: SetInheritance does NOT make it inherit, just notifies the syntax checker...
 	pCharacterType->SetInheritance(pSpawnType);
@@ -144,6 +145,7 @@ void ShutdownMQ2DataTypes()
 #endif
 	delete pPluginType;
 	delete pSkillType;
+	delete pAltAbilityType;
 }
 
 bool MQ2FloatType::GetMember(MQ2VARPTR VarPtr, PCHAR Member, PCHAR Index, MQ2TYPEVAR &Dest)
@@ -371,6 +373,10 @@ bool MQ2SpawnType::GetMember(MQ2VARPTR VarPtr, PCHAR Member, PCHAR Index, MQ2TYP
 		Dest.Type=pFloatType;
 		return true;
 	case MaxRange:
+		Dest.Float=get_melee_range((EQPlayer*)pSpawn,(EQPlayer*)pSpawn); 
+		Dest.Type=pFloatType;
+		return true;
+	case MaxRangeTo:
 		Dest.Float=get_melee_range(pLocalPlayer,(EQPlayer*)pSpawn); 
 		Dest.Type=pFloatType;
 		return true;
@@ -1301,6 +1307,42 @@ bool MQ2CharacterType::GetMember(MQ2VARPTR VarPtr, PCHAR Member, PCHAR Index, MQ
 			}
 		}
 		return false;
+	case CombatAbility:
+		if (!Index[0])
+			return false;
+		if (Index[0]>='0' && Index[0]<='9')
+		{
+			// number
+			unsigned long nCombatAbility=atoi(Index)-1;
+			if (nCombatAbility<50)
+			{
+				if (Dest.Ptr=GetSpellByID(pChar->CombatAbilities[nCombatAbility]))
+				{
+					Dest.Type=pSpellType;
+					return true;
+				}
+			}
+		}
+		else
+		{
+			// name
+			for (unsigned long nCombatAbility=0 ; nCombatAbility < 50 ; nCombatAbility++)
+			{
+				if (PSPELL pSpell=GetSpellByID(pChar->CombatAbilities[nCombatAbility]))
+				{
+					if (!stricmp(Index,pSpell->Name))
+					{
+						Dest.DWord=nCombatAbility+1;
+						Dest.Type=pIntType;
+						return true;
+					}
+				}
+			}
+		}
+		return false;
+	case CombatAbilityTimer:
+		// in progress...
+		return false;
 	case Moving:
 		Dest.DWord=((((gbMoving) && ((PSPAWNINFO)pCharSpawn)->SpeedRun==0.0f) && (pChar->pSpawn->pActorInfo->Mount ==  NULL )) || (fabs(FindSpeed((PSPAWNINFO)pCharSpawn)) > 0.0f ));
 		Dest.Type=pBoolType;
@@ -1313,6 +1355,129 @@ bool MQ2CharacterType::GetMember(MQ2VARPTR VarPtr, PCHAR Member, PCHAR Index, MQ
 		Dest.DWord=pChar->thirstlevel;
 		Dest.Type=pIntType;
 		return true;
+	case AltAbilityTimer:
+		if (Index[0])
+		{
+			if (Index[0]>='0' && Index[0]<='9')
+			{
+				// numeric
+				unsigned long nAbility=atoi(Index);
+				if (nAbility<NUM_ALT_ABILITIES)
+				{
+					if (pCharData->GetAbility(nAbility))
+					{
+						pAltAdvManager->IsAbilityReady(pPCData,nAbility,&Dest.Int);
+						if (Dest.Int<0)
+							Dest.Int=0;
+						Dest.Type=pIntType;
+						return true;
+					}
+				}
+			}
+			else
+			{
+				// by name
+				for (unsigned long nAbility=0 ; nAbility<NUM_ALT_ABILITIES ; nAbility++)
+				{
+					if (PALTABILITY pAbility=((PALTADVMGR)pAltAdvManager)->Abilities[nAbility])
+					{
+						if (PCHAR pName=pStringTable->getString(pAbility->nName,0))
+						{
+							if (!stricmp(Index,pName))
+							{
+								if (pCharData->GetAbility(nAbility))
+								{
+									pAltAdvManager->IsAbilityReady(pPCData,nAbility,&Dest.Int);
+									if (Dest.Int<0)
+										Dest.Int=0;
+									Dest.Type=pIntType;
+									return true;
+								}
+								return false;
+							}
+						}
+					}
+				}
+			}
+		}
+		return false;
+	case AltAbilityReady:
+		if (Index[0])
+		{
+			if (Index[0]>='0' && Index[0]<='9')
+			{
+				// numeric
+				unsigned long nAbility=atoi(Index);
+				if (nAbility<NUM_ALT_ABILITIES)
+				{
+					if (pCharData->GetAbility(nAbility))
+					{
+						Dest.DWord=pAltAdvManager->IsAbilityReady(pPCData,nAbility,0);
+						Dest.Type=pBoolType;
+						return true;
+					}
+				}
+			}
+			else
+			{
+				// by name
+				for (unsigned long nAbility=0 ; nAbility<NUM_ALT_ABILITIES ; nAbility++)
+				{
+					if (PALTABILITY pAbility=((PALTADVMGR)pAltAdvManager)->Abilities[nAbility])
+					{
+						if (PCHAR pName=pStringTable->getString(pAbility->nName,0))
+						{
+							if (!stricmp(Index,pName))
+							{
+								if (pCharData->GetAbility(nAbility))
+								{
+									Dest.DWord=pAltAdvManager->IsAbilityReady(pPCData,nAbility,0);
+									Dest.Type=pBoolType;
+									return true;
+								}
+								return false;
+							}
+						}
+					}
+				}
+			}
+		}
+		return false;
+	case AltAbility:
+		if (Index[0])
+		{
+			if (Index[0]>='0' && Index[0]<='9')
+			{
+				// numeric
+				unsigned long nAbility=atoi(Index);
+				if (nAbility<NUM_ALT_ABILITIES)
+				{
+					Dest.DWord=pCharData->GetAbility(nAbility);
+					Dest.Type=pIntType;
+					return true;
+				}
+			}
+			else
+			{
+				// by name
+				for (unsigned long nAbility=0 ; nAbility<NUM_ALT_ABILITIES ; nAbility++)
+				{
+					if (PALTABILITY pAbility=((PALTADVMGR)pAltAdvManager)->Abilities[nAbility])
+					{
+						if (PCHAR pName=pStringTable->getString(pAbility->nName,0))
+						{
+							if (!stricmp(Index,pName))
+							{
+								Dest.DWord=pCharData->GetAbility(nAbility);
+								Dest.Type=pIntType;
+								return true;
+							}
+						}
+					}
+				}
+			}
+		}
+		return false;
 	case Skill:
 		if (Index[0])
 		{
@@ -3452,7 +3617,6 @@ bool MQ2ArrayType::GetMember(MQ2VARPTR VarPtr, PCHAR Member, PCHAR Index, MQ2TYP
 #ifdef USEMQ2DATAVARS
 bool MQ2TimerType::GetMember(MQ2VARPTR VarPtr, PCHAR Member, PCHAR Index, MQ2TYPEVAR &Dest)
 {
-	return false;
 #define pTimer ((PTIMER)VarPtr.Ptr)
 	if (!pTimer)
 		return false;
@@ -3535,6 +3699,92 @@ bool MQ2SkillType::GetMember(MQ2VARPTR VarPtr, PCHAR Member, PCHAR Index, MQ2TYP
 	   SkillCapPre50=7,
 	   SkillCapPost50=8,
 	   /**/
+	}
+	return false;
+}
+
+bool MQ2AltAbilityType::GetMember(MQ2VARPTR VarPtr, PCHAR Member, PCHAR Index, MQ2TYPEVAR &Dest)
+{
+	if (!VarPtr.Ptr)
+		return false;
+	PALTABILITY pAbility=*(PALTABILITY*)VarPtr.Ptr;
+	if (!pAbility)
+		return false;
+	PMQ2TYPEMEMBER pMember=MQ2AltAbilityType::FindMember(Member);
+	if (!pMember)
+		return false;
+	switch((AltAbilityMembers)pMember->ID)
+	{
+	case Name:
+		if (Dest.Ptr=pStringTable->getString(pAbility->nName,0))
+		{
+			Dest.Type=pStringType;
+			return true;
+		}
+		return false;
+	case ShortName:
+		if (Dest.Ptr=pStringTable->getString(pAbility->nShortName,0))
+		{
+			Dest.Type=pStringType;
+			return true;
+		}
+		return false;
+	case Description:
+		if (Dest.Ptr=pStringTable->getString(pAbility->nDesc,0))
+		{
+			Dest.Type=pStringType;
+			return true;
+		}
+		return false;
+	case ID:
+		Dest.DWord=(((PALTABILITY*)VarPtr.Ptr-&((PALTADVMGR)pAltAdvManager)->Abilities[0]));
+		Dest.Type=pIntType;
+		return true;
+	case ReuseTime:
+		Dest.DWord=pAbility->ReuseTimer;
+		Dest.Type=pIntType;
+		return true;
+	case MinLevel:
+		Dest.DWord=pAbility->MinLevel;
+		Dest.Type=pIntType;
+		return true;
+	case Cost:
+		Dest.DWord=pAbility->Cost;
+		Dest.Type=pIntType;
+		return true;
+	case Spell:
+		if (Dest.Ptr=GetSpellByID(pAbility->SpellID))
+		{
+			Dest.Type=pSpellType;
+			return true;
+		}
+		return false;
+	case RequiresAbility:
+		if (pAbility->RequiresAbility>0)
+		{
+			if (Dest.Ptr=&((PALTADVMGR)pAltAdvManager)->Abilities[pAbility->RequiresAbility])
+			{
+				Dest.Type=pAltAbilityType;
+				return true;
+			}
+		}
+		return false;
+	case RequiresAbilityPoints:
+		Dest.DWord=pAbility->RequiresAbilityPoints;
+		Dest.Type=pIntType;
+		return true;
+	case MaxRank:
+		Dest.DWord=pAbility->MaxRank;
+		Dest.Type=pIntType;
+		return true;
+	case AARankRequired:
+		Dest.DWord=pAbility->AARankRequired;
+		Dest.Type=pIntType;
+		return true;
+	case Type:
+		Dest.DWord=pAbility->Type;
+		Dest.Type=pIntType;
+		return true;
 	}
 	return false;
 }

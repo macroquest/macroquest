@@ -258,6 +258,20 @@ EQLIB_VAR PCHAR szBaneDmgType[];
 EQLIB_VAR PCHAR szAugRestrictions[];
 EQLIB_VAR PCHAR szItemSlot[];
 
+EQLIB_VAR BOOL bLaxColor;
+EQLIB_VAR PCHAR szColorAdjective[];
+EQLIB_VAR PCHAR szColorAdjectiveYou[];
+EQLIB_VAR PCHAR szColorExpletive[];
+EQLIB_VAR PCHAR szColorSyntaxError[];
+EQLIB_VAR PCHAR szColorMacroError[];
+EQLIB_VAR PCHAR szColorMQ2DataError[];
+EQLIB_VAR DWORD nColorAdjective;
+EQLIB_VAR DWORD nColorAdjectiveYou;
+EQLIB_VAR DWORD nColorExpletive;
+EQLIB_VAR DWORD nColorSyntaxError;
+EQLIB_VAR DWORD nColorMacroError;
+EQLIB_VAR DWORD nColorMQ2DataError;
+
 EQLIB_VAR PALIAS pAliases;
 EQLIB_VAR PMQCOMMAND pCommands;
 EQLIB_VAR PMQPLUGIN pPlugins;
@@ -341,6 +355,8 @@ EQLIB_VAR DWORD *pScreenY;
 
 
 EQLIB_VAR SPELLFAVORITE *pSpellSets;
+EQLIB_VAR AltAdvManager** ppAltAdvManager;
+#define pAltAdvManager (*ppAltAdvManager)
 
 /* WINDOW INSTANCES */ 
 EQLIB_VAR CContextMenuManager **ppContextMenuManager;

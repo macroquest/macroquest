@@ -489,13 +489,13 @@ VOID MaxFPS(PSPAWNINFO pChar, PCHAR szLine)
    if (Arg1[0]==0 || Arg2[0]==0) {
 	    sprintf(szCmd,"\aw\ayMaxFPS\ax\a-u:\ax \a-u[\ax\at%d\ax Foreground\a-u]\ax \a-u[\ax\at%d\ax Background\a-u]\ax \a-u[\ax%s Mode\a-u]\ax",gFG_MAX,gBG_MAX,szFPSModes[MaxFPSMode]);
         WriteChatColor(szCmd,USERCOLOR_DEFAULT);
-        SyntaxError("Usage: /maxfps <fg|bg> <#>");
+        WriteChatColor("Usage: /maxfps <fg|bg> <#>",CONCOLOR_YELLOW);
         return;
    }
    DWORD NewMax=atoi(Arg2);
    if (NewMax>200)
    {
-       WriteChatColor("MaxFPS: Please use a number between 0 and 200, 0 being absolute fastest, 1-200 being that many frames per second.",USERCOLOR_DEFAULT);
+       MacroError("MaxFPS: Please use a number between 0 and 200, 0 being absolute fastest, 1-200 being that many frames per second.");
        return;
    }
 
@@ -536,7 +536,7 @@ VOID RenderCommand(PSPAWNINFO pChar, PCHAR szLine)
 		   strcpy(szBack,"1/");
 	   sprintf(szCmd,"\aw\ayRender Rate\ax\a-u:\ax \a-u[\ax\at%s%d\ax Foreground\a-u]\ax \a-u[\ax\at%s%d\ax Background\a-u]\ax",szFore,gFG_Rate,szBack,gBG_Rate);
         WriteChatColor(szCmd,USERCOLOR_DEFAULT);
-		SyntaxError("Usage: /render <fg|bg> <#|~#>");
+		WriteChatColor("Usage: /render <fg|bg> <#|~#>",USERCOLOR_YELLOW);
         return;
    }
    DWORD NewRate;
@@ -551,7 +551,7 @@ VOID RenderCommand(PSPAWNINFO pChar, PCHAR szLine)
 	   NewRate=atoi(&Arg2[0]);
    if (NewRate>200)
    {
-       WriteChatColor("MaxFPS: Please use a number between 0 and 200, 0 being absolute fastest, 1-200 being that many frames per second.",USERCOLOR_DEFAULT);
+       MacroError("Render: Please use a number between 0 and 200, 0 being absolute fastest, 1-200 being that many frames per second.",USERCOLOR_DEFAULT);
        return;
    }
 

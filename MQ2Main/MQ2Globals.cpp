@@ -231,7 +231,6 @@ DWORD *pScreenY=(DWORD*)__ScreenY;
 PMOUSEINFO EQADDR_MOUSE=(PMOUSEINFO)__Mouse;
 PMOUSECLICK EQADDR_MOUSECLICK=(PMOUSECLICK)__Clicks;
 
-//PSPELLFAVORITE EQADDR_SPELLFAVORITES = NULL;
 
 MQRANK EQP_DistArray[3000];
 DWORD gSpawnCount=0;
@@ -554,6 +553,83 @@ PCHAR szItemSlot[] = {
     NULL
 };
 
+BOOL bLaxColor=FALSE;
+EQLIB_VAR DWORD nColorAdjective=0;
+EQLIB_VAR DWORD nColorAdjectiveYou=0;
+EQLIB_VAR DWORD nColorExpletive=0;
+EQLIB_VAR DWORD nColorSyntaxError=0;
+EQLIB_VAR DWORD nColorMacroError=0;
+EQLIB_VAR DWORD nColorMQ2DataError=0;
+
+PCHAR szColorAdjective[]=
+{
+	"",
+	"GOD DAMN ",
+	"FUCKING ",
+	"MOTHER FUCKING ",
+	NULL
+};
+
+PCHAR szColorAdjectiveYou[]=
+{
+	"",
+	" FUCKER",
+	" MOTHER FUCKER",
+	" ASSHOLE",
+	" FUCKTARD",
+	" FUCKING RETARDED MONKEY",
+	" GOD DAMN SHORT BUS PASSENGER",
+	" ASSMONKEY",
+	" PIGFUCKER",
+	" PEEN",
+	" FUCKING IDIOT",
+	" STUPID FUCKER",
+	" DUMBASS",
+	" FUCKING DUMBASS",
+	NULL
+};
+
+PCHAR szColorExpletive[]=
+{
+	"",
+	"CHRIST ",
+	"JESUS FUCK ",
+	"GOD ",
+	"JESUS FUCKING CHRIST ",
+	"FUCKING CHRIST ",
+	"GKFJDGJKFDGJKDF ",
+	NULL
+};
+
+PCHAR szColorSyntaxError[]=
+{
+	"",
+	"%edont you know how to use a simple %acommand%y",
+	NULL
+};
+
+PCHAR szColorMacroError[]=
+{
+	"",
+	"%ei'm pretty sure you're on %acrack%y"
+	"%egood job%y, cant you do anything %aright%y",
+	"%ewhatever you're %asmoking, pass it %aalong%y",
+	"%e%aRTFM%y",
+	"%e%aRTFM%y, until then fuck off%y",
+	"%eget a %abrain%y",
+	NULL
+};
+
+PCHAR szColorMQ2DataError[]=
+{
+	"",
+	"%ewhy dont you %aread the %areference%y",
+	"%eget a %aclue%y",
+	"%ewhatever you're %asmoking, pass it %aalong%y",
+	"%e%aread the %areference%y",
+	"%e%aread the %areference%y, until then fuck off%y",
+	NULL
+};
 
 StringTable **ppStringTable=(StringTable**)pinstStringTable;
 EQPlayer **ppEQP_IDArray=(EQPlayer**)__EQP_IDArray;
@@ -576,6 +652,7 @@ EqSwitchManager **ppSwitchMgr=(EqSwitchManager**)pinstSwitchManager;
 EQItemList **ppItemList=(EQItemList**)pinstEQItemList;
 SPELLFAVORITE *pSpellSets=(SPELLFAVORITE *)pinstSpellSets;
 EQZoneInfo *pZoneInfo=(EQZoneInfo*)instEQZoneInfo;
+AltAdvManager** ppAltAdvManager=(AltAdvManager**)pinstAltAdvManager;
 
 EQPlayer **ppTradeTarget=(EQPlayer **)pinstTradeTarget;
 EQPlayer **ppActiveBanker=(EQPlayer **)pinstActiveBanker;

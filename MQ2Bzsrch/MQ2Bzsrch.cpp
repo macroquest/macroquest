@@ -355,8 +355,6 @@ public:
 
 	bool GetMember(MQ2VARPTR VarPtr, PCHAR Member, PCHAR Index, MQ2TYPEVAR &Dest)
 	{
-		if (!VarPtr.Ptr)
-			return false;
 		PMQ2TYPEMEMBER pMember=MQ2BazaarType::FindMember(Member);
 		if (!pMember)
 			return false;
@@ -638,6 +636,7 @@ error_out:
 
 BOOL dataBazaar(PCHAR szName, MQ2TYPEVAR &Ret)
 {
+	Ret.DWord=1;
 	Ret.Type=pBazaarType;
 	return true;
 	/*

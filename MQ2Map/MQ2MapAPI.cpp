@@ -37,6 +37,9 @@ PMAPLINE pCastRadius[(360/CASTRADIUS_ANGLESIZE)+1];
 PMAPSPAWN pLastTarget=0;
 
 PMAPLINE pTargetRadius[(360/CASTRADIUS_ANGLESIZE)+1];
+
+PMAPLINE pTargetMelee[(360/CASTRADIUS_ANGLESIZE)+1];
+
 PMAPLINE pTargetLine=0;
 
 
@@ -126,6 +129,7 @@ VOID MapInit()
 	{
 		pCastRadius[i]=0;
 		pTargetRadius[i]=0;
+		pTargetMelee[i]=0;
 	}
 }
 
@@ -291,7 +295,14 @@ void MapClear()
 			pTargetRadius[i]=0;
 		}
 	}
-
+	if (pTargetMelee[0])
+	{
+		for (unsigned long i = 0 ; i < (360/CASTRADIUS_ANGLESIZE) ; i++)
+		{
+			DeleteLine(pTargetMelee[i]);
+			pTargetMelee[i]=0;
+		}
+	}
 }
 
 void MapUpdate()
@@ -473,6 +484,40 @@ void MapUpdate()
 				pTargetRadius[i]=0;
 			}
 		}
+
+		if (IsOptionEnabled(MAPFILTER_TargetMelee))
+		{
+			unsigned long Angle=0;
+			for (unsigned long i = 0 ; i < (360/CASTRADIUS_ANGLESIZE) ; i++,Angle+=CASTRADIUS_ANGLESIZE)
+			{
+				if (!pTargetMelee[i])
+				{
+					pTargetMelee[i]=InitLine();
+					pTargetMelee[i]->Layer=2;
+				}
+
+				pTargetMelee[i]->Color.ARGB=MapFilterOptions[MAPFILTER_TargetMelee].Color;
+				pTargetMelee[i]->Start.Z=((PSPAWNINFO)pTarget)->Z;
+				pTargetMelee[i]->End.Z=((PSPAWNINFO)pTarget)->Z;
+				FLOAT MaxMelee;
+				if (MapFilterOptions[MAPFILTER_TargetMelee].Enabled==1)
+					MaxMelee=get_melee_range(pLocalPlayer,pTarget); 
+				else
+					MaxMelee=get_melee_range(pTarget,pTarget);
+				pTargetMelee[i]->Start.X=-((PSPAWNINFO)pTarget)->X + MaxMelee*cosf((FLOAT)Angle/180.0f*(FLOAT)PI);
+				pTargetMelee[i]->Start.Y=-((PSPAWNINFO)pTarget)->Y + MaxMelee*sinf((FLOAT)Angle/180.0f*(FLOAT)PI);;
+				pTargetMelee[i]->End.X=-((PSPAWNINFO)pTarget)->X + MaxMelee*cosf((FLOAT)(Angle+CASTRADIUS_ANGLESIZE)/180.0f*(FLOAT)PI);
+				pTargetMelee[i]->End.Y=-((PSPAWNINFO)pTarget)->Y + MaxMelee*sinf((FLOAT)(Angle+CASTRADIUS_ANGLESIZE)/180.0f*(FLOAT)PI);
+			}
+		}
+		else if (pTargetMelee[0])
+		{
+			for (unsigned long i = 0 ; i < (360/CASTRADIUS_ANGLESIZE) ; i++)
+			{
+				DeleteLine(pTargetMelee[i]);
+				pTargetMelee[i]=0;
+			}
+		}
 	}
 	else
 	{
@@ -482,6 +527,15 @@ void MapUpdate()
 			{
 				DeleteLine(pTargetRadius[i]);
 				pTargetRadius[i]=0;
+			}
+		}
+
+		if (pTargetMelee[0])
+		{
+			for (unsigned long i = 0 ; i < (360/CASTRADIUS_ANGLESIZE) ; i++)
+			{
+				DeleteLine(pTargetMelee[i]);
+				pTargetMelee[i]=0;
 			}
 		}
 

@@ -22,12 +22,13 @@ using namespace std;
 #define MAPFILTER_Target        11
 #define MAPFILTER_TargetLine	12
 #define MAPFILTER_TargetRadius	13
-#define MAPFILTER_Vector        14
-#define MAPFILTER_Custom	    15
-#define MAPFILTER_CastRadius    16
-#define MAPFILTER_NormalLabels  17
-#define MAPFILTER_ContextMenu   18
-#define MAPFILTER_NUMBER        19
+#define MAPFILTER_TargetMelee   14
+#define MAPFILTER_Vector        15
+#define MAPFILTER_Custom	    16
+#define MAPFILTER_CastRadius    17
+#define MAPFILTER_NormalLabels  18
+#define MAPFILTER_ContextMenu   19
+#define MAPFILTER_NUMBER        20
 #define MAPFILTER_Invalid		(-1)
 // normal labels
 

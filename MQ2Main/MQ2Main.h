@@ -64,7 +64,7 @@ using namespace std;
 #define USEMQ2DATATYPES
 
 // MQ2DataVars *READY*
-//#define USEMQ2DATAVARS
+#define USEMQ2DATAVARS
 
 
 // reroute malloc/free
@@ -561,6 +561,7 @@ EQLIB_API BOOL dataFindItemBankCount(PCHAR szIndex, MQ2TYPEVAR &Ret);
 EQLIB_API BOOL dataGroupLeader(PCHAR szIndex, MQ2TYPEVAR &Ret);
 EQLIB_API BOOL dataGroupLeaderName(PCHAR szIndex, MQ2TYPEVAR &Ret);
 EQLIB_API BOOL dataSkill(PCHAR szIndex, MQ2TYPEVAR &Ret);
+EQLIB_API BOOL dataAltAbility(PCHAR szIndex, MQ2TYPEVAR &Ret);
 
 /* COMMANDS */
 
