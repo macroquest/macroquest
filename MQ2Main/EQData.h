@@ -500,8 +500,9 @@ typedef struct _INVENTORY {
 
 #define      NUM_BANK_SLOTS         0x12
 #define      NUM_BOOK_SLOTS         0x200
+
 // actual size 0xa020 3-10-2004
-typedef struct _OLDCHARINFO { 
+typedef struct _OLDCHARINFO {
 /*0x0000*/	BYTE		Unknown00000; 
 /*0x0001*/	BYTE		Unknown00001; 
 /*0x0002*/	CHAR		Name[0x40]; 
@@ -684,322 +685,319 @@ typedef struct _OLDCHARINFO {
 
 // sizeof(_CHARINFO) is 0x9c2c 5-5-2004
 typedef struct _CHARINFO {
-/*0x0000*/  BYTE  		field_0;
-/*0x0001*/  BYTE  		Padding0x1;
-/*0x0002*/  CHAR		Name[0x40];
-/*0x0042*/  CHAR		Lastname[0x20];
-/*0x0062*/  BYTE  		field_62[0x20];
-/*0x0082*/  BYTE  		Padding0x82[0x2];
-/*0x0084*/  DWORD 		field_84;
-/*0x0088*/	BYTE		Gender; 
-/*0x0089*/	BYTE		Padding0x89[3]; 
-/*0x008c*/	BYTE		Race; 
-/*0x008d*/  BYTE        Pading0x8d[0x3];
-/*0x0090*/	BYTE		Class; 
-/*0x0091*/  BYTE  		Padding0x91[0x3];
-/*0x0094*/  DWORD 		field_94;
-/*0x0098*/	DWORD		Level; 
-/*0x009c*/	DWORD		Exp; 
-/*0x00a0*/	DWORD		PracticePoints; 
-/*0x00a4*/	DWORD		Mana; 
-/*0x00a8*/	DWORD		Endurance;
-/*0x00ac*/	DWORD		BaseHP; 
-/*0x00b0*/	BYTE		Stunned; 
-/*0x00b1*/  BYTE  		Padding0xb1[0x3];
-/*0x00b4*/	DWORD		BaseSTR; 
-/*0x00b8*/	DWORD		BaseSTA; 
-/*0x00bc*/	DWORD		BaseCHA; 
-/*0x00c0*/	DWORD		BaseDEX; 
-/*0x00c4*/	DWORD		BaseINT; 
-/*0x00c8*/	DWORD		BaseAGI; 
-/*0x00cc*/	DWORD		BaseWIS; 
-/*0x00d0*/  BYTE		Face;
-/*0x00d1*/  BYTE  		field_D1[0x9];
-/*0x00da*/  BYTE  		Padding0xda[0x2];
-/*0x00dc*/  BYTE  		field_DC[0x24];
-/*0x0100*/	BYTE		languages[0x20];
-/*0x0120*/	struct  	_SPELLBUFF Buff[0x0f]; 
-/*0x0210*/	DWORD		SpellBook[NUM_BOOK_SLOTS]; 
-/*0x0a10*/  DWORD		MemorizedSpells[0x10];
-/*0x0a50*/  BYTE  		field_A50;
-/*0x0a51*/  BYTE  		Padding0xa51[0x3];
-/*0x0a54*/	FLOAT		y; 
-/*0x0a58*/	FLOAT		x; 
-/*0x0a5c*/	FLOAT		z; 
-/*0x0a60*/	FLOAT		heading; 
-/*0x0a64*/  BYTE		standstate;
-/*0x0a65*/  BYTE  		Padding0xa65[0x3];
-/*0x0a68*/	DWORD		Plat; 
-/*0x0a6c*/	DWORD		Gold; 
-/*0x0a70*/	DWORD		Silver; 
-/*0x0a74*/	DWORD		Copper; 
-/*0x0a78*/	DWORD		BankPlat; 
-/*0x0a7c*/	DWORD		BankGold; 
-/*0x0a80*/	DWORD		BankSilver; 
-/*0x0a84*/	DWORD		BankCopper; 
-/*0x0a88*/  DWORD 		field_A88;
-/*0x0a8c*/  DWORD 		field_A8C;
-/*0x0a90*/  DWORD 		field_A90;
-/*0x0a94*/  DWORD 		field_A94;
-/*0x0a98*/	DWORD		BankSharedPlat; 
-/*0x0a9c*/  DWORD 		field_A9C;
-/*0x0aa0*/  DWORD 		field_AA0;
-/*0x0aa4*/  DWORD 		field_AA4;
-/*0x0aa8*/  DWORD 		field_AA8;
-/*0x0aac*/  DWORD 		field_AAC;
-/*0x0ab0*/  DWORD 		field_AB0;
-/*0x0ab4*/  DWORD 		field_AB4;
-/*0x0ab8*/  DWORD		Skill[0x64];
-/*0x0c48*/  DWORD		InnateSkill[0x19];
-/*0x0cac*/  BYTE  		field_CAC;
-/*0x0cad*/  BYTE  		field_CAD;
-/*0x0cae*/  BYTE  		Padding0xcae[0x2];
-/*0x0cb0*/  FLOAT 		field_CB0;
-/*0x0cb4*/  FLOAT 		field_CB4;
-/*0x0cb8*/  FLOAT 		field_CB8;
-/*0x0cbc*/  FLOAT 		field_CBC;
-/*0x0cc0*/  BYTE  		field_CC0[0x40];
-/*0x0d00*/  DWORD 		field_D00;
-/*0x0d04*/  DWORD 		field_D04;
-	// -- some structure begins --
-/*0x0d08*/  BYTE		Unknown0xd08[0x58];
-/*0x0d60*/  DWORD		hungerlevel;
-/*0x0d64*/  DWORD		thirstlevel;
-/*0x0d68*/  BYTE		Unknown0xd68[0x14];
-	// -- some structure ends --
-/*0x0d7c*/	WORD		zoneId; 
-/*0x0d7e*/	WORD		Instance; 
-/*0x0d80*/	struct		_SPAWNINFO* pSpawn;  //-->d80
-	union { 
-     /*0x0d84*/ struct	_INVENTORY	Inventory; 
-     /*0x0d84*/ struct	_CONTENTS*	InventoryArray[0x1e]; 
-	}; 
-/*0x0dfc*/	struct		_CONTENTS* Cursor; 
-/*0x0e00*/  DWORD 		field_E00;
-/*0x0e04*/  DWORD 		field_E04;
-/*0x0e08*/  DWORD 		field_E08;
-/*0x0e0c*/  DWORD 		field_E0C;
-/*0x0e10*/  DWORD 		field_E10;
-/*0x0e14*/  BYTE  		field_E14;
-/*0x0e15*/  BYTE  		field_E15;
-/*0x0e16*/  BYTE  		Padding0xe16[0x2];
-/*0x0e18*/	DWORD		STR; 
-/*0x0e1c*/	DWORD		STA; 
-/*0x0e20*/	DWORD		CHA; 
-/*0x0e24*/	DWORD		DEX; 
-/*0x0e28*/	DWORD		INT; 
-/*0x0e2c*/	DWORD		AGI; 
-/*0x0e30*/	DWORD		WIS; 
-/*0x0e34*/  DWORD 		field_E34;
-/*0x0e38*/	DWORD		SaveMagic; 
-/*0x0e3c*/	DWORD		SaveFire; 
-/*0x0e40*/	DWORD		SaveCold; 
-/*0x0e44*/	DWORD		SavePoison; 
-/*0x0e48*/	DWORD		SaveDisease; 
-/*0x0e4c*/  DWORD  		field_E4C;
-/*0x0e50*/  DWORD       CurrWeight;
-/*0x0e54*/  DWORD 		field_E54;
-/*0x0e58*/  DWORD       HPBonus;       //From +HP Gear & Probably Spells
-/*0x0e5c*/  DWORD       ManaBonus;       //From +MANA Gear & Probably Spells
-/*0x0e60*/  BYTE  		Padding0xe60[0x4];
-/*0x0e64*/  DWORD 		field_E64;
-/*0x0e68*/  DWORD 		field_E68;
-/*0x0e6c*/  DWORD 		field_E6C;
-/*0x0e70*/  DWORD 		field_E70;
-/*0x0e74*/  DWORD 		field_E74;
-/*0x0e78*/  DWORD 		field_E78;
-/*0x0e7c*/  BYTE  		Padding0xe7c[0x4];
-/*0x0e80*/  DWORD 		field_E80;
-/*0x0e84*/  BYTE  		Padding0xe84[0x20];
-/*0x0ea4*/  DWORD 		field_EA4;
-/*0x0ea8*/  DWORD 		field_EA8;
-/*0x0eac*/  DWORD       AttackBonus;  // From gear only
-/*0x0eb0*/  DWORD       HPRegenBonus; // From gear only
-/*0x0eb4*/  DWORD       ManaRegenBonus;  // From gear only
-/*0x0eb8*/  DWORD       DamageShieldBonus;  // From gear only
-/*0x0ebc*/  DWORD       AttackSpeed;  // From gear only
-/*0x0ec0*/  BYTE  		field_EC0;
-/*0x0ec1*/  BYTE  		Padding0xec1[0x3];
-/*0x0ec4*/  DWORD 		field_EC4;
-/*0x0ec8*/  BYTE  		field_EC8;
-/*0x0ec9*/  BYTE  		Padding0xec9[0x3];
-/*0x0ecc*/  SPELLBUFF   ShortBuff[0x6];
-/*0x0f2c*/  BYTE  		Unknown0xf2c[0x90];
-/*0x0fbc*/  BYTE  		field_FBC[0x78];
-/*0x1034*/  DWORD       ZoneBoundId;
-/*0x1038*/	BYTE		field_1038[0x10]; 
-/*0x1048*/  FLOAT		ZoneBoundY; 
-/*0x104c*/  BYTE  		field_104C[0x10];
-/*0x105c*/  FLOAT		ZoneBoundX; 
-/*0x1060*/  BYTE  		field_1060[0x10];
-/*0x1070*/  FLOAT		ZoneBoundZ; 
-/*0x1074*/  BYTE  		field_1074[0x10];
-/*0x1084*/  BYTE  		field_1084[0x14];
-/*0x1098*/  DWORD 		field_1098;
-/*0x109c*/  DWORD 		Deity;
-/*0x10a0*/  DWORD 		GuildID;
-/*0x10a4*/  DWORD 		field_10A4;
-/*0x10a8*/  DWORD 		field_10A8;
-/*0x10ac*/  DWORD 		field_10AC;
-/*0x10b0*/  BYTE  		field_10B0;
-/*0x10b1*/  BYTE  		field_10B1;
-/*0x10b2*/  BYTE  		field_10B2;
-/*0x10b3*/  BYTE  		field_10B3;
-/*0x10b4*/  BYTE  		GuildStatus;
-/*0x10b5*/  BYTE  		Padding0x10b5[0x3];
-/*0x10b8*/  DWORD 		Drunkenness;
-/*0x10bc*/  BYTE  		field_10BC[0x28];
-/*0x10e4*/  DWORD 		AAExp;
-/*0x10e8*/  BYTE  		field_10E8;
-/*0x10e9*/  BYTE  		PercentEXPtoAA;
-/*0x10ea*/  BYTE  		field_10EA;
-/*0x10eb*/  BYTE  		field_10EB;
-/*0x10ec*/  BYTE  		field_10EC;
-/*0x10ed*/  BYTE  		field_10ED;
-/*0x10ee*/  BYTE  		field_10EE;
-/*0x10ef*/  BYTE  		field_10EF;
-/*0x10f0*/  BYTE  		field_10F0;
-/*0x10f1*/  BYTE  		Padding0x10f1[0x3];
-/*0x10f4*/  BYTE  		field_10F4[0x58];
-/*0x114c*/  BYTE  		field_114C[0x24];
-/*0x1170*/  BYTE  		field_1170[0xf0];
-/*0x1260*/  DWORD 		field_1260;
-/*0x1264*/  DWORD 		field_1264;
-/*0x1268*/  DWORD 		field_1268;
-/*0x126c*/  DWORD 		field_126C;
-/*0x1270*/  DWORD 		field_1270;
-/*0x1274*/  DWORD 		field_1274;
-/*0x1278*/  DWORD 		field_1278;
-/*0x127c*/  DWORD 		field_127C;
-/*0x1280*/  DWORD 		field_1280;
-/*0x1284*/  DWORD 		field_1284;
-/*0x1288*/  DWORD 		field_1288;
-/*0x128c*/  DWORD 		field_128C;
-/*0x1290*/  DWORD 		field_1290;
-/*0x1294*/  DWORD		AAPoints;
-/*0x1298*/  DWORD 		field_1298;
-/*0x129c*/  DWORD 		field_129C;
-/*0x12a0*/  BYTE  		field_12A0[0x320];
-/*0x15c0*/  DWORD 		field_15C0;
-/*0x15c4*/  DWORD 		field_15C4;
-/*0x15c8*/  DWORD 		field_15C8;
-/*0x15cc*/  DWORD 		field_15CC;
-/*0x15d0*/  BYTE  		field_15D0[0x140];
-/*0x1710*/  DWORD 		field_1710;
-/*0x1714*/  DWORD 		field_1714;
-/*0x1718*/  DWORD 		field_1718;
-/*0x171c*/  BYTE        UnknownInsertionPoint[0x8];
-/*0x1724*/  CHAR		Server[0x20];//-->1724
-/*0x17  */  DWORD 		field_173C;
-/*0x174 */  BYTE  		field_1740[0x14];
-/*0x175 */  BYTE  		field_1754[0x14];
-/*0x176 */  DWORD 		field_1768;
-/*0x176 */  DWORD 		field_176C;
-/*0x177 */  DWORD 		field_1770;
-/*0x177 */  DWORD 		field_1774;
-/*0x177 */  DWORD 		field_1778;
-/*0x177 */  DWORD 		field_177C;
-/*0x178 */  DWORD 		field_1780;
-/*0x178 */  DWORD 		field_1784;
-/*0x178 */  DWORD 		field_1788;
-/*0x178 */  BYTE  		field_178C[0x30];
-/*0x17b */  BYTE  		field_17BC[0x30];
-/*0x17e */  BYTE  		field_17EC[0x30];
-/*0x181 */  BYTE  		field_181C[0x30];
-/*0x184 */  DWORD 		field_184C;
-/*0x185 */  DWORD 		field_1850;
-/*0x185 */  BYTE  		field_1854[0x30];
-/*0x188 */  DWORD 		field_1884;
-/*0x188 */  DWORD 		field_1888;
-/*0x188 */  DWORD 		field_188C;
-/*0x189 */  DWORD 		field_1890;
-/*0x189 */  DWORD 		field_1894;
-/*0x189 */  DWORD 		field_1898;
-/*0x189 */  DWORD 		field_189C;
-/*0x18a */  DWORD 		field_18A0;
-/*0x18a */  DWORD 		field_18A4;
-/*0x18a */  BYTE  		Padding0x18a8[0xc];
-/*0x18b */  DWORD 		field_18B4;
-/*0x18b */  DWORD 		field_18B8;
-/*0x18b */  DWORD 		field_18BC;
-/*0x18c */  DWORD 		field_18C0;
-/*0x18c */  DWORD 		field_18C4;
-/*0x18c */  DWORD 		field_18C8;
-/*0x18c */  DWORD 		field_18CC;
-/*0x18d */  DWORD 		field_18D0;
-/*0x18d */  DWORD 		field_18D4;
-/*0x18d */  DWORD 		field_18D8;
-/*0x18d */  DWORD 		field_18DC;
-/*0x18e */  DWORD 		field_18E0;
-/*0x18e */  DWORD 		field_18E4;
-/*0x18e */  DWORD 		field_18E8;
-/*0x18e */  DWORD 		field_18EC;
-/*0x18f */  DWORD 		field_18F0;
-/*0x18f */  DWORD 		field_18F4;
-/*0x18f */  DWORD 		field_18F8;
-/*0x18f */  DWORD 		field_18FC;
-/*0x190 */  DWORD 		field_1900;
-/*0x190 */  DWORD 		field_1904;
-/*0x190 */  DWORD 		field_1908;
-/*0x190 */  DWORD 		field_190C;
-/*0x191 */  DWORD 		field_1910;
-/*0x191 */  BYTE  		field_1914[0x2000];
-/*0x391 */  BYTE  		field_3914[0x4e20];//in-pack slots in this structure
-/*0x873 */  BYTE  		field_8734[0xbb8];
-/*0x92e */  BYTE  		field_92EC[0x28];
-/*0x931 */  DWORD 		field_9314;
-/*0x931 */  DWORD       CareerFavor; // NOTE: 64-bit #   -->9320
-/*0x931 */  DWORD 		field_931C;
-/*0x932 */  DWORD       CurrFavor; // NOTE: 64-bit #   -->9328
-/*0x932 */  DWORD 		field_9324;
-/*0x932 */  DWORD       CombatAbilities[0x32];//
-/*0x93f */  DWORD       CombatAbilityTimes[0x14]; // ??
-/*0x944 */  DWORD       CombatAbilityTimes2[0x14]; // ??
-/*0x949 */  DWORD       GroupLeadershipExp;      // 0-999
-/*0x949 */  DWORD       RaidLeadershipExp;       // 0-999
-/*0x949 */  DWORD       GroupLeadershipPoints;   // 0-8  // 
-/*0x949 */  DWORD       RaidLeadershipPoints;    // 0-10
-/*0x94a */  BYTE  		field_94A0[0x100];
-/*0x95a */  BYTE  		field_95A0;
-/*0x95a */  BYTE  		Padding0x95a1[0x3];
-/*0x95a */  DWORD 		field_95A4;
-/*0x95a */  BYTE  		Padding0x95a8[0x18];
-/*0x95c */  DWORD 		field_95C0;
-/*0x95c */  DWORD 		field_95C4;
-/*0x95c */  DWORD 		field_95C8;
-/*0x95c */  DWORD 		field_95CC;
-/*0x95d */  DWORD 		field_95D0;
-/*0x95d */  DWORD 		field_95D4;
-/*0x95d */  DWORD 		field_95D8;
-/*0x95d */  DWORD 		field_95DC;
-/*0x95e */  BYTE  		field_95E0[0x58];
-/*0x963 */  BYTE  		field_9638[0x58];
-/*0x969 */  DWORD 		field_9690;
-/*0x969 */  BYTE  		Padding0x9694[0xc];
-/*0x96a */  DWORD 		field_96A0;
-/*0x96a */  BYTE  		field_96A4;
-/*0x96a */  BYTE  		Padding0x96a5[0x3];
-/*0x96a */  DWORD 		field_96A8;
-/*0x96a */  DWORD 		field_96AC;
-/*0x96b */  DWORD 		field_96B0;
-/*0x96b */  BYTE  		Padding0x96b4[0x8];
-/*0x96c4*/  BYTE        UnknownInsertionPt2[0x8];
-/*0x96cc*/  struct		_CONTENTS* Bank[NUM_BANK_SLOTS];  //-->96cc
-/*0x970 */  BYTE  		field_9704[0x90];
-/*0x979 */  DWORD 		field_9794;
-/*0x979 */  BYTE  		Padding0x9798[0x10];
-/*0x97a */  DWORD 		field_97A8;
-/*0x97a */  BYTE  		Grouped;
-/*0x97a */  BYTE        field_97AD[0x17F];// NOTE group info 97ac-992c
-/*0x992 */  BYTE  		field_992C[0x18];
-/*0x994 */  BYTE  		field_9944[0x40];
-/*0x998 */  BYTE  		field_9984[0x13c];
-/*0x9ac */  BYTE  		field_9AC0[0x154];// group leadership
-/*0x9c1 */  DWORD 		field_9C14;
-/*0x9c1 */  DWORD 		field_9C18;
-/*0x9c1c*/
+/*0x0000*/	BYTE	field_0;	
+/*0x0001*/	BYTE	Padding0x1;	
+/*0x0002*/	CHAR	Name[0x40];	
+/*0x0042*/	CHAR	Lastname[0x20];	
+/*0x0062*/	BYTE	field_0x62[0x20];	
+/*0x0082*/	BYTE	Padding0x82[0x2];	
+/*0x0084*/	DWORD	field_0x84;	
+/*0x0088*/	BYTE	Gender;	
+/*0x0089*/	BYTE	Padding0x89[3];	
+/*0x008c*/	BYTE	Race;	
+/*0x008d*/	BYTE	Pading0x8d[0x3];	
+/*0x0090*/	BYTE	Class;	
+/*0x0091*/	BYTE	Padding0x91[0x3];	
+/*0x0094*/	DWORD	field_0x94;	
+/*0x0098*/	DWORD	Level;	
+/*0x009c*/	DWORD	Exp;	
+/*0x00a0*/	DWORD	PracticePoints;	
+/*0x00a4*/	DWORD	Mana;	
+/*0x00a8*/	DWORD	Endurance;	
+/*0x00ac*/	DWORD	BaseHP;	
+/*0x00b0*/	BYTE	Stunned;	
+/*0x00b1*/	BYTE	Padding0xb1[0x3];	
+/*0x00b4*/	DWORD	BaseSTR;	
+/*0x00b8*/	DWORD	BaseSTA;	
+/*0x00bc*/	DWORD	BaseCHA;	
+/*0x00c0*/	DWORD	BaseDEX;	
+/*0x00c4*/	DWORD	BaseINT;	
+/*0x00c8*/	DWORD	BaseAGI;	
+/*0x00cc*/	DWORD	BaseWIS;	
+/*0x00d0*/	BYTE	Face;	
+/*0x00d1*/	BYTE	field_0xd1[0x9];	
+/*0x00da*/	BYTE	Padding0xda[0x2];	
+/*0x00dc*/	BYTE	field_0xdc[0x24];	
+/*0x0100*/	BYTE	languages[0x20];	
+/*0x0120*/	struct _SPELLBUFF	Buff[0x0f];	
+/*0x0210*/	DWORD	SpellBook[NUM_BOOK_SLOTS];	
+/*0x0a10*/	DWORD	MemorizedSpells[0x10];	
+/*0x0a50*/	BYTE	field_0xa50;	
+/*0x0a51*/	BYTE	Padding0xa51[0x3];	
+/*0x0a54*/	FLOAT	y;	
+/*0x0a58*/	FLOAT	x;	
+/*0x0a5c*/	FLOAT	z;	
+/*0x0a60*/	FLOAT	heading;	
+/*0x0a64*/	BYTE	standstate;	
+/*0x0a65*/	BYTE	Padding0xa65[0x3];	
+/*0x0a68*/	DWORD	Plat;	
+/*0x0a6c*/	DWORD	Gold;	
+/*0x0a70*/	DWORD	Silver;	
+/*0x0a74*/	DWORD	Copper;	
+/*0x0a78*/	DWORD	BankPlat;	
+/*0x0a7c*/	DWORD	BankGold;	
+/*0x0a80*/	DWORD	BankSilver;	
+/*0x0a84*/	DWORD	BankCopper;	
+/*0x0a88*/	DWORD	field_0xa88;	
+/*0x0a8c*/	DWORD	field_0xa8c;	
+/*0x0a90*/	DWORD	field_0xa90;	
+/*0x0a94*/	DWORD	field_0xa94;	
+/*0x0a98*/	DWORD	BankSharedPlat;	
+/*0x0a9c*/	DWORD	field_0xa9c;	
+/*0x0aa0*/	DWORD	field_0xaa0;	
+/*0x0aa4*/	DWORD	field_0xaa4;	
+/*0x0aa8*/	DWORD	field_0xaa8;	
+/*0x0aac*/	DWORD	field_0xaac;	
+/*0x0ab0*/	DWORD	field_0xab0;	
+/*0x0ab4*/	DWORD	field_0xab4;	
+/*0x0ab8*/	DWORD	Skill[0x64];	
+/*0x0c48*/	DWORD	InnateSkill[0x19];	
+/*0x0cac*/	BYTE	field_0xcac;	
+/*0x0cad*/	BYTE	field_0xcad;	
+/*0x0cae*/	BYTE	Padding0xcae[0x2];	
+/*0x0cb0*/	FLOAT	field_0xcb0;	
+/*0x0cb4*/	FLOAT	field_0xcb4;	
+/*0x0cb8*/	FLOAT	field_0xcb8;	
+/*0x0cbc*/	FLOAT	field_0xcbc;	
+/*0x0cc0*/	BYTE	field_0xcc0[0x40];	
+/*0x0d00*/	DWORD	field_0xd00;	
+/*0x0d04*/	DWORD	field_0xd04;	
+/*0x0d08*/	BYTE	Unknown0xd08[0x58];
+/*0x0d60*/	DWORD	hungerlevel;
+/*0x0d64*/	DWORD	thirstlevel;
+/*0x0d68*/	BYTE	Unknown0xd68[0x14];
+/*0x0d7c*/	WORD	zoneId;	
+/*0x0d7e*/	WORD	Instance;	
+/*0x0d80*/	struct _SPAWNINFO*	pSpawn;		//-->d80
+	union {
+	  /*0x0d84*/	struct _INVENTORY	Inventory;
+	  /*0x0d84*/	struct _CONTENTS*	InventoryArray[0x1e];	
+	};
+/*0x0dfc*/	struct _CONTENTS*	Cursor;	
+/*0x0e00*/	DWORD	field_0xe00;	
+/*0x0e04*/	DWORD	ield_E04;	
+/*0x0e08*/	DWORD	field_0xe08;	
+/*0x0e0c*/	DWORD	field_0xe0c;	
+/*0x0e10*/	DWORD	field_0xe10;	
+/*0x0e14*/	BYTE	field_0xe14;	
+/*0x0e15*/	BYTE	field_0xe15;	
+/*0x0e16*/	BYTE	Padding0xe16[0x2];	
+/*0x0e18*/	DWORD	STR;	
+/*0x0e1c*/	DWORD	STA;	
+/*0x0e20*/	DWORD	CHA;	
+/*0x0e24*/	DWORD	DEX;	
+/*0x0e28*/	DWORD	INT;	
+/*0x0e2c*/	DWORD	AGI;	
+/*0x0e30*/	DWORD	WIS;	
+/*0x0e34*/	DWORD	field_0xe34;	
+/*0x0e38*/	DWORD	SaveMagic;	
+/*0x0e3c*/	DWORD	SaveFire;	
+/*0x0e40*/	DWORD	SaveCold;	
+/*0x0e44*/	DWORD	SavePoison;	
+/*0x0e48*/	DWORD	SaveDisease;	
+/*0x0e4c*/	DWORD	field_0xe4c;	
+/*0x0e50*/	DWORD	CurrWeight;	
+/*0x0e54*/	DWORD	field_0xe54;	
+/*0x0e58*/	DWORD	HPBonus;		//From +HP Gear & Probably Spells
+/*0x0e5c*/	DWORD	ManaBonus;		//From +MANA Gear & Probably Spells
+/*0x0e60*/	BYTE	Padding0xe60[0x4];	
+/*0x0e64*/	DWORD	field_0xe64;	
+/*0x0e68*/	DWORD	field_0xe68;	
+/*0x0e6c*/	DWORD	field_0xe6c;	
+/*0x0e70*/	DWORD	field_0xe70;	
+/*0x0e74*/	DWORD	field_0xe74;	
+/*0x0e78*/	DWORD	field_0xe78;	
+/*0x0e7c*/	BYTE	Padding0xe7c[0x4];	
+/*0x0e80*/	DWORD	field_0xe80;	
+/*0x0e84*/	BYTE	Padding0xe84[0x20];	
+/*0x0ea4*/	DWORD	field_0xea4;	
+/*0x0ea8*/	DWORD	field_0xea8;	
+/*0x0eac*/	DWORD	AttackBonus;		// From gear only
+/*0x0eb0*/	DWORD	HPRegenBonus;		// From gear only
+/*0x0eb4*/	DWORD	ManaRegenBonus;		// From gear only
+/*0x0eb8*/	DWORD	DamageShieldBonus;		// From gear only
+/*0x0ebc*/	DWORD	AttackSpeed;		// From gear only
+/*0x0ec0*/	BYTE	field_0xec0;	
+/*0x0ec1*/	BYTE	Padding0xec1[0x3];	
+/*0x0ec4*/	DWORD	field_0xec4;	
+/*0x0ec8*/	BYTE	field_0xec8;	
+/*0x0ec9*/	BYTE	Padding0xec9[0x3];	
+/*0x0ecc*/	SPELLBUFF	ShortBuff[0x6];	
+/*0x0f2c*/	BYTE	Unknown0xf2c[0x90];	
+/*0x0fbc*/	BYTE	field_0xfbc[0x78];	
+/*0x1034*/	DWORD	ZoneBoundId;	
+/*0x1038*/	BYTE	field_0x1038[0x10];	
+/*0x1048*/	FLOAT	ZoneBoundY;	
+/*0x104c*/	BYTE	field_0x104c[0x10];	
+/*0x105c*/	FLOAT	ZoneBoundX;	
+/*0x1060*/	BYTE	field_0x1060[0x10];	
+/*0x1070*/	FLOAT	ZoneBoundZ;	
+/*0x1074*/	BYTE	field_0x1074[0x10];	
+/*0x1084*/	BYTE	field_0x1084[0x14];	
+/*0x1098*/	DWORD	field_0x1098;	
+/*0x109c*/	DWORD	Deity;	
+/*0x10a0*/	DWORD	GuildID;	
+/*0x10a4*/	DWORD	field_0x10a4;	
+/*0x10a8*/	DWORD	field_0x10a8;	
+/*0x10ac*/	DWORD	field_0x10ac;	
+/*0x10b0*/	BYTE	field_0x10b0;	
+/*0x10b1*/	BYTE	field_0x10b1;	
+/*0x10b2*/	BYTE	field_0x10b2;	
+/*0x10b3*/	BYTE	field_0x10b3;	
+/*0x10b4*/	BYTE	GuildStatus;	
+/*0x10b5*/	BYTE	Padding0x10b5[0x3];	
+/*0x10b8*/	DWORD	Drunkenness;	
+/*0x10bc*/	BYTE	field_0x10bc[0x28];	
+/*0x10e4*/	DWORD	AAExp;	
+/*0x10e8*/	BYTE	field_0x10e8;	
+/*0x10e9*/	BYTE	PercentEXPtoAA;	
+/*0x10ea*/	BYTE	field_0x10ea;	
+/*0x10eb*/	BYTE	field_0x10eb;	
+/*0x10ec*/	BYTE	field_0x10ec;	
+/*0x10ed*/	BYTE	field_0x10ed;	
+/*0x10ee*/	BYTE	field_0x10ee;	
+/*0x10ef*/	BYTE	field_0x10ef;	
+/*0x10f0*/	BYTE	field_0x10f0;	
+/*0x10f1*/	BYTE	Padding0x10f1[0x3];	
+/*0x10f4*/	BYTE	field_0x10f4[0x58];	
+/*0x114c*/	BYTE	field_0x114c[0x24];	
+/*0x1170*/	BYTE	field_0x1170[0xf0];	
+/*0x1260*/	DWORD	field_0x1260;	
+/*0x1264*/	DWORD	field_0x1264;	
+/*0x1268*/	DWORD	field_0x1268;	
+/*0x126c*/	DWORD	field_0x126c;	
+/*0x1270*/	DWORD	field_0x1270;	
+/*0x1274*/	DWORD	field_0x1274;	
+/*0x1278*/	DWORD	field_0x1278;	
+/*0x127c*/	DWORD	field_0x127c;	
+/*0x1280*/	DWORD	field_0x1280;	
+/*0x1284*/	DWORD	field_0x1284;	
+/*0x1288*/	DWORD	field_0x1288;	
+/*0x128c*/	DWORD	field_0x128c;	
+/*0x1290*/	DWORD	field_0x1290;	
+/*0x1294*/	DWORD	AAPoints;	
+/*0x1298*/	DWORD	field_0x1298;	
+/*0x129c*/	DWORD	field_0x129c;	
+/*0x12a0*/	BYTE	field_0x12a0[0x320];	
+/*0x15c0*/	DWORD	field_0x15c0;	
+/*0x15c4*/	DWORD	field_0x15c4;	
+/*0x15c8*/	DWORD	field_0x15c8;	
+/*0x15cc*/	DWORD	field_0x15cc;	
+/*0x15d0*/	BYTE	field_0x15d0[0x140];	
+/*0x1710*/	DWORD	field_0x1710;	
+/*0x1714*/	DWORD	field_0x1714;	
+/*0x1718*/	DWORD	field_0x1718;	
+/*0x171c*/	BYTE	UnknownInsertionPoint[0x8];	
+/*0x1724*/	CHAR	Server[0x20];	//-->1724
+/*0x1744*/	DWORD	field_0x1744;	
+/*0x1748*/	BYTE	field_0x1748[0x14];	
+/*0x175c*/	BYTE	field_0x175c[0x14];	
+/*0x1770*/	DWORD	field_0x1770;	
+/*0x1774*/	DWORD	field_0x1774;	
+/*0x1778*/	DWORD	field_0x1778;	
+/*0x177c*/	DWORD	field_0x177c;	
+/*0x1780*/	DWORD	field_0x1780;	
+/*0x1784*/	DWORD	field_0x1784;	
+/*0x1788*/	DWORD	field_0x1788;	
+/*0x178c*/	DWORD	field_0x178c;	
+/*0x1790*/	DWORD	field_0x1790;	
+/*0x1794*/	BYTE	field_0x1794[0x30];	
+/*0x17c4*/	BYTE	field_0x17c4[0x30];	
+/*0x17f4*/	BYTE	field_0x17f4[0x30];	
+/*0x1824*/	BYTE	field_0x1824[0x30];	
+/*0x1854*/	DWORD	field_0x1854;	
+/*0x1858*/	DWORD	field_0x1858;	
+/*0x185c*/	BYTE	field_0x185c[0x30];	
+/*0x188c*/	DWORD	field_0x188c;	
+/*0x1890*/	DWORD	field_0x1890;	
+/*0x1894*/	DWORD	field_0x1894;	
+/*0x1898*/	DWORD	field_0x1898;	
+/*0x189c*/	DWORD	field_0x189c;	
+/*0x18a0*/	DWORD	field_0x18a0;	
+/*0x18a4*/	DWORD	field_0x18a4;	
+/*0x18a8*/	DWORD	field_0x18a8;	
+/*0x18ac*/	DWORD	field_0x18ac;	
+/*0x18b0*/	BYTE	Padding0x18b0[0xc];	
+/*0x18bc*/	DWORD	field_0x18bc;	
+/*0x18c0*/	DWORD	field_0x18c0;	
+/*0x18c4*/	DWORD	field_0x18c4;	
+/*0x18c8*/	DWORD	field_0x18c8;	
+/*0x18cc*/	DWORD	field_0x18cc;	
+/*0x18d0*/	DWORD	field_0x18d0;	
+/*0x18d4*/	DWORD	field_0x18d4;	
+/*0x18d8*/	DWORD	field_0x18d8;	
+/*0x18dc*/	DWORD	field_0x18dc;	
+/*0x18e0*/	DWORD	field_0x18e0;	
+/*0x18e4*/	DWORD	field_0x18e4;	
+/*0x18e8*/	DWORD	field_0x18e8;	
+/*0x18ec*/	DWORD	field_0x18ec;	
+/*0x18f0*/	DWORD	field_0x18f0;	
+/*0x18f4*/	DWORD	field_0x18f4;	
+/*0x18f8*/	DWORD	field_0x18f8;	
+/*0x18fc*/	DWORD	field_0x18fc;	
+/*0x1900*/	DWORD	field_0x1900;	
+/*0x1904*/	DWORD	field_0x1904;	
+/*0x1908*/	DWORD	field_0x1908;	
+/*0x190c*/	DWORD	field_0x190c;	
+/*0x1910*/	DWORD	field_0x1910;	
+/*0x1914*/	DWORD	field_0x1914;	
+/*0x1918*/	DWORD	field_0x1918;	
+/*0x191c*/	BYTE	field_0x191c[0x2000];	
+/*0x391c*/	BYTE	field_0x391c[0x4e20];	//in-pack slots in this structure
+/*0x873c*/	BYTE	field_0x873c[0xbb8];	
+/*0x92f4*/	BYTE	field_0x92f4[0x28];	
+/*0x931c*/	DWORD	field_0x931c;	
+/*0x9320*/	DWORD	CareerFavor;	 // NOTE: 64-bit #   -->9320
+/*0x9324*/	DWORD	field_0x9324;	
+/*0x9328*/	DWORD	CurrFavor;	 // NOTE: 64-bit #   -->9328
+/*0x932c*/	DWORD	field_0x932c;	
+/*0x9330*/	DWORD	CombatAbilities[0x32];	//
+/*0x93f8*/	DWORD	CombatAbilityTimes[0x14];	 // ??
+/*0x9448*/	DWORD	CombatAbilityTimes2[0x14];	 // ??
+/*0x9498*/	DWORD	GroupLeadershipExp;	      // 0-999
+/*0x949c*/	DWORD	RaidLeadershipExp;	       // 0-999
+/*0x94a0*/	DWORD	GroupLeadershipPoints;	   // 0-8  // 
+/*0x94a4*/	DWORD	RaidLeadershipPoints;	    // 0-10
+/*0x94a8*/	BYTE	field_0x94a8[0x100];	
+/*0x95a8*/	BYTE	field_0x95a8;	
+/*0x95a9*/	BYTE	Padding0x95a9[0x3];	
+/*0x95ac*/	DWORD	field_0x95ac;	
+/*0x95b0*/	BYTE	Padding0x95b0[0x18];	
+/*0x95c8*/	DWORD	field_0x95c8;	
+/*0x95cc*/	DWORD	field_0x95cc;	
+/*0x95d0*/	DWORD	field_0x95d0;	
+/*0x95d4*/	DWORD	field_0x95d4;	
+/*0x95d8*/	DWORD	field_0x95d8;	
+/*0x95dc*/	DWORD	field_0x95dc;	
+/*0x95e0*/	DWORD	field_0x95e0;	
+/*0x95e4*/	DWORD	field_0x95e4;	
+/*0x95e8*/	BYTE	field_0x95e8[0x58];	
+/*0x9640*/	BYTE	field_0x9640[0x58];	
+/*0x9698*/	DWORD	field_0x9698;	
+/*0x969c*/	BYTE	Padding0x969c[0xc];	
+/*0x96a8*/	DWORD	field_0x96a8;	
+/*0x96ac*/	BYTE	field_0x96ac;	
+/*0x96ad*/	BYTE	Padding0x96ad[0x3];	
+/*0x96b0*/	DWORD	field_0x96b0;	
+/*0x96b4*/	DWORD	field_0x96b4;	
+/*0x96b8*/	DWORD	field_0x96b8;	
+/*0x96bc*/	BYTE	Padding0x96bc[0x8];	
+/*0x96c4*/	BYTE	UnknownInsertionPt2[0x8];	
+/*0x96cc*/	struct _CONTENTS*	Bank[NUM_BANK_SLOTS];	  //-->96cc
+/*0x9714*/	BYTE	field_0x9714[0x90];	
+/*0x97a4*/	DWORD	field_0x97a4;	
+/*0x97a8*/	BYTE	Padding0x97a8[0x10];	
+/*0x97b8*/	DWORD	field_0x97b8;	
+/*0x97bc*/	BYTE	Grouped;	
+/*0x97bd*/	BYTE	field_0x97bd[0x17F];	// NOTE group info 97ac-992c
+/*0x993c*/	BYTE	field_0x993c[0x18];	
+/*0x9954*/	BYTE	field_0x9954[0x40];	
+/*0x9994*/	BYTE	field_0x9994[0x13c];	
+/*0x9ad0*/	BYTE	field_0x9ad0[0x154];	// group leadership
+/*0x9c24*/	DWORD	field_0x9c24;	
+/*0x9c28*/	DWORD	field_0x9c28;	
+/*0x9c2c*/
 } CHARINFO, *PCHARINFO;
-
 
 typedef struct _MODELINFONAME {
 /*0x00*/    DWORD Unknown0000;
