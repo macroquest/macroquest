@@ -36,6 +36,8 @@ REVERSE_VIRTUAL_DETOUR(int CXWnd::Show(bool,bool),0x0C0);
 REVERSE_VIRTUAL_DETOUR(int CXWnd::SetVScrollPos(int),0x0FC);
 REVERSE_VIRTUAL_DETOUR(void CXWnd::SetWindowTextA(class CXStr),0x108);
 
+REVERSE_VIRTUAL_DETOUR(void CListWnd::DeleteAll(void),0x120);
+
 
 // AUTO IMPORTS
 
