@@ -658,7 +658,7 @@ bool MQ2CharacterType::GetMember(MQ2VARPTR VarPtr, PCHAR Member, PCHAR Index, MQ
 	case Buff:
 		if (!Index[0])
 			return false;
-		if (Index[0]>=0 && Index[0]<=9)
+		if (Index[0]>='0' && Index[0]<='9')
 		{
 			unsigned long nBuff=atoi(Index)-1;
 			if (nBuff>16)
@@ -687,7 +687,7 @@ bool MQ2CharacterType::GetMember(MQ2VARPTR VarPtr, PCHAR Member, PCHAR Index, MQ
 	case Song:
 		if (!Index[0])
 			return false;
-		if (Index[0]>=0 && Index[0]<=9)
+		if (Index[0]>='0' && Index[0]<='9')
 		{
 			unsigned long nBuff=atoi(Index)-1;
 			if (nBuff>6)
@@ -861,7 +861,7 @@ bool MQ2CharacterType::GetMember(MQ2VARPTR VarPtr, PCHAR Member, PCHAR Index, MQ
 				{
 					if (!stricmp(Index,pSpell->Name))
 					{
-						Dest.DWord=nGem;
+						Dest.DWord=nGem+1;
 						Dest.Type=pIntType;
 						return true;
 					}

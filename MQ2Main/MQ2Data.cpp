@@ -265,7 +265,7 @@ BOOL dataIf(PCHAR szIndex, MQ2TYPEVAR &Ret)
 			if (PCHAR pFalse=strchr(pTrue,','))
 			{
 				*pFalse=0;
-				pFalse=0;
+				pFalse++;
 				BOOL True=true;
 				if ((szIndex[0]>='0' && szIndex[0]<='9') || szIndex[0]=='-')
 					True=(Calculate(szIndex)!=0);

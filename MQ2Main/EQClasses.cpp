@@ -35,7 +35,7 @@ REVERSE_VIRTUAL_DETOUR(bool CXWnd::IsValid(void)const,0);
 REVERSE_VIRTUAL_DETOUR(int CXWnd::WndNotification(class CXWnd *,unsigned __int32,void *),0x80);
 REVERSE_VIRTUAL_DETOUR(int CXWnd::Show(bool,bool),0x0C0);
 REVERSE_VIRTUAL_DETOUR(int CXWnd::SetVScrollPos(int),0x100);
-REVERSE_VIRTUAL_DETOUR(void CXWnd::SetWindowTextA(class CXStr),0xfc);
+REVERSE_VIRTUAL_DETOUR(void CXWnd::SetWindowTextA(class CXStr &),0xfc);
 
 REVERSE_VIRTUAL_DETOUR(int CXWnd::HandleLButtonDown(class CXPoint *,unsigned __int32),0x34);
 REVERSE_VIRTUAL_DETOUR(int CXWnd::HandleLButtonUp(class CXPoint *,unsigned __int32),0x38);

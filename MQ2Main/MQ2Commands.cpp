@@ -4679,20 +4679,48 @@ VOID DoSocial(PSPAWNINFO pChar, PCHAR szLine)
         }
         return;
    } else if(  strlen(szBuffer)  ) { /* assume we have a social name to match */
-      for(  SocialIndex = 0; SocialIndex < 120; SocialIndex++  ) {
-         if(  !stricmp(szBuffer,pSocialList[SocialIndex].Name)  ) break;
+      for(  unsigned long N = 0; N < 120; N++  ) {
+         if(  !stricmp(szBuffer,pSocialList[N].Name)  ) 
+		 {
+			 SocialIndex=N;
+			 break;
+		 }
       }
    }
-
-   if(  SocialIndex >=0 && SocialIndex < 120  ) {
-      for(  LineIndex = 0; LineIndex < 5; LineIndex++  ) {
-         if(  strlen(pSocialList[SocialIndex].Line[LineIndex])  ) DoCommand(pChar,pSocialList[SocialIndex].Line[LineIndex]);
-      }
-   } else {
-      if(  strlen(szLine)  ) {
-         sprintf( szBuffer, "Invalid Argument(s): %s", szLine );
-         WriteChatColor(szBuffer,USERCOLOR_DEFAULT);
-      }
-      WriteChatColor("Usage: /dosocial <list|\"social name\">",USERCOLOR_DEFAULT );
+	
+   if (gCurrentSocial==-1)
+   {
+	   gCurrentSocial=SocialIndex<<3;
+   }
+   else
+   {
+	if(  SocialIndex < 120  ) {
+		for(  LineIndex = 0; LineIndex < 5; LineIndex++  ) {
+			if(  strlen(pSocialList[SocialIndex].Line[LineIndex])  ) DoCommand(pChar,pSocialList[SocialIndex].Line[LineIndex]);
+		}
+	} else {
+		if(  strlen(szLine)  ) {
+			sprintf( szBuffer, "Invalid Argument(s): %s", szLine );
+			WriteChatColor(szBuffer,USERCOLOR_DEFAULT);
+		}
+		WriteChatColor("Usage: /dosocial <list|\"social name\">",USERCOLOR_DEFAULT );
+	}
    }
 } 
+
+// /timed
+VOID DoTimedCmd(PSPAWNINFO pChar, PCHAR szLine)
+{
+	if (!szLine[0])
+	{
+		WriteChatColor("Usage: /timed <deciseconds> <command>");
+		return;
+	}
+    CHAR szArg[MAX_STRING] = {0}; // delay
+    GetArg(szArg,szLine,1);
+    PCHAR szRest = GetNextArg(szLine);
+	if (!szRest[0])
+		return;
+	TimedCommand(szRest,atoi(szArg)*100);
+}
+

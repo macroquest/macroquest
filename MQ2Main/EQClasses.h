@@ -554,7 +554,7 @@ EQLIB_OBJECT void CXWnd::Deactivate(void);
 EQLIB_OBJECT void CXWnd::OnReloadSidl(void);
 EQLIB_OBJECT void CXWnd::SetAttributesFromSidl(class CParamScreenPiece *);
 EQLIB_OBJECT void CXWnd::SetDrawTemplate(class CXWndDrawTemplate *);
-EQLIB_OBJECT void CXWnd::SetWindowTextA(class CXStr);
+EQLIB_OBJECT void CXWnd::SetWindowTextA(class CXStr &);
 // protected
 EQLIB_OBJECT static class CXWndManager * & CXWnd::sm_pMgr;
 // private

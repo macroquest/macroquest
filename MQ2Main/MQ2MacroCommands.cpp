@@ -1286,7 +1286,34 @@ VOID If(PSPAWNINFO pChar, PCHAR szLine)
         return;
     }
 
-    if (IfCompare(szCond)) DoCommand(pChar,szCommand); else FailIf(pChar,szCommand, gMacroBlock);
+    if (IfCompare(szCond)) 
+		DoCommand(pChar,szCommand); 
+	else 
+		FailIf(pChar,szCommand, gMacroBlock);
+}
+
+VOID NewIf(PSPAWNINFO pChar, PCHAR szLine)
+{
+    CHAR szCond[MAX_STRING] = {0};
+    CHAR szCommand[MAX_STRING] = {0};
+
+    if (!ParseIfLine(szLine, szCond, szCommand)) {
+        FailIfParsing();
+        return;
+    }
+
+	BOOL True=true;
+	if ((szCond[0]>='0' && szCond[0]<='9') || szCond[0]=='-')
+		True=(Calculate(szCond)!=0);
+	else if (!stricmp(szCond,"NULL") ||
+				!stricmp(szCond,"FALSE") ||
+				!stricmp(szCond,"NO") ||
+				!stricmp(szCond,"OFF"))
+				True=false;
+	if (True)
+		DoCommand(pChar,szCommand); 
+	else
+		FailIf(pChar,szCommand, gMacroBlock);
 }
 
 

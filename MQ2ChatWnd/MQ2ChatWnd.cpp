@@ -10,7 +10,7 @@ void SaveChatToINI(PCSIDLWND pWindow);
 void CreateChatWindow();
 class CMQChatWnd;
 CMQChatWnd *MQChatWnd=0;
-
+VOID DoMQ2ChatBind(PCHAR Name,BOOL Down);
 class CMQChatWnd : public CCustomWnd
 {
 public:
@@ -184,6 +184,8 @@ PLUGIN_API VOID InitializePlugin(VOID)
 
 	// Add commands, macro parameters, hooks, etc.
 	AddCommand("/style",Style,0,1,0);
+
+	AddMQ2KeyBind("MQ2CHAT",DoMQ2ChatBind);
 }
 
 PLUGIN_API VOID ShutdownPlugin(VOID)
@@ -192,6 +194,7 @@ PLUGIN_API VOID ShutdownPlugin(VOID)
 
 	// Remove commands, macro parameters, hooks, etc.
 	RemoveCommand("/style");
+	RemoveMQ2KeyBind("MQ2CHAT");
 	OnCleanUI();
 }
 
@@ -254,10 +257,21 @@ PLUGIN_API VOID OnCleanUI(VOID)
 // Called once directly after initialization, and then every time the gamestate changes
 PLUGIN_API VOID SetGameState(DWORD GameState)
 {
-	if (GameState==GAMESTATE_INGAME && !MQChatWnd)
+	if (GameState==GAMESTATE_CHARSELECT)
 	{
-		// we entered the game, set up shop
-		CreateChatWindow();
+		AddMQ2KeyBind("MQ2CSCHAT",DoMQ2ChatBind);
+		KeyCombo Combo;
+		ParseKeyCombo("/",Combo);
+		SetMQ2KeyBind("MQ2CSCHAT",0,Combo);
+	}
+	else
+	{
+		RemoveMQ2KeyBind("MQ2CSCHAT");
+		if (GameState==GAMESTATE_INGAME && !MQChatWnd)
+		{
+			// we entered the game, set up shop
+			CreateChatWindow();
+		}
 	}
 }
 // todo
@@ -282,4 +296,19 @@ void CreateChatWindow()
 		return;
 	LoadChatFromINI((PCSIDLWND)MQChatWnd);
 	SaveChatToINI((PCSIDLWND)MQChatWnd); // A) we're masochists, B) this creates the file if its not there..
+}
+
+VOID DoMQ2ChatBind(PCHAR Name,BOOL Down)
+{
+	if (!Down)
+	{
+		if (MQChatWnd)
+		{
+			CXRect rect= ((CXWnd*)MQChatWnd->InputBox)->GetScreenRect();
+			CXPoint pt=rect.CenterPoint();
+			((CXWnd*)MQChatWnd->InputBox)->SetWindowTextA(CXStr("/"));
+			((CXWnd*)MQChatWnd->InputBox)->HandleLButtonDown(&pt,0);
+//			((CXWnd*)MQChatWnd->InputBox)->SetFocus();
+		}
+	}
 }

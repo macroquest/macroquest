@@ -23,7 +23,15 @@
 
 CRITICAL_SECTION gCommandCS;
 
+typedef struct _TIMEDCOMMAND
+{
+	DWORD Time;
+	CHAR Command[MAX_STRING];
+	_TIMEDCOMMAND *pLast;
+	_TIMEDCOMMAND *pNext;
+} TIMEDCOMMAND, *PTIMEDCOMMAND;
 
+PTIMEDCOMMAND pTimedCommands=0;
 
 VOID HideDoCommand(PSPAWNINFO pChar, PCHAR szLine, BOOL delayed)
 {
@@ -464,6 +472,8 @@ void InitializeMQ2Commands()
 		{"/ctrl",		DoCtrlCmd,0,0},
 		{"/alt",		DoAltCmd,0,0},
 		{"/shift",      DoShiftCmd,0,0},
+		{"/timed",		DoTimedCmd,0,0},
+		{"/newif",		NewIf,0,0},
 		{NULL,          NULL,0,1},
     };
 
@@ -519,6 +529,18 @@ void ShutdownMQ2Commands()
 		delete pCommands;
 		pCommands=pNext;
 	}
+	while(gDelayedCommands)
+	{
+		PCHATBUF pNext=gDelayedCommands->pNext;
+		free(gDelayedCommands);
+		gDelayedCommands=pNext;
+	}
+	while(pTimedCommands)
+	{
+		PTIMEDCOMMAND pNext=pTimedCommands->pNext;
+		delete pTimedCommands;
+		pTimedCommands=pNext;
+	}
 	while(pAliases)
 	{
 		PALIAS pNext=pAliases->pNext;
@@ -528,5 +550,50 @@ void ShutdownMQ2Commands()
 
 	LeaveCriticalSection(&gCommandCS);
 	DeleteCriticalSection(&gCommandCS);
+}
+
+VOID DoTimedCommands()
+{
+	DWORD Now=GetTickCount();
+	while(pTimedCommands && pTimedCommands->Time<=Now)
+	{
+		PTIMEDCOMMAND pNext=pTimedCommands->pNext;
+		DoCommand(((PCHARINFO)pCharData)->pSpawn,pTimedCommands->Command);
+		delete pTimedCommands;
+		pTimedCommands=pNext;
+	}
+}
+
+VOID TimedCommand(PCHAR Command, DWORD msDelay)
+{
+	PTIMEDCOMMAND pNew= new TIMEDCOMMAND;
+	pNew->Time=msDelay+GetTickCount();
+	strcpy(pNew->Command,Command);
+	
+	// insert into list
+
+	if (!pTimedCommands || pTimedCommands->Time<=pNew->Time)
+	{
+		pNew->pNext=pTimedCommands;
+		pNew->pLast=0;
+		pTimedCommands=pNew;
+		return;
+	}
+
+	PTIMEDCOMMAND pLast=pTimedCommands;
+	PTIMEDCOMMAND pNode=pTimedCommands->pNext;
+	while(pNode)
+	{
+		if (pNew->Time<=pNode->Time)
+		{
+			pNode->pLast=pNew;
+			break;
+		}
+		pLast=pNode;
+		pNode=pNode->pNext;
+	}
+	pLast->pNext=pNew;
+	pNew->pLast=pLast;
+	pNew->pNext=pNode;
 }
 

@@ -198,14 +198,6 @@ void Pulse()
     }
 
 
-	if (gDelayedCommands)
-	{// execute one delayed command
-		DoCommand(pChar,gDelayedCommands->szText);
-		PCHATBUF pNext=gDelayedCommands->pNext;
-		free(gDelayedCommands);
-		gDelayedCommands=pNext;
-	}
-
 }
 
 DWORD GetGameState(VOID)
@@ -242,13 +234,22 @@ void Heartbeat()
 	}
 
     bRunNextCommand   = TRUE;
-    DWORD CurTurbo=0;
+	DWORD CurTurbo=0;
+
+	if (gDelayedCommands)
+	{// delayed commands
+		DoCommand(((PCHARINFO)pCharData)->pSpawn,gDelayedCommands->szText);
+		PCHATBUF pNext=gDelayedCommands->pNext;
+		free(gDelayedCommands);
+		gDelayedCommands=pNext;
+	}
 	while ((!gKeyStack)   && (bRunNextCommand)) {
-        bRunNextCommand   = FALSE;
+		bRunNextCommand   = FALSE;
 		if (!DoNextCommand()) break;
-        if (!gTurbo) break;//bRunNextCommand = FALSE;
+		if (!gTurbo) break;//bRunNextCommand = FALSE;
 		if (++CurTurbo>gMaxTurbo) break;//bRunNextCommand =   FALSE;
 	}
+	DoTimedCommands();
 	Pulse();
     Benchmark(bmPluginsPulse,DebugTry(PulsePlugins()));
 	ProcessPendingGroundItems();

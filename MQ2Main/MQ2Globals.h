@@ -270,6 +270,9 @@ EQLIB_VAR EQZoneInfo *pZoneInfo;
 EQLIB_VAR PGUILDS pGuildList;
 EQLIB_VAR PEQSOCIAL   pSocialList;
 
+EQLIB_VAR PBYTE pgHotkeyPage;
+#define gHotkeyPage (*pgHotkeyPage)
+
 EQLIB_VAR EQPlayer **ppTradeTarget;
 #define pTradeTarget (*ppTradeTarget)
 EQLIB_VAR EQPlayer **ppActiveBanker;
@@ -287,6 +290,8 @@ EQLIB_VAR CXWndManager **ppWndMgr;
 
 EQLIB_VAR KeypressHandler *pKeypressHandler;
 
+EQLIB_VAR PINT pgCurrentSocial;
+#define gCurrentSocial (*pgCurrentSocial)
 
 EQLIB_VAR DWORD *pScreenX;
 #define ScreenX (*pScreenX)

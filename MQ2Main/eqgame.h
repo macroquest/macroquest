@@ -63,7 +63,8 @@
 #define __BindList                                         0x60B220
 #define __RangeAttackReady                                 0x6CFC28
 #define __Socials                                          0x708A30
-
+#define __HotkeyPage									   0x72F2D0
+#define __CurrentSocial									   0x607A9C
 ////
 //Section 1: Vital Offsets
 ////
@@ -272,6 +273,9 @@
 // CItemDisplayWnd
 #define CItemDisplayWnd__SetItem                           0x4FEBCA
 #define CItemDisplayWnd__SetSpell                          0x4FE0E7
+
+// CHotButtonWnd
+#define CHotButtonWnd__DoHotButton						   0x4F8902
 
 // CLabel
 #define CLabel__Draw                                       0x504C0C

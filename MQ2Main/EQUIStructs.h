@@ -202,7 +202,7 @@ typedef struct _CXWNDVFTABLE {
 } CXWNDVFTABLE, *PCXWNDVFTABLE;
 
 // Lax 10-24-2003
-// Actual size 0x110, 11-5-2003
+// Actual size                 
 typedef struct _CXWND {
 /*0x000*/   struct _CXWNDVFTABLE   *pvfTable;
 /*0x004*/   DWORD   Unknown0x004;   // set to 0 in CXWnd::Refade
@@ -275,12 +275,12 @@ typedef struct _CXWND {
 /*0x104*/   DWORD   HScrollPos; // 
 /*0x108*/   BYTE    ValidCXWnd; //
 /*0x109*/   BYTE    Unused0x0f9[0x7];
-/*0x110*/
+/*0x   */
 } CXWND, *PCXWND;
 
 
 // Lax 10-24-2003
-// Actual size 0x148, 11-25-2003
+// Actual size 0x                  
 typedef struct _CSIDLWND {
 /*0x000*/   struct _CSIDLWNDVFTABLE   *pvfTable;
 /*0x004*/   DWORD   Unknown0x004;   // set to 0 in CXWnd::Refade
@@ -371,7 +371,7 @@ typedef struct _CSIDLWND {
 /*0x13c*/   LPVOID  ContextMenu;
 /*0x140*/	DWORD   Unknown0x140;
 /*0x144*/	DWORD   Unknown0x144;
-/*0x148*/
+/*0x   */
 } CSIDLWND, *PCSIDLWND;
 
 

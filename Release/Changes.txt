@@ -24,7 +24,8 @@
   "/alias /if /newif" if you wish to use newif exclusively.
   /newif <calculations> <command>
   <calculations> gets evaluated down to a single term from however many terms there are (You
-  may use && and || freely.).  
+  may use && and || freely.) *BE WARNED* that in calculations parentheses are still not
+  officially supported.. that's on my TODO list.
   
 
 29 Mar 2004 by Lax (more)

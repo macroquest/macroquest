@@ -239,6 +239,9 @@ EQLIB_API VOID RemoveParm(PCHAR Name);
 EQLIB_API VOID AddAlias(PCHAR ShortCommand, PCHAR LongCommand);
 EQLIB_API BOOL RemoveAlias(PCHAR ShortCommand);
 EQLIB_API BOOL RemoveCommand(PCHAR Command);
+EQLIB_API VOID DoTimedCommands();
+EQLIB_API VOID TimedCommand(PCHAR Command, DWORD msDelay);
+
 /* MACRO COMMANDS */
 EQLIB_API VOID DumpStack                           (PSPAWNINFO,PCHAR);
 EQLIB_API VOID EndMacro                            (PSPAWNINFO,PCHAR);
@@ -503,6 +506,8 @@ EQLIB_API BOOL dataCursor(PCHAR szIndex, MQ2TYPEVAR &Ret);
 
 
 /* COMMANDS */
+EQLIB_API VOID NewIf(PSPAWNINFO pChar, PCHAR szLine);
+EQLIB_API VOID DoTimedCmd(PSPAWNINFO pChar, PCHAR szLine);
 EQLIB_API VOID DoShiftCmd(PSPAWNINFO pChar, PCHAR szLine);
 EQLIB_API VOID DoCtrlCmd(PSPAWNINFO pChar, PCHAR szLine);
 EQLIB_API VOID DoAltCmd(PSPAWNINFO pChar, PCHAR szLine);

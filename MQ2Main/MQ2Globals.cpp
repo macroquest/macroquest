@@ -128,6 +128,9 @@ BOOL bDetMouse = TRUE;
 
 PGUILDS pGuildList = (PGUILDS)__Guilds;
 PEQSOCIAL   pSocialList = (PEQSOCIAL)__Socials;
+PBYTE pgHotkeyPage = (PBYTE)__HotkeyPage;
+PINT pgCurrentSocial = (PINT)__CurrentSocial;
+
 
 // EQ Functions Initialization
 fEQCommand        cmdHelp        =  NULL;
