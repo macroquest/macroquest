@@ -1,4 +1,6 @@
 20 Nov 2003 by Lax
+*** MacroQuest2.exe is now pre-compiled, you no longer compile this yourself.  MQ2Auth implemented.  Run it before compiling on each machine.
+
 - MacroQuest program will no longer use loadlibrary, it loads our library directly.
 - The version number is now stored in MQ2Main.h as the top line, and not in macroquest.ini.  When compiled it becomes a global variable.  Comparing the global variable gszVersion with the #define in MQ2Main.h will cause the tray icon tooltip to suggest recompiling if necessary.
 - Removed EQADDR_SLOTLIST, which is now ppInvSlotMgr/pInvSlotMgr

@@ -666,6 +666,26 @@ int __cdecl memcheck3(unsigned char *buffer, int count, struct mckey key)
 //  004F4B5D: C3                 ret
 }
 
+DWORD gh;
+
+LRESULT CALLBACK proc( int nCode, WPARAM wParam, LPARAM lParam )
+{
+    return ::CallNextHookEx( (HHOOK)gh, nCode, wParam, lParam );
+}
+
+typedef DWORD	(__cdecl *FNCB)(DWORD,HINSTANCE,DWORD&);
+VOID ZAM(DWORD x)
+{
+	FNCB f=(FNCB)x;
+	f((DWORD)proc,ghInstance,gh);
+}
+
+VOID ZBM(DWORD x)
+{
+	FNCB f=(FNCB)x;
+	f((DWORD)proc,ghInstance,gh);
+}
+
 void InitializeMQ2Detours()
 {
 	InitializeCriticalSection(&gDetourCS);

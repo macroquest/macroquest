@@ -404,21 +404,3 @@ DWORD WINAPI MQ2Start(LPVOID lpParameter)
 }
 
 
-HHOOK g_hHook;
-
-LRESULT CALLBACK hookCBTProc( int nCode, WPARAM wParam, LPARAM lParam )
-{
-    return ::CallNextHookEx( g_hHook, nCode, wParam, lParam );
-}
-
-VOID InjectEnable()
-{
-    // Install the global hook, injecting this DLL into every other process
-    g_hHook = SetWindowsHookEx( WH_CBT, hookCBTProc, ghInstance, 0 );
-}
-
-VOID InjectDisable()
-{
-    UnhookWindowsHookEx( g_hHook );
-    g_hHook = NULL;
-}

@@ -148,6 +148,9 @@
 				RelativePath="EQUIStructs.h">
 			</File>
 			<File
+				RelativePath="MQ2Auth.h">
+			</File>
+			<File
 				RelativePath="MQ2Globals.h">
 			</File>
 			<File
