@@ -292,7 +292,7 @@ EQLIB_API PCHAR GetLightForSpawn(PSPAWNINFO pSpawn);
 EQLIB_API DWORD GetSpellDuration(PSPELL pSpell, PSPAWNINFO pSpawn);
 EQLIB_API DWORD GetDeityTeamByID(DWORD DeityID);
 EQLIB_API DWORD ConColorToARGB(DWORD ConColor);
-EQLIB_API DWORD ConColor(WORD CharLevel, WORD SpawnLevel, BYTE SpawnType);
+EQLIB_API DWORD ConColor(DWORD CharLevel, DWORD SpawnLevel, BYTE SpawnType);
 EQLIB_API PCHAR GetGuildByID(DWORD GuildID);
 EQLIB_API DWORD GetGuildIDByName(PCHAR szGuild);
 EQLIB_API PCONTENTS GetEnviroContainer();

@@ -913,7 +913,7 @@ DWORD ConColorToARGB(DWORD ConColor)
 // Function:    ConColor
 // Description: Returns the con color for a spawn's level
 // ***************************************************************************
-DWORD ConColor(WORD CharLevel, WORD SpawnLevel, BYTE SpawnType)
+DWORD ConColor(DWORD CharLevel, DWORD SpawnLevel, BYTE SpawnType)
 {
 	if (PVPServer!=PVP_NONE && SpawnType==0)
 	{
@@ -984,7 +984,7 @@ DWORD ConColor(WORD CharLevel, WORD SpawnLevel, BYTE SpawnType)
     }
 
     for (i=0;ConLevels[i][0]!=0;i++) {
-        if (CharLevel<=ConLevels[i][0]) {
+        if (CharLevel<=(DWORD)ConLevels[i][0]) {
 //          DebugSpew("ConColor - i = %d",i);
             if (Diff>ConLevels[i][2]) return CONCOLOR_BLUE;
             if (Diff>ConLevels[i][1]) return CONCOLOR_LIGHTBLUE;

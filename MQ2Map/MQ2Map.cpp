@@ -136,7 +136,7 @@ public:
 	DWORD Constructor_Trampoline(class CXWnd *);
 	DWORD Constructor_Detour(class CXWnd *wnd)
 	{
-		CMyMapViewWnd *pWnd=(CMyMapViewWnd*)this;
+		CMapViewWnd *pWnd=(CMapViewWnd*)this;
 		DWORD Ret=Constructor_Trampoline(wnd);
 		PCSIDLWNDVFTABLE pvfTable = new CSIDLWNDVFTABLE; 
 		*pvfTable=*pWnd->pvfTable;
