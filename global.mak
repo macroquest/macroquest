@@ -16,7 +16,7 @@ INTDIR=.\Intermediate
     if not exist "$(INTDIR)/$(NULL)" mkdir "$(INTDIR)"
 
 CPP=cl.exe
-CPP_PROJ=/nologo /Zp1 /MT /W3 /GX /O2 /D "WIN32" /D "NDEBUG" /D "_WINDOWS" /D "_MBCS" /D "_USRDLL" /D "CINTERFACE" /YX /Fo"$(INTDIR)\\" /Fd"$(INTDIR)\\" /FD /c 
+CPP_PROJ=/nologo /Zp1 /Zi /MT /W3 /GX /O2 /D "WIN32" /D "NDEBUG" /D "_WINDOWS" /D "_MBCS" /D "_USRDLL" /D "CINTERFACE" /YX /Fo"$(INTDIR)\\" /Fd"$(INTDIR)\\" /FD /c 
 
 !if ("$(_NMAKE_VER)"=="7.00.9466") || ("$(_NMAKE_VER)"=="7.10.3077") || ("$(COMPILER)"=="7")
 DETLIB=..\Detours\lib\detours.lib
@@ -35,6 +35,9 @@ DETLIB=..\Detours\lib60\detours.lib
 
 .cpp{$(INTDIR)}.obj::
    $(CPP) $(CPP_PROJ) $< 
+
+.cpp.cod:
+   $(CPP) $(CPP_PROJ) $< -FAcs -Fa$*.cod
 
 .cxx{$(INTDIR)}.obj::
    $(CPP) $(CPP_PROJ) $< 

@@ -23,6 +23,8 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "MQ2EQIM", "MQ2EQIM\MQ2EQIM.
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "MQ2Ext", "MQ2Ext\MQ2Ext.vcproj", "{CF0DDB45-5F50-4254-B185-5B45EFA4B9B5}"
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "MQ2Bzsrch", "MQ2Bzsrch\MQ2Bzsrch.vcproj", "{D43171FB-8208-4E52-860A-6BAE2A2FA573}"
+EndProject
 Global
 	GlobalSection(SolutionConfiguration) = preSolution
 		ConfigName.0 = Debug
@@ -113,6 +115,12 @@ Global
 		{CF0DDB45-5F50-4254-B185-5B45EFA4B9B5}.NonPerl.ActiveCfg = NonPerl|Win32
 		{CF0DDB45-5F50-4254-B185-5B45EFA4B9B5}.NonPerl.Build.0 = NonPerl|Win32
 		{CF0DDB45-5F50-4254-B185-5B45EFA4B9B5}.Release.ActiveCfg = Release|Win32
+		{D43171FB-8208-4E52-860A-6BAE2A2FA573}.Debug.ActiveCfg = Release|Win32
+		{D43171FB-8208-4E52-860A-6BAE2A2FA573}.Debug.Build.0 = Release|Win32
+		{D43171FB-8208-4E52-860A-6BAE2A2FA573}.NonPerl.ActiveCfg = Release|Win32
+		{D43171FB-8208-4E52-860A-6BAE2A2FA573}.NonPerl.Build.0 = Release|Win32
+		{D43171FB-8208-4E52-860A-6BAE2A2FA573}.Release.ActiveCfg = Release|Win32
+		{D43171FB-8208-4E52-860A-6BAE2A2FA573}.Release.Build.0 = Release|Win32
 	EndGlobalSection
 	GlobalSection(SolutionItems) = postSolution
 		Item:1 = Release\Changes.txt

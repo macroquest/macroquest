@@ -3,6 +3,21 @@ Microsoft Developer Studio Workspace File, Format Version 6.00
 
 ###############################################################################
 
+Project: "MQ2Bzsrch"=.\MQ2Bzsrch\MQ2Bzsrch.dsp - Package Owner=<4>
+
+Package=<5>
+{{{
+}}}
+
+Package=<4>
+{{{
+    Begin Project Dependency
+    Project_Dep_Name MQ2Main
+    End Project Dependency
+}}}
+
+###############################################################################
+
 Project: "MQ2Chat"=.\MQ2Chat\MQ2Chat.dsp - Package Owner=<4>
 
 Package=<5>
@@ -78,7 +93,7 @@ Package=<4>
 
 ###############################################################################
 
-Project: "MQ2IRC"=.\MQ2IRC\MQ2IRC.dsp - Package Owner=<4>
+Project: "MQ2Irc"=.\MQ2IRC\MQ2IRC.dsp - Package Owner=<4>
 
 Package=<5>
 {{{
@@ -86,9 +101,6 @@ Package=<5>
 
 Package=<4>
 {{{
-    Begin Project Dependency
-    Project_Dep_Name MQ2Main
-    End Project Dependency
 }}}
 
 ###############################################################################
