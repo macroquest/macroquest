@@ -317,15 +317,15 @@
 #define CEditBaseWnd__SetSel									0x577330 
              
 // CComboWnd 
-#define CComboWnd__DeleteAll									0 
-#define CComboWnd__Draw											0 
-#define CComboWnd__GetButtonRect								0 
-#define CComboWnd__GetCurChoice									0 
-#define CComboWnd__GetListRect									0	 
-#define CComboWnd__GetTextRect									0 
-#define CComboWnd__HitTest										0 
-#define CComboWnd__InsertChoice									0 
-#define CComboWnd__SetColors									0 
+#define CComboWnd__DeleteAll									0x57C2F0 
+#define CComboWnd__Draw											0x57C4F0 
+#define CComboWnd__GetButtonRect								0x57C320 
+#define CComboWnd__GetCurChoice									0x57C2B0 
+#define CComboWnd__GetListRect									0x57C8E0 
+#define CComboWnd__GetTextRect									0x57C380 
+#define CComboWnd__HitTest										0x4D4C36 
+#define CComboWnd__InsertChoice									0x57C940 
+#define CComboWnd__SetColors									0x57C280 
 #define CComboWnd__SetChoice									0x57CA20
 
 // CListWnd 
