@@ -264,6 +264,10 @@ bool MQ2SpawnType::GetMember(MQ2VARPTR VarPtr, PCHAR Member, PCHAR Index, MQ2TYP
 		Dest.Type=pStringType;
 		Dest.Ptr=&DataTypeTemp[0];
 		return true;
+	case DisplayName:
+		Dest.Ptr=&pSpawn->DisplayedName[0];
+		Dest.Type=pStringType;
+		return true;
 	case E:
 		Dest.Type=pFloatType;
 		Dest.Float=-pSpawn->X;
@@ -380,13 +384,21 @@ bool MQ2SpawnType::GetMember(MQ2VARPTR VarPtr, PCHAR Member, PCHAR Index, MQ2TYP
 		Dest.Type=pFloatType;
 		return true;
 	case MaxRange:
-		Dest.Float=get_melee_range((EQPlayer*)pSpawn,(EQPlayer*)pSpawn); 
-		Dest.Type=pFloatType;
-		return true;
+		if (GetSpawnType(pSpawn)!=ITEM)
+		{
+			Dest.Float=get_melee_range((EQPlayer*)pSpawn,(EQPlayer*)pSpawn); 
+			Dest.Type=pFloatType;
+			return true;
+		}
+		return false;
 	case MaxRangeTo:
-		Dest.Float=get_melee_range(pLocalPlayer,(EQPlayer*)pSpawn); 
-		Dest.Type=pFloatType;
-		return true;
+		if (GetSpawnType(pSpawn)!=ITEM)
+		{
+			Dest.Float=get_melee_range(pLocalPlayer,(EQPlayer*)pSpawn); 
+			Dest.Type=pFloatType;
+			return true;
+		}
+		return false;
 	case Guild:
 		if (pSpawn->GuildID < MAX_GUILDS)
 		{
@@ -642,12 +654,29 @@ bool MQ2SpawnType::GetMember(MQ2VARPTR VarPtr, PCHAR Member, PCHAR Index, MQ2TYP
 			}
 		}
 		return false;
-	/*
-	Trader
-	AFK
-	LFG
-	Linkdead
-	/**/
+	case Trader:
+		Dest.DWord=pSpawn->pActorInfo->Trader;
+		Dest.Type=pBoolType;
+		return true;
+	case AFK:
+		Dest.DWord=pSpawn->AFK;
+		Dest.Type=pBoolType;
+		return true;
+	case LFG:
+		Dest.DWord=pSpawn->LFG;
+		Dest.Type=pBoolType;
+		return true;
+	case Linkdead:
+		Dest.DWord=pSpawn->Linkdead;
+		Dest.Type=pBoolType;
+		return true;
+	case AATitle:
+		if (Dest.Ptr=pEverQuest->GetTitleDesc(pSpawn->Class,pSpawn->AARank,pSpawn->Gender))
+		{
+			Dest.Type=pStringType;
+			return true;
+		}
+		return false;
 	}
 	return false;
 #undef pSpawn

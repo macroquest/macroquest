@@ -166,8 +166,75 @@ public:
 /**/
 	}
 
+	int ChangeBoneStringSprite_Trampoline(int T3D_Dag,char *pszCaption);
+	int ChangeBoneStringSprite_Detour(int T3D_Dag,char *pszCaption)
+	{
+#define SetCaption(CaptionString) \
+		{\
+			if (CaptionString[0])\
+			{\
+				strcpy(NewCaption,CaptionString);\
+				pNamingSpawn=(PSPAWNINFO)this;\
+				ParseMacroParameter(GetCharInfo()->pSpawn,NewCaption);\
+				pNamingSpawn=0;\
+				return ChangeBoneStringSprite_Trampoline(T3D_Dag,NewCaption);\
+			}\
+		}
+
+		if (gGameState == GAMESTATE_INGAME && pszCaption) 
+		{
+			PSPAWNINFO pChar=GetCharInfo()->pSpawn;
+			if (!pChar || GetDistance(GetCharInfo()->pSpawn,(PSPAWNINFO)this)>=100.0f)
+				return ChangeBoneStringSprite_Trampoline(T3D_Dag,pszCaption);
+			CHAR NewCaption[MAX_STRING]={0};
+			switch(GetSpawnType((PSPAWNINFO)this))
+			{
+			case NPC:
+				SetCaption(gszSpawnNPCName);
+				break;
+			case PC:
+				SetCaption(gszSpawnPlayerName);
+				break;
+			case CORPSE:
+				SetCaption(gszSpawnCorpseName);
+				break;
+			case MOUNT:
+				SetCaption(gszSpawnMountName);
+				break;
+			case PET:
+				SetCaption(gszSpawnPetName);
+				break;
+			}
+/*
+			if (this==(EQPlayerHook*)pTarget)
+			{
+				if (gszSpawnTargetName[0])
+				{
+					strcpy(NewCaption,gszSpawnTargetName);
+					pNamingSpawn=(PSPAWNINFO)this;
+					ParseMacroParameter(GetCharInfo()->pSpawn,NewCaption);
+					pNamingSpawn=0;
+					return ChangeBoneStringSprite_Trampoline(T3D_Dag,NewCaption);
+				}
+			}
+			else
+			{
+				if (gszSpawnName[0])
+				{
+					strcpy(NewCaption,gszSpawnName);
+					pNamingSpawn=(PSPAWNINFO)this;
+					ParseMacroParameter(GetCharInfo()->pSpawn,NewCaption);
+					pNamingSpawn=0;
+					return ChangeBoneStringSprite_Trampoline(T3D_Dag,NewCaption);
+				}
+			}
+	/**/
+		}
+		return ChangeBoneStringSprite_Trampoline(T3D_Dag,pszCaption);
+	}
 };
 
+DETOUR_TRAMPOLINE_EMPTY(int EQPlayerHook::ChangeBoneStringSprite_Trampoline(int,char*)); 
 DETOUR_TRAMPOLINE_EMPTY(VOID EQPlayerHook::dEQPlayer_Trampoline(VOID)); 
 DETOUR_TRAMPOLINE_EMPTY(VOID EQPlayerHook::EQPlayer_Trampoline(DWORD,DWORD,DWORD,DWORD,DWORD)); 
 
@@ -183,6 +250,8 @@ VOID InitializeMQ2Spawns()
 //	EasyClassDetour(EQItemList__dEQItemList,EQItemListHook,dEQItemList_Detour,VOID,(VOID),dEQItemList_Trampoline);
 	EzDetour(EQItemList__dEQItemList,EQItemListHook::dEQItemList_Detour,EQItemListHook::dEQItemList_Trampoline);
 
+	EzDetour(EQPlayer__ChangeBoneStringSprite,EQPlayerHook::ChangeBoneStringSprite_Detour,EQPlayerHook::ChangeBoneStringSprite_Trampoline);
+
 	InitializeCriticalSection(&csPendingGrounds);
 	ProcessPending=true;
 	ZeroMemory(&EQP_DistArray,sizeof(EQP_DistArray));
@@ -197,6 +266,7 @@ VOID ShutdownMQ2Spawns()
 	RemoveDetour(EQPlayer__dEQPlayer);
 	RemoveDetour(EQItemList__EQItemList);
 	RemoveDetour(EQItemList__dEQItemList);
+	RemoveDetour(EQPlayer__ChangeBoneStringSprite);
 	ProcessPending=false;
 	EnterCriticalSection(&csPendingGrounds);
 	DeleteCriticalSection(&csPendingGrounds);

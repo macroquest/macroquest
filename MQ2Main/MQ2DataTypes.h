@@ -435,13 +435,12 @@ public:
 			{
 				int Secs=nTicks*6;
 				int Mins=Secs/60;
-				Secs=Secs%60;
 				int Hrs=(Secs/3600);
 				Secs=Secs%60;
 				if (Hrs)
 					sprintf(DataTypeTemp,"%d:%02d:%02d",Hrs,Mins,Secs);
 				else
-					sprintf(DataTypeTemp,"%02d:%02d",Mins,Secs);
+					sprintf(DataTypeTemp,"%d:%02d",Mins,Secs);
 				Dest.Ptr=&DataTypeTemp[0];
 				Dest.Type=pStringType;
 			}
@@ -558,6 +557,8 @@ public:
 		Invited=72,
 		NearestSpawn=73,
 		MaxRangeTo=74,
+		DisplayName=75,
+		AATitle=76,
 	};
 	MQ2SpawnType():MQ2Type("spawn")
 	{
@@ -633,6 +634,8 @@ public:
 		TypeMember(Invited);
 		TypeMember(NearestSpawn);
 		TypeMember(MaxRangeTo);
+		TypeMember(DisplayName);
+		TypeMember(AATitle);
 	}
 
 	~MQ2SpawnType()

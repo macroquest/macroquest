@@ -1100,3 +1100,13 @@ BOOL dataRaid(PCHAR szIndex, MQ2TYPEVAR &Ret)
 	Ret.Type=pRaidType;
 	return true;
 }
+
+BOOL dataNamingSpawn(PCHAR szIndex, MQ2TYPEVAR &Ret)
+{
+	if (Ret.Ptr=pNamingSpawn)
+	{
+		Ret.Type=pSpawnType;
+		return true;
+	}
+	return false;
+}

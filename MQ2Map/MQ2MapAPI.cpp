@@ -29,6 +29,8 @@ PMAPLINE  pLineListTail=0;
 
 map<unsigned long,PMAPSPAWN> SpawnMap;
 map<unsigned long,PMAPSPAWN> GroundItemMap;
+map<PMAPLABEL,PMAPSPAWN> LabelMap;
+
 BOOL Update=false;
 
 #define CASTRADIUS_ANGLESIZE 10
@@ -69,7 +71,7 @@ inline void DeleteLine(PMAPLINE pLine)
 	delete pLine;
 }
 
-inline PMAPLABEL InitLabel()
+inline PMAPLABEL InitLabel(PMAPSPAWN pMapSpawn)
 {
 	PMAPLABEL pLabel=new MAPLABEL;
 	pLabel->pPrev=0;
@@ -79,11 +81,13 @@ inline PMAPLABEL InitLabel()
 	else
 		pLabelListTail=pLabel;
 	pLabelList=pLabel;
+	LabelMap[pLabel]=pMapSpawn;
 	return pLabel;
 }
 
 inline void DeleteLabel(PMAPLABEL pLabel)
 {
+	LabelMap[pLabel]=0;
 	if (pLabel->pNext)
 		pLabel->pNext->pPrev=pLabel->pPrev;
 	else
@@ -588,7 +592,33 @@ void MapDetach()
 
 void MapSelectTarget()
 {
+	if (!pCurrentMapLabel)
+		return;
+	PMAPSPAWN pMapSpawn=LabelMap[pCurrentMapLabel];
+	if (!pMapSpawn)
+		return;
+	if (pMapSpawn->SpawnType==ITEM)
+	{
+		EnviroTarget=*pMapSpawn->pSpawn;
+		EnviroTarget.Type = SPAWN_NPC;
+		EnviroTarget.SpawnID=2999;
+		pTarget = (EQPlayer*)&EnviroTarget; 				
+	}
+	else
+	{
+		DWORD Flags=pWndMgr->GetKeyboardFlags();
+		PCHARINFO pCharInfo=GetCharInfo();
+		if (pCharInfo && Flags && MapSpecialClickString[Flags][0])
+		{
+			PCHAR Cmd=GenerateSpawnName(pMapSpawn->pSpawn,MapSpecialClickString[Flags]);
+			DoCommand(pCharInfo->pSpawn,Cmd);
+			free(Cmd);
+		}
+		else
+			pTarget=(EQPlayer*)pMapSpawn->pSpawn;
+	}
 
+/*
 	PMAPSPAWN pMapSpawn=pActiveSpawns;
 	while(pMapSpawn)
 	{
@@ -598,7 +628,7 @@ void MapSelectTarget()
 			{
 				EnviroTarget=*pMapSpawn->pSpawn;
 				EnviroTarget.Type = SPAWN_NPC;
-				EnviroTarget.SpawnID=3999;
+				EnviroTarget.SpawnID=2999;
 				pTarget = (EQPlayer*)&EnviroTarget; 				
 			}
 			else
@@ -618,6 +648,7 @@ void MapSelectTarget()
 		}
 		pMapSpawn=pMapSpawn->pNext;
 	}
+/**/
 }
 
 DWORD MapHighlight(SEARCHSPAWN *pSearch)
@@ -784,7 +815,7 @@ inline DWORD GetSpawnColor(eSpawnType Type, PSPAWNINFO pSpawn)
 
 PMAPLABEL GenerateLabel(PMAPSPAWN pMapSpawn, DWORD Color)
 {
-	PMAPLABEL pLabel=InitLabel();
+	PMAPLABEL pLabel=InitLabel(pMapSpawn);
     pLabel->Location.X = -pMapSpawn->pSpawn->X;
     pLabel->Location.Y = -pMapSpawn->pSpawn->Y;
     pLabel->Location.Z = pMapSpawn->pSpawn->Z;
@@ -872,6 +903,16 @@ DWORD MapShow(SEARCHSPAWN &Search)
 
 BOOL dataMapSpawn(PCHAR szIndex, MQ2TYPEVAR &Ret)
 {
+	if (!pCurrentMapLabel)
+		return false;
+	if (PMAPSPAWN pMapSpawn=LabelMap[pCurrentMapLabel])
+	{
+		Ret.Ptr=pMapSpawn->pSpawn;
+		Ret.Type=pSpawnType;
+		return true;
+	}
+	return false;
+	/*
 	PMAPSPAWN pMapSpawn=pActiveSpawns;
 	while(pMapSpawn)
 	{
@@ -883,5 +924,6 @@ BOOL dataMapSpawn(PCHAR szIndex, MQ2TYPEVAR &Ret)
 		}
 	}
 	return false;
+	/**/
 }
 

@@ -1,3 +1,12 @@
+04 May 2004 by Lax:
+- Added custom spawn captioning
+- Added/changed MQ2Data members:
+  spawn.LFG
+  spawn.Linkdead
+  spawn.Trader
+  spawn.AFK
+  spawn.AATitle
+
 02 May 2004 by Lax:
 - Added a popup box to the crash detected hook, explaining that the user should visit the
   MQ2::Bug Reports forum.

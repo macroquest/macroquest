@@ -43,7 +43,7 @@ Id_PMP[] = {
 	{2011,  "${Target.ID}"},
 
       // 3000-3999: misc
-	{3000,   "{Zone}"},
+	{3000,   "${Zone}"},
       {3001,   "---"},
 	{3002,   "${Me.Bound}"},
 	{3003,   "${Time.Time24}"},
@@ -55,7 +55,7 @@ Id_PMP[] = {
 	{3009,   "${Time.Month}"},
 	{3010,   "${Time.Day}"},
 	{3011,   "${If[${Spawn[gm].ID},TRUE,FALSE]}"},
-     {3012,   "$freeinv(space)"},
+	{3012,   "${Me.FreeInventory}"},
 
     // 9999: custom (TooltipReference)
      {9999,   "BrokenParser" },

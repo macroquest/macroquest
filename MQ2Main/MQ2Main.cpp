@@ -121,6 +121,13 @@ BOOL ParseINIFile(PCHAR lpINIPath)
 	bAllErrorsDumpStack = 1==GetPrivateProfileInt("MacroQuest","AllErrorsDumpStack",1,Filename);
 	bAllErrorsFatal = 1==GetPrivateProfileInt("MacroQuest","AllErrorsFatal",0,Filename);
 
+
+	GetPrivateProfileString("Captions","NPC",gszSpawnNPCName,gszSpawnNPCName,MAX_STRING,Filename);
+	GetPrivateProfileString("Captions","Player",gszSpawnPlayerName,gszSpawnPlayerName,MAX_STRING,Filename);
+	GetPrivateProfileString("Captions","Corpse",gszSpawnCorpseName,gszSpawnCorpseName,MAX_STRING,Filename);
+	GetPrivateProfileString("Captions","Mount",gszSpawnMountName,gszSpawnMountName,MAX_STRING,Filename);
+	GetPrivateProfileString("Captions","Pet",gszSpawnPetName,gszSpawnPetName,MAX_STRING,Filename);
+
 	gFilterSWho.Lastname= GetPrivateProfileInt("SWho Filter","Lastname",1,Filename);
 	gFilterSWho.Class	= GetPrivateProfileInt("SWho Filter","Class",1,Filename);
 	gFilterSWho.Race	= GetPrivateProfileInt("SWho Filter","Race",1,Filename);

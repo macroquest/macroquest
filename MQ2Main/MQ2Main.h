@@ -584,6 +584,7 @@ EQLIB_API BOOL dataGroupLeaderName(PCHAR szIndex, MQ2TYPEVAR &Ret);
 EQLIB_API BOOL dataSkill(PCHAR szIndex, MQ2TYPEVAR &Ret);
 EQLIB_API BOOL dataAltAbility(PCHAR szIndex, MQ2TYPEVAR &Ret);
 EQLIB_API BOOL dataRaid(PCHAR szIndex, MQ2TYPEVAR &Ret);
+EQLIB_API BOOL dataNamingSpawn(PCHAR szIndex, MQ2TYPEVAR &Ret);
 
 /* COMMANDS */
 

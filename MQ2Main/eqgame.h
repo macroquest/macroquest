@@ -227,6 +227,7 @@
 #define CEverQuest__GetClassThreeLetterCode                0x49248C
 #define CEverQuest__GetDeityDesc                           0x494082
 #define CEverQuest__GetRaceDesc                            0x4928F4
+#define CEverQuest__GetTitleDesc                           0x494199
 #define CEverQuest__InterpretCmd                           0x4A7F54
 #define CEverQuest__LeftClickedOnPlayer                    0x4AA12B
 #define CEverQuest__RightClickedOnPlayer                   0x4A2D46
@@ -266,6 +267,7 @@
 #define EQPlayer__EQPlayer                                 0x487609
 #define EQPlayer__dEQPlayer                                0x486EC6
 #define EQPlayer__DoAttack                                 0x4835DA
+#define EQPlayer__ChangeBoneStringSprite				   0x465799
 
 // CXStr
 // WARNING:  Be sure that none of these offsets are identical!
