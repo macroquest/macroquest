@@ -162,7 +162,7 @@ PMACROBLOCK AddMacroLine(PCHAR szLine)
             } else {
                 MacroError("Bad #define: %s",szLine);
             }
-        } else if (!strnicmp(szLine,"",7)) {
+		} else if (!strnicmp(szLine,"#event ",7)) {
             CHAR szArg1[MAX_STRING] = {0};
             CHAR szArg2[MAX_STRING] = {0};
             PEVENTLIST pEvent = (PEVENTLIST)malloc(sizeof(EVENTLIST));
