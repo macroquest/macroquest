@@ -365,7 +365,9 @@ PCHAR GetEQPath(PCHAR szBuffer)
 {
     GetModuleFileName(NULL, szBuffer, MAX_STRING);
     PCHAR pSearch=0;
-    if (pSearch=strstr(strlwr(szBuffer), "\\testeqgame.exe"))
+    if (pSearch=strstr(strlwr(szBuffer), "\\wineq\\"))
+        *pSearch=0;
+	else if (pSearch=strstr(strlwr(szBuffer), "\\testeqgame.exe"))
         *pSearch=0;
     else if (pSearch=strstr(szBuffer, "\\eqgame.exe"))
             *pSearch=0;
@@ -3279,6 +3281,7 @@ BOOL EvaluateRPN(_CalcOp *pList, int Size, DOUBLE &Result)
 
 BOOL FastCalculate(PCHAR szFormula, DOUBLE &Result)
 {
+	DebugSpew("FastCalculate(%s)",szFormula);
 	if (!szFormula || !szFormula[0])
 		return false;
 	int Length=(int)strlen(szFormula);

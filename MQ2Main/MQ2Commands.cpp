@@ -3506,7 +3506,7 @@ VOID BankList(PSPAWNINFO pChar, PCHAR szLine)
 			GetItemLink(pContainer,&Link[0]);
 			sprintf(szTemp,"Slot %d: %dx %s (%s)",a,pContainer->StackCount ? pContainer->StackCount : 1,Link,pContainer->Item->LoreName);
             WriteChatColor(szTemp,USERCOLOR_DEFAULT);
-            for (int b=0;b<10;b++) {
+            for (int b=0;b<pContainer->Item->Slots;b++) {
                 if (pContainer->Contents[b]) {
 					GetItemLink(pContainer->Contents[b],&Link[0]);
                     sprintf(szTemp,"- Slot %d: %dx %s (%s)",b,pContainer->Contents[b]->StackCount ? pContainer->Contents[b]->StackCount : 1,Link,pContainer->Contents[b]->Item->LoreName);
