@@ -129,11 +129,11 @@ VOID MapInit()
 	}
 }
 
-PMAPSPAWN AddSpawn(PSPAWNINFO pNewSpawn)
+PMAPSPAWN AddSpawn(PSPAWNINFO pNewSpawn,BOOL ExplicitAllow)
 {
 	eSpawnType Type=GetSpawnType(pNewSpawn);
 	// apply map filter
-	if (!CanDisplaySpawn(Type,pNewSpawn))
+	if (!ExplicitAllow && !CanDisplaySpawn(Type,pNewSpawn))
 		return 0;
 	// add spawn to list
 
@@ -398,6 +398,18 @@ void MapUpdate()
 		}
 	}
 
+	if (IsOptionEnabled(MAPFILTER_Group))
+	{
+		for (unsigned long i = 0 ; i < 5 ; i++)
+		{
+			if (ppGroup[i])
+			if (pMapSpawn=SpawnMap[((PSPAWNINFO)ppGroup[i])->SpawnID])
+			{
+				pMapSpawn->pMapLabel->Color.ARGB=MapFilterOptions[MAPFILTER_Group].Color;
+			}
+		}
+	}
+
 	if (pLastTarget)
 	{
 		pLastTarget->pMapLabel->Color.ARGB=MapFilterOptions[MAPFILTER_Target].Color;
@@ -478,11 +490,15 @@ void MapUpdate()
 
 }
 
+
+PMAPLABEL pActualLineList=0;
 void MapAttach()
 {
 	if (pLabelList)
 	{
-		pLabelListTail->pNext=pMap->pLabels;
+		pActualLineList=pMap->pLabels;
+		if (IsOptionEnabled(MAPFILTER_NormalLabels))
+			pLabelListTail->pNext=pMap->pLabels;
 		pMap->pLabels=pLabelList;
 	}
 
@@ -497,7 +513,7 @@ void MapDetach()
 {
 	if (pLabelList)
 	{
-		pMap->pLabels=pLabelListTail->pNext;
+		pMap->pLabels=pActualLineList;
 		pLabelListTail->pNext=0;
 	}
 	if (pLineList)
@@ -531,7 +547,18 @@ void MapSelectTarget()
 				EnviroTarget.Race = pItem->DropID;
 				pTarget = (EQPlayer*)&EnviroTarget; 				}
 			else
-				pTarget=(EQPlayer*)pMapSpawn->pSpawn;
+			{
+				DWORD Flags=pWndMgr->GetKeyboardFlags();
+				PCHARINFO pCharInfo=GetCharInfo();
+				if (pCharInfo && Flags && MapSpecialClickString[Flags][0])
+				{
+					PCHAR Cmd=GenerateSpawnName(pMapSpawn->pSpawn,MapSpecialClickString[Flags]);
+					DoCommand(pCharInfo->pSpawn,Cmd);
+					free(Cmd);
+				}
+				else
+					pTarget=(EQPlayer*)pMapSpawn->pSpawn;
+			}
 			break;
 		}
 		pMapSpawn=pMapSpawn->pNext;
@@ -742,3 +769,46 @@ PMAPLINE GenerateVector(PMAPSPAWN pMapSpawn)
 
 	return pNewLine;	
 }
+
+DWORD MapHide(SEARCHSPAWN &Search)
+{
+	PCHARINFO pCharInfo=GetCharInfo();
+	if (!pCharInfo)
+		return 0;
+	PMAPSPAWN pMapSpawn=pActiveSpawns;
+	unsigned long Count=0;
+	while(pMapSpawn)
+	{
+		if (pMapSpawn->pSpawn->Type!=FAKESPAWNTYPE && SpawnMatchesSearch(&Search,pCharInfo->pSpawn,pMapSpawn->pSpawn))
+		{
+			PMAPSPAWN pNext=pMapSpawn->pNext;
+			RemoveSpawn(pMapSpawn);
+			pMapSpawn=pNext;
+			Count++;
+		}
+		else
+			pMapSpawn=pMapSpawn->pNext;
+	}
+	return Count;
+}
+
+DWORD MapShow(SEARCHSPAWN &Search)
+{
+	PCHARINFO pCharInfo=GetCharInfo();
+	if (!pCharInfo)
+		return 0;
+
+	PSPAWNINFO pSpawn=(PSPAWNINFO)pSpawnList;
+	unsigned long Count=0;
+	while(pSpawn)
+	{
+		if (!SpawnMap[pSpawn->SpawnID] && SpawnMatchesSearch(&Search,pCharInfo->pSpawn,pSpawn))
+		{
+			AddSpawn(pSpawn,true);
+			Count++;
+		}
+		pSpawn=pSpawn->pNext;
+	}
+	return Count;
+}
+

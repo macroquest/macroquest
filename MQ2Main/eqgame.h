@@ -78,7 +78,7 @@
 #define pinstEQItemList                               0x7378DC
 #define pinstSpellSets                                0x7356D4
 #define instEQZoneInfo                                0x6D5404 
-
+#define pinstCXWndManager							  0x7A939C
 
 ////
 //Section 2:  UI Related Offsets
@@ -211,6 +211,7 @@
 
 // CXWndManager
 #define CXWndManager__RemoveWnd                  0x56CA20
+#define CXWndManager__GetKeyboardFlags			 0x56C640
 
 // EQ_Character
 #define EQ_Character__Max_Mana                           0x421A0B

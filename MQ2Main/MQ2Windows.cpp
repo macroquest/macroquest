@@ -286,15 +286,20 @@ void AddXMLFile(const char *filename)
 		pLast=pFile;
 		pFile=pFile->pNext;
 	}
-	CHAR szFilename[MAX_PATH]={0};
-	sprintf(szFilename,"%s\\uifiles\\default\\%s",gszEQPath,filename);
-	if (_access(szFilename,0)==-1)
+	CHAR szBuffer[MAX_PATH]={0};
+	sprintf(szBuffer,"%s\\uifiles\\default\\%s",gszEQPath,filename);
+	if (_access(szBuffer,0)==-1)
 	{
-		DebugSpew("Not adding XML File %s because it does not exist in default folder",filename,szFilename);
+		DebugSpew("Not adding XML File %s because it does not exist in default folder",filename);
 		return;
 	}
 
 	DebugSpew("Adding XML File %s",filename);
+	if (gGameState==GAMESTATE_INGAME)
+	{
+		sprintf(szBuffer,"UI file %s added, you must reload your UI for this to take effect.",filename);
+	}
+
 	pFile = new MQXMLFILE;
 	pFile->pLast=pLast;
 	if (pLast)

@@ -11,26 +11,32 @@ using namespace std;
 #define MAPFILTER_All           0
 #define MAPFILTER_PC            1
 #define MAPFILTER_PCConColor	2
-#define MAPFILTER_Mount			3
-#define MAPFILTER_NPC           4
-#define MAPFILTER_NPCConColor   5
-#define MAPFILTER_Pet           6
-#define MAPFILTER_Corpse        7
-#define MAPFILTER_Trigger       8
-#define MAPFILTER_Ground        9
-#define MAPFILTER_Target        10
-#define MAPFILTER_TargetLine	11
-#define MAPFILTER_TargetRadius	12
-#define MAPFILTER_Vector        13
-#define MAPFILTER_Custom	    14
-#define MAPFILTER_CastRadius    15
-#define MAPFILTER_ContextMenu   16
-#define MAPFILTER_NUMBER        17
+#define MAPFILTER_Group			3
+#define MAPFILTER_Mount			4
+#define MAPFILTER_NPC           5
+#define MAPFILTER_NPCConColor   6
+#define MAPFILTER_Pet           7
+#define MAPFILTER_Corpse        8
+#define MAPFILTER_Trigger       9
+#define MAPFILTER_Ground        10
+#define MAPFILTER_Target        11
+#define MAPFILTER_TargetLine	12
+#define MAPFILTER_TargetRadius	13
+#define MAPFILTER_Vector        14
+#define MAPFILTER_Custom	    15
+#define MAPFILTER_CastRadius    16
+#define MAPFILTER_NormalLabels  17
+#define MAPFILTER_ContextMenu   18
+#define MAPFILTER_NUMBER        19
 #define MAPFILTER_Invalid		(-1)
+// normal labels
+
+
 
 typedef struct _MAPFILTER {
     PCHAR szName;
 //    DWORD Index;
+	DWORD Default;
     DWORD DefaultColor;
     BOOL bIsToggle;
 	DWORD RequiresOption;
@@ -50,27 +56,32 @@ extern CHAR MapNameString[MAX_STRING];
 extern CHAR MapTargetNameString[MAX_STRING];
 extern SEARCHSPAWN MapFilterCustom;
 extern MAPFILTER MapFilterOptions[];
-
+extern CHAR MapSpecialClickString[16][MAX_STRING];
 
 
 /* COMMANDS */
 VOID MapFilters(PSPAWNINFO pChar, PCHAR szLine);
 VOID MapFilterSetting(PSPAWNINFO pChar, DWORD nMapFilter, PCHAR szValue=NULL);
 VOID MapHighlightCmd(PSPAWNINFO pChar, PCHAR szLine);
+VOID MapHideCmd(PSPAWNINFO pChar, PCHAR szLine);
+VOID MapShowCmd(PSPAWNINFO pChar, PCHAR szLine);
 VOID MapNames(PSPAWNINFO pChar, PCHAR szLine);
+VOID MapClickCommand(PSPAWNINFO pChar, PCHAR szLine);
 
 /* API */
 VOID MapInit();
 VOID MapClear();
 VOID MapGenerate();
 DWORD MapHighlight(SEARCHSPAWN *pSearch);
+DWORD MapHide(SEARCHSPAWN &Search);
+DWORD MapShow(SEARCHSPAWN &Search);
 VOID MapUpdate();
 VOID MapAttach();
 VOID MapDetach();
 
 VOID MapSelectTarget();
 
-struct _MAPSPAWN* AddSpawn(PSPAWNINFO pNewSpawn);
+struct _MAPSPAWN* AddSpawn(PSPAWNINFO pNewSpawn,BOOL ExplicitAllow=false);
 bool RemoveSpawn(PSPAWNINFO pSpawn);
 void AddGroundItem(PGROUNDITEM pGroundItem);
 void RemoveGroundItem(PGROUNDITEM pGroundItem);

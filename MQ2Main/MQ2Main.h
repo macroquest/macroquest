@@ -327,6 +327,7 @@ EQLIB_API VOID CheckVariableRecursion(PCHAR szVar);
 EQLIB_API BOOL IsVariableDefined(PCHAR szVar);
 
 /* COMMANDS */
+EQLIB_API VOID MultilineCommand(PSPAWNINFO pChar, PCHAR szLine);
 EQLIB_API PCHAR GetFriendlyNameForGroundItem(PGROUNDITEM pItem, PCHAR szName);
 EQLIB_API VOID ClearSearchSpawn(PSEARCHSPAWN pSearchSpawn);
 EQLIB_API PSPAWNINFO SearchThroughSpawns(PSEARCHSPAWN pSearchSpawn, PSPAWNINFO pChar);
@@ -551,6 +552,11 @@ void DisplayOverlayText(PCHAR szText, DWORD dwColor, DWORD dwTransparency, DWORD
 #define XWM_MOUSEOVER			21
 #define XWM_HISTORY				22
 #define XWM_LCLICKHOLD			23
+
+#define XKF_SHIFT				1
+#define XKF_CTRL				2
+#define XKF_LALT				4
+#define XKF_RALT				8
 
 #define MAX_ITEM4xx			416
 

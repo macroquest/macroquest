@@ -18,28 +18,50 @@ unsigned long bmMapRefresh=0;
 
 DWORD HighlightColor=0xFF700070;
 
+CHAR MapSpecialClickString[16][MAX_STRING]=
+{
+	"",// unused, will always target
+	"",//SHIFT
+	"/maphide id %i",//CTRL
+	"",//CTRL|SHIFT
+	"/maphighlight id %i",//LALT
+	"",//LALT|SHIFT
+	"",//LALT|CTRL
+	"",//LALT|SHIFT|CTRL
+	"",//RALT
+	"",//RALT|SHIFT
+	"",//RALT|CTRL
+	"",//RALT|SHIFT|CTRL
+	"",//RALT|LALT
+	"",//RALT|LALT|SHIFT
+	"",//RALT|LALT|CTRL
+	"" //RALT|LALT|SHIFT|CTRL
+};
+
 CHAR MapNameString[MAX_STRING]={"%N"};
 CHAR MapTargetNameString[MAX_STRING]={"%N"};
 SEARCHSPAWN MapFilterCustom = {0};
 MAPFILTER MapFilterOptions[] = {
-    {"All",          -1,         TRUE,MAPFILTER_Invalid,TRUE,   "Enables/disables map functions"},
-    {"PC",           0xFF00FF,   TRUE,MAPFILTER_All,TRUE,   "Displays PCs"},
-    {"PCConColor",   -1,         TRUE,MAPFILTER_PC,FALSE,   "Displays PCs in consider colors"},
-    {"Mount",        0x707070,   TRUE,MAPFILTER_All,TRUE,   "Displays mounts"},
-    {"NPC",          0x404040,   TRUE,MAPFILTER_All,TRUE,   "Displays NPCs"},
-    {"NPCConColor",  -1,         TRUE,MAPFILTER_NPC,FALSE,   "Displays NPCs in consider colors"},
-    {"Pet",          0x707070,   TRUE,MAPFILTER_All,TRUE,   "Displays pets"},
-    {"Corpse",       0x00C000,   TRUE,MAPFILTER_All,TRUE,   "Displays corpses"},
-    {"Trigger",      0xC08000,   TRUE,MAPFILTER_All,TRUE,   "Displays hidden triggers/traps"},
-    {"Ground",       0xC0C0C0,   TRUE,MAPFILTER_All,TRUE,   "Displays ground items"},
-    {"Target",       0xC00000,   TRUE,MAPFILTER_All,FALSE,   "Displays your target"},
-    {"TargetLine",   0x808080,   TRUE,MAPFILTER_Target,FALSE,  "Displays a line to your target"},
-    {"TargetRadius", 0x808080,   FALSE,MAPFILTER_Target,FALSE,  "Sets radius of a circle around your target to # (omit or set to 0 to disable)"},
-    {"Vector",       -1,         TRUE,MAPFILTER_All,TRUE,   "Displays heading vectors"},
-    {"Custom",       -1,         FALSE,MAPFILTER_All,TRUE,  "Sets custom filter (omit to disable)"},
-    {"CastRadius",   0x808080,   FALSE,MAPFILTER_All,FALSE,  "Sets radius of casting circle to # (omit or set to 0 to disable)"},
-    {"Menu",         -1,         TRUE,MAPFILTER_Invalid,FALSE,   "Allows display of right-click context menu"},
-    {NULL,           -1,         FALSE,MAPFILTER_Invalid,FALSE,  NULL}
+    {"All",          TRUE,-1,         TRUE,MAPFILTER_Invalid,TRUE,   "Enables/disables map functions"},
+    {"PC",           FALSE,0xFF00FF,   TRUE,MAPFILTER_All,TRUE,   "Displays PCs"},
+    {"PCConColor",   FALSE,-1,         TRUE,MAPFILTER_PC,FALSE,   "Displays PCs in consider colors"},
+	{"Group",		 FALSE,0x0080C0,         TRUE,MAPFILTER_PC,FALSE,   "Displays group members in a specific color"},
+    {"Mount",        FALSE,0x707070,   TRUE,MAPFILTER_All,TRUE,   "Displays mounts"},
+    {"NPC",          FALSE,0x404040,   TRUE,MAPFILTER_All,TRUE,   "Displays NPCs"},
+    {"NPCConColor",  FALSE,-1,         TRUE,MAPFILTER_NPC,FALSE,   "Displays NPCs in consider colors"},
+    {"Pet",          FALSE,0x707070,   TRUE,MAPFILTER_All,TRUE,   "Displays pets"},
+    {"Corpse",       FALSE,0x00C000,   TRUE,MAPFILTER_All,TRUE,   "Displays corpses"},
+    {"Trigger",      FALSE,0xC08000,   TRUE,MAPFILTER_All,TRUE,   "Displays hidden triggers/traps"},
+    {"Ground",       FALSE,0xC0C0C0,   TRUE,MAPFILTER_All,TRUE,   "Displays ground items"},
+    {"Target",       FALSE,0xC00000,   TRUE,MAPFILTER_All,FALSE,   "Displays your target"},
+    {"TargetLine",   FALSE,0x808080,   TRUE,MAPFILTER_Target,FALSE,  "Displays a line to your target"},
+    {"TargetRadius", FALSE,0x808080,   FALSE,MAPFILTER_Target,FALSE,  "Sets radius of a circle around your target to # (omit or set to 0 to disable)"},
+    {"Vector",       FALSE,-1,         TRUE,MAPFILTER_All,TRUE,   "Displays heading vectors"},
+    {"Custom",       FALSE,-1,         FALSE,MAPFILTER_All,TRUE,  "Sets custom filter (omit to disable)"},
+    {"CastRadius",   FALSE,0x808080,   FALSE,MAPFILTER_All,FALSE,  "Sets radius of casting circle to # (omit or set to 0 to disable)"},
+    {"NormalLabels", 0,-1,         TRUE,MAPFILTER_Invalid,FALSE,   "Toggles non-MQ2 label display"},
+    {"Menu",         FALSE,-1,         TRUE,MAPFILTER_Invalid,FALSE,   "Allows display of right-click context menu"},
+    {NULL,           FALSE,-1,         FALSE,MAPFILTER_Invalid,FALSE,  NULL}
 };
 
 
@@ -196,20 +218,29 @@ PLUGIN_API VOID InitializePlugin(VOID)
 	CHAR szBuffer[MAX_STRING]={0};
     for (i=0;MapFilterOptions[i].szName;i++) {
         sprintf(szBuffer,"%s-Color",MapFilterOptions[i].szName);
-        MapFilterOptions[i].Enabled = GetPrivateProfileInt("Map Filters",MapFilterOptions[i].szName,0,INIFileName);
+        MapFilterOptions[i].Enabled = GetPrivateProfileInt("Map Filters",MapFilterOptions[i].szName,MapFilterOptions[i].Default,INIFileName);
        MapFilterOptions[i].Color = GetPrivateProfileInt("Map Filters",szBuffer,MapFilterOptions[i].DefaultColor,INIFileName) | 0xFF000000;
     }
 	MapInit();
 	GetPrivateProfileString("Naming Schemes","Normal","%N",MapNameString,MAX_STRING,INIFileName);
 	GetPrivateProfileString("Naming Schemes","Target","%N",MapTargetNameString,MAX_STRING,INIFileName);
 
+	for (i=1;i<16;i++)
+	{
+		sprintf(szBuffer,"KeyCombo%d",i);
+		GetPrivateProfileString("Right Click",szBuffer,MapSpecialClickString[i],MapSpecialClickString[i],MAX_STRING,INIFileName);
+	}
+
 	// Do not use Custom, since the string isn't stored
     MapFilterOptions[MAPFILTER_Custom].Enabled = 0;
 
 
 	AddCommand("/mapfilter",MapFilters,0,1,1);
+	AddCommand("/maphide",MapHideCmd,0,1,1);
+	AddCommand("/mapshow",MapShowCmd,0,1,1);
 	AddCommand("/highlight",MapHighlightCmd,0,1,1);
 	AddCommand("/mapnames",MapNames,0,1,1);
+	AddCommand("/mapclick",MapClickCommand,0,1,0);
 
 	EasyClassDetour(CMapViewWnd__CMapViewWnd,CMyMapViewWnd,Constructor_Detour,DWORD,(CXWnd*),Constructor_Trampoline);
 	CMyMapViewWnd::StealVFTable();
@@ -227,9 +258,12 @@ PLUGIN_API VOID ShutdownPlugin(VOID)
 	CMyMapViewWnd::RestoreVFTable();
 
 	RemoveMQ2Benchmark(bmMapRefresh);
+	RemoveCommand("/maphide");
+	RemoveCommand("/mapshow");
 	RemoveCommand("/mapfilter");
 	RemoveCommand("/highlight");
 	RemoveCommand("/mapnames");
+	RemoveCommand("/mapclick");
 }
 
 // This is called each time a spawn is added to a zone (inserted into EQ's list of spawns),
@@ -249,6 +283,14 @@ PLUGIN_API VOID OnRemoveSpawn(PSPAWNINFO pSpawn)
 	DebugSpewAlways("MQ2Map::OnRemoveSpawn(%s)",pSpawn->Name);
 	if (Update)
 		RemoveSpawn(pSpawn);
+}
+
+PLUGIN_API VOID SetGameState(DWORD GameState)
+{
+	if (GameState==3)
+	{
+		MapClear();
+	}
 }
 
 // This is called each time a ground item is added to a zone

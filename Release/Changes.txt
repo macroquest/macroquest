@@ -1,6 +1,27 @@
 ** eqgame.ini is no longer used/needed by MQ2!  All offsets have been integrated 
 ** into eqgame.h.  The client DATE/TIME are in eqgame.h also.
 
+13 Mar 2004 by Lax
+- Added /multiline <delimiter> <command[delimiter[command[delimiter[...]]]]>
+  Executes all commands.  Example: /multiline ; /stand;/rude;/sit
+- Wave 3 of MQ2Map updates:
+  * Added /maphide command to hide spawns on the map given a search string.  Hidden spawns
+    only take effect until the mapped spawns are re-generated (such as changing some map
+    filters)
+    "/maphide reset" will re-generate the spawn list.
+  * Added /mapshow command, to explicitly show spawns on the map given a search string.
+    These will only take effect until the mapped spawns are re-generated (same as maphide).
+    "/mapshow reset" will re-generate the spawn list.
+  * Added /mapclick command and special right click commands (hold a combination of
+    shift, control, left alt, right alt to execute a special command when right clicking
+    on a spawn).  Defaults include left-alt right-click to highlight and control r-click to
+    hide.
+  * Added Group filter (requires PC) and NormalLabels filter (shows/hides non-MQ2 labels)  
+- Added notice when a new XML file is added to the list while in game.  The notice
+  says which file was added and that the user must reload the ui for it to take effect.
+- Fixed crash when adding a custom XML file that doesnt exist in the default UI directory
+- Fixed $macro crash
+
 12 Mar 2004 by Lax
 - MQ2Map overhaul completed
 - Fixed /keypress crash bug when you're an idiot and type an invalid command name :)

@@ -537,6 +537,7 @@ CTextOverlay **ppTextOverlay=(CTextOverlay**)pinstCTextOverlay;
 
 
 CSidlManager **ppSidlMgr=(CSidlManager **)pinstCSidlManager;
+CXWndManager **ppWndMgr=(CXWndManager**)pinstCXWndManager;
 
 PMQPLUGIN pPlugins=0;
 PMQXMLFILE pXMLFiles=0;

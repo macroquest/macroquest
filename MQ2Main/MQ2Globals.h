@@ -268,6 +268,9 @@ EQLIB_VAR PGUILDS pGuildList;
 EQLIB_VAR CSidlManager **ppSidlMgr;
 #define pSidlMgr (*ppSidlMgr)
 
+EQLIB_VAR CXWndManager **ppWndMgr;
+#define pWndMgr (*ppWndMgr)
+
 EQLIB_VAR DWORD *pScreenX;
 #define ScreenX (*pScreenX)
 EQLIB_VAR DWORD *pScreenY;

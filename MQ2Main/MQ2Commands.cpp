@@ -3376,9 +3376,7 @@ PSPAWNINFO SearchThroughSpawns(PSEARCHSPAWN pSearchSpawn, PSPAWNINFO pChar)
         }
 
     if (pSearchSpawn->FromSpawnID>0) {
-        for (pSpawn=pSpawnInfo;pSpawn && !pFromSpawn;pSpawn=pSpawn->pNext) {
-            if (pSpawn->SpawnID == pSearchSpawn->FromSpawnID) pFromSpawn=pSpawn;
-        }
+		pFromSpawn=(PSPAWNINFO)GetSpawnByID(pSearchSpawn->FromSpawnID);
         if (!pFromSpawn) return NULL;
     }
 
@@ -4276,7 +4274,6 @@ VOID WindowState(PSPAWNINFO pChar, PCHAR szLine)
 		{ "pet",		(PCSIDLWND*)ppPetInfoWnd },
 		{ "map",		(PCSIDLWND*)ppMapViewWnd },
 		{ "notes",		(PCSIDLWND*)ppNoteWnd },
-//		{ "MQChat",		(PCSIDLWND*)&MQChatWnd },
 		{ NULL, NULL }
 	};
 
@@ -4443,7 +4440,7 @@ VOID PluginCommand(PSPAWNINFO pChar, PCHAR szLine)
 
 VOID EQDestroyHeldItemOrMoney(PSPAWNINFO pChar, PCHAR szLine)
 {
-	(*ppPCData)->DestroyHeldItemOrMoney();
+	(pPCData)->DestroyHeldItemOrMoney();
 	return;
 }
 
@@ -4509,6 +4506,29 @@ VOID DoMappable(PSPAWNINFO pChar, PCHAR szLine)
 VOID PopupText(PSPAWNINFO pChar, PCHAR szLine)
 {
    DisplayOverlayText(szLine, CONCOLOR_LIGHTBLUE, 100, 500,500,3000);
+}
+
+
+VOID MultilineCommand(PSPAWNINFO pChar, PCHAR szLine)
+{
+	if (szLine[0]==0)
+	{
+		WriteChatColor("Usage: /multiline <delimiter> <command>[delimiter<command>[delimiter<command>[. . .]]]");
+		return;
+	}
+    CHAR szArg[MAX_STRING] = {0}; // delimiter(s)
+    GetArg(szArg,szLine,1);
+    PCHAR szRest = GetNextArg(szLine);
+	if (!szRest[0])
+		return;
+	CHAR Copy[MAX_STRING] = {0};
+	strcpy(Copy,szRest);// dont destroy original...
+	szRest=strtok(Copy,szArg);
+	while(szRest)
+	{
+		DoCommand(pChar,szRest);
+		szRest=strtok(NULL,szArg);
+	}
 }
 
 

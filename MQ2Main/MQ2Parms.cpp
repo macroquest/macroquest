@@ -5653,7 +5653,7 @@ DWORD parmMacro(PCHAR szVar, PCHAR szOutput, PSPAWNINFO pChar)
    } else {
         strcpy(szOutput,gszMacroName);
    }
-   return 8;
+   return 4;
 } 
 
 DWORD parmEvent(PCHAR szVar, PCHAR szOutput, PSPAWNINFO pChar)
