@@ -41,32 +41,7 @@ HRESULT __stdcall DInputDataDetour(IDirectInputDevice8A* This, DWORD cbObjectDat
 
    if (!gbUnload)
    {
-       if   (EQADDR_DIKEYBOARD && (This   == *EQADDR_DIKEYBOARD))
-       {
-         if (*pdwInOut >   0)
-         {
-            if (gKeyStack)
-            {
-               //DebugSpew("DInputDataDetour::KeyStack");
-
-                  pNext =   gKeyStack->pNext;
-                  //DebugSpew("Faking   '%s' as   %s...",gDiKeyID[gKeyStack->KeyId].szName,(gKeyStack->Pressed)?"down":"up");
-                  rgdod[didAdd].dwOfs   = gDiKeyID[gKeyStack->KeyId].Id;
-                  rgdod[didAdd].dwData = (gKeyStack->Pressed)?0x80:0;
-                  rgdod[didAdd].dwSequence = dwSequence;
-                  rgdod[didAdd].dwTimeStamp =   dwTimeStamp;
-                  rgdod[didAdd].uAppData = 0;
-                  (*pdwInOut)--;
-                  free(gKeyStack);
-                  gKeyStack =   pNext;
-                  didAdd++;
-
-               (*pdwInOut)   = didAdd;
-               gbInDInput = FALSE;
-               return (HRESULT)DI_OK;
-         }
-                }
-       }else if (EQADDR_DIMOUSE && (This == *EQADDR_DIMOUSE))
+	   if (EQADDR_DIMOUSE && (This == *EQADDR_DIMOUSE))
        {
          // If we are waiting for a click-event to be confirmed by EQ, don't
          // pull any data, just return DI_OK and set the pdwInOut value to 0

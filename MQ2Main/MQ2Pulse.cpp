@@ -287,7 +287,7 @@ void Heartbeat()
 		free(gDelayedCommands);
 		gDelayedCommands=pNext;
 	}
-	while ((!gKeyStack)   && (bRunNextCommand)) {
+	while (bRunNextCommand) {
 		if (!DoNextCommand()) break;
 		if (!gTurbo) break;//bRunNextCommand = FALSE;
 		if (++CurTurbo>gMaxTurbo) break;//bRunNextCommand =   FALSE;
