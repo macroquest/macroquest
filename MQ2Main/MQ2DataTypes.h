@@ -18,6 +18,7 @@
 // Friend TLO
 // Ignore TLO
 // count buffs
+// item worn slots
 
 EQLIB_VAR class MQ2FloatType *pFloatType;
 EQLIB_VAR class MQ2StringType *pStringType;

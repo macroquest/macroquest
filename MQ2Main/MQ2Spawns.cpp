@@ -165,12 +165,11 @@ public:
 		return 1;
 	}
 
-	int SetNameSpriteState(bool Show)
-	{
-		PSPAWNINFO pSpawn;
-		__asm{mov [pSpawn], ecx};
-//		DebugSpew("SetNameSpriteState(%s,%d)",pSpawn->Name,pSpawn->Race);
-//		return 0;
+
+};
+
+BOOL SetNameSpriteState(PSPAWNINFO pSpawn, bool Show)
+{
 #define SetCaption(CaptionString) \
 		{\
 			if (CaptionString[0])\
@@ -207,15 +206,8 @@ public:
 			SetCaption(gszSpawnPetName);
 			break;
 		}
-		return SetNameSpriteState_Trampoline(Show);
+		return ((EQPlayerHook*)pSpawn)->SetNameSpriteState_Trampoline(Show);
 #undef SetCaption
-	}
-
-};
-
-VOID SetNameSpriteState(PSPAWNINFO pSpawn, bool Show)
-{
-	((EQPlayerHook*)pSpawn)->SetNameSpriteState(true);
 }
 
 VOID UpdateSpawnCaptions()
@@ -224,10 +216,10 @@ VOID UpdateSpawnCaptions()
 	DWORD Count=0;
 	for (N = 0 ; N < 120 ; N++)
 	{
-		if (EQPlayerHook* pSpawn=(EQPlayerHook*)EQP_DistArray[N].VarPtr.Ptr)
+		if (PSPAWNINFO pSpawn=(PSPAWNINFO)EQP_DistArray[N].VarPtr.Ptr)
 		if (EQP_DistArray[N].Value.Float<=80.0f)
 		{
-			if (pSpawn->SetNameSpriteState(true))
+			if (SetNameSpriteState(pSpawn,true))
 			{
 				((EQPlayer*)pSpawn)->SetNameSpriteTint();
 				Count++;
