@@ -60,15 +60,15 @@
 #define __CurrentMapLabel                                  0x7A3798 
 #define __BindList                                         0x6102F0 
 #define __RangeAttackReady                                 0x6DB60C 
-#define __AltTimerReady                                    0x6DB60E
+#define __AltTimerReady                                     0x6DB60E 
 #define __Socials                                          0x714418 
 #define __HotkeyPage                                       0x73ACB8 
 #define __CurrentSocial                                    0x60CB58 
-#define __GroupLeader									   0x73B5A4
-#define __SkillDict                                        0x627D00
-#define __DrawHandler                                      0x7AF454
-#define __FriendsList                                      0x711118
-#define __IgnoreList                                       0x712A18
+#define __GroupLeader                              0x73B5A4 
+#define __SkillDict                                 0x627D00 
+#define __DrawHandler                              0x7AF454 
+#define __FriendsList                              0x711118 
+#define __IgnoreList                              0x712A18 
 
 //// 
 //Section 1: Vital Offsets 
@@ -98,8 +98,7 @@
 #define instEQZoneInfo                                     0x6DA9F4 
 #define pinstCXWndManager                                  0x7AEB7C 
 #define instKeypressHandler                                0x789D00 
-#define pinstStringTable                                   0x73CEB0
-//#define pinstAltAdvManager								   0x0
+#define pinstStringTable                           0x73CEB0  
 
 //// 
 //Section 2:  UI Related Offsets 
@@ -206,8 +205,8 @@
 #define __SendMessage                                      0x4BA760 
 #define __NewUIINI                                         0x52545E 
 #define __ExecuteCmd                                       0x44D2E6 
-#define __GetGaugeValueFromEQ                              0x523CC3
-#define __get_melee_range                                  0x451DF6
+#define __GetGaugeValueFromEQ                        0x523CC3  
+#define __get_melee_range                           0x451DF6  
 
 // EQ_LoadingS 
 #define EQ_LoadingS__WriteTextHD                           0x432217 
@@ -229,9 +228,9 @@
 #define CEverQuest__LeftClickedOnPlayer                    0x4AA12B 
 #define CEverQuest__RightClickedOnPlayer                   0x4A2D46 
 #define CEverQuest__SetGameState                           0x498953 
-#define CEverQuest__DropHeldItemOnGround                   0x49AF6F
+#define CEverQuest__DropHeldItemOnGround               0x49AF6F 
 
-#define StringTable__getString                             0x4BD8E1
+#define StringTable__getString                        0x4BD8E1 
 
 // CXWndManager 
 #define CXWndManager__RemoveWnd                            0x572950 
@@ -247,13 +246,17 @@
 #define KeypressHandler__ClearCommandStateArray            0x4B0143 
 
 // EQ_Character 
-#define EQ_Character__Max_Endurance                        0x41D235
+#define EQ_Character__Max_Endurance                     0x41D235 
 #define EQ_Character__Max_Mana                             0x420BBC 
 #define EQ_Character__Max_HP                               0x420A07 
 #define EQ_Character__Cur_HP                               0x422588 
 #define EQ_Character__GetFocusCastingTimeModifier          0x42854C 
 #define EQ_Character__GetAACastingTimeModifier             0x4288E5 
 #define EQ_Character__CastSpell                            0x42C42C 
+#define EQ_Character__GetAbility                                     0x42046F 
+
+// AltAdvManager 
+#define AltAdvManager__IsAbilityReady                                0x41D090 
 
 // EQPlayer 
 #define EQPlayer__EQPlayer                                 0x487609 
@@ -293,7 +296,7 @@
 #define CLabel__Draw                                       0x506082 
 
 // CGauge 
-#define CGauge__Draw                                       0x4EE809
+#define CGauge__Draw                              0x4EE809 
 
 // CDisplay 
 #define CDisplay__ReloadUI                                 0x4171E6 
@@ -304,7 +307,7 @@
 
 // EQ_Item 
 #define EQ_Item__GetItemLinkHash                           0x431D0E 
-#define EQ_Item__CanDrop                                   0x431B75 
+#define EQ_Item__CanDrop                           0x431B75 
 
 // CBankWnd 
 #define CBankWnd__GetNumBankSlots                          0x4D153E 
@@ -337,8 +340,8 @@
 #define EQ_PC__DestroyHeldItemOrMoney                      0x434D54 
 
 // CContainerWnd 
-#define CContainerWnd__HandleCombine                       0x4E6E3A
-#define CContainerWnd__vftable                             0x5E35B8
+#define CContainerWnd__HandleCombine                  0x4E6E3A 
+#define CContainerWnd__vftable                        0x5E35B8 
 
 // CSidlScreenWnd 
 #define CSidlScreenWnd__CSidlScreenWnd1                    0x5567E0 
