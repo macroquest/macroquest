@@ -108,7 +108,7 @@ DOUBLE Calculate(PCHAR szFormula) {
     }
     j++;
 
-    for (i=0;i<j;i++) DebugSpewNoFile("%d. %s",i,Arg[i]);
+    //for (i=0;i<j;i++) DebugSpewNoFile("%d. %s",i,Arg[i]);
 
 
     for (i=0;i<j;i++) {
@@ -855,16 +855,16 @@ VOID FailIf(PSPAWNINFO pChar, PCHAR szCommand, PMACROBLOCK pStartLine, BOOL All)
 	        DebugSpewNoFile("FailIf - Macro was ended before we could handle the false if command");
 			return;
 		}
-        DebugSpewNoFile("FailIf - Skipping to end of {}");
+        //DebugSpewNoFile("FailIf - Skipping to end of {}");
         Scope++;
-        DebugSpewNoFile("FailIf - Starting macroblock: %s",gMacroBlock->Line);
+        //DebugSpewNoFile("FailIf - Starting macroblock: %s",gMacroBlock->Line);
         gMacroBlock = gMacroBlock->pNext;
         while ((Scope>0)) {
             if (strstr(gMacroBlock->Line,"}")) Scope--;
             if (All) if (strstr(gMacroBlock->Line,"{")) Scope++;
             if (Scope>0) {
                 if (!All) if (strstr(gMacroBlock->Line,"{")) Scope++;
-                DebugSpewNoFile("FailIf - Skipping(%d): %s",Scope,gMacroBlock->Line);
+                //DebugSpewNoFile("FailIf - Skipping(%d): %s",Scope,gMacroBlock->Line);
                 if (!strnicmp(gMacroBlock->Line,"sub ",4)) {
                     GracefullyEndBadMacro(pChar,pStartLine,"{} pairing ran into anther subroutine");
                     return;
@@ -876,12 +876,12 @@ VOID FailIf(PSPAWNINFO pChar, PCHAR szCommand, PMACROBLOCK pStartLine, BOOL All)
                 gMacroBlock = gMacroBlock->pNext;
             }
         }
-        DebugSpewNoFile("FailIf - End at: %s",gMacroBlock->Line);
+        //DebugSpewNoFile("FailIf - End at: %s",gMacroBlock->Line);
         if ((!All) && (!strnicmp(gMacroBlock->Line,"} else ",7))) {
-            DebugSpewNoFile("FailIf - Else seen, running '%s'",gMacroBlock->Line+7);
+            //DebugSpewNoFile("FailIf - Else seen, running '%s'",gMacroBlock->Line+7);
             DoCommand(pChar,gMacroBlock->Line+7);
         } else {
-            DebugSpewNoFile("FailIf - } seen");
+            //DebugSpewNoFile("FailIf - } seen");
             bRunNextCommand = TRUE;
         }
     } else {
