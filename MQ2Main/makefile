@@ -60,8 +60,8 @@ CLEAN :
 
 CPP_PROJ=$(CPP_PROJ) /D "EQLIB_EXPORTS"
 LINK32=link.exe
-LINK32_FLAGS=kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib ..\Detours\lib60\detours.lib /nologo /dll /incremental:no /pdb:"$(OUTDIR)\MQ2Main.pdb" /debug /machine:I386 /out:"$(OUTDIR)\MQ2Main.dll" /implib:"$(OUTDIR)\MQ2Main.lib" /OPT:NOICF /OPT:NOREF 
-LINK32_OBJS= \
+LINK32_FLAGS=kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib /nologo /dll /incremental:no /pdb:"$(OUTDIR)\MQ2Main.pdb" /debug /machine:I386 /out:"$(OUTDIR)\MQ2Main.dll" /implib:"$(OUTDIR)\MQ2Main.lib" /OPT:NOICF /OPT:NOREF 
+LINK32_OBJS= $(DETLIB) \
 	"$(INTDIR)\EQClasses.obj" \
 	"$(INTDIR)\MQ2Auth.obj" \
 	"$(INTDIR)\MQ2Benchmarks.obj" \

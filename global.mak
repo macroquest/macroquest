@@ -20,7 +20,7 @@ CPP_PROJ=/nologo /Zp1 /Zi /MT /W3 /GX /O2 /D "WIN32" /D "NDEBUG" /D "_WINDOWS" /
 
 !if ("$(_NMAKE_VER)"=="7.00.9466") || ("$(_NMAKE_VER)"=="7.10.3077") || ("$(COMPILER)"=="7")
 DETLIB=..\Detours\lib\detours.lib
-!elseif "$(_NMAKE_VER)" == "6.00.8168.0" || ("$(COMPILER)"=="6")
+!elseif ("$(_NMAKE_VER)"=="6.00.8168.0") || ("$(_NMAKE_VER)"=="6.00.9782.0") || ("$(COMPILER)"=="6")
 DETLIB=..\Detours\lib60\detours.lib
 !else
 !message $(_NMAKE_VER)
