@@ -107,7 +107,8 @@ BOOL UnloadMQ2Plugin(const PCHAR pszFilename)
 
 			if (pPlugin->pNext)
 				pPlugin->pNext->pLast=pPlugin->pLast;
-
+			if (pPlugin->CleanUI)
+				pPlugin->CleanUI();
 			if (pPlugin->Shutdown)
 				pPlugin->Shutdown();
 			FreeLibrary(pPlugin->hModule);
