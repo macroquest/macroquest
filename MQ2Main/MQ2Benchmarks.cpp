@@ -97,7 +97,7 @@ VOID SpewMQ2BenchmarksToChat(PSPAWNINFO pChar, PCHAR szLine)
 	{
 		WriteChatColor("MQ2 Benchmarks");
 		WriteChatColor("--------------");
-		for (int i = 0 ; i < pBenchmarks->Size ; i++)
+		for (unsigned long i = 0 ; i < pBenchmarks->Size ; i++)
 		{
 			if (Benchmarks[i])
 			{
@@ -117,7 +117,7 @@ VOID SpewMQ2Benchmarks()
 {
 	DebugSpewAlways("MQ2 Benchmarks");
 	DebugSpewAlways("--------------");
-	for (int i = 0 ; i < pBenchmarks->Size ; i++)
+	for (unsigned long i = 0 ; i < pBenchmarks->Size ; i++)
 	{
 		if (Benchmarks[i])
 		{
