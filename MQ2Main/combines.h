@@ -19,7 +19,7 @@
 	NULL,					// 0
 	"Regular",				// 1 - Rallic pack, quested? lore?
 	NULL,					// 2
-	NULL,					// 3
+	"Regular",				// 3 - Kavruul`s Mystic Pouch (Giant, 10 slot, 100% weight red.) 
 	NULL,					// 4
 	"Regular",				// 5 - Backpacks
 	"Regular",				// 6 - Small box
