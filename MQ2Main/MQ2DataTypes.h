@@ -13,11 +13,8 @@
 ******************************************************************************/
 
 // TODO
-// benchmark type
-// plugin type
-// add item window to item type
 // add actual macro parameters to macro type (subs and main)
-// add concolor to spawn
+// (non-mq2data) command to clear macro return value
 
 EQLIB_VAR class MQ2FloatType *pFloatType;
 EQLIB_VAR class MQ2StringType *pStringType;
@@ -440,6 +437,7 @@ public:
 		LFG=62,
 		Trader=63,
 		AFK=64,
+		xConColor=65,
 	};
 	MQ2SpawnType():MQ2Type("spawn")
 	{
@@ -505,6 +503,7 @@ public:
 		TypeMember(LFG);
 		TypeMember(Trader);
 		TypeMember(AFK);
+		AddMember(xConColor,"ConColor");
 	}
 
 	~MQ2SpawnType()
@@ -602,6 +601,15 @@ public:
 		PctAAExp=74,
 		Moving=75,
 		AbilityReady=76,
+		PetBuff=77,
+		Platinum=78,
+		Gold=79,
+		Silver=80,
+		Copper=81,
+		PlatinumBank=82,
+		GoldBank=83,
+		SilverBank=84,
+		CopperBank=85,
 	};
 	MQ2CharacterType():MQ2Type("character")
 	{
@@ -680,6 +688,15 @@ public:
 		TypeMember(PctAAExp);
 		TypeMember(Moving);
 		TypeMember(AbilityReady);
+		TypeMember(PetBuff);
+		TypeMember(Platinum);
+		TypeMember(Gold);
+		TypeMember(Silver);
+		TypeMember(Copper);
+		TypeMember(PlatinumBank);
+		TypeMember(GoldBank);
+		TypeMember(SilverBank);
+		TypeMember(CopperBank);
 	}
 
 	~MQ2CharacterType()
@@ -1247,12 +1264,20 @@ public:
 		Name=1,
 		RunTime=2,
 		Return=4,
+		Params=5,
+		Param=6,
+		SubParams=7,
+		SubParam=8,
 	};
 	MQ2MacroType():MQ2Type("macro")
 	{
 		TypeMember(Name);
 		TypeMember(RunTime);
 		TypeMember(Return);
+		TypeMember(Params);
+		TypeMember(Param);
+		TypeMember(SubParams);
+		TypeMember(SubParam);
 	}
 
 	~MQ2MacroType()
@@ -1570,7 +1595,8 @@ public:
 		Time12=8,
 		Time24=9,
 		Date=10,
-		Night=11
+		Night=11,
+		SecondsSinceMidnight=12,
 	};
 	MQ2TimeType():MQ2Type("time")
 	{
@@ -1585,6 +1611,7 @@ public:
 		TypeMember(Time24);
 		TypeMember(Date);
 		TypeMember(Night);
+		TypeMember(SecondsSinceMidnight);
 	}
 
 	~MQ2TimeType()
@@ -1672,7 +1699,7 @@ public:
 	   Name=4,
 	   Item=5,
    };
-   MQ2InvSlotType():MQ2Type("type")
+   MQ2InvSlotType():MQ2Type("invslot")
    {
       TypeMember(Pack);
 	  TypeMember(Slot);
@@ -1694,6 +1721,62 @@ public:
 		  itoa(VarPtr.Int,Destination,10);
 		  return true;
 	   }
+	   return false;
+   }
+}; 
+
+class MQ2PluginType : public MQ2Type
+{
+public:
+   static enum PluginMembers
+   {
+	   Name=1,
+   };
+   MQ2PluginType():MQ2Type("plugin")
+   {
+	  TypeMember(Name);
+   }
+
+   ~MQ2PluginType()
+   {
+   }
+
+   bool GetMember(MQ2VARPTR VarPtr, PCHAR Member, PCHAR Index, MQ2TYPEVAR &Dest);
+
+   bool ToString(MQ2VARPTR VarPtr, PCHAR Destination)
+   {
+	   return false;
+   }
+}; 
+
+class MQ2BenchmarkType : public MQ2Type
+{
+public:
+   static enum BenchmarkMembers
+   {
+	   Name=1,
+	   ID=2,
+	   Iterations=3,
+	   TimeSpent=4,
+	   AvgTimeSpent=5,
+   };
+   MQ2BenchmarkType():MQ2Type("benchmark")
+   {
+	  TypeMember(Name);
+	  TypeMember(ID);
+	  TypeMember(Iterations);
+	  TypeMember(TimeSpent);
+	  TypeMember(AvgTimeSpent);
+   }
+
+   ~MQ2BenchmarkType()
+   {
+   }
+
+   bool GetMember(MQ2VARPTR VarPtr, PCHAR Member, PCHAR Index, MQ2TYPEVAR &Dest);
+
+   bool ToString(MQ2VARPTR VarPtr, PCHAR Destination)
+   {
 	   return false;
    }
 }; 

@@ -1,3 +1,39 @@
+19 Apr 2004 by Lax:
+- ** MQ2DATA PHASE TWO ** If something is missing from MQ2Data it's because you never opened
+  your damn mouth.  If you need something in MQ2Data whether it was previously available or
+  not, speak up.  You're on your own if you want to figure out how to enable MQ2Parm at this
+  point, good luck (I'm making it difficult on you so you will get your ass in gear)!  The
+  readme is not yet updated.
+- Fixed alerts being missing from SpawnMatchesSearch.  They worked in some spawn searches but
+  not others.
+- character.Inventory now uses the same numbering as InvSlot
+- Added/changed MQ2Data members
+  invslot invslot.Pack: Container that must be opened to access the slot with /itemnotify
+  int invslot.Slot: Slot # inside that pack
+  string invslot.Name: For inventory slots not inside packs, the slot name
+  string spawn.ConColor: GREEN, LIGHT BLUE, BLUE, WHITE, YELLOW, RED
+  int character.PetBuff[name]: Finds slot with this spell name
+  spell character.PetBuff[n]: The spell in this slot (1-29)
+  int character.GroupLeaderExp: Group leadership exp
+  int character.GroupLeaderPoints: Group leadership points
+  int character.RaidLeaderExp: Raid leadership exp
+  int character.RaidLeaderPoints: Raid leadership points
+  int character.Platinum: Platinum
+  int character.Gold: Gold
+  int character.Silver: Silver
+  int character.Copper: Copper
+  int character.PlatinumBank: Platinum in bank
+  int character.GoldBank: Gold in bank
+  int character.SilverBank: Silver in bank
+  int character.CopperBank: Copper in bank
+- New MQ2Data Top-Level Objects
+  int FindItemCount[name]: Count of items on character by partial name match.  FindItemCount[=name] will find exact
+- MQ2FPS plugin now adds these Top-Level Objects (these are NOT in the reference because they
+  are from a plugin not built in):
+  float FPS - Current frames per second
+  int MaxFPS - Current max frames per second
+  bool Foreground - Is this session in the foreground?
+
 17 Apr 2004 by Lax:
 - Fixed "window" data type's "To String"
 - Fixed all VC6 project files so PDB/MAP files are produced for debugging
@@ -10,7 +46,7 @@
   invslot InvSlot[name]: Inventory slot by name
   invslot InvSlot[#]: Inventory slot by number
   item FindItem[name]: Find item on character by partial name match.  FindItem[=name] will find exact
-  item FindItemBank[name]: Find item in bank by partial name match.  FindItem[=name] will find exact
+  item FindItemBank[name]: Find item in bank by partial name match.  FindItemBank[=name] will find exact
   item SelectedItem: When using a merchant, etc. this is the selected item
   
 15 Apr 2004 by Lax:

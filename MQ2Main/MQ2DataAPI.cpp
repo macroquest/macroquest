@@ -148,6 +148,7 @@ void InitializeMQ2Data()
 	AddMQ2Data("FindItemBank",dataFindItemBank);
 	AddMQ2Data("InvSlot",dataInvSlot);
 	AddMQ2Data("SelectedItem",dataSelectedItem);
+	AddMQ2Data("FindItemCount",dataFindItemCount);
 }
 
 

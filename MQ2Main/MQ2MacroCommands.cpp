@@ -1745,6 +1745,13 @@ VOID NewIf(PSPAWNINFO pChar, PCHAR szLine)
 {
     CHAR szCond[MAX_STRING] = {0};
     CHAR szCommand[MAX_STRING] = {0};
+static bool NewIfWarningGiven=false;
+	if (!NewIfWarningGiven && szLine[0]!='(')
+	{
+		WriteChatColor("Warning: /newif will be requiring an enclosing () on condition portion, please update asap",CONCOLOR_RED);
+		NewIfWarningGiven=true;
+	}
+	
 
     if (!ParseIfLine(szLine, szCond, szCommand)) {
 	    GracefullyEndBadMacro(((PCHARINFO)pCharData)->pSpawn,gMacroBlock, "Failed to parse /newif command");

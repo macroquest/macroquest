@@ -613,6 +613,8 @@ typedef struct _EQPETINFOWINDOW {
 /*0x154*/ DWORD Unknown0x154; // pet's spawnid# ??
 /*0x158*/ DWORD Unknown0x158; // 1
 /*0x15c*/ BYTE  Unknown0x15c[0x120];
+/*0x18C*/ // unknown (one per buff)
+/*0x204*/ // window (one per buff)
 /*0x27c*/ int   Buff[0x1e]; // Spell ID# of each buff -- 30 total
 /*0x2f4*/ DWORD Unknown0x2f4;  
 } EQPETINFOWINDOW, *PEQPETINFOWINDOW;

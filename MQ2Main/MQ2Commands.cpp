@@ -3642,7 +3642,18 @@ BOOL SpawnMatchesSearch(PSEARCHSPAWN pSearchSpawn, PSPAWNINFO pChar, PSPAWNINFO 
 				if (!stricmp(GetLightForSpawn(pSpawn),"NONE")) return FALSE;
 				if (pSearchSpawn->szLight[0] && stricmp(GetLightForSpawn(pSpawn),pSearchSpawn->szLight)) return FALSE;
 			}
-			return TRUE;
+
+                if ((pSearchSpawn->bAlert) && (GetAlert(pSearchSpawn->AlertList))) {
+                    if (!IsAlert(pChar,pSpawn,pSearchSpawn->AlertList)) return FALSE;
+                    }
+                if ((pSearchSpawn->bNoAlert) && (GetAlert(pSearchSpawn->NoAlertList))) {
+                    if (IsAlert(pChar,pSpawn,pSearchSpawn->NoAlertList)) return FALSE;
+                    }
+
+                if ((pSearchSpawn->bNotNearAlert) && (GetClosestAlert(pSpawn, pSearchSpawn->NotNearAlertList,NULL))) return FALSE;
+                if ((pSearchSpawn->bNearAlert) && (!GetClosestAlert(pSpawn,pSearchSpawn->NearAlertList,NULL))) return FALSE;
+
+		return TRUE;
 
     }
     return FALSE;

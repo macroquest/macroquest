@@ -202,8 +202,9 @@ void InitializeMQ2Windows()
 	AddSlotArray(loot,31,5000);
 	AddSlotArray(trade,8,3000);
 	AddSlotArray(world,8,4000);
+	AddSlotArray(enviro,8,4000);
 	AddSlotArray(merchant,80,6000);
-	AddSlotArray(bazaar,80,6000);
+	AddSlotArray(bazaar,80,7000);
 	AddSlotArray(inspect,31,8000);
 #undef AddSlotArray
 

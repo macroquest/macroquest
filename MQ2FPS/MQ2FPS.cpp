@@ -20,6 +20,8 @@ DWORD MaxFPSMode=FPS_CALCULATE;
 DWORD FPSIndicatorX=5;
 DWORD FPSIndicatorY=25;
 
+bool InForeground=false;
+
 BOOL InMacro=false;
 
 char *szFPSModes[]=
@@ -32,6 +34,9 @@ HMODULE EQWhMod=0;
 typedef HWND   (__stdcall *fEQW_GetDisplayWindow)(VOID);
 fEQW_GetDisplayWindow EQW_GetDisplayWindow=0;
 
+BOOL dataFPS(PCHAR szIndex, MQ2TYPEVAR &Ret);
+BOOL dataMaxFPS(PCHAR szIndex, MQ2TYPEVAR &Ret);
+BOOL dataForeground(PCHAR szIndex, MQ2TYPEVAR &Ret);
 
 // Called once, when the plugin is to initialize
 PLUGIN_API VOID InitializePlugin(VOID)
@@ -56,6 +61,10 @@ PLUGIN_API VOID InitializePlugin(VOID)
 	// Commands
 	AddCommand("/maxfps",MaxFPS,0,1);
 	AddCommand("/fps",FPSCommand,0,1);
+
+	AddMQ2Data("FPS",dataFPS);
+	AddMQ2Data("MaxFPS",dataMaxFPS);
+	AddMQ2Data("Foreground",dataForeground);
 }
 /*
 PLUGIN_API VOID SetGameState(DWORD GameState)
@@ -78,6 +87,9 @@ PLUGIN_API VOID ShutdownPlugin(VOID)
 	// Remove commands, macro parameters, hooks, etc.
 	RemoveCommand("/maxfps");
 	RemoveCommand("/fps");
+	RemoveMQ2Data("FPS");
+	RemoveMQ2Data("MaxFPS");
+	RemoveMQ2Data("Foreground");
 }
 
 DWORD gFG_MAX=0;
@@ -226,6 +238,7 @@ PLUGIN_API VOID OnPulse(VOID)
 		
 		if (GetForegroundWindow()==EQhWnd)
 		{
+			InForeground=true;
 			CurMax=gFG_MAX;
 			if (gFG_MAX)
 			{
@@ -255,6 +268,7 @@ PLUGIN_API VOID OnPulse(VOID)
 		}
 		else
 		{
+			InForeground=false;
 			CurMax=gBG_MAX;
 			if (gBG_MAX)
 			{
@@ -412,4 +426,25 @@ VOID MaxFPS(PSPAWNINFO pChar, PCHAR szLine)
    }
     sprintf(szCmd,"\aw\ayMaxFPS\ax\a-u:\ax \a-u[\ax\at%d\ax Foreground\a-u]\ax \a-u[\ax\at%d\ax Background\a-u]\ax \a-u[\ax%s Mode\a-u]\ax",gFG_MAX,gBG_MAX,szFPSModes[MaxFPSMode]);
     WriteChatColor(szCmd,USERCOLOR_DEFAULT);
+}
+
+BOOL dataFPS(PCHAR szIndex, MQ2TYPEVAR &Ret)
+{
+	Ret.Float=FPS;
+	Ret.Type=pFloatType;
+	return true;
+}
+
+BOOL dataMaxFPS(PCHAR szIndex, MQ2TYPEVAR &Ret)
+{
+	Ret.DWord=CurMax;
+	Ret.Type=pIntType;
+	return true;
+}
+
+BOOL dataForeground(PCHAR szIndex, MQ2TYPEVAR &Ret)
+{
+	Ret.DWord=InForeground;
+	Ret.Type=pBoolType;
+	return true;
 }

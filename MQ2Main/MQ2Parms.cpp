@@ -21,7 +21,7 @@
 
 #include "MQ2Main.h"
 
-
+#if 0
 DWORD FullClassToShort(CHAR* szClass) { 
    if (!strnicmp(szClass, "Warrior", 7)) { 
         strcpy(szClass,"WAR"); 
@@ -5865,3 +5865,4 @@ DWORD parmPet(PCHAR szVar, PCHAR szOutput, PSPAWNINFO pChar)
    }
    return i;
 }
+#endif

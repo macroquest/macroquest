@@ -119,6 +119,7 @@ VOID InitializeParser()
 	InitializeMQ2DataTypes();
 	InitializeMQ2Data();
 #endif
+#if 0
 	struct _PARMLIST Parms[] = {
 	{"getlastfindslot",		parmGetLastFindSlot},
 	{"cursor",				parmCursor},
@@ -209,6 +210,7 @@ VOID InitializeParser()
 	{
 		AddParm(Parms[i].szName,Parms[i].fAddress);
 	}
+#endif
 	bmParseMacroParameter=AddMQ2Benchmark("ParseMacroParameter");
 }
 

@@ -1901,8 +1901,12 @@ PCHAR ShowSpellSlotInfo(PSPELL pSpell, PCHAR szBuffer)
          break; 
       case 136: //limit target types this affects 
          strcat(szBuff, "Limit: Target("); 
-		 sprintf(buf, "$spell(%d,targettype)", pSpell->TargetType);
-		 parmSpell(buf, szTemp, NULL );		strcat(szBuff,szTemp);
+//		 sprintf(buf, "$spell(%d,targettype)", pSpell->TargetType);
+//		 parmSpell(buf, szTemp, NULL );		 // <---- wtf.
+//		 strcat(szBuff,szTemp);
+
+		 strcat(szBuff,"$spell(%d,targettype)"); // weeee!
+
          //GetTargetType(pSpell->Base[i],szTemp);       strcat(szBuff,szTemp); 
          if ( pSpell->Base[i] > 0 )  strcat(szBuff, " allowed"); 
          if ( pSpell->Base[i] < 0 )  strcat(szBuff, " excluded"); 

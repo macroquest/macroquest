@@ -501,6 +501,31 @@ bool MQ2SpawnType::GetMember(MQ2VARPTR VarPtr, PCHAR Member, PCHAR Index, MQ2TYP
 		Dest.Float=pSpawn->CameraAngle;
 		Dest.Type=pFloatType;
 		return true;
+	case xConColor:
+		switch(ConColor(pSpawn))
+		{
+        case CONCOLOR_GREEN:
+            Dest.Ptr="GREEN";
+			break;
+        case CONCOLOR_LIGHTBLUE:
+            Dest.Ptr="LIGHT BLUE";
+			break;
+        case CONCOLOR_BLUE:
+            Dest.Ptr="BLUE";
+			break;
+        case CONCOLOR_BLACK:
+            Dest.Ptr="WHITE";
+			break;
+        case CONCOLOR_YELLOW:
+            Dest.Ptr="YELLOW";
+			break;
+        case CONCOLOR_RED:
+		default:
+			Dest.Ptr="RED";
+			break;
+		}
+		Dest.Type=pStringType;
+		return true;
 	/*
 	Trader
 	AFK
@@ -922,7 +947,7 @@ bool MQ2CharacterType::GetMember(MQ2VARPTR VarPtr, PCHAR Member, PCHAR Index, MQ
 		{
 			if (Index[0]>='0' && Index[0]<='9')
 			{
-				unsigned long nSlot=atoi(Index)-1;
+				unsigned long nSlot=atoi(Index)%0x1E;
 				if (nSlot<0x1E)
 				{
 					Dest.Ptr=pChar->InventoryArray[nSlot];
@@ -967,8 +992,40 @@ bool MQ2CharacterType::GetMember(MQ2VARPTR VarPtr, PCHAR Member, PCHAR Index, MQ
 		Dest.DWord=pChar->Plat*1000+pChar->Gold*100+pChar->Silver*10+pChar->Copper;
 		Dest.Type=pIntType;
 		return true;
+	case Platinum:
+		Dest.DWord=pChar->Plat;
+		Dest.Type=pIntType;
+		return true;
+	case Gold:
+		Dest.DWord=pChar->Gold;
+		Dest.Type=pIntType;
+		return true;
+	case Silver:
+		Dest.DWord=pChar->Silver;
+		Dest.Type=pIntType;
+		return true;
+	case Copper:
+		Dest.DWord=pChar->Copper;
+		Dest.Type=pIntType;
+		return true;
 	case CashBank:
 		Dest.DWord=pChar->BankPlat*1000+pChar->BankGold*100+pChar->BankSilver*10+pChar->BankCopper;
+		Dest.Type=pIntType;
+		return true;
+	case PlatinumBank:
+		Dest.DWord=pChar->BankPlat;
+		Dest.Type=pIntType;
+		return true;
+	case GoldBank:
+		Dest.DWord=pChar->BankGold;
+		Dest.Type=pIntType;
+		return true;
+	case SilverBank:
+		Dest.DWord=pChar->BankSilver;
+		Dest.Type=pIntType;
+		return true;
+	case CopperBank:
+		Dest.DWord=pChar->BankCopper;
 		Dest.Type=pIntType;
 		return true;
 	case AAExp:
@@ -1241,12 +1298,58 @@ bool MQ2CharacterType::GetMember(MQ2VARPTR VarPtr, PCHAR Member, PCHAR Index, MQ
 			}
 		}
 		return false;
+	case PetBuff:
+		if (!Index[0] || !pPetInfoWnd)
+			return false;
+#define pPetInfoWindow ((PEQPETINFOWINDOW)pPetInfoWnd)
+		if (Index[0]>='0' && Index[0]<='9')
+		{
+			unsigned long nBuff=atoi(Index)-1;
+			if (nBuff>29)
+				return false;
+			if (pPetInfoWindow->Buff[nBuff]==0xFFFFFFFF || pPetInfoWindow->Buff[nBuff]==0)
+				return false;
+			if (Dest.Ptr=GetSpellByID(pPetInfoWindow->Buff[nBuff]))
+			{
+				Dest.Type=pSpellType;
+				return true;
+			}
+		}
+		else
+		{
+			for (unsigned long nBuff=0 ; nBuff < 29 ; nBuff++)
+			{
+				if (PSPELL pSpell=GetSpellByID(pPetInfoWindow->Buff[nBuff]))
+				{
+					if (!stricmp(Index,pSpell->Name))
+					{
+						Dest.DWord=nBuff+1;
+						Dest.Type=pIntType;
+						return true;
+					}
+				}
+			}
+		}
+#undef pPetInfoWindow
+		return false;
+	case GroupLeaderExp:
+		Dest.DWord=pChar->GroupLeadershipExp;
+		Dest.Type=pIntType;
+		return true;
+	case RaidLeaderExp:
+		Dest.DWord=pChar->RaidLeadershipExp;
+		Dest.Type=pIntType;
+		return true;
+	case GroupLeaderPoints:
+		Dest.DWord=pChar->GroupLeadershipPoints;
+		Dest.Type=pIntType;
+		return true;
+	case RaidLeaderPoints:
+		Dest.DWord=pChar->RaidLeadershipPoints;
+		Dest.Type=pIntType;
+		return true;
 		/*
 		FreeInventory
-		GroupLeaderExp=46,
-		RaidLeaderExp=47,
-		GroupLeaderPoints=48,
-		RaidLeaderPoints=49,
 		Drunk,
 		STR=51,
 		STA=52,
@@ -2224,6 +2327,12 @@ bool MQ2MacroType::GetMember(MQ2VARPTR VarPtr, PCHAR Member, PCHAR Index, MQ2TYP
 		strcpy(DataTypeTemp,gMacroStack->Return);
 		Dest.Type=pStringType;
 		return true;
+	/*
+		TypeMember(Params);
+		TypeMember(Param);
+		TypeMember(SubParams);
+		TypeMember(SubParam);
+	/**/
 	}
 	return false;
 }
@@ -2372,6 +2481,10 @@ bool MQ2TimeType::GetMember(MQ2VARPTR VarPtr, PCHAR Member, PCHAR Index, MQ2TYPE
 	case Night:
 		Dest.DWord=((pTime->tm_hour<7) || (pTime->tm_hour>18));
 		Dest.Type=pBoolType;
+		return true;
+	case SecondsSinceMidnight:
+		Dest.DWord=pTime->tm_hour*3600+pTime->tm_min*60+pTime->tm_sec;
+		Dest.Type=pIntType;
 		return true;
 	}
 	return false;
@@ -2615,9 +2728,205 @@ bool MQ2InvSlotType::GetMember(MQ2VARPTR VarPtr, PCHAR Member, PCHAR Index, MQ2T
 			}
 		}
 		return false;
+	case Pack:
+		if (nInvSlot>=251 && nInvSlot<361)
+		{
+			Dest.DWord=((nInvSlot-251)/10)+22;
+			Dest.Type=pInvSlotType;
+			return true;
+		}
+		else if (nInvSlot>=2031 && nInvSlot<2191)
+		{
+			Dest.DWord=((nInvSlot-2031)/10)+2000;
+			Dest.Type=pInvSlotType;
+			return true;
+		}
+		else if (nInvSlot>=2531 && nInvSlot<2551)
+		{
+			Dest.DWord=((nInvSlot-2531)/10)+2500;
+			Dest.Type=pInvSlotType;
+			return true;
+		}
+		return false;
+	case Slot:
+		{
+			if (nInvSlot>=251 && nInvSlot<361)
+			{
+				Dest.DWord=(nInvSlot-251)%10;
+				Dest.Type=pIntType;
+				return true;
+			}
+			else if (nInvSlot>=2031 && nInvSlot<2191)
+			{
+				Dest.DWord=(nInvSlot-2031)%10;
+				Dest.Type=pIntType;
+				return true;
+			}
+			else if (nInvSlot>=2531 && nInvSlot<2551)
+			{
+				Dest.DWord=(nInvSlot-2531)%10;
+				Dest.Type=pIntType;
+				return true;
+			}			
+		}
+		return false;
+	case Name:
+		switch(nInvSlot)
+		{
+		case 1:
+			Dest.Ptr="leftear";
+			Dest.Type=pStringType;
+			return true;
+		case 2:
+			Dest.Ptr="head";
+			Dest.Type=pStringType;
+			return true;
+		case 3:
+			Dest.Ptr="face";
+			Dest.Type=pStringType;
+			return true;
+		case 4:
+			Dest.Ptr="rightear";
+			Dest.Type=pStringType;
+			return true;
+		case 5:
+			Dest.Ptr="neck";
+			Dest.Type=pStringType;
+			return true;
+		case 6:
+			Dest.Ptr="shoulder";
+			Dest.Type=pStringType;
+			return true;
+		case 7:
+			Dest.Ptr="arm";
+			Dest.Type=pStringType;
+			return true;
+		case 8:
+			Dest.Ptr="back";
+			Dest.Type=pStringType;
+			return true;
+		case 9:
+			Dest.Ptr="leftwrist";
+			Dest.Type=pStringType;
+			return true;
+		case 10:
+			Dest.Ptr="rightwrist";
+			Dest.Type=pStringType;
+			return true;
+		case 11:
+			Dest.Ptr="range";
+			Dest.Type=pStringType;
+			return true;
+		case 12:
+			Dest.Ptr="hand";
+			Dest.Type=pStringType;
+			return true;
+		case 13:
+			Dest.Ptr="mainhand";
+			Dest.Type=pStringType;
+			return true;
+		case 14:
+			Dest.Ptr="offhand";
+			Dest.Type=pStringType;
+			return true;
+		case 15:
+			Dest.Ptr="leftfinger";
+			Dest.Type=pStringType;
+			return true;
+		case 16:
+			Dest.Ptr="rightfinger";
+			Dest.Type=pStringType;
+			return true;
+		case 17:
+			Dest.Ptr="chest";
+			Dest.Type=pStringType;
+			return true;
+		case 18:
+			Dest.Ptr="leg";
+			Dest.Type=pStringType;
+			return true;
+		case 19:
+			Dest.Ptr="feet";
+			Dest.Type=pStringType;
+			return true;
+		case 20:
+			Dest.Ptr="waist";
+			Dest.Type=pStringType;
+			return true;
+		case 21:
+			Dest.Ptr="ammo";
+			Dest.Type=pStringType;
+			return true;
+		case 30:
+			Dest.Ptr="charm";
+			Dest.Type=pStringType;
+			return true;
+		}
+		if (nInvSlot>=22 && nInvSlot<30)
+		{
+			sprintf(DataTypeTemp,"pack%d",nInvSlot-21);
+			Dest.Ptr=&DataTypeTemp[0];
+			Dest.Type=pStringType;
+			return true;
+		}
+		else if (nInvSlot>=2000 && nInvSlot<2016)
+		{
+			sprintf(DataTypeTemp,"bank%d",nInvSlot-1999);
+			Dest.Ptr=&DataTypeTemp[0];
+			Dest.Type=pStringType;
+			return true;
+		}
+		else if (nInvSlot>=2500 && nInvSlot<2502)
+		{
+			sprintf(DataTypeTemp,"sharedbank%d",nInvSlot-2499);
+			Dest.Ptr=&DataTypeTemp[0];
+			Dest.Type=pStringType;
+			return true;
+		}
+		else if (nInvSlot>=5000 && nInvSlot<5032)
+		{
+			sprintf(DataTypeTemp,"loot%d",nInvSlot-4999);
+			Dest.Ptr=&DataTypeTemp[0];
+			Dest.Type=pStringType;
+			return true;
+		}
+		else if (nInvSlot>=3000 && nInvSlot<3009)
+		{
+			sprintf(DataTypeTemp,"trade%d",nInvSlot-2999);
+			Dest.Ptr=&DataTypeTemp[0];
+			Dest.Type=pStringType;
+			return true;
+		}
+		else if (nInvSlot>=4000 && nInvSlot<4009)
+		{
+			sprintf(DataTypeTemp,"enviro%d",nInvSlot-3999);
+			Dest.Ptr=&DataTypeTemp[0];
+			Dest.Type=pStringType;
+			return true;
+		}
+		else if (nInvSlot>=6000 && nInvSlot<6080)
+		{
+			sprintf(DataTypeTemp,"merchant%d",nInvSlot-5999);
+			Dest.Ptr=&DataTypeTemp[0];
+			Dest.Type=pStringType;
+			return true;
+		}
+		else if (nInvSlot>=7000 && nInvSlot<7089)
+		{
+			sprintf(DataTypeTemp,"bazaar%d",nInvSlot-6999);
+			Dest.Ptr=&DataTypeTemp[0];
+			Dest.Type=pStringType;
+			return true;
+		}
+		else if (nInvSlot>=8000 && nInvSlot<8031)
+		{
+			sprintf(DataTypeTemp,"inspect%d",nInvSlot-7999);
+			Dest.Ptr=&DataTypeTemp[0];
+			Dest.Type=pStringType;
+			return true;
+		}
+		return false;
 	/*
-	Pack=1,
-	Slot=2,
 	Name=4,
 	/**/
 	}

@@ -60,8 +60,8 @@ using namespace std;
 #define FromPlugin 0
 #endif
 
-#define USEMQ2PARMS
-//#define USEMQ2DATATYPES
+//#define USEMQ2PARMS
+#define USEMQ2DATATYPES
 
 
 // reroute malloc/free
@@ -518,6 +518,7 @@ EQLIB_API BOOL dataInvSlot(PCHAR szIndex, MQ2TYPEVAR &Ret);
 EQLIB_API BOOL dataFindItem(PCHAR szIndex, MQ2TYPEVAR &Ret);
 EQLIB_API BOOL dataSelectedItem(PCHAR szIndex, MQ2TYPEVAR &Ret);
 EQLIB_API BOOL dataFindItemBank(PCHAR szIndex, MQ2TYPEVAR &Ret);
+EQLIB_API BOOL dataFindItemCount(PCHAR szIndex, MQ2TYPEVAR &Ret);
 
 /* COMMANDS */
 EQLIB_VAR VOID DeleteVarCmd(PSPAWNINFO pChar, PCHAR szLine);
