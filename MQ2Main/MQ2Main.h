@@ -156,8 +156,6 @@ EQLIB_API VOID InitializeParser();
 EQLIB_API VOID ShutdownParser();
 
 /* MOUSE */
-EQLIB_API VOID MouseClickL(PSPAWNINFO pChar, PCHAR szLine);
-EQLIB_API VOID MouseClickR(PSPAWNINFO pChar, PCHAR szLine);
 EQLIB_API BOOL IsMouseWaiting(VOID);
 EQLIB_API BOOL IsMouseWaitingForButton();
 
@@ -410,8 +408,6 @@ EQLIB_API VOID MacroBeep                           (PSPAWNINFO,PCHAR);
 EQLIB_API VOID MacroLog                            (PSPAWNINFO,PCHAR);
 EQLIB_API VOID MacroPause                          (PSPAWNINFO,PCHAR);
 EQLIB_API VOID MemSpell                            (PSPAWNINFO,PCHAR);
-EQLIB_API VOID MouseClickL                         (PSPAWNINFO,PCHAR);
-EQLIB_API VOID MouseClickR                         (PSPAWNINFO,PCHAR);
 EQLIB_API VOID MouseTo                             (PSPAWNINFO,PCHAR);
 EQLIB_API VOID MQMsgBox                            (PSPAWNINFO,PCHAR);
 EQLIB_API VOID MyVarAdd                            (PSPAWNINFO,PCHAR);

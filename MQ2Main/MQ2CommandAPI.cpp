@@ -426,8 +426,6 @@ void InitializeMQ2Commands()
 		{"/dumpstack",    DumpStack,1},
 		{"/zem",      DisplayZem,1},                  //2003-05-17 anOrcPawn00
         {"/setautorun", SetAutoRun,0},
-        {"/mouseclickl",    MouseClickL,1},
-        {"/mouseclickr",    MouseClickR,1},
         {"/banklist",   BankList,1},
         {"/look",       Look,1},
         {"/keepkeys",   KeepKeys,1},

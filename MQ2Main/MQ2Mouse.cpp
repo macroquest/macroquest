@@ -1065,6 +1065,37 @@ VOID SendEQMessage(DWORD PacketType, PVOID pData, DWORD Length)
 // Clicks the mouse button (calls EQ's mouse up commands) 
 // Usage: /click left|right [<mouseloc>] 
 // *************************************************************************** 
+BOOL IsMouseWaitingForButton()
+{
+	return ((EQADDR_MOUSECLICK->RightClick == EQADDR_MOUSECLICK->ConfirmRightClick) 
+		&& (EQADDR_MOUSECLICK->LeftClick == EQADDR_MOUSECLICK->ConfirmLeftClick)) ? FALSE : TRUE;
+}
+
+BOOL IsMouseWaiting()
+{
+	BOOL Result = FALSE;
+
+	if (IsMouseWaitingForButton()) Result = TRUE;
+	else {
+		// Here we basically force the MQ script engine to wait for the button up on mouse clicks
+
+		if (gMouseLeftClickInProgress) {
+			//SetMouseButtonUpL();
+			if (!((!EQADDR_MOUSECLICK->LeftClick) && (EQADDR_MOUSECLICK->ConfirmLeftClick == 0x80))) EQADDR_MOUSECLICK->LeftClick = 0x0;
+			gMouseLeftClickInProgress = FALSE;
+			Result = TRUE;
+		}
+		if (gMouseRightClickInProgress) {
+			//SetMouseButtonUpR();
+			if (!((!EQADDR_MOUSECLICK->RightClick) && (EQADDR_MOUSECLICK->ConfirmRightClick == 0x80))) EQADDR_MOUSECLICK->RightClick = 0x0;
+			gMouseRightClickInProgress = FALSE;
+			Result = TRUE;
+		}
+		
+	}
+	return Result;
+}
+
 VOID Click(PSPAWNINFO pChar, PCHAR szLine) { 
    CHAR szArg1[MAX_STRING] = {0}; 
    PCHAR szMouseLoc; 
@@ -1078,29 +1109,10 @@ VOID Click(PSPAWNINFO pChar, PCHAR szLine) {
    if (szMouseLoc && szMouseLoc[0]!=0) { 
       if (!strnicmp(szMouseLoc, "target", 6)) { 
          if (!strnicmp(szArg1, "left", 4)) { 
-//            if(!EQADDR_LCLICKTARGET) return; 
-				pEverQuest->LeftClickedOnPlayer(pTarget);
-//            RightOrLeft = EQADDR_LCLICKTARGET; 
+             pEverQuest->LeftClickedOnPlayer(pTarget);
          } else if (!strnicmp(szArg1, "right", 5)) { 
-//            if (!EQADDR_RCLICKTARGET) return; 
-//            RightOrLeft = EQADDR_RCLICKTARGET; 
 			 pEverQuest->RightClickedOnPlayer(pTarget);
          } 
-		 /*
-         DWORD CEverQuest = 0; 
-         CEverQuest = (DWORD)*EQADDR_CLSMAINNEWUI; 
-         DWORD psTarget = NULL; 
-         if (ppTarget && *(DWORD *)ppTarget) { 
-            psTarget = *(DWORD *)ppTarget; 
-            __asm { 
-               push ecx; 
-               push psTarget; 
-               mov ecx, dword ptr [CEverQuest]; 
-               call dword ptr [RightOrLeft]; 
-               pop ecx; 
-            } 
-         } 
-		 /**/
          return; 
 	  } else if (!strnicmp(szMouseLoc, "item", 4)) {
 			// a right clicked ground spawn does nothing
@@ -1122,10 +1134,14 @@ VOID Click(PSPAWNINFO pChar, PCHAR szLine) {
    if (szArg1[0]!=0) { 
       if (!strnicmp(szArg1, "left", 4)) { 
          mdType = MD_Button0; 
-         MouseClickL(pChar,szLine); 
+         //SetMouseButtonDownL();
+		 if (!((EQADDR_MOUSECLICK->LeftClick == 0x80) && (!EQADDR_MOUSECLICK->ConfirmLeftClick))) EQADDR_MOUSECLICK->LeftClick = 0x80;
+         gMouseLeftClickInProgress = TRUE; 
       } else if (!strnicmp(szArg1, "right", 5)) { 
-         mdType = MD_Button1; 
-            MouseClickR(pChar,szLine); 
+         mdType = MD_Button1;
+         //SetMouseButtonDownR();
+		 if (!((EQADDR_MOUSECLICK->RightClick == 0x80) && (!EQADDR_MOUSECLICK->ConfirmRightClick))) EQADDR_MOUSECLICK->RightClick = 0x80;
+         gMouseRightClickInProgress = TRUE;
         } else { 
            WriteChatColor("Usage: /click <left|right>",USERCOLOR_DEFAULT); 
            DebugSpew("Bad command: %s",szLine); 
@@ -1163,145 +1179,3 @@ VOID MouseTo(PSPAWNINFO pChar, PCHAR szLine)
 	WriteChatColor("Usage: /mouseto <mouseloc>",USERCOLOR_DEFAULT); 
 	DebugSpew("Help invoked or Bad MouseTo command: %s",szLine); 
 }
-
-/*
- * Motd and Pulse's mouse functions
- */
-
-BOOL IsMouseWaitingForButtonDownL()
-{
-	return ((EQADDR_MOUSECLICK->LeftClick == 0x80) && (!EQADDR_MOUSECLICK->ConfirmLeftClick)) ? TRUE : FALSE;
-}
-
-BOOL IsMouseWaitingForButtonDownR()
-{
-	return ((EQADDR_MOUSECLICK->RightClick == 0x80) && (!EQADDR_MOUSECLICK->ConfirmRightClick)) ? TRUE : FALSE;
-}
-
-BOOL IsMouseWaitingForButtonUpL()
-{
-	return ((!EQADDR_MOUSECLICK->LeftClick) && (EQADDR_MOUSECLICK->ConfirmLeftClick == 0x80)) ? TRUE : FALSE;
-}
-
-
-BOOL IsMouseWaitingForButtonUpR()
-{
-	return ((!EQADDR_MOUSECLICK->RightClick) && (EQADDR_MOUSECLICK->ConfirmRightClick == 0x80)) ? TRUE : FALSE;
-}
-
-
-
-
-VOID SetMouseButtonDownL()
-{
-	if (!IsMouseWaitingForButtonDownL()) EQADDR_MOUSECLICK->LeftClick = 0x80;
-
-}
-
-VOID SetMouseButtonDownR()
-{
-	if (!IsMouseWaitingForButtonDownR()) EQADDR_MOUSECLICK->RightClick = 0x80;
-}
-
-
-VOID SetMouseButtonUpL()
-{
-	if (!IsMouseWaitingForButtonUpL()) EQADDR_MOUSECLICK->LeftClick = 0x0;
-}
-
-
-VOID SetMouseButtonUpR()
-{
-	if (!IsMouseWaitingForButtonUpR()) EQADDR_MOUSECLICK->RightClick = 0x0;
-}
-
-BOOL IsMouseWaitingForButton()
-{
-	return ((EQADDR_MOUSECLICK->RightClick == EQADDR_MOUSECLICK->ConfirmRightClick) 
-		&& (EQADDR_MOUSECLICK->LeftClick == EQADDR_MOUSECLICK->ConfirmLeftClick)) ? FALSE : TRUE;
-}
-
-
-BOOL IsMouseWaiting()
-{
-	BOOL Result = FALSE;
-
-	if (IsMouseWaitingForButton()) Result = TRUE;
-	else {
-		// Here we basically force the MQ script engine to wait for the button up on mouse clicks
-
-		if (gMouseLeftClickInProgress) {
-			SetMouseButtonUpL();
-			gMouseLeftClickInProgress = FALSE;
-			Result = TRUE;
-		}
-		if (gMouseRightClickInProgress) {
-			SetMouseButtonUpR();
-			gMouseRightClickInProgress = FALSE;
-			Result = TRUE;
-		}
-		
-	}
-	return Result;
-
-}
-
-VOID MouseClickL(PSPAWNINFO pChar, PCHAR szLine)
-{
-	SetMouseButtonDownL();
-	gMouseLeftClickInProgress = TRUE;
-
-}
-
-VOID MouseClickR(PSPAWNINFO pChar, PCHAR szLine)
-{
-	SetMouseButtonDownR();
-	gMouseRightClickInProgress = TRUE;
-
-}
-
-
-VOID LClickDown (PSPAWNINFO pChar, PCHAR szLine)
-{
-
-	CHAR szMsg[MAX_STRING] = {0};
-	
-	SetMouseButtonDownL();
-
-	sprintf(szMsg,"Sending mouse left button down");
-	WriteChatColor(szMsg,CONCOLOR_RED);
-}
-
-VOID LClickUp (PSPAWNINFO pChar, PCHAR szLine)
-{
-	CHAR szMsg[MAX_STRING] = {0};
-	
-	SetMouseButtonUpL();
-
-	sprintf(szMsg,"Sending mouse left button up");
-	WriteChatColor(szMsg,CONCOLOR_RED);
-
-}
-
-VOID RClickDown (PSPAWNINFO pChar, PCHAR szLine)
-{
-	CHAR szMsg[MAX_STRING] = {0};
-	
-	SetMouseButtonDownR();
-
-	sprintf(szMsg,"Sending mouse right button down");
-	WriteChatColor(szMsg,CONCOLOR_RED);
-
-}
-
-VOID RClickUp (PSPAWNINFO pChar, PCHAR szLine)
-{
-	CHAR szMsg[MAX_STRING] = {0};
-	
-	SetMouseButtonUpR();
-
-	sprintf(szMsg,"Sending mouse left button down");
-	WriteChatColor(szMsg,CONCOLOR_RED);
-
-}
-
