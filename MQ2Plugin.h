@@ -1,5 +1,5 @@
-#include "../MQ2Main/MQ2Main.h"
-#include "../MQ2Main/MQ2Globals.h"
+#include "MQ2Main/MQ2Main.h"
+#include "MQ2Main/MQ2Globals.h"
 
 #pragma comment(lib, "MQ2Main")
 
