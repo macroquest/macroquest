@@ -1,5 +1,8 @@
 26 Apr 2004 by Lax:
 - Various error messages have been updated to be more specific.
+- Fixed "outer" scope not being cleared by /endmacro.  Removed /zapvars in MQ2DataVars 
+  since all it did was clear the outer scope.  It's no longer needed because the old global
+  scope is separated into two scopes in MQ2DataVars.
 - Fixed FindInvSlotForContents function (used in item.InvSlot.  item.InvSlot will no longer
   give NULL for valid items in your inventory/bank)
 - Sub parameters (including those for events) are now allowed to have a type other than 
