@@ -254,6 +254,7 @@ VOID CustomBindCmd(PSPAWNINFO pChar, PCHAR szLine)
 			strcpy(pBind->CommandUp,szRest);
 		sprintf(szBuffer,"[\ay%s\ax] [Down:\at%s\ax] [Up:\at%s\ax]",pBind->Name,pBind->CommandDown,pBind->CommandUp);
 		WriteChatColor(szBuffer);
+		SaveCustomBinds();
 		return;
 	}
 	if (!stricmp(szArg,"clear"))
@@ -279,6 +280,7 @@ VOID CustomBindCmd(PSPAWNINFO pChar, PCHAR szLine)
 			pBind->CommandUp[0]=0;
 		sprintf(szBuffer,"[\ay%s\ax] [Down:\at%s\ax] [Up:\at%s\ax]",pBind->Name,pBind->CommandDown,pBind->CommandUp);
 		WriteChatColor(szBuffer);
+		SaveCustomBinds();
 		return;
 	}
 }
