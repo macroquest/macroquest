@@ -3413,14 +3413,18 @@ PSPAWNINFO SearchThroughSpawns(PSEARCHSPAWN pSearchSpawn, PSPAWNINFO pChar)
             ) && (
                 (pSearchSpawn->bTargInvis) ||
                     (pSpawn->BodyType < 0x41)
-                ) && (
-                    (
-                    (pSearchSpawn->bKnownLocation == FALSE)
-                                        ) || (
-                    (pSearchSpawn->bKnownLocation == TRUE) &&
-                    (pSpawn->X == pSearchSpawn->xLoc) &&
-                    (pSpawn->Y == pSearchSpawn->yLoc)
-                                        )
+                ) && ( 
+                    ( 
+                    (pSearchSpawn->bKnownLocation == FALSE) 
+                                        ) || ( 
+                    (pSearchSpawn->bKnownLocation == TRUE) && 
+                    (pSpawn->X == pSearchSpawn->xLoc) && 
+                    (pSpawn->Y == pSearchSpawn->yLoc) 
+                              ) || ( 
+               (pSearchSpawn->bKnownLocation == TRUE) && 
+               (pSearchSpawn->FRadius<10000.0f) && 
+               (DistanceToPoint(pSpawn,pSearchSpawn->xLoc,pSearchSpawn->yLoc)<pSearchSpawn->FRadius) 
+                              ) 
                                 ) && (
                                         (
                         (
@@ -3474,7 +3478,7 @@ PSPAWNINFO SearchThroughSpawns(PSEARCHSPAWN pSearchSpawn, PSPAWNINFO pChar)
                     if ((pSpawn->Z > pChar->Z + pSearchSpawn->ZRadius) ||
                         (pSpawn->Z < pChar->Z - pSearchSpawn->ZRadius)) TooClose=TRUE;
                     }
-                if ((pSearchSpawn->bKnownLocation == FALSE) && (pSearchSpawn->FRadius<10000.0f)) { 
+				if ((pSearchSpawn->bKnownLocation == FALSE) && (pSearchSpawn->FRadius<10000.0f)) { 
                     if (DistanceToSpawn(pChar, pSpawn)>pSearchSpawn->FRadius) TooClose=TRUE; 
                     }
 
@@ -3550,18 +3554,14 @@ BOOL SpawnMatchesSearch(PSEARCHSPAWN pSearchSpawn, PSPAWNINFO pChar, PSPAWNINFO 
             ) && (
                 (pSearchSpawn->bTargInvis) ||
                     (pSpawn->BodyType < 0x41)
-                ) && ( 
-                    ( 
-                    (pSearchSpawn->bKnownLocation == FALSE) 
-                                        ) || ( 
-                    (pSearchSpawn->bKnownLocation == TRUE) && 
-                    (pSpawn->X == pSearchSpawn->xLoc) && 
-                    (pSpawn->Y == pSearchSpawn->yLoc) 
-                              ) || ( 
-               (pSearchSpawn->bKnownLocation == TRUE) && 
-               (pSearchSpawn->FRadius<10000.0f) && 
-               (DistanceToPoint(pSpawn,pSearchSpawn->xLoc,pSearchSpawn->yLoc)<pSearchSpawn->FRadius) 
-                              ) 
+                ) && (
+                    (
+                    (pSearchSpawn->bKnownLocation == FALSE)
+                                        ) || (
+                    (pSearchSpawn->bKnownLocation == TRUE) &&
+                    (pSpawn->X == pSearchSpawn->xLoc) &&
+                    (pSpawn->Y == pSearchSpawn->yLoc)
+                                        )
                                 ) && (
                                         (
                         (
