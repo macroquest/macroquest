@@ -2,7 +2,6 @@
 - / command correctly does EQ /who by default
 - MQ2Telnet redone.
 - Plugins using DoCommand() will execute it on the next pulse instead of immediately (corrects problems unloading the plugin)
-- VS .NET will automatically run MQ2Auth for you before compiling.  This is not possible in VS6, sorry.
 - MQ2FPS shouldn't cause major problems when switching from absolute to calculate mode
 - MQ2Template removed from VS6 workspace and .NET solution
 

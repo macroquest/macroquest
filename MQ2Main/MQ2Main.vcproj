@@ -68,9 +68,7 @@
 			<Tool
 				Name="VCPostBuildEventTool"/>
 			<Tool
-				Name="VCPreBuildEventTool"
-				Description="Updating MQ2Auth"
-				CommandLine="$(InputDir)../MQ2Auth.exe"/>
+				Name="VCPreBuildEventTool"/>
 			<Tool
 				Name="VCPreLinkEventTool"/>
 			<Tool
