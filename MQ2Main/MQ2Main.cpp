@@ -36,7 +36,7 @@ BOOL APIENTRY DllMain( HANDLE hModule,
 					 )
 {
     CHAR szFilename[MAX_STRING]={0};
-    CHAR ClientName[MAX_STRING]={0};
+    //CHAR ClientName[MAX_STRING]={0};
     PCHAR szProcessName;
     ghModule = (HMODULE)hModule;
     ghInstance = (HINSTANCE)hModule;
@@ -45,14 +45,14 @@ BOOL APIENTRY DllMain( HANDLE hModule,
     szProcessName = strrchr(szFilename,'\\');
     szProcessName[0] = '\0';
     strcat(szFilename,"\\eqgame.ini");
-    GetPrivateProfileString("MacroQuest","ClientName","eqgame",ClientName,MAX_STRING,szFilename);
+//    GetPrivateProfileString("MacroQuest","ClientName","eqgame",ClientName,MAX_STRING,szFilename);
 
     GetModuleFileName(NULL,szFilename,MAX_STRING);
 
     szProcessName = strrchr(szFilename,'.');
     szProcessName[0] = '\0';
     szProcessName = strrchr(szFilename,'\\')+1;
-    if (!stricmp(szProcessName,ClientName)) {
+    if (!stricmp(szProcessName,__ClientName)) {
         if (ul_reason_for_call == DLL_PROCESS_ATTACH) {
 
             GetModuleFileName(ghModule,szFilename,MAX_STRING);
@@ -95,6 +95,30 @@ BOOL ParseINIFile(PCHAR lpINIPath)
     sprintf(Filename,"%s\\MacroQuest.ini",lpINIPath);
     sprintf(ClientINI,"%s\\eqgame.ini",lpINIPath);
     strcpy(gszINIFilename,Filename);
+
+	strcpy(ClientName,__ClientName);
+	strcat(ClientName,".exe");
+    client = _open(ClientName,_O_RDONLY);
+    if (client == -1) {
+        sprintf(szBuffer,"Unable to check client version. (%d)",errno);
+        MessageBox(NULL,szBuffer,"MacroQuest",MB_OK);
+        return FALSE;
+    }
+    _fstat(client,&stat);
+    _close(client);
+
+    DebugSpewAlways("Expected Client version: %s",__ClientVersion);
+    DebugSpewAlways("    Real Client version: %s",ctime(&stat.st_mtime));
+    if (!clientOverride && !CompareTimes(ctime(&stat.st_mtime),__ClientVersion)) {
+        sprintf(szBuffer,"Incorrect client version:\n%s",ctime(&stat.st_mtime));
+        MessageBox(NULL,__ClientVersion,"MacroQuest",MB_OK);
+        return FALSE;
+    }
+
+
+
+
+	/*
     GetPrivateProfileString("MacroQuest","ClientOverride","0",szBuffer,MAX_STRING,ClientINI);       clientOverride = atoi(szBuffer);
     GetPrivateProfileString("MacroQuest","ClientVersion","0",szBuffer,MAX_STRING,ClientINI);
     GetPrivateProfileString("MacroQuest","ClientName","eqgame",ClientName,MAX_STRING,ClientINI);
@@ -156,6 +180,10 @@ BOOL ParseINIFile(PCHAR lpINIPath)
 
 	GetPrivateProfileString("Memory Locations","EQP_IDArray","0",szBuffer,MAX_STRING,ClientINI);             ppEQP_IDArray = (EQPlayer **)strtoul(szBuffer,NULL,16);
 	GetPrivateProfileString("Memory Locations","CurrentMapLabel","0",szBuffer,MAX_STRING,ClientINI);             ppCurrentMapLabel = (PMAPLABEL *)strtoul(szBuffer,NULL,16);
+/**/
+
+
+
 
 	gFilterSkillsAll = 0!=GetPrivateProfileInt("MacroQuest","FilterSkills",0,Filename);
     gFilterSkillsIncrease = 2==GetPrivateProfileInt("MacroQuest","FilterSkills",0,Filename);

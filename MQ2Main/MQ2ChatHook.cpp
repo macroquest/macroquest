@@ -44,7 +44,8 @@ public:
 
 		if (!Filtered) { 
 //			if (gTelnetServer && gTelnetConnection && !gPauseTelnetOutput) TelnetServer_Write(szMsg); 
-			Benchmark(bmPluginsIncomingChat,BOOL SkipTrampoline=PluginsIncomingChat(szMsg,dwColor));
+			BOOL SkipTrampoline;
+			Benchmark(bmPluginsIncomingChat,SkipTrampoline=PluginsIncomingChat(szMsg,dwColor));
 			if (!SkipTrampoline)
 				Trampoline(szMsg, dwColor, dwUnknown); 
 		} 

@@ -6,13 +6,14 @@
 // and Shutdown for setup and cleanup, do NOT do it in DllMain.
 
 
-
+//#define DEBUG_TRY
 #include "../MQ2Plugin.h"
 #include <map>
 using namespace std;
 
 #define pMap     ((PEQMAPWINDOW)pMapViewWnd)
 
+#define FAKESPAWNTYPE 0xFF
 
 typedef struct _MAPSPAWN
 {
@@ -28,7 +29,7 @@ typedef struct _MAPSPAWN
 
 //PMAPLINEX pActiveLines=0;
 PMAPSPAWN pActiveSpawns=0;
-map<PSPAWNINFO,PMAPSPAWN> SpawnMap;
+map<unsigned long,PMAPSPAWN> SpawnMap;
 map<PGROUNDITEM,PMAPSPAWN> GroundItemMap;
 BOOL Update=false;
 
@@ -360,7 +361,7 @@ PMAPSPAWN AddSpawn(PSPAWNINFO pNewSpawn)
 	if (pActiveSpawns)
 		pActiveSpawns->pLast=pMapSpawn;
 	pActiveSpawns=pMapSpawn;
-	SpawnMap[pNewSpawn]=pMapSpawn;
+	SpawnMap[pNewSpawn->SpawnID]=pMapSpawn;
 	return pMapSpawn;
 }
 
@@ -399,6 +400,7 @@ PMAPSPAWN AddSpawnNoMap(PSPAWNINFO pNewSpawn)
 // NOTE: When you zone, these will come BEFORE OnZoned
 PLUGIN_API VOID OnAddSpawn(PSPAWNINFO pNewSpawn)
 {
+	DebugSpewAlways("MQ2Map::OnAddSpawn(%s)",pNewSpawn->Name);
 	AddSpawn(pNewSpawn);
 }
 
@@ -430,8 +432,8 @@ BOOL RemoveSpawn(PMAPSPAWN pMapSpawn)
 			pMapSpawn->pVector=0;
 		}
 
-		SpawnMap[pMapSpawn->pSpawn]=0;
-		if (pMapSpawn->pSpawn->Type==-1)
+		SpawnMap[pMapSpawn->pSpawn->SpawnID]=0;
+		if (pMapSpawn->pSpawn->Type==FAKESPAWNTYPE)
 			delete pMapSpawn->pSpawn;
 		delete pMapSpawn;
 	return true;
@@ -465,7 +467,7 @@ BOOL RemoveSpawnNoMap(PMAPSPAWN pMapSpawn)
 			pMapSpawn->pVector=0;
 		}
 
-		if (pMapSpawn->pSpawn->Type==-1)
+		if (pMapSpawn->pSpawn->Type==FAKESPAWNTYPE)
 			delete pMapSpawn->pSpawn;
 		delete pMapSpawn;
 	return true;
@@ -477,8 +479,8 @@ PLUGIN_API VOID OnRemoveSpawn(PSPAWNINFO pSpawn)
 {
 	if (!pMapViewWnd)
 		return;
-//	DebugSpewAlways("MQ2Map::OnRemoveSpawn(%s)",pSpawn->Name);
-	if (!RemoveSpawn(SpawnMap[pSpawn]))
+	DebugSpewAlways("MQ2Map::OnRemoveSpawn(%s)",pSpawn->Name);
+	if (!RemoveSpawn(SpawnMap[pSpawn->SpawnID]))
 	{
 //		DebugSpew("MQ2Map::OnRemoveSpawn - Spawn not found in list");
 	}
@@ -496,7 +498,7 @@ PLUGIN_API VOID OnAddGroundItem(PGROUNDITEM pNewGroundItem)
     pFakeSpawn->X = pNewGroundItem->X;
     pFakeSpawn->Y = pNewGroundItem->Y;
     pFakeSpawn->Z = pNewGroundItem->Z;
-	pFakeSpawn->Type=-1;
+	pFakeSpawn->Type=FAKESPAWNTYPE;
 	PMAPSPAWN pMapSpawn=AddSpawn(pFakeSpawn);
 	if (pMapSpawn)
 		GroundItemMap[pNewGroundItem]=pMapSpawn;
@@ -520,10 +522,12 @@ PLUGIN_API VOID OnRemoveGroundItem(PGROUNDITEM pGroundItem)
 
 VOID ClearMap()
 {
+	GroundItemMap.clear();
+	SpawnMap.clear();
     if (!pMap)
         return;
 	DebugSpew("MQ2Map::ClearMap");
-	while(pActiveSpawns)
+	while(pActiveSpawns) 
 	{
 		PMAPSPAWN pNextActive=pActiveSpawns->pNext;
 		
@@ -534,9 +538,8 @@ VOID ClearMap()
 			pMap->pLabels=pLabel->pNext;
 		if (pLabel->pNext)
 			pLabel->pNext->pPrev=pLabel->pPrev;
-		free(pLabel->Label);
-		delete pLabel;
-		SpawnMap[pActiveSpawns->pSpawn]=0;
+		DebugTry(free(pLabel->Label));
+		DebugTry(delete pLabel);
 
 		if (pActiveSpawns->pVector)
 		{
@@ -544,13 +547,14 @@ VOID ClearMap()
 			pActiveSpawns->pVector=0;
 		}
 
-		if (pActiveSpawns->pSpawn->Type==-1) // fake!
+		if (pActiveSpawns->pSpawn->Type==FAKESPAWNTYPE) // fake!
 			delete pActiveSpawns->pSpawn;
 
 		delete pActiveSpawns;
 		pActiveSpawns=pNextActive;
 	}
 	pLastTarget=0;
+	pLastSafeTarget=0;
 	if (pTargetLine)
 	{
 		DeleteLine(pTargetLine);
@@ -573,7 +577,7 @@ VOID ClearMap()
 			pTargetRadius[i]=0;
 		}
 	}
-	GroundItemMap.clear();
+
 }
 
 VOID UpdateMap()
@@ -588,13 +592,13 @@ VOID UpdateMap()
 	// remove "last target"
 	if (pLastTarget && pLastTarget->pSpawn!=(PSPAWNINFO)pTarget)
 	{
-		RemoveSpawn(pLastTarget);
+		RemoveSpawnNoMap(pLastTarget);
 		pLastTarget=0;
 	}
 
 	if (pLastSafeTarget && pLastSafeTarget!=(PSPAWNINFO)pTarget)
 	{
-		if (pMapSpawn=SpawnMap[pLastSafeTarget])
+		if (pMapSpawn=SpawnMap[pLastSafeTarget->SpawnID])
 		{
 			free(pMapSpawn->pMapLabel->Label);
 			pMapSpawn->pMapLabel->Label=GenerateSpawnName(pLastSafeTarget,MapNameString);
@@ -699,7 +703,7 @@ VOID UpdateMap()
 		}
 		else
 		{
-			PMAPSPAWN pMapSpawn=SpawnMap[(PSPAWNINFO)pTarget];
+			PMAPSPAWN pMapSpawn=SpawnMap[((PSPAWNINFO)pTarget)->SpawnID];
 			if (pMapSpawn)
 			{
 				pLastSafeTarget=(PSPAWNINFO)pTarget;
@@ -799,6 +803,8 @@ VOID GenerateMap()
 		OnAddSpawn(pSpawn);
 		pSpawn=pSpawn->pNext;
 	}	
+	if (!IsOptionEnabled(MAPFILTER_Ground))
+		return;
 	PGROUNDITEM pItem=(PGROUNDITEM)pItemList;
 	while(pItem)
 	{
@@ -885,8 +891,8 @@ PMAPLABEL GenerateLabel(PMAPSPAWN pMapSpawn, DWORD Color)
     pLabel->Color.ARGB = Color;
     pLabel->Width = 20;
     pLabel->Height= 14;
-    pLabel->unk_0x2c = 0xfffffff5;
-	pLabel->unk_0x30 = 0xfffffff0;
+    pLabel->unk_0x2c = 0;
+	pLabel->unk_0x30 = 0;
 
 
     pLabel->pPrev = NULL;
@@ -1180,10 +1186,10 @@ PCHAR GenerateSpawnName(PSPAWNINFO pSpawn, PCHAR NameString)
 			case 'z':
 				AddFloat10th(pSpawn->Z);
 				break;
-			case 'r':
+			case 'R':
 				AddString(pEverQuest->GetRaceDesc(pSpawn->Race));
 				break;
-			case 'c':
+			case 'C':
 				AddString(pEverQuest->GetClassDesc(pSpawn->Class));
 				break;
 			case 'l':
@@ -1199,7 +1205,9 @@ PCHAR GenerateSpawnName(PSPAWNINFO pSpawn, PCHAR NameString)
 	}
 	Name[outpos]=0;
 
-	return strdup(Name);
+	PCHAR ret=(PCHAR)malloc(strlen(Name)+1);
+	strcpy(ret,Name);
+	return ret;
 	//return CleanupName(strdup(pSpawn->Name),FALSE);
 }
 
@@ -1246,4 +1254,3 @@ VOID MapNames(PSPAWNINFO pChar, PCHAR szLine)
 		WriteChatColor("Usage: /mapnames <target|normal> [value|reset]");
 	}
 }
-

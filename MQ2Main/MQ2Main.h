@@ -92,6 +92,23 @@ extern DWORD CountFrees;
 	__asm{jmp eax};\
 }
 
+#define PreserveRegisters(code) \
+{\
+	__asm {push eax};\
+	__asm {push ebx};\
+	__asm {push ecx};\
+	__asm {push edx};\
+	__asm {push esi};\
+	__asm {push edi};\
+	code;\
+	__asm {pop edi};\
+	__asm {pop esi};\
+	__asm {pop edx};\
+	__asm {pop ecx};\
+	__asm {pop ebx};\
+	__asm {pop eax};\
+}
+
 #define SetWndNotification(thisclass) \
 {\
 	int (thisclass::*pfWndNotification)(CXWnd *pWnd, unsigned int Message, void *unknown)=WndNotification;\
@@ -143,7 +160,7 @@ typedef double DOUBLE;
 #ifdef DISABLE_BENCHMARKS
 #define Benchmark(BMHandle,code) code
 #else
-#define Benchmark(BMHandle,code) EnterMQ2Benchmark(BMHandle);code;ExitMQ2Benchmark(BMHandle)
+#define Benchmark(BMHandle,code) {EnterMQ2Benchmark(BMHandle);code;ExitMQ2Benchmark(BMHandle);}
 #endif
 EQLIB_API VOID ShutdownMQ2Benchmarks();
 EQLIB_API VOID InitializeMQ2Benchmarks();

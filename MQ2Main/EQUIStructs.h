@@ -565,7 +565,7 @@ typedef struct _POINT3 {
 
 // plazmic 08-17-03
 // Map Window
-typedef struct _MAPLABEL { // sizeof() = 0x34
+typedef struct _MAPLABEL { // sizeof() = 0x28
 /*0x00*/    struct _MAPLABEL *pNext;
 /*0x04*/    struct _MAPLABEL *pPrev;
 /*0x08*/    POINT3 Location;

@@ -77,19 +77,21 @@ public:
 						pPendingGrounds=pPending->pNext;
 					delete pPending;
 					LeaveCriticalSection(&csPendingGrounds);
+					__asm {
+						pop ecx;
+					};
 					dEQItemList_Trampoline();
 					return;
 				}
 				pPending=pPending->pNext;
 			}
 			LeaveCriticalSection(&csPendingGrounds);
-			__asm
-			{
-				pop ecx;
-			};
 		}
-
-		PluginsRemoveGroundItem((PGROUNDITEM)this);
+		PluginsRemoveGroundItem((PGROUNDITEM)pGroundItem);
+		__asm
+		{
+			pop ecx;
+		};
 		dEQItemList_Trampoline();
 	}
 };
@@ -126,12 +128,18 @@ public:
 
 		EQPlayer_Trampoline(a,b,c,d,e);
 		EQPlayer_ExtraDetour(pSpawn);
+		//PreserveRegisters(PluginsAddSpawn((PSPAWNINFO)pSpawn));
 	}
 
 	void dEQPlayer_Trampoline(void);
 	void dEQPlayer_Detour(void)
 	{
-		PluginsRemoveSpawn((PSPAWNINFO)this);
+		PSPAWNINFO pSpawn;
+		__asm {mov [pSpawn], ecx};
+		__asm {push ecx};
+//		PreserveRegisters(PluginsRemoveSpawn((PSPAWNINFO)pSpawn));
+		PluginsRemoveSpawn((PSPAWNINFO)pSpawn);
+		__asm {pop ecx};
 		dEQPlayer_Trampoline();
 	}
 

@@ -1090,7 +1090,7 @@ DWORD parmTarget(PCHAR szVar, PCHAR szOutput, PSPAWNINFO pChar)
         strcpy(szOutput,"NULL");
 
     // $target(deity)
-    } else if (!strncmp("target(deity)",szVar,13)) {
+	} else if (!strncmp("target(deity)",szVar,13)) {
         i+=12;
         CHAR szTemp[MAX_STRING] = {0};
         strcpy(szTemp,pEverQuest->GetDeityDesc(psTarget->Deity));

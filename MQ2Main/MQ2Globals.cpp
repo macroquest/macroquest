@@ -121,7 +121,6 @@ CHAR gLastFindSlot[MAX_STRING]={0};
 CHAR gLastError[MAX_STRING] = {0};
 HWND ghWnd = NULL;
 PFILTER gpFilters = NULL;
-PSPELLFAVORITE EQADDR_SPELLFAVORITES = NULL;
 
 BOOL g_bInDXMouse = FALSE;
 PMOUSESPOOF gMouseData = NULL;
@@ -139,69 +138,71 @@ fEQCommand        cmdCharInfo    =  NULL;
 fEQCommand        cmdFilter      =  NULL;
 fEQCommand        cmdDoAbility   =  NULL;
 fEQCommand        cmdCast        =  NULL;
-fEQGetStringByID  GetRaceByID    =  NULL;
-fEQGetStringByID  GetClassByID   =  NULL;
-fEQGetStringByID  GetDeityByID   =  NULL;
-fEQGetStringByID  GetBodyTypeByID=  NULL;
-fEQScreenItem     ScreenItem     =  NULL;
-fEQScreenSpawn    ScreenSpawn    =  NULL;
-fEQNewUIINI       NewUIINI   =  NULL;
-fEQMemSpell       cmdMemSpell    =  NULL;
-fEQLoadSpells     cmdLoadSpells  =  NULL;
-fEQSelectItem     cmdSelectItem  =  NULL;
-fEQBuyItem        cmdBuyItem     =  NULL;
-fEQSellItem       cmdSellItem    =  NULL;
-fEQProcGameEvts   ProcessGameEvents = NULL;
-fEQSendMessage    send_message = NULL;
-fEQExecuteCmd	  ExecuteCmd = NULL;
+
+//fEQGetStringByID  GetRaceByID    =  NULL;
+//fEQGetStringByID  GetClassByID   =  NULL;
+//fEQGetStringByID  GetDeityByID   =  NULL;
+//fEQGetStringByID  GetBodyTypeByID=  NULL;
+//fEQScreenItem     ScreenItem     =  NULL;
+//fEQScreenSpawn    ScreenSpawn    =  NULL;
+fEQNewUIINI       NewUIINI   =  (fEQNewUIINI)__NewUIINI;
+//fEQMemSpell       cmdMemSpell    =  NULL;
+//fEQLoadSpells     cmdLoadSpells  =  NULL;
+//fEQSelectItem     cmdSelectItem  =  NULL;
+//fEQBuyItem        cmdBuyItem     =  NULL;
+//fEQSellItem       cmdSellItem    =  NULL;
+fEQProcGameEvts   ProcessGameEvents = (fEQProcGameEvts)__ProcessGameEvents;
+fEQSendMessage    send_message = (fEQSendMessage)__SendMessage;
+fEQExecuteCmd	  ExecuteCmd = (fEQExecuteCmd)__ExecuteCmd;
 
 // EQ Address Initialization
-DWORD EQADDR_HWND=0;
-DWORD EQADDR_COMMANDS=0;
-DWORD EQADDR_MEMCHECK=0;
-DWORD EQADDR_MEMCHECK2=0;
-DWORD EQADDR_MEMCHECKADDR1=0;
-DWORD EQADDR_MEMCHECKADDR2=0;
-DWORD EQADDR_MEMCHECK3=0;
-PCHAR EQADDR_SERVERHOST=0;
-PCHAR EQADDR_SERVERNAME=0;
-PCHAR *EQADDR_ACTIVEMERCHANT=0;
-PCHAR *EQADDR_ACTIVECORPSE=0;
-PPACKLOC EQADDR_PACKLOCS=0;
-DWORD EQADDR_CONVERTITEMTAGS=0;
-PCMDLIST EQADDR_CMDLIST=0;
+DWORD EQADDR_HWND=0x6D5190;
+//DWORD EQADDR_COMMANDS=0;
+DWORD EQADDR_MEMCHECK=__MemChecker1;
+DWORD EQADDR_MEMCHECK2=__MemChecker2;
+DWORD EQADDR_MEMCHECKADDR1=__MemCheckAddr1;
+DWORD EQADDR_MEMCHECKADDR2=__MemCheckAddr2;
+DWORD EQADDR_MEMCHECK3=__MemChecker3;
+PCHAR EQADDR_SERVERHOST=(PCHAR)__ServerHost;
+PCHAR EQADDR_SERVERNAME=(PCHAR)__ServerName;
+//PCHAR *EQADDR_ACTIVEMERCHANT=0;
+//PCHAR *EQADDR_ACTIVECORPSE=0;
+//PPACKLOC EQADDR_PACKLOCS=0;
+DWORD EQADDR_CONVERTITEMTAGS=__ConvertItemTags;
+PCMDLIST EQADDR_CMDLIST=(PCMDLIST)__CommandList;
 
-PBYTE EQADDR_ATTACK=0;
-PBYTE EQADDR_NOTINCHATMODE=0;
+PBYTE EQADDR_ATTACK=(PBYTE)__Attack;
+PBYTE EQADDR_NOTINCHATMODE=(PBYTE)__InChatMode;
 
-PCHAR EQADDR_LASTTELL=0;
-PGROUNDITEM *EQADDR_ITEMS=0;
-//_SPELLPOINTER** EQADDR_SPELLS=0;
-PBYTE EQADDR_GROUPCOUNT=0;
-PVOID EQADDR_GWORLD=0;
-PDOORTABLE *EQADDR_DOORS=0;
-DWORD EQADDR_GUILDLIST=0;
-PDWORD EQADDR_DOABILITYLIST=0;
+PCHAR EQADDR_LASTTELL=(PCHAR)__LastTell;
+//PGROUNDITEM *EQADDR_ITEMS=0;
+PBYTE EQADDR_GROUPCOUNT=(PBYTE)__GroupCount;
+PVOID EQADDR_GWORLD=(PVOID)__gWorld;
+//PDOORTABLE *EQADDR_DOORS=0;
+DWORD EQADDR_GUILDLIST=__Guilds;
+PDWORD EQADDR_DOABILITYLIST=(PDWORD)__DoAbilityList;
 
-PBYTE EQADDR_DOABILITYAVAILABLE=0;
+PBYTE EQADDR_DOABILITYAVAILABLE=(PBYTE)__DoAbilityAvailable;
 
-PMAPLABEL *ppCurrentMapLabel=0;
-PCHAR *EQMappableCommandList=0;
+PMAPLABEL *ppCurrentMapLabel=(PMAPLABEL*)__CurrentMapLabel;
+PCHAR *EQMappableCommandList=(PCHAR*)__BindList;
 
-PBYTE EQADDR_ENCRYPTPAD=0;
-PBYTE EQADDR_ENCRYPTPAD2=0;
-PBYTE EQADDR_ENCRYPTPAD3=0;
+PBYTE EQADDR_ENCRYPTPAD=(PBYTE)__EncryptPad1;
+PBYTE EQADDR_ENCRYPTPAD2=(PBYTE)__EncryptPad2;
+PBYTE EQADDR_ENCRYPTPAD3=(PBYTE)__EncryptPad3;
 
-EQLIB_VAR DWORD *pScreenX=0;
-EQLIB_VAR DWORD *pScreenY=0;
+DWORD *pScreenX=(DWORD*)__ScreenX;
+DWORD *pScreenY=(DWORD*)__ScreenY;
 
-PMOUSEINFO EQADDR_MOUSE=0;
-PMOUSECLICK EQADDR_MOUSECLICK=0;
+PMOUSEINFO EQADDR_MOUSE=(PMOUSEINFO)__Mouse;
+PMOUSECLICK EQADDR_MOUSECLICK=(PMOUSECLICK)__Clicks;
+
+//PSPELLFAVORITE EQADDR_SPELLFAVORITES = NULL;
 
 
-DWORD EQADDR_DIMAIN=0;
-IDirectInputDevice8A **EQADDR_DIKEYBOARD=0;
-IDirectInputDevice8A **EQADDR_DIMOUSE=0;
+DWORD EQADDR_DIMAIN=DI8__Main;
+IDirectInputDevice8A **EQADDR_DIKEYBOARD=(IDirectInputDevice8A **)DI8__Keyboard;
+IDirectInputDevice8A **EQADDR_DIMOUSE=(IDirectInputDevice8A **)DI8__Mouse;
 
 // Motd and Pulse's mouse variables
 BOOL gMouseLeftClickInProgress = FALSE;
@@ -427,7 +428,8 @@ PCHAR szAugRestrictions[] = {
 }; 
 
 
-EQPlayer **ppEQP_IDArray=0;
+EQPlayer **ppEQP_IDArray=(EQPlayer**)__EQP_IDArray;
+
 CEverQuest **ppEverQuest=(CEverQuest**)pinstCEverQuest;
 CDisplay **ppDisplay=(CDisplay**)pinstCDisplay;
 EQ_PC **ppPCData=(EQ_PC**)pinstPCData;

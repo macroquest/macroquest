@@ -351,8 +351,17 @@ typedef struct _ITEMINFO {
 /*0x204*/  BYTE  		SizeCapacity;
 /*0x205*/  BYTE  		WeightReduction;
 /*0x206*/  BYTE  		Unknown0x206[0x2];
-/*0x208*/  DWORD		Favor;  // Tribute Value
-/*0x20c*/
+/*0x208*/  DWORD      Favor;  // Tribute Value
+/*0x20c*/  DWORD      Unknown0x20c;
+/*0x210*/  DWORD      Endurance;
+/*0x214*/  DWORD      Attack;
+/*0x218*/  DWORD      HPRegen;
+/*0x21c*/  DWORD      ManaRegen;
+/*0x220*/  DWORD      Haste;
+/*0x224*/  DWORD      DamShield;
+/*0x228*/  DWORD      Unknown0x228;
+/*0x22c*/  DWORD      Unknown0x22c;
+/*0x230*/ 
 } ITEMINFO, *PITEMINFO; 
 
 typedef struct _CONTENTS {
@@ -419,6 +428,7 @@ typedef struct _INVENTORY {
 
 #define      NUM_BANK_SLOTS         0x12
 #define      NUM_BOOK_SLOTS         0x200
+// actual size 0xa020 3-10-2004
 typedef struct _CHARINFO { 
 /*0x0000*/	BYTE		Unknown00000; 
 /*0x0001*/	BYTE		Unknown00001; 
@@ -528,20 +538,25 @@ union{
 /*0x0e44*/	DWORD		SavePoison; 
 /*0x0e48*/	DWORD		SaveDisease; 
 /*0x0e4c*/	DWORD		Unknown0x0e4c; 
-/*0x0e50*/	DWORD		CurrWeight; 
-/*0x0e54*/	DWORD		Unknown0x0e54; 
-/*0x0e58*/	DWORD		HPBonus;       //From +HP Gear & Probably Spells 
-/*0x0e5c*/	DWORD		ManaBonus;       //From +MANA Gear & Probably Spells 
-/*0x0e60*/  BYTE		Unknown0xe60[0x4c];
-/*0x0eac*/  DWORD		field_EAC;     // This is some sort of pointer
-/*0x0eb0*/  BYTE		UnknownData0xeb0;  // data here'
-/*0x0eb1*/	BYTE		Unknown0xeb1[0x3]; 
-/*0x0eb4*/	SPELLBUFF	ShortBuff[0x6]; // May be wrong, untested
-/*0x0ed0*/	BYTE		Unknown0x0ed0[0x108]; 
-/*0x101c*/	DWORD		ZoneBoundId; 
-/*0x1020*/	BYTE		Unknown0x1018[0x10]; 
-/*0x1030*/	FLOAT		ZoneBoundY; 
-/*0x1034*/	BYTE		Unknown0x102c[0x10]; 
+/*0x0e50*/   DWORD      CurrWeight;
+/*0x0e54*/   DWORD      Unknown0x0e54;
+/*0x0e58*/   DWORD      HPBonus;       //From +HP Gear & Probably Spells
+/*0x0e5c*/   DWORD      ManaBonus;       //From +MANA Gear & Probably Spells
+/*0x0e60*/  BYTE       Unknown0xe60[0x4c];
+/*0x0eac*/  DWORD      AttackBonus;  // From gear only
+/*0x0eb0*/  DWORD      HPRegenBonus; // From gear only
+/*0x0eb4*/  DWORD      ManaRegenBonus;  // From gear only
+/*0x0eb8*/  DWORD      DamageShieldBonus;  // From gear only
+/*0x0ebc*/  DWORD      AttackSpeed;  // From gear only
+/*0x0ec0*/  DWORD      field_EC0;     // This is some sort of pointer
+/*0x0ec4*/  BYTE       UnknownData0xec4;  // data here'
+/*0x0ec5*/  BYTE       Unknown0xec5[0x13];
+/*0x0ed8*/  SPELLBUFF  ShortBuff[0x6];
+/*0x0f38*/  BYTE       Unknown0x0f34[0xf8];
+/*0x1030*/  DWORD      ZoneBoundId; 
+/*0x    */	BYTE		Unknown0x1018[0x10]; 
+/*0x    */	FLOAT		ZoneBoundY; 
+/*0x    */	BYTE		Unknown0x102c[0x10]; 
 /*0x1044*/	FLOAT		ZoneBoundX; 
 /*0x1048*/	BYTE		Unknown0x1040[0x10]; 
 /*0x1058*/	FLOAT		ZoneBoundZ; 
@@ -587,6 +602,8 @@ union{
 /*0x9aac*/	struct		_CONTENTS* Bank[NUM_BANK_SLOTS]; 
 /*0x9af4*/	BYTE		Unknown0x9af4[0xa8];
 /*0x9B9C*/	BYTE		Grouped;
+/*...   */
+/*0xA020*/
 } CHARINFO, *PCHARINFO; 
 
 typedef struct _MODELINFONAME {
@@ -648,6 +665,7 @@ typedef struct _CAMERAINFO {
 
 
 // 02-10-2004 build      Amadeus
+// actual size 0x2948  3-10-2004
 typedef struct _ACTORINFO {
 /*0x0000*/   struct		_CAMERAINFO *pCamera;
 /*0x0004*/   DWORD		Unknown0000;
@@ -693,6 +711,7 @@ typedef struct _ACTORINFO {
 /*0x2754*/   BYTE		Unknown0x2754[0x1a0];
 /*0x28f4*/   DWORD		Trader;                      //0=normal 1=trader
 /*0x28f8*/   BYTE		Unknown0x28f8[0x50];
+/*0x2948*/
 } ACTORINFO, *PACTORINFO; 
 
 #define MODEL_LABEL         0 
@@ -755,7 +774,7 @@ typedef struct _EQUIPMENT {
    };
 } EQUIPMENT, *PEQUIPMENT;
 
-// actual size 0x1C0  12-19-2003
+// actual size 0x200  3-10-2004
 typedef struct _SPAWNINFO {
 /*0x000*/   BYTE    Unknown0x000;
 /*0x001*/   CHAR	Lastname[0x27];  // // Surname on PCs, Newbie Tag on NPCs 
@@ -836,6 +855,7 @@ typedef struct _SPAWNINFO {
 /*0x1f0*/   DWORD   GuildID;
 /*0x1f4*/   BYTE    Levitate;   //0-normal state  2=levitating 3=mob (not levitating)
 /*0x1f5*/   BYTE    Unknown0x1f5[0xb]; 
+/*0x200*/
 } SPAWNINFO, *PSPAWNINFO;
 
 #define STANDSTATE_STAND            0x64
@@ -1022,7 +1042,7 @@ typedef struct _SPELL {
 /*0x164*/   BYTE    Unknown0x164;
 /*0x165*/	BYTE	Unknown0x165;  //data here on detrimental spells
 /*0x166*/	BYTE	Unknown0x166;  //data here on detrimental spells 
-/*0x167*/	BYTE	Unknown0x167[0x2d];
+/*0x167*/	BYTE	Unknown0x167[0x35];
 /*0x194*/   CHAR	*Name; 
 /*0x198*/   CHAR	*Target; 
 /*0x19c*/   CHAR	*Extra;			// This is 'Extra' from Lucy (portal shortnames etc)
