@@ -2134,12 +2134,6 @@ bool MQ2MacroType::GetMember(MQ2VARPTR VarPtr, PCHAR Member, PCHAR Index, MQ2TYP
 		Dest.DWord=(DWORD)((GetTickCount()-gRunning)/1000);
 		Dest.Type=pIntType;
 		return true;
-	case Defined:
-		if (!Index[0])
-			return false;
-		Dest.DWord=IsVariableDefined(Index);
-		Dest.Type=pBoolType;
-		return true;
 	case Return:
 		Dest.Ptr=&DataTypeTemp[0];
 		strcpy(DataTypeTemp,gMacroStack->Return);

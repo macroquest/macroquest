@@ -1,3 +1,10 @@
+8 Apr 2004 by Lax
+- MQ2Data changes:
+  - macro.Defined is now a top level object instead
+    bool Defined[name]
+  - Fixed all variable parsing when MQ2Parms is not on
+- Fixed a major problem with /newif, should now "work as intended"
+
 7 Apr 2004 by Lax
 - Changes to MQ2Data system:
   *** NOTICE: All X and Y coordinates used by the MQ2Data system have been REVERSED.

@@ -1676,18 +1676,11 @@ VOID NewIf(PSPAWNINFO pChar, PCHAR szLine)
         return;
     }
 
-	BOOL True=true;
-	if ((szCond[0]>='0' && szCond[0]<='9') || szCond[0]=='-')
-	{
-		DOUBLE Result=0;
-		if (!Calculate(szCond,Result))
-			FailIfParsing();
-		True=(Result!=0);
-	}
-	else if (!stricmp(szCond,"NULL") ||
-				!stricmp(szCond,"FALSE"))
-				True=false;
-	if (True)
+	DOUBLE Result=0;
+	if (!Calculate(szCond,Result))
+		FailIfParsing();
+
+	if (Result!=0)
 		DoCommand(pChar,szCommand); 
 	else
 		FailIf(pChar,szCommand, gMacroBlock);

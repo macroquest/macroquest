@@ -1164,14 +1164,12 @@ public:
 	{
 		Name=1,
 		RunTime=2,
-		Defined=3,
 		Return=4,
 	};
 	MQ2MacroType():MQ2Type("macro")
 	{
 		TypeMember(Name);
 		TypeMember(RunTime);
-		TypeMember(Defined);
 		TypeMember(Return);
 	}
 

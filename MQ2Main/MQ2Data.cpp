@@ -487,4 +487,11 @@ BOOL dataIni(PCHAR szIndex, MQ2TYPEVAR &Ret)
 	return false;
 }
 
-
+BOOL dataDefined(PCHAR szIndex, MQ2TYPEVAR &Ret)
+{
+	if (!szIndex[0])
+		return false;
+	Ret.DWord=IsVariableDefined(szIndex);
+	Ret.Type=pBoolType;
+	return true;
+}

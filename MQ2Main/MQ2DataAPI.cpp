@@ -142,6 +142,7 @@ void InitializeMQ2Data()
 	AddMQ2Data("GameTime",dataGameTime);
 	AddMQ2Data("Ini",dataIni);
 	AddMQ2Data("Heading",dataHeading);
+	AddMQ2Data("Defined",dataDefined);
 }
 
 
@@ -205,9 +206,8 @@ BOOL NewSearchArrays(PCHAR szString)
 	PCHAR pLP=strchr(szArray,'(');
 	if (pLP && (strchr(szArray,')'))) {
 		Index1=atoi(&pLP[1]);
-		PCHAR pComma=strchr(szArray,',');
-		if (pComma) 
-			Index2=atoi(pComma);
+		if (PCHAR pComma=strchr(szArray,','))
+			Index2=atoi(&pComma[1]);
 		*pLP=0;
 	}
 	else
@@ -265,12 +265,12 @@ BOOL ParseMacroVariables(PCHAR szOriginal)
 
 		if (*pEnd=='(')
 		{
-			PCHAR pStart=pEnd;
+//			PCHAR pStart=pEnd;
 			BOOL Quote=false;
 			int nParens=1;
-			++pEnd;
 			while (nParens)
 			{
+				++pEnd;
 				if (*pEnd==0)
 				{// unmatched parenthesis or quote
 					goto pmvbottom;
@@ -290,6 +290,7 @@ BOOL ParseMacroVariables(PCHAR szOriginal)
 					Quote=!Quote;
 				}
 			} 
+			++pEnd;
 		}
 		
 		Len=(pEnd-pAt)-1;
@@ -317,7 +318,7 @@ pmvbottom:;
 	while(*Rep)
 	{
 		if (*Rep==-0x7E)
-			*Rep='$';
+			*Rep='@';
 		++Rep;
 	}
 /**/

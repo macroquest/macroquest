@@ -389,9 +389,9 @@ BOOL DeleteVariable(PCHAR szName)
 		return true;
 	if (FreeTimer(szName))
 		return true;
-	if (FreeStringVariable(szName,&gMacroStack->LocalStr))
-		return true;
 	if (FreeStringVariable(szName,&gMacroStr))
+		return true;
+	if (gMacroStack && FreeStringVariable(szName,&gMacroStack->LocalStr))
 		return true;
 	return false;
 }
