@@ -56,14 +56,9 @@ PCHAR GetEventStr(PEVENTSTACK pEvent, PCHAR szName, BOOL Create)
 }
 
 VOID CheckVariableRecursion(PCHAR szVar) {
-	PCHAR szAt = NULL;
-	while (szAt = strstr(szVar,"@")) szAt[0]='²';
+	while(szVar = strchr(szVar,'@')) szVar[0]='*';
 }
 
-// *************************************************************************** 
-// Function:    CChatHook::Detour 
-// Description: Our Chat Hook 
-// *************************************************************************** 
 VOID AddEvent(DWORD Event, PCHAR FirstArg, ...)
 { 
 	PEVENTSTACK pEvent = NULL; 
@@ -99,7 +94,7 @@ VOID AddEvent(DWORD Event, PCHAR FirstArg, ...)
 
 VOID CheckChatForEvent(PCHAR szMsg)
 {
-		if ((gMacroBlock) && (!gMacroPause) && (!gbUnload) && (!gZoning)/* && (!gDelayZoning)*/) { 
+		if ((gMacroBlock) && (!gMacroPause) && (!gbUnload) && (!gZoning)) { 
 			CHAR Arg1[MAX_STRING] = {0}; 
 			CHAR Arg2[MAX_STRING] = {0}; 
 			CHAR Arg3[MAX_STRING] = {0}; 
@@ -162,6 +157,7 @@ VOID CheckChatForEvent(PCHAR szMsg)
 			} 
 		} 
 }
+
 
 VOID DropTimers(VOID)
 {
@@ -326,33 +322,31 @@ VOID GetVariable(PCHAR szVar, PCHAR *szResult, PTIMER *pTimer)
 
 BOOL SearchVariables(PCHAR szVar,PCHAR szOutput,PVARSTRINGS pVarStrings)
 {
-	BOOL Found = FALSE;
-	while (pVarStrings && !Found) {
+	while (pVarStrings) {
 		if (!strcmp(szVar,pVarStrings->szName)) {
 			CheckVariableRecursion(pVarStrings->szVar);
 			strcat(szOutput,pVarStrings->szVar);
-			Found=TRUE;
+			return TRUE;
 		}
 		pVarStrings = pVarStrings->pNext;
 	}
-	return Found;
+	return FALSE;
 }
 
 
 BOOL SearchTimers(PCHAR szVar,PCHAR szOutput)
 {
 	PTIMER pTimer=gTimer;
-	BOOL Found = FALSE;
-	while (pTimer && !Found) {
+	while (pTimer) {
 		if (!strcmp(szVar,pTimer->szName)) {
 			CHAR szTemp[MAX_STRING] = {0};
 			itoa(pTimer->Current,szTemp,10);
 			strcat(szOutput,szTemp);
-			Found=TRUE;
+			return TRUE;
 		}
 		pTimer = pTimer->pNext;
 	}
-	return Found;
+	return FALSE;
 }
 
 
@@ -388,23 +382,17 @@ BOOL SearchArrays(PCHAR szVar,PCHAR szOutput)
 BOOL IsVariableDefined(PCHAR szVar) {
 	PCHAR szCheck = NULL;
 	PTIMER pCheck = NULL;
-
 	GetVariable(szVar,&szCheck,&pCheck);
-	if (szCheck || pCheck) {
+	if (szCheck || pCheck) 
 		return TRUE;
-	} else {
-		PVARARRAYS pArray = gArray;
-		BOOL IsArray = FALSE;
-		while (pArray && !IsArray) {
-			if (!strcmp(pArray->szName,szVar)) IsArray=TRUE;
-			pArray = pArray->pNext;
-		}
-		if (IsArray) {
+	PVARARRAYS pArray = gArray;
+	while (pArray) 
+	{
+		if (!strcmp(pArray->szName,szVar)) 
 			return TRUE;
-		} else {
-			return FALSE;
-		}
+		pArray = pArray->pNext;
 	}
+	return FALSE;
 }
 
 
@@ -447,3 +435,5 @@ VOID DeclareVar(PSPAWNINFO pChar, PCHAR szLine)
 		}
 	}
 }
+
+

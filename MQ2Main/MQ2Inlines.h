@@ -64,4 +64,9 @@ static inline eSpawnType GetSpawnType(PSPAWNINFO pSpawn)
 	}
 }
 
+static inline PCHARINFO GetCharInfo(VOID) {
+ //   if (!ppCharData) return NULL;
+    return (PCHARINFO)pCharData;
+}
+
 #define _FileExists(filename) ( (_access( filename, 0 )) != -1 )

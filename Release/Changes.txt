@@ -1,6 +1,15 @@
 ** eqgame.ini is no longer used/needed by MQ2!  All offsets have been integrated 
 ** into eqgame.h.  The client DATE/TIME are in eqgame.h also.
 
+20 Mar 2004 by Lax
+- Fixed /itemnotify
+- Renamed the "SpawnListTail" stuff to "LocalPlayer", added "ControlledPlayer".  These are
+  both EQPlayer and correspond to .. you.  If you're on a mount, the one thats moving is
+  ControlledPlayer. ** Things that use PCHARINFO to get your spawn should be phased out.
+- Added /docommand
+- Added /dosocial
+- Made some minor improvements in MQ2UserVars
+
 16 Mar 2004 by Lax (after patch)
 - Changed exe date/time checking to use the date/time strings compiled into the exe
 

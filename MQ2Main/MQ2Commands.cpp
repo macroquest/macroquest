@@ -3212,7 +3212,7 @@ if (!stricmp(szArg1,"item"))
       DWORD item = 0;
       DWORD slot = 0;
       DWORD SpawnFooter = NULL;
-      SpawnFooter = (DWORD)pSpawnListTail;
+      SpawnFooter = (DWORD)pLocalPlayer;
       for (int i=0;i<30;i++) {
          if (pCharInfo->InventoryArray[i])
             if (!_stricmp(szArg2,pCharInfo->InventoryArray[i]->Item->Name)) { 
@@ -4565,7 +4565,7 @@ VOID do_ranged(PSPAWNINFO pChar, PCHAR szLine)
 	}
 	if (gbRangedAttackReady)
 	{
-		pSpawnListTail->DoAttack(0x0B,0,pRangedTarget);
+		pLocalPlayer->DoAttack(0x0B,0,pRangedTarget);
 		gbRangedAttackReady=0;
 	}
 }
@@ -4614,6 +4614,17 @@ VOID SquelchCommand(PSPAWNINFO pChar, PCHAR szLine)
 	gFilterMQ=true;
 	DoCommand(pChar,szLine);
 	gFilterMQ=Temp;
+}
+
+// /docommand
+VOID DoCommandCmd(PSPAWNINFO pChar, PCHAR szLine)
+{
+	if (!szLine[0])
+	{
+		WriteChatColor("Usage: /docommand <command>");
+		return;
+	}
+	DoCommand(pChar,szLine);
 }
 
  // ***************************************************************************

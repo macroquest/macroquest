@@ -192,11 +192,6 @@ PSTR GetArg(PSTR szDest, PCSTR szSrc, DWORD dwNumber, BOOL LeaveQuotes, BOOL ToP
    return szDest;
 }
 
-PCHARINFO GetCharInfo(VOID) {
-    if (!ppCharData) return NULL;
-    return (PCHARINFO)pCharData;
-}
-
 PCHAR GetFuncParamName(PCHAR szMacroLine, DWORD ParamNum, PCHAR szParamName)
 {
     if (strnicmp(szMacroLine,"sub ",4)) return NULL;
@@ -2347,7 +2342,7 @@ havecfgfile:
 	{
 		PCHAR Cmd=strtok(szBuffer,"\r\n");
 		if (Cmd && Cmd[0])
-			HideDoCommand(((PSPAWNINFO)pSpawnListTail),Cmd,Delayed);
+			HideDoCommand(((PSPAWNINFO)pLocalPlayer),Cmd,Delayed);
 	}
 	fclose(file);
 	return true;

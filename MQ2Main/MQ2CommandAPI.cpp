@@ -454,13 +454,14 @@ void InitializeMQ2Commands()
 		{"/exec",      Exec,1,0}, 
 		{"/keypress",   DoMappable,1,0},
         {"/popup",      PopupText,1,1},
-		{"/multiline",  MultilineCommand,1,0},
+		{"/multiline",  MultilineCommand,0,0},
 		{"/bind",       MQ2KeyBindCommand,1,0},
 		{"/ranged",		do_ranged,1,1},
 		{"/loadcfg",	LoadCfgCommand,1,0},
 		{"/dumpbinds",	DumpBindsCommand,1,0},
 		{"/squelch",	SquelchCommand,1,0},
 		{"/dosocial",   DoSocial,1,1},
+		{"/docommand",  DoCommandCmd,1,0},
 		{NULL,          NULL,0,1},
     };
 

@@ -412,7 +412,7 @@ VOID DoRangedBind(PCHAR Name,BOOL Down)
 {
 	if (Down && pTarget && gbRangedAttackReady)
 	{
-		pSpawnListTail->DoAttack(0x0B,0,pTarget);
+		pLocalPlayer->DoAttack(0x0B,0,pTarget);
 		gbRangedAttackReady=0;
 	}
 }

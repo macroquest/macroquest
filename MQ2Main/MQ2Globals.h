@@ -112,7 +112,7 @@ EQLIB_VAR PDEFINE pDefines;
 EQLIB_VAR PEVENTLIST pEventList;
 EQLIB_VAR CHAR gLastFindSlot[MAX_STRING];
 EQLIB_VAR CHAR gLastError[MAX_STRING];
-EQLIB_VAR HWND ghWnd;
+//EQLIB_VAR HWND ghWnd;
 EQLIB_VAR PFILTER gpFilters;
 
 EQLIB_VAR BOOL g_bInDXMouse;
@@ -242,8 +242,14 @@ EQLIB_VAR EQPlayer **ppActiveMerchant;
 #define pActiveMerchant (*ppActiveMerchant)
 EQLIB_VAR EQPlayer **ppSpawnList;
 #define pSpawnList (*ppSpawnList)
-EQLIB_VAR EQPlayer **ppSpawnListTail;
-#define pSpawnListTail (*ppSpawnListTail)
+
+EQLIB_VAR EQPlayer **ppLocalPlayer;
+#define pLocalPlayer (*ppLocalPlayer)
+EQLIB_VAR EQPlayer **ppControlledPlayer;
+#define pControlledPlayer (*ppControlledPlayer)
+
+
+
 EQLIB_VAR EQWorldData **ppWorldData;
 #define pWorldData (*ppWorldData)
 EQLIB_VAR SpellManager **ppSpellMgr;

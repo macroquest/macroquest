@@ -159,6 +159,8 @@ typedef struct _VARSTRINGS {
     CHAR szName[MAX_VARNAME];
     CHAR szVar[MAX_STRING];
     struct _VARSTRINGS *pNext;
+	struct _VARSTRINGS *pPrev;
+	BOOL Macro;
 } VARSTRINGS, *PVARSTRINGS;
 
 typedef struct _VARARRAYS {
@@ -166,6 +168,8 @@ typedef struct _VARARRAYS {
     BOOL OneDimension;
     PVARSTRINGS pVarStrings;
     struct _VARARRAYS *pNext;
+	struct _VARARRAYS *pPrev;
+	BOOL Macro;
 } VARARRAYS, *PVARARRAYS;
 
 typedef struct _MACROSTACK {

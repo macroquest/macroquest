@@ -264,7 +264,6 @@ EQLIB_API VOID InitializeMQ2Pulse();
 EQLIB_API VOID ShutdownMQ2Pulse();
 
 /* UTILITIES */
-EQLIB_API PCHARINFO GetCharInfo(VOID);
 EQLIB_API VOID DebugSpew(PCHAR szFormat, ...);
 EQLIB_API VOID DebugSpewAlways(PCHAR szFormat, ...);
 EQLIB_API VOID DebugSpewNoFile(PCHAR szFormat, ...);
@@ -463,6 +462,7 @@ EQLIB_API DWORD parmPet							(PCHAR, PCHAR, PSPAWNINFO);
 EQLIB_API DOUBLE Calculate(PCHAR szFormula);
 
 /* COMMANDS */
+EQLIB_API VOID DoCommandCmd(PSPAWNINFO pChar, PCHAR szLine);
 EQLIB_API VOID SquelchCommand(PSPAWNINFO pChar, PCHAR szLine);
 EQLIB_API VOID DumpBindsCommand(PSPAWNINFO pChar, PCHAR szLine);
 EQLIB_API VOID LoadCfgCommand(PSPAWNINFO pChar, PCHAR szLine);

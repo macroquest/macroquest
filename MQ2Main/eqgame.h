@@ -74,7 +74,10 @@
 #define pinstCharData                                 0x737D58 
 #define pinstCharSpawn                                0x737D50 
 #define pinstSpawnList                                0x737D18 
-#define pinstSpawnListTail                            0x737D3C 
+// changed
+#define pinstLocalPlayer                              0x737D3C 
+// new
+#define pinstControlledPlayer						  0x737D50
 #define pinstWorldData                                0x737D14 
 #define pinstSpellManager                             0x792254 
 #define pinstActiveMerchant                           0x737D68 
