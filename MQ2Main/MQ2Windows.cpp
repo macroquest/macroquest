@@ -770,35 +770,35 @@ VOID ItemNotify(PSPAWNINFO pChar, PCHAR szLine)
 				{
 				case 0:
 					((CSidlScreenWnd*)pWnd)->INIStorageName=(PCXSTR)1;
-					pWnd->HandleLButtonDown(&pt);
+					pWnd->HandleLButtonDown(&pt,0);
 					break;
 				case 1:
 					((CSidlScreenWnd*)pWnd)->INIStorageName=(PCXSTR)1;
-					pWnd->HandleLButtonUp(&pt);
+					pWnd->HandleLButtonUp(&pt,0);
 					break;
 				case 2:
 					((CSidlScreenWnd*)pWnd)->INIStorageName=(PCXSTR)1;
-					pWnd->HandleLButtonHeld(&pt);
+					pWnd->HandleLButtonHeld(&pt,0);
 					break;
 				case 3:
 					((CSidlScreenWnd*)pWnd)->INIStorageName=(PCXSTR)1;
-					pWnd->HandleLButtonUpAfterHeld(&pt);
+					pWnd->HandleLButtonUpAfterHeld(&pt,0);
 					break;
 				case 4:
 					((CSidlScreenWnd*)pWnd)->INIStorageName=(PCXSTR)1;
-					pWnd->HandleRButtonDown(&pt);
+					pWnd->HandleRButtonDown(&pt,0);
 					break;
 				case 5:
 					((CSidlScreenWnd*)pWnd)->INIStorageName=(PCXSTR)1;
-					pWnd->HandleRButtonUp(&pt);
+					pWnd->HandleRButtonUp(&pt,0);
 					break;
 				case 6:
 					((CSidlScreenWnd*)pWnd)->INIStorageName=(PCXSTR)1;
-					pWnd->HandleRButtonHeld(&pt);
+					pWnd->HandleRButtonHeld(&pt,0);
 					break;
 				case 7:
 					((CSidlScreenWnd*)pWnd)->INIStorageName=(PCXSTR)1;
-					pWnd->HandleRButtonUpAfterHeld(&pt);
+					pWnd->HandleRButtonUpAfterHeld(&pt,0);
 					break;
 				};
 			}

@@ -37,14 +37,14 @@ REVERSE_VIRTUAL_DETOUR(int CXWnd::Show(bool,bool),0x0C0);
 REVERSE_VIRTUAL_DETOUR(int CXWnd::SetVScrollPos(int),0x100);
 REVERSE_VIRTUAL_DETOUR(void CXWnd::SetWindowTextA(class CXStr),0xfc);
 
-REVERSE_VIRTUAL_DETOUR(int CXWnd::HandleLButtonDown(class CXPoint *),0x34);
-REVERSE_VIRTUAL_DETOUR(int CXWnd::HandleLButtonUp(class CXPoint *),0x38);
-REVERSE_VIRTUAL_DETOUR(int CXWnd::HandleLButtonHeld(class CXPoint *),0x3C);
-REVERSE_VIRTUAL_DETOUR(int CXWnd::HandleLButtonUpAfterHeld(class CXPoint *),0x40);
-REVERSE_VIRTUAL_DETOUR(int CXWnd::HandleRButtonDown(class CXPoint *),0x44);
-REVERSE_VIRTUAL_DETOUR(int CXWnd::HandleRButtonUp(class CXPoint *),0x48);
-REVERSE_VIRTUAL_DETOUR(int CXWnd::HandleRButtonHeld(class CXPoint *),0x4C);
-REVERSE_VIRTUAL_DETOUR(int CXWnd::HandleRButtonUpAfterHeld(class CXPoint *),0x50);
+REVERSE_VIRTUAL_DETOUR(int CXWnd::HandleLButtonDown(class CXPoint *,unsigned __int32),0x34);
+REVERSE_VIRTUAL_DETOUR(int CXWnd::HandleLButtonUp(class CXPoint *,unsigned __int32),0x38);
+REVERSE_VIRTUAL_DETOUR(int CXWnd::HandleLButtonHeld(class CXPoint *,unsigned __int32),0x3C);
+REVERSE_VIRTUAL_DETOUR(int CXWnd::HandleLButtonUpAfterHeld(class CXPoint *,unsigned __int32),0x40);
+REVERSE_VIRTUAL_DETOUR(int CXWnd::HandleRButtonDown(class CXPoint *,unsigned __int32),0x44);
+REVERSE_VIRTUAL_DETOUR(int CXWnd::HandleRButtonUp(class CXPoint *,unsigned __int32),0x48);
+REVERSE_VIRTUAL_DETOUR(int CXWnd::HandleRButtonHeld(class CXPoint *,unsigned __int32),0x4C);
+REVERSE_VIRTUAL_DETOUR(int CXWnd::HandleRButtonUpAfterHeld(class CXPoint *,unsigned __int32),0x50);
 
 
 REVERSE_VIRTUAL_DETOUR(void CListWnd::DeleteAll(void),0x128);
