@@ -305,8 +305,8 @@ DWORD WINAPI MQ2Start(LPVOID lpParameter)
 
     WriteChatColor(UnloadedString,USERCOLOR_DEFAULT);
     DebugSpewAlways(UnloadedString);
-
-	DebugTry(InitializeMQ2KeyBinds());
+	UnloadMQ2Plugins();
+	DebugTry(ShutdownMQ2KeyBinds());
 	DebugTry(ShutdownMQ2Spawns());
 	DebugTry(ShutdownDisplayHook());
 	DebugTry(ShutdownMQ2DInput());

@@ -209,11 +209,21 @@ VOID InitializeMQ2Plugins()
     }
 }
 
+VOID UnloadMQ2Plugins()
+{
+	CAutoLock Lock(&gPluginCS);
+	while(pPlugins)
+	{
+		DebugSpew("%s->Unload()",pPlugins->szFilename);
+		UnloadMQ2Plugin(pPlugins->szFilename);
+	}
+}
+
 VOID ShutdownMQ2Plugins()
 {
 	bPluginCS=0;
 	{
-	//	CAutoLock Lock(&gPluginCS);
+		CAutoLock Lock(&gPluginCS);
 		while(pPlugins)
 		{
 			DebugSpew("%s->Unload()",pPlugins->szFilename);

@@ -110,7 +110,7 @@ VOID SpewMQ2BenchmarksToChat(PSPAWNINFO pChar, PCHAR szLine)
 				float Avg=0;
 				if (Benchmarks[i]->Count)
 					Avg=(float)Benchmarks[i]->TotalTime/(float)Benchmarks[i]->Count;
-				sprintf(out,"[\ay%s\ax] \at%d\ax for \at%d\axms, \at%.1f\ax avg",Benchmarks[i]->szName,Benchmarks[i]->Count,Benchmarks[i]->TotalTime,Avg);
+				sprintf(out,"[\ay%s\ax] \at%d\ax for \at%d\axms, \at%.2f\ax avg",Benchmarks[i]->szName,Benchmarks[i]->Count,Benchmarks[i]->TotalTime,Avg);
 				WriteChatColor(out);
 			}
 		}
@@ -130,7 +130,7 @@ VOID SpewMQ2Benchmarks()
 			float Avg=0;
 			if (Benchmarks[i]->Count)
 				Avg=(float)Benchmarks[i]->TotalTime/(float)Benchmarks[i]->Count;
-			DebugTry(DebugSpewAlways("%-40s  %d for %dms, %.1f avg",Benchmarks[i]->szName,Benchmarks[i]->Count,Benchmarks[i]->TotalTime,Avg));
+			DebugTry(DebugSpewAlways("%-40s  %d for %dms, %.2f avg",Benchmarks[i]->szName,Benchmarks[i]->Count,Benchmarks[i]->TotalTime,Avg));
 		}
 	}
 	DebugSpewAlways("--------------");
