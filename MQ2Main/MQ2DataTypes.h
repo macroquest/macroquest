@@ -501,7 +501,7 @@ public:
 		TypeMember(DistanceW);//8,
 		TypeMember(DistanceU);//9,
 		TypeMember(Invis);
-		TypeMember(LinkDead);
+		TypeMember(Linkdead);
 		TypeMember(LFG);
 		TypeMember(Trader);
 		TypeMember(AFK);
