@@ -1,7 +1,9 @@
 25 Apr 2004 by Lax (revision C changes):
 - Fixed merchant.Item[=name] and corpse.Item[=name]
 - Fixed character.PctEndurance
+- Fixed problems with tabs in macros, and also with leading and trailing whitespace
 - MQ2DataVars is READY.  Keep an eye out for important announcements about this!
+- Added MQ2Data types for MQ2DataVars: array, timer
 
 25 Apr 2004 by Lax (even more):
 - Hopefully fixed crash caused by fixing the "LastCommand" stuff...

@@ -753,7 +753,11 @@ bool MQ2StringType::GetMember(MQ2VARPTR VarPtr, PCHAR Member, PCHAR Index, MQ2TY
 				Len=-Len;
 				unsigned long StrLen=strlen((char *)VarPtr.Ptr);
 				if ((unsigned long)Len>=StrLen)
-					return false;
+				{
+					Dest.Ptr="";
+					Dest.Type=pStringType;
+					return true;
+				}
 				memmove(DataTypeTemp,(char *)VarPtr.Ptr,StrLen-Len);
 				DataTypeTemp[StrLen-Len]=0;
 				Dest.Ptr=&DataTypeTemp[0];
@@ -773,7 +777,11 @@ bool MQ2StringType::GetMember(MQ2VARPTR VarPtr, PCHAR Member, PCHAR Index, MQ2TY
 				Len=-Len;
 				unsigned long StrLen=strlen((char *)VarPtr.Ptr);
 				if ((unsigned long)Len>=StrLen)
-					return false;
+				{
+					Dest.Ptr="";
+					Dest.Type=pStringType;
+					return true;
+				}
 				char *pStart=(char*)VarPtr.Ptr;
 				pStart=&pStart[Len];
 				Len=StrLen-Len;
@@ -3406,6 +3414,24 @@ bool MQ2ArrayType::GetMember(MQ2VARPTR VarPtr, PCHAR Member, PCHAR Index, MQ2TYP
 		Dest.DWord=pArray->nExtents;
 		Dest.Type=pIntType;
 		return true;
+	case Size:
+		if (Index[0])
+		{
+			DWORD N=atoi(Index)-1;
+			if (N<pArray->nExtents)
+			{
+				Dest.DWord=pArray->pExtents[N];
+				Dest.Type=pIntType;
+				return true;
+			}
+		}
+		else
+		{
+			Dest.DWord=pArray->TotalElements;
+			Dest.Type=pIntType;
+			return true;
+		}
+		return false;
 	}
 	return false;
 #undef pArray
@@ -3421,9 +3447,17 @@ bool MQ2TimerType::GetMember(MQ2VARPTR VarPtr, PCHAR Member, PCHAR Index, MQ2TYP
 	PMQ2TYPEMEMBER pMember=MQ2TimerType::FindMember(Member);
 	if (!pMember)
 		return false;
-//	switch((TimerMembers)pMember->ID)
-//	{
-//	}
+	switch((TimerMembers)pMember->ID)
+	{
+	case Value:
+		Dest.DWord=pTimer->Current;
+		Dest.Type=pIntType;
+		return true;
+	case OriginalValue:
+		Dest.DWord=pTimer->Original;
+		Dest.Type=pIntType;
+		return true;
+	}
 	return false;
 #undef pTimer
 }

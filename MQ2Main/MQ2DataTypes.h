@@ -2384,11 +2384,13 @@ class MQ2TimerType : public MQ2Type
 public:
    static enum TimerMembers
    {
-	   Name=1,
+	   Value=1,
+	   OriginalValue=2,
    };
    MQ2TimerType():MQ2Type("timer")
    {
-	  TypeMember(Name);
+	  TypeMember(Value);
+	  TypeMember(OriginalValue);
    }
 
    ~MQ2TimerType()
@@ -2399,7 +2401,9 @@ public:
 
    bool ToString(MQ2VARPTR VarPtr, PCHAR Destination)
    {
-	   return false;
+	   PTIMER pTimer=(PTIMER)VarPtr.Ptr;
+	   itoa(pTimer->Current,Destination,10);
+	   return true;
    }
 	void InitVariable(MQ2VARPTR &VarPtr) 
 	{
@@ -2468,10 +2472,12 @@ public:
    static enum ArrayMembers
    {
 	   Dimensions=1,
+	   Size=2,
    };
    MQ2ArrayType():MQ2Type("array")
    {
 	  TypeMember(Dimensions);
+	  TypeMember(Size);
    }
 
    ~MQ2ArrayType()
