@@ -1,3 +1,8 @@
+23 June 2004 by Amadeus:
+- ieatacid's CHARINFO update (primarily just offset locations updated)
+- ieatacid's update to EQRAIDWINDOW struct
+- Removed OLDCHARINFO struct
+
 23 June 2004 by Lax:
 - Fixed Bank stuff in CHARINFO
 - "listselect" notify now works in combo boxes
