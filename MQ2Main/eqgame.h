@@ -1,3 +1,7 @@
+#ifdef PRIVATE
+#include "eqgame-private.h"
+#endif
+
 // Class instances
 #define pinstCContextMenuManager                                0x78F168
 #define pinstCCursorAttachment                                  0x6074EC

@@ -337,6 +337,7 @@ void InitializeMQ2Commands()
 		AddCommand(pCmdListOrig[i].szName,pCmdListOrig[i].fAddress,TRUE);
 	}	
 
+	
 
 	// Add MQ commands...
     struct _NEWCOMMANDLIST { PCHAR szCommand; fEQCommand pFunc; BOOL Parse;} NewCommands[] = {
