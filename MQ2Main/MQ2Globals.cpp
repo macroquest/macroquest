@@ -110,15 +110,6 @@ BOOL g_bInDXMouse = FALSE;
 PMOUSESPOOF gMouseData = NULL;
 BOOL bDetMouse = TRUE;
 
-DWORD EQADDR_CCHATMANAGERGETRGBAFROMINDEX=0;
-DWORD EQADDR_CXSTRCONSTRUCTOR=0;
-DWORD EQADDR_CXSTRFREE=0;
-DWORD EQADDR_APPENDSTML=0;
-DWORD EQADDR_CCHATWINDOWCONSTRUCTOR=0;
-DWORD EQADDR_CHATMANAGERINITCONTEXTMENU=0;
-
-DWORD *EQADDR_CHATMANAGER=(DWORD*)0;
-
 
 // EQ Functions Initialization
 fEQCommand        cmdHelp        =  NULL;
@@ -148,7 +139,6 @@ fEQSendMessage    send_message = NULL;
 
 // EQ Address Initialization
 DWORD EQADDR_HWND=0;
-DWORD EQADDR_MAXMANA=0;
 DWORD EQADDR_COMMANDS=0;
 DWORD EQADDR_MEMCHECK=0;
 DWORD EQADDR_MEMCHECK2=0;
@@ -160,52 +150,39 @@ PCHAR EQADDR_SERVERNAME=0;
 PCHAR *EQADDR_ACTIVEMERCHANT=0;
 PCHAR *EQADDR_ACTIVECORPSE=0;
 PPACKLOC EQADDR_PACKLOCS=0;
-
-DWORD EQADDR_DSPCHAT=0;
-
+DWORD EQADDR_CONVERTITEMTAGS=0;
 PCMDLIST EQADDR_CMDLIST=0;
 
 PBYTE EQADDR_ATTACK=0;
 PBYTE EQADDR_NOTINCHATMODE=0;
-DWORD EQADDR_ZONING=0;
-PZONELIST **EQADDR_ZONELIST=0;
-PSPAWNINFO *EQADDR_SPAWNLIST=0;
-PSPAWNINFO *EQADDR_SPAWNTAIL=0;
-PSPAWNINFO *EQADDR_CHAR=0;
-PCHARINFO *EQADDR_CHAR_INFO=0;
-PSPAWNINFO *EQADDR_TARGET=0;
+
+//DWORD *EQADDR_CLSMAINNEWUI=0;
+//DWORD EQADDR_CLSITEMS=0;
+//DWORD EQADDR_CLSSPAWNS=0;
+
+
+//PZONELIST **EQADDR_ZONELIST=0;
+//PSPAWNINFO *EQADDR_SPAWNLIST=0;
+//PSPAWNINFO *EQADDR_SPAWNTAIL=0;
+//PSPAWNINFO *EQADDR_CHAR=0;
+//PCHARINFO *EQADDR_CHAR_INFO=0;
+//PSPAWNINFO *EQADDR_TARGET=0;
 PCHAR EQADDR_LASTTELL=0;
 PGROUNDITEM *EQADDR_ITEMS=0;
 _SPELLPOINTER** EQADDR_SPELLS=0;
-PSPAWNINFO *EQADDR_GROUP=0;
+//PSPAWNINFO *EQADDR_GROUP=0;
 PBYTE EQADDR_GROUPCOUNT=0;
 PVOID EQADDR_GWORLD=0;
 PDOORTABLE *EQADDR_DOORS=0;
-DWORD *EQADDR_CLSMAINNEWUI=0;
-DWORD EQADDR_CLSITEMS=0;
-DWORD EQADDR_CLSSPAWNS=0;
 DWORD EQADDR_GUILDLIST=0;
 PDWORD EQADDR_DOABILITYLIST=0;
+
 PBYTE EQADDR_DOABILITYAVAILABLE=0;
-DWORD EQADDR_CASTSPELL=0;
-DWORD EQADDR_WRITEMAPFILE=0;
-DWORD EQADDR_CLEANUI=0;
-DWORD EQADDR_RCLICKTARGET=0;
-DWORD EQADDR_LCLICKTARGET=0;
-DWORD EQADDR_CXSTRAPPEND=0; 
-DWORD EQADDR_CXSTRSET=0; 
-DWORD EQADDR_ITEMDISPLAYSETITEM=0; 
-DWORD EQADDR_CONVERTITEMTAGS=0;
-DWORD EQADDR_GETITEMLINKHASH=0;
-DWORD EQADDR_GETNUMBANKSLOTS=0;
-DWORD EQADDR_GETCURHP=0;
-DWORD EQADDR_GETMAXHP=0;
-DWORD EQADDR_EQLABELS=0;
+
 
 PBYTE EQADDR_ENCRYPTPAD=0;
 PBYTE EQADDR_ENCRYPTPAD2=0;
 PBYTE EQADDR_ENCRYPTPAD3=0;
-DWORD *EQADDR_CLSEVERQUEST=0;
 
 PMOUSEINFO EQADDR_MOUSE=0;
 PMOUSECLICK EQADDR_MOUSECLICK=0;
@@ -225,28 +202,10 @@ DIKEYID gDiKeyID[] = {
     {NULL,0}
 };
 
-DWORD *EQADDR_SPELLBOOKWND;
-DWORD *EQADDR_CLASSMERCHWND;
-DWORD *EQADDR_CLASSTEXTUREANIMATION;
-DWORD *EQADDR_INVENTORYWND;
-DWORD *EQADDR_CLASSCASTSPELLWND;
-DWORD *EQADDR_CLASSHOTBUTTONWND;
-DWORD *EQADDR_CASTINGWND;
-DWORD *EQADDR_LOOTWND;
-DWORD *EQADDR_CLASSMAPWND;
-DWORD EQADDR_GETFOCUSCASTINGTIMEMODIFIER=0;
-DWORD EQADDR_GETAACASTINGTIMEMODIFIER=0;
-PEQ_CONTAINERWND_MANAGER *EQADDR_CLASSCONTAINERMGR;
-DWORD *EQADDR_CLASSGIVEWND = 0;
-PEQNOTESWINDOW* EQADDR_CLASSNOTESWND = 0;
-DWORD *EQADDR_CLASSDISPLAYOBJECT = 0;
-DWORD *EQADDR_CLASSBANKWND = 0;
-
 DWORD *EQADDR_SLOTLIST = 0;
 PZONEINFO EQADDR_ZONEINFO = 0;
 
 
-EQLIB_VAR CEverQuest *pEverQuest=0;
 
 PCHAR szHeading[] = {
     "south",                //0
@@ -392,3 +351,98 @@ PCHAR szItemName[] = {
     NULL
 };
 
+
+CEverQuest **ppEverQuest=(CEverQuest**)pinstCEverQuest;
+CDisplay **ppDisplay=(CDisplay**)pinstCDisplay;
+EQ_Character **ppCharData=(EQ_Character**)pinstCharData;
+EQPlayer **ppCharSpawn=(EQPlayer**)pinstCharSpawn;
+EQPlayer **ppActiveMerchant=(EQPlayer**)pinstActiveMerchant;
+EQPlayer **ppSpawnList=(EQPlayer**)pinstSpawnList;
+EQPlayer **ppSpawnListTail=(EQPlayer**)pinstSpawnListTail;
+EQWorldData **ppWorldData=(EQWorldData**)pinstWorldData;
+SpellManager **ppSpellMgr=(SpellManager**)pinstSpellManager;
+CInvSlot **ppSelectedItem=(CInvSlot **)pinstSelectedItem;
+EQPlayer **ppGroup=(EQPlayer**)pinstGroup;
+EQPlayer **ppTarget=(EQPlayer**)pinstTarget;
+EqSwitchManager **ppSwitchMgr=(EqSwitchManager**)pinstSwitchManager;
+EQItemList **ppItemList=(EQItemList**)pinstEQItemList;
+SPELLFAVORITE *pSpellSets=(SPELLFAVORITE *)pinstSpellSets;
+
+/* WINDOW INSTANCES */
+CContextMenuManager **ppContextMenuManager=(CContextMenuManager**)pinstCContextMenuManager;
+CCursorAttachment **ppCursorAttachment=(CCursorAttachment**)pinstCCursorAttachment;
+CSocialEditWnd **ppSocialEditWnd=(CSocialEditWnd**)pinstCSocialEditWnd;
+CInvSlotMgr **ppInvSlotMgr=(CInvSlotMgr**)pinstCInvSlotMgr;
+CContainerMgr **ppContainerMgr=(CContainerMgr**)pinstCContainerMgr;
+CChatManager **ppChatManager=(CChatManager**)pinstCChatManager;
+CConfirmationDialog **ppConfirmationDialog=(CConfirmationDialog**)pinstCConfirmationDialog;
+CFacePick **ppFacePick=(CFacePick**)pinstCFacePick;
+//CItemDisplayMgr **ppItemDisplayMgr=(CItemDisplayMgr**)pinstCItemDisplayMgr;
+//CSpellDisplayMgr **ppSpellDisplayMgr=(CSpellDisplayMgr**)pinstCSpellDisplayMgr;
+CNoteWnd **ppNoteWnd=(CNoteWnd**)pinstCNoteWnd;
+CHelpWnd **ppHelpWnd=(CHelpWnd**)pinstCHelpWnd;
+CTipWnd **ppTipWndOFDAY=(CTipWnd**)pinstCTipWndOFDAY;
+CTipWnd **ppTipWndCONTEXT=(CTipWnd**)pinstCTipWndCONTEXT;
+CBookWnd **ppBookWnd=(CBookWnd**)pinstCBookWnd;
+CFriendsWnd **ppFriendsWnd=(CFriendsWnd**)pinstCFriendsWnd;
+CMusicPlayerWnd **ppMusicPlayerWnd=(CMusicPlayerWnd**)pinstCMusicPlayerWnd;
+CAlarmWnd **ppAlarmWnd=(CAlarmWnd**)pinstCAlarmWnd;
+CLoadskinWnd **ppLoadskinWnd=(CLoadskinWnd**)pinstCLoadskinWnd;
+CPetInfoWnd **ppPetInfoWnd=(CPetInfoWnd**)pinstCPetInfoWnd;
+CTrainWnd **ppTrainWnd=(CTrainWnd**)pinstCTrainWnd;
+CSkillsWnd **ppSkillsWnd=(CSkillsWnd**)pinstCSkillsWnd;
+CSkillsSelectWnd **ppSkillsSelectWnd=(CSkillsSelectWnd**)pinstCSkillsSelectWnd;
+CAAWnd **ppAAWnd=(CAAWnd**)pinstCAAWnd;
+CGroupWnd **ppGroupWnd=(CGroupWnd**)pinstCGroupWnd;
+CJournalNPCWnd **ppJournalNPCWnd=(CJournalNPCWnd**)pinstCJournalNPCWnd;
+CGroupSearchWnd **ppGroupSearchWnd=(CGroupSearchWnd**)pinstCGroupSearchWnd;
+CGroupSearchFiltersWnd **ppGroupSearchFiltersWnd=(CGroupSearchFiltersWnd**)pinstCGroupSearchFiltersWnd;
+CRaidWnd **ppRaidWnd=(CRaidWnd**)pinstCRaidWnd;
+CRaidOptionsWnd **ppRaidOptionsWnd=(CRaidOptionsWnd**)pinstCRaidOptionsWnd;
+CBreathWnd **ppBreathWnd=(CBreathWnd**)pinstCBreathWnd;
+CMapToolbarWnd **ppMapToolbarWnd=(CMapToolbarWnd**)pinstCMapToolbarWnd;
+CMapViewWnd **ppMapViewWnd=(CMapViewWnd**)pinstCMapViewWnd;
+CEditLabelWnd **ppEditLabelWnd=(CEditLabelWnd**)pinstCEditLabelWnd;
+COptionsWnd **ppOptionsWnd=(COptionsWnd**)pinstCOptionsWnd;
+CBuffWindow **ppBuffWindowSHORT=(CBuffWindow**)pinstCBuffWindowSHORT;
+CBuffWindow **ppBuffWindowNORMAL=(CBuffWindow**)pinstCBuffWindowNORMAL;
+CTargetWnd **ppTargetWnd=(CTargetWnd**)pinstCTargetWnd;
+CColorPickerWnd **ppColorPickerWnd=(CColorPickerWnd**)pinstCColorPickerWnd;
+CHotButtonWnd **ppHotButtonWnd=(CHotButtonWnd**)pinstCHotButtonWnd;
+CPlayerWnd **ppPlayerWnd=(CPlayerWnd**)pinstCPlayerWnd;
+CCastingWnd **ppCastingWnd=(CCastingWnd**)pinstCCastingWnd;
+CCastSpellWnd **ppCastSpellWnd=(CCastSpellWnd**)pinstCCastSpellWnd;
+CSpellBookWnd **ppSpellBookWnd=(CSpellBookWnd**)pinstCSpellBookWnd;
+CInventoryWnd **ppInventoryWnd=(CInventoryWnd**)pinstCInventoryWnd;
+CBankWnd **ppBankWnd=(CBankWnd**)pinstCBankWnd;
+CQuantityWnd **ppQuantityWnd=(CQuantityWnd**)pinstCQuantityWnd;
+CTextEntryWnd **ppTextEntryWnd=(CTextEntryWnd**)pinstCTextEntryWnd;
+CFileSelectionWnd **ppFileSelectionWnd=(CFileSelectionWnd**)pinstCFileSelectionWnd;
+CLootWnd **ppLootWnd=(CLootWnd**)pinstCLootWnd;
+CActionsWnd **ppActionsWnd=(CActionsWnd**)pinstCActionsWnd;
+CMerchantWnd **ppMerchantWnd=(CMerchantWnd**)pinstCMerchantWnd;
+CTradeWnd **ppTradeWnd=(CTradeWnd**)pinstCTradeWnd;
+CBazaarWnd **ppBazaarWnd=(CBazaarWnd**)pinstCBazaarWnd;
+CBazaarSearchWnd **ppBazaarSearchWnd=(CBazaarSearchWnd**)pinstCBazaarSearchWnd;
+CGiveWnd **ppGiveWnd=(CGiveWnd**)pinstCGiveWnd;
+CSelectorWnd **ppSelectorWnd=(CSelectorWnd**)pinstCSelectorWnd;
+CTrackingWnd **ppTrackingWnd=(CTrackingWnd**)pinstCTrackingWnd;
+CInspectWnd **ppInspectWnd=(CInspectWnd**)pinstCInspectWnd;
+CFeedbackWnd **ppFeedbackWnd=(CFeedbackWnd**)pinstCFeedbackWnd;
+CBugReportWnd **ppBugReportWnd=(CBugReportWnd**)pinstCBugReportWnd;
+CVideoModesWnd **ppVideoModesWnd=(CVideoModesWnd**)pinstCVideoModesWnd;
+CCompassWnd **ppCompassWnd=(CCompassWnd**)pinstCCompassWnd;
+CPlayerNotesWnd **ppPlayerNotesWnd=(CPlayerNotesWnd**)pinstCPlayerNotesWnd;
+CGemsGameWnd **ppGemsGameWnd=(CGemsGameWnd**)pinstCGemsGameWnd;
+CStoryWnd **ppStoryWnd=(CStoryWnd**)pinstCStoryWnd;
+//CFindLocationWnd **ppFindLocationWnd=(CFindLocationWnd**)pinstCFindLocationWnd;
+//CAdventureRequestWnd **ppAdventureRequestWnd=(CAdventureRequestWnd**)pinstCAdventureRequestWnd;
+//CAdventureStatsWnd **ppAdventureStatsWnd=(CAdventureStatsWnd**)pinstCAdventureStatsWnd;
+//CAdventureLeaderboardWnd **ppAdventureLeaderboardWnd=(CAdventureLeaderboardWnd**)pinstCAdventureLeaderboardWnd;
+CBodyTintWnd **ppBodyTintWnd=(CBodyTintWnd**)pinstCBodyTintWnd;
+CGuildMgmtWnd **ppGuildMgmtWnd=(CGuildMgmtWnd**)pinstCGuildMgmtWnd;
+CJournalTextWnd **ppJournalTextWnd=(CJournalTextWnd**)pinstCJournalTextWnd;
+CJournalCatWnd **ppJournalCatWnd=(CJournalCatWnd**)pinstCJournalCatWnd;
+CPetitionQWnd **ppPetitionQWnd=(CPetitionQWnd**)pinstCPetitionQWnd;
+CSoulmarkWnd **ppSoulmarkWnd=(CSoulmarkWnd**)pinstCSoulmarkWnd;
+CTimeLeftWnd **ppTimeLeftWnd=(CTimeLeftWnd**)pinstCTimeLeftWnd;

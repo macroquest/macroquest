@@ -101,7 +101,7 @@ typedef struct _CSIDLWNDVFTABLE {
 /*00B4*/ LPVOID  OnHScroll;
 /*00B8*/ LPVOID  OnBroughtToTop;
 /*00BC*/ LPVOID  OnMove4;
-/*00C0*/ LPVOID  Unknown0x0c0;
+/*00C0*/ LPVOID  Show;
 /*00C4*/ LPVOID  Unknown0x0c4;
 /*00C8*/ LPVOID  Unknown0x0c8;
 /*00CC*/ LPVOID  OnMove5;
@@ -175,7 +175,7 @@ typedef struct _CXWNDVFTABLE {
 /*00B4*/ LPVOID  OnHScroll;
 /*00B8*/ LPVOID  OnBroughtToTop;
 /*00BC*/ LPVOID  OnMove4;
-/*00C0*/ LPVOID  Unknown0x0c0;
+/*00C0*/ LPVOID  Show;
 /*00C4*/ LPVOID  Unknown0x0c4;
 /*00C8*/ LPVOID  Unknown0x0c8;
 /*00CC*/ LPVOID  OnMove5;
@@ -650,11 +650,3 @@ typedef struct _LOOTCORPSE {
 // I think there might be pointers at 0x0e0..but no clue what to
 } LOOTCORPSE, *PLOOTCORPSE;
 
-typedef struct _SPELLFAVORITE {
-/*0x000*/   DWORD   SpellId[8];
-/*0x020*/   CHAR    Name[25];
-/*0x039*/   BYTE    Byte_39;
-/*0x03A*/   BYTE    Byte_3A;
-/*0x03B*/   BYTE    Byte_3B;
-/*0x03C*/
-} SPELLFAVORITE, *PSPELLFAVORITE;

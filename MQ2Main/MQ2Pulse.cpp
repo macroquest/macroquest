@@ -27,11 +27,10 @@ DWORD HealthGained=0;
 
 void Pulse()
 {
-     if (!EQADDR_CHAR) return;
-     if (!*EQADDR_CHAR) return;
+     if (!ppCharSpawn || !pCharSpawn) return;
 	 PSPAWNINFO pCharOrMount = NULL;
 	PCHARINFO pCharInfo = GetCharInfo();
-    PSPAWNINFO pChar = pCharOrMount = *EQADDR_CHAR;
+    PSPAWNINFO pChar = pCharOrMount = (PSPAWNINFO)pCharSpawn;
 	if (pCharInfo && pCharInfo->pSpawn) pChar=pCharInfo->pSpawn;
 
 	WORD LastZone=-1;
@@ -211,6 +210,12 @@ void Heartbeat()
         if (gDelay>0) gDelay--;
 		DropTimers();
     }
+
+	static DWORD LastGameState = 0;
+	DWORD GameState=GetGameState();
+	if (GameState!=LastGameState)
+		PluginsSetGameState(GameState);
+
     bRunNextCommand   = TRUE;
     DWORD CurTurbo=0;
 	while ((!gKeyStack)   && (bRunNextCommand)) {
@@ -257,11 +262,11 @@ void InitializeMQ2Pulse()
 /**/
    void (CZoningHook::*pfEnterZone_Detour)(PVOID) = CZoningHook::EnterZone_Detour;
    void (CZoningHook::*pfEnterZone_Trampoline)(PVOID) = CZoningHook::EnterZone_Trampoline;
-	AddDetour(EQADDR_ZONING,*(PBYTE*)&pfEnterZone_Detour,*(PBYTE*)&pfEnterZone_Trampoline);
+	AddDetour((DWORD)CEverQuest__EnterZone,*(PBYTE*)&pfEnterZone_Detour,*(PBYTE*)&pfEnterZone_Trampoline);
 }
 
 void ShutdownMQ2Pulse()
 {
 	RemoveDetour((DWORD)ProcessGameEvents);
-	RemoveDetour((DWORD)EQADDR_ZONING);
+	RemoveDetour((DWORD)CEverQuest__EnterZone);
 }

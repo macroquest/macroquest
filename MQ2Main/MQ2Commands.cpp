@@ -133,9 +133,9 @@ VOID Items(PSPAWNINFO pChar, PCHAR szLine)
 {
     bRunNextCommand = TRUE;
 
-    if (!EQADDR_ITEMS) return;
-    if (!*EQADDR_ITEMS) return;
-    PGROUNDITEM pItem = *EQADDR_ITEMS;
+    if (!ppItemList) return;
+    if (!pItemList) return;
+    PGROUNDITEM pItem = (PGROUNDITEM)pItemList;
     DWORD Count=0;
     CHAR szBuffer[MAX_STRING] = {0};
     PCHAR szName = NULL;
@@ -182,9 +182,9 @@ VOID ItemTarget(PSPAWNINFO pChar, PCHAR szLine)
 {
     bRunNextCommand = TRUE;
 
-    if (!EQADDR_ITEMS) return;
-    if (!*EQADDR_ITEMS) return;
-    PGROUNDITEM pItem = *EQADDR_ITEMS;
+    if (!ppItemList) return;
+    if (!pItemList) return;
+    PGROUNDITEM pItem = (PGROUNDITEM)pItemList;
     CHAR Arg1[MAX_STRING] = {0};
     CHAR Arg2[MAX_STRING] = {0};
     CHAR szBuffer[MAX_STRING] = {0};
@@ -235,10 +235,10 @@ VOID ItemTarget(PSPAWNINFO pChar, PCHAR szLine)
         sprintf(szBuffer,"Item '%s' targeted.",EnviroTarget.Name);
         gLastError[0]=0;
         WriteChatBuffer(szBuffer,USERCOLOR_DEFAULT);
-        if (stricmp(Arg2,"notarget") && EQADDR_TARGET) *EQADDR_TARGET = &EnviroTarget;
+        if (stricmp(Arg2,"notarget") && ppTarget) pTarget = (EQPlayer*)&EnviroTarget;
     } else {
-        if (EQADDR_TARGET && (*EQADDR_TARGET == &EnviroTarget))
-            *EQADDR_TARGET = NULL;
+        if (ppTarget && (pTarget == (EQPlayer*)&EnviroTarget))
+            pTarget = NULL;
         sprintf(szBuffer,"Couldn't find '%s'.",szLine);
         strcpy(gLastError,"ITEM_NOTFOUND");
         WriteChatBuffer(szBuffer,CONCOLOR_RED);
@@ -257,9 +257,9 @@ VOID Doors(PSPAWNINFO pChar, PCHAR szLine)
 {
    bRunNextCommand = TRUE;
 
-   if (!EQADDR_DOORS) return;
-   if (!*EQADDR_DOORS) return;
-       PDOORTABLE pDoorTable = *EQADDR_DOORS;
+   if (!ppSwitchMgr) return;
+   if (!pSwitchMgr) return;
+       PDOORTABLE pDoorTable = (PDOORTABLE)pSwitchMgr;
    DWORD Count;
    DWORD ActualCount=0;
    CHAR szBuffer[MAX_STRING] = {0};
@@ -306,9 +306,9 @@ VOID DoorTarget(PSPAWNINFO pChar, PCHAR szLine)
 {
    bRunNextCommand = TRUE;
 
-   if (!EQADDR_DOORS) return;
-   if (!*EQADDR_DOORS) return;
-    PDOORTABLE pDoorTable = *EQADDR_DOORS;
+   if (!ppSwitchMgr) return;
+   if (!pSwitchMgr) return;
+    PDOORTABLE pDoorTable = (PDOORTABLE)pSwitchMgr;
    DWORD Count;
 
    CHAR szBuffer[MAX_STRING] = {0};
@@ -377,9 +377,9 @@ VOID DoorTarget(PSPAWNINFO pChar, PCHAR szLine)
       sprintf(szBuffer,"Door %d '%s' targeted.", pDoorTarget->ID, DoorEnviroTarget.Name);
       gLastError[0]=0;
       WriteChatBuffer(szBuffer,USERCOLOR_DEFAULT);
-	  if (stricmp(Arg2,"notarget") && EQADDR_TARGET) *EQADDR_TARGET = &DoorEnviroTarget;
+	  if (stricmp(Arg2,"notarget") && ppTarget) pTarget = (EQPlayer*)&DoorEnviroTarget;
    } else {
-      if (EQADDR_TARGET) *EQADDR_TARGET = NULL;
+      if (ppTarget) pTarget = NULL;
       sprintf(szBuffer,"Couldn't find door '%s'.",szLine);
       strcpy(gLastError,"ITEM_NOTFOUND");
       WriteChatBuffer(szBuffer,CONCOLOR_RED);
@@ -546,15 +546,15 @@ VOID UpdateItemInfo(PSPAWNINFO pChar, PCHAR szLine) {
 SPELLFAVORITE MemSpellFavorite;
 VOID MemSpell(PSPAWNINFO pChar, PCHAR szLine)
 {
-    if (!EQADDR_SPELLBOOKWND || !cmdLoadSpells) return;
+    if (!ppSpellBookWnd) return;
     DWORD Favorite = (DWORD)&MemSpellFavorite;
    CHAR szGem[MAX_STRING] = {0};
     DWORD sp;
    WORD Gem = -1;
    CHAR SpellName[MAX_STRING] = {0};
    PCHARINFO pCharInfo = NULL;
-    DWORD SpellBookWnd = *EQADDR_SPELLBOOKWND;
-    if (!SpellBookWnd) return;
+//    DWORD SpellBookWnd = pSpellBookWnd;
+    if (!pSpellBookWnd) return;
    if (NULL == (pCharInfo = GetCharInfo())) return;
 
    GetArg(szGem,szLine,1);
@@ -572,7 +572,8 @@ VOID MemSpell(PSPAWNINFO pChar, PCHAR szLine)
     MemSpellFavorite.Byte_3A=1;
     for (sp=0;sp<8;sp++) MemSpellFavorite.SpellId[sp]=0xFFFFFFFF;
     MemSpellFavorite.SpellId[Gem] = pSpell->ID;
-
+	pSpellBookWnd->MemorizeSet((int*)Favorite,8);
+/*
    __asm {
     push ecx;
     mov ecx, dword ptr [SpellBookWnd];
@@ -581,6 +582,7 @@ VOID MemSpell(PSPAWNINFO pChar, PCHAR szLine)
         call dword ptr [cmdLoadSpells];
     pop ecx;
    }
+/**/
 }
 
 // ***************************************************************************
@@ -844,12 +846,12 @@ DWORD SelectFind(char* szSearch, char* szOption )
 			if (((!Exact) && (strstr(szTemp,szSearch))) || ((Exact) && (!_stricmp(szTemp,szSearch))))
 			{
 				PCSIDLWND pInvWindow = NULL;
-				pInvWindow = (PCSIDLWND)*EQADDR_INVENTORYWND;
+				pInvWindow = (PCSIDLWND)pInventoryWnd;
 				gLastFind = LASTFIND_PRIMARY;
 				sprintf(gLastFindSlot,"inv %d",PriSlot); 
 				gLastError[0]=0;
-				if (!EQADDR_INVENTORYWND || !pInvWindow)
-					strcpy(gLastError,"EQADDR_INVENTORYWND bad offset");
+				if (!ppInventoryWnd || !pInvWindow)
+					strcpy(gLastError,"ppInventoryWnd bad offset");
 				if(pInvWindow->Show) {
 					return (BagCounter);
 				} else {
@@ -913,13 +915,13 @@ VOID SelectItem(PSPAWNINFO pChar, PCHAR szLine)
 	PCSIDLWND Slot = NULL;
 	PCSIDLWND FixedSlot = NULL;
 
-   PEQMERCHWINDOW pMainWindow = (PEQMERCHWINDOW)*EQADDR_CLASSMERCHWND;
-	PEQCURRENTSELECTION pSelectedSlot = (PEQCURRENTSELECTION)*EQADDR_CLASSTEXTUREANIMATION;
+   PEQMERCHWINDOW pMainWindow = (PEQMERCHWINDOW)pMerchantWnd;
+	PEQCURRENTSELECTION pSelectedSlot = (PEQCURRENTSELECTION)pSelectedItem;
    PCSIDLWND pCurSlot = NULL;
    PCSIDLWND pDestSlot = NULL;
 	PCHARINFO pCharInfo = NULL;
 	PITEMINFO pItemInfo = NULL;
-	DWORD MerchTraderWnd = *EQADDR_CLASSMERCHWND;
+//	DWORD MerchTraderWnd = (DWORD)pMerchantWnd;
 	BOOL Found, Force;
 	CHAR szBuffer[MAX_STRING] = {0};
 	CHAR szArg1[MAX_STRING] = {0};
@@ -933,7 +935,8 @@ VOID SelectItem(PSPAWNINFO pChar, PCHAR szLine)
 		return;
 	}
 	if (NULL == (pCharInfo = GetCharInfo())) return;
-	if (!MerchTraderWnd || !cmdSelectItem) return;
+	if (!pMerchantWnd) return;
+//	if (!MerchTraderWnd || !cmdSelectItem) return;
 	GetArg(szArg1,szLine,1);
 	GetArg(szArg2,szLine,2);
 	GetArg(szArg3,szLine,3);
@@ -1080,7 +1083,7 @@ VOID SelectItem(PSPAWNINFO pChar, PCHAR szLine)
 				if (!pMainWindow->SlotsHandles[i]) return;
 				pDestSlot = (PCSIDLWND)((int *)pMainWindow->SlotsHandles[i]);
 				pDestSlot->Selector = 1;
-				*((int *)EQADDR_CLASSTEXTUREANIMATION) = ((int)pDestSlot->PushToSelector);
+				*((int *)ppSelectedItem) = ((int)pDestSlot->PushToSelector);
 				TextureAnim = (int)pDestSlot->TextureAnim;
 				if (!TextureAnim) return;
 				if (!SelectSlot) return;
@@ -1094,13 +1097,14 @@ VOID SelectItem(PSPAWNINFO pChar, PCHAR szLine)
 				if (!FixedSlot) return;
 				pDestSlot = FixedSlot;
 				pDestSlot->Selector = 1;
-				*((int *)EQADDR_CLASSTEXTUREANIMATION) = ((int)FixedSelection);
+				*((int *)ppSelectedItem) = ((int)FixedSelection);
 				TextureAnim = (int)pDestSlot->TextureAnim;
 				SelectSlot = FixedSlot->SlotID;
 				if (!TextureAnim) return;
 				if (!SelectSlot) return;
 			}
-			//pMerchantWnd->SelectBuySellSlot(SelectSlot,TextureAnim)
+			pMerchantWnd->SelectBuySellSlot(SelectSlot,(CTextureAnimation*)TextureAnim);
+				/*
 			__asm {
 				push ecx;
 				push TextureAnim;
@@ -1109,6 +1113,7 @@ VOID SelectItem(PSPAWNINFO pChar, PCHAR szLine)
 				call dword ptr [cmdSelectItem];
 				pop ecx;
 			}
+			*/
 		}
 	}
 	return;   
@@ -1124,20 +1129,18 @@ VOID SelectItem(PSPAWNINFO pChar, PCHAR szLine)
 VOID BuyItem(PSPAWNINFO pChar, PCHAR szLine)
 {
    bRunNextCommand = FALSE;
-   DWORD MerchTraderWnd = *EQADDR_CLASSMERCHWND;
-   PCSIDLWND pMerchWnd = (PCSIDLWND)*EQADDR_CLASSMERCHWND;
+   if (!pMerchantWnd) return;
+
    CHAR szBuffer[MAX_STRING] = {0};
    CHAR szQty[MAX_STRING] = {0};
    PCHARINFO pCharInfo = NULL;
    DWORD Qty;
-   DebugSpew("/buyitem : yes the command works at least to this point");
-
-   if (!MerchTraderWnd || !cmdBuyItem) return;
    if (NULL == (pCharInfo = GetCharInfo())) return;
    GetArg(szQty,szLine,1);
    Qty = (DWORD)atoi(szQty);
    if (Qty > 20 || Qty < 1) return;
-   //pMerchantWnd->RequestBuyItem(Qty);
+   pMerchantWnd->RequestBuyItem(Qty);
+   /*
    __asm {
       push ecx;
       mov ecx, dword ptr [MerchTraderWnd];
@@ -1145,6 +1148,7 @@ VOID BuyItem(PSPAWNINFO pChar, PCHAR szLine)
         call dword ptr [cmdBuyItem];
       pop ecx;
    }
+   */
    return;
 }
 // ***************************************************************************
@@ -1157,20 +1161,20 @@ VOID BuyItem(PSPAWNINFO pChar, PCHAR szLine)
 VOID SellItem(PSPAWNINFO pChar, PCHAR szLine)
 {
     bRunNextCommand = FALSE;
-    DWORD MerchTraderWnd = *EQADDR_CLASSMERCHWND;
-    PCSIDLWND pMerchWnd = (PCSIDLWND)*EQADDR_CLASSMERCHWND;
+//    DWORD MerchTraderWnd = pMerchantWnd;
     CHAR szBuffer[MAX_STRING] = {0};
     CHAR szQty[MAX_STRING] = {0};
     PCHARINFO pCharInfo = NULL;
     DWORD Qty;
     DebugSpew("/sellitem : yes the command works at least to this point");
 
-    if (!MerchTraderWnd || !cmdSellItem) return;
+//    if (!pMerchantWnd || !cmdSellItem) return;
     if (NULL == (pCharInfo = GetCharInfo())) return;
     GetArg(szQty,szLine,1);
     Qty = (DWORD)atoi(szQty);
     if (Qty > 20 || Qty < 1) return;
-   //pMerchantWnd->RequestSellItem(Qty);
+   pMerchantWnd->RequestSellItem(Qty);
+   /*
     __asm {
         push ecx;
         mov ecx, dword ptr [MerchTraderWnd];
@@ -1178,6 +1182,7 @@ VOID SellItem(PSPAWNINFO pChar, PCHAR szLine)
         call dword ptr [cmdSellItem];
         pop ecx;
     }
+	/**/
     return;
 }
 // ***************************************************************************
@@ -1871,8 +1876,8 @@ VOID FreeAlerts(DWORD List)
 PSPAWNINFO GetClosestAlert(PSPAWNINFO pChar, DWORD List, DWORD* pdwCount)
 {
     CHAR szName[MAX_STRING] = {0};
-    if (!EQADDR_SPAWNLIST) return NULL;
-    if (!*EQADDR_SPAWNLIST) return NULL;
+    if (!ppSpawnList) return NULL;
+    if (!pSpawnList) return NULL;
     PSPAWNINFO pSpawn, pClosest = NULL;
     FLOAT ClosestDistance = 50000.0f;
     PALERT pCurrent = GetAlert(List);
@@ -2191,7 +2196,7 @@ VOID SortSWho(PSWHOSORT pSWhoSort, DWORD SpawnCount, DWORD SortBy)
          //Sort by Race 
          for (Index1=0;Index1<SpawnCount;Index1++) { 
             for (Index2=SpawnCount-1;Index2>Index1;Index2--) { 
-               if (stricmp(GetRaceByID(pSWhoSort[Index2].Race), GetRaceByID(pSWhoSort[Index2-1].Race))<0) { 
+               if (stricmp(pEverQuest->GetRaceDesc(pSWhoSort[Index2].Race), pEverQuest->GetRaceDesc(pSWhoSort[Index2-1].Race))<0) { 
                   SwapSWho(&pSWhoSort[Index2], &pSWhoSort[Index2-1]); 
                } 
             } 
@@ -2202,7 +2207,7 @@ VOID SortSWho(PSWHOSORT pSWhoSort, DWORD SpawnCount, DWORD SortBy)
          //Sort by Class 
          for (Index1=0;Index1<SpawnCount;Index1++) { 
             for (Index2=SpawnCount-1;Index2>Index1;Index2--) { 
-               if (stricmp(GetClassByID(pSWhoSort[Index2].Class), GetClassByID(pSWhoSort[Index2-1].Class))<0) { 
+               if (stricmp(pEverQuest->GetClassDesc(pSWhoSort[Index2].Class), pEverQuest->GetClassDesc(pSWhoSort[Index2-1].Class))<0) { 
                   SwapSWho(&pSWhoSort[Index2], &pSWhoSort[Index2-1]); 
                } 
             } 
@@ -2254,8 +2259,8 @@ VOID SortSWho(PSWHOSORT pSWhoSort, DWORD SpawnCount, DWORD SortBy)
 PSPAWNINFO GetPet(DWORD OwnerID)
 {
     PSPAWNINFO pSpawn = NULL;
-    if (EQADDR_SPAWNLIST && *EQADDR_SPAWNLIST) {
-        pSpawn = *EQADDR_SPAWNLIST;
+    if (ppSpawnList && pSpawnList) {
+        pSpawn = (PSPAWNINFO)pSpawnList;
     }
     while (pSpawn) {
         if ((pSpawn->MasterID == OwnerID) && (pSpawn->Type != SPAWN_PLAYER) && (pSpawn->Type != SPAWN_CORPSE)){
@@ -2282,7 +2287,7 @@ VOID SuperWhoFindPets(PSPAWNINFO pChar, DWORD SpawnID, BOOL Color)
 // Function:    SuperWhoDisplay
 // Description: Displays our SuperWho / SuperWhoTarget
 // ***************************************************************************
-VOID SuperWhoDisplay(PSPAWNINFO pChar, PSEARCHSPAWN pFilter, PSPAWNINFO pTarget, WORD Padding, DWORD Color)
+VOID SuperWhoDisplay(PSPAWNINFO pChar, PSEARCHSPAWN pFilter, PSPAWNINFO psTarget, WORD Padding, DWORD Color)
 {
     PSPAWNINFO pSpawn = NULL;
     CHAR szMsg[MAX_STRING] = {0};
@@ -2294,9 +2299,9 @@ VOID SuperWhoDisplay(PSPAWNINFO pChar, PSEARCHSPAWN pFilter, PSPAWNINFO pTarget,
     FLOAT Distance;
     INT Angle;
 
-        if (EQADDR_SPAWNLIST && *EQADDR_SPAWNLIST) for (pSpawn = *EQADDR_SPAWNLIST;(pSpawn) && (SpawnCount<500);pSpawn = pSpawn->pNext) {
-        if ((pTarget) && (pTarget != pSpawn)) continue;
-        if ((!pTarget) && (pSpawn->Type == SPAWN_NPC) && (pSpawn->MasterID != 0)) continue;
+        if (ppSpawnList && pSpawnList) for (pSpawn = (PSPAWNINFO)pSpawnList;(pSpawn) && (SpawnCount<500);pSpawn = pSpawn->pNext) {
+        if ((psTarget) && (psTarget != pSpawn)) continue;
+        if ((!psTarget) && (pSpawn->Type == SPAWN_NPC) && (pSpawn->MasterID != 0)) continue;
         Distance =  DistanceToSpawn(pChar,pSpawn);
         if (pFilter) {
             if ((pFilter->SpawnType == SPAWN_PLAYER) && (pSpawn->Type != SPAWN_PLAYER)) continue;
@@ -2308,9 +2313,9 @@ VOID SuperWhoDisplay(PSPAWNINFO pChar, PSEARCHSPAWN pFilter, PSPAWNINFO pTarget,
             if ((pFilter->FRadius<10000.0f) && (DistanceToSpawn(pChar,pSpawn)>pFilter->FRadius)) continue;
             if (pFilter->MinLevel> pSpawn->Level) continue;
             if (pFilter->MaxLevel< pSpawn->Level) continue;
-            if ((pFilter->szBodyType[0]!=0) && (strnicmp(pFilter->szBodyType,GetBodyTypeByID(pSpawn->BodyType),strlen(pFilter->szBodyType)))) continue;
-            if ((pFilter->szRace[0]!=0) && (strnicmp(pFilter->szRace,GetRaceByID(pSpawn->Race),strlen(pFilter->szRace)))) continue;
-            if ((pFilter->szClass[0]!=0) && (strnicmp(pFilter->szClass,GetClassByID(pSpawn->Class),strlen(pFilter->szClass)))) continue;
+            if ((pFilter->szBodyType[0]!=0) && (strnicmp(pFilter->szBodyType,pEverQuest->GetBodyTypeDesc(pSpawn->BodyType),strlen(pFilter->szBodyType)))) continue;
+            if ((pFilter->szRace[0]!=0) && (strnicmp(pFilter->szRace,pEverQuest->GetRaceDesc(pSpawn->Race),strlen(pFilter->szRace)))) continue;
+            if ((pFilter->szClass[0]!=0) && (strnicmp(pFilter->szClass,pEverQuest->GetClassDesc(pSpawn->Class),strlen(pFilter->szClass)))) continue;
             if ((pFilter->GuildID != 0xFFFF) && (pFilter->GuildID!=pSpawn->GuildID)) continue;
 			if ((pFilter->bLight) && (!stricmp(GetLightForSpawn(pSpawn),"NONE"))) continue;
 			if ((pFilter->bLight) && (pFilter->szLight[0]) && (stricmp(GetLightForSpawn(pSpawn),pFilter->szLight))) continue;
@@ -2405,15 +2410,15 @@ VOID SuperWhoDisplay(PSPAWNINFO pChar, PSEARCHSPAWN pFilter, PSPAWNINFO pTarget,
 				strcat(szMsg," ");
 			}
 			if (gFilterSWho.Race) {
-				strcat(szMsg,GetRaceByID(pSpawn->Race));
+				strcat(szMsg,pEverQuest->GetRaceDesc(pSpawn->Race));
 				strcat(szMsg," ");
 			}
 			if (gFilterSWho.Body) {
-				strcat(szMsg,GetBodyTypeByID(pSpawn->BodyType));
+				strcat(szMsg,pEverQuest->GetBodyTypeDesc(pSpawn->BodyType));
 				strcat(szMsg," ");
 			}
 			if (gFilterSWho.Class) {
-				strcat(szMsg,GetClassByID(pSpawn->Class));
+				strcat(szMsg,pEverQuest->GetClassDesc(pSpawn->Class));
 				strcat(szMsg," ");
 			}
 			szMsg[strlen(szMsg)-1]=0;
@@ -2543,20 +2548,20 @@ VOID SuperWhoDisplay(PSPAWNINFO pChar, PSEARCHSPAWN pFilter, PSPAWNINFO pTarget,
 // ***************************************************************************
 VOID SuperWhoTarget(PSPAWNINFO pChar, PCHAR szLine)
 {
-    PSPAWNINFO pTarget = NULL;
+    PSPAWNINFO psTarget = NULL;
     bRunNextCommand = TRUE;
     if (gFilterMacro == FILTERMACRO_NONE) cmdWhoTarget(pChar, szLine);
 
-    if (EQADDR_TARGET && *EQADDR_TARGET) {
-        pTarget = *EQADDR_TARGET;
+    if (ppTarget && pTarget) {
+        psTarget = (PSPAWNINFO)pTarget;
     }
 
-    if (!pTarget) {
+    if (!psTarget) {
         WriteChatColor("You must have a target selected for /whotarget.",CONCOLOR_RED);
         return;
     }
-    DebugSpew("SuperWhoTarget - %s",pTarget->Name);
-    SuperWhoDisplay(pChar,NULL,pTarget,0,TRUE);
+    DebugSpew("SuperWhoTarget - %s",psTarget->Name);
+    SuperWhoDisplay(pChar,NULL,psTarget,0,TRUE);
 }
 
 // ***************************************************************************
@@ -2763,10 +2768,10 @@ FLOAT StateHeightMultiplier(DWORD StandState)
 
 VOID Face(PSPAWNINFO pChar, PCHAR szLine)
 {
-    if (!EQADDR_SPAWNLIST) return;
-    if (!*EQADDR_SPAWNLIST) return;
+    if (!ppSpawnList) return;
+    if (!pSpawnList) return;
     PSPAWNINFO pSpawnClosest = NULL;
-    PSPAWNINFO pTarget = NULL;
+    PSPAWNINFO psTarget = NULL;
     SPAWNINFO LocSpawn = {0};
     SEARCHSPAWN SearchSpawn;
     ClearSearchSpawn(&SearchSpawn);
@@ -2839,7 +2844,7 @@ VOID Face(PSPAWNINFO pChar, PCHAR szLine)
                 if (gFaceAngle>=512.0f) gFaceAngle -= 512.0f;
                 if (gFaceAngle<0.0f) gFaceAngle += 512.0f;
                 if (Fast) {
-					(*EQADDR_CHAR)->Heading = (FLOAT)gFaceAngle;
+					((PSPAWNINFO)pCharSpawn)->Heading = (FLOAT)gFaceAngle;
                     gFaceAngle=10000.0f;
                     bRunNextCommand = TRUE;
                     }
@@ -2857,8 +2862,8 @@ VOID Face(PSPAWNINFO pChar, PCHAR szLine)
 
     if (!pSpawnClosest) {
     if (!bOtherArgs) {
-        if (EQADDR_TARGET && *EQADDR_TARGET) {
-            pSpawnClosest = *EQADDR_TARGET;
+        if (ppTarget && pTarget) {
+            pSpawnClosest = (PSPAWNINFO)pTarget;
         }
     } else {
             pSpawnClosest = SearchThroughSpawns(&SearchSpawn,pChar);
@@ -2899,17 +2904,17 @@ VOID Face(PSPAWNINFO pChar, PCHAR szLine)
         if (gFaceAngle>=512.0f) gFaceAngle -= 512.0f;
         if (gFaceAngle<0.0f) gFaceAngle += 512.0f;
         if (Fast) {
-            (*EQADDR_CHAR)->Heading = (FLOAT)gFaceAngle;
+            ((PSPAWNINFO)pCharSpawn)->Heading = (FLOAT)gFaceAngle;
             gFaceAngle=10000.0f;
             bRunNextCommand = TRUE;
         }
         sprintf(szMsg,"Facing %s'%s'...",(Away)?"away from ":"", CleanupName(strcpy(szName,pSpawnClosest->Name),FALSE));
     }
     gLastError[0]=0;
-    if (EQADDR_TARGET && *EQADDR_TARGET) {
-        pTarget = *EQADDR_TARGET;
+    if (ppTarget && pTarget) {
+        psTarget = (PSPAWNINFO)pTarget;
     }
-    if ((pSpawnClosest != &LocSpawn) && ((Away) || (pSpawnClosest != pTarget))) WriteChatBuffer(szMsg,USERCOLOR_WHO);
+    if ((pSpawnClosest != &LocSpawn) && ((Away) || (pSpawnClosest != psTarget))) WriteChatBuffer(szMsg,USERCOLOR_WHO);
     DebugSpew("Face - %s",szMsg);
     return;
 }
@@ -2948,8 +2953,8 @@ VOID Look(PSPAWNINFO pChar, PCHAR szLine)
 // ***************************************************************************
 VOID Where(PSPAWNINFO pChar, PCHAR szLine)
 {
-    if (!EQADDR_SPAWNLIST) return;
-    if (!*EQADDR_SPAWNLIST) return;
+    if (!ppSpawnList) return;
+    if (!pSpawnList) return;
     PSPAWNINFO pSpawnClosest = NULL;
     SEARCHSPAWN SearchSpawn;
     ClearSearchSpawn(&SearchSpawn);
@@ -2981,8 +2986,8 @@ VOID Where(PSPAWNINFO pChar, PCHAR szLine)
         sprintf(szMsg,"The closest '%s' is a level %d %s %s and %1.2f away to the %s, Z difference = %1.2f",
             CleanupName(strcpy(szName,pSpawnClosest->Name),FALSE),
             pSpawnClosest->Level,
-            GetRaceByID(pSpawnClosest->Race),
-            GetClassByID(pSpawnClosest->Class),
+            pEverQuest->GetRaceDesc(pSpawnClosest->Race),
+            pEverQuest->GetClassDesc(pSpawnClosest->Class),
             DistanceToSpawn(pChar,pSpawnClosest),
             szHeading[Angle],
             pSpawnClosest->Z-pChar->Z);
@@ -3067,22 +3072,22 @@ DWORD FindSpellListByName(PCHAR szName)
 {
     DWORD Index;
     for (Index=0;Index<10;Index++) {
-        if (!stricmp(EQADDR_SPELLFAVORITES[Index].Name,szName)) return Index;
+        if (!stricmp(pSpellSets[Index].Name,szName)) return Index;
     }
     return -1;
 }
 
 VOID LoadSpells(PSPAWNINFO pChar, PCHAR szLine)
 {
-    if (!cmdLoadSpells || !EQADDR_SPELLFAVORITES || !EQADDR_SPELLBOOKWND || szLine[0]==0) return;
+    if (!pSpellSets || !ppSpellBookWnd || szLine[0]==0) return;
 
     DWORD Index, DoIndex = 0xFFFFFFFF;
     CHAR szArg1[MAX_STRING] = {0};
     CHAR szArg2[MAX_STRING] = {0};
     CHAR szBuffer[MAX_STRING] = {0};
-    DWORD SpellBookWnd = *EQADDR_SPELLBOOKWND;
+//    DWORD SpellBookWnd = pSpellBookWnd;
 
-    if (!SpellBookWnd) return;
+    if (!pSpellBookWnd) return;
 
     GetArg(szArg1,szLine,1);
     GetArg(szArg2,szLine,2);
@@ -3091,8 +3096,8 @@ VOID LoadSpells(PSPAWNINFO pChar, PCHAR szLine)
         WriteChatBuffer("Spell favorites list:",USERCOLOR_DEFAULT);
         WriteChatBuffer("--------------------------",USERCOLOR_DEFAULT);
         for (Index=0;Index<10;Index++) {
-            if (EQADDR_SPELLFAVORITES[Index].Name[0]!=0) {
-                WriteChatBuffer(EQADDR_SPELLFAVORITES[Index].Name,USERCOLOR_DEFAULT);
+            if (pSpellSets[Index].Name[0]!=0) {
+                WriteChatBuffer(pSpellSets[Index].Name,USERCOLOR_DEFAULT);
             }
         }
         return;
@@ -3108,8 +3113,8 @@ VOID LoadSpells(PSPAWNINFO pChar, PCHAR szLine)
         sprintf(szBuffer,"Favorite list '%s':",szArg2);
         WriteChatBuffer(szBuffer,USERCOLOR_DEFAULT);
         for (Index=0;Index<8;Index++) {
-            if (EQADDR_SPELLFAVORITES[DoIndex].SpellId[Index]!=0xFFFFFFFF) {
-                sprintf(szBuffer,"%d) %s",Index,GetSpellByID(EQADDR_SPELLFAVORITES[DoIndex].SpellId[Index]));
+            if (pSpellSets[DoIndex].SpellId[Index]!=0xFFFFFFFF) {
+                sprintf(szBuffer,"%d) %s",Index,GetSpellByID(pSpellSets[DoIndex].SpellId[Index]));
                 WriteChatBuffer(szBuffer,USERCOLOR_DEFAULT);
             }
         }
@@ -3118,7 +3123,9 @@ VOID LoadSpells(PSPAWNINFO pChar, PCHAR szLine)
 
     DoIndex = FindSpellListByName(szArg1);
     if (DoIndex!=-1) {
-        Index = (DWORD)&EQADDR_SPELLFAVORITES[DoIndex];
+//        Index = (DWORD)&pSpellSets[DoIndex];
+		pSpellBookWnd->MemorizeSet((int*)&pSpellSets[DoIndex],8);
+		/*
         __asm {
             push ecx;
             mov ecx, dword ptr [SpellBookWnd];
@@ -3127,6 +3134,7 @@ VOID LoadSpells(PSPAWNINFO pChar, PCHAR szLine)
             call dword ptr [cmdLoadSpells];
             pop ecx;
         }
+		/**/
     } else {
         sprintf(szBuffer,"Unable to find favorite list '%s'",szArg1);
         WriteChatBuffer(szBuffer,USERCOLOR_DEFAULT);
@@ -3143,7 +3151,7 @@ VOID Cast(PSPAWNINFO pChar, PCHAR szLine)
 {
    if (!cmdCast) return;
 
-   if (szLine[0]==0 || atoi(szLine) || !EQADDR_SPELLS || !EQADDR_CHAR_INFO || !*EQADDR_CHAR_INFO) {
+   if (szLine[0]==0 || atoi(szLine) || !ppSpellMgr || !ppCharData || !pCharData) {
       cmdCast(pChar,szLine);
       return;
    }
@@ -3176,7 +3184,7 @@ if (!stricmp(szArg1,"item"))
       DWORD item = 0;
       DWORD slot = 0;
       DWORD SpawnFooter = NULL;
-      SpawnFooter = (DWORD)*EQADDR_SPAWNTAIL;
+      SpawnFooter = (DWORD)pSpawnListTail;
       for (int i=0;i<30;i++) {
          if (pCharInfo->Inventory[i])
             if (!_stricmp(szArg2,pCharInfo->Inventory[i]->Item->Name)) { 
@@ -3187,9 +3195,9 @@ if (!stricmp(szArg1,"item"))
                break;
             }
       }
-	  //pEQ_Character->CastSpell(10,0,item,slot);
-	  // ^^ ^ ^ ^ ^^ pCharInfo!
       if (FOUND) {
+		  pCharData->CastSpell(10,0,(EQ_Item**)item,slot);
+		  /*
          __asm {
             push eax;
             push ecx;
@@ -3205,6 +3213,7 @@ if (!stricmp(szArg1,"item"))
             pop ecx;
             pop eax;
          }
+		 /**/
          return;
       }
    }
@@ -3233,14 +3242,14 @@ if (!stricmp(szArg1,"item"))
 BOOL IsPCNear(PSPAWNINFO pSpawn, FLOAT Radius)
 {
     PSPAWNINFO pClose = NULL;
-    if (EQADDR_SPAWNLIST && *EQADDR_SPAWNLIST) {
-        pClose = *EQADDR_SPAWNLIST;
+    if (ppSpawnList && pSpawnList) {
+        pClose = (PSPAWNINFO)pSpawnList;
         }
     while (pClose) {
         BOOL InGroup = FALSE;
         DWORD i;
         if (pClose==GetCharInfo()->pSpawn) InGroup=TRUE;
-        if (EQADDR_GROUP) for (i=0;i<5;i++) if (EQADDR_GROUP[i]==pClose) InGroup=TRUE;
+		if (ppGroup) for (i=0;i<5;i++) if (ppGroup[i]==(EQPlayer*)pClose) InGroup=TRUE;
         if (!InGroup && (pClose->Type == SPAWN_PLAYER)) {
             if ((pClose != pSpawn) && (DistanceToSpawn(pClose, pSpawn)<Radius)) return TRUE;
             }
@@ -3253,8 +3262,8 @@ BOOL IsInGroup(PSPAWNINFO pSpawn)
 {
     DWORD i;
 	if (pSpawn==GetCharInfo()->pSpawn) return TRUE;
-    if (!EQADDR_GROUP) return FALSE;
-	for (i=0;i<5;i++) if (EQADDR_GROUP[i]==pSpawn) return TRUE;
+    if (!ppGroup) return FALSE;
+	for (i=0;i<5;i++) if (ppGroup[i]==(EQPlayer*)pSpawn) return TRUE;
 	return FALSE;
 }
 
@@ -3343,7 +3352,7 @@ PCHAR FormatSearchSpawn(PCHAR Buffer, PSEARCHSPAWN pSearchSpawn)
 
 PSPAWNINFO SearchThroughSpawns(PSEARCHSPAWN pSearchSpawn, PSPAWNINFO pChar)
 {
-    PSPAWNINFO pSpawnInfo = *EQADDR_SPAWNLIST;
+    PSPAWNINFO pSpawnInfo = (PSPAWNINFO)pSpawnList;
     PSPAWNINFO pSpawn, pSpawnClosest = NULL;
     PSPAWNINFO pFromSpawn = NULL;
     CHAR szName[MAX_STRING] = {0};
@@ -3382,13 +3391,13 @@ PSPAWNINFO SearchThroughSpawns(PSEARCHSPAWN pSearchSpawn, PSPAWNINFO pChar)
                 (pSearchSpawn->NotID != pSpawn->SpawnID)
                 ) && (
                 (pSearchSpawn->szClass[0] == 0) ||
-                (!strnicmp(pSearchSpawn->szClass, GetClassByID(pSpawn->Class),strlen(pSearchSpawn->szClass)))
+                (!strnicmp(pSearchSpawn->szClass, pEverQuest->GetClassDesc(pSpawn->Class),strlen(pSearchSpawn->szClass)))
                 ) && (
                 (pSearchSpawn->szBodyType[0] == 0) ||
-                (!strnicmp(pSearchSpawn->szBodyType, GetBodyTypeByID(pSpawn->BodyType),strlen(pSearchSpawn->szBodyType)))
+                (!strnicmp(pSearchSpawn->szBodyType, pEverQuest->GetBodyTypeDesc(pSpawn->BodyType),strlen(pSearchSpawn->szBodyType)))
                 ) && (
                 (pSearchSpawn->szRace[0] == 0) ||
-                (!strnicmp(pSearchSpawn->szRace, GetRaceByID(pSpawn->Race),strlen(pSearchSpawn->szRace)))
+                (!strnicmp(pSearchSpawn->szRace, pEverQuest->GetRaceDesc(pSpawn->Race),strlen(pSearchSpawn->szRace)))
                 ) && (
                 (pSearchSpawn->GuildID == 0xFFFF) ||
                 (pSearchSpawn->GuildID == pSpawn->GuildID)
@@ -3516,13 +3525,13 @@ BOOL SpawnMatchesSearch(PSEARCHSPAWN pSearchSpawn, PSPAWNINFO pChar, PSPAWNINFO 
                 (pSearchSpawn->NotID != pSpawn->SpawnID)
                 ) && (
                 (pSearchSpawn->szClass[0] == 0) ||
-                (!strnicmp(pSearchSpawn->szClass, GetClassByID(pSpawn->Class),strlen(pSearchSpawn->szClass)))
+                (!strnicmp(pSearchSpawn->szClass, pEverQuest->GetClassDesc(pSpawn->Class),strlen(pSearchSpawn->szClass)))
                 ) && (
                 (pSearchSpawn->szBodyType[0] == 0) ||
-                (!strnicmp(pSearchSpawn->szBodyType, GetBodyTypeByID(pSpawn->BodyType),strlen(pSearchSpawn->szBodyType)))
+                (!strnicmp(pSearchSpawn->szBodyType, pEverQuest->GetBodyTypeDesc(pSpawn->BodyType),strlen(pSearchSpawn->szBodyType)))
                 ) && (
                 (pSearchSpawn->szRace[0] == 0) ||
-                (!strnicmp(pSearchSpawn->szRace, GetRaceByID(pSpawn->Race),strlen(pSearchSpawn->szRace)))
+                (!strnicmp(pSearchSpawn->szRace, pEverQuest->GetRaceDesc(pSpawn->Race),strlen(pSearchSpawn->szRace)))
                 ) && (
                 (pSearchSpawn->GuildID == 0xFFFF) ||
                 (pSearchSpawn->GuildID == pSpawn->GuildID)
@@ -3744,8 +3753,8 @@ VOID ParseSearchSpawn(PCHAR Buffer, PSEARCHSPAWN pSearchSpawn)
 
 VOID Target(PSPAWNINFO pChar, PCHAR szLine)
 {
-    if (!EQADDR_SPAWNLIST) return;
-    if (!*EQADDR_SPAWNLIST) return;
+    if (!ppSpawnList) return;
+    if (!pSpawnList) return;
     PSPAWNINFO pSpawnClosest = NULL;
     SEARCHSPAWN SearchSpawn;
     ClearSearchSpawn(&SearchSpawn);
@@ -3764,17 +3773,17 @@ VOID Target(PSPAWNINFO pChar, PCHAR szLine)
         if (szArg[0]==0) {
             bArg = FALSE;
         } else if (!strcmp(szArg,"myself")) {
-            if ((*EQADDR_CHAR_INFO)->pSpawn) {
-                pSpawnClosest = (*EQADDR_CHAR_INFO)->pSpawn;
+            if (((PCHARINFO)pCharData)->pSpawn) {
+                pSpawnClosest = ((PCHARINFO)pCharData)->pSpawn;
                 DidTarget = TRUE;
             }
         } else if (!strcmp(szArg,"mycorpse")) {
-            if ((*EQADDR_CHAR_INFO)->pSpawn) {
-                sprintf(szFilter,"%s's Corpse",(*EQADDR_CHAR_INFO)->pSpawn->Name);
+            if (((PCHARINFO)pCharData)->pSpawn) {
+                sprintf(szFilter,"%s's Corpse",((PCHARINFO)pCharData)->pSpawn->Name);
                 _strlwr(szFilter);
             }
         } else if (!strcmp(szArg,"clear")) {
-            *EQADDR_TARGET = NULL;
+            pTarget = NULL;
             DebugSpew("Target cleared.");
             WriteChatBuffer("Target cleared.",USERCOLOR_WHO);
             return;
@@ -3782,7 +3791,7 @@ VOID Target(PSPAWNINFO pChar, PCHAR szLine)
             szFilter = ParseSearchSpawnArgs(szArg,szFilter,&SearchSpawn);
         }
     }
-    if (*EQADDR_TARGET) SearchSpawn.FromSpawnID = (*EQADDR_TARGET)->SpawnID;
+    if (pTarget) SearchSpawn.FromSpawnID = ((PSPAWNINFO)pTarget)->SpawnID;
 
     if (!DidTarget) {
         pSpawnClosest = SearchThroughSpawns(&SearchSpawn,pChar);
@@ -3793,10 +3802,10 @@ VOID Target(PSPAWNINFO pChar, PCHAR szLine)
         sprintf(szMsg,"There are no spawns matching: %s",FormatSearchSpawn(szTemp,&SearchSpawn));
         strcpy(gLastError,"TARGET_NOTFOUND");
     } else {
-        PSPAWNINFO *pTarget = NULL;
-        if (EQADDR_TARGET) {
-            pTarget = EQADDR_TARGET;
-            *pTarget = pSpawnClosest;
+        PSPAWNINFO *psTarget = NULL;
+        if (ppTarget) {
+            psTarget = (PSPAWNINFO*)ppTarget;
+            *psTarget = pSpawnClosest;
             DebugSpew("Target - %s selected",pSpawnClosest->Name);
 //            sprintf(szMsg,"Selected '%s'...",CleanupName(strcpy(szArg,pSpawnClosest->Name),FALSE));
 //			sprintf(szMsg,"Selected '%s'...",CleanupName(strcpy(szArg,pSpawnClosest->Name),FALSE));
@@ -3948,7 +3957,7 @@ VOID MacroPause(PSPAWNINFO pChar, PCHAR szLine)
 VOID SetAutoRun(PSPAWNINFO pChar, PCHAR szLine)
 {
     CHAR szServerAndName[MAX_STRING] = {0};
-    sprintf(szServerAndName,"%s.%s",(*EQADDR_CHAR_INFO)->Server,(*EQADDR_CHAR_INFO)->Name);
+    sprintf(szServerAndName,"%s.%s",((PCHARINFO)pCharData)->Server,((PCHARINFO)pCharData)->Name);
     WritePrivateProfileString(szServerAndName,"AutoRun",szLine,gszINIFilename);
     sprintf(szServerAndName,"Set autorun to: '%s'",szLine);
     WriteChatBuffer(szServerAndName,USERCOLOR_DEFAULT);
@@ -4245,12 +4254,12 @@ VOID WindowState(PSPAWNINFO pChar, PCHAR szLine)
 	struct _WINDOWSTATELIST 
 		{ PCHAR szName;	PCSIDLWND* pWindow; }
 	WindowList[] = {
-		{ "inventory",	(PCSIDLWND*)EQADDR_INVENTORYWND },
-		{ "merchant",	(PCSIDLWND*)EQADDR_CLASSMERCHWND },
-		{ "corpse",		(PCSIDLWND*)EQADDR_LOOTWND },
-		{ "spellbook",	(PCSIDLWND*)EQADDR_SPELLBOOKWND },
-		{ "map",		(PCSIDLWND*)EQADDR_CLASSMAPWND },
-		{ "notes",		(PCSIDLWND*)EQADDR_CLASSNOTESWND },
+		{ "inventory",	(PCSIDLWND*)ppInventoryWnd },
+		{ "merchant",	(PCSIDLWND*)ppMerchantWnd },
+		{ "corpse",		(PCSIDLWND*)ppLootWnd },
+		{ "spellbook",	(PCSIDLWND*)ppSpellBookWnd },
+		{ "map",		(PCSIDLWND*)ppMapViewWnd },
+		{ "notes",		(PCSIDLWND*)ppNoteWnd },
 //		{ "MQChat",		(PCSIDLWND*)&MQChatWnd },
 		{ NULL, NULL }
 	};

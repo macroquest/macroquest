@@ -5288,6 +5288,8 @@ EQLIB_OBJECT int EQ_Item::Gold(void);
 EQLIB_OBJECT int EQ_Item::Platinum(void);
 EQLIB_OBJECT int EQ_Item::Silver(void);
 EQLIB_OBJECT long EQ_Item::ValueSellMerchant(float,long);
+
+EQLIB_OBJECT char * EQ_Item::GetItemLinkHash(char *); // Lax 11-14-2003
 };
 
 class EQ_LoadingS

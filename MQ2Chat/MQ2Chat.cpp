@@ -1,10 +1,6 @@
 // MQ2Chat.cpp : Defines the entry point for the DLL application.
 // The "old" chat plugin
 
-// PLUGIN_API is only to be used for callbacks.  All existing callbacks at this time
-// are shown below. Remove the ones your plugin does not use.  Always use Initialize
-// and Shutdown for setup and cleanup, do NOT do it in DllMain.
-
 
 #include "stdafx.h"
 #include "../MQ2Plugin.h"
@@ -42,7 +38,7 @@ PLUGIN_API DWORD OnWriteChatColor(PCHAR Line, DWORD Color, DWORD Filter)
 	CHAR Stripped[MAX_STRING];
 	StripMQChat(Line,Stripped);
 	if (gFilterMacro == FILTERMACRO_NONE) return 0;
-	if (!EQADDR_CLSEVERQUEST) return 0;
+	if (!ppEverQuest) return 0;
 	if (GetGameState()!=GAMESTATE_INGAME) return 0;
 
 	if (!pEverQuest) 

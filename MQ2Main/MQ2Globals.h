@@ -92,8 +92,10 @@ EQLIB_VAR DWORD HealthGained;
 
 
 
-EQLIB_VAR DWORD EQADDR_MAXMANA;
-EQLIB_VAR DWORD EQADDR_COMMANDS;
+//EQLIB_VAR DWORD EQADDR_MAXMANA;
+//EQLIB_VAR DWORD EQADDR_COMMANDS;
+EQLIB_VAR DWORD EQADDR_CONVERTITEMTAGS;
+
 EQLIB_VAR DWORD EQADDR_MEMCHECK;
 EQLIB_VAR DWORD EQADDR_MEMCHECK2;
 EQLIB_VAR DWORD EQADDR_MEMCHECKADDR1;
@@ -101,37 +103,41 @@ EQLIB_VAR DWORD EQADDR_MEMCHECKADDR2;
 EQLIB_VAR DWORD EQADDR_MEMCHECK3;
 EQLIB_VAR PCHAR EQADDR_SERVERHOST;
 EQLIB_VAR PCHAR EQADDR_SERVERNAME;
-EQLIB_VAR PCHAR *EQADDR_ACTIVEMERCHANT;
-EQLIB_VAR PCHAR *EQADDR_ACTIVECORPSE;
-EQLIB_VAR PPACKLOC EQADDR_PACKLOCS;
-EQLIB_VAR DWORD EQADDR_ITEMDISPLAYSETITEM; 
-EQLIB_VAR DWORD EQADDR_CXSTRAPPEND; 
-EQLIB_VAR DWORD EQADDR_CXSTRSET; 
+//EQLIB_VAR PCHAR *EQADDR_ACTIVEMERCHANT;
+//EQLIB_VAR PCHAR *EQADDR_ACTIVECORPSE;
+//EQLIB_VAR PPACKLOC EQADDR_PACKLOCS;
+//EQLIB_VAR DWORD EQADDR_ITEMDISPLAYSETITEM; 
+//EQLIB_VAR DWORD EQADDR_CXSTRAPPEND; 
+//EQLIB_VAR DWORD EQADDR_CXSTRSET; 
 EQLIB_VAR DWORD EQADDR_HWND;
 
 EQLIB_VAR PCMDLIST EQADDR_CMDLIST;
 
 EQLIB_VAR PBYTE EQADDR_ATTACK;
 EQLIB_VAR PBYTE EQADDR_NOTINCHATMODE;
-EQLIB_VAR DWORD EQADDR_ZONING;
-EQLIB_VAR PZONELIST **EQADDR_ZONELIST;
-EQLIB_VAR PSPAWNINFO *EQADDR_SPAWNLIST;
-EQLIB_VAR PSPAWNINFO *EQADDR_SPAWNTAIL;
-EQLIB_VAR PSPAWNINFO *EQADDR_CHAR;
-EQLIB_VAR PCHARINFO *EQADDR_CHAR_INFO;
-EQLIB_VAR PSPAWNINFO *EQADDR_TARGET;
+//EQLIB_VAR DWORD EQADDR_ZONING;
+//EQLIB_VAR PZONELIST **EQADDR_ZONELIST;
+//EQLIB_VAR PSPAWNINFO *EQADDR_SPAWNLIST;
+//EQLIB_VAR PSPAWNINFO *EQADDR_SPAWNTAIL;
+//EQLIB_VAR PSPAWNINFO *EQADDR_CHAR;
+//EQLIB_VAR PCHARINFO *EQADDR_CHAR_INFO;
+//EQLIB_VAR PSPAWNINFO *EQADDR_TARGET;
 EQLIB_VAR PCHAR EQADDR_LASTTELL;
-EQLIB_VAR PGROUNDITEM *EQADDR_ITEMS;
-EQLIB_VAR _SPELLPOINTER** EQADDR_SPELLS;
-EQLIB_VAR PSPAWNINFO *EQADDR_GROUP;
+//EQLIB_VAR PGROUNDITEM *EQADDR_ITEMS;
+//EQLIB_VAR _SPELLPOINTER** EQADDR_SPELLS;
+//EQLIB_VAR PSPAWNINFO *EQADDR_GROUP;
 EQLIB_VAR PBYTE EQADDR_GROUPCOUNT;
 EQLIB_VAR PVOID EQADDR_GWORLD;
-EQLIB_VAR PDOORTABLE *EQADDR_DOORS;
+//EQLIB_VAR PDOORTABLE *EQADDR_DOORS;
+/*
 EQLIB_VAR DWORD EQADDR_CLSITEMS;
 EQLIB_VAR DWORD EQADDR_CLSSPAWNS;
+/**/
 EQLIB_VAR DWORD EQADDR_GUILDLIST;
 EQLIB_VAR PDWORD EQADDR_DOABILITYLIST;
 EQLIB_VAR PBYTE EQADDR_DOABILITYAVAILABLE;
+
+/*
 EQLIB_VAR DWORD EQADDR_CASTSPELL;
 EQLIB_VAR DWORD EQADDR_WRITEMAPFILE;
 EQLIB_VAR DWORD EQADDR_CLEANUI;
@@ -142,11 +148,13 @@ EQLIB_VAR DWORD *EQADDR_CLASSGIVEWND;
 EQLIB_VAR PEQNOTESWINDOW* EQADDR_CLASSNOTESWND;
 EQLIB_VAR DWORD *EQADDR_CLASSDISPLAYOBJECT;
 EQLIB_VAR DWORD *EQADDR_CLASSBANKWND;
+/**/
 
 EQLIB_VAR PBYTE EQADDR_ENCRYPTPAD;
 EQLIB_VAR PBYTE EQADDR_ENCRYPTPAD2;
 EQLIB_VAR PBYTE EQADDR_ENCRYPTPAD3;
-EQLIB_VAR PSPELLFAVORITE EQADDR_SPELLFAVORITES;
+
+//EQLIB_VAR PSPELLFAVORITE EQADDR_SPELLFAVORITES;
 
 EQLIB_VAR PMOUSEINFO EQADDR_MOUSE;
 EQLIB_VAR PMOUSECLICK EQADDR_MOUSECLICK;
@@ -155,6 +163,7 @@ EQLIB_VAR DWORD EQADDR_DIMAIN;
 EQLIB_VAR IDirectInputDevice8A **EQADDR_DIKEYBOARD;
 EQLIB_VAR IDirectInputDevice8A **EQADDR_DIMOUSE;
 
+/*
 EQLIB_VAR DWORD *EQADDR_SPELLBOOKWND;
 EQLIB_VAR DWORD *EQADDR_CLASSMERCHWND;
 EQLIB_VAR DWORD *EQADDR_CLASSTEXTUREANIMATION;
@@ -167,27 +176,14 @@ EQLIB_VAR DWORD *EQADDR_CLASSMAPWND;
 EQLIB_VAR DWORD EQADDR_GETFOCUSCASTINGTIMEMODIFIER;
 EQLIB_VAR DWORD EQADDR_GETAACASTINGTIMEMODIFIER;
 EQLIB_VAR PEQ_CONTAINERWND_MANAGER *EQADDR_CLASSCONTAINERMGR;
+/**/
+
 EQLIB_VAR DWORD *EQADDR_SLOTLIST;
 EQLIB_VAR PZONEINFO EQADDR_ZONEINFO;
 
-EQLIB_VAR DWORD *EQADDR_CLSEVERQUEST;
-EQLIB_VAR DWORD EQADDR_DSPCHAT;
-EQLIB_VAR DWORD *EQADDR_CHATMANAGER;
-EQLIB_VAR DWORD EQADDR_CCHATMANAGERGETRGBAFROMINDEX;
-EQLIB_VAR DWORD EQADDR_CXSTRCONSTRUCTOR;
-EQLIB_VAR DWORD EQADDR_CXSTRFREE;
-EQLIB_VAR DWORD EQADDR_APPENDSTML;
-EQLIB_VAR DWORD EQADDR_CONVERTITEMTAGS;
-EQLIB_VAR DWORD EQADDR_GETITEMLINKHASH;
-EQLIB_VAR DWORD EQADDR_CCHATWINDOWCONSTRUCTOR;
-EQLIB_VAR DWORD EQADDR_CHATMANAGERINITCONTEXTMENU;
-EQLIB_VAR DWORD EQADDR_GETNUMBANKSLOTS;
-
-EQLIB_VAR DWORD EQADDR_GETCURHP;
-EQLIB_VAR DWORD EQADDR_GETMAXHP;
 
 EQLIB_VAR DWORD EQADDR_EQLABELS;
-
+/**/
 
 EQLIB_VAR BOOL gMouseLeftClickInProgress;
 EQLIB_VAR BOOL gMouseRightClickInProgress;
@@ -222,18 +218,9 @@ EQLIB_VAR fEQCommand         cmdCharInfo;
 EQLIB_VAR fEQCommand         cmdFilter;
 EQLIB_VAR fEQCommand         cmdDoAbility;
 EQLIB_VAR fEQCommand         cmdCast;
-EQLIB_VAR fEQGetStringByID   GetRaceByID;
-EQLIB_VAR fEQGetStringByID   GetClassByID;
-EQLIB_VAR fEQGetStringByID   GetDeityByID;
-EQLIB_VAR fEQGetStringByID   GetBodyTypeByID;
-EQLIB_VAR fEQScreenItem      ScreenItem;
-EQLIB_VAR fEQScreenSpawn     ScreenSpawn;
+
+
 EQLIB_VAR fEQNewUIINI        NewUIINI;
-EQLIB_VAR fEQLoadSpells      cmdLoadSpells;
-EQLIB_VAR fEQMemSpell        cmdMemSpell;
-EQLIB_VAR fEQSelectItem      cmdSelectItem;
-EQLIB_VAR fEQBuyItem         cmdBuyItem;
-EQLIB_VAR fEQSellItem        cmdSellItem;
 EQLIB_VAR fEQProcGameEvts    ProcessGameEvents;
 EQLIB_VAR fEQSendMessage     send_message;
 
@@ -244,4 +231,191 @@ EQLIB_VAR PALIAS pAliases;
 EQLIB_VAR PMQCOMMAND pCommands;
 EQLIB_VAR PMQPLUGIN pPlugins;
 
-EQLIB_VAR CEverQuest *pEverQuest;
+EQLIB_VAR CEverQuest **ppEverQuest;
+#define pEverQuest (*ppEverQuest)
+EQLIB_VAR CDisplay **ppDisplay;
+#define pDisplay (*ppDisplay)
+EQLIB_VAR EQ_Character **ppCharData;
+#define pCharData (*ppCharData)
+EQLIB_VAR EQPlayer **ppCharSpawn;
+#define pCharSpawn (*ppCharSpawn)
+EQLIB_VAR EQPlayer **ppActiveMerchant;
+#define pActiveMerchant (*ppActiveMerchant)
+EQLIB_VAR EQPlayer **ppSpawnList;
+#define pSpawnList (*ppSpawnList)
+EQLIB_VAR EQPlayer **ppSpawnListTail;
+#define pSpawnListTail (*ppSpawnListTail)
+EQLIB_VAR EQWorldData **ppWorldData;
+#define pWorldData (*ppWorldData)
+EQLIB_VAR SpellManager **ppSpellMgr;
+#define pSpellMgr (*ppSpellMgr)
+EQLIB_VAR CInvSlot **ppSelectedItem;
+#define pSelectedItem (*ppSelectedItem)
+EQLIB_VAR EQPlayer **ppGroup;
+#define pGroup (*ppGroup)
+EQLIB_VAR EQPlayer **ppTarget;
+#define pTarget (*ppTarget)
+EQLIB_VAR EqSwitchManager **ppSwitchMgr;
+#define pSwitchMgr (*ppSwitchMgr)
+EQLIB_VAR EQItemList **ppItemList;
+#define pItemList (*ppItemList)
+
+EQLIB_VAR SPELLFAVORITE *pSpellSets;
+
+/* WINDOW INSTANCES */ 
+EQLIB_VAR CContextMenuManager **ppContextMenuManager;
+EQLIB_VAR CCursorAttachment **ppCursorAttachment;
+EQLIB_VAR CSocialEditWnd **ppSocialEditWnd;
+EQLIB_VAR CInvSlotMgr **ppInvSlotMgr;
+EQLIB_VAR CContainerMgr **ppContainerMgr;
+EQLIB_VAR CChatManager **ppChatManager;
+EQLIB_VAR CConfirmationDialog **ppConfirmationDialog;
+EQLIB_VAR CFacePick **ppFacePick;
+//EQLIB_VAR CItemDisplayMgr **ppItemDisplayMgr;
+//EQLIB_VAR CSpellDisplayMgr **ppSpellDisplayMgr;
+EQLIB_VAR CNoteWnd **ppNoteWnd;
+EQLIB_VAR CHelpWnd **ppHelpWnd;
+EQLIB_VAR CTipWnd **ppTipWndOFDAY;
+EQLIB_VAR CTipWnd **ppTipWndCONTEXT;
+EQLIB_VAR CBookWnd **ppBookWnd;
+EQLIB_VAR CFriendsWnd **ppFriendsWnd;
+EQLIB_VAR CMusicPlayerWnd **ppMusicPlayerWnd;
+EQLIB_VAR CAlarmWnd **ppAlarmWnd;
+EQLIB_VAR CLoadskinWnd **ppLoadskinWnd;
+EQLIB_VAR CPetInfoWnd **ppPetInfoWnd;
+EQLIB_VAR CTrainWnd **ppTrainWnd;
+EQLIB_VAR CSkillsWnd **ppSkillsWnd;
+EQLIB_VAR CSkillsSelectWnd **ppSkillsSelectWnd;
+EQLIB_VAR CAAWnd **ppAAWnd;
+EQLIB_VAR CGroupWnd **ppGroupWnd;
+EQLIB_VAR CJournalNPCWnd **ppJournalNPCWnd;
+EQLIB_VAR CGroupSearchWnd **ppGroupSearchWnd;
+EQLIB_VAR CGroupSearchFiltersWnd **ppGroupSearchFiltersWnd;
+EQLIB_VAR CRaidWnd **ppRaidWnd;
+EQLIB_VAR CRaidOptionsWnd **ppRaidOptionsWnd;
+EQLIB_VAR CBreathWnd **ppBreathWnd;
+EQLIB_VAR CMapToolbarWnd **ppMapToolbarWnd;
+EQLIB_VAR CMapViewWnd **ppMapViewWnd;
+EQLIB_VAR CEditLabelWnd **ppEditLabelWnd;
+EQLIB_VAR COptionsWnd **ppOptionsWnd;
+EQLIB_VAR CBuffWindow **ppBuffWindowSHORT;
+EQLIB_VAR CBuffWindow **ppBuffWindowNORMAL;
+EQLIB_VAR CTargetWnd **ppTargetWnd;
+EQLIB_VAR CColorPickerWnd **ppColorPickerWnd;
+EQLIB_VAR CHotButtonWnd **ppHotButtonWnd;
+EQLIB_VAR CPlayerWnd **ppPlayerWnd;
+EQLIB_VAR CCastingWnd **ppCastingWnd;
+EQLIB_VAR CCastSpellWnd **ppCastSpellWnd;
+EQLIB_VAR CSpellBookWnd **ppSpellBookWnd;
+EQLIB_VAR CInventoryWnd **ppInventoryWnd;
+EQLIB_VAR CBankWnd **ppBankWnd;
+EQLIB_VAR CQuantityWnd **ppQuantityWnd;
+EQLIB_VAR CTextEntryWnd **ppTextEntryWnd;
+EQLIB_VAR CFileSelectionWnd **ppFileSelectionWnd;
+EQLIB_VAR CLootWnd **ppLootWnd;
+EQLIB_VAR CActionsWnd **ppActionsWnd;
+EQLIB_VAR CMerchantWnd **ppMerchantWnd;
+EQLIB_VAR CTradeWnd **ppTradeWnd;
+EQLIB_VAR CBazaarWnd **ppBazaarWnd;
+EQLIB_VAR CBazaarSearchWnd **ppBazaarSearchWnd;
+EQLIB_VAR CGiveWnd **ppGiveWnd;
+EQLIB_VAR CSelectorWnd **ppSelectorWnd;
+EQLIB_VAR CTrackingWnd **ppTrackingWnd;
+EQLIB_VAR CInspectWnd **ppInspectWnd;
+EQLIB_VAR CFeedbackWnd **ppFeedbackWnd;
+EQLIB_VAR CBugReportWnd **ppBugReportWnd;
+EQLIB_VAR CVideoModesWnd **ppVideoModesWnd;
+EQLIB_VAR CCompassWnd **ppCompassWnd;
+EQLIB_VAR CPlayerNotesWnd **ppPlayerNotesWnd;
+EQLIB_VAR CGemsGameWnd **ppGemsGameWnd;
+EQLIB_VAR CStoryWnd **ppStoryWnd;
+//EQLIB_VAR CFindLocationWnd **ppFindLocationWnd;
+//EQLIB_VAR CAdventureRequestWnd **ppAdventureRequestWnd;
+//EQLIB_VAR CAdventureStatsWnd **ppAdventureStatsWnd;
+//EQLIB_VAR CAdventureLeaderboardWnd **ppAdventureLeaderboardWnd;
+EQLIB_VAR CBodyTintWnd **ppBodyTintWnd;
+EQLIB_VAR CGuildMgmtWnd **ppGuildMgmtWnd;
+EQLIB_VAR CJournalTextWnd **ppJournalTextWnd;
+EQLIB_VAR CJournalCatWnd **ppJournalCatWnd;
+EQLIB_VAR CPetitionQWnd **ppPetitionQWnd;
+EQLIB_VAR CSoulmarkWnd **ppSoulmarkWnd;
+EQLIB_VAR CTimeLeftWnd **ppTimeLeftWnd;
+
+
+#define pContextMenuManager (*ppContextMenuManager)
+#define pCursorAttachment (*ppCursorAttachment)
+#define pSocialEditWnd (*ppSocialEditWnd)
+#define pInvSlotMgr (*ppInvSlotMgr)
+#define pContainerMgr (*ppContainerMgr)
+#define pChatManager (*ppChatManager)
+#define pConfirmationDialog (*ppConfirmationDialog)
+#define pFacePick (*ppFacePick)
+#define pItemDisplayMgr (*ppItemDisplayMgr)
+#define pSpellDisplayMgr (*ppSpellDisplayMgr)
+#define pNoteWnd (*ppNoteWnd)
+#define pHelpWnd (*ppHelpWnd)
+#define pTipWnd (*ppTipWnd)
+#define pTipWnd (*ppTipWnd)
+#define pBookWnd (*ppBookWnd)
+#define pFriendsWnd (*ppFriendsWnd)
+#define pMusicPlayerWnd (*ppMusicPlayerWnd)
+#define pAlarmWnd (*ppAlarmWnd)
+#define pLoadskinWnd (*ppLoadskinWnd)
+#define pPetInfoWnd (*ppPetInfoWnd)
+#define pTrainWnd (*ppTrainWnd)
+#define pSkillsWnd (*ppSkillsWnd)
+#define pSkillsSelectWnd (*ppSkillsSelectWnd)
+#define pAAWnd (*ppAAWnd)
+#define pGroupWnd (*ppGroupWnd)
+#define pJournalNPCWnd (*ppJournalNPCWnd)
+#define pGroupSearchWnd (*ppGroupSearchWnd)
+#define pGroupSearchFiltersWnd (*ppGroupSearchFiltersWnd)
+#define pRaidWnd (*ppRaidWnd)
+#define pRaidOptionsWnd (*ppRaidOptionsWnd)
+#define pBreathWnd (*ppBreathWnd)
+#define pMapToolbarWnd (*ppMapToolbarWnd)
+#define pMapViewWnd (*ppMapViewWnd)
+#define pEditLabelWnd (*ppEditLabelWnd)
+#define pOptionsWnd (*ppOptionsWnd)
+#define pBuffWindow (*ppBuffWindow)
+#define pBuffWindow (*ppBuffWindow)
+#define pTargetWnd (*ppTargetWnd)
+#define pColorPickerWnd (*ppColorPickerWnd)
+#define pHotButtonWnd (*ppHotButtonWnd)
+#define pPlayerWnd (*ppPlayerWnd)
+#define pCastingWnd (*ppCastingWnd)
+#define pCastSpellWnd (*ppCastSpellWnd)
+#define pSpellBookWnd (*ppSpellBookWnd)
+#define pInventoryWnd (*ppInventoryWnd)
+#define pBankWnd (*ppBankWnd)
+#define pQuantityWnd (*ppQuantityWnd)
+#define pTextEntryWnd (*ppTextEntryWnd)
+#define pFileSelectionWnd (*ppFileSelectionWnd)
+#define pLootWnd (*ppLootWnd)
+#define pActionsWnd (*ppActionsWnd)
+#define pMerchantWnd (*ppMerchantWnd)
+#define pTradeWnd (*ppTradeWnd)
+#define pBazaarWnd (*ppBazaarWnd)
+#define pBazaarSearchWnd (*ppBazaarSearchWnd)
+#define pGiveWnd (*ppGiveWnd)
+#define pSelectorWnd (*ppSelectorWnd)
+#define pTrackingWnd (*ppTrackingWnd)
+#define pInspectWnd (*ppInspectWnd)
+#define pFeedbackWnd (*ppFeedbackWnd)
+#define pBugReportWnd (*ppBugReportWnd)
+#define pVideoModesWnd (*ppVideoModesWnd)
+#define pCompassWnd (*ppCompassWnd)
+#define pPlayerNotesWnd (*ppPlayerNotesWnd)
+#define pGemsGameWnd (*ppGemsGameWnd)
+#define pStoryWnd (*ppStoryWnd)
+#define pFindLocationWnd (*ppFindLocationWnd)
+#define pAdventureRequestWnd (*ppAdventureRequestWnd)
+#define pAdventureStatsWnd (*ppAdventureStatsWnd)
+#define pAdventureLeaderboardWnd (*ppAdventureLeaderboardWnd)
+#define pBodyTintWnd (*ppBodyTintWnd)
+#define pGuildMgmtWnd (*ppGuildMgmtWnd)
+#define pJournalTextWnd (*ppJournalTextWnd)
+#define pJournalCatWnd (*ppJournalCatWnd)
+#define pPetitionQWnd (*ppPetitionQWnd)
+#define pSoulmarkWnd (*ppSoulmarkWnd)
+#define pTimeLeftWnd (*ppTimeLeftWnd)

@@ -527,13 +527,13 @@ DWORD pEquip(PCHAR szVar, PCHAR szOutput, PSPAWNINFO pChar)
     return i;
 }
 
-DWORD pGroup(PCHAR szVar, PCHAR szOutput, PSPAWNINFO pChar)
+DWORD parmGroup(PCHAR szVar, PCHAR szOutput, PSPAWNINFO pChar)
 {
     DWORD i=0;
     // $group(xxx)
-    PSPAWNINFO pTarget = NULL;
-    if (EQADDR_TARGET && *EQADDR_TARGET) {
-        pTarget = *EQADDR_TARGET;
+    PSPAWNINFO psTarget = NULL;
+    if (ppTarget && pTarget) {
+        psTarget = (PSPAWNINFO)pTarget;
     }
 
     // $group(count)
@@ -553,15 +553,15 @@ DWORD pGroup(PCHAR szVar, PCHAR szOutput, PSPAWNINFO pChar)
         i+=strstr(szVar,")")-szVar;
         if (c==0) {
             itoa(GetCharInfo()->pSpawn->SpawnID,szTemp,10);
-        } else if (EQADDR_GROUPCOUNT && EQADDR_GROUP && (c<6)) {
+        } else if (EQADDR_GROUPCOUNT && ppGroup && (c<6)) {
             for (d=0;d<5 && c>0;d++) {
                 if (EQADDR_GROUPCOUNT[d]) c--;
                 if (!c) index=d;
             }
             if (index==6) {
                 strcat(szTemp,"-1");
-            } else if (EQADDR_GROUP[index]) {
-                itoa(EQADDR_GROUP[index]->SpawnID,szTemp,10);
+            } else if (ppGroup[index]) {
+                itoa(((PSPAWNINFO)ppGroup[index])->SpawnID,szTemp,10);
             } else {
                 strcat(szTemp,"0");
             }
@@ -582,15 +582,15 @@ DWORD parmTarget(PCHAR szVar, PCHAR szOutput, PSPAWNINFO pChar)
 {
     // $target(xxx)
     DWORD i=0;
-    PSPAWNINFO pTarget = NULL;
-    if (EQADDR_TARGET && *EQADDR_TARGET) {
-        pTarget = *EQADDR_TARGET;
+    PSPAWNINFO psTarget = NULL;
+    if (ppTarget && pTarget) {
+        psTarget = (PSPAWNINFO)pTarget;
     }
 
     // $target()
     if (!strncmp("target()",szVar,8)) {
         i+=7;
-        if (!pTarget) {
+        if (!psTarget) {
             strcat(szOutput,"FALSE");
         } else {
             strcat(szOutput,"TRUE");
@@ -600,7 +600,7 @@ DWORD parmTarget(PCHAR szVar, PCHAR szOutput, PSPAWNINFO pChar)
     } else if (!strncmp("target(animation)",szVar,17)) {
         CHAR szTemp[MAX_STRING] = {0};
         i+=16;
-      itoa(pTarget->pActorInfo->Animation,szTemp,10);
+      itoa(psTarget->pActorInfo->Animation,szTemp,10);
         strcat(szOutput,szTemp);
 
     // $target(distance,x)
@@ -608,10 +608,10 @@ DWORD parmTarget(PCHAR szVar, PCHAR szOutput, PSPAWNINFO pChar)
         CHAR szTemp[MAX_STRING] = {0};
         i+=17;
 
-        if (!pTarget) {
+        if (!psTarget) {
             strcat(szOutput,"0");
         } else {
-            itoa((INT)fabs(pChar->X-pTarget->X),szTemp,10);
+            itoa((INT)fabs(pChar->X-psTarget->X),szTemp,10);
             strcat(szOutput,szTemp);
         }
 
@@ -620,10 +620,10 @@ DWORD parmTarget(PCHAR szVar, PCHAR szOutput, PSPAWNINFO pChar)
         CHAR szTemp[MAX_STRING] = {0};
         i+=17;
 
-        if (!pTarget) {
+        if (!psTarget) {
             strcat(szOutput,"0");
         } else {
-            itoa((INT)fabs(pChar->Y-pTarget->Y),szTemp,10);
+            itoa((INT)fabs(pChar->Y-psTarget->Y),szTemp,10);
             strcat(szOutput,szTemp);
         }
 
@@ -632,10 +632,10 @@ DWORD parmTarget(PCHAR szVar, PCHAR szOutput, PSPAWNINFO pChar)
         CHAR szTemp[MAX_STRING] = {0};
         i+=17;
 
-        if (!pTarget) {
+        if (!psTarget) {
             strcat(szOutput,"0");
         } else {
-            itoa((INT)fabs(pChar->Z-pTarget->Z),szTemp,10);
+            itoa((INT)fabs(pChar->Z-psTarget->Z),szTemp,10);
             strcat(szOutput,szTemp);
         }
 
@@ -644,10 +644,10 @@ DWORD parmTarget(PCHAR szVar, PCHAR szOutput, PSPAWNINFO pChar)
         CHAR szTemp[MAX_STRING] = {0};
         i+=15;
 
-        if (!pTarget) {
+        if (!psTarget) {
             strcat(szOutput,"0");
         } else {
-            itoa((INT)DistanceToSpawn(pChar,pTarget),szTemp,10);
+            itoa((INT)DistanceToSpawn(pChar,psTarget),szTemp,10);
             strcat(szOutput,szTemp);
         }
 
@@ -656,10 +656,10 @@ DWORD parmTarget(PCHAR szVar, PCHAR szOutput, PSPAWNINFO pChar)
         CHAR szTemp[MAX_STRING] = {0};
         i+=18;
 
-        if (!pTarget) {
+        if (!psTarget) {
             strcat(szOutput,"0");
         } else {
-            itoa((INT)DistanceToSpawn3D(pChar,pTarget),szTemp,10);
+            itoa((INT)DistanceToSpawn3D(pChar,psTarget),szTemp,10);
             strcat(szOutput,szTemp);
         }
 
@@ -668,21 +668,21 @@ DWORD parmTarget(PCHAR szVar, PCHAR szOutput, PSPAWNINFO pChar)
         CHAR szTemp[MAX_STRING] = {0};
         i+=23;
 
-        if (!pTarget) {
+        if (!psTarget) {
             strcat(szOutput,"0");
         } else {
-            itoa((INT)EstimatedDistanceToSpawn(pChar,pTarget),szTemp,10);
+            itoa((INT)EstimatedDistanceToSpawn(pChar,psTarget),szTemp,10);
             strcat(szOutput,szTemp);
         }
 
      // $target(direction)   
     } else if (!strncmp("target(direction)",szVar,17)) {
         i+=16;
-        if (!pTarget) {
+        if (!psTarget) {
             strcat(szOutput,"NULL");
         } else {
       CHAR szTemp[MAX_STRING] = {0};
-      INT Angle = (INT)((atan2f(pChar->X - pTarget->X, pChar->Y - pTarget->Y) * 180.0f / PI + 360.0f) / 22.5f + 0.5f) % 16;
+      INT Angle = (INT)((atan2f(pChar->X - psTarget->X, pChar->Y - psTarget->Y) * 180.0f / PI + 360.0f) / 22.5f + 0.5f) % 16;
       sprintf(szTemp,szHeadingShort[Angle]);
         strcat(szOutput,szTemp);
            }
@@ -697,16 +697,16 @@ DWORD parmTarget(PCHAR szVar, PCHAR szOutput, PSPAWNINFO pChar)
     } else if (!strncmp("target(holding)",szVar,15)) {
         CHAR szTemp[MAX_STRING] = {0};
         i+=14;
-      itoa(pTarget->Holding,szTemp,10);
+      itoa(psTarget->Holding,szTemp,10);
         strcat(szOutput,szTemp);
     // $target(level)
     } else if (!strncmp("target(level)",szVar,13)) {
         CHAR szTemp[MAX_STRING] = {0};
         i+=12;
-        if (!pTarget) {
+        if (!psTarget) {
             strcat(szOutput,"0");
         } else {
-            itoa(pTarget->Level,szTemp,10);
+            itoa(psTarget->Level,szTemp,10);
             strcat(szOutput,szTemp);
         }
 
@@ -714,10 +714,10 @@ DWORD parmTarget(PCHAR szVar, PCHAR szOutput, PSPAWNINFO pChar)
     } else if (!strncmp("target(id)",szVar,10)) {
         CHAR szTemp[MAX_STRING] = {0};
         i+=9;
-        if (!pTarget) {
+        if (!psTarget) {
             strcat(szOutput,"0");
         } else {
-            itoa(pTarget->SpawnID,szTemp,10);
+            itoa(psTarget->SpawnID,szTemp,10);
             strcat(szOutput,szTemp);
         }
 
@@ -725,12 +725,12 @@ DWORD parmTarget(PCHAR szVar, PCHAR szOutput, PSPAWNINFO pChar)
     } else if (!strncmp("target(next)",szVar,12)) {
         CHAR szTemp[MAX_STRING] = {0};
         i+=11;
-        if (!pTarget) {
+        if (!psTarget) {
             strcat(szOutput,"0");
-        } else if (!pTarget->pNext) {
+        } else if (!psTarget->pNext) {
             strcat(szOutput,"0");
         } else {
-            itoa(pTarget->pNext->SpawnID,szTemp,10);
+            itoa(psTarget->pNext->SpawnID,szTemp,10);
             strcat(szOutput,szTemp);
         }
 
@@ -738,12 +738,12 @@ DWORD parmTarget(PCHAR szVar, PCHAR szOutput, PSPAWNINFO pChar)
     } else if (!strncmp("target(prev)",szVar,12)) {
         CHAR szTemp[MAX_STRING] = {0};
         i+=11;
-        if (!pTarget) {
+        if (!psTarget) {
             strcat(szOutput,"0");
-        } else if (!pTarget->pPrev) {
+        } else if (!psTarget->pPrev) {
             strcat(szOutput,"0");
         } else {
-            itoa(pTarget->pPrev->SpawnID,szTemp,10);
+            itoa(psTarget->pPrev->SpawnID,szTemp,10);
             strcat(szOutput,szTemp);
         }
 
@@ -751,10 +751,10 @@ DWORD parmTarget(PCHAR szVar, PCHAR szOutput, PSPAWNINFO pChar)
     } else if (!strncmp("target(x)",szVar,9)) {
         CHAR szTemp[MAX_STRING] = {0};
         i+=8;
-        if (!pTarget) {
+        if (!psTarget) {
             strcat(szOutput,"0");
         } else {
-            sprintf(szTemp,"%1.2f",pTarget->X);
+            sprintf(szTemp,"%1.2f",psTarget->X);
             strcat(szOutput,szTemp);
         }
 
@@ -762,10 +762,10 @@ DWORD parmTarget(PCHAR szVar, PCHAR szOutput, PSPAWNINFO pChar)
     } else if (!strncmp("target(y)",szVar,9)) {
         CHAR szTemp[MAX_STRING] = {0};
         i+=8;
-        if (!pTarget) {
+        if (!psTarget) {
             strcat(szOutput,"0");
         } else {
-            sprintf(szTemp,"%1.2f",pTarget->Y);
+            sprintf(szTemp,"%1.2f",psTarget->Y);
             strcat(szOutput,szTemp);
         }
 
@@ -773,10 +773,10 @@ DWORD parmTarget(PCHAR szVar, PCHAR szOutput, PSPAWNINFO pChar)
     } else if (!strncmp("target(z)",szVar,9)) {
         CHAR szTemp[MAX_STRING] = {0};
         i+=8;
-        if (!pTarget) {
+        if (!psTarget) {
             strcat(szOutput,"0");
         } else {
-            sprintf(szTemp,"%1.2f",pTarget->Z);
+            sprintf(szTemp,"%1.2f",psTarget->Z);
             strcat(szOutput,szTemp);
         }
 
@@ -784,10 +784,10 @@ DWORD parmTarget(PCHAR szVar, PCHAR szOutput, PSPAWNINFO pChar)
     } else if (!strncmp("target(heading)",szVar,15)) {
         CHAR szTemp[MAX_STRING] = {0};
         i+=14;
-        if (!pTarget) {
+        if (!psTarget) {
             strcat(szOutput,"0");
         } else {
-            sprintf(szTemp,"%1.2f",pTarget->Heading*0.703125f);
+            sprintf(szTemp,"%1.2f",psTarget->Heading*0.703125f);
             strcat(szOutput,szTemp);
         }
 
@@ -795,10 +795,10 @@ DWORD parmTarget(PCHAR szVar, PCHAR szOutput, PSPAWNINFO pChar)
     } else if (!strncmp("target(speed)",szVar,13)) {
         CHAR szTemp[MAX_STRING] = {0};
         i+=12;
-        if (!pTarget) {
+        if (!psTarget) {
             strcat(szOutput,"0");
         } else {
-            sprintf(szTemp,"%1.2f",FindSpeed(pTarget));
+            sprintf(szTemp,"%1.2f",FindSpeed(psTarget));
             strcat(szOutput,szTemp);
         }
 
@@ -806,10 +806,10 @@ DWORD parmTarget(PCHAR szVar, PCHAR szOutput, PSPAWNINFO pChar)
     } else if (!strncmp("target(headingto)",szVar,17)) {
         CHAR szTemp[MAX_STRING] = {0};
         i+=16;
-        if (!pTarget) {
+        if (!psTarget) {
             strcat(szOutput,"0");
         } else {
-            DOUBLE HeadingTo = atan2f(pChar->Y - pTarget->Y, pTarget->X - pChar->X) * 180.0f / PI + 90.0f;
+            DOUBLE HeadingTo = atan2f(pChar->Y - psTarget->Y, psTarget->X - pChar->X) * 180.0f / PI + 90.0f;
             if (HeadingTo<0.0f) HeadingTo += 360.0f;
             if (HeadingTo>=360.0f) HeadingTo -= 360.0f;
             sprintf(szTemp,"%1.2f",HeadingTo);
@@ -819,20 +819,20 @@ DWORD parmTarget(PCHAR szVar, PCHAR szOutput, PSPAWNINFO pChar)
     // $target(light)
     } else if (!strncmp("target(light)",szVar,13)) {
         i+=12;
-        if (!pTarget) {
+        if (!psTarget) {
             strcat(szOutput,"NONE");
         } else {
-            PCHAR szLight = GetLightForSpawn(pTarget);
+            PCHAR szLight = GetLightForSpawn(psTarget);
             strcat(szOutput,szLight);
         }
 
     // $target(state)
     } else if (!strncmp("target(state)",szVar,13)) {
         i+=12;
-        if (!pTarget) {
+        if (!psTarget) {
             strcat(szOutput,"UNKNOWN");
         } else {
-            switch (pTarget->StandState) {
+            switch (psTarget->StandState) {
                 case STANDSTATE_STAND:
                     strcat(szOutput,"STAND");
                     break;
@@ -860,7 +860,7 @@ DWORD parmTarget(PCHAR szVar, PCHAR szOutput, PSPAWNINFO pChar)
     // $target(held,right)
     } else if (!strncmp("target(held,right)",szVar,18)) {
         i+=17;
-        PCHAR Model = GetModel(pTarget,MODEL_HELD_R);
+        PCHAR Model = GetModel(psTarget,MODEL_HELD_R);
         if (Model) {
             strcat(szOutput,Model);
         } else {
@@ -870,7 +870,7 @@ DWORD parmTarget(PCHAR szVar, PCHAR szOutput, PSPAWNINFO pChar)
     // $target(held,left)
     } else if (!strncmp("target(held,left)",szVar,17)) {
         i+=16;
-        PCHAR Model = GetModel(pTarget,MODEL_HELD_L);
+        PCHAR Model = GetModel(psTarget,MODEL_HELD_L);
         if (Model) {
             strcat(szOutput,Model);
         } else {
@@ -880,7 +880,7 @@ DWORD parmTarget(PCHAR szVar, PCHAR szOutput, PSPAWNINFO pChar)
     // $target(held,shield)
     } else if (!strncmp("target(held,shield)",szVar,19)) {
         i+=18;
-        PCHAR Model = GetModel(pTarget,MODEL_SHIELD);
+        PCHAR Model = GetModel(psTarget,MODEL_SHIELD);
         if (Model) {
             strcat(szOutput,Model);
         } else {
@@ -891,10 +891,10 @@ DWORD parmTarget(PCHAR szVar, PCHAR szOutput, PSPAWNINFO pChar)
     } else if (!strncmp("target(hp,cur)",szVar,14)) {
         CHAR szTemp[MAX_STRING] = {0};
         i+=13;
-        if (!pTarget) {
+        if (!psTarget) {
             strcat(szOutput,"0");
         } else {
-            itoa((INT)(pTarget->HPCurrent),szTemp,10);
+            itoa((INT)(psTarget->HPCurrent),szTemp,10);
             strcat(szOutput,szTemp);
         }
 
@@ -902,10 +902,10 @@ DWORD parmTarget(PCHAR szVar, PCHAR szOutput, PSPAWNINFO pChar)
     } else if (!strncmp("target(hp,max)",szVar,14)) {
         CHAR szTemp[MAX_STRING] = {0};
         i+=13;
-        if (!pTarget) {
+        if (!psTarget) {
             strcat(szOutput,"0");
         } else {
-            itoa((INT)(pTarget->HPMax),szTemp,10);
+            itoa((INT)(psTarget->HPMax),szTemp,10);
             strcat(szOutput,szTemp);
         }
 
@@ -913,15 +913,15 @@ DWORD parmTarget(PCHAR szVar, PCHAR szOutput, PSPAWNINFO pChar)
     } else if (!strncmp("target(hp,pct)",szVar,14)) {
         CHAR szTemp[MAX_STRING] = {0};
         i+=13;
-        if (!pTarget) {
+        if (!psTarget) {
             strcat(szOutput,"0");
         } else {
-            itoa((INT)(pTarget->HPCurrent*100/pTarget->HPMax),szTemp,10);
+            itoa((INT)(psTarget->HPCurrent*100/psTarget->HPMax),szTemp,10);
             strcat(szOutput,szTemp);
         }
 
     // return NULL for all following $target(xxx) commands if no target
-    } else if (!pTarget) {
+    } else if (!psTarget) {
         while ((szVar[i] != ')') && (szVar[i] != 0)) i++;
         strcat(szOutput,"NULL");
 
@@ -929,41 +929,41 @@ DWORD parmTarget(PCHAR szVar, PCHAR szOutput, PSPAWNINFO pChar)
     } else if (!strncmp("target(deity)",szVar,13)) {
         i+=12;
         CHAR szTemp[MAX_STRING] = {0};
-        strcpy(szTemp,GetDeityByID(pTarget->Deity));
+        strcpy(szTemp,pEverQuest->GetDeityDesc(psTarget->Deity));
         strcat(szOutput,szTemp);
 
     // $target(deity,team)
     } else if (!strncmp("target(deity,team)",szVar,18)) {
         i+=17;
         CHAR szTemp[MAX_STRING] = {0};
-        strcpy(szTemp,szDeityTeam[GetDeityTeamByID(pTarget->Deity)]);
+        strcpy(szTemp,szDeityTeam[GetDeityTeamByID(psTarget->Deity)]);
         strcat(szOutput,szTemp);
 
     // $target(type)
     } else if (!strncmp("target(type)",szVar,12)) {
         i+=11;
-        strcat(szOutput,szSpawnType[pTarget->Type]);
+        strcat(szOutput,szSpawnType[psTarget->Type]);
 
     // $target(body)
     } else if (!strncmp("target(body)",szVar,12)) {
         i+=11;
-        strcat(szOutput,GetBodyTypeByID(pTarget->BodyType));
+        strcat(szOutput,pEverQuest->GetBodyTypeDesc(psTarget->BodyType));
 
     // $target(name)
     } else if (!strncmp("target(name)",szVar,12)) {
         i+=11;
-        strcat(szOutput,pTarget->Name);
+        strcat(szOutput,psTarget->Name);
 
     // $target(surname)
     } else if (!strncmp("target(surname)",szVar,15)) {
         i+=14;
-        strcat(szOutput,pTarget->Lastname);
+        strcat(szOutput,psTarget->Lastname);
 
     // $target(guild)
     } else if (!strncmp("target(guild)",szVar,13)) {
         i+=12;
-        if (pTarget->GuildID < 0xFFFE && EQADDR_GUILDLIST) {
-            strcat(szOutput,GetGuildByID(pTarget->GuildID));
+        if (psTarget->GuildID < 0xFFFE && EQADDR_GUILDLIST) {
+            strcat(szOutput,GetGuildByID(psTarget->GuildID));
         } else {
             strcat(szOutput,"NULL");
         }
@@ -971,8 +971,8 @@ DWORD parmTarget(PCHAR szVar, PCHAR szOutput, PSPAWNINFO pChar)
     // $target(guild,status)
     } else if (!strncmp("target(guild,status)",szVar,20)) {
         i+=19;
-        if (pTarget->GuildID < 0xFFFE && EQADDR_GUILDLIST) {
-            strcat(szOutput,szGuildStatus[pTarget->GuildStatus]);
+        if (psTarget->GuildID < 0xFFFE && EQADDR_GUILDLIST) {
+            strcat(szOutput,szGuildStatus[psTarget->GuildStatus]);
         } else {
             strcat(szOutput,"NULL");
         }
@@ -981,25 +981,25 @@ DWORD parmTarget(PCHAR szVar, PCHAR szOutput, PSPAWNINFO pChar)
     } else if (!strncmp("target(name,clean)",szVar,18)) {
         CHAR szName[MAX_STRING] = {0};
         i+=17;
-        strcpy(szName,pTarget->Name);
+        strcpy(szName,psTarget->Name);
         strcat(szOutput,CleanupName(szName,FALSE));
 
 
     // $target(surname)
     } else if (!strncmp("target(surname)",szVar,15)) {
         i+=14;
-        strcat(szOutput,pTarget->Lastname);
+        strcat(szOutput,psTarget->Lastname);
 
     // $target(master)
     } else if (!strncmp("target(master)",szVar,14)) {
         i+=13;
         CHAR szMaster[MAX_STRING] = {0};
-        ltoa(pTarget->MasterID,szMaster,10);
+        ltoa(psTarget->MasterID,szMaster,10);
         strcat(szOutput,szMaster);
 
     // $target(pet)
     } else if (!strncmp("target(pet)",szVar,11)) {
-        PSPAWNINFO pPet = GetPet(pTarget->SpawnID);
+        PSPAWNINFO pPet = GetPet(psTarget->SpawnID);
         i+=10;
         if (pPet) {
             CHAR szPet[MAX_STRING] = {0};
@@ -1013,27 +1013,27 @@ DWORD parmTarget(PCHAR szVar, PCHAR szOutput, PSPAWNINFO pChar)
     } else if (!strncmp("target(class)",szVar,13)) {
         i+=12;
         CHAR szTemp[MAX_STRING] = {0};
-        strcpy(szTemp,GetClassByID(pTarget->Class));
+        strcpy(szTemp,pEverQuest->GetClassDesc(psTarget->Class));
         strcat(szOutput,szTemp);
 
     // $target(race)
     } else if (!strncmp("target(race)",szVar,12)) {
         i+=11;
         CHAR szTemp[MAX_STRING] = {0};
-        strcpy(szTemp,GetRaceByID(pTarget->Race));
+        strcpy(szTemp,pEverQuest->GetRaceDesc(psTarget->Race));
         strcat(szOutput,szTemp);
 
     // $target(gender)
     } else if (!strncmp("target(gender)",szVar,14)) {
         i+=13;
         CHAR szTemp[MAX_STRING] = {0};
-        strcpy(szTemp,szGender[pTarget->Gender]);
+        strcpy(szTemp,szGender[psTarget->Gender]);
         strcat(szOutput,szTemp);
 
     // $target(gm)
     } else if (!strncmp("target(gm)",szVar,10)) {
         i+=9;
-        if (pTarget->GM) {
+        if (psTarget->GM) {
             strcat(szOutput,"TRUE");
         } else {
             strcat(szOutput,"FALSE");
@@ -1179,7 +1179,7 @@ DWORD parmSpawn(PCHAR szVar, PCHAR szOutput, PSPAWNINFO pChar)
         return PMP_ERROR_BADPARM;
     } else {
         DWORD ID = atoi(szVar+6);
-        pSpawn = *EQADDR_SPAWNLIST;
+        pSpawn = (PSPAWNINFO)pSpawnList;
         while (pSpawn && pSpawn->SpawnID!=ID) pSpawn=pSpawn->pNext;
 
         // $spawn(#)
@@ -1398,7 +1398,7 @@ DWORD parmSpawn(PCHAR szVar, PCHAR szOutput, PSPAWNINFO pChar)
                 if (!pSpawn) {
                     strcat(szOutput,"NONE");
                 } else {
-                    strcat(szOutput,GetBodyTypeByID(pSpawn->BodyType));
+                    strcat(szOutput,pEverQuest->GetBodyTypeDesc(pSpawn->BodyType));
                 }
 
             // $spawn(state)
@@ -1504,7 +1504,7 @@ DWORD parmSpawn(PCHAR szVar, PCHAR szOutput, PSPAWNINFO pChar)
             } else if (!strncmp("deity)",szRest,6)) {
                 i+=strstr(szVar,")")-szVar;
                 CHAR szTemp[MAX_STRING] = {0};
-                strcpy(szTemp,GetDeityByID(pSpawn->Deity));
+                strcpy(szTemp,pEverQuest->GetDeityDesc(pSpawn->Deity));
                 strcat(szOutput,szTemp);
 
             // $spawn(#,deity,team)
@@ -1582,14 +1582,14 @@ DWORD parmSpawn(PCHAR szVar, PCHAR szOutput, PSPAWNINFO pChar)
             } else if (!strncmp("class)",szRest,6)) {
                 i+=strstr(szVar,")")-szVar;
                 CHAR szTemp[MAX_STRING] = {0};
-                strcpy(szTemp,GetClassByID(pSpawn->Class));
+                strcpy(szTemp,pEverQuest->GetClassDesc(pSpawn->Class));
                 strcat(szOutput,szTemp);
 
             // $spawn(#,race)
             } else if (!strncmp("race)",szRest,5)) {
                 i+=strstr(szVar,")")-szVar;
                 CHAR szTemp[MAX_STRING] = {0};
-                strcpy(szTemp,GetRaceByID(pSpawn->Race));
+                strcpy(szTemp,pEverQuest->GetRaceDesc(pSpawn->Race));
                 strcat(szOutput,szTemp);
 
             // $spawn(#,gender)
@@ -1655,8 +1655,8 @@ DWORD parmID(PCHAR szVar, PCHAR szOutput, PSPAWNINFO pChar)
         }
 
         PSPAWNINFO pSpawn = NULL;
-        if (EQADDR_SPAWNLIST && *EQADDR_SPAWNLIST) {
-            pSpawn = *EQADDR_SPAWNLIST;
+        if (ppSpawnList && pSpawnList) {
+            pSpawn = (PSPAWNINFO)pSpawnList;
         }
         while (szVar[i]!=')') i++;
         if (Num!=-1) {
@@ -1998,7 +1998,7 @@ DWORD parmChar(PCHAR szVar, PCHAR szOutput, PSPAWNINFO pChar)
     } else if (!strncmp("char(deity)",szVar,11)) {
         i+=10;
         CHAR szTemp[MAX_STRING] = {0};
-        strcpy(szTemp,GetDeityByID(GetCharInfo()->pSpawn->Deity));
+        strcpy(szTemp,pEverQuest->GetDeityDesc(GetCharInfo()->pSpawn->Deity));
         strcat(szOutput,szTemp);
 
     // $char(deity,team)
@@ -2011,9 +2011,9 @@ DWORD parmChar(PCHAR szVar, PCHAR szOutput, PSPAWNINFO pChar)
     // $char(casting)
     } else if (!strncmp("char(casting)",szVar,13)) {
         i+=12;
-        if (!EQADDR_CASTINGWND) return PMP_ERROR_BADPARM;
+        if (!pCastingWnd) return PMP_ERROR_BADPARM;
         PCSIDLWND pCastingWindow = NULL;
-        pCastingWindow = (PCSIDLWND)*EQADDR_CASTINGWND;
+        pCastingWindow = (PCSIDLWND)pCastingWnd;
         if (pCastingWindow->Show==1) {
             strcat(szOutput,"TRUE");
         } else {
@@ -2027,7 +2027,7 @@ DWORD parmChar(PCHAR szVar, PCHAR szOutput, PSPAWNINFO pChar)
         } else {
             PEQCASTSPELLWINDOW pCastSpellWindow = NULL;
             PEQCASTSPELLGEM pSpellSlot = NULL;
-            pCastSpellWindow = (PEQCASTSPELLWINDOW)*EQADDR_CLASSCASTSPELLWND;
+            pCastSpellWindow = (PEQCASTSPELLWINDOW)pCastSpellWnd;
             i += (strstr(szVar,")")-szVar);
             CHAR szTemp[MAX_STRING] = "0";
             PCHAR szArg = szVar+9;
@@ -2039,7 +2039,7 @@ DWORD parmChar(PCHAR szVar, PCHAR szOutput, PSPAWNINFO pChar)
                     if (pCharInfo->MemorizedSpells[sp] != 0xFFFFFFFF) {
                         PCHAR SpellName = GetSpellByID(pCharInfo->MemorizedSpells[sp]);
                         if (!strnicmp(szArg,SpellName,strlen(SpellName))) {
-                            if (!EQADDR_CLASSCASTSPELLWND) {
+                            if (!pCastSpellWnd) {
                                 itoa(sp+1,szTemp,10);
                             } else {
                                 pSpellSlot = (PEQCASTSPELLGEM)pCastSpellWindow->SpellSlots[sp];
@@ -2072,10 +2072,10 @@ DWORD parmChar(PCHAR szVar, PCHAR szOutput, PSPAWNINFO pChar)
             return 10000;
         } else {
             CHAR szTemp[MAX_STRING] = {0};
-            if (EQADDR_CLASSHOTBUTTONWND) {
+            if (ppHotButtonWnd) {
                 PEQHOTBUTTONWINDOW pHotButtonWindow = NULL;
                 PEQHOTBUTTONWINDOW pHotButton = NULL;
-                pHotButtonWindow = (PEQHOTBUTTONWINDOW)*EQADDR_CLASSHOTBUTTONWND;
+                pHotButtonWindow = (PEQHOTBUTTONWINDOW)pHotButtonWnd;
                 i += (strstr(szVar,")")-szVar);
 
                 PCHAR szArg = szVar+15;
@@ -2367,14 +2367,14 @@ DWORD parmChar(PCHAR szVar, PCHAR szOutput, PSPAWNINFO pChar)
     } else if (!strncmp("char(class)",szVar,11)) {
         i+=10;
         CHAR szTemp[MAX_STRING] = {0};
-        strcpy(szTemp,GetClassByID(GetCharInfo()->pSpawn->Class));
+        strcpy(szTemp,pEverQuest->GetClassDesc(GetCharInfo()->pSpawn->Class));
         strcat(szOutput,szTemp);
 
     // $char(race)
     } else if (!strncmp("char(race)",szVar,10)) {
         i+=9;
         CHAR szTemp[MAX_STRING] = {0};
-        strcpy(szTemp,GetRaceByID(GetCharInfo()->pSpawn->Race));
+        strcpy(szTemp,pEverQuest->GetRaceDesc(GetCharInfo()->pSpawn->Race));
         strcat(szOutput,szTemp);
 
     // $char(gender)
@@ -2459,11 +2459,11 @@ DWORD parmChar(PCHAR szVar, PCHAR szOutput, PSPAWNINFO pChar)
     // $char(spellbook)
    } else if (!strncmp("char(spellbook)",szVar,15)) {
       i+=14;
-      if (!EQADDR_SPELLBOOKWND) {
+      if (!ppSpellBookWnd) {
                    return PMP_ERROR_BADPARM;
                 }
       PCSIDLWND pBookWindow = NULL;
-      pBookWindow = (PCSIDLWND)*EQADDR_SPELLBOOKWND;
+      pBookWindow = (PCSIDLWND)pSpellBookWnd;
       if (pBookWindow->Show==1) {
          strcat(szOutput,"TRUE");
       } else {
@@ -2583,9 +2583,10 @@ DWORD parmSpell(PCHAR szVar, PCHAR szOutput, PSPAWNINFO pChar)
         } else if (!strncmp(szArg,"casttime",8)) {
             sprintf(szTemp,"%1.2f",(FLOAT)pSpell->CastTime/1000);
         } else if (!strncmp(szArg,"mycasttime",10)) {
-            DWORD CharInfo = NULL;
-            CharInfo = (DWORD)*EQADDR_CHAR_INFO;
-            DWORD mycasttime = 0;
+//            DWORD CharInfo = NULL;
+//            CharInfo = (DWORD)pCharData;
+            DWORD mycasttime = pCharData->GetFocusCastingTimeModifier((EQ_Spell*)pSpell,0);
+			/*
             __asm{
                 push ecx;
                 mov ecx, dword ptr [CharInfo];
@@ -2595,6 +2596,7 @@ DWORD parmSpell(PCHAR szVar, PCHAR szOutput, PSPAWNINFO pChar)
                 mov [mycasttime], eax;
                 pop ecx;
             };
+			/**/
             mycasttime = pSpell->CastTime + mycasttime;
             DebugSpew("mycasttime %d pSpell->CastTime = %d",mycasttime,pSpell->CastTime);
             sprintf(szTemp,"%1.2f",(FLOAT)mycasttime/1000);
@@ -2750,8 +2752,8 @@ DWORD parmGM(PCHAR szVar, PCHAR szOutput, PSPAWNINFO pChar)
     i++;
     BOOL bGM = FALSE;
     PSPAWNINFO pSpawn = NULL;
-    if (EQADDR_SPAWNLIST && *EQADDR_SPAWNLIST) {
-        pSpawn = *EQADDR_SPAWNLIST;
+    if (ppSpawnList && pSpawnList) {
+        pSpawn = (PSPAWNINFO)pSpawnList;
     }
     while (pSpawn && !bGM) {
         if (pSpawn->GM) bGM = TRUE;
@@ -2954,9 +2956,9 @@ DWORD parmInvPanel(PCHAR szVar, PCHAR szOutput, PSPAWNINFO pChar)
     DWORD i=0;
     // $invpanel
     //this can be expanded to actually open the inventorywindow by setting pInvWindow->Open = 1 and pInvWindow->Selector to 1;
-    if (!EQADDR_INVENTORYWND) return PMP_ERROR_BADPARM;
+    if (!ppInventoryWnd) return PMP_ERROR_BADPARM;
     PCSIDLWND pInvWindow = NULL;
-    pInvWindow = (PCSIDLWND)*EQADDR_INVENTORYWND;
+    pInvWindow = (PCSIDLWND)pInventoryWnd;
     if (!pInvWindow) return PMP_ERROR_BADPARM;
     DWORD PanelStatus = pInvWindow->Show;
     i += 7;
@@ -3060,11 +3062,11 @@ DWORD parmMerchantName(PCHAR szVar, PCHAR szOutput, PSPAWNINFO pChar)
     CHAR szTemp[MAX_STRING] = {0};
     CHAR* szOut;
     i += 13;
-    if (!EQADDR_ACTIVEMERCHANT || !*EQADDR_ACTIVEMERCHANT) {
+    if (!ppActiveMerchant || !pActiveMerchant) {
         strcat(szOutput,"NULL");
         return i;
     }
-    sprintf(szTemp,"%s",*EQADDR_ACTIVEMERCHANT);
+    sprintf(szTemp,"%s",*pActiveMerchant);
     szOut = (char*)&szTemp[1];
     CleanupName(szOut);
     strcat(szOutput,szOut);
@@ -3081,11 +3083,11 @@ DWORD parmMerchantXXX(PCHAR szVar, PCHAR szOutput, PSPAWNINFO pChar)
    // $merchant(open)
     if (strstr(szVar,"open)")) {
         i += 13;
-        if (!EQADDR_CLASSMERCHWND) return PMP_ERROR_BADPARM;
-        if (!*EQADDR_CLASSMERCHWND) {
+        if (!ppMerchantWnd) return PMP_ERROR_BADPARM;
+        if (!pMerchantWnd) {
             strcat(szOutput,"FALSE");
         }
-        PCSIDLWND pWind = *(PCSIDLWND *)EQADDR_CLASSMERCHWND;
+        PCSIDLWND pWind = (PCSIDLWND )pMerchantWnd;
         if (pWind->Show==1) {
             strcat(szOutput,"TRUE");
         } else {
@@ -3094,9 +3096,9 @@ DWORD parmMerchantXXX(PCHAR szVar, PCHAR szOutput, PSPAWNINFO pChar)
         return i;
     // $merchant(has,xxx)
     } if (strstr(szVar,"has,")) {
-        if (!EQADDR_CLASSMERCHWND) return PMP_ERROR_BADPARM;
+        if (!ppMerchantWnd) return PMP_ERROR_BADPARM;
     PEQMERCHWINDOW pMerchWindow = NULL;
-    pMerchWindow = (PEQMERCHWINDOW)*EQADDR_CLASSMERCHWND;
+    pMerchWindow = (PEQMERCHWINDOW)pMerchantWnd;
         if (!strstr(szVar,")")) {
             DebugSpew("PMP - Bad $merchant() '%s'",szVar);
             return PMP_ERROR_BADPARM;
@@ -3143,11 +3145,11 @@ DWORD parmMerchantXXX(PCHAR szVar, PCHAR szOutput, PSPAWNINFO pChar)
         if (szArg[strlen(szArg)-1]==')')
             szArg[strlen(szArg)-1]=0;
         DebugSpew("$merchant(xxx) szArg = %s",szArg);
-        if (!EQADDR_ACTIVEMERCHANT || !*EQADDR_ACTIVEMERCHANT) {
+        if (!ppActiveMerchant || !pActiveMerchant) {
             strcat(szOutput,"FALSE");
             return i;
         }
-        sprintf(szTemp,"%s",*EQADDR_ACTIVEMERCHANT);
+        sprintf(szTemp,"%s",pActiveMerchant);
         szOut = (char*)&szTemp[1];
         CleanupName(szOut);
         if (!_stricmp(szOut, szArg) || strlen(szArg)==0) {
@@ -3165,9 +3167,9 @@ DWORD parmCorpse(PCHAR szVar, PCHAR szOutput, PSPAWNINFO pChar)
    DWORD iSlotCnt=0;
 
    // $corpse(xxx)
-   if (!EQADDR_LOOTWND) return PMP_ERROR_BADPARM;
+   if (!ppLootWnd) return PMP_ERROR_BADPARM;
    PEQLOOTWINDOW pLootWindow = NULL;
-   pLootWindow = (PEQLOOTWINDOW)*EQADDR_LOOTWND;
+   pLootWindow = (PEQLOOTWINDOW)pLootWnd;
    CHAR szTemp[MAX_STRING] = {0};
    if (!strncmp("corpse()",szVar,8)) {
       i += 7;
@@ -3788,7 +3790,7 @@ DWORD parmSpawnName(PCHAR szVar, PCHAR szOutput, PSPAWNINFO pChar)
         }
         if (szSearch[strlen(szSearch)-1]==')') szSearch[strlen(szSearch)-1]='\0';
         DebugSpew("Spawn(Name) - SearchString = '%s'",szSearch);
-        for (pSpawn=*EQADDR_SPAWNLIST;(pSpawn) && (_stricmp(CleanupName(strcpy(szTemp,pSpawn->Name)),CleanupName(szSearch)));pSpawn=pSpawn->pNext);
+        for (pSpawn=(PSPAWNINFO)pSpawnList;(pSpawn) && (_stricmp(CleanupName(strcpy(szTemp,pSpawn->Name)),CleanupName(szSearch)));pSpawn=pSpawn->pNext);
     }
     if (pSpawn) {
         DebugSpew("PMP - SpawnName - Spawn '%s' FOUND!",pSpawn->Name);
@@ -3941,7 +3943,7 @@ DWORD parmSpellItem(PCHAR szVar, PCHAR szOutput, PSPAWNINFO pChar)
    } else {
       i += (strstr(szVar,")")-szVar);
       PCHARINFO pCharInfo = 0;
-      pCharInfo = *EQADDR_CHAR_INFO;
+      pCharInfo = (PCHARINFO)pCharData;
       PSPELLLIST pSpell = 0;
       CHAR szItem[MAX_STRING];
       CHAR szArg[MAX_STRING];
@@ -4515,9 +4517,9 @@ DWORD parmMerchant(PCHAR szVar, PCHAR szOutput, PSPAWNINFO pChar)
 {
     DWORD i=0;
     // $merchant
-    if (!EQADDR_CLASSMERCHWND) return 10000;
+    if (!ppMerchantWnd) return 10000;
     PCSIDLWND pMerchWindow = NULL;
-    pMerchWindow = (PCSIDLWND)*EQADDR_CLASSMERCHWND;
+    pMerchWindow = (PCSIDLWND)pMerchantWnd;
     i += 7;
     if (pMerchWindow->Show == 1) {
         strcat(szOutput,"TRUE");
@@ -4730,20 +4732,19 @@ DWORD parmEnvOpen(PCHAR szVar, PCHAR szOutput, PSPAWNINFO pChar)
     //returns the name of the enviro if it is open
     //example: /echo $envopen | Output if successful: Oven
     DWORD i=6;
-    PEQ_CONTAINERWND_MANAGER pContainerMgr = 0;
+    PEQ_CONTAINERWND_MANAGER ContainerMgr = 0;
     PITEMINFO pEnvinfo = 0;
-    if(!EQADDR_CLASSCONTAINERMGR) return PMP_ERROR_BADPARM;
-    if(!*EQADDR_CLASSCONTAINERMGR) return PMP_ERROR_BADPARM;
-    pContainerMgr = *EQADDR_CLASSCONTAINERMGR;
-    if(!pContainerMgr->pWorldContents) {
+    if(!ppContainerMgr || !pContainerMgr) return PMP_ERROR_BADPARM;
+    ContainerMgr = (PEQ_CONTAINERWND_MANAGER)pContainerMgr;
+    if(!ContainerMgr->pWorldContents) {
         strcat(szOutput,"ENVIRO_NOT_OPEN");
         return i;
     }
-    if(!*(DWORD *)pContainerMgr->pWorldContents)  {
+    if(!*(DWORD *)ContainerMgr->pWorldContents)  {
         strcat(szOutput,"ENVIRO_NOT_OPEN");
         return i;
     }
-    pEnvinfo = *(PITEMINFO *)pContainerMgr->pWorldContents;
+    pEnvinfo = *(PITEMINFO *)ContainerMgr->pWorldContents;
     if(pEnvinfo) {
         strcat(szOutput,pEnvinfo->Name);
     } else {
@@ -4757,9 +4758,9 @@ DWORD parmGiveWnd(PCHAR szVar, PCHAR szOutput, PSPAWNINFO pChar)
     DWORD i=0;
     // $giveopen
     //returns TRUE if the "give to npc" window is open else FALSE
-    if (!EQADDR_CLASSGIVEWND) return PMP_ERROR_BADPARM;
+    if (!ppGiveWnd) return PMP_ERROR_BADPARM;
 	PCSIDLWND pGivWindow = NULL;
-	pGivWindow = (PCSIDLWND)*EQADDR_CLASSGIVEWND;
+	pGivWindow = (PCSIDLWND)pGiveWnd;
     if (!pGivWindow) return PMP_ERROR_BADPARM;
 	DWORD PanelStatus = pGivWindow->Show;
     i += 7;
@@ -4777,20 +4778,20 @@ DWORD parmSelectedItem(PCHAR szVar, PCHAR szOutput, PSPAWNINFO pChar)
     i+=11;
     // $selecteditem
     //returns name of selected item or PMP_ERROR_BADPARM if none is selected
-    if (!EQADDR_CLASSTEXTUREANIMATION || !*EQADDR_CLASSTEXTUREANIMATION) {
+    if (!ppSelectedItem || !pSelectedItem) {
         strcat(szOutput,"NULL");
         return i;
     }
     PEQCURRENTSELECTION pSelectedSlot = NULL;
-    pSelectedSlot = (PEQCURRENTSELECTION)*EQADDR_CLASSTEXTUREANIMATION;
+    pSelectedSlot = (PEQCURRENTSELECTION)pSelectedItem;
 
     if(!pSelectedSlot || !pSelectedSlot->TextureAnim || !*(DWORD *)pSelectedSlot->TextureAnim || !**(DWORD **)pSelectedSlot->TextureAnim) {
         strcat(szOutput,"NULL");
         return i;
     }
-    PITEMINFO pSelectedItem = **(PITEMINFO **)pSelectedSlot->TextureAnim;
-    if (pSelectedItem) {
-        strcat(szOutput,pSelectedItem->Name);
+    PITEMINFO pSelected = **(PITEMINFO **)pSelectedSlot->TextureAnim;
+    if (pSelected) {
+        strcat(szOutput,pSelected->Name);
     } else {
         strcat(szOutput,"NULL");
     }

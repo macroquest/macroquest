@@ -177,8 +177,8 @@ PCHAR GetArg(PCHAR szDest, PCHAR szSrc, DWORD dwNumber, BOOL LeaveQuotes, BOOL T
 }
 
 PCHARINFO GetCharInfo(VOID) {
-    if (!EQADDR_CHAR_INFO) return NULL;
-    return *EQADDR_CHAR_INFO;
+    if (!ppCharData) return NULL;
+    return (PCHARINFO)pCharData;
 }
 
 PCHAR GetFuncParamName(PCHAR szMacroLine, DWORD ParamNum, PCHAR szParamName)
@@ -218,9 +218,8 @@ VOID AddCustomEvent(PEVENTLIST pEList, PCHAR szLine)
 
 DWORD GetGameState(VOID)
 {
-	if (!EQADDR_CLSMAINNEWUI || !*EQADDR_CLSMAINNEWUI) return 0;
-	DWORD EQADDR_GAMESTATE =0x5B4+*(DWORD*)EQADDR_CLSMAINNEWUI;
-	return *(DWORD*)EQADDR_GAMESTATE;
+	if (!ppEverQuest || !pEverQuest) return 0;
+	return *(DWORD*)(0x5B4+pEverQuest);
 }
 
 
@@ -252,6 +251,9 @@ PCHAR GetEQPath(PCHAR szBuffer)
 // YES THIS NEEDS TO BE PCXSTR * 
 VOID AppendCXStr(PCXSTR *cxstr, PCHAR text) 
 { 
+	CXStr *Str=(CXStr*)cxstr;
+	(*Str)+=text;
+	/*
    __asm 
    { 
       push eax; 
@@ -264,11 +266,15 @@ VOID AppendCXStr(PCXSTR *cxstr, PCHAR text)
       pop ecx; 
       pop eax; 
    } 
+   */
 } 
 
 // YES THIS NEEDS TO BE PCXSTR * 
 VOID SetCXStr(PCXSTR *cxstr, PCHAR text) 
 { 
+	CXStr *Str=(CXStr*)cxstr;
+	(*Str)=text;
+	/*
 	__asm{push esi};
    __asm 
    { 
@@ -283,6 +289,7 @@ VOID SetCXStr(PCXSTR *cxstr, PCHAR text)
       pop eax; 
    } 
 	__asm{pop esi};
+	*/
 } 
 
 VOID GetCXStr(PCXSTR pCXStr, PCHAR szBuffer, DWORD maxlen)
@@ -308,7 +315,7 @@ VOID GetCXStr(PCXSTR pCXStr, PCHAR szBuffer, DWORD maxlen)
 		szBuffer[o]=0;
 	}
 }
-
+/**/
 
 #define InsertColor(text,color) sprintf(text,"<c \"#%06X\">",color);TotalColors++; 
 #define InsertStopColor(text)   sprintf(text,"</c>");TotalColors--; 
@@ -644,9 +651,8 @@ PCHAR ConvertHotkeyNameToKeyName(PCHAR szName)
 PCHAR GetFullZone(DWORD ZoneID)
 {
     PZONELIST *pZone = NULL;
-    if (!EQADDR_ZONELIST) return NULL;
-    if (!*EQADDR_ZONELIST) return NULL;
-    pZone = (PZONELIST*) (((DWORD)*EQADDR_ZONELIST) + ZONELIST_STARTOFFSET);
+    if (!ppWorldData | !pWorldData) return NULL;
+    pZone = (PZONELIST*) (pWorldData + ZONELIST_STARTOFFSET);
 
     return (*pZone[ZoneID]).LongName;
 }
@@ -657,9 +663,8 @@ PCHAR GetFullZone(DWORD ZoneID)
 PCHAR GetShortZone(DWORD ZoneID)
 {
     PZONELIST *pZone = NULL;
-    if (!EQADDR_ZONELIST) return NULL;
-    if (!*EQADDR_ZONELIST) return NULL;
-    pZone = (PZONELIST*) (((DWORD)*EQADDR_ZONELIST) + ZONELIST_STARTOFFSET);
+    if (!ppWorldData | !pWorldData) return NULL;
+    pZone = (PZONELIST*) (pWorldData + ZONELIST_STARTOFFSET);
 
     return (*pZone[ZoneID]).ShortName;
 }
@@ -671,9 +676,8 @@ PCHAR GetShortZone(DWORD ZoneID)
 DWORD GetZoneID(PCHAR ZoneShortName)
 {
     PZONELIST *pZone = NULL;
-    if (!EQADDR_ZONELIST) return NULL;
-    if (!*EQADDR_ZONELIST) return NULL;
-    pZone = (PZONELIST*) (((DWORD)*EQADDR_ZONELIST) + ZONELIST_STARTOFFSET);
+    if (!ppWorldData | !pWorldData) return NULL;
+    pZone = (PZONELIST*) (pWorldData + ZONELIST_STARTOFFSET);
     for (int nIndex=0; nIndex < MAX_ZONES+1; nIndex++) {
         if(pZone[nIndex])
             if (!_stricmp((*pZone[nIndex]).ShortName,ZoneShortName)) {
@@ -688,8 +692,8 @@ CHAR szUnknownSpell[MAX_STRING] = "Unknown Spell";
 PCHAR GetSpellByID(DWORD dwSpellID)
 {
     PSPELLLIST pSpell = NULL;
-    if (EQADDR_SPELLS == NULL) return szUnknownSpell;
-    pSpell =  &(*(*EQADDR_SPELLS)->Spells[dwSpellID]);
+    if (ppSpellMgr == NULL) return szUnknownSpell;
+    pSpell =  &(*((PSPELLPOINTER)pSpellMgr)->Spells[dwSpellID]);
     if (pSpell != NULL) {
         if (pSpell->Name != NULL) {
             if (pSpell->Name[0]!='\0') {
@@ -703,9 +707,9 @@ PCHAR GetSpellByID(DWORD dwSpellID)
 PSPELLLIST GetSpellByName(PCHAR szName)
 {
     PSPELLLIST pSpell = NULL;
-    if (EQADDR_SPELLS == NULL) return NULL;
+    if (ppSpellMgr == NULL) return NULL;
     for (DWORD dwSpellID = 0; dwSpellID < TOTAL_SPELL_COUNT; dwSpellID++) {
-        pSpell = &(*(*EQADDR_SPELLS)->Spells[dwSpellID]);
+        pSpell = &(*((PSPELLPOINTER)pSpellMgr)->Spells[dwSpellID]);
         if ((pSpell->ID > 0) && (pSpell->ID < TOTAL_SPELL_COUNT)) {
             if (pSpell->Name != NULL) {
                 if (!_stricmp(szName, pSpell->Name)) {
@@ -909,19 +913,17 @@ DWORD ConColor(WORD CharLevel, WORD SpawnLevel)
 
 PCONTENTS GetEnviroContainer()
 {
-   PEQ_CONTAINERWND_MANAGER pContainerMgr = 0;
-   if(!EQADDR_CLASSCONTAINERMGR) return NULL;
-   if(!*EQADDR_CLASSCONTAINERMGR) return NULL;
-   pContainerMgr = *EQADDR_CLASSCONTAINERMGR;
-   if(!pContainerMgr->pWorldContents) return NULL;
-   return pContainerMgr->pWorldContents;
+//   PEQ_CONTAINERWND_MANAGER pContainerMgr = 0;
+	if (!ppContainerMgr || !pContainerMgr) return NULL;
+	PEQ_CONTAINERWND_MANAGER ContainerMgr=(PEQ_CONTAINERWND_MANAGER)pContainerMgr;
+   if(!ContainerMgr->pWorldContents) return NULL;
+   return ContainerMgr->pWorldContents;
 }
 
 PEQCONTAINERWINDOW FindContainerForContents(PCONTENTS pContents)
 {
-   if (!EQADDR_CLASSCONTAINERMGR) return NULL;
-   if (!*EQADDR_CLASSCONTAINERMGR) return NULL;
-   PEQ_CONTAINERWND_MANAGER pMgr = *EQADDR_CLASSCONTAINERMGR;
+   if (!ppContainerMgr || !pContainerMgr) return NULL;
+   PEQ_CONTAINERWND_MANAGER pMgr = (PEQ_CONTAINERWND_MANAGER)pContainerMgr;
 
    for (int j = 0; j < 25; j++)
    {
@@ -933,6 +935,8 @@ PEQCONTAINERWINDOW FindContainerForContents(PCONTENTS pContents)
 
 DWORD GetMaxMana(VOID)
 {
+	return pCharData->Max_Mana();
+	/*
 //	FunctionEntry("GetMaxMana()");
     DWORD MaxMana = 0;
     DWORD CharInfo = NULL;
@@ -965,10 +969,13 @@ DWORD GetMaxMana(VOID)
 #endif
 //	FunctionExit("GetMaxMana()");
     return MaxMana;
+	*/
 }
 
 DWORD GetMaxHPS(VOID)
 {
+	return pCharData->Max_HP(0);
+	/*
     DWORD MaxHPS = 0;
     DWORD CharInfo = NULL;
 	if (!EQADDR_CHAR_INFO || !*EQADDR_CHAR_INFO) { return 0;}
@@ -984,10 +991,13 @@ DWORD GetMaxHPS(VOID)
         pop eax;
     }
     return MaxHPS;
+	*/
 }
 
 DWORD GetCurHPS(VOID)
 {
+	return pCharData->Cur_HP(0);
+	/*
     DWORD CurHPS = 0;
     DWORD CharInfo = NULL;
 	if (!EQADDR_CHAR_INFO || !*EQADDR_CHAR_INFO) {return 0;}
@@ -1003,6 +1013,7 @@ DWORD GetCurHPS(VOID)
         pop eax;
     }
     return CurHPS;
+	/**/
 }
 
 
@@ -1012,13 +1023,12 @@ DWORD GetCurHPS(VOID)
 // ***************************************************************************
 PSPAWNINFO FindMount(PSPAWNINFO pSpawn)
 {
+   if (!ppSpawnList || !pSpawnList) return NULL;
    PSPAWNINFO pChar = NULL;
-   PSPAWNINFO pSpawnInfo = *EQADDR_SPAWNLIST;
+   PSPAWNINFO pSpawnInfo = (PSPAWNINFO)pSpawnList;
    CHAR szName[MAX_STRING] = {0};
    CHAR szTemp[MAX_STRING] = {0};
 
-   if (!EQADDR_SPAWNLIST) return NULL;
-   if (!*EQADDR_SPAWNLIST) return NULL;
 
    sprintf(szName, "%s`s Mount",pSpawn->Name);
 
@@ -1062,6 +1072,8 @@ FLOAT FindSpeed(PSPAWNINFO pSpawn)
 
 VOID GetItemLinkHash(PCONTENTS Item, PCHAR Buffer)
 {
+	((EQ_Item*)Item)->GetItemLinkHash(Buffer);
+	/*
 	__asm {
 		push eax;
 		push ecx;
@@ -1071,11 +1083,13 @@ VOID GetItemLinkHash(PCONTENTS Item, PCHAR Buffer)
 		pop ecx;
 		pop eax;
 	};
+	/**/
 }
 
 VOID GetItemLink(PCONTENTS Item, PCHAR Buffer)
 {
 	char hash[256];
+	/*
 	DWORD haddr=(DWORD)&hash[0];
 	__asm {
 		push eax;
@@ -1086,6 +1100,9 @@ VOID GetItemLink(PCONTENTS Item, PCHAR Buffer)
 		pop ecx;
 		pop eax;
 	};
+	/**/
+	((EQ_Item*)Item)->GetItemLinkHash(hash);
+
 	sprintf(Buffer,"%c0%s%s%c",0x12,hash,Item->Item->Name,0x12);
 	DebugSpew("GetItemLink() returns '%s'",&Buffer[0]);
 }

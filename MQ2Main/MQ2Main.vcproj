@@ -133,6 +133,9 @@
 				RelativePath="MQ2ChatHook.cpp">
 			</File>
 			<File
+				RelativePath="MQ2CleanUI.cpp">
+			</File>
+			<File
 				RelativePath="MQ2CommandAPI.cpp">
 			</File>
 			<File
@@ -213,6 +216,9 @@
 			</File>
 			<File
 				RelativePath="dikeys.h">
+			</File>
+			<File
+				RelativePath="eqgame.h">
 			</File>
 			<File
 				RelativePath="grounds.h">

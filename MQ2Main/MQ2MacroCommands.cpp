@@ -99,10 +99,10 @@ DOUBLE Calculate(PCHAR szFormula) {
                 break;
 			case ' ':
 			case '²':
-                GracefullyEndBadMacro((*EQADDR_CHAR_INFO)->pSpawn,gMacroBlock, "Calculate encountered a unparsed variable '%s'",&(Buffer[i]));
+                GracefullyEndBadMacro(((PCHARINFO)pCharData)->pSpawn,gMacroBlock, "Calculate encountered a unparsed variable '%s'",&(Buffer[i]));
 				return -1;
             default:
-                GracefullyEndBadMacro((*EQADDR_CHAR_INFO)->pSpawn,gMacroBlock, "Calculate encountered unparsable text '%s'",Arg[j]);
+                GracefullyEndBadMacro(((PCHARINFO)pCharData)->pSpawn,gMacroBlock, "Calculate encountered unparsable text '%s'",Arg[j]);
                 return -1;
         }
     }
@@ -115,7 +115,7 @@ DOUBLE Calculate(PCHAR szFormula) {
         switch (Arg[i][0]) {
             case '^':
                 if ((i==0) || (i+1==j)) {
-				    GracefullyEndBadMacro((*EQADDR_CHAR_INFO)->pSpawn,gMacroBlock, "Calculate encountered a bad %c formation",Arg[i][0]);
+				    GracefullyEndBadMacro(((PCHARINFO)pCharData)->pSpawn,gMacroBlock, "Calculate encountered a bad %c formation",Arg[i][0]);
                     return -1;
                 }
                 i--;
@@ -133,7 +133,7 @@ DOUBLE Calculate(PCHAR szFormula) {
             case '\\':
             case '*':
                 if ((i==0) || (i+1==j)) {
-				    GracefullyEndBadMacro((*EQADDR_CHAR_INFO)->pSpawn,gMacroBlock, "Calculate encountered a bad %c formation",Arg[i][0]);
+				    GracefullyEndBadMacro(((PCHARINFO)pCharData)->pSpawn,gMacroBlock, "Calculate encountered a bad %c formation",Arg[i][0]);
                     return -1;
                 }
                 i--;
@@ -167,7 +167,7 @@ DOUBLE Calculate(PCHAR szFormula) {
                 if (Arg[i][1] != 0) break;
             case '+':
                 if ((i==0) || (i+1==j)) {
-				    GracefullyEndBadMacro((*EQADDR_CHAR_INFO)->pSpawn,gMacroBlock, "Calculate encountered a bad %c formation",Arg[i][0]);
+				    GracefullyEndBadMacro(((PCHARINFO)pCharData)->pSpawn,gMacroBlock, "Calculate encountered a bad %c formation",Arg[i][0]);
                     return -1;
                 }
                 i--;
@@ -564,8 +564,8 @@ VOID LoadNotesWindow(PCHAR szFilename, PCHAR szTitle)
 	fread(Buffer,1,length,fMacro);
 	fclose(fMacro);
 
-	SetCXStr(&(*EQADDR_CLASSNOTESWND)->Wnd.WindowText,szTitle);
-	SetCXStr(&(*EQADDR_CLASSNOTESWND)->pEditWnd->WindowText,Buffer);
+	SetCXStr(&((PEQNOTESWINDOW)pNoteWnd)->Wnd.WindowText,szTitle);
+	SetCXStr(&((PEQNOTESWINDOW)pNoteWnd)->pEditWnd->WindowText,Buffer);
 	free(Buffer);
 }
 
@@ -583,8 +583,8 @@ VOID SaveNotesWindow(PCHAR szFilename, PCXSTR pCXStr)
 
 VOID EditMacro(PSPAWNINFO pChar, PCHAR szLine)
 {
-	if (!EQADDR_CLASSNOTESWND) return;
-	if (!*EQADDR_CLASSNOTESWND) return;
+	if (!ppNoteWnd) return;
+	if (!pNoteWnd) return;
 	CHAR Arg1[MAX_STRING] = {0};
 	CHAR Arg2[MAX_STRING] = {0};
 	CHAR szFilename[MAX_STRING] = {0};
@@ -601,14 +601,14 @@ VOID EditMacro(PSPAWNINFO pChar, PCHAR szLine)
 		sprintf(szFilePath,"%s\\%s",gszMacroPath, szFilename);
 		LoadNotesWindow(szFilePath,szFilename);
 	} else if (!stricmp(Arg1,"save")) {
-		if (!stricmp((*EQADDR_CLASSNOTESWND)->Wnd.WindowText->Text,"notes")) return;
+		if (!stricmp(((PEQNOTESWINDOW)pNoteWnd)->Wnd.WindowText->Text,"notes")) return;
 		if (Arg2[0]==0) {
-			strcpy(Arg2,(*EQADDR_CLASSNOTESWND)->Wnd.WindowText->Text);
+			strcpy(Arg2,((PEQNOTESWINDOW)pNoteWnd)->Wnd.WindowText->Text);
 		}
 		strcpy(szFilename,Arg2);
 		if (!strstr(szFilename,".")) strcat(szFilename,".mac");
 		sprintf(szFilePath,"%s\\%s",gszMacroPath, szFilename);
-		SaveNotesWindow(szFilePath,(*EQADDR_CLASSNOTESWND)->pEditWnd->WindowText);
+		SaveNotesWindow(szFilePath,((PEQNOTESWINDOW)pNoteWnd)->pEditWnd->WindowText);
 		
 	} else {
 		WriteChatBuffer("Usage: /editmacro <notes|load filename|save [filename]>",USERCOLOR_DEFAULT);
@@ -964,7 +964,7 @@ BOOL ParseMultiCondition(PCHAR szCondition, PCHAR szLeftCond, PCHAR szRightCond,
 
 VOID FailIfParsing()
 {
-    GracefullyEndBadMacro((*EQADDR_CHAR_INFO)->pSpawn,gMacroBlock, "Failed to parse /if command");
+    GracefullyEndBadMacro(((PCHARINFO)pCharData)->pSpawn,gMacroBlock, "Failed to parse /if command");
     WriteChatBuffer("Usage:",CONCOLOR_RED);
     WriteChatBuffer("   /if <condition> <command>",CONCOLOR_RED);
     WriteChatBuffer("   <condition> : (<condition> && <condition>) or [n] <a>==<b>",CONCOLOR_RED);
@@ -1356,7 +1356,7 @@ DWORD Include(PCHAR szFile)
     BOOL InBlockComment = FALSE;
     PMACROBLOCK pAddedLine = NULL;
     if (!fMacro) {
-        GracefullyEndBadMacro((*EQADDR_CHAR_INFO)->pSpawn,gMacroBlock, "Couldn't open include file: %s",szFile);
+        GracefullyEndBadMacro(((PCHARINFO)pCharData)->pSpawn,gMacroBlock, "Couldn't open include file: %s",szFile);
         return 0;
     }
     DebugSpew("Include - Including: %s",szFile);
@@ -1425,16 +1425,16 @@ VOID Cleanup(PSPAWNINFO pChar, PCHAR szLine)
 {
     DebugSpew("Cleanup - Cleaning up screen");
 	DWORD i;
-	if(EQADDR_CLASSCONTAINERMGR && *EQADDR_CLASSCONTAINERMGR) {
-		PEQ_CONTAINERWND_MANAGER pContainerMgr = *EQADDR_CLASSCONTAINERMGR;
+	if(ppContainerMgr && pContainerMgr) {
+		PEQ_CONTAINERWND_MANAGER ContainerMgr = (PEQ_CONTAINERWND_MANAGER)pContainerMgr;
 		DWORD concount=2; //Close inv + clear target
-		if (pContainerMgr->pWorldContents && pContainerMgr->pWorldContents->Open==1) concount++;
+		if (ContainerMgr->pWorldContents && ContainerMgr->pWorldContents->Open==1) concount++;
 		for (i=0;i<25;i++) {
-			if (pContainerMgr->pPCContainers[i] && pContainerMgr->pPCContainers[i]->Wnd.Show==1) concount++;
+			if (ContainerMgr->pPCContainers[i] && ContainerMgr->pPCContainers[i]->Wnd.Show==1) concount++;
 		}
 		for (i=0;i<concount;i++) Press(pChar,"esc");
-		if (!EQADDR_INVENTORYWND) {
-			PCSIDLWND pInvWindow = (PCSIDLWND)*EQADDR_INVENTORYWND;
+		if (!ppInventoryWnd) {
+			PCSIDLWND pInvWindow = (PCSIDLWND)pInventoryWnd;
 			if (pInvWindow && pInvWindow->Show==0) Press(pChar,"i");
 		}
 	} else {

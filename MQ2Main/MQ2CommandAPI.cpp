@@ -308,7 +308,7 @@ void InitializeMQ2Commands()
 	VOID (CCommandHook::*pfDetour)(PSPAWNINFO pChar, PCHAR szFullLine)=CCommandHook::Detour;
 	VOID (CCommandHook::*pfTrampoline)(PSPAWNINFO pChar, PCHAR szFullLine)=CCommandHook::Trampoline;
 
-	AddDetour(EQADDR_COMMANDS,*(PBYTE*)&pfDetour,*(PBYTE*)&pfTrampoline);
+	AddDetour(CEverQuest__InterpretCmd,*(PBYTE*)&pfDetour,*(PBYTE*)&pfTrampoline);
 
 	// Import EQ commands
     PCMDLIST pCmdListOrig = (PCMDLIST)EQADDR_CMDLIST;
@@ -463,6 +463,7 @@ void InitializeMQ2Commands()
 void ShutdownMQ2Commands()
 {
 	EnterCriticalSection(&gCommandCS);
+	RemoveDetour(CEverQuest__InterpretCmd);
 	while(pCommands)
 	{
 		PMQCOMMAND pNext=pCommands->pNext;

@@ -14,6 +14,7 @@
 #include <math.h>
 #include "stdafx.h"
 #include "..\Detours\inc\detours.h" 
+#include "eqgame.h"
 
 #ifdef EQLIB_EXPORTS
 #define EQLIB_API extern "C" __declspec(dllexport)
@@ -79,7 +80,8 @@ typedef DWORD  (__cdecl *fMQIncomingChat)(PCHAR Line, DWORD Color);
 typedef VOID  (__cdecl *fMQInitializePlugin)(VOID);
 typedef VOID  (__cdecl *fMQShutdownPlugin)(VOID);
 typedef VOID  (__cdecl *fMQZoned)(VOID);
-
+typedef VOID  (__cdecl *fMQCleanUI)(VOID);
+typedef VOID  (__cdecl *fMQSetGameState)(DWORD GameState);
 #include "EQClasses.h"
 
 #include "MQ2Internal.h"
@@ -97,6 +99,7 @@ private:
     BOOL bLocked;
 };
 
+/* API FOR THE INJECTOR ONLY */
 EQLIB_API VOID  InjectEnable();
 EQLIB_API VOID  InjectDisable();
 
@@ -120,11 +123,16 @@ EQLIB_API VOID PulsePlugins();
 EQLIB_API VOID PluginsZoned();
 EQLIB_API VOID PluginsIncomingChat(PCHAR Line, DWORD Color);
 EQLIB_API VOID RewriteMQ2Plugins(VOID);
+EQLIB_API VOID PluginsCleanUI();
+EQLIB_API VOID PluginsSetGameState(DWORD GameState);
 
 /* DIRECT INPUT */
 EQLIB_API VOID InitializeMQ2DInput();
 EQLIB_API VOID ShutdownMQ2DInput();
 
+/* CLEAN UI */
+EQLIB_API VOID InitializeCleanUI();
+EQLIB_API VOID ShutdownCleanUI();
 
 /* COMMAND HANDLING */
 EQLIB_API VOID InitializeMQ2Commands();
@@ -272,7 +280,7 @@ EQLIB_API PCHAR       CleanupName             (PCHAR szName, BOOL Article = TRUE
 EQLIB_API VOID        SwapSWho                (PSWHOSORT pSWho1, PSWHOSORT pSWho2);
 EQLIB_API VOID        SortSWho                (PSWHOSORT pSWhoSort, DWORD SpawnCount, DWORD SortBy = 0);
 EQLIB_API VOID        SuperWhoFindPets        (PSPAWNINFO pChar, WORD SpawnID);
-EQLIB_API VOID        SuperWhoDisplay         (PSPAWNINFO pChar, PSEARCHSPAWN pFilter, PSPAWNINFO pTarget, WORD Padding = 0, DWORD Color = 0);
+EQLIB_API VOID        SuperWhoDisplay         (PSPAWNINFO pChar, PSEARCHSPAWN pFilter, PSPAWNINFO psTarget, WORD Padding = 0, DWORD Color = 0);
 EQLIB_API FLOAT       DistanceToSpawn         (PSPAWNINFO pChar, PSPAWNINFO pSpawn);
 EQLIB_API FLOAT       DistanceToSpawn3D       (PSPAWNINFO pChar, PSPAWNINFO pSpawn);
 EQLIB_API FLOAT       EstimatedDistanceToSpawn(PSPAWNINFO pChar, PSPAWNINFO pSpawn);
@@ -295,7 +303,7 @@ EQLIB_API DWORD pGetLastFindSlot					(PCHAR, PCHAR, PSPAWNINFO);
 EQLIB_API DWORD pCursor							(PCHAR, PCHAR, PSPAWNINFO);
 EQLIB_API DWORD pItem								(PCHAR, PCHAR, PSPAWNINFO);
 EQLIB_API DWORD pEquip								(PCHAR, PCHAR, PSPAWNINFO);
-EQLIB_API DWORD pGroup								(PCHAR, PCHAR, PSPAWNINFO);
+EQLIB_API DWORD parmGroup								(PCHAR, PCHAR, PSPAWNINFO);
 EQLIB_API DWORD parmTarget							(PCHAR, PCHAR, PSPAWNINFO);
 EQLIB_API DWORD parmSpawn							(PCHAR, PCHAR, PSPAWNINFO);
 EQLIB_API DWORD parmSearchSpawn					(PCHAR, PCHAR, PSPAWNINFO);

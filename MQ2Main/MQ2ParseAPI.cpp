@@ -116,7 +116,7 @@ VOID InitializeParser()
 	{"cursor",				pCursor},
 	{"item",				pItem},
 	{"equip",				pEquip},
-	{"group",				pGroup},
+	{"group",				parmGroup},
 	{"target",				parmTarget},
 	{"spawn(name,",			parmSpawnName},
 	{"searchspawn(",		parmSearchSpawn},

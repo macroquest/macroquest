@@ -522,9 +522,9 @@ BOOL ParseMouseLoc(PCHARINFO pCharInfo, PCHAR szMouseLoc)
 			return FALSE;
 		}
 		GetArg(szArg1,szRest,1);
-		DWORD BankWnd = *EQADDR_CLASSBANKWND;
-		DWORD NumBankSlots = 0;
-			//public: int __thiscall CBankWnd::GetNumBankSlots(void)const 
+//		DWORD BankWnd = pBankWnd;
+		DWORD NumBankSlots = pBankWnd->GetNumBankSlots();
+		/*
 		__asm {
 	        push eax;
 			push ecx;
@@ -534,6 +534,7 @@ BOOL ParseMouseLoc(PCHARINFO pCharInfo, PCHAR szMouseLoc)
 			pop ecx;
 			pop eax;
 		}
+		/**/
 		DebugSpew("NumBankSlots = %d",NumBankSlots);
 		if(NumBankSlots>=16) {
 			Bank = 15;
@@ -809,9 +810,11 @@ BOOL ParseMouseLoc(PCHARINFO pCharInfo, PCHAR szMouseLoc)
 /*INSERTED BELOW TO FIX /CLICK LEFT/RIGHT ITEM/TARGET*/ 
    } else if (!strnicmp(szArg1,"item",4)) { 
       if (EnviroTarget.Name[0]==0) return FALSE; 
-      DWORD clsItems = *(DWORD*)EQADDR_CLSITEMS; 
+      //DWORD clsItems = *(DWORD*)EQADDR_CLSITEMS; 
       for (y=0;(y<Rect.bottom) && (!Found);y+=2*(1+Mode)) { 
          for (x=0;(x<Rect.right) && (!Found);x+=2*(1+Mode)) { 
+			 ID=(DWORD)pDisplay->GetClickedActor(x,y,0);
+			 /*
             __asm { 
                push ecx 
                push eax 
@@ -824,6 +827,7 @@ BOOL ParseMouseLoc(PCHARINFO pCharInfo, PCHAR szMouseLoc)
                pop eax 
                pop ecx 
             } 
+			/**/
 
             if (ID == EnviroTarget.GuildID) { 
                MouseInfo->X = x; 
@@ -835,11 +839,13 @@ BOOL ParseMouseLoc(PCHARINFO pCharInfo, PCHAR szMouseLoc)
       //Could probably just return Found here, and get rid of if statement... 
       if (!Found) { return FALSE; } else return TRUE; 
    } else if (!strnicmp(szArg1,"target",6)) { 
-      if (!EQADDR_TARGET) return FALSE; 
-      if (!*EQADDR_TARGET) return FALSE; 
-      PSPAWNINFO pTarget = *EQADDR_TARGET; 
+      if (!ppTarget) return FALSE; 
+      if (!pTarget) return FALSE; 
+      PSPAWNINFO psTarget = (PSPAWNINFO)pTarget; 
       for (y=0;(y<Rect.bottom) && (!Found);y+=2*(1+Mode)) { 
          for (x=0;(x<Rect.right) && (!Found);x+=2*(1+Mode)) { 
+			 ID=(DWORD)pEverQuest->ClickedPlayer(x,y);
+			 /*
             __asm { 
                push ecx 
                push eax 
@@ -851,8 +857,8 @@ BOOL ParseMouseLoc(PCHARINFO pCharInfo, PCHAR szMouseLoc)
                pop eax 
                pop ecx 
             } 
-
-            if (ID == (DWORD)pTarget) { 
+			/**/
+            if (ID == (DWORD)psTarget) { 
                MouseInfo->X = x; 
                MouseInfo->Y = y; 
                Found=TRUE; 
@@ -1073,25 +1079,29 @@ VOID Click(PSPAWNINFO pChar, PCHAR szLine) {
    if (szMouseLoc && szMouseLoc[0]!=0) { 
       if (!strnicmp(szMouseLoc, "target", 6)) { 
          if (!strnicmp(szArg1, "left", 4)) { 
-            if(!EQADDR_LCLICKTARGET) return; 
-            RightOrLeft = EQADDR_LCLICKTARGET; 
+//            if(!EQADDR_LCLICKTARGET) return; 
+				pEverQuest->LeftClickedOnPlayer(pTarget);
+//            RightOrLeft = EQADDR_LCLICKTARGET; 
          } else if (!strnicmp(szArg1, "right", 5)) { 
-            if (!EQADDR_RCLICKTARGET) return; 
-            RightOrLeft = EQADDR_RCLICKTARGET; 
+//            if (!EQADDR_RCLICKTARGET) return; 
+//            RightOrLeft = EQADDR_RCLICKTARGET; 
+			 pEverQuest->RightClickedOnPlayer(pTarget);
          } 
+		 /*
          DWORD CEverQuest = 0; 
          CEverQuest = (DWORD)*EQADDR_CLSMAINNEWUI; 
-         DWORD pTarget = NULL; 
-         if (EQADDR_TARGET && *(DWORD *)EQADDR_TARGET) { 
-            pTarget = *(DWORD *)EQADDR_TARGET; 
+         DWORD psTarget = NULL; 
+         if (ppTarget && *(DWORD *)ppTarget) { 
+            psTarget = *(DWORD *)ppTarget; 
             __asm { 
                push ecx; 
-               push pTarget; 
+               push psTarget; 
                mov ecx, dword ptr [CEverQuest]; 
                call dword ptr [RightOrLeft]; 
                pop ecx; 
             } 
          } 
+		 /**/
          return; 
 	  } else if (!strnicmp(szMouseLoc, "item", 4)) {
 			// a right clicked ground spawn does nothing
@@ -1101,7 +1111,7 @@ VOID Click(PSPAWNINFO pChar, PCHAR szLine) {
 				Data.DropID = EnviroTarget.Race;
 				SendEQMessage(EQ_INTERACTGROUNDITEM,&Data,sizeof(INTERACTGROUNDITEM));
 				EnviroTarget.Name[0]=0;
-				if (*EQADDR_TARGET==&EnviroTarget) *EQADDR_TARGET=NULL;
+				if (pTarget==(EQPlayer*)&EnviroTarget) pTarget=NULL;
 				return;
 			}
       } else if (!ParseMouseLoc(GetCharInfo(), szMouseLoc)) { 

@@ -117,7 +117,7 @@ BOOL ParseINIFile(PCHAR lpINIPath)
     }
 
     GetPrivateProfileString("MacroQuest","MacroQuestVersion","0",gszVersion,MAX_STRING,ClientINI);
-
+/*
     GetPrivateProfileString("Function Locations","WriteChatColor","0",szBuffer,MAX_STRING,ClientINI);   EQADDR_DSPCHAT = strtoul(szBuffer,NULL,16);
     GetPrivateProfileString("Function Locations","GetRaceByID","0",szBuffer,MAX_STRING,ClientINI);      GetRaceByID = (fEQGetStringByID)strtoul(szBuffer,NULL,16);
     GetPrivateProfileString("Function Locations","GetClassByID","0",szBuffer,MAX_STRING,ClientINI);     GetClassByID = (fEQGetStringByID)strtoul(szBuffer,NULL,16);
@@ -125,7 +125,6 @@ BOOL ParseINIFile(PCHAR lpINIPath)
     GetPrivateProfileString("Function Locations","GetBodyTypeByID","0",szBuffer,MAX_STRING,ClientINI);  GetBodyTypeByID = (fEQGetStringByID)strtoul(szBuffer,NULL,16);
     GetPrivateProfileString("Function Locations","ScreenItem","0",szBuffer,MAX_STRING,ClientINI);       ScreenItem = (fEQScreenItem)strtoul(szBuffer,NULL,16);
     GetPrivateProfileString("Function Locations","ScreenSpawn","0",szBuffer,MAX_STRING,ClientINI);      ScreenSpawn = (fEQScreenSpawn)strtoul(szBuffer,NULL,16);
-    GetPrivateProfileString("Function Locations","NewUIINI","0",szBuffer,MAX_STRING,ClientINI);         NewUIINI = (fEQNewUIINI)strtoul(szBuffer,NULL,16);
     GetPrivateProfileString("Function Locations","MaxMana","0",szBuffer,MAX_STRING,ClientINI);          EQADDR_MAXMANA = strtoul(szBuffer,NULL,16);
     GetPrivateProfileString("Function Locations","Commands","0",szBuffer,MAX_STRING,ClientINI);         EQADDR_COMMANDS = strtoul(szBuffer,NULL,16);
     GetPrivateProfileString("Function Locations","LoadSpells","0",szBuffer,MAX_STRING,ClientINI);       cmdLoadSpells = (fEQLoadSpells)strtoul(szBuffer,NULL,16);
@@ -138,59 +137,67 @@ BOOL ParseINIFile(PCHAR lpINIPath)
     GetPrivateProfileString("Function Locations","WriteMapfile","0",szBuffer,MAX_STRING,ClientINI); EQADDR_WRITEMAPFILE = (DWORD)strtoul(szBuffer,NULL,16);
     GetPrivateProfileString("Function Locations","RClickTarget","0",szBuffer,MAX_STRING,ClientINI); EQADDR_RCLICKTARGET = (DWORD)strtoul(szBuffer,NULL,16);
     GetPrivateProfileString("Function Locations","LClickTarget","0",szBuffer,MAX_STRING,ClientINI); EQADDR_LCLICKTARGET = (DWORD)strtoul(szBuffer,NULL,16);
-    GetPrivateProfileString("Function Locations","ProcessGameEvents","0",szBuffer,MAX_STRING,ClientINI); ProcessGameEvents = (fEQProcGameEvts)strtoul(szBuffer,NULL,16);
-	GetPrivateProfileString("Function Locations","SendMessage","0",szBuffer,MAX_STRING,ClientINI); send_message = (fEQSendMessage)strtoul(szBuffer,NULL,16);
 	GetPrivateProfileString("Function Locations","CleanGameUI","0",szBuffer,MAX_STRING,ClientINI); EQADDR_CLEANUI = (DWORD)strtoul(szBuffer,NULL,16);
     GetPrivateProfileString("Function Locations","ItemDisplaySetItem","0",szBuffer,MAX_STRING,ClientINI);   EQADDR_ITEMDISPLAYSETITEM = (DWORD)strtoul(szBuffer,NULL,16); 
     GetPrivateProfileString("Function Locations","CXStrAppend","0",szBuffer,MAX_STRING,ClientINI);   EQADDR_CXSTRAPPEND = (DWORD)strtoul(szBuffer,NULL,16); 
     GetPrivateProfileString("Function Locations","CXStrSet","0",szBuffer,MAX_STRING,ClientINI);   EQADDR_CXSTRSET = (DWORD)strtoul(szBuffer,NULL,16); 
+/**/
 
-    GetPrivateProfileString("Function Locations","MemChecker","0",szBuffer,MAX_STRING,ClientINI);       EQADDR_MEMCHECK = strtoul(szBuffer,NULL,16);
+    GetPrivateProfileString("Function Locations","NewUIINI","0",szBuffer,MAX_STRING,ClientINI);         NewUIINI = (fEQNewUIINI)strtoul(szBuffer,NULL,16);
+    GetPrivateProfileString("Function Locations","ProcessGameEvents","0",szBuffer,MAX_STRING,ClientINI); ProcessGameEvents = (fEQProcGameEvts)strtoul(szBuffer,NULL,16);
+	GetPrivateProfileString("Function Locations","SendMessage","0",szBuffer,MAX_STRING,ClientINI); send_message = (fEQSendMessage)strtoul(szBuffer,NULL,16);
+    GetPrivateProfileString("Function Locations","ConvertItemTags","0",szBuffer,MAX_STRING,ClientINI);   EQADDR_CONVERTITEMTAGS = (DWORD)strtoul(szBuffer,NULL,16);
+	
+	GetPrivateProfileString("Function Locations","MemChecker","0",szBuffer,MAX_STRING,ClientINI);       EQADDR_MEMCHECK = strtoul(szBuffer,NULL,16);
     GetPrivateProfileString("Function Locations","MemChecker2","0",szBuffer,MAX_STRING,ClientINI);      EQADDR_MEMCHECK2 = strtoul(szBuffer,NULL,16);
     GetPrivateProfileString("Function Locations","MemCheckAddr1","0",szBuffer,MAX_STRING,ClientINI);        EQADDR_MEMCHECKADDR1 = strtoul(szBuffer,NULL,16);
     GetPrivateProfileString("Function Locations","MemCheckAddr2","0",szBuffer,MAX_STRING,ClientINI);        EQADDR_MEMCHECKADDR2 = strtoul(szBuffer,NULL,16);
     GetPrivateProfileString("Function Locations","MemChecker3","0",szBuffer,MAX_STRING,ClientINI);      EQADDR_MEMCHECK3 = strtoul(szBuffer,NULL,16);
+/*
     GetPrivateProfileString("Function Locations","CastSpell","0",szBuffer,MAX_STRING,ClientINI);        EQADDR_CASTSPELL = (DWORD)strtoul(szBuffer,NULL,16);
     GetPrivateProfileString("Function Locations","CXStrConstructor","0",szBuffer,MAX_STRING,ClientINI);   EQADDR_CXSTRCONSTRUCTOR = (DWORD)strtoul(szBuffer,NULL,16);
     GetPrivateProfileString("Function Locations","CXStrFree","0",szBuffer,MAX_STRING,ClientINI);   EQADDR_CXSTRFREE = (DWORD)strtoul(szBuffer,NULL,16);
     GetPrivateProfileString("Function Locations","CStmlWndAppend","0",szBuffer,MAX_STRING,ClientINI);   EQADDR_APPENDSTML = (DWORD)strtoul(szBuffer,NULL,16);
     GetPrivateProfileString("Function Locations","CChatManagerInitContextMenu","0",szBuffer,MAX_STRING,ClientINI);   EQADDR_CHATMANAGERINITCONTEXTMENU = (DWORD)strtoul(szBuffer,NULL,16);
     GetPrivateProfileString("Function Locations","CChatWindowConstructor","0",szBuffer,MAX_STRING,ClientINI);   EQADDR_CCHATWINDOWCONSTRUCTOR = (DWORD)strtoul(szBuffer,NULL,16);
+    GetPrivateProfileString("Function Locations","CChatWindowDeconstructor","0",szBuffer,MAX_STRING,ClientINI);   EQADDR_CCHATWINDOWDECONSTRUCTOR = (DWORD)strtoul(szBuffer,NULL,16);
     GetPrivateProfileString("Function Locations","CChatManagerGetRGBAFromIndex","0",szBuffer,MAX_STRING,ClientINI);   EQADDR_CCHATMANAGERGETRGBAFROMINDEX = (DWORD)strtoul(szBuffer,NULL,16);
-    GetPrivateProfileString("Function Locations","ConvertItemTags","0",szBuffer,MAX_STRING,ClientINI);   EQADDR_CONVERTITEMTAGS = (DWORD)strtoul(szBuffer,NULL,16);
     GetPrivateProfileString("Function Locations","GetItemLinkHash","0",szBuffer,MAX_STRING,ClientINI);   EQADDR_GETITEMLINKHASH = (DWORD)strtoul(szBuffer,NULL,16);
     GetPrivateProfileString("Function Locations","GetNumBankSlots","0",szBuffer,MAX_STRING,ClientINI);   EQADDR_GETNUMBANKSLOTS = (DWORD)strtoul(szBuffer,NULL,16);
     GetPrivateProfileString("Function Locations","CLabelDraw","0",szBuffer,MAX_STRING,ClientINI);   EQADDR_EQLABELS = (DWORD)strtoul(szBuffer,NULL,16);
     GetPrivateProfileString("Function Locations","Zoning","0",szBuffer,MAX_STRING,ClientINI);             EQADDR_ZONING = (DWORD)strtoul(szBuffer,NULL,16);
     GetPrivateProfileString("Function Locations","EQCharacterMaxHP","0",szBuffer,MAX_STRING,ClientINI);             EQADDR_GETMAXHP = (DWORD)strtoul(szBuffer,NULL,16);
     GetPrivateProfileString("Function Locations","EQCharacterCurHP","0",szBuffer,MAX_STRING,ClientINI);             EQADDR_GETCURHP = (DWORD)strtoul(szBuffer,NULL,16);
+	
+	GetPrivateProfileString("Function Locations","EQCharacterCurHP","0",szBuffer,MAX_STRING,ClientINI);             EQADDR_GETCURHP = (DWORD)strtoul(szBuffer,NULL,16); 
+/**/
 
     GetPrivateProfileString("DirectInput8","Main","0",szBuffer,MAX_STRING,ClientINI);                   EQADDR_DIMAIN = strtoul(szBuffer,NULL,16);
     GetPrivateProfileString("DirectInput8","Keyboard","0",szBuffer,MAX_STRING,ClientINI);               EQADDR_DIKEYBOARD = (IDirectInputDevice8A**)strtoul(szBuffer,NULL,16);
     GetPrivateProfileString("DirectInput8","Mouse","0",szBuffer,MAX_STRING,ClientINI);                  EQADDR_DIMOUSE = (IDirectInputDevice8A**)strtoul(szBuffer,NULL,16);
 
     GetPrivateProfileString("Memory Locations","ZoneInfo","0",szBuffer,MAX_STRING,ClientINI);           EQADDR_ZONEINFO = (PZONEINFO)strtoul(szBuffer,NULL,16);
-    GetPrivateProfileString("Memory Locations","SpawnHeader","0",szBuffer,MAX_STRING,ClientINI);        EQADDR_SPAWNLIST = (PSPAWNINFO*)strtoul(szBuffer,NULL,16);
-    GetPrivateProfileString("Memory Locations","SpawnFooter","0",szBuffer,MAX_STRING,ClientINI);        EQADDR_SPAWNTAIL = (PSPAWNINFO*)strtoul(szBuffer,NULL,16);
-    GetPrivateProfileString("Memory Locations","Char","0",szBuffer,MAX_STRING,ClientINI);				EQADDR_CHAR= (PSPAWNINFO*)strtoul(szBuffer,NULL,16);
-    GetPrivateProfileString("Memory Locations","Zones","0",szBuffer,MAX_STRING,ClientINI);              EQADDR_ZONELIST = (PZONELIST**)strtoul(szBuffer,NULL,16);
+//    GetPrivateProfileString("Memory Locations","SpawnHeader","0",szBuffer,MAX_STRING,ClientINI);        EQADDR_SPAWNLIST = (PSPAWNINFO*)strtoul(szBuffer,NULL,16);
+//    GetPrivateProfileString("Memory Locations","SpawnFooter","0",szBuffer,MAX_STRING,ClientINI);        EQADDR_SPAWNTAIL = (PSPAWNINFO*)strtoul(szBuffer,NULL,16);
+//    GetPrivateProfileString("Memory Locations","Char","0",szBuffer,MAX_STRING,ClientINI);				EQADDR_CHAR= (PSPAWNINFO*)strtoul(szBuffer,NULL,16);
+//    GetPrivateProfileString("Memory Locations","Zones","0",szBuffer,MAX_STRING,ClientINI);              EQADDR_ZONELIST = (PZONELIST**)strtoul(szBuffer,NULL,16);
     GetPrivateProfileString("Memory Locations","Guilds","0",szBuffer,MAX_STRING,ClientINI);             EQADDR_GUILDLIST = strtoul(szBuffer,NULL,16);
-    GetPrivateProfileString("Memory Locations","Target","0",szBuffer,MAX_STRING,ClientINI);             EQADDR_TARGET = (PSPAWNINFO*)strtoul(szBuffer,NULL,16);
+//    GetPrivateProfileString("Memory Locations","Target","0",szBuffer,MAX_STRING,ClientINI);             EQADDR_TARGET = (PSPAWNINFO*)strtoul(szBuffer,NULL,16);
     GetPrivateProfileString("Memory Locations","LastTell","0",szBuffer,MAX_STRING,ClientINI);           EQADDR_LASTTELL = (PCHAR)strtoul(szBuffer,NULL,16);
-    GetPrivateProfileString("Memory Locations","CharInfo","0",szBuffer,MAX_STRING,ClientINI);           EQADDR_CHAR_INFO = (PCHARINFO*)strtoul(szBuffer,NULL,16);
-    GetPrivateProfileString("Memory Locations","Packs","0",szBuffer,MAX_STRING,ClientINI);              EQADDR_PACKLOCS = (PPACKLOC)strtoul(szBuffer,NULL,16);
+//    GetPrivateProfileString("Memory Locations","CharInfo","0",szBuffer,MAX_STRING,ClientINI);           EQADDR_CHAR_INFO = (PCHARINFO*)strtoul(szBuffer,NULL,16);
+//    GetPrivateProfileString("Memory Locations","Packs","0",szBuffer,MAX_STRING,ClientINI);              EQADDR_PACKLOCS = (PPACKLOC)strtoul(szBuffer,NULL,16);
     GetPrivateProfileString("Memory Locations","Mouse","0",szBuffer,MAX_STRING,ClientINI);              EQADDR_MOUSE = (PMOUSEINFO)strtoul(szBuffer,NULL,16);
     GetPrivateProfileString("Memory Locations","Attack","0",szBuffer,MAX_STRING,ClientINI);             EQADDR_ATTACK = (PBYTE)strtoul(szBuffer,NULL,16);
     GetPrivateProfileString("Memory Locations","InChatMode","0",szBuffer,MAX_STRING,ClientINI);         EQADDR_NOTINCHATMODE = (PBYTE)strtoul(szBuffer,NULL,16);
-    GetPrivateProfileString("Memory Locations","Items","0",szBuffer,MAX_STRING,ClientINI);              EQADDR_ITEMS = (PGROUNDITEM*)strtoul(szBuffer,NULL,16);
-    GetPrivateProfileString("Memory Locations","Doors","0",szBuffer,MAX_STRING,ClientINI);   EQADDR_DOORS = (PDOORTABLE*)strtoul(szBuffer,NULL,16);
-    GetPrivateProfileString("Memory Locations","Spells","0",szBuffer,MAX_STRING,ClientINI);             EQADDR_SPELLS = (_SPELLPOINTER**)strtoul(szBuffer,NULL,16);
-    GetPrivateProfileString("Memory Locations","Group","0",szBuffer,MAX_STRING,ClientINI);              EQADDR_GROUP = (PSPAWNINFO*)strtoul(szBuffer,NULL,16);
+//    GetPrivateProfileString("Memory Locations","Items","0",szBuffer,MAX_STRING,ClientINI);              EQADDR_ITEMS = (PGROUNDITEM*)strtoul(szBuffer,NULL,16);
+//    GetPrivateProfileString("Memory Locations","Doors","0",szBuffer,MAX_STRING,ClientINI);   EQADDR_DOORS = (PDOORTABLE*)strtoul(szBuffer,NULL,16);
+//    GetPrivateProfileString("Memory Locations","Spells","0",szBuffer,MAX_STRING,ClientINI);             EQADDR_SPELLS = (_SPELLPOINTER**)strtoul(szBuffer,NULL,16);
+//    GetPrivateProfileString("Memory Locations","Group","0",szBuffer,MAX_STRING,ClientINI);              EQADDR_GROUP = (PSPAWNINFO*)strtoul(szBuffer,NULL,16);
     GetPrivateProfileString("Memory Locations","GroupCount","0",szBuffer,MAX_STRING,ClientINI);         EQADDR_GROUPCOUNT = (PBYTE)strtoul(szBuffer,NULL,16);
 	GetPrivateProfileString("Memory Locations","gWorld","0",szBuffer,MAX_STRING,ClientINI);				EQADDR_GWORLD = (PVOID)strtoul(szBuffer,NULL,16);
-	GetPrivateProfileString("Memory Locations","clsMainNewUI","0",szBuffer,MAX_STRING,ClientINI);       EQADDR_CLSMAINNEWUI = (PDWORD)strtoul(szBuffer,NULL,16);
-    GetPrivateProfileString("Memory Locations","clsItems","0",szBuffer,MAX_STRING,ClientINI);           EQADDR_CLSITEMS = strtoul(szBuffer,NULL,16);
-    GetPrivateProfileString("Memory Locations","clsSpawns","0",szBuffer,MAX_STRING,ClientINI);          EQADDR_CLSSPAWNS = strtoul(szBuffer,NULL,16);
+//	GetPrivateProfileString("Memory Locations","clsMainNewUI","0",szBuffer,MAX_STRING,ClientINI);       EQADDR_CLSMAINNEWUI = (PDWORD)strtoul(szBuffer,NULL,16);
+//    GetPrivateProfileString("Memory Locations","clsItems","0",szBuffer,MAX_STRING,ClientINI);           EQADDR_CLSITEMS = strtoul(szBuffer,NULL,16);
+//    GetPrivateProfileString("Memory Locations","clsSpawns","0",szBuffer,MAX_STRING,ClientINI);          EQADDR_CLSSPAWNS = strtoul(szBuffer,NULL,16);
     GetPrivateProfileString("Memory Locations","CommandList","0",szBuffer,MAX_STRING,ClientINI);                EQADDR_CMDLIST = (PCMDLIST)strtoul(szBuffer,NULL,16);
     GetPrivateProfileString("Memory Locations","DoAbilityList","0",szBuffer,MAX_STRING,ClientINI);              EQADDR_DOABILITYLIST = (PDWORD)strtoul(szBuffer,NULL,16);
     GetPrivateProfileString("Memory Locations","DoAbilityAvailable","0",szBuffer,MAX_STRING,ClientINI);         EQADDR_DOABILITYAVAILABLE = (PBYTE)strtoul(szBuffer,NULL,16);
@@ -199,13 +206,13 @@ BOOL ParseINIFile(PCHAR lpINIPath)
     GetPrivateProfileString("Memory Locations","EncryptPad3","0",szBuffer,MAX_STRING,ClientINI);            EQADDR_ENCRYPTPAD3 = (PBYTE)strtoul(szBuffer,NULL,16);
     GetPrivateProfileString("Memory Locations","ServerHost","0",szBuffer,MAX_STRING,ClientINI);            EQADDR_SERVERHOST = (PCHAR)strtoul(szBuffer,NULL,16);
     GetPrivateProfileString("Memory Locations","ServerName","0",szBuffer,MAX_STRING,ClientINI);            EQADDR_SERVERNAME = (PCHAR)strtoul(szBuffer,NULL,16);
-    GetPrivateProfileString("Memory Locations","SpellFavorites","0",szBuffer,MAX_STRING,ClientINI);            EQADDR_SPELLFAVORITES = (PSPELLFAVORITE)strtoul(szBuffer,NULL,16);
-    GetPrivateProfileString("Memory Locations","ActiveMerchant","0",szBuffer,MAX_STRING,ClientINI);            EQADDR_ACTIVEMERCHANT = (PCHAR*)strtoul(szBuffer,NULL,16);
-    GetPrivateProfileString("Memory Locations","ActiveCorpse","0",szBuffer,MAX_STRING,ClientINI);            EQADDR_ACTIVECORPSE = (PCHAR*)strtoul(szBuffer,NULL,16);
+//    GetPrivateProfileString("Memory Locations","SpellFavorites","0",szBuffer,MAX_STRING,ClientINI);            EQADDR_SPELLFAVORITES = (PSPELLFAVORITE)strtoul(szBuffer,NULL,16);
+//    GetPrivateProfileString("Memory Locations","ActiveMerchant","0",szBuffer,MAX_STRING,ClientINI);            EQADDR_ACTIVEMERCHANT = (PCHAR*)strtoul(szBuffer,NULL,16);
+//    GetPrivateProfileString("Memory Locations","ActiveCorpse","0",szBuffer,MAX_STRING,ClientINI);            EQADDR_ACTIVECORPSE = (PCHAR*)strtoul(szBuffer,NULL,16);
     GetPrivateProfileString("Memory Locations","SlotList","0",szBuffer,MAX_STRING,ClientINI);            EQADDR_SLOTLIST = (PDWORD)strtoul(szBuffer,NULL,16);
     GetPrivateProfileString("Memory Locations","Clicks","0",szBuffer,MAX_STRING,ClientINI);             EQADDR_MOUSECLICK = (PMOUSECLICK)strtoul(szBuffer,NULL,16);
     GetPrivateProfileString("Memory Locations","HWnd","0",szBuffer,MAX_STRING,ClientINI);             EQADDR_HWND = (DWORD)strtoul(szBuffer,NULL,16);
-
+/*
     GetPrivateProfileString("Class Locations","SpellBookWnd","0",szBuffer,MAX_STRING,ClientINI);            EQADDR_SPELLBOOKWND = (PDWORD)strtoul(szBuffer,NULL,16);
     GetPrivateProfileString("Class Locations","ClassMerchWnd","0",szBuffer,MAX_STRING,ClientINI);         EQADDR_CLASSMERCHWND = (PDWORD)strtoul(szBuffer,NULL,16);
     GetPrivateProfileString("Class Locations","ClassTextureAnim","0",szBuffer,MAX_STRING,ClientINI);      EQADDR_CLASSTEXTUREANIMATION = (PDWORD)strtoul(szBuffer,NULL,16);
@@ -218,11 +225,11 @@ BOOL ParseINIFile(PCHAR lpINIPath)
     GetPrivateProfileString("Class Locations","ClassContainerMgr","0",szBuffer,MAX_STRING,ClientINI);      EQADDR_CLASSCONTAINERMGR = (PEQ_CONTAINERWND_MANAGER *)strtoul(szBuffer,NULL,16);
     GetPrivateProfileString("Class Locations","ClassGiveWnd","0",szBuffer,MAX_STRING,ClientINI);            EQADDR_CLASSGIVEWND = (PDWORD)strtoul(szBuffer,NULL,16);
     GetPrivateProfileString("Class Locations","ClassNotesWnd","0",szBuffer,MAX_STRING,ClientINI);           EQADDR_CLASSNOTESWND = (PEQNOTESWINDOW*)strtoul(szBuffer,NULL,16);
-    GetPrivateProfileString("Class Locations","ClassChatManager","0",szBuffer,MAX_STRING,ClientINI);         EQADDR_CHATMANAGER = (PDWORD)strtoul(szBuffer,NULL,16);
+    GetPrivateProfileString("Class Locations","ClassChatManager","0",szBuffer,MAX_STRING,ClientINI);         pChatMgr = (CChatManager*)strtoul(szBuffer,NULL,16);
 	GetPrivateProfileString("Class Locations","ClassDisplayObject","0",szBuffer,MAX_STRING,ClientINI);			EQADDR_CLASSDISPLAYOBJECT = (PDWORD)strtoul(szBuffer,NULL,16); 
 	GetPrivateProfileString("Class Locations","ClassBankWnd","0",szBuffer,MAX_STRING,ClientINI);			EQADDR_CLASSBANKWND = (PDWORD)strtoul(szBuffer,NULL,16); 
-	GetPrivateProfileString("Class Locations","ClassEverQuest","0",szBuffer,MAX_STRING,ClientINI);			EQADDR_CLSEVERQUEST = (PDWORD)strtoul(szBuffer,NULL,16); 
-	pEverQuest=(CEverQuest*)EQADDR_CLSEVERQUEST;
+	GetPrivateProfileString("Class Locations","ClassEverQuest","0",szBuffer,MAX_STRING,ClientINI);			pEverQuest = (CEverQuest*)strtoul(szBuffer,NULL,16); 
+/**/
 
     gFilterSkillsAll = 0!=GetPrivateProfileInt("MacroQuest","FilterSkills",0,Filename);
     gFilterSkillsIncrease = 2==GetPrivateProfileInt("MacroQuest","FilterSkills",0,Filename);
@@ -360,6 +367,7 @@ DWORD WINAPI MQ2Start(LPVOID lpParameter)
 
 	InitializeParser();
 	InitializeMQ2Detours();
+	InitializeCleanUI();
 	InitializeChatHook();
 	InitializeMQ2Pulse();
 	InitializeMQ2Commands();
@@ -377,6 +385,7 @@ DWORD WINAPI MQ2Start(LPVOID lpParameter)
     WriteChatBuffer(UnloadedString,USERCOLOR_DEFAULT);
     DebugSpewAlways(UnloadedString);
 
+	ShutdownCleanUI();
 	ShutdownMQ2DInput();
 	ShutdownChatHook();
 	ShutdownMQ2Pulse();

@@ -927,3 +927,12 @@ typedef struct _INTERACTGROUNDITEM {
 	DWORD DropID;
 	DWORD SpawnID;
 } INTERACTGROUNDITEM, *PINTERACTGROUNDITEM;
+
+typedef struct _SPELLFAVORITE {
+/*0x000*/   DWORD   SpellId[8];
+/*0x020*/   CHAR    Name[25];
+/*0x039*/   BYTE    Byte_39;
+/*0x03A*/   BYTE    Byte_3A;
+/*0x03B*/   BYTE    Byte_3B;
+/*0x03C*/
+} SPELLFAVORITE, *PSPELLFAVORITE;
