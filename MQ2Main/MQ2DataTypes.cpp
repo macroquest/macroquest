@@ -54,6 +54,9 @@ class MQ2HeadingType *pHeadingType=0;
 
 class MQ2InvSlotType *pInvSlotType=0;
 
+class MQ2ArrayType *pArrayType=0;
+class MQ2TimerType *pTimerType=0;
+
 CHAR DataTypeTemp[MAX_STRING]={0};
 
 void InitializeMQ2DataTypes()
@@ -88,6 +91,8 @@ void InitializeMQ2DataTypes()
 	pTimeType = new MQ2TimeType;
 	pHeadingType = new MQ2HeadingType;
 	pInvSlotType = new MQ2InvSlotType;
+	pArrayType = new MQ2ArrayType;
+	pTimerType = new MQ2TimerType;
 }
 
 void ShutdownMQ2DataTypes()
@@ -121,6 +126,8 @@ void ShutdownMQ2DataTypes()
 	delete pTypeType;
 	delete pTimeType;
 	delete pHeadingType;
+	delete pArrayType;
+	delete pTimerType;
 }
 
 bool MQ2FloatType::GetMember(MQ2VARPTR VarPtr, PCHAR Member, PCHAR Index, MQ2TYPEVAR &Dest)
@@ -1531,7 +1538,7 @@ bool MQ2ItemType::GetMember(MQ2VARPTR VarPtr, PCHAR Member, PCHAR Index, MQ2TYPE
 		Dest.Type=pBoolType;
 		return true;
 	case NoDrop:
-		Dest.DWord=pItem->Item->NoDrop;
+		Dest.DWord=!pItem->Item->NoDrop;
 		Dest.Type=pBoolType;
 		return true;
 	case NoRent:
@@ -2569,7 +2576,7 @@ bool MQ2CorpseType::GetMember(MQ2VARPTR VarPtr, PCHAR Member, PCHAR Index, MQ2TY
 	case Items:
 		{
 			Dest.DWord=0;
-			for (unsigned long N = 0 ; N < 80 ; N++)
+			for (unsigned long N = 0 ; N < 31 ; N++)
 			{
 				if (pLoot->ItemDesc[N])
 					Dest.DWord++;
@@ -2936,3 +2943,37 @@ bool MQ2InvSlotType::GetMember(MQ2VARPTR VarPtr, PCHAR Member, PCHAR Index, MQ2T
 }
 
 
+bool MQ2ArrayType::GetMember(MQ2VARPTR VarPtr, PCHAR Member, PCHAR Index, MQ2TYPEVAR &Dest)
+{
+#define pArray ((CDataArray*)VarPtr.Ptr)
+	if (!pArray)
+		return false;
+	PMQ2TYPEMEMBER pMember=MQ2ArrayType::FindMember(Member);
+	if (!pMember)
+		return false;
+	switch((ArrayMembers)pMember->ID)
+	{
+	case Dimensions:
+		Dest.DWord=pArray->nExtents;
+		Dest.Type=pIntType;
+		return true;
+	}
+	return false;
+#undef pArray
+}
+
+bool MQ2TimerType::GetMember(MQ2VARPTR VarPtr, PCHAR Member, PCHAR Index, MQ2TYPEVAR &Dest)
+{
+	return false;
+#define pTimer ((PTIMER)VarPtr.Ptr)
+	if (!pTimer)
+		return false;
+	PMQ2TYPEMEMBER pMember=MQ2TimerType::FindMember(Member);
+	if (!pMember)
+		return false;
+//	switch((TimerMembers)pMember->ID)
+//	{
+//	}
+	return false;
+#undef pTimer
+}

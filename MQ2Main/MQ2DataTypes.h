@@ -15,6 +15,7 @@
 // TODO
 // add actual macro parameters to macro type (subs and main)
 // (non-mq2data) command to clear macro return value
+// container empty slots, size of containable items
 
 EQLIB_VAR class MQ2FloatType *pFloatType;
 EQLIB_VAR class MQ2StringType *pStringType;
@@ -53,6 +54,9 @@ EQLIB_VAR class MQ2HeadingType *pHeadingType;
 
 EQLIB_VAR class MQ2InvSlotType *pInvSlotType;
 
+EQLIB_VAR class MQ2ArrayType *pArrayType;
+EQLIB_VAR class MQ2TimerType *pTimerType;
+
 #define UseTemp(mystring) strcpy(DataTypeTemp,mystring)
 #define TypeMember(name) AddMember((DWORD)name,""#name)
 
@@ -81,6 +85,20 @@ public:
 			strcpy(Destination,"FALSE");
 		return true;
 	}
+
+	bool FromData(MQ2VARPTR &VarPtr, MQ2TYPEVAR &Source)
+	{
+		return false;
+	}
+	bool FromString(MQ2VARPTR &VarPtr, PCHAR Source)
+	{
+		VarPtr.DWord=0;
+		if (!stricmp(Source,"TRUE"))
+			VarPtr.DWord=1;
+		else if (atof(Source)!=0.0f)
+			VarPtr.DWord=1;
+		return true;
+	}
 };
 class MQ2IntType : public MQ2Type
 {
@@ -107,6 +125,16 @@ public:
 	 bool ToString(MQ2VARPTR VarPtr, PCHAR Destination)
 	{
 		itoa(VarPtr.Int,Destination,10);
+		return true;
+	}
+	bool FromData(MQ2VARPTR &VarPtr, MQ2TYPEVAR &Source)
+	{
+		return false;
+	}
+
+	bool FromString(MQ2VARPTR &VarPtr, PCHAR Source)
+	{
+		VarPtr.Int=atoi(Source);
 		return true;
 	}
 };
@@ -175,6 +203,14 @@ public:
 		sprintf(Destination,"%x",VarPtr.Int);
 		return true;
 	}
+	bool FromData(MQ2VARPTR &VarPtr, MQ2TYPEVAR &Source)
+	{
+		return false;
+	}
+	bool FromString(MQ2VARPTR &VarPtr, PCHAR Source)
+	{
+		return false;
+	}
 };
 
 class MQ2ByteType : public MQ2Type
@@ -198,6 +234,14 @@ public:
 	{
 		itoa(VarPtr.Int,Destination,10);
 		return true;
+	}
+	bool FromData(MQ2VARPTR &VarPtr, MQ2TYPEVAR &Source)
+	{
+		return false;
+	}
+	bool FromString(MQ2VARPTR &VarPtr, PCHAR Source)
+	{
+		return false;
 	}
 };
 class MQ2StringType : public MQ2Type
@@ -248,6 +292,14 @@ public:
 		strcpy(Destination,(const char *)VarPtr.Ptr);
 		return true;
 	}
+	bool FromData(MQ2VARPTR &VarPtr, MQ2TYPEVAR &Source)
+	{
+		return false;
+	}
+	bool FromString(MQ2VARPTR &VarPtr, PCHAR Source)
+	{
+		return false;
+	}
 };
 class MQ2FloatType : public MQ2Type
 {
@@ -280,6 +332,14 @@ public:
 	{
 		sprintf(Destination,"%.2f",VarPtr.Float);
 		return true;
+	}
+	bool FromData(MQ2VARPTR &VarPtr, MQ2TYPEVAR &Source)
+	{
+		return false;
+	}
+	bool FromString(MQ2VARPTR &VarPtr, PCHAR Source)
+	{
+		return false;
 	}
 };
 class MQ2TicksType : public MQ2Type
@@ -366,6 +426,14 @@ public:
 	{
 		itoa(VarPtr.DWord,Destination,10);
 		return true;
+	}
+	bool FromData(MQ2VARPTR &VarPtr, MQ2TYPEVAR &Source)
+	{
+		return false;
+	}
+	bool FromString(MQ2VARPTR &VarPtr, PCHAR Source)
+	{
+		return false;
 	}
 };
 
@@ -518,6 +586,14 @@ public:
 			return false;
 		strcpy(Destination,((PSPAWNINFO)VarPtr.Ptr)->Name);
 		return true;
+	}
+	bool FromData(MQ2VARPTR &VarPtr, MQ2TYPEVAR &Source)
+	{
+		return false;
+	}
+	bool FromString(MQ2VARPTR &VarPtr, PCHAR Source)
+	{
+		return false;
 	}
 };
 
@@ -712,6 +788,14 @@ public:
 		strcpy(Destination,((PCHARINFO)VarPtr.Ptr)->Name);
 		return true;
 	}
+	bool FromData(MQ2VARPTR &VarPtr, MQ2TYPEVAR &Source)
+	{
+		return false;
+	}
+	bool FromString(MQ2VARPTR &VarPtr, PCHAR Source)
+	{
+		return false;
+	}
 };
 
 class MQ2BuffType : public MQ2Type
@@ -754,6 +838,14 @@ public:
 				return true;
 			}
 		}
+		return false;
+	}
+	bool FromData(MQ2VARPTR &VarPtr, MQ2TYPEVAR &Source)
+	{
+		return false;
+	}
+	bool FromString(MQ2VARPTR &VarPtr, PCHAR Source)
+	{
 		return false;
 	}
 };
@@ -815,6 +907,14 @@ public:
 		if (!VarPtr.Ptr)
 			return false;
 		strcpy(Destination,((PSPELL)VarPtr.Ptr)->Name);
+		return false;
+	}
+	bool FromData(MQ2VARPTR &VarPtr, MQ2TYPEVAR &Source)
+	{
+		return false;
+	}
+	bool FromString(MQ2VARPTR &VarPtr, PCHAR Source)
+	{
 		return false;
 	}
 };
@@ -1002,6 +1102,14 @@ public:
 		strcpy(Destination,((PCONTENTS)VarPtr.Ptr)->Item->Name);
 		return true;
 	}
+	bool FromData(MQ2VARPTR &VarPtr, MQ2TYPEVAR &Source)
+	{
+		return false;
+	}
+	bool FromString(MQ2VARPTR &VarPtr, PCHAR Source)
+	{
+		return false;
+	}
 };
 
 
@@ -1062,6 +1170,14 @@ public:
 		}
 		return false;
 	}
+	bool FromData(MQ2VARPTR &VarPtr, MQ2TYPEVAR &Source)
+	{
+		return false;
+	}
+	bool FromString(MQ2VARPTR &VarPtr, PCHAR Source)
+	{
+		return false;
+	}
 };
 
 class MQ2GroundType : public MQ2Type
@@ -1108,6 +1224,14 @@ public:
 		}
 		return false;
 	}
+	bool FromData(MQ2VARPTR &VarPtr, MQ2TYPEVAR &Source)
+	{
+		return false;
+	}
+	bool FromString(MQ2VARPTR &VarPtr, PCHAR Source)
+	{
+		return false;
+	}
 };
 
 
@@ -1144,6 +1268,14 @@ public:
 			strcpy(Destination,"FALSE");
 		}
 		return true;
+	}
+	bool FromData(MQ2VARPTR &VarPtr, MQ2TYPEVAR &Source)
+	{
+		return false;
+	}
+	bool FromString(MQ2VARPTR &VarPtr, PCHAR Source)
+	{
+		return false;
 	}
 };
 
@@ -1183,6 +1315,14 @@ public:
 			strcpy(Destination,"FALSE");
 		}
 		return true;
+	}
+	bool FromData(MQ2VARPTR &VarPtr, MQ2TYPEVAR &Source)
+	{
+		return false;
+	}
+	bool FromString(MQ2VARPTR &VarPtr, PCHAR Source)
+	{
+		return false;
 	}
 };
 
@@ -1253,6 +1393,14 @@ public:
 			strcpy(Destination,"FALSE");
 		return true;
 	}
+	bool FromData(MQ2VARPTR &VarPtr, MQ2TYPEVAR &Source)
+	{
+		return false;
+	}
+	bool FromString(MQ2VARPTR &VarPtr, PCHAR Source)
+	{
+		return false;
+	}
 };
 
 
@@ -1295,6 +1443,14 @@ public:
 		}
 		return false;
 	}
+	bool FromData(MQ2VARPTR &VarPtr, MQ2TYPEVAR &Source)
+	{
+		return false;
+	}
+	bool FromString(MQ2VARPTR &VarPtr, PCHAR Source)
+	{
+		return false;
+	}
 };
 
 
@@ -1325,6 +1481,14 @@ public:
       strcpy(Destination,&((PZONELIST)VarPtr.Int)->LongName[0]);
       return true;
    }
+	bool FromData(MQ2VARPTR &VarPtr, MQ2TYPEVAR &Source)
+	{
+		return false;
+	}
+	bool FromString(MQ2VARPTR &VarPtr, PCHAR Source)
+	{
+		return false;
+	}
 }; 
 
 class MQ2CurrentZoneType : public MQ2Type
@@ -1372,6 +1536,14 @@ public:
 		strcpy(Destination,&((PZONEINFO)pZoneInfo)->LongName[0]);
 		return true;
 	}
+	bool FromData(MQ2VARPTR &VarPtr, MQ2TYPEVAR &Source)
+	{
+		return false;
+	}
+	bool FromString(MQ2VARPTR &VarPtr, PCHAR Source)
+	{
+		return false;
+	}
 };
 
 class MQ2MacroQuestType : public MQ2Type
@@ -1401,6 +1573,14 @@ public:
 	bool GetMember(MQ2VARPTR VarPtr, PCHAR Member, PCHAR Index, MQ2TYPEVAR &Dest);
 
 	 bool ToString(MQ2VARPTR VarPtr, PCHAR Destination)
+	{
+		return false;
+	}
+	bool FromData(MQ2VARPTR &VarPtr, MQ2TYPEVAR &Source)
+	{
+		return false;
+	}
+	bool FromString(MQ2VARPTR &VarPtr, PCHAR Source)
 	{
 		return false;
 	}
@@ -1452,6 +1632,14 @@ public:
 	{
 		return false;
 	}
+	bool FromData(MQ2VARPTR &VarPtr, MQ2TYPEVAR &Source)
+	{
+		return false;
+	}
+	bool FromString(MQ2VARPTR &VarPtr, PCHAR Source)
+	{
+		return false;
+	}
 };
 
 class MQ2RaceType : public MQ2Type
@@ -1479,6 +1667,14 @@ public:
 		PCHAR pDesc=pEverQuest->GetRaceDesc(VarPtr.DWord);
 		strcpy(Destination,pDesc);
 		return true;
+	}
+	bool FromData(MQ2VARPTR &VarPtr, MQ2TYPEVAR &Source)
+	{
+		return false;
+	}
+	bool FromString(MQ2VARPTR &VarPtr, PCHAR Source)
+	{
+		return false;
 	}
 };
 
@@ -1522,6 +1718,14 @@ public:
 		strcpy(Destination,pDesc);
 		return true;
 	}
+	bool FromData(MQ2VARPTR &VarPtr, MQ2TYPEVAR &Source)
+	{
+		return false;
+	}
+	bool FromString(MQ2VARPTR &VarPtr, PCHAR Source)
+	{
+		return false;
+	}
 };
 class MQ2BodyType : public MQ2Type
 {
@@ -1548,6 +1752,14 @@ public:
 		PCHAR pDesc=pEverQuest->GetBodyTypeDesc(VarPtr.DWord);
 		strcpy(Destination,pDesc);
 		return true;
+	}
+	bool FromData(MQ2VARPTR &VarPtr, MQ2TYPEVAR &Source)
+	{
+		return false;
+	}
+	bool FromString(MQ2VARPTR &VarPtr, PCHAR Source)
+	{
+		return false;
 	}
 };
 class MQ2DeityType : public MQ2Type
@@ -1577,6 +1789,14 @@ public:
 		PCHAR pDesc=pEverQuest->GetDeityDesc(VarPtr.DWord);
 		strcpy(Destination,pDesc);
 		return true;
+	}
+	bool FromData(MQ2VARPTR &VarPtr, MQ2TYPEVAR &Source)
+	{
+		return false;
+	}
+	bool FromString(MQ2VARPTR &VarPtr, PCHAR Source)
+	{
+		return false;
 	}
 };
 
@@ -1626,6 +1846,14 @@ public:
 		sprintf(Destination,"%02d:%02d:%02d",Now->tm_hour,Now->tm_min, Now->tm_sec);
 		return true;
 	}
+	bool FromData(MQ2VARPTR &VarPtr, MQ2TYPEVAR &Source)
+	{
+		return false;
+	}
+	bool FromString(MQ2VARPTR &VarPtr, PCHAR Source)
+	{
+		return false;
+	}
 };
 
 class MQ2TypeType : public MQ2Type
@@ -1653,6 +1881,14 @@ public:
 	  strcpy(Destination,((MQ2Type*)VarPtr.Ptr)->GetName());
       return true;
    }
+	bool FromData(MQ2VARPTR &VarPtr, MQ2TYPEVAR &Source)
+	{
+		return false;
+	}
+	bool FromString(MQ2VARPTR &VarPtr, PCHAR Source)
+	{
+		return false;
+	}
 }; 
 
 class MQ2HeadingType : public MQ2Type
@@ -1686,6 +1922,14 @@ public:
 	  strcpy(Destination,szHeadingNormalShort[(INT)((360.0f-VarPtr.Float)/ 22.5f + 0.5f)%16]);
       return true;
    }
+	bool FromData(MQ2VARPTR &VarPtr, MQ2TYPEVAR &Source)
+	{
+		return false;
+	}
+	bool FromString(MQ2VARPTR &VarPtr, PCHAR Source)
+	{
+		return false;
+	}
 }; 
 
 class MQ2InvSlotType : public MQ2Type
@@ -1723,6 +1967,14 @@ public:
 	   }
 	   return false;
    }
+	bool FromData(MQ2VARPTR &VarPtr, MQ2TYPEVAR &Source)
+	{
+		return false;
+	}
+	bool FromString(MQ2VARPTR &VarPtr, PCHAR Source)
+	{
+		return false;
+	}
 }; 
 
 class MQ2PluginType : public MQ2Type
@@ -1747,6 +1999,14 @@ public:
    {
 	   return false;
    }
+	bool FromData(MQ2VARPTR &VarPtr, MQ2TYPEVAR &Source)
+	{
+		return false;
+	}
+	bool FromString(MQ2VARPTR &VarPtr, PCHAR Source)
+	{
+		return false;
+	}
 }; 
 
 class MQ2BenchmarkType : public MQ2Type
@@ -1779,6 +2039,78 @@ public:
    {
 	   return false;
    }
+	bool FromData(MQ2VARPTR &VarPtr, MQ2TYPEVAR &Source)
+	{
+		return false;
+	}
+	bool FromString(MQ2VARPTR &VarPtr, PCHAR Source)
+	{
+		return false;
+	}
+}; 
+
+class MQ2TimerType : public MQ2Type
+{
+public:
+   static enum TimerMembers
+   {
+	   Name=1,
+   };
+   MQ2TimerType():MQ2Type("timer")
+   {
+	  TypeMember(Name);
+   }
+
+   ~MQ2TimerType()
+   {
+   }
+
+   bool GetMember(MQ2VARPTR VarPtr, PCHAR Member, PCHAR Index, MQ2TYPEVAR &Dest);
+
+   bool ToString(MQ2VARPTR VarPtr, PCHAR Destination)
+   {
+	   return false;
+   }
+	bool FromData(MQ2VARPTR &VarPtr, MQ2TYPEVAR &Source)
+	{
+		return false;
+	}
+	bool FromString(MQ2VARPTR &VarPtr, PCHAR Source)
+	{
+		return false;
+	}
+}; 
+
+class MQ2ArrayType : public MQ2Type
+{
+public:
+   static enum ArrayMembers
+   {
+	   Dimensions=1,
+   };
+   MQ2ArrayType():MQ2Type("array")
+   {
+	  TypeMember(Dimensions);
+   }
+
+   ~MQ2ArrayType()
+   {
+   }
+
+   bool GetMember(MQ2VARPTR VarPtr, PCHAR Member, PCHAR Index, MQ2TYPEVAR &Dest);
+
+   bool ToString(MQ2VARPTR VarPtr, PCHAR Destination)
+   {
+	   return false;
+   }
+	bool FromData(MQ2VARPTR &VarPtr, MQ2TYPEVAR &Source)
+	{
+		return false;
+	}
+	bool FromString(MQ2VARPTR &VarPtr, PCHAR Source)
+	{
+		return false;
+	}
 }; 
 
 #undef TypeMember

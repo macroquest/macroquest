@@ -27,6 +27,143 @@ PCHAR szBuddyStatus[]=
 	"\agPlaying\ax",
 	"\a-gPlaying (AFK)\ax",
 };
+
+PCHAR szBuddyStatusNC[]=
+{
+	"Removed from list",
+	"Offline",
+	"EQIM",
+	"EQIM (AFK)",
+	"Unknown Status(4)",
+	"Playing",
+	"Playing (AFK)",
+};
+
+struct EQIMBuddy
+{
+	CHAR Name[MAX_STRING];
+	DWORD Status;
+};
+
+
+CIndex<EQIMBuddy*> BuddyList(10);
+
+int FindEQIMBuddy(PCHAR Name)
+{
+	for (unsigned long N = 0 ; N < BuddyList.Size ; N++)
+	{
+		if (EQIMBuddy *pBuddy=BuddyList[N])
+		{
+			if (!stricmp(pBuddy->Name,Name))
+				return N;
+		}
+	}
+	return -1;
+}
+
+class MQ2BuddyType : public MQ2Type
+{
+public:
+	enum BuddyMembers
+	{
+		Name=1,
+		Status=2,
+		StatusID=3,
+	};
+
+	MQ2BuddyType():MQ2Type("buddy")
+	{
+		AddMember((DWORD)Name,"Name");
+		AddMember((DWORD)Status,"Status");
+		AddMember((DWORD)StatusID,"StatusID");
+	}
+
+	~MQ2BuddyType()
+	{
+	}
+
+	bool GetMember(MQ2VARPTR VarPtr, PCHAR Member, PCHAR Index, MQ2TYPEVAR &Dest)
+	{
+		if (!VarPtr.Ptr)
+			return false;
+		EQIMBuddy *pBuddy = (EQIMBuddy*)VarPtr.Ptr;
+		PMQ2TYPEMEMBER pMember=MQ2BuddyType::FindMember(Member);
+		if (!pMember)
+			return false;
+		switch((BuddyMembers)pMember->ID)
+		{
+		case Name:
+			Dest.Ptr=pBuddy->Name;
+			Dest.Type=pStringType;
+			return true;
+		case Status:
+			Dest.Ptr=szBuddyStatusNC[pBuddy->Status];
+			Dest.Type=pStringType;
+			return true;
+		case StatusID:
+			Dest.DWord=pBuddy->Status;
+			Dest.Type=pIntType;
+			return true;
+		}
+
+		return false;
+	}
+
+	 bool ToString(MQ2VARPTR VarPtr, PCHAR Destination)
+	{
+		if (!VarPtr.Ptr)
+			return false;
+		strcpy(Destination,((EQIMBuddy*)VarPtr.Ptr)->Name);
+		return true;
+	}
+
+	bool FromData(MQ2VARPTR &VarPtr, MQ2TYPEVAR &Source)
+	{
+		return false;
+	}
+	bool FromString(MQ2VARPTR &VarPtr, PCHAR Source)
+	{
+		return false;
+	}
+};
+
+class MQ2BuddyType *pBuddyType=0;
+
+
+BOOL dataBuddies(PCHAR szIndex, MQ2TYPEVAR &Ret)
+{
+	Ret.DWord=BuddyList.Size;
+	Ret.Type=pIntType;
+	return true;
+}
+
+BOOL dataBuddy(PCHAR szIndex, MQ2TYPEVAR &Ret)
+{
+	if (szIndex[0]>='0' && szIndex[0]<='9')
+	{
+		// by number
+		unsigned long N=atoi(szIndex)-1;
+		if (N<BuddyList.Size && BuddyList[N])
+		{
+			Ret.Ptr=BuddyList[N];
+			Ret.Type=pBuddyType;
+			return true;
+		}
+	}
+	else
+	{
+		// by name
+		int N=FindEQIMBuddy(szIndex);
+		if (N>=0)
+		{
+			Ret.Ptr=BuddyList[N];
+			Ret.Type=pBuddyType;
+			return true;
+		}
+	}
+	return false;
+}
+
 VOID OnBuddyStatusChange(char *Buddy, DWORD Status);
 DWORD PreDetour[10]={0};
 BOOL Detoured=false;
@@ -54,6 +191,8 @@ DWORD GetVTable(DWORD index)
 	return Ret;
 }
 
+
+
 PLUGIN_API VOID InitializePlugin(VOID)
 {
 	DebugSpewAlways("Initializing MQ2EQIM");
@@ -61,7 +200,7 @@ PLUGIN_API VOID InitializePlugin(VOID)
 	// Add commands, macro parameters, hooks, etc.
 	// AddCommand("/mycommand",MyCommand);
 	// AddParm("$myparm(x)",MyParm);
-		
+	pBuddyType = new MQ2BuddyType;		
 }
 
 // Called once, when the plugin is to shutdown
@@ -74,31 +213,10 @@ PLUGIN_API VOID ShutdownPlugin(VOID)
 	// RemoveCommand("/mycommand");
 	if (Detoured && pEverQuest)
 		SetVTable(8,PreDetour[8]);
+	BuddyList.Cleanup();
+	delete pBuddyType;
 }
 
-// Called after entering a new zone
-/*
-PLUGIN_API VOID OnZoned(VOID)
-{
-	DebugSpewAlways("MQ2EQIM::OnZoned()");
-}
-/**/
-// Called once directly before shutdown of the cleanui system, and also
-// every time the game calls CDisplay::CleanGameUI()
-/*
-PLUGIN_API VOID OnCleanUI(VOID)
-{
-	DebugSpewAlways("MQ2EQIM::OnCleanUI()");
-}
-/**/
-// Called every frame that the "HUD" is drawn -- e.g. net status / packet loss bar
-/*
-PLUGIN_API VOID OnDrawHUD(VOID)
-{
-	// DONT leave in this debugspew, even if you leave in all the others
-//	DebugSpewAlways("MQ2EQIM::OnDrawHUD()");
-}
-/**/
 // Called once directly after initialization, and then every time the gamestate changes
 
 PLUGIN_API VOID SetGameState(DWORD GameState)
@@ -111,19 +229,33 @@ PLUGIN_API VOID SetGameState(DWORD GameState)
 		GetVTable(8);
 		Detoured=true;
 	}
-}
-/**/
-
-// This is called every time MQ pulses
-PLUGIN_API VOID OnPulse(VOID)
-{
-	// DONT leave in this debugspew, even if you leave in all the others
-//	DebugSpewAlways("MQ2EQIM::OnPulse()");
+	else if (GameState==GAMESTATE_CHARSELECT)
+	{
+		BuddyList.Cleanup();
+	}
 }
 
 VOID OnBuddyStatusChange(char *Buddy, DWORD Status)
 {
-//	DebugSpewAlways("DetourTestA(%s,%X)",A,B);
+	int N=FindEQIMBuddy(Buddy);
+	if (N==-1)
+	{
+		EQIMBuddy *pBuddy = new EQIMBuddy;
+		strcpy(pBuddy->Name,Buddy);
+		pBuddy->Status=Status;
+		BuddyList+=pBuddy;
+	}
+	else
+	{
+		BuddyList[N]->Status=Status;
+		if (Status==0) // removed from list
+		{
+			delete BuddyList[N];
+			BuddyList[N]=0;
+		}
+	}
+
+
 	char out[MAX_STRING]={0};
 	if (Status<=6)
 	{

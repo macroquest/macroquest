@@ -1,3 +1,22 @@
+19 Apr 2004 by Lax (more):
+- Fixed ${If[]} handling of conditions
+- Fixed FindItemCount to give the number of individual items rather than stacks
+- /if is now GONE.  /newif is both /newif and /if.
+- MQ2EQIM plugin (which notifies you when someone on your EQIM buddy list changes) now keeps
+  track of your buddy list and adds a MQ2Data type and Top-Level Objects:
+  ** buddy type
+  Members:
+  ...string Name: Buddy's name (may be fennin.Name or just Name, depending on how you added them)
+  ...string Status: "Removed from list",  	"Offline",	"EQIM",	"EQIM (AFK)",	"Unknown Status(4)",	"Playing",	"Playing (AFK)"
+  ...int StatusID: Numeric representation of the above (0,1,2,3,4,5,6)
+  To String: Same as Name
+  ** Top-Level Objects
+  buddy Buddy[name]: Info on buddy with this name
+  buddy Buddy[n]: Buddy with this index number in the system
+  int Buddies: Size of the buddy index (will not necessarily be equal to the number of buddies, but n in Buddy[n] will never exceed this number)
+- Added Top-Level Object:
+  int FindItemBankCount[name]: Count of items in bank by partial name match.  FindItemBankCount[=name] will find exact
+
 19 Apr 2004 by Lax:
 - ** MQ2DATA PHASE TWO ** If something is missing from MQ2Data it's because you never opened
   your damn mouth.  If you need something in MQ2Data whether it was previously available or

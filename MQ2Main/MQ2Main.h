@@ -62,6 +62,7 @@ using namespace std;
 
 //#define USEMQ2PARMS
 #define USEMQ2DATATYPES
+//#define USEMQ2DATAVARS
 
 
 // reroute malloc/free
@@ -266,6 +267,10 @@ EQLIB_API BOOL ParseMacroData(PCHAR szOriginal);
 EQLIB_API BOOL ParseMacroVariables(PCHAR szOriginal);
 EQLIB_API BOOL AddMQ2Data(PCHAR szName, fMQData Function);
 EQLIB_API BOOL RemoveMQ2Data(PCHAR szName);
+EQLIB_API MQ2Type *FindMQ2DataType(PCHAR szName);
+EQLIB_API PMQ2DATAITEM FindMQ2Data(PCHAR szName);
+EQLIB_API PDATAVAR FindMQ2DataVariable(PCHAR szName);
+EQLIB_API BOOL ParseMQ2DataPortion(PCHAR szOriginal, MQ2TYPEVAR &Result);
 
 /* MOUSE */
 EQLIB_API BOOL IsMouseWaiting(VOID);
@@ -347,6 +352,7 @@ EQLIB_API VOID GetGameDate(int* Month, int* Day, int* Year);
 EQLIB_API VOID GetGameTime(int* Hour, int* Minute, int* Night);
 
 /* USERVARS */
+#ifndef USEMQ2DATAVARS
 EQLIB_API VOID FreeVarStrings(PVARSTRINGS pVarStrings);
 EQLIB_API VOID FreeVarArrays();
 EQLIB_API VOID FreeTimers();
@@ -358,12 +364,16 @@ EQLIB_API PCHAR GetStackStr(PCHAR szName, BOOL Create = FALSE);
 EQLIB_API PVARARRAYS GetArray(PCHAR szName, BOOL Create = FALSE);
 EQLIB_API PCHAR GetArrayStr(PVARARRAYS pArray, DWORD Id1, DWORD Id2=0, BOOL Create = FALSE);
 EQLIB_API VOID GetVariable(PCHAR szVar, PCHAR *szResult, PTIMER *pTimer);
-EQLIB_API VOID DropTimers(VOID);
 EQLIB_API BOOL SearchVariables(PCHAR szVar,PCHAR szOutput,PVARSTRINGS pVarStrings);
 EQLIB_API BOOL SearchTimers(PCHAR szVar,PCHAR szOutput);
 EQLIB_API BOOL SearchArrays(PCHAR szVar,PCHAR szOutput);
 EQLIB_API VOID CheckVariableRecursion(PCHAR szVar);
 EQLIB_API BOOL IsVariableDefined(PCHAR szVar);
+#endif
+
+EQLIB_API VOID DropTimers(VOID);
+
+/*                 */
 
 EQLIB_API BOOL LoadCfgFile(PCHAR Filename, BOOL Delayed=FromPlugin);
 EQLIB_API PCHAR GetFriendlyNameForGroundItem(PGROUNDITEM pItem, PCHAR szName);
@@ -402,7 +412,7 @@ EQLIB_API BOOL        IfCompare               (PCHAR szCond);
 
 
 /* PARMS */
-
+#if 0
 EQLIB_API DWORD parmGetLastFindSlot					(PCHAR, PCHAR, PSPAWNINFO);
 EQLIB_API DWORD parmCursor							(PCHAR, PCHAR, PSPAWNINFO);
 EQLIB_API DWORD parmItem								(PCHAR, PCHAR, PSPAWNINFO);
@@ -484,6 +494,8 @@ EQLIB_API DWORD parmMacro                  (PCHAR, PCHAR, PSPAWNINFO);
 EQLIB_API DWORD parmEvent                  (PCHAR, PCHAR, PSPAWNINFO);
 EQLIB_API DWORD parmBanker						(PCHAR, PCHAR, PSPAWNINFO);
 EQLIB_API DWORD parmPet							(PCHAR, PCHAR, PSPAWNINFO);
+#endif
+
 EQLIB_API BOOL Calculate(PCHAR szFormula, DOUBLE& Dest);
 
 /* DATA ITEMS */
@@ -519,7 +531,7 @@ EQLIB_API BOOL dataFindItem(PCHAR szIndex, MQ2TYPEVAR &Ret);
 EQLIB_API BOOL dataSelectedItem(PCHAR szIndex, MQ2TYPEVAR &Ret);
 EQLIB_API BOOL dataFindItemBank(PCHAR szIndex, MQ2TYPEVAR &Ret);
 EQLIB_API BOOL dataFindItemCount(PCHAR szIndex, MQ2TYPEVAR &Ret);
-
+EQLIB_API BOOL dataFindItemBankCount(PCHAR szIndex, MQ2TYPEVAR &Ret);
 /* COMMANDS */
 EQLIB_VAR VOID DeleteVarCmd(PSPAWNINFO pChar, PCHAR szLine);
 EQLIB_API VOID NewIf(PSPAWNINFO pChar, PCHAR szLine);
@@ -568,7 +580,6 @@ EQLIB_API VOID Goto                                (PSPAWNINFO,PCHAR);
 EQLIB_API VOID Help                                (PSPAWNINFO,PCHAR);
 EQLIB_API VOID Hotkey                              (PSPAWNINFO,PCHAR);
 EQLIB_API VOID Identify                            (PSPAWNINFO,PCHAR);
-EQLIB_API VOID If                                  (PSPAWNINFO,PCHAR);
 EQLIB_API VOID IniOutput                           (PSPAWNINFO,PCHAR);
 EQLIB_API VOID Items                               (PSPAWNINFO,PCHAR);
 EQLIB_API VOID ItemTarget                          (PSPAWNINFO,PCHAR);
@@ -585,11 +596,13 @@ EQLIB_API VOID MacroPause                          (PSPAWNINFO,PCHAR);
 EQLIB_API VOID MemSpell                            (PSPAWNINFO,PCHAR);
 EQLIB_API VOID MouseTo                             (PSPAWNINFO,PCHAR);
 EQLIB_API VOID MQMsgBox                            (PSPAWNINFO,PCHAR);
+#ifndef USEMQ2DATAVARS
 EQLIB_API VOID MyVarAdd                            (PSPAWNINFO,PCHAR);
 EQLIB_API VOID MyVarAnd                            (PSPAWNINFO,PCHAR);
 EQLIB_API VOID MyVarCat                            (PSPAWNINFO,PCHAR);
 EQLIB_API VOID MyVarOr                             (PSPAWNINFO,PCHAR);
 EQLIB_API VOID MyVarSub                            (PSPAWNINFO,PCHAR);
+#endif
 EQLIB_API VOID Next                                (PSPAWNINFO,PCHAR);
 EQLIB_API VOID PluginCommand						(PSPAWNINFO pChar, PCHAR szLine);
 EQLIB_API VOID Press                               (PSPAWNINFO,PCHAR);
@@ -606,10 +619,12 @@ EQLIB_API VOID SWhoFilter							(PSPAWNINFO,PCHAR);
 EQLIB_API VOID Target                              (PSPAWNINFO,PCHAR);
 EQLIB_API VOID Unload                              (PSPAWNINFO,PCHAR);
 EQLIB_API VOID UpdateItemInfo                      (PSPAWNINFO,PCHAR);
+#ifndef USEMQ2DATAVARS
 EQLIB_API VOID VarCalc                             (PSPAWNINFO,PCHAR);
 EQLIB_API VOID VarLShift                           (PSPAWNINFO,PCHAR);
 EQLIB_API VOID VarRShift                           (PSPAWNINFO,PCHAR);
 EQLIB_API VOID VarSet                              (PSPAWNINFO,PCHAR);
+#endif
 EQLIB_API VOID Where                               (PSPAWNINFO,PCHAR);
 EQLIB_API VOID ZapVars                             (PSPAWNINFO,PCHAR);
 EQLIB_API VOID PopupText                           (PSPAWNINFO,PCHAR);

@@ -336,17 +336,11 @@ BOOL dataIf(PCHAR szIndex, MQ2TYPEVAR &Ret)
 			{
 				*pFalse=0;
 				pFalse++;
-				BOOL True=true;
 				DOUBLE CalcResult;
-				if ((szIndex[0]>='0' && szIndex[0]<='9') || szIndex[0]=='-')
-				{
-					True=(Calculate(szIndex,CalcResult) && CalcResult);
-				}
-				else if (!stricmp(szIndex,"NULL") ||
-					     !stricmp(szIndex,"FALSE"))
-						 True=false;
+				if (!Calculate(szIndex,CalcResult))
+					return false;
 
-				if (True)
+				if (CalcResult!=0.0f)
 				{
 					strcpy(DataTypeTemp,pTrue);
 					Ret.Ptr=&DataTypeTemp[0];
@@ -538,7 +532,11 @@ BOOL dataDefined(PCHAR szIndex, MQ2TYPEVAR &Ret)
 {
 	if (!szIndex[0])
 		return false;
+#ifdef USEMQ2DATAVARS
+	Ret.DWord=(FindMQ2DataVariable(szIndex)!=0);
+#else
 	Ret.DWord=IsVariableDefined(szIndex);
+#endif
 	Ret.Type=pBoolType;
 	return true;
 }
@@ -802,6 +800,94 @@ BOOL dataFindItemCount(PCHAR szIndex, MQ2TYPEVAR &Ret)
 
 	return true;
 }
+
+BOOL dataFindItemBankCount(PCHAR szIndex, MQ2TYPEVAR &Ret)
+{
+	if (!szIndex[0])
+		return false;
+	DWORD N=1;
+	PCHAR pName=&szIndex[0];
+	BOOL bExact=false;
+
+	if (*pName=='=')
+	{
+		bExact=true;
+		pName++;
+	}
+	CHAR Name[MAX_STRING]={0};
+	CHAR Temp[MAX_STRING]={0};
+	strlwr(strcpy(Name,pName));
+	PCHARINFO pCharInfo=GetCharInfo();
+
+	unsigned long Count=0;
+
+	for (unsigned long nPack=0 ; nPack < NUM_BANK_SLOTS ; nPack++)
+	{
+		PCHARINFO pCharInfo=GetCharInfo();
+		if (PCONTENTS pPack=pCharInfo->Bank[nPack])
+		{
+			if (bExact)
+			{
+				if (!stricmp(Name,pPack->Item->Name))
+				{
+                    if ((pPack->Item->Type != ITEMTYPE_NORMAL) ||
+                        (pPack->Item->Stackable != 1))
+						Count++;
+                    else
+                        Count+=pPack->StackCount;
+				}
+			}
+			else 
+			{
+				if(strstr(strlwr(strcpy(Temp,pPack->Item->Name)),Name))
+				{
+                    if ((pPack->Item->Type != ITEMTYPE_NORMAL) ||
+                        (pPack->Item->Stackable != 1))
+						Count++;
+                    else
+                        Count+=pPack->StackCount;
+				}
+			}
+			if (pPack->Item->Type==ITEMTYPE_PACK)
+			{
+				for (unsigned long nItem=0 ; nItem < pPack->Item->Slots ; nItem++)
+				{
+					if (PCONTENTS pItem=pPack->Contents[nItem])
+					{
+						if (bExact)
+						{
+							if (!stricmp(Name,pItem->Item->Name))
+							{
+                                if ((pItem->Item->Type != ITEMTYPE_NORMAL) ||
+                                    (pItem->Item->Stackable != 1))
+								    Count++;
+                                else
+                                    Count+=pItem->StackCount;
+							}
+						}
+						else 
+						{
+							if(strstr(strlwr(strcpy(Temp,pItem->Item->Name)),Name))
+							{
+                                if ((pItem->Item->Type != ITEMTYPE_NORMAL) ||
+                                    (pItem->Item->Stackable != 1))
+								    Count++;
+                                else
+                                    Count+=pItem->StackCount;
+							}
+						}
+					}
+				}
+			}
+		}
+	}
+
+	Ret.DWord=Count;
+	Ret.Type=pIntType;
+
+	return true;
+}
+
 
 BOOL dataInvSlot(PCHAR szIndex, MQ2TYPEVAR &Ret)
 {

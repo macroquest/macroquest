@@ -149,6 +149,8 @@ void InitializeMQ2Data()
 	AddMQ2Data("InvSlot",dataInvSlot);
 	AddMQ2Data("SelectedItem",dataSelectedItem);
 	AddMQ2Data("FindItemCount",dataFindItemCount);
+	AddMQ2Data("FindItemBankCount",dataFindItemBankCount);
+	
 }
 
 
@@ -158,6 +160,7 @@ void ShutdownMQ2Data()
 	MQ2DataItems.Cleanup();
 }
 
+#ifndef USEMQ2DATAVARS
 const UCHAR EndVariable[256]=
 {
 /*0x00-0x0F*/1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,
@@ -338,7 +341,282 @@ pmvbottom:;
 
 	return Changed;
 }
+#endif
 
+BOOL ParseMQ2DataPortion(PCHAR szOriginal, MQ2TYPEVAR &Result)
+{
+	Result.Type=0;
+	Result.DWord=0;
+	// Find [] before a . or null
+	PCHAR pPos=&szOriginal[0];
+	PCHAR pStart=pPos;
+	PCHAR pIndex="";
+	BOOL Quote=FALSE;
+	while(1)
+	{
+		if (*pPos==0)
+		{
+			// end completely. process
+			if (pStart==pPos)
+			{
+				if (!Result.Type)
+				{
+					return FALSE;
+				}
+//				Result.Type->ToString(Result.VarPtr,szCurrent);
+				return TRUE;
+			}
+			else
+			{
+				if (!Result.Type)
+				{
+					if (PMQ2DATAITEM DataItem=FindMQ2Data(pStart))
+					{
+						if (!DataItem->Function(pIndex,Result))
+						{
+							return FALSE;
+						}
+					}
+					else if (PDATAVAR DataVar=FindMQ2DataVariable(pStart))
+					{
+						if (pIndex[0])
+						{
+							if (DataVar->Var.Type==pArrayType)
+							{
+								if (!((CDataArray*)DataVar->Var.Ptr)->GetElement(pIndex,Result))
+								{
+									return FALSE;
+								}
+							}
+						}
+						else
+							Result=DataVar->Var;
+					}
+					else
+					{
+						return FALSE;
+					}
+				}
+				else
+				{
+					if (!Result.Type->GetMember(Result.VarPtr,pStart,pIndex,Result))
+					{
+						// error
+						return FALSE;
+					}
+				}
+			}
+//			Result.Type->ToString(Result.VarPtr,szCurrent);
+
+			// done processing
+			return TRUE;
+		}
+		if (*pPos=='(')
+		{
+			*pPos=0;
+			if (pStart==pPos)
+			{
+				if (!Result.Type)
+				{
+					return FALSE;
+				}
+//				Result.Type->ToString(Result.VarPtr,szCurrent);
+				return TRUE;
+			}
+			else
+			{
+				if (!Result.Type)
+				{
+					if (PMQ2DATAITEM DataItem=FindMQ2Data(pStart))
+					{
+						if (!DataItem->Function(pIndex,Result))
+						{
+							return FALSE;
+						}
+					}
+					else if (PDATAVAR DataVar=FindMQ2DataVariable(pStart))
+					{
+						if (pIndex[0])
+						{
+							if (DataVar->Var.Type==pArrayType)
+							{
+								if (!((CDataArray*)DataVar->Var.Ptr)->GetElement(pIndex,Result))
+								{
+									return FALSE;
+								}
+							}
+						}
+						else
+							Result=DataVar->Var;
+					}
+					else
+					{
+						return FALSE;
+					}
+					
+				}
+				else
+				{
+					if (!Result.Type->GetMember(Result.VarPtr,pStart,pIndex,Result))
+					{
+						// error
+						return FALSE;
+					}
+				}
+			}
+			if (!Result.Type)
+			{
+				// error
+				return FALSE;
+			}
+			*pPos=0;
+			++pPos;
+			PCHAR pType=pPos;
+			while(*pPos!=')')
+			{
+				if (!*pPos)
+				{
+					// error
+					return FALSE;
+				}
+				++pPos;
+			}
+			*pPos=0;
+			MQ2Type *pNewType=FindMQ2DataType(pType);
+			if (!pNewType)
+			{
+				// error
+				return FALSE;
+			}
+			if (pNewType==pTypeType)
+			{
+				Result.Ptr=Result.Type;
+				Result.Type=pTypeType;
+			}
+			else
+				Result.Type=pNewType;
+
+			if (pPos[1]=='.')
+			{
+				++pPos;
+				pStart=&pPos[1];
+			}
+			else if (!pPos[1])
+			{
+//				Result.Type->ToString(Result.VarPtr,szCurrent);
+				return TRUE;
+			}
+			else
+			{
+				return FALSE;
+			}
+		}
+		else
+		if (*pPos=='[')
+		{
+			// index
+			*pPos=0;
+			++pPos;
+			// check for quote
+			if (*pPos=='\"')
+			{
+				Quote=true;
+				// find matching quote, we know it has one
+				++pPos;
+				pIndex=pPos;
+				while(*pPos!='\"')
+				{
+					if (*pPos==0)
+					{
+						// error
+						return FALSE;
+					}
+					++pPos;
+				}
+				// here's the end of the index, close it off
+				*pPos=0;
+				// and advance pointer again
+				++pPos;
+			}
+			else
+				pIndex=pPos;
+			while(*pPos!=']')
+			{
+				if (!*pPos)
+				{
+					// error
+					return FALSE;
+				}
+				++pPos;
+			}
+			*pPos=0;
+			if (pPos[1]!=0 && pPos[1]!='.' && pPos[1]!='(')
+			{
+				// broken!
+				return FALSE;
+			}
+		}
+		else
+		if (*pPos=='.')
+		{
+			// end of this one, but more to come!
+			*pPos=0;
+			if (pStart==pPos)
+			{
+				if (!Result.Type)
+				{
+					return FALSE;
+				}
+//				Result.Type->ToString(Result.VarPtr,szCurrent);
+				return TRUE;
+			}
+			else
+			{
+				if (!Result.Type)
+				{
+					if (PMQ2DATAITEM DataItem=FindMQ2Data(pStart))
+					{
+						if (!DataItem->Function(pIndex,Result))
+						{
+							return FALSE;
+						}
+					}
+					else if (PDATAVAR DataVar=FindMQ2DataVariable(pStart))
+					{
+						if (pIndex[0])
+						{
+							if (DataVar->Var.Type==pArrayType)
+							{
+								if (!((CDataArray*)DataVar->Var.Ptr)->GetElement(pIndex,Result))
+								{
+									return FALSE;
+								}
+							}
+						}
+						else
+							Result=DataVar->Var;
+					}
+					else
+					{
+						return FALSE;
+					}
+					
+				}
+				else
+				{
+					if (!Result.Type->GetMember(Result.VarPtr,pStart,pIndex,Result))
+					{
+						// error
+						return FALSE;
+					}
+				}
+			}
+			pStart=&pPos[1];
+		}
+		++pPos;
+	}
+
+}
 
 BOOL ParseMacroData(PCHAR szOriginal)
 {
@@ -348,9 +626,9 @@ BOOL ParseMacroData(PCHAR szOriginal)
 		return false;
 	unsigned long NewLength;
 	BOOL Changed=false;
-	PCHAR pPos;
-	PCHAR pStart;
-	PCHAR pIndex;
+//	PCHAR pPos;
+//	PCHAR pStart;
+//	PCHAR pIndex;
 	CHAR szCurrent[MAX_STRING]={0};
 
 	do
@@ -396,260 +674,17 @@ BOOL ParseMacroData(PCHAR szOriginal)
 			*pEnd=0;
 		}
 
-		MQ2TYPEVAR CurrentVar;
-		CurrentVar.Type=0;
-		CurrentVar.Ptr=0;
-		// Find [] before a . or null
-		pPos=&szCurrent[0];
-		pStart=pPos;
-		pIndex="";
-		while(1)
+		MQ2TYPEVAR Result;
+		if (ParseMQ2DataPortion(szCurrent,Result))
 		{
-			if (*pPos==0)
-			{
-				// end completely. process
-				if (pStart==pPos)
-				{
-					if (!CurrentVar.Type)
-					{
-						strcpy(szCurrent,"NULL");
-						goto pmdinsert;
-					}
-					CurrentVar.Type->ToString(CurrentVar.VarPtr,szCurrent);
-					goto pmdinsert;
-				}
-				else
-				{
-					if (!CurrentVar.Type)
-					{
-						PMQ2DATAITEM DataItem=FindMQ2Data(pStart);
-						if (!DataItem)
-						{
-							// error
-							strcpy(szCurrent,"NULL");
-							goto pmdinsert;
-						}
-						if (!DataItem->Function(pIndex,CurrentVar))
-						{
-							// error
-							strcpy(szCurrent,"NULL");
-							goto pmdinsert;
-						}
-					}
-					else
-					{
-						if (!CurrentVar.Type->GetMember(CurrentVar.VarPtr,pStart,pIndex,CurrentVar))
-						{
-							// error
-							strcpy(szCurrent,"NULL");
-							goto pmdinsert;
-						}
-					}
-				}
-				CurrentVar.Type->ToString(CurrentVar.VarPtr,szCurrent);
-
-				// done processing
-				goto pmdinsert;
-			}
-			if (*pPos=='(')
-			{
-				*pPos=0;
-				if (pStart==pPos)
-				{
-					if (!CurrentVar.Type)
-					{
-						strcpy(szCurrent,"NULL");
-						goto pmdinsert;
-					}
-					CurrentVar.Type->ToString(CurrentVar.VarPtr,szCurrent);
-					goto pmdinsert;
-				}
-				else
-				{
-					if (!CurrentVar.Type)
-					{
-						PMQ2DATAITEM DataItem=FindMQ2Data(pStart);
-						if (!DataItem)
-						{
-							// error
-							strcpy(szCurrent,"NULL");
-							goto pmdinsert;
-						}
-						if (!DataItem->Function(pIndex,CurrentVar))
-						{
-							// error
-							strcpy(szCurrent,"NULL");
-							goto pmdinsert;
-						}
-						
-					}
-					else
-					{
-						if (!CurrentVar.Type->GetMember(CurrentVar.VarPtr,pStart,pIndex,CurrentVar))
-						{
-							// error
-							strcpy(szCurrent,"NULL");
-							goto pmdinsert;
-						}
-					}
-				}
-				if (!CurrentVar.Type)
-				{
-					// error
-					strcpy(szCurrent,"NULL");
-					goto pmdinsert;
-				}
-				*pPos=0;
-				++pPos;
-				PCHAR pType=pPos;
-				while(*pPos!=')')
-				{
-					if (!*pPos)
-					{
-						// error
-						strcpy(szCurrent,"NULL");
-						goto pmdinsert;
-					}
-					++pPos;
-				}
-				*pPos=0;
-				MQ2Type *pNewType=FindMQ2DataType(pType);
-				if (!pNewType)
-				{
-					// error
-					strcpy(szCurrent,"NULL");
-					goto pmdinsert;
-				}
-				if (pNewType==pTypeType)
-				{
-					CurrentVar.Ptr=CurrentVar.Type;
-					CurrentVar.Type=pTypeType;
-				}
-				else
-					CurrentVar.Type=pNewType;
-
-				if (pPos[1]=='.')
-				{
-					++pPos;
-					pStart=&pPos[1];
-				}
-				else if (!pPos[1])
-				{
-					CurrentVar.Type->ToString(CurrentVar.VarPtr,szCurrent);
-					goto pmdinsert;
-				}
-				else
-				{
-					strcpy(szCurrent,"NULL");
-					goto pmdinsert;
-				}
-			}
-			else
-			if (*pPos=='[')
-			{
-				// index
-				*pPos=0;
-				++pPos;
-				// check for quote
-				if (*pPos=='\"')
-				{
-					Quote=true;
-					// find matching quote, we know it has one
-					++pPos;
-					pIndex=pPos;
-					while(*pPos!='\"')
-					{
-						if (*pPos==0)
-						{
-							// error
-							strcpy(szCurrent,"NULL");
-							goto pmdinsert;
-						}
-						++pPos;
-					}
-					// here's the end of the index, close it off
-					*pPos=0;
-					// and advance pointer again
-					++pPos;
-				}
-				else
-					pIndex=pPos;
-				while(*pPos!=']')
-				{
-					if (!*pPos)
-					{
-						// error
-						strcpy(szCurrent,"NULL");
-						goto pmdinsert;
-					}
-					++pPos;
-				}
-				*pPos=0;
-				if (pPos[1]!=0 && pPos[1]!='.' && pPos[1]!='(')
-				{
-					// broken!
-					strcpy(szCurrent,"NULL");
-					goto pmdinsert;
-				}
-			}
-			else
-			if (*pPos=='.')
-			{
-				// end of this one, but more to come!
-				*pPos=0;
-				if (pStart==pPos)
-				{
-					if (!CurrentVar.Type)
-					{
-						strcpy(szCurrent,"NULL");
-						goto pmdinsert;
-					}
-					CurrentVar.Type->ToString(CurrentVar.VarPtr,szCurrent);
-					goto pmdinsert;
-				}
-				else
-				{
-					if (!CurrentVar.Type)
-					{
-						PMQ2DATAITEM DataItem=FindMQ2Data(pStart);
-						if (!DataItem)
-						{
-							// error
-							strcpy(szCurrent,"NULL");
-							goto pmdinsert;
-						}
-						if (!DataItem->Function(pIndex,CurrentVar))
-						{
-							// error
-							strcpy(szCurrent,"NULL");
-							goto pmdinsert;
-						}
-						
-					}
-					else
-					{
-						if (!CurrentVar.Type->GetMember(CurrentVar.VarPtr,pStart,pIndex,CurrentVar))
-						{
-							// error
-							strcpy(szCurrent,"NULL");
-							goto pmdinsert;
-						}
-					}
-				}
-				pStart=&pPos[1];
-			}
-			++pPos;
-		}
-
-		// insert szCurrent into current position
-pmdinsert:;
-		  {
+			Result.Type->ToString(Result.VarPtr,szCurrent);
 			NewLength=strlen(szCurrent);
 
 			memmove(&pBrace[NewLength],&pEnd[1],strlen(&pEnd[1])+1);
 			strncpy(pBrace,szCurrent,NewLength);
 			Changed=true;
-		  }
+		}
+
 pmdbottom:;
 	} while (pBrace=strstr(&pBrace[1],"${"));
 	return Changed;

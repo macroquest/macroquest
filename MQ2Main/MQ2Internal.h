@@ -182,6 +182,7 @@ typedef struct _MACROBLOCK {
     struct _MACROBLOCK *pPrev;
 } MACROBLOCK, *PMACROBLOCK;
 
+
 typedef struct _ALERT {
     SEARCHSPAWN SearchSpawn;
     struct _ALERT *pNext;
@@ -193,6 +194,7 @@ typedef struct _ALERTLIST {
     struct _ALERTLIST *pNext;
 } ALERTLIST, *PALERTLIST;
 
+#ifndef USEMQ2DATAVARS
 typedef struct _VARSTRINGS {
     CHAR szName[MAX_VARNAME];
     CHAR szVar[MAX_STRING];
@@ -217,6 +219,22 @@ typedef struct _MACROSTACK {
     PVARSTRINGS StackStr;
     PVARSTRINGS LocalStr;
 } MACROSTACK, *PMACROSTACK;
+
+typedef struct _EVENTSTACK {
+    struct _EVENTSTACK *pNext;
+    DWORD Type;
+    struct _EVENTLIST *pEventList;
+    PVARSTRINGS EventStr;
+} EVENTSTACK, *PEVENTSTACK;
+
+#endif
+
+typedef struct _TIMER {
+    CHAR szName[MAX_VARNAME];
+    ULONG Original;
+    ULONG Current;
+    struct _TIMER *pNext;
+} TIMER, *PTIMER;
 
 typedef struct _KEYPRESS {
     WORD KeyId;
@@ -266,28 +284,6 @@ typedef struct _MQCOMMAND {
 	struct _MQCOMMAND* pNext;
 } MQCOMMAND, *PMQCOMMAND;
 
-/*
-typedef struct _HOTKEY {
-    struct _HOTKEY *pNext;
-    CHAR szName[MAX_STRING];
-    DWORD DIKey;
-    CHAR szCommand[MAX_STRING];
-} HOTKEY, *PHOTKEY;
-/**/
-
-typedef struct _EVENTSTACK {
-    struct _EVENTSTACK *pNext;
-    DWORD Type;
-    PEVENTLIST pEventList;
-    PVARSTRINGS EventStr;
-} EVENTSTACK, *PEVENTSTACK;
-
-typedef struct _TIMER {
-    CHAR szName[MAX_VARNAME];
-    ULONG Original;
-    ULONG Current;
-    struct _TIMER *pNext;
-} TIMER, *PTIMER;
 
 typedef struct _FILTER {
     struct _FILTER *pNext;
@@ -548,6 +544,14 @@ typedef struct _MQ2DataItem
 EQLIB_API BOOL AddMQ2Type(class MQ2Type &Type);
 EQLIB_API BOOL RemoveMQ2Type(class MQ2Type &Type);
 
+typedef struct _DATAVAR {
+	CHAR szName[MAX_STRING];
+	MQ2TYPEVAR Var;
+	struct _DATAVAR *pNext;
+	struct _DATAVAR *pPrev;
+	struct _DATAVAR **ppHead;
+} DATAVAR, *PDATAVAR;
+
 class MQ2Type
 {
 public:
@@ -573,16 +577,17 @@ public:
 		Members.Cleanup();
 	}
 
+	virtual bool FromData(MQ2VARPTR &VarPtr, MQ2TYPEVAR &Source)=0;
+	virtual bool FromString(MQ2VARPTR &VarPtr, PCHAR Source)=0;
+	virtual void InitVariable(MQ2VARPTR &VarPtr) {VarPtr.Ptr=0;}
+	virtual void FreeVariable(MQ2VARPTR &VarPtr) {}
+
 	virtual bool GetMember(MQ2VARPTR VarPtr, PCHAR Member, PCHAR Index, MQ2TYPEVAR &Dest)=0;
 //	virtual bool SetMember(PVOID Ptr, PCHAR Member, DWORD Index, MQ2TYPEVAR &Data)=0;
 	virtual bool ToString(MQ2VARPTR VarPtr, PCHAR Destination)
 	{
 		strcpy(Destination,TypeName);
 		return true;
-	}
-	virtual bool FromString(MQ2VARPTR VarPtr, PCHAR Data)
-	{
-		return false;
 	}
 
 	inline PCHAR GetName() {return &TypeName[0];}
@@ -652,6 +657,213 @@ protected:
 	map<string,DWORD> MemberMap;
 };
 
+class CDataArray
+{
+public:
+	CDataArray()
+	{
+		pType=0;
+		nExtents=0;
+		pExtents=0;
+		pData=0;
+		TotalElements=0;
+	}
+
+	CDataArray(MQ2Type *Type, PCHAR Index, PCHAR Default)
+	{
+		nExtents=1;
+
+		// count number of , 's
+		if (PCHAR pComma=strchr(Index,','))
+		{
+			nExtents++;
+			while(pComma=strchr(&pComma[1],','))
+			{
+				nExtents++;
+			}
+		}
+
+		// allocate extents
+
+		pExtents=(DWORD*)malloc(sizeof(DWORD)*nExtents);
+
+		TotalElements=1;
+
+		// read extents
+		PCHAR pStart=Index;
+		unsigned long N;
+		for (N = 0 ; N < nExtents ; N++)
+		{
+			PCHAR pComma=strchr(pStart,',');
+			if (pComma)
+				*pComma=0;
+
+			pExtents[N]=atoi(pStart);
+			TotalElements*=pExtents[N];
+			if (pComma)
+			{
+				*pComma=',';
+				pStart=&pComma[1];
+			}
+		}
+
+		pData = (MQ2VARPTR*) malloc(sizeof(MQ2VARPTR)*TotalElements);
+
+		if (pType=Type)
+		for (N = 0 ; N < TotalElements ; N++)
+		{
+			pType->InitVariable(pData[N]);
+		}
+
+	}
+
+	void Delete()
+	{
+		if (pExtents)
+			free(pExtents);
+		if (pType && pData)
+		for (unsigned long N = 0 ; N < TotalElements ; N++)
+		{
+			pType->FreeVariable(pData[N]);
+		}
+		free(pData);
+		pType=0;
+		nExtents=0;
+		pExtents=0;
+		pData=0;
+		TotalElements=0;
+	}
+
+	int GetElement(PCHAR Index)
+	{
+		DWORD Element=0;
+		if (nExtents==1)
+		{
+			if (strchr(Index,','))
+				return -1;
+			Element=atoi(Index)-1;
+			if (Element>TotalElements)
+				return -1;
+			return Element;
+		}
+		else
+		{
+			DWORD nGetExtents = 1;
+
+			if (PCHAR pComma=strchr(Index,','))
+			{
+				nGetExtents++;
+				while(pComma=strchr(&pComma[1],','))
+				{
+					nGetExtents++;
+				}
+			}
+			if (nGetExtents!=nExtents)
+				return -1;
+
+			// read extents
+			PCHAR pStart=Index;
+			unsigned long N;
+			for (N = 0 ; N < nExtents ; N++)
+			{
+				PCHAR pComma=strchr(pStart,',');
+				if (pComma)
+					*pComma=0;
+				
+				DWORD Temp=atoi(pStart)-1;
+				if (Temp>pExtents[N])
+					return -1;
+				if (N<nExtents-1)
+					Temp*=pExtents[N];
+				Element+=Temp;
+				
+				if (pComma)
+				{
+					*pComma=',';
+					pStart=&pComma[1];
+				}
+			}
+			return Element;
+		}
+	}
+
+	BOOL GetElement(PCHAR Index, MQ2TYPEVAR &Dest)
+	{
+		DWORD Element=0;
+		if (nExtents==1)
+		{
+			if (strchr(Index,','))
+				return FALSE;
+			Element=atoi(Index)-1;
+			if (Element>TotalElements)
+				return FALSE;
+			Dest.Type=pType;
+			Dest.VarPtr=pData[Element];
+			return TRUE;
+		}
+		else
+		{
+			DWORD nGetExtents = 1;
+
+			if (PCHAR pComma=strchr(Index,','))
+			{
+				nGetExtents++;
+				while(pComma=strchr(&pComma[1],','))
+				{
+					nGetExtents++;
+				}
+			}
+			if (nGetExtents!=nExtents)
+				return FALSE;
+
+			// read extents
+			PCHAR pStart=Index;
+			unsigned long N;
+			for (N = 0 ; N < nExtents ; N++)
+			{
+				PCHAR pComma=strchr(pStart,',');
+				if (pComma)
+					*pComma=0;
+				
+				DWORD Temp=atoi(pStart)-1;
+				if (Temp>pExtents[N])
+					return FALSE;
+				if (N<nExtents-1)
+					Temp*=pExtents[N];
+				Element+=Temp;
+				
+				if (pComma)
+				{
+					*pComma=',';
+					pStart=&pComma[1];
+				}
+			}
+			Dest.Type=pType;
+			Dest.VarPtr=pData[Element];
+			return TRUE;
+		}
+
+	}
+
+	~CDataArray()
+	{
+		if (pExtents)
+			free(pExtents);
+		if (pType && pData)
+		for (unsigned long N = 0 ; N < TotalElements ; N++)
+		{
+			pType->FreeVariable(pData[N]);
+		}
+		free(pData);
+	}
+
+	MQ2Type *pType;
+	DWORD nExtents;
+	DWORD *pExtents;
+	MQ2VARPTR *pData;
+	DWORD TotalElements;
+};
+
 
 typedef struct _MQRANK
 {
@@ -694,6 +906,26 @@ static int MQRankCompareReverse(const void *A, const void *B)
 		return -1;
 	return 1;
 }
+
+
+#ifdef USEMQ2DATAVARS
+typedef struct _MACROSTACK {
+    PMACROBLOCK Location;
+    struct _MACROSTACK *pNext;
+    CHAR Return[MAX_STRING];
+    PDATAVAR Parameters;
+	DWORD nParameters;
+    PDATAVAR LocalVariables;
+} MACROSTACK, *PMACROSTACK;
+
+typedef struct _EVENTSTACK {
+    struct _EVENTSTACK *pNext;
+    DWORD Type;
+    PEVENTLIST pEventList;
+    PDATAVAR EventVar;
+} EVENTSTACK, *PEVENTSTACK;
+
+#endif
 
 };
 using namespace MQ2Internal;

@@ -256,7 +256,7 @@ PLUGIN_API VOID ShutdownPlugin(VOID)
     RemoveDetour(CBazaarSearchWnd__HandleBazaarMsg);
     RemoveParm("bazaar");
     RemoveCommand("/mq2bzsrch");
-    RemoveCommand("/bzsrchme");
+    RemoveCommand("/bzsrch");
 }
 
 VOID MQ2BzSrch(PSPAWNINFO pChar, PCHAR szLine)

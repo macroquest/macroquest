@@ -21,6 +21,8 @@
 
 #include "MQ2Main.h"
 
+#ifndef USEMQ2DATAVARS
+
 PVARSTRINGS NewVarString(PCHAR szName, PCHAR szType)
 {
 	PVARSTRINGS pVar = (PVARSTRINGS)malloc(sizeof(VARSTRINGS));
@@ -525,3 +527,400 @@ VOID DeleteVarCmd(PSPAWNINFO pChar, PCHAR szLine)
 		}
 	}
 }
+
+// ***************************************************************************
+// Function:    ZapVars
+// Description: Our '/zapvars' command
+// Usage:       /zapvars
+// ***************************************************************************
+VOID ZapVars(PSPAWNINFO pChar, PCHAR szLine)
+{
+    BOOL bTimers = TRUE;
+    BOOL bVars = TRUE;
+    BOOL bArrays = TRUE;
+    CHAR Arg[MAX_STRING] = {0};
+    PCHAR pArgs = szLine;
+    if (pArgs) {
+        while (pArgs[0]) {
+            GetArg(Arg,pArgs,1);
+            pArgs = GetNextArg(pArgs);
+            if (!stricmp(Arg,"notimers")) bTimers = FALSE;
+            if (!stricmp(Arg,"novars")) bVars = FALSE;
+            if (!stricmp(Arg,"noarrays")) bArrays = FALSE;
+        }
+    }
+    bRunNextCommand = TRUE;
+    if (bVars) { FreeVarStrings(gMacroStr); gMacroStr=NULL; }
+    if (bArrays) { FreeVarArrays(); gArray=NULL; }
+    if (bTimers) FreeTimers();
+
+    if (!bArrays && !bVars && !bTimers) {
+        WriteChatColor("Command did nothing.",USERCOLOR_DEFAULT);
+    } else {
+        CHAR szTemp[MAX_STRING] = {0};
+        strcpy(szTemp,"Cleared the following:");
+        if (bTimers) strcat(szTemp," Timers");
+        if (bVars) strcat(szTemp," Vars");
+        if (bArrays) strcat(szTemp," Arrays");
+        WriteChatColor(szTemp,USERCOLOR_DEFAULT);
+    }
+}
+
+VOID VarCalc(PSPAWNINFO pChar, PCHAR szLine)
+{
+    CHAR szVar[MAX_STRING] = {0};
+    CHAR szVal[MAX_STRING] = {0};
+    DOUBLE VarValue;
+    bRunNextCommand = TRUE;
+
+    GetArg(szVar,szLine,1);
+    GetArg(szVal,szLine,2);
+
+    PCHAR szResult = NULL;
+    PTIMER pTimer = NULL;
+    GetVariable(szVar,&szResult,&pTimer);
+    if (!szResult && !pTimer) {
+        GracefullyEndBadMacro(pChar,gMacroBlock, "Bad variable in /var function.");
+        return;
+        }
+     Calculate(GetNextArg(szLine,1),VarValue);
+    if (szResult) sprintf(szResult,"%1.2f",VarValue);
+    if (pTimer) {
+        pTimer->Current = (DWORD)VarValue;
+        pTimer->Original = pTimer->Current;
+    }
+
+}
+
+
+// ***************************************************************************
+// Function:    VarSet
+// Description: Our '/varset' command
+// Usage:       /varset <variable> <value>
+// ***************************************************************************
+VOID VarSet(PSPAWNINFO pChar, PCHAR szLine)
+{
+    CHAR szVar[MAX_STRING] = {0};
+    CHAR szVal[MAX_STRING] = {0};
+    DOUBLE VarValue;
+    bRunNextCommand = TRUE;
+
+    GetArg(szVar,szLine,1);
+    GetArg(szVal,szLine,2);
+
+    PCHAR szResult = NULL;
+    PTIMER pTimer = NULL;
+    GetVariable(szVar,&szResult,&pTimer);
+    if (!szResult && !pTimer) {
+        GracefullyEndBadMacro(pChar,gMacroBlock, "Bad variable in /var function.");
+        return;
+    }
+    if (szResult) strcpy(szResult,szVal);
+    if (pTimer) {
+        VarValue = atof(szVal);
+            switch (szVal[strlen(szVal)-1]) {
+                case 'm':
+                case 'M':
+                    VarValue *= 60;
+                case 's':
+                case 'S':
+                    VarValue *= 10;
+            }
+        pTimer->Current = (DWORD)VarValue;
+        pTimer->Original = pTimer->Current;
+    }
+}
+
+
+// ***************************************************************************
+// Function:    MyVarAdd
+// Description: Our '/varadd' command
+// Usage:       /varadd <variable> <value>
+// ***************************************************************************
+VOID MyVarAdd(PSPAWNINFO pChar, PCHAR szLine)
+{
+    CHAR szVar[MAX_STRING] = {0};
+    CHAR szVal[MAX_STRING] = {0};
+    DOUBLE VarValue;
+    bRunNextCommand = TRUE;
+
+    GetArg(szVar,szLine,1);
+    GetArg(szVal,szLine,2);
+
+    PCHAR szResult = NULL;
+    PTIMER pTimer = NULL;
+    GetVariable(szVar,&szResult,&pTimer);
+    if (!szResult && !pTimer) {
+        GracefullyEndBadMacro(pChar,gMacroBlock, "Bad variable in /var function.");
+        return;
+    }
+    if (szResult) {
+        VarValue = atof(szResult)+atof(szVal);
+        sprintf(szResult,"%1.2f",VarValue);
+    }
+    if (pTimer) {
+    VarValue = atof(szVal);
+            switch (szVal[strlen(szVal)-1]) {
+                case 'm':
+                case 'M':
+                    VarValue *= 60;
+                case 's':
+                case 'S':
+                    VarValue *= 10;
+            }
+        pTimer->Current += (DWORD)VarValue;
+    }
+}
+
+
+// ***************************************************************************
+// Function:    MyVarCat
+// Description: Our '/varcat' command
+// Usage:       /varadd <variable> <value>
+// ***************************************************************************
+VOID MyVarCat(PSPAWNINFO pChar, PCHAR szLine)
+{
+	CHAR szVar[MAX_STRING] = {0};
+	CHAR szVal[MAX_STRING] = {0};
+	bRunNextCommand = TRUE;
+
+	GetArg(szVar,szLine,1);
+	GetArg(szVal,szLine,2);
+
+	PCHAR szResult = NULL;
+	PTIMER pTimer = NULL;
+	GetVariable(szVar,&szResult,&pTimer);
+	if (!szResult) {
+		GracefullyEndBadMacro(pChar,gMacroBlock, "Bad variable in /var function.");
+		return;
+	}
+	strcat(szResult,szVal);
+}
+
+
+// ***************************************************************************
+// Function:    MyVarSub
+// Description: Our '/varsub' command
+// Usage:       /varsub <variable> <value>
+// ***************************************************************************
+VOID MyVarSub(PSPAWNINFO pChar, PCHAR szLine)
+{
+    CHAR szVar[MAX_STRING] = {0};
+    CHAR szVal[MAX_STRING] = {0};
+    DOUBLE VarValue;
+    bRunNextCommand = TRUE;
+
+    GetArg(szVar,szLine,1);
+    GetArg(szVal,szLine,2);
+
+    PCHAR szResult = NULL;
+    PTIMER pTimer = NULL;
+    GetVariable(szVar,&szResult,&pTimer);
+    if (!szResult && !pTimer) {
+        GracefullyEndBadMacro(pChar,gMacroBlock, "Bad variable in /var function.");
+        return;
+    }
+    if (szResult) {
+        VarValue = atof(szResult)-atof(szVal);
+        sprintf(szResult,"%1.2f",VarValue);
+    }
+    if (pTimer) {
+    VarValue = atof(szVal);
+            switch (szVal[strlen(szVal)-1]) {
+                case 'm':
+                case 'M':
+                    VarValue *= 60;
+                case 's':
+                case 'S':
+                    VarValue *= 10;
+            }
+        pTimer->Current -= (DWORD)VarValue;
+    }
+}
+
+
+// ***************************************************************************
+// Function:    MyVarAnd
+// Description: Our '/varand' command
+// Usage:       /varand <variable> <value>
+// ***************************************************************************
+VOID MyVarAnd(PSPAWNINFO pChar, PCHAR szLine)
+{
+    CHAR szVar[MAX_STRING] = {0};
+    CHAR szVal[MAX_STRING] = {0};
+    DWORD VarValue;
+    bRunNextCommand = TRUE;
+
+    GetArg(szVar,szLine,1);
+    GetArg(szVal,szLine,2);
+
+    PCHAR szResult = NULL;
+    PTIMER pTimer = NULL;
+    GetVariable(szVar,&szResult,&pTimer);
+    if (!szResult && !pTimer) {
+        GracefullyEndBadMacro(pChar,gMacroBlock, "Bad variable in /var function.");
+        return;
+    }
+    if (szResult) {
+        VarValue = atoi(szResult)&atoi(szVal);
+        itoa(VarValue,szResult,10);
+    }
+    if (pTimer) {
+    VarValue = atoi(szVal);
+        switch (szVal[strlen(szVal)-1]) {
+            case 'm':
+            case 'M':
+                VarValue *= 60;
+            case 's':
+            case 'S':
+                VarValue *= 10;
+        }
+        pTimer->Current &= VarValue;
+    }
+}
+
+
+// ***************************************************************************
+// Function:    MyVarOr
+// Description: Our '/varor' command
+// Usage:       /varor <variable> <value>
+// ***************************************************************************
+VOID MyVarOr(PSPAWNINFO pChar, PCHAR szLine)
+{
+    CHAR szVar[MAX_STRING] = {0};
+    CHAR szVal[MAX_STRING] = {0};
+    DWORD VarValue;
+    bRunNextCommand = TRUE;
+
+    GetArg(szVar,szLine,1);
+    GetArg(szVal,szLine,2);
+
+    PCHAR szResult = NULL;
+    PTIMER pTimer = NULL;
+    GetVariable(szVar,&szResult,&pTimer);
+    if (!szResult && !pTimer) {
+        GracefullyEndBadMacro(pChar,gMacroBlock, "Bad variable in /var function.");
+        return;
+    }
+    if (szResult) {
+        VarValue = atoi(szResult)|atoi(szVal);
+        itoa(VarValue,szResult,10);
+    }
+    if (pTimer) {
+    VarValue = atoi(szVal);
+        switch (szVal[strlen(szVal)-1]) {
+            case 'm':
+            case 'M':
+                VarValue *= 60;
+            case 's':
+            case 'S':
+                VarValue *= 10;
+        }
+        pTimer->Current |= VarValue;
+    }
+}
+
+
+// ***************************************************************************
+// Function:    VarRShift
+// Description: Our '/varrshift' command
+// Usage:       /varrshift <variable> <value>
+// ***************************************************************************
+VOID VarRShift(PSPAWNINFO pChar, PCHAR szLine)
+{
+    CHAR szVar[MAX_STRING] = {0};
+    CHAR szVal[MAX_STRING] = {0};
+    DWORD VarValue;
+    bRunNextCommand = TRUE;
+
+    GetArg(szVar,szLine,1);
+    GetArg(szVal,szLine,2);
+
+    PCHAR szResult = NULL;
+    PTIMER pTimer = NULL;
+    GetVariable(szVar,&szResult,&pTimer);
+    if (!szResult && !pTimer) {
+        GracefullyEndBadMacro(pChar,gMacroBlock, "Bad variable in /var function.");
+        return;
+    }
+    if (szResult) {
+        VarValue = atoi(szResult)>>atoi(szVal);
+        itoa(VarValue,szResult,10);
+    }
+    if (pTimer) {
+    VarValue = atoi(szVal);
+        switch (szVal[strlen(szVal)-1]) {
+            case 'm':
+            case 'M':
+                VarValue *= 60;
+            case 's':
+            case 'S':
+                VarValue *= 10;
+        }
+        pTimer->Current = pTimer->Current>>VarValue;
+    }
+}
+
+
+// ***************************************************************************
+// Function:    VarLShift
+// Description: Our '/varlshift' command
+// Usage:       /varlshift <variable> <value>
+// ***************************************************************************
+VOID VarLShift(PSPAWNINFO pChar, PCHAR szLine)
+{
+    CHAR szVar[MAX_STRING] = {0};
+    CHAR szVal[MAX_STRING] = {0};
+    DWORD VarValue;
+    bRunNextCommand = TRUE;
+
+    GetArg(szVar,szLine,1);
+    GetArg(szVal,szLine,2);
+
+    PCHAR szResult = NULL;
+    PTIMER pTimer = NULL;
+    GetVariable(szVar,&szResult,&pTimer);
+    if (!szResult && !pTimer) {
+        GracefullyEndBadMacro(pChar,gMacroBlock, "Bad variable in /var function.");
+        return;
+    }
+    if (szResult) {
+        VarValue = atoi(szResult)<<atoi(szVal);
+        itoa(VarValue,szResult,10);
+    }
+    if (pTimer) {
+    VarValue = atoi(szVal);
+        switch (szVal[strlen(szVal)-1]) {
+            case 'm':
+            case 'M':
+                VarValue *= 60;
+            case 's':
+            case 'S':
+                VarValue *= 10;
+        }
+        pTimer->Current = pTimer->Current<<VarValue;
+    }
+}
+
+VOID AddCustomEvent(PEVENTLIST pEList, PCHAR szLine)
+{
+    PEVENTSTACK pEvent = NULL;
+    if (!pEList->pEventFunc) return;
+    pEvent = (PEVENTSTACK)malloc(sizeof(EVENTSTACK));
+    if (!pEvent) return;
+    ZeroMemory(pEvent,sizeof(EVENTSTACK));
+    pEvent->Type = EVENT_CUSTOM;
+    pEvent->pEventList = pEList;
+    CHAR szParamName[MAX_STRING] = {0};
+    strcpy(GetEventStr(pEvent,GetFuncParamName(pEList->pEventFunc->Line,0,szParamName),TRUE),szLine);
+
+    if (!gEventStack) {
+        gEventStack = pEvent;
+    } else {
+        PEVENTSTACK pTemp = NULL;
+        for (pTemp = gEventStack;pTemp->pNext;pTemp=pTemp->pNext);
+        pTemp->pNext = pEvent;
+    }
+}
+
+#endif

@@ -4772,3 +4772,54 @@ VOID DoTimedCmd(PSPAWNINFO pChar, PCHAR szLine)
 	TimedCommand(szRest,atoi(szArg)*100);
 }
 
+// ***************************************************************************
+// Function:    SendKey
+// Description: Our '/sendkey' command
+//              Sends a key up or down
+// Usage:       /sendkey <u|d> <key>
+// ***************************************************************************
+VOID SendKey(PSPAWNINFO pChar, PCHAR szLine)
+{
+	static bool UpdateSendKeyMessageGiven=false;
+ 	if (!UpdateSendKeyMessageGiven)
+	{
+		WriteChatColor("Warning: /sendkey is now obsolete. please use /keypress instead. /sendkey will soon be removed entirely.",CONCOLOR_RED);
+		UpdateSendKeyMessageGiven=true;
+	}
+	
+	WORD i;
+    CHAR Arg1[MAX_STRING];
+    CHAR Arg2[MAX_STRING];
+    GetArg(Arg1,szLine,1);
+    GetArg(Arg2,szLine,2);
+
+    if ((Arg1[0]==0) || (Arg2[0]==0) || ((!strnicmp(Arg1,"down",strlen(Arg1))) && (!strnicmp(Arg1,"up",strlen(Arg1))))) {
+        GracefullyEndBadMacro(pChar,gMacroBlock, "Bad SendKey command");
+        return;
+    }
+
+    for (i=0;gDiKeyID[i].szName[0];i++) {
+        if (!stricmp(gDiKeyID[i].szName,Arg2)) {
+            PKEYPRESS pNext = (PKEYPRESS)malloc(sizeof(KEYPRESS));
+            pNext->KeyId = i;
+            pNext->Pressed = !strnicmp(Arg1,"down",strlen(Arg1));
+            pNext->pNext = NULL;
+
+            //DebugSpewNoFile("SendKey - Queuing '%s' as %s",gDiKeyID[i].szName,Arg1);
+            if (!gKeyStack) {
+                gKeyStack = pNext;
+                return;
+            } else {
+                PKEYPRESS pList = gKeyStack;
+                while (pList->pNext) pList = pList->pNext;
+                pList->pNext = pNext;
+                return;
+            }
+        }
+    }
+
+    //TODO: User Spew
+    DebugSpewNoFile("Unknown key: %s",Arg2);
+    return;
+}
+

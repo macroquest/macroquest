@@ -40,6 +40,11 @@ DWORD bmPluginsSetGameState=0;
 DWORD bmParseMacroParameter=0;
 DWORD bmUpdateSpawnSort=0;
 
+#ifndef USEMQ2DATAVARS
+PVARSTRINGS gMacroStr = NULL;
+PVARARRAYS gArray = NULL;
+#endif
+
 ePVPServer PVPServer=PVP_NONE;
 CHAR gszVersion[32]=VersionString;
 
@@ -63,8 +68,6 @@ UCHAR gLastFind = 0;
 DOUBLE gZFilter=10000.0f;
 DOUBLE gFaceAngle=10000.0f;
 DOUBLE gLookAngle=10000.0f;
-PVARSTRINGS gMacroStr = NULL;
-PVARARRAYS gArray = NULL;
 CHAR gszEQPath[MAX_STRING] = {0};
 CHAR gszMacroPath[MAX_STRING] = {0};
 CHAR gszLogPath[MAX_STRING] = {0};

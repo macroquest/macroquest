@@ -117,6 +117,9 @@
 				RelativePath="MQ2DataTypes.cpp">
 			</File>
 			<File
+				RelativePath="MQ2DataVars.cpp">
+			</File>
+			<File
 				RelativePath="MQ2DetourAPI.cpp">
 			</File>
 			<File
