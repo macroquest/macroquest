@@ -1,3 +1,8 @@
+27 May 2004 by Lax (more):
+- Fixed stack overflow bug in one of the functions that handles window names.  I fixed it in one
+  before putting up the update but didn't in an exact copy of it above it.  Lax truly lacks. ;)
+- Added pet weapon procced pet body type to the list of known body types.
+
 27 May 2004 by Lax:
 - Added "chest" to the standard spawn searches used by /who, /target, /highlight, /mapshow, 
   /maphide, etc

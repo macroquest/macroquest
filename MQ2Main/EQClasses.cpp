@@ -68,7 +68,7 @@ class CXWnd * CXWnd::GetChildItem(PCHAR Name)
 			if (GetCXStr(pXMLData->ScreenID.Ptr,Buffer,MAX_STRING) && !stricmp(Buffer,Name))
 				return pWnd;
 		}
-		CXWnd *pChild=GetChildItem(Name);
+		CXWnd *pChild=pWnd->GetChildItem(Name);
 		if (pChild)
 			return pChild;
 		pWnd=((CXWnd*)this)->GetNextChildWnd(pWnd);//pWnd=(CXWnd*)pWnd->pSiblings;

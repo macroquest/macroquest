@@ -510,9 +510,9 @@ PCHAR szBodyType[] = {
    "Dragon",//29
    "Bane Dragon",//30
    "Familiar",//31
-	"*UNKNOWN BODYTYPE 32",
-	"Chest",
-	"Muramite",
+	"Proc Pet",//32
+	"Chest",//33
+	"Muramite",//34
 	"*UNKNOWN BODYTYPE 35",
 	"*UNKNOWN BODYTYPE 36",
 	"*UNKNOWN BODYTYPE 37",
