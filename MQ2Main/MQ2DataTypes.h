@@ -43,6 +43,8 @@ EQLIB_VAR class MQ2CurrentZoneType *pCurrentZoneType;
 EQLIB_VAR class MQ2ItemType *pItemType;
 EQLIB_VAR class MQ2DeityType *pDeityType;
 EQLIB_VAR class MQ2ArgbType *pArgbType;
+EQLIB_VAR class MQ2TypeType *pTypeType;
+EQLIB_VAR class MQ2TimeType *pTimeType;
 
 #define UseTemp(mystring) strcpy(DataTypeTemp,mystring)
 #define TypeMember(name) AddMember((DWORD)name,""#name)
@@ -206,6 +208,10 @@ public:
 		Lower=8,
 		Compare=9,
 		CompareCS=10,
+		Equal=11,
+		NotEqual=12,
+		EqualCS=13,
+		NotEqualCS=14,
 	};
 
 	MQ2StringType():MQ2Type("string")
@@ -220,6 +226,10 @@ public:
 		TypeMember(Lower);
 		TypeMember(Compare);
 		TypeMember(CompareCS);
+		TypeMember(Equal);
+		TypeMember(NotEqual);
+		TypeMember(EqualCS);
+		TypeMember(NotEqualCS);
 	}
 
 	~MQ2StringType()
@@ -261,7 +271,7 @@ public:
 
 	 bool ToString(MQ2VARPTR VarPtr, PCHAR Destination)
 	{
-		sprintf(Destination,"%.3f",VarPtr.Float);
+		sprintf(Destination,"%.2f",VarPtr.Float);
 		return true;
 	}
 };
@@ -295,6 +305,7 @@ public:
 
 	bool GetMember(MQ2VARPTR VarPtr, PCHAR Member, PCHAR Index, MQ2TYPEVAR &Dest)
 	{
+#define nTicks (VarPtr.DWord)
 		unsigned long N=MemberMap[Member];
 		if (!N)
 			return false;
@@ -306,20 +317,20 @@ public:
 		switch((TicksMembers)pMember->ID)
 		{
 		case Hours:
-			Dest.DWord=(VarPtr.DWord)/600;
+			Dest.DWord=nTicks/600;
 			Dest.Type=pIntType;
 			return true;
 		case Minutes:
-			Dest.DWord=(VarPtr.DWord/10)%60;
+			Dest.DWord=(nTicks/10)%60;
 			Dest.Type=pIntType;
 			return true;
 		case Seconds:
-			Dest.DWord=(VarPtr.DWord*6)%60;
+			Dest.DWord=(nTicks*6)%60;
 			Dest.Type=pIntType;
 			return true;
 		case Time:
 			{
-				int Secs=VarPtr.DWord*6;
+				int Secs=nTicks*6;
 				int Mins=Secs/60;
 				Secs=Secs%60;
 				sprintf(Temp,"%d:%02d",Mins,Secs);
@@ -328,19 +339,20 @@ public:
 			}
 			return true;
 		case TotalMinutes:
-			Dest.DWord=VarPtr.DWord/10;
+			Dest.DWord=nTicks/10;
 			Dest.Type=pIntType;
 			return true;
 		case TotalSeconds:
-			Dest.DWord=VarPtr.DWord*6;
+			Dest.DWord=nTicks*6;
 			Dest.Type=pIntType;
 			return true;
 		case Ticks:
-			Dest.DWord=VarPtr.DWord;
+			Dest.DWord=nTicks;
 			Dest.Type=pIntType;
 			return true;
 		}		
 		return false;
+#undef nTicks
 	}
 
 	 bool ToString(MQ2VARPTR VarPtr, PCHAR Destination)
@@ -551,6 +563,7 @@ public:
 		PctExp=73,
 		PctAAExp=74,
 		Moving=75,
+		AbilityReady=76,
 	};
 	MQ2CharacterType():MQ2Type("character")
 	{
@@ -628,6 +641,7 @@ public:
 		TypeMember(PctExp);
 		TypeMember(PctAAExp);
 		TypeMember(Moving);
+		TypeMember(AbilityReady);
 	}
 
 	~MQ2CharacterType()
@@ -1458,12 +1472,7 @@ public:
 		Time12=8,
 		Time24=9,
 		Date=10,
-		GameHour=11,
-		GameMinute=12,
-		GameNight=13,
-		GameMonth=14,
-		GameDay=15,
-		GameYear=16,
+		Night=11
 	};
 	MQ2TimeType():MQ2Type("time")
 	{
@@ -1477,12 +1486,7 @@ public:
 		TypeMember(Time12);
 		TypeMember(Time24);
 		TypeMember(Date);
-		TypeMember(GameHour);
-		TypeMember(GameMinute);
-		TypeMember(GameNight);
-		TypeMember(GameMonth);
-		TypeMember(GameDay);
-		TypeMember(GameYear);
+		TypeMember(Night);
 	}
 
 	~MQ2TimeType()
@@ -1493,8 +1497,42 @@ public:
 
 	 bool ToString(MQ2VARPTR VarPtr, PCHAR Destination)
 	{
-		return false;
+		time_t CurTime;
+		tm *Now;
+		time(&CurTime);
+		Now = localtime( &CurTime ); 
+		sprintf(Destination,"%02d:%02d:%02d",Now->tm_hour,Now->tm_min, Now->tm_sec);
+		return true;
 	}
 };
+
+class MQ2TypeType : public MQ2Type
+{
+public:
+   static enum TypeMembers
+   {
+      Name=1,
+	  TypeMember=2,
+   };
+   MQ2TypeType():MQ2Type("type")
+   {
+      TypeMember(Name);
+	  AddMember((DWORD)TypeMember,"Member");
+   }
+
+   ~MQ2TypeType()
+   {
+   }
+
+   bool GetMember(MQ2VARPTR VarPtr, PCHAR Member, PCHAR Index, MQ2TYPEVAR &Dest);
+
+   bool ToString(MQ2VARPTR VarPtr, PCHAR Destination)
+   {
+	  strcpy(Destination,((MQ2Type*)VarPtr.Ptr)->GetName());
+      return true;
+   }
+}; 
+
+
 
 #undef TypeMember

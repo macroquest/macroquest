@@ -194,14 +194,30 @@ BOOL dataZone(PCHAR szIndex, MQ2TYPEVAR &Ret)
    } 
    else if (0<(nIndex = atoi(szIndex)) || szIndex[0]=='0') 
    {
-      Ret.Ptr = ((PWORLDDATA)pWorldData)->ZoneArray[nIndex];
-      Ret.Type=pZoneType;
+	   if (GetCharInfo()->zoneId==nIndex)
+	   {
+		   Ret.DWord = instEQZoneInfo;
+		   Ret.Type=pCurrentZoneType;
+	   }
+	   else
+	   {
+			Ret.Ptr = ((PWORLDDATA)pWorldData)->ZoneArray[nIndex];
+			Ret.Type=pZoneType;
+	   }
       return true;
    } 
    else if (-1 != (nIndex=GetZoneID(szIndex))) 
    {
-      Ret.Ptr = ((PWORLDDATA)pWorldData)->ZoneArray[nIndex];
-      Ret.Type=pZoneType;
+	   if (GetCharInfo()->zoneId==nIndex)
+	   {
+		   Ret.DWord = instEQZoneInfo;
+		   Ret.Type=pCurrentZoneType;
+	   }
+	   else
+	   {
+			Ret.Ptr = ((PWORLDDATA)pWorldData)->ZoneArray[nIndex];
+			Ret.Type=pZoneType;
+	   }
       return true;
    }   
    return false; 
@@ -326,12 +342,6 @@ BOOL dataCursor(PCHAR szIndex, MQ2TYPEVAR &Ret)
 	return false;
 }
 
-// todo
-BOOL dataFindItem(PCHAR szIndex, MQ2TYPEVAR &Ret)
-{
-	return false;
-}
-
 BOOL dataNearestSpawn(PCHAR szIndex, MQ2TYPEVAR &Ret)
 {
 	if (szIndex[0])
@@ -379,3 +389,82 @@ BOOL dataNearestSpawn(PCHAR szIndex, MQ2TYPEVAR &Ret)
 	// No spawn
 	return false;
 }
+
+// todo
+BOOL dataFindItem(PCHAR szIndex, MQ2TYPEVAR &Ret)
+{
+	return false;
+}
+
+BOOL dataTime(PCHAR szIndex, MQ2TYPEVAR &Ret)
+{
+    time_t CurTime;
+    time(&CurTime);
+    Ret.Ptr= localtime( &CurTime ); 	
+	Ret.Type=pTimeType;
+	return true;
+}
+BOOL dataGameTime(PCHAR szIndex, MQ2TYPEVAR &Ret)
+{
+	struct tm* pTime=(struct tm*)&DataTypeTemp[0];
+	ZeroMemory(pTime,sizeof(struct tm));
+	pTime->tm_mday=((PWORLDDATA)pWorldData)->Day;
+	pTime->tm_hour=((PWORLDDATA)pWorldData)->Hour;
+	pTime->tm_min=((PWORLDDATA)pWorldData)->Minute;
+	pTime->tm_mon=((PWORLDDATA)pWorldData)->Month;
+	pTime->tm_year=((PWORLDDATA)pWorldData)->Year;
+	Ret.Ptr=pTime;
+	Ret.Type=pTimeType;
+	return true;
+}
+
+BOOL dataIni(PCHAR szIndex, MQ2TYPEVAR &Ret)
+{
+	PCHAR pIniFile=0;
+	PCHAR pSection=0;
+	PCHAR pKey=0;
+	PCHAR pDefault="";
+	if (pIniFile=strtok(szIndex,","))
+	{
+		if (pSection=strtok(NULL,","))
+		{
+			if (!strcmp(pSection,"-1"))
+				pSection=0;
+			if (pKey=strtok(NULL,","))
+			{
+				if (!strcmp(pKey,"-1"))
+					pKey=0;
+				pDefault=strtok(NULL,"¦");
+			}
+		}
+	}
+	else
+		return false;
+	CHAR FileName[MAX_STRING]={0};
+	if (!strchr(pIniFile,'\\') && !strchr(pIniFile,'/'))
+		sprintf(FileName,"%s\\%s",gszMacroPath,pIniFile);
+	if (!strchr(pIniFile,'.'))
+		strcat(FileName,".ini");
+	if (DWORD nSize=GetPrivateProfileString(pSection,pKey,pDefault,DataTypeTemp,MAX_STRING,FileName))
+	{
+		if (nSize==MAX_STRING-1)
+		{
+			DataTypeTemp[MAX_STRING-2]='|';
+			DataTypeTemp[MAX_STRING-1]='0';
+		}
+		else if ( nSize==MAX_STRING-2 && (!pSection || !pKey))
+		{
+			DataTypeTemp[MAX_STRING-3]='|';
+			DataTypeTemp[MAX_STRING-2]='|';
+			DataTypeTemp[MAX_STRING-1]='0';
+		}
+
+		Ret.Ptr=&DataTypeTemp[0];
+		Ret.Type=pStringType;
+		return true;
+	}
+	
+	return false;
+}
+
+

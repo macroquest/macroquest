@@ -474,6 +474,7 @@ void InitializeMQ2Commands()
 		{"/shiftkey",      DoShiftCmd,0,0},
 		{"/timed",		DoTimedCmd,0,0},
 		{"/newif",		NewIf,1,0},
+		{"/deletevar",  DeleteVarCmd,1,0},
 		{NULL,          NULL,0,1},
     };
 

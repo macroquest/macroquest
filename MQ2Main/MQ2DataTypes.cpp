@@ -48,6 +48,8 @@ class MQ2CurrentZoneType *pCurrentZoneType=0;
 class MQ2ItemType *pItemType=0;
 class MQ2DeityType *pDeityType=0;
 class MQ2ArgbType *pArgbType=0;
+class MQ2TypeType *pTypeType=0;
+class MQ2TimeType *pTimeType=0;
 
 CHAR DataTypeTemp[MAX_STRING]={0};
 
@@ -79,6 +81,8 @@ void InitializeMQ2DataTypes()
 	pArgbType = new MQ2ArgbType;
 	pCorpseType = new MQ2CorpseType;
 	pCurrentZoneType = new MQ2CurrentZoneType;
+	pTypeType = new MQ2TypeType;
+	pTimeType = new MQ2TimeType;
 }
 
 void ShutdownMQ2DataTypes()
@@ -109,6 +113,8 @@ void ShutdownMQ2DataTypes()
 	delete pArgbType;
 	delete pCorpseType;
 	delete pCurrentZoneType;
+	delete pTypeType;
+	delete pTimeType;
 }
 
 bool MQ2FloatType::GetMember(MQ2VARPTR VarPtr, PCHAR Member, PCHAR Index, MQ2TYPEVAR &Dest)
@@ -519,7 +525,7 @@ bool MQ2BuffType::GetMember(MQ2VARPTR VarPtr, PCHAR Member, PCHAR Index, MQ2TYPE
 		Dest.Type=pFloatType;
 		return true;
 	case Duration:
-		Dest.DWord=pBuff->Duration;
+		Dest.DWord=pBuff->Duration+1;// 0 is actually 6 seconds ;)
 		Dest.Type=pTicksType;
 		return true;
 	case Dar:
@@ -607,13 +613,21 @@ bool MQ2StringType::GetMember(MQ2VARPTR VarPtr, PCHAR Member, PCHAR Index, MQ2TY
 		Dest.Type=pStringType;
 		return true;
 	case Compare:
-		Dest.Int=stricmp((char*)VarPtr.Ptr,Index);
-		Dest.Type=pIntType;
-		return true;
+		if (Index[0])
+		{
+			Dest.Int=stricmp((char*)VarPtr.Ptr,Index);
+			Dest.Type=pIntType;
+			return true;
+		}
+		return false;
 	case CompareCS:
-		Dest.Int=strcmp((char*)VarPtr.Ptr,Index);
-		Dest.Type=pIntType;
-		return true;
+		if (Index[0])
+		{
+			Dest.Int=strcmp((char*)VarPtr.Ptr,Index);
+			Dest.Type=pIntType;
+			return true;
+		}
+		return false;
 	case Mid:
 		{
 			if (PCHAR pComma=strchr(Index,','))
@@ -638,6 +652,65 @@ bool MQ2StringType::GetMember(MQ2VARPTR VarPtr, PCHAR Member, PCHAR Index, MQ2TY
 				Dest.Ptr=&DataTypeTemp[0];
 				Dest.Type=pStringType;
 				return true;
+			}
+		}
+		return false;
+	case Equal:
+		if (Index[0])
+		{
+			Dest.DWord=(stricmp((char*)VarPtr.Ptr,Index)==0);
+			Dest.Type=pBoolType;
+			return true;
+		}
+		return false;
+	case NotEqual:
+		if (Index[0])
+		{
+			Dest.DWord=(stricmp((char*)VarPtr.Ptr,Index)!=0);
+			Dest.Type=pBoolType;
+			return true;
+		}
+		return false;
+	case EqualCS:
+		if (Index[0])
+		{
+			Dest.DWord=(strcmp((char*)VarPtr.Ptr,Index)==0);
+			Dest.Type=pBoolType;
+			return true;
+		}
+		return false;
+	case NotEqualCS:
+		if (Index[0])
+		{
+			Dest.DWord=(strcmp((char*)VarPtr.Ptr,Index)!=0);
+			Dest.Type=pBoolType;
+			return true;
+		}
+		return false;
+	case Arg:
+		if (Index[0]>='0' && Index[0]<='9')
+		{
+			if (PCHAR pComma=strchr(Index,','))
+			{
+				*pComma=0;
+				GetArg(DataTypeTemp,(char*)VarPtr.Ptr,atoi(Index),FALSE,FALSE,FALSE,pComma[1]);
+				*pComma=',';
+				if (DataTypeTemp[0])
+				{
+					Dest.Ptr=&DataTypeTemp[0];
+					Dest.Type=pStringType;
+					return true;
+				}
+			}
+			else
+			{
+				GetArg(DataTypeTemp,(char*)VarPtr.Ptr,atoi(Index));
+				if (DataTypeTemp[0])
+				{
+					Dest.Ptr=&DataTypeTemp[0];
+					Dest.Type=pStringType;
+					return true;
+				}
 			}
 		}
 		return false;
@@ -943,10 +1016,164 @@ bool MQ2CharacterType::GetMember(MQ2VARPTR VarPtr, PCHAR Member, PCHAR Index, MQ
 		Dest.DWord=pChar->thirstlevel;
 		Dest.Type=pIntType;
 		return true;
+	case Skill:
+		if (Index[0])
+		{
+			if (Index[0]>='0' && Index[0]<='9')
+			{
+				// numeric
+				unsigned long nSkill=atoi(Index)-1;
+				if (nSkill<0x64)
+				{
+					Dest.DWord=pChar->Skill[nSkill];
+					Dest.Ptr=pIntType;
+					return true;
+				}
+			}
+			else
+			{
+				// name
+				for (DWORD nSkill=0;szSkills[nSkill];nSkill++)
+					if (!stricmp(Index,szSkills[nSkill]))
+					{
+						Dest.DWord=pChar->Skill[nSkill];
+						Dest.Ptr=pIntType;
+						return true;
+					}
+			}
+		}
+		return false;
+	case Ability:
+		if (Index[0])
+		{
+			if (Index[0]>='0' && Index[0]<='9')
+			{
+				// numeric
+				if (unsigned long nSkill=atoi(Index))
+				{
+					if (nSkill<7)
+					{
+						nSkill+=3;
+					}
+					else if (nSkill<11)
+					{
+						nSkill-=7;
+					}
+					else
+						return false;
+                    if (EQADDR_DOABILITYLIST[nSkill]!=0xFFFFFFFF)
+					{
+						Dest.Ptr=szSkills[EQADDR_DOABILITYLIST[nSkill]];
+						Dest.Type=pStringType;
+						return true;
+					}
+				}
+			}
+			else
+			{
+				// name
+				for (DWORD nSkill=0;szSkills[nSkill];nSkill++)
+					if (!stricmp(Index,szSkills[nSkill]))
+					{
+						// found name
+						if (pChar->Skill[nSkill]>252)
+							return false;
+						for (DWORD nAbility=0;nAbility<10;nAbility++)
+						if (EQADDR_DOABILITYLIST[nAbility] == nSkill) 
+						{
+							if (nAbility<4)
+								nAbility+=7;
+							else
+								nAbility-=3;
+							Dest.DWord=nAbility;
+							Dest.Type=pIntType;
+							return true;
+						}
+					}
+			}
+		}
+		return false;
+	case AbilityReady:
+		if (Index[0])
+		{
+			if (Index[0]>='0' && Index[0]<='9')
+			{
+				// numeric
+				if (unsigned long nSkill=atoi(Index))
+				{
+					if (nSkill<7)
+					{
+						nSkill+=3;
+					}
+					else if (nSkill<11)
+					{
+						nSkill-=7;
+					}
+					else
+						return false;
+                    if (EQADDR_DOABILITYLIST[nSkill]!=0xFFFFFFFF)
+					{
+						Dest.DWord=EQADDR_DOABILITYAVAILABLE[nSkill];
+						Dest.Type=pBoolType;
+						return true;
+					}
+				}
+			}
+			else
+			{
+				// name
+				for (DWORD nSkill=0;szSkills[nSkill];nSkill++)
+					if (!stricmp(Index,szSkills[nSkill]))
+					{
+						// found name
+						if (pChar->Skill[nSkill]>252)
+							return false;
+						for (DWORD nAbility=0;nAbility<10;nAbility++)
+						if (EQADDR_DOABILITYLIST[nAbility] == nSkill) 
+						{
+							if (nAbility<4)
+								nAbility+=7;
+							else
+								nAbility-=3;
+							Dest.DWord=EQADDR_DOABILITYAVAILABLE[nAbility];
+							Dest.Type=pBoolType;
+							return true;
+						}
+					}
+			}
+		}
+		return false;
+	case Book:
+		if (Index[0])
+		{
+			if (Index[0]>='0' && Index[0]<='9')
+			{
+				// numeric
+				unsigned long nSpell=atoi(Index)-1;
+				if (nSpell<NUM_BOOK_SLOTS)
+				if (Dest.Ptr=GetSpellByID(pChar->SpellBook[nSpell]))
+				{
+					Dest.Type=pSpellType;
+					return true;
+				}
+			}
+			else
+			{
+				// name
+				for (DWORD nSpell=0 ; nSpell < NUM_BOOK_SLOTS ; nSpell++)
+                if (pChar->SpellBook[nSpell] != 0xFFFFFFFF)
+				{
+					if (!stricmp(GetSpellNameByID(pChar->SpellBook[nSpell]),Index))
+					{
+						Dest.DWord=nSpell+1;
+						Dest.Type=pIntType;
+						return true;
+					}
+				}
+			}
+		}
+		return false;
 		/*
-		Book=20,
-		Skill=21,
-		Ability=22,
 		FreeInventory
 		SpellReady
 		GroupLeaderExp=46,
@@ -1957,6 +2184,51 @@ bool MQ2MacroQuestType::GetMember(MQ2VARPTR VarPtr, PCHAR Member, PCHAR Index, M
 	}
 	return false;
 }
+bool MQ2TypeType::GetMember(MQ2VARPTR VarPtr, PCHAR Member, PCHAR Index, MQ2TYPEVAR &Dest)
+{
+#define pType ((MQ2Type*)VarPtr.Ptr)
+	if (!VarPtr.Ptr)
+		return false;
+	unsigned long N=MemberMap[Member];
+	if (!N)
+		return false;
+	N--;
+	PMQ2TYPEMEMBER pMember=Members[N];
+	if (!pMember)
+		return false;
+	switch((TypeMembers)pMember->ID)
+	{
+	case Name:
+		Dest.Ptr=pType->GetName();
+		Dest.Type=pStringType;
+		return true;
+	case TypeMember:
+		if (Index[0])
+		{
+			if (Index[0]>='0' && Index[0]<='9')
+			{
+				// name by number
+				if (Dest.Ptr=pType->GetMemberName(atoi(Index)))
+				{
+					Dest.Type=pStringType;
+					return true;
+				}
+			}
+			else
+			{
+				// number by name
+				if (pType->GetMemberID(Index,Dest.DWord))
+				{
+					Dest.Type=pIntType;
+					return true;
+				}
+			}
+		}
+		return false;
+	}
+	return false;
+#undef pType
+}
 bool MQ2CorpseType::GetMember(MQ2VARPTR VarPtr, PCHAR Member, PCHAR Index, MQ2TYPEVAR &Dest)
 {
 	return false;
@@ -1968,5 +2240,73 @@ bool MQ2MerchantType::GetMember(MQ2VARPTR VarPtr, PCHAR Member, PCHAR Index, MQ2
 
 bool MQ2TimeType::GetMember(MQ2VARPTR VarPtr, PCHAR Member, PCHAR Index, MQ2TYPEVAR &Dest)
 {
+#define pTime ((struct tm *)VarPtr.Ptr)
+	if (!VarPtr.Ptr)
+		return false;
+	unsigned long N=MemberMap[Member];
+	if (!N)
+		return false;
+	N--;
+	PMQ2TYPEMEMBER pMember=Members[N];
+	if (!pMember)
+		return false;
+	switch((TimeMembers)pMember->ID)
+	{
+	case Hour:
+		Dest.DWord=pTime->tm_hour;
+		Dest.Type=pIntType;
+		return true;
+	case Minute:
+		Dest.DWord=pTime->tm_min;
+		Dest.Type=pIntType;
+		return true;
+	case Second:
+		Dest.DWord=pTime->tm_sec;
+		Dest.Type=pIntType;
+		return true;
+	case DayOfWeek:
+		Dest.DWord=pTime->tm_wday+1;
+		Dest.Type=pIntType;
+		return true;
+	case Day:
+		Dest.DWord=pTime->tm_mday;
+		Dest.Type=pIntType;
+		return true;
+	case Month:
+		Dest.DWord=pTime->tm_mon;
+		Dest.Type=pIntType;
+		return true;
+	case Year:
+		Dest.DWord=pTime->tm_year;
+		Dest.Type=pIntType;
+		return true;
+	case Time12:
+		{
+			unsigned long Hour=pTime->tm_hour%12;
+			if (!Hour)
+				Hour=12;
+			sprintf(DataTypeTemp,"%02d:%02d:%02d",pTime->tm_hour,pTime->tm_min, pTime->tm_sec);
+			Dest.Ptr=&DataTypeTemp[0],
+			Dest.Type=pStringType; 
+		}
+		return true;
+	case Time24:
+		sprintf(DataTypeTemp,"%02d:%02d:%02d",pTime->tm_hour,pTime->tm_min, pTime->tm_sec);
+		Dest.Ptr=&DataTypeTemp[0],
+		Dest.Type=pStringType; 
+		return true;
+	case Date:
+		sprintf(DataTypeTemp,"%02d/%02d/%04d",pTime->tm_mon,pTime->tm_mday, pTime->tm_year);
+		Dest.Ptr=&DataTypeTemp[0],
+		Dest.Type=pStringType; 
+		return true;
+	case Night:
+		Dest.DWord=((pTime->tm_hour<7) || (pTime->tm_hour>18));
+		Dest.Type=pBoolType;
+		return true;
+	}
 	return false;
+#undef GetTime
 }
+
+

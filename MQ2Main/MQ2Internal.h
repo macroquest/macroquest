@@ -160,7 +160,7 @@ typedef struct _VARSTRINGS {
     CHAR szName[MAX_VARNAME];
     CHAR szVar[MAX_STRING];
     struct _VARSTRINGS *pNext;
-	struct _VARSTRINGS *pPrev;
+//	struct _VARSTRINGS *pPrev;
 	BOOL Macro;
 } VARSTRINGS, *PVARSTRINGS;
 
@@ -169,7 +169,7 @@ typedef struct _VARARRAYS {
     BOOL OneDimension;
     PVARSTRINGS pVarStrings;
     struct _VARARRAYS *pNext;
-	struct _VARARRAYS *pPrev;
+//	struct _VARARRAYS *pPrev;
 	BOOL Macro;
 } VARARRAYS, *PVARARRAYS;
 
@@ -550,6 +550,30 @@ public:
 
 	inline PCHAR GetName() {return &TypeName[0];}
 
+	PCHAR GetMemberName(DWORD ID)
+	{
+		for (unsigned long N=0 ; N < Members.Size ; N++)
+		{
+			if (PMQ2TYPEMEMBER pMember = Members[N])
+			{
+				if (pMember->ID==ID)
+					return &pMember->Name[0];
+			}
+		}
+		return 0;
+	}
+
+	BOOL GetMemberID(PCHAR Name, DWORD &Result)
+	{
+		unsigned long N=MemberMap[Name];
+		if (N>0)
+			return false;
+		N--;
+		PMQ2TYPEMEMBER pMember = Members[N];
+		Result=pMember->ID;
+		return true;
+	}
+
 protected:
 	inline BOOL AddMember(DWORD ID, PCHAR Name)
 	{
@@ -578,8 +602,8 @@ protected:
 
 	CHAR TypeName[32];
 	map<string,DWORD> MemberMap;
-	CIndex<PMQ2TYPEMEMBER> Members;
 	BOOL Official;
+	CIndex<PMQ2TYPEMEMBER> Members;
 };
 
 

@@ -1,15 +1,53 @@
 7 Apr 2004 by Lax
 (im going to fill this in later, too tired right now)
 - Changes to MQ2Data system:
-  Zone
-  Zone[id]
-  Zone[name]
-  character.Bound
-  Time
+  *** NOTICE: All X and Y coordinates used by the MQ2Data system have been REVERSED.
+      Internally, MQ2 stays the same as it has been forever.  However, you will now
+      notice that "/echo ${Me.X}, ${Me.Y}, ${Me.Z}" will give the same order as seen
+      by typing /loc
+  Top level objects:
+  * currentzone Zone: Zone information about current zone
+  * zone Zone[id]: Zone information for zone with this id
+  * zone Zone[shortname]: Zone information for zone with this name
+  * time Time: Your local time in real life
+  * time GameTime: Game time
+  * type Type[name]: Info about the type with this name
+  * string Ini[filename,section,key,default]: Reads from an ini file.  section, key, 
+    and default do not need to be given.  section and key may be set to -1 to skip them 
+    and give a new value.  If section or key are not given, multiple values are read...
+  Additions/Changes to existing types:
+  * bool string.Equal: Strings equal? Case does not count...
+  * bool string.NotEqual: Strings not equal? Case does not count...
+  * bool string.EqualCS: Strings equal? Case counts!
+  * bool string.NotEqualCS: Strings not equal? Case counts!
+  * string string.Arg[n,separator]: Gets nth argument using separator as the separator (single character). If separator is not given, defaults to space
+  * zone character.Bound: The zone you are bound in
+  * int character.Skill[name]: Skill level of skill with this name
+  * int character.Skill[n]: Skill level of skill with this index
+  * int character.Ability[name]: Doability button number this skill name is on
+  * string character.Ability[slot]: Skill name assigned to this doability button
+  * bool character.AbilityReady[name]: Ability with this name ready?
+  * bool character.AbilityReady[slot]: Ability on this button ready?
+  * spell character.Book[slot]: Spell assigned to this slot in your spellbook
+  * int character.Book[name]: Spell slot the spell with this name is assigned to in your spellbook
+  * float (TOSTRING): Changed to ###.## instead of .###
+  New types:
+  * currentzone
+  * time
+  * type
+  *** Special handling is used for casting to "type", such that the new data is equal 
+      to the old type, and the new type is "type".
 - ConColor changed to take 1 parameter
 - FindMount tweaked/inlined
-
-
+- Changed the "RunNextCommand" to remain to TRUE until set to FALSE, so only cases where
+  the next command should not be run need to be explicitly set (this should increase
+  macro performance in most cases, but some commands may need to be correctly updated)
+- /declare will no longer spam you if the variable previously existed.  If the variable
+  previously existed, it will be quietly deleted and replaced by the new one.  This might
+  cause some people problems but they will learn quickly ;)
+- New command /deletevar <name> - Deletes an existing variable.  Gives a message if the
+  variable did not exist, but no message if the variable did exist.
+  
 31 Mar 2004 by Lax (more)
 - Fixed character member PctExp
 - Added character members:

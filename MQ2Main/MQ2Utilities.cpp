@@ -721,7 +721,7 @@ VOID GetGameTime(int* Hour, int* Minute, int* Night)
    eqMinute=((PWORLDDATA)pWorldData)->Minute;
    if (Hour) *Hour = eqHour;
    if (Minute) *Minute = eqMinute;
-   if (Night) *Night = (eqHour < 7 || eqHour > 18)?TRUE:FALSE;
+   if (Night) *Night = ((eqHour < 7) || (eqHour > 18));//?TRUE:FALSE; // already handled by operators
 }
 
 // ***************************************************************************

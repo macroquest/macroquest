@@ -103,6 +103,17 @@ BOOL RemoveMQ2Data(PCHAR szName)
 	return true;
 }
 
+BOOL dataType(PCHAR szIndex, MQ2TYPEVAR &Ret)
+{
+	if (MQ2Type* pType=FindMQ2DataType(szIndex))
+	{
+		Ret.Ptr=pType;
+		Ret.Type=pTypeType;
+		return true;
+	}
+	return false;
+}
+
 void InitializeMQ2Data()
 {
 	AddMQ2Data("Spawn",dataSpawn);
@@ -126,6 +137,9 @@ void InitializeMQ2Data()
 	AddMQ2Data("If",dataIf);
 	AddMQ2Data("Cursor",dataCursor);
 	AddMQ2Data("NearestSpawn",dataNearestSpawn);
+	AddMQ2Data("Type",dataType);
+	AddMQ2Data("Time",dataTime);
+	AddMQ2Data("GameTime",dataGameTime);
 }
 
 
@@ -482,13 +496,21 @@ BOOL ParseMacroData(PCHAR szOriginal)
 					++pPos;
 				}
 				*pPos=0;
-				CurrentVar.Type=FindMQ2DataType(pType);
-				if (!CurrentVar.Type)
+				MQ2Type *pNewType=FindMQ2DataType(pType);
+				if (!pNewType)
 				{
 					// error
 					strcpy(szCurrent,"NULL");
 					goto pmdinsert;
 				}
+				if (pNewType==pTypeType)
+				{
+					CurrentVar.Ptr=CurrentVar.Type;
+					CurrentVar.Type=pTypeType;
+				}
+				else
+					CurrentVar.Type=pNewType;
+
 				if (pPos[1]=='.')
 					pStart=&pPos[1];
 				else if (!pPos[1])

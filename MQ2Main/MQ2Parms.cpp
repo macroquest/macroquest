@@ -2709,7 +2709,8 @@ DWORD parmChar(PCHAR szVar, PCHAR szOutput, PSPAWNINFO pChar)
             PCHAR szArg = szVar+13;
             WORD Skill = atoi(szArg);
             CHAR szTemp[MAX_STRING] = "0";
-            if (Skill==0 && szArg[0]!='0') {
+            if (Skill==0 && szArg[0]!='0') 
+			{
                 if (szArg[0]=='"') szArg++;
                 DWORD sk;
                 for (sk=0;szSkills[sk];sk++) {
@@ -2736,7 +2737,7 @@ DWORD parmChar(PCHAR szVar, PCHAR szOutput, PSPAWNINFO pChar)
                         }
                     }
                 }
-            } else {
+			} else {
                 if (Skill>0 && Skill<11) {
                     if (Skill<7) {
                         Skill+=3; // 1-6 = Abilities (4-9)
@@ -5202,6 +5203,10 @@ DWORD parmIni(PCHAR szVar, PCHAR szOutput, PSPAWNINFO pChar)
     // $ini(<filename>[,<sectionname>[,<keyname>]])
     // Jalapeno & BlueSkies
     // Additions/Modifications by Valerian
+
+	// HEY GUYS THANKS FOR MAKING THIS 100% UNREADABLE AND LOOK LIKE ASS SO I HAVE NO
+	// IDEA WHAT IM DOING REWRITING IT FOR MQ2DATA - Lax
+
     if ((!strstr(szVar,")")) || (szVar[4] == ')')) {
         DebugSpewNoFile("PMP - Bad $ini() '%s'",szVar);
         return 10000;
@@ -5239,6 +5244,9 @@ DWORD parmIni(PCHAR szVar, PCHAR szOutput, PSPAWNINFO pChar)
         }
 
         if ((atoi(szArg2)==-1) || (atoi(szArg3)==-1) || (!*szArg2) || (!*szArg3)) {
+			// Burning brain cells trying to figure out if this part is even going to
+			// do what it was intended to do, and it'll probably cause a buffer overflow
+			// if it does.
             for (DWORD k = 0;((szBuffer[k] != 0) || (szBuffer[k+1] != 0));k++)
                 if (szBuffer[k]==0) szBuffer[k] = '|';
             strcat(szBuffer,"||");

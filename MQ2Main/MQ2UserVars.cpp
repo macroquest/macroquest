@@ -320,6 +320,82 @@ VOID GetVariable(PCHAR szVar, PCHAR *szResult, PTIMER *pTimer)
 	return;
 }
 
+BOOL FreeArray(PCHAR szName)
+{
+	PVARARRAYS pArray = gArray;
+	PVARARRAYS pPrev=0;
+	while(pArray)
+	{
+		if (!strcmp(pArray->szName,szName))
+		{
+			if (pPrev)
+				pPrev->pNext=pArray->pNext;
+			else
+				gArray=pArray->pNext;
+			free(pArray);
+			return true;
+		}
+		pPrev=pArray;
+		pArray=pArray->pNext;
+	}
+	return false;
+}
+
+BOOL FreeTimer(PCHAR szName)
+{
+	PTIMER pTimer = gTimer;
+	PTIMER pPrev=0;
+	while(pTimer)
+	{
+		if (!strcmp(pTimer->szName,szName))
+		{
+			if (pPrev)
+				pPrev->pNext=pTimer->pNext;
+			else
+				gTimer=pTimer->pNext;
+			free(pTimer);
+			return true;
+		}
+		pPrev=pTimer;
+		pTimer=pTimer->pNext;
+	}
+	return false;
+}
+
+BOOL FreeStringVariable(PCHAR szName, PVARSTRINGS *pHead)
+{
+	PVARSTRINGS pVar = *pHead;
+	PVARSTRINGS pPrev=0;
+	while(pVar)
+	{
+		if (!strcmp(pVar->szName,szName))
+		{
+			if (pPrev)
+				pPrev->pNext=pVar->pNext;
+			else
+				*pHead=pVar->pNext;
+			free(pVar);
+			return true;
+		}
+		pPrev=pVar;
+		pVar=pVar->pNext;
+	}
+	return false;
+}
+
+BOOL DeleteVariable(PCHAR szName)
+{
+	if (FreeArray(szName))
+		return true;
+	if (FreeTimer(szName))
+		return true;
+	if (FreeStringVariable(szName,&gMacroStack->LocalStr))
+		return true;
+	if (FreeStringVariable(szName,&gMacroStr))
+		return true;
+	return false;
+}
+
 BOOL SearchVariables(PCHAR szVar,PCHAR szOutput,PVARSTRINGS pVarStrings)
 {
 	while (pVarStrings) {
@@ -411,14 +487,10 @@ VOID DeclareVar(PSPAWNINFO pChar, PCHAR szLine)
 	if (Arg1[0]==0 || Arg2[0]==0) {
 		WriteChatColor("Usage: /declare <varname> <global|local|timer|array|array2>",USERCOLOR_DEFAULT);
 	} else {
-		PCHAR szCheck = NULL;
-		PTIMER pCheck = NULL;
-		GetVariable(Arg1,&szCheck,&pCheck);
-		if (szCheck || pCheck) {
-                        CHAR tmp[MAX_STRING];
-                        sprintf(tmp, "Variable name already defined: %s", Arg1);
-			WriteChatColor(tmp,USERCOLOR_DEFAULT);
-		} else if (!stricmp(Arg2,"global")) {
+		// destroy old variable
+		DeleteVariable(Arg1);
+
+		if (!stricmp(Arg2,"global")) {
 			GetMacroStr(Arg1,TRUE);
 		} else if (!stricmp(Arg2,"local")) {
 			if (gMacroStack) {
@@ -436,4 +508,20 @@ VOID DeclareVar(PSPAWNINFO pChar, PCHAR szLine)
 	}
 }
 
-
+VOID DeleteVarCmd(PSPAWNINFO pChar, PCHAR szLine)
+{
+	bRunNextCommand = TRUE;
+	if (szLine[0]==0) {
+		WriteChatColor("Usage: /deletevar <varname>",USERCOLOR_DEFAULT);
+	} 
+	else 
+	{
+		// destroy old variable
+		if (!DeleteVariable(szLine))
+		{
+			CHAR Temp[MAX_STRING];
+			sprintf(Temp,"Variable '%s' does not exist",szLine);
+			WriteChatColor(Temp,USERCOLOR_DEFAULT);
+		}
+	}
+}
