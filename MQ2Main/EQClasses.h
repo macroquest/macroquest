@@ -2026,7 +2026,7 @@ class CHotButtonWnd
 public:
 EQLIB_OBJECT CHotButtonWnd::CHotButtonWnd(class CXWnd *);
 EQLIB_OBJECT void CHotButtonWnd::Activate(void);
-EQLIB_OBJECT void CHotButtonWnd::DoHotButton(int,int);
+EQLIB_OBJECT void CHotButtonWnd::DoHotButton(int Button,int AllowAutoRightClick);
 EQLIB_OBJECT void CHotButtonWnd::DoHotButtonRightClick(int);
 EQLIB_OBJECT void CHotButtonWnd::UpdatePage(void);
 // virtual
@@ -4746,6 +4746,7 @@ class CXPoint
 {
 public:
 EQLIB_OBJECT class CXPoint CXPoint::operator=(class CXPoint);
+DWORD A,B,C,D;
 };
 
 class CXRect
