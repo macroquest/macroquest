@@ -10,6 +10,7 @@
   global scope changed and /zapvars no longer exists, but you can't make the variables outer
   scope because theyre already in global scope and you dont want to delete them all one by
   one....
+- Perfected Multi-dimensional arrays
 
 29 Apr 2004 by Lax (more):
 - Fixed Multi-dimensional arrays

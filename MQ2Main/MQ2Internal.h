@@ -790,8 +790,8 @@ public:
 				DWORD Temp=atoi(pStart)-1;
 				if (Temp>=pExtents[N])
 					return -1;
-				if (N<nExtents-1)
-					Element*=pExtents[N];
+				for (unsigned long i = N+1 ; i < nExtents; i++)
+					Temp*=pExtents[i];
 				Element+=Temp;
 				
 				if (pComma)
@@ -851,8 +851,8 @@ public:
 				DWORD Temp=atoi(pStart)-1;
 				if (Temp>=pExtents[N])
 					return FALSE;
-				if (N<nExtents-1)
-					Element*=pExtents[N];
+				for (unsigned long i = N+1 ; i < nExtents; i++)
+					Temp*=pExtents[i];
 				Element+=Temp;
 				
 				if (pComma)
