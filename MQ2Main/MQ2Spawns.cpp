@@ -569,7 +569,8 @@ VOID InitializeMQ2Spawns()
 	CHAR Temp[MAX_STRING]={0};
 	CHAR Name[MAX_STRING]={0};
 	// load custom spawn caption colors
-	for (DWORD N = 0 ; CaptionColors[N].szName[0] ; N++)
+	DWORD N;
+	for (N = 0 ; CaptionColors[N].szName[0] ; N++)
 	{
 		if (GetPrivateProfileString("Caption Colors",CaptionColors[N].szName,"",Temp,MAX_STRING,gszINIFilename))
 		{
@@ -585,7 +586,7 @@ VOID InitializeMQ2Spawns()
 		}
 	}
 	// write custom spawn caption colors
-	for (DWORD N = 0 ; CaptionColors[N].szName[0] ; N++)
+	for (N = 0 ; CaptionColors[N].szName[0] ; N++)
 	{
 		WritePrivateProfileString("Caption Colors",CaptionColors[N].szName,CaptionColors[N].Enabled?"ON":"OFF",gszINIFilename);
 		if (!CaptionColors[N].ToggleOnly)
