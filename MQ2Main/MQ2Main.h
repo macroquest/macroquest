@@ -129,6 +129,8 @@ extern DWORD CountFrees;
 	SetvfTable(32,*(DWORD*)&pfWndNotification);\
 }
 
+#define EzDetour(offset,detour,trampoline) AddDetourf((DWORD)offset,detour,trampoline)
+/*
 #define EzDetour(offset,detour,trampoline) \
 {\
 	PBYTE pDetour;\
@@ -139,6 +141,7 @@ extern DWORD CountFrees;
 	__asm{pop [pTrampoline]};\
 	AddDetour((DWORD)offset,pDetour,pTrampoline);\
 };
+/**/
 
 //#define EasyClassDetour(offset,detourclass,detourname,returntype,parameters,trampolinename) EzDetour(offset,detourclass::detourname,detourclass::trampolinename)
 //#define EasyDetour(offset,detourname,returntype,parameters,trampolinename) EzDetour(offset,detourname,trampolinename)
@@ -226,6 +229,7 @@ EQLIB_API VOID ShutdownChatHook();
 EQLIB_API VOID InitializeMQ2Detours();
 EQLIB_API VOID ShutdownMQ2Detours();
 EQLIB_API BOOL AddDetour(DWORD address, PBYTE pfDetour=0, PBYTE pfTrampoline=0, DWORD Count=20);
+EQLIB_API VOID AddDetourf(DWORD address, ...);
 EQLIB_API VOID RemoveDetour(DWORD address);
 
 /* PLUGIN HANDLING */

@@ -89,6 +89,33 @@ BOOL AddDetour(DWORD address, PBYTE pfDetour, PBYTE pfTrampoline, DWORD Count)
 	return Ret;
 }
 
+void AddDetourf(DWORD address, ...)
+{
+	va_list marker;
+	int i=0;
+	va_start(marker, address);
+	DWORD Parameters[3];
+	DWORD nParameters=0;
+	while (i!=-1) 
+	{
+		if (nParameters<3)
+		{
+			Parameters[nParameters]=i;
+			nParameters++;
+		}
+		i = va_arg(marker,int);
+	}
+	va_end(marker);
+	if (nParameters==3)
+	{
+		AddDetour(address,(PBYTE)Parameters[1],(PBYTE)Parameters[2],20);
+	}
+	else
+	{
+		DebugSpew("Illegal AddDetourf call");
+	}
+}
+
 void RemoveDetour(DWORD address)
 {
 	CAutoLock Lock(&gDetourCS);
