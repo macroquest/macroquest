@@ -22,7 +22,7 @@
 #endif
 
 #define DBG_SPEW
-#include "stdafx.h"
+
 #include "MQ2Main.h"
 
 DWORD gGameState = 0;

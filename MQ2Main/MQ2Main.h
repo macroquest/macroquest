@@ -14,7 +14,7 @@
 #include <sys/stat.h>
 #include <winsock.h>
 #include <math.h>
-#include "stdafx.h"
+
 #include "..\Detours\inc\detours.h" 
 #include "eqgame.h"
 

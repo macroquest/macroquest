@@ -6,7 +6,7 @@
 // and Shutdown for setup and cleanup, do NOT do it in DllMain.
 
 
-#include "stdafx.h"
+
 #include "../MQ2Plugin.h"
 
 BOOL APIENTRY DllMain( HANDLE hModule, 

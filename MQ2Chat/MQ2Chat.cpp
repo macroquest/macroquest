@@ -2,7 +2,7 @@
 // The "old" chat plugin
 
 
-#include "stdafx.h"
+
 #include "../MQ2Plugin.h"
 
 BOOL APIENTRY DllMain( HANDLE hModule, 

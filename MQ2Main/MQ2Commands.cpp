@@ -19,7 +19,7 @@
 #define DBG_SPEW
 
 #include <direct.h>
-#include "stdafx.h"
+
 #include "MQ2Main.h"
 
 // ***************************************************************************

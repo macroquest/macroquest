@@ -3,7 +3,7 @@
 
 // MQ2 Custom Labels
 
-#include "stdafx.h"
+
 #include "../MQ2Plugin.h"
 
 // PLEASE keep this array limited.  Recommend using 9999 and tooltips.

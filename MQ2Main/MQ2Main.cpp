@@ -18,7 +18,7 @@ GNU General Public License for more details.
 #endif
 
 #define DBG_SPEW
-#include "stdafx.h"
+
 #include "MQ2Main.h"
 
 #ifdef EQLIB_EXPORTS

@@ -18,7 +18,7 @@ GNU General Public License for more details.
 
 #define DBG_SPEW 
 
-#include "stdafx.h" 
+ 
 #include "MQ2Main.h" 
 
 
