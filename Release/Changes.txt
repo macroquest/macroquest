@@ -14,6 +14,9 @@
 - Moved a few functions to MQ2Inlines.h
 - Fixed a performance issue in GetSpellByName
 - Trying to detour an already detoured address will now fail instead of crashing
+- Added some offsets to eqgame.h (mostly CListWnd), removed some offsets that were virtual
+  functions and probably not used anyway.  If you are adding basic UI offsets to your plugins
+  ask to have them in eqgame.h please (people were doing this with CListWnd offsets).
 
 23 Mar 2004 by Amadeus
 - Removed DisplayZem function and calls and $zone(ZEM)  ...rest in peace.

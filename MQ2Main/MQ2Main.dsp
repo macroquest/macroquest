@@ -87,6 +87,18 @@ SOURCE=.\MQ2Commands.cpp
 # End Source File
 # Begin Source File
 
+SOURCE=.\MQ2Data.cpp
+# End Source File
+# Begin Source File
+
+SOURCE=.\MQ2DataAPI.cpp
+# End Source File
+# Begin Source File
+
+SOURCE=.\MQ2DataTypes.cpp
+# End Source File
+# Begin Source File
+
 SOURCE=.\MQ2DetourAPI.cpp
 # End Source File
 # Begin Source File
@@ -180,6 +192,10 @@ SOURCE=.\grounds.h
 # Begin Source File
 
 SOURCE=.\itemtypes.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\MQ2DataTypes.h
 # End Source File
 # Begin Source File
 
