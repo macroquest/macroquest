@@ -60,6 +60,8 @@ using namespace std;
 #define FromPlugin 0
 #endif
 
+//#define USEMQ2PARMS
+#define USEMQ2DATATYPES
 
 
 // reroute malloc/free
@@ -249,6 +251,15 @@ EQLIB_API VOID GracefullyEndBadMacro(PSPAWNINFO pChar, PMACROBLOCK pBadLine, PCH
 EQLIB_API VOID FailIf(PSPAWNINFO pChar, PCHAR szCommand, PMACROBLOCK pStartLine, BOOL All=FALSE);
 EQLIB_API VOID InitializeParser();
 EQLIB_API VOID ShutdownParser();
+
+EQLIB_API VOID InitializeMQ2DataTypes();
+EQLIB_API VOID ShutdownMQ2DataTypes();
+EQLIB_API VOID InitializeMQ2Data();
+EQLIB_API VOID ShutdownMQ2Data();
+EQLIB_API BOOL ParseMacroData(PCHAR szOriginal);
+EQLIB_API BOOL ParseMacroVariables(PCHAR szOriginal);
+EQLIB_API BOOL AddMQ2Data(PCHAR szName, fMQData Function);
+EQLIB_API BOOL RemoveMQ2Data(PCHAR szName);
 
 /* MOUSE */
 EQLIB_API BOOL IsMouseWaiting(VOID);
@@ -470,6 +481,16 @@ EQLIB_API DOUBLE Calculate(PCHAR szFormula);
 EQLIB_API BOOL dataSpawn(PCHAR szIndex, MQ2TYPEVAR &Ret);
 EQLIB_API BOOL dataTarget(PCHAR szIndex, MQ2TYPEVAR &Ret);
 EQLIB_API BOOL dataCharacter(PCHAR szIndex, MQ2TYPEVAR &Ret);
+EQLIB_API BOOL dataSpell(PCHAR szIndex, MQ2TYPEVAR &Ret);
+EQLIB_API BOOL dataSwitch(PCHAR szIndex, MQ2TYPEVAR &Ret);
+EQLIB_API BOOL dataGroundItem(PCHAR szIndex, MQ2TYPEVAR &Ret);
+EQLIB_API BOOL dataMerchant(PCHAR szIndex, MQ2TYPEVAR &Ret);
+EQLIB_API BOOL dataWindow(PCHAR szIndex, MQ2TYPEVAR &Ret);
+EQLIB_API BOOL dataMacro(PCHAR szIndex, MQ2TYPEVAR &Ret);
+EQLIB_API BOOL dataMacroQuest(PCHAR szIndex, MQ2TYPEVAR &Ret);
+EQLIB_API BOOL dataMath(PCHAR szIndex, MQ2TYPEVAR &Ret);
+EQLIB_API BOOL dataZone(PCHAR szIndex, MQ2TYPEVAR &Ret);
+EQLIB_API BOOL dataGroup(PCHAR szIndex, MQ2TYPEVAR &Ret);
 
 
 /* COMMANDS */

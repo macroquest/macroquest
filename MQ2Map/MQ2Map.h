@@ -80,6 +80,7 @@ VOID MapAttach();
 VOID MapDetach();
 
 VOID MapSelectTarget();
+BOOL dataMapSpawn(PCHAR szIndex, MQ2TYPEVAR &Ret);
 
 struct _MAPSPAWN* AddSpawn(PSPAWNINFO pNewSpawn,BOOL ExplicitAllow=false);
 bool RemoveSpawn(PSPAWNINFO pSpawn);

@@ -45,7 +45,7 @@ inline PMQ2DATAITEM FindMQ2Data(PCHAR szName)
 	return MQ2DataItems[N];
 }
 
-bool AddMQ2Data(PCHAR szName, fMQData Function)
+BOOL AddMQ2Data(PCHAR szName, fMQData Function)
 {
 	if (FindMQ2Data(szName))	
 		return false;
@@ -58,8 +58,18 @@ bool AddMQ2Data(PCHAR szName, fMQData Function)
 	return true;
 }
 
-bool RemoveMQ2Data(PCHAR szName)
+BOOL RemoveMQ2Data(PCHAR szName)
 {
+	unsigned long N=MQ2DataMap[szName];
+	if (!N)
+		return 0;
+	N--;
+	if (PMQ2DATAITEM pItem=MQ2DataItems[N])
+	{
+		MQ2DataItems[N]=0;
+		delete pItem;
+	}
+	MQ2DataMap[szName]=0;
 	return false;
 }
 
@@ -68,6 +78,16 @@ void InitializeMQ2Data()
 	AddMQ2Data("Spawn",dataSpawn);
 	AddMQ2Data("Target",dataTarget);
 	AddMQ2Data("Me",dataCharacter);
+	AddMQ2Data("Spell",dataSpell);
+	AddMQ2Data("Switch",dataSwitch);
+	AddMQ2Data("Ground",dataGroundItem);
+	AddMQ2Data("Merchant",dataMerchant);
+	AddMQ2Data("Window",dataWindow);
+	AddMQ2Data("Macro",dataMacro);
+	AddMQ2Data("MacroQuest",dataMacroQuest);
+	AddMQ2Data("Math",dataMath);
+	AddMQ2Data("Zone",dataZone);
+	AddMQ2Data("Group",dataGroup);
 }
 
 
@@ -77,8 +97,176 @@ void ShutdownMQ2Data()
 	MQ2DataItems.Cleanup();
 }
 
+const UCHAR EndVariable[256]=
+{
+/*0x00-0x0F*/1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,
+/*0x10-0x1F*/1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,
+/*0x20-0x2F*/1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,
+/*0x30-0x3F*/0,0,0,0,0,0,0,0,0,0,1,1,1,1,1,1,
+/*0x40-0x4F*/1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+/*0x50-0x5F*/0,0,0,0,0,0,0,0,0,0,0,1,1,1,1,1,
+/*0x60-0x6F*/1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+/*0x70-0x7F*/0,0,0,0,0,0,0,0,0,0,0,1,1,1,1,1,
+/*0x80-0x8F*/1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,
+/*0x90-0x9F*/1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,
+/*0xA0-0xAF*/1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,
+/*0xB0-0xBF*/1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,
+/*0xC0-0xCF*/1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,
+/*0xD0-0xDF*/1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,
+/*0xE0-0xEF*/1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,
+/*0xF0-0xFF*/1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1
+};
 
+inline BOOL NewSearchVariables(PCHAR szString,PVARSTRINGS pVarStrings)
+{
+	while (pVarStrings) {
+		if (!strcmp(szString,pVarStrings->szName)) {
+			strcpy(szString,pVarStrings->szVar);
+			return TRUE;
+		}
+		pVarStrings = pVarStrings->pNext;
+	}
+	return FALSE;
+}
 
+BOOL NewSearchTimers(PCHAR szString)
+{
+	PTIMER pTimer=gTimer;
+	while (pTimer) {
+		if (!strcmp(szString,pTimer->szName)) {
+			itoa(pTimer->Current,szString,10);
+			return TRUE;
+		}
+		pTimer = pTimer->pNext;
+	}
+	return FALSE;
+}
+
+BOOL NewSearchArrays(PCHAR szString)
+{
+	DWORD Index1 = -1;
+	DWORD Index2 = -1;
+	CHAR szArray[MAX_STRING] = {0};
+	strcpy(szArray,szString);
+	PCHAR pLP=strchr(szArray,'(');
+	if (pLP && (strchr(szArray,')'))) {
+		Index1=atoi(&pLP[1]);
+		PCHAR pComma=strchr(szArray,',');
+		if (pComma) 
+			Index2=atoi(pComma);
+		*pLP=0;
+	}
+	else
+		return FALSE;
+
+	if (Index1 != -1) {
+		PVARARRAYS pArray= GetArray(szArray,FALSE);
+		if (!pArray) return FALSE;
+		if (pArray->OneDimension && Index2 != -1) return FALSE;
+		if (!pArray->OneDimension && Index2 == -1) return FALSE;
+		PCHAR szResult = GetArrayStr(pArray,Index1,Index2,TRUE);
+		if (szResult) {
+			strcpy(szString,szResult);
+			return TRUE;
+		}
+	}
+	return FALSE;
+}
+
+BOOL ParseMacroVariables(PCHAR szOriginal)
+{
+	PCHAR pAt=strchr(szOriginal,'@');
+	if (!pAt)
+		return false;
+	bool Changed=false;
+
+	CHAR szCurrent[MAX_STRING]={0};
+		// find this brace's end
+	do
+	{
+		PCHAR pEnd=pAt;
+		do
+		{
+            ++pEnd;
+			if (EndVariable[(UCHAR)*pEnd])
+			{
+				break;
+			}
+		} while(1);
+		unsigned long Len=(pEnd-pAt)-1;
+		if (!Len)
+			goto pmvbottom;
+		strncpy(szCurrent,&pAt[1],Len);
+		szCurrent[Len]=0;
+
+		// szCurrent is the variable name
+		if (gMacroStack)
+		{
+			if (NewSearchVariables(szCurrent,gMacroStack->StackStr)) goto pmvinsert;
+			if (NewSearchVariables(szCurrent,gMacroStack->LocalStr)) goto pmvinsert;
+		}
+		if (NewSearchVariables(szCurrent,gMacroStr)) goto pmvinsert;
+		if (NewSearchTimers(szCurrent)) goto pmvinsert;
+
+		if (*pEnd=='(')
+		{
+			PCHAR pStart=pEnd;
+			BOOL Quote=false;
+			int nParens=1;
+			++pEnd;
+			while (nParens)
+			{
+				if (*pEnd==0)
+				{// unmatched parenthesis or quote
+					goto pmvbottom;
+				}
+				if (*pEnd==')')
+				{
+					if (!Quote)
+						nParens--;
+				}
+				else if (*pEnd=='(')
+				{
+					if (!Quote)
+						nParens++;
+				}
+				else if (*pEnd=='\"')
+				{
+					Quote=!Quote;
+				}
+			} 
+		}
+		
+		Len=(pEnd-pAt)-1;
+		strncpy(szCurrent,&pAt[1],Len);
+		szCurrent[Len]=0;
+		ParseMacroVariables(szCurrent);
+		ParseMacroData(szCurrent);
+
+		if (NewSearchArrays(szCurrent)) goto pmvinsert;
+
+		goto pmvbottom;
+		// insert szCurrent into current position
+pmvinsert:;
+		unsigned long NewLength=strlen(szCurrent);
+
+		memmove(&pAt[NewLength],&pEnd,strlen(pEnd)+1);
+		strncpy(pAt,szCurrent,NewLength);
+		Changed=true;
+pmvbottom:;
+	} while (pAt=strstr(&pAt[1],"${"));
+/*
+	PCHAR Rep=&szOriginal[0];
+	while(*Rep)
+	{
+		if (*Rep==-0x7E)
+			*Rep='$';
+		++Rep;
+	}
+/**/
+
+	return Changed;
+}
 
 
 BOOL ParseMacroData(PCHAR szOriginal)
@@ -89,7 +277,6 @@ BOOL ParseMacroData(PCHAR szOriginal)
 		return false;
 	
 	BOOL Changed=false;
-	CHAR szOutput[MAX_STRING]={0};
 
 	CHAR szCurrent[MAX_STRING]={0};
 
@@ -104,7 +291,6 @@ BOOL ParseMacroData(PCHAR szOriginal)
 			++pEnd;
 			if (*pEnd==0)
 			{// unmatched brace or quote
-				*pBrace=-0x7E;
 				goto pmdbottom;
 			}
 			if (*pEnd=='}')
@@ -126,7 +312,7 @@ BOOL ParseMacroData(PCHAR szOriginal)
 		strcpy(szCurrent,&pBrace[2]);
 		if (szCurrent[0]==0)
 		{
-			continue;
+			goto pmdbottom;
 		}
 		if (ParseMacroData(szCurrent))
 		{
@@ -253,6 +439,7 @@ pmdinsert:;
 pmdbottom:;
 	} while (pBrace=strstr(&pBrace[1],"${"));
 
+/*
 	PCHAR Rep=&szOriginal[0];
 	while(*Rep)
 	{
@@ -260,6 +447,7 @@ pmdbottom:;
 			*Rep='$';
 		++Rep;
 	}
+/**/
 
 	return Changed;
 }

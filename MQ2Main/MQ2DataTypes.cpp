@@ -24,6 +24,7 @@
 class MQ2FloatType *pFloatType=0;
 class MQ2IntType *pIntType=0;
 class MQ2ByteType *pByteType=0;
+class MQ2BoolType *pBoolType=0;
 class MQ2StringType *pStringType=0;
 class MQ2SpawnType *pSpawnType=0;
 class MQ2BuffType *pBuffType=0;
@@ -32,6 +33,8 @@ class MQ2TicksType *pTicksType=0;
 class MQ2CharacterType *pCharacterType=0;
 class MQ2ClassType *pClassType=0;
 class MQ2RaceType *pRaceType=0;
+class MQ2BodyType *pBodyType=0;
+
 class MQ2GroundType *pGroundType=0;
 class MQ2SwitchType *pSwitchType=0;
 
@@ -41,6 +44,8 @@ class MQ2MathType *pMathType=0;
 class MQ2WindowType *pWindowType=0;
 class MQ2MerchantType *pMerchantType=0;
 class MQ2ZoneType *pZoneType=0;
+class MQ2ItemType *pItemType=0;
+class MQ2DeityType *pDeityType=0;
 
 CHAR DataTypeTemp[MAX_STRING]={0};
 
@@ -65,6 +70,10 @@ void InitializeMQ2DataTypes()
 	pWindowType = new MQ2WindowType;
 	pMerchantType = new MQ2MerchantType;
 	pZoneType = new MQ2ZoneType;
+	pItemType = new MQ2ItemType;
+	pBoolType = new MQ2BoolType;
+	pBodyType = new MQ2BodyType;
+	pDeityType = new MQ2DeityType;
 }
 
 void ShutdownMQ2DataTypes()
@@ -88,6 +97,10 @@ void ShutdownMQ2DataTypes()
 	delete pWindowType;
 	delete pMerchantType;
 	delete pZoneType;
+	delete pItemType;
+	delete pBoolType;
+	delete pBodyType;
+	delete pDeityType;
 }
 
 bool MQ2SpawnType::GetMember(void *Ptr, PCHAR Member, PCHAR Index, MQ2TYPEVAR &Dest)
@@ -102,41 +115,6 @@ bool MQ2SpawnType::GetMember(void *Ptr, PCHAR Member, PCHAR Index, MQ2TYPEVAR &D
 	if (!pMember)
 		return false;
 #define pSpawn ((PSPAWNINFO)Ptr)
-/*
-	static enum SpawnMembers
-	{
-		DistanceX=7,
-		DistanceY=8,
-		DistanceZ=9,
-		Distance=10,
-		Distance3D=11,
-		DistancePredict=12,
-		Heading=15,
-		Speed=16,
-		Levitating=17,
-		Sneaking=18,
-		HeadingTo=19,
-		Light=20,
-		Body=21,
-		State=22,
-		Deity=26,
-		DeityTeam=27,
-		Type=28,
-		CleanName=29,
-		Surname=30,
-		Guild=31,
-		GuildStatus=32,
-		Master=33,
-		Pet=34,
-		Race=35,
-		Class=36,
-		ShortClass=37,
-		Gender=38,
-		GM=39,
-		Height=40,
-		MaxRange=41,
-	};
-/**/
 	switch((SpawnMembers)pMember->ID)
 	{
 	case Level:
@@ -150,6 +128,16 @@ bool MQ2SpawnType::GetMember(void *Ptr, PCHAR Member, PCHAR Index, MQ2TYPEVAR &D
 	case Name:
 		Dest.Type=pStringType;
 		Dest.Ptr=&pSpawn->Name[0];
+		return true;
+	case Surname:
+		Dest.Type=pStringType;
+		Dest.Ptr=&pSpawn->Lastname[0];
+		return true;
+	case CleanName:
+		strcpy(DataTypeTemp,pSpawn->Name);
+		CleanupName(DataTypeTemp,FALSE);
+		Dest.Type=pStringType;
+		Dest.Ptr=&DataTypeTemp[0];
 		return true;
 	case X:
 		Dest.Type=pFloatType;
@@ -183,6 +171,139 @@ bool MQ2SpawnType::GetMember(void *Ptr, PCHAR Member, PCHAR Index, MQ2TYPEVAR &D
 		Dest.Type=pIntType;
 		Dest.Int=pSpawn->HPCurrent*100/pSpawn->HPMax;
 		return true;
+	case AARank:
+		Dest.Int=pSpawn->AARank;
+		Dest.Type=pIntType;
+		return true;
+	case Speed:
+		Dest.Float=FindSpeed(pSpawn);
+		Dest.Type=pFloatType;
+		return true;
+	case Heading:
+		Dest.Float=pSpawn->Heading*0.703125f;
+		Dest.Type=pFloatType;
+		return true;
+	case Pet:
+        if (Dest.Ptr=GetSpawnByID(pSpawn->pActorInfo->PetID))
+		{
+			Dest.Type=pSpawnType;
+			return true;
+		}
+		return false;
+	case Master:
+        if (Dest.Ptr=GetSpawnByID(pSpawn->MasterID))
+		{
+			Dest.Type=pSpawnType;
+			return true;
+		}
+		return false;
+	case Gender:
+		Dest.Ptr=&szGender[pSpawn->Gender];
+		Dest.Type=pStringType;
+		return true;
+	case Race:
+		Dest.DWord=pSpawn->Race;
+		Dest.Type=pRaceType;
+		return true;
+	case Class:
+		Dest.DWord=pSpawn->Class;
+		Dest.Type=pClassType;
+		return true;
+	case Body:
+		Dest.DWord=pSpawn->BodyType;
+		Dest.Type=pBodyType;
+		return true;
+	case GM:
+		Dest.DWord=pSpawn->GM;
+		Dest.Type=pBoolType;
+		return true;
+	case Levitating:
+		Dest.DWord=(pSpawn->Levitate==2);
+		Dest.Type=pBoolType;
+		return true;
+	case Sneaking:
+		Dest.DWord=pSpawn->Sneak;
+		Dest.Type=pBoolType;
+		return true;
+	case Height:
+		Dest.Float=pSpawn->AvatarHeight;
+		Dest.Type=pFloatType;
+		return true;
+	case MaxRange:
+		Dest.Float=(float)((pSpawn->AvatarHeight+((PSPAWNINFO)pCharSpawn)->AvatarHeight)*1.3333333333);
+		Dest.Type=pFloatType;
+		return true;
+	case Guild:
+		if (pSpawn->GuildID < MAX_GUILDS)
+		{
+			Dest.Ptr=GetGuildByID(pSpawn->GuildID);
+			Dest.Type=pStringType;
+			return true;
+		}
+		return false;
+	case GuildStatus:
+		if (pSpawn->GuildID < MAX_GUILDS)
+		{
+			Dest.Ptr=&szGuildStatus[pSpawn->GuildStatus];
+			Dest.Type=pStringType;
+			return true;
+		}
+		return false;
+	case Type:
+		if (pSpawn->Type < 6)
+		{
+			Dest.Ptr=&szSpawnType[pSpawn->Type];
+		}
+		else
+			Dest.Ptr="Unknown";
+		Dest.Type=pStringType;
+		return true;
+	case Light:
+		Dest.Ptr=GetLightForSpawn(pSpawn);
+		Dest.Type=pStringType;
+		return true;
+	case State:
+        switch (pSpawn->StandState) {
+            case STANDSTATE_STAND:
+                Dest.Ptr="STAND";
+                break;
+            case STANDSTATE_SIT:
+                Dest.Ptr="SIT";
+                break;
+            case STANDSTATE_DUCK:
+                Dest.Ptr="DUCK";
+                break;
+            case STANDSTATE_BIND:
+                Dest.Ptr="BIND";
+                break;
+            case STANDSTATE_FEIGN:
+                Dest.Ptr="FEIGN";
+                break;
+            case STANDSTATE_DEAD:
+                Dest.Ptr="DEAD";
+                break;
+            default:
+                Dest.Ptr="UNKNOWN";
+                break;
+		}
+		Dest.Type=pStringType;
+		return true;
+	case Deity:
+		Dest.DWord=pSpawn->Deity;
+		Dest.Type=pDeityType;
+		return true;
+/*
+	static enum SpawnMembers
+	{
+		DistanceX=7,
+		DistanceY=8,
+		DistanceZ=9,
+		Distance=10,
+		Distance3D=11,
+		DistancePredict=12,
+		HeadingTo=19,
+	};
+/**/
 	}
 	return false;
 #undef pSpawn
@@ -252,7 +373,7 @@ bool MQ2StringType::GetMember(void *Ptr, PCHAR Member, PCHAR Index, MQ2TYPEVAR &
 		Dest.Type=pIntType;
 		return true;
 	case Left:
-		if (!Index)
+		if (!Index[0])
 			return false;
 		{
 			unsigned long Len=atoi(Index);
@@ -263,13 +384,9 @@ bool MQ2StringType::GetMember(void *Ptr, PCHAR Member, PCHAR Index, MQ2TYPEVAR &
 		}
 		return true;
 	case Right:
-		if (!Index)
+		if (!Index[0])
 			return false;
 		{	
-			// index=5
-
-			// 01234567
-			// abcdefg
 			unsigned long Len=atoi(Index);
 			char *pStart=(char*)Ptr;
 			pStart=&pStart[strlen(pStart)-Len];
@@ -281,7 +398,7 @@ bool MQ2StringType::GetMember(void *Ptr, PCHAR Member, PCHAR Index, MQ2TYPEVAR &
 		}
 		return true;
 	case Find:
-		if (!Index)
+		if (!Index[0])
 			return false;
 		{
 			char A[MAX_STRING]={0};
@@ -338,6 +455,10 @@ bool MQ2CharacterType::GetMember(void *Ptr, PCHAR Member, PCHAR Index, MQ2TYPEVA
 		Dest.Ptr=&pChar->Name[0];
 		Dest.Type=pStringType;
 		return true;
+	case Surname:
+		Dest.Ptr=&pChar->Lastname[0];
+		Dest.Type=pStringType;
+		return true;
 	case Level:
 		Dest.DWord=pChar->Level;
 		Dest.Type=pIntType;
@@ -375,54 +496,134 @@ bool MQ2CharacterType::GetMember(void *Ptr, PCHAR Member, PCHAR Index, MQ2TYPEVA
 		Dest.Type=pIntType;
 		return true;
 	case Buff:
-		if (Index)
+		if (Index[0])
 		{
 			unsigned long nBuff=atoi(Index)-1;
 			if (nBuff>16)
 				return false;
-			Dest.Ptr=&pChar->Buff[Buff];
+			if (pChar->Buff[nBuff].SpellID==0xFFFFFFFF || pChar->Buff[nBuff].SpellID==0)
+				return false;
+			Dest.Ptr=&pChar->Buff[nBuff];
 			Dest.Type=pBuffType;
 			return true;
 		}
 		return false;
 	case Song:
-		if (Index)
+		if (Index[0])
 		{
 			unsigned long nBuff=atoi(Index)-1;
 			if (nBuff>6)
 				return false;
-			Dest.Ptr=&pChar->Buff[Buff];
+			if (pChar->ShortBuff[nBuff].SpellID==0xFFFFFFFF || pChar->ShortBuff[nBuff].SpellID==0x0)
+				return false;
+
+			Dest.Ptr=&pChar->ShortBuff[nBuff];
 			Dest.Type=pBuffType;
 			return true;
 		}
 		return false;
+	case HPBonus:
+		Dest.DWord=pChar->HPBonus;
+		Dest.Type=pIntType;
+		return true;
+	case ManaBonus:
+		Dest.DWord=pChar->ManaBonus;
+		Dest.Type=pIntType;
+		return true;
+	case Endurance:
+		Dest.DWord=pChar->Endurance;
+		Dest.Type=pIntType;
+		return true;
+	case GukEarned:
+		Dest.DWord=pChar->GukEarned;
+		Dest.Type=pIntType;
+		return true;
+	case MMEarned:
+		Dest.DWord=pChar->MMEarned;
+		Dest.Type=pIntType;
+		return true;
+	case RujEarned:
+		Dest.DWord=pChar->RujEarned;
+		Dest.Type=pIntType;
+		return true;
+	case TakEarned:
+		Dest.DWord=pChar->TakEarned;
+		Dest.Type=pIntType;
+		return true;
+	case MirEarned:
+		Dest.DWord=pChar->MirEarned;
+		Dest.Type=pIntType;
+		return true;
+	case LDoNPoints:
+		Dest.DWord=pChar->LDoNPoints;
+		Dest.Type=pIntType;
+		return true;
+	case CurrentFavor:
+		Dest.DWord=pChar->CurrFavor;
+		Dest.Type=pIntType;
+		return true;
+	case CareerFavor:
+		Dest.DWord=pChar->CareerFavor;
+		Dest.Type=pIntType;
+		return true;
+	case Inventory:
+		if (Index[0])
+		{
+			if (Index[0]>='0' && Index[0]<='9')
+			{
+				unsigned long nSlot=atoi(Index)-1;
+				if (nSlot<0x1E)
+				{
+					Dest.Ptr=pChar->InventoryArray[nSlot];
+					Dest.Type=pItemType;
+					return true;
+				}
+			}
+		}
+		return false;
+	case Bank:
+		if (Index[0])
+		{
+			if (Index[0]>='0' && Index[0]<='9')
+			{
+				unsigned long nSlot=atoi(Index)-1;
+				if (nSlot<NUM_BANK_SLOTS)
+				{
+					Dest.Ptr=pChar->Bank[nSlot];
+					Dest.Type=pItemType;
+					return true;
+				}
+			}
+		}
+		return false;
+	case PlatShared:
+		Dest.DWord=pChar->BankSharedPlat;
+		Dest.Type=pIntType;
+		return true;
+	case Cash:
+		Dest.DWord=pChar->Plat*1000+pChar->Gold*100+pChar->Silver*10+pChar->Copper;
+		Dest.Type=pIntType;
+		return true;
+	case CashBank:
+		Dest.DWord=pChar->BankPlat*1000+pChar->BankGold*100+pChar->BankSilver*10+pChar->BankCopper;
+		Dest.Type=pIntType;
+		return true;
+	case AAExp:
+		Dest.DWord=pChar->AAExp;
+		Dest.Type=pIntType;
+		return true;
+	case AAPoints:
+		Dest.DWord=pChar->AAPoints;
+		Dest.Type=pIntType;
+		return true;
 		/*
 		Dar=6,
-		AAExp=7,
-		AAPoints=8,
-		AARank=9,
 		HPRegen=12,
 		ManaRegen=16,
-		Buff=18,
-		Song=19,
 		Book=20,
 		Skill=21,
 		Ability=22,
-		Surname=23,
-		Cash=24,
-		CashBank=25,
-		PlatShared=26,
 		Grouped=27,
-		HPBonus=28,
-		ManaBonus=29,
-		GukEarned=30,
-		MMEarned=31,
-		RujEarned=32,
-		TakEarned=33,
-		LDonPoints=34,
-		CurrentFavor=35,
-		CareerFavor=36,
-		Endurance=37,
 		/**/
 	}
 	return false;
@@ -478,4 +679,11 @@ bool MQ2ZoneType::GetMember(void *Ptr, PCHAR Member, PCHAR Index, MQ2TYPEVAR &De
 {
 	return false;
 }
-
+bool MQ2BodyType::GetMember(void *Ptr, PCHAR Member, PCHAR Index, MQ2TYPEVAR &Dest)
+{
+	return false;
+}
+bool MQ2DeityType::GetMember(void *Ptr, PCHAR Member, PCHAR Index, MQ2TYPEVAR &Dest)
+{
+	return false;
+}

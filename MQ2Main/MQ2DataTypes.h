@@ -12,10 +12,12 @@
     GNU General Public License for more details.
 ******************************************************************************/
 
+
 EQLIB_VAR class MQ2FloatType *pFloatType;
 EQLIB_VAR class MQ2StringType *pStringType;
 EQLIB_VAR class MQ2IntType *pIntType;
 EQLIB_VAR class MQ2ByteType *pByteType;
+EQLIB_VAR class MQ2BoolType *pBoolType;
 EQLIB_VAR class MQ2SpawnType *pSpawnType;
 EQLIB_VAR class MQ2CharacterType *pCharacterType;
 EQLIB_VAR class MQ2BuffType *pBuffType;
@@ -24,6 +26,8 @@ EQLIB_VAR class MQ2TicksType *pTicksType;
 
 EQLIB_VAR class MQ2ClassType *pClassType;
 EQLIB_VAR class MQ2RaceType *pRaceType;
+EQLIB_VAR class MQ2BodyType *pBodyType;
+
 EQLIB_VAR class MQ2GroundType *pGroundType;
 EQLIB_VAR class MQ2SwitchType *pSwitchType;
 
@@ -34,10 +38,38 @@ EQLIB_VAR class MQ2MathType *pMathType;
 EQLIB_VAR class MQ2WindowType *pWindowType;
 EQLIB_VAR class MQ2MerchantType *pMerchantType;
 EQLIB_VAR class MQ2ZoneType *pZoneType;
+EQLIB_VAR class MQ2ItemType *pItemType;
+EQLIB_VAR class MQ2DeityType *pDeityType;
 
 #define UseTemp(mystring) strcpy(DataTypeTemp,mystring)
 #define TypeMember(name) AddMember((DWORD)name,""#name)
 
+class MQ2BoolType : public MQ2Type
+{
+public:
+	MQ2BoolType():MQ2Type("bool")
+	{
+	}
+
+	~MQ2BoolType()
+	{
+	}
+
+	// pure type, no members
+	bool GetMember(void *Ptr, PCHAR Member, PCHAR Index, MQ2TYPEVAR &Dest)
+	{
+		return false;
+	}
+
+	 bool ToString(void *Ptr, PCHAR Destination)
+	{
+		if (Ptr)
+			strcpy(Destination,"TRUE");
+		else
+			strcpy(Destination,"FALSE");
+		return true;
+	}
+};
 class MQ2IntType : public MQ2Type
 {
 public:
@@ -284,7 +316,6 @@ public:
 		MaxHPs=24,
 		PctHPs=25,
 		Deity=26,
-		DeityTeam=27,
 		Type=28,
 		CleanName=29,
 		Surname=30,
@@ -294,11 +325,11 @@ public:
 		Pet=34,
 		Race=35,
 		Class=36,
-		ShortClass=37,
 		Gender=38,
 		GM=39,
 		Height=40,
 		MaxRange=41,
+		AARank=42,
 	};
 	MQ2SpawnType():MQ2Type("spawn")
 	{
@@ -328,7 +359,6 @@ public:
 		TypeMember(MaxHPs);//24,
 		TypeMember(PctHPs);//25,
 		TypeMember(Deity);//26,
-		TypeMember(DeityTeam);//27,
 		TypeMember(Type);//28,
 		TypeMember(CleanName);//29,
 		TypeMember(Surname);//30,
@@ -338,11 +368,11 @@ public:
 		TypeMember(Pet);//34,
 		TypeMember(Race);//35,
 		TypeMember(Class);//36,
-		TypeMember(ShortClass);//37,
 		TypeMember(Gender);//38,
 		TypeMember(GM);//39,
 		TypeMember(Height);//40,
 		TypeMember(MaxRange);//41,
+		TypeMember(AARank);
 	}
 
 	~MQ2SpawnType()
@@ -371,7 +401,6 @@ public:
 		Dar=6,
 		AAExp=7,
 		AAPoints=8,
-		AARank=9,
 		CurrentHPs=10,
 		MaxHPs=11,
 		HPRegen=12,
@@ -396,10 +425,13 @@ public:
 		MMEarned=31,
 		RujEarned=32,
 		TakEarned=33,
-		LDonPoints=34,
-		CurrentFavor=35,
-		CareerFavor=36,
-		Endurance=37,
+		MirEarned=34,
+		LDoNPoints=35,
+		CurrentFavor=36,
+		CareerFavor=37,
+		Endurance=38,
+		Inventory=39,
+		Bank=40,
 	};
 	MQ2CharacterType():MQ2Type("character")
 	{
@@ -411,7 +443,6 @@ public:
 		TypeMember(Dar);//6,
 		TypeMember(AAExp);//7,
 		TypeMember(AAPoints);//8,
-		TypeMember(AARank);//9,
 		TypeMember(CurrentHPs);//10,
 		TypeMember(MaxHPs);//11,
 		TypeMember(HPRegen);//12,
@@ -436,10 +467,13 @@ public:
 		TypeMember(MMEarned);//31,
 		TypeMember(RujEarned);//32,
 		TypeMember(TakEarned);//33,
-		TypeMember(LDonPoints);//34,
-		TypeMember(CurrentFavor);//35,
-		TypeMember(CareerFavor);//36,
-		TypeMember(Endurance);//37,
+		TypeMember(MirEarned);//34,
+		TypeMember(LDoNPoints);//35,
+		TypeMember(CurrentFavor);//36,
+		TypeMember(CareerFavor);//37,
+		TypeMember(Endurance);//38,
+		TypeMember(Inventory);
+		TypeMember(Bank);
 	}
 
 	~MQ2CharacterType()
@@ -896,7 +930,9 @@ public:
 
 	 bool ToString(void *Ptr, PCHAR Destination)
 	{
-		return false;
+		PCHAR pDesc=pEverQuest->GetRaceDesc((int)Ptr);
+		strcpy(Destination,pDesc);
+		return true;
 	}
 };
 
@@ -924,7 +960,67 @@ public:
 
 	 bool ToString(void *Ptr, PCHAR Destination)
 	{
-		return false;
+		PCHAR pDesc=pEverQuest->GetClassDesc((int)Ptr);
+		strcpy(Destination,pDesc);
+		return true;
+	}
+};
+class MQ2BodyType : public MQ2Type
+{
+public:
+	static enum BodyMembers
+	{
+		Short=1,
+		Long=2,
+		Number=3
+	};
+	MQ2BodyType():MQ2Type("body")
+	{
+		TypeMember(Short);
+		TypeMember(Long);
+		TypeMember(Number);
+	}
+
+	~MQ2BodyType()
+	{
+	}
+
+	bool GetMember(void *Ptr, PCHAR Member, PCHAR Index, MQ2TYPEVAR &Dest);
+
+	 bool ToString(void *Ptr, PCHAR Destination)
+	{
+		PCHAR pDesc=pEverQuest->GetBodyTypeDesc((int)Ptr);
+		strcpy(Destination,pDesc);
+		return true;
+	}
+};
+class MQ2DeityType : public MQ2Type
+{
+public:
+	static enum DeityMembers
+	{
+		Name=1,
+		Team=2,
+		ID=3
+	};
+	MQ2DeityType():MQ2Type("Deity")
+	{
+		TypeMember(Name);
+		TypeMember(Team);
+		TypeMember(ID);
+	}
+
+	~MQ2DeityType()
+	{
+	}
+
+	bool GetMember(void *Ptr, PCHAR Member, PCHAR Index, MQ2TYPEVAR &Dest);
+
+	 bool ToString(void *Ptr, PCHAR Destination)
+	{
+		PCHAR pDesc=pEverQuest->GetDeityDesc((int)Ptr);
+		strcpy(Destination,pDesc);
+		return true;
 	}
 };
 

@@ -814,3 +814,18 @@ DWORD MapShow(SEARCHSPAWN &Search)
 	return Count;
 }
 
+BOOL dataMapSpawn(PCHAR szIndex, MQ2TYPEVAR &Ret)
+{
+	PMAPSPAWN pMapSpawn=pActiveSpawns;
+	while(pMapSpawn)
+	{
+		if (pMapSpawn->pMapLabel==pCurrentMapLabel)
+		{
+			Ret.Ptr=pMapSpawn->pSpawn;
+			Ret.Type=pSpawnType;
+			return true;
+		}
+	}
+	return false;
+}
+

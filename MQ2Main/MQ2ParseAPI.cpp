@@ -114,6 +114,11 @@ VOID RemoveParm(PCHAR Name)
 VOID InitializeParser()
 {
 	DebugSpewNoFile("InitializeParser()");
+
+#ifdef	USEMQ2DATATYPES
+	InitializeMQ2DataTypes();
+	InitializeMQ2Data();
+#endif
 	struct _PARMLIST Parms[] = {
 	{"getlastfindslot",		parmGetLastFindSlot},
 	{"cursor",				parmCursor},
@@ -209,6 +214,10 @@ VOID InitializeParser()
 
 VOID ShutdownParser()
 {
+#ifdef	USEMQ2DATATYPES
+	ShutdownMQ2Data();
+	ShutdownMQ2DataTypes();
+#endif
 	DebugSpewNoFile("ShutdownParser()");
 	while(pParmList)
 	{
@@ -289,18 +298,23 @@ int FindLastParameter(PCSTR szOriginal, PCSTR& szRetCurPos, size_t& len)
 	return -1; // no parameter found
 }
 
+
+
 PCHAR ParseMacroParameter(PSPAWNINFO pChar, PCHAR szOriginal)
 {
-    bool FoundNewCmd = false;
+    PCHARINFO pCharInfo = GetCharInfo();
+    if (!pCharInfo) 
+		return szOriginal;
+	EnterMQ2Benchmark(bmParseMacroParameter);
+
+#ifdef USEMQ2PARMS
+	bool FoundNewCmd = false;
     CHAR szOutput[MAX_STRING];
     CHAR szVar[MAX_STRING];
     INT outPos, l;
 	PSTR szOutputCurPos;
 	PCSTR szOriginalCurPos;
 	size_t originalLen;
-    PCHARINFO pCharInfo = NULL;
-    if (NULL == (pCharInfo = GetCharInfo())) return szOriginal;
-	EnterMQ2Benchmark(bmParseMacroParameter);
     while ((outPos = FindLastParameter(szOriginal, szOriginalCurPos, originalLen)) != -1) 
 	{
         //DebugSpewNoFile("PMP - Current string - '%s'", szOriginal);
@@ -410,7 +424,11 @@ PCHAR ParseMacroParameter(PSPAWNINFO pChar, PCHAR szOriginal)
         else if (*szPos == '²') 
 			*szPos = '@';
     }
-
+#endif
+#ifdef USEMQ2DATATYPES
+	ParseMacroVariables(szOriginal);
+	ParseMacroData(szOriginal);
+#endif
 	ExitMQ2Benchmark(bmParseMacroParameter);
     return (szOriginal);
 }

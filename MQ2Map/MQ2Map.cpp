@@ -244,6 +244,7 @@ PLUGIN_API VOID InitializePlugin(VOID)
 
 	EasyClassDetour(CMapViewWnd__CMapViewWnd,CMyMapViewWnd,Constructor_Detour,DWORD,(CXWnd*),Constructor_Trampoline);
 	CMyMapViewWnd::StealVFTable();
+	AddMQ2Data("MapSpawn",dataMapSpawn);
 }
 
 // Called once, when the plugin is to shutdown
@@ -251,6 +252,7 @@ PLUGIN_API VOID ShutdownPlugin(VOID)
 {
 	DebugSpewAlways("Shutting down MQ2Map");
 	Update=false;
+	RemoveMQ2Data("MapSpawn");
 
 	RemoveDetour(CMapViewWnd__CMapViewWnd);
 
