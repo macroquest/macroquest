@@ -438,8 +438,8 @@ void InitializeMQ2Commands()
         {"/zapvars",    ZapVars,1,0},
         {"/declare",    DeclareVar,1,0},
 #endif
-        {"/press",      Press,1,0},
-        {"/sendkey",    SendKey,1,0},
+//        {"/press",      Press,1,0},
+//        {"/sendkey",    SendKey,1,0},
         {"/delay",      Delay,1,0},
         {"/cleanup",    Cleanup,1,0},
         {"/doevents",   DoEvents,1,0},

@@ -607,11 +607,11 @@ EQLIB_API VOID MyVarSub                            (PSPAWNINFO,PCHAR);
 #endif
 EQLIB_API VOID Next                                (PSPAWNINFO,PCHAR);
 EQLIB_API VOID PluginCommand						(PSPAWNINFO pChar, PCHAR szLine);
-EQLIB_API VOID Press                               (PSPAWNINFO,PCHAR);
+//EQLIB_API VOID Press                               (PSPAWNINFO,PCHAR);
 EQLIB_API VOID Return                              (PSPAWNINFO,PCHAR);
 EQLIB_API VOID SelectItem                          (PSPAWNINFO,PCHAR);
 EQLIB_API VOID SellItem                            (PSPAWNINFO,PCHAR);
-EQLIB_API VOID SendKey                             (PSPAWNINFO,PCHAR);
+//EQLIB_API VOID SendKey                             (PSPAWNINFO,PCHAR);
 EQLIB_API VOID SetAutoRun                          (PSPAWNINFO,PCHAR);
 EQLIB_API VOID SetError                            (PSPAWNINFO,PCHAR);
 EQLIB_API VOID Skills                              (PSPAWNINFO,PCHAR);

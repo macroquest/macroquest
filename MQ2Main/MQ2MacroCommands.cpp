@@ -200,9 +200,11 @@ VOID EndMacro(PSPAWNINFO pChar, PCHAR szLine)
     gRunning = 0;
 
     if (!bKeepKeys) {
-        for (i=0;gDiKeyID[i].szName[0];i++) {
-            sprintf(Buffer,"up %s",gDiKeyID[i].szName);
-            SendKey(pChar,Buffer);
+		KeyCombo TempCombo;
+        for (i=0;gDiKeyID[i].szName[0];i++) 
+		{
+			TempCombo.Data[3]=gDiKeyID[i].Id;
+			MQ2HandleKeyUp(TempCombo);
         }
     }
 
@@ -336,7 +338,7 @@ VOID NewIf(PSPAWNINFO pChar, PCHAR szLine)
         return;
 	}
 	
-	PCHAR pEnd=&szLine[0];
+	PCHAR pEnd=&szLine[1];
 	DWORD nParens=1;
 	while(1)
 	{
@@ -363,6 +365,7 @@ VOID NewIf(PSPAWNINFO pChar, PCHAR szLine)
 			WriteChatColor("Usage: /if (<conditions>) <command>",CONCOLOR_RED);
 			return;
 		}
+		++pEnd;
 	}
 
 	*pEnd=0;
@@ -596,6 +599,7 @@ DWORD Include(PCHAR szFile)
 //              Sends a key up and down
 // Usage:       /press <key>
 // ***************************************************************************
+/*
 VOID Press(PSPAWNINFO pChar, PCHAR szLine)
 {
     CHAR szCmd[MAX_STRING] = {0};
@@ -618,7 +622,7 @@ VOID Press(PSPAWNINFO pChar, PCHAR szLine)
     sprintf(szCmd,"u %s",szKey);
     SendKey(pChar,szCmd);
 }
-
+/**/
 
 // ***************************************************************************
 // Function:    Cleanup
@@ -630,6 +634,8 @@ VOID Cleanup(PSPAWNINFO pChar, PCHAR szLine)
 {
     DebugSpewNoFile("Cleanup - Cleaning up screen");
 	DWORD i;
+	KeyCombo Escape;
+	ParseKeyCombo("Esc",Escape);
 	if(ppContainerMgr && pContainerMgr) {
 		PEQ_CONTAINERWND_MANAGER ContainerMgr = (PEQ_CONTAINERWND_MANAGER)pContainerMgr;
 		DWORD concount=2; //Close inv + clear target
@@ -637,16 +643,26 @@ VOID Cleanup(PSPAWNINFO pChar, PCHAR szLine)
 		for (i=0;i<25;i++) {
 			if (ContainerMgr->pPCContainers[i] && ContainerMgr->pPCContainers[i]->Wnd.Show==1) concount++;
 		}
-		for (i=0;i<concount;i++) Press(pChar,"esc");
+		for (i=0;i<concount;i++) 
+		{
+			MQ2HandleKeyDown(Escape);
+			MQ2HandleKeyUp(Escape);
+		}
+			//Press(pChar,"esc");
 		if (!ppInventoryWnd) {
 			PCSIDLWND pInvWindow = (PCSIDLWND)pInventoryWnd;
-			if (pInvWindow && pInvWindow->Show==0) Press(pChar,"i");
+			if (pInvWindow && pInvWindow->Show==0) 
+				DoMappable(pChar,"inventory");
 		}
 	} else {
-    Press(pChar,"i");
-		for (i=0;i<10;i++) Press(pChar,"esc");
-    Press(pChar,"i");
-}
+    DoMappable(pChar,"inventory");
+		for (i=0;i<10;i++) 
+		{
+			MQ2HandleKeyDown(Escape);
+			MQ2HandleKeyUp(Escape);
+		}
+    DoMappable(pChar,"inventory");
+	}
 }
 
 

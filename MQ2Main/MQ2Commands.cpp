@@ -4778,6 +4778,7 @@ VOID DoTimedCmd(PSPAWNINFO pChar, PCHAR szLine)
 //              Sends a key up or down
 // Usage:       /sendkey <u|d> <key>
 // ***************************************************************************
+/*
 VOID SendKey(PSPAWNINFO pChar, PCHAR szLine)
 {
 	static bool UpdateSendKeyMessageGiven=false;
@@ -4822,4 +4823,4 @@ VOID SendKey(PSPAWNINFO pChar, PCHAR szLine)
     DebugSpewNoFile("Unknown key: %s",Arg2);
     return;
 }
-
+/**/

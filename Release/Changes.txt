@@ -1,9 +1,11 @@
 20 Apr 2004 by Lax:
+- /if is now GONE.  /if is now the same as what /newif was.  /newif is aliased to /if.
+- /sendkey and /press are now GONE.  Please update to /keypress, which as of 15 Apr 2004 allows
+  pressing key combinations as well as the actual command.  Example:  /keypress alt+f
 - Fixed time.Year and time.Date
 - Fixed charm invslot (number 0)
 - Fixed ${If[]} handling of conditions
 - Fixed FindItemCount to give the number of individual items rather than stacks
-- /if is now GONE.  /newif is both /newif and /if.
 - MQ2EQIM plugin (which notifies you when someone on your EQIM buddy list changes) now keeps
   track of your buddy list and adds a MQ2Data type and Top-Level Objects:
   ** buddy type
