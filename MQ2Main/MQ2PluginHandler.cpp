@@ -31,8 +31,8 @@ DWORD LoadMQ2Plugin(const PCHAR pszFilename)
 	strcpy(Filename,pszFilename);
 	strlwr(Filename);
 	PCHAR Temp=strstr(Filename,".dll");
-	if (Temp)
-		Temp[0]=0;
+	if (!Temp)
+		strcat(Filename,".dll");
 	
 	CAutoLock Lock(&gPluginCS);
 	DebugSpew("LoadMQ2Plugin(%s)",Filename);
@@ -93,8 +93,9 @@ BOOL UnloadMQ2Plugin(const PCHAR pszFilename)
 	strcpy(Filename,pszFilename);
 	strlwr(Filename);
 	PCHAR Temp=strstr(Filename,".dll");
-	if (Temp)
-		Temp[0]=0;
+	if (!Temp)
+		strcat(Filename,".dll");
+	
 	// find plugin in list
 	CAutoLock Lock(&gPluginCS);
 	PMQPLUGIN pPlugin=pPlugins;
