@@ -127,6 +127,7 @@ PMOUSESPOOF gMouseData = NULL;
 BOOL bDetMouse = TRUE;
 
 PGUILDS pGuildList = (PGUILDS)__Guilds;
+PEQSOCIAL   pSocialList = (PEQSOCIAL)__Socials;
 
 // EQ Functions Initialization
 fEQCommand        cmdHelp        =  NULL;

@@ -54,7 +54,7 @@
 #define __DoAbilityAvailable                         0x6D6404 
 #define __ServerHost                                 0x73615C 
 #define __ServerName                                 0x70F170 
-#define __HWnd                                       0x6D55D0 
+#define __HWnd                                       0x7953C4 
 #define __Clicks                                     0x6D56D0 
 #define __ScreenX                                    0x6D55D8 
 #define __ScreenY                                    0x6D55DC 
@@ -62,7 +62,7 @@
 #define __CurrentMapLabel                            0x79E484 
 #define __BindList                                   0x611608 
 #define __RangeAttackReady							 0x6D6468 
-
+#define __Socials									 0x70F270
 
 //// 
 //Section 1: Vital Offsets 
@@ -254,7 +254,7 @@
 
 // CChatWindow 
 #define CChatWindow__CChatWindow						 0x4e03c3
-#define CChatWindow__dCChatWindow				         0x4ba03b 
+//#define CChatWindow__dCChatWindow				         0x4ba03b 
 
 // CChatManager 
 #define CChatManager__GetRGBAFromIndex					 0x4dcf87 

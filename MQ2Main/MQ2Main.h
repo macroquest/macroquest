@@ -488,6 +488,7 @@ EQLIB_API VOID DisplayLoginName						(PSPAWNINFO,PCHAR);
 EQLIB_API VOID DisplayZem                          (PSPAWNINFO,PCHAR);
 EQLIB_API VOID DoAbility                           (PSPAWNINFO,PCHAR);
 EQLIB_API VOID DoEvents                            (PSPAWNINFO,PCHAR);
+EQLIB_API VOID DoSocial                           (PSPAWNINFO,PCHAR);
 EQLIB_API VOID Doors                               (PSPAWNINFO,PCHAR);
 EQLIB_API VOID DoorTarget                          (PSPAWNINFO,PCHAR);
 EQLIB_API VOID DumpStack                           (PSPAWNINFO,PCHAR);

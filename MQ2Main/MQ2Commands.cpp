@@ -4616,3 +4616,55 @@ VOID SquelchCommand(PSPAWNINFO pChar, PCHAR szLine)
 	gFilterMQ=Temp;
 }
 
+ // ***************************************************************************
+// Function:    DoSocial
+// Description: '/dosocial' command
+//              Does (or lists) your programmed socials
+// Usage:       /dosocial [list|"social name"]
+// ***************************************************************************
+VOID DoSocial(PSPAWNINFO pChar, PCHAR szLine)
+{
+    if (!pSocialList) return;
+
+    DWORD SocialIndex = -1, LineIndex;
+   DWORD SocialPage = 0, SocialNum = 0;
+   CHAR szBuffer[MAX_STRING] = {0};
+   BOOL displayUsage = FALSE;
+
+    GetArg(szBuffer,szLine,1);
+
+    if(  !stricmp(szBuffer,"list")  ) {
+        WriteChatColor("Socials: (page,number) name",USERCOLOR_DEFAULT);
+        for (SocialIndex=0; SocialIndex < 120; SocialIndex++) {
+         SocialPage = SocialIndex/12;
+         SocialNum  = SocialIndex - (SocialPage*12);
+         if(  strlen(pSocialList[SocialIndex].Name)  ) {
+            sprintf(szBuffer,"(%2d,%2d) %s ", SocialPage+1, SocialNum+1, pSocialList[SocialIndex].Name);
+            WriteChatColor(szBuffer,USERCOLOR_ECHO_EMOTE);
+            for(  LineIndex=0; LineIndex < 5; LineIndex++ ) {
+               if(  strlen(pSocialList[SocialIndex].Line[LineIndex])  ) {
+                  sprintf(szBuffer,"  %d: %s", LineIndex+1, pSocialList[SocialIndex].Line[LineIndex]);
+                  WriteChatColor(szBuffer,USERCOLOR_DEFAULT);
+               }
+            }
+         }
+        }
+        return;
+   } else if(  strlen(szBuffer)  ) { /* assume we have a social name to match */
+      for(  SocialIndex = 0; SocialIndex < 120; SocialIndex++  ) {
+         if(  !stricmp(szBuffer,pSocialList[SocialIndex].Name)  ) break;
+      }
+   }
+
+   if(  SocialIndex >=0 && SocialIndex < 120  ) {
+      for(  LineIndex = 0; LineIndex < 5; LineIndex++  ) {
+         if(  strlen(pSocialList[SocialIndex].Line[LineIndex])  ) DoCommand(pChar,pSocialList[SocialIndex].Line[LineIndex]);
+      }
+   } else {
+      if(  strlen(szLine)  ) {
+         sprintf( szBuffer, "Invalid Argument(s): %s", szLine );
+         WriteChatColor(szBuffer,USERCOLOR_DEFAULT);
+      }
+      WriteChatColor("Usage: /dosocial <list|\"social name\">",USERCOLOR_DEFAULT );
+   }
+} 

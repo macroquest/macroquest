@@ -260,7 +260,7 @@ EQLIB_VAR EQItemList **ppItemList;
 #define pItemList (*ppItemList)
 EQLIB_VAR EQZoneInfo *pZoneInfo;
 EQLIB_VAR PGUILDS pGuildList;
-
+EQLIB_VAR PEQSOCIAL   pSocialList;
 
 EQLIB_VAR CSidlManager **ppSidlMgr;
 #define pSidlMgr (*ppSidlMgr)
