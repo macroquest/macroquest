@@ -161,7 +161,7 @@
 #define pinstCGroupSearchWnd                                    0x79DE9C
 #define pinstCGroupWnd                                          0x79DEB4
 #define pinstCGuildMgmtWnd                                      0x79DECC
-#define pinstCPopupWndManager                                   0x79E3EC
+#define pinstCPopupWndManager                                   0x79E118
 #define pinstCSystemInfoDialogBox                               0x79E994
 #define pinstCTargetOfTargetWnd                                 0x79E9AC
 #define pinstCTipWndOFDAY                                       0x79EA14
@@ -508,7 +508,7 @@
 #define CStmlWnd__UpdateHistoryString                 0x55CC40
 
 // CTabWnd
-#define CTabWnd__Draw                                 0x57BFD0
+#define CTabWnd__Draw                                 0x554E90
 #define CTabWnd__DrawCurrentPage                      0x57B790
 #define CTabWnd__DrawTab                             0x57B510
 #define CTabWnd__GetCurrentPage                       0x57B0C0
