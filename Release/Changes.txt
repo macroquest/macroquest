@@ -1,3 +1,9 @@
+27 June 2004 by Amadeus:
+- Added 'named' flag to the superwho filters.  It simply checks to 
+  see if the spawn's name begins with a capital letter or with a
+  pound (#) sign.  (examples:  '/who npc named', '/who npc named 65')
+  ** This works best in places like the Plane of Hate.
+
 23 June 2004 by Amadeus:
 - ieatacid's CHARINFO update (primarily just offset locations updated)
 - ieatacid's update to EQRAIDWINDOW struct

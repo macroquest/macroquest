@@ -395,6 +395,7 @@ EQLIB_API VOID ParseSearchSpawn(PCHAR Buffer, PSEARCHSPAWN pSearchSpawn);
 EQLIB_API PCHAR FormatSearchSpawn(PCHAR Buffer, PSEARCHSPAWN pSearchSpawn);
 EQLIB_API BOOL IsPCNear(PSPAWNINFO pSpawn, FLOAT Radius);
 EQLIB_API BOOL IsInGroup(PSPAWNINFO pSpawn);
+EQLIB_API BOOL IsNamed(PSPAWNINFO pSpawn);
 EQLIB_API BOOL IsAlert(PSPAWNINFO pChar, PSPAWNINFO pSpawn, DWORD List);
 
 EQLIB_API VOID        OverwriteTable          (DWORD Address);

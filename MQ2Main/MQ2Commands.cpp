@@ -741,8 +741,8 @@ VOID SWhoFilter(PSPAWNINFO pChar, PCHAR szLine)
 	} else if (!stricmp(szArg,"ConColor")) { 
         SetDisplaySWhoFilter(&gFilterSWho.ConColor,"ConColor",szToggle); 
 	} else if (!stricmp(szArg,"invisible")) {
-      SetDisplaySWhoFilter(&gFilterSWho.Invisible,"Invisible",szToggle);
-    } else {
+        SetDisplaySWhoFilter(&gFilterSWho.Invisible,"Invisible",szToggle);
+	} else {
       SyntaxError("Usage: /whofilter <lastname|class|race|level|gm|guild|holding|ld|sneak|anon|lfg|npctag|spawnid|trader|afk|concolor|invisible> [on|off]");
    } 
 }
@@ -2644,6 +2644,23 @@ BOOL IsInGroup(PSPAWNINFO pSpawn)
 	return FALSE;
 }
 
+BOOL IsNamed(PSPAWNINFO pSpawn)
+{
+    CHAR szTemp[MAX_STRING]={0};
+	PCSTR szName = {pSpawn->Name};
+   
+    if (pSpawn->Type != SPAWN_NPC)
+		return false;
+
+	GetArg(szTemp,szName,1);
+
+    if (isupper(szTemp[0]))
+		return true;
+	if (szTemp[0] == '#' )
+		return true;
+	
+	return false;
+}
 
 PCHAR FormatSearchSpawn(PCHAR Buffer, PSEARCHSPAWN pSearchSpawn)
 {
@@ -2921,6 +2938,8 @@ BOOL SpawnMatchesSearch(PSEARCHSPAWN pSearchSpawn, PSPAWNINFO pChar, PSPAWNINFO 
 		return FALSE;
 	if (pSearchSpawn->bGM && !pSpawn->GM)
 		return FALSE;
+	if (pSearchSpawn->bNamed && !IsNamed(pSpawn))
+		return FALSE;
 	if (pSearchSpawn->bLFG && !pSpawn->LFG)
 		return FALSE;
 	if (pSearchSpawn->bTrader && !pSpawn->pActorInfo->Trader)
@@ -3016,6 +3035,8 @@ PCHAR ParseSearchSpawnArgs(PCHAR szArg, PCHAR szRest, PSEARCHSPAWN pSearchSpawn)
             pSearchSpawn->bGroup = TRUE;
         } else if (!stricmp(szArg,"trader")) {
             pSearchSpawn->bTrader = TRUE;
+		} else if (!stricmp(szArg,"named")) {
+			pSearchSpawn->bNamed = TRUE;
         } else if (!stricmp(szArg,"range")) {
             GetArg(szArg,szRest,1);
             pSearchSpawn->MinLevel = atoi(szArg);
