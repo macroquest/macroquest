@@ -1,5 +1,9 @@
 12 Feb 2004 by Amadeus
 - ACTORINFO struct fixes :: fixed $char(pet)
+- Added a bunch of code by ml2517
+   * $char(height), $spawn(#,height), $target(height)
+   * $target(maxrange), $spawn(#,maxrange)
+   * $distance(y,x[,z][:y,x[,z]])
 
 11 Feb 2004 by Amadeus
 - Fixed Attacks offset in eqgame.ini

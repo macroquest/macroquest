@@ -1237,6 +1237,31 @@ DWORD parmTarget(PCHAR szVar, PCHAR szOutput, PSPAWNINFO pChar)
 				strcat(szOutput, "TRUE" );
         }
 
+    // $target(height) 
+    } else if (!strncmp("target(height)",szVar,14)) { 
+        CHAR szTemp[MAX_STRING] = {0}; 
+        i+=13; 
+        if (!psTarget) { 
+            strcat(szOutput,"0"); 
+        } else { 
+            sprintf(szTemp,"%1.2f",psTarget->AvatarHeight); 
+            strcat(szOutput,szTemp); 
+        } 
+
+    // $target(maxrange) 
+    } else if (!strncmp("target(maxrange)",szVar,16)) { 
+        CHAR szTemp[MAX_STRING] = {0}; 
+        DOUBLE MaxRange = 0; 
+        i+=15; 
+        if (!psTarget) { 
+            strcat(szOutput,"0"); 
+        } else { 
+            MaxRange = ((psTarget->AvatarHeight+pChar->AvatarHeight)*1.3333333333); 
+            sprintf(szTemp,"%1.2f",MaxRange); 
+            strcat(szOutput,szTemp); 
+        } 
+
+
     // $target(unknown)
     } else {
         DebugSpewNoFile("PMP - Bad $target() '%s'",szVar);
@@ -1928,6 +1953,30 @@ DWORD parmSpawn(PCHAR szVar, PCHAR szOutput, PSPAWNINFO pChar)
                 } else {
                     strcat(szOutput,"FALSE");
                 }
+
+			// $spawn(#,height) 
+			} else if (!strncmp("height)",szRest,7)) { 
+				CHAR szTemp[MAX_STRING] = {0}; 
+				i+=strstr(szVar,")")-szVar; 
+				if (!pSpawn) { 
+				strcat(szOutput,"0"); 
+				} else { 
+					sprintf(szTemp,"%1.2f",pSpawn->AvatarHeight); 
+					strcat(szOutput,szTemp); 
+				} 
+
+			// $spawn(#,maxrange) 
+			} else if (!strncmp("maxrange)",szRest,9)) { 
+				CHAR szTemp[MAX_STRING] = {0}; 
+				DOUBLE MaxRange = 0; 
+				i+=strstr(szVar,")")-szVar; 
+				if (!pSpawn) { 
+					strcat(szOutput,"0"); 
+				} else { 
+					MaxRange = ((pSpawn->AvatarHeight+pChar->AvatarHeight)*1.3333333333); 
+					sprintf(szTemp,"%1.2f",MaxRange); 
+					strcat(szOutput,szTemp); 
+				} 
 
             // $spawn(#,unknown)
             } else {
@@ -3016,6 +3065,15 @@ DWORD parmChar(PCHAR szVar, PCHAR szOutput, PSPAWNINFO pChar)
       else if ( pCharInfo->pSpawn->Sneak == 1 )
          strcat(szOutput, "TRUE" );
 
+    // $char(height) 
+    } else if (!strncmp("char(height)",szVar,12)) { 
+        CHAR szTemp[MAX_STRING] = {0}; 
+        i+=11; 
+        sprintf(szTemp,"%1.2f",pChar->AvatarHeight); 
+       strcat(szOutput,szTemp); 
+
+
+
 	// $char(unknown)
     } else {
         DebugSpewNoFile("PMP - Bad $char() '%s'",szVar);
@@ -3387,26 +3445,41 @@ DWORD parmDistance(PCHAR szVar, PCHAR szOutput, PSPAWNINFO pChar)
             strcat(szOutput,szTemp);
         }
 
-    // $distance(y,x)
-    } else if (!strncmp("distance(",szVar,9)) {
-        CHAR szTemp[MAX_STRING] = {0};
-        SPAWNINFO LocSpawn;
-        if ((!strstr(szVar,")")) || (!strstr(szVar,","))) {
-            DebugSpewNoFile("PMP - Bad $distance# '%s'",szVar);
-            return PMP_ERROR_BADPARM;
-        } else {
-            PCHAR szArg = szVar+9;
-            i += (strstr(szVar,")")-szVar);
-            LocSpawn.Y = (FLOAT)atof(szArg);
-            while (szArg[0]!=',') szArg++;
-            szArg++;
-            LocSpawn.X = (FLOAT)atof(szArg);
-            LocSpawn.Z = 0.0f;
+  // $distance(y,x[,z][:y,x[,z]]) 
+   } else if ((!strncmp("distance(",szVar,9))) { 
+       CHAR szTemp[MAX_STRING] = {0}; 
+       SPAWNINFO LocSpawnA; 
+       SPAWNINFO LocSpawnB; 
+       CHAR *pTmp = ""; 
+       CHAR *pTmpPartA = ""; 
+       CHAR *pTmpPartB = ""; 
+       if ((!(pTmp=strstr(szVar,")"))) || (!strstr(szVar,","))) { 
+           DebugSpewNoFile("PMP - Bad $distance# '%s'",szVar); 
+           return PMP_ERROR_BADPARM; 
+       } else { 
+           PCHAR szArg = szVar+9; 
+           i += pTmp-szVar; 
+           LocSpawnA.Z = 0; 
+           LocSpawnB.Z = 0; 
+           if (pTmp=strtok(szArg,":")) pTmpPartA = pTmp; 
+           if (pTmp=strtok(NULL,":")) pTmpPartB = pTmp; 
+           if (pTmp=strtok(pTmpPartA,",")) LocSpawnA.Y = (FLOAT)atof(pTmp); 
+           if (pTmp=strtok(NULL,",")) LocSpawnA.X = (FLOAT)atof(pTmp); 
+           if (pTmp=strtok(NULL,",")) LocSpawnA.Z = (FLOAT)atof(pTmp); 
+           if (strlen(pTmpPartB)>0) { 
+               if (pTmp=strtok(pTmpPartB,",")) LocSpawnB.Y = (FLOAT)atof(pTmp); 
+               if (pTmp=strtok(NULL,",")) LocSpawnB.X = (FLOAT)atof(pTmp); 
+               if (pTmp=strtok(NULL,",")) LocSpawnB.Z = (FLOAT)atof(pTmp); 
+           } else { 
+               LocSpawnB.Y = pChar->Y; 
+               LocSpawnB.X = pChar->X; 
+               if (LocSpawnA.Z != 0) LocSpawnB.Z = pChar->Z; 
+           } 
+           itoa((INT)DistanceToSpawn3D(&LocSpawnA,&LocSpawnB),szTemp,10); 
+           strcat(szOutput,szTemp); 
+       } 
+    } 
 
-            itoa((INT)DistanceToSpawn(pChar,&LocSpawn),szTemp,10);
-            strcat(szOutput,szTemp);
-        }
-    }
     return i;
 }
 
