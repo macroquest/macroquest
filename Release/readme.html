@@ -133,7 +133,7 @@ PM Wassup on the MQ website if you have comments or suggestions about the manual
 <a href="#uiref">MacroQuest 2 and the UI</a><br>
 &nbsp;&nbsp;&nbsp;&nbsp;<a href="#labelid">Using label id's</a><br>
 &nbsp;&nbsp;&nbsp;&nbsp;<a href="#tooltype">Using the tooltype</a><br>
-<a href="#mqplug">MacroQuest 2 Plugin's</a><br>
+<a href="#mqplug">MacroQuest2 Plugins</a><br>
 <a href="#telnet">Telnet Server</a><br>
 <a href="#compareop">Appendix A: Comparison Operators</a><br>
 <a href="#mathop">Appendix B: Math Operators</a><br>
@@ -698,6 +698,10 @@ Pauses/resumes a macro to aid in debugging or chatting. Not using a parameter wi
 <a name="n" id="n"></a>
 <a name="o" id="o"></a>
 <a name="p" id="p"></a>
+<span class="command">/plugin</span>
+<span class="opt"><i>name</i> [unload]|list</span><br>
+Loads, lists, and unloads plugins.<br>
+<br>
 <span class="command">/press</span> <span class="opt">key</span><br>
 Presses the selected key. See Appendix C for a list of keynames.<br><br>
 <blockquote>
@@ -2204,6 +2208,29 @@ The other option is to use the following tooltype in your UI:<br><br>
 <span class="tab">&lt;AlignRight&gt;false&lt;/AlignRight&gt;</span><br> 
 &lt;/Label&gt;<br><br> 
 </blockquote>
+
+<a id="mqplug" name="mqplugin"></a>
+<span class="txtbold">MacroQuest2 Plugins</span>
+<br>
+<br>
+MQ2 has a modular structure that allows different plugins to be loaded
+and unloaded on demand.<br>
+<ul>
+<li>MQ2Bzsrch -- a bazaar search plugin</li>
+<li>MQ2Chat -- put MQ2 output in regular chat window</li>
+<li>MQ2ChatWnd -- put MQ2 output in special chat window (safer)</li>
+<li>MQ2EQBugFix -- fix a crash(!) when exiting with no journal entries</li>
+<li>MQ2EQIM -- EQIM <br>
+</li>
+<li>MQ2FPS -- frame limiter (similar to EQPlayNice)</li>
+<li>MQ2IRC -- IRC plugin</li>
+<li>MQ2ItemDisplay -- Add extra data to item windows</li>
+<li>MQ2Label -- allow custom UI labels</li>
+<li>MQ2Map -- enhanced map</li>
+<li>MQ2Telnet -- act as a telnet server for macro output<br>
+</li>
+</ul>
+<br>
 
 <a name="telnet" id="telnet"></a>
 <span class="txtbold">Telnet Server</span><br><br>
