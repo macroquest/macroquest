@@ -9,8 +9,8 @@
 // PLEASE keep this array limited.  Recommend using 9999 and tooltips.
 struct _ID_PMP
    { DWORD ID;PCHAR PMP; }
-#ifdef USEMQ2PARMS
 Id_PMP[] = {
+#ifdef USEMQ2PARMS
    // 1000-1999: $char()
       {1000,   "$char(mana,cur)"},
       {1001,   "$char(mana,max)"},
