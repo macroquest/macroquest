@@ -6,6 +6,7 @@
 - Added a bunch of new parameters:
   * $pet(buff,"<spellname>")   [returns buff slot number]
   * $pet(buff,#,id)            [returns the spellID for the buff slot # given]
+  * $pet(buff,#,name)          [returns the name for the buff slot # given]
   * $pet(level)
   * $pet(id)
   * $pet(x)

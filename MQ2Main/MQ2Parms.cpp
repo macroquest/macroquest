@@ -5831,7 +5831,9 @@ DWORD parmPet(PCHAR szVar, PCHAR szOutput, PSPAWNINFO pChar)
                         szArg += strlen(szTemp);
                         if (!strncmp(szArg,",id)",4)) {
                             itoa(pPetInfoWindow->Buff[Buff-1],szTemp,10);
-                        }
+						} else if (!strncmp(szArg,",name)",6)) {
+                            strcpy(szTemp,GetSpellNameByID(pPetInfoWindow->Buff[Buff-1]));
+						}
                     } else {
                         strcpy(szTemp,"NULL");
                     }
