@@ -1115,27 +1115,33 @@ bool MQ2CharacterType::GetMember(MQ2VARPTR VarPtr, PCHAR Member, PCHAR Index, MQ
 		}
 		return true;
 	case GukEarned:
-		Dest.DWord=pChar->GukEarned;
+		return false;//TODO
+//		Dest.DWord=pChar->GukEarned;
 		Dest.Type=pIntType;
 		return true;
 	case MMEarned:
-		Dest.DWord=pChar->MMEarned;
+		return false;//TODO
+//		Dest.DWord=pChar->MMEarned;
 		Dest.Type=pIntType;
 		return true;
 	case RujEarned:
-		Dest.DWord=pChar->RujEarned;
+		return false;//TODO
+//		Dest.DWord=pChar->RujEarned;
 		Dest.Type=pIntType;
 		return true;
 	case TakEarned:
-		Dest.DWord=pChar->TakEarned;
+		return false;//TODO
+//		Dest.DWord=pChar->TakEarned;
 		Dest.Type=pIntType;
 		return true;
 	case MirEarned:
-		Dest.DWord=pChar->MirEarned;
+		return false;//TODO
+//		Dest.DWord=pChar->MirEarned;
 		Dest.Type=pIntType;
 		return true;
 	case LDoNPoints:
-		Dest.DWord=pChar->LDoNPoints;
+		return false;//TODO
+//		Dest.DWord=pChar->LDoNPoints;
 		Dest.Type=pIntType;
 		return true;
 	case CurrentFavor:
@@ -1348,11 +1354,13 @@ bool MQ2CharacterType::GetMember(MQ2VARPTR VarPtr, PCHAR Member, PCHAR Index, MQ
 		Dest.Type=pBoolType;
 		return true;
 	case Hunger:
-		Dest.DWord=pChar->hungerlevel;
+		return false;//TODO
+//		Dest.DWord=pChar->hungerlevel;
 		Dest.Type=pIntType;
 		return true;
 	case Thirst:
-		Dest.DWord=pChar->thirstlevel;
+		return false;//TODO
+//		Dest.DWord=pChar->thirstlevel;
 		Dest.Type=pIntType;
 		return true;
 	case AltAbilityTimer:

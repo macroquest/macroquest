@@ -12,7 +12,7 @@
     GNU General Public License for more details.
 ******************************************************************************/
 
-#define VersionString "Spring 2004 Edition"
+#define VersionString "MQ2DataVar Premier Edition"
 #define DebugHeader "[MQ2]"
 #define LoadedString "MQ2 Loaded."
 #define ToUnloadString "MQ2 Unloading..."

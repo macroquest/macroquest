@@ -1,4 +1,5 @@
 27 Apr 2004 by Lax (more):
+- MQ2DataVars is now default.  Share and enjoy, share and enjoy!
 - Fixed timer type member availability
 - Added MQ2Data type: altability
 - Added MQ2Data Top-Level Objects:

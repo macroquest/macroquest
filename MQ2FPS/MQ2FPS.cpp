@@ -536,7 +536,7 @@ VOID RenderCommand(PSPAWNINFO pChar, PCHAR szLine)
 		   strcpy(szBack,"1/");
 	   sprintf(szCmd,"\aw\ayRender Rate\ax\a-u:\ax \a-u[\ax\at%s%d\ax Foreground\a-u]\ax \a-u[\ax\at%s%d\ax Background\a-u]\ax",szFore,gFG_Rate,szBack,gBG_Rate);
         WriteChatColor(szCmd,USERCOLOR_DEFAULT);
-		WriteChatColor("Usage: /render <fg|bg> <#|~#>",USERCOLOR_YELLOW);
+		WriteChatColor("Usage: /render <fg|bg> <#|~#>",CONCOLOR_YELLOW);
         return;
    }
    DWORD NewRate;
