@@ -1,3 +1,7 @@
+!if exist(extra.mak)
+!include extra.mak
+!endif
+
 all: mq2main/mq2auth.h traverse 
 
 clean: traverse_clean
@@ -12,7 +16,10 @@ DIRECTORIES=\
     MQ2Labels \
     MQ2Map \
     MQ2Template \
-    mq2telnet
+    mq2telnet \
+    MQ2Bzsrch \
+    $(DIRECTORIES)
+
 
 mq2main/mq2auth.h: mq2auth.exe always
     -chmod +x mq2auth.exe
