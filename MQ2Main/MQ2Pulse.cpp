@@ -230,6 +230,11 @@ void Heartbeat()
 		gStringTableFixed=TRUE;
 	}
 	UpdateMQ2SpawnSort();
+	DrawHUD();
+	if (!bMouseLook && ScreenMode==3)
+	{
+		pWndMgr->DrawCursor();
+	}
 
 	DebugTry(int GameState=GetGameState());
 	if (GameState!=-1)

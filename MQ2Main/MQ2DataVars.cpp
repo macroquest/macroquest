@@ -370,7 +370,6 @@ VOID NewVarcalc(PSPAWNINFO pChar, PCHAR szLine)
 	{
 		*pBracket=0;
 		strcpy(szIndex,&pBracket[1]);
-		*pBracket='[';
 	}
 	PDATAVAR pVar=FindMQ2DataVariable(szName);
 	if (!pVar)
@@ -426,7 +425,6 @@ VOID NewVardata(PSPAWNINFO pChar, PCHAR szLine)
 	{
 		*pBracket=0;
 		strcpy(szIndex,&pBracket[1]);
-		*pBracket='[';
 	}
 	PDATAVAR pVar=FindMQ2DataVariable(szName);
 	if (!pVar)

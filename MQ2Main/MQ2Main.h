@@ -259,6 +259,7 @@ EQLIB_API VOID ShutdownMQ2DInput();
 /* CLEAN UI */
 EQLIB_API VOID InitializeDisplayHook();
 EQLIB_API VOID ShutdownDisplayHook();
+EQLIB_API VOID DrawHUD();
 
 /* COMMAND HANDLING */
 EQLIB_API VOID InitializeMQ2Commands();
@@ -321,6 +322,8 @@ EQLIB_API VOID InitializeMQ2Pulse();
 EQLIB_API VOID ShutdownMQ2Pulse();
 
 /* UTILITIES */
+EQLIB_API VOID ConvertCR(PCHAR Text);
+EQLIB_API VOID DrawHUDText(PCHAR Text, DWORD X, DWORD Y, DWORD Argb);
 EQLIB_API VOID FixStringTable();
 EQLIB_API VOID DebugSpew(PCHAR szFormat, ...);
 EQLIB_API VOID DebugSpewAlways(PCHAR szFormat, ...);
@@ -588,6 +591,7 @@ EQLIB_API BOOL dataNamingSpawn(PCHAR szIndex, MQ2TYPEVAR &Ret);
 
 /* COMMANDS */
 
+EQLIB_API VOID HudCmd(PSPAWNINFO pChar, PCHAR szLine);
 EQLIB_API VOID DropCmd(PSPAWNINFO pChar, PCHAR szLine);
 EQLIB_API VOID CombineCmd(PSPAWNINFO pChar, PCHAR szLine);
 EQLIB_API VOID ClearErrorsCmd(PSPAWNINFO pChar, PCHAR szLine);

@@ -5172,8 +5172,16 @@ DWORD A,B;
 class CXRect
 {
 public:
-EQLIB_OBJECT CXRect::CXRect(int,int,int,int);
-EQLIB_OBJECT CXRect::CXRect(void);
+EQLIB_OBJECT CXRect::CXRect(int nA,int nB,int nC,int nD)
+{
+	A=nA;
+	B=nB;
+	C=nC;
+	D=nD;
+}
+EQLIB_OBJECT CXRect::CXRect(void)
+{
+}
 EQLIB_OBJECT class CXPoint CXRect::CenterPoint(void)const;
 EQLIB_OBJECT class CXRect & CXRect::operator=(class CXRect const &);
 EQLIB_OBJECT class CXRect CXRect::operator&(class CXRect)const;

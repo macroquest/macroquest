@@ -434,7 +434,7 @@ public:
 		case Time:
 			{
 				int Secs=nTicks*6;
-				int Mins=Secs/60;
+				int Mins=(Secs/60)%60;
 				int Hrs=(Secs/3600);
 				Secs=Secs%60;
 				if (Hrs)

@@ -58,6 +58,8 @@
 #define __Clicks                                           0x6DA888
 #define __ScreenX                                          0x6DA790
 #define __ScreenY                                          0x6DA794
+#define __ScreenMode									   0x62686C
+#define __MouseLook										   0x6DA85A
 #define __EQP_IDArray                                      0x6D7860
 #define __CurrentMapLabel                                  0x7A3798
 #define __BindList                                         0x6102F0
@@ -71,6 +73,7 @@
 #define __DrawHandler                                      0x7AF454
 #define __FriendsList                                      0x711118
 #define __IgnoreList                                       0x712A18
+#define __NetStatusToggle								   0x6DA85C
 ////
 //Section 1: Vital Offsets
 ////
@@ -244,6 +247,8 @@
 #define CXWndManager__RemoveWnd                            0x572950
 #define CXWndManager__GetKeyboardFlags                     0x572570
 #define CXWndManager__HandleKeyboardMsg                    0x572A40
+#define CXWndManager__DrawWindows						   0x5737A0
+#define CXWndManager__DrawCursor						   0x573B50
 
 // KeyPressHandler
 #define KeypressHandler__HandleKeyDown                     0x4AFEB0
@@ -310,6 +315,9 @@
 #define CDisplay__GetClickedActor                          0x40D3EE
 #define CDisplay__WriteTextHD2                             0x410B80
 #define CDisplay__GetWorldFilePath                         0x40BFF0
+#define CDisplay__GetUserDefinedColor					   0x40C7E9
+
+#define CTextureFont__DrawWrappedText					   0x562D90
 
 // EQ_Item
 #define EQ_Item__GetItemLinkHash                           0x431D0E

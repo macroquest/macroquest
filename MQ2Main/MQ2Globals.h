@@ -119,6 +119,9 @@ EQLIB_VAR BOOL gMQPauseOnChat;
 EQLIB_VAR BOOL gKeepKeys;
 EQLIB_VAR SWHOFILTER gFilterSWho;
 
+EQLIB_VAR BOOL gbHUDUnderUI;
+EQLIB_VAR BOOL gbAlwaysDrawMQHUD;
+
 EQLIB_VAR BOOL gFilterMQ2DataErrors;
 
 EQLIB_VAR DOUBLE DegToRad;
@@ -203,6 +206,9 @@ EQLIB_VAR PCHAR gpbRangedAttackReady;
 #define gbRangedAttackReady (*gpbRangedAttackReady)
 EQLIB_VAR PCHAR gpbAltTimerReady;
 #define gbAltTimerReady (*gpbAltTimerReady)
+EQLIB_VAR PCHAR gpbShowNetStatus;
+#define gbShowNetStatus (*gpbShowNetStatus)
+
 
 EQLIB_VAR DWORD *g_ppDrawHandler;
 #define g_pDrawHandler (*g_ppDrawHandler)
@@ -367,7 +373,10 @@ EQLIB_VAR DWORD *pScreenX;
 #define ScreenX (*pScreenX)
 EQLIB_VAR DWORD *pScreenY;
 #define ScreenY (*pScreenY)
-
+EQLIB_VAR DWORD *pScreenMode;
+#define ScreenMode (*pScreenMode)
+EQLIB_VAR CHAR  *pMouseLook;
+#define bMouseLook (*pMouseLook)
 
 EQLIB_VAR SPELLFAVORITE *pSpellSets;
 EQLIB_VAR AltAdvManager** ppAltAdvManager;

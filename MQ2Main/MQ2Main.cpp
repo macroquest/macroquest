@@ -121,12 +121,37 @@ BOOL ParseINIFile(PCHAR lpINIPath)
 	bAllErrorsDumpStack = 1==GetPrivateProfileInt("MacroQuest","AllErrorsDumpStack",1,Filename);
 	bAllErrorsFatal = 1==GetPrivateProfileInt("MacroQuest","AllErrorsFatal",0,Filename);
 
+	GetPrivateProfileString("MacroQuest","HUDMode","UnderUI",CustomSettings,MAX_STRING,Filename);
+	if (!stricmp(CustomSettings,"normal"))
+	{
+		gbAlwaysDrawMQHUD=false;
+		gbHUDUnderUI=false;
+	}
+	else
+	if (!stricmp(CustomSettings,"underui"))
+	{
+		gbHUDUnderUI=true;
+		gbAlwaysDrawMQHUD=false;
+	}
+	else
+	if (!stricmp(CustomSettings,"always"))
+	{
+		gbHUDUnderUI=true;
+		gbAlwaysDrawMQHUD=true;
+	}
+
+
 
 	GetPrivateProfileString("Captions","NPC",gszSpawnNPCName,gszSpawnNPCName,MAX_STRING,Filename);
 	GetPrivateProfileString("Captions","Player",gszSpawnPlayerName,gszSpawnPlayerName,MAX_STRING,Filename);
 	GetPrivateProfileString("Captions","Corpse",gszSpawnCorpseName,gszSpawnCorpseName,MAX_STRING,Filename);
 	GetPrivateProfileString("Captions","Mount",gszSpawnMountName,gszSpawnMountName,MAX_STRING,Filename);
 	GetPrivateProfileString("Captions","Pet",gszSpawnPetName,gszSpawnPetName,MAX_STRING,Filename);
+	ConvertCR(gszSpawnNPCName);
+	ConvertCR(gszSpawnPlayerName);
+	ConvertCR(gszSpawnCorpseName);
+	ConvertCR(gszSpawnMountName);
+	ConvertCR(gszSpawnPetName);
 
 	gFilterSWho.Lastname= GetPrivateProfileInt("SWho Filter","Lastname",1,Filename);
 	gFilterSWho.Class	= GetPrivateProfileInt("SWho Filter","Class",1,Filename);

@@ -213,6 +213,7 @@ PCHAR EQADDR_LASTTELL=(PCHAR)__LastTell;
 //PGROUNDITEM *EQADDR_ITEMS=0;
 PBYTE EQADDR_GROUPCOUNT=(PBYTE)__GroupCount;
 PCHAR gpbRangedAttackReady=(PCHAR)__RangeAttackReady;
+PCHAR gpbShowNetStatus=(PCHAR)__NetStatusToggle;
 PCHAR gpbAltTimerReady=(PCHAR)__AltTimerReady;
 DWORD *g_ppDrawHandler=(DWORD*)__DrawHandler;
 PVOID EQADDR_GWORLD=(PVOID)__gWorld;
@@ -234,7 +235,8 @@ PBYTE EQADDR_ENCRYPTPAD3=(PBYTE)__EncryptPad3;
 
 DWORD *pScreenX=(DWORD*)__ScreenX;
 DWORD *pScreenY=(DWORD*)__ScreenY;
-
+DWORD *pScreenMode=(DWORD*)__ScreenMode;
+CHAR  *pMouseLook=(CHAR*)__MouseLook;
 PMOUSEINFO EQADDR_MOUSE=(PMOUSEINFO)__Mouse;
 PMOUSECLICK EQADDR_MOUSECLICK=(PMOUSECLICK)__Clicks;
 CHAR DataTypeTemp[MAX_STRING]={0};
@@ -564,6 +566,9 @@ PCHAR szItemSlot[] = {
 BOOL bAllErrorsFatal=FALSE;
 BOOL bAllErrorsDumpStack=FALSE;
 BOOL bLaxColor=FALSE;
+BOOL gbHUDUnderUI=1;
+BOOL gbAlwaysDrawMQHUD=0;
+
 DWORD nColorAdjective=0;
 DWORD nColorAdjectiveYou=0;
 DWORD nColorExpletive=0;

@@ -54,16 +54,77 @@ public:
 		bool Ret=GetWorldFilePath_Trampoline(Filename,FullPath);
 		return Ret;
 	}
-
 }; 
+
+DWORD DrawHUDParams[4]={0,0,0,0};
 
 DWORD __cdecl DrawHUD_Trampoline(DWORD,DWORD,DWORD,DWORD); 
 DWORD __cdecl DrawHUD_Detour(DWORD a,DWORD b,DWORD c,DWORD d) 
 { 
-	int Ret = DrawHUD_Trampoline(a,b,c,d);
+	DrawHUDParams[0]=a;
+	DrawHUDParams[1]=b;
+	DrawHUDParams[2]=c;
+	DrawHUDParams[3]=d;
+	if (gbHUDUnderUI || gbAlwaysDrawMQHUD)
+		return 0;
+	int Ret= DrawHUD_Trampoline(a,b,c,d);
 	Benchmark(bmPluginsDrawHUD,PluginsDrawHUD());
 	return Ret;
 } 
+
+void DrawHUD()
+{
+	if (gbAlwaysDrawMQHUD || (gGameState==GAMESTATE_INGAME && gbHUDUnderUI && gbShowNetStatus))
+	{
+		if (DrawHUDParams[0] && gGameState==GAMESTATE_INGAME && gbShowNetStatus)
+		{
+			DrawHUD_Trampoline(DrawHUDParams[0],DrawHUDParams[1],DrawHUDParams[2],DrawHUDParams[3]);
+			DrawHUDParams[0]=0;
+		}
+		Benchmark(bmPluginsDrawHUD,PluginsDrawHUD());
+	}
+	else
+		DrawHUDParams[0]=0;
+}
+
+
+VOID DrawHUDText(PCHAR Text, DWORD X, DWORD Y, DWORD Argb)
+{
+//	bNextUserColor=true;
+//	pDisplay->WriteTextHD2(Text,X,Y,Argb);
+	
+	DWORD sX=((PCXWNDMGR)pWndMgr)->ScreenExtentX;
+	DWORD sY=((PCXWNDMGR)pWndMgr)->ScreenExtentY;
+
+/*
+.text:00410CA4                 mov     eax, g_pwndmgr  ; class CXWndManager * g_pwndmgr
+.text:00410CA9                 add     eax, 0F4h       ;  g_pwndmgr->Field_F4
+.text:00410CAE                 cmp     dword ptr [eax+4], 2  ;  Field_F4->Field_4
+.text:00410CB2                 jle     short loc_410CBF ; eax, [eax]
+.text:00410CB4                 mov     ecx, [eax]
+.text:00410CB6                 test    ecx, ecx
+.text:00410CB8                 jz      short loc_410CBF ; eax, [eax]
+.text:00410CBA                 lea     eax, [ecx+8]
+.text:00410CBD                 jmp     short loc_410CC1    ; mov     ecx, [eax]
+.text:00410CBF                 mov     eax, [eax]
+.text:00410CC1                 mov     ecx, [eax]
+.text:00410CC3                 call    CTextureFont__DrawWrappedText
+/**/
+
+	CTextureFont* pFont=0;
+	DWORD* ppDWord=(DWORD*)((PCXWNDMGR)pWndMgr)->Field_F4;
+	if (ppDWord[1]<=2)
+	{
+		pFont=(CTextureFont*)ppDWord[0];
+	}
+	else
+	{
+		pFont=(CTextureFont*)ppDWord[2];
+	}
+
+	pFont->DrawWrappedText(Text,X,Y,sX-X,CXRect(X,Y,sX,sY),Argb,1,0);
+	/**/
+}
 
 class EQ_LoadingSHook
 {
@@ -95,6 +156,7 @@ VOID InitializeDisplayHook()
 	EzDetour(DrawNetStatus,DrawHUD_Detour,DrawHUD_Trampoline);
 //	EasyClassDetour(EQ_LoadingS__WriteTextHD,EQ_LoadingSHook,WriteTextHD_Detour,VOID,(char *,int,int,int),WriteTextHD_Trampoline);
 	EzDetour(EQ_LoadingS__WriteTextHD,EQ_LoadingSHook::WriteTextHD_Detour,EQ_LoadingSHook::WriteTextHD_Trampoline);
+
 }
 
 VOID ShutdownDisplayHook()
@@ -106,4 +168,6 @@ VOID ShutdownDisplayHook()
 	RemoveDetour(DrawNetStatus);
 	RemoveDetour(EQ_LoadingS__WriteTextHD);
 	RemoveDetour(CDisplay__GetWorldFilePath);
+
+	RemoveDetour(CTextureFont__DrawWrappedText);
 }

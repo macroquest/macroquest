@@ -95,6 +95,14 @@ VOID StrReplaceSection(PCHAR szInsert,DWORD Length,PCHAR szNewString)
 	strncpy(szInsert,szNewString,NewLength);
 }
 
+VOID ConvertCR(PCHAR Text)
+{// not super-efficient but this is only being called at initialization currently.
+	while (PCHAR Next=strstr(Text,"\\n"))
+	{
+		StrReplaceSection(Next,2,"\n");
+	}
+}
+
 VOID Flavorator(PCHAR szLine)
 {
 	PCHAR pSpot;

@@ -483,6 +483,7 @@ void InitializeMQ2Commands()
 		{"/combine",    CombineCmd,1,1},
 		{"/clearerrors", ClearErrorsCmd,1,0},
 		{"/drop",		DropCmd,1,0},
+		{"/hud",        HudCmd,1,0},
 		{NULL,          NULL,0,1},
     };
 

@@ -379,12 +379,16 @@ typedef struct _CSIDLWND {
 
 
 //11-6-2003 lax
-//Actual size 0x108 3-25-2004
+//Actual size 0x108 4-28-2004
 typedef struct _CXWNDMGR {
 /*0x000*/ CHAR Unknown0x000[0x7D];
 /*0x07D*/ bool KeyboardFlags[4];
-/*0x081*/ CHAR Unknown0x081[0x27];
-/*0x108*/
+/*0x081*/ CHAR Unknown0x081[0x6B];
+/*0x0EC*/ DWORD ScreenExtentX;
+/*0x0F0*/ DWORD ScreenExtentY;
+/*0x0F4*/ DWORD Field_F4;
+/*0x0F8*/ BYTE Unknown0x10;
+/*0x108*/ 
 } CXWNDMGR, *PCXWNDMGR;
 
 

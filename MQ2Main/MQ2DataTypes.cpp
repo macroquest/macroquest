@@ -1070,7 +1070,7 @@ bool MQ2CharacterType::GetMember(MQ2VARPTR VarPtr, PCHAR Member, PCHAR Index, MQ
 		if (Index[0]>='0' && Index[0]<='9')
 		{
 			unsigned long nBuff=atoi(Index)-1;
-			if (nBuff>16)
+			if (nBuff>=15)
 				return false;
 			if (pChar->Buff[nBuff].SpellID==0xFFFFFFFF || pChar->Buff[nBuff].SpellID==0)
 				return false;
@@ -1100,7 +1100,7 @@ bool MQ2CharacterType::GetMember(MQ2VARPTR VarPtr, PCHAR Member, PCHAR Index, MQ
 		if (Index[0]>='0' && Index[0]<='9')
 		{
 			unsigned long nBuff=atoi(Index)-1;
-			if (nBuff>6)
+			if (nBuff>=6)
 				return false;
 			if (pChar->ShortBuff[nBuff].SpellID==0xFFFFFFFF || pChar->ShortBuff[nBuff].SpellID==0x0)
 				return false;

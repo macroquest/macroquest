@@ -215,6 +215,7 @@ void InitializeMQ2Windows()
 //	EasyClassDetour(CXWndManager__RemoveWnd,CXWndManagerHook,RemoveWnd_Detour,int,(class CXWnd *),RemoveWnd_Trampoline);
 	EzDetour(CXWndManager__RemoveWnd,CXWndManagerHook::RemoveWnd_Detour,CXWndManagerHook::RemoveWnd_Trampoline);
 
+
 	AddCommand("/windows",ListWindows,false,true,false);
 	AddCommand("/notify",WndNotify,false,true,false);
 	AddCommand("/itemnotify",ItemNotify,false,true,false);

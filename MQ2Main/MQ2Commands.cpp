@@ -4561,3 +4561,34 @@ VOID DropCmd(PSPAWNINFO pChar, PCHAR szLine)
 	}
 }
 
+VOID HudCmd(PSPAWNINFO pChar, PCHAR szLine)
+{
+	if (!szLine[0])
+	{
+		SyntaxError("Usage: /hud <normal|underui|always>");
+		WriteChatColor("Note: 'always' forces 'underui' also. The Network Status indicator is not 'always' drawn and is toggled with F11.");
+		return;
+	}
+	else
+	if (!stricmp(szLine,"normal"))
+	{
+		WritePrivateProfileString("MacroQuest","HUDMode","Normal",gszINIFilename);
+		gbAlwaysDrawMQHUD=false;
+		gbHUDUnderUI=false;
+	}
+	else
+	if (!stricmp(szLine,"underui"))
+	{
+		WritePrivateProfileString("MacroQuest","HUDMode","UnderUI",gszINIFilename);
+		gbHUDUnderUI=true;
+		gbAlwaysDrawMQHUD=false;
+	}
+	else
+	if (!stricmp(szLine,"always"))
+	{
+		WritePrivateProfileString("MacroQuest","HUDMode","Always",gszINIFilename);
+		gbHUDUnderUI=true;
+		gbAlwaysDrawMQHUD=true;
+	}
+}
+

@@ -1,7 +1,42 @@
 04 May 2004 by Lax:
+- New command
+  Usage: /hud <normal|underui|always>
+  * "Normal" will make the HUD display as it would normally on top of UI, not at char select
+     or in "f10 mode"
+  * "UnderUI" will make the HUD display as it would normally except UNDER the UI, and not at
+     char select or in "f10 mode"
+  * "Always" will make the HUD display under the UI, at char select, and in "f10 mode"
+- New Plugin MQ2HUD.  Edit MQ2HUD.INI to add custom elements to your HUD.  You pick the spot
+  on the screen, the color, and what gets displayed.  Every element gets parsed for MQ2Data
+  each time it is displayed.
+  Example MQ2HUD.INI:
+    [Elements]
+		TargetInfo=3,5,35,255,255,255,${Target}
+		GMIndicator=3,5,45,0,0,255,${Spawn[gm]}
+		CursorItemName=7,-15,-15,255,255,255,${If[${Cursor.ID},${Cursor},]}
+		ClickMeForFun=6,-25,-25,255,255,255,${If[!${Cursor.ID},click me,]}
+  The order is TYPE,X,Y,RED,GREEN,BLUE,TEXT.
+  Type is currently any combination of the following:
+    1 - Display in non-full screen mode
+    2 - Display in full screen mode ("f10 mode")
+    4 - X,Y is based on cursor location
+  e.g. 1+2+4=7.  7 means all 3 of the above. 6 means 2 and 4. 3 means 1 and 2. Just add them
+    together.  There is no way to end up with a number that could mean two different 
+     combinations.
+  Red, Green and Blue are each from 0 to 255. 255,255,255 is white, 0,0,0 is black.
+  ** There is currently not a command to add or remove these from inside the game.  One will
+     probably be added soon.  The plugin will automatically re-load the list from the .ini
+     when you modify and save the .ini.
+- Seeing as how the mouse functions perfectly fine in full screen mode, I've forced the cursor
+  to display the same as it would in UI-visible mode.  The only difference is the item is not
+  displayed on your cursor.  With MQ2HUD and the "CursorItemName" example, you could have it
+  show the name of the item attached to your cursor in full screen mode (use type 6 if you
+  want it to follow your cursor in full screen mode only).
 - Added custom spawn captioning.  Set them in MacroQuest.ini [Captions].  Empty the setting 
-  to make it use EQ's default.  By default our player caption is slightly different.  
-  It shows their guild status if they are officer or leader of a guild.
+  to make it use EQ's default.  By default our player caption is slightly different -  
+  it shows their guild status if they are officer or leader of a guild.  Pet captions are a
+  little different also - it will display the name of its master if it is a player's pet.
+  Use "\n" to mean a new line when setting captions.
 - Added MQ2Data Top-Level Object:
   spawn NamingSpawn: Spawn currently being captioned.  NULL when not captioning.
 - Added/changed MQ2Data members:
@@ -11,7 +46,7 @@
   bool spawn.AFK: AFK?
   string spawn.AATitle: Actual AA title (e.g. Sage, Impresario, etc)
 - MQ2Map adds Top-Level Object: spawn MapSpawn: If your cursor is on a spawn on the map, this is it
-
+- Fixed ticks.Time
 
 02 May 2004 by Lax:
 - Added a popup box to the crash detected hook, explaining that the user should visit the
