@@ -645,3 +645,22 @@ DECLARE_API ( exportallspells )
    } 
 } 
 
+DECLARE_API ( plootwnd ) 
+{ 
+   EQLOOTWINDOW *p, *pnull=NULL, ci; 
+   DWORD cb; 
+
+
+    // read param from command line 
+    p = (EQLOOTWINDOW *)GetExpression(args); 
+
+    ReadMemory((PARAM1)p,&ci,sizeof(ci),&cb); 
+
+   dprintf("\n\n\n"); 
+
+   KP(Wnd);
+   KP(Unknown0x148);
+   KP(Unknown0x150);
+   KP(ItemDesc);
+
+} 

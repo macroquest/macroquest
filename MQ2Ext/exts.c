@@ -132,6 +132,7 @@ DECLARE_API ( help )
 			"   pzoneinfo     - Display ZONEINFO struct\n"
 			"   plootcorpse   - Display LOOTCORPSE struct\n"
 			"   pactorinfo    - Display ACTORINFO struct\n"
+			"   plootwnd      - Display EQLOOTWINDOW struct\n"
             );
 
 }
