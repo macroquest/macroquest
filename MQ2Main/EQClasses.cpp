@@ -47,7 +47,7 @@ REVERSE_VIRTUAL_DETOUR(int CXWnd::HandleRButtonHeld(class CXPoint *),0x4C);
 REVERSE_VIRTUAL_DETOUR(int CXWnd::HandleRButtonUpAfterHeld(class CXPoint *),0x50);
 
 
-REVERSE_VIRTUAL_DETOUR(void CListWnd::DeleteAll(void),0x124);
+REVERSE_VIRTUAL_DETOUR(void CListWnd::DeleteAll(void),0x128);
 
 
 // AUTO IMPORTS
