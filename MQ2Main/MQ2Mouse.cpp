@@ -575,7 +575,7 @@ BOOL ParseMouseLoc(PCHARINFO pCharInfo, PCHAR szMouseLoc)
 		}
 		else
 		{
-			Slot = atol(szArg2);
+			Slot = atoi(szArg2);
 			if ((Slot < 0) || (Slot > 29))
 			{ // invalid slot number for loot abort
 				WriteChatColor("Invalid slot specified for corpse <slot>",USERCOLOR_DEFAULT);
@@ -610,7 +610,7 @@ BOOL ParseMouseLoc(PCHARINFO pCharInfo, PCHAR szMouseLoc)
 		}
 		else
 		{ // not reserved word so use as slot number
-			Slot = atol(szArg2);
+			Slot = atoi(szArg2);
 			if ((Slot < 0) || (Slot > 79))
 			{
 				DebugSpew("Mouseloc merchant has invalid slot: %s",szMouseLoc);
@@ -639,7 +639,7 @@ BOOL ParseMouseLoc(PCHARINFO pCharInfo, PCHAR szMouseLoc)
 		}
 		else
 		{ // not reserved word so slot number
-			Slot = atol(szArg2);
+			Slot = atoi(szArg2);
 			if ((Slot < 0) || (Slot > 9))
 			{
 				DebugSpew("Mouseloc hotkey has invalid slot: %s",szMouseLoc);
@@ -668,7 +668,7 @@ BOOL ParseMouseLoc(PCHARINFO pCharInfo, PCHAR szMouseLoc)
 		}
 		else
 		{
-			Slot = atol(szArg2);
+			Slot = atoi(szArg2);
 			if ((Slot < 0) || (Slot > 9))
 			{ // all enviro containers are 10 slot
 				DebugSpew("Mouseloc enviro has invald slot: %s",szMouseLoc);
@@ -712,7 +712,7 @@ BOOL ParseMouseLoc(PCHARINFO pCharInfo, PCHAR szMouseLoc)
 		}
 		else
 		{
-			Slot = atol(szArg2);
+			Slot = atoi(szArg2);
 			if ((Slot < 0) || (Slot > 3))
 			{ // give window has 4 slots
 				DebugSpew("Invalid npctrade slot in mouseloc: %s",szMouseLoc);
@@ -876,7 +876,7 @@ BOOL ParseMouseLoc(PCHARINFO pCharInfo, PCHAR szMouseLoc)
 			DebugSpew("Mouseloc [bank] inv missing arg: %s",szMouseLoc);
 			return FALSE;
 		}
-		Slot = atol(szArg2);
+		Slot = atoi(szArg2);
 		if ((Slot < 0) || (!Bank && (Slot > 7)) || (Bank && (Slot > Bank)))
 		{
 			DebugSpew("Invalid slot in mouseloc: %s",szMouseLoc);
@@ -905,7 +905,7 @@ BOOL ParseMouseLoc(PCHARINFO pCharInfo, PCHAR szMouseLoc)
 			DebugSpew("Mouseloc [bank] pack missing arg(s): %s",szMouseLoc);
 			return FALSE;
 		}
-		Pack = atol(szArg2);
+		Pack = atoi(szArg2);
 		if ((Pack < 0) || (!Bank && (Pack > 7)) || (Bank && (Pack > Bank)))
 		{
 			DebugSpew("Invalid pack in mouseloc: %s",szMouseLoc);
@@ -961,7 +961,7 @@ BOOL ParseMouseLoc(PCHARINFO pCharInfo, PCHAR szMouseLoc)
 		}
 		else
 		{
-			Slot = atol(szArg3);
+			Slot = atoi(szArg3);
 			if ((Slot < 0) || ((Slot + 1) > Max_Slots))
 			{
 				DebugSpew("Invalid Slot in pack: [bank] pack %d %d",Pack,Slot);
