@@ -14,6 +14,7 @@
 
 namespace MQ2Globals
 {
+
 /* BENCHMARK HANDLES */
 
 EQLIB_API DWORD bmWriteChatColor;
@@ -185,6 +186,8 @@ EQLIB_VAR PCHAR szEQMappableCommands[nEQMappableCommands];
 
 EQLIB_VAR PCHAR szHeading[];
 EQLIB_VAR PCHAR szHeadingShort[];
+EQLIB_VAR PCHAR szHeadingNormal[];
+EQLIB_VAR PCHAR szHeadingNormalShort[];
 EQLIB_VAR PCHAR szSize[];
 EQLIB_VAR PCHAR szSpawnType[];
 EQLIB_VAR PCHAR szGuildStatus[];
@@ -557,3 +560,5 @@ EQLIB_VAR CTextOverlay **ppTextOverlay;
 /**/
 }
 using namespace MQ2Globals;
+
+

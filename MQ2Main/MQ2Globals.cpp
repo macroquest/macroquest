@@ -268,6 +268,45 @@ PCHAR szHeadingShort[] = {
     "SSW"   //15
 };
 
+PCHAR szHeadingNormal[] = {
+    "north",                //0
+    "north by northeast",   //1
+    "northeast",            //2
+    "east by northeast",    //3
+    "east",                 //4
+    "east by southeast",    //5
+    "southeast",            //6
+    "south by southeast",   //7
+    "south",                //8
+    "south by southwest",   //9
+    "southwest",            //10
+    "west by southwest",    //11
+    "west",                 //12
+    "west by northwest",    //13
+    "northwest",            //14
+    "north by northwest"    //15
+};
+
+PCHAR szHeadingNormalShort[] = {
+    "N",    //0
+    "NNE",  //1
+    "NE",   //2
+    "ENE",  //3
+    "E",    //4
+    "ESE",  //5
+    "SE",   //6
+    "SSE",  //7
+    "S",    //8
+    "SSW",  //9
+    "SW",   //10
+    "WSW",  //11
+    "W",    //12
+    "WNW",  //13
+    "NW",   //14
+    "NNW"   //15
+};
+
+
 PCHAR szSize[] = {
     "Tiny",
     "Small",

@@ -245,7 +245,14 @@ BOOL ParseMacroVariables(PCHAR szOriginal)
             ++pEnd;
 			if (EndVariable[(UCHAR)*pEnd])
 			{
-				break;
+				if(*pEnd=='$' && pEnd[1]=='{')
+				{
+					ParseMacroData(pEnd);
+					if (EndVariable[(UCHAR)*pEnd])
+						break;
+				}
+				else
+					break;
 			}
 		} while(1);
 		unsigned long Len=(pEnd-pAt)-1;

@@ -65,8 +65,7 @@ public:
 
 //				DoCommand((PSPAWNINFO)pCharSpawn,"/plugin mq2chatwnd unload");
 			}
-			else
-			DebugSpew("CMQChatWnd message %Xh, value: %Xh",Message,unknown);
+//			DebugSpew("CMQChatWnd message %Xh, value: %Xh",Message,unknown);
 		}
 		else
 		{
@@ -233,7 +232,7 @@ PLUGIN_API DWORD OnWriteChatColor(PCHAR Line, DWORD Color, DWORD Filter)
 	MQToSTML(Line,szProcessed,MAX_STRING,Color);
 	strcat(szProcessed,"<br>");
 	CXStr NewText(szProcessed);
-	DebugTry(ConvertItemTags(NewText));
+	DebugTry(ConvertItemTags(NewText,0));
 	CXSize Whatever;
 	DebugTry(MQChatWnd->OutputBox->AppendSTML(&Whatever,NewText));
 	DebugTry(((CXWnd*)MQChatWnd->OutputBox)->SetVScrollPos(MQChatWnd->OutputBox->VScrollMax));

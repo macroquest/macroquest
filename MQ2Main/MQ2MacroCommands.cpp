@@ -618,8 +618,6 @@ BOOL ActualCalculate(PCHAR szFormula, DOUBLE &Result) {
 
     for (i=0;i<j;i++) {
         switch ((UCHAR)Arg[i][0]) {
-			case 'a':
-			case 'o':
             case '<':
             case '>':
 			case '=':
@@ -646,12 +644,7 @@ BOOL ActualCalculate(PCHAR szFormula, DOUBLE &Result) {
 					case 0xf3:
 						sprintf(Buffer,"%d",atof(Arg[i])<=atof(Arg[i+2]));
 						break;
-					case 'a':
-						sprintf(Buffer,"%d",atof(Arg[i])&&atof(Arg[i+2]));
-						break;
-					case 'o':
-						sprintf(Buffer,"%d",atof(Arg[i])||atof(Arg[i+2]));
-						break;
+
                 }
                 strcpy(Arg[i],Buffer);
                 j-=2;
@@ -682,6 +675,49 @@ BOOL ActualCalculate(PCHAR szFormula, DOUBLE &Result) {
         }
     }
 	
+    for (i=0;i<j;i++) {
+        switch (Arg[i][0]) {
+            case 'a':
+            case 'o':
+                if ((i==0) || (i+1==j)) {
+				    GracefullyEndBadMacro(((PCHARINFO)pCharData)->pSpawn,gMacroBlock, "Calculate encountered a bad %c formation",Arg[i][0]);
+					return false;
+                }
+                i--;
+                switch (Arg[i+1][0]) {
+					case 'a':
+						{
+							FLOAT A=(FLOAT)atof(Arg[i]);
+							FLOAT B=(FLOAT)atof(Arg[i+2]);
+							if ((A&&B)==0)
+							{
+								Result=0;
+								return true;
+							}
+							strcpy(Buffer,"1"); // if its not zero ,it must be 1 ;)
+	//						sprintf(Buffer,"%d",atof(Arg[i])&&atof(Arg[i+2]));
+						}
+						break;
+					case 'o':
+						{
+							FLOAT A=(FLOAT)atof(Arg[i]);
+							FLOAT B=(FLOAT)atof(Arg[i+2]);
+							if ((A||B)==1)
+							{
+								Result=1;
+								return true;
+							}
+							strcpy(Buffer,"0"); // if its not 1,it must be 0!
+//							sprintf(Buffer,"%d",atof(Arg[i])||atof(Arg[i+2]));
+						}
+						break;
+                }
+                strcpy(Arg[i],Buffer);
+                j-=2;
+                for (k=i+1;k<j;k++) strcpy(Arg[k],Arg[k+2]);
+        }
+    }
+
 	Result=atof(Arg[0]);
 	return true;
 }

@@ -73,6 +73,43 @@ typedef struct _SEARCHSPAWN {
     DWORD SortBy;
 } SEARCHSPAWN, *PSEARCHSPAWN;
 
+static enum SearchItemFlag
+{
+	Lore=1,
+	NoDrop=2,
+	NoRent=3,
+	Magic=4,
+	Book=5,
+	Pack=6,
+	Combinable=7,
+	Summoned=8,
+	Weapon=9,
+	Normal=10,
+	Instrument=11,
+
+	// item locations...
+	Worn=100,
+	Inventory=101,
+	Bank=102,
+	Merchant=103,
+	Corpse=104,
+	SharedBank=105,
+	Trade=106,
+	Bazaar=107,
+	Inspect=108,
+	Enviro=109,
+
+};
+
+typedef struct _SEARCHITEM {
+	CHAR FlagMask[MAX_STRING];
+	CHAR Flag[MAX_STRING];
+
+	CHAR szName[MAX_STRING];
+	DWORD ID;
+
+} SEARCHITEM, *PSEARCHITEM;
+
 typedef struct _SWHOFILTER {
 	BOOL Lastname;
 	BOOL Class;
@@ -573,8 +610,17 @@ public:
 		Result=pMember->ID;
 		return true;
 	}
-
+	PMQ2TYPEMEMBER FindMember(PCHAR Name)
+	{
+		unsigned long N=MemberMap[Name];
+		if (!N)
+			return 0;
+		N--;
+		return Members[N];
+	}
 protected:
+
+
 	inline BOOL AddMember(DWORD ID, PCHAR Name)
 	{
 		unsigned long N=MemberMap[Name];
@@ -601,9 +647,9 @@ protected:
 	}
 
 	CHAR TypeName[32];
-	map<string,DWORD> MemberMap;
 	BOOL Official;
 	CIndex<PMQ2TYPEMEMBER> Members;
+	map<string,DWORD> MemberMap;
 };
 
 

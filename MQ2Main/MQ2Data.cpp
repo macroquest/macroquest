@@ -258,6 +258,21 @@ BOOL dataHeading(PCHAR szIndex, MQ2TYPEVAR &Ret)
 {
 	if (!szIndex[0])
 		return false;
+	if (PCHAR pComma=strchr(szIndex,','))
+	{
+		*pComma=0;
+		FLOAT Y=(FLOAT)atof(szIndex);
+		*pComma=',';
+		FLOAT X=(FLOAT)atof(&pComma[1]);
+        Ret.Float=(FLOAT)(atan2f(((PSPAWNINFO)pCharSpawn)->Y - Y, X - ((PSPAWNINFO)pCharSpawn)->X) * 180.0f / PI + 90.0f);
+        if (Ret.Float<0.0f) 
+			Ret.Float += 360.0f;
+		else if (Ret.Float>=360.0f) 
+			Ret.Float -= 360.0f;
+		Ret.Type=pHeadingType;
+		return true;
+	}
+
 	Ret.Float=360.0f-(FLOAT)atof(szIndex);
 	Ret.Type=pFloatType;
 	return true;
@@ -410,12 +425,6 @@ BOOL dataNearestSpawn(PCHAR szIndex, MQ2TYPEVAR &Ret)
 	return false;
 }
 
-// todo
-BOOL dataFindItem(PCHAR szIndex, MQ2TYPEVAR &Ret)
-{
-	return false;
-}
-
 BOOL dataTime(PCHAR szIndex, MQ2TYPEVAR &Ret)
 {
     time_t CurTime;
@@ -494,4 +503,10 @@ BOOL dataDefined(PCHAR szIndex, MQ2TYPEVAR &Ret)
 	Ret.DWord=IsVariableDefined(szIndex);
 	Ret.Type=pBoolType;
 	return true;
+}
+
+// todo
+BOOL dataFindItem(PCHAR szIndex, MQ2TYPEVAR &Ret)
+{
+	return false;
 }

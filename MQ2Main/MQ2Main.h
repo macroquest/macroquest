@@ -310,7 +310,7 @@ EQLIB_API VOID AddFilter(PCHAR szFilter, DWORD Length, PBOOL pEnabled);
 EQLIB_API VOID DefaultFilters(VOID);
 EQLIB_API PCHAR ConvertHotkeyNameToKeyName(PCHAR szName);
 EQLIB_API VOID CheckChatForEvent(PCHAR szMsg);
-EQLIB_API VOID ConvertItemTags(CXStr &cxstr);
+EQLIB_API VOID ConvertItemTags(CXStr &cxstr, BOOL Tag=TRUE);
 EQLIB_API BOOL ParseKeyCombo(PCHAR text, KeyCombo &Dest);
 EQLIB_API PCHAR DescribeKeyCombo(KeyCombo &Combo, PCHAR szDest);
 
@@ -623,6 +623,7 @@ void DisplayOverlayText(PCHAR szText, DWORD dwColor, DWORD dwTransparency, DWORD
 #define XWM_HITENTER			6
 #define XWM_CLOSE				10
 #define XWM_NEWVALUE	        14
+#define XWM_UNKNOWN				19
 #define XWM_MOUSEOVER			21
 #define XWM_HISTORY				22
 #define XWM_LCLICKHOLD			23

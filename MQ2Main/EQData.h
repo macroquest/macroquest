@@ -376,10 +376,7 @@ typedef struct _CONTENTS {
 /*0x2c*/  DWORD   StackCount;
 /*0x2c*/  DWORD   Charges;
     };
-    union {
 /*0x30*/  DWORD   ItemSlot;// slotid for Player Items
-/*0x30*/  DWORD   Unknown1; // why is this here?
-    };
 /*0x34*/  BYTE    Unknown2[0xc];
 /*0x40*/  DWORD	  ItemSlot2;// slotid for Merchant Items
 /*0x44*/  DWORD   Unknown3;

@@ -48,6 +48,8 @@ EQLIB_VAR class MQ2TimeType *pTimeType;
 
 EQLIB_VAR class MQ2HeadingType *pHeadingType;
 
+EQLIB_VAR class MQ2InvSlotType *pInvSlotType;
+
 #define UseTemp(mystring) strcpy(DataTypeTemp,mystring)
 #define TypeMember(name) AddMember((DWORD)name,""#name)
 
@@ -846,6 +848,9 @@ public:
 		Artifact=73,
 		PendingLore=74,
 		LoreText=75,
+		Items=76,
+		Item=77,
+		Container=78,
 	};
 	MQ2ItemType():MQ2Type("Item")
 	{
@@ -924,6 +929,9 @@ public:
 		TypeMember(Artifact);//73,
 		TypeMember(PendingLore);//74,
 		TypeMember(LoreText);//75,
+		TypeMember(Items);
+		TypeMember(Item);
+		TypeMember(Container);
 	}
 
 	~MQ2ItemType()
@@ -1044,11 +1052,13 @@ class MQ2CorpseType : public MQ2Type
 public:
 	static enum CorpseMembers
 	{
-		ID=1,
+		Item=2,
+		Items=3,
 	};
 	MQ2CorpseType():MQ2Type("corpse")
 	{
-		TypeMember(ID);
+		TypeMember(Item);
+		TypeMember(Items);
 	}
 
 	~MQ2CorpseType()
@@ -1068,11 +1078,15 @@ class MQ2MerchantType : public MQ2Type
 public:
 	static enum MerchantMembers
 	{
-		ID=1,
+		Markup=1,
+		Item=2,
+		Items=3,
 	};
 	MQ2MerchantType():MQ2Type("merchant")
 	{
-		TypeMember(ID);
+		TypeMember(Markup);
+		TypeMember(Item);
+		TypeMember(Items);
 	}
 
 	~MQ2MerchantType()
@@ -1380,13 +1394,25 @@ public:
 	{
 		Name=1,
 		ShortName=2,
-		ID=3
+		ID=3,
+		CanGate=4,
+		CanCast=5,
+		DruidType=6,
+		NecromancerType=7,
+		ShamanType=8,
+		ClericType=9,
 	};
 	MQ2ClassType():MQ2Type("class")
 	{
 		TypeMember(Name);
 		TypeMember(ShortName);
 		TypeMember(ID);
+		TypeMember(CanGate);
+		TypeMember(CanCast);
+		TypeMember(DruidType);
+		TypeMember(NecromancerType);
+		TypeMember(ShamanType);
+		TypeMember(ClericType);
 	}
 
 	~MQ2ClassType()
@@ -1558,10 +1584,36 @@ public:
 
    bool ToString(MQ2VARPTR VarPtr, PCHAR Destination)
    {
-	  strcpy(Destination,szHeadingShort[(INT)(VarPtr.Float/ 22.5f + 0.5f)%16]);
+	  strcpy(Destination,szHeadingNormalShort[(INT)(VarPtr.Float/ 22.5f + 0.5f)%16]);
       return true;
    }
 }; 
 
+class MQ2InvSlotType : public MQ2Type
+{
+public:
+   static enum InvSlotMembers
+   {
+	   Pack=1,
+	   Slot=2,
+   };
+   MQ2InvSlotType():MQ2Type("type")
+   {
+      TypeMember(Pack);
+	  TypeMember(Slot);
+   }
+
+   ~MQ2InvSlotType()
+   {
+   }
+
+   bool GetMember(MQ2VARPTR VarPtr, PCHAR Member, PCHAR Index, MQ2TYPEVAR &Dest);
+
+   bool ToString(MQ2VARPTR VarPtr, PCHAR Destination)
+   {
+	//  strcpy(Destination,((MQ2Type*)VarPtr.Ptr)->GetName());
+      return false;
+   }
+}; 
 
 #undef TypeMember

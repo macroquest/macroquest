@@ -241,13 +241,13 @@ PCHAR GetEQPath(PCHAR szBuffer)
     return szBuffer;
 }
 
-VOID ConvertItemTags(CXStr &cxstr)
+VOID ConvertItemTags(CXStr &cxstr, BOOL Tag)
 {
 //	PCXSTR *saddr=cxstr;
    __asm{
       push ecx;
       push eax;
-	  push 1;
+	  push [Tag];
 	   push [cxstr];
 	   call [EQADDR_CONVERTITEMTAGS];
 	   pop ecx;
@@ -1113,6 +1113,96 @@ VOID STMLToPlainText(PCHAR in, PCHAR out)
    }
 	out[pchar_out_string_position++] = 0;
 }
+
+VOID ClearSearchItem(SEARCHITEM &SearchItem)
+{
+	ZeroMemory(&SearchItem,sizeof(SEARCHITEM));
+}
+#define MaskSet(n) (SearchItem.FlagMask[(SearchItemFlag)n])
+#define Flag(n) (SearchItem.Flag[(SearchItemFlag)n])
+#define RequireFlag(flag,value) {if (MaskSet(flag) && Flag(flag)!=(CHAR)((value)!=0)) return false;}
+
+BOOL ItemMatchesSearch(SEARCHITEM &SearchItem, PCONTENTS pContents)
+{
+	if (SearchItem.ID && pContents->Item->ItemNumber!=SearchItem.ID)
+		return false;
+	RequireFlag(Lore,pContents->Item->Lore);
+	RequireFlag(NoRent,pContents->Item->NoRent);
+	RequireFlag(NoDrop,pContents->Item->NoDrop);
+	RequireFlag(Magic,pContents->Item->Magic);
+	RequireFlag(Pack,pContents->Item->Type==ITEMTYPE_PACK);
+	RequireFlag(Book,pContents->Item->Type==ITEMTYPE_BOOK);
+	RequireFlag(Combinable,pContents->Item->ItemType==17);
+	RequireFlag(Summoned,pContents->Item->Summoned);
+	RequireFlag(Instrument,pContents->Item->InstrumentType);
+	RequireFlag(Weapon,pContents->Item->Damage && pContents->Item->Delay);
+	RequireFlag(Normal,pContents->Item->Type==ITEMTYPE_NORMAL);
+
+	CHAR szName[MAX_STRING] = {0};
+	if (SearchItem.szName[0] && !strstr(_strlwr(strcpy(szName,pContents->Item->Name)),SearchItem.szName))
+		return FALSE;
+	
+
+	return true;
+}
+
+BOOL SearchThroughItems(SEARCHITEM &SearchItem, PCONTENTS* pResult, DWORD *nResult)
+{
+#define Result(pcontents,nresult) 	{\
+	if (pResult) \
+		*pResult=pcontents;\
+	if (nResult)\
+		*nResult=nresult;\
+	return TRUE;}
+
+	PCHARINFO pChar=(PCHARINFO)pCharData;
+	if (MaskSet(Worn) && Flag(Worn))
+	{
+		// iterate through worn items
+		for (unsigned long N = 0 ; N < 21 ; N++)
+		{
+			if (PCONTENTS pContents=pChar->InventoryArray[N])
+			if (ItemMatchesSearch(SearchItem,pContents))
+				Result(pContents,N);
+		}
+		if (PCONTENTS pContents=pChar->InventoryArray[29])
+		if (ItemMatchesSearch(SearchItem,pContents))
+			Result(pContents,29);
+	}
+
+	if (MaskSet(Inventory) && Flag(Inventory))
+	{
+		unsigned long nPack;
+		// iterate through inventory slots before in-pack slots
+		for (nPack = 0 ; nPack<8 ; nPack++)
+		{
+			if (PCONTENTS pContents=pChar->Inventory.Pack[nPack])
+			{
+				if (ItemMatchesSearch(SearchItem,pContents))
+					Result(pContents,nPack+21);
+			}
+		}
+
+		for (nPack = 0 ; nPack<8 ; nPack++)
+		{
+			if (PCONTENTS pContents=pChar->Inventory.Pack[nPack])
+			if (pContents->Item->ItemType==ITEMTYPE_PACK)
+			{
+				for (unsigned long nItem = 0 ; nItem<pContents->Item->Slots ; nItem++)
+				{
+					if (PCONTENTS pItem=pContents->Contents[nItem])
+					if (ItemMatchesSearch(SearchItem,pItem))
+						Result(pItem,nPack*100+nItem);
+				}
+			}
+		}
+	}
+	// TODO
+	return 0;
+}
+#undef TestFlag
+#undef Flag
+#undef MaskSet
 
 
 VOID ClearSearchSpawn(PSEARCHSPAWN pSearchSpawn)

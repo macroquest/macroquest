@@ -1,3 +1,15 @@
+8 Apr 2004 by Lax (more)
+- MQ2Data changes:
+  Top level objects:
+  * heading Heading[x,y]: Heading from player's current position to x,y
+  Additions/Changes to existing types:
+  * int item.Container: The number of slots, if this is a container
+  * int item.Items: The number of contained items, if this is a container
+  * item item.Item[n]: The item in this slot, if this is a container
+- Item links were apparently not working in the MQ2ChatWnd, nobody reported this until now.
+  Thanks people who noticed it and never reported it!  Anyway, item links in MQ2ChatWnd are
+  simply stripped until I figure out the issue.  Item links in MQ2Chat still work fine.
+
 8 Apr 2004 by Lax
 - MQ2Data changes:
   - macro.Defined is now a top level object instead
