@@ -336,10 +336,12 @@ typedef struct _CONTENTS {
 /*0x08*/  DWORD   Charges;
     };
     union {
-/*0x0c*/  DWORD   ItemSlot;
+/*0x0c*/  DWORD   ItemSlot;// slotid for Player Items
 /*0x0c*/  DWORD   Unknown1; // why is this here?
     };
-/*0x10*/  BYTE   Unknown2[0x18];
+/*0x10*/  BYTE    Unknown2[0xc];
+		  DWORD	  ItemSlot2;// slotid for Merchant Items
+		  BYTE    Unknown3[0x8];
 /*0x28*/  DWORD   Open;
 /*0x2c*/
 } CONTENTS, *PCONTENTS;

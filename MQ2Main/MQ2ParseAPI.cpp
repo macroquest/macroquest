@@ -190,6 +190,7 @@ VOID InitializeParser()
 	{"servername",			parmServerName},
 	{"loginname",			parmLoginName},
 	{"gamestate",			parmGameState},
+	{"banker(",				parmBanker},
 
 	{NULL,NULL,NULL},
 };

@@ -393,10 +393,10 @@ BOOL ParseMouseLoc(PCHARINFO pCharInfo, PCHAR szMouseLoc)
 	CHAR Locations[MAX_STRING] = {0}; 
 	FILE *input; 
 	char SearchFor[] = {0}; 
-	CHAR ScreenX[MAX_STRING] = {0}; //Screen resolution from eqclient.ini 
-	CHAR ScreenY[MAX_STRING] = {0}; //Screen resolution from eqclient.ini 
-	CHAR ScreenW[MAX_STRING] = {0}; //Window Width
-	CHAR ScreenH[MAX_STRING] = {0}; //Window Height
+	CHAR ScrX[MAX_STRING] = {0}; //Screen resolution from eqclient.ini 
+	CHAR ScrY[MAX_STRING] = {0}; //Screen resolution from eqclient.ini 
+	CHAR ScrW[MAX_STRING] = {0}; //Window Width
+	CHAR ScrH[MAX_STRING] = {0}; //Window Height
 	CHAR temp[MAX_STRING] = {0}; //needed a temp string for some diddling of strings 
 	CHAR SkinName[MAX_STRING] = {0}; //Current character skin from UI ini file 
 	CHAR UILabel[MAX_STRING] = {0}; //label in character UI file where window info is found 
@@ -989,15 +989,14 @@ BOOL ParseMouseLoc(PCHARINFO pCharInfo, PCHAR szMouseLoc)
 	sprintf(Locations,"%s\\locations.txt",gszINIPath); //Locations filename 
 
 	sprintf(EQClient, "%s\\eqclient.ini", gszEQPath); 
-	GetPrivateProfileString("VideoMode","Width","800",ScreenX,MAX_STRING,EQClient); 
-	GetPrivateProfileString("VideoMode","Height","600",ScreenY,MAX_STRING,EQClient); 
-
-	//need to change ScreenX and ScreenY to fit UI ini format, for example XPos800x600 
-	sprintf(temp, "%sx%s", ScreenX, ScreenY); 
-	sprintf(ScreenX, "XPos%s", temp); //changed ScreenX format to fit resolution formats in UI ini file 
-	sprintf(ScreenY, "YPos%s", temp); //changed ScreenY format to fit resolution formats in UI ini file 
-	sprintf(ScreenW, "Width%s", temp);	//resizable windows have stored width
-	sprintf(ScreenH, "Height%s", temp);	//resizable windows have stored height
+	GetPrivateProfileString("VideoMode","Width","800",ScrX,MAX_STRING,EQClient); 
+	GetPrivateProfileString("VideoMode","Height","600",ScrY,MAX_STRING,EQClient); 
+	//need to change ScrX and ScrY to fit UI ini format, for example XPos800x600 
+	sprintf(temp, "%sx%s",ScrX,ScrY); 
+	sprintf(ScrX, "XPos%s", temp); //changed ScrX format to fit resolution formats in UI ini file 
+	sprintf(ScrY, "YPos%s", temp); //changed ScrY format to fit resolution formats in UI ini file 
+	sprintf(ScrW, "Width%s", temp);	//resizable windows have stored width
+	sprintf(ScrH, "Height%s", temp);	//resizable windows have stored height
 
 	//develop full character UI ini file name 
 
@@ -1014,10 +1013,10 @@ BOOL ParseMouseLoc(PCHARINFO pCharInfo, PCHAR szMouseLoc)
 	GetPrivateProfileString(ClickLocation,"ScreenID",".",ScreenID,MAX_STRING,Locations); 
 
 	//Using info from locations file, get the base X Y coordinates 
-	GetPrivateProfileString(UILabel,ScreenX,"0",ButtonX,MAX_STRING,UIFile); //base window X coord 
-	GetPrivateProfileString(UILabel,ScreenY,"0",ButtonY,MAX_STRING,UIFile); //base window Y coord 
-	GetPrivateProfileString(UILabel,ScreenW,"0",ButtonW,MAX_STRING,UIFile); //base window width
-	GetPrivateProfileString(UILabel,ScreenH,"0",ButtonH,MAX_STRING,UIFile); //base window height
+	GetPrivateProfileString(UILabel,ScrX,"0",ButtonX,MAX_STRING,UIFile); //base window X coord 
+	GetPrivateProfileString(UILabel,ScrY,"0",ButtonY,MAX_STRING,UIFile); //base window Y coord 
+	GetPrivateProfileString(UILabel,ScrW,"0",ButtonW,MAX_STRING,UIFile); //base window width
+	GetPrivateProfileString(UILabel,ScrH,"0",ButtonH,MAX_STRING,UIFile); //base window height
 	DebugSpew("Values from UIFile: X=%s  Y=%s  W=%s  H=%s",ButtonX, ButtonY, ButtonW, ButtonH);
 
 	//Develop a path\file from XMLFile 

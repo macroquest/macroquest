@@ -114,6 +114,8 @@ EQLIB_API VOID ShutdownDisplayHook();
 EQLIB_API VOID InitializeMQ2Commands();
 EQLIB_API VOID ShutdownMQ2Commands();
 EQLIB_API VOID AddCommand(PCHAR Command, fEQCommand Function, BOOL EQ=0, BOOL Parse=1);
+EQLIB_API VOID AddParm(PCHAR Name, fMQParm Function);
+EQLIB_API VOID RemoveParm(PCHAR Name);
 EQLIB_API VOID AddAlias(PCHAR ShortCommand, PCHAR LongCommand);
 EQLIB_API BOOL RemoveAlias(PCHAR ShortCommand);
 EQLIB_API BOOL RemoveCommand(PCHAR Command);
@@ -335,6 +337,7 @@ EQLIB_API DWORD parmSelectedItem					(PCHAR, PCHAR, PSPAWNINFO);
 EQLIB_API DWORD parmServerName						(PCHAR, PCHAR, PSPAWNINFO);
 EQLIB_API DWORD parmLoginName						(PCHAR, PCHAR, PSPAWNINFO);
 EQLIB_API DWORD parmGameState						(PCHAR, PCHAR, PSPAWNINFO);
+EQLIB_API DWORD parmBanker						(PCHAR, PCHAR, PSPAWNINFO);
 EQLIB_API DOUBLE Calculate(PCHAR szFormula);
 
 /* COMMANDS */

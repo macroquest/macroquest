@@ -3107,29 +3107,32 @@ DWORD parmMerchantXXX(PCHAR szVar, PCHAR szOutput, PSPAWNINFO pChar)
         if (pMerchWindow->Wnd.Show == 1) {
                 PCHAR szArg = szVar+13;
                 if (szArg[0]=='"') szArg++;
+                // strip off trailing '  ")  ' if it exists... 
+                if (szArg[strlen(szArg)-1]==')') szArg[strlen(szArg)-1]=0; 
+                if (szArg[strlen(szArg)-1]=='"') szArg[strlen(szArg)-1]=0;
                 CHAR szTemp[MAX_STRING] = {0};
                 DebugSpew("$merchant(has) -- looking for '%s'", szArg);
                 DWORD i;
                 BOOL Found = FALSE;
             for (i=0;i<79;i++) {
                 if (pMerchWindow->ItemDesc[i]) {
-                    if (!strnicmp(szArg,pMerchWindow->ItemDesc[i]->Item->Name,strlen(pMerchWindow->ItemDesc[i]->Item->Name))) {
-                            Found=TRUE;
-                            DebugSpew("Merchant does have: %s",pMerchWindow->ItemDesc[i]->Item->Name);
-                            break;
-                        }
-                    }
-                }
-                if (Found) {
-                    strcat(szOutput,"TRUE");
-                } else {
-                    strcat(szOutput,"FALSE");
-                }
-            } else {
-                strcat(szOutput,"NULL");
-            }
-        }
-        return i;
+                    if (!stricmp(szArg,pMerchWindow->ItemDesc[i]->Item->Name)) { 
+                            Found=TRUE; 
+                            DebugSpew("Merchant does have: %s",pMerchWindow->ItemDesc[i]->Item->Name); 
+                            break; 
+                        } 
+                    } 
+                } 
+                if (Found) { 
+                    strcat(szOutput,"TRUE"); 
+                } else { 
+                    strcat(szOutput,"FALSE"); 
+                } 
+            } else { 
+                strcat(szOutput,"NULL"); 
+            } 
+        } 
+        return i; 
     }
     if (!strstr(szVar,")")) {
         sprintf("PMP - Bad $merchant() '%s'",szVar);
@@ -4774,26 +4777,69 @@ DWORD parmGiveWnd(PCHAR szVar, PCHAR szOutput, PSPAWNINFO pChar)
 
 DWORD parmSelectedItem(PCHAR szVar, PCHAR szOutput, PSPAWNINFO pChar)
 {
-    DWORD i=0;
-    i+=11;
-    // $selecteditem
-    //returns name of selected item or PMP_ERROR_BADPARM if none is selected
-    if (!ppSelectedItem || !pSelectedItem) {
-        strcat(szOutput,"NULL");
-        return i;
-    }
-    PEQCURRENTSELECTION pSelectedSlot = NULL;
-    pSelectedSlot = (PEQCURRENTSELECTION)pSelectedItem;
+    DWORD i=0,argindex=13;;
+    CHAR szName[MAX_STRING] = {0};
+    CHAR szArg[MAX_STRING] = {0};
+	PEQCURRENTSELECTION pSelectedSlot = NULL;
+	if (!ppSelectedItem || !pSelectedItem) return PMP_ERROR_BADPARM;
 
+	pSelectedSlot = (PEQCURRENTSELECTION)pSelectedItem;
     if(!pSelectedSlot || !pSelectedSlot->TextureAnim || !*(DWORD *)pSelectedSlot->TextureAnim || !**(DWORD **)pSelectedSlot->TextureAnim) {
-        strcat(szOutput,"NULL");
+		strcat(szOutput,"NULL\0");
+		i+=strstr(szVar,")")-szVar;
+		return i;
+    }
+	PITEMINFO pSelectedItemInfo = **(PITEMINFO **)pSelectedSlot->TextureAnim;
+	PCONTENTS pSelectedItemCont = *(PCONTENTS *)pSelectedSlot->TextureAnim;
+	// $selecteditem(count)
+    if (strstr(szVar,"count)")) {
+        i += 18;
+		if (pSelectedItemCont) {
+			if(pSelectedItemCont->StackCount) {
+				itoa( pSelectedItemCont->StackCount, szName, 10 );
+				strcat(szOutput,szName);
+				DebugSpew("pSelectedItemInfo = %x",pSelectedItemInfo);
+				DebugSpew("pSelectedItemCont = %x",pSelectedItemCont);
+			} else {
+				strcat(szOutput,"NOT_STACKABLE\0");
+			}
+		} else {
+			strcat(szOutput,"NULL\0");
+		}
+        return i;
+    // $selecteditem(ItemSlot2)
+    } else if (strstr(szVar,"itemslot2)")) {
+        i += 22;
+		if (pSelectedItemCont) {
+			if(pSelectedItemCont->ItemSlot2) {
+				itoa( pSelectedItemCont->ItemSlot2, szName, 10 );
+				strcat(szOutput,szName);
+			} else {
+				strcat(szOutput,"NOT_APPLICABLE\0");
+			}
+		} else {
+			strcat(szOutput,"NULL\0");
+		}
         return i;
     }
-    PITEMINFO pSelected = **(PITEMINFO **)pSelectedSlot->TextureAnim;
-    if (pSelected) {
-        strcat(szOutput,pSelected->Name);
+	// $selecteditem()
+    if (!strstr(szVar,")")) {
+        sprintf("PMP - Bad $merchant() '%s'",szVar);
+        strcat(szOutput,szVar);
+        return PMP_ERROR_BADPARM;
     } else {
-        strcat(szOutput,"NULL");
+        i+=strstr(szVar,")")-szVar;
+        GetArg(szArg,szVar+argindex,1,false,true,true);
+        strlwr(szArg);
+        if (szArg[strlen(szArg)-1]==')')
+            szArg[strlen(szArg)-1]=0;
+        DebugSpew("$merchant(xxx) szArg = %s",szArg);
+
+        if (pSelectedItemInfo) {
+			strcat(szOutput,pSelectedItemInfo->Name);
+		} else {
+			strcat(szOutput,"NULL");
+		}
     }
     return i;
 }
@@ -4832,4 +4878,26 @@ DWORD parmGameState(PCHAR szVar, PCHAR szOutput, PSPAWNINFO pChar)
 			strcat(szOutput,"UNKNOWN");
  	}
     return 9; 
+}
+DWORD parmBanker(PCHAR szVar, PCHAR szOutput, PSPAWNINFO pChar)
+{
+    DWORD i=0,argindex=7;;
+    CHAR szTemp[MAX_STRING] = {0};
+    CHAR szArg[MAX_STRING] = {0};
+   // $banker(open)
+    if (strstr(szVar,"open)")) {
+        i += 11;
+        if (!pinstCBankWnd) return PMP_ERROR_BADPARM;
+        if (!*(DWORD *)pinstCBankWnd) {
+            strcat(szOutput,"FALSE");
+			return i;
+        }
+        PCSIDLWND pWind = *(PCSIDLWND *)pinstCBankWnd;
+        if (pWind->Show==1) {
+            strcat(szOutput,"TRUE");
+        } else {
+            strcat(szOutput,"FALSE");
+        }
+	}
+	return i;
 }
