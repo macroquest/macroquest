@@ -61,7 +61,7 @@ PLUGIN_API VOID OnPulse(VOID)
 
 // This is called every time WriteChatColor is called by MQ2Main or any plugin,
 // IGNORING FILTERS, IF YOU NEED THEM MAKE SURE TO IMPLEMENT THEM. IF YOU DONT
-// CALL CEverQuest::dsp_chat MAKE SURE TO IMPLEMENT EVENTS HERE
+// CALL CEverQuest::dsp_chat MAKE SURE TO IMPLEMENT EVENTS HERE (for chat plugins)
 PLUGIN_API DWORD OnWriteChatColor(PCHAR Line, DWORD Color, DWORD Filter)
 {
 	DebugSpewAlways("MQ2Template::OnWriteChatColor(%s)",Line);

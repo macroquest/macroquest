@@ -39,11 +39,6 @@ PLUGIN_API VOID ShutdownPlugin(VOID)
 	RemoveCommand("/maxfps");
 }
 
-// Called once directly after initialization, and then every time the gamestate changes
-PLUGIN_API VOID SetGameState(DWORD GameState)
-{
-}
-
 DWORD gFG_SLEEP=0;
 DWORD gBG_SLEEP=0;
 
