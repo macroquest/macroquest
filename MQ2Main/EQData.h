@@ -221,7 +221,7 @@ enum MOUSE_DATA_TYPES {
    MD_Button1
 };
 
-#define nEQMappableCommands 0xB7
+#define nEQMappableCommands 0xB8
 
 
 // ***************************************************************************
@@ -589,18 +589,18 @@ union{
 /*0x1da0*/  BYTE  		Unknown0x1da0[0x18];
 /*0x1db4*/	DWORD		LDoNPoints;   
 /*0x1db8*/  BYTE        Unknown0x1db8[0x7aD0]; 
-/*0x9888*/  DWORD       CareerFavor; // NOTE: 64-bit # -> 9888
+/*0x9888*/  DWORD       CareerFavor; // NOTE: 64-bit #
 /*0x988c*/  DWORD       Unknown0x984c; 
-/*0x9890*/  DWORD       CurrFavor; // NOTE: 64-bit # -> 9890
+/*0x9890*/  DWORD       CurrFavor; // NOTE: 64-bit #
 /*0x9894*/  BYTE        Unknown0x9854[0x16c];  
 /*0x9a00*/  DWORD       GroupLeadershipExp;      // 0-499 or 0x000-0x1FF? need confirmation
 /*0x9a04*/  DWORD       RaidLeadershipExp;       // 0-999/0x3FF for display, 0-1999/0x7FF for actual value?  
 /*0x9a08*/  DWORD       GroupLeadershipPoints;   // 0-8  // 
 /*0x9a0c*/  DWORD       RaidLeadershipPoints;    // 0-10
-/*0x9a10*/	BYTE		Unknown0x9980[0x140];
-/*0x9b50*/	struct		_CONTENTS* Bank[NUM_BANK_SLOTS]; // -> 9B50
-/*0x9b98*/	BYTE		Unknown0x9b08[0xa8];
-/*0x9c40*/	BYTE		Grouped;
+/*0x9a10*/	BYTE		Unknown0x9980[0x218];
+/*0x9C28*/	struct		_CONTENTS* Bank[NUM_BANK_SLOTS]; // -> 9C28
+/*0x9C70*/	BYTE		Unknown0x9b08[0xa8];
+/*0x9D18*/	BYTE		Grouped;
 /*...   */
 /*0xA020*/
 } CHARINFO, *PCHARINFO; 
