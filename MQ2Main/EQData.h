@@ -682,7 +682,7 @@ typedef struct _ACTORINFO {
 /*0x00a9*/   BYTE       Swimming;      // 5 = Swimming (under or on top of water); otherwise zero 
 /*0x00aa*/   BYTE       FeetWet;        // 5 = Feet are in the water; otherwise zero 
 /*0x00ab*/   BYTE       LeftWater;     // 5 = Just got out of water, but still very close to shore 
-/*0x00a8*/   BYTE       Unknown0x0a8[0x28]; 
+/*0x00ac*/   BYTE       Unknown0x0ac[0x28]; 
 /*0x00d4*/   DWORD      SpellETA;      // Calculated TimeStamp when current spell being casted lands. 0 while not casting. 
 /*0x00d8*/   BYTE       Unknown0x0d4[0xb0]; 
 /*0x0188*/   VOID		*FaceRelatedActorStruct; 
