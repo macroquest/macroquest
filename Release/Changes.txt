@@ -1,3 +1,6 @@
+28 Feb 2004 by Zaphod
+ - Major optimization/cleanup of ParseMacroParameter().
+ 
 22 Feb 2004 by Amadeus
 - Updated readme.html [thanks Wassup!]
 

@@ -2,6 +2,8 @@
     MQ2Main.dll: MacroQuest2's extension DLL for EverQuest
     Copyright (C) 2002-2003 Plazmic, 2003-2004 Lax
 
+	Portions Copyright(C) 2004 Zaphod
+
     This program is free software; you can redistribute it and/or modify
     it under the terms of the GNU General Public License, version 2, as published by
     the Free Software Foundation.
@@ -265,131 +267,144 @@ VOID ShutdownParser()
  *           "myparm(thisoption," is acceptable.                             *
  *****************************************************************************/
 
+int FindLastParameter(PCHAR szOriginal, PCHAR& szCurPos, size_t& len)
+{
+	// get the strings length
+	len = strlen(szOriginal);
+
+	// iterate over string from the end until you pass the beginning
+	for (szCurPos = &szOriginal[len]; szCurPos >= szOriginal; --szCurPos)
+	{
+		// stop if a parameter is found
+		if ((*szCurPos == '$') || (*szCurPos == '@'))
+			break;
+	}
+
+	// return offset into string, -1 if no parameter found
+	return szCurPos - szOriginal;
+}
+
 PCHAR ParseMacroParameter(PSPAWNINFO pChar, PCHAR szOriginal)
 {
-    BOOL FoundNewCmd=FALSE;
-    CHAR szOutput[MAX_STRING] = {0};
-    CHAR szVar[MAX_STRING] = {0};
-    CHAR szTmp[MAX_STRING] = {0};
-    DWORD i,l = 0;
-    INT j,j2;
+    bool FoundNewCmd = false;
+    CHAR szOutput[MAX_STRING];
+    CHAR szVar[MAX_STRING];
+    INT outPos, l;
+	PCHAR szOriginalCurPos, szOutputCurPos;
+	size_t originalLen;
     PCHARINFO pCharInfo = NULL;
     if (NULL == (pCharInfo = GetCharInfo())) return szOriginal;
 	EnterMQ2Benchmark(bmParseMacroParameter);
-    while (strstr(szOriginal,"$") || strstr(szOriginal,"@")) {
-//        DebugSpewNoFile("PMP - Current string - '%s'",szOriginal);
-        ZeroMemory(szOutput,MAX_STRING);
-        ZeroMemory(szVar,MAX_STRING);
-        i=0;
-        j=-1;
-        j2=-1;
+    while ((outPos = FindLastParameter(szOriginal, szOriginalCurPos, originalLen)) != -1) 
+	{
+        //DebugSpewNoFile("PMP - Current string - '%s'", szOriginal);
+		strncpy(szOutput, szOriginal, outPos);
+		szOutputCurPos = &szOutput[outPos];
+		*szOutputCurPos = 0;
 
-        strncpy(szOutput,szOriginal,MAX_STRING);
-        for (i=0;i<strlen(szOriginal);i++) {
-            if (szOriginal[i] == '$') j=i;
-            if (szOriginal[i] == '@') j2=i;
-        }
-        if (j2>j) { j=j2; } else { j2=-1; }
-        for (i=j;i<strlen(szOriginal);i++) {
-            szOutput[i]=0;
-        };
-        for (i=j;i<strlen(szOriginal);i++) {
-            if (j2==j) {
-                if (szOriginal[i] != '@') {
-                    szOutput[j] = szOriginal[i];
-                    j++;
-                } else {
-                    i++;
-                    if ((szOriginal[i]==0) || (szOriginal[i]==' ')) {
-                        DebugSpewNoFile("PMP - Bad @ '%s'",szVar);
-                        i--;
-                        szOutput[j] = '²';
-                        j++;
-                    } else {
-
-                        GetArg(szVar,szOriginal+i,1,TRUE,TRUE,TRUE,0,TRUE);
-                        if (szVar[strlen(szVar)-1]==')') szVar[strlen(szVar)-1]=0;
-                        DebugSpewNoFile("PMP - Current variable - '%s'",szVar);
-                        FoundNewCmd = FALSE;
-						
-                        if (gMacroStack) {
-                            FoundNewCmd = SearchVariables(szVar,szOutput,gMacroStack->StackStr);
-                            if (!FoundNewCmd) FoundNewCmd = SearchVariables(szVar,szOutput,gMacroStack->LocalStr);
-                        }
-                        if (!FoundNewCmd) FoundNewCmd = SearchVariables(szVar,szOutput,gMacroStr);
-                        if (!FoundNewCmd) FoundNewCmd = SearchTimers(szVar,szOutput);
-                        if (!FoundNewCmd) {
-                            PVARARRAYS pArray = GetArray(szVar);
-                            if (pArray) GetArg(szVar,szOriginal+i,1,TRUE,TRUE);
-                            FoundNewCmd = SearchArrays(szVar,szOutput);
-                        }
-/**/
-                        if (FoundNewCmd) {
-                            i += strlen(szVar)-1;
-                            j += (strlen(szOutput)-j);
-
-                        // @unknown
-                        } else {
-                            DebugSpewNoFile("PMP - Bad @variable '%s'",szVar);
-                            i--;
-                            szOutput[j] = '²';
-                            j++;
-                        }
-
-                    }
-                }
-                j2=j;
-            } else if (szOriginal[i] != '$') {
-                szOutput[j] = szOriginal[i];
-                j++;
-            } else {
-                i++;
-                if ((szOriginal[i]==0) || (szOriginal[i]==' ')) {
-                    DebugSpewNoFile("PMP - Bad $ '%s'",szVar);
-                    i--;
-                    szOutput[j] = 'ÿ';
-                    j++;
-                } else {
-                    GetArg(szVar,szOriginal+i,1,TRUE,TRUE);
-//                    DebugSpewNoFile("PMP - Current param - '%s'",szVar);
-                    FoundNewCmd = FALSE;
-					PPARM pParm=pParmList;
-					while(pParm)
+		if (*szOriginalCurPos == '@') 
+		{
+            szOriginalCurPos++;
+            if ((*szOriginalCurPos == 0) || (*szOriginalCurPos == ' ')) 
+			{
+                DebugSpewNoFile("PMP - Bad @ '%s'", szVar);
+				szOriginalCurPos--;
+                *szOutputCurPos++ = '²';
+            }
+			else 
+			{
+                GetArg(szVar, szOriginalCurPos, 1, TRUE, TRUE, TRUE, 0, TRUE);
+				size_t varLen = strlen(szVar)-1;
+                if (szVar[varLen] == ')') szVar[varLen]=0;
+                DebugSpewNoFile("PMP - Current variable - '%s'", szVar);
+                FoundNewCmd = true;
+				
+				do // this is a non-looping loop used purely for control flow
+				{
+					if (gMacroStack) 
 					{
-						if (!strnicmp(szVar,pParm->szName,pParm->Length))
-						{
-							l = pParm->Function(szVar,szOutput,pChar);
-                            if (l==PMP_ERROR_BADPARM) {
-                                i--;
-                                szOutput[j]='ÿ';
-                                j++;
-                                FoundNewCmd=TRUE;
-                                break;
-                            }
-                            i += l;
-                            j += (strlen(szOutput)-j);
-                            FoundNewCmd=TRUE;
+						if (SearchVariables(szVar, szOutputCurPos, gMacroStack->StackStr)) break;
+						if (SearchVariables(szVar, szOutputCurPos, gMacroStack->LocalStr)) break;
+					}
+					if (SearchVariables(szVar, szOutputCurPos, gMacroStr)) break;
+					if (SearchTimers(szVar, szOutputCurPos)) break;
+
+					PVARARRAYS pArray = GetArray(szVar);
+					if (pArray) GetArg(szVar, szOriginalCurPos, 1, TRUE, TRUE);
+					if (SearchArrays(szVar,szOutputCurPos)) break;
+
+					// @unknown
+					FoundNewCmd = false;
+					DebugSpewNoFile("PMP - Bad @variable '%s'",szVar);
+					szOriginalCurPos--;
+					*szOutputCurPos++ = '²';
+				} while (false);
+
+				if (FoundNewCmd) 
+				{
+					szOriginalCurPos += strlen(szVar) - 1;
+					szOutputCurPos += strlen(szOutputCurPos);
+				}
+			}
+        } 
+		else /* if (*szOriginalCurPos == '$') */ 
+		{
+            szOriginalCurPos++;
+            if ((*szOriginalCurPos == 0) || (*szOriginalCurPos == ' ')) 
+			{
+                DebugSpewNoFile("PMP - Bad $ '%s'", szVar);
+                szOriginalCurPos--;
+                *szOutputCurPos++ = 'ÿ';
+            } 
+			else
+			{
+                GetArg(szVar, szOriginalCurPos, 1, TRUE, TRUE);
+//                DebugSpewNoFile("PMP - Current param - '%s'", szVar);
+                FoundNewCmd = FALSE;
+				PPARM pParm = pParmList;
+				while(pParm)
+				{
+					if (!strnicmp(szVar, pParm->szName, pParm->Length))
+					{
+						l = pParm->Function(szVar, szOutputCurPos, pChar);
+                        if (l == PMP_ERROR_BADPARM) {
+                            szOriginalCurPos--;
+                            *szOutputCurPos++ = 'ÿ';
+                            FoundNewCmd = true;
                             break;
                         }
-						pParm=pParm->pNext;
-					}
-
-					// $unknown
-                    if (!FoundNewCmd) {
-                        DebugSpewNoFile("PMP - Bad $command '%s'",szVar);
-                        i--;
-                        szOutput[j] = 'ÿ';
-                        j++;
+                        szOriginalCurPos += l;
+                        szOutputCurPos += strlen(szOutputCurPos);
+                        FoundNewCmd = true;
+                        break;
                     }
+					pParm = pParm->pNext;
+				}
+
+				// $unknown
+                if (!FoundNewCmd) 
+				{
+                    DebugSpewNoFile("PMP - Bad $command '%s'",szVar);
+                    szOriginalCurPos--;
+                    *szOutputCurPos++ = 'ÿ';
                 }
             }
-        }
-        strcpy(szOriginal,szOutput);
+		}
+
+		outPos = szOutputCurPos - szOutput;
+		memmove(&szOriginal[outPos], szOriginalCurPos + 1, 
+				originalLen - (szOriginalCurPos - szOriginal) + 1);
+		strncpy(szOriginal, szOutput, outPos);
     }
-    for (DWORD kount=0;szOriginal[kount]!='\0';kount++) {
-        if (szOriginal[kount]=='ÿ') szOriginal[kount]='$';
-        if (szOriginal[kount]=='²') szOriginal[kount]='@';
+
+    for (PCHAR szPos = szOriginal; *szPos != '\0'; szPos++) 
+	{
+        if (*szPos == 'ÿ') 
+			*szPos = '$';
+        else if (*szPos == '²') 
+			*szPos = '@';
     }
+
 	ExitMQ2Benchmark(bmParseMacroParameter);
     return (szOriginal);
 }
