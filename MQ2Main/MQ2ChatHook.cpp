@@ -67,11 +67,11 @@ VOID InitializeChatHook()
 	void (CChatHook::*pfDetour)(PCHAR szMsg, DWORD dwColor, DWORD dwUnknown) = CChatHook::Detour; 
 	void (CChatHook::*pfTrampoline)(PCHAR szMsg, DWORD dwColor, DWORD dwUnknown) = CChatHook::Trampoline; 
 
-	AddDetour((DWORD) EQWriteChatColor,*(PBYTE*)&pfDetour,*(PBYTE*)&pfTrampoline);
+	AddDetour((DWORD) EQADDR_DSPCHAT,*(PBYTE*)&pfDetour,*(PBYTE*)&pfTrampoline);
 
 }
 
 VOID ShutdownChatHook()
 {
-	RemoveDetour((DWORD)EQWriteChatColor);
+	RemoveDetour((DWORD)EQADDR_DSPCHAT);
 }

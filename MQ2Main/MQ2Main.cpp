@@ -118,7 +118,7 @@ BOOL ParseINIFile(PCHAR lpINIPath)
 
     GetPrivateProfileString("MacroQuest","MacroQuestVersion","0",gszVersion,MAX_STRING,ClientINI);
 
-    GetPrivateProfileString("Function Locations","WriteChatColor","0",szBuffer,MAX_STRING,ClientINI);   EQWriteChatColor = (fEQWriteChatColor)strtoul(szBuffer,NULL,16);
+    GetPrivateProfileString("Function Locations","WriteChatColor","0",szBuffer,MAX_STRING,ClientINI);   EQADDR_DSPCHAT = strtoul(szBuffer,NULL,16);
     GetPrivateProfileString("Function Locations","GetRaceByID","0",szBuffer,MAX_STRING,ClientINI);      GetRaceByID = (fEQGetStringByID)strtoul(szBuffer,NULL,16);
     GetPrivateProfileString("Function Locations","GetClassByID","0",szBuffer,MAX_STRING,ClientINI);     GetClassByID = (fEQGetStringByID)strtoul(szBuffer,NULL,16);
     GetPrivateProfileString("Function Locations","GetDeityByID","0",szBuffer,MAX_STRING,ClientINI);     GetDeityByID = (fEQGetStringByID)strtoul(szBuffer,NULL,16);
@@ -221,6 +221,7 @@ BOOL ParseINIFile(PCHAR lpINIPath)
     GetPrivateProfileString("Class Locations","ClassChatManager","0",szBuffer,MAX_STRING,ClientINI);         EQADDR_CHATMANAGER = (PDWORD)strtoul(szBuffer,NULL,16);
 	GetPrivateProfileString("Class Locations","ClassDisplayObject","0",szBuffer,MAX_STRING,ClientINI);			EQADDR_CLASSDISPLAYOBJECT = (PDWORD)strtoul(szBuffer,NULL,16); 
 	GetPrivateProfileString("Class Locations","ClassBankWnd","0",szBuffer,MAX_STRING,ClientINI);			EQADDR_CLASSBANKWND = (PDWORD)strtoul(szBuffer,NULL,16); 
+	GetPrivateProfileString("Class Locations","ClassEverQuest","0",szBuffer,MAX_STRING,ClientINI);			EQADDR_CLSEVERQUEST = (PDWORD)strtoul(szBuffer,NULL,16); 
 
     gFilterSkillsAll = 0!=GetPrivateProfileInt("MacroQuest","FilterSkills",0,Filename);
     gFilterSkillsIncrease = 2==GetPrivateProfileInt("MacroQuest","FilterSkills",0,Filename);

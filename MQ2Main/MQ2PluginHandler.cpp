@@ -52,7 +52,10 @@ DWORD LoadMQ2Plugin(const PCHAR Filename)
 	while(pPlugin)
 	{
 		if (hmod==pPlugin->hModule)
+		{
+			DebugSpew("LoadMQ2Plugin(%s) already loaded",Filename);
 			return 2; // already loaded
+		}
 		pPlugin=pPlugin->pNext;
 	}
 
@@ -160,9 +163,14 @@ VOID WriteChatColor(PCHAR Line, DWORD Color, DWORD Filter)
 	PMQPLUGIN pPlugin=pPlugins;
 	while(pPlugin)
 	{
+		DebugSpew("WriteChatColor trying plugin %s",pPlugin->szFilename);
 		if (pPlugin->WriteChatColor)
 		{
 			pPlugin->WriteChatColor(Line,Color,Filter);
+		}
+		else
+		{
+			DebugSpew("Plugin had no OnWriteChatColor",pPlugin->szFilename);
 		}
 		pPlugin=pPlugin->pNext;
 	}

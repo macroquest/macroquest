@@ -7,7 +7,7 @@
 
 
 #include "stdafx.h"
-#include "MQ2Plugin.h"
+#include "../MQ2Plugin.h"
 
 BOOL APIENTRY DllMain( HANDLE hModule, 
                        DWORD  ul_reason_for_call, 
@@ -48,7 +48,7 @@ PLUGIN_API VOID OnPulse(VOID)
 	// This is called every time MQ pulses
 }
 
-PLUGIN_API DWORD __stdcall OnWriteChatColor(PCHAR Line, DWORD Color, DWORD Filter)
+PLUGIN_API DWORD OnWriteChatColor(PCHAR Line, DWORD Color, DWORD Filter)
 {
 	DebugSpewAlways("MQ2Template::OnWriteChatColor(%s)",Line);
 	// This is called every time WriteChatColor is called by MQ2Main or any plugin,

@@ -41,7 +41,6 @@ typedef double DOUBLE;
 
 #include "EQData.h"
 // function typedefs
-typedef DWORD   (__stdcall *fEQWriteChatColor)(THIS_ PCHAR, DWORD, DWORD);
 typedef PCHAR   (__stdcall *fEQGetStringByID)(DWORD);
 typedef VOID    (__cdecl *fEQCommand)(PSPAWNINFO, PCHAR);
 typedef HRESULT (__stdcall *fGetDeviceState)(THIS_ DWORD, LPVOID);
@@ -59,9 +58,9 @@ typedef VOID    (__cdecl *fEQSendMessage)(PVOID,DWORD,PVOID,DWORD,BOOL);
 
 typedef DWORD (__cdecl *fMQParm)(PCHAR, PCHAR, PSPAWNINFO);
 
-typedef DWORD   (__stdcall *fMQWriteChatColor)(PCHAR Line, DWORD Color, DWORD Filter);
+typedef DWORD   (__cdecl *fMQWriteChatColor)(PCHAR Line, DWORD Color, DWORD Filter);
 typedef VOID  (__cdecl *fMQPulse)(VOID);
-typedef VOID  (__cdecl *fMQIncomingChat)(PCHAR Line, DWORD Color);
+typedef DWORD  (__cdecl *fMQIncomingChat)(PCHAR Line, DWORD Color);
 typedef VOID  (__cdecl *fMQInitializePlugin)(VOID);
 typedef VOID  (__cdecl *fMQShutdownPlugin)(VOID);
 typedef VOID  (__cdecl *fMQZoned)(VOID);

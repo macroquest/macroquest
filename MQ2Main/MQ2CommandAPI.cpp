@@ -37,7 +37,7 @@ VOID DoCommand(PSPAWNINFO pChar, PCHAR szLine)
     strcpy(szOriginalLine,szLine);
     PALIAS pLoop = pAliases;
     while (pLoop) {
-        if (!strnicmp(szOriginalLine,pLoop->szName,strlen(pLoop->szName))) {
+        if (!strnicmp(szOriginalLine,pLoop->szName,strlen(pLoop->szName)+1)) {
             sprintf(szLine,"%s%s",pLoop->szCommand,szOriginalLine+strlen(pLoop->szName));
         }
         pLoop = pLoop->pNext;
@@ -112,7 +112,7 @@ public:
 		if (szFullLine[0]!=0) { 
 			strcpy(szFullCommand,szFullLine); 
 			while (pLoop) { 
-				if (!strnicmp(szFullCommand,pLoop->szName,strlen(pLoop->szName))) { 
+				if (!strnicmp(szFullCommand,pLoop->szName,strlen(pLoop->szName)+1)) { 
 					sprintf(szCommand,"%s%s",pLoop->szCommand,szFullCommand+strlen(pLoop->szName)); 
 					strncpy(szFullCommand,szCommand,MAX_STRING); 
 				} 
@@ -125,7 +125,6 @@ public:
 			PMQCOMMAND pCommand=pCommands;
 			while(pCommand)
 			{
-//				DebugSpew("strnicmp(%s,%s,%d)",szCommand,pCommand->Command,strlen(szCommand));
 				int Pos=strnicmp(szCommand,pCommand->Command,strlen(szCommand));
 				if (Pos<0)
 				{// command not found
@@ -137,6 +136,7 @@ public:
 						ParseMacroParameter(pChar,szArgs); 
 					if (pCommand->EQ)
 					{
+						DebugSpew("pCommand->EQ");
 						strcat(szCommand," "); 
 						strcat(szCommand,szArgs); 
 						Trampoline(pChar,szCommand); 

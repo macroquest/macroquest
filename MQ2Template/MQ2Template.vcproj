@@ -148,7 +148,7 @@
 			Name="Header Files"
 			Filter="h;hpp;hxx;hm;inl;inc">
 			<File
-				RelativePath="MQ2Plugin.h">
+				RelativePath="..\MQ2Plugin.h">
 			</File>
 			<File
 				RelativePath="stdafx.h">
