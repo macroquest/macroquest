@@ -1,9 +1,9 @@
 15 Feb 2004 by Amadeus
 - 'Grouped' location fixed in CHARINFO (thereby fixing $char(grouped))
-- Fixed WhoFollowing in Actorinfo 
+- Fixed WhoFollowing in Actorinfo (thereby fixing $char(following)
 - Added IsABoat to Spawninfo
 - Went ahead and added the dx9.0 dinput.h to the cvs to be ready for next patch
-  * As far as I can tell, the changes between 8.1 and 9.0 for dinput.h were VERY
+  * As far as I can tell, the changes between 8.1 and 9.0 for dinput.h are VERY
     minimal.
 
 14 Feb 2004 by Amadeus
