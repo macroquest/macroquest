@@ -222,6 +222,7 @@ BOOL ParseINIFile(PCHAR lpINIPath)
 	GetPrivateProfileString("Class Locations","ClassDisplayObject","0",szBuffer,MAX_STRING,ClientINI);			EQADDR_CLASSDISPLAYOBJECT = (PDWORD)strtoul(szBuffer,NULL,16); 
 	GetPrivateProfileString("Class Locations","ClassBankWnd","0",szBuffer,MAX_STRING,ClientINI);			EQADDR_CLASSBANKWND = (PDWORD)strtoul(szBuffer,NULL,16); 
 	GetPrivateProfileString("Class Locations","ClassEverQuest","0",szBuffer,MAX_STRING,ClientINI);			EQADDR_CLSEVERQUEST = (PDWORD)strtoul(szBuffer,NULL,16); 
+	pEverQuest=(CEverQuest*)EQADDR_CLSEVERQUEST;
 
     gFilterSkillsAll = 0!=GetPrivateProfileInt("MacroQuest","FilterSkills",0,Filename);
     gFilterSkillsIncrease = 2==GetPrivateProfileInt("MacroQuest","FilterSkills",0,Filename);

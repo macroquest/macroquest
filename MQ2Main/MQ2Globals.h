@@ -243,3 +243,5 @@ EQLIB_VAR PCHAR szItemName4xx[];
 EQLIB_VAR PALIAS pAliases;
 EQLIB_VAR PMQCOMMAND pCommands;
 EQLIB_VAR PMQPLUGIN pPlugins;
+
+EQLIB_VAR CEverQuest *pEverQuest;

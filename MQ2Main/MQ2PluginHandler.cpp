@@ -160,6 +160,7 @@ VOID WriteChatColor(PCHAR Line, DWORD Color, DWORD Filter)
 {
 	DebugSpew("WriteChatColor(%s)",Line);
 //	CAutoLock Lock(&gPluginCS);
+
 	PMQPLUGIN pPlugin=pPlugins;
 	while(pPlugin)
 	{

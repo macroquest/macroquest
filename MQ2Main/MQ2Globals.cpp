@@ -246,6 +246,7 @@ DWORD *EQADDR_SLOTLIST = 0;
 PZONEINFO EQADDR_ZONEINFO = 0;
 
 
+EQLIB_VAR CEverQuest *pEverQuest=0;
 
 PCHAR szHeading[] = {
     "south",                //0
@@ -390,3 +391,4 @@ PCHAR szItemName[] = {
     #include "weapons.h"
     NULL
 };
+

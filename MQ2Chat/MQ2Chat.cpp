@@ -44,6 +44,12 @@ PLUGIN_API DWORD OnWriteChatColor(PCHAR Line, DWORD Color, DWORD Filter)
 	if (gFilterMacro == FILTERMACRO_NONE) return 0;
 	if (!EQADDR_CLSEVERQUEST) return 0;
 	if (GetGameState()!=GAMESTATE_INGAME) return 0;
+
+	if (!pEverQuest) 
+		return 0;
+	pEverQuest->dsp_chat(Stripped,Color,1);
+
+/*
 	DWORD clsEverQuest = *EQADDR_CLSEVERQUEST;
 	DWORD saddr=(DWORD)&Stripped[0];
 	DWORD Func=EQADDR_DSPCHAT; // we can't directly call EQADDR_DSPCHAT. need local copy :)
@@ -57,6 +63,7 @@ PLUGIN_API DWORD OnWriteChatColor(PCHAR Line, DWORD Color, DWORD Filter)
 			call Func;
 			pop ecx;
 		}
+/**/
 	return 0;
 }
 

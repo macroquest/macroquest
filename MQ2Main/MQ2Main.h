@@ -18,9 +18,11 @@
 #ifdef EQLIB_EXPORTS
 #define EQLIB_API extern "C" __declspec(dllexport)
 #define EQLIB_VAR extern "C" __declspec(dllexport)
+#define EQLIB_OBJECT __declspec(dllexport)
 #else
 #define EQLIB_API extern "C" __declspec(dllimport)
 #define EQLIB_VAR extern "C" __declspec(dllimport)
+#define EQLIB_OBJECT __declspec(dllimport)
 #endif
 
 #ifndef DOUBLE
@@ -65,9 +67,10 @@ typedef VOID  (__cdecl *fMQInitializePlugin)(VOID);
 typedef VOID  (__cdecl *fMQShutdownPlugin)(VOID);
 typedef VOID  (__cdecl *fMQZoned)(VOID);
 
+#include "EQClasses.h"
+
 #include "MQ2Internal.h"
 #include "MQ2Globals.h"
-
 
 class CAutoLock {
 public:
@@ -436,3 +439,4 @@ EQLIB_API VOID ZapVars                             (PSPAWNINFO,PCHAR);
 
 
 #define MAX_ITEM4xx			416
+
