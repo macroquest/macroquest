@@ -28,6 +28,7 @@ EQLIB_API DWORD bmPluginsSetGameState;
 EQLIB_API DWORD bmParseMacroParameter;
 EQLIB_API DWORD bmUpdateSpawnSort;
 EQLIB_API DWORD bmUpdateSpawnCaptions;
+EQLIB_API DWORD bmCalculate;
 
 /* OTHER */
 
@@ -58,6 +59,7 @@ EQLIB_VAR BOOL gbUnload;
 EQLIB_VAR DWORD gpHook;
 EQLIB_VAR PMACROBLOCK gMacroBlock;
 EQLIB_VAR PMACROSTACK gMacroStack;
+EQLIB_VAR map<string,PMACROBLOCK> gMacroSubLookupMap; 
 EQLIB_VAR PEVENTQUEUE gEventQueue;
 EQLIB_VAR PMACROBLOCK gEventFunc[NUM_EVENTS];
 EQLIB_VAR UCHAR gLastFind;

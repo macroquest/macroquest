@@ -40,6 +40,7 @@ DWORD bmPluginsSetGameState=0;
 DWORD bmParseMacroParameter=0;
 DWORD bmUpdateSpawnSort=0;
 DWORD bmUpdateSpawnCaptions=0;
+DWORD bmCalculate=0;
 
 PDATAVAR pGlobalVariables=0;
 PDATAVAR pMacroVariables=0;
@@ -62,6 +63,7 @@ BOOL gbUnload = FALSE;
 DWORD gpHook = NULL;
 PMACROBLOCK gMacroBlock = NULL;
 PMACROSTACK gMacroStack = NULL;
+map<string,PMACROBLOCK> gMacroSubLookupMap; 
 PEVENTQUEUE gEventQueue = NULL;
 PMACROBLOCK gEventFunc[NUM_EVENTS] = {NULL};
 UCHAR gLastFind = 0;
@@ -496,7 +498,7 @@ PCHAR szBodyType[] = {
    "Khati Sha", //15
    "Seru", //16
    "*UNKNOWN BODYTYPE 17", //17
-   "*UNKNOWN BODYTYPE 18", //18
+   "Draz Nurakk", //18
    "Zek", //19
    "Luggald", //20
    "Animal", //21

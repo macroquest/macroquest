@@ -1,3 +1,15 @@
+14 June 2004 by Lax:
+- Replaced Calculate function with a much faster version. Also added an operator or two.
+  I'll make sure they get added to the manual. How much faster? The existing calculate
+  ran on my system 4,200 times in a short amount of time and took one full second of CPU
+  time to do so. The same calculations ran with the new calculate 77,000 times and took 
+  only 620ms. Extrapolating the data it would have taken about 124,000 times calling 
+  calculate to match the old 4,200... or about 29.5 times faster (that's a lot).
+- Added sub lookup map from Gus to speed up macros a little bit
+- Undid MQ2EQBugFix, which was currently creating a bug (note to self: in future bug fixes,
+  make sure it's only going to try to fix it for the correct version)
+- Fixed an offset
+
 3 June 2004 by Lax:
 - Fixed string.Arg, string.Token, NearestSpawn, spawn.NearestSpawn, LastSpawn
 

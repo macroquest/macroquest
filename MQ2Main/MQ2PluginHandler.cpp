@@ -188,6 +188,7 @@ VOID InitializeMQ2Plugins()
 	bmPluginsReloadUI=AddMQ2Benchmark("PluginsReloadUI");
 	bmPluginsDrawHUD=AddMQ2Benchmark("PluginsDrawHUD");
 	bmPluginsSetGameState=AddMQ2Benchmark("PluginsSetGameState");
+	bmCalculate=AddMQ2Benchmark("Calculate");
 
 	InitializeCriticalSection(&gPluginCS);
 	bPluginCS=1;

@@ -2652,7 +2652,7 @@ int FindNextInvSlot(PCHAR pName, BOOL Exact)
 	LastFoundInvSlot=-1;
 	return -1;
 }
-
+/*
 BOOL ActualCalculate(PCHAR szFormula, DOUBLE &Result) {
     CHAR Buffer[MAX_STRING] = {0};
     DWORD i = 0, j=0, k=0;
@@ -3061,6 +3061,451 @@ BOOL ActualCalculate(PCHAR szFormula, DOUBLE &Result) {
 	Result=atof(Arg[0]);
 	return true;
 }
+/**/
+
+enum eCalcOp
+{
+	CO_NUMBER=0,
+	CO_OPENPARENS=1,
+	CO_CLOSEPARENS=2,
+	CO_ADD=3,
+	CO_SUBTRACT=4,
+	CO_MULTIPLY=5,
+	CO_DIVIDE=6,
+	CO_IDIVIDE=7,
+	CO_LAND=8,
+	CO_AND=9,
+	CO_LOR=10,
+	CO_OR=11,
+	CO_XOR=12,
+	CO_EQUAL=13,
+	CO_NOTEQUAL=14,
+	CO_GREATER=15,
+	CO_NOTGREATER=16,
+	CO_LESS=17,
+	CO_NOTLESS=18,
+	CO_MODULUS=19,
+	CO_POWER=20,
+	CO_LNOT=21,
+	CO_NOT=22,
+	CO_SHL=23,
+	CO_SHR=24,
+	CO_TOTAL=25,
+};
+
+int CalcOpPrecedence[CO_TOTAL]=
+{
+	0,
+	0,
+	0,
+	9,//add
+	9,//subtract
+	10,//multiply
+	10,//divide
+	10,//integer divide
+	2,//logical and
+	5,//bitwise and
+	1,//logical or
+	3,//bitwise or
+	4,//bitwise xor
+	6,//equal
+	6,//not equal
+	7,//greater
+	7,//not greater
+	7,//less
+	7,//not less
+	10,//modulus
+	11,//power
+	12,//logical not
+	12,//bitwise not
+	8,//shl
+	8,//shr
+};
+
+struct _CalcOp
+{
+	eCalcOp Op;
+	DOUBLE Value;
+};
+
+
+BOOL EvaluateRPN(_CalcOp *pList, int Size, DOUBLE &Result)
+{
+	if (!Size)
+		return 0;
+	int StackSize=(sizeof(DOUBLE)*Size)/2+1;
+	DOUBLE *pStack = (DOUBLE*) malloc(sizeof(DOUBLE)*Size);
+	int nStack=0;
+#define StackEmpty() (nStack==0)
+#define StackTop() (pStack[nStack])
+#define StackSetTop(do_assign) {pStack[nStack]##do_assign;}
+#define StackPush(val) {nStack++;pStack[nStack]=val;}
+#define StackPop() {nStack--;}
+
+
+#define BinaryIntOp(op) {int RightSide=(int)StackTop();StackPop();StackSetTop(=(DOUBLE)(((int)StackTop())##op##RightSide));}
+#define BinaryOp(op) {DOUBLE RightSide=StackTop();StackPop();StackSetTop(=StackTop()##op##RightSide);}
+#define BinaryAssign(op) {DOUBLE RightSide=StackTop();StackPop();StackSetTop(##op##=RightSide);}
+
+#define UnaryIntOp(op) {StackSetTop(=op##((int)StackTop()));}
+
+	for (int i = 0 ; i < Size ; i++)
+	{
+		switch(pList[i].Op)
+		{
+		case CO_NUMBER:
+			StackPush(pList[i].Value);
+			break;
+		case CO_ADD:
+			BinaryAssign(+);
+			break;
+		case CO_MULTIPLY:
+			BinaryAssign(*);
+			break;
+		case CO_SUBTRACT:
+			BinaryAssign(-);
+			break;
+		case CO_DIVIDE:
+			if (StackTop())
+			{
+				BinaryAssign(/);
+			}
+			else
+			{
+//				printf("Divide by zero error\n");
+				free(pStack);
+				return false;
+			}
+			break;
+		case CO_IDIVIDE://TODO: SPECIAL HANDLING
+			{
+				int Right=(int)StackTop();
+				if (Right)
+				{
+					StackPop();
+					int Left=(int)StackTop();
+					Left/=Right;
+					StackSetTop(=Left);
+				}
+				else
+				{
+//					printf("Integer divide by zero error\n");
+					free(pStack);
+					return false;
+				}
+			}
+			break;
+		case CO_MODULUS://TODO: SPECIAL HANDLING
+			{
+				int Right=(int)StackTop();
+				if (Right)
+				{
+					StackPop();
+					int Left=(int)StackTop();
+					Left%=Right;
+					StackSetTop(=Left);
+				}
+				else
+				{
+//					printf("Modulus by zero error\n");
+					free(pStack);
+					return false;
+				}
+			}
+			break;
+		case CO_LAND:
+			BinaryOp(&&);
+			break;
+		case CO_LOR:
+			BinaryOp(||);
+			break;
+		case CO_EQUAL:
+			BinaryOp(==);
+			break;
+		case CO_NOTEQUAL:
+			BinaryOp(!=);
+			break;
+		case CO_GREATER:
+			BinaryOp(>);
+			break;
+		case CO_NOTGREATER:
+			BinaryOp(<=);
+			break;
+		case CO_LESS:
+			BinaryOp(<);
+			break;
+		case CO_NOTLESS:
+			BinaryOp(>=);
+			break;
+		case CO_SHL:
+			BinaryIntOp(<<);
+			break;
+		case CO_SHR:
+			BinaryIntOp(>>);
+			break;
+		case CO_AND:
+			BinaryIntOp(&);
+			break;
+		case CO_OR:
+			BinaryIntOp(|);
+			break;
+		case CO_XOR:
+			BinaryIntOp(^);
+			break;
+		case CO_LNOT:
+			UnaryIntOp(!);
+			break;
+		case CO_NOT:
+			UnaryIntOp(~);
+			break;
+		case CO_POWER:
+			{
+				DOUBLE RightSide=StackTop();
+				StackPop();
+				StackSetTop(=pow(StackTop(),RightSide));
+			}
+			break;
+		}
+	}
+	Result=StackTop();
+
+#undef StackEmpty
+#undef StackTop
+#undef StackPush
+#undef StackPop
+	free(pStack);
+	return true;
+}
+
+BOOL FastCalculate(PCHAR szFormula, DOUBLE &Result)
+{
+	if (!szFormula || !szFormula[0])
+		return false;
+	int Length=(int)strlen(szFormula);
+	int MaxOps=(Length);
+	int ListSize=sizeof(_CalcOp)*MaxOps;
+	int StackSize=sizeof(eCalcOp)*MaxOps;
+	_CalcOp *pOpList=(_CalcOp *)malloc(ListSize);
+	eCalcOp *pStack=(eCalcOp *)malloc(StackSize);
+	memset(pOpList,0,ListSize);
+	memset(pStack,0,StackSize);
+	int nOps=0;
+	int nStack=0;
+
+	char *pEnd=szFormula+Length;
+
+	char CurrentToken[256]={0};
+	char *pToken=&CurrentToken[0];
+
+#define OpToList(op) {pOpList[nOps].Op=op;nOps++;}
+#define ValueToList(val) {pOpList[nOps].Value=val;nOps++;}
+
+#define StackEmpty() (nStack==0)
+#define StackTop() (pStack[nStack])
+#define StackPush(op) {nStack++;pStack[nStack]=op;}
+#define StackPop() {nStack--;}
+#define HasPrecedence(a,b) (CalcOpPrecedence[a]>CalcOpPrecedence[b])
+#define MoveStack(op)  \
+	{ \
+		while(!StackEmpty() && StackTop()!=CO_OPENPARENS && HasPrecedence(StackTop(),op)) \
+		{ \
+			OpToList(StackTop()); \
+			StackPop(); \
+		} \
+	}
+
+#define FinishString() {if (pToken!=&CurrentToken[0]) {*pToken=0;ValueToList(atof(CurrentToken));pToken=&CurrentToken[0];}}
+#define NewOp(op) {FinishString();MoveStack(op);StackPush(op);}
+#define NextChar(ch) {*pToken=ch;pToken++;}
+
+
+	for (char *pCur=szFormula ; pCur<pEnd ; pCur++)
+	{
+		switch(*pCur)
+		{
+		case ' ':
+			break;
+		case '(':
+			FinishString();
+			StackPush(CO_OPENPARENS);
+			break;
+		case ')':
+			FinishString();
+			while(StackTop()!=CO_OPENPARENS)
+			{
+				OpToList(StackTop());
+				StackPop();
+			}
+			StackPop();
+			break;
+		case '+':
+			NewOp(CO_ADD);
+			break;
+		case '-':
+			if (CurrentToken[0])
+			{
+				NewOp(CO_SUBTRACT);
+			}
+			else
+				NextChar('-');
+			break;
+		case '*':
+			NewOp(CO_MULTIPLY);
+			break;
+		case '\\':
+			NewOp(CO_IDIVIDE);
+			break;
+		case '/':
+			NewOp(CO_DIVIDE);
+			break;
+		case '|':
+			if (pCur[1]=='|')
+			{
+				// Logical OR
+				++pCur;
+				NewOp(CO_LOR);
+			}
+			else
+			{
+				// Bitwise OR
+				NewOp(CO_OR);
+			}
+			break;
+		case '%':
+			NewOp(CO_MODULUS);
+			break;
+		case '~':
+			NewOp(CO_NOT);
+			break;
+		case '&':
+			if (pCur[1]=='&')
+			{
+				// Logical AND
+				++pCur;
+				NewOp(CO_LAND);
+			}
+			else
+			{
+				// Bitwise AND
+				NewOp(CO_AND);
+			}
+			break;
+		case '^':
+			if (pCur[1]=='^')
+			{
+				// XOR
+				++pCur;
+				NewOp(CO_XOR);
+			}
+			else
+			{
+				// POWER
+				NewOp(CO_POWER);
+			}
+			break;
+		case '!':
+			if (pCur[1]=='=')
+			{
+				++pCur;
+				NewOp(CO_NOTEQUAL);
+			}
+			else
+			{
+				NewOp(CO_LNOT);
+			}
+			break;
+		case '=':
+			if (pCur[1]=='=')
+			{
+				++pCur;
+				NewOp(CO_EQUAL);
+			}
+			else
+			{
+//				printf("Unparsable: '%c'\n",*pCur);
+				// error
+				free(pOpList);
+				free(pStack);
+				return false;
+			}
+			break;
+		case '<':
+			if (pCur[1]=='=')
+			{
+				++pCur;
+				NewOp(CO_NOTGREATER);
+			}
+			else if (pCur[1]=='<')
+			{
+				++pCur;
+				NewOp(CO_SHL);
+			}
+			else
+			{
+				NewOp(CO_LESS);
+			}
+			break;
+		case '>':
+			if (pCur[1]=='=')
+			{
+				++pCur;
+				NewOp(CO_NOTLESS);
+			}
+			else if (pCur[1]=='>')
+			{
+				++pCur;
+				NewOp(CO_SHR);
+			}
+			else
+			{
+				NewOp(CO_GREATER);
+			}
+			break;
+		case '.':
+		case '1':
+		case '2':
+		case '3':
+		case '4':
+		case '5':
+		case '6':
+		case '7':
+		case '8':
+		case '9':
+		case '0':
+			NextChar(*pCur);
+			break;
+		default:
+			{
+//				printf("Unparsable: '%c'\n",*pCur);
+				// unparsable
+				free(pOpList);
+				free(pStack);
+				return false;
+			}
+			break;
+		}
+	}
+	FinishString();
+
+	while(!StackEmpty())
+	{
+		OpToList(StackTop());
+		StackPop();
+	}
+	free(pStack);
+/*
+	for (int i = 0 ; i < nOps ; i++)
+	{
+		if (pOpList[i].Op)
+			printf("Op: %d\n",pOpList[i].Op);
+		else
+			printf("Value: %f\n",pOpList[i].Value);
+	}
+/**/
+	BOOL Ret=EvaluateRPN(pOpList,nOps,Result);
+	free(pOpList);
+	return Ret;
+}
 
 BOOL Calculate(PCHAR szFormula, DOUBLE &Result) 
 {
@@ -3088,6 +3533,9 @@ BOOL Calculate(PCHAR szFormula, DOUBLE &Result)
 		pFalse[3]='0';
 		pFalse[4]='0';
 	}
-	return ActualCalculate(Buffer,Result);
+	BOOL Ret;
+	//Benchmark(bmCalculate,Ret=ActualCalculate(Buffer,Result));
+	Benchmark(bmCalculate,Ret=FastCalculate(Buffer,Result));
+	return Ret;
 }
 

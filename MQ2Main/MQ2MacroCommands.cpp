@@ -509,6 +509,7 @@ VOID EndMacro(PSPAWNINFO pChar, PCHAR szLine)
         free(gMacroStack);
         gMacroStack = pStack;
     }
+	gMacroSubLookupMap.clear(); 
     while (gEventQueue) {
         pEvent = gEventQueue->pNext;
         free(gEventQueue);
@@ -576,6 +577,86 @@ VOID Call(PSPAWNINFO pChar, PCHAR szLine)
         MacroError("Cannot call when a macro isn't running.");
         return;
     }
+
+    GetArg(SubName,szLine,1);
+    SubParam = GetNextArg(szLine);
+
+        sprintf(SubLine,"sub %s",SubName);
+    sprintf(SubLineP,"sub %s(",SubName);
+
+    // Sub in Map?
+    PMACROBLOCK pSubBlock = gMacroSubLookupMap[SubName];
+
+    // If not, find it and add.
+    if (!pSubBlock) {
+      while (gMacroBlock->pPrev) gMacroBlock = gMacroBlock->pPrev;
+      while (gMacroBlock->pNext) {
+        if (!stricmp(gMacroBlock->Line,SubLine) || !strnicmp(gMacroBlock->Line,SubLineP,strlen(SubLineP))) {
+           pSubBlock = gMacroBlock;
+           break;
+        }
+        gMacroBlock = gMacroBlock->pNext;
+      }
+      if (!pSubBlock) {
+         gMacroBlock=pCallingPoint;
+         FatalError("Subroutine %s wasn't found",SubName);
+         return;
+      } else {
+         gMacroSubLookupMap[SubName] = pSubBlock;
+      }
+    }
+
+    // Prep to call the Sub
+    gMacroBlock = pSubBlock;
+   
+    DebugSpewNoFile("Call - Calling subroutine %s with params %s",SubName,SubParam);
+    pStack = (PMACROSTACK)malloc(sizeof(MACROSTACK));
+    pStack->Location = gMacroBlock;
+    pStack->Return[0] = 0;
+    pStack->Parameters = NULL;
+    pStack->LocalVariables = NULL;
+    pStack->pNext = gMacroStack;
+    gMacroStack = pStack;
+    if (SubParam) {
+       StackNum = 0;
+       while (SubParam[0]!=0) {
+          CHAR szParamName[MAX_STRING] = {0};
+          CHAR szParamType[MAX_STRING] = {0};
+          CHAR szNewValue[MAX_STRING]={0};
+          GetArg(szNewValue,SubParam,1);
+
+          GetFuncParam(gMacroBlock->Line,StackNum,szParamName,szParamType);
+          MQ2Type *pType = FindMQ2DataType(szParamType);
+          if (!pType)
+             pType=pStringType;
+
+          AddMQ2DataVariable(szParamName,"",pType,&gMacroStack->Parameters,szNewValue);
+          SubParam = GetNextArg(SubParam);
+          StackNum++;
+       }
+    }
+    return;
+} 
+
+/*
+VOID Call(PSPAWNINFO pChar, PCHAR szLine)
+{
+    PMACROSTACK pStack;
+    PMACROBLOCK pCallingPoint = gMacroBlock;
+    CHAR SubName[MAX_STRING] = {0};
+    PCHAR SubParam = NULL;
+    CHAR SubLine[MAX_STRING] = {0};
+    CHAR SubLineP[MAX_STRING] = {0};
+    DWORD StackNum = 0;
+    bRunNextCommand = TRUE;
+    if (szLine[0]==0) {
+        SyntaxError("Usage: /call <subroutine> [param [param...]]");
+        return;
+    }
+    if (!gMacroBlock) {
+        MacroError("Cannot call when a macro isn't running.");
+        return;
+    }
     while (gMacroBlock->pPrev) gMacroBlock = gMacroBlock->pPrev;
 
     GetArg(SubName,szLine,1);
@@ -621,6 +702,7 @@ VOID Call(PSPAWNINFO pChar, PCHAR szLine)
 	gMacroBlock=pCallingPoint;
     FatalError("Subroutine %s wasn't found",SubName);
 }
+/**/
 
 VOID FailIf(PSPAWNINFO pChar, PCHAR szCommand, PMACROBLOCK pStartLine, BOOL All)
 {

@@ -2925,6 +2925,8 @@ BOOL SpawnMatchesSearch(PSEARCHSPAWN pSearchSpawn, PSPAWNINFO pChar, PSPAWNINFO 
 		return FALSE;
 	if (pSearchSpawn->bTrader && !pSpawn->pActorInfo->Trader)
 		return FALSE;
+	if (pSearchSpawn->bGroup && !IsInGroup(pSpawn))
+		return FALSE;
 	if (pSearchSpawn->bKnownLocation) 
 	{
 		if ((pSearchSpawn->xLoc!=pSpawn->X || pSearchSpawn->yLoc!=pSpawn->Y))

@@ -284,7 +284,7 @@
 //
 // Note:  dCXStr, CXStr1, & CXStr3 can be found in the 'BookWindow' constructor.
 #define CXStr__CXStr                                       0x4010c0
-#define CXStr__CXStr1                                      0x55D970
+#define CXStr__CXStr1                                      0x401eaa
 #define CXStr__CXStr3                                      0x5ABFA0
 #define CXStr__dCXStr                                      0x4010EA
 #define CXStr__operator_plus_equal1                        0x5AD030
@@ -550,3 +550,13 @@
 
 // CTextOverlay
 #define CTextOverlay__DisplayText                          0x401406
+
+/*
+CListWnd__GetCurCol
+
+CContextMenu__CContextMenu
+CContextMenu__AddMenuItem
+CContextMenu__AddSeparator
+CContextMenu__RemoveAllMenuItems
+CContextMenu__Activate
+/**/
