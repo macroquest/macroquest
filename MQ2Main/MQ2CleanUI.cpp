@@ -18,7 +18,7 @@
 
 #define DBG_SPEW
 
-
+//#define DEBUG_TRY 1
 #include "MQ2Main.h"
 
 class CDisplayHook 
@@ -27,8 +27,8 @@ public:
 	VOID CleanUI_Trampoline(VOID); 
 	VOID CleanUI_Detour(VOID) 
 	{ 
-		PluginsCleanUI();
-		CleanUI_Trampoline();
+		DebugTry(PluginsCleanUI());
+		DebugTry(CleanUI_Trampoline());
 	} 
 
 }; 

@@ -21,9 +21,9 @@ PLUGIN_API VOID InitializePlugin(VOID)
 	// Add commands, macro parameters, hooks, etc.
 	// INI Settings
     DWORD Temp=0;
-    Temp = GetPrivateProfileInt("MQ2FPS","ForegroundMaxFPS",0,INIFileName);
+    Temp = GetPrivateProfileInt("MQ2FPS","ForegroundMaxFPS",50,INIFileName);
     SetForegroundMaxFPS(Temp);
-    Temp = GetPrivateProfileInt("MQ2FPS","BackgroundMaxFPS",0,INIFileName);
+    Temp = GetPrivateProfileInt("MQ2FPS","BackgroundMaxFPS",30,INIFileName);
     SetBackgroundMaxFPS(Temp);
 
 	// Commands

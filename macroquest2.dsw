@@ -39,6 +39,24 @@ Package=<4>
 
 ###############################################################################
 
+Project: "MQ2EQ2BugFix"=.\MQ2EQ2BugFix\MQ2EQ2BugFix.dsp - Package Owner=<4>
+
+Package=<5>
+{{{
+}}}
+
+Package=<4>
+{{{
+    Begin Project Dependency
+    Project_Dep_Name MacroQuest
+    End Project Dependency
+    Begin Project Dependency
+    Project_Dep_Name MQ2Main
+    End Project Dependency
+}}}
+
+###############################################################################
+
 Project: "MQ2FPS"=.\MQ2FPS\MQ2FPS.dsp - Package Owner=<4>
 
 Package=<5>

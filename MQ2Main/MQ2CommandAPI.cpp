@@ -136,7 +136,7 @@ public:
 						ParseMacroParameter(pChar,szArgs); 
 					if (pCommand->EQ)
 					{
-						DebugSpew("pCommand->EQ");
+//						DebugSpew("pCommand->EQ");
 						strcat(szCommand," "); 
 						strcat(szCommand,szArgs); 
 						Trampoline(pChar,szCommand); 
@@ -206,9 +206,9 @@ BOOL RemoveCommand(PCHAR Command)
 	while(pCommand)
 	{
 		int Pos=strnicmp(Command,pCommand->Command,63);
-		if (Pos>0)
+		if (Pos<0)
 		{
-//			DebugSpew("RemoveCommand: Command not found '%s'",Command);
+			DebugSpew("RemoveCommand: Command not found '%s'",Command);
 			return 0;
 		}
 		if (Pos==0)

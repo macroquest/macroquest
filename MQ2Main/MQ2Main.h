@@ -49,6 +49,12 @@ typedef double DOUBLE;
 #define THIS_                   INTERFACE FAR* This,
 #endif
 
+#ifdef DEBUG_TRY
+#define DebugTry(x) DebugSpew("Trying %s",#x);x;DebugSpew("%s complete",#x)
+#else
+#define DebugTry(x) x
+#endif
+
 #define DebugHeader "[MQ2]"
 #define LoadedString "MQ2 Loaded."
 #define ToUnloadString "MQ2 Unloading..."

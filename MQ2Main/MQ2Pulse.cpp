@@ -19,7 +19,9 @@
 #define DBG_SPEW
 
 
+//#define DEBUG_TRY 1
 #include "MQ2Main.h"
+
 
 DWORD ManaGained=0;
 DWORD HealthGained=0;
@@ -173,33 +175,6 @@ void Pulse()
                 }
             }
     }
-	/*
-	else
-	{ // TEMPORARILY LEAVING THIS IN HERE, IT WILL BE A PLUGIN.
-		HWND EQhWnd=*(HWND*)EQADDR_HWND;
-		HMODULE hMod=GetModuleHandle("eqw.dll");
-		if (hMod)
-		{
-			DWORD GetEQWHWND=(DWORD)hMod+0x12C0;
-			__asm
-			{
-				push eax;
-				call [GetEQWHWND];
-				mov [EQhWnd], eax;
-				pop eax;
-			};
-		}
-		
-		if (GetForegroundWindow()==EQhWnd)
-		{
-			Sleep(20);
-		}
-		else
-		{
-			Sleep(50);
-		}
-	}
-	/**/
 }
 
 DWORD GetGameState(VOID)
@@ -224,7 +199,7 @@ void Heartbeat()
 		DropTimers();
     }
 
-	int GameState=GetGameState();
+	DebugTry(int GameState=GetGameState());
 	if (GameState!=-1)
 	{
 		if ((DWORD)GameState!=gGameState)
@@ -240,10 +215,10 @@ void Heartbeat()
 	while ((!gKeyStack)   && (bRunNextCommand)) {
         bRunNextCommand   = FALSE;
 		Pulse();
-        PulsePlugins();
         if (!gTurbo) bRunNextCommand = FALSE;
 		if (++CurTurbo>gMaxTurbo) bRunNextCommand =   FALSE;
 	}
+    DebugTry(PulsePlugins());
 }
 
 // *************************************************************************** 
