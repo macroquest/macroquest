@@ -34,18 +34,37 @@ BOOL Update=false;
 
 #define CASTRADIUS_ANGLESIZE 10
 
+PMAPSPAWN pLastTarget=0;
+PSPAWNINFO pLastSafeTarget=0;
 PMAPLINE pTargetLine=0;
+PMAPLINE pTargetRadius[(360/CASTRADIUS_ANGLESIZE)+1];
+
 PMAPLINE pCastRadius[(360/CASTRADIUS_ANGLESIZE)+1];
 
 unsigned long bmMapPulse=0;
 
 DWORD HighlightColor=0xFF700070;
 
+CHAR MapNameString[MAX_STRING]={"%N"};
+CHAR MapTargetNameString[MAX_STRING]={"%N"};
+
 PreSetup("MQ2Map");
 #include "MQ2Map.h"
 
 
+inline BOOL IsOptionEnabled(DWORD Option)
+{
+	if (Option==MAPFILTER_Invalid)
+		return true;
+	return (gMapFilterOptions[Option].Enabled && IsOptionEnabled(gMapFilterOptions[Option].RequiresOption));
+}
 
+inline BOOL RequirementsMet(DWORD Option)
+{
+	if (Option==MAPFILTER_Invalid)
+		return true;
+	return (IsOptionEnabled(gMapFilterOptions[Option].RequiresOption));
+}
 
 inline PMAPLINE InitLine()
 {
@@ -129,8 +148,20 @@ bool RButtonDown()
 			{
 				if (pMapSpawn->SpawnType==ITEM)
 				{
-					// special handling for items?
-				}
+					PGROUNDITEM pItem = (PGROUNDITEM)pMapSpawn->pSpawn;
+					ZeroMemory(&EnviroTarget,sizeof(EnviroTarget));
+					strcpy(EnviroTarget.Name,pMapSpawn->pMapLabel->Label);
+					EnviroTarget.Y=pItem->Y;
+					EnviroTarget.X=pItem->X;
+					EnviroTarget.Z=pItem->Z;
+					EnviroTarget.Type = SPAWN_NPC;
+					EnviroTarget.HPCurrent = 1;
+					EnviroTarget.HPMax = 1;
+					EnviroTarget.pActorInfo = &EnviroActor;
+					EnviroTarget.Heading=pItem->Heading;
+					EnviroTarget.Race = pItem->DropID;
+					EnviroTarget.GuildID=pItem->DxID;
+					pTarget = (EQPlayer*)&EnviroTarget; 				}
 				else
 					pTarget=(EQPlayer*)pMapSpawn->pSpawn;
 				break;
@@ -139,7 +170,7 @@ bool RButtonDown()
 		}
 		return false;
 	}
-	if (!gMapFilters[MAPFILTER_ContextMenu])
+	if (!IsOptionEnabled(MAPFILTER_ContextMenu))
 		return false;
 	return true;
 }
@@ -228,21 +259,25 @@ PLUGIN_API VOID InitializePlugin(VOID)
 	CHAR szBuffer[MAX_STRING]={0};
     for (i=0;gMapFilterOptions[i].szName;i++) {
         sprintf(szBuffer,"%s-Color",gMapFilterOptions[i].szName);
-        gMapFilters[gMapFilterOptions[i].Index] = GetPrivateProfileInt("Map Filters",gMapFilterOptions[i].szName,0,INIFileName);
-        gMapFiltersColor[gMapFilterOptions[i].Index] = GetPrivateProfileInt("Map Filters",szBuffer,gMapFilterOptions[i].DefaultColor,INIFileName) | 0xFF000000;
+        gMapFilterOptions[i].Enabled = GetPrivateProfileInt("Map Filters",gMapFilterOptions[i].szName,0,INIFileName);
+       gMapFilterOptions[i].Color = GetPrivateProfileInt("Map Filters",szBuffer,gMapFilterOptions[i].DefaultColor,INIFileName) | 0xFF000000;
     }
 	for (i = 0 ; i < (360/CASTRADIUS_ANGLESIZE) ; i++)
 	{
 		pCastRadius[i]=0;
+		pTargetRadius[i]=0;
 	}
+	GetPrivateProfileString("Naming Schemes","Normal","%N",MapNameString,MAX_STRING,INIFileName);
+	GetPrivateProfileString("Naming Schemes","Target","%N",MapTargetNameString,MAX_STRING,INIFileName);
 
 	// Do not use Custom, since the string isn't stored
-    gMapFilters[MAPFILTER_Custom] = 0;
+    gMapFilterOptions[MAPFILTER_Custom].Enabled = 0;
 
 	Update=true;
 	
 	AddCommand("/mapfilter",MapFilters,0,1,1);
 	AddCommand("/highlight",MapHighlight,0,1,1);
+	AddCommand("/mapnames",MapNames,0,1,1);
 
 	EasyClassDetour(MapViewMap__SaveEx,MapViewMapHook,SaveEx_Detour,void,(PCHAR szZonename, DWORD Layer),SaveEx_Trampoline);
 	EasyClassDetour(MapViewMap__Clear,MapViewMapHook,Clear_Detour,void,(),Clear_Trampoline);
@@ -270,6 +305,7 @@ PLUGIN_API VOID ShutdownPlugin(VOID)
 	RemoveMQ2Benchmark(bmMapPulse);
 	RemoveCommand("/mapfilter");
 	RemoveCommand("/highlight");
+	RemoveCommand("/mapnames");
 }
 
 // Called once directly before shutdown of the new ui system, and also
@@ -301,7 +337,7 @@ PMAPSPAWN AddSpawn(PSPAWNINFO pNewSpawn)
 {
 	if (!pMapViewWnd)
 		return 0;
-	DebugSpewAlways("MQ2Map::OnAddSpawn(%s)",pNewSpawn->Name);
+//	DebugSpewAlways("MQ2Map::OnAddSpawn(%s)",pNewSpawn->Name);
 	eSpawnType Type=GetSpawnType(pNewSpawn);
 	// apply map filter
 	if (!CanDisplaySpawn(Type,pNewSpawn))
@@ -313,7 +349,7 @@ PMAPSPAWN AddSpawn(PSPAWNINFO pNewSpawn)
 	pMapSpawn->SpawnType=Type;
 	pMapSpawn->pSpawn=pNewSpawn;
 	pMapSpawn->pMapLabel = GenerateLabel(pMapSpawn,GetSpawnColor(Type,pNewSpawn));
-	if (gMapFilters[MAPFILTER_Vector])
+	if (IsOptionEnabled(MAPFILTER_Vector))
 		pMapSpawn->pVector= GenerateLine(pMapSpawn);
 	else
 		pMapSpawn->pVector=0;
@@ -328,6 +364,36 @@ PMAPSPAWN AddSpawn(PSPAWNINFO pNewSpawn)
 	return pMapSpawn;
 }
 
+PMAPSPAWN AddSpawnNoMap(PSPAWNINFO pNewSpawn)
+{
+	if (!pMapViewWnd)
+		return 0;
+//	DebugSpewAlways("MQ2Map::OnAddSpawn(%s)",pNewSpawn->Name);
+	eSpawnType Type=GetSpawnType(pNewSpawn);
+	// apply map filter
+	if (!CanDisplaySpawn(Type,pNewSpawn))
+		return 0;
+	// add spawn to list
+
+	PMAPSPAWN pMapSpawn = new MAPSPAWN;
+	pMapSpawn->pLast=0;
+	pMapSpawn->SpawnType=Type;
+	pMapSpawn->pSpawn=pNewSpawn;
+	pMapSpawn->pMapLabel = GenerateLabel(pMapSpawn,GetSpawnColor(Type,pNewSpawn));
+	if (IsOptionEnabled(MAPFILTER_Vector))
+		pMapSpawn->pVector= GenerateLine(pMapSpawn);
+	else
+		pMapSpawn->pVector=0;
+
+	pMapSpawn->Highlight=false;
+
+	pMapSpawn->pNext=pActiveSpawns;
+	if (pActiveSpawns)
+		pActiveSpawns->pLast=pMapSpawn;
+	pActiveSpawns=pMapSpawn;
+	return pMapSpawn;
+}
+
 // This is called each time a spawn is added to a zone (inserted into EQ's list of spawns),
 // or for each existing spawn when a plugin first initializes
 // NOTE: When you zone, these will come BEFORE OnZoned
@@ -336,15 +402,10 @@ PLUGIN_API VOID OnAddSpawn(PSPAWNINFO pNewSpawn)
 	AddSpawn(pNewSpawn);
 }
 
-// This is called each time a spawn is removed from a zone (removed from EQ's list of spawns).
-// It is NOT called for each existing spawn when a plugin shuts down.
-PLUGIN_API VOID OnRemoveSpawn(PSPAWNINFO pSpawn)
+BOOL RemoveSpawn(PMAPSPAWN pMapSpawn)
 {
-	if (!pMapViewWnd)
-		return;
-	DebugSpewAlways("MQ2Map::OnRemoveSpawn(%s)",pSpawn->Name);
-	if (PMAPSPAWN pMapSpawn=SpawnMap[pSpawn])
-	{
+	if (!pMapSpawn)
+		return false;
 		if (pMapSpawn->pNext)
 			pMapSpawn->pNext->pLast=pMapSpawn->pLast;
 
@@ -366,17 +427,60 @@ PLUGIN_API VOID OnRemoveSpawn(PSPAWNINFO pSpawn)
 		if (pMapSpawn->pVector)
 		{
 			DeleteLine(pMapSpawn->pVector);
+			pMapSpawn->pVector=0;
 		}
 
+		SpawnMap[pMapSpawn->pSpawn]=0;
+		if (pMapSpawn->pSpawn->Type==-1)
+			delete pMapSpawn->pSpawn;
 		delete pMapSpawn;
-		SpawnMap[pSpawn]=0;
+	return true;
+}
 
-		if (pSpawn->Type==-1)
-			delete pSpawn;
-	}
-	else
+BOOL RemoveSpawnNoMap(PMAPSPAWN pMapSpawn)
+{
+	if (!pMapSpawn)
+		return false;
+		if (pMapSpawn->pNext)
+			pMapSpawn->pNext->pLast=pMapSpawn->pLast;
+
+		if (pMapSpawn->pLast)
+			pMapSpawn->pLast->pNext=pMapSpawn->pNext;
+		else
+			pActiveSpawns=pMapSpawn->pNext;
+
+		PMAPLABEL pLabel=pMapSpawn->pMapLabel;
+		if (pLabel->pPrev)
+			pLabel->pPrev->pNext=pLabel->pNext;
+		else
+			pMap->pLabels=pLabel->pNext;
+		if (pLabel->pNext)
+			pLabel->pNext->pPrev=pLabel->pPrev;
+		free(pLabel->Label);
+		delete pLabel;
+
+		if (pMapSpawn->pVector)
+		{
+			DeleteLine(pMapSpawn->pVector);
+			pMapSpawn->pVector=0;
+		}
+
+		if (pMapSpawn->pSpawn->Type==-1)
+			delete pMapSpawn->pSpawn;
+		delete pMapSpawn;
+	return true;
+}
+
+// This is called each time a spawn is removed from a zone (removed from EQ's list of spawns).
+// It is NOT called for each existing spawn when a plugin shuts down.
+PLUGIN_API VOID OnRemoveSpawn(PSPAWNINFO pSpawn)
+{
+	if (!pMapViewWnd)
+		return;
+//	DebugSpewAlways("MQ2Map::OnRemoveSpawn(%s)",pSpawn->Name);
+	if (!RemoveSpawn(SpawnMap[pSpawn]))
 	{
-		DebugSpew("MQ2Map::OnRemoveSpawn - Spawn not found in list");
+//		DebugSpew("MQ2Map::OnRemoveSpawn - Spawn not found in list");
 	}
 }
 
@@ -409,7 +513,7 @@ PLUGIN_API VOID OnRemoveGroundItem(PGROUNDITEM pGroundItem)
 	if (pMapSpawn)
 	{
 		GroundItemMap[pGroundItem]=0;
-		OnRemoveSpawn(pMapSpawn->pSpawn);
+		RemoveSpawn(pMapSpawn);
 	}
 }
 
@@ -437,6 +541,7 @@ VOID ClearMap()
 		if (pActiveSpawns->pVector)
 		{
 			DeleteLine(pActiveSpawns->pVector);
+			pActiveSpawns->pVector=0;
 		}
 
 		if (pActiveSpawns->pSpawn->Type==-1) // fake!
@@ -445,7 +550,7 @@ VOID ClearMap()
 		delete pActiveSpawns;
 		pActiveSpawns=pNextActive;
 	}
-
+	pLastTarget=0;
 	if (pTargetLine)
 	{
 		DeleteLine(pTargetLine);
@@ -460,6 +565,14 @@ VOID ClearMap()
 			pCastRadius[i]=0;
 		}
 	}
+	if (pTargetRadius[0])
+	{
+		for (unsigned long i = 0 ; i < (360/CASTRADIUS_ANGLESIZE) ; i++)
+		{
+			DeleteLine(pTargetRadius[i]);
+			pTargetRadius[i]=0;
+		}
+	}
 	GroundItemMap.clear();
 }
 
@@ -470,7 +583,27 @@ VOID UpdateMap()
 		return;
 
 	eSpawnType Type;
-	PMAPSPAWN pMapSpawn=pActiveSpawns;
+	PMAPSPAWN pMapSpawn;
+
+	// remove "last target"
+	if (pLastTarget && pLastTarget->pSpawn!=(PSPAWNINFO)pTarget)
+	{
+		RemoveSpawn(pLastTarget);
+		pLastTarget=0;
+	}
+
+	if (pLastSafeTarget && pLastSafeTarget!=(PSPAWNINFO)pTarget)
+	{
+		if (pMapSpawn=SpawnMap[pLastSafeTarget])
+		{
+			free(pMapSpawn->pMapLabel->Label);
+			pMapSpawn->pMapLabel->Label=GenerateSpawnName(pLastSafeTarget,MapNameString);
+		}
+		pLastSafeTarget=0;
+	}
+	
+	pMapSpawn=pActiveSpawns;
+
 	while(pMapSpawn)
 	{
 		// update!
@@ -478,13 +611,10 @@ VOID UpdateMap()
 		pMapSpawn->pMapLabel->Location.Y = -pMapSpawn->pSpawn->Y;
 		pMapSpawn->pMapLabel->Location.Z = pMapSpawn->pSpawn->Z;
 
+
 		if (pMapSpawn->Highlight)
 		{
 			pMapSpawn->pMapLabel->Color.ARGB=HighlightColor;
-		}
-		else if (gMapFilters[MAPFILTER_Target] && pMapSpawn->pSpawn==(PSPAWNINFO)pTarget)
-		{
-			pMapSpawn->pMapLabel->Color.ARGB=gMapFiltersColor[MAPFILTER_Target];
 		}
 		else
 		{
@@ -501,7 +631,8 @@ VOID UpdateMap()
 
 				pMapSpawn->SpawnType=Type;
 				free(pMapSpawn->pMapLabel->Label);
-				pMapSpawn->pMapLabel->Label=CleanupName(strdup(pMapSpawn->pSpawn->Name),FALSE);
+				pMapSpawn->pMapLabel->Label=GenerateSpawnName(pMapSpawn->pSpawn,MapNameString);
+
 			}
 			pMapSpawn->pMapLabel->Color.ARGB=GetSpawnColor(pMapSpawn->SpawnType,pMapSpawn->pSpawn);
 		}
@@ -529,7 +660,7 @@ VOID UpdateMap()
 	}
 
 
-	if (gMapFilters[MAPFILTER_CastRadius])
+	if (IsOptionEnabled(MAPFILTER_CastRadius))
 	{
 		unsigned long Angle=0;
 		for (unsigned long i = 0 ; i < (360/CASTRADIUS_ANGLESIZE) ; i++,Angle+=CASTRADIUS_ANGLESIZE)
@@ -540,13 +671,13 @@ VOID UpdateMap()
 				pCastRadius[i]->Layer=2;
 			}
 
-			pCastRadius[i]->Color.ARGB=gMapFiltersColor[MAPFILTER_CastRadius];
+			pCastRadius[i]->Color.ARGB=gMapFilterOptions[MAPFILTER_CastRadius].Color;
 			pCastRadius[i]->Start.Z=pCharInfo->pSpawn->Z;
 			pCastRadius[i]->End.Z=pCharInfo->pSpawn->Z;
-			pCastRadius[i]->Start.X=-pCharInfo->pSpawn->X + (FLOAT)gMapFilters[MAPFILTER_CastRadius]*cosf((FLOAT)Angle/180.0f*(FLOAT)PI);
-			pCastRadius[i]->Start.Y=-pCharInfo->pSpawn->Y + (FLOAT)gMapFilters[MAPFILTER_CastRadius]*sinf((FLOAT)Angle/180.0f*(FLOAT)PI);;
-			pCastRadius[i]->End.X=-pCharInfo->pSpawn->X + (FLOAT)gMapFilters[MAPFILTER_CastRadius]*cosf((FLOAT)(Angle+CASTRADIUS_ANGLESIZE)/180.0f*(FLOAT)PI);
-			pCastRadius[i]->End.Y=-pCharInfo->pSpawn->Y + (FLOAT)gMapFilters[MAPFILTER_CastRadius]*sinf((FLOAT)(Angle+CASTRADIUS_ANGLESIZE)/180.0f*(FLOAT)PI);
+			pCastRadius[i]->Start.X=-pCharInfo->pSpawn->X + (FLOAT)gMapFilterOptions[MAPFILTER_CastRadius].Enabled*cosf((FLOAT)Angle/180.0f*(FLOAT)PI);
+			pCastRadius[i]->Start.Y=-pCharInfo->pSpawn->Y + (FLOAT)gMapFilterOptions[MAPFILTER_CastRadius].Enabled*sinf((FLOAT)Angle/180.0f*(FLOAT)PI);;
+			pCastRadius[i]->End.X=-pCharInfo->pSpawn->X + (FLOAT)gMapFilterOptions[MAPFILTER_CastRadius].Enabled*cosf((FLOAT)(Angle+CASTRADIUS_ANGLESIZE)/180.0f*(FLOAT)PI);
+			pCastRadius[i]->End.Y=-pCharInfo->pSpawn->Y + (FLOAT)gMapFilterOptions[MAPFILTER_CastRadius].Enabled*sinf((FLOAT)(Angle+CASTRADIUS_ANGLESIZE)/180.0f*(FLOAT)PI);
 		}
 	}
 	else if (pCastRadius[0])
@@ -558,24 +689,97 @@ VOID UpdateMap()
 		}
 	}
 
-	if (gMapFilters[MAPFILTER_Target] && pTarget)
+	if (pTarget && IsOptionEnabled(MAPFILTER_Target))
 	{
-		if (!pTargetLine)
+		if (pLastTarget)
 		{
-			pTargetLine=InitLine();
-			pTargetLine->Layer=2;
+			pLastTarget->pMapLabel->Color.ARGB=gMapFilterOptions[MAPFILTER_Target].Color;
+			free(pLastTarget->pMapLabel->Label);
+			pLastTarget->pMapLabel->Label=GenerateSpawnName(pLastTarget->pSpawn,MapTargetNameString);			
 		}
-		pTargetLine->Color.ARGB=gMapFiltersColor[MAPFILTER_Target];
-		pTargetLine->Start.X=-pCharInfo->pSpawn->X;
-		pTargetLine->Start.Y=-pCharInfo->pSpawn->Y;
-		pTargetLine->Start.Z=pCharInfo->pSpawn->Z;
+		else
+		{
+			PMAPSPAWN pMapSpawn=SpawnMap[(PSPAWNINFO)pTarget];
+			if (pMapSpawn)
+			{
+				pLastSafeTarget=(PSPAWNINFO)pTarget;
+				pMapSpawn->pMapLabel->Color.ARGB=gMapFilterOptions[MAPFILTER_Target].Color;
+				free(pMapSpawn->pMapLabel->Label);
+				pMapSpawn->pMapLabel->Label=GenerateSpawnName(pMapSpawn->pSpawn,MapTargetNameString);			
+			}
+			else
+			{
+				if (pLastTarget=AddSpawnNoMap((PSPAWNINFO)pTarget))
+				{
+					pLastTarget->pMapLabel->Color.ARGB=gMapFilterOptions[MAPFILTER_Target].Color;	
+					free(pLastTarget->pMapLabel->Label);
+					pLastTarget->pMapLabel->Label=GenerateSpawnName(pLastTarget->pSpawn,MapTargetNameString);			
+				}
+			}
+		}
 
-		pTargetLine->End.X=-((PSPAWNINFO)pTarget)->X;
-		pTargetLine->End.Y=-((PSPAWNINFO)pTarget)->Y;
-		pTargetLine->End.Z=((PSPAWNINFO)pTarget)->Z;
+		if (IsOptionEnabled(MAPFILTER_TargetLine))
+		{
+			if (!pTargetLine)
+			{
+				pTargetLine=InitLine();
+				pTargetLine->Layer=2;
+			}
+			pTargetLine->Color.ARGB=gMapFilterOptions[MAPFILTER_Target].Color;
+			pTargetLine->Start.X=-pCharInfo->pSpawn->X;
+			pTargetLine->Start.Y=-pCharInfo->pSpawn->Y;
+			pTargetLine->Start.Z=pCharInfo->pSpawn->Z;
+
+			pTargetLine->End.X=-((PSPAWNINFO)pTarget)->X;
+			pTargetLine->End.Y=-((PSPAWNINFO)pTarget)->Y;
+			pTargetLine->End.Z=((PSPAWNINFO)pTarget)->Z;
+		}
+		else if (pTargetLine)
+		{
+			DeleteLine(pTargetLine);
+			pTargetLine=0;
+		}
+
+		if (IsOptionEnabled(MAPFILTER_TargetRadius))
+		{
+			unsigned long Angle=0;
+			for (unsigned long i = 0 ; i < (360/CASTRADIUS_ANGLESIZE) ; i++,Angle+=CASTRADIUS_ANGLESIZE)
+			{
+				if (!pTargetRadius[i])
+				{
+					pTargetRadius[i]=InitLine();
+					pTargetRadius[i]->Layer=2;
+				}
+
+				pTargetRadius[i]->Color.ARGB=gMapFilterOptions[MAPFILTER_TargetRadius].Color;
+				pTargetRadius[i]->Start.Z=((PSPAWNINFO)pTarget)->Z;
+				pTargetRadius[i]->End.Z=((PSPAWNINFO)pTarget)->Z;
+				pTargetRadius[i]->Start.X=-((PSPAWNINFO)pTarget)->X + (FLOAT)gMapFilterOptions[MAPFILTER_TargetRadius].Enabled*cosf((FLOAT)Angle/180.0f*(FLOAT)PI);
+				pTargetRadius[i]->Start.Y=-((PSPAWNINFO)pTarget)->Y + (FLOAT)gMapFilterOptions[MAPFILTER_TargetRadius].Enabled*sinf((FLOAT)Angle/180.0f*(FLOAT)PI);;
+				pTargetRadius[i]->End.X=-((PSPAWNINFO)pTarget)->X + (FLOAT)gMapFilterOptions[MAPFILTER_TargetRadius].Enabled*cosf((FLOAT)(Angle+CASTRADIUS_ANGLESIZE)/180.0f*(FLOAT)PI);
+				pTargetRadius[i]->End.Y=-((PSPAWNINFO)pTarget)->Y + (FLOAT)gMapFilterOptions[MAPFILTER_TargetRadius].Enabled*sinf((FLOAT)(Angle+CASTRADIUS_ANGLESIZE)/180.0f*(FLOAT)PI);
+			}
+		}
+		else if (pTargetRadius[0])
+		{
+			for (unsigned long i = 0 ; i < (360/CASTRADIUS_ANGLESIZE) ; i++)
+			{
+				DeleteLine(pTargetRadius[i]);
+				pTargetRadius[i]=0;
+			}
+		}
 	}
 	else
 	{
+		if (pTargetRadius[0])
+		{
+			for (unsigned long i = 0 ; i < (360/CASTRADIUS_ANGLESIZE) ; i++)
+			{
+				DeleteLine(pTargetRadius[i]);
+				pTargetRadius[i]=0;
+			}
+		}
+
 		if (pTargetLine)
 		{
 			DeleteLine(pTargetLine);
@@ -587,7 +791,7 @@ VOID UpdateMap()
 
 VOID GenerateMap()
 {
-	if (!gMapFilters[MAPFILTER_All])
+	if (!IsOptionEnabled(MAPFILTER_All))
 		return;
 	PSPAWNINFO pSpawn=(PSPAWNINFO)pSpawnList;
 	while(pSpawn)
@@ -606,9 +810,15 @@ VOID GenerateMap()
 
 BOOL CanDisplaySpawn(eSpawnType Type, PSPAWNINFO pSpawn)
 {
-	if (!gMapFilters[MAPFILTER_All])
-		return FALSE;
-	if (gMapFilters[MAPFILTER_Custom])
+//	if (!IsOptionEnabled(MAPFILTER_All))
+//		return FALSE;
+	// ^^^^ not necessary anymore, it will be caught by IsOptionEnabled
+	if (IsOptionEnabled(MAPFILTER_Target))
+	{
+		if (pSpawn==(PSPAWNINFO)pTarget)
+			return TRUE;
+	}
+	if (IsOptionEnabled(MAPFILTER_Custom))
 	{
 		if (PCHARINFO pCharInfo=GetCharInfo())
 			return SpawnMatchesSearch(&gMapFilterCustom,pCharInfo->pSpawn,pSpawn);
@@ -616,19 +826,19 @@ BOOL CanDisplaySpawn(eSpawnType Type, PSPAWNINFO pSpawn)
 	switch(Type)
 	{
 	case PC:
-		return gMapFilters[MAPFILTER_PC];
+		return IsOptionEnabled(MAPFILTER_PC);
 	case NPC:
-		return gMapFilters[MAPFILTER_NPC];
+		return IsOptionEnabled(MAPFILTER_NPC);
 	case CORPSE:
-		return gMapFilters[MAPFILTER_Corpse];
+		return IsOptionEnabled(MAPFILTER_Corpse);
 	case ITEM:
-		return gMapFilters[MAPFILTER_Ground];
+		return IsOptionEnabled(MAPFILTER_Ground);
 	case TRIGGER:
-		return gMapFilters[MAPFILTER_Trigger];
+		return IsOptionEnabled(MAPFILTER_Trigger);
 	case PET:
-		return gMapFilters[MAPFILTER_Pet];
+		return IsOptionEnabled(MAPFILTER_Pet);
 	case MOUNT:
-		return gMapFilters[MAPFILTER_Mount];
+		return IsOptionEnabled(MAPFILTER_Mount);
 	}
 	return TRUE;
 }
@@ -642,23 +852,23 @@ inline DWORD GetSpawnColor(eSpawnType Type, PSPAWNINFO pSpawn)
 	switch(Type)
 	{
 	case PC:
-//		if (gMapFilters[MAPFILTER_ConColor])
-//			return ConColorToARGB(ConColor(pChar->Level,pSpawn->Level,pSpawn->Type));
-		return gMapFiltersColor[MAPFILTER_PC];
-	case NPC:
-		if (gMapFilters[MAPFILTER_ConColor])
+		if (IsOptionEnabled(MAPFILTER_PCConColor))
 			return ConColorToARGB(ConColor(pChar->Level,pSpawn->Level,pSpawn->Type));
-		return gMapFiltersColor[MAPFILTER_NPC];
+		return gMapFilterOptions[MAPFILTER_PC].Color;
+	case NPC:
+		if (IsOptionEnabled(MAPFILTER_NPCConColor))
+			return ConColorToARGB(ConColor(pChar->Level,pSpawn->Level,pSpawn->Type));
+		return gMapFilterOptions[MAPFILTER_NPC].Color;
 	case CORPSE:
-		return gMapFiltersColor[MAPFILTER_Corpse];
+		return gMapFilterOptions[MAPFILTER_Corpse].Color;
 	case TRIGGER:
-		return gMapFiltersColor[MAPFILTER_Trigger];
+		return gMapFilterOptions[MAPFILTER_Trigger].Color;
 	case ITEM:
-		return gMapFiltersColor[MAPFILTER_Ground];
+		return gMapFilterOptions[MAPFILTER_Ground].Color;
 	case MOUNT:
-		return gMapFiltersColor[MAPFILTER_Mount];
+		return gMapFilterOptions[MAPFILTER_Mount].Color;
 	case PET:
-		return gMapFiltersColor[MAPFILTER_Pet];
+		return gMapFilterOptions[MAPFILTER_Pet].Color;
 	}
 	return 0;
 }
@@ -671,7 +881,7 @@ PMAPLABEL GenerateLabel(PMAPSPAWN pMapSpawn, DWORD Color)
     pLabel->Location.Z = pMapSpawn->pSpawn->Z;
     pLabel->Layer = 2;
     pLabel->Size = 3;
-    pLabel->Label = CleanupName(strdup(pMapSpawn->pSpawn->Name),FALSE);
+    pLabel->Label = GenerateSpawnName(pMapSpawn->pSpawn,MapNameString);
     pLabel->Color.ARGB = Color;
     pLabel->Width = 20;
     pLabel->Height= 14;
@@ -723,7 +933,7 @@ PMAPLINE GenerateLine(PMAPSPAWN pMapSpawn)
 //              Sets map filters
 // Usage:       /mapfilter [options|help]
 // ***************************************************************************
-VOID MapFilterSetting(PSPAWNINFO pChar, PMAPFILTER pMapFilter, PCHAR szValue)
+VOID MapFilterSetting(PSPAWNINFO pChar, DWORD nMapFilter, PCHAR szValue)
 {
     CHAR szBuffer[MAX_STRING] = {0};
     CHAR Buff[MAX_STRING]={0};
@@ -733,56 +943,63 @@ VOID MapFilterSetting(PSPAWNINFO pChar, PMAPFILTER pMapFilter, PCHAR szValue)
         "show",
         NULL
     };
-    if (!pMapFilter || !pChar) return;
+    if (!pChar) return;
+	PMAPFILTER pMapFilter=&gMapFilterOptions[nMapFilter];
+	if (!RequirementsMet(nMapFilter))
+	{
+		sprintf(szBuffer,"'%s' requires '%s' option.  Please enable this option first.",pMapFilter->szName,gMapFilterOptions[pMapFilter->RequiresOption].szName);
+		WriteChatColor(szBuffer,USERCOLOR_DEFAULT);
+		return;
+	}
     if (!szValue) {
         if (pMapFilter->bIsToggle) {
-            sprintf(szBuffer,"%s: %s",pMapFilter->szName,szFilterMap[gMapFilters[pMapFilter->Index]]);
-        } else if (pMapFilter->Index == MAPFILTER_Custom) {
-            if (gMapFilters[pMapFilter->Index]==0) {
+            sprintf(szBuffer,"%s: %s",pMapFilter->szName,szFilterMap[pMapFilter->Enabled]);
+        } else if (nMapFilter == MAPFILTER_Custom) {
+            if (IsOptionEnabled(nMapFilter)==0) {
                 sprintf(szBuffer,"%s: Off",pMapFilter->szName);
             } else {
                 sprintf(szBuffer,"%s: %s",pMapFilter->szName,FormatSearchSpawn(Buff,&gMapFilterCustom));
             }
         } else {
-            sprintf(szBuffer,"%s: %d",pMapFilter->szName,gMapFilters[pMapFilter->Index]);
+            sprintf(szBuffer,"%s: %d",pMapFilter->szName,pMapFilter->Enabled);
         }
         if (pMapFilter->DefaultColor != -1) {
             CHAR szBuffer2[MAX_STRING] = {0};
             DWORD R,G,B;
-            R= (gMapFiltersColor[pMapFilter->Index]&0xFF0000)/0x10000;
-            G= (gMapFiltersColor[pMapFilter->Index]&0xFF00)/0x100;
-            B= gMapFiltersColor[pMapFilter->Index]&0xFF;
+            R= (pMapFilter->Color&0xFF0000)/0x10000;
+            G= (pMapFilter->Color&0xFF00)/0x100;
+            B= pMapFilter->Color&0xFF;
             sprintf(szBuffer2,"%s (Color: %d %d %d)",szBuffer,R,G,B);
             strcpy(szBuffer,szBuffer2);
         }
     } else {
         if (pMapFilter->bIsToggle) {
                         if (!stricmp(szFilterMap[0],szValue)) {
-                            gMapFilters[pMapFilter->Index] = 0;
+                            pMapFilter->Enabled = 0;
                         } else if (!stricmp(szFilterMap[1],szValue)) {
-                            gMapFilters[pMapFilter->Index] = 1;
+                            pMapFilter->Enabled = 1;
                         } else {
-                gMapFilters[pMapFilter->Index] = 1 - gMapFilters[pMapFilter->Index];
+                pMapFilter->Enabled = 1 - pMapFilter->Enabled;
                         }
-            sprintf(szBuffer,"%s is now set to: %s",pMapFilter->szName,szFilterMap[gMapFilters[pMapFilter->Index]]);
-        } else if (pMapFilter->Index == MAPFILTER_Custom) {
+            sprintf(szBuffer,"%s is now set to: %s",pMapFilter->szName,szFilterMap[IsOptionEnabled(nMapFilter)]);
+        } else if (nMapFilter == MAPFILTER_Custom) {
             ClearSearchSpawn(&gMapFilterCustom);
             if (szValue[0]==0) {
-                gMapFilters[pMapFilter->Index] = 0;
+                pMapFilter->Enabled = 0;
                 sprintf(szBuffer,"%s is now set to: Off",pMapFilter->szName);
             } else {
-                gMapFilters[pMapFilter->Index] = 1;
+                pMapFilter->Enabled = 1;
                 ParseSearchSpawn(szValue,&gMapFilterCustom);
                 sprintf(szBuffer,"%s is now set to: %s",pMapFilter->szName,FormatSearchSpawn(Buff,&gMapFilterCustom));
             }
         } else {
-            gMapFilters[pMapFilter->Index] = atoi(szValue);
-            sprintf(szBuffer,"%s is now set to: %d",pMapFilter->szName,gMapFilters[pMapFilter->Index]);
+            pMapFilter->Enabled = atoi(szValue);
+            sprintf(szBuffer,"%s is now set to: %d",pMapFilter->szName,pMapFilter->Enabled);
         }
     }
     WriteChatColor(szBuffer,USERCOLOR_DEFAULT);
     if (szValue) {
-        itoa(gMapFilters[pMapFilter->Index],szBuffer,10);
+        itoa(pMapFilter->Enabled,szBuffer,10);
         WritePrivateProfileString("Map Filters",pMapFilter->szName,szBuffer,INIFileName);
     }
 }
@@ -798,7 +1015,10 @@ VOID MapFilters(PSPAWNINFO pChar, PCHAR szLine)
     // Display settings
     if (szArg[0]==0) {
         WriteChatColor("Map filtering settings:",USERCOLOR_DEFAULT);
-        for (DWORD i=0;gMapFilterOptions[i].szName!=NULL;i++) MapFilterSetting(pChar,&gMapFilterOptions[i]);
+		WriteChatColor("-----------------------",USERCOLOR_DEFAULT);
+        for (DWORD i=0;gMapFilterOptions[i].szName!=NULL;i++) 
+			if (RequirementsMet(i))
+				MapFilterSetting(pChar,i);
 
     // Display Help
     } else if (!strnicmp(szArg,"help",6)) {
@@ -811,7 +1031,7 @@ VOID MapFilters(PSPAWNINFO pChar, PCHAR szLine)
 
     // Set option
     } else {
-        BOOL Found = FALSE;
+        PMAPFILTER Found = 0;
         for (DWORD i=0;gMapFilterOptions[i].szName!=NULL;i++) {
             if (!stricmp(szArg,gMapFilterOptions[i].szName)) {
                 if (!strnicmp(szRest,"color",5)) {
@@ -823,7 +1043,7 @@ VOID MapFilters(PSPAWNINFO pChar, PCHAR szLine)
                         CHAR szBuffer2[MAX_STRING] = {0};
                         GetArg(szArg,szRest,2);
                         if (szArg[0]==0) {
-                            gMapFiltersColor[gMapFilterOptions[i].Index] = gMapFilterOptions[i].DefaultColor;
+                            gMapFilterOptions[i].Color = gMapFilterOptions[i].DefaultColor;
                         } else {
                             R=atoi(szArg);
                             G=atoi(GetArg(szArg,szRest,3));
@@ -831,27 +1051,26 @@ VOID MapFilters(PSPAWNINFO pChar, PCHAR szLine)
                             if (R>255) R=255;
                             if (G>255) G=255;
                             if (B>255) B=255;
-                            gMapFiltersColor[gMapFilterOptions[i].Index] = R*0x10000 + G*0x100 + B;
+                           gMapFilterOptions[i].Color = R*0x10000 + G*0x100 + B;
                         }
                         sprintf(szBuffer,"Option '%s' color set to: %d %d %d",gMapFilterOptions[i].szName,R,G,B);
                         WriteChatColor(szBuffer,USERCOLOR_DEFAULT);
-                        itoa(gMapFiltersColor[gMapFilterOptions[i].Index] & 0xFFFFFF,szBuffer,10);
+                        itoa(gMapFilterOptions[i].Color & 0xFFFFFF,szBuffer,10);
                         sprintf(szBuffer2,"%s-Color",gMapFilterOptions[i].szName);
                         WritePrivateProfileString("Map Filters",szBuffer2,szBuffer,INIFileName);
-                        gMapFiltersColor[gMapFilterOptions[i].Index] |= 0xFF000000;
+                        gMapFilterOptions[i].Color |= 0xFF000000;
                     }
                 } else {
-                    MapFilterSetting(pChar,&gMapFilterOptions[i],szRest);
+                    MapFilterSetting(pChar,i,szRest);
                 }
-                Found=TRUE;
+                Found=&gMapFilterOptions[i];
             }
         }
         if (!Found) 
 			WriteChatColor("Usage: /mapfilter [option|help]",USERCOLOR_DEFAULT);
-		else
+		else if (Found->RegenerateOnChange)
 		{
 			ClearMap();
-			
 			GenerateMap();
 		}
     }
@@ -923,3 +1142,108 @@ VOID MapHighlight(PSPAWNINFO pChar, PCHAR szLine)
 		WriteChatColor(szBuffer,USERCOLOR_DEFAULT);
 	}
 }
+
+PCHAR GenerateSpawnName(PSPAWNINFO pSpawn, PCHAR NameString)
+{
+	CHAR Name[MAX_STRING]={0};
+	unsigned long outpos=0;
+#define AddString(str) {strcpy(&Name[outpos],str);outpos+=strlen(&Name[outpos]);}
+#define AddInt(yourint) {_itoa(yourint,&Name[outpos],10);outpos+=strlen(&Name[outpos]);}
+#define AddFloat10th(yourfloat) {outpos+=sprintf(&Name[outpos],"%.1f",yourfloat);}
+	for (unsigned long N = 0 ; NameString[N] ; N++)
+	{
+		if (NameString[N]=='%')
+		{
+			N++;
+			switch(NameString[N])
+			{
+			case 'N':// cleaned up name
+				strcpy(&Name[outpos],pSpawn->Name);
+				CleanupName(&Name[outpos],FALSE);
+				outpos+=strlen(&Name[outpos]);
+				break;
+			case 'n':// original name
+				AddString(pSpawn->Name);
+				break;
+			case 'h':// current health %
+				AddInt(pSpawn->HPCurrent);
+				break;
+			case 'i':
+				AddInt(pSpawn->SpawnID);
+				break;
+			case 'x':
+				AddFloat10th(pSpawn->X);
+				break;
+			case 'y':
+				AddFloat10th(pSpawn->Y);
+				break;
+			case 'z':
+				AddFloat10th(pSpawn->Z);
+				break;
+			case 'r':
+				AddString(pEverQuest->GetRaceDesc(pSpawn->Race));
+				break;
+			case 'c':
+				AddString(pEverQuest->GetClassDesc(pSpawn->Class));
+				break;
+			case 'l':
+				AddInt(pSpawn->Level);
+				break;
+			case '%':
+				Name[outpos++]=NameString[N];
+				break;
+			}
+		}
+		else
+			Name[outpos++]=NameString[N];
+	}
+	Name[outpos]=0;
+
+	return strdup(Name);
+	//return CleanupName(strdup(pSpawn->Name),FALSE);
+}
+
+VOID MapNames(PSPAWNINFO pChar, PCHAR szLine)
+{
+	CHAR szOut[MAX_STRING]={0};
+	if (!szLine[0])
+	{
+		sprintf(szOut,"Normal naming string: %s",MapNameString);
+		WriteChatColor(szOut,USERCOLOR_DEFAULT);
+		sprintf(szOut,"Target naming string: %s",MapTargetNameString);
+		WriteChatColor(szOut,USERCOLOR_DEFAULT);
+		return;
+	}
+    CHAR szArg[MAX_STRING] = {0};
+    GetArg(szArg,szLine,1);
+    PCHAR szRest = GetNextArg(szLine);
+	if (!stricmp(szArg,"target"))
+	{
+		if (!stricmp(szRest,"reset"))
+			strcpy(MapTargetNameString,"%N");
+		else
+			strcpy(MapTargetNameString,szRest);
+		sprintf(szOut,"Target naming string: %s",MapTargetNameString);
+		WriteChatColor(szOut,USERCOLOR_DEFAULT);
+		WritePrivateProfileString("Naming Schemes","Target",MapNameString,INIFileName);
+		ClearMap();
+		GenerateMap();
+	}
+	else if (!stricmp(szArg,"normal"))
+	{
+		if (!stricmp(szRest,"reset"))
+			strcpy(MapNameString,"%N");
+		else
+			strcpy(MapNameString,szRest);
+		sprintf(szOut,"Normal naming string: %s",MapNameString);
+		WriteChatColor(szOut,USERCOLOR_DEFAULT);
+		WritePrivateProfileString("Naming Schemes","Normal",MapNameString,INIFileName);
+		ClearMap();
+		GenerateMap();
+	}
+	else
+	{
+		WriteChatColor("Usage: /mapnames <target|normal> [value|reset]");
+	}
+}
+

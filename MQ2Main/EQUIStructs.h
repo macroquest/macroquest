@@ -775,6 +775,21 @@ typedef struct _LOOTCORPSE {
 // I think there might be pointers at 0x0e0..but no clue what to
 } LOOTCORPSE, *PLOOTCORPSE;
 
+typedef struct _EQCOMPASSWINDOW {
+/*0x000*/	struct _CSIDLWND Wnd;
+/*0x148*/	struct _CSIDLWND *pStrip1;
+/*0x14C*/	struct _CSIDLWND *pStrip2;
+// in progress.
+/*0x16C*/   BOOL DrawLine;
+/*0x170*/   DWORD Unknown0x170;
+/*0x174*/	DWORD LineRed;
+/*0x178*/	DWORD LineGreen;
+/*0x17C*/	DWORD LineBlue;
+} EQCOMPASSWINDOW, *PEQCOMPASSWINDOW;
+
+
+
 };
+
 
 using namespace EQUIStructs;

@@ -1,3 +1,11 @@
+08 Mar 2004 by Lax
+- Wave 2 of MQ2Map upgrades:
+  /mapnames command added to change the naming scheme used for spawns on the map
+  Map filters/options system updated, each option can now have a "requirement"
+  When listing filters with /mapfilters, only options that have requirements are displayed
+  Concolor filter is now PCConColor and NPCConColor
+  Target filter now has 3 separate options - Target, TargetLine, TargetRadius
+
 05 Mar 2004 by Amadeus
 - Put in new CXWnd offsets [vzmule]
 - Added structs in EQUIStruct.h for the Guildwindow and RaidWindow (work in progress)
