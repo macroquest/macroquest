@@ -208,4 +208,16 @@
 	".\MQ2Internal.h"\
 	".\MQ2Main.h"\
 	".\MQ2Prototypes.h"\
+
+
+.\MQ2Spawns.cpp : \
+	"..\detours\inc\detours.h"\
+	".\EQClasses.h"\
+	".\EQData.h"\
+	".\eqgame.h"\
+	".\EQUIStructs.h"\
+	".\MQ2Globals.h"\
+	".\MQ2Internal.h"\
+	".\MQ2Main.h"\
+	".\MQ2Prototypes.h"\
 	

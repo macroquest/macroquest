@@ -62,6 +62,7 @@ CLEAN :
 	-@erase "$(INTDIR)\MQ2Pulse.obj"
 	-@erase "$(INTDIR)\MQ2UserVars.obj"
 	-@erase "$(INTDIR)\MQ2Utilities.obj"
+	-@erase "$(INTDIR)\MQ2Spawns.obj"
 	-@erase "$(INTDIR)\vc60.idb"
 	-@erase "$(OUTDIR)\MQ2Main.dll"
 	-@erase "$(OUTDIR)\MQ2Main.exp"
@@ -132,7 +133,8 @@ LINK32_OBJS= \
 	"$(INTDIR)\MQ2PluginHandler.obj" \
 	"$(INTDIR)\MQ2Pulse.obj" \
 	"$(INTDIR)\MQ2UserVars.obj" \
-	"$(INTDIR)\MQ2Utilities.obj"
+	"$(INTDIR)\MQ2Utilities.obj" \
+	"$(INTDIR)\MQ2Spawns.obj"
 
 "$(OUTDIR)\MQ2Main.dll" : "$(OUTDIR)" $(DEF_FILE) $(LINK32_OBJS)
     $(LINK32) @<<
@@ -233,6 +235,11 @@ SOURCE=.\MQ2UserVars.cpp
 SOURCE=.\MQ2Utilities.cpp
 
 "$(INTDIR)\MQ2Utilities.obj" : $(SOURCE) "$(INTDIR)"
+
+
+SOURCE=.\MQ2Spawns.cpp
+
+"$(INTDIR)\MQ2Spawns.obj" : $(SOURCE) "$(INTDIR)"
 
 
 !IF  "$(CFG)" == "MQ2Main - Win32 Release"
