@@ -311,7 +311,8 @@ typedef struct _ITEMINFO {
 /*0x158*/  BYTE  		Unknown0x158[0x24];
 /*0x17c*/  BYTE  		CharmFile[0x20];
 /*0x19c*/  FLOAT 		QuestValue; //everything over 1.00000 is a good thing... ring of the ancients is 777.500
-/*0x1a0*/  BYTE  		Unknown0x1a0[0xc];
+/*0x1a0*/  BYTE  		Unknown0x1a0[0x8];
+/*0x1a8*/  DWORD		ProcRate;
 /*0x1ac*/  DWORD 		FocusId;
 /*0x1b0*/  DWORD		CombatEffects; 
 /*0x1b4*/  DWORD		Shielding; 
@@ -543,7 +544,7 @@ union{
 /*0x1093*/  BYTE		field_1093;
 /*0x1094*/	BYTE		GuildStatus; 
 /*0x1095*/  BYTE		Unknown0x1095[0x3];
-/*0x1098*/  DWORD		field_1098;
+/*0x1098*/  DWORD		Drunkedness;
 /*0x109c*/  DWORD		field_109C;
 /*0x10a0*/  BYTE		Unknown0x10a0[0x23];
 /*0x10c3*/	BYTE		Grouped;  // WRONG!
@@ -893,7 +894,7 @@ typedef struct _SPAWNINFO {
 /*0x174*/   BYTE    Level;
 /*0x175*/   BYTE    FaceHair;  // Face/Hair combination with headgear
 /*0x176*/   BYTE    Gender;
-/*0x177*/   BYTE    Unknown0x177;
+/*0x177*/   BYTE    PvPFlag;
 /*0x178*/   BYTE    HideMode;
 /*0x179*/   BYTE    StandState;
 /*0x17a*/   BYTE    Class;
@@ -1017,14 +1018,18 @@ typedef struct _ZONEINFO {
 /*0x040*/   CHAR    ShortName[0x20];
 /*0x060*/   CHAR    LongName[0x80];
 /*0x0E0*/   CHAR    Unknown0x0e0[0x96];  // <-- this isnt part of zone name, see CEverQuest__CEverQuest
-/*0x176*/   BYTE    Unknown0x176;       // temp flag used in CEverQuest constructor
-/*0x177*/   BYTE    Unknown0x177[0x0b];
-/*0x182*/   WORD    Unknown0x182;
+/*0x176*/   BYTE    ZoneType; // (usually FF)
+/*0x177*/	ARGBCOLOR FogRed;
+/*0x17b*/	ARGBCOLOR FogGreen;
+/*0x17f*/	ARGBCOLOR FogBlue;
+/*0x183*/   BYTE    Unknown0x183;
 /*0x184*/   BYTE	Unknown0x184[0x10];
 /*0x194*/   BYTE    Unknown0x194[0x10];
-/*0x1a4*/   FLOAT   Unknown0x1a4;       // used in process_physics
+/*0x1a4*/   FLOAT   ZoneGravity;
 /*0x1a8*/   BYTE    Unknown0x1a8[0x4];
-/*0x1ac*/   BYTE    Unknown0x1ac[0x3c];
+/*0x1ac*/   BYTE    Unknown0x1ac[0x2e];
+/*0x1da*/	BYTE	SkyType;	
+/*0x1db*/	BYTE	Unknown0x1db[0xd];
 /*0x1e8*/   FLOAT   ZoneExpModifier;
 /*0x1ec*/   FLOAT   SafeYLoc;
 /*0x1f0*/   FLOAT   SafeXLoc;
