@@ -318,7 +318,7 @@
 #define EQItemList__dEQItemList                            0x44F70A
 
 // EQ_PC
-#define EQ_PC__DestroyHeldItemOrMoney                      0x434F43
+#define EQ_PC__DestroyHeldItemOrMoney                      0x434F42
 
 // CSidlScreenWnd
 #define CSidlScreenWnd__CSidlScreenWnd1                    0x553E70
