@@ -15,11 +15,18 @@
 #include "eqgame-private.h" 
 #endif 
 
-#define __ClientName								 "eqgame" 
-#define __ClientVersion								 "Tue Mar 16 02:51:xx 2004" 
-#define __ClientOverride							 0 
-#define __MacroQuestWinClassName					 "__MacroQuestTray" 
-#define __MacroQuestWinName							 "MacroQuest" 
+
+#define __ClientName                         "eqgame"
+//.rdata:005DCE34 aMar152004      db 'Mar 15 2004',0      
+//.rdata:005DCE40 a115213         db '11:52:13',0         
+#define __ExpectedVersionDate                         "Mar 15 2004"
+#define __ExpectedVersionTime                         "11:52:13"
+#define __ActualVersionDate                         0x5DCE34
+#define __ActualVersionTime                         0x5DCE40
+
+#define __ClientOverride                      0
+#define __MacroQuestWinClassName                "__MacroQuestTray"
+#define __MacroQuestWinName                      "MacroQuest"
 
 // Memory Protection 
 #define __MemChecker1                                0x4BDCEB 

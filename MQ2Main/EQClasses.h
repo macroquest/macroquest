@@ -593,8 +593,10 @@ EQLIB_OBJECT static unsigned char CXWnd::sm_byCurrentAlpha;
 /*0x05a*/   BYTE    MouseOver;
 /*0x05b*/   BYTE    Unknown0x05b;
 /*0x05c*/   DWORD   WindowStyle; // bit 1 - vertical scroll, bit 2 - horizontal scroll, bit 4 - title bar?, bit 8 - border
-/*0x060*/   DWORD   Unknown0x060;
-/*0x064*/   struct _CXSTR *   WindowText;
+/*0x060*/   DWORD   Unknown0x060;// -> 0x60
+			DWORD   Unknown0x064;
+			DWORD   Unknown0x068;
+/*0x   */   struct _CXSTR  *WindowText; // -> 0x6C
 /*0x068*/   struct _CXSTR *   Tooltip;
 /*0x06c*/   DWORD   Unknown0x06c; // CXWnd::SetLookLikeParent
 /*0x070*/   ARGBCOLOR BGColor; // "BGTint.Red", green, blue
@@ -705,8 +707,10 @@ EQLIB_OBJECT static bool CSidlScreenWnd::m_useIniFile;
 /*0x05a*/   BYTE    MouseOver;
 /*0x05b*/   BYTE    Unknown0x05b;
 /*0x05c*/   DWORD   WindowStyle; // bit 1 - vertical scroll, bit 2 - horizontal scroll, bit 4 - title bar?, bit 8 - border
-/*0x060*/   DWORD   Unknown0x060;
-/*0x064*/   struct _CXSTR *   WindowText;
+/*0x060*/   DWORD   Unknown0x060;// -> 0x60
+			DWORD   Unknown0x064;
+			DWORD   Unknown0x068;
+/*0x   */   struct _CXSTR  *WindowText; // -> 0x6C
 /*0x068*/   struct _CXSTR *   Tooltip;
 /*0x06c*/   DWORD   Unknown0x06c; // CXWnd::SetLookLikeParent
 /*0x070*/   ARGBCOLOR BGColor; // "BGTint.Red", green, blue

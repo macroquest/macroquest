@@ -86,8 +86,8 @@ BOOL ParseINIFile(PCHAR lpINIPath)
     CHAR AliasList[MAX_STRING*10] = {0};
 //    CHAR HotkeyList[MAX_STRING*10] = {0};
     CHAR FilterList[MAX_STRING*10] = {0};
-    struct _stat stat;
-    int client;
+//    struct _stat stat;
+//    int client;
 //    BOOL clientOverride = FALSE;
    GetEQPath(gszEQPath);
 
@@ -96,6 +96,16 @@ BOOL ParseINIFile(PCHAR lpINIPath)
     sprintf(ClientINI,"%s\\eqgame.ini",lpINIPath);
     strcpy(gszINIFilename,Filename);
 
+    DebugSpewAlways("Expected Client version: %s %s",__ExpectedVersionDate,__ExpectedVersionTime);
+    DebugSpewAlways("    Real Client version: %s %s",__ActualVersionDate,__ActualVersionTime);
+
+	if (strncmp(__ExpectedVersionDate,(const char *)__ActualVersionDate,strlen(__ExpectedVersionDate)) ||
+		strncmp(__ExpectedVersionTime,(const char *)__ActualVersionTime,strlen(__ExpectedVersionTime)))
+	{
+        MessageBox(NULL,"Incorrect client version","MacroQuest",MB_OK);
+        return FALSE;
+	}
+/*
 	strcpy(ClientName,__ClientName);
 	strcat(ClientName,".exe");
     client = _open(ClientName,_O_RDONLY);
@@ -114,7 +124,7 @@ BOOL ParseINIFile(PCHAR lpINIPath)
         MessageBox(NULL,__ClientVersion,"MacroQuest",MB_OK);
         return FALSE;
     }
-
+/**/
 
 	gFilterSkillsAll = 0!=GetPrivateProfileInt("MacroQuest","FilterSkills",0,Filename);
     gFilterSkillsIncrease = 2==GetPrivateProfileInt("MacroQuest","FilterSkills",0,Filename);

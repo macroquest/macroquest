@@ -1,6 +1,9 @@
 ** eqgame.ini is no longer used/needed by MQ2!  All offsets have been integrated 
 ** into eqgame.h.  The client DATE/TIME are in eqgame.h also.
 
+16 Mar 2004 by Lax (after patch)
+- Changed exe date/time checking to use the date/time strings compiled into the exe
+
 16 Mar 2004 by Amadeus
 - Updated the Spell Information Window with code provided by Koad in his Spell Search
   Plugin.
