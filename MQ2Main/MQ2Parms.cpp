@@ -55,7 +55,7 @@ DWORD FullClassToShort(CHAR* szClass) {
       strcpy(szClass,"ROG"); 
    } else if (!strnicmp(szClass, "Merchant", 8)) {
       strcpy(szClass,"MER");
-   } else if (!strnicmp(szClass, "Berserker", 8)) {
+   } else if (!strnicmp(szClass, "Berserker", 9)) {
       strcpy(szClass,"BER");
    } else { 
       strcpy(szClass,"UNK"); 

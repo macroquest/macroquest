@@ -346,9 +346,9 @@ PCHAR szZoneExpansionName[] = {
     "Luclin",                   //3
     "Planes of Power",          //4
     "Legacy of Ykesha",         //5
-    "Lost Dungeons of Norrath"  //6
+    "Lost Dungeons of Norrath", //6
 	"Gates of Discord",         //7
-};
+}; 
 
 #include "grounds.h"
 PCHAR szItemName[] = {
