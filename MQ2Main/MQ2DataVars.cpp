@@ -311,26 +311,26 @@ VOID NewVarset(PSPAWNINFO pChar, PCHAR szLine)
 	{
 		if (pVar->Var.Type!=pArrayType)
 		{
-			MacroError("/varset failed, array form on non-array");
+			MacroError("/varset '%s' failed, array form on non-array",szName);
 			return;
 		}
 		CDataArray *pArray=(CDataArray*)pVar->Var.Ptr;
 		int N=pArray->GetElement(szIndex);
 		if (N==-1)
 		{
-			MacroError("/varset failed, out of bounds on array");
+			MacroError("/varset '%s[%d]' failed, out of bounds on array",szName,N);
 			return;
 		}
 		if (!pArray->pType->FromString(pArray->pData[N],szRest))
 		{
-			MacroError("/varset failed, array element type rejected new value");
+			MacroError("/varset '%s[%d]' failed, array element type rejected new value",szName,N);
 		}
 	}
 	else
 	{
 		if (!pVar->Var.Type->FromString(pVar->Var.VarPtr,szRest))
 		{
-			MacroError("/varset failed, variable type rejected new value");
+			MacroError("/varset '%s' failed, variable type rejected new value",szName);
 		}
 	}
 }
@@ -354,7 +354,7 @@ VOID NewVarcalc(PSPAWNINFO pChar, PCHAR szLine)
 	DOUBLE Result;
 	if (!Calculate(szRest,Result))
 	{
-		MacroError("/varcalc failed.  Could not calculate '%s'",szRest);
+		MacroError("/varcalc '%s' failed.  Could not calculate '%s'",szName,szRest);
 		return;
 	}
 	sprintf(szRest,"%f",Result);
@@ -377,26 +377,26 @@ VOID NewVarcalc(PSPAWNINFO pChar, PCHAR szLine)
 	{
 		if (pVar->Var.Type!=pArrayType)
 		{
-			MacroError("/varcalc failed, array form on non-array");
+			MacroError("/varcalc '%s' failed, array form on non-array",szName);
 			return;
 		}
 		CDataArray *pArray=(CDataArray*)pVar->Var.Ptr;
 		int N=pArray->GetElement(szIndex);
 		if (N==-1)
 		{
-			MacroError("/varcalc failed, out of bounds on array");
+			MacroError("/varcalc '%s[%d]' failed, out of bounds on array",szName,N);
 			return;
 		}
 		if (!pArray->pType->FromString(pArray->pData[N],szRest))
 		{
-			MacroError("/varcalc failed, array element type rejected new value");
+			MacroError("/varcalc '%s[%d]' failed, array element type rejected new value",szName,N);
 		}
 	}
 	else
 	{
 		if (!pVar->Var.Type->FromString(pVar->Var.VarPtr,szRest))
 		{
-			MacroError("/varcalc failed, variable type rejected new value");
+			MacroError("/varcalc '%s' failed, variable type rejected new value",szName);
 		}
 	}
 }
@@ -426,13 +426,13 @@ VOID NewVardata(PSPAWNINFO pChar, PCHAR szLine)
 	PDATAVAR pVar=FindMQ2DataVariable(szName);
 	if (!pVar)
 	{
-		MacroError("/vardata failed, variable not found");
+		MacroError("/vardata '%s' failed, variable not found",szName);
 		return;
 	}
 	MQ2TYPEVAR Result;
 	if (!ParseMQ2DataPortion(szRest,Result))
 	{
-		MacroError("/vardata failed, MQ2Data portion unparsable");
+		MacroError("/vardata '%s' failed, MQ2Data portion '%s' unparsable",szName,szRest);
 		return;
 	}
 
@@ -440,26 +440,26 @@ VOID NewVardata(PSPAWNINFO pChar, PCHAR szLine)
 	{
 		if (pVar->Var.Type!=pArrayType)
 		{
-			MacroError("/vardata failed, array form on non-array");
+			MacroError("/vardata '%s' failed, array form on non-array",szName);
 			return;
 		}
 		CDataArray *pArray=(CDataArray*)pVar->Var.Ptr;
 		int N=pArray->GetElement(szIndex);
 		if (N==-1)
 		{
-			MacroError("/vardata failed, out of bounds on array");
+			MacroError("/vardata '%s[%d]' failed, out of bounds on array",szName,N);
 			return;
 		}
 		if (!pVar->Var.Type->FromData(pVar->Var.VarPtr,Result))
 		{
-			MacroError("/vardata failed, array element type rejected new value");
+			MacroError("/vardata '%s[%d]'failed, array element type rejected new value",szName,N);
 		}
 	}
 	else
 	{
 		if (!pVar->Var.Type->FromData(pVar->Var.VarPtr,Result))
 		{
-			MacroError("/vardata failed, variable type rejected new value");
+			MacroError("/vardata '%s' failed, variable type rejected new value",szName);
 		}
 	}
 }
