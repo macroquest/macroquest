@@ -1212,6 +1212,7 @@ public:
 		CastTime=84,
 		Spell=85,
 		EffectType=86,
+		Tribute=87,
 	};
 	MQ2ItemType():MQ2Type("Item")
 	{
@@ -1301,6 +1302,7 @@ public:
 		TypeMember(CastTime);
 		TypeMember(Spell);
 		TypeMember(EffectType);
+		TypeMember(Tribute);
 	}
 
 	~MQ2ItemType()

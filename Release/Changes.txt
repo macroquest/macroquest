@@ -1,3 +1,8 @@
+9 July 2004 by Lax:
+- Newest version of the readme.chm from Wassup
+- Added/changed MQ2Data type members
+  int item.Tribute: Tribute value
+
 3 July 2004 by DKAA
 - added /who noguild
 

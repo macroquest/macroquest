@@ -2480,6 +2480,10 @@ bool MQ2ItemType::GetMember(MQ2VARPTR VarPtr, PCHAR Member, PCHAR Index, MQ2TYPE
 		Dest.Float=((FLOAT)pItem->Item->InstrumentMod)/10.0f;
 		Dest.Type=pFloatType;
 		return true;
+	case Tribute:
+		Dest.DWord=pItem->Item->Favor;
+		Dest.Type=pIntType;
+		return true;
 	/*
 		Haste=16,
 		Endurance=17,
