@@ -1,3 +1,8 @@
+17 July 2004 by Amadeus
+- Updated source to be compatable with the July 16 patch
+- ${Me.AltAbilityTimer...} and ${Me.AltAbilityReady...} datatypes are broken atm and 
+  have been disabled.
+
 12 July 2004 by DKAA
 - slot hand is now hands to be consistent
 - updated some of the distributed macros

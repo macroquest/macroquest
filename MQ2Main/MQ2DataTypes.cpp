@@ -1442,7 +1442,7 @@ bool MQ2CharacterType::GetMember(MQ2VARPTR VarPtr, PCHAR Member, PCHAR Index, MQ
 		Dest.Type=pIntType;
 		return true;
 	case Grouped:
-		Dest.DWord=pChar->Grouped;
+		Dest.DWord=pChar->GroupMember1[0];
 		Dest.Type=pBoolType;
 		return true;
 	case Gem:
@@ -1526,6 +1526,7 @@ bool MQ2CharacterType::GetMember(MQ2VARPTR VarPtr, PCHAR Member, PCHAR Index, MQ
 		Dest.DWord=pChar->thirstlevel;
 		Dest.Type=pIntType;
 		return true;
+		/*
 	case AltAbilityTimer:
 		if (Index[0])
 		{
@@ -1616,6 +1617,7 @@ bool MQ2CharacterType::GetMember(MQ2VARPTR VarPtr, PCHAR Member, PCHAR Index, MQ
 			}
 		}
 		return false;
+*/
 	case AltAbility:
 		if (Index[0])
 		{
@@ -4228,10 +4230,10 @@ bool MQ2AltAbilityType::GetMember(MQ2VARPTR VarPtr, PCHAR Member, PCHAR Index, M
 		Dest.DWord=pAbility->MaxRank;
 		Dest.Type=pIntType;
 		return true;
-	case AARankRequired:
-		Dest.DWord=pAbility->AARankRequired;
-		Dest.Type=pIntType;
-		return true;
+//	case AARankRequired:
+//		Dest.DWord=pAbility->AARankRequired;
+//		Dest.Type=pIntType;
+//		return true;
 	case Type:
 		Dest.DWord=pAbility->Type;
 		Dest.Type=pIntType;
