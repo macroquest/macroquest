@@ -93,7 +93,7 @@
 //// 
 //Section 2:  UI Related Offsets 
 //// 
-#define pinstCTextOverlay                                       0x61BD00 
+#define pinstCTextOverlay                                       0x61B0A0 
 /*      pinstCharacterSelect                                    0x61BD04*/ 
 #define pinstCFacePick                                          0x61BD08 
 #define pinstTextMessageWnd                                     0x61BD0C 
