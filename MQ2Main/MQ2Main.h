@@ -75,10 +75,6 @@ typedef double DOUBLE;
 #include "MQ2Globals.h"
 
 
-/* API FOR THE INJECTOR ONLY */
-EQLIB_API VOID  InjectEnable();
-EQLIB_API VOID  InjectDisable();
-
 /* CHAT HOOK */
 EQLIB_API VOID InitializeChatHook();
 EQLIB_API VOID ShutdownChatHook();
@@ -433,3 +429,4 @@ EQLIB_API VOID ZapVars                             (PSPAWNINFO,PCHAR);
 
 #define MAX_ITEM4xx			416
 
+#include "MQ2Auth.h"
