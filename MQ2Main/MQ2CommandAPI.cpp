@@ -422,7 +422,7 @@ void InitializeMQ2Commands()
     };
 
 	// Remove replaced commands first
-	for (int i = 0 ; NewCommands[i].szCommand && NewCommands[i].pFunc ; i++)
+	for (i = 0 ; NewCommands[i].szCommand && NewCommands[i].pFunc ; i++)
 	{
 		RemoveCommand(NewCommands[i].szCommand);
 		AddCommand(NewCommands[i].szCommand,NewCommands[i].pFunc,0,NewCommands[i].Parse);

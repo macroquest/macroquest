@@ -6,7 +6,7 @@
 #include <windows.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include "dinput.h"
+#include "..\Dxsdk81\include\dinput.h"
 #include <time.h>
 #include <io.h>
 #include <fcntl.h>
