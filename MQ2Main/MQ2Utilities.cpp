@@ -963,7 +963,6 @@ DWORD GetGuildIDByName(PCHAR szGuild)
 	DWORD GuildID = 0;
 	for (GuildID=0;GuildID<MAX_GUILDS;GuildID++) {
 		szCurrentGuild = pGuildList->GuildName[GuildID];
-		if (szCurrentGuild[0]==0) return 0xFFFF;
 		if (!strnicmp(szGuild,szCurrentGuild,strlen(szGuild))) return GuildID;
 	}
 	return 0xFFFF;
