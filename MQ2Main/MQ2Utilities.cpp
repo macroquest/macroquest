@@ -1347,6 +1347,12 @@ PCHAR GetSpellEffectName(DWORD EffectID, PCHAR szBuffer)
    case 2: 
       strcat(szBuff,"ATK"); 
       break; 
+   case 4: 
+      strcat(szBuff,"STR"); 
+      break; 
+   case 5: 
+      strcat(szBuff,"DEX"); 
+      break; 
    case 32: 
       strcat(szBuff,"Summon Item"); 
       break; 
@@ -1971,7 +1977,7 @@ PCHAR ShowSpellSlotInfo(PSPELL pSpell, PCHAR szBuffer)
 //		 parmSpell(buf, szTemp, NULL );		 // <---- wtf.
 //		 strcat(szBuff,szTemp);
 
-		 strcat(szBuff,"$spell(%d,targettype)"); // weeee!
+		 strcat(szBuff,"${Spell[%d].TargetType}"); // weeee!
 
          //GetTargetType(pSpell->Base[i],szTemp);       strcat(szBuff,szTemp); 
          if ( pSpell->Base[i] > 0 )  strcat(szBuff, " allowed"); 
