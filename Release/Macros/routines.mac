@@ -3,22 +3,23 @@
 | ---------------------------- 
 | Original Version by: Plazmic 
 | Improved by: L124RD 
+| Fixed by: DKAA
 
 
 Sub BuyItems 
+/declare l1 int local
+/declare l2 int local
 
-   /sendkey down shift 
-
-   /for l1 1 to $p0 
-      /click left merchant buy 
-      /varset l2 $char(cash)
+   |/echo buying ${Param0} items
+   /for l1 1 to ${Param0} 
+      |/click left merchant buy 
+      /varset l2 ${Me.Cash}
+      /shift /notify MerchantWnd MW_Buy_Button leftmouseup
       :BuyItems_Wait
-         /delay 0
-      /if n $l2==$char(cash) /goto :BuyItems_Wait
+         /delay 3
+      /if (${l2}==${Me.Cash}) /goto :BuyItems_Wait
+      /echo bought one...
    /next l1 
-
-   /sendkey up shift 
-
 /return 
 
 
@@ -26,15 +27,17 @@ Sub BuyItems
 
 
 Sub SellItem 
-   /sendkey down shift 
+/declare tmpslot int local
    :SellItem 
-      /finditem $p0 
-      /if $find()==FALSE /goto :DoneSellItem 
-      /click left merchant sell 
-      /delay $rand(3) 
+      /varset tmpslot ${FindItem[${Param0}].InvSlot}
+      /if (!${tmpslot}) /goto :DoneSellItem
+      /itemnotify ${tmpslot} leftmouseup
+      /shift /notify MerchantWnd MW_Sell_Button leftmouseup
+      | two second limit on the server
+      /delay 2s
+      /delay ${Math.Rand[3]}
    /goto :SellItem 
    :DoneSellItem 
-   /sendkey up shift 
 /return 
 
 
@@ -42,10 +45,13 @@ Sub SellItem
 
 
 Sub BackPedal 
-   /if $p0==$v79 /return 
-   /varset v79 $p0 
-   /if $p0==1 /sendkey down up 
-   /if $p0==0 /sendkey up up 
+   /if (!${Defined[BackPedal_var]}) {
+   /declare BackPedal_var int global
+   }
+   /if (${Param0}==${BackPedal_var}) /return 
+   /varset BackPedal_var ${Param0} 
+   /if (${Param0}==1) /keypress down hold 
+   /if (${Param0}==0 )/keypress down 
 /return 
 
 
@@ -53,10 +59,13 @@ Sub BackPedal
 
 
 Sub AutoRun 
-   /if $p0==$v80 /return 
-   /varset v80 $p0 
-   /if $p0==1 /sendkey down up 
-   /if $p0==0 /sendkey up up 
+   /if (!${Defined[AutoRun_var]}) {
+   /declare AutoRun_var int global
+   }
+   /if (${Param0}==${AutoRun_var}) /return 
+   /varset AutoRun_var ${Param0} 
+   /if (${Param0}==1) /keypress up hold 
+   /if (${Param0}==0) /keypress up 
 /return 
 
 
@@ -64,12 +73,15 @@ Sub AutoRun
 
 
 Sub GotoLoc 
-   /varset v91 $rand(5) 
+/declare v91 int local
+   /varcalc v91 ${Math.Rand[4]+1}
    :GotoLocLoop 
-      /face loc $p0 
-      /if "$p1"=="u" /Press u 
+      /face loc ${Param0} 
+      /if (${Defined[Param1]}) {
+        /if (${Param1.Equal[u]}) /keypress u
+      }
       /call AutoRun 1 
-   /if n $distance($p0)>$v91 /goto :GotoLocLoop 
+   /if (${Math.Distance[${Param0}]>${v91}) /goto :GotoLocLoop 
    /call AutoRun 0 
 /return 
 
@@ -78,54 +90,27 @@ Sub GotoLoc
 
 
 Sub GotoTarg 
-    /varset v91 $rand(5) 
-   /target $p0 
+/declare v91 int local
+   /varcalc v91 ${Math.Rand[4]}+1
    :GotoTargLoop 
-      /face 
-      /if "$p1"=="u" /Press u 
+      /face nolook
+      /if (${Defined[Param1]}) {
+        /if (${Param1.Equal[u]}) /keypress u
+      }
       /call AutoRun 1 
-   /if n $target(distance)>$v91 /goto :GotoTargLoop 
+   /if (${Target.Distance}>${v91}) /goto :GotoTargLoop 
    /call AutoRun 0 
 /return 
 
 | ---------------------------- 
 
-Sub BuyItems 
-   /press down shift 
-   /for p1 1 to $p0 
-      /varcalc p2 $char(plat)*1000+$char(gold)*100+$char(silver)*10+$char(copper) 
-      /click left merchant buy 
-      :BuyItemsLoop 
-         /delay 0 
-      /if n $calc($char(plat)*1000+$char(gold)*100+$char(silver)*10+$char(copper))==$p2 /goto :BuyItemsLoop 
-   /next p1 
-   /press up shift 
-/return 
+Sub FindCombiner
+/declare v99 int local
 
-| ---------------------------- 
+   /for v99 1 to 8
+      /if (${Me.Inventory[pack${v99}].Type.Equal[${Param0}]}) /return ${v99}
+   /next v99
 
-Sub SellItem 
-   /sendkey down shift 
-   :SellItem 
-      /finditem $p0 
-      /if $find()==FALSE /goto :DoneSellItem 
-      /varcalc p2 $char(plat)*1000+$char(gold)*100+$char(silver)*10+$char(copper) 
-      /click left merchant sell 
-      :SellItemLoop 
-         /delay 0 
-      /if n $calc($char(plat)*1000+$char(gold)*100+$char(silver)*10+$char(copper))==$p2 /goto :SellItemLoop      
-   /goto :SellItem 
-   :DoneSellItem 
-   /sendkey up shift 
-/return 
-
-| ---------------------------- 
-
-Sub FindCombiner 
-   /for p1 7 downto 0 
-      /if "$pack($p1,combine)"=="$p0" /return $p1 
-   /next p1 
-   /echo You do not appear to have a valid $p0 container. 
-/return 99 
+/return 99
 
 | End of routines.mac
