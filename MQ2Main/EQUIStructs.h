@@ -639,6 +639,55 @@ typedef struct _EQTRADESKILLWINDOW {
 /*0x3d8*/ DWORD Unknown0x3d8;
 } EQTRADESKILLWINDOW, *PTRADESKILLWINDOW;
 
+//Size: 0x224 (02/18/2004)  *Todo
+typedef struct _EQRAIDWINDOW {
+/*0x000*/ struct _CSIDLWND Wnd;
+/*0x148*/ BYTE  Unknown0x148[0xdc];
+/*0x224*/
+} EQRAIDWINDOW, *PEQRAIDWINDOW;
+
+typedef struct _GUILDMEMBERINFO {
+/*0x000*/ DWORD Unknown0x000; //pointer?
+/*0x004*/ BYTE Unknown0x004;
+/*0x005*/ BYTE UnknownData0x005;
+/*0x006*/ BYTE UnknownData0x006;
+/*0x007*/ BYTE Unknown0x007;
+/*0x008*/ BYTE Unknown0x008[0x8];
+/*0x010*/ CHAR Name[0x40];
+/*0x050*/ DWORD Level;
+/*0x054*/ DWORD Class; 
+/*0x058*/ DWORD Unknown0x058;
+/*0x05c*/ FLOAT UnknownData0x05c;
+/*0x060*/ CHAR PublicNote[0x80];
+/*0x0e0*/ BYTE Unknown0x0e0[0x180];
+/*0x260*/ WORD UnknownData0x260;
+/*0x262*/ WORD UnknownData0x262;
+/*0x264*/ WORD UnknownData0x264;
+/*0x266*/ WORD UnknownData0x266;
+} GUILDMEMBERINFO, *PGUILDMEMBERINFO;
+
+//Size: 0x3d0 (02/18/2004)
+typedef struct _EQGUILDWINDOW {
+/*0x000*/ struct _CSIDLWND Wnd;
+/*0x148*/ BYTE  Unknown0x148[0x4c];
+/*0x194*/ BYTE Unknown0x194;
+/*0x195*/ BYTE ShowOffline; // 01 = show offline box is checked
+/*0x196*/ BYTE Unknown0x196[0x2];
+/*0x198*/ struct _GUILDMEMBERINFO **pMember; // This is a pointer to the beginning of a list of pointers, 
+	                                         // each representing one player in the guild.  The number of 
+	                                         // pointers depends upon TotalMemberCount.
+/*0x19c*/ DWORD TotalMemberCount;
+/*0x1a0*/ DWORD Unknown0x1a0;  // 150?
+/*0x1a4*/ DWORD Unknown0x1a4;  // 1?
+/*0x1a8*/ DWORD TotalMemberCountAgain;
+/*0x1ac*/ BYTE Unknown0x1ac[0x1c];
+/*0x1c8*/ CHAR PersonalNotesFilePath[0x40];  // path to personal notes file
+/*0x208*/ BYTE Unknown0x208[0x1c0]; // empty
+/*0x3c8*/ DWORD Unknown0x3c8; // 1?
+/*0x3cc*/ DWORD Unknown0x3cc; // some sort of bizaare pointer...
+/*0x3d0*/
+} EQGUILDWINDOW, *PEQGUILDWINDOW;
+
 typedef struct _EQNOTESWINDOW {
 /*0x000*/ struct _CSIDLWND Wnd;
 /*0x148*/ BYTE  Unknown0x148[0x04];
