@@ -3281,7 +3281,7 @@ BOOL EvaluateRPN(_CalcOp *pList, int Size, DOUBLE &Result)
 
 BOOL FastCalculate(PCHAR szFormula, DOUBLE &Result)
 {
-	DebugSpew("FastCalculate(%s)",szFormula);
+	//DebugSpew("FastCalculate(%s)",szFormula);
 	if (!szFormula || !szFormula[0])
 		return false;
 	int Length=(int)strlen(szFormula);
