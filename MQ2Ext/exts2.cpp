@@ -45,11 +45,9 @@ DECLARE_API ( pchar )
 
     KPs(Name); 
     KPs(Lastname); 
-	KP(Unknown0x0084);
     KP(Gender); 
     KP(Race); 
     KP(Class); 
-	KP(Unknown0x0094);
     KP(Level); 
     KP(Exp); 
     KP(PracticePoints); 
@@ -84,9 +82,14 @@ DECLARE_API ( pchar )
     KP(BankCopper); 
     KP(BankSharedPlat); 
     KP(Skill); 
+	KP(InnateSkill);
     KP(hungerlevel); 
     KP(thirstlevel); 
     KP(zoneId); 
+	KP(Instance);
+	KP(pSpawn);
+	KP(Inventory);
+	KP(Cursor);
     KP(STR); 
     KP(STA); 
     KP(CHA); 
@@ -102,31 +105,42 @@ DECLARE_API ( pchar )
     KP(CurrWeight); 
 	KP(HPBonus);
 	KP(ManaBonus);
+	KP(AttackBonus);
+	KP(HPRegenBonus);
+	KP(ManaRegenBonus);
+	KP(DamageShieldBonus);
+	KP(AttackSpeed);
     KP(ShortBuff);
     KP(ZoneBoundId); 
     KPf(ZoneBoundY); 
     KPf(ZoneBoundX); 
     KPf(ZoneBoundZ); 
-    KP(Diety); 
+    KP(Deity); 
     KP(GuildID); 
 	KP(GuildStatus);
-	KP(Drunkedness);
+	KP(Drunkenness);
 	KP(AAExp);
 	KP(PercentEXPtoAA);
 	KP(AAPoints);
     KPs(Server); 
-	KP(GukEarned);
-	KP(MirEarned);
-	KP(MMEarned);
-	KP(RujEarned);
-	KP(TakEarned);
-	KP(LDoNPoints);
+//	KP(GukEarned);
+//	KP(MirEarned);
+//	KP(MMEarned);
+//	KP(RujEarned);
+//	KP(TakEarned);
+//	KP(LDoNPoints);
 	KP(CareerFavor);
 	KP(CurrFavor);
-    KP(GroupLeadershipExp);
+    KP(CombatAbilities);
+	KP(CombatAbilityTimes);
+	KP(CombatAbilityTimes2);
+	KP(GroupLeadershipExp);
 	KP(RaidLeadershipExp);
 	KP(GroupLeadershipPoints);
 	KP(RaidLeadershipPoints);
+	KP(GroupAbilities);
+	KP(RaidAbilities);
+	KP(LeadershipExpON);
     KP(Bank);
 	KP(Grouped);
 } 
@@ -166,11 +180,7 @@ DECLARE_API ( pspawn )
    KP(pNext); 
    KP(pCharInfo); 
    KP(pPrev);
-   KPf(Unknownf0x1d0);
-   KPf(Unknownf0x1d4);
-   KPf(Unknownf0x1d8);
    KPf(AvatarHeight);
-   KPf(Unknownf0x1e0);
    KP(Type); 
    KP(Face);
    KP(BeardColor);
@@ -242,7 +252,7 @@ DECLARE_API ( pitem )
    KP(Mana); 
    KP(AC); 
    KP(SkillModType); 
-   KP(BaneDMGType);
+   //KP(BaneDMGType);
    KP(RequiredLevel);
    KP(InstrumentType);
    KP(InstrumentMod);
@@ -252,7 +262,7 @@ DECLARE_API ( pitem )
    KP(SpellId); 
    KP(Color); 
    KP(SkillModValue); 
-   KP(BaneDMG);
+   //KP(BaneDMG);
    KP(Magic); 
    KP(Light); 
    KP(Delay); 
@@ -504,18 +514,26 @@ DECLARE_API ( pzoneinfo )
    KP(FogRed);
    KP(FogGreen);
    KP(FogBlue);
-   for (int i=0; i < 4; i++) 
-      dprintf("Unknown0x184[%d] = %f (offset 0x%x)\n", i, ci.Unknown0x184[i], &pnull->Unknown0x184[i]); 
-   for (i=0; i < 4; i++) 
-      dprintf("Unknown0x194[%d] = %f (offset 0x%x)\n", i, ci.Unknown0x194[i], &pnull->Unknown0x194[i]); 
+//   for (int i=0; i < 4; i++) 
+//      dprintf("Unknown0x184[%d] = %f (offset 0x%x)\n", i, ci.Unknown0x184[i], &pnull->Unknown0x184[i]); 
+//   for (i=0; i < 4; i++) 
+//      dprintf("Unknown0x194[%d] = %f (offset 0x%x)\n", i, ci.Unknown0x194[i], &pnull->Unknown0x194[i]); 
    KPf(ZoneGravity);
-   for (i=0; i < 15; i++) 
-      dprintf("Unknown0x1ac[%d] = %d (offset 0x%x)\n", i, ci.Unknown0x1ac[i], &pnull->Unknown0x1ac[i]); 
+//   for (i=0; i < 15; i++) 
+//      dprintf("Unknown0x1ac[%d] = %d (offset 0x%x)\n", i, ci.Unknown0x1ac[i], &pnull->Unknown0x1ac[i]); 
+   KP(SkyType);
    KPf(ZoneExpModifier); 
-   for (i=0; i < 6; i++) 
-      dprintf("Unknown0x208[%d] = %d (offset 0x%x)\n", i, ci.Unknown0x208[i], &pnull->Unknown0x208[i]); 
-   for (i=0; i < 14; i++) 
-      dprintf("Unknown0x220[%d] = %d (offset 0x%x)\n", i, ci.Unknown0x220[i], &pnull->Unknown0x220[i]); 
+//   KPf(SafeYLoc);
+//   KPf(SafeXLoc);
+//   KPf(SafeZLoc);
+   KPf(Ceiling);
+   KPf(Floor);
+   KPf(MinClip);
+   KPf(MaxClip);
+//   for (i=0; i < 6; i++) 
+//      dprintf("Unknown0x208[%d] = %d (offset 0x%x)\n", i, ci.Unknown0x208[i], &pnull->Unknown0x208[i]); 
+//   for (i=0; i < 14; i++) 
+//      dprintf("Unknown0x220[%d] = %d (offset 0x%x)\n", i, ci.Unknown0x220[i], &pnull->Unknown0x220[i]); 
 } 
 
 DECLARE_API ( plootcorpse ) 
@@ -575,7 +593,6 @@ DECLARE_API ( pactorinfo )
    KP(UnderWater);
    KP(FeetWet);
    KP(LeftWater);
-   KP(Unknown0x0a8[0x20]); 
    KP(SpellETA);
    KP(Animation);
    KP(Mount);
@@ -729,10 +746,12 @@ DECLARE_API ( ppetinfownd )
 
    dprintf("\n\n\n"); 
 
-   KP(Unknown0x148);
+   KP(Unknown0x150);
+   KP(Unknown0x154);
+   KP(Unknown0x158);
    for (int i=0; i < 30; i++) 
      dprintf("Buff[%d] = %d (offset 0x%x)\n", i, ci.Buff[i], &pnull->Buff[i]); 
-   KP(Unknown0x2e4);
+   KP(Unknown0x2f4);
 }
 
 DECLARE_API ( pguildwnd ) 
@@ -779,3 +798,23 @@ DECLARE_API ( pguildmemberinfo )
    KP(UnknownData0x264);
    KP(UnknownData0x266);
 }
+
+DECLARE_API ( ptmp ) 
+{ 
+   CHARINFO *p, *pnull=NULL, ci; 
+   DWORD cb; 
+   CHAR buffer[MAX_STRING] = {0}; 
+   CHAR tmp[MAX_STRING] = {0}; 
+   unsigned int bitval = 1; 
+   int i=0; 
+
+    // read param from command line 
+    p = (CHARINFO *)GetExpression(args); 
+
+    ReadMemory((PARAM1)p,&ci,sizeof(ci),&cb); 
+
+    dprintf("\n\n\n"); 
+
+    KPs(Name); 
+
+} 
