@@ -255,7 +255,7 @@ VOID IrcCmd(PSPAWNINFO pChar, PCHAR szLine)
 	}
 }
 
-CHAR *parse(CHAR *rawmsg) { //take raw irc protocol message an return human readable
+CHAR *parse(CHAR *rawmsg) { //take raw irc protocol message and return human readable
 	/* The BNF representation for this is:
 	<message> ::= [':' <prefix> <SPACE> ] <command> <params> <crlf>
 	<prefix> ::= <servername> | <nick> [ '!' <user> ] [ '@' <host> ]
@@ -276,11 +276,13 @@ CHAR *parse(CHAR *rawmsg) { //take raw irc protocol message an return human read
 	CHAR *prefix, *tmp, *tmpb, *param[32], *command, *lnk;
 	prefix = IrcNick; // temporary fix for CTD on connect
 	sprintf(buffz,"%s",rawmsg); //save a copy of the original
+
 	lnk = strchr(rawmsg, 0x12);
 	while(lnk!=NULL) {
 		*lnk = ' ';
 		lnk = strchr(rawmsg, 0x12);
 	}
+
 	tmp = rawmsg; //use a new pointer, leave the original where it was
 	if(*tmp == ':') { //is there a prefix on this data?
 		tmpb = ++tmp;
