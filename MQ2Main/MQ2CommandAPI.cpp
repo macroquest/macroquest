@@ -81,7 +81,7 @@ VOID HideDoCommand(PSPAWNINFO pChar, PCHAR szLine, BOOL delayed)
         if (strstr(szLine,"{")) {
 			GetArg(szCmd,szLine,2);
 			if (stricmp(szCmd,"else")) {
-				GracefullyEndBadMacro(pChar,gMacroBlock,"} and { seen on the same line without an else present");
+				FatalError("} and { seen on the same line without an else present");
 			}
   //          DebugSpew("DoCommand - handing {} off to FailIf");
             FailIf(pChar,"{",gMacroBlock,TRUE);
@@ -126,7 +126,7 @@ VOID HideDoCommand(PSPAWNINFO pChar, PCHAR szLine, BOOL delayed)
 		pCommand=pCommand->pNext;
 	}
     if (!strnicmp(szOriginalLine,"sub ",4)) {
-        GracefullyEndBadMacro(pChar,gMacroBlock,"Flow ran into another subroutine.");
+		FatalError("Flow ran into another subroutine.");
         return;
     }
 

@@ -117,6 +117,9 @@ BOOL ParseINIFile(PCHAR lpINIPath)
     gSpewToFile   = 1==GetPrivateProfileInt("MacroQuest","DebugSpewToFile",0,Filename);
     gMQPauseOnChat= 1==GetPrivateProfileInt("MacroQuest","MQPauseOnChat",0,Filename);
     gKeepKeys     = 1==GetPrivateProfileInt("MacroQuest","KeepKeys",0,Filename);
+	bLaxColor=1==GetPrivateProfileInt("MacroQuest","LaxColor",1,Filename);
+	bAllErrorsDumpStack = 1==GetPrivateProfileInt("MacroQuest","AllErrorsDumpStack",1,Filename);
+	bAllErrorsFatal = 1==GetPrivateProfileInt("MacroQuest","AllErrorsFatal",0,Filename);
 
 	gFilterSWho.Lastname= GetPrivateProfileInt("SWho Filter","Lastname",1,Filename);
 	gFilterSWho.Class	= GetPrivateProfileInt("SWho Filter","Class",1,Filename);
@@ -146,7 +149,6 @@ BOOL ParseINIFile(PCHAR lpINIPath)
         strcat(gszMacroPath,szBuffer);
     }
 
-	bLaxColor=GetPrivateProfileInt("MacroQuest","LaxColor",1,Filename);
 
     GetPrivateProfileString("MacroQuest","LogPath",".",szBuffer,MAX_STRING,Filename);
     if (szBuffer[0]=='.') {
@@ -243,6 +245,7 @@ DWORD WINAPI MQ2Start(LPVOID lpParameter)
 	for (nColorSyntaxError=0 ; szColorSyntaxError[nColorSyntaxError] ; nColorSyntaxError++) {}
 	for (nColorMacroError=0 ; szColorMacroError[nColorMacroError] ; nColorMacroError++) {}
 	for (nColorMQ2DataError=0 ; szColorMQ2DataError[nColorMQ2DataError] ; nColorMQ2DataError++) {}
+	for (nColorFatalError=0 ; szColorFatalError[nColorFatalError] ; nColorFatalError++) {}
 
 
 

@@ -273,14 +273,19 @@ VOID NewDeclareVar(PSPAWNINFO pChar, PCHAR szLine)
 VOID NewDeleteVarCmd(PSPAWNINFO pChar, PCHAR szLine)
 {
 	if (szLine[0]==0) {
-		SyntaxError("Usage: /deletevar <varname>");
+		SyntaxError("Usage: /deletevar <varname|* global>");
 	} 
 	else 
 	{
 		// destroy old variable
 		if (!DeleteMQ2DataVariable(szLine))
 		{
-			MacroError("Variable '%s' does not exist",szLine);
+			if (!strnicmp(szLine,"* global",8))
+			{
+				ClearMQ2DataVariables(&pGlobalVariables);
+			}
+			else
+				MacroError("Variable '%s' does not exist",szLine);
 		}
 	}
 }

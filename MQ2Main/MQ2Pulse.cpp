@@ -39,7 +39,7 @@ BOOL DoNextCommand()
             DoCommand(pChar,gMacroBlock->Line);
             if (gMacroBlock) {
                 if (!gMacroBlock->pNext) {
-                    GracefullyEndBadMacro(pChar,gMacroBlock,"Reached end of macro.");
+                    FatalError("Reached end of macro.");
                 } else {
                     gMacroBlock = gMacroBlock->pNext;
                 }

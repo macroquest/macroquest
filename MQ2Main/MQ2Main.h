@@ -262,7 +262,7 @@ EQLIB_API VOID Echo									(PSPAWNINFO,PCHAR);
 /* MACRO PARSING */
 #define PMP_ERROR_BADPARM 10000
 EQLIB_API PCHAR ParseMacroParameter(PSPAWNINFO pChar, PCHAR szOriginal);
-EQLIB_API VOID GracefullyEndBadMacro(PSPAWNINFO pChar, PMACROBLOCK pBadLine, PCHAR szFormat, ...);
+//EQLIB_API VOID GracefullyEndBadMacro(PSPAWNINFO pChar, PMACROBLOCK pBadLine, PCHAR szFormat, ...);
 EQLIB_API VOID FailIf(PSPAWNINFO pChar, PCHAR szCommand, PMACROBLOCK pStartLine, BOOL All=FALSE);
 EQLIB_API VOID InitializeParser();
 EQLIB_API VOID ShutdownParser();
@@ -360,6 +360,7 @@ EQLIB_API VOID GetGameDate(int* Month, int* Day, int* Year);
 EQLIB_API VOID GetGameTime(int* Hour, int* Minute, int* Night);
 EQLIB_API VOID SyntaxError(PCHAR szFormat, ...);
 EQLIB_API VOID MacroError(PCHAR szFormat, ...);
+EQLIB_API VOID FatalError(PCHAR szFormat, ...);
 EQLIB_API VOID MQ2DataError(PCHAR szFormat, ...);
 
 #ifdef USEMQ2DATAVARS
@@ -426,7 +427,7 @@ EQLIB_API VOID        SuperWhoDisplay         (PSPAWNINFO pChar, PSEARCHSPAWN pF
 EQLIB_API FLOAT       DistanceToSpawn3D       (PSPAWNINFO pChar, PSPAWNINFO pSpawn);
 EQLIB_API FLOAT       EstimatedDistanceToSpawn(PSPAWNINFO pChar, PSPAWNINFO pSpawn);
 EQLIB_API PMACROBLOCK AddMacroLine            (PCHAR szLine);
-EQLIB_API VOID        GracefullyEndBadMacro   (PSPAWNINFO pChar, PMACROBLOCK pBadLine, PCHAR szFormat, ...);
+//EQLIB_API VOID        GracefullyEndBadMacro   (PSPAWNINFO pChar, PMACROBLOCK pBadLine, PCHAR szFormat, ...);
 EQLIB_API PSPAWNINFO  GetClosestAlert         (PSPAWNINFO pChar,DWORD List, DWORD* pdwCount);
 EQLIB_API VOID        FreeAlertList           (PALERTLIST pAlertList);
 EQLIB_API DWORD WINAPI InsertCommands         (LPVOID lpParameter);

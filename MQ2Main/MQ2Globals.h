@@ -38,6 +38,8 @@ EQLIB_VAR PDATAVAR pGlobalVariables;
 EQLIB_VAR PDATAVAR pMacroVariables;
 #endif
 
+EQLIB_VAR BOOL bAllErrorsFatal;
+EQLIB_VAR BOOL bAllErrorsDumpStack;
 
 
 EQLIB_API CHAR gszVersion[32];
@@ -265,12 +267,14 @@ EQLIB_VAR PCHAR szColorExpletive[];
 EQLIB_VAR PCHAR szColorSyntaxError[];
 EQLIB_VAR PCHAR szColorMacroError[];
 EQLIB_VAR PCHAR szColorMQ2DataError[];
+EQLIB_VAR PCHAR szColorFatalError[];
 EQLIB_VAR DWORD nColorAdjective;
 EQLIB_VAR DWORD nColorAdjectiveYou;
 EQLIB_VAR DWORD nColorExpletive;
 EQLIB_VAR DWORD nColorSyntaxError;
 EQLIB_VAR DWORD nColorMacroError;
 EQLIB_VAR DWORD nColorMQ2DataError;
+EQLIB_VAR DWORD nColorFatalError;
 
 EQLIB_VAR PALIAS pAliases;
 EQLIB_VAR PMQCOMMAND pCommands;

@@ -151,6 +151,38 @@ VOID MacroError(PCHAR szFormat, ...)
 	}
 	WriteChatColor(szOutput,CONCOLOR_RED);
 	strcpy(gszLastError,szOutput);
+	if (gMacroBlock)
+	{
+		if (bAllErrorsDumpStack || bAllErrorsFatal)
+			DumpStack(0,0);
+		if (bAllErrorsFatal)
+			EndMacro((PSPAWNINFO)pCharSpawn,"");
+	}
+}
+
+VOID FatalError(PCHAR szFormat, ...)
+{
+	CHAR szOutput[MAX_STRING] = {0};
+    va_list vaList;
+    va_start( vaList, szFormat );
+    vsprintf(szOutput,szFormat, vaList);
+	if (bLaxColor)
+	{
+		CHAR szColor[MAX_STRING]={0};
+		strcpy(szColor,szColorFatalError[rand()%nColorFatalError]);
+		if (szColor[0])
+		{
+			Flavorator(szColor);
+			WriteChatColor(szColor);
+		}
+	}
+	WriteChatColor(szOutput,CONCOLOR_RED);
+	strcpy(gszLastError,szOutput);
+	if (gMacroBlock)
+	{
+		DumpStack(0,0);
+		EndMacro((PSPAWNINFO)pCharSpawn,"");
+	}
 }
 
 VOID MQ2DataError(PCHAR szFormat, ...)
@@ -176,6 +208,13 @@ VOID MQ2DataError(PCHAR szFormat, ...)
 		WriteChatColor(szOutput,CONCOLOR_RED);
 	}
 	strcpy(gszLastMQ2DataError,szOutput);
+	if (gMacroBlock)
+	{
+		if (bAllErrorsDumpStack || bAllErrorsFatal)
+			DumpStack(0,0);
+		if (bAllErrorsFatal)
+			EndMacro((PSPAWNINFO)pCharSpawn,"");
+	}
 }
 
 // ***************************************************************************
@@ -2616,7 +2655,7 @@ BOOL ActualCalculate(PCHAR szFormula, DOUBLE &Result) {
 				i++;
 				if (szFormula[i]==0)
 				{
-					GracefullyEndBadMacro(((PCHARINFO)pCharData)->pSpawn,gMacroBlock, "Calculate encountered an unmatched parenthesis");
+					FatalError("Calculate encountered an unmatched parenthesis");
 					return false;
 				}
 				if (szFormula[i]==')')
@@ -2728,7 +2767,7 @@ BOOL ActualCalculate(PCHAR szFormula, DOUBLE &Result) {
 				}
 				else
 				{
-					GracefullyEndBadMacro(((PCHARINFO)pCharData)->pSpawn,gMacroBlock, "Calculate encountered a bad = formation");
+					FatalError("Calculate encountered a bad = formation");
 					return false;
 				}
 				break;
@@ -2781,7 +2820,7 @@ BOOL ActualCalculate(PCHAR szFormula, DOUBLE &Result) {
   //              GracefullyEndBadMacro(((PCHARINFO)pCharData)->pSpawn,gMacroBlock, "Calculate encountered a unparsed variable '%s'",&(Buffer[i]));
 				return false;
             default:
-                GracefullyEndBadMacro(((PCHARINFO)pCharData)->pSpawn,gMacroBlock, "Calculate encountered unparsable text '%s'",&Buffer[i]);
+				FatalError("Calculate encountered unparsable text '%s'",&Buffer[i]);
                 return false;
         }
     }
@@ -2792,7 +2831,7 @@ BOOL ActualCalculate(PCHAR szFormula, DOUBLE &Result) {
         switch (Arg[i][0]) {
             case '!':
                 if (i+1==j) {
-				    GracefullyEndBadMacro(((PCHARINFO)pCharData)->pSpawn,gMacroBlock, "Calculate encountered a bad %c formation",Arg[i][0]);
+				    FatalError("Calculate encountered a bad %c formation",Arg[i][0]);
                     return false;
                 }
                 i--;
@@ -2821,7 +2860,7 @@ BOOL ActualCalculate(PCHAR szFormula, DOUBLE &Result) {
         switch (Arg[i][0]) {
             case '^':
                 if ((i==0) || (i+1==j)) {
-				    GracefullyEndBadMacro(((PCHARINFO)pCharData)->pSpawn,gMacroBlock, "Calculate encountered a bad %c formation",Arg[i][0]);
+				    FatalError("Calculate encountered a bad %c formation",Arg[i][0]);
                     return false;
                 }
                 i--;
@@ -2839,7 +2878,7 @@ BOOL ActualCalculate(PCHAR szFormula, DOUBLE &Result) {
             case '\\':
             case '*':
                 if ((i==0) || (i+1==j)) {
-				    GracefullyEndBadMacro(((PCHARINFO)pCharData)->pSpawn,gMacroBlock, "Calculate encountered a bad %c formation",Arg[i][0]);
+				    FatalError("Calculate encountered a bad %c formation",Arg[i][0]);
                     return false;
                 }
                 i--;
@@ -2882,7 +2921,7 @@ BOOL ActualCalculate(PCHAR szFormula, DOUBLE &Result) {
                 if (Arg[i][1] != 0) break;
             case '+':
                 if ((i==0) || (i+1==j)) {
-				    GracefullyEndBadMacro(((PCHARINFO)pCharData)->pSpawn,gMacroBlock, "Calculate encountered a bad %c formation",Arg[i][0]);
+				    FatalError("Calculate encountered a bad %c formation",Arg[i][0]);
                     return false;
                 }
                 i--;
@@ -2909,7 +2948,7 @@ BOOL ActualCalculate(PCHAR szFormula, DOUBLE &Result) {
 			case 0xf2:
 			case 0xf3:
                 if ((i==0) || (i+1==j)) {
-				    GracefullyEndBadMacro(((PCHARINFO)pCharData)->pSpawn,gMacroBlock, "Calculate encountered a bad %c formation",Arg[i][0]);
+				    FatalError("Calculate encountered a bad %c formation",Arg[i][0]);
                     return false;
                 }
                 i--;
@@ -2945,7 +2984,7 @@ BOOL ActualCalculate(PCHAR szFormula, DOUBLE &Result) {
             case '&':
             case '|':
                 if ((i==0) || (i+1==j)) {
-				    GracefullyEndBadMacro(((PCHARINFO)pCharData)->pSpawn,gMacroBlock, "Calculate encountered a bad %c formation",Arg[i][0]);
+				    FatalError("Calculate encountered a bad %c formation",Arg[i][0]);
 					return false;
                 }
                 i--;
@@ -2968,7 +3007,7 @@ BOOL ActualCalculate(PCHAR szFormula, DOUBLE &Result) {
             case 'a':
             case 'o':
                 if ((i==0) || (i+1==j)) {
-				    GracefullyEndBadMacro(((PCHARINFO)pCharData)->pSpawn,gMacroBlock, "Calculate encountered a bad %c formation",Arg[i][0]);
+				    FatalError("Calculate encountered a bad %c formation",Arg[i][0]);
 					return false;
                 }
                 i--;

@@ -1,3 +1,13 @@
+29 Apr 2004 by Lax (even more):
+- Added option so that MQ2Data errors and normal errors (but not syntax errors that show
+  /usage etc) will dump the macro stack.  This is ON by default.  To turn it off, set
+  AllErrorsDumpStack=0 in MAcroQuest.ini section [MacroQuest]
+- Added option so that the above errors will end the macro, aka makes them "fatal".  This is
+  OFF by default. To set this, set AllErrorsFatal=1 in MacroQuest.ini section [MacroQuest]
+- If for some reason you need to clear all GLOBAL SCOPE variables,
+  /deletevar * global
+  will do the trick.
+
 29 Apr 2004 by Lax (more):
 - Fixed Multi-dimensional arrays
 

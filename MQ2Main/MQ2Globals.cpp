@@ -553,13 +553,16 @@ PCHAR szItemSlot[] = {
     NULL
 };
 
+BOOL bAllErrorsFatal=FALSE;
+BOOL bAllErrorsDumpStack=FALSE;
 BOOL bLaxColor=FALSE;
-EQLIB_VAR DWORD nColorAdjective=0;
-EQLIB_VAR DWORD nColorAdjectiveYou=0;
-EQLIB_VAR DWORD nColorExpletive=0;
-EQLIB_VAR DWORD nColorSyntaxError=0;
-EQLIB_VAR DWORD nColorMacroError=0;
-EQLIB_VAR DWORD nColorMQ2DataError=0;
+DWORD nColorAdjective=0;
+DWORD nColorAdjectiveYou=0;
+DWORD nColorExpletive=0;
+DWORD nColorSyntaxError=0;
+DWORD nColorMacroError=0;
+DWORD nColorMQ2DataError=0;
+DWORD nColorFatalError=0;
 
 PCHAR szColorAdjective[]=
 {
@@ -586,6 +589,7 @@ PCHAR szColorAdjectiveYou[]=
 	" STUPID FUCKER",
 	" DUMBASS",
 	" FUCKING DUMBASS",
+	" STUPID FUCK",
 	NULL
 };
 
@@ -617,6 +621,14 @@ PCHAR szColorMacroError[]=
 	"%e%aRTFM%y",
 	"%e%aRTFM%y, until then fuck off%y",
 	"%eget a %abrain%y",
+	NULL
+};
+
+PCHAR szColorFatalError[]=
+{
+	"",
+	"%eyou fucking broke it%y",
+	"%egood job%y. what's next? your head on a %astick thats %awhat%y",
 	NULL
 };
 

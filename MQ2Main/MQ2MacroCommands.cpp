@@ -69,7 +69,7 @@ DWORD Include(PCHAR szFile)
     BOOL InBlockComment = FALSE;
     PMACROBLOCK pAddedLine = NULL;
     if (!fMacro) {
-        GracefullyEndBadMacro(((PCHARINFO)pCharData)->pSpawn,gMacroBlock, "Couldn't open include file: %s",szFile);
+        FatalError("Couldn't open include file: %s",szFile);
         return 0;
     }
     DebugSpewNoFile("Include - Including: %s",szFile);
@@ -324,6 +324,7 @@ VOID Macro(PSPAWNINFO pChar, PCHAR szLine)
 // Function:    GracefullyEndBadMacro
 // Description: Used to end a 'bad' macro (parsing issues, etc)
 // ***************************************************************************
+/*
 VOID GracefullyEndBadMacro(PSPAWNINFO pChar, PMACROBLOCK pBadLine, PCHAR szFormat, ...)
 {
     CHAR szArgs[MAX_STRING] = {0};
@@ -339,6 +340,7 @@ VOID GracefullyEndBadMacro(PSPAWNINFO pChar, PMACROBLOCK pBadLine, PCHAR szForma
 		MacroError("Error: %s",szArgs);
     }
 }
+/**/
 
 // ***************************************************************************
 // Function:    Cleanup
@@ -465,7 +467,8 @@ VOID Goto(PSPAWNINFO pChar, PCHAR szLine)
     while (gMacroBlock->pNext) {
         gMacroBlock=gMacroBlock->pNext;
         if (!strnicmp(gMacroBlock->Line,"Sub ",4)) {
-            GracefullyEndBadMacro(pChar,pFromLine,"Couldn't find label %s",szLine);
+			gMacroBlock=pFromLine;
+            FatalError("Couldn't find label %s",szLine);
             return;
         }
         if (!stricmp(szLine,gMacroBlock->Line)) {
@@ -477,7 +480,8 @@ VOID Goto(PSPAWNINFO pChar, PCHAR szLine)
         DebugSpewNoFile("Goto - went to label %s",szLine);
         return;
     }
-    GracefullyEndBadMacro(pChar,pFromLine,"Couldn't find label %s",szLine);
+	gMacroBlock=pFromLine;
+    FatalError("Couldn't find label %s",szLine);
 }
 
 
@@ -645,7 +649,8 @@ VOID Call(PSPAWNINFO pChar, PCHAR szLine)
     }
         gMacroBlock = gMacroBlock->pNext;
     }
-    GracefullyEndBadMacro(pChar,pCallingPoint,"Subroutine %s wasn't found",SubName);
+	gMacroBlock=pCallingPoint;
+    FatalError("Subroutine %s wasn't found",SubName);
 }
 
 VOID FailIf(PSPAWNINFO pChar, PCHAR szCommand, PMACROBLOCK pStartLine, BOOL All)
@@ -667,11 +672,13 @@ VOID FailIf(PSPAWNINFO pChar, PCHAR szCommand, PMACROBLOCK pStartLine, BOOL All)
                 if (!All) if (gMacroBlock->Line[strlen(gMacroBlock->Line)-1]=='{') Scope++;
                 //DebugSpewNoFile("FailIf - Skipping(%d): %s",Scope,gMacroBlock->Line);
                 if (!strnicmp(gMacroBlock->Line,"sub ",4)) {
-                    GracefullyEndBadMacro(pChar,pStartLine,"{} pairing ran into anther subroutine");
+					gMacroBlock=pStartLine;
+					FatalError("{} pairing ran into anther subroutine");
                     return;
                 }
                 if (!gMacroBlock->pNext) {
-                    GracefullyEndBadMacro(pChar,pStartLine,"Bad {} block pairing");
+					gMacroBlock=pStartLine;
+                    FatalError("Bad {} block pairing");
                     return;
                 }
                 gMacroBlock = gMacroBlock->pNext;
@@ -696,7 +703,7 @@ VOID NewIf(PSPAWNINFO pChar, PCHAR szLine)
 
 	if (szLine[0]!='(')
 	{
-	    GracefullyEndBadMacro(((PCHARINFO)pCharData)->pSpawn,gMacroBlock, "Failed to parse /if command.  Expected () around conditions.");
+	    FatalError("Failed to parse /if command.  Expected () around conditions.");
 	    SyntaxError("Usage: /if (<conditions>) <command>");
         return;
 	}
@@ -715,7 +722,7 @@ VOID NewIf(PSPAWNINFO pChar, PCHAR szLine)
 				pEnd++;
 				if (*pEnd!=' ')
 				{
-					GracefullyEndBadMacro(((PCHARINFO)pCharData)->pSpawn,gMacroBlock, "Failed to parse /if command.  Could not find command to execute.");
+					FatalError("Failed to parse /if command.  Could not find command to execute.");
 					SyntaxError("Usage: /if (<conditions>) <command>");
 					return;
 				}
@@ -724,7 +731,7 @@ VOID NewIf(PSPAWNINFO pChar, PCHAR szLine)
 		}
 		else if (*pEnd==0)
 		{
-			GracefullyEndBadMacro(((PCHARINFO)pCharData)->pSpawn,gMacroBlock, "Failed to parse /if command.  Could not find command to execute.");
+			FatalError("Failed to parse /if command.  Could not find command to execute.");
 			SyntaxError("Usage: /if (<conditions>) <command>");
 			return;
 		}
@@ -741,8 +748,7 @@ VOID NewIf(PSPAWNINFO pChar, PCHAR szLine)
 	DOUBLE Result=0;
 	if (!Calculate(szCond,Result))
 	{
-		MacroError("Failed to parse /if condition '%s', non-numeric encountered",szCond);
-		GracefullyEndBadMacro(((PCHARINFO)pCharData)->pSpawn,gMacroBlock, pEnd);
+		FatalError("Failed to parse /if condition '%s', non-numeric encountered",szCond);
 		return;
 	}
 
@@ -930,11 +936,11 @@ VOID For(PSPAWNINFO pChar, PCHAR szLine)
     PCHAR szLoop = NULL;
     GetVariable(ArgLoop,&szLoop,&pDummy);
     if (pDummy) {
-        GracefullyEndBadMacro(pChar,gMacroBlock, "/for loops cannot loop on a timer");
+        FatalError("/for loops cannot loop on a timer");
         return;
     }
     if ((!szLoop) || (ArgStart[0] == 0) || (ArgDirection[0] == 0) || (ArgEnd[0] == 0) || ((strcmp(ArgDirection,"to")) && (strcmp(ArgDirection,"downto")))) {
-        GracefullyEndBadMacro(pChar,gMacroBlock, "Usage: /for <variable> <start> <to|downto> <end> [step x]");
+        FatalError("Usage: /for <variable> <start> <to|downto> <end> [step x]");
         return;
     }
     if (!gMacroBlock) {
@@ -964,7 +970,7 @@ VOID Next(PSPAWNINFO pChar, PCHAR szLine)
     PCHAR szLoop = NULL;
     GetVariable(szNext,&szLoop,&pDummy);
     if (pDummy) {
-        GracefullyEndBadMacro(pChar,gMacroBlock, "/for loops cannot loop on a timer");
+        FatalError("/for loops cannot loop on a timer");
         return;
     }
     if (!szLoop) {
@@ -979,7 +985,7 @@ VOID Next(PSPAWNINFO pChar, PCHAR szLine)
     while (pMacroLine->pPrev) {
         strcpy(ForLine,pMacroLine->Line);
         if (!strnicmp(ForLine,"Sub ",4)) {
-            GracefullyEndBadMacro(pChar,gMacroBlock, "/next without matching /for");
+            FatalError("/next without matching /for");
             return;
         }
         if (strnicmp(ForLine,"/for ",5)) {
@@ -1001,7 +1007,7 @@ VOID Next(PSPAWNINFO pChar, PCHAR szLine)
             }
             GetVariable(szNext,&szLoop,&pDummy);
             if (!szLoop) {
-                GracefullyEndBadMacro(pChar,gMacroBlock, "/next without badly matching /for");
+                FatalError("/next without badly matching /for");
                 return;
                 }
                 if (strstr(_strlwr(strcpy(szTemp,ForLine)),"downto")) {
@@ -1020,7 +1026,7 @@ VOID Next(PSPAWNINFO pChar, PCHAR szLine)
         pMacroLine = pMacroLine->pPrev;
     }
 
-    GracefullyEndBadMacro(pChar, gMacroBlock, "/next without matching /for");
+    FatalError("/next without matching /for");
 }
 
 
@@ -1043,7 +1049,8 @@ VOID Goto(PSPAWNINFO pChar, PCHAR szLine)
     while (gMacroBlock->pNext) {
         gMacroBlock=gMacroBlock->pNext;
         if (!strnicmp(gMacroBlock->Line,"Sub ",4)) {
-            GracefullyEndBadMacro(pChar,pFromLine,"Couldn't find label %s",szLine);
+			gMacroBlock=pFromLine;
+            FatalError("Couldn't find label %s",szLine);
             return;
         }
         if (!stricmp(szLine,gMacroBlock->Line)) {
@@ -1055,7 +1062,8 @@ VOID Goto(PSPAWNINFO pChar, PCHAR szLine)
         DebugSpewNoFile("Goto - went to label %s",szLine);
         return;
     }
-    GracefullyEndBadMacro(pChar,pFromLine,"Couldn't find label %s",szLine);
+	gMacroBlock=pFromLine;
+    FatalError("Couldn't find label %s",szLine);
 }
 
 
@@ -1225,7 +1233,8 @@ VOID Call(PSPAWNINFO pChar, PCHAR szLine)
     }
         gMacroBlock = gMacroBlock->pNext;
     }
-    GracefullyEndBadMacro(pChar,pCallingPoint,"Subroutine %s wasn't found",SubName);
+	gMacroBlock=pCallingPoint;
+    FatalError("Subroutine %s wasn't found",SubName);
 }
 
 VOID FailIf(PSPAWNINFO pChar, PCHAR szCommand, PMACROBLOCK pStartLine, BOOL All)
@@ -1244,11 +1253,13 @@ VOID FailIf(PSPAWNINFO pChar, PCHAR szCommand, PMACROBLOCK pStartLine, BOOL All)
             if (Scope>0) {
                 if (!All) if (gMacroBlock->Line[strlen(gMacroBlock->Line)-1]=='{') Scope++;
                 if (!strnicmp(gMacroBlock->Line,"sub ",4)) {
-                    GracefullyEndBadMacro(pChar,pStartLine,"{} pairing ran into anther subroutine");
+					gMacroBlock=pStartLine;
+					FatalError("{} pairing ran into anther subroutine");
                     return;
                 }
                 if (!gMacroBlock->pNext) {
-                    GracefullyEndBadMacro(pChar,pStartLine,"Bad {} block pairing");
+					gMacroBlock=pStartLine;
+					FatalError("Bad {} block pairing");
                     return;
                 }
                 gMacroBlock = gMacroBlock->pNext;
@@ -1270,7 +1281,7 @@ VOID NewIf(PSPAWNINFO pChar, PCHAR szLine)
 
 	if (szLine[0]!='(')
 	{
-	    GracefullyEndBadMacro(((PCHARINFO)pCharData)->pSpawn,gMacroBlock, "Failed to parse /if command.  Expected () around conditions.");
+	    FatalError("Failed to parse /if command.  Expected () around conditions.");
 	    SyntaxError("Usage: /if (<conditions>) <command>");
         return;
 	}
@@ -1289,7 +1300,7 @@ VOID NewIf(PSPAWNINFO pChar, PCHAR szLine)
 				pEnd++;
 				if (*pEnd!=' ')
 				{
-					GracefullyEndBadMacro(((PCHARINFO)pCharData)->pSpawn,gMacroBlock, "Failed to parse /if command.  Could not find command to execute.");
+					FatalError("Failed to parse /if command.  Could not find command to execute.");
 					SyntaxError("Usage: /if (<conditions>) <command>");
 					return;
 				}
@@ -1298,7 +1309,7 @@ VOID NewIf(PSPAWNINFO pChar, PCHAR szLine)
 		}
 		else if (*pEnd==0)
 		{
-			GracefullyEndBadMacro(((PCHARINFO)pCharData)->pSpawn,gMacroBlock, "Failed to parse /if command.  Could not find command to execute.");
+			FatalError("Failed to parse /if command.  Could not find command to execute.");
 			SyntaxError("Usage: /if (<conditions>) <command>");
 			return;
 		}
@@ -1315,8 +1326,7 @@ VOID NewIf(PSPAWNINFO pChar, PCHAR szLine)
 	DOUBLE Result=0;
 	if (!Calculate(szCond,Result))
 	{
-		MacroError("Failed to parse /if condition '%s', non-numeric encountered",szCond);
-		GracefullyEndBadMacro(((PCHARINFO)pCharData)->pSpawn,gMacroBlock, pEnd);
+		FatalError("Failed to parse /if condition '%s', non-numeric encountered",szCond);
 		return;
 	}
 
@@ -1507,16 +1517,16 @@ VOID For(PSPAWNINFO pChar, PCHAR szLine)
 	PDATAVAR pVar = FindMQ2DataVariable(ArgLoop);
 	if (!pVar)
 	{
-        GracefullyEndBadMacro(pChar,gMacroBlock, "/for loop using invalid variable");
+        FatalError("/for loop using invalid variable");
         return;
 	}
 	if (pVar->Var.Type!=pIntType)
 	{
-        GracefullyEndBadMacro(pChar,gMacroBlock, "/for loops must use an int variable");
+        FatalError("/for loops must use an int variable");
         return;
 	}
     if ((ArgStart[0] == 0) || (ArgDirection[0] == 0) || (ArgEnd[0] == 0) || ((strcmp(ArgDirection,"to")) && (strcmp(ArgDirection,"downto")))) {
-        GracefullyEndBadMacro(pChar,gMacroBlock, "Usage: /for <variable> <start> <to|downto> <end> [step x]");
+        FatalError("Usage: /for <variable> <start> <to|downto> <end> [step x]");
         return;
     }
     if (!gMacroBlock) {
@@ -1526,7 +1536,7 @@ VOID For(PSPAWNINFO pChar, PCHAR szLine)
 
 	if (!pVar->Var.Type->FromString(pVar->Var.VarPtr,ArgStart))
 	{
-        GracefullyEndBadMacro(pChar,gMacroBlock, "/for loop could not assign value '%s' to variable",ArgStart);
+        FatalError("/for loop could not assign value '%s' to variable",ArgStart);
         return;
 	}
 
@@ -1550,12 +1560,12 @@ VOID Next(PSPAWNINFO pChar, PCHAR szLine)
 	PDATAVAR pVar = FindMQ2DataVariable(szNext);
 	if (!pVar)
 	{
-        GracefullyEndBadMacro(pChar,gMacroBlock, "/next using invalid variable");
+        FatalError("/next using invalid variable");
         return;
 	}
 	if (pVar->Var.Type!=pIntType)
 	{
-        GracefullyEndBadMacro(pChar,gMacroBlock, "/for loops must use an int variable");
+        FatalError("/for loops must use an int variable");
         return;
 	}
 
@@ -1567,7 +1577,7 @@ VOID Next(PSPAWNINFO pChar, PCHAR szLine)
     while (pMacroLine->pPrev) {
         strcpy(ForLine,pMacroLine->Line);
         if (!strnicmp(ForLine,"Sub ",4)) {
-            GracefullyEndBadMacro(pChar,gMacroBlock, "/next without matching /for");
+            FatalError("/next without matching /for");
             return;
         }
         if (strnicmp(ForLine,"/for ",5)) {
@@ -1591,7 +1601,7 @@ VOID Next(PSPAWNINFO pChar, PCHAR szLine)
 			pVar = FindMQ2DataVariable(szNext);
 			if (!pVar)
 			{
-				GracefullyEndBadMacro(pChar,gMacroBlock, "/next without badly matching /for");
+				FatalError("/next without badly matching /for");
 				return;
 			}
 
@@ -1616,7 +1626,7 @@ VOID Next(PSPAWNINFO pChar, PCHAR szLine)
         pMacroLine = pMacroLine->pPrev;
     }
 
-    GracefullyEndBadMacro(pChar, gMacroBlock, "/next without matching /for");
+    FatalError("/next without matching /for");
 }
 
 
