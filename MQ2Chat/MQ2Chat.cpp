@@ -5,17 +5,8 @@
 
 #include "../MQ2Plugin.h"
 
-BOOL APIENTRY DllMain( HANDLE hModule, 
-                       DWORD  ul_reason_for_call, 
-                       LPVOID lpReserved
-					 )
-{
-	if (ul_reason_for_call==DLL_PROCESS_ATTACH)
-		DebugSpewAlways("MQ2Chat Module Loaded");
-	else if (ul_reason_for_call==DLL_PROCESS_DETACH)
-		DebugSpewAlways("MQ2Chat Module Unloaded");
-    return TRUE;
-}
+PreSetup("MQ2Chat");
+
 
 PLUGIN_API VOID InitializePlugin(VOID)
 {

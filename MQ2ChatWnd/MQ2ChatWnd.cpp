@@ -23,17 +23,8 @@ PEQCHATWINDOW MQChatWnd=0;
 PLUGIN_API VOID OnCleanUI(VOID);
 PLUGIN_API VOID SetGameState(DWORD GameState);
 
-BOOL APIENTRY DllMain( HANDLE hModule, 
-                       DWORD  ul_reason_for_call, 
-                       LPVOID lpReserved
-					 )
-{
-	if (ul_reason_for_call==DLL_PROCESS_ATTACH)
-		DebugSpewAlways("MQ2ChatWnd Module Loaded");
-	else if (ul_reason_for_call==DLL_PROCESS_DETACH)
-		DebugSpewAlways("MQ2ChatWnd Module Unloaded");
-    return TRUE;
-}
+PreSetup("MQ2ChatWnd");
+
 
 CHAR szChatINISection[MAX_STRING] = {0};
 void LoadChatFromINI(PCSIDLWND pWindow)
@@ -101,7 +92,6 @@ PLUGIN_API VOID InitializePlugin(VOID)
 	DebugSpewAlways("Initializing MQ2ChatWnd");
 
 	// Add commands, macro parameters, hooks, etc.
-	SetINIFileName("MQ2ChatWnd.ini");
 }
 
 PLUGIN_API VOID ShutdownPlugin(VOID)

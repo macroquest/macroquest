@@ -10,23 +10,13 @@
 #include "../MQ2Plugin.h"
 #include "MQ2FPS.h"
 
-BOOL APIENTRY DllMain( HANDLE hModule, 
-                       DWORD  ul_reason_for_call, 
-                       LPVOID lpReserved
-					 )
-{
-	if (ul_reason_for_call==DLL_PROCESS_ATTACH)
-		DebugSpewAlways("MQ2FPS Module Loaded");
-	else if (ul_reason_for_call==DLL_PROCESS_DETACH)
-		DebugSpewAlways("MQ2FPS Module Unloaded");
-    return TRUE;
-}
+PreSetup("MQ2FPS");
+
 
 // Called once, when the plugin is to initialize
 PLUGIN_API VOID InitializePlugin(VOID)
 {
 	DebugSpewAlways("Initializing MQ2FPS");
-	SetINIFileName("MQ2FPS.ini");
 
 	// Add commands, macro parameters, hooks, etc.
 	// INI Settings

@@ -27,22 +27,12 @@ VOID CloseServer();
 VOID TelnetServer_Write(CHAR *szLine);
 VOID ProcessServer();
 
-BOOL APIENTRY DllMain( HANDLE hModule, 
-                       DWORD  ul_reason_for_call, 
-                       LPVOID lpReserved
-                     )
-{
-    if (ul_reason_for_call==DLL_PROCESS_ATTACH)
-        DebugSpewAlways("mq2telnet Module Loaded v2");
-    else if (ul_reason_for_call==DLL_PROCESS_DETACH)
-        DebugSpewAlways("mq2telnet Module Unloaded");
-    return TRUE;
-}
+
+PreSetup("MQ2Telnet");
 
 PLUGIN_API VOID InitializePlugin(VOID)
 {
     DebugSpewAlways("Initializing mq2telnet");
-	SetINIFileName("MQ2Telnet.ini");
     InitializeCriticalSection(&gDoCommand_Lock);
     InitializeCriticalSection(&gTelnet_CS_Recv);
     InitializeCriticalSection(&gTelnet_CS_Send);

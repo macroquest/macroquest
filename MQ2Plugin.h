@@ -13,4 +13,19 @@
 
 CHAR INIFileName[MAX_PATH]={0};
 
-#define SetINIFileName(ini) sprintf(INIFileName,"%s\\%s",gszINIPath,ini);
+//#define SetINIFileName(ini) sprintf(INIFileName,"%s\\%s",gszINIPath,ini);
+
+#define PreSetup(pluginname) BOOL APIENTRY DllMain( HANDLE hModule, \
+                       DWORD  ul_reason_for_call, \
+                       LPVOID lpReserved\
+					 )\
+{\
+	if (ul_reason_for_call==DLL_PROCESS_ATTACH)\
+	{\
+	DebugSpewAlways("%s Module Loaded",pluginname );\
+	sprintf(INIFileName,"%s\\%s.ini",gszINIPath,pluginname);\
+	}\
+	else if (ul_reason_for_call==DLL_PROCESS_DETACH)\
+	DebugSpewAlways("%s Module Unloaded",pluginname);\
+    return TRUE;\
+}

@@ -10,17 +10,7 @@
 #include "../MQ2Plugin.h"
 #include "MQ2Map.h"
 
-BOOL APIENTRY DllMain( HANDLE hModule, 
-                       DWORD  ul_reason_for_call, 
-                       LPVOID lpReserved
-					 )
-{
-	if (ul_reason_for_call==DLL_PROCESS_ATTACH)
-		DebugSpewAlways("MQ2Map Module Loaded");
-	else if (ul_reason_for_call==DLL_PROCESS_DETACH)
-		DebugSpewAlways("MQ2Map Module Unloaded");
-    return TRUE;
-}
+PreSetup("MQ2Map");
 
 
 // *************************************************************************** 
@@ -46,7 +36,6 @@ DETOUR_TRAMPOLINE_EMPTY(VOID MapViewMapHook::SaveEx_Trampoline(PCHAR szZonename,
 PLUGIN_API VOID InitializePlugin(VOID)
 {
 	DebugSpewAlways("Initializing MQ2Map");
-	SetINIFileName("MQ2Map.ini");
 
 	// Add commands, macro parameters, hooks, etc.
 

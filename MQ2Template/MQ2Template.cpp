@@ -9,25 +9,13 @@
 
 #include "../MQ2Plugin.h"
 
-BOOL APIENTRY DllMain( HANDLE hModule, 
-                       DWORD  ul_reason_for_call, 
-                       LPVOID lpReserved
-					 )
-{
-	if (ul_reason_for_call==DLL_PROCESS_ATTACH)
-		DebugSpewAlways("MQ2Template Module Loaded");
-	else if (ul_reason_for_call==DLL_PROCESS_DETACH)
-		DebugSpewAlways("MQ2Template Module Unloaded");
-    return TRUE;
-}
+
+PreSetup("MQ2Template");
 
 // Called once, when the plugin is to initialize
 PLUGIN_API VOID InitializePlugin(VOID)
 {
 	DebugSpewAlways("Initializing MQ2Template");
-
-	// Set INI file name
-	SetINIFileName("MQ2Template.ini");
 
 	// Add commands, macro parameters, hooks, etc.
 	// AddCommand("/mycommand",MyCommand);
