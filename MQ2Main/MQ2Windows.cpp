@@ -625,21 +625,19 @@ void RemoveWindow(char *WindowName)
 
 VOID ListWindows(PSPAWNINFO pChar, PCHAR szLine)
 {
-	CHAR szOut[MAX_STRING]={0};
+	CHAR Name[MAX_STRING]={0};
+	unsigned long Count=0;
 	if (!szLine || !szLine[0])
 	{
-		unsigned long Count=0;
 		WriteChatColor("List of available windows");
 		WriteChatColor("-------------------------");
 		for (unsigned long N = 0 ; N < WindowList.Size ; N++)
 			if (_WindowInfo *pInfo=WindowList[N])
 			{
-				sprintf(szOut,"%s",pInfo->Name);
-				WriteChatColor(szOut);
+				WriteChatf("%s",pInfo->Name);
 				Count++;
 			}
-		sprintf(szOut,"%d available windows",Count);
-		WriteChatColor(szOut);
+		WriteChatf("%d available windows",Count);
 	}
 	else
 	{
@@ -649,11 +647,31 @@ VOID ListWindows(PSPAWNINFO pChar, PCHAR szLine)
 		unsigned long N = WindowMap[WindowName];
 		if (!N)
 		{
-			sprintf(szOut,"Window '%s' not available",szLine);
-			WriteChatColor(szOut);
+			WriteChatf("Window '%s' not available",szLine);
 			return;
 		}
-		WriteChatColor("Listing of child windows not yet implemented");
+		N--;
+		WriteChatf("Listing child windows of '%s'",szLine);
+		WriteChatColor("-------------------------");
+		if (_WindowInfo *pInfo=WindowList[N])
+		{
+			PCSIDLWND pWnd=pInfo->pWnd->pChildren;
+			while(pWnd)
+			{
+				if (pWnd->XMLIndex)
+				{
+					DebugTry(CXMLData *pXMLData=((CXMLDataManager*)&((PCSIDLMGR)pSidlMgr)->pXMLDataMgr)->GetXMLData(pWnd->XMLIndex>>16,pWnd->XMLIndex&0xFFFF));
+					if (pXMLData)
+					{
+						Count++;
+						GetCXStr(pXMLData->Text.Ptr,Name,MAX_STRING);
+						WriteChatColor(Name);
+					}
+				}
+				pWnd=pWnd->pSiblings;
+			}
+			WriteChatf("%d child windows",Count);
+		}
 	}
 }
 
@@ -790,6 +808,14 @@ VOID ItemNotify(PSPAWNINFO pChar, PCHAR szLine)
 			if (nPack && nPack<=NUM_BANK_SLOTS)
 			{
 				pPack=pChar->pCharInfo->Bank[nPack-1];
+			}
+		}
+		else if (!strnicmp(szArg2,"sharedbank",4))
+		{
+			unsigned long nPack=atoi(&szArg2[4]);
+			if (nPack && nPack<=2)
+			{
+				pPack=pChar->pCharInfo->Bank[16+nPack-1];
 			}
 		}
 		else if (!strnicmp(szArg2,"pack",4))

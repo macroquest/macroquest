@@ -4892,6 +4892,9 @@ EQLIB_OBJECT int CXMLData::GetStreamSize(void);
 //EQLIB_OBJECT void * CXMLData::`vector deleting destructor'(unsigned int);
 EQLIB_OBJECT void CXMLData::ReadFromStream(class CMemoryStream &);
 EQLIB_OBJECT void CXMLData::WriteToStream(class CMemoryStream &);
+// data members
+/*0x00*/ BYTE Unknown0x00[0x20];
+/*0x20*/ CXStr Text;
 };
 
 class CXMLDataClass

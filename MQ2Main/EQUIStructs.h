@@ -379,6 +379,13 @@ typedef struct _CSIDLWND {
 /*0x15 */
 } CSIDLWND, *PCSIDLWND;
 
+// size 0x268  5-12-2004 lax
+typedef struct _CSIDLMGR {
+/*0x000*/	BYTE	Unknown0x000[0x114];
+/*0x114*/	PVOID pXMLDataMgr;
+/*0x118*/	BYTE	Unknown0x118[0x150];
+/*0x268*/
+} CSIDLMGR, *PCSIDLMGR;
 
 //11-6-2003 lax
 //Actual size 0x108 4-28-2004

@@ -483,7 +483,7 @@ PCHAR szBodyType[] = {
    "Lycanthrope", //2
    "Undead", //3
    "Giant", //4
-   "Golem", //5
+   "Construct", //5
    "Extraplanar", //6
    "Magical", //7
    "Undead Pet", //8
@@ -504,7 +504,7 @@ PCHAR szBodyType[] = {
    "Monster", //23
    "Elemental", //24
    "Plant", //25
-   "Dragonkin", //26
+   "Dragon", //26
    "Elemental", //27
    "Summoned Creature",//28
    "Dragon",//29
@@ -512,7 +512,7 @@ PCHAR szBodyType[] = {
    "Familiar",//31
 	"*UNKNOWN BODYTYPE 32",
 	"*UNKNOWN BODYTYPE 33",
-	"*UNKNOWN BODYTYPE 34",
+	"Muramite",
 	"*UNKNOWN BODYTYPE 35",
 	"*UNKNOWN BODYTYPE 36",
 	"*UNKNOWN BODYTYPE 37",

@@ -385,6 +385,9 @@
 // CSidlManager
 #define CSidlManager__FindScreenPieceTemplate1             0x57D400
 
+// CXMLDataManager
+#define CXMLDataManager__GetXMLData						   0x58A070 
+
 // CXMLSOMDocumentBase
 #define CXMLSOMDocumentBase__XMLRead                       0x564A50
 

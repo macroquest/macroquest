@@ -11,58 +11,35 @@
 
 
 PreSetup("MQ2EQBugFix");
-
-DETOUR_TRAMPOLINE_EMPTY(DWORD __cdecl JournalNPCCrash_Trampoline(DWORD)); 
-DWORD __cdecl JournalNPCCrash_Detour(DWORD Param)
+#define CDisplay__FindZoneTopZ 0x410EF5 
+class CDisplayBugFix
 {
-	// SOE: This is fixing a crash when newbies exit and have no journal npc
-	// entries.  The problem is you have a function that does this:
-	// return *JournalNPC::m_strings.Insert(x)
-	// and sometimes Insert returns 0!  All I'm doing is checking the return
-	// value from Insert.  If it's 0, return 0 instead of *0.
-	int ToRet=0;
-	__asm
+public:
+	float FindZoneTopZ_Trampoline(float X, float Y, float Z);
+	float FindZoneTopZ_Detour(float X, float Y, float Z)
 	{
-		push [Param];
-		mov ecx, 614D20h;
-		mov eax, 51B653h;
-		call eax;
-		mov [ToRet], eax;
-	};
-	if (ToRet)
-	{
-		return *(DWORD*)ToRet;
+		CHAR Temp[MAX_STRING]={0};
+		sprintf(Temp,"%f",Temp);
+		if (!strstr(Temp,"NAN") && !strstr(Temp,"INF"))
+			return FindZoneTopZ_Trampoline(X,Y,Z);
+		DebugSpew("FIXING INFINITE LOOP!");
+		return FindZoneTopZ_Trampoline(X,Y,0);//(float)1.0e-1;
 	}
-	return 0;
-}
-DWORD JournalNPCCrash=0x4050F6;
+};
+
+DETOUR_TRAMPOLINE_EMPTY(float CDisplayBugFix::FindZoneTopZ_Trampoline(float,float,float));
 
 // Called once, when the plugin is to initialize
 PLUGIN_API VOID InitializePlugin(VOID)
 {
 	DebugSpewAlways("Initializing MQ2EQBugFix");
-
-	// Add commands, macro parameters, hooks, etc.
-	// AddCommand("/mycommand",MyCommand);
-	// AddParm("$myparm(x)",MyParm);
-	// removed after 11-25 patch
-
-	if (pinstCEverQuest==0x788de0)
-	{
-//		EasyDetour(JournalNPCCrash,JournalNPCCrash_Detour,DWORD,(DWORD),JournalNPCCrash_Trampoline);
-	}
-	/**/
-	// do nothing at this time.
+	EzDetour(CDisplay__FindZoneTopZ,CDisplayBugFix::FindZoneTopZ_Detour,CDisplayBugFix::FindZoneTopZ_Trampoline);
 }
 
 // Called once, when the plugin is to shutdown
 PLUGIN_API VOID ShutdownPlugin(VOID)
 {
 	DebugSpewAlways("Shutting down MQ2EQBugFix");
-
-	// Remove commands, macro parameters, hooks, etc.
-	// RemoveParm("$myparm(x)");
-	// RemoveCommand("/mycommand");
-	RemoveDetour(JournalNPCCrash);
+	RemoveDetour(CDisplay__FindZoneTopZ);
 }
 

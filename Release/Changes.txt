@@ -17,6 +17,17 @@
   your search results (particularly helpful for /who).
 - Added/changed MQ2Data members:
   string spawn.Type: PC NPC Untargetable Mount Pet Corpse Trigger Trap Timer Item 
+  string string.Token[n,separator]: Retrieve a token from the string using a custom separator.  Unlike Arg, this will not skip empty values
+  spell item.Spell: Spell effect
+  float item.CastTime: Spell effect's cast time
+  string item.EffectType: Spell effect type
+  ticks character.AltAbilityTimer[n]: Alt ability reuse time left, by number
+  ticks character.AltAbilityTimer[name]: Alt ability reuse time left, by name
+- spawn.Hunger and spawn.Thirst have returned to active duty
+- You can now list child windows from in-game with the /windows command, like so:
+  /windows <name>
+  e.g.: /windows InventoryWindow
+- /itemnotify in <pack> <#> <notification>  now works with sharedbank slots.
 
 13 May 2004 by Lax:
 - Fixed "by class" caption colors

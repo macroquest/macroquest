@@ -3369,15 +3369,21 @@ BOOL SpawnMatchesSearch(PSEARCHSPAWN pSearchSpawn, PSPAWNINFO pChar, PSPAWNINFO 
 		return FALSE;
 	if (pSearchSpawn->bTrader && !pSpawn->pActorInfo->Trader)
 		return FALSE;
-	if (pSearchSpawn->bKnownLocation && (pSearchSpawn->xLoc!=pSpawn->X || pSearchSpawn->yLoc!=pSpawn->Y))
+	if (pSearchSpawn->bKnownLocation) 
+	{
+		if ((pSearchSpawn->xLoc!=pSpawn->X || pSearchSpawn->yLoc!=pSpawn->Y))
+		if (pSearchSpawn->FRadius<10000.0f && DistanceToPoint(pSpawn,pSearchSpawn->xLoc,pSearchSpawn->yLoc)<pSearchSpawn->FRadius)
 		return FALSE;
+	}
+	else if (pSearchSpawn->FRadius<10000.0f && DistanceToSpawn(pChar, pSpawn)>pSearchSpawn->FRadius)
+		return FALSE;
+
+
 	if (pSearchSpawn->Radius>0.0f && IsPCNear(pSpawn,pSearchSpawn->Radius))
 		return FALSE;
 	if (gZFilter<10000.0f && ( (pSpawn->Z > pChar->Z + gZFilter) || (pSpawn->Z < pChar->Z - gZFilter)))
 		return FALSE;
 	if (pSearchSpawn->ZRadius<10000.0f &&  (pSpawn->Z > pChar->Z + pSearchSpawn->ZRadius) ||(pSpawn->Z < pChar->Z - pSearchSpawn->ZRadius))
-		return FALSE;
-	if (pSearchSpawn->FRadius<10000.0f && DistanceToSpawn(pChar, pSpawn)>pSearchSpawn->FRadius)
 		return FALSE;
 	if (pSearchSpawn->bLight) 
 	{
@@ -4033,13 +4039,11 @@ VOID KeepKeys(PSPAWNINFO pChar, PCHAR szLine)
 // ***************************************************************************
 VOID DisplayLoginName(PSPAWNINFO pChar, PCHAR szLine) 
 {
-	CHAR Buffer[MAX_STRING] = {0};
 	PCHAR szLogin = GetLoginName();
 	if (!szLogin) {
 		MacroError("Unable to retrieve login name.");
 	} else {
-		sprintf(Buffer,"Login name: \ay%s\ax",szLogin);
-		WriteChatColor(Buffer,USERCOLOR_DEFAULT);
+		WriteChatf("Login name: \ay%s\ax",szLogin);
 		free(szLogin);
 	}
 }
@@ -4117,16 +4121,14 @@ VOID EQDestroyHeldItemOrMoney(PSPAWNINFO pChar, PCHAR szLine)
 VOID Exec(PSPAWNINFO pChar,PCHAR szLine) {
    CHAR exepath[MAX_STRING] = {0};
 
-   CHAR szMsg[MAX_STRING] = {0};
-   CHAR szTemp[MAX_STRING] = {0};
+//   CHAR szTemp[MAX_STRING] = {0};
    CHAR szTemp1[MAX_STRING] = {0};
    CHAR szTemp2[MAX_STRING] = {0};
    GetArg(szTemp1,szLine,1);
    GetArg(szTemp2,szLine,2);
 
    if (szTemp1[0]!=0 && szTemp2[0]!=0) {
-      sprintf(szTemp,"Opening %s %s",szTemp1,szTemp2);
-      WriteChatColor(szTemp,USERCOLOR_DEFAULT);
+      WriteChatf("Opening %s %s",szTemp1,szTemp2);
 
       GetPrivateProfileString("Application Paths",szTemp1,szTemp1,exepath,MAX_STRING,gszINIFilename);
 

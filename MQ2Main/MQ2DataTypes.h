@@ -1199,6 +1199,9 @@ public:
 		SellPrice=81,
 		WornSlot=82,
 		WornSlots=83,
+		CastTime=84,
+		Spell=85,
+		EffectType=86,
 	};
 	MQ2ItemType():MQ2Type("Item")
 	{
@@ -1285,6 +1288,9 @@ public:
 		TypeMember(SellPrice);
 		TypeMember(WornSlot);
 		TypeMember(WornSlots);
+		TypeMember(CastTime);
+		TypeMember(Spell);
+		TypeMember(EffectType);
 	}
 
 	~MQ2ItemType()

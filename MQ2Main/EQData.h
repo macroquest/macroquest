@@ -759,7 +759,12 @@ typedef struct _CHARINFO {
 /*0x0cc0*/  BYTE  		field_CC0[0x40];
 /*0x0d00*/  DWORD 		field_D00;
 /*0x0d04*/  DWORD 		field_D04;
-/*0x0d08*/  BYTE  		field_D08[0x74];
+	// -- some structure begins --
+/*0x0d08*/  BYTE		Unknown0xd08[0x58];
+/*0x0d60*/  DWORD		hungerlevel;
+/*0x0d64*/  DWORD		thirstlevel;
+/*0x0d68*/  BYTE		Unknown0xd68[0x14];
+	// -- some structure ends --
 /*0x0d7c*/	WORD		zoneId; 
 /*0x0d7e*/	WORD		Instance; 
 /*0x0d80*/	struct		_SPAWNINFO* pSpawn;  //-->d80
@@ -1492,7 +1497,8 @@ typedef struct _ZONEINFO {
 /*0x184*/   BYTE	Unknown0x184[0x10];
 /*0x194*/   BYTE    Unknown0x194[0x10];
 /*0x1a4*/   FLOAT   ZoneGravity;
-/*0x1a8*/   BYTE    Unknown0x1a8[0x4];
+/*0x1a8*/   BYTE    Unknown0x1a8;
+/*0x1a9*/   BYTE    Unknown0x1a9[0x3];
 /*0x1ac*/   BYTE    Unknown0x1ac[0x2e];
 /*0x1da*/	BYTE	SkyType;	
 /*0x1db*/	BYTE	Unknown0x1db[0xd];

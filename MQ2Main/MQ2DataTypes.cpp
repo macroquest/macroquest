@@ -1060,22 +1060,37 @@ bool MQ2StringType::GetMember(MQ2VARPTR VarPtr, PCHAR Member, PCHAR Index, MQ2TY
 			DWORD N=atoi(Index);
 			if (!N)
 				return false;
-			CHAR Temp[MAX_STRING]={0};
-			strcpy(Temp,(char *)VarPtr.Ptr);
+//			CHAR Temp[MAX_STRING]={0};
+//			strcpy(Temp,(char *)VarPtr.Ptr);
 			if (PCHAR pComma=strchr(Index,','))
 			{
 				*pComma=0;
-				PCHAR pPos=strtok(Temp,&pComma[1]);
+				PCHAR pPos=(PCHAR)VarPtr.Ptr;//strchr((char *)VarPtr.Ptr,pComma[1]);
 				N--;
 				while(N && pPos)
 				{
-					pPos=strtok(NULL,&pComma[1]);
+					pPos=strchr(&pPos[1],pComma[1]);
 					N--;
 				}
 				*pComma=',';
 				if (pPos)
 				{
-					strcpy(DataTypeTemp,pPos);
+					if (pPos!=(PCHAR)VarPtr.Ptr)
+						pPos++;
+					PCHAR pEnd=strchr(&pPos[0],pComma[1]);
+					if (pEnd)
+					{
+						if (pEnd!=pPos)
+						{
+							strncpy(DataTypeTemp,pPos,pEnd-pPos);
+							DataTypeTemp[pEnd-pPos]=0;
+						}
+						else
+							DataTypeTemp[0]=0;
+					}
+					else
+						strcpy(DataTypeTemp,pPos);
+					// allows empty returned strings
 					Dest.Ptr=&DataTypeTemp[0];
 					Dest.Type=pStringType;
 					return true;
@@ -1496,13 +1511,13 @@ bool MQ2CharacterType::GetMember(MQ2VARPTR VarPtr, PCHAR Member, PCHAR Index, MQ
 		Dest.Type=pBoolType;
 		return true;
 	case Hunger:
-		return false;//TODO
-//		Dest.DWord=pChar->hungerlevel;
+		return false;
+		Dest.DWord=pChar->hungerlevel;
 		Dest.Type=pIntType;
 		return true;
 	case Thirst:
-		return false;//TODO
-//		Dest.DWord=pChar->thirstlevel;
+		return false;
+		Dest.DWord=pChar->thirstlevel;
 		Dest.Type=pIntType;
 		return true;
 	case AltAbilityTimer:
@@ -1518,8 +1533,9 @@ bool MQ2CharacterType::GetMember(MQ2VARPTR VarPtr, PCHAR Member, PCHAR Index, MQ
 					{
 						pAltAdvManager->IsAbilityReady(pPCData,nAbility,&Dest.Int);
 						if (Dest.Int<0)
-							Dest.Int=0;
-						Dest.Type=pIntType;
+							return false;
+						Dest.Int/=6;
+						Dest.Type=pTicksType;
 						return true;
 					}
 				}
@@ -1539,8 +1555,9 @@ bool MQ2CharacterType::GetMember(MQ2VARPTR VarPtr, PCHAR Member, PCHAR Index, MQ
 								{
 									pAltAdvManager->IsAbilityReady(pPCData,nAbility,&Dest.Int);
 									if (Dest.Int<0)
-										Dest.Int=0;
-									Dest.Type=pIntType;
+										return false;
+									Dest.Int/=6;
+									Dest.Type=pTicksType;
 									return true;
 								}
 								return false;
@@ -2406,6 +2423,57 @@ bool MQ2ItemType::GetMember(MQ2VARPTR VarPtr, PCHAR Member, PCHAR Index, MQ2TYPE
 			Dest.Type=pIntType;
 			return true;
 		}
+	case CastTime:
+		Dest.Float=(FLOAT)pItem->Item->CastTime/1000;
+		Dest.Type=pFloatType;
+		return true;
+	case Spell:
+		if (Dest.Ptr=GetSpellByID(pItem->Item->SpellId))
+		{
+			Dest.Type=pSpellType;
+			return true;
+		}
+		return false;
+	case EffectType:
+		// 0 = combat
+		// 1 = click inventory
+		// 2 = ?
+		// 3 = ?
+		// 4 = click worn
+		if (GetSpellByID(pItem->Item->SpellId))
+		{
+			switch(pItem->Item->EffectType)
+			{
+			case 0:
+				Dest.Ptr="Combat";
+				break;
+			case 1:
+				Dest.Ptr="Click Inventory";
+				break;
+			case 2:
+				Dest.Ptr="Worn";
+				break;
+			case 3:
+				Dest.Ptr="Unknown-3";
+				break;
+			case 4:
+				Dest.Ptr="Click Worn";
+				break;
+			case 5:
+				Dest.Ptr="Click Inventory";
+				break;
+			default:
+				Dest.Ptr="Unknown";
+				break;
+			}
+			Dest.Type=pStringType;
+			return true;
+		}
+		return false;
+	case InstrumentMod:
+		Dest.Float=((FLOAT)pItem->Item->InstrumentMod)/10.0f;
+		Dest.Type=pFloatType;
+		return true;
 	/*
 		Haste=16,
 		Endurance=17,
@@ -2445,7 +2513,6 @@ bool MQ2ItemType::GetMember(MQ2VARPTR VarPtr, PCHAR Member, PCHAR Index, MQ2TYPE
 		Proc=51,
 		SkillModValue=52,
 		InstrumentType=53,
-		InstrumentMod=54,
 		RequiredLevel=55,
 		BaneDMGType=56,
 		AC=57,
@@ -2467,8 +2534,6 @@ bool MQ2ItemType::GetMember(MQ2VARPTR VarPtr, PCHAR Member, PCHAR Index, MQ2TYPE
 		Artifact=73,
 		PendingLore=74,
 		LoreText=75,
-		WornSlot=82,
-		WornSlots=83,
 	/**/
 	}
 	return false;
