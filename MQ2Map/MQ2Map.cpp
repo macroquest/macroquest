@@ -137,37 +137,43 @@ public:
 	{
 		CMyMapViewWnd *pWnd=(CMyMapViewWnd*)this;
 		DWORD Ret=Constructor_Trampoline(wnd);
-		pWnd->StealVFTable();
+		StealVFTable();
 		return Ret;
 	}
 
-	void StealVFTable()
+	static void StealVFTable()
 	{
-		CMapViewWnd *pWnd=(CMapViewWnd*)this;
-		PCSIDLWNDVFTABLE pvfTable = new CSIDLWNDVFTABLE; 
-		*pvfTable=*pWnd->pvfTable;
+		if (CMapViewWnd *pWnd=(CMapViewWnd*)pMapViewWnd)
+		{
+			PCSIDLWNDVFTABLE pvfTable = new CSIDLWNDVFTABLE; 
+			*pvfTable=*pWnd->pvfTable;
 
-		CMyMapViewWnd__OldvfTable=pWnd->pvfTable;
-		pWnd->pvfTable=pvfTable;
-		CMyMapViewWnd__OldPostDraw=(DWORD)pWnd->pvfTable->PostDraw2;
-		CMyMapViewWnd__OldHandleRButtonDown=(DWORD)pWnd->pvfTable->HandleRButtonDown;
-		CMyMapViewWnd__OldDestructor=(DWORD)pWnd->pvfTable->vector_deleting_destructor;
-		pWnd->pvfTable->vector_deleting_destructor=CMyMapViewWnd__Destructor;
-		pWnd->pvfTable->HandleRButtonDown=CMyMapViewWnd__HandleRButtonDown; 
-		pWnd->pvfTable->PostDraw2=CMyMapViewWnd__PostDraw; 
+			CMyMapViewWnd__OldvfTable=pWnd->pvfTable;
+			pWnd->pvfTable=pvfTable;
+			CMyMapViewWnd__OldPostDraw=(DWORD)pWnd->pvfTable->PostDraw2;
+			CMyMapViewWnd__OldHandleRButtonDown=(DWORD)pWnd->pvfTable->HandleRButtonDown;
+			CMyMapViewWnd__OldDestructor=(DWORD)pWnd->pvfTable->vector_deleting_destructor;
+			pWnd->pvfTable->vector_deleting_destructor=CMyMapViewWnd__Destructor;
+			pWnd->pvfTable->HandleRButtonDown=CMyMapViewWnd__HandleRButtonDown; 
+			pWnd->pvfTable->PostDraw2=CMyMapViewWnd__PostDraw; 
+		}
 	}
 
-	void RestoreVFTable()
+	static void RestoreVFTable()
 	{
-		CMapViewWnd *pWnd=(CMapViewWnd*)this;
-		if (CMyMapViewWnd__OldvfTable) { 
-			delete pWnd->pvfTable;
-			pWnd->pvfTable=CMyMapViewWnd__OldvfTable;
+		if (CMapViewWnd *pWnd=(CMapViewWnd*)pMapViewWnd)
+		{
+			if (CMyMapViewWnd__OldvfTable) { 
+				delete pWnd->pvfTable;
+				pWnd->pvfTable=CMyMapViewWnd__OldvfTable;
+			}
 		}
 	}
 };
 
 DETOUR_TRAMPOLINE_EMPTY(DWORD CMyMapViewWnd::Constructor_Trampoline(class CXWnd *)); 
+
+bool Update=true;
 
 // Called once, when the plugin is to initialize
 PLUGIN_API VOID InitializePlugin(VOID)
@@ -195,22 +201,19 @@ PLUGIN_API VOID InitializePlugin(VOID)
 	AddCommand("/mapnames",MapNames,0,1,1);
 
 	EasyClassDetour(CMapViewWnd__CMapViewWnd,CMyMapViewWnd,Constructor_Detour,DWORD,(CXWnd*),Constructor_Trampoline);
-	if (pMapViewWnd)
-	{
-		((CMyMapViewWnd*)pMapViewWnd)->StealVFTable();
-	}
+	CMyMapViewWnd::StealVFTable();
 }
 
 // Called once, when the plugin is to shutdown
 PLUGIN_API VOID ShutdownPlugin(VOID)
 {
 	DebugSpewAlways("Shutting down MQ2Map");
+	Update=false;
 
 	RemoveDetour(CMapViewWnd__CMapViewWnd);
 
 	MapClear();
-	if (pMapViewWnd)
-		((CMyMapViewWnd*)pMapViewWnd)->RestoreVFTable();
+	CMyMapViewWnd::RestoreVFTable();
 
 	RemoveMQ2Benchmark(bmMapRefresh);
 	RemoveCommand("/mapfilter");
@@ -224,7 +227,8 @@ PLUGIN_API VOID ShutdownPlugin(VOID)
 PLUGIN_API VOID OnAddSpawn(PSPAWNINFO pNewSpawn)
 {
 	DebugSpewAlways("MQ2Map::OnAddSpawn(%s)",pNewSpawn->Name);
-	AddSpawn(pNewSpawn);
+	if (Update)
+		AddSpawn(pNewSpawn);
 }
 
 // This is called each time a spawn is removed from a zone (removed from EQ's list of spawns).
@@ -232,7 +236,8 @@ PLUGIN_API VOID OnAddSpawn(PSPAWNINFO pNewSpawn)
 PLUGIN_API VOID OnRemoveSpawn(PSPAWNINFO pSpawn)
 {
 	DebugSpewAlways("MQ2Map::OnRemoveSpawn(%s)",pSpawn->Name);
-	RemoveSpawn(pSpawn);
+	if (Update)
+		RemoveSpawn(pSpawn);
 }
 
 // This is called each time a ground item is added to a zone
@@ -241,7 +246,8 @@ PLUGIN_API VOID OnRemoveSpawn(PSPAWNINFO pSpawn)
 PLUGIN_API VOID OnAddGroundItem(PGROUNDITEM pNewGroundItem)
 {
 	DebugSpewAlways("MQ2Map::OnAddGroundItem(%d)",pNewGroundItem->DropID);
-	AddGroundItem(pNewGroundItem);
+	if (Update)
+		AddGroundItem(pNewGroundItem);
 }
 
 // This is called each time a ground item is removed from a zone
@@ -249,6 +255,7 @@ PLUGIN_API VOID OnAddGroundItem(PGROUNDITEM pNewGroundItem)
 PLUGIN_API VOID OnRemoveGroundItem(PGROUNDITEM pGroundItem)
 {
 	DebugSpewAlways("MQ2Map::OnRemoveGroundItem(%d)",pGroundItem->DropID);
-	RemoveGroundItem(pGroundItem);
+	if (Update)
+		RemoveGroundItem(pGroundItem);
 }
 
