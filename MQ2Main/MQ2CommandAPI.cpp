@@ -199,8 +199,10 @@ public:
 						}
 						pSubLoop = pSubLoop->pNext;
 					}
+					if (szSub[0] != '\0' ) {
 					szSubFullCommand.replace(i,k+1,szSub);
 					sprintf( szFullCommand, "%s",szSubFullCommand.c_str() ); 
+					}
 					szOrig[0] = '\0';
 					szSub[0] = '\0';
 					k=0;
