@@ -23,7 +23,8 @@ every command, most general-use commands will be implemented into the main DLL
 rather than plugins.&nbsp; Commands specific to plugins with other functionality 
 will of course go in the plugin itself.</p>
 <p><b>Creating a new plugin</b></p>
-<p>MQ2Template is an empty plugin, and will always contain the newest possible 
+<blockquote>
+<p><b>OPTION 1:</b> MQ2Template is an empty plugin, and will always contain the newest possible 
 plugin template.&nbsp; The absolute first thing to do is to copy the contents of 
 the MQ2Template directory, except for the readme.txt, to a new directory.&nbsp; 
 For example purposes, we will use MQ2MyPlugin, but you would of course insert 
@@ -32,6 +33,20 @@ editor and replace every instance of MQ2Template with MQ2MyPlugin.&nbsp; Also,
 rename each file from MQ2Template.* to MQ2MyPlugin.*.&nbsp; After doing so, your 
 plugin will be fully functional as a MQ2 plugin, and will compile to the Release 
 directory.&nbsp; </p>
+<p><b>OPTION 2: </b>&quot;mkplugin&quot; has been created to automate the creation of one 
+or more plugins at once, automating the process given in option one.&nbsp; From 
+the command line, &quot;mkplugin &lt;name&gt;&quot; will create a plugin. The plugin will 
+automatically be prefixed with &quot;MQ2&quot; and the next letter capitalized (though the 
+rest is untouched).&nbsp; For example, &quot;<b>mkplugin myPlugin</b>&quot; and the name 
+given to the plugin will be &quot;MQ2MyPlugin&quot;.&nbsp; If you do &quot;<b>mkplugin 
+mq2myplugin</b>&quot; the name given will be &quot;MQ2Myplugin&quot;.&nbsp; To create multiple 
+plugins at once, just add a parameter to the command line for every plugin.&nbsp; 
+Example: &quot;<b>mkplugin one two three four</b>&quot; will create &quot;MQ2One&quot;, &quot;MQ2Two&quot;, 
+&quot;MQ2Three&quot; and &quot;MQ2Four&quot;.&nbsp; mkplugin.exe is found in the Macroquest2 
+workspace/solution root directory.&nbsp; If you aren't familiar with DOS, simply 
+do this: Start-&gt;Run &quot;<b>c:\mq2\mkplugin.exe one two three four</b>&quot;,&nbsp; but 
+replace c:\mq2 with the actual path to your MQ2.</p>
+</blockquote>
 <p>Now you can open your project in visual studio or open the main file with 
 whatever you happen to code with.&nbsp; Immediately you will see several very 
 concise functions, most of which simply DebugSpew.&nbsp; Make sure to not muck 
