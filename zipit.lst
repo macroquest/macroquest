@@ -1,7 +1,5 @@
 extra.mak
 global.mak
-list.lst
-list1.lst
 macroquest2.dsw
 MacroQuest2.sln
 makefile
@@ -13,7 +11,6 @@ MQ2Plugin.h
 MQ2PluginDevelopment.html
 readme.chm
 zipit.lst
-zipit2.lst
 Blech\Blech.h
 Detours\Detours from Microsoft.url
 Detours\inc\detours.h
