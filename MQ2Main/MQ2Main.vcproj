@@ -101,8 +101,8 @@
 				MapExports="TRUE"
 				MapLines="TRUE"
 				SubSystem="2"
-				OptimizeReferences="2"
-				EnableCOMDATFolding="2"
+				OptimizeReferences="1"
+				EnableCOMDATFolding="1"
 				BaseAddress="0x03000000"
 				ImportLibrary="$(OutDir)/MQ2Main.lib"
 				TargetMachine="1"/>
