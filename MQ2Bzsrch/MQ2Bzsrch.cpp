@@ -627,7 +627,7 @@ VOID BzSrchMe(PSPAWNINFO pChar, PCHAR szLine)
 
    BzCount = 0;
    BzDone = 0;
-   send_message(EQADDR_GWORLD,0x1e9, &bsrp, sizeof(bsrp), TRUE);
+   send_message(EQADDR_GWORLD,0x1e6, &bsrp, sizeof(bsrp), TRUE);
    return;
 
 error_out:
