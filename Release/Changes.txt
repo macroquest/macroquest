@@ -1,3 +1,11 @@
+14 Feb 2004 by Amadeus
+- Fixed a LOT of wrong offsets in eqgame.h
+- Added four offsets to eqgame.h:
+  * pinstTextMessageWnd 
+  * pinstCDynamicZoneWnd 
+  * pinstCTargetOfTargetWnd
+  * pinstCTradeskillWnd 
+
 13 Feb 2004 by Amadeus
 - Added CareerFavor and CurrFavor to CharInfo [Macrofiend]
 - Added $char(favor,cur) & $char(favor,career) [Macrofiend]
