@@ -551,7 +551,7 @@ EQLIB_API VOID UpdateItemInfo                      (PSPAWNINFO,PCHAR);
 EQLIB_API VOID Where                               (PSPAWNINFO,PCHAR);
 EQLIB_API VOID ZapVars                             (PSPAWNINFO,PCHAR);
 EQLIB_API VOID PopupText                           (PSPAWNINFO,PCHAR);
-void DisplayOverlayText(PCHAR szText, DWORD dwColor, DWORD dwTransparency, DWORD msFadeIn, DWORD msFadeOut, DWORD msHold);
+EQLIB_API void DisplayOverlayText(PCHAR szText, DWORD dwColor, DWORD dwTransparency, DWORD msFadeIn, DWORD msFadeOut, DWORD msHold);
 // OTHER SHIT
 
 #define LIGHT_COUNT     13
