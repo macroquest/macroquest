@@ -127,6 +127,10 @@ SOURCE=.\MQ2Pulse.cpp
 # End Source File
 # Begin Source File
 
+SOURCE=.\MQ2Spawns.cpp
+# End Source File
+# Begin Source File
+
 SOURCE=.\MQ2UserVars.cpp
 # End Source File
 # Begin Source File
