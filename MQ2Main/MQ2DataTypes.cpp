@@ -3177,9 +3177,9 @@ bool MQ2MacroQuestType::GetMember(MQ2VARPTR VarPtr, PCHAR Member, PCHAR Index, M
 		}
 		return false;
 	case Error:
-		if (gszLastError[0])
+		if (gszLastNormalError[0])// QUIT SETTING THIS MANUALLY, USE MacroError, FatalError, ETC
 		{
-			Dest.Ptr=&gszLastError[0];
+			Dest.Ptr=&gszLastNormalError[0];
 			Dest.Type=pStringType;
 			return true;
 		}

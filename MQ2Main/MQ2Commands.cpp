@@ -2534,9 +2534,9 @@ VOID SetError(PSPAWNINFO pChar, PCHAR szLine)
 {
     bRunNextCommand = TRUE;
     if ((szLine[0]==0) || (stricmp(szLine,"clear"))) {
-        gszLastError[0]=0;
+        gszLastNormalError[0]=0; // QUIT SETTING THIS MANUALLY, USE MacroError or FatalError!
     } else {
-        strcpy(gszLastError,szLine);
+        strcpy(gszLastNormalError,szLine);
     }
 }
 /**/
@@ -4524,7 +4524,7 @@ VOID DoTimedCmd(PSPAWNINFO pChar, PCHAR szLine)
 
 VOID ClearErrorsCmd(PSPAWNINFO pChar, PCHAR szLine)
 {
-	gszLastError[0]=0;
+	gszLastNormalError[0]=0;
 	gszLastSyntaxError[0]=0;
 	gszLastMQ2DataError[0]=0;
 }

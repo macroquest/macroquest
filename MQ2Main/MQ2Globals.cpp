@@ -77,7 +77,7 @@ CHAR gszItemDB[MAX_STRING] = {0};
 CHAR gszMacroName[MAX_STRING] = {0};
 CHAR szLastCommand[MAX_STRING] = {0};
 
-CHAR gszLastError[MAX_STRING] = {0};
+CHAR gszLastNormalError[MAX_STRING] = {0};
 CHAR gszLastSyntaxError[MAX_STRING] = {0};
 CHAR gszLastMQ2DataError[MAX_STRING] = {0};
 

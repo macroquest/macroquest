@@ -130,38 +130,6 @@ extern DWORD CountFrees;
 }
 
 #define EzDetour(offset,detour,trampoline) AddDetourf((DWORD)offset,detour,trampoline)
-/*
-#define EzDetour(offset,detour,trampoline) \
-{\
-	PBYTE pDetour;\
-	PBYTE pTrampoline;\
-	__asm{push detour};\
-	__asm{pop [pDetour]};\
-	__asm{push trampoline};\
-	__asm{pop [pTrampoline]};\
-	AddDetour((DWORD)offset,pDetour,pTrampoline);\
-};
-/**/
-
-//#define EasyClassDetour(offset,detourclass,detourname,returntype,parameters,trampolinename) EzDetour(offset,detourclass::detourname,detourclass::trampolinename)
-//#define EasyDetour(offset,detourname,returntype,parameters,trampolinename) EzDetour(offset,detourname,trampolinename)
-
-/*
-#define EasyClassDetour(offset,detourclass,detourname,returntype,parameters,trampolinename)\
-{\
-	returntype (detourclass::*pfDetour)parameters = detourclass::detourname; \
-	returntype (detourclass::*pfTrampoline)parameters = detourclass::trampolinename; \
-	AddDetour((DWORD)offset,*(PBYTE*)&pfDetour,*(PBYTE*)&pfTrampoline);\
-}
-
-#define EasyDetour(offset,detourname,returntype,parameters,trampolinename)\
-{\
-	returntype (*pfDetour)parameters = detourname; \
-	returntype (*pfTrampoline)parameters = trampolinename; \
-	AddDetour((DWORD)offset,*(PBYTE*)&pfDetour,*(PBYTE*)&pfTrampoline);\
-}
-/**/
-
 #ifndef DOUBLE
 typedef double DOUBLE;
 #endif
@@ -432,7 +400,6 @@ EQLIB_API VOID        SuperWhoDisplay         (PSPAWNINFO pChar, PSEARCHSPAWN pF
 EQLIB_API FLOAT       DistanceToSpawn3D       (PSPAWNINFO pChar, PSPAWNINFO pSpawn);
 EQLIB_API FLOAT       EstimatedDistanceToSpawn(PSPAWNINFO pChar, PSPAWNINFO pSpawn);
 EQLIB_API PMACROBLOCK AddMacroLine            (PCHAR szLine);
-//EQLIB_API VOID        GracefullyEndBadMacro   (PSPAWNINFO pChar, PMACROBLOCK pBadLine, PCHAR szFormat, ...);
 EQLIB_API PSPAWNINFO  GetClosestAlert         (PSPAWNINFO pChar,DWORD List, DWORD* pdwCount);
 EQLIB_API VOID        FreeAlertList           (PALERTLIST pAlertList);
 EQLIB_API DWORD WINAPI InsertCommands         (LPVOID lpParameter);
@@ -442,91 +409,6 @@ EQLIB_API PSPAWNINFO  GetPet                  (DWORD OwnerID);
 EQLIB_API BOOL        IfCompare               (PCHAR szCond);
 
 
-
-/* PARMS */
-#if 0
-EQLIB_API DWORD parmGetLastFindSlot					(PCHAR, PCHAR, PSPAWNINFO);
-EQLIB_API DWORD parmCursor							(PCHAR, PCHAR, PSPAWNINFO);
-EQLIB_API DWORD parmItem								(PCHAR, PCHAR, PSPAWNINFO);
-EQLIB_API DWORD parmEquip								(PCHAR, PCHAR, PSPAWNINFO);
-EQLIB_API DWORD parmGroup								(PCHAR, PCHAR, PSPAWNINFO);
-EQLIB_API DWORD parmTarget							(PCHAR, PCHAR, PSPAWNINFO);
-EQLIB_API DWORD parmSpawn							(PCHAR, PCHAR, PSPAWNINFO);
-EQLIB_API DWORD parmSearchSpawn					(PCHAR, PCHAR, PSPAWNINFO);
-EQLIB_API DWORD parmChar							(PCHAR, PCHAR, PSPAWNINFO);
-EQLIB_API DWORD parmHeading						(PCHAR, PCHAR, PSPAWNINFO);
-EQLIB_API DWORD parmID								(PCHAR, PCHAR, PSPAWNINFO);
-EQLIB_API DWORD parmMouse							(PCHAR, PCHAR, PSPAWNINFO);
-EQLIB_API DWORD parmChar							(PCHAR, PCHAR, PSPAWNINFO);
-EQLIB_API DWORD parmSpell							(PCHAR, PCHAR, PSPAWNINFO);
-EQLIB_API DWORD parmReturn							(PCHAR, PCHAR, PSPAWNINFO);
-EQLIB_API DWORD parmZone							(PCHAR, PCHAR, PSPAWNINFO);
-EQLIB_API DWORD parmFind							(PCHAR, PCHAR, PSPAWNINFO);
-EQLIB_API DWORD parmAlert							(PCHAR, PCHAR, PSPAWNINFO);
-EQLIB_API DWORD parmGM								(PCHAR, PCHAR, PSPAWNINFO);
-EQLIB_API DWORD parmCombat							(PCHAR, PCHAR, PSPAWNINFO);
-EQLIB_API DWORD parmFreeInv						(PCHAR, PCHAR, PSPAWNINFO);
-EQLIB_API DWORD parmDistance						(PCHAR, PCHAR, PSPAWNINFO);
-EQLIB_API DWORD parmRand							(PCHAR, PCHAR, PSPAWNINFO);
-EQLIB_API DWORD parmGetLastError					(PCHAR, PCHAR, PSPAWNINFO);
-EQLIB_API DWORD parmLastTell						(PCHAR, PCHAR, PSPAWNINFO);
-EQLIB_API DWORD parmLastCommand					(PCHAR, PCHAR, PSPAWNINFO);
-EQLIB_API DWORD parmInvPanel						(PCHAR, PCHAR, PSPAWNINFO);
-EQLIB_API DWORD parmIf								(PCHAR, PCHAR, PSPAWNINFO);
-EQLIB_API DWORD parmIfN							(PCHAR, PCHAR, PSPAWNINFO);
-EQLIB_API DWORD parmMerchantName					(PCHAR, PCHAR, PSPAWNINFO);
-EQLIB_API DWORD parmMerchantXXX					(PCHAR, PCHAR, PSPAWNINFO);
-EQLIB_API DWORD parmCorpse							(PCHAR, PCHAR, PSPAWNINFO);
-EQLIB_API DWORD parmRunning						(PCHAR, PCHAR, PSPAWNINFO);
-EQLIB_API DWORD parmTime							(PCHAR, PCHAR, PSPAWNINFO);
-EQLIB_API DWORD parmDate							(PCHAR, PCHAR, PSPAWNINFO);
-EQLIB_API DWORD parmPack							(PCHAR, PCHAR, PSPAWNINFO);
-EQLIB_API DWORD parmArg							(PCHAR, PCHAR, PSPAWNINFO);
-EQLIB_API DWORD parmLeft							(PCHAR, PCHAR, PSPAWNINFO);
-EQLIB_API DWORD parmMid							(PCHAR, PCHAR, PSPAWNINFO);
-EQLIB_API DWORD parmRight							(PCHAR, PCHAR, PSPAWNINFO);
-EQLIB_API DWORD parmInstr							(PCHAR, PCHAR, PSPAWNINFO);
-EQLIB_API DWORD parmStrLen							(PCHAR, PCHAR, PSPAWNINFO);
-EQLIB_API DWORD parmUcase							(PCHAR, PCHAR, PSPAWNINFO);
-EQLIB_API DWORD parmLcase							(PCHAR, PCHAR, PSPAWNINFO);
-EQLIB_API DWORD parmSpawnName						(PCHAR, PCHAR, PSPAWNINFO);
-EQLIB_API DWORD parmCount							(PCHAR, PCHAR, PSPAWNINFO);
-EQLIB_API DWORD parmCalc							(PCHAR, PCHAR, PSPAWNINFO);
-EQLIB_API DWORD parmSpellItem						(PCHAR, PCHAR, PSPAWNINFO);
-EQLIB_API DWORD parmInt							(PCHAR, PCHAR, PSPAWNINFO);
-EQLIB_API DWORD parmAbs							(PCHAR, PCHAR, PSPAWNINFO);
-EQLIB_API DWORD parmSin							(PCHAR, PCHAR, PSPAWNINFO);
-EQLIB_API DWORD parmCos							(PCHAR, PCHAR, PSPAWNINFO);
-EQLIB_API DWORD parmTan							(PCHAR, PCHAR, PSPAWNINFO);
-EQLIB_API DWORD parmAsin							(PCHAR, PCHAR, PSPAWNINFO);
-EQLIB_API DWORD parmAcos							(PCHAR, PCHAR, PSPAWNINFO);
-EQLIB_API DWORD parmAtan							(PCHAR, PCHAR, PSPAWNINFO);
-EQLIB_API DWORD parmDoor							(PCHAR, PCHAR, PSPAWNINFO);
-EQLIB_API DWORD parmGround							(PCHAR, PCHAR, PSPAWNINFO);
-EQLIB_API DWORD parmHex							(PCHAR, PCHAR, PSPAWNINFO);
-EQLIB_API DWORD parmDec							(PCHAR, PCHAR, PSPAWNINFO);
-EQLIB_API DWORD parmNot							(PCHAR, PCHAR, PSPAWNINFO);
-EQLIB_API DWORD parmIni							(PCHAR, PCHAR, PSPAWNINFO);
-EQLIB_API DWORD parmMerchant						(PCHAR, PCHAR, PSPAWNINFO);
-EQLIB_API DWORD parmFinditemBank					(PCHAR, PCHAR, PSPAWNINFO);
-EQLIB_API DWORD parmFinditem						(PCHAR, PCHAR, PSPAWNINFO);
-EQLIB_API DWORD parmEQPath							(PCHAR, PCHAR, PSPAWNINFO);
-EQLIB_API DWORD parmMacroPath						(PCHAR, PCHAR, PSPAWNINFO);
-EQLIB_API DWORD parmMQPath							(PCHAR, PCHAR, PSPAWNINFO);
-EQLIB_API DWORD parmLogPath						(PCHAR, PCHAR, PSPAWNINFO);
-EQLIB_API DWORD parmSqrt							(PCHAR, PCHAR, PSPAWNINFO);
-EQLIB_API DWORD parmDefined						(PCHAR, PCHAR, PSPAWNINFO);
-EQLIB_API DWORD parmEnvOpen						(PCHAR, PCHAR, PSPAWNINFO);
-EQLIB_API DWORD parmGiveWnd						(PCHAR, PCHAR, PSPAWNINFO);
-EQLIB_API DWORD parmSelectedItem					(PCHAR, PCHAR, PSPAWNINFO);
-EQLIB_API DWORD parmServerName						(PCHAR, PCHAR, PSPAWNINFO);
-EQLIB_API DWORD parmLoginName						(PCHAR, PCHAR, PSPAWNINFO);
-EQLIB_API DWORD parmGameState						(PCHAR, PCHAR, PSPAWNINFO);
-EQLIB_API DWORD parmMacro                  (PCHAR, PCHAR, PSPAWNINFO);
-EQLIB_API DWORD parmEvent                  (PCHAR, PCHAR, PSPAWNINFO);
-EQLIB_API DWORD parmBanker						(PCHAR, PCHAR, PSPAWNINFO);
-EQLIB_API DWORD parmPet							(PCHAR, PCHAR, PSPAWNINFO);
-#endif
 
 EQLIB_API BOOL Calculate(PCHAR szFormula, DOUBLE& Dest);
 

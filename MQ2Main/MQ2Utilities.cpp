@@ -168,7 +168,7 @@ VOID MacroError(PCHAR szFormat, ...)
 		}
 	}
 	WriteChatColor(szOutput,CONCOLOR_RED);
-	strcpy(gszLastError,szOutput);
+	strcpy(gszLastNormalError,szOutput);
 	if (gMacroBlock)
 	{
 		if (bAllErrorsDumpStack || bAllErrorsFatal)
@@ -195,7 +195,7 @@ VOID FatalError(PCHAR szFormat, ...)
 		}
 	}
 	WriteChatColor(szOutput,CONCOLOR_RED);
-	strcpy(gszLastError,szOutput);
+	strcpy(gszLastNormalError,szOutput);
 	if (gMacroBlock)
 	{
 		DumpStack(0,0);
