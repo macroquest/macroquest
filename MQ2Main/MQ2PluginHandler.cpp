@@ -407,10 +407,10 @@ VOID PluginsDrawHUD()
 
 VOID PluginsAddSpawn(PSPAWNINFO pNewSpawn)
 {
-//	DebugSpew("PluginsAddSpawn(%s)",pNewSpawn->Name);
+//	DebugSpew("PluginsAddSpawn(%s,%d,%d)",pNewSpawn->Name,pNewSpawn->Race,pNewSpawn->BodyType);
 	if (!bPluginCS)
 		return;
-	if (gGameState==GAMESTATE_INGAME)
+	if (gGameState>GAMESTATE_CHARSELECT)
 		SetNameSpriteState(pNewSpawn,1);
 	CAutoLock Lock(&gPluginCS);
 	PMQPLUGIN pPlugin=pPlugins;

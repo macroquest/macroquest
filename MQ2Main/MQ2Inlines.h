@@ -48,7 +48,7 @@ static inline eSpawnType GetSpawnType(PSPAWNINFO pSpawn)
 		{
 			return MOUNT;
 		}
-		if (pSpawn->BodyType>0x40)
+		if (!stricmp(pEverQuest->GetBodyTypeDesc(pSpawn->BodyType),"UNKNOWN BODYTYPE"))
 			return TRIGGER;
 		else
 		{

@@ -1,3 +1,9 @@
+10 May 2004 by Lax:
+- Fixed problem relating to false negatives determining if a spawn is a TRIGGER (e.g. flavor
+  text, trap, etc).  This solves crash issues in the latest zip with the custom caption
+  system.  This also solves non-crash issues identifying "invisible spawns" in spawn searches,
+  as well as spawns that were previously identified as NPCs in MQ2Map.
+
 09 May 2004 by Lax (more):
 - Fixed VS6 compile errors in Blech
 - Fixed reported crash bug

@@ -169,6 +169,8 @@ public:
 	{
 		PSPAWNINFO pSpawn;
 		__asm{mov [pSpawn], ecx};
+//		DebugSpew("SetNameSpriteState(%s,%d)",pSpawn->Name,pSpawn->Race);
+//		return 0;
 #define SetCaption(CaptionString) \
 		{\
 			if (CaptionString[0])\
@@ -182,6 +184,8 @@ public:
 			}\
 		}
 		CHAR NewCaption[MAX_STRING]={0};
+//		if (pSpawn->Race==2253 || pSpawn->Race==127 || pSpawn->Race==240)
+//			return 0;
 		switch(GetSpawnType((PSPAWNINFO)pSpawn))
 		{
 		case NPC:
@@ -195,6 +199,8 @@ public:
 		case CORPSE:
 			SetCaption(gszSpawnCorpseName);
 			break;
+		case TRIGGER:// trigger names make it crash!
+			return 0;
 		case MOUNT://mount names make it crash!
 			return 0;
 		case PET:
