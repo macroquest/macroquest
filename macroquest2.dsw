@@ -39,7 +39,7 @@ Package=<4>
 
 ###############################################################################
 
-Project: "MQ2EQ2BugFix"=.\MQ2EQ2BugFix\MQ2EQ2BugFix.dsp - Package Owner=<4>
+Project: "MQ2EQBugFix"=.\MQ2EQBugFix\MQ2EQBugFix.dsp - Package Owner=<4>
 
 Package=<5>
 {{{
