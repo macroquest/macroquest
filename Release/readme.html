@@ -56,7 +56,7 @@
 <body>
 <div align="center">
 <span class="txtbold">MacroQuest2 Manual</span><br>
-Last Updated: March 13, 2004<br>
+Last Updated: March 15, 2004<br>
 <a href="http://macroquest.sf.net/" target="_blank">http://macroquest.sf.net/</a><br>
 PM Wassup on the MQ website if you have comments or suggestions about the manual<br><br>
 </div>
@@ -319,6 +319,57 @@ Displays an inventory of the currently logged in character in this format:<br><b
 <span class="command">/beep</span><br>
 Performs a system beep<br><br>
 
+<span class="command">/bind</span> [ <span class="opt">list</span> | 
+                            <span class="opt">eqlist</span> ] | 
+							[~]<span class="opt">name</span> 
+							[ <span class="arg">keycombo</span>| 
+							<span class="opt">clear</span> ]<br>
+ 
+  <table width="100%" border="1" cellpadding="2" cellspacing="0">
+  <tbody>
+  <tr> 
+    <td width="140"><span class="opt">list</span></td>
+    <td width="404">Lists all MQ2 binds</td>
+  </tr>
+  <tr> 
+    <td><span class="opt">eqlist</span></td>
+    <td>Lists all Everquest binds</td>
+  </tr>
+  <tr> 
+    <td><span class="opt">name</span> <span class="arg">keycombo</span></td>
+    <td>Binds <span class="opt">name</span> to the normal key combination <span class="arg">keycombo</span></td>
+  </tr>
+  <tr> 
+    <td>~<span class="opt">name</span> <span class="arg">keycombo</span></td>
+    <td>Binds <span class="opt">name</span> to the alternate key combination <span class="arg">keycombo</span></td>
+  </tr>
+  <tr> 
+    <td><span class="opt">name</span> <span class="opt">clear</span></td>
+    <td>Clears the key combination from <span class="opt">name</span></td>
+  </tr>
+  <tr> 
+    <td>~<span class="opt">name</span> <span class="opt">clear</span></td>
+    <td>Clears the alternate key combination from <span class="opt">name</span></td>
+  </tr>
+  </tbody></table><br>
+  
+  <span class="arg">keycombo</span> can be any combination of "alt", "shift" and "ctrl" plus a key.<br><br>
+  
+  Examples:
+    <blockquote>
+  <SCRIPT LANGUAGE="Javascript">
+  document.write("<XMP>")
+  document.write("/bind forward e\t\t\tBinds the forward command to key e\r")
+  document.write("/bind ~forward up\t\t\tBinds the forward command to alternate key uparrow\r")
+  document.write("/bind forward clear\t\t\tClears the key used for the forward command\r")
+  document.write("/bind ''Cast gem'' 1 shift+1\tBinds ''Cast gem 1'' to shift 1 key combination\r")
+  document.write("</XMP>")
+  </SCRIPT>
+  </blockquote>
+  
+  Note: Changing EQ binds will not immediately update the display in the options window.  Change the bind<br>
+  list selection in the options window to see the updated keys.<br><br>
+  
 <span class="command">/buyitem</span> <span class="arg">#</span><br>
 Buys # of the items selected in the merchant inventory (stackable only)<br><br>
 
@@ -478,16 +529,6 @@ Moves macro execution to a label
 <span class="command">/help</span> macro<br>
 Lists all commands available to the client<br><br>
 
-<span class="command">/hotkey</span> <span class="arg">keyname</span> <span class="opt">delete</span> | <span class="arg">command</span>
-<blockquote>
-<SCRIPT LANGUAGE="Javascript">
-document.write("<XMP>")
-document.write("/hotkey keyname delete\t\t\tDeletes the hotkey from the hotkey list\r")
-document.write("/hotkey keyname command\t\t\tAdds the hotkey to the hotkey list\r")
-document.write("</XMP>")
-</SCRIPT>
-</blockquote>
-
 <a name="i" id="i"></a>
 <span class="command">/identify</span><br>
 Cross between the Identify spell and right-clicking an item for info<br><br>
@@ -621,6 +662,7 @@ document.write("/keypress forward\t\tReleases the mapped forward key after /keyp
 document.write("</XMP>")
 </SCRIPT>
 </blockquote>
+Note: /keypress works with EQ key binds as well as MQ2 keybinds. See <span class="command">/bind</span><br><br>
 
 <a name="l" id="l"></a>
 <span class="command">/listmacros</span> ["<span class="arg">filter</span>"]<br>
@@ -775,6 +817,15 @@ Logs text to 'logs'directory or clears the log file. The log file will be saved 
 <span class="command">/mqpause</span> [<span class="opt">on</span>|<span class="opt">off</span>]<br>
 Pauses/resumes a macro to aid in debugging or chatting. Not using a parameter will toggle pausing on/off<br><br>
 
+<span class="command">/multiline</span> 
+                      delimiter <span class="command">command</span>
+					  [ delimiter <span class="command">command</span>
+					  [ delimiter <span class="command">command</span>
+					  [ ...]]]]<br>
+Executes all commands<br><br>
+
+Example: /multiline <span class="txtbold">;</span> /stand<span class="txtbold">;</span>/rude<span class="txtbold">;</span>/sit<br><br>
+
 <a name="n" id="n"></a>
 <span class="command">/notify</span> <span class="arg">window</span> 
                                      <span class="arg">control</span>|0 
@@ -797,7 +848,7 @@ document.write("</XMP>")
 <a name="o" id="o"></a>
 <a name="p" id="p"></a>
 <span class="command">/plugin</span>
-<span class="opt"><i>name</i> [unload]|list</span><br>
+<span class="opt">name [unload]|list</span><br>
 Loads, lists, and unloads plugins.<br>
 <br>
 <span class="command">/popup</span> <span class="arg">text</span><br>
@@ -815,6 +866,11 @@ Presses the selected key. See Appendix C for a list of keynames.<br><br>
 
 <a name="q" id="q"></a>
 <a name="r" id="r"></a>
+
+<span class="command">/ranged</span> [<span class="arg">spawnID</span>]<br>
+Performs a ranged attack. Use with no parameters to do a ranged attack on your current target,<br>
+or with <span class="arg">spawnID</span> to do a ranged attack on that spawn.<br><br>  
+  
 <span class="command">/return</span> [<span class="arg">value</span>|<span class="arg">@varname</span>]<br>
 Returns to the line immediately following the call. Can return values or variables.<br>
 <blockquote>
@@ -2333,7 +2389,7 @@ MQ2 has a modular structure that allows different plugins to be loaded and unloa
 <li>MQ2Chat -- put MQ2 output in regular chat window</li>
 <li>MQ2ChatWnd -- put MQ2 output in special chat window (safer)</li>
 <li>MQ2EQBugFix -- fix a crash(!) when exiting with no journal entries</li>
-<li>MQ2EQIM -- EQIM </li>
+<li>MQ2EQIM -- EQIM</li>
 <li>MQ2FPS -- frame limiter (similar to EQPlayNice)</li>
 <li>MQ2IRC -- IRC plugin</li>
 <li>MQ2ItemDisplay -- Add extra data to item windows</li>
@@ -2341,6 +2397,28 @@ MQ2 has a modular structure that allows different plugins to be loaded and unloa
 <li>MQ2Map -- enhanced map</li>
 <li>MQ2Telnet -- act as a telnet server for macro output</li>
 </ul>
+
+<span class="txtbold">MQ2CustomBinds</span> plugin<br>
+Allows you to specify custom commands to execute on a key combination.<br>
+There may be a command for the keys being pressed (down), and another for them being released (up).<br>
+<span class="command">/custombind</span> <span class="opt">list</span> | 
+                                       [ <span class="opt">add</span>|<span class="opt">delete</span>|<span class="opt">clear</span>] <span class="arg">name</span>
+									   [<span class="opt">-down</span>|<span class="opt">-up</span>] |
+									   <span class="opt">set</span> <span class="arg">name</span> 
+									   [ <span class="opt">-down</span>|<span class="opt">-up</span> ] <span class="arg">command</span><br><br>
+
+/custombind <span class="opt">list</span> will list all of your custom binds names and commands (the key combinations must be set using /bind) <br>
+/custombind <span class="opt">add</span> <span class="arg">name</span> will add a new bind name for use here, with /keypress, /bind, etc. <br>
+/custombind <span class="opt">delete</span> <span class="arg">name</span> will remove a custom bind<br>
+/custombind <span class="opt">clear</span> <span class="arg">name</span>  will clear a specific command for a custom bind. 
+If <span class="opt">-up</span> or <span class="opt">-down</span> is not specified, defaults to <span class="opt">-down</span>.<br>
+/custombind <span class="opt">set</span> <span class="arg">name</span> [<span class="opt">-down</span>|<span class="opt">-up</span>] <span class="arg">command</span> will set a specific command for a custom bind.  If up or down is not specified, defaults to down. <br><br>
+Example usage (NOTE: MQ2's very first bind command is "RANGED" so you do not need to do this, but for example...)<br>
+<blockquote>
+/<span class="command">custombind</span> <span class="opt">add</span> <span class="arg">mybind</span><br>
+/<span class="command">custombind</span> <span class="opt">set</span> <span class="arg">mybind</span> <span class="command">/ranged</span><br>
+</blockquote>
+To set the real RANGED bind, do "/bind ranged <key>" <br><br>
 
 <a name="telnet" id="telnet"></a>
 <span class="txtbold">Telnet Server</span><br><br>
