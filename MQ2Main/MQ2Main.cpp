@@ -423,9 +423,8 @@ void *MQ2Malloc(size_t size)
 {
 #ifdef DEBUG_ALLOC
 	CountMallocs++;
-#else
-	return malloc(size);
 #endif
+	return malloc(size);
 }
 
 #ifdef free

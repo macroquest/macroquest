@@ -4636,7 +4636,7 @@ EQLIB_OBJECT bool CXMLSOMDocumentBase::SetValue(class CXStr,class CXStr);
 EQLIB_OBJECT bool CXMLSOMDocumentBase::ValidateData(void);
 EQLIB_OBJECT bool CXMLSOMDocumentBase::ValidateSchema(void);
 EQLIB_OBJECT bool CXMLSOMDocumentBase::XMLMerge(class CXMLSOMDocumentBase &);
-EQLIB_OBJECT bool CXMLSOMDocumentBase::XMLRead(class CXStr,class CXStr,class CXStr);
+EQLIB_OBJECT bool CXMLSOMDocumentBase::XMLRead(class CXStr*,class CXStr*,class CXStr*);
 EQLIB_OBJECT class CXMLSOMCursor & CXMLSOMDocumentBase::Cursor(void);
 EQLIB_OBJECT class CXMLSOMCursor & CXMLSOMDocumentBase::CursorParent(void);
 EQLIB_OBJECT class CXStr CXMLSOMDocumentBase::GetAttrValueStr(class CXStr);

@@ -7950,7 +7950,7 @@ REVERSE_DETOUR(bool  CXMLSOMDocumentBase::SetValue(class CXStr,bool),CXMLSOMDocu
 REVERSE_DETOUR(int  CXMLSOMDocumentBase::XMLReadNoValidate(class CXStr,class CXStr,class CXStr),CXMLSOMDocumentBase__XMLReadNoValidate);
 #endif
 #ifdef CXMLSOMDocumentBase__XMLRead
-REVERSE_DETOUR(bool  CXMLSOMDocumentBase::XMLRead(class CXStr,class CXStr,class CXStr),CXMLSOMDocumentBase__XMLRead);
+REVERSE_DETOUR(bool  CXMLSOMDocumentBase::XMLRead(class CXStr*,class CXStr*,class CXStr*),CXMLSOMDocumentBase__XMLRead);
 #endif
 #ifdef CXMLSOMDocumentBase__XMLProcessComposite
 REVERSE_DETOUR(bool  CXMLSOMDocumentBase::XMLProcessComposite(class CXStr,class CXStr),CXMLSOMDocumentBase__XMLProcessComposite);

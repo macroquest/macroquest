@@ -1,4 +1,4 @@
-#define VersionString "20031203"
+#define VersionString "20031203a"
 #define DebugHeader "[MQ2]"
 #define LoadedString "MQ2 Loaded."
 #define ToUnloadString "MQ2 Unloading..."
@@ -43,6 +43,7 @@
 // reroute malloc/free
 EQLIB_API VOID *MQ2Malloc(size_t size);
 EQLIB_API VOID MQ2Free(VOID *memblock);
+/*
 #ifdef MQ2PLUGIN
 #define malloc(x) MQ2Malloc(x)
 #define free(x) MQ2Free(x)
@@ -52,7 +53,7 @@ EQLIB_API VOID MQ2Free(VOID *memblock);
 #define free(x) MQ2Free(x)
 #endif
 #endif
-
+*/
 #ifdef DEBUG_ALLOC
 extern DWORD CountMallocs;
 extern DWORD CountFrees;

@@ -31,7 +31,7 @@
 				StringPooling="TRUE"
 				ExceptionHandling="TRUE"
 				BasicRuntimeChecks="0"
-				RuntimeLibrary="1"
+				RuntimeLibrary="0"
 				StructMemberAlignment="1"
 				BufferSecurityCheck="FALSE"
 				EnableFunctionLevelLinking="FALSE"

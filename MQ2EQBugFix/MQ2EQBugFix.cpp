@@ -42,11 +42,14 @@ PLUGIN_API VOID InitializePlugin(VOID)
 	// AddParm("$myparm(x)",MyParm);
 	// removed after 11-25 patch
 	
-	DWORD (__cdecl *pfDetour)(DWORD) = JournalNPCCrash_Detour; 
-	DWORD (__cdecl *pfTrampoline)(DWORD) = JournalNPCCrash_Trampoline; 
+//	DWORD (__cdecl *pfDetour)(DWORD) = JournalNPCCrash_Detour; 
+//	DWORD (__cdecl *pfTrampoline)(DWORD) = JournalNPCCrash_Trampoline; 
 
 	if (pinstCEverQuest==0x0077BE30)
-		AddDetour(JournalNPCCrash,*(PBYTE*)&pfDetour,*(PBYTE*)&pfTrampoline);
+	{
+//		AddDetour(JournalNPCCrash,*(PBYTE*)&pfDetour,*(PBYTE*)&pfTrampoline);
+		EasyDetour(JournalNPCCrash,JournalNPCCrash_Detour,DWORD,(DWORD),JournalNPCCrash_Trampoline);
+	}
 	/**/
 	// do nothing at this time.
 }
@@ -59,6 +62,6 @@ PLUGIN_API VOID ShutdownPlugin(VOID)
 	// Remove commands, macro parameters, hooks, etc.
 	// RemoveParm("$myparm(x)");
 	// RemoveCommand("/mycommand");
-	//RemoveDetour(JournalNPCCrash);
+	RemoveDetour(JournalNPCCrash);
 }
 
