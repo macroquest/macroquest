@@ -283,7 +283,7 @@ VOID BzSrchMe(PSPAWNINFO pChar, PCHAR szLine)
     CHAR szArg[MAX_STRING] = {0};
     PCHARINFO pCharInfo = GetCharInfo();
     BOOL bArg = TRUE;
-    int i;
+    int i, first = 1;
 
     // clear out the old list or the new entries will be
     // added to them
@@ -430,7 +430,11 @@ VOID BzSrchMe(PSPAWNINFO pChar, PCHAR szLine)
             }
             bsrp.BSRPriceH = atoi(szArg);
         } else { // it's a name
-            strcat(bsrp.BSRName, " ");
+            if (first) {
+                first = 0;
+            } else {
+                strcat(bsrp.BSRName, " ");
+            }
             strcat(bsrp.BSRName, szArg);
         }
     }
