@@ -355,6 +355,7 @@ bool SendWndNotification(PCHAR WindowName, PCHAR ScreenID, DWORD Notification, V
 {
 	CHAR szOut[MAX_STRING] = {0};
 	CXWnd *pWnd;
+	_WindowInfo *pInfo = NULL;
 
 	string Name=WindowName;
 	MakeLower(Name);
@@ -400,7 +401,7 @@ bool SendWndNotification(PCHAR WindowName, PCHAR ScreenID, DWORD Notification, V
 	}
 	N--;
 
-	_WindowInfo *pInfo=WindowList[N];
+	pInfo=WindowList[N];
 	if (!pInfo)
 	{
 		WindowMap[Name]=0;
