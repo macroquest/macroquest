@@ -3,6 +3,7 @@
 - The version number is now stored in MQ2Main.h as the top line, and not in macroquest.ini.  When compiled it becomes a global variable.  Comparing the global variable gszVersion with the #define in MQ2Main.h will cause the tray icon tooltip to suggest recompiling if necessary.
 - Removed EQADDR_SLOTLIST, which is now ppInvSlotMgr/pInvSlotMgr
 - Fixed MQ2Telnet crashes (for real)
+- Added DebugSpewNoFile which does not write to file even if debugspewtofile=1.  This is useful for when we can't put up with the file access times.  All Macro commands and parser api debug spew has been changed to this form.  Note that this debug spew is still useful for when you attach a debugger.
 
 19 Nov 2003 by EqMule
 +Added new command /destroy

@@ -73,6 +73,19 @@ VOID DebugSpewAlways(PCHAR szFormat, ...)
 #endif
 }
 
+EQLIB_API VOID DebugSpewNoFile(PCHAR szFormat, ...)
+{
+    CHAR szOutput[MAX_STRING] = {0};
+    va_list vaList;
+
+    OutputDebugString(DebugHeader);
+    va_start( vaList, szFormat );
+    vsprintf(szOutput,szFormat, vaList);
+    OutputDebugString(szOutput);
+    OutputDebugString("\n");
+}
+
+
 // ***************************************************************************
 // Function:    GetNextArg
 // Description: Returns a pointer to the next argument

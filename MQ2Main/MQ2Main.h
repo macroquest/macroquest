@@ -152,6 +152,7 @@ EQLIB_API VOID ClearSearchSpawn(PSEARCHSPAWN pSearchSpawn);
 EQLIB_API PCHARINFO GetCharInfo(VOID);
 EQLIB_API VOID DebugSpew(PCHAR szFormat, ...);
 EQLIB_API VOID DebugSpewAlways(PCHAR szFormat, ...);
+EQLIB_API VOID DebugSpewNoFile(PCHAR szFormat, ...);
 EQLIB_API PCHAR GetNextArg(PCHAR szLine, DWORD dwNumber = 1, BOOL CSV = FALSE, CHAR Separator = 0);
 EQLIB_API PCHAR GetArg(PCHAR szDest, PCHAR szSrc, DWORD dwNumber, BOOL LeaveQuotes = FALSE, BOOL ToParen = FALSE, BOOL CSV = FALSE, CHAR Separator = 0, BOOL AnyNonAlphaNum = FALSE);
 EQLIB_API VOID AddCustomEvent(PEVENTLIST pEList, PCHAR szLine);

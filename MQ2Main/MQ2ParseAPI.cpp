@@ -111,7 +111,7 @@ VOID RemoveParm(PCHAR Name)
 
 VOID InitializeParser()
 {
-	DebugSpew("InitializeParser()");
+	DebugSpewNoFile("InitializeParser()");
 	struct _PARMLIST Parms[] = {
 	{"getlastfindslot",		parmGetLastFindSlot},
 	{"cursor",				parmCursor},
@@ -203,7 +203,7 @@ VOID InitializeParser()
 
 VOID ShutdownParser()
 {
-	DebugSpew("ShutdownParser()");
+	DebugSpewNoFile("ShutdownParser()");
 	while(pParmList)
 	{
 		PPARM pNext=pParmList->pNext;
@@ -273,7 +273,7 @@ PCHAR ParseMacroParameter(PSPAWNINFO pChar, PCHAR szOriginal)
     if (NULL == (pCharInfo = GetCharInfo())) return szOriginal;
 
     while (strstr(szOriginal,"$") || strstr(szOriginal,"@")) {
-//        DebugSpew("PMP - Current string - '%s'",szOriginal);
+//        DebugSpewNoFile("PMP - Current string - '%s'",szOriginal);
         ZeroMemory(szOutput,MAX_STRING);
         ZeroMemory(szVar,MAX_STRING);
         i=0;
@@ -297,7 +297,7 @@ PCHAR ParseMacroParameter(PSPAWNINFO pChar, PCHAR szOriginal)
                 } else {
                     i++;
                     if ((szOriginal[i]==0) || (szOriginal[i]==' ')) {
-                        DebugSpew("PMP - Bad @ '%s'",szVar);
+                        DebugSpewNoFile("PMP - Bad @ '%s'",szVar);
                         i--;
                         szOutput[j] = '²';
                         j++;
@@ -305,7 +305,7 @@ PCHAR ParseMacroParameter(PSPAWNINFO pChar, PCHAR szOriginal)
 
                         GetArg(szVar,szOriginal+i,1,TRUE,TRUE,TRUE,0,TRUE);
                         if (szVar[strlen(szVar)-1]==')') szVar[strlen(szVar)-1]=0;
-                        DebugSpew("PMP - Current variable - '%s'",szVar);
+                        DebugSpewNoFile("PMP - Current variable - '%s'",szVar);
                         FoundNewCmd = FALSE;
 						
                         if (gMacroStack) {
@@ -326,7 +326,7 @@ PCHAR ParseMacroParameter(PSPAWNINFO pChar, PCHAR szOriginal)
 
                         // @unknown
                         } else {
-                            DebugSpew("PMP - Bad @variable '%s'",szVar);
+                            DebugSpewNoFile("PMP - Bad @variable '%s'",szVar);
                             i--;
                             szOutput[j] = '²';
                             j++;
@@ -341,13 +341,13 @@ PCHAR ParseMacroParameter(PSPAWNINFO pChar, PCHAR szOriginal)
             } else {
                 i++;
                 if ((szOriginal[i]==0) || (szOriginal[i]==' ')) {
-                    DebugSpew("PMP - Bad $ '%s'",szVar);
+                    DebugSpewNoFile("PMP - Bad $ '%s'",szVar);
                     i--;
                     szOutput[j] = 'ÿ';
                     j++;
                 } else {
                     GetArg(szVar,szOriginal+i,1,TRUE,TRUE);
-//                    DebugSpew("PMP - Current param - '%s'",szVar);
+//                    DebugSpewNoFile("PMP - Current param - '%s'",szVar);
                     FoundNewCmd = FALSE;
 					PPARM pParm=pParmList;
 					while(pParm)
@@ -372,7 +372,7 @@ PCHAR ParseMacroParameter(PSPAWNINFO pChar, PCHAR szOriginal)
 
 					// $unknown
                     if (!FoundNewCmd) {
-                        DebugSpew("PMP - Bad $command '%s'",szVar);
+                        DebugSpewNoFile("PMP - Bad $command '%s'",szVar);
                         i--;
                         szOutput[j] = 'ÿ';
                         j++;
@@ -445,7 +445,7 @@ PMACROBLOCK AddMacroLine(PCHAR szLine)
             if (!strstr(szLine,".")) strcat(szLine,".mac");
             sprintf(Filename,"%s\\%s",gszMacroPath, szLine);
 
-            //DebugSpew("AddMacroLine - Including file: %s",Filename);
+            //DebugSpewNoFile("AddMacroLine - Including file: %s",Filename);
             return (PMACROBLOCK)Include(Filename);
         } else if (!strnicmp(szLine,"#turbo",6)) {
             gTurbo = TRUE;
@@ -465,7 +465,7 @@ PMACROBLOCK AddMacroLine(PCHAR szLine)
                 pDef->pNext = pDefines;
                 pDefines = pDef;
             } else {
-                DebugSpew("Bad #define: %s",szLine);
+                DebugSpewNoFile("Bad #define: %s",szLine);
             }
         } else if (!strnicmp(szLine,"#event ",7)) {
             CHAR szArg1[MAX_STRING] = {0};
@@ -480,7 +480,7 @@ PMACROBLOCK AddMacroLine(PCHAR szLine)
                 pEvent->pNext = pEventList;
                 pEventList = pEvent;
             } else {
-                DebugSpew("Bad #event: %s",szLine);
+                DebugSpewNoFile("Bad #event: %s",szLine);
             }
         } else if (!strnicmp(szLine,"#chat ",6)) {
             szLine+=5;
@@ -503,7 +503,7 @@ PMACROBLOCK AddMacroLine(PCHAR szLine)
 
     pBlock = (PMACROBLOCK)malloc(sizeof(MACROBLOCK));
     if (!pBlock) return NULL;
-    //DebugSpew("AddMacroLine - Adding: %s",szLine);
+    //DebugSpewNoFile("AddMacroLine - Adding: %s",szLine);
     strcpy(pBlock->Line,szLine);
     pBlock->LineNumber = -1;
     pBlock->SourceFile[0]=0;

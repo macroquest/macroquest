@@ -44,7 +44,7 @@ DWORD parmCursor(PCHAR szVar, PCHAR szOutput, PSPAWNINFO pChar)
     if (pCharInfo->Cursor) pItem = pCharInfo->Cursor->Item;
 
     if (!strstr(szVar,")")) {
-        DebugSpew("PMP - Bad $cursor() '%s'",szVar);
+        DebugSpewNoFile("PMP - Bad $cursor() '%s'",szVar);
         return PMP_ERROR_BADPARM;
     } else if (!pItem) {
         while ((szVar[i] != ')') && (szVar[i] != 0)) i++;
@@ -161,7 +161,7 @@ DWORD parmCursor(PCHAR szVar, PCHAR szOutput, PSPAWNINFO pChar)
 
     // $cursor(unknown)
     } else {
-        DebugSpew("PMP - Bad $cursor() '%s'",szVar);
+        DebugSpewNoFile("PMP - Bad $cursor() '%s'",szVar);
         return PMP_ERROR_BADPARM;
     }
     return i;
@@ -182,7 +182,7 @@ DWORD parmItem(PCHAR szVar, PCHAR szOutput, PSPAWNINFO pChar)
     if (NULL == (pCharInfo = GetCharInfo())) return PMP_ERROR_BADPARM;
 
     if (!strstr(szVar,")")) {
-        DebugSpew("PMP - Bad $item() '%s'",szVar);
+        DebugSpewNoFile("PMP - Bad $item() '%s'",szVar);
         return PMP_ERROR_BADPARM;
     } else {
         if (!strnicmp("bank,",szVar+Offset,5)) {
@@ -349,7 +349,7 @@ DWORD parmItem(PCHAR szVar, PCHAR szOutput, PSPAWNINFO pChar)
 
         // $item(unknown)
         } else {
-            DebugSpew("PMP - Bad $item() '%s'",szVar);
+            DebugSpewNoFile("PMP - Bad $item() '%s'",szVar);
             return PMP_ERROR_BADPARM;
         }
     }
@@ -393,7 +393,7 @@ DWORD parmEquip(PCHAR szVar, PCHAR szOutput, PSPAWNINFO pChar)
     PCONTENTS pItem = NULL;
 
     if (!strstr(szVar,")")) {
-        DebugSpew("PMP - Bad $equip() '%s'",szVar);
+        DebugSpewNoFile("PMP - Bad $equip() '%s'",szVar);
         return PMP_ERROR_BADPARM;
     } else {
         for (Index=0;(Slot==99) &&(szEquipSlot[Index]!=NULL);Index++) {
@@ -520,7 +520,7 @@ DWORD parmEquip(PCHAR szVar, PCHAR szOutput, PSPAWNINFO pChar)
 
         // $equip(unknown)
         } else {
-            DebugSpew("PMP - Bad $item() '%s'",szVar);
+            DebugSpewNoFile("PMP - Bad $item() '%s'",szVar);
             return PMP_ERROR_BADPARM;
         }
     }
@@ -572,7 +572,7 @@ DWORD parmGroup(PCHAR szVar, PCHAR szOutput, PSPAWNINFO pChar)
 
     // $group(unknown)
     } else {
-            DebugSpew("PMP - Bad $group() '%s'",szVar);
+            DebugSpewNoFile("PMP - Bad $group() '%s'",szVar);
             return PMP_ERROR_BADPARM;
     }
     return i;
@@ -1041,7 +1041,7 @@ DWORD parmTarget(PCHAR szVar, PCHAR szOutput, PSPAWNINFO pChar)
 
     // $target(unknown)
     } else {
-        DebugSpew("PMP - Bad $target() '%s'",szVar);
+        DebugSpewNoFile("PMP - Bad $target() '%s'",szVar);
         return PMP_ERROR_BADPARM;
     }
     return i;
@@ -1060,7 +1060,7 @@ DWORD parmSearchSpawn(PCHAR szVar, PCHAR szOutput, PSPAWNINFO pChar)
     CHAR szFullArg[MAX_STRING] = {0};
 
     if (!strstr(szVar,")")) {
-        DebugSpew("PMP - Bad $searchspawn() '%s'",szVar);
+        DebugSpewNoFile("PMP - Bad $searchspawn() '%s'",szVar);
         return PMP_ERROR_BADPARM;
     } else {
         PSPAWNINFO pSpawn = NULL;
@@ -1101,14 +1101,14 @@ DWORD parmSearchSpawn(PCHAR szVar, PCHAR szOutput, PSPAWNINFO pChar)
                 SearchSpawn.GuildID = GetGuildIDByName(szArg+6);
             } else if (!strncmp(szArg,"range:",6)) {
                 if (!strstr(szArg+6,":")) {
-                    DebugSpew("PMP - Bad $searchspawn() '%s'",szArg);
+                    DebugSpewNoFile("PMP - Bad $searchspawn() '%s'",szArg);
                     return PMP_ERROR_BADPARM;
                 }
                 SearchSpawn.MinLevel = atoi(szArg+6);
                 SearchSpawn.MaxLevel = atoi(strstr(szArg+6,":")+1);
             } else if (!strncmp(szArg,"loc:",4)) {
                 if (!strstr(szArg+4,":")) {
-                    DebugSpew("PMP - Bad $searchspawn() '%s'",szArg);
+                    DebugSpewNoFile("PMP - Bad $searchspawn() '%s'",szArg);
                     return PMP_ERROR_BADPARM;
                 }
                 SearchSpawn.bKnownLocation = TRUE;
@@ -1175,7 +1175,7 @@ DWORD parmSpawn(PCHAR szVar, PCHAR szOutput, PSPAWNINFO pChar)
     PSPAWNINFO pSpawn = NULL;
 
     if (!strstr(szVar,")")) {
-        DebugSpew("PMP - Bad $spawn() '%s'",szVar);
+        DebugSpewNoFile("PMP - Bad $spawn() '%s'",szVar);
         return PMP_ERROR_BADPARM;
     } else {
         DWORD ID = atoi(szVar+6);
@@ -1193,7 +1193,7 @@ DWORD parmSpawn(PCHAR szVar, PCHAR szOutput, PSPAWNINFO pChar)
         } else {
             PCHAR szRest = strstr(szVar,",")+1;
             // $spawn(#,distance,x)
-            DebugSpew("$spawn(): id=%d (%p), rest=%s (len=%d)",ID,pSpawn,szRest,strlen(szRest));
+            DebugSpewNoFile("$spawn(): id=%d (%p), rest=%s (len=%d)",ID,pSpawn,szRest,strlen(szRest));
             if (!strncmp("distance,x)",szRest,11)) {
                 CHAR szTemp[MAX_STRING] = {0};
                 i+=strstr(szVar,")")-szVar;
@@ -1610,7 +1610,7 @@ DWORD parmSpawn(PCHAR szVar, PCHAR szOutput, PSPAWNINFO pChar)
 
             // $spawn(#,unknown)
             } else {
-                DebugSpew("PMP - Bad $spawn() '%s'",szVar);
+                DebugSpewNoFile("PMP - Bad $spawn() '%s'",szVar);
                 return PMP_ERROR_BADPARM;
             }
         }
@@ -1624,7 +1624,7 @@ DWORD parmHeading(PCHAR szVar, PCHAR szOutput, PSPAWNINFO pChar)
     // $heading(y,x)
     CHAR szTemp[MAX_STRING] = {0};
     if ((!strstr(szVar,",")) || (!strstr(szVar,")")) ) {
-        DebugSpew("PMP - Bad $heading() '%s'",szVar);
+        DebugSpewNoFile("PMP - Bad $heading() '%s'",szVar);
         return PMP_ERROR_BADPARM;
     } else {
         i += (strstr(szVar,")")-szVar);
@@ -1644,7 +1644,7 @@ DWORD parmID(PCHAR szVar, PCHAR szOutput, PSPAWNINFO pChar)
     DWORD i=0;
     // $id(xxx)
     if (!strstr(szVar,")")) {
-        DebugSpew("PMP - Bad $id() '%s'",szVar);
+        DebugSpewNoFile("PMP - Bad $id() '%s'",szVar);
         return PMP_ERROR_BADPARM;
     } else {
         CHAR SpawnName[MAX_STRING] = {0};
@@ -1706,7 +1706,7 @@ DWORD parmMouse(PCHAR szVar, PCHAR szOutput, PSPAWNINFO pChar)
 
     // $mouse(unknown)
     } else {
-        DebugSpew("PMP - Bad $mouse() '%s'",szVar);
+        DebugSpewNoFile("PMP - Bad $mouse() '%s'",szVar);
         return PMP_ERROR_BADPARM;
     }
     return i;
@@ -2022,7 +2022,7 @@ DWORD parmChar(PCHAR szVar, PCHAR szOutput, PSPAWNINFO pChar)
     // $char(gem,xxx)
     } else if (!strncmp("char(gem,",szVar,9)) {
         if (!strstr(szVar,")")) {
-            DebugSpew("PMP - Bad $char() '%s'",szVar);
+            DebugSpewNoFile("PMP - Bad $char() '%s'",szVar);
             return PMP_ERROR_BADPARM;
         } else {
             PEQCASTSPELLWINDOW pCastSpellWindow = NULL;
@@ -2068,7 +2068,7 @@ DWORD parmChar(PCHAR szVar, PCHAR szOutput, PSPAWNINFO pChar)
     // $char(hotbutton,x) example: /echo $char(hotbutton,1)
     } else if (!strncmp("char(hotbutton,",szVar,15)) {
         if (!strstr(szVar,")")) {
-            DebugSpew("PMP - Bad $char() '%s'",szVar);
+            DebugSpewNoFile("PMP - Bad $char() '%s'",szVar);
             return 10000;
         } else {
             CHAR szTemp[MAX_STRING] = {0};
@@ -2085,7 +2085,7 @@ DWORD parmChar(PCHAR szVar, PCHAR szOutput, PSPAWNINFO pChar)
                     if (pHotButtonWindow->HotButtons[HB]){
                         pHotButton = NULL;
                         pHotButton = (PEQHOTBUTTONWINDOW)pHotButtonWindow->HotButtons[HB];
-                        DebugSpew("hotbutton check for HB %x and arg passed was %s",HB,szArg);
+                        DebugSpewNoFile("hotbutton check for HB %x and arg passed was %s",HB,szArg);
                         if (pHotButton->Wnd.Checked != 0) {
                             strcpy(szTemp,"FALSE");
                         } else {
@@ -2104,7 +2104,7 @@ DWORD parmChar(PCHAR szVar, PCHAR szOutput, PSPAWNINFO pChar)
     // $char(buff,xxx)
     } else if (!strncmp("char(buff,",szVar,10)) {
         if (!strstr(szVar,")")) {
-            DebugSpew("PMP - Bad $char() '%s'",szVar);
+            DebugSpewNoFile("PMP - Bad $char() '%s'",szVar);
             return PMP_ERROR_BADPARM;
         } else {
             i += (strstr(szVar,")")-szVar);
@@ -2164,7 +2164,7 @@ DWORD parmChar(PCHAR szVar, PCHAR szOutput, PSPAWNINFO pChar)
     // $char(song,xxx)
     } else if (!strncmp("char(song,",szVar,10)) {
         if (!strstr(szVar,")")) {
-            DebugSpew("PMP - Bad $char() '%s'",szVar);
+            DebugSpewNoFile("PMP - Bad $char() '%s'",szVar);
             return PMP_ERROR_BADPARM;
         } else {
             i += (strstr(szVar,")")-szVar);
@@ -2219,7 +2219,7 @@ DWORD parmChar(PCHAR szVar, PCHAR szOutput, PSPAWNINFO pChar)
     // $char(book,xxx)
     } else if (!strncmp("char(book,",szVar,10)) {
         if (!strstr(szVar,")")) {
-            DebugSpew("PMP - Bad $char() '%s'",szVar);
+            DebugSpewNoFile("PMP - Bad $char() '%s'",szVar);
             return PMP_ERROR_BADPARM;
         } else {
             i += (strstr(szVar,")")-szVar);
@@ -2254,7 +2254,7 @@ DWORD parmChar(PCHAR szVar, PCHAR szOutput, PSPAWNINFO pChar)
     // $char(skill,xxx)
     } else if (!strncmp("char(skill,",szVar,11)) {
         if (!strstr(szVar,")")) {
-            DebugSpew("PMP - Bad $char() '%s'",szVar);
+            DebugSpewNoFile("PMP - Bad $char() '%s'",szVar);
             return PMP_ERROR_BADPARM;
         } else {
             i += (strstr(szVar,")")-szVar);
@@ -2541,7 +2541,7 @@ DWORD parmChar(PCHAR szVar, PCHAR szOutput, PSPAWNINFO pChar)
 
    // $char(unknown)
     } else {
-        DebugSpew("PMP - Bad $char() '%s'",szVar);
+        DebugSpewNoFile("PMP - Bad $char() '%s'",szVar);
             return PMP_ERROR_BADPARM;
     }
 
@@ -2554,7 +2554,7 @@ DWORD parmSpell(PCHAR szVar, PCHAR szOutput, PSPAWNINFO pChar)
     DWORD i=0;
     // $spell(name,xxx)
     if (!strstr(szVar,",") || !strstr(szVar,")")) {
-        DebugSpew("PMP - Bad $spell() '%s'",szVar);
+        DebugSpewNoFile("PMP - Bad $spell() '%s'",szVar);
         return PMP_ERROR_BADPARM;
     } else {
         i += (strstr(szVar,")")-szVar);
@@ -2564,10 +2564,10 @@ DWORD parmSpell(PCHAR szVar, PCHAR szOutput, PSPAWNINFO pChar)
         CHAR szTemp[MAX_STRING] = {0};
         BOOL IsValid = FALSE;
         if (szSpell[0]=='"') { szSpell++; Length-=2; }
-        DebugSpew("%s -> %s|%d, %s",szVar,szSpell,Length,szArg);
+        DebugSpewNoFile("%s -> %s|%d, %s",szVar,szSpell,Length,szArg);
         strncpy(szTemp,szSpell,Length);
         PSPELLLIST pSpell = GetSpellByName(szTemp);
-        DebugSpew("pSpell = %x",pSpell);
+        DebugSpewNoFile("pSpell = %x",pSpell);
         if (!pSpell) {
             strcpy(szTemp,"-1");
         } else if (!strncmp(szArg,"id",2)) {
@@ -2598,7 +2598,7 @@ DWORD parmSpell(PCHAR szVar, PCHAR szOutput, PSPAWNINFO pChar)
             };
 			/**/
             mycasttime = pSpell->CastTime + mycasttime;
-            DebugSpew("mycasttime %d pSpell->CastTime = %d",mycasttime,pSpell->CastTime);
+            DebugSpewNoFile("mycasttime %d pSpell->CastTime = %d",mycasttime,pSpell->CastTime);
             sprintf(szTemp,"%1.2f",(FLOAT)mycasttime/1000);
         } else if (!strncmp(szArg,"recoverytime",12)) {
             sprintf(szTemp,"%1.2f",(FLOAT)pSpell->FizzleTime/1000);
@@ -2665,7 +2665,7 @@ DWORD parmZone(PCHAR szVar, PCHAR szOutput, PSPAWNINFO pChar)
 
         // $zone(Unknown)
         } else {
-            DebugSpew("PMP - Bad $zone() '%s'",szVar);
+            DebugSpewNoFile("PMP - Bad $zone() '%s'",szVar);
             return PMP_ERROR_BADPARM;
         }
     // $zone
@@ -2702,7 +2702,7 @@ DWORD parmFind(PCHAR szVar, PCHAR szOutput, PSPAWNINFO pChar)
 
     // $find(Unknown)
     } else {
-        DebugSpew("PMP - Bad $find() '%s'",szVar);
+        DebugSpewNoFile("PMP - Bad $find() '%s'",szVar);
         return PMP_ERROR_BADPARM;
     }
     return i;
@@ -2713,7 +2713,7 @@ DWORD parmAlert(PCHAR szVar, PCHAR szOutput, PSPAWNINFO pChar)
     DWORD i=0;
     // $alert
     if (!strstr(szVar,")")) {
-        DebugSpew("PMP - Bad $alert() '%s'",szVar);
+        DebugSpewNoFile("PMP - Bad $alert() '%s'",szVar);
         return PMP_ERROR_BADPARM;
     } else if (strstr(szVar,",count)")) {
         PCHAR szArg = szVar+6;
@@ -2835,7 +2835,7 @@ DWORD parmFreeInv(PCHAR szVar, PCHAR szOutput, PSPAWNINFO pChar)
 
     // $freeinv(Unknown)
     } else {
-        DebugSpew("PMP - Bad $freeinv() '%s'",szVar);
+        DebugSpewNoFile("PMP - Bad $freeinv() '%s'",szVar);
         return PMP_ERROR_BADPARM;
     }
     return i;
@@ -2847,7 +2847,7 @@ DWORD parmDistance(PCHAR szVar, PCHAR szOutput, PSPAWNINFO pChar)
     // $distance(item)
     if (!strncmp("distance(item)",szVar,14)) {
         if (EnviroTarget.Name[0]==0) {
-            DebugSpew("PMP - Bad $distance(item) 'No item targetted'");
+            DebugSpewNoFile("PMP - Bad $distance(item) 'No item targetted'");
             return PMP_ERROR_BADPARM;
         } else {
             CHAR szTemp[MAX_STRING] = {0};
@@ -2860,7 +2860,7 @@ DWORD parmDistance(PCHAR szVar, PCHAR szOutput, PSPAWNINFO pChar)
     // $distance(door)
     } else if (!strncmp("distance(door)",szVar,14)) {
         if (DoorEnviroTarget.Name[0]==0) {
-            DebugSpew("PMP - Bad $distance(door) 'No door targetted'");
+            DebugSpewNoFile("PMP - Bad $distance(door) 'No door targetted'");
             return PMP_ERROR_BADPARM;
         } else {
             CHAR szTemp[MAX_STRING] = {0};
@@ -2875,7 +2875,7 @@ DWORD parmDistance(PCHAR szVar, PCHAR szOutput, PSPAWNINFO pChar)
         CHAR szTemp[MAX_STRING] = {0};
         SPAWNINFO LocSpawn;
         if ((!strstr(szVar,")")) || (!strstr(szVar,","))) {
-            DebugSpew("PMP - Bad $distance# '%s'",szVar);
+            DebugSpewNoFile("PMP - Bad $distance# '%s'",szVar);
             return PMP_ERROR_BADPARM;
         } else {
             PCHAR szArg = szVar+9;
@@ -2899,7 +2899,7 @@ DWORD parmRand(PCHAR szVar, PCHAR szOutput, PSPAWNINFO pChar)
     // $rand(x)
     CHAR szTemp[MAX_STRING] = {0};
     if (!strstr(szVar,")")) {
-        DebugSpew("PMP - Bad $rand(#) '%s'",szVar);
+        DebugSpewNoFile("PMP - Bad $rand(#) '%s'",szVar);
         return PMP_ERROR_BADPARM;
     } else {
         PCHAR szArg = szVar+5;
@@ -2907,7 +2907,7 @@ DWORD parmRand(PCHAR szVar, PCHAR szOutput, PSPAWNINFO pChar)
 
         j = atol(szArg);
         if (j==0 || j==0xffffffff) {
-            DebugSpew("PMP - Bad $rand(#) '%s'",szVar);
+            DebugSpewNoFile("PMP - Bad $rand(#) '%s'",szVar);
             return PMP_ERROR_BADPARM;
         }
         itoa(rand() % j,szTemp,10);
@@ -2975,7 +2975,7 @@ DWORD parmIfN(PCHAR szVar, PCHAR szOutput, PSPAWNINFO pChar)
     DWORD i=0;
     // $if(n,a,b,c)
     if (!strstr(szVar,")")) {
-        DebugSpew("PMP - Bad $if() '%s'",szVar);
+        DebugSpewNoFile("PMP - Bad $if() '%s'",szVar);
         return PMP_ERROR_BADPARM;
     } else {
         BOOL Bad = FALSE;
@@ -2998,7 +2998,7 @@ DWORD parmIfN(PCHAR szVar, PCHAR szOutput, PSPAWNINFO pChar)
         if (!Bad) {
             i = strlen(szVar)-1;
             CHAR szOut[MAX_STRING] = {0};
-            DebugSpew("If (%s) then %s else %s",szCond,szTrue,szFalse);
+            DebugSpewNoFile("If (%s) then %s else %s",szCond,szTrue,szFalse);
             if (IfCompare(szCond)) {
                 GetArg(szOut,szTrue,1,FALSE);
             } else {
@@ -3017,7 +3017,7 @@ DWORD parmIf(PCHAR szVar, PCHAR szOutput, PSPAWNINFO pChar)
     DWORD i=0;
     // $if(a,b,c)
     if (!strstr(szVar,")")) {
-        DebugSpew("PMP - Bad $if() '%s'",szVar);
+        DebugSpewNoFile("PMP - Bad $if() '%s'",szVar);
         return PMP_ERROR_BADPARM;
     } else {
         BOOL Bad = FALSE;
@@ -3039,7 +3039,7 @@ DWORD parmIf(PCHAR szVar, PCHAR szOutput, PSPAWNINFO pChar)
         if (!Bad) {
             i = strlen(szVar)-1;
             CHAR szOut[MAX_STRING] = {0};
-            DebugSpew("If (%s) then %s else %s",szCond,szTrue,szFalse);
+            DebugSpewNoFile("If (%s) then %s else %s",szCond,szTrue,szFalse);
             if (IfCompare(szCond)) {
                 GetArg(szOut,szTrue,1,FALSE);
             } else {
@@ -3047,7 +3047,7 @@ DWORD parmIf(PCHAR szVar, PCHAR szOutput, PSPAWNINFO pChar)
             }
             strcat(szOutput,szOut);
         } else {
-            DebugSpew("PMP - Bad $if() '%s'",szVar);
+            DebugSpewNoFile("PMP - Bad $if() '%s'",szVar);
             return PMP_ERROR_BADPARM;
         }
     }
@@ -3057,7 +3057,7 @@ DWORD parmIf(PCHAR szVar, PCHAR szOutput, PSPAWNINFO pChar)
 DWORD parmMerchantName(PCHAR szVar, PCHAR szOutput, PSPAWNINFO pChar)
 {
     DWORD i=0;
-    DebugSpew("in parmMerchantName");
+    DebugSpewNoFile("in parmMerchantName");
     // $merchant(name)
     CHAR szTemp[MAX_STRING] = {0};
     CHAR* szOut;
@@ -3100,7 +3100,7 @@ DWORD parmMerchantXXX(PCHAR szVar, PCHAR szOutput, PSPAWNINFO pChar)
     PEQMERCHWINDOW pMerchWindow = NULL;
     pMerchWindow = (PEQMERCHWINDOW)pMerchantWnd;
         if (!strstr(szVar,")")) {
-            DebugSpew("PMP - Bad $merchant() '%s'",szVar);
+            DebugSpewNoFile("PMP - Bad $merchant() '%s'",szVar);
             return PMP_ERROR_BADPARM;
         } else {
             i += (strstr(szVar,")")-szVar);
@@ -3111,14 +3111,14 @@ DWORD parmMerchantXXX(PCHAR szVar, PCHAR szOutput, PSPAWNINFO pChar)
                 if (szArg[strlen(szArg)-1]==')') szArg[strlen(szArg)-1]=0; 
                 if (szArg[strlen(szArg)-1]=='"') szArg[strlen(szArg)-1]=0;
                 CHAR szTemp[MAX_STRING] = {0};
-                DebugSpew("$merchant(has) -- looking for '%s'", szArg);
+                DebugSpewNoFile("$merchant(has) -- looking for '%s'", szArg);
                 DWORD i;
                 BOOL Found = FALSE;
             for (i=0;i<79;i++) {
                 if (pMerchWindow->ItemDesc[i]) {
                     if (!stricmp(szArg,pMerchWindow->ItemDesc[i]->Item->Name)) { 
                             Found=TRUE; 
-                            DebugSpew("Merchant does have: %s",pMerchWindow->ItemDesc[i]->Item->Name); 
+                            DebugSpewNoFile("Merchant does have: %s",pMerchWindow->ItemDesc[i]->Item->Name); 
                             break; 
                         } 
                     } 
@@ -3147,7 +3147,7 @@ DWORD parmMerchantXXX(PCHAR szVar, PCHAR szOutput, PSPAWNINFO pChar)
         strlwr(szArg);
         if (szArg[strlen(szArg)-1]==')')
             szArg[strlen(szArg)-1]=0;
-        DebugSpew("$merchant(xxx) szArg = %s",szArg);
+        DebugSpewNoFile("$merchant(xxx) szArg = %s",szArg);
         if (!ppActiveMerchant || !pActiveMerchant) {
             strcat(szOutput,"FALSE");
             return i;
@@ -3184,7 +3184,7 @@ DWORD parmCorpse(PCHAR szVar, PCHAR szOutput, PSPAWNINFO pChar)
    // $corpse(has,xxx)
    } else if (!strncmp("corpse(has,",szVar,11)) {
       if (!strstr(szVar,")")) {
-         DebugSpew("PMP - Bad $merchant() '%s'",szVar);
+         DebugSpewNoFile("PMP - Bad $merchant() '%s'",szVar);
          return PMP_ERROR_BADPARM;
       } else {
          i += (strstr(szVar,")")-szVar);
@@ -3192,13 +3192,13 @@ DWORD parmCorpse(PCHAR szVar, PCHAR szOutput, PSPAWNINFO pChar)
             PCHAR szArg = szVar+11;
             if (szArg[0]=='"') szArg++;
             CHAR szTemp[MAX_STRING] = {0};
-            DebugSpew("$corpse(has) -- looking for '%s'", szArg);
+            DebugSpewNoFile("$corpse(has) -- looking for '%s'", szArg);
             BOOL Found = FALSE;
             for (iSlotCnt=0;iSlotCnt<30;iSlotCnt++) {
                if (pLootWindow->ItemDesc[iSlotCnt]) {
                   if (!strnicmp(szArg,pLootWindow->ItemDesc[iSlotCnt]->Item->Name,strlen(pLootWindow->ItemDesc[iSlotCnt]->Item->Name))) {
                         Found=TRUE;
-                        DebugSpew("Corpse does have: %s",pLootWindow->ItemDesc[iSlotCnt]->Item->Name);
+                        DebugSpewNoFile("Corpse does have: %s",pLootWindow->ItemDesc[iSlotCnt]->Item->Name);
                         break;
                   }
                }
@@ -3216,7 +3216,7 @@ DWORD parmCorpse(PCHAR szVar, PCHAR szOutput, PSPAWNINFO pChar)
    } else if (!strncmp("corpse(empty)",szVar,13)) {
       i += 12;
       if (pLootWindow->Wnd.Show == 1) {
-         DebugSpew("$corpse(empty)");
+         DebugSpewNoFile("$corpse(empty)");
          BOOL Found = FALSE;
          for (iSlotCnt=0;iSlotCnt<30;iSlotCnt++) {
             if (pLootWindow->ItemDesc[iSlotCnt]) {
@@ -3225,7 +3225,7 @@ DWORD parmCorpse(PCHAR szVar, PCHAR szOutput, PSPAWNINFO pChar)
             }
          }
          if (Found) {
-            DebugSpew("Corpse is not empty");
+            DebugSpewNoFile("Corpse is not empty");
             strcat(szOutput,"FALSE");
          } else {
             strcat(szOutput,"TRUE");
@@ -3235,7 +3235,7 @@ DWORD parmCorpse(PCHAR szVar, PCHAR szOutput, PSPAWNINFO pChar)
       }
    // $corpse(Unknown)
    } else {
-      DebugSpew("PMP - Bad $corpse() '%s'",szVar);
+      DebugSpewNoFile("PMP - Bad $corpse() '%s'",szVar);
       return PMP_ERROR_BADPARM;
    }
    return i;
@@ -3299,7 +3299,7 @@ DWORD parmTime(PCHAR szVar, PCHAR szOutput, PSPAWNINFO pChar)
 
     // $time(Unknown)
     } else {
-        DebugSpew("PMP - Bad $time() '%s'",szVar);
+        DebugSpewNoFile("PMP - Bad $time() '%s'",szVar);
         return PMP_ERROR_BADPARM;
     }
     return i;
@@ -3344,7 +3344,7 @@ DWORD parmDate(PCHAR szVar, PCHAR szOutput, PSPAWNINFO pChar)
 
     // $date(Unknown)
     } else {
-        DebugSpew("PMP - Bad $date() '%s'",szVar);
+        DebugSpewNoFile("PMP - Bad $date() '%s'",szVar);
         return PMP_ERROR_BADPARM;
     }
     return i;
@@ -3398,9 +3398,9 @@ DWORD parmPack(PCHAR szVar, PCHAR szOutput, PSPAWNINFO pChar)
             ) {
             return PMP_ERROR_BADPARM;
         } else {
-            DebugSpew("Pack-- Bank = %d, Slot = %d",Bank, slot);
+            DebugSpewNoFile("Pack-- Bank = %d, Slot = %d",Bank, slot);
             if (Bank==1) {
-                DebugSpew("Pack-- pCharInfo->Bank[slot] = %x, pCharInfo = %x",(DWORD)(pCharInfo->Bank[slot]),(DWORD)pCharInfo);
+                DebugSpewNoFile("Pack-- pCharInfo->Bank[slot] = %x, pCharInfo = %x",(DWORD)(pCharInfo->Bank[slot]),(DWORD)pCharInfo);
                 if (pCharInfo->Bank[slot]!=NULL) {
                     pItem = pCharInfo->Bank[slot];
                 }
@@ -3418,7 +3418,7 @@ DWORD parmPack(PCHAR szVar, PCHAR szOutput, PSPAWNINFO pChar)
             } else {
 
                 // $pack(#)
-                DebugSpew("Pack-- szTemp=='%s'",szTemp);
+                DebugSpewNoFile("Pack-- szTemp=='%s'",szTemp);
                 if (szTemp[0]=='\0') {
                     strcat(szOutput,"TRUE");
 
@@ -3487,7 +3487,7 @@ DWORD parmPack(PCHAR szVar, PCHAR szOutput, PSPAWNINFO pChar)
 
                 // $pack(#,Unknown)
                 } else {
-                    DebugSpew("PMP - Bad $pack() '%s'",szVar);
+                    DebugSpewNoFile("PMP - Bad $pack() '%s'",szVar);
                     return PMP_ERROR_BADPARM;
                 }
             }
@@ -3500,7 +3500,7 @@ DWORD parmArg(PCHAR szVar, PCHAR szOutput, PSPAWNINFO pChar)
     DWORD i=0;
     // $arg(num,string[,<separator>])
     if ((!strstr(szVar,")")) || (!strstr(szVar,","))) {
-        DebugSpew("PMP - Bad $arg() '%s'",szVar);
+        DebugSpewNoFile("PMP - Bad $arg() '%s'",szVar);
         return PMP_ERROR_BADPARM;
     } else {
         CHAR szArg[MAX_STRING] = {0};
@@ -3535,7 +3535,7 @@ DWORD parmLeft(PCHAR szVar, PCHAR szOutput, PSPAWNINFO pChar)
     DWORD i=0;
     // $left(num,string)
     if ((!strstr(szVar,")")) || (!strstr(szVar,","))) {
-        DebugSpew("PMP - Bad $left() '%s'",szVar);
+        DebugSpewNoFile("PMP - Bad $left() '%s'",szVar);
         return PMP_ERROR_BADPARM;
     } else {
         CHAR szArg[MAX_STRING] = {0};
@@ -3566,7 +3566,7 @@ DWORD parmMid(PCHAR szVar, PCHAR szOutput, PSPAWNINFO pChar)
     DWORD i=0;
     // $mid(start,num,string)
     if ((!strstr(szVar,")")) || (!strstr(szVar,",")) || (!strstr(strstr(szVar,",")+1,","))) {
-        DebugSpew("PMP - Bad $mid() '%s'",szVar);
+        DebugSpewNoFile("PMP - Bad $mid() '%s'",szVar);
         return PMP_ERROR_BADPARM;
     } else {
         CHAR szArg[MAX_STRING] = {0};
@@ -3599,7 +3599,7 @@ DWORD parmRight(PCHAR szVar, PCHAR szOutput, PSPAWNINFO pChar)
     DWORD i=0;
     // $right(num,string)
     if ((!strstr(szVar,")")) || (!strstr(szVar,","))) {
-        DebugSpew("PMP - Bad $right() '%s'",szVar);
+        DebugSpewNoFile("PMP - Bad $right() '%s'",szVar);
         return PMP_ERROR_BADPARM;
     } else {
         CHAR szArg[MAX_STRING] = {0};
@@ -3633,7 +3633,7 @@ DWORD parmInstr(PCHAR szVar, PCHAR szOutput, PSPAWNINFO pChar)
     DWORD i=0;
     // $instr(word,string)
     if ((!strstr(szVar,")")) || (!strstr(szVar,","))) {
-        DebugSpew("PMP - Bad $instr() '%s'",szVar);
+        DebugSpewNoFile("PMP - Bad $instr() '%s'",szVar);
         return PMP_ERROR_BADPARM;
     } else {
         CHAR szArg[MAX_STRING] = {0};
@@ -3660,7 +3660,7 @@ DWORD parmInstr(PCHAR szVar, PCHAR szOutput, PSPAWNINFO pChar)
                 num=MAX_STRING;
             }
         }
-        DebugSpew("$instr(): '%s' found in '%s' at location %d",szSearch,szArg,zz);
+        DebugSpewNoFile("$instr(): '%s' found in '%s' at location %d",szSearch,szArg,zz);
         itoa(zz,szTemp,10);
         strcat(szOutput,szTemp);
     }
@@ -3672,7 +3672,7 @@ DWORD parmStrLen(PCHAR szVar, PCHAR szOutput, PSPAWNINFO pChar)
     DWORD i=0;
     // $strlen(string)
     if (!strstr(szVar,")")) {
-        DebugSpew("PMP - Bad $strlen() '%s'",szVar);
+        DebugSpewNoFile("PMP - Bad $strlen() '%s'",szVar);
         return PMP_ERROR_BADPARM;
     } else {
         CHAR szArg[MAX_STRING] = {0};
@@ -3699,7 +3699,7 @@ DWORD parmUcase(PCHAR szVar, PCHAR szOutput, PSPAWNINFO pChar)
     DWORD i=0;
     // $ucase(string)
     if (!strstr(szVar,")")) {
-        DebugSpew("PMP - Bad $ucase() '%s'",szVar);
+        DebugSpewNoFile("PMP - Bad $ucase() '%s'",szVar);
         return PMP_ERROR_BADPARM;
     } else {
         CHAR szArg[MAX_STRING] = {0};
@@ -3729,7 +3729,7 @@ DWORD parmLcase(PCHAR szVar, PCHAR szOutput, PSPAWNINFO pChar)
     DWORD i=0;
     // $lcase(string)
     if (!strstr(szVar,")")) {
-        DebugSpew("PMP - Bad $lcase() '%s'",szVar);
+        DebugSpewNoFile("PMP - Bad $lcase() '%s'",szVar);
         return PMP_ERROR_BADPARM;
     } else {
         CHAR szArg[MAX_STRING] = {0};
@@ -3770,12 +3770,12 @@ DWORD parmSpawnName(PCHAR szVar, PCHAR szOutput, PSPAWNINFO pChar)
     BOOL bFullName=FALSE;
 
     if (!strstr(szVar,")")) {
-        DebugSpew("PMP - Bad $spawn() '%s'",szVar);
+        DebugSpewNoFile("PMP - Bad $spawn() '%s'",szVar);
         return PMP_ERROR_BADPARM;
     } else {
         pFind=strstr(szVar,")");
         if (pFind==NULL) {
-            DebugSpew("PMP - Bad $spawn() '%s'",szVar);
+            DebugSpewNoFile("PMP - Bad $spawn() '%s'",szVar);
             return PMP_ERROR_BADPARM;
         } else {
             i+=(DWORD)(pFind-szVar);
@@ -3792,16 +3792,16 @@ DWORD parmSpawnName(PCHAR szVar, PCHAR szOutput, PSPAWNINFO pChar)
             } else { return PMP_ERROR_BADPARM; }
         }
         if (szSearch[strlen(szSearch)-1]==')') szSearch[strlen(szSearch)-1]='\0';
-        DebugSpew("Spawn(Name) - SearchString = '%s'",szSearch);
+        DebugSpewNoFile("Spawn(Name) - SearchString = '%s'",szSearch);
         for (pSpawn=(PSPAWNINFO)pSpawnList;(pSpawn) && (_stricmp(CleanupName(strcpy(szTemp,pSpawn->Name)),CleanupName(szSearch)));pSpawn=pSpawn->pNext);
     }
     if (pSpawn) {
-        DebugSpew("PMP - SpawnName - Spawn '%s' FOUND!",pSpawn->Name);
+        DebugSpewNoFile("PMP - SpawnName - Spawn '%s' FOUND!",pSpawn->Name);
         if (!bID && !bFullName) strcat(szOutput,"TRUE");
         else if (bFullName) strcat(szOutput,strcpy(szTemp,pSpawn->Name));
         else if (bID) strcat(szOutput,itoa((int)pSpawn->SpawnID,szTemp,10));
     } else {
-        DebugSpew("PMP - SpawnName - Spawn '%s' NOT found!",szTemp);
+        DebugSpewNoFile("PMP - SpawnName - Spawn '%s' NOT found!",szTemp);
         if (!bID && !bFullName) strcat(szOutput,"FALSE");
         else if (bFullName) strcat(szOutput,"NULL");
         else if (bID) strcat(szOutput,"NULL");
@@ -3817,7 +3817,7 @@ DWORD parmCount(PCHAR szVar, PCHAR szOutput, PSPAWNINFO pChar)
     PCHARINFO pCharInfo = NULL;
     if (NULL == (pCharInfo = GetCharInfo())) return PMP_ERROR_BADPARM;
     if (!strstr(szVar,")")) {
-        DebugSpew("PMP - Bad $count() '%s'",szVar);
+        DebugSpewNoFile("PMP - Bad $count() '%s'",szVar);
         return PMP_ERROR_BADPARM;
            // $count(id,xxx)
     } else if (!strncmp("count(id,",szVar,9)) {
@@ -3830,7 +3830,7 @@ DWORD parmCount(PCHAR szVar, PCHAR szOutput, PSPAWNINFO pChar)
         GetArg(szTemp,szArg,1);
         for (a=0;a<8;a++) {
             if (!pCharInfo->Inventory[22+a]) continue;
-            DebugSpew("Inventory->ItemNumber %d, looking for %s",pCharInfo->Inventory[22+a]->Item->ItemNumber,szTemp);
+            DebugSpewNoFile("Inventory->ItemNumber %d, looking for %s",pCharInfo->Inventory[22+a]->Item->ItemNumber,szTemp);
             if (pCharInfo->Inventory[22+a]->Item->ItemNumber==(DWORD)atoi(szTemp)) {
                 if ((pCharInfo->Inventory[22+a]->Item->Type != ITEMTYPE_NORMAL) || (pCharInfo->Inventory[22+a]->Item->Common.Stackable!=1)) {
                 c++;
@@ -3844,7 +3844,7 @@ DWORD parmCount(PCHAR szVar, PCHAR szOutput, PSPAWNINFO pChar)
                 pContainer = (pCharInfo->Inventory[22+a]);
                 for (b=0;b<pCharInfo->Inventory[22+a]->Item->Container.Slots;b++) {
                 if (!pContainer->Contents[b]) continue;
-                DebugSpew("Container[%d]->Contents[%d]->Item->ItemNumber %d, looking for %s",a,b,pContainer->Contents[b]->Item->ItemNumber,szTemp);
+                DebugSpewNoFile("Container[%d]->Contents[%d]->Item->ItemNumber %d, looking for %s",a,b,pContainer->Contents[b]->Item->ItemNumber,szTemp);
                 if (pContainer->Contents[b]->Item->ItemNumber==(DWORD)atoi(szTemp)) {
                     if ((pContainer->Contents[b]->Item->Type != ITEMTYPE_NORMAL) || (pContainer->Contents[b]->Item->Common.Stackable!=1)) {
                         c++;
@@ -3901,7 +3901,7 @@ DWORD parmCalc(PCHAR szVar, PCHAR szOutput, PSPAWNINFO pChar)
     DWORD i=0;
     // $calc(xxx)
     if (!strstr(szVar,")")) {
-        DebugSpew("PMP - Bad $calc() '%s'",szVar);
+        DebugSpewNoFile("PMP - Bad $calc() '%s'",szVar);
         return PMP_ERROR_BADPARM;
     } else {
         CHAR Formula[MAX_STRING] = {0};
@@ -3919,7 +3919,7 @@ DWORD parmInt(PCHAR szVar, PCHAR szOutput, PSPAWNINFO pChar)
     DWORD i=0;
     // $int(xxx)
     if (!strstr(szVar,")")) {
-        DebugSpew("PMP - Bad $int() '%s'",szVar);
+        DebugSpewNoFile("PMP - Bad $int() '%s'",szVar);
         return PMP_ERROR_BADPARM;
     } else {
         CHAR Formula[MAX_STRING] = {0};
@@ -3941,7 +3941,7 @@ DWORD parmSpellItem(PCHAR szVar, PCHAR szOutput, PSPAWNINFO pChar)
    // Note that you have to have the item equipped or in a primary slot, it can NOT be inside your bags...
    // $Spell(item,<name>,xxx)
    if (!strstr(szVar,",") || !strstr(szVar,")")) {
-      DebugSpew("PMP - Bad $spell() '%s'",szVar);
+      DebugSpewNoFile("PMP - Bad $spell() '%s'",szVar);
       return 10000;
    } else {
       i += (strstr(szVar,")")-szVar);
@@ -3957,15 +3957,15 @@ DWORD parmSpellItem(PCHAR szVar, PCHAR szOutput, PSPAWNINFO pChar)
       BOOL IsValid = FALSE;
       GetArg(szItem,szVar,2,FALSE,FALSE,TRUE);
       GetArg(szTemp,szVar,3,FALSE,FALSE,TRUE);
-      DebugSpew("SpellItem: Temp = '%s'",szTemp);
+      DebugSpewNoFile("SpellItem: Temp = '%s'",szTemp);
       GetArg(szArg,szTemp,1,FALSE,FALSE,FALSE,')');
-      DebugSpew("SpellItem: Arg = '%s'",szArg);
+      DebugSpewNoFile("SpellItem: Arg = '%s'",szArg);
 //      if (szArg[strlen(szArg)-1]==')') szArg[strlen(szArg)-1]='\0';
-//        DebugSpew("%s -> %s|%d, %s",szVar,szItem,szArg);
+//        DebugSpewNoFile("%s -> %s|%d, %s",szVar,szItem,szArg);
       for (int ItemIndex=0;ItemIndex<30;ItemIndex++) {
          if (pCharInfo->Inventory[ItemIndex])
             if (!_stricmp(szItem,pCharInfo->Inventory[ItemIndex]->Item->Name)) {
-               DebugSpew("$click(%s,%s) in slot %d = %s address is %x",szTemp,szArg,ItemIndex,pCharInfo->Inventory[ItemIndex]->Item->Name,pCharInfo->Inventory[ItemIndex]);
+               DebugSpewNoFile("$click(%s,%s) in slot %d = %s address is %x",szTemp,szArg,ItemIndex,pCharInfo->Inventory[ItemIndex]->Item->Name,pCharInfo->Inventory[ItemIndex]);
                PCHAR pcSpellName = GetSpellByID(pCharInfo->Inventory[ItemIndex]->Item->Common.SpellId);
                pSpell = GetSpellByName(pcSpellName);
                IsValid = TRUE;
@@ -4013,7 +4013,7 @@ DWORD parmAbs(PCHAR szVar, PCHAR szOutput, PSPAWNINFO pChar)
     DWORD i=0;
     // $abs(xxx)
     if (!strstr(szVar,")")) {
-        DebugSpew("PMP - Bad $abs() '%s'",szVar);
+        DebugSpewNoFile("PMP - Bad $abs() '%s'",szVar);
         return 10000;
     } else {
         CHAR Formula[MAX_STRING] = {0};
@@ -4033,7 +4033,7 @@ DWORD parmSin(PCHAR szVar, PCHAR szOutput, PSPAWNINFO pChar)
     DWORD i=0;
     // $sin(xxx)
     if (!strstr(szVar,")")) {
-        DebugSpew("PMP - Bad $sin() '%s'",szVar);
+        DebugSpewNoFile("PMP - Bad $sin() '%s'",szVar);
         return 10000;
     } else {
         CHAR Formula[MAX_STRING] = {0};
@@ -4052,7 +4052,7 @@ DWORD parmCos(PCHAR szVar, PCHAR szOutput, PSPAWNINFO pChar)
     DWORD i=0;
     // $cos(xxx)
     if (!strstr(szVar,")")) {
-        DebugSpew("PMP - Bad $cos() '%s'",szVar);
+        DebugSpewNoFile("PMP - Bad $cos() '%s'",szVar);
         return 10000;
     } else {
         CHAR Formula[MAX_STRING] = {0};
@@ -4070,7 +4070,7 @@ DWORD parmTan(PCHAR szVar, PCHAR szOutput, PSPAWNINFO pChar)
     DWORD i=0;
     // $tan(xxx)
     if (!strstr(szVar,")")) {
-        DebugSpew("PMP - Bad $tan() '%s'",szVar);
+        DebugSpewNoFile("PMP - Bad $tan() '%s'",szVar);
         return 10000;
     } else {
         CHAR Formula[MAX_STRING] = {0};
@@ -4088,7 +4088,7 @@ DWORD parmAsin(PCHAR szVar, PCHAR szOutput, PSPAWNINFO pChar)
     DWORD i=0;
     // $asin(xxx)
     if (!strstr(szVar,")")) {
-        DebugSpew("PMP - Bad $asin() '%s'",szVar);
+        DebugSpewNoFile("PMP - Bad $asin() '%s'",szVar);
         return 10000;
     } else {
         CHAR Formula[MAX_STRING] = {0};
@@ -4106,7 +4106,7 @@ DWORD parmAcos(PCHAR szVar, PCHAR szOutput, PSPAWNINFO pChar)
     DWORD i=0;
     // $acos(xxx)
     if (!strstr(szVar,")")) {
-        DebugSpew("PMP - Bad $acos() '%s'",szVar);
+        DebugSpewNoFile("PMP - Bad $acos() '%s'",szVar);
         return 10000;
     } else {
         CHAR Formula[MAX_STRING] = {0};
@@ -4124,7 +4124,7 @@ DWORD parmAtan(PCHAR szVar, PCHAR szOutput, PSPAWNINFO pChar)
     DWORD i=0;
     // $atan(xxx)
     if (!strstr(szVar,")")) {
-        DebugSpew("PMP - Bad $atan() '%s'",szVar);
+        DebugSpewNoFile("PMP - Bad $atan() '%s'",szVar);
         return 10000;
     } else {
         CHAR Formula[MAX_STRING] = {0};
@@ -4305,7 +4305,7 @@ DWORD parmDoor(PCHAR szVar, PCHAR szOutput, PSPAWNINFO pChar)
 
     // $door(unknown)
     } else {
-        DebugSpew("PMP - Bad $door() '%s'",szVar);
+        DebugSpewNoFile("PMP - Bad $door() '%s'",szVar);
         return 10000;
     }
     return i;
@@ -4403,7 +4403,7 @@ DWORD parmGround(PCHAR szVar, PCHAR szOutput, PSPAWNINFO pChar)
 
     // $ground(unknown)
     } else {
-        DebugSpew("PMP - Bad $ground() '%s'",szVar);
+        DebugSpewNoFile("PMP - Bad $ground() '%s'",szVar);
         return 10000;
     }
     return i;
@@ -4430,7 +4430,7 @@ DWORD parmDec(PCHAR szVar, PCHAR szOutput, PSPAWNINFO pChar)
     // $dec(xxx)
     if (!strstr(szVar,")"))
     {
-        DebugSpew("PMP - Bad $dec() '%s'",szVar);
+        DebugSpewNoFile("PMP - Bad $dec() '%s'",szVar);
         return PMP_ERROR_BADPARM;
     }
     else
@@ -4439,7 +4439,7 @@ DWORD parmDec(PCHAR szVar, PCHAR szOutput, PSPAWNINFO pChar)
         while (szVar[i]!=')') i++;
         strcpy(szName,szVar+4);
         szName[strstr(szName,")")-szName] = 0;
-		DebugSpew("$dec szName = %s",szName);
+		DebugSpewNoFile("$dec szName = %s",szName);
 		int szTest = atoi(szName);
 		sprintf(szBuffer,"%x",szTest);
         strcat(szOutput,szBuffer);
@@ -4469,7 +4469,7 @@ DWORD parmIni(PCHAR szVar, PCHAR szOutput, PSPAWNINFO pChar)
     // Jalapeno & BlueSkies
     // Additions/Modifications by Valerian
     if ((!strstr(szVar,")")) || (szVar[4] == ')')) {
-        DebugSpew("PMP - Bad $ini() '%s'",szVar);
+        DebugSpewNoFile("PMP - Bad $ini() '%s'",szVar);
         return 10000;
     } else {
         CHAR szArg1[MAX_STRING] = {0};
@@ -4511,7 +4511,7 @@ DWORD parmIni(PCHAR szVar, PCHAR szOutput, PSPAWNINFO pChar)
         }
         strcat(szOutput,szBuffer);
 
-        //DebugSpew("PMP - $ini(%s,%s,%s) returned '%s'",szArg1,szArg2,szArg3,szBuffer);
+        //DebugSpewNoFile("PMP - $ini(%s,%s,%s) returned '%s'",szArg1,szArg2,szArg3,szBuffer);
     }
     return i;
 }
@@ -4550,7 +4550,7 @@ DWORD parmFinditemBank(PCHAR szVar, PCHAR szOutput, PSPAWNINFO pChar)
     else _strlwr(strcpy(szSearch,szArg));
     if ((NULL == (pCharInfo = GetCharInfo())) || szSearch[0]=='\0')
     {
-        DebugSpew("PMP - Bad $finditem(bank) '%s'",szVar);
+        DebugSpewNoFile("PMP - Bad $finditem(bank) '%s'",szVar);
         return PMP_ERROR_BADPARM;
     }
     i += (strstr(szVar,")")-szVar);
@@ -4605,7 +4605,7 @@ DWORD parmFinditem(PCHAR szVar, PCHAR szOutput, PSPAWNINFO pChar)
     else _strlwr(strcpy(szSearch,szArg));
     if ((NULL == (pCharInfo = GetCharInfo())) || szSearch[0]=='\0')
     {
-        DebugSpew("PMP - Bad $finditem() '%s'",szVar);
+        DebugSpewNoFile("PMP - Bad $finditem() '%s'",szVar);
         return PMP_ERROR_BADPARM;
     }
     i += (strstr(szVar,")")-szVar);
@@ -4686,7 +4686,7 @@ DWORD parmSqrt(PCHAR szVar, PCHAR szOutput, PSPAWNINFO pChar)
     // $sqrt(xxx)
     if (!strstr(szVar,")"))
     {
-        DebugSpew("PMP - Bad $sqrt() '%s'",szVar);
+        DebugSpewNoFile("PMP - Bad $sqrt() '%s'",szVar);
         return PMP_ERROR_BADPARM;
     }
     else
@@ -4707,7 +4707,7 @@ DWORD parmDefined(PCHAR szVar, PCHAR szOutput, PSPAWNINFO pChar)
     // $defined(xxx)
     if (!strstr(szVar,")"))
     {
-        DebugSpew("PMP - Bad $defined() '%s'",szVar);
+        DebugSpewNoFile("PMP - Bad $defined() '%s'",szVar);
         return PMP_ERROR_BADPARM;
     }
     else
@@ -4798,8 +4798,8 @@ DWORD parmSelectedItem(PCHAR szVar, PCHAR szOutput, PSPAWNINFO pChar)
 			if(pSelectedItemCont->StackCount) {
 				itoa( pSelectedItemCont->StackCount, szName, 10 );
 				strcat(szOutput,szName);
-				DebugSpew("pSelectedItemInfo = %x",pSelectedItemInfo);
-				DebugSpew("pSelectedItemCont = %x",pSelectedItemCont);
+				DebugSpewNoFile("pSelectedItemInfo = %x",pSelectedItemInfo);
+				DebugSpewNoFile("pSelectedItemCont = %x",pSelectedItemCont);
 			} else {
 				strcat(szOutput,"NOT_STACKABLE\0");
 			}
@@ -4833,7 +4833,7 @@ DWORD parmSelectedItem(PCHAR szVar, PCHAR szOutput, PSPAWNINFO pChar)
         strlwr(szArg);
         if (szArg[strlen(szArg)-1]==')')
             szArg[strlen(szArg)-1]=0;
-        DebugSpew("$merchant(xxx) szArg = %s",szArg);
+        DebugSpewNoFile("$merchant(xxx) szArg = %s",szArg);
 
         if (pSelectedItemInfo) {
 			strcat(szOutput,pSelectedItemInfo->Name);

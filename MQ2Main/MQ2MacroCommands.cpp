@@ -47,7 +47,7 @@ VOID Delay(PSPAWNINFO pChar, PCHAR szLine)
             VarValue *= 10;
     }
     gDelay = VarValue;
-    DebugSpew("Delay - %d",gDelay);
+    DebugSpewNoFile("Delay - %d",gDelay);
 }
 
 
@@ -108,7 +108,7 @@ DOUBLE Calculate(PCHAR szFormula) {
     }
     j++;
 
-    for (i=0;i<j;i++) DebugSpew("%d. %s",i,Arg[i]);
+    for (i=0;i<j;i++) DebugSpewNoFile("%d. %s",i,Arg[i]);
 
 
     for (i=0;i<j;i++) {
@@ -538,7 +538,7 @@ VOID Echo(PSPAWNINFO pChar, PCHAR szLine)
 	strcpy(szEcho,DebugHeader);
     strcat(szEcho," ");
     strcat(szEcho,szLine);
-    DebugSpew("Echo - %s",szEcho);
+    DebugSpewNoFile("Echo - %s",szEcho);
     WriteChatColor(szEcho,USERCOLOR_CHAT_CHANNEL);
 
 }
@@ -642,12 +642,12 @@ VOID Goto(PSPAWNINFO pChar, PCHAR szLine)
             return;
         }
         if (!stricmp(szLine,gMacroBlock->Line)) {
-            DebugSpew("Goto - went to label %s",szLine);
+            DebugSpewNoFile("Goto - went to label %s",szLine);
             return;
         }
     }
     if (!stricmp(szLine,gMacroBlock->Line)) {
-        DebugSpew("Goto - went to label %s",szLine);
+        DebugSpewNoFile("Goto - went to label %s",szLine);
         return;
     }
     GracefullyEndBadMacro(pChar,pFromLine,"Couldn't find label %s",szLine);
@@ -718,7 +718,7 @@ VOID SendKey(PSPAWNINFO pChar, PCHAR szLine)
             pNext->Pressed = !strnicmp(Arg1,"down",strlen(Arg1));
             pNext->pNext = NULL;
 
-            //DebugSpew("SendKey - Queuing '%s' as %s",gDiKeyID[i].szName,Arg1);
+            //DebugSpewNoFile("SendKey - Queuing '%s' as %s",gDiKeyID[i].szName,Arg1);
             if (!gKeyStack) {
                 gKeyStack = pNext;
                 return;
@@ -732,7 +732,7 @@ VOID SendKey(PSPAWNINFO pChar, PCHAR szLine)
     }
 
     //TODO: User Spew
-    DebugSpew("Unknown key: %s",Arg2);
+    DebugSpewNoFile("Unknown key: %s",Arg2);
     return;
 }
 
@@ -826,7 +826,7 @@ VOID EndMacro(PSPAWNINFO pChar, PCHAR szLine)
         ZapVars(pChar,szTemp);
     }
 
-    DebugSpew("EndMacro - Ended");
+    DebugSpewNoFile("EndMacro - Ended");
     WriteChatColor("The current macro has ended.",USERCOLOR_DEFAULT);
 }
 
@@ -852,19 +852,19 @@ VOID FailIf(PSPAWNINFO pChar, PCHAR szCommand, PMACROBLOCK pStartLine, BOOL All)
     DWORD Scope = 0;
     if (szCommand[strlen(szCommand)-1]=='{') {
 		if (!gMacroBlock) {
-	        DebugSpew("FailIf - Macro was ended before we could handle the false if command");
+	        DebugSpewNoFile("FailIf - Macro was ended before we could handle the false if command");
 			return;
 		}
-        DebugSpew("FailIf - Skipping to end of {}");
+        DebugSpewNoFile("FailIf - Skipping to end of {}");
         Scope++;
-        DebugSpew("FailIf - Starting macroblock: %s",gMacroBlock->Line);
+        DebugSpewNoFile("FailIf - Starting macroblock: %s",gMacroBlock->Line);
         gMacroBlock = gMacroBlock->pNext;
         while ((Scope>0)) {
             if (strstr(gMacroBlock->Line,"}")) Scope--;
             if (All) if (strstr(gMacroBlock->Line,"{")) Scope++;
             if (Scope>0) {
                 if (!All) if (strstr(gMacroBlock->Line,"{")) Scope++;
-                DebugSpew("FailIf - Skipping(%d): %s",Scope,gMacroBlock->Line);
+                DebugSpewNoFile("FailIf - Skipping(%d): %s",Scope,gMacroBlock->Line);
                 if (!strnicmp(gMacroBlock->Line,"sub ",4)) {
                     GracefullyEndBadMacro(pChar,pStartLine,"{} pairing ran into anther subroutine");
                     return;
@@ -876,12 +876,12 @@ VOID FailIf(PSPAWNINFO pChar, PCHAR szCommand, PMACROBLOCK pStartLine, BOOL All)
                 gMacroBlock = gMacroBlock->pNext;
             }
         }
-        DebugSpew("FailIf - End at: %s",gMacroBlock->Line);
+        DebugSpewNoFile("FailIf - End at: %s",gMacroBlock->Line);
         if ((!All) && (!strnicmp(gMacroBlock->Line,"} else ",7))) {
-            DebugSpew("FailIf - Else seen, running '%s'",gMacroBlock->Line+7);
+            DebugSpewNoFile("FailIf - Else seen, running '%s'",gMacroBlock->Line+7);
             DoCommand(pChar,gMacroBlock->Line+7);
         } else {
-            DebugSpew("FailIf - } seen");
+            DebugSpewNoFile("FailIf - } seen");
             bRunNextCommand = TRUE;
         }
     } else {
@@ -1168,7 +1168,7 @@ VOID Call(PSPAWNINFO pChar, PCHAR szLine)
     sprintf(SubLineP,"sub %s(",SubName);
     while (gMacroBlock->pNext) {
         if (!stricmp(gMacroBlock->Line,SubLine) || !strnicmp(gMacroBlock->Line,SubLineP,strlen(SubLineP))) {
-            DebugSpew("Call - Calling subroutine %s with params %s",SubName,SubParam);
+            DebugSpewNoFile("Call - Calling subroutine %s with params %s",SubName,SubParam);
             pStack = (PMACROSTACK)malloc(sizeof(MACROSTACK));
             pStack->Location = gMacroBlock;
             pStack->Return[0] = 0;
@@ -1235,7 +1235,7 @@ VOID DoEvents(PSPAWNINFO pChar, PCHAR szLine)
 
     if (NumEvents)
         bCustomNum = TRUE;
-    DebugSpew("DoEvents: Parms = '%s' Flush = %d -- SpecificEvent = %s -- NumEvents = %d",szLine,Flush,SpecificEvent,NumEvents);
+    DebugSpewNoFile("DoEvents: Parms = '%s' Flush = %d -- SpecificEvent = %s -- NumEvents = %d",szLine,Flush,SpecificEvent,NumEvents);
     if (Flush) {
         if (SpecificEvent[0]=='\0') {
             while (gEventStack) {
@@ -1248,13 +1248,13 @@ VOID DoEvents(PSPAWNINFO pChar, PCHAR szLine)
             PEVENTSTACK pPrev=NULL;
             while (pEventToRun) {
                 pEventNext = pEventToRun->pNext;
-                DebugSpew("DoEvents.FlushSpecific: checking '%d\\%s' against '%s'",pEventToRun->Type,(pEventToRun->pEventList)?pEventToRun->pEventList->szName:"NULL",SpecificEvent);
+                DebugSpewNoFile("DoEvents.FlushSpecific: checking '%d\\%s' against '%s'",pEventToRun->Type,(pEventToRun->pEventList)?pEventToRun->pEventList->szName:"NULL",SpecificEvent);
                 if (
                     ((pEventToRun->Type == EVENT_CHAT) && (!stricmp("Sub Event_Chat",SpecificEvent))) ||
                     ((pEventToRun->Type == EVENT_TIMER) && (!stricmp("Sub Event_Timer",SpecificEvent))) ||
                     ((pEventToRun->Type == EVENT_CUSTOM) && (!stricmp(pEventToRun->pEventList->szName,SpecificEvent)))
                     ) {
-                    DebugSpew("DoEvents.FlushSpecific: found one");
+                    DebugSpewNoFile("DoEvents.FlushSpecific: found one");
                     PEVENTSTACK pThis=pEventToRun;
                     pEventToRun = pPrev->pNext = pThis->pNext;
                     FreeVarStrings(pThis->EventStr);
@@ -1270,17 +1270,17 @@ VOID DoEvents(PSPAWNINFO pChar, PCHAR szLine)
     }
     BOOL Found = FALSE;
     if (SpecificEvent[0]) {
-        DebugSpew("NumEvents: %d sNum: %d",NumEvents,sNum);
+        DebugSpewNoFile("NumEvents: %d sNum: %d",NumEvents,sNum);
         if ((NumEvents && sNum) || (!NumEvents && !sNum)) {
             while (pEventToRun && !Found) {
                 pEventNext = pEventToRun->pNext;
-                DebugSpew("DoEvents.SpecificEvent: checking '%d\\%s' against '%s'",pEventToRun->Type,(pEventToRun->pEventList)?pEventToRun->pEventList->szName:"NULL",SpecificEvent);
+                DebugSpewNoFile("DoEvents.SpecificEvent: checking '%d\\%s' against '%s'",pEventToRun->Type,(pEventToRun->pEventList)?pEventToRun->pEventList->szName:"NULL",SpecificEvent);
                 if (
                     ((pEventToRun->Type == EVENT_CHAT) && (!stricmp("Sub Event_Chat",SpecificEvent))) ||
                     ((pEventToRun->Type == EVENT_TIMER) && (!stricmp("Sub Event_Timer",SpecificEvent))) ||
                     ((pEventToRun->Type == EVENT_CUSTOM) && (!stricmp(pEventToRun->pEventList->szName,SpecificEvent)))
                 ) {
-                    DebugSpew("DoEvents.SpecificEvent: found one");
+                    DebugSpewNoFile("DoEvents.SpecificEvent: found one");
                     Found = TRUE;
                     if (sNum) sNum--;
                 } else {
@@ -1291,7 +1291,7 @@ VOID DoEvents(PSPAWNINFO pChar, PCHAR szLine)
         }
     }
     if (!pEventToRun || (SpecificEvent[0] && !Found)) return;
-    DebugSpew("DoEvents: Running event %d\\%s = 0x%p",pEventToRun->Type,(pEventToRun->pEventList)?pEventToRun->pEventList->szName:"NULL",pEventToRun);
+    DebugSpewNoFile("DoEvents: Running event %d\\%s = 0x%p",pEventToRun->Type,(pEventToRun->pEventList)?pEventToRun->pEventList->szName:"NULL",pEventToRun);
 
     pStack = (PMACROSTACK)malloc(sizeof(MACROSTACK));
     gMacroStack->Location = gMacroStack->Location->pPrev;
@@ -1306,7 +1306,7 @@ VOID DoEvents(PSPAWNINFO pChar, PCHAR szLine)
     } else {
         gMacroBlock = gEventFunc[pEventToRun->Type];
     }
-    DebugSpew("DoEvents - Called event: %s",gMacroBlock->Line);
+    DebugSpewNoFile("DoEvents - Called event: %s",gMacroBlock->Line);
     free(pEventToRun);
     *ppEventToRun = pEventNext;
     bRunNextCommand = FALSE;
@@ -1338,7 +1338,7 @@ VOID Return(PSPAWNINFO pChar, PCHAR szLine)
     if (pStack->LocalStr) FreeVarStrings(pStack->LocalStr);
     if (pStack->StackStr) FreeVarStrings(pStack->StackStr);
     free(pStack);
-    DebugSpew("Return - Returned to %s",gMacroBlock->Line);
+    DebugSpewNoFile("Return - Returned to %s",gMacroBlock->Line);
 
 }
 
@@ -1359,7 +1359,7 @@ DWORD Include(PCHAR szFile)
         GracefullyEndBadMacro(((PCHARINFO)pCharData)->pSpawn,gMacroBlock, "Couldn't open include file: %s",szFile);
         return 0;
     }
-    DebugSpew("Include - Including: %s",szFile);
+    DebugSpewNoFile("Include - Including: %s",szFile);
     while (!feof(fMacro)) {
 
         fgets(szTemp,MAX_STRING,fMacro);
@@ -1381,7 +1381,7 @@ DWORD Include(PCHAR szFile)
                 strcpy(pAddedLine->SourceFile, GetFilenameFromFullPath(szFile));
             }
         } else {
-            DebugSpew("Macro - BlockComment: %s",szTemp);
+            DebugSpewNoFile("Macro - BlockComment: %s",szTemp);
             if (!strncmp(&szTemp[strlen(szTemp)-3],"**|",3)) {
                 InBlockComment=FALSE;
             }
@@ -1423,7 +1423,7 @@ VOID Press(PSPAWNINFO pChar, PCHAR szLine)
 // ***************************************************************************
 VOID Cleanup(PSPAWNINFO pChar, PCHAR szLine)
 {
-    DebugSpew("Cleanup - Cleaning up screen");
+    DebugSpewNoFile("Cleanup - Cleaning up screen");
 	DWORD i;
 	if(ppContainerMgr && pContainerMgr) {
 		PEQ_CONTAINERWND_MANAGER ContainerMgr = (PEQ_CONTAINERWND_MANAGER)pContainerMgr;
@@ -1544,12 +1544,12 @@ VOID Next(PSPAWNINFO pChar, PCHAR szLine)
                 }
                 if (strstr(_strlwr(strcpy(szTemp,ForLine)),"downto")) {
                     Loop = atoi(strstr(szTemp,"downto")+7);
-                DebugSpew("Next - End of loop %s downto %d", szLoop, Loop);
+                DebugSpewNoFile("Next - End of loop %s downto %d", szLoop, Loop);
                 itoa(atoi(szLoop)-StepSize,szLoop,10);
                 if (atoi(szLoop) >= Loop) gMacroBlock = pMacroLine;
                 } else {
                     Loop = atoi(strstr(szTemp,"to")+3);
-                DebugSpew("Next - End of loop %s to %d", szLoop, Loop);
+                DebugSpewNoFile("Next - End of loop %s to %d", szLoop, Loop);
                 itoa(atoi(szLoop)+StepSize,szLoop,10);
                 if (atoi(szLoop) <= Loop) gMacroBlock = pMacroLine;
             }
