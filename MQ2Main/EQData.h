@@ -1186,56 +1186,56 @@ typedef struct _OLDSPAWNINFO {
 /*0x164*/   ARGBCOLOR ArmorColor[0x7];  // Armor Dye if custom, otherwise Item Tint
 /*0x180*/   BYTE	Unknown0x180[0x8];
 /*0x188*/   struct  _EQUIPMENT Equipment;
-/*0x1ac*/   WORD    Zone;
-/*0x1ae*/   WORD    Instance;
-/*0x1b0*/   DWORD   Unknown0x1b0; // some pointer
-/*0x1b4*/   struct  _SPAWNINFO *pNext;
-/*0x1b8*/   struct  _CHARINFO  *pCharInfo;
-/*0x1bc*/   BYTE    Unknown0x1bc[0x4];
-/*0x1c0*/   struct  _SPAWNINFO *pPrev;
-/*0x1c4*/   DWORD   Unknown0x1c4;
-/*0x1c8*/   BYTE    Unknown0x1c8[0x8];
-/*0x1d0*/   FLOAT   Unknownf0x1d0;
-/*0x1d4*/   FLOAT   Unknownf0x1d4;
-/*0x1d8*/   FLOAT   Unknownf0x1d8; // commonly used by actor positioning
-/*0x1dc*/   FLOAT   AvatarHeight;  // height of avatar from ground when standing
-/*0x1e0*/   FLOAT   Unknownf0x1e0;
-/*0x1e4*/   BYTE    Type;
-/*0x1e5*/   BYTE    Face;      // Needs Testing
-/*0x1e6*/   BYTE	BeardColor;
-/*0x1e7*/   BYTE	Unknown0x1e7;
-/*0x1e8*/   BYTE    Eyes;
-/*0x1e9*/   BYTE	Hair;      // Hair with no headgear (?)
-/*0x1ea*/   BYTE	BeardType;
-/*0x1eb*/   BYTE	Holding;   // 0=holding/wielding nothing
-/*0x1ec*/   BYTE    Level;
-/*0x1ed*/   BYTE    FaceHair;  // Face/Hair combination with headgear
-/*0x1ee*/   BYTE    Gender;
-/*0x1ef*/   BYTE    PvPFlag;
-/*0x1f0*/   BYTE    HideMode;
-/*0x1f1*/   BYTE    StandState;
-/*0x1f2*/   BYTE    Class;
-/*0x1f3*/   BYTE    Light;
-/*0x1f4*/   BYTE    InNonPCRaceIllusion;  // This is buggy ...not sure exact usage
-/*0x1f5*/   BYTE    Unknown0x1f6;  // form related, unsure how
-/*0x1f6*/   BYTE    GM;
-/*0x1f7*/   BYTE    Unknown0x1f8;
-/*0x1f8*/   DWORD   SpawnID;
-/*0x1fc*/   DWORD   MasterID;
-/*0x200*/   DWORD   Race;
-/*0x204*/   DWORD   Anon;
-/*0x208*/   DWORD   Unkonwn0x1d0;
-/*0x20c*/   DWORD   AFK;
-/*0x210*/   DWORD   BodyType;
-/*0x214*/   DWORD   HPCurrent;
-/*0x218*/   BYTE    AARank; //0=none 1=first 2=second 3=third 
-/*0x219*/   BYTE    Unknown0x21c[0x3]; 
-/*0x21c*/   DWORD   GuildStatus;
-/*0x220*/   DWORD   Deity;
-/*0x224*/   DWORD   HPMax;
-/*0x228*/   DWORD   GuildID;
-/*0x22c*/   BYTE    Levitate;   //0-normal state  2=levitating 3=mob (not levitating)
-/*0x22d*/   BYTE    Unknown0x22d[0xb]; 
+/*0x1b0*/   WORD    Zone;
+/*0x1b2*/   WORD    Instance;
+/*0x1b4*/   DWORD   Unknown0x1b0; // some pointer
+/*0x1b8*/   struct  _SPAWNINFO *pNext;
+/*0x1bc*/   struct  _CHARINFO  *pCharInfo;
+/*0x1c0*/   BYTE    Unknown0x1bc[0x4];
+/*0x1c4*/   struct  _SPAWNINFO *pPrev;
+/*0x1c8*/   DWORD   Unknown0x1c4;
+/*0x1cc*/   BYTE    Unknown0x1c8[0x8];
+/*0x1d4*/   FLOAT   Unknownf0x1d0;
+/*0x1d8*/   FLOAT   Unknownf0x1d4;
+/*0x1dc*/   FLOAT   Unknownf0x1d8; // commonly used by actor positioning
+/*0x1e0*/   FLOAT   AvatarHeight;  // height of avatar from ground when standing
+/*0x1e4*/   FLOAT   Unknownf0x1e0;
+/*0x1e8*/   BYTE    Type;
+/*0x1e9*/   BYTE    Face;      // Needs Testing
+/*0x1ea*/   BYTE	BeardColor;
+/*0x1eb*/   BYTE	Unknown0x1e7;
+/*0x1ec*/   BYTE    Eyes;
+/*0x1ed*/   BYTE	Hair;      // Hair with no headgear (?)
+/*0x1ee*/   BYTE	BeardType;
+/*0x1ef*/   BYTE	Holding;   // 0=holding/wielding nothing
+/*0x1f0*/   BYTE    Level;
+/*0x1f1*/   BYTE    FaceHair;  // Face/Hair combination with headgear
+/*0x1f2*/   BYTE    Gender;
+/*0x1f3*/   BYTE    PvPFlag;
+/*0x1f4*/   BYTE    HideMode;
+/*0x1f5*/   BYTE    StandState;
+/*0x1f6*/   BYTE    Class;
+/*0x1f7*/   BYTE    Light;
+/*0x1f8*/   BYTE    InNonPCRaceIllusion;  // This is buggy ...not sure exact usage
+/*0x1f9*/   BYTE    Unknown0x1f6;  // form related, unsure how
+/*0x1fa*/   BYTE    GM;
+/*0x1fb*/   BYTE    Unknown0x1f8;
+/*0x1fc*/   DWORD   SpawnID;
+/*0x200*/   DWORD   MasterID;
+/*0x204*/   DWORD   Race;
+/*0x208*/   DWORD   Anon;
+/*0x20c*/   DWORD   Unkonwn0x1d0;
+/*0x210*/   DWORD   AFK;
+/*0x214*/   DWORD   BodyType;
+/*0x218*/   DWORD   HPCurrent;
+/*0x21c*/   BYTE    AARank; //0=none 1=first 2=second 3=third 
+/*0x21d*/   BYTE    Unknown0x21c[0x3]; 
+/*0x220*/   DWORD   GuildStatus;
+/*0x224*/   DWORD   Deity;
+/*0x228*/   DWORD   HPMax;
+/*0x22c*/   DWORD   GuildID;
+/*0x230*/   BYTE    Levitate;   //0-normal state  2=levitating 3=mob (not levitating)
+/*0x23d*/   BYTE    Unknown0x22d[0xb]; 
 } OLDSPAWNINFO, *POLDSPAWNINFO;
 
 // sizeof(_SPAWNINFO) is 0x280
@@ -1313,7 +1313,7 @@ typedef struct _SPAWNINFO {
 /*0x20c*/  DWORD 		AFK;
 /*0x210*/   DWORD   BodyType;
 /*0x214*/   DWORD   HPCurrent;
-/*0x218*/  DWORD 		AARank;
+/*0x218*/  BYTE		AARank;
 /*0x219*/   BYTE    Unknown0x21c[0x3]; 
 /*0x21c*/   DWORD   GuildStatus;
 /*0x220*/   DWORD   Deity;
