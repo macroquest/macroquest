@@ -139,9 +139,9 @@
 #define CXStr__CXStr                             0x40104C
 #define CXStr__CXStr1							 0x401046 
 #define CXStr__CXStr3                            0x59B950 
-#define CXStr__dCXStr							 0x404346 
+#define CXStr__dCXStr							 0x4CE35B
 #define CXStr__operator_plus_equal1              0x59C9E0 
-#define CXStr__operator_equal1                   0x59B950 
+#define CXStr__operator_equal1                   0x59BB10
 
 // CStmlWnd 
 #define CStmlWnd__AppendSTML                     0x565D80 
