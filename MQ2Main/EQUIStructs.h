@@ -694,9 +694,9 @@ typedef struct _EQTRADESKILLWINDOW {
 //Size: 0x234 (05/11/2004) 
 typedef struct _EQRAIDWINDOW {
 /*0x000*/ struct _CSIDLWND Wnd;
-/*0x158*/ BYTE  Unknown0x158[0x4c];
-/*0x1A4*/ DWORD ClassColors[0x10];
-/*0x1E4*/
+/*0x158*/ BYTE  Unknown0x158[0x64];
+/*0x1bc*/ DWORD ClassColors[0x10];
+/*0x1cc*/
 /*0x234*/
 } EQRAIDWINDOW, *PEQRAIDWINDOW;
 
