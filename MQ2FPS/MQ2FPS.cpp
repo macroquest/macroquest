@@ -30,6 +30,17 @@ PLUGIN_API VOID InitializePlugin(VOID)
 	AddCommand("/maxfps",MaxFPS,0,1);
 }
 
+PLUGIN_API VOID SetGameState(DWORD GameState)
+{
+	if (GameState==GAMESTATE_INGAME)
+	{
+		if (!pScreenX || !pScreenY)
+		{
+			WriteChatColor("MQ2FPS plugin requires ScreenX and ScreenY to function correctly");
+		}
+	}
+}
+
 // Called once, when the plugin is to shutdown
 PLUGIN_API VOID ShutdownPlugin(VOID)
 {
@@ -220,8 +231,15 @@ PLUGIN_API VOID OnDrawHUD(VOID)
 	
 	// Display
 	sprintf(szBuffer,"%d/%d FPS",(DWORD)FPS,CurMax);
+	DWORD SX=0;
+	DWORD SY=0;
+	if (pScreenX && pScreenY)
+	{
+		SX=ScreenX;
+		SY=ScreenY;
+	}
 	if (pDisplay)
-		pDisplay->WriteTextHD2(szBuffer,ScreenX+5,ScreenY+25,0x0d);
+		pDisplay->WriteTextHD2(szBuffer,SX+5,SY+25,0x0d);
 
 }
 
