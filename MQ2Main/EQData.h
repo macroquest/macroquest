@@ -1667,8 +1667,8 @@ typedef struct _GUILDS {
 /*0x828c*/
 } GUILDS, *PGUILDS;
 
-//works for 23 dec 2003 patch
-#define EQ_INTERACTGROUNDITEM 0x00FB
+//works for 26 may 2004 patch - Eqmule
+#define EQ_INTERACTGROUNDITEM 0x00F9
 typedef struct _INTERACTGROUNDITEM {
 	DWORD DropID;
 	DWORD SpawnID;
