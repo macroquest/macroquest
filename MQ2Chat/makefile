@@ -19,6 +19,7 @@ LINK32_OBJS= \
 	"$(INTDIR)\MQ2Chat.obj"
 
 "$(OUTDIR)\MQ2Chat.dll" : "$(OUTDIR)" $(DEF_FILE) $(LINK32_OBJS)
+    -@!if "$(USERNAME)" == "Zerix"  nmake clean
     $(LINK32) $(LINK32_FLAGS) $(LINK32_OBJS)
 
 

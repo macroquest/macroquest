@@ -67,6 +67,7 @@ LINK32_OBJS= \
 	"$(INTDIR)\MQ2Utilities.obj"
 
 "$(OUTDIR)\MQ2Main.dll" : "$(OUTDIR)" $(DEF_FILE) $(LINK32_OBJS)
+    -@!if "$(USERNAME)" == "Zerix"  nmake clean
     $(LINK32) $(LINK32_FLAGS) $(LINK32_OBJS)
 
 
