@@ -1030,7 +1030,7 @@ bool MQ2StringType::GetMember(MQ2VARPTR VarPtr, PCHAR Member, PCHAR Index, MQ2TY
 		}
 		return false;
 	case Arg:
-		if (IsNumber(Index))
+		if (IsNumberToComma(Index))
 		{
 			CHAR Temp[MAX_STRING]={0};
 			strcpy(Temp,(char *)VarPtr.Ptr);
@@ -1059,7 +1059,7 @@ bool MQ2StringType::GetMember(MQ2VARPTR VarPtr, PCHAR Member, PCHAR Index, MQ2TY
 		}
 		return false;
 	case Token:
-		if (IsNumber(Index))
+		if (IsNumberToComma(Index))
 		{
 			DWORD N=atoi(Index);
 			if (!N)

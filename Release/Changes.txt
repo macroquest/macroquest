@@ -1,3 +1,6 @@
+3 June 2004 by Lax:
+- Fixed string.Arg, string.Token, NearestSpawn, spawn.NearestSpawn, LastSpawn
+
 2 June 2004 by Lax:
 - Fixed some stuff, yadda yadda.  I forget now.
 - Bodytype 10 has been identified as Dain, thank you for the reports

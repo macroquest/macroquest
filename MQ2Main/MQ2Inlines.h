@@ -244,3 +244,21 @@ static inline BOOL IsNumber(PCHAR String)
 	}
 	return TRUE;
 }
+
+static inline BOOL IsNumberToComma(PCHAR String)
+{
+	if (*String==0)
+		return FALSE;
+	PCHAR Temp=String;
+	while(*String)
+	{
+		if (!((*String>='0' && *String<='9') || *String=='.'))
+		{
+			if (*String==',' && Temp!=String)
+				return TRUE;
+			return FALSE;
+		}
+		++String;
+	}
+	return TRUE;
+}

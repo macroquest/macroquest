@@ -415,7 +415,7 @@ BOOL dataLastSpawn(PCHAR szIndex, MQ2TYPEVAR &Ret)
 {
 	if (szIndex[0])
 	{
-		if (IsNumber(szIndex))
+		if (IsNumberToComma(szIndex))
 		{
 			unsigned long N=atoi(szIndex)-1;
 			if (PSPAWNINFO pSpawn=(PSPAWNINFO)pSpawnList)
@@ -477,7 +477,7 @@ BOOL dataNearestSpawn(PCHAR szIndex, MQ2TYPEVAR &Ret)
 		}
 		else
 		{
-			if (IsNumber(szIndex))
+			if (IsNumberToComma(szIndex))
 			{
 				nth=atoi(szIndex);
 			}
