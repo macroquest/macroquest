@@ -38,6 +38,8 @@ DWORD bmPluginsReloadUI=0;
 DWORD bmPluginsDrawHUD=0;
 DWORD bmPluginsSetGameState=0;
 DWORD bmParseMacroParameter=0;
+DWORD bmUpdateSpawnSort=0;
+
 ePVPServer PVPServer=PVP_NONE;
 CHAR gszVersion[32]=VersionString;
 
@@ -208,6 +210,8 @@ PMOUSECLICK EQADDR_MOUSECLICK=(PMOUSECLICK)__Clicks;
 
 //PSPELLFAVORITE EQADDR_SPELLFAVORITES = NULL;
 
+MQRANK EQP_DistArray[3000];
+DWORD gSpawnCount=0;
 
 DWORD EQADDR_DIMAIN=DI8__Main;
 IDirectInputDevice8A **EQADDR_DIKEYBOARD=(IDirectInputDevice8A **)DI8__Keyboard;

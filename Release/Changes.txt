@@ -1,3 +1,10 @@
+30 Mar 2004 by Lax
+- Added a distance-sorted spawn list in MQ2Main
+- Added MQ2Data top-level object:
+  * spawn NearestSpawn[n]: The nth nearest spawn
+  * spawn NearestSpawn[search]: The nearest spawn matching this search (same as Spawn[search])
+  * spawn NearestSpawn[n,search]: The nth nearest spawn matching this search
+
 29 Mar 2004 by Lax (even more)
 - Added /ctrl /alt and /shift commands:
   /ctrl <command>

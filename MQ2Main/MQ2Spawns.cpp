@@ -21,6 +21,7 @@
 #include "MQ2Main.h"
 
 
+
 PMQGROUNDPENDING pPendingGrounds=0;
 CRITICAL_SECTION csPendingGrounds;
 BOOL ProcessPending=false;
@@ -181,6 +182,9 @@ VOID InitializeMQ2Spawns()
 
 	InitializeCriticalSection(&csPendingGrounds);
 	ProcessPending=true;
+	ZeroMemory(&EQP_DistArray,sizeof(EQP_DistArray));
+	gSpawnCount=0;
+	bmUpdateSpawnSort=AddMQ2Benchmark("UpdateSpawnSort");
 }
 
 VOID ShutdownMQ2Spawns()
@@ -199,6 +203,9 @@ VOID ShutdownMQ2Spawns()
 		delete pPendingGrounds;
 		pPendingGrounds=pNext;
 	}
+	ZeroMemory(EQP_DistArray,sizeof(EQP_DistArray));
+	gSpawnCount=0;
+	RemoveMQ2Benchmark(bmUpdateSpawnSort);
 }
 
 VOID ProcessPendingGroundItems()
@@ -216,3 +223,23 @@ VOID ProcessPendingGroundItems()
 		LeaveCriticalSection(&csPendingGrounds);
 	}
 }
+
+VOID UpdateMQ2SpawnSort()
+{
+	EnterMQ2Benchmark(bmUpdateSpawnSort);
+	ZeroMemory(EQP_DistArray,sizeof(EQP_DistArray));
+	gSpawnCount=0;
+	PSPAWNINFO pSpawn=(PSPAWNINFO)pSpawnList;
+	while(pSpawn)
+	{
+		EQP_DistArray[gSpawnCount].VarPtr.Ptr=pSpawn;
+		EQP_DistArray[gSpawnCount].Value.Float=GetDistance(pSpawn->X,pSpawn->Y);
+		gSpawnCount++;
+		pSpawn=pSpawn->pNext;
+	}
+	// quicksort!
+	qsort(&EQP_DistArray[0],gSpawnCount,sizeof(MQRANK),MQRankFloatCompare);
+	ExitMQ2Benchmark(bmUpdateSpawnSort);
+}
+
+

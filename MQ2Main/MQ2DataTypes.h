@@ -535,6 +535,7 @@ public:
 		BaseAGI=70,
 		BaseWIS=71,
 		PracticePoints=72,
+		PctExp=73,
 	};
 	MQ2CharacterType():MQ2Type("character")
 	{
@@ -609,6 +610,7 @@ public:
 		TypeMember(BaseAGI);//56,
 		TypeMember(BaseWIS);//57,
 		TypeMember(PracticePoints);
+		TypeMember(PctExp);
 	}
 
 	~MQ2CharacterType()
@@ -1208,6 +1210,10 @@ public:
 		Server=3,
 		LastCommand=4,
 		LastTell=5,
+		Merchant=6,
+		Corpse=7,
+		TradeTarget=8,
+		Banker=9,
 
 	};
 	MQ2MacroQuestType():MQ2Type("macroquest")
@@ -1244,6 +1250,7 @@ public:
 		Hex=10,
 		Dec=11,
 		Not=12,
+		Distance=13,
 	};
 	MQ2MathType():MQ2Type("math")
 	{
@@ -1259,6 +1266,7 @@ public:
 		TypeMember(Hex);//10,
 		TypeMember(Dec);//11,
 		TypeMember(Not);//12,
+		TypeMember(Distance);
 	}
 
 	~MQ2MathType()

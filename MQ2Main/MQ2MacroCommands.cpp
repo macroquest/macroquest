@@ -1306,9 +1306,7 @@ VOID NewIf(PSPAWNINFO pChar, PCHAR szLine)
 	if ((szCond[0]>='0' && szCond[0]<='9') || szCond[0]=='-')
 		True=(Calculate(szCond)!=0);
 	else if (!stricmp(szCond,"NULL") ||
-				!stricmp(szCond,"FALSE") ||
-				!stricmp(szCond,"NO") ||
-				!stricmp(szCond,"OFF"))
+				!stricmp(szCond,"FALSE"))
 				True=false;
 	if (True)
 		DoCommand(pChar,szCommand); 

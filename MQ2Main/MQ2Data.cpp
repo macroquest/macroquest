@@ -270,9 +270,7 @@ BOOL dataIf(PCHAR szIndex, MQ2TYPEVAR &Ret)
 				if ((szIndex[0]>='0' && szIndex[0]<='9') || szIndex[0]=='-')
 					True=(Calculate(szIndex)!=0);
 				else if (!stricmp(szIndex,"NULL") ||
-					     !stricmp(szIndex,"FALSE") ||
-						 !stricmp(szIndex,"NO") ||
-						 !stricmp(szIndex,"OFF"))
+					     !stricmp(szIndex,"FALSE"))
 						 True=false;
 
 				if (True)
@@ -312,4 +310,50 @@ BOOL dataFindItem(PCHAR szIndex, MQ2TYPEVAR &Ret)
 	return false;
 }
 
+BOOL dataNearestSpawn(PCHAR szIndex, MQ2TYPEVAR &Ret)
+{
+	if (szIndex[0])
+	{
+		PCHAR pSearch;
+		unsigned long nth;
+		SEARCHSPAWN ssSpawn;
+		ClearSearchSpawn(&ssSpawn);
+		ssSpawn.FRadius=999999.0f;
+		if (pSearch=strchr(szIndex,','))
+		{
+			*pSearch=0;
+			++pSearch;
+			ParseSearchSpawn(pSearch,&ssSpawn);
+			nth=atoi(szIndex);
+		}
+		else
+		{
+			if (szIndex[0]>='0' && szIndex[0]<='9')
+			{
+				nth=atoi(szIndex);
+			}
+			else
+			{
+				nth=1;
+				ParseSearchSpawn(szIndex,&ssSpawn);
+			}
+		}
 
+		for (unsigned long N = 0 ; N < gSpawnCount ; N++)
+		{
+			if (EQP_DistArray[N].Value.Float>ssSpawn.FRadius)
+				return false;
+			if (SpawnMatchesSearch(&ssSpawn,(PSPAWNINFO)pCharSpawn,(PSPAWNINFO)EQP_DistArray[N].VarPtr.Ptr))
+			{
+				if (--nth==0)
+				{
+					Ret.Ptr=EQP_DistArray[N].VarPtr.Ptr;
+					Ret.Type=pSpawnType;
+					return true;
+				}
+			}
+		}
+	}
+	// No spawn
+	return false;
+}

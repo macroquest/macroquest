@@ -125,6 +125,7 @@ void InitializeMQ2Data()
 	AddMQ2Data("Corpse",dataCorpse);
 	AddMQ2Data("If",dataIf);
 	AddMQ2Data("Cursor",dataCursor);
+	AddMQ2Data("NearestSpawn",dataNearestSpawn);
 }
 
 

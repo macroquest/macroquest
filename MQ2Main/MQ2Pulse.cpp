@@ -222,6 +222,8 @@ void Heartbeat()
 		DropTimers();
     }
 
+	UpdateMQ2SpawnSort();
+
 	DebugTry(int GameState=GetGameState());
 	if (GameState!=-1)
 	{
@@ -232,6 +234,10 @@ void Heartbeat()
 			Benchmark(bmPluginsSetGameState,PluginsSetGameState(GameState));
 		}
 	}
+
+	Pulse();
+    Benchmark(bmPluginsPulse,DebugTry(PulsePlugins()));
+	ProcessPendingGroundItems();
 
     bRunNextCommand   = TRUE;
 	DWORD CurTurbo=0;
@@ -250,9 +256,6 @@ void Heartbeat()
 		if (++CurTurbo>gMaxTurbo) break;//bRunNextCommand =   FALSE;
 	}
 	DoTimedCommands();
-	Pulse();
-    Benchmark(bmPluginsPulse,DebugTry(PulsePlugins()));
-	ProcessPendingGroundItems();
 }
 
 // *************************************************************************** 

@@ -580,6 +580,50 @@ protected:
 	CIndex<PMQ2TYPEMEMBER> Members;
 	BOOL Official;
 };
+
+
+typedef struct _MQRANK
+{
+	MQ2VARPTR VarPtr;
+	MQ2VARPTR Value;
+} MQRANK, *PMQRANK;
+
+static int MQRankFloatCompare(const void *A, const void *B)
+{
+    if (((PMQRANK)A)->Value.Float==((PMQRANK)B)->Value.Float)
+		return 0;
+    if (((PMQRANK)A)->Value.Float<((PMQRANK)B)->Value.Float)
+		return -1;
+	return 1;
+}
+
+static int MQRankFloatCompareReverse(const void *A, const void *B)
+{
+    if (((PMQRANK)A)->Value.Float==((PMQRANK)B)->Value.Float)
+		return 0;
+    if (((PMQRANK)A)->Value.Float>((PMQRANK)B)->Value.Float)
+		return -1;
+	return 1;
+}
+
+static int MQRankCompare(const void *A, const void *B)
+{
+    if (((PMQRANK)A)->Value.DWord==((PMQRANK)B)->Value.DWord)
+		return 0;
+    if (((PMQRANK)A)->Value.DWord<((PMQRANK)B)->Value.DWord)
+		return -1;
+	return 1;
+}
+
+static int MQRankCompareReverse(const void *A, const void *B)
+{
+    if (((PMQRANK)A)->Value.DWord==((PMQRANK)B)->Value.DWord)
+		return 0;
+    if (((PMQRANK)A)->Value.DWord>((PMQRANK)B)->Value.DWord)
+		return -1;
+	return 1;
+}
+
 };
 using namespace MQ2Internal;
 

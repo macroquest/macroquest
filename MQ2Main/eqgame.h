@@ -260,7 +260,6 @@
 
 // CChatWindow
 #define CChatWindow__CChatWindow                           0x4E1AA3
-//#define CChatWindow__dCChatWindow                      0x4ba03b
 
 // CChatManager
 #define CChatManager__GetRGBAFromIndex                     0x4DE667
@@ -308,7 +307,6 @@
 // MapViewMap
 #define MapViewMap__SaveEx                                 0x507E21
 #define MapViewMap__Clear                                  0x507CB0
-//#define MapViewMap__Draw                     0x508E79
 
 
 // CMapViewWnd

@@ -654,6 +654,10 @@ bool MQ2CharacterType::GetMember(MQ2VARPTR VarPtr, PCHAR Member, PCHAR Index, MQ
 		Dest.DWord=pChar->Exp;
 		Dest.Type=pIntType;
 		return true;
+	case PctExp:
+		Dest.Float=(float)pChar->Exp/3.30f;
+		Dest.Type=pIntType;
+		return true;
 	case Spawn:
 		Dest.Ptr=pChar->pSpawn;
 		Dest.Type=pSpawnType;
@@ -1304,6 +1308,9 @@ bool MQ2MathType::GetMember(MQ2VARPTR VarPtr, PCHAR Member, PCHAR Index, MQ2TYPE
 		sscanf(Index,"%x",&Dest.DWord);
 		Dest.Type=pIntType;
 		return true;
+	/*
+		Distance
+	/**/
 	}
 	return false;
 }

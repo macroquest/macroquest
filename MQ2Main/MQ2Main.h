@@ -60,8 +60,8 @@ using namespace std;
 #define FromPlugin 0
 #endif
 
-#define USEMQ2PARMS
-//#define USEMQ2DATATYPES
+//#define USEMQ2PARMS
+#define USEMQ2DATATYPES
 
 
 // reroute malloc/free
@@ -181,6 +181,7 @@ EQLIB_API DWORD AddMQ2Benchmark(PCHAR Name);
 EQLIB_API VOID InitializeMQ2Spawns();
 EQLIB_API VOID ShutdownMQ2Spawns();
 EQLIB_API VOID ProcessPendingGroundItems();
+EQLIB_API VOID UpdateMQ2SpawnSort();
 
 /* WINDOWS */
 EQLIB_API VOID InitializeMQ2Windows();
@@ -503,7 +504,7 @@ EQLIB_API BOOL dataFloat(PCHAR szIndex, MQ2TYPEVAR &Ret);
 EQLIB_API BOOL dataCorpse(PCHAR szIndex, MQ2TYPEVAR &Ret);
 EQLIB_API BOOL dataIf(PCHAR szIndex, MQ2TYPEVAR &Ret);
 EQLIB_API BOOL dataCursor(PCHAR szIndex, MQ2TYPEVAR &Ret);
-
+EQLIB_API BOOL dataNearestSpawn(PCHAR szIndex, MQ2TYPEVAR &Ret);
 
 /* COMMANDS */
 EQLIB_API VOID NewIf(PSPAWNINFO pChar, PCHAR szLine);

@@ -25,6 +25,7 @@ EQLIB_API DWORD bmPluginsReloadUI;
 EQLIB_API DWORD bmPluginsDrawHUD;
 EQLIB_API DWORD bmPluginsSetGameState;
 EQLIB_API DWORD bmParseMacroParameter;
+EQLIB_API DWORD bmUpdateSpawnSort;
 
 /* OTHER */
 
@@ -228,6 +229,8 @@ EQLIB_VAR PMQPLUGIN pPlugins;
 EQLIB_VAR PMQXMLFILE pXMLFiles;
 
 EQLIB_VAR EQPlayer **ppEQP_IDArray;
+EQLIB_VAR MQRANK EQP_DistArray[3000];
+EQLIB_VAR DWORD gSpawnCount;
 //#define ppEQP_IDArray (*pppEQP_IDArray)
 
 EQLIB_VAR CEverQuest **ppEverQuest;
