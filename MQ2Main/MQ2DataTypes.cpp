@@ -655,9 +655,29 @@ bool MQ2BuffType::GetMember(MQ2VARPTR VarPtr, PCHAR Member, PCHAR Index, MQ2TYPE
 	switch((BuffMembers)pMember->ID)
 	{
 	case ID:
-		Dest.DWord=pBuff->SpellID;
-		Dest.Type=pIntType;
-		return true;
+		{
+			PCHARINFO pChar=GetCharInfo();
+			unsigned long N=0;
+			for (N = 0 ; N < 6 ; N++)
+			{
+				if (&pChar->ShortBuff[N]==pBuff)
+				{
+					Dest.DWord=N+1;
+					Dest.Type=pIntType;
+					return true;
+				}
+			}
+			for (N = 0 ; N < 15 ; N++)
+			{
+				if (&pChar->Buff[N]==pBuff)
+				{
+					Dest.DWord=N+1;
+					Dest.Type=pIntType;
+					return true;
+				}
+			}
+		}
+		return false;
 	case Level:
 		Dest.DWord=pBuff->Level;
 		Dest.Type=pIntType;
