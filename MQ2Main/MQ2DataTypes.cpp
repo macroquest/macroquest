@@ -3915,97 +3915,12 @@ bool MQ2InvSlotType::GetMember(MQ2VARPTR VarPtr, PCHAR Member, PCHAR Index, MQ2T
 		}
 		return false;
 	case Name:
-		switch(nInvSlot)
-		{
-		case 1:
-			Dest.Ptr="leftear";
-			Dest.Type=pStringType;
-			return true;
-		case 2:
-			Dest.Ptr="head";
-			Dest.Type=pStringType;
-			return true;
-		case 3:
-			Dest.Ptr="face";
-			Dest.Type=pStringType;
-			return true;
-		case 4:
-			Dest.Ptr="rightear";
-			Dest.Type=pStringType;
-			return true;
-		case 5:
-			Dest.Ptr="neck";
-			Dest.Type=pStringType;
-			return true;
-		case 6:
-			Dest.Ptr="shoulder";
-			Dest.Type=pStringType;
-			return true;
-		case 7:
-			Dest.Ptr="arms";
-			Dest.Type=pStringType;
-			return true;
-		case 8:
-			Dest.Ptr="back";
-			Dest.Type=pStringType;
-			return true;
-		case 9:
-			Dest.Ptr="leftwrist";
-			Dest.Type=pStringType;
-			return true;
-		case 10:
-			Dest.Ptr="rightwrist";
-			Dest.Type=pStringType;
-			return true;
-		case 11:
-			Dest.Ptr="ranged";
-			Dest.Type=pStringType;
-			return true;
-		case 12:
-			Dest.Ptr="hand";
-			Dest.Type=pStringType;
-			return true;
-		case 13:
-			Dest.Ptr="mainhand";
-			Dest.Type=pStringType;
-			return true;
-		case 14:
-			Dest.Ptr="offhand";
-			Dest.Type=pStringType;
-			return true;
-		case 15:
-			Dest.Ptr="leftfinger";
-			Dest.Type=pStringType;
-			return true;
-		case 16:
-			Dest.Ptr="rightfinger";
-			Dest.Type=pStringType;
-			return true;
-		case 17:
-			Dest.Ptr="chest";
-			Dest.Type=pStringType;
-			return true;
-		case 18:
-			Dest.Ptr="leg";
-			Dest.Type=pStringType;
-			return true;
-		case 19:
-			Dest.Ptr="feet";
-			Dest.Type=pStringType;
-			return true;
-		case 20:
-			Dest.Ptr="waist";
-			Dest.Type=pStringType;
-			return true;
-		case 21:
-			Dest.Ptr="ammo";
-			Dest.Type=pStringType;
-			return true;
-		case 0:
-			Dest.Ptr="charm";
-			Dest.Type=pStringType;
-			return true;
-		}
+		if (nInvSlot>=0 && nInvSlot<30) 
+        {
+            Dest.Ptr=szItemSlot[nInvSlot];
+            Dest.Type=pStringType;
+            return true;
+        }
 		if (nInvSlot>=22 && nInvSlot<30)
 		{
 			sprintf(DataTypeTemp,"pack%d",nInvSlot-21);

@@ -571,8 +571,8 @@ PCHAR szAugRestrictions[] = {
 	"Shields Only"
 }; 
 PCHAR szItemSlot[] = {
-    "charm",
-    "leftear",
+    "charm",        // 0
+    "leftear",      // 1
     "head",
     "face",
     "rightear",
@@ -581,7 +581,7 @@ PCHAR szItemSlot[] = {
     "arms",
     "back",
     "leftwrist",
-    "rightwrist",
+    "rightwrist",   // 10
     "ranged",
     "hands",
     "mainhand",
@@ -591,7 +591,7 @@ PCHAR szItemSlot[] = {
     "chest",
     "legs",
     "feet",
-    "waist",
+    "waist",        // 20
     "ammo",
 	"pack1",
 	"pack2",
@@ -600,8 +600,8 @@ PCHAR szItemSlot[] = {
 	"pack5",
 	"pack6",
 	"pack7",
-	"pack8",
-    NULL
+	"pack8",        // 29
+    NULL            // 30
 };
 
 BOOL bAllErrorsFatal=FALSE;

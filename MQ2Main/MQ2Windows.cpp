@@ -157,37 +157,11 @@ void InitializeMQ2Windows()
 {
         int i;
 	DebugSpew("Initializing MQ2 Windows");
+        
+    extern PCHAR szItemSlot[];
 
-	ItemSlotMap["leftear"]=1;
-	ItemSlotMap["head"]=2;
-	ItemSlotMap["face"]=3;
-	ItemSlotMap["rightear"]=4;
-	ItemSlotMap["neck"]=5;
-	ItemSlotMap["shoulder"]=6;
-	ItemSlotMap["arms"]=7;
-	ItemSlotMap["back"]=8;
-	ItemSlotMap["leftwrist"]=9;
-	ItemSlotMap["rightwrist"]=10;
-	ItemSlotMap["ranged"]=11;
-	ItemSlotMap["hand"]=12;
-	ItemSlotMap["mainhand"]=13;
-	ItemSlotMap["offhand"]=14;
-	ItemSlotMap["leftfinger"]=15;
-	ItemSlotMap["rightfinger"]=16;
-	ItemSlotMap["chest"]=17;
-	ItemSlotMap["leg"]=18;
-	ItemSlotMap["feet"]=19;
-	ItemSlotMap["waist"]=20;
-	ItemSlotMap["ammo"]=21;
-	ItemSlotMap["pack1"]=22;
-	ItemSlotMap["pack2"]=23;
-	ItemSlotMap["pack3"]=24;
-	ItemSlotMap["pack4"]=25;
-	ItemSlotMap["pack5"]=26;
-	ItemSlotMap["pack6"]=27;
-	ItemSlotMap["pack7"]=28;
-	ItemSlotMap["pack8"]=29;
-	ItemSlotMap["charm"]=0;
+    for(i=0;i<30;i++)
+        ItemSlotMap[szItemSlot[i]]=i;
 	
 	CHAR szOut[MAX_STRING]={0};
 
