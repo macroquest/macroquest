@@ -405,9 +405,9 @@ VOID Echo(PSPAWNINFO pChar, PCHAR szLine)
 {
     CHAR szEcho[MAX_STRING] = {0};
     bRunNextCommand = TRUE;
-	strcpy(szEcho,DebugHeader);
+    strcpy(szEcho,DebugHeader);
     strcat(szEcho," ");
-    strcat(szEcho,szLine);
+    strncat(szEcho,szLine, MAX_STRING-(strlen(DebugHeader)+2));
     DebugSpewNoFile("Echo - %s",szEcho);
     WriteChatColor(szEcho,USERCOLOR_CHAT_CHANNEL);
 

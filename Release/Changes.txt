@@ -1,6 +1,9 @@
 21 june 2004 by DKAA:
+- Fixed a crash in echo when the lines are longer than 2043
+
+21 june 2004 by DKAA:
 - Fixed the EQMERCHWND alignment and renumbered the CSIDLWND struct.
-:
+
 19 June 2004 by Lax:
 - Fixed FastCalculate and EvaluateRPN functions.  Calculate works fine now, stfu rtfm etc ;)
 - DKAA fixed some struct stuff
