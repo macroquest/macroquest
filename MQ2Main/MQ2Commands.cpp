@@ -21,6 +21,7 @@
 #include <direct.h>
 
 #include "MQ2Main.h"
+#include <Shellapi.h>
 
 // ***************************************************************************
 // Function:    Unload
@@ -4433,3 +4434,29 @@ VOID EQDestroyHeldItemOrMoney(PSPAWNINFO pChar, PCHAR szLine)
 	(*ppPCData)->DestroyHeldItemOrMoney();
 	return;
 }
+
+VOID Exec(PSPAWNINFO pChar,PCHAR szLine) {
+   CHAR exepath[MAX_STRING] = {0};
+
+   CHAR szMsg[MAX_STRING] = {0};
+   CHAR szTemp[MAX_STRING] = {0};
+   CHAR szTemp1[MAX_STRING] = {0};
+   CHAR szTemp2[MAX_STRING] = {0};
+   GetArg(szTemp1,szLine,1);
+   GetArg(szTemp2,szLine,2);
+
+   if (szTemp1[0]!=0 && szTemp2[0]!=0) {
+      sprintf(szTemp,"Opening %s %s",szTemp1,szTemp2);
+      WriteChatColor(szTemp,USERCOLOR_DEFAULT);
+
+      GetPrivateProfileString("Application Paths",szTemp1,szTemp1,exepath,MAX_STRING,gszINIFilename);
+
+      if(!strcmp(szTemp2,"bg")) { 
+         ShellExecute(NULL, "open", exepath, NULL, NULL, SW_SHOWMINNOACTIVE);
+      } else if(!strcmp(szTemp2,"fg")) { 
+         ShellExecute(NULL, "open", exepath, NULL, NULL, SW_SHOWNOACTIVATE);
+      }
+   } else {
+      WriteChatColor("/exec [application] [fg | bg]",USERCOLOR_DEFAULT);
+   }
+} 

@@ -369,6 +369,7 @@ EQLIB_API VOID DumpStack                           (PSPAWNINFO,PCHAR);
 EQLIB_API VOID Echo                                (PSPAWNINFO,PCHAR);
 EQLIB_API VOID EditMacro                           (PSPAWNINFO,PCHAR);
 EQLIB_API VOID EndMacro                            (PSPAWNINFO,PCHAR);
+EQLIB_API VOID Exec                                (PSPAWNINFO,PCHAR); 
 EQLIB_API VOID Face                                (PSPAWNINFO,PCHAR);
 EQLIB_API VOID Filter                              (PSPAWNINFO,PCHAR);
 EQLIB_API VOID FindItem                            (PSPAWNINFO,PCHAR);

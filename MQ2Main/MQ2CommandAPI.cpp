@@ -435,7 +435,8 @@ void InitializeMQ2Commands()
         {"/editmacro",  EditMacro,1},
 		{"/plugin",     PluginCommand,1},
 		{"/destroy",     EQDestroyHeldItemOrMoney,1},
-        {NULL,          NULL,0}
+		{"/exec",      Exec,1}, 
+		{NULL,          NULL,0}
     };
 
 	// Remove replaced commands first
