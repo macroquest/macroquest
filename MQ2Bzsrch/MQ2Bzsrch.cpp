@@ -1,6 +1,6 @@
 /*****************************************************************************
 mq2bzsrch.dll: MacroQuest2's extension DLL for EverQuest
-Copyright (C) 2002-2003 DKAA
+Copyright (C) 2003-2004 DKAA
 
 This program is free software; you can redistribute it and/or modify
 it under the terms of the GNU General Public License, version 2, as

@@ -2,7 +2,30 @@
 - ${Ini} will allow either relative or absolute paths.  Also slightly modified what it gives
   you when you try to get a list of keys and supply a default (previously it would ignore
   the default and give NULL if there was no list).
-
+- MQ2BzSrch plugin is now updated for MQ2Data.
+  MQ2Data reference for MQ2BzSrch (because it's a plugin, not in main reference)
+  -------
+  Types added- bazaar, bazaaritem
+  TLO's added- bazaar Bazaar: Bazaar search info
+  ---
+  bazaar 
+  Members:
+  ...bool Done: Search complete?
+  ...int Count: Result count
+  ...bazaaritem Item[n]: Result info by index (1-based)
+  To String: Same as Done
+  ---
+  bazaaritem 
+  Members:
+  ...string Name: Item name
+  ...spawn Trader: The guy selling it
+  ...int Price: Price the guy is selling it for
+  ...int Quantity: Number of this item this guy has
+  ...int ItemID: The item's ID number
+  ...int Value: Value of the item?
+  To String: Same as Name
+  -------
+  
 25 Apr 2004 by Lax (revision C changes):
 - Fixed merchant.Item[=name] and corpse.Item[=name]
 - Fixed character.PctEndurance
