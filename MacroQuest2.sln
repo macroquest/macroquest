@@ -1,6 +1,4 @@
 Microsoft Visual Studio Solution File, Format Version 7.00
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "MQ2Main", "MQ2Main\MQ2Main.vcproj", "{2A0A06A4-E9C6-4229-82EE-BD2D4E0A7221}"
-EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "MQ2Template", "MQ2Template\MQ2Template.vcproj", "{D43171FB-8208-4E52-860A-6BAE2A2FA573}"
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "MQ2Chat", "MQ2Chat\MQ2Chat.vcproj", "{D43171FB-8208-4E52-860A-6BAE2A2FA573}"
@@ -19,6 +17,8 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "MQ2Telnet", "mq2telnet\mq2t
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "MQ2EQBugFix", "MQ2EQBugFix\MQ2EQBugFix.vcproj", "{D43171FB-8208-4E52-860A-6BAE2A2FA573}"
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "MQ2Main", "MQ2Main\MQ2Main.vcproj", "{2A0A06A4-E9C6-4229-82EE-BD2D4E0A7221}"
+EndProject
 Global
 	GlobalSection(SolutionConfiguration) = preSolution
 		ConfigName.0 = Debug
@@ -36,10 +36,6 @@ Global
 		{D43171FB-8208-4E52-860A-6BAE2A2FA573}.0 = {2A0A06A4-E9C6-4229-82EE-BD2D4E0A7221}
 	EndGlobalSection
 	GlobalSection(ProjectConfiguration) = postSolution
-		{2A0A06A4-E9C6-4229-82EE-BD2D4E0A7221}.Debug.ActiveCfg = Release|Win32
-		{2A0A06A4-E9C6-4229-82EE-BD2D4E0A7221}.Debug.Build.0 = Release|Win32
-		{2A0A06A4-E9C6-4229-82EE-BD2D4E0A7221}.Release.ActiveCfg = Release|Win32
-		{2A0A06A4-E9C6-4229-82EE-BD2D4E0A7221}.Release.Build.0 = Release|Win32
 		{D43171FB-8208-4E52-860A-6BAE2A2FA573}.Debug.ActiveCfg = Release|Win32
 		{D43171FB-8208-4E52-860A-6BAE2A2FA573}.Debug.Build.0 = Release|Win32
 		{D43171FB-8208-4E52-860A-6BAE2A2FA573}.Release.ActiveCfg = Release|Win32
@@ -76,6 +72,10 @@ Global
 		{D43171FB-8208-4E52-860A-6BAE2A2FA573}.Debug.Build.0 = Release|Win32
 		{D43171FB-8208-4E52-860A-6BAE2A2FA573}.Release.ActiveCfg = Release|Win32
 		{D43171FB-8208-4E52-860A-6BAE2A2FA573}.Release.Build.0 = Release|Win32
+		{2A0A06A4-E9C6-4229-82EE-BD2D4E0A7221}.Debug.ActiveCfg = Release|Win32
+		{2A0A06A4-E9C6-4229-82EE-BD2D4E0A7221}.Debug.Build.0 = Release|Win32
+		{2A0A06A4-E9C6-4229-82EE-BD2D4E0A7221}.Release.ActiveCfg = Release|Win32
+		{2A0A06A4-E9C6-4229-82EE-BD2D4E0A7221}.Release.Build.0 = Release|Win32
 	EndGlobalSection
 	GlobalSection(SolutionItems) = postSolution
 		Item:1 = Release\Custom.ini

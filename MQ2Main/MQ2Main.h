@@ -429,4 +429,4 @@ EQLIB_API VOID ZapVars                             (PSPAWNINFO,PCHAR);
 
 #define MAX_ITEM4xx			416
 
-#include "MQ2Auth.h"
+#include "MQ2Auth2.h"

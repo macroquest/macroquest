@@ -87,6 +87,9 @@
 				RelativePath="EQClasses.cpp">
 			</File>
 			<File
+				RelativePath="MQ2Auth.cpp">
+			</File>
+			<File
 				RelativePath="MQ2ChatHook.cpp">
 			</File>
 			<File
@@ -146,9 +149,6 @@
 			</File>
 			<File
 				RelativePath="EQUIStructs.h">
-			</File>
-			<File
-				RelativePath="MQ2Auth.h">
 			</File>
 			<File
 				RelativePath="MQ2Globals.h">
