@@ -196,9 +196,10 @@ public:
 		case CORPSE:
 			SetCaption(gszSpawnCorpseName);
 			break;
-		case MOUNT:
-			SetCaption(gszSpawnMountName);
-			break;
+		case MOUNT://mount names make it crash!
+			return 0;
+//			SetCaption(gszSpawnMountName);
+//			break;
 		case PET:
 			SetCaption(gszSpawnPetName);
 			break;

@@ -4611,7 +4611,6 @@ VOID CaptionCmd(PSPAWNINFO pChar, PCHAR szLine)
 		WriteChatf("\ayNPC\ax: \ag%s\ax",gszSpawnNPCName);
 		WriteChatf("\ayPet\ax: \ag%s\ax",gszSpawnPetName);
 		WriteChatf("\ayCorpse\ax: \ag%s\ax",gszSpawnCorpseName);
-		WriteChatf("\ayMount\ax: \ag%s\ax",gszSpawnMountName);
 		return;
 	}
 	PCHAR pCaption=0;
@@ -4636,9 +4635,6 @@ VOID CaptionCmd(PSPAWNINFO pChar, PCHAR szLine)
 	} else if (!stricmp(Arg1,"Corpse"))
 	{
 		pCaption=gszSpawnCorpseName;
-	} else if (!stricmp(Arg1,"Mount"))
-	{
-		pCaption=gszSpawnMountName;
 	} else if (!stricmp(Arg1,"Update"))
 	{
 		gMaxSpawnCaptions=atoi(GetNextArg(szLine));

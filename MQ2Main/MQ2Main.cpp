@@ -148,7 +148,6 @@ BOOL ParseINIFile(PCHAR lpINIPath)
 	GetPrivateProfileString("Captions","Player3",gszSpawnPlayerName[3],gszSpawnPlayerName[3],MAX_STRING,Filename);
 	GetPrivateProfileString("Captions","Player4",gszSpawnPlayerName[4],gszSpawnPlayerName[4],MAX_STRING,Filename);
 	GetPrivateProfileString("Captions","Corpse",gszSpawnCorpseName,gszSpawnCorpseName,MAX_STRING,Filename);
-	GetPrivateProfileString("Captions","Mount",gszSpawnMountName,gszSpawnMountName,MAX_STRING,Filename);
 	GetPrivateProfileString("Captions","Pet",gszSpawnPetName,gszSpawnPetName,MAX_STRING,Filename);
 	gMaxSpawnCaptions=GetPrivateProfileInt("Captions","Update",gMaxSpawnCaptions,Filename);
 	ConvertCR(gszSpawnNPCName);
@@ -157,7 +156,6 @@ BOOL ParseINIFile(PCHAR lpINIPath)
 	ConvertCR(gszSpawnPlayerName[3]);
 	ConvertCR(gszSpawnPlayerName[4]);
 	ConvertCR(gszSpawnCorpseName);
-	ConvertCR(gszSpawnMountName);
 	ConvertCR(gszSpawnPetName);
 
 	gFilterSWho.Lastname= GetPrivateProfileInt("SWho Filter","Lastname",1,Filename);

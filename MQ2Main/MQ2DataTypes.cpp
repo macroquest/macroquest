@@ -677,7 +677,7 @@ bool MQ2SpawnType::GetMember(MQ2VARPTR VarPtr, PCHAR Member, PCHAR Index, MQ2TYP
 		Dest.Type=pBoolType;
 		return true;
 	case Assist:
-		if (gGameState==GAMESTATE_INGAME)
+		if (gGameState==GAMESTATE_INGAME && GetCharInfo()->pSpawn)
 		{
 			DWORD nAssist;
 			PACTORINFO pCharActor=GetCharInfo()->pSpawn->pActorInfo;
@@ -704,7 +704,7 @@ bool MQ2SpawnType::GetMember(MQ2VARPTR VarPtr, PCHAR Member, PCHAR Index, MQ2TYP
 		Dest.Type=pBoolType;
 		return true;
 	case Mark:
-		if (gGameState==GAMESTATE_INGAME)
+		if (gGameState==GAMESTATE_INGAME && GetCharInfo()->pSpawn)
 		{
 			DWORD nMark;
 			PACTORINFO pCharActor=GetCharInfo()->pSpawn->pActorInfo;
@@ -1922,7 +1922,7 @@ bool MQ2CharacterType::GetMember(MQ2VARPTR VarPtr, PCHAR Member, PCHAR Index, MQ
 		Dest.Type=pIntType;
 		return true;
 	case TargetOfTarget:
-		if (gGameState==GAMESTATE_INGAME)
+		if (gGameState==GAMESTATE_INGAME && GetCharInfo()->pSpawn)
 		if (Dest.Ptr=pChar->pSpawn->pActorInfo->pTargetOfTarget)
 		{
 			Dest.Type=pSpawnType;
@@ -1930,7 +1930,7 @@ bool MQ2CharacterType::GetMember(MQ2VARPTR VarPtr, PCHAR Member, PCHAR Index, MQ
 		}
 		return false;
 	case RaidAssistTarget:
-		if (gGameState==GAMESTATE_INGAME)
+		if (gGameState==GAMESTATE_INGAME && GetCharInfo()->pSpawn)
 		if (Index[0] && IsNumber(Index))
 		{
 			DWORD N=atoi(Index)-1;
@@ -1944,7 +1944,7 @@ bool MQ2CharacterType::GetMember(MQ2VARPTR VarPtr, PCHAR Member, PCHAR Index, MQ
 		}
 		return false;
 	case GroupAssistTarget:
-		if (gGameState==GAMESTATE_INGAME)
+		if (gGameState==GAMESTATE_INGAME && GetCharInfo()->pSpawn)
 		{
 			if (Dest.Ptr=pChar->pSpawn->pActorInfo->pGroupAssistNPC[0])
 			{
@@ -1954,7 +1954,7 @@ bool MQ2CharacterType::GetMember(MQ2VARPTR VarPtr, PCHAR Member, PCHAR Index, MQ
 		}
 		return false;
 	case RaidMarkNPC:
-		if (gGameState==GAMESTATE_INGAME)
+		if (gGameState==GAMESTATE_INGAME && GetCharInfo()->pSpawn)
 		if (Index[0] && IsNumber(Index))
 		{
 			DWORD N=atoi(Index)-1;
@@ -1968,7 +1968,7 @@ bool MQ2CharacterType::GetMember(MQ2VARPTR VarPtr, PCHAR Member, PCHAR Index, MQ
 		}
 		return false;
 	case GroupMarkNPC:
-		if (gGameState==GAMESTATE_INGAME)
+		if (gGameState==GAMESTATE_INGAME && GetCharInfo()->pSpawn)
 		if (Index[0] && IsNumber(Index))
 		{
 			DWORD N=atoi(Index)-1;
@@ -1982,12 +1982,6 @@ bool MQ2CharacterType::GetMember(MQ2VARPTR VarPtr, PCHAR Member, PCHAR Index, MQ
 		}
 		return false;
 		/*
-		RaidAssistTarget=100,
-		GroupAssistTarget=101,
-		RaidMarkNPC=102,
-		GroupMarkNPC=103
-
-
 		STR=51,
 		STA=52,
 		CHA=53,
@@ -2025,7 +2019,7 @@ bool MQ2SpellType::GetMember(MQ2VARPTR VarPtr, PCHAR Member, PCHAR Index, MQ2TYP
 		Dest.Type=pStringType;
 		return true;
 	case Level:
-		if (!Index[0])
+		if (!Index[0] && GetCharInfo()->pSpawn)
 		{
 			Dest.DWord=pSpell->Level[GetCharInfo()->pSpawn->Class-1];
 			Dest.Type=pIntType;
