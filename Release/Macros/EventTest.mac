@@ -12,39 +12,36 @@
 
 #turbo
 #chat say
-#event YouSay "You say, '"
-#event JudgesYou " judges you amiabl"
-#event Rude " makes a rude gesture"
+#event YouSay "You say, '#1#'"
+#event JudgesYou "(#1#) judges you amiabl"
+#event Rude "(#1#) makes a rude gesture#*#"
 
 Sub Main
-   /declare ConCheck global
+   /declare ConCheck int outer 0
    :Loop
-      /doevents Chat
-      /doevents YouSay
+      /doevents
+      /delay 2
    /goto :Loop
 /return
 
 Sub Event_Chat
-   /echo You got a @Param0 from @Param1: @Param2
+   /echo You got a ${Param0} from ${Param1}: ${Param2}
 /return
 
-Sub Event_YouSay
-   /if "$arg(3,"@Param0")"!~"hail" /return
-   /mqlog @Param0
-   /varset ConCheck 0
-   /doevents
-   /echo You con'd amiable $int(@ConCheck) times since you last hailed.
+Sub Event_YouSay(string line, string firstword)
+/echo in YouxxxSay ${firstword} ${firstword.NotEqual[Hail]}
+    /if (${firstword.NotEqual[Hail]}) {
+        /varset ConCheck 0
+        /return
+    }
+    /echo You con'd amiable ${ConCheck} times since you last hailed.
 /return
 
-Sub Event_JudgesYou
-   /if "$arg(3,"@Param0")"~~"judges" {
-      /echo You con'd amiable to $arg(1,"@Param0") $arg(2,"@Param0")
-   } else {
-      /echo You con'd amiable to $arg(1,"@Param0")
-   }
-   /varadd ConCheck 1
+Sub Event_JudgesYou(string line, string who)
+   /echo You con'd amiable to ${who}
+   /varcalc ConCheck ${ConCheck}+1
 /return
 
-Sub Event_Rude
-  /echo $arg(1,"@Param0") flipped someone off!
+Sub Event_Rude(string line, string who)
+  /echo ${who} flipped someone off!
 /return
