@@ -270,6 +270,15 @@ EQLIB_VAR EQZoneInfo *pZoneInfo;
 EQLIB_VAR PGUILDS pGuildList;
 EQLIB_VAR PEQSOCIAL   pSocialList;
 
+EQLIB_VAR EQPlayer **ppTradeTarget;
+#define pTradeTarget (*ppTradeTarget)
+EQLIB_VAR EQPlayer **ppActiveBanker;
+#define pActiveBanker (*ppActiveBanker)
+EQLIB_VAR EQPlayer **ppActiveGMaster;
+#define pActiveGMaster (*ppActiveGMaster)
+EQLIB_VAR EQPlayer **ppActiveCorpse;
+#define pActiveCorpse (*ppActiveCorpse)
+
 EQLIB_VAR CSidlManager **ppSidlMgr;
 #define pSidlMgr (*ppSidlMgr)
 

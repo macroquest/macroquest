@@ -456,6 +456,12 @@ EQItemList **ppItemList=(EQItemList**)pinstEQItemList;
 SPELLFAVORITE *pSpellSets=(SPELLFAVORITE *)pinstSpellSets;
 EQZoneInfo *pZoneInfo=(EQZoneInfo*)instEQZoneInfo;
 
+EQPlayer **ppTradeTarget=(EQPlayer **)pinstTradeTarget;
+EQPlayer **ppActiveBanker=(EQPlayer **)pinstActiveBanker;
+EQPlayer **ppActiveGMaster=(EQPlayer **)pinstActiveGMaster;
+EQPlayer **ppActiveCorpse=(EQPlayer **)pinstActiveCorpse;
+
+
 /* WINDOW INSTANCES */
 
 CContextMenuManager **ppContextMenuManager=(CContextMenuManager**)pinstCContextMenuManager;

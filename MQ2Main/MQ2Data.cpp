@@ -272,8 +272,7 @@ BOOL dataIf(PCHAR szIndex, MQ2TYPEVAR &Ret)
 				else if (!stricmp(szIndex,"NULL") ||
 					     !stricmp(szIndex,"FALSE") ||
 						 !stricmp(szIndex,"NO") ||
-						 !stricmp(szIndex,"OFF") ||
-						 !stricmp(szIndex,"0"))
+						 !stricmp(szIndex,"OFF"))
 						 True=false;
 
 				if (True)

@@ -8,6 +8,7 @@
   * Added string members:
     - int Compare[text]: -1 if the string is alphabetically before text, 0 if equal, 1 if after. Case does not count.
     - int CompareCS[text]: -1 if the string is alphabetically before text, 0 if equal, 1 if after. Case counts.
+  * Lots of others...
 - Fixed MQ2Parm slowness from debug spew if MQ2Data is also in use
  
 29 Mar 2004 by Lax

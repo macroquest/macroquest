@@ -502,6 +502,8 @@ public:
 		Bound=41,
 		Combat=42,
 		FreeInventory=43,
+		Gem=44,
+		SpellReady=45,
 	};
 	MQ2CharacterType():MQ2Type("character")
 	{
@@ -547,6 +549,8 @@ public:
 		TypeMember(Bound);
 		TypeMember(Combat);
 		TypeMember(FreeInventory);
+		TypeMember(Gem);
+		TypeMember(SpellReady);
 	}
 
 	~MQ2CharacterType()
@@ -960,6 +964,11 @@ public:
 
 	 bool ToString(MQ2VARPTR VarPtr, PCHAR Destination)
 	{
+		if (gRunning)
+		{
+			strcpy(Destination,gszMacroName);
+			return true;
+		}
 		return false;
 	}
 };

@@ -78,7 +78,11 @@
 #define pinstControlledPlayer                              0x731510
 #define pinstWorldData                                     0x7314D4
 #define pinstSpellManager                                  0x78BAB4
+#define pinstTradeTarget								   0x7314F8
 #define pinstActiveMerchant                                0x731528
+#define pinstActiveBanker								   0x73152C
+#define pinstActiveCorpse								   0x731530
+#define pinstActiveGMaster								   0x731534
 #define pinstSelectedItem                                  0x797C70
 #define pinstGroup                                         0x72FBA8
 #define pinstTarget                                        0x73151C
