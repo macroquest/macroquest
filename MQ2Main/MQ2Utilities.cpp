@@ -3142,7 +3142,7 @@ BOOL EvaluateRPN(_CalcOp *pList, int Size, DOUBLE &Result)
 #define StackTop() (pStack[nStack])
 #define StackSetTop(do_assign) {pStack[nStack]##do_assign;}
 #define StackPush(val) {nStack++;pStack[nStack]=val;}
-#define StackPop() {nStack--;}
+#define StackPop() {if (!nStack) {free(pStack);return 0;};nStack--;}
 
 
 #define BinaryIntOp(op) {int RightSide=(int)StackTop();StackPop();StackSetTop(=(DOUBLE)(((int)StackTop())##op##RightSide));}
