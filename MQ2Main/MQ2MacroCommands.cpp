@@ -450,15 +450,16 @@ BOOL ActualCalculate(PCHAR szFormula, DOUBLE &Result) {
 			case '!':
 				if (Buffer[i+1]=='=')
 				{
-					Arg[j+1][0]='!';
+					Arg[j+1][0]='n';
 					j+=2;
 					k=0;
 					i++;
 				}
 				else
 				{
-					GracefullyEndBadMacro(((PCHARINFO)pCharData)->pSpawn,gMacroBlock, "Calculate encountered a bad != formation");
-					return false;
+					Arg[j+1][0]='!';
+					j+=2;
+					k=0;
 				}
 				break;
 			case '=':
@@ -531,7 +532,34 @@ BOOL ActualCalculate(PCHAR szFormula, DOUBLE &Result) {
     j++;
 
     //for (i=0;i<j;i++) DebugSpewNoFile("%d. %s",i,Arg[i]);
+    for (i=0;i<j;i++) {
+        switch (Arg[i][0]) {
+            case '!':
+                if (i+1==j) {
+				    GracefullyEndBadMacro(((PCHARINFO)pCharData)->pSpawn,gMacroBlock, "Calculate encountered a bad %c formation",Arg[i][0]);
+                    return false;
+                }
+                i--;
+				if (atof(Arg[i+2])!=0.0f)
+				{
+					strcpy(Arg[i],"0");
+				}
+				else
+					strcpy(Arg[i],"1");
 
+				if (i==0)
+				{
+			        for (k=i+1;k<j;k++) 
+						strcpy(Arg[k],Arg[k+1]);
+				}
+				else
+				{
+			        for (k=i+1;k<j;k++) 
+						strcpy(Arg[k],Arg[k+1]);
+				}
+				j--;
+        }
+    }
 
     for (i=0;i<j;i++) {
         switch (Arg[i][0]) {
@@ -618,6 +646,7 @@ BOOL ActualCalculate(PCHAR szFormula, DOUBLE &Result) {
 
     for (i=0;i<j;i++) {
         switch ((UCHAR)Arg[i][0]) {
+			case 'n':
             case '<':
             case '>':
 			case '=':
@@ -634,6 +663,9 @@ BOOL ActualCalculate(PCHAR szFormula, DOUBLE &Result) {
 						break;
 					case '>':
 						sprintf(Buffer,"%d",atof(Arg[i])>atof(Arg[i+2]));
+						break;
+					case 'n':
+						sprintf(Buffer,"%d",atof(Arg[i])!=atof(Arg[i+2]));
 						break;
 					case '=':
 						sprintf(Buffer,"%d",atof(Arg[i])==atof(Arg[i+2]));
@@ -1714,7 +1746,10 @@ VOID NewIf(PSPAWNINFO pChar, PCHAR szLine)
 
 	DOUBLE Result=0;
 	if (!Calculate(szCond,Result))
-		FailIfParsing();
+	{
+//		FailIfParsing();
+	}
+
 
 	if (Result!=0)
 		DoCommand(pChar,szCommand); 

@@ -1198,9 +1198,39 @@ bool MQ2CharacterType::GetMember(MQ2VARPTR VarPtr, PCHAR Member, PCHAR Index, MQ
 			}
 		}
 		return false;
+	case SpellReady:
+		if (pCastSpellWnd && Index[0])
+		{
+			if (Index[0]>='0' && Index[0]<='9')
+			{
+				// numeric
+				unsigned long nGem=atoi(Index)-1;
+				if (nGem<8)
+				{
+					Dest.DWord = (((PEQCASTSPELLWINDOW)pCastSpellWnd)->SpellSlots[nGem]->spellstate==0);
+					Dest.Type=pBoolType;
+					return true;
+				}
+			}
+			else
+			{
+				for (unsigned long nGem=0 ; nGem < 8 ; nGem++)
+				{
+					if (PSPELL pSpell=GetSpellByID(pChar->MemorizedSpells[nGem]))
+					{
+						if (!stricmp(Index,pSpell->Name))
+						{
+							Dest.DWord = (((PEQCASTSPELLWINDOW)pCastSpellWnd)->SpellSlots[nGem]->spellstate==0);
+							Dest.Type=pBoolType;
+							return true;
+						}
+					}
+				}
+			}
+		}
+		return false;
 		/*
 		FreeInventory
-		SpellReady
 		GroupLeaderExp=46,
 		RaidLeaderExp=47,
 		GroupLeaderPoints=48,

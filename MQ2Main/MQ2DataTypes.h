@@ -964,7 +964,7 @@ public:
 	{
 		if (!VarPtr.Ptr)
 			return false;
-		strcpy(Destination,((PITEMINFO)VarPtr.Ptr)->Name);
+		strcpy(Destination,((PCONTENTS)VarPtr.Ptr)->Item->Name);
 		return true;
 	}
 };

@@ -1,4 +1,7 @@
 9 Apr 2004 by Lax:
+- Fixed != in Calculate (and therefore in /newif, math.Calc, etc), and implemented ! as
+  the unary NOT operator.  This gives 0 if your calculation is non-zero, or 1 if your
+  calculation is zero.
 - MQ2Data changes:
   -- Swapped Y and X back to being backwards-backwards or backwards-forwards, or whatever they
      originally were
@@ -6,7 +9,8 @@
      Spawns also have a shortcut for SED (South/East/Down).  All type member names involving 
      XYZ have a NWU complement (none necessary for the "index" bracketed part, of Heading[y,x] 
      for example)
-  -- Fixed AbilityReady
+  -- Fixed character.AbilityReady
+  -- Fixed item (TO STRING)
   Top Level Objects
   * spawn LastSpawn: The last spawn chronologically.
   * spawn LastSpawn[n]: The nth from last spawn.. LastSpawn[1] is the LastSpawn.. LastSpawn[2] is 2nd from last, LastSpawn[3] is 3rd from last, and so on
@@ -28,6 +32,8 @@
   * item corpse.Item[n]: nth item on the corpse
   * item character.Inventory[slotname]: Item in this slot (inventory slots only, but 
     same names as /itemnotify)
+  * bool character.SpellReady[name]: Gem with this spell name ready for cast?
+  * bool character.SpellReady[slot]: Spell in this gem ready for cast?
 
 8 Apr 2004 by Lax (more)
 - MQ2Data changes:
