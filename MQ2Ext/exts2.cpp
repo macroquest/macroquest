@@ -290,6 +290,12 @@ DECLARE_API ( pitem )
    KP(SizeCapacity); 
    KP(WeightReduction); 
    KP(Favor);
+   KP(Endurance);
+   KP(Attack);
+   KP(HPRegen);
+   KP(ManaRegen);
+   KP(Haste);
+   KP(DamShield);
 } 
 
 DECLARE_API ( pgroundspawn ) 
@@ -308,7 +314,7 @@ DECLARE_API ( pgroundspawn )
    KP(ID); 
    KP(DropID); 
    KP(Unknown0x10);
-   KP(DxID); 
+   KP(pSwitch); 
    KPf(Heading); 
    KPf(Z); 
    KPf(X); 
