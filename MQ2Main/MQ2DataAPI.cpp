@@ -229,7 +229,7 @@ BOOL NewSearchArrays(PCHAR szString)
 
 BOOL ParseMacroVariables(PCHAR szOriginal)
 {
-	PCHAR pAt=strchr(szOriginal,'@');
+	PCHAR pAt=strrchr(szOriginal,'@');
 	if (!pAt)
 		return false;
 	bool Changed=false;
@@ -238,6 +238,7 @@ BOOL ParseMacroVariables(PCHAR szOriginal)
 		// find this brace's end
 	do
 	{
+		*pAt=-0x7E;
 		PCHAR pEnd=pAt;
 		do
 		{
@@ -310,8 +311,8 @@ pmvinsert:;
 			Changed=true;
 		}
 pmvbottom:;
-	} while (pAt=strchr(&pAt[1],'@'));
-/*
+	} while (pAt=strrchr(szOriginal,'@'));
+
 	PCHAR Rep=&szOriginal[0];
 	while(*Rep)
 	{
