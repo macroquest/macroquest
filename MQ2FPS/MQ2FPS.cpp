@@ -6,7 +6,7 @@
 // and Shutdown for setup and cleanup, do NOT do it in DllMain.
 
 
-
+//#define DEBUG_TRY 1
 #include "../MQ2Plugin.h"
 #include "MQ2FPS.h"
 
@@ -36,7 +36,7 @@ PLUGIN_API VOID SetGameState(DWORD GameState)
 	{
 		if (!pScreenX || !pScreenY)
 		{
-			WriteChatColor("MQ2FPS plugin requires ScreenX and ScreenY to function correctly");
+			DebugTry(WriteChatColor("MQ2FPS plugin requires ScreenX and ScreenY to function correctly"));
 		}
 	}
 }
@@ -125,28 +125,33 @@ VOID ProcessFrame()
 	DWORD Elapsed=Now-FrameArray[FirstFrame];
 
 
-	// less than one second?
-	if (Elapsed<1000)
+	if (Elapsed)
 	{
-		// elapsed 150 ms
-		// extrapolate. how many frame arrays would fit in one second?
-		FPS=(float)(1000.0f/(float)Elapsed); 
-		// 6.66667=1000/150
-		// now multiply by the number of frames we've gone through
-		// Frames 10
-		FPS*=(float)Frames;
-		// 66.6667= FPS * 10
-//		FPS=
+		// less than one second?
+		if (Elapsed<1000)
+		{
+			// elapsed 150 ms
+			// extrapolate. how many frame arrays would fit in one second?
+			FPS=(float)(1000.0f/(float)Elapsed); 
+			// 6.66667=1000/150
+			// now multiply by the number of frames we've gone through
+			// Frames 10
+			FPS*=(float)Frames;
+			// 66.6667= FPS * 10
+	//		FPS=
+		}
+		else
+		{
+			// Frames = 100
+			// Elapsed = 2000ms
+			// FPS = 100 / (2000/1000) = 50
+
+			// interpolate. how many seconds did it take for our frame array?
+			FPS=(float)Frames/(float)((float)Elapsed/1000.0f); // Frames / number of seconds
+		}
 	}
 	else
-	{
-		// Frames = 100
-		// Elapsed = 2000ms
-		// FPS = 100 / (2000/1000) = 50
-
-		// interpolate. how many seconds did it take for our frame array?
-		FPS=(float)Frames/(float)((float)Elapsed/1000.0f); // Frames / number of seconds
-	}
+		FPS=999.0f;
 	// advance frame count
 	CurrentFrame++; 
 }
@@ -156,7 +161,7 @@ PLUGIN_API VOID OnPulse(VOID)
 {
 	// DONT leave in this debugspew, even if you leave in all the others
 //	DebugSpewAlways("MQ2FPS::OnPulse()");
-	ProcessFrame();
+	DebugTry(ProcessFrame());
 	if (gGameState!=GAMESTATE_INGAME || gZoning || IsMouseWaiting())
 		return;
 
@@ -239,7 +244,9 @@ PLUGIN_API VOID OnDrawHUD(VOID)
 		SY=ScreenY;
 	}
 	if (pDisplay)
-		pDisplay->WriteTextHD2(szBuffer,SX+5,SY+25,0x0d);
+	{
+		DebugTry(pDisplay->WriteTextHD2(szBuffer,SX+5,SY+25,0x0d));
+	}
 
 }
 
