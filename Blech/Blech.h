@@ -15,9 +15,10 @@
 
 #pragma once
 
-#define BLECHVERSION "Lax/Blech 1.0.0"
+#define BLECHVERSION "Lax/Blech 1.5.0"
 
 #include <map>
+#include <string>
 
 //#ifdef WIN32
 #ifdef BLECH_DEBUG
@@ -25,7 +26,7 @@
 //#pragma message("Blech: Debug Mode")
 #include <windows.h>
 #define BLECHASSERT(x) if (!(x)) {BlechDebug("Blech Assertion failure: %s",#x); __asm{int 3};}
-void BlechDebug(char *szFormat, ...)
+static void BlechDebug(char *szFormat, ...)
 {
     char szOutput[4096] = {0};
     va_list vaList;
@@ -72,8 +73,8 @@ typedef struct _BLECHVALUE {
 	struct _BLECHVALUE *pNext;
 } BLECHVALUE, *PBLECHVALUE;
 
-typedef unsigned long   (__cdecl *fBlechVariableValue)(char * VarName, char * Value);
-typedef void (__cdecl *fBlechCallback)(unsigned long ID, void * pData, PBLECHVALUE pValues);
+typedef unsigned long   (__stdcall *fBlechVariableValue)(char * VarName, char * Value);
+typedef void (__stdcall *fBlechCallback)(unsigned long ID, void * pData, PBLECHVALUE pValues);
 
 typedef struct _BLECHEVENT {
 	unsigned long ID;
@@ -92,6 +93,52 @@ typedef struct _BLECHEVENTNODE {
 	struct _BLECHEVENTNODE *pNext;
 	struct _BLECHEVENTNODE *pPrev;
 } BLECHEVENTNODE, *PBLECHEVENTNODE;
+
+unsigned long Equalness(char *StringA, char *StringB)
+{
+	BlechDebug("Equalness(%s,%s)",StringA,StringB);
+	char *pPos=StringA;
+	while(1)
+	{
+		if (*pPos!=*StringB)
+		{
+#ifndef BLECH_CASE_SENSITIVE
+			if (*pPos>='a' && *pPos<='z')
+			{
+				if ((*pPos)-32==*StringB)
+				{
+					++pPos;
+					++StringB;
+					continue;
+				}
+			}
+			else if (*pPos>='A' && *pPos<='Z')
+			{
+				if ((*pPos)+32==*StringB)
+				{
+					++pPos;
+					++StringB;
+					continue;
+				}
+			}
+#endif
+			unsigned long Ret=(unsigned long)(pPos-StringA);
+				BlechDebug("Equalness returning %d",Ret);
+			return Ret;
+		}
+		else
+		{
+			if (!*pPos)
+			{
+				unsigned long Ret=(unsigned long)(pPos-StringA);
+				BlechDebug("Equalness returning %d",Ret);
+				return Ret;
+			}
+		}
+		++pPos;
+		++StringB;
+	}
+}
 
 class BlechNode
 {
@@ -155,6 +202,107 @@ public:
 	{
 		BlechDebug("AddChild(%s,%d)",NewString,NewStringType);
 		BLECHASSERT(NewString);
+		
+		BlechNode *pChild = pChildren;
+		while(pChild)
+		{
+			if (pChild->StringType==NewStringType)
+			{
+				if (NewStringType==BST_NORMAL)
+				{
+					if (unsigned long Eq=Equalness(pChild->pString,NewString))
+					{
+						unsigned long Len=(unsigned long)strlen(NewString);
+						if (Len==Eq)
+						{
+							if (Eq==pChild->Length)
+							{
+								return pChild;
+							}
+							// old child needs to be child of new child!
+
+
+							// remove pChild
+							if (pChild->pPrev)
+							{
+								pChild->pPrev->pNext=pChild->pNext;
+								pChild->pPrev=0;
+							}
+							else
+								pChildren=pChild->pNext;
+							if (pChild->pNext)
+							{
+								pChild->pNext->pPrev=pChild->pPrev;
+								pChild->pNext=0;
+							}
+
+							// make new child, redo pChild as child of new child...
+							BlechNode *pNode = new BlechNode(this,ppRoot,NewString,NewStringType);
+							BLECHASSERT(pNode);
+							pNode->pNext=pChildren;
+							if (pChildren)
+								pChildren->pPrev=pNode;
+							pChildren=pNode;
+
+							pChild->pParent=pChildren;
+							pChildren->pChildren=pChild;
+							memmove(pChild->pString,&pChild->pString[Eq],pChild->Length-Eq+1);
+							pChild->Length-=Eq;
+							return pChildren;
+							// and return that new child
+						}
+						else if (Eq==pChild->Length)
+						{
+							// easy one
+							return pChild->AddChild(&NewString[Eq],NewStringType);
+						}
+						// both children (new and old) need to be children of a new child
+
+						// remove pChild
+						if (pChild->pPrev)
+						{
+							pChild->pPrev->pNext=pChild->pNext;
+							pChild->pPrev=0;
+						}
+						else
+							pChildren=pChild->pNext;
+						if (pChild->pNext)
+						{
+							pChild->pNext->pPrev=pChild->pPrev;
+							pChild->pNext=0;
+						}
+
+						// make new child, redo pChild as child of new child...
+						char Temp=pChild->pString[Eq];
+						pChild->pString[Eq]=0;
+						BlechNode *pNode = new BlechNode(this,ppRoot,pChild->pString,NewStringType);
+						pChild->pString[Eq]=Temp;
+						BLECHASSERT(pNode);
+						pNode->pNext=pChildren;
+						if (pChildren)
+							pChildren->pPrev=pNode;
+						pChildren=pNode;
+
+
+						pChild->pParent=pChildren;
+						pChildren->pChildren=pChild;
+
+						memmove(pChild->pString,&pChild->pString[Eq],pChild->Length-Eq+1);
+						pChild->Length-=Eq;
+						return pChildren->AddChild(&NewString[Eq],NewStringType);
+						// and return a very new child!
+					}
+				}
+				else
+				{
+					if (!strcmp(pChild->pString,NewString))
+						return pChild;
+				}
+			}
+			pChild=pChild->pNext;
+		}
+
+
 		BlechNode *pNode = new BlechNode(this,ppRoot,NewString,NewStringType);
 		BLECHASSERT(pNode);
 		pNode->pNext=pChildren;
@@ -206,19 +354,6 @@ public:
 		}
 	}
 
-	BlechNode *FindChild(char *Find, eBlechStringType FindStringType=BST_NORMAL)
-	{
-		BlechDebug("FindChild(%s,%d",Find,FindStringType);
-		BlechNode *pNode=pChildren;
-		while(pNode)
-		{
-			if (FindStringType==pNode->StringType && !STRCMP(pNode->pString,Find))
-				return pNode;
-			pNode=pNode->pNext;
-		}
-		return 0;
-	}
-
 	eBlechStringType StringType;
 	char * pString;
 	unsigned long Length;
@@ -257,6 +392,7 @@ public:
 	{
 		Cleanup();
 		Event.clear();
+		ExactMatch.clear();
 		Initialize();
 	}
 
@@ -271,12 +407,54 @@ public:
 		BlechDebug("Feed(%s)",Input);
 		if (!Input || !Input[0])
 			return 0;
-		unsigned long Root=Input[0];
+		unsigned long Root=(unsigned char)Input[0];
 #ifndef BLECH_CASE_SENSITIVE
 				if (Root>='a' && Root<='z')
 					Root-=32;
 #endif
-		return Feed(Tree[Root],Input)+Feed(Tree[0],Input);
+		return Chew(Tree[Root],Input)+Chew(Tree[0],Input)+Swallow(Input);
+	}
+
+	inline bool IsExact(char *Text)
+	{
+		if (!strchr(Text,ScanVarDelimiter) && (!PrintVarDelimiter || !strchr(Text,PrintVarDelimiter)))
+			return true;
+		return false;
+	}
+
+	unsigned long AddExactEvent(char *Text,fBlechCallback Callback,void *pData=0)
+	{
+		PBLECHEVENT pEvent = new BLECHEVENT;
+		pEvent->Callback=Callback;
+		pEvent->pData=pData;
+		pEvent->ID=++LastID;
+		pEvent->pBlechNode=0;
+		pEvent->OriginalString=strdup(Text);
+
+		BlechDebug("AddEvent(%X)",pEvent);
+		BLECHASSERT(pEvent);
+		
+		PBLECHEVENTNODE pNode=new BLECHEVENTNODE;
+		pNode->pEvent=pEvent;
+#ifndef BLECH_CASE_SENSITIVE
+		char Temp[4096];
+		PBLECHEVENTNODE pEvents=ExactMatch[strlwr(strcpy(Temp,pEvent->OriginalString))];
+#else
+		PBLECHEVENTNODE pEvents=ExactMatch[Text];
+#endif
+		pNode->pNext=pEvents;
+		if (pEvents)
+			pEvents->pPrev=pNode;
+		pNode->pPrev=0;
+#ifndef BLECH_CASE_SENSITIVE
+		ExactMatch[Temp]=pNode;
+#else
+		ExactMatch[Text]=pNode;
+#endif
+
+		Event[pEvent->ID]=pEvent;
+		return pEvent->ID;
+
 	}
 
 	unsigned long AddEvent(char *Text,fBlechCallback Callback,void *pData=0)
@@ -284,6 +462,10 @@ public:
 		BlechDebug("AddEvent(%s,%X,%X)",Text,Callback,pData);
 		BLECHASSERT(Text);
 		BLECHASSERT(Callback);
+		if (IsExact(Text))
+		{
+			return AddExactEvent(Text,Callback,pData);
+		}
 		char *pText=Text;
 		char *Part=Text;
 		eBlechStringType StringType=BST_NORMAL;
@@ -337,15 +519,40 @@ public:
 		if (!pEvent)
 			return false;
 		Event.erase(ID);
-		free(pEvent->OriginalString);
-		BLECHASSERT(pEvent->pBlechNode);
-
-		BlechNode *pNode=pEvent->pBlechNode;
-		while(pNode && pNode->IsEmpty())
+		if (pEvent->pBlechNode)
 		{
-			BlechNode *pNext=pNode->pParent;
+			free(pEvent->OriginalString);
+
+			BlechNode *pNode=pEvent->pBlechNode;
+			while(pNode && pNode->IsEmpty())
+			{
+				BlechNode *pNext=pNode->pParent;
+				delete pNode;
+				pNode=pNext;
+			}
+		}
+		else
+		{
+			// exact match
+#ifndef BLECH_CASE_SENSITIVE
+			char Temp[4096];
+			PBLECHEVENTNODE pNode=ExactMatch[strlwr(strcpy(Temp,pEvent->OriginalString))];
+#else
+			PBLECHEVENTNODE pNode=ExactMatch[pEvent->OriginalString];
+#endif
+			if (pNode->pNext)
+				pNode->pNext->pPrev=pNode->pPrev;
+			if (pNode->pPrev)
+				pNode->pPrev->pNext=pNode->pNext;
+			else
+#ifndef BLECH_CASE_SENSITIVE
+				ExactMatch[Temp]=pNode->pNext;
+#else
+				ExactMatch[pEvent->OriginalString]=pNode->pNext;
+#endif
 			delete pNode;
-			pNode=pNext;
+			free(pEvent->OriginalString);
+			delete pEvent;
 		}
 		return true;
 	}
@@ -400,13 +607,37 @@ private:
 		return pReturn;
 	}
 
-
-	unsigned long Feed(BlechNode *pNode,char * Input)
+	unsigned long Swallow(char * Input)
 	{
-		BlechDebug("Feed(%X,%s)",pNode,Input);
+		BlechDebug("Swallow(%s)",Input);
+#ifndef BLECH_CASE_SENSITIVE
+		char Temp[4096];
+		PBLECHEVENTNODE pEventNode=ExactMatch[strlwr(strcpy(Temp,Input))];
+		if (!pEventNode)
+			ExactMatch.erase(Temp);
+#else
+		PBLECHEVENTNODE pEventNode=ExactMatch[Input];
+		if (!pEventNode)
+			ExactMatch.erase(Input);
+#endif
+		unsigned long Count=0;
+		while(pEventNode)
+		{
+			Count++;
+			pEventNode->pEvent->Callback(pEventNode->pEvent->ID,pEventNode->pEvent->pData,0);
+			pEventNode=pEventNode->pNext;
+		}
+		return Count;
+	}
+
+	unsigned long Chew(BlechNode *pNode,char * Input)
+	{
+		BlechDebug("Chew(%X,%s)",pNode,Input);
 		BLECHASSERT(Input);
 		if (!pNode)
 			return 0;
+		unsigned long Length=(unsigned long)strlen(Input);
+		char *pEnd=&Input[Length];
 
 		char VarData[4096];
 //		unsigned long VarDataLength;
@@ -418,8 +649,8 @@ private:
 			BlechNode *pNode;
 		};
 		
-#define Push() {	MatchStack[PLP]=CurrentPos;	PLP++;	}
-#define Pop()  {	PLP--; CurrentPos=MatchStack[PLP];	}
+#define Push() {	CurrentPos.pNode=pNode;MatchStack[PLP]=CurrentPos;	PLP++;	}
+#define Pop()  {	PLP--; CurrentPos=MatchStack[PLP];pNode=CurrentPos.pNode;	}
 #define Peek() {	CurrentPos=MatchStack[PLP-1];		}
 
 		MatchPos MatchStack[100];
@@ -428,8 +659,8 @@ private:
 		memset(&MatchStack[0],0,sizeof(MatchStack));
 
 		CurrentPos.Pos=Input;
-		CurrentPos.pNode=0;
 		Push();
+		CurrentPos.pNode=pNode;
 
 		unsigned long Count=0;
 		while(pNode)
@@ -437,30 +668,33 @@ private:
 			switch(pNode->StringType)
 			{
 			case BST_NORMAL:
-				if (CurrentPos.pNode && CurrentPos.pNode->StringType==BST_SCANVAR)
+				if (CurrentPos.Pos+pNode->Length<=pEnd)
 				{
-					if (char *pFound=STRFIND(CurrentPos.Pos,pNode->pString))
+					if (PLP && MatchStack[PLP-1].pNode && MatchStack[PLP-1].pNode->StringType==BST_SCANVAR)
 					{
-						CurrentPos.pNode=pNode;
-						CurrentPos.Pos=&pFound[pNode->Length];
+						if (char *pFound=STRFIND(CurrentPos.Pos,pNode->pString))
+						{
+//							CurrentPos.pNode=pNode;
+							CurrentPos.Pos=&pFound[pNode->Length];
+							if (!CurrentPos.Pos[0])
+							{
+								goto feedermatchdoevents;
+							}
+							goto feedermatchnoevent;
+						}
+					}
+					else
+					if (!STRNCMP(pNode->pString,CurrentPos.Pos,pNode->Length))
+					{
+						// match. do events?
+//						CurrentPos.pNode=pNode;
+						CurrentPos.Pos+=pNode->Length;
 						if (!CurrentPos.Pos[0])
 						{
 							goto feedermatchdoevents;
 						}
 						goto feedermatchnoevent;
 					}
-				}
-				else
-				if (!STRNCMP(pNode->pString,CurrentPos.Pos,pNode->Length))
-				{
-					// match. do events?
-					CurrentPos.pNode=pNode;
-					CurrentPos.Pos+=pNode->Length;
-					if (!CurrentPos.Pos[0])
-					{
-						goto feedermatchdoevents;
-					}
-					goto feedermatchnoevent;
 				}
 				goto feedernomatch;
 			case BST_PRINTVAR:
@@ -469,36 +703,40 @@ private:
 				if (!pNode->Length)
 					goto feedernomatch;
 				BLECHASSERT(VarData[0]);
-				if (CurrentPos.pNode && CurrentPos.pNode->StringType==BST_SCANVAR)
+				if (CurrentPos.Pos+pNode->Length<=pEnd)
 				{
-					if (char *pFound=STRFIND(CurrentPos.Pos,VarData))
+					if (PLP && MatchStack[PLP-1].pNode && MatchStack[PLP-1].pNode->StringType==BST_SCANVAR)
 					{
-						CurrentPos.pNode=pNode;
-						CurrentPos.Pos=&pFound[pNode->Length];
-						if (!CurrentPos.Pos[0])
+						if (char *pFound=STRFIND(CurrentPos.Pos,VarData))
 						{
-							goto feedermatchdoevents;
+//							CurrentPos.pNode=pNode;
+							CurrentPos.Pos=&pFound[pNode->Length];
+							if (!CurrentPos.Pos[0])
+							{
+								goto feedermatchdoevents;
+							}
+							goto feedermatchnoevent;
 						}
-						goto feedermatchnoevent;
 					}
-				}
-				else
-				if (!STRNCMP(VarData,CurrentPos.Pos,pNode->Length))
-				{
-					CurrentPos.pNode=pNode;
-					CurrentPos.Pos+=pNode->Length;
-					if (!CurrentPos.Pos[0])
-						goto feedermatchdoevents;
-					goto feedermatchnoevent;						
+					else
+					if (!STRNCMP(VarData,CurrentPos.Pos,pNode->Length))
+					{
+//						CurrentPos.pNode=pNode;
+						CurrentPos.Pos+=pNode->Length;
+						if (!CurrentPos.Pos[0])
+							goto feedermatchdoevents;
+						goto feedermatchnoevent;						
+					}
 				}
 				goto feedernomatch;
 			case BST_SCANVAR:
 				// implied match
-				CurrentPos.pNode=pNode;
+//				CurrentPos.pNode=pNode;
 				if (!pNode->pChildren || pNode->pEvents)
 				{
-					Push();
-					CurrentPos.pNode=0;
+					//Push();
+
+					MatchStack[PLP+1].pNode=0;
 					goto feedermatchdoevents;
 				}
 				goto feedermatchnoevent;
@@ -518,7 +756,7 @@ feedermatchdoevents:
 					{
 						if (MatchStack[N+1].pNode->StringType!=BST_SCANVAR)
 						{
-			                unsigned long Length=MatchStack[N+1].Pos-MatchStack[N+1].pNode->Length-MatchStack[N].Pos;
+			                unsigned long Length=(unsigned long)(MatchStack[N+1].Pos-MatchStack[N+1].pNode->Length-MatchStack[N].Pos);
 							pValue->Value=(char*)malloc(Length+1);
 							memcpy(pValue->Value,MatchStack[N].Pos,Length);
 							pValue->Value[Length]=0;
@@ -531,7 +769,10 @@ feedermatchdoevents:
 					}
 					else
 					{
-						pValue->Value=strdup(MatchStack[N].Pos);
+//						if (N)
+//							pValue->Value=strdup(MatchStack[N].Pos+MatchStack[N-1].pNode->Length);
+//						else
+							pValue->Value=strdup(MatchStack[N].Pos);
 					}
 					pValue->pNext=pValues;
 					pValues=pValue;
@@ -539,6 +780,7 @@ feedermatchdoevents:
 			}
 			while(pEventNode)
 			{
+				Count++;
 				pEventNode->pEvent->Callback(pEventNode->pEvent->ID,pEventNode->pEvent->pData,pValues);
 				pEventNode=pEventNode->pNext;
 			}
@@ -557,8 +799,8 @@ feedermatchnoevent:
 			// continue walking tree
 			if (pNode->pChildren)
 			{
-				pNode=pNode->pChildren;
 				Push();
+				pNode=pNode->pChildren;
 			}
 			else if (pNode->pNext)
 			{
@@ -569,16 +811,27 @@ feedermatchnoevent:
 			else
 			{
 				Pop();
-				while(pNode=pNode->pParent)
+				while(1)
 				{
 					if (pNode->pNext)
 					{
 						pNode=pNode->pNext;
 						break;
 					}
-					Pop();
+
+					if (PLP)
+					{
+						Pop();
+					}
+					else
+					{
+						pNode=0;
+						break;
+					}
 				}
+
 			}
+			CurrentPos.pNode=pNode;
 			continue;
 feedernomatch:
 			// NO MATCH
@@ -587,23 +840,32 @@ feedernomatch:
 			if (pNode->pNext)
 			{
 				// position remains the same
+				Peek();
 				pNode=pNode->pNext;
 			}
 			else
 			{
 				// Pos goes down a level - dont reprocess the same child
 				Pop();
-				while(pNode=pNode->pParent)
+				while(1)
 				{
 					if (pNode->pNext)
 					{
 						pNode=pNode->pNext;
 						break;
 					}
-					Pop();
+					if (PLP)
+					{
+						Pop();
+					}
+					else
+					{
+						pNode=0;
+						break;
+					}
 				}
 			}
-
+			CurrentPos.pNode=pNode;
 		}
 		return Count;
 #undef Push
@@ -611,26 +873,115 @@ feedernomatch:
 #undef Peek
 	}
 
-	inline BlechNode *FindNode(unsigned long nRoot, char *Find, eBlechStringType FindStringType)
-	{
-		BlechDebug("FindNode(%d,%s,%d)",nRoot,Find,FindStringType);
-		BLECHASSERT(nRoot<256);
-		BlechNode *pNode=Tree[nRoot];
-		while(pNode)
-		{
-			if (FindStringType==pNode->StringType && !STRCMP(pNode->pString,Find))
-				return pNode;
-			pNode=pNode->pNext;
-		}
-		return 0;
-	}
-
-	inline BlechNode *AddNode(unsigned long nRoot, char *String, eBlechStringType StringType)
+	BlechNode *AddNode(unsigned long nRoot, char *String, eBlechStringType StringType)
 	{
 		BlechDebug("AddNode(%d,%s,%d)",nRoot,String,StringType);
 		BLECHASSERT(nRoot<256);
 		BLECHASSERT(String);
-		BlechNode *pNode = new BlechNode(0,&Tree[0],String,StringType);
+
+
+		BlechNode *pChild = Tree[nRoot];
+		while(pChild)
+		{
+			if (pChild->StringType==StringType)
+			{
+				if (StringType==BST_NORMAL)
+				{
+					if (unsigned long Eq=Equalness(pChild->pString,String))
+					{
+						unsigned long Len=(unsigned long)strlen(String);
+						if (Len==Eq)
+						{
+							if (Eq==pChild->Length)
+							{
+								return pChild;
+							}
+							// old child needs to be child of new child!
+
+
+							// remove pChild
+							if (pChild->pPrev)
+							{
+								pChild->pPrev->pNext=pChild->pNext;
+								pChild->pPrev=0;
+							}
+							else
+								Tree[nRoot]=pChild->pNext;
+							if (pChild->pNext)
+							{
+								pChild->pNext->pPrev=pChild->pPrev;
+								pChild->pNext=0;
+							}
+
+							// make new child, redo pChild as child of new child...
+							BlechNode *pNode = new BlechNode(0,&Tree[nRoot],String,StringType);
+							BLECHASSERT(pNode);
+							pNode->pNext=Tree[nRoot];
+							if (Tree[nRoot])
+								Tree[nRoot]->pPrev=pNode;
+							Tree[nRoot]=pNode;
+
+							pChild->pParent=Tree[nRoot];
+							Tree[nRoot]->pChildren=pChild;
+							memmove(pChild->pString,&pChild->pString[Eq],pChild->Length-Eq+1);
+							pChild->Length-=Eq;
+							return Tree[nRoot];
+							// and return that new child
+						}
+						else if (Eq==pChild->Length)
+						{
+							// easy one
+							return pChild->AddChild(&String[Eq],StringType);
+						}
+						// both children (new and old) need to be children of a new child
+
+						// remove pChild
+						if (pChild->pPrev)
+						{
+							pChild->pPrev->pNext=pChild->pNext;
+							pChild->pPrev=0;
+						}
+						else
+							Tree[nRoot]=pChild->pNext;
+						if (pChild->pNext)
+						{
+							pChild->pNext->pPrev=pChild->pPrev;
+							pChild->pNext=0;
+						}
+
+						// make new child, redo pChild as child of new child...
+						char Temp=pChild->pString[Eq];
+						pChild->pString[Eq]=0;
+						BlechNode *pNode = new BlechNode(0,&Tree[nRoot],pChild->pString,StringType);
+						pChild->pString[Eq]=Temp;
+						BLECHASSERT(pNode);
+						pNode->pNext=Tree[nRoot];
+						if (Tree[nRoot])
+							Tree[nRoot]->pPrev=pNode;
+						Tree[nRoot]=pNode;
+
+
+						pChild->pParent=Tree[nRoot];
+						Tree[nRoot]->pChildren=pChild;
+
+						memmove(pChild->pString,&pChild->pString[Eq],pChild->Length-Eq+1);
+						pChild->Length-=Eq;
+						return Tree[nRoot]->AddChild(&String[Eq],StringType);
+						// and return a very new child!
+					}
+				}
+				else
+				{
+					if (!strcmp(pChild->pString,String))
+						return pChild;
+				}
+			}
+			pChild=pChild->pNext;
+		}
+
+
+
+		BlechNode *pNode = new BlechNode(0,&Tree[nRoot],String,StringType);
 		BLECHASSERT(pNode);
 
 		pNode->pNext=Tree[nRoot];
@@ -647,7 +998,7 @@ feedernomatch:
 		BLECHASSERT(StringBegin && *StringBegin);
 		BLECHASSERT(StringEnd);
 
-		unsigned long Len=(StringEnd-StringBegin);
+		unsigned long Len=(unsigned long)(StringEnd-StringBegin);
 		char *String=(char*)malloc(Len+1);
 		memcpy(String,StringBegin,Len);
 		String[Len]=0;
@@ -667,20 +1018,20 @@ feedernomatch:
 #endif
 			}
 			
-			if (BlechNode *pFound=FindNode(Root,String,StringType))
-				return pFound;
-			return AddNode(Root,String,StringType);
+//			if (BlechNode *pFound=FindNode(Root,String,StringType))
+//				return pFound;
+			BlechNode *pNew=AddNode(Root,String,StringType);
+			free(String);
+			return pNew;
 		}
 		else
 		{
 			// attach to this node
 
-			// check for existing..
-			if (BlechNode *pFound=pNode->FindChild(String,StringType))
-				return pFound;
-
 			// create new
-			return pNode->AddChild(String,StringType);
+			BlechNode *pNew=pNode->AddChild(String,StringType);
+			free(String);
+			return pNew;
 		}
 	}
 
@@ -697,6 +1048,8 @@ feedernomatch:
 	}
 
 	BlechNode *Tree[256];
+
+	std::map<std::string,PBLECHEVENTNODE> ExactMatch;
 
 	BLECHEVENTMAP Event;
 
