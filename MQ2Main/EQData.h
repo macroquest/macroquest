@@ -563,7 +563,12 @@ union{
 /*0x9834*/  DWORD       CareerFavor; 
 /*0x9838*/  DWORD       Unknown0x9838; 
 /*0x983C*/  DWORD       CurrFavor; 
-/*0x9840*/  BYTE        Unknown0x9840[0x26c]; 
+/*0x9840*/  BYTE        Unknown0x9840[0x11c];  
+/*0x995c*/	DWORD		LeadershipRelated1;
+/*0x9960*/	DWORD		LeadershipRelated2;
+/*0x9964*/	DWORD		LeadershipRelated3;
+/*0x9968*/	DWORD		LeadershipRelated4;
+/*0x996c*/	BYTE		Unknown0x996c[0x140];
 /*0x9aac*/	struct		_CONTENTS* Bank[NUM_BANK_SLOTS]; 
 } CHARINFO, *PCHARINFO; 
 
@@ -745,8 +750,9 @@ typedef struct _SPAWNINFO {
 /*0x03C*/   FLOAT   SpeedZ;
 /*0x040*/   FLOAT   SpeedRun;
 /*0x044*/   FLOAT   Heading;
-/*0x048*/	BYTE	Unknown0x048[0x44];
-/*0x08c*/	FLOAT   CameraAngle; // WRONG!
+/*0x048*/   BYTE    Unknown0x048[0xC]; 
+/*0x054*/   FLOAT   CameraAngle; 
+/*0x058*/   BYTE    Unknown0x058[0x38]; 
 /*0x090*/	BYTE	UnknownData0x090[0x8]; // 8 values here (were all 128 for me)
 /*0x098*/	CHAR    Name[0x40]; // ie priest_of_discord00 
 /*0x0d8*/	CHAR    DisplayedName[0x40]; // ie Priest of Discord 
