@@ -254,6 +254,13 @@ typedef struct _ALIAS {
     CHAR szCommand[MAX_STRING];
 } ALIAS, *PALIAS;
 
+typedef struct _SUB {
+	struct _SUB *pNext;
+	struct _SUB *pLast;
+	CHAR szOrig[MAX_STRING];
+	CHAR szSub[MAX_STRING];
+} SUB, *PSUB;
+
 typedef struct _MQCOMMAND {
 	CHAR Command[64];
 	fEQCommand Function;

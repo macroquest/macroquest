@@ -1,3 +1,34 @@
+3 July 2004 by Amadeus:
+- Added new command:  /substitute
+  ** This new command allows you to create custom midline substitutions that will work
+  ** anywhere in a command.  It works VERY similarly to aliases in some respects, esp.
+  ** in how it is saved in the .ini file and how the commandline syntax is structured. 
+  ** Substitutes are called from any alias or commandline by using the percent sign (%)
+  ** followed by your orig. text.
+  **
+  ** Examples:  "/substitute mom Mother"
+  **            "/substitute omg Oh my god!"
+  **            "/substitute k %omg, kill %t before I tell your %mom"
+  **
+  ** The final example if you typed "/say %k" would produce:  "/say Oh my god!, kill
+  ** TARGET before I tell your Mother"
+  **
+  ** Please note the following rules/reminders:
+  ** 
+  ** 1.  You don't use the percent signs when creating the substitutions or editing your
+  **     config file.
+  ** 2.  You can use MQ's subsitutions without spaces around them (unlike EQs!) (ie: 
+  **     "/echo %omg%mom" would return "/echo Oh my god!Mother"
+  ** 3.  Substitutions do not currently work in macros.
+  ** 4.  "/sub" is currently a valid shorthand for "/subsitute"
+  ** 5.  You can use EQ's wildcards (ie: %t) within your substitutions; however, you 
+  **     have to leave spaces around them (yes, they suck)
+  ** 6.  You cannot CURRENTLY replace EQ wildcards with MQ substitutions (ie, you can't
+  **     make a replacement for %m (This may be supported in the future.)
+  **
+- Fixed CONTENTS struct (thanks ieatacid)
+- Fixed routines.mac, arrows.mac, and arraytest.mac (Dont_know_at_all)
+
 2 July 2004 by Amadeus:
 - Fixed "/who guild <guildname>" on some servers (It seems that on some servers, SOE
   removed guilds but left the entry giving bogus guild entries in the list where the

@@ -3520,6 +3520,79 @@ VOID Alias(PSPAWNINFO pChar, PCHAR szLine)
     }
 }
 
+// ***************************************************************************
+// Function:    Substitute
+// Description: Our '/substitute' command
+//              Add substitutions
+// Usage:       /substitution <original> <new>
+//				/substitution list
+//				/substitition <original> delete
+// ***************************************************************************
+
+VOID RewriteSubstitutions(VOID)
+{
+    PSUB pSubLoop = pSubs;
+    WritePrivateProfileSection("Substitutions","",gszINIFilename);
+    while (pSubLoop) {
+		WritePrivateProfileString("Substitutions",pSubLoop->szOrig,pSubLoop->szSub,gszINIFilename);
+        pSubLoop = pSubLoop->pNext;
+    }
+}
+
+
+VOID Substitute(PSPAWNINFO pChar, PCHAR szLine)
+{
+    CHAR szBuffer[MAX_STRING] = {0};
+    CHAR szName[MAX_STRING] = {0};
+    PCHAR szCommand = NULL;
+    GetArg(szName,szLine,1);
+    szCommand = GetNextArg(szLine);
+    if (!stricmp(szName,"list")) {
+        PSUB pLoop = pSubs;
+        DWORD Count=0;
+        WriteChatColor("Substitutions",USERCOLOR_WHO);
+        WriteChatColor("--------------------------",USERCOLOR_WHO);
+        while (pLoop) {
+			sprintf(szName,"%s\t----\t%s",pLoop->szOrig,pLoop->szSub);
+            WriteChatColor(szName,USERCOLOR_WHO);
+            Count++;
+            pLoop = pLoop->pNext;
+        }
+        if (Count==0) {
+            WriteChatColor("No Substitutions defined.",USERCOLOR_WHO);
+        } else {
+            sprintf(szName,"%d substitution%s displayed.",Count,(Count==1)?"":"s");
+            WriteChatColor(szName,USERCOLOR_WHO);
+        }
+        return;
+    }
+    if ((szName[0]==0) || (szCommand[0]==0)) {
+        SyntaxError("Usage: /substitute <orig> <new>, /substitute <orig> delete, or /substitute list");
+        return;
+    }
+
+    if (!stricmp(szCommand,"delete")) {
+		if (RemoveSubstitute(szName))
+		{
+            sprintf(szBuffer,"Substitution for '%s' deleted.",szName);
+            RewriteSubstitutions();
+            WriteChatColor(szBuffer,USERCOLOR_DEFAULT);
+		}
+		else
+		{
+	        sprintf(szBuffer,"Substitution for '%s' not found.",szName);
+			WriteChatColor(szBuffer,USERCOLOR_DEFAULT);
+		}
+    } else {
+		BOOL New=1;
+		if (RemoveSubstitute(szName))
+			New=0;
+		AddSubstitute(szName,szCommand);
+        sprintf(szBuffer,"Substitution for '%s' %sed.",szName,(New)?"add":"updat");
+        WriteChatColor(szBuffer,USERCOLOR_DEFAULT);
+        RewriteSubstitutions();
+    }
+}
 
 // ***************************************************************************
 // Function:   IniOutput

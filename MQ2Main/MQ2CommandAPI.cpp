@@ -51,6 +51,7 @@ VOID HideDoCommand(PSPAWNINFO pChar, PCHAR szLine, BOOL delayed)
 		}
 		return;
 	}
+
     CAutoLock DoCommandLock(&gCommandCS);
     CHAR szCmd[MAX_STRING] = {0};
     CHAR szParam[MAX_STRING] = {0};
@@ -144,11 +145,71 @@ public:
 		CHAR szFullCommand[MAX_STRING] = {0}; 
 		CHAR szCommand[MAX_STRING] = {0}; 
 		CHAR szArgs[MAX_STRING] = {0}; 
-
+		CHAR szOrig[MAX_STRING] = {0};
+		CHAR szSub[MAX_STRING] = {0};
+		string szSubFullCommand = "";
+	    unsigned int k=0;
+		bool OneCharacterSub = false;
 		PALIAS pLoop = pAliases; 
+		PSUB pSubLoop = pSubs;
+
 		if (szFullLine[0]!=0) { 
 			strcpy(szFullCommand,szFullLine); 
 			GetArg(szCommand,szFullCommand,1); 
+
+			szSubFullCommand = szFullCommand;
+			for (unsigned int i=0; i < sizeof(szFullCommand); i++ ) 
+			{
+				if (szFullCommand[i] == '%') 
+				{
+					if (szFullCommand[i+2] == ' ' || szFullCommand[i+2] == '\0' ||
+						!isalnum(szFullCommand[i+2]) ) {
+						if (szFullCommand[i+1] == 'm' || szFullCommand[i+1] == 'M' ||
+							szFullCommand[i+1] == 'o' || szFullCommand[i+1] == 'O' ||
+							szFullCommand[i+1] == 'p' || szFullCommand[i+1] == 'P' ||
+							szFullCommand[i+1] == 'r' || szFullCommand[i+1] == 'R' ||
+							szFullCommand[i+1] == 's' || szFullCommand[i+1] == 'S' ||
+							szFullCommand[i+1] == 't' || szFullCommand[i+1] == 'T' )
+							continue;
+						else { 
+							szOrig[0] = szFullCommand[i+1];
+							szOrig[1] = '\0';
+							k = 1;
+							OneCharacterSub = true;
+						}
+					}
+
+					if (!OneCharacterSub) {
+						for (unsigned int j=i+1; j < sizeof(szFullCommand); j++ )
+						{
+							if (szFullCommand[j] == ' ' || szFullCommand[j] == '\0' ) 
+								break;
+							else if (!isalnum(szFullCommand[j]))
+								break;
+							szOrig[k] = szFullCommand[j];
+							k++;
+						}
+					}
+					while (pSubLoop)
+					{
+						if (!stricmp(szOrig, pSubLoop->szOrig)) 
+						{
+							sprintf( szSub, "%s", pSubLoop->szSub );
+							break;
+						}
+						pSubLoop = pSubLoop->pNext;
+					}
+					szSubFullCommand.replace(i,k+1,szSub);
+					sprintf( szFullCommand, "%s",szSubFullCommand.c_str() ); 
+					szOrig[0] = '\0';
+					szSub[0] = '\0';
+					k=0;
+					OneCharacterSub = false;
+					pSubLoop = pSubs;
+				}
+			}
+			sprintf(szFullCommand, "%s", szSubFullCommand.c_str() );
+
 			while (pLoop) { 
 				if (!stricmp(szCommand,pLoop->szName)) { 
 					sprintf(szCommand,"%s%s",pLoop->szCommand,szFullCommand+strlen(pLoop->szName)); 
@@ -159,7 +220,6 @@ public:
 			} 
 			GetArg(szCommand,szFullCommand,1); 
 			strcpy(szArgs, GetNextArg(szFullCommand)); 
-
 
 			PMQCOMMAND pCommand=pCommands;
 			while(pCommand)
@@ -346,6 +406,79 @@ BOOL RemoveAlias(PCHAR ShortCommand)
 	return 0;
 }
 
+void AddSubstitute(PCHAR Original, PCHAR Substitution)
+{
+	DebugSpew("AddSubstitute(%s,%s)",Original,Substitution);
+	// perform insertion sort
+	if (!pSubs)
+	{
+		PSUB pSub=new SUB;
+		memset(pSub,0,sizeof(SUB));
+		strcpy(pSub->szOrig,Original);
+		strcpy(pSub->szSub,Substitution);
+		pSubs=pSub;
+		return;
+	}
+	PSUB pInsert=pSubs;
+	PSUB pLast=0;
+	while(pInsert)
+	{
+		int Pos=stricmp(Original,pInsert->szOrig);
+		if (Pos<0)
+		{
+			// insert here.
+			PSUB pSub=new SUB;
+			memset(pSub,0,sizeof(SUB));
+			strcpy(pSub->szOrig,Original);
+			strcpy(pSub->szSub,Substitution);
+			if (pLast)
+				pLast->pNext=pSub;
+			else
+				pSubs=pSub;
+			pSub->pLast=pLast;
+			pInsert->pLast=pSub;
+			pSub->pNext=pInsert;
+			return;
+		}
+		if (Pos==0)
+		{
+			strcpy(pInsert->szOrig,Original);
+			strcpy(pInsert->szSub,Substitution);
+			return;
+		}
+		pLast=pInsert;
+		pInsert=pInsert->pNext;
+	}
+	// End of list
+	PSUB pSub=new SUB;
+	memset(pSub,0,sizeof(SUB));
+	strcpy(pSub->szOrig,Original);
+	strcpy(pSub->szSub,Substitution);
+	pLast->pNext=pSub;
+	pSub->pLast=pLast;
+}
+
+BOOL RemoveSubstitute(PCHAR Original)
+{
+	PSUB pSub=pSubs;
+	while(pSub)
+	{
+		if (!stricmp(Original,pSub->szOrig))
+		{
+			if (pSub->pNext)
+				pSub->pNext->pLast=pSub->pLast;
+			if (pSub->pLast)
+				pSub->pLast->pNext=pSub->pNext;
+			else
+				pSubs=pSub->pNext;
+			delete pSub;
+			return 1;
+		}
+		pSub=pSub->pNext;
+	}
+	return 0;
+}
+
 void InitializeMQ2Commands()
 {
 	DebugSpew("Initializing Commands");
@@ -389,6 +522,7 @@ void InitializeMQ2Commands()
         {"/help",       Help,1,0},
         {"/target",     Target,1,1},
         {"/alias",      Alias,0,0},
+		{"/substitute", Substitute,0,0},
         {"/filter",     Filter,1,0},
 		{"/whofilter",	SWhoFilter,1,1},
         {"/spewfile",   DebugSpewFile,1,0},
@@ -512,6 +646,23 @@ void InitializeMQ2Commands()
         }
         pAliasList+=strlen(pAliasList)+1;
     }
+
+	// Here is where you can add in permanent Substitutions
+	AddSubstitute("omg","Oh My God");
+
+	//Importing the User's Substitution List from .ini file
+	CHAR SubsList[MAX_STRING*10] = {0};
+    CHAR szBuffer2[MAX_STRING] = {0};
+    sprintf(MainINI,"%s\\macroquest.ini",gszINIPath);
+	GetPrivateProfileString("Substitutions",NULL,"",SubsList,MAX_STRING*10,MainINI);
+    PCHAR pSubsList = SubsList;
+    while (pSubsList[0]!=0) {
+        GetPrivateProfileString("Substitutions",pSubsList,"",szBuffer2,MAX_STRING,MainINI);
+        if (szBuffer[0]!=0) {
+			AddSubstitute(pSubsList,szBuffer2);
+        }
+        pSubsList+=strlen(pSubsList)+1;
+    }
 }
 
 void ShutdownMQ2Commands()
@@ -541,6 +692,12 @@ void ShutdownMQ2Commands()
 		PALIAS pNext=pAliases->pNext;
 		delete pAliases;
 		pAliases=pNext;
+	}
+	while(pSubs)
+	{
+		PSUB pNext=pSubs->pNext;
+		delete pSubs;
+		pSubs=pNext;
 	}
 
 	LeaveCriticalSection(&gCommandCS);

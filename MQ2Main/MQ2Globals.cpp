@@ -822,5 +822,6 @@ PMQXMLFILE pXMLFiles=0;
 DWORD ManaGained=0;
 DWORD HealthGained=0;
 PALIAS pAliases=0;
+PSUB pSubs=0;
 PMQCOMMAND pCommands=0;
 };
