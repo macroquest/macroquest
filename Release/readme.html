@@ -1,5 +1,4 @@
 <!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
-
 <html>
 <head>
 <title>Macroquest 2 Documentation</title>
@@ -7,7 +6,6 @@
 	table {
 		border-collapse: collapse;
 	}
-<--! remove for manual.php -->
 	body {
 		background-image: url(http://macroquest.sourceforge.net/bg.png);
 		background-position: 50% 50%;
@@ -18,8 +16,6 @@
 		font-size: 16px;
 		font-family: Arial;
 	}
-<--! remove -->
-
 	.arg {
 		font-style: italic;
 	}
@@ -27,7 +23,6 @@
 		font-weight: bold;
 	}
 	.command {
-<--! color: Red; for manual.php --> 
 		color: Black;
 		font-weight: bold;
 	}
@@ -39,7 +34,6 @@
 		font-weight: bold;
 	}
 	.opt {
-<--! color: #8080CD; for manual.php --> 
 		color: #0000CD;
 	}
 	.spacercom {
@@ -64,7 +58,7 @@
 <body>
 <div align="center">
 <span class="txtbold">MacroQuest 2 Manual</span><br>
-Last Updated: January 25, 2004<br>
+Last Updated: February 20, 2004<br>
 <a href="http://macroquest.sf.net/" target="_blank">http://macroquest.sf.net/</a><br>
 PM Wassup on the MQ website if you have comments or suggestions about the manual<br><br>
 </div>
@@ -139,6 +133,7 @@ PM Wassup on the MQ website if you have comments or suggestions about the manual
 <a href="#uiref">MacroQuest 2 and the UI</a><br>
 &nbsp;&nbsp;&nbsp;&nbsp;<a href="#labelid">Using label id's</a><br>
 &nbsp;&nbsp;&nbsp;&nbsp;<a href="#tooltype">Using the tooltype</a><br>
+<a href="#mqplug">MacroQuest 2 Plugin's</a><br>
 <a href="#telnet">Telnet Server</a><br>
 <a href="#compareop">Appendix A: Comparison Operators</a><br>
 <a href="#mathop">Appendix B: Math Operators</a><br>
@@ -152,7 +147,7 @@ PM Wassup on the MQ website if you have comments or suggestions about the manual
 <a name="downloading" id="downloading"></a>
 <span class="txtbold">Downloading MacroQuest 2 Source Files</span><br>
 To get the source files download them from the MacroQuest home page at:
-<a href="http://macroquest.sourceforge.net/downloads/MQ2-Latest.zip" target="_blank">Macroquest Archive</a><br><br>
+<a href="http://macroquest.sourceforge.net/downloads/MQ2-latest.zip" target="_blank">Macroquest Archive</a><br><br>
 
 <a name="compiling" id="compiling"></a>
 <span class="txtbold">Compiling MacroQuest 2</span><br>
@@ -241,13 +236,13 @@ Every macro has a Sub Main that defines the macro's entry point.<br><br>
 <span class="doubletab"><span class="txtbold">.</span></span><br>
 <span class="doubletab">&lt;code&gt;</span><br>
 <span class="doubletab"><span class="txtbold">.</span></span><br>
-<span class="tab"><span class="txtbold">/return</span></span><br><br>
+<span class="tab"><span class="txtbold">/endmacro</span></span><br><br>
 
-Additional Subs can be defined and /called. Upon return the macro will return to the statement after the call.<br><br>
+Additional Subs can be defined and used with /call. /return will return to the statement after the /call.<br><br>
 <span class="tab"><span class="txtbold">Sub Main</span></span><br>
 <span class="doubletab"><span class="command">/call</span> <span class="arg">MySub</span> <span class="arg">@var1 @var2 @var3</span></span><br>
 <span class="doubletab"><span class="command">/echo</span> This value was returned from MySub<span class="txtbold">:</span>&nbsp; <span class="command">$return</span></span><br>
-<span class="tab"><span class="command">/return</span></span><br><br>
+<span class="tab"><span class="command">/endmacro</span></span><br><br>
 <span class="tab"><span class="txtbold">Sub <span class="arg">MySub</span></span>[(<span class="arg">Param0</span>,...[<span class="arg">Param_n</span>]</span>)]<br>
 <span class="doubletab">execute this code when /call <span class="arg">MySub</span> is executed. Parameters are not necessary.</span><br>
 <span class="tab"><span class="txtbold">/return</span> [<span class="arg">value</span>|<span class="arg">@varname</span>]</span><br><br>
@@ -255,11 +250,11 @@ Additional Subs can be defined and /called. Upon return the macro will return to
 Special subroutines starting with Event_ are used by <span class="command">/doevents</span> (Chat and Timers)<br><br>
 <span class="tab"><span class="txtbold">Sub <span class="arg">Event_Chat</span></span>[(<span class="arg">ChatType</span>,<span class="arg">Sender</span>,<span class="arg">ChatText</span>)]</span><br>
 <span class="doubletab">This code is executed when <span class="command">/doevents</span> finds(queues) text in the channel defined by #chat "<span class="arg">channel</span>"</span><br>
-<span class="tab"><span class="txtbold">/return</span> [value]</span><br><br>
+<span class="tab"><span class="txtbold">/return</span> [<span class="arg">value</span>|<span class="arg">@varname</span>]</span><br><br>
 
 <span class="tab"><span class="txtbold">Sub</span> <span class="arg">Event_Timer</span>[(<span class="arg">Timer</span>,<span class="arg">OriginalValue</span>)]</span><br>
 <span class="doubletab">This code is executed when /doevents detects(queues) any defined timer reaching 0</span><br>
-<span class="tab"><span class="txtbold">/return</span> [value]</span><br><br>
+<span class="tab"><span class="txtbold">/return</span> [<span class="arg">value</span>|<span class="arg">@varname</span>]</span><br><br>
 
 <span class="tab"><span class="txtbold">Sub</span> <span class="arg">Event_Chat</span>[(<span class="arg">ChatType,Sender,ChatText</span>)]</span><br>
 <span class="doubletab">ChatType : Channel of message</span><br>
@@ -357,8 +352,8 @@ Returns Your current bind zone and location.<br>
 Closes all open windows and then opens inventory window<br><br>
 
 <span class="command">/click</span> <span class="opt">left</span>|<span class="opt">right</span> [<span class="opt">corpse</span>|<span class="opt">target</span>|<span class="opt">windowloc</span>] 
-[[<span class="opt">+-</span>]<span class="arg">x</span> [<span class="opt">+-</span>]<span class="arg">y</span>] [<span class="arg">slotname</span>]
-[<span class="opt">pack</span> <span class="arg">#</span> [<span class="arg">slot#</span> <span class="opt">combine</span>|<span class="opt">done</span>]]<br>
+[ [<span class="opt">+-</span>]<span class="arg">x</span> [<span class="opt">+-</span>]<span class="arg">y</span> ] [<span class="arg">slotname</span>]
+[<span class="opt">pack</span> <span class="arg">#</span> [ <span class="opt">combine</span>|<span class="opt">done</span>] [<span class="arg">slot#</span>] ] <br>
 Clicks the left/right mouse button at coordinates or a defined location.<br><br>
 Examples:<br>
 <blockquote>
@@ -370,6 +365,7 @@ document.write("/click left +30 -30\t\tPerforms a left mouse click 30 pixels rig
 document.write("/click right lfinger\tPerforms a right click of the left finger slot\r")
 document.write("/click left pack 4 done\tPerforms a left click on the DONE button of pack 4\r")
 document.write("/click right target\t\tPerforms a right click on your current target\r")
+document.write("/click left pack 3 0\tPerforms a left click in pack 3 slot 0\r")
 document.write("</XMP>")
 </SCRIPT>
 </blockquote>
@@ -390,7 +386,7 @@ document.write("</XMP>")
 </SCRIPT>
 </blockquote>
 <span class="command">/destroy</span><br>
-Destroy's whatever you have on your cursor. Use with care.<br><br>
+Destroys whatever you have on your cursor. Use with care. [Not an MQ2 command but placed in the documentation for reference]<br><br>
 Example:<br><br>
 <span class="doubletab">/if "$cursor(name)"~~"rusty" /destroy</span><br><br>
 
@@ -424,17 +420,6 @@ Allows you to edit text files from within the EQ client<br><br>
 
 <span class="command">/endmacro</span><br>
 Stops the macro<br><br>
-
-<span class="command">/exec</span> [<span class="opt">application</span>] [<span class="opt">fg|bg</span>]
-<br>
-Invoke the shell.<br><br>
-<blockquote>
-<SCRIPT LANGUAGE="Javascript">
-document.write("<XMP>")
-document.write("/exec loud.wav fg\t\t\t\tPlay the wav file with default player\r")
-document.write("</XMP>")
-</SCRIPT>
-</blockquote>
 
 <a name="f" id="f"></a>
 <span class="command">/face</span> [<span class="opt">predict</span>] [<span class="opt">fast</span>] [<span class="opt">look</span>] [<span class="opt">away</span>] 
@@ -894,7 +879,7 @@ Examples:
 <span class="tab">/varset varname1 2</span><br>
 <span class="tab">/varand varname1 3</span><br>
 <span class="tab">/echo 2&amp3 is 2 -> @varname1</span><br>
-<span class="command">/return</span><br><br>
+<span class="command">/endmacro</span><br><br>
 <span class="txtbold">Sub Main</span><br>
 <span class="tab">/declare varname1 local</span><br>
 <span class="tab">/declare varname2 local</span><br>
@@ -902,7 +887,7 @@ Examples:
 <span class="tab">/varset varname2 3</span><br>
 <span class="tab">/varand varname1 @varname2</span><br>
 <span class="tab">/echo 2&amp3 is 2 -> @varname1</span><br>
-<span class="txtbold">/return</span>
+<span class="txtbold">/endmacro</span>
 </blockquote>
 
 <span class="command">/varcalc</span> <span class="arg">varname</span> <span class="arg">equation</span><br>
@@ -924,7 +909,7 @@ Example:
 <span class="tab"></span>/varcat Result 999<br>
 <span class="tab"></span>/varcat Result "10 25 16"<br>
 <span class="tab"></span>/echo Result is FirstSecond99910 -> @Result<br>
-<span class="txtbold">/return</span><br>
+<span class="txtbold">/endmacro</span><br>
 </blockquote>
 
 <span class="command">/varlshift</span> <span class="arg">varname</span> <span class="arg">n</span>|<span class="arg">@varname2</span> (same result as @varname*2^n)<br>
@@ -936,7 +921,7 @@ Examples:
 <span class="tab">/varset MyVar 13</span><br>
 <span class="tab">/varlshift MyVar 2</span><br>
 <span class="tab">/echo 13 left shift 2 is 52 -> @MyVar</span><br>
-<span class="txtbold">/return</span><br><br>
+<span class="txtbold">/endmacro</span><br><br>
 
 <span class="txtbold">Sub Main</span><br>
 <span class="tab">/declare MyVar local</span><br>
@@ -945,7 +930,7 @@ Examples:
 <span class="tab">/varset Shift 2</span><br>
 <span class="tab">/varlshift MyVar @Shift</span><br>
 <span class="tab">/echo 13 left shift 2 is 52 -> @MyVar</span><br>
-<span class="txtbold">/return</span><br>
+<span class="txtbold">/endmacro</span><br>
 </blockquote>
 
 <span class="command">/varor</span> <span class="arg">varname1</span> <span class="arg">value</span>|<span class="arg">@varname2</span><br>
@@ -957,7 +942,7 @@ Examples:<br>
 <span class="tab">/varset varname1 1</span><br>
 <span class="tab">/varor varname1 2</span><br>
 <span class="tab">/echo 1|2 is 3 -> @varname1</span><br>
-<span class="txtbold">/return</span><br><br>
+<span class="txtbold">/endmacro</span><br><br>
 
 <span class="txtbold">Sub Main</span><br>
 <span class="tab">/declare varname1 local</span><br>
@@ -966,7 +951,7 @@ Examples:<br>
 <span class="tab">/varset varname2 2</span><br>
 <span class="tab">/varor varname1 @varname2</span><br>
 <span class="tab">/echo 1|2 is 3 -> @varname1</span><br>
-<span class="txtbold">/return</span><br>
+<span class="txtbold">/endmacro</span><br>
 </blockquote>
 
 <span class="command">/varrshift</span> <span class="arg">varname1</span> <span class="arg">n</span>|<span class="arg">@varname2</span> (same result as @varname/2^n).<br>
@@ -978,7 +963,7 @@ Examples:
 <span class="tab">/varset MyVar 13</span><br>
 <span class="tab">/varrshift MyVar 2</span><br>
 <span class="tab">/echo 13 right shift 2 is 3 -> @MyVar</span><br>
-<span class="txtbold">/return</span><br><br>
+<span class="txtbold">/endmacro</span><br><br>
 
 <span class="txtbold">Sub Main</span><br>
 <span class="tab">/declare MyVar local</span><br>
@@ -987,7 +972,7 @@ Examples:
 <span class="tab">/varset Shift 2</span><br>
 <span class="tab">/varrshift MyVar @Shift</span><br>
 <span class="tab">/echo 13 right shift 2 is 3 -> @MyVar</span><br>
-<span class="txtbold">/return</span><br>
+<span class="txtbold">/endmacro</span><br>
 </blockquote>
 
 <span class="command">/varset</span> <span class="arg">varname</span> <span class="arg">value</span>|<span class="arg">@varname2</span><br>
@@ -1202,9 +1187,17 @@ Returns the value of an equation<br><br>
     <td><span class="opt">deity</span>[<span class="opt">,team</span>]</td>
     <td>Returns your deity, or what team (good, neutral, evil) if ,team is used.</td>
   </tr>
+   <tr> 
+    <td><span class="opt">endurance,cur</span></td>
+    <td>Returns your character's current endurance</td>
+  </tr>
   <tr> 
     <td><span class="opt">exp</span></td>
     <td>Returns your characters current experience</td>
+  </tr>
+  <tr> 
+    <td><span class="opt">favor,cur | career</span></td>
+    <td>Returns your characters current or career favor value (Tribute System)</td>
   </tr>
   <tr> 
     <td><span class="opt">feetwet</span></td>
@@ -1247,6 +1240,10 @@ Returns the value of an equation<br><br>
   <tr> 
     <td><span class="opt">heading</span></td>
     <td>Returns the direction your character is facing, in degrees</td>
+  </tr>
+  <tr> 
+    <td><span class="opt">height</span></td>
+    <td>Returns your character's height</td>
   </tr>
   <tr> 
     <td><span class="opt">held</span>,<span class="opt">left</span>|<span class="opt">right</span>|<span class="opt">shield</span></td>
@@ -1432,17 +1429,36 @@ document.write("</XMP>")
 </SCRIPT>
 </blockquote> 
 
-<span class="command">$distance</span>(<span class="opt">y</span>,<span class="opt">x</span>|<span class="opt">item</span>|<span class="opt">door</span>)<br>
-Returns the distance to the specified target<br>
-<blockquote>
-<SCRIPT LANGUAGE="Javascript">
-document.write("<XMP>")
-document.write("$distance(y, x)\t\tReturns the distance to a location\r")
-document.write("$distance(item)\t\tReturns the distance to last /itemtarget\r")
-document.write("$distance(door)\t\tReturns the distance to last /doortarget\r")
-document.write("</XMP>")
-</SCRIPT>
-</blockquote> 
+<span class="command">$distance</span>(<span class="opt">option</span>)<br>
+Returns a distance based on the options shown below<br><br>
+
+<table width="100%" border="1" cellpadding="2" cellspacing="0">
+  <tbody>
+  <tr> 
+    <td width="140"><span class="arg">y</span>,<span class="arg">x</span>[,<span class="arg">z</span>]</td>
+    <td width="404">Returns the distance to a location</td>
+  </tr>
+  <tr> 
+    <td><span class="arg">y</span>,
+	    <span class="arg">x</span>
+		[,<span class="arg">z</span>]
+		:
+		<span class="arg">y</span>,
+		<span class="arg">x</span>
+		[,<span class="arg">z</span>]
+    </td>
+    <td> Returns the distance between two locations</td>
+  </tr>
+  <tr> 
+    <td><span class="opt">item</span></td>
+    <td>Returns the distance to the last /itemtarget</td>
+  </tr>
+  <tr> 
+    <td><span class="opt">door</span></td>
+    <td>Returns the distance to the last /doortarget</td>
+  </tr>
+</tbody>
+</table><br>
 
 <span class="command">$door</span>(<span class="opt">option</span>)<br>
 Returns information on the last /doortarget<br>
@@ -1653,6 +1669,48 @@ Returns the current mouse coords.<br><br>
 Returns pack information, use "e" for pack to get environmental pack information.<br>
 <span class="opt">option</span> can be: name, open, size, slots, weight, space, empty<br><br>
 
+<span class="command">$pet</span>(<span class="opt">option</span>)<br>
+Returns information on your character's pet<br><br>
+<table width="100%" border="1" cellpadding="2" cellspacing="0">
+  <tbody>
+  <tr> 
+    <td><span class="opt">buff</span>,"<span class="arg">spellname</span>"</td>
+    <td>Returns the buff slot number</td>
+  </tr>
+  <tr> 
+    <td width="140"><span class="opt">buff</span>,<span class="arg">#</span>,id</td>
+    <td width="404">Returns the spellID for the buff slot #</td>
+  </tr>
+  <tr> 
+    <td><span class="opt">buff</span>,<span class="arg">#</span>,name</td>
+    <td>Returns the buff name for the buff slot #</td>
+  </tr>
+  <tr> 
+    <td><span class="opt">class</span></td>
+    <td>Returns your pet's class</td>
+  </tr>
+  <tr> 
+    <td><span class="opt">id</span></td>
+    <td>Returns your pet's spawnID</td>
+  </tr>
+  <tr> 
+    <td><span class="opt">level</span></td>
+    <td>Returns your pet's level</td>
+  </tr>  
+  <tr> 
+    <td><span class="opt">name</span></td>
+    <td>Returns your pet's name</td>
+  </tr>  
+  <tr> 
+    <td><span class="opt">race</span></td>
+    <td>Returns your pet's race</td>
+  </tr>
+  <tr> 
+    <td><span class="opt">x</span> | <span class="opt">y</span> | <span class="opt">z</span></td>
+    <td>Returns your pet's x, y, or z coordinate<br></td>
+  </tr>
+</tbody>
+</table><br>
 <a name="qv" id="qv"></a>
 <a name="rv" id="rv"></a>
 <span class="command">$rand</span>(<span class="arg">max#</span>)<br>
@@ -1711,6 +1769,14 @@ Returns information on a spawn<br>
 <table width="100%" border="1" cellpadding="2" cellspacing="0">
   <tbody>
   <tr> 
+    <td width="140"><span class="arg">#</span>,<span class="opt">maxrange</span></td>
+    <td width="404">Returns the maximum melee range of the specified spawnID #</td>
+  </tr>
+  <tr> 
+    <td><span class="arg">#</span>,<span class="opt">height</span></td>
+    <td>Returns the height of spawnID #</td>
+  </tr>
+  <tr> 
     <td width="140"><span class="opt">class</span></td>
     <td width="404">Returns the spawn's class</td>
   </tr>
@@ -1727,7 +1793,7 @@ Returns information on a spawn<br>
   </tr>
   <tr> 
     <td><span class="opt">gm</span></td>
-    <td>************* NEED INFO ON THIS *****************</td>
+    <td>**** NEED INFO ON THIS ****</td>
   </tr>
   <tr> 
     <td><span class="opt">heading</span></td>
@@ -1737,6 +1803,7 @@ Returns information on a spawn<br>
     <td><span class="opt">headingto</span></td>
     <td>Returns the direction to the spawn from your location.</td>
   </tr>
+  
   <tr> 
     <td><span class="opt">held</span>,<span class="opt">option</span></td>
     <td>Returns the model name for a held slot<br><span class="opt">option</span> can be: right, left, shield<br></td>
@@ -1901,6 +1968,10 @@ Returns information on the current target<br>
     <td>Returns the direction to your target in degrees</td>
   </tr>
   <tr> 
+    <td><span class="opt">height</span></td>
+    <td>Returns the height of your current target</td>
+  </tr>
+  <tr> 
     <td><span class="opt">holding</span></td>
     <td>Returns:<br>
 	    0 if target is holding nothing.<br>
@@ -1934,6 +2005,10 @@ Returns information on the current target<br>
   <tr> 
     <td><span class="opt">master</span></td>
     <td>Returns the id of the pet's master</td>
+  </tr>
+  <tr> 
+    <td><span class="opt">maxrange</span></td>
+    <td>Returns the maximum melee range of your target</td>
   </tr>
   <tr> 
     <td><span class="opt">name[,clean]</span></td>
@@ -2065,6 +2140,9 @@ The current built-in label ids are:<br><br>
 <span class="labelid">3010</span>: $date(d)<br> 
 <span class="labelid">3011</span>: $gm<br> 
 <span class="labelid">3012</span>: $freeinv(space)<br><br>
+
+<span class="labelid">4000</span>: $macro<br>
+<span class="labelid">4001</span>: $running<br><br>
 
 <span class="boldtype">Example</span>:<br><br>
 <blockquote>
@@ -2648,13 +2726,13 @@ Rizwank's prettying up the original manual and adding macro walkthroughs.<br>
 Sparr's excellent job at finding offsets for 7/24 and other cool feats.<br>
 m0nk for many crazy ideas<br>
 Xaanin for finding all the memory addresses while I was gone<br>
-Zaphod (dohpaZ) for the first patch submission!<br>
+Dohpaz for the first patch submission!<br>
 DeathSpiral for taking over the SF portion of the site<br><br>
 
 <a name="faq" id="faq"></a>
 <span class="txtbold">FAQ</span><br><br>
 
-Q: What is this error: fatal error C1083: Cannot open include file: 'MQ2Auth0.h': No such file or directory</span><br>
+Q: What is this error: fatal error C1083: Cannot open include file: 'MQ2Auth0.h': No such file or directory<br>
 A: Run mq2auth.exe in the location it was extracted to<br><br>
 
 Q: I dont see any output when I run a macro<br>
