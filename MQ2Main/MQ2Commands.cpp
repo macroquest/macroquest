@@ -3256,8 +3256,8 @@ PSPAWNINFO SearchThroughSpawns(PSEARCHSPAWN pSearchSpawn, PSPAWNINFO pChar)
     if (pFromSpawn) DistanceToTarget = DistanceToSpawn(pChar,pFromSpawn);
 
         for (pSpawn = pSpawnInfo; pSpawn; pSpawn=pSpawn->pNext) {
-            if (
-            (strstr(CleanupName(_strlwr(strcpy(szName,pSpawn->Name)),FALSE),pSearchSpawn->szName)) &&
+            if (((strstr(_strlwr(strcpy(szName,pSpawn->Name)),pSearchSpawn->szName)) ||
+            (strstr(CleanupName(_strlwr(strcpy(szName,pSpawn->Name)),FALSE),pSearchSpawn->szName))) &&
                 (!strstr(CleanupName(_strlwr(strcpy(szName,pSpawn->Name)),FALSE),"`s mount")) &&
             (pSpawn->Level >= pSearchSpawn->MinLevel) &&
             (pSpawn->Level <= pSearchSpawn->MaxLevel) &&
@@ -3398,7 +3398,8 @@ BOOL SpawnMatchesSearch(PSEARCHSPAWN pSearchSpawn, PSPAWNINFO pChar, PSPAWNINFO 
     CHAR szName[MAX_STRING] = {0};
 
     if (
-            (strstr(CleanupName(_strlwr(strcpy(szName,pSpawn->Name)),FALSE),pSearchSpawn->szName)) &&
+            ((strstr(_strlwr(strcpy(szName,pSpawn->Name)),pSearchSpawn->szName)) ||
+			(strstr(CleanupName(_strlwr(strcpy(szName,pSpawn->Name)),FALSE),pSearchSpawn->szName))) &&
                 (!strstr(CleanupName(_strlwr(strcpy(szName,pSpawn->Name)),FALSE),"`s mount")) &&
             (pSpawn->Level >= pSearchSpawn->MinLevel) &&
             (pSpawn->Level <= pSearchSpawn->MaxLevel) &&

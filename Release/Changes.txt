@@ -1,7 +1,11 @@
 23 Apr 2004 by Lax (more):
+- Added MQ2Data Type:
+  skill (see reference for members)
 - Added MQ2Data Top-Level Objects:
   string GroupLeaderName: group leader's name (works even if they are out of zone)
   spawn GroupLeader: group leader (only works if they are in zone)
+  skill Skill[n]: Skill by number
+  skill Skill[name]: Skill by name
 - Added/Changed MQ2Data Members:
   spawn spawn.NearestSpawn[search]: Find the nearest spawn matching this search, to this spawn (most efficient on yourself)
   spawn spawn.NearestSpawn[n,search]: Find the nth nearest spawn matching this search, to this spawn (most efficient on yourself)
