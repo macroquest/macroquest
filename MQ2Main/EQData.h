@@ -1307,11 +1307,11 @@ typedef struct _SPAWNINFO {
 /*0x1c4*/  BYTE  		Unknown0x1c4[0x4];
 /*0x1c8*/  FLOAT 		field_1C8;
 /*0x1cc*/  DWORD 		field_1CC;
-/*0x1d0*/  FLOAT 		field_1D0;
+/*0x1d0*/  FLOAT 		RunSpeed;
 /*0x1d4*/  FLOAT 		field_1D4;
 /*0x1d8*/  FLOAT 		field_1D8;
 /*0x1dc*/   FLOAT   AvatarHeight;  // height of avatar from ground when standing
-/*0x1e0*/  FLOAT 		field_1E0;
+/*0x1e0*/  FLOAT 		WalkSpeed;
 /*0x1e4*/   BYTE    Type;
 /*0x1e5*/   BYTE    Face;      // Needs Testing
 /*0x1e6*/   BYTE	BeardColor;
