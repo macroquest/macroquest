@@ -330,7 +330,7 @@ VOID FailIf(PSPAWNINFO pChar, PCHAR szCommand, PMACROBLOCK pStartLine, BOOL All)
 VOID NewIf(PSPAWNINFO pChar, PCHAR szLine)
 {
     CHAR szCond[MAX_STRING] = {0};
-    CHAR szCommand[MAX_STRING] = {0};
+//    CHAR szCommand[MAX_STRING] = {0};
 
 	if (szLine[0]!='(')
 	{
@@ -379,7 +379,9 @@ VOID NewIf(PSPAWNINFO pChar, PCHAR szLine)
 	DOUBLE Result=0;
 	if (!Calculate(szCond,Result))
 	{
-		sprintf(szCommand,"Failed to parse /if condition '%s', non-numeric encountered",szCond);
+		CHAR szOut[MAX_STRING]={0};
+		sprintf(szOut,"Failed to parse /if condition '%s', non-numeric encountered",szCond);
+		WriteChatColor(szOut,CONCOLOR_RED);
 		GracefullyEndBadMacro(((PCHARINFO)pCharData)->pSpawn,gMacroBlock, pEnd);
 		return;
 	}
@@ -388,7 +390,7 @@ VOID NewIf(PSPAWNINFO pChar, PCHAR szLine)
 	if (Result!=0)
 		DoCommand(pChar,pEnd); 
 	else
-		FailIf(pChar,szCommand, gMacroBlock);
+		FailIf(pChar,pEnd, gMacroBlock);
 }
 
 
