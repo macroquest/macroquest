@@ -29,7 +29,7 @@ public:
       SetItem_Trampoline(pitem,unknown);
 
      strcpy(out,"<BR><c \"#00FFFF\">");
-	  if (Item->Cost>0) {
+	 if (Item->Cost>0) {
 		  DWORD cp = Item->Cost;
 		  DWORD sp = cp/10; cp=cp%10;
 		  DWORD gp = sp/10; sp=sp%10;
@@ -52,7 +52,13 @@ public:
 			  strcat(out,temp);
 		  }
 		  strcat(out,"<BR>");
-	  }
+	 }
+
+	 if ( Item->Favor > 0 ) {
+		 sprintf(temp,"Tribute Value: %d<br>", Item->Favor);
+		 strcat(out, temp);
+	 }
+
      lore=Item->LoreName;
      if (lore[0]=='*') lore++;
      if (strcmp(lore,Item->Name)) {
