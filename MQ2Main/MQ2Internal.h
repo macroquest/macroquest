@@ -467,7 +467,99 @@ public:
 	CRITICAL_SECTION CS;
 };
 
+typedef struct _MQ2TypeVar
+{
+	class MQ2Type *Type;
+	PVOID Ptr;
+} MQ2TYPEVAR, *PMQ2TYPEVAR;
 
+typedef struct _MQ2TypeMember
+{
+	DWORD ID;
+	PCHAR Name;
+} MQ2TYPEMEMBER, *PMQ2TYPEMEMBER;
+
+typedef BOOL  (__cdecl *fMQData)(PCHAR szIndex, MQ2TYPEVAR &Ret);
+
+typedef struct _MQ2DataItem
+{
+	CHAR Name[64];
+	fMQData Function;
+} MQ2DATAITEM, *PMQ2DATAITEM;
+
+EQLIB_API BOOL AddMQ2Type(class MQ2Type &Type);
+EQLIB_API VOID RemoveMQ2Type(class MQ2Type &Type);
+
+class MQ2Type
+{
+public:
+	inline MQ2Type(PCHAR NewName)
+	{
+		strncpy(TypeName,NewName,32);
+		TypeName[31]=0;
+		Official=AddMQ2Type(*this);
+	}
+
+	inline InitializeMembers(PMQ2TYPEMEMBER MemberArray)
+	{
+		for (unsigned long i = 0 ; MemberArray[i].ID ; i++)
+		{
+			AddMember(MemberArray[i].ID,MemberArray[i].Name);
+		}
+	}
+
+	inline ~MQ2Type() 
+	{
+		if (Official)
+			RemoveMQ2Type(*this);
+		Members.Cleanup();
+	}
+
+	virtual bool GetMember(PVOID Ptr, PCHAR Member, PCHAR Index, MQ2TYPEVAR &Dest)=0;
+//	virtual bool SetMember(PVOID Ptr, PCHAR Member, DWORD Index, MQ2TYPEVAR &Data)=0;
+	virtual bool ToString(PVOID Ptr, PCHAR Destination)
+	{
+		strcpy(Destination,TypeName);
+		return true;
+	}
+	virtual bool FromString(PVOID Ptr, PCHAR Data)
+	{
+		return false;
+	}
+
+
+
+protected:
+	inline BOOL AddMember(DWORD ID, PCHAR Name)
+	{
+		unsigned long N=MemberMap[Name];
+		if (N>0)
+			return false;
+		N=Members.GetUnused();
+		MemberMap[Name]=N+1;
+		PMQ2TYPEMEMBER pMember = new MQ2TYPEMEMBER;
+		pMember->Name=Name;
+		pMember->ID=ID;
+		Members[N]=pMember;
+		return true;
+	}
+
+	inline BOOL RemoveMember(PCHAR Name)
+	{
+		unsigned long N=MemberMap[Name];
+		if (N>0)
+			return false;
+		N--;
+		PMQ2TYPEMEMBER pMember = Members[N];
+		delete pMember;
+		Members[N]=0;
+	}
+
+	CHAR TypeName[32];
+	map<string,DWORD> MemberMap;
+	CIndex<PMQ2TYPEMEMBER> Members;
+	BOOL Official;
+};
 };
 using namespace MQ2Internal;
 

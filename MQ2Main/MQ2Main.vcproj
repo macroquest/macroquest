@@ -108,6 +108,15 @@
 				RelativePath="MQ2DInput.cpp">
 			</File>
 			<File
+				RelativePath="MQ2Data.cpp">
+			</File>
+			<File
+				RelativePath="MQ2DataAPI.cpp">
+			</File>
+			<File
+				RelativePath="MQ2DataTypes.cpp">
+			</File>
+			<File
 				RelativePath="MQ2DetourAPI.cpp">
 			</File>
 			<File
@@ -161,6 +170,9 @@
 			</File>
 			<File
 				RelativePath="EQUIStructs.h">
+			</File>
+			<File
+				RelativePath="MQ2DataTypes.h">
 			</File>
 			<File
 				RelativePath="MQ2Globals.h">

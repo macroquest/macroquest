@@ -37,7 +37,10 @@
 #include <sys/stat.h>
 #include <winsock.h>
 #include <math.h>
-
+#include <map>
+#include <string>
+#include <algorithm>
+using namespace std;
 #include "..\Detours\inc\detours.h" 
 #include "eqgame.h"
 
@@ -155,6 +158,7 @@ typedef double DOUBLE;
 #include "MQ2Prototypes.h"
 #include "MQ2Internal.h"
 #include "MQ2Globals.h"
+#include "MQ2DataTypes.h"
 
 /* BENCHMARKING */
 #ifdef DISABLE_BENCHMARKS
@@ -460,6 +464,11 @@ EQLIB_API DWORD parmEvent                  (PCHAR, PCHAR, PSPAWNINFO);
 EQLIB_API DWORD parmBanker						(PCHAR, PCHAR, PSPAWNINFO);
 EQLIB_API DWORD parmPet							(PCHAR, PCHAR, PSPAWNINFO);
 EQLIB_API DOUBLE Calculate(PCHAR szFormula);
+
+/* DATA ITEMS */
+EQLIB_API BOOL dataSpawn(PCHAR szIndex, MQ2TYPEVAR &Ret);
+EQLIB_API BOOL dataCharacter(PCHAR szIndex, MQ2TYPEVAR &Ret);
+
 
 /* COMMANDS */
 EQLIB_API VOID DoCommandCmd(PSPAWNINFO pChar, PCHAR szLine);
