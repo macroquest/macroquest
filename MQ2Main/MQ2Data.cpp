@@ -97,7 +97,7 @@ BOOL dataSpell(PCHAR szIndex, MQ2TYPEVAR &Ret)
 		}
 	}
    return false;
-} 
+}
 
 BOOL dataSwitch(PCHAR szIndex, MQ2TYPEVAR &Ret)
 {
@@ -127,6 +127,17 @@ BOOL dataMerchant(PCHAR szIndex, MQ2TYPEVAR &Ret)
 	{
 		Ret.Ptr=pActiveMerchant;
 		Ret.Type=pMerchantType;
+		return true;
+	}
+	return false;
+}
+
+BOOL dataCorpse(PCHAR szIndex, MQ2TYPEVAR &Ret)
+{
+	if (pLootWnd)
+	{
+		Ret.Ptr=pLootWnd;
+		Ret.Type=pCorpseType;
 		return true;
 	}
 	return false;
@@ -241,3 +252,65 @@ BOOL dataGroup(PCHAR szIndex, MQ2TYPEVAR &Ret)
 	}
 	return false;
 }
+
+BOOL dataIf(PCHAR szIndex, MQ2TYPEVAR &Ret)
+{
+	if (szIndex[0])
+	{
+		// condition, whentrue, whenfalse
+		if (PCHAR pTrue=strchr(szIndex,','))
+		{
+			*pTrue=0;
+			pTrue++;
+			if (PCHAR pFalse=strchr(pTrue,','))
+			{
+				*pFalse=0;
+				pFalse=0;
+				BOOL True=true;
+				if ((szIndex[0]>='0' && szIndex[0]<='9') || szIndex[0]=='-')
+					True=(Calculate(szIndex)!=0);
+				else if (!stricmp(szIndex,"NULL") ||
+					     !stricmp(szIndex,"FALSE") ||
+						 !stricmp(szIndex,"NO") ||
+						 !stricmp(szIndex,"OFF") ||
+						 !stricmp(szIndex,"0"))
+						 True=false;
+
+				if (True)
+				{
+					strcpy(DataTypeTemp,pTrue);
+					Ret.Ptr=&DataTypeTemp[0];
+					Ret.Type=pStringType;
+					return true;
+				}
+				else
+				{
+					strcpy(DataTypeTemp,pFalse);
+					Ret.Ptr=&DataTypeTemp[0];
+					Ret.Type=pStringType;
+					return true;				
+				}
+			}
+		}
+	}
+	return false;
+}
+
+BOOL dataCursor(PCHAR szIndex, MQ2TYPEVAR &Ret)
+{
+	if (((PCHARINFO)pCharData)->Cursor)
+	{
+		Ret.Ptr=((PCHARINFO)pCharData)->Cursor;
+		Ret.Type=pItemType;
+		return true;
+	}
+	return false;
+}
+
+// todo
+BOOL dataFindItem(PCHAR szIndex, MQ2TYPEVAR &Ret)
+{
+	return false;
+}
+
+

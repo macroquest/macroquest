@@ -35,6 +35,7 @@ EQLIB_VAR class MQ2MacroType *pMacroType;
 EQLIB_VAR class MQ2MacroQuestType *pMacroQuestType;
 EQLIB_VAR class MQ2MathType *pMathType;
 
+EQLIB_VAR class MQ2CorpseType *pCorpseType;
 EQLIB_VAR class MQ2WindowType *pWindowType;
 EQLIB_VAR class MQ2MerchantType *pMerchantType;
 EQLIB_VAR class MQ2ZoneType *pZoneType;
@@ -202,6 +203,8 @@ public:
 		Length=6,
 		Upper=7,
 		Lower=8,
+		Compare=9,
+		CompareCS=10,
 	};
 
 	MQ2StringType():MQ2Type("string")
@@ -214,6 +217,8 @@ public:
 		TypeMember(Length);
 		TypeMember(Upper);
 		TypeMember(Lower);
+		TypeMember(Compare);
+		TypeMember(CompareCS);
 	}
 
 	~MQ2StringType()
@@ -495,6 +500,8 @@ public:
 		Inventory=39,
 		Bank=40,
 		Bound=41,
+		Combat=42,
+		FreeInventory=43,
 	};
 	MQ2CharacterType():MQ2Type("character")
 	{
@@ -538,6 +545,8 @@ public:
 		TypeMember(Inventory);
 		TypeMember(Bank);
 		TypeMember(Bound);
+		TypeMember(Combat);
+		TypeMember(FreeInventory);
 	}
 
 	~MQ2CharacterType()
@@ -931,10 +940,16 @@ public:
 	static enum MacroMembers
 	{
 		Name=1,
+		RunTime=2,
+		Defined=3,
+		Return=4,
 	};
 	MQ2MacroType():MQ2Type("macro")
 	{
 		TypeMember(Name);
+		TypeMember(RunTime);
+		TypeMember(Defined);
+		TypeMember(Return);
 	}
 
 	~MQ2MacroType()
@@ -997,11 +1012,16 @@ class MQ2MacroQuestType : public MQ2Type
 public:
 	static enum MacroQuestMembers
 	{
-		Name=1,
+		GameState=1,
+		LoginName=2,
+		Server=3,
+		LastCommand=4,
+		LastTell=5,
+
 	};
 	MQ2MacroQuestType():MQ2Type("macroquest")
 	{
-		TypeMember(Name);
+		TypeMember(GameState);
 	}
 
 	~MQ2MacroQuestType()

@@ -83,6 +83,94 @@ DOUBLE Calculate(PCHAR szFormula) {
                 j+=2;
                 k=0;
                 break;
+			case '&':
+				if (Buffer[i+1]=='&')
+				{
+					Arg[j+1][0]='a';
+					j+=2;
+					k=0;
+					i++;
+				}
+				else
+				{
+					Arg[j+1][0]='&';
+					j+=2;
+					k=0;
+				}
+				break;
+			case '|':
+				if (Buffer[i+1]=='|')
+				{
+					Arg[j+1][0]='o';
+					j+=2;
+					k=0;
+					i++;
+				}
+				else
+				{
+					Arg[j+1][0]='|';
+					j+=2;
+					k=0;
+				}
+				break;
+			case '!':
+				if (Buffer[i+1]=='=')
+				{
+					Arg[j+1][0]='!';
+					j+=2;
+					k=0;
+					i++;
+				}
+				else
+				{
+					GracefullyEndBadMacro(((PCHARINFO)pCharData)->pSpawn,gMacroBlock, "Calculate encountered a bad != formation");
+					return -1;
+				}
+				break;
+			case '=':
+				if (Buffer[i+1]=='=')
+				{
+					Arg[j+1][0]='=';
+					j+=2;
+					k=0;
+					i++;
+				}
+				else
+				{
+					GracefullyEndBadMacro(((PCHARINFO)pCharData)->pSpawn,gMacroBlock, "Calculate encountered a bad = formation");
+					return -1;
+				}
+				break;
+			case '>':
+				if (Buffer[i+1]=='=')
+				{
+					Arg[j+1][0]=(char)0xf2;
+					j+=2;
+					k=0;
+					i++;
+				}
+				else
+				{
+					Arg[j+1][0]='>';
+					j+=2;
+					k=0;
+				}
+				break;
+			case '<':
+				if (Buffer[i+1]=='=')
+				{
+					Arg[j+1][0]=(char)0xf3;
+					j+=2;
+					k=0;
+					i++;
+				}
+				else
+				{
+					Arg[j+1][0]='<';
+					j+=2;
+					k=0;
+				}
+				break;
             case '0':
             case '1':
             case '2':
@@ -185,7 +273,73 @@ DOUBLE Calculate(PCHAR szFormula) {
         }
     }
 
-    return atof(Arg[0]);
+    for (i=0;i<j;i++) {
+        switch ((UCHAR)Arg[i][0]) {
+			case 'a':
+			case 'o':
+            case '<':
+            case '>':
+			case '=':
+			case 0xf2:
+			case 0xf3:
+                if ((i==0) || (i+1==j)) {
+				    GracefullyEndBadMacro(((PCHARINFO)pCharData)->pSpawn,gMacroBlock, "Calculate encountered a bad %c formation",Arg[i][0]);
+                    return -1;
+                }
+                i--;
+                switch ((UCHAR)Arg[i+1][0]) {
+					case '<':
+						sprintf(Buffer,"%d",atof(Arg[i])<atof(Arg[i+2]));
+						break;
+					case '>':
+						sprintf(Buffer,"%d",atof(Arg[i])>atof(Arg[i+2]));
+						break;
+					case '=':
+						sprintf(Buffer,"%d",atof(Arg[i])==atof(Arg[i+2]));
+						break;
+					case 0xf2:
+						sprintf(Buffer,"%d",atof(Arg[i])>=atof(Arg[i+2]));
+						break;
+					case 0xf3:
+						sprintf(Buffer,"%d",atof(Arg[i])<=atof(Arg[i+2]));
+						break;
+					case 'a':
+						sprintf(Buffer,"%d",atof(Arg[i])&&atof(Arg[i+2]));
+						break;
+					case 'o':
+						sprintf(Buffer,"%d",atof(Arg[i])||atof(Arg[i+2]));
+						break;
+                }
+                strcpy(Arg[i],Buffer);
+                j-=2;
+                for (k=i+1;k<j;k++) strcpy(Arg[k],Arg[k+2]);
+        }
+    }
+	
+    for (i=0;i<j;i++) {
+        switch (Arg[i][0]) {
+            case '&':
+            case '|':
+                if ((i==0) || (i+1==j)) {
+				    GracefullyEndBadMacro(((PCHARINFO)pCharData)->pSpawn,gMacroBlock, "Calculate encountered a bad %c formation",Arg[i][0]);
+                    return -1;
+                }
+                i--;
+                switch (Arg[i+1][0]) {
+                    case '&':
+                        sprintf(Buffer,"%d",atol(Arg[i])&atol(Arg[i+2]));
+                        break;
+                    case '|':
+                        sprintf(Buffer,"%d",atol(Arg[i])|atol(Arg[i+2]));
+                        break;
+                }
+                strcpy(Arg[i],Buffer);
+                j-=2;
+                for (k=i+1;k<j;k++) strcpy(Arg[k],Arg[k+2]);
+        }
+    }
+	
+	return atof(Arg[0]);
 }
 
 VOID VarCalc(PSPAWNINFO pChar, PCHAR szLine)

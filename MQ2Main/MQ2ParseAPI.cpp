@@ -398,14 +398,14 @@ PCHAR ParseMacroParameter(PSPAWNINFO pChar, PCHAR szOriginal)
 				// $unknown
                 if (!FoundNewCmd) 
 				{
-                    DebugSpewNoFile("PMP - Bad $command '%s'",szVar);
+//                    DebugSpewNoFile("PMP - Bad $command '%s'",szVar);
                     szOriginalCurPos--;
                     *szOutputCurPos++ = 'ÿ';
                 }
             } 
 			else
 			{
-                DebugSpewNoFile("PMP - Bad $ '%s'", szVar);
+//                DebugSpewNoFile("PMP - Bad $ '%s'", szVar);
                 szOriginalCurPos--;
                 *szOutputCurPos++ = 'ÿ';
             }

@@ -1,3 +1,15 @@
+29 Mar 2004 by Lax (more)
+- Added < <= == >= > && & || | to the Calculate function (someone rewrite if please... 
+  fail if zero, fall through if non-zero)
+- MQ2Data updates:
+  * Added top level object: string If[conditions,whentrue,whenfalse]
+  * Added type corpse, top level object: corpse Corpse
+  * Added top level object: item Cursor
+  * Added string members:
+    - int Compare[text]: -1 if the string is alphabetically before text, 0 if equal, 1 if after. Case does not count.
+    - int CompareCS[text]: -1 if the string is alphabetically before text, 0 if equal, 1 if after. Case counts.
+- Fixed MQ2Parm slowness from debug spew if MQ2Data is also in use
+ 
 29 Mar 2004 by Lax
 - Phase 1 of MQ2Data system rollout begins! Please start updating macros, custom uis, plugins,  
   etc to use this sytem.

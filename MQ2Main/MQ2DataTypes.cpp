@@ -37,7 +37,7 @@ class MQ2BodyType *pBodyType=0;
 
 class MQ2GroundType *pGroundType=0;
 class MQ2SwitchType *pSwitchType=0;
-
+class MQ2CorpseType *pCorpseType=0;
 class MQ2MacroType *pMacroType=0;
 class MQ2MacroQuestType *pMacroQuestType=0;
 class MQ2MathType *pMathType=0;
@@ -497,6 +497,9 @@ bool MQ2StringType::GetMember(MQ2VARPTR VarPtr, PCHAR Member, PCHAR Index, MQ2TY
 			return false;
 		{
 			unsigned long Len=atoi(Index);
+			unsigned long StrLen=strlen((char *)VarPtr.Ptr);
+			if (Len>StrLen)
+				Len=StrLen;
 			memmove(DataTypeTemp,(char *)VarPtr.Ptr,Len);
 			DataTypeTemp[Len]=0;
 			Dest.Ptr=&DataTypeTemp[0];
@@ -547,9 +550,43 @@ bool MQ2StringType::GetMember(MQ2VARPTR VarPtr, PCHAR Member, PCHAR Index, MQ2TY
 		Dest.Ptr=&DataTypeTemp[0];
 		Dest.Type=pStringType;
 		return true;
+	case Compare:
+		Dest.Int=stricmp((char*)VarPtr.Ptr,Index);
+		Dest.Type=pIntType;
+		return true;
+	case CompareCS:
+		Dest.Int=strcmp((char*)VarPtr.Ptr,Index);
+		Dest.Type=pIntType;
+		return true;
+	case Mid:
+		{
+			if (PCHAR pComma=strchr(Index,','))
+			{
+				*pComma=0;
+				pComma++;
+				PCHAR pStr=(char *)VarPtr.Ptr;
+				unsigned long nStart=atoi(Index);
+				unsigned long Len=atoi(pComma);
+				if (nStart>=strlen(pStr))
+				{
+					Dest.Ptr="";
+					Dest.Type=pStringType;
+					return true;
+				}
+				pStr+=nStart;
+				unsigned long StrLen=strlen(pStr);
+				if (Len>StrLen)
+					Len=StrLen;
+				memmove(DataTypeTemp,pStr,Len);
+				DataTypeTemp[Len]=0;
+				Dest.Ptr=&DataTypeTemp[0];
+				Dest.Type=pStringType;
+				return true;
+			}
+		}
+		return false;
 	/*
 	Arg
-	Mid
 	/**/
 	}
 	return false;
@@ -741,6 +778,10 @@ bool MQ2CharacterType::GetMember(MQ2VARPTR VarPtr, PCHAR Member, PCHAR Index, MQ
 		Dest.Ptr=GetFullZone(((PCHARINFO)pCharData)->ZoneBoundId);
 		Dest.Type=pStringType;
 		return true;
+	case Combat:
+		Dest.DWord=*EQADDR_ATTACK;
+		Dest.Type=pBoolType;
+		return true;
 		/*
 		Dar=6,
 		HPRegen=12,
@@ -749,6 +790,7 @@ bool MQ2CharacterType::GetMember(MQ2VARPTR VarPtr, PCHAR Member, PCHAR Index, MQ
 		Skill=21,
 		Ability=22,
 		Grouped=27,
+		FreeInventory
 		/**/
 	}
 	return false;

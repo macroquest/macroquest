@@ -122,6 +122,9 @@ void InitializeMQ2Data()
 	AddMQ2Data("Int",dataInt);
 	AddMQ2Data("Bool",dataBool);
 	AddMQ2Data("Float",dataFloat);
+	AddMQ2Data("Corpse",dataCorpse);
+	AddMQ2Data("If",dataIf);
+	AddMQ2Data("Cursor",dataCursor);
 }
 
 
