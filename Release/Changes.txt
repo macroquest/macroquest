@@ -1,3 +1,7 @@
+05 Mar 2004 by Amadeus
+- Put in new CXWnd offsets [vzmule]
+- Added structs in EQUIStruct.h for the Guildwindow and RaidWindow (work in progress)
+
 05 Mar 2004 by Lax
 - MQ2Map upgrade is now live.  It uses the new OnAddSpawn/OnRemoveSpawn API to increase efficiency.
   /highlight <spawn search string> will temporarily highlight these spawns
