@@ -357,3 +357,117 @@ void MQ2Free(void *memblock)
 	free(memblock);
 }
 
+
+
+class CMQNewsWnd : public CCustomWnd
+{
+public:
+	CMQNewsWnd():CCustomWnd("ChatWindow")
+	{
+		SetWndNotification(CMQNewsWnd);
+		InputBox=(CTextEntryWnd*)GetChildItem("CWChatInput");
+		InputBox->WindowStyle|=0x800C0;
+		BitOff(WindowStyle,CWS_CLOSE);
+		InputBox->UnknownCW|=0xFFFFFFFF;
+		InputBox->Enabled=0;
+		InputBox->SetMaxChars(512);
+		OutputBox=(CStmlWnd*)GetChildItem("CWChatOutput");
+	}
+
+	~CMQNewsWnd()
+	{
+	}
+
+	int WndNotification(CXWnd *pWnd, unsigned int Message, void *unknown)
+	{	
+		if (pWnd==0)
+		{
+			if (Message==XWM_CLOSE)
+			{
+				Show=1;
+				return 1;
+			}
+		}
+		return CSidlScreenWnd::WndNotification(pWnd,Message,unknown);
+	};
+
+	CTextEntryWnd *InputBox;
+	CStmlWnd *OutputBox;
+};
+
+CMQNewsWnd *pNewsWindow=0;
+VOID InsertMQ2News();
+VOID CreateMQ2NewsWindow()
+{
+	CHAR Filename[MAX_STRING]={0};
+	sprintf(Filename,"%s\\changes.txt",gszINIPath);
+	if (!pNewsWindow && _FileExists(Filename))
+	{
+		pNewsWindow = new CMQNewsWnd;
+		pNewsWindow->Location.top=250;
+		pNewsWindow->Location.bottom=450;
+		pNewsWindow->Location.left=250;
+		pNewsWindow->Location.right=950;
+		SetCXStr(&pNewsWindow->WindowText,"MacroQuest2 Recent Changes");
+	}
+	InsertMQ2News();
+}
+
+VOID AddNewsLine(PCHAR Line, DWORD Color)
+{
+	Color=pChatManager->GetRGBAFromIndex(Color);
+
+	CHAR szProcessed[MAX_STRING];
+	MQToSTML(Line,szProcessed,MAX_STRING,Color);
+	strcat(szProcessed,"<br>");
+	CXStr NewText(szProcessed);
+	ConvertItemTags(NewText,0);
+	CXSize Whatever;
+	pNewsWindow->OutputBox->AppendSTML(&Whatever,NewText);
+//	((CXWnd*)pNewsWindow->OutputBox)->SetVScrollPos(0);
+
+}
+
+VOID DeleteMQ2NewsWindow()
+{
+	if (pNewsWindow)
+	{
+		delete pNewsWindow;
+		pNewsWindow=0;
+	}
+}
+
+VOID InsertMQ2News()
+{
+	if (!pNewsWindow)
+		return;
+	CHAR Filename[MAX_STRING]={0};
+	sprintf(Filename,"%s\\changes.txt",gszINIPath);
+	FILE *file=fopen(Filename,"rb");
+	if (!file)
+	{
+		DeleteMQ2NewsWindow();	
+		return;
+	}
+	AddNewsLine("If you need help, refer to README.CHM, the MacroQuest2 manual.",CONCOLOR_RED);
+	AddNewsLine("Recent changes...",CONCOLOR_RED);
+	CHAR szLine[MAX_STRING]={0};
+	DWORD nLines=0;
+	while(fgets(szLine,MAX_STRING,file))
+	{
+		strtok(szLine,"\r\n");
+		if (atoi(szLine) && strstr(szLine," by "))
+			AddNewsLine(szLine,CONCOLOR_GREEN);
+		else
+			AddNewsLine(szLine,CONCOLOR_YELLOW);
+		nLines++;
+		if (nLines>200)
+		{
+			AddNewsLine("...read changes.txt for more.",CONCOLOR_RED);
+			break;
+		}
+	}
+	fclose(file);
+}
+
+

@@ -227,8 +227,6 @@ PLUGIN_API DWORD OnWriteChatColor(PCHAR Line, DWORD Color, DWORD Filter)
 	Color=pChatManager->GetRGBAFromIndex(Color);
 
 	CHAR szProcessed[MAX_STRING];
-//	StripMQChat(Line,szProcessed);
-//	CheckChatForEvent(szProcessed);
 	MQToSTML(Line,szProcessed,MAX_STRING,Color);
 	strcat(szProcessed,"<br>");
 	CXStr NewText(szProcessed);

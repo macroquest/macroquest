@@ -308,6 +308,7 @@ VOID PluginsCleanUI()
 		return;
 	CAutoLock Lock(&gPluginCS);
 	PMQPLUGIN pPlugin=pPlugins;
+	DeleteMQ2NewsWindow();
 	while(pPlugin)
 	{
 		if (pPlugin->CleanUI)

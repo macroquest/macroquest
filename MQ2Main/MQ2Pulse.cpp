@@ -269,6 +269,15 @@ void Heartbeat()
     Benchmark(bmPluginsPulse,DebugTry(PulsePlugins()));
 	ProcessPendingGroundItems();
 
+
+	static bool ShownNews=false;
+	if (gGameState==GAMESTATE_CHARSELECT && !ShownNews)
+	{
+		ShownNews=true;
+		CreateMQ2NewsWindow();
+	}
+
+
 	DWORD CurTurbo=0;
 
 	if (gDelayedCommands)

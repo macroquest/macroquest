@@ -188,6 +188,9 @@ EQLIB_API void AddWindow(char *WindowName, CXWnd **ppWindow);
 EQLIB_API void RemoveWindow(char *WindowName);
 EQLIB_API CXWnd *FindMQ2Window(PCHAR Name);
 
+EQLIB_API VOID CreateMQ2NewsWindow();
+EQLIB_API VOID DeleteMQ2NewsWindow();
+
 /* CHAT HOOK */
 EQLIB_API VOID InitializeChatHook();
 EQLIB_API VOID ShutdownChatHook();
