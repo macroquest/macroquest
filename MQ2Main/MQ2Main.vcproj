@@ -135,6 +135,9 @@
 				RelativePath="MQ2Pulse.cpp">
 			</File>
 			<File
+				RelativePath="MQ2Spawns.cpp">
+			</File>
+			<File
 				RelativePath="MQ2UserVars.cpp">
 			</File>
 			<File

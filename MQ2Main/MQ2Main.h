@@ -1,4 +1,18 @@
-#define VersionString "New Year 2004 Edition"
+/*****************************************************************************
+    MQ2Main.dll: MacroQuest2's extension DLL for EverQuest
+    Copyright (C) 2002-2003 Plazmic, 2003-2004 Lax
+
+    This program is free software; you can redistribute it and/or modify
+    it under the terms of the GNU General Public License, version 2, as published by
+    the Free Software Foundation.
+
+    This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+******************************************************************************/
+
+#define VersionString "Spring 2004 Edition"
 #define DebugHeader "[MQ2]"
 #define LoadedString "MQ2 Loaded."
 #define ToUnloadString "MQ2 Unloading..."
@@ -138,6 +152,9 @@ EQLIB_API VOID EnterMQ2Benchmark(DWORD BMHandle);
 EQLIB_API VOID RemoveMQ2Benchmark(DWORD BMHandle);
 EQLIB_API DWORD AddMQ2Benchmark(PCHAR Name);
 
+/* SPAWN HANDLING */
+EQLIB_API VOID InitializeMQ2Spawns();
+EQLIB_API VOID ShutdownMQ2Spawns();
 
 /* WINDOWS */
 EQLIB_API VOID InitializeMQ2Windows();
@@ -169,6 +186,8 @@ EQLIB_API VOID PluginsCleanUI();
 EQLIB_API VOID PluginsReloadUI();
 EQLIB_API VOID PluginsSetGameState(DWORD GameState);
 EQLIB_API VOID PluginsDrawHUD();
+EQLIB_API VOID PluginsAddSpawn(PSPAWNINFO pNewSpawn);
+EQLIB_API VOID PluginsRemoveSpawn(PSPAWNINFO pSpawn);
 
 /* DIRECT INPUT */
 EQLIB_API VOID InitializeMQ2DInput();

@@ -96,3 +96,20 @@ PLUGIN_API DWORD OnIncomingChat(PCHAR Line, DWORD Color)
 	DebugSpewAlways("MQ2Template::OnIncomingChat(%s)",Line);
 	return 0;
 }
+
+// This is called each time a spawn is added to a zone (inserted into EQ's list of spawns),
+// or for each existing spawn when a plugin first initializes
+// NOTE: When you zone, these will come BEFORE OnZoned
+PLUGIN_API VOID OnAddSpawn(PSPAWNINFO pNewSpawn)
+{
+	DebugSpewAlways("MQ2Template::OnAddSpawn(%s)",pNewSpawn);
+	return 0;
+}
+
+// This is called each time a spawn is removed from a zone (removed from EQ's list of spawns).
+// It is NOT called for each existing spawn when a plugin shuts down.
+PLUGIN_API VOID OnRemoveSpawn(PSPAWNINFO pSpawn)
+{
+	DebugSpewAlways("MQ2Template::OnRemoveSpawn(%s)",pSpawn);
+	return 0;
+}

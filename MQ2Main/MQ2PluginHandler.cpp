@@ -1,6 +1,6 @@
 /*****************************************************************************
     MQ2Main.dll: MacroQuest2's extension DLL for EverQuest
-    Copyright (C) 2002-2003 Plazmic, 2003 Lax
+    Copyright (C) 2002-2003 Plazmic, 2003-2004 Lax
 
     This program is free software; you can redistribute it and/or modify
     it under the terms of the GNU General Public License, version 2, as published by
@@ -86,12 +86,22 @@ DWORD LoadMQ2Plugin(const PCHAR pszFilename)
 	pPlugin->ReloadUI=(fMQReloadUI)GetProcAddress(hmod,"OnReloadUI");
 	pPlugin->DrawHUD=(fMQDrawHUD)GetProcAddress(hmod,"OnDrawHUD");
 	pPlugin->SetGameState=(fMQSetGameState)GetProcAddress(hmod,"SetGameState");
+	pPlugin->AddSpawn=(fMQSpawn)GetProcAddress(hmod,"OnAddSpawn");
+	pPlugin->RemoveSpawn=(fMQSpawn)GetProcAddress(hmod,"OnRemoveSpawn");
 
 	if (pPlugin->Initialize)
 		pPlugin->Initialize();
 	if (pPlugin->SetGameState)
 		pPlugin->SetGameState(gGameState);
-
+	if (pPlugin->AddSpawn && gGameState==GAMESTATE_INGAME)
+	{
+		PSPAWNINFO pSpawn=(PSPAWNINFO)pSpawnList;
+		while(pSpawn)
+		{
+			pPlugin->AddSpawn(pSpawn);
+			pSpawn=pSpawn->pNext;
+		}
+	}
 	pPlugin->pLast=0;
 	pPlugin->pNext=pPlugins;
 	if (pPlugins)
@@ -342,8 +352,41 @@ VOID PluginsDrawHUD()
 	{
 		if (pPlugin->DrawHUD)
 		{
-//			DebugSpew("%s->DrawHUD()",pPlugin->szFilename);
 			pPlugin->DrawHUD();
+		}
+		pPlugin=pPlugin->pNext;
+	}
+}
+
+VOID PluginsAddSpawn(PSPAWNINFO pNewSpawn)
+{
+//	DebugSpew("PluginsAddSpawn(%s)",pNewSpawn->Name);
+	if (!bPluginCS)
+		return;
+	CAutoLock Lock(&gPluginCS);
+	PMQPLUGIN pPlugin=pPlugins;
+	while(pPlugin)
+	{
+		if (pPlugin->AddSpawn)
+		{
+			pPlugin->AddSpawn(pNewSpawn);
+		}
+		pPlugin=pPlugin->pNext;
+	}
+}
+
+VOID PluginsRemoveSpawn(PSPAWNINFO pSpawn)
+{
+//	DebugSpew("PluginsRemoveSpawn(%s)",pSpawn->Name);
+	if (!bPluginCS)
+		return;
+	CAutoLock Lock(&gPluginCS);
+	PMQPLUGIN pPlugin=pPlugins;
+	while(pPlugin)
+	{
+		if (pPlugin->RemoveSpawn)
+		{
+			pPlugin->RemoveSpawn(pSpawn);
 		}
 		pPlugin=pPlugin->pNext;
 	}

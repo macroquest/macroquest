@@ -1,6 +1,6 @@
 /*****************************************************************************
 MQ2Main.dll: MacroQuest's extension DLL for EverQuest
-    Copyright (C) 2002-2003 Plazmic, 2003 Lax
+    Copyright (C) 2002-2003 Plazmic, 2003-2004 Lax
 
 This program is free software; you can redistribute it and/or modify
 it under the terms of the GNU General Public License, version 2, as published by
@@ -283,6 +283,7 @@ DWORD WINAPI MQ2Start(LPVOID lpParameter)
 	InitializeMQ2Commands();
 	InitializeMQ2Windows();
 	InitializeMQ2Plugins();
+	InitializeMQ2Spawns();
 
 	while (gGameState != GAMESTATE_CHARSELECT && gGameState != GAMESTATE_INGAME) Sleep(500);
 	InitializeMQ2DInput();
@@ -298,6 +299,7 @@ DWORD WINAPI MQ2Start(LPVOID lpParameter)
     WriteChatColor(UnloadedString,USERCOLOR_DEFAULT);
     DebugSpewAlways(UnloadedString);
 
+	DebugTry(ShutdownMQ2Spawns());
 	DebugTry(ShutdownDisplayHook());
 	DebugTry(ShutdownMQ2DInput());
 	DebugTry(ShutdownChatHook());
