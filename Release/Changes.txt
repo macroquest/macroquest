@@ -1,3 +1,6 @@
+25 Apr 2004 by Lax (more):
+- Fixed spawn.NearestSpawn
+
 25 Apr 2004 by Lax:
 - Fixed once and for all the /itemnotify and /notify crashes
 - Fixed the rendering rate defaults (will no longer flicker like a strobe light ;)

@@ -884,6 +884,15 @@ typedef struct _MQRANK
 	MQ2VARPTR Value;
 } MQRANK, *PMQRANK;
 
+static int pMQRankFloatCompare(const void *A, const void *B)
+{
+    if ((*(PMQRANK*)A)->Value.Float==(*(PMQRANK*)B)->Value.Float)
+		return 0;
+    if ((*(PMQRANK*)A)->Value.Float<(*(PMQRANK*)B)->Value.Float)
+		return -1;
+	return 1;
+}
+
 static int MQRankFloatCompare(const void *A, const void *B)
 {
     if (((PMQRANK)A)->Value.Float==((PMQRANK)B)->Value.Float)

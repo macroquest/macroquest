@@ -3202,19 +3202,22 @@ PCHAR FormatSearchSpawn(PCHAR Buffer, PSEARCHSPAWN pSearchSpawn)
 
 PSPAWNINFO NthNearestSpawn(PSEARCHSPAWN pSearchSpawn, DWORD Nth, PSPAWNINFO pOrigin)
 {
+	if (!pSearchSpawn || !Nth || !pOrigin)
+		return 0;
 	CIndex<PMQRANK> SpawnSet;
 	PSPAWNINFO pSpawn=(PSPAWNINFO)pSpawnList;
 	// create our set
 	DWORD TotalMatching=0;
 	while (pSpawn)
 	{
-		if (SpawnMatchesSearch(pSearchSpawn,(PSPAWNINFO)pCharSpawn,pSpawn))
+		if (pSpawn!=pOrigin && SpawnMatchesSearch(pSearchSpawn,(PSPAWNINFO)pCharSpawn,pSpawn))
 		{
 			// matches search, add to our set
 			TotalMatching++;
 			PMQRANK pNewRank=new MQRANK;
 			pNewRank->VarPtr.Ptr=pSpawn;
 			pNewRank->Value.Float=GetDistance(pOrigin->X,pOrigin->Y,pSpawn->X,pSpawn->Y);
+			SpawnSet+=pNewRank;
 		}
 
 		pSpawn=pSpawn->pNext;
@@ -3226,7 +3229,7 @@ PSPAWNINFO NthNearestSpawn(PSEARCHSPAWN pSearchSpawn, DWORD Nth, PSPAWNINFO pOri
 	}
 
 	// sort our list
-	qsort(&SpawnSet[0],TotalMatching,sizeof(MQRANK),MQRankFloatCompare);
+	qsort(&SpawnSet.List[0],TotalMatching,sizeof(PMQRANK),pMQRankFloatCompare);
 	// get our Nth nearest
 	pSpawn=(PSPAWNINFO)SpawnSet[Nth-1]->VarPtr.Ptr;
 
