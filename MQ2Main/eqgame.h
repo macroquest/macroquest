@@ -62,9 +62,14 @@
 #define __CurrentMapLabel                                  0x79C298
 #define __BindList                                         0x60F2F0
 #define __RangeAttackReady                                 0x6D4114
+#define __AltTimerReady		                               0x6D4116
 #define __Socials                                          0x70CF1C
 #define __HotkeyPage                                       0x7337BC
 #define __CurrentSocial                                    0x60BB58
+#define __GroupLeader									   0x7340A4
+#define __SkillDict										   0x620808
+#define __DrawHandler									   0x7A7F34
+
 ////
 //Section 1: Vital Offsets
 ////
@@ -93,7 +98,7 @@
 #define instEQZoneInfo                                     0x6D34FC
 #define pinstCXWndManager                                  0x7A765C
 #define instKeypressHandler                                0x782800
-
+#define pinstStringTable								   0x7359B0
 
 ////
 //Section 2:  UI Related Offsets
@@ -222,6 +227,8 @@
 #define CEverQuest__RightClickedOnPlayer                   0x4A29D3
 #define CEverQuest__SetGameState                           0x4986DE
 #define CEverQuest__DropHeldItemOnGround				   0x49ACDD
+
+#define StringTable__getString							   0x4BD566
 
 // CXWndManager
 #define CXWndManager__RemoveWnd                            0x5720D0

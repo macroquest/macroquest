@@ -553,7 +553,7 @@ typedef struct _CHARINFO {
 /*0x0ab0*/  DWORD		field_AB0;
 /*0x0ab4*/  DWORD		field_AB4;
 /*0x0ab8*/  DWORD		Skill[0x64];
-/*0x0c48*/  BYTE		field_C48[0x64];
+/*0x0c48*/  DWORD		InnateSkill[0x19];
 /*0x0cac*/  BYTE		field_CAC;
 /*0x0cad*/  BYTE		field_CAD;
 /*0x0cae*/  BYTE		Unknown0xcae[0x2];
@@ -746,6 +746,8 @@ typedef struct _ACTORINFO {
 /*0x00ac*/   BYTE       Unknown0x0ac[0x28]; 
 /*0x00d4*/   DWORD      SpellETA;      // Calculated TimeStamp when current spell being casted lands. 0 while not casting. 
 /*0x00d8*/   BYTE       Unknown0x0d4[0xb0]; 
+/*0x0108*/  // LAYHANDS/HARMTOUCH TIMER
+/*0x0170*/  // BACKSTAB/BASH/SLAM TIMER
 /*0x0188*/   VOID		*FaceRelatedActorStruct; 
 /*0x018c*/   DWORD      Unknown0x0188; 
 /*0x0190*/   DWORD      Animation; 
@@ -1165,6 +1167,30 @@ typedef struct _SPELL {
 /*0x1d8*/   DWORD   SpellIcon; 
 /*0x1dc*/	DWORD	ResistAdj;
 } SPELL, *PSPELL;
+
+// Size 0x180 4-23-2004 Lax
+typedef struct _SKILL {
+/*0x000*/   DWORD nName;
+/*0x004*/   DWORD ReuseTimer;
+/*0x008*/   CHAR  Unknown0x008;
+/*0x009*/   CHAR  Unknown0x009;
+/*0x00A*/   CHAR  AltTimer;//compare to 2 all over.. alternate timer?
+/*0x00B*/   CHAR  Unknown0x00B;
+/*0x00C*/   CHAR  Unknown0x00C;
+/*0x00D*/   CHAR  MinLevel[0x22];
+/*0x02F*/   CHAR  Unused0x02F;
+/*0x030*/   CHAR  StartingSkill[0x22];
+/*0x052*/   CHAR  Unknown0x052[0x6];
+/*0x058*/   DWORD SkillCapsPre50[0x22];
+/*0x0E0*/   DWORD Unknown0x0E0;// 1 for backstab..
+/*0x0E4*/   DWORD Unknown0x0E4;// 
+/*0x0E8*/   DWORD Unknown0x0E8;
+/*0x0EC*/   FLOAT Accuracy;
+/*0x0F0*/   DWORD Unknown0x0F0;
+/*0x0F4*/   DWORD SkillCapsPost50[0x22];
+/*0x17C*/   DWORD Unknown0x17C;
+/*0x180*/
+} SKILL, *PSKILL;
 
 #define MAX_GUILDS			0x200
 typedef struct _GUILDS {

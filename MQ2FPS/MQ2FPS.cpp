@@ -22,6 +22,16 @@ DWORD FPSIndicatorY=25;
 
 bool InForeground=false;
 
+DWORD gFG_Rate=3;
+DWORD gBG_Rate=0;
+BOOL  ReverseFG_Rate=true;// skip every nth frame vs show every nth frame
+BOOL  ReverseBG_Rate=false;
+
+DWORD CurrentRate=1;
+BOOL CurrentReverse=false;
+
+DWORD PreDetour=0;
+
 BOOL InMacro=false;
 
 char *szFPSModes[]=
@@ -37,6 +47,50 @@ fEQW_GetDisplayWindow EQW_GetDisplayWindow=0;
 BOOL dataFPS(PCHAR szIndex, MQ2TYPEVAR &Ret);
 BOOL dataMaxFPS(PCHAR szIndex, MQ2TYPEVAR &Ret);
 BOOL dataForeground(PCHAR szIndex, MQ2TYPEVAR &Ret);
+VOID RenderCommand(PSPAWNINFO pChar, PCHAR szLine);
+
+void SetVTable(DWORD index, DWORD value)
+{
+	DWORD oldperm=0;
+	DWORD Address=(DWORD)&(*((DWORD**)g_pDrawHandler))[index];
+	DebugSpewAlways("SetVTable writing at address %X to %X",Address,value);
+  VirtualProtectEx(GetCurrentProcess(), (LPVOID)Address, 4,PAGE_EXECUTE_READWRITE, &oldperm);
+ WriteProcessMemory(
+  GetCurrentProcess(),
+  (LPVOID)Address,
+  (LPVOID)&value,
+  4,
+  NULL);
+ VirtualProtectEx(GetCurrentProcess(), (LPVOID)Address, 4, oldperm, &oldperm);
+}
+
+DWORD GetVTable(DWORD index)
+{
+	DWORD Ret=(*((DWORD**)g_pDrawHandler))[index];
+	DebugSpewAlways("GetVTable(%d)=%X",index,Ret);
+	return Ret;
+}
+
+class CMyDisplay
+{
+public:
+	VOID Void(VOID)
+	{
+		static DWORD nRender=0;
+		if (++nRender>CurrentRate-1)
+		{
+			nRender=0;
+			if (!CurrentReverse)
+			{
+				Render();
+			}
+		}
+		else if (CurrentReverse)
+			Render();
+	}
+	VOID Render(VOID);
+};
+REVERSE_VARIABLE_DETOUR(VOID CMyDisplay::Render(VOID),PreDetour);
 
 // Called once, when the plugin is to initialize
 PLUGIN_API VOID InitializePlugin(VOID)
@@ -58,38 +112,51 @@ PLUGIN_API VOID InitializePlugin(VOID)
     FPSIndicatorX = GetPrivateProfileInt("MQ2FPS","IndicatorX",5,INIFileName);
     FPSIndicatorY = GetPrivateProfileInt("MQ2FPS","IndicatorY",25,INIFileName);
 
+	gBG_Rate = GetPrivateProfileInt("Rendering","BGRate",0,INIFileName);
+	ReverseBG_Rate = GetPrivateProfileInt("Rendering","ReverseBGRate",0,INIFileName);
+	gFG_Rate = GetPrivateProfileInt("Rendering","FGRate",5,INIFileName);
+	ReverseFG_Rate = GetPrivateProfileInt("Rendering","ReverseFGRate",1,INIFileName);
+
 	// Commands
 	AddCommand("/maxfps",MaxFPS,0,1);
 	AddCommand("/fps",FPSCommand,0,1);
+	AddCommand("/render",RenderCommand,0,1);
 
 	AddMQ2Data("FPS",dataFPS);
 	AddMQ2Data("MaxFPS",dataMaxFPS);
 	AddMQ2Data("Foreground",dataForeground);
+
 }
-/*
+
 PLUGIN_API VOID SetGameState(DWORD GameState)
 {
-	if (GameState==GAMESTATE_INGAME)
+	if (GameState==GAMESTATE_INGAME || GameState==GAMESTATE_CHARSELECT)
 	{
-		if (!pScreenX || !pScreenY)
-		{
-			DebugTry(WriteChatColor("MQ2FPS plugin requires ScreenX and ScreenY to function correctly"));
-		}
+		if (!PreDetour)
+			PreDetour=GetVTable(36);
+		VOID (CMyDisplay::*pfDetour)(VOID) = CMyDisplay::Void;
+		SetVTable(36,*(DWORD*)&pfDetour);
 	}
 }
-/**/
+
 
 // Called once, when the plugin is to shutdown
 PLUGIN_API VOID ShutdownPlugin(VOID)
 {
 	DebugSpewAlways("Shutting down MQ2FPS");
-
 	// Remove commands, macro parameters, hooks, etc.
 	RemoveCommand("/maxfps");
 	RemoveCommand("/fps");
+	RemoveCommand("/render");
 	RemoveMQ2Data("FPS");
 	RemoveMQ2Data("MaxFPS");
 	RemoveMQ2Data("Foreground");
+
+	if (PreDetour)
+	{
+		SetVTable(36,PreDetour);
+		PreDetour=0;
+	}
 }
 
 DWORD gFG_MAX=0;
@@ -240,6 +307,8 @@ PLUGIN_API VOID OnPulse(VOID)
 		{
 			InForeground=true;
 			CurMax=gFG_MAX;
+			CurrentRate=gFG_Rate;
+			CurrentReverse=ReverseFG_Rate;
 			if (gFG_MAX)
 			{
 				int SleepTime=(int)(1000.0f/(float)gFG_MAX);
@@ -270,6 +339,8 @@ PLUGIN_API VOID OnPulse(VOID)
 		{
 			InForeground=false;
 			CurMax=gBG_MAX;
+			CurrentRate=gBG_Rate;
+			CurrentReverse=ReverseBG_Rate;
 			if (gBG_MAX)
 			{
 				int SleepTime=(int)(1000.0f/(float)gBG_MAX);
@@ -428,6 +499,75 @@ VOID MaxFPS(PSPAWNINFO pChar, PCHAR szLine)
     WriteChatColor(szCmd,USERCOLOR_DEFAULT);
 }
 
+VOID RenderCommand(PSPAWNINFO pChar, PCHAR szLine)
+{
+   bRunNextCommand = TRUE;
+   CHAR szCmd[MAX_STRING] = {0};
+    CHAR Arg1[MAX_STRING] = {0};
+    CHAR Arg2[MAX_STRING] = {0};
+    GetArg(Arg1,szLine,1);
+    GetArg(Arg2,szLine,2);
+   CHAR szFore[MAX_STRING]={0};
+   CHAR szBack[MAX_STRING]={0};
+
+
+   if (Arg1[0]==0 || Arg2[0]==0) {
+	   if (ReverseFG_Rate)
+		   sprintf(szFore,"%d/",gFG_Rate-1);
+	   else
+		   strcpy(szFore,"1/");
+	   if (ReverseBG_Rate)
+		   sprintf(szBack,"%d/",gBG_Rate-1);
+	   else
+		   strcpy(szBack,"1/");
+	   sprintf(szCmd,"\aw\ayRender Rate\ax\a-u:\ax \a-u[\ax\at%s%d\ax Foreground\a-u]\ax \a-u[\ax\at%s%d\ax Background\a-u]\ax",szFore,gFG_Rate,szBack,gBG_Rate);
+        WriteChatColor(szCmd,USERCOLOR_DEFAULT);
+		WriteChatColor("Usage: /render <fg|bg> <#|~#>",USERCOLOR_DEFAULT);
+        return;
+   }
+   DWORD NewRate;
+   BOOL Reverse=false;
+   if (Arg2[0]=='~')
+   {
+		NewRate=atoi(&Arg2[1]);
+		Reverse=true;
+		memcpy(&Arg2[0],&Arg2[1],MAX_STRING-1);
+   }
+   else
+	   NewRate=atoi(&Arg2[0]);
+   if (NewRate>200)
+   {
+       WriteChatColor("MaxFPS: Please use a number between 0 and 200, 0 being absolute fastest, 1-200 being that many frames per second.",USERCOLOR_DEFAULT);
+       return;
+   }
+
+   if (!stricmp(Arg1,"fg"))
+   {
+		gFG_Rate=NewRate;
+	   ReverseFG_Rate=Reverse;
+       WritePrivateProfileString("Rendering","FGRate",Arg2,INIFileName);
+	   WritePrivateProfileString("Rendering","ReverseFGRate",ReverseFG_Rate?"1":"0",INIFileName);
+   }
+   else if (!stricmp(Arg1,"bg"))
+   {
+		gBG_Rate=NewRate;
+	   ReverseBG_Rate=Reverse;
+       WritePrivateProfileString("Rendering","BGRate",Arg2,INIFileName);
+       WritePrivateProfileString("Rendering","ReverseBGRate",ReverseBG_Rate?"1":"0",INIFileName);
+   }
+
+   if (ReverseFG_Rate)
+		sprintf(szFore,"%d/",gFG_Rate-1);
+	else
+		strcpy(szFore,"1/");
+	if (ReverseBG_Rate)
+		sprintf(szBack,"%d/",gBG_Rate-1);
+	else
+		strcpy(szBack,"1/");
+	sprintf(szCmd,"\aw\ayRender Rate\ax\a-u:\ax \a-u[\ax\at%s%d\ax Foreground\a-u]\ax \a-u[\ax\at%s%d\ax Background\a-u]\ax",szFore,gFG_Rate,szBack,gBG_Rate);
+    WriteChatColor(szCmd,USERCOLOR_DEFAULT);
+}
+
 BOOL dataFPS(PCHAR szIndex, MQ2TYPEVAR &Ret)
 {
 	Ret.Float=FPS;
@@ -448,3 +588,5 @@ BOOL dataForeground(PCHAR szIndex, MQ2TYPEVAR &Ret)
 	Ret.Type=pBoolType;
 	return true;
 }
+
+

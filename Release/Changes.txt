@@ -1,3 +1,33 @@
+23 Apr 2004 by Lax (more):
+- Added MQ2Data Top-Level Objects:
+  string GroupLeaderName: group leader's name (works even if they are out of zone)
+  spawn GroupLeader: group leader (only works if they are in zone)
+- Added/Changed MQ2Data Members:
+  spawn spawn.NearestSpawn[search]: Find the nearest spawn matching this search, to this spawn (most efficient on yourself)
+  spawn spawn.NearestSpawn[n,search]: Find the nth nearest spawn matching this search, to this spawn (most efficient on yourself)
+  string window.List[n]: Get the first-column text for the nth item in a list box.  Example: ${Window[TradeskillWnd].Child[RecipeList].List[1]}
+  int window.List[text]: Find an item in a list box by partial match (use window.List[=text] for exact)  Example: ${Window[TradeskillWnd].Child[RecipeList].List[=Inky Shadow Silk]}
+  int string.Count[char]: Count the number of occurrences of a particular character in the string
+  bool window.Checked: Checked? (useful for buttons)
+  string string.Left[-length]: The left ("all but" length) of the string.. Left[-1] of "Left" will be "Lef"
+  string string.Right[-length]: The right ("all but" length) of the string.. Right[-1] of "Left" will be "eft"
+  bool character.RangedReady: Ranged attack ready?
+  bool character.AltTimerReady: Alternate timer ready? (Bash/Slam/Frenzy/Backstab.  Note that AbilityReady works fine with most of these)
+  int macroquest.Running: Running time of current MQ2 session, in milliseconds
+- Fixed AbilityReady for the alternate timer abilities (Bash, Slam, Frenzy, Backstab, possibly others)
+- Fixed /ctrlkey /shiftkey and /altkey.  They would sometimes "stick" the key down.
+- Added a notification to /notify "listselect", used to select the nth item in a list box.
+  Example: /notify TradeskillWnd RecipeList listselect 1
+  Use 0 to clear your selection.
+- ${Group[0]} is now the same as ${Me}.  Group members are still 1-5.
+- Added command to MQ2FPS:
+  /render <fg|bg> <#|~#>
+  Sets the foreground or background rendering rate.  This is how many out of n frames MQ2FPS
+  will allow to be drawn.  You keep moving full speed, the client responds to mouse or keys,
+  the UI is still drawn... but, the world itself will not be drawn as often.
+  Use with ~ to draw n-1 out of n frames, or without to draw 1 out of n frames.
+  e.g. /render bg ~3 will draw 2 out of 3 frames.  /render bg 3 will draw 1 out of 3 frames.
+
 23 Apr 2004 by Lax:
 - Changed top #turbo to 40, still defaults to 20
 - Fixed Ini Top-Level Object again

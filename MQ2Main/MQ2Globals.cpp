@@ -173,6 +173,9 @@ fEQSendMessage    send_message = (fEQSendMessage)__SendMessage;
 fEQExecuteCmd	  ExecuteCmd = (fEQExecuteCmd)__ExecuteCmd;
 
 // EQ Address Initialization
+PCHAR GroupLeader=(PCHAR)__GroupLeader;
+PSKILL *SkillDict=(PSKILL*)__SkillDict;
+
 DWORD EQADDR_HWND=__HWnd;
 //DWORD EQADDR_COMMANDS=0;
 DWORD EQADDR_MEMCHECK0=__MemChecker0;
@@ -195,7 +198,9 @@ PBYTE EQADDR_NOTINCHATMODE=(PBYTE)__InChatMode;
 PCHAR EQADDR_LASTTELL=(PCHAR)__LastTell;
 //PGROUNDITEM *EQADDR_ITEMS=0;
 PBYTE EQADDR_GROUPCOUNT=(PBYTE)__GroupCount;
-PBOOL gpbRangedAttackReady=(PBOOL)__RangeAttackReady;
+PCHAR gpbRangedAttackReady=(PCHAR)__RangeAttackReady;
+PCHAR gpbAltTimerReady=(PCHAR)__AltTimerReady;
+DWORD *g_ppDrawHandler=(DWORD*)__DrawHandler;
 PVOID EQADDR_GWORLD=(PVOID)__gWorld;
 //PDOORTABLE *EQADDR_DOORS=0;
 PDWORD EQADDR_DOABILITYLIST=(PDWORD)__DoAbilityList;
@@ -397,6 +402,24 @@ PCHAR szSkills[] = {
     NULL
 };
 
+PCHAR szInnates[] = {
+	"Awareness",//c4c
+	"Bash Door",//c50
+	"Breathe Fire",//c54
+	"Harmony",//c58
+	"Harm Touch",//c5c
+	"Infravision",//c60
+	"Lay Hands",//c64
+	"Lore",//c68
+	"No Bash",//c6c
+	"Regeneration",//c70
+	"Slam",//c74
+	"Surprise",//c78
+	"Ultravision",//c7c
+	"Inspect",//c80
+	"Open",//c84
+    NULL
+};
 
 PCHAR szCombineTypes[] = {
     #include "combines.h"
@@ -525,7 +548,7 @@ PCHAR szItemSlot[] = {
 };
 
 
-
+StringTable **ppStringTable=(StringTable**)pinstStringTable;
 EQPlayer **ppEQP_IDArray=(EQPlayer**)__EQP_IDArray;
 
 CEverQuest **ppEverQuest=(CEverQuest**)pinstCEverQuest;

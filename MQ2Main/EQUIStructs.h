@@ -823,6 +823,12 @@ typedef struct _EQOPTIONSWINDOW {
 /*0x904*/
 } EQOPTIONSWINDOW, *PEQOPTIONSWINDOW;
 
+// size 0x28 4-24-2004 Lax
+typedef struct _EQGRAPHICSENGINE {
+/*0x00*/ // Graphics file handler
+/*0x04*/
+} EQGRAPHICSENGINE, *PEQGRAPHICSENGINE;
+
 
 };
 

@@ -289,11 +289,46 @@ BOOL dataBool(PCHAR szIndex, MQ2TYPEVAR &Ret)
 	return true;
 }
 
+BOOL dataGroupLeader(PCHAR szIndex, MQ2TYPEVAR &Ret)
+{
+	if (!GroupLeader[0])
+		return false;
+	for (unsigned long N = 0 ; N < 5 ; N++)
+	{
+		if (EQADDR_GROUPCOUNT[N])
+		{
+			if (PSPAWNINFO pSpawn=(PSPAWNINFO)ppGroup[N])
+			{
+				if (!stricmp(pSpawn->Name,GroupLeader))
+				{
+					Ret.Ptr=pSpawn;
+					Ret.Type=pSpawnType;
+					return true;
+				}
+			}
+		}
+	}
+	return false;
+}
+
+BOOL dataGroupLeaderName(PCHAR szIndex, MQ2TYPEVAR &Ret)
+{
+	if (!GroupLeader[0])
+		return false;
+	Ret.Ptr=&GroupLeader[0];
+	Ret.Type=pStringType;
+	return true;
+}
+
 BOOL dataGroup(PCHAR szIndex, MQ2TYPEVAR &Ret)
 {
 	if (szIndex[0])
 	{
 		DWORD N=atoi(szIndex);
+		if (N==0)
+		{
+			return dataCharacter("",Ret);
+		}
 		if (N>5)
 			return false;
 		for (unsigned long i=0; i<5 ; i++)
@@ -953,3 +988,42 @@ BOOL dataPlugin(PCHAR szIndex, MQ2TYPEVAR &Ret)
 	}
 	return false;
 }
+
+BOOL dataSkill(PCHAR szIndex, MQ2TYPEVAR &Ret)
+{
+	if (!szIndex[0])
+		return false;
+	if (IsNumber(szIndex))
+	{
+		unsigned long nSkill=atoi(szIndex)-1;
+		if (nSkill>=100)
+			return false;
+		if (Ret.Ptr=&SkillDict[nSkill])
+		{
+			Ret.Type=pSkillType;
+			return true;
+		}
+	}
+	else
+	{
+		for (unsigned long nSkill=0 ; nSkill<100 ; nSkill++)
+		{
+			if (PSKILL pSkill=SkillDict[nSkill])
+			{
+				if (PCHAR pName=pStringTable->getString(pSkill->nName,0))
+				{
+					if (!stricmp(szIndex,pName))
+					{
+						Ret.Ptr=&SkillDict[nSkill];
+						Ret.Type=pSkillType;
+						return true;
+					}
+				}
+			}
+		}
+	}
+
+	return false;
+}
+
+

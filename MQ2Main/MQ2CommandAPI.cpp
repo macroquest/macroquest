@@ -67,7 +67,6 @@ VOID HideDoCommand(PSPAWNINFO pChar, PCHAR szLine, BOOL delayed)
         pLoop = pLoop->pNext;
     }
 
-	strcpy(szLastCommand,szLine);
 
 	GetArg(szCmd,szLine,1);
     if (szCmd[0]==0) return;
@@ -116,6 +115,7 @@ VOID HideDoCommand(PSPAWNINFO pChar, PCHAR szLine, BOOL delayed)
 			}
 			else
 				pCommand->Function(pChar,szParam);
+			strcpy(szLastCommand,szLine);
 			return;
 		}
 		pCommand=pCommand->pNext;
@@ -125,6 +125,7 @@ VOID HideDoCommand(PSPAWNINFO pChar, PCHAR szLine, BOOL delayed)
         return;
     }
 
+	strcpy(szLastCommand,szLine);
     sprintf(szCmd,"Couldn't parse '%s'",szOriginalLine);
     DebugSpew("DoCommand - Bad command: %s",szCmd);
     WriteChatColor(szCmd,CONCOLOR_RED);
@@ -153,7 +154,6 @@ public:
 				} 
 				pLoop = pLoop->pNext; 
 			} 
-			strcpy(szLastCommand,szFullCommand);
 			GetArg(szCommand,szFullCommand,1); 
 			strcpy(szArgs, GetNextArg(szFullCommand)); 
 
@@ -186,12 +186,14 @@ public:
 					{
 						pCommand->Function(pChar,szArgs);
 					}
+					strcpy(szLastCommand,szFullCommand);
 					return;
 				}
 				pCommand=pCommand->pNext;
 			}
 		}
 		Trampoline(pChar,szFullLine); 
+		strcpy(szLastCommand,szFullCommand);
 	} 
 
 	VOID Trampoline(PSPAWNINFO pChar, PCHAR szFullLine); 

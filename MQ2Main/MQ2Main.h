@@ -92,6 +92,12 @@ extern DWORD CountFrees;
 	__asm{jmp eax};\
 }
 
+#define REVERSE_VARIABLE_DETOUR(function,variable) __declspec(naked) function\
+{\
+	__asm{mov eax, [variable]};\
+	__asm{jmp eax};\
+}
+
 #define REVERSE_VIRTUAL_DETOUR(function,offset) __declspec(naked) function\
 {\
 	__asm{mov eax, [ecx]};\
@@ -384,6 +390,7 @@ EQLIB_API VOID DropTimers(VOID);
 EQLIB_API BOOL LoadCfgFile(PCHAR Filename, BOOL Delayed=FromPlugin);
 EQLIB_API PCHAR GetFriendlyNameForGroundItem(PGROUNDITEM pItem, PCHAR szName);
 EQLIB_API VOID ClearSearchSpawn(PSEARCHSPAWN pSearchSpawn);
+EQLIB_API PSPAWNINFO NthNearestSpawn(PSEARCHSPAWN pSearchSpawn, DWORD Nth, PSPAWNINFO pOrigin);
 EQLIB_API PSPAWNINFO SearchThroughSpawns(PSEARCHSPAWN pSearchSpawn, PSPAWNINFO pChar);
 EQLIB_API BOOL SpawnMatchesSearch(PSEARCHSPAWN pSearchSpawn, PSPAWNINFO pChar, PSPAWNINFO pSpawn);
 EQLIB_API PCHAR ParseSearchSpawnArgs(PCHAR szArg, PCHAR szRest, PSEARCHSPAWN pSearchSpawn);
@@ -538,6 +545,10 @@ EQLIB_API BOOL dataSelectedItem(PCHAR szIndex, MQ2TYPEVAR &Ret);
 EQLIB_API BOOL dataFindItemBank(PCHAR szIndex, MQ2TYPEVAR &Ret);
 EQLIB_API BOOL dataFindItemCount(PCHAR szIndex, MQ2TYPEVAR &Ret);
 EQLIB_API BOOL dataFindItemBankCount(PCHAR szIndex, MQ2TYPEVAR &Ret);
+EQLIB_API BOOL dataGroupLeader(PCHAR szIndex, MQ2TYPEVAR &Ret);
+EQLIB_API BOOL dataGroupLeaderName(PCHAR szIndex, MQ2TYPEVAR &Ret);
+EQLIB_API BOOL dataSkill(PCHAR szIndex, MQ2TYPEVAR &Ret);
+
 /* COMMANDS */
 
 EQLIB_API VOID DropCmd(PSPAWNINFO pChar, PCHAR szLine);

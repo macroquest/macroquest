@@ -2736,7 +2736,7 @@ BOOL ActualCalculate(PCHAR szFormula, DOUBLE &Result) {
   //              GracefullyEndBadMacro(((PCHARINFO)pCharData)->pSpawn,gMacroBlock, "Calculate encountered a unparsed variable '%s'",&(Buffer[i]));
 				return false;
             default:
-                GracefullyEndBadMacro(((PCHARINFO)pCharData)->pSpawn,gMacroBlock, "Calculate encountered unparsable text '%s'",Arg[j]);
+                GracefullyEndBadMacro(((PCHARINFO)pCharData)->pSpawn,gMacroBlock, "Calculate encountered unparsable text '%s'",&Buffer[i]);
                 return false;
         }
     }
@@ -2993,4 +2993,5 @@ BOOL Calculate(PCHAR szFormula, DOUBLE &Result)
 	}
 	return ActualCalculate(Buffer,Result);
 }
+
 

@@ -3200,6 +3200,40 @@ PCHAR FormatSearchSpawn(PCHAR Buffer, PSEARCHSPAWN pSearchSpawn)
     return Buffer;
 }
 
+PSPAWNINFO NthNearestSpawn(PSEARCHSPAWN pSearchSpawn, DWORD Nth, PSPAWNINFO pOrigin)
+{
+	CIndex<PMQRANK> SpawnSet;
+	PSPAWNINFO pSpawn=(PSPAWNINFO)pSpawnList;
+	// create our set
+	DWORD TotalMatching=0;
+	while (pSpawn)
+	{
+		if (SpawnMatchesSearch(pSearchSpawn,(PSPAWNINFO)pCharSpawn,pSpawn))
+		{
+			// matches search, add to our set
+			TotalMatching++;
+			PMQRANK pNewRank=new MQRANK;
+			pNewRank->VarPtr.Ptr=pSpawn;
+			pNewRank->Value.Float=GetDistance(pOrigin->X,pOrigin->Y,pSpawn->X,pSpawn->Y);
+		}
+
+		pSpawn=pSpawn->pNext;
+	}
+	if (TotalMatching<Nth)
+	{// CIndex.Cleanup will call "delete" on every valid pointer in our list.
+		SpawnSet.Cleanup();
+		return 0;
+	}
+
+	// sort our list
+	qsort(&SpawnSet[0],TotalMatching,sizeof(MQRANK),MQRankFloatCompare);
+	// get our Nth nearest
+	pSpawn=(PSPAWNINFO)SpawnSet[Nth-1]->VarPtr.Ptr;
+
+	SpawnSet.Cleanup();
+	return pSpawn;
+}
+
 PSPAWNINFO SearchThroughSpawns(PSEARCHSPAWN pSearchSpawn, PSPAWNINFO pChar)
 {
     PSPAWNINFO pSpawnInfo = (PSPAWNINFO)pSpawnList;
@@ -4354,7 +4388,7 @@ VOID DoAltCmd(PSPAWNINFO pChar, PCHAR szLine)
 		SyntaxError("Usage: /alt <command>");
 		return;
 	}
-	bool Old=((PCXWNDMGR)pWndMgr)->KeyboardFlags[3];
+	bool Old=((PCXWNDMGR)pWndMgr)->KeyboardFlags[2];
 	((PCXWNDMGR)pWndMgr)->KeyboardFlags[2]=1;
 	DoCommand(pChar,szLine);
 	((PCXWNDMGR)pWndMgr)->KeyboardFlags[2]=Old;
@@ -4368,7 +4402,7 @@ VOID DoShiftCmd(PSPAWNINFO pChar, PCHAR szLine)
 		SyntaxError("Usage: /shift <command>");
 		return;
 	}
-	bool Old=((PCXWNDMGR)pWndMgr)->KeyboardFlags[3];
+	bool Old=((PCXWNDMGR)pWndMgr)->KeyboardFlags[0];
 	((PCXWNDMGR)pWndMgr)->KeyboardFlags[0]=1;
 	DoCommand(pChar,szLine);
 	((PCXWNDMGR)pWndMgr)->KeyboardFlags[0]=Old;
@@ -4382,7 +4416,7 @@ VOID DoCtrlCmd(PSPAWNINFO pChar, PCHAR szLine)
 		SyntaxError("Usage: /ctrl <command>");
 		return;
 	}
-	bool Old=((PCXWNDMGR)pWndMgr)->KeyboardFlags[3];
+	bool Old=((PCXWNDMGR)pWndMgr)->KeyboardFlags[1];
 	((PCXWNDMGR)pWndMgr)->KeyboardFlags[1]=1;
 	DoCommand(pChar,szLine);
 	((PCXWNDMGR)pWndMgr)->KeyboardFlags[1]=Old;

@@ -17,7 +17,7 @@
 #endif
 
 #define DBG_SPEW
-
+#define DEBUG_TRY
 
 #include "MQ2Main.h"
 #include <map>
@@ -422,40 +422,40 @@ bool SendWndClick(CXWnd *pWnd, PCHAR ClickNotification)
 	{
 		if (!stricmp(szClickNotification[i],ClickNotification))
 		{
-			CXRect rect= pWnd->GetScreenRect();
-			CXPoint pt=rect.CenterPoint();
+			DebugTry(CXRect rect= pWnd->GetScreenRect());
+			DebugTry(CXPoint pt=rect.CenterPoint());
 			switch(i)
 			{
 			case 0:
-				pWnd->HandleLButtonDown(&pt,0);
+				DebugTry(pWnd->HandleLButtonDown(&pt,0));
 				return true;
 			case 1:
-				pWnd->HandleLButtonDown(&pt,0);
-				pWnd->HandleLButtonUp(&pt,0);
+				DebugTry(pWnd->HandleLButtonDown(&pt,0));
+				DebugTry(pWnd->HandleLButtonUp(&pt,0));
 				return true;
 			case 2:
-				pWnd->HandleLButtonHeld(&pt,0);
+				DebugTry(pWnd->HandleLButtonHeld(&pt,0));
 				return true;
 			case 3:
-				pWnd->HandleLButtonDown(&pt,0);
-				pWnd->HandleLButtonHeld(&pt,0);
-				pWnd->HandleLButtonUpAfterHeld(&pt,0);
+				DebugTry(pWnd->HandleLButtonDown(&pt,0));
+				DebugTry(pWnd->HandleLButtonHeld(&pt,0));
+				DebugTry(pWnd->HandleLButtonUpAfterHeld(&pt,0));
 				return true;
 			case 4:
-				pWnd->HandleRButtonDown(&pt,0);
+				DebugTry(pWnd->HandleRButtonDown(&pt,0));
 				return true;
 			case 5:
-				pWnd->HandleRButtonDown(&pt,0);
-				pWnd->HandleRButtonUp(&pt,0);
+				DebugTry(pWnd->HandleRButtonDown(&pt,0));
+				DebugTry(pWnd->HandleRButtonUp(&pt,0));
 				return true;
 			case 6:
-				pWnd->HandleRButtonDown(&pt,0);
-				pWnd->HandleRButtonHeld(&pt,0);
+				DebugTry(pWnd->HandleRButtonDown(&pt,0));
+				DebugTry(pWnd->HandleRButtonHeld(&pt,0));
 				return true;
 			case 7:
-				pWnd->HandleRButtonDown(&pt,0);
-				pWnd->HandleRButtonHeld(&pt,0);
-				pWnd->HandleRButtonUpAfterHeld(&pt,0);
+				DebugTry(pWnd->HandleRButtonDown(&pt,0));
+				DebugTry(pWnd->HandleRButtonHeld(&pt,0));
+				DebugTry(pWnd->HandleRButtonUpAfterHeld(&pt,0));
 				return true;
 			};
 		}
@@ -465,11 +465,10 @@ bool SendWndClick(CXWnd *pWnd, PCHAR ClickNotification)
 
 bool SendWndClick(PCHAR WindowName, PCHAR ScreenID, PCHAR ClickNotification)
 {
-	CHAR szOut[MAX_STRING] = {0};
 	CXWnd *pWnd=FindMQ2Window(WindowName);
 	if (!pWnd)
 	{
-		sprintf(szOut,"Window '%s' not available.",WindowName);
+		MacroError("Window '%s' not available.",WindowName);
 		return false;
 	}
 	if (ScreenID && ScreenID[0] && ScreenID[0]!='0')
@@ -477,8 +476,7 @@ bool SendWndClick(PCHAR WindowName, PCHAR ScreenID, PCHAR ClickNotification)
 		CXWnd *pButton=((CSidlScreenWnd*)(pWnd))->GetChildItem(CXStr(ScreenID));
 		if (!pButton)
 		{
-			sprintf(szOut,"Window '%s' child '%s' not found.",WindowName,ScreenID);
-			WriteChatColor(szOut,USERCOLOR_DEFAULT);
+			MacroError("Window '%s' child '%s' not found.",WindowName,ScreenID);
 			return false;
 		}
 		pWnd=pButton;
@@ -525,6 +523,28 @@ bool SendWndClick(PCHAR WindowName, PCHAR ScreenID, PCHAR ClickNotification)
 				return true;
 			};
 		}
+	}
+	return false;
+}
+
+bool SendListSelect(PCHAR WindowName, PCHAR ScreenID, DWORD Value)
+{
+	CXWnd *pWnd=FindMQ2Window(WindowName);
+	if (!pWnd)
+	{
+		MacroError("Window '%s' not available.",WindowName);
+		return false;
+	}
+	if (ScreenID && ScreenID[0] && ScreenID[0]!='0')
+	{
+		CListWnd *pList=(CListWnd*)((CSidlScreenWnd*)(pWnd))->GetChildItem(CXStr(ScreenID));
+		if (!pList)
+		{
+			MacroError("Window '%s' child '%s' not found.",WindowName,ScreenID);
+			return false;
+		}
+		pList->SetCurSel(Value);
+		return true;
 	}
 	return false;
 }
@@ -676,7 +696,6 @@ VOID WndNotify(PSPAWNINFO pChar, PCHAR szLine)
 	CHAR szArg2[MAX_STRING] = {0}; 
 	CHAR szArg3[MAX_STRING] = {0}; 
 	CHAR szArg4[MAX_STRING] = {0}; 
-	CHAR szOut[MAX_STRING] = {0};
 
 	GetArg(szArg1, szLine, 1);
 	GetArg(szArg2, szLine, 2);
@@ -685,15 +704,20 @@ VOID WndNotify(PSPAWNINFO pChar, PCHAR szLine)
 
 	if (!szArg3[0])
 	{
-		WriteChatColor("Syntax: /notify <window|\"item\"> <control|0> <notification> [notification data]");
+		SyntaxError("Syntax: /notify <window|\"item\"> <control|0> <notification> [notification data]");
 		return;
 	}
 	unsigned long Data=0;
 	if (szArg4[0])
 		Data=atoi(szArg4);
 
-	if (SendWndClick(szArg1,szArg2,szArg3))
+	if (Data==0 && SendWndClick(szArg1,szArg2,szArg3))
 		return;
+	if (!stricmp(szArg3,"listselect"))
+	{
+		SendListSelect(szArg1,szArg2,Data-1);
+		return;
+	}
 
 	for (unsigned long i = 0 ; i < 30 ; i++)
 	{
@@ -703,20 +727,17 @@ VOID WndNotify(PSPAWNINFO pChar, PCHAR szLine)
 			{
 				if (!SendWndNotification(szArg1,0,i,(void*)Data))
 				{
-					sprintf(szOut,"Could not send notification to %s %s",szArg1,szArg2);
-					WriteChatColor(szOut);
+					MacroError("Could not send notification to %s %s",szArg1,szArg2);
 				}
 			}
 			else if (!SendWndNotification(szArg1,szArg2,i,(void*)Data))
 			{
-				sprintf(szOut,"Could not send notification to %s %s",szArg1,szArg2);
-				WriteChatColor(szOut);
+				MacroError("Could not send notification to %s %s",szArg1,szArg2);
 			}
 			return;
 		}
 	}
-	sprintf(szOut,"Invalid notification '%s'",szArg3);
-	WriteChatColor(szOut);
+	MacroError("Invalid notification '%s'",szArg3);
 }
 
 // item slots:
@@ -731,6 +752,30 @@ VOID WndNotify(PSPAWNINFO pChar, PCHAR szLine)
 
 
 /*
+/**/
+/*
+VOID ListSelect(PSPAWNINFO pChar, PCHAR szLine)
+{
+	CHAR szOut[MAX_STRING] = {0};
+	CXWnd *pWnd=FindMQ2Window(WindowName);
+	if (!pWnd)
+	{
+		sprintf(szOut,"Window '%s' not available.",WindowName);
+		return false;
+	}
+	if (ScreenID && ScreenID[0] && ScreenID[0]!='0')
+	{
+		CXWnd *pButton=((CSidlScreenWnd*)(pWnd))->GetChildItem(CXStr(ScreenID));
+		if (!pButton)
+		{
+			sprintf(szOut,"Window '%s' child '%s' not found.",WindowName,ScreenID);
+			WriteChatColor(szOut,USERCOLOR_DEFAULT);
+			return false;
+		}
+		pWnd=pButton;
+	}
+
+}
 /**/
 
 VOID ItemNotify(PSPAWNINFO pChar, PCHAR szLine)
@@ -820,7 +865,7 @@ VOID ItemNotify(PSPAWNINFO pChar, PCHAR szLine)
 			WriteChatColor(szOut);
 			return;
 		}
-		pSlot=pInvSlotMgr->FindInvSlot(Slot);
+		DebugTry(pSlot=pInvSlotMgr->FindInvSlot(Slot));
 	}
 	if (!pSlot)
 	{
@@ -828,7 +873,7 @@ VOID ItemNotify(PSPAWNINFO pChar, PCHAR szLine)
 		WriteChatColor(szOut);
 		return;
 	}
-
+	DebugSpew("ItemNotify: Calling SendWndClick");
 	if (!SendWndClick((CXWnd*)((PEQINVSLOT)pSlot)->pInvSlotWnd,pNotification))
 	{
 		sprintf(szOut,"Could not send notification to %s %s",szArg1,szArg2);

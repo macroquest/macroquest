@@ -141,3 +141,16 @@ static inline DWORD ConColorToARGB(DWORD ConColor)
             return 0xFFFF0000;
     }
 }
+
+static inline BOOL IsNumber(PCHAR String)
+{
+	if (*String==0)
+		return FALSE;
+	while(*String)
+	{
+		if (!((*String>='0' && *String<='9') || *String=='.'))
+			return FALSE;
+		++String;
+	}
+	return TRUE;
+}

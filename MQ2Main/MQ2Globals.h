@@ -157,6 +157,9 @@ EQLIB_VAR PCHAR EQADDR_SERVERHOST;
 EQLIB_VAR PCHAR EQADDR_SERVERNAME;
 EQLIB_VAR DWORD EQADDR_HWND;
 
+EQLIB_VAR PCHAR GroupLeader;
+EQLIB_VAR PSKILL *SkillDict;
+
 EQLIB_VAR PCMDLIST EQADDR_CMDLIST;
 
 EQLIB_VAR PBYTE EQADDR_ATTACK;
@@ -178,8 +181,13 @@ EQLIB_VAR PMOUSECLICK EQADDR_MOUSECLICK;
 EQLIB_VAR PMAPLABEL *ppCurrentMapLabel;
 #define pCurrentMapLabel (*ppCurrentMapLabel)
 
-EQLIB_VAR PBOOL gpbRangedAttackReady;
+EQLIB_VAR PCHAR gpbRangedAttackReady;
 #define gbRangedAttackReady (*gpbRangedAttackReady)
+EQLIB_VAR PCHAR gpbAltTimerReady;
+#define gbAltTimerReady (*gpbAltTimerReady)
+
+EQLIB_VAR DWORD *g_ppDrawHandler;
+#define g_pDrawHandler (*g_ppDrawHandler)
 
 EQLIB_VAR PCHAR *EQMappableCommandList;
 EQLIB_VAR DWORD gnNormalEQMappableCommands;
@@ -211,6 +219,7 @@ EQLIB_VAR PCHAR szDeityTeam[];
 EQLIB_VAR PCHAR szLights[];
 EQLIB_VAR BYTE LightBrightness[];
 EQLIB_VAR PCHAR szSkills[];
+EQLIB_VAR PCHAR szInnates[];
 EQLIB_VAR PCHAR szCombineTypes[];
 EQLIB_VAR PCHAR szItemTypes[];
 
@@ -251,6 +260,9 @@ EQLIB_VAR EQPlayer **ppEQP_IDArray;
 EQLIB_VAR MQRANK EQP_DistArray[3000];
 EQLIB_VAR DWORD gSpawnCount;
 //#define ppEQP_IDArray (*pppEQP_IDArray)
+
+EQLIB_VAR StringTable **ppStringTable;
+#define pStringTable (*ppStringTable)
 
 EQLIB_VAR CEverQuest **ppEverQuest;
 #define pEverQuest (*ppEverQuest)

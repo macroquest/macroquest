@@ -150,7 +150,9 @@ void InitializeMQ2Data()
 	AddMQ2Data("SelectedItem",dataSelectedItem);
 	AddMQ2Data("FindItemCount",dataFindItemCount);
 	AddMQ2Data("FindItemBankCount",dataFindItemBankCount);
-	
+	AddMQ2Data("GroupLeader",dataGroupLeader);	
+	AddMQ2Data("GroupLeaderName",dataGroupLeaderName);
+	AddMQ2Data("Skill",dataSkill);
 }
 
 
@@ -520,7 +522,7 @@ BOOL ParseMQ2DataPortion(PCHAR szOriginal, MQ2TYPEVAR &Result)
 			}
 			else
 			{
-				MQ2DataError("Invalid character found after typecast '%c'",pPos[1]);
+				MQ2DataError("Invalid character found after typecast ')%s'",&pPos[1]);
 				return FALSE;
 			}
 		}
@@ -568,7 +570,7 @@ BOOL ParseMQ2DataPortion(PCHAR szOriginal, MQ2TYPEVAR &Result)
 			if (pPos[1]!=0 && pPos[1]!='.' && pPos[1]!='(')
 			{
 				// broken!
-				MQ2DataError("Invalid character found after index '%c'",pPos[1]);
+				MQ2DataError("Invalid character found after index ']%s'",&pPos[1]);
 				return FALSE;
 			}
 		}

@@ -28,6 +28,8 @@ EQLIB_VAR class MQ2BuffType *pBuffType;
 EQLIB_VAR class MQ2SpellType *pSpellType;
 EQLIB_VAR class MQ2TicksType *pTicksType;
 
+EQLIB_VAR class MQ2SkillType *pSkillType;
+
 EQLIB_VAR class MQ2ClassType *pClassType;
 EQLIB_VAR class MQ2RaceType *pRaceType;
 EQLIB_VAR class MQ2BodyType *pBodyType;
@@ -264,6 +266,7 @@ public:
 		NotEqual=12,
 		EqualCS=13,
 		NotEqualCS=14,
+		Count=15,
 	};
 
 	MQ2StringType():MQ2Type("string")
@@ -282,6 +285,7 @@ public:
 		TypeMember(NotEqual);
 		TypeMember(EqualCS);
 		TypeMember(NotEqualCS);
+		TypeMember(Count);
 	}
 
 	~MQ2StringType()
@@ -514,6 +518,7 @@ public:
 		Feigning=70,
 		Binding=71,
 		Invited=72,
+		NearestSpawn=73,
 	};
 	MQ2SpawnType():MQ2Type("spawn")
 	{
@@ -587,6 +592,7 @@ public:
 		TypeMember(Feigning);//=70,
 		TypeMember(Binding);//=71,
 		TypeMember(Invited);
+		TypeMember(NearestSpawn);
 	}
 
 	~MQ2SpawnType()
@@ -704,6 +710,8 @@ public:
 		PctGroupLeaderExp=86,
 		PctRaidLeaderExp=87,
 		Stunned=88,
+		RangedReady=89,
+		AltTimerReady=90,
 	};
 	MQ2CharacterType():MQ2Type("character")
 	{
@@ -794,6 +802,8 @@ public:
 		TypeMember(PctGroupLeaderExp);
 		TypeMember(PctRaidLeaderExp);
 		TypeMember(Stunned);
+		TypeMember(RangedReady);
+		TypeMember(AltTimerReady);
 	}
 
 	~MQ2CharacterType()
@@ -1376,6 +1386,8 @@ public:
 		BGColor=20,
 		Text=21,
 		Tooltip=22,
+		List=23,
+		Checked=24,
 	};
 	MQ2WindowType():MQ2Type("window")
 	{
@@ -1400,6 +1412,8 @@ public:
 		TypeMember(BGColor);//20,
 		TypeMember(Text);//21,
 		TypeMember(Tooltip);//22,
+		TypeMember(List);
+		TypeMember(Checked);
  	}
 
 	~MQ2WindowType()
@@ -1582,6 +1596,7 @@ public:
 		Error=6,
 		SyntaxError=7,
 		MQ2DataError=8,
+		Running=9,
 	};
 	MQ2MacroQuestType():MQ2Type("macroquest")
 	{
@@ -1593,6 +1608,7 @@ public:
 		TypeMember(Error);
 		TypeMember(SyntaxError);
 		TypeMember(MQ2DataError);
+		TypeMember(Running);
 	}
 
 	~MQ2MacroQuestType()
@@ -2086,6 +2102,63 @@ public:
 		return false;
 	}
 }; 
+
+class MQ2SkillType : public MQ2Type
+{
+public:
+   static enum SkillMembers
+   {
+	   Name=1,
+	   ID=2,
+	   Accuracy=3,
+	   ReuseTime=4,
+	   MinLevel=5,
+	   StartingSkill=6,
+	   SkillCapPre50=7,
+	   SkillCapPost50=8,
+	   AltTimer=9,
+   };
+   MQ2SkillType():MQ2Type("skill")
+   {
+	  TypeMember(Name);
+	  TypeMember(ID);
+	  TypeMember(Accuracy);
+	  TypeMember(ReuseTime);
+	  TypeMember(MinLevel);
+	  TypeMember(StartingSkill);
+	  TypeMember(SkillCapPre50);
+	  TypeMember(SkillCapPost50);
+	  TypeMember(AltTimer);
+   }
+
+   ~MQ2SkillType()
+   {
+   }
+
+   bool GetMember(MQ2VARPTR VarPtr, PCHAR Member, PCHAR Index, MQ2TYPEVAR &Dest);
+
+   bool ToString(MQ2VARPTR VarPtr, PCHAR Destination)
+   {
+	   if (!VarPtr.Ptr)
+		   return false;
+	   if (PSKILL pSkill=*(PSKILL*)VarPtr.Ptr)
+	   if (PCHAR pName=pStringTable->getString(pSkill->nName,0))
+	   {
+		   strcpy(Destination,pName);
+		   return true;
+	   }
+	   return false;
+   }
+	bool FromData(MQ2VARPTR &VarPtr, MQ2TYPEVAR &Source)
+	{
+		return false;
+	}
+	bool FromString(MQ2VARPTR &VarPtr, PCHAR Source)
+	{
+		return false;
+	}
+}; 
+
 
 class MQ2TimerType : public MQ2Type
 {

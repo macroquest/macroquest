@@ -807,7 +807,9 @@ PMACROBLOCK AddMacroLine(PCHAR szLine)
             CHAR szArg[MAX_STRING] = {0};
             GetArg(szArg,szLine,2);
             gMaxTurbo = atoi(szArg);
-            if (gMaxTurbo==0 || gMaxTurbo>40) 
+			if (gMaxTurbo==0)
+				gMaxTurbo=20;
+			else if (gMaxTurbo>40) 
 				gMaxTurbo=40;
         } else if (!strnicmp(szLine,"#define ",8)) {
             CHAR szArg1[MAX_STRING] = {0};
