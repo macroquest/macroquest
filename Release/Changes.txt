@@ -1,4 +1,4 @@
-31 Mar 2004 by Lax
+30 Mar 2004 by Lax
 - Fixed /newif so variables/parms/data get parsed
 - string.Mid and string.Find are now 1-based instead of 0-based
 - Calculate (and stuff that uses it) now supports parentheses, and will treat 
