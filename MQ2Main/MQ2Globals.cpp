@@ -158,7 +158,7 @@ fEQSendMessage    send_message = (fEQSendMessage)__SendMessage;
 fEQExecuteCmd	  ExecuteCmd = (fEQExecuteCmd)__ExecuteCmd;
 
 // EQ Address Initialization
-DWORD EQADDR_HWND=0x6D5190;
+DWORD EQADDR_HWND=__HWnd;
 //DWORD EQADDR_COMMANDS=0;
 DWORD EQADDR_MEMCHECK=__MemChecker1;
 DWORD EQADDR_MEMCHECK2=__MemChecker2;
