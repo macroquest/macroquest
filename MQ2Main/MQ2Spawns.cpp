@@ -17,7 +17,7 @@
 
 #define DBG_SPEW
 
-#define DEBUG_TRY 1
+//#define DEBUG_TRY 1
 #include "MQ2Main.h"
 
 
@@ -185,8 +185,8 @@ public:
 	void SetNameColor(DWORD &Color);
 };
 
-FUNCTION_AT_VIRTUAL_ADDRESS(bool CActorEx::CanSetName(DWORD),0x118);
-FUNCTION_AT_VIRTUAL_ADDRESS(void CActorEx::SetNameColor(DWORD &Color),0x108);
+FUNCTION_AT_VIRTUAL_ADDRESS(bool CActorEx::CanSetName(DWORD),0x11C);
+FUNCTION_AT_VIRTUAL_ADDRESS(void CActorEx::SetNameColor(DWORD &Color),0x10C);
 
 typedef struct _CAPTIONCOLOR {
 	PCHAR szName;
@@ -369,6 +369,7 @@ VOID SetNameSpriteTint(PSPAWNINFO pSpawn)
 {
 	if (!pSpawn->pActorInfo || !pSpawn->pActorInfo->pActorEx)
 		return;
+//	DebugSpew("SetNameSpriteTint(%s)",pSpawn->Name);
 	CActorEx *pActorEx=(CActorEx *)pSpawn->pActorInfo->pActorEx;
 	DWORD NewColor;
 	switch(GetSpawnType(pSpawn))
@@ -463,14 +464,16 @@ VOID SetNameSpriteTint(PSPAWNINFO pSpawn)
 		break;
 	}
 
-	pActorEx->SetNameColor(NewColor);
+//	DebugTry(pActorEx->SetNameColor(NewColor));
 }
 
 BOOL SetNameSpriteState(PSPAWNINFO pSpawn, bool Show)
 {
 //	DebugSpew("SetNameSpriteState(%s) --race %d body %d)",pSpawn->Name,pSpawn->Race,pSpawn->BodyType);
 	if (!Show)
+	{
 		((EQPlayerHook*)pSpawn)->SetNameSpriteState_Trampoline(Show);
+	}
 #define SetCaption(CaptionString) \
 		{\
 			if (CaptionString[0])\
@@ -489,7 +492,7 @@ BOOL SetNameSpriteState(PSPAWNINFO pSpawn, bool Show)
 		{
 //			DebugSpew("CanSetName==0 - %s .. race %d body %d",pSpawn->Name,pSpawn->Race,pSpawn->BodyType);
 			return 1;
-		}
+		};
 		
 		switch(GetSpawnType(pSpawn))
 		{
@@ -515,12 +518,14 @@ BOOL SetNameSpriteState(PSPAWNINFO pSpawn, bool Show)
 			SetCaption(gszSpawnPetName);
 			break;
 		}
+//		DebugSpew("Returning default from SetNameSpriteState");
 		return ((EQPlayerHook*)pSpawn)->SetNameSpriteState_Trampoline(Show);
 #undef SetCaption
 }
 
 VOID UpdateSpawnCaptions()
 {
+//	DebugSpew("UpdateSpawnCaptions()");
 	DWORD N;
 	DWORD Count=0;
 	for (N = 0 ; N < 120 ; N++)
@@ -664,7 +669,9 @@ VOID UpdateMQ2SpawnSort()
 		if (PSPAWNINFO pSpawn=(PSPAWNINFO)GetSpawnByID(LastTarget))
 		{
 			if (pSpawn!=(PSPAWNINFO)pTarget)
+			{
 				SetNameSpriteState(pSpawn,false);
+			}
 		}
 		LastTarget=0;
 	}

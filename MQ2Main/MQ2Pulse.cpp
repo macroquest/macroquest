@@ -254,20 +254,20 @@ void Heartbeat()
 		{
 			DebugSpew("GetGameState()=%d vs %d",GameState,gGameState);
 			gGameState=GameState;
-			Benchmark(bmPluginsSetGameState,PluginsSetGameState(GameState));
+			DebugTry(Benchmark(bmPluginsSetGameState,PluginsSetGameState(GameState)));
 		}
 	}
-	UpdateMQ2SpawnSort();
-	DrawHUD();
+	DebugTry(UpdateMQ2SpawnSort());
+	DebugTry(DrawHUD());
 	if (gGameState==GAMESTATE_INGAME && !bMouseLook && ScreenMode==3)
 	{
-		pWndMgr->DrawCursor();
+		DebugTry(pWndMgr->DrawCursor());
 	}
 
     bRunNextCommand   = TRUE;
-	Pulse();
-    Benchmark(bmPluginsPulse,DebugTry(PulsePlugins()));
-	ProcessPendingGroundItems();
+	DebugTry(Pulse());
+    DebugTry(Benchmark(bmPluginsPulse,DebugTry(PulsePlugins())));
+	DebugTry(ProcessPendingGroundItems());
 
 
 	static bool ShownNews=false;

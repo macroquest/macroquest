@@ -135,6 +135,10 @@ typedef double DOUBLE;
 #define THIS_                   INTERFACE FAR* This,
 #endif
 
+// DEBUGGING
+//#ifndef DEBUG_TRY
+//#define DEBUG_TRY
+//#endif
 #ifdef DEBUG_TRY
 #define DebugTry(x) DebugSpew("Trying %s",#x);x;DebugSpew("%s complete",#x)
 #else

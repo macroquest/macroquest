@@ -322,7 +322,7 @@ enum MOUSE_DATA_TYPES {
    MD_Button1
 };
 
-#define nEQMappableCommands 0xB9
+#define nEQMappableCommands 0xBA
 
 
 // ***************************************************************************
@@ -810,17 +810,18 @@ typedef struct _CHARINFO {
 /*0x0e14*/	BYTE	field_0xe14;	
 /*0x0e15*/	BYTE	field_0xe15;	
 /*0x0e16*/	BYTE	Padding0xe16[0x2];	
-/*0x0e18*/	DWORD	STR;	
-/*0x0e1c*/	DWORD	STA;	
-/*0x0e20*/	DWORD	CHA;	
-/*0x0e24*/	DWORD	DEX;	
-/*0x0e28*/	DWORD	INT;	
-/*0x0e2c*/	DWORD	AGI;	
-/*0x0e30*/	DWORD	WIS;	
-/*0x0e34*/	DWORD	field_0xe34;	
-/*0x0e38*/	DWORD	SaveMagic;	
-/*0x0e3c*/	DWORD	SaveFire;	
-/*0x0e40*/	DWORD	SaveCold;	
+/*0x0e18*/  BYTE    Unknown0x0e18[0x14]; // modified 5-26-2004 patch, need to update charinfo comments
+/*0x0e1 */	DWORD	STR;	
+/*0x0e1 */	DWORD	STA;	
+/*0x0e2 */	DWORD	CHA;	
+/*0x0e2 */	DWORD	DEX;	
+/*0x0e2 */	DWORD	INT;	
+/*0x0e2 */	DWORD	AGI;	
+/*0x0e3 */	DWORD	WIS;	
+/*0x0e3 */	DWORD	field_0xe34;	
+/*0x0e3 */	DWORD	SaveMagic;	
+/*0x0e3 */	DWORD	SaveFire;	
+/*0x0e4 */	DWORD	SaveCold;	
 /*0x0e44*/	DWORD	SavePoison;	
 /*0x0e48*/	DWORD	SaveDisease;	
 /*0x0e4c*/	DWORD	field_0xe4c;	
@@ -1003,30 +1004,30 @@ typedef struct _CHARINFO {
 /*0x95e4*/	DWORD	field_0x95e4;	
 /*0x95e8*/	BYTE	field_0x95e8[0x58];	
 /*0x9640*/	BYTE	field_0x9640[0x58];	
-/*0x9698*/	DWORD	field_0x9698;	
-/*0x969c*/	BYTE	Padding0x969c[0xc];	
-/*0x96a8*/	DWORD	field_0x96a8;	
-/*0x96ac*/	BYTE	field_0x96ac;	
-/*0x96ad*/	BYTE	Padding0x96ad[0x3];	
-/*0x96b0*/	DWORD	field_0x96b0;	
-/*0x96b4*/	DWORD	field_0x96b4;	
-/*0x96b8*/	DWORD	field_0x96b8;	
-/*0x96bc*/	BYTE	Padding0x96bc[0x8];	
-/*0x96c4*/	BYTE	UnknownInsertionPt2[0x8];	
-/*0x96cc*/	struct _CONTENTS*	Bank[NUM_BANK_SLOTS];	  //-->96cc
-/*0x9714*/	BYTE	field_0x9714[0x90];	
-/*0x97a4*/	DWORD	field_0x97a4;	
-/*0x97a8*/	BYTE	Padding0x97a8[0x10];	
-/*0x97b8*/	DWORD	field_0x97b8;	
-/*0x97bc*/	BYTE	Grouped;	
-/*0x97bd*/	BYTE	field_0x97bd[0x17F];	// NOTE group info 97ac-992c
-/*0x993c*/	BYTE	field_0x993c[0x18];	
-/*0x9954*/	BYTE	field_0x9954[0x40];	
-/*0x9994*/	BYTE	field_0x9994[0x13c];	
-/*0x9ad0*/	BYTE	field_0x9ad0[0x154];	// group leadership
-/*0x9c24*/	DWORD	field_0x9c24;	
-/*0x9c28*/	DWORD	field_0x9c28;	
-/*0x9c2c*/
+/*0x969 */	DWORD	field_0x9698;	
+/*0x969 */	BYTE	Padding0x969c[0xc];	
+/*0x96a */	DWORD	field_0x96a8;	
+/*0x96a */	BYTE	field_0x96ac;	
+/*0x96a */	BYTE	Padding0x96ad[0x3];	
+/*0x96b */	DWORD	field_0x96b0;	
+/*0x96b */	DWORD	field_0x96b4;	
+/*0x96b */	DWORD	field_0x96b8;	
+/*0x96b */	BYTE	Padding0x96bc[0x8];	
+/*0x96c */	BYTE	UnknownInsertionPt2[0x18];	
+/*0x96  */	struct _CONTENTS*	Bank[NUM_BANK_SLOTS];	  
+/*0x97  */	BYTE	field_0x9714[0x90];	
+/*0x97  */	DWORD	field_0x97a4;	
+/*0x97  */	BYTE	Padding0x97a8[0x10];	
+/*0x97b */	DWORD	field_0x97b8;	
+/*0x97b */	BYTE	Grouped;	
+/*0x97b */	BYTE	field_0x97bd[0x17F];	// NOTE group info 97ac-992c
+/*0x993 */	BYTE	field_0x993c[0x18];	
+/*0x995 */	BYTE	field_0x9954[0x40];	
+/*0x999 */	BYTE	field_0x9994[0x13c];	
+/*0x9ad */	BYTE	field_0x9ad0[0x154];	// group leadership
+/*0x9c2 */	DWORD	field_0x9c24;	
+/*0x9c2 */	DWORD	field_0x9c28;	
+/*0x9c2 */
 } CHARINFO, *PCHARINFO;
 
 typedef struct _MODELINFONAME {

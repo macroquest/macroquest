@@ -483,7 +483,7 @@ PCHAR szBodyType[] = {
    "Lycanthrope", //2
    "Undead", //3
    "Giant", //4
-   "Construct", //5
+   "Construct", //5   (includes confused mutations in ldon)
    "Extraplanar", //6
    "Magical", //7
    "Undead Pet", //8
@@ -511,7 +511,7 @@ PCHAR szBodyType[] = {
    "Bane Dragon",//30
    "Familiar",//31
 	"*UNKNOWN BODYTYPE 32",
-	"*UNKNOWN BODYTYPE 33",
+	"Chest",
 	"Muramite",
 	"*UNKNOWN BODYTYPE 35",
 	"*UNKNOWN BODYTYPE 36",
@@ -543,9 +543,9 @@ PCHAR szBodyType[] = {
 	"*UNKNOWN BODYTYPE 62",
 	"*UNKNOWN BODYTYPE 63",
 	"*UNKNOWN BODYTYPE 64",
-	"*Trap",
-	"*Timer",
-	"*Trigger",
+	"Trap",
+	"Timer",
+	"Trigger",
 	"*UNKNOWN BODYTYPE 68",
 	"*UNKNOWN BODYTYPE 69",
 	"*UNKNOWN BODYTYPE 70",

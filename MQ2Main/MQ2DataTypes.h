@@ -18,6 +18,8 @@
 // macro line continuation e.g. \
 // more work on window lists (grab names from XMLData?)
 // command to set raid class colors
+// /cast list
+// chest bodytype settings
 //
 // mq2data todo:
 // -------------
@@ -25,6 +27,7 @@
 // Friend TLO
 // Ignore TLO
 // key state (ctrl/shift/alt)
+// spawn count
 
 
 EQLIB_VAR class MQ2FloatType *pFloatType;

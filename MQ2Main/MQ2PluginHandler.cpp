@@ -18,6 +18,13 @@
 
 #define DBG_SPEW
 
+//#define DEBUG_PLUGINS
+
+#ifdef DEBUG_PLUGINS
+#define PluginDebug DebugSpew
+#else
+#define PluginDebug //
+#endif
 
 #include "MQ2Main.h"
 
@@ -225,6 +232,7 @@ VOID WriteChatColor(PCHAR Line, DWORD Color, DWORD Filter)
 		return;
 	if (gFilterMQ)
 		return;
+	PluginDebug("Begin WriteChatColor()");
 	EnterMQ2Benchmark(bmWriteChatColor);
 	CHAR PlainText[MAX_STRING]={0};
 	StripMQChat(Line,PlainText);
@@ -248,6 +256,7 @@ VOID WriteChatColor(PCHAR Line, DWORD Color, DWORD Filter)
 
 BOOL PluginsIncomingChat(PCHAR Line, DWORD Color)
 {
+	PluginDebug("PluginsIncomingChat()");
 	if (!bPluginCS)
 		return 0;
     if(!Line[0])
@@ -268,6 +277,7 @@ BOOL PluginsIncomingChat(PCHAR Line, DWORD Color)
 
 VOID PulsePlugins()
 {
+	PluginDebug("PulsePlugins()");
 	if (!bPluginCS)
 		return;
 	CAutoLock Lock(&gPluginCS);
@@ -285,6 +295,7 @@ VOID PulsePlugins()
 
 VOID PluginsZoned()
 {
+	PluginDebug("PluginsZoned()");
 	if (!bPluginCS)
 		return;
 	CAutoLock Lock(&gPluginCS);
@@ -304,6 +315,7 @@ VOID PluginsZoned()
 
 VOID PluginsCleanUI()
 {
+	PluginDebug("PluginsCleanUI()");
 	if (!bPluginCS)
 		return;
 	CAutoLock Lock(&gPluginCS);
@@ -322,6 +334,7 @@ VOID PluginsCleanUI()
 
 VOID PluginsReloadUI()
 {
+	PluginDebug("PluginsReloadUI()");
 	if (!bPluginCS)
 		return;
 	CAutoLock Lock(&gPluginCS);
@@ -339,6 +352,7 @@ VOID PluginsReloadUI()
 
 VOID PluginsSetGameState(DWORD GameState)
 {
+	PluginDebug("PluginsSetGameState()");
 	static bool AutoExec=false;
 	static bool CharSelect=true;
 	DrawHUDParams[0]=0;
@@ -392,6 +406,7 @@ VOID PluginsSetGameState(DWORD GameState)
 
 VOID PluginsDrawHUD()
 {
+	PluginDebug("PluginsDrawHUD()");
 	if (!bPluginCS)
 		return;
 	CAutoLock Lock(&gPluginCS);
@@ -408,12 +423,16 @@ VOID PluginsDrawHUD()
 
 VOID PluginsAddSpawn(PSPAWNINFO pNewSpawn)
 {
-//	DebugSpew("PluginsAddSpawn(%s,%d,%d)",pNewSpawn->Name,pNewSpawn->Race,pNewSpawn->BodyType);
+	PluginDebug("PluginsAddSpawn(%s,%d,%d)",pNewSpawn->Name,pNewSpawn->Race,pNewSpawn->BodyType);
 	SpawnByName[pNewSpawn->Name]=pNewSpawn;
 	if (!bPluginCS)
 		return;
 	if (gGameState>GAMESTATE_CHARSELECT)
 		SetNameSpriteState(pNewSpawn,1);
+	if (GetBodyTypeDesc(pNewSpawn->BodyType)[0]=='*')
+	{
+		WriteChatf("Spawn '%s' has unknown bodytype %d",pNewSpawn->Name,pNewSpawn->BodyType);
+	}
 	CAutoLock Lock(&gPluginCS);
 	PMQPLUGIN pPlugin=pPlugins;
 	while(pPlugin)
@@ -428,7 +447,7 @@ VOID PluginsAddSpawn(PSPAWNINFO pNewSpawn)
 
 VOID PluginsRemoveSpawn(PSPAWNINFO pSpawn)
 {
-//	DebugSpew("PluginsRemoveSpawn(%s)",pSpawn->Name);
+	PluginDebug("PluginsRemoveSpawn(%s)",pSpawn->Name);
 	SpawnByName.erase(pSpawn->Name);
 	if (!bPluginCS)
 		return;
@@ -446,6 +465,7 @@ VOID PluginsRemoveSpawn(PSPAWNINFO pSpawn)
 
 VOID PluginsAddGroundItem(PGROUNDITEM pNewGroundItem)
 {
+	PluginDebug("PluginsAddGroundItem()");
 	if (!bPluginCS)
 		return;
 	CAutoLock Lock(&gPluginCS);
@@ -463,6 +483,7 @@ VOID PluginsAddGroundItem(PGROUNDITEM pNewGroundItem)
 
 VOID PluginsRemoveGroundItem(PGROUNDITEM pGroundItem)
 {
+	PluginDebug("PluginsRemoveGroundItem()");
 	if (!bPluginCS)
 		return;
 	CAutoLock Lock(&gPluginCS);

@@ -253,26 +253,26 @@ DWORD WINAPI MQ2Start(LPVOID lpParameter)
 		szEQMappableCommands[i]=EQMappableCommandList[i];
 	}
 	gnNormalEQMappableCommands=i;
-	szEQMappableCommands[0xA5]="UNKNOWN0xA5";
 	szEQMappableCommands[0xA6]="UNKNOWN0xA6";
-	szEQMappableCommands[0xA7]="CHAT_SEMICOLON";
-	szEQMappableCommands[0xA8]="CHAT_SLASH";
-	szEQMappableCommands[0xA9]="UNKNOWN0xA9";
+	szEQMappableCommands[0xA7]="UNKNOWN0xA7";
+	szEQMappableCommands[0xA8]="CHAT_SEMICOLON";
+	szEQMappableCommands[0xA9]="CHAT_SLASH";
 	szEQMappableCommands[0xAA]="UNKNOWN0xAA";
-	szEQMappableCommands[0xAB]="INSTANT_CAMP";
-	szEQMappableCommands[0xAC]="UNKNOWN0xAC";
+	szEQMappableCommands[0xAB]="UNKNOWN0xAB";
+	szEQMappableCommands[0xAC]="INSTANT_CAMP";
 	szEQMappableCommands[0xAD]="UNKNOWN0xAD";
-	szEQMappableCommands[0xAE]="CHAT_EMPTY";
-	szEQMappableCommands[0xAF]="TOGGLE_WINDOWMODE";
-	szEQMappableCommands[0xB0]="UNKNOWN0xB0";
+	szEQMappableCommands[0xAE]="UNKNOWN0xAE";
+	szEQMappableCommands[0xAF]="CHAT_EMPTY";
+	szEQMappableCommands[0xB0]="TOGGLE_WINDOWMODE";
 	szEQMappableCommands[0xB1]="UNKNOWN0xB1";
-	szEQMappableCommands[0xB2]="CHANGEFACE";// maybe? something that requires models.
-	szEQMappableCommands[0xB3]="UNKNOWN0xB3";
+	szEQMappableCommands[0xB2]="UNKNOWN0xB2";
+	szEQMappableCommands[0xB3]="CHANGEFACE";// maybe? something that requires models.
 	szEQMappableCommands[0xB4]="UNKNOWN0xB4";
 	szEQMappableCommands[0xB5]="UNKNOWN0xB5";
 	szEQMappableCommands[0xB6]="UNKNOWN0xB6";
 	szEQMappableCommands[0xB7]="UNKNOWN0xB7";
 	szEQMappableCommands[0xB8]="UNKNOWN0xB8";
+	szEQMappableCommands[0xB9]="UNKNOWN0xB9";
 
 	for (nColorAdjective=0 ; szColorAdjective[nColorAdjective] ; nColorAdjective++){}
 	for (nColorAdjectiveYou=0 ; szColorAdjectiveYou[nColorAdjectiveYou] ; nColorAdjectiveYou++) {}

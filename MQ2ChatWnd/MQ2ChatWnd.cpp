@@ -30,6 +30,7 @@ class CMQChatWnd : public CCustomWnd
 public:
 	CMQChatWnd():CCustomWnd("ChatWindow")
 	{
+		DebugSpew("CMQChatWnd()");
 		SetWndNotification(CMQChatWnd);
 		InputBox=(CTextEntryWnd*)GetChildItem("CWChatInput");
 		InputBox->WindowStyle|=0x800C0;
@@ -318,6 +319,7 @@ PLUGIN_API VOID OnCleanUI(VOID)
 // Called once directly after initialization, and then every time the gamestate changes
 PLUGIN_API VOID SetGameState(DWORD GameState)
 {
+	DebugSpew("MQ2ChatWnd::SetGameState()");
 	if (GameState==GAMESTATE_CHARSELECT)
 	{
 		AddMQ2KeyBind("MQ2CSCHAT",DoMQ2ChatBind);
@@ -331,13 +333,14 @@ PLUGIN_API VOID SetGameState(DWORD GameState)
 		if (GameState==GAMESTATE_INGAME && !MQChatWnd)
 		{
 			// we entered the game, set up shop
-			CreateChatWindow();
+			DebugTry(CreateChatWindow());
 		}
 	}
 }
 
 PLUGIN_API VOID OnPulse(VOID)
 {
+	//DebugSpew("MQ2ChatWnd::OnPulse()");
 	if (gGameState==GAMESTATE_CHARSELECT && !MQChatWnd)
 	{
 		CreateChatWindow();
@@ -383,6 +386,7 @@ PLUGIN_API VOID OnPulse(VOID)
 
 void CreateChatWindow()
 {
+	DebugSpew("MQ2ChatWnd::CreateChatWindow()");
 	if (MQChatWnd)
 		return;
 	MQChatWnd = new CMQChatWnd();
