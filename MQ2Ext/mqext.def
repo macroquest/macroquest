@@ -28,6 +28,8 @@ EXPORTS
     ptradeskillwnd    
     precipe
     ppetinfownd 
+    pguildwnd
+    pguildmemberinfo
     
 ;   pcmdlist
 

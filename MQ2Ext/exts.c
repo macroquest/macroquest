@@ -136,6 +136,8 @@ DECLARE_API ( help )
 			"   ptradeskillwnd - Display EQTRADESKILLWINDOW struct\n"
 			"   precipe       - Display EQTRADESKILLRECIPE struct\n"
 			"   ppetinfownd   - Display EQPETINFOWINDOW struct\n"
+			"   pguildwnd     - Display EQGUILDWINDOW struct\n"
+			"   pguildmemberinfo - Display EQGUILDMEMBERINFO struct\n"
             );
 
 }

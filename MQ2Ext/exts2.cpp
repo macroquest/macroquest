@@ -726,3 +726,48 @@ DECLARE_API ( ppetinfownd )
      dprintf("Buff[%d] = %d (offset 0x%x)\n", i, ci.Buff[i], &pnull->Buff[i]); 
    KP(Unknown0x2e4);
 }
+
+DECLARE_API ( pguildwnd ) 
+{ 
+   EQGUILDWINDOW *p, *pnull=NULL, ci; 
+   DWORD cb; 
+
+   // read param from command line 
+   p = (EQGUILDWINDOW *)GetExpression(args); 
+
+   ReadMemory((PARAM1)p,&ci,sizeof(ci),&cb); 
+
+   dprintf("\n\n\n"); 
+   KP(ShowOffline);
+   KP(pMember);
+   KP(TotalMemberCount);
+   KP(TotalMemberCountAgain);
+   KPs(PersonalNotesFilePath);
+   KP(Unknown0x208);
+   KP(Unknown0x3c8);
+}
+
+DECLARE_API ( pguildmemberinfo ) 
+{ 
+   GUILDMEMBERINFO *p, *pnull=NULL, ci; 
+   DWORD cb; 
+
+   // read param from command line 
+   p = (GUILDMEMBERINFO *)GetExpression(args); 
+
+   ReadMemory((PARAM1)p,&ci,sizeof(ci),&cb); 
+
+   dprintf("\n\n\n"); 
+
+   KP(UnknownData0x005);
+   KP(UnknownData0x006);
+   KPs(Name);
+   KP(Level);
+   KP(Class);
+   KPf(UnknownData0x05c);
+   KPs(PublicNote);
+   KP(UnknownData0x260);
+   KP(UnknownData0x262);
+   KP(UnknownData0x264);
+   KP(UnknownData0x266);
+}
