@@ -1,5 +1,5 @@
 #include "../MQ2Plugin.h"
-#include "MQ2Map3.h"
+#include "MQ2Map.h"
 
 // ***************************************************************************
 // Function:    MapFilters
