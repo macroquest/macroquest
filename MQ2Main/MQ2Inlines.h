@@ -108,7 +108,7 @@ static inline eSpawnType GetSpawnType(PSPAWNINFO pSpawn)
 		{
 			if (strstr(pSpawn->Name,"s_Mount"))
 			{
-				DebugSpew("PC Mount BodyType %d",pSpawn->BodyType);
+//				DebugSpew("PC Mount BodyType %d",pSpawn->BodyType);
 				return MOUNT;
 			}
 			return PC;
@@ -116,7 +116,7 @@ static inline eSpawnType GetSpawnType(PSPAWNINFO pSpawn)
 	case SPAWN_NPC:
 		if (strstr(pSpawn->Name,"s_Mount"))
 		{
-			DebugSpew("NPC Mount BodyType %d",pSpawn->BodyType);
+//			DebugSpew("NPC Mount BodyType %d",pSpawn->BodyType);
 			return MOUNT;
 		}
 		if (GetBodyTypeDesc(pSpawn->BodyType)[0]=='*')
