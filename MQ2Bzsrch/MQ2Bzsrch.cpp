@@ -431,7 +431,7 @@ PLUGIN_API VOID InitializePlugin(VOID)
 {
    DebugSpewAlways("Initializing MQ2Bzsrch");
 
-   LoadMQ2Plugin("MQ2ItemDipslay");
+   LoadMQ2Plugin("MQ2ItemDisplay");
    HMODULE h = LoadLibrary("MQ2ItemDisplay.dll");
    if (!h) {
        pg_Item = NULL;
