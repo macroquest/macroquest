@@ -65,6 +65,14 @@ PreLink_Cmds=if "$(USERNAME)" == "Zerix"  nmake clean
 
 SOURCE=.\MQ2Telnet.cpp
 # End Source File
+# Begin Source File
+
+SOURCE=.\TelnetServer.cpp
+# End Source File
+# Begin Source File
+
+SOURCE=.\WinTelnet.cpp
+# End Source File
 # End Group
 # Begin Group "Header Files"
 
