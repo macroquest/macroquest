@@ -298,6 +298,7 @@ void AddXMLFile(const char *filename)
 	if (gGameState==GAMESTATE_INGAME)
 	{
 		sprintf(szBuffer,"UI file %s added, you must reload your UI for this to take effect.",filename);
+		WriteChatColor(szBuffer);
 	}
 
 	pFile = new MQXMLFILE;
