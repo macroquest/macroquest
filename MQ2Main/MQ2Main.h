@@ -176,6 +176,7 @@ EQLIB_API VOID InitializeMQ2Spawns();
 EQLIB_API VOID ShutdownMQ2Spawns();
 EQLIB_API VOID ProcessPendingGroundItems();
 EQLIB_API VOID UpdateMQ2SpawnSort();
+EQLIB_API VOID SetNameSpriteState(PSPAWNINFO pSpawn, bool Show);
 
 /* WINDOWS */
 EQLIB_API VOID InitializeMQ2Windows();

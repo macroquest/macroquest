@@ -122,7 +122,6 @@ public:
 		__asm {push edx};
 		__asm {push esi};
 		__asm {push edi};
-		((EQPlayerHook*)pSpawn)->SetNameSpriteState(1);
 		PluginsAddSpawn(pSpawn);
 		__asm {pop edi};
 		__asm {pop esi};
@@ -207,6 +206,11 @@ public:
 	}
 
 };
+
+VOID SetNameSpriteState(PSPAWNINFO pSpawn, bool Show)
+{
+	((EQPlayerHook*)pSpawn)->SetNameSpriteState(true);
+}
 
 VOID UpdateSpawnCaptions()
 {

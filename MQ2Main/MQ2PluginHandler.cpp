@@ -410,6 +410,8 @@ VOID PluginsAddSpawn(PSPAWNINFO pNewSpawn)
 //	DebugSpew("PluginsAddSpawn(%s)",pNewSpawn->Name);
 	if (!bPluginCS)
 		return;
+	if (gGameState==GAMESTATE_INGAME)
+		SetNameSpriteState(pNewSpawn,1);
 	CAutoLock Lock(&gPluginCS);
 	PMQPLUGIN pPlugin=pPlugins;
 	while(pPlugin)
