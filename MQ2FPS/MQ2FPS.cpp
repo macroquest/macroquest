@@ -19,6 +19,7 @@ DWORD MaxFPSMode=FPS_CALCULATE;
 
 DWORD FPSIndicatorX=5;
 DWORD FPSIndicatorY=25;
+BOOL FPSIndicator=TRUE;
 
 bool InForeground=false;
 
@@ -111,6 +112,7 @@ PLUGIN_API VOID InitializePlugin(VOID)
     MaxFPSMode = GetPrivateProfileInt("MQ2FPS","Mode",FPS_CALCULATE,INIFileName);
     FPSIndicatorX = GetPrivateProfileInt("MQ2FPS","IndicatorX",5,INIFileName);
     FPSIndicatorY = GetPrivateProfileInt("MQ2FPS","IndicatorY",25,INIFileName);
+	FPSIndicator = GetPrivateProfileInt("MQ2FPS","Indicator",TRUE,INIFileName);
 
 	gBG_Rate = GetPrivateProfileInt("Rendering","BGRate",30,INIFileName);
 	ReverseBG_Rate = GetPrivateProfileInt("Rendering","ReverseBGRate",0,INIFileName);
@@ -373,10 +375,8 @@ PLUGIN_API VOID OnPulse(VOID)
 // Called every frame that the "HUD" is drawn -- e.g. net status / packet loss bar
 PLUGIN_API VOID OnDrawHUD(VOID)
 {
-	// DONT leave in this debugspew, even if you leave in all the others
-//	DebugSpewAlways("MQ2Template::OnDrawHUD()");
-	if (!pDisplay)
-		return; // even though its 100% impossible to call this without there being a pDisplay..
+	if (!pDisplay || !FPSIndicator)
+		return;
 	CHAR szBuffer[MAX_STRING];
 
 	
@@ -416,7 +416,7 @@ VOID FPSCommand(PSPAWNINFO pChar, PCHAR szLine)
     CHAR Arg1[MAX_STRING] = {0};
     GetArg(Arg1,szLine,1);
    if (Arg1[0]==0) {
-        WriteChatColor("Usage: /fps <mode|absolute|calculate|x,y>",USERCOLOR_DEFAULT);
+        SyntaxError("Usage: /fps <mode|absolute|calculate|x,y|on|off>");
         return;
    }
 
@@ -443,6 +443,20 @@ VOID FPSCommand(PSPAWNINFO pChar, PCHAR szLine)
 		SetMode(MaxFPSMode==0);
 		return;
 	}
+	else
+    if (!strnicmp(Arg1,"on",strlen(Arg1)))
+    {
+       FPSIndicator=TRUE;
+       WritePrivateProfileString("MQ2FPS","Indicator","1",INIFileName);
+       return;
+    }
+    else
+    if (!strnicmp(Arg1,"off",strlen(Arg1)))
+    {
+       FPSIndicator=FALSE;
+       WritePrivateProfileString("MQ2FPS","Indicator","0",INIFileName);
+       return;
+    } 
 
 	if (strchr(szLine,','))
 	{
@@ -452,7 +466,7 @@ VOID FPSCommand(PSPAWNINFO pChar, PCHAR szLine)
 		WritePrivateProfileString("MQ2FPS","IndicatorY",itoa(FPSIndicatorY,szCmd,10),INIFileName);
 		return;
 	}
-        WriteChatColor("Usage: /fps <mode|absolute|calculate|x,y>",USERCOLOR_DEFAULT);
+        SyntaxError("Usage: /fps <mode|absolute|calculate|x,y|on|off>");
 }
 
 
@@ -475,7 +489,7 @@ VOID MaxFPS(PSPAWNINFO pChar, PCHAR szLine)
    if (Arg1[0]==0 || Arg2[0]==0) {
 	    sprintf(szCmd,"\aw\ayMaxFPS\ax\a-u:\ax \a-u[\ax\at%d\ax Foreground\a-u]\ax \a-u[\ax\at%d\ax Background\a-u]\ax \a-u[\ax%s Mode\a-u]\ax",gFG_MAX,gBG_MAX,szFPSModes[MaxFPSMode]);
         WriteChatColor(szCmd,USERCOLOR_DEFAULT);
-        WriteChatColor("Usage: /maxfps <fg|bg> <#>",USERCOLOR_DEFAULT);
+        SyntaxError("Usage: /maxfps <fg|bg> <#>");
         return;
    }
    DWORD NewMax=atoi(Arg2);
@@ -522,7 +536,7 @@ VOID RenderCommand(PSPAWNINFO pChar, PCHAR szLine)
 		   strcpy(szBack,"1/");
 	   sprintf(szCmd,"\aw\ayRender Rate\ax\a-u:\ax \a-u[\ax\at%s%d\ax Foreground\a-u]\ax \a-u[\ax\at%s%d\ax Background\a-u]\ax",szFore,gFG_Rate,szBack,gBG_Rate);
         WriteChatColor(szCmd,USERCOLOR_DEFAULT);
-		WriteChatColor("Usage: /render <fg|bg> <#|~#>",USERCOLOR_DEFAULT);
+		SyntaxError("Usage: /render <fg|bg> <#|~#>");
         return;
    }
    DWORD NewRate;

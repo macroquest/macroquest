@@ -126,9 +126,7 @@ VOID HideDoCommand(PSPAWNINFO pChar, PCHAR szLine, BOOL delayed)
     }
 
 	strcpy(szLastCommand,szOriginalLine);
-    sprintf(szCmd,"Couldn't parse '%s'",szOriginalLine);
-    DebugSpew("DoCommand - Bad command: %s",szCmd);
-    WriteChatColor(szCmd,CONCOLOR_RED);
+    MacroError(szCmd,"DoCommand - Couldn't parse '%s'",szOriginalLine);
 }
 
 

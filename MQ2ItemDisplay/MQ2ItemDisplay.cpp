@@ -110,11 +110,13 @@ public:
         strcat(out,temp); 
      } 
      // TheColonel (1/18/2004)
+ /*
      if (Item->InstrumentType != 0){ 
        float instrumentmod = ((float)Item->InstrumentMod)/10.0f; 
        sprintf(temp,"Instrument mod: %3.1f to %s.<BR>", instrumentmod, szItemTypes[Item->InstrumentType]); 
        strcat(out,temp);       
      } 
+ /**/
 
      if (Item->Type == ITEMTYPE_PACK) {
         sprintf(temp,"Container Type: %s<BR>",szCombineTypes[Item->Combine]);

@@ -2581,8 +2581,7 @@ VOID MacroLog(PSPAWNINFO pChar, PCHAR szLine)
         if (Filename[i]=='\\') {
             strncpy(szBuffer,Filename,i);
             if (2 == _mkdir(szBuffer)) {
-                sprintf(szBuffer,"Log path doesn't appear valid: %s",Filename);
-                WriteChatColor(szBuffer,CONCOLOR_RED);
+				MacroError("Log path doesn't appear valid: %s",Filename);
                 return;
             }
         }
@@ -2590,8 +2589,7 @@ VOID MacroLog(PSPAWNINFO pChar, PCHAR szLine)
     if (!stricmp(szLine,"clear")) {
         fOut = fopen(Filename,"wt");
         if (!fOut) {
-            sprintf(szBuffer,"Couldn't open log file: %s",Filename);
-            WriteChatColor(szBuffer,CONCOLOR_RED);
+            MacroError("Couldn't open log file: %s",Filename);
             return;
         }
         WriteChatColor("Cleared log.",USERCOLOR_DEFAULT);
@@ -2601,8 +2599,7 @@ VOID MacroLog(PSPAWNINFO pChar, PCHAR szLine)
 
     fOut = fopen(Filename,"at");
     if (!fOut) {
-        sprintf(szBuffer,"Couldn't open log file: %s",Filename);
-        WriteChatColor(szBuffer,CONCOLOR_RED);
+        MacroError("Couldn't open log file: %s",Filename);
         return;
     }
 
@@ -2812,8 +2809,7 @@ VOID Look(PSPAWNINFO pChar, PCHAR szLine)
    fLookAngle = (FLOAT)atof(szLookAngle);
 
    if (fLookAngle>128.0f || fLookAngle<-128.0f) {
-      sprintf(szTemp,"/look -- Angle %f out of range.",fLookAngle);
-      WriteChatColor(szTemp,CONCOLOR_RED);
+      MacroError("/look -- Angle %f out of range.",fLookAngle);
       return;
    }
 
@@ -3830,7 +3826,7 @@ VOID MacroPause(PSPAWNINFO pChar, PCHAR szLine)
     }
 
     if (!gMacroBlock) {
-        WriteChatColor("You cannot pause a macro when one isn't running.",CONCOLOR_RED);
+        MacroError("You cannot pause a macro when one isn't running.");
         return;
     }
 
@@ -3994,8 +3990,7 @@ VOID BankList(PSPAWNINFO pChar, PCHAR szLine)
     PCHARINFO pCharInfo = NULL;
     PCONTENTS pContainer = NULL;
     if (NULL == (pCharInfo = GetCharInfo())) {
-        sprintf(szTemp,"/banklist -- Bad offset: CharInfo");
-        WriteChatColor(szTemp,CONCOLOR_RED);
+        MacroError("/banklist -- Bad offset: CharInfo");
         return;
     }
     WriteChatColor("Listing of Bank Inventory",USERCOLOR_DEFAULT);

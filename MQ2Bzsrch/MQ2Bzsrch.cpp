@@ -16,7 +16,8 @@ GNU General Public License for more details.
 // MQ2Bzsrch.cpp : Bazaar Seach Plugin by DKAA
 //
 //
-// Fixed by CyberCide for MQ2PARMS.  Thank you.
+// Original MQ2Data update by CyberCide... but it didn't work like the rest of
+//  MQ2Data so Lax redid it.
 //
 
 #include "../MQ2Plugin.h"
@@ -231,6 +232,180 @@ public:
 
 DETOUR_TRAMPOLINE_EMPTY(VOID BzSrchHook::BzTrampoline(char *,int));
 
+class MQ2BazaarType *pBazaarType=0;
+class MQ2BazaarItemType *pBazaarItemType=0;
+
+
+class MQ2BazaarItemType : public MQ2Type
+{
+public:
+	enum BazaarItemMembers
+	{
+		Price=1,
+		Quantity=2,
+		ItemID=3,
+		Trader=4,
+		Value=5,
+		Name=6,
+	};
+
+	MQ2BazaarItemType():MQ2Type("bazaaritem")
+	{
+		TypeMember(Price);
+		TypeMember(Quantity);
+		TypeMember(ItemID);
+		TypeMember(Trader);
+		TypeMember(Value);
+		TypeMember(Name);
+	}
+	~MQ2BazaarItemType()
+	{
+	}
+
+	bool GetMember(MQ2VARPTR VarPtr, PCHAR Member, PCHAR Index, MQ2TYPEVAR &Dest)
+	{
+		if (!VarPtr.Ptr)
+			return false;
+#define pBzrItem ((_BazaarSearchResponsePacket*)VarPtr.Ptr)
+		PMQ2TYPEMEMBER pMember=MQ2BazaarItemType::FindMember(Member);
+		if (!pMember)
+			return false;
+		switch((BazaarItemMembers)pMember->ID)
+		{
+		case Price:
+			Dest.DWord=pBzrItem->BSSPrice;
+			Dest.Type=pIntType;
+			return true;
+		case Quantity:
+			Dest.DWord=pBzrItem->BSSQuantity;
+			Dest.Type=pIntType;
+			return true;
+		case ItemID:
+			Dest.DWord=pBzrItem->BSSItemID;
+			Dest.Type=pIntType;
+			return true;
+		case Trader:
+			if (Dest.Ptr=GetSpawnByID(pBzrItem->BSSTraderID))
+			{
+				Dest.Type=pSpawnType;
+				return true;
+			}
+			return false;
+		case Value:
+			Dest.DWord=pBzrItem->BSSValue;
+			Dest.Type=pIntType;
+			return true;
+		case Name:
+			Dest.Ptr=&pBzrItem->BSSName[0];
+			Dest.Type=pStringType;
+			return true;
+		}
+
+		return false;
+#undef pBzrItem
+	}
+
+	 bool ToString(MQ2VARPTR VarPtr, PCHAR Destination)
+	{
+		strcpy(Destination,((_BazaarSearchResponsePacket*)VarPtr.Ptr)->BSSName);
+		return true;
+	}
+	void InitVariable(MQ2VARPTR &VarPtr) 
+	{
+		VarPtr.Ptr=malloc(sizeof(_BazaarSearchResponsePacket));
+		ZeroMemory(VarPtr.Ptr,sizeof(_BazaarSearchResponsePacket));
+	}
+	void FreeVariable(MQ2VARPTR &VarPtr) 
+	{
+		free(VarPtr.Ptr);
+	}
+
+	bool FromData(MQ2VARPTR &VarPtr, MQ2TYPEVAR &Source)
+	{
+		if (Source.Type!=pBazaarItemType)
+			return false;
+		memcpy(VarPtr.Ptr,Source.Ptr,sizeof(_BazaarSearchResponsePacket));
+		return true;
+	}
+	bool FromString(MQ2VARPTR &VarPtr, PCHAR Source)
+	{
+		return false;
+	}
+};
+
+class MQ2BazaarType : public MQ2Type
+{
+public:
+	enum BazaarMembers
+	{
+		Count=1,
+		Done=2,
+		Item=3,
+	};
+
+	MQ2BazaarType():MQ2Type("bazaar")
+	{
+		TypeMember(Count);
+		TypeMember(Done);
+		TypeMember(Item);
+	}
+	~MQ2BazaarType()
+	{
+	}
+
+	bool GetMember(MQ2VARPTR VarPtr, PCHAR Member, PCHAR Index, MQ2TYPEVAR &Dest)
+	{
+		if (!VarPtr.Ptr)
+			return false;
+		PMQ2TYPEMEMBER pMember=MQ2BazaarType::FindMember(Member);
+		if (!pMember)
+			return false;
+		switch((BazaarMembers)pMember->ID)
+		{
+		case Count:
+			Dest.DWord=BzCount;
+			Dest.Type=pIntType;
+			return true;
+		case Done:
+			Dest.DWord=BzDone;
+			Dest.Type=pBoolType;
+			return true;
+		case Item:
+			if (Index[0])
+			{
+				unsigned long N=atoi(Index)-1;
+				if (N>BzCount)
+					return false;
+				Dest.Ptr=&BzArray[N];
+				Dest.Type=pBazaarItemType;
+				return true;
+			}
+			return false;
+		}
+
+		return false;
+	}
+
+	 bool ToString(MQ2VARPTR VarPtr, PCHAR Destination)
+	{
+		if (BzDone)
+			strcpy(Destination,"TRUE");
+		else
+			strcpy(Destination,"FALSE");
+		return true;
+	}
+
+	bool FromData(MQ2VARPTR &VarPtr, MQ2TYPEVAR &Source)
+	{
+		return false;
+	}
+	bool FromString(MQ2VARPTR &VarPtr, PCHAR Source)
+	{
+		return false;
+	}
+};
+
+
 // Called once, when the plugin is to initialize
 PLUGIN_API VOID InitializePlugin(VOID)
 {
@@ -242,13 +417,12 @@ PLUGIN_API VOID InitializePlugin(VOID)
 #ifdef USEMQ2PARMS
     AddParm("bazaar",parmBazaar); // cc - removed to add MQ2Data
 #else
-   AddMQ2Data("bazaar",dataBazaar); // cc - added, but not using TLO yet
+   AddMQ2Data("Bazaar",dataBazaar); // cc - added, but not using TLO yet
 #endif
-   void (BzSrchHook::*pfDetour)(char *,int) = BzSrchHook::BzDetour;
-   void (BzSrchHook::*pfTrampoline)(char *,int) = BzSrchHook::BzTrampoline;
-   AddDetour(CBazaarSearchWnd__HandleBazaarMsg,
-      *(PBYTE*)&pfDetour,
-      *(PBYTE*)&pfTrampoline);
+   EasyClassDetour(CBazaarSearchWnd__HandleBazaarMsg,BzSrchHook,BzDetour,void,(char*,int),BzTrampoline);
+
+   pBazaarType = new MQ2BazaarType;
+   pBazaarItemType = new MQ2BazaarItemType;
 }
 
 // Called once, when the plugin is to shutdown
@@ -265,6 +439,8 @@ PLUGIN_API VOID ShutdownPlugin(VOID)
 #endif
    RemoveCommand("/mq2bzsrch");
    RemoveCommand("/bzsrch");
+   delete pBazaarType;
+   delete pBazaarItemType;
 }
 
 VOID MQ2BzSrch(PSPAWNINFO pChar, PCHAR szLine)
@@ -324,7 +500,7 @@ VOID BzSrchMe(PSPAWNINFO pChar, PCHAR szLine)
          GetArg(szArg,szLine,1);
          szLine = GetNextArg(szLine, 1);
          if (szArg[0]==0) {
-            WriteChatColor("Bad class name.",USERCOLOR_WHO);
+            MacroError("Bad class name.");
             goto error_out;
          }
          if (isdigit(szArg[0])) {
@@ -338,14 +514,14 @@ VOID BzSrchMe(PSPAWNINFO pChar, PCHAR szLine)
             }
          }
          if (i==sizeof(classes)/sizeof(classes[0])) {
-            WriteChatColor("Bad class name.",USERCOLOR_WHO);
+            MacroError("Bad class name.");
             goto error_out;
          }
       } else if (!strcmp(szArg, "race")) {
          GetArg(szArg,szLine,1);
          szLine = GetNextArg(szLine, 1);
          if (szArg[0]==0) {
-            WriteChatColor("Bad race name.",USERCOLOR_WHO);
+            MacroError("Bad race name.");
             goto error_out;
          }
          if (isdigit(szArg[0])) {
@@ -359,14 +535,14 @@ VOID BzSrchMe(PSPAWNINFO pChar, PCHAR szLine)
             }
          }
          if (i==sizeof(races)/sizeof(races[0])) {
-            WriteChatColor("Bad race name.",USERCOLOR_WHO);
+            MacroError("Bad race name.");
             goto error_out;
          }
       } else if (!strcmp(szArg, "stat")) {
          GetArg(szArg,szLine,1);
          szLine = GetNextArg(szLine, 1);
          if (szArg[0]==0) {
-            WriteChatColor("Bad stat name.",USERCOLOR_WHO);
+            MacroError("Bad stat name.");
             goto error_out;
          }
          if (isdigit(szArg[0])) {
@@ -380,14 +556,14 @@ VOID BzSrchMe(PSPAWNINFO pChar, PCHAR szLine)
             }
          }
          if (i==sizeof(stats)/sizeof(stats[0])) {
-            WriteChatColor("Bad stat name.",USERCOLOR_WHO);
+            MacroError("Bad stat name.");
             goto error_out;
          }
       } else if (!strcmp(szArg, "slot")) {
          GetArg(szArg,szLine,1);
          szLine = GetNextArg(szLine, 1);
          if (szArg[0]==0) {
-            WriteChatColor("Bad slot name.",USERCOLOR_WHO);
+            MacroError("Bad slot name.");
             goto error_out;
          }
          if (isdigit(szArg[0])) {
@@ -401,14 +577,14 @@ VOID BzSrchMe(PSPAWNINFO pChar, PCHAR szLine)
             }
          }
          if (i==sizeof(slots)/sizeof(slots[0])) {
-            WriteChatColor("Bad slot name.",USERCOLOR_WHO);
+            MacroError("Bad slot name.");
             goto error_out;
          }
       } else if (!strcmp(szArg, "type")) {
          GetArg(szArg,szLine,1);
          szLine = GetNextArg(szLine, 1);
          if (szArg[0]==0) {
-            WriteChatColor("Bad type name.",USERCOLOR_WHO);
+            MacroError("Bad type name.");
             goto error_out;
          }
          if (isdigit(szArg[0]) && szArg[1]!='h') {
@@ -422,14 +598,14 @@ VOID BzSrchMe(PSPAWNINFO pChar, PCHAR szLine)
             }
          }
          if (i==sizeof(types)/sizeof(types[0])) {
-            WriteChatColor("Bad type name.",USERCOLOR_WHO);
+            MacroError("Bad type name.");
             goto error_out;
          }
       } else if (!strcmp(szArg, "price")) {
          GetArg(szArg,szLine,1);
          szLine = GetNextArg(szLine, 1);
          if (szArg[0]==0) {
-            WriteChatColor("Bad price low.",USERCOLOR_WHO);
+            MacroError("Bad price low.");
             goto error_out;
          }
          bsrp.BSRPriceL = atoi(szArg);
@@ -437,7 +613,7 @@ VOID BzSrchMe(PSPAWNINFO pChar, PCHAR szLine)
          GetArg(szArg,szLine,1);
          szLine = GetNextArg(szLine, 1);
          if (szArg[0]==0) {
-            WriteChatColor("Bad price high.",USERCOLOR_WHO);
+            MacroError("Bad price high.");
             goto error_out;
          }
          bsrp.BSRPriceH = atoi(szArg);
@@ -462,6 +638,9 @@ error_out:
 
 BOOL dataBazaar(PCHAR szName, MQ2TYPEVAR &Ret)
 {
+	Ret.Type=pBazaarType;
+	return true;
+	/*
    DWORD i=0;
    if (strlen(szName) == 0) {
       if (!BzDone) {
@@ -527,6 +706,7 @@ BOOL dataBazaar(PCHAR szName, MQ2TYPEVAR &Ret)
       }
    }
    return false;
+   /**/
 }
 
 DWORD parmBazaar(PCHAR szVar, PCHAR szOutput, PSPAWNINFO pChar)

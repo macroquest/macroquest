@@ -188,7 +188,7 @@ VOID NewDeclareVar(PSPAWNINFO pChar, PCHAR szLine)
 {
 	if (!szLine[0])
 	{
-		WriteChatColor("Usage: /declare <varname|varname[array extents]> [type] [global|outer|local] [default value]");
+		SyntaxError("Usage: /declare <varname|varname[array extents]> [type] [global|outer|local] [default value]");
 		return;
 	}
 	PDATAVAR *pScope=0;
@@ -272,7 +272,7 @@ VOID NewDeclareVar(PSPAWNINFO pChar, PCHAR szLine)
 VOID NewDeleteVarCmd(PSPAWNINFO pChar, PCHAR szLine)
 {
 	if (szLine[0]==0) {
-		WriteChatColor("Usage: /deletevar <varname>",USERCOLOR_DEFAULT);
+		SyntaxError("Usage: /deletevar <varname>");
 	} 
 	else 
 	{
@@ -340,7 +340,7 @@ VOID NewVarcalc(PSPAWNINFO pChar, PCHAR szLine)
 {
 	if (!szLine[0])
 	{
-		SyntaxError("Usage: /varcalc <varname> <new value>");
+		SyntaxError("Usage: /varcalc <varname> <formula>");
 		return;
 	}
 	CHAR szName[MAX_STRING]={0};
@@ -348,7 +348,7 @@ VOID NewVarcalc(PSPAWNINFO pChar, PCHAR szLine)
 	PCHAR szRest=GetNextArg(szLine);
 	if (!szRest || !szRest[0])
 	{
-		SyntaxError("Usage: /varcalc <varname> <new value>");
+		SyntaxError("Usage: /varcalc <varname> <formula>");
 		return;
 	}
 
@@ -406,7 +406,7 @@ VOID NewVardata(PSPAWNINFO pChar, PCHAR szLine)
 {
 	if (!szLine[0])
 	{
-		WriteChatColor("Usage: /vardata <varname> <new mq2data value>");
+		SyntaxError("Usage: /vardata <varname> <new mq2data value>");
 		return;
 	}
 	CHAR szName[MAX_STRING]={0};
@@ -414,7 +414,7 @@ VOID NewVardata(PSPAWNINFO pChar, PCHAR szLine)
 	PCHAR szRest=GetNextArg(szLine);
 	if (!szRest || !szRest[0])
 	{
-		WriteChatColor("Usage: /vardata <varname> <new mq2data value>");
+		SyntaxError("Usage: /vardata <varname> <new mq2data value>");
 		return;
 	}
 	CHAR szIndex[MAX_STRING]={0};
@@ -427,13 +427,13 @@ VOID NewVardata(PSPAWNINFO pChar, PCHAR szLine)
 	PDATAVAR pVar=FindMQ2DataVariable(szName);
 	if (!pVar)
 	{
-		WriteChatColor("/vardata failed, variable not found",CONCOLOR_RED);
+		MacroError("/vardata failed, variable not found");
 		return;
 	}
 	MQ2TYPEVAR Result;
 	if (!ParseMQ2DataPortion(szRest,Result))
 	{
-		WriteChatColor("/vardata failed, MQ2Data portion unparsable",CONCOLOR_RED);
+		MacroError("/vardata failed, MQ2Data portion unparsable");
 		return;
 	}
 
@@ -441,26 +441,26 @@ VOID NewVardata(PSPAWNINFO pChar, PCHAR szLine)
 	{
 		if (pVar->Var.Type!=pArrayType)
 		{
-			WriteChatColor("/vardata failed, array form on non-array",CONCOLOR_RED);
+			MacroError("/vardata failed, array form on non-array");
 			return;
 		}
 		CDataArray *pArray=(CDataArray*)pVar->Var.Ptr;
 		int N=pArray->GetElement(szIndex);
 		if (N==-1)
 		{
-			WriteChatColor("/vardata failed, out of bounds on array",CONCOLOR_RED);
+			MacroError("/vardata failed, out of bounds on array");
 			return;
 		}
 		if (!pVar->Var.Type->FromData(pVar->Var.VarPtr,Result))
 		{
-			WriteChatColor("/vardata failed, array element type rejected new value",CONCOLOR_RED);
+			MacroError("/vardata failed, array element type rejected new value");
 		}
 	}
 	else
 	{
 		if (!pVar->Var.Type->FromData(pVar->Var.VarPtr,Result))
 		{
-			WriteChatColor("/vardata failed, variable type rejected new value",CONCOLOR_RED);
+			MacroError("/vardata failed, variable type rejected new value");
 		}
 	}
 }

@@ -110,15 +110,50 @@ public:
 
 DETOUR_TRAMPOLINE_EMPTY(VOID CLabelHook::Draw_Trampoline(VOID));
 
+BOOL StealNextGauge=FALSE;
+DWORD NextGauge=0;
+
+DETOUR_TRAMPOLINE_EMPTY(int GetGaugeValueFromEQ_Trampoline(int,class CXStr *,bool *));
+int GetGaugeValueFromEQ_Hook(int A,class CXStr *B,bool *C)
+{
+	if (StealNextGauge)
+		return NextGauge;
+	return GetGaugeValueFromEQ_Trampoline(A,B,C);
+}
+
+class CGaugeHook
+{
+public:
+   VOID Draw_Trampoline(VOID);
+   VOID Draw_Detour(VOID)
+   {
+		PCSIDLWND pThisGauge;
+		__asm {mov [pThisGauge], ecx};
+		StealNextGauge=false;
+		if ((DWORD)pThisGauge->SidlPiece==9999)
+		{
+			StealNextGauge=true;
+			CHAR Buffer[MAX_STRING]={0};
+			STMLToPlainText(&pThisGauge->XMLToolTip->Text[0],Buffer);
+			ParseMacroParameter(((PCHARINFO)pCharData)->pSpawn,Buffer);
+			NextGauge=atoi(Buffer);
+		}
+		Draw_Trampoline();
+   }
+};
+DETOUR_TRAMPOLINE_EMPTY(VOID CGaugeHook::Draw_Trampoline(VOID));
+
 // Called once, when the plugin is to initialize
 PLUGIN_API VOID InitializePlugin(VOID)
 {
 	DebugSpewAlways("Initializing MQ2Labels");
 
 	// Add commands, macro parameters, hooks, etc.
-   void (CLabelHook::*pfDetour)(VOID) = CLabelHook::Draw_Detour;
-   void (CLabelHook::*pfTrampoline)(VOID) = CLabelHook::Draw_Trampoline;
-	AddDetour(CLabel__Draw,*(PBYTE*)&pfDetour,*(PBYTE*)&pfTrampoline);
+	EasyClassDetour(CLabel__Draw,CLabelHook,Draw_Detour,VOID,(VOID),Draw_Trampoline);
+
+// currently in testing:
+//	EasyClassDetour(CGauge__Draw,CGaugeHook,Draw_Detour,VOID,(VOID),Draw_Trampoline);
+//	EasyDetour(__GetGaugeValueFromEQ,GetGaugeValueFromEQ_Hook,int,(int,class CXStr *,bool *),GetGaugeValueFromEQ_Trampoline);
 }
 
 // Called once, when the plugin is to shutdown
@@ -128,5 +163,7 @@ PLUGIN_API VOID ShutdownPlugin(VOID)
 
 	// Remove commands, macro parameters, hooks, etc.
 	RemoveDetour(CLabel__Draw);
+	RemoveDetour(CGauge__Draw);
+	Removedetour(__GetGaugeValueFromEQ);
 }
 

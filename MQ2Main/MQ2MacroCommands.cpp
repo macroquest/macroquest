@@ -84,7 +84,7 @@ DWORD Include(PCHAR szFile)
         }
         if (!InBlockComment) {
             if (NULL == (pAddedLine=AddMacroLine(szTemp))) {
-            WriteChatColor("Unable to add macro line.",CONCOLOR_RED);
+            MacroError("Unable to add macro line.");
             fclose(fMacro);
                 gszMacroName[0]=0;
                 gRunning = 0;
@@ -144,7 +144,10 @@ PMACROBLOCK AddMacroLine(PCHAR szLine)
 			if (gMaxTurbo==0)
 				gMaxTurbo=20;
 			else if (gMaxTurbo>40) 
+			{
+				MacroError("#turbo %d is too high, setting at 40 (maximum)",gMaxTurbo);
 				gMaxTurbo=40;
+			}
         } else if (!strnicmp(szLine,"#define ",8)) {
             CHAR szArg1[MAX_STRING] = {0};
             CHAR szArg2[MAX_STRING] = {0};
@@ -157,7 +160,7 @@ PMACROBLOCK AddMacroLine(PCHAR szLine)
                 pDef->pNext = pDefines;
                 pDefines = pDef;
             } else {
-                DebugSpewNoFile("Bad #define: %s",szLine);
+                MacroError("Bad #define: %s",szLine);
             }
         } else if (!strnicmp(szLine,"#event ",7)) {
             CHAR szArg1[MAX_STRING] = {0};
@@ -172,7 +175,7 @@ PMACROBLOCK AddMacroLine(PCHAR szLine)
                 pEvent->pNext = pEventList;
                 pEventList = pEvent;
             } else {
-                DebugSpewNoFile("Bad #event: %s",szLine);
+                MacroError("Bad #event: %s",szLine);
             }
         } else if (!strnicmp(szLine,"#chat ",6)) {
             szLine+=5;
@@ -260,8 +263,7 @@ VOID Macro(PSPAWNINFO pChar, PCHAR szLine)
 
     FILE *fMacro = fopen(Filename,"rt");
     if (!fMacro) {
-        sprintf(szTemp,"Couldn't open macro file: %s",Filename);
-        WriteChatColor(szTemp,CONCOLOR_RED);
+        MacroError(szTemp,"Couldn't open macro file: %s",Filename);
         gszMacroName[0]=0;
         gRunning = 0;
         return;
@@ -514,7 +516,7 @@ VOID EndMacro(PSPAWNINFO pChar, PCHAR szLine)
     }
 
     if (!gMacroBlock) {
-        WriteChatColor("Cannot end a macro when one isn't running.",CONCOLOR_RED);
+        MacroError("Cannot end a macro when one isn't running.");
         return;
     }
     while (gMacroBlock->pNext) gMacroBlock=gMacroBlock->pNext;
@@ -593,11 +595,11 @@ VOID Call(PSPAWNINFO pChar, PCHAR szLine)
     DWORD StackNum = 0;
     bRunNextCommand = TRUE;
     if (szLine[0]==0) {
-        WriteChatColor("Usage: /call <subroutine> [param [param...]]",USERCOLOR_DEFAULT);
+        SyntaxError("Usage: /call <subroutine> [param [param...]]");
         return;
     }
     if (!gMacroBlock) {
-        WriteChatColor("Cannot call when a macro isn't running.",CONCOLOR_RED);
+        MacroError("Cannot call when a macro isn't running.");
         return;
     }
     while (gMacroBlock->pPrev) gMacroBlock = gMacroBlock->pPrev;
@@ -871,7 +873,7 @@ VOID Return(PSPAWNINFO pChar, PCHAR szLine)
     bRunNextCommand = TRUE;
     PMACROSTACK pStack = gMacroStack;
     if (!gMacroBlock) {
-        WriteChatColor("Cannot return when a macro isn't running.",CONCOLOR_RED);
+        MacroError("Cannot return when a macro isn't running.");
         return;
     }
     if ((!pStack) || (!pStack->pNext)) {
@@ -923,7 +925,7 @@ VOID For(PSPAWNINFO pChar, PCHAR szLine)
         return;
     }
     if (!gMacroBlock) {
-        WriteChatColor("Can only use /for during a macro.",CONCOLOR_RED);
+        MacroError("Can only use /for during a macro.");
         return;
     }
 
@@ -953,11 +955,11 @@ VOID Next(PSPAWNINFO pChar, PCHAR szLine)
         return;
     }
     if (!szLoop) {
-        WriteChatColor("Usage: /next <variable>",USERCOLOR_DEFAULT);
+        SyntaxError("Usage: /next <variable>");
         return;
     }
     if (!gMacroBlock) {
-        WriteChatColor("Can only use /next during a macro.",CONCOLOR_RED);
+        MacroError("Can only use /next during a macro.");
         return;
     }
     sprintf(szComp,"/for %s",szNext);
@@ -1088,7 +1090,7 @@ VOID EndMacro(PSPAWNINFO pChar, PCHAR szLine)
     }
 
     if (!gMacroBlock) {
-        WriteChatColor("Cannot end a macro when one isn't running.",CONCOLOR_RED);
+        MacroError("Cannot end a macro when one isn't running.");
         return;
     }
     while (gMacroBlock->pNext) gMacroBlock=gMacroBlock->pNext;
@@ -1442,7 +1444,7 @@ VOID Return(PSPAWNINFO pChar, PCHAR szLine)
     bRunNextCommand = TRUE;
     PMACROSTACK pStack = gMacroStack;
     if (!gMacroBlock) {
-        WriteChatColor("Cannot return when a macro isn't running.",CONCOLOR_RED);
+        MacroError("Cannot return when a macro isn't running.");
         return;
     }
     if ((!pStack) || (!pStack->pNext)) {

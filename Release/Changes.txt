@@ -1,3 +1,8 @@
+26 Apr 2004 by Lax:
+- ${Ini} will allow either relative or absolute paths.  Also slightly modified what it gives
+  you when you try to get a list of keys and supply a default (previously it would ignore
+  the default and give NULL if there was no list).
+
 25 Apr 2004 by Lax (revision C changes):
 - Fixed merchant.Item[=name] and corpse.Item[=name]
 - Fixed character.PctEndurance

@@ -141,7 +141,7 @@ VOID MapFilters(PSPAWNINFO pChar, PCHAR szLine)
             }
         }
         if (!Found) 
-			WriteChatColor("Usage: /mapfilter [option|help]",USERCOLOR_DEFAULT);
+			SyntaxError("Usage: /mapfilter [option|help]");
 		else if (Found->RegenerateOnChange)
 		{
 			MapClear();
@@ -158,7 +158,7 @@ VOID MapHighlightCmd(PSPAWNINFO pChar, PCHAR szLine)
     bRunNextCommand = TRUE;
 	if (szLine==0 || szLine[0]==0)
 	{
-		WriteChatColor("Usage: /highlight [reset|spawnfilter|[color # # #]]",USERCOLOR_DEFAULT);
+		SyntaxError("Usage: /highlight [reset|spawnfilter|[color # # #]]");
 		return;
 	};
 
@@ -204,7 +204,7 @@ VOID MapHideCmd(PSPAWNINFO pChar, PCHAR szLine)
     bRunNextCommand = TRUE;
 	if (szLine==0 || szLine[0]==0)
 	{
-		WriteChatColor("Usage: /maphide [spawnfilter|reset]",USERCOLOR_DEFAULT);
+		SyntaxError("Usage: /maphide [spawnfilter|reset]");
 		return;
 	};
 	GetArg(szArg,szLine,1);
@@ -232,7 +232,7 @@ VOID MapShowCmd(PSPAWNINFO pChar, PCHAR szLine)
     bRunNextCommand = TRUE;
 	if (szLine==0 || szLine[0]==0)
 	{
-		WriteChatColor("Usage: /mapshow [spawnfilter|reset]",USERCOLOR_DEFAULT);
+		SyntaxError("Usage: /mapshow [spawnfilter|reset]");
 		return;
 	};
 	GetArg(szArg,szLine,1);
@@ -240,7 +240,7 @@ VOID MapShowCmd(PSPAWNINFO pChar, PCHAR szLine)
 	{
 		MapClear();
 		MapGenerate();
-		WriteChatColor("Map spawns regenerated",USERCOLOR_DEFAULT);
+		SyntaxError("Map spawns regenerated");
 		return;
 	}
 	if (PCHARINFO pCharInfo=GetCharInfo())
@@ -294,7 +294,7 @@ VOID MapNames(PSPAWNINFO pChar, PCHAR szLine)
 	}
 	else
 	{
-		WriteChatColor("Usage: /mapnames <target|normal> [value|reset]");
+		SyntaxError("Usage: /mapnames <target|normal> [value|reset]");
 	}
 }
 
@@ -380,7 +380,7 @@ VOID MapClickCommand(PSPAWNINFO pChar, PCHAR szLine)
 {
 	if (!szLine[0])
 	{
-		WriteChatColor("Usage: /mapclick <list|<key[+key[...]]> <clear|command>>",USERCOLOR_DEFAULT);
+		SyntaxError("Usage: /mapclick <list|<key[+key[...]]> <clear|command>>");
 		return;
 	}
 	bRunNextCommand = TRUE;

@@ -177,7 +177,7 @@ VOID CustomBindCmd(PSPAWNINFO pChar, PCHAR szLine)
 {
 	if (szLine[0]==0)
 	{
-		WriteChatColor("Usage: /custombind <list|add <name>|delete <name>|clear <name><-down|-up>|set <name><-down|-up> <command>>");
+		SyntaxError("Usage: /custombind <list|add <name>|delete <name>|clear <name><-down|-up>|set <name><-down|-up> <command>>");
 		return;
 	}
 	CHAR szBuffer[MAX_STRING];

@@ -205,6 +205,7 @@
 #define __SendMessage                                      0x4BA399
 #define __NewUIINI                                         0x524D9E
 #define __ExecuteCmd                                       0x44D11C
+#define __GetGaugeValueFromEQ							   0x523603
 
 // EQ_LoadingS
 #define EQ_LoadingS__WriteTextHD                           0x431F86
@@ -288,6 +289,9 @@
 
 // CLabel
 #define CLabel__Draw                                       0x505D68
+
+// CGauge
+#define CGauge__Draw									   0x4EE427
 
 // CDisplay
 #define CDisplay__ReloadUI                                 0x416F61

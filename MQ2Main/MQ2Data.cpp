@@ -546,10 +546,22 @@ BOOL dataIni(PCHAR szIndex, MQ2TYPEVAR &Ret)
 	else
 		return false;
 	CHAR FileName[MAX_STRING]={0};
-//	if (!strchr(pIniFile,'\\') && !strchr(pIniFile,'/'))// always insert macro path, screw whoever's using the absolute path.
+
+	PCHAR pTemp=pIniFile;
+	while(pTemp[0])
+	{
+		if (pTemp[0]=='/')
+			pTemp[0]='\\';
+	}
+
+	if (pIniFile[0]!='\\' && !strchr(pIniFile,':'))
 		sprintf(FileName,"%s\\%s",gszMacroPath,pIniFile);
 	if (!strchr(pIniFile,'.'))
 		strcat(FileName,".ini");
+
+	if (!_FileExists(pIniFile))
+		return false;
+
 	if (DWORD nSize=GetPrivateProfileString(pSection,pKey,pDefault,DataTypeTemp,MAX_STRING,FileName))
 	{
 		if (nSize>2)
@@ -563,7 +575,13 @@ BOOL dataIni(PCHAR szIndex, MQ2TYPEVAR &Ret)
 		Ret.Type=pStringType;
 		return true;
 	}
-	
+	if (pDefault[0])
+	{
+		strcpy(DataTypeTemp,pDefault);
+		Ret.Ptr=&DataTypeTemp[0];
+		Ret.Type=pStringType;
+		return true;
+	}
 	return false;
 }
 
