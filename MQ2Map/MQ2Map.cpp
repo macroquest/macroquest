@@ -89,7 +89,7 @@ PLUGIN_API VOID OnPulse(VOID)
         if (++MapDelay>gMapFilters[MAPFILTER_Refresh]) MapDelay=0;
     } else MapDelay=0;
 
-    if (ppMapViewWnd && pMapViewWnd && ((PCSIDLWND)pMapViewWnd)->Open && ppSpawnList && pSpawnList && !MapDelay) {
+    if (ppMapViewWnd && pMapViewWnd && ((PCSIDLWND)pMapViewWnd)->Show && ppSpawnList && pSpawnList && !MapDelay) {
             ClearMapAllocs();
             if (gMapFilters[MAPFILTER_All]) HandleMapLabelAdditions();
             if (gMapFilters[MAPFILTER_CastRadius] > 0) HandleMapCastRadius();

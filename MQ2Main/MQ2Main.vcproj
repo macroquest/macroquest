@@ -160,6 +160,9 @@
 				RelativePath="MQ2Globals.h">
 			</File>
 			<File
+				RelativePath="MQ2Inlines.h">
+			</File>
+			<File
 				RelativePath="MQ2Internal.h">
 			</File>
 			<File

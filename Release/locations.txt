@@ -778,6 +778,16 @@ UILabel=GiveWnd
 XMLFile=EQUI_GiveWnd.xml
 ScreenID=GVW_MyMoney3
 
+[pc_trade_yes]
+UILabel=TradeWnd
+XMLFile=EQUI_TradeWnd.xml
+ScreenID=TRDW_Trade_Button
+
+[bzrtrader_start]
+UILabel=BazaarWnd
+XMLFile=EQUI_BazaarWnd.xml
+ScreenID=BZW_End_Button
+
 [bigbank_plat]
 UILabel=BigBankWnd
 XMLFile=EQUI_BigBankWnd.xml

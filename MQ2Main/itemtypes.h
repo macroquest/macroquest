@@ -52,5 +52,5 @@
    NULL,                    //48
    NULL,                    //49
    NULL,                    //50
-   NULL,                    //51
+   "All Instruments",       //51
    "Charm",                 //52

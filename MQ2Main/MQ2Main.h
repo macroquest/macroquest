@@ -1,4 +1,4 @@
-#define VersionString "20031206"
+#define VersionString "New Year 2004 Edition"
 #define DebugHeader "[MQ2]"
 #define LoadedString "MQ2 Loaded."
 #define ToUnloadString "MQ2 Unloading..."
@@ -43,6 +43,8 @@
 #define FromPlugin 0
 #endif
 
+
+
 // reroute malloc/free
 EQLIB_API VOID *MQ2Malloc(size_t size);
 EQLIB_API VOID MQ2Free(VOID *memblock);
@@ -86,14 +88,14 @@ extern DWORD CountFrees;
 {\
 	returntype (detourclass::*pfDetour)parameters = detourclass::detourname; \
 	returntype (detourclass::*pfTrampoline)parameters = detourclass::trampolinename; \
-	AddDetour(offset,*(PBYTE*)&pfDetour,*(PBYTE*)&pfTrampoline);\
+	AddDetour((DWORD)offset,*(PBYTE*)&pfDetour,*(PBYTE*)&pfTrampoline);\
 }
 
 #define EasyDetour(offset,detourname,returntype,parameters,trampolinename)\
 {\
 	returntype (*pfDetour)parameters = detourname; \
 	returntype (*pfTrampoline)parameters = trampolinename; \
-	AddDetour(offset,*(PBYTE*)&pfDetour,*(PBYTE*)&pfTrampoline);\
+	AddDetour((DWORD)offset,*(PBYTE*)&pfDetour,*(PBYTE*)&pfTrampoline);\
 }
 
 #ifndef DOUBLE
@@ -179,7 +181,7 @@ EQLIB_API VOID ShutdownDisplayHook();
 /* COMMAND HANDLING */
 EQLIB_API VOID InitializeMQ2Commands();
 EQLIB_API VOID ShutdownMQ2Commands();
-EQLIB_API VOID AddCommand(PCHAR Command, fEQCommand Function, BOOL EQ=0, BOOL Parse=1);
+EQLIB_API VOID AddCommand(PCHAR Command, fEQCommand Function, BOOL EQ=0, BOOL Parse=1, BOOL InGame=0);
 EQLIB_API VOID AddParm(PCHAR Name, fMQParm Function);
 EQLIB_API VOID RemoveParm(PCHAR Name);
 EQLIB_API VOID AddAlias(PCHAR ShortCommand, PCHAR LongCommand);
@@ -236,19 +238,16 @@ EQLIB_API PCHAR ConvertHotkeyNameToKeyName(PCHAR szName);
 EQLIB_API VOID CheckChatForEvent(PCHAR szMsg);
 EQLIB_API VOID ConvertItemTags(CXStr &cxstr);
 
-
+EQLIB_API PCHAR GetSpellNameByID(DWORD dwSpellID);
+EQLIB_API PSPELL GetSpellByName(PCHAR szName);
+#include "MQ2Inlines.h"
 
 EQLIB_API PMACROBLOCK AddMacroLine(PCHAR szLine);
-EQLIB_API PCHAR GetSpellByID(DWORD dwSpellID);
 EQLIB_API PCHAR GetLightForSpawn(PSPAWNINFO pSpawn);
-EQLIB_API DWORD GetSpellDuration(PSPELLLIST pSpell, PSPAWNINFO pSpawn);
+EQLIB_API DWORD GetSpellDuration(PSPELL pSpell, PSPAWNINFO pSpawn);
 EQLIB_API DWORD GetDeityTeamByID(DWORD DeityID);
 EQLIB_API DWORD ConColorToARGB(DWORD ConColor);
 EQLIB_API DWORD ConColor(WORD CharLevel, WORD SpawnLevel);
-EQLIB_API DWORD GetMaxMana(VOID);
-EQLIB_API DWORD GetMaxHPS(VOID);
-EQLIB_API DWORD GetCurHPS(VOID);
-EQLIB_API PSPELLLIST GetSpellByName(PCHAR szName);
 EQLIB_API PCHAR GetGuildByID(DWORD GuildID);
 EQLIB_API DWORD GetGuildIDByName(PCHAR szGuild);
 EQLIB_API PCONTENTS GetEnviroContainer();
@@ -260,6 +259,8 @@ EQLIB_API VOID GetItemLink(PCONTENTS Item, PCHAR Buffer);
 EQLIB_API VOID SendEQMessage(DWORD PacketType, PVOID pData, DWORD Length);
 EQLIB_API PCHAR GetLoginName();
 EQLIB_API FLOAT DistanceToPoint(PSPAWNINFO pSpawn, FLOAT xLoc, FLOAT yLoc);
+EQLIB_API PCHAR ShowSpellSlotInfo(PSPELL pSpell, PCHAR szBuffer);
+EQLIB_API VOID SlotValueCalculate(PCHAR szBuff, PSPELL pSpell, int i, double mp);
 
 /* USERVARS */
 EQLIB_API VOID FreeVarStrings(PVARSTRINGS pVarStrings);
@@ -495,9 +496,19 @@ EQLIB_API VOID ZapVars                             (PSPAWNINFO,PCHAR);
 #define GAMESTATE_UNLOADING     255
 
 #define XWM_LCLICK				1
+#define XWM_LMOUSEUP			2
 #define XWM_RCLICK				3
+#define XWM_HITENTER			6
+#define XWM_CLOSE				10
 #define XWM_NEWVALUE	        14
+#define XWM_MOUSEOVER			21
+#define XWM_HISTORY				22
+#define XWM_LCLICKHOLD			23
 
 #define MAX_ITEM4xx			416
 
-#include "MQ2Auth2.h"
+#define MAX_WEAPONS		0x000000ff
+
+#define MQ2AUTH(z) EQLIB_API VOID z(DWORD x);
+#include "MQ2Auth0.h"
+

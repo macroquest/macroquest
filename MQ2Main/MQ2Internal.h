@@ -47,6 +47,7 @@ typedef struct _SWHOFILTER {
 	BOOL GM;
 	BOOL Guild;
 	BOOL LD;
+	BOOL Sneak;
 	BOOL Anon;
 	BOOL LFG;
 	BOOL NPCTag;
@@ -183,6 +184,7 @@ typedef struct _MQCOMMAND {
 	fEQCommand Function;
 	BOOL EQ;
 	BOOL Parse;
+	BOOL InGameOnly;
 	struct _MQCOMMAND* pLast;
 	struct _MQCOMMAND* pNext;
 } MQCOMMAND, *PMQCOMMAND;
@@ -270,12 +272,10 @@ private:
 class CCustomWnd : public CSidlScreenWnd
 {
 public:
-	CCustomWnd(const char *screenpiece):CSidlScreenWnd(0,screenpiece,-1,0)
+	CCustomWnd(const char *screenpiece):CSidlScreenWnd(0,(char*)screenpiece,-1,0)
 	{
 		CreateChildrenFromSidl();
-		((CXWnd*)this)->Show(1,1);
-//		CXStr Temp="CloseButton";
-//		DebugTry(CloseButton=(CButtonWnd*)GetChildItem(Temp));
+		pXWnd()->Show(1,1);
 		ReplacevfTable();
 
 	};
@@ -312,6 +312,8 @@ public:
 	}
 
 	PCSIDLWNDVFTABLE OldvfTable;
+
+	inline CXWnd *GetChildItem(const char *Name) {return CSidlScreenWnd::GetChildItem(CXStr(Name));};
 };
 
 /* CIndex class stolen from teqim - Lax */

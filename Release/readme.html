@@ -2,11 +2,12 @@
 
 <html>
 <head>
-<title>Macroquest Documentation</title>
+<title>Macroquest 2 Documentation</title>
 <style type="text/css">	<!--
 	table {
 		border-collapse: collapse;
 	}
+<--! remove for manual.php -->
 	body {
 		background-image: url(http://macroquest.sourceforge.net/bg.png);
 		background-position: 50% 50%;
@@ -17,6 +18,8 @@
 		font-size: 16px;
 		font-family: Arial;
 	}
+<--! remove -->
+
 	.arg {
 		font-style: italic;
 	}
@@ -24,6 +27,7 @@
 		font-weight: bold;
 	}
 	.command {
+<--! color: Red; for manual.php --> 
 		color: Black;
 		font-weight: bold;
 	}
@@ -35,6 +39,7 @@
 		font-weight: bold;
 	}
 	.opt {
+<--! color: #8080CD; for manual.php --> 
 		color: #0000CD;
 	}
 	.spacercom {
@@ -58,19 +63,21 @@
 
 <body>
 <div align="center">
-<span class="txtbold">MacroQuest Manual</span><br>
-Last Updated: November 14th, 2003<br>
-<a href="http://macroquest.sf.net/" target="_blank">http://macroquest.sf.net/</a>
+<span class="txtbold">MacroQuest 2 Manual</span><br>
+Last Updated: January 25, 2004<br>
+<a href="http://macroquest.sf.net/" target="_blank">http://macroquest.sf.net/</a><br>
+PM Wassup on the MQ website if you have comments or suggestions about the manual<br><br>
 </div>
 <span class="txtbold">Table of Contents</span>
 
 <blockquote>
 <p>
-<a href="#downloading">Downloading MacroQuest Source Files</a><br>
-<a href="#compiling">Compiling MacroQuest and eqlib.dll</a><br>
-<a href="#install">Installing Macroquest</a><br>
-<a href="#using">Starting MacroQuest</a><br>
-<a href="#updates">Updating Macroquest</a><br>
+<a href="#downloading">Downloading MacroQuest 2 Source Files</a><br>
+<a href="#compiling">Compiling MacroQuest 2</a><br>
+<a href="#install">Installing Macroquest 2</a><br>
+<a href="#using">Starting MacroQuest 2</a><br>
+<a href="#updates">Updating Macroquest 2</a><br>
+<a href="#faq">FAQ</a><br>
 <a href="#macrofunda">Macro fundamentals</a><br>
 <span class="tab"></span><a href="#comments">Comments</a><br>
 <span class="tab"></span><a href="#poundcom">Pound commands</a><br>
@@ -129,7 +136,7 @@ Last Updated: November 14th, 2003<br>
 <a href="#hv">x</a>&nbsp;
 <a href="#yv">y</a>&nbsp;
 <a href="#zv">z</a><br>
-<a href="#uiref">MQ and the UI</a><br>
+<a href="#uiref">MacroQuest 2 and the UI</a><br>
 &nbsp;&nbsp;&nbsp;&nbsp;<a href="#labelid">Using label id's</a><br>
 &nbsp;&nbsp;&nbsp;&nbsp;<a href="#tooltype">Using the tooltype</a><br>
 <a href="#telnet">Telnet Server</a><br>
@@ -143,81 +150,56 @@ Last Updated: November 14th, 2003<br>
 </blockquote>
 
 <a name="downloading" id="downloading"></a>
-<span class="txtbold">Downloading MacroQuest Source Files</span><br>
-There are two ways to get the source files needed to compile MacroQuest.<br><br>
-The most convenient way to get the source files is to download them from the MacroQuest home page:
-<a href="http://macroquest.sourceforge.net/downloads/IRC-latest.zip" target="_blank">Macroquest Archive</a><br><br>
-The second way is to get updates directly from Sourceforge using a CVS client.<br><br>
-<span class="txtbold">CVS</span><br>
-A common CVS client used on Windows is <a href="http://www.wincvs.org/" target="_blank">WinCVS</a><br><br>
-
-<span class="txtbold">Directions for using WinCVS to download the source files:</span><br>
-<span class="tab">1. Install WinCVS by running setup.exe. Keep clicking on <span class="txtbold">Next</span> until the install is completed.</span><br>
-<span class="tab">2. Run WinCVS</span><br>
-<span class="tab">3. When WinCVS starts open Admin -> Preferences. In the General tab paste:</span><br><br>
-<span class="doubletab"><span class="txtbold">anonymous@cvs.sourceforge.net:/cvsroot/macroquest</span></span><br><br>
-<span class="doubletab">in the 'Enter the CVSROOT' field</span><br><br>
-<span class="tab">4. In the Authentication field choose the '"passwd" file on the cvs server' option</span><br>
-<span class="tab">5. Now click on the Globals tab and check the box at the bottom which says: 'Checkout textfiles with the UNIX LX (0xa)'</span><br>
-<span class="tab">6. Click OK</span><br>
-<span class="tab">7. Goto menu Admin -> Login. When the password requester window opens press <span class="txtbold">Enter</span></span><br>
-<span class="tab">8. Goto menu Admin -> Command Line... and paste:</span><br><br>
-<span class="doubletab"><span class="txtbold">cvs -z3 -d:pserver:anonymous@cvs.sourceforge.net:/cvsroot/macroquest co macroquest</span></span><br><br>
-<span class="tab">9. Press Enter</span><br>
-<span class="tab">10. The source should be downloaded to you computer...</span><br><br>
+<span class="txtbold">Downloading MacroQuest 2 Source Files</span><br>
+To get the source files download them from the MacroQuest home page at:
+<a href="http://macroquest.sourceforge.net/downloads/MQ2-Latest.zip" target="_blank">Macroquest Archive</a><br><br>
 
 <a name="compiling" id="compiling"></a>
-<span class="txtbold">Compiling Macroquest</span><br>
+<span class="txtbold">Compiling MacroQuest 2</span><br>
 Macroquest requires VC 6 or VC.net to be compiled.<br><br>
 <span class="txtbold">To compile with VC6</span><br>
 <span class="tab">1. Install Visual C++ 6.0 or Visual Studio 6.0</strong></span><br>
-<span class="tab">2. Download the MacroQuest source files</strong></span><br>
+<span class="tab">2. Download the MacroQuest 2 source files</strong></span><br>
 <span class="tab">3. Unzip it into any new folder</strong></span><br>
-<span class="tab">4. Go to the newly created folder and double-click the macroquest.dsw file</strong></span><br>
-<span class="tab">5. It will open Visual C++ or in Visual Studio.</strong></span><br>
-<span class="tab">6. Go to the menu called <span class="txtbold">Build</span> and click on it</strong></span><br>
-<span class="tab">7. On that menu go to Set Active Configuration click on it...</strong></span><br>
-<span class="tab">8. Set the active configuration to macroquest - Win32 Release and press ok</strong></span><br>
-<span class="tab">9. Go to Build menu again and click it.</strong></span><br>
-<span class="tab">10. Select Build macroquest.exe</span><br><br>
+<span class="tab">4. Go to the newly created folder and double click MQ2Auth.exe</span><br>
+<span class="tab">5. Double click macroquest2.dsw file. This will Open Visual C++</span><br>
+<span class="tab">6. Select Build -> Set Active Config and select MQ2main. Click OK</span><br>
+<span class="tab">7. Select Build -> Build MQ2main.dll</span><br>
+<span class="tab">8. Select Build -> Batch Build. Click the Build button.</span><br><br>
 
 <span class="txtbold">To compile with VC.net</span>:<br>
 <span class="tab">1. Install Visual VC.NET</span><br>
-<span class="tab">2. Download the MacroQuest source files</span><br>
+<span class="tab">2. Download the MacroQuest 2 source files</span><br>
 <span class="tab">3. Unzip it into any new folder</span><br>
 <span class="tab">3. Right click the folder, select Properties, and remove the Read only flag</span><br>
-<span class="tab">4. Go to the newly created folder and double-click the macroquest.sln file</span><br>
-<span class="tab">5. VC.net will open the MacroQuest project</span><br>
-<span class="tab">6. Go to the menu called <span class="txtbold">Build</span> and select <span class="txtbold">Batch Build</span></span><br>
-<span class="tab">7. In the Batch Build window select the shown files to compile:</span><br><br>
-<span class="doubletab"><img src="http://macroquest.sourceforge.net/batchbuild.png"></span><br>
-<span class="tab">8. Click the <span class="txtbold">Build</span> button</span><br>
-<span class="tab">9. The eqlib.dll and MacroQuest.exe files should compile.</span><br><br>
+<span class="tab">4. Double-click MQ2Auth.exe. This will create the file necessary for compiling MQ2 in the MQ2Main folder.</span><br>
+<span class="tab">4. Double-click the Macroquest2.sln file. VC.net will open the MacroQuest project</span><br>
+<span class="tab">6. Go <span class="txtbold">Build</span> menu and select <span class="txtbold">Configuration Manager</span></span><br>
+<span class="tab">7. Select Release, and place a check in each dll you want compiled. Click the <span class="txtbold">Close</span> button</span><br><br>
+<span class="tab"><img src="http://macroquest.sourceforge.net/cfgmgr.png"><br><br></span><br>
+<span class="tab">8. Go <span class="txtbold">Build</span> menu and select <span class="txtbold">Build Solution</span></span><br>
+<span class="tab">9. The dll files should compile.</span><br><br>
 
 <a name="install" id="install"></a>
-<span class="txtbold">Installing MacroQuest</span><br>
-1. Create a new folder anywhere, such as c:\MQ<br>
+<span class="txtbold">Installing MacroQuest 2</span><br>
+After compiling Macroquest 2:<br><br>
+
+1. Create a new folder anywhere, such as c:\MQ2<br>
 2. Create three new folders within this folder, named <em>ini</em>, <em>logs</em>, and <em>macros</em><br>
-3. Copy the files <span class="txtbold">MacroQuest.exe</span>, 
-                  <span class="txtbold">eqlib.dll     </span>, 
-				  <span class="txtbold">eqgame.ini    </span>, 
-				  <span class="txtbold">macroquest.ini</span>, and 
-				  <span class="txtbold">locations.txt</span> 
-				  from the Release folder to c:\MQ<br><br> 
-<span class="doubletab"><img src="http://macroquest.sourceforge.net/files.png"></span><br><br>
+3. Copy the following files from the Release folder to c:\MQ2:<br><br>
+<span class="doubletab"><img src="http://macroquest.sourceforge.net/files2.png"></span><br><br>
 
 <a name="using" id="using"></a>
-<span class="txtbold">Starting MacroQuest</span><br>
-To run MacroQuest simply double click on MacroQuest.exe. You do not have to start MacroQuest before Everquest.<br>
-The MQ icon will appear in the system tray.<br><br> 
+<span class="txtbold">Starting MacroQuest 2</span><br>
+To run MacroQuest2 simply double click on MacroQuest2.exe. You do not have to start MacroQuest2 before Everquest.<br>
+The MacroQuest2 icon will appear in the system tray.<br><br> 
 
 <a name="updates" id="updates"></a>
-<span class="txtbold">Updates to MacroQuest</span><br>
-When there is a patch to Everquest check the forums to see if there has been a change to MacroQuest. All that is usually
-required is updating the eqclient.ini with new offsets.<br><br>
+<span class="txtbold">Updates to MacroQuest 2</span><br>
+When there is a patch to Everquest check the forums to see if there has been a change to MacroQuest 2.<br><br>
 
-The MacroQuest developers also update current features or add new features to MacroQuest.
-Download the latest CVS or zipfile and recompile when this occurs.<br><br>
+The MacroQuest 2 developers also update current features or add new features to MacroQuest 2 occasionally.
+Download the latest zipfile and recompile when this occurs.<br><br>
 
 <a name="macrofunda" id="macrofunda"></a>
 <span class="txtbold">Macro Fundamentals</span><br><br>
@@ -407,6 +389,10 @@ document.write("/delay 1m\t\t\tDelays the macro for one minute\r")
 document.write("</XMP>")
 </SCRIPT>
 </blockquote>
+<span class="command">/destroy</span><br>
+Destroy's whatever you have on your cursor. Use with care.<br><br>
+Example:<br><br>
+<span class="doubletab">/if "$cursor(name)"~~"rusty" /destroy</span><br><br>
 
 <span class="command">/doevents</span> [<span class="opt">flush</span> | <span class="arg">specificevent</span>]<br>
 Runs any events that have queued up or flushes queued events<br>
@@ -438,6 +424,17 @@ Allows you to edit text files from within the EQ client<br><br>
 
 <span class="command">/endmacro</span><br>
 Stops the macro<br><br>
+
+<span class="command">/exec</span> [<span class="opt">application</span>] [<span class="opt">fg|bg</span>]
+<br>
+Invoke the shell.<br><br>
+<blockquote>
+<SCRIPT LANGUAGE="Javascript">
+document.write("<XMP>")
+document.write("/exec loud.wav fg\t\t\t\tPlay the wav file with default player\r")
+document.write("</XMP>")
+</SCRIPT>
+</blockquote>
 
 <a name="f" id="f"></a>
 <span class="command">/face</span> [<span class="opt">predict</span>] [<span class="opt">fast</span>] [<span class="opt">look</span>] [<span class="opt">away</span>] 
@@ -1140,7 +1137,7 @@ Returns the atan of value or @varname<br><br>
 
 <a name="bv" id="bv"></a>
 <span class="command">$banker</span>(open)<br><br>
-Returns TRUE if the bank window is open
+Returns TRUE if the bank window is open<br><br>
 <a name="cv" id="cv"></a>
 <span class="command">$calc</span>(formula)<br>
 Returns the value of an equation<br><br>
@@ -1239,6 +1236,15 @@ Returns the value of an equation<br><br>
     <td>Returns 1 if the character is currently in a group, zero otherwise</td>
   </tr>
   <tr> 
+    <td><span class="opt">GukEarned</span><br>
+	    <span class="opt">MMEarned</span><br>
+		<span class="opt">RujEarned</span><br>
+		<span class="opt">TakEarned</span><br>
+		<span class="opt">LDoNPoints</span><br>
+	</td>
+    <td>Returns the respective points earned</td>
+  </tr>
+  <tr> 
     <td><span class="opt">heading</span></td>
     <td>Returns the direction your character is facing, in degrees</td>
   </tr>
@@ -1266,12 +1272,20 @@ Returns the value of an equation<br><br>
     <td>Returns your hp: cur, max, pct, or hp regen</td>
   </tr>
   <tr> 
+    <td><span class="opt">hpbonus</span></td>
+    <td>Returns the number of hp you receive from equipment hp: cur, max, pct, or hp regen</td>
+  </tr>
+  <tr> 
     <td><span class="opt">invited</span></td>
     <td>Returns 1 if you have an invite pending, 0 if not invited to a group</td>
   </tr>
   <tr> 
     <td><span class="opt">ismoving</span></td>
     <td>Returns whether your character is moving (TRUE|FALSE)</td>
+  </tr>
+  <tr> 
+    <td><span class="opt">levitating</span>,"<span class="arg">skill name</span>"</td>
+    <td>Returns TRUE if character is levitating, FALSE if not.</td>
   </tr>
   <tr> 
     <td><span class="opt">light</span></td>
@@ -1282,15 +1296,23 @@ Returns the value of an equation<br><br>
   </tr>
   <tr> 
     <td><span class="opt">look</span></td>
-    <td>Returns the vertical angle your character is looking (-128 to 128)</td>
+    <td>Returns the vertical angle that your character is looking (-128 to 128)</td>
   </tr>
   <tr> 
     <td><span class="opt">mana</span>,<span class="opt">cur</span>|<span class="opt">max</span>|<span class="opt">pct</span>|<span class="opt">regen</span></td>
     <td>Returns your mana: cur, max, pct, or regen rate</td>
   </tr>
   <tr> 
+    <td><span class="opt">manabonus</span></td>
+    <td>Returns the amount of mana you receive from equipment and buffs.</td>
+  </tr>
+  <tr> 
     <td><span class="opt">mounted</span></td>
     <td>Returns TRUE if on a mount, FALSE if not</td>
+  </tr>
+  <tr> 
+    <td><span class="opt">PercentEXPtoAA</span></td>
+    <td>Returns the percent setting of exp going to AA abilities.</td>
   </tr>
   <tr> 
     <td><span class="opt">pet</span></td>
@@ -1298,10 +1320,15 @@ Returns the value of an equation<br><br>
   </tr>
   <tr>
     <td><span class="opt">plat</span>,<span class="opt">shared</span></td>
-	<td>Returns the platinum in the banks shared platinum slot</td></tr>
+	<td>Returns the platinum in the banks shared platinum slot</td>
+  </tr>
   <tr> 
     <td><span class="opt">skill</span>,"<span class="arg">skill name</span>"</td>
     <td>Returns skill level (see Appendix C)</td>
+  </tr>
+  <tr> 
+    <td><span class="opt">sneaking</span>,"<span class="arg">skill name</span>"</td>
+    <td>Returns TRUE if character is sneaking, FALSE if not</td>
   </tr>
   <tr> 
     <td><span class="opt">song</span>,<span class="arg">#</span></td>
@@ -1337,7 +1364,7 @@ Returns the value of an equation<br><br>
     <td></td>
   </tr>
   <tr> 
-    <td><span class="opt">x</span>|<span class="opt">y</span>|<span class="opt">z</span></td>
+    <td><span class="opt">x</span> | <span class="opt">y</span> | <span class="opt">z</span></td>
     <td>Returns your characters x y z  coordinate</td>
   </tr>
 </tbody>
@@ -1634,6 +1661,20 @@ Returns a random number between 0 and <span class="arg">max#</span><br><br>
 <span class="command">$return</span><br>
 Returns the return value from the last /call. NULL if no value returned.<br><br>
 
+<blockquote>
+Sub Main<br>
+<span class="tab">/call TestSub</span><br>
+<span class="tab">|Display the value returned from TestSub</span><br>
+<span class="tab">/echo Value returned from TestSub is: $return</span><br>
+/endmacro<br><br>
+
+Sub TestSub<br>
+<span class="tab">/declare TestVar local</span><br>
+<span class="tab">/varcalc TestVar 2.743*198%3</span><br>
+/return @TestVar<br>
+</blockquote>
+
+
 <span class="command">$right</span>(<span class="arg">#</span>,"<span class="arg">string</span>"|"<span class="arg">@varname</span>")<br>
 Returns a couple of the characters from the right side of string<br><br>
 <span class="tab"></span>$right(4,"Am I here?") will return "ere?"<br><br>
@@ -1677,7 +1718,7 @@ Returns information on a spawn<br>
     <td><span class="opt">distance</span>[,<span class="opt">predict</span>
 	                      |<span class="opt">x</span>|<span class="opt">y</span>
 						  |<span class="opt">z</span>]
-	</td>
+    </td>
     <td> Returns distance information on the spawn</td>
   </tr>
   <tr> 
@@ -1707,34 +1748,90 @@ Returns information on a spawn<br>
     </td>
   </tr>
   <tr> 
-    <td><span class="opt">master</span>]</td>
+    <td><span class="opt">#,levitating</span></td>
+    <td>Returns TRUE if the spawn is levitating, FALSE if not</td>
+  </tr>
+  <tr> 
+    <td><span class="opt">master</span></td>
     <td>Returns the name of the npc's master</td>
   </tr>
   <tr> 
-    <td><span class="opt">name[,clean]</span>]</td>
+    <td><span class="opt">name[,clean]</span></td>
     <td>Returns the name of the spawn without the _00</td>
   </tr>
   <tr> 
-    <td><span class="opt">next</span>|<span class="opt">prev</span>]</td>
+    <td><span class="opt">next</span>|<span class="opt">prev</span></td>
     <td>Returns the id of the next|previous spawn.</td>
   </tr>
   <tr> 
     <td><span class="opt">level</span>|<span class="opt">light</span>|<span class="opt">pet</span>
 	    |<span class="opt">race</span>|<span class="opt">speed</span>|<span class="opt">state</span>
-		|<span class="opt">surname</span>|<span class="opt">type</span>]
+		|<span class="opt">surname</span>|<span class="opt">type</span>
 	</td>
     <td>Returns the specified information of the spawn.<br>
 	    state can return: STAND, SIT, DUCK, BIND, FEIGN, DEAD</td>
-  </tr>  
+  </tr>
+  <tr> 
+    <td><span class="opt">#,sneaking</span></td>
+    <td>Returns TRUE if the spawn is sneaking, FALSE if not</td>
+  </tr> 
 </tbody>
 </table><br>
 
 <span class="command">$spell</span>("<span class="arg">spellname</span>",<span class="opt">option</span>)<br>
 Returns information on a spell<br><br>
-<span class="opt">option</span> can be: id, level, mana, range, casttime, recoverytime, recasttime, duration<br>
-<span class="doubletab">&nbsp;&nbsp;&nbsp;casttime, recoverytime, recasttime, and duration are in seconds</span><br>
-<span class="doubletab">&nbsp;&nbsp;&nbsp;duration can also return INSTANT, PERMANENT or UNKNOWN</span><br><br>
-<span class="tab"></span>$spell("spell name",mana) returns the mana cost of the spell<br><br>
+<table width="100%" border="1" cellpadding="2" cellspacing="0">
+  <tbody>
+  <tr> 
+    <td><span class="opt">aerange</span></td>
+    <td>Returns the AE range of the spell</td>
+  </tr>
+  <tr> 
+    <td width="140"><span class="opt">casttime</span></td>
+    <td width="404">Returns the spell casting time</td>
+  </tr>
+  <tr> 
+    <td><span class="opt">fizzletime</span></td>
+    <td>Returns the fizzle time of the spell</td>
+  </tr>
+    <tr> 
+    <td><span class="opt">mana</span></td>
+    <td>Returns the base amount of mana used casting the spell</td>
+  </tr>
+  <tr> 
+    <td><span class="opt">name</span></td>
+    <td>Returns the spell name of the spell id</td>
+  </tr>
+  <tr> 
+    <td><span class="opt">pushback</span></td>
+    <td>Returns the amount of pushback the spell has<br></td>
+  </tr>
+  <tr> 
+    <td><span class="opt">recoverytime</span></td>
+    <td>Returns the recovery time of the spell</td>
+  </tr>
+  <tr> 
+    <td><span class="opt">recasttime</span></td>
+    <td>Returns the recast time of the spell</td>
+  </tr>
+  <tr> 
+    <td><span class="opt">resistadj</span></td>
+    <td>Returns the resist modifier of the spell</td>
+  </tr>
+  <tr> 
+    <td><span class="opt">resisttype</span></td>
+    <td>Returns the resist type of the spell</td>
+  </tr>
+  <tr> 
+    <td><span class="opt">spelltype</span></td>
+    <td>Returns the spell type</td>
+  </tr>
+  <tr> 
+    <td><span class="opt">targettype</span></td>
+    <td>Returns the target type of the spell (single, AE, PBAE)</td>
+  </tr>
+</tbody>
+</table><br>
 
 <span class="command">$strlen</span>("<span class="arg">string</span>")<br>
 Returns the length of the string<br><br>
@@ -1796,6 +1893,14 @@ Returns information on the current target<br>
     <td> Returns TRUE or FALSE</td>
   </tr>
   <tr> 
+    <td><span class="opt">heading</span></td>
+    <td>Returns the heading the target is facing in degrees</td>
+  </tr>
+  <tr> 
+    <td><span class="opt">headingto</span></td>
+    <td>Returns the direction to your target in degrees</td>
+  </tr>
+  <tr> 
     <td><span class="opt">holding</span></td>
     <td>Returns:<br>
 	    0 if target is holding nothing.<br>
@@ -1805,8 +1910,22 @@ Returns information on the current target<br>
      </td>
   </tr>
   <tr> 
+    <td><span class="opt">hp</span>,<span class="opt">option</span></td>
+    <td>Returns the current hp of the spawn<br>
+	    <span class="opt">option</span> can be: cur, max, pct
+    </td>
+  </tr>  
+  <tr> 
+    <td><span class="opt">id</span></td>
+    <td>Returns the id of your target</td>
+  </tr>
+  <tr> 
     <td><span class="opt">level</span></td>
     <td>Returns the level of your target</td>
+  </tr>
+  <tr> 
+    <td><span class="opt">levitating</span></td>
+    <td>Returns TRUE if your target is levitating, FALSE if not</td>
   </tr>
   <tr> 
     <td><span class="opt">light</span></td>
@@ -1821,69 +1940,40 @@ Returns information on the current target<br>
     <td>Returns the name of your target. Using ,clean removes _ and #.</td>
   </tr>
   <tr> 
-    <td><span class="opt">pet</span></td>
-    <td>Returns the id of your targets pet, 0 if no pet.</td>
-  </tr>
-  <tr> 
-    <td><span class="opt">surname</span></td>
-    <td>Returns the last name of the target</td>
-  </tr>
-  <tr> 
-    <td><span class="opt">id</span></td>
-    <td>Returns the id of your target</td>
-  </tr>
-  <tr> 
-    <td><span class="opt">heading</span></td>
-    <td>Returns the heading the target is facing in degrees</td>
-  </tr>
-  <tr> 
-    <td><span class="opt">headingto</span></td>
-    <td>Returns the direction to your target in degrees</td>
-  </tr>
-  <tr> 
-    <td><span class="opt">hp</span>,<span class="opt">option</span></td>
-    <td>Returns the current hp of the spawn<br>
-	    <span class="opt">option</span> can be: cur, max, pct
-    </td>
-  </tr>
-  <tr> 
-    <td><span class="opt">level</span>|<span class="opt">light</span>|<span class="opt">pet</span>
-	    |<span class="opt">race</span>|<span class="opt">speed</span>|<span class="opt">state</span>
-		|<span class="opt">surname</span>|<span class="opt">type</span>]
-	</td>
-    <td>Returns the specified information of the spawn.<br>
-	    state can return: STAND, SIT, DUCK, BIND, FEIGN, DEAD</td>
-  </tr>
-  <tr> 
-    <td><span class="opt">master</span>]</td>
-    <td>Returns the name of the npc's master</td>
-  </tr>
-  <tr> 
-    <td><span class="opt">name[,clean]</span>]</td>
-    <td>Returns the name of the spawn without the _00</td>
-  </tr>
-  <tr> 
     <td><span class="opt">next</span>|<span class="opt">prev</span>]</td>
     <td>Returns the id of the next|previous spawn.</td>
+  </tr>
+  <tr> 
+    <td><span class="opt">pet</span></td>
+    <td>Returns the id of your targets pet, 0 if no pet.</td>
   </tr>
   <tr> 
     <td><span class="opt">race</span></td>
     <td>Returns the race of your target</td>
   </tr>
   <tr> 
-    <td><span class="opt">state</span></td>
-    <td>Returns STAND, SIT, DUCK, BIND, FEIGN, DEAD</td>
+    <td><span class="opt">sneaking</span>]</td>
+    <td>Returns TRUE if your target is sneaking, FALSE if not</td>
   </tr>
   <tr> 
     <td><span class="opt">speed</span></td>
     <td>Returns the movement speed fo your target</td>
   </tr>
   <tr> 
+    <td><span class="opt">state</span></td>
+    <td>Returns the specified information of the spawn.<br>
+	    state can return: STAND, SIT, DUCK, BIND, FEIGN, DEAD</td>
+  </tr>
+  <tr> 
+    <td><span class="opt">surname</span></td>
+    <td>Returns the last name of the target</td>
+  </tr>  
+  <tr> 
     <td><span class="opt">type</span></td>
     <td>Returns player or NPC</td>
   </tr>
   <tr> 
-    <td><span class="opt"> x|y|z</span></td>
+    <td><span class="opt">x|y|z</span></td>
     <td>Returns the x,y,or z coordinate of your target</td>
   </tr>
 </tbody>
@@ -2562,8 +2652,37 @@ Sparr's excellent job at finding offsets for 7/24 and other cool feats.<br>
 m0nk for many crazy ideas<br>
 Xaanin for finding all the memory addresses while I was gone<br>
 Dohpaz for the first patch submission!<br>
-DeathSpiral for taking over the SF portion of the site<br>
+DeathSpiral for taking over the SF portion of the site<br><br>
 
+<a name="faq" id="faq"></a>
+<span class="txtbold">FAQ</span><br><br>
+
+Q: What is this error: fatal error C1083: Cannot open include file: 'MQ2Auth0.h': No such file or directory</span><br>
+A: Run mq2auth.exe in the location it was extracted to<br><br>
+
+Q: I dont see any output when I run a macro<br>
+A: /filter macros all<br><br>
+ 
+Q: On patchday or a few days after a patch, EQ crashes when I try to use MQ2<br>
+A: Wait until a new release of MQ2 is announced, every time eqgame.exe is patched, MQ2 needs a "patch"<br><br>
+
+Q: I get this: MQ2Main fatal error LNK1279: invalid or corrupt file: file contains invalid .sxdata contributions<br>
+A: Before doing the MQ2Main build:<br>
+<span class="tab">1. Select Build->Clean</span><br>
+<span class="tab">2. Build->Batch Build and select only the Release versions</span><br><br>
+
+Q: fatal error C1083: Cannot open include file: '..\Dxsdk81\include\dinput.h': No such file or directory<br>
+A: Extract the MQ2-Latest.zip in its original state. You need to unzip and include directory names.<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;You should end up with this sort of directory tree:<br><br>
+<span class="tab">c:\macroquest\dx81sdk</span><br>
+<span class="tab">c:\macroquest\mq2main</span><br>
+<span class="tab">c:\macroquest\release</span><br><br>
+
+Q: What files  can I delete in the Release folder after compiling MQ2?<br>
+A: Any file with extensions other than dll, exe, ini, and .txt<br><br>
+
+Q: Why can't I find the .dll files in the Release folder after I compile?<br>
+A: Make sure you do not have "hide sys files" set in your folder options.<br><br>
 </body>
 </html>
 

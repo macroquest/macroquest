@@ -54,9 +54,12 @@ DETOUR_TRAMPOLINE_EMPTY(int CXMLSOMDocumentBaseHook::XMLRead_Trampoline(CXStr *A
 void InitializeMQ2Windows()
 {
 	DebugSpew("Initializing MQ2 Windows");
+	/*
 	int (CXMLSOMDocumentBaseHook::*pfDetour)(CXStr *A, CXStr *B, CXStr *C) = CXMLSOMDocumentBaseHook::XMLRead; 
 	int (CXMLSOMDocumentBaseHook::*pfTrampoline)(CXStr *A, CXStr *B, CXStr *C) = CXMLSOMDocumentBaseHook::XMLRead_Trampoline; 
 	AddDetour(CXMLSOMDocumentBase__XMLRead,*(PBYTE*)&pfDetour,*(PBYTE*)&pfTrampoline);
+	/**/
+	EasyClassDetour(CXMLSOMDocumentBase__XMLRead,CXMLSOMDocumentBaseHook,XMLRead,int,(CXStr *A, CXStr *B, CXStr *C),XMLRead_Trampoline);
 }
 
 void ShutdownMQ2Windows()

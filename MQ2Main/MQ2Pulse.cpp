@@ -104,7 +104,7 @@ void Pulse()
 	DWORD CurrentHealth=GetCurHPS();
 	if (LastHealth && CurrentHealth>LastHealth)
 	{
-		if (pChar->HPCurrent!=GetMaxHPS())
+		if ((int)pChar->HPCurrent!=GetMaxHPS())
 		{ // gained health, and not max
 			HealthGained=CurrentHealth-LastHealth;
 		}
@@ -113,7 +113,7 @@ void Pulse()
 
 	if (LastMana && pCharInfo->Mana>LastMana)
 	{
-		if (pCharInfo->Mana!=GetMaxMana())
+		if ((int)pCharInfo->Mana!=GetMaxMana())
 		{ // gained mana, and not max
 			ManaGained=pCharInfo->Mana-LastMana;
 		}
@@ -275,11 +275,11 @@ DETOUR_TRAMPOLINE_EMPTY(VOID CEverQuestHook::SetGameState_Trampoline(DWORD));
 void InitializeMQ2Pulse()
 {
 	DebugSpew("Initializing Pulse");
-
+/*
 	BOOL (*pfDetour_ProcessGameEvents)(VOID) = Detour_ProcessGameEvents; 
 	BOOL (*pfTrampoline_ProcessGameEvents)(VOID) = Trampoline_ProcessGameEvents; 
 	AddDetour((DWORD)ProcessGameEvents,*(PBYTE*)&pfDetour_ProcessGameEvents,*(PBYTE*)&pfTrampoline_ProcessGameEvents);
-/**/
+
    void (CEverQuestHook::*pfEnterZone_Detour)(PVOID) = CEverQuestHook::EnterZone_Detour;
    void (CEverQuestHook::*pfEnterZone_Trampoline)(PVOID) = CEverQuestHook::EnterZone_Trampoline;
 	AddDetour((DWORD)CEverQuest__EnterZone,*(PBYTE*)&pfEnterZone_Detour,*(PBYTE*)&pfEnterZone_Trampoline);
@@ -288,7 +288,10 @@ void InitializeMQ2Pulse()
    void (CEverQuestHook::*pfSetGameState_Detour)(DWORD) = CEverQuestHook::SetGameState_Detour;
    void (CEverQuestHook::*pfSetGameState_Trampoline)(DWORD) = CEverQuestHook::SetGameState_Trampoline;
 	AddDetour((DWORD)CEverQuest__SetGameState,*(PBYTE*)&pfSetGameState_Detour,*(PBYTE*)&pfSetGameState_Trampoline);
-
+/**/
+	EasyDetour(ProcessGameEvents,Detour_ProcessGameEvents,BOOL,(VOID),Trampoline_ProcessGameEvents);
+	EasyClassDetour(CEverQuest__EnterZone,CEverQuestHook,EnterZone_Detour,void,(PVOID),EnterZone_Trampoline);
+	EasyClassDetour(CEverQuest__SetGameState,CEverQuestHook,SetGameState_Detour,void,(DWORD),SetGameState_Trampoline);
 }
 
 void ShutdownMQ2Pulse()

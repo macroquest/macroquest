@@ -427,7 +427,9 @@ VOID DeclareVar(PSPAWNINFO pChar, PCHAR szLine)
 		PTIMER pCheck = NULL;
 		GetVariable(Arg1,&szCheck,&pCheck);
 		if (szCheck || pCheck) {
-			WriteChatColor("Variable name already defined.",USERCOLOR_DEFAULT);
+                        CHAR tmp[MAX_STRING];
+                        sprintf(tmp, "Variable name already defined: %s", Arg1);
+			WriteChatColor(tmp,USERCOLOR_DEFAULT);
 		} else if (!stricmp(Arg2,"global")) {
 			GetMacroStr(Arg1,TRUE);
 		} else if (!stricmp(Arg2,"local")) {

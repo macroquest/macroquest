@@ -312,6 +312,12 @@ VOID PluginsSetGameState(DWORD GameState)
 	if (!bPluginCS)
 		return;
 	gGameState=GameState;
+	if (GameState==GAMESTATE_INGAME)
+	{
+		gZoning=false;
+		gbDoAutoRun=TRUE;
+	}
+
 	CAutoLock Lock(&gPluginCS);
 	DebugSpew("PluginsSetGameState(%d)",GameState);
 	PMQPLUGIN pPlugin=pPlugins;

@@ -914,9 +914,9 @@ BOOL ParseMouseLoc(PCHARINFO pCharInfo, PCHAR szMouseLoc)
 		// TODO: find out whether pack is a combiner
 		if (Bank==0)
 		{
-			if (!(pPack = pCharInfo->Inventory[22+Pack]->Item))
+			if (!(pPack = pCharInfo->InventoryArray[22+Pack]->Item))
 			{
-				DebugSpew("No item pointer for (*pCharInfo->Inventory[%d])",22+Pack);
+				DebugSpew("No item pointer for (*pCharInfo->InventoryArray[%d])",22+Pack);
 				return FALSE;
 			}
 		}
@@ -933,8 +933,8 @@ BOOL ParseMouseLoc(PCHARINFO pCharInfo, PCHAR szMouseLoc)
 			DebugSpew("Pack access attempted on nonPack in mouseloc: %s",szMouseLoc);
 			return FALSE;
 		}
-		Max_Slots = pPack->Container.Slots;
-		Combiner = pPack->Container.Combine;
+		Max_Slots = pPack->Slots;
+		Combiner = pPack->Combine;
 		DebugSpew("Pack has %d Slots and Combiner type %d",Max_Slots,Combiner);
 
 		if (Bank==0)

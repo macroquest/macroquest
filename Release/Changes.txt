@@ -1,3 +1,185 @@
+20 Jan 2004 by dkaa
+    According to Pragma:
+        1 bug: in the code for $rand(), there needs to be a srand(time(0));
+        2 bug: in the code for $gamestate, $servername, and $loginname, the 
+            value returned is 1 too high. You need to return length-1, which 
+            is 8 for loginname and gamestate, and 9 for servername, this will 
+            fix parsing issues.
+
+18 Jan 2004 by Amadeus
+- SpellID in _SPELLBUFF is now a DWORD vs. WORD 
+- Updated SpellInfo formulas used in the itemdisplay mod
+- Added Instrument mod information to the itemdisplay mod (thanks TheColonel)
+
+17 Jan 2004 by Valerian
+- Fixed _ITEMINFO struct -- minor correction to the size of one of the unknowns to realign.
+
+11 Jan 2004 by DKAA
+- Fixed the $combat to reflect the status of autoattack (Thanks Sharp of Fairlight)
+
+7 Jan 2004 by EqMUle
+- added Readme.html updated by Wassup
+
+5 Jan 2004 by EqMUle
+- Added [bzrtrader_start] and [pc_trade_yes] to locations.txt. Thanks to Zacaria for theese.
+
+1 Jan 2004 by Lax
+- Chat hook is no longer responsible for when zoning is finished or game is entered
+- Added $merchant(markup)
+
+31 Dec 2003 by Lax
+- ESC no longer hides the MQ2ChatWnd or MQ2IRC windows and they are no longer closable
+- Fixed STMLToPlainText
+- Made MQ2Labels use STMLToPlainText to convert the tooltip tags (this means you can
+  use < and > by using "&lt;" and "&gt;", respectively)
+
+31 Dec 2003 by Amadeus
+- Added $spell(xx,spelltype),$spell(xx,targettype),$spell(xx,name),$spell(xx,aerange),
+  $spell(xx,pushback),$spell(xx,resisttype),$spell(xx,resistadj),$spell(xx,fizzletime)
+- Removed $spawn(#,castingspellid) & $target(castingspellid)  
+  [http://macroquest.sourceforge.net/phpBB2/viewtopic.php?p=33124#33124]
+- Added Uninterruptable and Autocast to SPELL along with other fixes (thanks SoF & Koad)
+- Added more functionality to the Spell Inspect Window.  You will now see the Effect of the 
+  spell and the classes that can use it.  You might really find it interesting to 
+  Alt-LeftClick on some of your buffs and find out exactly what they are doing to you!  It's
+  almost like having an ingame Lucy connection -- and we owe a great deal of this functionality
+  to Koad and borrowed code from his spellsearch plugin.
+  
+  **NOTE:  The formulas for this are still being tweaked.  If you wish to help iron these
+           out, please post under Koad's thread on MQ2:Plugins board.  He is the keeper of 
+           of the spell effects/slots formula. **
+
+
+30 Dec 2003 by Lax
+- Updated version number since it's not Christmas anymore..
+- Fixed commands that werent supposed to be working at char select so they dont crash
+- Removed some extraneous offsets from eqgame.h
+- Fixed RemoveOurDetours() so it doesnt hang
+- Add something very special that everyone will love!
+- Fixed a bunch of $target(xxx) crashes when no target
+
+30 DEC 2003 by EqMule
+- fixed a couple unsigned/signed warnings when compiling in VC6
+
+29 Dec 2003 by Amadeus
+- Added Levitating and Sneaking; Fixed AARank and Linkdead in SPAWNINFO (thanks source)
+- Added $char(levitating), $target(levitating), $spawn(#,levitating) -- returns TRUE or FALSE
+- Added $char(sneaking), $target(sneaking), $spawn(#,sneaking) -- returns TRUE or FALSE
+- Went through all macro routines and made sure that everything uses lower case 
+  ie, $target(castingspellid) rather than $target(CastingSpellID).
+- Added <Sneak> to the superwho (thanks vzmule/source)
+
+29 Dec 2003 by Lax
+- MQ2Auth modified.
+    * MQ2Auth now produces MQ2Auth0.h instead of MQ2Auth1.h and MQ2Auth2.h
+    * MQ2Auth will import existing MQ2Auth2.h into MQ2Auth0.h if MQ2Auth0.h does not
+      already exist but MQ2Auth2.h (in other words, it will import your "keyring" to
+      MQ2Auth0.h)
+    * MQ2Auth now accepts a command line parameter telling it the path to use
+- Merged BOOK, COMMON, CONTAINER structs into ITEMINFO (the individual structs no
+  longer exist!)
+
+29 DEC 2003 by EqMule
+- fixed /click left item
+
+28 Dec 2003 by Amadeus
+- Added PushBack and ResistAdj to Spell struct
+- Added functionality to the ItemDisplay Plugin that shows the following information
+  about spells when you "examine" a spell from a gem or your spellbook: ID, Duration, 
+  RecoveryTime, RecastTime, Range, AERange, PushBack, Resist Type and Resist Adjust.  
+  You will notice that if a spell doesn't have any of these values, then that field 
+  will not be shown at all.  (**More functionality to come later**)
+- Added MQ2Bzrsearch to the VS.net solution file.
+
+27 Dec 2003 by Lax
+- Changed around plenty of stuff
+- EQUIPMENT struct no longer uses names for its union members...
+- SPELLLIST changed to SPELL, SPELLPOINTER changed to SPELLMGR
+- Added O(1) access to GetSpawnByID
+- Added O(1) access to GetSpellByID
+- Most window base classes set up correctly
+- MQ2ChatWnd updated to use a custom window, and allows typing in edit box.  Also shows up at char select to annoy you all.
+- MQ2IRC updated to allow typing in edit box (goes to channel...)
+- Tons of function offsets added for UI stuff, have fun with that
+- Added functionality so commands can be set to work in-game only (will be ignored outside of game, at char select for example)
+
+26 Dec 2003 by Amadeus
+* Added szBaneDmgType (thanks to TheColonel)
+* _CONTENTS tweak (thanks to TheColonel)
+* "Price" added to _CONTENTS (thanks to Pragma)
+* SPELLLIST update (thanks to Sharp of Fairlight)
+* Updated MQ2Ext
+* Added $spell(id,xxx) -- **$spell() will now accept either ID# or Name as first parameter**
+
+25 Dec 2003 by Amadeus
+* Added CastingSpellID to Actorinfo struct (thanks to Sharp of Fairlight)
+* Reworked $char(casting) to use more efficient CastingSpellID
+* Added $char(castingspellid), $spawn(#,castingspellid), $target(castingspellid)  
+* Fixed $char(held,left), $char(held,right), $char(held,shield)
+* Added $char(held,primary), $char(held,offhand) 
+* Fixed $target(held,left), $target(held,right), $target(held,shield)
+* Added $target(held,primary), $target(held,offhand) 
+* Fixed $spawn(#,held,right), $spawn(#,held,left), $spawn(#,held,shield)
+* Added $spawn(#,held,primary), $spawn(#,held,offhand)
+* Added AERange to SPELLLIST struct (thanks to Sharp of Fairlight)
+* More changes to ActorInfo (Timestamp stuff) thanks to Sharp of Fairlight
+
+25 Dec 2003 by EqMule
+- fixed /banklist crash
+- fixed $char(ismoving) - thanks to ml2517
+- added makezip.bat to make zip file creation easier...
+
+24 Dec 2003 by Lax
+- Updated offsets with correct ones
+- Replaced remaining calls to AddDetour with EasyDetour and EasyClassDetour
+- Updated EasyDetour/EasyClassDetour defines to explicitly cast the offset to DWORD
+- Updated MQ2IRC with current version from forum
+- Modified CHARINFO struct to use Inventory and InventoryArray for inventory member names.
+- Fixed $lastcommand
+- Fixed $char(hp,cur), $char(hp,max), $char(hp,pct)
+
+24 Dec 2003 by Amadeus
+- Fixed CHARINFO (thanks to TheColonel for new stuff)
+    * CHARINFO now has:
+  	+ HPBonus
+	+ ManaBonus
+	+ PercentEXPtoAA
+	+ GukEarned
+	+ MMEarned
+ 	+ RujEarned
+	+ TakEarned
+	+ LDoNPoints
+- Removed Stamina from all references in parser and struct
++ Added $char(HPBonus), $char(ManaBonus), $char(PercentEXPtoAA), $char(GukEarned),
+  $char(MMEarned), $char(RujEarned), $char(TakEarned), $char(LDoNPoints)
++ Updated _COMMON (thanks again to TheColonel)
+   	* Added BaneDMG;
+   	* Added Lore
+   	* Added BaneDMGType
+   	* Added InstrumentType
+   	* Added InstrumentMod
+   	* Added DmgBonusType
+   	* Added DmgBonusVal
+   	* Fixed Range
++ Added szTheme[]
++ Added szDmgBonusType[]
++ Updated ItemDisplay Plugin to include LDoN stuff (TheColonel)
++ Updated itemtypes.h with "All Instruments" as type 51 (thanks TheColonel)
++ Removed $item(lore) & $cursor(lore)
++ Added $item(LDTheme) & $cursor(LDTheme)
++ Added $item(DmgBonusType) & cursor(DmgBonusType)
++ Fixed $char(Mounted)
+
+
+21 Dec 2003
++ Added MQ2Mouse2.cpp.  Don't need to compile this, it's the new mouse code.  Incomplete and inop.
+
+21 Dec 2003 by Amadeus
+- Fix for MQ2Ext
+
+19 Dec 2003 by EqMule
++updated offsets, structs for todays patch...
+
 15 Dec 2003 by Amadeus
 - Fix for $target(sclass)
 - Fix for FullClassToShort

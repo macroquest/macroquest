@@ -1,3 +1,5 @@
+// !!IMPORTANT!!
+// Be sure to update MAX_WEAPONS in MQ2Main.h when adding to this array
 /*
  * weapons.h
  *
