@@ -3086,6 +3086,13 @@ DWORD parmChar(PCHAR szVar, PCHAR szOutput, PSPAWNINFO pChar)
         itoa(pCharInfo->CareerFavor,szTemp,10); 
         strcat(szOutput,szTemp); 
 
+   // $char(endurance,cur) 
+   } else if (!strncmp("char(endurance,cur)",szVar,19)) { 
+      i+=18; 
+      CHAR szTemp[MAX_STRING] = {0}; 
+      itoa(pCharInfo->Endurance,szTemp,10); 
+      strcat(szOutput,szTemp);
+
 	// $char(unknown)
     } else {
         DebugSpewNoFile("PMP - Bad $char() '%s'",szVar);
