@@ -704,7 +704,7 @@ typedef struct _EQRAIDWINDOW {
 
 typedef struct _GUILDMEMBERINFO {
 /*0x000*/ DWORD Unknown0x000; //pointer?
-/*0x004*/ BYTE Unknown0x004;
+/*0x004*/ BYTE OnlineStatus; // 00=offline, 01=online
 /*0x005*/ BYTE UnknownData0x005;
 /*0x006*/ BYTE UnknownData0x006;
 /*0x007*/ BYTE Unknown0x007;
@@ -712,7 +712,7 @@ typedef struct _GUILDMEMBERINFO {
 /*0x010*/ CHAR Name[0x40];
 /*0x050*/ DWORD Level;
 /*0x054*/ DWORD Class; 
-/*0x058*/ DWORD Unknown0x058;
+/*0x058*/ DWORD Rank; //0=member, 1=officer, 2=leader
 /*0x05c*/ FLOAT UnknownData0x05c;
 /*0x060*/ CHAR PublicNote[0x80];
 /*0x0e0*/ BYTE Unknown0x0e0[0x180];
