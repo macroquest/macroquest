@@ -181,9 +181,10 @@
 #define CItemDisplayWnd__SetItem				0x004F322D
 //    GetPrivateProfileString("Function Locations","ItemDisplaySetItem","0",szBuffer,MAX_STRING,ClientINI);   EQADDR_ITEMDISPLAYSETITEM = (DWORD)strtoul(szBuffer,NULL,16); 
 
-/*
+
 // CLabel
-    GetPrivateProfileString("Function Locations","CLabelDraw","0",szBuffer,MAX_STRING,ClientINI);   EQADDR_EQLABELS = (DWORD)strtoul(szBuffer,NULL,16);
+#define CLabel__Draw							0x004F903B
+//    GetPrivateProfileString("Function Locations","CLabelDraw","0",szBuffer,MAX_STRING,ClientINI);   EQADDR_EQLABELS = (DWORD)strtoul(szBuffer,NULL,16);
 /**/
 
 // CDisplay

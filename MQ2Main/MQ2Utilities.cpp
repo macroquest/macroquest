@@ -253,6 +253,8 @@ VOID AppendCXStr(PCXSTR *cxstr, PCHAR text)
 { 
 	CXStr *Str=(CXStr*)cxstr;
 	(*Str)+=text;
+	cxstr=(PCXSTR*)Str;
+
 	/*
    __asm 
    { 
@@ -272,8 +274,10 @@ VOID AppendCXStr(PCXSTR *cxstr, PCHAR text)
 // YES THIS NEEDS TO BE PCXSTR * 
 VOID SetCXStr(PCXSTR *cxstr, PCHAR text) 
 { 
+//	DebugSpew("SetCXStr(%s)",text);
 	CXStr *Str=(CXStr*)cxstr;
 	(*Str)=text;
+	cxstr=(PCXSTR*)Str;
 	/*
 	__asm{push esi};
    __asm 

@@ -84,3 +84,6 @@ REVERSE_DETOUR(int CBankWnd::GetNumBankSlots(void)const,CBankWnd__GetNumBankSlot
 
 // CSpellBookWnd
 REVERSE_DETOUR(void CSpellBookWnd::MemorizeSet(int *,int),CSpellBookWnd__MemorizeSet);
+
+// CLabel
+REVERSE_DETOUR(int CLabel::Draw()const,CLabel__Draw);

@@ -70,6 +70,7 @@ BOOL AddDetour(DWORD address, PBYTE pfDetour, PBYTE pfTrampoline)
 
 void RemoveDetour(DWORD address)
 {
+	DebugSpew("RemoveDetour(%X)",address);
 	OurDetours *detour = ourdetours;
 	while (detour)
 	{
@@ -78,7 +79,15 @@ void RemoveDetour(DWORD address)
 			if (detour->pfDetour)
 			{
 		      DetourRemove(detour->pfTrampoline, 
-				detour->pfDetour); 				
+				detour->pfDetour); 		
+			  if (detour->pLast)
+				detour->pLast->pNext=detour->pNext;
+			  else
+				  ourdetours=detour->pNext;
+			  if (detour->pNext)
+				  detour->pNext->pLast=detour->pLast;
+
+			  DebugSpew("Detour removed.");
 			}
 		}
 		detour=detour->pNext;
