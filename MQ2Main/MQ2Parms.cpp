@@ -3189,12 +3189,25 @@ DWORD parmSpell(PCHAR szVar, PCHAR szOutput, PSPAWNINFO pChar)
 			switch (pSpell->TargetType) {
 				case 41: strcpy(szTemp,"Group v2"); break;
 				case 40: strcpy(szTemp,"AE PC v2"); break;
+				case 25: strcpy(szTemp,"AE Summoned"); break;
+				case 24: strcpy(szTemp,"AE Undead"); break;
+				case 20: strcpy(szTemp,"Targeted AE Tap"); break;
+				case 18: strcpy(szTemp,"Uber Dragons"); break;
+				case 17: strcpy(szTemp,"Uber Giants"); break;
+				case 16: strcpy(szTemp,"Plant"); break;
+				case 15: strcpy(szTemp,"Corpse"); break;
 				case 14: strcpy(szTemp,"Pet"); break;
+				case 13: strcpy(szTemp,"LifeTap"); break;
+				case 11: strcpy(szTemp,"Summoned"); break;
+				case 10: strcpy(szTemp,"Undead"); break;
+				case  9: strcpy(szTemp,"Animal"); break;
 				case  8: strcpy(szTemp,"Targeted AE"); break;
 				case  6: strcpy(szTemp,"Self"); break;
 				case  5: strcpy(szTemp,"Single"); break;
 				case  4: strcpy(szTemp,"PB AE"); break;
 				case  3: strcpy(szTemp,"Group v1"); break;
+				case  2: strcpy(szTemp,"AE PC v1"); break;
+				case  1: strcpy(szTemp,"Line of Sight"); break;
 				default: strcpy(szTemp,"Unknown"); break;
 			}
 		} else if (!strncmp(szArg,"resisttype",10)) {
