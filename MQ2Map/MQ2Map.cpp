@@ -161,7 +161,6 @@ bool RButtonDown()
 					EnviroTarget.pActorInfo = &EnviroActor;
 					EnviroTarget.Heading=pItem->Heading;
 					EnviroTarget.Race = pItem->DropID;
-					EnviroTarget.GuildID=pItem->DxID;
 					pTarget = (EQPlayer*)&EnviroTarget; 				}
 				else
 					pTarget=(EQPlayer*)pMapSpawn->pSpawn;
