@@ -109,7 +109,6 @@ PLUGIN_API VOID ShutdownPlugin(VOID)
 	DebugSpewAlways("Shutting down MQ2ChatWnd");
 
 	// Remove commands, macro parameters, hooks, etc.
-	SaveChatToINI((PCSIDLWND)MQChatWnd);
 	OnCleanUI();
 }
 
@@ -161,6 +160,7 @@ PLUGIN_API VOID OnCleanUI(VOID)
 	// destroy chat window
 	if (MQChatWnd)
 	{
+		SaveChatToINI((PCSIDLWND)MQChatWnd);
 		DWORD destructor=(DWORD)MQChatWnd->Wnd.pvfTable->vector_deleting_destructor; 
 		__asm { 
 			push ecx; 
