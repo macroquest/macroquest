@@ -588,19 +588,19 @@ union{
 /*0x1d9c*/	DWORD		TakEarned; 
 /*0x1da0*/  BYTE  		Unknown0x1da0[0x18];
 /*0x1db4*/	DWORD		LDoNPoints;   
-/*0x1db8*/  BYTE        Unknown0x1db8[0x7a90]; 
-/*0x9848*/  DWORD       CareerFavor; 
-/*0x984c*/  DWORD       Unknown0x984c; 
-/*0x9850*/  DWORD       CurrFavor; 
-/*0x9854*/  BYTE        Unknown0x9854[0x11c];  
-/*0x9970*/  DWORD       GroupLeadershipExp;      // 0-499 or 0x000-0x1FF? need confirmation 
-/*0x9974*/  DWORD       RaidLeadershipExp;       // 0-999/0x3FF for display, 0-1999/0x7FF for actual value? 
-/*0x9978*/  DWORD       GroupLeadershipPoints;   // 0-8 
-/*0x997c*/  DWORD       RaidLeadershipPoints;    // 0-10
-/*0x9980*/	BYTE		Unknown0x9980[0x140];
-/*0x9ac0*/	struct		_CONTENTS* Bank[NUM_BANK_SLOTS]; 
-/*0x9b08*/	BYTE		Unknown0x9b08[0xa8];
-/*0x9Bb0*/	BYTE		Grouped;
+/*0x1db8*/  BYTE        Unknown0x1db8[0x7aD0]; 
+/*0x9888*/  DWORD       CareerFavor; // NOTE: 64-bit # -> 9888
+/*0x988c*/  DWORD       Unknown0x984c; 
+/*0x9890*/  DWORD       CurrFavor; // NOTE: 64-bit # -> 9890
+/*0x9894*/  BYTE        Unknown0x9854[0x164];  
+/*0x99f8*/  DWORD       GroupLeadershipExp;      // 0-499 or 0x000-0x1FF? need confirmation // 99f8
+/*0x99fc*/  DWORD       RaidLeadershipExp;       // 0-999/0x3FF for display, 0-1999/0x7FF for actual value?  // -> 99fc
+/*0x9a00*/  DWORD       GroupLeadershipPoints;   // 0-8  // -> 9a00
+/*0x9a04*/  DWORD       RaidLeadershipPoints;    // 0-10
+/*0x9a08*/	BYTE		Unknown0x9980[0x148];
+/*0x9b50*/	struct		_CONTENTS* Bank[NUM_BANK_SLOTS]; // -> 9B50
+/*0x9b98*/	BYTE		Unknown0x9b08[0xa8];
+/*0x9c40*/	BYTE		Grouped;
 /*...   */
 /*0xA020*/
 } CHARINFO, *PCHARINFO; 

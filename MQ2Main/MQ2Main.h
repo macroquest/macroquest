@@ -60,8 +60,8 @@ using namespace std;
 #define FromPlugin 0
 #endif
 
-//#define USEMQ2PARMS
-#define USEMQ2DATATYPES
+#define USEMQ2PARMS
+	//#define USEMQ2DATATYPES
 
 
 // reroute malloc/free
