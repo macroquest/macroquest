@@ -31,13 +31,13 @@ DWORD LoadMQ2Plugin(const PCHAR pszFilename)
 	strcpy(Filename,pszFilename);
 	strlwr(Filename);
 	PCHAR Temp=strstr(Filename,".dll");
-	if (!Temp)
-		strcat(Filename,".dll");
+	if (Temp)
+		Temp[0]=0;
 	
 	CAutoLock Lock(&gPluginCS);
 	DebugSpew("LoadMQ2Plugin(%s)",Filename);
 	CHAR FullFilename[MAX_STRING]={0};
-	sprintf(FullFilename,"%s\\%s",gszINIPath,Filename);
+	sprintf(FullFilename,"%s\\%s.dll",gszINIPath,Filename);
 	HMODULE hmod=LoadLibrary(FullFilename);
 	if (!hmod)
 	{
@@ -93,8 +93,8 @@ BOOL UnloadMQ2Plugin(const PCHAR pszFilename)
 	strcpy(Filename,pszFilename);
 	strlwr(Filename);
 	PCHAR Temp=strstr(Filename,".dll");
-	if (!Temp)
-		strcat(Filename,".dll");
+	if (Temp)
+		Temp[0]=0;
 	
 	// find plugin in list
 	CAutoLock Lock(&gPluginCS);

@@ -36,6 +36,7 @@ void LoadChatFromINI(PCSIDLWND pWindow)
 	pWindow->Location.left		= GetPrivateProfileInt(szChatINISection,"ChatLeft",   10,INIFileName);
 	pWindow->Location.right 	= GetPrivateProfileInt(szChatINISection,"ChatRight", 410,INIFileName);
 	pWindow->Locked			 	= GetPrivateProfileInt(szChatINISection,"Locked",	   0,INIFileName);
+	MQChatWnd->FontSize			= GetPrivateProfileInt(szChatINISection,"FontSize",	   4,INIFileName);
 
 	pWindow->Fades			 	= GetPrivateProfileInt(szChatINISection,"Fades",	   1,INIFileName);
 	pWindow->TimeMouseOver	 	= GetPrivateProfileInt(szChatINISection,"Delay",	 2000,INIFileName);
@@ -83,6 +84,8 @@ void SaveChatToINI(PCSIDLWND pWindow)
 	WritePrivateProfileString(szChatINISection,"BGTint.green",	itoa(pWindow->BGColor.G,			szTemp,10),INIFileName);
 	WritePrivateProfileString(szChatINISection,"BGTint.blue",	itoa(pWindow->BGColor.B,			szTemp,10),INIFileName);
 
+	WritePrivateProfileString(szChatINISection,"FontSize",	itoa(MQChatWnd->FontSize,			szTemp,10),INIFileName);
+	
 }
 
 
@@ -183,6 +186,8 @@ PLUGIN_API VOID SetGameState(DWORD GameState)
 		LoadChatFromINI((PCSIDLWND)MQChatWnd);
 	}
 }
-
-
+// todo
+VOID MQChatFont(PSPAWNINFO pChar, PCHAR Line)
+{
+}
 

@@ -36,7 +36,7 @@ VOID DoCommand(PSPAWNINFO pChar, PCHAR szLine)
     GetArg(szCmd,szLine,1);
     PALIAS pLoop = pAliases;
     while (pLoop) {
-        if (!strnicmp(szCmd,pLoop->szName,strlen(pLoop->szName)+1)) {
+        if (!stricmp(szCmd,pLoop->szName)) {
             sprintf(szLine,"%s%s",pLoop->szCommand,szOriginalLine+strlen(pLoop->szName));
 			break;
         }
@@ -113,7 +113,7 @@ public:
 			strcpy(szFullCommand,szFullLine); 
 			GetArg(szCommand,szFullCommand,1); 
 			while (pLoop) { 
-				if (!strnicmp(szCommand,pLoop->szName,strlen(pLoop->szName)+1)) { 
+				if (!stricmp(szCommand,pLoop->szName)) { 
 					sprintf(szCommand,"%s%s",pLoop->szCommand,szFullCommand+strlen(pLoop->szName)); 
 					strncpy(szFullCommand,szCommand,MAX_STRING); 
 					break;
