@@ -178,6 +178,7 @@ struct _types {
 };
 
 DWORD BzCount = 0;
+DWORD BzDone = 0;
 struct _BazaarSearchResponsePacket BzArray[200];
 
 PreSetup("MQ2Bzsrch");
@@ -220,6 +221,7 @@ public:
         } else {
             // this is an end of list packet but there is only 200
             // suppored now, it comes in one packet.
+            BzDone = TRUE;
         }
 
         BzTrampoline(itemarray, count);
@@ -453,7 +455,7 @@ DWORD parmBazaar(PCHAR szVar, PCHAR szOutput, PSPAWNINFO pChar)
 
     if (!strncmp("bazaar()", szVar, 8)) {
         i+=7;
-        if (!BzCount) {
+        if (!BzDone) {
             strcat(szOutput,"FALSE");
         } else {
             strcat(szOutput,"TRUE");
