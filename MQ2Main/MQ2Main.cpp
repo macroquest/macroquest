@@ -235,7 +235,6 @@ DWORD WINAPI MQ2Start(LPVOID lpParameter)
 	szEQMappableCommands[0xB3]="UNKNOWN0xB3";
 	szEQMappableCommands[0xB4]="UNKNOWN0xB4";
 
-
 	InitializeMQ2Benchmarks();
 	InitializeParser();
 	InitializeMQ2Detours();

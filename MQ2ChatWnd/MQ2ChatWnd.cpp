@@ -90,7 +90,7 @@ void LoadChatFromINI(PCSIDLWND pWindow)
 {
 	
 	CHAR Buffer[MAX_STRING] = {0};
-    sprintf(szChatINISection,"%s.%s",((PCHARINFO)pCharData)->Server,((PCHARINFO)pCharData)->Name);
+    sprintf(szChatINISection,"%s.%s",EQADDR_SERVERNAME,((PCHARINFO)pCharData)->Name);
 	pWindow->Location.top		= GetPrivateProfileInt(szChatINISection,"ChatTop",    10,INIFileName);
 	pWindow->Location.bottom	= GetPrivateProfileInt(szChatINISection,"ChatBottom",210,INIFileName);
 	pWindow->Location.left		= GetPrivateProfileInt(szChatINISection,"ChatLeft",   10,INIFileName);
