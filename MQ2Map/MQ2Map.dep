@@ -1,7 +1,6 @@
 # Microsoft Developer Studio Generated Dependency File, included by MQ2Map.mak
 
 .\MQ2Map.cpp : \
-	"..\..\..\program files\microsoft visual studio\vc98\include\basetsd.h"\
 	"..\detours\inc\detours.h"\
 	"..\MQ2Main\EQClasses.h"\
 	"..\MQ2Main\EQData.h"\

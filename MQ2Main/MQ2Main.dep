@@ -1,7 +1,6 @@
 # Microsoft Developer Studio Generated Dependency File, included by MQ2Main.mak
 
 .\EQClasses.cpp : \
-	"..\..\..\program files\microsoft visual studio\vc98\include\basetsd.h"\
 	"..\detours\inc\detours.h"\
 	".\EQClasses.h"\
 	".\EQData.h"\
@@ -14,7 +13,6 @@
 	
 
 .\MQ2ChatHook.cpp : \
-	"..\..\..\program files\microsoft visual studio\vc98\include\basetsd.h"\
 	"..\detours\inc\detours.h"\
 	".\EQClasses.h"\
 	".\EQData.h"\
@@ -27,7 +25,6 @@
 	
 
 .\MQ2CleanUI.cpp : \
-	"..\..\..\program files\microsoft visual studio\vc98\include\basetsd.h"\
 	"..\detours\inc\detours.h"\
 	".\EQClasses.h"\
 	".\EQData.h"\
@@ -40,7 +37,6 @@
 	
 
 .\MQ2CommandAPI.cpp : \
-	"..\..\..\program files\microsoft visual studio\vc98\include\basetsd.h"\
 	"..\detours\inc\detours.h"\
 	".\EQClasses.h"\
 	".\EQData.h"\
@@ -53,7 +49,6 @@
 	
 
 .\MQ2Commands.cpp : \
-	"..\..\..\program files\microsoft visual studio\vc98\include\basetsd.h"\
 	"..\detours\inc\detours.h"\
 	".\EQClasses.h"\
 	".\EQData.h"\
@@ -66,7 +61,6 @@
 	
 
 .\MQ2DetourAPI.cpp : \
-	"..\..\..\program files\microsoft visual studio\vc98\include\basetsd.h"\
 	"..\detours\inc\detours.h"\
 	".\EQClasses.h"\
 	".\EQData.h"\
@@ -79,7 +73,6 @@
 	
 
 .\MQ2DInput.cpp : \
-	"..\..\..\program files\microsoft visual studio\vc98\include\basetsd.h"\
 	"..\detours\inc\detours.h"\
 	".\EQClasses.h"\
 	".\EQData.h"\
@@ -92,7 +85,6 @@
 	
 
 .\MQ2Globals.cpp : \
-	"..\..\..\program files\microsoft visual studio\vc98\include\basetsd.h"\
 	"..\detours\inc\detours.h"\
 	".\combines.h"\
 	".\dikeys.h"\
@@ -111,7 +103,6 @@
 	
 
 .\MQ2MacroCommands.cpp : \
-	"..\..\..\program files\microsoft visual studio\vc98\include\basetsd.h"\
 	"..\detours\inc\detours.h"\
 	".\EQClasses.h"\
 	".\EQData.h"\
@@ -124,7 +115,6 @@
 	
 
 .\MQ2Main.cpp : \
-	"..\..\..\program files\microsoft visual studio\vc98\include\basetsd.h"\
 	"..\detours\inc\detours.h"\
 	".\EQClasses.h"\
 	".\EQData.h"\
@@ -137,7 +127,6 @@
 	
 
 .\MQ2Mouse.cpp : \
-	"..\..\..\program files\microsoft visual studio\vc98\include\basetsd.h"\
 	"..\detours\inc\detours.h"\
 	".\EQClasses.h"\
 	".\EQData.h"\
@@ -150,7 +139,6 @@
 	
 
 .\MQ2Parms.cpp : \
-	"..\..\..\program files\microsoft visual studio\vc98\include\basetsd.h"\
 	"..\detours\inc\detours.h"\
 	".\EQClasses.h"\
 	".\EQData.h"\
@@ -163,7 +151,6 @@
 	
 
 .\MQ2ParseAPI.cpp : \
-	"..\..\..\program files\microsoft visual studio\vc98\include\basetsd.h"\
 	"..\detours\inc\detours.h"\
 	".\EQClasses.h"\
 	".\EQData.h"\
@@ -176,7 +163,6 @@
 	
 
 .\MQ2PluginHandler.cpp : \
-	"..\..\..\program files\microsoft visual studio\vc98\include\basetsd.h"\
 	"..\detours\inc\detours.h"\
 	".\EQClasses.h"\
 	".\EQData.h"\
@@ -189,7 +175,6 @@
 	
 
 .\MQ2Pulse.cpp : \
-	"..\..\..\program files\microsoft visual studio\vc98\include\basetsd.h"\
 	"..\detours\inc\detours.h"\
 	".\EQClasses.h"\
 	".\EQData.h"\
@@ -202,7 +187,6 @@
 	
 
 .\MQ2UserVars.cpp : \
-	"..\..\..\program files\microsoft visual studio\vc98\include\basetsd.h"\
 	"..\detours\inc\detours.h"\
 	".\EQClasses.h"\
 	".\EQData.h"\
@@ -215,7 +199,6 @@
 	
 
 .\MQ2Utilities.cpp : \
-	"..\..\..\program files\microsoft visual studio\vc98\include\basetsd.h"\
 	"..\detours\inc\detours.h"\
 	".\EQClasses.h"\
 	".\EQData.h"\
