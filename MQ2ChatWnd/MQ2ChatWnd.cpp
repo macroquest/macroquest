@@ -177,7 +177,7 @@ PLUGIN_API VOID OnCleanUI(VOID)
 // Called once directly after initialization, and then every time the gamestate changes
 PLUGIN_API VOID SetGameState(DWORD GameState)
 {
-	if (GameState==GAMESTATE_INGAME)
+	if (GameState==GAMESTATE_INGAME && !MQChatWnd)
 	{
 		// we entered the game, set up shop
 		if (!pChatManager)
