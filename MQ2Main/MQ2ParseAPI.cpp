@@ -115,6 +115,7 @@ VOID InitializeParser()
 	struct _PARMLIST Parms[] = {
 	{"getlastfindslot",		parmGetLastFindSlot},
 	{"cursor",				parmCursor},
+	{"pet",					parmPet},
 	{"item",				parmItem},
 	{"equip",				parmEquip},
 	{"group",				parmGroup},
