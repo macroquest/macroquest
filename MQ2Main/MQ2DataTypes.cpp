@@ -677,6 +677,10 @@ bool MQ2SpawnType::GetMember(MQ2VARPTR VarPtr, PCHAR Member, PCHAR Index, MQ2TYP
 			return true;
 		}
 		return false;
+	case GroupLeader:
+		Dest.DWord=(pSpawn->Type==SPAWN_PLAYER && !stricmp(GroupLeader,pSpawn->Name));
+		Dest.Type=pBoolType;
+		return true;
 	}
 	return false;
 #undef pSpawn
