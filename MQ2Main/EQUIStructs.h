@@ -53,7 +53,7 @@ typedef struct _EQSLOTLIST {
 /**/
 
 // Lax
-// Actual Size 0x114 02-18-2004
+// Actual Size 0x11c 5-5-2004
 typedef struct _CSIDLWNDVFTABLE {
 /*0000*/ LPVOID IsValid;
 /*0004*/ LPVOID  vector_deleting_destructor;
@@ -123,13 +123,14 @@ typedef struct _CSIDLWNDVFTABLE {
 /*0104*/ LPVOID  SetAttributesFromSidl;
 /*0108*/ LPVOID DefineImages;
 /*010C*/ LPVOID Unknown0x10c;
-/*0110*/ LPVOID LoadIniInfo;
-/*0114*/ LPVOID StoreIniInfo;
-/*0118*/
+/*0110*/ LPVOID Unknown0x110;
+/*0114*/ LPVOID LoadIniInfo;
+/*0118*/ LPVOID StoreIniInfo;
+/*011c*/
 } CSIDLWNDVFTABLE, *PCSIDLWNDVFTABLE;
 
 // Lax
-// Actual Size 0x118  3-23-2004
+// Actual Size 0x114  5-5-2004
 typedef struct _CXWNDVFTABLE {
 /*0000*/ LPVOID IsValid;
 /*0004*/ LPVOID  vector_deleting_destructor;
@@ -199,7 +200,8 @@ typedef struct _CXWNDVFTABLE {
 /*0104*/ LPVOID  SetAttributesFromSidl;
 /*0108*/ LPVOID DefineImages;
 /*010C*/ LPVOID Unknown0x10c;
-/*0110*/
+/*0110*/ LPVOID Unknown0x110;
+/*0114*/
 } CXWNDVFTABLE, *PCXWNDVFTABLE;
 
 // Lax 10-24-2003

@@ -6151,8 +6151,8 @@ EQLIB_OBJECT void KeypressHandler::ClearCommandStateArray(void);
 EQLIB_OBJECT void KeypressHandler::LoadAndSetKeymappings(void);
 EQLIB_OBJECT void KeypressHandler::SaveKeymapping(unsigned int,class KeyCombo const &,int);
 /*0x000*/   class KeyCombo NormalKey[nEQMappableCommands];
-/*0x2D4*/   class KeyCombo AltKey[nEQMappableCommands];
-/*0x5A8*/	char CommandState[nEQMappableCommands];
+/*0x2 4*/   class KeyCombo AltKey[nEQMappableCommands];
+/*0x5C8*/	char CommandState[nEQMappableCommands];
 };
 
 class LogicalPacket
