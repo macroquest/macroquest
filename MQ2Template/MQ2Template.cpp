@@ -75,4 +75,3 @@ PLUGIN_API DWORD OnIncomingChat(PCHAR Line, DWORD Color)
 	DebugSpewAlways("MQ2Template::OnIncomingChat(%s)",Line);
 	return 0;
 }
-
