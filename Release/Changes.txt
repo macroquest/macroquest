@@ -1,3 +1,15 @@
+29 Mar 2004 by Lax (even more)
+- Added /ctrl /alt and /shift commands:
+  /ctrl <command>
+  /alt <command>
+  /shift <command>
+  These execute a command while telling the window manager that a key is pressed.  This can
+  be used in conjunction with /itemnotify to pick up a stack or a single item... example:
+  pick up a single item from a stack: /ctrl /itemnotify pack1 leftmouseup
+  pick up an entire stack: /shift /itemnotify pack1 leftmouseup
+  Because they execute a command, they can also be used together, as in 
+  /ctrl /alt /shift <command>...
+
 29 Mar 2004 by Lax (more)
 - Added < <= == >= > && & || | to the Calculate function (someone rewrite if please... 
   fail if zero, fall through if non-zero)

@@ -377,11 +377,12 @@ typedef struct _CSIDLWND {
 
 // todo...
 //11-6-2003 lax
-//Actual size 0xe8 11-5-2003
+//Actual size 0x108 3-25-2004
 typedef struct _CXWNDMGR {
-/*0x000*/
-/*0x0a0*/ // clickstickinfo
-/*0x0e8*/
+/*0x000*/ CHAR Unknown0x000[0x7D];
+/*0x07D*/ bool KeyboardFlags[4];
+/*0x081*/ CHAR Unknown0x081[0x27];
+/*0x108*/
 } CXWNDMGR, *PCXWNDMGR;
 
 

@@ -4602,6 +4602,48 @@ VOID DoCommandCmd(PSPAWNINFO pChar, PCHAR szLine)
 	DoCommand(pChar,szLine);
 }
 
+// /alt
+VOID DoAltCmd(PSPAWNINFO pChar, PCHAR szLine)
+{
+	if (!szLine[0])
+	{
+		WriteChatColor("Usage: /alt <command>");
+		return;
+	}
+	bool Old=((PCXWNDMGR)pWndMgr)->KeyboardFlags[3];
+	((PCXWNDMGR)pWndMgr)->KeyboardFlags[2]=1;
+	DoCommand(pChar,szLine);
+	((PCXWNDMGR)pWndMgr)->KeyboardFlags[2]=Old;
+}
+
+// /shift
+VOID DoShiftCmd(PSPAWNINFO pChar, PCHAR szLine)
+{
+	if (!szLine[0])
+	{
+		WriteChatColor("Usage: /shift <command>");
+		return;
+	}
+	bool Old=((PCXWNDMGR)pWndMgr)->KeyboardFlags[3];
+	((PCXWNDMGR)pWndMgr)->KeyboardFlags[0]=1;
+	DoCommand(pChar,szLine);
+	((PCXWNDMGR)pWndMgr)->KeyboardFlags[0]=Old;
+}
+
+// /ctrl
+VOID DoCtrlCmd(PSPAWNINFO pChar, PCHAR szLine)
+{
+	if (!szLine[0])
+	{
+		WriteChatColor("Usage: /ctrl <command>");
+		return;
+	}
+	bool Old=((PCXWNDMGR)pWndMgr)->KeyboardFlags[3];
+	((PCXWNDMGR)pWndMgr)->KeyboardFlags[1]=1;
+	DoCommand(pChar,szLine);
+	((PCXWNDMGR)pWndMgr)->KeyboardFlags[1]=Old;
+}
+
  // ***************************************************************************
 // Function:    DoSocial
 // Description: '/dosocial' command

@@ -461,6 +461,9 @@ void InitializeMQ2Commands()
 		{"/squelch",	SquelchCommand,1,0},
 		{"/dosocial",   DoSocial,1,1},
 		{"/docommand",  DoCommandCmd,1,0},
+		{"/ctrl",		DoCtrlCmd,0,0},
+		{"/alt",		DoAltCmd,0,0},
+		{"/shift",      DoShiftCmd,0,0},
 		{NULL,          NULL,0,1},
     };
 
