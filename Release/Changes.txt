@@ -1,6 +1,27 @@
 ** eqgame.ini is no longer used/needed by MQ2!  All offsets have been integrated 
 ** into eqgame.h.  The client DATE/TIME are in eqgame.h also.
 
+15 Mar 2004 by Lax
+- Fixed some bugs with binds and the MQ2CustomBinds plugin
+- Added a system to run .CFG files, similar to quake .cfg files I suppose.  The file must
+  contain commands the same as you would use them normally.  Each command will be executed
+  in order, there are NO macro blocks, events, etc, in a cfg file.
+  * CFG files may be present in <release>\Configs\, in <release>\, or potentially in the
+    EverQuest directory.  Note that <release> would be the same as wherever your Macroquest.ini is.
+  * Added /loadcfg <filename> command.
+  * Plugins can use LoadCfgFile(filename)
+  * Configs that are automatically loaded:
+		AutoExec.CFG - Executed on the first pulse
+		CharSelect.CFG - Executed when you are put at character select
+		<server>_<character>.CFG - Executed when this character enters the world
+		<mapshortname>.CFG - Executed when you zone into this zone
+		<pluginname>-AutoExec.CFG - Executed when this plugin is loaded (after its initialization is complete)
+
+		Examples of file names:
+		tallon_lordsoth.cfg - character
+		oot.cfg, soldungb.cfg, soldunga.cfg, take.cfg - maps
+		MQ2Map-AutoExec.CFG, MQ2ChatWnd-AutoExec.CFG - plugins 
+
 14 Mar 2004 by Lax
 - Added /ranged [#] command.  Run with no parameters to do a ranged attack on your current
   target, or with a spawn ID to do a ranged attack on that spawn.
