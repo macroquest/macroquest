@@ -464,7 +464,7 @@ VOID SetNameSpriteTint(PSPAWNINFO pSpawn)
 		break;
 	}
 
-//	DebugTry(pActorEx->SetNameColor(NewColor));
+	DebugTry(pActorEx->SetNameColor(NewColor));
 }
 
 BOOL SetNameSpriteState(PSPAWNINFO pSpawn, bool Show)
