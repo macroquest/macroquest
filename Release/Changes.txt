@@ -1,3 +1,21 @@
+11 Mar 2004 by Lax 
+- I forgot to update the changes.txt file, so Amadeus is putting this here
+  so the masses will know I added/fixed/updated a bunch of shit.
+
+11 Mar 2004 by Amadeus
+- Updated tons of shit too
+- MQ2 should be fully functional now with the 3/10 patch
+
+11 Mar 2004 by Plazmic
+- Complete rewrite of the way Guild ID tags are handled
+- __Guild offset now points to the GUILD structure instead of the random offset
+  that shows the beginning of the list
+- GUILD structure added to eqgame.h
+- EQADDR_GUILDLIST should now be pGuildList always
+- Added EQSWITCH structure
+- Updated DOOR & GROUNDITEM structs to reflect the new EQSWITCH struct
+
+
 08 Mar 2004 by Lax
 - Wave 2 of MQ2Map upgrades:
   /mapnames command added to change the naming scheme used for spawns on the map

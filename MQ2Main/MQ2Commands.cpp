@@ -220,7 +220,6 @@ VOID ItemTarget(PSPAWNINFO pChar, PCHAR szLine)
             tSpawn.pActorInfo = &EnviroActor;
             tSpawn.Heading=pItem->Heading;
             tSpawn.Race = pItem->DropID;
-            tSpawn.GuildID=pItem->DxID;
             FLOAT Distance = DistanceToSpawn(pChar,&tSpawn);
             if (Distance<cDistance) {
                 CopyMemory(&EnviroTarget,&tSpawn,sizeof(EnviroTarget));
@@ -2345,7 +2344,7 @@ VOID SuperWhoDisplay(PSPAWNINFO pChar, PSEARCHSPAWN pFilter, PSPAWNINFO psTarget
                 strcat(szName," ");
                 strcat(szName,pSpawn->Lastname);
             }
-            if (gFilterSWho.Guild && pSpawn->GuildID < 0xFFFD && EQADDR_GUILDLIST) {
+            if (gFilterSWho.Guild && pSpawn->GuildID < MAX_GUILDS && pGuildList) {
                 strcat(szName," <");
                 strcat(szName,GetGuildByID(pSpawn->GuildID));
                 strcat(szName,">");

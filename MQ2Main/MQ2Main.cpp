@@ -156,7 +156,7 @@ BOOL ParseINIFile(PCHAR lpINIPath)
     GetPrivateProfileString("DirectInput8","Keyboard","0",szBuffer,MAX_STRING,ClientINI);               EQADDR_DIKEYBOARD = (IDirectInputDevice8A**)strtoul(szBuffer,NULL,16);
     GetPrivateProfileString("DirectInput8","Mouse","0",szBuffer,MAX_STRING,ClientINI);                  EQADDR_DIMOUSE = (IDirectInputDevice8A**)strtoul(szBuffer,NULL,16);
 
-    GetPrivateProfileString("Memory Locations","Guilds","0",szBuffer,MAX_STRING,ClientINI);             EQADDR_GUILDLIST = strtoul(szBuffer,NULL,16);
+    GetPrivateProfileString("Memory Locations","Guilds","0",szBuffer,MAX_STRING,ClientINI);             pGuildList = strtoul(szBuffer,NULL,16);
     GetPrivateProfileString("Memory Locations","LastTell","0",szBuffer,MAX_STRING,ClientINI);           EQADDR_LASTTELL = (PCHAR)strtoul(szBuffer,NULL,16);
     GetPrivateProfileString("Memory Locations","Mouse","0",szBuffer,MAX_STRING,ClientINI);              EQADDR_MOUSE = (PMOUSEINFO)strtoul(szBuffer,NULL,16);
     GetPrivateProfileString("Memory Locations","Attack","0",szBuffer,MAX_STRING,ClientINI);             EQADDR_ATTACK = (PBYTE)strtoul(szBuffer,NULL,16);

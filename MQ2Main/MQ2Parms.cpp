@@ -1126,7 +1126,7 @@ DWORD parmTarget(PCHAR szVar, PCHAR szOutput, PSPAWNINFO pChar)
     // $target(guild)
     } else if (!strncmp("target(guild)",szVar,13)) {
         i+=12;
-        if (psTarget->GuildID < 0xFFFE && EQADDR_GUILDLIST) {
+        if (psTarget->GuildID < MAX_GUILDS && pGuildList) {
             strcpy(szOutput,GetGuildByID(psTarget->GuildID));
         } else {
             strcpy(szOutput,"NULL");
@@ -1135,7 +1135,7 @@ DWORD parmTarget(PCHAR szVar, PCHAR szOutput, PSPAWNINFO pChar)
     // $target(guild,status)
     } else if (!strncmp("target(guild,status)",szVar,20)) {
         i+=19;
-        if (psTarget->GuildID < 0xFFFE && EQADDR_GUILDLIST) {
+        if (psTarget->GuildID < MAX_GUILDS && pGuildList) {
             strcpy(szOutput,szGuildStatus[psTarget->GuildStatus]);
         } else {
             strcpy(szOutput,"NULL");
@@ -1877,7 +1877,7 @@ DWORD parmSpawn(PCHAR szVar, PCHAR szOutput, PSPAWNINFO pChar)
             // $spawn(#,guild)
             } else if (!strncmp("guild)",szRest,6)) {
                 i+=strstr(szVar,")")-szVar;
-                if (pSpawn->GuildID < 0xFFFE && EQADDR_GUILDLIST) {
+                if (pSpawn->GuildID < MAX_GUILDS && pGuildList) {
                     strcpy(szOutput,GetGuildByID(pSpawn->GuildID));
                 } else {
                     strcpy(szOutput,"NULL");
@@ -1886,7 +1886,7 @@ DWORD parmSpawn(PCHAR szVar, PCHAR szOutput, PSPAWNINFO pChar)
             // $spawn(#,guild,status)
 			} else if (!strncmp("guild,status)",szRest,13)) {
 				i+=strstr(szVar,")")-szVar;
-                if (pSpawn->GuildID < 0xFFFE) {
+                if (pSpawn->GuildID < MAX_GUILDS) {
                     strcpy(szOutput,szGuildStatus[pSpawn->GuildStatus]);
                 } else {
                     strcpy(szOutput,"NULL");
@@ -2768,7 +2768,7 @@ DWORD parmChar(PCHAR szVar, PCHAR szOutput, PSPAWNINFO pChar)
     // $char(guild)
     } else if (!strncmp("char(guild)",szVar,11)) {
         i+=10;
-        if (GetCharInfo()->pSpawn->GuildID < 0xFFFE && EQADDR_GUILDLIST) {
+        if (GetCharInfo()->pSpawn->GuildID < MAX_GUILDS && pGuildList) {
             strcpy(szOutput,GetGuildByID(GetCharInfo()->pSpawn->GuildID));
         } else {
             strcpy(szOutput,"NULL");
@@ -2777,7 +2777,7 @@ DWORD parmChar(PCHAR szVar, PCHAR szOutput, PSPAWNINFO pChar)
     // $char(guild,status)
     } else if (!strncmp("char(guild,status)",szVar,18)) {
         i+=17;
-        if (GetCharInfo()->pSpawn->GuildID < 0xFFFE && EQADDR_GUILDLIST) {
+        if (GetCharInfo()->pSpawn->GuildID < MAX_GUILDS && pGuildList) {
             strcpy(szOutput,szGuildStatus[GetCharInfo()->pSpawn->GuildStatus]);
         } else {
             strcpy(szOutput,"NULL");

@@ -32,14 +32,12 @@
 #define __EncryptPad3								0x618020
 
 
-
-
 #define DI8__Main									0x795244
 #define DI8__Keyboard								0x795248
 #define DI8__Mouse									0x79524C
 
 #define __LastTell									0x6D729C
-#define __Guilds									0x73C2E4
+#define __Guilds									0x73C298 
 #define __Mouse										0x795250
 #define __Attack									0x735ACE
 #define __InChatMode								0x6D51D0

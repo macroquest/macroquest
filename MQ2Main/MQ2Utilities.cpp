@@ -833,20 +833,20 @@ DWORD GetDeityTeamByID(DWORD DeityID) {
 
 PCHAR GetGuildByID(DWORD GuildID)
 {
-    if (GuildID>=0xFFFE) return NULL;
-    return (PCHAR)(EQADDR_GUILDLIST + 64 * GuildID);
+	if (GuildID>=MAX_GUILDS) return NULL;
+	return pGuildList->GuildName[GuildID];
 }
 
 DWORD GetGuildIDByName(PCHAR szGuild)
 {
-    PCHAR szCurrentGuild = NULL;
-    DWORD GuildID = 0;
-    for (GuildID=0;GuildID<0xFFFE;GuildID++) {
-        szCurrentGuild = (PCHAR)(EQADDR_GUILDLIST + 64 * GuildID);
-        if (szCurrentGuild[0]==0) return 0xFFFF;
-        if (!strnicmp(szGuild,szCurrentGuild,strlen(szGuild))) return GuildID;
-    }
-    return 0xFFFF;
+	PCHAR szCurrentGuild = NULL;
+	DWORD GuildID = 0;
+	for (GuildID=0;GuildID<MAX_GUILDS;GuildID++) {
+		szCurrentGuild = pGuildList->GuildName[GuildID];
+		if (szCurrentGuild[0]==0) return 0xFFFF;
+		if (!strnicmp(szGuild,szCurrentGuild,strlen(szGuild))) return GuildID;
+	}
+	return 0xFFFF;
 }
 
 PCHAR GetLightForSpawn(PSPAWNINFO pSpawn)
