@@ -552,7 +552,7 @@ VOID Echo(PSPAWNINFO pChar, PCHAR szLine)
 // Usage:       /editmacro notes
 // ***************************************************************************
 
-
+/*
 VOID LoadNotesWindow(PCHAR szFilename, PCHAR szTitle)
 {
     FILE *fMacro = fopen(szFilename,"r");
@@ -614,7 +614,7 @@ VOID EditMacro(PSPAWNINFO pChar, PCHAR szLine)
 		WriteChatColor("Usage: /editmacro <notes|load filename|save [filename]>",USERCOLOR_DEFAULT);
 	}
 }
-
+/**/
 
 // ***************************************************************************
 // Function:    Goto
@@ -750,7 +750,7 @@ VOID EndMacro(PSPAWNINFO pChar, PCHAR szLine)
     PEVENTSTACK pEvent;
     PEVENTLIST pEventL;
     BOOL bKeepKeys = gKeepKeys;
-    BOOL bKeepVars = FALSE;
+    BOOL bKeepVars = TRUE;
     BOOL bKeepTimers = FALSE;
     BOOL bKeepArrays = FALSE;
     if (szLine[0]!=0) {

@@ -601,7 +601,7 @@ VOID Macro(PSPAWNINFO pChar, PCHAR szLine)
         WriteChatColor("Usage: /macro <filename> [param [param...]]", USERCOLOR_DEFAULT);
         return;
     }
-	gMaxTurbo=10;
+	gMaxTurbo=20;
     GetArg(szTemp,szLine,1);
     Params = GetNextArg(szLine);
 

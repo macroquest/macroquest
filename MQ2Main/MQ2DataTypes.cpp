@@ -169,6 +169,10 @@ bool MQ2IntType::GetMember(void *Ptr, PCHAR Member, PCHAR Index, MQ2TYPEVAR &Des
 		Dest.Ptr=&DataTypeTemp[0],
 		Dest.Type=pStringType;
 		return true;
+	case Reverse:
+		Dest.Int=ntohl((u_long)Ptr);
+		Dest.Type=pIntType;
+		return true;
 	}
 	return false;
 }
@@ -189,7 +193,7 @@ bool MQ2SpawnType::GetMember(void *Ptr, PCHAR Member, PCHAR Index, MQ2TYPEVAR &D
 	{
 	case Level:
 		Dest.DWord=pSpawn->Level;
-		Dest.Type=pByteType;
+		Dest.Type=pIntType;
 		return true;
 	case ID:
 		Dest.Type=pIntType;
@@ -320,14 +324,38 @@ bool MQ2SpawnType::GetMember(void *Ptr, PCHAR Member, PCHAR Index, MQ2TYPEVAR &D
 		}
 		return false;
 	case Type:
-		if (pSpawn->Type < 6)
+		switch(GetSpawnType(pSpawn))
 		{
-			Dest.Ptr=szSpawnType[pSpawn->Type];
+		case MOUNT:
+			Dest.Ptr="Mount";
+			Dest.Type=pStringType;
+			return true;
+		case NPC:
+			Dest.Ptr="NPC";
+			Dest.Type=pStringType;
+			return true;
+		case PC:
+			Dest.Ptr="PC";
+			Dest.Type=pStringType;
+			return true;
+		case TRIGGER:
+			Dest.Ptr="Trigger";
+			Dest.Type=pStringType;
+			return true;
+		case PET:
+			Dest.Ptr="Pet";
+			Dest.Type=pStringType;
+			return true;
+		case ITEM:
+			Dest.Ptr="Item";
+			Dest.Type=pStringType;
+			return true;
+		case CORPSE:
+			Dest.Ptr="Corpse";
+			Dest.Type=pStringType;
+			return true;
 		}
-		else
-			Dest.Ptr="Unknown";
-		Dest.Type=pStringType;
-		return true;
+		return false;
 	case Light:
 		Dest.Ptr=GetLightForSpawn(pSpawn);
 		Dest.Type=pStringType;
@@ -361,10 +389,6 @@ bool MQ2SpawnType::GetMember(void *Ptr, PCHAR Member, PCHAR Index, MQ2TYPEVAR &D
 	case Deity:
 		Dest.DWord=pSpawn->Deity;
 		Dest.Type=pDeityType;
-		return true;
-	case Zone:
-		Dest.Ptr=GetFullZone(pSpawn->Zone);
-		Dest.Type=pStringType;
 		return true;
 	case Distance:
 		Dest.Float=GetDistance(pSpawn->X,pSpawn->Y);
@@ -406,6 +430,7 @@ bool MQ2SpawnType::GetMember(void *Ptr, PCHAR Member, PCHAR Index, MQ2TYPEVAR &D
 
 bool MQ2BuffType::GetMember(void *Ptr, PCHAR Member, PCHAR Index, MQ2TYPEVAR &Dest)
 {
+#define pBuff ((PSPELLBUFF)Ptr)
 	if (!Ptr)
 		return false;
 	unsigned long N=MemberMap[Member];
@@ -415,39 +440,34 @@ bool MQ2BuffType::GetMember(void *Ptr, PCHAR Member, PCHAR Index, MQ2TYPEVAR &De
 	PMQ2TYPEMEMBER pMember=Members[N];
 	if (!pMember)
 		return false;
+	if ((int)pBuff->SpellID<=0)
+		return false;
 	static CHAR Temp[128];
 	switch((BuffMembers)pMember->ID)
 	{
 	case ID:
-		Dest.DWord=((PSPELLBUFF)Ptr)->SpellID;
+		Dest.DWord=pBuff->SpellID;
 		Dest.Type=pIntType;
 		return true;
 	case Level:
-		if (((PSPELLBUFF)Ptr)->SpellID==0xFFFFFFFF)
-			return false;
-		Dest.DWord=((PSPELLBUFF)Ptr)->Level;
+		Dest.DWord=pBuff->Level;
 		Dest.Type=pIntType;
 		return true;
 	case Spell:
-		if (((PSPELLBUFF)Ptr)->SpellID==0xFFFFFFFF)
-			return false;
-		Dest.Ptr=GetSpellByID(((PSPELLBUFF)Ptr)->SpellID);
+		Dest.Ptr=GetSpellByID(pBuff->SpellID);
 		Dest.Type=pSpellType;
 		return true;
 	case Mod:
-		if (((PSPELLBUFF)Ptr)->SpellID==0xFFFFFFFF)
-			return false;
-		Dest.Float=(((float)((PSPELLBUFF)Ptr)->Modifier)/10.0f);
+		Dest.Float=(((float)pBuff->Modifier)/10.0f);
 		Dest.Type=pFloatType;
 		return true;
 	case Duration:
-		if (((PSPELLBUFF)Ptr)->SpellID==0xFFFFFFFF)
-			return false;
-		Dest.DWord=((PSPELLBUFF)Ptr)->Duration;
+		Dest.DWord=pBuff->Duration;
 		Dest.Type=pTicksType;
 		return true;
 	}
 	return false;
+#undef pBuff
 }
 
 bool MQ2StringType::GetMember(void *Ptr, PCHAR Member, PCHAR Index, MQ2TYPEVAR &Dest)

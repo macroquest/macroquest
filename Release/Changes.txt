@@ -1,6 +1,6 @@
 29 Mar 2004 by Lax
-- Phase 1 of MQ2Data system rollout begins! Please start updating macros and plugins to 
-  use this sytem.
+- Phase 1 of MQ2Data system rollout begins! Please start updating macros, custom uis, plugins,  
+  etc to use this sytem.
   To use MQ2Data modify these MQ2Main lines
    #define USEMQ2PARMS
    //#define USEMQ2DATATYPES  

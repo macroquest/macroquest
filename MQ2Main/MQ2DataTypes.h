@@ -78,11 +78,13 @@ public:
 	{
 		Float=1,
 		Hex=2,
+		Reverse=3,
 	};
 	MQ2IntType():MQ2Type("int")
 	{
 		TypeMember(Float);
 		TypeMember(Hex);
+		TypeMember(Reverse);
 	}
 
 	~MQ2IntType()
@@ -158,7 +160,7 @@ public:
 
 	 bool ToString(void *Ptr, PCHAR Destination)
 	{
-		sprintf(Destination,"%X",Ptr);
+		sprintf(Destination,"%x",Ptr);
 		return true;
 	}
 };
@@ -264,7 +266,10 @@ public:
 		Hours=1,
 		Minutes=2,
 		Seconds=3,
-		Time=4
+		Time=4,
+		TotalMinutes=5,
+		TotalSeconds=6,
+		Ticks=7,
 	};
 	MQ2TicksType():MQ2Type("ticks")
 	{
@@ -272,6 +277,9 @@ public:
 		TypeMember(Minutes);
 		TypeMember(Seconds);
 		TypeMember(Time);
+		TypeMember(TotalMinutes);
+		TypeMember(TotalSeconds);
+		TypeMember(Ticks);
 	}
 
 	~MQ2TicksType()
@@ -295,11 +303,11 @@ public:
 			Dest.Type=pIntType;
 			return true;
 		case Minutes:
-			Dest.DWord=((int)Ptr)/10;
+			Dest.DWord=(((int)Ptr)/10)%60;
 			Dest.Type=pIntType;
 			return true;
 		case Seconds:
-			Dest.DWord=((int)Ptr)*6;
+			Dest.DWord=(((int)Ptr)*6)%60;
 			Dest.Type=pIntType;
 			return true;
 		case Time:
@@ -311,6 +319,18 @@ public:
 				Dest.Ptr=&Temp[0];
 				Dest.Type=pStringType;
 			}
+			return true;
+		case TotalMinutes:
+			Dest.DWord=((int)Ptr)/10;
+			Dest.Type=pIntType;
+			return true;
+		case TotalSeconds:
+			Dest.DWord=((int)Ptr)*6;
+			Dest.Type=pIntType;
+			return true;
+		case Ticks:
+			Dest.Ptr=Ptr;
+			Dest.Type=pIntType;
 			return true;
 		}		
 		return false;
@@ -369,7 +389,6 @@ public:
 		Height=40,
 		MaxRange=41,
 		AARank=42,
-		Zone=43,
 	};
 	MQ2SpawnType():MQ2Type("spawn")
 	{
@@ -413,7 +432,6 @@ public:
 		TypeMember(Height);//40,
 		TypeMember(MaxRange);//41,
 		TypeMember(AARank);
-		TypeMember(Zone);
 	}
 
 	~MQ2SpawnType()
@@ -424,6 +442,8 @@ public:
 
 	 bool ToString(void *Ptr, PCHAR Destination)
 	{
+		if (!Ptr)
+			return false;
 		strcpy(Destination,((PSPAWNINFO)Ptr)->Name);
 		return true;
 	}
@@ -527,6 +547,8 @@ public:
 
 	 bool ToString(void *Ptr, PCHAR Destination)
 	{
+		if (!Ptr)
+			return false;
 		strcpy(Destination,((PCHARINFO)Ptr)->Name);
 		return true;
 	}
@@ -560,6 +582,16 @@ public:
 
 	 bool ToString(void *Ptr, PCHAR Destination)
 	{
+		if (!Ptr)
+			return false;
+		if ((int)((PSPELLBUFF)Ptr)->SpellID>0)
+		{
+			if (PSPELL pSpell=GetSpellByID(((PSPELLBUFF)Ptr)->SpellID))
+			{
+				strcpy(Destination,pSpell->Name);
+				return true;
+			}
+		}
 		return false;
 	}
 };
@@ -618,6 +650,8 @@ public:
 
 	 bool ToString(void *Ptr, PCHAR Destination)
 	{
+		if (!Ptr)
+			return false;
 		strcpy(Destination,((PSPELL)Ptr)->Name);
 		return false;
 	}
@@ -669,7 +703,10 @@ public:
 
 	 bool ToString(void *Ptr, PCHAR Destination)
 	{
-		return false;
+		if (!Ptr)
+			return false;
+		strcpy(Destination,((PITEMINFO)Ptr)->Name);
+		return true;
 	}
 };
 
@@ -718,6 +755,11 @@ public:
 
 	 bool ToString(void *Ptr, PCHAR Destination)
 	{
+		if (Ptr)
+		{
+			itoa(((PDOOR)Ptr)->ID,Destination,10);
+			return true;
+		}
 		return false;
 	}
 };
@@ -754,6 +796,11 @@ public:
 
 	 bool ToString(void *Ptr, PCHAR Destination)
 	{
+		if (Ptr)
+		{
+			itoa(((PGROUNDITEM)Ptr)->ID,Destination,10);
+			return true;
+		}
 		return false;
 	}
 };
@@ -868,7 +915,10 @@ public:
 
 	 bool ToString(void *Ptr, PCHAR Destination)
 	{
-		strcpy(Destination,"TRUE");
+		if (Ptr)
+			strcpy(Destination,"TRUE");
+		else
+			strcpy(Destination,"FALSE");
 		return true;
 	}
 };
@@ -936,7 +986,8 @@ public:
 
 	 bool ToString(void *Ptr, PCHAR Destination)
 	{
-		return false;
+		strcpy(Destination,&((PZONEINFO)pZoneInfo)->LongName[0]);
+		return true;
 	}
 };
 

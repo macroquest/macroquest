@@ -60,8 +60,8 @@ using namespace std;
 #define FromPlugin 0
 #endif
 
-//#define USEMQ2PARMS
-#define USEMQ2DATATYPES
+#define USEMQ2PARMS
+//#define USEMQ2DATATYPES
 
 
 // reroute malloc/free
@@ -160,7 +160,8 @@ typedef double DOUBLE;
 #include "MQ2Prototypes.h"
 #include "MQ2Internal.h"
 #include "MQ2Globals.h"
-#include "MQ2DataTypes.h"
+
+
 
 /* BENCHMARKING */
 #ifdef DISABLE_BENCHMARKS
@@ -309,11 +310,12 @@ EQLIB_API VOID ConvertItemTags(CXStr &cxstr);
 EQLIB_API BOOL ParseKeyCombo(PCHAR text, KeyCombo &Dest);
 EQLIB_API PCHAR DescribeKeyCombo(KeyCombo &Combo, PCHAR szDest);
 
-int FindMappableCommand(const char *name);
+EQLIB_API int FindMappableCommand(const char *name);
 
 EQLIB_API PCHAR GetSpellNameByID(DWORD dwSpellID);
 EQLIB_API PSPELL GetSpellByName(PCHAR szName);
 #include "MQ2Inlines.h"
+#include "MQ2DataTypes.h"
 
 EQLIB_API PMACROBLOCK AddMacroLine(PCHAR szLine);
 EQLIB_API PCHAR GetLightForSpawn(PSPAWNINFO pSpawn);

@@ -734,19 +734,22 @@ PSPELL GetSpellByName(PCHAR szName)
 {
 // PSPELL GetSpellByName(PCHAR NameOrID)
 // This function now accepts SpellID as an argument as well as SpellName
-// (but inefficient for spellID!)
     PSPELL pSpell = NULL;
     if (ppSpellMgr == NULL) return NULL;
+	if (szName[0]>='0' && szName[0]<='9')
+	{
+		return GetSpellByID(atoi(szName));
+	}
     for (DWORD dwSpellID = 0; dwSpellID < TOTAL_SPELL_COUNT; dwSpellID++) {
         pSpell = &(*((PSPELLMGR)pSpellMgr)->Spells[dwSpellID]);
-		if ((pSpell->ID > 0) && (pSpell->ID < TOTAL_SPELL_COUNT)) {
-            if (pSpell->Name != NULL) {
+		if ((pSpell->ID > 0) && (pSpell->ID < TOTAL_SPELL_COUNT))
+		{
+            if (pSpell->Name != NULL) 
+			{
                 if (!_stricmp(szName, pSpell->Name)) {
                     return pSpell;
                 }
-			if ((int)pSpell->ID == atol(szName) )
-				return pSpell;
-            }
+			}
         }
     }
     return NULL;

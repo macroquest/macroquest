@@ -201,8 +201,8 @@ BOOL dataFloat(PCHAR szIndex, MQ2TYPEVAR &Ret)
 
 BOOL dataBool(PCHAR szIndex, MQ2TYPEVAR &Ret)
 {
-	Ret.DWord=(strcmp(szIndex,"NULL") && 
-				strcmp(szIndex,"FALSE") &&
+	Ret.DWord=(stricmp(szIndex,"NULL") && 
+				stricmp(szIndex,"FALSE") &&
 				strcmp(szIndex,"0"));
 	Ret.Type=pBoolType;
 	return true;

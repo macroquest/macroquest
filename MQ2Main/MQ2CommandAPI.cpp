@@ -447,7 +447,7 @@ void InitializeMQ2Commands()
         {"/look",       Look,1,1},
         {"/keepkeys",   KeepKeys,1,0},
 		{"/windowstate", WindowState,1,0},
-        {"/editmacro",  EditMacro,1,1},
+//        {"/editmacro",  EditMacro,1,1},
 		{"/plugin",     PluginCommand,1,0},
 		{"/destroy",     EQDestroyHeldItemOrMoney,1,1},
 		{"/exec",      Exec,1,0}, 
