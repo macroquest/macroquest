@@ -3142,7 +3142,7 @@ BOOL EvaluateRPN(_CalcOp *pList, int Size, DOUBLE &Result)
 #define StackTop() (pStack[nStack])
 #define StackSetTop(do_assign) {pStack[nStack]##do_assign;}
 #define StackPush(val) {nStack++;pStack[nStack]=val;}
-#define StackPop() {if (!nStack) {free(pStack);return 0;};nStack--;}
+#define StackPop() {if (!nStack) {FatalError("Illegal arithmetic in calculation");free(pStack);return 0;};nStack--;}
 
 
 #define BinaryIntOp(op) {int RightSide=(int)StackTop();StackPop();StackSetTop(=(DOUBLE)(((int)StackTop())##op##RightSide));}
@@ -3175,6 +3175,7 @@ BOOL EvaluateRPN(_CalcOp *pList, int Size, DOUBLE &Result)
 			else
 			{
 //				printf("Divide by zero error\n");
+				FatalError("Divide by zero in calculation");
 				free(pStack);
 				return false;
 			}
@@ -3192,6 +3193,7 @@ BOOL EvaluateRPN(_CalcOp *pList, int Size, DOUBLE &Result)
 				else
 				{
 //					printf("Integer divide by zero error\n");
+					FatalError("Divide by zero in calculation");
 					free(pStack);
 					return false;
 				}
@@ -3210,6 +3212,7 @@ BOOL EvaluateRPN(_CalcOp *pList, int Size, DOUBLE &Result)
 				else
 				{
 //					printf("Modulus by zero error\n");
+					FatalError("Modulus by zero in calculation");
 					free(pStack);
 					return false;
 				}
@@ -3306,7 +3309,7 @@ BOOL FastCalculate(PCHAR szFormula, DOUBLE &Result)
 #define StackEmpty() (nStack==0)
 #define StackTop() (pStack[nStack])
 #define StackPush(op) {nStack++;pStack[nStack]=op;}
-#define StackPop() {if (!nStack) {free(pOpList);free(pStack);return 0;} nStack--;}
+#define StackPop() {if (!nStack) {FatalError("Illegal arithmetic in calculation");free(pOpList);free(pStack);return 0;} nStack--;}
 #define HasPrecedence(a,b) (CalcOpPrecedence[a]>CalcOpPrecedence[b])
 #define MoveStack(op)  \
 	{ \
@@ -3480,6 +3483,7 @@ BOOL FastCalculate(PCHAR szFormula, DOUBLE &Result)
 		default:
 			{
 //				printf("Unparsable: '%c'\n",*pCur);
+				FatalError("Unparsable in Calculation: '%c'",*pCur);
 				// unparsable
 				free(pOpList);
 				free(pStack);
