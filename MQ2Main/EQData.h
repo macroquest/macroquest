@@ -677,7 +677,10 @@ typedef struct _ACTORINFO {
 /*0x0060*/   BYTE       Unknown0x060[0x14]; 
 /*0x0074*/   DWORD      Unknown0x074;  // Being set to TimeStamp at unknown intervals 
 /*0x0078*/   DWORD      Unknown0x078;  // Being set to TimeStamp at unknown intervals 
-/*0x007c*/   BYTE       Unknown0x07c[0x2c]; 
+/*0x007c*/   BYTE       Unknown0x07c[0x20]; 
+/*0x009c*/   DWORD		UnderWaterMirror; //copy of UnderWater 
+/*0x00a0*/   DWORD		SwimmingMirror; //copy of Swimming 
+/*0x00a4*/   DWORD		FeetWetMirror; //copy of FeetWet 
 /*0x00a8*/   BYTE       UnderWater;    // 5 = Underwater; otherwise zero 
 /*0x00a9*/   BYTE       Swimming;      // 5 = Swimming (under or on top of water); otherwise zero 
 /*0x00aa*/   BYTE       FeetWet;        // 5 = Feet are in the water; otherwise zero 
@@ -706,10 +709,10 @@ typedef struct _ACTORINFO {
 /*0x2758*/   FLOAT      Unknown0x2758; 
 /*0x275c*/   DWORD      Unknown0x275c; 
 /*0x2760*/   FLOAT      Unknown0x2760; 
-/*0x2764*/   BYTE       Unknown0x2764[0x194]; 
-/*0x28f8*/   DWORD      Trader;           //0=normal 1=trader 
-/*0x28fc*/   BYTE		Unknown0x28fc[0x4c]; 
-// dkaa -- size 0x2948 03/10/04 
+/*0x2764*/   BYTE       Unknown0x2764[0x140]; 
+/*0x28a4*/   DWORD      Trader;           //0=normal 1=trader 
+/*0x28a8*/   BYTE		Unknown0x28a8[0x4c]; 
+// Amadeus -- size 0x28f4 03/23/2004
 } ACTORINFO, *PACTORINFO;
 
 #define MODEL_LABEL         0 
@@ -993,7 +996,7 @@ typedef struct _ZONEINFO {
 /*0x1ac*/   BYTE    Unknown0x1ac[0x2e];
 /*0x1da*/	BYTE	SkyType;	
 /*0x1db*/	BYTE	Unknown0x1db[0xd];
-/*0x1e8*/   FLOAT   ZoneExpModifier;
+/*0x1e8*/   FLOAT   ZoneExpModifier;    //This has been nerfed ..now reads 1.0 for all zones
 /*0x1ec*/   FLOAT   SafeYLoc;
 /*0x1f0*/   FLOAT   SafeXLoc;
 /*0x1f4*/   FLOAT   SafeZLoc;
