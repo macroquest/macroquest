@@ -1,3 +1,8 @@
+23 Apr 2004 by Lax:
+- Changed top #turbo to 40, still defaults to 20
+- Fixed Ini Top-Level Object again
+- Fixed "enviro" slots so that they work for enviro1-10 not just 1-8
+
 22 Apr 2004 by Lax:
 - Readme.html has been removed from the zip by request of its author.  It is being worked on
   and will return.

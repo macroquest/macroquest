@@ -521,7 +521,7 @@ BOOL dataIni(PCHAR szIndex, MQ2TYPEVAR &Ret)
 		for (unsigned long N = 0 ; N < nSize-2 ; N++)
 			if (DataTypeTemp[N]==0)
 				DataTypeTemp[N]='|';
-		if (nSize<MAX_STRING-3)
+		if ((!pSection || !pKey) && (nSize<MAX_STRING-3))
 			strcat(DataTypeTemp,"||");
 
 		Ret.Ptr=&DataTypeTemp[0];
