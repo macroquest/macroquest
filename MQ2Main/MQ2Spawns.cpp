@@ -198,8 +198,6 @@ public:
 			break;
 		case MOUNT://mount names make it crash!
 			return 0;
-//			SetCaption(gszSpawnMountName);
-//			break;
 		case PET:
 			SetCaption(gszSpawnPetName);
 			break;
@@ -246,15 +244,10 @@ VOID InitializeMQ2Spawns()
 	bmUpdateSpawnSort=AddMQ2Benchmark("UpdateSpawnSort");
 	bmUpdateSpawnCaptions=AddMQ2Benchmark("UpdateSpawnCaptions");
 
-//	EasyClassDetour(EQPlayer__EQPlayer,EQPlayerHook,EQPlayer_Detour,VOID,(DWORD,DWORD,DWORD,DWORD,DWORD),EQPlayer_Trampoline);
 	EzDetour(EQPlayer__EQPlayer,EQPlayerHook::EQPlayer_Detour,EQPlayerHook::EQPlayer_Trampoline);
-//	EasyClassDetour(EQPlayer__dEQPlayer,EQPlayerHook,dEQPlayer_Detour,VOID,(VOID),dEQPlayer_Trampoline);
 	EzDetour(EQPlayer__dEQPlayer,EQPlayerHook::dEQPlayer_Detour,EQPlayerHook::dEQPlayer_Trampoline);
-//	EasyClassDetour(EQItemList__EQItemList,EQItemListHook,EQItemList_Detour,VOID,(VOID),EQItemList_Trampoline);
 	EzDetour(EQItemList__EQItemList,EQItemListHook::EQItemList_Detour,EQItemListHook::EQItemList_Trampoline);
-//	EasyClassDetour(EQItemList__dEQItemList,EQItemListHook,dEQItemList_Detour,VOID,(VOID),dEQItemList_Trampoline);
 	EzDetour(EQItemList__dEQItemList,EQItemListHook::dEQItemList_Detour,EQItemListHook::dEQItemList_Trampoline);
-
 	EzDetour(EQPlayer__SetNameSpriteState,EQPlayerHook::SetNameSpriteState_Detour,EQPlayerHook::SetNameSpriteState_Trampoline);
 
 	InitializeCriticalSection(&csPendingGrounds);

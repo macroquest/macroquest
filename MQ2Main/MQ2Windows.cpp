@@ -208,11 +208,8 @@ void InitializeMQ2Windows()
 	AddSlotArray(inspect,31,8000);
 #undef AddSlotArray
 
-//	EasyClassDetour(CXMLSOMDocumentBase__XMLRead,CXMLSOMDocumentBaseHook,XMLRead,int,(CXStr *A, CXStr *B, CXStr *C),XMLRead_Trampoline);
 	EzDetour(CXMLSOMDocumentBase__XMLRead,CXMLSOMDocumentBaseHook::XMLRead,CXMLSOMDocumentBaseHook::XMLRead_Trampoline);
-//	EasyClassDetour(CSidlScreenWnd__SetScreen,SetScreenHook,SetScreen_Detour,void,(class CXStr *),SetScreen_Trampoline);
 	EzDetour(CSidlScreenWnd__SetScreen,SetScreenHook::SetScreen_Detour,SetScreenHook::SetScreen_Trampoline);
-//	EasyClassDetour(CXWndManager__RemoveWnd,CXWndManagerHook,RemoveWnd_Detour,int,(class CXWnd *),RemoveWnd_Trampoline);
 	EzDetour(CXWndManager__RemoveWnd,CXWndManagerHook::RemoveWnd_Detour,CXWndManagerHook::RemoveWnd_Trampoline);
 
 
@@ -303,17 +300,16 @@ void AddXMLFile(const char *filename)
 	}
 	CHAR szBuffer[MAX_PATH]={0};
 	sprintf(szBuffer,"%s\\uifiles\\default\\%s",gszEQPath,filename);
-	if (_access(szBuffer,0)==-1)
+	if (!_FileExists(szBuffer))
 	{
-		DebugSpew("Not adding XML File %s because it does not exist in default folder",filename);
+		WriteChatf("UI file %s not found in uifiles\\default.  Please copy it there, reload the UI, and reload this plugin.",filename);
 		return;
 	}
 
 	DebugSpew("Adding XML File %s",filename);
 	if (gGameState==GAMESTATE_INGAME)
 	{
-		sprintf(szBuffer,"UI file %s added, you must reload your UI for this to take effect.",filename);
-		WriteChatColor(szBuffer);
+		WriteChatf("UI file %s added, you must reload your UI for this to take effect.",filename);
 	}
 
 	pFile = new MQXMLFILE;
@@ -755,38 +751,12 @@ VOID WndNotify(PSPAWNINFO pChar, PCHAR szLine)
 // 8000-8031 inspect window
 
 
-/*
-/**/
-/*
-VOID ListSelect(PSPAWNINFO pChar, PCHAR szLine)
-{
-	CHAR szOut[MAX_STRING] = {0};
-	CXWnd *pWnd=FindMQ2Window(WindowName);
-	if (!pWnd)
-	{
-		sprintf(szOut,"Window '%s' not available.",WindowName);
-		return false;
-	}
-	if (ScreenID && ScreenID[0] && ScreenID[0]!='0')
-	{
-		CXWnd *pButton=((CSidlScreenWnd*)(pWnd))->GetChildItem(CXStr(ScreenID));
-		if (!pButton)
-		{
-			sprintf(szOut,"Window '%s' child '%s' not found.",WindowName,ScreenID);
-			WriteChatColor(szOut,USERCOLOR_DEFAULT);
-			return false;
-		}
-		pWnd=pButton;
-	}
-
-}
-/**/
 
 VOID ItemNotify(PSPAWNINFO pChar, PCHAR szLine)
 {
 	CHAR szArg1[MAX_STRING] = {0}; 
 	CHAR szArg2[MAX_STRING] = {0}; 
-	CHAR szOut[MAX_STRING] = {0};
+//	CHAR szOut[MAX_STRING] = {0};
 
 	PCHAR pNotification=&szArg2[0];
 
@@ -837,15 +807,13 @@ VOID ItemNotify(PSPAWNINFO pChar, PCHAR szLine)
 
 		if (!pPack)
 		{
-			sprintf(szOut,"No item at '%s'",szArg2);
-			WriteChatColor(szOut);
+			WriteChatf("No item at '%s'",szArg2);
 			return;
 		}
 		PEQCONTAINERWINDOW pWnd=FindContainerForContents(pPack);
 		if (!pWnd)
 		{
-			sprintf(szOut,"No container at '%s' open",szArg2);
-			WriteChatColor(szOut);
+			WriteChatf("No container at '%s' open",szArg2);
 			return;
 		}
 		unsigned long nSlot=atoi(szArg3);
@@ -865,81 +833,21 @@ VOID ItemNotify(PSPAWNINFO pChar, PCHAR szLine)
 		}
 		if (Slot==0 && szArg1[0]!='0' && stricmp(szArg1,"charm"))
 		{
-			sprintf(szOut,"Invalid item slot '%s'",szArg1);
-			WriteChatColor(szOut);
+			WriteChatf("Invalid item slot '%s'",szArg1);
 			return;
 		}
 		DebugTry(pSlot=pInvSlotMgr->FindInvSlot(Slot));
 	}
 	if (!pSlot)
 	{
-		sprintf(szOut,"Could not send notification to %s %s",szArg1,szArg2);
-		WriteChatColor(szOut);
+		WriteChatf("Could not send notification to %s %s",szArg1,szArg2);
 		return;
 	}
 	DebugSpew("ItemNotify: Calling SendWndClick");
 	if (!SendWndClick((CXWnd*)((PEQINVSLOT)pSlot)->pInvSlotWnd,pNotification))
 	{
-		sprintf(szOut,"Could not send notification to %s %s",szArg1,szArg2);
-		WriteChatColor(szOut);
+		WriteChatf("Could not send notification to %s %s",szArg1,szArg2);
 	}
-/*
-	for (unsigned long i = 0 ; i < 8 ; i++)
-	{
-		if (!stricmp(szClickNotification[i],pNotification))
-		{
-			CXWnd *pWnd=(CXWnd*)((PEQINVSLOT)pSlot)->pInvSlotWnd
-			if (!pWnd)
-			{
-				sprintf(szOut,"Could not send notification to %s %s",szArg1,szArg2);
-				WriteChatColor(szOut);
-			}
-			else
-			{
-				CXRect rect= pWnd->GetScreenRect();
-				CXPoint pt=rect.CenterPoint();
-				switch(i)
-				{
-				case 0:
-					pWnd->HandleLButtonDown(&pt,0);
-					break;
-				case 1:
-					pWnd->HandleLButtonDown(&pt,0);
-					pWnd->HandleLButtonUp(&pt,0);
-					break;
-				case 2:
-					pWnd->HandleLButtonHeld(&pt,0);
-					break;
-				case 3:
-					pWnd->HandleLButtonDown(&pt,0);
-					pWnd->HandleLButtonHeld(&pt,0);
-					pWnd->HandleLButtonUpAfterHeld(&pt,0);
-					break;
-				case 4:
-					pWnd->HandleRButtonDown(&pt,0);
-					break;
-				case 5:
-					pWnd->HandleRButtonDown(&pt,0);
-					pWnd->HandleRButtonUp(&pt,0);
-					break;
-				case 6:
-					pWnd->HandleRButtonDown(&pt,0);
-					pWnd->HandleRButtonHeld(&pt,0);
-					break;
-				case 7:
-					pWnd->HandleRButtonDown(&pt,0);
-					pWnd->HandleRButtonHeld(&pt,0);
-					pWnd->HandleRButtonUpAfterHeld(&pt,0);
-					break;
-				};
-			}
-			return;
-		}
-	}
-	sprintf(szOut,"Invalid item notification '%s'",pNotification);
-	WriteChatColor(szOut);
-	/**/
-
 }
 
 VOID ListItemSlots(PSPAWNINFO pChar, PCHAR szLine)
@@ -947,7 +855,7 @@ VOID ListItemSlots(PSPAWNINFO pChar, PCHAR szLine)
 	PEQINVSLOTMGR pMgr=(PEQINVSLOTMGR)pInvSlotMgr;
 	if (!pMgr)
 		return;
-	CHAR szOut[MAX_STRING]={0};
+//	CHAR szOut[MAX_STRING]={0};
 	if (!szLine || !szLine[0])
 	{
 		unsigned long Count=0;
@@ -958,12 +866,10 @@ VOID ListItemSlots(PSPAWNINFO pChar, PCHAR szLine)
 			{
 				if (pSlot->pInvSlotWnd)
 				{
-					sprintf(szOut,"inv slot %d",pSlot->pInvSlotWnd->InvSlot);
-					WriteChatColor(szOut);
+					WriteChatColor("inv slot %d",pSlot->pInvSlotWnd->InvSlot);
 					Count++;
 				}
 			}
-		sprintf(szOut,"%d available item slots",Count);
-		WriteChatColor(szOut);
+		WriteChatColor("%d available item slots",Count);
 	}
 }

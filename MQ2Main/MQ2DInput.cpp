@@ -24,25 +24,6 @@ GNU General Public License for more details.
 // Function:    DInputDataDetour
 // Description: Our DirectInput GetDeviceState Hook
 // ***************************************************************************
-/*
-VOID TestHotkeys(LPDIDEVICEOBJECTDATA rgdod, DWORD Count)
-{
-    DWORD index;
-    for (index=0;index<Count;index++) {
-        if (rgdod[index].dwData != 0x80) continue;
-        PHOTKEY pLoop = pHotkey;
-		PCHARINFO pCharInfo=GetCharInfo();
-		if (!pCharInfo || !pCharInfo->pSpawn)
-			return;
-        while (pLoop) {
-            if (rgdod[index].dwOfs == pLoop->DIKey) {
-                DoCommand(pCharInfo->pSpawn,pLoop->szCommand);
-            }
-            pLoop = pLoop->pNext;
-        }
-    }
-}
-/**/
 
 HRESULT (__stdcall *DInputDataTrampoline)(IDirectInputDevice8A* This, DWORD cbObjectData, LPDIDEVICEOBJECTDATA rgdod, LPDWORD pdwInOut, DWORD dwFlags);
 HRESULT __stdcall DInputDataDetour(IDirectInputDevice8A* This, DWORD cbObjectData, LPDIDEVICEOBJECTDATA rgdod, LPDWORD pdwInOut, DWORD dwFlags)
@@ -99,7 +80,6 @@ HRESULT __stdcall DInputDataDetour(IDirectInputDevice8A* This, DWORD cbObjectDat
 
          if (EQADDR_MOUSE && gMouseData) {
             *pdwInOut = 0;
-//            PMOUSEINFO MouseInfo = EQADDR_MOUSE;
             bLoop = TRUE;
             while ((bLoop == TRUE) && (gMouseData)) {
                bRemoveItem = TRUE;
@@ -163,8 +143,6 @@ HRESULT __stdcall DInputDataDetour(IDirectInputDevice8A* This, DWORD cbObjectDat
       return hResult;
    }
    
-   // hotkeys now use the bind system
-//   if (EQADDR_DIKEYBOARD && (This == *EQADDR_DIKEYBOARD) && EQADDR_NOTINCHATMODE && *EQADDR_NOTINCHATMODE && pHotkey) TestHotkeys(&(rgdod[didAdd]),*pdwInOut);
    gbInDInput = FALSE;
    return hResult;
 }
@@ -196,23 +174,7 @@ HRESULT __stdcall DInputStateDetour(IDirectInputDevice8A* This, DWORD cbData, LP
          ((LPDIMOUSESTATE)lpvData)->rgbButtons[1] = EQADDR_MOUSECLICK->RightClick;
       }
    }
-   // Commented 11-11-2003 Lax
-   // Unused..
-/*
-   if (cbData == 256)  // Checking keyboard state here for keys that are down.  Do we ever get called with this?
-   {
-      if (!bOneTime)
-      {
-         bOneTime=TRUE;
-         DebugSpew("Well, whadya know, keyboard state checking");
-      }
-      PBYTE pKeyState = (PBYTE)lpvData;
-      if ((pKeyState[0x36] & 0x80) && (pKeyState[0x2A] & 0x80))
-      {
-         DebugSpewAlways("Simultaneous Shift Characters pressed");
-      }
-   }
-*/
+
    gbInDState = FALSE;
    return hResult;
 }

@@ -38,7 +38,7 @@ struct MQ2KeyBind
 CIndex<MQ2KeyBind*> BindList(10);
 map<string,unsigned long> BindNameMap;
 
-/*inline/**/ MQ2KeyBind *KeyBindByName(char *Name)
+inline MQ2KeyBind *KeyBindByName(char *Name)
 {
 	string Lwr=Name;
 	MakeLower(Lwr);
@@ -154,14 +154,9 @@ public:
 			pBind->State=false;
 		}
 		ZeroMemory(&pKeypressHandler->CommandState[0],sizeof(pKeypressHandler->CommandState));
-		//ClearCommandStateArray_Trampoline();
 	}
 
 
-//	bool AttachAltKeyToEqCommand_Trampoline(class KeyCombo const &,unsigned int);
-//	bool AttachKeyToEqCommand_Trampoline(class KeyCombo const &,unsigned int);
-//	class KeyCombo const & GetAltKeyAttachedToEqCommand_Trampoline(unsigned int);
-//	class KeyCombo const & GetKeyAttachedToEqCommand_Trampoline(unsigned int);
 	bool HandleKeyDown_Trampoline(class KeyCombo const &);
 	bool HandleKeyUp_Trampoline(class KeyCombo const &);
 
@@ -178,24 +173,6 @@ public:
 			Ret=true;
 		return (MQ2HandleKeyUp(Combo) || Ret);
 	}
-/*
-	bool AttachAltKeyToEqCommand_Hook(class KeyCombo const &Combo,unsigned int nCommand)
-	{
-		return AttachAltKeyToEqCommand_Trampoline(Combo,nCommand);
-	}
-	bool AttachKeyToEqCommand_Hook(class KeyCombo const &Combo,unsigned int nCommand)
-	{
-		return AttachKeyToEqCommand_Trampoline(Combo,nCommand);
-	}
-	class KeyCombo const & GetAltKeyAttachedToEqCommand_Hook(unsigned int nCommand)
-	{
-		return GetAltKeyAttachedToEqCommand_Trampoline(nCommand);
-	}
-	class KeyCombo const & GetKeyAttachedToEqCommand_Hook(unsigned int nCommand)
-	{
-		return GetKeyAttachedToEqCommand_Trampoline(nCommand);
-	}
-/**/
 };
 
 DETOUR_TRAMPOLINE_EMPTY(void KeypressHandlerHook::ClearCommandStateArray_Trampoline(void));
@@ -233,11 +210,8 @@ void InitializeMQ2KeyBinds()
 /**/
 	AddMQ2KeyBind("RANGED",DoRangedBind);
 
-//	EasyClassDetour(KeypressHandler__ClearCommandStateArray,KeypressHandlerHook,ClearCommandStateArray_Hook,void,(void),ClearCommandStateArray_Trampoline);
 	EzDetour(KeypressHandler__ClearCommandStateArray,KeypressHandlerHook::ClearCommandStateArray_Hook,KeypressHandlerHook::ClearCommandStateArray_Trampoline);
-//	EasyClassDetour(KeypressHandler__HandleKeyDown,KeypressHandlerHook,HandleKeyDown_Hook,bool,(class KeyCombo const &Combo),HandleKeyDown_Trampoline);
 	EzDetour(KeypressHandler__HandleKeyDown,KeypressHandlerHook::HandleKeyDown_Hook,KeypressHandlerHook::HandleKeyDown_Trampoline);
-//	EasyClassDetour(KeypressHandler__HandleKeyUp,KeypressHandlerHook,HandleKeyUp_Hook,bool,(class KeyCombo const &Combo),HandleKeyUp_Trampoline);
 	EzDetour(KeypressHandler__HandleKeyUp,KeypressHandlerHook::HandleKeyUp_Hook,KeypressHandlerHook::HandleKeyUp_Trampoline);
 }
 
@@ -513,22 +487,4 @@ BOOL DumpBinds(PCHAR Filename)
 	return true;
 }
 
-/*
-inline void InsertBind(COptionsWnd *pWnd, MQ2KeyBind &KeyBind)
-{
-}
 
-inline void RemoveBind(COptionsWnd *pWnd, MQ2KeyBind &KeyBind)
-{
-}
-
-
-void InjectMQ2Binds(COptionsWnd *pWnd)
-{
-}
-
-void EjectMQ2Binds(COptionsWnd *pWnd)
-{
-}
-
-/**/

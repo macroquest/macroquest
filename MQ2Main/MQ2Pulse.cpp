@@ -324,11 +324,8 @@ void InitializeMQ2Pulse()
 {
 	DebugSpew("Initializing Pulse");
 
-//	EasyDetour(ProcessGameEvents,Detour_ProcessGameEvents,BOOL,(VOID),Trampoline_ProcessGameEvents);
 	EzDetour(ProcessGameEvents,Detour_ProcessGameEvents,Trampoline_ProcessGameEvents);
-//	EasyClassDetour(CEverQuest__EnterZone,CEverQuestHook,EnterZone_Detour,void,(PVOID),EnterZone_Trampoline);
 	EzDetour(CEverQuest__EnterZone,CEverQuestHook::EnterZone_Detour,CEverQuestHook::EnterZone_Trampoline);
-//	EasyClassDetour(CEverQuest__SetGameState,CEverQuestHook,SetGameState_Detour,void,(DWORD),SetGameState_Trampoline);
 	EzDetour(CEverQuest__SetGameState,CEverQuestHook::SetGameState_Detour,CEverQuestHook::SetGameState_Trampoline);
 }
 

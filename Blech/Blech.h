@@ -13,10 +13,56 @@
     GNU General Public License for more details.
 ******************************************************************************/
 
-#pragma once
+/*****************************************************************************
+About Blech:
+	Blech is a text parser API.  It uses callback system to allow it to retrieve
+	current values of variables from your program, and to initiate an event from
+	a successful match.  Events are added, text is fed through it, and hopefully
+	you get what you want....
 
-// TODO: 
-// Tree optimizations made the "ExactMatch" map obselete, remove it
+    Blech uses a B-Tree implementation where each node can have n nodes.  The
+	data stored by each node is a portion of a string.  Nodes are split when a
+	sibling is being added that begins with the same data as an existing one.
+	Example:
+	existing child of a node: "blech"-(possibly existing children)
+    insert child to node:     "bleach"
+    
+	resulting nodes:          "ch"-(possibly existing children)
+	                    "ble"<
+                              "ach"
+	The end result using this implementation is a way to compare a given string to
+	many strings with possibly variable portions, where a hash/map/binary tree will
+	fail.
+
+Using Blech:
+	*Initialize the Blech class:
+	Blech MyBlech('#'); // Use only a variable "scan"
+	Blech MyBlech('#','|',VariableValue); // Use a variable "scan" and a variable "print"
+
+	*Add events:
+	MyBlech.AddEvent("Text with #variable# portion",MyEvent,0);
+	
+	*Create event callback:
+	void __stdcall MyEvent(unsigned long ID, void * pData, PBLECHVALUE pValues)
+	{
+		printf("MyEvent(%d,%X,%X)",ID,pData,pValues);
+		while(pValues)
+		{
+			printf("'%s'=>'%s'",pValues->Name,pValues->Value);
+			pValues=pValues->pNext;
+		}
+	}
+
+	*Feed Blech:
+	MyBlech.Feed("Text with some portion");
+
+	*Examine output:
+	MyEvent(1,0,(pointer))
+	'variable'=>'some'
+
+******************************************************************************/
+
+#pragma once
 
 #define BLECHVERSION "Lax/Blech 1.5.0"
 

@@ -374,7 +374,6 @@ PCHAR GetEQPath(PCHAR szBuffer)
 
 VOID ConvertItemTags(CXStr &cxstr, BOOL Tag)
 {
-//	PCXSTR *saddr=cxstr;
    __asm{
       push ecx;
       push eax;
@@ -386,7 +385,6 @@ VOID ConvertItemTags(CXStr &cxstr, BOOL Tag)
 	   pop eax;
 	   pop ecx;
    };
-//   *cxstr=*saddr;
 }
 
 // YES THIS NEEDS TO BE PCXSTR * 
@@ -404,7 +402,6 @@ VOID AppendCXStr(PCXSTR *cxstr, PCHAR text)
 VOID SetCXStr(PCXSTR *cxstr, PCHAR text) 
 { 
 //	cxstr=text;
-//	DebugSpew("SetCXStr(%s)",text);
 	CXStr *Str=(CXStr*)cxstr;
 	(*Str)=text;
 	cxstr=(PCXSTR*)Str;
@@ -1096,7 +1093,6 @@ DWORD ConColor(PSPAWNINFO pSpawn)
 
 PCONTENTS GetEnviroContainer()
 {
-//   PEQ_CONTAINERWND_MANAGER pContainerMgr = 0;
 	if (!ppContainerMgr || !pContainerMgr) return NULL;
 	PEQ_CONTAINERWND_MANAGER ContainerMgr=(PEQ_CONTAINERWND_MANAGER)pContainerMgr;
    if(!ContainerMgr->pWorldContents) return NULL;
@@ -1317,37 +1313,6 @@ VOID ClearSearchSpawn(PSEARCHSPAWN pSearchSpawn)
     pSearchSpawn->GuildID = 0xFFFF;
     pSearchSpawn->ZRadius = 10000.0f;
     pSearchSpawn->FRadius = 10000.0f;
-	/*
-    pSearchSpawn->MinLevel = 0;
-    pSearchSpawn->SpawnID = 0;
-    pSearchSpawn->Radius = 0.0f;
-    pSearchSpawn->szName[0] = 0;
-    pSearchSpawn->szBodyType[0] = 0;
-    pSearchSpawn->szClass[0] = 0;
-    pSearchSpawn->szRace[0] = 0;
-    pSearchSpawn->bNotNearAlert = FALSE;
-    pSearchSpawn->bNearAlert = FALSE;
-    pSearchSpawn->bNoAlert = FALSE;
-    pSearchSpawn->bAlert = FALSE;
-    pSearchSpawn->bLight = FALSE;
-    pSearchSpawn->bTargInvis = FALSE;
-    pSearchSpawn->bTargNext = FALSE;
-    pSearchSpawn->bTargPrev = FALSE;
-    pSearchSpawn->bLFG = FALSE;
-	pSearchSpawn->bGroup = FALSE;
-    pSearchSpawn->bTrader = FALSE;
-    pSearchSpawn->NotID = 0;
-    pSearchSpawn->NotNearAlertList = 0;
-    pSearchSpawn->NearAlertList = 0;
-    pSearchSpawn->NoAlertList = 0;
-    pSearchSpawn->AlertList = 0;
-    pSearchSpawn->xLoc = 0.0f;
-    pSearchSpawn->yLoc = 0.0f;
-    pSearchSpawn->bKnownLocation = FALSE;
-    pSearchSpawn->FromSpawnID = 0;
-    pSearchSpawn->bNoPet = FALSE; 
-    pSearchSpawn->SortBy = 0; 
-	/**/
 }
 
 // *************************************************************************** 

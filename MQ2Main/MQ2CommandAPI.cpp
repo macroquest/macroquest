@@ -180,7 +180,6 @@ public:
 						ParseMacroParameter(pChar,szArgs); 
 					if (pCommand->EQ)
 					{
-//						DebugSpew("pCommand->EQ");
 						strcat(szCommand," "); 
 						strcat(szCommand,szArgs); 
 						Trampoline(pChar,szCommand); 
@@ -351,7 +350,7 @@ void InitializeMQ2Commands()
 {
 	DebugSpew("Initializing Commands");
 	InitializeCriticalSection(&gCommandCS);
-//	EasyClassDetour(CEverQuest__InterpretCmd,CCommandHook,Detour,VOID,(PSPAWNINFO pChar, PCHAR szFullLine),Trampoline);
+
 	EzDetour(CEverQuest__InterpretCmd,CCommandHook::Detour,CCommandHook::Trampoline);
 
 	// Import EQ commands
@@ -466,6 +465,7 @@ void InitializeMQ2Commands()
 		{"/drop",		DropCmd,1,0},
 		{"/hud",        HudCmd,1,0},
 		{"/caption",	CaptionCmd,0,0},
+		{"/noparse",    NoParseCmd,0,0},
 		{NULL,          NULL,0,1},
     };
 

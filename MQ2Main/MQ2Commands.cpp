@@ -238,7 +238,6 @@ VOID ItemTarget(PSPAWNINFO pChar, PCHAR szLine)
         if (ppTarget && (pTarget == (EQPlayer*)&EnviroTarget))
             pTarget = NULL;
 		MacroError("Couldn't find '%s' to target.",szLine);
-//        strcpy(gLastError,"ITEM_NOTFOUND");
     }
 
 }
@@ -322,7 +321,6 @@ VOID DoorTarget(PSPAWNINFO pChar, PCHAR szLine)
    if (!stricmp(Arg1, "id")) {
       if (Arg2[0]==0) {
          MacroError("DoorTarget: id specified but no number provided.");
-//         strcpy(gLastError, "DOORTARGET_BADCOMMAND");
          return;
       }
 
@@ -381,7 +379,6 @@ VOID DoorTarget(PSPAWNINFO pChar, PCHAR szLine)
    } else {
       if (ppTarget) pTarget = NULL;
       MacroError("Couldn't find door '%s' to target.",szLine);
-//      strcpy(gLastError,"ITEM_NOTFOUND");
    }
 }
 
@@ -552,7 +549,6 @@ VOID MemSpell(PSPAWNINFO pChar, PCHAR szLine)
    WORD Gem = -1;
    CHAR SpellName[MAX_STRING] = {0};
    PCHARINFO pCharInfo = NULL;
-//    DWORD SpellBookWnd = pSpellBookWnd;
     if (!pSpellBookWnd) return;
    if (NULL == (pCharInfo = GetCharInfo())) return;
 
@@ -584,443 +580,6 @@ VOID MemSpell(PSPAWNINFO pChar, PCHAR szLine)
     MemSpellFavorite.SpellId[Gem] = pSpell->ID;
 	pSpellBookWnd->MemorizeSet((int*)Favorite,8);
 }
-
-
-// ***************************************************************************
-// Function:    FindItem
-// Description: Our '/finditem' command
-//              Brings the named item onto the cursor.
-// Usage:       /finditem itemname
-// ***************************************************************************
-/*
-VOID FindItem(PSPAWNINFO pChar, PCHAR szLine)
-{
-   bRunNextCommand = TRUE;
-   UCHAR PriSlot;
-   CHAR szSearch[MAX_STRING] = {0};
-   CHAR szBuffer[MAX_STRING] = {0};
-   BOOL Exact= TRUE;
-   BOOL ByID=FALSE;
-   gLastFind = LASTFIND_NOTFOUND;
-   gLastFindSlot[0]=0;
-   PCONTENTS pContainer = NULL;
-   PCHARINFO pCharInfo = NULL;
-   if (NULL == (pCharInfo = GetCharInfo())) return;
-   if (szLine[0] == 0) {
-      WriteChatColor("Usage: /finditem [similar|id] \"item name\"|\"item id\"",USERCOLOR_DEFAULT);
-//      strcpy(gLastError,"FIND_NOTFOUND");
-      return;
-   }
-   if (pCharInfo->Cursor) {
-      WriteChatColor("Your hands must be empty to find an item.",CONCOLOR_RED);
-//      strcpy(gLastError,"FIND_HANDSFULL");
-      return;
-   }
-   GetArg(szSearch,szLine,1);
-   if (!stricmp(szSearch,"similar")) {
-      Exact=FALSE;
-      GetArg(szSearch,szLine,2);
-   }
-   if (!stricmp(szSearch,"id")) {
-      ByID=TRUE;
-      GetArg(szSearch,szLine,2);
-   }
-
-   _strlwr(szSearch);
-   for (PriSlot=0;PriSlot<8;PriSlot++) {
-       if (!pCharInfo->InventoryArray[22+PriSlot]) continue;
-      PCONTENTS pSlot = pCharInfo->InventoryArray[22+PriSlot]; 
-	  pContainer = pCharInfo->InventoryArray[22+PriSlot];
-      CHAR szTemp[MAX_STRING] = {0};
-      if (!pSlot) continue;
-      _strlwr(strcpy(szTemp,pSlot->Item->Name)); 
-      if (
-            (
-               (!Exact) &&
-               (strstr(szTemp,szSearch))
-            ) || (
-               (Exact) &&
-               (!strcmp(szTemp,szSearch))
-            ) || (
-                (ByID) &&
-				(pSlot->Item->ItemNumber == (DWORD)atoi(szSearch)) 
-           )
-      ) {
-         CHAR szBuf[MAX_STRING] = {0};
-         gLastFind = LASTFIND_PRIMARY;
-         DebugSpew("FindItem - Found '%s' in primary inventory slot %d",pSlot->Item->Name,PriSlot); 
-         sprintf(gLastFindSlot,"inv,%d",PriSlot);
-         sprintf(szBuf,"left inv %d",PriSlot);
-         Click(pChar,szBuf);
-         return;
-      }
-      if (pSlot->Item->Type == ITEMTYPE_PACK) { 
-         UCHAR BagSlot;
-         DebugSpew("FindItem - Looking inside pack %d: '%s'",PriSlot,pSlot->Item->Name); 
-         for (BagSlot=0;BagSlot < (DWORD)pSlot->Item->Slots;BagSlot++) { 
-             if (!pContainer->Contents[BagSlot]) continue;
-             PITEMINFO pItem = pContainer->Contents[BagSlot]->Item;
-            if (!pItem) continue;
-            _strlwr(strcpy(szTemp,pItem->Name));
-            if (
-                  (
-                     (!Exact) &&
-                     (strstr(szTemp,szSearch))
-                  ) || (
-                     (Exact) &&
-                     (!strcmp(szTemp,szSearch))
-                  ) || (
-                     (ByID) &&
-                     (pItem->ItemNumber == (DWORD)atoi(szSearch))
-                  )
-            ) {
-               CHAR szBuf[MAX_STRING] = {0};
-               CHAR tempstr[MAX_STRING] = {0};
-               BOOL WasOpen = FALSE;
-               DebugSpew("FindItem - Found '%s' in slot %d of '%s' (primary slot %d)",pItem->Name,BagSlot,pSlot->Item->Name,PriSlot); 
-               gLastFind = PriSlot;
-             if (pContainer->Open == 0) {
-                  sprintf(szBuf,"right inv %d",PriSlot);
-                  Click(pChar,szBuf);
-                  WasOpen = TRUE;
-             }
-             if (pContainer->Open == 0) {
-//                  strcpy(gLastError,"FIND_PACKNOTOPEN");
-                return;
-               }
-               sprintf(gLastFindSlot,"%d,%d",PriSlot,BagSlot);
-               sprintf(szBuf,"left pack %d %d",PriSlot,BagSlot);
-               Click(pChar,szBuf);
-               if (WasOpen) {
-                  sprintf(szBuf,"left pack %d done",PriSlot);
-                  Click(pChar,szBuf);
-               }
-               return;
-            }
-         }
-      }
-   }
-   sprintf(szBuffer,"Couldn't find a '%s'",szSearch);
-//   strcpy(gLastError,"FIND_NOTFOUND");
-   WriteChatColor(szBuffer,CONCOLOR_RED);
-}
-/**/
-
-// ***************************************************************************
-// Function:    SelectItem
-// Description: Our '/SelectItem' command
-//              targets an item.
-// Usage:       /SelectItem list || "item name" || slot <slotnumber> && merchant || self
-// ***************************************************************************
-// uses public: void __thiscall CMerchantWnd::SelectBuySellSlot(int,class CTextureAnimation *)
-// ***************************************************************************
-/*
-DWORD SelectFind(char* szSearch, char* szOption )
-{
-	UCHAR PriSlot;
-	CHAR szBuffer[MAX_STRING] = {0};
-	BOOL Exact= TRUE;
-	PCHARINFO pCharInfo = NULL;
-	PCONTENTS pContainer = NULL;
-	DWORD slotcounter = 250;
-	DWORD BagCounter = 21;
-	gLastFind = LASTFIND_NOTFOUND; 
-	gLastFindSlot[0]=0;
-	PEQSLOTLIST pSlotList = (PEQSLOTLIST)pInvSlotMgr;
-	PEQCURRENTSELECTION CurrentSelection = NULL;
-	if (NULL == (pCharInfo = GetCharInfo())) return (0);
-	char Link[256];
-	for (PriSlot=0;PriSlot<8;PriSlot++)
-	{
-		if (!pCharInfo->InventoryArray[22+PriSlot]) {
-			BagCounter++;
-			continue;
-		}
-		PCONTENTS pSlot = pCharInfo->InventoryArray[22+PriSlot];
-		pContainer = pCharInfo->InventoryArray[22+PriSlot];
-		DebugSpew("pContainer %d open staus = %d",pContainer->ItemSlot,pContainer->Open);
-		CHAR szTemp[MAX_STRING] = {0};
-		BagCounter++;//first bag set counter to 22
-		DebugSpew("SelectFind - real bag is %d)",BagCounter);
-		if (!pSlot)
-		{
-			continue;
-		}
-		if (!stricmp(szOption,"list"))
-		{
-			if (pSlot->Item->Type == ITEMTYPE_NORMAL)
-			{
-				GetItemLink(pSlot,Link);
-				slotcounter = slotcounter+10;
-				sprintf(szBuffer,"%d:	'%s'	:(slot %d)",pSlot->Item->ItemNumber,Link,BagCounter);
-				WriteChatColor(szBuffer,CONCOLOR_YELLOW);
-			}
-		} else {
-			_strlwr(strcpy(szTemp,pSlot->Item->Name));
-			if (((!Exact) && (strstr(szTemp,szSearch))) || ((Exact) && (!_stricmp(szTemp,szSearch))))
-			{
-				PCSIDLWND pInvWindow = NULL;
-				pInvWindow = (PCSIDLWND)pInventoryWnd;
-				gLastFind = LASTFIND_PRIMARY;
-				sprintf(gLastFindSlot,"inv %d",PriSlot); 
-				if (!ppInventoryWnd || !pInvWindow)
-//					strcpy(gLastError,"ppInventoryWnd bad offset");
-				if(pInvWindow->Show) {
-					return (BagCounter);
-				} else {
-//					strcpy(gLastError,"INV_NOTOPEN");
-				}
-			}
-		}
-		if (pSlot->Item->Type == ITEMTYPE_PACK)
-		{	
-			UCHAR BagSlot;
-			DebugSpew("SelectFind - Looking inside pack %d: '%s' %d slots, real slot is %d",PriSlot,pSlot->Item->Name,pSlot->Item->Slots,BagCounter);
-			for (BagSlot=0;BagSlot<10;BagSlot++)
-			{
-				if (!pContainer->Contents[BagSlot]) {
-					slotcounter++;
-					continue;
-				}
-				PITEMINFO pItem = pContainer->Contents[BagSlot]->Item;
-				slotcounter++;
-				if (!pItem)
-				{
-					continue;
-				}
-
-				if (!stricmp(szOption,"list"))
-				{
-					GetItemLink(pContainer->Contents[BagSlot],Link);
-					sprintf(szBuffer,"%d:	'%s'	:(slot %d)",pItem->ItemNumber,Link,slotcounter);
-					WriteChatColor(szBuffer,CONCOLOR_YELLOW);
-				}
-				else
-				{
-					_strlwr(strcpy(szTemp,pItem->Name));
-					if (((!Exact) && (strstr(szTemp,szSearch))) || ((Exact) && (!_stricmp(szTemp,szSearch))))
-					{
-						gLastFind = PriSlot; 
-						sprintf(gLastFindSlot,"pack %d %d",PriSlot,BagSlot);
-						if (pContainer->Open) {
-							return (slotcounter);
-						} else {
-//							strcpy(gLastError,"PACK_NOTOPEN");
-						}
-
-					}
-				}
-			}
-		}
-	}
-	sprintf(szBuffer,"Couldn't find a '%s'",szSearch); 
-//	strcpy(gLastError,"FIND_NOTFOUND"); 
-	WriteChatColor(szBuffer,CONCOLOR_RED);
-	return (59999);
-}
-VOID SelectItem(PSPAWNINFO pChar, PCHAR szLine)
-{
-	bRunNextCommand = FALSE;
-	PEQSLOTLIST pSlotList = (PEQSLOTLIST)pInvSlotMgr;
-	PEQCURRENTSELECTION CurrentSelection = NULL;
-	PEQCURRENTSELECTION FixedSelection = NULL;
-	PCSIDLWND Slot = NULL;
-	PCSIDLWND FixedSlot = NULL;
-
-   PEQMERCHWINDOW pMainWindow = (PEQMERCHWINDOW)pMerchantWnd;
-	PEQCURRENTSELECTION pSelectedSlot = (PEQCURRENTSELECTION)pSelectedItem;
-   PCSIDLWND pCurSlot = NULL;
-   PCSIDLWND pDestSlot = NULL;
-	PCHARINFO pCharInfo = NULL;
-	PITEMINFO pItemInfo = NULL;
-//	DWORD MerchTraderWnd = (DWORD)pMerchantWnd;
-	BOOL Found, Force;
-	CHAR szBuffer[MAX_STRING] = {0};
-	CHAR szArg1[MAX_STRING] = {0};
-	CHAR szArg2[MAX_STRING] = {0};
-	CHAR szArg3[MAX_STRING] = {0};
-	int SelectSlot, i;
-	DebugSpew("/selectitem : yes the command works at least to this point");
-	if (szLine[0] == 0) {
-		WriteChatColor("Usage: /selectitem 'item name' merchant || self : slot <number> merchant || self : list merchant || self",USERCOLOR_DEFAULT);
-//		strcpy(gLastError,"FIND_NOTFOUND");
-		return;
-	}
-	if (NULL == (pCharInfo = GetCharInfo())) return;
-	if (!pMerchantWnd) return;
-//	if (!MerchTraderWnd || !cmdSelectItem) return;
-	GetArg(szArg1,szLine,1);
-	GetArg(szArg2,szLine,2);
-	GetArg(szArg3,szLine,3);
-	Found = FALSE;
-	Force = FALSE;
-	BOOL PlayerSelection = FALSE;
-   
-	if ((!_stricmp(szArg1,"slot") && (szArg2[0]!=0) && (!_stricmp(szArg3,"merchant"))))
-	{   
-		i = atoi(szArg2);
-		i--;
-		if (pMainWindow->ItemDesc[i] == NULL)
-		return;
-		SelectSlot = (int)pMainWindow->SlotsHandles[i]->SlotID;
-		Found = TRUE;
-	}
-
-	if ((!_stricmp(szArg1,"slot") && (szArg2[0]!=0) && (!_stricmp(szArg3,"self"))))
-	{	
-		i = atoi(szArg2);
-		SelectSlot = (int)i;//+250;
-		{
-			int j=0;
-			for (j=0;j<362;j++)
-			{
-				if (pSlotList->InvSlots[j])
-				{
-					CurrentSelection = (PEQCURRENTSELECTION)pSlotList->InvSlots[j];
-					Slot = (PCSIDLWND)CurrentSelection->SelectedWnd;
-					if ((int)Slot->SlotID == SelectSlot)
-					{
-						FixedSelection=CurrentSelection;
-						FixedSlot = Slot;
-						PlayerSelection = TRUE;
-						Found = TRUE;
-						break;
-					}
-				}
-			}
-			i = 0;
-		}
-	}
-	//list merchant inventory
-	if ((!_stricmp(szArg1,"list") && (!_stricmp(szArg2,"merchant") && (Found == FALSE))))
-   {
-      WriteChatColor("Merchant Inventory:",USERCOLOR_DEFAULT);
-      WriteChatColor("--------------------------",USERCOLOR_DEFAULT);
-      i=0;
-	  char Link[256];
-      while (i < 80)
-      {
-            if (pMainWindow->ItemDesc[i] != NULL)
-            {
-				GetItemLink(pMainWindow->ItemDesc[i],Link);
-				sprintf(szBuffer,"%d:'%s' : (slot %d)",pMainWindow->ItemDesc[i]->Item->ItemNumber,Link,(pMainWindow->SlotsHandles[i]->SlotID-5999));
-               WriteChatColor(szBuffer,CONCOLOR_YELLOW);
-            }else
-				return;
-         i++;
-      }
-		
-	}
-	//list characters inventory
-	if ((!_stricmp(szArg1,"list") && (!_stricmp(szArg2,"self") && (Found == FALSE))))
-	{
-		WriteChatColor("Your Inventory:",USERCOLOR_DEFAULT);
-		WriteChatColor("--------------------------",USERCOLOR_DEFAULT);
-		SelectFind("list","list");
-		return;
-	}
-	//search merchant inventory
-	if ((_stricmp(szArg1,"list") && (!_stricmp(szArg2,"merchant") && (Found == FALSE))))
-	{
-		for (i=0;i<80 && !Found;i++) {
-			if (pMainWindow->ItemDesc[i]!=NULL) {
-				if (!_stricmp(pMainWindow->ItemDesc[i]->Item->Name, szArg1)) {
-					sprintf(szBuffer,"'%s' Found in slot '%d'",pMainWindow->ItemDesc[i]->Item->Name,pMainWindow->SlotsHandles[i]->SlotID-5999);
-					WriteChatColor(szBuffer,USERCOLOR_DEFAULT);
-					SelectSlot=(int)pMainWindow->SlotsHandles[i]->SlotID;
-					Found = TRUE;
-					break;
-				}
-			}
-		}
-	}
-
-	//search character bags 
-	if ((_stricmp(szArg1,"list") && (!_stricmp(szArg2,"self") && (Found == FALSE))))
-	{
-		i = (DWORD)SelectFind(szArg1,"self");
-		if(i==59999) return;
-		if(i>=30)
-		{
-			int j=0;
-			SelectSlot = (int)i;
-			for (j=281;j<362;j++)
-			{
-				if (pSlotList->InvSlots[j])
-				{
-					CurrentSelection = (PEQCURRENTSELECTION)pSlotList->InvSlots[j];
-					Slot = (PCSIDLWND)CurrentSelection->SelectedWnd;
-					if ((int)Slot->SlotID == SelectSlot)
-					{
-						FixedSelection=CurrentSelection;
-						FixedSlot = Slot;
-						PlayerSelection = TRUE;
-						Found = TRUE;
-						break;
-					}
-				}
-			}
-			i = 0;
-		} else {
-			int j=0;
-			SelectSlot = (int)i;
-			for (j=0;j<30;j++)
-			{
-				if (pSlotList->InvSlots[j])
-				{
-					CurrentSelection = (PEQCURRENTSELECTION)pSlotList->InvSlots[j];
-					Slot = (PCSIDLWND)CurrentSelection->SelectedWnd;
-					if ((int)Slot->SlotID == SelectSlot)
-					{
-						FixedSelection=CurrentSelection;
-						FixedSlot = Slot;
-						PlayerSelection = TRUE;
-						Found = TRUE;
-						break;
-					}
-				}
-			}
-			i = 0;
-		}
-	}
-	if (Found == TRUE)
-	{	
-		int TextureAnim;
-		if (pMainWindow->ItemDesc[i])
-		{   
-			if (PlayerSelection == FALSE)
-			{
-				pCurSlot = (PCSIDLWND)((int *)pSelectedSlot->SelectedWnd);
-				pCurSlot->Selector = 0;
-				if (!pMainWindow->SlotsHandles[i]) return;
-				pDestSlot = (PCSIDLWND)((int *)pMainWindow->SlotsHandles[i]);
-				pDestSlot->Selector = 1;
-				*((int *)ppSelectedItem) = ((int)pDestSlot->PushToSelector);
-				TextureAnim = (int)pDestSlot->TextureAnim;
-				if (!TextureAnim) return;
-				if (!SelectSlot) return;
-				
-			}
-			if (PlayerSelection == TRUE)
-			{
-				pCurSlot = (PCSIDLWND)((int *)pSelectedSlot->SelectedWnd);
-				pCurSlot->Selector = 0;
-				if (!FixedSelection) return;
-				if (!FixedSlot) return;
-				pDestSlot = FixedSlot;
-				pDestSlot->Selector = 1;
-				*((int *)ppSelectedItem) = ((int)FixedSelection);
-				TextureAnim = (int)pDestSlot->TextureAnim;
-				SelectSlot = FixedSlot->SlotID;
-				if (!TextureAnim) return;
-				if (!SelectSlot) return;
-			}
-			pMerchantWnd->SelectBuySellSlot(SelectSlot,(CTextureAnimation*)TextureAnim);
-		}
-	}
-	return;   
-}
-/**/
 
 // ***************************************************************************
 // Function:    buyitem
@@ -1055,13 +614,11 @@ VOID BuyItem(PSPAWNINFO pChar, PCHAR szLine)
 VOID SellItem(PSPAWNINFO pChar, PCHAR szLine)
 {
     bRunNextCommand = FALSE;
-//    DWORD MerchTraderWnd = pMerchantWnd;
     CHAR szBuffer[MAX_STRING] = {0};
     CHAR szQty[MAX_STRING] = {0};
     PCHARINFO pCharInfo = NULL;
     DWORD Qty;
 
-//    if (!pMerchantWnd || !cmdSellItem) return;
     if (NULL == (pCharInfo = GetCharInfo())) return;
     GetArg(szQty,szLine,1);
     Qty = (DWORD)atoi(szQty);
@@ -2072,6 +1629,7 @@ VOID SortSWho(PSWHOSORT pSWhoSort, DWORD SpawnCount, DWORD SortBy)
    }; 
 */ 
 // bubble sort.... is this why superwho is slow? :)
+// todo.. qsort
 
    // Pre-sort the entire list by name 
    for (Index1=0;Index1<SpawnCount;Index1++) { 
@@ -2368,8 +1926,6 @@ VOID SuperWhoDisplay(PSPAWNINFO pChar, PSEARCHSPAWN pFilter, PSPAWNINFO psTarget
         }
 		if (gFilterSWho.Holding && (pSpawn->Equipment.Primary || pSpawn->Equipment.Offhand )) {
 			strcat(szMsg," \a-u(\ax");
-			//itoa(pSpawn->SpawnID,szTemp,10);
-			//strcat(szMsg,szTemp);
 			if (pSpawn->Equipment.Primary)
 			{
 				itoa(pSpawn->Equipment.Primary,szTemp,10);
@@ -2697,7 +2253,6 @@ VOID Face(PSPAWNINFO pChar, PCHAR szLine)
             while ((szFilter[0]!=',') && (szFilter[0]!=0)) szFilter++;
             if (szFilter[0]==0) {
             MacroError("Face: loc specified but <y>,<x> not found.");
-            //strcpy(gLastError,"FACE_BADCOMMAND");
             return;
         }
             szFilter++;
@@ -2705,21 +2260,18 @@ VOID Face(PSPAWNINFO pChar, PCHAR szLine)
         } else if (!stricmp(szArg, "item")) {
         if (EnviroTarget.Name[0]==0) {
             MacroError("Face: item but no item targetted.");
-            //strcpy(gLastError,"FACE_NOITEM");
             return;
         }
         pSpawnClosest = &EnviroTarget;
         } else if (!stricmp(szArg, "door")) {
         if (DoorEnviroTarget.Name[0]==0) {
             MacroError("Face: item but no item targetted.");
-            //strcpy(gLastError,"FACE_NOITEM");
             return;
         }
         pSpawnClosest = &DoorEnviroTarget;
         } else if (!stricmp(szArg, "heading")) {
             if (szFilter[0]==0) {
                 MacroError("Face: heading specified but angle not found.");
-                //strcpy(gLastError,"FACE_BADCOMMAND");
     } else {
                 FLOAT Heading = (FLOAT)(atof(szFilter));
                 gFaceAngle = Heading/0.703125f;
@@ -2756,7 +2308,6 @@ VOID Face(PSPAWNINFO pChar, PCHAR szLine)
 
     if (!pSpawnClosest) {
         MacroError("There were no matches for: %s",FormatSearchSpawn(szArg,&SearchSpawn));
-        //strcpy(gLastError,"FACE_NOTFOUND");
     } else {
         if (Predict) {
             Distance = DistanceToSpawn(pChar, pSpawnClosest);
@@ -2969,7 +2520,6 @@ VOID LoadSpells(PSPAWNINFO pChar, PCHAR szLine)
     CHAR szArg1[MAX_STRING] = {0};
     CHAR szArg2[MAX_STRING] = {0};
     CHAR szBuffer[MAX_STRING] = {0};
-//    DWORD SpellBookWnd = pSpellBookWnd;
 
     if (!pSpellBookWnd) return;
 
@@ -3716,19 +3266,15 @@ VOID Target(PSPAWNINFO pChar, PCHAR szLine)
     if (!pSpawnClosest) {
         CHAR szTemp[MAX_STRING] = {0};
         sprintf(szMsg,"There are no spawns matching: %s",FormatSearchSpawn(szTemp,&SearchSpawn));
-        //strcpy(gLastError,"TARGET_NOTFOUND");
     } else {
         PSPAWNINFO *psTarget = NULL;
         if (ppTarget) {
             psTarget = (PSPAWNINFO*)ppTarget;
             *psTarget = pSpawnClosest;
             DebugSpew("Target - %s selected",pSpawnClosest->Name);
-//            sprintf(szMsg,"Selected '%s'...",CleanupName(strcpy(szArg,pSpawnClosest->Name),FALSE));
-//			sprintf(szMsg,"Selected '%s'...",CleanupName(strcpy(szArg,pSpawnClosest->Name),FALSE));
 			szMsg[0]=0;
         } else {
             sprintf(szMsg,"Unable to target, address = 0");
-            //strcpy(gLastError,"TARGET_NOTFOUND");
         }
     }
 	if (szMsg[0])
@@ -3992,11 +3538,9 @@ VOID IniOutput(PSPAWNINFO pChar, PCHAR szLine)
    if (!WritePrivateProfileString(szArg2,szArg3,szArg4,szArg1)) {
       sprintf(szOutput,"IniOutput ERROR -- during WritePrivateProfileString: %s",szLine);
       DebugSpew(szOutput);
-      //WriteChatColor(szOutput, CONCOLOR_RED);
    } else {
       sprintf(szOutput,"IniOutput Write Successful!");
       DebugSpew("%s: %s",szOutput,szLine);
-      //WriteChatColor(szOutput, CONCOLOR_GREEN);
    }
 }
 

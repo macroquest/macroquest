@@ -54,22 +54,22 @@ public:
 }; 
 
 DETOUR_TRAMPOLINE_EMPTY(VOID CChatHook::Trampoline(PCHAR szMsg, DWORD dwColor, DWORD dwUnknown)); 
-#ifdef USEBLECHEVENTS
 unsigned long __stdcall MQ2DataVariableLookup(char * VarName, char * Value)
 {
 	strcpy(Value,VarName);
 	return strlen(ParseMacroParameter(GetCharInfo()->pSpawn,Value));
 }
-#endif
+
 VOID InitializeChatHook()
 {
 	DebugSpew("Initializing chat hook");
 
-#ifdef USEBLECHEVENTS
 	// initialize Blech
+#ifdef USEBLECHEVENTS
 	pEventBlech=new Blech('#','|',MQ2DataVariableLookup);
-	DebugSpew("%s",pEventBlech->Version);
 #endif
+	pMQ2Blech=new Blech('#','|',MQ2DataVariableLookup);
+	DebugSpew("%s",pMQ2Blech->Version);
 	EzDetour(CEverQuest__dsp_chat,CChatHook::Detour,CChatHook::Trampoline);
 }
 
@@ -79,4 +79,5 @@ VOID ShutdownChatHook()
 #ifdef USEBLECHEVENTS
 	delete pEventBlech;
 #endif
+	delete pMQ2Blech;
 }

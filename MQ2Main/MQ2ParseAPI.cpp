@@ -120,7 +120,6 @@ PCHAR ParseMacroParameter(PSPAWNINFO pChar, PCHAR szOriginal)
 		return szOriginal;
 	EnterMQ2Benchmark(bmParseMacroParameter);
 
-//	ParseMacroVariables(szOriginal);
 	ParseMacroData(szOriginal);
 	ExitMQ2Benchmark(bmParseMacroParameter);
     return (szOriginal);

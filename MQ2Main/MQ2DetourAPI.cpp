@@ -159,12 +159,10 @@ void RemoveOurDetours()
 			DebugSpew("RemoveOurDetours() -- Removing %X",ourdetours->addr);
 			DetourRemove(ourdetours->pfTrampoline,ourdetours->pfDetour); 				
 		}
-//		else
-		{
-			OurDetours *pNext=ourdetours->pNext;
-			delete ourdetours;
-			ourdetours=pNext;
-		}
+
+		OurDetours *pNext=ourdetours->pNext;
+		delete ourdetours;
+		ourdetours=pNext;
 	}
 }
 
@@ -252,7 +250,6 @@ VOID HookMemChecker(BOOL Patch)
         (*(PBYTE*)&memcheck3_tramp) = DetourFunction( (PBYTE) EQADDR_MEMCHECK3,
                                                     (PBYTE) memcheck3);
 
-//		EasyDetour((DWORD)send_message,memcheck4,VOID,(PVOID,DWORD,PCHAR,DWORD,BOOL),memcheck4_tramp);
 		EzDetour(send_message,memcheck4,memcheck4_tramp);
     } else {
         DetourRemove((PBYTE) memcheck0_tramp,
@@ -819,7 +816,6 @@ void InitializeMQ2Detours()
 {
 	InitializeCriticalSection(&gDetourCS);
 	HookMemChecker(TRUE);
-//	EasyDetour(CrashDetected,CrashDetected_Detour,VOID,(DWORD,DWORD,DWORD,DWORD,DWORD),CrashDetected_Trampoline);
 	EzDetour(CrashDetected,CrashDetected_Detour,CrashDetected_Trampoline);
 }
 

@@ -322,27 +322,6 @@ VOID Macro(PSPAWNINFO pChar, PCHAR szLine)
         gRunning = 0;
     }
 }
-// ***************************************************************************
-// Function:    GracefullyEndBadMacro
-// Description: Used to end a 'bad' macro (parsing issues, etc)
-// ***************************************************************************
-/*
-VOID GracefullyEndBadMacro(PSPAWNINFO pChar, PMACROBLOCK pBadLine, PCHAR szFormat, ...)
-{
-    CHAR szArgs[MAX_STRING] = {0};
-    va_list vaList;
-    va_start( vaList, szFormat );
-    vsprintf(szArgs,szFormat, vaList);
-    if (gMacroBlock && pBadLine) {
-		MacroError("Ending macro: %s",szArgs);
-        gMacroBlock=pBadLine;
-        DumpStack(pChar,"");
-        EndMacro(pChar,"");
-    } else {
-		MacroError("Error: %s",szArgs);
-    }
-}
-/**/
 
 // ***************************************************************************
 // Function:    Cleanup
@@ -368,7 +347,6 @@ VOID Cleanup(PSPAWNINFO pChar, PCHAR szLine)
 			MQ2HandleKeyDown(Escape);
 			MQ2HandleKeyUp(Escape);
 		}
-			//Press(pChar,"esc");
 		if (!ppInventoryWnd) {
 			PCSIDLWND pInvWindow = (PCSIDLWND)pInventoryWnd;
 			if (pInvWindow && pInvWindow->Show==0) 

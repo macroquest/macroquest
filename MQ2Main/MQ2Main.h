@@ -12,7 +12,7 @@
     GNU General Public License for more details.
 ******************************************************************************/
 
-#define VersionString "MQ2DataVar Premier Edition"
+#define VersionString "Blech Premier Edition"
 #define DebugHeader "[MQ2]"
 #define LoadedString "MQ2 Loaded."
 #define ToUnloadString "MQ2 Unloading..."
@@ -63,9 +63,7 @@ using namespace std;
 // Lax/Blech event support *READY*
 #define USEBLECHEVENTS
 
-#ifdef USEBLECHEVENTS
 #include "..\Blech\Blech.h"
-#endif
 
 // reroute malloc/free
 EQLIB_API VOID *MQ2Malloc(size_t size);
@@ -454,7 +452,7 @@ EQLIB_API BOOL dataRaid(PCHAR szIndex, MQ2TYPEVAR &Ret);
 EQLIB_API BOOL dataNamingSpawn(PCHAR szIndex, MQ2TYPEVAR &Ret);
 
 /* COMMANDS */
-
+EQLIB_API VOID NoParseCmd(PSPAWNINFO pChar, PCHAR szLine);
 EQLIB_API VOID CaptionCmd(PSPAWNINFO pChar, PCHAR szLine);
 EQLIB_API VOID HudCmd(PSPAWNINFO pChar, PCHAR szLine);
 EQLIB_API VOID DropCmd(PSPAWNINFO pChar, PCHAR szLine);
@@ -501,7 +499,6 @@ EQLIB_API VOID EndMacro                            (PSPAWNINFO,PCHAR);
 EQLIB_API VOID Exec                                (PSPAWNINFO,PCHAR); 
 EQLIB_API VOID Face                                (PSPAWNINFO,PCHAR);
 EQLIB_API VOID Filter                              (PSPAWNINFO,PCHAR);
-//EQLIB_API VOID FindItem                            (PSPAWNINFO,PCHAR);
 EQLIB_API VOID For                                 (PSPAWNINFO,PCHAR);
 EQLIB_API VOID Goto                                (PSPAWNINFO,PCHAR);
 EQLIB_API VOID Help                                (PSPAWNINFO,PCHAR);

@@ -21,20 +21,6 @@
 
 #include "MQ2Main.h"
 
-/*
-	pPlugin->Initialize=(fMQInitializePlugin)GetProcAddress(hmod,"InitializePlugin");
-	pPlugin->Shutdown=(fMQShutdownPlugin)GetProcAddress(hmod,"ShutdownPlugin");
-	pPlugin->IncomingChat=(fMQIncomingChat)GetProcAddress(hmod,"OnIncomingChat");
-	pPlugin->Pulse=(fMQPulse)GetProcAddress(hmod,"OnPulse");
-	pPlugin->WriteChatColor=(fMQWriteChatColor)GetProcAddress(hmod,"OnWriteChatColor");
-	pPlugin->Zoned=(fMQZoned)GetProcAddress(hmod,"OnZoned");
-	pPlugin->CleanUI=(fMQCleanUI)GetProcAddress(hmod,"OnCleanUI");
-	pPlugin->ReloadUI=(fMQReloadUI)GetProcAddress(hmod,"OnReloadUI");
-	pPlugin->DrawHUD=(fMQDrawHUD)GetProcAddress(hmod,"OnDrawHUD");
-	pPlugin->SetGameState=(fMQSetGameState)GetProcAddress(hmod,"SetGameState");
-/**/
-
-
 
 CRITICAL_SECTION gPluginCS;
 BOOL bPluginCS=0;

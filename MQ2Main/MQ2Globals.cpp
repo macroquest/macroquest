@@ -81,18 +81,6 @@ CHAR gszLastNormalError[MAX_STRING] = {0};
 CHAR gszLastSyntaxError[MAX_STRING] = {0};
 CHAR gszLastMQ2DataError[MAX_STRING] = {0};
 
-/*
-Player1=${If[${NamingSpawn.Mark},${NamingSpawn.Mark} - ,]}${If[${NamingSpawn.Trader},Trader ,]}${If[${NamingSpawn.Invis},(${NamingSpawn.DisplayName}),${NamingSpawn.DisplayName}]}${If[${NamingSpawn.AFK}, AFK,]}${If[${NamingSpawn.Linkdead}, LD,]}${If[${NamingSpawn.LFG}, LFG,]}${If[${NamingSpawn.GroupLeader}, LDR,]}
-Player2=${If[${NamingSpawn.Mark},${NamingSpawn.Mark} - ,]}${If[${NamingSpawn.Trader},Trader ,]}${If[${NamingSpawn.Invis},(${NamingSpawn.DisplayName}),${NamingSpawn.DisplayName}]}${If[${NamingSpawn.Surname.Length}, ${NamingSpawn.Surname},]}${If[${NamingSpawn.AFK}, AFK,]}${If[${NamingSpawn.Linkdead}, LD,]}${If[${NamingSpawn.LFG}, LFG,]}${If[${NamingSpawn.GroupLeader}, LDR,]}
-Player3=${If[${NamingSpawn.Mark},${NamingSpawn.Mark} - ,]}${If[${NamingSpawn.Trader},Trader ,]}${If[${NamingSpawn.Invis},(${NamingSpawn.DisplayName}),${NamingSpawn.DisplayName}]}${If[${NamingSpawn.Surname.Length}, ${NamingSpawn.Surname},]}${If[${NamingSpawn.AFK}, AFK,]}${If[${NamingSpawn.Linkdead}, LD,]}${If[${NamingSpawn.LFG}, LFG,]}${If[${NamingSpawn.GroupLeader}, LDR,]}${If[${NamingSpawn.Guild.Length},\n<${If[${NamingSpawn.GuildStatus.NotEqual[member]},${NamingSpawn.GuildStatus} of ,]}${NamingSpawn.Guild}>,]}
-Player4=${If[${NamingSpawn.Mark},${NamingSpawn.Mark} - ,]}${If[${NamingSpawn.Trader},Trader ,]}${If[${NamingSpawn.AARank},${NamingSpawn.AATitle} ,]}${If[${NamingSpawn.Invis},(${NamingSpawn.DisplayName}),${NamingSpawn.DisplayName}]}${If[${NamingSpawn.Surname.Length}, ${NamingSpawn.Surname},]}${If[${NamingSpawn.AFK}, AFK,]}${If[${NamingSpawn.Linkdead}, LD,]}${If[${NamingSpawn.LFG}, LFG,]}${If[${NamingSpawn.GroupLeader}, LDR,]}${If[${NamingSpawn.Guild.Length},\n<${If[${NamingSpawn.GuildStatus.NotEqual[member]},${NamingSpawn.GuildStatus} of ,]}${NamingSpawn.Guild}>,]}
-NPC=${If[${NamingSpawn.Mark},${NamingSpawn.Mark} - ,]}${If[${NamingSpawn.Assist},>> ,]}${NamingSpawn.DisplayName}${If[${NamingSpawn.Assist}, - ${NamingSpawn.PctHPs}%<<,]}${If[${NamingSpawn.Surname.Length},\n(${NamingSpawn.Surname}),]}
-Corpse=${NamingSpawn.DisplayName}'s corpse
-Mount=${NamingSpawn.DisplayName}
-Pet=${If[${NamingSpawn.Mark},${NamingSpawn.Mark} - ,]}${If[${NamingSpawn.Assist},>> ,]}${NamingSpawn.DisplayName}${If[${NamingSpawn.Assist}, - ${NamingSpawn.PctHPs}%<<,]}${If[${NamingSpawn.Master.Type.Equal[PC]},\n(${NamingSpawn.Master}),]}
-
-/**/
-
 PSPAWNINFO pNamingSpawn=0;
 CHAR gszSpawnPlayerName[5][MAX_STRING]={
 "",//0
@@ -108,9 +96,10 @@ CHAR gszSpawnCorpseName[MAX_STRING]="${NamingSpawn.DisplayName}'s corpse";
 
 DWORD DrawHUDParams[4]={0,0,0,0};
 
+Blech *pMQ2Blech=0;
+CHAR EventMsg[MAX_STRING]={0};
 #ifdef USEBLECHEVENTS
 Blech *pEventBlech = 0;
-CHAR EventMsg[MAX_STRING]={0};
 #endif
 PEVENTLIST pEventList = NULL;
 
@@ -163,8 +152,6 @@ BOOL bRunNextCommand = FALSE;
 BOOL gTurbo = FALSE;
 PDEFINE pDefines = NULL;
 CHAR gLastFindSlot[MAX_STRING]={0};
-//CHAR gLastError[MAX_STRING] = {0};
-//HWND ghWnd = NULL;
 PFILTER gpFilters = NULL;
 
 BOOL g_bInDXMouse = FALSE;
@@ -189,18 +176,7 @@ fEQCommand        cmdFilter      =  NULL;
 fEQCommand        cmdDoAbility   =  NULL;
 fEQCommand        cmdCast        =  NULL;
 
-//fEQGetStringByID  GetRaceByID    =  NULL;
-//fEQGetStringByID  GetClassByID   =  NULL;
-//fEQGetStringByID  GetDeityByID   =  NULL;
-//fEQGetStringByID  GetBodyTypeByID=  NULL;
-//fEQScreenItem     ScreenItem     =  NULL;
-//fEQScreenSpawn    ScreenSpawn    =  NULL;
 fEQNewUIINI       NewUIINI   =  (fEQNewUIINI)__NewUIINI;
-//fEQMemSpell       cmdMemSpell    =  NULL;
-//fEQLoadSpells     cmdLoadSpells  =  NULL;
-//fEQSelectItem     cmdSelectItem  =  NULL;
-//fEQBuyItem        cmdBuyItem     =  NULL;
-//fEQSellItem       cmdSellItem    =  NULL;
 fEQProcGameEvts   ProcessGameEvents = (fEQProcGameEvts)__ProcessGameEvents;
 fEQSendMessage    send_message = (fEQSendMessage)__SendMessage;
 fEQExecuteCmd	  ExecuteCmd = (fEQExecuteCmd)__ExecuteCmd;
@@ -211,18 +187,12 @@ PCHAR GroupLeader=(PCHAR)__GroupLeader;
 PSKILL *SkillDict=(PSKILL*)__SkillDict;
 
 DWORD EQADDR_HWND=__HWnd;
-//DWORD EQADDR_COMMANDS=0;
 DWORD EQADDR_MEMCHECK0=__MemChecker0;
 DWORD EQADDR_MEMCHECK1=__MemChecker1;
 DWORD EQADDR_MEMCHECK2=__MemChecker2;
-//DWORD EQADDR_MEMCHECKADDR1=__MemCheckAddr1;
-//DWORD EQADDR_MEMCHECKADDR2=__MemCheckAddr2;
 DWORD EQADDR_MEMCHECK3=__MemChecker3;
 PCHAR EQADDR_SERVERHOST=(PCHAR)__ServerHost;
 PCHAR EQADDR_SERVERNAME=(PCHAR)__ServerName;
-//PCHAR *EQADDR_ACTIVEMERCHANT=0;
-//PCHAR *EQADDR_ACTIVECORPSE=0;
-//PPACKLOC EQADDR_PACKLOCS=0;
 DWORD EQADDR_CONVERTITEMTAGS=__ConvertItemTags;
 PCMDLIST EQADDR_CMDLIST=(PCMDLIST)__CommandList;
 
@@ -233,7 +203,6 @@ PBYTE EQADDR_ATTACK=(PBYTE)__Attack;
 PBYTE EQADDR_NOTINCHATMODE=(PBYTE)__InChatMode;
 
 PCHAR EQADDR_LASTTELL=(PCHAR)__LastTell;
-//PGROUNDITEM *EQADDR_ITEMS=0;
 PBYTE EQADDR_GROUPCOUNT=(PBYTE)__GroupCount;
 PCHAR gpbRangedAttackReady=(PCHAR)__RangeAttackReady;
 PCHAR gpbShowNetStatus=(PCHAR)__NetStatusToggle;
@@ -244,7 +213,6 @@ DWORD *gpPCNames=(DWORD*)__PCNames;
 
 
 PVOID EQADDR_GWORLD=(PVOID)__gWorld;
-//PDOORTABLE *EQADDR_DOORS=0;
 PDWORD EQADDR_DOABILITYLIST=(PDWORD)__DoAbilityList;
 
 PBYTE EQADDR_DOABILITYAVAILABLE=(PBYTE)__DoAbilityAvailable;

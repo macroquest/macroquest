@@ -36,7 +36,6 @@ BOOL APIENTRY DllMain( HANDLE hModule,
 					 )
 {
     CHAR szFilename[MAX_STRING]={0};
-    //CHAR ClientName[MAX_STRING]={0};
     PCHAR szProcessName;
     ghModule = (HMODULE)hModule;
     ghInstance = (HINSTANCE)hModule;
@@ -45,7 +44,6 @@ BOOL APIENTRY DllMain( HANDLE hModule,
     szProcessName = strrchr(szFilename,'\\');
     szProcessName[0] = '\0';
     strcat(szFilename,"\\eqgame.ini");
-//    GetPrivateProfileString("MacroQuest","ClientName","eqgame",ClientName,MAX_STRING,szFilename);
 
     GetModuleFileName(NULL,szFilename,MAX_STRING);
 
