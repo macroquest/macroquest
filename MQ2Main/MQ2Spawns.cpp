@@ -168,8 +168,19 @@ public:
 
 };
 
+class CActorEx
+{
+public:
+	bool CanSetName(DWORD);
+};
+
+FUNCTION_AT_VIRTUAL_ADDRESS(bool CActorEx::CanSetName(DWORD),0x118);
+
 BOOL SetNameSpriteState(PSPAWNINFO pSpawn, bool Show)
 {
+//	DebugSpew("SetNameSpriteState(%s) --race %d body %d)",pSpawn->Name,pSpawn->Race,pSpawn->BodyType);
+	if (!Show)
+		((EQPlayerHook*)pSpawn)->SetNameSpriteState_Trampoline(Show);
 #define SetCaption(CaptionString) \
 		{\
 			if (CaptionString[0])\
@@ -183,8 +194,13 @@ BOOL SetNameSpriteState(PSPAWNINFO pSpawn, bool Show)
 			}\
 		}
 		CHAR NewCaption[MAX_STRING]={0};
-//		if (pSpawn->Race==2253 || pSpawn->Race==127 || pSpawn->Race==240)
-//			return 0;
+
+		if (pSpawn->pActorInfo->pActorEx && !((CActorEx*)pSpawn->pActorInfo->pActorEx)->CanSetName(0))
+		{
+//			DebugSpew("CanSetName==0 - %s .. race %d body %d",pSpawn->Name,pSpawn->Race,pSpawn->BodyType);
+			return 1;
+		}
+		
 		switch(GetSpawnType((PSPAWNINFO)pSpawn))
 		{
 		case NPC:

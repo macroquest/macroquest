@@ -1038,9 +1038,14 @@ typedef struct _CAMERAINFO {
 /*0x20*/
 } CAMERAINFO, *PCAMERAINFO;
 
+// unknown size
+typedef struct _ACTOREX {
+/*0x00*/   BYTE Unknown0x00;
+} ACTOREX, *PACTOREX;
+
 // actual size 0x54F4h  4-28-2004
 typedef struct _ACTORINFO {
-/*0x0000*/   struct     _CAMERAINFO *pCamera;
+/*0x0000*/   struct     _ACTOREX *pActorEx;
 /*0x0004*/   DWORD      T3D_POINTLIGHT;
 /*0x0008*/   CHAR      ActorDef[0x40];
 /*0x0048*/   FLOAT      Z;  // Z coordinates for the floor where standing
