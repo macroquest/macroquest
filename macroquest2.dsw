@@ -3,7 +3,25 @@ Microsoft Developer Studio Workspace File, Format Version 6.00
 
 ###############################################################################
 
-Project: "MQ2Chat"=".\MQ2Chat\MQ2Chat.dsp" - Package Owner=<4>
+Project: "MQ2Chat"=.\MQ2Chat\MQ2Chat.dsp - Package Owner=<4>
+
+Package=<5>
+{{{
+}}}
+
+Package=<4>
+{{{
+    Begin Project Dependency
+    Project_Dep_Name macroquest
+    End Project Dependency
+    Begin Project Dependency
+    Project_Dep_Name MQ2Main
+    End Project Dependency
+}}}
+
+###############################################################################
+
+Project: "MQ2ChatWnd"=.\MQ2ChatWnd\MQ2ChatWnd.dsp - Package Owner=<4>
 
 Package=<5>
 {{{
@@ -21,7 +39,7 @@ Package=<4>
 
 ###############################################################################
 
-Project: "MQ2ChatWnd"=".\MQ2ChatWnd\MQ2ChatWnd.dsp" - Package Owner=<4>
+Project: "MQ2FPS"=.\MQ2FPS\MQ2FPS.dsp - Package Owner=<4>
 
 Package=<5>
 {{{
@@ -39,7 +57,7 @@ Package=<4>
 
 ###############################################################################
 
-Project: "MQ2FPS"=".\MQ2FPS\MQ2FPS.dsp" - Package Owner=<4>
+Project: "MQ2ItemDisplay"=.\MQ2ItemDisplay\MQ2ItemDisplay.dsp - Package Owner=<4>
 
 Package=<5>
 {{{
@@ -57,7 +75,7 @@ Package=<4>
 
 ###############################################################################
 
-Project: "MQ2ItemDisplay"=".\MQ2ItemDisplay\MQ2ItemDisplay.dsp" - Package Owner=<4>
+Project: "MQ2Labels"=.\MQ2Labels\MQ2Labels.dsp - Package Owner=<4>
 
 Package=<5>
 {{{
@@ -75,7 +93,22 @@ Package=<4>
 
 ###############################################################################
 
-Project: "MQ2Labels"=".\MQ2Labels\MQ2Labels.dsp" - Package Owner=<4>
+Project: "MQ2Main"=.\MQ2Main\MQ2Main.dsp - Package Owner=<4>
+
+Package=<5>
+{{{
+}}}
+
+Package=<4>
+{{{
+    Begin Project Dependency
+    Project_Dep_Name MacroQuest
+    End Project Dependency
+}}}
+
+###############################################################################
+
+Project: "MQ2Map"=.\MQ2Map\MQ2Map.dsp - Package Owner=<4>
 
 Package=<5>
 {{{
@@ -93,22 +126,7 @@ Package=<4>
 
 ###############################################################################
 
-Project: "MQ2Main"=".\MQ2Main\MQ2Main.dsp" - Package Owner=<4>
-
-Package=<5>
-{{{
-}}}
-
-Package=<4>
-{{{
-    Begin Project Dependency
-    Project_Dep_Name MacroQuest
-    End Project Dependency
-}}}
-
-###############################################################################
-
-Project: "MQ2Map"=".\MQ2Map\MQ2Map.dsp" - Package Owner=<4>
+Project: "MQ2Template"=.\MQ2Template\MQ2Template.dsp - Package Owner=<4>
 
 Package=<5>
 {{{
@@ -126,25 +144,7 @@ Package=<4>
 
 ###############################################################################
 
-Project: "MQ2Template"=".\MQ2Template\MQ2Template.dsp" - Package Owner=<4>
-
-Package=<5>
-{{{
-}}}
-
-Package=<4>
-{{{
-    Begin Project Dependency
-    Project_Dep_Name MacroQuest
-    End Project Dependency
-    Begin Project Dependency
-    Project_Dep_Name MQ2Main
-    End Project Dependency
-}}}
-
-###############################################################################
-
-Project: "MacroQuest"=".\MacroQuest\MacroQuest.dsp" - Package Owner=<4>
+Project: "macroquest"=.\MacroQuest\MacroQuest.dsp - Package Owner=<4>
 
 Package=<5>
 {{{
