@@ -530,7 +530,7 @@ CPetitionQWnd **ppPetitionQWnd=(CPetitionQWnd**)pinstCPetitionQWnd;
 CSoulmarkWnd **ppSoulmarkWnd=(CSoulmarkWnd**)pinstCSoulmarkWnd;
 CTimeLeftWnd **ppTimeLeftWnd=(CTimeLeftWnd**)pinstCTimeLeftWnd;
 
-
+CTextOverlay **ppTextOverlay=(CTextOverlay**)pinstCTextOverlay;
 
 
 

@@ -4506,3 +4506,10 @@ VOID DoMappable(PSPAWNINFO pChar, PCHAR szLine)
 		ExecuteCmd(N,0,0);
 	}
 }
+
+VOID PopupText(PSPAWNINFO pChar, PCHAR szLine)
+{
+   DisplayOverlayText(szLine, CONCOLOR_LIGHTBLUE, 100, 500,500,3000);
+}
+
+

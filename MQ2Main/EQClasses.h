@@ -349,6 +349,7 @@ class WaveInstance;
 class WrappedLogicalPacket;
 class ZlibUtil;
 class ZoneNPCLoadTextManager;
+class CTextOverlay;
 // End forward class declarations
 
 // Class declarations
@@ -6890,6 +6891,12 @@ EQLIB_OBJECT char * ZoneNPCLoadTextManager::GetNPCCode(int);
 EQLIB_OBJECT char * ZoneNPCLoadTextManager::GetS3DName(int);
 EQLIB_OBJECT void ZoneNPCLoadTextManager::LoadText(char *);
 };
+
+class CTextOverlay
+{
+public:
+EQLIB_OBJECT void CTextOverlay::DisplayText(char *,int,int,int,int,int,int);
+}; 
 
 };
 using namespace EQClasses;

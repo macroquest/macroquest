@@ -2136,3 +2136,25 @@ int FindMappableCommand(const char *name)
 	}
 	return -1;
 }	
+
+
+void DisplayOverlayText(PCHAR szText, DWORD dwColor, DWORD dwTransparency, DWORD msFadeIn, DWORD msFadeOut, DWORD msHold)
+{
+   if (!pTextOverlay) {
+      WriteChatColor(szText,dwColor);
+      return;
+   }
+   DWORD dwAlpha = (DWORD)(dwTransparency*255/100);
+   if (dwAlpha>255) dwAlpha=255;
+
+   pTextOverlay->DisplayText(
+      szText,
+      dwColor,
+      10, // Always 10 in eqgame.exe,
+          // Doesn't seem to affect anything
+         // (tried 0,1,10,20,100,500)
+      dwAlpha,
+      msFadeIn,
+      msFadeOut,
+      msHold);
+}

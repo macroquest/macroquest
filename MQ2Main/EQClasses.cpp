@@ -9376,3 +9376,6 @@ REVERSE_DETOUR(bool  CXMLSOMDocument::FieldParseItemOfClass(class CXStr,class CX
 #ifdef EQOldPlayerAnimation__mAnimationPrefix
 REVERSE_DETOUR(char (* EQOldPlayerAnimation::mAnimationPrefix)[20],EQOldPlayerAnimation__mAnimationPrefix);
 #endif
+#ifdef CTextOverlay__DisplayText
+REVERSE_DETOUR(void CTextOverlay::DisplayText(char *,int,int,int,int,int,int),CTextOverlay__DisplayText);
+#endif

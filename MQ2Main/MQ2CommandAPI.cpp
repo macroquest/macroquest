@@ -453,6 +453,7 @@ void InitializeMQ2Commands()
 		{"/destroy",     EQDestroyHeldItemOrMoney,1,1},
 		{"/exec",      Exec,1,0}, 
 		{"/keypress",   DoMappable,1,0},
+                {"/popup",      PopupText,1,0},
 		{NULL,          NULL,0,1},
     };
 

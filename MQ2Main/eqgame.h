@@ -126,6 +126,7 @@
 #define pinstCTributeBenefitWnd                                 0x79ED5C 
 #define pinstCTributeMasterWnd									0x79ED74 
 #define pinstCContextMenuManager                                0x7A96A0 
+#define pinstCTextOverlay                                       0x6211A0
 
 
 //// 
@@ -469,3 +470,6 @@
 #define CTabWnd__GetNumTabs							0x57B2C0 
 #define CTabWnd__GetCurrentTabIndex					0x57B190 
 #define CTabWnd__GetCurrentPage						0x57B3F0 
+
+// CTextOverlay
+#define CTextOverlay__DisplayText                   0x4013EA
