@@ -19,8 +19,8 @@
 #define __ClientName                                  "eqgame"
 //.rdata:005DC1CC aMar302004      db 'Mar 30 2004',0
 //.rdata:005DC1D8 a151211         db '15:12:11',0
-#define __ExpectedVersionDate                         "Mar 29 2004"
-#define __ExpectedVersionTime                         "18:04:34"
+#define __ExpectedVersionDate                         "Mar 30 2004"
+#define __ExpectedVersionTime                         "15:12:11"
 #define __ActualVersionDate                                0x5DC1CC
 #define __ActualVersionTime                                0x5DC1D8
 
