@@ -3,6 +3,8 @@
 
 15 Mar 2004 by Lax
 - Fixed some bugs with binds and the MQ2CustomBinds plugin
+- Modified bind system so that the same key can be bound to an MQ2 bind and an EQ bind and
+  both will work
 - Added a system to run .CFG files, similar to quake .cfg files I suppose.  The file must
   contain commands the same as you would use them normally.  Each command will be executed
   in order, there are NO macro blocks, events, etc, in a cfg file.

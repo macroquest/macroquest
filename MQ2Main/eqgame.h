@@ -213,6 +213,7 @@
 // CXWndManager
 #define CXWndManager__RemoveWnd                  0x56CA20
 #define CXWndManager__GetKeyboardFlags			 0x56C640
+#define CXWndManager__HandleKeyboardMsg			 0x56CB10
 
 // KeyPressHandler
 #define KeyPressHandler__HandleKeyDown			0x4AEEFE

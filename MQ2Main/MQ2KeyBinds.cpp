@@ -73,43 +73,59 @@ public:
 
 	bool HandleKeyDown_Hook(class KeyCombo const &Combo)
 	{
-		if (HandleKeyDown_Trampoline(Combo))
+		if (!pWndMgr->HandleKeyboardMsg(Combo.Data[3],1))
 			return true;
-		for (unsigned long N = 0 ; N < BindList.Size ; N++)
+		unsigned long N;
+		bool Ret=false;
+		for ( N = 0 ; N < nEQMappableCommands ; N++)
+		{
+			if (!pKeypressHandler->CommandState[N] && (pKeypressHandler->NormalKey[N]==Combo ||		
+				pKeypressHandler->AltKey[N]==Combo))
+			{
+				ExecuteCmd(N,1,0);
+				Ret=true;
+			}
+		}
+		for ( N = 0 ; N < BindList.Size ; N++)
 		{
 			if (MQ2KeyBind *pBind=BindList[N])
 			{
-				if (pBind->Normal.Data[3] && pBind->Normal==Combo)
+				if (pBind->Normal==Combo || pBind->Alt==Combo)
 				{
 					pBind->Function(pBind->Name,true);
-				}
-				else if (pBind->Alt.Data[3] && pBind->Alt==Combo)
-				{
-					pBind->Function(pBind->Name,true);
+					Ret=true;
 				}
 			}
 		}
-		return false;
+		return Ret;
 	}
 	bool HandleKeyUp_Hook(class KeyCombo const &Combo)
 	{
-		if (HandleKeyUp_Trampoline(Combo))
+		if (!pWndMgr->HandleKeyboardMsg(Combo.Data[3],0))
 			return true;
-		for (unsigned long N = 0 ; N < BindList.Size ; N++)
+		unsigned long N;
+		bool Ret=false;
+		for ( N = 0 ; N < nEQMappableCommands ; N++)
+		{
+			if (pKeypressHandler->NormalKey[N]==Combo ||		
+				pKeypressHandler->AltKey[N]==Combo)
+			{
+				ExecuteCmd(N,0,0);
+				Ret=true;
+			}
+		}
+		for ( N = 0 ; N < BindList.Size ; N++)
 		{
 			if (MQ2KeyBind *pBind=BindList[N])
 			{
-				if (pBind->Normal.Data[3] && pBind->Normal==Combo)
+				if (pBind->Normal==Combo || pBind->Alt==Combo)
 				{
 					pBind->Function(pBind->Name,false);
-				}
-				else if (pBind->Alt.Data[3] && pBind->Alt==Combo)
-				{
-					pBind->Function(pBind->Name,false);
+					Ret=true;
 				}
 			}
 		}
-		return false;
+		return Ret;
 	}
 /*
 	bool AttachAltKeyToEqCommand_Hook(class KeyCombo const &Combo,unsigned int nCommand)
