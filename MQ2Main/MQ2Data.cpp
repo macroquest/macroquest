@@ -560,7 +560,7 @@ BOOL dataIni(PCHAR szIndex, MQ2TYPEVAR &Ret)
 	if (!strchr(pIniFile,'.'))
 		strcat(FileName,".ini");
 
-	if (!_FileExists(pIniFile))
+	if (!_FileExists(FileName))
 		return false;
 
 	if (DWORD nSize=GetPrivateProfileString(pSection,pKey,pDefault,DataTypeTemp,MAX_STRING,FileName))

@@ -131,7 +131,7 @@ VOID HideDoCommand(PSPAWNINFO pChar, PCHAR szLine, BOOL delayed)
     }
 
 	strcpy(szLastCommand,szOriginalLine);
-    MacroError(szCmd,"DoCommand - Couldn't parse '%s'",szOriginalLine);
+    MacroError("DoCommand - Couldn't parse '%s'",szOriginalLine);
 }
 
 
