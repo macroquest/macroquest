@@ -86,7 +86,7 @@ CHAR gszLastSyntaxError[MAX_STRING] = {0};
 CHAR gszLastMQ2DataError[MAX_STRING] = {0};
 
 PSPAWNINFO pNamingSpawn=0;
-CHAR gszSpawnPlayerName[MAX_STRING]="${If[${NamingSpawn.Trader},Trader ,]}${If[${NamingSpawn.AARank},${NamingSpawn.AATitle} ,]}${If[${NamingSpawn.Invis},(${NamingSpawn.DisplayName}),${NamingSpawn.DisplayName}]}${If[${NamingSpawn.Surname.Length}, ${NamingSpawn.Surname},]}${If[${NamingSpawn.AFK}, AFK,]}${If[${NamingSpawn.Linkdead}, LD,]}${If[${NamingSpawn.Guild.Length}, <${If[${NamingSpawn.GuildStatus.NotEqual[member]},${NamingSpawn.GuildStatus} of ,]}${NamingSpawn.Guild}>,]}";
+CHAR gszSpawnPlayerName[MAX_STRING]="${If[${NamingSpawn.Trader},Trader ,]}${If[${NamingSpawn.AARank},${NamingSpawn.AATitle} ,]}${If[${NamingSpawn.Invis},(${NamingSpawn.DisplayName}),${NamingSpawn.DisplayName}]}${If[${NamingSpawn.Surname.Length}, ${NamingSpawn.Surname},]}${If[${NamingSpawn.AFK}, AFK,]}${If[${NamingSpawn.Linkdead}, LD,]}${If[${NamingSpawn.LFG}, LFG,]}${If[${NamingSpawn.Guild.Length}, <${If[${NamingSpawn.GuildStatus.NotEqual[member]},${NamingSpawn.GuildStatus} of ,]}${NamingSpawn.Guild}>,]}";
 CHAR gszSpawnNPCName[MAX_STRING]="${NamingSpawn.DisplayName}${If[${NamingSpawn.Surname.Length},\n(${NamingSpawn.Surname}),]}";
 CHAR gszSpawnMountName[MAX_STRING]="${NamingSpawn.DisplayName}";
 CHAR gszSpawnPetName[MAX_STRING]="${NamingSpawn.DisplayName}${If[${NamingSpawn.Master.Type.Equal[PC]},\n(${NamingSpawn.Master}),]}";

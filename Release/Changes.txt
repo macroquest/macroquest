@@ -1,11 +1,17 @@
 04 May 2004 by Lax:
-- Added custom spawn captioning
+- Added custom spawn captioning.  Set them in MacroQuest.ini [Captions].  Empty the setting 
+  to make it use EQ's default.  By default our player caption is slightly different.  
+  It shows their guild status if they are officer or leader of a guild.
+- Added MQ2Data Top-Level Object:
+  spawn NamingSpawn: Spawn currently being captioned.  NULL when not captioning.
 - Added/changed MQ2Data members:
-  spawn.LFG
-  spawn.Linkdead
-  spawn.Trader
-  spawn.AFK
-  spawn.AATitle
+  bool spawn.LFG: LFG?
+  bool spawn.Linkdead: Linkdead?
+  bool spawn.Trader: Trader?
+  bool spawn.AFK: AFK?
+  string spawn.AATitle: Actual AA title (e.g. Sage, Impresario, etc)
+- MQ2Map adds Top-Level Object: spawn MapSpawn: If your cursor is on a spawn on the map, this is it
+
 
 02 May 2004 by Lax:
 - Added a popup box to the crash detected hook, explaining that the user should visit the
