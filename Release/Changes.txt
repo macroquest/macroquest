@@ -1,3 +1,10 @@
+30 June 2004 by Amadeus:
+- Refined "/who npc named" to work a bit better
+- Added "/who npc merchant"
+- Added "/who npc tribute" (returns tribute masters)
+- Added "/who npc gm" (returns GUILDmasters)
+- Removed the Old SPAWNINFO struct
+
 28 June 2004 by Lax:
 - Added MQ2Data Top Level Object:
   bool LineOfSight[y,x,z:y,x,z]: Determines Line of Sight in 1, 2 or 3 dimensions.  Any not given will default to your character's current x y or z.
