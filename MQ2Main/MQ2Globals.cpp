@@ -449,7 +449,6 @@ CCursorAttachment **ppCursorAttachment=(CCursorAttachment**)pinstCCursorAttachme
 CSocialEditWnd **ppSocialEditWnd=(CSocialEditWnd**)pinstCSocialEditWnd;
 CContainerMgr **ppContainerMgr=(CContainerMgr**)pinstCContainerMgr;
 CChatManager **ppChatManager=(CChatManager**)pinstCChatManager;
-CConfirmationDialog **ppConfirmationDialog=(CConfirmationDialog**)pinstCConfirmationDialog;
 CFacePick **ppFacePick=(CFacePick**)pinstCFacePick;
 CInvSlotMgr **ppInvSlotMgr=(CInvSlotMgr**)pinstCInvSlotMgr;
 //CPopupWndManager **ppPopupWndManager=(CPopupWndManager**)pinstCPopupWndManager;
