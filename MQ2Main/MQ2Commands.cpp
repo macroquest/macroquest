@@ -2031,6 +2031,7 @@ VOID SuperWho(PSPAWNINFO pChar, PCHAR szLine)
     ClearSearchSpawn(&SearchSpawn);
     SearchSpawn.SpawnType = SPAWN_PLAYER;
 
+
     if ((!stricmp(szLine,"all")) ||
         (!strnicmp(szLine,"all ",4)) ||
         (!strnicmp(szLine+strlen(szLine)-4," all",4)) ||
@@ -2039,6 +2040,10 @@ VOID SuperWho(PSPAWNINFO pChar, PCHAR szLine)
         cmdWho(pChar, szLine);
         return;
     }
+	if (szLine[0])
+	{
+		SearchSpawn.bTargInvis=true;
+	}
 
     while (Parsing) {
         GetArg(szArg,szRest,1);
