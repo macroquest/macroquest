@@ -83,7 +83,13 @@
 			Name="Source Files"
 			Filter="cpp;c;cxx;def;odl;idl;hpj;bat;asm">
 			<File
-				RelativePath="MQ2Telnet.cpp">
+				RelativePath="TelnetServer.cpp">
+			</File>
+			<File
+				RelativePath="WinTelnet.cpp">
+			</File>
+			<File
+				RelativePath="mq2telnet.cpp">
 			</File>
 		</Filter>
 		<Filter
@@ -91,6 +97,15 @@
 			Filter="h;hpp;hxx;hm;inl;inc">
 			<File
 				RelativePath="..\MQ2Plugin.h">
+			</File>
+			<File
+				RelativePath="Telnet.h">
+			</File>
+			<File
+				RelativePath="TelnetServer.h">
+			</File>
+			<File
+				RelativePath="WinTelnet.h">
 			</File>
 		</Filter>
 		<Filter
