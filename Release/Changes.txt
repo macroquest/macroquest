@@ -1,3 +1,16 @@
+05 Mar 2004 by Lax
+- MQ2Map upgrade is now live.  It uses the new OnAddSpawn/OnRemoveSpawn API to increase efficiency.
+  /highlight <spawn search string> will temporarily highlight these spawns
+  /highlight color <#> <#> <#> will set the highlight color
+  /highlight reset to reset the currently highlighted spawns
+  Right clicking on spawns on the map now targets them
+- /keypress command is now live. /keypress <name> <hold> like so:
+  /keypress clear_target
+  /keypress forward hold
+  To release the key after holding, simply use the command again without the hold keyword.
+- /itemnotify command is now live.  /itemnotify <slot> <notification>, or /itemnotify in <bag slot> <#> <notification>
+  Bag slots are pack1-8, bank1-16 (and sharedbank1-2 and trade1-8 but these are not yet implemented in /itemnotify)
+
 01 Mar 2004 by Zaphod
 - Another bugfix in MQ2DetourAPI.cpp. 
 
