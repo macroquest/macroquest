@@ -1565,7 +1565,7 @@ EQLIB_OBJECT void CEverQuest::WriteIntToUIINI(int,char *,char *);
 EQLIB_OBJECT void CEverQuest::WriteStringToClientINI(char *,char *,char *);
 EQLIB_OBJECT void CEverQuest::WriteStringToUIINI(char *,char *,char *);
 // virtual
-//EQLIB_OBJECT void CEverQuest::CshOnBuddyStatusChange(char *,enum ChannelServerApi::BuddyStatus);
+EQLIB_OBJECT void CEverQuest::CshOnBuddyStatusChange(char *,int BuddyStatus);
 EQLIB_OBJECT void CEverQuest::CshOnChannelListChange(void);
 EQLIB_OBJECT void CEverQuest::CshOnMessage(char *,char *,int,char *,bool);
 EQLIB_OBJECT void CEverQuest::CshOnPlayerEntering(char *,int,char *);
@@ -3708,11 +3708,11 @@ class CSidlScreenWnd
 {
 public:
 EQLIB_OBJECT CSidlScreenWnd::CSidlScreenWnd(class CXWnd *,class CXStr);
-EQLIB_OBJECT CSidlScreenWnd::CSidlScreenWnd(class CXWnd *,class CXStr,int,char *);
+EQLIB_OBJECT CSidlScreenWnd::CSidlScreenWnd(class CXWnd *pWnd,class CXStr Template,int Flags,char *unknown4);
 EQLIB_OBJECT CSidlScreenWnd::CSidlScreenWnd(class CXWnd *,unsigned __int32,class CXRect,class CXStr);
 EQLIB_OBJECT class CScreenPieceTemplate * CSidlScreenWnd::GetSidlPiece(class CXStr)const;
 EQLIB_OBJECT class CXRect CSidlScreenWnd::GetSidlPieceRect(class CScreenPieceTemplate *,class CXRect)const;
-EQLIB_OBJECT class CXWnd * CSidlScreenWnd::GetChildItem(class CXStr)const;
+EQLIB_OBJECT class CXWnd * CSidlScreenWnd::GetChildItem(class CXStr&)const;
 EQLIB_OBJECT int CSidlScreenWnd::DrawSidlPiece(class CScreenPieceTemplate *,class CXRect,class CXRect)const;
 EQLIB_OBJECT void CSidlScreenWnd::AddButtonToRadioGroup(class CXStr,class CButtonWnd *);
 EQLIB_OBJECT void CSidlScreenWnd::CalculateHSBRange(void);
@@ -3741,6 +3741,9 @@ EQLIB_OBJECT int CSidlScreenWnd::ConvertToRes(int,int,int,int);
 EQLIB_OBJECT void CSidlScreenWnd::LoadSidlScreen(void);
 // private
 EQLIB_OBJECT static bool CSidlScreenWnd::m_useIniFile;
+
+// data members
+struct _CSIDLWND Data;
 };
 
 class CSkillsSelectWnd
@@ -4978,6 +4981,9 @@ EQLIB_OBJECT void CXWnd::SetWindowTextA(class CXStr);
 EQLIB_OBJECT static class CXWndManager * & CXWnd::sm_pMgr;
 // private
 EQLIB_OBJECT static unsigned char CXWnd::sm_byCurrentAlpha;
+
+// data members
+struct _CXWND Data;
 };
 
 class CXWndDrawTemplate

@@ -440,7 +440,10 @@ CPetitionQWnd **ppPetitionQWnd=(CPetitionQWnd**)pinstCPetitionQWnd;
 CSoulmarkWnd **ppSoulmarkWnd=(CSoulmarkWnd**)pinstCSoulmarkWnd;
 CTimeLeftWnd **ppTimeLeftWnd=(CTimeLeftWnd**)pinstCTimeLeftWnd;
 
+CSidlManager **ppSidlMgr=(CSidlManager **)pinstCSidlManager;
+
 PMQPLUGIN pPlugins=0;
+PMQXMLFILE pXMLFiles=0;
 DWORD ManaGained=0;
 DWORD HealthGained=0;
 PALIAS pAliases=0;

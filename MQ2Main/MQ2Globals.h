@@ -177,6 +177,7 @@ EQLIB_VAR PCHAR szItemName4xx[];
 EQLIB_VAR PALIAS pAliases;
 EQLIB_VAR PMQCOMMAND pCommands;
 EQLIB_VAR PMQPLUGIN pPlugins;
+EQLIB_VAR PMQXMLFILE pXMLFiles;
 
 EQLIB_VAR CEverQuest **ppEverQuest;
 #define pEverQuest (*ppEverQuest)
@@ -209,6 +210,9 @@ EQLIB_VAR EqSwitchManager **ppSwitchMgr;
 EQLIB_VAR EQItemList **ppItemList;
 #define pItemList (*ppItemList)
 EQLIB_VAR EQZoneInfo *pZoneInfo;
+
+EQLIB_VAR CSidlManager **ppSidlMgr;
+#define pSidlMgr (*ppSidlMgr)
 
 EQLIB_VAR DWORD *pScreenX;
 #define ScreenX (*pScreenX)

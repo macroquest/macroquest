@@ -849,8 +849,11 @@ typedef struct _ZONEINFO {
 /*0x1a8*/   BYTE    Unknown0x1a8[0x4];
 /*0x1ac*/   BYTE    Unknown0x1ac[0x3c];
 /*0x1e8*/   FLOAT   ZoneExpModifier;
-/*0x1ec*/   BYTE    Unknown0x1ec[0x0c];
-/*0x1f8*/   FLOAT   Unknown0x1f8[0x2];    // definately data here 
+/*0x1ec*/   FLOAT   SafeYLoc;
+/*0x1f0*/   FLOAT   SafeXLoc;
+/*0x1f4*/   FLOAT   SafeZLoc;
+/*0x1f8*/   FLOAT   Ceiling;
+/*0x1fc*/   FLOAT   Floor; 
 /*0x200*/   FLOAT   MinClip; 
 /*0x204*/   FLOAT   MaxClip; 
 /*0x208*/   BYTE    Unknown0x208[0x18];

@@ -69,6 +69,7 @@ DWORD LoadMQ2Plugin(const PCHAR pszFilename)
 	pPlugin->WriteChatColor=(fMQWriteChatColor)GetProcAddress(hmod,"OnWriteChatColor");
 	pPlugin->Zoned=(fMQZoned)GetProcAddress(hmod,"OnZoned");
 	pPlugin->CleanUI=(fMQCleanUI)GetProcAddress(hmod,"OnCleanUI");
+	pPlugin->ReloadUI=(fMQReloadUI)GetProcAddress(hmod,"OnReloadUI");
 	pPlugin->DrawHUD=(fMQDrawHUD)GetProcAddress(hmod,"OnDrawHUD");
 	pPlugin->SetGameState=(fMQSetGameState)GetProcAddress(hmod,"SetGameState");
 
@@ -257,6 +258,23 @@ VOID PluginsCleanUI()
 		{
 			DebugSpew("%s->CleanUI()",pPlugin->szFilename);
 			pPlugin->CleanUI();
+		}
+		pPlugin=pPlugin->pNext;
+	}
+}
+
+VOID PluginsReloadUI()
+{
+	if (!bPluginCS)
+		return;
+	CAutoLock Lock(&gPluginCS);
+	PMQPLUGIN pPlugin=pPlugins;
+	while(pPlugin)
+	{
+		if (pPlugin->ReloadUI)
+		{
+			DebugSpew("%s->ReloadUI()",pPlugin->szFilename);
+			pPlugin->ReloadUI();
 		}
 		pPlugin=pPlugin->pNext;
 	}

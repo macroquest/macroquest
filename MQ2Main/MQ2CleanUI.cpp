@@ -31,6 +31,13 @@ public:
 		DebugTry(CleanUI_Trampoline());
 	} 
 
+	VOID ReloadUI_Trampoline(BOOL);
+	VOID ReloadUI_Detour(BOOL UseINI)
+	{
+		DebugTry(ReloadUI_Trampoline(UseINI));
+		DebugTry(PluginsReloadUI());
+	}
+
 }; 
 
 DWORD __cdecl DrawHUD_Trampoline(DWORD,DWORD,DWORD,DWORD); 
@@ -43,15 +50,19 @@ DWORD __cdecl DrawHUD_Detour(DWORD a,DWORD b,DWORD c,DWORD d)
 
 DETOUR_TRAMPOLINE_EMPTY(DWORD DrawHUD_Trampoline(DWORD,DWORD,DWORD,DWORD)); 
 DETOUR_TRAMPOLINE_EMPTY(VOID CDisplayHook::CleanUI_Trampoline(VOID)); 
+DETOUR_TRAMPOLINE_EMPTY(VOID CDisplayHook::ReloadUI_Trampoline(BOOL)); 
 
 VOID InitializeDisplayHook()
 {
 	DebugSpew("Initializing Display Hooks");
+/*
 	VOID (CDisplayHook::*pfDetour)(VOID) = CDisplayHook::CleanUI_Detour; 
 	VOID (CDisplayHook::*pfTrampoline)(VOID) = CDisplayHook::CleanUI_Trampoline; 
-
 	AddDetour((DWORD) CDisplay__CleanGameUI,*(PBYTE*)&pfDetour,*(PBYTE*)&pfTrampoline);
+/**/
 
+	EasyClassDetour(CDisplay__CleanGameUI,CDisplayHook,CleanUI_Detour,VOID,(VOID),CleanUI_Trampoline);
+	EasyClassDetour(CDisplay__ReloadUI,CDisplayHook,ReloadUI_Detour,VOID,(BOOL),ReloadUI_Trampoline);
 
 	DWORD (__cdecl *pfHUDDetour)(DWORD,DWORD,DWORD,DWORD) = DrawHUD_Detour; 
 	DWORD (__cdecl *pfHUDTrampoline)(DWORD,DWORD,DWORD,DWORD) = DrawHUD_Trampoline; 
@@ -64,5 +75,6 @@ VOID ShutdownDisplayHook()
 	PluginsCleanUI();
 	DebugSpew("Shutting down Display Hooks");
 	RemoveDetour((DWORD)CDisplay__CleanGameUI);
+	RemoveDetour((DWORD)CDisplay__ReloadUI);
 	RemoveDetour((DWORD)DrawNetStatus);
 }

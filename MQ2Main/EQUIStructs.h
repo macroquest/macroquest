@@ -274,7 +274,7 @@ typedef struct _CXWND {
 
 
 // Lax 10-24-2003
-// Actual size 0x144, 11-5-2003
+// Actual size 0x148, 11-25-2003
 typedef struct _CSIDLWND {
 /*0x000*/   struct _CSIDLWNDVFTABLE   *pvfTable;
 /*0x004*/   DWORD   Unknown0x004;   // set to 0 in CXWnd::Refade
@@ -362,7 +362,8 @@ typedef struct _CSIDLWND {
 /*0x138*/   DWORD   Unknown0x138;
 /*0x13c*/   LPVOID  ContextMenu;
 /*0x140*/	DWORD   Unknown0x140;
-/*0x144*/
+/*0x144*/	DWORD   Unknown0x144;
+/*0x148*/
 } CSIDLWND, *PCSIDLWND;
 
 // todo...
@@ -379,7 +380,7 @@ typedef struct _CXWNDMGR {
 //10-30-2003 plazmic - converted to CSIDLWND
 typedef struct _EQMERCHWINDOW {
 /*0x000*/   struct _CSIDLWND Wnd;
-/*0x144*/   BYTE Unknown0x144[0xC];
+/*0x148*/   BYTE Unknown0x148[0x8];
 /*0x000*/   PCONTENTS   ItemDesc[0x50];   //the mainwindow has pointers directly to the items in the slots...
 /*0x288*/   DWORD   Unknown5;
 /*0x28c*/   DWORD   SelectedSlotID;
@@ -460,7 +461,6 @@ typedef struct _EQCHATMGR
 typedef struct _EQCHATWINDOW
 {
 /*0x000*/ struct _CSIDLWND Wnd;
-/*0x144*/ DWORD  Unknown0x144;
 /*0x148*/ struct _EQCHATMGR *ChatManager; 
 /*0x14c*/ struct _CSIDLWND* InputWnd;
 /*0x150*/ struct _CSIDLWND* OutputWnd;
@@ -483,7 +483,7 @@ typedef struct _EQCHATWINDOW
 typedef struct _EQBUFFWINDOW
 {
 /*0x000*/ struct _CSIDLWND Wnd;
-/*0x138*/ BYTE  Unknown0x138[0x4c];
+/*0x148*/ BYTE  Unknown0x148[0x48];
 /*0x184*/ DWORD pBuff[0x0f];    // CButton*
 /*0x1C0*/ DWORD Unknown0x1C0;
 /*0x1C4*/ DWORD Unknown0x1C4;
@@ -500,10 +500,10 @@ typedef struct _EQBUFFWINDOW
 // Actual Size 0x17C old
 typedef struct _EQCONTAINERWINDOW {
 /*0x000*/ struct _CSIDLWND Wnd;
-/*0x138*/ struct _CONTENTS*   pContents;     // Pointer to the contents of the container;
+/*0x148*/ struct _CONTENTS*   pContents;     // Pointer to the contents of the container;
                                                  // Matches the pointer in CHARINFO.Inventory/Bank/World
-/*0x13c*/ struct _CSIDLWND*   pSlots[0x0a];
-/*0x164*/ struct _CSIDLWND*   pCombine;
+/*0x14c*/ struct _CSIDLWND*   pSlots[0x0a];
+/*0x000*/ struct _CSIDLWND*   pCombine;
 /*0x168*/ struct _CSIDLWND*   pDone;
 /*0x16c*/ struct _CSIDLWND*   pIcon;
 /*0x170*/ struct _CSIDLWND*   pUnknown;
@@ -555,16 +555,16 @@ typedef struct _MAPLINE { // sizeof() = 0x28
 
 typedef struct _EQLOOTWINDOW {
 /*0x000*/ struct _CSIDLWND Wnd;
-/*0x138*/ BYTE  Unknown0x138[0x0c];
-/*0x144*/ BYTE  Unknown0x144[0x80];
+/*0x148*/ BYTE  Unknown0x148[0x08];
+/*0x000*/ BYTE  Unknown0x144[0x80];
 /*0x1c4*/ PCONTENTS   ItemDesc[0x1e]; //there can only be 30 items on a corpse since that equals 22 inv slots plus 8 bags...
 /*0x23c*/
 } EQLOOTWINDOW, *PEQLOOTWINDOW;
 
 typedef struct _EQNOTESWINDOW {
 /*0x000*/ struct _CSIDLWND Wnd;
-/*0x138*/ BYTE  Unknown0x138[0x08];
-/*0x140*/ struct _CSIDLWND *pEditWnd;
+/*0x148*/ BYTE  Unknown0x148[0x04];
+/*0x14c*/ struct _CSIDLWND *pEditWnd;
 } EQNOTESWINDOW, *PEQNOTESWINDOW;
 
 // Lax 10-29-2003 
@@ -572,7 +572,6 @@ typedef struct _EQNOTESWINDOW {
 typedef struct _EQITEMWINDOW 
 { 
 /*0x000*/ struct _CSIDLWND Wnd; 
-/*0x144*/ BYTE Unknown0x144[0x4]; 
 /*0x148*/ struct _CSIDLWND *DisplayWnd;  // 13c -> 148
 /*0x14c*/ BYTE Unknown0x140[0x4]; 
 /*0x150*/ BYTE Unknown0x148; 
@@ -590,8 +589,8 @@ typedef struct _EQITEMWINDOW
 // Actual Size 0x22c 10-9-2003
 typedef struct _EQMAPWINDOW {
 /*0x000*/ struct _CSIDLWND Wnd;
-/*0x138*/ BYTE Unknown0x138[0x28];
-/*0x160*/ CHAR shortzonename[0x20];
+/*0x148*/ BYTE Unknown0x148[0x24];
+/*0x000*/ CHAR shortzonename[0x20];
 /*0x180*/ BYTE Unknown0x180[0x70];
 /*0x1F0*/ PMAPLINE pLines;
 /*0x1F4*/ PMAPLABEL pLabels;
@@ -606,7 +605,7 @@ typedef struct _EQMAPWINDOW {
 // Spell Window
 typedef struct _EQCASTSPELLWINDOW {
 /*0x000*/ struct _CSIDLWND Wnd;
-/*0x144*/ BYTE Unknown0x134[0x08];
+/*0x148*/ BYTE Unknown0x148[0x04];
 /*0x14c*/  struct _EQCASTSPELLGEM   *SpellSlots[0x8];
 /*0x16c*/  BYTE    Unknown0x160[0x8];
 /*0x174*/  DWORD   spellicon;//if this is equal to FFFFFFFF there is no spell memmed in this slot...
@@ -619,8 +618,8 @@ typedef struct _EQCASTSPELLWINDOW {
 // Actual size 0x188 10-9-2003
 typedef struct _EQCASTSPELLGEM {
 /*0x000*/ struct _CSIDLWND Wnd;
-/*0x138*/ BYTE Unknown0x138[0x0c];
-/*0x144*/         BYTE   Unknown0x144[0x20];
+/*0x148*/ BYTE Unknown0x148[0x08];
+/*0x000*/         BYTE   Unknown0x144[0x20];
 /*0x164*/         BYTE   Unknown0x164[0x8];
 /*0x16c*/         DWORD   spellicon;//if this is equal to FFFFFFFF there is no spell memmed in this slot...
 /*0x170*/         DWORD   spellstate;// 1 = cast in progress or refreshtime not met 2 means we ducked or aborted cast, 0 means its ok to cast
@@ -630,8 +629,8 @@ typedef struct _EQCASTSPELLGEM {
 // Actual size 0x1c4 10-9-2003
 typedef struct _EQHOTBUTTONWINDOW {
 /*0x000*/ struct _CSIDLWND Wnd;
-/*0x138*/ BYTE Unknown0x138[0x10];
-/*0x148*/ DWORD   HotButtonWndView;//0 to 9 for the different views
+/*0x148*/ BYTE Unknown0x138[0xc];
+/*0x000*/ DWORD   HotButtonWndView;//0 to 9 for the different views
 /*0x14c*/ struct _CSIDLWND   *HotButtons[0x0a];//these will change when you switch page...
 /*0x174*/
 } EQHOTBUTTONWINDOW, *PEQHOTBUTTONWINDOW;

@@ -220,6 +220,13 @@ typedef struct _PARMLIST {
 	DWORD (__cdecl *fAddress)(PCHAR, PCHAR, PSPAWNINFO);
 } PARMLIST, *PPARMLIST;
 
+typedef struct _MQXMLFile
+{
+	char szFilename[MAX_PATH];
+	_MQXMLFile *pLast;
+	_MQXMLFile *pNext;
+} MQXMLFILE, *PMQXMLFILE;
+
 typedef struct _MQPlugin
 {
 	char szFilename[MAX_PATH];
@@ -232,6 +239,7 @@ typedef struct _MQPlugin
 	fMQPulse Pulse;
 	fMQIncomingChat IncomingChat;
 	fMQCleanUI CleanUI;
+	fMQReloadUI ReloadUI;
 	fMQDrawHUD DrawHUD;
 	fMQSetGameState SetGameState;
 	struct _MQPlugin* pLast;
@@ -249,5 +257,56 @@ private:
     LPCRITICAL_SECTION pLock;
     BOOL bLocked;
 };
+
+class CCustomWnd : public CSidlScreenWnd
+{
+public:
+	CCustomWnd(const char *screenpiece):CSidlScreenWnd(0,screenpiece,-1,0)
+	{
+		CreateChildrenFromSidl();
+		((CXWnd*)this)->Show(1,1);
+//		CXStr Temp="CloseButton";
+//		DebugTry(CloseButton=(CButtonWnd*)GetChildItem(Temp));
+		ReplacevfTable();
+
+	};
+
+	~CCustomWnd()
+	{
+		RemovevfTable();
+	};
+
+//	int WndNotification(CXWnd *pWnd, unsigned int Message, void *unknown)
+//	{	
+//		return CSidlScreenWnd::WndNotification(pWnd,Message,unknown);
+//	};
+
+	void ReplacevfTable()
+	{
+		OldvfTable=((_CSIDLWND*)this)->pvfTable;
+		PCSIDLWNDVFTABLE NewvfTable=new CSIDLWNDVFTABLE;
+		memcpy(NewvfTable,OldvfTable,sizeof(CSIDLWNDVFTABLE));
+		((_CSIDLWND*)this)->pvfTable=NewvfTable;
+	};
+
+	void RemovevfTable()
+	{
+		PCSIDLWNDVFTABLE NewvfTable=((_CSIDLWND*)this)->pvfTable;
+		((_CSIDLWND*)this)->pvfTable=OldvfTable;
+		delete NewvfTable;
+	}
+
+	void SetvfTable(DWORD index, DWORD value)
+	{
+		DWORD* vtable=(DWORD*)((_CSIDLWND*)this)->pvfTable;
+		vtable[index]=value;
+	}
+
+	inline CXWnd *pXWnd() {return (CXWnd*)this;};
+
+	PCSIDLWNDVFTABLE OldvfTable;
+};
+
 };
 using namespace MQ2Internal;
+

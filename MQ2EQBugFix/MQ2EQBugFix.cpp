@@ -18,9 +18,9 @@ DWORD __cdecl JournalNPCCrash_Detour(DWORD Param)
 	int ToRet=0;
 	__asm
 	{
-		push Param;
-		mov ecx, 60638Ch;
-		mov eax, 404455h;
+		push [Param];
+		mov ecx, 60738Ch;
+		mov eax, 404454h;
 		call eax;
 		mov [ToRet], eax;
 	};
@@ -30,7 +30,7 @@ DWORD __cdecl JournalNPCCrash_Detour(DWORD Param)
 	}
 	return 0;
 }
-DWORD JournalNPCCrash=0x404589;
+DWORD JournalNPCCrash=0x404588;
 
 // Called once, when the plugin is to initialize
 PLUGIN_API VOID InitializePlugin(VOID)
@@ -41,13 +41,13 @@ PLUGIN_API VOID InitializePlugin(VOID)
 	// AddCommand("/mycommand",MyCommand);
 	// AddParm("$myparm(x)",MyParm);
 	// removed after 11-25 patch
-	/*
+	
 	DWORD (__cdecl *pfDetour)(DWORD) = JournalNPCCrash_Detour; 
 	DWORD (__cdecl *pfTrampoline)(DWORD) = JournalNPCCrash_Trampoline; 
 
-	if (pinstCEverQuest==0x0077B298)
+	if (pinstCEverQuest==0x0077BE30)
 		AddDetour(JournalNPCCrash,*(PBYTE*)&pfDetour,*(PBYTE*)&pfTrampoline);
-	*/
+	/**/
 	// do nothing at this time.
 }
 

@@ -40,6 +40,8 @@ CLEAN :
 	-@erase "$(INTDIR)\MQ2UserVars.sbr"
 	-@erase "$(INTDIR)\MQ2Utilities.obj"
 	-@erase "$(INTDIR)\MQ2Utilities.sbr"
+	-@erase "$(INTDIR)\MQ2Windows.obj"
+	-@erase "$(INTDIR)\MQ2Windows.sbr"
 	-@erase "$(INTDIR)\vc60.idb"
 	-@erase "$(OUTDIR)\MQ2Main.dll"
 	-@erase "$(OUTDIR)\MQ2Main.exp"
@@ -67,7 +69,8 @@ LINK32_OBJS= \
 	"$(INTDIR)\MQ2PluginHandler.obj" \
 	"$(INTDIR)\MQ2Pulse.obj" \
 	"$(INTDIR)\MQ2UserVars.obj" \
-	"$(INTDIR)\MQ2Utilities.obj"
+	"$(INTDIR)\MQ2Utilities.obj" \
+	"$(INTDIR)\MQ2Windows.obj"
 
 "$(OUTDIR)\MQ2Main.dll" : "$(OUTDIR)" $(DEF_FILE) $(LINK32_OBJS)
     -@!if "$(USERNAME)" == "Zerix"  nmake clean
@@ -170,6 +173,10 @@ SOURCE=.\MQ2UserVars.cpp
 SOURCE=.\MQ2Utilities.cpp
 
 "$(INTDIR)\MQ2Utilities.obj"	"$(INTDIR)\MQ2Utilities.sbr" : $(SOURCE) "$(INTDIR)"
+
+SOURCE=.\MQ2Windows.cpp
+
+"$(INTDIR)\MQ2Windows.obj"	"$(INTDIR)\MQ2Windows.sbr" : $(SOURCE) "$(INTDIR)"
 
 
 

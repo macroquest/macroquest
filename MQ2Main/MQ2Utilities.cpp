@@ -329,8 +329,14 @@ VOID GetCXStr(PCXSTR pCXStr, PCHAR szBuffer, DWORD maxlen)
 	if (pCXStr->Encoding==0)
 	{
 		if (pCXStr->Length<maxlen)
-			maxlen=pCXStr->Length;
-		strncpy(szBuffer,pCXStr->Text,maxlen);
+		{
+			strcpy(szBuffer,pCXStr->Text);
+		}
+		else
+		{
+			strncpy(szBuffer,pCXStr->Text,maxlen);
+			szBuffer[maxlen-1]=0;
+		}
 	}
 	else
 	{ // unicode

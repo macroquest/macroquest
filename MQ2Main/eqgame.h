@@ -81,7 +81,7 @@
 #define pinstCTimeLeftWnd                               0x00608554
 
 
-
+#define pinstCSidlManager           0x0078FCEC
 #define pinstCDisplay               0x0071E8E4
 #define pinstCEverQuest               0x0077BE30   // UNCHANGED !?
 #define pinstPCData               0x0071E8C0
@@ -150,6 +150,7 @@
 #define CLabel__Draw               0x004F906E
 
 // CDisplay
+#define CDisplay__ReloadUI				0x00416730
 #define CDisplay__CleanGameUI            0x0040FC96
 #define CDisplay__GetClickedActor         0x0040BB72
 #define CDisplay__WriteTextHD2            0x004105CC
@@ -172,3 +173,16 @@
 // MapViewMap
 #define MapViewMap__SaveEx            0x004FB09D
 #define EQ_PC__DestroyHeldItemOrMoney         0x00431D74
+
+// CSidlScreenWnd
+#define CSidlScreenWnd__CSidlScreenWnd1			0x0053EBD0
+#define CSidlScreenWnd__dCSidlScreenWnd			0x0053E270
+#define CSidlScreenWnd__CreateChildrenFromSidl	0x0053D5F0
+#define CSidlScreenWnd__GetChildItem			0x0053CF50
+#define CSidlScreenWnd__WndNotification         0x0053D170
+
+// CSidlManager
+#define CSidlManager__FindScreenPieceTemplate1	0x005532C0
+
+// CXMLSOMDocumentBase
+#define CXMLSOMDocumentBase__XMLRead			0x54A700

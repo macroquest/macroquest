@@ -1,4 +1,4 @@
-#define VersionString "20031128a"
+#define VersionString "20031203"
 #define DebugHeader "[MQ2]"
 #define LoadedString "MQ2 Loaded."
 #define ToUnloadString "MQ2 Unloading..."
@@ -72,6 +72,26 @@ extern DWORD CountFrees;
 	__asm{jmp eax};\
 }
 
+#define SetWndNotification(thisclass) \
+{\
+	int (thisclass::*pfWndNotification)(CXWnd *pWnd, unsigned int Message, void *unknown)=WndNotification;\
+	SetvfTable(32,*(DWORD*)&pfWndNotification);\
+}
+
+#define EasyClassDetour(offset,detourclass,detourname,returntype,parameters,trampolinename)\
+{\
+	returntype (detourclass::*pfDetour)parameters = detourclass::detourname; \
+	returntype (detourclass::*pfTrampoline)parameters = detourclass::trampolinename; \
+	AddDetour(offset,*(PBYTE*)&pfDetour,*(PBYTE*)&pfTrampoline);\
+}
+
+#define EasyDetour(offset,detourname,returntype,parameters,trampolinename)\
+{\
+	returntype (*pfDetour)parameters = detourname; \
+	returntype (*pfTrampoline)parameters = trampolinename; \
+	AddDetour(offset,*(PBYTE*)&pfDetour,*(PBYTE*)&pfTrampoline);\
+}
+
 #ifndef DOUBLE
 typedef double DOUBLE;
 #endif
@@ -98,6 +118,11 @@ typedef double DOUBLE;
 #include "MQ2Internal.h"
 #include "MQ2Globals.h"
 
+/* WINDOWS */
+EQLIB_API VOID InitializeMQ2Windows();
+EQLIB_API VOID ShutdownMQ2Windows();
+EQLIB_API void RemoveXMLFile(const char *filename);
+EQLIB_API void AddXMLFile(const char *filename);
 
 /* CHAT HOOK */
 EQLIB_API VOID InitializeChatHook();
@@ -120,6 +145,7 @@ EQLIB_API VOID PluginsZoned();
 EQLIB_API VOID PluginsIncomingChat(PCHAR Line, DWORD Color);
 EQLIB_API VOID RewriteMQ2Plugins(VOID);
 EQLIB_API VOID PluginsCleanUI();
+EQLIB_API VOID PluginsReloadUI();
 EQLIB_API VOID PluginsSetGameState(DWORD GameState);
 EQLIB_API VOID PluginsDrawHUD();
 
@@ -449,6 +475,8 @@ EQLIB_API VOID ZapVars                             (PSPAWNINFO,PCHAR);
 #define GAMESTATE_PRECHARSELECT 6
 #define GAMESTATE_LOGGINGIN     253
 #define GAMESTATE_UNLOADING     255
+
+#define XWM_LCLICK				1
 
 #define MAX_ITEM4xx			416
 

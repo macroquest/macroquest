@@ -64,10 +64,12 @@ DETOUR_TRAMPOLINE_EMPTY(VOID CChatHook::Trampoline(PCHAR szMsg, DWORD dwColor, D
 VOID InitializeChatHook()
 {
 	DebugSpew("Initializing chat hook");
-	void (CChatHook::*pfDetour)(PCHAR szMsg, DWORD dwColor, DWORD dwUnknown) = CChatHook::Detour; 
-	void (CChatHook::*pfTrampoline)(PCHAR szMsg, DWORD dwColor, DWORD dwUnknown) = CChatHook::Trampoline; 
 
-	AddDetour((DWORD) CEverQuest__dsp_chat,*(PBYTE*)&pfDetour,*(PBYTE*)&pfTrampoline);
+//	void (CChatHook::*pfDetour)(PCHAR szMsg, DWORD dwColor, DWORD dwUnknown) = CChatHook::Detour; 
+//	void (CChatHook::*pfTrampoline)(PCHAR szMsg, DWORD dwColor, DWORD dwUnknown) = CChatHook::Trampoline; 
+//	AddDetour((DWORD) CEverQuest__dsp_chat,*(PBYTE*)&pfDetour,*(PBYTE*)&pfTrampoline);
+
+	EasyClassDetour(CEverQuest__dsp_chat,CChatHook,Detour,void,(PCHAR szMsg, DWORD dwColor, DWORD dwUnknown),Trampoline);
 
 }
 

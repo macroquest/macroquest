@@ -20,6 +20,7 @@ PLUGIN_API VOID InitializePlugin(VOID)
 	// Add commands, macro parameters, hooks, etc.
 	// AddCommand("/mycommand",MyCommand);
 	// AddParm("$myparm(x)",MyParm);
+	// AddXMLFile("MQUI_MyXMLFile.xml");
 }
 
 // Called once, when the plugin is to shutdown
@@ -30,6 +31,7 @@ PLUGIN_API VOID ShutdownPlugin(VOID)
 	// Remove commands, macro parameters, hooks, etc.
 	// RemoveParm("$myparm(x)");
 	// RemoveCommand("/mycommand");
+	// RemoveXMLFile("MQUI_MyXMLFile.xml");
 }
 
 // Called after entering a new zone
@@ -38,11 +40,19 @@ PLUGIN_API VOID OnZoned(VOID)
 	DebugSpewAlways("MQ2Template::OnZoned()");
 }
 
-// Called once directly before shutdown of the cleanui system, and also
+// Called once directly before shutdown of the new ui system, and also
 // every time the game calls CDisplay::CleanGameUI()
 PLUGIN_API VOID OnCleanUI(VOID)
 {
 	DebugSpewAlways("MQ2Template::OnCleanUI()");
+	// destroy custom windows, etc
+}
+
+// Called once directly after the game ui is reloaded, after issuing /loadskin
+PLUGIN_API VOID OnReloadUI(VOID)
+{
+	DebugSpewAlways("MQ2Template::OnReloadUI()");
+	// recreate custom windows, etc
 }
 
 // Called every frame that the "HUD" is drawn -- e.g. net status / packet loss bar
@@ -56,6 +66,8 @@ PLUGIN_API VOID OnDrawHUD(VOID)
 PLUGIN_API VOID SetGameState(DWORD GameState)
 {
 	DebugSpewAlways("MQ2Template::SetGameState()");
+	// if (GameState==GAMESTATE_INGAME)
+	// create custom windows if theyre not set up, etc
 }
 
 

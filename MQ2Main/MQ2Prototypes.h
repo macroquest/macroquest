@@ -24,6 +24,7 @@ typedef DWORD  (__cdecl *fMQIncomingChat)(PCHAR Line, DWORD Color);
 typedef VOID  (__cdecl *fMQInitializePlugin)(VOID);
 typedef VOID  (__cdecl *fMQShutdownPlugin)(VOID);
 typedef VOID  (__cdecl *fMQZoned)(VOID);
+typedef VOID  (__cdecl *fMQReloadUI)(VOID);
 typedef VOID  (__cdecl *fMQCleanUI)(VOID);
 typedef VOID  (__cdecl *fMQDrawHUD)(VOID);
 typedef VOID  (__cdecl *fMQSetGameState)(DWORD GameState);

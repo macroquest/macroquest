@@ -88,6 +88,8 @@ BOOL ParseINIFile(PCHAR lpINIPath)
     struct _stat stat;
     int client;
     BOOL clientOverride = FALSE;
+   GetEQPath(gszEQPath);
+
 
     sprintf(Filename,"%s\\MacroQuest.ini",lpINIPath);
     sprintf(ClientINI,"%s\\eqgame.ini",lpINIPath);
@@ -374,7 +376,9 @@ DWORD WINAPI MQ2Start(LPVOID lpParameter)
 	InitializeChatHook();
 	InitializeMQ2Pulse();
 	InitializeMQ2Commands();
+	InitializeMQ2Windows();
 	InitializeMQ2Plugins();
+
 	while (gGameState != GAMESTATE_INGAME) Sleep(500);
 	InitializeMQ2DInput();
 
@@ -394,6 +398,7 @@ DWORD WINAPI MQ2Start(LPVOID lpParameter)
 	ShutdownChatHook();
 	ShutdownMQ2Pulse();
 	ShutdownMQ2Plugins();
+	ShutdownMQ2Windows();
 	ShutdownParser();
 	ShutdownMQ2Commands();
 	ShutdownMQ2Detours();

@@ -1,3 +1,15 @@
+03 Dec 2003 by Lax
+- Added custom windows system:
+** CCustomWnd base class for your windows
+** AddXMLFile, RemoveXMLFile to manage custom xml files
+** More info / example coming
+- Added MQ2IRC plugin to CVS with some changes
+- Added MQ2EQIM plugin, which handles buddy list info (custom window soon, also auto loading buddy list)
+- Updated MQ2EQBugFix plugin to solve current journal npc window crash (and it shouldnt make it not show anything this time)
+- Added OnReloadUI callback, called after /loadskin command is used
+- Fixed hangups compiling with VC6
+- Added EasyDetour and EasyClassDetour to ease the pain of hooking functions
+
 02 Dec 2003 by Mckorr
 - Fixed SHA in short classes, is now SHM.  Added Rogue/ROG (I missed that one before)
 - Added $spawn(#,sclass)

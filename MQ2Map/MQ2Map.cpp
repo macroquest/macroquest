@@ -53,9 +53,11 @@ PLUGIN_API VOID InitializePlugin(VOID)
 	AddCommand("/mapfilter",MapFilters,0,1);
 
 	// Hooks
-	void (MapViewMapHook::*pfDetour)(PCHAR szZonename, DWORD Layer) = MapViewMapHook::SaveEx_Detour; 
-	void (MapViewMapHook::*pfTrampoline)(PCHAR szZonename, DWORD Layer) = MapViewMapHook::SaveEx_Trampoline; 
-	AddDetour(MapViewMap__SaveEx,*(PBYTE*)&pfDetour,*(PBYTE*)&pfTrampoline);
+//	void (MapViewMapHook::*pfDetour)(PCHAR szZonename, DWORD Layer) = MapViewMapHook::SaveEx_Detour; 
+//	void (MapViewMapHook::*pfTrampoline)(PCHAR szZonename, DWORD Layer) = MapViewMapHook::SaveEx_Trampoline; 
+//	AddDetour(MapViewMap__SaveEx,*(PBYTE*)&pfDetour,*(PBYTE*)&pfTrampoline);
+
+	EasyClassDetour(MapViewMap__SaveEx,MapViewMapHook,SaveEx_Detour,void,(PCHAR szZonename, DWORD Layer),SaveEx_Trampoline);
 }
 
 // Called once, when the plugin is to shutdown

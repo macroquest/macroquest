@@ -6902,6 +6902,12 @@ REVERSE_DETOUR(unsigned int  CRC32Generator::generateCRC32(unsigned char const *
 #ifdef CRC32Generator__updateCRC32
 REVERSE_DETOUR(unsigned int  CRC32Generator::updateCRC32(unsigned int,unsigned char const *,unsigned int)const ,CRC32Generator__updateCRC32);
 #endif
+#ifdef CSidlScreenWnd__dCSidlScreenWnd
+REVERSE_DETOUR( CSidlScreenWnd::~CSidlScreenWnd(void),CSidlScreenWnd__dCSidlScreenWnd);
+#endif
+#ifdef CSidlScreenWnd__WndNotification
+REVERSE_DETOUR( int CSidlScreenWnd::WndNotification(class CXWnd *,unsigned __int32,void *),CSidlScreenWnd__WndNotification);
+#endif
 #ifdef CSidlScreenWnd__CSidlScreenWnd
 REVERSE_DETOUR( CSidlScreenWnd::CSidlScreenWnd(class CXWnd *,unsigned __int32,class CXRect,class CXStr),CSidlScreenWnd__CSidlScreenWnd);
 #endif
@@ -6960,7 +6966,7 @@ REVERSE_DETOUR(void  CSidlScreenWnd::EnableIniStorage(int,char *),CSidlScreenWnd
 REVERSE_DETOUR(int  CSidlScreenWnd::ConvertToRes(int,int,int,int),CSidlScreenWnd__ConvertToRes);
 #endif
 #ifdef CSidlScreenWnd__GetChildItem
-REVERSE_DETOUR(class CXWnd *  CSidlScreenWnd::GetChildItem(class CXStr)const ,CSidlScreenWnd__GetChildItem);
+REVERSE_DETOUR(class CXWnd *  CSidlScreenWnd::GetChildItem(class CXStr&)const ,CSidlScreenWnd__GetChildItem);
 #endif
 #ifdef CSidlScreenWnd__LoadIniListWnd
 REVERSE_DETOUR(void  CSidlScreenWnd::LoadIniListWnd(class CListWnd *,char *),CSidlScreenWnd__LoadIniListWnd);

@@ -112,8 +112,8 @@ void RemoveOurDetours()
 	{
 		if (ourdetours->pfDetour)
 		{
-			DetourRemove(ourdetours->pfTrampoline, 
-			ourdetours->pfDetour); 				
+			DebugSpew("RemoveOurDetours() -- Removing %X",ourdetours->addr);
+			DetourRemove(ourdetours->pfTrampoline,ourdetours->pfDetour); 				
 		}
 		else
 		{

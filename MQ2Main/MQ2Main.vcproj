@@ -137,6 +137,9 @@
 			<File
 				RelativePath="MQ2Utilities.cpp">
 			</File>
+			<File
+				RelativePath="MQ2Windows.cpp">
+			</File>
 		</Filter>
 		<Filter
 			Name="Header Files"
