@@ -34,7 +34,7 @@
 ////
 #define pinstCConfirmationDialog                                0x621324
 #define pinstCFacePick                                          0x62132C 
-#define pinstTextMessageWnd										0x621330 //New
+#define pinstTextMessageWnd										0x621330 
 #define pinstCNoteWnd                                           0x621334
 #define pinstCHelpWnd                                           0x621338
 #define pinstCBookWnd                                           0x62133C
@@ -104,16 +104,16 @@
 #define pinstCAdventureMerchantWnd                              0x79CD30 
 #define pinstCAdventureStatsWnd                                 0x79CD60
 #define pinstCChatManager                                       0x79cfb0
-#define pinstCDynamicZoneWnd									0x79D07C //new
+#define pinstCDynamicZoneWnd									0x79D07C 
 #define pinstCFindLocationWnd                                   0x79D10C 
 #define pinstCGroupSearchWnd                                    0x79D188 
 #define pinstCGroupWnd                                          0x79D1A0
 #define pinstCGuildMgmtWnd                                      0x79D1B8 
 #define pinstCSystemInfoDialogBox                               0x79DC84
-#define pinstCTargetOfTargetWnd									0x79DC9C //new
+#define pinstCTargetOfTargetWnd									0x79DC9C 
 #define pinstCTipWndOFDAY                                       0x79DD04 
 #define pinstCTipWndCONTEXT                                     0x79DD08 
-#define pinstCTradeskillWnd										0x79DD34 //new
+#define pinstCTradeskillWnd										0x79DD34 
 #define pinstCTributeBenefitWnd                                 0x79DD74 
 #define pinstCTributeMasterWnd									0x79DD8C 
 #define pinstCContextMenuManager                                0x7A86C0 
