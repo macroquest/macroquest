@@ -552,6 +552,7 @@ BOOL dataIni(PCHAR szIndex, MQ2TYPEVAR &Ret)
 	{
 		if (pTemp[0]=='/')
 			pTemp[0]='\\';
+		pTemp++;
 	}
 
 	if (pIniFile[0]!='\\' && !strchr(pIniFile,':'))

@@ -1,5 +1,7 @@
 26 Apr 2004 by Lax:
 - Various error messages have been updated to be more specific.
+- Fixed FindInvSlotForContents function (used in item.InvSlot.  item.InvSlot will no longer
+  give NULL for valid items in your inventory/bank)
 - Sub parameters (including those for events) are now allowed to have a type other than 
   string, when MQ2DataVars is enabled, like so:
   Sub MySub(int A, string B, float C)
