@@ -60,8 +60,8 @@ using namespace std;
 #define FromPlugin 0
 #endif
 
-#define USEMQ2PARMS
-//#define USEMQ2DATATYPES
+//#define USEMQ2PARMS
+#define USEMQ2DATATYPES
 
 
 // reroute malloc/free
@@ -509,6 +509,7 @@ EQLIB_API BOOL dataTime(PCHAR szIndex, MQ2TYPEVAR &Ret);
 EQLIB_API BOOL dataIni(PCHAR szIndex, MQ2TYPEVAR &Ret);
 EQLIB_API BOOL dataHeading(PCHAR szIndex, MQ2TYPEVAR &Ret);
 EQLIB_API BOOL dataDefined(PCHAR szIndex, MQ2TYPEVAR &Ret);
+EQLIB_API BOOL dataLastSpawn(PCHAR szIndex, MQ2TYPEVAR &Ret);
 
 /* COMMANDS */
 EQLIB_VAR VOID DeleteVarCmd(PSPAWNINFO pChar, PCHAR szLine);

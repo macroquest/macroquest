@@ -377,6 +377,44 @@ BOOL dataCursor(PCHAR szIndex, MQ2TYPEVAR &Ret)
 	return false;
 }
 
+BOOL dataLastSpawn(PCHAR szIndex, MQ2TYPEVAR &Ret)
+{
+	if (szIndex[0])
+	{
+		if (szIndex[0]>='0' && szIndex[0]<='9')
+		{
+			unsigned long N=atoi(szIndex)-1;
+			PSPAWNINFO pSpawn=(PSPAWNINFO)pSpawnList;
+			while(N)
+			{
+				pSpawn=pSpawn->pNext;
+				if (!pSpawn)
+					return false;
+				N--;
+			}
+		}
+		else if (szIndex[0]=='-')
+		{
+			unsigned long N=atoi(&szIndex[1])-1;
+			PSPAWNINFO pSpawn=(PSPAWNINFO)pLocalPlayer;
+			while(N)
+			{
+				pSpawn=pSpawn->pPrev;
+				if (!pSpawn)
+					return false;
+				N--;
+			}
+		}
+	}
+	else
+	{
+		Ret.Ptr=pSpawnList;
+		Ret.Type=pSpawnType;
+		return true;
+	}
+	return false;
+}
+
 BOOL dataNearestSpawn(PCHAR szIndex, MQ2TYPEVAR &Ret)
 {
 	if (szIndex[0])

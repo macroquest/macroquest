@@ -908,7 +908,7 @@ FLOAT EstimatedDistanceToSpawn(PSPAWNINFO pChar, PSPAWNINFO pSpawn)
 // ***************************************************************************
 DWORD ConColor(PSPAWNINFO pSpawn)
 {
-	PSPAWNINFO pChar=(PSPAWNINFO)pCharSpawn;
+	PSPAWNINFO pChar=(PSPAWNINFO)pLocalPlayer;
       int Diff = pSpawn->Level-pChar->Level;
    if (PVPServer!=PVP_NONE && pSpawn->Type==SPAWN_PLAYER)
    {
@@ -1148,6 +1148,8 @@ BOOL ItemMatchesSearch(SEARCHITEM &SearchItem, PCONTENTS pContents)
 
 BOOL SearchThroughItems(SEARCHITEM &SearchItem, PCONTENTS* pResult, DWORD *nResult)
 {
+	// TODO
+
 #define Result(pcontents,nresult) 	{\
 	if (pResult) \
 		*pResult=pcontents;\
@@ -1165,9 +1167,6 @@ BOOL SearchThroughItems(SEARCHITEM &SearchItem, PCONTENTS* pResult, DWORD *nResu
 			if (ItemMatchesSearch(SearchItem,pContents))
 				Result(pContents,N);
 		}
-		if (PCONTENTS pContents=pChar->InventoryArray[29])
-		if (ItemMatchesSearch(SearchItem,pContents))
-			Result(pContents,29);
 	}
 
 	if (MaskSet(Inventory) && Flag(Inventory))

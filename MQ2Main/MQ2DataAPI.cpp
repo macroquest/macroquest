@@ -143,6 +143,7 @@ void InitializeMQ2Data()
 	AddMQ2Data("Ini",dataIni);
 	AddMQ2Data("Heading",dataHeading);
 	AddMQ2Data("Defined",dataDefined);
+	AddMQ2Data("LastSpawn",dataLastSpawn);
 }
 
 

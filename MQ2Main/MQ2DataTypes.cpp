@@ -232,14 +232,29 @@ bool MQ2SpawnType::GetMember(MQ2VARPTR VarPtr, PCHAR Member, PCHAR Index, MQ2TYP
 		Dest.Type=pStringType;
 		Dest.Ptr=&DataTypeTemp[0];
 		return true;
+	case E:
+		Dest.Type=pFloatType;
+		Dest.Float=-pSpawn->X;
+		return true;
+	case W:
 	case X:
 		Dest.Type=pFloatType;
 		Dest.Float=pSpawn->X; 
 		return true;
+	case S:
+		Dest.Type=pFloatType;
+		Dest.Float=-pSpawn->Y;
+		return true;
+	case N:
 	case Y:
 		Dest.Type=pFloatType;
 		Dest.Float=pSpawn->Y; 
 		return true;
+	case D:
+		Dest.Type=pFloatType;
+		Dest.Float=-pSpawn->Z;
+		return true;
+	case U:
 	case Z:
 		Dest.Type=pFloatType;
 		Dest.Float=pSpawn->Z;
@@ -421,14 +436,17 @@ bool MQ2SpawnType::GetMember(MQ2VARPTR VarPtr, PCHAR Member, PCHAR Index, MQ2TYP
 		Dest.Float=EstimatedDistanceToSpawn((PSPAWNINFO)pCharSpawn,pSpawn);
 		Dest.Type=pFloatType;
 		return true;
+	case DistanceW:
 	case DistanceX:
 		Dest.Float=(FLOAT)fabs(((PSPAWNINFO)pCharSpawn)->X-pSpawn->X);
 		Dest.Type=pFloatType;
 		return true;
+	case DistanceN:
 	case DistanceY:
 		Dest.Float=(FLOAT)fabs(((PSPAWNINFO)pCharSpawn)->Y-pSpawn->Y);
 		Dest.Type=pFloatType;
 		return true;
+	case DistanceU:
 	case DistanceZ:
 		Dest.Float=(FLOAT)fabs(((PSPAWNINFO)pCharSpawn)->Z-pSpawn->Z);
 		Dest.Type=pFloatType;
@@ -902,7 +920,15 @@ bool MQ2CharacterType::GetMember(MQ2VARPTR VarPtr, PCHAR Member, PCHAR Index, MQ
 			}
 			else
 			{
-				// TODO slot by name
+				for (unsigned long nSlot=0 ; szItemSlot[nSlot] ; nSlot++)
+				{
+					if (!stricmp(Index,szItemSlot[nSlot]))
+					{
+						Dest.Ptr=pChar->InventoryArray[nSlot];
+						Dest.Type=pItemType;
+						return true;
+					}
+				}
 			}
 		}
 		return false;
@@ -1024,7 +1050,7 @@ bool MQ2CharacterType::GetMember(MQ2VARPTR VarPtr, PCHAR Member, PCHAR Index, MQ
 				if (nSkill<0x64)
 				{
 					Dest.DWord=pChar->Skill[nSkill];
-					Dest.Ptr=pIntType;
+					Dest.Type=pIntType;
 					return true;
 				}
 			}
@@ -1035,7 +1061,7 @@ bool MQ2CharacterType::GetMember(MQ2VARPTR VarPtr, PCHAR Member, PCHAR Index, MQ
 					if (!stricmp(Index,szSkills[nSkill]))
 					{
 						Dest.DWord=pChar->Skill[nSkill];
-						Dest.Ptr=pIntType;
+						Dest.Type=pIntType;
 						return true;
 					}
 			}
@@ -1097,11 +1123,8 @@ bool MQ2CharacterType::GetMember(MQ2VARPTR VarPtr, PCHAR Member, PCHAR Index, MQ
 			if (Index[0]>='0' && Index[0]<='9')
 			{
 				// numeric
-				if (unsigned long nSkill=atoi(Index)-1)
+				if (unsigned long nSkill=atoi(Index))
 				{
-//					if (nSkill>9)
-//						return false;
-					
 					if (nSkill<7)
 					{
 						nSkill+=3;
@@ -1115,7 +1138,7 @@ bool MQ2CharacterType::GetMember(MQ2VARPTR VarPtr, PCHAR Member, PCHAR Index, MQ
 					/**/
                     if (EQADDR_DOABILITYLIST[nSkill]!=0xFFFFFFFF)
 					{
-						Dest.DWord=EQADDR_DOABILITYAVAILABLE[nSkill];
+						Dest.DWord=EQADDR_DOABILITYAVAILABLE[EQADDR_DOABILITYLIST[nSkill]];
 						Dest.Type=pBoolType;
 						return true;
 					}
@@ -1137,7 +1160,7 @@ bool MQ2CharacterType::GetMember(MQ2VARPTR VarPtr, PCHAR Member, PCHAR Index, MQ
 								nAbility+=7;
 							else
 								nAbility-=3;
-							Dest.DWord=EQADDR_DOABILITYAVAILABLE[nAbility];
+							Dest.DWord=EQADDR_DOABILITYAVAILABLE[nSkill];
 							Dest.Type=pBoolType;
 							return true;
 						}
@@ -1474,6 +1497,10 @@ bool MQ2ItemType::GetMember(MQ2VARPTR VarPtr, PCHAR Member, PCHAR Index, MQ2TYPE
 			}
 		}
 		return false;
+	case Stackable:
+		Dest.DWord=pItem->Item->Stackable;
+		Dest.Type=pBoolType;
+		return true;
 	/*
 		Price=15,
 		Haste=16,
@@ -1851,14 +1878,17 @@ bool MQ2CurrentZoneType::GetMember(MQ2VARPTR VarPtr, PCHAR Member, PCHAR Index, 
 		Dest.DWord=pZone->SkyType;
 		Dest.Type=pIntType;
 		return true;
+	case SafeN:
 	case SafeY:
-		Dest.Float=pZone->SafeXLoc;
-		Dest.Type=pFloatType;
-		return true;
-	case SafeX:
 		Dest.Float=pZone->SafeYLoc;
 		Dest.Type=pFloatType;
 		return true;
+	case SafeW:
+	case SafeX:
+		Dest.Float=pZone->SafeXLoc;
+		Dest.Type=pFloatType;
+		return true;
+	case SafeU:
 	case SafeZ:
 		Dest.Float=pZone->SafeZLoc;
 		Dest.Type=pFloatType;
@@ -2006,26 +2036,32 @@ bool MQ2SwitchType::GetMember(MQ2VARPTR VarPtr, PCHAR Member, PCHAR Index, MQ2TY
 		Dest.DWord=pSwitch->ID;
 		Dest.Type=pIntType;
 		return true;
+	case W:
 	case X:
 		Dest.Float=pSwitch->X;
 		Dest.Type=pFloatType;
 		return true;
+	case N:
 	case Y:
 		Dest.Float=pSwitch->Y;
 		Dest.Type=pFloatType;
 		return true;
+	case U:
 	case Z:
 		Dest.Float=pSwitch->Z;
 		Dest.Type=pFloatType;
 		return true;
+	case DefaultW:
 	case DefaultX:
 		Dest.Float=pSwitch->DefaultX;
 		Dest.Type=pFloatType;
 		return true;
+	case DefaultN:
 	case DefaultY:
 		Dest.Float=pSwitch->DefaultY;
 		Dest.Type=pFloatType;
 		return true;
+	case DefaultU:
 	case DefaultZ:
 		Dest.Float=pSwitch->DefaultZ;
 		Dest.Type=pFloatType;
@@ -2077,14 +2113,17 @@ bool MQ2GroundType::GetMember(MQ2VARPTR VarPtr, PCHAR Member, PCHAR Index, MQ2TY
 		Dest.DWord=pGround->ID;
 		Dest.Type=pIntType;
 		return true;
+	case W:
 	case X:
 		Dest.Float=pGround->X;
 		Dest.Type=pFloatType;
 		return true;
+	case N:
 	case Y:
 		Dest.Float=pGround->Y;
 		Dest.Type=pFloatType;
 		return true;
+	case U:
 	case Z:
 		Dest.Float=pGround->Z;
 		Dest.Type=pFloatType;
@@ -2310,6 +2349,10 @@ bool MQ2HeadingType::GetMember(MQ2VARPTR VarPtr, PCHAR Member, PCHAR Index, MQ2T
 		Dest.Float=Heading;
 		Dest.Type=pFloatType;
 		return true;
+	case DegreesCCW:
+		Dest.Float=VarPtr.Float;
+		Dest.Type=pFloatType;
+		return true;
 	case ShortName:
 		Dest.Ptr=szHeadingNormalShort[(INT)(Heading/ 22.5f + 0.5f)%16];
 		Dest.Type=pStringType;
@@ -2335,6 +2378,10 @@ bool MQ2CorpseType::GetMember(MQ2VARPTR VarPtr, PCHAR Member, PCHAR Index, MQ2TY
 
 	switch((CorpseMembers)pMember->ID)
 	{
+	case Open:
+		Dest.DWord=1; // obviously, since we're this far ;)
+		Dest.Type=pBoolType;
+		return true;
 	case Item:
 		if (Index[0])
 		{
@@ -2385,6 +2432,10 @@ bool MQ2MerchantType::GetMember(MQ2VARPTR VarPtr, PCHAR Member, PCHAR Index, MQ2
 
 	switch((MerchantMembers)pMember->ID)
 	{
+	case Open:
+		Dest.DWord=1; // obviously, since we're this far ;)
+		Dest.Type=pBoolType;
+		return true;
 	case Item:
 		if (Index[0])
 		{

@@ -573,7 +573,7 @@ VOID TimedCommand(PCHAR Command, DWORD msDelay)
 	
 	// insert into list
 
-	if (!pTimedCommands || pTimedCommands->Time<=pNew->Time)
+	if (!pTimedCommands || pTimedCommands->Time>=pNew->Time)
 	{
 		pNew->pNext=pTimedCommands;
 		pNew->pLast=0;

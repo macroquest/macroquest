@@ -1,7 +1,33 @@
 9 Apr 2004 by Lax:
 - MQ2Data changes:
-  * Swapped Y and X back to being backwards-backwards or backwards-forwards, or whatever they
-    originally were
+  -- Swapped Y and X back to being backwards-backwards or backwards-forwards, or whatever they
+     originally were
+  -- Added "NWU" coordinates (North/West/Up), the three positively oriented directions in EQ.  
+     Spawns also have a shortcut for SED (South/East/Down).  All type member names involving 
+     XYZ have a NWU complement (none necessary for the "index" bracketed part, of Heading[y,x] 
+     for example)
+  -- Fixed AbilityReady
+  Top Level Objects
+  * spawn LastSpawn: The last spawn chronologically.
+  * spawn LastSpawn[n]: The nth from last spawn.. LastSpawn[1] is the LastSpawn.. LastSpawn[2] is 2nd from last, LastSpawn[3] is 3rd from last, and so on
+  * spawn LastSpawn[-n]: The nth from FIRST spawn.. LastSpawn[-1] is you, LastSpawn[-2] is the second spawn, LastSpawn[-3] is the third spawn, and so on
+  Additions/Changes to existing types:
+  * heading Heading[y,x]: Heading from player's current position to y,x
+  * float math.Distance[y,x,z:y,x,z]: Performs distance calculations in 1, 2 or 3 dimensions.
+    Any not given will default to your character's current x y or z.
+  * bool item.Stackable: Stackable?
+  * bool merchant.Open: Merchant open?
+  * float merchant.Markup: The amount used to calculate item values on this merchant 
+    (Markup is what your charisma, faction, etc change).  Markup*Cost=Merchant's sell price.
+    Cost*(1/Markup)=Your sell price. Markup of 1.05 is highest no matter what, so there might
+    not be any actual cap based on charisma.
+  * int merchant.Items: Item count on the merchant
+  * item merchant.Item[n]: nth item on the merchant  
+  * bool corpse.Open: Corpse open?
+  * int corpse.Items: Item count on the corpse
+  * item corpse.Item[n]: nth item on the corpse
+  * item character.Inventory[slotname]: Item in this slot (inventory slots only, but 
+    same names as /itemnotify)
 
 8 Apr 2004 by Lax (more)
 - MQ2Data changes:

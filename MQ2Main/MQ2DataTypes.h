@@ -420,6 +420,15 @@ public:
 		Animation=48,
 		Holding=49,
 		Look=50,
+		N=51,
+		W=52,
+		U=53,
+		S=54,
+		E=55,
+		D=56,
+		DistanceN=57,
+		DistanceW=58,
+		DistanceU=59,
 	};
 	MQ2SpawnType():MQ2Type("spawn")
 	{
@@ -471,6 +480,15 @@ public:
 		TypeMember(Animation);
 		TypeMember(Holding);
 		TypeMember(Look);
+		TypeMember(N);
+		TypeMember(W);
+		TypeMember(U);
+		TypeMember(S);
+		TypeMember(E);
+		TypeMember(D);
+		TypeMember(DistanceN);//7,
+		TypeMember(DistanceW);//8,
+		TypeMember(DistanceU);//9,
 	}
 
 	~MQ2SpawnType()
@@ -851,6 +869,7 @@ public:
 		Items=76,
 		Item=77,
 		Container=78,
+		Stackable=79,
 	};
 	MQ2ItemType():MQ2Type("Item")
 	{
@@ -932,6 +951,7 @@ public:
 		TypeMember(Items);
 		TypeMember(Item);
 		TypeMember(Container);
+		TypeMember(Stackable);
 	}
 
 	~MQ2ItemType()
@@ -968,6 +988,12 @@ public:
 		Open=11,
 		HeadingTo=12,
 		Name=13,
+		N=14,
+		W=15,
+		U=16,
+		DefaultN=17,
+		DefaultW=18,
+		DefaultU=19,
 	};
 	MQ2SwitchType():MQ2Type("switch")
 	{
@@ -1016,6 +1042,9 @@ public:
 		Heading=6,
 		Name=7,
 		HeadingTo=8,
+		N=9,
+		W=10,
+		U=11,
 	};
 	MQ2GroundType():MQ2Type("ground")
 	{
@@ -1052,11 +1081,13 @@ class MQ2CorpseType : public MQ2Type
 public:
 	static enum CorpseMembers
 	{
+		Open=1,
 		Item=2,
 		Items=3,
 	};
 	MQ2CorpseType():MQ2Type("corpse")
 	{
+		TypeMember(Open);
 		TypeMember(Item);
 		TypeMember(Items);
 	}
@@ -1069,7 +1100,15 @@ public:
 
 	 bool ToString(MQ2VARPTR VarPtr, PCHAR Destination)
 	{
-		return false;
+		if (pActiveCorpse && pLootWnd)
+		{
+			strcpy(Destination,"TRUE");
+		}
+		else
+		{
+			strcpy(Destination,"FALSE");
+		}
+		return true;
 	}
 };
 
@@ -1081,23 +1120,34 @@ public:
 		Markup=1,
 		Item=2,
 		Items=3,
+		Open=4,
 	};
 	MQ2MerchantType():MQ2Type("merchant")
 	{
 		TypeMember(Markup);
 		TypeMember(Item);
 		TypeMember(Items);
+		TypeMember(Open);
 	}
 
 	~MQ2MerchantType()
 	{
+
 	}
 
 	bool GetMember(MQ2VARPTR VarPtr, PCHAR Member, PCHAR Index, MQ2TYPEVAR &Dest);
 
 	 bool ToString(MQ2VARPTR VarPtr, PCHAR Destination)
 	{
-		return false;
+		if (pActiveMerchant && pMerchantWnd)
+		{
+			strcpy(Destination,"TRUE");
+		}
+		else
+		{
+			strcpy(Destination,"FALSE");
+		}
+		return true;
 	}
 };
 
@@ -1250,6 +1300,9 @@ public:
 		MinClip=9,
 		MaxClip=10,
 		ID=11,
+		SafeN=12,
+		SafeW=13,
+		SafeU=14,
 	};
 	MQ2CurrentZoneType():MQ2Type("currentzone")
 	{
@@ -1567,6 +1620,7 @@ public:
 	  ShortName=2,
 	  Degrees=3,
 	  Clock=4,
+	  DegreesCCW=5,
    };
    MQ2HeadingType():MQ2Type("heading")
    {
@@ -1574,6 +1628,7 @@ public:
 	  TypeMember(ShortName);
 	  TypeMember(Degrees);
 	  TypeMember(Clock);
+	  TypeMember(DegreesCCW);
    }
 
    ~MQ2HeadingType()

@@ -730,40 +730,6 @@ VOID WndNotify(PSPAWNINFO pChar, PCHAR szLine)
 
 
 /*
-PCHAR szItemSlots[] = {
-	0,
-	"leftear",
-	"head",
-	"face",
-	"rightear",
-	"neck",
-	"shoulder",
-	"arm",
-	"back",
-	"leftwrist",
-	"rightwrist",
-	"range",
-	"hand",
-	"mainhand",
-	"offhand",
-	"leftfinger",
-	"rightfinger",
-	"chest",
-	"leg",
-	"feet",
-	"waist",
-	"ammo",
-	"pack1",
-	"pack2",
-	"pack3",
-	"pack4",
-	"pack5",
-	"pack6",
-	"pack7",
-	"pack8",
-	"charm",
-	0
-};
 /**/
 
 VOID ItemNotify(PSPAWNINFO pChar, PCHAR szLine)

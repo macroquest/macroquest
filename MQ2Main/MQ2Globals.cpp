@@ -479,6 +479,40 @@ PCHAR szAugRestrictions[] = {
 	"Bows Only",
 	"Shields Only"
 }; 
+PCHAR szItemSlot[] = {
+    "charm",
+    "leftear",
+    "head",
+    "face",
+    "rightear",
+    "neck",
+    "shoulder",
+    "arms",
+    "back",
+    "leftwrist",
+    "rightwrist",
+    "ranged",
+    "hands",
+    "primary",
+    "secondary",
+    "leftfinger",
+    "rightfinger",
+    "chest",
+    "legs",
+    "feet",
+    "waist",
+    "ammo",
+	"pack1",
+	"pack2",
+	"pack3",
+	"pack4",
+	"pack5",
+	"pack6",
+	"pack7",
+	"pack8",
+    NULL
+};
+
 
 
 EQPlayer **ppEQP_IDArray=(EQPlayer**)__EQP_IDArray;

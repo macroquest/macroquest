@@ -225,6 +225,7 @@ EQLIB_VAR PCHAR szTheme[];
 EQLIB_VAR PCHAR szDmgBonusType[];
 EQLIB_VAR PCHAR szBaneDmgType[];
 EQLIB_VAR PCHAR szAugRestrictions[];
+EQLIB_VAR PCHAR szItemSlot[];
 
 EQLIB_VAR PALIAS pAliases;
 EQLIB_VAR PMQCOMMAND pCommands;
