@@ -641,3 +641,5 @@ void DisplayOverlayText(PCHAR szText, DWORD dwColor, DWORD dwTransparency, DWORD
 #define MQ2AUTH(z) EQLIB_API VOID z(DWORD x);
 #include "MQ2Auth0.h"
 
+EQLIB_API VOID memcheck4_tramp(PVOID,DWORD,PCHAR,DWORD,BOOL); 
+EQLIB_API VOID memcheck4(PVOID,DWORD,PCHAR,DWORD,BOOL);
