@@ -158,6 +158,9 @@
 // CBankWnd
 #define CBankWnd__GetNumBankSlots         0x004C4CCE
 
+// CBazaarSearchWnd
+#define CBazaarSearchWnd__HandleBazaarMsg   0x004C726E
+
 // CMerchantWnd
 #define CMerchantWnd__SelectBuySellSlot         0x00500262
 #define CMerchantWnd__RequestBuyItem         0x004FFB7D
