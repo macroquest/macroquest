@@ -1,3 +1,7 @@
+19 Nov 2003 by Lax
+- Fixed MQ2Telnet to not crash on unload (probably).  Critical sections were getting deleted twice.
+- Fixed aliases to work when given parameters
+
 18 Nov 2003 by EqMule
 +fix: mouseto and click by changing ScreenX and ScreenY to ScrX and ScrY)
 +Added	EQLIB_API VOID AddParm(PCHAR Name, fMQParm Function);
