@@ -2129,7 +2129,7 @@ VOID SlotValueCalculate(PCHAR szBuff, PSPELL pSpell, int i, double mp)
 
 int FindMappableCommand(const char *name)
 {
-	for (unsigned long i = 0 ; i < nEQMappableCommands ; i++)
+	for (unsigned long i = 0 ; i < nEQMappableCommands && EQMappableCommandList[i] ; i++)
 	{
 		if (!stricmp(name,EQMappableCommandList[i]))
 			return i;

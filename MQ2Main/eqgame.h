@@ -285,6 +285,7 @@
 // MapViewMap
 #define MapViewMap__SaveEx                       0x506787
 #define MapViewMap__Clear                       0x5061AF
+//#define MapViewMap__Draw						0x508B0E
 
 // CMapViewWnd
 #define CMapViewWnd__CMapViewWnd                 0x509ADE

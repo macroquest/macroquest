@@ -11,5 +11,4 @@
 	"..\MQ2Main\MQ2Main.h"\
 	"..\MQ2Main\MQ2Prototypes.h"\
 	"..\mq2plugin.h"\
-	".\mq2map.h"\
 	

@@ -29,8 +29,8 @@ MTL=midl.exe
 RSC=rc.exe
 # PROP BASE Use_MFC 0
 # PROP BASE Use_Debug_Libraries 0
-# PROP BASE Output_Dir "Release"
-# PROP BASE Intermediate_Dir "Release"
+# PROP BASE Output_Dir "../Release"
+# PROP BASE Intermediate_Dir "Intermediate"
 # PROP BASE Target_Dir ""
 # PROP Use_MFC 0
 # PROP Use_Debug_Libraries 0
@@ -48,7 +48,7 @@ BSC32=bscmake.exe
 # ADD BASE BSC32 /nologo
 # ADD BSC32 /nologo
 LINK32=link.exe
-# ADD BASE LINK32 kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib ..\Detours\lib60\detours.lib ..\Release\MQ2Main.lib /nologo /dll /machine:I386
+# ADD BASE LINK32 kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib ..\Detours\lib60\detours.lib ..\Release\MQ2Main.lib /nologo /dll /machine:I386 /OPT:ICF
 # ADD LINK32 kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib ..\Detours\lib60\detours.lib ..\Release\MQ2Main.lib /nologo /dll /machine:I386 /OPT:NOICF /OPT:NOREF
 # SUBTRACT LINK32 /pdb:none
 # Begin Target
@@ -61,9 +61,20 @@ LINK32=link.exe
 
 SOURCE=.\MQ2Map.cpp
 # End Source File
+# Begin Source File
+
+SOURCE=.\MQ2MapAPI.cpp
+# End Source File
+# Begin Source File
+
+SOURCE=.\MQ2MapCommands.cpp
+# End Source File
 # End Group
 # Begin Group "Header Files"
+# Begin Source File
 
+SOURCE=.\MQ2Map.h
+# End Source File
 # PROP Default_Filter "h;hpp;hxx;hm;inl"
 # End Group
 # Begin Group "Resource Files"

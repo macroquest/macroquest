@@ -1,12 +1,12 @@
-BOOL CanDisplaySpawn(eSpawnType Type, PSPAWNINFO pSpawn);
-VOID UpdateMap();
-VOID ClearMap();
-DWORD GetSpawnColor(eSpawnType Type, PSPAWNINFO pSpawn);
-PCHAR GenerateSpawnName(PSPAWNINFO pSpawn, PCHAR NameString);
-PMAPLABEL GenerateLabel(PMAPSPAWN pMapSpawn, DWORD Color);
-PMAPLINE GenerateLine(PMAPSPAWN pMapSpawn);
-VOID GenerateMap();
-VOID MapNames(PSPAWNINFO pChar, PCHAR szLine);
+#include <map>
+using namespace std;
+
+
+
+
+
+
+
 
 #define MAPFILTER_All           0
 #define MAPFILTER_PC            1
@@ -42,30 +42,50 @@ typedef struct _MAPFILTER {
 
 } MAPFILTER, *PMAPFILTER;
 
-//DWORD gMapFilters[MAPFILTER_NUMBER] = {0};
-//DWORD gMapFiltersColor[MAPFILTER_NUMBER] = {0};
-SEARCHSPAWN gMapFilterCustom = {0};
-MAPFILTER gMapFilterOptions[] = {
-    {"All",         /*MAPFILTER_All,*/          -1,         TRUE,MAPFILTER_Invalid,TRUE,   "Enables/disables map functions"},
-    {"PC",          /*MAPFILTER_PC,*/           0xFF00FF,   TRUE,MAPFILTER_All,TRUE,   "Displays PCs"},
-    {"PCConColor",    /*MAPFILTER_ConColor,*/     -1,         TRUE,MAPFILTER_PC,FALSE,   "Displays PCs in consider colors"},
-    {"Mount",       /*MAPFILTER_Mount,*/        0x707070,   TRUE,MAPFILTER_All,TRUE,   "Displays mounts"},
-    {"NPC",         /*MAPFILTER_NPC,*/          0x404040,   TRUE,MAPFILTER_All,TRUE,   "Displays NPCs"},
-    {"NPCConColor",    /*MAPFILTER_ConColor,*/     -1,         TRUE,MAPFILTER_NPC,FALSE,   "Displays NPCs in consider colors"},
-    {"Pet",         /*MAPFILTER_Pet,*/          0x707070,   TRUE,MAPFILTER_All,TRUE,   "Displays pets"},
-    {"Corpse",      /*MAPFILTER_Corpse,*/       0x00C000,   TRUE,MAPFILTER_All,TRUE,   "Displays corpses"},
-    {"Trigger",     /*MAPFILTER_Trigger,*/      0xC08000,   TRUE,MAPFILTER_All,TRUE,   "Displays hidden triggers/traps"},
-    {"Ground",      /*MAPFILTER_Ground,*/       0xC0C0C0,   TRUE,MAPFILTER_All,TRUE,   "Displays ground items"},
-    {"Target",      /*MAPFILTER_Target,*/       0xC00000,   TRUE,MAPFILTER_All,FALSE,   "Displays your target"},
-    {"TargetLine",  /*MAPFILTER_TargetLine,*/   0x808080,   TRUE,MAPFILTER_Target,FALSE,  "Displays a line to your target"},
-    {"TargetRadius",  /*MAPFILTER_TargetRadius,*/   0x808080,   FALSE,MAPFILTER_Target,FALSE,  "Sets radius of a circle around your target to # (omit or set to 0 to disable)"},
-    {"Vector",      /*MAPFILTER_Vector,*/       -1,         TRUE,MAPFILTER_All,TRUE,   "Displays heading vectors"},
-    {"Custom",      /*MAPFILTER_Custom,*/	    -1,         FALSE,MAPFILTER_All,TRUE,  "Sets custom filter (omit to disable)"},
-    {"CastRadius",  /*MAPFILTER_CastRadius,*/   0x808080,   FALSE,MAPFILTER_All,FALSE,  "Sets radius of casting circle to # (omit or set to 0 to disable)"},
-    {"Menu",        /*MAPFILTER_ContextMenu,*/  -1,         TRUE,MAPFILTER_Invalid,FALSE,   "Allows display of right-click context menu"},
-    {NULL,          /*NULL,*/                   -1,         FALSE,MAPFILTER_Invalid,FALSE,  NULL}
-};
+extern unsigned long bmMapRefresh;
 
+extern DWORD HighlightColor;
+
+extern CHAR MapNameString[MAX_STRING];
+extern CHAR MapTargetNameString[MAX_STRING];
+extern SEARCHSPAWN MapFilterCustom;
+extern MAPFILTER MapFilterOptions[];
+
+
+
+/* COMMANDS */
 VOID MapFilters(PSPAWNINFO pChar, PCHAR szLine);
 VOID MapFilterSetting(PSPAWNINFO pChar, DWORD nMapFilter, PCHAR szValue=NULL);
-VOID MapHighlight(PSPAWNINFO pChar, PCHAR szLine);
+VOID MapHighlightCmd(PSPAWNINFO pChar, PCHAR szLine);
+VOID MapNames(PSPAWNINFO pChar, PCHAR szLine);
+
+/* API */
+VOID MapInit();
+VOID MapClear();
+VOID MapGenerate();
+DWORD MapHighlight(SEARCHSPAWN *pSearch);
+VOID MapUpdate();
+VOID MapAttach();
+VOID MapDetach();
+
+VOID MapSelectTarget();
+
+struct _MAPSPAWN* AddSpawn(PSPAWNINFO pNewSpawn);
+bool RemoveSpawn(PSPAWNINFO pSpawn);
+void AddGroundItem(PGROUNDITEM pGroundItem);
+void RemoveGroundItem(PGROUNDITEM pGroundItem);
+
+static inline BOOL IsOptionEnabled(DWORD Option)
+{
+	if (Option==MAPFILTER_Invalid)
+		return true;
+	return (MapFilterOptions[Option].Enabled && IsOptionEnabled(MapFilterOptions[Option].RequiresOption));
+}
+
+static inline BOOL RequirementsMet(DWORD Option)
+{
+	if (Option==MAPFILTER_Invalid)
+		return true;
+	return (IsOptionEnabled(MapFilterOptions[Option].RequiresOption));
+}
+

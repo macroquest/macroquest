@@ -85,15 +85,18 @@
 			<File
 				RelativePath="MQ2Map.cpp">
 			</File>
+			<File
+				RelativePath="MQ2MapAPI.cpp">
+			</File>
+			<File
+				RelativePath="MQ2MapCommands.cpp">
+			</File>
 		</Filter>
 		<Filter
 			Name="Header Files"
 			Filter="h;hpp;hxx;hm;inl;inc">
 			<File
 				RelativePath="MQ2Map.h">
-			</File>
-			<File
-				RelativePath="..\MQ2Plugin.h">
 			</File>
 		</Filter>
 		<Filter
