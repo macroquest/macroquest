@@ -16,7 +16,7 @@
 #error /DCINTERFACE
 #endif
 
-#define DBG_SPEW
+#define DBG_SPEW 
 
 #include <direct.h>
 
@@ -2652,12 +2652,39 @@ BOOL IsNamed(PSPAWNINFO pSpawn)
     if (pSpawn->Type != SPAWN_NPC)
 		return false;
 
+	if (pSpawn->Class >= 20 && pSpawn->Class <= 35 ) // NPC GMs
+		return false;
+	if (pSpawn->Class == 41 )  // NPC merchants
+		return false;
+	if (pSpawn->Class == 60 || pSpawn->Class == 61 )  //Ldon Merchants/Recruiters
+		return false;
+	if (pSpawn->Class == 63 ) // Tribute Master
+		return false;
+
+
 	GetArg(szTemp,szName,1);
+
+	// Checking for mobs that have 'A' or 'An' as their first name
+	if (szTemp[0] == 'A')
+	{
+		if (szTemp[1] == '_')
+			return false;
+		else if (szTemp[1] == 'n')
+			if (szTemp[2] == '_')
+				return false;
+	}
+
+    if ( (!strnicmp(szTemp,"Guard",5))			||
+	     (!strnicmp(szTemp,"Defender",8))		||
+		 (!strnicmp(szTemp,"Soulbinder",10))	||
+		 (!strnicmp(szTemp,"Diaku",5)) )
+			return false;
 
     if (isupper(szTemp[0]))
 		return true;
 	if (szTemp[0] == '#' )
 		return true;
+
 	
 	return false;
 }
@@ -2768,7 +2795,7 @@ PCHAR FormatSearchSpawn(PCHAR Buffer, PSEARCHSPAWN pSearchSpawn)
         sprintf(szTemp," NotNearAlert:%d",pSearchSpawn->NotNearAlertList);
         strcat(Buffer,szTemp);
     }
-    if (pSearchSpawn->bGM) strcat(Buffer," GM");
+    if (pSearchSpawn->bGM && pSearchSpawn->SpawnType != NPC ) strcat(Buffer," GM");
     if (pSearchSpawn->bTrader) strcat(Buffer," Trader");
     if (pSearchSpawn->bLFG) strcat(Buffer," LFG");
 	if (pSearchSpawn->bLight) {
@@ -2936,9 +2963,17 @@ BOOL SpawnMatchesSearch(PSEARCHSPAWN pSearchSpawn, PSPAWNINFO pChar, PSPAWNINFO 
 		return FALSE;
 	if (pSearchSpawn->GuildID!=0xFFFF && pSearchSpawn->GuildID!=pSpawn->GuildID)
 		return FALSE;
-	if (pSearchSpawn->bGM && !pSpawn->GM)
-		return FALSE;
+	if (pSearchSpawn->bGM && pSearchSpawn->SpawnType != NPC )
+		if (!pSpawn->GM)
+		    return FALSE;
+	if (pSearchSpawn->bGM && pSearchSpawn->SpawnType == NPC )
+		if (pSpawn->Class < 20 || pSpawn->Class > 35 )
+			return FALSE;
 	if (pSearchSpawn->bNamed && !IsNamed(pSpawn))
+		return FALSE;
+	if (pSearchSpawn->bMerchant && pSpawn->Class != 41 )
+		return FALSE;
+	if (pSearchSpawn->bTributeMaster && pSpawn->Class != 63 )
 		return FALSE;
 	if (pSearchSpawn->bLFG && !pSpawn->LFG)
 		return FALSE;
@@ -3037,6 +3072,10 @@ PCHAR ParseSearchSpawnArgs(PCHAR szArg, PCHAR szRest, PSEARCHSPAWN pSearchSpawn)
             pSearchSpawn->bTrader = TRUE;
 		} else if (!stricmp(szArg,"named")) {
 			pSearchSpawn->bNamed = TRUE;
+		} else if (!stricmp(szArg,"merchant")) {
+			pSearchSpawn->bMerchant = TRUE;
+		} else if (!stricmp(szArg,"tribute")) {
+			pSearchSpawn->bTributeMaster = TRUE;
         } else if (!stricmp(szArg,"range")) {
             GetArg(szArg,szRest,1);
             pSearchSpawn->MinLevel = atoi(szArg);
