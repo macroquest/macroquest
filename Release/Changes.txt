@@ -1,3 +1,7 @@
+12 July 2004 by DKAA
+- slot hand is now hands to be consistent
+- updated some of the distributed macros
+
 9 July 2004 by Lax:
 - Newest version of the readme.chm from Wassup
 - Added/changed MQ2Data type members
