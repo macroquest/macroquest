@@ -1,3 +1,8 @@
+09 Feb 2004 by Amadeus
+- UPDATED SOURCEFORGE CVS!
+- Small additions to the structs from suggestions on the message boards and
+  a couple new things to the ItemDisplay plugin.
+
 20 Jan 2004 by dkaa
     According to Pragma:
         1 bug: in the code for $rand(), there needs to be a srand(time(0));
