@@ -182,11 +182,13 @@ struct _types {
 DWORD BzCount = 0;
 DWORD BzDone = 0;
 struct _BazaarSearchResponsePacket BzArray[200];
+ITEMINFO *pg_Item;      // dependent on MQ2ItemDisplay
 
 PreSetup("MQ2Bzsrch");
 
 void BzSrchMe(PSPAWNINFO pChar, PCHAR szLine);
 void MQ2BzSrch(PSPAWNINFO pChar, PCHAR szLine);
+VOID bzpc(PSPAWNINFO pChar, PCHAR szLine);
 DWORD parmBazaar(PCHAR szVar, PCHAR szOutput, PSPAWNINFO pChar);
 BOOL dataBazaar(PCHAR szName, MQ2TYPEVAR &Ret);
 // we need to specify a class because we are hooking a class member
@@ -347,6 +349,8 @@ public:
 		Count=1,
 		Done=2,
 		Item=3,
+                Pricecheckdone=4,
+                Pricecheck=5
 	};
 
 	MQ2BazaarType():MQ2Type("bazaar")
@@ -354,6 +358,8 @@ public:
 		TypeMember(Count);
 		TypeMember(Done);
 		TypeMember(Item);
+		TypeMember(Pricecheckdone);
+		TypeMember(Pricecheck);
 	}
 	~MQ2BazaarType()
 	{
@@ -385,12 +391,22 @@ public:
 				return true;
 			}
 			return false;
+                case Pricecheckdone:
+                        if (pg_Item && pg_Item->ItemNumber)
+                            Dest.DWord=1;
+                        else
+                            Dest.DWord=0;
+                        Dest.Type=pBoolType;
+                        return true;
+                case Pricecheck:
+                        Dest.DWord=pg_Item->Cost;
+                        Dest.Type=pIntType;
+                        return true;
 		}
-
 		return false;
 	}
 
-	 bool ToString(MQ2VARPTR VarPtr, PCHAR Destination)
+	bool ToString(MQ2VARPTR VarPtr, PCHAR Destination)
 	{
 		if (BzDone)
 			strcpy(Destination,"TRUE");
@@ -415,9 +431,19 @@ PLUGIN_API VOID InitializePlugin(VOID)
 {
    DebugSpewAlways("Initializing MQ2Bzsrch");
 
+   LoadMQ2Plugin("MQ2ItemDipslay");
+   HMODULE h = LoadLibrary("MQ2ItemDisplay.dll");
+   if (!h) {
+       pg_Item = NULL;
+   } else {
+       pg_Item = (ITEMINFO *)GetProcAddress(h, "g_Item");
+   }
+   FreeLibrary(h);
+
    // Add commands, macro parameters, hooks, etc.
    AddCommand("/bzsrch",BzSrchMe);
    AddCommand("/mq2bzsrch",MQ2BzSrch);
+   AddCommand("/pricecheck",bzpc);
    AddMQ2Data("Bazaar",dataBazaar); // cc - added, but not using TLO yet
 
 //   EasyClassDetour(CBazaarSearchWnd__HandleBazaarMsg,BzSrchHook,BzDetour,void,(char*,int),BzTrampoline);
@@ -435,6 +461,7 @@ PLUGIN_API VOID ShutdownPlugin(VOID)
    // Remove commands, macro parameters, hooks, etc.
    RemoveDetour(CBazaarSearchWnd__HandleBazaarMsg);
    RemoveMQ2Data("Bazaar");
+   RemoveCommand("/pricecheck");
    RemoveCommand("/mq2bzsrch");
    RemoveCommand("/bzsrch");
    delete pBazaarType;
@@ -462,6 +489,29 @@ VOID MQ2BzSrch(PSPAWNINFO pChar, PCHAR szLine)
    WriteChatColor("$bazaar[n,id] -- id of the nth item", USERCOLOR_WHO);
    WriteChatColor("$bazaar[n,trader] -- trader id of the nth item", USERCOLOR_WHO);
 }
+
+VOID bzpc(PSPAWNINFO pChar, PCHAR szLine)
+{
+    CHAR szArg[MAX_STRING] = {0};
+    int index;
+    struct _pc {
+        int id;
+        int flags;
+        char name[64];
+    } pc;
+    GetArg(szArg,szLine,1);
+    index = atoi(szArg)-1;
+    char *ptr;
+    pc.id = BzArray[index].BSSItemID;
+    pc.flags = 0;
+    strncpy(pc.name, BzArray[index].BSSName, 64);
+    if (ptr = strrchr(pc.name, '('))
+        *ptr = '\0';
+    if (pg_Item) memset(pg_Item, 0, sizeof(ITEMINFO));
+    DebugSpewAlways("id = %d, name = %s\n", pc.id, pc.name);
+    send_message(EQADDR_GWORLD,0x1f3, &pc, sizeof(pc), TRUE);
+} 
+
 
 VOID BzSrchMe(PSPAWNINFO pChar, PCHAR szLine)
 {
@@ -615,6 +665,14 @@ VOID BzSrchMe(PSPAWNINFO pChar, PCHAR szLine)
             goto error_out;
          }
          bsrp.BSRPriceH = atoi(szArg);
+      } else if (!strcmp(szArg, "trader")) {
+          GetArg(szArg,szLine,1);
+          szLine = GetNextArg(szLine, 1);
+          if (szArg[0]==0) {
+              WriteChatColor("Bad trader id.",USERCOLOR_WHO);
+              goto error_out;
+          }
+          bsrp.BSRTraderID = atoi(szArg);
       } else { // it's a name
          if (first) {
             first = 0;
@@ -627,7 +685,7 @@ VOID BzSrchMe(PSPAWNINFO pChar, PCHAR szLine)
 
    BzCount = 0;
    BzDone = 0;
-   send_message(EQADDR_GWORLD,0x1e6, &bsrp, sizeof(bsrp), TRUE);
+   send_message(EQADDR_GWORLD,0x1e7, &bsrp, sizeof(bsrp), TRUE);
    return;
 
 error_out:
