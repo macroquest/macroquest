@@ -112,9 +112,12 @@ VOID RewriteMQ2Plugins(VOID)
     PMQPLUGIN pLoop = pPlugins;
 	if (!pLoop)
 		return;
+	// start from the end, we're writing this the order they were added.
+	while (pLoop->pNext)
+		pLoop=pLoop->pNext; 
     while (pLoop) {
         WritePrivateProfileString("Plugins",pLoop->szFilename,pLoop->szFilename,gszINIFilename);
-        pLoop = pLoop->pNext;
+        pLoop = pLoop->pLast;
     }
 }
 
