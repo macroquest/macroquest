@@ -123,10 +123,10 @@ DECLARE_API ( pchar )
 	KP(LDoNPoints);
 	KP(CareerFavor);
 	KP(CurrFavor);
-	KP(LeadershipRelated1);
-	KP(LeadershipRelated2);
-	KP(LeadershipRelated3);
-	KP(LeadershipRelated4);
+    KP(GroupLeadershipExp);
+	KP(RaidLeadershipExp);
+	KP(GroupLeadershipPoints);
+	KP(RaidLeadershipPoints);
     KP(Bank);
 	KP(Grouped);
 } 
@@ -664,3 +664,65 @@ DECLARE_API ( plootwnd )
    KP(ItemDesc);
 
 } 
+
+DECLARE_API ( ptradeskillwnd ) 
+{ 
+   EQTRADESKILLWINDOW *p, *pnull=NULL, ci; 
+   DWORD cb; 
+
+
+    // read param from command line 
+    p = (EQTRADESKILLWINDOW *)GetExpression(args); 
+
+    ReadMemory((PARAM1)p,&ci,sizeof(ci),&cb); 
+
+   dprintf("\n\n\n"); 
+
+   KP(SearchResults[0]);
+   KP(Unknown0x344);
+   KP(Container);
+   KP(SelectedRecipe);
+   KP(SkillLevel);
+   KP(Unknown0x3c4);
+   KP(Unknown0x3d4);
+} 
+
+DECLARE_API ( precipe ) 
+{ 
+   EQTRADESKILLRECIPE *p, *pnull=NULL, ci; 
+   DWORD cb; 
+
+
+    // read param from command line 
+    p = (EQTRADESKILLRECIPE *)GetExpression(args); 
+
+    ReadMemory((PARAM1)p,&ci,sizeof(ci),&cb); 
+
+   dprintf("\n\n\n"); 
+   
+   KP(Trivial);
+   KPs(Name);
+   KP(Unknown0x54);
+   for (int i=0; i < 10; i++) 
+     dprintf("Ingredient[%d] = %d (offset 0x%x)\n", i, ci.Ingredient[i], &pnull->Ingredient[i]); 
+   for (i=0; i < 10; i++) 
+     dprintf("IngredientIcon[%d] = %d (offset 0x%x)\n", i, ci.IngredientIcon[i], &pnull->IngredientIcon[i]); 
+}
+
+DECLARE_API ( ppetinfownd ) 
+{ 
+   EQPETINFOWINDOW *p, *pnull=NULL, ci; 
+   DWORD cb; 
+
+   // read param from command line 
+   p = (EQPETINFOWINDOW *)GetExpression(args); 
+
+   ReadMemory((PARAM1)p,&ci,sizeof(ci),&cb); 
+
+   dprintf("\n\n\n"); 
+
+   KP(Unknown0x148);
+   for (int i=0; i < 30; i++) 
+     dprintf("Buff[%d] = %d (offset 0x%x)\n", i, ci.Buff[i], &pnull->Buff[i]); 
+   KP(Unknown0x2e4);
+}

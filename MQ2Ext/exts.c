@@ -133,6 +133,9 @@ DECLARE_API ( help )
 			"   plootcorpse   - Display LOOTCORPSE struct\n"
 			"   pactorinfo    - Display ACTORINFO struct\n"
 			"   plootwnd      - Display EQLOOTWINDOW struct\n"
+			"   ptradeskillwnd - Display EQTRADESKILLWINDOW struct\n"
+			"   precipe       - Display EQTRADESKILLRECIPE struct\n"
+			"   ppetinfownd   - Display EQPETINFOWINDOW struct\n"
             );
 
 }

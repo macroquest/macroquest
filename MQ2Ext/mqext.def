@@ -25,6 +25,10 @@ EXPORTS
     plootcorpse
     pactorinfo
     plootwnd
+    ptradeskillwnd    
+    precipe
+    ppetinfownd 
+    
 ;   pcmdlist
 
 ;--------------------------------------------------------------------
