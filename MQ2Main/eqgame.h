@@ -323,16 +323,13 @@
 #define CSidlScreenWnd__CalculateVSBRange                  0x550460
 #define CSidlScreenWnd__ConvertToRes                       0x550C10
 #define CSidlScreenWnd__CSidlScreenWnd2                    0x552A50
-#define CSidlScreenWnd__DrawBackground                     0x552190
 #define CSidlScreenWnd__DrawSidlPiece                      0x550FA0
 #define CSidlScreenWnd__EnableIniStorage                   0x550BC0
 #define CSidlScreenWnd__GetSidlPiece                       0x551240
-#define CSidlScreenWnd__HandleRButtonDown                  0x550D00
 #define CSidlScreenWnd__Init1                              0x5526B0
 #define CSidlScreenWnd__LoadIniInfo                        0x551430
 #define CSidlScreenWnd__LoadIniListWnd                     0x551D60
 #define CSidlScreenWnd__LoadSidlScreen                     0x550DE0
-#define CSidlScreenWnd__OnResize                           0x5505D0
 #define CSidlScreenWnd__SetScreen                          0x552120
 #define CSidlScreenWnd__StoreIniInfo                       0x550750
 #define CSidlScreenWnd__StoreIniListWnd                    0x551E10
@@ -353,7 +350,6 @@
 #define CXWnd__ClrFocus                                    0x552E30
 #define CXWnd__Deactivate                                  0x550740
 #define CXWnd__DoAllDrawing                                0x5572F0
-#define CXWnd__DrawBackground                              0x5563D0
 #define CXWnd__DrawChildren                                0x557420
 #define CXWnd__DrawCloseBox                                0x554F50
 #define CXWnd__DrawColoredRect                             0x553310
@@ -361,57 +357,39 @@
 #define CXWnd__DrawHScrollbar                              0x555450
 #define CXWnd__DrawLasso                                   0x556290
 #define CXWnd__DrawMinimizeBox                             0x555030
-#define CXWnd__DrawNC                                      0x556E60
 #define CXWnd__DrawTileBox                                 0x555110
-#define CXWnd__DrawTitleBar                                0x5551F0
 #define CXWnd__DrawTooltipAtPoint                          0x556510
 #define CXWnd__DrawVScrollbar                              0x555850
 #define CXWnd__GetBorderFrame                              0x553740
 #define CXWnd__GetChildWndAt                               0x5560F0
 #define CXWnd__GetClientClipRect                           0x553690
-#define CXWnd__GetClientRect                               0x40403E
 #define CXWnd__GetCloseBoxTemplate                         0x5537A0
-#define CXWnd__GetCursorToDisplay                          0x563830
-#define CXWnd__GetDragDropCursor                           0x553600
 #define CXWnd__GetFirstChildWnd                            0x553170
-#define CXWnd__GetHitTestRect                              0x5541C0
-#define CXWnd__GetInnerRect                                0x554140
 #define CXWnd__GetMinimizeBoxTemplate                      0x5537D0
-#define CXWnd__GetMinimizedRect                            0x555DF0
 #define CXWnd__GetNextChildWnd                             0x5560D0
 #define CXWnd__GetNextSib                                  0x553190
 #define CXWnd__GetScreenClipRect                           0x556970
 #define CXWnd__GetScreenRect                               0x553910
 #define CXWnd__GetTileBoxTemplate                          0x5537F0
-#define CXWnd__GetTooltip                                  0x552E80
 #define CXWnd__GetTooltipRect                              0x556460
-#define CXWnd__GetUntileSize                               0x403FED
 #define CXWnd__GetWindowTextA                              0x4CAEF8
 #define CXWnd__GetXMLTooltip                               0x552C70
-#define CXWnd__HitTest                                     0x556170
 #define CXWnd__IsActive                                    0x553700
 #define CXWnd__IsDescendantOf                              0x553710
 #define CXWnd__IsReallyVisible                             0x5560B0
 #define CXWnd__IsType                                      0x557290
-#define CXWnd__IsValid                                     0x403FCB
 #define CXWnd__Left                                        0x5567A0
 #define CXWnd__Move                                        0x555C60
 #define CXWnd__Move1                                       0x555CF0
-#define CXWnd__PostDraw                                    0x52B520
 #define CXWnd__ProcessTransition                           0x5530A0
-#define CXWnd__QueryClickStickDropOK                       0x553650
-#define CXWnd__QueryDropOK                                 0x553610
 #define CXWnd__Refade                                      0x552ED0
-#define CXWnd__RequestDockInfo                             0x0
 #define CXWnd__Resize                                      0x556AB0
 #define CXWnd__Right                                       0x556850
-#define CXWnd__SetAttributesFromSidl                       0x5569E0
 #define CXWnd__SetFirstChildPointer                        0x553B60
 #define CXWnd__SetFocus                                    0x554E40
 #define CXWnd__SetKeyTooltip                               0x553BA0
 #define CXWnd__SetMouseOver                                0x553B80
 #define CXWnd__SetNextSibPointer                           0x553B70
-#define CXWnd__SetVScrollPos                               0x5534E0
 #define CXWnd__StartFade                                   0x553100
 
 // CSliderWnd
@@ -445,7 +423,6 @@
 #define CListWnd__CloseAndUpdateEditWindow                 0x56A670
 #define CListWnd__Compare                                  0x56A9B0
 #define CListWnd__Draw                                     0x56B840
-#define CListWnd__DrawBackground                           0x569030
 #define CListWnd__DrawColumnSeparators                     0x56B6A0
 #define CListWnd__DrawHeader                               0x569AC0
 #define CListWnd__DrawItem                                 0x56B0C0
@@ -457,7 +434,6 @@
 #define CListWnd__GetColumnMinWidth                        0x5694A0
 #define CListWnd__GetColumnWidth                           0x5693D0
 #define CListWnd__GetCurSel                                0x5691B0
-#define CListWnd__GetCursorToDisplay                       0x5690C0
 #define CListWnd__GetHeaderRect                            0x568FF0
 #define CListWnd__GetItemAtPoint                           0x56A370
 #define CListWnd__GetItemAtPoint1                          0x56A3E0
@@ -494,13 +470,11 @@
 #define CEditWnd__PointFromPrintableChar                   0x57F4C0
 #define CEditWnd__SelectableCharFromPoint                  0x57F640
 #define CEditWnd__SetEditable                              0x57F040
-#define CEditWnd__SetWindowTextA                           0x588700
 
 // CGaugeWnd
 #define CGaugeWnd__CalcFillRect                            0x4ED347
 #define CGaugeWnd__CalcLinesFillRect                       0x4ED3A3
 #define CGaugeWnd__Draw                                    0x4ED6A3
-#define CGaugeWnd__SetAttributesFromSidl                   0x4ED40E
 
 // CStmlWnd
 #define CStmlWnd__AppendSTML                               0x568470
@@ -510,7 +484,6 @@
 #define CStmlWnd__CanGoBackward                            0x560100
 #define CStmlWnd__FastForwardPastSpaces                    0x560A80
 #define CStmlWnd__FastForwardToEndOfTag                    0x560DE0
-#define CStmlWnd__GetCursorToDisplay                       0x563830
 #define CStmlWnd__GetNextChar                              0x560540
 #define CStmlWnd__GetNextTagPiece                          0x560BF0
 #define CStmlWnd__GetSTMLText                              0x4E1A85
