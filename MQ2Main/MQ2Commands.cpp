@@ -4657,6 +4657,7 @@ VOID CaptionCmd(PSPAWNINFO pChar, PCHAR szLine)
 	}
     strcpy(pCaption, GetNextArg(szLine));
 	WritePrivateProfileString("Captions",Arg1,pCaption,gszINIFilename);
+	ConvertCR(pCaption);
 	WriteChatf("\ay%s\ax caption set.",Arg1);
 }
 

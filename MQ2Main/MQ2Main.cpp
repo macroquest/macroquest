@@ -291,12 +291,12 @@ DWORD WINAPI MQ2Start(LPVOID lpParameter)
 	InitializeMQ2Detours();
 	InitializeDisplayHook();
 	InitializeChatHook();
+	InitializeMQ2Spawns();
 	InitializeMQ2Pulse();
 	InitializeMQ2Commands();
 	InitializeMQ2Windows();
 	InitializeMQ2KeyBinds();
 	InitializeMQ2Plugins();
-	InitializeMQ2Spawns();
 
 	while (gGameState != GAMESTATE_CHARSELECT && gGameState != GAMESTATE_INGAME) Sleep(500);
 	InitializeMQ2DInput();

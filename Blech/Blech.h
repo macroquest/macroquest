@@ -15,6 +15,9 @@
 
 #pragma once
 
+// TODO: 
+// Tree optimizations made the "ExactMatch" map obselete, remove it
+
 #define BLECHVERSION "Lax/Blech 1.5.0"
 
 #include <map>
@@ -94,7 +97,7 @@ typedef struct _BLECHEVENTNODE {
 	struct _BLECHEVENTNODE *pPrev;
 } BLECHEVENTNODE, *PBLECHEVENTNODE;
 
-unsigned long Equalness(char *StringA, char *StringB)
+static unsigned long Equalness(char *StringA, char *StringB)
 {
 	BlechDebug("Equalness(%s,%s)",StringA,StringB);
 	char *pPos=StringA;
@@ -392,7 +395,7 @@ public:
 	{
 		Cleanup();
 		Event.clear();
-		ExactMatch.clear();
+//		ExactMatch.clear();
 		Initialize();
 	}
 
@@ -412,7 +415,7 @@ public:
 				if (Root>='a' && Root<='z')
 					Root-=32;
 #endif
-		return Chew(Tree[Root],Input)+Chew(Tree[0],Input)+Swallow(Input);
+		return Chew(Tree[Root],Input)+Chew(Tree[0],Input)/*+Swallow(Input)/**/;
 	}
 
 	inline bool IsExact(char *Text)
@@ -422,6 +425,7 @@ public:
 		return false;
 	}
 
+	/*
 	unsigned long AddExactEvent(char *Text,fBlechCallback Callback,void *pData=0)
 	{
 		PBLECHEVENT pEvent = new BLECHEVENT;
@@ -456,16 +460,17 @@ public:
 		return pEvent->ID;
 
 	}
+	/**/
 
 	unsigned long AddEvent(char *Text,fBlechCallback Callback,void *pData=0)
 	{
 		BlechDebug("AddEvent(%s,%X,%X)",Text,Callback,pData);
 		BLECHASSERT(Text);
 		BLECHASSERT(Callback);
-		if (IsExact(Text))
-		{
-			return AddExactEvent(Text,Callback,pData);
-		}
+//		if (IsExact(Text))
+//		{
+//			return AddExactEvent(Text,Callback,pData);
+//		}
 		char *pText=Text;
 		char *Part=Text;
 		eBlechStringType StringType=BST_NORMAL;
@@ -519,7 +524,7 @@ public:
 		if (!pEvent)
 			return false;
 		Event.erase(ID);
-		if (pEvent->pBlechNode)
+//		if (pEvent->pBlechNode)
 		{
 			free(pEvent->OriginalString);
 
@@ -531,6 +536,7 @@ public:
 				pNode=pNext;
 			}
 		}
+		/*
 		else
 		{
 			// exact match
@@ -554,6 +560,7 @@ public:
 			free(pEvent->OriginalString);
 			delete pEvent;
 		}
+		/**/
 		return true;
 	}
 
@@ -606,7 +613,7 @@ private:
 		free(pNeedle);
 		return pReturn;
 	}
-
+/*
 	unsigned long Swallow(char * Input)
 	{
 		BlechDebug("Swallow(%s)",Input);
@@ -629,6 +636,7 @@ private:
 		}
 		return Count;
 	}
+/**/
 
 	unsigned long Chew(BlechNode *pNode,char * Input)
 	{
@@ -1049,7 +1057,7 @@ feedernomatch:
 
 	BlechNode *Tree[256];
 
-	std::map<std::string,PBLECHEVENTNODE> ExactMatch;
+//	std::map<std::string,PBLECHEVENTNODE> ExactMatch;
 
 	BLECHEVENTMAP Event;
 

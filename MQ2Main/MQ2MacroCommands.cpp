@@ -410,7 +410,7 @@ VOID Delay(PSPAWNINFO pChar, PCHAR szLine)
             VarValue *= 10;
     }
     gDelay = VarValue;
-    DebugSpewNoFile("Delay - %d",gDelay);
+//    DebugSpewNoFile("Delay - %d",gDelay);
 }
 
 // ***************************************************************************
@@ -474,12 +474,12 @@ VOID Goto(PSPAWNINFO pChar, PCHAR szLine)
             return;
         }
         if (!stricmp(szLine,gMacroBlock->Line)) {
-            DebugSpewNoFile("Goto - went to label %s",szLine);
+//            DebugSpewNoFile("Goto - went to label %s",szLine);
             return;
         }
     }
     if (!stricmp(szLine,gMacroBlock->Line)) {
-        DebugSpewNoFile("Goto - went to label %s",szLine);
+//        DebugSpewNoFile("Goto - went to label %s",szLine);
         return;
     }
 	gMacroBlock=pFromLine;
@@ -1056,12 +1056,12 @@ VOID Goto(PSPAWNINFO pChar, PCHAR szLine)
             return;
         }
         if (!stricmp(szLine,gMacroBlock->Line)) {
-            DebugSpewNoFile("Goto - went to label %s",szLine);
+//            DebugSpewNoFile("Goto - went to label %s",szLine);
             return;
         }
     }
     if (!stricmp(szLine,gMacroBlock->Line)) {
-        DebugSpewNoFile("Goto - went to label %s",szLine);
+//        DebugSpewNoFile("Goto - went to label %s",szLine);
         return;
     }
 	gMacroBlock=pFromLine;

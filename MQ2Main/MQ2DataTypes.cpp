@@ -1002,8 +1002,8 @@ bool MQ2StringType::GetMember(MQ2VARPTR VarPtr, PCHAR Member, PCHAR Index, MQ2TY
 		if (Index[0])
 		{
 			Dest.DWord=0;
-			PCHAR pLast=(PCHAR)VarPtr.Ptr;
-			while(pLast=strchr(pLast,Index[0]))
+			PCHAR pLast=(PCHAR)VarPtr.Ptr-1;
+			while(pLast=strchr(&pLast[1],Index[0]))
 				Dest.DWord++;
 			Dest.Type=pIntType;
 			return true;

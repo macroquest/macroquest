@@ -66,8 +66,8 @@ using namespace std;
 // MQ2DataVars *READY*
 #define USEMQ2DATAVARS
 
-// Lax/Blech event support *READY BUT NOT OFFICIALLY TESTED*
-//#define USEBLECHEVENTS
+// Lax/Blech event support *READY*
+#define USEBLECHEVENTS
 
 #ifdef USEBLECHEVENTS
 #include "..\Blech\Blech.h"
@@ -288,7 +288,7 @@ EQLIB_API VOID Echo									(PSPAWNINFO,PCHAR);
 
 /* MACRO PARSING */
 #ifdef USEBLECHEVENTS
-void __cdecl EventBlechCallback(unsigned long ID, void * pData, PBLECHVALUE pValues);
+void __stdcall EventBlechCallback(unsigned long ID, void * pData, PBLECHVALUE pValues);
 #endif
 #define PMP_ERROR_BADPARM 10000
 EQLIB_API PCHAR ParseMacroParameter(PSPAWNINFO pChar, PCHAR szOriginal);

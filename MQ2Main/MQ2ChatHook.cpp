@@ -55,7 +55,7 @@ public:
 
 DETOUR_TRAMPOLINE_EMPTY(VOID CChatHook::Trampoline(PCHAR szMsg, DWORD dwColor, DWORD dwUnknown)); 
 #ifdef USEBLECHEVENTS
-unsigned long __cdecl MQ2DataVariableLookup(char * VarName, char * Value)
+unsigned long __stdcall MQ2DataVariableLookup(char * VarName, char * Value)
 {
 	strcpy(Value,VarName);
 	return strlen(ParseMacroParameter(GetCharInfo()->pSpawn,Value));

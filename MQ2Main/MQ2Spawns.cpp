@@ -160,7 +160,7 @@ public:
 	int SetNameSpriteState_Trampoline(bool Show);
 	int SetNameSpriteState_Detour(bool Show)
 	{
-		if (gGameState!=GAMESTATE_INGAME)// || !Show)
+		if (gGameState!=GAMESTATE_INGAME || !Show)
 			return SetNameSpriteState_Trampoline(Show);
 		return 1;
 	}

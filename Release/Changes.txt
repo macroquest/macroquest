@@ -1,7 +1,7 @@
 07 May 2004 by Lax:
 - Added "Lax/Blech" support to custom events.  The Blech system allows much easier parsing of
   incoming chat.  Custom events will now support more parameters that are automatically
-  parsed based on the match text.  
+  parsed based on the match text.  This system is not currently enabled by default
 - Fixed up EQ's handling of spawn captions (name above their head). Only the nearest 35 spawn
   captions will be updated by default (and even then, only those close enough that you'd see 
   their name).  EQ itself constantly updates the name of every spawn in the zone, even though 

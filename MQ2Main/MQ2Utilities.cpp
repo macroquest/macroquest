@@ -100,7 +100,7 @@ EQLIB_API VOID DebugSpewNoFile(PCHAR szFormat, ...)
 
 VOID StrReplaceSection(PCHAR szInsert,DWORD Length,PCHAR szNewString)
 {
-	DWORD NewLength=strlen(szNewString);
+	DWORD NewLength=(DWORD)strlen(szNewString);
 	memmove(&szInsert[NewLength],&szInsert[Length],strlen(&szInsert[Length])+1);
 	strncpy(szInsert,szNewString,NewLength);
 }
