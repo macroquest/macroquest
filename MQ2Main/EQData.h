@@ -334,7 +334,8 @@ typedef struct _ITEMINFO {
 /*0x203*/  BYTE  		Slots;
 /*0x204*/  BYTE  		SizeCapacity;
 /*0x205*/  BYTE  		WeightReduction;
-/*0x206*/  BYTE  		Unknown0x206[0xa];
+/*0x206*/  BYTE  		Unknown0x206[0x2];
+/*0x208*/  DWORD		Favor;  // Tribute Value
 /*0x20c*/
 } ITEMINFO, *PITEMINFO; 
 

@@ -1,5 +1,7 @@
 10 Feb 2004 by Amadeus
 - Updated structs and offsets
+- Added 'favor' (Tribute Value) to ITEMINFO
+- Added code to MQ2ITemDisplay to show item tribute value
 
 09 Feb 2004 by Amadeus
 - UPDATED SOURCEFORGE CVS!
