@@ -194,6 +194,8 @@ VOID PluginsIncomingChat(PCHAR Line, DWORD Color)
 {
 	if (!bPluginCS)
 		return;
+    if(!Line[0])
+        return;
 	CAutoLock Lock(&gPluginCS);
 	PMQPLUGIN pPlugin=pPlugins;
 	while(pPlugin)
