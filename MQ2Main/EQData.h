@@ -788,72 +788,72 @@ typedef struct _SPAWNINFO {
 /*0x054*/   FLOAT   CameraAngle; 
 /*0x058*/   BYTE    Unknown0x058[0x38]; 
 /*0x090*/	BYTE	UnknownData0x090[0x8]; // 8 values here (were all 128 for me)
-/*0x098*/	CHAR    Name[0x40]; // ie priest_of_discord00 
-/*0x0d8*/	CHAR    DisplayedName[0x40]; // ie Priest of Discord 
-/*0x118*/	FLOAT   SpeedHeading;  // probably WRONG!
-/*0x11c*/   struct  _ACTORINFO   *pActorInfo;
-/*0x120*/   BYTE    Unknown0x120[0x5];
-/*0x125*/   BYTE    Sneak;  // returns 01 on both Sneak and Shroud of Stealth
-/*0x126*/   BYTE    Linkdead;  // Uncharmable flag when used on mobs?
-/*0x127*/   BYTE	Unknown0x127;
-/*0x128*/   BYTE    LFG;
-/*0x129*/   BYTE    Unknown0x129;
-/*0x12a*/	BYTE	IsABoat; // 1 = a type of boat
-/*0x12b*/	BYTE	Unknown0x12b;
-/*0x12c*/   ARGBCOLOR ArmorColor[0x7];  // Armor Dye if custom, otherwise Item Tint
-/*0x148*/   BYTE	Unknown0x108[0x8];
-/*0x150*/   struct  _EQUIPMENT Equipment;
-/*0x174*/   WORD    Zone;
-/*0x176*/   WORD    Instance;
-/*0x178*/   DWORD   Unknown0x178; // some pointer
-/*0x17c*/   struct  _SPAWNINFO *pNext;
-/*0x180*/   struct  _CHARINFO  *pCharInfo;
-/*0x184*/   BYTE    Unknown0x184[0x4];
-/*0x188*/   struct  _SPAWNINFO *pPrev;
-/*0x18c*/   DWORD   Unknown0x18c;
-/*0x190*/   BYTE    Unknown0x190[0x8];
-/*0x198*/   FLOAT   Unknownf0x198;
-/*0x19c*/   FLOAT   Unknownf0x19c;
-/*0x1a0*/   FLOAT   Unknownf0x1a0; // commonly used by actor positioning
-/*0x1a4*/   FLOAT   AvatarHeight;  // height of avatar from ground when standing
-/*0x1a8*/   FLOAT   Unknownf0x1a8;
-/*0x1ac*/   BYTE    Type;
-/*0x1ad*/   BYTE    Face;      // Needs Testing
-/*0x1ae*/   BYTE	BeardColor;
-/*0x1af*/   BYTE	Unknown0x1af;
-/*0x1b0*/   BYTE    Eyes;
-/*0x1b1*/   BYTE	Hair;      // Hair with no headgear (?)
-/*0x1b2*/   BYTE	BeardType;
-/*0x1b3*/   BYTE	Holding;   // 0=holding/wielding nothing
-/*0x1b4*/   BYTE    Level;
-/*0x1b5*/   BYTE    FaceHair;  // Face/Hair combination with headgear
-/*0x1b6*/   BYTE    Gender;
-/*0x1b7*/   BYTE    PvPFlag;
-/*0x1b8*/   BYTE    HideMode;
-/*0x1b9*/   BYTE    StandState;
-/*0x1ba*/   BYTE    Class;
-/*0x1bb*/   BYTE    Light;
-/*0x1bc*/   BYTE    InNonPCRaceIllusion;  // This is buggy ...not sure exact usage
-/*0x1bd*/   BYTE    Unknown0x1bd;  // form related, unsure how
-/*0x1be*/   BYTE    GM;
-/*0x1bf*/   BYTE    Unknown0x1bf;
-/*0x1c0*/   DWORD   SpawnID;
-/*0x1c4*/   DWORD   MasterID;
-/*0x1c8*/   DWORD   Race;
-/*0x1cc*/   DWORD   Anon;
-/*0x1d0*/   DWORD   Unkonwn0x1d0;
-/*0x1d4*/   DWORD   AFK;
-/*0x1d8*/   DWORD   BodyType;
-/*0x1dc*/   DWORD   HPCurrent;
-/*0x1e0*/   BYTE    AARank; //0=none 1=first 2=second 3=third 
-/*0x1e1*/   BYTE    Unknown0x1e1[0x3]; 
-/*0x1e4*/   DWORD   GuildStatus;
-/*0x1e8*/   DWORD   Deity;
-/*0x1ec*/   DWORD   HPMax;
-/*0x1f0*/   DWORD   GuildID;
-/*0x1f4*/   BYTE    Levitate;   //0-normal state  2=levitating 3=mob (not levitating)
-/*0x1f5*/   BYTE    Unknown0x1f5[0xb]; 
-/*0x200*/
+/*0x098*/	BYTE    Unknown0x098[0x38];
+/*0x0d0*/	CHAR    Name[0x40]; // ie priest_of_discord00 
+/*0x110*/	CHAR    DisplayedName[0x40]; // ie Priest of Discord 
+/*0x150*/	FLOAT   SpeedHeading;  
+/*0x154*/   struct  _ACTORINFO   *pActorInfo;
+/*0x158*/   BYTE    Unknown0x158[0x5];
+/*0x15d*/   BYTE    Sneak;  // returns 01 on both Sneak and Shroud of Stealth
+/*0x15e*/   BYTE    Linkdead;  // Uncharmable flag when used on mobs?
+/*0x15f*/   BYTE	Unknown0x15f;
+/*0x160*/   BYTE    LFG;
+/*0x161*/   BYTE    Unknown0x161;
+/*0x162*/	BYTE	IsABoat; // 1 = a type of boat
+/*0x163*/	BYTE	Unknown0x163;
+/*0x164*/   ARGBCOLOR ArmorColor[0x7];  // Armor Dye if custom, otherwise Item Tint
+/*0x180*/   BYTE	Unknown0x180[0x8];
+/*0x188*/   struct  _EQUIPMENT Equipment;
+/*0x1ac*/   WORD    Zone;
+/*0x1ae*/   WORD    Instance;
+/*0x1b0*/   DWORD   Unknown0x1b0; // some pointer
+/*0x1b4*/   struct  _SPAWNINFO *pNext;
+/*0x1b8*/   struct  _CHARINFO  *pCharInfo;
+/*0x1bc*/   BYTE    Unknown0x1bc[0x4];
+/*0x1c0*/   struct  _SPAWNINFO *pPrev;
+/*0x1c4*/   DWORD   Unknown0x1c4;
+/*0x1c8*/   BYTE    Unknown0x1c8[0x8];
+/*0x1d0*/   FLOAT   Unknownf0x1d0;
+/*0x1d4*/   FLOAT   Unknownf0x1d4;
+/*0x1d8*/   FLOAT   Unknownf0x1d8; // commonly used by actor positioning
+/*0x1dc*/   FLOAT   AvatarHeight;  // height of avatar from ground when standing
+/*0x1e0*/   FLOAT   Unknownf0x1e0;
+/*0x1e4*/   BYTE    Type;
+/*0x1e5*/   BYTE    Face;      // Needs Testing
+/*0x1e6*/   BYTE	BeardColor;
+/*0x1e7*/   BYTE	Unknown0x1e7;
+/*0x1e8*/   BYTE    Eyes;
+/*0x1e9*/   BYTE	Hair;      // Hair with no headgear (?)
+/*0x1ea*/   BYTE	BeardType;
+/*0x1eb*/   BYTE	Holding;   // 0=holding/wielding nothing
+/*0x1ec*/   BYTE    Level;
+/*0x1ed*/   BYTE    FaceHair;  // Face/Hair combination with headgear
+/*0x1ee*/   BYTE    Gender;
+/*0x1ef*/   BYTE    PvPFlag;
+/*0x1f0*/   BYTE    HideMode;
+/*0x1f1*/   BYTE    StandState;
+/*0x1f2*/   BYTE    Class;
+/*0x1f3*/   BYTE    Light;
+/*0x1f4*/   BYTE    InNonPCRaceIllusion;  // This is buggy ...not sure exact usage
+/*0x1f5*/   BYTE    Unknown0x1f6;  // form related, unsure how
+/*0x1f6*/   BYTE    GM;
+/*0x1f7*/   BYTE    Unknown0x1f8;
+/*0x1f8*/   DWORD   SpawnID;
+/*0x1fc*/   DWORD   MasterID;
+/*0x200*/   DWORD   Race;
+/*0x204*/   DWORD   Anon;
+/*0x208*/   DWORD   Unkonwn0x1d0;
+/*0x20c*/   DWORD   AFK;
+/*0x210*/   DWORD   BodyType;
+/*0x214*/   DWORD   HPCurrent;
+/*0x218*/   BYTE    AARank; //0=none 1=first 2=second 3=third 
+/*0x219*/   BYTE    Unknown0x21c[0x3]; 
+/*0x21c*/   DWORD   GuildStatus;
+/*0x220*/   DWORD   Deity;
+/*0x224*/   DWORD   HPMax;
+/*0x228*/   DWORD   GuildID;
+/*0x22c*/   BYTE    Levitate;   //0-normal state  2=levitating 3=mob (not levitating)
+/*0x22d*/   BYTE    Unknown0x22d[0xb]; 
 } SPAWNINFO, *PSPAWNINFO;
 
 #define STANDSTATE_STAND            0x64
