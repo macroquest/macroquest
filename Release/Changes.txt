@@ -1,3 +1,7 @@
+29 Feb 2004 by Zaphod
+- More optimization of ParseMacroParameter() and some of the parameter routines it calls.
+- Minor bugfix in MQ2DetourAPI.cpp. 
+
 28 Feb 2004 by Lax
 - Added API to automatically maintain a list of all initialized windows 
   This will only have the most recent one initialized for each "screen item" name
