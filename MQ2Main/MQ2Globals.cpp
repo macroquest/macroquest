@@ -203,7 +203,7 @@ DIKEYID gDiKeyID[] = {
 };
 
 DWORD *EQADDR_SLOTLIST = 0;
-PZONEINFO EQADDR_ZONEINFO = 0;
+//PZONEINFO EQADDR_ZONEINFO = 0;
 
 
 
@@ -367,6 +367,7 @@ EQPlayer **ppTarget=(EQPlayer**)pinstTarget;
 EqSwitchManager **ppSwitchMgr=(EqSwitchManager**)pinstSwitchManager;
 EQItemList **ppItemList=(EQItemList**)pinstEQItemList;
 SPELLFAVORITE *pSpellSets=(SPELLFAVORITE *)pinstSpellSets;
+EQZoneInfo *pZoneInfo=(EQZoneInfo*)instEQZoneInfo;
 
 /* WINDOW INSTANCES */
 CContextMenuManager **ppContextMenuManager=(CContextMenuManager**)pinstCContextMenuManager;

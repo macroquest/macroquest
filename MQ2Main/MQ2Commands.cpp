@@ -4196,11 +4196,11 @@ VOID DisplayZem(PSPAWNINFO pChar, PCHAR szLine)
    float zem = 0;
    float bonus = 0;
 
-   if (!EQADDR_ZONEINFO) return;
+   if (!pZoneInfo) return;
 
    CHAR out[MAX_STRING] = {0};
 
-   PZONEINFO ZoneInfo = EQADDR_ZONEINFO;
+   PZONEINFO ZoneInfo = (PZONEINFO)pZoneInfo;
 
    if (ZoneInfo && ZoneInfo->ZoneExpModifier) {
       zem = ZoneInfo->ZoneExpModifier * 100;

@@ -173,7 +173,7 @@ BOOL ParseINIFile(PCHAR lpINIPath)
     GetPrivateProfileString("DirectInput8","Keyboard","0",szBuffer,MAX_STRING,ClientINI);               EQADDR_DIKEYBOARD = (IDirectInputDevice8A**)strtoul(szBuffer,NULL,16);
     GetPrivateProfileString("DirectInput8","Mouse","0",szBuffer,MAX_STRING,ClientINI);                  EQADDR_DIMOUSE = (IDirectInputDevice8A**)strtoul(szBuffer,NULL,16);
 
-    GetPrivateProfileString("Memory Locations","ZoneInfo","0",szBuffer,MAX_STRING,ClientINI);           EQADDR_ZONEINFO = (PZONEINFO)strtoul(szBuffer,NULL,16);
+//    GetPrivateProfileString("Memory Locations","ZoneInfo","0",szBuffer,MAX_STRING,ClientINI);           EQADDR_ZONEINFO = (PZONEINFO)strtoul(szBuffer,NULL,16);
 //    GetPrivateProfileString("Memory Locations","SpawnHeader","0",szBuffer,MAX_STRING,ClientINI);        EQADDR_SPAWNLIST = (PSPAWNINFO*)strtoul(szBuffer,NULL,16);
 //    GetPrivateProfileString("Memory Locations","SpawnFooter","0",szBuffer,MAX_STRING,ClientINI);        EQADDR_SPAWNTAIL = (PSPAWNINFO*)strtoul(szBuffer,NULL,16);
 //    GetPrivateProfileString("Memory Locations","Char","0",szBuffer,MAX_STRING,ClientINI);				EQADDR_CHAR= (PSPAWNINFO*)strtoul(szBuffer,NULL,16);

@@ -2656,8 +2656,8 @@ DWORD parmZone(PCHAR szVar, PCHAR szOutput, PSPAWNINFO pChar)
             i+=8;
             FLOAT zem = 0.0f;
 
-            if (EQADDR_ZONEINFO && EQADDR_ZONEINFO->ZoneExpModifier) {
-                zem = EQADDR_ZONEINFO->ZoneExpModifier;
+            if (pZoneInfo && ((PZONEINFO)pZoneInfo)->ZoneExpModifier) {
+                zem = ((PZONEINFO)pZoneInfo)->ZoneExpModifier;
             }
             CHAR szTemp[MAX_STRING] = {0};
             sprintf(szTemp,"%1.2f",zem);

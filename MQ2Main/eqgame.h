@@ -94,6 +94,8 @@
 #define pinstEQItemList					0x0071D87C
 #define pinstSpellSets					0x0071ab94
 
+#define instEQZoneInfo					0x006BA82C
+
 // Class member function offsets
 /*
 // static -- these stay in eqgame.ini
