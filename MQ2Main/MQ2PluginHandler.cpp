@@ -55,7 +55,9 @@ DWORD LoadMQ2Plugin(const PCHAR Filename)
 //	CAutoLock Lock(&gPluginCS);
 //		fMQWriteChatColor WCC=(fMQWriteChatColor)GetProcAddress(pPlugin->hModule,"ChatHook");
 	DebugSpew("LoadMQ2Plugin(%s)",Filename);
-	HMODULE hmod=LoadLibrary(Filename);
+	CHAR FullFilename[MAX_STRING]={0};
+	sprintf(FullFilename,"%s\\%s",gszINIPath,Filename);
+	HMODULE hmod=LoadLibrary(FullFilename);
 	if (!hmod)
 	{
 		DebugSpew("LoadMQ2Plugin(%s) Failed",Filename);
@@ -119,9 +121,21 @@ VOID InitializeMQ2Plugins()
 	InitializeCriticalSection(&gPluginCS);
 
 	// TO BE REMOVED, THIS IS ONLY FOR DEMONSTRATION/TESTING
-	CHAR szFilename[MAX_STRING]={0};
-	sprintf(szFilename,"%s\\%s",gszINIPath,"MQ2Template.DLL"); 
-	LoadMQ2Plugin(szFilename);
+//	CHAR szFilename[MAX_STRING]={0};
+//	sprintf(szFilename,"%s\\%s",gszINIPath,"MQ2Template.DLL"); 
+//	LoadMQ2Plugin(szFilename);
+
+	CHAR PluginList[MAX_STRING*10] = {0};
+    CHAR szBuffer[MAX_STRING] = {0};
+	GetPrivateProfileString("Plugins",NULL,"",PluginList,MAX_STRING*10,gszINIPath);
+    PCHAR pPluginList = PluginList;
+    while (pPluginList[0]!=0) {
+        GetPrivateProfileString("Plugins",pPluginList,"",szBuffer,MAX_STRING,gszINIPath);
+        if (szBuffer[0]!=0) {
+			LoadMQ2Plugin(szBuffer);
+        }
+        pPluginList+=strlen(pPluginList)+1;
+    }
 }
 
 VOID ShutdownMQ2Plugins()
