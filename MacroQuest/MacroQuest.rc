@@ -69,14 +69,14 @@ BEGIN
     BEGIN
         BLOCK "040904b0"
         BEGIN
-            VALUE "Comments", "EQLib Loader"
+            VALUE "Comments", "MQ2Main Loader"
             VALUE "CompanyName", "WyrvenSoft"
             VALUE "FileDescription", "MacroQuest - Application"
             VALUE "FileVersion", "2003, 1, 11, 0"
-            VALUE "InternalName", "MacroQuest"
+            VALUE "InternalName", "MacroQuest2"
             VALUE "LegalCopyright", "Copyright (C) 2002-2003"
-            VALUE "OriginalFilename", "MacroQuest.exe"
-            VALUE "ProductName", "MacroQuest"
+            VALUE "OriginalFilename", "MacroQuest2.exe"
+            VALUE "ProductName", "MacroQuest2"
             VALUE "ProductVersion", "1, 9, 0, 0"
         END
     END
@@ -108,8 +108,8 @@ BEGIN
     BEGIN
         POPUP "&MQ Sites"
         BEGIN
-        MENUITEM "&Website",                    ID_MENU_WEBSITE
-        MENUITEM "&Forums",                     ID_MENU_FORUMS
+            MENUITEM "&Website",                    ID_MENU_WEBSITE
+            MENUITEM "&Forums",                     ID_MENU_FORUMS
         END
         POPUP "&EQ Sites"
         BEGIN
