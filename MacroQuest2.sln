@@ -29,6 +29,8 @@ Global
 		ConfigName.1 = Release
 	EndGlobalSection
 	GlobalSection(ProjectDependencies) = postSolution
+		{D43171FB-8208-4E52-860A-6BAE2A2FA573}.0 = {2A0A06A4-E9C6-4229-82EE-BD2D4E0A7221}
+		{D43171FB-8208-4E52-860A-6BAE2A2FA573}.0 = {2A0A06A4-E9C6-4229-82EE-BD2D4E0A7221}
 	EndGlobalSection
 	GlobalSection(ProjectConfiguration) = postSolution
 		{D43171FB-8208-4E52-860A-6BAE2A2FA573}.Debug.ActiveCfg = Release|Win32
@@ -75,8 +77,6 @@ Global
 		{D43171FB-8208-4E52-860A-6BAE2A2FA573}.Debug.Build.0 = Release|Win32
 		{D43171FB-8208-4E52-860A-6BAE2A2FA573}.Release.ActiveCfg = Release|Win32
 		{D43171FB-8208-4E52-860A-6BAE2A2FA573}.Release.Build.0 = Release|Win32
-		{CF0DDB45-5F50-4254-B185-5B45EFA4B9B5}.Debug.ActiveCfg = Debug|Win32
-		{CF0DDB45-5F50-4254-B185-5B45EFA4B9B5}.Release.ActiveCfg = Release|Win32
 		{D43171FB-8208-4E52-860A-6BAE2A2FA573}.Debug.ActiveCfg = Release|Win32
 		{D43171FB-8208-4E52-860A-6BAE2A2FA573}.Debug.Build.0 = Release|Win32
 		{D43171FB-8208-4E52-860A-6BAE2A2FA573}.Release.ActiveCfg = Release|Win32
