@@ -1,3 +1,8 @@
+19 June 2004 by Lax:
+- Fixed FastCalculate and EvaluateRPN functions.  Calculate works fine now, stfu rtfm etc ;)
+- DKAA fixed some struct stuff
+- Amadeus fixed some struct stuff
+
 14 June 2004 by Lax:
 - Replaced Calculate function with a much faster version. Also added an operator or two.
   I'll make sure they get added to the manual. How much faster? The existing calculate
