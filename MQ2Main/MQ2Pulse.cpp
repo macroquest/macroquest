@@ -251,6 +251,7 @@ void Heartbeat()
 	}
 	Pulse();
     Benchmark(bmPluginsPulse,DebugTry(PulsePlugins()));
+	ProcessPendingGroundItems();
 }
 
 // *************************************************************************** 

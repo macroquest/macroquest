@@ -273,6 +273,13 @@ typedef struct _MQBENCH
 	DWORD Count;
 } MQBENCH, *PMQBENCH;
 
+typedef struct _MQGroundPending
+{
+	PGROUNDITEM pGroundItem;
+	struct _MQGroundPending *pLast;
+	struct _MQGroundPending *pNext;
+} MQGROUNDPENDING, *PMQGROUNDPENDING;
+
 typedef struct _MQPlugin
 {
 	char szFilename[MAX_PATH];
@@ -290,6 +297,8 @@ typedef struct _MQPlugin
 	fMQSetGameState SetGameState;
 	fMQSpawn AddSpawn;
 	fMQSpawn RemoveSpawn;
+	fMQGroundItem AddGroundItem;
+	fMQGroundItem RemoveGroundItem;
 	struct _MQPlugin* pLast;
 	struct _MQPlugin* pNext;
 } MQPLUGIN, *PMQPLUGIN;

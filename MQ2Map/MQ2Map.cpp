@@ -29,6 +29,7 @@ typedef struct _MAPSPAWN
 //PMAPLINEX pActiveLines=0;
 PMAPSPAWN pActiveSpawns=0;
 map<PSPAWNINFO,PMAPSPAWN> SpawnMap;
+map<PGROUNDITEM,PMAPSPAWN> GroundItemMap;
 BOOL Update=false;
 
 #define CASTRADIUS_ANGLESIZE 10
@@ -124,7 +125,12 @@ bool RButtonDown()
 		{
 			if (pMapSpawn->pMapLabel==pCurrentMapLabel)
 			{
-				pTarget=(EQPlayer*)pMapSpawn->pSpawn;
+				if (pMapSpawn->SpawnType==ITEM)
+				{
+					// special handling for items?
+				}
+				else
+					pTarget=(EQPlayer*)pMapSpawn->pSpawn;
 				break;
 			}
 			pMapSpawn=pMapSpawn->pNext;
@@ -287,18 +293,15 @@ PLUGIN_API VOID OnPulse(VOID)
 	}
 }
 
-// This is called each time a spawn is added to a zone (inserted into EQ's list of spawns),
-// or for each existing spawn when a plugin first initializes
-// NOTE: When you zone, these will come BEFORE OnZoned
-PLUGIN_API VOID OnAddSpawn(PSPAWNINFO pNewSpawn)
+PMAPSPAWN AddSpawn(PSPAWNINFO pNewSpawn)
 {
 	if (!pMapViewWnd)
-		return;
+		return 0;
 	DebugSpewAlways("MQ2Map::OnAddSpawn(%s)",pNewSpawn->Name);
 	eSpawnType Type=GetSpawnType(pNewSpawn);
 	// apply map filter
 	if (!CanDisplaySpawn(Type,pNewSpawn))
-		return;
+		return 0;
 	// add spawn to list
 
 	PMAPSPAWN pMapSpawn = new MAPSPAWN;
@@ -318,6 +321,15 @@ PLUGIN_API VOID OnAddSpawn(PSPAWNINFO pNewSpawn)
 		pActiveSpawns->pLast=pMapSpawn;
 	pActiveSpawns=pMapSpawn;
 	SpawnMap[pNewSpawn]=pMapSpawn;
+	return pMapSpawn;
+}
+
+// This is called each time a spawn is added to a zone (inserted into EQ's list of spawns),
+// or for each existing spawn when a plugin first initializes
+// NOTE: When you zone, these will come BEFORE OnZoned
+PLUGIN_API VOID OnAddSpawn(PSPAWNINFO pNewSpawn)
+{
+	AddSpawn(pNewSpawn);
 }
 
 // This is called each time a spawn is removed from a zone (removed from EQ's list of spawns).
@@ -354,12 +366,49 @@ PLUGIN_API VOID OnRemoveSpawn(PSPAWNINFO pSpawn)
 
 		delete pMapSpawn;
 		SpawnMap[pSpawn]=0;
+
+		if (pSpawn->Type==-1)
+			delete pSpawn;
 	}
 	else
 	{
 		DebugSpew("MQ2Map::OnRemoveSpawn - Spawn not found in list");
 	}
 }
+
+// This is called each time a spawn is added to a zone (inserted into EQ's list of spawns),
+// or for each existing spawn when a plugin first initializes
+// NOTE: When you zone, these will come BEFORE OnZoned
+PLUGIN_API VOID OnAddGroundItem(PGROUNDITEM pNewGroundItem)
+{
+	DebugSpewAlways("MQ2Map::OnAddGroundItem(%d)",pNewGroundItem->DropID);
+	PSPAWNINFO pFakeSpawn=new SPAWNINFO;
+	memset(pFakeSpawn,0,sizeof(SPAWNINFO));
+	GetFriendlyNameForGroundItem(pNewGroundItem,pFakeSpawn->Name);
+    pFakeSpawn->X = pNewGroundItem->X;
+    pFakeSpawn->Y = pNewGroundItem->Y;
+    pFakeSpawn->Z = pNewGroundItem->Z;
+	pFakeSpawn->Type=-1;
+	PMAPSPAWN pMapSpawn=AddSpawn(pFakeSpawn);
+	if (pMapSpawn)
+		GroundItemMap[pNewGroundItem]=pMapSpawn;
+	else
+		delete pFakeSpawn;
+}
+
+// This is called each time a ground item is removed from a zone
+// It is NOT called for each existing ground item when a plugin shuts down.
+PLUGIN_API VOID OnRemoveGroundItem(PGROUNDITEM pGroundItem)
+{
+	DebugSpewAlways("MQ2Map::OnRemoveGroundItem(%d)",pGroundItem->DropID);
+	PMAPSPAWN pMapSpawn=GroundItemMap[pGroundItem];
+	if (pMapSpawn)
+	{
+		GroundItemMap[pGroundItem]=0;
+		OnRemoveSpawn(pMapSpawn->pSpawn);
+	}
+}
+
 
 VOID ClearMap()
 {
@@ -386,6 +435,9 @@ VOID ClearMap()
 			DeleteLine(pActiveSpawns->pVector);
 		}
 
+		if (pActiveSpawns->pSpawn->Type==-1) // fake!
+			delete pActiveSpawns->pSpawn;
+
 		delete pActiveSpawns;
 		pActiveSpawns=pNextActive;
 	}
@@ -404,6 +456,7 @@ VOID ClearMap()
 			pCastRadius[i]=0;
 		}
 	}
+	GroundItemMap.clear();
 }
 
 VOID UpdateMap()
@@ -536,6 +589,13 @@ VOID GenerateMap()
 		OnAddSpawn(pSpawn);
 		pSpawn=pSpawn->pNext;
 	}	
+	PGROUNDITEM pItem=(PGROUNDITEM)pItemList;
+	while(pItem)
+	{
+		OnAddGroundItem(pItem);
+		pItem=pItem->pNext;
+	}
+
 }
 
 BOOL CanDisplaySpawn(eSpawnType Type, PSPAWNINFO pSpawn)

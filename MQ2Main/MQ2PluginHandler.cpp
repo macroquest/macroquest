@@ -88,6 +88,8 @@ DWORD LoadMQ2Plugin(const PCHAR pszFilename)
 	pPlugin->SetGameState=(fMQSetGameState)GetProcAddress(hmod,"SetGameState");
 	pPlugin->AddSpawn=(fMQSpawn)GetProcAddress(hmod,"OnAddSpawn");
 	pPlugin->RemoveSpawn=(fMQSpawn)GetProcAddress(hmod,"OnRemoveSpawn");
+	pPlugin->AddGroundItem=(fMQGroundItem)GetProcAddress(hmod,"OnAddGroundItem");
+	pPlugin->RemoveGroundItem=(fMQGroundItem)GetProcAddress(hmod,"OnRemoveGroundItem");
 
 	if (pPlugin->Initialize)
 		pPlugin->Initialize();
@@ -102,6 +104,16 @@ DWORD LoadMQ2Plugin(const PCHAR pszFilename)
 			pSpawn=pSpawn->pNext;
 		}
 	}
+	if (pPlugin->AddGroundItem && gGameState==GAMESTATE_INGAME)
+	{
+		PGROUNDITEM pItem=(PGROUNDITEM)pItemList;
+		while(pItem)
+		{
+			pPlugin->AddGroundItem(pItem);
+			pItem=pItem->pNext;
+		}
+	}
+
 	pPlugin->pLast=0;
 	pPlugin->pNext=pPlugins;
 	if (pPlugins)
@@ -387,6 +399,39 @@ VOID PluginsRemoveSpawn(PSPAWNINFO pSpawn)
 		if (pPlugin->RemoveSpawn)
 		{
 			pPlugin->RemoveSpawn(pSpawn);
+		}
+		pPlugin=pPlugin->pNext;
+	}
+}
+
+VOID PluginsAddGroundItem(PGROUNDITEM pNewGroundItem)
+{
+	if (!bPluginCS)
+		return;
+	CAutoLock Lock(&gPluginCS);
+	PMQPLUGIN pPlugin=pPlugins;
+	DebugSpew("PluginsAddGroundItem(%s) %.1f,%.1f,%.1f",pNewGroundItem->Name,pNewGroundItem->X,pNewGroundItem->Y,pNewGroundItem->Z);
+	while(pPlugin)
+	{
+		if (pPlugin->AddGroundItem)
+		{
+			pPlugin->AddGroundItem(pNewGroundItem);
+		}
+		pPlugin=pPlugin->pNext;
+	}
+}
+
+VOID PluginsRemoveGroundItem(PGROUNDITEM pGroundItem)
+{
+	if (!bPluginCS)
+		return;
+	CAutoLock Lock(&gPluginCS);
+	PMQPLUGIN pPlugin=pPlugins;
+	while(pPlugin)
+	{
+		if (pPlugin->RemoveGroundItem)
+		{
+			pPlugin->RemoveGroundItem(pGroundItem);
 		}
 		pPlugin=pPlugin->pNext;
 	}

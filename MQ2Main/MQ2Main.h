@@ -156,6 +156,7 @@ EQLIB_API DWORD AddMQ2Benchmark(PCHAR Name);
 /* SPAWN HANDLING */
 EQLIB_API VOID InitializeMQ2Spawns();
 EQLIB_API VOID ShutdownMQ2Spawns();
+EQLIB_API VOID ProcessPendingGroundItems();
 
 /* WINDOWS */
 EQLIB_API VOID InitializeMQ2Windows();
@@ -192,6 +193,8 @@ EQLIB_API VOID PluginsSetGameState(DWORD GameState);
 EQLIB_API VOID PluginsDrawHUD();
 EQLIB_API VOID PluginsAddSpawn(PSPAWNINFO pNewSpawn);
 EQLIB_API VOID PluginsRemoveSpawn(PSPAWNINFO pSpawn);
+EQLIB_API VOID PluginsAddGroundItem(PGROUNDITEM pNewGroundItem);
+EQLIB_API VOID PluginsRemoveGroundItem(PGROUNDITEM pGroundItem);
 
 /* DIRECT INPUT */
 EQLIB_API VOID InitializeMQ2DInput();

@@ -889,7 +889,7 @@ typedef struct _DOORTABLE {
 /*0x400*/
 } DOORTABLE, *PDOORTABLE;
 
-
+// actual size 0x5c  2-18-2004 lax
 // 8-26-2003 mule
 typedef struct _GROUNDITEM {
 /*0x00*/ struct _GROUNDITEM *pPrev;

@@ -233,6 +233,10 @@
 // CMapViewWnd
 #define CMapViewWnd__CMapViewWnd					0x509A55
 
+// EQItemList
+#define EQItemList__EQItemList						0x44FC6E
+#define EQItemList__dEQItemList						0x44FCEA
+
 //
 #define EQ_PC__DestroyHeldItemOrMoney              0x4352EB 
 

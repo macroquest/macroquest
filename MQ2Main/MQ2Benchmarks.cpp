@@ -22,7 +22,7 @@
 #include "MQ2Main.h"
 
 typedef CIndex<PMQBENCH> BMIndex;
-BMIndex *pBenchmarks;
+BMIndex *pBenchmarks=0;
 #define Benchmarks (*pBenchmarks)
 
 DWORD AddMQ2Benchmark(PCHAR Name)
@@ -47,6 +47,8 @@ VOID RemoveMQ2Benchmark(DWORD BMHandle)
 
 VOID EnterMQ2Benchmark(DWORD BMHandle)
 {
+	if (!pBenchmarks)
+		return;
 	if (Benchmarks[BMHandle])
 	{
 		Benchmarks[BMHandle]->Entry=GetTickCount();
@@ -55,6 +57,8 @@ VOID EnterMQ2Benchmark(DWORD BMHandle)
 
 VOID ExitMQ2Benchmark(DWORD BMHandle)
 {
+	if (!pBenchmarks)
+		return;
 	if (Benchmarks[BMHandle])
 	{
 		DWORD Time=GetTickCount()-Benchmarks[BMHandle]->Entry;
@@ -74,6 +78,8 @@ VOID ExitMQ2Benchmark(DWORD BMHandle)
 
 BOOL GetMQ2Benchmark(DWORD BMHandle, MQBENCH &Dest)
 {
+	if (!pBenchmarks)
+		return false;
 	if (Benchmarks[BMHandle])
 	{
 		Dest=*Benchmarks[BMHandle]; // give them a copy of the data.
@@ -148,6 +154,7 @@ VOID ShutdownMQ2Benchmarks()
 		DebugTry(pBenchmarks->Cleanup());
 		DebugTry(delete pBenchmarks);
 	}
+	pBenchmarks=0;
 }
 
 

@@ -21,8 +21,81 @@
 #include "MQ2Main.h"
 
 
-//EQLIB_API VOID PluginsAddSpawn(PSPAWNINFO pNewSpawn);
-//EQLIB_API VOID PluginsRemoveSpawn(PSPAWNINFO pSpawn);
+PMQGROUNDPENDING pPendingGrounds=0;
+CRITICAL_SECTION csPendingGrounds;
+BOOL ProcessPending=false;
+
+class EQItemListHook
+{
+public:
+	DWORD EQItemList_Trampoline();
+	DWORD EQItemList_Detour()
+	{
+		PGROUNDITEM pGroundItem;
+		__asm {
+			mov [pGroundItem], ecx;
+			push ecx;
+		};
+		DWORD Ret=EQItemList_Trampoline();
+		EnterCriticalSection(&csPendingGrounds);
+		PMQGROUNDPENDING pPending=new MQGROUNDPENDING;
+		pPending->pGroundItem=pGroundItem;
+		pPending->pNext=pPendingGrounds;
+		pPending->pLast=0;
+		if (pPendingGrounds)
+			pPendingGrounds->pLast=pPending;
+		pPendingGrounds=pPending;
+		LeaveCriticalSection(&csPendingGrounds);
+		__asm {
+			pop ecx;
+		};
+		return Ret;
+	}
+
+	void dEQItemList_Trampoline();
+	void dEQItemList_Detour()
+	{
+		PGROUNDITEM pGroundItem;
+		__asm {
+			mov [pGroundItem], ecx;
+			push ecx;
+		};
+		// check pending ground items
+		if (pPendingGrounds)
+		{
+			EnterCriticalSection(&csPendingGrounds);
+			PMQGROUNDPENDING pPending=pPendingGrounds;
+			while(pPending)
+			{
+				if (pGroundItem==pPending->pGroundItem)
+				{
+					if (pPending->pNext)
+						pPending->pNext->pLast=pPending->pLast;
+					if (pPending->pLast)
+						pPending->pLast->pNext=pPending->pNext;
+					else
+						pPendingGrounds=pPending->pNext;
+					delete pPending;
+					LeaveCriticalSection(&csPendingGrounds);
+					dEQItemList_Trampoline();
+					return;
+				}
+				pPending=pPending->pNext;
+			}
+			LeaveCriticalSection(&csPendingGrounds);
+			__asm
+			{
+				pop ecx;
+			};
+		}
+
+		PluginsRemoveGroundItem((PGROUNDITEM)this);
+		dEQItemList_Trampoline();
+	}
+};
+
+DETOUR_TRAMPOLINE_EMPTY(DWORD EQItemListHook::EQItemList_Trampoline(VOID)); 
+DETOUR_TRAMPOLINE_EMPTY(VOID EQItemListHook::dEQItemList_Trampoline(VOID)); 
 
 class EQPlayerHook
 {
@@ -72,6 +145,12 @@ VOID InitializeMQ2Spawns()
 	DebugSpew("Initializing Spawn-related Hooks");
 	EasyClassDetour(EQPlayer__EQPlayer,EQPlayerHook,EQPlayer_Detour,VOID,(class EQPlayer *,unsigned char,unsigned int,unsigned char,char *),EQPlayer_Trampoline);
 	EasyClassDetour(EQPlayer__dEQPlayer,EQPlayerHook,dEQPlayer_Detour,VOID,(VOID),dEQPlayer_Trampoline);
+
+	EasyClassDetour(EQItemList__EQItemList,EQItemListHook,EQItemList_Detour,DWORD,(VOID),EQItemList_Trampoline);
+	EasyClassDetour(EQItemList__dEQItemList,EQItemListHook,dEQItemList_Detour,VOID,(VOID),dEQItemList_Trampoline);
+
+	InitializeCriticalSection(&csPendingGrounds);
+	ProcessPending=true;
 }
 
 VOID ShutdownMQ2Spawns()
@@ -79,5 +158,31 @@ VOID ShutdownMQ2Spawns()
 	DebugSpew("Shutting Down Spawn-related Hooks");
 	RemoveDetour(EQPlayer__EQPlayer);
 	RemoveDetour(EQPlayer__dEQPlayer);
+	RemoveDetour(EQItemList__EQItemList);
+	RemoveDetour(EQItemList__dEQItemList);
+	ProcessPending=false;
+	EnterCriticalSection(&csPendingGrounds);
+	DeleteCriticalSection(&csPendingGrounds);
+	while(pPendingGrounds)
+	{
+		PMQGROUNDPENDING pNext=pPendingGrounds->pNext;
+		delete pPendingGrounds;
+		pPendingGrounds=pNext;
+	}
 }
 
+VOID ProcessPendingGroundItems()
+{
+	if (ProcessPending && pPendingGrounds)
+	{
+		EnterCriticalSection(&csPendingGrounds);
+		while(pPendingGrounds)
+		{
+			PMQGROUNDPENDING pNext=pPendingGrounds->pNext;
+			PluginsAddGroundItem(pPendingGrounds->pGroundItem);
+			delete pPendingGrounds;
+			pPendingGrounds=pNext;
+		}
+		LeaveCriticalSection(&csPendingGrounds);
+	}
+}

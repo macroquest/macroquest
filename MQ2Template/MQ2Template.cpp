@@ -111,3 +111,18 @@ PLUGIN_API VOID OnRemoveSpawn(PSPAWNINFO pSpawn)
 {
 	DebugSpewAlways("MQ2Template::OnRemoveSpawn(%s)",pSpawn->Name);
 }
+
+// This is called each time a ground item is added to a zone
+// or for each existing ground item when a plugin first initializes
+// NOTE: When you zone, these will come BEFORE OnZoned
+PLUGIN_API VOID OnAddGroundItem(PGROUNDITEM pNewGroundItem)
+{
+	DebugSpewAlways("MQ2Template::OnAddGroundItem(%d)",pNewGroundItem->DropID);
+}
+
+// This is called each time a ground item is removed from a zone
+// It is NOT called for each existing ground item when a plugin shuts down.
+PLUGIN_API VOID OnRemoveGroundItem(PGROUNDITEM pGroundItem)
+{
+	DebugSpewAlways("MQ2Template::OnRemoveGroundItem(%d)",pGroundItem->DropID);
+}

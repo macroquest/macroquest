@@ -10,6 +10,8 @@
   To release the key after holding, simply use the command again without the hold keyword.
 - /itemnotify command is now live.  /itemnotify <slot> <notification>, or /itemnotify in <bag slot> <#> <notification>
   Bag slots are pack1-8, bank1-16 (and sharedbank1-2 and trade1-8 but these are not yet implemented in /itemnotify)
+- Added OnAddGroundSpawn/OnRemoveGroundSpawn to plugin callbacks
+- Fixed random crash on exit dealing with breakpoints
 
 01 Mar 2004 by Zaphod
 - Another bugfix in MQ2DetourAPI.cpp. 
