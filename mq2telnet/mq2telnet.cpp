@@ -19,6 +19,7 @@ CRITICAL_SECTION gTelnet_CS_Recv;
 CRITICAL_SECTION gTelnet_CS_Connection;
 CRITICAL_SECTION gTelnet_CS_Send;
 CRITICAL_SECTION gTelnet_CS_Lock;
+BOOL gTelnet_Unload = 0;
 //CRITICAL_SECTION gDoCommand_Lock;
 
 
@@ -34,15 +35,19 @@ PLUGIN_API VOID InitializePlugin(VOID)
 {
     DebugSpewAlways("Initializing mq2telnet");
 //    InitializeCriticalSection(&gDoCommand_Lock);
+    InitializeCriticalSection(&gTelnet_CS_Connection);
+    InitializeCriticalSection(&gTelnet_CS_Lock);
     InitializeCriticalSection(&gTelnet_CS_Recv);
     InitializeCriticalSection(&gTelnet_CS_Send);
-    SetupServer();
+    DebugTry(SetupServer());
 }
 
 PLUGIN_API VOID ShutdownPlugin(VOID)
 {
     DebugSpewAlways("Shutting down mq2telnet");
-    CloseServer();
+    DebugTry(CloseServer());
+    DeleteCriticalSection(&gTelnet_CS_Connection);
+    DeleteCriticalSection(&gTelnet_CS_Lock);
     DeleteCriticalSection(&gTelnet_CS_Send);
     DeleteCriticalSection(&gTelnet_CS_Recv);
 //    DeleteCriticalSection(&gDoCommand_Lock);
@@ -225,8 +230,8 @@ DWORD WINAPI RecvThread(LPVOID lpParam)
 {
     TelnetLock(1);
     PCONNECTION Connection = (PCONNECTION)lpParam;
-    while (!gbUnload && Connection) {
-        int ret = TelnetServer_Recv(Connection);
+    while (!gTelnet_Unload && Connection) {
+        DebugTry(int ret = TelnetServer_Recv(Connection));
         if (ret == SOCKET_ERROR) {
             DebugSpewAlways("RecvThread: Socket error, closing connection.");
             closesocket(Connection->socket);
@@ -251,8 +256,8 @@ DWORD WINAPI ListenThread(LPVOID lpParam)
 {
     SOCKET incoming;
     TelnetLock(1);
-    while (!gbUnload) {
-        incoming = accept(gTelnetSocket,NULL,NULL);
+    while (!gTelnet_Unload) {
+        DebugTry(incoming = accept(gTelnetSocket,NULL,NULL));
         if (incoming != INVALID_SOCKET) {
             int ret=0;
             sockaddr_in addr;
@@ -261,7 +266,7 @@ DWORD WINAPI ListenThread(LPVOID lpParam)
                 int ret;
                 ret = getpeername(incoming,(sockaddr*)&addr,&namesize);
             }
-            if ((gbUnload) || (ret==SOCKET_ERROR) || (gTelnetLocal && !strcmp("127.0.0.1",inet_ntoa(addr.sin_addr)))) {
+            if ((gTelnet_Unload) || (ret==SOCKET_ERROR) || (gTelnetLocal && !strcmp("127.0.0.1",inet_ntoa(addr.sin_addr)))) {
                 DebugSpewAlways("ListenThread: Closing new connection...");
                 closesocket(incoming);
                 continue;
@@ -288,8 +293,11 @@ DWORD WINAPI ListenThread(LPVOID lpParam)
 DWORD WINAPI SendThread(LPVOID lpParam)
 {
     TelnetLock(1);
-    while (!gbUnload) {
-        if (gTelnetConnection && gTelnetSend) TelnetServer_Send();
+    while (!gTelnet_Unload) {
+        if (gTelnetConnection && gTelnetSend) 
+		{
+			DebugTry(TelnetServer_Send());
+		};
         Sleep(500);
     }
     TelnetLock(-1);
@@ -298,9 +306,14 @@ DWORD WINAPI SendThread(LPVOID lpParam)
 
 VOID SetupServer()
 {
+	gTelnet_Unload=0;
     SOCKADDR_IN saServer;
     gTelnetConnection = NULL;
     gTelnetPort = GetPrivateProfileInt("Telnet Server","Port",23,INIFileName);
+	if (!gTelnetPort)
+	{
+		DebugSpewAlways("SetupServer: Port 0 specified, disabling mq2telnet");
+	}
     gTelnetLocal = GetPrivateProfileInt("Telnet Server","LocalOnly",1,INIFileName);
     GetPrivateProfileString("Telnet Server","Welcome","MacroQuest telnet server",gTelnetWelcome,MAX_STRING,INIFileName);
     GetPrivateProfileString("Telnet Server","Password","macroquest",gTelnetPassword,MAX_STRING,INIFileName);
@@ -330,8 +343,6 @@ VOID SetupServer()
         gTelnetServer=0;
         return;
     }
-//    InitializeCriticalSection(&gTelnet_CS_Connection);
-//    InitializeCriticalSection(&gTelnet_CS_Lock);
     DWORD ThreadId; 
     CreateThread(NULL,0,&ListenThread,NULL,0,&ThreadId);
     CreateThread(NULL,0,&SendThread,NULL,0,&ThreadId);
@@ -340,6 +351,7 @@ VOID SetupServer()
 
 VOID CloseServer()
 {
+	gTelnet_Unload=1;
     DWORD Locks = 1;
     closesocket(gTelnetSocket);
     while (Locks>0) {
