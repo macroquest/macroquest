@@ -44,7 +44,7 @@ OurDetours *FindDetour(DWORD address)
 	OurDetours *pDetour=ourdetours;
 	while(pDetour)
 	{
-		if (pDetour->addr=address)
+		if (pDetour->addr==address)
 			return pDetour;
 		pDetour=pDetour->pNext;
 	}
