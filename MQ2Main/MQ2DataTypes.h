@@ -46,6 +46,8 @@ EQLIB_VAR class MQ2ArgbType *pArgbType;
 EQLIB_VAR class MQ2TypeType *pTypeType;
 EQLIB_VAR class MQ2TimeType *pTimeType;
 
+EQLIB_VAR class MQ2HeadingType *pHeadingType;
+
 #define UseTemp(mystring) strcpy(DataTypeTemp,mystring)
 #define TypeMember(name) AddMember((DWORD)name,""#name)
 
@@ -1005,6 +1007,7 @@ public:
 		Z=5,
 		Heading=6,
 		Name=7,
+		HeadingTo=8,
 	};
 	MQ2GroundType():MQ2Type("ground")
 	{
@@ -1015,6 +1018,7 @@ public:
 		TypeMember(Z);//5,
 		TypeMember(Heading);//6,
 		TypeMember(Name);//7,
+		TypeMember(HeadingTo);
 	}
 
 	~MQ2GroundType()
@@ -1530,6 +1534,36 @@ public:
    }
 }; 
 
+class MQ2HeadingType : public MQ2Type
+{
+public:
+   static enum HeadingMembers
+   {
+      Name=1,
+	  ShortName=2,
+	  Degrees=3,
+	  Clock=4,
+   };
+   MQ2HeadingType():MQ2Type("heading")
+   {
+      TypeMember(Name);
+	  TypeMember(ShortName);
+	  TypeMember(Degrees);
+	  TypeMember(Clock);
+   }
+
+   ~MQ2HeadingType()
+   {
+   }
+
+   bool GetMember(MQ2VARPTR VarPtr, PCHAR Member, PCHAR Index, MQ2TYPEVAR &Dest);
+
+   bool ToString(MQ2VARPTR VarPtr, PCHAR Destination)
+   {
+	  strcpy(Destination,szHeadingShort[(INT)(VarPtr.Float/ 22.5f + 0.5f)%16]);
+      return true;
+   }
+}; 
 
 
 #undef TypeMember

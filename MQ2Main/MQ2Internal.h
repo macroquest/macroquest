@@ -566,7 +566,7 @@ public:
 	BOOL GetMemberID(PCHAR Name, DWORD &Result)
 	{
 		unsigned long N=MemberMap[Name];
-		if (N>0)
+		if (N==0)
 			return false;
 		N--;
 		PMQ2TYPEMEMBER pMember = Members[N];
@@ -592,7 +592,7 @@ protected:
 	inline BOOL RemoveMember(PCHAR Name)
 	{
 		unsigned long N=MemberMap[Name];
-		if (N>0)
+		if (N==0)
 			return false;
 		N--;
 		PMQ2TYPEMEMBER pMember = Members[N];

@@ -228,6 +228,8 @@ BOOL dataZone(PCHAR szIndex, MQ2TYPEVAR &Ret)
 
 BOOL dataInt(PCHAR szIndex, MQ2TYPEVAR &Ret)
 {
+	if (!szIndex[0])
+		return false;
 	Ret.DWord=atol(szIndex);
 	Ret.Type=pIntType;
 	return true;
@@ -235,6 +237,8 @@ BOOL dataInt(PCHAR szIndex, MQ2TYPEVAR &Ret)
 
 BOOL dataString(PCHAR szIndex, MQ2TYPEVAR &Ret)
 {
+	if (!szIndex[0])
+		return false;
 	strcpy(DataTypeTemp,szIndex);
 	Ret.Ptr=&DataTypeTemp[0];
 	Ret.Type=pStringType;
@@ -243,13 +247,26 @@ BOOL dataString(PCHAR szIndex, MQ2TYPEVAR &Ret)
 
 BOOL dataFloat(PCHAR szIndex, MQ2TYPEVAR &Ret)
 {
+	if (!szIndex[0])
+		return false;
 	Ret.Float=(FLOAT)atof(szIndex);
+	Ret.Type=pFloatType;
+	return true;
+}
+
+BOOL dataHeading(PCHAR szIndex, MQ2TYPEVAR &Ret)
+{
+	if (!szIndex[0])
+		return false;
+	Ret.Float=360.0f-(FLOAT)atof(szIndex);
 	Ret.Type=pFloatType;
 	return true;
 }
 
 BOOL dataBool(PCHAR szIndex, MQ2TYPEVAR &Ret)
 {
+	if (!szIndex[0])
+		return false;
 	Ret.DWord=(stricmp(szIndex,"NULL") && 
 				stricmp(szIndex,"FALSE") &&
 				strcmp(szIndex,"0"));

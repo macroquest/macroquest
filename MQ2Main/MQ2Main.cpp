@@ -83,12 +83,7 @@ BOOL ParseINIFile(PCHAR lpINIPath)
     CHAR ClientINI[MAX_STRING] = {0};
     CHAR szBuffer[MAX_STRING] = {0};
     CHAR ClientName[MAX_STRING] = {0};
-    CHAR AliasList[MAX_STRING*10] = {0};
-//    CHAR HotkeyList[MAX_STRING*10] = {0};
     CHAR FilterList[MAX_STRING*10] = {0};
-//    struct _stat stat;
-//    int client;
-//    BOOL clientOverride = FALSE;
    GetEQPath(gszEQPath);
 
 
@@ -108,26 +103,6 @@ BOOL ParseINIFile(PCHAR lpINIPath)
         return FALSE;
 	}
 #endif
-/*
-	strcpy(ClientName,__ClientName);
-	strcat(ClientName,".exe");
-    client = _open(ClientName,_O_RDONLY);
-    if (client == -1) {
-        sprintf(szBuffer,"Unable to check client version. (%d)",errno);
-        MessageBox(NULL,szBuffer,"MacroQuest",MB_OK);
-        return FALSE;
-    }
-    _fstat(client,&stat);
-    _close(client);
-
-    DebugSpewAlways("Expected Client version: %s",__ClientVersion);
-    DebugSpewAlways("    Real Client version: %s",ctime(&stat.st_mtime));
-    if (!__ClientOverride && !CompareTimes(ctime(&stat.st_mtime),__ClientVersion)) {
-        sprintf(szBuffer,"Incorrect client version:\n%s",ctime(&stat.st_mtime));
-        MessageBox(NULL,__ClientVersion,"MacroQuest",MB_OK);
-        return FALSE;
-    }
-/**/
 
 	gFilterSkillsAll = 0!=GetPrivateProfileInt("MacroQuest","FilterSkills",0,Filename);
     gFilterSkillsIncrease = 2==GetPrivateProfileInt("MacroQuest","FilterSkills",0,Filename);
@@ -187,28 +162,6 @@ BOOL ParseINIFile(PCHAR lpINIPath)
         }
         pFilterList+=strlen(pFilterList)+1;
     }
-/*
-    GetPrivateProfileString("Hotkeys",NULL,"",HotkeyList,MAX_STRING*10,Filename);
-    PCHAR pHotkeyList = HotkeyList;
-    while (pHotkeyList[0]!=0) {
-        GetPrivateProfileString("Hotkeys",pHotkeyList,"",szBuffer,MAX_STRING,Filename);
-        if (szBuffer[0]!=0) {
-            PHOTKEY pNew = (PHOTKEY)malloc(sizeof(HOTKEY));
-            strcpy(pNew->szName,pHotkeyList);
-            ConvertHotkeyNameToKeyName(pNew->szName);
-            DWORD i;
-            for (i=0;gDiKeyID[i].szName[0];i++) {
-                if (!stricmp(gDiKeyID[i].szName,pNew->szName)) {
-                    pNew->DIKey = gDiKeyID[i].Id;
-                }
-            }
-            strcpy(pNew->szCommand,szBuffer);
-            pNew->pNext=pHotkey;
-            pHotkey=pNew;
-        }
-        pHotkeyList+=strlen(pHotkeyList)+1;
-    }
-/**/
 
 	sprintf(Filename,"%s\\ItemDB.txt",lpINIPath);
     FILE *fDB = fopen(Filename,"rt");

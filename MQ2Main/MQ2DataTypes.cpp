@@ -50,6 +50,7 @@ class MQ2DeityType *pDeityType=0;
 class MQ2ArgbType *pArgbType=0;
 class MQ2TypeType *pTypeType=0;
 class MQ2TimeType *pTimeType=0;
+class MQ2HeadingType *pHeadingType=0;
 
 CHAR DataTypeTemp[MAX_STRING]={0};
 
@@ -83,6 +84,7 @@ void InitializeMQ2DataTypes()
 	pCurrentZoneType = new MQ2CurrentZoneType;
 	pTypeType = new MQ2TypeType;
 	pTimeType = new MQ2TimeType;
+	pHeadingType = new MQ2HeadingType;
 }
 
 void ShutdownMQ2DataTypes()
@@ -115,6 +117,7 @@ void ShutdownMQ2DataTypes()
 	delete pCurrentZoneType;
 	delete pTypeType;
 	delete pTimeType;
+	delete pHeadingType;
 }
 
 bool MQ2FloatType::GetMember(MQ2VARPTR VarPtr, PCHAR Member, PCHAR Index, MQ2TYPEVAR &Dest)
@@ -271,7 +274,7 @@ bool MQ2SpawnType::GetMember(MQ2VARPTR VarPtr, PCHAR Member, PCHAR Index, MQ2TYP
 		return true;
 	case Heading:
 		Dest.Float=pSpawn->Heading*0.703125f;
-		Dest.Type=pFloatType;
+		Dest.Type=pHeadingType;
 		return true;
 	case Pet:
         if (Dest.Ptr=GetSpawnByID(pSpawn->pActorInfo->PetID))
@@ -436,7 +439,7 @@ bool MQ2SpawnType::GetMember(MQ2VARPTR VarPtr, PCHAR Member, PCHAR Index, MQ2TYP
 			Dest.Float += 360.0f;
 		else if (Dest.Float>=360.0f) 
 			Dest.Float -= 360.0f;
-		Dest.Type=pFloatType;
+		Dest.Type=pHeadingType;
 		return true;
 	case Casting:
 		if (Dest.Ptr=GetSpellByID(pSpawn->pActorInfo->CastingSpellID))
@@ -2025,11 +2028,11 @@ bool MQ2SwitchType::GetMember(MQ2VARPTR VarPtr, PCHAR Member, PCHAR Index, MQ2TY
 		return true;
 	case Heading:
 		Dest.Float=pSwitch->Heading*0.703125f;
-		Dest.Type=pFloatType;
+		Dest.Type=pHeadingType;
 		return true;
 	case DefaultHeading:
 		Dest.Float=pSwitch->DefaultHeading*0.703125f;
-		Dest.Type=pFloatType;
+		Dest.Type=pHeadingType;
 		return true;
 	case Open:
 		Dest.DWord=((pSwitch->DefaultHeading != pSwitch->Heading) ||
@@ -2042,7 +2045,7 @@ bool MQ2SwitchType::GetMember(MQ2VARPTR VarPtr, PCHAR Member, PCHAR Index, MQ2TY
 			Dest.Float += 360.0f;
 		else if (Dest.Float>=360.0f) 
 			Dest.Float -= 360.0f;
-		Dest.Type=pFloatType;
+		Dest.Type=pHeadingType;
 		return true;
 	case Name:
 		Dest.Ptr=&pSwitch->Name[0];
@@ -2092,11 +2095,19 @@ bool MQ2GroundType::GetMember(MQ2VARPTR VarPtr, PCHAR Member, PCHAR Index, MQ2TY
 		return true;
 	case Heading:
 		Dest.Float=pGround->Heading*0.703125f;
-		Dest.Type=pStringType;
+		Dest.Type=pHeadingType;
 		return true;
 	case Distance:
 		Dest.Float=GetDistance(pGround->X,pGround->Y);
 		Dest.Type=pFloatType;
+		return true;
+	case HeadingTo:
+        Dest.Float=(FLOAT)(atan2f(((PSPAWNINFO)pCharSpawn)->Y - pGround->Y, pGround->X - ((PSPAWNINFO)pCharSpawn)->X) * 180.0f / PI + 90.0f);
+        if (Dest.Float<0.0f) 
+			Dest.Float += 360.0f;
+		else if (Dest.Float>=360.0f) 
+			Dest.Float -= 360.0f;
+		Dest.Type=pHeadingType;
 		return true;
 	}
 	return false;
@@ -2228,14 +2239,6 @@ bool MQ2TypeType::GetMember(MQ2VARPTR VarPtr, PCHAR Member, PCHAR Index, MQ2TYPE
 	return false;
 #undef pType
 }
-bool MQ2CorpseType::GetMember(MQ2VARPTR VarPtr, PCHAR Member, PCHAR Index, MQ2TYPEVAR &Dest)
-{
-	return false;
-}
-bool MQ2MerchantType::GetMember(MQ2VARPTR VarPtr, PCHAR Member, PCHAR Index, MQ2TYPEVAR &Dest)
-{
-	return false;
-}
 
 bool MQ2TimeType::GetMember(MQ2VARPTR VarPtr, PCHAR Member, PCHAR Index, MQ2TYPEVAR &Dest)
 {
@@ -2308,4 +2311,48 @@ bool MQ2TimeType::GetMember(MQ2VARPTR VarPtr, PCHAR Member, PCHAR Index, MQ2TYPE
 #undef GetTime
 }
 
+bool MQ2HeadingType::GetMember(MQ2VARPTR VarPtr, PCHAR Member, PCHAR Index, MQ2TYPEVAR &Dest)
+{
+	unsigned long N=MemberMap[Member];
+	if (!N)
+		return false;
+	N--;
+	PMQ2TYPEMEMBER pMember=Members[N];
+	if (!pMember)
+		return false;
+	FLOAT Heading=360.0f-VarPtr.Float;
+	switch((HeadingMembers)pMember->ID)
+	{
+	case Clock:
+		{
+			Dest.Int=((int)Heading)+15;
+			Dest.DWord=((int)Dest.Int/30)%12;
+			if (Dest.DWord==0)
+				Dest.DWord=12;
+			Dest.Type=pIntType;
+			return true;
+		}
+	case Degrees:
+		Dest.Float=Heading;
+		Dest.Type=pFloatType;
+		return true;
+	case ShortName:
+		Dest.Ptr=szHeadingShort[(INT)(Heading/ 22.5f + 0.5f)%16];
+		Dest.Type=pStringType;
+		return true;
+	case Name:
+		Dest.Ptr=szHeading[(INT)(Heading/ 22.5f + 0.5f)%16];
+		Dest.Type=pStringType;
+		return true;
+	}
+	return false;
+}
 
+bool MQ2CorpseType::GetMember(MQ2VARPTR VarPtr, PCHAR Member, PCHAR Index, MQ2TYPEVAR &Dest)
+{
+	return false;
+}
+bool MQ2MerchantType::GetMember(MQ2VARPTR VarPtr, PCHAR Member, PCHAR Index, MQ2TYPEVAR &Dest)
+{
+	return false;
+}

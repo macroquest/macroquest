@@ -141,6 +141,7 @@ void InitializeMQ2Data()
 	AddMQ2Data("Time",dataTime);
 	AddMQ2Data("GameTime",dataGameTime);
 	AddMQ2Data("Ini",dataIni);
+	AddMQ2Data("Heading",dataHeading);
 }
 
 
