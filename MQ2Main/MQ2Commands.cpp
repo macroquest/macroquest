@@ -2975,6 +2975,8 @@ BOOL SpawnMatchesSearch(PSEARCHSPAWN pSearchSpawn, PSPAWNINFO pChar, PSPAWNINFO 
 		return FALSE;
 	if (pSearchSpawn->bTributeMaster && pSpawn->Class != 63 )
 		return FALSE;
+        if (pSearchSpawn->bNoGuild && (pSpawn->GuildID < MAX_GUILDS))
+                return FALSE;
 	if (pSearchSpawn->bKnight && pSearchSpawn->SpawnType != NPC) 
 		if (pSpawn->Class != 3 && pSpawn->Class != 5 )
 			return FALSE;
@@ -3083,6 +3085,8 @@ PCHAR ParseSearchSpawnArgs(PCHAR szArg, PCHAR szRest, PSEARCHSPAWN pSearchSpawn)
             pSearchSpawn->bGM = TRUE;
         } else if (!stricmp(szArg,"group")) {
             pSearchSpawn->bGroup = TRUE;
+        } else if (!stricmp(szArg,"noguild")) {
+            pSearchSpawn->bNoGuild = TRUE;
         } else if (!stricmp(szArg,"trader")) {
             pSearchSpawn->bTrader = TRUE;
 		} else if (!stricmp(szArg,"named")) {

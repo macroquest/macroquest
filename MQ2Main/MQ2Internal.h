@@ -82,6 +82,7 @@ typedef struct _SEARCHSPAWN {
     BOOL bKnownLocation;
     BOOL bNoPet;
     DWORD SortBy;
+    BOOL bNoGuild;
 } SEARCHSPAWN, *PSEARCHSPAWN;
 
 static enum SearchItemFlag
