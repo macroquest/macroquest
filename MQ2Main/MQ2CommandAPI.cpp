@@ -451,7 +451,8 @@ void InitializeMQ2Commands()
         {"/editmacro",  EditMacro,1,1},
 		{"/plugin",     PluginCommand,1,0},
 		{"/destroy",     EQDestroyHeldItemOrMoney,1,1},
-		{"/exec",      Exec,1,1}, 
+		{"/exec",      Exec,1,0}, 
+		{"/keypress",   DoMappable,1,0},
 		{NULL,          NULL,0,1},
     };
 

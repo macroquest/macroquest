@@ -230,6 +230,9 @@
 #define MapViewMap__SaveEx                    0x5066FE 
 #define MapViewMap__Clear						0x0506184
 
+// CMapViewWnd
+#define CMapViewWnd__CMapViewWnd					0x509A55
+
 //
 #define EQ_PC__DestroyHeldItemOrMoney              0x4352EB 
 

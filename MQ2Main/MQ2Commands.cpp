@@ -4473,3 +4473,36 @@ VOID Exec(PSPAWNINFO pChar,PCHAR szLine) {
       WriteChatColor("/exec [application] [fg | bg]",USERCOLOR_DEFAULT);
    }
 } 
+
+VOID DoMappable(PSPAWNINFO pChar, PCHAR szLine)
+{
+	if (szLine[0]==0)
+	{
+		WriteChatColor("Usage: /keypress <eqcommand> [hold]");
+		return;
+	}
+	CHAR szArg1[MAX_STRING]={0};
+	CHAR szArg2[MAX_STRING]={0};
+
+    GetArg(szArg1,szLine,1);
+    GetArg(szArg2,szLine,2);
+
+	int N=FindMappableCommand(szArg1);
+	if (N<0)
+	{
+		CHAR szOut[MAX_STRING]={0};
+		sprintf(szOut,"Invalid mappable command '%s'",szArg1);
+		WriteChatColor(szOut);
+		return;
+	}
+
+	if (!stricmp(szArg2,"hold"))
+	{
+		ExecuteCmd(N,1,0);
+	}
+	else
+	{
+		ExecuteCmd(N,1,0);
+		ExecuteCmd(N,0,0);
+	}
+}

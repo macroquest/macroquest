@@ -166,6 +166,11 @@ EQLIB_VAR PBYTE EQADDR_ENCRYPTPAD3;
 EQLIB_VAR PMOUSEINFO EQADDR_MOUSE;
 EQLIB_VAR PMOUSECLICK EQADDR_MOUSECLICK;
 
+EQLIB_VAR PMAPLABEL *ppCurrentMapLabel;
+#define pCurrentMapLabel (*ppCurrentMapLabel)
+
+EQLIB_VAR PCHAR *EQMappableCommandList;
+
 EQLIB_VAR DWORD EQADDR_DIMAIN;
 EQLIB_VAR IDirectInputDevice8A **EQADDR_DIKEYBOARD;
 EQLIB_VAR IDirectInputDevice8A **EQADDR_DIMOUSE;
@@ -210,6 +215,7 @@ EQLIB_VAR fEQCommand         cmdCast;
 EQLIB_VAR fEQNewUIINI        NewUIINI;
 EQLIB_VAR fEQProcGameEvts    ProcessGameEvents;
 EQLIB_VAR fEQSendMessage     send_message;
+EQLIB_VAR fEQExecuteCmd		 ExecuteCmd;
 
 EQLIB_VAR PCHAR szItemName[];
 EQLIB_VAR PCHAR szItemName4xx[];

@@ -29,6 +29,8 @@ typedef VOID    (__cdecl *fEQWriteMapfile)(PCHAR, int);//void __thiscall ZZZ::Wr
 typedef BOOL    (__cdecl *fEQProcGameEvts)(VOID);
 typedef VOID    (__cdecl *fEQSendMessage)(PVOID,DWORD,PVOID,DWORD,BOOL);
 
+typedef BOOL    (__cdecl *fEQExecuteCmd)(DWORD,BOOL,PVOID);
+
 typedef DWORD (__cdecl *fMQParm)(PCHAR, PCHAR, PSPAWNINFO);
 
 /* PLUGINS */

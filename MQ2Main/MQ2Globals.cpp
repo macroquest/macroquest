@@ -153,6 +153,7 @@ fEQBuyItem        cmdBuyItem     =  NULL;
 fEQSellItem       cmdSellItem    =  NULL;
 fEQProcGameEvts   ProcessGameEvents = NULL;
 fEQSendMessage    send_message = NULL;
+fEQExecuteCmd	  ExecuteCmd = NULL;
 
 // EQ Address Initialization
 DWORD EQADDR_HWND=0;
@@ -184,6 +185,8 @@ PDWORD EQADDR_DOABILITYLIST=0;
 
 PBYTE EQADDR_DOABILITYAVAILABLE=0;
 
+PMAPLABEL *ppCurrentMapLabel=0;
+PCHAR *EQMappableCommandList=0;
 
 PBYTE EQADDR_ENCRYPTPAD=0;
 PBYTE EQADDR_ENCRYPTPAD2=0;
@@ -194,6 +197,7 @@ EQLIB_VAR DWORD *pScreenY=0;
 
 PMOUSEINFO EQADDR_MOUSE=0;
 PMOUSECLICK EQADDR_MOUSECLICK=0;
+
 
 DWORD EQADDR_DIMAIN=0;
 IDirectInputDevice8A **EQADDR_DIKEYBOARD=0;

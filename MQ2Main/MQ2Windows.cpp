@@ -27,6 +27,8 @@ using namespace std;
 
 map<string,unsigned long> WindowMap;
 
+map<string,unsigned long> ItemSlotMap;
+
 struct _WindowInfo
 {
 	char Name[128];
@@ -138,11 +140,60 @@ DETOUR_TRAMPOLINE_EMPTY(int CXMLSOMDocumentBaseHook::XMLRead_Trampoline(CXStr *A
 VOID ListWindows(PSPAWNINFO pChar, PCHAR szLine);
 VOID WndNotify(PSPAWNINFO pChar, PCHAR szLine);
 VOID ItemNotify(PSPAWNINFO pChar, PCHAR szLine);
+VOID ListItemSlots(PSPAWNINFO pChar, PCHAR szLine);
 
 void InitializeMQ2Windows()
 {
-	
 	DebugSpew("Initializing MQ2 Windows");
+
+	ItemSlotMap["leftear"]=1;
+	ItemSlotMap["head"]=2;
+	ItemSlotMap["face"]=3;
+	ItemSlotMap["rightear"]=4;
+	ItemSlotMap["neck"]=5;
+	ItemSlotMap["shoulder"]=6;
+	ItemSlotMap["arm"]=7;
+	ItemSlotMap["back"]=8;
+	ItemSlotMap["leftwrist"]=9;
+	ItemSlotMap["rightwrist"]=10;
+	ItemSlotMap["range"]=11;
+	ItemSlotMap["hand"]=12;
+	ItemSlotMap["mainhand"]=13;
+	ItemSlotMap["offhand"]=14;
+	ItemSlotMap["leftfinger"]=15;
+	ItemSlotMap["rightfinger"]=16;
+	ItemSlotMap["chest"]=17;
+	ItemSlotMap["leg"]=18;
+	ItemSlotMap["feet"]=19;
+	ItemSlotMap["waist"]=20;
+	ItemSlotMap["ammo"]=21;
+	ItemSlotMap["pack1"]=22;
+	ItemSlotMap["pack2"]=23;
+	ItemSlotMap["pack3"]=24;
+	ItemSlotMap["pack4"]=25;
+	ItemSlotMap["pack5"]=26;
+	ItemSlotMap["pack6"]=27;
+	ItemSlotMap["pack7"]=28;
+	ItemSlotMap["pack8"]=29;
+	ItemSlotMap["charm"]=30;
+	
+	CHAR szOut[MAX_STRING]={0};
+
+#define AddSlotArray(name,count,start)	\
+	for (unsigned long i = 0 ; i < count ; i++)\
+	{\
+	sprintf(szOut,#name"%d",i+1);\
+		ItemSlotMap[szOut]=start+i;\
+	}
+	AddSlotArray(bank,16,2000);
+	AddSlotArray(sharedbank,2,2500);
+	AddSlotArray(loot,31,5000);
+	AddSlotArray(trade,8,3000);
+	AddSlotArray(world,8,4000);
+	AddSlotArray(merchant,80,6000);
+	AddSlotArray(bazaar,80,6000);
+	AddSlotArray(inspect,31,8000);
+#undef AddSlotArray
 
 	EasyClassDetour(CXMLSOMDocumentBase__XMLRead,CXMLSOMDocumentBaseHook,XMLRead,int,(CXStr *A, CXStr *B, CXStr *C),XMLRead_Trampoline);
 
@@ -152,6 +203,7 @@ void InitializeMQ2Windows()
 	AddCommand("/windows",ListWindows,false,true,false);
 	AddCommand("/notify",WndNotify,false,true,false);
 	AddCommand("/itemnotify",ItemNotify,false,true,false);
+	AddCommand("/itemslots",ListItemSlots,false,true,false);
 }
 
 void ShutdownMQ2Windows()
@@ -160,6 +212,7 @@ void ShutdownMQ2Windows()
 	RemoveCommand("/windows");
 	RemoveCommand("/notify");
 	RemoveCommand("/itemnotify");
+	RemoveCommand("/itemslots");
 	RemoveDetour(CXMLSOMDocumentBase__XMLRead);
 	RemoveDetour(CSidlScreenWnd__SetScreen);
 	RemoveDetour(CXWndManager__RemoveWnd);
@@ -272,7 +325,8 @@ void RemoveXMLFile(const char *filename)
 	}
 }
 
-CXWnd *FindContainerWnd(struct _CONTENTS *pContents)
+/*
+inline CXWnd *FindContainerWnd(struct _CONTENTS *pContents)
 {
 	if (!pContents)
 		return 0;
@@ -288,6 +342,7 @@ CXWnd *FindContainerWnd(struct _CONTENTS *pContents)
 
 	return 0;
 }
+/**/
 
 bool SendWndNotification(PCHAR WindowName, PCHAR ScreenID, DWORD Notification, VOID *Data)
 {
@@ -541,6 +596,16 @@ VOID WndNotify(PSPAWNINFO pChar, PCHAR szLine)
 	WriteChatColor(szOut);
 }
 
+// item slots:
+// 2000-2015 bank window
+// 2500-2501 shared bank
+// 5000-5031 loot window
+// 3000-3008 trade window (including npc)
+// 4000-4008 world container window
+// 6000-6080 merchant window
+// 7000-7080 bazaar window
+// 8000-8031 inspect window
+
 PCHAR szItemNotification[] = { 
 	"leftmouse",		//0
 	"leftmouseup",		//1
@@ -552,6 +617,7 @@ PCHAR szItemNotification[] = {
 	"rightmouseheldup",	//7
 }; 
 
+/*
 PCHAR szItemSlots[] = {
 	0,
 	"leftear",
@@ -586,6 +652,7 @@ PCHAR szItemSlots[] = {
 	"charm",
 	0
 };
+/**/
 
 VOID ItemNotify(PSPAWNINFO pChar, PCHAR szLine)
 {
@@ -593,25 +660,75 @@ VOID ItemNotify(PSPAWNINFO pChar, PCHAR szLine)
 	CHAR szArg2[MAX_STRING] = {0}; 
 	CHAR szOut[MAX_STRING] = {0};
 
+	PCHAR pNotification=&szArg2[0];
+
 	GetArg(szArg1, szLine, 1);
 	GetArg(szArg2, szLine, 2);
-
+	CInvSlot *pSlot=0;
 	if (!szArg2[0])
 	{
 		WriteChatColor("Syntax: /itemnotify <slot|#> <notification>");
+		WriteChatColor("     or /itemnotify in <bag slot> <slot # in bag> <notification>");
 		return;
 	}
-
-	unsigned long Slot=atoi(szArg1);
-	if (Slot==0)
+	if (!stricmp(szArg1,"in"))
 	{
-		for (unsigned long i = 1 ; szItemSlots[i] ; i++)
+		CHAR szArg3[MAX_STRING] = {0};
+		CHAR szArg4[MAX_STRING] = {0};
+
+		GetArg(szArg3, szLine, 3);
+		GetArg(szArg4, szLine, 4);
+		if (!szArg4[0])
 		{
-			if (!strnicmp(szItemSlots[i],szArg1,strlen(szItemSlots[i]))) // allow "legs" instead of "leg" etc
+			WriteChatColor("Syntax: /itemnotify <slot|#> <notification>");
+			WriteChatColor("     or /itemnotify in <bag slot> <slot # in bag> <notification>");
+			return;
+		}
+
+		PCONTENTS pPack=0;
+		if (!strnicmp(szArg2,"bank",4))
+		{
+			unsigned long nPack=atoi(&szArg2[4]);
+			if (nPack && nPack<=NUM_BANK_SLOTS)
 			{
-				Slot=i;
-				break;
+				pPack=pChar->pCharInfo->Bank[nPack-1];
 			}
+		}
+		else if (!strnicmp(szArg2,"pack",4))
+		{
+			unsigned long nPack=atoi(&szArg2[4]);
+			if (nPack && nPack<=8)
+			{
+				pPack=pChar->pCharInfo->Inventory.Pack[nPack-1];
+			}
+		}
+		if (!pPack)
+		{
+			sprintf(szOut,"No item at '%s'",szArg2);
+			WriteChatColor(szOut);
+			return;
+		}
+		PEQCONTAINERWINDOW pWnd=FindContainerForContents(pPack);
+		if (!pWnd)
+		{
+			sprintf(szOut,"No container at '%s' open",szArg2);
+			WriteChatColor(szOut);
+			return;
+		}
+		unsigned long nSlot=atoi(szArg3);
+		if (nSlot && nSlot <= 10)
+		{
+			PEQINVSLOTWND pSlotWnd=(PEQINVSLOTWND)pWnd->pSlots[nSlot-1];
+			pSlot=pInvSlotMgr->FindInvSlot(pSlotWnd->InvSlot);
+		}
+		pNotification=&szArg4[0];
+	}
+	else
+	{
+		unsigned long Slot=atoi(szArg1);
+		if (Slot==0)
+		{
+			Slot=ItemSlotMap[strlwr(szArg1)];
 		}
 		if (Slot==0)
 		{
@@ -619,21 +736,20 @@ VOID ItemNotify(PSPAWNINFO pChar, PCHAR szLine)
 			WriteChatColor(szOut);
 			return;
 		}
+		pSlot=pInvSlotMgr->FindInvSlot(Slot);
+	}
+	if (!pSlot)
+	{
+		sprintf(szOut,"Could not send notification to %s %s",szArg1,szArg2);
+		WriteChatColor(szOut);
+		return;
 	}
 
 	for (unsigned long i = 0 ; i < 8 ; i++)
 	{
-		if (!stricmp(szItemNotification[i],szArg2))
+		if (!stricmp(szItemNotification[i],pNotification))
 		{
-			CInvSlot *pSlot=pInvSlotMgr->FindInvSlot(Slot);
-			if (!pSlot)
-			{
-				sprintf(szOut,"Could not send notification to %s %s",szArg1,szArg2);
-				WriteChatColor(szOut);
-				return;
-			}
-
-			CXWnd *pWnd=*(CXWnd**)(((unsigned long)pSlot)+4);
+			CXWnd *pWnd=(CXWnd*)((PEQINVSLOT)pSlot)->pInvSlotWnd;
 			if (!pWnd)
 			{
 				sprintf(szOut,"Could not send notification to %s %s",szArg1,szArg2);
@@ -682,7 +798,33 @@ VOID ItemNotify(PSPAWNINFO pChar, PCHAR szLine)
 			return;
 		}
 	}
-	sprintf(szOut,"Invalid item notification '%s'",szArg2);
+	sprintf(szOut,"Invalid item notification '%s'",pNotification);
 	WriteChatColor(szOut);
 
+}
+
+VOID ListItemSlots(PSPAWNINFO pChar, PCHAR szLine)
+{
+	PEQINVSLOTMGR pMgr=(PEQINVSLOTMGR)pInvSlotMgr;
+	if (!pMgr)
+		return;
+	CHAR szOut[MAX_STRING]={0};
+	if (!szLine || !szLine[0])
+	{
+		unsigned long Count=0;
+		WriteChatColor("List of available item slots");
+		WriteChatColor("-------------------------");
+		for (unsigned long N = 0 ; N < 0x400 ; N++)
+			if (PEQINVSLOT pSlot=pMgr->SlotArray[N])
+			{
+				if (pSlot->pInvSlotWnd)
+				{
+					sprintf(szOut,"inv slot %d",pSlot->pInvSlotWnd->InvSlot);
+					WriteChatColor(szOut);
+					Count++;
+				}
+			}
+		sprintf(szOut,"%d available item slots",Count);
+		WriteChatColor(szOut);
+	}
 }

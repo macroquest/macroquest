@@ -120,6 +120,7 @@ BOOL ParseINIFile(PCHAR lpINIPath)
     GetPrivateProfileString("Function Locations","ProcessGameEvents","0",szBuffer,MAX_STRING,ClientINI); ProcessGameEvents = (fEQProcGameEvts)strtoul(szBuffer,NULL,16);
 	GetPrivateProfileString("Function Locations","SendMessage","0",szBuffer,MAX_STRING,ClientINI); send_message = (fEQSendMessage)strtoul(szBuffer,NULL,16);
     GetPrivateProfileString("Function Locations","ConvertItemTags","0",szBuffer,MAX_STRING,ClientINI);   EQADDR_CONVERTITEMTAGS = (DWORD)strtoul(szBuffer,NULL,16);
+	GetPrivateProfileString("Function Locations","ExecuteCmd","0",szBuffer,MAX_STRING,ClientINI); ExecuteCmd = (fEQExecuteCmd)strtoul(szBuffer,NULL,16);
 	
 	GetPrivateProfileString("Function Locations","MemChecker","0",szBuffer,MAX_STRING,ClientINI);       EQADDR_MEMCHECK = strtoul(szBuffer,NULL,16);
     GetPrivateProfileString("Function Locations","MemChecker2","0",szBuffer,MAX_STRING,ClientINI);      EQADDR_MEMCHECK2 = strtoul(szBuffer,NULL,16);
@@ -139,6 +140,7 @@ BOOL ParseINIFile(PCHAR lpINIPath)
     GetPrivateProfileString("Memory Locations","GroupCount","0",szBuffer,MAX_STRING,ClientINI);         EQADDR_GROUPCOUNT = (PBYTE)strtoul(szBuffer,NULL,16);
 	GetPrivateProfileString("Memory Locations","gWorld","0",szBuffer,MAX_STRING,ClientINI);				EQADDR_GWORLD = (PVOID)strtoul(szBuffer,NULL,16);
     GetPrivateProfileString("Memory Locations","CommandList","0",szBuffer,MAX_STRING,ClientINI);                EQADDR_CMDLIST = (PCMDLIST)strtoul(szBuffer,NULL,16);
+    GetPrivateProfileString("Memory Locations","BindList","0",szBuffer,MAX_STRING,ClientINI);                EQMappableCommandList = (PCHAR*)strtoul(szBuffer,NULL,16);
     GetPrivateProfileString("Memory Locations","DoAbilityList","0",szBuffer,MAX_STRING,ClientINI);              EQADDR_DOABILITYLIST = (PDWORD)strtoul(szBuffer,NULL,16);
     GetPrivateProfileString("Memory Locations","DoAbilityAvailable","0",szBuffer,MAX_STRING,ClientINI);         EQADDR_DOABILITYAVAILABLE = (PBYTE)strtoul(szBuffer,NULL,16);
     GetPrivateProfileString("Memory Locations","EncryptPad","0",szBuffer,MAX_STRING,ClientINI);         EQADDR_ENCRYPTPAD = (PBYTE)strtoul(szBuffer,NULL,16);
@@ -153,6 +155,7 @@ BOOL ParseINIFile(PCHAR lpINIPath)
     GetPrivateProfileString("Memory Locations","ScreenY","0",szBuffer,MAX_STRING,ClientINI);             pScreenY = (DWORD*)strtoul(szBuffer,NULL,16);
 
 	GetPrivateProfileString("Memory Locations","EQP_IDArray","0",szBuffer,MAX_STRING,ClientINI);             ppEQP_IDArray = (EQPlayer **)strtoul(szBuffer,NULL,16);
+	GetPrivateProfileString("Memory Locations","CurrentMapLabel","0",szBuffer,MAX_STRING,ClientINI);             ppCurrentMapLabel = (PMAPLABEL *)strtoul(szBuffer,NULL,16);
 
 	gFilterSkillsAll = 0!=GetPrivateProfileInt("MacroQuest","FilterSkills",0,Filename);
     gFilterSkillsIncrease = 2==GetPrivateProfileInt("MacroQuest","FilterSkills",0,Filename);

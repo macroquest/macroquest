@@ -986,8 +986,8 @@ DWORD ConColor(WORD CharLevel, WORD SpawnLevel, BYTE SpawnType)
     for (i=0;ConLevels[i][0]!=0;i++) {
         if (CharLevel<=ConLevels[i][0]) {
 //          DebugSpew("ConColor - i = %d",i);
-            if (Diff>ConLevels[i][2]) return CONCOLOR_BLUE;
-            if (Diff>ConLevels[i][1]) return CONCOLOR_LIGHTBLUE;
+            if (Diff>=ConLevels[i][2]) return CONCOLOR_BLUE;
+            if (Diff>=ConLevels[i][1]) return CONCOLOR_LIGHTBLUE;
             return CONCOLOR_GREEN;
         }
     }
@@ -1012,7 +1012,7 @@ PEQCONTAINERWINDOW FindContainerForContents(PCONTENTS pContents)
 
    for (int j = 0; j < 25; j++)
    {
-      if (pMgr->pPCContainers[j]->pContents == pContents)
+      if (pMgr->pPCContainers[j] && (pMgr->pPCContainers[j]->pContents == pContents))
          return (pMgr->pPCContainers[j]);
    }
    return NULL;
@@ -2127,3 +2127,12 @@ VOID SlotValueCalculate(PCHAR szBuff, PSPELL pSpell, int i, double mp)
    } 
 } 
 
+int FindMappableCommand(const char *name)
+{
+	for (unsigned long i = 0 ; i < nEQMappableCommands ; i++)
+	{
+		if (!stricmp(name,EQMappableCommandList[i]))
+			return i;
+	}
+	return -1;
+}	

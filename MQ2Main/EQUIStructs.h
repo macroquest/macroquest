@@ -44,12 +44,12 @@ typedef struct _EQCURRENTSELECTION {
 /*0x14*/
 } EQCURRENTSELECTION, *PEQCURRENTSELECTION;
 
+// TO BE REMOVED.
 typedef struct _EQSLOTLIST {
             DWORD   Parent;
             DWORD   InvSlots[372];//0-21 inv 22-30 bags
 } EQSLOTLIST, *PEQSLOTLIST;
-
-
+/**/
 
 // Lax
 // Actual Size 0x114 02-18-2004
@@ -501,6 +501,32 @@ typedef struct _EQBUFFWINDOW
 /*0x1DC*/
 } EQBUFFWINDOW, *PEQBUFFWINDOW;
 
+
+typedef struct _EQINVSLOTWND {
+/*0x000*/   struct _CXWND Wnd;
+/*0x110*/	DWORD InvSlot;
+} EQINVSLOTWND, *PEQINVSLOTWND;
+
+// actual size 0x14 2-18-2004 Lax
+typedef struct _EQINVSLOT {
+/*0x00*/	LPVOID pvfTable; // not based on cxwnd
+/*0x04*/	struct _EQINVSLOTWND *pInvSlotWnd;
+/*0x08*/	DWORD Unknown0x08;
+/*0x0C*/	DWORD Unknown0x0C;
+/*0x10*/	DWORD Unknown0x10;
+/*0x14*/
+} EQINVSLOT, *PEQINVSLOT;
+
+// actual size 0x100C 2-18-2004 Lax
+typedef struct _EQINVSLOTMGR {
+/*0x0000*/	DWORD Unknown0x0000;
+/*0x0004*/	struct _EQINVSLOT *SlotArray[0x400];
+/*0x1004*/	DWORD TotalSlots;
+/*0x1008*/	DWORD Unknown0x1008;
+/*0x100C*/
+} EQINVSLOTMGR, *PEQINVSLOTMGR;
+
+
 // onetimehero 09-17-03
 // ContainerWindow
 // Actual Size 0x17C old
@@ -528,6 +554,9 @@ typedef struct _EQ_CONTAINERWND_MANAGER {
 /*0x078*/
 } EQ_CONTAINERWND_MANAGER, *PEQ_CONTAINERWND_MANAGER;
 
+
+
+
 typedef struct _POINT3 {
     FLOAT X;
     FLOAT Y;
@@ -537,17 +566,17 @@ typedef struct _POINT3 {
 // plazmic 08-17-03
 // Map Window
 typedef struct _MAPLABEL { // sizeof() = 0x34
-    struct _MAPLABEL *pNext;
-    struct _MAPLABEL *pPrev;
-    POINT3 Location;
-    ARGBCOLOR Color;
-    DWORD Size; //1-3;
-    PCHAR Label;
-    DWORD Layer;    //0-3;
-    DWORD Width;
-    DWORD Height;
-    DWORD unk_0x2c;
-    DWORD unk_0x30;
+/*0x00*/    struct _MAPLABEL *pNext;
+/*0x04*/    struct _MAPLABEL *pPrev;
+/*0x08*/    POINT3 Location;
+/*0x14*/    ARGBCOLOR Color;
+/*0x18*/    DWORD Size; //1-3;
+/*0x1C*/    PCHAR Label;
+/*0x20*/    DWORD Layer;    //0-3;
+/*0x24*/    DWORD Width;
+/*0x28*/    DWORD Height;
+/*0x2C*/    DWORD unk_0x2c;
+/*0x30*/    DWORD unk_0x30;
 } MAPLABEL, *PMAPLABEL;
 
 typedef struct _MAPLINE { // sizeof() = 0x28

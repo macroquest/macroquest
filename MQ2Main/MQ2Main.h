@@ -261,6 +261,8 @@ EQLIB_API PCHAR ConvertHotkeyNameToKeyName(PCHAR szName);
 EQLIB_API VOID CheckChatForEvent(PCHAR szMsg);
 EQLIB_API VOID ConvertItemTags(CXStr &cxstr);
 
+int FindMappableCommand(const char *name);
+
 EQLIB_API PCHAR GetSpellNameByID(DWORD dwSpellID);
 EQLIB_API PSPELL GetSpellByName(PCHAR szName);
 #include "MQ2Inlines.h"
@@ -315,7 +317,7 @@ EQLIB_API PCHAR FormatSearchSpawn(PCHAR Buffer, PSEARCHSPAWN pSearchSpawn);
 EQLIB_API BOOL IsPCNear(PSPAWNINFO pSpawn, FLOAT Radius);
 EQLIB_API BOOL IsInGroup(PSPAWNINFO pSpawn);
 EQLIB_API BOOL IsAlert(PSPAWNINFO pChar, PSPAWNINFO pSpawn, DWORD List);
-
+EQLIB_API VOID DoMappable(PSPAWNINFO pChar, PCHAR szLine);
 
 EQLIB_API VOID        OverwriteTable          (DWORD Address);
 EQLIB_API DWORD       Include                 (PCHAR szFile);

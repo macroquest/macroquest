@@ -672,7 +672,7 @@ EQLIB_OBJECT void CSidlScreenWnd::LoadSidlScreen(void);
 // private
 EQLIB_OBJECT static bool CSidlScreenWnd::m_useIniFile;
 // data members
-/*0x000*/   struct _CXWNDVFTABLE   *pvfTable;
+/*0x000*/   struct _CSIDLWNDVFTABLE   *pvfTable;
 /*0x004*/   DWORD   Unknown0x004;   // set to 0 in CXWnd::Refade
 /*0x008*/   DWORD   Unknown0x008;
 /*0x00c*/   DWORD   TimeMouseOver;     // "Delay" in ini
