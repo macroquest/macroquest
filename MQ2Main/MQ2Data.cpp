@@ -192,19 +192,22 @@ BOOL dataZone(PCHAR szIndex, MQ2TYPEVAR &Ret)
       Ret.Type=pCurrentZoneType;
       return true;
    } 
-   else if (0<(nIndex = atoi(szIndex)) || szIndex[0]=='0') 
+   else if (szIndex[0]>='0' && szIndex[0]<='9')
    {
-	   if (GetCharInfo()->zoneId==nIndex)
+	   if (nIndex = atoi(szIndex))
 	   {
-		   Ret.DWord = instEQZoneInfo;
-		   Ret.Type=pCurrentZoneType;
+		if (GetCharInfo()->zoneId==nIndex)
+		{
+			Ret.DWord = instEQZoneInfo;
+			Ret.Type=pCurrentZoneType;
+		}
+		else
+		{
+				Ret.Ptr = ((PWORLDDATA)pWorldData)->ZoneArray[nIndex];
+				Ret.Type=pZoneType;
+		}
+		return true;
 	   }
-	   else
-	   {
-			Ret.Ptr = ((PWORLDDATA)pWorldData)->ZoneArray[nIndex];
-			Ret.Type=pZoneType;
-	   }
-      return true;
    } 
    else if (-1 != (nIndex=GetZoneID(szIndex))) 
    {
@@ -409,7 +412,7 @@ BOOL dataGameTime(PCHAR szIndex, MQ2TYPEVAR &Ret)
 	struct tm* pTime=(struct tm*)&DataTypeTemp[0];
 	ZeroMemory(pTime,sizeof(struct tm));
 	pTime->tm_mday=((PWORLDDATA)pWorldData)->Day;
-	pTime->tm_hour=((PWORLDDATA)pWorldData)->Hour;
+	pTime->tm_hour=((PWORLDDATA)pWorldData)->Hour-1;
 	pTime->tm_min=((PWORLDDATA)pWorldData)->Minute;
 	pTime->tm_mon=((PWORLDDATA)pWorldData)->Month;
 	pTime->tm_year=((PWORLDDATA)pWorldData)->Year;

@@ -690,10 +690,12 @@ bool MQ2StringType::GetMember(MQ2VARPTR VarPtr, PCHAR Member, PCHAR Index, MQ2TY
 	case Arg:
 		if (Index[0]>='0' && Index[0]<='9')
 		{
+			CHAR Temp[MAX_STRING]={0};
+			strcpy(Temp,(char *)VarPtr.Ptr);
 			if (PCHAR pComma=strchr(Index,','))
 			{
 				*pComma=0;
-				GetArg(DataTypeTemp,(char*)VarPtr.Ptr,atoi(Index),FALSE,FALSE,FALSE,pComma[1]);
+				GetArg(DataTypeTemp,Temp,atoi(Index),FALSE,FALSE,FALSE,pComma[1]);
 				*pComma=',';
 				if (DataTypeTemp[0])
 				{
@@ -704,7 +706,7 @@ bool MQ2StringType::GetMember(MQ2VARPTR VarPtr, PCHAR Member, PCHAR Index, MQ2TY
 			}
 			else
 			{
-				GetArg(DataTypeTemp,(char*)VarPtr.Ptr,atoi(Index));
+				GetArg(DataTypeTemp,Temp,atoi(Index));
 				if (DataTypeTemp[0])
 				{
 					Dest.Ptr=&DataTypeTemp[0];
@@ -714,9 +716,6 @@ bool MQ2StringType::GetMember(MQ2VARPTR VarPtr, PCHAR Member, PCHAR Index, MQ2TY
 			}
 		}
 		return false;
-	/*
-	Arg
-	/**/
 	}
 	return false;
 }

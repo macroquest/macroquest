@@ -29,6 +29,17 @@ map<string,unsigned long> WindowMap;
 
 map<string,unsigned long> ItemSlotMap;
 
+PCHAR szClickNotification[] = { 
+	"leftmouse",		//0
+	"leftmouseup",		//1
+	"leftmouseheld",	//2
+	"leftmouseheldup",	//3
+	"rightmouse",		//4
+	"rightmouseup",		//5
+	"rightmouseheld",	//6
+	"rightmouseheldup",	//7
+}; 
+
 struct _WindowInfo
 {
 	char Name[128];
@@ -402,6 +413,121 @@ CXWnd *FindMQ2Window(PCHAR WindowName)
 	return 0;
 }
 
+bool SendWndClick(CXWnd *pWnd, PCHAR ClickNotification)
+{
+	if (!pWnd)
+		return false;
+	for (unsigned long i = 0 ; i < 8 ; i++)
+	{
+		if (!stricmp(szClickNotification[i],ClickNotification))
+		{
+			CXRect rect= pWnd->GetScreenRect();
+			CXPoint pt=rect.CenterPoint();
+			switch(i)
+			{
+			case 0:
+				pWnd->HandleLButtonDown(&pt,0);
+				return true;
+			case 1:
+				pWnd->HandleLButtonDown(&pt,0);
+				pWnd->HandleLButtonUp(&pt,0);
+				return true;
+			case 2:
+				pWnd->HandleLButtonHeld(&pt,0);
+				return true;
+			case 3:
+				pWnd->HandleLButtonDown(&pt,0);
+				pWnd->HandleLButtonHeld(&pt,0);
+				pWnd->HandleLButtonUpAfterHeld(&pt,0);
+				return true;
+			case 4:
+				pWnd->HandleRButtonDown(&pt,0);
+				return true;
+			case 5:
+				pWnd->HandleRButtonDown(&pt,0);
+				pWnd->HandleRButtonUp(&pt,0);
+				return true;
+			case 6:
+				pWnd->HandleRButtonDown(&pt,0);
+				pWnd->HandleRButtonHeld(&pt,0);
+				return true;
+			case 7:
+				pWnd->HandleRButtonDown(&pt,0);
+				pWnd->HandleRButtonHeld(&pt,0);
+				pWnd->HandleRButtonUpAfterHeld(&pt,0);
+				return true;
+			};
+		}
+	}
+	return false;
+}
+
+bool SendWndClick(PCHAR WindowName, PCHAR ScreenID, PCHAR ClickNotification)
+{
+	CHAR szOut[MAX_STRING] = {0};
+	CXWnd *pWnd=FindMQ2Window(WindowName);
+	if (!pWnd)
+	{
+		sprintf(szOut,"Window '%s' not available.",WindowName);
+		return false;
+	}
+	if (ScreenID && ScreenID[0])
+	{
+		CXWnd *pButton=((CSidlScreenWnd*)(pWnd))->GetChildItem(CXStr(ScreenID));
+		if (!pButton)
+		{
+			sprintf(szOut,"Window '%s' child '%s' not found.",WindowName,ScreenID);
+			WriteChatColor(szOut,USERCOLOR_DEFAULT);
+			return false;
+		}
+		pWnd=pButton;
+	}
+
+	for (unsigned long i = 0 ; i < 8 ; i++)
+	{
+		if (!stricmp(szClickNotification[i],ClickNotification))
+		{
+			CXRect rect= pWnd->GetScreenRect();
+			CXPoint pt=rect.CenterPoint();
+			switch(i)
+			{
+			case 0:
+				pWnd->HandleLButtonDown(&pt,0);
+				return true;
+			case 1:
+				pWnd->HandleLButtonDown(&pt,0);
+				pWnd->HandleLButtonUp(&pt,0);
+				return true;
+			case 2:
+				pWnd->HandleLButtonHeld(&pt,0);
+				return true;
+			case 3:
+				pWnd->HandleLButtonDown(&pt,0);
+				pWnd->HandleLButtonHeld(&pt,0);
+				pWnd->HandleLButtonUpAfterHeld(&pt,0);
+				return true;
+			case 4:
+				pWnd->HandleRButtonDown(&pt,0);
+				return true;
+			case 5:
+				pWnd->HandleRButtonDown(&pt,0);
+				pWnd->HandleRButtonUp(&pt,0);
+				return true;
+			case 6:
+				pWnd->HandleRButtonDown(&pt,0);
+				pWnd->HandleRButtonHeld(&pt,0);
+				return true;
+			case 7:
+				pWnd->HandleRButtonDown(&pt,0);
+				pWnd->HandleRButtonHeld(&pt,0);
+				pWnd->HandleRButtonUpAfterHeld(&pt,0);
+				return true;
+			};
+		}
+	}
+	return false;
+}
+
 bool SendWndNotification(PCHAR WindowName, PCHAR ScreenID, DWORD Notification, VOID *Data)
 {
 	CHAR szOut[MAX_STRING] = {0};
@@ -565,6 +691,9 @@ VOID WndNotify(PSPAWNINFO pChar, PCHAR szLine)
 	if (szArg4[0])
 		Data=atoi(szArg4);
 
+	if (SendWndClick(szArg1,szArg2,szArg3))
+		return;
+
 	for (unsigned long i = 0 ; i < 30 ; i++)
 	{
 		if (szWndNotification[i] && !stricmp(szWndNotification[i],szArg3))
@@ -599,16 +728,6 @@ VOID WndNotify(PSPAWNINFO pChar, PCHAR szLine)
 // 7000-7080 bazaar window
 // 8000-8031 inspect window
 
-PCHAR szItemNotification[] = { 
-	"leftmouse",		//0
-	"leftmouseup",		//1
-	"leftmouseheld",	//2
-	"leftmouseheldup",	//3
-	"rightmouse",		//4
-	"rightmouseup",		//5
-	"rightmouseheld",	//6
-	"rightmouseheldup",	//7
-}; 
 
 /*
 PCHAR szItemSlots[] = {
@@ -743,11 +862,17 @@ VOID ItemNotify(PSPAWNINFO pChar, PCHAR szLine)
 		return;
 	}
 
+	if (!SendWndClick((CXWnd*)((PEQINVSLOT)pSlot)->pInvSlotWnd,pNotification))
+	{
+		sprintf(szOut,"Could not send notification to %s %s",szArg1,szArg2);
+		WriteChatColor(szOut);
+	}
+/*
 	for (unsigned long i = 0 ; i < 8 ; i++)
 	{
-		if (!stricmp(szItemNotification[i],pNotification))
+		if (!stricmp(szClickNotification[i],pNotification))
 		{
-			CXWnd *pWnd=(CXWnd*)((PEQINVSLOT)pSlot)->pInvSlotWnd;
+			CXWnd *pWnd=(CXWnd*)((PEQINVSLOT)pSlot)->pInvSlotWnd
 			if (!pWnd)
 			{
 				sprintf(szOut,"Could not send notification to %s %s",szArg1,szArg2);
@@ -797,6 +922,7 @@ VOID ItemNotify(PSPAWNINFO pChar, PCHAR szLine)
 	}
 	sprintf(szOut,"Invalid item notification '%s'",pNotification);
 	WriteChatColor(szOut);
+	/**/
 
 }
 

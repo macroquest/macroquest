@@ -1497,10 +1497,7 @@ public:
 
 	 bool ToString(MQ2VARPTR VarPtr, PCHAR Destination)
 	{
-		time_t CurTime;
-		tm *Now;
-		time(&CurTime);
-		Now = localtime( &CurTime ); 
+		struct tm *Now=(struct tm*)VarPtr.Ptr;
 		sprintf(Destination,"%02d:%02d:%02d",Now->tm_hour,Now->tm_min, Now->tm_sec);
 		return true;
 	}

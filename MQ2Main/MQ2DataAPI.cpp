@@ -512,7 +512,10 @@ BOOL ParseMacroData(PCHAR szOriginal)
 					CurrentVar.Type=pNewType;
 
 				if (pPos[1]=='.')
+				{
+					++pPos;
 					pStart=&pPos[1];
+				}
 				else if (!pPos[1])
 				{
 					CurrentVar.Type->ToString(CurrentVar.VarPtr,szCurrent);
@@ -632,17 +635,6 @@ pmdinsert:;
 		  }
 pmdbottom:;
 	} while (pBrace=strstr(&pBrace[1],"${"));
-
-/*
-	PCHAR Rep=&szOriginal[0];
-	while(*Rep)
-	{
-		if (*Rep==-0x7E)
-			*Rep='$';
-		++Rep;
-	}
-/**/
-
 	return Changed;
 }
 

@@ -1,5 +1,4 @@
 7 Apr 2004 by Lax
-(im going to fill this in later, too tired right now)
 - Changes to MQ2Data system:
   *** NOTICE: All X and Y coordinates used by the MQ2Data system have been REVERSED.
       Internally, MQ2 stays the same as it has been forever.  However, you will now
@@ -37,6 +36,8 @@
   * type
   *** Special handling is used for casting to "type", such that the new data is equal 
       to the old type, and the new type is "type".
+  -- Fixed type casting so that members of the new type may be accessed as expected (this
+     was incorrectly ending the parsing at the type cast until now)
 - ConColor changed to take 1 parameter
 - FindMount tweaked/inlined
 - Changed the "RunNextCommand" to remain to TRUE until set to FALSE, so only cases where
@@ -47,7 +48,10 @@
   cause some people problems but they will learn quickly ;)
 - New command /deletevar <name> - Deletes an existing variable.  Gives a message if the
   variable did not exist, but no message if the variable did exist.
-  
+- /notify modified to work for clicking off buffs and other things it would not previously
+  work for.  However, items must still be clicked using /itemnotify.  /notify now accepts
+  all of the same clicks as /itemnotify (leftmouse,leftmouseup,leftmouseheld,etc)
+
 31 Mar 2004 by Lax (more)
 - Fixed character member PctExp
 - Added character members:
