@@ -2969,6 +2969,7 @@ bool MQ2CurrentZoneType::GetMember(MQ2VARPTR VarPtr, PCHAR Member, PCHAR Index, 
 		Dest.DWord=pZone->SkyType;
 		Dest.Type=pIntType;
 		return true;
+#if 0
 	case SafeN:
 	case SafeY:
 		Dest.Float=pZone->SafeYLoc;
@@ -2984,6 +2985,7 @@ bool MQ2CurrentZoneType::GetMember(MQ2VARPTR VarPtr, PCHAR Member, PCHAR Index, 
 		Dest.Float=pZone->SafeZLoc;
 		Dest.Type=pFloatType;
 		return true;
+#endif
 	case MinClip:
 		Dest.Float=pZone->MinClip;
 		Dest.Type=pFloatType;
