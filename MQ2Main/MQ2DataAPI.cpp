@@ -289,12 +289,12 @@ pmvinsert:;
 		{
 			unsigned long NewLength=strlen(szCurrent);
 
-			memmove(&pAt[NewLength],&pEnd,strlen(pEnd)+1);
+			memmove(&pAt[NewLength],pEnd,strlen(pEnd)+1);
 			strncpy(pAt,szCurrent,NewLength);
 			Changed=true;
 		}
 pmvbottom:;
-	} while (pAt=strstr(&pAt[1],"${"));
+	} while (pAt=strchr(&pAt[1],'@'));
 /*
 	PCHAR Rep=&szOriginal[0];
 	while(*Rep)
