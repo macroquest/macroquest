@@ -2719,7 +2719,7 @@ bool MQ2WindowType::GetMember(MQ2VARPTR VarPtr, PCHAR Member, PCHAR Index, MQ2TY
 		Dest.Type=pBoolType;
 		return true;
 	case Child:
-		if (Dest.Ptr=((CSidlScreenWnd*)VarPtr.Ptr)->GetChildItem(CXStr(Index)))
+		if (Dest.Ptr=((CSidlScreenWnd*)VarPtr.Ptr)->GetChildItem(Index))
 		{
 			Dest.Type=pWindowType;
 			return true;
@@ -2833,6 +2833,8 @@ bool MQ2WindowType::GetMember(MQ2VARPTR VarPtr, PCHAR Member, PCHAR Index, MQ2TY
 		Dest.Type=pIntType;
 		return true;
 	case List:
+		if (((CXWnd*)pWnd)->GetType()!=UI_Listbox)
+			return false;
 		if (Index[0]>='0' && Index[0]<='9')
 		{
 			unsigned long nIndex=atoi(Index);
@@ -2887,6 +2889,45 @@ bool MQ2WindowType::GetMember(MQ2VARPTR VarPtr, PCHAR Member, PCHAR Index, MQ2TY
 				}
 				nIndex++;
 			} 
+		}
+		return false;
+	case Name:
+		{
+			if (CXMLData *pXMLData=((CXWnd*)pWnd)->GetXMLData())
+			{
+				if (GetCXStr(pXMLData->Name.Ptr,DataTypeTemp,MAX_STRING))
+				{
+					Dest.Ptr=&DataTypeTemp[0];
+					Dest.Type=pStringType;
+					return true;
+				}
+			}
+		}
+		return false;
+	case ScreenID:
+		{
+			if (CXMLData *pXMLData=((CXWnd*)pWnd)->GetXMLData())
+			{
+				if (GetCXStr(pXMLData->ScreenID.Ptr,DataTypeTemp,MAX_STRING))
+				{
+					Dest.Ptr=&DataTypeTemp[0];
+					Dest.Type=pStringType;
+					return true;
+				}
+			}
+		}
+		return false;
+	case Type:
+		{
+			if (CXMLData *pXMLData=((CXWnd*)pWnd)->GetXMLData())
+			{
+				if (GetCXStr(pXMLData->TypeName.Ptr,DataTypeTemp,MAX_STRING))
+				{
+					Dest.Ptr=&DataTypeTemp[0];
+					Dest.Type=pStringType;
+					return true;
+				}
+			}
 		}
 		return false;
 	}

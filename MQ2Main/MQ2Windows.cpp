@@ -217,6 +217,80 @@ void InitializeMQ2Windows()
 	AddCommand("/notify",WndNotify,false,true,false);
 	AddCommand("/itemnotify",ItemNotify,false,true,false);
 	AddCommand("/itemslots",ListItemSlots,false,true,false);
+
+	if (pWndMgr)
+	{
+		CHAR Name[MAX_STRING]={0};
+		PCSIDLWND pWnd=((_CXWNDMGR*)pWndMgr)->pWindows;
+		while(pWnd)
+		{
+			// process window
+			if (CXMLData *pXMLData=((CXWnd*)pWnd)->GetXMLData())
+			{
+					if (pXMLData->Type==UI_Screen)
+					{
+						GetCXStr(pXMLData->Name.Ptr,Name,MAX_STRING);
+						string WindowName=Name;
+						MakeLower((WindowName));
+
+						unsigned long N=WindowMap[WindowName];
+						if (N)
+						{
+							N--;
+							_WindowInfo *pNewWnd = WindowList[N];
+							pNewWnd->pWnd=(CXWnd*)pWnd;
+							pNewWnd->ppWnd=0;
+							DebugSpew("Updating WndNotification target '%s'",Name);
+						}
+						else
+						{
+							_WindowInfo *pNewWnd = new _WindowInfo;
+							strcpy(pNewWnd->Name,Name);
+							pNewWnd->pWnd=(CXWnd*)pWnd;
+							pNewWnd->ppWnd=0;
+							
+							N=WindowList.GetUnused();
+							WindowList[N]=pNewWnd;
+
+							WindowMap[WindowName]=N+1;
+							DebugSpew("Adding WndNotification target '%s'",Name);
+						}
+
+
+
+
+					}
+			}
+
+
+
+
+			if (CXWnd *pTemp=((CXWnd*)pWnd)->GetFirstChildWnd())
+			{
+				pWnd=(PCSIDLWND)pTemp;
+			}
+			else
+			{
+				while(1)
+				{
+					if (CXWnd *pTemp=((CXWnd*)pWnd)->GetNextSib())
+					{
+						pWnd=(PCSIDLWND)pTemp;
+						break;
+					}
+					pWnd=pWnd->pParentWindow;
+					if (!pWnd)
+					{
+						break;
+					}
+				}
+			}
+		}
+
+
+
+
+	}
 }
 
 void ShutdownMQ2Windows()
@@ -473,7 +547,7 @@ bool SendWndClick(PCHAR WindowName, PCHAR ScreenID, PCHAR ClickNotification)
 	}
 	if (ScreenID && ScreenID[0] && ScreenID[0]!='0')
 	{
-		CXWnd *pButton=((CSidlScreenWnd*)(pWnd))->GetChildItem(CXStr(ScreenID));
+		CXWnd *pButton=((CSidlScreenWnd*)(pWnd))->GetChildItem(ScreenID);
 		if (!pButton)
 		{
 			MacroError("Window '%s' child '%s' not found.",WindowName,ScreenID);
@@ -537,7 +611,7 @@ bool SendListSelect(PCHAR WindowName, PCHAR ScreenID, DWORD Value)
 	}
 	if (ScreenID && ScreenID[0] && ScreenID[0]!='0')
 	{
-		CListWnd *pList=(CListWnd*)((CSidlScreenWnd*)(pWnd))->GetChildItem(CXStr(ScreenID));
+		CListWnd *pList=(CListWnd*)((CSidlScreenWnd*)(pWnd))->GetChildItem(ScreenID);
 		if (!pList)
 		{
 			MacroError("Window '%s' child '%s' not found.",WindowName,ScreenID);
@@ -561,7 +635,7 @@ bool SendWndNotification(PCHAR WindowName, PCHAR ScreenID, DWORD Notification, V
 	CXWnd *pButton=0;
 	if (ScreenID && ScreenID[0])
 	{
-		pButton=((CSidlScreenWnd*)(pWnd))->GetChildItem(CXStr(ScreenID));
+		pButton=((CSidlScreenWnd*)(pWnd))->GetChildItem(ScreenID);
 		if (!pButton)
 		{
 			sprintf(szOut,"Window '%s' child '%s' not found.",WindowName,ScreenID);
@@ -626,6 +700,8 @@ void RemoveWindow(char *WindowName)
 VOID ListWindows(PSPAWNINFO pChar, PCHAR szLine)
 {
 	CHAR Name[MAX_STRING]={0};
+	CHAR AltName[MAX_STRING]={0};
+	CHAR Type[MAX_STRING]={0};
 	unsigned long Count=0;
 	if (!szLine || !szLine[0])
 	{
@@ -655,20 +731,26 @@ VOID ListWindows(PSPAWNINFO pChar, PCHAR szLine)
 		WriteChatColor("-------------------------");
 		if (_WindowInfo *pInfo=WindowList[N])
 		{
-			PCSIDLWND pWnd=pInfo->pWnd->pChildren;
+			PCSIDLWND pWnd;//=pInfo->pWnd->pChildren;
+			if (pInfo->pWnd->HasChildren)
+				pWnd=(PCSIDLWND)pInfo->pWnd->pChildren;
+			else
+				pWnd=(PCSIDLWND)pWndMgr->GetFirstChildWnd(pInfo->pWnd);
+
 			while(pWnd)
 			{
-				if (pWnd->XMLIndex)
+				if (CXMLData *pXMLData=((CXWnd*)pWnd)->GetXMLData())
 				{
-					DebugTry(CXMLData *pXMLData=((CXMLDataManager*)&((PCSIDLMGR)pSidlMgr)->pXMLDataMgr)->GetXMLData(pWnd->XMLIndex>>16,pWnd->XMLIndex&0xFFFF));
-					if (pXMLData)
-					{
-						Count++;
-						GetCXStr(pXMLData->Text.Ptr,Name,MAX_STRING);
-						WriteChatColor(Name);
-					}
+					Count++;
+					GetCXStr(pXMLData->TypeName.Ptr,Type,MAX_STRING);
+					GetCXStr(pXMLData->Name.Ptr,Name,MAX_STRING);
+					GetCXStr(pXMLData->ScreenID.Ptr,AltName,MAX_STRING);
+					if (AltName[0] && stricmp(Name,AltName))
+						WriteChatf("[\ay%s\ax] [\at%s\ax] [Custom UI-specific: \at%s\ax]",Type,Name,AltName);
+					else
+						WriteChatf("[\ay%s\ax] [\at%s\ax]",Type,Name);
 				}
-				pWnd=pWnd->pSiblings;
+				pWnd=(PCSIDLWND)pInfo->pWnd->GetNextChildWnd((CXWnd*)pWnd);
 			}
 			WriteChatf("%d child windows",Count);
 		}

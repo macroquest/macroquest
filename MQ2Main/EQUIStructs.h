@@ -14,6 +14,28 @@
 
 namespace EQUIStructs
 {
+
+
+enum UIType
+{
+	UI_Unknown=0,
+	UI_Listbox=22,
+	UI_Button=23,
+	UI_Gauge=24,
+	UI_SpellGem=25,
+	UI_InvSlot=26,
+	UI_EditBox=27,
+	UI_Slider=28,
+	UI_Label=29,
+	UI_STMLBox=30,
+	UI_Combobox=31,
+	UI_Page=32,
+	UI_TabBox=33,
+	UI_HorizontalLayoutBox=35,
+	UI_VericalLayoutBox=36,
+	UI_Screen=38,
+};
+
 // ***************************************************************************
 // Structures
 // ***************************************************************************
@@ -390,7 +412,9 @@ typedef struct _CSIDLMGR {
 //11-6-2003 lax
 //Actual size 0x108 4-28-2004
 typedef struct _CXWNDMGR {
-/*0x000*/ CHAR Unknown0x000[0x7D];
+/*0x000*/ BYTE Unknown0x000[0x04];
+/*0x004*/ struct _CSIDLWND *pWindows; 
+/*0x008*/ BYTE Unknown0x00C[0x75];
 /*0x07D*/ bool KeyboardFlags[4];
 /*0x081*/ CHAR Unknown0x081[0x6B];
 /*0x0EC*/ DWORD ScreenExtentX;

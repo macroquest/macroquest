@@ -407,19 +407,24 @@ VOID SetCXStr(PCXSTR *cxstr, PCHAR text)
 	cxstr=(PCXSTR*)Str;
 } 
 
-VOID GetCXStr(PCXSTR pCXStr, PCHAR szBuffer, DWORD maxlen)
+DWORD GetCXStr(PCXSTR pCXStr, PCHAR szBuffer, DWORD maxlen)
 {
-	if (!pCXStr || !szBuffer || !maxlen){return;}
+	if (!szBuffer)
+		return 0;
+	szBuffer[0]=0;
+	if (!pCXStr || !maxlen){return 0;}
 	if (pCXStr->Encoding==0)
 	{
 		if (pCXStr->Length<maxlen)
 		{
 			strcpy(szBuffer,pCXStr->Text);
+			return pCXStr->Length;
 		}
 		else
 		{
 			strncpy(szBuffer,pCXStr->Text,maxlen);
 			szBuffer[maxlen-1]=0;
+			return maxlen;
 		}
 	}
 	else
@@ -434,6 +439,7 @@ VOID GetCXStr(PCXSTR pCXStr, PCHAR szBuffer, DWORD maxlen)
 			i+=2;
 		}
 		szBuffer[o]=0;
+		return o;
 	}
 }
 /**/

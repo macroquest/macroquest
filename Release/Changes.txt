@@ -1,3 +1,17 @@
+16 May 2004 by Lax:
+- UI subsystem of MQ2 is now smarter.  All window and control names are now case insensitive,
+  and controls can be used by ScreenID *or* Piece name.  /windows <windowname> now shows, for 
+  each child of the given window, ScreenID, Piece name, and the TYPE of control (e.g. label,
+  button, invslot, spellgem, etc).
+- window.List now only works on list boxes (will not crash on other types, just give NULL)
+- Added/changed MQ2Data members:
+  string window.Name: Name of window piece (e.g. "ChatWindow" for top level windows, or the Piece name (NOTE: CUSTOM UI DEPENDANT) for child windows)
+  string window.ScreenID: ScreenID of window piece (ScreenID is NOT custom ui dependant, this *must be* the same on ALL UIs)
+  string window.Type: Type of window piece (Screen for top level windows, or Listbox, Button, Gauge, Label, Editbox, Slider, etc)
+- Fixed /target next, as well as targeting the origin of the search (e.g. you, or the spawn
+  already targeted)
+- Fixed turbo problem with using /macro from within a macro
+
 16 May 2004 by DKAA:
 - Fixed a where using loc and radius in spawn searches would return spawns further than the radius
 

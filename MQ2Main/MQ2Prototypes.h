@@ -31,7 +31,7 @@ typedef VOID    (__cdecl *fEQSendMessage)(PVOID,DWORD,PVOID,DWORD,BOOL);
 typedef FLOAT    (__cdecl *fEQGetMelee)(class EQPlayer *,class EQPlayer *);
 typedef BOOL    (__cdecl *fEQExecuteCmd)(DWORD,BOOL,PVOID);
 typedef VOID    (__cdecl *fMQExecuteCmd)(PCHAR Name,BOOL Down);
-
+typedef VOID    (__cdecl fEQSaveToUIIniFile)(PCHAR Section,PCHAR Key,PCHAR Value);
 typedef DWORD (__cdecl *fMQParm)(PCHAR, PCHAR, PSPAWNINFO);
 
 /* PLUGINS */

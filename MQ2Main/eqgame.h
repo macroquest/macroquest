@@ -251,6 +251,7 @@
 #define CXWndManager__HandleKeyboardMsg                    0x574E10
 #define CXWndManager__DrawWindows                          0x575C00
 #define CXWndManager__DrawCursor                           0x575FB0
+#define CXWndManager__GetFirstChildWnd					   0x575500
 
 // KeyPressHandler
 #define KeypressHandler__HandleKeyDown                     0x4B0EE6
@@ -365,7 +366,6 @@
 #define CSidlScreenWnd__CSidlScreenWnd1                    0x558AD0
 #define CSidlScreenWnd__dCSidlScreenWnd                    0x558170
 #define CSidlScreenWnd__CreateChildrenFromSidl             0x5574E0
-#define CSidlScreenWnd__GetChildItem                       0x556DF0
 #define CSidlScreenWnd__WndNotification                    0x557060
 #define CSidlScreenWnd__CalculateHSBRange                  0x556680
 #define CSidlScreenWnd__CalculateVSBRange                  0x5565C0

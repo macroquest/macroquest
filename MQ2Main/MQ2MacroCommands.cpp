@@ -254,6 +254,8 @@ VOID Macro(PSPAWNINFO pChar, PCHAR szLine)
         SyntaxError("Usage: /macro <filename> [param [param...]]");
         return;
     }
+    if (gMacroBlock) 
+		EndMacro(pChar,"");//"keep keys vars arrays timers");
 	gMaxTurbo=20;
 	gTurbo=true;
     GetArg(szTemp,szLine,1);
@@ -265,12 +267,11 @@ VOID Macro(PSPAWNINFO pChar, PCHAR szLine)
 
     FILE *fMacro = fopen(Filename,"rt");
     if (!fMacro) {
-        MacroError(szTemp,"Couldn't open macro file: %s",Filename);
+        FatalError(szTemp,"Couldn't open macro file: %s",Filename);
         gszMacroName[0]=0;
         gRunning = 0;
         return;
     }
-    if (gMacroBlock) EndMacro(pChar,"keep keys vars arrays timers");
     gRunning = GetTickCount();
     gEventChat = 0;
     strcpy(gszMacroName,szTemp);

@@ -370,7 +370,7 @@ public:
 
 	PCSIDLWNDVFTABLE OldvfTable;
 
-	inline CXWnd *GetChildItem(const char *Name) {return CSidlScreenWnd::GetChildItem(CXStr(Name));};
+//	inline CXWnd *GetChildItem(const char *Name) {return CSidlScreenWnd::GetChildItem(Name);};
 };
 
 /* CIndex class stolen from teqim - Lax */

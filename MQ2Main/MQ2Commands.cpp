@@ -1597,149 +1597,6 @@ PCHAR CleanupName(PCHAR szName, BOOL Article)
 }
 
 // ***************************************************************************
-// Function:    SwapSWho
-// Description: Swaps two PSWHOSORTs
-// ***************************************************************************
-#if 0
-VOID SwapSWho(PSWHOSORT pSWho1, PSWHOSORT pSWho2)
-{
-    SWHOSORT SWhoTemp;
-    CopyMemory(&SWhoTemp,pSWho1,sizeof(SWHOSORT));
-    CopyMemory(pSWho1,pSWho2,sizeof(SWHOSORT));
-    CopyMemory(pSWho2,&SWhoTemp,sizeof(SWHOSORT));
-}
-
-
-// ***************************************************************************
-// Function:    SortSWho
-// Description: Sorts an array of PSWHOSORT
-// ***************************************************************************
-VOID SortSWho(PSWHOSORT pSWhoSort, DWORD SpawnCount, DWORD SortBy) 
-{
-    DWORD Index1, Index2;
-/*   -- For reference purposes only 
-   PCHAR szSortBy[] = { 
-      "level",   // Default sort by 
-      "name", 
-      "race", 
-      "class", 
-      "distance", 
-      "guild", 
-      "id", 
-      NULL 
-   }; 
-*/ 
-// bubble sort.... is this why superwho is slow? :)
-// todo.. qsort
-
-   // Pre-sort the entire list by name 
-   for (Index1=0;Index1<SpawnCount;Index1++) { 
-      for (Index2=SpawnCount-1;Index2>Index1;Index2--) { 
-         if (stricmp(pSWhoSort[Index2].szName, pSWhoSort[Index2-1].szName)<0) { 
-            SwapSWho(&pSWhoSort[Index2], &pSWhoSort[Index2-1]); 
-         } 
-      } 
-   } 
-
-   switch (SortBy) { 
-      case 0: 
-         //Sort by Level 
-         for (Index1=0;Index1<SpawnCount;Index1++) { 
-            for (Index2=SpawnCount-1;Index2>Index1;Index2--) { 
-               if (pSWhoSort[Index2].Level < pSWhoSort[Index2-1].Level) { 
-                  SwapSWho(&pSWhoSort[Index2], &pSWhoSort[Index2-1]); 
-               } 
-            } 
-         } 
-         break; 
-
-      case 1: 
-         //Sort by Name - we already pre-did this
-         break; 
-
-      case 2: 
-         //Sort by Race 
-         for (Index1=0;Index1<SpawnCount;Index1++) { 
-            for (Index2=SpawnCount-1;Index2>Index1;Index2--) { 
-               if (stricmp(pEverQuest->GetRaceDesc(pSWhoSort[Index2].Race), pEverQuest->GetRaceDesc(pSWhoSort[Index2-1].Race))<0) { 
-                  SwapSWho(&pSWhoSort[Index2], &pSWhoSort[Index2-1]); 
-               } 
-            } 
-         } 
-         break; 
-
-      case 3: 
-         //Sort by Class 
-         for (Index1=0;Index1<SpawnCount;Index1++) { 
-            for (Index2=SpawnCount-1;Index2>Index1;Index2--) { 
-               if (stricmp(GetClassDesc(pSWhoSort[Index2].Class), GetClassDesc(pSWhoSort[Index2-1].Class))<0) { 
-                  SwapSWho(&pSWhoSort[Index2], &pSWhoSort[Index2-1]); 
-               } 
-            } 
-         } 
-         break; 
-
-      case 4: 
-         //Sort by Distance 
-    for (Index1=0;Index1<SpawnCount;Index1++) {
-        for (Index2=SpawnCount-1;Index2>Index1;Index2--) {
-            if (pSWhoSort[Index2].Distance < pSWhoSort[Index2-1].Distance) {
-                SwapSWho(&pSWhoSort[Index2], &pSWhoSort[Index2-1]);
-            }
-        }
-    }
-         break; 
-
-      case 5: 
-         //Sort by Guild 
-        for (Index1=0;Index1<SpawnCount;Index1++) {
-            for (Index2=SpawnCount-1;Index2>Index1;Index2--) {
-               if (pSWhoSort[Index2].GuildID < pSWhoSort[Index2-1].GuildID) { 
-                    SwapSWho(&pSWhoSort[Index2], &pSWhoSort[Index2-1]);
-                }
-            }
-        }
-         break; 
-
-      case 6: 
-         //Sort by Level 
-        for (Index1=0;Index1<SpawnCount;Index1++) {
-            for (Index2=SpawnCount-1;Index2>Index1;Index2--) {
-               if (pSWhoSort[Index2].SpawnID < pSWhoSort[Index2-1].SpawnID) { 
-                    SwapSWho(&pSWhoSort[Index2], &pSWhoSort[Index2-1]);
-                }
-            }
-        }
-         break; 
-    }
-}
-
-// ***************************************************************************
-// Function:    SuperWhoFindPets
-// Description: Find pets to display
-//              Broken as all hell
-// ***************************************************************************
-
-PSPAWNINFO GetPet(DWORD OwnerID)
-{
-	PSPAWNINFO pSpawn = (PSPAWNINFO)GetSpawnByID(OwnerID);
-	if (!pSpawn)
-		return 0;
-	return (PSPAWNINFO)GetSpawnByID(pSpawn->pActorInfo->PetID);
-}
-
-
-VOID SuperWhoFindPets(PSPAWNINFO pChar, DWORD SpawnID, BOOL Color)
-{
-    PSPAWNINFO pPet = GetPet(SpawnID);
-    if (!pPet) return;
-    DebugSpew("SuperWhoFindPets - Spawn%d has pet %s",SpawnID,pPet->Name);
-    SuperWhoDisplay(pChar, NULL, pPet, 5, Color);
-}
-#endif
-
-
-// ***************************************************************************
 // Function:    SuperWhoDisplay
 // Description: Displays our SuperWho / SuperWhoTarget
 // ***************************************************************************
@@ -2089,252 +1946,6 @@ VOID SuperWhoDisplay(PSPAWNINFO pChar, PSEARCHSPAWN pSearchSpawn, DWORD Color)
 	}
 }
 
-#if 0
-VOID OLDSuperWhoDisplay(PSPAWNINFO pChar, PSEARCHSPAWN pFilter, PSPAWNINFO psTarget, WORD Padding, DWORD Color)
-{
-    PSPAWNINFO pSpawn = NULL;
-    CHAR szMsg[MAX_STRING] = {0};
-    CHAR szName[MAX_STRING] = {0};
-    CHAR szMsgL[MAX_STRING] = {0};
-    CHAR szTemp[MAX_STRING] = {0};
-    PSWHOSORT pSWhoSort = (PSWHOSORT)malloc(sizeof(SWHOSORT)*500);
-    DWORD SpawnCount = 0, Index;
-    FLOAT Distance;
-    INT Angle;
-
-        if (ppSpawnList && pSpawnList) for (pSpawn = (PSPAWNINFO)pSpawnList;(pSpawn) && (SpawnCount<500);pSpawn = pSpawn->pNext) {
-        if ((psTarget) && (psTarget != pSpawn)) continue;
-        if ((!psTarget) && (pSpawn->Type == SPAWN_NPC) && (pSpawn->MasterID != 0)) continue;
-        Distance =  DistanceToSpawn(pChar,pSpawn);
-        if (pFilter) {
-            if ((pFilter->SpawnType == SPAWN_PLAYER) && (pSpawn->Type != SPAWN_PLAYER)) continue;
-            if ((pFilter->SpawnType == SPAWN_NPC) && ((pSpawn->Type != SPAWN_NPC) || (pSpawn->MasterID!=0))) continue;
-            if ((pFilter->SpawnType == SPAWN_PET) && ((pSpawn->Type != SPAWN_NPC) || (pSpawn->MasterID==0))) continue;
-            if ((pFilter->SpawnType == SPAWN_CORPSE) && (pSpawn->Type != SPAWN_CORPSE)) continue;
-            if ((pFilter->Radius>0.0f) && (IsPCNear(pSpawn,pFilter->Radius))) continue;
-            if ((pFilter->ZRadius<10000.0f) && (fabs(pSpawn->Z - pChar->Z) > pFilter->ZRadius)) continue;
-            if ((pFilter->FRadius<10000.0f) && (DistanceToSpawn(pChar,pSpawn)>pFilter->FRadius)) continue;
-            if (pFilter->MinLevel> pSpawn->Level) continue;
-            if (pFilter->MaxLevel< pSpawn->Level) continue;
-            if ((pFilter->szBodyType[0]!=0) && (strnicmp(pFilter->szBodyType,GetBodyTypeDesc(pSpawn->BodyType),strlen(pFilter->szBodyType)))) continue;
-            if ((pFilter->szRace[0]!=0) && (strnicmp(pFilter->szRace,pEverQuest->GetRaceDesc(pSpawn->Race),strlen(pFilter->szRace)))) continue;
-            if ((pFilter->szClass[0]!=0) && (strnicmp(pFilter->szClass,GetClassDesc(pSpawn->Class),strlen(pFilter->szClass)))) continue;
-            if ((pFilter->GuildID != 0xFFFF) && (pFilter->GuildID!=pSpawn->GuildID)) continue;
-			if ((pFilter->bLight) && (!stricmp(GetLightForSpawn(pSpawn),"NONE"))) continue;
-			if ((pFilter->bLight) && (pFilter->szLight[0]) && (stricmp(GetLightForSpawn(pSpawn),pFilter->szLight))) continue;
-            if ((pFilter->bLFG) && (!pSpawn->LFG)) continue;
-            if ((pFilter->bGroup) && (!IsInGroup(pSpawn))) continue;
-//			if ((!pFilter->bTargInvis) && (!gFilterSWho.Invisible) && (GetBodyTypeDesc(pSpawn->BodyType)[0]=='*')) continue;
-//			if ((!pFilter->bTargInvis) && (GetBodyTypeDesc(pSpawn->BodyType)[0]=='*')) continue;
-            if ((pFilter->bTrader) && (!pSpawn->pActorInfo->Trader)) continue;
-            if ((pFilter->bAlert) && (!IsAlert(pChar,pSpawn,pFilter->AlertList))) continue;
-            if ((pFilter->bNoAlert) && (IsAlert(pChar,pSpawn,pFilter->NoAlertList))) continue;
-            if ((pFilter->bNearAlert) && (!GetClosestAlert(pSpawn,pFilter->NearAlertList,NULL))) continue;
-            if ((pFilter->bNotNearAlert) && (GetClosestAlert(pSpawn,pFilter->NotNearAlertList,NULL))) continue;
-        }
-        strcpy(szName,pSpawn->Name);
-        if (pSpawn->Type == SPAWN_PLAYER) {
-            if (gFilterSWho.Lastname && strlen(pSpawn->Lastname)>0) {
-                strcat(szName," ");
-                strcat(szName,pSpawn->Lastname);
-            }
-            if (gFilterSWho.Guild && pSpawn->GuildID < MAX_GUILDS && pGuildList) {
-                strcat(szName," <");
-                strcat(szName,GetGuildByID(pSpawn->GuildID));
-                strcat(szName,">");
-            }
-        } else {
-            CleanupName(szName);
-            if (gFilterSWho.Lastname && strlen(pSpawn->Lastname)>0) {
-                strcat(szName," (");
-                strcat(szName,pSpawn->Lastname);
-                strcat(szName,")");
-            }
-        }
-        strcpy(pSWhoSort[SpawnCount].szName,szName);
-        CHAR GM[MAX_STRING] = {0};
-
-		if (gFilterSWho.GM && pSpawn->GM) {
-            if (pSpawn->Level >= 50) {
-                strcpy(GM,"\ay*GM*\ax");
-			} else if (pSpawn->Level == 20) {
-                strcpy(GM,"\a-y*Guide Applicant*\ax");
-            } else {
-                strcpy(GM,"\a-y*Guide*\ax");
-            }
-        }
-
-		szMsg[0]='\a';
-		szMsg[2]=0;
-		if (Color || gFilterSWho.ConColor)
-		{
-			switch(ConColor(pSpawn))
-			{
-			case CONCOLOR_BLACK:
-				szMsg[1]='w';
-				break;
-			case CONCOLOR_YELLOW:
-				szMsg[1]='y';
-				break;
-			case CONCOLOR_RED:
-				szMsg[1]='r';
-				break;
-			case CONCOLOR_BLUE:
-				szMsg[1]='u';
-				break;
-			case CONCOLOR_LIGHTBLUE:
-				szMsg[1]='t';
-				break;
-			case CONCOLOR_GREEN:
-				szMsg[1]='g';
-				break;
-			default:
-				szMsg[1]='m';
-				break;
-			}
-		}
-		else
-		{
-			szMsg[1]='w';
-		}
-		if (gFilterSWho.GM) strcat(szMsg,GM);
-		if (gFilterSWho.Level || gFilterSWho.Race || gFilterSWho.Body || gFilterSWho.Class) {
-			strcat(szMsg,"\a-u[\ax");
-			if (gFilterSWho.Level) {
-				itoa(pSpawn->Level,szTemp,10);
-				strcat(szMsg,szTemp);
-				strcat(szMsg," ");
-			}
-			if (gFilterSWho.Race) {
-				strcat(szMsg,pEverQuest->GetRaceDesc(pSpawn->Race));
-				strcat(szMsg," ");
-			}
-			if (gFilterSWho.Body) {
-				strcat(szMsg,GetBodyTypeDesc(pSpawn->BodyType));
-				strcat(szMsg," ");
-			}
-			if (gFilterSWho.Class) {
-				strcat(szMsg,GetClassDesc(pSpawn->Class));
-				strcat(szMsg," ");
-			}
-			szMsg[strlen(szMsg)-1]=0;
-			strcat(szMsg,"\a-u]\ax");
-		}
-		strcat(szMsg," ");
-		strcat(szMsg,szName);
-//		strcat(szMsg,"\ax");
-		
-        if (pSpawn->Type == SPAWN_PLAYER) {
-            if (gFilterSWho.Anon && pSpawn->Anon>0) {
-                if (pSpawn->Anon==2) {
-                    strcat(szMsg," \ag*RP*\ax");
-                } else {
-                    strcat(szMsg," \ag*Anon*\ax");
-                }
-            }
-            if (gFilterSWho.LD && pSpawn->Linkdead) strcat(szMsg," \ag<LD>\ax");
-			if (gFilterSWho.Sneak && pSpawn->Sneak) strcat(szMsg," \ag<Sneak>\ax"); 
-            if (gFilterSWho.AFK && pSpawn->AFK) strcat(szMsg," \ag<AFK>\ax");
-            if (gFilterSWho.LFG && pSpawn->LFG) strcat(szMsg," \ag<LFG>\ax");
-            if (gFilterSWho.Trader && pSpawn->pActorInfo->Trader) strcat(szMsg," \ag<Trader>\ax");
-        } else if (gFilterSWho.NPCTag && pSpawn->Type == SPAWN_NPC) {
-            if (pSpawn->MasterID != 0) {
-                strcat(szMsg," <PET>");
-            } else {
-                strcat(szMsg," <NPC>");
-            }
-        }
-		if (gFilterSWho.Light) {
-			PCHAR szLight = GetLightForSpawn(pSpawn);
-			if (stricmp(szLight,"NONE")) {
-				strcat(szMsg," (");
-				strcat(szMsg,szLight);
-				strcat(szMsg,")");
-			}
-		}
-        strcpy(szMsgL,szMsg);
-        if (pFilter) {
-            if (!strstr(_strlwr(szMsgL),pFilter->szName)) continue;
-        }
-		if (gFilterSWho.Distance) {
-	        Angle = (INT)((atan2f(pChar->X - pSpawn->X, pChar->Y - pSpawn->Y) * 180.0f / PI + 360.0f) / 22.5f + 0.5f) % 16;
-			sprintf(szTemp," \a-u(\ax%1.2f %s", Distance, szHeadingShort[Angle]);
-			strcat(szMsg,szTemp);
-        if ((!pFilter) && (Padding == 0)) {
-            sprintf(szTemp,"\a-u,\ax %1.2fZ", pSpawn->Z-pChar->Z);
-				strcat(szMsg,szTemp);
-			}
-			strcat(szMsg,"\a-u)\ax");
-		}
-		if (gFilterSWho.SpawnID) {
-			strcat(szMsg," \a-u(\axID:");
-			itoa(pSpawn->SpawnID,szTemp,10);
-			strcat(szMsg,szTemp);
-			strcat(szMsg,"\a-u)\ax");
-        }
-		if (gFilterSWho.Holding && (pSpawn->Equipment.Primary || pSpawn->Equipment.Offhand )) {
-			strcat(szMsg," \a-u(\ax");
-			if (pSpawn->Equipment.Primary)
-			{
-				itoa(pSpawn->Equipment.Primary,szTemp,10);
-				strcat(szMsg,"Pri: ");
-				strcat(szMsg,szTemp);
-				if (pSpawn->Equipment.Offhand)
-					strcat(szMsg," ");
-			}
-			if (pSpawn->Equipment.Offhand)
-			{
-				itoa(pSpawn->Equipment.Offhand,szTemp,10);
-				strcat(szMsg,"Off: ");
-				strcat(szMsg,szTemp);
-			}
-			strcat(szMsg,"\a-u)\ax");
-		}
-
-		strcpy(pSWhoSort[SpawnCount].szLine,szMsg);
-        pSWhoSort[SpawnCount].Level = pSpawn->Level;
-        pSWhoSort[SpawnCount].Distance = Distance;
-        pSWhoSort[SpawnCount].SpawnID = pSpawn->SpawnID;
-        pSWhoSort[SpawnCount].Class = pSpawn->Class; 
-        pSWhoSort[SpawnCount].Race = pSpawn->Race; 
-        pSWhoSort[SpawnCount].GuildID = pSpawn->GuildID; 
-        SpawnCount++;
-    }
-    if (pFilter) {
-		SortSWho(pSWhoSort,SpawnCount,pFilter->SortBy);
-    } else {
-        SortSWho(pSWhoSort,SpawnCount,0);
-    }
-    if (pFilter) {
-        WriteChatColor(" ",USERCOLOR_WHO);
-        if (pFilter->SpawnType == NONE) {
-            WriteChatColor("List of all spawns",USERCOLOR_WHO);
-        } else {
-            sprintf(szMsg,"List of %ss",szSpawnType[pFilter->SpawnType]);
-            WriteChatColor(szMsg,USERCOLOR_WHO);
-        }
-        WriteChatColor("--------------------------------",USERCOLOR_WHO);
-    }
-    for (Index=0;Index<SpawnCount;Index++) {
-        CHAR szOutput[MAX_STRING] = {0};
-        WORD pad;
-        for (pad=0;pad<Padding;pad++) strcat(szOutput," ");
-        strcat(szOutput,pSWhoSort[Index].szLine);
-        WriteChatColor(szOutput,USERCOLOR_WHO);
-        if ((!pFilter) || (!pFilter->bNoPet)) SuperWhoFindPets(pChar, pSWhoSort[Index].SpawnID,Color);
-    }
-    if (pFilter) {
-        if (SpawnCount==0) {
-            FormatSearchSpawn(szMsg,pFilter);
-            strcat(szMsg," was not found.");
-        } else {
-            sprintf(szMsg,"There %s \ag%d\ax%s %s%s in %s.",(SpawnCount == 1)?"is":"are",SpawnCount,(SpawnCount<500)?"":" (cut short)", (pFilter->SpawnType==NONE)?"spawn":szSpawnType[pFilter->SpawnType], (SpawnCount==1)?"":"s", GetFullZone(pChar->Zone));
-        }
-        WriteChatColor(szMsg,USERCOLOR_WHO);
-    }
-    free(pSWhoSort);
-}
-#endif
 // ***************************************************************************
 // Function:    SuperWhoTarget
 // Description: Our '/whotarget' command
@@ -3135,7 +2746,6 @@ PCHAR FormatSearchSpawn(PCHAR Buffer, PSEARCHSPAWN pSearchSpawn)
     if (pSearchSpawn->bGM) strcat(Buffer," GM");
     if (pSearchSpawn->bTrader) strcat(Buffer," Trader");
     if (pSearchSpawn->bLFG) strcat(Buffer," LFG");
-//    if (pSearchSpawn->bTargInvis) strcat(Buffer," Invis");
 	if (pSearchSpawn->bLight) {
 		strcat(Buffer," Light");
 		if (pSearchSpawn->szLight[0]) {
@@ -3147,7 +2757,7 @@ PCHAR FormatSearchSpawn(PCHAR Buffer, PSEARCHSPAWN pSearchSpawn)
     return Buffer;
 }
 
-PSPAWNINFO NthNearestSpawn(PSEARCHSPAWN pSearchSpawn, DWORD Nth, PSPAWNINFO pOrigin)
+PSPAWNINFO NthNearestSpawn(PSEARCHSPAWN pSearchSpawn, DWORD Nth, PSPAWNINFO pOrigin, BOOL IncludeOrigin)
 {
 	if (!pSearchSpawn || !Nth || !pOrigin)
 		return 0;
@@ -3155,19 +2765,39 @@ PSPAWNINFO NthNearestSpawn(PSEARCHSPAWN pSearchSpawn, DWORD Nth, PSPAWNINFO pOri
 	PSPAWNINFO pSpawn=(PSPAWNINFO)pSpawnList;
 	// create our set
 	DWORD TotalMatching=0;
-	while (pSpawn)
+	if (IncludeOrigin)
 	{
-		if (pSpawn!=pOrigin && SpawnMatchesSearch(pSearchSpawn,pOrigin,pSpawn))
+		while (pSpawn)
 		{
-			// matches search, add to our set
-			TotalMatching++;
-			PMQRANK pNewRank=new MQRANK;
-			pNewRank->VarPtr.Ptr=pSpawn;
-			pNewRank->Value.Float=GetDistance(pOrigin->X,pOrigin->Y,pSpawn->X,pSpawn->Y);
-			SpawnSet+=pNewRank;
-		}
+			if (SpawnMatchesSearch(pSearchSpawn,pOrigin,pSpawn))
+			{
+				// matches search, add to our set
+				TotalMatching++;
+				PMQRANK pNewRank=new MQRANK;
+				pNewRank->VarPtr.Ptr=pSpawn;
+				pNewRank->Value.Float=GetDistance(pOrigin->X,pOrigin->Y,pSpawn->X,pSpawn->Y);
+				SpawnSet+=pNewRank;
+			}
 
-		pSpawn=pSpawn->pNext;
+			pSpawn=pSpawn->pNext;
+		}
+	}
+	else
+	{
+		while (pSpawn)
+		{
+			if (pSpawn!=pOrigin && SpawnMatchesSearch(pSearchSpawn,pOrigin,pSpawn))
+			{
+				// matches search, add to our set
+				TotalMatching++;
+				PMQRANK pNewRank=new MQRANK;
+				pNewRank->VarPtr.Ptr=pSpawn;
+				pNewRank->Value.Float=GetDistance(pOrigin->X,pOrigin->Y,pSpawn->X,pSpawn->Y);
+				SpawnSet+=pNewRank;
+			}
+
+			pSpawn=pSpawn->pNext;
+		}
 	}
 	if (TotalMatching<Nth)
 	{// CIndex.Cleanup will call "delete" on every valid pointer in our list.
@@ -3186,159 +2816,42 @@ PSPAWNINFO NthNearestSpawn(PSEARCHSPAWN pSearchSpawn, DWORD Nth, PSPAWNINFO pOri
 
 PSPAWNINFO SearchThroughSpawns(PSEARCHSPAWN pSearchSpawn, PSPAWNINFO pChar)
 {
-//    PSPAWNINFO pSpawnInfo = (PSPAWNINFO)pSpawnList;
-//    PSPAWNINFO pSpawn, pSpawnClosest = NULL;
     PSPAWNINFO pFromSpawn = NULL;
-//    CHAR szName[MAX_STRING] = {0};
-//    FLOAT Distance = 50000.0f;
-//        FLOAT DistanceToTarget = 0.0f;
 
-    //if (pSearchSpawn->bTargPrev) {
-      //      DistanceToTarget = 50000.0f;
-        //    Distance = 0.0f;
-        //}
 
-    if (pSearchSpawn->FromSpawnID>0) 
+    if (pSearchSpawn->FromSpawnID>0 && (pSearchSpawn->bTargNext ||pSearchSpawn->bTargPrev)) 
 	{
 		pFromSpawn=(PSPAWNINFO)GetSpawnByID(pSearchSpawn->FromSpawnID);
-        if (!pFromSpawn) return NULL;
-		return NthNearestSpawn(pSearchSpawn,1,pFromSpawn);
-		
-	}
-	return NthNearestSpawn(pSearchSpawn,1,pChar);
-
-
-	/*
-
-    if (pFromSpawn) DistanceToTarget = DistanceToSpawn(pChar,pFromSpawn);
-
-        for (pSpawn = pSpawnInfo; pSpawn; pSpawn=pSpawn->pNext) 
+		if (!pFromSpawn) return NULL;
+		for ( int N=0 ; N < 3000 ; N++)
 		{
-			eSpawnType SpawnType=GetSpawnType(pSpawn);
-            if (((strstr(_strlwr(strcpy(szName,pSpawn->Name)),pSearchSpawn->szName)) ||
-            (strstr(CleanupName(_strlwr(strcpy(szName,pSpawn->Name)),FALSE),pSearchSpawn->szName))) &&
-                (!strstr(CleanupName(_strlwr(strcpy(szName,pSpawn->Name)),FALSE),"`s mount")) &&
-            (pSpawn->Level >= pSearchSpawn->MinLevel) &&
-            (pSpawn->Level <= pSearchSpawn->MaxLevel) &&
-                (
-                    (
-                        (pSpawn != pChar) &&
-                    (pSearchSpawn->SpawnID == 0)
-                    ) || (
-                    (pSearchSpawn->SpawnID == pSpawn->SpawnID)
-                    )
-                ) && (
-                (pSearchSpawn->NotID == 0) ||
-                (pSearchSpawn->NotID != pSpawn->SpawnID)
-                ) && (
-                (pSearchSpawn->szClass[0] == 0) ||
-                (!strnicmp(pSearchSpawn->szClass, GetClassDesc(pSpawn->Class),strlen(pSearchSpawn->szClass)))
-                ) && (
-                (pSearchSpawn->szBodyType[0] == 0) ||
-                (!strnicmp(pSearchSpawn->szBodyType, GetBodyTypeDesc(pSpawn->BodyType),strlen(pSearchSpawn->szBodyType)))
-                ) && (
-                (pSearchSpawn->szRace[0] == 0) ||
-                (!strnicmp(pSearchSpawn->szRace, pEverQuest->GetRaceDesc(pSpawn->Race),strlen(pSearchSpawn->szRace)))
-                ) && (
-                (pSearchSpawn->GuildID == 0xFFFF) ||
-                (pSearchSpawn->GuildID == pSpawn->GuildID)
-            ) && (
-                (!pSearchSpawn->bLFG) ||
-                (pSpawn->LFG)
-            ) && (
-                (!pSearchSpawn->bGM) ||
-                (pSpawn->GM)
-            ) && (
-                (!pSearchSpawn->bTrader) ||
-                (pSpawn->pActorInfo->Trader)
-            )  && ( 
-                    ( 
-                    (pSearchSpawn->bKnownLocation == FALSE) 
-                                        ) || ( 
-                    (pSearchSpawn->bKnownLocation == TRUE) && 
-                    (pSpawn->X == pSearchSpawn->xLoc) && 
-                    (pSpawn->Y == pSearchSpawn->yLoc) 
-                              ) || ( 
-               (pSearchSpawn->bKnownLocation == TRUE) && 
-               (pSearchSpawn->FRadius<10000.0f) && 
-               (DistanceToPoint(pSpawn,pSearchSpawn->xLoc,pSearchSpawn->yLoc)<pSearchSpawn->FRadius) 
-                              ) 
-                                ) && (
-                                        (
-                        (
-                        (pSearchSpawn->SpawnType==NONE)
-                        ) || (
-                        (pSearchSpawn->SpawnType == SpawnType)
-                        ) || (
-                        (pSearchSpawn->SpawnType == NPC) &&
-                            (SpawnType == UNTARGETABLE) 
-                        ) 
-                    )
-                )
-            ) {
-                FLOAT SpawnDistance =  DistanceToSpawn(pChar,pSpawn);
-                BOOL AlertOK = FALSE;
-                BOOL NoAlertOK = FALSE;
-                if (
-                        (
-                        (!pSearchSpawn->bTargNext) &&
-                        (!pSearchSpawn->bTargPrev) &&
-                            (SpawnDistance < Distance)
-                        ) || (
-                        (pSearchSpawn->bTargPrev) &&
-                            (     Distance < SpawnDistance   ) &&
-                            (SpawnDistance < DistanceToTarget)
-                        ) || (
-                        (pSearchSpawn->bTargNext) &&
-                            (     Distance > SpawnDistance   ) &&
-                            (SpawnDistance > DistanceToTarget)
-                        )
-                ) {
-                    BOOL TooClose = FALSE;
-                    PALERT pCurrent = NULL;
-                if (pSearchSpawn->Radius>0.0f) {
-                    if (IsPCNear(pSpawn,pSearchSpawn->Radius)) TooClose=TRUE;
-                    }
-                    if (gZFilter<10000.0f) {
-                        if ((pSpawn->Z > pChar->Z + gZFilter) ||
-                            (pSpawn->Z < pChar->Z - gZFilter)) TooClose=TRUE;
-                    }
-                if (pSearchSpawn->ZRadius<10000.0f) {
-                    if ((pSpawn->Z > pChar->Z + pSearchSpawn->ZRadius) ||
-                        (pSpawn->Z < pChar->Z - pSearchSpawn->ZRadius)) TooClose=TRUE;
-                    }
-				if ((pSearchSpawn->bKnownLocation == FALSE) && (pSearchSpawn->FRadius<10000.0f)) { 
-                    if (DistanceToSpawn(pChar, pSpawn)>pSearchSpawn->FRadius) TooClose=TRUE; 
-                    }
-
-                    AlertOK = FALSE;
-                    NoAlertOK = FALSE;
-                if ((pSearchSpawn->bAlert) && (pCurrent = GetAlert(pSearchSpawn->AlertList))) {
-                    if (IsAlert(pChar,pSpawn,pSearchSpawn->AlertList)) AlertOK = TRUE;
-                    }
-                if ((pSearchSpawn->bNoAlert) && (pCurrent = GetAlert(pSearchSpawn->NoAlertList))) {
-                    if (!IsAlert(pChar,pSpawn,pSearchSpawn->NoAlertList)) NoAlertOK = TRUE;
-                    }
-
-                if ((pSearchSpawn->bNotNearAlert) && (GetClosestAlert(pSpawn, pSearchSpawn->NotNearAlertList,NULL))) TooClose=TRUE;
-                if ((pSearchSpawn->bNearAlert) && (!GetClosestAlert(pSpawn,pSearchSpawn->NearAlertList,NULL))) TooClose=TRUE;
-				if (pSearchSpawn->bLight) {
-					if (!stricmp(GetLightForSpawn(pSpawn),"NONE")) {
-						TooClose=TRUE;
-					} else if (pSearchSpawn->szLight[0] && stricmp(GetLightForSpawn(pSpawn),pSearchSpawn->szLight)) {
-						TooClose=TRUE;
+			if (EQP_DistArray[N].VarPtr.Ptr==pFromSpawn)
+			{
+				if (pSearchSpawn->bTargPrev)
+				{
+					N--;
+					for (N ; N >= 0 ; N--)
+					{
+						if (EQP_DistArray[N].VarPtr.Ptr && 
+							SpawnMatchesSearch(pSearchSpawn,pFromSpawn,(PSPAWNINFO)EQP_DistArray[N].VarPtr.Ptr))
+							return (PSPAWNINFO)EQP_DistArray[N].VarPtr.Ptr;
 					}
 				}
-
-                if ((!TooClose) && ((!pSearchSpawn->bAlert) || (AlertOK)) && ((!pSearchSpawn->bNoAlert) || (NoAlertOK))) {
-                        pSpawnClosest = pSpawn;
-                        Distance = SpawnDistance;
-                    }
-                }
-            }
-        }
-    return (pSpawnClosest);
-	/**/
+				else
+				{
+					N++;
+					for (N ; N < 3000 ; N++)
+					{
+						if (EQP_DistArray[N].VarPtr.Ptr && 
+							SpawnMatchesSearch(pSearchSpawn,pFromSpawn,(PSPAWNINFO)EQP_DistArray[N].VarPtr.Ptr))
+							return (PSPAWNINFO)EQP_DistArray[N].VarPtr.Ptr;
+					}
+				}
+				return NULL;
+			}
+		}
+	}
+	return NthNearestSpawn(pSearchSpawn,1,pChar,TRUE);
 }
 
 BOOL SpawnMatchesSearch(PSEARCHSPAWN pSearchSpawn, PSPAWNINFO pChar, PSPAWNINFO pSpawn)
@@ -3501,6 +3014,8 @@ PCHAR ParseSearchSpawnArgs(PCHAR szArg, PCHAR szRest, PSEARCHSPAWN pSearchSpawn)
                 pSearchSpawn->szLight[0]=0;
             }
 			pSearchSpawn->bLight=TRUE;
+        } else if (!strcmp(szArg,"GUILD")) {
+			pSearchSpawn->GuildID=GetCharInfo()->pSpawn->GuildID;
         } else if (!stricmp(szArg,"guild")) {
             DWORD GuildID = 0xFFFF;
             GetArg(szArg,szRest,1);

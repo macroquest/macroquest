@@ -289,8 +289,12 @@ BOOL dataBool(PCHAR szIndex, MQ2TYPEVAR &Ret)
 
 BOOL dataGroupLeader(PCHAR szIndex, MQ2TYPEVAR &Ret)
 {
-	if (!GroupLeader[0])
-		return false;
+	if (!GroupLeader[0] || !stricmp(GroupLeader,GetCharInfo()->pSpawn->Name))
+	{
+		Ret.Ptr=GetCharInfo()->pSpawn;
+		Ret.Type=pSpawnType;
+		return true;
+	}
 	for (unsigned long N = 0 ; N < 5 ; N++)
 	{
 		if (EQADDR_GROUPCOUNT[N])
@@ -312,7 +316,11 @@ BOOL dataGroupLeader(PCHAR szIndex, MQ2TYPEVAR &Ret)
 BOOL dataGroupLeaderName(PCHAR szIndex, MQ2TYPEVAR &Ret)
 {
 	if (!GroupLeader[0])
-		return false;
+	{
+		Ret.Ptr=GetCharInfo()->pSpawn->Name;
+		Ret.Type=pStringType;
+		return true;
+	}
 	Ret.Ptr=&GroupLeader[0];
 	Ret.Type=pStringType;
 	return true;

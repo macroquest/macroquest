@@ -21,6 +21,82 @@
 
 #include "MQ2Main.h"
 
+enum UIType CXWnd::GetType()
+{
+	if (CXMLData *pXMLData=GetXMLData())
+		return pXMLData->Type;
+	return UI_Unknown;
+}
+
+enum UIType CSidlScreenWnd::GetType()
+{
+	if (CXMLData *pXMLData=GetXMLData())
+		return pXMLData->Type;
+	return UI_Unknown;
+}
+
+class CXMLData * CXWnd::GetXMLData()
+{
+	if (XMLIndex)
+		return ((CXMLDataManager*)&((PCSIDLMGR)pSidlMgr)->pXMLDataMgr)->GetXMLData(XMLIndex>>16,XMLIndex&0xFFFF);
+	DebugSpew("CXWnd::GetXMLData()=0");
+	return 0;
+}
+class CXMLData * CSidlScreenWnd::GetXMLData()
+{
+	if (XMLIndex)
+		return ((CXMLDataManager*)&((PCSIDLMGR)pSidlMgr)->pXMLDataMgr)->GetXMLData(XMLIndex>>16,XMLIndex&0xFFFF);
+	DebugSpew("CSidlScreenWnd::GetXMLData()=0");
+	return 0;
+}
+class CXWnd * CXWnd::GetChildItem(PCHAR Name)
+{
+	CXWnd *pWnd;
+	if (HasChildren)
+		pWnd=(CXWnd*)pChildren;
+	else
+		pWnd=pWndMgr->GetFirstChildWnd(this);
+	DebugSpew("CXWnd::GetChildItem(%s). pWnd=0x%08X",Name,pWnd);
+	CHAR Buffer[MAX_STRING]={0};
+	while(pWnd)
+	{
+		if (CXMLData *pXMLData=pWnd->GetXMLData())
+		{
+			DebugSpew("GetChildItem() Got pXMLData",Name,pWnd);
+			if (GetCXStr(pXMLData->Name.Ptr,Buffer,MAX_STRING) && !stricmp(Buffer,Name))
+				return pWnd;
+			if (GetCXStr(pXMLData->ScreenID.Ptr,Buffer,MAX_STRING) && !stricmp(Buffer,Name))
+				return pWnd;
+		}
+		pWnd=((CXWnd*)this)->GetNextChildWnd(pWnd);//pWnd=(CXWnd*)pWnd->pSiblings;
+	}
+	return 0;
+}
+
+class CXWnd * CSidlScreenWnd::GetChildItem(PCHAR Name)
+{
+	CXWnd *pWnd;
+	if (HasChildren)
+		pWnd=(CXWnd*)pChildren;
+	else
+		pWnd=pWndMgr->GetFirstChildWnd((CXWnd*)this);
+	DebugSpew("CSidlScreenWnd::GetChildItem(%s). pWnd=0x%08X",Name,pWnd);
+	CHAR Buffer[MAX_STRING]={0};
+	while(pWnd)
+	{
+		if (CXMLData *pXMLData=pWnd->GetXMLData())
+		{
+			DebugSpew("GetChildItem() Got pXMLData",Name,pWnd);
+			if (GetCXStr(pXMLData->Name.Ptr,Buffer,MAX_STRING) && !stricmp(Buffer,Name))
+				return pWnd;
+			if (GetCXStr(pXMLData->ScreenID.Ptr,Buffer,MAX_STRING) && !stricmp(Buffer,Name))
+				return pWnd;
+		}
+		pWnd=((CXWnd*)this)->GetNextChildWnd(pWnd);//(CXWnd*)pWnd->pSiblings;
+	}
+	return 0;
+}
+
 // MANUAL IMPORTS
 #ifdef EQ_Item__GetItemLinkHash
 FUNCTION_AT_ADDRESS(char * EQ_Item::GetItemLinkHash(char *),EQ_Item__GetItemLinkHash); // Lax 11-14-2003
@@ -6982,9 +7058,9 @@ FUNCTION_AT_ADDRESS(void  CSidlScreenWnd::EnableIniStorage(int,char *),CSidlScre
 #ifdef CSidlScreenWnd__ConvertToRes
 FUNCTION_AT_ADDRESS(int  CSidlScreenWnd::ConvertToRes(int,int,int,int),CSidlScreenWnd__ConvertToRes);
 #endif
-#ifdef CSidlScreenWnd__GetChildItem
-FUNCTION_AT_ADDRESS(class CXWnd *  CSidlScreenWnd::GetChildItem(class CXStr&)const ,CSidlScreenWnd__GetChildItem);
-#endif
+//#ifdef CSidlScreenWnd__GetChildItem
+//FUNCTION_AT_ADDRESS(class CXWnd *  CSidlScreenWnd::GetChildItem(class CXStr&)const ,CSidlScreenWnd__GetChildItem);
+//#endif
 #ifdef CSidlScreenWnd__LoadIniListWnd
 FUNCTION_AT_ADDRESS(void  CSidlScreenWnd::LoadIniListWnd(class CListWnd *,char *),CSidlScreenWnd__LoadIniListWnd);
 #endif

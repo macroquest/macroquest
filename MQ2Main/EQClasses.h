@@ -20,7 +20,6 @@ class CXSize
 	DWORD A,B,C,D,E,F;
 };
 
-
 // Enumerations...
 typedef DWORD EQZoneIndex;
 typedef DWORD EQLocalizeLanguage;
@@ -427,6 +426,9 @@ EQLIB_OBJECT void CXStr::CheckNoLock(void);
 class CXWnd
 {
 public:
+EQLIB_OBJECT enum UIType CXWnd::GetType();
+EQLIB_OBJECT class CXMLData * CXWnd::GetXMLData();
+EQLIB_OBJECT class CXWnd * CXWnd::GetChildItem(PCHAR Name);
 EQLIB_OBJECT CXWnd::CXWnd(class CXWnd *,unsigned __int32,class CXRect);
 EQLIB_OBJECT bool CXWnd::HasFocus(void)const;
 EQLIB_OBJECT bool CXWnd::IsActive(void)const;
@@ -445,7 +447,7 @@ EQLIB_OBJECT class CXRect CXWnd::GetScreenClipRect(void)const;
 EQLIB_OBJECT class CXRect CXWnd::GetScreenRect(void)const;
 EQLIB_OBJECT class CXStr CXWnd::GetWindowTextA(void)const;
 EQLIB_OBJECT class CXStr CXWnd::GetXMLTooltip(void)const;
-EQLIB_OBJECT class CXWnd * CXWnd::GetChildItem(class CXStr);
+//EQLIB_OBJECT class CXWnd * CXWnd::GetChildItem(class CXStr);
 EQLIB_OBJECT class CXWnd * CXWnd::GetChildWndAt(class CXPoint)const;
 EQLIB_OBJECT class CXWnd * CXWnd::GetFirstChildWnd(void)const;
 EQLIB_OBJECT class CXWnd * CXWnd::GetNextChildWnd(class CXWnd *)const;
@@ -637,13 +639,16 @@ EQLIB_OBJECT static unsigned char CXWnd::sm_byCurrentAlpha;
 class CSidlScreenWnd
 {
 public:
+EQLIB_OBJECT enum UIType CSidlScreenWnd::GetType();
+EQLIB_OBJECT class CXMLData * CSidlScreenWnd::GetXMLData();
+EQLIB_OBJECT class CXWnd * CSidlScreenWnd::GetChildItem(PCHAR Name);
 	EQLIB_OBJECT CSidlScreenWnd::CSidlScreenWnd() {};
 EQLIB_OBJECT CSidlScreenWnd::CSidlScreenWnd(class CXWnd *,class CXStr);
 EQLIB_OBJECT CSidlScreenWnd::CSidlScreenWnd(class CXWnd *pWnd,class CXStr Template,int Flags,char *unknown4);
 EQLIB_OBJECT CSidlScreenWnd::CSidlScreenWnd(class CXWnd *,unsigned __int32,class CXRect,class CXStr);
 EQLIB_OBJECT class CScreenPieceTemplate * CSidlScreenWnd::GetSidlPiece(class CXStr)const;
 EQLIB_OBJECT class CXRect CSidlScreenWnd::GetSidlPieceRect(class CScreenPieceTemplate *,class CXRect)const;
-EQLIB_OBJECT class CXWnd * CSidlScreenWnd::GetChildItem(class CXStr&)const;
+//EQLIB_OBJECT class CXWnd * CSidlScreenWnd::GetChildItem(class CXStr&)const;
 EQLIB_OBJECT int CSidlScreenWnd::DrawSidlPiece(class CScreenPieceTemplate *,class CXRect,class CXRect)const;
 EQLIB_OBJECT void CSidlScreenWnd::AddButtonToRadioGroup(class CXStr,class CButtonWnd *);
 EQLIB_OBJECT void CSidlScreenWnd::CalculateHSBRange(void);
@@ -4893,8 +4898,15 @@ EQLIB_OBJECT int CXMLData::GetStreamSize(void);
 EQLIB_OBJECT void CXMLData::ReadFromStream(class CMemoryStream &);
 EQLIB_OBJECT void CXMLData::WriteToStream(class CMemoryStream &);
 // data members
-/*0x00*/ BYTE Unknown0x00[0x20];
-/*0x20*/ CXStr Text;
+/*0x00*/ PVOID pvfTable;
+/*0x04*/ DWORD Unknown0x04;// always 8
+/*0x08*/ enum UIType Type;
+/*0x0C*/ DWORD Unknown0x0C;// no idea yet, some number but not unique
+/*0x10*/ DWORD Unknown0x10;// always -1
+/*0x14*/ CXStr TypeName;// "Screen" (control type)
+/*0x18*/ CXStr Name;// "ChatWindow"  control name (used only for Screen)
+/*0x1C*/ DWORD Unknown0x1C;// always null
+/*0x20*/ CXStr ScreenID;// ScreenID (used only within Screen)
 };
 
 class CXMLDataClass

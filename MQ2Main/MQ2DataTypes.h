@@ -12,8 +12,15 @@
     GNU General Public License for more details.
 ******************************************************************************/
 
-// TODO
+// non-mq2data TODO
 // (non-mq2data) command to clear macro return value
+// networking
+// macro line continuation e.g. \
+// more work on window lists (grab names from XMLData?)
+// command to set raid class colors
+//
+// mq2data todo:
+// -------------
 // "bind" type (key binds)
 // Friend TLO
 // Ignore TLO
@@ -1602,6 +1609,9 @@ public:
 		Style=25,
 		Enabled=26,
 		Highlighted=27,
+		Name=28,
+		ScreenID=29,
+		Type=30,
 	};
 	MQ2WindowType():MQ2Type("window")
 	{
@@ -1631,6 +1641,9 @@ public:
 		TypeMember(Style);
 		TypeMember(Enabled);
 		TypeMember(Highlighted);
+		TypeMember(Name);
+		TypeMember(ScreenID);
+		TypeMember(Type);
  	}
 
 	~MQ2WindowType()

@@ -149,6 +149,9 @@ typedef double DOUBLE;
 
 #include "EQData.h"
 #include "EQUIStructs.h"
+
+//class CXMLData *GetXMLData(class CXWnd *pWnd)
+
 #include "EQClasses.h"
 
 #include "MQ2Prototypes.h"
@@ -309,7 +312,7 @@ EQLIB_API PCHAR GetEQPath(PCHAR szBuffer);
 EQLIB_API VOID HideDoCommand(PSPAWNINFO pChar, PCHAR szLine, BOOL delayed);
 EQLIB_API VOID AppendCXStr(PCXSTR *cxstr, PCHAR text); 
 EQLIB_API VOID SetCXStr(PCXSTR *cxstr, PCHAR text); 
-EQLIB_API VOID GetCXStr(PCXSTR pCXStr, PCHAR szBuffer, DWORD maxlen=MAX_STRING);
+EQLIB_API DWORD GetCXStr(PCXSTR pCXStr, PCHAR szBuffer, DWORD maxlen=MAX_STRING);
 EQLIB_API DWORD MQToSTML(PCHAR in, PCHAR out, DWORD maxlen=MAX_STRING, DWORD ColorOverride=0xFFFFFF);
 EQLIB_API VOID StripMQChat(PCHAR in, PCHAR out);
 EQLIB_API VOID STMLToPlainText(PCHAR in, PCHAR out);
@@ -378,7 +381,7 @@ EQLIB_API VOID DropTimers(VOID);
 EQLIB_API BOOL LoadCfgFile(PCHAR Filename, BOOL Delayed=FromPlugin);
 EQLIB_API PCHAR GetFriendlyNameForGroundItem(PGROUNDITEM pItem, PCHAR szName);
 EQLIB_API VOID ClearSearchSpawn(PSEARCHSPAWN pSearchSpawn);
-EQLIB_API PSPAWNINFO NthNearestSpawn(PSEARCHSPAWN pSearchSpawn, DWORD Nth, PSPAWNINFO pOrigin);
+EQLIB_API PSPAWNINFO NthNearestSpawn(PSEARCHSPAWN pSearchSpawn, DWORD Nth, PSPAWNINFO pOrigin, BOOL IncludeOrigin=FALSE);
 EQLIB_API PSPAWNINFO SearchThroughSpawns(PSEARCHSPAWN pSearchSpawn, PSPAWNINFO pChar);
 EQLIB_API BOOL SpawnMatchesSearch(PSEARCHSPAWN pSearchSpawn, PSPAWNINFO pChar, PSPAWNINFO pSpawn);
 EQLIB_API PCHAR ParseSearchSpawnArgs(PCHAR szArg, PCHAR szRest, PSEARCHSPAWN pSearchSpawn);
@@ -394,10 +397,10 @@ EQLIB_API PCHAR       GetFullZone             (DWORD ZoneID);
 EQLIB_API DWORD       GetZoneID               (PCHAR ZoneShortName);
 EQLIB_API PCHAR       GetShortZone            (DWORD ZoneID);
 EQLIB_API PCHAR       CleanupName             (PCHAR szName, BOOL Article = TRUE);
-EQLIB_API VOID        SwapSWho                (PSWHOSORT pSWho1, PSWHOSORT pSWho2);
-EQLIB_API VOID        SortSWho                (PSWHOSORT pSWhoSort, DWORD SpawnCount, DWORD SortBy = 0);
-EQLIB_API VOID        SuperWhoFindPets        (PSPAWNINFO pChar, WORD SpawnID);
-EQLIB_API VOID        SuperWhoDisplay         (PSPAWNINFO pChar, PSEARCHSPAWN pFilter, PSPAWNINFO psTarget, WORD Padding = 0, DWORD Color = 0);
+//EQLIB_API VOID        SwapSWho                (PSWHOSORT pSWho1, PSWHOSORT pSWho2);
+//EQLIB_API VOID        SortSWho                (PSWHOSORT pSWhoSort, DWORD SpawnCount, DWORD SortBy = 0);
+//EQLIB_API VOID        SuperWhoFindPets        (PSPAWNINFO pChar, WORD SpawnID);
+//EQLIB_API VOID        SuperWhoDisplay         (PSPAWNINFO pChar, PSEARCHSPAWN pFilter, PSPAWNINFO psTarget, WORD Padding = 0, DWORD Color = 0);
 EQLIB_API FLOAT       DistanceToSpawn3D       (PSPAWNINFO pChar, PSPAWNINFO pSpawn);
 EQLIB_API FLOAT       EstimatedDistanceToSpawn(PSPAWNINFO pChar, PSPAWNINFO pSpawn);
 EQLIB_API PMACROBLOCK AddMacroLine            (PCHAR szLine);
@@ -406,7 +409,7 @@ EQLIB_API VOID        FreeAlertList           (PALERTLIST pAlertList);
 EQLIB_API DWORD WINAPI InsertCommands         (LPVOID lpParameter);
 EQLIB_API VOID        UpdateMonitoredSpawns   (VOID);
 EQLIB_API PCHAR       GetModel                (PSPAWNINFO pSpawn, DWORD Slot);
-EQLIB_API PSPAWNINFO  GetPet                  (DWORD OwnerID);
+//EQLIB_API PSPAWNINFO  GetPet                  (DWORD OwnerID);
 //EQLIB_API BOOL        IfCompare               (PCHAR szCond);
 
 
