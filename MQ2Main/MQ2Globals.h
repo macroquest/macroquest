@@ -1,3 +1,5 @@
+EQLIB_API DWORD gGameState;
+
 EQLIB_VAR BOOL g_Loaded;
 EQLIB_VAR DWORD ThreadID;
 
@@ -88,6 +90,7 @@ EQLIB_VAR DIKEYID gDiKeyID[];
 EQLIB_VAR DWORD ManaGained;
 EQLIB_VAR DWORD HealthGained;
 
+EQLIB_VAR DWORD gGameState;
 
 
 

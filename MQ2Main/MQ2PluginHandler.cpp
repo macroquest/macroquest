@@ -35,8 +35,15 @@ ShutdownMQPlugin
 PMQPLUGIN pPlugins=0;
 CRITICAL_SECTION gPluginCS;
 
-DWORD LoadMQ2Plugin(const PCHAR Filename)
+DWORD LoadMQ2Plugin(const PCHAR pszFilename)
 {
+	CHAR Filename[MAX_PATH]={0};
+	strcpy(Filename,pszFilename);
+	strlwr(Filename);
+	PCHAR Temp=strstr(Filename,".dll");
+	if (Temp)
+		Temp[0]=0;
+
 //	CAutoLock Lock(&gPluginCS);
 	DebugSpew("LoadMQ2Plugin(%s)",Filename);
 	CHAR FullFilename[MAX_STRING]={0};
@@ -75,7 +82,7 @@ DWORD LoadMQ2Plugin(const PCHAR Filename)
 	if (pPlugin->Initialize)
 		pPlugin->Initialize();
 	if (pPlugin->SetGameState)
-		pPlugin->SetGameState(GetGameState());
+		pPlugin->SetGameState(gGameState);
 
 	pPlugin->pLast=0;
 	pPlugin->pNext=pPlugins;
@@ -86,8 +93,14 @@ DWORD LoadMQ2Plugin(const PCHAR Filename)
 	return 1;
 }
 
-BOOL UnloadMQ2Plugin(const PCHAR Filename)
+BOOL UnloadMQ2Plugin(const PCHAR pszFilename)
 {
+	CHAR Filename[MAX_PATH]={0};
+	strcpy(Filename,pszFilename);
+	strlwr(Filename);
+	PCHAR Temp=strstr(Filename,".dll");
+	if (Temp)
+		Temp[0]=0;
 	// find plugin in list
 //	CAutoLock Lock(&gPluginCS);
 	PMQPLUGIN pPlugin=pPlugins;

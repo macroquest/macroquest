@@ -80,29 +80,6 @@ typedef struct _CHATBUF {
     struct _CHATBUF *pNext;
 } CHATBUF, *PCHATBUF;
 
-#define MAPFILTER_All           0
-#define MAPFILTER_PC            1
-#define MAPFILTER_NPC           2
-#define MAPFILTER_Pet           3
-#define MAPFILTER_Corpse        4
-#define MAPFILTER_Trigger       5
-#define MAPFILTER_Ground        6
-#define MAPFILTER_Target        7
-#define MAPFILTER_Vector        8
-#define MAPFILTER_UserFilter    9
-#define MAPFILTER_CastRadius    10
-#define MAPFILTER_SpawnRadius   11
-#define MAPFILTER_ConColor      12
-#define MAPFILTER_Refresh       13
-#define MAPFILTER_NUMBER        14
-
-typedef struct _MAPFILTER {
-    PCHAR szName;
-    DWORD Index;
-    DWORD DefaultColor;
-    BOOL bIsToggle;
-    PCHAR szHelpString;
-} MAPFILTER, *PMAPFILTER;
 
 typedef struct _MOUSEINFO {
     DWORD X;
@@ -121,15 +98,6 @@ typedef struct _PACKLOC {
     DWORD X;
     DWORD Y;
 } PACKLOC, *PPACKLOC;
-
-typedef struct _CMDLIST {
-    DWORD LocalizedStringID;
-    PCHAR szName;
-    PCHAR szLocalized;
-    VOID  (__cdecl *fAddress)(PSPAWNINFO, PCHAR);
-    DWORD Restriction;
-    DWORD Category;
-} CMDLIST, *PCMDLIST;
 
 typedef struct _MACROBLOCK {
     CHAR Line[MAX_STRING];
@@ -267,3 +235,15 @@ typedef struct _MQPlugin
 	struct _MQPlugin* pLast;
 	struct _MQPlugin* pNext;
 } MQPLUGIN, *PMQPLUGIN;
+
+class CAutoLock {
+public:
+    void Lock() { if (!bLocked) { EnterCriticalSection(pLock); bLocked = TRUE; }}
+    void Unlock() { if (bLocked) { LeaveCriticalSection(pLock); bLocked = FALSE; }}
+    CAutoLock(LPCRITICAL_SECTION _pLock) { bLocked = FALSE; pLock = _pLock; Lock(); }
+    ~CAutoLock() { Unlock(); }
+
+private:
+    LPCRITICAL_SECTION pLock;
+    BOOL bLocked;
+};

@@ -578,7 +578,7 @@ BOOL ParseMouseLoc(PCHARINFO pCharInfo, PCHAR szMouseLoc)
 			Slot = atol(szArg2);
 			if ((Slot < 0) || (Slot > 29))
 			{ // invalid slot number for loot abort
-				WriteChatBuffer("Invalid slot specified for corpse <slot>",USERCOLOR_DEFAULT);
+				WriteChatColor("Invalid slot specified for corpse <slot>",USERCOLOR_DEFAULT);
 				DebugSpew("Invalid corpse slot specified: %s",szMouseLoc);
 				return FALSE;
 			}
@@ -1128,7 +1128,7 @@ VOID Click(PSPAWNINFO pChar, PCHAR szLine) {
          mdType = MD_Button1; 
             MouseClickR(pChar,szLine); 
         } else { 
-           WriteChatBuffer("Usage: /click <left|right>",USERCOLOR_DEFAULT); 
+           WriteChatColor("Usage: /click <left|right>",USERCOLOR_DEFAULT); 
            DebugSpew("Bad command: %s",szLine); 
            return; 
         } 
@@ -1161,7 +1161,7 @@ VOID MouseTo(PSPAWNINFO pChar, PCHAR szLine)
 		if (ParseMouseLoc(GetCharInfo(), szLine))
 			return;
 
-	WriteChatBuffer("Usage: /mouseto <mouseloc>",USERCOLOR_DEFAULT); 
+	WriteChatColor("Usage: /mouseto <mouseloc>",USERCOLOR_DEFAULT); 
 	DebugSpew("Help invoked or Bad MouseTo command: %s",szLine); 
 }
 

@@ -11,7 +11,7 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
     GNU General Public License for more details.
 ******************************************************************************/
-#define MAX_ITEM4xx			416
+//#define MAX_ITEM4xx			416
 
 PCHAR szItemName4xx[] = {
 	"*Lava Rock",			// 400

@@ -421,27 +421,27 @@ VOID DeclareVar(PSPAWNINFO pChar, PCHAR szLine)
 	GetArg(Arg1,szLine,1);
 	GetArg(Arg2,szLine,2);
 	if (Arg1[0]==0 || Arg2[0]==0) {
-		WriteChatBuffer("Usage: /declare <varname> <global|local|timer|array|array2>",USERCOLOR_DEFAULT);
+		WriteChatColor("Usage: /declare <varname> <global|local|timer|array|array2>",USERCOLOR_DEFAULT);
 	} else {
 		PCHAR szCheck = NULL;
 		PTIMER pCheck = NULL;
 		GetVariable(Arg1,&szCheck,&pCheck);
 		if (szCheck || pCheck) {
-			WriteChatBuffer("Variable name already defined.",USERCOLOR_DEFAULT);
+			WriteChatColor("Variable name already defined.",USERCOLOR_DEFAULT);
 		} else if (!stricmp(Arg2,"global")) {
 			GetMacroStr(Arg1,TRUE);
 		} else if (!stricmp(Arg2,"local")) {
 			if (gMacroStack) {
 				GetLocalStr(Arg1,TRUE);
 			} else {
-				WriteChatBuffer("Unable to define local variables when a macro is not running.",USERCOLOR_DEFAULT);
+				WriteChatColor("Unable to define local variables when a macro is not running.",USERCOLOR_DEFAULT);
 			}
 		} else if (!stricmp(Arg2,"timer")) {
 			GetTimer(Arg1,TRUE);
 		} else if (!stricmp(Arg2,"array") || !stricmp(Arg2,"array2")) {
 			GetArray(Arg1,TRUE)->OneDimension = (Arg2[5]!='2');
 		} else {
-			WriteChatBuffer("Usage: /declare varname [global|local|timer|array|array2]",USERCOLOR_DEFAULT);
+			WriteChatColor("Usage: /declare varname [global|local|timer|array|array2]",USERCOLOR_DEFAULT);
 		}
 	}
 }

@@ -2,6 +2,8 @@
 #define _WIN32_WINNT 0x510
 #define DIRECTINPUT_VERSION 0x800
 
+// Windows Header Files:
+#include <windows.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include "dinput.h"
@@ -55,49 +57,15 @@ typedef double DOUBLE;
 #define MAX_STRING            2048
 
 
-#include "EQData.h"
-// function typedefs
-typedef PCHAR   (__stdcall *fEQGetStringByID)(DWORD);
-typedef VOID    (__cdecl *fEQCommand)(PSPAWNINFO, PCHAR);
-typedef HRESULT (__stdcall *fGetDeviceState)(THIS_ DWORD, LPVOID);
-typedef DWORD   (__stdcall *fEQScreenItem)(DWORD, DWORD, DWORD);
-typedef DWORD   (__stdcall *fEQScreenSpawn)(DWORD, DWORD);
-typedef PCHAR   (__stdcall *fEQNewUIINI)(VOID);
-typedef VOID    (__cdecl   *fEQMemSpell)(DWORD,DWORD);
-typedef VOID    (__cdecl *fEQLoadSpells)(PSPELLFAVORITE,DWORD);
-typedef VOID    (__cdecl *fEQSelectItem)(int,DWORD);//public: void __thiscall CMerchantWnd::SelectBuySellSlot(int,class CTextureAnimation *)
-typedef VOID    (__cdecl *fEQBuyItem)(int);//private: void __thiscall CMerchantWnd::RequestBuyItem(int)
-typedef VOID    (__cdecl *fEQSellItem)(int);//private: void __thiscall CMerchantWnd::RequestSellItem(int)
-typedef VOID    (__cdecl *fEQWriteMapfile)(PCHAR, int);//void __thiscall ZZZ::WriteMapfile(PCHAR zonename, int Layer);
-typedef BOOL    (__cdecl *fEQProcGameEvts)(VOID);
-typedef VOID    (__cdecl *fEQSendMessage)(PVOID,DWORD,PVOID,DWORD,BOOL);
-
-typedef DWORD (__cdecl *fMQParm)(PCHAR, PCHAR, PSPAWNINFO);
-
-typedef DWORD   (__cdecl *fMQWriteChatColor)(PCHAR Line, DWORD Color, DWORD Filter);
-typedef VOID  (__cdecl *fMQPulse)(VOID);
-typedef DWORD  (__cdecl *fMQIncomingChat)(PCHAR Line, DWORD Color);
-typedef VOID  (__cdecl *fMQInitializePlugin)(VOID);
-typedef VOID  (__cdecl *fMQShutdownPlugin)(VOID);
-typedef VOID  (__cdecl *fMQZoned)(VOID);
-typedef VOID  (__cdecl *fMQCleanUI)(VOID);
-typedef VOID  (__cdecl *fMQSetGameState)(DWORD GameState);
 #include "EQClasses.h"
+#include "EQData.h"
+#include "EQUIStructs.h"
 
+#include "MQ2Prototypes.h"
 #include "MQ2Internal.h"
 #include "MQ2Globals.h"
 
-class CAutoLock {
-public:
-    void Lock() { if (!bLocked) { EnterCriticalSection(pLock); bLocked = TRUE; }}
-    void Unlock() { if (bLocked) { LeaveCriticalSection(pLock); bLocked = FALSE; }}
-    CAutoLock(LPCRITICAL_SECTION _pLock) { bLocked = FALSE; pLock = _pLock; Lock(); }
-    ~CAutoLock() { Unlock(); }
 
-private:
-    LPCRITICAL_SECTION pLock;
-    BOOL bLocked;
-};
 
 /* API FOR THE INJECTOR ONLY */
 EQLIB_API VOID  InjectEnable();
@@ -115,8 +83,8 @@ EQLIB_API VOID RemoveDetour(DWORD address);
 
 /* PLUGIN HANDLING */
 EQLIB_API VOID InitializeMQ2Plugins();
-EQLIB_API DWORD LoadMQ2Plugin(const PCHAR Filename);
-EQLIB_API BOOL UnloadMQ2Plugin(const PCHAR Filename);
+EQLIB_API DWORD LoadMQ2Plugin(const PCHAR pszFilename);
+EQLIB_API BOOL UnloadMQ2Plugin(const PCHAR pszFilename);
 EQLIB_API VOID ShutdownMQ2Plugins();
 EQLIB_API VOID WriteChatColor(PCHAR Line, DWORD Color, DWORD Filter=0);
 EQLIB_API VOID PulsePlugins();
@@ -140,6 +108,7 @@ EQLIB_API VOID ShutdownMQ2Commands();
 EQLIB_API VOID AddCommand(PCHAR Command, fEQCommand Function, BOOL EQ=0, BOOL Parse=1);
 EQLIB_API VOID AddAlias(PCHAR ShortCommand, PCHAR LongCommand);
 EQLIB_API BOOL RemoveAlias(PCHAR ShortCommand);
+EQLIB_API BOOL RemoveCommand(PCHAR Command);
 
 /* MACRO COMMANDS */
 EQLIB_API VOID DumpStack                           (PSPAWNINFO,PCHAR);
@@ -176,7 +145,6 @@ EQLIB_API PCHAR GetNextArg(PCHAR szLine, DWORD dwNumber = 1, BOOL CSV = FALSE, C
 EQLIB_API PCHAR GetArg(PCHAR szDest, PCHAR szSrc, DWORD dwNumber, BOOL LeaveQuotes = FALSE, BOOL ToParen = FALSE, BOOL CSV = FALSE, CHAR Separator = 0, BOOL AnyNonAlphaNum = FALSE);
 EQLIB_API VOID AddCustomEvent(PEVENTLIST pEList, PCHAR szLine);
 EQLIB_API PCHAR GetFuncParamName(PCHAR szMacroLine, DWORD ParamNum, PCHAR szParamName);
-EQLIB_API DWORD GetGameState(VOID);
 EQLIB_API FLOAT DistanceToSpawn(PSPAWNINFO pChar, PSPAWNINFO pSpawn);
 EQLIB_API PCHAR GetEQPath(PCHAR szBuffer);
 EQLIB_API VOID DoCommand(PSPAWNINFO pChar, PCHAR szLine);
@@ -193,7 +161,7 @@ EQLIB_API VOID AddFilter(PCHAR szFilter, DWORD Length, PBOOL pEnabled);
 EQLIB_API VOID DefaultFilters(VOID);
 EQLIB_API PCHAR ConvertHotkeyNameToKeyName(PCHAR szName);
 EQLIB_API VOID CheckChatForEvent(PCHAR szMsg);
-
+EQLIB_API VOID ConvertItemTags(CXStr &cxstr);
 
 
 
@@ -221,7 +189,6 @@ EQLIB_API VOID GetItemLinkHash(PCONTENTS Item, PCHAR Buffer);
 EQLIB_API VOID GetItemLink(PCONTENTS Item, PCHAR Buffer);
 EQLIB_API VOID SendEQMessage(DWORD PacketType, PVOID pData, DWORD Length);
 EQLIB_API PCHAR GetLoginName();
-EQLIB_API DWORD GetGameState();
 
 /* USERVARS */
 EQLIB_API VOID FreeVarStrings(PVARSTRINGS pVarStrings);
@@ -243,8 +210,6 @@ EQLIB_API VOID CheckVariableRecursion(PCHAR szVar);
 EQLIB_API BOOL IsVariableDefined(PCHAR szVar);
 
 /* COMMANDS */
-EQLIB_API VOID Unload(PSPAWNINFO pChar, PCHAR szLine);
-EQLIB_API VOID Click(PSPAWNINFO pChar, PCHAR szLine);
 EQLIB_API PCHAR GetFriendlyNameForGroundItem(PGROUNDITEM pItem);
 EQLIB_API VOID ClearSearchSpawn(PSEARCHSPAWN pSearchSpawn);
 EQLIB_API PSPAWNINFO SearchThroughSpawns(PSEARCHSPAWN pSearchSpawn, PSPAWNINFO pChar);
@@ -255,20 +220,6 @@ EQLIB_API PCHAR FormatSearchSpawn(PCHAR Buffer, PSEARCHSPAWN pSearchSpawn);
 EQLIB_API BOOL IsPCNear(PSPAWNINFO pSpawn, FLOAT Radius);
 EQLIB_API BOOL IsInGroup(PSPAWNINFO pSpawn);
 EQLIB_API BOOL IsAlert(PSPAWNINFO pChar, PSPAWNINFO pSpawn, DWORD List);
-EQLIB_API VOID Call(PSPAWNINFO pChar, PCHAR szLine);
-// OTHER SHIT
-#define WriteChatBuffer WriteChatColor
-#define LIGHT_COUNT     13
-#define MAX_COMBINES    52
-#define MAX_ITEMTYPES   53
-
-#define GAMESTATE_CHARSELECT    1
-#define GAMESTATE_SOMETHING     4
-#define GAMESTATE_INGAME        5
-#define GAMESTATE_PRECHARSELECT 6
-#define GAMESTATE_LOGGINGIN     253
-#define GAMESTATE_UNLOADING     255
-
 
 
 EQLIB_API VOID        OverwriteTable          (DWORD Address);
@@ -297,12 +248,12 @@ EQLIB_API BOOL        IfCompare               (PCHAR szCond);
 
 
 
+/* PARMS */
 
-
-EQLIB_API DWORD pGetLastFindSlot					(PCHAR, PCHAR, PSPAWNINFO);
-EQLIB_API DWORD pCursor							(PCHAR, PCHAR, PSPAWNINFO);
-EQLIB_API DWORD pItem								(PCHAR, PCHAR, PSPAWNINFO);
-EQLIB_API DWORD pEquip								(PCHAR, PCHAR, PSPAWNINFO);
+EQLIB_API DWORD parmGetLastFindSlot					(PCHAR, PCHAR, PSPAWNINFO);
+EQLIB_API DWORD parmCursor							(PCHAR, PCHAR, PSPAWNINFO);
+EQLIB_API DWORD parmItem								(PCHAR, PCHAR, PSPAWNINFO);
+EQLIB_API DWORD parmEquip								(PCHAR, PCHAR, PSPAWNINFO);
 EQLIB_API DWORD parmGroup								(PCHAR, PCHAR, PSPAWNINFO);
 EQLIB_API DWORD parmTarget							(PCHAR, PCHAR, PSPAWNINFO);
 EQLIB_API DWORD parmSpawn							(PCHAR, PCHAR, PSPAWNINFO);
@@ -378,7 +329,7 @@ EQLIB_API DWORD parmLoginName						(PCHAR, PCHAR, PSPAWNINFO);
 EQLIB_API DWORD parmGameState						(PCHAR, PCHAR, PSPAWNINFO);
 EQLIB_API DOUBLE Calculate(PCHAR szFormula);
 
-
+/* COMMANDS */
 EQLIB_API VOID Alert                               (PSPAWNINFO,PCHAR);
 EQLIB_API VOID Alias                               (PSPAWNINFO,PCHAR);
 EQLIB_API VOID BankList                            (PSPAWNINFO,PCHAR);
@@ -458,6 +409,18 @@ EQLIB_API VOID Where                               (PSPAWNINFO,PCHAR);
 EQLIB_API VOID ZapVars                             (PSPAWNINFO,PCHAR);
 
 
+// OTHER SHIT
+
+#define LIGHT_COUNT     13
+#define MAX_COMBINES    52
+#define MAX_ITEMTYPES   53
+
+#define GAMESTATE_CHARSELECT    1
+#define GAMESTATE_SOMETHING     4
+#define GAMESTATE_INGAME        5
+#define GAMESTATE_PRECHARSELECT 6
+#define GAMESTATE_LOGGINGIN     253
+#define GAMESTATE_UNLOADING     255
 
 #define MAX_ITEM4xx			416
 

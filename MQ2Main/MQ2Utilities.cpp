@@ -246,7 +246,22 @@ PCHAR GetEQPath(PCHAR szBuffer)
     return szBuffer;
 }
 
-
+VOID ConvertItemTags(CXStr &cxstr)
+{
+//	PCXSTR *saddr=cxstr;
+   __asm{
+      push ecx;
+      push eax;
+	  push 1;
+	   push [cxstr];
+	   call [EQADDR_CONVERTITEMTAGS];
+	   pop ecx;
+	   pop ecx;
+	   pop eax;
+	   pop ecx;
+   };
+//   *cxstr=*saddr;
+}
 
 // YES THIS NEEDS TO BE PCXSTR * 
 VOID AppendCXStr(PCXSTR *cxstr, PCHAR text) 
@@ -254,6 +269,8 @@ VOID AppendCXStr(PCXSTR *cxstr, PCHAR text)
 	CXStr *Str=(CXStr*)cxstr;
 	(*Str)+=text;
 	cxstr=(PCXSTR*)Str;
+
+//	cxstr+=text;
 
 	/*
    __asm 
@@ -274,6 +291,7 @@ VOID AppendCXStr(PCXSTR *cxstr, PCHAR text)
 // YES THIS NEEDS TO BE PCXSTR * 
 VOID SetCXStr(PCXSTR *cxstr, PCHAR text) 
 { 
+//	cxstr=text;
 //	DebugSpew("SetCXStr(%s)",text);
 	CXStr *Str=(CXStr*)cxstr;
 	(*Str)=text;
@@ -1039,7 +1057,7 @@ PSPAWNINFO FindMount(PSPAWNINFO pSpawn)
    for (pChar = pSpawnInfo; pChar; pChar=pChar->pNext) {
       strcpy(szTemp,pChar->Name);
       if (strstr(strlwr(szTemp),"'s mount"))
-         WriteChatBuffer(szTemp,USERCOLOR_WHO);
+         WriteChatColor(szTemp,USERCOLOR_WHO);
 
       if (!stricmp(CleanupName(szTemp, FALSE), szName)) {
          return pChar;

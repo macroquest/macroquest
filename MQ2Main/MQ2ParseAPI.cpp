@@ -112,10 +112,10 @@ VOID RemoveParm(PCHAR Name)
 VOID InitializeParser()
 {
 	struct _PARMLIST Parms[] = {
-	{"getlastfindslot",		pGetLastFindSlot},
-	{"cursor",				pCursor},
-	{"item",				pItem},
-	{"equip",				pEquip},
+	{"getlastfindslot",		parmGetLastFindSlot},
+	{"cursor",				parmCursor},
+	{"item",				parmItem},
+	{"equip",				parmEquip},
 	{"group",				parmGroup},
 	{"target",				parmTarget},
 	{"spawn(name,",			parmSpawnName},
@@ -399,13 +399,13 @@ VOID GracefullyEndBadMacro(PSPAWNINFO pChar, PMACROBLOCK pBadLine, PCHAR szForma
     vsprintf(szArgs,szFormat, vaList);
     if (gMacroBlock && pBadLine) {
         sprintf(szMessage,"Ending macro: %s",szArgs);
-        WriteChatBuffer(szMessage,CONCOLOR_RED);
+        WriteChatColor(szMessage,CONCOLOR_RED);
         gMacroBlock=pBadLine;
         DumpStack(pChar,"");
         EndMacro(pChar,"");
     } else {
         sprintf(szMessage,"Error: %s",szArgs);
-        WriteChatBuffer(szMessage,CONCOLOR_RED);
+        WriteChatColor(szMessage,CONCOLOR_RED);
     }
 }
 
@@ -493,7 +493,7 @@ PMACROBLOCK AddMacroLine(PCHAR szLine)
         } else {
             CHAR szError[MAX_STRING] = {0};
             sprintf(szError,"Unknown # command: %s",szLine);
-            WriteChatBuffer(szError,CONCOLOR_RED);
+            WriteChatColor(szError,CONCOLOR_RED);
             return FALSE;
         }
     }

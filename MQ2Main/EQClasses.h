@@ -1,3 +1,10 @@
+// Other
+class CXSize
+{
+	DWORD A,B,C,D;
+};
+
+
 // Enumerations...
 typedef DWORD EQZoneIndex;
 typedef DWORD EQLocalizeLanguage;

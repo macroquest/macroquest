@@ -177,21 +177,6 @@
 			<File
 				RelativePath="MQ2Utilities.cpp">
 			</File>
-			<File
-				RelativePath="stdafx.cpp">
-				<FileConfiguration
-					Name="Debug|Win32">
-					<Tool
-						Name="VCCLCompilerTool"
-						UsePrecompiledHeader="1"/>
-				</FileConfiguration>
-				<FileConfiguration
-					Name="Release|Win32">
-					<Tool
-						Name="VCCLCompilerTool"
-						UsePrecompiledHeader="1"/>
-				</FileConfiguration>
-			</File>
 		</Filter>
 		<Filter
 			Name="Header Files"
@@ -215,6 +200,9 @@
 				RelativePath="MQ2Main.h">
 			</File>
 			<File
+				RelativePath="MQ2Prototypes.h">
+			</File>
+			<File
 				RelativePath="dikeys.h">
 			</File>
 			<File
@@ -228,9 +216,6 @@
 			</File>
 			<File
 				RelativePath="skills.h">
-			</File>
-			<File
-				RelativePath="stdafx.h">
 			</File>
 			<File
 				RelativePath="weapons.h">

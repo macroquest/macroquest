@@ -32,6 +32,7 @@ REVERSE_DETOUR(void CEverQuest::LeftClickedOnPlayer(class EQPlayer *),CEverQuest
 REVERSE_DETOUR(char * CEverQuest::GetRaceDesc(int),CEverQuest__GetRaceDesc);
 REVERSE_DETOUR(char * CEverQuest::GetDeityDesc(int),CEverQuest__GetDeityDesc);
 REVERSE_DETOUR(char * CEverQuest::GetBodyTypeDesc(int),CEverQuest__GetBodyTypeDesc);
+//REVERSE_DETOUR(void CEverQuest::SetGameState(int),CEverQuest__SetGameState);
 
 // CEQCharacter
 REVERSE_DETOUR(int EQ_Character::Cur_HP(int),EQ_Character__Cur_HP);
@@ -43,7 +44,8 @@ REVERSE_DETOUR(unsigned char EQ_Character::CastSpell(unsigned char,int,class EQ_
 
 // CXWnd
 REVERSE_VIRTUAL_DETOUR(bool CXWnd::IsValid(void)const,0);
-REVERSE_VIRTUAL_DETOUR(int CXWnd::Show(bool,bool),0x0c0);
+REVERSE_VIRTUAL_DETOUR(int CXWnd::Show(bool,bool),0x0C0);
+REVERSE_VIRTUAL_DETOUR(int CXWnd::SetVScrollPos(int),0x0FC);
 REVERSE_VIRTUAL_DETOUR(void CXWnd::SetWindowTextA(class CXStr),0x108);
 // ^^ requires CXStr de/constructors
 
@@ -55,6 +57,7 @@ REVERSE_DETOUR(void CXStr::operator+=(char const *),[CXStr__operator_plus_equal1
 REVERSE_DETOUR(class CXStr & CXStr::operator=(char const *),[CXStr__operator_equal1]);
 REVERSE_DETOUR(CXStr::CXStr(char const *),[CXStr__CXStr3]);
 REVERSE_DETOUR(CXStr::~CXStr(void),[CXStr__dCXStr]);
+REVERSE_DETOUR(CXStr::CXStr(class CXStr const &),[CXStr__CXStr]);
 
 // CChatManager
 REVERSE_DETOUR(unsigned long CChatManager::GetRGBAFromIndex(int),CChatManager__GetRGBAFromIndex);
@@ -65,7 +68,7 @@ REVERSE_DETOUR(CChatWindow::CChatWindow(class CXWnd *),CChatWindow__CChatWindow)
 REVERSE_DETOUR(CChatWindow::~CChatWindow(void),CChatWindow__dCChatWindow);
 
 // CStmlWnd
-//class CXSize CStmlWnd::AppendSTML(class CXStr);
+REVERSE_DETOUR(class CXSize CStmlWnd::AppendSTML(class CXStr),CStmlWnd__AppendSTML);
 
 // CDisplay
 REVERSE_DETOUR(void CDisplay::CleanGameUI(void),CDisplay__CleanGameUI);
@@ -87,3 +90,7 @@ REVERSE_DETOUR(void CSpellBookWnd::MemorizeSet(int *,int),CSpellBookWnd__Memoriz
 
 // CLabel
 REVERSE_DETOUR(int CLabel::Draw()const,CLabel__Draw);
+
+// MapViewMap
+REVERSE_DETOUR(void MapViewMap::SaveEx(char *,int),MapViewMap__SaveEx);
+

@@ -211,11 +211,6 @@ void Heartbeat()
 		DropTimers();
     }
 
-	static DWORD LastGameState = 0;
-	DWORD GameState=GetGameState();
-	if (GameState!=LastGameState)
-		PluginsSetGameState(GameState);
-
     bRunNextCommand   = TRUE;
     DWORD CurTurbo=0;
 	while ((!gKeyStack)   && (bRunNextCommand)) {
@@ -239,7 +234,7 @@ BOOL Detour_ProcessGameEvents(VOID)
 }
 
 DETOUR_TRAMPOLINE_EMPTY(BOOL Trampoline_ProcessGameEvents(VOID)); 
-class CZoningHook {
+class CEverQuestHook {
 public:
 	VOID EnterZone_Trampoline(PVOID pVoid);
 	VOID EnterZone_Detour(PVOID pVoid)
@@ -248,9 +243,18 @@ public:
 		gZoning = TRUE;
 		WereWeZoning = TRUE;
 	}
+
+	VOID SetGameState_Trampoline(DWORD GameState);
+	VOID SetGameState_Detour(DWORD GameState)
+	{
+		gGameState=GameState;
+		SetGameState_Trampoline(GameState);
+		PluginsSetGameState(GameState);
+	}
 };
 
-DETOUR_TRAMPOLINE_EMPTY(VOID CZoningHook::EnterZone_Trampoline(PVOID));
+DETOUR_TRAMPOLINE_EMPTY(VOID CEverQuestHook::EnterZone_Trampoline(PVOID));
+DETOUR_TRAMPOLINE_EMPTY(VOID CEverQuestHook::SetGameState_Trampoline(DWORD));
 
 void InitializeMQ2Pulse()
 {
@@ -260,13 +264,20 @@ void InitializeMQ2Pulse()
 	BOOL (*pfTrampoline_ProcessGameEvents)(VOID) = Trampoline_ProcessGameEvents; 
 	AddDetour((DWORD)ProcessGameEvents,*(PBYTE*)&pfDetour_ProcessGameEvents,*(PBYTE*)&pfTrampoline_ProcessGameEvents);
 /**/
-   void (CZoningHook::*pfEnterZone_Detour)(PVOID) = CZoningHook::EnterZone_Detour;
-   void (CZoningHook::*pfEnterZone_Trampoline)(PVOID) = CZoningHook::EnterZone_Trampoline;
+   void (CEverQuestHook::*pfEnterZone_Detour)(PVOID) = CEverQuestHook::EnterZone_Detour;
+   void (CEverQuestHook::*pfEnterZone_Trampoline)(PVOID) = CEverQuestHook::EnterZone_Trampoline;
 	AddDetour((DWORD)CEverQuest__EnterZone,*(PBYTE*)&pfEnterZone_Detour,*(PBYTE*)&pfEnterZone_Trampoline);
+
+
+   void (CEverQuestHook::*pfSetGameState_Detour)(DWORD) = CEverQuestHook::SetGameState_Detour;
+   void (CEverQuestHook::*pfSetGameState_Trampoline)(DWORD) = CEverQuestHook::SetGameState_Trampoline;
+	AddDetour((DWORD)CEverQuest__SetGameState,*(PBYTE*)&pfSetGameState_Detour,*(PBYTE*)&pfSetGameState_Trampoline);
+
 }
 
 void ShutdownMQ2Pulse()
 {
 	RemoveDetour((DWORD)ProcessGameEvents);
 	RemoveDetour((DWORD)CEverQuest__EnterZone);
+	RemoveDetour((DWORD)CEverQuest__SetGameState);
 }

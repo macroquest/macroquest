@@ -372,17 +372,17 @@ DWORD WINAPI MQ2Start(LPVOID lpParameter)
 	InitializeMQ2Pulse();
 	InitializeMQ2Commands();
 	InitializeMQ2Plugins();
-	while ((GetGameState() != GAMESTATE_INGAME)) Sleep(500);
+	while (gGameState != GAMESTATE_INGAME) Sleep(500);
 	InitializeMQ2DInput();
 
-    WriteChatBuffer(LoadedString,USERCOLOR_DEFAULT);
+    WriteChatColor(LoadedString,USERCOLOR_DEFAULT);
     DebugSpewAlways(LoadedString);
 
     while (!gbUnload) {
         Sleep(500);
     }
 
-    WriteChatBuffer(UnloadedString,USERCOLOR_DEFAULT);
+    WriteChatColor(UnloadedString,USERCOLOR_DEFAULT);
     DebugSpewAlways(UnloadedString);
 
 	ShutdownCleanUI();

@@ -96,7 +96,7 @@
 
 // Class member function offsets
 /*
-// static
+// static -- these stay in eqgame.ini
     GetPrivateProfileString("Function Locations","MemChecker","0",szBuffer,MAX_STRING,ClientINI);       EQADDR_MEMCHECK = strtoul(szBuffer,NULL,16);
     GetPrivateProfileString("Function Locations","MemChecker2","0",szBuffer,MAX_STRING,ClientINI);      EQADDR_MEMCHECK2 = strtoul(szBuffer,NULL,16);
     GetPrivateProfileString("Function Locations","MemCheckAddr1","0",szBuffer,MAX_STRING,ClientINI);        EQADDR_MEMCHECKADDR1 = strtoul(szBuffer,NULL,16);
@@ -131,7 +131,7 @@
 //    GetPrivateProfileString("Function Locations","GetDeityByID","0",szBuffer,MAX_STRING,ClientINI);     GetDeityByID = (fEQGetStringByID)strtoul(szBuffer,NULL,16);// currently static
 #define CEverQuest__GetBodyTypeDesc				0x0048ABD9
 //    GetPrivateProfileString("Function Locations","GetBodyTypeByID","0",szBuffer,MAX_STRING,ClientINI);  GetBodyTypeByID = (fEQGetStringByID)strtoul(szBuffer,NULL,16);// currently static
-
+#define CEverQuest__SetGameState				0x00490E9D
 
 // EQ_Character
 #define EQ_Character__Max_Mana					0x0041A9CA
@@ -149,6 +149,7 @@
 
 
 // CXStr
+#define CXStr__CXStr							0x0040104C
 #define CXStr__CXStr3							0x00586BB0
 //    GetPrivateProfileString("Function Locations","CXStrConstructor","0",szBuffer,MAX_STRING,ClientINI);   EQADDR_CXSTRCONSTRUCTOR = (DWORD)strtoul(szBuffer,NULL,16);
 #define CXStr__dCXStr							0x00401076
@@ -158,24 +159,22 @@
 #define	CXStr__operator_equal1					0x00586D70
 //    GetPrivateProfileString("Function Locations","CXStrSet","0",szBuffer,MAX_STRING,ClientINI);   EQADDR_CXSTRSET = (DWORD)strtoul(szBuffer,NULL,16); 
 
-/*
 // CStmlWnd
-    GetPrivateProfileString("Function Locations","CStmlWndAppend","0",szBuffer,MAX_STRING,ClientINI);   EQADDR_APPENDSTML = (DWORD)strtoul(szBuffer,NULL,16);
-/**/
+#define CStmlWnd__AppendSTML					0x0055EFB0
+//    GetPrivateProfileString("Function Locations","CStmlWndAppend","0",szBuffer,MAX_STRING,ClientINI);   EQADDR_APPENDSTML = (DWORD)strtoul(szBuffer,NULL,16);
+
 
 // CChatWindow
 #define CChatWindow__CChatWindow				0x004D7D96
 //    GetPrivateProfileString("Function Locations","CChatWindowConstructor","0",szBuffer,MAX_STRING,ClientINI);   EQADDR_CCHATWINDOWCONSTRUCTOR = (DWORD)strtoul(szBuffer,NULL,16);
 #define CChatWindow__dCChatWindow				0x004D857B
 //    GetPrivateProfileString("Function Locations","CChatWindowDeconstructor","0",szBuffer,MAX_STRING,ClientINI);   EQADDR_CCHATWINDOWDECONSTRUCTOR = (DWORD)strtoul(szBuffer,NULL,16);
-/**/
 
 // CChatManager
 #define CChatManager__InitContextMenu			0x004D52BE
 //    GetPrivateProfileString("Function Locations","CChatManagerInitContextMenu","0",szBuffer,MAX_STRING,ClientINI);   EQADDR_CHATMANAGERINITCONTEXTMENU = (DWORD)strtoul(szBuffer,NULL,16);
 #define CChatManager__GetRGBAFromIndex			0x004D4986
 //    GetPrivateProfileString("Function Locations","CChatManagerGetRGBAFromIndex","0",szBuffer,MAX_STRING,ClientINI);   EQADDR_CCHATMANAGERGETRGBAFROMINDEX = (DWORD)strtoul(szBuffer,NULL,16);
-/**/
 
 // CItemDisplayWnd
 #define CItemDisplayWnd__SetItem				0x004F322D
@@ -185,7 +184,6 @@
 // CLabel
 #define CLabel__Draw							0x004F903B
 //    GetPrivateProfileString("Function Locations","CLabelDraw","0",szBuffer,MAX_STRING,ClientINI);   EQADDR_EQLABELS = (DWORD)strtoul(szBuffer,NULL,16);
-/**/
 
 // CDisplay
 #define CDisplay__CleanGameUI					0x0040FC97
@@ -193,10 +191,6 @@
 #define CDisplay__GetClickedActor				0x0040BB73
 //    GetPrivateProfileString("Function Locations","ScreenItem","0",szBuffer,MAX_STRING,ClientINI);       ScreenItem = (fEQScreenItem)strtoul(szBuffer,NULL,16);
 
-/*
-// MapViewMap
-    GetPrivateProfileString("Function Locations","WriteMapfile","0",szBuffer,MAX_STRING,ClientINI); EQADDR_WRITEMAPFILE = (DWORD)strtoul(szBuffer,NULL,16);
-/**/
 #define EQ_Item__GetItemLinkHash				0x0042EDC4
 // EQ_Item
 //    GetPrivateProfileString("Function Locations","GetItemLinkHash","0",szBuffer,MAX_STRING,ClientINI);   EQADDR_GETITEMLINKHASH = (DWORD)strtoul(szBuffer,NULL,16);
@@ -220,3 +214,6 @@
 #define CSpellBookWnd__MemorizeSet				0x0051081C
 //    GetPrivateProfileString("Function Locations","LoadSpells","0",szBuffer,MAX_STRING,ClientINI);       cmdLoadSpells = (fEQLoadSpells)strtoul(szBuffer,NULL,16);
 
+// MapViewMap
+#define MapViewMap__SaveEx						0x004FB065
+//    GetPrivateProfileString("Function Locations","WriteMapfile","0",szBuffer,MAX_STRING,ClientINI); EQADDR_WRITEMAPFILE = (DWORD)strtoul(szBuffer,NULL,16);

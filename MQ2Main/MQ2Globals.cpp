@@ -25,6 +25,7 @@
 #include "stdafx.h"
 #include "MQ2Main.h"
 
+DWORD gGameState = 0;
 
 DWORD ThreadID = 0;
 BOOL g_Loaded = FALSE;

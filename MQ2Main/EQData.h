@@ -920,8 +920,6 @@ typedef struct _SPELLLIST {
 /*0x1e0*/
 } SPELLLIST, *PSPELLLIST;
 
-#include "EQUIStructs.h"
-
 #define EQ_INTERACTGROUNDITEM 0x00F2
 typedef struct _INTERACTGROUNDITEM {
 	DWORD DropID;
@@ -936,3 +934,13 @@ typedef struct _SPELLFAVORITE {
 /*0x03B*/   BYTE    Byte_3B;
 /*0x03C*/
 } SPELLFAVORITE, *PSPELLFAVORITE;
+
+typedef struct _CMDLIST {
+    DWORD LocalizedStringID;
+    PCHAR szName;
+    PCHAR szLocalized;
+    VOID  (__cdecl *fAddress)(PSPAWNINFO, PCHAR);
+    DWORD Restriction;
+    DWORD Category;
+} CMDLIST, *PCMDLIST;
+

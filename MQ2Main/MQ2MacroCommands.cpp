@@ -32,7 +32,7 @@ VOID Delay(PSPAWNINFO pChar, PCHAR szLine)
     LONG VarValue;
 
     if (szLine[0]==0) {
-        WriteChatBuffer("Usage: /delay <time>",USERCOLOR_DEFAULT);
+        WriteChatColor("Usage: /delay <time>",USERCOLOR_DEFAULT);
 
         return;
     }
@@ -611,7 +611,7 @@ VOID EditMacro(PSPAWNINFO pChar, PCHAR szLine)
 		SaveNotesWindow(szFilePath,((PEQNOTESWINDOW)pNoteWnd)->pEditWnd->WindowText);
 		
 	} else {
-		WriteChatBuffer("Usage: /editmacro <notes|load filename|save [filename]>",USERCOLOR_DEFAULT);
+		WriteChatColor("Usage: /editmacro <notes|load filename|save [filename]>",USERCOLOR_DEFAULT);
 	}
 }
 
@@ -627,7 +627,7 @@ VOID Goto(PSPAWNINFO pChar, PCHAR szLine)
     PMACROBLOCK pFromLine = gMacroBlock;
     bRunNextCommand = TRUE;
     if (!gMacroBlock) {
-        WriteChatBuffer("Cannot goto when a macro isn't running.",CONCOLOR_RED);
+        WriteChatColor("Cannot goto when a macro isn't running.",CONCOLOR_RED);
         return;
     }
     while (gMacroBlock->pPrev) {
@@ -681,14 +681,14 @@ VOID ZapVars(PSPAWNINFO pChar, PCHAR szLine)
     if (bTimers) FreeTimers();
 
     if (!bArrays && !bVars && !bTimers) {
-        WriteChatBuffer("Command did nothing.",USERCOLOR_DEFAULT);
+        WriteChatColor("Command did nothing.",USERCOLOR_DEFAULT);
     } else {
         CHAR szTemp[MAX_STRING] = {0};
         strcpy(szTemp,"Cleared the following:");
         if (bTimers) strcat(szTemp," Timers");
         if (bVars) strcat(szTemp," Vars");
         if (bArrays) strcat(szTemp," Arrays");
-        WriteChatBuffer(szTemp,USERCOLOR_DEFAULT);
+        WriteChatColor(szTemp,USERCOLOR_DEFAULT);
     }
 }
 
@@ -757,7 +757,7 @@ VOID EndMacro(PSPAWNINFO pChar, PCHAR szLine)
         GetArg(Buffer,szLine,1);
         szLine = GetNextArg(szLine);
         if (stricmp(Buffer,"keep")) {
-            WriteChatBuffer("Usage: /endmacro [keep [vars] [arrays] [keys] [timers]]",USERCOLOR_DEFAULT);
+            WriteChatColor("Usage: /endmacro [keep [vars] [arrays] [keys] [timers]]",USERCOLOR_DEFAULT);
             return;
         }
         while (szLine[0]!=0) {
@@ -771,7 +771,7 @@ VOID EndMacro(PSPAWNINFO pChar, PCHAR szLine)
     }
 
     if (!gMacroBlock) {
-        WriteChatBuffer("Cannot end a macro when one isn't running.",CONCOLOR_RED);
+        WriteChatColor("Cannot end a macro when one isn't running.",CONCOLOR_RED);
         return;
     }
     while (gMacroBlock->pNext) gMacroBlock=gMacroBlock->pNext;
@@ -827,7 +827,7 @@ VOID EndMacro(PSPAWNINFO pChar, PCHAR szLine)
     }
 
     DebugSpew("EndMacro - Ended");
-    WriteChatBuffer("The current macro has ended.",USERCOLOR_DEFAULT);
+    WriteChatColor("The current macro has ended.",USERCOLOR_DEFAULT);
 }
 
 VOID DumpStack(PSPAWNINFO pChar, PCHAR szLine)
@@ -837,7 +837,7 @@ VOID DumpStack(PSPAWNINFO pChar, PCHAR szLine)
     PMACROSTACK pMS = gMacroStack;
     while (pMS!=NULL) {
         sprintf(szTemp,"%s@%d (%s): %s",pMS->Location->SourceFile,pMS->Location->LineNumber, GetSubFromLine(pMS->Location,szSub), pMS->Location->Line);
-        WriteChatBuffer(szTemp,USERCOLOR_DEFAULT);
+        WriteChatColor(szTemp,USERCOLOR_DEFAULT);
         pMS=pMS->pNext;
     }
 }
@@ -965,9 +965,9 @@ BOOL ParseMultiCondition(PCHAR szCondition, PCHAR szLeftCond, PCHAR szRightCond,
 VOID FailIfParsing()
 {
     GracefullyEndBadMacro(((PCHARINFO)pCharData)->pSpawn,gMacroBlock, "Failed to parse /if command");
-    WriteChatBuffer("Usage:",CONCOLOR_RED);
-    WriteChatBuffer("   /if <condition> <command>",CONCOLOR_RED);
-    WriteChatBuffer("   <condition> : (<condition> && <condition>) or [n] <a>==<b>",CONCOLOR_RED);
+    WriteChatColor("Usage:",CONCOLOR_RED);
+    WriteChatColor("   /if <condition> <command>",CONCOLOR_RED);
+    WriteChatColor("   <condition> : (<condition> && <condition>) or [n] <a>==<b>",CONCOLOR_RED);
 }
 
 // Returns the result of a comparison.  The condition is in the form [n] <a>==<b>
@@ -1013,7 +1013,7 @@ BOOL CheckCondition(PCHAR szCondition)
         strncpy(szVal1,szCond,strstr(szCond,"~~")-szCond);
         strcpy(szVal2,strstr(szCond,"~~")+2);
         if (CompareType != COMP_TYPE_STRING) {
-            WriteChatBuffer("You want to compare ~~ numerically, forcing string compare.",CONCOLOR_RED);
+            WriteChatColor("You want to compare ~~ numerically, forcing string compare.",CONCOLOR_RED);
             CompareType = COMP_TYPE_STRING;
         }
     } else if (strstr(szCond,"!~")) {
@@ -1021,7 +1021,7 @@ BOOL CheckCondition(PCHAR szCondition)
         strncpy(szVal1,szCond,strstr(szCond,"!~")-szCond);
         strcpy(szVal2,strstr(szCond,"!~")+2);
         if (CompareType != COMP_TYPE_STRING) {
-            WriteChatBuffer("You want to compare !~ numerically, forcing string compare.",CONCOLOR_RED);
+            WriteChatColor("You want to compare !~ numerically, forcing string compare.",CONCOLOR_RED);
             CompareType = COMP_TYPE_STRING;
         }
     } else if (strstr(szCond,"&")) {
@@ -1036,7 +1036,7 @@ BOOL CheckCondition(PCHAR szCondition)
         CompareType = COMP_TYPE_BIT;
     } else {
         sprintf(szVal1,"Couldn't find a comparision operator in '%s'",szCond);
-        WriteChatBuffer(szVal1,CONCOLOR_RED);
+        WriteChatColor(szVal1,CONCOLOR_RED);
 		FailIfParsing();
         return false;
     }
@@ -1152,11 +1152,11 @@ VOID Call(PSPAWNINFO pChar, PCHAR szLine)
     DWORD StackNum = 0;
     bRunNextCommand = TRUE;
     if (szLine[0]==0) {
-        WriteChatBuffer("Usage: /call <subroutine> [param [param...]]",USERCOLOR_DEFAULT);
+        WriteChatColor("Usage: /call <subroutine> [param [param...]]",USERCOLOR_DEFAULT);
         return;
     }
     if (!gMacroBlock) {
-        WriteChatBuffer("Cannot call when a macro isn't running.",CONCOLOR_RED);
+        WriteChatColor("Cannot call when a macro isn't running.",CONCOLOR_RED);
         return;
     }
     while (gMacroBlock->pPrev) gMacroBlock = gMacroBlock->pPrev;
@@ -1323,7 +1323,7 @@ VOID Return(PSPAWNINFO pChar, PCHAR szLine)
     bRunNextCommand = TRUE;
     PMACROSTACK pStack = gMacroStack;
     if (!gMacroBlock) {
-        WriteChatBuffer("Cannot return when a macro isn't running.",CONCOLOR_RED);
+        WriteChatColor("Cannot return when a macro isn't running.",CONCOLOR_RED);
         return;
     }
     if ((!pStack) || (!pStack->pNext)) {
@@ -1371,7 +1371,7 @@ DWORD Include(PCHAR szFile)
         }
         if (!InBlockComment) {
             if (NULL == (pAddedLine=AddMacroLine(szTemp))) {
-            WriteChatBuffer("Unable to add macro line.",CONCOLOR_RED);
+            WriteChatColor("Unable to add macro line.",CONCOLOR_RED);
             fclose(fMacro);
                 gszMacroName[0]=0;
                 gRunning = 0;
@@ -1405,7 +1405,7 @@ VOID Press(PSPAWNINFO pChar, PCHAR szLine)
     CHAR szKey[MAX_STRING] = {0};
     GetArg(szKey,szLine,1);
     if (szKey[0]==0) {
-        WriteChatBuffer("Usage: /press <key>",USERCOLOR_DEFAULT);
+        WriteChatColor("Usage: /press <key>",USERCOLOR_DEFAULT);
         return;
     }
     sprintf(szCmd,"d %s",szKey);
@@ -1476,7 +1476,7 @@ VOID For(PSPAWNINFO pChar, PCHAR szLine)
         return;
     }
     if (!gMacroBlock) {
-        WriteChatBuffer("Can only use /for during a macro.",CONCOLOR_RED);
+        WriteChatColor("Can only use /for during a macro.",CONCOLOR_RED);
         return;
     }
 
@@ -1506,11 +1506,11 @@ VOID Next(PSPAWNINFO pChar, PCHAR szLine)
         return;
     }
     if (!szLoop) {
-        WriteChatBuffer("Usage: /next <variable>",USERCOLOR_DEFAULT);
+        WriteChatColor("Usage: /next <variable>",USERCOLOR_DEFAULT);
         return;
     }
     if (!gMacroBlock) {
-        WriteChatBuffer("Can only use /next during a macro.",CONCOLOR_RED);
+        WriteChatColor("Can only use /next during a macro.",CONCOLOR_RED);
         return;
     }
     sprintf(szComp,"/for %s",szNext);

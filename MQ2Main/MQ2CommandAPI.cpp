@@ -94,7 +94,7 @@ VOID DoCommand(PSPAWNINFO pChar, PCHAR szLine)
 
     sprintf(szCmd,"Couldn't parse '%s'",szOriginalLine);
     DebugSpew("DoCommand - Bad command: %s",szCmd);
-    WriteChatBuffer(szCmd,CONCOLOR_RED);
+    WriteChatColor(szCmd,CONCOLOR_RED);
 }
 
 

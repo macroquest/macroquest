@@ -39,7 +39,7 @@ PLUGIN_API DWORD OnWriteChatColor(PCHAR Line, DWORD Color, DWORD Filter)
 	StripMQChat(Line,Stripped);
 	if (gFilterMacro == FILTERMACRO_NONE) return 0;
 	if (!ppEverQuest) return 0;
-	if (GetGameState()!=GAMESTATE_INGAME) return 0;
+	if (gGameState!=GAMESTATE_INGAME) return 0;
 
 	if (!pEverQuest) 
 		return 0;

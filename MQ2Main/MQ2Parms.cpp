@@ -22,7 +22,7 @@
 #include "MQ2Main.h"
 
 
-DWORD pGetLastFindSlot(PCHAR szVar, PCHAR szOutput, PSPAWNINFO pChar)
+DWORD parmGetLastFindSlot(PCHAR szVar, PCHAR szOutput, PSPAWNINFO pChar)
 {
     // $getlastfindslot
     if (gLastFindSlot[0] == 0) {
@@ -33,7 +33,7 @@ DWORD pGetLastFindSlot(PCHAR szVar, PCHAR szOutput, PSPAWNINFO pChar)
     return 14;
 }
 
-DWORD pCursor(PCHAR szVar, PCHAR szOutput, PSPAWNINFO pChar)
+DWORD parmCursor(PCHAR szVar, PCHAR szOutput, PSPAWNINFO pChar)
 {
     // $cursor(xxx)
     int i=0;
@@ -167,7 +167,7 @@ DWORD pCursor(PCHAR szVar, PCHAR szOutput, PSPAWNINFO pChar)
     return i;
 }
 
-DWORD pItem(PCHAR szVar, PCHAR szOutput, PSPAWNINFO pChar)
+DWORD parmItem(PCHAR szVar, PCHAR szOutput, PSPAWNINFO pChar)
 {
     // $item(xxx)
     DWORD i=0;
@@ -356,7 +356,7 @@ DWORD pItem(PCHAR szVar, PCHAR szOutput, PSPAWNINFO pChar)
     return i;
 }
 
-DWORD pEquip(PCHAR szVar, PCHAR szOutput, PSPAWNINFO pChar)
+DWORD parmEquip(PCHAR szVar, PCHAR szOutput, PSPAWNINFO pChar)
 {
     // $equip(xxx)
     WORD Offset = 6;
@@ -4820,7 +4820,7 @@ DWORD parmLoginName(PCHAR szVar, PCHAR szOutput, PSPAWNINFO pChar)
 
 DWORD parmGameState(PCHAR szVar, PCHAR szOutput, PSPAWNINFO pChar)
 { 
-	DWORD GameState = GetGameState();
+	DWORD GameState = gGameState;
 	switch (GameState) {
 		case GAMESTATE_CHARSELECT:
 			strcat(szOutput,"CHARSELECT");
