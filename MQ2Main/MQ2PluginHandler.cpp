@@ -228,6 +228,8 @@ VOID WriteChatColor(PCHAR Line, DWORD Color, DWORD Filter)
 	if (!bPluginCS)
 		return;
 	EnterMQ2Benchmark(bmWriteChatColor);
+	if (gFilterMQ)
+		return;
 	DebugSpew("WriteChatColor(%s)",Line);
 	CAutoLock Lock(&gPluginCS);
 
@@ -295,6 +297,7 @@ VOID PluginsZoned()
 		}
 		pPlugin=pPlugin->pNext;
 	}
+	LoadCfgFile("zoned",false);
 	LoadCfgFile(((PZONEINFO)pZoneInfo)->ShortName,false);
 }
 

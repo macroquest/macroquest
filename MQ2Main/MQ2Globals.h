@@ -80,7 +80,8 @@ EQLIB_VAR BOOL gFilterTarget;
 EQLIB_VAR BOOL gFilterDebug;
 EQLIB_VAR BOOL gFilterMoney;
 EQLIB_VAR BOOL gFilterFood;
-EQLIB_VAR DWORD gUseMQChatWnd;
+//EQLIB_VAR DWORD gUseMQChatWnd;
+EQLIB_VAR BOOL gFilterMQ;
 EQLIB_VAR BOOL gFilterMacro;
 EQLIB_VAR BOOL gFilterEncumber;
 EQLIB_VAR BOOL gFilterCustom;
@@ -162,6 +163,7 @@ EQLIB_VAR PBOOL gpbRangedAttackReady;
 #define gbRangedAttackReady (*gpbRangedAttackReady)
 
 EQLIB_VAR PCHAR *EQMappableCommandList;
+EQLIB_VAR DWORD gnNormalEQMappableCommands;
 
 EQLIB_VAR DWORD EQADDR_DIMAIN;
 EQLIB_VAR IDirectInputDevice8A **EQADDR_DIKEYBOARD;
@@ -176,6 +178,8 @@ EQLIB_VAR BOOL bDetMouse;
 // ***************************************************************************
 // String arrays
 // ***************************************************************************
+EQLIB_VAR PCHAR szEQMappableCommands[nEQMappableCommands];
+
 EQLIB_VAR PCHAR szHeading[];
 EQLIB_VAR PCHAR szHeadingShort[];
 EQLIB_VAR PCHAR szSize[];

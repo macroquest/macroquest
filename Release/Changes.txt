@@ -1,6 +1,20 @@
 ** eqgame.ini is no longer used/needed by MQ2!  All offsets have been integrated 
 ** into eqgame.h.  The client DATE/TIME are in eqgame.h also.
 
+15 Mar 2004 by Lax (more)
+- Added remaining, un-named EQ binds to the MQ2 bind system.  Some are still unknown, and
+  some I'm surprised exist enabled in the client in the first place, and you should be 
+  careful with those...
+- Added /dumpbinds command.  Example: "/dumpbinds bill" will dump all current binds to
+  Configs\bill.cfg to be loaded later.
+- Added "/filter mq [on|off]", which prevents anything at all from being displayed by MQ2
+- Added "/squelch <command>", which does the following:
+  * Step 1: turns mq filter off
+  * Step 2: executes the command
+  * Step 3: turns mq filter back to the state it was in before step 1
+  In other words, executes a command and prevents any output from the command
+- I promise this is my last update for a few days at least!
+
 15 Mar 2004 by Lax
 - Fixed some bugs with binds and the MQ2CustomBinds plugin
 - Modified bind system so that the same key can be bound to an MQ2 bind and an EQ bind and

@@ -220,6 +220,7 @@
 #define KeyPressHandler__HandleKeyUp			0x4AF1A2
 #define KeypressHandler__AttachKeyToEqCommand		0x4B0560
 #define KeypressHandler__AttachAltKeyToEqCommand	0x4B059D
+#define KeypressHandler__SaveKeymapping				0x4B0448
 
 // EQ_Character
 #define EQ_Character__Max_Mana                           0x421A0B

@@ -458,6 +458,8 @@ void InitializeMQ2Commands()
 		{"/bind",       MQ2KeyBindCommand,1,0},
 		{"/ranged",		do_ranged,1,1},
 		{"/loadcfg",	LoadCfgCommand,1,0},
+		{"/dumpbinds",	DumpBindsCommand,1,0},
+		{"/squelch",	SquelchCommand,1,0},
 		{NULL,          NULL,0,1},
     };
 

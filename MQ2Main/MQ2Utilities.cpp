@@ -2129,9 +2129,9 @@ VOID SlotValueCalculate(PCHAR szBuff, PSPELL pSpell, int i, double mp)
 
 int FindMappableCommand(const char *name)
 {
-	for (unsigned long i = 0 ; i < nEQMappableCommands && EQMappableCommandList[i] ; i++)
+	for (unsigned long i = 0 ; i < nEQMappableCommands ; i++)
 	{
-		if (!stricmp(name,EQMappableCommandList[i]))
+		if (!stricmp(name,szEQMappableCommands[i]))
 			return i;
 	}
 	return -1;
@@ -2278,6 +2278,7 @@ havecfgfile:
 		if (Cmd && Cmd[0])
 			HideDoCommand(((PSPAWNINFO)pSpawnListTail),Cmd,Delayed);
 	}
+	fclose(file);
 	return true;
 }
 

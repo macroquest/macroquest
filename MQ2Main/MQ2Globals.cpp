@@ -88,8 +88,8 @@ BOOL gFilterTarget = FALSE;
 BOOL gFilterDebug = FALSE;
 BOOL gFilterMoney = FALSE;
 BOOL gFilterFood = FALSE;
-DWORD gUseMQChatWnd = 1;     // default is on
 BOOL gFilterMacro = FALSE;
+BOOL gFilterMQ = FALSE;
 BOOL gFilterEncumber = FALSE;
 BOOL gFilterCustom = TRUE;
 BOOL gSpewToFile = FALSE;
@@ -187,6 +187,8 @@ PBYTE EQADDR_DOABILITYAVAILABLE=(PBYTE)__DoAbilityAvailable;
 
 PMAPLABEL *ppCurrentMapLabel=(PMAPLABEL*)__CurrentMapLabel;
 PCHAR *EQMappableCommandList=(PCHAR*)__BindList;
+DWORD gnNormalEQMappableCommands;
+PCHAR szEQMappableCommands[nEQMappableCommands];
 
 PBYTE EQADDR_ENCRYPTPAD=(PBYTE)__EncryptPad1;
 PBYTE EQADDR_ENCRYPTPAD2=(PBYTE)__EncryptPad2;
@@ -535,8 +537,6 @@ CSoulmarkWnd **ppSoulmarkWnd=(CSoulmarkWnd**)pinstCSoulmarkWnd;
 CTimeLeftWnd **ppTimeLeftWnd=(CTimeLeftWnd**)pinstCTimeLeftWnd;
 
 CTextOverlay **ppTextOverlay=(CTextOverlay**)pinstCTextOverlay;
-
-
 
 CSidlManager **ppSidlMgr=(CSidlManager **)pinstCSidlManager;
 CXWndManager **ppWndMgr=(CXWndManager**)pinstCXWndManager;

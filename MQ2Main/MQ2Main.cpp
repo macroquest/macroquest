@@ -122,7 +122,6 @@ BOOL ParseINIFile(PCHAR lpINIPath)
     gFilterTarget = 1==GetPrivateProfileInt("MacroQuest","FilterTarget",0,Filename);
     gFilterMoney  = 1==GetPrivateProfileInt("MacroQuest","FilterMoney",0,Filename);
     gFilterFood   = 1==GetPrivateProfileInt("MacroQuest","FilterFood",0,Filename);
-	gUseMQChatWnd = 1==GetPrivateProfileInt("MacroQuest","UseMQChatWnd",1,Filename);
     gFilterMacro  = GetPrivateProfileInt("MacroQuest","FilterMacro",0,Filename);
     gFilterEncumber=1==GetPrivateProfileInt("MacroQuest","FilterEncumber",0,Filename);
     gFilterCustom = 1==GetPrivateProfileInt("MacroQuest","FilterCustom",1,Filename);
@@ -237,10 +236,39 @@ DWORD WINAPI MQ2Start(LPVOID lpParameter)
 
     srand(time(0));
 	ZeroMemory(gDiKeyName,sizeof(gDiKeyName));
-	for (unsigned long i = 0 ; gDiKeyID[i].Id ; i++)
+	unsigned long i;
+	for (i = 0 ; gDiKeyID[i].Id ; i++)
 	{
 		gDiKeyName[gDiKeyID[i].Id]=gDiKeyID[i].szName;
 	}
+
+	ZeroMemory(szEQMappableCommands,sizeof(szEQMappableCommands));
+	for (i = 0 ; i < nEQMappableCommands && EQMappableCommandList[i] ; i++)
+	{
+		szEQMappableCommands[i]=EQMappableCommandList[i];
+	}
+	gnNormalEQMappableCommands=i;
+	szEQMappableCommands[0xA1]="UNKNOWN0xA1";
+	szEQMappableCommands[0xA2]="UNKNOWN0xA2";
+	szEQMappableCommands[0xA3]="CHAT_SEMICOLON";
+	szEQMappableCommands[0xA4]="CHAT_SLASH";
+	szEQMappableCommands[0xA5]="UNKNOWN0xA5";
+	szEQMappableCommands[0xA6]="UNKNOWN0xA6";
+	szEQMappableCommands[0xA7]="INSTANT_CAMP";
+	szEQMappableCommands[0xA8]="UNKNOWN0xA8";
+	szEQMappableCommands[0xA9]="UNKNOWN0xA9";
+	szEQMappableCommands[0xAA]="CHAT_EMPTY";
+	szEQMappableCommands[0xAB]="TOGGLE_WINDOWMODE";
+	szEQMappableCommands[0xAC]="UNKNOWN0xAC";
+	szEQMappableCommands[0xAD]="UNKNOWN0xAD";
+	szEQMappableCommands[0xAE]="CHANGEFACE";// maybe? something that requires models.
+	szEQMappableCommands[0xAF]="UNKNOWN0xAF";
+	szEQMappableCommands[0xB0]="UNKNOWN0xB0";
+	szEQMappableCommands[0xB1]="UNKNOWN0xB1";
+	szEQMappableCommands[0xB2]="UNKNOWN0xB2";
+	szEQMappableCommands[0xB3]="UNKNOWN0xB3";
+	szEQMappableCommands[0xB4]="UNKNOWN0xB4";
+
 
 	InitializeMQ2Benchmarks();
 	InitializeParser();

@@ -1418,6 +1418,23 @@ VOID Filter(PSPAWNINFO pChar, PCHAR szLine)
             }
         }
         WriteChatColor("Usage: /filter macros [all|enhanced|none]",USERCOLOR_DEFAULT);
+    } else if (!stricmp("mq",szArg)) {
+        if (szRest[0]==0) {
+            sprintf(szCmd,"Filtering of MQ is set to: %s",szUseChat[gFilterMQ]);
+            WriteChatColor(szCmd,USERCOLOR_DEFAULT);
+            return;
+        }
+        for (Command=0;szUseChat[Command];Command++) {
+            if (!stricmp(szRest,szUseChat[Command])) {
+                gFilterMQ = Command;
+//                sprintf(szCmd,"Filtering of MQ changed to: %s",szUseChat[gFilterMQ]);
+//                WriteChatColor(szCmd,USERCOLOR_DEFAULT);
+                itoa(gFilterMQ,szCmd,10); 
+				WritePrivateProfileString("MacroQuest","FilterMQ",szCmd,gszINIFilename);
+                return;
+            }
+        }
+        WriteChatColor("Usage: /filter mq [on|off]",USERCOLOR_DEFAULT);
 
     } else if (!stricmp("target",szArg)) {
         if (szRest[0]==0) {
@@ -4566,5 +4583,36 @@ VOID LoadCfgCommand(PSPAWNINFO pChar, PCHAR szLine)
 		return;
 	CHAR szBuffer[MAX_STRING]={0};
 	sprintf(szBuffer,"Could not /loadcfg '%s'",szLine);
+}
+
+// /dumpbinds
+VOID DumpBindsCommand(PSPAWNINFO pChar, PCHAR szLine)
+{
+	if (!szLine[0])
+	{
+		WriteChatColor("Usage /dumpbinds <filename>");
+		return;
+	}
+	CHAR szBuffer[MAX_STRING]={0};
+	if (!DumpBinds(szLine))
+	{
+		sprintf(szBuffer,"Could not dump binds to %s",szLine);
+		WriteChatColor(szBuffer);
+	}
+	WriteChatColor("Binds dumped to file.");
+}
+
+// /squelch
+VOID SquelchCommand(PSPAWNINFO pChar, PCHAR szLine)
+{
+	if (!szLine[0])
+	{
+		WriteChatColor("Usage: /squelch <command>");
+		return;
+	}
+	BOOL Temp=gFilterMQ;
+	gFilterMQ=true;
+	DoCommand(pChar,szLine);
+	gFilterMQ=Temp;
 }
 
