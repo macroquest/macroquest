@@ -377,7 +377,6 @@
 #define CXWnd__GetInnerRect                 0x403FA0 
 #define CXWnd__GetMinimizeBoxTemplate       0x551C60 
 #define CXWnd__GetMinimizedRect             0x554280 
-#define CXWnd__GetMinSize                   0x403FD9 
 #define CXWnd__GetNextChildWnd              0x554560 
 #define CXWnd__GetNextSib                   0x551610 
 #define CXWnd__GetScreenClipRect            0x554E00 
