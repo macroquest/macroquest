@@ -107,6 +107,7 @@ VOID __declspec(naked) CMyMapViewWnd__HandleRButtonDown(DWORD point, DWORD unkno
 	}
 } 
 
+
 VOID __declspec(naked) CMyMapViewWnd__PostDraw()
 {
 	__asm {
@@ -137,7 +138,17 @@ public:
 	{
 		CMyMapViewWnd *pWnd=(CMyMapViewWnd*)this;
 		DWORD Ret=Constructor_Trampoline(wnd);
-		StealVFTable();
+		PCSIDLWNDVFTABLE pvfTable = new CSIDLWNDVFTABLE; 
+		*pvfTable=*pWnd->pvfTable;
+
+		CMyMapViewWnd__OldvfTable=pWnd->pvfTable;
+		pWnd->pvfTable=pvfTable;
+		CMyMapViewWnd__OldPostDraw=(DWORD)pWnd->pvfTable->PostDraw2;
+		CMyMapViewWnd__OldHandleRButtonDown=(DWORD)pWnd->pvfTable->HandleRButtonDown;
+		CMyMapViewWnd__OldDestructor=(DWORD)pWnd->pvfTable->vector_deleting_destructor;
+		pWnd->pvfTable->vector_deleting_destructor=CMyMapViewWnd__Destructor;
+		pWnd->pvfTable->HandleRButtonDown=CMyMapViewWnd__HandleRButtonDown; 
+		pWnd->pvfTable->PostDraw2=CMyMapViewWnd__PostDraw; 
 		return Ret;
 	}
 
