@@ -99,12 +99,15 @@ BOOL ParseINIFile(PCHAR lpINIPath)
     DebugSpewAlways("Expected Client version: %s %s",__ExpectedVersionDate,__ExpectedVersionTime);
     DebugSpewAlways("    Real Client version: %s %s",__ActualVersionDate,__ActualVersionTime);
 
+	// note: __ClientOverride is always #defined as 1 or 0
+#if (!__ClientOverride)
 	if (strncmp(__ExpectedVersionDate,(const char *)__ActualVersionDate,strlen(__ExpectedVersionDate)) ||
 		strncmp(__ExpectedVersionTime,(const char *)__ActualVersionTime,strlen(__ExpectedVersionTime)))
 	{
         MessageBox(NULL,"Incorrect client version","MacroQuest",MB_OK);
         return FALSE;
 	}
+#endif
 /*
 	strcpy(ClientName,__ClientName);
 	strcat(ClientName,".exe");

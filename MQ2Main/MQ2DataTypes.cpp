@@ -429,7 +429,20 @@ bool MQ2SpawnType::GetMember(MQ2VARPTR VarPtr, PCHAR Member, PCHAR Index, MQ2TYP
 			Dest.Float -= 360.0f;
 		Dest.Type=pFloatType;
 		return true;
-
+	case Casting:
+		if (Dest.Ptr=GetSpellByID(pSpawn->pActorInfo->CastingSpellID))
+		{
+			Dest.Type=pSpellType;
+			return true;
+		}
+		return false;
+	case Mount:
+		if (Dest.Ptr=pSpawn->pActorInfo->Mount)
+		{
+			Dest.Type=pSpawnType;
+			return true;
+		}
+		return false;
 	}
 	return false;
 #undef pSpawn
@@ -440,15 +453,22 @@ bool MQ2BuffType::GetMember(MQ2VARPTR VarPtr, PCHAR Member, PCHAR Index, MQ2TYPE
 #define pBuff ((PSPELLBUFF)VarPtr.Ptr)
 	if (!VarPtr.Ptr)
 		return false;
+	if ((int)pBuff->SpellID<=0)
+		return false;
 	unsigned long N=MemberMap[Member];
 	if (!N)
+	{
+		if (PSPELL pSpell=GetSpellByID(pBuff->SpellID))
+		{
+			return pSpellType->GetMember(*(MQ2VARPTR*)&pSpell,Member,Index,Dest);
+		}
 		return false;
+	}
 	N--;
 	PMQ2TYPEMEMBER pMember=Members[N];
 	if (!pMember)
 		return false;
-	if ((int)pBuff->SpellID<=0)
-		return false;
+	
 	static CHAR Temp[128];
 	switch((BuffMembers)pMember->ID)
 	{
@@ -461,9 +481,12 @@ bool MQ2BuffType::GetMember(MQ2VARPTR VarPtr, PCHAR Member, PCHAR Index, MQ2TYPE
 		Dest.Type=pIntType;
 		return true;
 	case Spell:
-		Dest.Ptr=GetSpellByID(pBuff->SpellID);
-		Dest.Type=pSpellType;
-		return true;
+		if (Dest.Ptr=GetSpellByID(pBuff->SpellID))
+		{
+			Dest.Type=pSpellType;
+			return true;
+		}
+		return false;
 	case Mod:
 		Dest.Float=(((float)pBuff->Modifier)/10.0f);
 		Dest.Type=pFloatType;
@@ -471,6 +494,10 @@ bool MQ2BuffType::GetMember(MQ2VARPTR VarPtr, PCHAR Member, PCHAR Index, MQ2TYPE
 	case Duration:
 		Dest.DWord=pBuff->Duration;
 		Dest.Type=pTicksType;
+		return true;
+	case Dar:
+		Dest.DWord=pBuff->DamageAbsorbRemaining;
+		Dest.Type=pIntType;
 		return true;
 	}
 	return false;
@@ -875,6 +902,25 @@ bool MQ2CharacterType::GetMember(MQ2VARPTR VarPtr, PCHAR Member, PCHAR Index, MQ
 		Ability=22,
 		FreeInventory
 		SpellReady
+		GroupLeaderExp=46,
+		RaidLeaderExp=47,
+		GroupLeaderPoints=48,
+		RaidLeaderPoints=49,
+		Drunk,
+		STR=51,
+		STA=52,
+		CHA=53,
+		DEX=54,
+		INT=55,
+		AGI=56,
+		WIS=57,
+		svMagic=58,
+		svFire=59,
+		svCold=60,
+		svPoison=61,
+		svDisease=62
+		Hunger
+		Thirst
 		/**/
 	}
 	return false;
@@ -1123,6 +1169,69 @@ bool MQ2ItemType::GetMember(MQ2VARPTR VarPtr, PCHAR Member, PCHAR Index, MQ2TYPE
 		Dest.Ptr=szDmgBonusType[pItem->Item->DmgBonusType];
 		Dest.Type=pStringType;
 		return true;
+	/*
+		Price=15,
+		Haste=16,
+		Endurance=17,
+		Attack=18,
+		HPRegen=19,
+		ManaRegen=20,
+		DamShield=21,
+		WeightReduction=22,
+		SizeCapacity=23,
+		Combinable=24,
+		Skill=25,
+		Avoidance=26,
+		SpellShield=27,
+		StrikeThrough=28,
+		StunResist=29,
+		Shielding=30,
+		FocusID=31,
+		ProcRate=32,
+		Quality=33,
+		LDoNCost=34,
+		AugRestrictions=35,
+		AugType=36,
+		AugSlot1=37,
+		AugSlot2=38,
+		AugSlot3=39,
+		AugSlot4=40,
+		AugSlot5=41,
+		Damage=42,
+		Range=43,
+		DMGBonus=44,
+		RecommendedLevel=45,
+		RecommendedSkill=46,
+		Delay=47,
+		Light=48,
+		Level=49,
+		BaneDMG=50,
+		Proc=51,
+		SkillModValue=52,
+		InstrumentType=53,
+		InstrumentMod=54,
+		RequiredLevel=55,
+		BaneDMGType=56,
+		AC=57,
+		HP=58,
+		Mana=59,
+		STR=60,
+		STA=61,
+		AGI=62,
+		DEX=63,
+		CHA=64,
+		INT=65,
+		WIS=66,
+		svCold=67,
+		svFire=68,
+		svMagic=69,
+		svDisease=70,
+		svPoison=71,
+		Summoned=72,
+		Artifact=73,
+		PendingLore=74,
+		LoreText=75,
+	/**/
 	}
 	return false;
 #undef pItem

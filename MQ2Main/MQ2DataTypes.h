@@ -395,6 +395,8 @@ public:
 		Height=40,
 		MaxRange=41,
 		AARank=42,
+		Casting=43,
+		Mount=44,
 	};
 	MQ2SpawnType():MQ2Type("spawn")
 	{
@@ -438,6 +440,8 @@ public:
 		TypeMember(Height);//40,
 		TypeMember(MaxRange);//41,
 		TypeMember(AARank);
+		TypeMember(Casting);
+		TypeMember(Mount);
 	}
 
 	~MQ2SpawnType()
@@ -504,6 +508,33 @@ public:
 		FreeInventory=43,
 		Gem=44,
 		SpellReady=45,
+		GroupLeaderExp=46,
+		RaidLeaderExp=47,
+		GroupLeaderPoints=48,
+		RaidLeaderPoints=49,
+		Drunk=50,
+		STR=51,
+		STA=52,
+		CHA=53,
+		DEX=54,
+		INT=55,
+		AGI=56,
+		WIS=57,
+		svMagic=58,
+		svFire=59,
+		svCold=60,
+		svPoison=61,
+		svDisease=62,
+		Hunger=63,
+		Thirst=64,
+		BaseSTR=65,
+		BaseSTA=66,
+		BaseCHA=67,
+		BaseDEX=68,
+		BaseINT=69,
+		BaseAGI=70,
+		BaseWIS=71,
+		PracticePoints=72,
 	};
 	MQ2CharacterType():MQ2Type("character")
 	{
@@ -551,6 +582,33 @@ public:
 		TypeMember(FreeInventory);
 		TypeMember(Gem);
 		TypeMember(SpellReady);
+		TypeMember(GroupLeaderExp);
+		TypeMember(RaidLeaderExp);
+		TypeMember(GroupLeaderPoints);
+		TypeMember(RaidLeaderPoints);
+		TypeMember(Drunk);
+		TypeMember(STR);//51,
+		TypeMember(STA);//52,
+		TypeMember(CHA);//53,
+		TypeMember(DEX);//54,
+		TypeMember(INT);//55,
+		TypeMember(AGI);//56,
+		TypeMember(WIS);//57,
+		TypeMember(svMagic);//58,
+		TypeMember(svFire);//59,
+		TypeMember(svCold);//60,
+		TypeMember(svPoison);//61,
+		TypeMember(svDisease);//62
+		TypeMember(Hunger);
+		TypeMember(Thirst);
+		TypeMember(BaseSTR);//51,
+		TypeMember(BaseSTA);//52,
+		TypeMember(BaseCHA);//53,
+		TypeMember(BaseDEX);//54,
+		TypeMember(BaseINT);//55,
+		TypeMember(BaseAGI);//56,
+		TypeMember(BaseWIS);//57,
+		TypeMember(PracticePoints);
 	}
 
 	~MQ2CharacterType()
@@ -578,6 +636,7 @@ public:
 		Spell=3,
 		Mod=4,
 		Duration=5,
+		Dar=6
 	};
 	MQ2BuffType():MQ2Type("buff")
 	{
@@ -586,6 +645,7 @@ public:
 		TypeMember(Spell);
 		TypeMember(Mod);
 		TypeMember(Duration);
+		TypeMember(Dar);
 	}
 
 	~MQ2BuffType()
@@ -690,6 +750,67 @@ public:
 		Charges=12,
 		LDoNTheme=13,
 		DMGBonusType=14,
+		Price=15,
+		Haste=16,
+		Endurance=17,
+		Attack=18,
+		HPRegen=19,
+		ManaRegen=20,
+		DamShield=21,
+		WeightReduction=22,
+		SizeCapacity=23,
+		Combinable=24,
+		Skill=25,
+		Avoidance=26,
+		SpellShield=27,
+		StrikeThrough=28,
+		StunResist=29,
+		Shielding=30,
+		FocusID=31,
+		ProcRate=32,
+		Quality=33,
+		LDoNCost=34,
+		AugRestrictions=35,
+		AugType=36,
+		AugSlot1=37,
+		AugSlot2=38,
+		AugSlot3=39,
+		AugSlot4=40,
+		AugSlot5=41,
+		Damage=42,
+		Range=43,
+		DMGBonus=44,
+		RecommendedLevel=45,
+		RecommendedSkill=46,
+		Delay=47,
+		Light=48,
+		Level=49,
+		BaneDMG=50,
+		Proc=51,
+		SkillModValue=52,
+		InstrumentType=53,
+		InstrumentMod=54,
+		RequiredLevel=55,
+		BaneDMGType=56,
+		AC=57,
+		HP=58,
+		Mana=59,
+		STR=60,
+		STA=61,
+		AGI=62,
+		DEX=63,
+		CHA=64,
+		INT=65,
+		WIS=66,
+		svCold=67,
+		svFire=68,
+		svMagic=69,
+		svDisease=70,
+		svPoison=71,
+		Summoned=72,
+		Artifact=73,
+		PendingLore=74,
+		LoreText=75,
 	};
 	MQ2ItemType():MQ2Type("Item")
 	{
@@ -707,6 +828,67 @@ public:
 		TypeMember(Charges);//12,
 		TypeMember(LDoNTheme);//13,
 		TypeMember(DMGBonusType);//14,
+		TypeMember(Price);//15,
+		TypeMember(Haste);//16,
+		TypeMember(Endurance);//17,
+		TypeMember(Attack);//18,
+		TypeMember(HPRegen);//19,
+		TypeMember(ManaRegen);//20,
+		TypeMember(DamShield);//21,
+		TypeMember(WeightReduction);//22,
+		TypeMember(SizeCapacity);//23,
+		TypeMember(Combinable);//24,
+		TypeMember(Skill);//25,
+		TypeMember(Avoidance);//26,
+		TypeMember(SpellShield);//27,
+		TypeMember(StrikeThrough);//28,
+		TypeMember(StunResist);//29,
+		TypeMember(Shielding);//30,
+		TypeMember(FocusID);//31,
+		TypeMember(ProcRate);//32,
+		TypeMember(Quality);//33,
+		TypeMember(LDoNCost);//34,
+		TypeMember(AugRestrictions);//35,
+		TypeMember(AugType);//36,
+		TypeMember(AugSlot1);//37,
+		TypeMember(AugSlot2);//38,
+		TypeMember(AugSlot3);//39,
+		TypeMember(AugSlot4);//40,
+		TypeMember(AugSlot5);//41,
+		TypeMember(Damage);//42,
+		TypeMember(Range);//43,
+		TypeMember(DMGBonus);//44,
+		TypeMember(RecommendedLevel);//45,
+		TypeMember(RecommendedSkill);//46,
+		TypeMember(Delay);//47,
+		TypeMember(Light);//48,
+		TypeMember(Level);//49,
+		TypeMember(BaneDMG);//50,
+		TypeMember(Proc);//51,
+		TypeMember(SkillModValue);//52,
+		TypeMember(InstrumentType);//53,
+		TypeMember(InstrumentMod);//54,
+		TypeMember(RequiredLevel);//55,
+		TypeMember(BaneDMGType);//56,
+		TypeMember(AC);//57,
+		TypeMember(HP);//58,
+		TypeMember(Mana);//59,
+		TypeMember(STR);//60,
+		TypeMember(STA);//61,
+		TypeMember(AGI);//62,
+		TypeMember(DEX);//63,
+		TypeMember(CHA);//64,
+		TypeMember(INT);//65,
+		TypeMember(WIS);//66,
+		TypeMember(svCold);//67,
+		TypeMember(svFire);//68,
+		TypeMember(svMagic);//69,
+		TypeMember(svDisease);//70,
+		TypeMember(svPoison);//71,
+		TypeMember(Summoned);//72,
+		TypeMember(Artifact);//73,
+		TypeMember(PendingLore);//74,
+		TypeMember(LoreText);//75,
 	}
 
 	~MQ2ItemType()
