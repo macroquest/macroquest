@@ -39,7 +39,6 @@ enum PlayerClass
 	Berserker=16,
 	TotalClasses=16,
 };
-
 // class 60   LDoN Recruiter
 // class 61   LDoN Merchant
 
@@ -77,6 +76,35 @@ static _ClassInfo ClassInfo[]=
 	{1,0,1,0,0,0,1,1,"Beastlord","bst"},//bst
 	{0,0,0,0,0,0,0,15,"Berserker","ber"},//ber
 };
+
+enum GroupAbilityLevels { 
+   G_MarkNPC=0,         //0-3 
+   G_NPCHealth=1,         //0-1 
+   G_DelegateMA=3,         //0-1 
+   G_DelegateMarkNPC=4,      //0-1 
+   G_InspectBuffs=6,         //0-2 
+   G_SpellAwareness=8,      //0-1 
+   G_OffenseEnhancement=9,      //0-5 
+   G_ManaEnhancement=10,      //0-3 
+   G_HealthEnhancement=11,      //0-3 
+   G_HealthRegen=12,         //0-3 
+   G_FindPathtoPC=13,      //0-1 
+   G_HealthofTargetsTarget=14,   //0-1 
+}; 
+
+enum RaidAbilityLevels { 
+   R_MarkNPC=0,         //0-3 
+   R_NPCHealth=1,         //0-1 
+   R_DelegateMA=3,         //0-3 
+   R_DelegateMarkNPC=4,      //0-4 
+   R_SpellAwareness=7,      //0-1 
+   R_OffenseEnhancement=8,      //0-5 
+   R_ManaEnhancement=9,      //0-3 
+   R_HealthEnhancement=10,      //0-3 
+   R_HealthRegen=11,         //0-3 
+   R_FindPathtoPC=12,      //0-1 
+   R_HealthofTargetsTarget=13,   //0-1 
+}; 
 
 #define BI_TARGETABLE  1
 #define BI_TRIGGER	   2 
@@ -949,20 +977,22 @@ typedef struct _CHARINFO {
 /*0x931c*/	DWORD	field_0x931c;	
 /*0x9320*/	DWORD	CareerFavor;	 // NOTE: 64-bit #   -->9320
 /*0x9324*/	DWORD	field_0x9324;	
-/*0x9328*/	DWORD	CurrFavor;	 // NOTE: 64-bit #   -->9328
-/*0x932c*/	DWORD	field_0x932c;	
-/*0x9330*/	DWORD	CombatAbilities[0x32];	//
-/*0x93f8*/	DWORD	CombatAbilityTimes[0x14];	 // ??
-/*0x9448*/	DWORD	CombatAbilityTimes2[0x14];	 // ??
-/*0x9498*/	DWORD	GroupLeadershipExp;	      // 0-999
-/*0x949c*/	DWORD	RaidLeadershipExp;	       // 0-999
-/*0x94a0*/	DWORD	GroupLeadershipPoints;	   // 0-8  // 
-/*0x94a4*/	DWORD	RaidLeadershipPoints;	    // 0-10
-/*0x94a8*/	BYTE	field_0x94a8[0x100];	
-/*0x95a8*/	BYTE	field_0x95a8;	
-/*0x95a9*/	BYTE	Padding0x95a9[0x3];	
-/*0x95ac*/	DWORD	field_0x95ac;	
-/*0x95b0*/	BYTE	Padding0x95b0[0x18];	
+/*0x9328*/  DWORD   CurrFavor; // NOTE: 64-bit #   -->9328 
+/*0x932c*/  DWORD   field_932C; 
+/*0x9330*/  DWORD   CombatAbilities[0x32];// 
+/*0x93f8*/  DWORD   CombatAbilityTimes[0x14]; // ?? 
+/*0x9448*/  DWORD   CombatAbilityTimes2[0x14]; // ?? 
+/*0x9498*/  DWORD   GroupLeadershipExp;      // 0-999 
+/*0x949c*/  DWORD   RaidLeadershipExp;       // 0-999 
+/*0x94a0*/  DWORD   GroupLeadershipPoints;   // 0-8  
+/*0x94a4*/  DWORD   RaidLeadershipPoints;    // 0-10 
+/*0x94A8*/  DWORD   GroupAbilities[0x10];   //Enumed 
+/*0x94E8*/  DWORD   RaidAbilities[0x10];   //Enumed        
+/*0x9528*/  BYTE    field_9528[0x80];     //Same size as Group/Raid could be active effects? 
+/*0x95A8*/  BYTE    LeadershipExpON;   //0-off 1-on Duh Really 1 BYTE 
+/*0x95a9*/  BYTE    Padding0x95a9[0x3]; 
+/*0x95ac*/  DWORD   field_95Ac; 
+/*0x95b0*/  BYTE    Padding0x95b0[0x18]; 
 /*0x95c8*/	DWORD	field_0x95c8;	
 /*0x95cc*/	DWORD	field_0x95cc;	
 /*0x95d0*/	DWORD	field_0x95d0;	
