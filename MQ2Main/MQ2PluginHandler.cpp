@@ -18,7 +18,7 @@
 
 #define DBG_SPEW
 
-#define DEBUG_PLUGINS
+//#define DEBUG_PLUGINS
 
 #ifdef DEBUG_PLUGINS
 #define PluginDebug DebugSpew

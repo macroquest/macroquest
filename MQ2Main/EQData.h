@@ -478,12 +478,13 @@ typedef struct _CONTENTS {
 /*0x2c*/  DWORD   Charges;
     };
 /*0x30*/  DWORD   ItemSlot;// slotid for Player Items
-/*0x34*/  BYTE    Unknown2[0xc];
-/*0x40*/  DWORD	  ItemSlot2;// slotid for Merchant Items
-/*0x44*/  DWORD   Unknown3;
-/*0x48*/  DWORD   Price; //price a player vendor set the item at 
-/*0x4c*/  DWORD   Open;
-/*0x50*/
+/*0x34*/  BYTE    Unknown0x34[0xc];
+/*0x40*/  BYTE	  Unknown0x40[0x8];
+/*0x48*/  DWORD   ItemSlot2;// slotid for Merchant Items
+/*0x4c*/  DWORD	  Unknown0x4c;
+/*0x50*/  DWORD   Price; //price a player vendor set the item at 
+/*0x54*/  DWORD   Open;
+/*0x58*/
 } CONTENTS, *PCONTENTS;
 
 // 6-11-2003 Amadeus
