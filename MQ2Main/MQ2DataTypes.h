@@ -232,6 +232,7 @@ public:
 		Centi=2,
 		Milli=3,
 		Int=4,
+		Precision=5,
 	};
 
 	MQ2FloatType():MQ2Type("float")
@@ -240,50 +241,18 @@ public:
 		TypeMember(Centi);
 		TypeMember(Milli);
 		TypeMember(Int);
+		TypeMember(Precision);
 	}
 
 	~MQ2FloatType()
 	{
 	}
 
-	bool GetMember(void *Ptr, PCHAR Member, PCHAR Index, MQ2TYPEVAR &Dest)
-	{
-		unsigned long N=MemberMap[Member];
-		if (!N)
-			return false;
-		N--;
-		PMQ2TYPEMEMBER pMember=Members[N];
-		if (!pMember)
-			return false;
-		char Temp[128];
-		switch((FloatMembers)pMember->ID)
-		{
-		case Deci:
-			sprintf(Temp,"%.1f",Ptr);
-			Dest.Type=pStringType;
-			Dest.Ptr=&Temp[0];
-			return true;
-		case Centi:
-			sprintf(Temp,"%.2f",Ptr);
-			Dest.Type=pStringType;
-			Dest.Ptr=&Temp[0];
-			return true;
-		case Milli:
-			sprintf(Temp,"%.3f",Ptr);
-			Dest.Type=pStringType;
-			Dest.Ptr=&Temp[0];
-			return true;
-		case Int:
-			Dest.Type=pIntType;
-			Dest.Int=(int)(*(float*)&Ptr);
-			return true;
-		}
-		return false;
-	}
+	bool GetMember(void *Ptr, PCHAR Member, PCHAR Index, MQ2TYPEVAR &Dest);
 
 	 bool ToString(void *Ptr, PCHAR Destination)
 	{
-		sprintf(Destination,"%.3f",Ptr);
+		sprintf(Destination,"%.3f",*(float*)&Ptr);
 		return true;
 	}
 };

@@ -26,7 +26,7 @@
 map<string,DWORD> MQ2DataTypeMap;
 CIndex<MQ2Type*> MQ2DataTypes;
 
-inline MQ2Type *FindMQ2DataType(PCHAR Name)
+/*inline/**/ MQ2Type *FindMQ2DataType(PCHAR Name)
 {
 	unsigned long N=MQ2DataTypeMap[Name];
 	if (!N)
@@ -369,13 +369,15 @@ BOOL ParseMacroData(PCHAR szOriginal)
 			if (*pPos==0)
 			{
 				// end completely. process
-				if (pStart==pPos-1)
+				if (pStart==pPos)
 				{
 					if (!CurrentVar.Type)
 					{
 						strcpy(szCurrent,"NULL");
 						goto pmdinsert;
 					}
+					CurrentVar.Type->ToString(CurrentVar.Ptr,szCurrent);
+					goto pmdinsert;
 				}
 				else
 				{
@@ -413,13 +415,15 @@ BOOL ParseMacroData(PCHAR szOriginal)
 			if (*pPos=='(')
 			{
 				*pPos=0;
-				if (pStart==pPos-1)
+				if (pStart==pPos)
 				{
 					if (!CurrentVar.Type)
 					{
 						strcpy(szCurrent,"NULL");
 						goto pmdinsert;
 					}
+					CurrentVar.Type->ToString(CurrentVar.Ptr,szCurrent);
+					goto pmdinsert;
 				}
 				else
 				{
@@ -477,7 +481,18 @@ BOOL ParseMacroData(PCHAR szOriginal)
 					strcpy(szCurrent,"NULL");
 					goto pmdinsert;
 				}
-				pStart=&pPos[1];
+				if (pPos[1]=='.')
+					pStart=&pPos[1];
+				else if (!pPos[1])
+				{
+					CurrentVar.Type->ToString(CurrentVar.Ptr,szCurrent);
+					goto pmdinsert;
+				}
+				else
+				{
+					strcpy(szCurrent,"NULL");
+					goto pmdinsert;
+				}
 			}
 			else
 			if (*pPos=='[')
@@ -532,13 +547,15 @@ BOOL ParseMacroData(PCHAR szOriginal)
 			{
 				// end of this one, but more to come!
 				*pPos=0;
-				if (pStart==pPos-1)
+				if (pStart==pPos)
 				{
 					if (!CurrentVar.Type)
 					{
 						strcpy(szCurrent,"NULL");
 						goto pmdinsert;
 					}
+					CurrentVar.Type->ToString(CurrentVar.Ptr,szCurrent);
+					goto pmdinsert;
 				}
 				else
 				{

@@ -106,6 +106,49 @@ void ShutdownMQ2DataTypes()
 	delete pArgbType;
 }
 
+bool MQ2FloatType::GetMember(void *Ptr, PCHAR Member, PCHAR Index, MQ2TYPEVAR &Dest)
+{
+	unsigned long N=MemberMap[Member];
+	if (!N)
+		return false;
+	N--;
+	PMQ2TYPEMEMBER pMember=Members[N];
+	if (!pMember)
+		return false;
+	switch((FloatMembers)pMember->ID)
+	{
+	case Deci:
+		sprintf(DataTypeTemp,"%.1f",*(float*)&Ptr);
+		Dest.Type=pStringType;
+		Dest.Ptr=&DataTypeTemp[0];
+		return true;
+	case Centi:
+		sprintf(DataTypeTemp,"%.2f",*(float*)&Ptr);
+		Dest.Type=pStringType;
+		Dest.Ptr=&DataTypeTemp[0];
+		return true;
+	case Milli:
+		sprintf(DataTypeTemp,"%.3f",*(float*)&Ptr);
+		Dest.Type=pStringType;
+		Dest.Ptr=&DataTypeTemp[0];
+		return true;
+	case Int:
+		Dest.Type=pIntType;
+		Dest.Int=(int)(*(float*)&Ptr);
+		return true;
+	case Precision:
+		if (Index[0]>='0' && Index[0]<='9')
+		{
+			sprintf(DataTypeTemp,"%.*f",atoi(Index),*(float*)&Ptr);
+			Dest.Type=pStringType;
+			Dest.Ptr=&DataTypeTemp[0];
+			return true;
+		}
+		return false;
+	}
+	return false;
+}
+
 bool MQ2IntType::GetMember(void *Ptr, PCHAR Member, PCHAR Index, MQ2TYPEVAR &Dest)
 {
 	unsigned long N=MemberMap[Member];
@@ -118,7 +161,7 @@ bool MQ2IntType::GetMember(void *Ptr, PCHAR Member, PCHAR Index, MQ2TYPEVAR &Des
 	switch((IntMembers)pMember->ID)
 	{
 	case Float:
-		Dest.Float=(FLOAT)((int)Ptr);
+		Dest.Float=(FLOAT)1.0f*((int)Ptr);
 		Dest.Type=pFloatType;
 		return true;
 	case Hex:
