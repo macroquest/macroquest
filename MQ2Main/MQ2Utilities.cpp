@@ -1245,3 +1245,14 @@ VOID ClearSearchSpawn(PSEARCHSPAWN pSearchSpawn)
     pSearchSpawn->bNoPet = FALSE; 
     pSearchSpawn->SortBy = 0; 
 }
+
+// *************************************************************************** 
+// Function:    DistanceToPoint 
+// Description: Return the distance between a spawn and the specified point 
+// *************************************************************************** 
+FLOAT DistanceToPoint(PSPAWNINFO pSpawn, FLOAT xLoc, FLOAT yLoc) 
+{ 
+   FLOAT X = pSpawn->X - xLoc; 
+   FLOAT Y = pSpawn->Y - yLoc; 
+   return sqrtf(X*X + Y*Y); 
+}

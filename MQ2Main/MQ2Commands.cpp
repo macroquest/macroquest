@@ -986,7 +986,7 @@ VOID SelectItem(PSPAWNINFO pChar, PCHAR szLine)
       WriteChatColor("--------------------------",USERCOLOR_DEFAULT);
       i=0;
 	  char Link[256];
-      while (i < 79)
+      while (i < 80)
       {
             if (pMainWindow->ItemDesc[i] != NULL)
             {
@@ -1010,7 +1010,7 @@ VOID SelectItem(PSPAWNINFO pChar, PCHAR szLine)
 	//search merchant inventory
 	if ((_stricmp(szArg1,"list") && (!_stricmp(szArg2,"merchant") && (Found == FALSE))))
 	{
-		for (i=0;i<79 && !Found;i++) {
+		for (i=0;i<80 && !Found;i++) {
 			if (pMainWindow->ItemDesc[i]!=NULL) {
 				if (!_stricmp(pMainWindow->ItemDesc[i]->Item->Name, szArg1)) {
 					sprintf(szBuffer,"'%s' Found in slot '%d'",pMainWindow->ItemDesc[i]->Item->Name,pMainWindow->SlotsHandles[i]->SlotID-5999);
@@ -3474,8 +3474,8 @@ PSPAWNINFO SearchThroughSpawns(PSEARCHSPAWN pSearchSpawn, PSPAWNINFO pChar)
                     if ((pSpawn->Z > pChar->Z + pSearchSpawn->ZRadius) ||
                         (pSpawn->Z < pChar->Z - pSearchSpawn->ZRadius)) TooClose=TRUE;
                     }
-                if (pSearchSpawn->FRadius<10000.0f) {
-                    if (DistanceToSpawn(pChar, pSpawn)>pSearchSpawn->FRadius) TooClose=TRUE;
+                if ((pSearchSpawn->bKnownLocation == FALSE) && (pSearchSpawn->FRadius<10000.0f)) { 
+                    if (DistanceToSpawn(pChar, pSpawn)>pSearchSpawn->FRadius) TooClose=TRUE; 
                     }
 
                     AlertOK = FALSE;
@@ -3550,14 +3550,18 @@ BOOL SpawnMatchesSearch(PSEARCHSPAWN pSearchSpawn, PSPAWNINFO pChar, PSPAWNINFO 
             ) && (
                 (pSearchSpawn->bTargInvis) ||
                     (pSpawn->BodyType < 0x41)
-                ) && (
-                    (
-                    (pSearchSpawn->bKnownLocation == FALSE)
-                                        ) || (
-                    (pSearchSpawn->bKnownLocation == TRUE) &&
-                    (pSpawn->X == pSearchSpawn->xLoc) &&
-                    (pSpawn->Y == pSearchSpawn->yLoc)
-                                        )
+                ) && ( 
+                    ( 
+                    (pSearchSpawn->bKnownLocation == FALSE) 
+                                        ) || ( 
+                    (pSearchSpawn->bKnownLocation == TRUE) && 
+                    (pSpawn->X == pSearchSpawn->xLoc) && 
+                    (pSpawn->Y == pSearchSpawn->yLoc) 
+                              ) || ( 
+               (pSearchSpawn->bKnownLocation == TRUE) && 
+               (pSearchSpawn->FRadius<10000.0f) && 
+               (DistanceToPoint(pSpawn,pSearchSpawn->xLoc,pSearchSpawn->yLoc)<pSearchSpawn->FRadius) 
+                              ) 
                                 ) && (
                                         (
                         (

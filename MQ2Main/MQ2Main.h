@@ -191,8 +191,6 @@ EQLIB_API VOID InitializeMQ2Pulse();
 EQLIB_API VOID ShutdownMQ2Pulse();
 
 /* UTILITIES */
-EQLIB_API VOID ClearSearchSpawn(PSEARCHSPAWN pSearchSpawn);
-
 EQLIB_API PCHARINFO GetCharInfo(VOID);
 EQLIB_API VOID DebugSpew(PCHAR szFormat, ...);
 EQLIB_API VOID DebugSpewAlways(PCHAR szFormat, ...);
@@ -243,6 +241,7 @@ EQLIB_API VOID GetItemLinkHash(PCONTENTS Item, PCHAR Buffer);
 EQLIB_API VOID GetItemLink(PCONTENTS Item, PCHAR Buffer);
 EQLIB_API VOID SendEQMessage(DWORD PacketType, PVOID pData, DWORD Length);
 EQLIB_API PCHAR GetLoginName();
+EQLIB_API FLOAT DistanceToPoint(PSPAWNINFO pSpawn, FLOAT xLoc, FLOAT yLoc);
 
 /* USERVARS */
 EQLIB_API VOID FreeVarStrings(PVARSTRINGS pVarStrings);

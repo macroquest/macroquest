@@ -3137,13 +3137,40 @@ DWORD parmMerchantName(PCHAR szVar, PCHAR szOutput, PSPAWNINFO pChar)
 
 DWORD parmMerchantXXX(PCHAR szVar, PCHAR szOutput, PSPAWNINFO pChar)
 {
-    DWORD i=0,argindex=9;;
+    DWORD i=0,argindex=9;
     CHAR szTemp[MAX_STRING] = {0};
     CHAR szArg[MAX_STRING] = {0};
 
     CHAR* szOut;
-   // $merchant(open)
-    if (strstr(szVar,"open)")) {
+	// $merchant(free)
+    if (strstr(szVar,"free)")) {
+        i += 13;
+        if (!ppMerchantWnd) return PMP_ERROR_BADPARM;
+        if (!pMerchantWnd) {
+            strcat(szOutput,"0");
+        }
+        PEQMERCHWINDOW pMerchWindow = NULL;
+		pMerchWindow = (PEQMERCHWINDOW)pMerchantWnd;
+        if (pMerchWindow->Wnd.Show == 1) {
+			DWORD j;
+			int SlotsFree = 0;
+			BOOL Found = FALSE;
+            for (j=0;j<80;j++) {
+                if (!pMerchWindow->ItemDesc[j]) {
+					Found=TRUE;
+					SlotsFree++;
+				}
+			}
+			if (Found) {
+					itoa(SlotsFree,szTemp,10);
+					strcat(szOutput,szTemp); 
+			} else { 
+					strcat(szOutput,"0"); 
+			}
+		}
+		return i;
+	// $merchant(open)
+    } if (strstr(szVar,"open)")) {
         i += 13;
         if (!ppMerchantWnd) return PMP_ERROR_BADPARM;
         if (!pMerchantWnd) {
@@ -3176,7 +3203,7 @@ DWORD parmMerchantXXX(PCHAR szVar, PCHAR szOutput, PSPAWNINFO pChar)
                 DebugSpewNoFile("$merchant(has) -- looking for '%s'", szArg);
                 DWORD i;
                 BOOL Found = FALSE;
-            for (i=0;i<79;i++) {
+            for (i=0;i<80;i++) {
                 if (pMerchWindow->ItemDesc[i]) {
                     if (!stricmp(szArg,pMerchWindow->ItemDesc[i]->Item->Name)) { 
                             Found=TRUE; 
