@@ -194,6 +194,7 @@ EQLIB_API VOID DeleteMQ2NewsWindow();
 /* CHAT HOOK */
 EQLIB_API VOID InitializeChatHook();
 EQLIB_API VOID ShutdownChatHook();
+EQLIB_API VOID dsp_chat_no_events(const char *,int,bool);
 
 /* DETOURING API */
 EQLIB_API VOID InitializeMQ2Detours();

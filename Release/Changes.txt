@@ -1,3 +1,15 @@
+15 May 2004 by Lax:
+- Fixed bug in /who that made it show no spawns for some people, even though there were spawns...
+- Standard search spawns will accept class names or short names without using the "class" keyword.
+  Shadowknight is used without a space, and short names are all 3 letters ("shd", not "sk").  
+  Note that cleric's short name is "clr" not "cle".
+- Bug with MQ2Chat plugin that caused events to be processed twice has been fixed
+- MQ2IRC will now process all lines as custom events.  Note that it does not process them as 
+  #chat events.
+- Turned off the PCClass captioncolor option, PC caption colors will default to EQ's settings.
+  It was left on by mistake after testing a bug fix.  You can turn them back on if you wish by
+  using the /captioncolor command like so: /captioncolor pcclass on
+
 14 May 2004 by Lax:
 - MQ2ChatWnd (the MQ2 Chat Window support) got some upgrades.  First of all the window was not
   limiting the size of its scrollback, so after so much went on in the MQ2 window, your framerate

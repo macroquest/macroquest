@@ -3383,7 +3383,7 @@ BOOL SpawnMatchesSearch(PSEARCHSPAWN pSearchSpawn, PSPAWNINFO pChar, PSPAWNINFO 
 		return FALSE;
 	if (gZFilter<10000.0f && ( (pSpawn->Z > pChar->Z + gZFilter) || (pSpawn->Z < pChar->Z - gZFilter)))
 		return FALSE;
-	if (pSearchSpawn->ZRadius<10000.0f &&  (pSpawn->Z > pChar->Z + pSearchSpawn->ZRadius) ||(pSpawn->Z < pChar->Z - pSearchSpawn->ZRadius))
+	if (pSearchSpawn->ZRadius<10000.0f &&  (pSpawn->Z > pChar->Z + pSearchSpawn->ZRadius ||pSpawn->Z < pChar->Z - pSearchSpawn->ZRadius))
 		return FALSE;
 	if (pSearchSpawn->bLight) 
 	{
@@ -3422,72 +3422,74 @@ BOOL SpawnMatchesSearch(PSEARCHSPAWN pSearchSpawn, PSPAWNINFO pChar, PSPAWNINFO 
 PCHAR ParseSearchSpawnArgs(PCHAR szArg, PCHAR szRest, PSEARCHSPAWN pSearchSpawn)
 {
     if (szArg && pSearchSpawn) {
-        if (!strcmp(szArg,"pc")) {
+        if (!stricmp(szArg,"pc")) {
             pSearchSpawn->SpawnType = PC;
-        } else if (!strcmp(szArg,"npc")) {
+        } else if (!stricmp(szArg,"npc")) {
             pSearchSpawn->SpawnType = NPC;
-        } else if (!strcmp(szArg,"pet")) {
+        } else if (!stricmp(szArg,"mount")) {
+            pSearchSpawn->SpawnType = MOUNT;
+        } else if (!stricmp(szArg,"pet")) {
             pSearchSpawn->SpawnType = PET;
-        } else if (!strcmp(szArg,"nopet")) { 
+        } else if (!stricmp(szArg,"nopet")) { 
             pSearchSpawn->bNoPet = TRUE; 
-        } else if (!strcmp(szArg,"corpse")) {
+        } else if (!stricmp(szArg,"corpse")) {
             pSearchSpawn->SpawnType = CORPSE;
-        } else if (!strcmp(szArg,"trigger")) {
+        } else if (!stricmp(szArg,"trigger")) {
             pSearchSpawn->SpawnType = TRIGGER;
-        } else if (!strcmp(szArg,"untargetable")) {
+        } else if (!stricmp(szArg,"untargetable")) {
             pSearchSpawn->SpawnType = UNTARGETABLE;
-        } else if (!strcmp(szArg,"trap")) {
+        } else if (!stricmp(szArg,"trap")) {
             pSearchSpawn->SpawnType = TRAP;
-        } else if (!strcmp(szArg,"timer")) {
+        } else if (!stricmp(szArg,"timer")) {
             pSearchSpawn->SpawnType = TIMER;
-        } else if (!strcmp(szArg,"any")) {
+        } else if (!stricmp(szArg,"any")) {
             pSearchSpawn->SpawnType = NONE;
-        } else if (!strcmp(szArg,"next")) {
+        } else if (!stricmp(szArg,"next")) {
             pSearchSpawn->bTargNext = TRUE;
-        } else if (!strcmp(szArg,"prev")) {
+        } else if (!stricmp(szArg,"prev")) {
             pSearchSpawn->bTargPrev = TRUE;
-        } else if (!strcmp(szArg,"lfg")) {
+        } else if (!stricmp(szArg,"lfg")) {
             pSearchSpawn->bLFG = TRUE;
-        } else if (!strcmp(szArg,"gm")) {
+        } else if (!stricmp(szArg,"gm")) {
             pSearchSpawn->bGM = TRUE;
-        } else if (!strcmp(szArg,"group")) {
+        } else if (!stricmp(szArg,"group")) {
             pSearchSpawn->bGroup = TRUE;
-        } else if (!strcmp(szArg,"trader")) {
+        } else if (!stricmp(szArg,"trader")) {
             pSearchSpawn->bTrader = TRUE;
-        } else if (!strcmp(szArg,"range")) {
+        } else if (!stricmp(szArg,"range")) {
             GetArg(szArg,szRest,1);
             pSearchSpawn->MinLevel = atoi(szArg);
             GetArg(szArg,szRest,2);
             pSearchSpawn->MaxLevel = atoi(szArg);
             szRest = GetNextArg(szRest,2);
-        } else if (!strcmp(szArg,"loc")) {
+        } else if (!stricmp(szArg,"loc")) {
             pSearchSpawn->bKnownLocation = TRUE;
             GetArg(szArg,szRest,1);
             pSearchSpawn->xLoc = (FLOAT)atof(szArg);
             GetArg(szArg,szRest,2);
             pSearchSpawn->yLoc = (FLOAT)atof(szArg);
             szRest = GetNextArg(szRest,2);
-        } else if (!strcmp(szArg,"id")) {
+        } else if (!stricmp(szArg,"id")) {
             GetArg(szArg,szRest,1);
             pSearchSpawn->SpawnID = atoi(szArg);
             szRest = GetNextArg(szRest,1);
-        } else if (!strcmp(szArg,"radius")) {
+        } else if (!stricmp(szArg,"radius")) {
             GetArg(szArg,szRest,1);
             pSearchSpawn->FRadius = atof(szArg);
             szRest = GetNextArg(szRest,1);
-        } else if (!strcmp(szArg,"body")) {
+        } else if (!stricmp(szArg,"body")) {
             GetArg(szArg,szRest,1);
             strcpy(pSearchSpawn->szBodyType,szArg);
             szRest = GetNextArg(szRest,1);
-        } else if (!strcmp(szArg,"class")) {
+        } else if (!stricmp(szArg,"class")) {
             GetArg(szArg,szRest,1);
             strcpy(pSearchSpawn->szClass,szArg);
             szRest = GetNextArg(szRest,1);
-        } else if (!strcmp(szArg,"race")) {
+		} else if (!stricmp(szArg,"race")) {
             GetArg(szArg,szRest,1);
             strcpy(pSearchSpawn->szRace,szArg);
             szRest = GetNextArg(szRest,1);
-        } else if (!strcmp(szArg,"light")) {
+        } else if (!stricmp(szArg,"light")) {
             DWORD Light = -1;
 			DWORD i=0;
             GetArg(szArg,szRest,1);
@@ -3499,7 +3501,7 @@ PCHAR ParseSearchSpawnArgs(PCHAR szArg, PCHAR szRest, PSEARCHSPAWN pSearchSpawn)
                 pSearchSpawn->szLight[0]=0;
             }
 			pSearchSpawn->bLight=TRUE;
-        } else if (!strcmp(szArg,"guild")) {
+        } else if (!stricmp(szArg,"guild")) {
             DWORD GuildID = 0xFFFF;
             GetArg(szArg,szRest,1);
             if (szArg[0]!=0) GuildID = GetGuildIDByName(szArg);
@@ -3509,35 +3511,35 @@ PCHAR ParseSearchSpawnArgs(PCHAR szArg, PCHAR szRest, PSEARCHSPAWN pSearchSpawn)
             } else {
                 pSearchSpawn->GuildID = GetCharInfo()->pSpawn->GuildID;
             }
-        } else if (!strcmp(szArg,"alert")) {
+        } else if (!stricmp(szArg,"alert")) {
             GetArg(szArg,szRest,1);
             pSearchSpawn->AlertList = atoi(szArg);
             szRest = GetNextArg(szRest,1);
             pSearchSpawn->bAlert = TRUE;
-        } else if (!strcmp(szArg,"noalert")) {
+        } else if (!stricmp(szArg,"noalert")) {
             GetArg(szArg,szRest,1);
             pSearchSpawn->NoAlertList = atoi(szArg);
             szRest = GetNextArg(szRest,1);
             pSearchSpawn->bNoAlert = TRUE;
-        } else if (!strcmp(szArg,"notnearalert")) {
+        } else if (!stricmp(szArg,"notnearalert")) {
             GetArg(szArg,szRest,1);
             pSearchSpawn->NotNearAlertList = atoi(szArg);
             szRest = GetNextArg(szRest,1);
             pSearchSpawn->bNotNearAlert = TRUE;
-        } else if (!strcmp(szArg,"nearalert")) {
+        } else if (!stricmp(szArg,"nearalert")) {
             GetArg(szArg,szRest,1);
             pSearchSpawn->NearAlertList = atoi(szArg);
             szRest = GetNextArg(szRest,1);
             pSearchSpawn->bNearAlert = TRUE;
-        } else if (!strcmp(szArg,"zradius")) {
+        } else if (!stricmp(szArg,"zradius")) {
             GetArg(szArg,szRest,1);
             pSearchSpawn->ZRadius = atof(szArg);
             szRest = GetNextArg(szRest,1);
-        } else if (!strcmp(szArg,"notid")) {
+        } else if (!stricmp(szArg,"notid")) {
             GetArg(szArg,szRest,1);
             pSearchSpawn->NotID = atoi(szArg);
             szRest = GetNextArg(szRest,1);
-        } else if (!strcmp(szArg,"nopcnear")) {
+        } else if (!stricmp(szArg,"nopcnear")) {
             GetArg(szArg,szRest,1);
 
             if ((szArg[0]==0) || (0.0f == (pSearchSpawn->Radius = (FLOAT)atof(szArg)))) {
@@ -3546,6 +3548,14 @@ PCHAR ParseSearchSpawnArgs(PCHAR szArg, PCHAR szRest, PSEARCHSPAWN pSearchSpawn)
                 szRest = GetNextArg(szRest,1);
             }
         } else {
+			for (DWORD N=1;N<17;N++)
+			{
+				if (!stricmp(szArg,ClassInfo[N].Name) || !stricmp(szArg,ClassInfo[N].ShortName))
+				{
+					strcpy(pSearchSpawn->szClass,pEverQuest->GetClassDesc(N));
+					return szRest;
+				}
+			}
             strcpy(pSearchSpawn->szName,szArg);
         }
     }

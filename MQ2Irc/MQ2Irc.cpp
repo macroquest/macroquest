@@ -133,6 +133,8 @@ void ircout(char *text) {
 	if(MyWnd && !strcmp(UseWnd,"Yes")) {
 		DebugTry(((CXWnd*)MyWnd)->Show(1,1));
 		char processed[MAX_STRING];
+		StripMQChat(text,processed);
+		CheckChatForEvent(processed);
 		MQToSTML(text,processed,MAX_STRING);
 		strcat(processed,"<br>");
 		CXStr NewText(processed);

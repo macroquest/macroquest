@@ -53,27 +53,29 @@ typedef struct _ClassInfo
 	bool ClericType;
 	bool ShamanType;
 	char RaidColorOrder;
+	PCHAR Name;
+	PCHAR ShortName;
 } CLASSINFO, *PCLASSINFO;
 
 static _ClassInfo ClassInfo[]=
 {
-	{0,0,0,0,0,0,0,0},//unk
-	{0,0,0,0,0,0,0,13},//war
-	{1,1,0,0,0,1,0,2},//clr
-	{1,0,0,0,0,1,0,8},//pal
-	{1,0,0,1,0,0,0,9},//rng
-	{1,0,0,0,1,0,0,11},//shd
-	{1,1,0,1,0,0,0,3},//dru
-	{0,0,0,0,0,0,0,6},//mnk
-	{1,0,0,0,0,0,0,0},//brd
-	{0,0,0,0,0,0,0,10},//rog
-	{1,1,1,0,0,0,1,12},//shm
-	{1,1,1,0,1,0,0,7},//nec
-	{1,1,0,0,0,0,0,14},//wiz
-	{1,1,1,0,0,0,0,5},//mag
-	{1,1,0,0,0,0,0,4},//enc
-	{1,0,1,0,0,0,1,1},//bst
-	{0,0,0,0,0,0,0,15},//ber
+	{0,0,0,0,0,0,0,0,"",""},//unk
+	{0,0,0,0,0,0,0,13,"Warrior","war"},//war
+	{1,1,0,0,0,1,0,2,"Cleric","clr"},//clr
+	{1,0,0,0,0,1,0,8,"Paladin","pal"},//pal
+	{1,0,0,1,0,0,0,9,"Ranger","rng"},//rng
+	{1,0,0,0,1,0,0,11,"Shadowknight","shd"},//shd
+	{1,1,0,1,0,0,0,3,"Druid","dru"},//dru
+	{0,0,0,0,0,0,0,6,"Monk","mnk"},//mnk
+	{1,0,0,0,0,0,0,0,"Bard","brd"},//brd
+	{0,0,0,0,0,0,0,10,"Rogue","rog"},//rog
+	{1,1,1,0,0,0,1,12,"Shaman","shm"},//shm
+	{1,1,1,0,1,0,0,7,"Necromancer","nec"},//nec
+	{1,1,0,0,0,0,0,14,"Wizard","wiz"},//wiz
+	{1,1,1,0,0,0,0,5,"Mage","mag"},//mag
+	{1,1,0,0,0,0,0,4,"Enchanter","enc"},//enc
+	{1,0,1,0,0,0,1,1,"Beastlord","bst"},//bst
+	{0,0,0,0,0,0,0,15,"Berserker","ber"},//ber
 };
 
 #define BI_TARGETABLE  1

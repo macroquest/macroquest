@@ -34,22 +34,7 @@ PLUGIN_API DWORD OnWriteChatColor(PCHAR Line, DWORD Color, DWORD Filter)
 
 	if (!pEverQuest) 
 		return 0;
-	pEverQuest->dsp_chat(Stripped,Color,1);
-/*
-	DWORD clsEverQuest = *EQADDR_CLSEVERQUEST;
-	DWORD saddr=(DWORD)&Stripped[0];
-	DWORD Func=EQADDR_DSPCHAT; // we can't directly call EQADDR_DSPCHAT. need local copy :)
-	if (!clsEverQuest) return 0;
-		__asm {
-			push ecx;
-			mov ecx, [clsEverQuest];
-			push 1;
-			push [Color];
-			push [saddr];
-			call Func;
-			pop ecx;
-		}
-/**/
+	dsp_chat_no_events(Stripped,Color,1);
 	return 0;
 }
 

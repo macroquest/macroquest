@@ -1511,12 +1511,10 @@ bool MQ2CharacterType::GetMember(MQ2VARPTR VarPtr, PCHAR Member, PCHAR Index, MQ
 		Dest.Type=pBoolType;
 		return true;
 	case Hunger:
-		return false;
 		Dest.DWord=pChar->hungerlevel;
 		Dest.Type=pIntType;
 		return true;
 	case Thirst:
-		return false;
 		Dest.DWord=pChar->thirstlevel;
 		Dest.Type=pIntType;
 		return true;
