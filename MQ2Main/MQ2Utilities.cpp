@@ -3297,7 +3297,7 @@ BOOL FastCalculate(PCHAR szFormula, DOUBLE &Result)
 
 	char *pEnd=szFormula+Length;
 
-	char CurrentToken[256]={0};
+	char CurrentToken[MAX_STRING]={0};
 	char *pToken=&CurrentToken[0];
 
 #define OpToList(op) {pOpList[nOps].Op=op;nOps++;}
@@ -3306,7 +3306,7 @@ BOOL FastCalculate(PCHAR szFormula, DOUBLE &Result)
 #define StackEmpty() (nStack==0)
 #define StackTop() (pStack[nStack])
 #define StackPush(op) {nStack++;pStack[nStack]=op;}
-#define StackPop() {nStack--;}
+#define StackPop() {if (!nStack) {free(pOpList);free(pStack);return 0;} nStack--;}
 #define HasPrecedence(a,b) (CalcOpPrecedence[a]>CalcOpPrecedence[b])
 #define MoveStack(op)  \
 	{ \
