@@ -16,7 +16,7 @@
 #error /DCINTERFACE
 #endif
 
-#define DBG_SPEW
+//#define DBG_SPEW
 
 
 #include "MQ2Main.h"
@@ -75,6 +75,7 @@ VOID DebugSpewAlways(PCHAR szFormat, ...)
 
 EQLIB_API VOID DebugSpewNoFile(PCHAR szFormat, ...)
 {
+#ifdef DBG_SPEW
     CHAR szOutput[MAX_STRING] = {0};
     va_list vaList;
 
@@ -83,6 +84,7 @@ EQLIB_API VOID DebugSpewNoFile(PCHAR szFormat, ...)
     vsprintf(szOutput,szFormat, vaList);
     OutputDebugString(szOutput);
     OutputDebugString("\n");
+#endif
 }
 
 
