@@ -658,6 +658,12 @@ typedef struct _ACTORINFO {
 /*0x2634*/   BYTE		Unknown0x2634[0x006c];
 /*0x26a0*/   DWORD		InvitedToGroup; // 1 = currently invited to group
 /*0c26a4*/   DWORD		UnknownGroupRelatedFlag;
+
+//This is an emergency placeholder to fix $char(casting)
+//This structure will be fixed soon {Amadeus}
+	BYTE	PlaceHolder[0x30];
+
+
 /*0x26a8*/   DWORD      CastingSpellID; // -1 = not casting a spell
 /*0x26ac*/   DWORD      Unknown0x26ac[0x02];
 /*0x26b4*/	 DWORD		UnknownModelRelatedPointer;  //research this later
