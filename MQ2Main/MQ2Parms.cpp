@@ -21,6 +21,42 @@
 
 #include "MQ2Main.h"
 
+DWORD FullClassToShort(CHAR szLongClass[MAX_STRING]) {
+	CHAR szShortClass[MAX_STRING] = {0};
+	if (!strnicmp(szLongClass, "Warrior", 7)) {
+        strcpy(szShortClass,"WAR");
+	} else if (!strnicmp(szLongClass, "Wizard", 6)) {
+        strcpy(szShortClass,"WIZ");
+	} else if (!strnicmp(szLongClass, "Shadow Knight", 13)) {
+        strcpy(szShortClass,"SHD");
+	} else if (!strnicmp(szLongClass, "Magician", 8)) {
+        strcpy(szShortClass,"MAG");
+	} else if (!strnicmp(szLongClass, "Enchanter", 9)) {
+        strcpy(szShortClass,"ENC");
+	} else if (!strnicmp(szLongClass, "Necromancer", 11)) {
+        strcpy(szShortClass,"NEC");
+	} else if (!strnicmp(szLongClass, "Cleric", 6)) {
+        strcpy(szShortClass,"CLR");
+	} else if (!strnicmp(szLongClass, "Druid", 5)) {
+        strcpy(szShortClass,"DRU");
+	} else if (!strnicmp(szLongClass, "Shaman", 6)) {
+        strcpy(szShortClass,"SHA");
+	} else if (!strnicmp(szLongClass, "Beastlord", 9)) {
+        strcpy(szShortClass,"BST");
+	} else if (!strnicmp(szLongClass, "Paladin", 7)) {
+        strcpy(szShortClass,"PAL");
+	} else if (!strnicmp(szLongClass, "Bard", 4)) {
+        strcpy(szShortClass,"BRD");
+	} else if (!strnicmp(szLongClass, "Monk", 4)) {
+        strcpy(szShortClass,"MNK");
+	} else if (!strnicmp(szLongClass, "Ranger", 6)) {
+        strcpy(szShortClass,"RNG");
+	} else {
+		strcpy(szShortClass,"UNK");
+	}
+	szLongClass = szShortClass;
+    return 3;
+}
 
 DWORD parmGetLastFindSlot(PCHAR szVar, PCHAR szOutput, PSPAWNINFO pChar)
 {
@@ -1015,6 +1051,14 @@ DWORD parmTarget(PCHAR szVar, PCHAR szOutput, PSPAWNINFO pChar)
         CHAR szTemp[MAX_STRING] = {0};
         strcpy(szTemp,pEverQuest->GetClassDesc(psTarget->Class));
         strcat(szOutput,szTemp);
+
+	// $target(sclass)
+	} else if (!strncmp("$target(sclass)",szVar,13)) {
+		i+=12;
+		CHAR szTemp[MAX_STRING] = {0};
+		strcpy(szTemp,pEverQuest->GetClassDesc(psTarget->Class));
+		FullClassToShort(szTemp);
+		strcat(szOutput,szTemp);
 
     // $target(race)
     } else if (!strncmp("target(race)",szVar,12)) {
@@ -2370,6 +2414,14 @@ DWORD parmChar(PCHAR szVar, PCHAR szOutput, PSPAWNINFO pChar)
         strcpy(szTemp,pEverQuest->GetClassDesc(GetCharInfo()->pSpawn->Class));
         strcat(szOutput,szTemp);
 
+	// $char(sclass)
+	} else if (!strncmp("char(sclass)",szVar,12)) {
+		i+=11;
+		CHAR szTemp[MAX_STRING] = {0};
+		strcpy(szTemp,pEverQuest->GetClassDesc(GetCharInfo()->pSpawn->Class));
+		FullClassToShort(szTemp);
+		strcat(szOutput,szTemp);
+
     // $char(race)
     } else if (!strncmp("char(race)",szVar,10)) {
         i+=9;
@@ -2403,6 +2455,7 @@ DWORD parmChar(PCHAR szVar, PCHAR szOutput, PSPAWNINFO pChar)
         i+=9;
         itoa(pCharInfo->Plat,szTemp,10);
         strcat(szOutput,szTemp);
+
     // $char(plat,bank)
     } else if (!strncmp("char(plat,bank)",szVar,15)) {
         CHAR szTemp[MAX_STRING] = {0};
