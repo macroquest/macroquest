@@ -6,7 +6,10 @@
   OFF by default. To set this, set AllErrorsFatal=1 in MacroQuest.ini section [MacroQuest]
 - If for some reason you need to clear all GLOBAL SCOPE variables,
   /deletevar * global
-  will do the trick.
+  will do the trick.  For example, after you try to run an old macro and then realize the
+  global scope changed and /zapvars no longer exists, but you can't make the variables outer
+  scope because theyre already in global scope and you dont want to delete them all one by
+  one....
 
 29 Apr 2004 by Lax (more):
 - Fixed Multi-dimensional arrays
