@@ -479,7 +479,7 @@ typedef struct _CHARINFO {
 /*0x0cb4*/  DWORD		field_CB4;
 /*0x0cb8*/  DWORD		field_CB8;
 /*0x0cbc*/  DWORD		field_CBC;
-/*0x0cc0*/  BYTE		field_CC0[0x40];
+/*0x0cc0*/  BYTE		field_CC0[0x40];  
 /*0x0d00*/  DWORD		field_D00;
 /*0x0d04*/  DWORD		field_D04;
 /*0x0d08*/  BYTE		Unknown0xd08[0x58];
@@ -563,10 +563,10 @@ union{
 /*0x9838*/  DWORD       Unknown0x9838; 
 /*0x983C*/  DWORD       CurrFavor; 
 /*0x9840*/  BYTE        Unknown0x9840[0x11c];  
-/*0x995c*/	DWORD		LeadershipRelated1;
-/*0x9960*/	DWORD		LeadershipRelated2;
-/*0x9964*/	DWORD		LeadershipRelated3;
-/*0x9968*/	DWORD		LeadershipRelated4;
+/*0x995c*/  DWORD       GroupLeadershipExp;      // 0-499 or 0x000-0x1FF? need confirmation 
+/*0x9960*/  DWORD       RaidLeadershipExp;       // 0-999/0x3FF for display, 0-1999/0x7FF for actual value? 
+/*0x9964*/  DWORD       GroupLeadershipPoints;   // 0-8 
+/*0x9968*/  DWORD       RaidLeadershipPoints;    // 0-10
 /*0x996c*/	BYTE		Unknown0x996c[0x140];
 /*0x9aac*/	struct		_CONTENTS* Bank[NUM_BANK_SLOTS]; 
 /*0x9af4*/	BYTE		Unknown0x9af4[0xa8];
