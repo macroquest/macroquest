@@ -1192,7 +1192,7 @@ EQLIB_OBJECT int CDisplay::TurnInfravisionEffectOn(void);
 EQLIB_OBJECT long CDisplay::SetUserRender(int);
 EQLIB_OBJECT static char * CDisplay::DefaultUIPath;
 EQLIB_OBJECT static char * CDisplay::UIPath;
-EQLIB_OBJECT static int __cdecl CDisplay::WriteTextHD2(char const *,int,int,int);
+EQLIB_OBJECT static int __cdecl CDisplay::WriteTextHD2(char const *text,int X,int Y,int color);
 EQLIB_OBJECT static unsigned long __cdecl CDisplay::GetUserDefinedColor(int);
 EQLIB_OBJECT static void __cdecl CDisplay::SetUserDefinedColor(int,int,int,int);
 EQLIB_OBJECT struct T3D_POINTLIGHT * CDisplay::CreateLight(unsigned char,float,float,float,float);

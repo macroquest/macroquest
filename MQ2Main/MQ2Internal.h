@@ -231,6 +231,7 @@ typedef struct _MQPlugin
 	fMQPulse Pulse;
 	fMQIncomingChat IncomingChat;
 	fMQCleanUI CleanUI;
+	fMQDrawHUD DrawHUD;
 	fMQSetGameState SetGameState;
 	struct _MQPlugin* pLast;
 	struct _MQPlugin* pNext;

@@ -68,6 +68,7 @@ DWORD LoadMQ2Plugin(const PCHAR pszFilename)
 	pPlugin->WriteChatColor=(fMQWriteChatColor)GetProcAddress(hmod,"OnWriteChatColor");
 	pPlugin->Zoned=(fMQZoned)GetProcAddress(hmod,"OnZoned");
 	pPlugin->CleanUI=(fMQCleanUI)GetProcAddress(hmod,"OnCleanUI");
+	pPlugin->DrawHUD=(fMQDrawHUD)GetProcAddress(hmod,"OnDrawHUD");
 	pPlugin->SetGameState=(fMQSetGameState)GetProcAddress(hmod,"SetGameState");
 
 	if (pPlugin->Initialize)
@@ -165,6 +166,7 @@ VOID ShutdownMQ2Plugins()
 	//	CAutoLock Lock(&gPluginCS);
 		while(pPlugins)
 		{
+			DebugSpew("%s->Unload()",pPlugins->szFilename);
 			UnloadMQ2Plugin(pPlugins->szFilename);
 		}
 	}
@@ -215,6 +217,7 @@ VOID PulsePlugins()
 	{
 		if (pPlugin->Pulse)
 		{
+//			DebugSpew("%s->Pulse()",pPlugin->szFilename);
 			pPlugin->Pulse();
 		}
 		pPlugin=pPlugin->pNext;
@@ -231,6 +234,7 @@ VOID PluginsZoned()
 	{
 		if (pPlugin->Zoned)
 		{
+			DebugSpew("%s->Zoned()",pPlugin->szFilename);
 			pPlugin->Zoned();
 		}
 		pPlugin=pPlugin->pNext;
@@ -247,6 +251,7 @@ VOID PluginsCleanUI()
 	{
 		if (pPlugin->CleanUI)
 		{
+			DebugSpew("%s->CleanUI()",pPlugin->szFilename);
 			pPlugin->CleanUI();
 		}
 		pPlugin=pPlugin->pNext;
@@ -265,7 +270,25 @@ VOID PluginsSetGameState(DWORD GameState)
 	{
 		if (pPlugin->SetGameState)
 		{
+			DebugSpew("%s->SetGameState(%d)",pPlugin->szFilename,GameState);
 			pPlugin->SetGameState(GameState);
+		}
+		pPlugin=pPlugin->pNext;
+	}
+}
+
+VOID PluginsDrawHUD()
+{
+	if (!bPluginCS)
+		return;
+	CAutoLock Lock(&gPluginCS);
+	PMQPLUGIN pPlugin=pPlugins;
+	while(pPlugin)
+	{
+		if (pPlugin->DrawHUD)
+		{
+//			DebugSpew("%s->DrawHUD()",pPlugin->szFilename);
+			pPlugin->DrawHUD();
 		}
 		pPlugin=pPlugin->pNext;
 	}

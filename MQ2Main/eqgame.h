@@ -114,7 +114,8 @@
 	GetPrivateProfileString("Function Locations","SendMessage","0",szBuffer,MAX_STRING,ClientINI); send_message = (fEQSendMessage)strtoul(szBuffer,NULL,16);
     GetPrivateProfileString("Function Locations","NewUIINI","0",szBuffer,MAX_STRING,ClientINI);         NewUIINI = (fEQNewUIINI)strtoul(szBuffer,NULL,16);
 /**/
-
+// other static
+#define DrawNetStatus							0x004A9EFD
 
 // CEverQuest
 #define CEverQuest__dsp_chat					0x0049544B
@@ -196,6 +197,7 @@
 //	GetPrivateProfileString("Function Locations","CleanGameUI","0",szBuffer,MAX_STRING,ClientINI); EQADDR_CLEANUI = (DWORD)strtoul(szBuffer,NULL,16);
 #define CDisplay__GetClickedActor				0x0040BB73
 //    GetPrivateProfileString("Function Locations","ScreenItem","0",szBuffer,MAX_STRING,ClientINI);       ScreenItem = (fEQScreenItem)strtoul(szBuffer,NULL,16);
+#define CDisplay__WriteTextHD2					0x004105CD
 
 #define EQ_Item__GetItemLinkHash				0x0042EDC4
 // EQ_Item
@@ -223,3 +225,4 @@
 // MapViewMap
 #define MapViewMap__SaveEx						0x004FB065
 //    GetPrivateProfileString("Function Locations","WriteMapfile","0",szBuffer,MAX_STRING,ClientINI); EQADDR_WRITEMAPFILE = (DWORD)strtoul(szBuffer,NULL,16);
+

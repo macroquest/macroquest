@@ -29,6 +29,14 @@ REVERSE_DETOUR(char * EQ_Item::GetItemLinkHash(char *),EQ_Item__GetItemLinkHash)
 REVERSE_DETOUR(class CXSize& CStmlWnd::AppendSTML(class CXSize*,class CXStr),CStmlWnd__AppendSTML);
 #endif
 
+REVERSE_VIRTUAL_DETOUR(void CChatWindow::operator delete[](void*),0x04);
+
+REVERSE_VIRTUAL_DETOUR(bool CXWnd::IsValid(void)const,0);
+REVERSE_VIRTUAL_DETOUR(int CXWnd::Show(bool,bool),0x0C0);
+REVERSE_VIRTUAL_DETOUR(int CXWnd::SetVScrollPos(int),0x0FC);
+REVERSE_VIRTUAL_DETOUR(void CXWnd::SetWindowTextA(class CXStr),0x108);
+
+
 // AUTO IMPORTS
 
 #ifdef CAAWnd__CAAWnd
@@ -425,7 +433,7 @@ REVERSE_DETOUR( STextureAnimationFrame::STextureAnimationFrame(void),STextureAni
 REVERSE_DETOUR( CUITexturePiece::CUITexturePiece(void),CUITexturePiece__CUITexturePiece);
 #endif
 #ifdef STextureAnimationFrame__operator_equal
-REVERSE_DETOUR(struct STextureAnimationFrame &  STextureAnimationFrame::operator=(struct STextureAnimationFrame const &),STextureAnimationFrame__operator_equal);
+REVERSE_DETOUR(class STextureAnimationFrame &  STextureAnimationFrame::operator=(class STextureAnimationFrame const &),STextureAnimationFrame__operator_equal);
 #endif
 #ifdef CUITexturePiece__operator_equal
 REVERSE_DETOUR(class CUITexturePiece &  CUITexturePiece::operator=(class CUITexturePiece const &),CUITexturePiece__operator_equal);
@@ -1055,13 +1063,13 @@ REVERSE_DETOUR(void  CEditLabelWnd::Activate(class CXWnd *,char *,int,unsigned l
 REVERSE_DETOUR( CEQSuiteTextureLoader::~CEQSuiteTextureLoader(void),CEQSuiteTextureLoader__dCEQSuiteTextureLoader);
 #endif
 #ifdef CEQSuiteTextureLoader__CreateTexture
-REVERSE_DETOUR(unsigned int  CEQSuiteTextureLoader::CreateTexture(struct CUITextureInfo const &),CEQSuiteTextureLoader__CreateTexture);
+REVERSE_DETOUR(unsigned int  CEQSuiteTextureLoader::CreateTexture(class CUITextureInfo const &),CEQSuiteTextureLoader__CreateTexture);
 #endif
 #ifdef CEQSuiteTextureLoader__UnloadAllTextures
 REVERSE_DETOUR(void  CEQSuiteTextureLoader::UnloadAllTextures(void),CEQSuiteTextureLoader__UnloadAllTextures);
 #endif
 #ifdef CEQSuiteTextureLoader__GetTexture
-REVERSE_DETOUR(struct T3D_tagBMINFO *  CEQSuiteTextureLoader::GetTexture(struct CUITextureInfo const &),CEQSuiteTextureLoader__GetTexture);
+REVERSE_DETOUR(struct T3D_tagBMINFO *  CEQSuiteTextureLoader::GetTexture(class CUITextureInfo const &),CEQSuiteTextureLoader__GetTexture);
 #endif
 #ifdef CUITextureInfo__GetName
 REVERSE_DETOUR(class CXStr  CUITextureInfo::GetName(void)const ,CUITextureInfo__GetName);
@@ -1484,7 +1492,7 @@ REVERSE_DETOUR(void  CGroupSearchWnd::HandleGroupResultRowSelected(int),CGroupSe
 REVERSE_DETOUR(void  CGroupSearchWnd::HandleDoubleClickedOnPlayer(char const *),CGroupSearchWnd__HandleDoubleClickedOnPlayer);
 #endif
 #ifdef CGroupSearchWnd__HandleNumericSort
-REVERSE_DETOUR(void  CGroupSearchWnd::HandleNumericSort(struct SListWndSortInfo *),CGroupSearchWnd__HandleNumericSort);
+REVERSE_DETOUR(void  CGroupSearchWnd::HandleNumericSort(class SListWndSortInfo *),CGroupSearchWnd__HandleNumericSort);
 #endif
 #ifdef CGroupSearchWnd__HandleGroupMakeupChanged
 REVERSE_DETOUR(void  CGroupSearchWnd::HandleGroupMakeupChanged(void),CGroupSearchWnd__HandleGroupMakeupChanged);
@@ -1598,19 +1606,19 @@ REVERSE_DETOUR(char *  CGuildMgmtWnd::GetPersonalNote(char *),CGuildMgmtWnd__Get
 REVERSE_DETOUR(void  CGuildMgmtWnd::SetPersonalNote(char *,char *),CGuildMgmtWnd__SetPersonalNote);
 #endif
 #ifdef CGuildMgmtWnd__AddMember
-REVERSE_DETOUR(void  CGuildMgmtWnd::AddMember(struct GuildMember *),CGuildMgmtWnd__AddMember);
+REVERSE_DETOUR(void  CGuildMgmtWnd::AddMember(class GuildMember *),CGuildMgmtWnd__AddMember);
 #endif
 #ifdef CGuildMgmtWnd__RemoveMember
-REVERSE_DETOUR(void  CGuildMgmtWnd::RemoveMember(struct GuildMember *),CGuildMgmtWnd__RemoveMember);
+REVERSE_DETOUR(void  CGuildMgmtWnd::RemoveMember(class GuildMember *),CGuildMgmtWnd__RemoveMember);
 #endif
 #ifdef CGuildMgmtWnd__RenameMember
 REVERSE_DETOUR(void  CGuildMgmtWnd::RenameMember(char *,char *),CGuildMgmtWnd__RenameMember);
 #endif
 #ifdef CGuildMgmtWnd__UpdateListMember
-REVERSE_DETOUR(void  CGuildMgmtWnd::UpdateListMember(struct GuildMember *,int),CGuildMgmtWnd__UpdateListMember);
+REVERSE_DETOUR(void  CGuildMgmtWnd::UpdateListMember(class GuildMember *,int),CGuildMgmtWnd__UpdateListMember);
 #endif
 #ifdef CGuildMgmtWnd__FindListMember
-REVERSE_DETOUR(int  CGuildMgmtWnd::FindListMember(struct GuildMember *),CGuildMgmtWnd__FindListMember);
+REVERSE_DETOUR(int  CGuildMgmtWnd::FindListMember(class GuildMember *),CGuildMgmtWnd__FindListMember);
 #endif
 #ifdef CGuildMgmtWnd__Activate
 REVERSE_DETOUR(void  CGuildMgmtWnd::Activate(void),CGuildMgmtWnd__Activate);
@@ -2786,7 +2794,7 @@ REVERSE_DETOUR(void  CTradeWnd::DeleteItemFromHisTradeArray(int),CTradeWnd__Dele
 REVERSE_DETOUR(void  CTradeWnd::DropItemIntoTrade(void),CTradeWnd__DropItemIntoTrade);
 #endif
 #ifdef CTradeWnd__DropMoneyIntoTrade
-REVERSE_DETOUR(CTradeWnd::DropMoneyIntoTrade(void),CTradeWnd__DropMoneyIntoTrade);
+//REVERSE_DETOUR(CTradeWnd::DropMoneyIntoTrade(void),CTradeWnd__DropMoneyIntoTrade);
 #endif
 #ifdef CTradeWnd__SetMyReadyTrade
 REVERSE_DETOUR(void  CTradeWnd::SetMyReadyTrade(bool),CTradeWnd__SetMyReadyTrade);
@@ -2867,7 +2875,7 @@ REVERSE_DETOUR(int  CGuild::GetGuildIndex(char *),CGuild__GetGuildIndex);
 REVERSE_DETOUR(void  CGuild::SendPublicCommentChange(char *,char *),CGuild__SendPublicCommentChange);
 #endif
 #ifdef CGuild__DemoteMember
-REVERSE_DETOUR(void  CGuild::DemoteMember(struct GuildMember *),CGuild__DemoteMember);
+REVERSE_DETOUR(void  CGuild::DemoteMember(class GuildMember *),CGuild__DemoteMember);
 #endif
 #ifdef CGuild__SetGuildMotd
 REVERSE_DETOUR(void  CGuild::SetGuildMotd(struct guildmotdSet *),CGuild__SetGuildMotd);
@@ -2879,7 +2887,7 @@ REVERSE_DETOUR(void  CGuild::HandleGuildMessage(struct connection_t *,unsigned _
 REVERSE_DETOUR(void  CGuild::InitializeFromDump(char *),CGuild__InitializeFromDump);
 #endif
 #ifdef CGuild__AddGuildMember
-REVERSE_DETOUR(void  CGuild::AddGuildMember(struct GuildMember *),CGuild__AddGuildMember);
+REVERSE_DETOUR(void  CGuild::AddGuildMember(class GuildMember *),CGuild__AddGuildMember);
 #endif
 #ifdef CGuild__DeleteAllMembers
 REVERSE_DETOUR(void  CGuild::DeleteAllMembers(void),CGuild__DeleteAllMembers);
@@ -2906,13 +2914,13 @@ REVERSE_DETOUR(void  CGuild::UpdateMemberStatus(char *),CGuild__UpdateMemberStat
 REVERSE_DETOUR(void  CGuild::HandleMemberLevelUpdate(char *),CGuild__HandleMemberLevelUpdate);
 #endif
 #ifdef CGuild__UpdateGuildMemberOnWindow
-REVERSE_DETOUR(void  CGuild::UpdateGuildMemberOnWindow(struct GuildMember *),CGuild__UpdateGuildMemberOnWindow);
+REVERSE_DETOUR(void  CGuild::UpdateGuildMemberOnWindow(class GuildMember *),CGuild__UpdateGuildMemberOnWindow);
 #endif
 #ifdef CGuild__ChangeGuildMemberName
 REVERSE_DETOUR(void  CGuild::ChangeGuildMemberName(char *),CGuild__ChangeGuildMemberName);
 #endif
 #ifdef CGuild__FindMemberByName
-REVERSE_DETOUR(struct GuildMember *  CGuild::FindMemberByName(char *),CGuild__FindMemberByName);
+REVERSE_DETOUR(class GuildMember *  CGuild::FindMemberByName(char *),CGuild__FindMemberByName);
 #endif
 #ifdef GuildMember__GuildMember
 REVERSE_DETOUR( GuildMember::GuildMember(void),GuildMember__GuildMember);
@@ -3137,7 +3145,7 @@ REVERSE_DETOUR(void  CRaid::HandleAddLooter(char *),CRaid__HandleAddLooter);
 REVERSE_DETOUR(unsigned int __cdecl UdpMisc::GetValue32(void const *),UdpMisc__GetValue32);
 #endif
 #ifdef Util__GetValue32
-REVERSE_DETOUR(unsigned int __cdecl Util::GetValue32(void const *),Util__GetValue32);
+//REVERSE_DETOUR(unsigned int __cdecl Util::GetValue32(void const *),Util__GetValue32);
 #endif
 #ifdef CRaid__HandleRemoveLooter
 REVERSE_DETOUR(void  CRaid::HandleRemoveLooter(char *),CRaid__HandleRemoveLooter);
@@ -4433,7 +4441,7 @@ REVERSE_DETOUR(void  EqSoundManager::WaveLoad(char *,int,bool),EqSoundManager__W
 REVERSE_DETOUR(bool  EqSoundManager::WaveIsPlaying(int),EqSoundManager__WaveIsPlaying);
 #endif
 #ifdef EqSoundManager__WavePlay
-REVERSE_DETOUR(void  EqSoundManager::WavePlay(int,struct SoundControl *),EqSoundManager__WavePlay);
+REVERSE_DETOUR(void  EqSoundManager::WavePlay(int,class SoundControl *),EqSoundManager__WavePlay);
 #endif
 #ifdef EqSoundManager__WaveStop
 REVERSE_DETOUR(void  EqSoundManager::WaveStop(int),EqSoundManager__WaveStop);
@@ -4478,7 +4486,7 @@ REVERSE_DETOUR( FilePath::FilePath(class SharedString const &),FilePath__FilePat
 REVERSE_DETOUR(void  EqSoundManager::LoadOldEmitters(void),EqSoundManager__LoadOldEmitters);
 #endif
 #ifdef EqSoundManager__CreateOldEmitter
-REVERSE_DETOUR(class SoundEmitter *  EqSoundManager::CreateOldEmitter(int,float,float,float,int,int,int,float,int,int,int),EqSoundManager__CreateOldEmitter);
+//REVERSE_DETOUR(class SoundEmitter *  EqSoundManager::CreateOldEmitter(int,float,float,float,int,int,int,float,int,int,int),EqSoundManager__CreateOldEmitter);
 #endif
 #ifdef EqSoundManager__GetAsset
 REVERSE_DETOUR(class SoundAsset *  EqSoundManager::GetAsset(char *),EqSoundManager__GetAsset);
@@ -6068,16 +6076,16 @@ REVERSE_DETOUR(int  SoundManager::StreamingGetSongLength(void),SoundManager__Str
 //REVERSE_DETOUR(void  MusicManager::MusicEntry::FadeOut(bool),MusicManager__MusicEntry__FadeOut);
 #endif
 #ifdef SoundObject__SoundObject
-REVERSE_DETOUR( SoundObject::SoundObject(void),SoundObject__SoundObject);
+//REVERSE_DETOUR( SoundObject::SoundObject(void),SoundObject__SoundObject);
 #endif
 #ifdef SoundObject__Release
-REVERSE_DETOUR(void  SoundObject::Release(void),SoundObject__Release);
+//REVERSE_DETOUR(void  SoundObject::Release(void),SoundObject__Release);
 #endif
 #ifdef SoundInstance__SoundInstance
-REVERSE_DETOUR( SoundInstance::SoundInstance(class SoundManager *),SoundInstance__SoundInstance);
+//REVERSE_DETOUR( SoundInstance::SoundInstance(class SoundManager *),SoundInstance__SoundInstance);
 #endif
 #ifdef SoundInstance__YourManagerDeleted
-REVERSE_DETOUR(void  SoundInstance::YourManagerDeleted(void),SoundInstance__YourManagerDeleted);
+//REVERSE_DETOUR(void  SoundInstance::YourManagerDeleted(void),SoundInstance__YourManagerDeleted);
 #endif
 #ifdef flex_unit__clear
 REVERSE_DETOUR(void  flex_unit::clear(void),flex_unit__clear);
@@ -6089,64 +6097,64 @@ REVERSE_DETOUR( WaveInstance::WaveInstance(class SoundManager *),WaveInstance__W
 REVERSE_DETOUR( Wave3dInstance::Wave3dInstance(class SoundManager *),Wave3dInstance__Wave3dInstance);
 #endif
 #ifdef MidiInstance__MidiInstance
-REVERSE_DETOUR( MidiInstance::MidiInstance(class SoundManager *),MidiInstance__MidiInstance);
+//REVERSE_DETOUR( MidiInstance::MidiInstance(class SoundManager *),MidiInstance__MidiInstance);
 #endif
 #ifdef SoundAsset__SoundAsset
-REVERSE_DETOUR( SoundAsset::SoundAsset(class SoundManager *,char *,char *,int),SoundAsset__SoundAsset);
+//REVERSE_DETOUR( SoundAsset::SoundAsset(class SoundManager *,char *,char *,int),SoundAsset__SoundAsset);
 #endif
 #ifdef SoundAsset__GetType
 //REVERSE_DETOUR(enum AssetType  SoundAsset::GetType(void),SoundAsset__GetType);
 #endif
 #ifdef SoundAsset__YourManagerDeleted
-REVERSE_DETOUR(void  SoundAsset::YourManagerDeleted(void),SoundAsset__YourManagerDeleted);
+//REVERSE_DETOUR(void  SoundAsset::YourManagerDeleted(void),SoundAsset__YourManagerDeleted);
 #endif
 #ifdef SoundAsset__GiveTime
-REVERSE_DETOUR(void  SoundAsset::GiveTime(void),SoundAsset__GiveTime);
+//REVERSE_DETOUR(void  SoundAsset::GiveTime(void),SoundAsset__GiveTime);
 #endif
 #ifdef SoundAsset__IsPlaying
-REVERSE_DETOUR(bool  SoundAsset::IsPlaying(void),SoundAsset__IsPlaying);
+//REVERSE_DETOUR(bool  SoundAsset::IsPlaying(void),SoundAsset__IsPlaying);
 #endif
 #ifdef SoundAsset__AdjustVolume
-REVERSE_DETOUR(void  SoundAsset::AdjustVolume(float,int),SoundAsset__AdjustVolume);
+//REVERSE_DETOUR(void  SoundAsset::AdjustVolume(float,int),SoundAsset__AdjustVolume);
 #endif
 #ifdef SoundAsset__GetName
-REVERSE_DETOUR(char *  SoundAsset::GetName(void),SoundAsset__GetName);
+//REVERSE_DETOUR(char *  SoundAsset::GetName(void),SoundAsset__GetName);
 #endif
 #ifdef SoundAsset__Play
-REVERSE_DETOUR(class SoundInstance *  SoundAsset::Play(struct SoundControl *),SoundAsset__Play);
+//REVERSE_DETOUR(class SoundInstance *  SoundAsset::Play(class SoundControl *),SoundAsset__Play);
 #endif
 #ifdef SoundAsset__Stop
-REVERSE_DETOUR(void  SoundAsset::Stop(void),SoundAsset__Stop);
+//REVERSE_DETOUR(void  SoundAsset::Stop(void),SoundAsset__Stop);
 #endif
 #ifdef SoundControl__SoundControl
 REVERSE_DETOUR( SoundControl::SoundControl(void),SoundControl__SoundControl);
 #endif
 #ifdef SoundEmitter__SoundEmitter
-REVERSE_DETOUR( SoundEmitter::SoundEmitter(class EmitterManager *,class SoundAsset *,int),SoundEmitter__SoundEmitter);
+//REVERSE_DETOUR( SoundEmitter::SoundEmitter(class EmitterManager *,class SoundAsset *,int),SoundEmitter__SoundEmitter);
 #endif
 #ifdef SoundEmitter__SoundEmitter1
-REVERSE_DETOUR( SoundEmitter::SoundEmitter(class EmitterManager *,class MusicManager *,int),SoundEmitter__SoundEmitter1);
+//REVERSE_DETOUR( SoundEmitter::SoundEmitter(class EmitterManager *,class MusicManager *,int),SoundEmitter__SoundEmitter1);
 #endif
 #ifdef SoundEmitter__Init
-REVERSE_DETOUR(void  SoundEmitter::Init(void),SoundEmitter__Init);
+//REVERSE_DETOUR(void  SoundEmitter::Init(void),SoundEmitter__Init);
 #endif
 #ifdef SoundEmitter__GiveTime
-REVERSE_DETOUR(void  SoundEmitter::GiveTime(void),SoundEmitter__GiveTime);
+//REVERSE_DETOUR(void  SoundEmitter::GiveTime(void),SoundEmitter__GiveTime);
 #endif
 #ifdef SoundEmitter__ReleaseLoopingSound
-REVERSE_DETOUR(void  SoundEmitter::ReleaseLoopingSound(void),SoundEmitter__ReleaseLoopingSound);
+//REVERSE_DETOUR(void  SoundEmitter::ReleaseLoopingSound(void),SoundEmitter__ReleaseLoopingSound);
 #endif
 #ifdef SoundEmitter__ResetTimer
-REVERSE_DETOUR(void  SoundEmitter::ResetTimer(void),SoundEmitter__ResetTimer);
+//REVERSE_DETOUR(void  SoundEmitter::ResetTimer(void),SoundEmitter__ResetTimer);
 #endif
 #ifdef SoundEmitter__Move
-REVERSE_DETOUR(void  SoundEmitter::Move(float,float,float),SoundEmitter__Move);
+//REVERSE_DETOUR(void  SoundEmitter::Move(float,float,float),SoundEmitter__Move);
 #endif
 #ifdef SoundEmitter__SetAsset
-REVERSE_DETOUR(void  SoundEmitter::SetAsset(class SoundAsset *),SoundEmitter__SetAsset);
+//REVERSE_DETOUR(void  SoundEmitter::SetAsset(class SoundAsset *),SoundEmitter__SetAsset);
 #endif
 #ifdef SoundEmitter__Enable
-REVERSE_DETOUR(void  SoundEmitter::Enable(bool),SoundEmitter__Enable);
+//REVERSE_DETOUR(void  SoundEmitter::Enable(bool),SoundEmitter__Enable);
 #endif
 #ifdef Mp3Manager__Mp3Manager
 REVERSE_DETOUR( Mp3Manager::Mp3Manager(class SoundManager *,class MusicManager *),Mp3Manager__Mp3Manager);
@@ -6233,10 +6241,10 @@ REVERSE_DETOUR( EmitterManager::EmitterManager(class SoundManager *),EmitterMana
 REVERSE_DETOUR( EmitterManager::~EmitterManager(void),EmitterManager__dEmitterManager);
 #endif
 #ifdef EmitterManager__Add
-REVERSE_DETOUR(void  EmitterManager::Add(class SoundEmitter *),EmitterManager__Add);
+//REVERSE_DETOUR(void  EmitterManager::Add(class SoundEmitter *),EmitterManager__Add);
 #endif
 #ifdef EmitterManager__Remove
-REVERSE_DETOUR(void  EmitterManager::Remove(class SoundEmitter *),EmitterManager__Remove);
+//REVERSE_DETOUR(void  EmitterManager::Remove(class SoundEmitter *),EmitterManager__Remove);
 #endif
 #ifdef EmitterManager__GiveTime
 REVERSE_DETOUR(void  EmitterManager::GiveTime(void),EmitterManager__GiveTime);
@@ -6356,7 +6364,7 @@ REVERSE_DETOUR( UdpIpAddress::UdpIpAddress(unsigned int),UdpIpAddress__UdpIpAddr
 //REVERSE_DETOUR( UdpManager::UdpManager(struct UdpManager::Params const *),UdpManager__UdpManager);
 #endif
 #ifdef UdpManager__PoolReturn
-REVERSE_DETOUR(void  UdpManager::PoolReturn(class PooledLogicalPacket *),UdpManager__PoolReturn);
+//REVERSE_DETOUR(void  UdpManager::PoolReturn(class PooledLogicalPacket *),UdpManager__PoolReturn);
 #endif
 #ifdef UdpManager__dUdpManager
 REVERSE_DETOUR( UdpManager::~UdpManager(void),UdpManager__dUdpManager);
@@ -6410,22 +6418,22 @@ REVERSE_DETOUR(class UdpConnection *  UdpManager::AddressGetConnection(class Udp
 REVERSE_DETOUR(class UdpConnection *  UdpManager::ConnectCodeGetConnection(int)const ,UdpManager__ConnectCodeGetConnection);
 #endif
 #ifdef UdpManager__WrappedBorrow
-REVERSE_DETOUR(class WrappedLogicalPacket *  UdpManager::WrappedBorrow(class LogicalPacket const *),UdpManager__WrappedBorrow);
+//REVERSE_DETOUR(class WrappedLogicalPacket *  UdpManager::WrappedBorrow(class LogicalPacket const *),UdpManager__WrappedBorrow);
 #endif
 #ifdef UdpManager__WrappedCreated
-REVERSE_DETOUR(void  UdpManager::WrappedCreated(class WrappedLogicalPacket *),UdpManager__WrappedCreated);
+//REVERSE_DETOUR(void  UdpManager::WrappedCreated(class WrappedLogicalPacket *),UdpManager__WrappedCreated);
 #endif
 #ifdef UdpManager__WrappedDestroyed
-REVERSE_DETOUR(void  UdpManager::WrappedDestroyed(class WrappedLogicalPacket *),UdpManager__WrappedDestroyed);
+//REVERSE_DETOUR(void  UdpManager::WrappedDestroyed(class WrappedLogicalPacket *),UdpManager__WrappedDestroyed);
 #endif
 #ifdef UdpManager__CreatePacket
 REVERSE_DETOUR(class LogicalPacket *  UdpManager::CreatePacket(void const *,int,void const *,int),UdpManager__CreatePacket);
 #endif
 #ifdef UdpManager__PoolCreated
-REVERSE_DETOUR(void  UdpManager::PoolCreated(class PooledLogicalPacket *),UdpManager__PoolCreated);
+//REVERSE_DETOUR(void  UdpManager::PoolCreated(class PooledLogicalPacket *),UdpManager__PoolCreated);
 #endif
 #ifdef UdpManager__PoolDestroyed
-REVERSE_DETOUR(void  UdpManager::PoolDestroyed(class PooledLogicalPacket *),UdpManager__PoolDestroyed);
+//REVERSE_DETOUR(void  UdpManager::PoolDestroyed(class PooledLogicalPacket *),UdpManager__PoolDestroyed);
 #endif
 #ifdef UdpManager__PacketHistoryEntry__PacketHistoryEntry
 //REVERSE_DETOUR( UdpManager::PacketHistoryEntry::PacketHistoryEntry(int),UdpManager__PacketHistoryEntry__PacketHistoryEntry);
@@ -6629,7 +6637,7 @@ REVERSE_DETOUR(void  UdpReliableChannel::Ack(__int64),UdpReliableChannel__Ack);
 REVERSE_DETOUR( LogicalPacket::LogicalPacket(void),LogicalPacket__LogicalPacket);
 #endif
 #ifdef SoundObject__AddRef
-REVERSE_DETOUR(void  SoundObject::AddRef(void),SoundObject__AddRef);
+//REVERSE_DETOUR(void  SoundObject::AddRef(void),SoundObject__AddRef);
 #endif
 #ifdef Mp3Manager__GetPosition
 REVERSE_DETOUR(int  Mp3Manager::GetPosition(void),Mp3Manager__GetPosition);
@@ -6641,22 +6649,22 @@ REVERSE_DETOUR( SimpleLogicalPacket::SimpleLogicalPacket(void const *,int),Simpl
 REVERSE_DETOUR(void  EmitterManager::SetVolumeLevel(float),EmitterManager__SetVolumeLevel);
 #endif
 #ifdef PooledLogicalPacket__PooledLogicalPacket
-REVERSE_DETOUR( PooledLogicalPacket::PooledLogicalPacket(class UdpManager *,int),PooledLogicalPacket__PooledLogicalPacket);
+//REVERSE_DETOUR( PooledLogicalPacket::PooledLogicalPacket(class UdpManager *,int),PooledLogicalPacket__PooledLogicalPacket);
 #endif
 #ifdef ChannelServerApi__GetChannelCount
 REVERSE_DETOUR(int  ChannelServerApi::GetChannelCount(void),ChannelServerApi__GetChannelCount);
 #endif
 #ifdef PooledLogicalPacket__SetData
-REVERSE_DETOUR(void  PooledLogicalPacket::SetData(void const *,int,void const *,int),PooledLogicalPacket__SetData);
+//REVERSE_DETOUR(void  PooledLogicalPacket::SetData(void const *,int,void const *,int),PooledLogicalPacket__SetData);
 #endif
 #ifdef WrappedLogicalPacket__WrappedLogicalPacket
-REVERSE_DETOUR( WrappedLogicalPacket::WrappedLogicalPacket(class UdpManager *),WrappedLogicalPacket__WrappedLogicalPacket);
+//REVERSE_DETOUR( WrappedLogicalPacket::WrappedLogicalPacket(class UdpManager *),WrappedLogicalPacket__WrappedLogicalPacket);
 #endif
 #ifdef UdpManager__WrappedReturn
-REVERSE_DETOUR(void  UdpManager::WrappedReturn(class WrappedLogicalPacket *),UdpManager__WrappedReturn);
+//REVERSE_DETOUR(void  UdpManager::WrappedReturn(class WrappedLogicalPacket *),UdpManager__WrappedReturn);
 #endif
 #ifdef WrappedLogicalPacket__SetLogicalPacket
-REVERSE_DETOUR(void  WrappedLogicalPacket::SetLogicalPacket(class LogicalPacket const *),WrappedLogicalPacket__SetLogicalPacket);
+//REVERSE_DETOUR(void  WrappedLogicalPacket::SetLogicalPacket(class LogicalPacket const *),WrappedLogicalPacket__SetLogicalPacket);
 #endif
 #ifdef UdpManager__SimulateQueueEntry__SimulateQueueEntry
 //REVERSE_DETOUR( UdpManager::SimulateQueueEntry::SimulateQueueEntry(unsigned char const *,int,class UdpIpAddress,int),UdpManager__SimulateQueueEntry__SimulateQueueEntry);
@@ -6683,37 +6691,37 @@ REVERSE_DETOUR(unsigned int __cdecl UdpMisc::GetVariableValue(void const *,unsig
 REVERSE_DETOUR(class LogicalPacket * __cdecl UdpMisc::CreateQuickLogicalPacket(void const *,int,void const *,int),UdpMisc__CreateQuickLogicalPacket);
 #endif
 #ifdef Util__Stristr
-REVERSE_DETOUR(char * __cdecl Util::Stristr(char *,char *),Util__Stristr);
+//REVERSE_DETOUR(char * __cdecl Util::Stristr(char *,char *),Util__Stristr);
 #endif
 #ifdef Util__StripCharacter
-REVERSE_DETOUR(void __cdecl Util::StripCharacter(char *,char),Util__StripCharacter);
+//REVERSE_DETOUR(void __cdecl Util::StripCharacter(char *,char),Util__StripCharacter);
 #endif
 #ifdef Util__ClampLower
-REVERSE_DETOUR(bool __cdecl Util::ClampLower(int *,int),Util__ClampLower);
+//REVERSE_DETOUR(bool __cdecl Util::ClampLower(int *,int),Util__ClampLower);
 #endif
 #ifdef Util__ClampUpper
-REVERSE_DETOUR(bool __cdecl Util::ClampUpper(int *,int),Util__ClampUpper);
+//REVERSE_DETOUR(bool __cdecl Util::ClampUpper(int *,int),Util__ClampUpper);
 #endif
 #ifdef Util__GetNextStringToken
-REVERSE_DETOUR(int __cdecl Util::GetNextStringToken(char *,char *,int,char *,bool),Util__GetNextStringToken);
+//REVERSE_DETOUR(int __cdecl Util::GetNextStringToken(char *,char *,int,char *,bool),Util__GetNextStringToken);
 #endif
 #ifdef Util__IsDelimiter
-REVERSE_DETOUR(bool __cdecl Util::IsDelimiter(char,char *),Util__IsDelimiter);
+//REVERSE_DETOUR(bool __cdecl Util::IsDelimiter(char,char *),Util__IsDelimiter);
 #endif
 #ifdef Util__Crc32
-REVERSE_DETOUR(int __cdecl Util::Crc32(void const *,int,int),Util__Crc32);
+//REVERSE_DETOUR(int __cdecl Util::Crc32(void const *,int,int),Util__Crc32);
 #endif
 #ifdef Util__GetSavePrivateProfileInt
-REVERSE_DETOUR(int __cdecl Util::GetSavePrivateProfileInt(char *,char *,int,char *),Util__GetSavePrivateProfileInt);
+//REVERSE_DETOUR(int __cdecl Util::GetSavePrivateProfileInt(char *,char *,int,char *),Util__GetSavePrivateProfileInt);
 #endif
 #ifdef Util__PutValueVariable
-REVERSE_DETOUR(int __cdecl Util::PutValueVariable(void *,unsigned int),Util__PutValueVariable);
+//REVERSE_DETOUR(int __cdecl Util::PutValueVariable(void *,unsigned int),Util__PutValueVariable);
 #endif
 #ifdef Util__PutValue32
-REVERSE_DETOUR(unsigned int __cdecl Util::PutValue32(void *,unsigned int),Util__PutValue32);
+//REVERSE_DETOUR(unsigned int __cdecl Util::PutValue32(void *,unsigned int),Util__PutValue32);
 #endif
 #ifdef Util__GetValueVariable
-REVERSE_DETOUR(int __cdecl Util::GetValueVariable(void const *,unsigned int *),Util__GetValueVariable);
+//REVERSE_DETOUR(int __cdecl Util::GetValueVariable(void const *,unsigned int *),Util__GetValueVariable);
 #endif
 #ifdef TextFileReader__TextFileReader
 REVERSE_DETOUR( TextFileReader::TextFileReader(char *,char),TextFileReader__TextFileReader);
@@ -6803,7 +6811,7 @@ REVERSE_DETOUR( vlong_value::~vlong_value(void),vlong_value__dvlong_value);
 REVERSE_DETOUR(void  vlong::docopy(void),vlong__docopy);
 #endif
 #ifdef vlong__cf
-REVERSE_DETOUR(int  vlong::cf(class vlong)const ,vlong__cf);
+//REVERSE_DETOUR(int  vlong::cf(class vlong)const ,vlong__cf);
 #endif
 #ifdef vlong__vlong
 REVERSE_DETOUR( vlong::vlong(unsigned __int64),vlong__vlong);
@@ -6857,7 +6865,7 @@ REVERSE_DETOUR(int __cdecl ZlibUtil::Decompress(char const *,int,char *,int),Zli
 REVERSE_DETOUR( PackFS::PackFS(void),PackFS__PackFS);
 #endif
 #ifdef PackFS__addFileSystem
-REVERSE_DETOUR(bool  PackFS::addFileSystem(class FilePath),PackFS__addFileSystem);
+//REVERSE_DETOUR(bool  PackFS::addFileSystem(class FilePath),PackFS__addFileSystem);
 #endif
 #ifdef PackFS__removeFileSystem
 REVERSE_DETOUR(void  PackFS::removeFileSystem(class FilePath),PackFS__removeFileSystem);
@@ -6884,7 +6892,7 @@ REVERSE_DETOUR(int  PackFile::length(void)const ,PackFile__length);
 REVERSE_DETOUR(int  PackFile::read(void * const,int),PackFile__read);
 #endif
 #ifdef PackFS__openFile
-REVERSE_DETOUR(bool  PackFS::openFile(class FilePath,class PackFile *)const ,PackFS__openFile);
+//REVERSE_DETOUR(bool  PackFS::openFile(class FilePath,class PackFile *)const ,PackFS__openFile);
 #endif
 #ifdef CRC32Generator__generateCRC32
 REVERSE_DETOUR(unsigned int  CRC32Generator::generateCRC32(unsigned char const *,unsigned int)const ,CRC32Generator__generateCRC32);
@@ -7271,10 +7279,10 @@ REVERSE_DETOUR(void  CXStr::Strip(char),CXStr__Strip);
 //REVERSE_DETOUR(void  CXStr::SetEncoding(enum EStringEncoding),CXStr__SetEncoding);
 #endif
 #ifdef CXStr__operator_char_p
-REVERSE_DETOUR( CXStr::operator char *(void)const ,CXStr__operator_char_p);
+//REVERSE_DETOUR( CXStr::operator char *(void)const ,CXStr__operator_char_p);
 #endif
 #ifdef CXStr__operator_unsigned_short_p
-REVERSE_DETOUR( CXStr::operator unsigned short *(void)const ,CXStr__operator_unsigned_short_p);
+//REVERSE_DETOUR( CXStr::operator unsigned short *(void)const ,CXStr__operator_unsigned_short_p);
 #endif
 #ifdef CXStr__SetUpperCase
 REVERSE_DETOUR(void  CXStr::SetUpperCase(void),CXStr__SetUpperCase);
@@ -7367,7 +7375,7 @@ REVERSE_DETOUR(class CTextureAnimation const *  CListWnd::GetColumnAnimationSele
 REVERSE_DETOUR(class CTextureAnimation const *  CListWnd::GetColumnAnimationMouseOver(int)const ,CListWnd__GetColumnAnimationMouseOver);
 #endif
 #ifdef CListWnd__AddLine
-REVERSE_DETOUR(int  CListWnd::AddLine(struct SListWndLine const *),CListWnd__AddLine);
+REVERSE_DETOUR(int  CListWnd::AddLine(class SListWndLine const *),CListWnd__AddLine);
 #endif
 #ifdef CListWnd__AddString
 REVERSE_DETOUR(int  CListWnd::AddString(class CXStr,unsigned long,unsigned __int32,class CTextureAnimation const *),CListWnd__AddString);
@@ -7418,7 +7426,7 @@ REVERSE_DETOUR(int  CListWnd::AddColumn(class CXStr,class CTextureAnimation *,in
 REVERSE_DETOUR( SListWndColumn::SListWndColumn(class CXStr,int,class CTextureAnimation *,unsigned __int32,unsigned __int32,class CTextureAnimation *,class CTextureAnimation *),SListWndColumn__SListWndColumn);
 #endif
 #ifdef SLinkInfo__dSLinkInfo
-REVERSE_DETOUR( SLinkInfo::~SLinkInfo(void),SLinkInfo__dSLinkInfo);
+//REVERSE_DETOUR( SLinkInfo::~SLinkInfo(void),SLinkInfo__dSLinkInfo);
 #endif
 #ifdef SListWndCellEditUpdate__dSListWndCellEditUpdate
 REVERSE_DETOUR( SListWndCellEditUpdate::~SListWndCellEditUpdate(void),SListWndCellEditUpdate__dSListWndCellEditUpdate);
@@ -7478,7 +7486,7 @@ REVERSE_DETOUR( SListWndLine::SListWndLine(void),SListWndLine__SListWndLine);
 REVERSE_DETOUR(struct SListWndCell &  SListWndCell::operator=(struct SListWndCell const &),SListWndCell__operator_equal);
 #endif
 #ifdef SListWndLine__operator_equal
-REVERSE_DETOUR(struct SListWndLine &  SListWndLine::operator=(struct SListWndLine const &),SListWndLine__operator_equal);
+REVERSE_DETOUR(class SListWndLine &  SListWndLine::operator=(class SListWndLine const &),SListWndLine__operator_equal);
 #endif
 #ifdef CScreenPieceTemplate__CScreenPieceTemplate
 REVERSE_DETOUR( CScreenPieceTemplate::CScreenPieceTemplate(class CParamScreenPiece *),CScreenPieceTemplate__CScreenPieceTemplate);
@@ -7556,10 +7564,10 @@ REVERSE_DETOUR( CScreenTemplate::CScreenTemplate(class CParamScreen *),CScreenTe
 REVERSE_DETOUR( CStmlWnd::CStmlWnd(class CXWnd *,unsigned __int32,class CXRect),CStmlWnd__CStmlWnd);
 #endif
 #ifdef CStmlWnd__InitializeTextLine
-REVERSE_DETOUR(void  CStmlWnd::InitializeTextLine(struct SParseVariables *,int),CStmlWnd__InitializeTextLine);
+REVERSE_DETOUR(void  CStmlWnd::InitializeTextLine(class SParseVariables *,int),CStmlWnd__InitializeTextLine);
 #endif
 #ifdef CStmlWnd__AddTextPieceToLine
-REVERSE_DETOUR(void  CStmlWnd::AddTextPieceToLine(struct SParseVariables *),CStmlWnd__AddTextPieceToLine);
+REVERSE_DETOUR(void  CStmlWnd::AddTextPieceToLine(class SParseVariables *),CStmlWnd__AddTextPieceToLine);
 #endif
 #ifdef CStmlWnd__MakeStmlColorTag
 REVERSE_DETOUR(class CXStr __cdecl CStmlWnd::MakeStmlColorTag(unsigned long),CStmlWnd__MakeStmlColorTag);
@@ -7628,13 +7636,13 @@ REVERSE_DETOUR(unsigned short  CStmlWnd::FastForwardPastQuotesAndGetNextTagPiece
 REVERSE_DETOUR(unsigned short  CStmlWnd::FastForwardToEndOfTag(class CXStr,class CXStr *,int *,char),CStmlWnd__FastForwardToEndOfTag);
 #endif
 #ifdef CStmlWnd__InitializeTempVariables
-REVERSE_DETOUR(void  CStmlWnd::InitializeTempVariables(struct SParseVariables *,class CXRect),CStmlWnd__InitializeTempVariables);
+REVERSE_DETOUR(void  CStmlWnd::InitializeTempVariables(class SParseVariables *,class CXRect),CStmlWnd__InitializeTempVariables);
 #endif
 #ifdef CStmlWnd__InitializeWindowVariables
 REVERSE_DETOUR(void  CStmlWnd::InitializeWindowVariables(void),CStmlWnd__InitializeWindowVariables);
 #endif
 #ifdef CStmlWnd__ResetTempVariablesForNewLine
-REVERSE_DETOUR(void  CStmlWnd::ResetTempVariablesForNewLine(struct SParseVariables *),CStmlWnd__ResetTempVariablesForNewLine);
+REVERSE_DETOUR(void  CStmlWnd::ResetTempVariablesForNewLine(class SParseVariables *),CStmlWnd__ResetTempVariablesForNewLine);
 #endif
 #ifdef CStmlWnd__GetNextChar
 REVERSE_DETOUR(unsigned short  CStmlWnd::GetNextChar(int *,class CXStr),CStmlWnd__GetNextChar);
@@ -7658,7 +7666,7 @@ REVERSE_DETOUR( SFormattedText::~SFormattedText(void),SFormattedText__dSFormatte
 REVERSE_DETOUR(void  CStmlWnd::ParseSTMLHead(class CXStr),CStmlWnd__ParseSTMLHead);
 #endif
 #ifdef CStmlWnd__ParseSTMLTable
-REVERSE_DETOUR(void  CStmlWnd::ParseSTMLTable(class CXStr,int *,class CXStr,struct SParseVariables *),CStmlWnd__ParseSTMLTable);
+REVERSE_DETOUR(void  CStmlWnd::ParseSTMLTable(class CXStr,int *,class CXStr,class SParseVariables *),CStmlWnd__ParseSTMLTable);
 #endif
 #ifdef STempTable__dSTempTable
 REVERSE_DETOUR( STempTable::~STempTable(void),STempTable__dSTempTable);
@@ -7673,7 +7681,7 @@ REVERSE_DETOUR( STable::~STable(void),STable__dSTable);
 REVERSE_DETOUR( STableCell::~STableCell(void),STableCell__dSTableCell);
 #endif
 #ifdef CStmlWnd__ParseSTMLTableAttributes
-REVERSE_DETOUR(void  CStmlWnd::ParseSTMLTableAttributes(class CXStr,struct STable *),CStmlWnd__ParseSTMLTableAttributes);
+REVERSE_DETOUR(void  CStmlWnd::ParseSTMLTableAttributes(class CXStr,class STable *),CStmlWnd__ParseSTMLTableAttributes);
 #endif
 #ifdef CStmlWnd__GetVisiableText
 REVERSE_DETOUR(class CXStr  CStmlWnd::GetVisiableText(class CXStr,class CXRect)const ,CStmlWnd__GetVisiableText);
@@ -7697,43 +7705,43 @@ REVERSE_DETOUR(void  CStmlWnd::CompleteParse(void),CStmlWnd__CompleteParse);
 REVERSE_DETOUR(void  CStmlWnd::StripFirstSTMLLines(int),CStmlWnd__StripFirstSTMLLines);
 #endif
 #ifdef CStmlWnd__ActivateLink
-REVERSE_DETOUR(void  CStmlWnd::ActivateLink(struct SLinkInfo),CStmlWnd__ActivateLink);
+//REVERSE_DETOUR(void  CStmlWnd::ActivateLink(class SLinkInfo),CStmlWnd__ActivateLink);
 #endif
 #ifdef SLinkInfo__SLinkInfo
-REVERSE_DETOUR( SLinkInfo::SLinkInfo(struct SLinkInfo const &),SLinkInfo__SLinkInfo);
+//REVERSE_DETOUR( SLinkInfo::SLinkInfo(class SLinkInfo const &),SLinkInfo__SLinkInfo);
 #endif
 #ifdef CStmlWnd__CanBreakAtCharacter
 REVERSE_DETOUR(bool __cdecl CStmlWnd::CanBreakAtCharacter(unsigned short),CStmlWnd__CanBreakAtCharacter);
 #endif
 #ifdef CStmlWnd__ActivateLinkFile
-REVERSE_DETOUR(void  CStmlWnd::ActivateLinkFile(struct SLinkInfo),CStmlWnd__ActivateLinkFile);
+//REVERSE_DETOUR(void  CStmlWnd::ActivateLinkFile(class SLinkInfo),CStmlWnd__ActivateLinkFile);
 #endif
 #ifdef CStmlWnd__ActivateLinkMessageId
-REVERSE_DETOUR(void  CStmlWnd::ActivateLinkMessageId(struct SLinkInfo),CStmlWnd__ActivateLinkMessageId);
+//REVERSE_DETOUR(void  CStmlWnd::ActivateLinkMessageId(class SLinkInfo),CStmlWnd__ActivateLinkMessageId);
 #endif
 #ifdef CStmlWnd__ActivateLinkReport
-REVERSE_DETOUR(void  CStmlWnd::ActivateLinkReport(struct SLinkInfo,bool),CStmlWnd__ActivateLinkReport);
+//REVERSE_DETOUR(void  CStmlWnd::ActivateLinkReport(class SLinkInfo,bool),CStmlWnd__ActivateLinkReport);
 #endif
 #ifdef CStmlWnd__ActivateLinkWndNotify
-REVERSE_DETOUR(void  CStmlWnd::ActivateLinkWndNotify(struct SLinkInfo),CStmlWnd__ActivateLinkWndNotify);
+//REVERSE_DETOUR(void  CStmlWnd::ActivateLinkWndNotify(class SLinkInfo),CStmlWnd__ActivateLinkWndNotify);
 #endif
 #ifdef CStmlWnd__LoadPage
 //REVERSE_DETOUR(void  CStmlWnd::LoadPage(class CXStr,enum ESTMLTargetValue,bool),CStmlWnd__LoadPage);
 #endif
 #ifdef CStmlWnd__AddLinkToHistory
-REVERSE_DETOUR(void  CStmlWnd::AddLinkToHistory(struct SLinkInfo,class CXStr),CStmlWnd__AddLinkToHistory);
+//REVERSE_DETOUR(void  CStmlWnd::AddLinkToHistory(class SLinkInfo,class CXStr),CStmlWnd__AddLinkToHistory);
 #endif
 #ifdef SLinkInfo__operator_equal
-REVERSE_DETOUR(struct SLinkInfo &  SLinkInfo::operator=(struct SLinkInfo const &),SLinkInfo__operator_equal);
+//REVERSE_DETOUR(class SLinkInfo &  SLinkInfo::operator=(class SLinkInfo const &),SLinkInfo__operator_equal);
 #endif
 #ifdef CStmlWnd__UpdateHistoryString
 REVERSE_DETOUR(void  CStmlWnd::UpdateHistoryString(__int32,class CXStr),CStmlWnd__UpdateHistoryString);
 #endif
 #ifdef CStmlWnd__SetSTMLText
-REVERSE_DETOUR(void  CStmlWnd::SetSTMLText(class CXStr,bool,struct SLinkInfo *),CStmlWnd__SetSTMLText);
+//REVERSE_DETOUR(void  CStmlWnd::SetSTMLText(class CXStr,bool,class SLinkInfo *),CStmlWnd__SetSTMLText);
 #endif
 #ifdef SLinkInfo__SLinkInfo1
-REVERSE_DETOUR( SLinkInfo::SLinkInfo(void),SLinkInfo__SLinkInfo1);
+//REVERSE_DETOUR( SLinkInfo::SLinkInfo(void),SLinkInfo__SLinkInfo1);
 #endif
 #ifdef CStmlWnd__SetSTMLTextWithoutHistory
 REVERSE_DETOUR(void  CStmlWnd::SetSTMLTextWithoutHistory(class CXStr),CStmlWnd__SetSTMLTextWithoutHistory);
@@ -7745,7 +7753,7 @@ REVERSE_DETOUR(void  CStmlWnd::GoToBackHistoryLink(void),CStmlWnd__GoToBackHisto
 REVERSE_DETOUR(bool  CStmlWnd::CanGoBackward(void),CStmlWnd__CanGoBackward);
 #endif
 #ifdef CStmlWnd__IsLinkActive
-REVERSE_DETOUR(bool  CStmlWnd::IsLinkActive(struct SLinkInfo)const,CStmlWnd__IsLinkActive);
+//REVERSE_DETOUR(bool  CStmlWnd::IsLinkActive(class SLinkInfo)const,CStmlWnd__IsLinkActive);
 #endif
 #ifdef CXStr__GetLength
 REVERSE_DETOUR(long  CXStr::GetLength(void)const ,CXStr__GetLength);
@@ -7766,7 +7774,7 @@ REVERSE_DETOUR( STempTableRow::STempTableRow(void),STempTableRow__STempTableRow)
 REVERSE_DETOUR( STempTableRow::~STempTableRow(void),STempTableRow__dSTempTableRow);
 #endif
 #ifdef STextLine__operator_equal
-REVERSE_DETOUR(struct STextLine &  STextLine::operator=(struct STextLine const &),STextLine__operator_equal);
+REVERSE_DETOUR(class STextLine &  STextLine::operator=(class STextLine const &),STextLine__operator_equal);
 #endif
 #ifdef SHistoryElement__SHistoryElement
 REVERSE_DETOUR( SHistoryElement::SHistoryElement(void),SHistoryElement__SHistoryElement);
@@ -7778,7 +7786,7 @@ REVERSE_DETOUR( SHistoryElement::~SHistoryElement(void),SHistoryElement__dSHisto
 REVERSE_DETOUR( SFormattedText::SFormattedText(void),SFormattedText__SFormattedText);
 #endif
 #ifdef STable__operator_equal
-REVERSE_DETOUR(struct STable &  STable::operator=(struct STable const &),STable__operator_equal);
+REVERSE_DETOUR(class STable &  STable::operator=(class STable const &),STable__operator_equal);
 #endif
 #ifdef STableCell__STableCell
 REVERSE_DETOUR( STableCell::STableCell(void),STableCell__STableCell);
@@ -7871,7 +7879,7 @@ REVERSE_DETOUR(void  CXMLSOMDocumentBase::CursorNewSibling(void),CXMLSOMDocument
 REVERSE_DETOUR(class CXMLSOMNodePtr &  CXMLSOMNodePtr::operator=(class CXMLSOMNodePtr const &),CXMLSOMNodePtr__operator_equal);
 #endif
 #ifdef CXMLSOMDocumentBase__CursorSetPtr
-REVERSE_DETOUR(void  CXMLSOMDocumentBase::CursorSetPtr(class CXMLSOMNodePtr),CXMLSOMDocumentBase__CursorSetPtr);
+//REVERSE_DETOUR(void  CXMLSOMDocumentBase::CursorSetPtr(class CXMLSOMNodePtr),CXMLSOMDocumentBase__CursorSetPtr);
 #endif
 #ifdef CXMLSOMNodePtr__operator_minust_
 REVERSE_DETOUR(class CXMLSOMNode *  CXMLSOMNodePtr::operator->(void)const ,CXMLSOMNodePtr__operator_minust_);
@@ -8111,7 +8119,7 @@ REVERSE_DETOUR(int  KeyCombo::operator==(class KeyCombo const &)const ,KeyCombo_
 REVERSE_DETOUR(class KeyCombo const &  KeyCombo::operator=(int),KeyCombo__operator_equal);
 #endif
 #ifdef KeyCombo__operator_int
-REVERSE_DETOUR( KeyCombo::operator int(void)const ,KeyCombo__operator_int);
+//REVERSE_DETOUR( KeyCombo::operator int(void)const ,KeyCombo__operator_int);
 #endif
 #ifdef KeyCombo__GetVirtualKeyFromScanCode
 REVERSE_DETOUR(bool  KeyCombo::GetVirtualKeyFromScanCode(unsigned char,int *)const ,KeyCombo__GetVirtualKeyFromScanCode);
@@ -8135,7 +8143,7 @@ REVERSE_DETOUR(bool  CXWnd::IsEnabled(void)const ,CXWnd__IsEnabled);
 REVERSE_DETOUR(void  CButtonWnd::SetCheck(bool),CButtonWnd__SetCheck);
 #endif
 #ifdef CComboWnd__CComboWnd
-REVERSE_DETOUR( CComboWnd::CComboWnd(class CXWnd *,unsigned __int32,class CXRect,int,class CButtonDrawTemplate,class CListWnd *),CComboWnd__CComboWnd);
+//REVERSE_DETOUR( CComboWnd::CComboWnd(class CXWnd *,unsigned __int32,class CXRect,int,class CButtonDrawTemplate,class CListWnd *),CComboWnd__CComboWnd);
 #endif
 #ifdef CXWnd__GetWidth
 REVERSE_DETOUR(int  CXWnd::GetWidth(void)const ,CXWnd__GetWidth);
@@ -8327,7 +8335,7 @@ REVERSE_DETOUR(unsigned char  CXWndManager::GetGlobalFadeToAlpha(void)const ,CXW
 REVERSE_DETOUR(bool  CXWndManager::IsAllValid(void),CXWndManager__IsAllValid);
 #endif
 #ifdef CEditWnd__CEditWnd
-REVERSE_DETOUR( CEditWnd::CEditWnd(class CXWnd *,unsigned __int32,class CXRect,unsigned __int32),CEditWnd__CEditWnd);
+//REVERSE_DETOUR( CEditWnd::CEditWnd(class CXWnd *,unsigned __int32,class CXRect,unsigned __int32),CEditWnd__CEditWnd);
 #endif
 #ifdef CEditWnd__GetLineForPrintableChar
 REVERSE_DETOUR(int  CEditWnd::GetLineForPrintableChar(int)const ,CEditWnd__GetLineForPrintableChar);
@@ -8414,16 +8422,16 @@ REVERSE_DETOUR( CTextureAnimation::CTextureAnimation(class CXStr),CTextureAnimat
 REVERSE_DETOUR( CUITexturePiece::CUITexturePiece(class CUITexturePiece const &),CUITexturePiece__CUITexturePiece1);
 #endif
 #ifdef CTextureAnimation__AddFrame
-REVERSE_DETOUR(int  CTextureAnimation::AddFrame(struct CUITextureInfo const *,class CXRect,unsigned __int32,class CXPoint),CTextureAnimation__AddFrame);
+REVERSE_DETOUR(int  CTextureAnimation::AddFrame(class CUITextureInfo const *,class CXRect,unsigned __int32,class CXPoint),CTextureAnimation__AddFrame);
 #endif
 #ifdef CUITexturePiece__CUITexturePiece2
-REVERSE_DETOUR( CUITexturePiece::CUITexturePiece(struct CUITextureInfo,class CXRect),CUITexturePiece__CUITexturePiece2);
+//REVERSE_DETOUR( CUITexturePiece::CUITexturePiece(class CUITextureInfo,class CXRect),CUITexturePiece__CUITexturePiece2);
 #endif
 #ifdef CUITextureInfo__CUITextureInfo2
-REVERSE_DETOUR( CUITextureInfo::CUITextureInfo(struct CUITextureInfo const &),CUITextureInfo__CUITextureInfo2);
+REVERSE_DETOUR( CUITextureInfo::CUITextureInfo(class CUITextureInfo const &),CUITextureInfo__CUITextureInfo2);
 #endif
 #ifdef CTextureAnimation__AddFrame1
-REVERSE_DETOUR(int  CTextureAnimation::AddFrame(class CUITexturePiece,unsigned __int32,class CXPoint),CTextureAnimation__AddFrame1);
+//REVERSE_DETOUR(int  CTextureAnimation::AddFrame(class CUITexturePiece,unsigned __int32,class CXPoint),CTextureAnimation__AddFrame1);
 #endif
 #ifdef STextureAnimationFrame__STextureAnimationFrame1
 REVERSE_DETOUR( STextureAnimationFrame::STextureAnimationFrame(class CUITexturePiece,unsigned __int32,class CXPoint),STextureAnimationFrame__STextureAnimationFrame1);
@@ -8456,7 +8464,7 @@ REVERSE_DETOUR(void  CTextureAnimation::SetCurCell(int),CTextureAnimation__SetCu
 REVERSE_DETOUR(int  CTextureAnimation::Preload(void),CTextureAnimation__Preload);
 #endif
 #ifdef CUITextureInfo__operator_equal
-REVERSE_DETOUR(struct CUITextureInfo &  CUITextureInfo::operator=(struct CUITextureInfo const &),CUITextureInfo__operator_equal);
+REVERSE_DETOUR(class CUITextureInfo &  CUITextureInfo::operator=(class CUITextureInfo const &),CUITextureInfo__operator_equal);
 #endif
 #ifdef CSidlManager__CSidlManager
 REVERSE_DETOUR( CSidlManager::CSidlManager(void),CSidlManager__CSidlManager);
@@ -8594,10 +8602,10 @@ REVERSE_DETOUR(void  CSidlManager::AddTAFrameDrawInOrder(class CTAFrameDraw *),C
 REVERSE_DETOUR(void  CSidlManager::AddScreenPieceTemplateInOrder(class CScreenPieceTemplate *),CSidlManager__AddScreenPieceTemplateInOrder);
 #endif
 #ifdef CSidlManager__FindTexture
-REVERSE_DETOUR(struct CUITextureInfo *  CSidlManager::FindTexture(class CXStr)const ,CSidlManager__FindTexture);
+REVERSE_DETOUR(class CUITextureInfo *  CSidlManager::FindTexture(class CXStr)const ,CSidlManager__FindTexture);
 #endif
 #ifdef CSidlManager__FindTexture1
-REVERSE_DETOUR(struct CUITextureInfo *  CSidlManager::FindTexture(unsigned __int32)const ,CSidlManager__FindTexture1);
+REVERSE_DETOUR(class CUITextureInfo *  CSidlManager::FindTexture(unsigned __int32)const ,CSidlManager__FindTexture1);
 #endif
 #ifdef CSidlManager__FindButtonDrawTemplate
 REVERSE_DETOUR(class CButtonDrawTemplate *  CSidlManager::FindButtonDrawTemplate(unsigned __int32)const ,CSidlManager__FindButtonDrawTemplate);
@@ -8897,7 +8905,7 @@ REVERSE_DETOUR(int  CXMLDataManager::GetItemIdx(int,class CXStr),CXMLDataManager
 REVERSE_DETOUR(void  CXMLDataPtr::Free(void),CXMLDataPtr__Free);
 #endif
 #ifdef CXMLDataManager__AddToSuperType
-REVERSE_DETOUR(void  CXMLDataManager::AddToSuperType(class CXStr,class CXMLDataPtr),CXMLDataManager__AddToSuperType);
+//REVERSE_DETOUR(void  CXMLDataManager::AddToSuperType(class CXStr,class CXMLDataPtr),CXMLDataManager__AddToSuperType);
 #endif
 #ifdef CXMLDataPtr__operator_equal
 REVERSE_DETOUR(class CXMLDataPtr &  CXMLDataPtr::operator=(class CXMLDataPtr const &),CXMLDataPtr__operator_equal);

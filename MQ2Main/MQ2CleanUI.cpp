@@ -21,33 +21,48 @@
 
 #include "MQ2Main.h"
 
-class CCleanUI 
+class CDisplayHook 
 { 
 public: 
-	VOID Trampoline(VOID); 
-	VOID Detour(VOID) 
+	VOID CleanUI_Trampoline(VOID); 
+	VOID CleanUI_Detour(VOID) 
 	{ 
 		PluginsCleanUI();
-		Trampoline();
+		CleanUI_Trampoline();
 	} 
+
 }; 
 
+DWORD __cdecl DrawHUD_Trampoline(DWORD,DWORD,DWORD,DWORD); 
+DWORD __cdecl DrawHUD_Detour(DWORD a,DWORD b,DWORD c,DWORD d) 
+{ 
+	int Ret = DrawHUD_Trampoline(a,b,c,d);
+	PluginsDrawHUD();
+	return Ret;
+} 
 
-DETOUR_TRAMPOLINE_EMPTY(VOID CCleanUI::Trampoline(VOID)); 
+DETOUR_TRAMPOLINE_EMPTY(DWORD DrawHUD_Trampoline(DWORD,DWORD,DWORD,DWORD)); 
+DETOUR_TRAMPOLINE_EMPTY(VOID CDisplayHook::CleanUI_Trampoline(VOID)); 
 
-VOID InitializeCleanUI()
+VOID InitializeDisplayHook()
 {
-	DebugSpew("Initializing Clean UI");
-	VOID (CCleanUI::*pfDetour)(VOID) = CCleanUI::Detour; 
-	VOID (CCleanUI::*pfTrampoline)(VOID) = CCleanUI::Trampoline; 
+	DebugSpew("Initializing Display Hooks");
+	VOID (CDisplayHook::*pfDetour)(VOID) = CDisplayHook::CleanUI_Detour; 
+	VOID (CDisplayHook::*pfTrampoline)(VOID) = CDisplayHook::CleanUI_Trampoline; 
 
 	AddDetour((DWORD) CDisplay__CleanGameUI,*(PBYTE*)&pfDetour,*(PBYTE*)&pfTrampoline);
 
+
+	DWORD (__cdecl *pfHUDDetour)(DWORD,DWORD,DWORD,DWORD) = DrawHUD_Detour; 
+	DWORD (__cdecl *pfHUDTrampoline)(DWORD,DWORD,DWORD,DWORD) = DrawHUD_Trampoline; 
+
+	AddDetour((DWORD) DrawNetStatus,*(PBYTE*)&pfHUDDetour,*(PBYTE*)&pfHUDTrampoline);
 }
 
-VOID ShutdownCleanUI()
+VOID ShutdownDisplayHook()
 {
 	PluginsCleanUI();
-	DebugSpew("Shutting down Clean UI");
+	DebugSpew("Shutting down Display Hooks");
 	RemoveDetour((DWORD)CDisplay__CleanGameUI);
+	RemoveDetour((DWORD)DrawNetStatus);
 }

@@ -209,7 +209,12 @@ BOOL ParseINIFile(PCHAR lpINIPath)
     GetPrivateProfileString("Memory Locations","SlotList","0",szBuffer,MAX_STRING,ClientINI);            EQADDR_SLOTLIST = (PDWORD)strtoul(szBuffer,NULL,16);
     GetPrivateProfileString("Memory Locations","Clicks","0",szBuffer,MAX_STRING,ClientINI);             EQADDR_MOUSECLICK = (PMOUSECLICK)strtoul(szBuffer,NULL,16);
     GetPrivateProfileString("Memory Locations","HWnd","0",szBuffer,MAX_STRING,ClientINI);             EQADDR_HWND = (DWORD)strtoul(szBuffer,NULL,16);
-/*
+
+    GetPrivateProfileString("Memory Locations","ScreenX","0",szBuffer,MAX_STRING,ClientINI);             pScreenX = (DWORD*)strtoul(szBuffer,NULL,16);
+    GetPrivateProfileString("Memory Locations","ScreenY","0",szBuffer,MAX_STRING,ClientINI);             pScreenY = (DWORD*)strtoul(szBuffer,NULL,16);
+	
+	
+	/*
     GetPrivateProfileString("Class Locations","SpellBookWnd","0",szBuffer,MAX_STRING,ClientINI);            EQADDR_SPELLBOOKWND = (PDWORD)strtoul(szBuffer,NULL,16);
     GetPrivateProfileString("Class Locations","ClassMerchWnd","0",szBuffer,MAX_STRING,ClientINI);         EQADDR_CLASSMERCHWND = (PDWORD)strtoul(szBuffer,NULL,16);
     GetPrivateProfileString("Class Locations","ClassTextureAnim","0",szBuffer,MAX_STRING,ClientINI);      EQADDR_CLASSTEXTUREANIMATION = (PDWORD)strtoul(szBuffer,NULL,16);
@@ -364,7 +369,7 @@ DWORD WINAPI MQ2Start(LPVOID lpParameter)
 
 	InitializeParser();
 	InitializeMQ2Detours();
-	InitializeCleanUI();
+	InitializeDisplayHook();
 	InitializeChatHook();
 	InitializeMQ2Pulse();
 	InitializeMQ2Commands();
@@ -383,7 +388,7 @@ DWORD WINAPI MQ2Start(LPVOID lpParameter)
     WriteChatColor(UnloadedString,USERCOLOR_DEFAULT);
     DebugSpewAlways(UnloadedString);
 
-	ShutdownCleanUI();
+	ShutdownDisplayHook();
 	ShutdownMQ2DInput();
 	ShutdownChatHook();
 	ShutdownMQ2Pulse();

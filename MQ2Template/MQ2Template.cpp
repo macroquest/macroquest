@@ -45,6 +45,13 @@ PLUGIN_API VOID OnCleanUI(VOID)
 	DebugSpewAlways("MQ2Template::OnCleanUI()");
 }
 
+// Called every frame that the "HUD" is drawn -- e.g. net status / packet loss bar
+PLUGIN_API VOID OnDrawHUD(VOID)
+{
+	// DONT leave in this debugspew, even if you leave in all the others
+//	DebugSpewAlways("MQ2Template::OnDrawHUD()");
+}
+
 // Called once directly after initialization, and then every time the gamestate changes
 PLUGIN_API VOID SetGameState(DWORD GameState)
 {

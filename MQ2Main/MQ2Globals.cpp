@@ -184,6 +184,9 @@ PBYTE EQADDR_ENCRYPTPAD=0;
 PBYTE EQADDR_ENCRYPTPAD2=0;
 PBYTE EQADDR_ENCRYPTPAD3=0;
 
+EQLIB_VAR DWORD *pScreenX=0;
+EQLIB_VAR DWORD *pScreenY=0;
+
 PMOUSEINFO EQADDR_MOUSE=0;
 PMOUSECLICK EQADDR_MOUSECLICK=0;
 
@@ -447,3 +450,4 @@ CJournalCatWnd **ppJournalCatWnd=(CJournalCatWnd**)pinstCJournalCatWnd;
 CPetitionQWnd **ppPetitionQWnd=(CPetitionQWnd**)pinstCPetitionQWnd;
 CSoulmarkWnd **ppSoulmarkWnd=(CSoulmarkWnd**)pinstCSoulmarkWnd;
 CTimeLeftWnd **ppTimeLeftWnd=(CTimeLeftWnd**)pinstCTimeLeftWnd;
+

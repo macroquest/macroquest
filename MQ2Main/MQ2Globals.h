@@ -263,6 +263,12 @@ EQLIB_VAR EQItemList **ppItemList;
 #define pItemList (*ppItemList)
 EQLIB_VAR EQZoneInfo *pZoneInfo;
 
+EQLIB_VAR DWORD *pScreenX;
+#define ScreenX (*pScreenX)
+EQLIB_VAR DWORD *pScreenY;
+#define ScreenY (*pScreenY)
+
+
 EQLIB_VAR SPELLFAVORITE *pSpellSets;
 
 /* WINDOW INSTANCES */ 

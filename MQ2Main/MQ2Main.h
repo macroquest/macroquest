@@ -94,14 +94,15 @@ EQLIB_API VOID PluginsIncomingChat(PCHAR Line, DWORD Color);
 EQLIB_API VOID RewriteMQ2Plugins(VOID);
 EQLIB_API VOID PluginsCleanUI();
 EQLIB_API VOID PluginsSetGameState(DWORD GameState);
+EQLIB_API VOID PluginsDrawHUD();
 
 /* DIRECT INPUT */
 EQLIB_API VOID InitializeMQ2DInput();
 EQLIB_API VOID ShutdownMQ2DInput();
 
 /* CLEAN UI */
-EQLIB_API VOID InitializeCleanUI();
-EQLIB_API VOID ShutdownCleanUI();
+EQLIB_API VOID InitializeDisplayHook();
+EQLIB_API VOID ShutdownDisplayHook();
 
 /* COMMAND HANDLING */
 EQLIB_API VOID InitializeMQ2Commands();

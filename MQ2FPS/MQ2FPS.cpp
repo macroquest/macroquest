@@ -39,23 +39,105 @@ PLUGIN_API VOID ShutdownPlugin(VOID)
 	RemoveCommand("/maxfps");
 }
 
-DWORD gFG_SLEEP=0;
-DWORD gBG_SLEEP=0;
+DWORD gFG_MAX=0;
+DWORD gBG_MAX=0;
+DWORD CurMax=0;
+#define FRAME_COUNT 64
+DWORD FrameArray[FRAME_COUNT+1]={0};
+DWORD CurrentFrame=0;
+DWORD FrameTime=0;
+DWORD LastSleep=0;
+BOOL bFrameArrayFilled=0;
+float FPS=0.0f;
+
 
 VOID SetForegroundMaxFPS(DWORD MaxFPS)
 {
+	gFG_MAX=MaxFPS;
+	/*
     if (MaxFPS==0)
         gFG_SLEEP=0;
     else
         gFG_SLEEP=1000/MaxFPS;
+	/**/
 }
 
 VOID SetBackgroundMaxFPS(DWORD MaxFPS)
 {
+	gBG_MAX=MaxFPS;
+	/*
     if (MaxFPS==0)
         gBG_SLEEP=0;
     else
         gBG_SLEEP=1000/MaxFPS;
+	/**/
+}
+
+VOID ProcessFrame()
+{
+	// Update frame array
+	DWORD Now=FrameArray[CurrentFrame]=GetTickCount();
+
+	DWORD FirstFrame=0;
+	DWORD Frames=CurrentFrame;
+	if (CurrentFrame>FRAME_COUNT)
+	{
+		CurrentFrame=0;
+		bFrameArrayFilled=1;
+	}
+	if (bFrameArrayFilled)
+	{
+		FirstFrame=CurrentFrame+1;
+		if (FirstFrame>FRAME_COUNT)
+		{
+			FirstFrame=FRAME_COUNT;
+		}
+		Frames=FRAME_COUNT;
+	}
+	// Calculate time this frame
+	DWORD LastFrame=CurrentFrame-1;
+	if (LastFrame>FRAME_COUNT)
+	{
+		if (bFrameArrayFilled)
+		{
+			LastFrame=FRAME_COUNT;
+			FrameTime=Now-FrameArray[LastFrame];
+		}
+		else
+			FrameTime=0;
+	}
+	else
+		FrameTime=Now-FrameArray[LastFrame];
+
+	// Calculate FPS
+	// Get amount of time between first frame and now
+	DWORD Elapsed=Now-FrameArray[FirstFrame];
+
+
+	// less than one second?
+	if (Elapsed<1000)
+	{
+		// elapsed 150 ms
+		// extrapolate. how many frame arrays would fit in one second?
+		FPS=(float)(1000.0f/(float)Elapsed); 
+		// 6.66667=1000/150
+		// now multiply by the number of frames we've gone through
+		// Frames 10
+		FPS*=(float)Frames;
+		// 66.6667= FPS * 10
+//		FPS=
+	}
+	else
+	{
+		// Frames = 100
+		// Elapsed = 2000ms
+		// FPS = 100 / (2000/1000) = 50
+
+		// interpolate. how many seconds did it take for our frame array?
+		FPS=(float)Frames/(float)((float)Elapsed/1000.0f); // Frames / number of seconds
+	}
+	// advance frame count
+	CurrentFrame++; 
 }
 
 // This is called every time MQ pulses
@@ -63,6 +145,7 @@ PLUGIN_API VOID OnPulse(VOID)
 {
 	// DONT leave in this debugspew, even if you leave in all the others
 //	DebugSpewAlways("MQ2FPS::OnPulse()");
+	ProcessFrame();
 	if (gGameState!=GAMESTATE_INGAME || gZoning || IsMouseWaiting())
 		return;
 
@@ -88,15 +171,60 @@ PLUGIN_API VOID OnPulse(VOID)
 		
 		if (GetForegroundWindow()==EQhWnd)
 		{
-			Sleep(gFG_SLEEP);
+			CurMax=gFG_MAX;
+			if (gFG_MAX)
+			{
+				// assume last frame time is constant, so a 30ms frame = 33 fps
+				// 
+				
+				int SleepTime=(int)(1000.0f/(float)gFG_MAX);
+				SleepTime-=(FrameTime-LastSleep);
+				/**/
+				if (SleepTime<0)
+					SleepTime=0;
+				Sleep(SleepTime);
+				LastSleep=SleepTime;
+			}
+			else
+				Sleep(0);
 		}
 		else
 		{
-			Sleep(gBG_SLEEP);
+			CurMax=gBG_MAX;
+			if (gBG_MAX)
+			{
+				int SleepTime=(int)(1000.0f/(float)gBG_MAX);
+				SleepTime-=(FrameTime-LastSleep);
+				/**/
+				if (SleepTime<0)
+					SleepTime=0;
+				Sleep(SleepTime);
+				LastSleep=SleepTime;
+			}
+			else
+				Sleep(0);
 		}
 	}
 
 }
+
+
+
+// Called every frame that the "HUD" is drawn -- e.g. net status / packet loss bar
+PLUGIN_API VOID OnDrawHUD(VOID)
+{
+	// DONT leave in this debugspew, even if you leave in all the others
+//	DebugSpewAlways("MQ2Template::OnDrawHUD()");
+	CHAR szBuffer[MAX_STRING];
+
+	
+	// Display
+	sprintf(szBuffer,"%d/%d FPS",(DWORD)FPS,CurMax);
+	if (pDisplay)
+		pDisplay->WriteTextHD2(szBuffer,ScreenX+5,ScreenY+25,0x0d);
+
+}
+
 
 // ***************************************************************************
 // Function:      MaxFPS
@@ -115,7 +243,7 @@ VOID MaxFPS(PSPAWNINFO pChar, PCHAR szLine)
 
 
    if (Arg1[0]==0 || Arg2[0]==0) {
-       sprintf(szCmd,"\aw\ayMaxFPS\ax\a-u:\ax \a-u[\ax\at%d\ax Foreground\a-u]\ax \a-u[\ax\at%d\ax Background\a-u]\ax",gFG_SLEEP?1000/gFG_SLEEP:0,gBG_SLEEP?1000/gBG_SLEEP:0);
+       sprintf(szCmd,"\aw\ayMaxFPS\ax\a-u:\ax \a-u[\ax\at%d\ax Foreground\a-u]\ax \a-u[\ax\at%d\ax Background\a-u]\ax",gFG_MAX,gBG_MAX);
         WriteChatColor(szCmd,USERCOLOR_DEFAULT);
         WriteChatColor("Usage: /maxfps <fg|bg> <#>",USERCOLOR_DEFAULT);
         return;
@@ -137,6 +265,6 @@ VOID MaxFPS(PSPAWNINFO pChar, PCHAR szLine)
        SetBackgroundMaxFPS(NewMax);
        WritePrivateProfileString("MQ2FPS","BackgroundMaxFPS",Arg2,INIFileName);
    }
-       sprintf(szCmd,"\aw\ayMaxFPS\ax\a-u:\ax \a-u[\ax\at%d\ax Foreground\a-u]\ax \a-u[\ax\at%d\ax Background\a-u]\ax",gFG_SLEEP?1000/gFG_SLEEP:0,gBG_SLEEP?1000/gBG_SLEEP:0);
+    sprintf(szCmd,"\aw\ayMaxFPS\ax\a-u:\ax \a-u[\ax\at%d\ax Foreground\a-u]\ax \a-u[\ax\at%d\ax Background\a-u]\ax",gFG_MAX,gBG_MAX);
     WriteChatColor(szCmd,USERCOLOR_DEFAULT);
 }
