@@ -38,7 +38,7 @@ DWORD bmPluginsReloadUI=0;
 DWORD bmPluginsDrawHUD=0;
 DWORD bmPluginsSetGameState=0;
 DWORD bmParseMacroParameter=0;
-
+ePVPServer PVPServer=PVP_NONE;
 CHAR gszVersion[32]=VersionString;
 
 DWORD gGameState = 0;

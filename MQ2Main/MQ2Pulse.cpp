@@ -90,6 +90,21 @@ void Pulse()
 		LastMana=0;
 		ManaGained=0;
 		HealthGained=0;
+		// see if we're on a pvp server
+		if (!strncmp(EQADDR_SERVERNAME,"tallon",6) || !strncmp(EQADDR_SERVERNAME,"vallon",6))
+		{
+			PVPServer=PVP_TEAM;
+		}
+		else if (!strncmp(EQADDR_SERVERNAME,"sullon",6))
+		{
+			PVPServer=PVP_SULLON;
+		}
+		else if (!strncmp(EQADDR_SERVERNAME,"rallos",6))
+		{
+			PVPServer=PVP_RALLOS;
+		}
+		else
+			PVPServer=PVP_NONE;
 		Benchmark(bmPluginsSetGameState,PluginsZoned());
 
     } else if ((LastX!=pChar->X) || (LastY!=pChar->Y) || LastMoveTick>GetTickCount()-100) {

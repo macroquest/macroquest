@@ -912,9 +912,48 @@ DWORD ConColorToARGB(DWORD ConColor)
 // Function:    ConColor
 // Description: Returns the con color for a spawn's level
 // ***************************************************************************
-DWORD ConColor(WORD CharLevel, WORD SpawnLevel)
+DWORD ConColor(WORD CharLevel, WORD SpawnLevel, BYTE SpawnType)
 {
-
+	if (PVPServer!=PVP_NONE && SpawnType==0)
+	{
+		// whiny fuckin baby pvp server logic
+		if (CharLevel <= 5)
+		{
+			if (SpawnLevel > 5)
+				return CONCOLOR_RED;
+			return CONCOLOR_GREEN;
+		}
+		if (SpawnLevel < 5)
+			return CONCOLOR_GREEN;
+		
+      int Diff = SpawnLevel-CharLevel;
+      if (PVPServer==PVP_TEAM) {
+		  // TODO: consider teams...
+		  if (Diff<=8)
+		  {
+			  if (Diff>=-8) 
+				  return CONCOLOR_BLACK;
+			  return CONCOLOR_GREEN;
+		  }
+		  return CONCOLOR_RED;
+      } else if (PVPServer==PVP_RALLOS) {
+		  if (Diff<=4)
+		  {
+			  if (Diff>=-4)
+				  return CONCOLOR_BLACK;
+			  return CONCOLOR_GREEN;
+		  }
+		  return CONCOLOR_RED;
+      } else if (PVPServer==PVP_SULLON) {
+		  if (Diff<=5)
+		  {
+			  if (Diff>=-5)
+				  return CONCOLOR_BLACK;
+			  return CONCOLOR_GREEN;
+		  }
+		  return CONCOLOR_RED;
+      } 
+	}
     int ConLevels[][3] = {
     //  {Lv,Grn,LtB},
         { 7, -4, -4},

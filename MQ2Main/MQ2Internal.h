@@ -1,4 +1,13 @@
 namespace MQ2Internal {
+
+enum ePVPServer
+{
+	PVP_NONE = 0,
+	PVP_TEAM = 1,
+	PVP_RALLOS = 2,
+	PVP_SULLON = 3,
+};
+
 typedef struct _SEARCHSPAWN {
     DWORD MinLevel;
     DWORD MaxLevel;

@@ -213,7 +213,7 @@ VOID HandleMapLabelAdditions()
             AddSpawnToMap(pSpawn,gMapFiltersColor[MAPFILTER_Trigger]);
             } else if (pSpawn->Type == SPAWN_NPC && pSpawn->BodyType<0x41 && pSpawn->MasterID==0 && gMapFilters[MAPFILTER_NPC]) {
             AddSpawnToMap(pSpawn,(gMapFilters[MAPFILTER_ConColor] && pChar)?
-                ConColorToARGB(ConColor(pChar->Level,pSpawn->Level)):
+                ConColorToARGB(ConColor(pChar->Level,pSpawn->Level,pSpawn->Type)):
                 gMapFiltersColor[MAPFILTER_NPC]);
             } else if (pSpawn->Type == SPAWN_NPC && pSpawn->BodyType<0x41 && pSpawn->MasterID!=0 && gMapFilters[MAPFILTER_Pet]) {
             AddSpawnToMap(pSpawn,gMapFiltersColor[MAPFILTER_Pet]);
