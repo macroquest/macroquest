@@ -676,14 +676,15 @@ BOOL ParseMacroData(PCHAR szOriginal)
 
 		MQ2TYPEVAR Result;
 		if (ParseMQ2DataPortion(szCurrent,Result))
-		{
 			Result.Type->ToString(Result.VarPtr,szCurrent);
-			NewLength=strlen(szCurrent);
+		else
+			strcpy(szCurrent,"NULL");
 
-			memmove(&pBrace[NewLength],&pEnd[1],strlen(&pEnd[1])+1);
-			strncpy(pBrace,szCurrent,NewLength);
-			Changed=true;
-		}
+		NewLength=strlen(szCurrent);
+
+		memmove(&pBrace[NewLength],&pEnd[1],strlen(&pEnd[1])+1);
+		strncpy(pBrace,szCurrent,NewLength);
+		Changed=true;
 
 pmdbottom:;
 	} while (pBrace=strstr(&pBrace[1],"${"));

@@ -2649,8 +2649,6 @@ bool MQ2MerchantType::GetMember(MQ2VARPTR VarPtr, PCHAR Member, PCHAR Index, MQ2
 bool MQ2InvSlotType::GetMember(MQ2VARPTR VarPtr, PCHAR Member, PCHAR Index, MQ2TYPEVAR &Dest)
 {
 #define nInvSlot (VarPtr.Int)
-	if (!VarPtr.Int)
-		return false;
 	PMQ2TYPEMEMBER pMember=MQ2InvSlotType::FindMember(Member);
 	if (!pMember)
 		return false;

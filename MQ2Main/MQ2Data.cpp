@@ -903,7 +903,8 @@ BOOL dataInvSlot(PCHAR szIndex, MQ2TYPEVAR &Ret)
 	{
 		CHAR Temp[MAX_STRING]={0};
 		strlwr(strcpy(Temp,szIndex));
-		if (Ret.DWord=ItemSlotMap[Temp])
+		Ret.DWord=ItemSlotMap[Temp];
+		if (Ret.DWord || !stricmp(Temp,"charm"))
 		{
 			Ret.Type=pInvSlotType;
 			return true;

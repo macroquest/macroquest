@@ -1,4 +1,5 @@
-19 Apr 2004 by Lax (more):
+20 Apr 2004 by Lax:
+- Fixed charm invslot (number 0)
 - Fixed ${If[]} handling of conditions
 - Fixed FindItemCount to give the number of individual items rather than stacks
 - /if is now GONE.  /newif is both /newif and /if.

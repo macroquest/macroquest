@@ -62,6 +62,8 @@ using namespace std;
 
 //#define USEMQ2PARMS
 #define USEMQ2DATATYPES
+
+// MQ2DataVars not yet ready
 //#define USEMQ2DATAVARS
 
 

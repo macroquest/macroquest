@@ -187,7 +187,7 @@ void InitializeMQ2Windows()
 	ItemSlotMap["pack6"]=27;
 	ItemSlotMap["pack7"]=28;
 	ItemSlotMap["pack8"]=29;
-	ItemSlotMap["charm"]=30;
+	ItemSlotMap["charm"]=0;
 	
 	CHAR szOut[MAX_STRING]={0};
 
@@ -814,7 +814,7 @@ VOID ItemNotify(PSPAWNINFO pChar, PCHAR szLine)
 		{
 			Slot=ItemSlotMap[strlwr(szArg1)];
 		}
-		if (Slot==0)
+		if (Slot==0 && szArg1[0]!='0' && stricmp(szArg1,"charm"))
 		{
 			sprintf(szOut,"Invalid item slot '%s'",szArg1);
 			WriteChatColor(szOut);

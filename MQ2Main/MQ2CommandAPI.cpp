@@ -473,7 +473,6 @@ void InitializeMQ2Commands()
 		{"/altkey",		DoAltCmd,0,0},
 		{"/shiftkey",   DoShiftCmd,0,0},
 		{"/timed",		DoTimedCmd,0,0},
-		{"/newif",		NewIf,1,0},
 		{"/if",			NewIf,1,0},
 		{NULL,          NULL,0,1},
     };
@@ -503,6 +502,7 @@ void InitializeMQ2Commands()
 	AddAlias("/gu","/guildsay");
 	AddAlias("/key","/keys");
 
+	AddAlias("/newif","/if");
 	/* NOW IMPORT THE USER'S ALIAS LIST, THEIR MODIFICATIONS OVERRIDE EXISTING. */
 
 	CHAR AliasList[MAX_STRING*10] = {0};
