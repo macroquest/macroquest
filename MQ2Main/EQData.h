@@ -1505,9 +1505,7 @@ typedef struct _ZONEINFO {
 /*0x1da*/	BYTE	SkyType;	
 /*0x1db*/	BYTE	Unknown0x1db[0xd];
 /*0x1e8*/   FLOAT   ZoneExpModifier;    //This has been nerfed ..now reads 1.0 for all zones
-/*0x1ec*/   FLOAT   SafeYLoc;
-/*0x1f0*/   FLOAT   SafeXLoc;
-/*0x1f4*/   FLOAT   SafeZLoc;
+/*0x1ec*/   FLOAT   Unknown0x1ec[3];
 /*0x1f8*/   FLOAT   Ceiling;
 /*0x1fc*/   FLOAT   Floor; 
 /*0x200*/   FLOAT   MinClip; 
