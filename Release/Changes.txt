@@ -1,3 +1,8 @@
+15 Feb 2004 by Amadeus
+- 'Grouped' location fixed in CHARINFO (thereby fixing $char(grouped))
+- Fixed WhoFollowing in Actorinfo 
+- Added IsABoat to Spawninfo
+
 14 Feb 2004 by Amadeus
 - Fixed a LOT of wrong offsets in eqgame.h
 - Added four offsets to eqgame.h:

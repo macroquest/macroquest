@@ -542,8 +542,7 @@ union{
 /*0x109d*/  BYTE		Unknown0x1095[0x3];
 /*0x10a0*/  DWORD		Drunkedness;
 /*0x10a4*/  DWORD		field_10A4;
-/*0x10a8*/  BYTE		Unknown0x10a8[0x23];
-/*0x10cb*/	BYTE		Grouped;  // WRONG!
+/*0x10a8*/  BYTE		Unknown0x10a8[0x24];
 /*0x10cc*/	DWORD		AAExp;   // AAExp/330 = %
 /*0x10d0*/	BYTE		field_10D0; 
 /*0x10d1*/	BYTE		PercentEXPtoAA; 
@@ -570,6 +569,8 @@ union{
 /*0x9968*/	DWORD		LeadershipRelated4;
 /*0x996c*/	BYTE		Unknown0x996c[0x140];
 /*0x9aac*/	struct		_CONTENTS* Bank[NUM_BANK_SLOTS]; 
+/*0x9af4*/	BYTE		Unknown0x9af4[0xa8];
+/*0x9B9C*/	BYTE		Grouped;
 } CHARINFO, *PCHARINFO; 
 
 typedef struct _MODELINFONAME {
@@ -652,7 +653,7 @@ typedef struct _ACTORINFO {
 /*0x00a8*/   BYTE       Unknown0x0a8[0x28]; 
 /*0x00d0*/   DWORD      SpellETA;      // Calculated TimeStamp when current spell being casted lands. 0 while not casting. 
 /*0x00d4*/   BYTE       Unknown0x0d4[0xb0];
-/*0x0184*/   VOID		*FaceRelatedActorStruct;  //NEW
+/*0x0184*/   VOID		*FaceRelatedActorStruct; 
 /*0x0188*/   DWORD		Unknown0x0188;
 /*0x018c*/   DWORD		Animation; 
 /*0x0190*/   DWORD		Unknown0x190;
@@ -669,11 +670,11 @@ typedef struct _ACTORINFO {
 /*0x26a8*/	 BYTE		Unknown0x26a8[0x30];
 /*0x26d8*/   DWORD      CastingSpellID; // -1 = not casting a spell
 /*0x26dc*/   DWORD      Unknown0x26dc[0x02];
-/*0x26e4*/	 DWORD		UnknownModelRelatedPointer;  //research this later
+/*0x26e4*/	 DWORD		UnknownModelRelatedPointer; 
 /*0x26e8*/   struct		_MODELINFO *Model[0x14]; 
-/*0x2738*/   BYTE		Unknown0x2738[0x28];
-/*0x2760*/   struct		_SPAWNINFO   *WhoFollowing;  // NULL if autofollow off
-/*0x2764*/   BYTE		Unknown0x2764[0x190];
+/*0x2738*/   BYTE		Unknown0x2738[0x18];
+/*0x2750*/   struct		_SPAWNINFO   *WhoFollowing;  // NULL if autofollow off
+/*0x2754*/   BYTE		Unknown0x2754[0x1a0];
 /*0x28f4*/   DWORD		Trader;                      //0=normal 1=trader
 /*0x28f8*/   BYTE		Unknown0x28f8[0x50];
 } ACTORINFO, *PACTORINFO; 
@@ -763,7 +764,9 @@ typedef struct _SPAWNINFO {
 /*0x126*/   BYTE    Linkdead;  // Uncharmable flag when used on mobs?
 /*0x127*/   BYTE	Unknown0x127;
 /*0x128*/   BYTE    LFG;
-/*0x129*/   BYTE    Unknown0x129[0x3];
+/*0x129*/   BYTE    Unknown0x129;
+/*0x12a*/	BYTE	IsABoat; // 1 = a type of boat
+/*0x12b*/	BYTE	Unknown0x12b;
 /*0x12c*/   ARGBCOLOR ArmorColor[0x7];  // Armor Dye if custom, otherwise Item Tint
 /*0x148*/   BYTE	Unknown0x108[0x8];
 /*0x150*/   struct  _EQUIPMENT Equipment;
