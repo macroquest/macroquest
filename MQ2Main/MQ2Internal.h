@@ -791,7 +791,7 @@ public:
 				if (Temp>=pExtents[N])
 					return -1;
 				if (N<nExtents-1)
-					Temp*=pExtents[N];
+					Element*=pExtents[N];
 				Element+=Temp;
 				
 				if (pComma)
@@ -803,7 +803,7 @@ public:
 			if (Element>=TotalElements)
 			{
 				// bug in array logic
-				OutputDebugString("Bug in array logic");
+				OutputDebugString("Bug in array logic\n");
 				return -1;
 			}
 			return Element;
@@ -852,7 +852,7 @@ public:
 				if (Temp>=pExtents[N])
 					return FALSE;
 				if (N<nExtents-1)
-					Temp*=pExtents[N];
+					Element*=pExtents[N];
 				Element+=Temp;
 				
 				if (pComma)
@@ -864,7 +864,7 @@ public:
 			if (Element>=TotalElements)
 			{
 				// bug in array logic
-				OutputDebugString("Bug in array logic");
+				OutputDebugString("Bug in array logic\n");
 				return FALSE;
 			}
 			Dest.Type=pType;

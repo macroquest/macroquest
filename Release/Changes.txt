@@ -1,3 +1,6 @@
+29 Apr 2004 by Lax (more):
+- Fixed Multi-dimensional arrays
+
 29 Apr 2004 by Lax:
 - Fixed SPAWNINFO structure.
 - NOTICE: Some MQ2Data members are currently MIA.  They may come back soon.  These include:
