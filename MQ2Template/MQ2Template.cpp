@@ -103,7 +103,6 @@ PLUGIN_API DWORD OnIncomingChat(PCHAR Line, DWORD Color)
 PLUGIN_API VOID OnAddSpawn(PSPAWNINFO pNewSpawn)
 {
 	DebugSpewAlways("MQ2Template::OnAddSpawn(%s)",pNewSpawn);
-	return 0;
 }
 
 // This is called each time a spawn is removed from a zone (removed from EQ's list of spawns).
@@ -111,5 +110,4 @@ PLUGIN_API VOID OnAddSpawn(PSPAWNINFO pNewSpawn)
 PLUGIN_API VOID OnRemoveSpawn(PSPAWNINFO pSpawn)
 {
 	DebugSpewAlways("MQ2Template::OnRemoveSpawn(%s)",pSpawn);
-	return 0;
 }
