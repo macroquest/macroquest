@@ -1301,7 +1301,7 @@ VOID SWhoFilter(PSPAWNINFO pChar, PCHAR szLine)
         SetDisplaySWhoFilter(&gFilterSWho.ConColor,"ConColor",szToggle); 
 	} else if (!stricmp(szArg,"invisible")) {
       SetDisplaySWhoFilter(&gFilterSWho.Invisible,"Invisible",szToggle);
-   } else {
+    } else {
       WriteChatColor("Usage: /whofilter <lastname|class|race|level|gm|guild|holding|ld|sneak|anon|lfg|npctag|spawnid|trader|afk|concolor|invisible> [on|off]",USERCOLOR_DEFAULT);
    } 
 }
@@ -4274,6 +4274,7 @@ VOID WindowState(PSPAWNINFO pChar, PCHAR szLine)
 		{ "merchant",	(PCSIDLWND*)ppMerchantWnd },
 		{ "corpse",		(PCSIDLWND*)ppLootWnd },
 		{ "spellbook",	(PCSIDLWND*)ppSpellBookWnd },
+		{ "pet",		(PCSIDLWND*)ppPetInfoWnd },
 		{ "map",		(PCSIDLWND*)ppMapViewWnd },
 		{ "notes",		(PCSIDLWND*)ppNoteWnd },
 //		{ "MQChat",		(PCSIDLWND*)&MQChatWnd },
