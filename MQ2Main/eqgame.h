@@ -2,6 +2,7 @@
 #include "eqgame-private.h"
 #endif
 
+// <lax> uh.. you know when confirmation windows / etc pop up? this manages them!
 //Removed -- unsure what this is supposed to be:
 //#define pinstCPopupWndManager          
 
@@ -32,7 +33,10 @@
 ////
 //Section 2:  UI Related Offsets
 ////
+
 #define pinstCConfirmationDialog                                0x621324
+// <lax> ^^^^ incorrect/obsolete. more than one confirmation dialog pops up.
+
 #define pinstCFacePick                                          0x62132C 
 #define pinstTextMessageWnd										0x621330 
 #define pinstCNoteWnd                                           0x621334
@@ -155,6 +159,8 @@
 #define EQ_Character__CastSpell									0x42D068 
 
 // CXStr 
+// WARNING: NONE OF THE OFFSETS WILL BE EQUAL TO EACH OTHER. IF YOU SET TWO
+// TO BE THE SAME YOU'RE FUCKING US ALL UP AND CREATING A MEMORY LEAK!
 #define CXStr__CXStr											0x40104C
 #define CXStr__CXStr1											0x401046 
 #define CXStr__CXStr3											0x59B950 
