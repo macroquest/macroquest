@@ -15,16 +15,18 @@
 #include <windows.h>
 #include <stdio.h>
 #include "resource.h"
+#include "../MQ2Plugin.h"
 
 // ***************************************************************************
 // Constants
 // ***************************************************************************
-#define MAX_STRING            1024
+//#define MAX_STRING            1024
 
+/*
 typedef VOID	(__stdcall *FNINJECT)(VOID);
 FNINJECT fnInjectEnable = NULL;
 FNINJECT fnInjectDisable = NULL;
-
+*/
 // ***************************************************************************
 // Function:    wmain
 // Description: EXE entry point
@@ -232,16 +234,16 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 {
 	MSG msg;
 	WNDCLASS wc;
-	CHAR szVersion[_MAX_PATH] = {0};
+//	CHAR szVersion[_MAX_PATH] = {0};
 	CHAR szWinClassName[MAX_STRING] = {0};
 	CHAR szWinName[MAX_STRING] = {0};
 	CHAR lpINIPath[_MAX_PATH] = {0};
-	CHAR lpModulePath[_MAX_PATH] = {0};
+//	CHAR lpModulePath[_MAX_PATH] = {0};
 	GetCurrentDirectory(_MAX_PATH,lpINIPath);
 	strcat(lpINIPath,"\\EQGame.ini");
-	GetCurrentDirectory(_MAX_PATH,lpModulePath);
-	strcat(lpModulePath,"\\MQ2Main.dll");
-	GetPrivateProfileString("MacroQuest","MacroQuestVersion","INI not found",szVersion,_MAX_PATH,lpINIPath);
+//	GetCurrentDirectory(_MAX_PATH,lpModulePath);
+//	strcat(lpModulePath,"\\MQ2Main.dll");
+//	GetPrivateProfileString("MacroQuest","MacroQuestVersion","INI not found",szVersion,_MAX_PATH,lpINIPath);
 	GetPrivateProfileString("MacroQuest","MacroQuestWinClassName", "__MacroQuestTray", szWinClassName, MAX_STRING, lpINIPath);
 	GetPrivateProfileString("MacroQuest","MacroQuestWinName", "MacroQuest", szWinName, MAX_STRING, lpINIPath);
 
@@ -269,7 +271,11 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 	NID.uCallbackMessage = WM_USER + 1; // Our user defined message.(For notifications, Windows will send us messages when user pressed on our icon)
 	NID.hWnd = hWnd; // Handle to the window we would like to get the notifications.
 	NID.uID = WM_USER + 2; // Icon ID in systray...
-	sprintf(NID.szTip, "%s [%s]", szWinName, szVersion); // The tooltip string
+	if (!strcmp(gszVersion,VersionString))
+		sprintf(NID.szTip, "%s [%s]", szWinName, gszVersion); // The tooltip string
+	else
+		sprintf(NID.szTip, "%s [Need Recompile]", szWinName); // The tooltip string
+
 	NID.uFlags = NIF_TIP | NIF_ICON | NIF_MESSAGE; // Here we say we want to get notifications about the icon, we have an icon and a tooltip.
 
 	//ShowWindow(hWnd, SW_SHOW);
@@ -279,6 +285,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
     Shell_NotifyIcon(NIM_ADD, &NID);
 
 	//Let's work
+	/*
 	HMODULE hModule = LoadLibrary(lpModulePath);
 	if (!hModule) hModule = GetModuleHandle(lpModulePath);
 	if (!hModule) { Shell_NotifyIcon(NIM_DELETE, &NID); return 1;}
@@ -288,8 +295,8 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 	if (!fnInjectDisable) { Shell_NotifyIcon(NIM_DELETE, &NID); return 1;}
 
 	(*fnInjectEnable)();
-
-
+/**/
+	InjectEnable();
 	BOOL bRet;
 
 	while( (bRet = GetMessage( &msg, NULL, 0, 0 )) != 0)
@@ -307,6 +314,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 	}
 
 	Shell_NotifyIcon(NIM_DELETE, &NID);
-	(*fnInjectDisable)();
+	InjectDisable();
+//	(*fnInjectDisable)();
 	return(int)(msg.wParam);
 }

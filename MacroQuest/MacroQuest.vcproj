@@ -35,6 +35,7 @@
 				Name="VCLinkerTool"
 				OutputFile="$(OutDir)/MacroQuest2.exe"
 				LinkIncremental="1"
+				AdditionalLibraryDirectories="..\Detours\lib;..\Release"
 				GenerateDebugInformation="TRUE"
 				GenerateMapFile="TRUE"
 				MapExports="TRUE"

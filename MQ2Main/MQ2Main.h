@@ -1,3 +1,9 @@
+#define VersionString "20031120"
+#define DebugHeader "[MQ2]"
+#define LoadedString "MQ2 Loaded."
+#define ToUnloadString "MQ2 Unloading..."
+#define UnloadedString "MQ2 Unloaded."
+
 #define WIN32_LEAN_AND_MEAN
 #define _WIN32_WINNT 0x510
 #define DIRECTINPUT_VERSION 0x800
@@ -55,10 +61,6 @@ typedef double DOUBLE;
 #define DebugTry(x) x
 #endif
 
-#define DebugHeader "[MQ2]"
-#define LoadedString "MQ2 Loaded."
-#define ToUnloadString "MQ2 Unloading..."
-#define UnloadedString "MQ2 Unloaded."
 
 #define MAX_VARNAME 64
 #define MAX_STRING            2048

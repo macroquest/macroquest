@@ -26,6 +26,8 @@
 #include "MQ2Main.h"
 namespace MQ2Globals
 {
+CHAR gszVersion[32]=VersionString;
+
 DWORD gGameState = 0;
 
 DWORD ThreadID = 0;
@@ -48,7 +50,7 @@ PVARSTRINGS gMacroStr = NULL;
 PVARARRAYS gArray = NULL;
 CHAR gszEQPath[MAX_STRING] = {0};
 CHAR gszMacroPath[MAX_STRING] = {0};
-CHAR gszVersion[MAX_STRING] = {0};
+//CHAR gszVersion[MAX_STRING] = {0};
 CHAR gszLogPath[MAX_STRING] = {0};
 CHAR gszINIPath[MAX_STRING] = {0};
 CHAR gszINIFilename[MAX_STRING] = {0};

@@ -113,7 +113,7 @@ BOOL ParseINIFile(PCHAR lpINIPath)
         return FALSE;
     }
 
-    GetPrivateProfileString("MacroQuest","MacroQuestVersion","0",gszVersion,MAX_STRING,ClientINI);
+//    GetPrivateProfileString("MacroQuest","MacroQuestVersion","0",gszVersion,MAX_STRING,ClientINI);
 /*
     GetPrivateProfileString("Function Locations","WriteChatColor","0",szBuffer,MAX_STRING,ClientINI);   EQADDR_DSPCHAT = strtoul(szBuffer,NULL,16);
     GetPrivateProfileString("Function Locations","GetRaceByID","0",szBuffer,MAX_STRING,ClientINI);      GetRaceByID = (fEQGetStringByID)strtoul(szBuffer,NULL,16);
