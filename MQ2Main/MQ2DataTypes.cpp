@@ -1759,6 +1759,7 @@ bool MQ2CharacterType::GetMember(MQ2VARPTR VarPtr, PCHAR Member, PCHAR Index, MQ
 		Dest.Type=pBoolType;
 		return true;
 	case LargestFreeInventory:
+		{
 		Dest.DWord=0;
 		Dest.Type=pIntType;
 		for (DWORD slot=22;slot<30;slot++) 
@@ -1782,6 +1783,7 @@ bool MQ2CharacterType::GetMember(MQ2VARPTR VarPtr, PCHAR Member, PCHAR Index, MQ
 				Dest.DWord=4;
 				return true;
 			}
+		}
 		}
 		return true;
 	case FreeInventory:

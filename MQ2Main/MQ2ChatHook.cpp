@@ -52,7 +52,6 @@ public:
 		gbInChat = FALSE; 
 	} 
 }; 
-#include <cstddef>
 
 DETOUR_TRAMPOLINE_EMPTY(VOID CChatHook::Trampoline(PCHAR szMsg, DWORD dwColor, DWORD dwUnknown)); 
 
