@@ -796,6 +796,7 @@ private:
 				goto feedermatchnoevent;
 			}
 feedermatchdoevents:
+			{
 			PBLECHEVENTNODE pEventNode=pNode->pEvents;
 			// create values
 			Push();
@@ -847,6 +848,7 @@ feedermatchdoevents:
 				pValues=pNext;
 			}
 			Pop();
+			}
 feedermatchnoevent:
 			// MATCH, ALREADY EXECUTED ANY NECESSARY EVENTS
 

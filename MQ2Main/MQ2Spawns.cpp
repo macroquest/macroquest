@@ -122,7 +122,7 @@ public:
 		__asm {push edx};
 		__asm {push esi};
 		__asm {push edi};
-		SetNameSpriteState(1);
+		((EQPlayerHook*)pSpawn)->SetNameSpriteState(1);
 		PluginsAddSpawn(pSpawn);
 		__asm {pop edi};
 		__asm {pop esi};
