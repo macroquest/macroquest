@@ -121,7 +121,7 @@ struct _slots {
     "arms", 7,
     "back", 8,
     "charm", 0,
-    "chest", 11,
+    "chest", 17, // not 11
     "ear", 1,
     "face", 3,
     "feet", 19,
