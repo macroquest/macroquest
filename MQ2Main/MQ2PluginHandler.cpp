@@ -349,6 +349,7 @@ VOID PluginsSetGameState(DWORD GameState)
 {
 	static bool AutoExec=false;
 	static bool CharSelect=true;
+	DrawHUDParams[0]=0;
 	if (!bPluginCS)
 		return;
 	gGameState=GameState;

@@ -92,6 +92,8 @@ CHAR gszSpawnMountName[MAX_STRING]="${NamingSpawn.DisplayName}";
 CHAR gszSpawnPetName[MAX_STRING]="${NamingSpawn.DisplayName}${If[${NamingSpawn.Master.Type.Equal[PC]},\n(${NamingSpawn.Master}),]}";
 CHAR gszSpawnCorpseName[MAX_STRING]="${NamingSpawn.DisplayName}'s corpse";
 
+DWORD DrawHUDParams[4]={0,0,0,0};
+
 DWORD gEventChat = 0;
 DWORD gRunning = 0;
 BOOL gbMoving = FALSE;

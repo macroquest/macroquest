@@ -56,8 +56,6 @@ public:
 	}
 }; 
 
-DWORD DrawHUDParams[4]={0,0,0,0};
-
 DWORD __cdecl DrawHUD_Trampoline(DWORD,DWORD,DWORD,DWORD); 
 DWORD __cdecl DrawHUD_Detour(DWORD a,DWORD b,DWORD c,DWORD d) 
 { 
