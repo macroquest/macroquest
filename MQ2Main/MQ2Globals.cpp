@@ -175,7 +175,7 @@ PBYTE EQADDR_NOTINCHATMODE=0;
 
 PCHAR EQADDR_LASTTELL=0;
 PGROUNDITEM *EQADDR_ITEMS=0;
-_SPELLPOINTER** EQADDR_SPELLS=0;
+//_SPELLPOINTER** EQADDR_SPELLS=0;
 PBYTE EQADDR_GROUPCOUNT=0;
 PVOID EQADDR_GWORLD=0;
 PDOORTABLE *EQADDR_DOORS=0;
@@ -355,7 +355,74 @@ PCHAR szItemName[] = {
     NULL
 };
 
+PCHAR szTheme[] = { 
+   "Non-LDON",      //0 
+   "Deepest Guk",   //1 
+   "Miragul's",   //2 
+   "Mistmoore",   //3 
+   "Rujarkian",   //4 
+   "Takish",      //5 
+}; 
 
+PCHAR szDmgBonusType[] = { 
+    "None", 
+    "Magic", 
+    "Fire", 
+    "Cold", 
+    "Poison", 
+    "Disease" 
+}; 
+
+PCHAR szBaneDmgType[] = { 
+   "Humanoid", 
+   "Lycanthrope", 
+   "Undead", 
+   "Giant", 
+   "Construct", 
+   "Extraplanar", 
+   "Magical", 
+   "UNKNOWN BODYTYPE", 
+   "UNKNOWN BODYTYPE", 
+   "UNKNOWN BODYTYPE", 
+   "UNKNOWN BODYTYPE", 
+   "Vampyre", 
+   "Atenha Ra", 
+   "Greater Akheva", 
+   "Khati Sha", 
+   "UNKNOWN BODYTYPE", 
+   "UNKNOWN BODYTYPE", 
+   "UNKNOWN BODYTYPE", 
+   "Zek", 
+   "Luggald", 
+   "Animal", 
+   "Insect", 
+   "Monster", 
+   "Elemental", 
+   "Plant", 
+   "Dragon", 
+   "UNKNOWN BODYTYPE", 
+   "Summoned Creature" 
+}; 
+
+PCHAR szAugRestrictions[] = { 
+	"None",
+	"Armor Only",
+	"Weapons Only",
+	"1H Weapons Only",
+	"2H Weapons Only",
+	"1H Slash Only",
+	"1H Blunt Only",
+	"Piercing Only",
+	"Hand to Hand Only",
+	"2H Slash Only",
+	"2H Blunt Only",
+	"2H Pierce Only",
+	"Bows Only",
+	"Shields Only"
+}; 
+
+
+EQPlayer **ppEQP_IDArray=0;
 CEverQuest **ppEverQuest=(CEverQuest**)pinstCEverQuest;
 CDisplay **ppDisplay=(CDisplay**)pinstCDisplay;
 EQ_PC **ppPCData=(EQ_PC**)pinstPCData;
@@ -375,16 +442,16 @@ SPELLFAVORITE *pSpellSets=(SPELLFAVORITE *)pinstSpellSets;
 EQZoneInfo *pZoneInfo=(EQZoneInfo*)instEQZoneInfo;
 
 /* WINDOW INSTANCES */
+
 CContextMenuManager **ppContextMenuManager=(CContextMenuManager**)pinstCContextMenuManager;
 CCursorAttachment **ppCursorAttachment=(CCursorAttachment**)pinstCCursorAttachment;
 CSocialEditWnd **ppSocialEditWnd=(CSocialEditWnd**)pinstCSocialEditWnd;
-CInvSlotMgr **ppInvSlotMgr=(CInvSlotMgr**)pinstCInvSlotMgr;
 CContainerMgr **ppContainerMgr=(CContainerMgr**)pinstCContainerMgr;
 CChatManager **ppChatManager=(CChatManager**)pinstCChatManager;
 CConfirmationDialog **ppConfirmationDialog=(CConfirmationDialog**)pinstCConfirmationDialog;
 CFacePick **ppFacePick=(CFacePick**)pinstCFacePick;
-//CItemDisplayMgr **ppItemDisplayMgr=(CItemDisplayMgr**)pinstCItemDisplayMgr;
-//CSpellDisplayMgr **ppSpellDisplayMgr=(CSpellDisplayMgr**)pinstCSpellDisplayMgr;
+CInvSlotMgr **ppInvSlotMgr=(CInvSlotMgr**)pinstCInvSlotMgr;
+//CPopupWndManager **ppPopupWndManager=(CPopupWndManager**)pinstCPopupWndManager;
 CNoteWnd **ppNoteWnd=(CNoteWnd**)pinstCNoteWnd;
 CHelpWnd **ppHelpWnd=(CHelpWnd**)pinstCHelpWnd;
 CTipWnd **ppTipWndOFDAY=(CTipWnd**)pinstCTipWndOFDAY;
@@ -398,9 +465,10 @@ CPetInfoWnd **ppPetInfoWnd=(CPetInfoWnd**)pinstCPetInfoWnd;
 CTrainWnd **ppTrainWnd=(CTrainWnd**)pinstCTrainWnd;
 CSkillsWnd **ppSkillsWnd=(CSkillsWnd**)pinstCSkillsWnd;
 CSkillsSelectWnd **ppSkillsSelectWnd=(CSkillsSelectWnd**)pinstCSkillsSelectWnd;
+//CCombatSkillSelectWnd **ppCombatSkillSelectWnd=(CCombatSkillSelectWnd**)pinstCCombatSkillSelectWnd;
 CAAWnd **ppAAWnd=(CAAWnd**)pinstCAAWnd;
 CGroupWnd **ppGroupWnd=(CGroupWnd**)pinstCGroupWnd;
-CJournalNPCWnd **ppJournalNPCWnd=(CJournalNPCWnd**)pinstCJournalNPCWnd;
+//CSystemInfoDialogBox **ppSystemInfoDialogBox=(CSystemInfoDialogBox**)pinstCSystemInfoDialogBox;
 CGroupSearchWnd **ppGroupSearchWnd=(CGroupSearchWnd**)pinstCGroupSearchWnd;
 CGroupSearchFiltersWnd **ppGroupSearchFiltersWnd=(CGroupSearchFiltersWnd**)pinstCGroupSearchFiltersWnd;
 CRaidWnd **ppRaidWnd=(CRaidWnd**)pinstCRaidWnd;
@@ -426,6 +494,7 @@ CTextEntryWnd **ppTextEntryWnd=(CTextEntryWnd**)pinstCTextEntryWnd;
 CFileSelectionWnd **ppFileSelectionWnd=(CFileSelectionWnd**)pinstCFileSelectionWnd;
 CLootWnd **ppLootWnd=(CLootWnd**)pinstCLootWnd;
 CActionsWnd **ppActionsWnd=(CActionsWnd**)pinstCActionsWnd;
+//CCombatAbilityWnd **ppCombatAbilityWnd=(CCombatAbilityWnd**)pinstCCombatAbilityWnd;
 CMerchantWnd **ppMerchantWnd=(CMerchantWnd**)pinstCMerchantWnd;
 CTradeWnd **ppTradeWnd=(CTradeWnd**)pinstCTradeWnd;
 CBazaarWnd **ppBazaarWnd=(CBazaarWnd**)pinstCBazaarWnd;
@@ -443,15 +512,23 @@ CGemsGameWnd **ppGemsGameWnd=(CGemsGameWnd**)pinstCGemsGameWnd;
 CStoryWnd **ppStoryWnd=(CStoryWnd**)pinstCStoryWnd;
 //CFindLocationWnd **ppFindLocationWnd=(CFindLocationWnd**)pinstCFindLocationWnd;
 //CAdventureRequestWnd **ppAdventureRequestWnd=(CAdventureRequestWnd**)pinstCAdventureRequestWnd;
+//CAdventureMerchantWnd **ppAdventureMerchantWnd=(CAdventureMerchantWnd**)pinstCAdventureMerchantWnd;
 //CAdventureStatsWnd **ppAdventureStatsWnd=(CAdventureStatsWnd**)pinstCAdventureStatsWnd;
 //CAdventureLeaderboardWnd **ppAdventureLeaderboardWnd=(CAdventureLeaderboardWnd**)pinstCAdventureLeaderboardWnd;
+//CLeadershipWindow **ppLeadershipWindow=(CLeadershipWindow**)pinstCLeadershipWindow;
 CBodyTintWnd **ppBodyTintWnd=(CBodyTintWnd**)pinstCBodyTintWnd;
 CGuildMgmtWnd **ppGuildMgmtWnd=(CGuildMgmtWnd**)pinstCGuildMgmtWnd;
 CJournalTextWnd **ppJournalTextWnd=(CJournalTextWnd**)pinstCJournalTextWnd;
 CJournalCatWnd **ppJournalCatWnd=(CJournalCatWnd**)pinstCJournalCatWnd;
+//CTributeBenefitWnd **ppTributeBenefitWnd=(CTributeBenefitWnd**)pinstCTributeBenefitWnd;
+//CTributeMasterWnd **ppTributeMasterWnd=(CTributeMasterWnd**)pinstCTributeMasterWnd;
 CPetitionQWnd **ppPetitionQWnd=(CPetitionQWnd**)pinstCPetitionQWnd;
 CSoulmarkWnd **ppSoulmarkWnd=(CSoulmarkWnd**)pinstCSoulmarkWnd;
 CTimeLeftWnd **ppTimeLeftWnd=(CTimeLeftWnd**)pinstCTimeLeftWnd;
+
+
+
+
 
 CSidlManager **ppSidlMgr=(CSidlManager **)pinstCSidlManager;
 

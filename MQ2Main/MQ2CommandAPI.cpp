@@ -59,7 +59,9 @@ VOID HideDoCommand(PSPAWNINFO pChar, PCHAR szLine, BOOL delayed)
         pLoop = pLoop->pNext;
     }
 
-    GetArg(szCmd,szLine,1);
+	strcpy(szLastCommand,szLine);
+
+	GetArg(szCmd,szLine,1);
     if (szCmd[0]==0) return;
     strcpy(szParam, GetNextArg(szLine));
 
@@ -88,6 +90,11 @@ VOID HideDoCommand(PSPAWNINFO pChar, PCHAR szLine, BOOL delayed)
 	PMQCOMMAND pCommand=pCommands;
 	while(pCommand)
 	{
+		if (pCommand->InGameOnly && gGameState!=GAMESTATE_INGAME)
+		{
+			pCommand=pCommand->pNext;
+			continue;
+		}
 		int Pos=strnicmp(szCmd,pCommand->Command,strlen(szCmd));
 		if (Pos<0)
 		{// command not found
@@ -96,7 +103,9 @@ VOID HideDoCommand(PSPAWNINFO pChar, PCHAR szLine, BOOL delayed)
 		if (Pos==0)
 		{
 			if (pCommand->Parse)
+			{
 				pCommand->Function(pChar,ParseMacroParameter(pChar,szParam)); 
+			}
 			else
 				pCommand->Function(pChar,szParam);
 			return;
@@ -136,6 +145,7 @@ public:
 				} 
 				pLoop = pLoop->pNext; 
 			} 
+			strcpy(szLastCommand,szFullCommand);
 			GetArg(szCommand,szFullCommand,1); 
 			strcpy(szArgs, GetNextArg(szFullCommand)); 
 
@@ -143,6 +153,11 @@ public:
 			PMQCOMMAND pCommand=pCommands;
 			while(pCommand)
 			{
+				if (pCommand->InGameOnly && gGameState!=GAMESTATE_INGAME)
+				{
+					pCommand=pCommand->pNext;
+					continue;
+				}
 				int Pos=strnicmp(szCommand,pCommand->Command,strlen(szCommand));
 				if (Pos<0)
 				{// command not found
@@ -178,7 +193,7 @@ public:
 DETOUR_TRAMPOLINE_EMPTY(VOID CCommandHook::Trampoline(PSPAWNINFO pChar, PCHAR szFullLine)); 
 
 
-void AddCommand(PCHAR Command, fEQCommand Function, BOOL EQ, BOOL Parse)
+void AddCommand(PCHAR Command, fEQCommand Function, BOOL EQ, BOOL Parse, BOOL InGame)
 {
 	DebugSpew("AddCommand(%s,0x%X)",Command,Function);
 	PMQCOMMAND pCommand=new MQCOMMAND;
@@ -187,6 +202,7 @@ void AddCommand(PCHAR Command, fEQCommand Function, BOOL EQ, BOOL Parse)
 	pCommand->EQ=EQ;
 	pCommand->Parse=Parse;
 	pCommand->Function=Function;
+	pCommand->InGameOnly=InGame;
 	
 	// perform insertion sort
 	if (!pCommands)
@@ -322,18 +338,20 @@ void InitializeMQ2Commands()
 {
 	DebugSpew("Initializing Commands");
 	InitializeCriticalSection(&gCommandCS);
-
+	/*
 	VOID (CCommandHook::*pfDetour)(PSPAWNINFO pChar, PCHAR szFullLine)=CCommandHook::Detour;
 	VOID (CCommandHook::*pfTrampoline)(PSPAWNINFO pChar, PCHAR szFullLine)=CCommandHook::Trampoline;
 
 	AddDetour(CEverQuest__InterpretCmd,*(PBYTE*)&pfDetour,*(PBYTE*)&pfTrampoline);
+	/**/
+	EasyClassDetour(CEverQuest__InterpretCmd,CCommandHook,Detour,VOID,(PSPAWNINFO pChar, PCHAR szFullLine),Trampoline);
 
 	// Import EQ commands
     PCMDLIST pCmdListOrig = (PCMDLIST)EQADDR_CMDLIST;
     for (int i=0;pCmdListOrig[i].fAddress != 0;i++) {
         if (!strcmp(pCmdListOrig[i].szName,"/who")) {
             cmdWho  = (fEQCommand)pCmdListOrig[i].fAddress;
-			AddCommand("/",pCmdListOrig[i].fAddress,TRUE); // make sure / does EQ who by default
+			AddCommand("/",pCmdListOrig[i].fAddress,TRUE,1,1); // make sure / does EQ who by default
         } else if (!strcmp(pCmdListOrig[i].szName,"/whotarget")) {
             cmdWhoTarget  = (fEQCommand)pCmdListOrig[i].fAddress;
         } else if (!strcmp(pCmdListOrig[i].szName,"/location")) {
@@ -351,97 +369,97 @@ void InitializeMQ2Commands()
         } else if (!strcmp(pCmdListOrig[i].szName,"/cast")) {
             cmdCast = (fEQCommand)pCmdListOrig[i].fAddress;
         }
-		AddCommand(pCmdListOrig[i].szName,pCmdListOrig[i].fAddress,TRUE);
+		AddCommand(pCmdListOrig[i].szName,pCmdListOrig[i].fAddress,TRUE,1,1);
 	}	
 
 	
 
 	// Add MQ commands...
-    struct _NEWCOMMANDLIST { PCHAR szCommand; fEQCommand pFunc; BOOL Parse;} NewCommands[] = {
-        {"/who",        SuperWho,		1},
-        {"/whotarget",  SuperWhoTarget,	1},
-        {"/location",   Location,1},
-        {"/help",       Help,1},
-        {"/target",     Target,1},
-        {"/alias",      Alias,0},
-        {"/hotkey",     Hotkey,0},
-        {"/filter",     Filter,1},
-		{"/whofilter",	SWhoFilter,1},
-        {"/spewfile",   DebugSpewFile,1},
-        {"/charinfo",   CharInfo,1},
-        {"/face",       Face,1},
-        {"/identify",   Identify,1},
-        {"/where",      Where,1},
-        {"/skills",     Skills,1},
-        {"/unload",     Unload,1},
-        {"/macro",      Macro,1},
-        {"/selectitem", SelectItem,1},
-        {"/buyitem",    BuyItem,1},
-        {"/sellitem",   SellItem,1},
-        {"/memspell",   MemSpell,1},
-        {"/loadspells", LoadSpells,1},
-		{"/loginname",  DisplayLoginName,1},
-        {"/endmacro",   EndMacro,1},
-        {"/listmacros", ListMacros,1},
-        {"/echo",       Echo,1},
-        {"/varset",     VarSet,1},
-        {"/msgbox",     MQMsgBox,1},
-        {"/alert",      Alert,1},
-        {"/click",      Click,1},
-        {"/mouseto",    MouseTo,1},
-        {"/finditem",   FindItem,1},
-        {"/mqpause",    MacroPause,1},
-        {"/items",      Items,1},
-        {"/itemtarget", ItemTarget,1},
-        {"/doability",  DoAbility,1},
-        {"/doors",      Doors,1},
-        {"/doortarget", DoorTarget,1},
-        {"/beep",       MacroBeep,1},
-        {"/cast",       Cast,1},
-        {"/mqlog",      MacroLog,1},
-        {"/seterror",   SetError,1},
-        {"/varcalc",    VarCalc,1},
-        {"/varadd",     MyVarAdd,1},
-        {"/varcat",     MyVarCat,1},
-        {"/varsub",     MyVarSub,1},
-        {"/varand",     MyVarAnd,1},
-        {"/varor",      MyVarOr,1},
-        {"/varrshift",  VarRShift,1},
-        {"/varlshift",  VarLShift,1},
-        {"/press",      Press,1},
-        {"/sendkey",    SendKey,1},
-        {"/delay",      Delay,1},
-        {"/cleanup",    Cleanup,1},
-        {"/doevents",   DoEvents,1},
-        {"/zapvars",    ZapVars,1},
-        {"/declare",    DeclareVar,1},
-        {"/if",         If,1},
-        {"/goto",       Goto,1},
-        {"/for",        For,1},
-        {"/next",       Next,1},
-        {"/call",       Call,1},
-        {"/return",     Return,1},
-        {"/updateitems",UpdateItemInfo,1},
-		{"/ini",        IniOutput,1},
-		{"/dumpstack",    DumpStack,1},
-		{"/zem",      DisplayZem,1},                  //2003-05-17 anOrcPawn00
-        {"/setautorun", SetAutoRun,0},
-        {"/banklist",   BankList,1},
-        {"/look",       Look,1},
-        {"/keepkeys",   KeepKeys,1},
-		{"/windowstate", WindowState,1},
-        {"/editmacro",  EditMacro,1},
-		{"/plugin",     PluginCommand,1},
-		{"/destroy",     EQDestroyHeldItemOrMoney,1},
-		{"/exec",      Exec,1}, 
-		{NULL,          NULL,0}
+    struct _NEWCOMMANDLIST { PCHAR szCommand; fEQCommand pFunc; BOOL Parse; BOOL InGame;} NewCommands[] = {
+        {"/who",        SuperWho,		1,	1},
+        {"/whotarget",  SuperWhoTarget,	1,	1},
+        {"/location",   Location,1,1},
+        {"/help",       Help,1,0},
+        {"/target",     Target,1,1},
+        {"/alias",      Alias,0,0},
+        {"/hotkey",     Hotkey,0,0},
+        {"/filter",     Filter,1,0},
+		{"/whofilter",	SWhoFilter,1,1},
+        {"/spewfile",   DebugSpewFile,1,0},
+        {"/charinfo",   CharInfo,1,1},
+        {"/face",       Face,1,1},
+        {"/identify",   Identify,1,1},
+        {"/where",      Where,1,1},
+        {"/skills",     Skills,1,1},
+        {"/unload",     Unload,1,0},
+        {"/macro",      Macro,1,0},
+        {"/selectitem", SelectItem,1,1},
+        {"/buyitem",    BuyItem,1,1},
+        {"/sellitem",   SellItem,1,1},
+        {"/memspell",   MemSpell,1,1},
+        {"/loadspells", LoadSpells,1,1},
+		{"/loginname",  DisplayLoginName,1,0},
+        {"/endmacro",   EndMacro,1,0},
+        {"/listmacros", ListMacros,1,0},
+        {"/echo",       Echo,1,0},
+        {"/varset",     VarSet,1,0},
+        {"/msgbox",     MQMsgBox,1,0},
+        {"/alert",      Alert,1,1},
+        {"/click",      Click,1,0},
+        {"/mouseto",    MouseTo,1,0},
+        {"/finditem",   FindItem,1,1},
+        {"/mqpause",    MacroPause,1,0},
+        {"/items",      Items,1,1},
+        {"/itemtarget", ItemTarget,1,1},
+        {"/doability",  DoAbility,1,1},
+        {"/doors",      Doors,1,1},
+        {"/doortarget", DoorTarget,1,1},
+        {"/beep",       MacroBeep,1,0},
+        {"/cast",       Cast,1,1},
+        {"/mqlog",      MacroLog,1,0},
+        {"/seterror",   SetError,1,0},
+        {"/varcalc",    VarCalc,1,0},
+        {"/varadd",     MyVarAdd,1,0},
+        {"/varcat",     MyVarCat,1,0},
+        {"/varsub",     MyVarSub,1,0},
+        {"/varand",     MyVarAnd,1,0},
+        {"/varor",      MyVarOr,1,0},
+        {"/varrshift",  VarRShift,1,0},
+        {"/varlshift",  VarLShift,1,0},
+        {"/press",      Press,1,0},
+        {"/sendkey",    SendKey,1,0},
+        {"/delay",      Delay,1,0},
+        {"/cleanup",    Cleanup,1,0},
+        {"/doevents",   DoEvents,1,0},
+        {"/zapvars",    ZapVars,1,0},
+        {"/declare",    DeclareVar,1,0},
+        {"/if",         If,1,0},
+        {"/goto",       Goto,1,0},
+        {"/for",        For,1,0},
+        {"/next",       Next,1,0},
+        {"/call",       Call,1,0},
+        {"/return",     Return,1,0},
+        {"/updateitems",UpdateItemInfo,1,1},
+		{"/ini",        IniOutput,1,0},
+		{"/dumpstack",    DumpStack,1,0},
+		{"/zem",      DisplayZem,1,1},                  //2003-05-17 anOrcPawn00
+        {"/setautorun", SetAutoRun,0,1},
+        {"/banklist",   BankList,1,1},
+        {"/look",       Look,1,1},
+        {"/keepkeys",   KeepKeys,1,0},
+		{"/windowstate", WindowState,1,0},
+        {"/editmacro",  EditMacro,1,1},
+		{"/plugin",     PluginCommand,1,0},
+		{"/destroy",     EQDestroyHeldItemOrMoney,1,1},
+		{"/exec",      Exec,1,1}, 
+		{NULL,          NULL,0,1},
     };
 
 	// Remove replaced commands first
 	for (i = 0 ; NewCommands[i].szCommand && NewCommands[i].pFunc ; i++)
 	{
 		RemoveCommand(NewCommands[i].szCommand);
-		AddCommand(NewCommands[i].szCommand,NewCommands[i].pFunc,0,NewCommands[i].Parse);
+		AddCommand(NewCommands[i].szCommand,NewCommands[i].pFunc,0,NewCommands[i].Parse,NewCommands[i].InGame);
 	}
 
 	/* ALIASES FOR OUT OF ORDER SHORTHAND COMMANDS */

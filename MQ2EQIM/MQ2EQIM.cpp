@@ -9,6 +9,7 @@
 
 PreSetup("MQ2EQIM");
 
+// TODO: Buddy list window.
 
 #define BUDDY_OFFLINE   1
 #define BUDDY_EQIM      2

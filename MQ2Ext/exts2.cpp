@@ -42,15 +42,19 @@ DECLARE_API ( pchar )
     ReadMemory((PARAM1)p,&ci,sizeof(ci),&cb); 
 
     dprintf("\n\n\n"); 
+
     KPs(Name); 
     KPs(Lastname); 
+	KP(Unknown0x0084);
     KP(Gender); 
     KP(Race); 
     KP(Class); 
+	KP(Unknown0x0094);
     KP(Level); 
     KP(Exp); 
     KP(PracticePoints); 
     KP(Mana); 
+	KP(Unknown0x00a8);
     KP(BaseHP); 
     KP(Stunned); 
     KP(BaseSTR); 
@@ -60,16 +64,16 @@ DECLARE_API ( pchar )
     KP(BaseINT); 
     KP(BaseAGI); 
     KP(BaseWIS); 
-   KP(Face); 
-   KP(languages); 
-   KP(Buff); 
-   KP(SpellBook); 
-   KP(MemorizedSpells); 
-   KPf(y); 
-   KPf(x); 
-   KPf(z); 
-   KPf(heading); 
-   KP(standstate); 
+    KP(Face); 
+    KP(languages); 
+    KP(Buff); 
+    KP(SpellBook); 
+    KP(MemorizedSpells); 
+    KPf(y); 
+    KPf(x); 
+    KPf(z); 
+    KPf(heading); 
+    KP(standstate); 
     KP(Plat); 
     KP(Gold); 
     KP(Silver); 
@@ -78,90 +82,47 @@ DECLARE_API ( pchar )
     KP(BankGold); 
     KP(BankSilver); 
     KP(BankCopper); 
-   KP(BankSharedPlat); 
-   KP(Skill); 
-    KP(Unknown0x0ca8); 
-   KPf(Unknown0x0cac); 
-   KPf(Unknown0x0cb0); 
-   KPf(Unknown0x0cb4); 
-   KPf(Unknown0x0cb8); 
-   KP(Unknown0x0cfc); 
-   KP(Unknown0x0d00); 
-   KP(Unknown0x0d10); 
-   KP(Unknown0x0d24); 
-    KP(Unknown0x0d3c); 
-   KP(Unknown0x0d44); 
-   KP(Unknown0x0d4c); 
-   KP(hungerlevel); 
-   KP(thirstlevel); 
-   KP(zoneId); 
-   KP(STR); 
+    KP(BankSharedPlat); 
+    KP(Skill); 
+    KP(hungerlevel); 
+    KP(thirstlevel); 
+    KP(zoneId); 
+    KP(STR); 
     KP(STA); 
     KP(CHA); 
     KP(DEX); 
     KP(INT); 
     KP(AGI); 
     KP(WIS); 
-   KP(Unknown0x0e44); 
     KP(SaveMagic); 
     KP(SaveFire); 
     KP(SaveCold); 
     KP(SavePoison); 
     KP(SaveDisease); 
     KP(CurrWeight); 
-    KP(Unknown0x0e60); 
-   KP(Unknown0x0e64); 
-    KP(Unknown0x0e6c); 
-    KP(Unknown0x0ea8);
-	KP(Unknown0x0f0c);
-   KP(Unknown0x1018); 
-    KP(Unknown0x101c); 
-   KP(Unknown0x1048); 
-   KP(Unknown0x104c); 
-   KP(Unknown0x1050); 
-   KP(Unknown0x1054); 
-   KP(Unknown0x10a0); 
-   KP(Unknown0x10a4);
-   KP(Unknown0x10ac);
-   KP(Unknown0x10b0);
-   KP(Unknown0x10b4);
-   KP(Unknown0x10b8);
-   KP(Unknown0x10d0); 
-   KP(Unknown0x10d4);
-   KP(Unknown0x1124);
-   KP(Unknown0x1128);
-   KP(Unknown0x1134);
-   KP(Unknown0x1138);
-   KP(Unknown0x11d4);
-   KP(Unknown0x11d8);
-   KP(Unknown0x11dc);
-   KP(ZoneBoundId); 
-   KPf(ZoneBoundY); 
-   KPf(ZoneBoundX); 
-   KPf(ZoneBoundZ); 
-   KPf(Unknown0x1314); 
-   KPf(Unknown0x1318); 
-   KPf(Unknown0x131c); 
-   KPf(Unknown0x1320); 
-   KPf(Unknown0x1324); 
-   KPf(Unknown0x1338); 
-   KP(Diety); 
-   KP(GuildID); 
-    KPf(Unknown0x1344); 
-    KPf(Unknown0x1348); 
-   KP(Unknown0x134c);
-   KP(Fatigue);
-   KP(GuildStatus);
-   KP(Unknown0x1370); 
-   KP(Unknown0x1374);
-   KP(Unknown0x137c);
-   KP(Grouped);
-   KP(AAExp);
-   KP(AAPoints);
-   KPs(Server); 
-   KP(Bank);
-   KP(Unknown0x9d98);
-
+	KP(HPBonus);
+	KP(ManaBonus);
+    KP(ShortBuff);
+    KP(ZoneBoundId); 
+    KPf(ZoneBoundY); 
+    KPf(ZoneBoundX); 
+    KPf(ZoneBoundZ); 
+    KP(Diety); 
+    KP(GuildID); 
+	KP(GuildStatus);
+    KP(Grouped);
+	KP(AAExp);
+	KP(PercentEXPtoAA);
+	KP(AAPoints);
+    KP(GuildStatus);
+    KPs(Server); 
+	KP(GukEarned);
+	KP(MirEarned);
+	KP(MMEarned);
+	KP(RujEarned);
+	KP(TakEarned);
+	KP(LDoNPoints);
+    KP(Bank);
 } 
 
 DECLARE_API ( pspawn ) 
@@ -188,6 +149,7 @@ DECLARE_API ( pspawn )
    KPf(SpeedHeading); 
    KPf(CameraAngle); 
    KP(pActorInfo); 
+   KP(Sneak);
    KP(Linkdead);
    KP(LFG); 
    for (int i=0; i < 7; i++) 
@@ -222,13 +184,14 @@ DECLARE_API ( pspawn )
    KP(MasterID);
    KP(Race);
    KP(Anon); 
-   KP(AARank); 
    KP(AFK); 
    KP(BodyType); 
    KP(HPCurrent); 
+   KP(AARank); 
    KP(Deity); 
    KP(HPMax); 
    KP(GuildID); 
+   KP(Levitate);
 } 
 
 DECLARE_API ( pitem ) 
@@ -254,20 +217,6 @@ DECLARE_API ( pitem )
    KP(NoDrop); 
    KP(Size); 
    KP(Type); 
-   dprintf("\tNote:  The COMMON, CONTAINER, or BOOK union starts at 0xd6\n" ); 
-} 
-
-DECLARE_API ( pcommon ) 
-{ 
-    COMMON *p, *pnull=NULL, ci; 
-    DWORD cb; 
-
-    // read param from command line 
-    p = (COMMON *)GetExpression(args); 
-
-    ReadMemory((PARAM1)p,&ci,sizeof(ci),&cb); 
-
-   dprintf("\n\n\n"); 
    KP(SvCold); 
    KP(SvFire); 
    KP(SvMagic); 
@@ -284,17 +233,24 @@ DECLARE_API ( pcommon )
    KP(Mana); 
    KP(AC); 
    KP(SkillModType); 
-   KP(RequiredLevel); 
+   KP(BaneDMGType);
+   KP(RequiredLevel);
+   KP(InstrumentType);
+   KP(InstrumentMod);
    KP(Classes); 
    KP(Races); 
    KP(Diety); 
    KP(SpellId); 
    KP(Color); 
    KP(SkillModValue); 
+   KP(BaneDMG);
    KP(Magic); 
    KP(Light); 
    KP(Delay); 
    KP(RecommendedLevel); 
+   KP(DmgBonusType);
+   KP(DmgBonusVal);
+   KP(Range);
    KP(Damage); 
    KP(ItemType); 
    KP(Material); 
@@ -304,25 +260,11 @@ DECLARE_API ( pcommon )
    KP(CastTime); 
    KP(Stackable); 
    KP(EffectType); 
-} 
-
-DECLARE_API ( pcontainer ) 
-{ 
-    CONTAINER *p, *pnull=NULL, ci; 
-    DWORD cb; 
-
-    // read param from command line 
-    p = (CONTAINER *)GetExpression(args); 
-
-    ReadMemory((PARAM1)p,&ci,sizeof(ci),&cb); 
-
-   dprintf("\n\n\n"); 
    KP(Combine); 
    KP(Slots); 
    KP(SizeCapacity); 
    KP(WeightReduction); 
 } 
-
 
 DECLARE_API ( pgroundspawn ) 
 { 
@@ -397,14 +339,14 @@ DECLARE_API ( pspellbuff )
 //this structure! 
 DECLARE_API ( pspell ) 
 { 
-    SPELLLIST *p, *pnull=NULL, ci; 
-    DWORD cb; 
+   SPELL *p, *pnull=NULL, ci; 
+   DWORD cb; 
    CHAR tmp[1024]; 
    CHAR buffer[MAX_STRING] = {0}; 
    unsigned int bitval = 1; 
 
     // read param from command line 
-    p = (SPELLLIST *)GetExpression(args); 
+    p = (SPELL *)GetExpression(args); 
 
     ReadMemory((PARAM1)p,&ci,sizeof(ci),&cb); 
 
@@ -412,6 +354,8 @@ DECLARE_API ( pspell )
 
    KP(ID); 
    KPf(Range); 
+   KPf(AERange);
+   KPf(PushBack);
    KP(CastTime); 
    KP(FizzleTime); 
    KP(RecastTime); 
@@ -430,17 +374,25 @@ DECLARE_API ( pspell )
       dprintf("ReagentCount%d = %d (offset 0x%x)\n", i+1, ci.ReagentCount[i], &pnull->ReagentCount[i]); 
    for (i=0; i < 12; i++) 
       dprintf("Calc%d = %d (offset 0x%x)\n", i+1, ci.Calc[i], &pnull->Calc[i]); 
-   KP(Deletable); 
+   KP(LightType);
+   KP(SpellType);
+   KP(Resist);
    for (i=0; i < 12; i++) 
       dprintf("Attrib%d = %d (offset 0x%x)\n", i+1, ci.Attrib[i], &pnull->Attrib[i]); 
-   KP(Unknown0x114); 
-   KP(FizzLeadj); 
+   KP(TargetType);
+   KP(FizzleAdj); 
    KP(Skill); 
+   KP(Location);
+   KP(Environment);
+   KP(TimeOfDay);
    for (i=0; i < 15; i++) 
       dprintf("Level(Class %d) = %d (offset 0x%x)\n", i+1, ci.Level[i], &pnull->Level[i]); 
    KP(CastingAnim); 
-   KP(descnum); 
-   KP(Unknown0x144);
+   KP(descnum);
+   KP(Uninterruptable);
+   KP(Deletable);
+   KP(Autocast);
+   KP(DurationWindow);
    KP(Unknown144);
    KP(Unknown145);
    KP(Unknown0x15c);
@@ -458,6 +410,7 @@ DECLARE_API ( pspell )
    KP(SpellAnim); 
    KP(Unknown130);
    KP(SpellIcon); 
+   KP(ResistAdj);
 } 
 
 DECLARE_API ( pzone ) 
@@ -584,13 +537,18 @@ DECLARE_API ( pactorinfo )
 
    KPs(ActorDef);
    KPf(Z);
+   KP(TimeStamp);
+   KP(LastTick);
    KP(UnderWater);
    KP(FeetWet);
    KP(LeftWater);
+   KP(SpellETA);
    KP(Animation);
    KP(Mount);
    KPs(NameOfLastSuccessfulTargetHit);
    KP(InvitedToGroup);
+   KP(CastingSpellID);
+   KP(Model);
    KP(WhoFollowing);
    KP(Trader);
 } 
@@ -601,7 +559,7 @@ DECLARE_API ( pactorinfo )
 // Note:  Add "Levels" 
 DECLARE_API ( exportallspells ) 
 { 
-    SPELLLIST *p, *pnull=NULL, ci, *r; 
+   SPELL *p, *pnull=NULL, ci, *r; 
    DWORD *q, cb; 
    CHAR Name[MAX_STRING] = {0}; 
    CHAR Target[MAX_STRING] = {0}; 
@@ -630,7 +588,7 @@ DECLARE_API ( exportallspells )
       q = (DWORD*) GetExpression(args)+j; 
       ReadMemory((PARAM1)q, &r, sizeof(r), &cb); 
 
-      p = (SPELLLIST * )r; 
+      p = (SPELL *)r; 
       ReadMemory((PARAM1)p,&ci,sizeof(ci),&cb); 
 
       //Read some memory locations into buffers 
@@ -650,7 +608,7 @@ DECLARE_API ( exportallspells )
       for (k=0;k<12;k++) dprintf("%d~", ci.Max[k]); 
       for (k=0;k<12;k++) dprintf("%d~", ci.Calc[k]); 
       for (k=0;k<12;k++) dprintf("%d~", ci.Attrib[k]); 
-      dprintf("%d~%d\n", ci.descnum, ci.FizzLeadj ); 
+      dprintf("%d~%d\n", ci.descnum, ci.FizzleAdj ); 
 
     
       //Clean up (always better to be safe than sorry) 

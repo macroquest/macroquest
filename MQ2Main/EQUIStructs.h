@@ -227,7 +227,7 @@ typedef struct _CXWND {
 /*0x055*/   BYTE    Enabled;
 /*0x056*/   BYTE    Minimized;  // -> 0x56
 /*0x057*/   BYTE    Unknown0x057; // ontilebox
-/*0x058*/   BYTE    Open;
+/*0x058*/   BYTE    Unknown0x058;
 /*0x059*/   BYTE    Unknown0x059;
 /*0x05a*/   BYTE    MouseOver;
 /*0x05b*/   BYTE    Unknown0x05b;
@@ -303,7 +303,7 @@ typedef struct _CSIDLWND {
 /*0x055*/   BYTE    Enabled;
 /*0x056*/   BYTE    Minimized;  // -> 0x56
 /*0x057*/   BYTE    Unknown0x057; // ontilebox
-/*0x058*/   BYTE    Open;
+/*0x058*/   BYTE    Unknown0x058;
 /*0x059*/   BYTE    Unknown0x059;
 /*0x05a*/   BYTE    MouseOver;
 /*0x05b*/   BYTE    Unknown0x05b;
@@ -345,11 +345,11 @@ typedef struct _CSIDLWND {
 /*0x104*/   DWORD   HScrollPos; // -> 0x104
 /*0x108*/   BYTE    ValidCXWnd; // -> 0x108
 /*0x109*/   BYTE    Unused0x0f9[0x3];
-/*0x10C*/   struct _CXSTR  *SidlText;
-/*0x110*/   union {
-					struct _CXSTR  *SidlScreen; 
-					DWORD   SlotID;
-			};
+/*0x10C*/   struct _CXSTR  *SidlText; 
+/*0x110*/   union { 
+			   struct _CXSTR  *SidlScreen; 
+               DWORD   SlotID; 
+         }; 
 /*0x114*/   LPVOID SidlPiece;   // CScreenPieceTemplate (important)  
 /*0x118*/   DWORD   Checked; // CRadioGroup
 /*0x11c*/   DWORD   TextureAnim; // used in CSidlScreenWnd::AddButtonToRadioGroup
@@ -366,6 +366,7 @@ typedef struct _CSIDLWND {
 /*0x148*/
 } CSIDLWND, *PCSIDLWND;
 
+
 // todo...
 //11-6-2003 lax
 //Actual size 0xe8 11-5-2003
@@ -378,22 +379,26 @@ typedef struct _CXWNDMGR {
 
 //5-15-2003   eqmule
 //10-30-2003 plazmic - converted to CSIDLWND
+// 12-23-2003 dkaa - size is 0x3f4
 typedef struct _EQMERCHWINDOW {
 /*0x000*/   struct _CSIDLWND Wnd;
-/*0x148*/   BYTE Unknown0x148[0x8];
-/*0x000*/   PCONTENTS   ItemDesc[0x50];   //the mainwindow has pointers directly to the items in the slots...
-/*0x288*/   DWORD   Unknown5;
-/*0x28c*/   DWORD   SelectedSlotID;
-/*0x290*/   DWORD   AddressToPointerForSelectedItem;//
-/*0x294*/   DWORD   Unknown6;
-/*0x298*/   DWORD   ItemIconwnd;
-/*0x29c*/   DWORD   Unknown7;
-/*0x2a0*/   DWORD   SellBuyButton;
-/*0x2a4*/   struct _CSIDLWND   *SlotsHandles[0x50];
-/*0x3e4*/   DWORD   DoneButton;
-/*0x3e8*/   DWORD   WindowFace;
-/*0x3ec*/
+/*0x148*/   BYTE    Unknown0x148[0x8];
+/*0x150*/   PCONTENTS   ItemDesc[0x50];     // the mainwindow has pointers
+                                            // directly to the items in the
+                                            // slots...
+/*0x290*/   FLOAT   Markup;
+/*0x294*/   DWORD   SelectedSlotID;
+/*0x298*/   DWORD   AddressToPointerForSelectedItem; // needs checking.
+/*0x29c*/   DWORD   MW_MerchantName;
+/*0x2a0*/   DWORD   MW_SelectedItem;
+/*0x2a4*/   DWORD   MW_Buy_Button;
+/*0x2a8*/   DWORD   MW_Sell_Button;
+/*0x2ac*/   struct _CSIDLWND   *SlotsHandles[0x50];
+/*0x3ec*/   DWORD   DoneButton;
+/*0x3f0*/   DWORD   MerchantSlotsWnd;
+/*0x3f4*/
 } EQMERCHWINDOW, *PEQMERCHWINDOW;
+
 
 
 // 10-27-2003 Lax
@@ -516,7 +521,7 @@ typedef struct _EQCONTAINERWINDOW {
 typedef struct _EQ_CONTAINERWND_MANAGER {
 /*0x000*/   DWORD pvfTable; // NOT based on CXWnd.  Contains only destructor
 /*0x004*/   PEQCONTAINERWINDOW pPCContainers[0x19];  // All open containers, including World, in order of opening...
-/*0x068*/   PCONTENTS   pWorldContents;            // Pointer to the contents of the world container.  If NULL, world container isn't open;
+/*0x068*/   PCONTENTS   pWorldContents;            // Pointer to the contents of the world   If NULL, world container isn't open;
 /*0x06c*/   DWORD dwWorldContainerID;            // ID of container in zone, starts at one (zero?) and goes up.
 /*0x070*/   DWORD dwTimeSpentWithWorldContainerOpen;  // Cumulative counter?
 /*0x074*/
@@ -556,9 +561,9 @@ typedef struct _MAPLINE { // sizeof() = 0x28
 typedef struct _EQLOOTWINDOW {
 /*0x000*/ struct _CSIDLWND Wnd;
 /*0x148*/ BYTE  Unknown0x148[0x08];
-/*0x000*/ BYTE  Unknown0x144[0x80];
-/*0x1c4*/ PCONTENTS   ItemDesc[0x1e]; //there can only be 30 items on a corpse since that equals 22 inv slots plus 8 bags...
-/*0x23c*/
+/*0x150*/ BYTE  Unknown0x144[0x90];
+/*0x1d4*/ PCONTENTS   ItemDesc[0x1e]; //there can only be 30 items on a corpse since that equals 22 inv slots plus 8 bags...
+/*0x24c*/
 } EQLOOTWINDOW, *PEQLOOTWINDOW;
 
 typedef struct _EQNOTESWINDOW {

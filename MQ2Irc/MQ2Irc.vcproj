@@ -92,6 +92,9 @@
 			<File
 				RelativePath="..\MQ2Plugin.h">
 			</File>
+			<File
+				RelativePath="mqirc.h">
+			</File>
 		</Filter>
 		<Filter
 			Name="Resource Files"

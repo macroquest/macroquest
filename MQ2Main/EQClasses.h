@@ -338,6 +338,421 @@ class ZoneNPCLoadTextManager;
 // End forward class declarations
 
 // Class declarations
+class CXStr
+{
+public:
+EQLIB_OBJECT CXStr::~CXStr(void);
+EQLIB_OBJECT CXStr::CXStr(char const *);
+EQLIB_OBJECT CXStr::CXStr(char const *,int);
+EQLIB_OBJECT CXStr::CXStr(char);
+EQLIB_OBJECT CXStr::CXStr(class CXStr const &);
+EQLIB_OBJECT CXStr::CXStr(int,int,char);
+EQLIB_OBJECT CXStr::CXStr(unsigned short const *);
+EQLIB_OBJECT CXStr::CXStr(void);
+EQLIB_OBJECT CXStr::operator char *(void)const;
+EQLIB_OBJECT CXStr::operator unsigned short *(void)const;
+EQLIB_OBJECT bool CXStr::Find(char,int &);
+EQLIB_OBJECT bool CXStr::Find(class CXStr const &,int &);
+EQLIB_OBJECT bool CXStr::Find(unsigned short,int &);
+EQLIB_OBJECT bool CXStr::FindLast(char,int &);
+EQLIB_OBJECT char CXStr::GetChar(long)const;
+EQLIB_OBJECT char CXStr::operator[](int)const;
+EQLIB_OBJECT char CXStr::SetChar(long,char);
+EQLIB_OBJECT class CXStr & CXStr::operator=(char const *);
+EQLIB_OBJECT class CXStr & CXStr::operator=(class CXStr const &);
+EQLIB_OBJECT class CXStr CXStr::Copy(long,long)const;
+EQLIB_OBJECT class CXStr CXStr::Left(int)const;
+EQLIB_OBJECT class CXStr CXStr::Mid(int,int)const;
+EQLIB_OBJECT class CXStr CXStr::Right(int)const;
+//EQLIB_OBJECT enum EStringEncoding CXStr::GetEncoding(void)const;
+EQLIB_OBJECT int __cdecl CXStr::PrintString(char const *,...);
+//EQLIB_OBJECT int CXStr::Compare(class CXStr const &,enum CompareCode)const;
+//EQLIB_OBJECT int CXStr::CompareN(class CXStr const &,int,enum CompareCode)const;
+EQLIB_OBJECT int CXStr::ConvertToInt(void);
+EQLIB_OBJECT int CXStr::operator==(char const *)const;
+EQLIB_OBJECT int CXStr::operator==(class CXStr const &)const;
+EQLIB_OBJECT int CXStr::operator>(class CXStr const &)const;
+EQLIB_OBJECT long CXStr::GetLength(void)const;
+EQLIB_OBJECT unsigned short CXStr::GetUnicode(long)const;
+EQLIB_OBJECT unsigned short CXStr::SetUnicode(long,unsigned short);
+//EQLIB_OBJECT void * CXStr::`vector deleting destructor'(unsigned int);
+EQLIB_OBJECT void CXStr::AddCr(void);
+EQLIB_OBJECT void CXStr::Blank(void);
+EQLIB_OBJECT void CXStr::BlankPreAllocate(int);
+EQLIB_OBJECT void CXStr::CopySelf(long,long);
+EQLIB_OBJECT void CXStr::Delete(long,long);
+EQLIB_OBJECT void CXStr::Insert(long,char);
+EQLIB_OBJECT void CXStr::Insert(long,class CXStr const &);
+EQLIB_OBJECT void CXStr::operator+=(char const *);
+EQLIB_OBJECT void CXStr::operator+=(char);
+EQLIB_OBJECT void CXStr::operator+=(class CXStr const &);
+EQLIB_OBJECT void CXStr::operator+=(unsigned short);
+//EQLIB_OBJECT void CXStr::SetEncoding(enum EStringEncoding);
+EQLIB_OBJECT void CXStr::SetLowerCase(void);
+EQLIB_OBJECT void CXStr::SetUpperCase(void);
+EQLIB_OBJECT void CXStr::Strip(char);
+EQLIB_OBJECT void CXStr::StripAll(char);
+EQLIB_OBJECT void CXStr::StripLeading(char);
+EQLIB_OBJECT void CXStr::StripTrailing(char);
+// protected
+EQLIB_OBJECT static int __cdecl CXStr::LenUnicodeToUtf8(unsigned short const *);
+EQLIB_OBJECT static int __cdecl CXStr::UnicodeToUtf8(unsigned short const *,char *,int);
+EQLIB_OBJECT static int __cdecl CXStr::Utf8ToUnicode(char const *,unsigned short *,int);
+//EQLIB_OBJECT struct CStrRep * CXStr::AllocRepNoLock(long,enum EStringEncoding);
+//EQLIB_OBJECT void CXStr::Assure(long,enum EStringEncoding);
+EQLIB_OBJECT void CXStr::AssureCopy(void);
+EQLIB_OBJECT void CXStr::FreeRep(struct CStrRep *);
+EQLIB_OBJECT void CXStr::FreeRepNoLock(struct CStrRep *);
+// private
+EQLIB_OBJECT void CXStr::CheckNoLock(void);
+
+	PCXSTR Ptr;
+};
+
+class CXWnd
+{
+public:
+EQLIB_OBJECT CXWnd::CXWnd(class CXWnd *,unsigned __int32,class CXRect);
+EQLIB_OBJECT bool CXWnd::HasFocus(void)const;
+EQLIB_OBJECT bool CXWnd::IsActive(void)const;
+EQLIB_OBJECT bool CXWnd::IsDescendantOf(class CXWnd const *)const;
+EQLIB_OBJECT bool CXWnd::IsEnabled(void)const;
+EQLIB_OBJECT bool CXWnd::IsReallyVisible(void)const;
+//EQLIB_OBJECT bool CXWnd::IsType(enum EWndRuntimeType)const;
+EQLIB_OBJECT class CButtonDrawTemplate const * CXWnd::GetCloseBoxTemplate(void)const;
+EQLIB_OBJECT class CButtonDrawTemplate const * CXWnd::GetMinimizeBoxTemplate(void)const;
+EQLIB_OBJECT class CButtonDrawTemplate const * CXWnd::GetTileBoxTemplate(void)const;
+EQLIB_OBJECT class CTAFrameDraw const * CXWnd::GetBorderFrame(void)const;
+EQLIB_OBJECT class CTAFrameDraw const * CXWnd::GetTitlebarHeader(void)const;
+EQLIB_OBJECT class CXRect CXWnd::GetClientClipRect(void)const;
+EQLIB_OBJECT class CXRect CXWnd::GetRelativeRect(void)const;
+EQLIB_OBJECT class CXRect CXWnd::GetScreenClipRect(void)const;
+EQLIB_OBJECT class CXRect CXWnd::GetScreenRect(void)const;
+EQLIB_OBJECT class CXStr CXWnd::GetWindowTextA(void)const;
+EQLIB_OBJECT class CXStr CXWnd::GetXMLTooltip(void)const;
+EQLIB_OBJECT class CXWnd * CXWnd::GetChildItem(class CXStr);
+EQLIB_OBJECT class CXWnd * CXWnd::GetChildWndAt(class CXPoint)const;
+EQLIB_OBJECT class CXWnd * CXWnd::GetFirstChildWnd(void)const;
+EQLIB_OBJECT class CXWnd * CXWnd::GetNextChildWnd(class CXWnd *)const;
+EQLIB_OBJECT class CXWnd * CXWnd::GetNextSib(void)const;
+EQLIB_OBJECT class CXWnd * CXWnd::SetFocus(void);
+EQLIB_OBJECT int CXWnd::DoAllDrawing(void)const;
+EQLIB_OBJECT int CXWnd::DrawChildren(void)const;
+EQLIB_OBJECT int CXWnd::DrawCloseBox(void)const;
+EQLIB_OBJECT int CXWnd::DrawHScrollbar(int,int,int)const;
+EQLIB_OBJECT int CXWnd::DrawMinimizeBox(void)const;
+EQLIB_OBJECT int CXWnd::DrawTileBox(void)const;
+EQLIB_OBJECT int CXWnd::DrawVScrollbar(int,int,int)const;
+EQLIB_OBJECT int CXWnd::GetWidth(void)const;
+EQLIB_OBJECT int CXWnd::Minimize(bool);
+EQLIB_OBJECT int CXWnd::Move(class CXPoint);
+EQLIB_OBJECT int CXWnd::Move(class CXRect);
+EQLIB_OBJECT int CXWnd::ProcessTransition(void);
+EQLIB_OBJECT int CXWnd::Resize(int,int);
+EQLIB_OBJECT int CXWnd::Show(bool,bool);
+EQLIB_OBJECT int CXWnd::Tile(bool);
+EQLIB_OBJECT static class CXRect __cdecl CXWnd::GetTooltipRect(class CXPoint,class CXSize);
+EQLIB_OBJECT static class CXRect __cdecl CXWnd::GetTooltipRect(class CXSize);
+EQLIB_OBJECT static class CXWndDrawTemplate CXWnd::sm_wdtDefaults;
+EQLIB_OBJECT static int __cdecl CXWnd::DrawColoredRect(class CXRect,unsigned long,class CXRect);
+EQLIB_OBJECT static int __cdecl CXWnd::DrawLasso(class CXRect,unsigned long,class CXRect);
+EQLIB_OBJECT static int __cdecl CXWnd::DrawRaisedRect(class CXRect,class CXRect);
+EQLIB_OBJECT static int __cdecl CXWnd::DrawSunkenRect(class CXRect,class CXRect);
+EQLIB_OBJECT void CXWnd::Bottom(void);
+EQLIB_OBJECT void CXWnd::BringChildWndToTop(class CXWnd *);
+EQLIB_OBJECT void CXWnd::BringToTop(bool);
+EQLIB_OBJECT void CXWnd::Center(void);
+EQLIB_OBJECT void CXWnd::ClrFocus(void);
+EQLIB_OBJECT void CXWnd::DrawTooltipAtPoint(class CXPoint)const;
+EQLIB_OBJECT void CXWnd::Left(void);
+EQLIB_OBJECT void CXWnd::Refade(void);
+EQLIB_OBJECT void CXWnd::Right(void);
+EQLIB_OBJECT void CXWnd::SetFirstChildPointer(class CXWnd *);
+EQLIB_OBJECT void CXWnd::SetKeyTooltip(int,int);
+EQLIB_OBJECT void CXWnd::SetLookLikeParent(void);
+EQLIB_OBJECT void CXWnd::SetMouseOver(bool);
+EQLIB_OBJECT void CXWnd::SetNextSibPointer(class CXWnd *);
+EQLIB_OBJECT void CXWnd::SetTooltip(class CXStr);
+EQLIB_OBJECT void CXWnd::SetXMLTooltip(class CXStr);
+EQLIB_OBJECT void CXWnd::SetZLayer(int);
+EQLIB_OBJECT void CXWnd::StartFade(unsigned char,unsigned __int32);
+// virtual
+EQLIB_OBJECT bool CXWnd::IsPointTransparent(class CXPoint)const;
+EQLIB_OBJECT bool CXWnd::IsValid(void)const;
+EQLIB_OBJECT bool CXWnd::QueryClickStickDropOK(class CClickStickInfo *)const;
+EQLIB_OBJECT bool CXWnd::QueryDropOK(struct SDragDropInfo *)const;
+EQLIB_OBJECT class CTextureAnimation * CXWnd::GetClickStickCursor(class CClickStickInfo *)const;
+EQLIB_OBJECT class CTextureAnimation * CXWnd::GetCursorToDisplay(void)const;
+EQLIB_OBJECT class CTextureAnimation * CXWnd::GetDragDropCursor(struct SDragDropInfo *)const;
+EQLIB_OBJECT class CXRect CXWnd::GetClientRect(void)const;
+EQLIB_OBJECT class CXRect CXWnd::GetHitTestRect(int)const;
+EQLIB_OBJECT class CXRect CXWnd::GetInnerRect(void)const;
+EQLIB_OBJECT class CXRect CXWnd::GetMinimizedRect(void)const;
+EQLIB_OBJECT class CXSize CXWnd::GetMinSize(void)const;
+EQLIB_OBJECT class CXSize CXWnd::GetUntileSize(void)const;
+EQLIB_OBJECT class CXStr CXWnd::GetTooltip(void)const;
+EQLIB_OBJECT int CXWnd::AboutToDeleteWnd(class CXWnd *);
+EQLIB_OBJECT int CXWnd::Draw(void)const;
+EQLIB_OBJECT int CXWnd::DrawBackground(void)const;
+EQLIB_OBJECT int CXWnd::DrawCaret(void)const;
+EQLIB_OBJECT int CXWnd::DrawChildItem(class CXWnd const *,void *)const;
+EQLIB_OBJECT int CXWnd::DrawCursor(class CXPoint,class CXRect,bool &);
+EQLIB_OBJECT int CXWnd::DrawNC(void)const;
+EQLIB_OBJECT int CXWnd::DrawTitleBar(class CXRect)const;
+EQLIB_OBJECT int CXWnd::DrawTooltip(class CXWnd const *)const;
+EQLIB_OBJECT int CXWnd::HandleKeyboardMsg(unsigned __int32,unsigned __int32,bool);
+EQLIB_OBJECT int CXWnd::HandleLButtonDown(class CXPoint,unsigned __int32);
+EQLIB_OBJECT int CXWnd::HandleLButtonHeld(class CXPoint,unsigned __int32);
+EQLIB_OBJECT int CXWnd::HandleLButtonUp(class CXPoint,unsigned __int32);
+EQLIB_OBJECT int CXWnd::HandleLButtonUpAfterHeld(class CXPoint,unsigned __int32);
+EQLIB_OBJECT int CXWnd::HandleMouseMove(class CXPoint,unsigned __int32);
+EQLIB_OBJECT int CXWnd::HandleRButtonDown(class CXPoint,unsigned __int32);
+EQLIB_OBJECT int CXWnd::HandleRButtonHeld(class CXPoint,unsigned __int32);
+EQLIB_OBJECT int CXWnd::HandleRButtonUp(class CXPoint,unsigned __int32);
+EQLIB_OBJECT int CXWnd::HandleRButtonUpAfterHeld(class CXPoint,unsigned __int32);
+EQLIB_OBJECT int CXWnd::HandleWheelButtonDown(class CXPoint,unsigned __int32);
+EQLIB_OBJECT int CXWnd::HandleWheelButtonUp(class CXPoint,unsigned __int32);
+EQLIB_OBJECT int CXWnd::HandleWheelMove(class CXPoint,int,unsigned __int32);
+EQLIB_OBJECT int CXWnd::HitTest(class CXPoint,int *)const;
+EQLIB_OBJECT int CXWnd::OnActivate(class CXWnd *);
+EQLIB_OBJECT int CXWnd::OnBroughtToTop(void);
+EQLIB_OBJECT int CXWnd::OnClickStick(class CClickStickInfo *,unsigned __int32,bool);
+EQLIB_OBJECT int CXWnd::OnDragDrop(struct SDragDropInfo *);
+EQLIB_OBJECT int CXWnd::OnHScroll(EScrollCode,int);
+EQLIB_OBJECT int CXWnd::OnKillFocus(class CXWnd *);
+EQLIB_OBJECT int CXWnd::OnMinimizeBox(void);
+EQLIB_OBJECT int CXWnd::OnMove(class CXRect);
+EQLIB_OBJECT int CXWnd::OnProcessFrame(void);
+EQLIB_OBJECT int CXWnd::OnResize(int,int);
+EQLIB_OBJECT int CXWnd::OnSetFocus(class CXWnd *);
+EQLIB_OBJECT int CXWnd::OnShow(void);
+EQLIB_OBJECT int CXWnd::OnTile(void);
+EQLIB_OBJECT int CXWnd::OnTileBox(void);
+EQLIB_OBJECT int CXWnd::OnVScroll(EScrollCode,int);
+EQLIB_OBJECT int CXWnd::PostDraw(void)const;
+//EQLIB_OBJECT int CXWnd::RequestDockInfo(enum EDockAction,class CXWnd *,class CXRect *);
+EQLIB_OBJECT int CXWnd::SetVScrollPos(int);
+EQLIB_OBJECT int CXWnd::WndNotification(class CXWnd *,unsigned __int32,void *);
+//EQLIB_OBJECT void * CXWnd::`scalar deleting destructor'(unsigned int);
+//EQLIB_OBJECT void * CXWnd::`vector deleting destructor'(unsigned int);
+EQLIB_OBJECT void CXWnd::Deactivate(void);
+EQLIB_OBJECT void CXWnd::OnReloadSidl(void);
+EQLIB_OBJECT void CXWnd::SetAttributesFromSidl(class CParamScreenPiece *);
+EQLIB_OBJECT void CXWnd::SetDrawTemplate(class CXWndDrawTemplate *);
+EQLIB_OBJECT void CXWnd::SetWindowTextA(class CXStr);
+// protected
+EQLIB_OBJECT static class CXWndManager * & CXWnd::sm_pMgr;
+// private
+EQLIB_OBJECT static unsigned char CXWnd::sm_byCurrentAlpha;
+
+// data members
+/*0x000*/   struct _CXWNDVFTABLE   *pvfTable;
+/*0x004*/   DWORD   Unknown0x004;   // set to 0 in CXWnd::Refade
+/*0x008*/   DWORD   Unknown0x008;
+/*0x00c*/   DWORD   TimeMouseOver;     // "Delay" in ini
+/*0x010*/   DWORD   FadeDuration;      //  "Duration" in ini
+/*0x014*/   BYTE    FadeToAlpha;      // set to 1 in CXWnd::Refade
+/*0x015*/   BYTE    Unknown0x015;     // Faded?
+/*0x016*/   BYTE    Locked; // -> 0x16
+/*0x017*/   BYTE    Unknown0x017;
+/*0x018*/   BYTE    Unknown0x018;
+/*0x019*/   BYTE    Unknown0x019;
+/*0x01a*/   BYTE    Unknown0x01a;
+/*0x01b*/   BYTE    Unknown0x01b;
+/*0x01c*/   BYTE    Unknown0x01c[0x4];
+/*0x020*/   struct  _CSIDLWND *pParentWindow;  // If this is NULL, coordinates are absolute...
+/*0x024*/   struct  _CSIDLWND *pChildren;
+/*0x028*/   struct  _CSIDLWND *pSiblings;  // its a tree.  // ->0x28
+/*0x02c*/   BYTE    HasChildren;
+/*0x02d*/   BYTE    HasSiblings; // ->0x2d
+/*0x02e*/   BYTE    Unknown0x02e[0x2];
+/*0x030*/   DWORD   XMLIndex;
+/*0x034*/   RECT    Location;
+/*0x044*/   RECT    OldLocation;
+/*0x054*/   BYTE    bShow;       // -> 0x54
+/*0x055*/   BYTE    Enabled;
+/*0x056*/   BYTE    Minimized;  // -> 0x56
+/*0x057*/   BYTE    Unknown0x057; // ontilebox
+/*0x058*/   BYTE    Unknown0x058;
+/*0x059*/   BYTE    Unknown0x059;
+/*0x05a*/   BYTE    MouseOver;
+/*0x05b*/   BYTE    Unknown0x05b;
+/*0x05c*/   DWORD   WindowStyle; // bit 1 - vertical scroll, bit 2 - horizontal scroll, bit 4 - title bar?, bit 8 - border
+/*0x060*/   DWORD   Unknown0x060;
+/*0x064*/   struct _CXSTR *   WindowText;
+/*0x068*/   struct _CXSTR *   Tooltip;
+/*0x06c*/   DWORD   Unknown0x06c; // CXWnd::SetLookLikeParent
+/*0x070*/   ARGBCOLOR BGColor; // "BGTint.Red", green, blue
+/*0x074*/   BYTE    Unknown0x074[0x10];
+/*0x084*/   DWORD   BGType; // "BGType" in ini
+/*0x088*/   struct _CXSTR *   XMLToolTip;
+/*0x08c*/   BYTE    Unknown0x08c[0x14];
+/*0x0a0*/   BYTE    Alpha; // "Alpha" in ini
+/*0x0a1*/   BYTE    Fades; // "Fades" in ini
+/*0x0a2*/   BYTE    Unknown0x0a2;
+/*0x0a3*/   BYTE    Unknown0x0a3;
+/*0x0a4*/   BYTE    Unknown0x0a4[0x0c];
+/*0x0b0*/   DWORD   ZLayer; // --> b0
+/*0x0b4*/   DWORD   Unknown0x0b4;
+/*0x0b8*/   LPVOID  DrawTemplate; // 0xb8
+/*0x0bc*/   BYTE    Unknown0x0b0[0xc];
+/*0x0c8*/   union {
+					_ITEMINFO* Item;
+					_CSIDLWND* InvDescription;
+			};
+/*0x0cc*/   BYTE    Unknown0x0c0[0xc];
+/*0x0d8*/   DWORD   Unknown0x0cc; // CXWnd::StartFade, CXWnd::Minimize
+/*0x0dc*/   BYTE    Unknown0x0d0[0x10];
+/*0x0ec*/   DWORD   FadeTickCount; // -> 0x0ec
+/*0x0f0*/   BYTE    Unknown0x0e4; // CXWnd::StartFade  // 0xf0
+/*0x0f1*/   BYTE    Unknown0x0e5; // CXWnd::StartFade  // 0xf1
+/*0x0f2*/   BYTE    Unknown0x0e6; 
+/*0x0f3*/   BYTE    Unknown0x0e7;
+/*0x0f4*/   DWORD   Unknown0x0e8;// CXWnd::StartFade, CXWnd::Minimize // 0xf4
+/*0x0f8*/   DWORD   VScrollMax; // -> 0xf8
+/*0x0fc*/   DWORD   VScrollPos; // -> 0xfc
+/*0x100*/   DWORD   HScrollMax; // -> 0x100
+/*0x104*/   DWORD   HScrollPos; // -> 0x104
+/*0x108*/   BYTE    ValidCXWnd; // -> 0x108
+/*0x109*/   BYTE    Unused0x109[0x3];
+/*0x10C*/   struct _CXSTR *   SidlText; 
+/*0x110*/
+};
+
+class CSidlScreenWnd
+{
+public:
+	EQLIB_OBJECT CSidlScreenWnd::CSidlScreenWnd() {};
+EQLIB_OBJECT CSidlScreenWnd::CSidlScreenWnd(class CXWnd *,class CXStr);
+EQLIB_OBJECT CSidlScreenWnd::CSidlScreenWnd(class CXWnd *pWnd,class CXStr Template,int Flags,char *unknown4);
+EQLIB_OBJECT CSidlScreenWnd::CSidlScreenWnd(class CXWnd *,unsigned __int32,class CXRect,class CXStr);
+EQLIB_OBJECT class CScreenPieceTemplate * CSidlScreenWnd::GetSidlPiece(class CXStr)const;
+EQLIB_OBJECT class CXRect CSidlScreenWnd::GetSidlPieceRect(class CScreenPieceTemplate *,class CXRect)const;
+EQLIB_OBJECT class CXWnd * CSidlScreenWnd::GetChildItem(class CXStr&)const;
+EQLIB_OBJECT int CSidlScreenWnd::DrawSidlPiece(class CScreenPieceTemplate *,class CXRect,class CXRect)const;
+EQLIB_OBJECT void CSidlScreenWnd::AddButtonToRadioGroup(class CXStr,class CButtonWnd *);
+EQLIB_OBJECT void CSidlScreenWnd::CalculateHSBRange(void);
+EQLIB_OBJECT void CSidlScreenWnd::CalculateVSBRange(void);
+EQLIB_OBJECT void CSidlScreenWnd::CreateChildrenFromSidl(void);
+EQLIB_OBJECT void CSidlScreenWnd::EnableIniStorage(int,char *);
+EQLIB_OBJECT void CSidlScreenWnd::Init(class CXWnd *,class CXStr,int,char *);
+EQLIB_OBJECT void CSidlScreenWnd::Init(class CXWnd *,unsigned __int32,class CXRect,class CXStr,int,char *);
+EQLIB_OBJECT void CSidlScreenWnd::LoadIniListWnd(class CListWnd *,char *);
+EQLIB_OBJECT void CSidlScreenWnd::SetScreen(class CXStr);
+EQLIB_OBJECT void CSidlScreenWnd::StoreIniListWnd(class CListWnd const *,char *);
+EQLIB_OBJECT void CSidlScreenWnd::StoreIniVis(void);
+// virtual
+EQLIB_OBJECT CSidlScreenWnd::~CSidlScreenWnd(void);
+EQLIB_OBJECT int CSidlScreenWnd::DrawBackground(void)const;
+EQLIB_OBJECT int CSidlScreenWnd::HandleRButtonDown(class CXPoint,unsigned __int32);
+EQLIB_OBJECT int CSidlScreenWnd::OnResize(int,int);
+EQLIB_OBJECT int CSidlScreenWnd::OnShow(void);
+EQLIB_OBJECT int CSidlScreenWnd::WndNotification(class CXWnd *,unsigned __int32,void *);
+//EQLIB_OBJECT void * CSidlScreenWnd::`scalar deleting destructor'(unsigned int);
+//EQLIB_OBJECT void * CSidlScreenWnd::`vector deleting destructor'(unsigned int);
+EQLIB_OBJECT void CSidlScreenWnd::LoadIniInfo(void);
+EQLIB_OBJECT void CSidlScreenWnd::StoreIniInfo(void);
+// protected
+EQLIB_OBJECT int CSidlScreenWnd::ConvertToRes(int,int,int,int);
+EQLIB_OBJECT void CSidlScreenWnd::LoadSidlScreen(void);
+// private
+EQLIB_OBJECT static bool CSidlScreenWnd::m_useIniFile;
+// data members
+/*0x000*/   struct _CXWNDVFTABLE   *pvfTable;
+/*0x004*/   DWORD   Unknown0x004;   // set to 0 in CXWnd::Refade
+/*0x008*/   DWORD   Unknown0x008;
+/*0x00c*/   DWORD   TimeMouseOver;     // "Delay" in ini
+/*0x010*/   DWORD   FadeDuration;      //  "Duration" in ini
+/*0x014*/   BYTE    FadeToAlpha;      // set to 1 in CXWnd::Refade
+/*0x015*/   BYTE    Unknown0x015;     // Faded?
+/*0x016*/   BYTE    Locked; // -> 0x16
+/*0x017*/   BYTE    Unknown0x017;
+/*0x018*/   BYTE    Unknown0x018;
+/*0x019*/   BYTE    Unknown0x019;
+/*0x01a*/   BYTE    Unknown0x01a;
+/*0x01b*/   BYTE    Unknown0x01b;
+/*0x01c*/   BYTE    Unknown0x01c[0x4];
+/*0x020*/   struct  _CSIDLWND *pParentWindow;  // If this is NULL, coordinates are absolute...
+/*0x024*/   struct  _CSIDLWND *pChildren;
+/*0x028*/   struct  _CSIDLWND *pSiblings;  // its a tree.  // ->0x28
+/*0x02c*/   BYTE    HasChildren;
+/*0x02d*/   BYTE    HasSiblings; // ->0x2d
+/*0x02e*/   BYTE    Unknown0x02e[0x2];
+/*0x030*/   DWORD   XMLIndex;
+/*0x034*/   RECT    Location;
+/*0x044*/   RECT    OldLocation;
+/*0x054*/   BYTE    Show;       // -> 0x54
+/*0x055*/   BYTE    Enabled;
+/*0x056*/   BYTE    Minimized;  // -> 0x56
+/*0x057*/   BYTE    Unknown0x057; // ontilebox
+/*0x058*/   BYTE    Unknown0x058;
+/*0x059*/   BYTE    Unknown0x059;
+/*0x05a*/   BYTE    MouseOver;
+/*0x05b*/   BYTE    Unknown0x05b;
+/*0x05c*/   DWORD   WindowStyle; // bit 1 - vertical scroll, bit 2 - horizontal scroll, bit 4 - title bar?, bit 8 - border
+/*0x060*/   DWORD   Unknown0x060;
+/*0x064*/   struct _CXSTR *   WindowText;
+/*0x068*/   struct _CXSTR *   Tooltip;
+/*0x06c*/   DWORD   Unknown0x06c; // CXWnd::SetLookLikeParent
+/*0x070*/   ARGBCOLOR BGColor; // "BGTint.Red", green, blue
+/*0x074*/   BYTE    Unknown0x074[0x10];
+/*0x084*/   DWORD   BGType; // "BGType" in ini
+/*0x088*/   struct _CXSTR *   XMLToolTip;
+/*0x08c*/   BYTE    Unknown0x08c[0x14];
+/*0x0a0*/   BYTE    Alpha; // "Alpha" in ini
+/*0x0a1*/   BYTE    Fades; // "Fades" in ini
+/*0x0a2*/   BYTE    Unknown0x0a2;
+/*0x0a3*/   BYTE    Unknown0x0a3;
+/*0x0a4*/   BYTE    Unknown0x0a4[0x0c];
+/*0x0b0*/   DWORD   ZLayer; // --> b0
+/*0x0b4*/   DWORD   Unknown0x0b4;
+/*0x0b8*/   LPVOID  DrawTemplate; // 0xb8
+/*0x0bc*/   BYTE    Unknown0x0b0[0xc];
+/*0x0c8*/   union {
+					_ITEMINFO* Item;
+					_CSIDLWND* InvDescription;
+			};
+/*0x0cc*/   BYTE    Unknown0x0c0[0xc];
+/*0x0d8*/   DWORD   Unknown0x0cc; // CXWnd::StartFade, CXWnd::Minimize
+/*0x0dc*/   BYTE    Unknown0x0d0[0x10];
+/*0x0ec*/   DWORD   FadeTickCount; // -> 0x0ec
+/*0x0f0*/   BYTE    Unknown0x0e4; // CXWnd::StartFade  // 0xf0
+/*0x0f1*/   BYTE    Unknown0x0e5; // CXWnd::StartFade  // 0xf1
+/*0x0f2*/   BYTE    Unknown0x0e6; 
+/*0x0f3*/   BYTE    Unknown0x0e7;
+/*0x0f4*/   DWORD   Unknown0x0e8;// CXWnd::StartFade, CXWnd::Minimize // 0xf4
+/*0x0f8*/   DWORD   VScrollMax; // -> 0xf8
+/*0x0fc*/   DWORD   VScrollPos; // -> 0xfc
+/*0x100*/   DWORD   HScrollMax; // -> 0x100
+/*0x104*/   DWORD   HScrollPos; // -> 0x104
+/*0x108*/   BYTE    ValidCXWnd; // -> 0x108
+/*0x109*/   BYTE    Unused0x109[0x3];
+/*0x10C*/   struct _CXSTR *   SidlText; 
+/*0x110*/   union { 
+			   struct _CXSTR *  SidlScreen; 
+               DWORD   SlotID; 
+         }; 
+/*0x114*/   LPVOID SidlPiece;   // CScreenPieceTemplate (important)  
+/*0x118*/   DWORD   Checked; // CRadioGroup
+/*0x11c*/   DWORD   TextureAnim; // used in CSidlScreenWnd::AddButtonToRadioGroup
+/*0x120*/   struct _CXSTR *   InputText;
+/*0x124*/   DWORD   Selector;
+/*0x128*/   DWORD   PushToSelector;
+/*0x12c*/   DWORD   EnableINIStorage;
+/*0x130*/   struct _CXSTR *   INIStorageName;// -->0x130
+/*0x134*/   DWORD   Unknown0x134;
+/*0x138*/   DWORD   Unknown0x138;
+/*0x13c*/   LPVOID  ContextMenu;
+/*0x140*/	DWORD   Unknown0x140;
+/*0x144*/	DWORD   Unknown0x144;
+/*0x148*/
+
+	inline CXWnd *pXWnd() {return (CXWnd*)this;};
+};
+
+
+
+
 class _EverQuestinfo
 {
 public:
@@ -400,7 +815,7 @@ public:
 EQLIB_OBJECT bad_word_class::bad_word_class(char *);
 };
 
-class CAAWnd
+class CAAWnd : public CSidlScreenWnd
 {
 public:
 EQLIB_OBJECT CAAWnd::CAAWnd(class CXWnd *);
@@ -423,7 +838,7 @@ EQLIB_OBJECT void CAAWnd::Init(void);
 EQLIB_OBJECT void CAAWnd::UpdateSelected(void);
 };
 
-class CActionsWnd
+class CActionsWnd : public CSidlScreenWnd
 {
 public:
 EQLIB_OBJECT CActionsWnd::CActionsWnd(class CXWnd *);
@@ -466,7 +881,7 @@ EQLIB_OBJECT int CActionsWnd::SocialsPageOnProcessFrame(void);
 EQLIB_OBJECT int CActionsWnd::SocialsPageWndNotification(class CXWnd *,unsigned __int32,void *);
 };
 
-class CAlarmWnd
+class CAlarmWnd : public CSidlScreenWnd
 {
 public:
 EQLIB_OBJECT CAlarmWnd::CAlarmWnd(class CXWnd *);
@@ -482,7 +897,7 @@ EQLIB_OBJECT void CAlarmWnd::Deactivate(void);
 EQLIB_OBJECT void CAlarmWnd::DoNeverButton(void);
 };
 
-class CBankWnd
+class CBankWnd : public CSidlScreenWnd
 {
 public:
 EQLIB_OBJECT CBankWnd::CBankWnd(class CXWnd *,class CXStr);
@@ -504,7 +919,7 @@ EQLIB_OBJECT void CBankWnd::Init(void);
 EQLIB_OBJECT void CBankWnd::UpdateMoneyDisplay(void);
 };
 
-class CBazaarSearchWnd
+class CBazaarSearchWnd : public CSidlScreenWnd
 {
 public:
 EQLIB_OBJECT CBazaarSearchWnd::CBazaarSearchWnd(class CXWnd *);
@@ -530,7 +945,7 @@ EQLIB_OBJECT void CBazaarSearchWnd::SortItemList(int);
 EQLIB_OBJECT void CBazaarSearchWnd::UpdateComboButtons(void);
 };
 
-class CBazaarWnd
+class CBazaarWnd : public CSidlScreenWnd
 {
 public:
 EQLIB_OBJECT CBazaarWnd::CBazaarWnd(class CXWnd *);
@@ -566,7 +981,7 @@ EQLIB_OBJECT void CBazaarWnd::Init(void);
 EQLIB_OBJECT void CBazaarWnd::ToggleBzrItemActive(int,bool);
 };
 
-class CBodyTintWnd
+class CBodyTintWnd : public CSidlScreenWnd
 {
 public:
 EQLIB_OBJECT CBodyTintWnd::CBodyTintWnd(class CXWnd *);
@@ -591,7 +1006,7 @@ EQLIB_OBJECT int CBodyTintWnd::WndNotification(class CXWnd *,unsigned __int32,vo
 EQLIB_OBJECT void CBodyTintWnd::Deactivate(void);
 };
 
-class CBookWnd
+class CBookWnd : public CSidlScreenWnd
 {
 public:
 EQLIB_OBJECT CBookWnd::CBookWnd(class CXWnd *);
@@ -614,7 +1029,7 @@ EQLIB_OBJECT void CBookWnd::ShowButtons(void);
 EQLIB_OBJECT void CBookWnd::Init(void);
 };
 
-class CBreathWnd
+class CBreathWnd : public CSidlScreenWnd
 {
 public:
 EQLIB_OBJECT CBreathWnd::CBreathWnd(class CXWnd *);
@@ -629,7 +1044,7 @@ EQLIB_OBJECT void CBreathWnd::Deactivate(void);
 EQLIB_OBJECT void CBreathWnd::Init(void);
 };
 
-class CBuffWindow
+class CBuffWindow : public CSidlScreenWnd
 {
 public:
 EQLIB_OBJECT CBuffWindow::CBuffWindow(class CXWnd *,enum BuffWindowType);
@@ -651,7 +1066,7 @@ EQLIB_OBJECT void CBuffWindow::RefreshBuffDisplay(void);
 EQLIB_OBJECT void CBuffWindow::RefreshIconArrangement(void);
 };
 
-class CBugReportWnd
+class CBugReportWnd : public CSidlScreenWnd
 {
 public:
 EQLIB_OBJECT CBugReportWnd::CBugReportWnd(class CXWnd *);
@@ -686,7 +1101,7 @@ EQLIB_OBJECT CButtonTemplate::~CButtonTemplate(void);
 //EQLIB_OBJECT void * CButtonTemplate::`vector deleting destructor'(unsigned int);
 };
 
-class CButtonWnd
+class CButtonWnd : public CSidlScreenWnd
 {
 public:
 EQLIB_OBJECT CButtonWnd::CButtonWnd(class CXWnd *,unsigned __int32,class CXRect,class CXPoint,class CXSize,class CTextureAnimation *,class CTextureAnimation *,class CTextureAnimation *,class CTextureAnimation *,class CTextureAnimation *,class CTextureAnimation *,class CTextureAnimation *,class CTextureAnimation *,class CTextureAnimation *,class CTextureAnimation *);
@@ -711,7 +1126,7 @@ EQLIB_OBJECT void CButtonWnd::SetAttributesFromSidl(class CParamScreenPiece *);
 EQLIB_OBJECT void CButtonWnd::SetRadioGroup(class CRadioGroup *);
 };
 
-class CCastingWnd
+class CCastingWnd : public CSidlScreenWnd
 {
 public:
 EQLIB_OBJECT CCastingWnd::CCastingWnd(class CXWnd *);
@@ -724,7 +1139,7 @@ EQLIB_OBJECT int CCastingWnd::OnProcessFrame(void);
 EQLIB_OBJECT void CCastingWnd::Deactivate(void);
 };
 
-class CCastSpellWnd
+class CCastSpellWnd : public CSidlScreenWnd
 {
 public:
 EQLIB_OBJECT CCastSpellWnd::CCastSpellWnd(class CXWnd *);
@@ -761,7 +1176,7 @@ EQLIB_OBJECT void CCastSpellWnd::UpdateSpellGems(int);
 EQLIB_OBJECT void CCastSpellWnd::UpdateSpellGemTooltips(int);
 };
 
-class CCharacterCreation
+class CCharacterCreation : public CSidlScreenWnd
 {
 public:
 EQLIB_OBJECT CCharacterCreation::CCharacterCreation(class CXWnd *);
@@ -802,7 +1217,7 @@ EQLIB_OBJECT void CCharacterCreation::UpdatePlayerFromNewPC(void);
 EQLIB_OBJECT void CCharacterCreation::UpdateScreenZeroButtons(bool);
 };
 
-class CCharacterSelect
+class CCharacterSelect : public CSidlScreenWnd
 {
 public:
 EQLIB_OBJECT CCharacterSelect::CCharacterSelect(class CXWnd *);
@@ -866,7 +1281,7 @@ EQLIB_OBJECT void CChatManager::UpdateContextMenus(class CChatWindow *);
 EQLIB_OBJECT void CChatManager::UpdateTellMenus(class CChatWindow *);
 };
 
-class CChatWindow
+class CChatWindow : public CSidlScreenWnd
 {
 public:
 EQLIB_OBJECT CChatWindow::CChatWindow(class CXWnd *);
@@ -893,11 +1308,25 @@ EQLIB_OBJECT int CChatWindow::WndNotification(class CXWnd *,unsigned __int32,voi
 EQLIB_OBJECT void CChatWindow::operator delete[](void *);
 EQLIB_OBJECT void CChatWindow::Deactivate(void);
 
+/*0x148*/ struct _EQCHATMGR *ChatManager; 
+/*0x14c*/ struct _CSIDLWND* InputWnd;
+/*0x150*/ struct _CSIDLWND* OutputWnd;
+/*0x154*/ DWORD Unknown0x154;
+/*0x158*/ DWORD Unknown0x158;// need to update locations..
+/*0x150*/ BYTE Unknown0x148;
+/*0x151*/ BYTE Unknown0x149[0x3f];
+/*0x18c*/ DWORD Unknown0x188;
+/*0x190*/ DWORD Unknown0x18c;
+/*0x194*/ struct _CXSTR *CommandHistory[0x28]; // ->0x198
+/*0x238*/ DWORD Unknown0x230; // CChatWindow::HistoryBack/forward .. maybe total or current history lines
+/*0x23c*/ DWORD Unknown0x234; // CChatWindow::HistoryBack/forward .. maybe total or current history lines
+/*0x240*/ DWORD FontSize; //
+/*0x244*/ DWORD Unknown0x23C;
 
-EQLIB_OBJECT void *CChatWindow::operator new(size_t stAllocateBlock) {return malloc(sizeof(EQCHATWINDOW));} // 11-15-2003 lax
+//EQLIB_OBJECT void *CChatWindow::operator new(size_t stAllocateBlock) {return malloc(sizeof(EQCHATWINDOW));} // 11-15-2003 lax
 };
 
-class CCheckBoxWnd
+class CCheckBoxWnd : public CSidlScreenWnd
 {
 public:
 EQLIB_OBJECT CCheckBoxWnd::CCheckBoxWnd(class CXWnd *,unsigned __int32,class CXRect,class CXPoint,class CXSize,class CTextureAnimation *,class CTextureAnimation *,class CTextureAnimation *,class CTextureAnimation *,class CTextureAnimation *,class CTextureAnimation *,class CTextureAnimation *,class CTextureAnimation *,class CTextureAnimation *,class CTextureAnimation *);
@@ -926,7 +1355,7 @@ EQLIB_OBJECT CClickStickInfo::~CClickStickInfo(void);
 //EQLIB_OBJECT void * CClickStickInfo::`vector deleting destructor'(unsigned int);
 };
 
-class CColorPickerWnd
+class CColorPickerWnd : public CSidlScreenWnd
 {
 public:
 EQLIB_OBJECT CColorPickerWnd::CColorPickerWnd(class CXWnd *);
@@ -957,7 +1386,7 @@ EQLIB_OBJECT CComboboxTemplate::~CComboboxTemplate(void);
 //EQLIB_OBJECT void * CComboboxTemplate::`vector deleting destructor'(unsigned int);
 };
 
-class CComboWnd
+class CComboWnd : public CSidlScreenWnd
 {
 public:
 EQLIB_OBJECT CComboWnd::CComboWnd(class CXWnd *,unsigned __int32,class CXRect,int,class CButtonDrawTemplate,class CListWnd *);
@@ -985,7 +1414,7 @@ EQLIB_OBJECT int CComboWnd::WndNotification(class CXWnd *,unsigned __int32,void 
 EQLIB_OBJECT void CComboWnd::SetDrawTemplate(class CXWndDrawTemplate *);
 };
 
-class CCompassWnd
+class CCompassWnd : public CSidlScreenWnd
 {
 public:
 EQLIB_OBJECT CCompassWnd::CCompassWnd(class CXWnd *);
@@ -1053,7 +1482,7 @@ EQLIB_OBJECT CContainerMgr::~CContainerMgr(void);
 EQLIB_OBJECT class CContainerWnd * CContainerMgr::GetFreeContainerWnd(void);
 };
 
-class CContainerWnd
+class CContainerWnd : public CSidlScreenWnd
 {
 public:
 EQLIB_OBJECT CContainerWnd::CContainerWnd(class CXWnd *);
@@ -1290,7 +1719,7 @@ EQLIB_OBJECT void CDisplay::InitGameUI(void);
 EQLIB_OBJECT void CDisplay::InitNewUI(void);
 };
 
-class CEditBaseWnd
+class CEditBaseWnd : public CSidlScreenWnd
 {
 public:
 EQLIB_OBJECT void CEditBaseWnd::SetMaxChars(int);
@@ -1312,7 +1741,7 @@ EQLIB_OBJECT CEditboxTemplate::~CEditboxTemplate(void);
 //EQLIB_OBJECT void * CEditboxTemplate::`vector deleting destructor'(unsigned int);
 };
 
-class CEditLabelWnd
+class CEditLabelWnd : public CSidlScreenWnd
 {
 public:
 EQLIB_OBJECT CEditLabelWnd::CEditLabelWnd(class CXWnd *);
@@ -1327,7 +1756,7 @@ EQLIB_OBJECT int CEditLabelWnd::WndNotification(class CXWnd *,unsigned __int32,v
 EQLIB_OBJECT void CEditLabelWnd::Deactivate(void);
 };
 
-class CEditWnd
+class CEditWnd : public CEditBaseWnd
 {
 public:
 EQLIB_OBJECT CEditWnd::CEditWnd(class CXWnd *,unsigned __int32,class CXRect,unsigned __int32);
@@ -1572,7 +2001,7 @@ EQLIB_OBJECT void CEverQuest::CshOnPlayerEntering(char *,int,char *);
 EQLIB_OBJECT void CEverQuest::CshOnPlayerLeaving(char *,int,char *);
 };
 
-class CExploreModeWnd
+class CExploreModeWnd : public CSidlScreenWnd
 {
 public:
 EQLIB_OBJECT CExploreModeWnd::CExploreModeWnd(class CXWnd *);
@@ -1584,7 +2013,7 @@ EQLIB_OBJECT CExploreModeWnd::~CExploreModeWnd(void);
 EQLIB_OBJECT void CExploreModeWnd::Deactivate(void);
 };
 
-class CFacePick
+class CFacePick : public CSidlScreenWnd
 {
 public:
 EQLIB_OBJECT CFacePick::CFacePick(class CXWnd *);
@@ -1604,7 +2033,7 @@ EQLIB_OBJECT void CFacePick::Init(void);
 EQLIB_OBJECT void CFacePick::ShowButtonGroup(int,bool);
 };
 
-class CFeedbackWnd
+class CFeedbackWnd : public CSidlScreenWnd
 {
 public:
 EQLIB_OBJECT CFeedbackWnd::CFeedbackWnd(class CXWnd *);
@@ -1617,7 +2046,7 @@ EQLIB_OBJECT int CFeedbackWnd::WndNotification(class CXWnd *,unsigned __int32,vo
 EQLIB_OBJECT void CFeedbackWnd::Deactivate(void);
 };
 
-class CFileSelectionWnd
+class CFileSelectionWnd : public CSidlScreenWnd
 {
 public:
 EQLIB_OBJECT CFileSelectionWnd::CFileSelectionWnd(class CXWnd *);
@@ -1641,7 +2070,7 @@ EQLIB_OBJECT void CFileSelectionWnd::UpdateButtons(void);
 EQLIB_OBJECT void CFileSelectionWnd::UpdateFileList(void);
 };
 
-class CFriendsWnd
+class CFriendsWnd : public CSidlScreenWnd
 {
 public:
 EQLIB_OBJECT CFriendsWnd::CFriendsWnd(class CXWnd *);
@@ -1676,7 +2105,7 @@ EQLIB_OBJECT CGaugeTemplate::~CGaugeTemplate(void);
 //EQLIB_OBJECT void * CGaugeTemplate::`vector deleting destructor'(unsigned int);
 };
 
-class CGaugeWnd
+class CGaugeWnd : public CSidlScreenWnd
 {
 public:
 EQLIB_OBJECT CGaugeWnd::CGaugeWnd(class CXWnd *,unsigned __int32,class CXRect,class CTextureAnimation *,class CTextureAnimation *,class CTextureAnimation *,class CTextureAnimation *,class CTextureAnimation *,class CTextureAnimation *,int,unsigned long,unsigned long,bool,int,int,int,int);
@@ -1693,7 +2122,7 @@ EQLIB_OBJECT int CGaugeWnd::OnProcessFrame(void);
 EQLIB_OBJECT void CGaugeWnd::SetAttributesFromSidl(class CParamScreenPiece *);
 };
 
-class CGemsGameWnd
+class CGemsGameWnd : public CSidlScreenWnd
 {
 public:
 EQLIB_OBJECT CGemsGameWnd::CGemsGameWnd(class CXWnd *);
@@ -1736,7 +2165,7 @@ EQLIB_OBJECT void CGemsGameWnd::UpdateDisplay(void);
 EQLIB_OBJECT void CGemsGameWnd::WriteHighScores(void);
 };
 
-class CGiveWnd
+class CGiveWnd : public CSidlScreenWnd
 {
 public:
 EQLIB_OBJECT CGiveWnd::CGiveWnd(class CXWnd *);
@@ -1754,7 +2183,7 @@ EQLIB_OBJECT void CGiveWnd::Deactivate(void);
 EQLIB_OBJECT void CGiveWnd::Init(void);
 };
 
-class CGroupSearchFiltersWnd
+class CGroupSearchFiltersWnd : public CSidlScreenWnd
 {
 public:
 EQLIB_OBJECT CGroupSearchFiltersWnd::CGroupSearchFiltersWnd(class CXWnd *);
@@ -1794,7 +2223,7 @@ EQLIB_OBJECT void CGroupSearchFiltersWnd::InitPieces(void);
 EQLIB_OBJECT void CGroupSearchFiltersWnd::Save(void)const;
 };
 
-class CGroupSearchWnd
+class CGroupSearchWnd : public CSidlScreenWnd
 {
 public:
 EQLIB_OBJECT CGroupSearchWnd::CGroupSearchWnd(class CXWnd *);
@@ -1869,7 +2298,7 @@ EQLIB_OBJECT void CGroupSearchWnd::UpdatePlayerLabel(void);
 EQLIB_OBJECT void CGroupSearchWnd::UpdateRemainingQueryLockedTime(long);
 };
 
-class CGroupWnd
+class CGroupWnd : public CSidlScreenWnd
 {
 public:
 EQLIB_OBJECT CGroupWnd::CGroupWnd(class CXWnd *);
@@ -1927,7 +2356,7 @@ EQLIB_OBJECT void CGuild::UpdateMemberStatus(char *);
 EQLIB_OBJECT void CGuild::UpdatePublicComment(char *);
 };
 
-class CGuildMgmtWnd
+class CGuildMgmtWnd : public CSidlScreenWnd
 {
 public:
 EQLIB_OBJECT CGuildMgmtWnd::CGuildMgmtWnd(class CXWnd *);
@@ -2005,7 +2434,7 @@ EQLIB_OBJECT void CHashCXStrInt32::Reset(void);
 EQLIB_OBJECT int CHashCXStrInt32::KeyToBin(class CXStr const &)const;
 };
 
-class CHelpWnd
+class CHelpWnd : public CSidlScreenWnd
 {
 public:
 EQLIB_OBJECT CHelpWnd::CHelpWnd(class CXWnd *);
@@ -2023,7 +2452,7 @@ EQLIB_OBJECT void CHelpWnd::Deactivate(void);
 EQLIB_OBJECT void CHelpWnd::Init(void);
 };
 
-class CHotButtonWnd
+class CHotButtonWnd : public CSidlScreenWnd
 {
 public:
 EQLIB_OBJECT CHotButtonWnd::CHotButtonWnd(class CXWnd *);
@@ -2126,7 +2555,7 @@ EQLIB_OBJECT void CIMEStatusBar::handleJapaneseStatusChange(unsigned long);
 EQLIB_OBJECT void CIMEStatusBar::handleKoreanStatusChange(unsigned long);
 };
 
-class CInspectWnd
+class CInspectWnd : public CSidlScreenWnd
 {
 public:
 EQLIB_OBJECT CInspectWnd::CInspectWnd(class CXWnd *);
@@ -2145,7 +2574,7 @@ EQLIB_OBJECT void CInspectWnd::AcceptInspectText(void);
 EQLIB_OBJECT void CInspectWnd::Init(void);
 };
 
-class CInventoryWnd
+class CInventoryWnd : public CSidlScreenWnd
 {
 public:
 EQLIB_OBJECT CInventoryWnd::CInventoryWnd(class CXWnd *);
@@ -2216,7 +2645,7 @@ EQLIB_OBJECT CInvSlotTemplate::~CInvSlotTemplate(void);
 //EQLIB_OBJECT void * CInvSlotTemplate::`vector deleting destructor'(unsigned int);
 };
 
-class CInvSlotWnd
+class CInvSlotWnd : public CSidlScreenWnd
 {
 public:
 EQLIB_OBJECT CInvSlotWnd::CInvSlotWnd(class CXWnd *,unsigned __int32,class CXRect,class CTextureAnimation *,int,int,int);
@@ -2238,14 +2667,14 @@ EQLIB_OBJECT int CInvSlotWnd::WndNotification(class CXWnd *,unsigned __int32,voi
 EQLIB_OBJECT void CInvSlotWnd::SetAttributesFromSidl(class CParamScreenPiece *);
 };
 
-class CItemDisplayWnd
+class CItemDisplayWnd : public CSidlScreenWnd
 {
 public:
 EQLIB_OBJECT CItemDisplayWnd::CItemDisplayWnd(class CXWnd *);
 EQLIB_OBJECT class CXStr CItemDisplayWnd::CreateEquipmentStatusString(class EQ_Item *);
 EQLIB_OBJECT void CItemDisplayWnd::SetItem(class EQ_Item *,bool);
 EQLIB_OBJECT void CItemDisplayWnd::SetItemText(char *);
-EQLIB_OBJECT void CItemDisplayWnd::SetSpell(int,bool,int);
+EQLIB_OBJECT void CItemDisplayWnd::SetSpell(int SpellID,bool HasSpellDescr,int);
 EQLIB_OBJECT void CItemDisplayWnd::UpdateStrings(void);
 // virtual
 EQLIB_OBJECT CItemDisplayWnd::~CItemDisplayWnd(void);
@@ -2264,7 +2693,7 @@ EQLIB_OBJECT class CXStr CItemDisplayWnd::CreateRaceString(class EQ_Equipment *)
 EQLIB_OBJECT void CItemDisplayWnd::GetSizeString(int,char *);
 };
 
-class CJournalCatWnd
+class CJournalCatWnd : public CSidlScreenWnd
 {
 public:
 EQLIB_OBJECT CJournalCatWnd::CJournalCatWnd(class CXWnd *);
@@ -2290,7 +2719,7 @@ EQLIB_OBJECT void CJournalCatWnd::UpdateListWnd(bool);
 EQLIB_OBJECT void CJournalCatWnd::Init(void);
 };
 
-class CJournalNPCWnd
+class CJournalNPCWnd : public CSidlScreenWnd
 {
 public:
 EQLIB_OBJECT CJournalNPCWnd::CJournalNPCWnd(class CXWnd *);
@@ -2320,7 +2749,7 @@ EQLIB_OBJECT void CJournalNPCWnd::UpdateListWnd(bool);
 EQLIB_OBJECT void CJournalNPCWnd::Init(void);
 };
 
-class CJournalTextWnd
+class CJournalTextWnd : public CSidlScreenWnd
 {
 public:
 EQLIB_OBJECT CJournalTextWnd::CJournalTextWnd(class CXWnd *);
@@ -2395,7 +2824,7 @@ EQLIB_OBJECT CListboxTemplate::~CListboxTemplate(void);
 //EQLIB_OBJECT void * CListboxTemplate::`vector deleting destructor'(unsigned int);
 };
 
-class CListWnd
+class CListWnd : public CSidlScreenWnd
 {
 public:
 EQLIB_OBJECT CListWnd::CListWnd(class CXWnd *,unsigned __int32,class CXRect);
@@ -2473,7 +2902,7 @@ EQLIB_OBJECT void CListWnd::DeleteAll(void);
 EQLIB_OBJECT void CListWnd::Sort(void);
 };
 
-class CLoadskinWnd
+class CLoadskinWnd : public CSidlScreenWnd
 {
 public:
 EQLIB_OBJECT CLoadskinWnd::CLoadskinWnd(class CXWnd *);
@@ -2487,7 +2916,7 @@ EQLIB_OBJECT int CLoadskinWnd::WndNotification(class CXWnd *,unsigned __int32,vo
 EQLIB_OBJECT void CLoadskinWnd::Deactivate(void);
 };
 
-class CLootWnd
+class CLootWnd : public CSidlScreenWnd
 {
 public:
 EQLIB_OBJECT CLootWnd::CLootWnd(class CXWnd *);
@@ -2511,7 +2940,7 @@ EQLIB_OBJECT void CLootWnd::FinalizeLoot(void);
 EQLIB_OBJECT void CLootWnd::Init(void);
 };
 
-class CMapToolbarWnd
+class CMapToolbarWnd : public CSidlScreenWnd
 {
 public:
 EQLIB_OBJECT CMapToolbarWnd::CMapToolbarWnd(class CXWnd *);
@@ -2526,7 +2955,7 @@ EQLIB_OBJECT int CMapToolbarWnd::WndNotification(class CXWnd *,unsigned __int32,
 EQLIB_OBJECT void CMapToolbarWnd::Deactivate(void);
 };
 
-class CMapViewWnd
+class CMapViewWnd : public CSidlScreenWnd
 {
 public:
 EQLIB_OBJECT CMapViewWnd::CMapViewWnd(class CXWnd *);
@@ -2563,7 +2992,7 @@ EQLIB_OBJECT void CMemoryStream::GetString(class CXStr &);
 EQLIB_OBJECT void CMemoryStream::PutString(class CXStr &);
 };
 
-class CMerchantWnd
+class CMerchantWnd : public CSidlScreenWnd
 {
 public:
 EQLIB_OBJECT CMerchantWnd::CMerchantWnd(class CXWnd *);
@@ -2593,7 +3022,7 @@ EQLIB_OBJECT void CMerchantWnd::RequestSellItem(int);
 EQLIB_OBJECT void CMerchantWnd::UpdateBuySellButtons(void);
 };
 
-class CMusicPlayerWnd
+class CMusicPlayerWnd : public CSidlScreenWnd
 {
 public:
 EQLIB_OBJECT CMusicPlayerWnd::CMusicPlayerWnd(class CXWnd *);
@@ -2642,7 +3071,7 @@ EQLIB_OBJECT CMutexSyncCounted::~CMutexSyncCounted(void);
 EQLIB_OBJECT CMutexSyncCounted::CMutexSyncCounted(void);
 };
 
-class CNoteWnd
+class CNoteWnd : public CSidlScreenWnd
 {
 public:
 EQLIB_OBJECT CNoteWnd::CNoteWnd(class CXWnd *);
@@ -2688,7 +3117,7 @@ EQLIB_OBJECT void ConversationJournal::AllocateNPCArray(void);
 EQLIB_OBJECT void ConversationJournal::ReadCategory(struct _iobuf *);
 };
 
-class COptionsWnd
+class COptionsWnd : public CSidlScreenWnd
 {
 public:
 EQLIB_OBJECT COptionsWnd::COptionsWnd(class CXWnd *);
@@ -2748,7 +3177,7 @@ EQLIB_OBJECT CPageTemplate::~CPageTemplate(void);
 //EQLIB_OBJECT void * CPageTemplate::`vector deleting destructor'(unsigned int);
 };
 
-class CPageWnd
+class CPageWnd : public CSidlScreenWnd
 {
 public:
 EQLIB_OBJECT CPageWnd::CPageWnd(class CXWnd *,unsigned __int32,class CXRect,class CXStr,class CPageTemplate *);
@@ -3356,7 +3785,7 @@ EQLIB_OBJECT CParseTokXML::~CParseTokXML(void);
 EQLIB_OBJECT bool CParseTokXML::GetEntityRef(char &);
 };
 
-class CPetInfoWnd
+class CPetInfoWnd : public CSidlScreenWnd
 {
 public:
 EQLIB_OBJECT CPetInfoWnd::CPetInfoWnd(class CXWnd *);
@@ -3375,7 +3804,7 @@ EQLIB_OBJECT void CPetInfoWnd::Deactivate(void);
 EQLIB_OBJECT void CPetInfoWnd::Init(void);
 };
 
-class CPetitionQWnd
+class CPetitionQWnd : public CSidlScreenWnd
 {
 public:
 EQLIB_OBJECT CPetitionQWnd::CPetitionQWnd(class CXWnd *);
@@ -3398,7 +3827,7 @@ EQLIB_OBJECT int CPetitionQWnd::WndNotification(class CXWnd *,unsigned __int32,v
 EQLIB_OBJECT void CPetitionQWnd::Deactivate(void);
 };
 
-class CPlayerNotesWnd
+class CPlayerNotesWnd : public CSidlScreenWnd
 {
 public:
 EQLIB_OBJECT CPlayerNotesWnd::CPlayerNotesWnd(class CXWnd *);
@@ -3417,7 +3846,7 @@ EQLIB_OBJECT void CPlayerNotesWnd::Deactivate(void);
 EQLIB_OBJECT void CPlayerNotesWnd::Init(void);
 };
 
-class CPlayerWnd
+class CPlayerWnd : public CSidlScreenWnd
 {
 public:
 EQLIB_OBJECT CPlayerWnd::CPlayerWnd(class CXWnd *);
@@ -3438,7 +3867,7 @@ EQLIB_OBJECT void CPlayerWnd::StoreIniInfo(void);
 EQLIB_OBJECT void CPlayerWnd::Init(void);
 };
 
-class CQuantityWnd
+class CQuantityWnd : public CSidlScreenWnd
 {
 public:
 EQLIB_OBJECT CQuantityWnd::CQuantityWnd(class CXWnd *);
@@ -3522,7 +3951,7 @@ EQLIB_OBJECT void CRaid::SetLootTypeResponse(struct SCRaidMessage *);
 EQLIB_OBJECT void CRaid::UpdateLevelAverage(void);
 };
 
-class CRaidOptionsWnd
+class CRaidOptionsWnd : public CSidlScreenWnd
 {
 public:
 EQLIB_OBJECT CRaidOptionsWnd::CRaidOptionsWnd(class CXWnd *);
@@ -3542,7 +3971,7 @@ EQLIB_OBJECT void CRaidOptionsWnd::Init(void);
 EQLIB_OBJECT void CRaidOptionsWnd::InitializeClassColors(void);
 };
 
-class CRaidWnd
+class CRaidWnd : public CSidlScreenWnd
 {
 public:
 EQLIB_OBJECT CRaidWnd::CRaidWnd(class CXWnd *);
@@ -3644,7 +4073,7 @@ EQLIB_OBJECT CScrollbarTemplate::CScrollbarTemplate(void);
 EQLIB_OBJECT class CScrollbarTemplate & CScrollbarTemplate::operator=(class CScrollbarTemplate const &);
 };
 
-class CSelectorWnd
+class CSelectorWnd : public CSidlScreenWnd
 {
 public:
 EQLIB_OBJECT CSelectorWnd::CSelectorWnd(class CXWnd *);
@@ -3704,51 +4133,7 @@ EQLIB_OBJECT CSidlManager::~CSidlManager(void);
 //EQLIB_OBJECT void * CSidlManager::`vector deleting destructor'(unsigned int);
 };
 
-class CSidlScreenWnd
-{
-public:
-EQLIB_OBJECT CSidlScreenWnd::CSidlScreenWnd(class CXWnd *,class CXStr);
-EQLIB_OBJECT CSidlScreenWnd::CSidlScreenWnd(class CXWnd *pWnd,class CXStr Template,int Flags,char *unknown4);
-EQLIB_OBJECT CSidlScreenWnd::CSidlScreenWnd(class CXWnd *,unsigned __int32,class CXRect,class CXStr);
-EQLIB_OBJECT class CScreenPieceTemplate * CSidlScreenWnd::GetSidlPiece(class CXStr)const;
-EQLIB_OBJECT class CXRect CSidlScreenWnd::GetSidlPieceRect(class CScreenPieceTemplate *,class CXRect)const;
-EQLIB_OBJECT class CXWnd * CSidlScreenWnd::GetChildItem(class CXStr&)const;
-EQLIB_OBJECT int CSidlScreenWnd::DrawSidlPiece(class CScreenPieceTemplate *,class CXRect,class CXRect)const;
-EQLIB_OBJECT void CSidlScreenWnd::AddButtonToRadioGroup(class CXStr,class CButtonWnd *);
-EQLIB_OBJECT void CSidlScreenWnd::CalculateHSBRange(void);
-EQLIB_OBJECT void CSidlScreenWnd::CalculateVSBRange(void);
-EQLIB_OBJECT void CSidlScreenWnd::CreateChildrenFromSidl(void);
-EQLIB_OBJECT void CSidlScreenWnd::EnableIniStorage(int,char *);
-EQLIB_OBJECT void CSidlScreenWnd::Init(class CXWnd *,class CXStr,int,char *);
-EQLIB_OBJECT void CSidlScreenWnd::Init(class CXWnd *,unsigned __int32,class CXRect,class CXStr,int,char *);
-EQLIB_OBJECT void CSidlScreenWnd::LoadIniListWnd(class CListWnd *,char *);
-EQLIB_OBJECT void CSidlScreenWnd::SetScreen(class CXStr);
-EQLIB_OBJECT void CSidlScreenWnd::StoreIniListWnd(class CListWnd const *,char *);
-EQLIB_OBJECT void CSidlScreenWnd::StoreIniVis(void);
-// virtual
-EQLIB_OBJECT CSidlScreenWnd::~CSidlScreenWnd(void);
-EQLIB_OBJECT int CSidlScreenWnd::DrawBackground(void)const;
-EQLIB_OBJECT int CSidlScreenWnd::HandleRButtonDown(class CXPoint,unsigned __int32);
-EQLIB_OBJECT int CSidlScreenWnd::OnResize(int,int);
-EQLIB_OBJECT int CSidlScreenWnd::OnShow(void);
-EQLIB_OBJECT int CSidlScreenWnd::WndNotification(class CXWnd *,unsigned __int32,void *);
-//EQLIB_OBJECT void * CSidlScreenWnd::`scalar deleting destructor'(unsigned int);
-//EQLIB_OBJECT void * CSidlScreenWnd::`vector deleting destructor'(unsigned int);
-EQLIB_OBJECT void CSidlScreenWnd::LoadIniInfo(void);
-EQLIB_OBJECT void CSidlScreenWnd::StoreIniInfo(void);
-// protected
-EQLIB_OBJECT int CSidlScreenWnd::ConvertToRes(int,int,int,int);
-EQLIB_OBJECT void CSidlScreenWnd::LoadSidlScreen(void);
-// private
-EQLIB_OBJECT static bool CSidlScreenWnd::m_useIniFile;
-
-// data members
-struct _CSIDLWND Data;
-
-	inline CXWnd *pXWnd() {return (CXWnd*)this;};
-};
-
-class CSkillsSelectWnd
+class CSkillsSelectWnd : public CSidlScreenWnd
 {
 public:
 EQLIB_OBJECT CSkillsSelectWnd::CSkillsSelectWnd(class CXWnd *);
@@ -3767,7 +4152,7 @@ EQLIB_OBJECT void CSkillsSelectWnd::UpdateAll(void);
 EQLIB_OBJECT void CSkillsSelectWnd::UpdateSkill(int);
 };
 
-class CSkillsWnd
+class CSkillsWnd : public CSidlScreenWnd
 {
 public:
 EQLIB_OBJECT CSkillsWnd::CSkillsWnd(class CXWnd *);
@@ -3800,7 +4185,7 @@ EQLIB_OBJECT CSliderTemplate::~CSliderTemplate(void);
 //EQLIB_OBJECT void * CSliderTemplate::`vector deleting destructor'(unsigned int);
 };
 
-class CSliderWnd
+class CSliderWnd: public CSidlScreenWnd
 {
 public:
 EQLIB_OBJECT CSliderWnd::CSliderWnd(class CXWnd *,unsigned __int32,class CXRect,class CSliderTemplate *);
@@ -3832,7 +4217,7 @@ EQLIB_OBJECT void CSliderWnd::UpdateMiddleRange(void);
 EQLIB_OBJECT void CSliderWnd::UpdateThumb(void);
 };
 
-class CSocialEditWnd
+class CSocialEditWnd : public CSidlScreenWnd
 {
 public:
 EQLIB_OBJECT CSocialEditWnd::CSocialEditWnd(class CXWnd *);
@@ -3855,7 +4240,7 @@ EQLIB_OBJECT void CSocialEditWnd::Init(void);
 EQLIB_OBJECT void CSocialEditWnd::UpdateControlsFromSocial(void);
 };
 
-class CSoulmarkWnd
+class CSoulmarkWnd : public CSidlScreenWnd
 {
 public:
 EQLIB_OBJECT CSoulmarkWnd::CSoulmarkWnd(class CXWnd *);
@@ -3880,7 +4265,7 @@ EQLIB_OBJECT void CSoulmarkWnd::AddMark(int,char *,char *,char *);
 EQLIB_OBJECT void CSoulmarkWnd::Inquire(char *,char *);
 };
 
-class CSpellBookWnd
+class CSpellBookWnd : public CSidlScreenWnd
 {
 public:
 EQLIB_OBJECT CSpellBookWnd::CSpellBookWnd(class CXWnd *);
@@ -3939,7 +4324,7 @@ EQLIB_OBJECT CSpellGemTemplate::~CSpellGemTemplate(void);
 //EQLIB_OBJECT void * CSpellGemTemplate::`vector deleting destructor'(unsigned int);
 };
 
-class CSpellGemWnd
+class CSpellGemWnd : public CSidlScreenWnd
 {
 public:
 EQLIB_OBJECT CSpellGemWnd::CSpellGemWnd(class CXWnd *,unsigned __int32,class CXRect,class CTextureAnimation *,class CTextureAnimation *,class CTextureAnimation *,int,int,unsigned long);
@@ -4036,16 +4421,16 @@ EQLIB_OBJECT static class CStmlReport * __cdecl CStmlReport::CreateReport(class 
 EQLIB_OBJECT static unsigned __int32 CStmlReport::m_uLastId;
 };
 
-class CStmlWnd
+class CStmlWnd : public CSidlScreenWnd
 {
 public:
 EQLIB_OBJECT CStmlWnd::CStmlWnd(class CXWnd *,unsigned __int32,class CXRect);
 EQLIB_OBJECT bool CStmlWnd::CanGoBackward(void);
 EQLIB_OBJECT class CXSize& CStmlWnd::AppendSTML(class CXSize*,class CXStr); // lax 11-15-2003
 EQLIB_OBJECT class CXStr CStmlWnd::GetSTMLText(void)const;
-EQLIB_OBJECT class CXStr CStmlWnd::GetVisiableText(class CXStr,class CXRect)const;
+EQLIB_OBJECT class CXStr CStmlWnd::GetVisiableText(class CXStr&,class CXRect)const;
 EQLIB_OBJECT static class CXStr __cdecl CStmlWnd::MakeStmlColorTag(unsigned long);
-EQLIB_OBJECT static class CXStr __cdecl CStmlWnd::MakeWndNotificationTag(unsigned __int32,class CXStr,class CXStr);
+EQLIB_OBJECT static class CXStr __cdecl CStmlWnd::MakeWndNotificationTag(unsigned __int32,class CXStr&,class CXStr&);
 EQLIB_OBJECT void CStmlWnd::ActivateLink(class SLinkInfo);
 EQLIB_OBJECT void CStmlWnd::ForceParseNow(void);
 EQLIB_OBJECT void CStmlWnd::GoToBackHistoryLink(void);
@@ -4076,13 +4461,13 @@ EQLIB_OBJECT static bool __cdecl CStmlWnd::CanBreakAtCharacter(unsigned short);
 EQLIB_OBJECT static bool __cdecl CStmlWnd::IsCharacterNotASpaceAndNotNULL(unsigned short);
 EQLIB_OBJECT static bool __cdecl CStmlWnd::IsCharacterNotEquals(unsigned short);
 EQLIB_OBJECT static bool __cdecl CStmlWnd::IsCharacterNotQuotes(unsigned short);
-EQLIB_OBJECT unsigned short CStmlWnd::FastForwardPastQuotesAndGetNextTagPiece(class CXStr,class CXStr *,int *,bool);
-EQLIB_OBJECT unsigned short CStmlWnd::FastForwardPastSpaces(class CXStr,int *);
-EQLIB_OBJECT unsigned short CStmlWnd::FastForwardPastSpacesAndQuotes(class CXStr,int *);
-EQLIB_OBJECT unsigned short CStmlWnd::FastForwardToEndOfTag(class CXStr,class CXStr *,int *,char);
-EQLIB_OBJECT unsigned short CStmlWnd::GetNextChar(int *,class CXStr);
-EQLIB_OBJECT unsigned short CStmlWnd::GetNextTagPiece(class CXStr,class CXStr *,int *,bool (__cdecl*)(unsigned short),bool);
-EQLIB_OBJECT unsigned short CStmlWnd::GetThisChar(int,class CXStr);
+EQLIB_OBJECT unsigned short CStmlWnd::FastForwardPastQuotesAndGetNextTagPiece(class CXStr&,class CXStr *,int *,bool);
+EQLIB_OBJECT unsigned short CStmlWnd::FastForwardPastSpaces(class CXStr&,int *);
+EQLIB_OBJECT unsigned short CStmlWnd::FastForwardPastSpacesAndQuotes(class CXStr&,int *);
+EQLIB_OBJECT unsigned short CStmlWnd::FastForwardToEndOfTag(class CXStr&,class CXStr *,int *,char);
+EQLIB_OBJECT unsigned short CStmlWnd::GetNextChar(int *,class CXStr&);
+EQLIB_OBJECT unsigned short CStmlWnd::GetNextTagPiece(class CXStr&,class CXStr *,int *,bool (__cdecl*)(unsigned short),bool);
+EQLIB_OBJECT unsigned short CStmlWnd::GetThisChar(int,class CXStr&);
 EQLIB_OBJECT void CStmlWnd::ActivateLinkFile(class SLinkInfo);
 EQLIB_OBJECT void CStmlWnd::ActivateLinkMessageId(class SLinkInfo);
 EQLIB_OBJECT void CStmlWnd::ActivateLinkReport(class SLinkInfo,bool);
@@ -4096,18 +4481,18 @@ EQLIB_OBJECT void CStmlWnd::InitializeTempVariables(class SParseVariables *,clas
 EQLIB_OBJECT void CStmlWnd::InitializeTextLine(class SParseVariables *,int);
 EQLIB_OBJECT void CStmlWnd::InitializeWindowVariables(void);
 //EQLIB_OBJECT void CStmlWnd::ParseLinkTarget(class CXStr,enum ESTMLTargetValue *)const;
-EQLIB_OBJECT void CStmlWnd::ParseSTMLHead(class CXStr);
-EQLIB_OBJECT void CStmlWnd::ParseSTMLTable(class CXStr,int *,class CXStr,class SParseVariables *);
-EQLIB_OBJECT void CStmlWnd::ParseSTMLTableAttributes(class CXStr,class STable *);
+EQLIB_OBJECT void CStmlWnd::ParseSTMLHead(class CXStr&);
+EQLIB_OBJECT void CStmlWnd::ParseSTMLTable(class CXStr&,int *,class CXStr,class SParseVariables *);
+EQLIB_OBJECT void CStmlWnd::ParseSTMLTableAttributes(class CXStr&,class STable *);
 //EQLIB_OBJECT void CStmlWnd::ParseTagAlign(class CXStr,enum ESTMLAlign *)const;
-EQLIB_OBJECT void CStmlWnd::ParseTagColor(class CXStr,unsigned long *)const;
-EQLIB_OBJECT void CStmlWnd::ParseTagFace(class CXStr,class CTextureFont const * *)const;
+EQLIB_OBJECT void CStmlWnd::ParseTagColor(class CXStr&,unsigned long *)const;
+EQLIB_OBJECT void CStmlWnd::ParseTagFace(class CXStr&,class CTextureFont const * *)const;
 EQLIB_OBJECT void CStmlWnd::ResetTempVariablesForNewLine(class SParseVariables *);
 EQLIB_OBJECT void CStmlWnd::StripFirstSTMLLines(int);
-EQLIB_OBJECT void CStmlWnd::UpdateHistoryString(__int32,class CXStr);
+EQLIB_OBJECT void CStmlWnd::UpdateHistoryString(__int32,class CXStr&);
 };
 
-class CStoryWnd
+class CStoryWnd : public CSidlScreenWnd
 {
 public:
 EQLIB_OBJECT CStoryWnd::CStoryWnd(class CXWnd *);
@@ -4139,7 +4524,7 @@ EQLIB_OBJECT CTabBoxTemplate::~CTabBoxTemplate(void);
 //EQLIB_OBJECT void * CTabBoxTemplate::`vector deleting destructor'(unsigned int);
 };
 
-class CTabWnd
+class CTabWnd : public CSidlScreenWnd
 {
 public:
 EQLIB_OBJECT CTabWnd::CTabWnd(class CXWnd *,unsigned __int32,class CXRect,class CTabBoxTemplate *);
@@ -4195,7 +4580,7 @@ EQLIB_OBJECT int CTAFrameDraw::GetMinLength(void)const;
 EQLIB_OBJECT void CTAFrameDraw::Set(class CTextureAnimation * * const);
 };
 
-class CTargetWnd
+class CTargetWnd : public CSidlScreenWnd
 {
 public:
 EQLIB_OBJECT CTargetWnd::CTargetWnd(class CXWnd *);
@@ -4210,7 +4595,7 @@ EQLIB_OBJECT void CTargetWnd::Deactivate(void);
 EQLIB_OBJECT void CTargetWnd::Init(void);
 };
 
-class CTextEntryWnd
+class CTextEntryWnd : public CEditBaseWnd
 {
 public:
 EQLIB_OBJECT CTextEntryWnd::CTextEntryWnd(class CXWnd *);
@@ -4225,6 +4610,15 @@ EQLIB_OBJECT int CTextEntryWnd::WndNotification(class CXWnd *,unsigned __int32,v
 EQLIB_OBJECT void CTextEntryWnd::Deactivate(void);
 // private
 EQLIB_OBJECT void CTextEntryWnd::UpdateButtons(void);
+
+/*0x148*/	DWORD Unknown0x148;
+/*0x14C*/ DWORD Unknown0x14c;
+/*0x150*/ PCXSTR Data;
+/*0x154*/ DWORD Unknown0x154;
+/*0x158*/ CSidlScreenWnd *Entry;
+/*0x15c*/ CSidlScreenWnd *Prompt;
+/*0x160*/ CSidlScreenWnd *OK;
+/*0x164*/ CSidlScreenWnd *Cancel;
 };
 
 class CTextureAnimation
@@ -4269,7 +4663,7 @@ EQLIB_OBJECT CTextureFont::~CTextureFont(void);
 //EQLIB_OBJECT void * CTextureFont::`vector deleting destructor'(unsigned int);
 };
 
-class CTimeLeftWnd
+class CTimeLeftWnd : public CSidlScreenWnd
 {
 public:
 EQLIB_OBJECT CTimeLeftWnd::CTimeLeftWnd(long);
@@ -4283,7 +4677,7 @@ EQLIB_OBJECT int CTimeLeftWnd::OnProcessFrame(void);
 EQLIB_OBJECT void CTimeLeftWnd::Deactivate(void);
 };
 
-class CTipWnd
+class CTipWnd : public CSidlScreenWnd
 {
 public:
 EQLIB_OBJECT CTipWnd::CTipWnd(class CXWnd *,int);
@@ -4315,7 +4709,7 @@ public:
 EQLIB_OBJECT CTokenXML::~CTokenXML(void);
 };
 
-class CTrackingWnd
+class CTrackingWnd : public CSidlScreenWnd
 {
 public:
 EQLIB_OBJECT CTrackingWnd::CTrackingWnd(class CXWnd *);
@@ -4344,7 +4738,7 @@ EQLIB_OBJECT void CTrackingWnd::UpdateTrackingControls(void);
 EQLIB_OBJECT void CTrackingWnd::UpdateTrackingList(bool);
 };
 
-class CTradeWnd
+class CTradeWnd : public CSidlScreenWnd
 {
 public:
 EQLIB_OBJECT CTradeWnd::CTradeWnd(class CXWnd *);
@@ -4376,7 +4770,7 @@ EQLIB_OBJECT void CTradeWnd::Init(void);
 EQLIB_OBJECT void CTradeWnd::UpdateTradeDisplay(void);
 };
 
-class CTrainWnd
+class CTrainWnd : public CSidlScreenWnd
 {
 public:
 EQLIB_OBJECT CTrainWnd::CTrainWnd(class CXWnd *);
@@ -4439,7 +4833,7 @@ EQLIB_OBJECT float CVector3::NormalizeAndReturnLength(void);
 EQLIB_OBJECT void CVector3::Normalize(void);
 };
 
-class CVideoModesWnd
+class CVideoModesWnd : public CSidlScreenWnd
 {
 public:
 EQLIB_OBJECT CVideoModesWnd::CVideoModesWnd(class CXWnd *);
@@ -4770,222 +5164,11 @@ EQLIB_OBJECT void CXRect::Move(class CXPoint);
 EQLIB_OBJECT void CXRect::Normalize(void);
 };
 
-class CXStr
-{
-public:
-EQLIB_OBJECT CXStr::~CXStr(void);
-EQLIB_OBJECT CXStr::CXStr(char const *);
-EQLIB_OBJECT CXStr::CXStr(char const *,int);
-EQLIB_OBJECT CXStr::CXStr(char);
-EQLIB_OBJECT CXStr::CXStr(class CXStr const &);
-EQLIB_OBJECT CXStr::CXStr(int,int,char);
-EQLIB_OBJECT CXStr::CXStr(unsigned short const *);
-EQLIB_OBJECT CXStr::CXStr(void);
-EQLIB_OBJECT CXStr::operator char *(void)const;
-EQLIB_OBJECT CXStr::operator unsigned short *(void)const;
-EQLIB_OBJECT bool CXStr::Find(char,int &);
-EQLIB_OBJECT bool CXStr::Find(class CXStr const &,int &);
-EQLIB_OBJECT bool CXStr::Find(unsigned short,int &);
-EQLIB_OBJECT bool CXStr::FindLast(char,int &);
-EQLIB_OBJECT char CXStr::GetChar(long)const;
-EQLIB_OBJECT char CXStr::operator[](int)const;
-EQLIB_OBJECT char CXStr::SetChar(long,char);
-EQLIB_OBJECT class CXStr & CXStr::operator=(char const *);
-EQLIB_OBJECT class CXStr & CXStr::operator=(class CXStr const &);
-EQLIB_OBJECT class CXStr CXStr::Copy(long,long)const;
-EQLIB_OBJECT class CXStr CXStr::Left(int)const;
-EQLIB_OBJECT class CXStr CXStr::Mid(int,int)const;
-EQLIB_OBJECT class CXStr CXStr::Right(int)const;
-//EQLIB_OBJECT enum EStringEncoding CXStr::GetEncoding(void)const;
-EQLIB_OBJECT int __cdecl CXStr::PrintString(char const *,...);
-//EQLIB_OBJECT int CXStr::Compare(class CXStr const &,enum CompareCode)const;
-//EQLIB_OBJECT int CXStr::CompareN(class CXStr const &,int,enum CompareCode)const;
-EQLIB_OBJECT int CXStr::ConvertToInt(void);
-EQLIB_OBJECT int CXStr::operator==(char const *)const;
-EQLIB_OBJECT int CXStr::operator==(class CXStr const &)const;
-EQLIB_OBJECT int CXStr::operator>(class CXStr const &)const;
-EQLIB_OBJECT long CXStr::GetLength(void)const;
-EQLIB_OBJECT unsigned short CXStr::GetUnicode(long)const;
-EQLIB_OBJECT unsigned short CXStr::SetUnicode(long,unsigned short);
-//EQLIB_OBJECT void * CXStr::`vector deleting destructor'(unsigned int);
-EQLIB_OBJECT void CXStr::AddCr(void);
-EQLIB_OBJECT void CXStr::Blank(void);
-EQLIB_OBJECT void CXStr::BlankPreAllocate(int);
-EQLIB_OBJECT void CXStr::CopySelf(long,long);
-EQLIB_OBJECT void CXStr::Delete(long,long);
-EQLIB_OBJECT void CXStr::Insert(long,char);
-EQLIB_OBJECT void CXStr::Insert(long,class CXStr const &);
-EQLIB_OBJECT void CXStr::operator+=(char const *);
-EQLIB_OBJECT void CXStr::operator+=(char);
-EQLIB_OBJECT void CXStr::operator+=(class CXStr const &);
-EQLIB_OBJECT void CXStr::operator+=(unsigned short);
-//EQLIB_OBJECT void CXStr::SetEncoding(enum EStringEncoding);
-EQLIB_OBJECT void CXStr::SetLowerCase(void);
-EQLIB_OBJECT void CXStr::SetUpperCase(void);
-EQLIB_OBJECT void CXStr::Strip(char);
-EQLIB_OBJECT void CXStr::StripAll(char);
-EQLIB_OBJECT void CXStr::StripLeading(char);
-EQLIB_OBJECT void CXStr::StripTrailing(char);
-// protected
-EQLIB_OBJECT static int __cdecl CXStr::LenUnicodeToUtf8(unsigned short const *);
-EQLIB_OBJECT static int __cdecl CXStr::UnicodeToUtf8(unsigned short const *,char *,int);
-EQLIB_OBJECT static int __cdecl CXStr::Utf8ToUnicode(char const *,unsigned short *,int);
-//EQLIB_OBJECT struct CStrRep * CXStr::AllocRepNoLock(long,enum EStringEncoding);
-//EQLIB_OBJECT void CXStr::Assure(long,enum EStringEncoding);
-EQLIB_OBJECT void CXStr::AssureCopy(void);
-EQLIB_OBJECT void CXStr::FreeRep(struct CStrRep *);
-EQLIB_OBJECT void CXStr::FreeRepNoLock(struct CStrRep *);
-// private
-EQLIB_OBJECT void CXStr::CheckNoLock(void);
-
-	PCXSTR Ptr;
-};
 
 class CXStrSingleton
 {
 public:
 EQLIB_OBJECT static int CXStrSingleton::active;
-};
-
-class CXWnd
-{
-public:
-EQLIB_OBJECT CXWnd::CXWnd(class CXWnd *,unsigned __int32,class CXRect);
-EQLIB_OBJECT bool CXWnd::HasFocus(void)const;
-EQLIB_OBJECT bool CXWnd::IsActive(void)const;
-EQLIB_OBJECT bool CXWnd::IsDescendantOf(class CXWnd const *)const;
-EQLIB_OBJECT bool CXWnd::IsEnabled(void)const;
-EQLIB_OBJECT bool CXWnd::IsReallyVisible(void)const;
-//EQLIB_OBJECT bool CXWnd::IsType(enum EWndRuntimeType)const;
-EQLIB_OBJECT class CButtonDrawTemplate const * CXWnd::GetCloseBoxTemplate(void)const;
-EQLIB_OBJECT class CButtonDrawTemplate const * CXWnd::GetMinimizeBoxTemplate(void)const;
-EQLIB_OBJECT class CButtonDrawTemplate const * CXWnd::GetTileBoxTemplate(void)const;
-EQLIB_OBJECT class CTAFrameDraw const * CXWnd::GetBorderFrame(void)const;
-EQLIB_OBJECT class CTAFrameDraw const * CXWnd::GetTitlebarHeader(void)const;
-EQLIB_OBJECT class CXRect CXWnd::GetClientClipRect(void)const;
-EQLIB_OBJECT class CXRect CXWnd::GetRelativeRect(void)const;
-EQLIB_OBJECT class CXRect CXWnd::GetScreenClipRect(void)const;
-EQLIB_OBJECT class CXRect CXWnd::GetScreenRect(void)const;
-EQLIB_OBJECT class CXStr CXWnd::GetWindowTextA(void)const;
-EQLIB_OBJECT class CXStr CXWnd::GetXMLTooltip(void)const;
-EQLIB_OBJECT class CXWnd * CXWnd::GetChildItem(class CXStr)const;
-EQLIB_OBJECT class CXWnd * CXWnd::GetChildWndAt(class CXPoint)const;
-EQLIB_OBJECT class CXWnd * CXWnd::GetFirstChildWnd(void)const;
-EQLIB_OBJECT class CXWnd * CXWnd::GetNextChildWnd(class CXWnd *)const;
-EQLIB_OBJECT class CXWnd * CXWnd::GetNextSib(void)const;
-EQLIB_OBJECT class CXWnd * CXWnd::SetFocus(void);
-EQLIB_OBJECT int CXWnd::DoAllDrawing(void)const;
-EQLIB_OBJECT int CXWnd::DrawChildren(void)const;
-EQLIB_OBJECT int CXWnd::DrawCloseBox(void)const;
-EQLIB_OBJECT int CXWnd::DrawHScrollbar(int,int,int)const;
-EQLIB_OBJECT int CXWnd::DrawMinimizeBox(void)const;
-EQLIB_OBJECT int CXWnd::DrawTileBox(void)const;
-EQLIB_OBJECT int CXWnd::DrawVScrollbar(int,int,int)const;
-EQLIB_OBJECT int CXWnd::GetWidth(void)const;
-EQLIB_OBJECT int CXWnd::Minimize(bool);
-EQLIB_OBJECT int CXWnd::Move(class CXPoint);
-EQLIB_OBJECT int CXWnd::Move(class CXRect);
-EQLIB_OBJECT int CXWnd::ProcessTransition(void);
-EQLIB_OBJECT int CXWnd::Resize(int,int);
-EQLIB_OBJECT int CXWnd::Show(bool,bool);
-EQLIB_OBJECT int CXWnd::Tile(bool);
-EQLIB_OBJECT static class CXRect __cdecl CXWnd::GetTooltipRect(class CXPoint,class CXSize);
-EQLIB_OBJECT static class CXRect __cdecl CXWnd::GetTooltipRect(class CXSize);
-EQLIB_OBJECT static class CXWndDrawTemplate CXWnd::sm_wdtDefaults;
-EQLIB_OBJECT static int __cdecl CXWnd::DrawColoredRect(class CXRect,unsigned long,class CXRect);
-EQLIB_OBJECT static int __cdecl CXWnd::DrawLasso(class CXRect,unsigned long,class CXRect);
-EQLIB_OBJECT static int __cdecl CXWnd::DrawRaisedRect(class CXRect,class CXRect);
-EQLIB_OBJECT static int __cdecl CXWnd::DrawSunkenRect(class CXRect,class CXRect);
-EQLIB_OBJECT void CXWnd::Bottom(void);
-EQLIB_OBJECT void CXWnd::BringChildWndToTop(class CXWnd *);
-EQLIB_OBJECT void CXWnd::BringToTop(bool);
-EQLIB_OBJECT void CXWnd::Center(void);
-EQLIB_OBJECT void CXWnd::ClrFocus(void);
-EQLIB_OBJECT void CXWnd::DrawTooltipAtPoint(class CXPoint)const;
-EQLIB_OBJECT void CXWnd::Left(void);
-EQLIB_OBJECT void CXWnd::Refade(void);
-EQLIB_OBJECT void CXWnd::Right(void);
-EQLIB_OBJECT void CXWnd::SetFirstChildPointer(class CXWnd *);
-EQLIB_OBJECT void CXWnd::SetKeyTooltip(int,int);
-EQLIB_OBJECT void CXWnd::SetLookLikeParent(void);
-EQLIB_OBJECT void CXWnd::SetMouseOver(bool);
-EQLIB_OBJECT void CXWnd::SetNextSibPointer(class CXWnd *);
-EQLIB_OBJECT void CXWnd::SetTooltip(class CXStr);
-EQLIB_OBJECT void CXWnd::SetXMLTooltip(class CXStr);
-EQLIB_OBJECT void CXWnd::SetZLayer(int);
-EQLIB_OBJECT void CXWnd::StartFade(unsigned char,unsigned __int32);
-// virtual
-EQLIB_OBJECT CXWnd::~CXWnd(void);
-EQLIB_OBJECT bool CXWnd::IsPointTransparent(class CXPoint)const;
-EQLIB_OBJECT bool CXWnd::IsValid(void)const;
-EQLIB_OBJECT bool CXWnd::QueryClickStickDropOK(class CClickStickInfo *)const;
-EQLIB_OBJECT bool CXWnd::QueryDropOK(struct SDragDropInfo *)const;
-EQLIB_OBJECT class CTextureAnimation * CXWnd::GetClickStickCursor(class CClickStickInfo *)const;
-EQLIB_OBJECT class CTextureAnimation * CXWnd::GetCursorToDisplay(void)const;
-EQLIB_OBJECT class CTextureAnimation * CXWnd::GetDragDropCursor(struct SDragDropInfo *)const;
-EQLIB_OBJECT class CXRect CXWnd::GetClientRect(void)const;
-EQLIB_OBJECT class CXRect CXWnd::GetHitTestRect(int)const;
-EQLIB_OBJECT class CXRect CXWnd::GetInnerRect(void)const;
-EQLIB_OBJECT class CXRect CXWnd::GetMinimizedRect(void)const;
-EQLIB_OBJECT class CXSize CXWnd::GetMinSize(void)const;
-EQLIB_OBJECT class CXSize CXWnd::GetUntileSize(void)const;
-EQLIB_OBJECT class CXStr CXWnd::GetTooltip(void)const;
-EQLIB_OBJECT int CXWnd::AboutToDeleteWnd(class CXWnd *);
-EQLIB_OBJECT int CXWnd::Draw(void)const;
-EQLIB_OBJECT int CXWnd::DrawBackground(void)const;
-EQLIB_OBJECT int CXWnd::DrawCaret(void)const;
-EQLIB_OBJECT int CXWnd::DrawChildItem(class CXWnd const *,void *)const;
-EQLIB_OBJECT int CXWnd::DrawCursor(class CXPoint,class CXRect,bool &);
-EQLIB_OBJECT int CXWnd::DrawNC(void)const;
-EQLIB_OBJECT int CXWnd::DrawTitleBar(class CXRect)const;
-EQLIB_OBJECT int CXWnd::DrawTooltip(class CXWnd const *)const;
-EQLIB_OBJECT int CXWnd::HandleKeyboardMsg(unsigned __int32,unsigned __int32,bool);
-EQLIB_OBJECT int CXWnd::HandleLButtonDown(class CXPoint,unsigned __int32);
-EQLIB_OBJECT int CXWnd::HandleLButtonHeld(class CXPoint,unsigned __int32);
-EQLIB_OBJECT int CXWnd::HandleLButtonUp(class CXPoint,unsigned __int32);
-EQLIB_OBJECT int CXWnd::HandleLButtonUpAfterHeld(class CXPoint,unsigned __int32);
-EQLIB_OBJECT int CXWnd::HandleMouseMove(class CXPoint,unsigned __int32);
-EQLIB_OBJECT int CXWnd::HandleRButtonDown(class CXPoint,unsigned __int32);
-EQLIB_OBJECT int CXWnd::HandleRButtonHeld(class CXPoint,unsigned __int32);
-EQLIB_OBJECT int CXWnd::HandleRButtonUp(class CXPoint,unsigned __int32);
-EQLIB_OBJECT int CXWnd::HandleRButtonUpAfterHeld(class CXPoint,unsigned __int32);
-EQLIB_OBJECT int CXWnd::HandleWheelButtonDown(class CXPoint,unsigned __int32);
-EQLIB_OBJECT int CXWnd::HandleWheelButtonUp(class CXPoint,unsigned __int32);
-EQLIB_OBJECT int CXWnd::HandleWheelMove(class CXPoint,int,unsigned __int32);
-EQLIB_OBJECT int CXWnd::HitTest(class CXPoint,int *)const;
-EQLIB_OBJECT int CXWnd::OnActivate(class CXWnd *);
-EQLIB_OBJECT int CXWnd::OnBroughtToTop(void);
-EQLIB_OBJECT int CXWnd::OnClickStick(class CClickStickInfo *,unsigned __int32,bool);
-EQLIB_OBJECT int CXWnd::OnDragDrop(struct SDragDropInfo *);
-EQLIB_OBJECT int CXWnd::OnHScroll(EScrollCode,int);
-EQLIB_OBJECT int CXWnd::OnKillFocus(class CXWnd *);
-EQLIB_OBJECT int CXWnd::OnMinimizeBox(void);
-EQLIB_OBJECT int CXWnd::OnMove(class CXRect);
-EQLIB_OBJECT int CXWnd::OnProcessFrame(void);
-EQLIB_OBJECT int CXWnd::OnResize(int,int);
-EQLIB_OBJECT int CXWnd::OnSetFocus(class CXWnd *);
-EQLIB_OBJECT int CXWnd::OnShow(void);
-EQLIB_OBJECT int CXWnd::OnTile(void);
-EQLIB_OBJECT int CXWnd::OnTileBox(void);
-EQLIB_OBJECT int CXWnd::OnVScroll(EScrollCode,int);
-EQLIB_OBJECT int CXWnd::PostDraw(void)const;
-//EQLIB_OBJECT int CXWnd::RequestDockInfo(enum EDockAction,class CXWnd *,class CXRect *);
-EQLIB_OBJECT int CXWnd::SetVScrollPos(int);
-EQLIB_OBJECT int CXWnd::WndNotification(class CXWnd *,unsigned __int32,void *);
-//EQLIB_OBJECT void * CXWnd::`scalar deleting destructor'(unsigned int);
-//EQLIB_OBJECT void * CXWnd::`vector deleting destructor'(unsigned int);
-EQLIB_OBJECT void CXWnd::Deactivate(void);
-EQLIB_OBJECT void CXWnd::OnReloadSidl(void);
-EQLIB_OBJECT void CXWnd::SetAttributesFromSidl(class CParamScreenPiece *);
-EQLIB_OBJECT void CXWnd::SetDrawTemplate(class CXWndDrawTemplate *);
-EQLIB_OBJECT void CXWnd::SetWindowTextA(class CXStr);
-// protected
-EQLIB_OBJECT static class CXWndManager * & CXWnd::sm_pMgr;
-// private
-EQLIB_OBJECT static unsigned char CXWnd::sm_byCurrentAlpha;
-
-// data members
-struct _CXWND Data;
 };
 
 class CXWndDrawTemplate
@@ -5313,6 +5496,7 @@ EQLIB_OBJECT int EQ_Item::Silver(void);
 EQLIB_OBJECT long EQ_Item::ValueSellMerchant(float,long);
 
 EQLIB_OBJECT char * EQ_Item::GetItemLinkHash(char *); // Lax 11-14-2003
+ITEMINFO Data;
 };
 
 class EQ_LoadingS
@@ -5395,6 +5579,7 @@ EQLIB_OBJECT int EQ_Spell::IsPermIllusionSpell(void)const;
 EQLIB_OBJECT int EQ_Spell::SpellUsesDragonBreathEffect(void);
 EQLIB_OBJECT static bool __cdecl EQ_Spell::IsSPAIgnoredByStacking(int);
 EQLIB_OBJECT unsigned char EQ_Spell::SpellAffects(int)const;
+SPELL Data;
 };
 
 class EQAnimation
@@ -5656,6 +5841,7 @@ EQLIB_OBJECT unsigned char EQPlayer::GetAlternateAnimVariation(int,unsigned char
 EQLIB_OBJECT unsigned int EQPlayer::GetUnusedID(void);
 EQLIB_OBJECT void EQPlayer::FindDefaultEyeMaterialIndexes(void);
 EQLIB_OBJECT void EQPlayer::InitializeIDArray(void);
+SPAWNINFO Data;
 };
 
 class EQPMInfo
@@ -5664,6 +5850,7 @@ public:
 EQLIB_OBJECT EQPMInfo::~EQPMInfo(void);
 EQLIB_OBJECT EQPMInfo::EQPMInfo(char *);
 EQLIB_OBJECT void EQPMInfo::SetApplyGravity(bool);
+	ACTORINFO Data;
 };
 
 class EqSoundManager
@@ -6332,6 +6519,7 @@ class SpellManager
 public:
 EQLIB_OBJECT SpellManager::~SpellManager(void);
 EQLIB_OBJECT SpellManager::SpellManager(char *);
+SPELLMGR Data;
 };
 
 class STable

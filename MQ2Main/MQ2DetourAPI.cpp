@@ -115,7 +115,7 @@ void RemoveOurDetours()
 			DebugSpew("RemoveOurDetours() -- Removing %X",ourdetours->addr);
 			DetourRemove(ourdetours->pfTrampoline,ourdetours->pfDetour); 				
 		}
-		else
+//		else
 		{
 			OurDetours *pNext=ourdetours->pNext;
 			delete ourdetours;
@@ -666,16 +666,23 @@ int __cdecl memcheck3(unsigned char *buffer, int count, struct mckey key)
 //  004F4B5D: C3                 ret
 }
 
+VOID __cdecl CrashDetected_Trampoline(DWORD,DWORD,DWORD,DWORD,DWORD); 
+VOID __cdecl CrashDetected_Detour(DWORD a,DWORD b,DWORD c,DWORD d,DWORD e) 
+{ 
+} 
+DETOUR_TRAMPOLINE_EMPTY(VOID CrashDetected_Trampoline(DWORD,DWORD,DWORD,DWORD,DWORD)); 
+
 void InitializeMQ2Detours()
 {
 	InitializeCriticalSection(&gDetourCS);
 	HookMemChecker(TRUE);
-
+	EasyDetour(CrashDetected,CrashDetected_Detour,VOID,(DWORD,DWORD,DWORD,DWORD,DWORD),CrashDetected_Trampoline);
 }
 
 void ShutdownMQ2Detours()
 {
 	HookMemChecker(FALSE);
+	RemoveDetour(CrashDetected);
 	RemoveOurDetours();
 	DeleteCriticalSection(&gDetourCS);
 }

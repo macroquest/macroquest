@@ -254,6 +254,7 @@ PLUGIN_API VOID ShutdownPlugin(VOID)
     // Remove commands, macro parameters, hooks, etc.
     RemoveDetour(CBazaarSearchWnd__HandleBazaarMsg);
     RemoveParm("bazaar");
+    RemoveCommand("/mq2bzsrch");
     RemoveCommand("/bzsrchme");
 }
 
@@ -401,7 +402,7 @@ VOID BzSrchMe(PSPAWNINFO pChar, PCHAR szLine)
                 WriteChatColor("Bad type name.",USERCOLOR_WHO);
                 goto error_out;
             }
-            if (isdigit(szArg[0])) {
+            if (isdigit(szArg[0]) && szArg[1]!='h') {
                 bsrp.BSRType = atoi(szArg);
                 continue;
             }
@@ -443,7 +444,7 @@ VOID BzSrchMe(PSPAWNINFO pChar, PCHAR szLine)
     
     BzCount = 0;
     BzDone = 0;
-    send_message(EQADDR_GWORLD,0x1ec, &bsrp, sizeof(bsrp), TRUE);
+    send_message(EQADDR_GWORLD,0x1e9, &bsrp, sizeof(bsrp), TRUE);
     return;
 
 error_out:
@@ -476,7 +477,10 @@ DWORD parmBazaar(PCHAR szVar, PCHAR szOutput, PSPAWNINFO pChar)
         }
         tmp++;
         if (!strncmp("name",tmp,4)) {
+            char *ptr;
             strcat(szOutput, BzArray[index].BSSName);
+            if (ptr = strrchr(szOutput,'('))
+                *ptr = '\0';
         } else if (!strncmp("price",tmp,5)) {
             itoa(BzArray[index].BSSPrice, szTemp, 10);
             strcat(szOutput, szTemp);
@@ -485,6 +489,9 @@ DWORD parmBazaar(PCHAR szVar, PCHAR szOutput, PSPAWNINFO pChar)
             strcat(szOutput, szTemp);
         } else if (!strncmp("trader",tmp,6)) {
             itoa(BzArray[index].BSSTraderID, szTemp, 10);
+            strcat(szOutput, szTemp);
+        } else if (!strncmp("quantity",tmp,8)) {
+            itoa(BzArray[index].BSSQuantity, szTemp, 10);
             strcat(szOutput, szTemp);
         } else {
             DebugSpewNoFile("parmBazaar -- Bad $bazaar() '%s'",szVar);

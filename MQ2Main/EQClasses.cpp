@@ -1788,7 +1788,7 @@ REVERSE_DETOUR(class CXStr  CItemDisplayWnd::CreateModString(class EQ_Equipment 
 REVERSE_DETOUR(class CXStr  CItemDisplayWnd::CreateEquipmentStatusString(class EQ_Item *),CItemDisplayWnd__CreateEquipmentStatusString);
 #endif
 #ifdef CItemDisplayWnd__SetSpell
-REVERSE_DETOUR(void  CItemDisplayWnd::SetSpell(int,bool,int),CItemDisplayWnd__SetSpell);
+REVERSE_DETOUR(void  CItemDisplayWnd::SetSpell(int SpellID,bool HasSpellDescr,int),CItemDisplayWnd__SetSpell);
 #endif
 #ifdef CJournalCatWnd__CJournalCatWnd
 REVERSE_DETOUR( CJournalCatWnd::CJournalCatWnd(class CXWnd *),CJournalCatWnd__CJournalCatWnd);
@@ -6912,10 +6912,10 @@ REVERSE_DETOUR( int CSidlScreenWnd::WndNotification(class CXWnd *,unsigned __int
 REVERSE_DETOUR( CSidlScreenWnd::CSidlScreenWnd(class CXWnd *,unsigned __int32,class CXRect,class CXStr),CSidlScreenWnd__CSidlScreenWnd);
 #endif
 #ifdef CSidlScreenWnd__CSidlScreenWnd1
-REVERSE_DETOUR( CSidlScreenWnd::CSidlScreenWnd(class CXWnd *,class CXStr,int,char *),CSidlScreenWnd__CSidlScreenWnd1);
+REVERSE_DETOUR( CSidlScreenWnd::CSidlScreenWnd(class CXWnd *x,class CXStr,int,char *),CSidlScreenWnd__CSidlScreenWnd1);
 #endif
 #ifdef CSidlScreenWnd__CSidlScreenWnd2
-REVERSE_DETOUR( CSidlScreenWnd::CSidlScreenWnd(class CXWnd *,class CXStr),CSidlScreenWnd__CSidlScreenWnd2);
+REVERSE_DETOUR( CSidlScreenWnd::CSidlScreenWnd(class CXWnd *x,class CXStr),CSidlScreenWnd__CSidlScreenWnd2);
 #endif
 #ifdef CSidlScreenWnd__Init
 REVERSE_DETOUR(void  CSidlScreenWnd::Init(class CXWnd *,unsigned __int32,class CXRect,class CXStr,int,char *),CSidlScreenWnd__Init);
@@ -7584,7 +7584,7 @@ REVERSE_DETOUR(class CXStr __cdecl CStmlWnd::MakeStmlColorTag(unsigned long),CSt
 REVERSE_DETOUR(class CXStr  CTextureAnimation::GetName(void)const ,CTextureAnimation__GetName);
 #endif
 #ifdef CStmlWnd__MakeWndNotificationTag
-REVERSE_DETOUR(class CXStr __cdecl CStmlWnd::MakeWndNotificationTag(unsigned __int32,class CXStr,class CXStr),CStmlWnd__MakeWndNotificationTag);
+REVERSE_DETOUR(class CXStr __cdecl CStmlWnd::MakeWndNotificationTag(unsigned __int32,class CXStr&,class CXStr&),CStmlWnd__MakeWndNotificationTag);
 #endif
 #ifdef CStmlWnd__ParseTagColor
 REVERSE_DETOUR(void  CStmlWnd::ParseTagColor(class CXStr,unsigned long *)const ,CStmlWnd__ParseTagColor);
@@ -7620,28 +7620,28 @@ REVERSE_DETOUR( STempTableCell::~STempTableCell(void),STempTableCell__dSTempTabl
 REVERSE_DETOUR(void  CXStr::Blank(void),CXStr__Blank);
 #endif
 #ifdef CStmlWnd__ParseAmpersand
-REVERSE_DETOUR(bool  CStmlWnd::ParseAmpersand(class CXStr,char *)const ,CStmlWnd__ParseAmpersand);
+REVERSE_DETOUR(bool  CStmlWnd::ParseAmpersand(class CXStr&,char *)const ,CStmlWnd__ParseAmpersand);
 #endif
 #ifdef CStmlWnd__ParseLinkTarget
 //REVERSE_DETOUR(void  CStmlWnd::ParseLinkTarget(class CXStr,enum ESTMLTargetValue *)const ,CStmlWnd__ParseLinkTarget);
 #endif
 #ifdef CStmlWnd__FastForwardPastSpaces
-REVERSE_DETOUR(unsigned short  CStmlWnd::FastForwardPastSpaces(class CXStr,int *),CStmlWnd__FastForwardPastSpaces);
+REVERSE_DETOUR(unsigned short  CStmlWnd::FastForwardPastSpaces(class CXStr&,int *),CStmlWnd__FastForwardPastSpaces);
 #endif
 #ifdef CStmlWnd__FastForwardPastSpacesAndQuotes
-REVERSE_DETOUR(unsigned short  CStmlWnd::FastForwardPastSpacesAndQuotes(class CXStr,int *),CStmlWnd__FastForwardPastSpacesAndQuotes);
+REVERSE_DETOUR(unsigned short  CStmlWnd::FastForwardPastSpacesAndQuotes(class CXStr&,int *),CStmlWnd__FastForwardPastSpacesAndQuotes);
 #endif
 #ifdef CStmlWnd__GetNextTagPiece
-REVERSE_DETOUR(unsigned short  CStmlWnd::GetNextTagPiece(class CXStr,class CXStr *,int *,bool (__cdecl*)(unsigned short),bool),CStmlWnd__GetNextTagPiece);
+REVERSE_DETOUR(unsigned short  CStmlWnd::GetNextTagPiece(class CXStr&,class CXStr *,int *,bool (__cdecl*)(unsigned short),bool),CStmlWnd__GetNextTagPiece);
 #endif
 #ifdef CStmlWnd__IsCharacterNotQuotes
 REVERSE_DETOUR(bool __cdecl CStmlWnd::IsCharacterNotQuotes(unsigned short),CStmlWnd__IsCharacterNotQuotes);
 #endif
 #ifdef CStmlWnd__FastForwardPastQuotesAndGetNextTagPiece
-REVERSE_DETOUR(unsigned short  CStmlWnd::FastForwardPastQuotesAndGetNextTagPiece(class CXStr,class CXStr *,int *,bool),CStmlWnd__FastForwardPastQuotesAndGetNextTagPiece);
+REVERSE_DETOUR(unsigned short  CStmlWnd::FastForwardPastQuotesAndGetNextTagPiece(class CXStr&,class CXStr *,int *,bool),CStmlWnd__FastForwardPastQuotesAndGetNextTagPiece);
 #endif
 #ifdef CStmlWnd__FastForwardToEndOfTag
-REVERSE_DETOUR(unsigned short  CStmlWnd::FastForwardToEndOfTag(class CXStr,class CXStr *,int *,char),CStmlWnd__FastForwardToEndOfTag);
+REVERSE_DETOUR(unsigned short  CStmlWnd::FastForwardToEndOfTag(class CXStr&,class CXStr *,int *,char),CStmlWnd__FastForwardToEndOfTag);
 #endif
 #ifdef CStmlWnd__InitializeTempVariables
 REVERSE_DETOUR(void  CStmlWnd::InitializeTempVariables(class SParseVariables *,class CXRect),CStmlWnd__InitializeTempVariables);
@@ -7653,10 +7653,10 @@ REVERSE_DETOUR(void  CStmlWnd::InitializeWindowVariables(void),CStmlWnd__Initial
 REVERSE_DETOUR(void  CStmlWnd::ResetTempVariablesForNewLine(class SParseVariables *),CStmlWnd__ResetTempVariablesForNewLine);
 #endif
 #ifdef CStmlWnd__GetNextChar
-REVERSE_DETOUR(unsigned short  CStmlWnd::GetNextChar(int *,class CXStr),CStmlWnd__GetNextChar);
+REVERSE_DETOUR(unsigned short  CStmlWnd::GetNextChar(int *,class CXStr&),CStmlWnd__GetNextChar);
 #endif
 #ifdef CStmlWnd__GetThisChar
-REVERSE_DETOUR(unsigned short  CStmlWnd::GetThisChar(int,class CXStr),CStmlWnd__GetThisChar);
+REVERSE_DETOUR(unsigned short  CStmlWnd::GetThisChar(int,class CXStr&),CStmlWnd__GetThisChar);
 #endif
 #ifdef CStmlWnd__IsCharacterNotEquals
 REVERSE_DETOUR(bool __cdecl CStmlWnd::IsCharacterNotEquals(unsigned short),CStmlWnd__IsCharacterNotEquals);
@@ -7671,10 +7671,10 @@ REVERSE_DETOUR( SParseVariables::~SParseVariables(void),SParseVariables__dSParse
 REVERSE_DETOUR( SFormattedText::~SFormattedText(void),SFormattedText__dSFormattedText);
 #endif
 #ifdef CStmlWnd__ParseSTMLHead
-REVERSE_DETOUR(void  CStmlWnd::ParseSTMLHead(class CXStr),CStmlWnd__ParseSTMLHead);
+REVERSE_DETOUR(void  CStmlWnd::ParseSTMLHead(class CXStr&),CStmlWnd__ParseSTMLHead);
 #endif
 #ifdef CStmlWnd__ParseSTMLTable
-REVERSE_DETOUR(void  CStmlWnd::ParseSTMLTable(class CXStr,int *,class CXStr,class SParseVariables *),CStmlWnd__ParseSTMLTable);
+REVERSE_DETOUR(void  CStmlWnd::ParseSTMLTable(class CXStr&,int *,class CXStr&,class SParseVariables *),CStmlWnd__ParseSTMLTable);
 #endif
 #ifdef STempTable__dSTempTable
 REVERSE_DETOUR( STempTable::~STempTable(void),STempTable__dSTempTable);
@@ -7692,7 +7692,7 @@ REVERSE_DETOUR( STableCell::~STableCell(void),STableCell__dSTableCell);
 REVERSE_DETOUR(void  CStmlWnd::ParseSTMLTableAttributes(class CXStr,class STable *),CStmlWnd__ParseSTMLTableAttributes);
 #endif
 #ifdef CStmlWnd__GetVisiableText
-REVERSE_DETOUR(class CXStr  CStmlWnd::GetVisiableText(class CXStr,class CXRect)const ,CStmlWnd__GetVisiableText);
+REVERSE_DETOUR(class CXStr  CStmlWnd::GetVisiableText(class CXStr&,class CXRect)const ,CStmlWnd__GetVisiableText);
 #endif
 #ifdef CStmlWnd__ForceParseNow
 REVERSE_DETOUR(void  CStmlWnd::ForceParseNow(void),CStmlWnd__ForceParseNow);
@@ -7743,7 +7743,7 @@ REVERSE_DETOUR(bool __cdecl CStmlWnd::CanBreakAtCharacter(unsigned short),CStmlW
 //REVERSE_DETOUR(class SLinkInfo &  SLinkInfo::operator=(class SLinkInfo const &),SLinkInfo__operator_equal);
 #endif
 #ifdef CStmlWnd__UpdateHistoryString
-REVERSE_DETOUR(void  CStmlWnd::UpdateHistoryString(__int32,class CXStr),CStmlWnd__UpdateHistoryString);
+REVERSE_DETOUR(void  CStmlWnd::UpdateHistoryString(__int32,class CXStr&),CStmlWnd__UpdateHistoryString);
 #endif
 #ifdef CStmlWnd__SetSTMLText
 //REVERSE_DETOUR(void  CStmlWnd::SetSTMLText(class CXStr,bool,class SLinkInfo *),CStmlWnd__SetSTMLText);

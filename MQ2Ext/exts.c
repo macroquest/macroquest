@@ -82,17 +82,17 @@ DECLARE_API ( pack )
 	pPack = GetExpression(args);
 
 	hr = InitTypeRead(pPack, _ITEMINFO );
-	slots = ReadField(Container.Slots);
-	combine = ReadField(Container.Combine);
+	slots = ReadField(Slots);
+	combine = ReadField(Combine);
 	GetFieldOffset("_ITEMINFO","Name",&offset);
 	ReadMemory(pPack+offset,Name,sizeof(Name),&cb);
 	dprintf("Pack: %s, %I64d slots, combine=%I64d\n",Name,slots, combine);
 	if (!ReadField(IsContainer)) dprintf("*** Item does not appear to be a container, contents are probably wrong.\n");
 	if (slots>10) {
-		dprintf("*** Slots>10, definately not a valid container.\n");
+		dprintf("*** Slots>10, definately not a valid \n");
 		return;
 	}
-	pPack = ReadField(Container.Contents);
+	pPack = ReadField(Contents);
 	ReadMemory(pPack,Contents,sizeof(Contents[0])*10,&cb);
 	GetFieldOffset("_ITEMINFO","Name",&offset);
 	for (index=0;index<slots;index++) {

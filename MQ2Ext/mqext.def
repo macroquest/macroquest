@@ -16,8 +16,6 @@ EXPORTS
     pchar
     pspawn
     pitem
-    pcommon
-    pcontainer
     pgroundspawn
     pdoor
     pspellbuff

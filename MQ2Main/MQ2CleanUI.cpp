@@ -38,6 +38,23 @@ public:
 		Benchmark(bmPluginsReloadUI,DebugTry(PluginsReloadUI()));
 	}
 
+	bool GetWorldFilePath_Trampoline(char *, char *);
+	bool GetWorldFilePath_Detour(char *Filename, char *FullPath)
+	{
+		if (!stricmp(FullPath,"bmpwad8.s3d"))
+		{
+			sprintf(Filename,"%s\\bmpwad8.s3d",gszINIPath);
+			if (_access(Filename,0)!=-1)
+			{
+
+				return 1;
+			}
+		}
+		
+		bool Ret=GetWorldFilePath_Trampoline(Filename,FullPath);
+		return Ret;
+	}
+
 }; 
 
 DWORD __cdecl DrawHUD_Trampoline(DWORD,DWORD,DWORD,DWORD); 
@@ -48,6 +65,19 @@ DWORD __cdecl DrawHUD_Detour(DWORD a,DWORD b,DWORD c,DWORD d)
 	return Ret;
 } 
 
+class EQ_LoadingSHook
+{
+public:
+
+	VOID WriteTextHD_Trampoline(char *,int,int,int);
+	VOID WriteTextHD_Detour(char *A,int B,int C,int D)
+	{
+		WriteTextHD_Trampoline("MQ2: Think of it as evolution in action.",B,C,D);
+	}
+};
+
+DETOUR_TRAMPOLINE_EMPTY(bool CDisplayHook::GetWorldFilePath_Trampoline(char *, char *)); 
+DETOUR_TRAMPOLINE_EMPTY(VOID EQ_LoadingSHook::WriteTextHD_Trampoline(char *,int,int,int)); 
 DETOUR_TRAMPOLINE_EMPTY(DWORD DrawHUD_Trampoline(DWORD,DWORD,DWORD,DWORD)); 
 DETOUR_TRAMPOLINE_EMPTY(VOID CDisplayHook::CleanUI_Trampoline(VOID)); 
 DETOUR_TRAMPOLINE_EMPTY(VOID CDisplayHook::ReloadUI_Trampoline(BOOL)); 
@@ -55,26 +85,22 @@ DETOUR_TRAMPOLINE_EMPTY(VOID CDisplayHook::ReloadUI_Trampoline(BOOL));
 VOID InitializeDisplayHook()
 {
 	DebugSpew("Initializing Display Hooks");
-/*
-	VOID (CDisplayHook::*pfDetour)(VOID) = CDisplayHook::CleanUI_Detour; 
-	VOID (CDisplayHook::*pfTrampoline)(VOID) = CDisplayHook::CleanUI_Trampoline; 
-	AddDetour((DWORD) CDisplay__CleanGameUI,*(PBYTE*)&pfDetour,*(PBYTE*)&pfTrampoline);
-/**/
 
 	EasyClassDetour(CDisplay__CleanGameUI,CDisplayHook,CleanUI_Detour,VOID,(VOID),CleanUI_Trampoline);
 	EasyClassDetour(CDisplay__ReloadUI,CDisplayHook,ReloadUI_Detour,VOID,(BOOL),ReloadUI_Trampoline);
+	EasyClassDetour(CDisplay__GetWorldFilePath,CDisplayHook,GetWorldFilePath_Detour,bool,(char*,char*),GetWorldFilePath_Trampoline);
+	EasyDetour(DrawNetStatus,DrawHUD_Detour,DWORD,(DWORD,DWORD,DWORD,DWORD),DrawHUD_Trampoline);
+	EasyClassDetour(EQ_LoadingS__WriteTextHD,EQ_LoadingSHook,WriteTextHD_Detour,VOID,(char *,int,int,int),WriteTextHD_Trampoline);
 
-	DWORD (__cdecl *pfHUDDetour)(DWORD,DWORD,DWORD,DWORD) = DrawHUD_Detour; 
-	DWORD (__cdecl *pfHUDTrampoline)(DWORD,DWORD,DWORD,DWORD) = DrawHUD_Trampoline; 
-
-	AddDetour((DWORD) DrawNetStatus,*(PBYTE*)&pfHUDDetour,*(PBYTE*)&pfHUDTrampoline);
 }
 
 VOID ShutdownDisplayHook()
 {
 	PluginsCleanUI();
 	DebugSpew("Shutting down Display Hooks");
-	RemoveDetour((DWORD)CDisplay__CleanGameUI);
-	RemoveDetour((DWORD)CDisplay__ReloadUI);
-	RemoveDetour((DWORD)DrawNetStatus);
+	RemoveDetour(CDisplay__CleanGameUI);
+	RemoveDetour(CDisplay__ReloadUI);
+	RemoveDetour(DrawNetStatus);
+	RemoveDetour(EQ_LoadingS__WriteTextHD);
+	RemoveDetour(CDisplay__GetWorldFilePath);
 }
