@@ -75,7 +75,7 @@
 				Name="VCCustomBuildTool"/>
 			<Tool
 				Name="VCLinkerTool"
-				OutputFile="$(OutDir)/MacroQuest.exe"
+				OutputFile="$(OutDir)/MacroQuest2.exe"
 				LinkIncremental="1"
 				GenerateDebugInformation="TRUE"
 				GenerateMapFile="TRUE"
