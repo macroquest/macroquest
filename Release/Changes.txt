@@ -1,5 +1,6 @@
 29 May 2004 by EqMule:
 - Fixed EQ_INTERACTGROUNDITEM so click left item works again...
+- Updated zipit.lst (personal reminder: dir * /s /N /A-D /B > zipit.lst)
 
 28 May 2004 by DKAA:
 - Fixed the message ID for mq2bzsrch.
