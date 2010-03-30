@@ -93,21 +93,6 @@ Package=<4>
 
 ###############################################################################
 
-Project: "MQ2FPS"=.\MQ2FPS\MQ2FPS.dsp - Package Owner=<4>
-
-Package=<5>
-{{{
-}}}
-
-Package=<4>
-{{{
-    Begin Project Dependency
-    Project_Dep_Name MQ2Main
-    End Project Dependency
-}}}
-
-###############################################################################
-
 Project: "MQ2HUD"=.\MQ2HUD\MQ2HUD.dsp - Package Owner=<4>
 
 Package=<5>

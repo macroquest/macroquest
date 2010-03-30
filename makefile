@@ -11,7 +11,6 @@ DIRECTORIES=\
     MQ2Chat \
     MQ2ChatWnd \
     MQ2EQBugFix \
-    MQ2FPS \
     MQ2ItemDisplay \
     MQ2Labels \
     MQ2Map \

@@ -96,7 +96,7 @@
 #define pinstSelectedItem                                  0x8A7524 
 #define pinstGroup                                         0x83DBF0 
 #define pinstTarget                                        0x83F564 
-#define pinstSwitchManager                                 0x7DCDC0 
+#define pinstSwitchManager                                 0x7DCDC4 
 #define pinstEQItemList                                    0x83F524 
 #define pinstSpellSets                                     0x83D318 
 #define instEQZoneInfo                                     0x7DD03C 
@@ -268,7 +268,7 @@
 #define EQ_Character__GetFocusCastingTimeModifier          0x426F35 
 #define EQ_Character__GetAACastingTimeModifier             0x427336 
 #define EQ_Character__CastSpell                            0x42AFFA 
-#define EQ_Character__GetAbility                           0x429432 
+#define EQ_Character__GetAbility                           0x428C08
 
 // EQPlayer 
 #define EQPlayer__EQPlayer                                 0x485DC6 

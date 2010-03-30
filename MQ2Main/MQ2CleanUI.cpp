@@ -67,6 +67,11 @@ DWORD __cdecl DrawHUD_Detour(DWORD a,DWORD b,DWORD c,DWORD d)
 		return 0;
 	int Ret= DrawHUD_Trampoline(a,b,c,d);
 	Benchmark(bmPluginsDrawHUD,PluginsDrawHUD());
+	if (HMODULE hmEQPlayNice=GetModuleHandle("EQPlayNice.dll"))
+	{
+		if (fMQPulse pEQPlayNicePulse=(fMQPulse)GetProcAddress(hmEQPlayNice,"Compat_DrawIndicator"))
+			pEQPlayNicePulse();
+	}
 	return Ret;
 } 
 
@@ -80,6 +85,12 @@ void DrawHUD()
 			DrawHUDParams[0]=0;
 		}
 		Benchmark(bmPluginsDrawHUD,PluginsDrawHUD());
+		if (HMODULE hmEQPlayNice=GetModuleHandle("EQPlayNice.dll"))
+		{
+			if (fMQPulse pEQPlayNicePulse=(fMQPulse)GetProcAddress(hmEQPlayNice,"Compat_DrawIndicator"))
+				pEQPlayNicePulse();
+		}
+
 	}
 	else
 		DrawHUDParams[0]=0;

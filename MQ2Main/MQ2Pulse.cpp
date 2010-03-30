@@ -267,6 +267,11 @@ void Heartbeat()
     bRunNextCommand   = TRUE;
 	DebugTry(Pulse());
     DebugTry(Benchmark(bmPluginsPulse,DebugTry(PulsePlugins())));
+	if (HMODULE hmEQPlayNice=GetModuleHandle("EQPlayNice.dll"))
+	{
+		if (fMQPulse pEQPlayNicePulse=(fMQPulse)GetProcAddress(hmEQPlayNice,"Compat_ProcessFrame"))
+			pEQPlayNicePulse();
+	}
 	DebugTry(ProcessPendingGroundItems());
 
 
