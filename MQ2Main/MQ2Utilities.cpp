@@ -5371,7 +5371,7 @@ bool GetShortBuffID(PSPELLBUFF pBuff, DWORD &nID)
 {
 	PCHARINFO pChar=GetCharInfo();
 	unsigned long N=(pBuff-&pChar->ShortBuff[0])/sizeof(SPELLBUFF);
-	if (N<6)
+	if (N<12)
 	{
 		nID=N+1;
 		return true;

@@ -185,8 +185,8 @@ public:
 	void SetNameColor(DWORD &Color);
 };
 
-FUNCTION_AT_VIRTUAL_ADDRESS(bool CActorEx::CanSetName(DWORD),0x144);
-FUNCTION_AT_VIRTUAL_ADDRESS(void CActorEx::SetNameColor(DWORD &Color),0x134);
+FUNCTION_AT_VIRTUAL_ADDRESS(bool CActorEx::CanSetName(DWORD),0x148);
+FUNCTION_AT_VIRTUAL_ADDRESS(void CActorEx::SetNameColor(DWORD &Color),0x138);
 
 typedef struct _CAPTIONCOLOR {
 	PCHAR szName;
@@ -615,6 +615,7 @@ VOID ShutdownMQ2Spawns()
 	RemoveDetour(EQItemList__EQItemList);
 	RemoveDetour(EQItemList__dEQItemList);
 	RemoveDetour(EQPlayer__SetNameSpriteState);
+	RemoveDetour(EQPlayer__SetNameSpriteTint);
 	ProcessPending=false;
 	EnterCriticalSection(&csPendingGrounds);
 	DeleteCriticalSection(&csPendingGrounds);

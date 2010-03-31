@@ -1,3 +1,9 @@
+3 March 2005 by Lax
+- Fixed character.CurrentHPS, character.MaxHPS, character.PctHPS to use the "stable" versions..
+- Added character members STR, STA, AGI, DEX, WIS, INT, CHA, svMagic, svFire, svCold, svPoison, 
+  svDisease, CurrentWeight .. all of them ints
+- Fixed buff slot counts
+
 27 February 2005 by Lax
 - Fixed INI bug in /mapnames
 - Fixed bug in /mapfilter with "help"

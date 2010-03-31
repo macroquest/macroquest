@@ -141,7 +141,7 @@ DECLARE_API ( pchar )
 	KP(PercentEXPtoAA);
 	KP(AAList);
 //	KP(Unknown0x1898);
-    KP(Unknown0x18a0);
+//      KP(Unknown0x18a0);
 	KP(AAPoints);
 	KP(ModrodTimer);
     KPs(Server); 
@@ -508,7 +508,7 @@ DECLARE_API ( pspell )
    for (i=0; i < 16; i++) 
       dprintf("Level(Class %d) = %d (offset 0x%x)\n", i+1, ci.Level[i], &pnull->Level[i]); 
    KP(CastingAnim); 
-   KP(descnum);
+   //KP(descnum);
    KP(Uninterruptable);
    KP(Deletable);
    KP(Autocast);
@@ -527,7 +527,7 @@ DECLARE_API ( pspell )
    dprintf("WearOff = %s (offset *0x%x)\n", tmp, &pnull->WearOff); 
    KP(spaindex); 
    KP(SpellAnim); 
-   KP(Unknown130);
+   //KP(Unknown130);
    KP(SpellIcon); 
    KP(ResistAdj);
 } 
@@ -757,7 +757,7 @@ DECLARE_API ( exportallspells )
       for (k=0;k<12;k++) dprintf("%d~", ci.Max[k]); 
       for (k=0;k<12;k++) dprintf("%d~", ci.Calc[k]); 
       for (k=0;k<12;k++) dprintf("%d~", ci.Attrib[k]); 
-      dprintf("%d~%d\n", ci.descnum, ci.FizzleAdj ); 
+      dprintf("~%d\n", ci.FizzleAdj ); 
 
     
       //Clean up (always better to be safe than sorry) 

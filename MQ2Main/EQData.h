@@ -1247,79 +1247,90 @@ typedef struct _SPELLMGR {
 
 // Size is 0x268 as of 9/14
 // Size is 0x26C as of 2/8
-typedef struct _SPELL { 
-/*0x000*/   DWORD   ID; 
-/*0x004*/   FLOAT   Range; 
-/*0x008*/   FLOAT   AERange; 
-/*0x00c*/	FLOAT	PushBack;
-/*0x010*/   BYTE    Unknown0x00c[0x04];  
-/*0x014*/   DWORD   CastTime; 
-/*0x018*/   DWORD   FizzleTime; 
-/*0x01c*/   DWORD   RecastTime; 
-/*0x020*/   DWORD   DurationType;       //DurationFormula on Lucy 
-/*0x024*/   DWORD   DurationValue1; 
-/*0x028*/   DWORD   Unknown0x028; 
-/*0x02c*/   DWORD   Mana; 
-/*0x030*/   LONG    Base[0x0c];         //Base1-Base12 
-/*0x060*/   LONG    Base2[0x0c];     //Mostly unused, setting name to Base2 from Lucy for now 
-/*0x090*/   LONG    Max[0x0c];          //Max1-Max12 
-/*0x0c0*/   DWORD   BookIcon; 
-/*0x0c4*/   DWORD   GemIcon; 
-/*0x0c8*/   DWORD   ReagentId[0x4];     //ReagentId1-ReagentId4 
-/*0x0d8*/   DWORD   ReagentCount[0x4];  //ReagentCount1-ReagentCount4 
-/*0x0e8*/   BYTE	Unknown0x0e8[0x10]; 
-/*0x0f8*/   DWORD	Calc[0x0c];         //Calc1-Calc12 
-/*0x128*/   BYTE	LightType; 
-/*0x129*/   BYTE	SpellType;          //0=detrimental, 1=Beneficial, 2=Beneficial, Group Only
-/*0x12a*/   BYTE	Unknown0x12a; 
-/*0x12b*/   BYTE    Resist;             //0=un 1=mr 2=fr 3=cr 4=pr 5=dr 6=chromatic
-/*0x12c*/   DWORD	Attrib[0x0c];       //Attrib1-Attrib12 
-/*0x15c*/   BYTE    TargetType;         // 03=Group v1, 04=PB AE, 05=Single, 06=Self, 08=Targeted AE, 0e=Pet, 28=AE PC v2, 29=Group v2
-/*0x15d*/   BYTE	FizzleAdj; 
-/*0x15e*/   BYTE	Skill; 
-/*0x15f*/   BYTE    Location;            // 01=Outdoors, 02=dungeons, ff=Any 
-/*0x160*/   BYTE	Environment;
-/*0x161*/   BYTE	TimeOfDay;		     // 0=any, 1=day only, 2=night only
-/*0x162*/	BYTE	Unknown0x162;
-/*0x163*/   BYTE    Level[0x10];         // per class. 
-/*0x173*/   BYTE    Unknown0x173[0x12]; 
-/*0x185*/   BYTE    CastingAnim;		
-/*0x186*/	BYTE	Unknown0x186[0x6];
-/*0x18c*/   DWORD   descnum; 
-/*0x190*/   BYTE    Uninterruptable;  // 00=Interruptable, 01=Uninterruptable 
-/*0x191*/	BYTE	Unknown0x191;
-/*0x192*/	BYTE	Deletable;
-/*0x193*/   BYTE    Unknown0x193;	
-/*0x194*/   DWORD   Autocast;  // SpellID of spell to instacast on caster when current spell lands on target 
-/*0x198*/	BYTE	Unknown0x198[0x06];
-/*0x19e*/   BYTE    DurationWindow; // 0=Long, 1=Short
+// Size is 0x26C as of 03/03/2005
+typedef struct _SPELL {
+/*0x000*/   DWORD   ID;
+/*0x004*/   FLOAT   Range;
+/*0x008*/   FLOAT   AERange;
+/*0x00c*/   FLOAT   PushBack;
+/*0x010*/   BYTE    Unknown0x010[0x04]; 
+/*0x014*/   DWORD   CastTime;
+/*0x018*/   DWORD   FizzleTime;
+/*0x01c*/   DWORD   RecastTime;
+/*0x020*/   DWORD   DurationType;       //DurationFormula on Lucy
+/*0x024*/   DWORD   DurationValue1;
+/*0x028*/   DWORD   Unknown0x028;
+/*0x02c*/   DWORD   Mana;
+/*0x030*/   LONG    Base[0x0c];         //Base1-Base12
+/*0x060*/   LONG    Base2[0x0c];        //Mostly unused, setting name to Base2 from Lucy for now
+/*0x090*/   LONG    Max[0x0c];          //Max1-Max12
+/*0x0c0*/   DWORD   ReagentId[0x4];     //ReagentId1-ReagentId4
+/*0x0d0*/   DWORD   ReagentCount[0x4];  //ReagentCount1-ReagentCount4
+/*0x0e0*/   BYTE    Unknown0x0e0[0x10];
+/*0x0f0*/   DWORD   Calc[0x0c];         //Calc1-Calc12
+/*0x120*/   DWORD   Attrib[0x0c];       //Attrib1-Attrib12
+/*0x150*/   BYTE    Unknown0x150;
+/*0x151*/   BYTE    Level[0x10];        // per class.
+/*0x161*/   BYTE    Unknown0x161[0x13];
+/*0x174*/   DWORD   BookIcon;
+/*0x178*/   DWORD   GemIcon;
+/*0x17c*/   BYTE    LightType;
+/*0x17d*/   BYTE    SpellType;          //0=detrimental, 1=Beneficial, 2=Beneficial, Group Only
+/*0x17e*/   BYTE    Unknown0x12a;
+/*0x17f*/   BYTE    Resist;             //0=un 1=mr 2=fr 3=cr 4=pr 5=dr 6=chromatic
+/*0x180*/   BYTE    TargetType;         // 03=Group v1, 04=PB AE, 05=Single, 06=Self, 08=Targeted AE, 0e=Pet, 28=AE PC v2, 29=Group v2
+/*0x181*/   BYTE    FizzleAdj;
+/*0x182*/   BYTE    Skill;
+/*0x183*/   BYTE    Location;           // 01=Outdoors, 02=dungeons, ff=Any
+/*0x184*/   BYTE    Environment;
+/*0x185*/   BYTE    TimeOfDay;          // 0=any, 1=day only, 2=night only
+/*0x186*/   BYTE    CastingAnim;
+/*0x187*/   BYTE    TargetAnim;
+/*0x188*/   BYTE    Unknown0x188[0x4];
+/*0x18c*/   DWORD   DescriptionNumber;
+/*0x190*/   BYTE    Uninterruptable;    // 00=Interruptable, 01=Uninterruptable
+/*0x191*/   BYTE    Unknown0x191;
+/*0x192*/   BYTE    Deletable;
+/*0x193*/   BYTE    Unknown0x193;
+/*0x194*/   DWORD   Autocast;           // SpellID of spell to instacast on caster when current spell lands on target
+/*0x198*/   DWORD   Unknown0x198;
+/*0x19c*/   BYTE    Unknown0x19c;
+/*0x19d*/   BYTE    Unknown0x19d;
+/*0x19e*/   BYTE    DurationWindow;     // 0=Long, 1=Short
 /*0x19f*/   BYTE    Unknown0x19f;
-/*0x1a0*/   DWORD   Unknown144;  // Unknown144 from lucy 
-/*0x1a4*/   DWORD   Unknown145;  // Unknown145 from lucy 
-/*0x1a8*/   DWORD   Unknown0x1a8; 
-/*0x1ac*/   BYTE    Unknown0x1ac;
-/*0x1ad*/	BYTE	Unknown0x1ad;  //data here on detrimental spells
-/*0x1ae*/	BYTE	Unknown0x1ae;  //data here on detrimental spells 
-/*0x1af*/	BYTE	Unknown0x1af[0x61];
-/*0x210*/   CHAR	*Name;
-/*0x214*/   CHAR	*Target; 
-/*0x218*/   CHAR	*Extra;			// This is 'Extra' from Lucy (portal shortnames etc)
-/*0x21c*/   CHAR	*Unknown0x21c; 
-/*0x220*/   CHAR	*Unknown0x220;      
-/*0x224*/   CHAR	*CastOnYou; 
-/*0x228*/   CHAR	*CastOnAnother; 
-/*0x22c*/   CHAR	*WearOff; 
-/*0x230*/   CHAR	*Unknown0x230;  
-/*0x234*/   DWORD   spaindex; 
-/*0x238*/   CHAR	*Unknown0x238;      
-/*0x23c*/   DWORD   SpellAnim; 
-/*0x240*/   DWORD   Unknown0x240; 
-/*0x244*/   DWORD   Unknown130;    // This is Unknown130 from Lucy 
-/*0x248*/   DWORD   Unknown0x248; 
-/*0x24c*/   DWORD   SpellIcon; 
-/*0x250*/	DWORD	ResistAdj;
-/*0x254*/	BYTE	Unknown0x254[0x14];
+/*0x1a0*/   DWORD   Unknown144;         // Unknown144 from lucy
+/*0x1a4*/   DWORD   Unknown145;         // Unknown145 from lucy
+/*0x1a8*/   BYTE    Unknown0x1a8[0x40];
+/*0x1e8*/   DWORD   PvPResistBase;
+/*0x1ec*/   DWORD   PvPResistCalc;
+/*0x1f0*/   DWORD   PvPResistCap;
+/*0x1f4*/   DWORD   Unknown182;         // Unknown182 from Lucy
+/*0x1f8*/   DWORD   Unknown183;         // Unknown183 from Lucy
+/*0x1fc*/   DWORD   Unknown0x1fc;
+/*0x200*/   DWORD   Unknown0x200;
+/*0x204*/   BYTE    Unknown0x204;
+/*0x205*/   BYTE    CanMGB;
+/*0x206*/   BYTE    Unknown0x206[0xa];
+/*0x210*/   CHAR    *Name;
+/*0x214*/   CHAR    *Target;
+/*0x218*/   CHAR    *Extra;             // This is 'Extra' from Lucy (portal shortnames etc)
+/*0x21c*/   CHAR    *Unknown0x21c;
+/*0x220*/   CHAR    *Unknown0x220;
+/*0x224*/   CHAR    *CastOnYou;
+/*0x228*/   CHAR    *CastOnAnother;
+/*0x22c*/   CHAR    *WearOff;
+/*0x230*/   BYTE    Unknown0x230[0x4];
+/*0x234*/   DWORD   spaindex;
+/*0x238*/   DWORD   Unknown0x238;
+/*0x23c*/   DWORD   SpellAnim;
+/*0x240*/   BYTE    Unknown0x240[0xc];
+/*0x24c*/   DWORD   SpellIcon;
+/*0x250*/   DWORD   ResistAdj;
+/*0x254*/   BYTE    Unknown0x254[0x18];
+/*0x26c*/
 } SPELL, *PSPELL;
+
+
 
 // Size 0x180 4-23-2004 Lax
 typedef struct _SKILL {

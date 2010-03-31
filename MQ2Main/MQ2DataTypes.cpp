@@ -1640,16 +1640,16 @@ bool MQ2CharacterType::GETMEMBER()
 		Dest.Type=pSpawnType;
 		return true;
 	case CurrentHPs:
-		Dest.DWord=pChar->pSpawn->HPCurrent;
+		Dest.DWord=GetCurHPS();
 		Dest.Type=pIntType;
 		return true;
 	case MaxHPs:
 		Dest.Type=pIntType;
-		Dest.Int=pChar->pSpawn->HPMax;
+		Dest.Int=GetMaxHPS();
 		return true;
 	case PctHPs:
 		Dest.Type=pIntType;
-		Dest.Int=pChar->pSpawn->HPCurrent*100/pChar->pSpawn->HPMax;
+		Dest.Int=GetCurHPS()*100/GetMaxHPS();
 		return true;
 	case CurrentMana:
 		Dest.DWord=pChar->Mana;
@@ -1671,7 +1671,7 @@ bool MQ2CharacterType::GETMEMBER()
 	case CountBuffs:
 		Dest.DWord=0;
 		{
-			for (unsigned long nBuff=0 ; nBuff<20 ; nBuff++)
+			for (unsigned long nBuff=0 ; nBuff<25 ; nBuff++)
 			{
 				if (pChar->Buff[nBuff].SpellID>0)
 					Dest.DWord++;
@@ -1685,7 +1685,7 @@ bool MQ2CharacterType::GETMEMBER()
 		if (ISNUMBER())
 		{
 			unsigned long nBuff=GETNUMBER()-1;
-			if (nBuff>=20)
+			if (nBuff>=25)
 				return false;
 			if (pChar->Buff[nBuff].SpellID<=0)
 				return false;
@@ -1695,7 +1695,7 @@ bool MQ2CharacterType::GETMEMBER()
 		}
 		else
 		{
-			for (unsigned long nBuff=0 ; nBuff < 20 ; nBuff++)
+			for (unsigned long nBuff=0 ; nBuff < 25 ; nBuff++)
 			{
 				if (PSPELL pSpell=GetSpellByID(pChar->Buff[nBuff].SpellID))
 				{
@@ -1715,7 +1715,7 @@ bool MQ2CharacterType::GETMEMBER()
 		if (ISNUMBER())
 		{
 			unsigned long nBuff=GETNUMBER()-1;
-			if (nBuff>=6)
+			if (nBuff>=12)
 				return false;
 			if (pChar->ShortBuff[nBuff].SpellID<=0)
 				return false;
@@ -1726,7 +1726,7 @@ bool MQ2CharacterType::GETMEMBER()
 		}
 		else
 		{
-			for (unsigned long nBuff=0 ; nBuff < 6 ; nBuff++)
+			for (unsigned long nBuff=0 ; nBuff < 12 ; nBuff++)
 			{
 				if (PSPELL pSpell=GetSpellByID(pChar->ShortBuff[nBuff].SpellID))
 				{
@@ -2023,7 +2023,7 @@ bool MQ2CharacterType::GETMEMBER()
 				if (pChar->AAList[j].AAIndex == 0)   break; 
 			} 
 		} else Dest.DWord = 15; 
-		for (nBuff=0 ; nBuff<20 ; nBuff++) 
+		for (nBuff=0 ; nBuff<25 ; nBuff++) 
 		{ 
 			if (pChar->Buff[nBuff].SpellID>0) 
 			Dest.DWord--; 
@@ -2719,20 +2719,58 @@ bool MQ2CharacterType::GETMEMBER()
 			}
 		}
 		return false;
-		/*
-		STR=51,
-		STA=52,
-		CHA=53,
-		DEX=54,
-		INT=55,
-		AGI=56,
-		WIS=57,
-		svMagic=58,
-		svFire=59,
-		svCold=60,
-		svPoison=61,
-		svDisease=62
-		/**/
+case STR: 
+      Dest.DWord=pChar->STR; 
+      Dest.Type=pIntType; 
+      return true; 
+   case STA: 
+      Dest.DWord=pChar->STA; 
+      Dest.Type=pIntType; 
+      return true; 
+   case AGI: 
+      Dest.DWord=pChar->AGI; 
+      Dest.Type=pIntType; 
+      return true; 
+   case DEX: 
+      Dest.DWord=pChar->DEX; 
+      Dest.Type=pIntType; 
+      return true; 
+   case WIS: 
+      Dest.DWord=pChar->WIS; 
+      Dest.Type=pIntType; 
+      return true; 
+   case INT: 
+      Dest.DWord=pChar->INT; 
+      Dest.Type=pIntType; 
+      return true; 
+   case CHA: 
+      Dest.DWord=pChar->CHA; 
+      Dest.Type=pIntType; 
+      return true; 
+   case svMagic: 
+      Dest.DWord=pChar->SaveMagic; 
+      Dest.Type=pIntType; 
+      return true; 
+   case svFire: 
+      Dest.DWord=pChar->SaveFire; 
+      Dest.Type=pIntType; 
+      return true; 
+   case svCold: 
+      Dest.DWord=pChar->SaveCold; 
+      Dest.Type=pIntType; 
+      return true; 
+   case svPoison: 
+      Dest.DWord=pChar->SavePoison; 
+      Dest.Type=pIntType; 
+      return true; 
+   case svDisease: 
+      Dest.DWord=pChar->SaveDisease; 
+      Dest.Type=pIntType; 
+      return true; 
+   case CurrentWeight: 
+      Dest.DWord=pChar->CurrWeight; 
+      Dest.Type=pIntType; 
+      return true; 
 	}
 	return false;
 #undef pChar
