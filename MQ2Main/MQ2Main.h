@@ -46,7 +46,12 @@ using namespace std;
 #include "..\Dxsdk81\include\dinput.h"
 #include "..\Detours\inc\detours.h" 
 #else
+#ifndef MQ2PLUGIN
 #include "ISXEQ\ISXEQ.h"
+#else
+#include <isxdk.h>
+#include "ISXEQ\ISXEQServices.h"
+#endif
 #define PMQ2TYPEMEMBER PLSTYPEMEMBER
 #define PMQ2TYPEMETHOD PLSTYPEMETHOD
 #define MQ2Type LSType
@@ -291,8 +296,8 @@ EQLIB_API VOID Echo									(PSPAWNINFO,PCHAR);
 void __stdcall EventBlechCallback(unsigned long ID, void * pData, PBLECHVALUE pValues);
 #endif
 #define PMP_ERROR_BADPARM 10000
-#ifndef ISXEQ
 EQLIB_API PCHAR ParseMacroParameter(PSPAWNINFO pChar, PCHAR szOriginal);
+#ifndef ISXEQ
 EQLIB_API VOID FailIf(PSPAWNINFO pChar, PCHAR szCommand, PMACROBLOCK pStartLine, BOOL All=FALSE);
 EQLIB_API VOID InitializeParser();
 EQLIB_API VOID ShutdownParser();
@@ -309,12 +314,6 @@ EQLIB_API MQ2Type *FindMQ2DataType(PCHAR szName);
 EQLIB_API PMQ2DATAITEM FindMQ2Data(PCHAR szName);
 EQLIB_API PDATAVAR FindMQ2DataVariable(PCHAR szName);
 EQLIB_API BOOL ParseMQ2DataPortion(PCHAR szOriginal, MQ2TYPEVAR &Result);
-#else
-static inline PCHAR ParseMacroParameter(PSPAWNINFO pChar, PCHAR szOriginal)
-{
-	pISInterface->DataParse(szOriginal);
-	return szOriginal;
-}
 #endif
 
 
@@ -357,8 +356,10 @@ EQLIB_API PSTR GetArg(PSTR szDest, PCSTR szSrc, DWORD dwNumber, BOOL LeaveQuotes
 EQLIB_API VOID AddCustomEvent(PEVENTLIST pEList, PCHAR szLine);
 EQLIB_API FLOAT DistanceToSpawn(PSPAWNINFO pChar, PSPAWNINFO pSpawn);
 EQLIB_API PCHAR GetEQPath(PCHAR szBuffer);
+#ifndef ISXEQ
 #define DoCommand(pspawninfo,commandtoexecute) HideDoCommand(pspawninfo,commandtoexecute,FromPlugin)
 EQLIB_API VOID HideDoCommand(PSPAWNINFO pChar, PCHAR szLine, BOOL delayed);
+#endif
 EQLIB_API VOID AppendCXStr(PCXSTR *cxstr, PCHAR text); 
 EQLIB_API VOID SetCXStr(PCXSTR *cxstr, PCHAR text); 
 EQLIB_API DWORD GetCXStr(PCXSTR pCXStr, PCHAR szBuffer, DWORD maxlen=MAX_STRING);

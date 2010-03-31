@@ -1,12 +1,8 @@
 #include <map>
 using namespace std;
-
-
-
-
-
-
-
+#ifdef ISXEQ
+#include "ISXEQMap.h"
+#endif
 
 #define MAPFILTER_All           0
 #define MAPFILTER_PC            1
@@ -85,7 +81,12 @@ VOID MapAttach();
 VOID MapDetach();
 
 VOID MapSelectTarget();
+
+#ifndef ISXEQ
 BOOL dataMapSpawn(PCHAR szIndex, MQ2TYPEVAR &Ret);
+#else
+bool dataMapSpawn(int argc, char *argv[], LSTYPEVAR &Ret);
+#endif
 
 struct _MAPSPAWN* AddSpawn(PSPAWNINFO pNewSpawn,BOOL ExplicitAllow=false);
 bool RemoveSpawn(PSPAWNINFO pSpawn);

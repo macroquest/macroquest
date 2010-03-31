@@ -23,4 +23,6 @@ COMMAND("DisplayLoginName",CMD_DisplayLoginName,true,false);
 COMMAND("PopupText",CMD_PopupText,true,false);
 COMMAND("BuyItem",CMD_BuyItem,true,false);
 COMMAND("SellItem",CMD_SellItem,true,false);
+COMMAND("Target",CMD_Target,true,false);
+COMMAND("WhoFilter",CMD_WhoFilter,true,false);
 COMMAND("Where",CMD_Where,true,false);

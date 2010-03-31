@@ -824,7 +824,105 @@ bool MQ2MacroType::GETMEMBER()
 
 #endif
 
+bool MQ2TicksType::GETMEMBER()
+{
+#define nTicks (VarPtr.DWord)
+	unsigned long N=MemberMap[Member];
+	if (!N)
+		return false;
+	N--;
+	PMQ2TYPEMEMBER pMember=Members[N];
+	if (!pMember)
+		return false;
+	switch((TicksMembers)pMember->ID)
+	{
+	case Hours:
+		Dest.DWord=nTicks/600;
+		Dest.Type=pIntType;
+		return true;
+	case Minutes:
+		Dest.DWord=(nTicks/10)%60;
+		Dest.Type=pIntType;
+		return true;
+	case Seconds:
+		Dest.DWord=(nTicks*6)%60;
+		Dest.Type=pIntType;
+		return true;
+	case TimeHMS:
+		{
+			int Secs=nTicks*6;
+			int Mins=(Secs/60)%60;
+			int Hrs=(Secs/3600);
+			Secs=Secs%60;
+			if (Hrs)
+				sprintf(DataTypeTemp,"%d:%02d:%02d",Hrs,Mins,Secs);
+			else
+				sprintf(DataTypeTemp,"%d:%02d",Mins,Secs);
+			Dest.Ptr=&DataTypeTemp[0];
+			Dest.Type=pStringType;
+		}
+		return true;
+	case Time:
+		{
+			int Secs=nTicks*6;
+			int Mins=(Secs/60);
+			Secs=Secs%60;
+			sprintf(DataTypeTemp,"%d:%02d",Mins,Secs);
+			Dest.Ptr=&DataTypeTemp[0];
+			Dest.Type=pStringType;
+		}
+		return true;
+	case TotalMinutes:
+		Dest.DWord=nTicks/10;
+		Dest.Type=pIntType;
+		return true;
+	case TotalSeconds:
+		Dest.DWord=nTicks*6;
+		Dest.Type=pIntType;
+		return true;
+	case Ticks:
+		Dest.DWord=nTicks;
+		Dest.Type=pIntType;
+		return true;
+	}		
+	return false;
+#undef nTicks
+}
 
+bool MQ2ArgbType::GETMEMBER()
+{
+	unsigned long N=MemberMap[Member];
+	if (!N)
+		return false;
+	N--;
+	PMQ2TYPEMEMBER pMember=Members[N];
+	if (!pMember)
+		return false;
+	switch((ArgbMembers)pMember->ID)
+	{
+	case A:
+		Dest.DWord=VarPtr.Argb.A;
+		Dest.Type=pIntType;
+		return true;
+	case R:
+		Dest.DWord=VarPtr.Argb.R;
+		Dest.Type=pIntType;
+		return true;
+	case G:
+		Dest.DWord=VarPtr.Argb.G;
+		Dest.Type=pIntType;
+		return true;
+	case B:
+		Dest.DWord=VarPtr.Argb.B;
+		Dest.Type=pIntType;
+		return true;
+	case Int:
+		Dest.DWord=VarPtr.DWord;
+		Dest.Type=pIntType;
+		return true;
+	}
+	return false;
+}
 bool MQ2SpawnType::GETMEMBER()
 {
 	if (!VarPtr.Ptr)

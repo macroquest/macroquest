@@ -27,6 +27,8 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "MQ2HUD", "MQ2HUD\MQ2HUD.vcp
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "ISXEQ", "MQ2Main\ISXEQ.vcproj", "{4EDFEF3C-E331-44E6-BC7A-CF25BFA2BFEA}"
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "ISXEQMap", "MQ2Map\ISXEQMap.vcproj", "{08602A89-FF6E-49D7-B60C-17125D28C8CF}"
+EndProject
 Global
 	GlobalSection(SolutionConfiguration) = preSolution
 		ConfigName.0 = Debug
@@ -102,10 +104,10 @@ Global
 		{4EDFEF3C-E331-44E6-BC7A-CF25BFA2BFEA}.Debug.Build.0 = Release|Win32
 		{4EDFEF3C-E331-44E6-BC7A-CF25BFA2BFEA}.Release.ActiveCfg = Release|Win32
 		{4EDFEF3C-E331-44E6-BC7A-CF25BFA2BFEA}.Release.Build.0 = Release|Win32
-		{4B5466A1-8218-4261-B1DD-C3D511CA511E}.Debug.ActiveCfg = Release|Win32
-		{4B5466A1-8218-4261-B1DD-C3D511CA511E}.Debug.Build.0 = Release|Win32
-		{4B5466A1-8218-4261-B1DD-C3D511CA511E}.Release.ActiveCfg = Release|Win32
-		{4B5466A1-8218-4261-B1DD-C3D511CA511E}.Release.Build.0 = Release|Win32
+		{08602A89-FF6E-49D7-B60C-17125D28C8CF}.Debug.ActiveCfg = Release|Win32
+		{08602A89-FF6E-49D7-B60C-17125D28C8CF}.Debug.Build.0 = Release|Win32
+		{08602A89-FF6E-49D7-B60C-17125D28C8CF}.Release.ActiveCfg = Release|Win32
+		{08602A89-FF6E-49D7-B60C-17125D28C8CF}.Release.Build.0 = Release|Win32
 	EndGlobalSection
 	GlobalSection(SolutionItems) = postSolution
 		Item:1 = Release\Changes.txt

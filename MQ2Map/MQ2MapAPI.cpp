@@ -666,44 +666,16 @@ void MapSelectTarget()
 		if (pCharInfo && Flags && MapSpecialClickString[Flags][0])
 		{
 			PCHAR Cmd=GenerateSpawnName(pMapSpawn->pSpawn,MapSpecialClickString[Flags]);
+#ifndef ISXEQ
 			DoCommand(pCharInfo->pSpawn,Cmd);
+#else
+			pISInterface->ExecuteCommand(Cmd);
+#endif
 			free(Cmd);
 		}
 		else
 			pTarget=(EQPlayer*)pMapSpawn->pSpawn;
 	}
-
-/*
-	PMAPSPAWN pMapSpawn=pActiveSpawns;
-	while(pMapSpawn)
-	{
-		if (pMapSpawn->pMapLabel==pCurrentMapLabel)
-		{
-			if (pMapSpawn->SpawnType==ITEM)
-			{
-				EnviroTarget=*pMapSpawn->pSpawn;
-				EnviroTarget.Type = SPAWN_NPC;
-				EnviroTarget.SpawnID=2999;
-				pTarget = (EQPlayer*)&EnviroTarget; 				
-			}
-			else
-			{
-				DWORD Flags=pWndMgr->GetKeyboardFlags();
-				PCHARINFO pCharInfo=GetCharInfo();
-				if (pCharInfo && Flags && MapSpecialClickString[Flags][0])
-				{
-					PCHAR Cmd=GenerateSpawnName(pMapSpawn->pSpawn,MapSpecialClickString[Flags]);
-					DoCommand(pCharInfo->pSpawn,Cmd);
-					free(Cmd);
-				}
-				else
-					pTarget=(EQPlayer*)pMapSpawn->pSpawn;
-			}
-			break;
-		}
-		pMapSpawn=pMapSpawn->pNext;
-	}
-/**/
 }
 
 DWORD MapHighlight(SEARCHSPAWN *pSearch)
@@ -730,7 +702,6 @@ DWORD MapHighlight(SEARCHSPAWN *pSearch)
 			// update!
 			if (SpawnMatchesSearch(pSearch,pCharInfo->pSpawn,pMapSpawn->pSpawn))
 			{
-				//pMapSpawn->pMapLabel->Color.ARGB=HighlightColor;
 				pMapSpawn->Highlight=true;
 				Count++;
 			}
@@ -976,7 +947,11 @@ DWORD MapShow(SEARCHSPAWN &Search)
 	return Count;
 }
 
+#ifndef ISXEQ
 BOOL dataMapSpawn(PCHAR szIndex, MQ2TYPEVAR &Ret)
+#else
+bool dataMapSpawn(int argc, char *argv[], MQ2TYPEVAR &Ret)
+#endif
 {
 	if (!pCurrentMapLabel)
 		return false;
@@ -987,18 +962,5 @@ BOOL dataMapSpawn(PCHAR szIndex, MQ2TYPEVAR &Ret)
 		return true;
 	}
 	return false;
-	/*
-	PMAPSPAWN pMapSpawn=pActiveSpawns;
-	while(pMapSpawn)
-	{
-		if (pMapSpawn->pMapLabel==pCurrentMapLabel)
-		{
-			Ret.Ptr=pMapSpawn->pSpawn;
-			Ret.Type=pSpawnType;
-			return true;
-		}
-	}
-	return false;
-	/**/
 }
 

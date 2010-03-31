@@ -1,6 +1,7 @@
 #include "../MQ2Plugin.h"
 #include "MQ2Map.h"
 
+#ifndef ISXEQ
 // ***************************************************************************
 // Function:    MapFilters
 // Description: Our '/mapfilter' command
@@ -95,7 +96,9 @@ VOID MapFilters(PSPAWNINFO pChar, PCHAR szLine)
 				MapFilterSetting(pChar,i);
 
     // Display Help
-    } else if (!strnicmp(szArg,"help",6)) {
+    } 
+	else if (!strnicmp(szArg,"help",4)) 
+	{
         WriteChatColor("Map filtering options:",USERCOLOR_DEFAULT);
         for (DWORD i=0;MapFilterOptions[i].szName!=NULL;i++) {
             sprintf(szBuffer,"%s%s: %s",MapFilterOptions[i].szName,(MapFilterOptions[i].bIsToggle)?"":" #",MapFilterOptions[i].szHelpString);
@@ -240,7 +243,7 @@ VOID MapShowCmd(PSPAWNINFO pChar, PCHAR szLine)
 	{
 		MapClear();
 		MapGenerate();
-		SyntaxError("Map spawns regenerated");
+		WriteChatColor("Map spawns regenerated");
 		return;
 	}
 	if (PCHARINFO pCharInfo=GetCharInfo())
@@ -276,7 +279,7 @@ VOID MapNames(PSPAWNINFO pChar, PCHAR szLine)
 			strcpy(MapTargetNameString,szRest);
 		sprintf(szOut,"Target naming string: %s",MapTargetNameString);
 		WriteChatColor(szOut,USERCOLOR_DEFAULT);
-		WritePrivateProfileString("Naming Schemes","Target",MapNameString,INIFileName);
+		WritePrivateProfileString("Naming Schemes","Target",MapTargetNameString,INIFileName);
 		MapClear();
 		MapGenerate();
 	}
@@ -297,6 +300,7 @@ VOID MapNames(PSPAWNINFO pChar, PCHAR szLine)
 		SyntaxError("Usage: /mapnames <target|normal> [value|reset]");
 	}
 }
+#endif
 
 PCHAR DescribeCombo(DWORD Combo)
 {
@@ -375,7 +379,7 @@ DWORD ParseCombo(PCHAR Combo)
 	}
 	return Ret;
 }
-
+#ifndef ISXEQ
 VOID MapClickCommand(PSPAWNINFO pChar, PCHAR szLine)
 {
 	if (!szLine[0])
@@ -442,3 +446,4 @@ VOID MapClickCommand(PSPAWNINFO pChar, PCHAR szLine)
 }
 
 
+#endif

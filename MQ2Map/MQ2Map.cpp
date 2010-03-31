@@ -6,11 +6,9 @@
 // and Shutdown for setup and cleanup, do NOT do it in DllMain.
 
 
-
 #include "../MQ2Plugin.h"
 #include "MQ2Map.h"
 PreSetup("MQ2Map");
-
 
 
 
@@ -229,6 +227,7 @@ DETOUR_TRAMPOLINE_EMPTY(DWORD CMyMapViewWnd::Constructor_Trampoline(class CXWnd 
 
 bool Update=true;
 
+#ifndef ISXEQ
 // Called once, when the plugin is to initialize
 PLUGIN_API VOID InitializePlugin(VOID)
 {
@@ -263,7 +262,6 @@ PLUGIN_API VOID InitializePlugin(VOID)
 	AddCommand("/mapnames",MapNames,0,1,1);
 	AddCommand("/mapclick",MapClickCommand,0,1,0);
 
-//	EasyClassDetour(CMapViewWnd__CMapViewWnd,CMyMapViewWnd,Constructor_Detour,DWORD,(CXWnd*),Constructor_Trampoline);
 	EzDetour(CMapViewWnd__CMapViewWnd,CMyMapViewWnd::Constructor_Detour,CMyMapViewWnd::Constructor_Trampoline);
 	CMyMapViewWnd::StealVFTable();
 	AddMQ2Data("MapSpawn",dataMapSpawn);
@@ -336,4 +334,4 @@ PLUGIN_API VOID OnRemoveGroundItem(PGROUNDITEM pGroundItem)
 	if (Update)
 		RemoveGroundItem(pGroundItem);
 }
-
+#endif

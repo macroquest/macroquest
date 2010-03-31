@@ -192,40 +192,7 @@ public:
 	}
 
 
-	bool GETMEMBER()
-	{
-		unsigned long N=MemberMap[Member];
-		if (!N)
-			return false;
-		N--;
-		PMQ2TYPEMEMBER pMember=Members[N];
-		if (!pMember)
-			return false;
-		switch((ArgbMembers)pMember->ID)
-		{
-		case A:
-			Dest.DWord=VarPtr.Argb.A;
-			Dest.Type=pIntType;
-			return true;
-		case R:
-			Dest.DWord=VarPtr.Argb.R;
-			Dest.Type=pIntType;
-			return true;
-		case G:
-			Dest.DWord=VarPtr.Argb.G;
-			Dest.Type=pIntType;
-			return true;
-		case B:
-			Dest.DWord=VarPtr.Argb.B;
-			Dest.Type=pIntType;
-			return true;
-		case Int:
-			Dest.DWord=VarPtr.DWord;
-			Dest.Type=pIntType;
-			return true;
-		}
-		return false;
-	}
+	bool GETMEMBER();
 
 	 bool ToString(MQ2VARPTR VarPtr, PCHAR Destination)
 	{
@@ -398,6 +365,7 @@ public:
 	}
 };
 #endif
+
 class MQ2TicksType : public MQ2Type
 {
 public:
@@ -428,70 +396,8 @@ public:
 	{
 	}
 
-	bool GETMEMBER()
-	{
-#define nTicks (VarPtr.DWord)
-		unsigned long N=MemberMap[Member];
-		if (!N)
-			return false;
-		N--;
-		PMQ2TYPEMEMBER pMember=Members[N];
-		if (!pMember)
-			return false;
-		switch((TicksMembers)pMember->ID)
-		{
-		case Hours:
-			Dest.DWord=nTicks/600;
-			Dest.Type=pIntType;
-			return true;
-		case Minutes:
-			Dest.DWord=(nTicks/10)%60;
-			Dest.Type=pIntType;
-			return true;
-		case Seconds:
-			Dest.DWord=(nTicks*6)%60;
-			Dest.Type=pIntType;
-			return true;
-		case TimeHMS:
-			{
-				int Secs=nTicks*6;
-				int Mins=(Secs/60)%60;
-				int Hrs=(Secs/3600);
-				Secs=Secs%60;
-				if (Hrs)
-					sprintf(DataTypeTemp,"%d:%02d:%02d",Hrs,Mins,Secs);
-				else
-					sprintf(DataTypeTemp,"%d:%02d",Mins,Secs);
-				Dest.Ptr=&DataTypeTemp[0];
-				Dest.Type=pStringType;
-			}
-			return true;
-		case Time:
-			{
-				int Secs=nTicks*6;
-				int Mins=(Secs/60);
-				Secs=Secs%60;
-				sprintf(DataTypeTemp,"%d:%02d",Mins,Secs);
-				Dest.Ptr=&DataTypeTemp[0];
-				Dest.Type=pStringType;
-			}
-			return true;
-		case TotalMinutes:
-			Dest.DWord=nTicks/10;
-			Dest.Type=pIntType;
-			return true;
-		case TotalSeconds:
-			Dest.DWord=nTicks*6;
-			Dest.Type=pIntType;
-			return true;
-		case Ticks:
-			Dest.DWord=nTicks;
-			Dest.Type=pIntType;
-			return true;
-		}		
-		return false;
-#undef nTicks
-	}
+	bool GETMEMBER();
+
 
 	 bool ToString(MQ2VARPTR VarPtr, PCHAR Destination)
 	{
@@ -2316,6 +2222,7 @@ public:
 		free(VarPtr.Ptr);
 	}
 
+#ifndef MQ2PLUGIN
 	bool FromData(MQ2VARPTR &VarPtr, MQ2TYPEVAR &Source)
 	{
 		if (Source.Type!=pTimeType)
@@ -2323,6 +2230,10 @@ public:
 		memcpy(VarPtr.Ptr,Source.Ptr,sizeof(struct tm));
 		return true;
 	}
+#else
+	bool FromData(MQ2VARPTR &VarPtr, MQ2TYPEVAR &Source);
+#endif
+
 	bool FromString(MQ2VARPTR &VarPtr, PCHAR Source)
 	{
 		return false;
@@ -2403,6 +2314,7 @@ public:
 	  strcpy(Destination,szHeadingNormalShort[(INT)((360.0f-VarPtr.Float)/ 22.5f + 0.5f)%16]);
       return true;
    }
+#ifndef MQ2PLUGIN
 	bool FromData(MQ2VARPTR &VarPtr, MQ2TYPEVAR &Source)
 	{
 		if (Source.Type!=pHeadingType && Source.Type!=pFloatType)
@@ -2411,6 +2323,9 @@ public:
 			VarPtr.Float=Source.Float;
 		return true;
 	}
+#else
+   bool FromData(MQ2VARPTR &VarPtr, MQ2TYPEVAR &Source);
+#endif
 	bool FromString(MQ2VARPTR &VarPtr, PCHAR Source)
 	{
 		VarPtr.Float=(FLOAT)atof(Source);
@@ -2756,7 +2671,7 @@ public:
 			pVar->pNext->pPrev=pVar->pPrev;
 		free(VarPtr.Ptr);
 	}
-
+#ifndef MQ2PLUGIN
 	bool FromData(MQ2VARPTR &VarPtr, MQ2TYPEVAR &Source)
 	{
 		PMQTIMER pTimer=(PMQTIMER)VarPtr.Ptr;
@@ -2772,6 +2687,10 @@ public:
 		}
 		return true;
 	}
+#else
+	bool FromData(MQ2VARPTR &VarPtr, MQ2TYPEVAR &Source);
+#endif
+
 	bool FromString(MQ2VARPTR &VarPtr, PCHAR Source)
 	{
 		PMQTIMER pTimer=(PMQTIMER)VarPtr.Ptr;

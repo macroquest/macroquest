@@ -2,8 +2,8 @@
 <VisualStudioProject
 	ProjectType="Visual C++"
 	Version="7.00"
-	Name="MQ2Map"
-	ProjectGUID="{D43171FB-8208-4E52-860A-6BAE2A2FA573}"
+	Name="ISXEQMap"
+	ProjectGUID="{08602A89-FF6E-49D7-B60C-17125D28C8CF}"
 	Keyword="Win32Proj">
 	<Platforms>
 		<Platform
@@ -13,7 +13,7 @@
 		<Configuration
 			Name="Release|Win32"
 			OutputDirectory="..\Release"
-			IntermediateDirectory=".\Intermediate"
+			IntermediateDirectory=".\ISXEQMapIntermediate"
 			ConfigurationType="2"
 			CharacterSet="2">
 			<Tool
@@ -26,7 +26,7 @@
 				OmitFramePointers="FALSE"
 				OptimizeForProcessor="0"
 				OptimizeForWindowsApplication="FALSE"
-				PreprocessorDefinitions="CINTERFACE"
+				PreprocessorDefinitions="CINTERFACE;ISXEQ"
 				StringPooling="TRUE"
 				ExceptionHandling="TRUE"
 				BasicRuntimeChecks="0"
@@ -48,10 +48,10 @@
 				Name="VCLinkerTool"
 				AdditionalOptions="/OPT:NOICF"
 				AdditionalDependencies="wsock32.lib"
-				OutputFile="$(OutDir)/MQ2Map.dll"
+				OutputFile="$(OutDir)/ISXEQMap.dll"
 				LinkIncremental="1"
 				SuppressStartupBanner="FALSE"
-				AdditionalLibraryDirectories="..\Detours\lib;..\Release"
+				AdditionalLibraryDirectories="..\Release"
 				GenerateDebugInformation="TRUE"
 				GenerateMapFile="TRUE"
 				MapExports="TRUE"
@@ -60,7 +60,7 @@
 				OptimizeReferences="1"
 				EnableCOMDATFolding="1"
 				BaseAddress="0x04000000"
-				ImportLibrary="$(OutDir)/MQ2Map.lib"
+				ImportLibrary="$(OutDir)/ISXEQMap.lib"
 				TargetMachine="1"/>
 			<Tool
 				Name="VCMIDLTool"/>
@@ -83,6 +83,12 @@
 			Name="Source Files"
 			Filter="cpp;c;cxx;def;odl;idl;hpj;bat;asm">
 			<File
+				RelativePath="ISXEQMap.cpp">
+			</File>
+			<File
+				RelativePath="ISXEQMapCommands.cpp">
+			</File>
+			<File
 				RelativePath="MQ2Map.cpp">
 			</File>
 			<File
@@ -96,6 +102,9 @@
 			Name="Header Files"
 			Filter="h;hpp;hxx;hm;inl;inc">
 			<File
+				RelativePath="ISXEQMap.h">
+			</File>
+			<File
 				RelativePath="MQ2Map.h">
 			</File>
 		</Filter>
@@ -103,6 +112,9 @@
 			Name="Resource Files"
 			Filter="rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe">
 		</Filter>
+		<File
+			RelativePath="ReadMe.txt">
+		</File>
 	</Files>
 	<Globals>
 	</Globals>

@@ -40,7 +40,6 @@ public:
 		OutputBox=(CStmlWnd*)GetChildItem("CWChatOutput");
 		OutBoxLines=0;
 		*(DWORD*)&(((PCHAR)OutputBox)[0x1C0])=400;
-//		*(DWORD*)&(((PCHAR)OutputBox)[0x174])=0xFFFFFFFE;  // chat font size
 		OutputBox->Unknown0x019=1;
 	}
 
@@ -68,23 +67,13 @@ public:
 			else
 				DebugSpew("InputBox message %Xh, value: %Xh",Message,unknown);
 		}
-//		else if (pWnd==(CXWnd*)OutputBox)
-//		{
-//			DebugSpew("OutputBox message %Xh, value: %Xh",Message,unknown);
-//		}
 		else if (pWnd==0)
 		{
 			if (Message==XWM_CLOSE)
 			{
 				Show=1;
 				return 1;
-				//SaveChatToINI((PCSIDLWND)MQChatWnd);
-				//MQChatWnd=0;
-				// automatically gets deleted, dont try to delete it here..
-
-//				DoCommand((PSPAWNINFO)pCharSpawn,"/plugin mq2chatwnd unload");
 			}
-//			DebugSpew("CMQChatWnd message %Xh, value: %Xh",Message,unknown);
 		}
 		else
 		{
@@ -165,7 +154,6 @@ void SaveChatToINI(PCSIDLWND pWindow)
 	WritePrivateProfileString(szChatINISection,"BGTint.red",	itoa(pWindow->BGColor.R,			szTemp,10),INIFileName);
 	WritePrivateProfileString(szChatINISection,"BGTint.green",	itoa(pWindow->BGColor.G,			szTemp,10),INIFileName);
 	WritePrivateProfileString(szChatINISection,"BGTint.blue",	itoa(pWindow->BGColor.B,			szTemp,10),INIFileName);
-//=0xFFFFFFFE;
 	WritePrivateProfileString(szChatINISection,"FontSize",	itoa(*(DWORD*)&(((PCHAR)MQChatWnd->OutputBox)[0x174]),			szTemp,10),INIFileName);
 	/**/
 }
@@ -288,18 +276,7 @@ PLUGIN_API DWORD OnWriteChatColor(PCHAR Line, DWORD Color, DWORD Filter)
 		pPendingChat=pNewBuffer;
 	pPendingChatTail=pNewBuffer;
 	PendingChatLines++;
-/**/
 
-//	CXSize Whatever;
-//	MQChatWnd->OutBoxLines++;
-//	if (MQChatWnd->OutBoxLines>400)
-//	{
-//		MQChatWnd->OutputBox->StripFirstSTMLLines(1); //<---- SLOW
-//		MQChatWnd->OutBoxLines-=1;
-//	}
-//	DebugTry(MQChatWnd->OutputBox->AppendSTML(&Whatever,NewText));
-//	DebugTry(((CXWnd*)MQChatWnd->OutputBox)->SetVScrollPos(MQChatWnd->OutputBox->VScrollMax));
-	/**/
 	return 0;
 }
 
@@ -371,17 +348,7 @@ PLUGIN_API VOID OnPulse(VOID)
 			pPendingChatTail=0;
 		DebugTry(((CXWnd*)MQChatWnd->OutputBox)->SetVScrollPos(MQChatWnd->OutputBox->VScrollMax));
 	}
-	/*
-	if (MQChatWnd)
-	{
-		if (MQChatWnd->OutBoxLines>750)
-		{
-			MQChatWnd->OutputBox->StripFirstSTMLLines(1);
-			MQChatWnd->OutBoxLines--;
-//			((CXWnd*)MQChatWnd->OutputBox)->OnResize(0,0);
-		}
-	}
-	/**/
+
 }
 
 void CreateChatWindow()
@@ -406,7 +373,6 @@ VOID DoMQ2ChatBind(PCHAR Name,BOOL Down)
 			CXPoint pt=rect.CenterPoint();
 			((CXWnd*)MQChatWnd->InputBox)->SetWindowTextA(CXStr("/"));
 			((CXWnd*)MQChatWnd->InputBox)->HandleLButtonDown(&pt,0);
-//			((CXWnd*)MQChatWnd->InputBox)->SetFocus();
 		}
 	}
 }

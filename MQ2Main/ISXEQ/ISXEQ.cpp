@@ -139,6 +139,9 @@ void CISXEQ::RegisterTopLevelObjects()
 #undef TOPLEVELOBJECT
 }
 
+extern void __cdecl GamestateRequest(ISXInterface *pClient, unsigned long MSG, void *lpData);
+extern void __cdecl SpawnRequest(ISXInterface *pClient, unsigned long MSG, void *lpData);
+
 void CISXEQ::RegisterServices()
 {
 	hEQProtectionService=pISInterface->RegisterService(this,"EQ Memory Protection Service",ProtectionRequest);
@@ -146,8 +149,8 @@ void CISXEQ::RegisterServices()
 
 	hChatService=pISInterface->RegisterService(this,"EQ Chat Service",0);
 	hUIService=pISInterface->RegisterService(this,"EQ UI Service",0);
-	hGamestateService=pISInterface->RegisterService(this,"EQ Gamestate Service",0);
-	hSpawnService=pISInterface->RegisterService(this,"EQ Spawn Service",0);
+	hGamestateService=pISInterface->RegisterService(this,"EQ Gamestate Service",GamestateRequest);
+	hSpawnService=pISInterface->RegisterService(this,"EQ Spawn Service",SpawnRequest);
 	hZoneService=pISInterface->RegisterService(this,"EQ Zone Service",0);
 
 }

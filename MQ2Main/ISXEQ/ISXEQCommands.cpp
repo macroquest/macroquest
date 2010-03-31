@@ -74,7 +74,6 @@ EQLIB_API VOID SuperWhoTarget                      (PSPAWNINFO,PCHAR);
 EQLIB_API VOID SWhoFilter							(PSPAWNINFO,PCHAR);
 EQLIB_API VOID Target                              (PSPAWNINFO,PCHAR);
 EQLIB_API VOID UpdateItemInfo                      (PSPAWNINFO,PCHAR);
-EQLIB_API VOID Where                               (PSPAWNINFO,PCHAR);
 /**/
 
 //EQLIB_API VOID DoMappable(PSPAWNINFO pChar, PCHAR szLine)
@@ -303,6 +302,127 @@ int CMD_SellItem(int argc, char *argv[])
     if (Qty > 20 || Qty < 1) return 0;
     pMerchantWnd->RequestSellItem(Qty);
     return 0;
+}
+
+int CMD_Target(int argc, char* argv[])
+{
+    if (!ppSpawnList) return 0;
+    if (!pSpawnList) return 0;
+	if (argc<2)
+	{
+		WriteChatf("Syntax: %s myself|mycorpse|clear|<spawn search>",argv[0]);
+		return 0;
+	}
+
+   PSPAWNINFO pChar = GetCharInfo()->pSpawn;
+    PSPAWNINFO pSpawnClosest = NULL;
+   
+    SEARCHSPAWN SearchSpawn;
+    ClearSearchSpawn(&SearchSpawn);
+    CHAR szMsg[MAX_STRING] = {0};
+    BOOL DidTarget = FALSE;
+    BOOL bArg = TRUE;
+
+    bRunNextCommand = TRUE;
+    for(int i=1;i<argc;i++)
+   {
+      if (!stricmp(argv[i],"myself")) {
+            if (pChar) {
+                pSpawnClosest = pChar;
+                DidTarget = TRUE;
+            }
+      } else if (!stricmp(argv[i],"mycorpse")) {
+            if (pChar) {
+             SearchSpawn.SpawnType = CORPSE;
+            strcpy(SearchSpawn.szName,pChar->Name);
+            }
+        } else if (!stricmp(argv[i],"clear")) {
+            pTarget = NULL;
+            DebugSpew("Target cleared.");
+            WriteChatColor("Target cleared.",USERCOLOR_WHO);
+            return 0;
+        } else {
+           i+= ParseSearchSpawnArg(i,argc,argv,SearchSpawn);
+        }
+   }
+   
+    if (pTarget) SearchSpawn.FromSpawnID = ((PSPAWNINFO)pTarget)->SpawnID;
+
+    if (!DidTarget) {
+        pSpawnClosest = SearchThroughSpawns(&SearchSpawn,pChar);
+    }
+
+    if (!pSpawnClosest) {
+        CHAR szTemp[MAX_STRING] = {0};
+        sprintf(szMsg,"There are no spawns matching: %s",FormatSearchSpawn(szTemp,&SearchSpawn));
+    } else {
+        PSPAWNINFO *psTarget = NULL;
+        if (ppTarget) {
+            psTarget = (PSPAWNINFO*)ppTarget;
+            *psTarget = pSpawnClosest;
+            DebugSpew("Target - %s selected",pSpawnClosest->Name);
+         szMsg[0]=0;
+        } else {
+            sprintf(szMsg,"Unable to target, address = 0");
+        }
+    }
+   if (szMsg[0])
+    if (!gFilterTarget) WriteChatColor(szMsg,USERCOLOR_WHO);
+    return 0;
+}
+
+int CMD_WhoFilter(int argc, char* argv[])
+{
+   if (argc < 3)
+   {
+       WriteChatf("Syntax: %s <lastname|class|race|level|gm|guild|holding|ld|sneak|anon|lfg|npctag|spawnid|trader|afk|concolor|invisible> [on|off]",0);
+       return 0;
+   }
+   
+   if (!stricmp(argv[1],"Lastname")) {
+      SetDisplaySWhoFilter(&gFilterSWho.Lastname,"Lastname",argv[2]);
+   } else if (!stricmp(argv[1],"Class")) {
+      SetDisplaySWhoFilter(&gFilterSWho.Class,"Class",argv[2]);
+   } else if (!stricmp(argv[1],"Race")) {
+      SetDisplaySWhoFilter(&gFilterSWho.Race,"Race",argv[2]);
+   } else if (!stricmp(argv[1],"Body")) {
+      SetDisplaySWhoFilter(&gFilterSWho.Body,"Body",argv[2]);
+   } else if (!stricmp(argv[1],"Level")) {
+      SetDisplaySWhoFilter(&gFilterSWho.Level,"Level",argv[2]);
+   } else if (!stricmp(argv[1],"GM")) {
+      SetDisplaySWhoFilter(&gFilterSWho.GM,"GM",argv[2]);
+   } else if (!stricmp(argv[1],"Guild")) {
+      SetDisplaySWhoFilter(&gFilterSWho.Guild,"Guild",argv[2]);
+   } else if (!stricmp(argv[1],"LD")) {
+      SetDisplaySWhoFilter(&gFilterSWho.LD,"LD",argv[2]);
+    } else if (!stricmp(argv[1],"Sneak")) {
+      SetDisplaySWhoFilter(&gFilterSWho.Sneak,"Sneak",argv[2]);   
+   } else if (!stricmp(argv[1],"LFG")) {
+      SetDisplaySWhoFilter(&gFilterSWho.LFG,"LFG",argv[2]);
+   } else if (!stricmp(argv[1],"NPCTag")) {
+      SetDisplaySWhoFilter(&gFilterSWho.NPCTag,"NPCTag",argv[2]);
+   } else if (!stricmp(argv[1],"SpawnID")) {
+      SetDisplaySWhoFilter(&gFilterSWho.SpawnID,"SpawnID",argv[2]);
+   } else if (!stricmp(argv[1],"Trader")) {
+      SetDisplaySWhoFilter(&gFilterSWho.Trader,"Trader",argv[2]);
+   } else if (!stricmp(argv[1],"AFK")) {
+      SetDisplaySWhoFilter(&gFilterSWho.AFK,"AFK",argv[2]);
+   } else if (!stricmp(argv[1],"Anon")) {
+      SetDisplaySWhoFilter(&gFilterSWho.Anon,"Anon",argv[2]);
+   } else if (!stricmp(argv[1],"Distance")) {
+      SetDisplaySWhoFilter(&gFilterSWho.Distance,"Distance",argv[2]);
+   } else if (!stricmp(argv[1],"Light")) {
+      SetDisplaySWhoFilter(&gFilterSWho.Light,"Light",argv[2]);
+   } else if (!stricmp(argv[1],"Holding")) {
+      SetDisplaySWhoFilter(&gFilterSWho.Holding,"Holding",argv[2]);
+   } else if (!stricmp(argv[1],"ConColor")) {
+        SetDisplaySWhoFilter(&gFilterSWho.ConColor,"ConColor",argv[2]);
+   } else if (!stricmp(argv[1],"Invisible")) {
+        SetDisplaySWhoFilter(&gFilterSWho.Invisible,"Invisible",argv[2]);
+   } else {
+       WriteChatf("Syntax: %s <lastname|class|race|level|gm|guild|holding|ld|sneak|anon|lfg|npctag|spawnid|trader|afk|concolor|invisible> [on|off]",0);
+   }
+   return 0;
 }
 
 // ***************************************************************************
