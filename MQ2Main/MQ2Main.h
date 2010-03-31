@@ -410,7 +410,7 @@ EQLIB_API DWORD       Include                 (PCHAR szFile);
 EQLIB_API PCHAR       GetFullZone             (DWORD ZoneID);
 EQLIB_API DWORD       GetZoneID               (PCHAR ZoneShortName);
 EQLIB_API PCHAR       GetShortZone            (DWORD ZoneID);
-EQLIB_API PCHAR       CleanupName             (PCHAR szName, BOOL Article = TRUE);
+EQLIB_API PCHAR       CleanupName             (PCHAR szName, BOOL Article = TRUE, BOOL ForWhoList = TRUE);
 //EQLIB_API VOID        SwapSWho                (PSWHOSORT pSWho1, PSWHOSORT pSWho2);
 //EQLIB_API VOID        SortSWho                (PSWHOSORT pSWhoSort, DWORD SpawnCount, DWORD SortBy = 0);
 //EQLIB_API VOID        SuperWhoFindPets        (PSPAWNINFO pChar, WORD SpawnID);
@@ -601,5 +601,5 @@ EQLIB_API void DisplayOverlayText(PCHAR szText, DWORD dwColor, DWORD dwTranspare
 #define MQ2AUTH(z) EQLIB_API VOID z(DWORD x);
 #include "MQ2Auth0.h"
 
-EQLIB_API VOID memcheck4_tramp(PVOID,DWORD,PCHAR,DWORD,BOOL); 
-EQLIB_API VOID memcheck4(PVOID,DWORD,PCHAR,DWORD,BOOL);
+EQLIB_API VOID memchecks_tramp(PVOID,DWORD,PCHAR,DWORD,BOOL); 
+EQLIB_API VOID memchecks(PVOID,DWORD,PCHAR,DWORD,BOOL);

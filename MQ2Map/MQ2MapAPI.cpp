@@ -32,7 +32,6 @@ map<unsigned long,PMAPSPAWN> GroundItemMap;
 map<PMAPLABEL,PMAPSPAWN> LabelMap;
 
 BOOL Update=false;
-bool PlayerAdded=false;
 
 #define CASTRADIUS_ANGLESIZE 10
 PMAPLINE pCastRadius[(360/CASTRADIUS_ANGLESIZE)+1];
@@ -147,11 +146,6 @@ PMAPSPAWN AddSpawn(PSPAWNINFO pNewSpawn,BOOL ExplicitAllow)
 		return 0;
 	// add spawn to list
 
-	if (!PlayerAdded) {
-	if (strstr(GetCharInfo()->Name, pNewSpawn->Name ))
-		PlayerAdded = true;
-	}
-
 	PMAPSPAWN pMapSpawn = InitSpawn();
 	if (pNewSpawn->Type!=FAKESPAWNTYPE)
 		SpawnMap[pNewSpawn->SpawnID]=pMapSpawn;
@@ -226,17 +220,17 @@ void AddGroundItem(PGROUNDITEM pGroundItem)
 	pFakeSpawn->Type=FAKESPAWNTYPE;
 	PMAPSPAWN pMapSpawn=AddSpawn(pFakeSpawn);
 	if (pMapSpawn)
-		GroundItemMap[pGroundItem->ID]=pMapSpawn;
+		GroundItemMap[pGroundItem->DropID]=pMapSpawn;
 	else
 		delete pFakeSpawn;
 }
 
 void RemoveGroundItem(PGROUNDITEM pGroundItem)
 {
-	PMAPSPAWN pMapSpawn=GroundItemMap[pGroundItem->ID];
+	PMAPSPAWN pMapSpawn=GroundItemMap[pGroundItem->DropID];
 	if (pMapSpawn)
 	{
-		GroundItemMap[pGroundItem->ID]=0;
+		GroundItemMap[pGroundItem->DropID]=0;
 		RemoveSpawn(pMapSpawn);
 	}
 }
@@ -808,20 +802,12 @@ PCHAR GenerateSpawnName(PSPAWNINFO pSpawn, PCHAR NameString)
 	return ret;
 }
 
-
-
 BOOL CanDisplaySpawn(eSpawnType Type, PSPAWNINFO pSpawn)
 {
-	if (Type == PC && pSpawn->BodyType < 1 ) // bogus shit
-		return FALSE;
-
 	if (!pSpawn)
 		return FALSE;
 
 	if ( (Type == PC || Type == NPC) && (!pSpawn->pActorInfo) )
-		return FALSE;
-
-	if (pSpawn->Name[0] == '\0' ) // bogus shit
 		return FALSE;
 
 	if ((pSpawn==(PSPAWNINFO)pTarget) && IsOptionEnabled(MAPFILTER_Target))

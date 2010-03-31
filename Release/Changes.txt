@@ -1,3 +1,15 @@
+13 October 2004 by Amadeus
+- [*LAX*]  New Memcheck0 routine
+- [*DKAA*] New Memcheck4 routine (the routine previously known as memcheck4 
+           is now memchecks)
+- New offsets/structs for latest patch
+- Con Colors should be working properly to lvl 70
+- spawn.CleanName should now return the name without the '#' symbol
+- More work on mq2map ...it's still in heavy testing and needs more work though
+- Added 'BuildDate' to the MacroQuest data members.  Returns an int representing
+  the date in which the current MQ2Main.dll was built.
+- Added a short message to warn you of a running macro when /camping.
+
 23 September 2004 by Amadeus
 - Fixed the MacroQuest2.exe to have correct links and added a few new links!
 - Offsets fixed for recent patch

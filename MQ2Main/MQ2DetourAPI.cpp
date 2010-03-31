@@ -181,15 +181,16 @@ unsigned int *extern_array0 = NULL;
 unsigned int *extern_array1 = NULL;
 unsigned int *extern_array2 = NULL;
 unsigned int *extern_array3 = NULL;
-int __cdecl memcheck0(unsigned char *buffer, int count, struct mckey key);
+int __cdecl memcheck0(unsigned char *buffer, int count);
 int __cdecl memcheck1(unsigned char *buffer, int count, struct mckey key);
 int __cdecl memcheck2(unsigned char *buffer, int count, struct mckey key);
 int __cdecl memcheck3(unsigned char *buffer, int count, struct mckey key);
+int __cdecl memcheck4(unsigned char *buffer, int count, struct mckey key);
 
 
-DETOUR_TRAMPOLINE_EMPTY(VOID memcheck4_tramp(PVOID,DWORD,PCHAR,DWORD,BOOL)); 
+DETOUR_TRAMPOLINE_EMPTY(VOID memchecks_tramp(PVOID,DWORD,PCHAR,DWORD,BOOL)); 
 
-VOID memcheck4(PVOID A,DWORD B,PCHAR C,DWORD D,BOOL E)
+VOID memchecks(PVOID A,DWORD B,PCHAR C,DWORD D,BOOL E)
 {
 	if (B==0x00F4)
 	{
@@ -205,17 +206,18 @@ VOID memcheck4(PVOID A,DWORD B,PCHAR C,DWORD D,BOOL E)
 			C[Pos]=(t <= 255) ? (char)t : 0;
 		}
 	}
-	memcheck4_tramp(A,B,C,D,E);
+	memchecks_tramp(A,B,C,D,E);
 }
 
 // ***************************************************************************
 // Function:    HookMemChecker
 // Description: Hook MemChecker
 // ***************************************************************************
-int (__cdecl *memcheck0_tramp)(unsigned char *buffer, int count, struct mckey key);
+int (__cdecl *memcheck0_tramp)(unsigned char *buffer, int count);
 int (__cdecl *memcheck1_tramp)(unsigned char *buffer, int count, struct mckey key);
 int (__cdecl *memcheck2_tramp)(unsigned char *buffer, int count, struct mckey key);
 int (__cdecl *memcheck3_tramp)(unsigned char *buffer, int count, struct mckey key);
+int (__cdecl *memcheck4_tramp)(unsigned char *buffer, int count, struct mckey key);
 
 VOID HookMemChecker(BOOL Patch)
 {
@@ -224,7 +226,8 @@ VOID HookMemChecker(BOOL Patch)
     if ((!EQADDR_MEMCHECK0) ||
         (!EQADDR_MEMCHECK1) ||
         (!EQADDR_MEMCHECK2) ||
-        (!EQADDR_MEMCHECK3)) {
+        (!EQADDR_MEMCHECK3) ||
+        (!EQADDR_MEMCHECK4)) {
         _asm int 3
     }
     DebugSpew("HookMemChecker - %satching",(Patch)?"P":"Unp");
@@ -250,7 +253,12 @@ VOID HookMemChecker(BOOL Patch)
         (*(PBYTE*)&memcheck3_tramp) = DetourFunction( (PBYTE) EQADDR_MEMCHECK3,
                                                     (PBYTE) memcheck3);
 
-		EzDetour(send_message,memcheck4,memcheck4_tramp);
+		AddDetour((DWORD)EQADDR_MEMCHECK4);
+
+        (*(PBYTE*)&memcheck4_tramp) = DetourFunction( (PBYTE) EQADDR_MEMCHECK4,
+                                                    (PBYTE) memcheck4);
+
+		EzDetour(send_message,memchecks,memchecks_tramp);
     } else {
         DetourRemove((PBYTE) memcheck0_tramp,
                      (PBYTE) memcheck0);
@@ -271,6 +279,12 @@ VOID HookMemChecker(BOOL Patch)
                      (PBYTE) memcheck3);
         memcheck3_tramp = NULL;
 		RemoveDetour(EQADDR_MEMCHECK3);
+
+		DetourRemove((PBYTE) memcheck4_tramp,
+                     (PBYTE) memcheck4);
+        memcheck4_tramp = NULL;
+		RemoveDetour(EQADDR_MEMCHECK4);
+
 		RemoveDetour((DWORD)send_message);
     }
 }
@@ -282,11 +296,10 @@ VOID HookMemChecker(BOOL Patch)
 //  004F7D2A: 56                 push        esi
 
 
-int __cdecl memcheck0(unsigned char *buffer, int count, struct mckey key)
+int __cdecl memcheck0(unsigned char *buffer, int count)
 {
     unsigned int x, i;
-    unsigned int ecx;
-    unsigned int eax = ~key.a[0] & 0xff;
+    unsigned int eax = 0xffffffff;
 
     if (!extern_array0) {
         if (!EQADDR_ENCRYPTPAD0) {
@@ -296,102 +309,6 @@ int __cdecl memcheck0(unsigned char *buffer, int count, struct mckey key)
         }
     }
 
-//  004F7D2B: F6 D0              not         al
-//  004F7D2D: 0F B6 C0           movzx       eax,al
-    unsigned int edx = key.a[1] & 0xff;
-//  004F7D30: 0F B6 55 11        movzx       edx,byte ptr [ebp+11h]
-//  004F7D34: 8B 04 85 6C 7B 5C  mov         eax,dword ptr [eax*4+005C7B6Ch]
-//            00
-
-    eax = extern_array0[eax];
-
-//  004F7D3B: BE FF FF FF 00     mov         esi,0FFFFFFh
-//  004F7D40: 33 C6              xor         eax,esi
-    eax ^= 0xffffff;
-
-//  004F7D42: 57                 push        edi
-//  004F7D43: 8B C8              mov         ecx,eax
-//  004F7D45: BF FF 00 00 00     mov         edi,0FFh
-
-//  004F7D4A: 23 CF              and         ecx,edi
-    ecx = eax & 0xff;
-//  004F7D4C: 33 CA              xor         ecx,edx
-    ecx ^= edx;
-//  004F7D4E: 0F B6 55 12        movzx       edx,byte ptr [ebp+12h]
-    edx = key.a[2] & 0xff;
-
-//  004F7D52: 8B 0C 8D 6C 7B 5C  mov         ecx,dword ptr [ecx*4+005C7B6Ch]
-//            00
-    ecx = extern_array0[ecx];
-
-//  004F7D59: C1 F8 08           sar         eax,8
-//  004F7D5C: 23 C6              and         eax,esi
-    eax = ((int)eax>>8) & 0xffffff;
-
-//  004F7D5E: 33 C8              xor         ecx,eax
-    ecx ^= eax;
-
-//  004F7D60: 8B C1              mov         eax,ecx
-//  004F7D62: 23 C7              and         eax,edi
-//  004F7D64: 33 C2              xor         eax,edx
-    eax = (ecx & 0xff) ^ edx;
-
-//  004F7D66: C1 F9 08           sar         ecx,8
-    ecx = (int)ecx >> 8;
-
-//  004F7D69: 8B 14 85 6C 7B 5C  mov         edx,dword ptr [eax*4+005C7B6Ch]
-//            00
-    edx = extern_array0[eax];
-
-//  004F7D70: 23 CE              and         ecx,esi
-//  004F7D72: 33 D1              xor         edx,ecx
-    edx ^= ecx & 0xffffff;
-
-//  004F7D74: 0F B6 4D 13        movzx       ecx,byte ptr [ebp+13h]
-    ecx = key.a[3] & 0xff;
-
-//  004F7D78: 8B C2              mov         eax,edx
-//  004F7D7A: 23 C7              and         eax,edi
-//  004F7D7C: 33 C1              xor         eax,ecx
-//  004F7D7E: 8B 4D 08           mov         ecx,dword ptr [ebp+8]
-//  004F7D81: C1 FA 08           sar         edx,8
-//  004F7D84: 8B 04 85 6C 7B 5C  mov         eax,dword ptr [eax*4+005C7B6Ch]
-//            00
-
-    eax = extern_array0[(edx & 0xff) ^ ecx];
-
-//  004F7D8B: 23 D6              and         edx,esi
-//  004F7D8D: 33 C2              xor         eax,edx
-    eax ^= ((int)edx>>8) & 0xffffff;
-
-//  004F7D8F: 8B 55 0C           mov         edx,dword ptr [ebp+0Ch]
-//  004F7D92: 03 D1              add         edx,ecx
-//  004F7D94: 89 4D 10           mov         dword ptr [ebp+10h],ecx
-//  004F7D97: 3B CA              cmp         ecx,edx
-//  004F7D99: 73 24              jae         004F7DBF
-    if (count == 0) return ~eax;
-
-//  004F7D9B: 53                 push        ebx
-//  004F7D9C: 8B 5D 10           mov         ebx,dword ptr [ebp+10h]
-//  004F7D9F: 8B C8              mov         ecx,eax
-//  004F7DA1: 23 CF              and         ecx,edi
-//  004F7DA3: 0F B6 1B           movzx       ebx,byte ptr [ebx]
-//  004F7DA6: 33 CB              xor         ecx,ebx
-//  004F7DA8: C1 F8 08           sar         eax,8
-//  004F7DAB: 8B 0C 8D 6C 7B 5C  mov         ecx,dword ptr [ecx*4+005C7B6Ch]
-//            00
-//  004F7DB2: 23 C6              and         eax,esi
-//  004F7DB4: 33 C1              xor         eax,ecx
-//  004F7DB6: FF 45 10           inc         dword ptr [ebp+10h]
-//  004F7DB9: 39 55 10           cmp         dword ptr [ebp+10h],edx
-//  004F7DBC: 72 DE              jb          004F7D9C
-
-//  004F7DBE: 5B                 pop         ebx
-//  004F7DBF: 5F                 pop         edi
-//  004F7DC0: 5E                 pop         esi
-//  004F7DC1: F7 D0              not         eax
-//  004F7DC3: 5D                 pop         ebp
-//  004F7DC4: C3                 ret
 
     for (i=0;i<(unsigned int)count;i++) {
         unsigned char tmp;
@@ -412,7 +329,7 @@ int __cdecl memcheck0(unsigned char *buffer, int count, struct mckey key)
         x = extern_array0[x];
         eax ^= x;
     }
-    return ~eax;
+    return eax;
 }
 
 int __cdecl memcheck1(unsigned char *buffer, int count, struct mckey key);
@@ -803,6 +720,57 @@ int __cdecl memcheck3(unsigned char *buffer, int count, struct mckey key)
 //                pop     ebx
 //                leave
 //                retn
+}
+
+int __cdecl memcheck4(unsigned char *buffer, int count, struct mckey key)
+{
+    unsigned int eax, ebx, edx, i;
+
+    if (!extern_array3) {
+        if (!EQADDR_ENCRYPTPAD3) {
+            //_asm int 3
+        } else {
+          extern_array3 = (unsigned int *)EQADDR_ENCRYPTPAD3;
+        }
+    }
+    edx = key.a[1];
+    eax = ~key.a[0] & 0xff;
+    eax = extern_array3[eax];
+    eax ^= 0xffffff;
+    edx = (edx ^ eax) & 0xff;
+    eax = ((int)eax>>8) & 0xffffff;
+    eax ^= extern_array3[edx];
+    edx = key.a[2];
+    edx = (edx ^ eax) & 0xff;
+    eax = ((int)eax>>8) & 0xffffff;
+    edx = eax ^ extern_array3[edx];
+    eax = 0;
+    ebx = key.a[3];
+    ebx = (ebx ^ edx) & 0xff;
+    edx = ((int)edx>>8) & 0xffffff;
+    edx ^= extern_array3[ebx];
+    edx ^= eax;
+
+    for (i=0;i<(unsigned int)count;i++) {
+        unsigned char tmp;
+        OurDetours *detour = ourdetours;
+        unsigned int b=(int) &buffer[i];
+        while(detour)
+        {
+            if (detour->count && (b >= detour->addr) &&
+                 (b < detour->addr+detour->count) ) {
+                 tmp = detour->array[b - detour->addr];
+                 break;
+            }
+            detour=detour->pNext;
+        }
+        if (!detour) tmp = buffer[i];
+        ebx = (tmp ^ edx) & 0xff;
+        edx = ((int)edx >> 8) & 0xffffff;
+        edx ^= extern_array3[ebx];
+    }
+    eax = ~edx ^ 0;
+    return eax;
 }
 
 VOID __cdecl CrashDetected_Trampoline(DWORD,DWORD,DWORD,DWORD,DWORD); 

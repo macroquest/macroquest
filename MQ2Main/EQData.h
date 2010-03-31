@@ -959,8 +959,8 @@ typedef struct _EQUIPMENT {
 
 // sizeof(_SPAWNINFO) is 0x290 (7/14/2004) 
 typedef struct _SPAWNINFO { 
-/*0x000*/   BYTE	Unknown0x0; 
-/*0x001*/   CHAR	Lastname[0x27];  // // Surname on PCs, Newbie Tag on NPCs 
+/*0x000*/   BYTE    Unknown0x0; 
+/*0x001*/   CHAR    Lastname[0x27];  // // Surname on PCs, Newbie Tag on NPCs 
 /*0x028*/   FLOAT   Y; 
 /*0x02c*/   FLOAT   X; 
 /*0x030*/   FLOAT   Z; 
@@ -976,75 +976,76 @@ typedef struct _SPAWNINFO {
 /*0x058*/   BYTE    Unknown0x58[0x88]; 
 /*0x0e0*/   CHAR    Name[0x40]; // ie priest_of_discord00 
 /*0x120*/   CHAR    DisplayedName[0x40]; // ie Priest of Discord 
-/*0x160*/   FLOAT   SpeedHeading;  
-/*0x164*/   struct  _ACTORINFO   *pActorInfo; 
-/*0x168*/   DWORD   field_168; 
-/*0x16c*/   BYTE    CanFindLocation; 
-/*0x16d*/   BYTE    Sneak;  // returns 01 on both Sneak and Shroud of Stealth 
-/*0x16e*/   BYTE    Linkdead;  // Uncharmable flag when used on mobs? 
-/*0x16f*/   BYTE    field_16F; 
-/*0x170*/   BYTE    LFG; 
-/*0x171*/   BYTE    field_171; 
-/*0x172*/   BYTE	IsABoat; // 1 = a type of boat 
-/*0x173*/   BYTE    Unknown0x173; 
-/*0x174*/   ARGBCOLOR ArmorColor[0x9];  // Armor Dye if custom, otherwise Item Tint 
-/*0x178*/   struct  _EQUIPMENT Equipment; 
-/*0x1bc*/   WORD    Zone; 
-/*0x1be*/   WORD    Instance; 
-/*0x1c0*/   DWORD   field_1c0; 
-/*0x1c4*/   DWORD   field_1c4; //new
+/*0x160*/   FLOAT   SpeedHeading; 
+/*0x164*/   DWORD   field_164;  
+/*0x168*/   struct  _ACTORINFO   *pActorInfo; 
+/*0x16c*/   DWORD   field_16c; 
+/*0x170*/   BYTE    CanFindLocation; 
+/*0x171*/   BYTE    Sneak;  // returns 01 on both Sneak and Shroud of Stealth 
+/*0x172*/   BYTE    Linkdead;  // Uncharmable flag when used on mobs? 
+/*0x173*/   BYTE    field_173; 
+/*0x174*/   BYTE    LFG; 
+/*0x175*/   BYTE    field_175; 
+/*0x176*/   BYTE    IsABoat; // 1 = a type of boat 
+/*0x177*/   BYTE    Unknown0x177; 
+/*0x178*/   ARGBCOLOR ArmorColor[0x9];  // Armor Dye if custom, otherwise Item Tint 
+/*0x17c*/   struct  _EQUIPMENT Equipment; 
+/*0x1c0*/   WORD    Zone; 
+/*0x1c2*/   WORD    Instance; 
+/*0x1c4*/   DWORD   field_1c4; 
 /*0x1c8*/   DWORD   field_1c8; //new 
-/*0x1cc*/   struct  _SPAWNINFO *pNext; 
-/*0x1d0*/   struct  _CHARINFO  *pCharInfo; 
-/*0x1d4*/   DWORD   field_1d4; 
-/*0x1d8*/   struct  _SPAWNINFO *pPrev; 
-/*0x1dc*/   BYTE    Unknown0x1dc[0x4]; 
-/*0x1e0*/   FLOAT   field_1e0; 
-/*0x1e4*/   DWORD   field_1e4; 
-/*0x1e8*/   FLOAT   RunSpeed; 
-/*0x1ec*/   FLOAT   field_1ec; 
+/*0x1cc*/   DWORD   field_1cc; //new 
+/*0x1d0*/   struct  _SPAWNINFO *pNext; 
+/*0x1d4*/   struct  _CHARINFO  *pCharInfo; 
+/*0x1d8*/   DWORD   field_1d8; 
+/*0x1dc*/   struct  _SPAWNINFO *pPrev; 
+/*0x1e0*/   BYTE    Unknown0x1e0[0x4]; 
+/*0x1e4*/   FLOAT   field_1e4; 
+/*0x1e8*/   DWORD   field_1e8; 
+/*0x1ec*/   FLOAT   RunSpeed; 
 /*0x1f0*/   FLOAT   field_1f0; 
-/*0x1f4*/   FLOAT   AvatarHeight;  // height of avatar from ground when standing 
-/*0x1f8*/   FLOAT   WalkSpeed; 
-/*0x1fc*/   BYTE    Type; 
-/*0x1fd*/   BYTE    HairColor;      
-/*0x1fe*/   BYTE	BeardColor; 
-/*0x1ff*/   BYTE	Field_1f7; 
-/*0x200*/   BYTE    Eyes; 
-/*0x201*/   BYTE    Eyes2;     
-/*0x202*/   BYTE    BeardType; 
-/*0x203*/   BYTE    Holding;   // 0=holding/wielding nothing 
-/*0x204*/   BYTE    Level; 
-/*0x205*/   BYTE    FaceHair;  // Face/Hair combination with headgear 
-/*0x206*/   BYTE    Gender; 
-/*0x207*/   BYTE    PvPFlag; 
-/*0x208*/   BYTE    HideMode; 
-/*0x209*/   BYTE    StandState; 
-/*0x20a*/   BYTE    Class; 
-/*0x20b*/   BYTE    Light; 
-/*0x20c*/   BYTE    InNonPCRaceIllusion;  // This is buggy ...not sure exact usage 
-/*0x20d*/   BYTE    Field_20d;  // form related, unsure how 
-/*0x20e*/   BYTE    GM; 
-/*0x20f*/   BYTE    Field_20f; 
-/*0x210*/   DWORD   SpawnID; 
-/*0x214*/   DWORD   MasterID; 
-/*0x218*/   DWORD   Race; 
-/*0x21c*/   DWORD	Anon; 
-/*0x220*/   DWORD   field_220; 
-/*0x224*/   DWORD   AFK; 
-/*0x228*/   DWORD   BodyType; 
-/*0x22c*/   DWORD   HPCurrent; 
-/*0x230*/   BYTE	AARank; 
-/*0x231*/   BYTE    Unknown0x231[0x3]; 
-/*0x234*/   DWORD   GuildStatus; 
-/*0x238*/   DWORD   Deity; 
-/*0x23c*/   DWORD   HPMax; 
-/*0x240*/   DWORD   GuildID; 
-/*0x244*/   BYTE    Levitate;   //0-normal state  2=levitating 3=mob (not levitating) 
-/*0x245*/   BYTE    Unknown0x245[0x17];
-/*0x25c*/   CHAR    Title[0x40];
-/*0x29c*    More Data */
-} SPAWNINFO, *PSPAWNINFO; 
+/*0x1f4*/   FLOAT   field_1f4; 
+/*0x1f8*/   FLOAT   AvatarHeight;  // height of avatar from ground when standing 
+/*0x1fc*/   FLOAT   WalkSpeed; 
+/*0x200*/   BYTE    Type; 
+/*0x201*/   BYTE    HairColor;      
+/*0x202*/   BYTE    BeardColor; 
+/*0x203*/   BYTE    Field_203; 
+/*0x204*/   BYTE    Eyes; 
+/*0x205*/   BYTE    Eyes2;      
+/*0x206*/   BYTE    BeardType; 
+/*0x207*/   BYTE    Holding;   // 0=holding/wielding nothing 
+/*0x208*/   BYTE    Level; 
+/*0x209*/   BYTE    FaceHair;  // Face/Hair combination with headgear 
+/*0x20a*/   BYTE    Gender; 
+/*0x20b*/   BYTE    PvPFlag; 
+/*0x20c*/   BYTE    HideMode; 
+/*0x20d*/   BYTE    StandState; 
+/*0x20e*/   BYTE    Class; 
+/*0x20f*/   BYTE    Light; 
+/*0x210*/   BYTE    InNonPCRaceIllusion;  // This is buggy ...not sure exact usage 
+/*0x211*/   BYTE    Field_211;  // form related, unsure how 
+/*0x212*/   BYTE    GM;       
+/*0x213*/   BYTE    Field_213; 
+/*0x214*/   DWORD   SpawnID; 
+/*0x218*/   DWORD   MasterID; 
+/*0x21c*/   DWORD   Race; 
+/*0x220*/   DWORD   Anon; 
+/*0x224*/   DWORD   field_224; 
+/*0x228*/   DWORD   AFK; 
+/*0x22c*/   DWORD   BodyType; 
+/*0x230*/   DWORD   HPCurrent; 
+/*0x234*/   BYTE    AARank; 
+/*0x235*/   BYTE    Unknown0x235[0x3]; 
+/*0x238*/   DWORD   GuildStatus; 
+/*0x23c*/   DWORD   Deity; 
+/*0x240*/   DWORD   HPMax; 
+/*0x244*/   DWORD   GuildID; 
+/*0x248*/   BYTE    Levitate;   //0-normal state  2=levitating 3=mob (not levitating) 
+/*0x249*/   BYTE    Unknown0x249[0x17]; 
+/*0x260*/   CHAR    Title[0x40]; 
+/*0x2a0*    More Data */ 
+} SPAWNINFO, *PSPAWNINFO;
 
 #define STANDSTATE_STAND            0x64
 #define STANDSTATE_BIND             0x69

@@ -1554,7 +1554,7 @@ VOID Alert(PSPAWNINFO pChar, PCHAR szLine)
 // Description: Cleans up NPC names
 //              an_iksar_marauder23 = iksar marauder, an
 // ***************************************************************************
-PCHAR CleanupName(PCHAR szName, BOOL Article)
+PCHAR CleanupName(PCHAR szName, BOOL Article, BOOL ForWhoList)
 {
     DWORD i,j=0;
     CHAR szTemp[MAX_STRING] = {0};
@@ -1574,6 +1574,9 @@ PCHAR CleanupName(PCHAR szName, BOOL Article)
             case '8':
             case '9':
                 break;
+			case '#':
+				if (!ForWhoList)
+					break;
             default:
                 szTemp[j++]=szName[i];
         }
@@ -2595,7 +2598,7 @@ if (!stricmp(szArg1,"item"))
       }
    }
    GetArg(szBuffer,szLine,1);
-   for (Index=0;Index<8;Index++) {
+   for (Index=0;Index<9;Index++) {
       if (pCharInfo->MemorizedSpells[Index]!=0xFFFFFFFF) {
          PCHAR SpellName = GetSpellNameByID(pCharInfo->MemorizedSpells[Index]);
          if (!stricmp(szBuffer,SpellName)) {

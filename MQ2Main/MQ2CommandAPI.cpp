@@ -157,6 +157,14 @@ public:
 			strcpy(szFullCommand,szFullLine); 
 			GetArg(szCommand,szFullCommand,1); 
 
+			if (!stricmp(szCommand,"/camp"))
+			{
+				if (gMacroBlock)
+				{
+					WriteChatColor("A macro is currently running.  You may wish to /endmacro before you finish camping.", CONCOLOR_YELLOW );
+				}
+			}
+
 			szSubFullCommand = szFullCommand;
 			for (unsigned int i=0; i < sizeof(szFullCommand); i++ ) 
 			{

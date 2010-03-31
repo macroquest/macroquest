@@ -64,7 +64,7 @@ Using Blech:
 
 #pragma once
 
-#define BLECHVERSION "Lax/Blech 1.5.1"
+#define BLECHVERSION "Lax/Blech 1.5.2"
 
 #include <map>
 #include <string>
@@ -855,7 +855,7 @@ feedermatchnoevent:
 						break;
 					}
 
-					if (PLP)
+					if (PLP>1)
 					{
 						Pop();
 					}
@@ -890,7 +890,7 @@ feedernomatch:
 						pNode=pNode->pNext;
 						break;
 					}
-					if (PLP)
+					if (PLP>1)
 					{
 						Pop();
 					}

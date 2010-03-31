@@ -255,7 +255,7 @@ bool MQ2SpawnType::GetMember(MQ2VARPTR VarPtr, PCHAR Member, PCHAR Index, MQ2TYP
 		return true;
 	case CleanName:
 		strcpy(DataTypeTemp,pSpawn->Name);
-		CleanupName(DataTypeTemp,FALSE);
+		CleanupName(DataTypeTemp,FALSE,FALSE);
 		Dest.Type=pStringType;
 		Dest.Ptr=&DataTypeTemp[0];
 		return true;
@@ -1962,7 +1962,10 @@ bool MQ2CharacterType::GetMember(MQ2VARPTR VarPtr, PCHAR Member, PCHAR Index, MQ
 				unsigned long nGem=atoi(Index)-1;
 				if (nGem<9)
 				{
-					Dest.DWord = (((PEQCASTSPELLWINDOW)pCastSpellWnd)->SpellSlots[nGem]->spellstate==0);
+					if (!((PEQCASTSPELLWINDOW)pCastSpellWnd)->SpellSlots[nGem])
+						Dest.DWord=0;
+					else
+						Dest.DWord = (((PEQCASTSPELLWINDOW)pCastSpellWnd)->SpellSlots[nGem]->spellstate==0);
 					Dest.Type=pBoolType;
 					return true;
 				}
@@ -1975,7 +1978,10 @@ bool MQ2CharacterType::GetMember(MQ2VARPTR VarPtr, PCHAR Member, PCHAR Index, MQ
 					{
 						if (!stricmp(Index,pSpell->Name))
 						{
-							Dest.DWord = (((PEQCASTSPELLWINDOW)pCastSpellWnd)->SpellSlots[nGem]->spellstate==0);
+							if (!((PEQCASTSPELLWINDOW)pCastSpellWnd)->SpellSlots[nGem])
+								Dest.DWord=0;
+							else
+								Dest.DWord = (((PEQCASTSPELLWINDOW)pCastSpellWnd)->SpellSlots[nGem]->spellstate==0);
 							Dest.Type=pBoolType;
 							return true;
 						}
@@ -3525,6 +3531,28 @@ bool MQ2MacroQuestType::GetMember(MQ2VARPTR VarPtr, PCHAR Member, PCHAR Index, M
 		Dest.DWord=((PMOUSEINFO)EQADDR_MOUSE)->Y;
 		Dest.Type=pIntType;
 		return true;
+	case BuildDate: 
+		struct __stat64 stBuffer; 
+		struct tm *tmTime; 
+		int pFile, fResult; 
+		CHAR chBuffer[MAX_STRING]={0}; 
+
+		sprintf(chBuffer,"%s\\MQ2Main.dll", gszINIPath); 
+		if ((pFile = _open(chBuffer, _O_RDONLY)) == -1) 
+			return false; 
+		fResult = _fstat64(pFile, &stBuffer); 
+		_close(pFile); 
+
+		if (fResult != 0) 
+			return false; 
+
+		tmTime = _gmtime64(&stBuffer.st_ctime); 
+    
+		sprintf(DataTypeTemp, "%d", ((tmTime->tm_year + 1900) * 10000) + ((tmTime->tm_mon + 1) * 100) + (tmTime->tm_mday)); 
+    
+		Dest.Ptr=&DataTypeTemp[0]; 
+		Dest.Type=pStringType; 
+		return true; 
 	}
 	return false;
 }
