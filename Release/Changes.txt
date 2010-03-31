@@ -1,3 +1,11 @@
+4 January 2005 by Lax
+- Updated copyright notices for 2005
+- Updated Blech to 1.6.4, which fixed a tree traversal bug.  The bug prevented some 
+  events from firing
+
+31 December 2004 by Amadeus/DKAA 
+- Fixed a line that was causing compile problems with VC++ 6.0 
+
 30 December 2004 by Amadeus
 -  Lots of little fixes
 -  Fixed DOOR struct (which was causing some bugs with door related macro commands)

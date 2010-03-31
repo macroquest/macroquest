@@ -1,6 +1,6 @@
 /*****************************************************************************
     MQ2Main.dll: MacroQuest2's extension DLL for EverQuest
-    Copyright (C) 2002-2003 Plazmic, 2003-2004 Lax
+    Copyright (C) 2002-2003 Plazmic, 2003-2005 Lax
 
 	Portions Copyright(C) 2004 Zaphod
 

@@ -1,7 +1,7 @@
 /*****************************************************************************
     Blech.h
 	Lax/Blech  
-    Copyright (C) 2004 Lax
+    Copyright (C) 2004-2005 Lax
 
     This program is free software; you can redistribute it and/or modify
     it under the terms of the GNU General Public License, version 2, as published by
@@ -64,7 +64,7 @@ Using Blech:
 
 #pragma once
 
-#define BLECHVERSION "Lax/Blech 1.6.3"
+#define BLECHVERSION "Lax/Blech 1.6.4"
 
 #include <map>
 #include <string>
@@ -946,15 +946,15 @@ queueeventscleanup:
 					BlechDebug("BST_NORMAL");
 					if (CurrentPos.Pos+pNode->Length<pEnd)
 					{
-							if (char *pFound=STRFIND(CurrentPos.Pos,pNode->pString))
-							{ // what if we find this multiple times? need to find the right one, depending on the children
-								CurrentPos.Pos=&pFound[pNode->Length];
-								if (!CurrentPos.Pos[0])
-								{
-									goto feedermatchdoevents;
-								}
-								goto feedermatchnoevent;
+						if (char *pFound=STRFIND(CurrentPos.Pos,pNode->pString))
+						{ // what if we find this multiple times? need to find the right one, depending on the children
+							CurrentPos.Pos=&pFound[pNode->Length];
+							if (!CurrentPos.Pos[0])
+							{
+								goto feedermatchdoevents;
 							}
+							goto feedermatchnoevent;
+						}
 					}
 					else if (CurrentPos.Pos+pNode->Length==pEnd && !STRNCMP(pNode->pString,CurrentPos.Pos,pNode->Length))
 					{
@@ -1034,6 +1034,7 @@ feedermatchnoevent:
 				else if (pNode->pNext)
 				{
 					// restore from stack
+//					Pop();
 					Peek();
 					pNode=pNode->pNext;
 				}
@@ -1052,6 +1053,7 @@ feedermatchnoevent:
 						if (PLP>1)
 						{
 							Pop();
+							Peek();
 						}
 						else
 						{
@@ -1072,6 +1074,7 @@ feedernomatch:
 				if (pNode->pNext)
 				{
 					// position remains the same
+//					Pop();
 					Peek();
 					pNode=pNode->pNext;
 				}
@@ -1090,6 +1093,7 @@ feedernomatch:
 						if (PLP>1)
 						{
 							Pop();
+							Peek();
 						}
 						else
 						{
