@@ -87,9 +87,9 @@ static void BlechDebug(char *szFormat, ...)
 }
 #define BlechTry(x) BlechDebug("Trying %s",#x);x;BlechDebug("%s complete",#x)
 #else
-#define BLECHASSERT(x) __noop
+#define BLECHASSERT(x) 
 #define BlechTry(x) x
-#define BlechDebug __noop
+#define BlechDebug 
 #endif
 
 #ifdef BLECH_CASE_SENSITIVE
