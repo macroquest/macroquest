@@ -1139,7 +1139,8 @@ bool MQ2CharacterType::GetMember(MQ2VARPTR VarPtr, PCHAR Member, PCHAR Index, MQ
 	}
     
 	int nLang = 0;
-	char buf[MAX_STRING] = {0};
+	char buf[MAX_STRING]  = {0};
+	char buf2[MAX_STRING] = {0};
 
 	switch((CharacterMembers)pMember->ID)
 	{
@@ -1521,38 +1522,14 @@ bool MQ2CharacterType::GetMember(MQ2VARPTR VarPtr, PCHAR Member, PCHAR Index, MQ
 		return true;
 	case Grouped:
 		Dest.DWord=0;
-		{
-			for (unsigned int k=0; k<5; k++ )
-			{
-				if (Dest.DWord=pChar->GroupMember[k] != 0) Dest.DWord=1;
-					break;
-			}
-		}
+		if (pGroup) Dest.DWord=1;
 		Dest.Type=pBoolType;
-		return true;
-	case GroupMember:
-		if (Index[0])
-		{
-			if (IsNumber(Index))
-			{
-				unsigned long nGroupMember=atoi(Index)-1;
-				if (nGroupMember < 0 || nGroupMember > 4 ) return false;
-				if (pChar->GroupMember[nGroupMember][0] == '\0') return false;
-				Dest.Ptr=&pChar->GroupMember[nGroupMember];
-				Dest.Type=pStringType;
-				return true;
-			}
-		}
-		return false;
-	case GroupList:
+		return true;	
+	case GroupList: // This isn't really working as intended just yet
 		if (pChar->GroupMember[0][0] == '\0') return false;
 		sprintf(buf, "%s %s %s %s %s", pChar->GroupMember[0], pChar->GroupMember[1], pChar->GroupMember[2],
 									   pChar->GroupMember[3], pChar->GroupMember[4] );
 		Dest.Ptr=&buf[0];
-		Dest.Type=pStringType;
-		return true;
-	case GroupLeader:
-		Dest.Ptr=&pChar->GroupLeader[0];
 		Dest.Type=pStringType;
 		return true;
 	case AmIGroupLeader:

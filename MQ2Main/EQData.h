@@ -1367,20 +1367,23 @@ typedef struct _ALTABILITY {
 /*0x0c*/ DWORD nName;
 /*0x10*/ DWORD nDesc;
 /*0x14*/ DWORD MinLevel;
-/*0x18*/ DWORD Cost;
+/*0x18*/ DWORD Cost; //Initial Cost or cost the last time you bought a level of it
 /*0x1c*/ DWORD ID;
 /*0x20*/ DWORD AARankRequired; //need verification
-/*0x24*/ LONG  RequiresAbility;//requires ability? (-1 for no)
-/*0x28*/ DWORD RequiresAbilityPoints;//requires points in this ability?
+/*0x24*/ LONG  RequiresAbility;
+/*0x28*/ DWORD RequiresAbilityPoints;
 /*0x2c*/ DWORD Type; 
 /*0x30*/ LONG  SpellID; // -1 for no Spell
-/*0x34*/ BYTE  Unknown0x34[0x8]; // There is BYTE data in here at 0x35-0x37 at the least
+/*0x34*/ BYTE  Unknown0x34[0x8]; 
 /*0x3c*/ DWORD ReuseTimer; // in seconds
-/*0x40*/ DWORD Unknown0x40;
-/*0x44*/ DWORD MaxRank;//BYTE
-/*0x48*/ DWORD Unknown0x48;
-/*0x4c*/ DWORD Unknown0x4c;
-/*0x50*/ DWORD Unknown0x50; //sometimes this is the index number of the next AA in the list...
+/*0x40*/ DWORD Classes;
+/*0x44*/ DWORD MaxRank;
+	union {						 //If you have not spent points in this 
+/*0x48*/ DWORD PointsSpent;		 //ability, then its PointsToBeSpent (or 
+/*0x48*/ DWORD PointsToBeSpent;	 //'Cost', in other words).
+	}; 
+/*0x4c*/ DWORD Unknown0x4c; //some sort of modifier value?
+/*0x50*/ DWORD Unknown0x50; //Index(?) of next level available in this AA "line" (ie, SCRM1-2-3).  It's -1 if line finished or only one level in line.
 /*0x54*/ BYTE  Unknown0x54;
 /*0x55*/ BYTE  Unknown0x55;
 /*0x56*/ BYTE  Unknown0x56;

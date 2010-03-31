@@ -1,3 +1,9 @@
+20 August 2004 by Amadeus
+- Removed ${Me.GroupMember[]} and ${Me.GroupLeader} since it is already in as 
+  ${Group[n].Name} and ${GroupLeaderName}.  Even though the information is stored in
+  two locations, it was causing confusion.
+- Tweaked ${Me.Grouped} some more ...I think I have it fixed now.
+
 19 August 2004 by Amadeus
 - Fixed ${Me.AltAbilityReady[]}
 - Fixed ${Me.AltAbilityTimer[]}
