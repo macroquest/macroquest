@@ -599,6 +599,9 @@ VOID AddCustomEvent(PEVENTLIST pEList, PCHAR szLine)
 
 VOID CheckChatForEvent(PCHAR szMsg)
 {
+			strcpy(EventMsg,szMsg);
+			pMQ2Blech->Feed(szMsg);
+			EventMsg[0]=0;
 		if ((gMacroBlock) && (!gMacroPause) && (!gbUnload) && (!gZoning)) { 
 			CHAR Arg1[MAX_STRING] = {0}; 
 			CHAR Arg2[MAX_STRING] = {0}; 
@@ -653,9 +656,9 @@ VOID CheckChatForEvent(PCHAR szMsg)
 				AddEvent(EVENT_CHAT,Arg3,Arg1,Arg2,NULL); 
 #ifndef USEBLECHEVENTS
 			} else { 
-				strcpy(EventMsg,szMsg);
-				pMQ2Blech->Feed(szMsg);
-				EventMsg[0]=0;
+//				strcpy(EventMsg,szMsg);
+//				pMQ2Blech->Feed(szMsg);
+//				EventMsg[0]=0;
 				PEVENTLIST pEvent = pEventList; 
 				while (pEvent) { 
 					if (strstr(szMsg,pEvent->szMatch)) { 
@@ -667,7 +670,7 @@ VOID CheckChatForEvent(PCHAR szMsg)
 #else // blech
 			}
 			strcpy(EventMsg,szMsg);
-			pMQ2Blech->Feed(szMsg);
+//			pMQ2Blech->Feed(szMsg);
 			pEventBlech->Feed(szMsg);
 			EventMsg[0]=0;
 #endif

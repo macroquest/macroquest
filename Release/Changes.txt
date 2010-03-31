@@ -1,3 +1,6 @@
+13 December 2004 by Lax
+- Blech updated to version 1.6.3 which solves a new issue
+
 8 December 2004 by Lax
 - Blech updated to version 1.6.1 which solves remaining known Blech issues
 

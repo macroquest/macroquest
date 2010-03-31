@@ -64,7 +64,7 @@ Using Blech:
 
 #pragma once
 
-#define BLECHVERSION "Lax/Blech 1.6.2"
+#define BLECHVERSION "Lax/Blech 1.6.3"
 
 #include <map>
 #include <string>
@@ -823,18 +823,51 @@ private:
 
 		if (pCurrentScanVar)
 		{
-			PBLECHVALUE pNewValue = new BLECHVALUE;
-			pNewValue->Name=strdup(pCurrentScanVar->pString);
-			pNewValue->Value=strdup(Pos);
-			pNewValue->pNext=0;
-			if (pValues)
+			if (NonVariable[0])
 			{
-				pValuesTail->pNext=pNewValue;
-				pValuesTail=pNewValue;
+				char *End=&Input[InputLength]-strlen(NonVariable);
+				unsigned long Length=End-Pos;
+				if (STRCMP(&Pos[Length],NonVariable))
+				{
+					goto queueeventscleanup;
+				}
+
+				PBLECHVALUE pNewValue = new BLECHVALUE;
+				pNewValue->Name=strdup(pCurrentScanVar->pString);
+				
+				pNewValue->Value=(char*)malloc(Length+1);
+				memcpy(pNewValue->Value,Pos,Length);
+				pNewValue->Value[Length]=0;
+				pNewValue->pNext=0;
+
+				if (pValues)
+				{
+					pValuesTail->pNext=pNewValue;
+					pValuesTail=pNewValue;
+				}
+				else
+				{
+					pValuesTail=pValues=pNewValue;
+				}
+				
+				Pos=End;
+				NonVariable[0]=0;
 			}
 			else
 			{
-				pValuesTail=pValues=pNewValue;
+				PBLECHVALUE pNewValue = new BLECHVALUE;
+				pNewValue->Name=strdup(pCurrentScanVar->pString);
+				pNewValue->Value=strdup(Pos);
+				pNewValue->pNext=0;
+				if (pValues)
+				{
+					pValuesTail->pNext=pNewValue;
+					pValuesTail=pNewValue;
+				}
+				else
+				{
+					pValuesTail=pValues=pNewValue;
+				}
 			}
 		}
 		else if (NonVariable[0])
