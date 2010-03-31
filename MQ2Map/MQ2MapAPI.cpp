@@ -165,6 +165,14 @@ PMAPSPAWN AddSpawn(PSPAWNINFO pNewSpawn,BOOL ExplicitAllow)
 
 	pMapSpawn->Highlight=false;
 
+	//Debugging
+	if (Type == SPAWN_CORPSE || Type == ITEM )
+	{
+		sprintf(buf, "AddSpawn(Corpse or Item): Name: %s, Type: %d, BodyType: %d",
+			pMapSpawn->pSpawn->Name, pMapSpawn->pSpawn->Type, pMapSpawn->pSpawn->BodyType );
+		DebugSpew(buf);
+	}
+
 	return pMapSpawn;
 }
 
@@ -350,6 +358,38 @@ void MapUpdate()
 
 	while(pMapSpawn)
 	{
+		// Debugging
+		if ( pMapSpawn->pSpawn->Type == SPAWN_PLAYER )
+		{
+			if ( pMapSpawn->pSpawn->BodyType != 1 )
+			{
+				sprintf(buf, "MapUpdate: Name: %s, Type: %d, BodyType: %d",
+					pMapSpawn->pSpawn->Name, pMapSpawn->pSpawn->Type, pMapSpawn->pSpawn->BodyType );
+				DebugSpew(buf);
+			}
+		}
+		else if ( pMapSpawn->pSpawn->Type == SPAWN_NPC )
+		{
+			if ( pMapSpawn->pSpawn->BodyType != 1 && pMapSpawn->pSpawn->BodyType != 11 &&
+				 pMapSpawn->pSpawn->BodyType != 33 && pMapSpawn->pSpawn->BodyType != 65 &&
+				 pMapSpawn->pSpawn->BodyType != 66 && pMapSpawn->pSpawn->BodyType != 67 &&
+				 pMapSpawn->pSpawn->BodyType != 21 && pMapSpawn->pSpawn->BodyType != 23 &&
+				 pMapSpawn->pSpawn->BodyType != 34 && pMapSpawn->pSpawn->BodyType != 3 )
+			{
+				sprintf(buf, "MapUpdate: Name: %s, Type: %d, BodyType: %d",
+					pMapSpawn->pSpawn->Name, pMapSpawn->pSpawn->Type, pMapSpawn->pSpawn->BodyType );
+				DebugSpew(buf);
+			}
+		}
+		else 
+		{
+				sprintf(buf, "MapUpdate: Name: %s, Type: %d, BodyType: %d",
+					pMapSpawn->pSpawn->Name, pMapSpawn->pSpawn->Type, pMapSpawn->pSpawn->BodyType );
+				DebugSpew(buf);
+		}
+
+		//End Debugging
+
 		//Starting New Checks
 		if (!CanDisplaySpawn(GetSpawnType(pMapSpawn->pSpawn),pMapSpawn->pSpawn))
 		{
@@ -780,9 +820,6 @@ BOOL CanDisplaySpawn(eSpawnType Type, PSPAWNINFO pSpawn)
 
 	if ( (Type == PC || Type == NPC) && (!pSpawn->pActorInfo) )
 		return FALSE;
-
-	if (Type == PC && !pSpawn->pCharInfo )
-		return false;
 
 	if (pSpawn->Name[0] == '\0' ) // bogus shit
 		return FALSE;

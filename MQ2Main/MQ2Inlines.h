@@ -102,6 +102,9 @@ static inline BOOL IsMarkedNPC(PSPAWNINFO pSpawn)
 
 static inline eSpawnType GetSpawnType(PSPAWNINFO pSpawn)
 {
+	if ((pSpawn->MasterID) && (pSpawn->Type == SPAWN_NPC) )
+		return PET;
+
 	switch(pSpawn->Type)
 	{
 	case SPAWN_PLAYER:

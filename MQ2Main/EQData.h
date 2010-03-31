@@ -500,8 +500,7 @@ union {
 /*0x238*/ DWORD SolventNeeded; //ID# of Solvent (Augs only)
 /*0x23c*/ DWORD Unknown0x23c;
 /*0x240*/ DWORD Unknown0x240;
-/*0x244*/ BYTE Attuneable;  
-/*0x245*/ BYTE Unknown0x245[0x3];
+/*0x244*/ DWORD Attuneable;  
 /*0x248*/
 } ITEMINFO, *PITEMINFO;
 
