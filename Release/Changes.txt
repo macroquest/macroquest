@@ -1,3 +1,6 @@
+29 January 2005 by dkaa
+-- Fixed the map crash on /loadskin
+
 29 January 2005 by Lax
 - Split MQ2Main.h into a couple extra header files
 - Added second project (ISXEQ.vcproj, no .dsp file at this time) to MQ2Main folder for 

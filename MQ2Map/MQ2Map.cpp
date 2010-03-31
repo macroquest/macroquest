@@ -78,21 +78,37 @@ DWORD CMyMapViewWnd__OldDestructor=0;
 DWORD CMyMapViewWnd__OldHandleRButtonDown=0;
 DWORD CMyMapViewWnd__OldPostDraw=0;
 
-DWORD __declspec(naked) CMyMapViewWnd__Destructor(BOOL Deallocate)
+DWORD __declspec(naked) CMyMapViewWnd__Destructor(const BOOL Deallocate)
 {
    __asm {   
    push ecx;
    push eax;
    }
-	if (CMyMapViewWnd__OldvfTable) { 
-	   delete pMapViewWnd->pvfTable;
-		pMapViewWnd->pvfTable=CMyMapViewWnd__OldvfTable;
-	}
-   __asm
-   {
+
+    if (CMyMapViewWnd__OldvfTable) { 
+        // make our own little stack frame here
+        // operator delete assumes that it is there
+        // it uses (unnecessarily) ebp-4
+        __asm {
+            push	ebp
+            push	eax
+            push	eax
+            mov	        ebp, esp
+        }
+        delete pMapViewWnd->pvfTable;
+        pMapViewWnd->pvfTable=CMyMapViewWnd__OldvfTable;
+        CMyMapViewWnd__OldvfTable = NULL;
+        __asm {
+            pop 	eax
+            pop 	eax
+            pop 	ebp
+        }
+    }
+
+   __asm {
    pop eax;
    pop ecx;
-      jmp [CMyMapViewWnd__OldDestructor];
+   jmp [CMyMapViewWnd__OldDestructor];
    }
 }
 
@@ -279,9 +295,10 @@ PLUGIN_API VOID ShutdownPlugin(VOID)
 // NOTE: When you zone, these will come BEFORE OnZoned
 PLUGIN_API VOID OnAddSpawn(PSPAWNINFO pNewSpawn)
 {
-	DebugSpewAlways("MQ2Map::OnAddSpawn(%s)",pNewSpawn->Name);
-	if (Update && pNewSpawn->SpawnID != 0)
+	if (Update && pNewSpawn->SpawnID != 0) {
+	    DebugSpewAlways("MQ2Map::OnAddSpawn(%s)",pNewSpawn->Name);
 		AddSpawn(pNewSpawn);
+    }
 }
 
 // This is called each time a spawn is removed from a zone (removed from EQ's list of spawns).
