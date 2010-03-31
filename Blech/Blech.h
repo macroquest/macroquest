@@ -64,7 +64,7 @@ Using Blech:
 
 #pragma once
 
-#define BLECHVERSION "Lax/Blech 1.6.6"
+#define BLECHVERSION "Lax/Blech 1.6.7"
 
 #include <map>
 #include <string>
@@ -917,6 +917,12 @@ queueeventscleanup:
 		}
 	}
 
+	struct MatchPos
+	{
+		char *Pos;
+		BlechNode *pNode;
+	};
+
 	unsigned long Chew(BlechNode *pNode,char * Input)
 	{
 		BlechDebug("Chew(%X,%s)",pNode,Input);
@@ -926,16 +932,10 @@ queueeventscleanup:
 		unsigned long Length=(unsigned long)strlen(Input);
 		char *pEnd=&Input[Length];
 		char VarData[4096];
-
-		struct MatchPos
-		{
-			char *Pos;
-			BlechNode *pNode;
-		};
 		
-#define Push() {	CurrentPos.pNode=pNode;MatchStack[PLP]=CurrentPos;	PLP++;	}
-#define Pop()  {	PLP--; CurrentPos=MatchStack[PLP];pNode=CurrentPos.pNode;	}
-#define Peek() {	CurrentPos=MatchStack[PLP-1];		}
+#define Push() {	BLECHASSERT(PLP<99) CurrentPos.pNode=pNode;MatchStack[PLP]=CurrentPos;	PLP++;	}
+#define Pop()  {	BLECHASSERT(PLP>0);PLP--; CurrentPos=MatchStack[PLP];pNode=CurrentPos.pNode;	}
+#define Peek() {	if (!PLP) goto chewcomplete; CurrentPos=MatchStack[PLP-1];		}
 
 		MatchPos MatchStack[100];
 		MatchPos CurrentPos;
@@ -948,6 +948,9 @@ queueeventscleanup:
 
 		while(pNode)
 		{
+			BLECHASSERT(PLP>0);
+			BlechDebugFull("PLP=%d",PLP);
+			BlechDebugFull("CurrentPos='%s', pNode=%X",CurrentPos.Pos,CurrentPos.pNode);
 			// determine match
 			{
 				switch(pNode->StringType)
@@ -976,11 +979,13 @@ queueeventscleanup:
 						}
 						goto feedermatchnoevent;
 					}
+					BlechDebugFull("BST_NORMAL => NO MATCH");
 					goto feedernomatch;
 				case BST_PRINTVAR:
 					BlechDebugFull("BST_PRINTVAR");
 					// variable data of unknown size
 					BlechTry(pNode->Length=VariableValue(pNode->pString,VarData));
+					BlechDebugFull("Variable value '%s' length %d",VarData,pNode->Length);
 					if (!pNode->Length)
 					{
 						// implied match
@@ -1014,6 +1019,7 @@ queueeventscleanup:
 						}
 						goto feedermatchnoevent;
 					}
+					BlechDebugFull("BST_PRINTVAR => NO MATCH");
 					goto feedernomatch;
 				case BST_SCANVAR:
 					BlechDebugFull("BST_SCANVAR");
@@ -1083,6 +1089,7 @@ feedernomatch:
 				// continue walking tree
 				if (pNode->pNext)
 				{
+					BlechDebugFull("SAME LEVEL, NEXT");
 					// position remains the same
 //					Pop();
 					Peek();
@@ -1090,6 +1097,7 @@ feedernomatch:
 				}
 				else
 				{
+					BlechDebugFull("PREVIOUS LEVEL, NEXT");
 					// Pos goes down a level - dont reprocess the same child
 					Pop();
 					Peek();
@@ -1115,7 +1123,7 @@ feedernomatch:
 				CurrentPos.pNode=pNode;
 			}
 		}
-
+chewcomplete:
 		// execute any queued events
 		unsigned long Count=ProcessExecutionList();
 

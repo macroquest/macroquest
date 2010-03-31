@@ -1,3 +1,9 @@
+22 February by Lax
+- Fix a Blech bug.
+
+18 February by dkaa
+- Update the ground interaction opcode
+
 15 February by Amadeus
 - Adjusted MQ2 to work properly with the new expansion
 - Fixed some very small things
