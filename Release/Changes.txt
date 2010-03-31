@@ -1,3 +1,6 @@
+12 February by dkaa
+- Fix an issue with /emote
+
 11 February by Amadeus
 - Added/Fixed some more spell slot information (item/spell display)
 - Fixed the OnZoning callbacks in the Detour API

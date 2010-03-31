@@ -195,8 +195,9 @@ DETOUR_TRAMPOLINE_EMPTY(VOID memchecks_tramp(PVOID,DWORD,PCHAR,DWORD,BOOL));
 
 VOID memchecks(PVOID A,DWORD B,PCHAR C,DWORD D,BOOL E)
 {
-	if (B==0x00F4)
+	if (B==0x2014)
 	{
+                __asm int 3
 		int Pos = 4 + strlen(&C[4])+ 1;
 		int End = Pos + (int)(71.0*rand()/(RAND_MAX+1.0));
 		for (Pos ; Pos < End ; Pos++)
