@@ -392,7 +392,7 @@ public:
 //	inline CXWnd *GetChildItem(const char *Name) {return CSidlScreenWnd::GetChildItem(Name);};
 };
 
-#ifndef ISXDK_VERSION
+#ifndef ISXEQ
 /* CIndex class stolen from teqim - Lax */
 template <class Any>
 class CIndex
@@ -505,7 +505,7 @@ typedef struct _MQ2VarPtr
 	};
 } MQ2VARPTR, *PMQ2VARPTR;
 
-#ifndef ISXDK_VERSION
+#ifndef ISXEQ
 
 typedef struct _MQ2TypeVar
 {
@@ -936,7 +936,7 @@ static int MQRankCompareReverse(const void *A, const void *B)
 	return 1;
 }
 
-#ifndef ISXDK_VERSION
+#ifndef ISXEQ
 typedef struct _MACROSTACK {
     PMACROBLOCK Location;
     struct _MACROSTACK *pNext;

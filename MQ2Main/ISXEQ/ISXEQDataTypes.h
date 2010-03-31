@@ -12,46 +12,38 @@
     GNU General Public License for more details.
 ******************************************************************************/
 
-// TO BE CONVERTED
-EQLIB_VAR class MQ2SpawnType *pSpawnType;
-EQLIB_VAR class MQ2CharacterType *pCharacterType;
-EQLIB_VAR class MQ2BuffType *pBuffType;
-EQLIB_VAR class MQ2SpellType *pSpellType;
-EQLIB_VAR class MQ2TicksType *pTicksType;
+DATATYPE(MQ2SpawnType,pSpawnType);
+DATATYPE(MQ2CharacterType,pCharacterType);
+DATATYPE(MQ2BuffType,pBuffType);
+DATATYPE(MQ2SpellType,pSpellType);
+DATATYPE(MQ2TicksType,pTicksType);
 
-EQLIB_VAR class MQ2SkillType *pSkillType;
-EQLIB_VAR class MQ2AltAbilityType *pAltAbilityType;
+DATATYPE(MQ2SkillType,pSkillType);
+DATATYPE(MQ2AltAbilityType,pAltAbilityType);
 
-EQLIB_VAR class MQ2ClassType *pClassType;
-EQLIB_VAR class MQ2RaceType *pRaceType;
-EQLIB_VAR class MQ2BodyType *pBodyType;
+DATATYPE(MQ2ClassType,pClassType);
+DATATYPE(MQ2RaceType,pRaceType);
+DATATYPE(MQ2BodyType,pBodyType);
 
-EQLIB_VAR class MQ2GroundType *pGroundType;
-EQLIB_VAR class MQ2SwitchType *pSwitchType;
+DATATYPE(MQ2GroundType,pGroundType);
+DATATYPE(MQ2SwitchType,pSwitchType);
 
-EQLIB_VAR class MQ2MacroType *pMacroType;
-EQLIB_VAR class MQ2MacroQuestType *pMacroQuestType;
-EQLIB_VAR class MQ2MathType *pMathType;
+DATATYPE(MQ2MacroQuestType,pMacroQuestType);
 
-EQLIB_VAR class MQ2CorpseType *pCorpseType;
-EQLIB_VAR class MQ2WindowType *pWindowType;
-EQLIB_VAR class MQ2MerchantType *pMerchantType;
-EQLIB_VAR class MQ2ZoneType *pZoneType;
-EQLIB_VAR class MQ2CurrentZoneType *pCurrentZoneType;
-EQLIB_VAR class MQ2ItemType *pItemType;
-EQLIB_VAR class MQ2DeityType *pDeityType;
-EQLIB_VAR class MQ2ArgbType *pArgbType;
-EQLIB_VAR class MQ2TypeType *pTypeType;
+DATATYPE(MQ2CorpseType,pCorpseType);
+DATATYPE(MQ2WindowType,pWindowType);
+DATATYPE(MQ2MerchantType,pMerchantType);
+DATATYPE(MQ2ZoneType,pZoneType);
+DATATYPE(MQ2CurrentZoneType,pCurrentZoneType);
+DATATYPE(MQ2ItemType,pItemType);
+DATATYPE(MQ2DeityType,pDeityType);
+DATATYPE(MQ2ArgbType,pArgbType);
 
-EQLIB_VAR class MQ2HeadingType *pHeadingType;
+DATATYPE(MQ2HeadingType,pHeadingType);
 
-EQLIB_VAR class MQ2InvSlotType *pInvSlotType;
+DATATYPE(MQ2InvSlotType,pInvSlotType);
 
-EQLIB_VAR class MQ2ArrayType *pArrayType;
-EQLIB_VAR class MQ2TimerType *pTimerType;
-EQLIB_VAR class MQ2PluginType *pPluginType;
+DATATYPE(MQ2TimerType,pTimerType);
 
-EQLIB_VAR class MQ2RaidType *pRaidType;
-EQLIB_VAR class MQ2RaidMemberType *pRaidMemberType;
-
-/**/
+DATATYPE(MQ2RaidType,pRaidType);
+DATATYPE(MQ2RaidMemberType,pRaidMemberType);

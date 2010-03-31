@@ -1,3 +1,7 @@
+25 February 2005 by Lax
+- Removed bmpwad8.s3d file which was no longer being used, but was 33% of the size of the zip
+- ISXEQ-related changes not affecting MQ2
+
 23 February 2005 by Lax
 - Cleaned up a bunch utility functions from MQ2Commands.cpp, they are now in MQ2Utilities.cpp
 

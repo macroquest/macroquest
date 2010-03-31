@@ -47,7 +47,9 @@ using namespace std;
 #include "..\Detours\inc\detours.h" 
 #else
 #include "ISXEQ\ISXEQ.h"
-typedef LSTYPEVAR MQ2TYPEVAR;
+#define PMQ2TYPEMEMBER PLSTYPEMEMBER
+#define MQ2Type LSType
+#define MQ2TYPEVAR LSTYPEVAR
 #endif
 #include "eqgame.h"
 
@@ -382,11 +384,14 @@ EQLIB_API PCHAR GetSpellNameByID(DWORD dwSpellID);
 EQLIB_API PSPELL GetSpellByName(PCHAR szName);
 #include "MQ2Inlines.h"
 
-#ifndef ISXEQ
-#include "MQ2DataTypes.h"
+
+#ifdef ISXEQ
+#define GETMEMBER() GetMember(LSVARPTR VarPtr, PCHAR Member, int argc, char *argv[], LSTYPEVAR &Dest)
 #else
-#include "ISXEQ\ISXEQDataTypes.h"
+#define GETMEMBER() GetMember(MQ2VARPTR VarPtr, PCHAR Member, PCHAR Index, MQ2TYPEVAR &Dest)
 #endif
+
+#include "MQ2DataTypes.h"
 
 #ifndef ISXEQ
 EQLIB_API PMACROBLOCK AddMacroLine(PCHAR szLine);
@@ -446,7 +451,11 @@ EQLIB_API DWORD CountMatchingSpawns(PSEARCHSPAWN pSearchSpawn, PSPAWNINFO pOrigi
 EQLIB_API PSPAWNINFO SearchThroughSpawns(PSEARCHSPAWN pSearchSpawn, PSPAWNINFO pChar);
 EQLIB_API BOOL SpawnMatchesSearch(PSEARCHSPAWN pSearchSpawn, PSPAWNINFO pChar, PSPAWNINFO pSpawn);
 EQLIB_API PCHAR ParseSearchSpawnArgs(PCHAR szArg, PCHAR szRest, PSEARCHSPAWN pSearchSpawn);
+#ifndef ISXEQ
 EQLIB_API VOID ParseSearchSpawn(PCHAR Buffer, PSEARCHSPAWN pSearchSpawn);
+#else
+EQLIB_API VOID ParseSearchSpawn(int BeginInclusive, int EndExclusive,char *argv[], SEARCHSPAWN &SearchSpawn);
+#endif
 EQLIB_API PCHAR FormatSearchSpawn(PCHAR Buffer, PSEARCHSPAWN pSearchSpawn);
 EQLIB_API BOOL IsPCNear(PSPAWNINFO pSpawn, FLOAT Radius);
 EQLIB_API BOOL IsInGroup(PSPAWNINFO pSpawn);
@@ -503,13 +512,16 @@ EQLIB_API DWORD		  GetAAIndexByID		  (DWORD ID);
 
 EQLIB_API BOOL Calculate(PCHAR szFormula, DOUBLE& Dest);
 
+
 #ifndef ISXEQ
 #include "MQ2TopLevelObjects.h"
 #include "MQ2Commands.h"
 #else
 #include "ISXEQ\ISXEQUtilities.h"
-#include "ISXEQ\ISXEQTopLevelObjects.h"
 #include "ISXEQ\ISXEQCommands.h"
+#define TOPLEVELOBJECT(name,funcname) extern bool funcname(int argc, char *argv[], LSTYPEVAR &Ret);
+#include "ISXEQ\ISXEQTopLevelObjects.h"
+#undef TOPLEVELOBJECT
 #endif
 // OTHER SHIT
 

@@ -1,3 +1,12 @@
+25 February 2005 by Lax
+- This release requires ISXDK version 8b
+- Converted ALL data types, and all TLOs besides the following:
+  NearestSpawn
+  Ini
+  LineOfSight - Will be different from original.  Original used special handling for a :,
+                but must no longer do so
+- Most commands still need to be converted
+
 24 February 2005 by Lax
 - Added commands converted by JGC84 and SlimJim (fixed where appropriate)
   * MacroBeep

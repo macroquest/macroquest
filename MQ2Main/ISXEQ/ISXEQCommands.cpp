@@ -189,7 +189,7 @@ int CMD_Who(int argc, char *argv[])
 
 
 // /beep
-int CMD_MacroBeep(int argc, char *argv[])
+int CMD_Beep(int argc, char *argv[])
 {
 	Beep(0x500,250);
 	return 0;

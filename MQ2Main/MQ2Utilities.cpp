@@ -4697,6 +4697,12 @@ VOID ParseSearchSpawn(PCHAR Buffer, PSEARCHSPAWN pSearchSpawn)
         }
     }
 }
+#else
+VOID ParseSearchSpawn(int BeginInclusive, int EndExclusive,char *argv[], SEARCHSPAWN &SearchSpawn)
+{
+	for (int arg = BeginInclusive ; arg < EndExclusive ; arg++)
+		ParseSearchSpawnArg(arg,EndExclusive,argv,SearchSpawn);
+}
 #endif
 
 PALERT GetAlert(DWORD Id) {

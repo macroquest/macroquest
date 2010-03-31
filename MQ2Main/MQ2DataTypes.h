@@ -11,7 +11,6 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
     GNU General Public License for more details.
 ******************************************************************************/
-#ifndef ISXDK_VERSION
 
 // non-mq2data TODO
 // command to clear macro return value
@@ -29,12 +28,21 @@
 // key state (ctrl/shift/alt)
 // spawn count
 
-
+#ifndef ISXEQ
 EQLIB_VAR class MQ2FloatType *pFloatType;
 EQLIB_VAR class MQ2StringType *pStringType;
 EQLIB_VAR class MQ2IntType *pIntType;
 EQLIB_VAR class MQ2ByteType *pByteType;
 EQLIB_VAR class MQ2BoolType *pBoolType;
+EQLIB_VAR class MQ2TimeType *pTimeType;
+EQLIB_VAR class MQ2MathType *pMathType;
+EQLIB_VAR class MQ2MacroType *pMacroType;
+EQLIB_VAR class MQ2PluginType *pPluginType;
+#define TypeMethod(x)
+#else
+#define Argb RGB
+#define MQ2VARPTR LSVARPTR
+#endif
 EQLIB_VAR class MQ2SpawnType *pSpawnType;
 EQLIB_VAR class MQ2CharacterType *pCharacterType;
 EQLIB_VAR class MQ2BuffType *pBuffType;
@@ -51,9 +59,7 @@ EQLIB_VAR class MQ2BodyType *pBodyType;
 EQLIB_VAR class MQ2GroundType *pGroundType;
 EQLIB_VAR class MQ2SwitchType *pSwitchType;
 
-EQLIB_VAR class MQ2MacroType *pMacroType;
 EQLIB_VAR class MQ2MacroQuestType *pMacroQuestType;
-EQLIB_VAR class MQ2MathType *pMathType;
 
 EQLIB_VAR class MQ2CorpseType *pCorpseType;
 EQLIB_VAR class MQ2WindowType *pWindowType;
@@ -64,7 +70,6 @@ EQLIB_VAR class MQ2ItemType *pItemType;
 EQLIB_VAR class MQ2DeityType *pDeityType;
 EQLIB_VAR class MQ2ArgbType *pArgbType;
 EQLIB_VAR class MQ2TypeType *pTypeType;
-EQLIB_VAR class MQ2TimeType *pTimeType;
 
 EQLIB_VAR class MQ2HeadingType *pHeadingType;
 
@@ -72,11 +77,9 @@ EQLIB_VAR class MQ2InvSlotType *pInvSlotType;
 
 EQLIB_VAR class MQ2ArrayType *pArrayType;
 EQLIB_VAR class MQ2TimerType *pTimerType;
-EQLIB_VAR class MQ2PluginType *pPluginType;
 
 EQLIB_VAR class MQ2RaidType *pRaidType;
 EQLIB_VAR class MQ2RaidMemberType *pRaidMemberType;
-
 
 #define UseTemp(mystring) strcpy(DataTypeTemp,mystring)
 #define TypeMember(name) AddMember((DWORD)name,""#name)
@@ -93,7 +96,7 @@ public:
 	}
 
 	// pure type, no members
-	bool GetMember(MQ2VARPTR VarPtr, PCHAR Member, PCHAR Index, MQ2TYPEVAR &Dest)
+	bool GETMEMBER()
 	{
 		return false;
 	}
@@ -142,7 +145,7 @@ public:
 	{
 	}
 
-	bool GetMember(MQ2VARPTR VarPtr, PCHAR Member, PCHAR Index, MQ2TYPEVAR &Dest);
+	bool GETMEMBER();
 
 	 bool ToString(MQ2VARPTR VarPtr, PCHAR Destination)
 	{
@@ -186,7 +189,7 @@ public:
 	}
 
 
-	bool GetMember(MQ2VARPTR VarPtr, PCHAR Member, PCHAR Index, MQ2TYPEVAR &Dest)
+	bool GETMEMBER()
 	{
 		unsigned long N=MemberMap[Member];
 		if (!N)
@@ -250,7 +253,7 @@ public:
 	}
 
 	// pure type, no members
-	bool GetMember(MQ2VARPTR VarPtr, PCHAR Member, PCHAR Index, MQ2TYPEVAR &Dest)
+	bool GETMEMBER()
 	{
 		return false;
 	}
@@ -370,7 +373,7 @@ public:
 	{
 	}
 
-	bool GetMember(MQ2VARPTR VarPtr, PCHAR Member, PCHAR Index, MQ2TYPEVAR &Dest);
+	bool GETMEMBER();
 
 	 bool ToString(MQ2VARPTR VarPtr, PCHAR Destination)
 	{
@@ -421,7 +424,7 @@ public:
 	{
 	}
 
-	bool GetMember(MQ2VARPTR VarPtr, PCHAR Member, PCHAR Index, MQ2TYPEVAR &Dest)
+	bool GETMEMBER()
 	{
 #define nTicks (VarPtr.DWord)
 		unsigned long N=MemberMap[Member];
@@ -680,7 +683,7 @@ public:
 	{
 	}
 
-	bool GetMember(MQ2VARPTR VarPtr, PCHAR Member, PCHAR Index, MQ2TYPEVAR &Dest);
+	bool GETMEMBER();
 
 	 bool ToString(MQ2VARPTR VarPtr, PCHAR Destination)
 	{
@@ -699,7 +702,7 @@ public:
 		free(VarPtr.Ptr);
 	}
 
-	bool FromData(MQ2VARPTR &VarPtr, MQ2TYPEVAR &Source)
+	virtual bool FromData(MQ2VARPTR &VarPtr, MQ2TYPEVAR &Source)
 	{
 		if (Source.Type==pSpawnType)
 		{
@@ -987,7 +990,7 @@ public:
 	{
 	}
 
-	bool GetMember(MQ2VARPTR VarPtr, PCHAR Member, PCHAR Index, MQ2TYPEVAR &Dest);
+	bool GETMEMBER();
 
 	 bool ToString(MQ2VARPTR VarPtr, PCHAR Destination)
 	{
@@ -1045,7 +1048,7 @@ public:
 	{
 	}
 
-	bool GetMember(MQ2VARPTR VarPtr, PCHAR Member, PCHAR Index, MQ2TYPEVAR &Dest);
+	bool GETMEMBER();
 
 	 bool ToString(MQ2VARPTR VarPtr, PCHAR Destination)
 	{
@@ -1140,7 +1143,7 @@ public:
 	{
 	}
 
-	bool GetMember(MQ2VARPTR VarPtr, PCHAR Member, PCHAR Index, MQ2TYPEVAR &Dest);
+	bool GETMEMBER();
 
 	 bool ToString(MQ2VARPTR VarPtr, PCHAR Destination)
 	{
@@ -1362,7 +1365,7 @@ public:
 	{
 	}
 
-	bool GetMember(MQ2VARPTR VarPtr, PCHAR Member, PCHAR Index, MQ2TYPEVAR &Dest);
+	bool GETMEMBER();
 
 	 bool ToString(MQ2VARPTR VarPtr, PCHAR Destination)
 	{
@@ -1443,7 +1446,7 @@ public:
 	{
 	}
 
-	bool GetMember(MQ2VARPTR VarPtr, PCHAR Member, PCHAR Index, MQ2TYPEVAR &Dest);
+	bool GETMEMBER();
 
 	 bool ToString(MQ2VARPTR VarPtr, PCHAR Destination)
 	{
@@ -1512,7 +1515,7 @@ public:
 	{
 	}
 
-	bool GetMember(MQ2VARPTR VarPtr, PCHAR Member, PCHAR Index, MQ2TYPEVAR &Dest);
+	bool GETMEMBER();
 
 	 bool ToString(MQ2VARPTR VarPtr, PCHAR Destination)
 	{
@@ -1567,7 +1570,7 @@ public:
 	{
 	}
 
-	bool GetMember(MQ2VARPTR VarPtr, PCHAR Member, PCHAR Index, MQ2TYPEVAR &Dest);
+	bool GETMEMBER();
 
 	 bool ToString(MQ2VARPTR VarPtr, PCHAR Destination)
 	{
@@ -1615,7 +1618,7 @@ public:
 
 	}
 
-	bool GetMember(MQ2VARPTR VarPtr, PCHAR Member, PCHAR Index, MQ2TYPEVAR &Dest);
+	bool GETMEMBER();
 
 	 bool ToString(MQ2VARPTR VarPtr, PCHAR Destination)
 	{
@@ -1714,7 +1717,7 @@ public:
 	{
 	}
 
-	bool GetMember(MQ2VARPTR VarPtr, PCHAR Member, PCHAR Index, MQ2TYPEVAR &Dest);
+	bool GETMEMBER();
 
 	 bool ToString(MQ2VARPTR VarPtr, PCHAR Destination)
 	{
@@ -1740,7 +1743,7 @@ public:
 	}
 };
 
-
+#ifndef ISXEQ
 class MQ2MacroType : public MQ2Type
 {
 public:
@@ -1765,7 +1768,7 @@ public:
 	{
 	}
 
-	bool GetMember(MQ2VARPTR VarPtr, PCHAR Member, PCHAR Index, MQ2TYPEVAR &Dest);
+	bool GETMEMBER();
 
 	 bool ToString(MQ2VARPTR VarPtr, PCHAR Destination)
 	{
@@ -1785,7 +1788,7 @@ public:
 		return false;
 	}
 };
-
+#endif
 
 class MQ2ZoneType : public MQ2Type
 {
@@ -1807,7 +1810,7 @@ public:
    {
    }
 
-   bool GetMember(MQ2VARPTR VarPtr, PCHAR Member, PCHAR Index, MQ2TYPEVAR &Dest);
+   bool GETMEMBER();
 
     bool ToString(MQ2VARPTR VarPtr, PCHAR Destination)
    {
@@ -1876,7 +1879,7 @@ public:
 	{
 	}
 
-	bool GetMember(MQ2VARPTR VarPtr, PCHAR Member, PCHAR Index, MQ2TYPEVAR &Dest);
+	bool GETMEMBER();
 
 	 bool ToString(MQ2VARPTR VarPtr, PCHAR Destination)
 	{
@@ -1934,7 +1937,7 @@ public:
 	{
 	}
 
-	bool GetMember(MQ2VARPTR VarPtr, PCHAR Member, PCHAR Index, MQ2TYPEVAR &Dest);
+	bool GETMEMBER();
 
 	 bool ToString(MQ2VARPTR VarPtr, PCHAR Destination)
 	{
@@ -1992,7 +1995,7 @@ public:
 	{
 	}
 
-	bool GetMember(MQ2VARPTR VarPtr, PCHAR Member, PCHAR Index, MQ2TYPEVAR &Dest);
+	bool GETMEMBER();
 
 	 bool ToString(MQ2VARPTR VarPtr, PCHAR Destination)
 	{
@@ -2026,7 +2029,7 @@ public:
 	{
 	}
 
-	bool GetMember(MQ2VARPTR VarPtr, PCHAR Member, PCHAR Index, MQ2TYPEVAR &Dest);
+	bool GETMEMBER();
 
 	 bool ToString(MQ2VARPTR VarPtr, PCHAR Destination)
 	{
@@ -2080,7 +2083,7 @@ public:
 	{
 	}
 
-	bool GetMember(MQ2VARPTR VarPtr, PCHAR Member, PCHAR Index, MQ2TYPEVAR &Dest);
+	bool GETMEMBER();
 
 	 bool ToString(MQ2VARPTR VarPtr, PCHAR Destination)
 	{
@@ -2117,7 +2120,7 @@ public:
 	{
 	}
 
-	bool GetMember(MQ2VARPTR VarPtr, PCHAR Member, PCHAR Index, MQ2TYPEVAR &Dest);
+	bool GETMEMBER();
 
 	 bool ToString(MQ2VARPTR VarPtr, PCHAR Destination)
 	{
@@ -2156,7 +2159,7 @@ public:
 	{
 	}
 
-	bool GetMember(MQ2VARPTR VarPtr, PCHAR Member, PCHAR Index, MQ2TYPEVAR &Dest);
+	bool GETMEMBER();
 
 	 bool ToString(MQ2VARPTR VarPtr, PCHAR Destination)
 	{
@@ -2214,7 +2217,7 @@ public:
 	{
 	}
 
-	bool GetMember(MQ2VARPTR VarPtr, PCHAR Member, PCHAR Index, MQ2TYPEVAR &Dest);
+	bool GETMEMBER();
 
 	 bool ToString(MQ2VARPTR VarPtr, PCHAR Destination)
 	{
@@ -2244,7 +2247,7 @@ public:
 		return false;
 	}
 };
-
+#ifndef ISXEQ
 class MQ2TypeType : public MQ2Type
 {
 public:
@@ -2263,7 +2266,7 @@ public:
    {
    }
 
-   bool GetMember(MQ2VARPTR VarPtr, PCHAR Member, PCHAR Index, MQ2TYPEVAR &Dest);
+   bool GETMEMBER();
 
    bool ToString(MQ2VARPTR VarPtr, PCHAR Destination)
    {
@@ -2282,7 +2285,7 @@ public:
 		return false;
 	}
 }; 
-
+#endif
 class MQ2HeadingType : public MQ2Type
 {
 public:
@@ -2307,7 +2310,7 @@ public:
    {
    }
 
-   bool GetMember(MQ2VARPTR VarPtr, PCHAR Member, PCHAR Index, MQ2TYPEVAR &Dest);
+   bool GETMEMBER();
 
    bool ToString(MQ2VARPTR VarPtr, PCHAR Destination)
    {
@@ -2353,7 +2356,7 @@ public:
    {
    }
 
-   bool GetMember(MQ2VARPTR VarPtr, PCHAR Member, PCHAR Index, MQ2TYPEVAR &Dest);
+   bool GETMEMBER();
 
    bool ToString(MQ2VARPTR VarPtr, PCHAR Destination)
    {
@@ -2386,6 +2389,7 @@ public:
 	}
 }; 
 
+#ifndef ISXEQ
 class MQ2PluginType : public MQ2Type
 {
 public:
@@ -2402,7 +2406,7 @@ public:
    {
    }
 
-   bool GetMember(MQ2VARPTR VarPtr, PCHAR Member, PCHAR Index, MQ2TYPEVAR &Dest);
+   bool GETMEMBER();
 
    bool ToString(MQ2VARPTR VarPtr, PCHAR Destination)
    {
@@ -2425,7 +2429,7 @@ public:
 		return false;
 	}
 }; 
-
+#endif
 class MQ2BenchmarkType : public MQ2Type
 {
 public:
@@ -2450,7 +2454,7 @@ public:
    {
    }
 
-   bool GetMember(MQ2VARPTR VarPtr, PCHAR Member, PCHAR Index, MQ2TYPEVAR &Dest);
+   bool GETMEMBER();
 
    bool ToString(MQ2VARPTR VarPtr, PCHAR Destination)
    {
@@ -2504,7 +2508,7 @@ public:
    {
    }
 
-   bool GetMember(MQ2VARPTR VarPtr, PCHAR Member, PCHAR Index, MQ2TYPEVAR &Dest);
+   bool GETMEMBER();
 
    bool ToString(MQ2VARPTR VarPtr, PCHAR Destination)
    {
@@ -2573,7 +2577,7 @@ public:
    {
    }
 
-   bool GetMember(MQ2VARPTR VarPtr, PCHAR Member, PCHAR Index, MQ2TYPEVAR &Dest);
+   bool GETMEMBER();
 
    bool ToString(MQ2VARPTR VarPtr, PCHAR Destination)
    {
@@ -2618,7 +2622,7 @@ public:
    {
    }
 
-   bool GetMember(MQ2VARPTR VarPtr, PCHAR Member, PCHAR Index, MQ2TYPEVAR &Dest);
+   bool GETMEMBER();
 
    bool ToString(MQ2VARPTR VarPtr, PCHAR Destination)
    {
@@ -2685,7 +2689,7 @@ public:
 		return true;
 	}
 }; 
-
+#ifndef ISXEQ
 class MQ2ArrayType : public MQ2Type
 {
 public:
@@ -2704,7 +2708,7 @@ public:
    {
    }
 
-   bool GetMember(MQ2VARPTR VarPtr, PCHAR Member, PCHAR Index, MQ2TYPEVAR &Dest);
+   bool GETMEMBER();
 
    bool ToString(MQ2VARPTR VarPtr, PCHAR Destination)
    {
@@ -2729,13 +2733,14 @@ public:
 		return false;
 	}
 }; 
+#endif
 
 class MQ2RaidType : public MQ2Type
 {
 public:
    static enum RaidMembers
    {
-	   Member=1,
+	   xMember=1,
 	   Members=2,
 	   Target=3,
 	   Leader=4,
@@ -2747,7 +2752,7 @@ public:
    };
    MQ2RaidType():MQ2Type("raid")
    {
-	  TypeMember(Member);
+	  AddMember(xMember,"Member");
 	  TypeMember(Members);
 	  TypeMember(Target);
 	  TypeMember(Leader);
@@ -2762,7 +2767,7 @@ public:
    {
    }
 
-   bool GetMember(MQ2VARPTR VarPtr, PCHAR Member, PCHAR Index, MQ2TYPEVAR &Dest);
+   bool GETMEMBER();
 
    bool ToString(MQ2VARPTR VarPtr, PCHAR Destination)
    {
@@ -2808,7 +2813,7 @@ public:
    {
    }
 
-   bool GetMember(MQ2VARPTR VarPtr, PCHAR Member, PCHAR Index, MQ2TYPEVAR &Dest);
+   bool GETMEMBER();
 
    bool ToString(MQ2VARPTR VarPtr, PCHAR Destination)
    {
@@ -2834,4 +2839,3 @@ public:
 	}
 }; 
 
-#endif

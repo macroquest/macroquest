@@ -16,7 +16,7 @@ COMMAND("Keypress",CMD_Keypress,true,false);
 COMMAND("EQExecute",CMD_EQExecute,true,false);
 COMMAND("MQ2Bind",CMD_MQ2Bind,true,false);
 COMMAND("Who",CMD_Who,true,false);
-COMMAND("MacroBeep",CMD_MacroBeep,true,false);
+COMMAND("Beep",CMD_Beep,true,false);
 COMMAND("Ranged",CMD_do_ranged,true,false);
 COMMAND("SetAutoRun",CMD_SetAutoRun,true,false);
 COMMAND("DisplayLoginName",CMD_DisplayLoginName,true,false);

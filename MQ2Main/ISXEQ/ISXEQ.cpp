@@ -3,6 +3,7 @@
 //
 
 #include "..\MQ2Main.h"
+#pragma comment(lib,"ISXDK.lib")
 
 // The mandatory pre-setup function.  Our name is "ISXEQ", and the class is ISXEQ.
 // This sets up a "ModulePath" variable which contains the path to this module in case we want it,
@@ -122,12 +123,20 @@ void CISXEQ::RegisterDataTypes()
 	// add any datatypes
 	// pMyType = new MyType;
 	// pISInterface->AddLSType(*pMyType);
+
+#define DATATYPE(_class_,_variable_) _variable_ = new _class_; pISInterface->AddLSType(*_variable_);
+#include "ISXEQDataTypes.h"
+#undef DATATYPE
+
 }
 
 void CISXEQ::RegisterTopLevelObjects()
 {
 	// add any Top-Level Objects
 	//pISInterface->AddTopLevelObject("ISXEQ",ISXEQData);
+#define TOPLEVELOBJECT(_name_,_function_) pISInterface->AddTopLevelObject(_name_,_function_);
+#include "ISXEQTopLevelObjects.h"
+#undef TOPLEVELOBJECT
 }
 
 void CISXEQ::RegisterServices()
@@ -174,12 +183,18 @@ void CISXEQ::UnRegisterAliases()
 void CISXEQ::UnRegisterDataTypes()
 {
 	// remove data types
+#define DATATYPE(_class_,_variable_)  if (_variable_) {pISInterface->RemoveLSType(*_variable_);delete _variable_;}
+#include "ISXEQDataTypes.h"
+#undef DATATYPE
 
 }
 void CISXEQ::UnRegisterTopLevelObjects()
 {
 	// remove data items
 //	pISInterface->RemoveTopLevelObject("ISXEQ");
+#define TOPLEVELOBJECT(_name_,_function_) pISInterface->RemoveTopLevelObject(_name_);
+#include "ISXEQTopLevelObjects.h"
+#undef TOPLEVELOBJECT
 }
 void CISXEQ::UnRegisterServices()
 {
