@@ -897,42 +897,43 @@ PSPELL GetSpellByName(PCHAR szName)
     return NULL;
 }
 
-DWORD GetSpellDuration(PSPELL pSpell, PSPAWNINFO pSpawn)
-{
-    switch (pSpell->DurationType) {
-        case 0:
-            return 0;
-        case 1:
-        case 2:
-        case 3:
-        case 4:
-        case 5:
-        case 6:
-        case 8:
-        case 9:
-        case 10:
-        case 11:
-        case 12:
-            if (pSpell->DurationValue1) {
-                return (pSpell->DurationValue1);
-            } else {
-                return (pSpell->DurationType*10);
-            }
-        case 7:
-            if (pSpell->DurationValue1) {
-                return (pSpell->DurationValue1);
-            } else {
-                return (pSpawn->Level*10);
-            }
-
-        case 50:
-            return 0xFFFFFFFF;
-        case 3600:
-            return 6000;
-        default:
-            return 0xFFFFFFFE;
-    }
-}
+DWORD GetSpellDuration(PSPELL pSpell, PSPAWNINFO pSpawn) 
+{ 
+        switch (pSpell->DurationType) { 
+                case 0:          
+                        return 0;        
+                case 1:        
+                case 6: 
+                        min(ceil(double(pSpawn->Level) / 2), pSpell->DurationValue1); 
+                case 3: 
+                case 4:              
+                case 11: 
+                case 12:            
+                        if (pSpell->DurationValue1) { 
+                                return (pSpell->DurationValue1); 
+                        } else {        
+                                return (pSpell->DurationType*10); 
+                        } 
+                case 2: 
+                        min(ceil(double(pSpawn->Level) / 0.6), pSpell->DurationValue1); 
+                case 5:                  
+                        return 3; 
+                case 7:              
+                        return min(pSpawn->Level, pSpell->DurationValue1 ? pSpell->DurationValue1 : pSpawn->Level); 
+                case 8: 
+                        return min(unsigned int(pSpawn->Level) + 10, pSpell->DurationValue1); 
+                case 9:          
+                        return min(unsigned int(pSpawn->Level) * 2 + 10, pSpell->DurationValue1); 
+                case 10:        
+                        return min(unsigned int(pSpawn->Level) * 3 + 10, pSpell->DurationValue1); 
+                case 50: 
+                        return 0xFFFFFFFF; 
+                case 3600: 
+                        return 6000; 
+                default: 
+                        return 0xFFFFFFFE; 
+        } 
+} 
 
 DWORD GetDeityTeamByID(DWORD DeityID) {
     switch (DeityID) {
@@ -1009,13 +1010,6 @@ FLOAT EstimatedDistanceToSpawn(PSPAWNINFO pChar, PSPAWNINFO pSpawn)
     FLOAT Y = pChar->Y - (pSpawn->Y + pSpawn->SpeedY * RDistance);
     return sqrtf(X*X + Y*Y);
 }
-
-
-
-
-
-
-
 
 // ***************************************************************************
 // Function:    ConColor
@@ -1148,10 +1142,6 @@ FLOAT FindSpeed(PSPAWNINFO pSpawn)
 
    return fRunSpeed;
 }
-
-
-
-
 
 VOID GetItemLinkHash(PCONTENTS Item, PCHAR Buffer)
 {

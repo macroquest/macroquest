@@ -1,3 +1,21 @@
+19 August 2004 by Amadeus
+- Fixed ${Me.AltAbilityReady[]}
+- Fixed ${Me.AltAbilityTimer[]}
+- Added ${AltAbility[].MyReuseTime}  (proper reuse time if you hastened AA abilties)
+- Added NEW COMMAND:  /aa
+*** Syntax ***
+/aa list all       -- lists all of your AA abilities in format [ ID : name ]
+/aa list timers    -- lists just the AA you have that have timers
+/aa info [ability] -- gives information about a particular AA ability
+***
+(Note:  Yes, they do not list in any particular order (No, I don't know why).  No, 
+I do not know why some abilities are duplicated.  Yes, it may have bugs 
+that need testing.)
+- Slight tweak to code to make it compile on Vc++ 6.0 cleanly
+- Fixed GetSpellDuration (per corrections posted on the messageboard)
+- Added an offset to eqgame.h and removed one from eqgame.h (Those that help find
+  offsets..please note this change!)
+
 18 August 2004 by Amadeus
 - Fixed EQRAIDWINDOW and EQRAID structs
 - Some tweaking to attempt to make ${xxx.Grouped} more consistant

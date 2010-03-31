@@ -243,6 +243,7 @@
 
 // AltAdvManager 
 #define AltAdvManager__IsAbilityReady                      0x41BD48
+#define AltAdvManager__GetCalculatedTimer				   0x41BD1A
 
 // CXWndManager 
 #define CXWndManager__RemoveWnd                            0x56AA50
@@ -268,7 +269,6 @@
 #define EQ_Character__GetFocusCastingTimeModifier          0x427B9C
 #define EQ_Character__GetAACastingTimeModifier             0x427F79
 #define EQ_Character__CastSpell                            0x42BDB2
-#define EQ_Character__GetAbility                           0x0
 
 // EQPlayer 
 #define EQPlayer__EQPlayer                                 0x46EB4F

@@ -820,7 +820,7 @@ public:
 		AltTimerReady=90,
 		MaxEndurance=91,
 		PctEndurance=92,
-		AltAbility=93,
+		AltAbility=93,  
 		AltAbilityReady=94,
 		AltAbilityTimer=95,
 		CombatAbility=96,
@@ -945,7 +945,7 @@ public:
 		TypeMember(AltTimerReady);
 		TypeMember(MaxEndurance);
 		TypeMember(PctEndurance);
-		TypeMember(AltAbility);
+		TypeMember(AltAbility); 
 		TypeMember(AltAbilityReady);
 		TypeMember(AltAbilityTimer);
 		TypeMember(CombatAbility);
@@ -2534,6 +2534,7 @@ public:
 	   Type=11,
 	   ReuseTime=12,
 	   ID=13,
+	   MyReuseTime=14,
    };
    MQ2AltAbilityType():MQ2Type("altability")
    {
@@ -2550,6 +2551,7 @@ public:
 	  TypeMember(Type);
 	  TypeMember(ReuseTime);
 	  TypeMember(ID);
+	  TypeMember(MyReuseTime);
    }
 
    ~MQ2AltAbilityType()

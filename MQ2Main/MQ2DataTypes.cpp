@@ -1520,10 +1520,13 @@ bool MQ2CharacterType::GetMember(MQ2VARPTR VarPtr, PCHAR Member, PCHAR Index, MQ
 		Dest.Type=pIntType;
 		return true;
 	case Grouped:
-		for (unsigned int k=0; k<5; k++ )
+		Dest.DWord=0;
 		{
-			if (Dest.DWord=pChar->GroupMember[k] != 0) Dest.DWord=1;
-				break;
+			for (unsigned int k=0; k<5; k++ )
+			{
+				if (Dest.DWord=pChar->GroupMember[k] != 0) Dest.DWord=1;
+					break;
+			}
 		}
 		Dest.Type=pBoolType;
 		return true;
@@ -1654,24 +1657,28 @@ bool MQ2CharacterType::GetMember(MQ2VARPTR VarPtr, PCHAR Member, PCHAR Index, MQ
 		Dest.DWord=pChar->thirstlevel;
 		Dest.Type=pIntType;
 		return true;
-/*
 	case AltAbilityTimer:
 		if (Index[0])
 		{
 			if (IsNumber(Index))
 			{
-				// numeric
-				unsigned long nAbility=atoi(Index);
-				if (nAbility<NUM_ALT_ABILITIES)
+				//numeric
+				for (unsigned long nAbility=0 ; nAbility<NUM_ALT_ABILITIES ; nAbility++)
 				{
-					if (pCharData->GetAbility(nAbility,0))
+					if ( ((PALTADVMGR)pAltAdvManager)->AltAbilities->AltAbilityList->Abilities[nAbility])
 					{
-						pAltAdvManager->IsAbilityReady(pPCData,nAbility,&Dest.Int);
-						if (Dest.Int<0)
-							return false;
-						Dest.Int/=6;
-						Dest.Type=pTicksType;
-						return true;
+						if ( PALTABILITY pAbility=((PALTADVMGR)pAltAdvManager)->AltAbilities->AltAbilityList->Abilities[nAbility]->Ability) 
+						{
+							if (pAbility->ID == atoi(Index) )
+							{
+								pAltAdvManager->IsAbilityReady(pPCData,pAbility,&Dest.Int);
+								if (Dest.Int<0)
+									return false;
+								Dest.Int/=6;
+								Dest.Type=pTicksType;
+								return true;
+							}
+						}
 					}
 				}
 			}
@@ -1680,25 +1687,24 @@ bool MQ2CharacterType::GetMember(MQ2VARPTR VarPtr, PCHAR Member, PCHAR Index, MQ
 				// by name
 				for (unsigned long nAbility=0 ; nAbility<NUM_ALT_ABILITIES ; nAbility++)
 				{
-					if (PALTABILITY pAbility=((PALTADVMGR)pAltAdvManager)->Abilities[nAbility])
+			      if ( ((PALTADVMGR)pAltAdvManager)->AltAbilities->AltAbilityList->Abilities[nAbility])
+				  {
+					if (PALTABILITY pAbility=((PALTADVMGR)pAltAdvManager)->AltAbilities->AltAbilityList->Abilities[nAbility]->Ability)
 					{
 						if (PCHAR pName=pStringTable->getString(pAbility->nName,0))
 						{
 							if (!stricmp(Index,pName))
 							{
-								if (pCharData->GetAbility(nAbility,0))
-								{
-									pAltAdvManager->IsAbilityReady(pPCData,nAbility,&Dest.Int);
-									if (Dest.Int<0)
-										return false;
-									Dest.Int/=6;
-									Dest.Type=pTicksType;
-									return true;
-								}
-								return false;
+								pAltAdvManager->IsAbilityReady(pPCData,pAbility,&Dest.Int);
+								if (Dest.Int<0)
+									return false;
+								Dest.Int/=6;
+								Dest.Type=pTicksType;
+								return true;
 							}
 						}
 					}
+				  }
 				}
 			}
 		}
@@ -1708,55 +1714,68 @@ bool MQ2CharacterType::GetMember(MQ2VARPTR VarPtr, PCHAR Member, PCHAR Index, MQ
 		{
 			if (IsNumber(Index))
 			{
-				// numeric
-				unsigned long nAbility=atoi(Index);
-				if (nAbility<NUM_ALT_ABILITIES)
-				{
-					if (pCharData->GetAbility(nAbility,0))
-					{
-						Dest.DWord=pAltAdvManager->IsAbilityReady(pPCData,nAbility,0);
-						Dest.Type=pBoolType;
-						return true;
-					}
-				}
-			}
-			else
-			{
-				// by name
+				//numeric
 				for (unsigned long nAbility=0 ; nAbility<NUM_ALT_ABILITIES ; nAbility++)
 				{
-					if (PALTABILITY pAbility=((PALTADVMGR)pAltAdvManager)->Abilities[nAbility])
+					if ( ((PALTADVMGR)pAltAdvManager)->AltAbilities->AltAbilityList->Abilities[nAbility])
 					{
-						if (PCHAR pName=pStringTable->getString(pAbility->nName,0))
+						if ( PALTABILITY pAbility=((PALTADVMGR)pAltAdvManager)->AltAbilities->AltAbilityList->Abilities[nAbility]->Ability) 
 						{
-							if (!stricmp(Index,pName))
+							if (pAbility->ID == atoi(Index) )
 							{
-								if (pCharData->GetAbility(nAbility,0))
-								{
-									Dest.DWord=pAltAdvManager->IsAbilityReady(pPCData,nAbility,0);
-									Dest.Type=pBoolType;
-									return true;
-								}
-								return false;
+								Dest.DWord=pAltAdvManager->IsAbilityReady(pPCData,pAbility,0);
+								Dest.Type=pBoolType;
+								return true;
 							}
 						}
 					}
 				}
 			}
+			else
+			{
+				// by name
+				for (unsigned long nAbility=0 ; nAbility<NUM_ALT_ABILITIES ; nAbility++)
+				{
+			      if ( ((PALTADVMGR)pAltAdvManager)->AltAbilities->AltAbilityList->Abilities[nAbility])
+				  {
+					if (PALTABILITY pAbility=((PALTADVMGR)pAltAdvManager)->AltAbilities->AltAbilityList->Abilities[nAbility]->Ability)
+					{
+						if (PCHAR pName=pStringTable->getString(pAbility->nName,0))
+						{
+							if (!stricmp(Index,pName))
+							{
+								Dest.DWord=pAltAdvManager->IsAbilityReady(pPCData,pAbility,0);
+								Dest.Type=pBoolType;
+								return true;
+							}
+						}
+					}
+				  }
+				}
+			}
 		}
 		return false;
+/*
 	case AltAbility:
 		if (Index[0])
 		{
 			if (IsNumber(Index))
 			{
-				// numeric
-				unsigned long nAbility=atoi(Index);
-				if (nAbility<NUM_ALT_ABILITIES)
+				//numeric
+				for (unsigned long nAbility=0 ; nAbility<NUM_ALT_ABILITIES ; nAbility++)
 				{
-					Dest.DWord=pCharData->GetAbility(nAbility);
-					Dest.Type=pIntType;
-					return true;
+					if ( ((PALTADVMGR)pAltAdvManager)->AltAbilities->AltAbilityList->Abilities[nAbility])
+					{
+						if ( PALTABILITY pAbility=((PALTADVMGR)pAltAdvManager)->AltAbilities->AltAbilityList->Abilities[nAbility]->Ability) 
+						{
+							if (pAbility->ID == atoi(Index) )
+							{
+								Dest.DWord=pCharData->GetAbility(nAbility);
+								Dest.Type=pIntType;
+								return true;
+							}
+						}
+					}
 				}
 			}
 			else
@@ -1764,7 +1783,9 @@ bool MQ2CharacterType::GetMember(MQ2VARPTR VarPtr, PCHAR Member, PCHAR Index, MQ
 				// by name
 				for (unsigned long nAbility=0 ; nAbility<NUM_ALT_ABILITIES ; nAbility++)
 				{
-					if (PALTABILITY pAbility=((PALTADVMGR)pAltAdvManager)->AltAbilityList->Abilities[nAbility])
+			      if ( ((PALTADVMGR)pAltAdvManager)->AltAbilities->AltAbilityList->Abilities[nAbility])
+				  {
+					if (PALTABILITY pAbility=((PALTADVMGR)pAltAdvManager)->AltAbilities->AltAbilityList->Abilities[nAbility]->Ability)
 					{
 						if (PCHAR pName=pStringTable->getString(pAbility->nName,0))
 						{
@@ -1776,6 +1797,7 @@ bool MQ2CharacterType::GetMember(MQ2VARPTR VarPtr, PCHAR Member, PCHAR Index, MQ
 							}
 						}
 					}
+				  }
 				}
 			}
 		}
@@ -4294,7 +4316,7 @@ bool MQ2AltAbilityType::GetMember(MQ2VARPTR VarPtr, PCHAR Member, PCHAR Index, M
 	if (!pMember)
 		return false;
 	switch((AltAbilityMembers)pMember->ID)
-	{
+	{ 
 	case Name:
 		if (Dest.Ptr=pStringTable->getString(pAbility->nName,0))
 		{
@@ -4322,6 +4344,10 @@ bool MQ2AltAbilityType::GetMember(MQ2VARPTR VarPtr, PCHAR Member, PCHAR Index, M
 		return true;
 	case ReuseTime:
 		Dest.DWord=pAbility->ReuseTimer;
+		Dest.Type=pIntType;
+		return true;
+	case MyReuseTime:
+		Dest.DWord=pAltAdvManager->GetCalculatedTimer(pPCData,pAbility);
 		Dest.Type=pIntType;
 		return true;
 	case MinLevel:

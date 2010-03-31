@@ -3795,9 +3795,6 @@ VOID DisplayLoginName(PSPAWNINFO pChar, PCHAR szLine)
 // Function:      PluginCommand
 // Description:   Our /plugin command.
 // ***************************************************************************
-
-
-
 VOID PluginCommand(PSPAWNINFO pChar, PCHAR szLine) 
 {
     CHAR szBuffer[MAX_STRING] = {0};
@@ -4323,4 +4320,152 @@ VOID NoParseCmd(PSPAWNINFO pChar, PCHAR szLine)
 	bAllowCommandParse=false;
 	DoCommand(pChar,szLine);
 	bAllowCommandParse=true;
+}
+
+VOID AltAbility(PSPAWNINFO pChar, PCHAR szLine)
+{
+    CHAR szBuffer[MAX_STRING] = {0};
+    CHAR szCommand[MAX_STRING] = {0};
+	CHAR szSpellInfo[MAX_STRING] = {0};
+    PCHAR szName = NULL;
+    GetArg(szCommand,szLine,1);
+    szName = GetNextArg(szLine);
+	unsigned long nAbility=0;
+	int i=0;
+	MQ2TicksType szTime;
+
+    if ((szName[0]==0) || (szCommand[0]==0)) {
+        SyntaxError("Usage: /aa list [all|timers], or /aa info [ability name]");
+        return;
+    }
+
+    if (!stricmp(szCommand,"list")) 
+	{
+		if (!stricmp(szName,"all"))
+		{
+			WriteChatColor("Alternative Abilities (Complete List)", CONCOLOR_YELLOW );
+			WriteChatColor("-------------------------------------", USERCOLOR_WHO);
+			for (nAbility=0 ; nAbility<NUM_ALT_ABILITIES ; nAbility++)
+			{
+				if ( ((PALTADVMGR)pAltAdvManager)->AltAbilities->AltAbilityList->Abilities[nAbility])
+				{
+					if ( PALTABILITY pAbility=((PALTADVMGR)pAltAdvManager)->AltAbilities->AltAbilityList->Abilities[nAbility]->Ability) 
+					{
+						sprintf(szBuffer,"[ %d: %s ]", pAbility->ID, pStringTable->getString(pAbility->nName,0) );
+						WriteChatColor(szBuffer,USERCOLOR_WHO);
+					}
+				}
+			}
+		}
+		else if (!stricmp(szName,"timers"))
+		{
+			WriteChatColor("Alternative Abilities (AA With Timers)", CONCOLOR_YELLOW );
+			WriteChatColor("-------------------------------------", USERCOLOR_WHO);
+			for (nAbility=0 ; nAbility<NUM_ALT_ABILITIES ; nAbility++)
+			{
+				if ( ((PALTADVMGR)pAltAdvManager)->AltAbilities->AltAbilityList->Abilities[nAbility])
+				{
+					if ( PALTABILITY pAbility=((PALTADVMGR)pAltAdvManager)->AltAbilities->AltAbilityList->Abilities[nAbility]->Ability) 
+					{
+						if ((pAltAdvManager->GetCalculatedTimer(pPCData,pAbility)) > 0)
+						{
+							if (pAltAdvManager->IsAbilityReady(pPCData,pAbility,0))
+							{
+								sprintf(szBuffer,"[ %d: %s ] (Reuse Time: %d seconds) <Ready>",
+									pAbility->ID, pStringTable->getString(pAbility->nName,0), 
+									pAltAdvManager->GetCalculatedTimer(pPCData,pAbility) );
+								WriteChatColor(szBuffer,USERCOLOR_WHO);
+							}
+							else
+							{
+								pAltAdvManager->IsAbilityReady(pPCData,pAbility,&i);
+								sprintf(szBuffer,"[ %d: %s ] (Reuse Time: %d seconds) <Ready in %d seconds>",
+									pAbility->ID, pStringTable->getString(pAbility->nName,0), 
+									pAltAdvManager->GetCalculatedTimer(pPCData,pAbility), i );
+								WriteChatColor(szBuffer,USERCOLOR_WHO);
+							}
+						}
+					}
+				}
+			}
+		}
+		else 
+		{
+			SyntaxError("Usage: /aa list [all|timers|ready], or /aa info [ability name]");
+			return;
+		}
+    }
+	else if (!stricmp(szCommand,"info")) 
+	{
+		for (unsigned long nAbility=0 ; nAbility<NUM_ALT_ABILITIES ; nAbility++)
+			{
+				if ( ((PALTADVMGR)pAltAdvManager)->AltAbilities->AltAbilityList->Abilities[nAbility])
+				{
+					if ( PALTABILITY pAbility=((PALTADVMGR)pAltAdvManager)->AltAbilities->AltAbilityList->Abilities[nAbility]->Ability) 
+					{
+						if (!stricmp(pStringTable->getString(pAbility->nName,0),szName))
+						{
+
+							WriteChatColor("Alternative Advancement Ability Information", CONCOLOR_YELLOW);
+							WriteChatColor("-------------------------------------------", USERCOLOR_WHO);
+							
+							if ((pAltAdvManager->GetCalculatedTimer(pPCData,pAbility)) > 0)
+							{//has a timer
+								if (!(pAltAdvManager->IsAbilityReady(pPCData,pAbility,0)))
+								{//it's not ready
+									pAltAdvManager->IsAbilityReady(pPCData,pAbility,&i);
+									sprintf(szBuffer,"[ %d: %s ] %s", pAbility->ID, pStringTable->getString(pAbility->nName,0), pStringTable->getString(pAbility->nDesc,0) );
+									WriteChatColor(szBuffer,USERCOLOR_WHO);
+									sprintf(szBuffer,"Min Level: %d, Cost: %d, Max Rank: %d, Type: %d, Reuse Time: %d seconds",
+										pAbility->MinLevel, pAbility->Cost, pAbility->MaxRank, pAbility->Type, pAltAdvManager->GetCalculatedTimer(pPCData,pAbility));
+									WriteChatColor(szBuffer,USERCOLOR_WHO);
+									if (pAbility->SpellID > 0)
+									{
+										sprintf(szBuffer,"Casts Spell: %s", GetSpellNameByID(pAbility->SpellID) );
+										WriteChatColor(szBuffer, USERCOLOR_WHO);
+									}
+									sprintf(szBuffer,"Ready: No (%d seconds until refresh)", i );
+									WriteChatColor(szBuffer,USERCOLOR_WHO);
+								}
+								else
+								{
+									sprintf(szBuffer,"[ %d: %s ] %s", pAbility->ID, pStringTable->getString(pAbility->nName,0), pStringTable->getString(pAbility->nDesc,0) );
+									WriteChatColor(szBuffer,USERCOLOR_WHO);
+									sprintf(szBuffer,"Min Level: %d, Cost: %d, Max Rank: %d, Type: %d, Reuse Time: %d seconds",
+										pAbility->MinLevel, pAbility->Cost, pAbility->MaxRank, pAbility->Type, pAltAdvManager->GetCalculatedTimer(pPCData,pAbility));
+									WriteChatColor(szBuffer,USERCOLOR_WHO);
+									if (pAbility->SpellID > 0)
+									{
+										sprintf(szBuffer,"Casts Spell: %s", GetSpellNameByID(pAbility->SpellID));
+										WriteChatColor(szBuffer, USERCOLOR_WHO);
+									}
+									sprintf(szBuffer,"Ready: Yes");
+									WriteChatColor(szBuffer,USERCOLOR_WHO);		
+								}
+							}
+							else
+							{
+								pAltAdvManager->IsAbilityReady(pPCData,pAbility,&i);
+								sprintf(szBuffer,"[ %d: %s ] %s", pAbility->ID, pStringTable->getString(pAbility->nName,0), pStringTable->getString(pAbility->nDesc,0) );
+								WriteChatColor(szBuffer,USERCOLOR_WHO);
+								sprintf(szBuffer,"Min Level: %d, Cost: %d, Max Rank: %d, Type: %d",
+									pAbility->MinLevel, pAbility->Cost, pAbility->MaxRank, pAbility->Type);
+								WriteChatColor(szBuffer,USERCOLOR_WHO);
+								if (pAbility->SpellID > 0)
+								{
+									sprintf(szBuffer,"Casts Spell: %s", GetSpellNameByID(pAbility->SpellID) );
+									WriteChatColor(szBuffer, USERCOLOR_WHO);
+								}
+							}
+						}
+					}
+				}
+			}
+	}
+	else
+	{
+        SyntaxError("Usage: /aa list [all|timers|ready], or /aa info [ability name]");
+        return;
+	}
+	return;
 }

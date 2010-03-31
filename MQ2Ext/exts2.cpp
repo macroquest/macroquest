@@ -915,7 +915,7 @@ DECLARE_API ( paltability )
     ReadMemory((PARAM1)p,&ci,sizeof(ci),&cb); 
 
     dprintf("\n\n\n"); 
-	KP(AltAdvMgrListIndex);
+	KP(Index);
 	KP(nShortName);
 	KP(nShorterName);
 	KP(nName);

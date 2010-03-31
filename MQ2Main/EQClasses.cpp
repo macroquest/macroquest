@@ -3753,13 +3753,13 @@ FUNCTION_AT_ADDRESS( EQ_AltAbility::EQ_AltAbility(int),EQ_AltAbility__EQ_AltAbil
 FUNCTION_AT_ADDRESS( AltAdvManager::AltAdvManager(void),AltAdvManager__AltAdvManager);
 #endif
 #ifdef AltAdvManager__IsAbilityReady
-FUNCTION_AT_ADDRESS(bool  AltAdvManager::IsAbilityReady(class EQ_PC *,int const &,int *),AltAdvManager__IsAbilityReady);
+FUNCTION_AT_ADDRESS(bool  AltAdvManager::IsAbilityReady(class EQ_PC *,EQData::PALTABILITY,int *),AltAdvManager__IsAbilityReady);
 #endif
 #ifdef AltAdvManager__CalculateHideTimeReduce
 FUNCTION_AT_ADDRESS(int  AltAdvManager::CalculateHideTimeReduce(class EQ_PC *),AltAdvManager__CalculateHideTimeReduce);
 #endif
 #ifdef AltAdvManager__GetCalculatedTimer
-FUNCTION_AT_ADDRESS(unsigned long  AltAdvManager::GetCalculatedTimer(class EQ_PC *,int),AltAdvManager__GetCalculatedTimer);
+FUNCTION_AT_ADDRESS(unsigned long  AltAdvManager::GetCalculatedTimer(class EQ_PC *,EQData::PALTABILITY),AltAdvManager__GetCalculatedTimer);
 #endif
 #ifdef AltAdvManager__GetNextAbilityCost
 FUNCTION_AT_ADDRESS(int  AltAdvManager::GetNextAbilityCost(int,int),AltAdvManager__GetNextAbilityCost);
@@ -4171,9 +4171,6 @@ FUNCTION_AT_ADDRESS(void  EQ_Character::DoMeditation(void),EQ_Character__DoMedit
 #endif
 #ifdef EQ_Character__SetLocalVar
 FUNCTION_AT_ADDRESS(int  EQ_Character::SetLocalVar(char *,int),EQ_Character__SetLocalVar);
-#endif
-#ifdef EQ_Character__GetAbility
-FUNCTION_AT_ADDRESS(int  EQ_Character::GetAbility(int)const ,EQ_Character__GetAbility);
 #endif
 #ifdef EQ_Character__GetIndexSkillMinDamageMod
 FUNCTION_AT_ADDRESS(int  EQ_Character::GetIndexSkillMinDamageMod(int),EQ_Character__GetIndexSkillMinDamageMod);

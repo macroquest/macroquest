@@ -499,6 +499,7 @@ EQLIB_API VOID MQ2KeyBindCommand(PSPAWNINFO pChar, PCHAR szLine);
 EQLIB_API VOID MultilineCommand(PSPAWNINFO pChar, PCHAR szLine);
 EQLIB_API VOID Alert                               (PSPAWNINFO,PCHAR);
 EQLIB_API VOID Alias                               (PSPAWNINFO,PCHAR);
+EQLIB_API VOID AltAbility						   (PSPAWNINFO,PCHAR);
 EQLIB_API VOID BankList                            (PSPAWNINFO,PCHAR);
 EQLIB_API VOID Breakin                             (PSPAWNINFO,PCHAR);
 EQLIB_API VOID BuyItem                             (PSPAWNINFO,PCHAR);

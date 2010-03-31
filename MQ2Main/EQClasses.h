@@ -807,7 +807,7 @@ class AltAdvManager
 {
 public:
 EQLIB_OBJECT AltAdvManager::AltAdvManager(void);
-EQLIB_OBJECT bool AltAdvManager::IsAbilityReady(class EQ_PC *,int const &,int *);
+EQLIB_OBJECT bool AltAdvManager::IsAbilityReady(class EQ_PC *,EQData::PALTABILITY,int *);
 EQLIB_OBJECT int AltAdvManager::AbilitiesByClass(int,int);
 EQLIB_OBJECT int AltAdvManager::AltSkillReqs(class EQ_PC *,int);
 EQLIB_OBJECT int AltAdvManager::CalculateDoubleAttackChance(class EQ_PC *,int,unsigned char);
@@ -828,7 +828,7 @@ EQLIB_OBJECT int AltAdvManager::GetAbilityTitle(class EQPlayer *);
 EQLIB_OBJECT int AltAdvManager::GetNextAbilityCost(int,int);
 EQLIB_OBJECT int AltAdvManager::MeetsPoPLevelReqs(class EQ_PC *,int,int);
 EQLIB_OBJECT int AltAdvManager::TotalPointsInSkill(int,int);
-EQLIB_OBJECT unsigned long AltAdvManager::GetCalculatedTimer(class EQ_PC *,int);
+EQLIB_OBJECT unsigned long AltAdvManager::GetCalculatedTimer(class EQ_PC *,EQData::PALTABILITY);
 EQLIB_OBJECT void AltAdvManager::GetAbilityReqs(char *,int);
 };
 
@@ -5377,7 +5377,6 @@ EQLIB_OBJECT int EQ_Character::Dex(void);
 EQLIB_OBJECT int EQ_Character::ElementResistDmg(class EQ_Equipment *,int);
 EQLIB_OBJECT int EQ_Character::eqspa_change_form(class EQ_Spell *,int,int,class EQ_Affect *);
 EQLIB_OBJECT int EQ_Character::eqspa_hp(unsigned int,class EQ_Affect *,int,class EQ_Spell *);
-EQLIB_OBJECT int EQ_Character::GetAbility(int)const;
 EQLIB_OBJECT int EQ_Character::GetBardInstrumentMod(int);
 EQLIB_OBJECT int EQ_Character::GetClassACBonus(int);
 EQLIB_OBJECT int EQ_Character::GetFirstEffectSlot(bool);
