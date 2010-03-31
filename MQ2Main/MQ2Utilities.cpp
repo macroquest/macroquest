@@ -753,26 +753,6 @@ PCHAR ConvertHotkeyNameToKeyName(PCHAR szName)
     return szName;
 }
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 // ***************************************************************************
 // Function:    GetFullZone
 // Description: Returns a full zone name from a short name
@@ -842,11 +822,41 @@ VOID GetGameDate(int* Month, int* Day, int* Year)
    if (Year) *Year=((PWORLDDATA)pWorldData)->Year;
 }
 
+int GetLanguageIDByName( PCHAR SzName )
+{
+	if (!_stricmp(SzName, "Common")) return 1;
+	if (!_stricmp(SzName, "Common Tongue")) return 1;
+	if (!_stricmp(SzName, "Barbarian")) return 2;
+	if (!_stricmp(SzName, "Erudian")) return 3;
+	if (!_stricmp(SzName, "Elvish")) return 4;
+	if (!_stricmp(SzName, "Dark Elvish")) return 5;
+	if (!_stricmp(SzName, "Dwarvish")) return 6;
+	if (!_stricmp(SzName, "Troll")) return 7;
+	if (!_stricmp(SzName, "Ogre")) return 8;
+	if (!_stricmp(SzName, "Gnomish")) return 9;
+	if (!_stricmp(SzName, "Halfling")) return 10;
+	if (!_stricmp(SzName, "Thieves Cant")) return 11;
+	if (!_stricmp(SzName, "Old Erudian")) return 12;
+	if (!_stricmp(SzName, "Elder Elvish")) return 13;
+	if (!_stricmp(SzName, "Froglok")) return 14;
+	if (!_stricmp(SzName, "Goblin")) return 15;
+	if (!_stricmp(SzName, "Gnoll")) return 16;
+	if (!_stricmp(SzName, "Combine Tongue")) return 17;
+	if (!_stricmp(SzName, "Elder Tier'Dal")) return 18;
+	if (!_stricmp(SzName, "Lizardman")) return 19;
+	if (!_stricmp(SzName, "Orcish")) return 20;
+	if (!_stricmp(SzName, "Faerie")) return 21;
+	if (!_stricmp(SzName, "Dragon")) return 22;
+	if (!_stricmp(SzName, "Elder Dragon")) return 23;
+	if (!_stricmp(SzName, "Dark Speech")) return 24;
+	if (!_stricmp(SzName, "Vah Shir")) return 25;
+
+	return -1;
+}
 
 //CHAR szUnknownSpell[MAX_STRING] = "Unknown Spell";
 // ^^ this shit is unnecessary, static strings are already stored at a location in the
 // file itself. Changed the function to return "Unknown Spell". - Lax
-
 PCHAR GetSpellNameByID(DWORD dwSpellID)
 {
     PSPELL pSpell = NULL;

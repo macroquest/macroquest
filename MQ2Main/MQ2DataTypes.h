@@ -830,6 +830,21 @@ public:
 		RaidMarkNPC=102,
 		GroupMarkNPC=103,
 		CountBuffs=104,
+		LanguageSkill=105,
+		EnduranceBonus=106,
+		CombatEffectsBonus=107,
+		ShieldingBonus=108,
+		SpellShieldBonus=109,
+		AvoidanceBonus=110,
+		AccuracyBonus=111,
+		StunResistBonus=112,
+		StrikeThroughBonus=113,
+		AttackBonus=114,
+		HPRegenBonus=115,
+		ManaRegenBonus=116,
+		DamageShieldBonus=117,
+		DoTShieldBonus=118,
+		AttackSpeed=119,
 	};
 	MQ2CharacterType():MQ2Type("character")
 	{
@@ -936,6 +951,21 @@ public:
 		TypeMember(RaidMarkNPC);//=102,
 		TypeMember(GroupMarkNPC);//=103
 		TypeMember(CountBuffs);
+		TypeMember(LanguageSkill); //105
+		TypeMember(EnduranceBonus);
+		TypeMember(CombatEffectsBonus);
+		TypeMember(ShieldingBonus);
+		TypeMember(SpellShieldBonus);
+		TypeMember(AvoidanceBonus);
+		TypeMember(AccuracyBonus);
+		TypeMember(StunResistBonus);
+		TypeMember(StrikeThroughBonus);
+		TypeMember(AttackBonus);
+		TypeMember(HPRegenBonus);
+		TypeMember(ManaRegenBonus);
+		TypeMember(DamageShieldBonus);
+		TypeMember(DoTShieldBonus);
+		TypeMember(AttackSpeed); //119
 	}
 
 	~MQ2CharacterType()

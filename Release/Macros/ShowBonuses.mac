@@ -1,0 +1,21 @@
+Sub Main
+  /echo Current Gear Stat Bonuses:
+  /echo ------------------------
+  /echo HPBonus: ${Me.HPBonus}  ManaBonus: ${Me.ManaBonus}  EnduranceBonus: ${Me.EnduranceBonus}
+  /echo
+  /echo HPRegenBonus: ${Me.HPRegenBonus}
+  /echo ManaRegenBonus: ${Me.ManaRegenBonus}
+  /echo
+  /echo ShieldingBonus: ${Me.ShieldingBonus}  
+  /echo SpellShieldingBonus: ${Me.SpellShieldBonus}
+  /echo DoTShieldingBonus: ${Me.DoTShieldBonus}
+  /echo 
+  /echo AccuracyBonus: ${Me.AccuracyBonus}
+  /echo AttackBonus: ${Me.AttackBonus}
+  /echo StrikeThroughBonus: ${Me.StrikeThroughBonus}
+  /echo CombatEffectsBonus: ${Me.CombatEffectsBonus}
+  /echo DamageShieldBonus: ${Me.DamageShieldBonus}
+  /echo 
+  /echo AvoidanceBonus: ${Me.AvoidanceBonus}
+  /echo StunResistBonus: ${Me.StunResistBonus}
+/return

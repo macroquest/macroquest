@@ -1119,6 +1119,9 @@ bool MQ2CharacterType::GetMember(MQ2VARPTR VarPtr, PCHAR Member, PCHAR Index, MQ
 	{
 		return pSpawnType->GetMember(*(MQ2VARPTR*)&pChar->pSpawn,Member,Index,Dest);
 	}
+    
+	int nLang = 0;
+
 	switch((CharacterMembers)pMember->ID)
 	{
 	case ID:
@@ -1260,6 +1263,62 @@ bool MQ2CharacterType::GetMember(MQ2VARPTR VarPtr, PCHAR Member, PCHAR Index, MQ
 		return true;
 	case ManaBonus:
 		Dest.DWord=pChar->ManaBonus;
+		Dest.Type=pIntType;
+		return true;
+	case EnduranceBonus:
+		Dest.DWord=pChar->EnduranceBonus;
+		Dest.Type=pIntType;
+		return true;
+	case CombatEffectsBonus:
+		Dest.DWord=pChar->CombatEffectsBonus;
+		Dest.Type=pIntType;
+		return true;
+	case ShieldingBonus:
+		Dest.DWord=pChar->ShieldingBonus;
+		Dest.Type=pIntType;
+		return true;
+	case SpellShieldBonus:
+		Dest.DWord=pChar->SpellShieldBonus;
+		Dest.Type=pIntType;
+		return true;
+	case AvoidanceBonus:
+		Dest.DWord=pChar->AvoidanceBonus;
+		Dest.Type=pIntType;
+		return true;
+	case AccuracyBonus:
+		Dest.DWord=pChar->AccuracyBonus;
+		Dest.Type=pIntType;
+		return true;
+	case StunResistBonus:
+		Dest.DWord=pChar->StunResistBonus;
+		Dest.Type=pIntType;
+		return true;
+	case StrikeThroughBonus:
+		Dest.DWord=pChar->StrikeThroughBonus;
+		Dest.Type=pIntType;
+		return true;
+	case DoTShieldBonus:
+		Dest.DWord=pChar->DoTShieldBonus;
+		Dest.Type=pIntType;
+		return true;
+	case AttackBonus:
+		Dest.DWord=pChar->AttackBonus;
+		Dest.Type=pIntType;
+		return true;
+	case HPRegenBonus:
+		Dest.DWord=pChar->HPRegenBonus;
+		Dest.Type=pIntType;
+		return true;
+	case ManaRegenBonus:
+		Dest.DWord=pChar->ManaRegenBonus;
+		Dest.Type=pIntType;
+		return true;
+	case DamageShieldBonus:
+		Dest.DWord=pChar->DamageShieldBonus;
+		Dest.Type=pIntType;
+		return true;
+	case AttackSpeed:
+		Dest.DWord=pChar->AttackSpeed;
 		Dest.Type=pIntType;
 		return true;
 	case Endurance:
@@ -1478,6 +1537,21 @@ bool MQ2CharacterType::GetMember(MQ2VARPTR VarPtr, PCHAR Member, PCHAR Index, MQ
 			}
 		}
 		return false;
+   case LanguageSkill: 
+      if (!Index[0]) 
+         return false; 
+
+	  if (IsNumber(Index))
+		  nLang=atoi(Index)-1;
+	  else 
+		  nLang=GetLanguageIDByName(Index)-1;
+
+	  if (nLang < 0 || nLang >= 25 )
+		  return false;
+
+      Dest.DWord=pChar->languages[nLang]; 
+      Dest.Type=pIntType; 
+      return true; 
 	case CombatAbility:
 		if (!Index[0])
 			return false;

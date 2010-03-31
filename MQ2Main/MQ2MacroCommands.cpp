@@ -267,7 +267,7 @@ VOID Macro(PSPAWNINFO pChar, PCHAR szLine)
 
     FILE *fMacro = fopen(Filename,"rt");
     if (!fMacro) {
-        FatalError(szTemp,"Couldn't open macro file: %s",Filename);
+        FatalError("Couldn't open macro file: %s",Filename);
         gszMacroName[0]=0;
         gRunning = 0;
         return;

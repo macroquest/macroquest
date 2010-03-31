@@ -1,3 +1,18 @@
+23 July 2004 by Amadeus
+- Lots of struct updates from the boards
+- Added the following variables:  ${Me.EnduranceBonus}, ${Me.CombatEffectsBonus},
+  ${Me.ShieldingBonus}, ${Me.SpellShieldBonus}, ${Me.AvoidanceBonus}, ${Me.AccuracyBonus},
+  ${Me.StunResistBonus}, ${Me.StrikeThroughBonus}, ${Me.AttackBonus}, 
+  ${Me.HPRegenBonus}, ${Me.ManaRegenBonus}, ${Me.DamageShieldBonus},
+  ${Me.AttackSpeed}, ${Me.DoTShieldBonus}
+- Added showbonuses.mac to the release/macros directory.  It will display your current
+  stat bonuses as added by your gear.
+- Added ${Me.LanguageSkill[languagename]} (ie, ${Me.LanguageSkill[Dark Speech]}.  You can
+  also use a number (as given with /lang help) in place of the languagename parameter.
+
+21 July 2004 by DKAA
+- Fixed the macro not found error message.
+
 18 July 2004 by Lax
 - EQPlayNice 1.11+ compatibility
 

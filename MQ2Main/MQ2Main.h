@@ -25,6 +25,8 @@
 // uncomment this line to turn off the single-line benchmark macro
 // #define DISABLE_BENCHMARKS
 
+#pragma warning(disable:4786)
+
 // Windows Header Files:
 #include <windows.h>
 #include <stdio.h>
@@ -341,6 +343,7 @@ EQLIB_API int FindInvSlot(PCHAR Name, BOOL Exact);
 EQLIB_API int FindNextInvSlot(PCHAR Name, BOOL Exact);
 EQLIB_API int FindMappableCommand(const char *name);
 
+EQLIB_API int GetLanguageIDByName(PCHAR szName);
 EQLIB_API PCHAR GetSpellNameByID(DWORD dwSpellID);
 EQLIB_API PSPELL GetSpellByName(PCHAR szName);
 #include "MQ2Inlines.h"
