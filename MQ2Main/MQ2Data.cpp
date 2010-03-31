@@ -337,6 +337,7 @@ TLO(dataBool)
 	return true;
 }
 #endif
+/*
 TLO(dataGroupLeader)
 {
 	if (!GroupLeader[0] || !stricmp(GroupLeader,GetCharInfo()->pSpawn->Name))
@@ -362,7 +363,8 @@ TLO(dataGroupLeader)
 	}
 	return false;
 }
-
+/**/
+/*
 TLO(dataGroupLeaderName)
 {
 	if (!GroupLeader[0])
@@ -375,9 +377,14 @@ TLO(dataGroupLeaderName)
 	Ret.Type=pStringType;
 	return true;
 }
+/**/
 
 TLO(dataGroup)
 {
+	Ret.DWord=1;
+	Ret.Type=pGroupType;
+	return true;
+	/*
 	if (ISINDEX())
 	{
 		DWORD N=GETNUMBER();
@@ -416,6 +423,7 @@ TLO(dataGroup)
 		return true;
 	}
 	return false;
+	/**/
 }
 #ifndef ISXEQ
 TLO(dataIf)

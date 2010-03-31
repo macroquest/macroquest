@@ -5370,7 +5370,7 @@ VOID WriteFilterNames(VOID)
 bool GetShortBuffID(PSPELLBUFF pBuff, DWORD &nID)
 {
 	PCHARINFO pChar=GetCharInfo();
-	unsigned long N=(pBuff-&pChar->ShortBuff[0])/sizeof(SPELLBUFF);
+	unsigned long N=(pBuff-&pChar->ShortBuff[0]);
 	if (N<12)
 	{
 		nID=N+1;
@@ -5381,7 +5381,7 @@ bool GetShortBuffID(PSPELLBUFF pBuff, DWORD &nID)
 bool GetBuffID(PSPELLBUFF pBuff, DWORD &nID)
 {
 	PCHARINFO pChar=GetCharInfo();
-	unsigned long N=(pBuff-&pChar->Buff[0])/sizeof(SPELLBUFF);
+	unsigned long N=(pBuff-&pChar->Buff[0]);
 	if (N<0x19)
 	{
 		nID=N+1;

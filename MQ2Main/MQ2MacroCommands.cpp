@@ -78,6 +78,9 @@ DWORD Include(PCHAR szFile)
 
         fgets(szTemp,MAX_STRING,fMacro);
 		CleanMacroLine(szTemp);
+
+        if (feof(fMacro)) break;
+
         LineNumber++;
 
         if (!strncmp(szTemp,"|**",3)) {

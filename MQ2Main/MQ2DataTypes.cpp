@@ -77,6 +77,9 @@ class MQ2PluginType *pPluginType=0;
 class MQ2RaidType *pRaidType=0;
 class MQ2RaidMemberType *pRaidMemberType=0;
 
+class MQ2GroupType *pGroupType=0;
+class MQ2GroupMemberType *pGroupMemberType=0;
+
 #ifndef ISXEQ
 
 void InitializeMQ2DataTypes()
@@ -119,11 +122,12 @@ void InitializeMQ2DataTypes()
 	pRaidType = new MQ2RaidType;
 	pRaidMemberType = new MQ2RaidMemberType;
 
+	pGroupType = new MQ2GroupType;
 
 	// NOTE: SetInheritance does NOT make it inherit, just notifies the syntax checker...
 	pCharacterType->SetInheritance(pSpawnType);
 	pBuffType->SetInheritance(pSpellType);
-	pCurrentZoneType->SetInheritance(pZoneType);
+//	pCurrentZoneType->SetInheritance(pZoneType);
 	pRaidMemberType->SetInheritance(pSpawnType);
 }
 
@@ -165,6 +169,7 @@ void ShutdownMQ2DataTypes()
 	delete pAltAbilityType;
 	delete pRaidType;
 	delete pRaidMemberType;
+	delete pGroupType;
 }
 
 bool MQ2TypeType::GETMEMBER()
@@ -4640,6 +4645,125 @@ bool MQ2AltAbilityType::GETMEMBER()
 	case Type:
 		Dest.DWord=pAbility->Type;
 		Dest.Type=pIntType;
+		return true;
+	}
+	return false;
+}
+
+bool MQ2GroupType::GETMEMBER()
+{
+	PMQ2TYPEMEMBER pMember=MQ2GroupType::FindMember(Member);
+	if (!pMember)
+		return false;
+	switch((GroupMembers)pMember->ID)
+	{
+	case xMember:
+		if (!ISINDEX())
+			return false;
+		if (ISNUMBER())
+		{
+			// by number
+			Dest.DWord=GETNUMBER();
+			Dest.Type=pIntType;
+			return true;
+		}
+		else
+		{
+			PCHARINFO pChar=GetCharInfo();
+			Dest.DWord=0;
+			for (int index=0;index<5;index++) 
+				if (EQADDR_GROUPCOUNT[index]) 
+				{
+					Dest.DWord++;
+					if (!stricmp(pChar->GroupMember[index],GETFIRST()))
+					{
+						Dest.Type=pIntType;
+						return true;
+					}
+				}
+			return false;
+		}
+		break;
+	case Members:
+		{
+			Dest.DWord=0;
+			for (int index=0;index<5;index++) 
+				if (EQADDR_GROUPCOUNT[index]) 
+					Dest.DWord++;
+			Dest.Type=pIntType;
+		}
+		return true;
+	case Leader:
+		{
+		PCHARINFO pChar=GetCharInfo();
+		Dest.DWord=0;
+		for (int index=0;index<5;index++) 
+			if (EQADDR_GROUPCOUNT[index]) 
+			{
+				Dest.DWord++;
+				if (!stricmp(pChar->GroupMember[index],GroupLeader))
+				{
+					Dest.Type=pIntType;
+					return true;
+				}
+			}
+			break;
+		}
+	}
+	return false;
+}
+
+bool MQ2GroupMemberType::GETMEMBER()
+{
+	//DWORD nGroupMember=VarPtr.DWord-1;
+	char *MemberName;
+	PSPAWNINFO pGroupMember;
+	if (unsigned long N=VarPtr.DWord)
+	{
+		if (N>5)
+			return false;
+		for (unsigned long i=0; i<5 ; i++)
+		{
+			if (EQADDR_GROUPCOUNT[i])
+			{
+				N--;
+				if (N==0)
+				{
+					pGroupMember=(PSPAWNINFO)ppGroup[i];
+					MemberName=GetCharInfo()->GroupMember[i];
+					break;
+				}
+			}
+		}
+	}
+	else
+	{
+		pGroupMember=GetCharInfo()->pSpawn;
+		MemberName=pGroupMember->Name;
+	}
+	PMQ2TYPEMEMBER pMember=MQ2GroupMemberType::FindMember(Member);
+	if (!pMember)
+	{
+#ifndef ISXEQ
+		return pSpawnType->GetMember(*(MQ2VARPTR*)&pGroupMember,Member,Index,Dest);
+#else
+		return pSpawnType->GetMember(*(LSVARPTR*)&pGroupMember,Member,argc,argv,Dest);
+#endif
+	}
+
+	switch((GroupMemberMembers)pMember->ID)
+	{
+	case Name:
+		Dest.Ptr=MemberName;
+		Dest.Type=pStringType;
+		return true;
+	case Leader:
+		Dest.DWord=((VarPtr.DWord==0 && !GroupLeader[0]) || !stricmp(MemberName,GroupLeader));
+		Dest.Type=pBoolType;
+		return true;
+	case Spawn:
+		Dest.Ptr=pGroupMember;
+		Dest.Type=pSpawnType;
 		return true;
 	}
 	return false;

@@ -47,3 +47,5 @@ DATATYPE(MQ2TimerType,pTimerType);
 
 DATATYPE(MQ2RaidType,pRaidType);
 DATATYPE(MQ2RaidMemberType,pRaidMemberType);
+DATATYPE(MQ2GroupType,pGroupType);
+DATATYPE(MQ2GroupMemberType,pGroupMemberType);

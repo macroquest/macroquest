@@ -82,6 +82,9 @@ EQLIB_VAR class MQ2TimerType *pTimerType;
 EQLIB_VAR class MQ2RaidType *pRaidType;
 EQLIB_VAR class MQ2RaidMemberType *pRaidMemberType;
 
+EQLIB_VAR class MQ2GroupType *pGroupType;
+EQLIB_VAR class MQ2GroupMemberType *pGroupMemberType;
+
 #define UseTemp(mystring) strcpy(DataTypeTemp,mystring)
 #define TypeMember(name) AddMember((DWORD)name,""#name)
 
@@ -2757,6 +2760,99 @@ public:
 	}
 }; 
 #endif
+
+class MQ2GroupType : public MQ2Type
+{
+public:
+   static enum GroupMembers
+   {
+	   xMember=1,
+	   Members=2,
+	   Leader=3,
+   };
+	static enum GroupMethods
+	{
+	};
+   MQ2GroupType():MQ2Type("group")
+   {
+	  AddMember(xMember,"Member");
+	  TypeMember(Members);
+	  TypeMember(Leader);
+   }
+
+   ~MQ2GroupType()
+   {
+   }
+
+   bool GETMEMBER();
+	//DECLAREGETMETHOD();
+
+   bool ToString(MQ2VARPTR VarPtr, PCHAR Destination)
+   {
+	   return false;
+   }
+	bool FromData(MQ2VARPTR &VarPtr, MQ2TYPEVAR &Source)
+	{
+		return false;
+	}
+	bool FromString(MQ2VARPTR &VarPtr, PCHAR Source)
+	{
+		return false;
+	}
+}; 
+
+class MQ2GroupMemberType : public MQ2Type
+{
+public:
+   static enum GroupMemberMembers
+   {
+	   Name=1,
+	   Leader=2,
+	   Spawn=3,
+   };
+	static enum GroupMemberMethods
+	{
+	};
+   MQ2GroupMemberType():MQ2Type("groupmember")
+   {
+	  TypeMember(Name);
+	  TypeMember(Leader);
+	  TypeMember(Spawn);
+   }
+
+   ~MQ2GroupMemberType()
+   {
+   }
+
+   bool GETMEMBER();
+	//DECLAREGETMETHOD();
+
+   bool ToString(MQ2VARPTR VarPtr, PCHAR Destination)
+   {
+		DWORD nGroupMember=VarPtr.DWord-1;
+		/*
+		if (VarPtr.DWord>=72)
+			return false;
+		if (!pGroup->GroupMemberUsed[nGroupMember])
+			return false;
+		PEQGroupMEMBER pGroupMember=&pGroup->GroupMember[nGroupMember];
+	   strcpy(Destination,pGroupMember->Name);
+	   return true;
+	   /**/
+		return false;
+   }
+	bool FromData(MQ2VARPTR &VarPtr, MQ2TYPEVAR &Source)
+	{
+		if (Source.Type!=pGroupMemberType)
+			return false;
+		VarPtr.Ptr=Source.Ptr;
+		return true;
+	}
+	bool FromString(MQ2VARPTR &VarPtr, PCHAR Source)
+	{
+		return false;
+	}
+}; 
 
 class MQ2RaidType : public MQ2Type
 {

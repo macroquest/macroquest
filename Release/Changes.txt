@@ -1,3 +1,20 @@
+7 March 2005 by dkaa
+- Fixed the Buff and Song ID members
+
+6 March 2005 by Lax
+- Added group datatype. members are as follows:
+  * groupmember Member[n]: n is 1 to 5 (0 gives self)
+  * int Member[name]: Gives the number, as used above
+  * int Members: Total group members, excluding self
+  * groupmember Leader: The leader of the group
+- Added groupmember datatype. inherits spawn. members are as follows:
+  * string Name: Name of the group member.  Should work regardless of whether they are in zone
+  * spawn Spawn: Direct access to the group member's spawn type
+  * bool Leader: Is this the group leader?
+- Dropped GroupLeader TLO, now you should use Group.Leader
+- Dropped GroupLeaderName TLO, now you should use Group.Leader.Name
+- Group TLO now gives group datatype
+
 3 March 2005 by Lax
 - Fixed character.CurrentHPS, character.MaxHPS, character.PctHPS to use the "stable" versions..
 - Added character members STR, STA, AGI, DEX, WIS, INT, CHA, svMagic, svFire, svCold, svPoison, 

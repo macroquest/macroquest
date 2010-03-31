@@ -151,8 +151,8 @@ void InitializeMQ2Data()
 	AddMQ2Data("SelectedItem",dataSelectedItem);
 	AddMQ2Data("FindItemCount",dataFindItemCount);
 	AddMQ2Data("FindItemBankCount",dataFindItemBankCount);
-	AddMQ2Data("GroupLeader",dataGroupLeader);	
-	AddMQ2Data("GroupLeaderName",dataGroupLeaderName);
+//	AddMQ2Data("GroupLeader",dataGroupLeader);	
+//	AddMQ2Data("GroupLeaderName",dataGroupLeaderName);
 	AddMQ2Data("Skill",dataSkill);
 	AddMQ2Data("AltAbility",dataAltAbility);
 	AddMQ2Data("Raid",dataRaid);
