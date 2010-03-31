@@ -25,6 +25,8 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "MQ2CustomBinds", "MQ2Custom
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "MQ2HUD", "MQ2HUD\MQ2HUD.vcproj", "{F3077B9F-C8B6-441B-9A21-C76EA07CCE2B}"
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "ISXEQ", "MQ2Main\ISXEQ.vcproj", "{4EDFEF3C-E331-44E6-BC7A-CF25BFA2BFEA}"
+EndProject
 Global
 	GlobalSection(SolutionConfiguration) = preSolution
 		ConfigName.0 = Debug

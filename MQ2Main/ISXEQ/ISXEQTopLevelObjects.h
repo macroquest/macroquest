@@ -12,43 +12,40 @@
     GNU General Public License for more details.
 ******************************************************************************/
 
-/*
-
-// TO BE CONVERTED
-EQLIB_API BOOL dataSpawn(PCHAR szIndex, MQ2TYPEVAR &Ret);
-EQLIB_API BOOL dataTarget(PCHAR szIndex, MQ2TYPEVAR &Ret);
-EQLIB_API BOOL dataCharacter(PCHAR szIndex, MQ2TYPEVAR &Ret);
-EQLIB_API BOOL dataSpell(PCHAR szIndex, MQ2TYPEVAR &Ret);
-EQLIB_API BOOL dataSwitch(PCHAR szIndex, MQ2TYPEVAR &Ret);
-EQLIB_API BOOL dataGroundItem(PCHAR szIndex, MQ2TYPEVAR &Ret);
-EQLIB_API BOOL dataMerchant(PCHAR szIndex, MQ2TYPEVAR &Ret);
-EQLIB_API BOOL dataWindow(PCHAR szIndex, MQ2TYPEVAR &Ret);
-EQLIB_API BOOL dataMacroQuest(PCHAR szIndex, MQ2TYPEVAR &Ret);
-EQLIB_API BOOL dataZone(PCHAR szIndex, MQ2TYPEVAR &Ret);
-EQLIB_API BOOL dataGroup(PCHAR szIndex, MQ2TYPEVAR &Ret);
-EQLIB_API BOOL dataCorpse(PCHAR szIndex, MQ2TYPEVAR &Ret);
-EQLIB_API BOOL dataCursor(PCHAR szIndex, MQ2TYPEVAR &Ret);
-EQLIB_API BOOL dataNearestSpawn(PCHAR szIndex, MQ2TYPEVAR &Ret);
-EQLIB_API BOOL dataGameTime(PCHAR szIndex, MQ2TYPEVAR &Ret);
-EQLIB_API BOOL dataTime(PCHAR szIndex, MQ2TYPEVAR &Ret);
-EQLIB_API BOOL dataIni(PCHAR szIndex, MQ2TYPEVAR &Ret);
-EQLIB_API BOOL dataHeading(PCHAR szIndex, MQ2TYPEVAR &Ret);
-EQLIB_API BOOL dataDefined(PCHAR szIndex, MQ2TYPEVAR &Ret);
-EQLIB_API BOOL dataLastSpawn(PCHAR szIndex, MQ2TYPEVAR &Ret);
-EQLIB_API BOOL dataInvSlot(PCHAR szIndex, MQ2TYPEVAR &Ret);
-EQLIB_API BOOL dataFindItem(PCHAR szIndex, MQ2TYPEVAR &Ret);
-EQLIB_API BOOL dataSelectedItem(PCHAR szIndex, MQ2TYPEVAR &Ret);
-EQLIB_API BOOL dataFindItemBank(PCHAR szIndex, MQ2TYPEVAR &Ret);
-EQLIB_API BOOL dataFindItemCount(PCHAR szIndex, MQ2TYPEVAR &Ret);
-EQLIB_API BOOL dataFindItemBankCount(PCHAR szIndex, MQ2TYPEVAR &Ret);
-EQLIB_API BOOL dataGroupLeader(PCHAR szIndex, MQ2TYPEVAR &Ret);
-EQLIB_API BOOL dataGroupLeaderName(PCHAR szIndex, MQ2TYPEVAR &Ret);
-EQLIB_API BOOL dataSkill(PCHAR szIndex, MQ2TYPEVAR &Ret);
-EQLIB_API BOOL dataAltAbility(PCHAR szIndex, MQ2TYPEVAR &Ret);
-EQLIB_API BOOL dataRaid(PCHAR szIndex, MQ2TYPEVAR &Ret);
-EQLIB_API BOOL dataNamingSpawn(PCHAR szIndex, MQ2TYPEVAR &Ret);
-EQLIB_API BOOL dataSpawnCount(PCHAR szIndex, MQ2TYPEVAR &Ret);
-EQLIB_API BOOL dataLineOfSight(PCHAR szIndex, MQ2TYPEVAR &Ret);
+EQLIB_API BOOL dataSpawn(int argc, char *argv[], MQ2TYPEVAR &Ret);
+EQLIB_API BOOL dataTarget(int argc, char *argv[], MQ2TYPEVAR &Ret);
+EQLIB_API BOOL dataCharacter(int argc, char *argv[], MQ2TYPEVAR &Ret);
+EQLIB_API BOOL dataSpell(int argc, char *argv[], MQ2TYPEVAR &Ret);
+EQLIB_API BOOL dataSwitch(int argc, char *argv[], MQ2TYPEVAR &Ret);
+EQLIB_API BOOL dataGroundItem(int argc, char *argv[], MQ2TYPEVAR &Ret);
+EQLIB_API BOOL dataMerchant(int argc, char *argv[], MQ2TYPEVAR &Ret);
+EQLIB_API BOOL dataWindow(int argc, char *argv[], MQ2TYPEVAR &Ret);
+EQLIB_API BOOL dataMacroQuest(int argc, char *argv[], MQ2TYPEVAR &Ret);
+EQLIB_API BOOL dataZone(int argc, char *argv[], MQ2TYPEVAR &Ret);
+EQLIB_API BOOL dataGroup(int argc, char *argv[], MQ2TYPEVAR &Ret);
+EQLIB_API BOOL dataCorpse(int argc, char *argv[], MQ2TYPEVAR &Ret);
+EQLIB_API BOOL dataCursor(int argc, char *argv[], MQ2TYPEVAR &Ret);
+EQLIB_API BOOL dataNearestSpawn(int argc, char *argv[], MQ2TYPEVAR &Ret);
+EQLIB_API BOOL dataGameTime(int argc, char *argv[], MQ2TYPEVAR &Ret);
+EQLIB_API BOOL dataTime(int argc, char *argv[], MQ2TYPEVAR &Ret);
+EQLIB_API BOOL dataIni(int argc, char *argv[], MQ2TYPEVAR &Ret);
+EQLIB_API BOOL dataHeading(int argc, char *argv[], MQ2TYPEVAR &Ret);
+EQLIB_API BOOL dataDefined(int argc, char *argv[], MQ2TYPEVAR &Ret);
+EQLIB_API BOOL dataLastSpawn(int argc, char *argv[], MQ2TYPEVAR &Ret);
+EQLIB_API BOOL dataInvSlot(int argc, char *argv[], MQ2TYPEVAR &Ret);
+EQLIB_API BOOL dataFindItem(int argc, char *argv[], MQ2TYPEVAR &Ret);
+EQLIB_API BOOL dataSelectedItem(int argc, char *argv[], MQ2TYPEVAR &Ret);
+EQLIB_API BOOL dataFindItemBank(int argc, char *argv[], MQ2TYPEVAR &Ret);
+EQLIB_API BOOL dataFindItemCount(int argc, char *argv[], MQ2TYPEVAR &Ret);
+EQLIB_API BOOL dataFindItemBankCount(int argc, char *argv[], MQ2TYPEVAR &Ret);
+EQLIB_API BOOL dataGroupLeader(int argc, char *argv[], MQ2TYPEVAR &Ret);
+EQLIB_API BOOL dataGroupLeaderName(int argc, char *argv[], MQ2TYPEVAR &Ret);
+EQLIB_API BOOL dataSkill(int argc, char *argv[], MQ2TYPEVAR &Ret);
+EQLIB_API BOOL dataAltAbility(int argc, char *argv[], MQ2TYPEVAR &Ret);
+EQLIB_API BOOL dataRaid(int argc, char *argv[], MQ2TYPEVAR &Ret);
+EQLIB_API BOOL dataNamingSpawn(int argc, char *argv[], MQ2TYPEVAR &Ret);
+EQLIB_API BOOL dataSpawnCount(int argc, char *argv[], MQ2TYPEVAR &Ret);
+EQLIB_API BOOL dataLineOfSight(int argc, char *argv[], MQ2TYPEVAR &Ret);
 
 
 /**/

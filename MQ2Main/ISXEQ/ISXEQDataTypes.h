@@ -12,7 +12,6 @@
     GNU General Public License for more details.
 ******************************************************************************/
 
-/*
 // TO BE CONVERTED
 EQLIB_VAR class MQ2SpawnType *pSpawnType;
 EQLIB_VAR class MQ2CharacterType *pCharacterType;
@@ -43,7 +42,6 @@ EQLIB_VAR class MQ2ItemType *pItemType;
 EQLIB_VAR class MQ2DeityType *pDeityType;
 EQLIB_VAR class MQ2ArgbType *pArgbType;
 EQLIB_VAR class MQ2TypeType *pTypeType;
-EQLIB_VAR class MQ2TimeType *pTimeType;
 
 EQLIB_VAR class MQ2HeadingType *pHeadingType;
 

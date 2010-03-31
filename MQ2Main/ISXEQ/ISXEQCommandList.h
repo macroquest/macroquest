@@ -12,16 +12,12 @@
     GNU General Public License for more details.
 ******************************************************************************/
 
-#if !defined(CINTERFACE)
-#error /DCINTERFACE
-#endif
-
-#define DBG_SPEW
-
-#include "..\MQ2Main.h"
+COMMAND("Keypress",CMD_Keypress,true,false);
+COMMAND("EQExecute",CMD_EQExecute,true,false);
+COMMAND("MQ2Bind",CMD_MQ2Bind,true,false);
 
 /*
-// COMMANDS TO CONVERT
+// TO BE CONVERTED
 EQLIB_API VOID NoModKeyCmd(PSPAWNINFO pChar, PCHAR szLine);
 EQLIB_API VOID CaptionColorCmd(PSPAWNINFO pChar, PCHAR szLine);
 EQLIB_API VOID CaptionCmd(PSPAWNINFO pChar, PCHAR szLine);
@@ -32,7 +28,6 @@ EQLIB_API VOID DoShiftCmd(PSPAWNINFO pChar, PCHAR szLine);
 EQLIB_API VOID DoCtrlCmd(PSPAWNINFO pChar, PCHAR szLine);
 EQLIB_API VOID DoAltCmd(PSPAWNINFO pChar, PCHAR szLine);
 EQLIB_API VOID DumpBindsCommand(PSPAWNINFO pChar, PCHAR szLine);
-EQLIB_API VOID LoadCfgCommand(PSPAWNINFO pChar, PCHAR szLine);
 EQLIB_API VOID do_ranged(PSPAWNINFO pChar, PCHAR szLine);
 EQLIB_API VOID MQ2KeyBindCommand(PSPAWNINFO pChar, PCHAR szLine);
 EQLIB_API VOID Alert                               (PSPAWNINFO,PCHAR);
@@ -82,58 +77,4 @@ EQLIB_API VOID UpdateItemInfo                      (PSPAWNINFO,PCHAR);
 EQLIB_API VOID Where                               (PSPAWNINFO,PCHAR);
 EQLIB_API VOID PopupText                           (PSPAWNINFO,PCHAR);
 /**/
-
-//EQLIB_API VOID DoMappable(PSPAWNINFO pChar, PCHAR szLine)
-int CMD_Keypress(int argc, char *argv[])
-{
-	if (argc<2)
-	{
-		printf("Syntax: %s <eqcommand|keycombo> [hold|chat]",argv[0]);
-		return 0;
-	}
-	bool bHold=false;
-	bool bChat=false;
-	if (argc==3)
-	{
-		if (!stricmp(argv[2],"hold"))
-		{
-			bHold=true;
-		}
-		else if (!stricmp(argv[2],"chat"))
-		{
-			bChat=true;
-		}
-	}
-	if (!PressMQ2KeyBind(argv[1],bHold))
-	{
-		int N=FindMappableCommand(argv[1]);
-		if (N>=0)
-		{
-			ExecuteCmd(N,1,0);
-			if (!bHold)
-				ExecuteCmd(N,0,0);
-			return 0;
-		}
-		KeyCombo Temp;
-		if (ParseKeyCombo(argv[1],Temp))
-		{
-			if (bChat)
-			{
-				pWndMgr->HandleKeyboardMsg(Temp.Data[3],1);
-				pWndMgr->HandleKeyboardMsg(Temp.Data[3],0);
-			}
-			else
-			{
-				MQ2HandleKeyDown(Temp);
-				if (!bHold)
-					MQ2HandleKeyUp(Temp);
-			}
-			return 0;
-		}
-
-		printf("Invalid mappable command or key combo '%s'",argv[1]);
-		return -1;
-	}
-	return 0;
-}
 

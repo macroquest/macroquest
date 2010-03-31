@@ -14,13 +14,16 @@ extern "C" {
 __declspec(dllexport) ITEMINFO g_Item;
 }
 
-
 // *************************************************************************** 
 // Function:    ItemDisplayHook
 // Description: Our Item display hook 
 // *************************************************************************** 
 class ItemDisplayHook
 {
+   typedef enum {None = 0, Clicky, Proc, Worn, Focus, Scroll} SEffectType;
+
+   static bool bNoSpellTramp;
+   static SEffectType eEffectType;
 public:
    VOID SetItem_Trampoline(class EQ_Item *pitem,bool unknown);
    VOID SetItem_Detour(class EQ_Item *pitem,bool unknown)
@@ -82,7 +85,7 @@ public:
        if (Item->Proc.RequiredLevel == 0 ) 
           sprintf(temp, "Procs at level 1 (Proc rate modifier: %d)<BR>", Item->ProcRate); 
       else 
-         sprintf(temp,"Procs at level %d (Proc rate modifier: %d)<BR>",Item->Proc.EffectType, Item->ProcRate); 
+         sprintf(temp,"Procs at level %d (Proc rate modifier: %d)<BR>",Item->Proc.RequiredLevel, Item->ProcRate);
        strcat(out,temp); 
      } 
    /* No longer needed? 
@@ -109,7 +112,7 @@ public:
      }
 
 	 // TheColonel (12/24/2003)
-     if (Item->LDTheme != 0) { 
+     if (Item->LDTheme != 0 && Item->LDTheme <= 5) { // Ziggy: Some themes now > 5 and mean?
         if(Item->LDCost == 0) 
           sprintf(temp,"This drops in %s dungeons<BR>", szTheme[Item->LDTheme]); 
         else 
@@ -140,6 +143,35 @@ public:
 	  //((CXStr)This->ItemInfo)+=
       AppendCXStr(&This->ItemInfo,&out[0]);
      }
+
+      // Ziggy - Items showing their spell details:
+      bNoSpellTramp=true;
+      if (Item->Clicky.SpellID > 0 && Item->Clicky.SpellID != -1) {
+         eEffectType = Clicky;
+         SetSpell_Detour(Item->Clicky.SpellID, false, 0);
+      }
+
+      if (Item->Proc.SpellID > 0 && Item->Proc.SpellID != -1) {
+         eEffectType = Proc;
+         SetSpell_Detour(Item->Proc.SpellID, false, 0);
+      }
+
+      if (Item->Worn.SpellID > 0 && Item->Worn.SpellID != -1) {
+         eEffectType = Worn;
+         SetSpell_Detour(Item->Worn.SpellID, false, 0);
+      }
+
+      if (Item->Focus.SpellID > 0 && Item->Focus.SpellID != -1) {
+         eEffectType = Focus;
+         SetSpell_Detour(Item->Focus.SpellID, false, 0);
+      }
+
+      if (Item->Scroll.SpellID > 0 && Item->Scroll.SpellID != -1) {
+         eEffectType = Scroll;
+         SetSpell_Detour(Item->Scroll.SpellID, false, 0);
+      }
+      bNoSpellTramp=false;
+      eEffectType = None;
    }
 
    VOID SetSpell_Trampoline(int SpellID,bool HasSpellDescr,int unknown_int);
@@ -149,11 +181,43 @@ public:
      PCHARINFO pCharInfo = NULL;
      if (NULL == (pCharInfo = GetCharInfo())) return;
      PSPELL pSpell = GetSpellByID(SpellID);
+     if (pSpell == NULL) {
+        return;
+     }
 
      CHAR out[MAX_STRING] = {0};
      CHAR temp[MAX_STRING] = {0};
-     SetSpell_Trampoline(SpellID,HasSpellDescr,unknown_int);
-	 strcpy(out,"<BR><c \"#00FFFF\">");
+     if (!bNoSpellTramp) {
+        SetSpell_Trampoline(SpellID,HasSpellDescr,unknown_int);
+        strcpy(out,"<BR><c \"#00FFFF\">");
+     } else {
+        char * cColour = "FF0000", * cName = "Blub";
+
+        switch (eEffectType) {
+           case Clicky:
+              cColour = "00FF00";
+              cName = "Clicky";
+              break;
+           case Proc:
+              cColour = "FF00FF";
+              cName = "Proc";
+              break;
+           case Worn:
+              cColour = "FFFF00";
+              cName = "Worn";
+              break;
+           case Focus:
+              cColour = "9F9F00";
+              cName = "Focus";
+              break;
+           case Scroll:
+              cColour = "9F9F9F";
+              cName = "Scroll";
+              break;
+        }
+
+        sprintf (out, "<BR><c \"#%s\">Spell Info for %s effect: %s<br>", cColour, cName, pSpell->Name);
+     }
 
 	 sprintf(temp, "ID: %04d&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;", pSpell->ID );
 	 strcat(out,temp);
@@ -202,13 +266,14 @@ public:
 
 	 if (pSpell->TargetType != 0x06 && pSpell->TargetType != 0x0e && pSpell->TargetType != 0x03 && pSpell->TargetType != 0x28 && pSpell->TargetType != 0x29 ) {
 		switch(pSpell->Resist) {
+         case 7:   strcat(out, "Resist: Prismatic" ); break;      // ?? Ian
 			case 6:	strcat(out, "Resist: Chromatic" ); break;
 			case 5:	strcat(out, "Resist: Disease" ); break;
 			case 4:	strcat(out, "Resist: Poison" ); break;
 			case 3:	strcat(out, "Resist: Cold/Ice" ); break;
 			case 2:	strcat(out, "Resist: Fire" ); break;
 			case 1:	strcat(out, "Resist: Magic" ); break;
-			case 0:	strcat(out, "Resist: Unresistable" ); break;
+         case 0:  strcat(out, "Resist: Unresistable"); break;
 		}
 		if (pSpell->ResistAdj != 0 ) {
 			sprintf(temp, "&nbsp;&nbsp;&nbsp;(Resist Adj.: %d)<br>", pSpell->ResistAdj );
@@ -258,6 +323,9 @@ public:
      }
    }
 };
+
+ItemDisplayHook::SEffectType ItemDisplayHook::eEffectType = None;
+bool ItemDisplayHook::bNoSpellTramp = false;
 
 DETOUR_TRAMPOLINE_EMPTY(VOID ItemDisplayHook::SetItem_Trampoline(class EQ_Item *,bool)); 
 DETOUR_TRAMPOLINE_EMPTY(VOID ItemDisplayHook::SetSpell_Trampoline(int SpellID,bool HasSpellDescr,int));

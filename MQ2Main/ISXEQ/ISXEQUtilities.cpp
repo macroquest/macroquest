@@ -17,10 +17,16 @@
 #endif
 
 #define DBG_SPEW
-//#define DBG_TRY
 
 #include "..\MQ2Main.h"
 
 /*
 
 /**/
+
+VOID CheckChatForEvent(PCHAR szMsg)
+{
+	strcpy(EventMsg,szMsg);
+	pMQ2Blech->Feed(szMsg);
+	pEventBlech->Feed(szMsg);
+}

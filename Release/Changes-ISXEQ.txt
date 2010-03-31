@@ -1,0 +1,27 @@
+4 February 2005 by Lax
+- ISXEQ now does stuff, and I've found some issues in IS that will be corrected soon.
+  ISXEQ does require ISXDK v7 which is not yet available, but will be if anyone reads
+  this and asks...
+- Memory protection works correctly
+- IS commands (including ISXEQ commands) can be entered from EQ by prefixing with #, 
+  e.g. #echo hi.  This may be changed in the future, but is acceptable for now
+- EQ commands can be entered from IS by using the "EQExecute" command, e.g. EQExecute /who
+- /keypress converted
+- /bind converted (to MQ2Bind, since bind is already used in IS)
+- Still plenty to do:
+  * Commands must be converted
+  * Command API can be udpated to add a method of executing ISXEQ commands with /command
+  * Data types
+  * Top-Level Objects
+
+1 February 2005 by Lax
+- ISXEQ now compiles, but does not do everything yet (actually, with no changes does
+  nothing more than enable memory protection)
+  * Initialization and shutdown sequences must be completed
+  * Commands must be converted
+  * Command API must be converted -- use MQ2's command injection system, and also use
+    slash-less versions of each command for the IS console
+  * Data types must be converted
+  * Top level objects must be converted
+- Services are completed, which use MQ2's existing Plugin functionality but transfer
+  the function calls to service broadcasts

@@ -25,6 +25,12 @@ HISXSERVICE hPulseService;
 HISXSERVICE hMemoryService;
 HISXSERVICE hHTTPService;
 
+HISXSERVICE hChatService;
+HISXSERVICE hUIService;
+HISXSERVICE hGamestateService;
+HISXSERVICE hSpawnService;
+HISXSERVICE hZoneService;
+
 // Forward declarations of callbacks
 void __cdecl PulseService(bool Broadcast, unsigned long MSG, void *lpData);
 void __cdecl MemoryService(bool Broadcast, unsigned long MSG, void *lpData);
@@ -47,6 +53,8 @@ CISXEQ::~CISXEQ(void)
 {
 }
 
+extern bool MQ2Initialize();
+extern void MQ2Shutdown();
 // Initialize is called by Inner Space when the extension should initialize.
 bool CISXEQ::Initialize(ISInterface *p_ISInterface)
 {
@@ -68,7 +76,8 @@ bool CISXEQ::Initialize(ISInterface *p_ISInterface)
 	RegisterTopLevelObjects();
     RegisterServices();
 	HookMemChecker(TRUE);
-
+	strcpy(gszINIPath,INIFileName);
+	MQ2Initialize();
 	printf("ISXEQ Loaded");
 	return true;
 }
@@ -76,6 +85,7 @@ bool CISXEQ::Initialize(ISInterface *p_ISInterface)
 // shutdown sequence
 void CISXEQ::Shutdown()
 {
+	MQ2Shutdown();
 	DisconnectServices();
 
 	UnRegisterServices();
@@ -116,14 +126,20 @@ void CISXEQ::RegisterDataTypes()
 
 void CISXEQ::RegisterTopLevelObjects()
 {
-	// add any data items (Top-Level Objects)
-	//pISInterface->AddISData("ISXEQ",ISXEQData);
+	// add any Top-Level Objects
+	//pISInterface->AddTopLevelObject("ISXEQ",ISXEQData);
 }
 
 void CISXEQ::RegisterServices()
 {
 	hEQProtectionService=pISInterface->RegisterService(this,"EQ Memory Protection Service",ProtectionRequest);
 	pISInterface->ServiceRequest(this,hMemoryService,MEM_ENABLEPROTECTION,"EQ Memory Protection Service");
+
+	hChatService=pISInterface->RegisterService(this,"EQ Chat Service",0);
+	hUIService=pISInterface->RegisterService(this,"EQ UI Service",0);
+	hGamestateService=pISInterface->RegisterService(this,"EQ Gamestate Service",0);
+	hSpawnService=pISInterface->RegisterService(this,"EQ Spawn Service",0);
+	hZoneService=pISInterface->RegisterService(this,"EQ Zone Service",0);
 
 }
 
@@ -163,7 +179,7 @@ void CISXEQ::UnRegisterDataTypes()
 void CISXEQ::UnRegisterTopLevelObjects()
 {
 	// remove data items
-//	pISInterface->RemoveISData("ISXEQ");
+//	pISInterface->RemoveTopLevelObject("ISXEQ");
 }
 void CISXEQ::UnRegisterServices()
 {
@@ -173,6 +189,16 @@ void CISXEQ::UnRegisterServices()
 		pISInterface->ServiceRequest(this,hMemoryService,MEM_DISABLEPROTECTION,"EQ Memory Protection Service");
 		pISInterface->ShutdownService(this,hEQProtectionService);
 	}
+	if (hChatService)
+		pISInterface->ShutdownService(this,hChatService);
+	if (hUIService)
+		pISInterface->ShutdownService(this,hUIService);
+	if (hGamestateService)
+		pISInterface->ShutdownService(this,hGamestateService);
+	if (hSpawnService)
+		pISInterface->ShutdownService(this,hSpawnService);
+	if (hZoneService)
+		pISInterface->ShutdownService(this,hZoneService);
 }
 
 bool CISXEQ::Protect(unsigned long Address, unsigned long Size)
@@ -213,21 +239,47 @@ extern int __cdecl memcheck2(unsigned char *buffer, int count, struct mckey key)
 extern int __cdecl memcheck3(unsigned char *buffer, int count, struct mckey key);
 extern int __cdecl memcheck4(unsigned char *buffer, int count, struct mckey key);
 extern VOID memchecks_tramp(PVOID,DWORD,PCHAR,DWORD,BOOL);
-extern int (__cdecl *memcheck0_tramp)(unsigned char *buffer, int count);
-extern int (__cdecl *memcheck1_tramp)(unsigned char *buffer, int count, struct mckey key);
-extern int (__cdecl *memcheck2_tramp)(unsigned char *buffer, int count, struct mckey key);
-extern int (__cdecl *memcheck3_tramp)(unsigned char *buffer, int count, struct mckey key);
-extern int (__cdecl *memcheck4_tramp)(unsigned char *buffer, int count, struct mckey key);
+
+// this is the memory checker key struct
+struct mckey {
+    union {
+        int x;
+        unsigned char a[4];
+        char sa[4];
+    };
+};
+DETOUR_TRAMPOLINE_EMPTY(int __cdecl memcheck0_tramp(unsigned char *buffer, int count));
+DETOUR_TRAMPOLINE_EMPTY(int __cdecl memcheck1_tramp(unsigned char *buffer, int count, struct mckey key));
+DETOUR_TRAMPOLINE_EMPTY(int __cdecl memcheck2_tramp(unsigned char *buffer, int count, struct mckey key));
+DETOUR_TRAMPOLINE_EMPTY(int __cdecl memcheck3_tramp(unsigned char *buffer, int count, struct mckey key));
+DETOUR_TRAMPOLINE_EMPTY(int __cdecl memcheck4_tramp(unsigned char *buffer, int count, struct mckey key));
+
+
 
 VOID CISXEQ::HookMemChecker(BOOL Patch)
 {
     if (Patch) {
 
-		EzDetour(__MemChecker0,memcheck0,memcheck0_tramp);
-		EzDetour(__MemChecker2,memcheck2,memcheck2_tramp);
-		EzDetour(__MemChecker3,memcheck3,memcheck3_tramp);
-		EzDetour(__MemChecker4,memcheck4,memcheck4_tramp);
-		EzDetour(__SendMessage,memchecks,memchecks_tramp);
+		if (!EzDetour(__MemChecker0,memcheck0,memcheck0_tramp))
+		{
+			printf("memcheck0 detour failed");
+		}
+		if (!EzDetour(__MemChecker2,memcheck2,memcheck2_tramp))
+		{
+			printf("memcheck2 detour failed");
+		}
+		if (!EzDetour(__MemChecker3,memcheck3,memcheck3_tramp))
+		{
+			printf("memcheck3 detour failed");
+		}
+		if (!EzDetour(__MemChecker4,memcheck4,memcheck4_tramp))
+		{
+			printf("memcheck4 detour failed");
+		}
+		if (!EzDetour(__SendMessage,memchecks,memchecks_tramp))
+		{
+			printf("memchecks detour failed");
+		}
     } else {
 		EzUnDetour(__MemChecker0);
 		EzUnDetour(__MemChecker2);
@@ -237,12 +289,13 @@ VOID CISXEQ::HookMemChecker(BOOL Patch)
     }
 }
 
-
+extern void Heartbeat();
 void __cdecl PulseService(bool Broadcast, unsigned long MSG, void *lpData)
 {
 	if (MSG==PULSE_PULSE)
 	{
 		// "OnPulse"
+		Heartbeat();
 	}
 }
 
@@ -277,6 +330,7 @@ void __cdecl ProtectionRequest(ISXInterface *pClient, unsigned long MSG, void *l
    case MEMPROTECT_PROTECT:
 #define pData ((MemProtect*)lpData)
 	   pData->Success=pExtension->Protect(pData->Address,pData->Length);
+	   printf("Protection: %X for %d length, success=%d",pData->Address,pData->Length,pData->Success);
 #undef pData
 	   break;
    case MEMPROTECT_UNPROTECT:

@@ -2835,6 +2835,7 @@ PCHAR DescribeKeyCombo(KeyCombo &Combo, PCHAR szDest)
 	return &szDest[0];	
 }
 
+#ifndef ISXEQ
 BOOL LoadCfgFile(PCHAR Filename, BOOL Delayed)
 {
 	FILE *file;
@@ -2862,12 +2863,14 @@ havecfgfile:
 	{
 		PCHAR Cmd=strtok(szBuffer,"\r\n");
 		if (Cmd && Cmd[0])
+		{
 			HideDoCommand(((PSPAWNINFO)pLocalPlayer),Cmd,Delayed);
+		}
 	}
 	fclose(file);
 	return true;
 }
-
+#endif
 
 int FindInvSlotForContents(PCONTENTS pContents)
 {

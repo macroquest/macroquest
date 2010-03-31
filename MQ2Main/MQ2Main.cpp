@@ -226,9 +226,9 @@ BOOL ParseINIFile(PCHAR lpINIPath)
 }
 
 
-bool MQ2Initialize()
+bool __cdecl MQ2Initialize()
 {
-    if (!ParseINIFile(gszINIPath)) 
+	if (!ParseINIFile(gszINIPath)) 
 	{
         DebugSpewAlways("ParseINIFile returned false - thread aborted.");
         g_Loaded = FALSE;
@@ -299,7 +299,7 @@ bool MQ2Initialize()
 	return true;
 }
 
-void MQ2Shutdown()
+void __cdecl MQ2Shutdown()
 {
 	DebugTry(ShutdownMQ2KeyBinds());
 	DebugTry(ShutdownMQ2Spawns());

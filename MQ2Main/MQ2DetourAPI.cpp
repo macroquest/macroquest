@@ -183,12 +183,13 @@ unsigned int *extern_array0 = NULL;
 unsigned int *extern_array1 = NULL;
 unsigned int *extern_array2 = NULL;
 unsigned int *extern_array3 = NULL;
+#ifndef ISXEQ
 int __cdecl memcheck0(unsigned char *buffer, int count);
 int __cdecl memcheck1(unsigned char *buffer, int count, struct mckey key);
 int __cdecl memcheck2(unsigned char *buffer, int count, struct mckey key);
 int __cdecl memcheck3(unsigned char *buffer, int count, struct mckey key);
 int __cdecl memcheck4(unsigned char *buffer, int count, struct mckey key);
-
+#endif
 
 DETOUR_TRAMPOLINE_EMPTY(VOID memchecks_tramp(PVOID,DWORD,PCHAR,DWORD,BOOL)); 
 

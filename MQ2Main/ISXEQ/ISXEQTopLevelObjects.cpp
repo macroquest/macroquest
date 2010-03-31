@@ -17,6 +17,5 @@
 #endif
 
 #define DBG_SPEW
-//#define DBG_TRY
 
 #include "..\MQ2Main.h"

@@ -64,12 +64,20 @@ Using Blech:
 
 #pragma once
 
-#define BLECHVERSION "Lax/Blech 1.6.5"
+#define BLECHVERSION "Lax/Blech 1.6.6"
 
 #include <map>
 #include <string>
 
 //#ifdef WIN32
+
+#ifdef BLECH_DEBUG_FULL
+#define BLECH_DEBUG
+#define BlechDebugFull BlechDebug
+#else
+#define BlechDebugFull
+#endif
+
 #ifdef BLECH_DEBUG
 //#pragma message(BLECHVERSION)
 //#pragma message("Blech: Debug Mode")
@@ -160,7 +168,7 @@ typedef struct _BLECHEVENTNODE {
 
 static unsigned long Equalness(char *StringA, char *StringB)
 {
-	BlechDebug("Equalness(%s,%s)",StringA,StringB);
+	BlechDebugFull("Equalness(%s,%s)",StringA,StringB);
 	char *pPos=StringA;
 	while(1)
 	{
@@ -187,7 +195,7 @@ static unsigned long Equalness(char *StringA, char *StringB)
 			}
 #endif
 			unsigned long Ret=(unsigned long)(pPos-StringA);
-				BlechDebug("Equalness returning %d",Ret);
+				BlechDebugFull("Equalness returning %d",Ret);
 			return Ret;
 		}
 		else
@@ -195,7 +203,7 @@ static unsigned long Equalness(char *StringA, char *StringB)
 			if (!*pPos)
 			{
 				unsigned long Ret=(unsigned long)(pPos-StringA);
-				BlechDebug("Equalness returning %d",Ret);
+				BlechDebugFull("Equalness returning %d",Ret);
 				return Ret;
 			}
 		}
@@ -596,7 +604,7 @@ private:
 
 	static char *stristr(char *haystack,char *needle)
 	{
-		BlechDebug("stristr(%s,%s)",haystack,needle);
+		BlechDebugFull("stristr(%s,%s)",haystack,needle);
 		unsigned long HaystackLength=(unsigned long)strlen(haystack);
 		unsigned long NeedleLength=(unsigned long)strlen(needle);
 		if (NeedleLength>HaystackLength)
@@ -694,7 +702,7 @@ private:
 
 		if (!nVariableNodes)
 		{
-			BlechDebug("No variable nodes");
+			BlechDebugFull("No variable nodes");
 			// if there's no variable nodes, just make sure the lengths match
 			unsigned long TestLength=0;
 			pCurrent=pNode;
@@ -945,7 +953,7 @@ queueeventscleanup:
 				switch(pNode->StringType)
 				{
 				case BST_NORMAL:
-					BlechDebug("BST_NORMAL");
+					BlechDebugFull("BST_NORMAL");
 					if (CurrentPos.Pos+pNode->Length<pEnd)
 					{
 						if (char *pFound=STRFIND(CurrentPos.Pos,pNode->pString))
@@ -970,7 +978,7 @@ queueeventscleanup:
 					}
 					goto feedernomatch;
 				case BST_PRINTVAR:
-					BlechDebug("BST_PRINTVAR");
+					BlechDebugFull("BST_PRINTVAR");
 					// variable data of unknown size
 					BlechTry(pNode->Length=VariableValue(pNode->pString,VarData));
 					if (!pNode->Length)
@@ -1008,7 +1016,7 @@ queueeventscleanup:
 					}
 					goto feedernomatch;
 				case BST_SCANVAR:
-					BlechDebug("BST_SCANVAR");
+					BlechDebugFull("BST_SCANVAR");
 					// implied match
 					MatchStack[PLP+1].pNode=0;
 					if (!pNode->pChildren || pNode->pEvents)
@@ -1025,7 +1033,7 @@ feedermatchdoevents:
 			}
 feedermatchnoevent:
 			{
-				BlechDebug("feedermatchnoevent");
+				BlechDebugFull("feedermatchnoevent");
 				// MATCH, ALREADY EXECUTED ANY NECESSARY EVENTS
 				// continue walking tree
 				if (pNode->pChildren)
@@ -1262,7 +1270,7 @@ feedernomatch:
 
 	inline void Initialize()
 	{
-		BlechDebug("Initialize()");
+		BlechDebugFull("Initialize()");
 		strcpy(Version,BLECHVERSION); // store version string always
 		BlechDebug(Version);
 		LastID=0;

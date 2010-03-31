@@ -186,11 +186,12 @@ void InitializeMQ2Windows()
 	EzDetour(CSidlScreenWnd__SetScreen,SetScreenHook::SetScreen_Detour,SetScreenHook::SetScreen_Trampoline);
 	EzDetour(CXWndManager__RemoveWnd,CXWndManagerHook::RemoveWnd_Detour,CXWndManagerHook::RemoveWnd_Trampoline);
 
-
+#ifndef ISXEQ
 	AddCommand("/windows",ListWindows,false,true,false);
 	AddCommand("/notify",WndNotify,false,true,false);
 	AddCommand("/itemnotify",ItemNotify,false,true,false);
 	AddCommand("/itemslots",ListItemSlots,false,true,false);
+#endif
 
 	if (pWndMgr)
 	{
@@ -270,10 +271,12 @@ void InitializeMQ2Windows()
 void ShutdownMQ2Windows()
 {
 	DebugSpew("Shutting down MQ2 Windows");
+#ifndef ISXEQ
 	RemoveCommand("/windows");
 	RemoveCommand("/notify");
 	RemoveCommand("/itemnotify");
 	RemoveCommand("/itemslots");
+#endif
 	RemoveDetour(CXMLSOMDocumentBase__XMLRead);
 	RemoveDetour(CSidlScreenWnd__SetScreen);
 	RemoveDetour(CXWndManager__RemoveWnd);
@@ -511,6 +514,7 @@ bool SendWndClick(CXWnd *pWnd, PCHAR ClickNotification)
 	return false;
 }
 
+#define MacroError printf
 bool SendWndClick(PCHAR WindowName, PCHAR ScreenID, PCHAR ClickNotification)
 {
 	CXWnd *pWnd=FindMQ2Window(WindowName);

@@ -467,7 +467,6 @@ VOID SetNameSpriteTint(PSPAWNINFO pSpawn)
 	DebugTry(pActorEx->SetNameColor(NewColor));
 }
 
-#ifndef ISXEQ
 BOOL SetNameSpriteState(PSPAWNINFO pSpawn, bool Show)
 {
 //	DebugSpew("SetNameSpriteState(%s) --race %d body %d)",pSpawn->Name,pSpawn->Race,pSpawn->BodyType);
@@ -524,7 +523,6 @@ BOOL SetNameSpriteState(PSPAWNINFO pSpawn, bool Show)
 		return ((EQPlayerHook*)pSpawn)->SetNameSpriteState_Trampoline(Show);
 #undef SetCaption
 }
-#endif
 
 VOID UpdateSpawnCaptions()
 {

@@ -1,3 +1,9 @@
+8 February by Amadeus
+- Fixed MQ2 to work with the latest patch
+- Added spell information to the item display plugin
+- There is now a file in the /release folder called "Changes-ISXEQ.txt", which will
+  contain patch notes for the InnerSpace extension that is now included with MQ2.
+
 31 January 2005 by Amadeus
 - Fixed MQ2 to work with the latest patch
 - The format of eqgame.h has CHANGED.  Be sure to get this zip. [SwiftyMuse]

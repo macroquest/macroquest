@@ -95,6 +95,9 @@
 				RelativePath="ISXEQ\ISXEQDataTypes.cpp">
 			</File>
 			<File
+				RelativePath="ISXEQ\ISXEQPulse.cpp">
+			</File>
+			<File
 				RelativePath="ISXEQ\ISXEQServices.cpp">
 			</File>
 			<File
@@ -151,10 +154,16 @@
 				RelativePath="ISXEQ\ISXEQ.h">
 			</File>
 			<File
+				RelativePath="ISXEQ\ISXEQCommandList.h">
+			</File>
+			<File
 				RelativePath="ISXEQ\ISXEQCommands.h">
 			</File>
 			<File
 				RelativePath="ISXEQ\ISXEQDataTypes.h">
+			</File>
+			<File
+				RelativePath="ISXEQ\ISXEQServices.h">
 			</File>
 			<File
 				RelativePath="ISXEQ\ISXEQTopLevelObjects.h">
@@ -209,6 +218,9 @@
 				</File>
 			</Filter>
 		</Filter>
+		<File
+			RelativePath="..\Release\Changes-ISXEQ.txt">
+		</File>
 	</Files>
 	<Globals>
 	</Globals>

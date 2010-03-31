@@ -448,6 +448,128 @@ VOID MQ2KeyBindCommand(PSPAWNINFO pChar, PCHAR szLine)
 			DescribeKeyCombo((AltKey)?(pKeypressHandler->AltKey[N]):(pKeypressHandler->NormalKey[N]),szBuffer));
 	}
 }
+#else
+int CMD_MQ2Bind(int argc, char *argv[])
+{
+	unsigned long i;
+	if (argc<2)
+	{
+		WriteChatf("Usage: %s <list|eqlist|[~]name <combo|clear>>",argv[0]);
+		return 0;
+	}
+	if (!stricmp(argv[1],"list"))
+	{
+		// list binds
+		CHAR szNormal[MAX_STRING]={0};
+		CHAR szAlt[MAX_STRING]={0};
+		WriteChatColor("MQ2 Binds");
+		WriteChatColor("--------------");
+		foreach(MQ2KeyBind *pBind,i,BindList)
+		{
+			WriteChatf("[\ay%s\ax] Nrm:\at%s\ax Alt:\at%s\ax",pBind->Name,DescribeKeyCombo(pBind->Normal,szNormal),DescribeKeyCombo(pBind->Alt,szAlt));
+		}
+		WriteChatColor("--------------");
+		WriteChatColor("End MQ2 Binds");
+		return 0;
+	}
+	if (!stricmp(argv[1],"eqlist"))
+	{
+		CHAR szNormal[MAX_STRING]={0};
+		CHAR szAlt[MAX_STRING]={0};
+		// list eq binds
+		WriteChatColor("EQ Binds");
+		WriteChatColor("--------------");
+		for (i = 0 ; i < nEQMappableCommands ; i++)
+		{
+			WriteChatf("[\ay%s\ax] Nrm:\at%s\ax Alt:\at%s\ax",szEQMappableCommands[i],DescribeKeyCombo(pKeypressHandler->NormalKey[i],szNormal),DescribeKeyCombo(pKeypressHandler->AltKey[i],szAlt));
+		}
+		WriteChatColor("--------------");
+		WriteChatColor("End EQ Binds");
+		return 0;
+	}
+
+
+	KeyCombo NewCombo;
+	if (argc<3 || !ParseKeyCombo(argv[2],NewCombo))
+	{
+		WriteChatColor("Invalid key combination");
+		return 0;
+	}
+
+   if (!stricmp(argv[1],"clearcombo")) 
+   {
+        KeyCombo ClearCombo;
+        // mq2 binds
+        for (i = 0; i < BindList.Size; i++) 
+		{
+            MQ2KeyBind* pBind = BindList[i];
+            if (pBind) 
+			{
+                if (pBind->Alt == NewCombo && SetMQ2KeyBind(pBind->Name,true,ClearCombo)) 
+				{
+					WriteChatf("Alternate %s cleared",pBind->Name);
+                }
+                if (pBind->Normal == NewCombo && SetMQ2KeyBind(pBind->Name,false,ClearCombo))
+				{
+					WriteChatf("Normal %s cleared",pBind->Name);
+                }
+            }
+        }
+
+        // eq binds
+        for (i = 0; i < nEQMappableCommands; i++) 
+		{
+            if (pKeypressHandler->AltKey[i] == NewCombo && SetEQKeyBindByNumber(i,true,ClearCombo)) 
+			{
+				WriteChatf("Alternate %s cleared",szEQMappableCommands[i] );
+            }
+            if (pKeypressHandler->NormalKey[i] == NewCombo && SetEQKeyBindByNumber(i,false,ClearCombo))
+			{
+				WriteChatf("Normal %s cleared", szEQMappableCommands[i]);
+            }
+        }
+        return 0;
+    } 
+
+
+	if (argv[1][0]=='~' && SetMQ2KeyBind(&argv[1][1],1,NewCombo))
+	{
+		CHAR szBuffer[MAX_STRING]={0};
+		MQ2KeyBind *pBind=KeyBindByName(&argv[1][1]);
+		WriteChatf("Alternate %s now bound as %s",pBind->Name,DescribeKeyCombo(NewCombo,szBuffer));
+	}
+
+	if (SetMQ2KeyBind(argv[1],0,NewCombo))
+	{
+		CHAR szBuffer[MAX_STRING]={0};
+		MQ2KeyBind *pBind=KeyBindByName(argv[1]);
+		WriteChatf("Normal %s now bound as %s",pBind->Name,DescribeKeyCombo(NewCombo,szBuffer));
+		return 0;
+	}
+
+	bool AltKey=argv[1][0]=='~';
+	int N;
+	if (AltKey)
+		N=FindMappableCommand(&argv[1][1]);
+	else
+		N=FindMappableCommand(argv[1]);
+	if (N<0)
+	{
+		WriteChatColor("Unknown bind command name");
+		return 0;
+	}
+
+    if (SetEQKeyBindByNumber(N,AltKey,NewCombo))
+	{
+		CHAR szBuffer[MAX_STRING]={0};
+		WriteChatf("%s %s now bound as %s", 
+			(AltKey)?("Alternate"):("Normal"), 
+			szEQMappableCommands[N],
+			DescribeKeyCombo((AltKey)?(pKeypressHandler->AltKey[N]):(pKeypressHandler->NormalKey[N]),szBuffer));
+	}
+	return 0;
+}
+
 #endif
 
 VOID DoRangedBind(PCHAR Name,BOOL Down)
