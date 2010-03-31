@@ -64,7 +64,7 @@ Using Blech:
 
 #pragma once
 
-#define BLECHVERSION "Lax/Blech 1.6"
+#define BLECHVERSION "Lax/Blech 1.6.1"
 
 #include <map>
 #include <string>
@@ -838,8 +838,7 @@ private:
 			{
 				PBLECHVALUE pNewValue = new BLECHVALUE;
 				pNewValue->Name=strdup(pCurrentScanVar->pString);
-				pNewValue->Value=(char*)malloc(1);
-				pNewValue->Value[0]=0;
+				pNewValue->Value=strdup(Pos);
 				pNewValue->pNext=0;
 				if (pValues)
 				{
