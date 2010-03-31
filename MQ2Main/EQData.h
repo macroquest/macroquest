@@ -244,6 +244,17 @@ typedef struct _BodyInfo
 #define USERCOLOR_ECHO_CHAT_8           0xFF +  67 //  67 - chat 8 echo
 #define USERCOLOR_ECHO_CHAT_9           0xFF +  68 //  68 - chat 9 echo
 #define USERCOLOR_ECHO_CHAT_10          0xFF +  69 //  69 - chat 10 echo
+#define USERCOLOR_RESERVED              0xFF +  70 //  70 - "unused at this time" 
+#define USERCOLOR_LINK                  0xFF +  71 //  71 - item links 
+#define USERCOLOR_RAID                  0xFF +  72 //  72 - raid 
+#define USERCOLOR_PET                   0xFF +  73 //  73 - my pet 
+#define USERCOLOR_DAMAGESHIELD          0xFF +  74 //  74 - damage shields 
+#define USERCOLOR_LEADER                0xFF +  75 //  75 - LAA-related messages 
+#define USERCOLOR_PETRAMPFLURRY         0xFF +  76 //  76 - pet rampage/flurry 
+#define USERCOLOR_PETCRITS              0xFF +  77 //  77 - pet's critical hits 
+#define USERCOLOR_FOCUS                 0xFF +  78 //  78 - focus item activation 
+#define USERCOLOR_XP                    0xFF +  79 //  79 - xp gain/loss 
+#define USERCOLOR_SYSTEM                0xFF +  80 //  80 - system broadcasts etc 
 
 #define DEITY_Bertoxxulous				201
 #define DEITY_BrellSerilis				202
@@ -563,9 +574,14 @@ typedef struct _INVENTORY {
 /*0x58*/  struct	_CONTENTS* Pack[0x8]; 
 } INVENTORY, *PINVENTORY; 
 
+#define NUM_ALT_ABILITIES 0x1f7
+typedef struct _AALIST { 
+/*0x0*/   DWORD		AAIndex;
+/*0x4*/   DWORD		PointsSpent;
+} AALIST, *PAALIST;
+
 #define      NUM_BANK_SLOTS         0x12
 #define      NUM_BOOK_SLOTS         0x200
-
 // Size: 0xb4f8 on 9-7-2004
 typedef struct _CHARINFO { 
 /*0x0000*/   BYTE       Unknown0x0[0x4]; 
@@ -703,7 +719,7 @@ union {
 /*0x0f5c*/   DWORD      AttackSpeed;    
 /*0x0f60*/   BYTE       Unknown0x0f58[0x14];  
 /*0x0f74*/   SPELLBUFF  ShortBuff[0x6];  // is this right?
-/*0x0fd4*/   BYTE       Unknown0xfd4[0x3a0];    
+/*0x0fd4*/   BYTE       Unknown0xfd4[0x3a0];   
 /*0x1374*/   DWORD      ZoneBoundId;  
 /*0x1378*/   BYTE		field_0x1378[0x10];    
 /*0x1388*/   FLOAT      ZoneBoundY;    
@@ -729,7 +745,10 @@ union {
 /*0x1424*/   DWORD      AAExp;    
 /*0x1428*/   BYTE		field_0x1428;    
 /*0x1429*/   BYTE		PercentEXPtoAA; 
-/*0x142a*/   BYTE		Unknown0x1426[0x47a]; 
+/*0x142a*/   BYTE		Unknown0x142a[0x86]; 
+/*0x14b0*/   AALIST     AAList[NUM_ALT_ABILITIES/4]; // Dont ask me how they came to this array size...
+/*0x1898*/   BYTE       Unknown0x1898[0x8];
+/*0x18a0*/   DWORD		Unknown0x18a0;
 /*0x18a4*/   DWORD      AAPoints;  
 /*0x18a8*/   BYTE		Unknown0x18a8[0x330]; 
 /*0x1bd8*/   DWORD      ModrodTimer;  // Util__fasttime 
@@ -1405,7 +1424,7 @@ typedef struct _ALTABILITIESLISTMGR {
 /*0x04*/ DWORD Index;
 } ALTABILITIESLISTMGR, *PALTABILITIESLISTMGR;
 
-#define NUM_ALT_ABILITIES 0x1f7  
+//NUM_ALT_ABILITIES is now defined before CHARINFO definition in this same header file.
 typedef struct _ALTABILITIESLIST {
 /*0x00*/ struct _ALTABILITIESLISTMGR* Abilities[NUM_ALT_ABILITIES];
 } ALTABILITIESLIST, *PALTABILITIESLIST;

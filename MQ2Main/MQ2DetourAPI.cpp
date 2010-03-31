@@ -727,10 +727,10 @@ int __cdecl memcheck4(unsigned char *buffer, int count, struct mckey key)
     unsigned int eax, ebx, edx, i;
 
     if (!extern_array3) {
-        if (!EQADDR_ENCRYPTPAD3) {
+        if (!EQADDR_ENCRYPTPAD4) {
             //_asm int 3
         } else {
-          extern_array3 = (unsigned int *)EQADDR_ENCRYPTPAD3;
+          extern_array3 = (unsigned int *)EQADDR_ENCRYPTPAD4;
         }
     }
     edx = key.a[1];

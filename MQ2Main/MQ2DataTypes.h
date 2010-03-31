@@ -1100,6 +1100,9 @@ public:
 		SpellType=16,
 		TargetType=17,
 		ResistType=18,
+		CastOnYou=19, 
+		CastOnAnother=20, 
+		WearOff=21, 
 	};
 	MQ2SpellType():MQ2Type("spell")
 	{
@@ -1121,6 +1124,9 @@ public:
 		TypeMember(SpellType);//16,
 		TypeMember(TargetType);//17,
 		TypeMember(ResistType);//18,
+		TypeMember(CastOnYou);//19, 
+		TypeMember(CastOnAnother);//20, 
+		TypeMember(WearOff);//21, 
 	}
 
 	~MQ2SpellType()

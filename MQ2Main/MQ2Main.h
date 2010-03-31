@@ -425,6 +425,10 @@ EQLIB_API VOID        UpdateMonitoredSpawns   (VOID);
 EQLIB_API PCHAR       GetModel                (PSPAWNINFO pSpawn, DWORD Slot);
 //EQLIB_API PSPAWNINFO  GetPet                  (DWORD OwnerID);
 //EQLIB_API BOOL        IfCompare               (PCHAR szCond);
+EQLIB_API bool		  PlayerHasAAAbility	  (PCHARINFO pChar, DWORD AAIndex);
+EQLIB_API PCHAR       GetAANameByIndex		  (DWORD AAIndex);
+EQLIB_API DWORD       GetAAIndexByName		  (PCHAR AAName);
+EQLIB_API DWORD		  GetAAIndexByID		  (DWORD ID);
 
 
 

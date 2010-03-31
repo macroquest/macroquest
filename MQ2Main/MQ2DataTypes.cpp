@@ -1733,7 +1733,6 @@ bool MQ2CharacterType::GetMember(MQ2VARPTR VarPtr, PCHAR Member, PCHAR Index, MQ
 			}
 		}
 		return false;
-/*
 	case AltAbility:
 		if (Index[0])
 		{
@@ -1746,11 +1745,28 @@ bool MQ2CharacterType::GetMember(MQ2VARPTR VarPtr, PCHAR Member, PCHAR Index, MQ
 					{
 						if ( PALTABILITY pAbility=((PALTADVMGR)pAltAdvManager)->AltAbilities->AltAbilityList->Abilities[nAbility]->Ability) 
 						{
-							if (pAbility->ID == atoi(Index) )
+							if (pAbility->ID == atoi(Index))
 							{
-								Dest.DWord=pCharData->GetAbility(nAbility);
-								Dest.Type=pIntType;
-								return true;
+								if (PlayerHasAAAbility(pChar,GetAAIndexByID(pAbility->ID)))
+								{
+									for (unsigned int j=0; j < NUM_ALT_ABILITIES; j++)
+									{
+										if ( pChar->AAList[j].AAIndex == pAbility->Index)
+										{
+											Dest.DWord = pChar->AAList[j].PointsSpent;
+											Dest.Type = pIntType;
+											return true;
+										}
+										if (pChar->AAList[j].AAIndex == 0)
+											break;
+									}
+								}
+								else
+								{
+									Dest.DWord = 0;
+									Dest.Type = pIntType;
+									return true;
+								}
 							}
 						}
 					}
@@ -1769,9 +1785,26 @@ bool MQ2CharacterType::GetMember(MQ2VARPTR VarPtr, PCHAR Member, PCHAR Index, MQ
 						{
 							if (!stricmp(Index,pName))
 							{
-								Dest.DWord=pCharData->GetAbility(nAbility);
-								Dest.Type=pIntType;
-								return true;
+								if (PlayerHasAAAbility(pChar,GetAAIndexByID(pAbility->ID)))
+								{
+									for (unsigned int j=0; j < NUM_ALT_ABILITIES; j++)
+									{
+										if ( pChar->AAList[j].AAIndex == pAbility->Index)
+										{
+											Dest.DWord = pChar->AAList[j].PointsSpent;
+											Dest.Type = pIntType;
+											return true;
+										}
+										if (pChar->AAList[j].AAIndex == 0)
+											break;
+									}
+								}
+								else
+								{
+									Dest.DWord = 0;
+									Dest.Type = pIntType;
+									return true;
+								}
 							}
 						}
 					}
@@ -1780,7 +1813,6 @@ bool MQ2CharacterType::GetMember(MQ2VARPTR VarPtr, PCHAR Member, PCHAR Index, MQ
 			}
 		}
 		return false;
-*/
 	case Skill:
 		if (Index[0])
 		{
@@ -2348,6 +2380,18 @@ bool MQ2SpellType::GetMember(MQ2VARPTR VarPtr, PCHAR Member, PCHAR Index, MQ2TYP
 		Dest.DWord=GetSpellDuration(pSpell,(PSPAWNINFO)pCharSpawn);
 		Dest.Type=pTicksType;
 		return true;
+	case CastOnYou: 
+		Dest.Ptr=pSpell->CastOnYou; 
+		Dest.Type=pStringType; 
+		return true; 
+	case CastOnAnother: 
+		Dest.Ptr=pSpell->CastOnAnother; 
+		Dest.Type=pStringType; 
+		return true; 
+	case WearOff: 
+		Dest.Ptr=pSpell->WearOff; 
+		Dest.Type=pStringType; 
+		return true; 
 	}
 	return false;
 #undef pSpell

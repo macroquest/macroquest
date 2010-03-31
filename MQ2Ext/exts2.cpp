@@ -139,6 +139,9 @@ DECLARE_API ( pchar )
 	KP(Drunkenness);
 	KP(AAExp);
 	KP(PercentEXPtoAA);
+	KP(AAList);
+	KP(Unknown0x1898);
+    KP(Unknown0x18a0);
 	KP(AAPoints);
 	KP(ModrodTimer);
     KPs(Server); 

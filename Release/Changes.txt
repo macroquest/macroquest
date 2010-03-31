@@ -1,3 +1,26 @@
+25 October 2004 by Amadeus
+- ${Me.AltAbility[]} is now back!   However, with one change.  Instead of 
+  returning the 'rank', it now returns the total number of points you have
+  spent in that ability.  Therefore, to determine if a player has bought an
+  ability, all you have to do is check if the value is greater than zero.
+- Added AALIST struct to eqdata.h and AA information to CHARINFO
+- Fixed "/aa list xx" to stop showing multiple versions of the same AAs
+- Fixed "/aa list timers" to only show AAs you have bought
+- Added some new utility functions to the source (C++, NOT MACRO CODE)
+  * bool PlayerHasAAAbility (PCHARINFO pChar, DWORD AAIndex);
+  * PCHAR GetAANameByIndex(DWORD AAIndex)
+  * DWORD GetAAIndexByName(PCHAR AAName)
+  * DWORD GetAAIndexByID(DWORD ID)
+~ User Submitted Fixes (from message boards)
+  *  Add a "noauto" flag to your '/plugin' command to prevent 
+     updating the macroquest.ini when a plugin is loaded/unloaded. 
+  *  Added some more USERCOLOR_* definitions to eqdata.h
+  *  Small fix to '/loadspells list'
+  *  Added more spell information to the spell information display
+  *  Added CastOnYou, CastOnAnother, and WearOff to the MQ2SpellType class
+  *  Major upgrades to MQ2Irc plugin, see this thread for more information 
+     http://www.macroquest2.com/phpBB2/viewtopic.php?p=73390#73390
+     
 14 October 2004 by Amadeus
 - Removed the BuildData datatype for the moment.  The code, as it was originally 
   conceived was causing compile problems on Visual Studio 6.0.  Moreover, it was 

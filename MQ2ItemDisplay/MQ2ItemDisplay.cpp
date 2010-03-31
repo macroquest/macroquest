@@ -220,6 +220,15 @@ public:
       } 
      }
 
+	 sprintf(temp, "Cast on you: %s<br>", pSpell->CastOnYou); 
+	 strcat(out,temp); 
+
+	 sprintf(temp, "Cast on another: %s<br>", pSpell->CastOnAnother); 
+	 strcat(out,temp); 
+
+	 sprintf(temp, "Wears off: %s<br>", pSpell->WearOff); 
+	 strcat(out,temp); 
+
 	 if (out[0]!=17) {
      strcat(out,"</c>");
 	 //((CXStr)This->ItemInfo)+=

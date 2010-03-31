@@ -3547,3 +3547,74 @@ BOOL Calculate(PCHAR szFormula, DOUBLE &Result)
 	return Ret;
 }
 
+bool PlayerHasAAAbility(PCHARINFO pChar, DWORD AAIndex)
+{
+    for (int i = 0; i < NUM_ALT_ABILITIES/4; i++)
+	{
+		if ( pChar->AAList[i].AAIndex == AAIndex )
+			return true;
+
+		if ( pChar->AAList[i].AAIndex == 0 ) //reached the end of the list
+			return false;
+	}
+
+	return false;
+}
+
+PCHAR GetAANameByIndex(DWORD AAIndex)
+{
+	for (unsigned long nAbility=0 ; nAbility<NUM_ALT_ABILITIES ; nAbility++)
+	{
+		if ( ((PALTADVMGR)pAltAdvManager)->AltAbilities->AltAbilityList->Abilities[nAbility])
+		{
+			if ( PALTABILITY pAbility=((PALTADVMGR)pAltAdvManager)->AltAbilities->AltAbilityList->Abilities[nAbility]->Ability) 
+			{
+				if (pAbility->Index == AAIndex)
+				{
+					return pStringTable->getString(pAbility->nName,0);
+				}
+			}
+		}
+	}
+	return "AA Not Found";
+}
+
+DWORD GetAAIndexByName(PCHAR AAName)
+{
+	for (unsigned long nAbility=0 ; nAbility<NUM_ALT_ABILITIES ; nAbility++)
+	{
+		if ( ((PALTADVMGR)pAltAdvManager)->AltAbilities->AltAbilityList->Abilities[nAbility])
+		{
+			if (PALTABILITY pAbility=((PALTADVMGR)pAltAdvManager)->AltAbilities->AltAbilityList->Abilities[nAbility]->Ability)
+			{
+				if (PCHAR pName=pStringTable->getString(pAbility->nName,0))
+				{
+					if (!stricmp(AAName,pName))
+					{
+						return pAbility->Index;
+					}
+				}
+			}
+		}
+	}
+	
+	return 0;
+}
+
+DWORD GetAAIndexByID(DWORD ID)
+{
+	for (unsigned long nAbility=0 ; nAbility<NUM_ALT_ABILITIES ; nAbility++)
+	{
+		if ( ((PALTADVMGR)pAltAdvManager)->AltAbilities->AltAbilityList->Abilities[nAbility])
+		{
+			if ( PALTABILITY pAbility=((PALTADVMGR)pAltAdvManager)->AltAbilities->AltAbilityList->Abilities[nAbility]->Ability) 
+			{
+				if (pAbility->ID == ID)
+				{
+					return pAbility->Index;
+				}
+			}
+		}
+	}
+	return 0;
+}

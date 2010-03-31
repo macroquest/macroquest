@@ -2522,7 +2522,7 @@ VOID LoadSpells(PSPAWNINFO pChar, PCHAR szLine)
         WriteChatColor(szBuffer,USERCOLOR_DEFAULT);
         for (Index=0;Index<9;Index++) {
             if (pSpellSets[DoIndex].SpellId[Index]!=0xFFFFFFFF) {
-                sprintf(szBuffer,"%d) %s",Index,GetSpellByID(pSpellSets[DoIndex].SpellId[Index]));
+                sprintf(szBuffer,"%d) %s",Index,GetSpellByID(pSpellSets[DoIndex].SpellId[Index])->Name );
                 WriteChatColor(szBuffer,USERCOLOR_DEFAULT);
             }
         }
@@ -3799,61 +3799,60 @@ VOID DisplayLoginName(PSPAWNINFO pChar, PCHAR szLine)
 // Description:   Our /plugin command.
 // ***************************************************************************
 VOID PluginCommand(PSPAWNINFO pChar, PCHAR szLine) 
-{
-    CHAR szBuffer[MAX_STRING] = {0};
-    CHAR szName[MAX_STRING] = {0};
-    PCHAR szCommand = NULL;
-    GetArg(szName,szLine,1);
-    szCommand = GetNextArg(szLine);
-    if (!stricmp(szName,"list")) {
-        PMQPLUGIN pLoop = pPlugins;
-        DWORD Count=0;
-        WriteChatColor("Active Plugins",USERCOLOR_WHO);
-        WriteChatColor("--------------------------",USERCOLOR_WHO);
-        while (pLoop) {
-            sprintf(szName,"%s",pLoop->szFilename);
-            WriteChatColor(szName,USERCOLOR_WHO);
-            Count++;
-            pLoop = pLoop->pNext;
-        }
-        if (Count==0) {
-            WriteChatColor("No Plugins defined.",USERCOLOR_WHO);
-        } else {
-            sprintf(szName,"%d Plugin%s displayed.",Count,(Count==1)?"":"s");
-            WriteChatColor(szName,USERCOLOR_WHO);
-        }
-        return;
-    }
-    if (szName[0]==0) {
-        SyntaxError("Usage: /Plugin name [unload], or /Plugin list");
-        return;
-    }
+{ 
+    CHAR szBuffer[MAX_STRING] = {0}; 
+    CHAR szName[MAX_STRING] = {0}; 
+    PCHAR szCommand = NULL; 
+    GetArg(szName,szLine,1); 
+    szCommand = GetNextArg(szLine); 
+    if (!stricmp(szName,"list")) { 
+        PMQPLUGIN pLoop = pPlugins; 
+        DWORD Count=0; 
+        WriteChatColor("Active Plugins",USERCOLOR_WHO); 
+        WriteChatColor("--------------------------",USERCOLOR_WHO); 
+        while (pLoop) { 
+            sprintf(szName,"%s",pLoop->szFilename); 
+            WriteChatColor(szName,USERCOLOR_WHO); 
+            Count++; 
+            pLoop = pLoop->pNext; 
+        } 
+        if (Count==0) { 
+            WriteChatColor("No Plugins defined.",USERCOLOR_WHO); 
+        } else { 
+            sprintf(szName,"%d Plugin%s displayed.",Count,(Count==1)?"":"s"); 
+            WriteChatColor(szName,USERCOLOR_WHO); 
+        } 
+        return; 
+    } 
+    if (szName[0]==0) { 
+        SyntaxError("Usage: /Plugin name [unload] [noauto], or /Plugin list"); 
+        return; 
+    } 
 
-    if (!stricmp(szCommand,"unload")) {
-		if (UnloadMQ2Plugin(szName))
-		{
-            sprintf(szBuffer,"Plugin '%s' unloaded.",szName);
-            RewriteMQ2Plugins();
-            WriteChatColor(szBuffer,USERCOLOR_DEFAULT);
-		}
-		else
-		{
-			MacroError("Plugin '%s' not found.",szName);
-		}
-    } else {
-		if (LoadMQ2Plugin(szName))
-		{
-			sprintf(szBuffer,"Plugin '%s' loaded.",szName);
-			WriteChatColor(szBuffer,USERCOLOR_DEFAULT);
-			RewriteMQ2Plugins();
-		}
-		else
-		{
-			MacroError("Plugin '%s' could not be loaded.",szName);
-		}
-    }
+    if (!strnicmp(szCommand,"unload",6)) { 
+      if (UnloadMQ2Plugin(szName)) 
+      { 
+            sprintf(szBuffer,"Plugin '%s' unloaded.",szName); 
+            WriteChatColor(szBuffer,USERCOLOR_DEFAULT); 
+			if (!strstr(szCommand,"noauto")) RewriteMQ2Plugins(); 
 
-
+      } 
+      else 
+      { 
+         MacroError("Plugin '%s' not found.",szName); 
+      } 
+    } else { 
+      if (LoadMQ2Plugin(szName)) 
+      { 
+         sprintf(szBuffer,"Plugin '%s' loaded.",szName); 
+         WriteChatColor(szBuffer,USERCOLOR_DEFAULT); 
+         if (stricmp(szCommand,"noauto")) RewriteMQ2Plugins(); 
+      } 
+      else 
+      { 
+         MacroError("Plugin '%s' could not be loaded.",szName); 
+      } 
+    } 
 }
 
 VOID EQDestroyHeldItemOrMoney(PSPAWNINFO pChar, PCHAR szLine)
@@ -4338,7 +4337,7 @@ VOID AltAbility(PSPAWNINFO pChar, PCHAR szLine)
 	MQ2TicksType szTime;
 
     if ((szName[0]==0) || (szCommand[0]==0)) {
-        SyntaxError("Usage: /aa list [all|timers|ready], /aa info [ability name], or /aa act [ability name]");
+        SyntaxError("Usage: /aa list [all|timers], /aa info [ability name], or /aa act [ability name]");
         return;
     }
 
@@ -4354,8 +4353,11 @@ VOID AltAbility(PSPAWNINFO pChar, PCHAR szLine)
 				{
 					if ( PALTABILITY pAbility=((PALTADVMGR)pAltAdvManager)->AltAbilities->AltAbilityList->Abilities[nAbility]->Ability) 
 					{
-						sprintf(szBuffer,"[ %d: %s ]", pAbility->ID, pStringTable->getString(pAbility->nName,0) );
-						WriteChatColor(szBuffer,USERCOLOR_WHO);
+						if (PlayerHasAAAbility(pChar->pCharInfo,pAbility->Index))
+						{
+							sprintf(szBuffer,"[ %d: %s ]", pAbility->ID, pStringTable->getString(pAbility->nName,0) );
+							WriteChatColor(szBuffer,USERCOLOR_WHO);
+						}
 					}
 				}
 			}
@@ -4374,18 +4376,24 @@ VOID AltAbility(PSPAWNINFO pChar, PCHAR szLine)
 						{
 							if (pAltAdvManager->IsAbilityReady(pPCData,pAbility,0))
 							{
-								sprintf(szBuffer,"[ %d: %s ] (Reuse Time: %d seconds) <Ready>",
-									pAbility->ID, pStringTable->getString(pAbility->nName,0), 
-									pAltAdvManager->GetCalculatedTimer(pPCData,pAbility) );
-								WriteChatColor(szBuffer,USERCOLOR_WHO);
+								if (PlayerHasAAAbility(pChar->pCharInfo,pAbility->Index))
+								{
+									sprintf(szBuffer,"[ %d: %s ] (Reuse Time: %d seconds) <Ready>",
+										pAbility->ID, pStringTable->getString(pAbility->nName,0), 
+										pAltAdvManager->GetCalculatedTimer(pPCData,pAbility) );
+									WriteChatColor(szBuffer,USERCOLOR_WHO);
+								}
 							}
 							else
 							{
 								pAltAdvManager->IsAbilityReady(pPCData,pAbility,&i);
-								sprintf(szBuffer,"[ %d: %s ] (Reuse Time: %d seconds) <Ready in %d seconds>",
-									pAbility->ID, pStringTable->getString(pAbility->nName,0), 
-									pAltAdvManager->GetCalculatedTimer(pPCData,pAbility), i );
-								WriteChatColor(szBuffer,USERCOLOR_WHO);
+								if (PlayerHasAAAbility(pChar->pCharInfo,pAbility->Index))
+								{
+									sprintf(szBuffer,"[ %d: %s ] (Reuse Time: %d seconds) <Ready in %d seconds>",
+										pAbility->ID, pStringTable->getString(pAbility->nName,0), 
+										pAltAdvManager->GetCalculatedTimer(pPCData,pAbility), i );
+									WriteChatColor(szBuffer,USERCOLOR_WHO);
+								}
 							}
 						}
 					}
@@ -4394,7 +4402,7 @@ VOID AltAbility(PSPAWNINFO pChar, PCHAR szLine)
 		}
 		else 
 		{
-			SyntaxError("Usage: /aa list [all|timers|ready], /aa info [ability name], or /aa act [ability name]");
+			SyntaxError("Usage: /aa list [all|timers], /aa info [ability name], or /aa act [ability name]");
 			return;
 		}
     }
