@@ -17,6 +17,7 @@
 #endif
 
 #define DBG_SPEW
+#ifndef ISXEQ
 
 
 #include "MQ2Main.h"
@@ -760,3 +761,4 @@ VOID TimedCommand(PCHAR Command, DWORD msDelay)
 	pNew->pNext=pNode;
 }
 
+#endif

@@ -59,6 +59,8 @@ public:
 */
 }; 
 
+#ifndef ISXEQ
+
 DWORD __cdecl DrawHUD_Trampoline(DWORD,DWORD,DWORD,DWORD); 
 DWORD __cdecl DrawHUD_Detour(DWORD a,DWORD b,DWORD c,DWORD d) 
 { 
@@ -119,6 +121,7 @@ VOID DrawHUDText(PCHAR Text, DWORD X, DWORD Y, DWORD Argb)
 
 	pFont->DrawWrappedText(Text,X,Y,sX-X,CXRect(X,Y,sX,sY),Argb,1,0);
 }
+#endif
 
 class EQ_LoadingSHook
 {
@@ -144,7 +147,9 @@ VOID InitializeDisplayHook()
 	EzDetour(CDisplay__CleanGameUI,CDisplayHook::CleanUI_Detour,CDisplayHook::CleanUI_Trampoline);
 	EzDetour(CDisplay__ReloadUI,CDisplayHook::ReloadUI_Detour,CDisplayHook::ReloadUI_Trampoline);
 //	EzDetour(CDisplay__GetWorldFilePath,CDisplayHook::GetWorldFilePath_Detour,CDisplayHook::GetWorldFilePath_Trampoline);
+#ifndef ISXEQ
 	EzDetour(DrawNetStatus,DrawHUD_Detour,DrawHUD_Trampoline);
+#endif
 	EzDetour(EQ_LoadingS__WriteTextHD,EQ_LoadingSHook::WriteTextHD_Detour,EQ_LoadingSHook::WriteTextHD_Trampoline);
 }
 
@@ -155,7 +160,9 @@ VOID ShutdownDisplayHook()
 
 	RemoveDetour(CDisplay__CleanGameUI);
 	RemoveDetour(CDisplay__ReloadUI);
+#ifndef ISXEQ
 	RemoveDetour(DrawNetStatus);
+#endif
 	RemoveDetour(EQ_LoadingS__WriteTextHD);
 //	RemoveDetour(CDisplay__GetWorldFilePath);
 }

@@ -772,6 +772,7 @@ PCHAR szWndNotification[] = {
 	"resetdefaultposition",		//29
 }; 
 
+#ifndef ISXEQ
 VOID WndNotify(PSPAWNINFO pChar, PCHAR szLine)
 {
 	CHAR szArg1[MAX_STRING] = {0}; 
@@ -963,3 +964,4 @@ VOID ListItemSlots(PSPAWNINFO pChar, PCHAR szLine)
 		WriteChatColor("%d available item slots",Count);
 	}
 }
+#endif

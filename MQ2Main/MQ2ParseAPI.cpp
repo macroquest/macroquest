@@ -13,6 +13,7 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
     GNU General Public License for more details.
 ******************************************************************************/
+#ifndef ISXEQ
 
 #if !defined(CINTERFACE)
 #error /DCINTERFACE
@@ -125,3 +126,4 @@ PCHAR ParseMacroParameter(PSPAWNINFO pChar, PCHAR szOriginal)
     return (szOriginal);
 }
 
+#endif

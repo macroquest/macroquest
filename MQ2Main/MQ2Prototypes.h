@@ -16,7 +16,9 @@ namespace MQ2Prototypes
 {
 typedef PCHAR   (__stdcall *fEQGetStringByID)(DWORD);
 typedef VOID    (__cdecl *fEQCommand)(PSPAWNINFO, PCHAR);
+#ifndef ISXEQ
 typedef HRESULT (__stdcall *fGetDeviceState)(THIS_ DWORD, LPVOID);
+#endif
 typedef DWORD   (__stdcall *fEQScreenItem)(DWORD, DWORD, DWORD);
 typedef DWORD   (__stdcall *fEQScreenSpawn)(DWORD, DWORD);
 typedef PCHAR   (__stdcall *fEQNewUIINI)(VOID);

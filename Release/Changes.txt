@@ -1,3 +1,12 @@
+29 January 2005 by Lax
+- Split MQ2Main.h into a couple extra header files
+- Added second project (ISXEQ.vcproj, no .dsp file at this time) to MQ2Main folder for 
+  adaptation to Inner Space.  This project builds ISXEQ.dll and does NOT currently link (it
+  compiles, then gives linker errors. some things need to be done before it will link)
+  ISXEQ project needs separate implementations of each command, datatype, and top-level object.
+  
+- Added a lot of "#ifndef ISXEQ" to various files
+
 26-28 January 2005 by Amadeus
 - Once over, formatting/syntax check, re-package
 - Fixed structs and offsets to be compatable with the new patch

@@ -34,8 +34,10 @@ EQLIB_API DWORD bmEndZone;
 
 /* OTHER */
 
+#ifndef ISXEQ
 EQLIB_VAR PDATAVAR pGlobalVariables;
 EQLIB_VAR PDATAVAR pMacroVariables;
+#endif
 
 EQLIB_VAR BOOL bAllErrorsFatal;
 EQLIB_VAR BOOL bAllErrorsDumpStack;
@@ -59,11 +61,13 @@ EQLIB_VAR BOOL gbEQWLoaded;
 //EQLIB_VAR PHOTKEY pHotkey;
 EQLIB_VAR BOOL gbUnload;
 EQLIB_VAR DWORD gpHook;
+#ifndef ISXEQ
 EQLIB_VAR PMACROBLOCK gMacroBlock;
 EQLIB_VAR PMACROSTACK gMacroStack;
 EQLIB_VAR map<string,PMACROBLOCK> gMacroSubLookupMap; 
 EQLIB_VAR PEVENTQUEUE gEventQueue;
 EQLIB_VAR PMACROBLOCK gEventFunc[NUM_EVENTS];
+#endif
 EQLIB_VAR UCHAR gLastFind;
 EQLIB_VAR BOOL gInClick;
 EQLIB_VAR DOUBLE gZFilter;
@@ -227,9 +231,11 @@ EQLIB_VAR DWORD *g_ppDrawHandler;
 EQLIB_VAR PCHAR *EQMappableCommandList;
 EQLIB_VAR DWORD gnNormalEQMappableCommands;
 
+#ifndef ISXEQ
 EQLIB_VAR DWORD EQADDR_DIMAIN;
 EQLIB_VAR IDirectInputDevice8A **EQADDR_DIKEYBOARD;
 EQLIB_VAR IDirectInputDevice8A **EQADDR_DIMOUSE;
+#endif
 
 EQLIB_VAR DWORD EQADDR_EQLABELS;
 

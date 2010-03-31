@@ -11,6 +11,7 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
     GNU General Public License for more details.
 ******************************************************************************/
+#ifndef ISXDK_VERSION
 
 // non-mq2data TODO
 // command to clear macro return value
@@ -2832,3 +2833,5 @@ public:
 		return false;
 	}
 }; 
+
+#endif

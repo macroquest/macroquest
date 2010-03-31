@@ -1,3 +1,4 @@
+#ifndef ISXEQ
 #include "MQ2Main.h"
 
 DWORD gh;
@@ -7,3 +8,4 @@ typedef DWORD	(__cdecl *FNCB)(DWORD,HINSTANCE,DWORD&);
 #define	MQ2AUTH(z) VOID z(DWORD x){FNCB f=(FNCB)x;f((DWORD)proc,ghInstance,gh);}
 #include "MQ2Auth0.h"
 
+#endif

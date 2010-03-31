@@ -392,6 +392,7 @@ public:
 //	inline CXWnd *GetChildItem(const char *Name) {return CSidlScreenWnd::GetChildItem(Name);};
 };
 
+#ifndef ISXDK_VERSION
 /* CIndex class stolen from teqim - Lax */
 template <class Any>
 class CIndex
@@ -490,6 +491,7 @@ public:
 	inline Any& operator[](unsigned long Index){return List[Index];}
 	CRITICAL_SECTION CS;
 };
+#endif
 
 typedef struct _MQ2VarPtr
 {
@@ -502,6 +504,8 @@ typedef struct _MQ2VarPtr
 		UCHAR Array[4];
 	};
 } MQ2VARPTR, *PMQ2VARPTR;
+
+#ifndef ISXDK_VERSION
 
 typedef struct _MQ2TypeVar
 {
@@ -879,7 +883,7 @@ public:
 	MQ2VARPTR *pData;
 	DWORD TotalElements;
 };
-
+#endif
 
 typedef struct _MQRANK
 {
@@ -932,7 +936,7 @@ static int MQRankCompareReverse(const void *A, const void *B)
 	return 1;
 }
 
-
+#ifndef ISXDK_VERSION
 typedef struct _MACROSTACK {
     PMACROBLOCK Location;
     struct _MACROSTACK *pNext;
@@ -948,7 +952,7 @@ typedef struct _EVENTQUEUE {
     PEVENTLIST pEventList;
     PDATAVAR Parameters;
 } EVENTQUEUE, *PEVENTQUEUE;
-
+#endif
 
 };
 using namespace MQ2Internal;

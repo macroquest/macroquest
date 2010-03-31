@@ -11,6 +11,7 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
     GNU General Public License for more details.
 ******************************************************************************/
+#ifndef ISXEQ
 
 #if !defined(CINTERFACE)
 #error /DCINTERFACE
@@ -4644,3 +4645,4 @@ bool MQ2RaidMemberType::GetMember(MQ2VARPTR VarPtr, PCHAR Member, PCHAR Index, M
 	}
 	return false;
 }
+#endif

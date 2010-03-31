@@ -11,6 +11,7 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
     GNU General Public License for more details.
 ******************************************************************************/
+#ifndef ISXEQ
 
 // Exclude rarely-used stuff from Windows headers
 #define WIN32_LEAN_AND_MEAN
@@ -666,3 +667,4 @@ void ShutdownMQ2Detours()
 	RemoveOurDetours();
 	DeleteCriticalSection(&gDetourCS);
 }
+#endif

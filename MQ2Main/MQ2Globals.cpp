@@ -44,8 +44,10 @@ DWORD bmCalculate=0;
 DWORD bmBeginZone=0; 
 DWORD bmEndZone=0;
 
+#ifndef ISXEQ
 PDATAVAR pGlobalVariables=0;
 PDATAVAR pMacroVariables=0;
+#endif
 
 ePVPServer PVPServer=PVP_NONE;
 CHAR gszVersion[32]=VersionString;
@@ -63,11 +65,13 @@ HINSTANCE ghInstance = NULL;
 //PHOTKEY pHotkey = NULL;
 BOOL gbUnload = FALSE;
 DWORD gpHook = NULL;
+#ifndef ISXEQ
 PMACROBLOCK gMacroBlock = NULL;
 PMACROSTACK gMacroStack = NULL;
 map<string,PMACROBLOCK> gMacroSubLookupMap; 
 PEVENTQUEUE gEventQueue = NULL;
 PMACROBLOCK gEventFunc[NUM_EVENTS] = {NULL};
+#endif
 UCHAR gLastFind = 0;
 DOUBLE gZFilter=10000.0f;
 DOUBLE gFaceAngle=10000.0f;
@@ -244,9 +248,11 @@ map<string,PSPAWNINFO> SpawnByName;
 MQRANK EQP_DistArray[3000];
 DWORD gSpawnCount=0;
 
+#ifndef ISXEQ
 DWORD EQADDR_DIMAIN=DI8__Main;
 IDirectInputDevice8A **EQADDR_DIKEYBOARD=(IDirectInputDevice8A **)DI8__Keyboard;
 IDirectInputDevice8A **EQADDR_DIMOUSE=(IDirectInputDevice8A **)DI8__Mouse;
+#endif
 
 // Motd and Pulse's mouse variables
 BOOL gMouseLeftClickInProgress = FALSE;

@@ -164,6 +164,7 @@ static inline FLOAT GetDistance(FLOAT X1,FLOAT Y1,FLOAT X2,FLOAT Y2)
 	return sqrtf(dX*dX + dY*dY);
 }
 
+#ifndef ISXEQ
 static inline FLOAT GetDistance3D(FLOAT X1, FLOAT Y1, FLOAT Z1, FLOAT X2, FLOAT Y2, FLOAT Z2)
 {
     FLOAT dX = X1 - X2;
@@ -171,6 +172,7 @@ static inline FLOAT GetDistance3D(FLOAT X1, FLOAT Y1, FLOAT Z1, FLOAT X2, FLOAT 
     FLOAT dZ = Z1 - Z2;
     return sqrtf(dX*dX + dY*dY + dZ*dZ);
 }
+#endif
 
 
 // ***************************************************************************
@@ -243,6 +245,7 @@ static inline BOOL IsGroupMember(PSPAWNINFO pSpawn)
 	return 0;
 }
 
+#ifndef ISXEQ
 static inline BOOL IsNumber(PCHAR String)
 {
 	if (*String==0)
@@ -255,6 +258,7 @@ static inline BOOL IsNumber(PCHAR String)
 	}
 	return TRUE;
 }
+#endif
 
 static inline BOOL IsNumberToComma(PCHAR String)
 {

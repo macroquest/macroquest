@@ -15,6 +15,7 @@
 #if !defined(CINTERFACE)
 #error /DCINTERFACE
 #endif
+#ifndef ISXEQ
 
 #define DBG_SPEW
 
@@ -393,24 +394,6 @@ VOID Delay(PSPAWNINFO pChar, PCHAR szLine)
     gDelay = VarValue;
 	bRunNextCommand=false;
 //    DebugSpewNoFile("Delay - %d",gDelay);
-}
-
-// ***************************************************************************
-// Function:    Echo
-// Description: Our '/echo' command
-//              Echos text to the chatbox
-// Usage:       /echo <text>
-// ***************************************************************************
-VOID Echo(PSPAWNINFO pChar, PCHAR szLine)
-{
-    CHAR szEcho[MAX_STRING] = {0};
-    bRunNextCommand = TRUE;
-    strcpy(szEcho,DebugHeader);
-    strcat(szEcho," ");
-    strncat(szEcho,szLine, MAX_STRING-(strlen(DebugHeader)+2));
-    DebugSpewNoFile("Echo - %s",szEcho);
-    WriteChatColor(szEcho,USERCOLOR_CHAT_CHANNEL);
-
 }
 
 /* MQ2DataVars */
@@ -1136,3 +1119,4 @@ PCHAR GetFuncParam(PCHAR szMacroLine, DWORD ParamNum, PCHAR szParamName, PCHAR s
     return szParamName;
 }
 
+#endif

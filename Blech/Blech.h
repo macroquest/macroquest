@@ -64,7 +64,7 @@ Using Blech:
 
 #pragma once
 
-#define BLECHVERSION "Lax/Blech 1.6.4"
+#define BLECHVERSION "Lax/Blech 1.6.5"
 
 #include <map>
 #include <string>
@@ -594,7 +594,7 @@ private:
 	}
 
 
-	char *stristr(char *haystack,char *needle)
+	static char *stristr(char *haystack,char *needle)
 	{
 		BlechDebug("stristr(%s,%s)",haystack,needle);
 		unsigned long HaystackLength=(unsigned long)strlen(haystack);
@@ -609,8 +609,10 @@ private:
 		}
 		HaystackLength++;
 		NeedleLength++;
-		char *pHaystack=(char*)malloc(HaystackLength);
-		char *pNeedle=(char*)malloc(NeedleLength);
+//		char *pHaystack=(char*)malloc(HaystackLength);
+//		char *pNeedle=(char*)malloc(NeedleLength);
+		char pHaystack[4096];
+		char pNeedle[4096];
 		memcpy(pHaystack,haystack,HaystackLength);
 		memcpy(pNeedle,needle,NeedleLength);
         strlwr(pHaystack);
@@ -620,8 +622,8 @@ private:
 		{
 			pReturn=haystack+(pReturn-pHaystack);
 		}
-		free(pHaystack);
-		free(pNeedle);
+//		free(pHaystack);
+//		free(pNeedle);
 		return pReturn;
 	}
 

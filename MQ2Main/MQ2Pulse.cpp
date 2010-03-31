@@ -11,6 +11,7 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
     GNU General Public License for more details.
 ******************************************************************************/
+#ifndef ISXEQ
 
 #if !defined(CINTERFACE)
 #error /DCINTERFACE
@@ -361,3 +362,4 @@ void ShutdownMQ2Pulse()
 	RemoveDetour((DWORD)CEverQuest__EnterZone);
 	RemoveDetour((DWORD)CEverQuest__SetGameState);
 }
+#endif

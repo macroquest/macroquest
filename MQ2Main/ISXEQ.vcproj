@@ -2,8 +2,8 @@
 <VisualStudioProject
 	ProjectType="Visual C++"
 	Version="7.00"
-	Name="MQ2Main"
-	ProjectGUID="{2A0A06A4-E9C6-4229-82EE-BD2D4E0A7221}"
+	Name="ISXEQ"
+	ProjectGUID="{4EDFEF3C-E331-44E6-BC7A-CF25BFA2BFEA}"
 	Keyword="Win32Proj">
 	<Platforms>
 		<Platform
@@ -13,7 +13,7 @@
 		<Configuration
 			Name="Release|Win32"
 			OutputDirectory="..\Release"
-			IntermediateDirectory=".\Intermediate"
+			IntermediateDirectory=".\ISXEQIntermediate"
 			ConfigurationType="2"
 			CharacterSet="2">
 			<Tool
@@ -26,8 +26,8 @@
 				OmitFramePointers="FALSE"
 				OptimizeForProcessor="0"
 				OptimizeForWindowsApplication="FALSE"
-				AdditionalIncludeDirectories="..\PerlCore\inc"
-				PreprocessorDefinitions="EQLIB_EXPORTS;CINTERFACE"
+				AdditionalIncludeDirectories=""
+				PreprocessorDefinitions="EQLIB_EXPORTS;CINTERFACE;ISXEQ"
 				StringPooling="TRUE"
 				ExceptionHandling="TRUE"
 				BasicRuntimeChecks="0"
@@ -49,10 +49,9 @@
 				Name="VCLinkerTool"
 				AdditionalOptions="/OPT:NOICF"
 				AdditionalDependencies="wsock32.lib"
-				OutputFile="$(OutDir)/MQ2Main.dll"
+				OutputFile="$(OutDir)/ISXEQ.dll"
 				LinkIncremental="1"
 				SuppressStartupBanner="FALSE"
-				AdditionalLibraryDirectories="..\Detours\lib"
 				GenerateDebugInformation="TRUE"
 				GenerateMapFile="TRUE"
 				MapExports="TRUE"
@@ -61,7 +60,7 @@
 				OptimizeReferences="1"
 				EnableCOMDATFolding="1"
 				BaseAddress="0x03000000"
-				ImportLibrary="$(OutDir)/MQ2Main.lib"
+				ImportLibrary="$(OutDir)/ISXEQ.lib"
 				TargetMachine="1"/>
 			<Tool
 				Name="VCMIDLTool"/>
@@ -87,7 +86,7 @@
 				RelativePath="EQClasses.cpp">
 			</File>
 			<File
-				RelativePath="MQ2Auth.cpp">
+				RelativePath="ISXEQ.cpp">
 			</File>
 			<File
 				RelativePath="MQ2Benchmarks.cpp">
@@ -99,52 +98,16 @@
 				RelativePath="MQ2CleanUI.cpp">
 			</File>
 			<File
-				RelativePath="MQ2CommandAPI.cpp">
-			</File>
-			<File
-				RelativePath="MQ2Commands.cpp">
-			</File>
-			<File
-				RelativePath="MQ2DInput.cpp">
-			</File>
-			<File
-				RelativePath="MQ2Data.cpp">
-			</File>
-			<File
-				RelativePath="MQ2DataAPI.cpp">
-			</File>
-			<File
-				RelativePath="MQ2DataTypes.cpp">
-			</File>
-			<File
-				RelativePath="MQ2DataVars.cpp">
-			</File>
-			<File
-				RelativePath="MQ2DetourAPI.cpp">
-			</File>
-			<File
 				RelativePath="MQ2Globals.cpp">
 			</File>
 			<File
 				RelativePath="MQ2KeyBinds.cpp">
 			</File>
 			<File
-				RelativePath="MQ2MacroCommands.cpp">
-			</File>
-			<File
 				RelativePath="MQ2Main.cpp">
 			</File>
 			<File
 				RelativePath="MQ2Mouse.cpp">
-			</File>
-			<File
-				RelativePath="MQ2ParseAPI.cpp">
-			</File>
-			<File
-				RelativePath="MQ2PluginHandler.cpp">
-			</File>
-			<File
-				RelativePath="MQ2Pulse.cpp">
 			</File>
 			<File
 				RelativePath="MQ2Spawns.cpp">
@@ -172,10 +135,7 @@
 				RelativePath="EQUIStructs.h">
 			</File>
 			<File
-				RelativePath="MQ2Commands.h">
-			</File>
-			<File
-				RelativePath="MQ2DataTypes.h">
+				RelativePath="ISXEQ.h">
 			</File>
 			<File
 				RelativePath="MQ2Globals.h">
@@ -194,9 +154,6 @@
 			</File>
 			<File
 				RelativePath="MQ2TopLevelObjects.h">
-			</File>
-			<File
-				RelativePath="dikeys.h">
 			</File>
 			<File
 				RelativePath="eqgame.h">

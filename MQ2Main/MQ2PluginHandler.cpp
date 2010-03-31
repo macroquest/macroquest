@@ -11,6 +11,7 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
     GNU General Public License for more details.
 ******************************************************************************/
+#ifndef ISXEQ
 
 #if !defined(CINTERFACE)
 #error /DCINTERFACE
@@ -545,3 +546,5 @@ VOID PluginsEndZone()
    LoadCfgFile("zoned",false); 
    LoadCfgFile(((PZONEINFO)pZoneInfo)->ShortName,false); 
 } 
+
+#endif

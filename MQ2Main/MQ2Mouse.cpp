@@ -77,6 +77,8 @@ BOOL MoveMouse(DWORD x, DWORD y)
 	return FALSE;
 } 
 
+#ifndef ISXEQ
+
 BOOL ParseMouseLoc(PCHARINFO pCharInfo, PCHAR szMouseLoc) 
 {
 	CHAR szArg1[MAX_STRING] = {0};
@@ -105,7 +107,7 @@ BOOL ParseMouseLoc(PCHARINFO pCharInfo, PCHAR szMouseLoc)
 	MacroError("'%s' mouse click is either invalid or should be done using /notify",szMouseLoc);
 	return FALSE;
 }
-
+#endif
 VOID SendEQMessage(DWORD PacketType, PVOID pData, DWORD Length)
 {
 	if (!send_message || !EQADDR_GWORLD) 
@@ -152,6 +154,7 @@ BOOL IsMouseWaiting()
 	}
 	return Result;
 }
+#ifndef ISXEQ
 
 VOID Click(PSPAWNINFO pChar, PCHAR szLine) { 
    CHAR szArg1[MAX_STRING] = {0}; 
@@ -238,3 +241,4 @@ VOID MouseTo(PSPAWNINFO pChar, PCHAR szLine)
 	WriteChatColor("Usage: /mouseto <mouseloc>",USERCOLOR_DEFAULT); 
 	DebugSpew("Help invoked or Bad MouseTo command: %s",szLine); 
 }
+#endif

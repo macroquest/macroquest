@@ -4511,3 +4511,21 @@ VOID AltAbility(PSPAWNINFO pChar, PCHAR szLine)
 	}
 	return;
 }
+
+// ***************************************************************************
+// Function:    Echo
+// Description: Our '/echo' command
+//              Echos text to the chatbox
+// Usage:       /echo <text>
+// ***************************************************************************
+VOID Echo(PSPAWNINFO pChar, PCHAR szLine)
+{
+    CHAR szEcho[MAX_STRING] = {0};
+    bRunNextCommand = TRUE;
+    strcpy(szEcho,DebugHeader);
+    strcat(szEcho," ");
+    strncat(szEcho,szLine, MAX_STRING-(strlen(DebugHeader)+2));
+    DebugSpewNoFile("Echo - %s",szEcho);
+    WriteChatColor(szEcho,USERCOLOR_CHAT_CHANNEL);
+
+}

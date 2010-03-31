@@ -131,6 +131,7 @@ VOID Flavorator(PCHAR szLine)
 
 }
 
+#ifndef ISXEQ
 VOID SyntaxError(PCHAR szFormat, ...)
 {
 	CHAR szOutput[MAX_STRING] = {0};
@@ -234,6 +235,7 @@ VOID MQ2DataError(PCHAR szFormat, ...)
 			EndMacro((PSPAWNINFO)pCharSpawn,"");
 	}
 }
+#endif
 
 VOID FixStringTable()
 {
@@ -253,6 +255,7 @@ VOID FixStringTable()
 	}
 }
 
+#ifndef ISXEQ
 // ***************************************************************************
 // Function:    GetNextArg
 // Description: Returns a pointer to the next argument
@@ -355,6 +358,7 @@ PSTR GetArg(PSTR szDest, PCSTR szSrc, DWORD dwNumber, BOOL LeaveQuotes, BOOL ToP
 
    return szDest;
 }
+#endif
 
 
 
@@ -3430,7 +3434,7 @@ BOOL ActualCalculate(PCHAR szFormula, DOUBLE &Result) {
 	return true;
 }
 /**/
-
+#ifndef ISXEQ
 enum eCalcOp
 {
 	CO_NUMBER=0,
@@ -3911,6 +3915,7 @@ BOOL Calculate(PCHAR szFormula, DOUBLE &Result)
 	Benchmark(bmCalculate,Ret=FastCalculate(Buffer,Result));
 	return Ret;
 }
+#endif
 
 bool PlayerHasAAAbility(PCHARINFO pChar, DWORD AAIndex)
 {

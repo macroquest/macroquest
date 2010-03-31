@@ -29,6 +29,7 @@ GNU General Public License for more details.
 #endif
 
 DWORD WINAPI MQ2Start(LPVOID lpParameter);
+#ifndef ISXEQ
 
 BOOL APIENTRY DllMain( HANDLE hModule, 
                        DWORD  ul_reason_for_call, 
@@ -68,6 +69,7 @@ BOOL APIENTRY DllMain( HANDLE hModule,
     return TRUE;
 }
 
+#endif
 
 // ***************************************************************************
 // Function:    ParseINIFile
@@ -224,20 +226,13 @@ BOOL ParseINIFile(PCHAR lpINIPath)
 }
 
 
-// ***************************************************************************
-// Function:    MQ2Start
-// Description: Where we start execution during the insertion
-// ***************************************************************************
-DWORD WINAPI MQ2Start(LPVOID lpParameter)
+bool MQ2Initialize()
 {
-    PCHAR lpINIPath = (PCHAR)lpParameter;
-    strcpy(gszINIPath, lpINIPath);
-    CHAR szBuffer[MAX_STRING] = {0};
-    if (!ParseINIFile(lpINIPath)) {
+    if (!ParseINIFile(gszINIPath)) 
+	{
         DebugSpewAlways("ParseINIFile returned false - thread aborted.");
         g_Loaded = FALSE;
-        free(lpINIPath);
-        return 1;
+        return false;
     }
     srand(time(0));
 	ZeroMemory(gDiKeyName,sizeof(gDiKeyName));
@@ -283,17 +278,62 @@ DWORD WINAPI MQ2Start(LPVOID lpParameter)
 	for (nColorFatalError=0 ; szColorFatalError[nColorFatalError] ; nColorFatalError++) {}
 
 	InitializeMQ2Benchmarks();
+#ifndef ISXEQ
 	InitializeParser();
 	InitializeMQ2Detours();
+#endif
 	InitializeDisplayHook();
 	InitializeChatHook();
 	InitializeMQ2Spawns();
+#ifndef ISXEQ
 	InitializeMQ2Pulse();
+#endif
 	InitializeMQ2Commands();
 	InitializeMQ2Windows();
 	Sleep(100);
 	InitializeMQ2KeyBinds();
 	InitializeMQ2Plugins();
+
+	return true;
+}
+
+void MQ2Shutdown()
+{
+	DebugTry(ShutdownMQ2KeyBinds());
+	DebugTry(ShutdownMQ2Spawns());
+	DebugTry(ShutdownDisplayHook());
+	DebugTry(ShutdownMQ2DInput());
+	DebugTry(ShutdownChatHook());
+#ifndef ISXEQ
+	DebugTry(ShutdownMQ2Pulse());
+#endif
+	DebugTry(ShutdownMQ2Plugins());
+	DebugTry(ShutdownMQ2Windows());
+#ifndef ISXEQ
+	DebugTry(ShutdownParser());
+#endif
+	DebugTry(ShutdownMQ2Commands());
+#ifndef ISXEQ
+	DebugTry(ShutdownMQ2Detours());
+#endif
+	DebugTry(ShutdownMQ2Benchmarks());
+
+}
+
+#ifndef ISXEQ
+// ***************************************************************************
+// Function:    MQ2Start
+// Description: Where we start execution during the insertion
+// ***************************************************************************
+DWORD WINAPI MQ2Start(LPVOID lpParameter)
+{
+    PCHAR lpINIPath = (PCHAR)lpParameter;
+    strcpy(gszINIPath, lpINIPath);
+    free(lpINIPath);
+    CHAR szBuffer[MAX_STRING] = {0};
+
+	if (!MQ2Initialize())
+		return 1;
 
 	while (gGameState != GAMESTATE_CHARSELECT && gGameState != GAMESTATE_INGAME) 
 		Sleep(500);
@@ -310,21 +350,10 @@ DWORD WINAPI MQ2Start(LPVOID lpParameter)
     WriteChatColor(UnloadedString,USERCOLOR_DEFAULT);
     DebugSpewAlways(UnloadedString);
 	UnloadMQ2Plugins();
-	DebugTry(ShutdownMQ2KeyBinds());
-	DebugTry(ShutdownMQ2Spawns());
-	DebugTry(ShutdownDisplayHook());
-	DebugTry(ShutdownMQ2DInput());
-	DebugTry(ShutdownChatHook());
-	DebugTry(ShutdownMQ2Pulse());
-	DebugTry(ShutdownMQ2Plugins());
-	DebugTry(ShutdownMQ2Windows());
-	DebugTry(ShutdownParser());
-	DebugTry(ShutdownMQ2Commands());
-	DebugTry(ShutdownMQ2Detours());
-	DebugTry(ShutdownMQ2Benchmarks());
+	MQ2Shutdown();
+
 
 	DebugSpew("Shutdown completed");
-    free(lpINIPath);
     g_Loaded = FALSE;
     return 0;
 }
@@ -358,7 +387,7 @@ void MQ2Free(void *memblock)
 #endif
 	free(memblock);
 }
-
+#endif
 
 
 class CMQNewsWnd : public CCustomWnd
@@ -473,6 +502,8 @@ VOID InsertMQ2News()
 }
 
 
+#ifndef ISXEQ
+
 HHOOK g_hHook;
 
 LRESULT CALLBACK hookCBTProc( int nCode, WPARAM wParam, LPARAM lParam )
@@ -491,8 +522,10 @@ VOID InjectDisable()
     UnhookWindowsHookEx( g_hHook );
     g_hHook = NULL;
 }
+#endif
 
 /* OTHER FUNCTIONS IMPORTED FROM EQ */
 #ifdef __CastRay
 FUNCTION_AT_ADDRESS(int CastRay(PSPAWNINFO,float y,float x,float z),__CastRay);
 #endif
+

@@ -321,6 +321,7 @@ BOOL SetMQ2KeyBind(PCHAR name, BOOL Alternate, KeyCombo &Combo)
 	return false;
 }
 
+#ifndef ISXEQ
 VOID MQ2KeyBindCommand(PSPAWNINFO pChar, PCHAR szLine)
 {
 	if (szLine[0]==0)
@@ -456,6 +457,7 @@ VOID DoRangedBind(PCHAR Name,BOOL Down)
 		gbRangedAttackReady=0;
 	}
 }
+#endif
 
 BOOL DumpBinds(PCHAR Filename)
 {

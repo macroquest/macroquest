@@ -12,6 +12,7 @@
     GNU General Public License for more details.
 ******************************************************************************/
 
+#ifndef ISXEQ
 #if !defined(CINTERFACE)
 #error /DCINTERFACE
 #endif
@@ -1215,3 +1216,5 @@ BOOL dataLineOfSight(PCHAR szIndex, MQ2TYPEVAR &Ret)
 	}
 	return false;
 }
+
+#endif

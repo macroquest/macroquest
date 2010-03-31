@@ -16,6 +16,7 @@ GNU General Public License for more details.
 #error /DCINTERFACE 
 #endif 
 
+#ifndef ISXEQ
 #define DBG_SPEW 
 
 #include "MQ2Main.h" 
@@ -252,3 +253,4 @@ VOID ShutdownMQ2DInput()
             DebugSpewAlways("Failed to unhook DInputAcquire"); 
 }
 
+#endif
