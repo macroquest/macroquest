@@ -695,12 +695,22 @@ private:
 		if (!nVariableNodes)
 		{
 			BlechDebug("No variable nodes");
-			// if there's no variable nodes, we have no work to do. ciao!
-			PBLECHEVENTNODE pEventNode=pNode->pEvents;
-			while(pEventNode)
+			// if there's no variable nodes, just make sure the lengths match
+			unsigned long TestLength=0;
+			pCurrent=pNode;
+			while(pCurrent)
 			{
-				QueueEvent(pEventNode->pEvent,0);
-				pEventNode=pEventNode->pNext;
+				TestLength+=pCurrent->Length;
+				pCurrent=pCurrent->pParent;
+			}
+			if (TestLength==InputLength)
+			{
+				PBLECHEVENTNODE pEventNode=pNode->pEvents;
+				while(pEventNode)
+				{
+					QueueEvent(pEventNode->pEvent,0);
+					pEventNode=pEventNode->pNext;
+				}
 			}
 
 			// cleanup
@@ -793,7 +803,14 @@ private:
 				}
 				else
 				{
-					Pos+=strlen(NonVariable);
+					unsigned long NonVariableLength=strlen(NonVariable);
+					if (STRNCMP(NonVariable,Pos,NonVariableLength))
+					{
+						// not a real match. goodbye!
+						// NOTE: this can be relatively normal, it is not a direct indication of an error
+						goto queueeventscleanup;
+					}
+					Pos+=NonVariableLength;
 					NonVariable[0]=0;
 				}
 				pCurrentScanVar=pCurrent;
@@ -808,47 +825,27 @@ private:
 
 		if (pCurrentScanVar)
 		{
-			if (NonVariable[0])
+			PBLECHVALUE pNewValue = new BLECHVALUE;
+			pNewValue->Name=strdup(pCurrentScanVar->pString);
+			pNewValue->Value=strdup(Pos);
+			pNewValue->pNext=0;
+			if (pValues)
 			{
-
-				PBLECHVALUE pNewValue = new BLECHVALUE;
-				pNewValue->Name=strdup(pCurrentScanVar->pString);
-
-				char *End=&Input[InputLength]-strlen(NonVariable);
-				unsigned long Length=End-Pos;
-				pNewValue->Value=(char*)malloc(Length+1);
-				memcpy(pNewValue->Value,Pos,Length);
-				pNewValue->Value[Length]=0;
-				pNewValue->pNext=0;
-
-				if (pValues)
-				{
-					pValuesTail->pNext=pNewValue;
-					pValuesTail=pNewValue;
-				}
-				else
-				{
-					pValuesTail=pValues=pNewValue;
-				}
-				
-				Pos=End;
-				NonVariable[0]=0;
+				pValuesTail->pNext=pNewValue;
+				pValuesTail=pNewValue;
 			}
 			else
 			{
-				PBLECHVALUE pNewValue = new BLECHVALUE;
-				pNewValue->Name=strdup(pCurrentScanVar->pString);
-				pNewValue->Value=strdup(Pos);
-				pNewValue->pNext=0;
-				if (pValues)
-				{
-					pValuesTail->pNext=pNewValue;
-					pValuesTail=pNewValue;
-				}
-				else
-				{
-					pValuesTail=pValues=pNewValue;
-				}
+				pValuesTail=pValues=pNewValue;
+			}
+		}
+		else if (NonVariable[0])
+		{
+			if (STRCMP(NonVariable,Pos))
+			{
+				// not a real match. goodbye!
+				// NOTE: this can be relatively normal, it is not a direct indication of an error
+				goto queueeventscleanup;
 			}
 		}
 
@@ -1012,6 +1009,7 @@ feedermatchnoevent:
 				else
 				{
 					Pop();
+					Peek();
 					while(1)
 					{
 						if (pNode->pNext)
@@ -1050,6 +1048,7 @@ feedernomatch:
 				{
 					// Pos goes down a level - dont reprocess the same child
 					Pop();
+					Peek();
 					while(1)
 					{
 						if (pNode->pNext)
