@@ -10,6 +10,7 @@ typedef struct _MAPSPAWN
 	PMAPLABEL pMapLabel;
 	PMAPLINE pVector;
 	BOOL Highlight;
+	BOOL Explicit;
 
 	struct _MAPSPAWN *pLast;
 	struct _MAPSPAWN *pNext;
@@ -152,6 +153,7 @@ PMAPSPAWN AddSpawn(PSPAWNINFO pNewSpawn,BOOL ExplicitAllow)
 	pMapSpawn->SpawnType=Type;
 	pMapSpawn->pSpawn=pNewSpawn;
 	pMapSpawn->pMapLabel = GenerateLabel(pMapSpawn,GetSpawnColor(Type,pNewSpawn));
+	pMapSpawn->Explicit = ExplicitAllow;
 	if (IsOptionEnabled(MAPFILTER_Vector))
 		pMapSpawn->pVector= GenerateVector(pMapSpawn);
 	else
@@ -368,7 +370,8 @@ void MapUpdate()
 				 pMapSpawn->pSpawn->BodyType != 33 && pMapSpawn->pSpawn->BodyType != 65 &&
 				 pMapSpawn->pSpawn->BodyType != 66 && pMapSpawn->pSpawn->BodyType != 67 &&
 				 pMapSpawn->pSpawn->BodyType != 21 && pMapSpawn->pSpawn->BodyType != 23 &&
-				 pMapSpawn->pSpawn->BodyType != 34 && pMapSpawn->pSpawn->BodyType != 3 )
+				 pMapSpawn->pSpawn->BodyType != 34 && pMapSpawn->pSpawn->BodyType != 3  &&
+				 pMapSpawn->pSpawn->BodyType != 24 )
 			{
 				sprintf(buf, "MapUpdate: Name: %s, Type: %d, BodyType: %d",
 					pMapSpawn->pSpawn->Name, pMapSpawn->pSpawn->Type, pMapSpawn->pSpawn->BodyType );
@@ -385,7 +388,7 @@ void MapUpdate()
 		//End Debugging
 
 		//Starting New Checks
-		if (!CanDisplaySpawn(GetSpawnType(pMapSpawn->pSpawn),pMapSpawn->pSpawn))
+		if (!pMapSpawn->Explicit && !CanDisplaySpawn(GetSpawnType(pMapSpawn->pSpawn),pMapSpawn->pSpawn)) 
 		{
 			PMAPSPAWN pNext=pMapSpawn->pNext;
 			RemoveSpawn(pMapSpawn);

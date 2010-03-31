@@ -65,6 +65,10 @@ public:
 		 sprintf(temp,"Tribute Value: %d<br>", Item->Favor);
 		 strcat(out, temp);
 	 }
+     if (Item->GuildFavor > 0 && Item->Favor != Item->GuildFavor) { 
+        sprintf(temp,"Guild Tribute Value: %d<br>", Item->GuildFavor); 
+        strcat(out, temp); 
+     } 
 
      lore=Item->LoreName;
      if (lore[0]=='*') lore++;
@@ -73,17 +77,20 @@ public:
       strcat(out,temp);
      }
 
-     // This really should be a compare against some field in the item...
-     if (strstr(This->ItemInfo->Text,"(Combat)")) {
-	   if (Item->Level == 0 )
-		   sprintf(temp, "Procs at level 1 (Proc rate modifier: %d)<BR>", Item->ProcRate );
-	   else
-	       sprintf(temp,"Procs at level %d (Proc rate modifier: %d)<BR>",Item->Level, Item->ProcRate);
-       strcat(out,temp);
-     } else if (Item->SpellId==/*Haste*/998) {
-      sprintf(temp,"%d%% Haste<BR>",Item->Level+1);
-      strcat(out,temp);
-     }
+    // Will be 0 for no effect or -1 if other effects present 
+    if (Item->Proc.SpellID && Item->Proc.SpellID!=-1) { 
+       if (Item->Proc.RequiredLevel == 0 ) 
+          sprintf(temp, "Procs at level 1 (Proc rate modifier: %d)<BR>", Item->ProcRate); 
+      else 
+         sprintf(temp,"Procs at level %d (Proc rate modifier: %d)<BR>",Item->Proc.EffectType, Item->ProcRate); 
+       strcat(out,temp); 
+     } 
+   /* No longer needed? 
+    else if (Item->SpellId==998) { // 998 = haste 
+      sprintf(temp,"%d%% Haste<BR>",Item->Level+1); 
+      strcat(out,temp); 
+     } 
+   */ 
 	
 	 // Just in case...
 	 if ( (!strstr(This->ItemInfo->Text,"(Combat)")) && Item->ProcRate > 0 )
@@ -93,11 +100,11 @@ public:
 	 }
 
 	 // Teh_Ish (02/08/2004) 
-     if ( Item->EffectType==4 || Item->EffectType==1 || Item->EffectType==5) {
-        if ( Item->Level == 0 )
-			sprintf(temp, "Clickable at level 1<br>", Item->Level );
+     if ( Item->Clicky.EffectType==4 || Item->Clicky.EffectType==1 || Item->Clicky.EffectType==5) {
+		 if ( Item->Clicky.RequiredLevel == 0 )
+			 sprintf(temp, "Clickable at level 1<br>", Item->Clicky.RequiredLevel );
 		else
-            sprintf(temp,"Clickable at level %d<BR>",Item->Level); 
+			sprintf(temp,"Clickable at level %d<BR>",Item->Clicky.RequiredLevel); 
         strcat(out,temp); 
      }
 
@@ -210,24 +217,34 @@ public:
 	 ShowSpellSlotInfo(pSpell,&out[strlen(out)]);
 
 	 //show usable classes routine by Koad//
-	 strcat(out, "<br>" );
+     bool bUseableClasses = false; 
+	 strcat(out, "<br>" ); 
      for (int j=0; j<16; j++) 
      { 
-      if (pSpell->Level[j]>0 && pSpell->Level[j]<=65) 
+      if (pSpell->Level[j]>0 && pSpell->Level[j]<=70) 
       { 
-		 sprintf(temp,"%s(%d)&nbsp;&nbsp;&nbsp;&nbsp;", GetClassDesc(j+1), pSpell->Level[j]); 
+       sprintf(temp,"%s(%d)&nbsp;&nbsp;&nbsp;&nbsp;", GetClassDesc(j+1), pSpell->Level[j]); 
          strcat(out, temp); 
+      bUseableClasses = true; 
       } 
-     }
+     } 
+	 if (bUseableClasses) strcat(out, "<br><br>" ); 
 
-	 sprintf(temp, "Cast on you: %s<br>", pSpell->CastOnYou); 
-	 strcat(out,temp); 
+     if (pSpell->CastOnYou[0]) { 
+       sprintf(temp, "Cast on you: %s<br>", pSpell->CastOnYou); 
+       strcat(out,temp); 
+     } 
 
-	 sprintf(temp, "Cast on another: %s<br>", pSpell->CastOnAnother); 
-	 strcat(out,temp); 
+   if (pSpell->CastOnAnother[0]) { 
+    sprintf(temp, "Cast on another: %s<br>", pSpell->CastOnAnother); 
+    strcat(out,temp); 
+   } 
 
-	 sprintf(temp, "Wears off: %s<br>", pSpell->WearOff); 
-	 strcat(out,temp); 
+   if (pSpell->WearOff[0]) { 
+    sprintf(temp, "Wears off: %s<br>", pSpell->WearOff); 
+    strcat(out,temp); 
+   } 
+
 
 	 if (out[0]!=17) {
      strcat(out,"</c>");

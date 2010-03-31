@@ -392,8 +392,8 @@ typedef struct _UILOCATION {
 
 typedef struct _ITEMSPELLS { 
    DWORD SpellID; 
-   BYTE SpellType; 
-   BYTE Level; 
+   BYTE RequiredLevel; 
+   BYTE EffectType; 
    BYTE Unknown[2]; 
 } ITEMSPELLS, *PITEMSPELLS; 
 
@@ -473,14 +473,11 @@ typedef struct _ITEMINFO {
 /*0x16C*/ DWORD FactionModValue[0x4]; 
 /*0x17c*/ BYTE CharmFile[0x20]; 
 /*0x19c*/ FLOAT QuestValue; 
-union { 
-   struct { 
-/*0x1a0*/   DWORD SpellId; 
-/*0x1a4*/   BYTE EffectType; 
-/*0x1a5*/   BYTE Level; 
-   }; 
-/*0x1a0*/ struct _ITEMSPELLS Spells[5]; 
-};  
+/*0x1a0*/ struct _ITEMSPELLS Clicky; 
+/*0x1a8*/ struct _ITEMSPELLS Proc; 
+/*0x1b0*/ struct _ITEMSPELLS Worn; 
+/*0x1a8*/ struct _ITEMSPELLS Focus; 
+/*0x1c0*/ struct _ITEMSPELLS Scroll; 
 /*0x1c8*/ DWORD Unknown0x1c8; 
 /*0x1cc*/ DWORD Unknown0x1cc; 
 /*0x1d0*/ DWORD ProcRate; 
@@ -508,7 +505,7 @@ union {
 /*0x22a*/ BYTE SizeCapacity; 
 /*0x22b*/ BYTE WeightReduction; 
 /*0x22c*/ DWORD Favor; // Tribute Value 
-/*0x230*/ DWORD Unknown0x230; // Has to do with Favor 
+/*0x230*/ DWORD GuildFavor; 
 /*0x234*/ DWORD Unknown0x234; 
 /*0x238*/ DWORD Endurance; 
 /*0x23c*/ DWORD Attack; 
@@ -927,8 +924,8 @@ typedef struct _ACTORINFO {
 /*0xd20*/ FLOAT        LastPacketSpeedZ; 
 /*0xd24*/ FLOAT        LastPacketSpeedX; 
 /*0xd28*/ DWORD        LastPacketHeadingTurning; 
-/*0xd2c*/ BYTE         Unknown0xd2c[0x40]; 
-/*0xd6c*/ DWORD        Trader;            //0=normal 1=trader 
+/*0xd2c*/ BYTE         Unknown0xd2c[0x38]; 
+/*0xd6 */ DWORD        Trader;            //0=normal 1=trader 
 /*0xdb8*/
 } ACTORINFO, *PACTORINFO;
 

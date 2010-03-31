@@ -29,6 +29,8 @@ EQLIB_API DWORD bmParseMacroParameter;
 EQLIB_API DWORD bmUpdateSpawnSort;
 EQLIB_API DWORD bmUpdateSpawnCaptions;
 EQLIB_API DWORD bmCalculate;
+EQLIB_API DWORD bmBeginZone; 
+EQLIB_API DWORD bmEndZone;
 
 /* OTHER */
 
@@ -165,6 +167,7 @@ EQLIB_VAR PCHAR gDiKeyName[256];
 
 EQLIB_VAR DWORD ManaGained;
 EQLIB_VAR DWORD HealthGained;
+EQLIB_VAR DWORD EnduranceGained;
 
 EQLIB_VAR DWORD gGameState;
 

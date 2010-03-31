@@ -280,7 +280,7 @@ PLUGIN_API VOID ShutdownPlugin(VOID)
 PLUGIN_API VOID OnAddSpawn(PSPAWNINFO pNewSpawn)
 {
 	DebugSpewAlways("MQ2Map::OnAddSpawn(%s)",pNewSpawn->Name);
-	if (Update)
+	if (Update && pNewSpawn->SpawnID != 0)
 		AddSpawn(pNewSpawn);
 }
 

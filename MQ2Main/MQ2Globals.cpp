@@ -41,6 +41,8 @@ DWORD bmParseMacroParameter=0;
 DWORD bmUpdateSpawnSort=0;
 DWORD bmUpdateSpawnCaptions=0;
 DWORD bmCalculate=0;
+DWORD bmBeginZone=0; 
+DWORD bmEndZone=0;
 
 PDATAVAR pGlobalVariables=0;
 PDATAVAR pMacroVariables=0;
@@ -824,6 +826,7 @@ PMQPLUGIN pPlugins=0;
 PMQXMLFILE pXMLFiles=0;
 DWORD ManaGained=0;
 DWORD HealthGained=0;
+DWORD EnduranceGained=0;
 PALIAS pAliases=0;
 PSUB pSubs=0;
 PMQCOMMAND pCommands=0;

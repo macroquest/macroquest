@@ -1342,10 +1342,14 @@ bool MQ2CharacterType::GetMember(MQ2VARPTR VarPtr, PCHAR Member, PCHAR Index, MQ
 		Dest.DWord=pChar->AttackSpeed;
 		Dest.Type=pIntType;
 		return true;
-	case Endurance:
+	case Endurance:  //Grandfathered, CurrentEndurance should be used instead.
 		Dest.DWord=pChar->Endurance;
 		Dest.Type=pIntType;
 		return true;
+    case CurrentEndurance: 
+        Dest.DWord=pChar->Endurance; 
+        Dest.Type=pIntType; 
+        return true;
 	case MaxEndurance:
 		Dest.DWord=GetMaxEndurance();
 		Dest.Type=pIntType;
@@ -1513,6 +1517,10 @@ bool MQ2CharacterType::GetMember(MQ2VARPTR VarPtr, PCHAR Member, PCHAR Index, MQ
 		Dest.DWord=ManaGained;
 		Dest.Type=pIntType;
 		return true;
+    case EnduranceRegen: 
+        Dest.DWord=EnduranceGained; 
+        Dest.Type=pIntType; 
+        return true;
 	case Dar:
 		Dest.DWord=0;
 		{
@@ -2613,49 +2621,63 @@ bool MQ2ItemType::GetMember(MQ2VARPTR VarPtr, PCHAR Member, PCHAR Index, MQ2TYPE
 		Dest.Float=(FLOAT)pItem->Item->CastTime/1000;
 		Dest.Type=pFloatType;
 		return true;
-	case Spell:
-		if (Dest.Ptr=GetSpellByID(pItem->Item->SpellId))
-		{
-			Dest.Type=pSpellType;
-			return true;
-		}
-		return false;
+	case Spell: 
+		if (Dest.Ptr=GetSpellByID(pItem->Item->Clicky.SpellID)) 
+		{ 
+			Dest.Type=pSpellType; 
+			return true; 
+		} 
+		return false; 
 	case EffectType:
-		// 0 = combat
-		// 1 = click inventory
-		// 2 = ?
-		// 3 = ?
-		// 4 = click worn
-		if (GetSpellByID(pItem->Item->SpellId))
-		{
-			switch(pItem->Item->EffectType)
-			{
-			case 0:
-				Dest.Ptr="Combat";
-				break;
-			case 1:
-				Dest.Ptr="Click Inventory";
-				break;
-			case 2:
-				Dest.Ptr="Worn";
-				break;
-			case 3:
-				Dest.Ptr="Unknown-3";
-				break;
-			case 4:
-				Dest.Ptr="Click Worn";
-				break;
-			case 5:
-				Dest.Ptr="Click Inventory";
-				break;
-			default:
-				Dest.Ptr="Unknown";
-				break;
-			}
-			Dest.Type=pStringType;
-			return true;
-		}
-		return false;
+		//0 Proc 
+		//1 Clickable from inventory (any class) 
+		//2 Worn effect (haste, cleave) 
+		//3 Unknown 
+		//4 Clickable must be worn 
+		//5 Clickable from inventory (class restricted) 
+		//6 Focus effect 
+		//7 Memmable spell scroll 
+      // This used to return an int type with a case statment, items could have 
+      // only one effect. For backwards compatibility we return based on a hierarchy. 
+      // A zero in any field indicates no effect (others will also be zero) 
+      if (!pItem->Item->Clicky.SpellID) 
+      { 
+         return false; 
+      } 
+      else if (pItem->Item->Scroll.SpellID!=-1) 
+      { 
+         Dest.Ptr="Spell Scroll"; 
+      } 
+      else if (pItem->Item->Clicky.SpellID!=-1) 
+      { 
+         // code to detect must-be-worn etc here 
+         switch (pItem->Item->Clicky.EffectType) 
+         { 
+         case 4: 
+                Dest.Ptr="Click Worn"; 
+            break; 
+         case 1: 
+         case 5: 
+            Dest.Ptr="Click Inventory"; 
+            break; 
+         default: 
+            Dest.Ptr="Click Unknown"; 
+         } 
+      } 
+      else if (pItem->Item->Focus.SpellID!=-1 || pItem->Item->Worn.SpellID!=-1) 
+      { 
+         Dest.Ptr="Worn"; 
+      } 
+      else if (pItem->Item->Proc.SpellID!=-1) 
+      { 
+         Dest.Ptr="Combat"; 
+      } 
+      else 
+      { 
+         return false; 
+      } 
+		Dest.Type=pStringType; 
+		return true; 
 	case InstrumentMod:
 		Dest.Float=((FLOAT)pItem->Item->InstrumentMod)/10.0f;
 		Dest.Type=pFloatType;

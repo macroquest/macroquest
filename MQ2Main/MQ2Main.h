@@ -233,6 +233,8 @@ EQLIB_API VOID PluginsAddSpawn(PSPAWNINFO pNewSpawn);
 EQLIB_API VOID PluginsRemoveSpawn(PSPAWNINFO pSpawn);
 EQLIB_API VOID PluginsAddGroundItem(PGROUNDITEM pNewGroundItem);
 EQLIB_API VOID PluginsRemoveGroundItem(PGROUNDITEM pGroundItem);
+EQLIB_API VOID PluginsBeginZone(VOID); 
+EQLIB_API VOID PluginsEndZone(VOID); 
 
 /* DIRECT INPUT */
 EQLIB_API VOID InitializeMQ2DInput();

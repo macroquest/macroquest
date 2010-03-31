@@ -47,5 +47,7 @@ typedef VOID  (__cdecl *fMQDrawHUD)(VOID);
 typedef VOID  (__cdecl *fMQSetGameState)(DWORD GameState);
 typedef VOID  (__cdecl *fMQSpawn)(PSPAWNINFO);
 typedef VOID  (__cdecl *fMQGroundItem)(PGROUNDITEM);
+typedef VOID  (__cdecl *fMQBeginZone)(VOID); 
+typedef VOID  (__cdecl *fMQEndZone)(VOID); 
 };
 using namespace MQ2Prototypes;

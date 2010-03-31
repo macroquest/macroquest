@@ -851,6 +851,8 @@ public:
 		AttackSpeed=119,
 		GroupList=120,
 		AmIGroupLeader=121,
+		CurrentEndurance=122,
+		EnduranceRegen=123,
 	};
 	MQ2CharacterType():MQ2Type("character")
 	{
@@ -974,6 +976,8 @@ public:
 		TypeMember(AttackSpeed); //119
 		TypeMember(GroupList); 
 		TypeMember(AmIGroupLeader); //121
+		TypeMember(CurrentEndurance);
+		TypeMember(EnduranceRegen);
 	}
 
 	~MQ2CharacterType()

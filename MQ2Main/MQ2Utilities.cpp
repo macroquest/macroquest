@@ -2370,10 +2370,25 @@ PCHAR ShowSpellSlotInfo(PSPELL pSpell, PCHAR szBuffer)
          sprintf(szTemp, "Add Instrument Modifier(%d)", pSpell->Base[i]); 
          strcat(szBuff, szTemp); 
          break; 
-      case 262: //Stat Cap Mod (how do they know which?) 
-         sprintf(szTemp, "Increase (Unknown Calc) Cap by %d", pSpell->Base[i]); 
-         strcat(szBuff, szTemp); 
-         break; 
+      case 262: 
+         if ( pSpell->Base[i] < 0 ) strcat(szBuff, "Decrease "); 
+         if ( pSpell->Base[i] > 0 ) strcat(szBuff, "Increase "); 
+
+         switch (pSpell->Base2[i]) { 
+            case 0:   strcat (szBuff, "STR");   break; 
+            case 1:   strcat (szBuff, "STA");   break; 
+            case 2:   strcat (szBuff, "AGI");   break; 
+            case 3:   strcat (szBuff, "DEX");   break; 
+            case 4:   strcat (szBuff, "WIS");   break; 
+            case 5:   strcat (szBuff, "INT");   break; 
+            case 6:   strcat (szBuff, "CHA");   break; 
+            default: 
+               sprintf (szTemp, "UnknownStat(%d)", pSpell->Base2[i]); 
+               strcat (szBuff, szTemp); 
+         } 
+		 sprintf(szTemp, " Cap by %d", abs(pSpell->Base[i])); 
+		 strcat(szBuff, szTemp); 
+		 break; 
       case 266: //Attack Chance 
          sprintf(szTemp, "Add Attack Chance(%d)", pSpell->Base[i]); 
          strcat(szBuff, szTemp); 
@@ -2454,8 +2469,8 @@ PCHAR ShowSpellSlotInfo(PSPELL pSpell, PCHAR szBuffer)
          sprintf(szTemp, "Gate to Starting City"); 
          strcat(szBuff, szTemp); 
          break; 
-      case 323: //Add Defensive Proc--- How to get the string? 
-         sprintf(szTemp, "Add Defensive Proc: Spell ID(%d)", pSpell->Base[i]); 
+      case 323: //Add Defensive Proc
+         sprintf(szTemp,"Add Defensive Proc: %s", GetSpellNameByID(pSpell->Base[i])); 
          strcat(szBuff, szTemp); 
          break; 
       case 324: //Spirit Channel 
@@ -2482,13 +2497,13 @@ PCHAR ShowSpellSlotInfo(PSPELL pSpell, PCHAR szBuffer)
          sprintf(szTemp, "UnknownEffect%03d", pSpell->Attrib[i]); 
          strcat(szBuff,szTemp); 
          break; 
+	  }
 	  if ( !bSlotIsPH ) {
 		  strcat(szBuffer, szBuff);
 		  strcat(szBuffer, "<br>" );
 	  }
      } 
    return szBuffer;
-   }
 } 
 
 // *************************************************************************** 

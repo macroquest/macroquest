@@ -327,6 +327,8 @@ typedef struct _MQPlugin
 	fMQSpawn RemoveSpawn;
 	fMQGroundItem AddGroundItem;
 	fMQGroundItem RemoveGroundItem;
+    fMQBeginZone BeginZone; 
+    fMQEndZone EndZone; 
 	struct _MQPlugin* pLast;
 	struct _MQPlugin* pNext;
 } MQPLUGIN, *PMQPLUGIN;

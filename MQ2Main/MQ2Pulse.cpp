@@ -85,6 +85,7 @@ void Pulse()
 
 	static DWORD LastHealth = 0;
 	static DWORD LastMana = 0;
+	static DWORD LastEndurance = 0;
 
 
 
@@ -105,8 +106,10 @@ void Pulse()
 		DoorEnviroTarget.Name[0]=0;
 		LastHealth=0;
 		LastMana=0;
+		LastEndurance=0; 
 		ManaGained=0;
 		HealthGained=0;
+		EnduranceGained=0;
 		// see if we're on a pvp server
 		if (!strncmp(EQADDR_SERVERNAME,"tallon",6) || !strncmp(EQADDR_SERVERNAME,"vallon",6))
 		{
@@ -151,6 +154,15 @@ void Pulse()
 		}
 	}
 	LastMana=pCharInfo->Mana;
+
+	if (LastEndurance && pCharInfo->Endurance > LastEndurance) 
+    { 
+		if (pCharInfo->Endurance != (int)pCharData->Max_Endurance()) 
+        { 
+			EnduranceGained = pCharInfo->Endurance - LastEndurance; 
+        } 
+    } 
+    LastEndurance = pCharInfo->Endurance;
 
     if (gbDoAutoRun && pChar && pChar->pCharInfo) {
         gbDoAutoRun = FALSE;

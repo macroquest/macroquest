@@ -88,6 +88,8 @@ DWORD LoadMQ2Plugin(const PCHAR pszFilename)
 	pPlugin->RemoveSpawn=(fMQSpawn)GetProcAddress(hmod,"OnRemoveSpawn");
 	pPlugin->AddGroundItem=(fMQGroundItem)GetProcAddress(hmod,"OnAddGroundItem");
 	pPlugin->RemoveGroundItem=(fMQGroundItem)GetProcAddress(hmod,"OnRemoveGroundItem");
+    pPlugin->BeginZone=(fMQBeginZone)GetProcAddress(hmod,"OnBeginZone"); 
+    pPlugin->EndZone=(fMQEndZone)GetProcAddress(hmod,"OnEndZone"); 
 
 	if (pPlugin->Initialize)
 		pPlugin->Initialize();
@@ -189,6 +191,8 @@ VOID InitializeMQ2Plugins()
 	bmPluginsDrawHUD=AddMQ2Benchmark("PluginsDrawHUD");
 	bmPluginsSetGameState=AddMQ2Benchmark("PluginsSetGameState");
 	bmCalculate=AddMQ2Benchmark("Calculate");
+    bmBeginZone=AddMQ2Benchmark("BeginZone"); 
+	bmEndZone=AddMQ2Benchmark("EndZone"); 
 
 	InitializeCriticalSection(&gPluginCS);
 	bPluginCS=1;
@@ -503,3 +507,41 @@ VOID PluginsRemoveGroundItem(PGROUNDITEM pGroundItem)
 		pPlugin=pPlugin->pNext;
 	}
 }
+
+VOID PluginsBeginZone() 
+{ 
+   PluginDebug("PluginsBeginZone()"); 
+   if (!bPluginCS) 
+      return; 
+   CAutoLock Lock(&gPluginCS); 
+   PMQPLUGIN pPlugin=pPlugins; 
+   while(pPlugin) 
+   { 
+      if (pPlugin->BeginZone) 
+      { 
+         DebugSpew("%s->BeginZone()",pPlugin->szFilename); 
+         pPlugin->BeginZone(); 
+      } 
+      pPlugin=pPlugin->pNext; 
+   } 
+} 
+
+VOID PluginsEndZone() 
+{ 
+   PluginDebug("PluginsEndZone()"); 
+   if (!bPluginCS) 
+      return; 
+   CAutoLock Lock(&gPluginCS); 
+   PMQPLUGIN pPlugin=pPlugins; 
+   while(pPlugin) 
+   { 
+      if (pPlugin->EndZone) 
+      { 
+         DebugSpew("%s->EndZone()",pPlugin->szFilename); 
+         pPlugin->EndZone(); 
+      } 
+      pPlugin=pPlugin->pNext; 
+   } 
+   LoadCfgFile("zoned",false); 
+   LoadCfgFile(((PZONEINFO)pZoneInfo)->ShortName,false); 
+} 

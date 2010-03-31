@@ -206,7 +206,9 @@ VOID memchecks(PVOID A,DWORD B,PCHAR C,DWORD D,BOOL E)
 			C[Pos]=(t <= 255) ? (char)t : 0;
 		}
 	}
+	if (B == 0x00A1) PluginsBeginZone(); 
 	memchecks_tramp(A,B,C,D,E);
+	if (B == 0x0086) PluginsEndZone(); 
 }
 
 // ***************************************************************************
