@@ -807,7 +807,7 @@ bool MQ2BuffType::GetMember(MQ2VARPTR VarPtr, PCHAR Member, PCHAR Index, MQ2TYPE
 					return true;
 				}
 			}
-			for (N = 0 ; N < 15 ; N++)
+			for (N = 0 ; N < 20 ; N++)
 			{
 				if (&pChar->Buff[N]==pBuff)
 				{
@@ -1209,7 +1209,7 @@ bool MQ2CharacterType::GetMember(MQ2VARPTR VarPtr, PCHAR Member, PCHAR Index, MQ
 	case CountBuffs:
 		Dest.DWord=0;
 		{
-			for (unsigned long nBuff=0 ; nBuff<15 ; nBuff++)
+			for (unsigned long nBuff=0 ; nBuff<20 ; nBuff++)
 			{
 				if (pChar->Buff[nBuff].SpellID>0)
 					Dest.DWord++;
@@ -1223,7 +1223,7 @@ bool MQ2CharacterType::GetMember(MQ2VARPTR VarPtr, PCHAR Member, PCHAR Index, MQ
 		if (IsNumber(Index))
 		{
 			unsigned long nBuff=atoi(Index)-1;
-			if (nBuff>=15)
+			if (nBuff>=20)
 				return false;
 			if (pChar->Buff[nBuff].SpellID<=0)
 				return false;
@@ -1233,7 +1233,7 @@ bool MQ2CharacterType::GetMember(MQ2VARPTR VarPtr, PCHAR Member, PCHAR Index, MQ
 		}
 		else
 		{
-			for (unsigned long nBuff=0 ; nBuff < 15 ; nBuff++)
+			for (unsigned long nBuff=0 ; nBuff < 20 ; nBuff++)
 			{
 				if (PSPELL pSpell=GetSpellByID(pChar->Buff[nBuff].SpellID))
 				{

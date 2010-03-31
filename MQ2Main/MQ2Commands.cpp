@@ -576,7 +576,7 @@ VOID MemSpell(PSPAWNINFO pChar, PCHAR szLine)
     ZeroMemory(&MemSpellFavorite,sizeof(MemSpellFavorite));
     strcpy(MemSpellFavorite.Name,"Mem a Spell");
     MemSpellFavorite.Byte_3e=1;
-    for (sp=0;sp<8;sp++) MemSpellFavorite.SpellId[sp]=0xFFFFFFFF;
+    for (sp=0;sp<9;sp++) MemSpellFavorite.SpellId[sp]=0xFFFFFFFF;
     MemSpellFavorite.SpellId[Gem] = pSpell->ID;
 	pSpellBookWnd->MemorizeSet((int*)Favorite,8);
 }
@@ -2517,7 +2517,7 @@ VOID LoadSpells(PSPAWNINFO pChar, PCHAR szLine)
         }
         sprintf(szBuffer,"Favorite list '%s':",szArg2);
         WriteChatColor(szBuffer,USERCOLOR_DEFAULT);
-        for (Index=0;Index<8;Index++) {
+        for (Index=0;Index<9;Index++) {
             if (pSpellSets[DoIndex].SpellId[Index]!=0xFFFFFFFF) {
                 sprintf(szBuffer,"%d) %s",Index,GetSpellByID(pSpellSets[DoIndex].SpellId[Index]));
                 WriteChatColor(szBuffer,USERCOLOR_DEFAULT);
@@ -2557,7 +2557,7 @@ VOID Cast(PSPAWNINFO pChar, PCHAR szLine)
    CHAR szArg2[MAX_STRING] = {0};
    if (!stricmp(szLine,"list")) {
       WriteChatColor("Spells:",USERCOLOR_DEFAULT);
-      for (Index=0;Index<8;Index++) {
+      for (Index=0;Index<9;Index++) {
          if (pCharInfo->MemorizedSpells[Index]==0xFFFFFFFF) {
             sprintf(szBuffer,"%d. <Empty>",Index+1);
          } else {
