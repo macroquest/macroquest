@@ -330,7 +330,7 @@ void __cdecl ProtectionRequest(ISXInterface *pClient, unsigned long MSG, void *l
    case MEMPROTECT_PROTECT:
 #define pData ((MemProtect*)lpData)
 	   pData->Success=pExtension->Protect(pData->Address,pData->Length);
-	   printf("Protection: %X for %d length, success=%d",pData->Address,pData->Length,pData->Success);
+//	   printf("Protection: %X for %d length, success=%d",pData->Address,pData->Length,pData->Success);
 #undef pData
 	   break;
    case MEMPROTECT_UNPROTECT:

@@ -33,8 +33,6 @@ EQLIB_API VOID DoCtrlCmd(PSPAWNINFO pChar, PCHAR szLine);
 EQLIB_API VOID DoAltCmd(PSPAWNINFO pChar, PCHAR szLine);
 EQLIB_API VOID DumpBindsCommand(PSPAWNINFO pChar, PCHAR szLine);
 EQLIB_API VOID LoadCfgCommand(PSPAWNINFO pChar, PCHAR szLine);
-EQLIB_API VOID do_ranged(PSPAWNINFO pChar, PCHAR szLine);
-EQLIB_API VOID MQ2KeyBindCommand(PSPAWNINFO pChar, PCHAR szLine);
 EQLIB_API VOID Alert                               (PSPAWNINFO,PCHAR);
 EQLIB_API VOID AltAbility						   (PSPAWNINFO,PCHAR);
 EQLIB_API VOID BankList                            (PSPAWNINFO,PCHAR);
@@ -64,13 +62,11 @@ EQLIB_API VOID WindowState							(PSPAWNINFO,PCHAR);
 EQLIB_API VOID LoadSpells                          (PSPAWNINFO,PCHAR);
 EQLIB_API VOID Location                            (PSPAWNINFO,PCHAR);
 EQLIB_API VOID Look                                (PSPAWNINFO,PCHAR);
-EQLIB_API VOID MacroBeep                           (PSPAWNINFO,PCHAR);
 EQLIB_API VOID MacroLog                            (PSPAWNINFO,PCHAR);
 EQLIB_API VOID MemSpell                            (PSPAWNINFO,PCHAR);
 EQLIB_API VOID MouseTo                             (PSPAWNINFO,PCHAR);
 EQLIB_API VOID MQMsgBox                            (PSPAWNINFO,PCHAR);
 EQLIB_API VOID SellItem                            (PSPAWNINFO,PCHAR);
-EQLIB_API VOID SetAutoRun                          (PSPAWNINFO,PCHAR);
 EQLIB_API VOID SetError                            (PSPAWNINFO,PCHAR);
 EQLIB_API VOID Skills                              (PSPAWNINFO,PCHAR);
 EQLIB_API VOID Substitute						   (PSPAWNINFO,PCHAR);
@@ -79,7 +75,6 @@ EQLIB_API VOID SWhoFilter							(PSPAWNINFO,PCHAR);
 EQLIB_API VOID Target                              (PSPAWNINFO,PCHAR);
 EQLIB_API VOID UpdateItemInfo                      (PSPAWNINFO,PCHAR);
 EQLIB_API VOID Where                               (PSPAWNINFO,PCHAR);
-EQLIB_API VOID PopupText                           (PSPAWNINFO,PCHAR);
 /**/
 
 //EQLIB_API VOID DoMappable(PSPAWNINFO pChar, PCHAR szLine)
@@ -190,4 +185,122 @@ int CMD_Who(int argc, char *argv[])
 	}
 	SuperWhoDisplay((PSPAWNINFO)pLocalPlayer,&SearchSpawn,bConColor);
 	return 0;
+}
+
+
+// /beep
+int CMD_MacroBeep(int argc, char *argv[])
+{
+	Beep(0x500,250);
+	return 0;
+}
+// /ranged
+int CMD_do_ranged(int argc, char *argv[])
+{
+	EQPlayer *pRangedTarget=pTarget;
+	if (argc>1)
+	{
+		pRangedTarget=GetSpawnByID(atoi(argv[1]));
+		if (!pRangedTarget)
+		{
+			printf("Invalid spawn ID.  Use /ranged with no parameters, or with a spawn ID");
+			return 0;
+		}
+	}
+	if (!pRangedTarget)
+	{
+		printf("No target for ranged attack");
+		return 0;
+	}
+	if (gbRangedAttackReady)
+	{
+		pLocalPlayer->DoAttack(0x0B,0,pRangedTarget);
+		gbRangedAttackReady=0;
+	}
+	return 0;
+}
+// /autorun
+int CMD_SetAutoRun(int argc, char *argv[])
+{
+	if (argc<2)
+	{
+		WriteChatf("Syntax: %s on|off",argv[0]);
+		return 0;
+	}
+   if(!stricmp(argv[1],"on") || !stricmp(argv[1],"off"))
+   {
+		CHAR szServerAndName[MAX_STRING] = {0};
+		sprintf(szServerAndName,"%s.%s",((PCHARINFO)pCharData)->Server,((PCHARINFO)pCharData)->Name);
+		WritePrivateProfileString(szServerAndName,"AutoRun",argv[1],gszINIFilename);
+		sprintf(szServerAndName,"Set autorun to: '%s'",argv[1]);
+		WriteChatColor(szServerAndName,USERCOLOR_DEFAULT);
+   }
+   return 0;
+}
+
+// /loginname
+int CMD_DisplayLoginName(int argc, char *argv[])
+{
+	PCHAR szLogin = GetLoginName();
+	if (!szLogin) {
+		printf("Unable to retrieve login name.");
+	} else {
+		WriteChatf("Login name: \ay%s\ax",szLogin);
+		free(szLogin);
+	}
+	return 0;
+}
+
+// /popup
+int CMD_PopupText(int argc, char *argv[])
+{
+	if (argc<2)
+	{
+		printf("Syntax: %s <text>",argv[0]);
+		return 0;
+	}
+
+	CHAR szRest[MAX_STRING] = {0};
+	pISInterface->GetArgs(1,argc,argv,szRest);
+	DisplayOverlayText(szRest, CONCOLOR_LIGHTBLUE, 100, 500,500,3000);
+	return 0;
+}
+
+int CMD_BuyItem(int argc, char *argv[])
+{
+	if (argc<2)
+	{
+		WriteChatf("Syntax: %s <quantity>",argv[0]);
+		return 0;
+	}
+   if (!pMerchantWnd) 
+   {
+	   return 0;
+   }
+   PCHARINFO pCharInfo;
+   if (NULL == (pCharInfo = GetCharInfo())) 
+	   return 0;
+
+   DWORD Qty=(DWORD)atoi(argv[1]);
+
+   if (Qty > 20 || Qty < 1) return 0;
+   pMerchantWnd->RequestBuyItem(Qty);
+   return 0;
+}
+int CMD_SellItem(int argc, char *argv[])
+{
+	if (argc<2)
+	{
+		WriteChatf("Syntax: %s <quantity>",argv[0]);
+		return 0;
+	}
+	if (!pMerchantWnd) 
+		return 0;
+	PCHARINFO pCharInfo;
+    if (NULL == (pCharInfo = GetCharInfo())) return 0;
+
+    DWORD Qty = (DWORD)atoi(argv[1]);
+    if (Qty > 20 || Qty < 1) return 0;
+    pMerchantWnd->RequestSellItem(Qty);
+    return 0;
 }
