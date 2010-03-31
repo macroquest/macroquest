@@ -1,3 +1,8 @@
+14 August 2004 by Amadeus
+- Fixed offsets to work with 8/13 "emergency" patch
+- Updated TOTAL_SPELL_COUNT and MAX_ZONES
+- Added dman's ${Target.HeadingToLoc[Y,X]} and ${Me.HeadingToLoc[Y,X].Degrees} routines
+
 12 August 2004 by Amadeus
 - Various fixes (including ${Me.Casting}, etc.)
 

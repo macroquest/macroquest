@@ -1142,9 +1142,9 @@ typedef struct _GROUNDITEM {
 /*0x44*/
 } GROUNDITEM, *PGROUNDITEM;
 
-// 5-15-2003    Amadeus
-#define   MAX_ZONES                                    0x129   
+#define   MAX_ZONES                                    0x151   
 extern    PCHAR szZoneExpansionName[];     //defined in LibEQ_Utilities.cpp
+
 typedef struct _ZONELIST { 
 /*0x000*/   DWORD   Header; 
 /*0x004*/   DWORD   Expansion;          // szZoneExpansionName[] 
@@ -1205,7 +1205,7 @@ typedef struct _ZONEINFO {
 /*0x240*/
 } ZONEINFO, *PZONEINFO;
 
-#define   TOTAL_SPELL_COUNT         0x157C       // # of spells in game
+#define   TOTAL_SPELL_COUNT         0x1770       // # of spells in game
 // note: fuck using TOTAL_SPELL_COUNT in the struct, but keep it for users to use
 // because they cant figure out how to use pSpellMgr->InvalidSpell
 typedef struct _SPELLMGR {
@@ -1215,7 +1215,7 @@ typedef struct _SPELLMGR {
 			struct _SPELL*		InvalidSpell;
 } SPELLMGR, *PSPELLMGR;
 
-
+// Size is 0x224 as of 8.11.2004
 typedef struct _SPELL { 
 /*0x000*/   DWORD   ID; 
 /*0x004*/   FLOAT   Range; 

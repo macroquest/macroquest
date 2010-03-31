@@ -752,6 +752,24 @@ bool MQ2SpawnType::GetMember(MQ2VARPTR VarPtr, PCHAR Member, PCHAR Index, MQ2TYP
 		Dest.DWord=(LineOfSight(GetCharInfo()->pSpawn,pSpawn));
 		Dest.Type=pBoolType;
 		return true;
+   case HeadingToLoc: 
+      if (!Index[0]) 
+         return false; 
+      if (PCHAR pComma=strchr(Index,',')) 
+      { 
+         *pComma=0; 
+         FLOAT Y=(FLOAT)atof(Index); 
+         *pComma=','; 
+         FLOAT X=(FLOAT)atof(&pComma[1]); 
+       Dest.Float=(FLOAT)(atan2f(pSpawn->Y - Y, X - pSpawn->X) * 180.0f / PI + 90.0f); 
+       if (Dest.Float<0.0f) 
+         Dest.Float += 360.0f; 
+         else if (Dest.Float>=360.0f) 
+            Dest.Float -= 360.0f; 
+         Dest.Type=pHeadingType; 
+         return true; 
+      } 
+        return false;
 	}
 	return false;
 }
