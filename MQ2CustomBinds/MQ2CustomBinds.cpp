@@ -71,7 +71,6 @@ VOID SaveCustomBinds();
 PLUGIN_API VOID InitializePlugin(VOID)
 {
 	DebugSpewAlways("Initializing MQ2CustomBinds");
-	LoadCustomBinds();
 
 	AddCommand("/custombind",CustomBindCmd,0,0,0);
 	// Add commands, macro parameters, hooks, etc.
@@ -86,7 +85,7 @@ PLUGIN_API VOID ShutdownPlugin(VOID)
 {
 	DebugSpewAlways("Shutting down MQ2CustomBinds");
 	RemoveCommand("/custombind");
-	SaveCustomBinds();
+//	SaveCustomBinds();
 
 	for (unsigned long N = 0 ; N < CustomBinds.Size ; N++)
 	if (PCUSTOMBIND pBind=CustomBinds[N])
@@ -99,6 +98,19 @@ PLUGIN_API VOID ShutdownPlugin(VOID)
 	// RemoveParm("$myparm(x)");
 	// RemoveCommand("/mycommand");
 	// RemoveXMLFile("MQUI_MyXMLFile.xml");
+}
+
+PLUGIN_API VOID SetGameState(DWORD GameState)
+{
+	static bool BindsLoaded=false;
+   if (GameState==GAMESTATE_INGAME || GameState==GAMESTATE_CHARSELECT) 
+   {
+      if (!BindsLoaded) 
+	  {
+         LoadCustomBinds();
+         BindsLoaded=true;
+      }
+   }
 }
 
 VOID LoadCustomBinds()

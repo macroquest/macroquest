@@ -64,7 +64,7 @@ Using Blech:
 
 #pragma once
 
-#define BLECHVERSION "Lax/Blech 1.5.2"
+#define BLECHVERSION "Lax/Blech 1.6"
 
 #include <map>
 #include <string>
@@ -87,9 +87,9 @@ static void BlechDebug(char *szFormat, ...)
 }
 #define BlechTry(x) BlechDebug("Trying %s",#x);x;BlechDebug("%s complete",#x)
 #else
-#define BLECHASSERT(x) 
+#define BLECHASSERT(x) __noop
 #define BlechTry(x) x
-#define BlechDebug //
+#define BlechDebug __noop
 #endif
 
 #ifdef BLECH_CASE_SENSITIVE
@@ -122,6 +122,12 @@ typedef struct _BLECHVALUE {
 	struct _BLECHVALUE *pNext;
 } BLECHVALUE, *PBLECHVALUE;
 
+typedef struct _BLECHLISTNODE {
+	class BlechNode *pNode;
+	struct _BLECHLISTNODE *pNext;
+} BLECHLISTNODE, *PBLECHLISTNODE;
+
+
 typedef unsigned long   (__stdcall *fBlechVariableValue)(char * VarName, char * Value);
 typedef void (__stdcall *fBlechCallback)(unsigned long ID, void * pData, PBLECHVALUE pValues);
 
@@ -133,6 +139,15 @@ typedef struct _BLECHEVENT {
 
 	class BlechNode *pBlechNode;
 } BLECHEVENT, *PBLECHEVENT;
+
+typedef struct _BLECHEXECUTE {
+	unsigned long ID;
+	void * pData;
+
+	fBlechCallback Callback;
+	struct _BLECHVALUE *pValues;
+	struct _BLECHEXECUTE *pNext;
+} BLECHEXECUTE, *PBLECHEXECUTE;
 
 typedef std::map<unsigned long,PBLECHEVENT> BLECHEVENTMAP; 
 
@@ -451,52 +466,11 @@ public:
 		return false;
 	}
 
-	/*
-	unsigned long AddExactEvent(char *Text,fBlechCallback Callback,void *pData=0)
-	{
-		PBLECHEVENT pEvent = new BLECHEVENT;
-		pEvent->Callback=Callback;
-		pEvent->pData=pData;
-		pEvent->ID=++LastID;
-		pEvent->pBlechNode=0;
-		pEvent->OriginalString=strdup(Text);
-
-		BlechDebug("AddEvent(%X)",pEvent);
-		BLECHASSERT(pEvent);
-		
-		PBLECHEVENTNODE pNode=new BLECHEVENTNODE;
-		pNode->pEvent=pEvent;
-#ifndef BLECH_CASE_SENSITIVE
-		char Temp[4096];
-		PBLECHEVENTNODE pEvents=ExactMatch[strlwr(strcpy(Temp,pEvent->OriginalString))];
-#else
-		PBLECHEVENTNODE pEvents=ExactMatch[Text];
-#endif
-		pNode->pNext=pEvents;
-		if (pEvents)
-			pEvents->pPrev=pNode;
-		pNode->pPrev=0;
-#ifndef BLECH_CASE_SENSITIVE
-		ExactMatch[Temp]=pNode;
-#else
-		ExactMatch[Text]=pNode;
-#endif
-
-		Event[pEvent->ID]=pEvent;
-		return pEvent->ID;
-
-	}
-	/**/
-
 	unsigned long AddEvent(char *Text,fBlechCallback Callback,void *pData=0)
 	{
 		BlechDebug("AddEvent(%s,%X,%X)",Text,Callback,pData);
 		BLECHASSERT(Text);
 		BLECHASSERT(Callback);
-//		if (IsExact(Text))
-//		{
-//			return AddExactEvent(Text,Callback,pData);
-//		}
 		char *pText=Text;
 		char *Part=Text;
 		eBlechStringType StringType=BST_NORMAL;
@@ -550,7 +524,6 @@ public:
 		if (!pEvent)
 			return false;
 		Event.erase(ID);
-//		if (pEvent->pBlechNode)
 		{
 			free(pEvent->OriginalString);
 
@@ -562,37 +535,50 @@ public:
 				pNode=pNext;
 			}
 		}
-		/*
-		else
-		{
-			// exact match
-#ifndef BLECH_CASE_SENSITIVE
-			char Temp[4096];
-			PBLECHEVENTNODE pNode=ExactMatch[strlwr(strcpy(Temp,pEvent->OriginalString))];
-#else
-			PBLECHEVENTNODE pNode=ExactMatch[pEvent->OriginalString];
-#endif
-			if (pNode->pNext)
-				pNode->pNext->pPrev=pNode->pPrev;
-			if (pNode->pPrev)
-				pNode->pPrev->pNext=pNode->pNext;
-			else
-#ifndef BLECH_CASE_SENSITIVE
-				ExactMatch[Temp]=pNode->pNext;
-#else
-				ExactMatch[pEvent->OriginalString]=pNode->pNext;
-#endif
-			delete pNode;
-			free(pEvent->OriginalString);
-			delete pEvent;
-		}
-		/**/
 		return true;
 	}
 
 	char Version[32];
 
 private:
+	inline void FreeExecution(PBLECHEXECUTE pExecute)
+	{
+		PBLECHVALUE pValue=pExecute->pValues;
+		while (pValue)
+		{
+			PBLECHVALUE pNext=pValue->pNext;
+			free(pValue->Value);
+			free(pValue->Name);
+			delete pValue;
+			pValue=pNext;
+		}
+		delete pExecute;
+	}
+
+	void ClearExecutionList()
+	{
+		while(pExecuteList)
+		{
+			PBLECHEXECUTE pExecuteNext=pExecuteList->pNext;
+			FreeExecution(pExecuteList);
+			pExecuteList=pExecuteNext;
+		}
+	}
+
+	unsigned long ProcessExecutionList()
+	{
+		unsigned long n=0;
+		while(pExecuteList)
+		{
+			n++;
+			PBLECHEXECUTE pExecuteNext=pExecuteList->pNext;
+			pExecuteList->Callback(pExecuteList->ID,pExecuteList->pData,pExecuteList->pValues);
+			FreeExecution(pExecuteList);
+			pExecuteList=pExecuteNext;
+		}
+		return n;
+	}
+
 	inline void Cleanup()
 	{
 		for (unsigned long N = 0 ; N < 256 ; N++)
@@ -606,6 +592,7 @@ private:
 			BlechTry(free(pEvent->OriginalString));
 			delete pEvent;
 		}
+		ClearExecutionList();
 	}
 
 
@@ -639,30 +626,258 @@ private:
 		free(pNeedle);
 		return pReturn;
 	}
-/*
-	unsigned long Swallow(char * Input)
+
+
+	void QueueEvent(PBLECHEVENT pEvent, PBLECHVALUE pValues)
 	{
-		BlechDebug("Swallow(%s)",Input);
-#ifndef BLECH_CASE_SENSITIVE
-		char Temp[4096];
-		PBLECHEVENTNODE pEventNode=ExactMatch[strlwr(strcpy(Temp,Input))];
-		if (!pEventNode)
-			ExactMatch.erase(Temp);
-#else
-		PBLECHEVENTNODE pEventNode=ExactMatch[Input];
-		if (!pEventNode)
-			ExactMatch.erase(Input);
-#endif
-		unsigned long Count=0;
+		BlechDebug("QueueEvent(%X,%X)",pEvent,pValues);
+		BLECHASSERT(pEvent);
+
+		PBLECHEXECUTE pNew=new BLECHEXECUTE;
+		pNew->Callback=pEvent->Callback;
+		pNew->ID=pEvent->ID;
+		pNew->pData=pEvent->pData;
+		// make a COPY of values
+		if (pValues)
+		{
+			PBLECHVALUE pNewValueTail=0;
+			pNew->pValues=0;
+			while(pValues)
+			{
+				PBLECHVALUE pNewValue=new BLECHVALUE;
+				pNewValue->Name=strdup(pValues->Name);
+				pNewValue->Value=strdup(pValues->Value);
+				pNewValue->pNext=0;
+				if (pNew->pValues)
+				{
+					pNewValueTail->pNext=pNewValue;
+					pNewValueTail=pNewValue;
+				}
+				else
+				{
+					pNewValueTail=pNew->pValues=pNewValue;
+
+				}
+				pValues=pValues->pNext;
+			}
+		}
+		else
+			pNew->pValues=0;
+
+		pNew->pNext=pExecuteList;
+		pExecuteList=pNew;
+	}
+
+	void QueueEvents(BlechNode *pNode, char *Input, unsigned long InputLength)
+	{
+		BlechDebug("QueueEvents(%X,%s,%d)",pNode,Input,InputLength);
+		BLECHASSERT(pNode);
+		BLECHASSERT(Input);
+		BLECHASSERT(InputLength);
+		// ASSUME we have a complete match
+		
+		// Get forward traversal list (reverse the links, into a new list)
+		PBLECHLISTNODE pList=0;
+		BlechNode *pCurrent=pNode;
+		int nVariableNodes=0;
+		while(pCurrent)
+		{
+			PBLECHLISTNODE pNewHead=new BLECHLISTNODE;
+			pNewHead->pNext=pList;
+			pNewHead->pNode=pCurrent;
+			pList=pNewHead;
+			if (pCurrent->StringType==BST_SCANVAR)
+				nVariableNodes++;
+			pCurrent=pCurrent->pParent;
+		}
+
+		if (!nVariableNodes)
+		{
+			BlechDebug("No variable nodes");
+			// if there's no variable nodes, we have no work to do. ciao!
+			PBLECHEVENTNODE pEventNode=pNode->pEvents;
+			while(pEventNode)
+			{
+				QueueEvent(pEventNode->pEvent,0);
+				pEventNode=pEventNode->pNext;
+			}
+
+			// cleanup
+			while(pList)
+			{
+				PBLECHLISTNODE pNext=pList->pNext;
+				delete pList;
+				pList=pNext;
+			}
+			return;
+		}
+
+		// now do it forward, filling in the values. we KNOW they exist.
+
+		char NonVariable[16384];
+		char VarData[4096];
+		NonVariable[0]=0;
+		char *Pos=Input;
+
+		PBLECHVALUE pValues=0;
+		PBLECHVALUE pValuesTail=0;
+
+		BlechNode *pCurrentScanVar=0;
+		while(pList)
+		{
+			pCurrent=pList->pNode;
+			switch(pCurrent->StringType)
+			{
+			case BST_NORMAL:
+				strcat(NonVariable,pCurrent->pString);
+				break;
+			case BST_PRINTVAR:
+				VarData[0]=0;
+				BlechTry(VariableValue(pCurrent->pString,VarData));
+				strcat(NonVariable,VarData);
+				break;
+			case BST_SCANVAR:
+				if (pCurrentScanVar)
+				{
+					if (NonVariable[0])
+					{
+						char *End=STRFIND(Pos,NonVariable);
+						if (End)
+						{
+							PBLECHVALUE pNewValue = new BLECHVALUE;
+							pNewValue->Name=strdup(pCurrentScanVar->pString);
+
+							unsigned long Length=End-Pos;
+							pNewValue->Value=(char*)malloc(Length+1);
+							memcpy(pNewValue->Value,Pos,Length);
+							pNewValue->Value[Length]=0;
+							pNewValue->pNext=0;
+							if (pValues)
+							{
+								pValuesTail->pNext=pNewValue;
+								pValuesTail=pNewValue;
+							}
+							else
+							{
+								pValuesTail=pValues=pNewValue;
+							}
+							
+							Pos=End+strlen(NonVariable);
+							NonVariable[0]=0;
+						}
+						else
+						{
+							// not a real match. goodbye!
+							// NOTE: this can be relatively normal, it is not a direct indication of an error
+							goto queueeventscleanup;
+						}
+					}
+					else
+					{
+						PBLECHVALUE pNewValue = new BLECHVALUE;
+						pNewValue->Name=strdup(pCurrentScanVar->pString);
+						pNewValue->Value=(char*)malloc(1);
+						pNewValue->Value[0]=0;
+						pNewValue->pNext=0;
+						if (pValues)
+						{
+							pValuesTail->pNext=pNewValue;
+							pValuesTail=pNewValue;
+						}
+						else
+						{
+							pValuesTail=pValues=pNewValue;
+						}
+					}
+				}
+				else
+				{
+					Pos+=strlen(NonVariable);
+					NonVariable[0]=0;
+				}
+				pCurrentScanVar=pCurrent;
+				break;
+			}
+			
+			
+			PBLECHLISTNODE pNext=pList->pNext;
+			delete pList;
+			pList=pNext;
+		}
+
+		if (pCurrentScanVar)
+		{
+			if (NonVariable[0])
+			{
+
+				PBLECHVALUE pNewValue = new BLECHVALUE;
+				pNewValue->Name=strdup(pCurrentScanVar->pString);
+
+				char *End=&Input[InputLength]-strlen(NonVariable);
+				unsigned long Length=End-Pos;
+				pNewValue->Value=(char*)malloc(Length+1);
+				memcpy(pNewValue->Value,Pos,Length);
+				pNewValue->Value[Length]=0;
+				pNewValue->pNext=0;
+
+				if (pValues)
+				{
+					pValuesTail->pNext=pNewValue;
+					pValuesTail=pNewValue;
+				}
+				else
+				{
+					pValuesTail=pValues=pNewValue;
+				}
+				
+				Pos=End;
+				NonVariable[0]=0;
+			}
+			else
+			{
+				PBLECHVALUE pNewValue = new BLECHVALUE;
+				pNewValue->Name=strdup(pCurrentScanVar->pString);
+				pNewValue->Value=(char*)malloc(1);
+				pNewValue->Value[0]=0;
+				pNewValue->pNext=0;
+				if (pValues)
+				{
+					pValuesTail->pNext=pNewValue;
+					pValuesTail=pNewValue;
+				}
+				else
+				{
+					pValuesTail=pValues=pNewValue;
+				}
+			}
+		}
+
+		// add to execution list
+		PBLECHEVENTNODE pEventNode=pNode->pEvents;
 		while(pEventNode)
 		{
-			Count++;
-			pEventNode->pEvent->Callback(pEventNode->pEvent->ID,pEventNode->pEvent->pData,0);
+			QueueEvent(pEventNode->pEvent,pValues);
 			pEventNode=pEventNode->pNext;
 		}
-		return Count;
+
+		// cleanup
+queueeventscleanup:
+		while(pValues)
+		{
+			PBLECHVALUE pNext=pValues->pNext;
+			free(pValues->Name);
+			free(pValues->Value);
+			delete pValues;
+			pValues=pNext;
+		}
+
+		while(pList)
+		{
+			PBLECHLISTNODE pNext=pList->pNext;
+			delete pList;
+			pList=pNext;
+		}
 	}
-/**/
 
 	unsigned long Chew(BlechNode *pNode,char * Input)
 	{
@@ -672,14 +887,11 @@ private:
 			return 0;
 		unsigned long Length=(unsigned long)strlen(Input);
 		char *pEnd=&Input[Length];
-
 		char VarData[4096];
-//		unsigned long VarDataLength;
 
 		struct MatchPos
 		{
 			char *Pos;
-//			char *VarData;
 			BlechNode *pNode;
 		};
 		
@@ -696,32 +908,29 @@ private:
 		Push();
 		CurrentPos.pNode=pNode;
 
-		unsigned long Count=0;
 		while(pNode)
 		{
-			switch(pNode->StringType)
+			// determine match
 			{
-			case BST_NORMAL:
-				if (CurrentPos.Pos+pNode->Length<=pEnd)
+				switch(pNode->StringType)
 				{
-					if (PLP && MatchStack[PLP-1].pNode && MatchStack[PLP-1].pNode->StringType==BST_SCANVAR)
+				case BST_NORMAL:
+					BlechDebug("BST_NORMAL");
+					if (CurrentPos.Pos+pNode->Length<pEnd)
 					{
-						if (char *pFound=STRFIND(CurrentPos.Pos,pNode->pString))
-						{
-//							CurrentPos.pNode=pNode;
-							CurrentPos.Pos=&pFound[pNode->Length];
-							if (!CurrentPos.Pos[0])
-							{
-								goto feedermatchdoevents;
+							if (char *pFound=STRFIND(CurrentPos.Pos,pNode->pString))
+							{ // what if we find this multiple times? need to find the right one, depending on the children
+								CurrentPos.Pos=&pFound[pNode->Length];
+								if (!CurrentPos.Pos[0])
+								{
+									goto feedermatchdoevents;
+								}
+								goto feedermatchnoevent;
 							}
-							goto feedermatchnoevent;
-						}
 					}
-					else
-					if (!STRNCMP(pNode->pString,CurrentPos.Pos,pNode->Length))
+					else if (CurrentPos.Pos+pNode->Length==pEnd && !STRNCMP(pNode->pString,CurrentPos.Pos,pNode->Length))
 					{
 						// match. do events?
-//						CurrentPos.pNode=pNode;
 						CurrentPos.Pos+=pNode->Length;
 						if (!CurrentPos.Pos[0])
 						{
@@ -729,180 +938,144 @@ private:
 						}
 						goto feedermatchnoevent;
 					}
-				}
-				goto feedernomatch;
-			case BST_PRINTVAR:
-				// variable data of unknown size
-				BlechTry(pNode->Length=VariableValue(pNode->pString,VarData));
-				if (!pNode->Length)
 					goto feedernomatch;
-				BLECHASSERT(VarData[0]);
-				if (CurrentPos.Pos+pNode->Length<=pEnd)
-				{
-					if (PLP && MatchStack[PLP-1].pNode && MatchStack[PLP-1].pNode->StringType==BST_SCANVAR)
+				case BST_PRINTVAR:
+					BlechDebug("BST_PRINTVAR");
+					// variable data of unknown size
+					BlechTry(pNode->Length=VariableValue(pNode->pString,VarData));
+					if (!pNode->Length)
 					{
-						if (char *pFound=STRFIND(CurrentPos.Pos,VarData))
+						// implied match
+						MatchStack[PLP+1].pNode=0;
+						if (!pNode->pChildren || pNode->pEvents)
 						{
-//							CurrentPos.pNode=pNode;
-							CurrentPos.Pos=&pFound[pNode->Length];
-							if (!CurrentPos.Pos[0])
-							{
-								goto feedermatchdoevents;
-							}
-							goto feedermatchnoevent;
+							goto feedermatchdoevents;
 						}
+						goto feedermatchnoevent;
 					}
-					else
-					if (!STRNCMP(VarData,CurrentPos.Pos,pNode->Length))
+					BLECHASSERT(VarData[0]);
+					if (CurrentPos.Pos+pNode->Length<pEnd)
 					{
-//						CurrentPos.pNode=pNode;
+							if (char *pFound=STRFIND(CurrentPos.Pos,VarData))
+							{ // what if we find this multiple times? need to find the right one, depending on the children
+								CurrentPos.Pos=&pFound[pNode->Length];
+								if (!CurrentPos.Pos[0])
+								{
+									goto feedermatchdoevents;
+								}
+								goto feedermatchnoevent;
+							}
+					}
+					else if (CurrentPos.Pos+pNode->Length==pEnd && !STRNCMP(VarData,CurrentPos.Pos,pNode->Length))
+					{
+						// match. do events?
 						CurrentPos.Pos+=pNode->Length;
 						if (!CurrentPos.Pos[0])
+						{
 							goto feedermatchdoevents;
-						goto feedermatchnoevent;						
+						}
+						goto feedermatchnoevent;
 					}
-				}
-				goto feedernomatch;
-			case BST_SCANVAR:
-				// implied match
-//				CurrentPos.pNode=pNode;
-				if (!pNode->pChildren || pNode->pEvents)
-				{
-					//Push();
-
+					goto feedernomatch;
+				case BST_SCANVAR:
+					BlechDebug("BST_SCANVAR");
+					// implied match
 					MatchStack[PLP+1].pNode=0;
-					goto feedermatchdoevents;
+					if (!pNode->pChildren || pNode->pEvents)
+					{
+						goto feedermatchdoevents;
+					}
+					goto feedermatchnoevent;
 				}
-				goto feedermatchnoevent;
 			}
 feedermatchdoevents:
 			{
-			PBLECHEVENTNODE pEventNode=pNode->pEvents;
-			// create values
-			Push();
-			PBLECHVALUE pValues=0;
-			for (unsigned long N = PLP-1 ; N > 0 ; N--)
+				BlechDebug("feedermatchdoevents");
+				QueueEvents(pNode,Input,Length);
+			}
+feedermatchnoevent:
 			{
-				if (MatchStack[N].pNode && MatchStack[N].pNode->StringType==BST_SCANVAR)
+				BlechDebug("feedermatchnoevent");
+				// MATCH, ALREADY EXECUTED ANY NECESSARY EVENTS
+				// continue walking tree
+				if (pNode->pChildren)
 				{
-					PBLECHVALUE pValue = new BLECHVALUE;
-					pValue->Name=MatchStack[N].pNode->pString;
-					if (MatchStack[N+1].pNode)
+					Push();
+					pNode=pNode->pChildren;
+				}
+				else if (pNode->pNext)
+				{
+					// restore from stack
+					Peek();
+					pNode=pNode->pNext;
+				}
+				else
+				{
+					Pop();
+					while(1)
 					{
-						if (MatchStack[N+1].pNode->StringType!=BST_SCANVAR)
+						if (pNode->pNext)
 						{
-			                unsigned long Length=(unsigned long)(MatchStack[N+1].Pos-MatchStack[N+1].pNode->Length-MatchStack[N].Pos);
-							pValue->Value=(char*)malloc(Length+1);
-							memcpy(pValue->Value,MatchStack[N].Pos,Length);
-							pValue->Value[Length]=0;
+							pNode=pNode->pNext;
+							break;
+						}
+
+						if (PLP>1)
+						{
+							Pop();
 						}
 						else
 						{
-							pValue->Value=(char*)malloc(1);
-							pValue->Value[0]=0;
+							pNode=0;
+							break;
 						}
 					}
-					else
-					{
-//						if (N)
-//							pValue->Value=strdup(MatchStack[N].Pos+MatchStack[N-1].pNode->Length);
-//						else
-							pValue->Value=strdup(MatchStack[N].Pos);
-					}
-					pValue->pNext=pValues;
-					pValues=pValue;
+
 				}
+				CurrentPos.pNode=pNode;
+				continue;
 			}
-			while(pEventNode)
-			{
-				Count++;
-				pEventNode->pEvent->Callback(pEventNode->pEvent->ID,pEventNode->pEvent->pData,pValues);
-				pEventNode=pEventNode->pNext;
-			}
-			// destroy values
-			while(pValues)
-			{
-				PBLECHVALUE pNext=pValues->pNext;
-				free(pValues->Value);
-				delete pValues;
-				pValues=pNext;
-			}
-			Pop();
-			}
-feedermatchnoevent:
-			// MATCH, ALREADY EXECUTED ANY NECESSARY EVENTS
-
-			// continue walking tree
-			if (pNode->pChildren)
-			{
-				Push();
-				pNode=pNode->pChildren;
-			}
-			else if (pNode->pNext)
-			{
-				// restore from stack
-				Peek();
-				pNode=pNode->pNext;
-			}
-			else
-			{
-				Pop();
-				while(1)
-				{
-					if (pNode->pNext)
-					{
-						pNode=pNode->pNext;
-						break;
-					}
-
-					if (PLP>1)
-					{
-						Pop();
-					}
-					else
-					{
-						pNode=0;
-						break;
-					}
-				}
-
-			}
-			CurrentPos.pNode=pNode;
-			continue;
 feedernomatch:
-			// NO MATCH
+			{
+				// NO MATCH
 
-			// continue walking tree
-			if (pNode->pNext)
-			{
-				// position remains the same
-				Peek();
-				pNode=pNode->pNext;
-			}
-			else
-			{
-				// Pos goes down a level - dont reprocess the same child
-				Pop();
-				while(1)
+				// continue walking tree
+				if (pNode->pNext)
 				{
-					if (pNode->pNext)
+					// position remains the same
+					Peek();
+					pNode=pNode->pNext;
+				}
+				else
+				{
+					// Pos goes down a level - dont reprocess the same child
+					Pop();
+					while(1)
 					{
-						pNode=pNode->pNext;
-						break;
-					}
-					if (PLP>1)
-					{
-						Pop();
-					}
-					else
-					{
-						pNode=0;
-						break;
+						if (pNode->pNext)
+						{
+							pNode=pNode->pNext;
+							break;
+						}
+						if (PLP>1)
+						{
+							Pop();
+						}
+						else
+						{
+							pNode=0;
+							break;
+						}
 					}
 				}
+				CurrentPos.pNode=pNode;
 			}
-			CurrentPos.pNode=pNode;
 		}
+
+		// execute any queued events
+		unsigned long Count=ProcessExecutionList();
+
+		BlechDebug("Chew returns %d",Count);
 		return Count;
 #undef Push
 #undef Pop
@@ -1057,6 +1230,7 @@ feedernomatch:
 		strcpy(Version,BLECHVERSION); // store version string always
 		BlechDebug(Version);
 		LastID=0;
+		pExecuteList=0;
 		for (unsigned long N = 0 ; N < 256 ; N++)
 		{
 			Tree[N]=0;
@@ -1075,6 +1249,7 @@ feedernomatch:
 	char ScanVarDelimiter;
 
 	fBlechVariableValue VariableValue;
+	PBLECHEXECUTE pExecuteList;
 };
 
 

@@ -291,6 +291,7 @@ DWORD WINAPI MQ2Start(LPVOID lpParameter)
 	InitializeMQ2Pulse();
 	InitializeMQ2Commands();
 	InitializeMQ2Windows();
+	Sleep(100);
 	InitializeMQ2KeyBinds();
 	InitializeMQ2Plugins();
 

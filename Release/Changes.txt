@@ -1,3 +1,12 @@
+22 November 2004 by Lax
+- Blech updated to version 1.6 which solves parsing problems such as the one
+  described here: http://www.macroquest2.com/phpBB2/viewtopic.php?p=75390#75390
+- MQ2CustomBinds updated to solve a race condition issue, which also appears in
+  older MQ2MoveUtils versions.  The race condition causes a crash when starting
+  EQ via WinEQ 2.0
+- The MQ2 initialization process now has a short delay to help alleviate the
+  race condition issue for people who have not updated MQ2MoveUtils
+
 25 October 2004 by Amadeus
 - ${Me.AltAbility[]} is now back!   However, with one change.  Instead of 
   returning the 'rank', it now returns the total number of points you have
