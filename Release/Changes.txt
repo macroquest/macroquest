@@ -1,3 +1,8 @@
+8 March 2005 by Lax
+- Fixed /itemslots
+- Fixed problem with group.Leader when you are the leader and the group has members
+- Added ISXEQ client templates to mkplugin
+
 7 March 2005 by Lax
 - Fixed the new group data types. Also added To String values:
   groupmember: Same as Name

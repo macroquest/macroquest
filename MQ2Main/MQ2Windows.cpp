@@ -961,11 +961,11 @@ VOID ListItemSlots(PSPAWNINFO pChar, PCHAR szLine)
 			{
 				if (pSlot->pInvSlotWnd)
 				{
-					WriteChatColor("inv slot %d",pSlot->pInvSlotWnd->InvSlot);
+					WriteChatf("inv slot %d",pSlot->pInvSlotWnd->InvSlot);
 					Count++;
 				}
 			}
-		WriteChatColor("%d available item slots",Count);
+		WriteChatf("%d available item slots",Count);
 	}
 }
 #endif

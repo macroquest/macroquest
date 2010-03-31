@@ -4710,6 +4710,11 @@ bool MQ2GroupType::GETMEMBER()
 		{
 			PCHARINFO pChar=GetCharInfo();
 			Dest.DWord=0;
+			if (!stricmp(pChar->pSpawn->Name,GroupLeader))
+			{
+				Dest.Type=pGroupMemberType;
+				return true;
+			}
 			for (int index=0;index<5;index++) 
 			{
 				if (EQADDR_GROUPCOUNT[index]) 

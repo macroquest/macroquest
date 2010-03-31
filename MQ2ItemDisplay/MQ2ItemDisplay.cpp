@@ -6,9 +6,13 @@
 // and Shutdown for setup and cleanup, do NOT do it in DllMain.
 
 
-
+#ifndef ISXEQ
 #include "../MQ2Plugin.h"
 PreSetup("MQ2ItemDisplay");
+#else
+#include "../ISXEQClient.h"
+#include "ISXEQItemDisplay.h"
+#endif
 
 extern "C" {
 __declspec(dllexport) ITEMINFO g_Item;
@@ -330,6 +334,7 @@ bool ItemDisplayHook::bNoSpellTramp = false;
 DETOUR_TRAMPOLINE_EMPTY(VOID ItemDisplayHook::SetItem_Trampoline(class EQ_Item *,bool)); 
 DETOUR_TRAMPOLINE_EMPTY(VOID ItemDisplayHook::SetSpell_Trampoline(int SpellID,bool HasSpellDescr,int));
 
+#ifndef ISXEQ
 // Called once, when the plugin is to initialize
 PLUGIN_API VOID InitializePlugin(VOID)
 {
@@ -352,3 +357,4 @@ PLUGIN_API VOID ShutdownPlugin(VOID)
 	RemoveDetour(CItemDisplayWnd__SetItem);
 	RemoveDetour(CItemDisplayWnd__SetSpell);
 }
+#endif

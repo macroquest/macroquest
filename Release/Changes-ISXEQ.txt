@@ -1,3 +1,9 @@
+8 March 2005 by Lax
+- Fixed problem with spawn service crashing in a zone with ground items if a client connected
+- mkplugin now creates ISXEQ client files also (you can run it on existing MQ2 plugins to 
+  create the ISXEQ files without changing the old, existing files)
+- ISXEQChat, ISXEQChatWnd, ISXEQItemDisplay, ISXEQLabels
+
 27 February 2005 by Lax
 - This release requires ISXDK version 8c. IS version 0.75 is also recommended, but is
   not required unless you want to use ISXEQMap

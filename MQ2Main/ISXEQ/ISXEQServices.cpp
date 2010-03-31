@@ -38,8 +38,9 @@ EQLIB_API BOOL PluginsIncomingChat(PCHAR Line, DWORD Color)
 	_EQChat Chat;
 	Chat.Line=Line;
 	Chat.Color=Color;
+	Chat.Filtered=false;
 	pISInterface->ServiceBroadcast(pExtension,hChatService,CHATSERVICE_INCOMING,&Chat);
-	return false;
+	return Chat.Filtered;
 }
 
 
@@ -56,11 +57,13 @@ EQLIB_API VOID WriteChatColor(PCHAR Line, DWORD Color, DWORD Filter)
 	DebugSpew("WriteChatColor(%s)",Line);
 
 	// TEMPORARY
+	/* // use ISXEQChat or ISXEQChatWnd
 	printf("%s",PlainText);
 	if (gFilterMacro != FILTERMACRO_NONE && ppEverQuest && pEverQuest && gGameState==GAMESTATE_INGAME)
 	{
 		dsp_chat_no_events(PlainText,Color,1);
 	}
+	/**/
 	// ---------
 
 
@@ -111,7 +114,7 @@ void __cdecl SpawnRequest(ISXInterface *pClient, unsigned long MSG, void *lpData
 			PGROUNDITEM pItem=(PGROUNDITEM)pItemList;
 			while(pItem)
 			{
-				pISInterface->ServiceNotify(pExtension,hSpawnService,(ISXInterface*)lpData,SPAWNSERVICE_ADDITEM,pSpawn);
+				pISInterface->ServiceNotify(pExtension,hSpawnService,(ISXInterface*)lpData,SPAWNSERVICE_ADDITEM,pItem);
 				pItem=pItem->pNext;
 			}
 		}

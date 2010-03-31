@@ -4,6 +4,7 @@ struct _EQChat
 {
 	PCHAR Line;
 	DWORD Color;
+	BOOL Filtered;
 };
 
 #define CHATSERVICE_INCOMING						((ISXSERVICE_MSG)+1)
