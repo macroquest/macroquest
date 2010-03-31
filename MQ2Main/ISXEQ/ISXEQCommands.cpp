@@ -74,7 +74,6 @@ EQLIB_API VOID SetAutoRun                          (PSPAWNINFO,PCHAR);
 EQLIB_API VOID SetError                            (PSPAWNINFO,PCHAR);
 EQLIB_API VOID Skills                              (PSPAWNINFO,PCHAR);
 EQLIB_API VOID Substitute						   (PSPAWNINFO,PCHAR);
-EQLIB_API VOID SuperWho                            (PSPAWNINFO,PCHAR);
 EQLIB_API VOID SuperWhoTarget                      (PSPAWNINFO,PCHAR);
 EQLIB_API VOID SWhoFilter							(PSPAWNINFO,PCHAR);
 EQLIB_API VOID Target                              (PSPAWNINFO,PCHAR);
@@ -88,7 +87,7 @@ int CMD_Keypress(int argc, char *argv[])
 {
 	if (argc<2)
 	{
-		printf("Syntax: %s <eqcommand|keycombo> [hold|chat]",argv[0]);
+		WriteChatf("Syntax: %s <eqcommand|keycombo> [hold|chat]",argv[0]);
 		return 0;
 	}
 	bool bHold=false;
@@ -131,9 +130,64 @@ int CMD_Keypress(int argc, char *argv[])
 			return 0;
 		}
 
-		printf("Invalid mappable command or key combo '%s'",argv[1]);
+		WriteChatf("Invalid mappable command or key combo '%s'",argv[1]);
 		return -1;
 	}
 	return 0;
 }
 
+int CMD_Who(int argc, char *argv[])
+{   
+	for (int i = 1 ; i < argc ; i++)
+	{
+		if (!stricmp(argv[i],"all"))
+		{
+			cmdWho((PSPAWNINFO)pLocalPlayer, argv[1]);
+			return 0;
+		}
+	}
+
+	bool bConColor=false;
+    SEARCHSPAWN SearchSpawn;
+    
+    ClearSearchSpawn(&SearchSpawn);
+    SearchSpawn.SpawnType = PC;
+
+	for (int i = 1 ; i < argc ; i++)
+	{
+		if (!stricmp(argv[i],"sort")) 
+		{ 
+			//  <name|level|distance|race|class|guild|id> 
+			PCHAR szSortBy[] = { 
+				"level",   // Default sort by 
+				"name", 
+				"race", 
+				"class", 
+				"distance", 
+				"guild", 
+				"id", 
+				NULL }; 
+			DWORD Command=0; 
+			for (Command;szSortBy[Command];Command++) 
+			{ 
+				if (!stricmp(argv[i],szSortBy[Command])) 
+				{ 
+					SearchSpawn.SortBy = Command; 
+					if (i<argc) 
+						i++;
+					break; 
+				}
+			}
+		} 
+		else if (!stricmp(argv[i],"concolor")) 
+		{
+			bConColor=1;
+		}
+		else 
+		{
+			i+=ParseSearchSpawnArg(i,argc,argv,SearchSpawn);
+		}
+	}
+	SuperWhoDisplay((PSPAWNINFO)pLocalPlayer,&SearchSpawn,bConColor);
+	return 0;
+}

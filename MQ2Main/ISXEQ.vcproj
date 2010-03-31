@@ -168,6 +168,9 @@
 			<File
 				RelativePath="ISXEQ\ISXEQTopLevelObjects.h">
 			</File>
+			<File
+				RelativePath="ISXEQ\ISXEQUtilities.h">
+			</File>
 			<Filter
 				Name="From MQ2Main"
 				Filter="">

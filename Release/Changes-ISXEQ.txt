@@ -1,3 +1,7 @@
+23 February 2005 by Lax
+- /who conversion (untested).  Props to JGC84 for giving it a shot, though it was a
+  little too complicated for him so I fixed it up :)
+
 15 February 2005 by Lax
 - Updated for ISXDK v8a (naming changes).  ISXDK v8a will be made available soon.
 

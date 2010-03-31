@@ -451,6 +451,24 @@ EQLIB_API PCHAR FormatSearchSpawn(PCHAR Buffer, PSEARCHSPAWN pSearchSpawn);
 EQLIB_API BOOL IsPCNear(PSPAWNINFO pSpawn, FLOAT Radius);
 EQLIB_API BOOL IsInGroup(PSPAWNINFO pSpawn);
 EQLIB_API BOOL IsAlert(PSPAWNINFO pChar, PSPAWNINFO pSpawn, DWORD List);
+EQLIB_API PALERT GetAlert(DWORD Id);
+EQLIB_API VOID AddNewAlertList(DWORD Id, PALERT pAlert);
+EQLIB_API VOID FreeAlerts(DWORD List);
+EQLIB_API PSPAWNINFO GetClosestAlert(PSPAWNINFO pChar, DWORD List, DWORD* pdwCount);
+EQLIB_API BOOL IsAlert(PSPAWNINFO pChar, PSPAWNINFO pSpawn, DWORD List);
+EQLIB_API BOOL CheckAlertForRecursion(PALERT pAlert,DWORD AlertNumber);
+EQLIB_API VOID WriteFilterNames(VOID);
+EQLIB_API VOID SetDisplaySWhoFilter(PBOOL bToggle, PCHAR szFilter, PCHAR szToggle);
+EQLIB_API PCHAR GetModel(PSPAWNINFO pSpawn, DWORD Slot);
+EQLIB_API PCHAR GetFriendlyNameForGroundItem(PGROUNDITEM pItem, PCHAR szName);
+EQLIB_API VOID RewriteSubstitutions(VOID);
+EQLIB_API VOID RewriteAliases(VOID);
+EQLIB_API DWORD FindSpellListByName(PCHAR szName);
+EQLIB_API FLOAT StateHeightMultiplier(DWORD StandState);
+EQLIB_API DWORD WINAPI thrMsgBox(LPVOID lpParameter);
+extern VOID SuperWhoDisplay(PSPAWNINFO pChar, PSEARCHSPAWN pSearchSpawn, DWORD Color);
+EQLIB_API int pWHOSORTCompare(const void *A, const void *B);
+extern VOID SuperWhoDisplay(PSPAWNINFO pSpawn, DWORD Color);
 
 EQLIB_API VOID        OverwriteTable          (DWORD Address);
 #ifndef ISXEQ
@@ -489,6 +507,7 @@ EQLIB_API BOOL Calculate(PCHAR szFormula, DOUBLE& Dest);
 #include "MQ2TopLevelObjects.h"
 #include "MQ2Commands.h"
 #else
+#include "ISXEQ\ISXEQUtilities.h"
 #include "ISXEQ\ISXEQTopLevelObjects.h"
 #include "ISXEQ\ISXEQCommands.h"
 #endif

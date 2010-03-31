@@ -750,7 +750,6 @@ VOID TimedCommand(PCHAR Command, DWORD msDelay)
 	{
 		if (pNew->Time<=pNode->Time)
 		{
-			pNode->pLast=pNew;
 			break;
 		}
 		pLast=pNode;

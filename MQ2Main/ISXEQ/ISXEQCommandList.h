@@ -15,6 +15,7 @@
 COMMAND("Keypress",CMD_Keypress,true,false);
 COMMAND("EQExecute",CMD_EQExecute,true,false);
 COMMAND("MQ2Bind",CMD_MQ2Bind,true,false);
+COMMAND("Who",CMD_Who,true,false);
 
 /*
 // TO BE CONVERTED
@@ -69,7 +70,6 @@ EQLIB_API VOID SetAutoRun                          (PSPAWNINFO,PCHAR);
 EQLIB_API VOID SetError                            (PSPAWNINFO,PCHAR);
 EQLIB_API VOID Skills                              (PSPAWNINFO,PCHAR);
 EQLIB_API VOID Substitute						   (PSPAWNINFO,PCHAR);
-EQLIB_API VOID SuperWho                            (PSPAWNINFO,PCHAR);
 EQLIB_API VOID SuperWhoTarget                      (PSPAWNINFO,PCHAR);
 EQLIB_API VOID SWhoFilter							(PSPAWNINFO,PCHAR);
 EQLIB_API VOID Target                              (PSPAWNINFO,PCHAR);

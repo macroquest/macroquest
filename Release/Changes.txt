@@ -1,23 +1,26 @@
-22 February by Lax
+23 February 2005 by Lax
+- Cleaned up a bunch utility functions from MQ2Commands.cpp, they are now in MQ2Utilities.cpp
+
+22 February 2005 by Lax
 - Fix a Blech bug.
 
-18 February by dkaa
+18 February 2005 by dkaa
 - Update the ground interaction opcode
 
-15 February by Amadeus
+15 February 2005 by Amadeus
 - Adjusted MQ2 to work properly with the new expansion
 - Fixed some very small things
 
-12 February by dkaa
+12 February 2005 by dkaa
 - Fix an issue with /emote
 
-11 February by Amadeus
+11 February 2005 by Amadeus
 - Added/Fixed some more spell slot information (item/spell display)
 - Fixed the OnZoning callbacks in the Detour API
 - Updated MAX_GUILDS (should fix guild name display problems)
 - Updated MAX_ZONES in preparation for next expansion
 
-8 February by Amadeus
+8 February 2005 by Amadeus
 - Fixed MQ2 to work with the latest patch
 - Added spell information to the item display plugin
 - There is now a file in the /release folder called "Changes-ISXEQ.txt", which will
