@@ -1200,10 +1200,6 @@ VOID Identify(PSPAWNINFO pChar, PCHAR szLine)
 				sprintf(szTmp,"%dRng ",pCharInfo->Cursor->Item->Range);
                 strcat(szMsg,szTmp);
             }
-			if ((pCharInfo->Cursor->Item->Skill)) {
-				sprintf(szTmp,"%s ",szSkills[pCharInfo->Cursor->Item->Skill]);
-                //strcat(szMsg,szTmp);
-            }
 			
 			if (pCharInfo->Cursor->Item->HP) {
 				sprintf(szTmp,"%dHP ",pCharInfo->Cursor->Item->HP);

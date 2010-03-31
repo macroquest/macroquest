@@ -226,7 +226,6 @@ VOID HookMemChecker(BOOL Patch)
     // hit the debugger if we don't hook this
     // take no chances
     if ((!EQADDR_MEMCHECK0) ||
-        (!EQADDR_MEMCHECK1) ||
         (!EQADDR_MEMCHECK2) ||
         (!EQADDR_MEMCHECK3) ||
         (!EQADDR_MEMCHECK4)) {
@@ -239,11 +238,6 @@ VOID HookMemChecker(BOOL Patch)
 
         (*(PBYTE*)&memcheck0_tramp) = DetourFunction( (PBYTE) EQADDR_MEMCHECK0,
                                                     (PBYTE) memcheck0);
-
-		AddDetour((DWORD)EQADDR_MEMCHECK1);
-
-        (*(PBYTE*)&memcheck1_tramp) = DetourFunction( (PBYTE) EQADDR_MEMCHECK1,
-                                                    (PBYTE) memcheck1);
 
 		AddDetour((DWORD)EQADDR_MEMCHECK2);
 
@@ -266,11 +260,6 @@ VOID HookMemChecker(BOOL Patch)
                      (PBYTE) memcheck0);
         memcheck0_tramp = NULL;
 		RemoveDetour(EQADDR_MEMCHECK0);
-
-        DetourRemove((PBYTE) memcheck1_tramp,
-                     (PBYTE) memcheck1);
-        memcheck1_tramp = NULL;
-		RemoveDetour(EQADDR_MEMCHECK1);
 
         DetourRemove((PBYTE) memcheck2_tramp,
                      (PBYTE) memcheck2);
@@ -332,125 +321,6 @@ int __cdecl memcheck0(unsigned char *buffer, int count)
         eax ^= x;
     }
     return eax;
-}
-
-int __cdecl memcheck1(unsigned char *buffer, int count, struct mckey key);
-int __cdecl memcheck1(unsigned char *buffer, int count, struct mckey key) 
-{
-    unsigned int i;
-    unsigned int ebx, eax, edx;
-
-    if (!extern_array1) {
-        if (!EQADDR_ENCRYPTPAD1) {
-            //_asm int 3
-        } else {
-          extern_array1 = (unsigned int *)EQADDR_ENCRYPTPAD1;
-        }
-    }
-//                push    ebp
-//                mov     ebp, esp
-//                push    esi
-//                push    edi
-//                or      edi, 0FFFFFFFFh
-//                cmp     [ebp+arg_8], 0
-    if (key.x != 0) {
-//                mov     esi, 0FFh
-//                mov     ecx, 0FFFFFFh
-//                jz      short loc_4C3978
-//                xor     eax, eax
-//                mov     al, byte ptr [ebp+arg_8]
-//                xor     edx, edx
-//                mov     dl, byte ptr [ebp+arg_8+1]
-    edx = key.a[1];
-//                not     eax
-//                and     eax, esi
-    eax = ~key.a[0] & 0xff;
-//                mov     eax, encryptpad1[eax*4]
-    eax = extern_array1[eax];
-//                xor     eax, ecx
-    eax ^= 0xffffff;
-//                xor     edx, eax
-//                and     edx, esi
-    edx = (edx ^ eax) & 0xff;
-//                sar     eax, 8
-//                and     eax, ecx
-    eax = ((int)eax >> 8) & 0xffffff;
-//                xor     eax, encryptpad1[edx*4]
-    eax ^= extern_array1[edx];
-//                xor     edx, edx
-//                mov     dl, byte ptr [ebp+arg_8+2]
-    edx = key.a[2];
-//                xor     edx, eax
-//                sar     eax, 8
-//                and     edx, esi
-    edx = (edx ^ eax) & 0xff;
-//                and     eax, ecx
-    eax = ((int)eax >> 8) & 0xffffff;
-//                xor     eax, encryptpad1[edx*4]
-    eax ^= extern_array1[edx];
-//                xor     edx, edx
-//                mov     dl, byte ptr [ebp+arg_8+3]
-    edx = key.a[3];
-//                xor     edx, eax
-//                sar     eax, 8
-//                and     edx, esi
-    edx = (edx ^ eax) & 0xff;
-//                and     eax, ecx
-    eax = ((int)eax >> 8) & 0xffffff;
-//                xor     eax, encryptpad1[edx*4]
-    eax ^= extern_array1[edx];
-//                mov     edi, eax
-//
-    } else { // key.x != 0
-        eax = 0xffffffff;
-    }
-//loc_4C3978:                             ; CODE XREF: new_memcheck1+16j
-//                mov     edx, [ebp+arg_0]
-//                mov     eax, [ebp+arg_4]
-//                add     eax, edx
-//                cmp     edx, eax
-//                jnb     short loc_4C399F
-//                push    ebx
-//
-//loc_4C3985:                             ; CODE XREF: new_memcheck1+8Fj
-//                xor     ebx, ebx
-//                mov     bl, [edx]
-//                xor     ebx, edi
-//                sar     edi, 8
-//                and     ebx, esi
-//                and     edi, ecx
-//                xor     edi, encryptpad1[ebx*4]
-//                inc     edx
-//                cmp     edx, eax
-//                jb      short loc_4C3985
-//                pop     ebx
-//
-//loc_4C399F:                             ; CODE XREF: new_memcheck1+75j
-//                mov     eax, edi
-//                pop     edi
-//                not     eax
-//                pop     esi
-//                pop     ebp
-//                retn
-//
-    for (i=0;i<(unsigned int)count;i++) {
-        unsigned char tmp;
-        OurDetours *detour = ourdetours;
-        unsigned int b=(int) &buffer[i];
-        while(detour) {
-            if (detour->count && (b >= detour->addr) &&
-                 (b < detour->addr+detour->count) ) {
-                tmp = detour->array[b - detour->addr];
-                break;
-            }
-            detour=detour->pNext;
-        }
-        if (!detour) tmp = buffer[i];
-        ebx = ((int)tmp ^ eax) & 0xff;
-        eax = ((int)eax >> 8) & 0xffffff;
-        eax ^= extern_array1[ebx];
-    }
-    return ~eax;
 }
 
 //

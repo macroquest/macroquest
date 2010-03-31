@@ -1383,6 +1383,9 @@ PCHAR GetSpellEffectName(LONG EffectID, PCHAR szBuffer)
    case 101: 
       strcat(szBuff,"Complete Heal (with duration)"); 
       break; 
+   case 123: //screech 
+      strcat(szBuff, "Screech"); 
+      break;
    case 147: 
       strcat(szBuff,"Percentage Heal"); 
       break; 
@@ -1499,14 +1502,19 @@ PCHAR ShowSpellSlotInfo(PSPELL pSpell, PCHAR szBuffer)
             } 
          } 
          break; 
-      case 11: //haste mod 
-         szBase=pSpell->Max[i]-100; 
+       case 11: //haste mod 
+		 // Ziggy 31/12/04: Some haste buffs (Miraculous Visions) don't fill in the max slot, so use base instead. 
+         if (pSpell->Max[i] == 0) { 
+            szBase=pSpell->Base[i]-100; 
+         } else { 
+            szBase=pSpell->Max[i]-100; 
+         } 
          if ( szBase < 0 ) strcat(szBuff, "Decrease "); 
          if ( szBase > 0 ) strcat(szBuff, "Increase "); 
          strcat(szBuff, "Attack Speed by "); 
          _itoa(abs(szBase), szTemp, 10); strcat(szBuff, szTemp); 
          strcat(szBuff, "%"); 
-         break; 
+         break;
       case 12: //Invisibility 
          sprintf(szTemp, "Invisibility(%d)", pSpell->Base[i]); 
          strcat(szBuff, szTemp); 
@@ -1986,7 +1994,31 @@ PCHAR ShowSpellSlotInfo(PSPELL pSpell, PCHAR szBuffer)
 //		 parmSpell(buf, szTemp, NULL );		 // <---- wtf.
 //		 strcat(szBuff,szTemp);
 
-		 strcat(szBuff,"${Spell[%d].TargetType}"); // weeee!
+         switch(abs(pSpell->Base[i])) 
+         { 
+          case 41:  strcat(szBuff,"Group v2"); break; 
+          case 40:  strcat(szBuff,"AE PC v2"); break; 
+          case 25:  strcat(szBuff,"AE Summoned"); break; 
+          case 24:  strcat(szBuff,"AE Undead"); break; 
+          case 20:  strcat(szBuff,"Targeted AE Tap"); break; 
+          case 18:  strcat(szBuff,"Uber Dragons"); break; 
+          case 17:  strcat(szBuff,"Uber Giants"); break; 
+          case 16:  strcat(szBuff,"Plant"); break; 
+          case 15:  strcat(szBuff,"Corpse"); break; 
+          case 14:  strcat(szBuff,"Pet"); break; 
+          case 13:  strcat(szBuff,"LifeTap"); break; 
+          case 11:  strcat(szBuff,"Summoned"); break; 
+          case 10:  strcat(szBuff,"Undead"); break; 
+          case  9:  strcat(szBuff,"Animal"); break; 
+          case  8:  strcat(szBuff,"Targeted AE"); break; 
+          case  6:  strcat(szBuff,"Self"); break; 
+          case  5:  strcat(szBuff,"Single"); break; 
+          case  4:  strcat(szBuff,"PB AE"); break; 
+          case  3:  strcat(szBuff,"Group v1"); break; 
+          case  2:  strcat(szBuff,"AE PC v1"); break; 
+          case  1:  strcat(szBuff,"Line of Sight"); break; 
+          default:  strcat(szBuff,"Unknown"); break; 
+         } 
 
          //GetTargetType(pSpell->Base[i],szTemp);       strcat(szBuff,szTemp); 
          if ( pSpell->Base[i] > 0 )  strcat(szBuff, " allowed"); 

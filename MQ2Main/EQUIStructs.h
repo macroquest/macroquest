@@ -763,13 +763,13 @@ typedef struct _EQITEMWINDOW
 /*0x174*/ 
 } EQITEMWINDOW, *PEQITEMWINDOW; 
 
-// Actual Size 0x22c 10-9-2003
+// Actual Size 0x26c 01-27-2005
 typedef struct _EQMAPWINDOW {
 /*0x000*/ struct _CSIDLWND Wnd;
 /*0x148*/ BYTE Unknown0x148[0x24];
-/*0x000*/ CHAR shortzonename[0x20];
-/*0x180*/ BYTE Unknown0x180[0x70];
-/*0x1F0*/ PMAPLINE pLines;
+/*0x000*/ CHAR shortzonename[0x20];     // unverified but unused 01-27-2005
+/*0x180*/ BYTE Unknown0x180[0x8c];
+/*0x1F0*/ PMAPLINE pLines;              // 0x20c on 01-27-2005
 /*0x1F4*/ PMAPLABEL pLabels;
 /*0x1F8*/ BYTE Unknown0x1f8[0x34];
 /*0x22c*/

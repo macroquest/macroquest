@@ -1,3 +1,8 @@
+26 January 2005 by Amadeus
+- Fixed structs and offsets to be compatable with the new patch
+- Fixed a variety of other small things to be compatable with the new patch
+- Added a few little things from the boards as well as original work
+
 4 January 2005 by Lax
 - Updated copyright notices for 2005
 - Updated Blech to 1.6.4, which fixed a tree traversal bug.  The bug prevented some 

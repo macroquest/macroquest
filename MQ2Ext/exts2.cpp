@@ -210,9 +210,6 @@ DECLARE_API ( pspawn )
       dprintf("ArmorColor%d = %d (offset 0x%x)\n", i+1, ci.ArmorColor[i], &pnull->ArmorColor[i]); 
    KP(Zone); 
    KP(Instance);
-   KP(field_1fc);
-   KP(field_200);
-   KP(field_204);
    KP(pNext); 
    KP(pCharInfo); 
    KP(pPrev);
@@ -350,7 +347,6 @@ DECLARE_API ( pitem )
    KP(BookType);
    KP(BookLang);
    KPs(BookFile);
-   KP(Skill);
    KP(Combine); 
    KP(Slots); 
    KP(SizeCapacity); 
