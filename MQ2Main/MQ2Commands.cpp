@@ -4335,7 +4335,7 @@ VOID AltAbility(PSPAWNINFO pChar, PCHAR szLine)
 	MQ2TicksType szTime;
 
     if ((szName[0]==0) || (szCommand[0]==0)) {
-        SyntaxError("Usage: /aa list [all|timers], or /aa info [ability name]");
+        SyntaxError("Usage: /aa list [all|timers|ready], /aa info [ability name], or /aa act [ability name]");
         return;
     }
 
@@ -4359,8 +4359,8 @@ VOID AltAbility(PSPAWNINFO pChar, PCHAR szLine)
 		}
 		else if (!stricmp(szName,"timers"))
 		{
-			WriteChatColor("Alternative Abilities (AA With Timers)", CONCOLOR_YELLOW );
-			WriteChatColor("-------------------------------------", USERCOLOR_WHO);
+			WriteChatColor("Alternative Abilities With Timers", CONCOLOR_YELLOW );
+			WriteChatColor("---------------------------------", USERCOLOR_WHO);
 			for (nAbility=0 ; nAbility<NUM_ALT_ABILITIES ; nAbility++)
 			{
 				if ( ((PALTADVMGR)pAltAdvManager)->AltAbilities->AltAbilityList->Abilities[nAbility])
@@ -4391,7 +4391,7 @@ VOID AltAbility(PSPAWNINFO pChar, PCHAR szLine)
 		}
 		else 
 		{
-			SyntaxError("Usage: /aa list [all|timers|ready], or /aa info [ability name]");
+			SyntaxError("Usage: /aa list [all|timers|ready], /aa info [ability name], or /aa act [ability name]");
 			return;
 		}
     }
@@ -4462,9 +4462,26 @@ VOID AltAbility(PSPAWNINFO pChar, PCHAR szLine)
 				}
 			}
 	}
+	else if (!stricmp(szCommand,"act")) 
+	{
+		for (unsigned long nAbility=0 ; nAbility<NUM_ALT_ABILITIES ; nAbility++)
+		{
+			if ( ((PALTADVMGR)pAltAdvManager)->AltAbilities->AltAbilityList->Abilities[nAbility])
+			{
+				if ( PALTABILITY pAbility=((PALTADVMGR)pAltAdvManager)->AltAbilities->AltAbilityList->Abilities[nAbility]->Ability) 
+				{
+					if (!stricmp(pStringTable->getString(pAbility->nName,0),szName))
+					{
+						sprintf(szBuffer,"/alt act %d", pAbility->ID);
+						DoCommand(pChar,szBuffer);
+					}
+				}
+			}
+		}
+	}
 	else
 	{
-        SyntaxError("Usage: /aa list [all|timers|ready], or /aa info [ability name]");
+        SyntaxError("Usage: /aa list [all|timers|ready], /aa info [ability name], or /aa act [ability name]");
         return;
 	}
 	return;

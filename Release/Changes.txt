@@ -4,9 +4,12 @@
 - Added ${AltAbility[].MyReuseTime}  (proper reuse time if you hastened AA abilties)
 - Added NEW COMMAND:  /aa
 *** Syntax ***
-/aa list all       -- lists all of your AA abilities in format [ ID : name ]
-/aa list timers    -- lists just the AA you have that have timers
-/aa info [ability] -- gives information about a particular AA ability
+/aa list all            -- lists all of your AA abilities in format [ID : name]
+/aa list timers         -- lists just the AA you have that have timers
+/aa info [ability name] -- gives information about a particular AA ability
+/aa act [ability name]  -- works like "/alt act ##", but takes the name instead of ##
+   (note:  You will notice a fraction of a second delay using this method vs.
+           the /alt act ## method.)
 ***
 (Note:  Yes, they do not list in any particular order (No, I don't know why).  No, 
 I do not know why some abilities are duplicated.  Yes, it may have bugs 
