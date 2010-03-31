@@ -670,6 +670,7 @@ private:
 
 	void QueueEvents(BlechNode *pNode, char *Input, unsigned long InputLength)
 	{
+		PBLECHEVENTNODE pEventNode;
 		BlechDebug("QueueEvents(%X,%s,%d)",pNode,Input,InputLength);
 		BLECHASSERT(pNode);
 		BLECHASSERT(Input);
@@ -853,7 +854,7 @@ private:
 		}
 
 		// add to execution list
-		PBLECHEVENTNODE pEventNode=pNode->pEvents;
+		pEventNode=pNode->pEvents;
 		while(pEventNode)
 		{
 			QueueEvent(pEventNode->pEvent,pValues);
