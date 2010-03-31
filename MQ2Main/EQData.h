@@ -1177,7 +1177,7 @@ typedef struct _GROUNDITEM {
 /*0x44*/
 } GROUNDITEM, *PGROUNDITEM;
 
-#define   MAX_ZONES                                    0x151   
+#define   MAX_ZONES                                    0x15B   
 extern    PCHAR szZoneExpansionName[];     //defined in LibEQ_Utilities.cpp
 
 typedef struct _ZONELIST { 
@@ -1254,6 +1254,7 @@ typedef struct _SPELLMGR {
 } SPELLMGR, *PSPELLMGR;
 
 // Size is 0x268 as of 9/14
+// Size is 0x26C as of 2/8
 typedef struct _SPELL { 
 /*0x000*/   DWORD   ID; 
 /*0x004*/   FLOAT   Range; 
@@ -1352,7 +1353,7 @@ typedef struct _SKILL {
 /*0x180*/
 } SKILL, *PSKILL;
 
-#define MAX_GUILDS			0x200
+#define MAX_GUILDS			0x5DC
 typedef struct _GUILDS {
 /*0x0000*/ PVOID	pOneEntryVTable;
 /*0x0004*/ BYTE		UnknownByte0x0005;

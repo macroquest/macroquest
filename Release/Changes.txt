@@ -1,3 +1,9 @@
+11 February by Amadeus
+- Added/Fixed some more spell slot information (item/spell display)
+- Fixed the OnZoning callbacks in the Detour API
+- Updated MAX_GUILDS (should fix guild name display problems)
+- Updated MAX_ZONES in preparation for next expansion
+
 8 February by Amadeus
 - Fixed MQ2 to work with the latest patch
 - Added spell information to the item display plugin

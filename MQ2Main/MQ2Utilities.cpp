@@ -1,4 +1,4 @@
-	/*****************************************************************************
+/*****************************************************************************
     MQ2Main.dll: MacroQuest2's extension DLL for EverQuest
     Copyright (C) 2002-2003 Plazmic, 2003-2005 Lax
 
@@ -1405,14 +1405,14 @@ PCHAR GetSpellEffectName(LONG EffectID, PCHAR szBuffer)
 
 
 // *************************************************************************** 
-// Function:    ShowSpellSlotInfo
-// Author:      Koad (used in his SpellSearch Plugin)
+// Function:    ShowSpellSlotInfo 
+// Author:      Koad (used in his SpellSearch Plugin) 
 // *************************************************************************** 
 PCHAR ShowSpellSlotInfo(PSPELL pSpell, PCHAR szBuffer) 
 { 
    CHAR szTemp[MAX_STRING]={0}; 
    CHAR szBuff[MAX_STRING]={0}; 
-   CHAR buf[MAX_STRING]={0};
+   CHAR buf[MAX_STRING]={0}; 
    int szBase=0; 
    bool bSlotIsPH=false; 
    PITEMDB ItemDB=gItemDB; 
@@ -1507,7 +1507,7 @@ PCHAR ShowSpellSlotInfo(PSPELL pSpell, PCHAR szBuffer)
          } 
          break; 
        case 11: //haste mod 
-		 // Ziggy 31/12/04: Some haste buffs (Miraculous Visions) don't fill in the max slot, so use base instead. 
+       // Ziggy 31/12/04: Some haste buffs (Miraculous Visions) don't fill in the max slot, so use base instead. 
          if (pSpell->Max[i] == 0) { 
             szBase=pSpell->Base[i]-100; 
          } else { 
@@ -1518,7 +1518,7 @@ PCHAR ShowSpellSlotInfo(PSPELL pSpell, PCHAR szBuffer)
          strcat(szBuff, "Attack Speed by "); 
          _itoa(abs(szBase), szTemp, 10); strcat(szBuff, szTemp); 
          strcat(szBuff, "%"); 
-         break;
+         break; 
       case 12: //Invisibility 
          sprintf(szTemp, "Invisibility(%d)", pSpell->Base[i]); 
          strcat(szBuff, szTemp); 
@@ -1874,6 +1874,17 @@ PCHAR ShowSpellSlotInfo(PSPELL pSpell, PCHAR szBuffer)
          sprintf(szTemp, "Summon Familiar: %s", pSpell->Extra); 
          strcat(szBuff, szTemp); 
          break; 
+      case 109: // Summon Into Bag 
+         while ((ItemDB) && ((DWORD)pSpell->Base[i] != ItemDB->ID)) { 
+            ItemDB = ItemDB->pNext; 
+         } 
+         if (ItemDB) { 
+            strcpy(szTemp,ItemDB->szName); 
+         } else { 
+            sprintf(szTemp,"Unknown%d",(DWORD)pSpell->Base[i]); 
+         } 
+         strcat(szBuff, "Summon Item Into Bag: ");   strcat(szBuff, szTemp); 
+         break; 
       case 112: //Effective Casting Level 
          if ( pSpell->Base[i] < 0 ) strcat(szBuff, "Decrease "); 
          if ( pSpell->Base[i] > 0 ) strcat(szBuff, "Increase "); 
@@ -1923,13 +1934,19 @@ PCHAR ShowSpellSlotInfo(PSPELL pSpell, PCHAR szBuffer)
          strcat(szBuff, "%"); 
          break; 
       case 120: //Reduce Healing Effectiveness (%) 
-         strcat(szBuff, "Reduce Healing Effectiveness "); 
+         if (pSpell->Base[i] > 0) strcat(szBuff, "Increase "); 
+         if (pSpell->Base[i] < 0) strcat(szBuff, "Decrease "); 
+         strcat(szBuff, "Healing Effectiveness by "); 
          _itoa(abs(pSpell->Base[i]), szTemp, 10); strcat(szBuff, szTemp); 
          strcat(szBuff, "%"); 
          break; 
       case 121: //Reverse Damage Shield 
          sprintf(szTemp, "Reverse Damage Shield (%d)", abs(pSpell->Base[i])); 
          strcat(szBuff, szTemp); 
+         break; 
+      case 123: //Screech 
+         sprintf(szTemp,"Screech(%d)",pSpell->Base[i]); 
+         strcat(szBuff,szTemp); 
          break; 
       case 124: //spell damage 
          if ( pSpell->Base[i] < 0 ) strcat(szBuff, "Decrease "); 
@@ -1944,6 +1961,13 @@ PCHAR ShowSpellSlotInfo(PSPELL pSpell, PCHAR szBuffer)
          strcat(szBuff, "Healing by "); 
          _itoa(abs(pSpell->Base[i]), szTemp, 10); strcat(szBuff, szTemp); 
          strcat(szBuff, "%"); 
+         break; 
+      case 126: //spell resist rate 
+         if ( pSpell->Base[i] > 0 ) strcat(szBuff, "Decrease "); 
+         if ( pSpell->Base[i] < 0 ) strcat(szBuff, "Increase "); 
+            sprintf(szTemp, "Spell Resist Rate by %d",abs(pSpell->Base[i])); 
+            strcat(szBuff,szTemp); 
+            strcat(szBuff,"%"); 
          break; 
       case 127: //spell haste 
          if ( pSpell->Base[i] < 0 ) strcat(szBuff, "Decrease "); 
@@ -1986,17 +2010,37 @@ PCHAR ShowSpellSlotInfo(PSPELL pSpell, PCHAR szBuffer)
          strcat(szBuff, "%"); 
          break; 
       case 134: //limit max level 
-         sprintf(szTemp, "Limit: Max Level(%d)", pSpell->Base[i]); 
+         if(pSpell->Base2[i]>0) 
+         { 
+            sprintf(szTemp, "Limit: Max Level(%d) (lose %d%c per level over cap)", pSpell->Base[i],pSpell->Base2[i],'%'); 
+         } 
+         else 
+         { 
+            sprintf(szTemp, "Limit: Max Level(%d)", pSpell->Base[i]); 
+         } 
          strcat(szBuff, szTemp); 
          break; 
-      case 135: //Limit: Resist Fire Allowed 
-         strcat(szBuff, "Limit: Resist Fire allowed"); 
+      case 135: //Limit: Resist 
+         strcat(szBuff, "Limit: Resist "); 
+         switch(pSpell->Base[i]) 
+         { 
+            case 1: strcat(szBuff, "Magic"); break; 
+            case 2: strcat(szBuff, "Fire"); break; 
+            case 3: strcat(szBuff, "Cold/Ice"); break; 
+            case 4: strcat(szBuff, "Poison"); break; 
+            case 5: strcat(szBuff, "Disease"); break; 
+            case 6: strcat(szBuff, "Chromatic"); break; 
+            case 7: strcat(szBuff, "Prismatic"); break; 
+            default: strcat(szBuff, "Unknown"); break; 
+         } 
+         if ( pSpell->Base[i] > 0 )  strcat(szBuff, " allowed"); 
+         if ( pSpell->Base[i] < 0 )  strcat(szBuff, " excluded"); 
          break; 
       case 136: //limit target types this affects 
          strcat(szBuff, "Limit: Target("); 
-//		 sprintf(buf, "$spell(%d,targettype)", pSpell->TargetType);
-//		 parmSpell(buf, szTemp, NULL );		 // <---- wtf.
-//		 strcat(szBuff,szTemp);
+//       sprintf(buf, "$spell(%d,targettype)", pSpell->TargetType); 
+//       parmSpell(buf, szTemp, NULL );       // <---- wtf. 
+//       strcat(szBuff,szTemp); 
 
          switch(abs(pSpell->Base[i])) 
          { 
@@ -2165,6 +2209,10 @@ PCHAR ShowSpellSlotInfo(PSPELL pSpell, PCHAR szBuffer)
          sprintf(szTemp, "Stats by %d", abs(pSpell->Base[i])); 
          strcat(szBuff, szTemp); 
          break; 
+      case 160: // Drunk effect 
+         sprintf(szTemp,"Drunk if Alcholol Tolerance is below %d",pSpell->Base[i]); 
+         strcat(szBuff,szTemp); 
+         break; 
       case 161: //Mitigate Spell Damage 
          sprintf(szTemp, "Mitigate Spell Damage by %dpct until %d absorbed", pSpell->Base[i], pSpell->Max[i]); 
          strcat(szBuff, szTemp); 
@@ -2301,6 +2349,12 @@ PCHAR ShowSpellSlotInfo(PSPELL pSpell, PCHAR szBuffer)
          sprintf(szTemp, "Endurance by %d per tick", pSpell->Base[i]); 
          strcat(szBuff, szTemp); 
          break; 
+      case 190: // Endurance pool 
+         if ( pSpell->Base[i] < 0 ) strcat(szBuff, "Decrease "); 
+         if ( pSpell->Base[i] > 0 ) strcat(szBuff, "Increase "); 
+         sprintf(szTemp,"Endurance Pool by %d",abs(pSpell->Base[i])); 
+         strcat(szBuff,szTemp); 
+         break; 
       case 192: //Discord Hate 
          if ( pSpell->Base[i] < 0 ) strcat(szBuff, "Decrease "); 
          if ( pSpell->Base[i] > 0 ) strcat(szBuff, "Increase "); 
@@ -2365,6 +2419,10 @@ PCHAR ShowSpellSlotInfo(PSPELL pSpell, PCHAR szBuffer)
          sprintf(szTemp, "Flesh to Bone"); 
          strcat(szBuff, szTemp); 
          break; 
+      case 209: // Disspell beneficial buffs 
+         sprintf(szTemp,"Cancel Magic - Benefical Only(%d)",pSpell->Base[i]); 
+         strcat(szBuff,szTemp); 
+         break; 
       case 210: //Pet Shield 
          sprintf(szTemp, "Pet Shield (%d.00 sec)", (12*(pSpell->Base[i]))); 
          strcat(szBuff, szTemp); 
@@ -2386,6 +2444,10 @@ PCHAR ShowSpellSlotInfo(PSPELL pSpell, PCHAR szBuffer)
          if ( pSpell->Base[i] > 0 ) strcat(szBuff, "Increase "); 
          sprintf(szTemp, "Accuracy by %dpct", pSpell->Base[i]); 
          strcat(szBuff, szTemp); 
+         break; 
+      case 219: // Slay undead (Holyforge) 
+         sprintf(szTemp,"Slay Undead(%d)",pSpell->Base[i]); 
+         strcat(szBuff,szTemp); 
          break; 
       case 227: //Skill Timer 
          sprintf(szTemp, "Reduce Skill Timer(%d)", pSpell->Base[i]); 
@@ -2422,9 +2484,9 @@ PCHAR ShowSpellSlotInfo(PSPELL pSpell, PCHAR szBuffer)
                sprintf (szTemp, "UnknownStat(%d)", pSpell->Base2[i]); 
                strcat (szBuff, szTemp); 
          } 
-		 sprintf(szTemp, " Cap by %d", abs(pSpell->Base[i])); 
-		 strcat(szBuff, szTemp); 
-		 break; 
+       sprintf(szTemp, " Cap by %d", abs(pSpell->Base[i])); 
+       strcat(szBuff, szTemp); 
+       break; 
       case 266: //Attack Chance 
          sprintf(szTemp, "Add Attack Chance(%d)", pSpell->Base[i]); 
          strcat(szBuff, szTemp); 
@@ -2440,6 +2502,10 @@ PCHAR ShowSpellSlotInfo(PSPELL pSpell, PCHAR szBuffer)
       case 279: //Flurry 
          sprintf(szTemp, "Flurry Chance (%d)", pSpell->Base[i]); 
          strcat(szBuff, szTemp); 
+         break; 
+      case 289: // Improved Spell Effect 
+         sprintf(szTemp,"Improved Spell Effect: %s",GetSpellByID(pSpell->Base[i])->Name); 
+         strcat(szBuff,szTemp); 
          break; 
       case 291: //Purifacation 
          sprintf(szTemp, "Purify (%d)", pSpell->Base[i]); 
@@ -2485,6 +2551,10 @@ PCHAR ShowSpellSlotInfo(PSPELL pSpell, PCHAR szBuffer)
          sprintf(szTemp, "Decrease Reuse Timer by %d.00 sec", ((pSpell->Base[i])/1000)); 
          strcat(szBuff, szTemp); 
          break; 
+      case 311: //No Combat Skills 
+         sprintf(szTemp, "Limit: Combat Skills Not Allowed"); 
+         strcat(szBuff, szTemp); 
+         break; 
       case 312: //Sanc 
          sprintf(szTemp, "Observer (%d)", pSpell->Base[i]); 
          strcat(szBuff, szTemp); 
@@ -2505,7 +2575,7 @@ PCHAR ShowSpellSlotInfo(PSPELL pSpell, PCHAR szBuffer)
          sprintf(szTemp, "Gate to Starting City"); 
          strcat(szBuff, szTemp); 
          break; 
-      case 323: //Add Defensive Proc
+      case 323: //Add Defensive Proc 
          sprintf(szTemp,"Add Defensive Proc: %s", GetSpellNameByID(pSpell->Base[i])); 
          strcat(szBuff, szTemp); 
          break; 
@@ -2525,6 +2595,10 @@ PCHAR ShowSpellSlotInfo(PSPELL pSpell, PCHAR szBuffer)
          sprintf(szTemp, "Summon to Corpse"); 
          strcat(szBuff, szTemp); 
          break; 
+      case 333: //Trigger on fade 
+         sprintf(szTemp,"Trigger Effect: %s on Fade",GetSpellByID(pSpell->Base[i])->Name); 
+         strcat(szBuff,szTemp); 
+         break; 
       case 334: //Song DoT 
          sprintf(szTemp, "Decrease Hitpoints by %d (L%d) to %d(L70)", (pSpell->Max[i] + pSpell->Base[i]), pSpell->Level[8], pSpell->Max[i]); 
          strcat(szBuff, szTemp); 
@@ -2533,14 +2607,15 @@ PCHAR ShowSpellSlotInfo(PSPELL pSpell, PCHAR szBuffer)
          sprintf(szTemp, "UnknownEffect%03d", pSpell->Attrib[i]); 
          strcat(szBuff,szTemp); 
          break; 
-	  }
-	  if ( !bSlotIsPH ) {
-		  strcat(szBuffer, szBuff);
-		  strcat(szBuffer, "<br>" );
-	  }
      } 
-   return szBuffer;
+     if ( !bSlotIsPH ) { 
+        strcat(szBuffer, szBuff); 
+        strcat(szBuffer, "<br>" ); 
+     } 
+     } 
+   return szBuffer; 
 } 
+
 
 // *************************************************************************** 
 // Function:    SlotValueCalculateulate 
