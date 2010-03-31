@@ -64,7 +64,7 @@ Using Blech:
 
 #pragma once
 
-#define BLECHVERSION "Lax/Blech 1.6.1"
+#define BLECHVERSION "Lax/Blech 1.6.2"
 
 #include <map>
 #include <string>
@@ -376,28 +376,6 @@ public:
 		pEvents=pNode;
 	}
 
-	void RemoveEvent(PBLECHEVENT pEvent)
-	{
-		BlechDebug("RemoveEvent(%X)",pEvent);
-		BLECHASSERT(pEvent);
-		PBLECHEVENTNODE pNode=pEvents;
-		while(pNode)
-		{
-			if (pEvent==pNode->pEvent)
-			{
-				if (pNode->pNext)
-					pNode->pNext->pPrev=pNode->pPrev;
-				if (pNode->pPrev)
-					pNode->pPrev->pNext=pNode->pNext;
-				else
-					pEvents=pNode->pNext;
-				delete pNode;
-				return;
-			}
-			pNode=pNode->pNext;
-		}
-	}
-
 	eBlechStringType StringType;
 	char * pString;
 	unsigned long Length;
@@ -526,14 +504,34 @@ public:
 		Event.erase(ID);
 		{
 			free(pEvent->OriginalString);
+			
 
 			BlechNode *pNode=pEvent->pBlechNode;
+			// find the PBLECHEVENTNODE for this event and remove it
+			PBLECHEVENTNODE pEventNode = pNode->pEvents;
+			while(pEventNode)
+			{
+				if (pEvent==pEventNode->pEvent)
+				{
+					if (pEventNode->pNext)
+						pEventNode->pNext->pPrev=pEventNode->pPrev;
+					if (pEventNode->pPrev)
+						pEventNode->pPrev->pNext=pEventNode->pNext;
+					else
+						pNode->pEvents=pEventNode->pNext;
+					break;
+				}
+				pEventNode=pEventNode->pNext;
+			}
+
 			while(pNode && pNode->IsEmpty())
 			{
 				BlechNode *pNext=pNode->pParent;
 				delete pNode;
 				pNode=pNext;
 			}
+
+			delete pEvent;
 		}
 		return true;
 	}
