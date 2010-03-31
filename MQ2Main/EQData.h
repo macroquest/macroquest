@@ -825,72 +825,73 @@ typedef struct _ACTOREX {
 
 // actual size 0xd68h  8-11-2004 
 typedef struct _ACTORINFO { 
-/*0x0000*/ struct       _ACTOREX *pActorEx; 
-/*0x0004*/ DWORD        T3D_POINTLIGHT; 
-/*0x0008*/ CHAR         ActorDef[0x40]; 
-/*0x0048*/ FLOAT        Z;            // Z coordinates for the floor where standing 
-/*0x004c*/ BYTE         Unknown0x04c[0x4]; 
-/*0x0050*/ DWORD        TimeStamp;      // Some kind of timestamp in microseconds. Updates as fast as my display can refresh. 
-/*0x0054*/ DWORD        Unknown0x054;   // Being set to TimeStamp about once per second 
-/*0x0058*/ DWORD        LastTick;      // Being set to TimeStamp on every tick? 
-/*0x005c*/ DWORD        Unknown0x05c;   // Being set to TimeStamp at unknown intervals 
-/*0x0060*/ BYTE         Unknown0x060[0x14]; 
-/*0x0074*/ DWORD        Unknown0x074;   // Being set to TimeStamp at unknown intervals 
-/*0x0078*/ DWORD        Unknown0x078;   // Being set to TimeStamp at unknown intervals 
-/*0x007c*/ BYTE         Unknown0x07c[0x20]; 
-/*0x009c*/ DWORD        UnderWaterMirror; //copy of UnderWater 
-/*0x00a0*/ DWORD        SwimmingMirror; //copy of Swimming 
-/*0x00a4*/ DWORD        FeetWetMirror;   //copy of FeetWet 
-/*0x00a8*/ BYTE         UnderWater;      // 5 = Underwater; otherwise zero 
-/*0x00a9*/ BYTE         Swimming;      // 5 = Swimming (under or on top of water); otherwise zero 
-/*0x00aa*/ BYTE         FeetWet;      // 5 = Feet are in the water; otherwise zero 
-/*0x00ab*/ BYTE         LeftWater;      // 5 = Just got out of water, but still very close to shore 
-/*0x00ac*/ BYTE         Unknown0x0ac[0x28]; 
-/*0x00d4*/ DWORD        SpellETA;      // Calculated TimeStamp when current spell being cast will land. 0 while not casting. 
-/*0x00d8*/ BYTE         Unknown0x0d4[0x50]; 
-/*0x0128*/ DWORD        FishingETA;      // EQMisc__SteveGetTime 
-//         BYTE         Unknown0x0180[0x8]; 
-//         VOID         *FaceRelatedActorStruct; 
-//         DWORD        Unknown0x0188; 
-/*0x012c*/ DWORD        Animation; 
-/*0x0130*/ DWORD        Unknown0x190; 
-/*0x0134*/ BYTE         Unknown0x198[0x12]; 
-/*0x0146*/ BYTE         FishingEvent;   // 0=not fishing, 1=some event, 2-6=some other event 
-/*0x0147*/ BYTE         Unknown0x1ab[0x9]; 
-/*0x0150*/ struct       _SPAWNINFO *Mount; // NULL if no mount present 
-/*0x0154*/ BYTE         Unknown0x01b8[0xc]; 
-/*0x0160*/ DWORD        PetID; 
-/*0x0164*/ struct       _SPAWNINFO *pGroupAssistNPC[1];// note: this is how its defined in EQ, dont blame me - lax 
-/*0x0168*/ struct       _SPAWNINFO *pRaidAssistNPC[3]; 
-/*0x016c*/ struct       _SPAWNINFO *pGroupMarkNPC[3]; 
-/*0x0170*/ struct       _SPAWNINFO *pRaidMarkNPC[3]; 
-/*0x0174*/ struct       _SPAWNINFO *pTargetOfTarget; 
-/*0x0178*/ BYTE         Unknown0x01f4[0xa50]; 
-/*0xbC8*/  CHAR         NameOfLastSuccessfulTargetHit[0x40]; 
-/*0xc08*/  BYTE         Unknown0x5265[0x10]; 
-/*0xc18*/  struct       _MODELINFO *Model[0x15]; 
-/*0xc6c*/  BYTE         Unknown0x52c8[0x0c]; 
-/*0xc78*/  DWORD        InvitedToGroup; // 1 = currently invited to group 
-/*0xc7c*/  DWORD        Unknown0x52d8[0x2]; 
-/*0xc84*/  DWORD        CastingSpellID;      // -1 = not casting a spell 
-/*0xc88*/  DWORD        Unknown0x52e0[0x8]; 
-/*0xca8*/  struct       _SPAWNINFO *WhoFollowing; // NULL if autofollow off 
-/*0xcac*/  BYTE         Unknown0x5308[0xc]; 
-/*0xcb8*/  FLOAT        CastingY; 
-/*0xcbc*/  FLOAT        CastingX; 
-/*0xcc0*/  BYTE         Unknown0x531c[0x10]; 
-/*0xcd0*/  FLOAT        LastPacketZ; 
-/*0xcd4*/  FLOAT        LastPacketY; 
-/*0xcd8*/  FLOAT        LastPacketSpeedY; 
-/*0xcdc*/  FLOAT        LastPacketX; 
-/*0xce0*/  FLOAT        LastPacketSpeedZ; 
-/*0xce4*/  FLOAT        LastPacketSpeedX; 
-/*0xce8*/  DWORD        LastPacketHeadingTurning; 
-/*0xcec*/  BYTE         Unknown0x5348[0x2c]; 
-/*0xd18*/  DWORD        Trader;            //0=normal 1=trader 
-/*0xd1c*/  BYTE         Unknown0x5378[0x4c]; 
+/*0x000*/ struct       _ACTOREX *pActorEx; 
+/*0x004*/ DWORD        T3D_POINTLIGHT; 
+/*0x008*/ CHAR         ActorDef[0x40]; 
+/*0x048*/ FLOAT        Z;            // Z coordinates for the floor where standing 
+/*0x04c*/ BYTE         Unknown0x04c[0x4]; 
+/*0x050*/ DWORD        TimeStamp;      // Some kind of timestamp in microseconds. Updates as fast as my display can refresh. 
+/*0x054*/ DWORD        Unknown0x054;   // Being set to TimeStamp about once per second 
+/*0x058*/ DWORD        LastTick;      // Being set to TimeStamp on every tick? 
+/*0x05c*/ DWORD        Unknown0x05c;   // Being set to TimeStamp at unknown intervals 
+/*0x060*/ BYTE         Unknown0x060[0x14]; 
+/*0x074*/ DWORD        Unknown0x074;   // Being set to TimeStamp at unknown intervals 
+/*0x078*/ DWORD        Unknown0x078;   // Being set to TimeStamp at unknown intervals 
+/*0x07c*/ BYTE         Unknown0x07c[0x20]; 
+/*0x09c*/ DWORD        UnderWaterMirror; //copy of UnderWater 
+/*0x0a0*/ DWORD        SwimmingMirror; //copy of Swimming 
+/*0x0a4*/ DWORD        FeetWetMirror;   //copy of FeetWet 
+/*0x0a8*/ BYTE         UnderWater;      // 5 = Underwater; otherwise zero 
+/*0x0a9*/ BYTE         Swimming;      // 5 = Swimming (under or on top of water); otherwise zero 
+/*0x0aa*/ BYTE         FeetWet;      // 5 = Feet are in the water; otherwise zero 
+/*0x0ab*/ BYTE         LeftWater;      // 5 = Just got out of water, but still very close to shore 
+/*0x0ac*/ BYTE         Unknown0x0ac[0x28]; 
+/*0x0d4*/ DWORD        SpellETA;      // Calculated TimeStamp when current spell being cast will land. 0 while not casting. 
+/*0x0d8*/ BYTE         Unknown0x0d8[0x40]; 
+/*0x118*/ DWORD        FishingETA;      // EQMisc__SteveGetTime 
+/*0x11c*/ BYTE         Unknown0x11c[0x8]; 
+/*0x124*/ VOID         *FaceRelatedActorStruct; 
+/*0x128*/ DWORD        Unknown0x0128;
+/*0x12c*/ DWORD        Animation; 
+/*0x130*/ DWORD        Unknown0x130; 
+/*0x134*/ BYTE         Unknown0x134[0x12]; 
+/*0x146*/ BYTE         FishingEvent;   // 0=not fishing, 1=some event, 2-6=some other event 
+/*0x147*/ BYTE         Unknown0x147[0x9]; 
+/*0x150*/ struct       _SPAWNINFO *Mount; // NULL if no mount present 
+/*0x154*/ BYTE         Unknown0x0154[0xc]; 
+/*0x160*/ DWORD        PetID; 
+/*0x164*/ struct       _SPAWNINFO *pGroupAssistNPC[1];
+/*0x168*/ struct       _SPAWNINFO *pRaidAssistNPC[3]; 
+/*0x174*/ struct       _SPAWNINFO *pGroupMarkNPC[3]; 
+/*0x180*/ struct       _SPAWNINFO *pRaidMarkNPC[3]; 
+/*0x18C*/ struct       _SPAWNINFO *pTargetOfTarget; 
+/*0x190*/ BYTE         Unknown0x190[0xa39]; 
+/*0xbC9*/ CHAR         NameOfLastSuccessfulTargetHit[0x40]; 
+/*0xc09*/ BYTE         Unknown0xc09[0x3];
+/*0xc0c*/ struct	   _MODELINFO *Model[0x11];  // 0x11 is the correct number, or are there more?
+/*0xc54*/ BYTE		   Unknown0xc54[0x28];
+/*0xc78*/ DWORD		   InvitedToGroup; // 1=currently invited to group
+/*0xc7c*/ BYTE		   Unknown0xc7c[0x8];
+/*0xc84*/ DWORD        CastingSpellID;      // -1 = not casting a spell 
+/*0xc88*/ DWORD        CastingAnimation;  //unsure, FF for not casting, low numbers while casting 
+/*0xc8c*/ DWORD        Unknown0x52e0[0x7]; 
+/*0xca8*/ struct       _SPAWNINFO *WhoFollowing; // NULL if autofollow off 
+/*0xcac*/ BYTE         Unknown0x5308[0xc]; 
+/*0xcb8*/ FLOAT        CastingY; 
+/*0xcbc*/ FLOAT        CastingX; 
+/*0xcc0*/ BYTE         Unknown0x531c[0x10]; 
+/*0xcd0*/ FLOAT        LastPacketZ; 
+/*0xcd4*/ FLOAT        LastPacketY; 
+/*0xcd8*/ FLOAT        LastPacketSpeedY; 
+/*0xcdc*/ FLOAT        LastPacketX; 
+/*0xce0*/ FLOAT        LastPacketSpeedZ; 
+/*0xce4*/ FLOAT        LastPacketSpeedX; 
+/*0xce8*/ DWORD        LastPacketHeadingTurning; 
+/*0xcec*/ BYTE         Unknown0x5348[0x2c]; 
+/*0xd18*/ DWORD        Trader;            //0=normal 1=trader 
+/*0xd1c*/ BYTE         Unknown0x5378[0x4c]; 
 /*0xd68*/ 
-} ACTORINFO, *PACTORINFO;
+} ACTORINFO, *PACTORINFO; 
 
 
 #define MODEL_LABEL         0 

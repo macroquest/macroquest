@@ -1,3 +1,6 @@
+12 August 2004 by Amadeus
+- Various fixes (including ${Me.Casting}, etc.)
+
 11 Auguest 2004 by Amadeus
 - Fixed to work with the 8/11 patch
 
