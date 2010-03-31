@@ -30,6 +30,7 @@ EXPORTS
     ppetinfownd 
     pguildwnd
     pguildmemberinfo
+    praidwnd
     
 ;   pcmdlist
 

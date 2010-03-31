@@ -1,3 +1,9 @@
+11 Auguest 2004 by Amadeus
+- Fixed to work with the 8/11 patch
+
+27 July 2004 by DKAA
+- Fixed ${Plugin}
+
 23 July 2004 by Amadeus
 - Lots of struct updates from the boards
 - Added the following variables:  ${Me.EnduranceBonus}, ${Me.CombatEffectsBonus},
