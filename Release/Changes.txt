@@ -1,4 +1,5 @@
-26 January 2005 by Amadeus
+26-28 January 2005 by Amadeus
+- Once over, formatting/syntax check, re-package
 - Fixed structs and offsets to be compatable with the new patch
 - Fixed a variety of other small things to be compatable with the new patch
 - Added a few little things from the boards as well as original work

@@ -207,7 +207,7 @@
 //// 
 // Section 3: Miscellaneous Offsets 
 //// 
-#define DrawNetStatus                                      0x500139 // ???
+#define DrawNetStatus                                      0x500139
 #define CrashDetected                                      0x538203
 #define __ProcessGameEvents                                0x4C29CF
 #define __ConvertItemTags                                  0x463EDD
@@ -217,7 +217,7 @@
 #define __GetGaugeValueFromEQ                              0x5214A1
 #define __get_melee_range                                  0x45A87B
 #define __CastRay                                          0x464683
-#define __LoadSplashScreen                           0x5B7F60
+#define __LoadSplashScreen								   0x5B7F60
 
 // EQ_LoadingS 
 #define EQ_LoadingS__WriteTextHD                           0x49DE33

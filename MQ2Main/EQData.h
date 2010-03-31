@@ -392,13 +392,12 @@ typedef struct _UILOCATION {
 
 // size is 0xc 01-27-2005
 typedef struct _ITEMSPELLS { 
-   DWORD SpellID; 
-   BYTE RequiredLevel; 
-   BYTE EffectType; 
-   BYTE Unknown[2]; 
-   DWORD Unknown0x8;
+/*0x00*/ DWORD SpellID; 
+/*0x04*/ BYTE RequiredLevel; 
+/*0x05*/ BYTE EffectType; 
+/*0x06*/ BYTE Unknown[2]; 
+/*0x08*/ DWORD Unknown0x08;
 } ITEMSPELLS, *PITEMSPELLS; 
-
 
 typedef struct _ITEMINFO {
 /*0x00*/ CHAR Name[ITEM_NAME_LEN];
@@ -431,7 +430,7 @@ typedef struct _ITEMINFO {
 /*0x0e4*/ BYTE CHA;
 /*0x0e5*/ BYTE INT;
 /*0x0e6*/ BYTE WIS;
-/*0x0e7*/ BYTE Skill;
+/*0x0e7*/ BYTE Skill;  //is this right?
 /*0x0e8*/ DWORD HP;
 /*0x0ec*/ DWORD Mana;
 /*0x0f0*/ DWORD AC;
