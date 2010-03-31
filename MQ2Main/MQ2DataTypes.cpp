@@ -1139,6 +1139,7 @@ bool MQ2CharacterType::GetMember(MQ2VARPTR VarPtr, PCHAR Member, PCHAR Index, MQ
 	}
     
 	int nLang = 0;
+	char buf[MAX_STRING] = {0};
 
 	switch((CharacterMembers)pMember->ID)
 	{
@@ -1519,8 +1520,43 @@ bool MQ2CharacterType::GetMember(MQ2VARPTR VarPtr, PCHAR Member, PCHAR Index, MQ
 		Dest.Type=pIntType;
 		return true;
 	case Grouped:
-		Dest.DWord=pChar->GroupMember1[0];
+		for (unsigned int k=0; k<5; k++ )
+		{
+			if (Dest.DWord=pChar->GroupMember[k] != 0) Dest.DWord=1;
+				break;
+		}
 		Dest.Type=pBoolType;
+		return true;
+	case GroupMember:
+		if (Index[0])
+		{
+			if (IsNumber(Index))
+			{
+				unsigned long nGroupMember=atoi(Index)-1;
+				if (nGroupMember < 0 || nGroupMember > 4 ) return false;
+				if (pChar->GroupMember[nGroupMember][0] == '\0') return false;
+				Dest.Ptr=&pChar->GroupMember[nGroupMember];
+				Dest.Type=pStringType;
+				return true;
+			}
+		}
+		return false;
+	case GroupList:
+		if (pChar->GroupMember[0][0] == '\0') return false;
+		sprintf(buf, "%s %s %s %s %s", pChar->GroupMember[0], pChar->GroupMember[1], pChar->GroupMember[2],
+									   pChar->GroupMember[3], pChar->GroupMember[4] );
+		Dest.Ptr=&buf[0];
+		Dest.Type=pStringType;
+		return true;
+	case GroupLeader:
+		Dest.Ptr=&pChar->GroupLeader[0];
+		Dest.Type=pStringType;
+		return true;
+	case AmIGroupLeader:
+		if (!stricmp(pChar->GroupLeader, pChar->Name)) sprintf(buf,"%s","TRUE");
+		else sprintf(buf,"FALSE");
+		Dest.Ptr=&buf[0];
+		Dest.Type=pStringType;
 		return true;
 	case Gem:
 		if (!Index[0])
@@ -1618,7 +1654,7 @@ bool MQ2CharacterType::GetMember(MQ2VARPTR VarPtr, PCHAR Member, PCHAR Index, MQ
 		Dest.DWord=pChar->thirstlevel;
 		Dest.Type=pIntType;
 		return true;
-		/*
+/*
 	case AltAbilityTimer:
 		if (Index[0])
 		{
@@ -1628,7 +1664,7 @@ bool MQ2CharacterType::GetMember(MQ2VARPTR VarPtr, PCHAR Member, PCHAR Index, MQ
 				unsigned long nAbility=atoi(Index);
 				if (nAbility<NUM_ALT_ABILITIES)
 				{
-					if (pCharData->GetAbility(nAbility))
+					if (pCharData->GetAbility(nAbility,0))
 					{
 						pAltAdvManager->IsAbilityReady(pPCData,nAbility,&Dest.Int);
 						if (Dest.Int<0)
@@ -1650,7 +1686,7 @@ bool MQ2CharacterType::GetMember(MQ2VARPTR VarPtr, PCHAR Member, PCHAR Index, MQ
 						{
 							if (!stricmp(Index,pName))
 							{
-								if (pCharData->GetAbility(nAbility))
+								if (pCharData->GetAbility(nAbility,0))
 								{
 									pAltAdvManager->IsAbilityReady(pPCData,nAbility,&Dest.Int);
 									if (Dest.Int<0)
@@ -1676,7 +1712,7 @@ bool MQ2CharacterType::GetMember(MQ2VARPTR VarPtr, PCHAR Member, PCHAR Index, MQ
 				unsigned long nAbility=atoi(Index);
 				if (nAbility<NUM_ALT_ABILITIES)
 				{
-					if (pCharData->GetAbility(nAbility))
+					if (pCharData->GetAbility(nAbility,0))
 					{
 						Dest.DWord=pAltAdvManager->IsAbilityReady(pPCData,nAbility,0);
 						Dest.Type=pBoolType;
@@ -1695,7 +1731,7 @@ bool MQ2CharacterType::GetMember(MQ2VARPTR VarPtr, PCHAR Member, PCHAR Index, MQ
 						{
 							if (!stricmp(Index,pName))
 							{
-								if (pCharData->GetAbility(nAbility))
+								if (pCharData->GetAbility(nAbility,0))
 								{
 									Dest.DWord=pAltAdvManager->IsAbilityReady(pPCData,nAbility,0);
 									Dest.Type=pBoolType;
@@ -1709,7 +1745,6 @@ bool MQ2CharacterType::GetMember(MQ2VARPTR VarPtr, PCHAR Member, PCHAR Index, MQ
 			}
 		}
 		return false;
-*/
 	case AltAbility:
 		if (Index[0])
 		{
@@ -1729,7 +1764,7 @@ bool MQ2CharacterType::GetMember(MQ2VARPTR VarPtr, PCHAR Member, PCHAR Index, MQ
 				// by name
 				for (unsigned long nAbility=0 ; nAbility<NUM_ALT_ABILITIES ; nAbility++)
 				{
-					if (PALTABILITY pAbility=((PALTADVMGR)pAltAdvManager)->Abilities[nAbility])
+					if (PALTABILITY pAbility=((PALTADVMGR)pAltAdvManager)->AltAbilityList->Abilities[nAbility])
 					{
 						if (PCHAR pName=pStringTable->getString(pAbility->nName,0))
 						{
@@ -1745,6 +1780,7 @@ bool MQ2CharacterType::GetMember(MQ2VARPTR VarPtr, PCHAR Member, PCHAR Index, MQ
 			}
 		}
 		return false;
+*/
 	case Skill:
 		if (Index[0])
 		{
@@ -2331,7 +2367,7 @@ bool MQ2ItemType::GetMember(MQ2VARPTR VarPtr, PCHAR Member, PCHAR Index, MQ2TYPE
 		Dest.Type=pStringType;
 		return true;
 	case Lore:
-		Dest.DWord=(pItem->Item->LoreName[0]=='*');
+		Dest.DWord=pItem->Item->Lore;
 		Dest.Type=pBoolType;
 		return true;
 	case NoDrop:
@@ -4253,8 +4289,7 @@ bool MQ2AltAbilityType::GetMember(MQ2VARPTR VarPtr, PCHAR Member, PCHAR Index, M
 	if (!VarPtr.Ptr)
 		return false;
 	PALTABILITY pAbility=*(PALTABILITY*)VarPtr.Ptr;
-	if (!pAbility)
-		return false;
+
 	PMQ2TYPEMEMBER pMember=MQ2AltAbilityType::FindMember(Member);
 	if (!pMember)
 		return false;
@@ -4282,7 +4317,7 @@ bool MQ2AltAbilityType::GetMember(MQ2VARPTR VarPtr, PCHAR Member, PCHAR Index, M
 		}
 		return false;
 	case ID:
-		Dest.DWord=(((PALTABILITY*)VarPtr.Ptr-&((PALTADVMGR)pAltAdvManager)->Abilities[0]));
+		Dest.DWord=pAbility->ID;
 		Dest.Type=pIntType;
 		return true;
 	case ReuseTime:
@@ -4307,10 +4342,20 @@ bool MQ2AltAbilityType::GetMember(MQ2VARPTR VarPtr, PCHAR Member, PCHAR Index, M
 	case RequiresAbility:
 		if (pAbility->RequiresAbility>0)
 		{
-			if (Dest.Ptr=&((PALTADVMGR)pAltAdvManager)->Abilities[pAbility->RequiresAbility])
+			for (unsigned long nAbility=0 ; nAbility<NUM_ALT_ABILITIES ; nAbility++)
 			{
-				Dest.Type=pAltAbilityType;
-				return true;
+				if ( ((PALTADVMGR)pAltAdvManager)->AltAbilities->AltAbilityList->Abilities[nAbility])
+				{
+					if ( PALTABILITY pAA=((PALTADVMGR)pAltAdvManager)->AltAbilities->AltAbilityList->Abilities[nAbility]->Ability) 
+					{
+						if (pAA->ID == pAbility->RequiresAbility)
+						{
+								Dest.Ptr=&pAA;
+								Dest.Type=pAltAbilityType;
+								return true;
+						}
+					}
+				}		
 			}
 		}
 		return false;
@@ -4322,10 +4367,10 @@ bool MQ2AltAbilityType::GetMember(MQ2VARPTR VarPtr, PCHAR Member, PCHAR Index, M
 		Dest.DWord=pAbility->MaxRank;
 		Dest.Type=pIntType;
 		return true;
-//	case AARankRequired:
-//		Dest.DWord=pAbility->AARankRequired;
-//		Dest.Type=pIntType;
-//		return true;
+	case AARankRequired:
+		Dest.DWord=pAbility->AARankRequired;
+		Dest.Type=pIntType;
+		return true;
 	case Type:
 		Dest.DWord=pAbility->Type;
 		Dest.Type=pIntType;

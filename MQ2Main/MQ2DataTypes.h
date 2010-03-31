@@ -847,6 +847,10 @@ public:
 		DamageShieldBonus=117,
 		DoTShieldBonus=118,
 		AttackSpeed=119,
+		GroupMember=120,
+		GroupList=121,
+		GroupLeader=122,
+		AmIGroupLeader=123,
 	};
 	MQ2CharacterType():MQ2Type("character")
 	{
@@ -968,6 +972,10 @@ public:
 		TypeMember(DamageShieldBonus);
 		TypeMember(DoTShieldBonus);
 		TypeMember(AttackSpeed); //119
+		TypeMember(GroupMember); 
+		TypeMember(GroupList); 
+		TypeMember(GroupLeader); 
+		TypeMember(AmIGroupLeader); //123
 	}
 
 	~MQ2CharacterType()

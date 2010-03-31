@@ -749,11 +749,7 @@ union {
 /*0x9c19*/   BYTE		Unknown0x9c19[0x99b]; 
 /*0xa5b4*/   struct		_CONTENTS*   Bank[NUM_BANK_SLOTS]; 
 /*0xa5fc*/   BYTE		Unknown0xa5fc[0xa8]; 
-/*0xa6a4*/   CHAR		GroupMember1[0x40];    
-/*0xa6e4*/   CHAR		GroupMember2[0x40]; 
-/*0xa724*/   CHAR		GroupMember3[0x40]; 
-/*0xa764*/   CHAR		GroupMember4[0x40]; 
-/*0xa7a4*/   CHAR		GroupMember5[0x40]; 
+/*0xa6a4*/   CHAR       GroupMember[0x5][0x40]; 
 /*0xa7e4*/   BYTE		Unknown0xa7e4[0x58]; 
 /*0xa83c*/   CHAR		GroupLeader[0x40]; 
 /*0xa87c*/   BYTE		Unknown0xa87c[0x2b8]; 
@@ -1363,46 +1359,58 @@ typedef struct _EQFRIENDSLIST {
 /*0x1900*/
 } EQFRIENDSLIST, *PEQFRIENDSLIST;
 
+// Size 0x70 (8.11.2004)
 typedef struct _ALTABILITY {
-/*0x00*/ BYTE  Unknown0x00[0x4];
-/*0x04*/ DWORD UnknownData0x04;
-/*0x08*/ DWORD UnknownData0x08;
-/*0x0c*/ BYTE  Unknown0x0c[0xc];
-/*0x18*/ DWORD UnknownData0x18;
-/*0x1c*/ DWORD nShortName;
-/*0x20*/ DWORD nShorterName;
-/*0x24*/ DWORD nName;
-/*0x28*/ DWORD nDesc;
-/*0x2c*/ DWORD MinLevel;
-/*0x30*/ DWORD UnknownData0x30;
-/*0x34*/ DWORD MyAltAbilityIndex;     
-/*0x38*/ DWORD UnknownData0x38;
-/*0x3c*/ LONG  RequiresAbility;        //requires ability? (-1 for no)  
-/*0x40*/ DWORD RequiresAbilityPoints;  //requires points in this ability? 
-/*0x44*/ DWORD Type;
-/*0x48*/ DWORD UnknownData0x48;
-/*0x4c*/ DWORD UnknownData0x4c;
-/*0x50*/ DWORD UnknownData0x50;
-/*0x54*/ LONG  ReuseTimer;
-/*0x58*/ DWORD UnknownData0x58;
-/*0x5c*/ DWORD MaxRank;
-/*0x60*/ DWORD Cost;     
-/*0x64*/ LONG  SpellID;// -1 for no
-/*0x68*/ DWORD UnknownData0x68;
-/*0x6c*/ DWORD UnknownData0x6c;
-/*0x70*/ DWORD Unknown0x70;
-/*0x74*/ DWORD Unknown0x74;
-/*0x78*/ DWORD Unknown0x78;
-/* Still Missing:  AARankRequired */
+/*0x00*/ DWORD Index; //?
+/*0x04*/ DWORD nShortName;
+/*0x08*/ DWORD nShorterName;
+/*0x0c*/ DWORD nName;
+/*0x10*/ DWORD nDesc;
+/*0x14*/ DWORD MinLevel;
+/*0x18*/ DWORD Cost;
+/*0x1c*/ DWORD ID;
+/*0x20*/ DWORD AARankRequired; //need verification
+/*0x24*/ LONG  RequiresAbility;//requires ability? (-1 for no)
+/*0x28*/ DWORD RequiresAbilityPoints;//requires points in this ability?
+/*0x2c*/ DWORD Type; 
+/*0x30*/ LONG  SpellID; // -1 for no Spell
+/*0x34*/ BYTE  Unknown0x34[0x8]; // There is BYTE data in here at 0x35-0x37 at the least
+/*0x3c*/ DWORD ReuseTimer; // in seconds
+/*0x40*/ DWORD Unknown0x40;
+/*0x44*/ DWORD MaxRank;//BYTE
+/*0x48*/ DWORD Unknown0x48;
+/*0x4c*/ DWORD Unknown0x4c;
+/*0x50*/ DWORD Unknown0x50; //sometimes this is the index number of the next AA in the list...
+/*0x54*/ BYTE  Unknown0x54;
+/*0x55*/ BYTE  Unknown0x55;
+/*0x56*/ BYTE  Unknown0x56;
+/*0x57*/ BYTE  Unknown0x57;
+/*0x58*/ BYTE  Unknown0x58[0x18];
 } ALTABILITY, *PALTABILITY;
 
-#define NUM_ALT_ABILITIES 0x1f4
+typedef struct _ALTABILITIESLISTMGR {
+/*0x00*/ struct _ALTABILITY* Ability;
+/*0x04*/ DWORD Index;
+} ALTABILITIESLISTMGR, *PALTABILITIESLISTMGR;
+
+#define NUM_ALT_ABILITIES 0x1f7  
+typedef struct _ALTABILITIESLIST {
+/*0x00*/ struct _ALTABILITIESLISTMGR* Abilities[NUM_ALT_ABILITIES];
+} ALTABILITIESLIST, *PALTABILITIESLIST;
+
+typedef struct _NEWALTADVMGR {
+/*0x00*/ struct _ALTABILITIESLIST* AltAbilityList;
+/*0x04*/ DWORD NumAltAbilities;  // NUM_ALT_ABILITIES
+/*0x08*/ DWORD Unknown0x08; // data here
+/*0x0c*/ DWORD Unknown0x0c; // data here
+/*0x10*/ BYTE  Unknown0x10[0x8];
+} NEWALTADVMGR, *PNEWALTADVMGR;
+
 typedef struct _ALTADVMGR {
-/*0x00*/ BYTE Unknown0x00[0x24];
-/*0x28*/ PALTABILITY Abilities[NUM_ALT_ABILITIES];
+/*0x00*/ struct _NEWALTADVMGR* AltAbilities;
 } ALTADVMGR, *PALTADVMGR;
 
-// size 0x118 
+// size 0x118 (8.11.2004)
 typedef struct _EQRAIDMEMBER { 
 /*0x00*/ CHAR Name[0x40]; 
 /*0x40*/ CHAR RaidNote[0x40]; 
@@ -1420,26 +1428,25 @@ typedef struct _EQRAIDMEMBER {
 /*0x118*/ 
 } EQRAIDMEMBER, *PEQRAIDMEMBER;
 
-// sizeof(_EQRAID) is 0x49b8 
+// sizeof(_EQRAID) is 0x5ab8 (8-11-2004)
 typedef struct _EQRAID { 
-/*0x0000*/  BYTE        Unknown0x0[0x154]; 
-/*0x0154*/  CHAR        RaidMemberUsed[0x48]; 
-/*0x019c*/  struct      _EQRAIDMEMBER RaidMember[0x48]; 
-/*0x3e5c*/  DWORD       field_3E5C; 
-/*0x3e60*/  DWORD       RaidMemberCount; 
-/*0x3e64*/  CHAR        RaidLeaderName[0x40]; 
-/*0x3ea4*/  BYTE        Unknown3ea4[0x100]; 
-/*0x3fa4*/  CHAR        RaidMOTD[0x400]; 
-/*0x43a4*/  BYTE        Unknown0x43a4[0x140]; 
-/*0x44e4*/  DWORD       field_44E4; 
-/*0x44e8*/  BYTE        Unknown0x44e8; 
-/*0x44e9*/  BYTE        IsRaidLeader; 
-/*0x44ea*/  BYTE        Unknown0x44ea[0x2]; 
-/*0x44ec*/  DWORD       RaidTarget; 
-/*0x44f0*/  DWORD       LootType; 
-/*0x44f4*/  CHAR        RaidLooters[0x13][0x40]; 
-/*0x49b4*/  DWORD       TotalRaidMemberLevels; 
-/*0x49b8*/ 
+/*0x0000*/  BYTE  		Unknown0x0[0x154];
+/*0x0154*/  CHAR  		RaidMemberUsed[0x48];
+/*0x019c*/  struct		_EQRAIDMEMBER RaidMember[0x48];
+/*0x505c*/  DWORD 		field_505c;
+/*0x5060*/  DWORD 		RaidMemberCount;
+/*0x5064*/  CHAR        RaidLeaderName[0x140]; 
+/*0x51a4*/  CHAR        RaidMOTD[0x400];
+/*0x55a4*/  BYTE        Unknown0x55a4[0x40]; 
+/*0x55e4*/  DWORD       field_55E4; 
+/*0x55e8*/  BYTE        Unknown0x55e8; 
+/*0x55e9*/  BYTE        IsRaidLeader; 
+/*0x55ea*/  BYTE        Unknown0x55ea[0x2]; 
+/*0x55ec*/  DWORD       RaidTarget; 
+/*0x55f0*/  DWORD       LootType; 
+/*0x55f4*/  CHAR        RaidLooters[0x13][0x40]; 
+/*0x5ab4*/  DWORD       TotalRaidMemberLevels; // TotalRaidMemberLevels/RaidMemberCount=RaidAvgLevel
+/*0x5ab8*/ 
 } EQRAID, *PEQRAID;
 
 // size 0x08

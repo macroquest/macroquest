@@ -161,11 +161,8 @@ DECLARE_API ( pchar )
 	KP(RaidAbilities);
 	KP(LeadershipExpON);
     KP(Bank);
-	KPs(GroupMember1);
-	KPs(GroupMember2);
-	KPs(GroupMember3);
-	KPs(GroupMember4);
-	KPs(GroupMember5);
+    for (i=0; i < 5; i++) 
+      dprintf("GroupMember%d = %s (offset 0x%x)\n", i+1, ci.GroupMember[i], &pnull->GroupMember[i]); 
 	KPs(GroupLeader);
 } 
 
@@ -643,7 +640,7 @@ DECLARE_API ( pactorinfo )
    KP(LeftWater);
    KP(SpellETA);
    KP(FishingETA);
-//   KP(FaceRelatedActorStruct);
+   KP(FaceRelatedActorStruct);
    KP(Animation);
    KP(FishingEvent);
    KP(Mount);
@@ -654,10 +651,8 @@ DECLARE_API ( pactorinfo )
    KP(pRaidMarkNPC);
    KP(pTargetOfTarget);
    KPs(NameOfLastSuccessfulTargetHit);
-   KP(Model);
    KP(InvitedToGroup);
    KP(CastingSpellID);
-   KP(Model);
    KP(WhoFollowing);
    KPf(CastingY);
    KPf(CastingX);
@@ -687,8 +682,6 @@ DECLARE_API ( exportallspells )
    int i=1; 
    int j=0; 
    int k=0; 
-
-
 
    dprintf("ID~Name~Range~CastTime~FizzleTime~RecastTime~DurationType~DurationValue1~Mana~"); 
    dprintf("Target~CastOnYou~CastOnAnother~WearOff~"); 
@@ -879,9 +872,37 @@ DECLARE_API ( praidwnd )
    KP(ClassColors);
 }
 
-DECLARE_API ( ptmp ) 
+DECLARE_API ( praid ) 
 { 
-   CHARINFO *p, *pnull=NULL, ci; 
+   EQRAID *p, *pnull=NULL, ci; 
+   DWORD cb; 
+
+   // read param from command line 
+   p = (EQRAID *)GetExpression(args); 
+
+   ReadMemory((PARAM1)p,&ci,sizeof(ci),&cb); 
+
+   dprintf("\n\n\n"); 
+   KP(RaidMemberUsed);
+   KP(RaidMember);
+   KP(field_505c);
+   KP(RaidMemberCount);
+   KPs(RaidLeaderName);
+   KPs(RaidMOTD);
+   KP(Unknown0x55a4);
+   KP(field_55E4);
+   KP(Unknown0x55e8);
+   KP(IsRaidLeader);
+   KP(Unknown0x55ea);
+   KP(RaidTarget);
+   KP(LootType);
+   KPs(RaidLooters);
+   KP(TotalRaidMemberLevels);
+}
+
+DECLARE_API ( paltability ) 
+{ 
+   ALTABILITY  *p, *pnull=NULL, ci; 
    DWORD cb; 
    CHAR buffer[MAX_STRING] = {0}; 
    CHAR tmp[MAX_STRING] = {0}; 
@@ -889,11 +910,42 @@ DECLARE_API ( ptmp )
    int i=0; 
 
     // read param from command line 
-    p = (CHARINFO *)GetExpression(args); 
+    p = (ALTABILITY  *)GetExpression(args); 
 
     ReadMemory((PARAM1)p,&ci,sizeof(ci),&cb); 
 
     dprintf("\n\n\n"); 
+	KP(AltAdvMgrListIndex);
+	KP(nShortName);
+	KP(nShorterName);
+	KP(nName);
+	KP(nDesc);
+	KP(MinLevel);
+	KP(Cost);
+	KP(AARankRequired);
+	KP(RequiresAbility);
+	KP(RequiresAbilityPoints);
+	KP(Type);
+	KP(SpellID);
+	KP(ReuseTimer);
+	KP(MaxRank);
+	KP(Unknown0x58);
+} 
 
-    KPs(Name); 
+DECLARE_API ( ptmp ) 
+{ 
+   ALTADVMGR *p, *pnull=NULL, ci; 
+   DWORD cb; 
+   CHAR buffer[MAX_STRING] = {0}; 
+   CHAR tmp[MAX_STRING] = {0}; 
+   unsigned int bitval = 1; 
+   int i=0; 
+
+    // read param from command line 
+    p = (ALTADVMGR *)GetExpression(args); 
+
+    ReadMemory((PARAM1)p,&ci,sizeof(ci),&cb); 
+
+    dprintf("\n\n\n"); 
+	
 } 

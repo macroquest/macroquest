@@ -268,7 +268,7 @@
 #define EQ_Character__GetFocusCastingTimeModifier          0x427B9C
 #define EQ_Character__GetAACastingTimeModifier             0x427F79
 #define EQ_Character__CastSpell                            0x42BDB2
-#define EQ_Character__GetAbility                           0x429C06
+#define EQ_Character__GetAbility                           0x0
 
 // EQPlayer 
 #define EQPlayer__EQPlayer                                 0x46EB4F

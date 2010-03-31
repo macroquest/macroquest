@@ -1,3 +1,21 @@
+18 August 2004 by Amadeus
+- Fixed EQRAIDWINDOW and EQRAID structs
+- Some tweaking to attempt to make ${xxx.Grouped} more consistant
+- Added:  ${Me.GroupMember[n]}  (1-5) ...returns string
+- Added:  ${Me.AmIGroupLeader}  ...return TRUE or FALSE
+- Added:  ${Me.GroupList} ..simply returns a string of your group members (excluding you)
+- Fixed ${xxx.Lore} for items
+- Fixed {AltAbility[ability].xxx} ...all of these are now working
+- Fixed All the AltAbility structs
+(Note:  ${Me.AltAbilityReady.xxX}, ${Me.AltAbilityTimer.xxx} and ${Me.AltAbility[]} are 
+        still BROKEN)
+-----------
+** SOE Coding Change (technical folks only)**  
+EQ no longer stores information for ALL AA abilities in your memory space as it once did.
+It allocates the space for all of the abilities;however, if your character is incapable of
+using the ability, the pointer location for that ability is now 00000000.
+-----------
+
 14 August 2004 by Amadeus
 - Fixed offsets to work with 8/13 "emergency" patch
 - Updated TOTAL_SPELL_COUNT and MAX_ZONES

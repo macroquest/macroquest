@@ -31,6 +31,9 @@ EXPORTS
     pguildwnd
     pguildmemberinfo
     praidwnd
+    praid
+    paltability
+    ptmp
     
 ;   pcmdlist
 

@@ -1087,32 +1087,44 @@ BOOL dataAltAbility(PCHAR szIndex, MQ2TYPEVAR &Ret)
 		return false;
 	if (IsNumber(szIndex))
 	{
-		unsigned long nAbility=atoi(szIndex);
-		if (nAbility>=NUM_ALT_ABILITIES || !nAbility)
-			return false;
-		if (Ret.Ptr=&((PALTADVMGR)pAltAdvManager)->Abilities[nAbility])
+		for (unsigned long nAbility=0 ; nAbility<NUM_ALT_ABILITIES ; nAbility++)
 		{
-			Ret.Type=pAltAbilityType;
-			return true;
-		}
-	}
-	else
-	{
-		for (unsigned long nAbility=1 ; nAbility<NUM_ALT_ABILITIES ; nAbility++)
-		{
-			if (PALTABILITY pAbility=((PALTADVMGR)pAltAdvManager)->Abilities[nAbility])
+	     if ( ((PALTADVMGR)pAltAdvManager)->AltAbilities->AltAbilityList->Abilities[nAbility])
+		  {
+			if ( PALTABILITY pAbility=((PALTADVMGR)pAltAdvManager)->AltAbilities->AltAbilityList->Abilities[nAbility]->Ability) 
 			{
-				if (PCHAR pName=pStringTable->getString(pAbility->nName,0))
+				if (pAbility->ID == atoi(szIndex) )
 				{
-					if (!stricmp(szIndex,pName))
+					if (Ret.Ptr=&((PALTADVMGR)pAltAdvManager)->AltAbilities->AltAbilityList->Abilities[nAbility]->Ability)
 					{
-						Ret.Ptr=&((PALTADVMGR)pAltAdvManager)->Abilities[nAbility];
 						Ret.Type=pAltAbilityType;
 						return true;
 					}
 				}
 			}
-		}
+		  }
+	    }
+	}
+	else
+	{
+		for (unsigned long nAbility=0 ; nAbility<NUM_ALT_ABILITIES ; nAbility++)
+		{
+	     if ( ((PALTADVMGR)pAltAdvManager)->AltAbilities->AltAbilityList->Abilities[nAbility])
+		  {
+			if ( PALTABILITY pAbility=((PALTADVMGR)pAltAdvManager)->AltAbilities->AltAbilityList->Abilities[nAbility]->Ability) 
+			{
+				if (PCHAR pName=pStringTable->getString(pAbility->nName,0))
+				{
+					if (!stricmp(szIndex,pName))
+					{
+						Ret.Ptr=&((PALTADVMGR)pAltAdvManager)->AltAbilities->AltAbilityList->Abilities[nAbility]->Ability;
+						Ret.Type=pAltAbilityType;
+						return true;
+					}
+				}
+			}
+		  }
+	    }
 	}
 
 	return false;

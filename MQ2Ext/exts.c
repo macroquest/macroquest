@@ -138,6 +138,8 @@ DECLARE_API ( help )
 			"   ppetinfownd   - Display EQPETINFOWINDOW struct\n"
 			"   pguildwnd     - Display EQGUILDWINDOW struct\n"
 			"   pguildmemberinfo - Display EQGUILDMEMBERINFO struct\n"
+			"   praid         - Display EQRAID struct\n"
+			"   paltability   - Display ALTABILITY struct\n"
             );
 
 }

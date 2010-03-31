@@ -749,7 +749,7 @@ PCHAR szWndNotification[] = {
 	"enter",		//6
 	0,		//7
 	0,		//8
-	0,		//9
+	"help",		//9
 	"close",		//10
 	0,		//11
 	0,		//12
@@ -769,7 +769,7 @@ PCHAR szWndNotification[] = {
 	0,		//26
 	0,		//27
 	0,		//28
-	0,		//29
+	"resetdefaultposition",		//29
 }; 
 
 VOID WndNotify(PSPAWNINFO pChar, PCHAR szLine)

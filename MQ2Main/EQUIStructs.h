@@ -143,18 +143,18 @@ typedef struct _CSIDLWNDVFTABLE {
 /*00FC*/ LPVOID  SetWindowTextA;
 /*0100*/ LPVOID  SetVScrollPos;
 /*0104*/ LPVOID  SetAttributesFromSidl;
-/*0108*/ LPVOID DefineImages;
-/*010C*/ LPVOID Unknown0x10c;
-/*0110*/ LPVOID Unknown0x110;
-/*0114*/ LPVOID LoadIniInfo;
-/*0118*/ LPVOID StoreIniInfo;
+/*0108*/ LPVOID  DefineImages;
+/*010C*/ LPVOID  Unknown0x10c;
+/*0110*/ LPVOID  Unknown0x110;
+/*0114*/ LPVOID  LoadIniInfo;
+/*0118*/ LPVOID  StoreIniInfo;
 /*011c*/
 } CSIDLWNDVFTABLE, *PCSIDLWNDVFTABLE;
 
 // Lax
-// Actual Size 0x114  5-5-2004
+// Actual Size 0x114  8-11-2004
 typedef struct _CXWNDVFTABLE {
-/*0000*/ LPVOID IsValid;
+/*0000*/ LPVOID  IsValid;
 /*0004*/ LPVOID  vector_deleting_destructor;
 /*0008*/ LPVOID  DrawNC;
 /*000C*/ LPVOID  PostDraw;
@@ -203,7 +203,7 @@ typedef struct _CXWNDVFTABLE {
 /*00B8*/ LPVOID  OnBroughtToTop;
 /*00BC*/ LPVOID  OnMove4;
 /*00C0*/ LPVOID  Show;
-/*00C4*/ LPVOID  Unknown0x0c4;
+/*00C4*/ LPVOID  Unknown0x0c4;  // Activate?
 /*00C8*/ LPVOID  Unknown0x0c8;
 /*00CC*/ LPVOID  OnMove5;
 /*00D0*/ LPVOID  RequestDockInfo;
@@ -220,9 +220,9 @@ typedef struct _CXWNDVFTABLE {
 /*00FC*/ LPVOID  SetWindowTextA;
 /*0100*/ LPVOID  SetVScrollPos;//->0
 /*0104*/ LPVOID  SetAttributesFromSidl;
-/*0108*/ LPVOID DefineImages;
-/*010C*/ LPVOID Unknown0x10c;
-/*0110*/ LPVOID Unknown0x110;
+/*0108*/ LPVOID  DefineImages;
+/*010C*/ LPVOID  Unknown0x10c;
+/*0110*/ LPVOID  Unknown0x110;
 /*0114*/
 } CXWNDVFTABLE, *PCXWNDVFTABLE;
 
@@ -691,13 +691,12 @@ typedef struct _EQTRADESKILLWINDOW {
 /*0x3d8*/ DWORD Unknown0x3d8;
 } EQTRADESKILLWINDOW, *PTRADESKILLWINDOW;
 
-//Size: 0x234 (05/11/2004) 
+//Size: 0x28c (08/11/2004) 
 typedef struct _EQRAIDWINDOW {
 /*0x000*/ struct _CSIDLWND Wnd;
-/*0x158*/ BYTE  Unknown0x158[0x64];
-/*0x1bc*/ DWORD ClassColors[0x10];
-/*0x1cc*/
-/*0x234*/
+/*0x158*/ BYTE  Unknown0x158[0xa4];
+/*0x1fc*/ DWORD ClassColors[0x10];
+/*0x23c*/
 } EQRAIDWINDOW, *PEQRAIDWINDOW;
 
 typedef struct _GUILDMEMBERINFO {
