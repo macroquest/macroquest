@@ -5430,7 +5430,7 @@ EQLIB_OBJECT unsigned char EQ_Character::CanMedOnHorse(void);
 EQLIB_OBJECT unsigned char EQ_Character::CanSecondaryAttack(class EQPlayer *);
 EQLIB_OBJECT unsigned char EQ_Character::CanWorship(int,int,unsigned char);
 EQLIB_OBJECT unsigned char EQ_Character::CastingRequirementsMet(int);
-EQLIB_OBJECT unsigned char EQ_Character::CastSpell(unsigned char,int,class EQ_Item * *,int);
+EQLIB_OBJECT unsigned char EQ_Character::CastSpell(unsigned char,int,class EQ_Item * *,int,int slot,int,int,int); 
 EQLIB_OBJECT unsigned char EQ_Character::CheckClass(int,int);
 EQLIB_OBJECT unsigned char EQ_Character::CityCanStart(int,int,int,int);
 EQLIB_OBJECT unsigned char EQ_Character::ClassMin(int,int,unsigned char);

@@ -2157,20 +2157,338 @@ PCHAR ShowSpellSlotInfo(PSPELL pSpell, PCHAR szBuffer)
          sprintf(szTemp, "Increase Pet Power(%d)", pSpell->Base[i]); 
          strcat(szBuff, szTemp); 
          break; 
+      case 168: //Mitigation 
+         if ( pSpell->Base[i] < 0 ) strcat(szBuff, "Decrease "); 
+         if ( pSpell->Base[i] > 0 ) strcat(szBuff, "Increase "); 
+         sprintf(szTemp, "Melee Mitigation by %dpct", pSpell->Base[i]); 
+         strcat(szBuff, szTemp); 
+         break; 
+      case 169: //Chance to Critical Hit 
+         sprintf(szTemp, "Chance to Critical Hit(%d)", pSpell->Base[i]); 
+         strcat(szBuff, szTemp); 
+         break; 
+      case 170: //Crit Cast, test spell only 
+         sprintf(szTemp, "Chance to Critical Cast (unknown calc)"); 
+         strcat(szBuff, szTemp); 
+         break; 
+      case 171: //Crippling Blow 
+         if ( pSpell->Base[i] < 0 ) strcat(szBuff, "Decrease "); 
+         if ( pSpell->Base[i] > 0 ) strcat(szBuff, "Increase "); 
+         sprintf(szTemp, "Chance to Crippling Blow by %dpct", pSpell->Base[i]); 
+         strcat(szBuff, szTemp); 
+         break; 
+      case 172: //Melee Avoidance 
+         if ( pSpell->Base[i] < 0 ) strcat(szBuff, "Decrease "); 
+         if ( pSpell->Base[i] > 0 ) strcat(szBuff, "Increase "); 
+         sprintf(szTemp, "Chance to Avoid Melee by %dpct", pSpell->Base[i]); 
+         strcat(szBuff, szTemp); 
+         break; 
+      case 173: //Riposte 
+         if ( pSpell->Base[i] < 0 ) strcat(szBuff, "Decrease "); 
+         if ( pSpell->Base[i] > 0 ) strcat(szBuff, "Increase "); 
+         sprintf(szTemp, "Chance to Riposte by %dpct", pSpell->Base[i]); 
+         strcat(szBuff, szTemp); 
+         break; 
+      case 174: //Dodge 
+         if ( pSpell->Base[i] < 0 ) strcat(szBuff, "Decrease "); 
+         if ( pSpell->Base[i] > 0 ) strcat(szBuff, "Increase "); 
+         sprintf(szTemp, "Chance to Dodge by %dpct", pSpell->Base[i]); 
+         strcat(szBuff, szTemp); 
+         break; 
+      case 175: //Parry 
+         if ( pSpell->Base[i] < 0 ) strcat(szBuff, "Decrease "); 
+         if ( pSpell->Base[i] > 0 ) strcat(szBuff, "Increase "); 
+         sprintf(szTemp, "Chance to Parry by %dpct", pSpell->Base[i]); 
+         strcat(szBuff, szTemp); 
+         break; 
+      case 176: //Parry 
+         if ( pSpell->Base[i] < 0 ) strcat(szBuff, "Decrease "); 
+         if ( pSpell->Base[i] > 0 ) strcat(szBuff, "Increase "); 
+         sprintf(szTemp, "Dual Wield by %dpct", pSpell->Base[i]); 
+         strcat(szBuff, szTemp); 
+         break; 
+      case 177: //Stat Cap Mod (how do they know which?) 
+         sprintf(szTemp, "Increase Double Attack by %dpct", pSpell->Base[i]); 
+         strcat(szBuff, szTemp); 
+         break; 
+      case 178: //Lifetap Proc 
+         sprintf(szTemp, "Lifetap from Weapon Damage (%d)", pSpell->Base[i]); 
+         strcat(szBuff, szTemp); 
+         break; 
+      case 179: //Puretone 
+         sprintf(szTemp, "Instrument Modifier (%d)", pSpell->Base[i]); 
+         strcat(szBuff, szTemp); 
+         break; 
+      case 180: //Spell Resist 
+         if ( pSpell->Base[i] < 0 ) strcat(szBuff, "Decrease "); 
+         if ( pSpell->Base[i] > 0 ) strcat(szBuff, "Increase "); 
+         sprintf(szTemp, "Chance to Resist Spells by %dpct", pSpell->Base[i]); 
+         strcat(szBuff, szTemp); 
+         break; 
+      case 181: //Fearless 
+         sprintf(szTemp, "Increase Chance to Resist Fear Spell by %dpct", pSpell->Base[i]); 
+         strcat(szBuff, szTemp); 
+         break; 
+      case 182: //Hundred Hands 
+         sprintf(szTemp, "Hundred Hands Effect"); 
+         strcat(szBuff, szTemp); 
+         break; 
+      case 183: //Melee Fury 
+         sprintf(szTemp, "Increase Melee Skill Check by %dpct", pSpell->Base[i]); 
+         strcat(szBuff, szTemp); 
+         break; 
+      case 184: //Chance to hit with Backstab 
+         sprintf(szTemp, "Increase Chance to Hit by %dpct with Backstab", pSpell->Base[i]); 
+         strcat(szBuff, szTemp); 
+         break; 
+      case 185: //Damage Mod (how to tell which, rogues get a backstab only, others get an all skills) 
+         if ( pSpell->Base[i] < 0 ) strcat(szBuff, "Decrease "); 
+         if ( pSpell->Base[i] > 0 ) strcat(szBuff, "Increase "); 
+         sprintf(szTemp, "(Unknown Calc) Damage Modifier by %dpct", pSpell->Base[i]); 
+         strcat(szBuff, szTemp); 
+         break; 
+      case 186: //Damage Mod (see above) 
+         if ( pSpell->Base[i] < 0 ) strcat(szBuff, "Decrease "); 
+         if ( pSpell->Base[i] > 0 ) strcat(szBuff, "Increase "); 
+         sprintf(szTemp, "(Unknown Calc) Minimum Damage Modifier by %dpct", pSpell->Base[i]); 
+         strcat(szBuff, szTemp); 
+         break; 
+      case 188: //Block 
+         if ( pSpell->Base[i] < 0 ) strcat(szBuff, "Decrease "); 
+         if ( pSpell->Base[i] > 0 ) strcat(szBuff, "Increase "); 
+         sprintf(szTemp, "Chance to block by %dpct", pSpell->Base[i]); 
+         strcat(szBuff, szTemp); 
+         break; 
+      case 189: //Endurance DoT/Regen 
+         if ( pSpell->Base[i] < 0 ) strcat(szBuff, "Decrease "); 
+         if ( pSpell->Base[i] > 0 ) strcat(szBuff, "Increase "); 
+         sprintf(szTemp, "Endurance by %d per tick", pSpell->Base[i]); 
+         strcat(szBuff, szTemp); 
+         break; 
+      case 192: //Discord Hate 
+         if ( pSpell->Base[i] < 0 ) strcat(szBuff, "Decrease "); 
+         if ( pSpell->Base[i] > 0 ) strcat(szBuff, "Increase "); 
+         sprintf(szTemp, "Hate by %dpct", pSpell->Base[i]); 
+         strcat(szBuff, szTemp); 
+         break; 
+      case 193: //Skill Attack 
+         sprintf(szTemp, "Skill Attack (%d)", pSpell->Base[i]); 
+         strcat(szBuff, szTemp); 
+         break; 
+      case 194: //Fade 
+         sprintf(szTemp, "Fade Memories"); 
+         strcat(szBuff, szTemp); 
+         break; 
+      case 195: //Stun Resist 
+         sprintf(szTemp, "Stun Resist (%d)", pSpell->Base[i]); 
+         strcat(szBuff, szTemp); 
+         break; 
+      case 196: //Strikethrough 
+         sprintf(szTemp, "Strikethrough (%d)", pSpell->Base[i]); 
+         strcat(szBuff, szTemp); 
+         break; 
+      case 197: //Skill Damage 
+         sprintf(szTemp, "Skill Damage Taken (%d)", pSpell->Base[i]); 
+         strcat(szBuff, szTemp); 
+         break; 
+      case 198: //Endurance Heals 
+         if ( pSpell->Base[i] < 0 ) strcat(szBuff, "Decrease "); 
+         if ( pSpell->Base[i] > 0 ) strcat(szBuff, "Increase "); 
+         sprintf(szTemp, "Endurance by %d", pSpell->Base[i]); 
+         strcat(szBuff, szTemp); 
+         break; 
+      case 200: //Proc Mod 
+         sprintf(szTemp, "Increase Proc Modifier by %dpct", pSpell->Base[i]); 
+         strcat(szBuff, szTemp); 
+         break; 
+      case 201: //Ranged Proc 
+         sprintf(szTemp, "Ranged Proc (%d)", pSpell->Base[i]); 
+         strcat(szBuff, szTemp); 
+         break; 
+      case 202: //Illusion 
+         sprintf(szTemp, "Illusion Other"); 
+         strcat(szBuff, szTemp); 
+         break; 
+      case 203: //Illusion 
+         sprintf(szTemp, "Mass Group Buff"); 
+         strcat(szBuff, szTemp); 
+         break; 
+      case 204: //War Cry 
+         sprintf(szTemp, "Group Fear Immunity (%d0.00 sec)", pSpell->Base[i]); 
+         strcat(szBuff, szTemp); 
+         break; 
+      case 205: //Rampage 
+         sprintf(szTemp, "Rampage"); 
+         strcat(szBuff, szTemp); 
+         break; 
+      case 206: //AE Taunt 
+         sprintf(szTemp, "AE Taunt"); 
+         strcat(szBuff, szTemp); 
+         break; 
+      case 207: //AE Taunt 
+         sprintf(szTemp, "Flesh to Bone"); 
+         strcat(szBuff, szTemp); 
+         break; 
+      case 210: //Pet Shield 
+         sprintf(szTemp, "Pet Shield (%d.00 sec)", (12*(pSpell->Base[i]))); 
+         strcat(szBuff, szTemp); 
+         break; 
+      case 211: //AE Melee 
+         sprintf(szTemp, "AE Melee (%d)", pSpell->Base[i]); 
+         strcat(szBuff, szTemp); 
+         break; 
+      case 212: //Frenzied Devastation 
+         sprintf(szTemp, "Frenzied Devastation (%d0.00 sec)", pSpell->Base[i]); 
+         strcat(szBuff, szTemp); 
+         break; 
+      case 214: //Plague 
+         sprintf(szTemp, "Max HP change by (%d)", ((pSpell->Base[i])/100)); 
+         strcat(szBuff, szTemp); 
+         break; 
+      case 216: //Accuracy 
+         if ( pSpell->Base[i] < 0 ) strcat(szBuff, "Decrease "); 
+         if ( pSpell->Base[i] > 0 ) strcat(szBuff, "Increase "); 
+         sprintf(szTemp, "Accuracy by %dpct", pSpell->Base[i]); 
+         strcat(szBuff, szTemp); 
+         break; 
+      case 227: //Skill Timer 
+         sprintf(szTemp, "Reduce Skill Timer(%d)", pSpell->Base[i]); 
+         strcat(szBuff, szTemp); 
+         break; 
+      case 232: //Divine Rez 
+         sprintf(szTemp, "Divine Save (%d)", pSpell->Base[i]); 
+         strcat(szBuff, szTemp); 
+         break; 
       case 254: //placeholder of some kind 
          bSlotIsPH=true; 
+         break; 
+      case 258: //Triple Backstab 
+         sprintf(szTemp, "Triple Backstab (%d)", pSpell->Base[i]); 
+         strcat(szBuff, szTemp); 
+         break; 
+      case 260: //test puretone 
+         sprintf(szTemp, "Add Instrument Modifier(%d)", pSpell->Base[i]); 
+         strcat(szBuff, szTemp); 
+         break; 
+      case 262: //Stat Cap Mod (how do they know which?) 
+         sprintf(szTemp, "Increase (Unknown Calc) Cap by %d", pSpell->Base[i]); 
+         strcat(szBuff, szTemp); 
+         break; 
+      case 266: //Attack Chance 
+         sprintf(szTemp, "Add Attack Chance(%d)", pSpell->Base[i]); 
+         strcat(szBuff, szTemp); 
+         break; 
+      case 273: //DoT Crit 
+         sprintf(szTemp, "Critical DoT (%d)", pSpell->Base[i]); 
+         strcat(szBuff, szTemp); 
+         break; 
+      case 274: //Heal Crit 
+         sprintf(szTemp, "Critical Heal (%d)", pSpell->Base[i]); 
+         strcat(szBuff, szTemp); 
+         break; 
+      case 279: //Flurry 
+         sprintf(szTemp, "Flurry Chance (%d)", pSpell->Base[i]); 
+         strcat(szBuff, szTemp); 
+         break; 
+      case 291: //Purifacation 
+         sprintf(szTemp, "Purify (%d)", pSpell->Base[i]); 
+         strcat(szBuff, szTemp); 
+         break; 
+      case 294: //DD Crit 
+         sprintf(szTemp, "Spell Crit Chance (%d)", pSpell->Base[i]); 
+         strcat(szBuff, szTemp); 
+         break; 
+      case 296: //Blight 
+         sprintf(szTemp, "Increase Incoming Spell Damage by %dpct", pSpell->Base[i]); 
+         strcat(szBuff, szTemp); 
+         break; 
+      case 297: //Empathy 
+         sprintf(szTemp, "Empathy"); 
+         strcat(szBuff, szTemp); 
+         break; 
+      case 298: //Tiny Companion 
+         sprintf(szTemp, "Decrease Height by %dpct", pSpell->Base[i]); 
+         strcat(szBuff, szTemp); 
+         break; 
+      case 299: //Wake the Dead 
+         sprintf(szTemp, "Wake the Dead (%d)", pSpell->Base[i]); 
+         strcat(szBuff, szTemp); 
+         break; 
+      case 300: //Doppleganger 
+         sprintf(szTemp, "Doppleganger"); 
+         strcat(szBuff, szTemp); 
+         break; 
+      case 306: //Army of Dead 
+         sprintf(szTemp, "Wake the Dead 2 (%d)", pSpell->Base[i]); 
+         strcat(szBuff, szTemp); 
+         break; 
+      case 308: //Suspend minion 
+         sprintf(szTemp, "Zone Suspend minion"); 
+         strcat(szBuff, szTemp); 
+         break; 
+      case 309: //Teleport Bind 
+         sprintf(szTemp, "Gate to Casters Bindpoint"); 
+         strcat(szBuff, szTemp); 
+         break; 
+      case 310: //Reuse Timer 
+         sprintf(szTemp, "Decrease Reuse Timer by %d.00 sec", ((pSpell->Base[i])/1000)); 
+         strcat(szBuff, szTemp); 
+         break; 
+      case 312: //Sanc 
+         sprintf(szTemp, "Observer (%d)", pSpell->Base[i]); 
+         strcat(szBuff, szTemp); 
+         break; 
+      case 314: //Invis 
+         sprintf(szTemp, "Set Duration Invis"); 
+         strcat(szBuff, szTemp); 
+         break; 
+      case 315: //Invis2undead 
+         sprintf(szTemp, "Set Duration Invis to Undead"); 
+         strcat(szBuff, szTemp); 
+         break; 
+      case 321: //Soothing 
+         sprintf(szTemp, "Reduce Target Hate (%d)", pSpell->Base[i]); 
+         strcat(szBuff, szTemp); 
+         break; 
+      case 322: //Origin 
+         sprintf(szTemp, "Gate to Starting City"); 
+         strcat(szBuff, szTemp); 
+         break; 
+      case 323: //Add Defensive Proc--- How to get the string? 
+         sprintf(szTemp, "Add Defensive Proc: Spell ID(%d)", pSpell->Base[i]); 
+         strcat(szBuff, szTemp); 
+         break; 
+      case 324: //Spirit Channel 
+         sprintf(szTemp, "Hp to Mana (%d)", pSpell->Base[i]); 
+         strcat(szBuff, szTemp); 
+         break; 
+      case 329: //Mind over Matter 
+         sprintf(szTemp, "Mana Absorb percent Damage (%d)", pSpell->Base[i]); 
+         strcat(szBuff, szTemp); 
+         break; 
+      case 330: //Crit Damage 
+         sprintf(szTemp, "Critical Damage Mob(%d)", pSpell->Base[i]); 
+         strcat(szBuff, szTemp); 
+         break; 
+      case 332: //Call of the Wild 
+         sprintf(szTemp, "Summon to Corpse"); 
+         strcat(szBuff, szTemp); 
+         break; 
+      case 334: //Song DoT 
+         sprintf(szTemp, "Decrease Hitpoints by %d (L%d) to %d(L70)", (pSpell->Max[i] + pSpell->Base[i]), pSpell->Level[8], pSpell->Max[i]); 
+         strcat(szBuff, szTemp); 
          break; 
       default: //undefined effect 
          sprintf(szTemp, "UnknownEffect%03d", pSpell->Attrib[i]); 
          strcat(szBuff,szTemp); 
          break; 
-      } 
 	  if ( !bSlotIsPH ) {
 		  strcat(szBuffer, szBuff);
 		  strcat(szBuffer, "<br>" );
 	  }
-   } 
+     } 
    return szBuffer;
+   }
 } 
 
 // *************************************************************************** 
@@ -2191,7 +2509,7 @@ VOID SlotValueCalculate(PCHAR szBuff, PSPELL pSpell, int i, double mp)
    int minlevel=1; 
    for (int j=0; j<=16; j++) 
    { 
-      if (pSpell->Level[j]>0 && pSpell->Level[j]<=65) { 
+      if (pSpell->Level[j]>0 && pSpell->Level[j]<=70) { 
          if ( minlevel==1 )  minlevel=pSpell->Level[j]; 
          if ( pSpell->Level[j]<minlevel )  minlevel=pSpell->Level[j]; 
       } 
@@ -2211,11 +2529,11 @@ VOID SlotValueCalculate(PCHAR szBuff, PSPELL pSpell, int i, double mp)
    case 5: //   Level*5 + Base 
       sprintf(szTemp, "%d (L%d) to ", abs(szBase), minlevel); 
       strcat(szBuff, szTemp); 
-      for (level = minlevel; level <= 65; level++) 
+      for (level = minlevel; level <= 70; level++) 
       { 
-         if ( pSpell->Max[i]==0 ) level=65;    //problem note: celestial elixir, duration, shouldnt show range calc?! 
+         if ( pSpell->Max[i]==0 ) level=70;    //problem note: celestial elixir, duration, shouldnt show range calc?! 
          szValue = (level * 5) + abs(szBase); 
-         if ( abs(szValue) >= abs(pSpell->Max[i]) || level==65 ) 
+         if ( abs(szValue) >= abs(pSpell->Max[i]) || level==70 ) 
          { 
             sprintf(szTemp, "%d (L%d)", abs(szValue) >= abs(pSpell->Max[i]) ? abs(pSpell->Max[i]) : abs(szValue), level); 
             strcat(szBuff, szTemp); 
@@ -2226,11 +2544,11 @@ VOID SlotValueCalculate(PCHAR szBuff, PSPELL pSpell, int i, double mp)
    case 6: //   Level*6 + Base 
       sprintf(szTemp, "%d (L%d) to ", abs(szBase), minlevel); 
       strcat(szBuff, szTemp); 
-      for (level = minlevel; level <= 65; level++) 
+      for (level = minlevel; level <= 70; level++) 
       { 
-         if ( pSpell->Max[i]==0 ) level=65;  
+         if ( pSpell->Max[i]==0 ) level=70;  
          szValue = (level * 6) + abs(szBase); 
-         if ( abs(szValue) >= abs(pSpell->Max[i]) || level==65 ) 
+         if ( abs(szValue) >= abs(pSpell->Max[i]) || level==70 ) 
          { 
             sprintf(szTemp, "%d (L%d)", abs(szValue) >= abs(pSpell->Max[i]) ? abs(pSpell->Max[i]) : abs(szValue), level); 
             strcat(szBuff, szTemp); 
@@ -2242,7 +2560,7 @@ VOID SlotValueCalculate(PCHAR szBuff, PSPELL pSpell, int i, double mp)
       sprintf(szTemp, "%d (L%d) to ", abs(szBase), minlevel); 
       strcat(szBuff, szTemp); 
       //assume max level for PC to NPC comparison (usually no max for this formula) 
-      level = 65; 
+      level = 70; 
       szValue = (level * 10) + abs(szBase); 
       sprintf(szTemp, "%d (L%d)", abs(szValue), level); 
       strcat(szBuff, szTemp); 
@@ -2250,11 +2568,11 @@ VOID SlotValueCalculate(PCHAR szBuff, PSPELL pSpell, int i, double mp)
    case 101: // Level/2 + Base 
       sprintf(szTemp, "%d (L%d) to ", abs(szBase), minlevel); 
       strcat(szBuff, szTemp); 
-      for (level = minlevel; level <= 65; level++) 
+      for (level = minlevel; level <= 70; level++) 
       { 
-         if ( pSpell->Max[i]==0 ) level=65;  
+         if ( pSpell->Max[i]==0 ) level=70;  
          szValue = (long)(level / 2) + abs(szBase); 
-         if ( abs(szValue) >= abs(pSpell->Max[i]) || level==65 ) 
+         if ( abs(szValue) >= abs(pSpell->Max[i]) || level==70 ) 
          { 
             sprintf(szTemp, "%d (L%d)", abs(szValue) >= abs(pSpell->Max[i]) ? abs(pSpell->Max[i]) : abs(szValue), level); 
             strcat(szBuff, szTemp); 
@@ -2265,11 +2583,11 @@ VOID SlotValueCalculate(PCHAR szBuff, PSPELL pSpell, int i, double mp)
    case 102: // Level + Base 
       sprintf(szTemp, "%d (L%d) to ", abs(szBase+(minlevel)), minlevel); 
       strcat(szBuff, szTemp); 
-      for (level = minlevel; level <= 65; level++) 
+      for (level = minlevel; level <= 70; level++) 
       { 
-         if ( pSpell->Max[i] ==0 ) level=65;  
+         if ( pSpell->Max[i] ==0 ) level=70;  
          szValue = level + abs(szBase); 
-         if ( abs(szValue) >= abs(pSpell->Max[i]) || level==65 ) { 
+         if ( abs(szValue) >= abs(pSpell->Max[i]) || level==70 ) { 
             sprintf(szTemp, "%d (L%d)", abs(szValue) >= abs(pSpell->Max[i]) ? abs(pSpell->Max[i]) : abs(szValue), level); 
             strcat(szBuff, szTemp); 
             break; 
@@ -2279,11 +2597,11 @@ VOID SlotValueCalculate(PCHAR szBuff, PSPELL pSpell, int i, double mp)
    case 103: // Level*2 + Base 
       sprintf(szTemp, "%d (L%d) to ", abs(szBase+(minlevel*2)), minlevel); 
       strcat(szBuff, szTemp); 
-      for (level = minlevel; level <= 65; level++) 
+      for (level = minlevel; level <= 70; level++) 
       { 
-         if ( pSpell->Max[i] ==0 ) level=65;  
+         if ( pSpell->Max[i] ==0 ) level=70;  
          szValue = (level*2) + abs(szBase); 
-         if ( abs(szValue) >= abs(pSpell->Max[i]) || level==65 ) { 
+         if ( abs(szValue) >= abs(pSpell->Max[i]) || level==70 ) { 
             sprintf(szTemp, "%d (L%d)", abs(szValue) >= abs(pSpell->Max[i]) ? abs(pSpell->Max[i]) : abs(szValue), level); 
             strcat(szBuff, szTemp); 
             break; 
@@ -2293,11 +2611,11 @@ VOID SlotValueCalculate(PCHAR szBuff, PSPELL pSpell, int i, double mp)
    case 104: // Level*3 + Base 
       sprintf(szTemp, "%d (L%d) to ", abs(szBase+(minlevel*3)), minlevel); 
       strcat(szBuff, szTemp); 
-      for (level = minlevel; level <= 65; level++) 
+      for (level = minlevel; level <= 70; level++) 
       { 
-         if ( pSpell->Max[i]==0 ) level=65; 
+         if ( pSpell->Max[i]==0 ) level=70; 
          szValue = (level*3) + abs(szBase); 
-         if ( abs(szValue) >= abs(pSpell->Max[i]) || level==65 ) { 
+         if ( abs(szValue) >= abs(pSpell->Max[i]) || level==70 ) { 
             sprintf(szTemp, "%d (L%d)", abs(szValue) >= abs(pSpell->Max[i]) ? abs(pSpell->Max[i]) : abs(szValue), level); 
             strcat(szBuff, szTemp); 
             break; 
@@ -2307,7 +2625,7 @@ VOID SlotValueCalculate(PCHAR szBuff, PSPELL pSpell, int i, double mp)
    case 105: // Level*4 + Base 
       sprintf(szTemp, "%d (L1) to ", abs(szBase)); 
       strcat(szBuff, szTemp); 
-      level = 65; 
+      level = 70; 
       szValue = (level * 4) + abs(szBase); 
       sprintf(szTemp, "%d (L%d)", abs(szValue), level); 
       strcat(szBuff, szTemp); 
@@ -2315,7 +2633,7 @@ VOID SlotValueCalculate(PCHAR szBuff, PSPELL pSpell, int i, double mp)
    case 109: // Skill/16 + Base ?? 
       sprintf(szTemp, "%d (L1) to ", abs(szBase)); 
       strcat(szBuff, szTemp); 
-      level=65; 
+      level=70; 
       szValue = ((long)(235/16)) + abs(szBase); 
       sprintf(szTemp, "%d (L%d)", szValue, level); 
       strcat(szBuff, szTemp); 
@@ -2323,7 +2641,7 @@ VOID SlotValueCalculate(PCHAR szBuff, PSPELL pSpell, int i, double mp)
    case 110: // Skill/8 + Base 
       sprintf(szTemp, "%d (L1) to ", abs(szBase)); 
       strcat(szBuff, szTemp); 
-      level=65; 
+      level=70; 
       szValue = ((long)(235/8)) + abs(szBase); 
       sprintf(szTemp, "%d (L%d)", szValue, level); 
       strcat(szBuff, szTemp); 

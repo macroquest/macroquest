@@ -4204,13 +4204,13 @@ FUNCTION_AT_ADDRESS(unsigned char  EQ_Character::GetMaxEffects(void)const ,EQ_Ch
 FUNCTION_AT_ADDRESS(class EQ_Affect &  EQ_Character::GetEffect(int),EQ_Character__GetEffect);
 #endif
 #ifdef EQ_Character__GetEffectId
-FUNCTION_AT_ADDRESS(unsigned int  EQ_Character::GetEffectId(int),EQ_Character__GetEffectId);
+FUNCTION_AT_ADDRESS(unsigned int EQ_Character::GetEffectId(int),EQ_Character__GetEffectId);
 #endif
 #ifdef EQ_Character__SetEffectId
 FUNCTION_AT_ADDRESS(void  EQ_Character::SetEffectId(unsigned char,unsigned int),EQ_Character__SetEffectId);
 #endif
 #ifdef EQ_Character__CastSpell
-FUNCTION_AT_ADDRESS(unsigned char  EQ_Character::CastSpell(unsigned char,int,class EQ_Item * *,int),EQ_Character__CastSpell);
+FUNCTION_AT_ADDRESS(unsigned char EQ_Character::CastSpell(unsigned char,int,class EQ_Item * *,int,int slot,int,int,int),EQ_Character__CastSpell); 
 #endif
 #ifdef EQ_Character__GetBardInstrumentMod
 FUNCTION_AT_ADDRESS(int  EQ_Character::GetBardInstrumentMod(int),EQ_Character__GetBardInstrumentMod);

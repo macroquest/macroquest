@@ -2450,6 +2450,21 @@ VOID DoAbility(PSPAWNINFO pChar, PCHAR szLine)
             }
             WriteChatColor(szBuffer,USERCOLOR_DEFAULT);
         }
+        WriteChatColor("Combat Abiilities:",USERCOLOR_DEFAULT);
+        for (Index=10;Index<18;Index++) {
+            if (EQADDR_DOABILITYLIST[Index]==0xFFFFFFFF) {
+                sprintf(szBuffer,"%d. <Empty>",Index+1);
+			} else if (EQADDR_DOABILITYLIST[Index] > 132) { // highest number we have defined so far
+				sprintf(szBuffer,"%d. *Unknown%d",Index+1,EQADDR_DOABILITYLIST[Index]);
+            } else if (szSkills[EQADDR_DOABILITYLIST[Index]]) {
+                sprintf(szBuffer,"%d. %s",Index+1,szSkills[EQADDR_DOABILITYLIST[Index]]);
+            } else {
+                sprintf(szBuffer,"%d. *Unknown%d",Index+1,EQADDR_DOABILITYLIST[Index]);
+            }
+            WriteChatColor(szBuffer,USERCOLOR_DEFAULT);
+        }
+
+
         return;
     }
 
@@ -2486,57 +2501,60 @@ DWORD FindSpellListByName(PCHAR szName)
     return -1;
 }
 
-VOID LoadSpells(PSPAWNINFO pChar, PCHAR szLine)
-{
-    if (!pSpellSets || !ppSpellBookWnd || szLine[0]==0) return;
+VOID LoadSpells(PSPAWNINFO pChar, PCHAR szLine) 
+{ 
+    if (!pSpellSets || !ppSpellBookWnd || szLine[0]==0) return; 
 
-    DWORD Index, DoIndex = 0xFFFFFFFF;
-    CHAR szArg1[MAX_STRING] = {0};
-    CHAR szArg2[MAX_STRING] = {0};
-    CHAR szBuffer[MAX_STRING] = {0};
+    DWORD Index, DoIndex = 0xFFFFFFFF; 
+    CHAR szArg1[MAX_STRING] = {0}; 
+    CHAR szArg2[MAX_STRING] = {0}; 
+    CHAR szBuffer[MAX_STRING] = {0}; 
 
-    if (!pSpellBookWnd) return;
+    if (!pSpellBookWnd) return; 
 
-    GetArg(szArg1,szLine,1);
-    GetArg(szArg2,szLine,2);
+    GetArg(szArg1,szLine,1); 
+    GetArg(szArg2,szLine,2); 
 
-    if ((!stricmp(szArg1,"list")) && (szArg2[0]==0)) {
-        WriteChatColor("Spell favorites list:",USERCOLOR_DEFAULT);
-        WriteChatColor("--------------------------",USERCOLOR_DEFAULT);
-        for (Index=0;Index<10;Index++) {
-            if (pSpellSets[Index].Name[0]!=0) {
-                WriteChatColor(pSpellSets[Index].Name,USERCOLOR_DEFAULT);
-            }
-        }
-        return;
-    }
+    if ((!stricmp(szArg1,"list")) && (szArg2[0]==0)) { 
+        WriteChatColor("Spell favorites list:",USERCOLOR_DEFAULT); 
+        WriteChatColor("--------------------------",USERCOLOR_DEFAULT); 
+        for (Index=0;Index<10;Index++) { 
+            if (pSpellSets[Index].Name[0]!=0) { 
+            sprintf(szBuffer,"%d) %s",Index,pSpellSets[Index].Name); 
+                WriteChatColor(szBuffer,USERCOLOR_DEFAULT); 
+            } 
+        } 
+        return; 
+    } 
 
-    if (!stricmp(szArg1,"list")) {
-        DoIndex = FindSpellListByName(szArg2);
-        if (DoIndex==-1) {
-            sprintf(szBuffer,"Unable to find favorite list '%s'",szArg2);
-            WriteChatColor(szBuffer,USERCOLOR_DEFAULT);
-            return;
-        }
-        sprintf(szBuffer,"Favorite list '%s':",szArg2);
-        WriteChatColor(szBuffer,USERCOLOR_DEFAULT);
-        for (Index=0;Index<9;Index++) {
-            if (pSpellSets[DoIndex].SpellId[Index]!=0xFFFFFFFF) {
-                sprintf(szBuffer,"%d) %s",Index,GetSpellByID(pSpellSets[DoIndex].SpellId[Index])->Name );
-                WriteChatColor(szBuffer,USERCOLOR_DEFAULT);
-            }
-        }
-        return;
-    }
+    if (!stricmp(szArg1,"list")) { 
 
-    DoIndex = FindSpellListByName(szArg1);
-    if (DoIndex!=-1) {
-		pSpellBookWnd->MemorizeSet((int*)&pSpellSets[DoIndex],8);
-    } else {
-        sprintf(szBuffer,"Unable to find favorite list '%s'",szArg1);
-        WriteChatColor(szBuffer,USERCOLOR_DEFAULT);
-    }
-}
+        DoIndex = IsNumber(szArg2)?atoi(szArg2):FindSpellListByName(szArg2); 
+        if (DoIndex < 0 || DoIndex > 9) { 
+            sprintf(szBuffer,"Unable to find favorite list '%s'",szArg2); 
+            WriteChatColor(szBuffer,USERCOLOR_DEFAULT); 
+            return; 
+        } 
+        sprintf(szBuffer,"Favorite list '%s':",pSpellSets[DoIndex].Name); 
+        WriteChatColor(szBuffer,USERCOLOR_DEFAULT); 
+        for (Index=0;Index<9;Index++) { 
+            if (pSpellSets[DoIndex].SpellId[Index]!=0xFFFFFFFF) { 
+                sprintf(szBuffer,"%d) %s",Index,GetSpellByID(pSpellSets[DoIndex].SpellId[Index])->Name ); 
+                WriteChatColor(szBuffer,USERCOLOR_DEFAULT); 
+            } 
+        } 
+        return; 
+    } 
+
+   DoIndex = IsNumber(szArg1)?atoi(szArg1):FindSpellListByName(szArg1); 
+    if (DoIndex >= 0 && DoIndex <=9) { 
+      pSpellBookWnd->MemorizeSet((int*)&pSpellSets[DoIndex],9); 
+    } else { 
+        sprintf(szBuffer,"Unable to find favorite list '%s'",szArg1); 
+        WriteChatColor(szBuffer,USERCOLOR_DEFAULT); 
+    } 
+} 
+
 
 
 // ***************************************************************************
@@ -2593,7 +2611,7 @@ if (!stricmp(szArg1,"item"))
             }
       }
       if (FOUND) {
-		  pCharData->CastSpell(10,0,(EQ_Item**)item,slot);
+		  pCharData->CastSpell(10,0,(EQ_Item**)item,0,slot,-1,0,0);
          return;
       }
    }

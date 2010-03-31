@@ -21,7 +21,7 @@ int nevent = 0;
 void __stdcall MyEvent(unsigned long ID, void *pData, PBLECHVALUE pValues)
 {
     int i = 0;
-    printf("MyEvent(%d,%X,%X)\n", ID, pData, pValues);
+    printf("MyEvent(%d,%d,%X)\n", ID, pData, pValues);
     eventarray[nevent].id = (int) pData;
     while (pValues) {
 	printf("\t'%s'=>'%s'\n", pValues->Name, pValues->Value);
@@ -126,6 +126,7 @@ main()
 	eventid[i++] = b.AddEvent("[MQ2] AutoTargetSwitch#*#", MyEvent, (void *) 79);
 	eventid[i++] = b.AddEvent("[MQ2] AutoTraps#*#", MyEvent, (void *) 80);
 	eventid[i++] = b.AddEvent("#1# begins to cast a spell.", MyEvent, (void *) 81);
+	eventid[i++] = b.AddEvent("#1# hits you for #2# damage.", MyEvent, (void *) 82);
 
 	nevent = 0;
 	b.Feed("[MQ2] Autoassist your mom");
@@ -233,7 +234,6 @@ main()
 	    printf("bad value value '%s' != 1\n", eventarray[0].value[2]);
 	    exit(1);
 	}
-
 	nevent = 0;
 	b.Feed("a mob with space in name begins to cast a spell.");
 	CheckOne(81);
@@ -247,6 +247,55 @@ main()
 	}
 	if (strcmp(eventarray[0].value[0], "a mob with space in name")) {
 	    printf("bad value value '%s' != 'a mob with space in name'\n", eventarray[0].value[0]);
+	    exit(1);
+	}
+	nevent = 0;
+	b.Feed("a mob hits you for lots of damage.");
+	if (nevent != 2) {
+	    printf("bad event count %d != 2\n", nevent);
+	    exit(1);
+	}
+	if (strcmp(eventarray[1].name[0], "1")) {
+	    printf("bad value name0 '%s' != 1\n", eventarray[1].name[0]);
+	    exit(1);
+	}
+	if (strcmp(eventarray[1].value[0], "a mob")) {
+	    printf("bad value value '%s' != a mob\n", eventarray[1].value[0]);
+	    exit(1);
+	}
+	if (strcmp(eventarray[1].name[1], "2")) {
+	    printf("bad value name1 '%s' != 2\n", eventarray[1].name[1]);
+	    exit(1);
+	}
+	if (strcmp(eventarray[1].value[1], "lots of")) {
+	    printf("bad value value '%s' != lots of\n", eventarray[1].value[1]);
+	    exit(1);
+	}
+
+	nevent = 0;
+	b.Feed("A bat hits you for 4 damage.");
+	if (nevent != 2) {
+	    printf("bad event count %d != 2\n", nevent);
+	    exit(1);
+	}
+	if (eventarray[1].nvalues != 2) {
+	    printf("bad value count %d != 2\n", eventarray[1].nvalues);
+	    exit(1);
+	}
+	if (strcmp(eventarray[1].name[0], "1")) {
+	    printf("bad value name0 '%s' != 1\n", eventarray[1].name[0]);
+	    exit(1);
+	}
+	if (strcmp(eventarray[1].value[0], "A bat")) {
+	    printf("bad value value '%s' != A bat\n", eventarray[1].value[0]);
+	    exit(1);
+	}
+	if (strcmp(eventarray[1].name[1], "2")) {
+	    printf("bad value name1 '%s' != 2\n", eventarray[1].name[1]);
+	    exit(1);
+	}
+	if (strcmp(eventarray[1].value[1], "4")) {
+	    printf("bad value value '%s' != 4\n", eventarray[1].value[1]);
 	    exit(1);
 	}
 

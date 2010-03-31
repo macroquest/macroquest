@@ -1,3 +1,13 @@
+18 December 2004 by Amadeus
+- Various structs/offsets taken from the boards to make MQ2 compatable
+  with the latest patch
+- Fixed keybinds
+- Various small things from the boards over the past couple months
+- Fixed spawninfo and actorinfo
+** Note:  This is an initial zip release to get MQ up and running.  Expect another
+          release in the next couple of days to resolve all remaining issues and
+          to add code submitted on the boards. **
+
 13 December 2004 by Lax
 - Blech updated to version 1.6.3 which solves a new issue
 
