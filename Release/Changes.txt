@@ -1,3 +1,8 @@
+7 March 2005 by Lax
+- Fixed the new group data types. Also added To String values:
+  groupmember: Same as Name
+  group: Same as Members
+
 7 March 2005 by dkaa
 - Fixed the Buff and Song ID members
 

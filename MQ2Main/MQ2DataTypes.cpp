@@ -123,6 +123,8 @@ void InitializeMQ2DataTypes()
 	pRaidMemberType = new MQ2RaidMemberType;
 
 	pGroupType = new MQ2GroupType;
+	pGroupMemberType = new MQ2GroupMemberType;
+	pGroupMemberType->SetInheritance(pSpawnType);
 
 	// NOTE: SetInheritance does NOT make it inherit, just notifies the syntax checker...
 	pCharacterType->SetInheritance(pSpawnType);
@@ -170,6 +172,7 @@ void ShutdownMQ2DataTypes()
 	delete pRaidType;
 	delete pRaidMemberType;
 	delete pGroupType;
+	delete pGroupMemberType;
 }
 
 bool MQ2TypeType::GETMEMBER()
@@ -4650,6 +4653,16 @@ bool MQ2AltAbilityType::GETMEMBER()
 	return false;
 }
 
+bool MQ2GroupType::ToString(MQ2VARPTR VarPtr, PCHAR Destination)
+{
+	int nMembers=0;
+	for (int index=0;index<5;index++) 
+		if (EQADDR_GROUPCOUNT[index]) 
+			nMembers++;
+	itoa(nMembers,Destination,10);
+	return true;
+}
+
 bool MQ2GroupType::GETMEMBER()
 {
 	PMQ2TYPEMEMBER pMember=MQ2GroupType::FindMember(Member);
@@ -4664,7 +4677,7 @@ bool MQ2GroupType::GETMEMBER()
 		{
 			// by number
 			Dest.DWord=GETNUMBER();
-			Dest.Type=pIntType;
+			Dest.Type=pGroupMemberType;
 			return true;
 		}
 		else
@@ -4695,20 +4708,55 @@ bool MQ2GroupType::GETMEMBER()
 		return true;
 	case Leader:
 		{
-		PCHARINFO pChar=GetCharInfo();
-		Dest.DWord=0;
-		for (int index=0;index<5;index++) 
-			if (EQADDR_GROUPCOUNT[index]) 
+			PCHARINFO pChar=GetCharInfo();
+			Dest.DWord=0;
+			for (int index=0;index<5;index++) 
 			{
-				Dest.DWord++;
-				if (!stricmp(pChar->GroupMember[index],GroupLeader))
+				if (EQADDR_GROUPCOUNT[index]) 
 				{
-					Dest.Type=pIntType;
+					Dest.DWord++;
+					if (!stricmp(pChar->GroupMember[index],GroupLeader))
+					{
+						Dest.Type=pGroupMemberType;
+						return true;
+					}
+				}
+			}
+			if (!Dest.DWord)
+			{
+				// group has no members
+				Dest.Type=pGroupMemberType;
+				return true;
+			}
+		}
+		break;
+	}
+	return false;
+}
+
+bool MQ2GroupMemberType::ToString(MQ2VARPTR VarPtr, PCHAR Destination)
+{
+	if (unsigned long N=VarPtr.DWord)
+	{
+		if (N>5)
+			return false;
+		for (unsigned long i=0; i<5 ; i++)
+		{
+			if (EQADDR_GROUPCOUNT[i])
+			{
+				N--;
+				if (N==0)
+				{
+					strcpy(Destination,GetCharInfo()->GroupMember[i]);
 					return true;
 				}
 			}
-			break;
 		}
+	}
+	else
+	{
+		strcpy(Destination,GetCharInfo()->pSpawn->Name);
+		return true;
 	}
 	return false;
 }
@@ -4716,8 +4764,8 @@ bool MQ2GroupType::GETMEMBER()
 bool MQ2GroupMemberType::GETMEMBER()
 {
 	//DWORD nGroupMember=VarPtr.DWord-1;
-	char *MemberName;
-	PSPAWNINFO pGroupMember;
+	char *MemberName=0;
+	PSPAWNINFO pGroupMember=0;
 	if (unsigned long N=VarPtr.DWord)
 	{
 		if (N>5)
@@ -4735,6 +4783,8 @@ bool MQ2GroupMemberType::GETMEMBER()
 				}
 			}
 		}
+		if (!MemberName)
+			return false;
 	}
 	else
 	{

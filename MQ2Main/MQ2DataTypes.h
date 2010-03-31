@@ -2787,10 +2787,7 @@ public:
    bool GETMEMBER();
 	//DECLAREGETMETHOD();
 
-   bool ToString(MQ2VARPTR VarPtr, PCHAR Destination)
-   {
-	   return false;
-   }
+   bool ToString(MQ2VARPTR VarPtr, PCHAR Destination);
 	bool FromData(MQ2VARPTR &VarPtr, MQ2TYPEVAR &Source)
 	{
 		return false;
@@ -2827,20 +2824,7 @@ public:
    bool GETMEMBER();
 	//DECLAREGETMETHOD();
 
-   bool ToString(MQ2VARPTR VarPtr, PCHAR Destination)
-   {
-		DWORD nGroupMember=VarPtr.DWord-1;
-		/*
-		if (VarPtr.DWord>=72)
-			return false;
-		if (!pGroup->GroupMemberUsed[nGroupMember])
-			return false;
-		PEQGroupMEMBER pGroupMember=&pGroup->GroupMember[nGroupMember];
-	   strcpy(Destination,pGroupMember->Name);
-	   return true;
-	   /**/
-		return false;
-   }
+   bool ToString(MQ2VARPTR VarPtr, PCHAR Destination);
 	bool FromData(MQ2VARPTR &VarPtr, MQ2TYPEVAR &Source)
 	{
 		if (Source.Type!=pGroupMemberType)
