@@ -122,7 +122,7 @@
 	{"Scroll_Lock",	70},
 	{"Caps_Lock",	58},
 	{"Prnt_Scrn",	183},
-/*
+
 	{"Left_Windows",	219},
 	{"Right_Windows",	220},
 	{"Application",	221},
@@ -149,4 +149,3 @@
 	{"My_Computer",	235},
 	{"Mail",	236},
 	{"Media",	237},
-*/

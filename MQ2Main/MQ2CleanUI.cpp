@@ -38,6 +38,9 @@ public:
 		Benchmark(bmPluginsReloadUI,DebugTry(PluginsReloadUI()));
 	}
 
+/* This function is still in the client; however, it was phased out as of 
+   the Omens of War Expansion
+
 	bool GetWorldFilePath_Trampoline(char *, char *);
 	bool GetWorldFilePath_Detour(char *Filename, char *FullPath)
 	{
@@ -46,7 +49,6 @@ public:
 			sprintf(Filename,"%s\\bmpwad8.s3d",gszINIPath);
 			if (_access(Filename,0)!=-1)
 			{
-
 				return 1;
 			}
 		}
@@ -54,6 +56,7 @@ public:
 		bool Ret=GetWorldFilePath_Trampoline(Filename,FullPath);
 		return Ret;
 	}
+*/
 }; 
 
 DWORD __cdecl DrawHUD_Trampoline(DWORD,DWORD,DWORD,DWORD); 
@@ -128,7 +131,7 @@ public:
 	}
 };
 
-DETOUR_TRAMPOLINE_EMPTY(bool CDisplayHook::GetWorldFilePath_Trampoline(char *, char *)); 
+//DETOUR_TRAMPOLINE_EMPTY(bool CDisplayHook::GetWorldFilePath_Trampoline(char *, char *)); 
 DETOUR_TRAMPOLINE_EMPTY(VOID EQ_LoadingSHook::WriteTextHD_Trampoline(char *,int,int,int)); 
 DETOUR_TRAMPOLINE_EMPTY(DWORD DrawHUD_Trampoline(DWORD,DWORD,DWORD,DWORD)); 
 DETOUR_TRAMPOLINE_EMPTY(VOID CDisplayHook::CleanUI_Trampoline(VOID)); 
@@ -140,10 +143,9 @@ VOID InitializeDisplayHook()
 
 	EzDetour(CDisplay__CleanGameUI,CDisplayHook::CleanUI_Detour,CDisplayHook::CleanUI_Trampoline);
 	EzDetour(CDisplay__ReloadUI,CDisplayHook::ReloadUI_Detour,CDisplayHook::ReloadUI_Trampoline);
-	EzDetour(CDisplay__GetWorldFilePath,CDisplayHook::GetWorldFilePath_Detour,CDisplayHook::GetWorldFilePath_Trampoline);
+//	EzDetour(CDisplay__GetWorldFilePath,CDisplayHook::GetWorldFilePath_Detour,CDisplayHook::GetWorldFilePath_Trampoline);
 	EzDetour(DrawNetStatus,DrawHUD_Detour,DrawHUD_Trampoline);
 	EzDetour(EQ_LoadingS__WriteTextHD,EQ_LoadingSHook::WriteTextHD_Detour,EQ_LoadingSHook::WriteTextHD_Trampoline);
-
 }
 
 VOID ShutdownDisplayHook()
@@ -155,5 +157,5 @@ VOID ShutdownDisplayHook()
 	RemoveDetour(CDisplay__ReloadUI);
 	RemoveDetour(DrawNetStatus);
 	RemoveDetour(EQ_LoadingS__WriteTextHD);
-	RemoveDetour(CDisplay__GetWorldFilePath);
+//	RemoveDetour(CDisplay__GetWorldFilePath);
 }

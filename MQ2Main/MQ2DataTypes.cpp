@@ -677,13 +677,14 @@ bool MQ2SpawnType::GetMember(MQ2VARPTR VarPtr, PCHAR Member, PCHAR Index, MQ2TYP
 		Dest.DWord=pSpawn->Linkdead;
 		Dest.Type=pBoolType;
 		return true;
-	case AATitle:
-		if (Dest.Ptr=pEverQuest->GetTitleDesc(pSpawn->Class,pSpawn->AARank,pSpawn->Gender))
-		{
-			Dest.Type=pStringType;
-			return true;
-		}
-		return false;
+	case AATitle:  // Leaving this in for older macros/etc.."Title" should be used instead.
+		Dest.Type=pStringType;
+		Dest.Ptr=&pSpawn->Title[0];
+		return true;
+	case Title:
+		Dest.Type=pStringType;
+		Dest.Ptr=&pSpawn->Title[0];
+		return true;
 	case xGroupLeader:
 		Dest.DWord=(pSpawn->Type==SPAWN_PLAYER && !stricmp(GroupLeader,pSpawn->Name));
 		Dest.Type=pBoolType;
@@ -1192,6 +1193,7 @@ bool MQ2CharacterType::GetMember(MQ2VARPTR VarPtr, PCHAR Member, PCHAR Index, MQ
 		Dest.DWord=pChar->Mana;
 		Dest.Type=pIntType;
 		return true;
+	/* 
 	case MaxMana:
 		Dest.DWord=GetMaxMana();
 		Dest.Type=pIntType;
@@ -1205,6 +1207,7 @@ bool MQ2CharacterType::GetMember(MQ2VARPTR VarPtr, PCHAR Member, PCHAR Index, MQ
 			Dest.Type=pIntType;
 		}
 		return true;
+    */
 	case CountBuffs:
 		Dest.DWord=0;
 		{

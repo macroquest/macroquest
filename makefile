@@ -1,3 +1,4 @@
+!if exist(extra.mak)
 !include extra.mak
 !endif
 

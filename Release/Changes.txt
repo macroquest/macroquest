@@ -1,3 +1,22 @@
+14 September 2004 by Amadeus
+- All the fixes needed to make MQ2 work with Omens of War
+- The way that EQ handles the initial splash screen has changed dramatically.
+  MQ's custom SplashScreen is disabled.
+- Almost all structs were modified/fixed.
+- Removed the offset CEverQuest__GetTitleDesc
+- Added Title to spawninfo structure
+- Added ${xxx.Title} ..it returns a string that is your title.  Please note that 
+  ${xxx.AATitle} will return the same thing.  I'm leaving both in for backwards
+  compatability of macros although "Title" should be used in the future since 
+  Titles are no longer exclusively AA based.
+- updated TOTAL_SPELL_COUNT 
+- Added TOTAL_SPELLS_ALLOCATED
+- EQ_Character__Max_Mana removed ...it's a virtual function now (This means that 
+  the MaxMana and PctMana datatypes are disabled for now)
+
+26 August 2004 by Amadeus 
+- Fixed /filter name on/off to work correctly [Efudd]
+
 20 August 2004 by Amadeus
 - Removed ${Me.GroupMember[]} and ${Me.GroupLeader} since it is already in as 
   ${Group[n].Name} and ${GroupLeaderName}.  Even though the information is stored in

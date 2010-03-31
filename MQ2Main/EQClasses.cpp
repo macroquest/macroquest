@@ -3869,9 +3869,6 @@ FUNCTION_AT_ADDRESS(int  EQ_Character::Max_HP(int),EQ_Character__Max_HP);
 #ifdef EQ_Character__Cur_Mana
 FUNCTION_AT_ADDRESS(int  EQ_Character::Cur_Mana(void),EQ_Character__Cur_Mana);
 #endif
-#ifdef EQ_Character__Max_Mana
-FUNCTION_AT_ADDRESS(int  EQ_Character::Max_Mana(void),EQ_Character__Max_Mana);
-#endif
 #ifdef EQ_Character__IsMage
 FUNCTION_AT_ADDRESS(int  EQ_Character::IsMage(void),EQ_Character__IsMage);
 #endif
@@ -5494,9 +5491,6 @@ FUNCTION_AT_ADDRESS(char *  CEverQuest::GetRaceDesc(int),CEverQuest__GetRaceDesc
 #endif
 #ifdef CEverQuest__GetDeityDesc
 FUNCTION_AT_ADDRESS(char *  CEverQuest::GetDeityDesc(int),CEverQuest__GetDeityDesc);
-#endif
-#ifdef CEverQuest__GetTitleDesc
-FUNCTION_AT_ADDRESS(char *  CEverQuest::GetTitleDesc(int,int,unsigned char),CEverQuest__GetTitleDesc);
 #endif
 #ifdef CEverQuest__GuildInvite
 FUNCTION_AT_ADDRESS(void  CEverQuest::GuildInvite(char *,char *),CEverQuest__GuildInvite);

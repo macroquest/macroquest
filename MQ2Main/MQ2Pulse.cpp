@@ -143,10 +143,10 @@ void Pulse()
 	}
 	LastHealth=CurrentHealth;
 
-	if (LastMana && pCharInfo->Mana>LastMana)
+	if (LastMana && pCharInfo->Mana > LastMana)
 	{
-		if ((int)pCharInfo->Mana!=GetMaxMana())
-		{ // gained mana, and not max
+		if ((int)pCharInfo->Mana-LastMana > 0 )
+		{
 			ManaGained=pCharInfo->Mana-LastMana;
 		}
 	}

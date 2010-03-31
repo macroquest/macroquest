@@ -1855,7 +1855,6 @@ EQLIB_OBJECT char * CEverQuest::GetItemClassDesc(int);
 EQLIB_OBJECT char * CEverQuest::GetLangDesc(int);
 EQLIB_OBJECT char * CEverQuest::GetRaceDesc(int);
 EQLIB_OBJECT char * CEverQuest::GetSingleMessage(unsigned __int32,int,int *,char *);
-EQLIB_OBJECT char * CEverQuest::GetTitleDesc(int,int,unsigned char);
 EQLIB_OBJECT char * CEverQuest::GrabFirstWord(char *,char *);
 EQLIB_OBJECT char * CEverQuest::GrabFirstWord2(char *,char *,int);
 EQLIB_OBJECT char * CEverQuest::ReadClientINIString(char *,char *,char *,char *,int);

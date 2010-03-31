@@ -95,7 +95,6 @@ static inline BOOL IsMarkedNPC(PSPAWNINFO pSpawn)
 	return false;
 }
 
-#define GetMaxMana() pCharData->Max_Mana()
 #define GetMaxHPS() pCharData->Max_HP(0)
 #define GetCurHPS() pCharData->Cur_HP(0)
 #define GetMaxEndurance() pCharData->Max_Endurance()

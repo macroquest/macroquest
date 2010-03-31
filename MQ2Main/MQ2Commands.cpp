@@ -575,7 +575,7 @@ VOID MemSpell(PSPAWNINFO pChar, PCHAR szLine)
 
     ZeroMemory(&MemSpellFavorite,sizeof(MemSpellFavorite));
     strcpy(MemSpellFavorite.Name,"Mem a Spell");
-    MemSpellFavorite.Byte_3A=1;
+    MemSpellFavorite.Byte_3e=1;
     for (sp=0;sp<8;sp++) MemSpellFavorite.SpellId[sp]=0xFFFFFFFF;
     MemSpellFavorite.SpellId[Gem] = pSpell->ID;
 	pSpellBookWnd->MemorizeSet((int*)Favorite,8);
@@ -791,8 +791,8 @@ VOID Filter(PSPAWNINFO pChar, PCHAR szLine)
     };
 
     PCHAR szFilterTarget[] = {
-        "on",
         "off",
+        "on",
         NULL
     };
 

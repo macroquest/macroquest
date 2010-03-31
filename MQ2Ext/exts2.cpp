@@ -198,6 +198,8 @@ DECLARE_API ( pspawn )
       dprintf("ArmorColor%d = %d (offset 0x%x)\n", i+1, ci.ArmorColor[i], &pnull->ArmorColor[i]); 
    KP(Zone); 
    KP(Instance);
+   KP(field_1c4);
+   KP(field_1c8);
    KP(pNext); 
    KP(pCharInfo); 
    KP(pPrev);
@@ -232,6 +234,7 @@ DECLARE_API ( pspawn )
    KP(HPMax); 
    KP(GuildID); 
    KP(Levitate);
+   KPs(Title);
 } 
 
 DECLARE_API ( pitem ) 

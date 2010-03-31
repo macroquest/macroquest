@@ -588,6 +588,7 @@ public:
 		Roleplaying=81,
 		xLineOfSight=82,
 		HeadingToLoc=83,
+		Title=84,
 	};
 	MQ2SpawnType():MQ2Type("spawn")
 	{
@@ -671,6 +672,7 @@ public:
 		TypeMember(Roleplaying);
 		AddMember(xLineOfSight,"LineOfSight");
 		TypeMember(HeadingToLoc);
+		TypeMember(Title);  //84
 	}
 
 	~MQ2SpawnType()

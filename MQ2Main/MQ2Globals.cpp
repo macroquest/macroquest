@@ -815,7 +815,7 @@ CTextOverlay **ppTextOverlay=(CTextOverlay**)pinstCTextOverlay;
 
 CSidlManager **ppSidlMgr=(CSidlManager **)pinstCSidlManager;
 CXWndManager **ppWndMgr=(CXWndManager**)pinstCXWndManager;
-KeypressHandler *pKeypressHandler=(KeypressHandler*)instKeypressHandler;
+KeypressHandler **ppKeypressHandler=(KeypressHandler**)instKeypressHandler;
 PEQRAID pRaid=(PEQRAID)instCRaid;
 
 PMQPLUGIN pPlugins=0;

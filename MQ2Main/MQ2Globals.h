@@ -375,7 +375,9 @@ EQLIB_VAR CSidlManager **ppSidlMgr;
 EQLIB_VAR CXWndManager **ppWndMgr;
 #define pWndMgr (*ppWndMgr)
 
-EQLIB_VAR KeypressHandler *pKeypressHandler;
+EQLIB_VAR KeypressHandler **ppKeypressHandler;
+#define pKeypressHandler (*ppKeypressHandler)
+
 EQLIB_VAR PEQRAID pRaid;
 
 EQLIB_VAR PINT pgCurrentSocial;
