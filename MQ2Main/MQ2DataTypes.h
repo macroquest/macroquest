@@ -1899,7 +1899,6 @@ public:
 		Running=9,
 		MouseX=10,
 		MouseY=11,
-		BuildDate=12,
 	};
 	MQ2MacroQuestType():MQ2Type("macroquest")
 	{
@@ -1914,7 +1913,6 @@ public:
 		TypeMember(Running);
 		TypeMember(MouseX);
 		TypeMember(MouseY);
-		TypeMember(BuildDate);
 	}
 
 	~MQ2MacroQuestType()

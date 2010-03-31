@@ -1,3 +1,10 @@
+14 October 2004 by Amadeus
+- Removed the BuildData datatype for the moment.  The code, as it was originally 
+  conceived was causing compile problems on Visual Studio 6.0.  Moreover, it was 
+  determined that it was not reliable on all partition types.   It may be added
+  again at some point in the future after rigorous testing across different
+  partition types and both vs 6.0 and vs.net compilers.
+
 13 October 2004 by Amadeus
 - [*LAX*]  New Memcheck0 routine
 - [*DKAA*] New Memcheck4 routine (the routine previously known as memcheck4 
