@@ -1366,6 +1366,9 @@ PCHAR GetSpellEffectName(LONG EffectID, PCHAR szBuffer)
    case 5: 
       strcat(szBuff,"DEX"); 
       break; 
+   case 31: 
+      strcat(szBuff,"Mesmerize"); 
+      break; 
    case 32: 
       strcat(szBuff,"Summon Item"); 
       break; 

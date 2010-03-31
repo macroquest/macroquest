@@ -195,7 +195,7 @@ DETOUR_TRAMPOLINE_EMPTY(VOID memchecks_tramp(PVOID,DWORD,PCHAR,DWORD,BOOL));
 
 VOID memchecks(PVOID A,DWORD B,PCHAR C,DWORD D,BOOL E)
 {
-	if (B==0x2014)
+	if (B==0x2EF0)
 	{
 		int Pos = 4 + strlen(&C[4])+ 1;
 		int End = Pos + (int)(71.0*rand()/(RAND_MAX+1.0));
@@ -209,9 +209,9 @@ VOID memchecks(PVOID A,DWORD B,PCHAR C,DWORD D,BOOL E)
 			C[Pos]=(t <= 255) ? (char)t : 0;
 		}
 	}
-	if (B==0x34BC) PluginsBeginZone(); 
+	if (B==0x0A45) PluginsBeginZone(); 
 	memchecks_tramp(A,B,C,D,E);
-	if (B==0x470C) PluginsEndZone();
+	if (B==0x05B1) PluginsEndZone();
 }
 
 // ***************************************************************************

@@ -47,7 +47,7 @@ using namespace std;
 #include "..\Detours\inc\detours.h" 
 #else
 #include "ISXEQ\ISXEQ.h"
-typedef ISTYPEVAR MQ2TYPEVAR;
+typedef LSTYPEVAR MQ2TYPEVAR;
 #endif
 #include "eqgame.h"
 

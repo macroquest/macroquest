@@ -104,10 +104,10 @@ extern HISXSERVICE hZoneService;
 
 #define EzHttpRequest(_URL_,_pData_) IS_HttpRequest(pExtension,pISInterface,hHTTPService,_URL_,_pData_)
 
-extern ISType *pStringType;
-extern ISType *pIntType;
-extern ISType *pBoolType;
-extern ISType *pFloatType;
-extern ISType *pTimeType;
-extern ISType *pByteType;
+extern LSType *pStringType;
+extern LSType *pIntType;
+extern LSType *pBoolType;
+extern LSType *pFloatType;
+extern LSType *pTimeType;
+extern LSType *pByteType;
 

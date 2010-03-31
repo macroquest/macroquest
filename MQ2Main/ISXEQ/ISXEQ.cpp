@@ -13,12 +13,12 @@ ISXPreSetup("ISXEQ",CISXEQ);
 
 // Basic IS datatypes, these get retrieved on startup by our initialize function, so we can use them in
 // our Top-Level Objects or custom datatypes
-ISType *pStringType=0;
-ISType *pIntType=0;
-ISType *pBoolType=0;
-ISType *pFloatType=0;
-ISType *pTimeType=0;
-ISType *pByteType=0;
+LSType *pStringType=0;
+LSType *pIntType=0;
+LSType *pBoolType=0;
+LSType *pFloatType=0;
+LSType *pTimeType=0;
+LSType *pByteType=0;
 
 ISInterface *pISInterface=0;
 HISXSERVICE hPulseService;
@@ -61,12 +61,12 @@ bool CISXEQ::Initialize(ISInterface *p_ISInterface)
 	pISInterface=p_ISInterface;
 
 	// retrieve basic ISData types
-	pStringType=pISInterface->FindISType("string");
-	pIntType=pISInterface->FindISType("int");
-	pBoolType=pISInterface->FindISType("bool");
-	pFloatType=pISInterface->FindISType("float");
-	pTimeType=pISInterface->FindISType("time");
-	pByteType=pISInterface->FindISType("byte");
+	pStringType=pISInterface->FindLSType("string");
+	pIntType=pISInterface->FindLSType("int");
+	pBoolType=pISInterface->FindLSType("bool");
+	pFloatType=pISInterface->FindLSType("float");
+	pTimeType=pISInterface->FindLSType("time");
+	pByteType=pISInterface->FindLSType("byte");
 
 	ConnectServices();
 
@@ -121,7 +121,7 @@ void CISXEQ::RegisterDataTypes()
 {
 	// add any datatypes
 	// pMyType = new MyType;
-	// pISInterface->AddISType(*pMyType);
+	// pISInterface->AddLSType(*pMyType);
 }
 
 void CISXEQ::RegisterTopLevelObjects()

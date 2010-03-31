@@ -1,3 +1,7 @@
+15 February by Amadeus
+- Adjusted MQ2 to work properly with the new expansion
+- Fixed some very small things
+
 12 February by dkaa
 - Fix an issue with /emote
 

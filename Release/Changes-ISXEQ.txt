@@ -1,3 +1,6 @@
+15 February 2005 by Lax
+- Updated for ISXDK v8a (naming changes).  ISXDK v8a will be made available soon.
+
 4 February 2005 by Lax
 - ISXEQ now does stuff, and I've found some issues in IS that will be corrected soon.
   ISXEQ does require ISXDK v7 which is not yet available, but will be if anyone reads
