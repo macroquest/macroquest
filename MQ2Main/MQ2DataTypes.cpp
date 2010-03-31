@@ -1141,7 +1141,8 @@ bool MQ2CharacterType::GetMember(MQ2VARPTR VarPtr, PCHAR Member, PCHAR Index, MQ
     
 	int nLang = 0;
 	char buf[MAX_STRING]  = {0};
-	char buf2[MAX_STRING] = {0};
+	unsigned long nBuff;
+        char buf2[MAX_STRING] = {0};
 
 	switch((CharacterMembers)pMember->ID)
 	{
@@ -1561,7 +1562,7 @@ bool MQ2CharacterType::GetMember(MQ2VARPTR VarPtr, PCHAR Member, PCHAR Index, MQ
 				if (pChar->AAList[j].AAIndex == 0)   break; 
 			} 
 		} else Dest.DWord = 15; 
-		for (unsigned long nBuff=0 ; nBuff<20 ; nBuff++) 
+		for (nBuff=0 ; nBuff<20 ; nBuff++) 
 		{ 
 			if (pChar->Buff[nBuff].SpellID>0) 
 			Dest.DWord--; 
