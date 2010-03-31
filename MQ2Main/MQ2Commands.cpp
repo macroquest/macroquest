@@ -555,7 +555,7 @@ VOID MemSpell(PSPAWNINFO pChar, PCHAR szLine)
    GetArg(szGem,szLine,1);
    GetArg(SpellName,szLine,2);
    Gem = atoi(szGem);
-   if (Gem<1 || Gem>8) return;
+   if (Gem<1 || Gem>9) return;
    Gem--;
 
    pCharInfo->SpellBook;
@@ -578,7 +578,7 @@ VOID MemSpell(PSPAWNINFO pChar, PCHAR szLine)
     MemSpellFavorite.Byte_3e=1;
     for (sp=0;sp<9;sp++) MemSpellFavorite.SpellId[sp]=0xFFFFFFFF;
     MemSpellFavorite.SpellId[Gem] = pSpell->ID;
-	pSpellBookWnd->MemorizeSet((int*)Favorite,8);
+	pSpellBookWnd->MemorizeSet((int*)Favorite,9);
 }
 
 // ***************************************************************************

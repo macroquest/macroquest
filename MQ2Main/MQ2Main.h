@@ -12,7 +12,7 @@
     GNU General Public License for more details.
 ******************************************************************************/
 
-#define VersionString "Blech Premier Edition"
+#define VersionString "September 23, 2004"
 #define DebugHeader "[MQ2]"
 #define LoadedString "MQ2 Loaded."
 #define ToUnloadString "MQ2 Unloading..."

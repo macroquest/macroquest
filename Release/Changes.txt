@@ -1,3 +1,8 @@
+23 September 2004 by Amadeus
+- Fixed the MacroQuest2.exe to have correct links and added a few new links!
+- Offsets fixed for recent patch
+- Couple more spell gem 9 fixes
+
 19 September 2004 by Amadeus
 - Fixes related to the extra buff slots and extra spell gem for Omens of War.
 

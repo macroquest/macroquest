@@ -1,3 +1,19 @@
+/*****************************************************************************
+    Copyright (C) 2002-2003 Plazmic, 2003-2004 Lax
+
+    This program is free software; you can redistribute it and/or modify
+    it under the terms of the GNU General Public License, version 2, as published by
+    the Free Software Foundation.
+
+    This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+******************************************************************************/
+
+#ifndef _MQ2PLUGIN_H
+#define _MQ2PLUGIN_H
+
 #define MQ2PLUGIN
 #include "MQ2Main/MQ2Main.h"
 #include "MQ2Main/MQ2Globals.h"
@@ -32,3 +48,4 @@ BOOL APIENTRY DllMain( HANDLE hModule, \
 	DebugSpewAlways("%s Module Unloaded",pluginname);\
     return TRUE;\
 }
+#endif

@@ -1374,14 +1374,17 @@ typedef struct _ALTABILITY {
 /*0x14*/ DWORD MinLevel;
 /*0x18*/ DWORD Cost; //Initial Cost or cost the last time you bought a level of it
 /*0x1c*/ DWORD ID;
-/*0x20*/ DWORD AARankRequired; //need verification
-/*0x24*/ LONG  RequiresAbility;
+/*0x20*/ DWORD AARankRequired; 
+	union {  
+/*0x24*/ LONG  RequiresAbility;          // If the value is positive then its the index number of the AA required.
+/*0x24*/ DWORD RequiresPointsInCategory; // If the value is negative then abs(value) is the
+	};                                   // category, while (abs(value))*6 is the points required.
 /*0x28*/ DWORD RequiresAbilityPoints;
 /*0x2c*/ DWORD Type; 
 /*0x30*/ LONG  SpellID; // -1 for no Spell
 /*0x34*/ BYTE  Unknown0x34[0x8]; 
 /*0x3c*/ DWORD ReuseTimer; // in seconds
-/*0x40*/ DWORD Classes;
+/*0x40*/ DWORD Classes;    // Classes/2 is the actual value we want.
 /*0x44*/ DWORD MaxRank;
 	union {						 //If you have not spent points in this 
 /*0x48*/ DWORD PointsSpent;		 //ability, then its PointsToBeSpent (or 
