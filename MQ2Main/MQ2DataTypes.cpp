@@ -1193,7 +1193,6 @@ bool MQ2CharacterType::GetMember(MQ2VARPTR VarPtr, PCHAR Member, PCHAR Index, MQ
 		Dest.DWord=pChar->Mana;
 		Dest.Type=pIntType;
 		return true;
-	/* 
 	case MaxMana:
 		Dest.DWord=GetMaxMana();
 		Dest.Type=pIntType;
@@ -1207,7 +1206,6 @@ bool MQ2CharacterType::GetMember(MQ2VARPTR VarPtr, PCHAR Member, PCHAR Index, MQ
 			Dest.Type=pIntType;
 		}
 		return true;
-    */
 	case CountBuffs:
 		Dest.DWord=0;
 		{
@@ -1548,7 +1546,7 @@ bool MQ2CharacterType::GetMember(MQ2VARPTR VarPtr, PCHAR Member, PCHAR Index, MQ
 		{
 			// number
 			unsigned long nGem=atoi(Index)-1;
-			if (nGem<8)
+			if (nGem<9)
 			{
 				if (Dest.Ptr=GetSpellByID(pChar->MemorizedSpells[nGem]))
 				{
@@ -1560,7 +1558,7 @@ bool MQ2CharacterType::GetMember(MQ2VARPTR VarPtr, PCHAR Member, PCHAR Index, MQ
 		else
 		{
 			// name
-			for (unsigned long nGem=0 ; nGem < 8 ; nGem++)
+			for (unsigned long nGem=0 ; nGem < 9 ; nGem++)
 			{
 				if (PSPELL pSpell=GetSpellByID(pChar->MemorizedSpells[nGem]))
 				{
@@ -1962,7 +1960,7 @@ bool MQ2CharacterType::GetMember(MQ2VARPTR VarPtr, PCHAR Member, PCHAR Index, MQ
 			{
 				// numeric
 				unsigned long nGem=atoi(Index)-1;
-				if (nGem<8)
+				if (nGem<9)
 				{
 					Dest.DWord = (((PEQCASTSPELLWINDOW)pCastSpellWnd)->SpellSlots[nGem]->spellstate==0);
 					Dest.Type=pBoolType;
@@ -1971,7 +1969,7 @@ bool MQ2CharacterType::GetMember(MQ2VARPTR VarPtr, PCHAR Member, PCHAR Index, MQ
 			}
 			else
 			{
-				for (unsigned long nGem=0 ; nGem < 8 ; nGem++)
+				for (unsigned long nGem=0 ; nGem < 9 ; nGem++)
 				{
 					if (PSPELL pSpell=GetSpellByID(pChar->MemorizedSpells[nGem]))
 					{
@@ -2616,67 +2614,10 @@ bool MQ2ItemType::GetMember(MQ2VARPTR VarPtr, PCHAR Member, PCHAR Index, MQ2TYPE
 		Dest.DWord=pItem->Item->Favor;
 		Dest.Type=pIntType;
 		return true;
-	/*
-		Haste=16,
-		Endurance=17,
-		Attack=18,
-		HPRegen=19,
-		ManaRegen=20,
-		DamShield=21,
-		WeightReduction=22,
-		SizeCapacity=23,
-		Combinable=24,
-		Skill=25,
-		Avoidance=26,
-		SpellShield=27,
-		StrikeThrough=28,
-		StunResist=29,
-		Shielding=30,
-		FocusID=31,
-		ProcRate=32,
-		Quality=33,
-		LDoNCost=34,
-		AugRestrictions=35,
-		AugType=36,
-		AugSlot1=37,
-		AugSlot2=38,
-		AugSlot3=39,
-		AugSlot4=40,
-		AugSlot5=41,
-		Damage=42,
-		Range=43,
-		DMGBonus=44,
-		RecommendedLevel=45,
-		RecommendedSkill=46,
-		Delay=47,
-		Light=48,
-		Level=49,
-		BaneDMG=50,
-		Proc=51,
-		SkillModValue=52,
-		InstrumentType=53,
-		RequiredLevel=55,
-		BaneDMGType=56,
-		AC=57,
-		HP=58,
-		Mana=59,
-		STR=60,
-		STA=61,
-		AGI=62,
-		DEX=63,
-		CHA=64,
-		INT=65,
-		WIS=66,
-		svCold=67,
-		svFire=68,
-		svMagic=69,
-		svDisease=70,
-		svPoison=71,
-		Summoned=72,
-		Artifact=73,
-		PendingLore=74,
-		LoreText=75,
-	/**/
+	case Attuneable:
+		Dest.DWord=pItem->Item->Attuneable;
+		Dest.Type=pBoolType;
+		return true;
 	}
 	return false;
 #undef pItem

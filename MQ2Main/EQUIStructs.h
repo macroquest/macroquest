@@ -601,9 +601,6 @@ typedef struct _EQ_CONTAINERWND_MANAGER {
 /*0x078*/
 } EQ_CONTAINERWND_MANAGER, *PEQ_CONTAINERWND_MANAGER;
 
-
-
-
 typedef struct _POINT3 {
     FLOAT X;
     FLOAT Y;
@@ -783,11 +780,11 @@ typedef struct _EQMAPWINDOW {
 typedef struct _EQCASTSPELLWINDOW {
 /*0x000*/ struct _CSIDLWND Wnd;
 /*0x148*/ BYTE Unknown0x148[0x04];
-/*0x14c*/  struct _EQCASTSPELLGEM   *SpellSlots[0x8];
-/*0x16c*/  BYTE    Unknown0x160[0x8];
-/*0x174*/  DWORD   spellicon;//if this is equal to FFFFFFFF there is no spell memmed in this slot...
-/*0x178*/  DWORD   spellstate;// 1 = cast in progress or refreshtime not met 2 means we ducked or aborted cast, 0 means its ok to cast
-/*0x17c*/
+/*0x14c*/  struct _EQCASTSPELLGEM   *SpellSlots[0x9];
+/*0x170*/  BYTE    Unknown0x160[0x8];
+/*0x178*/  DWORD   spellicon;//if this is equal to FFFFFFFF there is no spell memmed in this slot...
+/*0x17c*/  DWORD   spellstate;// 1 = cast in progress or refreshtime not met 2 means we ducked or aborted cast, 0 means its ok to cast
+/*0x180*/
 } EQCASTSPELLWINDOW, *PEQCASTSPELLWINDOW;
 
 // onetimehero 09-17-03

@@ -269,6 +269,7 @@
 #define EQ_Character__GetFocusCastingTimeModifier          0x48CC24
 #define EQ_Character__GetAACastingTimeModifier             0x48D07F
 #define EQ_Character__CastSpell                            0x490775
+#define EQ_Character__Max_Mana                             0x499594 
 
 // EQPlayer 
 #define EQPlayer__EQPlayer                                 0x474733

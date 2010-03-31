@@ -498,7 +498,11 @@ union {
 /*0x230*/ DWORD Recast; 
 /*0x234*/ DWORD TimerID; 
 /*0x238*/ DWORD SolventNeeded; //ID# of Solvent (Augs only)
-/*0x23c*/ 
+/*0x23c*/ DWORD Unknown0x23c;
+/*0x240*/ DWORD Unknown0x240;
+/*0x244*/ BYTE Attuneable;  
+/*0x245*/ BYTE Unknown0x245[0x3];
+/*0x248*/
 } ITEMINFO, *PITEMINFO;
 
 // 7-18-04 Size 0x58 
@@ -837,7 +841,9 @@ typedef struct _ACTORINFO {
 /*0x060*/ BYTE         Unknown0x060[0x14]; 
 /*0x074*/ DWORD        Unknown0x074;   // Being set to TimeStamp at unknown intervals 
 /*0x078*/ DWORD        Unknown0x078;   // Being set to TimeStamp at unknown intervals 
-/*0x07c*/ BYTE         Unknown0x07c[0x24]; 
+/*0x07c*/ BYTE         Unknown0x07c[0x8]; 
+/*0x084*/ FLOAT        BobbingAmount; 
+/*0x088*/ BYTE         Unknown0x088[0x18]; 
 /*0x0a0*/ DWORD        UnderWaterMirror; //copy of UnderWater 
 /*0x0a4*/ DWORD        SwimmingMirror; //copy of Swimming 
 /*0x0a8*/ DWORD        FeetWetMirror;   //copy of FeetWet 
@@ -1202,13 +1208,13 @@ typedef struct _ZONEINFO {
 /*0x240*/
 } ZONEINFO, *PZONEINFO;
 
-#define   TOTAL_SPELLS_ALLOCATED		0x1f40      // # of spells allocated in memory (9/14 :: 0x7d00/4)
-#define   TOTAL_SPELL_COUNT				0x17cf      // # of ACTUAL spells in game      (8/19 - Beta)
+#define   TOTAL_SPELL_COUNT				0x1f40      // # of spells allocated in memory (9/14 :: 0x7d00/4)
+#define   TOTAL_ACTUAL_SPELLS			0x1964      // # of ACTUAL spells in game      (9/14)
 
 // size: 0x7d24 (9/14 :: 0x7d00+0x24)
 typedef struct _SPELLMGR {
             BYTE                unknown[0x24];
-            struct _SPELL*      Spells[TOTAL_SPELLS_ALLOCATED];
+            struct _SPELL*      Spells[TOTAL_SPELL_COUNT];
 } SPELLMGR, *PSPELLMGR;
 
 // Size is 0x268 as of 9/14

@@ -1251,6 +1251,7 @@ public:
 		Spell=85,
 		EffectType=86,
 		Tribute=87,
+		Attuneable=88,
 	};
 	MQ2ItemType():MQ2Type("Item")
 	{
@@ -1341,6 +1342,7 @@ public:
 		TypeMember(Spell);
 		TypeMember(EffectType);
 		TypeMember(Tribute);
+		TypeMember(Attuneable);
 	}
 
 	~MQ2ItemType()

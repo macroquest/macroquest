@@ -116,6 +116,10 @@ FUNCTION_AT_ADDRESS(int EQ_Item::CanDrop(int),EQ_Item__CanDrop); // Lax 4-21-200
 #ifdef EQ_Character__Max_Endurance
 FUNCTION_AT_ADDRESS(int  EQ_Character::Max_Endurance(void),EQ_Character__Max_Endurance);
 #endif
+#ifdef EQ_Character__Max_Mana 
+FUNCTION_AT_VIRTUAL_ADDRESS(int EQ_Character::Max_Mana(void), 0);
+#endif 
+
 FUNCTION_AT_VIRTUAL_ADDRESS(void CChatWindow::operator delete[](void*),0x04);
 
 FUNCTION_AT_VIRTUAL_ADDRESS(bool CXWnd::IsValid(void)const,0);

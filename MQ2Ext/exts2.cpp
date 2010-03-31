@@ -350,6 +350,8 @@ DECLARE_API ( pitem )
    KP(DamShield);
    KP(Recast);
    KP(TimerID);
+   KP(SolventNeeded);
+   KP(Attuneable);  //verify that this is indeed DWORD and not BYTE
 } 
 
 DECLARE_API ( pgroundspawn ) 
@@ -634,6 +636,7 @@ DECLARE_API ( pactorinfo )
    KPf(Z);
    KP(TimeStamp);
    KP(LastTick);
+   KPf(BobbingAmount);
    KP(UnderWaterMirror);
    KP(SwimmingMirror);
    KP(FeetWetMirror);

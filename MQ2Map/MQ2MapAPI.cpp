@@ -32,6 +32,7 @@ map<unsigned long,PMAPSPAWN> GroundItemMap;
 map<PMAPLABEL,PMAPSPAWN> LabelMap;
 
 BOOL Update=false;
+bool PlayerAdded=false;
 
 #define CASTRADIUS_ANGLESIZE 10
 PMAPLINE pCastRadius[(360/CASTRADIUS_ANGLESIZE)+1];
@@ -139,11 +140,17 @@ VOID MapInit()
 
 PMAPSPAWN AddSpawn(PSPAWNINFO pNewSpawn,BOOL ExplicitAllow)
 {
+	char buf[MAX_STRING] = {0};
 	eSpawnType Type=GetSpawnType(pNewSpawn);
 	// apply map filter
 	if (!ExplicitAllow && !CanDisplaySpawn(Type,pNewSpawn))
 		return 0;
 	// add spawn to list
+
+	if (!PlayerAdded) {
+	if (strstr(GetCharInfo()->Name, pNewSpawn->Name ))
+		PlayerAdded = true;
+	}
 
 	PMAPSPAWN pMapSpawn = InitSpawn();
 	if (pNewSpawn->Type!=FAKESPAWNTYPE)
@@ -313,6 +320,7 @@ void MapClear()
 
 void MapUpdate()
 {
+	char buf[MAX_STRING] = {0};
 	PCHARINFO pCharInfo=GetCharInfo();
 	if (!pCharInfo)
 		return;
@@ -342,6 +350,16 @@ void MapUpdate()
 
 	while(pMapSpawn)
 	{
+		//Starting New Checks
+		if (!CanDisplaySpawn(GetSpawnType(pMapSpawn->pSpawn),pMapSpawn->pSpawn))
+		{
+			PMAPSPAWN pNext=pMapSpawn->pNext;
+			RemoveSpawn(pMapSpawn);
+			pMapSpawn=pNext;
+			continue;
+		}
+		//End New Checks
+
 		pMapSpawn->pMapLabel->Location.X = -pMapSpawn->pSpawn->X;
 		pMapSpawn->pMapLabel->Location.Y = -pMapSpawn->pSpawn->Y;
 		pMapSpawn->pMapLabel->Location.Z = pMapSpawn->pSpawn->Z;
@@ -754,6 +772,21 @@ PCHAR GenerateSpawnName(PSPAWNINFO pSpawn, PCHAR NameString)
 
 BOOL CanDisplaySpawn(eSpawnType Type, PSPAWNINFO pSpawn)
 {
+	if (Type == PC && pSpawn->BodyType < 1 ) // bogus shit
+		return FALSE;
+
+	if (!pSpawn)
+		return FALSE;
+
+	if ( (Type == PC || Type == NPC) && (!pSpawn->pActorInfo) )
+		return FALSE;
+
+	if (Type == PC && !pSpawn->pCharInfo )
+		return false;
+
+	if (pSpawn->Name[0] == '\0' ) // bogus shit
+		return FALSE;
+
 	if ((pSpawn==(PSPAWNINFO)pTarget) && IsOptionEnabled(MAPFILTER_Target))
 	{
 		return TRUE;

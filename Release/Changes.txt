@@ -1,3 +1,12 @@
+16 September 2004 by Amadeus
+- MQ2Map has issues and is being debugged in house.  I suggest turning it
+  off until it officially fixed if you are having problems.
+- Added ${xxx.Attuneable} for items ..returns TRUE if item is Attunable, 
+  FALSE if it is not.
+- Added some code to MQ2MapApi.cpp in the debugging stage.  Most of it is
+  redundant code hoping to cut down on problems.
+- Miscellanous fixes throughout the source
+
 14 September 2004 by Amadeus
 - All the fixes needed to make MQ2 work with Omens of War
 - The way that EQ handles the initial splash screen has changed dramatically.

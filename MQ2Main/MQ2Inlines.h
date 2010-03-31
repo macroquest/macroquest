@@ -98,6 +98,7 @@ static inline BOOL IsMarkedNPC(PSPAWNINFO pSpawn)
 #define GetMaxHPS() pCharData->Max_HP(0)
 #define GetCurHPS() pCharData->Cur_HP(0)
 #define GetMaxEndurance() pCharData->Max_Endurance()
+#define GetMaxMana() pCharData->Max_Mana() 
 
 static inline eSpawnType GetSpawnType(PSPAWNINFO pSpawn)
 {
@@ -114,10 +115,18 @@ static inline eSpawnType GetSpawnType(PSPAWNINFO pSpawn)
 		}
 		switch(pSpawn->BodyType)
 		{
+		case 3:
+			return NPC;
 		case 11:
 			return UNTARGETABLE;
+		case 21:
+			return NPC; 
+		case 23:
+			return NPC;
 		case 33:
 			return CHEST;
+		case 34:
+			return NPC;
 		case 65:
 			return TRAP;
 		case 66:
