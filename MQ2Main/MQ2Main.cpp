@@ -280,8 +280,8 @@ bool MQ2Initialize()
 	InitializeMQ2Benchmarks();
 #ifndef ISXEQ
 	InitializeParser();
-	InitializeMQ2Detours();
 #endif
+	InitializeMQ2Detours();
 	InitializeDisplayHook();
 	InitializeChatHook();
 	InitializeMQ2Spawns();
@@ -292,7 +292,9 @@ bool MQ2Initialize()
 	InitializeMQ2Windows();
 	Sleep(100);
 	InitializeMQ2KeyBinds();
+#ifndef ISXEQ
 	InitializeMQ2Plugins();
+#endif
 
 	return true;
 }
@@ -302,20 +304,20 @@ void MQ2Shutdown()
 	DebugTry(ShutdownMQ2KeyBinds());
 	DebugTry(ShutdownMQ2Spawns());
 	DebugTry(ShutdownDisplayHook());
+#ifndef ISXEQ
 	DebugTry(ShutdownMQ2DInput());
+#endif
 	DebugTry(ShutdownChatHook());
 #ifndef ISXEQ
 	DebugTry(ShutdownMQ2Pulse());
-#endif
 	DebugTry(ShutdownMQ2Plugins());
+#endif
 	DebugTry(ShutdownMQ2Windows());
 #ifndef ISXEQ
 	DebugTry(ShutdownParser());
 #endif
 	DebugTry(ShutdownMQ2Commands());
-#ifndef ISXEQ
 	DebugTry(ShutdownMQ2Detours());
-#endif
 	DebugTry(ShutdownMQ2Benchmarks());
 
 }

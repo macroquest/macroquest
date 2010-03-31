@@ -46,7 +46,7 @@ using namespace std;
 #include "..\Dxsdk81\include\dinput.h"
 #include "..\Detours\inc\detours.h" 
 #else
-#include "ISXEQ.h"
+#include "ISXEQ\ISXEQ.h"
 #endif
 #include "eqgame.h"
 
@@ -218,9 +218,9 @@ EQLIB_API VOID ShutdownChatHook();
 EQLIB_API VOID dsp_chat_no_events(const char *,int,bool);
 
 /* DETOURING API */
-#ifndef ISXEQ
 EQLIB_API VOID InitializeMQ2Detours();
 EQLIB_API VOID ShutdownMQ2Detours();
+#ifndef ISXEQ
 EQLIB_API BOOL AddDetour(DWORD address, PBYTE pfDetour=0, PBYTE pfTrampoline=0, DWORD Count=20);
 EQLIB_API VOID AddDetourf(DWORD address, ...);
 EQLIB_API VOID RemoveDetour(DWORD address);
@@ -229,17 +229,19 @@ EQLIB_API VOID RemoveDetour(DWORD address);
 #endif
 
 /* PLUGIN HANDLING */
+EQLIB_API VOID WriteChatf(PCHAR Format, ...);
+EQLIB_API VOID WriteChatColor(PCHAR Line, DWORD Color=USERCOLOR_DEFAULT, DWORD Filter=0);
+#ifndef ISXEQ
 EQLIB_API VOID InitializeMQ2Plugins();
 EQLIB_API DWORD LoadMQ2Plugin(const PCHAR pszFilename);
 EQLIB_API BOOL UnloadMQ2Plugin(const PCHAR pszFilename);
 EQLIB_API VOID UnloadMQ2Plugins();
 EQLIB_API VOID ShutdownMQ2Plugins();
-EQLIB_API VOID WriteChatf(PCHAR Format, ...);
-EQLIB_API VOID WriteChatColor(PCHAR Line, DWORD Color=USERCOLOR_DEFAULT, DWORD Filter=0);
+EQLIB_API VOID RewriteMQ2Plugins(VOID);
+#endif
 EQLIB_API VOID PulsePlugins();
 EQLIB_API VOID PluginsZoned();
 EQLIB_API BOOL PluginsIncomingChat(PCHAR Line, DWORD Color);
-EQLIB_API VOID RewriteMQ2Plugins(VOID);
 EQLIB_API VOID PluginsCleanUI();
 EQLIB_API VOID PluginsReloadUI();
 EQLIB_API VOID PluginsSetGameState(DWORD GameState);
@@ -252,8 +254,10 @@ EQLIB_API VOID PluginsBeginZone(VOID);
 EQLIB_API VOID PluginsEndZone(VOID); 
 
 /* DIRECT INPUT */
+#ifndef ISXEQ
 EQLIB_API VOID InitializeMQ2DInput();
 EQLIB_API VOID ShutdownMQ2DInput();
+#endif
 
 /* CLEAN UI */
 EQLIB_API VOID InitializeDisplayHook();
@@ -376,7 +380,12 @@ EQLIB_API int GetLanguageIDByName(PCHAR szName);
 EQLIB_API PCHAR GetSpellNameByID(DWORD dwSpellID);
 EQLIB_API PSPELL GetSpellByName(PCHAR szName);
 #include "MQ2Inlines.h"
+
+#ifndef ISXEQ
 #include "MQ2DataTypes.h"
+#else
+#include "ISXEQ\ISXEQDataTypes.h"
+#endif
 
 #ifndef ISXEQ
 EQLIB_API PMACROBLOCK AddMacroLine(PCHAR szLine);
@@ -407,6 +416,7 @@ EQLIB_API VOID FatalError(PCHAR szFormat, ...);
 #ifndef ISXEQ
 EQLIB_API VOID MQ2DataError(PCHAR szFormat, ...);
 #endif
+EQLIB_API void DisplayOverlayText(PCHAR szText, DWORD dwColor, DWORD dwTransparency, DWORD msFadeIn, DWORD msFadeOut, DWORD msHold);
 
 /* MQ2DATAVARS */
 #ifndef ISXEQ
@@ -474,9 +484,13 @@ EQLIB_API DWORD		  GetAAIndexByID		  (DWORD ID);
 
 EQLIB_API BOOL Calculate(PCHAR szFormula, DOUBLE& Dest);
 
+#ifndef ISXEQ
 #include "MQ2TopLevelObjects.h"
 #include "MQ2Commands.h"
-
+#else
+#include "ISXEQ\ISXEQTopLevelObjects.h"
+#include "ISXEQ\ISXEQCommands.h"
+#endif
 // OTHER SHIT
 
 #define LIGHT_COUNT     13

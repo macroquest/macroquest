@@ -448,6 +448,7 @@ VOID MQ2KeyBindCommand(PSPAWNINFO pChar, PCHAR szLine)
 			DescribeKeyCombo((AltKey)?(pKeypressHandler->AltKey[N]):(pKeypressHandler->NormalKey[N]),szBuffer));
 	}
 }
+#endif
 
 VOID DoRangedBind(PCHAR Name,BOOL Down)
 {
@@ -457,7 +458,6 @@ VOID DoRangedBind(PCHAR Name,BOOL Down)
 		gbRangedAttackReady=0;
 	}
 }
-#endif
 
 BOOL DumpBinds(PCHAR Filename)
 {

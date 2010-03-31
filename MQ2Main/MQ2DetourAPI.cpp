@@ -11,7 +11,6 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
     GNU General Public License for more details.
 ******************************************************************************/
-#ifndef ISXEQ
 
 // Exclude rarely-used stuff from Windows headers
 #define WIN32_LEAN_AND_MEAN
@@ -25,6 +24,7 @@
 #define DBG_SPEW
 
 #include "MQ2Main.h"
+#ifndef ISXEQ
 
 typedef struct _OurDetours {
     unsigned int addr;
@@ -167,6 +167,7 @@ void RemoveOurDetours()
 	}
 }
 
+#endif
 
 // this is the memory checker key struct
 struct mckey {
@@ -221,7 +222,7 @@ int (__cdecl *memcheck1_tramp)(unsigned char *buffer, int count, struct mckey ke
 int (__cdecl *memcheck2_tramp)(unsigned char *buffer, int count, struct mckey key);
 int (__cdecl *memcheck3_tramp)(unsigned char *buffer, int count, struct mckey key);
 int (__cdecl *memcheck4_tramp)(unsigned char *buffer, int count, struct mckey key);
-
+#ifndef ISXEQ
 VOID HookMemChecker(BOOL Patch)
 {
     // hit the debugger if we don't hook this
@@ -280,7 +281,7 @@ VOID HookMemChecker(BOOL Patch)
 		RemoveDetour((DWORD)send_message);
     }
 }
-
+#endif
 
 //  004F7D24: 55                 push        ebp
 //  004F7D25: 8B EC              mov         ebp,esp
@@ -304,8 +305,11 @@ int __cdecl memcheck0(unsigned char *buffer, int count)
 
     for (i=0;i<(unsigned int)count;i++) {
         unsigned char tmp;
-		OurDetours *detour = ourdetours;
         unsigned int b=(int) &buffer[i];
+#ifdef ISXEQ
+      tmp=pExtension->FindByte(b,buffer[i]);
+#else
+		OurDetours *detour = ourdetours;
 		while(detour)
 		{
 			if (detour->count && (b >= detour->addr) &&
@@ -316,6 +320,7 @@ int __cdecl memcheck0(unsigned char *buffer, int count)
 			detour=detour->pNext;
 		}
         if (!detour) tmp = buffer[i];
+#endif
         x = (int)tmp ^ (eax & 0xff);
         eax = ((int)eax >> 8) & 0xffffff;
         x = extern_array0[x];
@@ -446,8 +451,12 @@ int __cdecl memcheck2(unsigned char *buffer, int count, struct mckey key)
 
     for (i=0;i<(unsigned int)count;i++) {
         unsigned char tmp = buffer[i];
-        OurDetours *detour = ourdetours;
         unsigned int b=(int) &buffer[i];
+
+#ifdef ISXEQ
+      tmp=pExtension->FindByte(b,buffer[i]);
+#else
+        OurDetours *detour = ourdetours;
         while(detour) {
             if (detour->count && (b >= detour->addr) &&
                (b < detour->addr+detour->count) ) {
@@ -457,6 +466,8 @@ int __cdecl memcheck2(unsigned char *buffer, int count, struct mckey key)
             detour=detour->pNext;
         }
         if (!detour) tmp = buffer[i];
+#endif
+
         ebx = ((int) tmp ^ edx) & 0xff;
         edx = ((int)edx >> 8) & 0xffffff;
         edx ^= extern_array2[ebx];
@@ -564,9 +575,14 @@ int __cdecl memcheck3(unsigned char *buffer, int count, struct mckey key)
 //
     for (i=0;i<(unsigned int)count;i++) {
         unsigned char tmp;
-        OurDetours *detour = ourdetours;
         unsigned int b=(int) &buffer[i];
-        while(detour)
+
+
+#ifdef ISXEQ
+      tmp=pExtension->FindByte(b,buffer[i]);
+#else
+		OurDetours *detour = ourdetours;
+		while(detour)
         {
             if (detour->count && (b >= detour->addr) &&
                  (b < detour->addr+detour->count) ) {
@@ -576,6 +592,8 @@ int __cdecl memcheck3(unsigned char *buffer, int count, struct mckey key)
             detour=detour->pNext;
         }
         if (!detour) tmp = buffer[i];
+#endif
+
         ebx = (tmp ^ edx) & 0xff;
         edx = ((int)edx >> 8) & 0xffffff;
         edx ^= extern_array3[ebx];
@@ -626,8 +644,11 @@ int __cdecl memcheck4(unsigned char *buffer, int count, struct mckey key)
 
     for (i=0;i<(unsigned int)count;i++) {
         unsigned char tmp;
-        OurDetours *detour = ourdetours;
         unsigned int b=(int) &buffer[i];
+#ifdef ISXEQ
+      tmp=pExtension->FindByte(b,buffer[i]);
+#else
+        OurDetours *detour = ourdetours;
         while(detour)
         {
             if (detour->count && (b >= detour->addr) &&
@@ -638,6 +659,8 @@ int __cdecl memcheck4(unsigned char *buffer, int count, struct mckey key)
             detour=detour->pNext;
         }
         if (!detour) tmp = buffer[i];
+#endif
+
         ebx = (tmp ^ edx) & 0xff;
         edx = ((int)edx >> 8) & 0xffffff;
         edx ^= extern_array3[ebx];
@@ -655,16 +678,19 @@ DETOUR_TRAMPOLINE_EMPTY(VOID CrashDetected_Trampoline(DWORD,DWORD,DWORD,DWORD,DW
 
 void InitializeMQ2Detours()
 {
+#ifndef ISXEQ
 	InitializeCriticalSection(&gDetourCS);
 	HookMemChecker(TRUE);
+#endif
 	EzDetour(CrashDetected,CrashDetected_Detour,CrashDetected_Trampoline);
 }
 
 void ShutdownMQ2Detours()
 {
-	HookMemChecker(FALSE);
 	RemoveDetour(CrashDetected);
+#ifndef ISXEQ
+	HookMemChecker(FALSE);
 	RemoveOurDetours();
 	DeleteCriticalSection(&gDetourCS);
-}
 #endif
+}

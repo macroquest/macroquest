@@ -83,93 +83,131 @@
 			Name="Source Files"
 			Filter="cpp;c;cxx;def;odl;idl;hpj;bat;asm">
 			<File
-				RelativePath="EQClasses.cpp">
+				RelativePath="ISXEQ\ISXEQ.cpp">
 			</File>
 			<File
-				RelativePath="ISXEQ.cpp">
+				RelativePath="ISXEQ\ISXEQCommandAPI.cpp">
 			</File>
 			<File
-				RelativePath="MQ2Benchmarks.cpp">
+				RelativePath="ISXEQ\ISXEQCommands.cpp">
 			</File>
 			<File
-				RelativePath="MQ2ChatHook.cpp">
+				RelativePath="ISXEQ\ISXEQDataTypes.cpp">
 			</File>
 			<File
-				RelativePath="MQ2CleanUI.cpp">
+				RelativePath="ISXEQ\ISXEQServices.cpp">
 			</File>
 			<File
-				RelativePath="MQ2Globals.cpp">
+				RelativePath="ISXEQ\ISXEQTopLevelObjects.cpp">
 			</File>
 			<File
-				RelativePath="MQ2KeyBinds.cpp">
+				RelativePath="ISXEQ\ISXEQUtilities.cpp">
 			</File>
-			<File
-				RelativePath="MQ2Main.cpp">
-			</File>
-			<File
-				RelativePath="MQ2Mouse.cpp">
-			</File>
-			<File
-				RelativePath="MQ2Spawns.cpp">
-			</File>
-			<File
-				RelativePath="MQ2Utilities.cpp">
-			</File>
-			<File
-				RelativePath="MQ2Windows.cpp">
-			</File>
+			<Filter
+				Name="From MQ2Main"
+				Filter="">
+				<File
+					RelativePath="EQClasses.cpp">
+				</File>
+				<File
+					RelativePath="MQ2Benchmarks.cpp">
+				</File>
+				<File
+					RelativePath="MQ2ChatHook.cpp">
+				</File>
+				<File
+					RelativePath="MQ2CleanUI.cpp">
+				</File>
+				<File
+					RelativePath="MQ2DetourAPI.cpp">
+				</File>
+				<File
+					RelativePath="MQ2Globals.cpp">
+				</File>
+				<File
+					RelativePath="MQ2KeyBinds.cpp">
+				</File>
+				<File
+					RelativePath="MQ2Main.cpp">
+				</File>
+				<File
+					RelativePath="MQ2Mouse.cpp">
+				</File>
+				<File
+					RelativePath="MQ2Spawns.cpp">
+				</File>
+				<File
+					RelativePath="MQ2Utilities.cpp">
+				</File>
+				<File
+					RelativePath="MQ2Windows.cpp">
+				</File>
+			</Filter>
 		</Filter>
 		<Filter
 			Name="Header Files"
 			Filter="h;hpp;hxx;hm;inl;inc">
 			<File
-				RelativePath="..\Blech\Blech.h">
+				RelativePath="ISXEQ\ISXEQ.h">
 			</File>
 			<File
-				RelativePath="EQClasses.h">
+				RelativePath="ISXEQ\ISXEQCommands.h">
 			</File>
 			<File
-				RelativePath="EQData.h">
+				RelativePath="ISXEQ\ISXEQDataTypes.h">
 			</File>
 			<File
-				RelativePath="EQUIStructs.h">
+				RelativePath="ISXEQ\ISXEQTopLevelObjects.h">
 			</File>
-			<File
-				RelativePath="ISXEQ.h">
-			</File>
-			<File
-				RelativePath="MQ2Globals.h">
-			</File>
-			<File
-				RelativePath="MQ2Inlines.h">
-			</File>
-			<File
-				RelativePath="MQ2Internal.h">
-			</File>
-			<File
-				RelativePath="MQ2Main.h">
-			</File>
-			<File
-				RelativePath="MQ2Prototypes.h">
-			</File>
-			<File
-				RelativePath="MQ2TopLevelObjects.h">
-			</File>
-			<File
-				RelativePath="eqgame.h">
-			</File>
-			<File
-				RelativePath="grounds.h">
-			</File>
-			<File
-				RelativePath="itemtypes.h">
-			</File>
-			<File
-				RelativePath="skills.h">
-			</File>
-			<File
-				RelativePath="weapons.h">
-			</File>
+			<Filter
+				Name="From MQ2Main"
+				Filter="">
+				<File
+					RelativePath="..\Blech\Blech.h">
+				</File>
+				<File
+					RelativePath="EQClasses.h">
+				</File>
+				<File
+					RelativePath="EQData.h">
+				</File>
+				<File
+					RelativePath="EQUIStructs.h">
+				</File>
+				<File
+					RelativePath="MQ2Globals.h">
+				</File>
+				<File
+					RelativePath="MQ2Inlines.h">
+				</File>
+				<File
+					RelativePath="MQ2Internal.h">
+				</File>
+				<File
+					RelativePath="MQ2Main.h">
+				</File>
+				<File
+					RelativePath="MQ2Prototypes.h">
+				</File>
+				<File
+					RelativePath="MQ2TopLevelObjects.h">
+				</File>
+				<File
+					RelativePath="eqgame.h">
+				</File>
+				<File
+					RelativePath="grounds.h">
+				</File>
+				<File
+					RelativePath="itemtypes.h">
+				</File>
+				<File
+					RelativePath="skills.h">
+				</File>
+				<File
+					RelativePath="weapons.h">
+				</File>
+			</Filter>
 		</Filter>
 	</Files>
 	<Globals>

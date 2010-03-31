@@ -1,5 +1,10 @@
+31 January 2005 by Amadeus
+- Fixed MQ2 to work with the latest patch
+- The format of eqgame.h has CHANGED.  Be sure to get this zip. [SwiftyMuse]
+- Browsing the wares of an adventure merchant still crashes EQ.  MQ2 is not to blame.
+
 29 January 2005 by dkaa
--- Fixed the map crash on /loadskin
+- Fixed the map crash on /loadskin
 
 29 January 2005 by Lax
 - Split MQ2Main.h into a couple extra header files
@@ -7,7 +12,6 @@
   adaptation to Inner Space.  This project builds ISXEQ.dll and does NOT currently link (it
   compiles, then gives linker errors. some things need to be done before it will link)
   ISXEQ project needs separate implementations of each command, datatype, and top-level object.
-  
 - Added a lot of "#ifndef ISXEQ" to various files
 
 26-28 January 2005 by Amadeus
