@@ -126,6 +126,7 @@ DECLARE_API ( help )
 			"   pcontainer    - Display CONTAINER struct\n"
             "   pgroundspawn  - Display GROUNDITEM struct\n"
             "   pdoor         - Display DOOR struct\n"
+			"   pswitch		  - Display EQSWITCH struct\n"
 			"   pspellbuff    - Display SPELLBUFF struct\n"
 			"   pspell        - Display SPELLLIST struct\n"
 			"   pzone         - Display ZONELIST struct\n"

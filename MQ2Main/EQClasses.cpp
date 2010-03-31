@@ -4377,6 +4377,9 @@ FUNCTION_AT_ADDRESS(char *  EQ_Item::ValueSRent(void),EQ_Item__ValueSRent);
 #ifdef EQ_Item__IsSpecialNoDrop
 FUNCTION_AT_ADDRESS(bool  EQ_Item::IsSpecialNoDrop(void),EQ_Item__IsSpecialNoDrop);
 #endif
+#ifdef EQ_Item__IsStackable 
+FUNCTION_AT_ADDRESS(bool  EQ_Item::IsStackable(void),EQ_Item__IsStackable); 
+#endif 
 #ifdef EQ_LoadingS__EQ_LoadingS
 FUNCTION_AT_ADDRESS( EQ_LoadingS::EQ_LoadingS(void),EQ_LoadingS__EQ_LoadingS);
 #endif

@@ -328,6 +328,7 @@
 // EQ_Item 
 #define EQ_Item__GetItemLinkHash                           0x49BFB7 
 #define EQ_Item__CanDrop                                   0x49C3BE 
+#define EQ_Item__IsStackable                               0x49C562 
 
 // CBankWnd 
 #define CBankWnd__GetNumBankSlots                          0x40B4DD 

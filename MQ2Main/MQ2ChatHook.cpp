@@ -27,7 +27,7 @@ public:
 	VOID Trampoline(PCHAR szMsg, DWORD dwColor, DWORD dwUnknown); 
 	VOID Detour(PCHAR szMsg, DWORD dwColor, DWORD dwUnknown) 
 	{ 
-		DebugSpew("CChatHook::Detour(%s)",szMsg); 
+		//DebugSpew("CChatHook::Detour(%s)",szMsg); 
 		gbInChat = TRUE; 
 
 

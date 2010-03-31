@@ -1547,6 +1547,27 @@ bool MQ2CharacterType::GetMember(MQ2VARPTR VarPtr, PCHAR Member, PCHAR Index, MQ
 		Dest.Ptr=&buf[0];
 		Dest.Type=pStringType;
 		return true;
+    case FreeBuffSlots: 
+		Dest.DWord=GetAAIndexByName("mystical attuning"); 
+		if (PlayerHasAAAbility(PCHARINFO pChar, Dest.DWord)) 
+		{ 
+			for (unsigned int j=0; j < NUM_ALT_ABILITIES; j++) 
+			{ 
+				if ( pChar->AAList[j].AAIndex == Dest.DWord) 
+				{ 
+					Dest.DWord=15+(pChar->AAList[j].PointsSpent/5); 
+					break; 
+				} 
+				if (pChar->AAList[j].AAIndex == 0)   break; 
+			} 
+		} else Dest.DWord = 15; 
+		for (unsigned long nBuff=0 ; nBuff<20 ; nBuff++) 
+		{ 
+			if (pChar->Buff[nBuff].SpellID>0) 
+			Dest.DWord--; 
+		} 
+		Dest.Type = pIntType; 
+		return true; 
 	case Gem:
 		if (!Index[0])
 			return false;
@@ -1993,43 +2014,43 @@ bool MQ2CharacterType::GetMember(MQ2VARPTR VarPtr, PCHAR Member, PCHAR Index, MQ
 			}
 		}
 		return false;
-	case SpellReady:
-		if (pCastSpellWnd && Index[0])
-		{
-			if (IsNumber(Index))
-			{
-				// numeric
-				unsigned long nGem=atoi(Index)-1;
-				if (nGem<9)
-				{
-					if (!((PEQCASTSPELLWINDOW)pCastSpellWnd)->SpellSlots[nGem])
-						Dest.DWord=0;
-					else
-						Dest.DWord = (((PEQCASTSPELLWINDOW)pCastSpellWnd)->SpellSlots[nGem]->spellstate==0);
-					Dest.Type=pBoolType;
-					return true;
-				}
-			}
-			else
-			{
-				for (unsigned long nGem=0 ; nGem < 9 ; nGem++)
-				{
-					if (PSPELL pSpell=GetSpellByID(pChar->MemorizedSpells[nGem]))
-					{
-						if (!stricmp(Index,pSpell->Name))
-						{
-							if (!((PEQCASTSPELLWINDOW)pCastSpellWnd)->SpellSlots[nGem])
-								Dest.DWord=0;
-							else
-								Dest.DWord = (((PEQCASTSPELLWINDOW)pCastSpellWnd)->SpellSlots[nGem]->spellstate==0);
-							Dest.Type=pBoolType;
-							return true;
-						}
-					}
-				}
-			}
-		}
-		return false;
+case SpellReady: 
+      if (pCastSpellWnd && Index[0]) 
+      { 
+         if (IsNumber(Index)) 
+         { 
+            // numeric 
+            unsigned long nGem=atoi(Index)-1; 
+            if (nGem<9) 
+            { 
+               if (!((PEQCASTSPELLWINDOW)pCastSpellWnd)->SpellSlots[nGem]) 
+                  Dest.DWord=0; 
+               else 
+                  Dest.DWord = (((PEQCASTSPELLWINDOW)pCastSpellWnd)->SpellSlots[nGem]->spellstate!=1); 
+               Dest.Type=pBoolType; 
+               return true; 
+            } 
+         } 
+         else 
+         { 
+            for (unsigned long nGem=0 ; nGem < 9 ; nGem++) 
+            { 
+               if (PSPELL pSpell=GetSpellByID(pChar->MemorizedSpells[nGem])) 
+               { 
+                  if (!stricmp(Index,pSpell->Name)) 
+                  { 
+                     if (!((PEQCASTSPELLWINDOW)pCastSpellWnd)->SpellSlots[nGem]) 
+                        Dest.DWord=0; 
+                     else 
+                        Dest.DWord = (((PEQCASTSPELLWINDOW)pCastSpellWnd)->SpellSlots[nGem]->spellstate!=1); 
+                     Dest.Type=pBoolType; 
+                     return true; 
+                  } 
+               } 
+            } 
+         } 
+      } 
+      return false; 
 	case PetBuff:
 		if (!Index[0] || !pPetInfoWnd)
 			return false;
@@ -2380,10 +2401,10 @@ bool MQ2SpellType::GetMember(MQ2VARPTR VarPtr, PCHAR Member, PCHAR Index, MQ2TYP
 		Dest.Ptr=szSkills[pSpell->Skill];
 		Dest.Type=pStringType;
 		return true;
-	case MyCastTime:
-		Dest.Float=(FLOAT)(pCharData->GetFocusCastingTimeModifier((EQ_Spell*)pSpell,0)+pSpell->CastTime)/1000.0f;
-		Dest.Type=pFloatType;
-		return true;
+   case MyCastTime: 
+      Dest.Float=(FLOAT)(pCharData->GetAACastingTimeModifier((EQ_Spell*)pSpell)+pCharData->GetFocusCastingTimeModifier((EQ_Spell*)pSpell,0)+pSpell->CastTime)/1000.0f; 
+      Dest.Type=pFloatType; 
+      return true; 
 	case Duration:
 		Dest.DWord=GetSpellDuration(pSpell,(PSPAWNINFO)pCharSpawn);
 		Dest.Type=pTicksType;
@@ -2453,7 +2474,7 @@ bool MQ2ItemType::GetMember(MQ2VARPTR VarPtr, PCHAR Member, PCHAR Index, MQ2TYPE
 		Dest.Type=pIntType;
 		return true;
 	case Stack:
-		if ((pItem->Item->Type != ITEMTYPE_NORMAL) || (pItem->Item->Stackable!=1))
+		if ((pItem->Item->Type != ITEMTYPE_NORMAL) || (((EQ_Item*)pItem)->IsStackable()!=1))
 			Dest.DWord=1;
 		else
 			Dest.DWord=pItem->StackCount;
@@ -2541,7 +2562,7 @@ bool MQ2ItemType::GetMember(MQ2VARPTR VarPtr, PCHAR Member, PCHAR Index, MQ2TYPE
 		}
 		return false;
 	case Stackable:
-		Dest.DWord=pItem->Item->Stackable;
+		Dest.DWord=((EQ_Item*)pItem)->IsStackable();
 		Dest.Type=pBoolType;
 		return true;
 	case InvSlot:
@@ -3597,6 +3618,20 @@ bool MQ2MacroQuestType::GetMember(MQ2VARPTR VarPtr, PCHAR Member, PCHAR Index, M
 		Dest.DWord=((PMOUSEINFO)EQADDR_MOUSE)->Y;
 		Dest.Type=pIntType;
 		return true;
+    case BuildDate: 
+       SYSTEMTIME st; 
+       HANDLE hFile; 
+       WIN32_FIND_DATA FileData; 
+       CHAR szBuffer[MAX_STRING]; 
+       sprintf(szBuffer,"%s\\MQ2Main.dll", gszINIPath); 
+       hFile = FindFirstFile(szBuffer, &FileData); 
+       // Convert the creation time time to local time. 
+       FileTimeToSystemTime(&FileData.ftLastWriteTime, &st); 
+       FindClose(hFile); 
+       sprintf(DataTypeTemp, "%d%d%d",st.wYear,st.wMonth,st.wDay); 
+       Dest.Ptr=&DataTypeTemp[0]; 
+       Dest.Type=pStringType; 
+       return true; 
 	}
 	return false;
 }

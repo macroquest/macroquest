@@ -347,7 +347,6 @@ DECLARE_API ( pitem )
    KP(Avoidance);
    KP(Accuracy);
    KP(CastTime); 
-   KP(Stackable); 
    KP(BookType);
    KP(BookLang);
    KPs(BookFile);
@@ -417,6 +416,28 @@ DOOR *p, *pnull=NULL, ci;
    KPf(Y); 
    KPf(X); 
    KPf(Z); 
+   KPf(Heading); 
+   KP(pSwitch);
+} 
+
+DECLARE_API ( pswitch ) 
+{ 
+EQSWITCH *p, *pnull=NULL, ci; 
+    DWORD cb; 
+
+    // read param from command line 
+    p = (EQSWITCH *)GetExpression(args); 
+
+    ReadMemory((PARAM1)p,&ci,sizeof(ci),&cb); 
+
+   dprintf("\n\n\n"); 
+
+   KPf(Y); 
+   KPf(X); 
+   KPf(Z); 
+   KPf(Y2); 
+   KPf(X2); 
+   KPf(Z2);
    KPf(Heading); 
 } 
 

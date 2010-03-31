@@ -65,7 +65,7 @@ public:
 		 sprintf(temp,"Tribute Value: %d<br>", Item->Favor);
 		 strcat(out, temp);
 	 }
-     if (Item->GuildFavor > 0 && Item->Favor != Item->GuildFavor) { 
+     if (Item->GuildFavor > 0 )  { 
         sprintf(temp,"Guild Tribute Value: %d<br>", Item->GuildFavor); 
         strcat(out, temp); 
      } 
@@ -129,6 +129,11 @@ public:
         sprintf(temp,"Container Type: %s<BR>",szCombineTypes[Item->Combine]);
         strcat(out,temp);
      }
+
+     if ( Item->ItemNumber > 0 ) { 
+        sprintf(temp,"Item ID: %d<br>", Item->ItemNumber); 
+        strcat(out, temp); 
+     } 
 
      if (out[0]!=17) {
       strcat(out,"</c>");

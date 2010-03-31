@@ -21,10 +21,10 @@ DWORD HighlightColor=0xFF700070;
 CHAR MapSpecialClickString[16][MAX_STRING]=
 {
 	"",// unused, will always target
-	"",//SHIFT
+	"",//SHIFT 
 	"/maphide id %i",//CTRL
 	"",//CTRL|SHIFT
-	"/maphighlight id %i",//LALT
+	"/highlight id %i",//LALT 
 	"",//LALT|SHIFT
 	"",//LALT|CTRL
 	"",//LALT|SHIFT|CTRL

@@ -853,6 +853,7 @@ public:
 		AmIGroupLeader=121,
 		CurrentEndurance=122,
 		EnduranceRegen=123,
+		FreeBuffSlots=124,
 	};
 	MQ2CharacterType():MQ2Type("character")
 	{
@@ -978,6 +979,7 @@ public:
 		TypeMember(AmIGroupLeader); //121
 		TypeMember(CurrentEndurance);
 		TypeMember(EnduranceRegen);
+		TypeMember(FreeBuffSlots); //124
 	}
 
 	~MQ2CharacterType()
@@ -1909,6 +1911,7 @@ public:
 		Running=9,
 		MouseX=10,
 		MouseY=11,
+		BuildDate=12,
 	};
 	MQ2MacroQuestType():MQ2Type("macroquest")
 	{
@@ -1923,6 +1926,7 @@ public:
 		TypeMember(Running);
 		TypeMember(MouseX);
 		TypeMember(MouseY);
+		TypeMember(BuildDate);
 	}
 
 	~MQ2MacroQuestType()

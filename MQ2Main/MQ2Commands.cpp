@@ -1261,7 +1261,7 @@ VOID Identify(PSPAWNINFO pChar, PCHAR szLine)
 				sprintf(szTmp,"%dSvC ",pCharInfo->Cursor->Item->SvCold);
                 strcat(szMsg,szTmp);
             }
-			if (pCharInfo->Cursor->Item->Stackable==1) {
+			if (((EQ_Item*)pCharInfo->Cursor)->IsStackable()==1) {
 				sprintf(szTmp,"Stack size = %d ",pCharInfo->Cursor->StackCount);
                 strcat(szMsg,szTmp);
             }

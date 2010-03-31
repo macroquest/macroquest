@@ -874,9 +874,9 @@ VOID ItemNotify(PSPAWNINFO pChar, PCHAR szLine)
 				pPack=pChar->pCharInfo->Bank[nPack-1];
 			}
 		}
-		else if (!strnicmp(szArg2,"sharedbank",4))
+		else if (!strnicmp(szArg2,"sharedbank",10))
 		{
-			unsigned long nPack=atoi(&szArg2[4]);
+			unsigned long nPack=atoi(&szArg2[10]);
 			if (nPack && nPack<=2)
 			{
 				pPack=pChar->pCharInfo->Bank[16+nPack-1];

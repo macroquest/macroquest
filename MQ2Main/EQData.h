@@ -493,10 +493,7 @@ typedef struct _ITEMINFO {
 /*0x1f8*/ DWORD Accuracy; 
 /*0x1fc*/ DWORD CharmFileID; 
 /*0x200*/ DWORD CastTime; 
-union { 
-/*0x204*/ DWORD MaxCharges; 
-/*0x204*/ DWORD Stackable; 
-}; 
+/*0x204*/ DWORD MaxCharges;  // Also has something to do with item stacking 
 /*0x208*/ BYTE BookType; // 0=note, !0=book 
 /*0x209*/ BYTE BookLang; 
 /*0x20a*/ CHAR BookFile[0x1e]; 
@@ -593,7 +590,7 @@ typedef struct _AALIST {
 #define      NUM_BANK_SLOTS         0x12
 #define      NUM_BOOK_SLOTS         0x200
 
-// Size: 0xd15c on 12-17-2004
+// Size: 0xd15c on 12-17-2004 
 typedef struct _CHARINFO { 
 /*0x0000*/   BYTE       Unknown0x0[0x4]; 
 /*0x0004*/   BYTE      field_4;    
@@ -786,15 +783,15 @@ union {
 /*0x9da4*/   DWORD      RaidAbilities[0x10];   //Enumed        
 /*0x9de4*/   BYTE      Unknown0x9de4[0x80];      
 /*0x9e64*/   BYTE      LeadershipExpON;   //0-off 1-on 
-/*0x9e65*/   BYTE      Unknown0x9e65[0x2d6f]; 
-/*0xcbd4*/   struct     _CONTENTS*   Bank[NUM_BANK_SLOTS]; 
-/*0xcc1c*/   BYTE      Unknown0xcc1c[0xa8]; 
-/*0xccc4*/   CHAR      GroupMember[0x5][0x40]; 
-/*0xce04*/   BYTE      Unknown0xce04[0x58]; 
-/*0xce5c*/   CHAR      GroupLeader[0x40]; 
-/*0xce9c*/   BYTE      Unknown0xce9c[0x2b8];      
-/*0xd154*/ 
-} CHARINFO, *PCHARINFO; 
+/*0x9e65*/   BYTE      Unknown0x9e65[0x2d77]; 
+/*0xcbdc*/   struct     _CONTENTS*   Bank[NUM_BANK_SLOTS]; 
+/*0xcc24*/   BYTE      Unknown0xcc24[0xa8]; 
+/*0xcccc*/   CHAR      GroupMember[0x5][0x40]; 
+/*0xce0c*/   BYTE      Unknown0xce0c[0x58]; 
+/*0xce64*/   CHAR      GroupLeader[0x40]; 
+/*0xcea4*/   BYTE      Unknown0xcea4[0x2b8];      
+/*0xd15c*/ 
+} CHARINFO, *PCHARINFO;
 
 typedef struct _MODELINFONAME {
 /*0x00*/    DWORD Unknown0000;
@@ -1113,51 +1110,42 @@ typedef struct _SPAWNMONITORINFO {
 } SPAWNMONITORINFO, *PSPAWNMONITORINFO;
 
 typedef struct _EQSWITCH {
-/*0x00*/	DWORD		Value0x00;
-/*0x04*/	DWORD		Value0x04;
-/*0x08*/	PVOID		pUnknown0x08;
-/*0x0C*/	DWORD		Value0x0C;
-/*0x10*/	FLOAT		Y;
-/*0x14*/	FLOAT		X;
-/*0x18*/	FLOAT		Z;
-/*0x1C*/	FLOAT		Heading;
-/*0x20*/	DWORD		Unknown0x20;
-/*0x24*/	DWORD		Unknown0x24;
-/*0x28*/	DWORD		Value0x28;
-/*0x2C*/	PVOID		pUnknown0x2C;
-/*0x30*/	DWORD		Unknown0x30;
-/*0x34*/	FLOAT		Value0x34;
-/*0x38*/	FLOAT		Value0x38;
-/*0x3C*/	DWORD		Unknown0x3C;
-/*0x40*/	PVOID		pUnknown0x40;
-/*0x44*/	PVOID		pUnknown0x44;
-/*0x48*/	DWORD		Value0x48;
-/*0x4C*/	DWORD		Value0x4C;
-/*0x50*/	PVOID		pUnknown0x50;
-/*0x54*/	DWORD		Unknown0x54;
-/*0x58*/	DWORD		Unknown0x58;
-/*0x5C*/	DWORD		Unknown0x5C;
-/*0x60*/	DWORD		Value0x60;
-/*0x64*/	PVOID		pUnknown0x64;
+/*0x00*/	DWORD		Unknown0x0[0x2];
+/*0x08*/	DWORD		UnknownData0x08;
+/*0x0c*/	DWORD		UnknownData0x0c;
+/*0x10*/	DWORD		Unknown0x10[0x2];
+/*0x18*/	DWORD		UnknownData0x18;
+/*0x1c*/	DWORD		Unknown0x1c;
+/*0x20*/	DWORD		UnknownData0x20;
+/*0x24*/	FLOAT		Y;
+/*0x28*/	FLOAT		X;
+/*0x2c*/	FLOAT		Z;
+/*0x30*/	BYTE		Unknown0x30[0x58]; //A lot of data here.
+/*0x88*/	FLOAT		Y2;
+/*0x8c*/	FLOAT		X2;
+/*0x90*/	FLOAT		Z2;
+/*0x94*/	DWORD		Unknown0x94;
+/*0x98*/	FLOAT		Heading;
+/*0x9c		Data Continues... */
 } EQSWITCH, *PEQSWITCH;
 
 typedef struct _DOOR { 
 /*0x00*/   BYTE Unknown0x00; 
 /*0x01*/   BYTE ID; 
 /*0x02*/   CHAR Name[0x0b]; 
-/*0x0d*/   BYTE Unknown0x0d[0x3]; 
-/*0x10*/   FLOAT DefaultY; 
-/*0x14*/   FLOAT DefaultX; 
-/*0x18*/   FLOAT DefaultZ; 
-/*0x1c*/   FLOAT DefaultHeading; 
-/*0x20*/   FLOAT DoorAngle; 
-/*0x24*/   FLOAT Y; 
-/*0x28*/   FLOAT X; 
-/*0x2c*/   FLOAT Z; 
-/*0x30*/   FLOAT Heading; 
-/*0x34*/   BYTE Unknown0x34[0x3c]; 
-/*0x70*/   PEQSWITCH pSwitch; // (class EQSwitch *) 
-/*0x74*/ 
+/*0x0d*/   BYTE Unknown0x0d[0x17]; 
+/*0x24*/   FLOAT DefaultY; 
+/*0x28*/   FLOAT DefaultX; 
+/*0x2c*/   FLOAT DefaultZ; 
+/*0x30*/   FLOAT DefaultHeading; 
+/*0x34*/   FLOAT DoorAngle; 
+/*0x38*/   FLOAT Y; 
+/*0x3c*/   FLOAT X; 
+/*0x40*/   FLOAT Z; 
+/*0x44*/   FLOAT Heading; 
+/*0x48*/   BYTE Unknown0x48[0x3c]; 
+/*0x84*/   PEQSWITCH pSwitch; // (class EQSwitch *) 
+/*0x88*/ 
 } DOOR, *PDOOR; 
 
 // 7-21-2003    Stargazer

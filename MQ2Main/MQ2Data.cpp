@@ -831,7 +831,7 @@ BOOL dataFindItemCount(PCHAR szIndex, MQ2TYPEVAR &Ret)
 				if (!stricmp(Name,pItem->Item->Name))
 				{
                     if ((pItem->Item->Type != ITEMTYPE_NORMAL) ||
-                        (pItem->Item->Stackable != 1))
+                        (((EQ_Item*)pItem)->IsStackable() != 1)) 
 						Count++;
                     else
                         Count+=pItem->StackCount;
@@ -842,7 +842,7 @@ BOOL dataFindItemCount(PCHAR szIndex, MQ2TYPEVAR &Ret)
 				if(strstr(strlwr(strcpy(Temp,pItem->Item->Name)),Name))
 				{
                     if ((pItem->Item->Type != ITEMTYPE_NORMAL) ||
-                        (pItem->Item->Stackable != 1))
+                        (((EQ_Item*)pItem)->IsStackable() != 1)) 
 						Count++;
                     else
                         Count+=pItem->StackCount;
@@ -866,7 +866,7 @@ BOOL dataFindItemCount(PCHAR szIndex, MQ2TYPEVAR &Ret)
 							if (!stricmp(Name,pItem->Item->Name))
 							{
                                 if ((pItem->Item->Type != ITEMTYPE_NORMAL) ||
-                                    (pItem->Item->Stackable != 1))
+                                    (((EQ_Item*)pItem)->IsStackable() != 1)) 
 								    Count++;
                                 else
                                     Count+=pItem->StackCount;
@@ -877,7 +877,7 @@ BOOL dataFindItemCount(PCHAR szIndex, MQ2TYPEVAR &Ret)
 							if(strstr(strlwr(strcpy(Temp,pItem->Item->Name)),Name))
 							{
                                 if ((pItem->Item->Type != ITEMTYPE_NORMAL) ||
-                                    (pItem->Item->Stackable != 1))
+                                    (((EQ_Item*)pItem)->IsStackable() != 1)) 
 								    Count++;
                                 else
                                     Count+=pItem->StackCount;
@@ -925,7 +925,7 @@ BOOL dataFindItemBankCount(PCHAR szIndex, MQ2TYPEVAR &Ret)
 				if (!stricmp(Name,pPack->Item->Name))
 				{
                     if ((pPack->Item->Type != ITEMTYPE_NORMAL) ||
-                        (pPack->Item->Stackable != 1))
+                        (((EQ_Item*)pPack)->IsStackable() != 1))
 						Count++;
                     else
                         Count+=pPack->StackCount;
@@ -936,7 +936,7 @@ BOOL dataFindItemBankCount(PCHAR szIndex, MQ2TYPEVAR &Ret)
 				if(strstr(strlwr(strcpy(Temp,pPack->Item->Name)),Name))
 				{
                     if ((pPack->Item->Type != ITEMTYPE_NORMAL) ||
-                        (pPack->Item->Stackable != 1))
+                        (((EQ_Item*)pPack)->IsStackable() != 1))
 						Count++;
                     else
                         Count+=pPack->StackCount;
@@ -953,7 +953,7 @@ BOOL dataFindItemBankCount(PCHAR szIndex, MQ2TYPEVAR &Ret)
 							if (!stricmp(Name,pItem->Item->Name))
 							{
                                 if ((pItem->Item->Type != ITEMTYPE_NORMAL) ||
-                                    (pItem->Item->Stackable != 1))
+                                    (((EQ_Item*)pPack)->IsStackable() != 1))
 								    Count++;
                                 else
                                     Count+=pItem->StackCount;
@@ -964,7 +964,7 @@ BOOL dataFindItemBankCount(PCHAR szIndex, MQ2TYPEVAR &Ret)
 							if(strstr(strlwr(strcpy(Temp,pItem->Item->Name)),Name))
 							{
                                 if ((pItem->Item->Type != ITEMTYPE_NORMAL) ||
-                                    (pItem->Item->Stackable != 1))
+                                    (((EQ_Item*)pPack)->IsStackable() != 1))
 								    Count++;
                                 else
                                     Count+=pItem->StackCount;

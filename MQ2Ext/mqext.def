@@ -18,6 +18,7 @@ EXPORTS
     pitem
     pgroundspawn
     pdoor
+    pswitch
     pspellbuff
     pspell
     pzone
