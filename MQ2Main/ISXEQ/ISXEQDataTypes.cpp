@@ -19,3 +19,431 @@
 #define DBG_SPEW
 
 #include "..\MQ2Main.h"
+
+// These are the same types as in MQ2DataTypes.cpp, however ISXEQ types have members, as
+// the GetMember function takes care of here.
+
+bool MQ2SpawnType::GETMETHOD()
+{
+#define pPtr ((PSPAWNINFO)VarPtr.Ptr)
+	if (!VarPtr.Ptr)
+		return false;
+	PMQ2TYPEMETHOD pMethod=MQ2SpawnType::FindMethod(Method);
+	if (!pMethod)
+		return false;
+	switch((SpawnMethods)pMethod->ID)
+	{
+	case Target:
+		*ppTarget=GetSpawnByID(pPtr->SpawnID); // this could be a variable, which is just a copy. use its ID
+		return true;
+	case Face:
+		// TODO
+		return true;
+	case FaceFast:
+		// TODO
+		return true;
+	case xAssist:
+		return true;
+	}
+	return false;
+#undef pPtr
+}
+
+
+bool MQ2BuffType::GETMETHOD()
+{
+#define pPtr ((PSPELLBUFF)VarPtr.Ptr)
+	if (!VarPtr.Ptr)
+		return false;
+	if ((int)pPtr->SpellID<=0)
+		return false;
+	PMQ2TYPEMETHOD pMethod=MQ2BuffType::FindMethod(Method);
+	if (!pMethod)
+	{
+		if (PSPELL pSpell=GetSpellByID(pPtr->SpellID))
+		{
+			LSVARPTR Temp;
+			Temp.Ptr=pSpell;
+			return pSpellType->GetMethod(Temp,Method,argc,argv);
+		}
+		return false;
+	}
+	switch((BuffMethods)pMethod->ID)
+	{
+	case Remove:
+		{
+			unsigned long slot;
+			char Temp[16];
+			if (GetBuffID(pPtr,slot))
+			{
+				sprintf(Temp,"Buff%d",slot-1); 
+				DWORD KeyboardFlags;
+				KeyboardFlags=*(DWORD*)&((PCXWNDMGR)pWndMgr)->KeyboardFlags;
+				*(DWORD*)&((PCXWNDMGR)pWndMgr)->KeyboardFlags=0;   
+				SendWndClick("BuffWindow",Temp,"leftmouseup");
+				*(DWORD*)&((PCXWNDMGR)pWndMgr)->KeyboardFlags=KeyboardFlags; 		
+				return true;
+			}
+			if (GetShortBuffID(pPtr,slot))
+			{
+				sprintf(Temp,"Buff%d",slot-1); 
+				DWORD KeyboardFlags;
+				KeyboardFlags=*(DWORD*)&((PCXWNDMGR)pWndMgr)->KeyboardFlags;
+				*(DWORD*)&((PCXWNDMGR)pWndMgr)->KeyboardFlags=0;   
+				SendWndClick("ShortDurationBuffWindow",Temp,"leftmouseup");
+				*(DWORD*)&((PCXWNDMGR)pWndMgr)->KeyboardFlags=KeyboardFlags; 		
+				return true;
+			}
+		}
+		return false;
+	}
+	return false;
+#undef pPtr
+}
+
+
+bool MQ2CharacterType::GETMETHOD()
+{
+#define pPtr ((PCHARINFO)VarPtr.Ptr)
+	if (!VarPtr.Ptr)
+		return false;
+	PMQ2TYPEMETHOD pMethod=MQ2CharacterType::FindMethod(Method);
+	if (!pMethod)
+	{
+		LSVARPTR Temp;
+		Temp.Ptr=pPtr->pSpawn;
+		return pSpawnType->GetMethod(Temp,Method,argc,argv);
+	}
+	// TODO
+//	switch((CharacterMethods)pMethod->ID)
+//	{
+//	}
+	return false;
+#undef pPtr
+}
+
+
+bool MQ2SpellType::GETMETHOD()
+{
+#define pPtr ((PSPELL)VarPtr.Ptr)
+	if (!VarPtr.Ptr)
+		return false;
+	PMQ2TYPEMETHOD pMethod=MQ2SpellType::FindMethod(Method);
+	if (!pMethod)
+	{
+		return false;
+	}
+	// TODO
+//	switch((SpellMethods)pMethod->ID)
+//	{
+//	}
+	return false;
+#undef pPtr
+}
+
+
+bool MQ2ItemType::GETMETHOD()
+{
+#define pPtr ((PCONTENTS)VarPtr.Ptr)
+	if (!VarPtr.Ptr)
+		return false;
+	PMQ2TYPEMETHOD pMethod=MQ2ItemType::FindMethod(Method);
+	if (!pMethod)
+	{
+		return false;
+	}
+	// TODO
+//	switch((ItemMethods)pMethod->ID)
+//	{
+//	}
+	return false;
+#undef pPtr
+}
+
+
+bool MQ2WindowType::GETMETHOD()
+{
+#define pPtr ((CXWnd*)VarPtr.Ptr)
+	if (!VarPtr.Ptr)
+		return false;
+	PMQ2TYPEMETHOD pMethod=MQ2WindowType::FindMethod(Method);
+	if (!pMethod)
+	{
+		return false;
+	}
+	CXRect rect= pPtr->GetScreenRect();
+	CXPoint pt=rect.CenterPoint();
+	switch((WindowMethods)pMethod->ID)
+	{
+	case LeftMouseDown:
+		pPtr->HandleLButtonDown(&pt,0);
+		return true;
+	case LeftMouseUp:
+		pPtr->HandleLButtonDown(&pt,0);
+		pPtr->HandleLButtonUp(&pt,0);
+		return true;
+	case LeftMouseHeldDown:
+				pPtr->HandleLButtonDown(&pt,0);
+				pPtr->HandleLButtonHeld(&pt,0);
+		return true;
+	case LeftMouseHeldUp:
+				pPtr->HandleLButtonDown(&pt,0);
+				pPtr->HandleLButtonHeld(&pt,0);
+				pPtr->HandleLButtonUpAfterHeld(&pt,0);
+		return true;
+	case RightMouseDown:
+				pPtr->HandleRButtonDown(&pt,0);
+		return true;
+	case RightMouseUp:
+				pPtr->HandleRButtonDown(&pt,0);
+				pPtr->HandleRButtonUp(&pt,0);
+		return true;
+	case RightMouseHeldDown:
+				pPtr->HandleRButtonDown(&pt,0);
+				pPtr->HandleRButtonHeld(&pt,0);
+		return true;
+	case RightMouseHeldUp:
+				pPtr->HandleRButtonDown(&pt,0);
+				pPtr->HandleRButtonHeld(&pt,0);
+				pPtr->HandleRButtonUpAfterHeld(&pt,0);
+		return true;
+	case ListSelect:
+		if (argc)
+		{
+			DWORD Value=atoi(argv[0])-1;
+			if (pPtr->GetType()==UI_Listbox)
+				((CListWnd *)pPtr)->SetCurSel(Value);
+			else if (pPtr->GetType()==UI_Combobox)
+				((CComboWnd*)pPtr)->SetChoice(Value);
+			else
+				return false;
+		}
+		return true;
+	}
+	return false;
+#undef pPtr
+}
+
+
+bool MQ2SwitchType::GETMETHOD()
+{
+#define pPtr ((PDOOR)VarPtr.Ptr)
+	if (!VarPtr.Ptr)
+		return false;
+	PMQ2TYPEMETHOD pMethod=MQ2SwitchType::FindMethod(Method);
+	if (!pMethod)
+	{
+		return false;
+	}
+	// TODO
+//	switch((SwitchMethods)pMethod->ID)
+//	{
+//	}
+	return false;
+#undef pPtr
+}
+
+
+bool MQ2GroundType::GETMETHOD()
+{
+#define pPtr ((PGROUNDITEM)VarPtr.Ptr)
+	if (!VarPtr.Ptr)
+		return false;
+	PMQ2TYPEMETHOD pMethod=MQ2GroundType::FindMethod(Method);
+	if (!pMethod)
+	{
+		return false;
+	}
+	// TODO
+//	switch((GroundMethods)pMethod->ID)
+//	{
+//	}
+	return false;
+#undef pPtr
+}
+
+
+bool MQ2MacroQuestType::GETMETHOD()
+{
+	PMQ2TYPEMETHOD pMethod=MQ2MacroQuestType::FindMethod(Method);
+	if (!pMethod)
+	{
+		return false;
+	}
+	// TODO
+//	switch((MacroQuestMethods)pMethod->ID)
+//	{
+//	}
+	return false;
+}
+
+
+bool MQ2HeadingType::GETMETHOD()
+{
+	PMQ2TYPEMETHOD pMethod=MQ2HeadingType::FindMethod(Method);
+	if (!pMethod)
+	{
+		return false;
+	}
+	// TODO
+//	switch((HeadingMethods)pMethod->ID)
+//	{
+//	}
+	return false;
+}
+
+
+bool MQ2CorpseType::GETMETHOD()
+{
+	if (!pActiveCorpse || !pLootWnd)
+		return false;
+#define pPtr ((PEQLOOTWINDOW)pLootWnd)
+	PMQ2TYPEMETHOD pMethod=MQ2CorpseType::FindMethod(Method);
+	if (!pMethod)
+	{
+		LSVARPTR Temp;
+		Temp.Ptr=pActiveCorpse;
+		return pSpawnType->GetMethod(Temp,Method,argc,argv);
+	}
+	// TODO
+//	switch((CorpseMethods)pMethod->ID)
+//	{
+//	}
+	return false;
+#undef pPtr
+}
+
+
+bool MQ2MerchantType::GETMETHOD()
+{
+	if (!pActiveMerchant || !pMerchantWnd)
+		return false;
+#define pPtr ((PEQMERCHWINDOW)pMerchantWnd)
+	PMQ2TYPEMETHOD pMethod=MQ2MerchantType::FindMethod(Method);
+	if (!pMethod)
+	{
+		LSVARPTR Temp;
+		Temp.Ptr=pActiveMerchant;
+		return pSpawnType->GetMethod(Temp,Method,argc,argv);
+	}
+	// TODO
+//	Merchant((MerchantMethods)pMethod->ID)
+//	{
+//	}
+	return false;
+#undef pPtr
+}
+
+
+bool MQ2InvSlotType::GETMETHOD()
+{
+#define nInvSlot (VarPtr.Int)
+	PMQ2TYPEMETHOD pMethod=MQ2InvSlotType::FindMethod(Method);
+	if (!pMethod)
+	{
+		return false;
+	}
+	// TODO
+//	InvSlot((InvSlotMethods)pMethod->ID)
+//	{
+//	}
+	return false;
+#undef nInvSlot
+}
+
+
+bool MQ2TimerType::GETMETHOD()
+{
+#define pPtr ((PMQTIMER)VarPtr.Ptr)
+	if (!VarPtr.Ptr)
+		return false;
+	PMQ2TYPEMETHOD pMethod=MQ2TimerType::FindMethod(Method);
+	if (!pMethod)
+	{
+		return false;
+	}
+	// TODO
+//	Timer((TimerMethods)pMethod->ID)
+//	{
+//	}
+	return false;
+#undef pPtr
+}
+
+
+bool MQ2SkillType::GETMETHOD()
+{
+	if (!VarPtr.Ptr)
+		return false;
+	PSKILL pSkill=*(PSKILL*)VarPtr.Ptr;
+	if (!pSkill)
+		return false;
+	PMQ2TYPEMETHOD pMethod=MQ2SkillType::FindMethod(Method);
+	if (!pMethod)
+	{
+		return false;
+	}
+	// TODO
+//	Skill((SkillMethods)pMethod->ID)
+//	{
+//	}
+	return false;
+}
+
+
+bool MQ2AltAbilityType::GETMETHOD()
+{
+	if (!VarPtr.Ptr)
+		return false;
+	PALTABILITY pAbility=*(PALTABILITY*)VarPtr.Ptr;
+	PMQ2TYPEMETHOD pMethod=MQ2AltAbilityType::FindMethod(Method);
+	if (!pMethod)
+	{
+		return false;
+	}
+	// TODO
+//	AltAbility((AltAbilityMethods)pMethod->ID)
+//	{
+//	}
+	return false;
+}
+
+
+bool MQ2RaidType::GETMETHOD()
+{
+	if (!pRaid)
+		return false;
+	PMQ2TYPEMETHOD pMethod=MQ2RaidType::FindMethod(Method);
+	if (!pMethod)
+	{
+		return false;
+	}
+	// TODO
+//	Raid((RaidMethods)pMethod->ID)
+//	{
+//	}
+	return false;
+}
+
+
+bool MQ2RaidMemberType::GETMETHOD()
+{
+	DWORD nRaidMember=VarPtr.DWord-1;
+	if (VarPtr.DWord>=72)
+		return false;
+	if (!pRaid->RaidMemberUsed[nRaidMember])
+		return false;
+	PEQRAIDMEMBER pRaidMember=&pRaid->RaidMember[nRaidMember];
+	PMQ2TYPEMETHOD pMethod=MQ2RaidMemberType::FindMethod(Method);
+	if (!pMethod)
+	{
+		LSVARPTR Temp;
+		Temp.Ptr=SpawnByName[pRaidMember->Name];
+		return pSpawnType->GetMethod(Temp,Method,argc,argv);
+	}
+	// TODO
+//	RaidMember((RaidMemberMethods)pMethod->ID)
+//	{
+//	}
+	return false;
+}

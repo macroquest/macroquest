@@ -304,3 +304,50 @@ int CMD_SellItem(int argc, char *argv[])
     pMerchantWnd->RequestSellItem(Qty);
     return 0;
 }
+
+// ***************************************************************************
+// Function:    CMD_Where
+// Description: Our '/where' command
+//              Displays the direction and distance to the closest spawn
+// Usage:       /where <spawn>
+// ***************************************************************************
+int CMD_Where(int argc, char* argv[])
+{
+   if (argc<2)
+   {
+      WriteChatf("Syntax: %s <spawn>",argv[0]);
+      return 0;
+   }
+    if (!ppSpawnList) return 0;
+    if (!pSpawnList) return 0;
+   PSPAWNINFO pChar = GetCharInfo()->pSpawn;
+    PSPAWNINFO pSpawnClosest = NULL;
+    SEARCHSPAWN SearchSpawn;
+    ClearSearchSpawn(&SearchSpawn);
+    CHAR szMsg[MAX_STRING] = {0};
+    CHAR szName[MAX_STRING] = {0};
+    CHAR szArg[MAX_STRING] = {0};
+   
+    bRunNextCommand = TRUE;
+   SearchSpawn.SpawnType= PC;
+
+   ParseSearchSpawn(1,argc,argv,SearchSpawn);
+
+    if (!(pSpawnClosest = SearchThroughSpawns(&SearchSpawn,pChar))) {
+        sprintf(szMsg,"There were no matches for: %s",FormatSearchSpawn(szArg,&SearchSpawn));
+    } else {
+        INT Angle = (INT)((atan2f(pChar->X - pSpawnClosest->X, pChar->Y - pSpawnClosest->Y) * 180.0f / PI + 360.0f) / 22.5f + 0.5f) % 16;
+        sprintf(szMsg,"The closest '%s' is a level %d %s %s and %1.2f away to the %s, Z difference = %1.2f",
+            CleanupName(strcpy(szName,pSpawnClosest->Name),FALSE),
+            pSpawnClosest->Level,
+            pEverQuest->GetRaceDesc(pSpawnClosest->Race),
+            GetClassDesc(pSpawnClosest->Class),
+            DistanceToSpawn(pChar,pSpawnClosest),
+            szHeading[Angle],
+            pSpawnClosest->Z-pChar->Z);
+        DebugSpew("Where - %s",szMsg);
+    }
+    WriteChatColor(szMsg,USERCOLOR_WHO);
+   
+    return 0;
+}

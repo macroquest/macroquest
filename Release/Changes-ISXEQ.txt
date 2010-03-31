@@ -1,3 +1,33 @@
+26 February 2005 by Lax
+- Added command converted by SlimJim
+  * Where
+- Set up handling for ISXEQ data type methods.  Methods are declared in MQ2DataTypes.h, but
+  the GetMethod function is implemented in ISXEQDataTypes.cpp
+- Added data type methods:
+  spawn.Target: Targets the spawn.  ex: Me:Target
+  buff.Remove: Removes the buff. ex: Me.Buff[1]:Remove
+  window.LeftMouseDown: Presses the left mouse button on the center of the window (you MUST 
+                        follow with a left mouse up. Generally you do NOT want to use this!)
+  window.LeftMouseUp: Presses and then releases the left mouse button on the center of the window
+                      (generally you want to use this instead of LeftMouseDown at all)
+  window.LeftMouseHeldDown: Presses the left mouse button on the center of the window, and tells 
+                            the window that the button was *held* (you MUST follow with a left 
+                            mouse held up. Generally you do NOT want to use this!)
+  window.LeftMouseHeldUp: Presses and then releases the left mouse button on the center of the 
+                          window, and tells the window that the button was *held* (generally you
+                          want to use this instead of LeftMouseHeldDown at all)
+  window.RightMouseDown: Presses the right mouse button on the center of the window (you MUST 
+                        follow with a right mouse up. Generally you do NOT want to use this!)
+  window.RightMouseUp: Presses and then releases the right mouse button on the center of the window
+                      (generally you want to use this instead of RightMouseDown at all)
+  window.RightMouseHeldDown: Presses the right mouse button on the center of the window, and tells 
+                            the window that the button was *held* (you MUST follow with a right 
+                            mouse held up. Generally you do NOT want to use this!)
+  window.RightMouseHeldUp: Presses and then releases the right mouse button on the center of the 
+                          window, and tells the window that the button was *held* (generally you
+                          want to use this instead of RightMouseHeldDown at all)
+  window.ListSelect[#]: Selects item # in a combo or list
+
 25 February 2005 by Lax
 - This release requires ISXDK version 8b
 - Converted ALL data types, and all TLOs besides the following:

@@ -824,6 +824,7 @@ bool MQ2MacroType::GETMEMBER()
 
 #endif
 
+
 bool MQ2SpawnType::GETMEMBER()
 {
 	if (!VarPtr.Ptr)
@@ -1414,6 +1415,7 @@ bool MQ2SpawnType::GETMEMBER()
 	return false;
 }
 
+
 bool MQ2BuffType::GETMEMBER()
 {
 #define pBuff ((PSPELLBUFF)VarPtr.Ptr)
@@ -1432,6 +1434,7 @@ bool MQ2BuffType::GETMEMBER()
 			return pSpellType->GetMember(*(LSVARPTR*)&pSpell,Member,argc,argv,Dest);
 #endif
 		}
+		return false;
 	}
 	
 	static CHAR Temp[128];
@@ -1439,25 +1442,15 @@ bool MQ2BuffType::GETMEMBER()
 	{
 	case ID:
 		{
-			PCHARINFO pChar=GetCharInfo();
-			unsigned long N=0;
-			for (N = 0 ; N < 6 ; N++)
+			if (GetBuffID(pBuff,Dest.DWord))
 			{
-				if (&pChar->ShortBuff[N]==pBuff)
-				{
-					Dest.DWord=N+1;
-					Dest.Type=pIntType;
-					return true;
-				}
+				Dest.Type=pIntType;
+				return true;
 			}
-			for (N = 0 ; N < 20 ; N++)
+			if (GetShortBuffID(pBuff,Dest.DWord))
 			{
-				if (&pChar->Buff[N]==pBuff)
-				{
-					Dest.DWord=N+1;
-					Dest.Type=pIntType;
-					return true;
-				}
+				Dest.Type=pIntType;
+				return true;
 			}
 		}
 		return false;
@@ -1492,6 +1485,7 @@ bool MQ2BuffType::GETMEMBER()
 	return false;
 #undef pBuff
 }
+
 
 bool MQ2CharacterType::GETMEMBER()
 {
@@ -2645,6 +2639,7 @@ bool MQ2CharacterType::GETMEMBER()
 	return false;
 #undef pChar
 }
+
 bool MQ2SpellType::GETMEMBER()
 {
 #define pSpell ((PSPELL)VarPtr.Ptr)
@@ -3555,6 +3550,8 @@ bool MQ2RaceType::GETMEMBER()
 	}
 	return false;
 }
+
+
 bool MQ2SwitchType::GETMEMBER()
 {
 #define pSwitch ((PDOOR)VarPtr.Ptr)
@@ -3636,6 +3633,7 @@ bool MQ2SwitchType::GETMEMBER()
 	return false;
 #undef pSwitch
 }
+
 bool MQ2GroundType::GETMEMBER()
 {
 #define pGround ((PGROUNDITEM)VarPtr.Ptr)
@@ -3798,6 +3796,7 @@ bool MQ2MacroQuestType::GETMEMBER()
 	}
 	return false;
 }
+#ifndef ISXEQ
 bool MQ2TimeType::GETMEMBER()
 {
 #define pTime ((struct tm *)VarPtr.Ptr)
@@ -3868,6 +3867,7 @@ bool MQ2TimeType::GETMEMBER()
 	return false;
 #undef GetTime
 }
+#endif
 
 bool MQ2HeadingType::GETMEMBER()
 {
@@ -4092,6 +4092,7 @@ bool MQ2MerchantType::GETMEMBER()
 	return false;
 #undef pMerch
 }
+
 bool MQ2InvSlotType::GETMEMBER()
 {
 #define nInvSlot (VarPtr.Int)

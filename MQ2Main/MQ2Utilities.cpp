@@ -5367,3 +5367,25 @@ VOID WriteFilterNames(VOID)
     }
 
 }
+bool GetShortBuffID(PSPELLBUFF pBuff, DWORD &nID)
+{
+	PCHARINFO pChar=GetCharInfo();
+	unsigned long N=(pBuff-&pChar->ShortBuff[0])/sizeof(SPELLBUFF);
+	if (N<6)
+	{
+		nID=N+1;
+		return true;
+	}
+	return false;
+}
+bool GetBuffID(PSPELLBUFF pBuff, DWORD &nID)
+{
+	PCHARINFO pChar=GetCharInfo();
+	unsigned long N=(pBuff-&pChar->Buff[0])/sizeof(SPELLBUFF);
+	if (N<0x19)
+	{
+		nID=N+1;
+		return true;
+	}
+	return false;
+}

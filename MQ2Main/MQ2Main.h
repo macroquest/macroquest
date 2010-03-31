@@ -48,6 +48,7 @@ using namespace std;
 #else
 #include "ISXEQ\ISXEQ.h"
 #define PMQ2TYPEMEMBER PLSTYPEMEMBER
+#define PMQ2TYPEMETHOD PLSTYPEMETHOD
 #define MQ2Type LSType
 #define MQ2TYPEVAR LSTYPEVAR
 #endif
@@ -387,8 +388,11 @@ EQLIB_API PSPELL GetSpellByName(PCHAR szName);
 
 #ifdef ISXEQ
 #define GETMEMBER() GetMember(LSVARPTR VarPtr, PCHAR Member, int argc, char *argv[], LSTYPEVAR &Dest)
+#define GETMETHOD() GetMethod(LSVARPTR &VarPtr, PCHAR Method, int argc, char *argv[])
+#define DECLAREGETMETHOD() bool GETMETHOD()
 #else
 #define GETMEMBER() GetMember(MQ2VARPTR VarPtr, PCHAR Member, PCHAR Index, MQ2TYPEVAR &Dest)
+#define DECLAREGETMETHOD()
 #endif
 
 #include "MQ2DataTypes.h"
@@ -423,6 +427,9 @@ EQLIB_API VOID FatalError(PCHAR szFormat, ...);
 EQLIB_API VOID MQ2DataError(PCHAR szFormat, ...);
 #endif
 EQLIB_API void DisplayOverlayText(PCHAR szText, DWORD dwColor, DWORD dwTransparency, DWORD msFadeIn, DWORD msFadeOut, DWORD msHold);
+
+EQLIB_API bool GetShortBuffID(PSPELLBUFF pBuff, DWORD &nID);
+EQLIB_API bool GetBuffID(PSPELLBUFF pBuff, DWORD &nID);
 
 /* MQ2DATAVARS */
 #ifndef ISXEQ

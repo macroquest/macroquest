@@ -39,6 +39,7 @@ EQLIB_VAR class MQ2MathType *pMathType;
 EQLIB_VAR class MQ2MacroType *pMacroType;
 EQLIB_VAR class MQ2PluginType *pPluginType;
 #define TypeMethod(x)
+#define AddMethod(x,y)
 #else
 #define Argb RGB
 #define MQ2VARPTR LSVARPTR
@@ -84,6 +85,7 @@ EQLIB_VAR class MQ2RaidMemberType *pRaidMemberType;
 #define UseTemp(mystring) strcpy(DataTypeTemp,mystring)
 #define TypeMember(name) AddMember((DWORD)name,""#name)
 
+#ifndef ISXEQ
 class MQ2BoolType : public MQ2Type
 {
 public:
@@ -164,6 +166,7 @@ public:
 		return true;
 	}
 };
+#endif
 class MQ2ArgbType : public MQ2Type
 {
 public:
@@ -240,7 +243,7 @@ public:
 		return true;
 	}
 };
-
+#ifndef ISXEQ
 class MQ2ByteType : public MQ2Type
 {
 public:
@@ -394,6 +397,7 @@ public:
 		return true;
 	}
 };
+#endif
 class MQ2TicksType : public MQ2Type
 {
 public:
@@ -594,6 +598,13 @@ public:
 		HeadingToLoc=83,
 		Title=84,
 	};
+	static enum SpawnMethods
+	{
+		Target=1,
+		Face=2,
+		FaceFast=3,
+		xAssist=4,
+	};
 	MQ2SpawnType():MQ2Type("spawn")
 	{
 		TypeMember(ID);//1,
@@ -677,6 +688,11 @@ public:
 		AddMember(xLineOfSight,"LineOfSight");
 		TypeMember(HeadingToLoc);
 		TypeMember(Title);  //84
+
+		TypeMethod(Target);
+		TypeMethod(Face);
+		TypeMethod(FaceFast);
+		AddMethod(xAssist,"Assist");
 	}
 
 	~MQ2SpawnType()
@@ -684,6 +700,7 @@ public:
 	}
 
 	bool GETMEMBER();
+	DECLAREGETMETHOD();
 
 	 bool ToString(MQ2VARPTR VarPtr, PCHAR Destination)
 	{
@@ -859,6 +876,9 @@ public:
 		EnduranceRegen=123,
 		FreeBuffSlots=124,
 	};
+	static enum CharacterMethods
+	{
+	};
 	MQ2CharacterType():MQ2Type("character")
 	{
 		TypeMember(ID);//1,
@@ -991,6 +1011,7 @@ public:
 	}
 
 	bool GETMEMBER();
+	DECLAREGETMETHOD();
 
 	 bool ToString(MQ2VARPTR VarPtr, PCHAR Destination)
 	{
@@ -1034,6 +1055,10 @@ public:
 		Duration=5,
 		Dar=6
 	};
+	static enum BuffMethods
+	{
+		Remove=1,
+	};
 	MQ2BuffType():MQ2Type("buff")
 	{
 		TypeMember(ID);
@@ -1042,6 +1067,8 @@ public:
 		TypeMember(Mod);
 		TypeMember(Duration);
 		TypeMember(Dar);
+
+		TypeMethod(Remove);
 	}
 
 	~MQ2BuffType()
@@ -1049,6 +1076,7 @@ public:
 	}
 
 	bool GETMEMBER();
+	DECLAREGETMETHOD();
 
 	 bool ToString(MQ2VARPTR VarPtr, PCHAR Destination)
 	{
@@ -1114,6 +1142,9 @@ public:
 		CastOnAnother=20, 
 		WearOff=21, 
 	};
+	static enum SpellMethods
+	{
+	};
 	MQ2SpellType():MQ2Type("spell")
 	{
 		TypeMember(ID);//1,
@@ -1144,6 +1175,7 @@ public:
 	}
 
 	bool GETMEMBER();
+	DECLAREGETMETHOD();
 
 	 bool ToString(MQ2VARPTR VarPtr, PCHAR Destination)
 	{
@@ -1269,6 +1301,9 @@ public:
 		Tribute=87,
 		Attuneable=88,
 	};
+	static enum ItemMethods
+	{
+	};
 	MQ2ItemType():MQ2Type("Item")
 	{
 		TypeMember(ID);//1,
@@ -1366,6 +1401,7 @@ public:
 	}
 
 	bool GETMEMBER();
+	DECLAREGETMETHOD();
 
 	 bool ToString(MQ2VARPTR VarPtr, PCHAR Destination)
 	{
@@ -1424,6 +1460,9 @@ public:
 		DefaultU=19,
 		xLineOfSight=20,
 	};
+	static enum SwitchMethods
+	{
+	};
 	MQ2SwitchType():MQ2Type("switch")
 	{
 		TypeMember(ID);//1,
@@ -1447,6 +1486,7 @@ public:
 	}
 
 	bool GETMEMBER();
+	DECLAREGETMETHOD();
 
 	 bool ToString(MQ2VARPTR VarPtr, PCHAR Destination)
 	{
@@ -1498,6 +1538,9 @@ public:
 		U=11,
 		xLineOfSight=12,
 	};
+	static enum GroundMethods
+	{
+	};
 	MQ2GroundType():MQ2Type("ground")
 	{
 		TypeMember(ID);//1,
@@ -1516,6 +1559,7 @@ public:
 	}
 
 	bool GETMEMBER();
+	DECLAREGETMETHOD();
 
 	 bool ToString(MQ2VARPTR VarPtr, PCHAR Destination)
 	{
@@ -1559,6 +1603,9 @@ public:
 		Item=2,
 		Items=3,
 	};
+	static enum CorpseMethods
+	{
+	};
 	MQ2CorpseType():MQ2Type("corpse")
 	{
 		TypeMember(Open);
@@ -1571,6 +1618,7 @@ public:
 	}
 
 	bool GETMEMBER();
+	DECLAREGETMETHOD();
 
 	 bool ToString(MQ2VARPTR VarPtr, PCHAR Destination)
 	{
@@ -1605,6 +1653,9 @@ public:
 		Items=3,
 		Open=4,
 	};
+	static enum MerchantMethods
+	{
+	};
 	MQ2MerchantType():MQ2Type("merchant")
 	{
 		TypeMember(Markup);
@@ -1619,6 +1670,7 @@ public:
 	}
 
 	bool GETMEMBER();
+	DECLAREGETMETHOD();
 
 	 bool ToString(MQ2VARPTR VarPtr, PCHAR Destination)
 	{
@@ -1679,6 +1731,18 @@ public:
 		Type=30,
 		Items=31,
 	};
+	static enum WindowMethods
+	{
+		LeftMouseDown=1,
+		LeftMouseUp=2,
+		LeftMouseHeldDown=3,
+		LeftMouseHeldUp=4,
+		RightMouseDown=5,
+		RightMouseUp=6,
+		RightMouseHeldDown=7,
+		RightMouseHeldUp=8,
+		ListSelect=9,
+	};
 	MQ2WindowType():MQ2Type("window")
 	{
 		TypeMember(Open);
@@ -1711,13 +1775,26 @@ public:
 		TypeMember(ScreenID);
 		TypeMember(Type);
 		TypeMember(Items);
- 	}
+
+	
+		TypeMethod(LeftMouseDown);
+		TypeMethod(LeftMouseUp);
+		TypeMethod(LeftMouseHeldDown);
+		TypeMethod(LeftMouseHeldUp);
+		TypeMethod(RightMouseDown);
+		TypeMethod(RightMouseUp);
+		TypeMethod(RightMouseHeldDown);
+		TypeMethod(RightMouseHeldUp);
+		TypeMethod(ListSelect);
+
+	}
 
 	~MQ2WindowType()
 	{
 	}
 
 	bool GETMEMBER();
+	DECLAREGETMETHOD();
 
 	 bool ToString(MQ2VARPTR VarPtr, PCHAR Destination)
 	{
@@ -1917,6 +1994,9 @@ public:
 		MouseY=11,
 		BuildDate=12,
 	};
+	static enum MacroQuestMethods
+	{
+	};
 	MQ2MacroQuestType():MQ2Type("macroquest")
 	{
 		TypeMember(GameState);
@@ -1938,6 +2018,7 @@ public:
 	}
 
 	bool GETMEMBER();
+	DECLAREGETMETHOD();
 
 	 bool ToString(MQ2VARPTR VarPtr, PCHAR Destination)
 	{
@@ -1952,7 +2033,7 @@ public:
 		return false;
 	}
 };
-
+#ifndef ISXEQ
 class MQ2MathType : public MQ2Type
 {
 public:
@@ -2010,7 +2091,7 @@ public:
 		return false;
 	}
 };
-
+#endif
 class MQ2RaceType : public MQ2Type
 {
 public:
@@ -2178,7 +2259,7 @@ public:
 		return true;
 	}
 };
-
+#ifndef ISXEQ
 class MQ2TimeType : public MQ2Type
 {
 public:
@@ -2247,6 +2328,7 @@ public:
 		return false;
 	}
 };
+#endif
 #ifndef ISXEQ
 class MQ2TypeType : public MQ2Type
 {
@@ -2297,6 +2379,9 @@ public:
 	  Clock=4,
 	  DegreesCCW=5,
    };
+	static enum HeadingMethods
+	{
+	};
    MQ2HeadingType():MQ2Type("heading")
    {
       TypeMember(Name);
@@ -2311,6 +2396,7 @@ public:
    }
 
    bool GETMEMBER();
+	DECLAREGETMETHOD();
 
    bool ToString(MQ2VARPTR VarPtr, PCHAR Destination)
    {
@@ -2343,6 +2429,9 @@ public:
 	   Name=4,
 	   Item=5,
    };
+	static enum InvSlotMethods
+	{
+	};
    MQ2InvSlotType():MQ2Type("invslot")
    {
       TypeMember(Pack);
@@ -2357,6 +2446,7 @@ public:
    }
 
    bool GETMEMBER();
+	DECLAREGETMETHOD();
 
    bool ToString(MQ2VARPTR VarPtr, PCHAR Destination)
    {
@@ -2491,6 +2581,9 @@ public:
 	   SkillCapPost50=8,
 	   AltTimer=9,
    };
+	static enum SkillMethods
+	{
+	};
    MQ2SkillType():MQ2Type("skill")
    {
 	  TypeMember(Name);
@@ -2509,6 +2602,7 @@ public:
    }
 
    bool GETMEMBER();
+	DECLAREGETMETHOD();
 
    bool ToString(MQ2VARPTR VarPtr, PCHAR Destination)
    {
@@ -2555,6 +2649,9 @@ public:
 	   ID=13,
 	   MyReuseTime=14,
    };
+	static enum AltAbilityMethods
+	{
+	};
    MQ2AltAbilityType():MQ2Type("altability")
    {
 	  TypeMember(Name);
@@ -2578,6 +2675,7 @@ public:
    }
 
    bool GETMEMBER();
+	DECLAREGETMETHOD();
 
    bool ToString(MQ2VARPTR VarPtr, PCHAR Destination)
    {
@@ -2612,6 +2710,9 @@ public:
 	   Value=1,
 	   OriginalValue=2,
    };
+	static enum TimerMethods
+	{
+	};
    MQ2TimerType():MQ2Type("timer")
    {
 	  TypeMember(Value);
@@ -2623,6 +2724,7 @@ public:
    }
 
    bool GETMEMBER();
+	DECLAREGETMETHOD();
 
    bool ToString(MQ2VARPTR VarPtr, PCHAR Destination)
    {
@@ -2750,6 +2852,9 @@ public:
 	   Looter=8,
 	   Looters=9,
    };
+	static enum RaidMethods
+	{
+	};
    MQ2RaidType():MQ2Type("raid")
    {
 	  AddMember(xMember,"Member");
@@ -2768,6 +2873,7 @@ public:
    }
 
    bool GETMEMBER();
+	DECLAREGETMETHOD();
 
    bool ToString(MQ2VARPTR VarPtr, PCHAR Destination)
    {
@@ -2797,6 +2903,9 @@ public:
 	   Class=8,
 	   Level=9,
    };
+	static enum RaidMemberMethods
+	{
+	};
    MQ2RaidMemberType():MQ2Type("raidmember")
    {
 	  TypeMember(Name);
@@ -2814,6 +2923,7 @@ public:
    }
 
    bool GETMEMBER();
+	DECLAREGETMETHOD();
 
    bool ToString(MQ2VARPTR VarPtr, PCHAR Destination)
    {
