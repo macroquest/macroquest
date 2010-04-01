@@ -288,6 +288,8 @@ PLUGIN_API VOID OnCleanUI(VOID)
 	if (MQChatWnd)
 	{
 		SaveChatToINI((PCSIDLWND)MQChatWnd);
+		DebugSpew("pChatMgr=%x",pChatMgr);
+		RemoveFromChatMgr((EQCHATWINDOW*)MQChatWnd);
 		delete MQChatWnd;
 		MQChatWnd=0;
 	}
@@ -322,33 +324,39 @@ PLUGIN_API VOID OnPulse(VOID)
 	{
 		CreateChatWindow();
 	}
-	if (MQChatWnd && PendingChatLines)
+	if (MQChatWnd)
 	{
-		DWORD ThisPulse=PendingChatLines;
-		if (ThisPulse>LINES_PER_FRAME)
-			ThisPulse=LINES_PER_FRAME;
-		PendingChatLines-=ThisPulse;
-		MQChatWnd->OutBoxLines+=ThisPulse;
-		if (MQChatWnd->OutBoxLines>MAX_CHAT_SIZE)
+		if(PendingChatLines)
 		{
-			DWORD Diff=(MQChatWnd->OutBoxLines-MAX_CHAT_SIZE)+LINES_PER_FRAME;
-			MQChatWnd->OutBoxLines-=Diff;
-			Benchmark(bmStripFirstStmlLines,MQChatWnd->OutputBox->StripFirstSTMLLines(Diff));
-		}
+			DWORD ThisPulse=PendingChatLines;
+			if (ThisPulse>LINES_PER_FRAME)
+				ThisPulse=LINES_PER_FRAME;
+			PendingChatLines-=ThisPulse;
+			MQChatWnd->OutBoxLines+=ThisPulse;
+			if (MQChatWnd->OutBoxLines>MAX_CHAT_SIZE)
+			{
+				DWORD Diff=(MQChatWnd->OutBoxLines-MAX_CHAT_SIZE)+LINES_PER_FRAME;
+				MQChatWnd->OutBoxLines-=Diff;
+				Benchmark(bmStripFirstStmlLines,MQChatWnd->OutputBox->StripFirstSTMLLines(Diff));
+			}
 
-		CXSize Whatever;
-		for (DWORD N = 0 ; N < ThisPulse ; N++)
-		{
-			DebugTry(MQChatWnd->OutputBox->AppendSTML(&Whatever,pPendingChat->Text));
-			ChatBuffer *pNext=pPendingChat->pNext;
-			delete pPendingChat;
-			pPendingChat=pNext;
+			CXSize Whatever;
+			for (DWORD N = 0 ; N < ThisPulse ; N++)
+			{
+				DebugTry(MQChatWnd->OutputBox->AppendSTML(&Whatever,pPendingChat->Text));
+				ChatBuffer *pNext=pPendingChat->pNext;
+				delete pPendingChat;
+				pPendingChat=pNext;
+			}
+			if (!pPendingChat)
+				pPendingChatTail=0;
+			DebugTry(((CXWnd*)MQChatWnd->OutputBox)->SetVScrollPos(MQChatWnd->OutputBox->VScrollMax));
 		}
-		if (!pPendingChat)
-			pPendingChatTail=0;
-		DebugTry(((CXWnd*)MQChatWnd->OutputBox)->SetVScrollPos(MQChatWnd->OutputBox->VScrollMax));
+		if(InHoverState())
+		{
+			((CXWnd*)MQChatWnd)->DoAllDrawing();
+		}
 	}
-
 }
 
 void CreateChatWindow()
@@ -362,6 +370,7 @@ void CreateChatWindow()
 		return;
 	LoadChatFromINI((PCSIDLWND)MQChatWnd);
 	SaveChatToINI((PCSIDLWND)MQChatWnd); // A) we're masochists, B) this creates the file if its not there..
+	AddToChatMgr((EQCHATWINDOW*)MQChatWnd);
 }
 
 VOID DoMQ2ChatBind(PCHAR Name,BOOL Down)

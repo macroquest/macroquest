@@ -1,3 +1,6 @@
+7 November 2006 by ieatacid
+- MQ2ChatWnd should now remain visible while in hover state
+
 31 October 2006 by ieatacid
 - Fix for Halloween crash
 

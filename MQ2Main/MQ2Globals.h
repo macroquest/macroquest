@@ -430,6 +430,9 @@ EQLIB_VAR PCONNECTION_T *ppConnection;
 EQLIB_VAR AURAINFO **ppAuraInfo;
 #define pAuraInfo (*ppAuraInfo)
 
+EQLIB_VAR EQCHATMGR **ppEQChatMgr;
+#define pChatMgr (*ppEQChatMgr)
+
 /* WINDOW INSTANCES */ 
 EQLIB_VAR CContextMenuManager **ppContextMenuManager;
 EQLIB_VAR CCursorAttachment **ppCursorAttachment;

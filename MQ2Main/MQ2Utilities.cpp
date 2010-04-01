@@ -5512,7 +5512,7 @@ DWORD GetSkillIDFromName(PCHAR name)
 
 bool InHoverState()
 {
-	if(GetCharInfo()->Stunned==3)
+	if(GetCharInfo() && GetCharInfo()->Stunned==3)
 		return true;
 	return false;
 }
