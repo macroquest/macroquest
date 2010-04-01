@@ -222,7 +222,7 @@ PMACROBLOCK AddMacroLine(PCHAR szLine)
         gEventFunc[EVENT_CHAT] = pBlock;
     } else if ((!stricmp(szLine,"Sub Event_Timer")) || (!strnicmp(szLine,"Sub Event_Timer(",16))) {
         gEventFunc[EVENT_TIMER] = pBlock;
-    } else {
+	} else {
         PEVENTLIST pEvent = pEventList;
         while (pEvent) {
             if (!stricmp(szLine,pEvent->szName)) {
@@ -431,24 +431,30 @@ VOID Goto(PSPAWNINFO pChar, PCHAR szLine)
         MacroError("Cannot goto when a macro isn't running.");
         return;
     }
-    while (gMacroBlock->pPrev) {
+    while (gMacroBlock->pPrev) 
+	{
         gMacroBlock=gMacroBlock->pPrev;
         if (!strnicmp(gMacroBlock->Line,"Sub ",4)) break;
     }
 
-    while (gMacroBlock->pNext) {
+    while (gMacroBlock->pNext) 
+	{
         gMacroBlock=gMacroBlock->pNext;
-        if (!strnicmp(gMacroBlock->Line,"Sub ",4)) {
+        if (!strnicmp(gMacroBlock->Line,"Sub ",4)) 
+		{
 			gMacroBlock=pFromLine;
             FatalError("Couldn't find label %s",szLine);
             return;
         }
-        if (!stricmp(szLine,gMacroBlock->Line)) {
+        if (!stricmp(szLine,gMacroBlock->Line)) 
+		{
 //            DebugSpewNoFile("Goto - went to label %s",szLine);
             return;
         }
     }
-    if (!stricmp(szLine,gMacroBlock->Line)) {
+
+    if (!stricmp(szLine,gMacroBlock->Line)) 
+	{
 //        DebugSpewNoFile("Goto - went to label %s",szLine);
         return;
     }
@@ -502,6 +508,27 @@ VOID EndMacro(PSPAWNINFO pChar, PCHAR szLine)
         MacroError("Cannot end a macro when one isn't running.");
         return;
     }
+
+	/////////////// 
+	// Code allowing for a routine for "OnExit"
+    while (gMacroBlock->pNext) 
+	{
+        gMacroBlock=gMacroBlock->pNext;
+		//DebugSpew("%s",gMacroBlock->Line);
+		if (!stricmp(":OnExit",gMacroBlock->Line)) 
+		{
+			if (gReturn)			// return to the macro the first time around
+			{
+				gReturn = false;	// We don't want to return the 2nd time.
+	            return;
+			}
+			else
+				break;
+        }
+    }
+	gReturn = true;			// reset for next time
+	//
+	///////////////
 
 #ifdef MQ2_PROFILING
     // How many performance counters in 1 second?

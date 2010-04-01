@@ -636,6 +636,26 @@ typedef struct _AALIST {
 #define      NUM_COMBAT_ABILITIES   0x64
 #define ExactLocation		 0
 
+typedef struct _LEADERABILITIES {
+/*0x00*/ DWORD MarkNPC;
+/*0x04*/ DWORD NPCHealth;
+/*0x08*/ DWORD Unknown0x8;
+/*0x0c*/ DWORD DelegateMA;
+/*0x10*/ DWORD DelegateMarkNPC;
+/*0x14*/ DWORD Unknown0x14;
+/*0x18*/ DWORD InspectBuffs;
+/*0x1c*/ DWORD Unknown0x1c;
+/*0x20*/ DWORD SpellAwareness;
+/*0x24*/ DWORD OffenseEnhancement;
+/*0x28*/ DWORD ManaEnhancement;
+/*0x2c*/ DWORD HealthEnhancement;
+/*0x30*/ DWORD HealthRegen;
+/*0x34*/ DWORD FindPathPC;
+/*0x38*/ DWORD HoTT;
+/*0x3c*/ DWORD Unknown0x3c;
+/*0x40*/
+} LEADERABILITIES, *PLEADERABILITIES;
+
 typedef struct _EQC_INFO {
 /* 0x0000 */    DWORD   minus4;
 /* 0x0004 */    DWORD   stuff_offset;
@@ -666,7 +686,9 @@ typedef struct _CHARINFO {
 /*0x00000*/   void      *vtable1;
 /*0x00004*/   void      *punknown;
 /*0x00008*/   struct     _CI_INFO* charinfo_info;
-/*0x0000c*/   BYTE       Unknown0xc[0xce4];
+/*0x0000c*/   BYTE       Unknown0xc[0xbe4];
+/*0x00bf0*/   struct     _LEADERABILITIES MyAbilities; //points spent in each ability (size 0x40)
+/*0x00c30*/   BYTE       Unknown0xc30[0xc0];
 /*0x00cf0*/   struct     _CONTENTS*   Bank[NUM_BANK_SLOTS];
 /*0x00d58*/   BYTE       unknown0xd58[0xd8];
 /*0x00e30*/   DWORD      GuildID; 
@@ -691,7 +713,8 @@ typedef struct _CHARINFO {
 /*0x00fd8*/   BYTE       Unknown0xfd8[0x5f8];
 /*0x015d0*/   CHAR       GroupMember[0x6][0x40];
 /*0x01750*/   CHAR       GroupLeader[0x40];
-/*0x01790*/   BYTE       Unknown0x1790[0x2a0];
+/*0x01790*/   struct     _LEADERABILITIES ActiveAbilities; //ability levels of the leader of your group (size 0x40)
+/*0x017d0*/   BYTE       Unknown0x17d0[0x260];
 /*0x01a30*/   DWORD      Exp;
 /*0x01a34*/   BYTE       Unknown0x1a34[0xd144];
 /*0x0eb78*/   void      *vtable2;
@@ -1651,12 +1674,12 @@ typedef struct _DYNAMICZONE {
 /*0x10c*/ WORD   MaxPlayers; // maybe?
 /*0x10e*/ BYTE   Unknown0x10e[0x2];
 /*0x110*/ struct _DZMEMBER *pMemberList;
-/*0x114*/ char   *expeditionName;
+/*0x114*/ PCHAR  expeditionName;
 /*0x118*/ // more?
 } DYNAMICZONE, *PDYNAMICZONE;
 
 typedef struct _CHATCHANNELS {
-/*0x000*/ char  *ChannelName[0xa];
+/*0x000*/ PCHAR  ChannelName[0xa];
 /*0x004*/
 } CHATCHANNELS, *PCHATCHANNELS;
 

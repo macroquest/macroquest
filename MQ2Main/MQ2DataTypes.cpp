@@ -419,6 +419,40 @@ bool MQ2StringType::GETMEMBER()
 			}
 		}
 		return false;
+	case Replace:
+		if (!ISINDEX())
+			return false;
+		{
+			char A[MAX_STRING]={0};
+			char B[MAX_STRING]={0};
+			char C[MAX_STRING]={0};
+			char *pos;
+			if (!ISINDEX()) 
+				return false; 
+			if (PCHAR pComma=strchr(Index,',')) 
+			{ 
+				strcpy(A,(char*)VarPtr.Ptr);
+				*pComma=0; 
+				strcpy(B,(char*)Index);
+				*pComma=','; 
+				strcpy(C,(char*)&pComma[1]);
+				if (!A || !B || !C)
+					return false;
+				while( ( pos = strstr( A , B ) ) != NULL )  /* if -> while */ 
+				{ 
+					DataTypeTemp[0] = '\0' ; 
+					strncat( DataTypeTemp , A , pos - A ) ; 
+					strcat( DataTypeTemp , C ) ; 
+					strcat( DataTypeTemp , pos + strlen( B ) ) ; 
+					strcpy( A, DataTypeTemp); /* added */
+				}
+				if (Dest.Ptr = DataTypeTemp)
+				{
+					Dest.Type = pStringType;
+					return true;
+				}
+			}
+		}
 	case Upper:
 		strcpy(DataTypeTemp,(char*)VarPtr.Ptr);
 		strupr(DataTypeTemp);
@@ -2866,6 +2900,54 @@ bool MQ2CharacterType::GETMEMBER()
 				return true;
 			}
 		}
+	case LAMarkNPC:
+		Dest.DWord=GetCharInfo()->ActiveAbilities.MarkNPC;
+		Dest.Type=pIntType;
+		return true;
+	case LANPCHealth:
+		Dest.DWord=GetCharInfo()->ActiveAbilities.NPCHealth;
+		Dest.Type=pIntType;
+		return true;
+	case LADelegateMA:
+		Dest.DWord=GetCharInfo()->ActiveAbilities.DelegateMA;
+		Dest.Type=pIntType;
+		return true;
+	case LADelegateMarkNPC:
+		Dest.DWord=GetCharInfo()->ActiveAbilities.DelegateMarkNPC;
+		Dest.Type=pIntType;
+		return true;
+	case LAInspectBuffs:
+		Dest.DWord=GetCharInfo()->ActiveAbilities.InspectBuffs;
+		Dest.Type=pIntType;
+		return true;
+	case LASpellAwareness:
+		Dest.DWord=GetCharInfo()->ActiveAbilities.SpellAwareness;
+		Dest.Type=pIntType;
+		return true;
+	case LAOffenseEnhancement:
+		Dest.DWord=GetCharInfo()->ActiveAbilities.OffenseEnhancement;
+		Dest.Type=pIntType;
+		return true;
+	case LAManaEnhancement:
+		Dest.DWord=GetCharInfo()->ActiveAbilities.ManaEnhancement;
+		Dest.Type=pIntType;
+		return true;
+	case LAHealthEnhancement:
+		Dest.DWord=GetCharInfo()->ActiveAbilities.HealthEnhancement;
+		Dest.Type=pIntType;
+		return true;
+	case LAHealthRegen:
+		Dest.DWord=GetCharInfo()->ActiveAbilities.HealthRegen;
+		Dest.Type=pIntType;
+		return true;
+	case LAFindPathPC:
+		Dest.DWord=GetCharInfo()->ActiveAbilities.FindPathPC;
+		Dest.Type=pIntType;
+		return true;
+	case LAHoTT:
+		Dest.DWord=GetCharInfo()->ActiveAbilities.HoTT;
+		Dest.Type=pIntType;
+		return true;
 	}
 	return false;
 #undef pChar

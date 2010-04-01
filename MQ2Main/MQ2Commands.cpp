@@ -1866,9 +1866,9 @@ VOID DoAbility(PSPAWNINFO pChar, PCHAR szLine)
     return;
   } 
   // scan for matching abilities name
-  for(Index=0; Index<128; Index++) {
-    if((Index< 100 && (SkillDict[Index])->Activated) ||
-      (Index>=100 && GetCharInfo2()->InnateSkill[Index-100]!=0xFF)) {
+  for(Index=0; Index < 128; Index++) {
+    if((Index < 100 && (SkillDict[Index])->Activated) ||
+      (Index >= 100 && GetCharInfo2()->InnateSkill[Index-100]!=0xFF)) {
       if(!strnicmp(szBuffer,szSkills[Index],strlen(szSkills[Index]))) {
         pCharData1->UseSkill((unsigned char)Index,(EQPlayer*)pCharData1);
         return;

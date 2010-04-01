@@ -27,10 +27,12 @@
 
 // Memory Protection
 #define __MemChecker0                                              0x4D5190
+#define __MemChecker1                                              0x5D8970
 #define __MemChecker2                                              0x500270
 #define __MemChecker3                                              0x500320
 #define __MemChecker4                                              0x5D3B90
 #define __EncryptPad0                                              0x7E3720
+#define __EncryptPad1                                              0x7ECE90
 #define __EncryptPad2                                              0x7E5860
 #define __EncryptPad3                                              0x7E5C60
 #define __EncryptPad4                                              0x7EC688

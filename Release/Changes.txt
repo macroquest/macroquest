@@ -1,3 +1,27 @@
+3 August 2006 by Amadeus
+* Added a new member to the 'string' datatype.
+  1. Replace[ToReplace,ReplaceWith]
+     a. This member will return a string replacing every instance of
+        'ToReplace' with 'ReplaceWith'.  It will work for both strings 
+        and individual characters.  IT IS CASE SENSITIVE.   
+     ~ Example: echo ${Me.Name.Replace["Amadeus","Maestro"]}
+                echo ${Me.Name.Replace[",","."]}  
+* Added a custom 'label' that you can put in your macros -- ":OnExit".
+  Anything included after that label will be called whenever an /endmacro
+  command is issued.  To use this feature, the label must be at the end 
+  of your 'Sub Main' function and end with a /return.  Please note that 
+  this is NOT required of macros, so no macros will have to be altered 
+  unless you wish to take advantage of this feature.  (See my posting
+  on the messageboards for an example of how to use this.)
+
+25 July 2006 by ieatacid
+- Added leadership ability members to character type that return
+  the ability level of *active* leader abilities.
+  ** LAMarkNPC, LANPCHealth, LADelegateMA, LADelegateMarkNPC,
+     LAInspectBuffs, LASpellAwareness, LAOffenseEnhancement,
+     LAManaEnhancement, LAHealthEnhancement, LAHealthRegen,
+     LAFindPathPC, LAHoTT.
+
 20 July 2006 by dkaa
 - Fix for the 7/18 patch
 - Fix to the ITEMINFO size 

@@ -292,6 +292,7 @@ public:
 		NotEqualCS=14,
 		Count=15,
 		Token=16,
+		Replace=17
 	};
 
 	MQ2StringType():MQ2Type("string")
@@ -312,6 +313,7 @@ public:
 		TypeMember(NotEqualCS);
 		TypeMember(Count);
 		TypeMember(Token);
+		TypeMember(Replace);
 	}
 
 	~MQ2StringType()
@@ -824,9 +826,21 @@ public:
 		RadiantCrystals=133,
 		EbonCrystals=134,
 		Shrouded=135,
-      AutoFire=136,
+		AutoFire=136,
 		Language=137,
 		Aura=138,
+		LAMarkNPC=139,
+		LANPCHealth=140,
+		LADelegateMA=141,
+		LADelegateMarkNPC=142,
+		LAInspectBuffs=143,
+		LASpellAwareness=144,
+		LAOffenseEnhancement=145,
+		LAManaEnhancement=146,
+		LAHealthEnhancement=147,
+		LAHealthRegen=148,
+		LAFindPathPC=149,
+		LAHoTT=150,
 	};
 	static enum CharacterMethods
 	{
@@ -959,9 +973,9 @@ public:
 		TypeMember(EnduranceRegen);
 		TypeMember(FreeBuffSlots); //124
 		TypeMember(CurrentWeight);
-      TypeMember(AAPointsSpent);
-      TypeMember(AAPointsTotal); 
-      TypeMember(TributeActive);
+		TypeMember(AAPointsSpent);
+		TypeMember(AAPointsTotal); 
+		TypeMember(TributeActive);
 		TypeMember(CombatAbilityReady);
 		TypeMember(Running);
 		TypeMember(GroupSize);
@@ -969,9 +983,21 @@ public:
 		TypeMember(RadiantCrystals);
 		TypeMember(EbonCrystals);
 		TypeMember(Shrouded);
-      TypeMember(AutoFire);
+		TypeMember(AutoFire);
 		TypeMember(Language);
 		TypeMember(Aura);
+		TypeMember(LAMarkNPC);
+		TypeMember(LANPCHealth);
+		TypeMember(LADelegateMA);
+		TypeMember(LADelegateMarkNPC);
+		TypeMember(LAInspectBuffs);
+		TypeMember(LASpellAwareness);
+		TypeMember(LAOffenseEnhancement);
+		TypeMember(LAManaEnhancement);
+		TypeMember(LAHealthEnhancement);
+		TypeMember(LAHealthRegen);
+		TypeMember(LAFindPathPC);
+		TypeMember(LAHoTT);
 
 		TypeMethod(Stand); 
 		TypeMethod(Sit); 

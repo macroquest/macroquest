@@ -117,6 +117,7 @@ DWORD gEventChat = 0;
 DWORD gRunning = 0;
 BOOL gbMoving = FALSE;
 DWORD gMaxTurbo = 10;
+BOOL gReturn = TRUE;
 BOOL gInClick = FALSE;
 BOOL gbInZone = FALSE;
 BOOL gZoning = FALSE;
@@ -198,6 +199,7 @@ PSKILL *SkillDict=(PSKILL*)__SkillDict;
 
 DWORD EQADDR_HWND=__HWnd;
 DWORD EQADDR_MEMCHECK0=__MemChecker0;
+DWORD EQADDR_MEMCHECK1=__MemChecker1;
 DWORD EQADDR_MEMCHECK2=__MemChecker2;
 DWORD EQADDR_MEMCHECK3=__MemChecker3;
 DWORD EQADDR_MEMCHECK4=__MemChecker4;
@@ -235,6 +237,7 @@ PCHAR szEQMappableCommands[nEQMappableCommands];
 map<string,unsigned long> ItemSlotMap;
 
 PBYTE EQADDR_ENCRYPTPAD0=(PBYTE)__EncryptPad0;
+PBYTE EQADDR_ENCRYPTPAD1=(PBYTE)__EncryptPad1;
 PBYTE EQADDR_ENCRYPTPAD2=(PBYTE)__EncryptPad2;
 PBYTE EQADDR_ENCRYPTPAD3=(PBYTE)__EncryptPad3;
 PBYTE EQADDR_ENCRYPTPAD4=(PBYTE)__EncryptPad4;
