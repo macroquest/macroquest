@@ -1,3 +1,6 @@
+26 May 2005 by DKAA
+- Plugins must have compile time later than mq2main.dll or they won't load
+
 25 May 2005 by Amadeus
 - Added Me.CombatAbilityReady and Me.CombatAbilityTimer
 - Added:  /doability <combat ability>

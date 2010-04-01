@@ -33,9 +33,24 @@
 CRITICAL_SECTION gPluginCS;
 BOOL bPluginCS=0;
 
+DWORD checkme(char *module)
+{
+    char *p;
+    PIMAGE_DOS_HEADER pd = (PIMAGE_DOS_HEADER)module;
+    PIMAGE_FILE_HEADER pf;
+    p = module + pd->e_lfanew;
+    p += 4;  //skip sig
+    pf = (PIMAGE_FILE_HEADER) p;
+    return pf->TimeDateStamp;
+}
+
+static unsigned int mq2mainstamp = 0;
+
+
 DWORD LoadMQ2Plugin(const PCHAR pszFilename)
 {
 	CHAR Filename[MAX_PATH]={0};
+
 	strcpy(Filename,pszFilename);
 	strlwr(Filename);
 	PCHAR Temp=strstr(Filename,".dll");
@@ -51,12 +66,22 @@ DWORD LoadMQ2Plugin(const PCHAR pszFilename)
 	DebugSpew("LoadMQ2Plugin(%s)",Filename);
 	CHAR FullFilename[MAX_STRING]={0};
 	sprintf(FullFilename,"%s\\%s.dll",gszINIPath,Filename);
+    
+    if (!mq2mainstamp) {
+        mq2mainstamp = checkme((char*)GetModuleHandle("mq2main.dll"));
+    }
+
 	HMODULE hmod=LoadLibrary(FullFilename);
 	if (!hmod)
 	{
 		DebugSpew("LoadMQ2Plugin(%s) Failed",Filename);
 		return 0;
 	}
+    if (mq2mainstamp > checkme((char*)hmod)) {
+        DebugSpew("Please recompile %s %d %d", FullFilename, mq2mainstamp, checkme((char*)hmod));
+        FreeLibrary(hmod);
+        return 0;
+    }
 
 	PMQPLUGIN pPlugin=pPlugins;
 	while(pPlugin)
