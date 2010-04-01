@@ -1015,7 +1015,7 @@ typedef struct _SPAWNINFO {
 /*0x03cc*/ FLOAT    WalkSpeed;
 /*0x03d0*/ BYTE     Unknown0x3d0[0x8];
 /*0x03d8*/ DWORD    AFK;
-/*0x03dc*/ BYTE     Unknown0x3dc[0x4];
+/*0x03dc*/ DWORD    AARank;
 /*0x03e0*/ DWORD    Deity;
 /*0x03e4*/ BYTE     Unknown0x3e4[0x4];
 /*0x03e8*/ DWORD    MasterID;
@@ -1072,14 +1072,12 @@ typedef struct _SPAWNINFO {
 /*0x0f7c*/ struct  _MODELINFO *Model[0x11];
 /*0x0fc0*/ BYTE     Unknown0xfc0[0x80];
 /*0x1040*/ BYTE     InvitedToGroup;
-/*0x1041*/ BYTE     Unknown0x1041[0x163];
-/*0x11a4*/ DWORD    AARank;
-/*0x11a8*/ BYTE     Unknown0x11a8[0x74];
+/*0x1041*/ BYTE     Unknown0x1041[0x1db];
 /*0x121c*/ void    *vtable2;
 /*0x1220*/ DWORD    Unknown0x1220;
 /*0x1224*/ struct  _SPAWNINFO *pSpawn;
 /*0x1228*/ BYTE     Levitate;
-/*0x1229*/ BYTE     Unknown0x122c[0x1b];
+/*0x1229*/ BYTE     Unknown0x1229[0x1b];
 /*0x1244*/
 } SPAWNINFO, *PSPAWNINFO;
 

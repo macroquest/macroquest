@@ -371,11 +371,9 @@ EQLIB_API BOOL DumpBinds(PCHAR Filename);
 EQLIB_API BOOL MQ2HandleKeyDown(class KeyCombo const &Combo);
 EQLIB_API BOOL MQ2HandleKeyUp(class KeyCombo const &Combo);
 
-#ifndef ISXEQ
 /* PULSING */
 EQLIB_API VOID InitializeMQ2Pulse();
 EQLIB_API VOID ShutdownMQ2Pulse();
-#endif
 
 /* OTHER IMPORTED FROM EQ */
 EQLIB_API int CastRay(PSPAWNINFO,float y,float x,float z);

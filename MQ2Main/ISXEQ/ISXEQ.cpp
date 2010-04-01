@@ -81,7 +81,7 @@ bool CISXEQ::Initialize(ISInterface *p_ISInterface)
 		filename++;
 	else
 		filename=CurrentModule;
-	if (stricmp(CurrentModule,"eqgame.exe"))
+	if (stricmp(filename,"eqgame.exe"))
 	{
 		printf("ISXEQ is only meant to be used in eqgame.exe");
 		return false;

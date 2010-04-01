@@ -56,17 +56,22 @@ class CXWnd * CXWnd::GetChildItem(PCHAR Name)
 		pWnd=(CXWnd*)pChildren;
 	else
 		pWnd=pWndMgr->GetFirstChildWnd(this);
-	DebugSpew("CXWnd::GetChildItem(%s). pWnd=0x%08X",Name,pWnd);
+	//DebugSpew("CXWnd::GetChildItem(%s). pWnd=0x%08X",Name,pWnd);
 	CHAR Buffer[MAX_STRING]={0};
 	while(pWnd)
 	{
 		if (CXMLData *pXMLData=pWnd->GetXMLData())
 		{
-			DebugSpew("GetChildItem() Got pXMLData",Name,pWnd);
-			if (GetCXStr(pXMLData->Name.Ptr,Buffer,MAX_STRING) && !stricmp(Buffer,Name))
+			if (GetCXStr(pXMLData->Name.Ptr,Buffer,MAX_STRING) && !stricmp(Buffer,Name)) {
+//DebugSpew("GetChildItem() 0x%x %s == %s", pWnd, Name, Buffer);
 				return pWnd;
-			if (GetCXStr(pXMLData->ScreenID.Ptr,Buffer,MAX_STRING) && !stricmp(Buffer,Name))
+                        }
+//DebugSpew("GetChildItem() %s != %s",Name,Buffer);
+			if (GetCXStr(pXMLData->ScreenID.Ptr,Buffer,MAX_STRING) && !stricmp(Buffer,Name)) {
+//DebugSpew("GetChildItem() 0x%x %s == %s",pWnd, Name, Buffer);
 				return pWnd;
+                        }
+//DebugSpew("GetChildItem() %s != %s",Name,Buffer);
 		}
 		CXWnd *pChild=pWnd->GetChildItem(Name);
 		if (pChild)
@@ -83,17 +88,19 @@ class CXWnd * CSidlScreenWnd::GetChildItem(PCHAR Name)
 		pWnd=(CXWnd*)pChildren;
 	else
 		pWnd=pWndMgr->GetFirstChildWnd((CXWnd*)this);
-	DebugSpew("CSidlScreenWnd::GetChildItem(%s). pWnd=0x%08X",Name,pWnd);
+	//DebugSpew("CSidlScreenWnd::GetChildItem(%s). pWnd=0x%08X",Name,pWnd);
 	CHAR Buffer[MAX_STRING]={0};
 	while(pWnd)
 	{
 		if (CXMLData *pXMLData=pWnd->GetXMLData())
 		{
-			DebugSpew("GetChildItem() Got pXMLData",Name,pWnd);
+			//DebugSpew("GetChildItem() Got pXMLData",Name,pWnd);
 			if (GetCXStr(pXMLData->Name.Ptr,Buffer,MAX_STRING) && !stricmp(Buffer,Name))
 				return pWnd;
+//DebugSpew("GetChildItem() %s != %s",Name,Buffer);
 			if (GetCXStr(pXMLData->ScreenID.Ptr,Buffer,MAX_STRING) && !stricmp(Buffer,Name))
 				return pWnd;
+//DebugSpew("GetChildItem() %s != %s",Name,Buffer);
 		}
 		CXWnd *pChild=pWnd->GetChildItem(Name);
 		if (pChild)
@@ -7496,7 +7503,7 @@ FUNCTION_AT_ADDRESS(int  CListWnd::GetCurCol(void)const ,CListWnd__GetCurCol);
 FUNCTION_AT_ADDRESS(unsigned __int32  CListWnd::GetItemData(int)const ,CListWnd__GetItemData);
 #endif
 #ifdef CListWnd__GetItemText
-FUNCTION_AT_ADDRESS(class CXStr  CListWnd::GetItemText(int,int)const ,CListWnd__GetItemText);
+FUNCTION_AT_ADDRESS(class CXStr *CListWnd::GetItemText(class CXStr *,int,int)const ,CListWnd__GetItemText);
 #endif
 #ifdef CListWnd__GetItemIcon
 FUNCTION_AT_ADDRESS(class CTextureAnimation const *  CListWnd::GetItemIcon(int,int)const ,CListWnd__GetItemIcon);

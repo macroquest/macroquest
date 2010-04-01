@@ -3652,7 +3652,7 @@ DebugSpew("List: index is %d\n", n);
 #else
 		if (argc==2)
 		{
-			n=atoi(argv[0]);
+			n=atoi(argv[1])-1;
 			if (n<0) 
 				n=0;
 		}
@@ -3663,7 +3663,8 @@ DebugSpew("List: index is %d\n", n);
 			if (!nIndex)
 				return false;
 			nIndex--;
-			CXStr Str=((CListWnd*)pWnd)->GetItemText(nIndex,n);
+			CXStr Str;
+                        ((CListWnd*)pWnd)->GetItemText(&Str, nIndex, n);
 			GetCXStr(Str.Ptr,DataTypeTemp,MAX_STRING);
 			Dest.Ptr=&DataTypeTemp[0];
 			Dest.Type=pStringType;
@@ -3685,7 +3686,8 @@ DebugSpew("List: index is %d\n", n);
 			unsigned long nIndex=0;
 			while(1)
 			{
-				CXStr Str=((CListWnd*)pWnd)->GetItemText(nIndex,n);
+				CXStr Str;
+                                ((CListWnd*)pWnd)->GetItemText(&Str, nIndex,n);
 				GetCXStr(Str.Ptr,DataTypeTemp,MAX_STRING);
 				if (DataTypeTemp[0]==0)
 					return false;
@@ -3756,6 +3758,7 @@ DebugSpew("List: index is %d\n", n);
 	case Items:
 		if (((CXWnd*)pWnd)->GetType()==UI_Listbox)
 		{
+DebugSpew("Items: from window 0x%x\n", pWnd);
 			Dest.DWord=((CSidlScreenWnd*)pWnd)->SlotID;
 			Dest.Type=pIntType;
 		}

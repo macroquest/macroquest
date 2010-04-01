@@ -426,7 +426,7 @@
 // CMerchantWnd
 #define CMerchantWnd__DisplayBuyOrSellPrice                        0x580350
 #define CMerchantWnd__RequestBuyItem                               0x581990
-#define CMerchantWnd__RequestSellItem                              0x5805B0
+#define CMerchantWnd__RequestSellItem                              0x580A80
 #define CMerchantWnd__SelectBuySellSlot                            0x581690
 
 // CSidlManager

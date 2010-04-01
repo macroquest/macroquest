@@ -814,11 +814,11 @@ EQLIB_OBJECT static bool CSidlScreenWnd::m_useIniFile;
 /*0x128*/   struct  _CSIDLWND *pSiblings;
 /*0x12c*/   struct  _CSIDLWND *pParentWindow; // If this is NULL, coordinates are absolute...
 /*0x130*/   ARGBCOLOR BGColor;
-/*0x134*/   struct _CXSTR  *SidlText;
-/*0x138*/   union {
+/*0x134*/   union {
                 struct _CXSTR  *SidlScreen;
                 DWORD   SlotID;
             };
+/*0x138*/   struct _CXSTR  *SidlText;
 /*0x13c*/   LPVOID SidlPiece;   // CScreenPieceTemplate (important)
 /*0x140*/   BYTE    Checked;
 /*0x141*/   BYTE    Highlighted;
@@ -2942,7 +2942,7 @@ EQLIB_OBJECT class CXRect CListWnd::GetHeaderRect(int)const;
 EQLIB_OBJECT class CXRect CListWnd::GetItemRect(int,int)const;
 EQLIB_OBJECT class CXRect CListWnd::GetSeparatorRect(int)const;
 EQLIB_OBJECT class CXStr CListWnd::GetColumnLabel(int)const;
-EQLIB_OBJECT class CXStr CListWnd::GetItemText(int,int)const;
+EQLIB_OBJECT class CXStr *CListWnd::GetItemText(class CXStr *,int,int)const;
 EQLIB_OBJECT int CListWnd::AddColumn(class CXStr,class CTextureAnimation *,int,unsigned __int32,unsigned __int32,class CTextureAnimation *,class CTextureAnimation *);
 EQLIB_OBJECT int CListWnd::AddColumn(class CXStr,int,unsigned __int32,unsigned __int32);
 EQLIB_OBJECT int CListWnd::AddLine(class SListWndLine const *);

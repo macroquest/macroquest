@@ -1,3 +1,9 @@
+29 Mar 2006 by dkaa
+- Fixed /sellitem
+
+27 Mar 2006 by dkaa
+- Fixed the CSidlScreenWnd struct
+
 24 Mar 2006 by dkaa
 - Fix the container manager struct
 
