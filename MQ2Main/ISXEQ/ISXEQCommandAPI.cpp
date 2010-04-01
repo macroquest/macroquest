@@ -20,6 +20,7 @@
 
 #include "..\MQ2Main.h"
 
+/*
 typedef struct _ISXEQAlias
 {
 	char Replacement[256];
@@ -72,8 +73,30 @@ bool RemoveISXEQAlias(const char *Token)
 	ISXEQAliases[Temp]=0;
 	return true;
 }
+/**/
 
 extern VOID StrReplaceSection(PCHAR szInsert,DWORD Length,PCHAR szNewString);
+
+
+bool ExecuteISCommand(char *Command, char *Parameters=0)
+{
+	char Temp[4096]={0};
+	if (!pISInterface->IsAlias(Command) && !pISInterface->ResolveCommand(Command,Temp,sizeof(Temp)))
+	{
+		return false;
+	}
+
+	if (Parameters)
+	{
+		sprintf(Temp,"%s %s",Command,Parameters);
+		pISInterface->ExecuteCommand(Temp);
+	}
+	else
+		pISInterface->ExecuteCommand(Command);
+
+	return true;
+}
+
 class CCommandHook 
 { 
 public: 
@@ -82,21 +105,40 @@ public:
 		//DebugSpew("CCommandHook::Detour(%s)",szFullLine);
 
 		// apply one alias
-		char FullCommand[8192];
+		char FullCommand[4096];
 		strcpy(FullCommand,szFullLine);
 		szFullLine=FullCommand;
+
+		char CommandName[256]={0};
 
 		char *pSpace=strchr(FullCommand,' ');
 		if (pSpace)
 			*pSpace=0;
-
-		PISXEQALIAS pAlias=FindISXEQAlias(FullCommand);
-		StrReplaceSection(FullCommand,strlen(FullCommand),pAlias->Replacement);
-
+		strcpy(CommandName,FullCommand);
 		if (pSpace)
+		{
 			*pSpace=' ';
+			pSpace++;
+		}
 
+		if (CommandName[0]!='/' || !CommandName[1] || !ExecuteISCommand(&CommandName[1],pSpace))
+		{
+			char FullCommand[8192]={0};
+			strcpy(FullCommand,szFullLine);
+			pISInterface->DataParse(FullCommand);
+			Trampoline(pChar,FullCommand); 
+		}
+		strcpy(szLastCommand,FullCommand);
 
+		/*
+		PISXEQALIAS pAlias=FindISXEQAlias(CommandName);
+		if (pAlias)
+			StrReplaceSection(CommandName,strlen(CommandName),pAlias->Replacement);
+
+		if (CommandName[0]=='/' && CommandName[1] && pISInterface->IsCommand(&CommandName[1]))
+		{
+
+		}
 		if (szFullLine[0]=='#')
 		{
 			pISInterface->ExecuteCommand(&szFullLine[1]);
@@ -110,6 +152,7 @@ public:
 			Trampoline(pChar,FullCommand); 
 			strcpy(szLastCommand,FullCommand);
 		}
+		/**/
 	} 
 
 	VOID Trampoline(PSPAWNINFO pChar, PCHAR szFullLine); 
@@ -135,6 +178,8 @@ int CMD_EQExecute(int argc, char *argv[])
 	((CCommandHook*)pEverQuest)->Trampoline((PSPAWNINFO)pLocalPlayer,Line);
 	return 0;
 }
+
+/*
 
 int CMD_EQAlias(int argc, char *argv[])
 {
@@ -181,6 +226,7 @@ int CMD_EQAlias(int argc, char *argv[])
 	}
 	return 0;
 }
+/**/
 
 void InitializeMQ2Commands()
 {
@@ -203,6 +249,7 @@ void ShutdownMQ2Commands()
 
 	EzUnDetour(CEverQuest__InterpretCmd);
 
+	/*
 	for(map<string,PISXEQALIAS>::iterator i = ISXEQAliases.begin();i != ISXEQAliases.end();i++)
 	{
 		if (PISXEQALIAS pAlias=i->second)
@@ -211,5 +258,6 @@ void ShutdownMQ2Commands()
 		}
 	}
 	ISXEQAliases.clear();
+	/**/
 }
 

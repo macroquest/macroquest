@@ -739,6 +739,7 @@ VOID DefaultFilters(VOID)
     AddFilter("You are hungry",                                                         13, &gFilterFood);
     AddFilter("You are thirsty",                                                        14, &gFilterFood);
     AddFilter("You take a bite out of",                                                 22, &gFilterFood);
+    AddFilter("You take a bite of",                                                     18, &gFilterFood);
     AddFilter("You take a drink from",                                                  21, &gFilterFood);
     AddFilter("Ahhh. That was tasty.",                                                  -1, &gFilterFood);
     AddFilter("Ahhh. That was refreshing.",                                             -1, &gFilterFood);
@@ -3543,7 +3544,8 @@ enum eCalcOp
 	CO_NOT=22,
 	CO_SHL=23,
 	CO_SHR=24,
-	CO_TOTAL=25,
+	CO_NEGATE=25,
+	CO_TOTAL=26,
 };
 
 int CalcOpPrecedence[CO_TOTAL]=
@@ -3573,6 +3575,7 @@ int CalcOpPrecedence[CO_TOTAL]=
 	12,//bitwise not
 	8,//shl
 	8,//shr
+	12,//negate
 };
 
 struct _CalcOp
@@ -3617,6 +3620,9 @@ BOOL EvaluateRPN(_CalcOp *pList, int Size, DOUBLE &Result)
 			break;
 		case CO_SUBTRACT:
 			BinaryAssign(-);
+			break;
+		case CO_NEGATE:
+			UnaryIntOp(-);
 			break;
 		case CO_DIVIDE:
 			if (StackTop())
@@ -3775,7 +3781,7 @@ BOOL FastCalculate(PCHAR szFormula, DOUBLE &Result)
 #define NewOp(op) {FinishString();MoveStack(op);StackPush(op);}
 #define NextChar(ch) {*pToken=ch;pToken++;}
 
-
+	bool WasParen=false;
 	for (char *pCur=szFormula ; pCur<pEnd ; pCur++)
 	{
 		switch(*pCur)
@@ -3794,17 +3800,18 @@ BOOL FastCalculate(PCHAR szFormula, DOUBLE &Result)
 				StackPop();
 			}
 			StackPop();
-			break;
+			WasParen=true;
+			continue;
 		case '+':
 			NewOp(CO_ADD);
 			break;
 		case '-':
-			if (CurrentToken[0])
-			{
-				NewOp(CO_SUBTRACT);
-			}
-			else
-				NextChar('-');
+			if (CurrentToken[0] || WasParen) 
+			{ 
+				NewOp(CO_SUBTRACT); 
+			} 
+			else 
+				NewOp(CO_NEGATE);
 			break;
 		case '*':
 			NewOp(CO_MULTIPLY);
@@ -3942,6 +3949,7 @@ BOOL FastCalculate(PCHAR szFormula, DOUBLE &Result)
 			}
 			break;
 		}
+		WasParen=false;
 	}
 	FinishString();
 

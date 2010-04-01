@@ -142,7 +142,13 @@ void CISXEQ::RegisterDataTypes()
 #define DATATYPE(_class_,_variable_) _variable_ = new _class_; pISInterface->AddLSType(*_variable_);
 #include "ISXEQDataTypes.h"
 #undef DATATYPE
+	pGroupMemberType->SetInheritance(pSpawnType);
 
+	// NOTE: SetInheritance does NOT make it inherit, just notifies the syntax checker...
+	pCharacterType->SetInheritance(pSpawnType);
+	pBuffType->SetInheritance(pSpellType);
+//	pCurrentZoneType->SetInheritance(pZoneType);
+	pRaidMemberType->SetInheritance(pSpawnType);
 }
 
 void CISXEQ::RegisterTopLevelObjects()

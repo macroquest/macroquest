@@ -113,6 +113,9 @@ published by
 ////
 //Section 2:  UI Related Offsets
 ////
+#define pinstCBarterMerchantWnd							   0x7411AC
+#define pinstCBarterSearchWnd							   0x7411C8
+#define pinstCBarterWnd									   0x7411E4
 #define pinstCTextOverlay                                  0x741300
 #define pinstCharacterSelect                               0x7F58C4
 #define pinstCFacePick                                     0x7F58C8
@@ -130,6 +133,8 @@ published by
 #define pinstCLoadskinWnd                                  0x7F5900
 #define pinstCAlarmWnd                                     0x7F5904
 #define pinstCMusicPlayerWnd                               0x7F5908
+#define pinstCMailWnd									   0x7F590C
+#define pinstCMailCompositionWnd						   0x7F5910
 #define pinstCRaidWnd                                      0x7F5914
 #define pinstCRaidOptionsWnd                               0x7F5918
 #define pinstCBreathWnd                                    0x7F591C
@@ -189,17 +194,30 @@ published by
 #define pinstCFindLocationWnd                              0x9293C0
 #define pinstCGroupSearchWnd                               0x9294B8
 #define pinstCGroupWnd                                     0x9294D4
+#define pinstCGuildBankWnd								   0x9294F0
 #define pinstCGuildMgmtWnd                                 0x92950C
+#define pinstCGuildTributeMasterWnd						   0x929528
 #define pinstCItemDisplayManager                           0x9295F0
 #define pinstCLeadershipWnd                                0x9296D8
+#define pinstCLFGuildWnd								   0x9296F4
+#define pinstCPointMerchantWnd							   0x929AC4
 #define pinstCPopupWndManager                              0x929AE0
+#define pinstCPvpLeaderboardWnd							   0x929B1C
+#define pinstCPvpStatsWnd								   0x929B54
+#define pinstCLargeDialogWnd							   0x929C00
 #define pinstCSystemInfoDialogBox                          0x92A490
 #define pinstCTargetOfTargetWnd                            0x92A4B4
+#define pinstCTaskSelectWnd								   0x92A4E8
+#define pinstCTaskWnd									   0x92A504
+#define pinstCTicketCommentWnd							   0x92A538
+#define pinstCTicketWnd									   0x92A570
 #define pinstCTipWndOFDAY                                  0x92A5A4
 #define pinstCTipWndCONTEXT                                0x92A5A8
+#define pinstCTitleWnd									   0x92A5DC
 #define pinstCTradeskillWnd                                0x92A6A0
 #define pinstCTributeBenefitWnd                            0x92A6EC
 #define pinstCTributeMasterWnd                             0x92A708
+#define pinstCVoiceMacroWnd								   0x934764
 #define pinstCContextMenuManager                           0x940AF4
 // unknown window added 4-14 exe 0x79A234
 

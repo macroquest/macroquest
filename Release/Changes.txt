@@ -1,3 +1,6 @@
+4 May 2005 by Lax
+- Fixed calculation bugs
+
 17 April 2005 by Amadeus
 - Added "Suffix" information to structs
 - Added ${Me.Suffix} and ${Target.Suffix} 

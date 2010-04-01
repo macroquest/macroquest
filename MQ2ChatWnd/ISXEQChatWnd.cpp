@@ -19,10 +19,12 @@ struct ChatBuffer
 	ChatBuffer *pNext;
 	ChatBuffer *pPrev;
 };
+
 DWORD bmStripFirstStmlLines=0;
 DWORD PendingChatLines=0;
 ChatBuffer* pPendingChat=0;
 ChatBuffer* pPendingChatTail=0;
+CSemaphore ChatS;
 
 #define MAX_CHAT_SIZE 700
 #define LINES_PER_FRAME 3
@@ -109,6 +111,7 @@ ISInterface *pISInterface=0;
 HISXSERVICE hPulseService=0;
 HISXSERVICE hMemoryService=0;
 HISXSERVICE hServicesService=0;
+HISXSERVICE hConsoleService=0;
 
 HISXSERVICE hEQChatService=0;
 HISXSERVICE hEQUIService=0;
@@ -120,7 +123,7 @@ HISXSERVICE hEQZoneService=0;
 void __cdecl PulseService(bool Broadcast, unsigned long MSG, void *lpData);
 void __cdecl MemoryService(bool Broadcast, unsigned long MSG, void *lpData);
 void __cdecl ServicesService(bool Broadcast, unsigned long MSG, void *lpData);
-
+void __cdecl ConsoleService(bool Broadcast, unsigned long MSG, void *lpData);
 
 // Initialize is called by Inner Space when the extension should initialize.
 bool ISXEQChatWnd::Initialize(ISInterface *p_ISInterface)
@@ -197,7 +200,7 @@ void ISXEQChatWnd::ConnectServices()
 	hPulseService=pISInterface->ConnectService(this,"Pulse",PulseService);
 	hMemoryService=pISInterface->ConnectService(this,"Memory",MemoryService);
 	hServicesService=pISInterface->ConnectService(this,"Services",ServicesService);
-
+	hConsoleService=pISInterface->ConnectService(this,"Console",ConsoleService);
 
 }
 
@@ -241,6 +244,8 @@ void ISXEQChatWnd::RegisterServices()
 void ISXEQChatWnd::DisconnectServices()
 {
 	// gracefully disconnect from services
+	if (hConsoleService)
+		pISInterface->DisconnectService(this,hConsoleService);
 	if (hPulseService)
 		pISInterface->DisconnectService(this,hPulseService);
 	if (hMemoryService)
@@ -453,6 +458,7 @@ void __cdecl EQChatService(bool Broadcast, unsigned long MSG, void *lpData)
 			CXStr NewText(szProcessed);
 			DebugTry(ConvertItemTags(NewText,0));
 
+			CLock L(&ChatS,1);
 			ChatBuffer *pNewBuffer = new ChatBuffer;
 			GetCXStr(NewText.Ptr,pNewBuffer->Text,MAX_STRING);
 			pNewBuffer->pPrev=pPendingChatTail;
@@ -471,6 +477,54 @@ void __cdecl EQChatService(bool Broadcast, unsigned long MSG, void *lpData)
 	}
 #undef pChat
 }
+
+void __cdecl ConsoleService(bool Broadcast, unsigned long MSG, void *lpData)
+{
+#define pConsOutput ((char *)lpData)
+	if (MSG!=CONSOLE_OUTPUT)
+		return;
+	// same as OnWriteChatColor
+	if (!MQChatWnd)
+	{
+		EQGamestateService(false,GAMESTATESERVICE_CHANGED,(void*)gGameState);
+		if (!MQChatWnd)
+			return;
+	}
+	MQChatWnd->Show=1;
+
+	PFILTER pFilter = gpFilters;
+
+	while (pFilter) 
+	{
+		if (!pFilter->pEnabled || (*pFilter->pEnabled))
+		{
+			if (!strnicmp(pConsOutput,pFilter->FilterText,pFilter->Length))
+				return;
+		}
+		pFilter = pFilter->pNext;
+	}
+	DWORD Color=pChatManager->GetRGBAFromIndex(USERCOLOR_DEFAULT);
+
+	CHAR szProcessed[MAX_STRING];
+	MQToSTML(pConsOutput,szProcessed,MAX_STRING,Color);
+	strcat(szProcessed,"<br>");
+	CXStr NewText(szProcessed);
+	DebugTry(ConvertItemTags(NewText,0));
+	
+	CLock L(&ChatS,1);
+
+	ChatBuffer *pNewBuffer = new ChatBuffer;
+	GetCXStr(NewText.Ptr,pNewBuffer->Text,MAX_STRING);
+	pNewBuffer->pPrev=pPendingChatTail;
+	pNewBuffer->pNext=0;
+	if (pPendingChatTail)
+		pPendingChatTail->pNext=pNewBuffer;
+	else
+		pPendingChat=pNewBuffer;
+	pPendingChatTail=pNewBuffer;
+	PendingChatLines++;
+}
+#undef pConsOutput 
 
 // This uses the Services service to connect to ISXEQ services
 void __cdecl ServicesService(bool Broadcast, unsigned long MSG, void *lpData)

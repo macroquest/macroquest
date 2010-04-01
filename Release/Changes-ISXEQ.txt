@@ -1,3 +1,10 @@
+4 May 2005 by Lax
+- Various fixes from onetimehero
+
+25 April 2005 by Lax
+- Fixed data type inheritance
+- Removed EQAlias command, and modified command parser to allow using / for IS commands
+
 8 April 2005 by Lax
 - Added EQAlias command, which can be used to allow Inner Space commands to be executed via
   slashes.  It works like so:

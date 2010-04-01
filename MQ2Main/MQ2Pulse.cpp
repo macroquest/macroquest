@@ -246,10 +246,20 @@ DWORD GetGameState(VOID)
 void Heartbeat()
 {
     static DWORD LastGetTick = 0;
+    static bool bFirstHeartBeat = true;
+    static DWORD TickDiff=0;
     DWORD Tick = GetTickCount();
-    if (Tick<LastGetTick) LastGetTick=Tick;
-    while (Tick>LastGetTick+100) {
-        LastGetTick+=100;
+    if (bFirstHeartBeat)
+    {
+        LastGetTick=Tick;
+        bFirstHeartBeat=false;
+    }
+    // This accounts for rollover
+    TickDiff += (Tick-LastGetTick);
+    LastGetTick=Tick;
+
+    while (TickDiff>=100) {
+        TickDiff-=100;
         if (gDelay>0) gDelay--;
 		DropTimers();
     }

@@ -228,48 +228,45 @@ BOOL ParseINIFile(PCHAR lpINIPath)
 
 bool __cdecl MQ2Initialize()
 {
-	if (!ParseINIFile(gszINIPath)) 
-	{
+    if (!ParseINIFile(gszINIPath)) {
         DebugSpewAlways("ParseINIFile returned false - thread aborted.");
         g_Loaded = FALSE;
         return false;
     }
     srand(time(0));
-	ZeroMemory(gDiKeyName,sizeof(gDiKeyName));
-	unsigned long i;
-	for (i = 0 ; gDiKeyID[i].Id ; i++)
-	{
-		gDiKeyName[gDiKeyID[i].Id]=gDiKeyID[i].szName;
-	}
+    ZeroMemory(gDiKeyName,sizeof(gDiKeyName));
+    unsigned long i;
+    for (i = 0 ; gDiKeyID[i].Id ; i++) {
+        gDiKeyName[gDiKeyID[i].Id]=gDiKeyID[i].szName;
+    }
 
-	ZeroMemory(szEQMappableCommands,sizeof(szEQMappableCommands));
-	for (i = 0 ; i < nEQMappableCommands && EQMappableCommandList[i] ; i++)
-	{
-		szEQMappableCommands[i]=EQMappableCommandList[i];
-	}
-	gnNormalEQMappableCommands=i;
-	szEQMappableCommands[0xb2]="UNKNOWN0xB2";
-	szEQMappableCommands[0xb3]="UNKNOWN0xB3";
-	szEQMappableCommands[0xb4]="CHAT_SEMICOLON";
-	szEQMappableCommands[0xb5]="CHAT_SLASH";
-	szEQMappableCommands[0xb6]="UNKNOWN0xB6";
-	szEQMappableCommands[0xb7]="UNKNOWN0xB7";
-	szEQMappableCommands[0xb8]="INSTANT_CAMP";
-	szEQMappableCommands[0xb9]="UNKNOWN0xB9";
-	szEQMappableCommands[0xba]="UNKNOWN0xBA";
-	szEQMappableCommands[0xbb]="CHAT_EMPTY";
-	szEQMappableCommands[0xbc]="TOGGLE_WINDOWMODE";
-	szEQMappableCommands[0xbd]="UNKNOWN0xBD";
-	szEQMappableCommands[0xbe]="UNKNOWN0xBE";
-	szEQMappableCommands[0xbf]="CHANGEFACE";// maybe? something that requires models.
-	szEQMappableCommands[0xc0]="UNKNOWN0xC0";
-	szEQMappableCommands[0xc1]="UNKNOWN0xC1";
-	szEQMappableCommands[0xc2]="UNKNOWN0xC2";
-	szEQMappableCommands[0xc3]="UNKNOWN0xC3";
-	szEQMappableCommands[0xc4]="UNKNOWN0xC4";
-	szEQMappableCommands[0xc5]="UNKNOWN0xC5";
-        szEQMappableCommands[0xc6]="UNKNOWN0xC6";
-        szEQMappableCommands[0xc7]="UNKNOWN0xC7"; 
+    ZeroMemory(szEQMappableCommands,sizeof(szEQMappableCommands));
+    for (i = 0 ; i < nEQMappableCommands && EQMappableCommandList[i] ; i++) {
+        szEQMappableCommands[i]=EQMappableCommandList[i];
+    }
+    gnNormalEQMappableCommands=i; 
+    szEQMappableCommands[0xb2]="UNKNOWN0xB2";
+    szEQMappableCommands[0xb3]="UNKNOWN0xB3";
+    szEQMappableCommands[0xb4]="UNKNOWN0xB4";
+    szEQMappableCommands[0xb5]="UNKNOWN0xB5";
+    szEQMappableCommands[0xb6]="CHAT_SEMICOLON";
+    szEQMappableCommands[0xb7]="CHAT_SLASH";
+    szEQMappableCommands[0xb8]="UNKNOWN0xB8";
+    szEQMappableCommands[0xb9]="UNKNOWN0xB9";
+    szEQMappableCommands[0xba]="INSTANT_CAMP";
+    szEQMappableCommands[0xbb]="UNKNOWN0xBB";
+    szEQMappableCommands[0xbc]="UNKNOWN0xBC";
+    szEQMappableCommands[0xbd]="CHAT_EMPTY";
+    szEQMappableCommands[0xbe]="TOGGLE_WINDOWMODE";
+    szEQMappableCommands[0xbf]="UNKNOWN0xBF";
+    szEQMappableCommands[0xc0]="UNKNOWN0xC0";
+    szEQMappableCommands[0xc1]="CHANGEFACE";// maybe? something that requires models.
+    szEQMappableCommands[0xc2]="UNKNOWN0xC2";
+    szEQMappableCommands[0xc3]="UNKNOWN0xC3";
+    szEQMappableCommands[0xc4]="UNKNOWN0xC4";
+    szEQMappableCommands[0xc5]="UNKNOWN0xC5";
+    szEQMappableCommands[0xc6]="UNKNOWN0xC6";
+    szEQMappableCommands[0xc7]="UNKNOWN0xC7";
 
 	for (nColorAdjective=0 ; szColorAdjective[nColorAdjective] ; nColorAdjective++){}
 	for (nColorAdjectiveYou=0 ; szColorAdjectiveYou[nColorAdjectiveYou] ; nColorAdjectiveYou++) {}

@@ -200,8 +200,41 @@ DWORD GetGameState(VOID)
 	return GameState;
 }
 
-void Heartbeat()
+VOID DropTimers(VOID)
 {
+	PMQTIMER pTimer=gTimer;
+	CHAR szOrig[MAX_STRING] = {0};
+	while(pTimer)
+	{
+		if (pTimer->Current)
+			pTimer->Current--;
+		pTimer=pTimer->pNext;
+	}
+}
+
+
+ void Heartbeat()
+ {
+	static DWORD LastGetTick = 0;
+	static bool bFirstHeartBeat = true;
+	static DWORD TickDiff=0;
+    DWORD Tick = GetTickCount();
+	if (bFirstHeartBeat)
+	{
+		LastGetTick=Tick;
+		bFirstHeartBeat=false;
+	}
+	// This accounts for rollover
+	TickDiff += (Tick-LastGetTick);
+	LastGetTick=Tick;
+
+    while (TickDiff>=100) 
+	{
+        TickDiff-=100;
+        if (gDelay>0) 
+			gDelay--;
+			DropTimers();
+    } 
 	if (!gStringTableFixed && pStringTable)
 	{
 		FixStringTable();
