@@ -1,5 +1,6 @@
-18 July 2006 by Amadeus
-- fixed for today's patch
+20 July 2006 by dkaa
+- Fix for the 7/18 patch
+- Fix to the ITEMINFO size 
 
 17 July 2006 by ieatacid
 - Added spell Me.Aura (this applies to your self-aura that is shown in the aura window)

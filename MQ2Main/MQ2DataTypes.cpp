@@ -5691,7 +5691,7 @@ bool MQ2EvolvingItemType::GETMEMBER()
 	switch((EvolvingItemMembers)pMember->ID)
 	{ 
 	case ExpPct:
-		Dest.Float=pItem->EvolvingExpPct;
+		Dest.Float=(FLOAT)pItem->EvolvingExpPct;
 		Dest.Type=pFloatType;
 		return true;
 	case ExpOn:

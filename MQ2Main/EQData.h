@@ -400,6 +400,8 @@ typedef struct _ITEMSPELLS {
 /*0x0c*/
 } ITEMSPELLS, *PITEMSPELLS; 
 
+// size is found near EQ_Item__EQ_Item1 in msg_handle_bazaar
+// size is 0x2c4 07-18-2006
 typedef struct _ITEMINFO {
 /*0x000*/ CHAR Name[ITEM_NAME_LEN];
 /*0x040*/ CHAR LoreName[LORE_NAME_LEN];
@@ -534,8 +536,8 @@ union{
 /*0x2a8*/ DWORD Attuneable;
 /*0x2ac*/ BYTE Unknown0x2ac[0x10];
 /*0x2bc*/ DWORD StackSize;
-/*0x2c0*/ DWORD Unknown0x2c0[0x2];
-/*0x2c8*/
+/*0x2c0*/ DWORD Unknown0x2c0[0x1];
+/*0x2c4*/
 } ITEMINFO, *PITEMINFO;
 
 // 6-26-06 Size 0xa8
