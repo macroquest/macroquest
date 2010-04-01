@@ -79,6 +79,7 @@ class MQ2RaidMemberType *pRaidMemberType=0;
 
 class MQ2GroupType *pGroupType=0;
 class MQ2GroupMemberType *pGroupMemberType=0;
+class MQ2EvolvingItemType *pEvolvingItemType=0;
 
 #ifndef ISXEQ
 
@@ -125,6 +126,7 @@ void InitializeMQ2DataTypes()
 	pGroupType = new MQ2GroupType;
 	pGroupMemberType = new MQ2GroupMemberType;
 	pGroupMemberType->SetInheritance(pSpawnType);
+	pEvolvingItemType=new MQ2EvolvingItemType;
 
 	// NOTE: SetInheritance does NOT make it inherit, just notifies the syntax checker...
 	pCharacterType->SetInheritance(pSpawnType);
@@ -173,6 +175,7 @@ void ShutdownMQ2DataTypes()
 	delete pRaidMemberType;
 	delete pGroupType;
 	delete pGroupMemberType;
+	delete pEvolvingItemType;
 }
 
 bool MQ2TypeType::GETMEMBER()
@@ -2853,6 +2856,16 @@ bool MQ2CharacterType::GETMEMBER()
       Dest.DWord=nLang; 
       Dest.Type=pIntType; 
       return true; 
+	case Aura:
+		if(PAURAINFO pAura=(PAURAINFO)pAuraInfo)
+		{
+			if(pAura->IsActive)
+			{
+				Dest.Ptr=GetSpellByName(*pAura->Name);
+				Dest.Type=pSpellType;
+				return true;
+			}
+		}
 	}
 	return false;
 #undef pChar
@@ -3730,6 +3743,10 @@ bool MQ2ItemType::GETMEMBER()
         Dest.DWord=pItem->Item->RequiredLevel;
         Dest.Type=pIntType;
         return true;
+	 case Evolving:
+        Dest.Ptr=pItem;
+        Dest.Type=pEvolvingItemType;
+        return true;
     }
     return false;
 #undef pItem
@@ -4515,7 +4532,7 @@ bool MQ2MacroQuestType::GETMEMBER()
 			{
 				CHAR Name[MAX_STRING]={0};
 				strcpy(Name,GETFIRST());
-				for(int i=0; i<pChat->ActiveChannels; i++)
+				for(unsigned int i=0; i<pChat->ActiveChannels; i++)
 				{
 					if(!stricmp(Name,pChat->ChannelList->ChannelName[i]))
 					{
@@ -5659,6 +5676,36 @@ bool MQ2RaidMemberType::GETMEMBER()
 		}
 		return false;
 		/**/
+	}
+	return false;
+}
+
+bool MQ2EvolvingItemType::GETMEMBER()
+{
+	if (!VarPtr.Ptr)
+		return false;
+	PCONTENTS pItem=(PCONTENTS)VarPtr.Ptr;
+	PMQ2TYPEMEMBER pMember=MQ2EvolvingItemType::FindMember(Member);
+	if (!pMember)
+		return false;
+	switch((EvolvingItemMembers)pMember->ID)
+	{ 
+	case ExpPct:
+		Dest.Float=pItem->EvolvingExpPct;
+		Dest.Type=pFloatType;
+		return true;
+	case ExpOn:
+		Dest.DWord=pItem->EvolvingExpOn;
+		Dest.Type=pBoolType;
+		return true;
+	case Level:
+		Dest.DWord=pItem->EvolvingCurrentLevel;
+		Dest.Type=pIntType;
+		return true;
+	case MaxLevel:
+		Dest.DWord=pItem->EvolvingMaxLevel;
+		Dest.Type=pIntType;
+		return true;
 	}
 	return false;
 }

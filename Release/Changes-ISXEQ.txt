@@ -1,3 +1,19 @@
+8 July 2006 by Amadeus
+- Updated ISXEQ to compile a bit better with Visual Studio 2005
+- Added ISXEQ project/solution file(s) for Visual Studio 2005.
+  1. Double-click on "MQ2Auth.exe" (duh)
+  2. Open Visual Studio 2005
+  3. Click on File->Open->Project/Solution ..and select "ISXEQ-VS2005"
+  4. Build All.
+  5. The DLL files will be built in a directory in your primary MQ folder 
+     called "ISXEQ Release Files".  Simply move all of the DLL files from
+     that directory to your /InnerSpace/Extensions directory.
+  ** You will get a few warnings; however, if your library/headers are set  
+     up correctly and the ISXDK is installed properly, you should be able
+     to compile out-of-the-box.
+- Please note that these VS2005 project files are only for ISXEQ.  If you
+  still use MQ2, you can ignore this.
+
 1 April 2006 by Lax
 - Fixed EQItemNotify
 

@@ -28,6 +28,13 @@
 // key state (ctrl/shift/alt)
 // spawn count
 
+#ifdef ISXEQ
+#pragma warning(disable:4996)
+#endif
+#ifdef ISXEQ_LEGACY
+#pragma warning(disable:4996)
+#endif
+
 #ifndef ISXEQ
 LEGACY_API class MQ2FloatType *pFloatType;
 LEGACY_API class MQ2StringType *pStringType;
@@ -100,6 +107,7 @@ LEGACY_VAR class MQ2RaidMemberType *pRaidMemberType;
 
 LEGACY_VAR class MQ2GroupType *pGroupType;
 LEGACY_VAR class MQ2GroupMemberType *pGroupMemberType;
+LEGACY_VAR class MQ2EvolvingItemType *pEvolvingItemType;
 
 #define UseTemp(mystring) strcpy(DataTypeTemp,mystring)
 #define TypeMember(name) AddMember((DWORD)name,""#name)
@@ -818,6 +826,7 @@ public:
 		Shrouded=135,
       AutoFire=136,
 		Language=137,
+		Aura=138,
 	};
 	static enum CharacterMethods
 	{
@@ -962,6 +971,7 @@ public:
 		TypeMember(Shrouded);
       TypeMember(AutoFire);
 		TypeMember(Language);
+		TypeMember(Aura);
 
 		TypeMethod(Stand); 
 		TypeMethod(Sit); 
@@ -1286,10 +1296,10 @@ public:
 		Class=98,
 		Races=99,
 		Race=100,
-        Deities=101,
-        Deity=102,
-        RequireLevel=103,
-
+		Deities=101,
+		Deity=102,
+		RequireLevel=103,
+		Evolving=104,
 	};
 	static enum ItemMethods
 	{
@@ -1399,6 +1409,7 @@ public:
 		TypeMember(Deities);
 		TypeMember(Deity);
 		TypeMember(RequiredLevel);
+		TypeMember(Evolving);
 	}
 
 	~MQ2ItemType()
@@ -3064,3 +3075,44 @@ public:
 	}
 }; 
 
+class MQ2EvolvingItemType : public MQ2Type
+{
+public:
+	static enum EvolvingItemMembers
+	{
+		ExpPct=1,
+		ExpOn=2,
+		Level=3,
+		MaxLevel=4,
+	};
+	MQ2EvolvingItemType():MQ2Type("Evolving")
+	{
+		TypeMember(ExpPct);
+		TypeMember(ExpOn);
+		TypeMember(Level);
+		TypeMember(MaxLevel);
+	}
+
+	~MQ2EvolvingItemType()
+	{
+	}
+
+	bool GETMEMBER();
+
+	bool ToString(MQ2VARPTR VarPtr, PCHAR Destination)
+	{
+		if(VarPtr.Ptr && ((PCONTENTS)VarPtr.Ptr)->IsEvolvingItem)
+			strcpy(Destination,"TRUE");
+		else
+			strcpy(Destination,"FALSE");
+		return true;
+	}
+	bool FromData(MQ2VARPTR &VarPtr, MQ2TYPEVAR &Source)
+	{
+		return false;
+	}
+	bool FromString(MQ2VARPTR &VarPtr, PCHAR Source)
+	{
+		return false;
+	}
+};

@@ -59,7 +59,7 @@ BOOL AddDetour(DWORD address, PBYTE pfDetour, PBYTE pfTrampoline, DWORD Count)
 	if (FindDetour(address))
 	{
 
-		DebugSpew("Already detoured.");
+		DebugSpew("Address 0x%x already detoured.",address);
 		return FALSE;
 	}
 	OurDetours *detour = new OurDetours;

@@ -729,7 +729,8 @@ EQItemList **ppItemList=(EQItemList**)pinstEQItemList;
 SPELLFAVORITE *pSpellSets=(SPELLFAVORITE *)pinstSpellSets;
 EQZoneInfo *pZoneInfo=(EQZoneInfo*)instEQZoneInfo;
 AltAdvManager** ppAltAdvManager=(AltAdvManager**)pinstAltAdvManager;
-PCONNECTION_T *ppConnection=(PCONNECTION_T*)__gWorld;
+CONNECTION_T **ppConnection=(PCONNECTION_T*)__gWorld;
+AURAINFO **ppAuraInfo=(AURAINFO**)pinstAuraInfo;
 
 EQPlayer **ppTradeTarget=(EQPlayer **)pinstTradeTarget;
 EQPlayer **ppActiveBanker=(EQPlayer **)pinstActiveBanker;

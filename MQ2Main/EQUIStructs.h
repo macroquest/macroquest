@@ -75,7 +75,7 @@ typedef struct _EQSLOTLIST {
 /**/
 
 // Lax
-// Actual Size 0x11c 5-5-2004
+// Actual Size 0x11c 6-26-2006
 typedef struct _CSIDLWNDVFTABLE {
 /*0000*/ LPVOID IsValid;
 /*0004*/ LPVOID  vector_deleting_destructor;
@@ -102,60 +102,58 @@ typedef struct _CSIDLWNDVFTABLE {
 /*0058*/ LPVOID  HandleWheelButtonUp;
 /*005C*/ LPVOID  HandleMouseMove;
 /*0060*/ LPVOID  HandleWheelMove;
-/*0064*/ LPVOID  HandleKeyboardMsg;
-// ./*0068*/ LPVOID  OnDragDrop;
-/*0068*/ LPVOID  GetDragDropCursor;
-/*006c*/ LPVOID  QueryDropOK;
-/*0070*/ LPVOID  OnClickStick;
-/*0074*/ LPVOID  GetDragDropCursor2;
-/*0078*/ LPVOID  QueryClickStickDropOK;
-/*007C*/ LPVOID  WndNotification;
-/*0080*/ LPVOID  ShowWindow;     // Activate   
-/*0084*/ LPVOID  Deactivate;
-/*0088*/ LPVOID  PostDraw4;
-/*008C*/ LPVOID  OnMove;
-/*0090*/ LPVOID  OnResize2;
-/*0094*/ LPVOID  OnMinimizeBox;
-/*0098*/ LPVOID  OnTileBox;
-/*009C*/ LPVOID  PostDraw5;
-/*00A0*/ LPVOID  OnMove2;
-/*00A4*/ LPVOID  OnMove3;
-/*00A8*/ LPVOID  OnProcessFrame;
-/*00AC*/ LPVOID  OnVScroll;
-/*00B0*/ LPVOID  OnHScroll;
-/*00B4*/ LPVOID  OnBroughtToTop;
-/*00B8*/ LPVOID  OnMove4;
-/*00BC*/ LPVOID  Show;
-/*00C0*/ LPVOID  Unknown0x0c4;
-/*00C4*/ LPVOID  Unknown0x0c8;
-/*00C8*/ LPVOID  OnMove5;
-/*00CC*/ LPVOID  RequestDockInfo;
-/*00D0*/ LPVOID  GetTooltip;
-/*00D4*/ LPVOID  HitTest;
-/*00D8*/ LPVOID  GetHitTestRect;
-/*00DC*/ LPVOID  GetInnerRect;
-/*00E0*/ LPVOID  GetClientRect;
-/*00E4*/ LPVOID  GetMinSize;
-/*00E8*/ LPVOID  GetUntileSize;
-/*00EC*/ LPVOID  IsPointTransparent;
-/*00F0*/ LPVOID  SetDrawTemplate;
-/*00F4*/ LPVOID  Unknown0x0f8;
-/*00F8*/ LPVOID  SetWindowTextA;
-/*00FC*/ LPVOID  SetVScrollPos;
-/*0100*/ LPVOID  SetAttributesFromSidl;
-/*0104*/ LPVOID  DefineImages;
-/*0108*/ LPVOID  Unknown0x10c;
-/*010C*/ LPVOID  Unknown0x110;
-/*0110*/ LPVOID  LoadIniInfo;
-/*0114*/ LPVOID  StoreIniInfo;
-/*0118*/ LPVOID  Unknown118;
-/*011c*/ LPVOID  Unknown11c;
-/*0120*/ LPVOID  Unknown120;
-/*0124*/
+/*0064*/ LPVOID  GetDragDropCursor;
+/*0068*/ LPVOID  OnDragDrop;
+/*006c*/ LPVOID  GetClickStickCursor;
+/*0070*/ LPVOID  QueryDropOK;
+/*0074*/ LPVOID  OnClickStick;
+/*0078*/ LPVOID  GetClickStickCursor2;
+/*007C*/ LPVOID  QueryClickStickDropOK;
+/*0080*/ LPVOID  WndNotification;
+/*0084*/ LPVOID  ShowWindow;     // Activate
+/*0088*/ LPVOID  Deactivate;
+/*008C*/ LPVOID  OnShow;
+/*0090*/ LPVOID  OnMove;
+/*0094*/ LPVOID  OnResize2;
+/*0098*/ LPVOID  OnMinimizeBox;
+/*009C*/ LPVOID  OnTileBox;
+/*00A0*/ LPVOID  PostDraw4;
+/*00A4*/ LPVOID  OnMove2;
+/*00A8*/ LPVOID  OnMove3;
+/*00AC*/ LPVOID  OnProcessFrame;
+/*00B0*/ LPVOID  OnVScroll;
+/*00B4*/ LPVOID  OnHScroll;
+/*00B8*/ LPVOID  PostDraw5;
+/*00BC*/ LPVOID  OnMove4;
+/*00C0*/ LPVOID  Show;
+/*00C4*/ LPVOID  Unknown0x0c4;
+/*00C8*/ LPVOID  Unknown0x0c8;
+/*00CC*/ LPVOID  OnMove5;
+/*00D0*/ LPVOID  RequestDockInfo;
+/*00D4*/ LPVOID  GetTooltip;
+/*00D8*/ LPVOID  HitTest;
+/*00DC*/ LPVOID  GetHitTestRect;
+/*00E0*/ LPVOID  GetInnerRect;
+/*00E4*/ LPVOID  GetClientRect;
+/*00E8*/ LPVOID  GetMinSize;
+/*00EC*/ LPVOID  GetUntileSize;
+/*00F0*/ LPVOID  IsPointTransparent;
+/*00F4*/ LPVOID  SetDrawTemplate;
+/*00F8*/ LPVOID  Unknown0x0f8;
+/*00FC*/ LPVOID  SetWindowTextA;
+/*0100*/ LPVOID  SetVScrollPos;
+/*0104*/ LPVOID  SetHScrollPos;
+/*0108*/ LPVOID  SetAttributesFromSidl;
+/*010C*/ LPVOID  nullsub_1;
+/*0110*/ LPVOID  Unknown0x110;
+/*0114*/ LPVOID  PostDraw6;
+/*0118*/ LPVOID  LoadIniInfo;
+/*011c*/ LPVOID  StoreIniInfo;
+/*0120*/
 } CSIDLWNDVFTABLE, *PCSIDLWNDVFTABLE;
 
 // Lax
-// Actual Size 0x114  8-11-2004
+// Actual Size 0x118 6-26-2006
 typedef struct _CXWNDVFTABLE {
 /*0000*/ LPVOID  IsValid;
 /*0004*/ LPVOID  vector_deleting_destructor;
@@ -182,15 +180,15 @@ typedef struct _CXWNDVFTABLE {
 /*0058*/ LPVOID  HandleWheelButtonUp;
 /*005C*/ LPVOID  HandleMouseMove;
 /*0060*/ LPVOID  HandleWheelMove;
-/*0064*/ LPVOID  HandleKeyboardMsg;
+/*0064*/ LPVOID  GetDragDropCursor;
 /*0068*/ LPVOID  OnDragDrop;
-/*006C*/ LPVOID  GetDragDropCursor;
+/*006C*/ LPVOID  GetClickStickCursor;
 /*0070*/ LPVOID  QueryDropOK;
 /*0074*/ LPVOID  OnClickStick;
-/*0078*/ LPVOID  GetDragDropCursor2;
+/*0078*/ LPVOID  GetClickStickCursor2;
 /*007C*/ LPVOID  QueryClickStickDropOK;
 /*0080*/ LPVOID  WndNotification;
-/*0084*/ LPVOID  ShowWindow;        
+/*0084*/ LPVOID  ShowWindow;     // Activate
 /*0088*/ LPVOID  Deactivate;
 /*008C*/ LPVOID  PostDraw4;
 /*0090*/ LPVOID  OnMove;
@@ -203,10 +201,10 @@ typedef struct _CXWNDVFTABLE {
 /*00AC*/ LPVOID  OnProcessFrame;
 /*00B0*/ LPVOID  OnVScroll;
 /*00B4*/ LPVOID  OnHScroll;
-/*00B8*/ LPVOID  OnBroughtToTop;
+/*00B8*/ LPVOID  PostDraw6;
 /*00BC*/ LPVOID  OnMove4;
 /*00C0*/ LPVOID  Show;
-/*00C4*/ LPVOID  Unknown0x0c4;  // Activate?
+/*00C4*/ LPVOID  Unknown0x0c4;
 /*00C8*/ LPVOID  Unknown0x0c8;
 /*00CC*/ LPVOID  OnMove5;
 /*00D0*/ LPVOID  RequestDockInfo;
@@ -222,11 +220,12 @@ typedef struct _CXWNDVFTABLE {
 /*00F8*/ LPVOID  Unknown0x0f8;
 /*00FC*/ LPVOID  SetWindowTextA;
 /*0100*/ LPVOID  SetVScrollPos;//->0
-/*0104*/ LPVOID  SetAttributesFromSidl;
-/*0108*/ LPVOID  DefineImages;
-/*010C*/ LPVOID  Unknown0x10c;
+/*0104*/ LPVOID  SetHScrollPos;
+/*0108*/ LPVOID  SetAttributesFromSidl;
+/*010C*/ LPVOID  nullsub_1;
 /*0110*/ LPVOID  Unknown0x110;
-/*0114*/
+/*0114*/ LPVOID  PostDraw7;
+/*0118*/
 } CXWNDVFTABLE, *PCXWNDVFTABLE;
 
 // Lax 10-24-2003

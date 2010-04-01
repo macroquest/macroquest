@@ -538,7 +538,7 @@ union{
 /*0x2c8*/
 } ITEMINFO, *PITEMINFO;
 
-// 12-15-05 Size 0xa8
+// 6-26-06 Size 0xa8
 typedef struct _CONTENTS {
 /*0x00*/  void   *vtable;
 /*0x04*/  void   *punknown;
@@ -548,18 +548,24 @@ typedef struct _CONTENTS {
 /*0x14*/  DWORD   Unknown0x14; 
 /*0x18*/  DWORD   MerchantSlot; // slot id on a merchant 
 /*0x1c*/  DWORD   Unknown0x1c;
-/*0x20*/  DWORD   Unknown0x20;
+/*0x20*/  DWORD   EvolvingLoreGroup; // lore group if it's an evolving item
 /*0x24*/  DWORD   Unknown0x24;
 /*0x28*/  DWORD   MerchantQuantity; // amount that a merchant has for sale, -1 for unlimited
 /*0x2c*/  struct _CONTENTS *Contents[0x0a]; //addresses to whats inside the bag if its a bag; augs if an item
 /*0x54*/  DWORD   StackCount;
-/*0x58*/  DWORD   Unknown0x58;
-/*0x5c*/  DWORD   Unknown0x5c;
+/*0x58*/  DOUBLE  EvolvingExpPct;
 /*0x60*/  DWORD   Open;
-/*0x64*/  BYTE    Unknown0x64[0x28];
+/*0x64*/  BYTE    Unknown0x64[0x24];
+/*0x88*/  DWORD   EvolvingMaxLevel;
 /*0x8c*/  DWORD   ItemSlot;
-/*0x90*/  BYTE    Unknown0x94[0x30];
-/*0xb0*/   
+/*0x90*/  BYTE    Unknown0x90[0x4];
+/*0x94*/  BYTE    EvolvingExpOn;
+/*0x95*/  BYTE    Unknown0x95[0x7];
+/*0x9c*/  DWORD   EvolvingCurrentLevel;
+/*0xa0*/  BYTE    Unknown0xa0[0x4];
+/*0xa4*/  BYTE    IsEvolvingItem;
+/*0xa5*/  BYTE    Unknown0xa5[0x3];
+/*0xa8*/   
 } CONTENTS, *PCONTENTS;
 
 // 5-11-2005 Amadeus
@@ -1221,7 +1227,7 @@ typedef struct _GROUNDITEM {
 /*0x44*/
 } GROUNDITEM, *PGROUNDITEM;
 
-#define   MAX_ZONES                                    0x15B   
+#define   MAX_ZONES                                    0x3e8
 extern    PCHAR szZoneExpansionName[];     //defined in LibEQ_Utilities.cpp
 
 typedef struct _ZONELIST { 
@@ -1668,8 +1674,16 @@ typedef struct _EVERQUEST {
 /*0x2a4*/ struct _CHATSERVICE *ChatService;
 /*0x2a8*/ // more data
 } EVERQUEST, *PEVERQUEST;
- 
- 
+
+typedef struct _AURAINFO {
+/*0x000*/ DWORD  IsActive;
+/*0x004*/ BYTE   Unknown0x4[0xc];
+/*0x010*/ PCHAR  *Name;
+/*0x014*/ BYTE   Unknown0x14[0x8];
+/*0x01c*/
+} AURAINFO, *PAURAINFO;
+
+
 
 #define EQ_INTERACTGROUNDITEM   0x1418  // CEverQuest__HandleClick 04/19
 #define EQ_BAZAARSEARCHCREATE   0x4E56  // CProgSelWnd__WndNotification 04/19

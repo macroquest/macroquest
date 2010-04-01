@@ -2454,27 +2454,10 @@ VOID BankList(PSPAWNINFO pChar, PCHAR szLine)
 // ***************************************************************************
 VOID WindowState(PSPAWNINFO pChar, PCHAR szLine)
 {
-	/*
-	struct _WINDOWSTATELIST 
-		{ PCHAR szName;	PCSIDLWND* pWindow; }
-	WindowList[] = {
-		{ "inventory",	(PCSIDLWND*)ppInventoryWnd },
-		{ "merchant",	(PCSIDLWND*)ppMerchantWnd },
-		{ "corpse",		(PCSIDLWND*)ppLootWnd },
-		{ "spellbook",	(PCSIDLWND*)ppSpellBookWnd },
-		{ "pet",		(PCSIDLWND*)ppPetInfoWnd },
-		{ "map",		(PCSIDLWND*)ppMapViewWnd },
-		{ "notes",		(PCSIDLWND*)ppNoteWnd },
-		{ NULL, NULL }
-	};
-	/**/
-
 	CHAR Arg1[MAX_STRING] = {0};
 	CHAR Arg2[MAX_STRING] = {0};
-//	DWORD i;
 	GetArg(Arg1,szLine,1);
 	GetArg(Arg2,szLine,2);
-
 	if (PCSIDLWND pWnd=(PCSIDLWND)FindMQ2Window(Arg1)) 
 	{
 			DWORD ShowWindow = (DWORD)pWnd->pvfTable->ShowWindow;
@@ -2485,7 +2468,7 @@ VOID WindowState(PSPAWNINFO pChar, PCHAR szLine)
 			if (pWnd->Show==State) State=99;
 			switch (State) {
 				case 0:
-					pWnd->Show=0;
+					((CXWnd*)pWnd)->Show(0,1);
 					sprintf(szBuffer,"Window '%s' is now closed.",pWnd->WindowText->Text);
 					break;
 				case 1:

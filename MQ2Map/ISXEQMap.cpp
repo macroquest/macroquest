@@ -155,7 +155,7 @@ bool ISXEQMap::Initialize(ISInterface *p_ISInterface)
 	RegisterTopLevelObjects();
     RegisterServices();
 
-	EzDetour(CMapViewWnd__CMapViewWnd,CMyMapViewWnd::Constructor_Detour,CMyMapViewWnd::Constructor_Trampoline);
+	EzDetour(CMapViewWnd__CMapViewWnd,&CMyMapViewWnd::Constructor_Detour,&CMyMapViewWnd::Constructor_Trampoline);
 	CMyMapViewWnd::StealVFTable();
 
 	printf("ISXEQMap Loaded");

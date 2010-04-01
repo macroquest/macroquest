@@ -2,7 +2,7 @@
 // ISXEQItemDisplay
 //
 // complete
-
+#pragma warning(disable:4996)
 #include "../ISXEQClient.h"
 #include "ISXEQItemDisplay.h"
 
@@ -64,8 +64,8 @@ bool ISXEQItemDisplay::Initialize(ISInterface *p_ISInterface)
 	RegisterDataTypes();
 	RegisterTopLevelObjects();
     RegisterServices();
-	EzDetour(CItemDisplayWnd__SetItem,ItemDisplayHook::SetItem_Detour,ItemDisplayHook::SetItem_Trampoline);
-	EzDetour(CItemDisplayWnd__SetSpell,ItemDisplayHook::SetSpell_Detour,ItemDisplayHook::SetSpell_Trampoline);
+	EzDetour(CItemDisplayWnd__SetItem,&ItemDisplayHook::SetItem_Detour,&ItemDisplayHook::SetItem_Trampoline);
+	EzDetour(CItemDisplayWnd__SetSpell,&ItemDisplayHook::SetSpell_Detour,&ItemDisplayHook::SetSpell_Trampoline);
 
 	WriteChatf("ISXEQItemDisplay Loaded");
 	return true;

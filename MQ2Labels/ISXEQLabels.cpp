@@ -1,8 +1,7 @@
 //
 // ISXEQLabels
-//
-// done
 
+#pragma warning(disable:4996)
 #include "../ISXEQClient.h"
 #include "ISXEQLabels.h"
 
@@ -195,7 +194,7 @@ bool ISXEQLabels::Initialize(ISInterface *p_ISInterface)
 	RegisterTopLevelObjects();
     RegisterServices();
 
-	EzDetour(CLabel__Draw,CLabelHook::Draw_Detour,CLabelHook::Draw_Trampoline);
+	EzDetour(CLabel__Draw,&CLabelHook::Draw_Detour,&CLabelHook::Draw_Trampoline);
 // currently in testing:
 //	EasyClassDetour(CGauge__Draw,CGaugeHook,Draw_Detour,VOID,(VOID),Draw_Trampoline);
 //	EasyDetour(__GetGaugeValueFromEQ,GetGaugeValueFromEQ_Hook,int,(int,class CXStr *,bool *),GetGaugeValueFromEQ_Trampoline);

@@ -420,7 +420,9 @@ EQLIB_VAR AltAdvManager** ppAltAdvManager;
 #define pAltAdvManager (*ppAltAdvManager)
 
 EQLIB_VAR PCONNECTION_T *ppConnection;
-#define pConnection (*ppConnection) 
+#define pConnection (*ppConnection)
+EQLIB_VAR AURAINFO **ppAuraInfo;
+#define pAuraInfo (*ppAuraInfo)
 
 /* WINDOW INSTANCES */ 
 EQLIB_VAR CContextMenuManager **ppContextMenuManager;

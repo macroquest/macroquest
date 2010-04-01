@@ -187,7 +187,7 @@ VOID HideDoCommand(PSPAWNINFO pChar, PCHAR szLine, BOOL delayed)
 
 void InitializeMQ2Commands()
 {
-	EzDetour(CEverQuest__InterpretCmd,CCommandHook::Detour,CCommandHook::Trampoline);
+	EzDetour(CEverQuest__InterpretCmd,&CCommandHook::Detour,&CCommandHook::Trampoline);
 
 #define COMMAND(name,cmd,parse,hide) pISInterface->AddCommand(name,cmd,parse,hide)
 #include "ISXEQCommandList.h"

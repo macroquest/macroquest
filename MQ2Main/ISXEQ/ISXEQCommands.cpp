@@ -849,7 +849,7 @@ int CMD_EQFace(int argc, char *argv[])
     BOOL Parsing = TRUE;
     DOUBLE Distance;
 
-   for(int qq=0; qq<argc; qq++)
+   for(int qq=1; qq<argc; qq++)
    {
       if (!strcmp(argv[qq],"predict")) {
          Predict=TRUE;

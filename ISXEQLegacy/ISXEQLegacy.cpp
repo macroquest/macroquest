@@ -8,6 +8,7 @@
 
 ISXEQLegacyEngine g_LegacyEngine;
 
+
 // The mandatory pre-setup function.  Our name is "ISXEQLegacy", and the class is ISXEQLegacy.
 // This sets up a "ModulePath" variable which contains the path to this module in case we want it,
 // and a "PluginLog" variable, which contains the path and filename of what we should use for our

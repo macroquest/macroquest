@@ -648,7 +648,6 @@ public:
 
 protected:
 
-
 	inline BOOL AddMember(DWORD ID, PCHAR Name)
 	{
 		unsigned long N=MemberMap[Name];
