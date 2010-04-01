@@ -5336,6 +5336,15 @@ public:
 EQLIB_OBJECT EQ_AltAbility::EQ_AltAbility(int);
 };
 
+class EQ_Character1
+{
+public:
+EQLIB_OBJECT int EQ_Character1::Max_HP(int);
+EQLIB_OBJECT int EQ_Character1::Max_Mana(void);
+EQLIB_OBJECT int EQ_Character1::Max_Endurance(void); // lax 4-25-2004
+EQLIB_OBJECT int EQ_Character1::Cur_HP(int);
+};
+
 class EQ_Character
 {
 public:
@@ -5378,7 +5387,6 @@ EQLIB_OBJECT int EQ_Character::CheckFoodAndWater(void);
 EQLIB_OBJECT int EQ_Character::compute_defense(void);
 EQLIB_OBJECT int EQ_Character::compute_tohit(unsigned char);
 EQLIB_OBJECT int EQ_Character::cur_encumbrance(void);
-EQLIB_OBJECT int EQ_Character::Cur_HP(int);
 EQLIB_OBJECT int EQ_Character::Cur_Mana(void);
 EQLIB_OBJECT int EQ_Character::defense_agility_bonus(void);
 EQLIB_OBJECT int EQ_Character::Dex(void);
@@ -5403,9 +5411,9 @@ EQLIB_OBJECT int EQ_Character::IsSpecialBazaarSpot(class EQPlayer *);
 EQLIB_OBJECT int EQ_Character::IsSpellcaster(void);
 EQLIB_OBJECT int EQ_Character::ItemSpellAffects(int);
 EQLIB_OBJECT int EQ_Character::max_encumbrance(void);
-EQLIB_OBJECT int EQ_Character::Max_HP(int);
-EQLIB_OBJECT int EQ_Character::Max_Mana(void);
-EQLIB_OBJECT int EQ_Character::Max_Endurance(void); // lax 4-25-2004
+//EQLIB_OBJECT int EQ_Character::Max_HP(int);
+//EQLIB_OBJECT int EQ_Character::Max_Mana(void);
+//EQLIB_OBJECT int EQ_Character::Max_Endurance(void); // lax 4-25-2004
 EQLIB_OBJECT int EQ_Character::NoBashMe(int);
 EQLIB_OBJECT int EQ_Character::NoMezMe(int,class EQPlayer *,class EQ_Spell *);
 EQLIB_OBJECT int EQ_Character::offense(unsigned char);
@@ -5547,7 +5555,7 @@ EQLIB_OBJECT int EQ_Item::Silver(void);
 EQLIB_OBJECT long EQ_Item::ValueSellMerchant(float,long);
 EQLIB_OBJECT bool EQ_Item::IsStackable(void); // Valerian 12-20-2004 
 
-EQLIB_OBJECT char * EQ_Item::GetItemLinkHash(char *); // Lax 11-14-2003
+EQLIB_OBJECT char * EQ_Item::GetItemLinkHash(char *, int); // Lax 11-14-2003
 EQLIB_OBJECT int EQ_Item::CanDrop(int); // Lax 04-22-2004
 ITEMINFO Data;
 };
@@ -6967,6 +6975,12 @@ class CTextOverlay
 public:
 EQLIB_OBJECT void CTextOverlay::DisplayText(char *,int,int,int,int,int,int);
 }; 
+
+class CMyInventory
+{
+public:
+EQLIB_OBJECT struct  _CONTENTS* CMyInventory::GetSlot(int);
+};
 
 };
 using namespace EQClasses;

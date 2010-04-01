@@ -1152,13 +1152,13 @@ FLOAT FindSpeed(PSPAWNINFO pSpawn)
 
 VOID GetItemLinkHash(PCONTENTS Item, PCHAR Buffer)
 {
-	((EQ_Item*)Item)->GetItemLinkHash(Buffer);
+	((EQ_Item*)Item)->GetItemLinkHash(Buffer, 256);
 }
 
 VOID GetItemLink(PCONTENTS Item, PCHAR Buffer)
 {
 	char hash[256];
-	((EQ_Item*)Item)->GetItemLinkHash(hash);
+	((EQ_Item*)Item)->GetItemLinkHash(hash, 256);
 
 	sprintf(Buffer,"%c0%s%s%c",0x12,hash,Item->Item->Name,0x12);
 	DebugSpew("GetItemLink() returns '%s'",&Buffer[0]);
@@ -1276,7 +1276,7 @@ BOOL SearchThroughItems(SEARCHITEM &SearchItem, PCONTENTS* pResult, DWORD *nResu
 		// iterate through worn items
 		for (unsigned long N = 0 ; N < 21 ; N++)
 		{
-			if (PCONTENTS pContents=pChar->InventoryArray[N])
+			if (PCONTENTS pContents=GetCharInfo2()->InventoryArray[N])
 			if (ItemMatchesSearch(SearchItem,pContents))
 				Result(pContents,N);
 		}
@@ -1288,7 +1288,7 @@ BOOL SearchThroughItems(SEARCHITEM &SearchItem, PCONTENTS* pResult, DWORD *nResu
 		// iterate through inventory slots before in-pack slots
 		for (nPack = 0 ; nPack<8 ; nPack++)
 		{
-			if (PCONTENTS pContents=pChar->Inventory.Pack[nPack])
+			if (PCONTENTS pContents=GetCharInfo2()->Inventory.Pack[nPack])
 			{
 				if (ItemMatchesSearch(SearchItem,pContents))
 					Result(pContents,nPack+21);
@@ -1297,7 +1297,7 @@ BOOL SearchThroughItems(SEARCHITEM &SearchItem, PCONTENTS* pResult, DWORD *nResu
 
 		for (nPack = 0 ; nPack<8 ; nPack++)
 		{
-			if (PCONTENTS pContents=pChar->Inventory.Pack[nPack])
+			if (PCONTENTS pContents=GetCharInfo2()->Inventory.Pack[nPack])
 			if (pContents->Item->ItemType==ITEMTYPE_PACK)
 			{
 				for (unsigned long nItem = 0 ; nItem<pContents->Item->Slots ; nItem++)
@@ -2973,7 +2973,7 @@ int FindInvSlotForContents(PCONTENTS pContents)
 	for (nPack=0 ; nPack < 8 ; nPack++)
 	{
 		PCHARINFO pCharInfo=GetCharInfo();
-		if (PCONTENTS pPack=pCharInfo->Inventory.Pack[nPack])
+		if (PCONTENTS pPack=GetCharInfo2()->Inventory.Pack[nPack])
 		{
 			if (pPack->Item->Type==ITEMTYPE_PACK)
 			{
@@ -4021,10 +4021,10 @@ bool PlayerHasAAAbility(PCHARINFO pChar, DWORD AAIndex)
     // count to 0xf0 -- dkaa 06/29/05
     for (int i = 0; i < NUM_ALT_ABILITIES/4; i++)
 	{
-		if ( pChar->AAList[i].AAIndex == AAIndex )
+		if ( GetCharInfo2()->AAList[i].AAIndex == AAIndex )
 			return true;
 
-		if ( pChar->AAList[i].AAIndex == 0 )  { //reached the end of the list
+		if ( GetCharInfo2()->AAList[i].AAIndex == 0 )  { //reached the end of the list
 			return false;
                 }
 	}
@@ -5419,7 +5419,7 @@ VOID WriteFilterNames(VOID)
 }
 bool GetShortBuffID(PSPELLBUFF pBuff, DWORD &nID)
 {
-	PCHARINFO pChar=GetCharInfo();
+	PCHARINFO2 pChar=GetCharInfo2();
 	unsigned long N=(pBuff-&pChar->ShortBuff[0]);
 	if (N<12)
 	{
@@ -5430,7 +5430,7 @@ bool GetShortBuffID(PSPELLBUFF pBuff, DWORD &nID)
 }
 bool GetBuffID(PSPELLBUFF pBuff, DWORD &nID)
 {
-	PCHARINFO pChar=GetCharInfo();
+	PCHARINFO2 pChar=GetCharInfo2();
 	unsigned long N=(pBuff-&pChar->Buff[0]);
 	if (N<0x19)
 	{

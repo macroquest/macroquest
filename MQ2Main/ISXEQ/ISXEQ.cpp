@@ -46,6 +46,10 @@ void __cdecl MemoryService(bool Broadcast, unsigned long MSG, void *lpData);
 void __cdecl HTTPService(bool Broadcast, unsigned long MSG, void *lpData);
 void __cdecl TriggerService(bool Broadcast, unsigned long MSG, void *lpData);
 void __cdecl ProtectionRequest(ISXInterface *pClient, unsigned long MSG, void *lpData);
+
+void __cdecl SoftwareCursorService(bool Broadcast, unsigned long MSG, void *lpData);
+
+HISXSERVICE hSoftwareCursorService=0;
 HISXSERVICE hEQProtectionService=0;
 
 
@@ -112,6 +116,36 @@ void CISXEQ::Shutdown()
 }
 
 
+class EQSoftwareCursorInterface : public ISXSoftwareCursorInterface
+{
+public:
+	virtual bool CursorEnabled()
+	{
+		return !bMouseLook;
+	}
+	virtual bool GetPosition(int &X, int &Y)
+	{
+		X=EQADDR_MOUSE->X; 
+		Y=EQADDR_MOUSE->Y;
+		return true;
+	}
+
+	virtual bool SetPosition(int X, int Y)
+	{
+		EQADDR_MOUSE->X = X; 
+		EQADDR_MOUSE->Y = Y;
+		return true;
+	}
+
+	virtual bool DrawCursor()
+	{
+		if (bMouseLook)
+			return false;
+		pWndMgr->DrawCursor();
+		//pWndMgr->DrawCursor()
+		return true;
+	}
+} SoftwareCursorInterface;
 
 void CISXEQ::ConnectServices()
 {
@@ -122,6 +156,9 @@ void CISXEQ::ConnectServices()
 	hMemoryService=pISInterface->ConnectService(this,"Memory",MemoryService);
 	hHTTPService=pISInterface->ConnectService(this,"HTTP",HTTPService);
 	hTriggerService=pISInterface->ConnectService(this,"Triggers",TriggerService);
+	hSoftwareCursorService=pISInterface->ConnectService(this,"Software Cursor",SoftwareCursorService);
+
+	IS_SoftwareCursorEnable(this,pISInterface,hSoftwareCursorService,&SoftwareCursorInterface);
 }
 void CISXEQ::RegisterCommands()
 {
@@ -197,6 +234,11 @@ void CISXEQ::DisconnectServices()
 	if (hTriggerService)
 	{
 		pISInterface->DisconnectService(this,hTriggerService);
+	}
+
+	if (hSoftwareCursorService)
+	{
+		pISInterface->DisconnectService(this,hSoftwareCursorService);
 	}
 }
 
@@ -385,4 +427,9 @@ void __cdecl ProtectionRequest(ISXInterface *pClient, unsigned long MSG, void *l
 		pExtension->UnProtect((unsigned long)lpData);
 	   break;
    }
+}
+
+void __cdecl SoftwareCursorService(bool Broadcast, unsigned long MSG, void *lpData)
+{
+	// receives nothing
 }

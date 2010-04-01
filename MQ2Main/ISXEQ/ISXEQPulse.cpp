@@ -106,24 +106,25 @@ void Pulse()
 	}
 	LastHealth=CurrentHealth;
 
-	if (LastMana && pCharInfo->Mana > LastMana)
+	if (LastMana && GetCharInfo2()->Mana > LastMana)
 	{
-		if ((int)pCharInfo->Mana-LastMana > 0 )
+		if ((int)GetCharInfo2()->Mana-LastMana > 0 )
 		{
-			ManaGained=pCharInfo->Mana-LastMana;
+			ManaGained=GetCharInfo2()->Mana-LastMana;
 		}
 	}
-	LastMana=pCharInfo->Mana;
+	LastMana=GetCharInfo2()->Mana;
 
-	if (LastEndurance && pCharInfo->Endurance > LastEndurance) 
+	if (LastEndurance && GetCharInfo2()->Endurance > LastEndurance) 
     { 
-		if (pCharInfo->Endurance != (int)pCharData->Max_Endurance()) 
+		if (GetCharInfo2()->Endurance != (int)pCharData1->Max_Endurance()) 
         { 
-			EnduranceGained = pCharInfo->Endurance - LastEndurance; 
+			EnduranceGained = GetCharInfo2()->Endurance - LastEndurance; 
         } 
     } 
-    LastEndurance = pCharInfo->Endurance;
+    LastEndurance = GetCharInfo2()->Endurance;
 
+#if 0
     if (gbDoAutoRun && pChar && pChar->pCharInfo) 
 	{
 		// this code makes me sad :(
@@ -139,6 +140,7 @@ void Pulse()
 			pISInterface->ExecuteCommand(pAutoRun);
 		}
     }
+#endif
 
     if ((gFaceAngle != 10000.0f) || (gLookAngle != 10000.0f)) {
         TurnNotDone = FALSE;

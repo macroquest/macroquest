@@ -226,6 +226,7 @@ int CMD_SetAutoRun(int argc, char *argv[])
 		WriteChatf("Syntax: %s on|off",argv[0]);
 		return 0;
 	}
+#if 0
    if(!stricmp(argv[1],"on") || !stricmp(argv[1],"off"))
    {
 		CHAR szServerAndName[MAX_STRING] = {0};
@@ -234,6 +235,7 @@ int CMD_SetAutoRun(int argc, char *argv[])
 		sprintf(szServerAndName,"Set autorun to: '%s'",argv[1]);
 		WriteChatColor(szServerAndName,USERCOLOR_DEFAULT);
    }
+#endif
    return 0;
 }
 
@@ -517,10 +519,10 @@ int CMD_CastSpell(int argc, char* argv[])
    if (!stricmp(argv[1],"list")) { 
       WriteChatColor("Spells:",USERCOLOR_DEFAULT); 
       for (Index=0;Index<9;Index++) { 
-         if (pCharInfo->MemorizedSpells[Index]==0xFFFFFFFF) { 
+         if (GetCharInfo2()->MemorizedSpells[Index]==0xFFFFFFFF) { 
             sprintf(szBuffer,"%d. <Empty>",Index+1); 
          } else { 
-            sprintf(szBuffer,"%d. %s",Index+1,GetSpellByID(pCharInfo->MemorizedSpells[Index])); 
+            sprintf(szBuffer,"%d. %s",Index+1,GetSpellByID(GetCharInfo2()->MemorizedSpells[Index])); 
          } 
          WriteChatColor(szBuffer,USERCOLOR_DEFAULT); 
       } 
@@ -540,10 +542,10 @@ int CMD_CastSpell(int argc, char* argv[])
       DWORD SpawnFooter = NULL; 
       SpawnFooter = (DWORD)pLocalPlayer; 
       for (int i=0;i<30;i++) { 
-         if (pCharInfo->InventoryArray[i]) 
-            if (!_stricmp(szItemToCast,pCharInfo->InventoryArray[i]->Item->Name)) { 
-               DebugSpew("cast test slot %d = %s address is %x",i,pCharInfo->InventoryArray[i]->Item->Name,&(pCharInfo->InventoryArray[i])); 
-               item = (DWORD)&pCharInfo->InventoryArray[i]; 
+         if (GetCharInfo2()->InventoryArray[i]) 
+            if (!_stricmp(szItemToCast,GetCharInfo2()->InventoryArray[i]->Item->Name)) { 
+               DebugSpew("cast test slot %d = %s address is %x",i,GetCharInfo2()->InventoryArray[i]->Item->Name,&(GetCharInfo2()->InventoryArray[i])); 
+               item = (DWORD)&GetCharInfo2()->InventoryArray[i]; 
                slot = (DWORD)i; 
                FOUND = TRUE; 
                break; 
@@ -557,8 +559,8 @@ int CMD_CastSpell(int argc, char* argv[])
    pISInterface->GetArgs(1,argc,argv,szBuffer); 
    //GetArg(szBuffer,szLine,1); 
    for (Index=0;Index<9;Index++) { 
-      if (pCharInfo->MemorizedSpells[Index]!=0xFFFFFFFF) { 
-         PCHAR SpellName = GetSpellNameByID(pCharInfo->MemorizedSpells[Index]); 
+      if (GetCharInfo2()->MemorizedSpells[Index]!=0xFFFFFFFF) { 
+         PCHAR SpellName = GetSpellNameByID(GetCharInfo2()->MemorizedSpells[Index]); 
          if (!stricmp(szBuffer,SpellName)) { 
             DebugSpew("SpellName = %s",SpellName); 
             cmdCast((PSPAWNINFO)pLocalPlayer,itoa(Index+1,szBuffer,10)); 
@@ -602,10 +604,10 @@ int CMD_MemSpell(int argc, char *argv[])
    if (Gem<1 || Gem>9) return -1;
    Gem--;
 
-   pCharInfo->SpellBook;
+   GetCharInfo2()->SpellBook;
    PSPELL pSpell=0;
    for (DWORD N = 0 ; N < NUM_BOOK_SLOTS ; N++)
-   if (PSPELL pTempSpell=GetSpellByID(pCharInfo->SpellBook[N]))
+   if (PSPELL pTempSpell=GetSpellByID(GetCharInfo2()->SpellBook[N]))
    {
       if (!stricmp(SpellName,pTempSpell->Name))
       {
@@ -615,7 +617,7 @@ int CMD_MemSpell(int argc, char *argv[])
    }
 
     if (!pSpell) return -1;
-    if (pSpell->Level[pCharInfo->Class-1]>pCharInfo->Level) return -1;
+    if (pSpell->Level[GetCharInfo2()->Class-1]>GetCharInfo2()->Level) return -1;
 
     ZeroMemory(&MemSpellFavorite,sizeof(MemSpellFavorite));
     strcpy(MemSpellFavorite.Name,"Mem a Spell");

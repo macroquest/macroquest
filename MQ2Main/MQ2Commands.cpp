@@ -378,7 +378,7 @@ VOID CharInfo(PSPAWNINFO pChar, PCHAR szLine)
     PCHARINFO pCharInfo = NULL;
     if (NULL == (pCharInfo = GetCharInfo())) return;
 	DoCommand(pCharInfo->pSpawn,"/charinfo");
-	sprintf(szBuffer,"The location of your bind is: %1.2f, %1.2f, %1.2f", pCharInfo->ZoneBoundX, pCharInfo->ZoneBoundY, pCharInfo->ZoneBoundZ);
+	sprintf(szBuffer,"The location of your bind is: %1.2f, %1.2f, %1.2f", GetCharInfo2()->ZoneBoundX, GetCharInfo2()->ZoneBoundY, GetCharInfo2()->ZoneBoundZ);
     WriteChatColor(szBuffer,USERCOLOR_DEFAULT);
 }
 
@@ -393,11 +393,11 @@ VOID UpdateItemInfo(PSPAWNINFO pChar, PCHAR szLine)
    if (NULL == (pCharInfo = GetCharInfo())) return;
 
    for (nInvIdx=0; nInvIdx < 30; nInvIdx++) {
-      if (pCharInfo->InventoryArray[nInvIdx] != NULL) {
+      if (GetCharInfo2()->InventoryArray[nInvIdx] != NULL) {
          BOOL Found = FALSE;
          PITEMDB ItemDB = gItemDB;
          while (ItemDB) {
-            if (ItemDB->ID == pCharInfo->InventoryArray[nInvIdx]->Item->ItemNumber) {
+            if (ItemDB->ID == GetCharInfo2()->InventoryArray[nInvIdx]->Item->ItemNumber) {
                Found = TRUE;
             }
             ItemDB = ItemDB->pNext;
@@ -405,15 +405,15 @@ VOID UpdateItemInfo(PSPAWNINFO pChar, PCHAR szLine)
          if (!Found) {
             PITEMDB Item = (PITEMDB)malloc(sizeof(ITEMDB));
             Item->pNext = gItemDB;
-            Item->ID = pCharInfo->InventoryArray[nInvIdx]->Item->ItemNumber;
-            strcpy(Item->szName, pCharInfo->InventoryArray[nInvIdx]->Item->Name);
+            Item->ID = GetCharInfo2()->InventoryArray[nInvIdx]->Item->ItemNumber;
+            strcpy(Item->szName, GetCharInfo2()->InventoryArray[nInvIdx]->Item->Name);
             DebugSpew("   New Item found - %d: %s", Item->ID, Item->szName);
             gItemDB = Item;
          }
-         if (pCharInfo->InventoryArray[nInvIdx]->Item->Type == ITEMTYPE_PACK) {
-			 pContainer = pCharInfo->InventoryArray[nInvIdx];
+         if (GetCharInfo2()->InventoryArray[nInvIdx]->Item->Type == ITEMTYPE_PACK) {
+			 pContainer = GetCharInfo2()->InventoryArray[nInvIdx];
             DebugSpew("   Opening Pack");
-            for (int nPackIdx = 0; nPackIdx < pCharInfo->InventoryArray[nInvIdx]->Item->Slots; nPackIdx++) {
+            for (int nPackIdx = 0; nPackIdx < GetCharInfo2()->InventoryArray[nInvIdx]->Item->Slots; nPackIdx++) {
                if (pContainer->Contents[nPackIdx] != NULL) {
                   Found = FALSE;
                   PITEMDB ItemDB = gItemDB;
@@ -440,11 +440,11 @@ VOID UpdateItemInfo(PSPAWNINFO pChar, PCHAR szLine)
    }
 
    for (nInvIdx=0; nInvIdx < NUM_BANK_SLOTS; nInvIdx++) {
-      if (pCharInfo->Bank[nInvIdx] != NULL) {
+      if (GetCharInfo()->Bank[nInvIdx] != NULL) {
          BOOL Found = FALSE;
          PITEMDB ItemDB = gItemDB;
          while (ItemDB) {
-            if (ItemDB->ID == pCharInfo->Bank[nInvIdx]->Item->ItemNumber) {
+            if (ItemDB->ID == GetCharInfo()->Bank[nInvIdx]->Item->ItemNumber) {
                Found = TRUE;
             }
             ItemDB = ItemDB->pNext;
@@ -452,7 +452,7 @@ VOID UpdateItemInfo(PSPAWNINFO pChar, PCHAR szLine)
          if (!Found) {
             PITEMDB Item = (PITEMDB)malloc(sizeof(ITEMDB));
             Item->pNext = gItemDB;
-            Item->ID = pCharInfo->Bank[nInvIdx]->Item->ItemNumber;
+            Item->ID = GetCharInfo()->Bank[nInvIdx]->Item->ItemNumber;
             strcpy(Item->szName, pCharInfo->Bank[nInvIdx]->Item->Name);
             DebugSpew("   New Item found - %d: %s", Item->ID, Item->szName);
             gItemDB = Item;
@@ -523,10 +523,10 @@ VOID MemSpell(PSPAWNINFO pChar, PCHAR szLine)
    if (Gem<1 || Gem>9) return;
    Gem--;
 
-   pCharInfo->SpellBook;
+   GetCharInfo2()->SpellBook;
    PSPELL pSpell=0;
 	for (DWORD N = 0 ; N < NUM_BOOK_SLOTS ; N++)
-	if (PSPELL pTempSpell=GetSpellByID(pCharInfo->SpellBook[N]))
+	if (PSPELL pTempSpell=GetSpellByID(GetCharInfo2()->SpellBook[N]))
 	{
 		if (!stricmp(SpellName,pTempSpell->Name))
 		{
@@ -1076,8 +1076,8 @@ VOID Identify(PSPAWNINFO pChar, PCHAR szLine)
     bRunNextCommand = TRUE;
     CHAR szMsg[MAX_STRING] = {0};
     CHAR szTmp[MAX_STRING] = {0};
-    PCHARINFO pCharInfo = NULL;
-    if (NULL == (pCharInfo = GetCharInfo())) return;
+    PCHARINFO2 pCharInfo = NULL;
+    if (NULL == (pCharInfo = GetCharInfo2())) return;
     if (!pCharInfo->Cursor) {
         MacroError("You must be holding an item to identify it.");
         return;
@@ -1828,8 +1828,8 @@ VOID DoAbility(PSPAWNINFO pChar, PCHAR szLine)
         } 
         WriteChatColor("Combat Abilities:",USERCOLOR_DEFAULT); 
         for (Index=0;Index<50;Index++) { 
-         if (pCharInfo->CombatAbilities[Index]) { 
-            PSPELL pCA = GetSpellByID(pCharInfo->CombatAbilities[Index]); 
+         if (GetCharInfo2()->CombatAbilities[Index]) { 
+            PSPELL pCA = GetSpellByID(GetCharInfo2()->CombatAbilities[Index]); 
             if (pCA) 
               sprintf(szBuffer, "%d. %s", Index+11, pCA->Name); 
             else 
@@ -1858,8 +1858,8 @@ VOID DoAbility(PSPAWNINFO pChar, PCHAR szLine)
     } else { 
       PSPELL pCA = NULL; 
         for (Index=0;Index<50;Index++) { 
-         if (pCharInfo->CombatAbilities[Index]) { 
-            pCA = GetSpellByID(pCharInfo->CombatAbilities[Index]); 
+         if (GetCharInfo2()->CombatAbilities[Index]) { 
+            pCA = GetSpellByID(GetCharInfo2()->CombatAbilities[Index]); 
             if (!stricmp(pCA->Name, szBuffer)) { 
                // We got the cookie, let's try and do it... 
                pCharData->DoCombatAbility(pCA->ID); 
@@ -1956,10 +1956,10 @@ VOID Cast(PSPAWNINFO pChar, PCHAR szLine)
    if (!stricmp(szLine,"list")) {
       WriteChatColor("Spells:",USERCOLOR_DEFAULT);
       for (Index=0;Index<9;Index++) {
-         if (pCharInfo->MemorizedSpells[Index]==0xFFFFFFFF) {
+         if (GetCharInfo2()->MemorizedSpells[Index]==0xFFFFFFFF) {
             sprintf(szBuffer,"%d. <Empty>",Index+1);
          } else {
-            sprintf(szBuffer,"%d. %s",Index+1,GetSpellByID(pCharInfo->MemorizedSpells[Index]));
+            sprintf(szBuffer,"%d. %s",Index+1,GetSpellByID(GetCharInfo2()->MemorizedSpells[Index]));
          }
          WriteChatColor(szBuffer,USERCOLOR_DEFAULT);
       }
@@ -1978,10 +1978,10 @@ if (!stricmp(szArg1,"item"))
       DWORD SpawnFooter = NULL;
       SpawnFooter = (DWORD)pLocalPlayer;
       for (int i=0;i<30;i++) {
-         if (pCharInfo->InventoryArray[i])
-            if (!_stricmp(szArg2,pCharInfo->InventoryArray[i]->Item->Name)) { 
-            DebugSpew("cast test slot %d = %s address is %x",i,pCharInfo->InventoryArray[i]->Item->Name,&(pCharInfo->InventoryArray[i])); 
-            item = (DWORD)&pCharInfo->InventoryArray[i];
+         if (GetCharInfo2()->InventoryArray[i])
+            if (!_stricmp(szArg2,GetCharInfo2()->InventoryArray[i]->Item->Name)) { 
+            DebugSpew("cast test slot %d = %s address is %x",i,GetCharInfo2()->InventoryArray[i]->Item->Name,&(GetCharInfo2()->InventoryArray[i])); 
+            item = (DWORD)&GetCharInfo2()->InventoryArray[i];
                slot = (DWORD)i;
                FOUND = TRUE;
                break;
@@ -1994,8 +1994,8 @@ if (!stricmp(szArg1,"item"))
    }
    GetArg(szBuffer,szLine,1);
    for (Index=0;Index<9;Index++) {
-      if (pCharInfo->MemorizedSpells[Index]!=0xFFFFFFFF) {
-         PCHAR SpellName = GetSpellNameByID(pCharInfo->MemorizedSpells[Index]);
+      if (GetCharInfo2()->MemorizedSpells[Index]!=0xFFFFFFFF) {
+         PCHAR SpellName = GetSpellNameByID(GetCharInfo2()->MemorizedSpells[Index]);
          if (!stricmp(szBuffer,SpellName)) {
             DebugSpew("SpellName = %s",SpellName);
             cmdCast(pChar,itoa(Index+1,szBuffer,10));
@@ -2104,7 +2104,7 @@ VOID Skills(PSPAWNINFO pChar, PCHAR szLine)
             if (!strstr(szName,szLine)) continue;
         }
         SkillCount++;
-        switch (pCharInfo->Skill[Skill]) {
+        switch (GetCharInfo2()->Skill[Skill]) {
             case 255:
                 //Untrainable
                 SkillCount--;
@@ -2121,7 +2121,7 @@ VOID Skills(PSPAWNINFO pChar, PCHAR szLine)
                 break;
             default:
                 //Have skill
-                sprintf(szMsg,"%s: %d",szSkills[Skill],pCharInfo->Skill[Skill]);
+                sprintf(szMsg,"%s: %d",szSkills[Skill],GetCharInfo2()->Skill[Skill]);
                 WriteChatColor(szMsg,USERCOLOR_DEFAULT);
         }
     }
@@ -2215,7 +2215,7 @@ VOID MacroPause(PSPAWNINFO pChar, PCHAR szLine)
 VOID SetAutoRun(PSPAWNINFO pChar, PCHAR szLine)
 {
     CHAR szServerAndName[MAX_STRING] = {0};
-    sprintf(szServerAndName,"%s.%s",((PCHARINFO)pCharData)->Server,((PCHARINFO)pCharData)->Name);
+    sprintf(szServerAndName,"%s.%s",EQADDR_SERVERNAME,((PCHARINFO)pCharData)->Name);
     WritePrivateProfileString(szServerAndName,"AutoRun",szLine,gszINIFilename);
     sprintf(szServerAndName,"Set autorun to: '%s'",szLine);
     WriteChatColor(szServerAndName,USERCOLOR_DEFAULT);
@@ -2951,9 +2951,9 @@ VOID CombineCmd(PSPAWNINFO pChar, PCHAR szLine)
 
 VOID DropCmd(PSPAWNINFO pChar, PCHAR szLine)
 {
-	if (((PCHARINFO)pCharData)->Cursor)
+	if (GetCharInfo2()->Cursor)
 	{
-		if (((EQ_Item*)((PCHARINFO)pCharData)->Cursor)->CanDrop(1))
+		if (((EQ_Item*)GetCharInfo2()->Cursor)->CanDrop(1))
 		{
 			pEverQuest->DropHeldItemOnGround(1);
 		}
@@ -3092,8 +3092,8 @@ VOID AltAbility(PSPAWNINFO pChar, PCHAR szLine)
             WriteChatColor("Alternative Abilities (Complete List)", CONCOLOR_YELLOW );
             WriteChatColor("-------------------------------------", USERCOLOR_WHO);
             for (nAbility=0 ; nAbility<AA_CHAR_MAX_REAL ; nAbility++) {
-                if (GetCharInfo()->AAList[nAbility].AAIndex) {
-                    if ( PALTABILITY pAbility=pAltAdvManager->GetAltAbility(GetCharInfo()->AAList[nAbility].AAIndex)) {
+                if (GetCharInfo2()->AAList[nAbility].AAIndex) {
+                    if ( PALTABILITY pAbility=pAltAdvManager->GetAltAbility(GetCharInfo2()->AAList[nAbility].AAIndex)) {
                             sprintf(szBuffer,"[ %d: %s ]", pAbility->ID, pStringTable->getString(pAbility->nName,0) );
                             WriteChatColor(szBuffer,USERCOLOR_WHO);
                     } 

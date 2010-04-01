@@ -17,6 +17,12 @@ static inline PCHARINFO GetCharInfo(VOID) {
     return (PCHARINFO)pCharData;
 }
 
+static inline PCHARINFO2 GetCharInfo2(VOID) {
+ //   if (!ppCharData) return NULL;
+    return ((PCHARINFO)pCharData)->something->charinfo2;
+}
+
+
 static inline EQPlayer *GetSpawnByID(DWORD dwSpawnID)
 {
 	if (dwSpawnID<3000)
@@ -95,10 +101,10 @@ static inline BOOL IsMarkedNPC(PSPAWNINFO pSpawn)
 	return false;
 }
 
-#define GetMaxHPS() pCharData->Max_HP(0)
-#define GetCurHPS() pCharData->Cur_HP(0)
-#define GetMaxEndurance() pCharData->Max_Endurance()
-#define GetMaxMana() pCharData->Max_Mana() 
+#define GetCurHPS() pCharData1->Cur_HP(0)
+#define GetMaxHPS() pCharData1->Max_HP(0)
+#define GetMaxEndurance() pCharData1->Max_Endurance()
+#define GetMaxMana() pCharData1->Max_Mana() 
 
 static inline eSpawnType GetSpawnType(PSPAWNINFO pSpawn)
 {

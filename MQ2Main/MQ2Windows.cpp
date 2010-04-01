@@ -434,7 +434,7 @@ CXWnd *FindMQ2Window(PCHAR WindowName)
 			unsigned long nPack=atoi(&WindowName[4]);
 			if (nPack && nPack<=8)
 			{
-				pPack=((PCHARINFO)pCharData)->Inventory.Pack[nPack-1];
+				pPack=GetCharInfo2()->Inventory.Pack[nPack-1];
 			}
 		}
 		else if (!stricmp(WindowName,"enviro"))
@@ -969,7 +969,7 @@ int ItemNotify(int argc, char *argv[])
 			unsigned long nPack=atoi(&szArg2[4]);
 			if (nPack && nPack<=8)
 			{
-				pPack=pChar->pCharInfo->Inventory.Pack[nPack-1];
+				pPack=GetCharInfo2()->Inventory.Pack[nPack-1];
 			}
 		}
 		else if (!stricmp(szArg2,"enviro"))

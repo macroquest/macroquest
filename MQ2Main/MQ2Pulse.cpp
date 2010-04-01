@@ -103,6 +103,7 @@ void Pulse()
 
    // Drop out here if we're waiting for something.
     if ((!pChar) || (gZoning)/* || (gDelayZoning)*/) return;
+    if ((unsigned int)GetCharInfo()->punknown & 0x80000000) return;
 
 	if (pChar!=pCharOld && WereWeZoning)
 	{
@@ -158,30 +159,30 @@ void Pulse()
 	}
 	LastHealth=CurrentHealth;
 
-	if (LastMana && pCharInfo->Mana > LastMana)
+	if (LastMana && GetCharInfo2()->Mana > LastMana)
 	{
-		if ((int)pCharInfo->Mana-LastMana > 0 )
+		if ((int)GetCharInfo2()->Mana-LastMana > 0 )
 		{
-			ManaGained=pCharInfo->Mana-LastMana;
+			ManaGained=GetCharInfo2()->Mana-LastMana;
 		}
 	}
-	LastMana=pCharInfo->Mana;
+	LastMana=GetCharInfo2()->Mana;
 
-	if (LastEndurance && pCharInfo->Endurance > LastEndurance) 
+	if (LastEndurance && GetCharInfo2()->Endurance > LastEndurance) 
     { 
-		if (pCharInfo->Endurance != (int)pCharData->Max_Endurance()) 
+		if (GetCharInfo2()->Endurance != (int)pCharData1->Max_Endurance()) 
         { 
-			EnduranceGained = pCharInfo->Endurance - LastEndurance; 
+			EnduranceGained = GetCharInfo2()->Endurance - LastEndurance; 
         } 
     } 
-    LastEndurance = pCharInfo->Endurance;
+    LastEndurance = GetCharInfo2()->Endurance;
 
     if (gbDoAutoRun && pChar && pChar->pCharInfo) {
         gbDoAutoRun = FALSE;
         CHAR szServerAndName[MAX_STRING] = {0};
         CHAR szAutoRun[MAX_STRING] = {0};
         PCHAR pAutoRun = szAutoRun;
-        sprintf(szServerAndName,"%s.%s",pChar->pCharInfo->Server,pChar->pCharInfo->Name);
+        sprintf(szServerAndName,"%s.%s",EQADDR_SERVERNAME,pChar->pCharInfo->Name);
         GetPrivateProfileString("AutoRun",szServerAndName,"",szAutoRun,MAX_STRING,gszINIFilename);
         while (pAutoRun[0]==' ' || pAutoRun[0]=='\t') pAutoRun++;
         if (szAutoRun[0]!=0) DoCommand(pChar,pAutoRun);

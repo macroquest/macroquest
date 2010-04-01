@@ -117,10 +117,12 @@ public:
    VOID SetItem_Detour(class EQ_Item *pitem,bool unknown)
    {
       PEQITEMWINDOW This=(PEQITEMWINDOW)this;
-	  PITEMINFO Item=*(PITEMINFO*)pitem;
+      //PITEMINFO Item=*(PITEMINFO*)pitem;
+      PCONTENTS item=(PCONTENTS)pitem;
+      PITEMINFO Item=(PITEMINFO)item->Item;
       CHAR out[MAX_STRING] = {0};
-	  CHAR temp[MAX_STRING] = {0};
-	  CHAR temp2[MAX_STRING] = {0};
+      CHAR temp[MAX_STRING] = {0};
+      CHAR temp2[MAX_STRING] = {0};
       PCHAR lore = NULL;
       SetItem_Trampoline(pitem,unknown);
 
@@ -170,8 +172,7 @@ public:
             //Calculate Efficiency
             INT dmgbonus = 0;
 
-            PCHARINFO pCharInfo = GetCharInfo();
-            if (pCharInfo->Level > 27) { //bonus is 0 for anything below 28
+            if (GetCharInfo2()->Level > 27) { //bonus is 0 for anything below 28
                dmgbonus = GetDmgBonus(&This->ItemInfo);
             }
 
@@ -198,7 +199,7 @@ public:
        if (Item->Proc.RequiredLevel == 0 ) 
           sprintf(temp, "Procs at level 1 (Proc rate modifier: %d)<BR>", Item->ProcRate); 
       else 
-         sprintf(temp,"%sProcs at level %d%s (Proc rate modifier: %d)<BR>", (Item->Proc.RequiredLevel > pChar->Level ? "<c \"#FF4040\">" : ""), Item->Proc.RequiredLevel, (Item->Proc.RequiredLevel > pChar->Level ? "</C>" : ""), Item->ProcRate); 
+         sprintf(temp,"%sProcs at level %d%s (Proc rate modifier: %d)<BR>", (Item->Proc.RequiredLevel > GetCharInfo2()->Level ? "<c \"#FF4040\">" : ""), Item->Proc.RequiredLevel, (Item->Proc.RequiredLevel > GetCharInfo2()->Level ? "</C>" : ""), Item->ProcRate); 
        strcat(out,temp); 
      } 
    /* No longer needed? 
@@ -220,7 +221,7 @@ public:
 		 if ( Item->Clicky.RequiredLevel == 0 )
 			 sprintf(temp, "Clickable at level 1<br>");
 		else
-			sprintf(temp,"%sClickable at level %d%s<BR>", (Item->Clicky.RequiredLevel > pChar->Level ? "<c \"#FF4040\">" : ""), Item->Clicky.RequiredLevel, (Item->Clicky.RequiredLevel > pChar->Level ? "</C>" : ""));  
+			sprintf(temp,"%sClickable at level %d%s<BR>", (Item->Clicky.RequiredLevel > GetCharInfo2()->Level ? "<c \"#FF4040\">" : ""), Item->Clicky.RequiredLevel, (Item->Clicky.RequiredLevel > GetCharInfo2()->Level ? "</C>" : ""));  
         strcat(out,temp); 
      }
 
@@ -279,37 +280,37 @@ public:
       // Ziggy - Highlight existing item display parts.
       // eg. Required level insufficient
       //     Wrong class, race, deity etc.
-      if (pChar != NULL) {
+      if (GetCharInfo() != NULL) {
          char cFind[256];
          char cReplace[256];
 
-         if (Item->RequiredLevel > pChar->Level) {
+         if (Item->RequiredLevel > GetCharInfo2()->Level) {
             sprintf (cFind, "Required level of %d.", Item->RequiredLevel);
             sprintf (cReplace, "<c \"#FF4040\">%s</C>", cFind);
             CXStrReplace (&This->ItemInfo, cFind, cReplace);
          }
 
-         if (Item->RecommendedLevel > pChar->Level) {
-            int iEffectiveness = (100 * pChar->Level / Item->RecommendedLevel);
+         if (Item->RecommendedLevel > GetCharInfo2()->Level) {
+            int iEffectiveness = (100 * GetCharInfo2()->Level / Item->RecommendedLevel);
             sprintf (cFind, "Recommended level of %d.", Item->RecommendedLevel);
             sprintf (cReplace, "<c \"#FF8020\">Recommended level of %d (%d%% effective).</C>", Item->RecommendedLevel, iEffectiveness);
             CXStrReplace (&This->ItemInfo, cFind, cReplace);
          }
 
-         if (Item->Proc.RequiredLevel > pChar->Level) {
+         if (Item->Proc.RequiredLevel > GetCharInfo2()->Level) {
             sprintf (cFind, "<BR>Required Level: %d<BR>", Item->Proc.RequiredLevel);
             sprintf (cReplace, "<BR><c \"#FF4040\">Required Level: %d</C><BR>", Item->Proc.RequiredLevel);
             CXStrReplace (&This->ItemInfo, cFind, cReplace);
          }
 
-         if (Item->Clicky.RequiredLevel > pChar->Level) {
+         if (Item->Clicky.RequiredLevel > GetCharInfo2()->Level) {
             sprintf (cFind, "<BR>Required Level: %d<BR>", Item->Clicky.RequiredLevel);
             sprintf (cReplace, "<BR><c \"#FF4040\">Required Level: %d</C><BR>", Item->Clicky.RequiredLevel);
             CXStrReplace (&This->ItemInfo, cFind, cReplace);
          }
 
          // Highlight good/bad class match
-         int iClassBit = 1 << (pChar->Class - 1);
+         int iClassBit = 1 << (GetCharInfo2()->Class - 1);
          if (!(Item->Classes & iClassBit)) {
             char cClasses[64] = {0};
             int iClass = 1;
@@ -331,7 +332,7 @@ public:
             CXStrReplace (&This->ItemInfo, cFind, cReplace);
 
          } else {
-            char * cCode = pEverQuest->GetClassThreeLetterCode(pChar->Class);
+            char * cCode = pEverQuest->GetClassThreeLetterCode(GetCharInfo2()->Class);
             sprintf (cFind, "%s ", cCode);
             sprintf (cReplace, "<c \"#20FF20\">%s</C>", cFind);
 
@@ -343,11 +344,11 @@ public:
 
          // Highlight good/bad race match
          DWORD raceNum;
-         switch(pChar->Race) {
+         switch(GetCharInfo2()->Race) {
             case 0x80:  raceNum = 0xc; break;
             case 0x82:  raceNum = 0xd; break;
             case 0x4a:  raceNum = 0xe; break;
-            default:    raceNum = pChar->Race - 1;
+            default:    raceNum = GetCharInfo2()->Race - 1;
          }
          int iRaceBit = 1 << raceNum;
          if (!(Item->Races & iRaceBit)) {
@@ -383,12 +384,12 @@ public:
 
          // Highlight deity mismatch
          if (Item->Diety != 0) {
-            int iDeityBit = 1 << (pChar->Deity - 200);
-            if (pChar->Deity < DEITY_Bertoxxulous || pChar->Deity > DEITY_Veeshan) {
+            int iDeityBit = 1 << (GetCharInfo2()->Deity - 200);
+            if (GetCharInfo2()->Deity < DEITY_Bertoxxulous || GetCharInfo2()->Deity > DEITY_Veeshan) {
                iDeityBit = 0;                         // Agnostic shows as 396
             }
 
-            char * cPlayerD = pEverQuest->GetDeityDesc (pChar->Deity);
+            char * cPlayerD = pEverQuest->GetDeityDesc (GetCharInfo2()->Deity);
 
             strcpy (cFind, "Deity:");
             strcpy (cReplace, "Deity:");

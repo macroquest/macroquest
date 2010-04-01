@@ -337,6 +337,7 @@ EQLIB_VAR EQ_PC **ppPCData;
 #define pPCData (*ppPCData)
 EQLIB_VAR EQ_Character **ppCharData;
 #define pCharData (*ppCharData)
+#define pCharData1 ((EQ_Character1 *)(((char *)(*ppCharData))+0xc278))
 EQLIB_VAR EQPlayer **ppCharSpawn;
 #define pCharSpawn (*ppCharSpawn)
 EQLIB_VAR EQPlayer **ppActiveMerchant;

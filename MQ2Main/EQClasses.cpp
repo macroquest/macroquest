@@ -118,8 +118,12 @@ int  CListWnd::AddString(char *p1, unsigned long p2, unsigned __int32 p3, class 
 }
 
 // MANUAL IMPORTS
+#ifdef CMyInventory__GetSlot
+FUNCTION_AT_ADDRESS(struct  _CONTENTS* CMyInventory::GetSlot(int), CMyInventory__GetSlot);
+#endif
+
 #ifdef EQ_Item__GetItemLinkHash
-FUNCTION_AT_ADDRESS(char * EQ_Item::GetItemLinkHash(char *),EQ_Item__GetItemLinkHash); // Lax 11-14-2003
+FUNCTION_AT_ADDRESS(char * EQ_Item::GetItemLinkHash(char *, int),EQ_Item__GetItemLinkHash); // Lax 11-14-2003
 #endif
 #ifdef CStmlWnd__AppendSTML
 FUNCTION_AT_ADDRESS(class CXSize& CStmlWnd::AppendSTML(class CXSize*,class CXStr),CStmlWnd__AppendSTML);
@@ -127,12 +131,21 @@ FUNCTION_AT_ADDRESS(class CXSize& CStmlWnd::AppendSTML(class CXSize*,class CXStr
 #ifdef EQ_Item__CanDrop
 FUNCTION_AT_ADDRESS(int EQ_Item::CanDrop(int),EQ_Item__CanDrop); // Lax 4-21-2004
 #endif
+
+///////////////////////////////////////////////////////////////////
+// gah, i hate sony
 #ifdef EQ_Character__Max_Endurance
-FUNCTION_AT_ADDRESS(int  EQ_Character::Max_Endurance(void),EQ_Character__Max_Endurance);
+FUNCTION_AT_ADDRESS(int  EQ_Character1::Max_Endurance(void),EQ_Character__Max_Endurance);
 #endif
+//fuck virtual
 #ifdef EQ_Character__Max_Mana 
-FUNCTION_AT_VIRTUAL_ADDRESS(int EQ_Character::Max_Mana(void), 0);
+FUNCTION_AT_ADDRESS(int EQ_Character1::Max_Mana(void), EQ_Character__Max_Mana);
 #endif 
+#ifdef EQ_Character__Max_HP
+FUNCTION_AT_ADDRESS(int  EQ_Character1::Max_HP(int),EQ_Character__Max_HP);
+#endif
+/////////////////////////////////////////////////////////////////////
+
 #ifdef EQ_Character__doCombatAbility 
 FUNCTION_AT_ADDRESS(void EQ_Character::DoCombatAbility(int spellID), EQ_Character__doCombatAbility); 
 #endif 
@@ -156,7 +169,7 @@ FUNCTION_AT_VIRTUAL_ADDRESS(int CXWnd::HandleRButtonHeld(class CXPoint *,unsigne
 FUNCTION_AT_VIRTUAL_ADDRESS(int CXWnd::HandleRButtonUpAfterHeld(class CXPoint *,unsigned __int32),0x50);
 
 
-FUNCTION_AT_VIRTUAL_ADDRESS(void CListWnd::DeleteAll(void),0x12c);
+FUNCTION_AT_VIRTUAL_ADDRESS(void CListWnd::DeleteAll(void),0x130);
 
 
 // AUTO IMPORTS
@@ -3882,13 +3895,10 @@ FUNCTION_AT_ADDRESS(int  EQ_Character::HasSpell(int),EQ_Character__HasSpell);
 FUNCTION_AT_ADDRESS(void  EQ_Character::ResetCur_HP(int),EQ_Character__ResetCur_HP);
 #endif
 #ifdef EQ_Character__Cur_HP
-FUNCTION_AT_ADDRESS(int  EQ_Character::Cur_HP(int),EQ_Character__Cur_HP);
+FUNCTION_AT_ADDRESS(int  EQ_Character1::Cur_HP(int),EQ_Character__Cur_HP);
 #endif
 #ifdef EQ_Character__GetHPFromStamina
 FUNCTION_AT_ADDRESS(int  EQ_Character::GetHPFromStamina(int),EQ_Character__GetHPFromStamina);
-#endif
-#ifdef EQ_Character__Max_HP
-FUNCTION_AT_ADDRESS(int  EQ_Character::Max_HP(int),EQ_Character__Max_HP);
 #endif
 #ifdef EQ_Character__Cur_Mana
 FUNCTION_AT_ADDRESS(int  EQ_Character::Cur_Mana(void),EQ_Character__Cur_Mana);

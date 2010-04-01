@@ -500,7 +500,7 @@ TLO(dataIf)
 #endif
 TLO(dataCursor)
 {
-	if (Ret.Ptr=((PCHARINFO)pCharData)->Cursor)
+	if (Ret.Ptr=GetCharInfo2()->Cursor)
 	{
 		Ret.Type=pItemType;
 		return true;
@@ -848,7 +848,7 @@ TLO(dataFindItem)
 
 	for (unsigned long nSlot=0 ; nSlot < 0x1E ; nSlot++)
 	{
-		if (PCONTENTS pItem=pCharInfo->InventoryArray[nSlot])
+		if (PCONTENTS pItem=GetCharInfo2()->InventoryArray[nSlot])
 		{
 			if (bExact)
 			{
@@ -873,7 +873,7 @@ TLO(dataFindItem)
 
 	for (unsigned long nPack=0 ; nPack < 8 ; nPack++)
 	{
-		if (PCONTENTS pPack=pCharInfo->Inventory.Pack[nPack])
+		if (PCONTENTS pPack=GetCharInfo2()->Inventory.Pack[nPack])
 		{
 			if (pPack->Item->Type==ITEMTYPE_PACK)
 			{
@@ -930,7 +930,7 @@ TLO(dataFindItemCount)
 
 	for (unsigned long nSlot=0 ; nSlot < 0x1E ; nSlot++)
 	{
-		if (PCONTENTS pItem=pCharInfo->InventoryArray[nSlot])
+		if (PCONTENTS pItem=GetCharInfo2()->InventoryArray[nSlot])
 		{
 			if (bExact)
 			{
@@ -959,7 +959,7 @@ TLO(dataFindItemCount)
 
 	for (unsigned long nPack=0 ; nPack < 8 ; nPack++)
 	{
-		if (PCONTENTS pPack=pCharInfo->Inventory.Pack[nPack])
+		if (PCONTENTS pPack=GetCharInfo2()->Inventory.Pack[nPack])
 		{
 			if (pPack->Item->Type==ITEMTYPE_PACK)
 			{

@@ -1,3 +1,8 @@
+15 September 2005 by Lax
+- SOMEONE SUBMIT SOME PATCHES PLEASE!! ;)
+- Updated DataParse calls for ISXDK v18+
+- Added Software Cursor service (ISXDK v20a)
+
 20 July 2005 by Lax
 - Added timer type methods by onetimehero
 
