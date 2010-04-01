@@ -95,7 +95,7 @@ published by
 #define pinstCSidlManager                                  0x940A9C
 #define pinstCXWndManager                                  0x940A94
 #define pinstEQItemList                                    0x90B810
-#define instGroup                                          0x909ED8
+#define instGroup                                          0x909D90
 #define pinstLocalPlayer                                   0x90B830
 #define pinstPCData                                        0x90B84C
 #define pinstSelectedItem                                  0x9295BC

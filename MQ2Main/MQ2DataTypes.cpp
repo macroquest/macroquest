@@ -4836,6 +4836,8 @@ bool MQ2GroupMemberType::GETMEMBER()
 	PMQ2TYPEMEMBER pMember=MQ2GroupMemberType::FindMember(Member);
 	if (!pMember)
 	{
+		if (!pGroupMember)
+			return false;
 #ifndef ISXEQ
 		return pSpawnType->GetMember(*(MQ2VARPTR*)&pGroupMember,Member,Index,Dest);
 #else
@@ -4854,9 +4856,12 @@ bool MQ2GroupMemberType::GETMEMBER()
 		Dest.Type=pBoolType;
 		return true;
 	case Spawn:
-		Dest.Ptr=pGroupMember;
-		Dest.Type=pSpawnType;
-		return true;
+		if (Dest.Ptr=pGroupMember)
+		{
+			Dest.Type=pSpawnType;
+			return true;
+		}
+		break;
 	}
 	return false;
 }

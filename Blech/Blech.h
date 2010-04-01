@@ -64,7 +64,7 @@ Using Blech:
 
 #pragma once
 
-#define BLECHVERSION "Lax/Blech 1.7.0"
+#define BLECHVERSION "Lax/Blech 1.7.1"
 
 #include <map>
 #include <string>
@@ -512,7 +512,7 @@ public:
 		PBLECHEVENT pEvent = Event[ID];
 		if (!pEvent)
 			return false;
-		Event[ID]=0;
+		Event.erase(ID);
 		{
 			free(pEvent->OriginalString);
 			
