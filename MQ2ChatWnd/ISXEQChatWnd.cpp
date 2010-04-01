@@ -158,6 +158,12 @@ void ISXEQChatWnd::Shutdown()
 	// save settings, if you changed them and want to save them now.  You should normally save
 	// changes immediately.
 	//pISInterface->SaveSettings(XMLFileName);
+	if (MQChatWnd)
+	{
+		SaveChatToXML((PCSIDLWND)MQChatWnd);
+		delete MQChatWnd;
+		MQChatWnd=0;
+	}
 
 	pISInterface->UnloadSettings(XMLFileName);
 
@@ -282,44 +288,6 @@ void ISXEQChatWnd::UnRegisterServices()
 
 void ISXEQChatWnd::LoadSettings()
 {
-	// IS provides easy methods of reading and writing settings of all types (bool, int, string, float, etc)
-	bool BoolSetting=true;
-	char StringSetting[512]={0};
-	int IntSetting=15;
-	float FloatSetting=25.3f;
-	if (!pISInterface->GetSettingi(XMLFileName,"My Section","My Int Setting",IntSetting))
-	{
-		// int setting did not exist, should we modify the xml?
-		// It returned false, so IntSetting is still our default value of 15. Let's
-		// use that from here, and store it in the xml
-		pISInterface->SetSettingi(XMLFileName,"My Section","My Int Setting",IntSetting);
-	}
-	if (!pISInterface->GetSettingb(XMLFileName,"My Section","My Bool Setting",BoolSetting))
-	{
-		// bool setting did not exist, should we modify the xml?
-		// It returned false, so BoolSetting is still our default value of true. Let's
-		// use that from here, and store it.
-		// Bool settings are stored as integers, so just use SetSettingi
-		pISInterface->SetSettingi(XMLFileName,"My Section","My Bool Setting",BoolSetting);
-	}
-	if (!pISInterface->GetSettingf(XMLFileName,"My Section","My Float Setting",FloatSetting))
-	{
-		// float setting did not exist, should we modify the xml?
-		// It returned false, so FloatSetting is still our default value of 25.3. Let's
-		// use that from here, and store it.
-		pISInterface->SetSettingf(XMLFileName,"My Section","My Float Setting",FloatSetting);
-	}
-	if (!pISInterface->GetSetting(XMLFileName,"My Section","My String Setting",StringSetting,sizeof(StringSetting)))
-	{
-		// string setting did not exist, should we modify the xml?
-		// It returned false, so StringSetting is still our default empty string. 
-		// Let's set it to a new default, "ISXEQChatWnd", and store it.
-		strcpy(StringSetting,"ISXEQChatWnd");
-		pISInterface->SetSetting(XMLFileName,"My Section","My String Setting",StringSetting);
-	}
-
-	// save settings if we changed them
-	pISInterface->SaveSettings(XMLFileName);
 }
 
 
@@ -587,9 +555,19 @@ void LoadChatFromXML(PCSIDLWND pWindow)
 
 	int iTemp=0;
 	GetIntSetting("Top",pWindow->Location.top,10);
-	GetIntSetting("Bottom",pWindow->Location.bottom,10);
+	GetIntSetting("Bottom",pWindow->Location.bottom,210);
+	if (pWindow->Location.top==pWindow->Location.bottom)
+	{
+		pWindow->Location.bottom+=200;
+		pISInterface->SetSettingi(XMLFileName,szChatXMLSection,"Bottom",pWindow->Location.bottom);
+	}
 	GetIntSetting("Left",pWindow->Location.left,10);
-	GetIntSetting("Right",pWindow->Location.right,10);
+	GetIntSetting("Right",pWindow->Location.right,410);
+	if (pWindow->Location.left==pWindow->Location.right)
+	{
+		pWindow->Location.right+=400;
+		pISInterface->SetSettingi(XMLFileName,szChatXMLSection,"Right",pWindow->Location.right);
+	}
 	
 	GetIntSetting("Locked",pWindow->Locked,0);
 	GetIntSetting("FontSize",*(DWORD*)&(((PCHAR)MQChatWnd->OutputBox)[0x174]),4);
@@ -607,8 +585,8 @@ void LoadChatFromXML(PCSIDLWND pWindow)
 	char Buffer[MAX_STRING]={0};
 	if (!pISInterface->GetSetting(XMLFileName,szChatXMLSection,"Title",Buffer,sizeof(Buffer)))
 	{
-		strcpy(Buffer,"MQ");
-		pISInterface->SetSetting(XMLFileName,szChatXMLSection,"Title","MQ");
+		strcpy(Buffer,"ISXEQ");
+		pISInterface->SetSetting(XMLFileName,szChatXMLSection,"Title","ISXEQ");
 	}
 
 	SetCXStr(&pWindow->WindowText,Buffer);
@@ -673,7 +651,7 @@ VOID DoMQ2ChatBind(PCHAR Name,BOOL Down)
 		{
 			CXRect rect= ((CXWnd*)MQChatWnd->InputBox)->GetScreenRect();
 			CXPoint pt=rect.CenterPoint();
-			((CXWnd*)MQChatWnd->InputBox)->SetWindowTextA(CXStr("/"));
+			((CXWnd*)MQChatWnd->InputBox)->SetWindowTextA(CXStr(""));
 			((CXWnd*)MQChatWnd->InputBox)->HandleLButtonDown(&pt,0);
 		}
 	}

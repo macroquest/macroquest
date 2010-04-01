@@ -111,3 +111,8 @@ extern LSType *pFloatType;
 extern LSType *pTimeType;
 extern LSType *pByteType;
 
+extern LSType *pStringPtrType;
+extern LSType *pIntPtrType;
+extern LSType *pBoolPtrType;
+extern LSType *pFloatPtrType;
+extern LSType *pBytePtrType;

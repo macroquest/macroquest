@@ -3157,6 +3157,26 @@ bool MQ2ItemType::GETMEMBER()
 			Dest.Type=pSpellType; 
 			return true; 
 		} 
+		if (Dest.Ptr=GetSpellByID(pItem->Item->Scroll.SpellID)) 
+		{ 
+			Dest.Type=pSpellType; 
+			return true; 
+		} 
+		if (Dest.Ptr=GetSpellByID(pItem->Item->Proc.SpellID)) 
+		{ 
+			Dest.Type=pSpellType; 
+			return true; 
+		} 
+		if (Dest.Ptr=GetSpellByID(pItem->Item->Focus.SpellID)) 
+		{ 
+			Dest.Type=pSpellType; 
+			return true; 
+		} 
+		if (Dest.Ptr=GetSpellByID(pItem->Item->Worn.SpellID)) 
+		{ 
+			Dest.Type=pSpellType; 
+			return true; 
+		} 
 		return false; 
 	case EffectType:
 		//0 Proc 

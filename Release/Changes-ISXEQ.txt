@@ -1,3 +1,10 @@
+19 March 2005 by Lax
+- ISXEQChatWnd bug fixes
+
+18 March 2005 by Lax
+- Access to LavishScript stringptr, intptr, boolptr, floatptr, byteptr types built in
+- Added SPAWNSERVICE_ADDGM and SPAWNSERVICE_REMOVEGM - cronic
+
 8 March 2005 by Lax
 - Fixed problem with spawn service crashing in a zone with ground items if a client connected
 - mkplugin now creates ISXEQ client files also (you can run it on existing MQ2 plugins to 

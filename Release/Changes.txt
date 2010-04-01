@@ -1,3 +1,6 @@
+11 March 2005 by Lax
+- item.Spell fixed for scroll, proc, focus, and worn (previously did only clicky)
+
 10 March 2005 by Lax
 - CHARINFO update from htw, fixes the new Group stuff
 

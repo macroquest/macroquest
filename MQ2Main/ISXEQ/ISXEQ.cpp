@@ -18,8 +18,15 @@ LSType *pStringType=0;
 LSType *pIntType=0;
 LSType *pBoolType=0;
 LSType *pFloatType=0;
-LSType *pTimeType=0;
 LSType *pByteType=0;
+
+LSType *pStringPtrType=0;
+LSType *pIntPtrType=0;
+LSType *pBoolPtrType=0;
+LSType *pFloatPtrType=0;
+LSType *pBytePtrType=0;
+
+LSType *pTimeType=0;
 
 ISInterface *pISInterface=0;
 HISXSERVICE hPulseService;
@@ -68,6 +75,13 @@ bool CISXEQ::Initialize(ISInterface *p_ISInterface)
 	pFloatType=pISInterface->FindLSType("float");
 	pTimeType=pISInterface->FindLSType("time");
 	pByteType=pISInterface->FindLSType("byte");
+
+	pStringPtrType=pISInterface->FindLSType("stringptr");
+	pIntPtrType=pISInterface->FindLSType("intptr");
+	pBoolPtrType=pISInterface->FindLSType("boolptr");
+	pFloatPtrType=pISInterface->FindLSType("floatptr");
+	pBytePtrType=pISInterface->FindLSType("byteptr");
+
 
 	ConnectServices();
 

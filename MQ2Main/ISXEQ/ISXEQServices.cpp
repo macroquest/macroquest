@@ -109,6 +109,8 @@ void __cdecl SpawnRequest(ISXInterface *pClient, unsigned long MSG, void *lpData
 			while(pSpawn)
 			{
 				pISInterface->ServiceNotify(pExtension,hSpawnService,(ISXInterface*)lpData,SPAWNSERVICE_ADDSPAWN,pSpawn);
+				if (pSpawn->GM) 
+					pISInterface->ServiceNotify(pExtension,hSpawnService,(ISXInterface*)lpData,SPAWNSERVICE_ADDGM,pSpawn); 
 				pSpawn=pSpawn->pNext;
 			}
 			PGROUNDITEM pItem=(PGROUNDITEM)pItemList;
@@ -176,11 +178,15 @@ EQLIB_API VOID PluginsAddSpawn(PSPAWNINFO pNewSpawn)
 		WriteChatf("Spawn '%s' has unknown bodytype %d",pNewSpawn->Name,pNewSpawn->BodyType);
 	}
 	pISInterface->ServiceBroadcast(pExtension,hSpawnService,SPAWNSERVICE_ADDSPAWN,pNewSpawn);
+	if (pNewSpawn->GM) 
+		pISInterface->ServiceBroadcast(pExtension,hSpawnService,SPAWNSERVICE_ADDGM,pNewSpawn);
 }
 EQLIB_API VOID PluginsRemoveSpawn(PSPAWNINFO pSpawn)
 {
 	PluginDebug("PluginsRemoveSpawn(%s)",pSpawn->Name);
 	SpawnByName.erase(pSpawn->Name);
+	if (pSpawn->GM) 
+		pISInterface->ServiceBroadcast(pExtension,hSpawnService,SPAWNSERVICE_REMOVEGM,pSpawn);
 	pISInterface->ServiceBroadcast(pExtension,hSpawnService,SPAWNSERVICE_REMOVESPAWN,pSpawn);
 }
 EQLIB_API VOID PluginsAddGroundItem(PGROUNDITEM pNewGroundItem)
