@@ -93,7 +93,15 @@ VOID HideDoCommand(PSPAWNINFO pChar, PCHAR szLine, BOOL delayed)
             //            } else /echo stuff
 			GetArg(szCmd,szLine,2);
 			if (!stricmp(szCmd,"else")) {
-                FailIf(pChar,"{",gMacroBlock,TRUE);
+                // check here to fail this:
+                //            /if () {
+                //            } else 
+                //                /echo stuff
+			    GetArg(szCmd,szLine,3);
+			    if (!stricmp(szCmd,"")) {
+				    FatalError("no command or { following else");
+			    }
+                bRunNextCommand = TRUE;
             } else {
                 bRunNextCommand = TRUE;
             }

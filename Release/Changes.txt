@@ -1,3 +1,6 @@
+16 Jul 2005 by dkaa
+- further fixes for else 
+
 12 Jul 2005 by Lax
 - Added Top-Level Object:
   * int Select[value,...]
