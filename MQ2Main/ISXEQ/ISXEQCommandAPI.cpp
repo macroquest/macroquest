@@ -20,12 +20,82 @@
 
 #include "..\MQ2Main.h"
 
+typedef struct _ISXEQAlias
+{
+	char Replacement[256];
+} ISXEQALIAS, *PISXEQALIAS;
+
+map<string,PISXEQALIAS> ISXEQAliases;
+
+
+PISXEQALIAS FindISXEQAlias(const char *Token)
+{
+	if (!Token || !Token[0])
+		return 0;
+	char Temp[512];
+	strcpy(Temp,Token);
+	strlwr(Temp);
+	return ISXEQAliases[Temp];
+}
+
+void AddISXEQAlias(const char *Replace, const char *With)
+{
+	if (!Replace || !Replace[0])
+		return;
+	if (!With || !With[0])
+		return;
+	PISXEQALIAS pAlias=FindISXEQAlias(Replace);
+	if (pAlias)
+	{
+		strcpy(pAlias->Replacement,With);
+		return;
+	}
+	pAlias=new ISXEQALIAS;
+	strcpy(pAlias->Replacement,With);
+	char Temp[512];
+	strcpy(Temp,Replace);
+	strlwr(Temp);
+	ISXEQAliases[Temp]=pAlias;
+}
+
+bool RemoveISXEQAlias(const char *Token)
+{
+	if (!Token || !Token[0])
+		return 0;
+	char Temp[512];
+	strcpy(Temp,Token);
+	strlwr(Temp);
+	PISXEQALIAS pAlias=ISXEQAliases[Temp];
+	if (!pAlias)
+		return false;
+	delete pAlias;
+	ISXEQAliases[Temp]=0;
+	return true;
+}
+
+extern VOID StrReplaceSection(PCHAR szInsert,DWORD Length,PCHAR szNewString);
 class CCommandHook 
 { 
 public: 
 	VOID Detour(PSPAWNINFO pChar, PCHAR szFullLine) 
 	{ 
 		//DebugSpew("CCommandHook::Detour(%s)",szFullLine);
+
+		// apply one alias
+		char FullCommand[8192];
+		strcpy(FullCommand,szFullLine);
+		szFullLine=FullCommand;
+
+		char *pSpace=strchr(FullCommand,' ');
+		if (pSpace)
+			*pSpace=0;
+
+		PISXEQALIAS pAlias=FindISXEQAlias(FullCommand);
+		StrReplaceSection(FullCommand,strlen(FullCommand),pAlias->Replacement);
+
+		if (pSpace)
+			*pSpace=' ';
+
 
 		if (szFullLine[0]=='#')
 		{
@@ -52,17 +122,63 @@ int CMD_EQExecute(int argc, char *argv[])
 {
 	if (gGameState!=GAMESTATE_INGAME)
 	{
-		printf("Cannot execute EQ command, not in game!");
+		WriteChatf("Cannot execute EQ command, not in game!");
 		return 0;
 	}
 	if (argc<2)
 	{
-		printf("Syntax: %s <command>",argv[0]);
+		WriteChatf("Syntax: %s <command>",argv[0]);
 		return 0;
 	}
 	char Line[8192]={0};
 	pISInterface->GetArgs(1,argc,argv,Line);
 	((CCommandHook*)pEverQuest)->Trampoline((PSPAWNINFO)pLocalPlayer,Line);
+	return 0;
+}
+
+int CMD_EQAlias(int argc, char *argv[])
+{
+	if (argc<2)
+	{
+		WriteChatf("Syntax: %s -list|-delete <name>|<replace> <with>",argv[0]);
+		return 0;
+	}
+
+	if (!stricmp(argv[1],"-list"))
+	{
+		WriteChatf("Registered EQ Aliases");
+		WriteChatf("---------------------");
+		for(map<string,PISXEQALIAS>::iterator i = ISXEQAliases.begin();i != ISXEQAliases.end();i++)
+		{
+			if (PISXEQALIAS pAlias=i->second)
+			{
+				WriteChatf("[%s] %s",i->first,pAlias->Replacement);
+			}
+		}
+	}
+	else if (argc>=3)
+	{
+		if (!stricmp(argv[1],"-delete"))
+		{
+			RemoveISXEQAlias(argv[1]);
+		}
+		else
+		{
+			char FullCommand[8192]={0};
+			pISInterface->GetArgs(2,argc,argv,FullCommand);
+			AddISXEQAlias(argv[1],FullCommand);
+			if (PISXEQALIAS pAlias=FindISXEQAlias(argv[1]))
+			{
+				WriteChatf("[%s] %s",argv[1],pAlias->Replacement);
+			}
+			else
+				WriteChatf("ISXEQ Alias NOT added");
+		}
+	}
+	else
+	{
+		printf("Syntax: %s -list|-delete <name>|<replace> <with>",argv[0]);
+	}
 	return 0;
 }
 
@@ -76,6 +192,7 @@ void InitializeMQ2Commands()
 #include "ISXEQCommandList.h"
 #undef COMMAND
 
+
 }
 
 void ShutdownMQ2Commands()
@@ -85,5 +202,14 @@ void ShutdownMQ2Commands()
 #undef COMMAND
 
 	EzUnDetour(CEverQuest__InterpretCmd);
+
+	for(map<string,PISXEQALIAS>::iterator i = ISXEQAliases.begin();i != ISXEQAliases.end();i++)
+	{
+		if (PISXEQALIAS pAlias=i->second)
+		{
+			delete pAlias;
+		}
+	}
+	ISXEQAliases.clear();
 }
 

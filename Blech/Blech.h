@@ -64,7 +64,7 @@ Using Blech:
 
 #pragma once
 
-#define BLECHVERSION "Lax/Blech 1.6.7"
+#define BLECHVERSION "Lax/Blech 1.6.8"
 
 #include <map>
 #include <string>
@@ -509,7 +509,7 @@ public:
 		PBLECHEVENT pEvent = Event[ID];
 		if (!pEvent)
 			return false;
-		Event.erase(ID);
+		Event[ID]=0;
 		{
 			free(pEvent->OriginalString);
 			
@@ -535,6 +535,10 @@ public:
 			while(pNode && pNode->IsEmpty())
 			{
 				BlechNode *pNext=pNode->pParent;
+				if (!pNode->pParent)
+				{
+					*pNode->ppRoot=0;
+				}
 				delete pNode;
 				pNode=pNext;
 			}
@@ -593,10 +597,12 @@ private:
 		}
 		for (BLECHEVENTMAP::iterator i=Event.begin(); i != Event.end(); i++)
 		{
-			PBLECHEVENT pEvent=i->second;
-			BLECHASSERT(pEvent);
-			BlechTry(free(pEvent->OriginalString));
-			delete pEvent;
+			if (PBLECHEVENT pEvent=i->second)
+			{
+				BLECHASSERT(pEvent);
+				BlechTry(free(pEvent->OriginalString));
+				delete pEvent;
+			}
 		}
 		ClearExecutionList();
 	}

@@ -641,6 +641,7 @@ void InitializeMQ2Commands()
 	AddAlias("/g","/gsay");
 	AddAlias("/gu","/guildsay");
 	AddAlias("/key","/keys");
+	AddAlias("/r","/reply");
 
 	AddAlias("/newif","/if");
 	/* NOW IMPORT THE USER'S ALIAS LIST, THEIR MODIFICATIONS OVERRIDE EXISTING. */

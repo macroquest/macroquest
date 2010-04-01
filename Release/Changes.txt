@@ -1,3 +1,6 @@
+8 March 2005 by Lax
+- Blech 1.6.8 - fixes a crash
+
 23 March 2005 by Lax
 - Fixed this group member bug nonsense.  Now uses correct group structure.
 - Fixed redundancy in GetSpawnType

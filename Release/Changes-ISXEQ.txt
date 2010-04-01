@@ -1,3 +1,11 @@
+8 April 2005 by Lax
+- Added EQAlias command, which can be used to allow Inner Space commands to be executed via
+  slashes.  It works like so:
+    IS command: EQAlias /who #who
+    EQ chat box: /who npc
+  Aliases must be typed in full (just like regular old MQ aliases), so if you want it to work
+  for /w also, you must EQAlias /w #who as well.
+
 28 March 2005 by Lax
 - Added IS "Triggers" service usage.  Macros can now use AddTrigger (IS 0.78) to handle 
   chat window stuff
