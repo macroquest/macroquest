@@ -457,7 +457,7 @@
 //#define CSliderWnd__UpdateThumb                                    0x0
 
 // CSpellBookWnd
-#define CSpellBookWnd__MemorizeSet                                 0x5A7800
+#define CSpellBookWnd__MemorizeSet                                 0x5A7620
 
 // CStmlWnd
 #define CStmlWnd__AppendSTML                                       0x637CE0
