@@ -1,3 +1,7 @@
+01 November 2005 by dkaa
+- updated offset for 11/01 patch
+- /caption <list|type <value>|update #|MQCaptions <on|off>>
+
 19 October 2005 by dkaa
 - added item timers from ieatacid
 - added stacks from pinkfloydx33

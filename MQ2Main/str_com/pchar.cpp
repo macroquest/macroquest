@@ -1,0 +1,97 @@
+#include <stdio.h>
+#include "../MQ2Plugin.h"
+
+#define KS(x)  printf("/* 0x%04x */ \n", &p->x)
+
+main()
+{
+struct _CHARINFO *p = NULL;
+KS(vtable1);
+KS(punknown);
+KS(charinfo_info);
+KS(Unknown0xc);
+KS( Bank);
+KS( unknown0xd38);
+KS( GuildID);
+KS( Unknown0xe10);
+KS( AAExp);
+KS( Unknown0xe2c);
+KS( PercentEXPtoAA);
+KS( Unknown0xe2e);
+KS( CareerFavor);
+KS( Unknown0xe7c);
+KS( CurrFavor);
+KS( Unknown0xe84);
+KS( GroupLeadershipExp);
+KS( RaidLeadershipExp);
+KS( GroupLeadershipPoints);
+KS( RaidLeadershipPoints);
+KS( Unknown0xea8);
+KS( GroupMember);
+KS( GroupLeader);
+KS( Unknown0x1770);
+KS( Exp);
+KS( Unknown0x1a14);
+KS(Unknown0xc278);
+KS(vtable2);
+KS(eqc_info);
+KS( pSpawn);
+KS( Unknown0xc284);
+KS( STR);
+KS( STA);
+KS( CHA);
+KS( DEX);
+KS( INT);
+KS( AGI);
+KS( WIS);
+KS( AC);
+KS( SaveMagic);
+KS( SaveCold);
+KS( SaveFire);
+KS( SavePoison);
+KS( SaveDisease);
+KS( Unknown0xc2bc);
+KS( CurrWeight);
+KS( Unknown0xc2c4);
+KS( HPBonus);
+KS( ManaBonus);
+KS( EnduranceBonus);
+KS( CombatEffectsBonus);
+KS( ShieldingBonus);
+KS( SpellShieldBonus);
+KS( AvoidanceBonus);
+KS( AccuracyBonus);
+KS( StunResistBonus);
+KS( StrikeThroughBonus);
+KS( SkillMinDamageModBonus);
+KS( Unknown0xc314);
+KS( DoTShieldBonus);
+KS( AttackBonus);
+KS( HPRegenBonus);
+KS( ManaRegenBonus);
+KS( Unknown0xc328);
+KS( DamageShieldBonus);
+KS( AttackSpeed);
+KS( Unknown0xc330);
+KS( ActiveGuildTribute);
+KS(pCI2);
+KS( Unknown0xc38c);
+KS( languages);
+KS( Unknown0xc3b0);
+KS( Name);
+KS( Lastname);
+KS( Unknown0xc420);
+KS( Stunned);
+KS( zoneId);
+KS( instance);
+KS( standstate);
+KS( Unknown0xc489);
+KS( BankSharedPlat);
+KS( BankSharedGold);
+KS( BankSharedSilver);
+KS( BankSharedCopper);
+KS( BankPlat);
+KS( BankGold);
+KS( BankSilver);
+KS( BankCopper);
+}

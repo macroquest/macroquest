@@ -162,7 +162,7 @@ public:
 	int SetNameSpriteState_Trampoline(bool Show);
 	int SetNameSpriteState_Detour(bool Show)
 	{
-		if (gGameState!=GAMESTATE_INGAME || !Show)
+		if (gGameState!=GAMESTATE_INGAME || !Show || !gMQCaptions)
 			return SetNameSpriteState_Trampoline(Show);
 		return 1;
 	}
@@ -170,7 +170,7 @@ public:
 	bool SetNameSpriteTint_Trampoline(void);
 	bool SetNameSpriteTint_Detour(void)
 	{
-		if (gGameState!=GAMESTATE_INGAME)
+		if (gGameState!=GAMESTATE_INGAME || !gMQCaptions)
 			return SetNameSpriteTint_Trampoline();
 		return 1;
 	}
@@ -367,7 +367,7 @@ CAPTIONCOLOR CaptionColors[]=
 
 VOID SetNameSpriteTint(PSPAWNINFO pSpawn)
 {
-	if (!pSpawn->pActorInfo || !pSpawn->pActorInfo->pActorEx)
+	if (!pSpawn->pActorInfo || !pSpawn->pActorInfo->pActorEx || !gMQCaptions)
 		return;
 //	DebugSpew("SetNameSpriteTint(%s)",pSpawn->Name);
 	CActorEx *pActorEx=(CActorEx *)pSpawn->pActorInfo->pActorEx;
@@ -474,6 +474,11 @@ BOOL SetNameSpriteState(PSPAWNINFO pSpawn, bool Show)
 	{
 		((EQPlayerHook*)pSpawn)->SetNameSpriteState_Trampoline(Show);
 	}
+    if (!gMQCaptions)
+    {
+       //DebugSpew("Returning default from SetNameSpriteState");
+       return ((EQPlayerHook*)pSpawn)->SetNameSpriteState_Trampoline(Show);
+    } 
 #define SetCaption(CaptionString) \
 		{\
 			if (CaptionString[0])\

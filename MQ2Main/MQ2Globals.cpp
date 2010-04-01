@@ -54,6 +54,7 @@ CHAR gszVersion[32]=VersionString;
 
 DWORD gGameState = 0;
 DWORD gMaxSpawnCaptions=30;
+BOOL gMQCaptions=TRUE;
 DWORD ThreadID = 0;
 BOOL g_Loaded = FALSE;
 

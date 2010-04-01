@@ -150,6 +150,7 @@ BOOL ParseINIFile(PCHAR lpINIPath)
 	GetPrivateProfileString("Captions","Corpse",gszSpawnCorpseName,gszSpawnCorpseName,MAX_STRING,Filename);
 	GetPrivateProfileString("Captions","Pet",gszSpawnPetName,gszSpawnPetName,MAX_STRING,Filename);
 	gMaxSpawnCaptions=GetPrivateProfileInt("Captions","Update",gMaxSpawnCaptions,Filename);
+    gMQCaptions = 1==GetPrivateProfileInt("Captions","MQCaptions",1,Filename); 
 	ConvertCR(gszSpawnNPCName);
 	ConvertCR(gszSpawnPlayerName[1]);
 	ConvertCR(gszSpawnPlayerName[2]);
