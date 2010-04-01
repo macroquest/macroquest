@@ -29,4 +29,8 @@ COMMAND("Where",CMD_Where,true,false);
 COMMAND("CastSpell",CMD_CastSpell,true,false);
 COMMAND("MemSpell",CMD_MemSpell,true,false); 
 COMMAND("DoAbility",CMD_DoAbility,true,false);
+COMMAND("NoModKey",CMD_EQModKey,true,false);
+COMMAND("ctrl",CMD_EQModKey,true,false);
+COMMAND("alt",CMD_EQModKey,true,false);
+COMMAND("shift",CMD_EQModKey,true,false); 
 //COMMAND("EQAlias",CMD_EQAlias,true,false); // deprecated

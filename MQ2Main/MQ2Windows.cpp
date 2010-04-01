@@ -147,11 +147,17 @@ public:
 DETOUR_TRAMPOLINE_EMPTY(int CXMLSOMDocumentBaseHook::XMLRead_Trampoline(CXStr *A, CXStr *B, CXStr *C)); 
 
 
-
+#ifndef ISXEQ
 VOID ListWindows(PSPAWNINFO pChar, PCHAR szLine);
 VOID WndNotify(PSPAWNINFO pChar, PCHAR szLine);
 VOID ItemNotify(PSPAWNINFO pChar, PCHAR szLine);
 VOID ListItemSlots(PSPAWNINFO pChar, PCHAR szLine);
+#else
+int ListWindows(int argc, char *argv[]);
+int WndNotify(int argc, char *argv[]);
+int ItemNotify(int argc, char *argv[]);
+int ListItemSlots(int argc, char *argv[]); 
+#endif
 
 void InitializeMQ2Windows()
 {
@@ -191,7 +197,12 @@ void InitializeMQ2Windows()
 	AddCommand("/notify",WndNotify,false,true,false);
 	AddCommand("/itemnotify",ItemNotify,false,true,false);
 	AddCommand("/itemslots",ListItemSlots,false,true,false);
-#endif
+#else
+   pISInterface->AddCommand("EQWindows",ListWindows);
+   pISInterface->AddCommand("EQNotify",WndNotify);
+   pISInterface->AddCommand("EQItemNotify",ItemNotify);
+   pISInterface->AddCommand("EQItemSlots",ListItemSlots);
+#endif 
 
 	if (pWndMgr)
 	{
@@ -276,8 +287,13 @@ void ShutdownMQ2Windows()
 	RemoveCommand("/notify");
 	RemoveCommand("/itemnotify");
 	RemoveCommand("/itemslots");
-#endif
-	RemoveDetour(CXMLSOMDocumentBase__XMLRead);
+#else
+   pISInterface->RemoveCommand("EQWindows");
+   pISInterface->RemoveCommand("EQNotify");
+   pISInterface->RemoveCommand("EQItemNotify");
+   pISInterface->RemoveCommand("EQItemSlots");
+#endif 
+RemoveDetour(CXMLSOMDocumentBase__XMLRead);
 	RemoveDetour(CSidlScreenWnd__SetScreen);
 	RemoveDetour(CXWndManager__RemoveWnd);
 	WindowList.Cleanup();
@@ -683,8 +699,23 @@ void RemoveWindow(char *WindowName)
 	}
 }
 
+#ifndef ISXEQ
+#define RETURN(x) return;
+#else
+#define RETURN(x) return x;
+#endif
+
+#ifndef ISXEQ 
 VOID ListWindows(PSPAWNINFO pChar, PCHAR szLine)
 {
+#else
+int ListWindows(int argc, char *argv[])
+{
+   PCHAR szLine = NULL;
+   if (argc>0)
+      szLine = argv[1];
+
+#endif 
 	CHAR Name[MAX_STRING]={0};
 	CHAR AltName[MAX_STRING]={0};
 	CHAR Type[MAX_STRING]={0};
@@ -710,7 +741,7 @@ VOID ListWindows(PSPAWNINFO pChar, PCHAR szLine)
 		if (!N)
 		{
 			WriteChatf("Window '%s' not available",szLine);
-			return;
+			RETURN(0);
 		}
 		N--;
 		WriteChatf("Listing child windows of '%s'",szLine);
@@ -741,6 +772,7 @@ VOID ListWindows(PSPAWNINFO pChar, PCHAR szLine)
 			WriteChatf("%d child windows",Count);
 		}
 	}
+	RETURN(0);
 }
 
 PCHAR szWndNotification[] = { 
@@ -779,6 +811,13 @@ PCHAR szWndNotification[] = {
 #ifndef ISXEQ
 VOID WndNotify(PSPAWNINFO pChar, PCHAR szLine)
 {
+#else
+int WndNotify(int argc, char *argv[])
+{
+   PSPAWNINFO pChar = (PSPAWNINFO)pLocalPlayer;
+#endif
+   unsigned long Data=0;
+#ifndef ISXEQ 
 	CHAR szArg1[MAX_STRING] = {0}; 
 	CHAR szArg2[MAX_STRING] = {0}; 
 	CHAR szArg3[MAX_STRING] = {0}; 
@@ -797,13 +836,26 @@ VOID WndNotify(PSPAWNINFO pChar, PCHAR szLine)
 	unsigned long Data=0;
 	if (szArg4[0])
 		Data=atoi(szArg4);
+#else
+   if (argc<3)
+   {
+      printf("%s syntax: %s <window|\"item\"> <control|0> <notification> [notification data]",argv[0],argv[0]);
+      RETURN(0);
+   }
+   if (argc>3)
+      Data=atoi(argv[4]);
+   CHAR *szArg1=argv[1];
+   CHAR *szArg2=argv[2];
+   CHAR *szArg3=argv[3];
+
+#endif 
 
 	if (Data==0 && SendWndClick(szArg1,szArg2,szArg3))
-		return;
+		RETURN(0);
 	if (!stricmp(szArg3,"listselect"))
 	{
 		SendListSelect(szArg1,szArg2,Data-1);
-		return;
+		RETURN(0);
 	}
 
 	for (unsigned long i = 0 ; i < 30 ; i++)
@@ -821,10 +873,11 @@ VOID WndNotify(PSPAWNINFO pChar, PCHAR szLine)
 			{
 				MacroError("Could not send notification to %s %s",szArg1,szArg2);
 			}
-			return;
+			RETURN(0);
 		}
 	}
 	MacroError("Invalid notification '%s'",szArg3);
+	RETURN(0);
 }
 
 // item slots:
@@ -838,37 +891,62 @@ VOID WndNotify(PSPAWNINFO pChar, PCHAR szLine)
 // 8000-8031 inspect window
 
 
-
+#ifndef ISXEQ
 VOID ItemNotify(PSPAWNINFO pChar, PCHAR szLine)
 {
 	CHAR szArg1[MAX_STRING] = {0}; 
 	CHAR szArg2[MAX_STRING] = {0}; 
-//	CHAR szOut[MAX_STRING] = {0};
-
-	PCHAR pNotification=&szArg2[0];
+   CHAR szArg3[MAX_STRING] = {0};
+   CHAR szArg4[MAX_STRING] = {0}; 
 
 	GetArg(szArg1, szLine, 1);
 	GetArg(szArg2, szLine, 2);
-	CInvSlot *pSlot=0;
+   GetArg(szArg3, szLine, 3);
+   GetArg(szArg4, szLine, 4); 
 	if (!szArg2[0])
 	{
 		WriteChatColor("Syntax: /itemnotify <slot|#> <notification>");
 		WriteChatColor("     or /itemnotify in <bag slot> <slot # in bag> <notification>");
-		return;
+		RETURN(0);
 	}
 	if (!stricmp(szArg1,"in"))
 	{
-		CHAR szArg3[MAX_STRING] = {0};
-		CHAR szArg4[MAX_STRING] = {0};
-
-		GetArg(szArg3, szLine, 3);
-		GetArg(szArg4, szLine, 4);
 		if (!szArg4[0])
 		{
 			WriteChatColor("Syntax: /itemnotify <slot|#> <notification>");
 			WriteChatColor("     or /itemnotify in <bag slot> <slot # in bag> <notification>");
-			return;
+			RETURN(0);
 		}
+	}
+#else
+int ItemNotify(int argc, char *argv[])
+{
+   if (argc!=3 && argc != 5)
+   {
+      WriteChatf("ItemNotify got %d args", argc);
+      WriteChatColor("Syntax: /itemnotify <slot|#> <notification>");
+      WriteChatColor("     or /itemnotify in <bag slot> <slot # in bag> <notification>");
+      RETURN(0);
+   }
+   char *szArg1=argv[1];
+   char *szArg2=argv[2];
+   char *szArg3=NULL;
+   char *szArg4=NULL;
+   
+   if (argc==4)
+   {
+      szArg3=argv[3];
+      szArg4=argv[4];
+   }
+   PSPAWNINFO pChar = (PSPAWNINFO)pLocalPlayer;
+
+#endif
+   PCHAR pNotification=&szArg2[0];
+   CInvSlot *pSlot=0;
+ 
+   if (!stricmp(szArg1,"in"))
+   { 
+
 
 		PCONTENTS pPack=0;
 		if (!strnicmp(szArg2,"bank",4))
@@ -903,13 +981,13 @@ VOID ItemNotify(PSPAWNINFO pChar, PCHAR szLine)
 		if (!pPack)
 		{
 			WriteChatf("No item at '%s'",szArg2);
-			return;
+			RETURN(0);
 		}
 		PEQCONTAINERWINDOW pWnd=FindContainerForContents(pPack);
 		if (!pWnd)
 		{
 			WriteChatf("No container at '%s' open",szArg2);
-			return;
+			RETURN(0);
 		}
 		unsigned long nSlot=atoi(szArg3);
 		if (nSlot && nSlot <= 10)
@@ -929,30 +1007,33 @@ VOID ItemNotify(PSPAWNINFO pChar, PCHAR szLine)
 		if (Slot==0 && szArg1[0]!='0' && stricmp(szArg1,"charm"))
 		{
 			WriteChatf("Invalid item slot '%s'",szArg1);
-			return;
+			RETURN(0);
 		}
 		DebugTry(pSlot=pInvSlotMgr->FindInvSlot(Slot));
 	}
 	if (!pSlot)
 	{
 		WriteChatf("Could not send notification to %s %s",szArg1,szArg2);
-		return;
+		RETURN(0);
 	}
 	DebugSpew("ItemNotify: Calling SendWndClick");
 	if (!SendWndClick((CXWnd*)((PEQINVSLOT)pSlot)->pInvSlotWnd,pNotification))
 	{
 		WriteChatf("Could not send notification to %s %s",szArg1,szArg2);
 	}
+	RETURN(0);
 }
 
+#ifndef ISXEQ
 VOID ListItemSlots(PSPAWNINFO pChar, PCHAR szLine)
+#else
+int ListItemSlots(int argc, char *argv[])
+#endif
 {
 	PEQINVSLOTMGR pMgr=(PEQINVSLOTMGR)pInvSlotMgr;
 	if (!pMgr)
-		return;
+		RETURN(0);
 //	CHAR szOut[MAX_STRING]={0};
-	if (!szLine || !szLine[0])
-	{
 		unsigned long Count=0;
 		WriteChatColor("List of available item slots");
 		WriteChatColor("-------------------------");
@@ -966,6 +1047,5 @@ VOID ListItemSlots(PSPAWNINFO pChar, PCHAR szLine)
 				}
 			}
 		WriteChatf("%d available item slots",Count);
-	}
+	RETURN(0)
 }
-#endif

@@ -712,3 +712,31 @@ int CMD_DoAbility(int argc, char *argv[])
     } 
    return 0; 
 } 
+
+
+// CMD_EQModKey
+int CMD_EQModKey(int argc, char *argv[])
+{
+	CHAR chCommand[2048] = {0};
+	bool KeyboardFlags[4] = {false,false,false,false};
+
+	if (argc<1)
+	{
+			WriteChatf("Usage: %s <command>", argv[0]);
+			return 0;
+	}
+	pISInterface->GetArgs(1,argc,argv,chCommand);
+	*(DWORD*)&KeyboardFlags=*(DWORD*)&((PCXWNDMGR)pWndMgr)->KeyboardFlags;
+	if (!stricmp(argv[0],"nomodkey"))
+			*(DWORD*)&((PCXWNDMGR)pWndMgr)->KeyboardFlags=0;
+	else if (!stricmp(argv[0],"shift"))
+			((PCXWNDMGR)pWndMgr)->KeyboardFlags[0]=1;
+	else if (!stricmp(argv[0],"ctrl"))
+			((PCXWNDMGR)pWndMgr)->KeyboardFlags[1]=1;
+	else if (!stricmp(argv[0],"alt"))
+			((PCXWNDMGR)pWndMgr)->KeyboardFlags[2]=1;
+	DebugSpew("CMD_EQModKey Executing %s", chCommand);
+	pISInterface->ExecuteCommand(chCommand);
+	*(DWORD*)&((PCXWNDMGR)pWndMgr)->KeyboardFlags=*(DWORD*)&KeyboardFlags;
+	return 0;
+} 
