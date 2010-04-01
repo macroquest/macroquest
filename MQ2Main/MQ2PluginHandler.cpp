@@ -353,8 +353,6 @@ VOID PluginsZoned()
 		}
 		pPlugin=pPlugin->pNext;
 	}
-	LoadCfgFile("zoned",false);
-	LoadCfgFile(((PZONEINFO)pZoneInfo)->ShortName,false);
 }
 
 VOID PluginsCleanUI()
@@ -583,6 +581,8 @@ VOID PluginsEndZone()
       } 
       pPlugin=pPlugin->pNext; 
    } 
+   LoadCfgFile("zoned",false);
+   LoadCfgFile(((PZONEINFO)pZoneInfo)->ShortName,false);
 } 
 
 #endif

@@ -91,8 +91,8 @@ BOOL ParseINIFile(PCHAR lpINIPath)
     sprintf(ClientINI,"%s\\eqgame.ini",lpINIPath);
     strcpy(gszINIFilename,Filename);
 
-    DebugSpewAlways("Expected Client version: %s %s",__ExpectedVersionDate,__ExpectedVersionTime);
-    DebugSpewAlways("    Real Client version: %s %s",__ActualVersionDate,__ActualVersionTime);
+    DebugSpew("Expected Client version: %s %s",__ExpectedVersionDate,__ExpectedVersionTime);
+    DebugSpew("    Real Client version: %s %s",__ActualVersionDate,__ActualVersionTime);
 
 	// note: __ClientOverride is always #defined as 1 or 0
 #if (!__ClientOverride)
@@ -295,12 +295,6 @@ bool __cdecl MQ2Initialize()
 #ifndef ISXEQ
 	InitializeMQ2Plugins();
 #endif
-#ifndef ExactLocation
-	bLaxColor=TRUE;
-	gSpewToFile=1;
-	gFilterMQ=1;
-#endif
-
 	return true;
 }
 

@@ -2783,42 +2783,42 @@ bool MQ2CharacterType::GETMEMBER()
       Dest.Type=pIntType; 
       return true; 
     case AAPointsSpent:
-        Dest.DWord=GetCharInfo2()->AAPointsSpent;
-        Dest.Type=pIntType;
-        return true;
+      Dest.DWord=GetCharInfo2()->AAPointsSpent;
+      Dest.Type=pIntType;
+      return true;
     case AAPointsTotal:
-        Dest.DWord=GetCharInfo2()->AAPointsSpent+GetCharInfo2()->AAPoints;
-        Dest.Type=pIntType;
-        return true;
+      Dest.DWord=GetCharInfo2()->AAPointsSpent+GetCharInfo2()->AAPoints;
+      Dest.Type=pIntType;
+      return true;
     case TributeActive:
-        Dest.DWord=*pTributeActive;
-        Dest.Type=pBoolType;
-        return true; 
+      Dest.DWord=*pTributeActive;
+      Dest.Type=pBoolType;
+      return true; 
     case Running: 
-        Dest.DWord=(*EQADDR_RUNWALKSTATE); 
-        Dest.Type=pBoolType; 
-        return true;
+      Dest.DWord=(*EQADDR_RUNWALKSTATE); 
+      Dest.Type=pBoolType; 
+      return true;
 	case GroupSize:
 		Dest.DWord= 0;
 		Dest.DWord= pGroup->MemberExists[0] +
-					pGroup->MemberExists[1] +
-					pGroup->MemberExists[2] +
-					pGroup->MemberExists[3] +
-					pGroup->MemberExists[4];
+			pGroup->MemberExists[1] +
+			pGroup->MemberExists[2] +
+			pGroup->MemberExists[3] +
+			pGroup->MemberExists[4];
 		if (Dest.DWord) Dest.DWord++;
 		Dest.Type=pIntType;
 		return true;	
 	case TributeTimer:
 		{
-            DWORD timeNow = (DWORD)time(NULL);
-            if (pChar->TributeTimer > timeNow)
-            {
-                Dest.Int=pChar->TributeTimer-timeNow+6;
-                Dest.Int/=6;
-            }
-            else Dest.Int=0;
-            Dest.Type=pTicksType;
-            return true;
+			DWORD timeNow = (DWORD)time(NULL);
+			if (pChar->TributeTimer > timeNow)
+			{
+				Dest.Int=pChar->TributeTimer-timeNow+6;
+				Dest.Int/=6;
+			}
+			else Dest.Int=0;
+			Dest.Type=pTicksType;
+			return true;
 		}
 	case RadiantCrystals:
 		Dest.DWord=pChar->RadiantCrystals;
@@ -2836,7 +2836,24 @@ bool MQ2CharacterType::GETMEMBER()
 		Dest.DWord=gAutoFire;
       Dest.Type=pBoolType;
       return true;
-    }
+	case Language:
+      if(!ISINDEX()) 
+         return false; 
+      if(ISNUMBER())
+      {
+			nLang=GETNUMBER()-1;
+			Dest.Ptr=pEverQuest->GetLangDesc(nLang);
+			Dest.Type=pStringType;
+			return true;
+		}
+		else
+			nLang=GetLanguageIDByName(GETFIRST())-1;
+		if(nLang<0 || nLang>=25)
+			return false;
+      Dest.DWord=nLang; 
+      Dest.Type=pIntType; 
+      return true; 
+	}
 	return false;
 #undef pChar
 }
@@ -3820,10 +3837,10 @@ bool MQ2WindowType::GETMEMBER()
 		Dest.Type=pArgbType;
 		return true;
 	case Text:
-                if(((CXWnd*)pWnd)->GetType()==UI_STMLBox)
-                        GetCXStr(pWnd->SidlText,DataTypeTemp,MAX_STRING);
-                else
-                        GetCXStr(pWnd->WindowText,DataTypeTemp,MAX_STRING);
+		if(((CXWnd*)pWnd)->GetType()==UI_STMLBox)
+			GetCXStr(pWnd->SidlText,DataTypeTemp,MAX_STRING);
+		else
+			GetCXStr(pWnd->WindowText,DataTypeTemp,MAX_STRING);
 		Dest.Ptr=&DataTypeTemp[0];
 		Dest.Type=pStringType;
 		return true;
@@ -4454,25 +4471,62 @@ bool MQ2MacroQuestType::GETMEMBER()
 		Dest.DWord=((PMOUSEINFO)EQADDR_MOUSE)->Y;
 		Dest.Type=pIntType;
 		return true;
-    case BuildDate: 
-        SYSTEMTIME st; 
-        HANDLE hFile; 
-        WIN32_FIND_DATA FileData; 
-        CHAR szBuffer[MAX_STRING]; 
-        sprintf(szBuffer,"%s\\MQ2Main.dll", gszINIPath); 
-        hFile = FindFirstFile(szBuffer, &FileData); 
-        // Convert the creation time time to local time. 
-        FileTimeToSystemTime(&FileData.ftLastWriteTime, &st); 
-        FindClose(hFile); 
-        sprintf(DataTypeTemp, "%d%d%d",st.wYear,st.wMonth,st.wDay); 
-        Dest.Ptr=&DataTypeTemp[0]; 
-        Dest.Type=pStringType; 
-        return true; 
-    case Ping:
-        Dest.DWord=pConnection->Last;
-        Dest.Type=pIntType;
-        return true; 
-    }
+	case BuildDate: 
+		SYSTEMTIME st; 
+		HANDLE hFile; 
+		WIN32_FIND_DATA FileData; 
+		CHAR szBuffer[MAX_STRING]; 
+		sprintf(szBuffer,"%s\\MQ2Main.dll", gszINIPath); 
+		hFile = FindFirstFile(szBuffer, &FileData); 
+		// Convert the creation time time to local time. 
+		FileTimeToSystemTime(&FileData.ftLastWriteTime, &st); 
+		FindClose(hFile); 
+		sprintf(DataTypeTemp, "%d%d%d",st.wYear,st.wMonth,st.wDay); 
+		Dest.Ptr=&DataTypeTemp[0]; 
+		Dest.Type=pStringType; 
+		return true; 
+	case Ping:
+		Dest.DWord=pConnection->Last;
+		Dest.Type=pIntType;
+		return true; 
+	case ChatChannels:
+		if(((PEVERQUEST)pEverQuest)->ChatService)
+		{
+			Dest.DWord=((PEVERQUEST)pEverQuest)->ChatService->ActiveChannels;
+			Dest.Type=pIntType;
+			return true;
+		}
+	case ChatChannel:
+		if(((PEVERQUEST)pEverQuest)->ChatService)
+		{
+			PCHATSERVICE pChat=((PEVERQUEST)pEverQuest)->ChatService;
+			if(ISNUMBER())
+			{
+				DWORD index=GETNUMBER();
+				if(pChat->ActiveChannels && index && index<=pChat->ActiveChannels)
+				{
+					strcpy(DataTypeTemp,pChat->ChannelList->ChannelName[index-1]);
+					Dest.Ptr=&DataTypeTemp[0];
+					Dest.Type=pStringType;
+					return true;
+				}
+			}
+			else
+			{
+				CHAR Name[MAX_STRING]={0};
+				strcpy(Name,GETFIRST());
+				for(int i=0; i<pChat->ActiveChannels; i++)
+				{
+					if(!stricmp(Name,pChat->ChannelList->ChannelName[i]))
+					{
+						Dest.DWord=1;
+						Dest.Type=pBoolType;
+						return true;
+					}
+				}
+			}
+		}
+	}
 	return false;
 }
 #ifndef ISXEQ

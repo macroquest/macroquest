@@ -353,6 +353,7 @@
 #define CEverQuest__GetClassDesc                                   0x4A87B0
 #define CEverQuest__GetClassThreeLetterCode                        0x4A8DB0
 #define CEverQuest__GetDeityDesc                                   0x4A95A0
+#define CEverQuest__GetLangDesc                                    0x4A92C0
 #define CEverQuest__GetRaceDesc                                    0x4A9570
 #define CEverQuest__InterpretCmd                                   0x4B0C20
 #define CEverQuest__LeftClickedOnPlayer                            0x4C1830

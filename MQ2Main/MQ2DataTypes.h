@@ -806,9 +806,9 @@ public:
 		EnduranceRegen=123,
 		FreeBuffSlots=124,
 		CurrentWeight=125,
-        AAPointsSpent=126,
-        AAPointsTotal=127,
-        TributeActive=128,
+		AAPointsSpent=126,
+		AAPointsTotal=127,
+		TributeActive=128,
 		CombatAbilityReady=129,
 		Running=130,
 		GroupSize=131,
@@ -817,6 +817,7 @@ public:
 		EbonCrystals=134,
 		Shrouded=135,
       AutoFire=136,
+		Language=137,
 	};
 	static enum CharacterMethods
 	{
@@ -960,6 +961,7 @@ public:
 		TypeMember(EbonCrystals);
 		TypeMember(Shrouded);
       TypeMember(AutoFire);
+		TypeMember(Language);
 
 		TypeMethod(Stand); 
 		TypeMethod(Sit); 
@@ -2003,6 +2005,8 @@ public:
 		MouseY=11,
 		BuildDate=12,
 		Ping=13,
+		ChatChannels=14,
+		ChatChannel=15,
 	};
 	static enum MacroQuestMethods
 	{
@@ -2022,6 +2026,8 @@ public:
 		TypeMember(MouseY);
 		TypeMember(BuildDate);
 		TypeMember(Ping);
+		TypeMember(ChatChannels);
+		TypeMember(ChatChannel);
 	}
 
 	~MQ2MacroQuestType()
@@ -2955,8 +2961,8 @@ public:
 	   LootType=7,
 	   Looter=8,
 	   Looters=9,
-	   Locked,
-	   Invited,
+	   Locked=10,
+	   Invited=11,
    };
 	static enum RaidMethods
 	{
@@ -2972,8 +2978,8 @@ public:
 	  TypeMember(LootType);
 	  TypeMember(Looter);
 	  TypeMember(Looters);
-	  TypeMember(Invited);
 	  TypeMember(Locked);
+	  TypeMember(Invited);
    }
 
    ~MQ2RaidType()

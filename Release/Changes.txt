@@ -1,3 +1,11 @@
+5 July 2006 by ieatacid
+- added Me.Language (ex. ${Me.Language[1]} returns "Common Tongue"; ${Me.Language[Common Tongue]} returns 1)
+- fixed zoned.cfg to load properly after zoning, also .cfg files that use zone short names
+
+29 June 2006 by ieatacid
+- added int MacroQuest.ChatChannels (returns number of channels currently joined)
+- added MacroQuest.ChatChannel (ex. ${MacroQuest.ChatChannel[MQChat]} returns true if the channel "MQChat" is joined (bool); ${MacroQuest.ChatChannel[1]} returns the name of chat channel 1 (string))
+
 28 June 2006 by rswiders, ieatacid
 - fix for 6/28 patch
 - fix for gbInZone on initial load

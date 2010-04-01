@@ -198,7 +198,6 @@ static inline FLOAT GetDistance(PSPAWNINFO pChar, PSPAWNINFO pSpawn)
 #define DistanceToSpawn(pChar,pSpawn) GetDistance(pChar,pSpawn)
 
 #define _FileExists(filename) ( (_access( filename, 0 )) != -1 )
-#define SuccorFunc 0
 // ***************************************************************************
 // FindMount(PSPAWNINFO) - Used to find the mount of a spawn, if one
 //                         exists. returns the spawn if one does not.

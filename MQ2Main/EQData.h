@@ -653,7 +653,7 @@ typedef struct _CI2_INFO {
 } CI2_INFO, *PCI2_INFO;
 
 
-// actual size 0x10f30  02-23-2006
+// actual size 0x10f30  06-26-2006
 typedef struct _CHARINFO {
 /*0x00000*/   void      *vtable1;
 /*0x00004*/   void      *punknown;
@@ -752,8 +752,8 @@ typedef struct _CHARINFO {
 /*0x10f30*/
 } CHARINFO, *PCHARINFO;
 
-// actual size: 0xae90 02-23-06
-typedef struct  _CHARINFO2 {
+// actual size: 0xae90 06-26-06
+typedef struct _CHARINFO2 {
 /*0x0000*/   BYTE       Unknown0x0[0x10];
 union {
 /*0x0010*/   struct     _INVENTORY   Inventory;
@@ -943,8 +943,7 @@ typedef struct _EQUIPMENT {
 } EQUIPMENT, *PEQUIPMENT;
 
 
-// actual size: 0x1244 02-23-06
-// actual size: 0x1244 02-23-06
+// actual size: 0x1248 06-26-06
 typedef struct _SPAWNINFO {
 /*0x0000*/ void    *vtable;
 /*0x0004*/ struct  _SPAWNINFO *pPrev;
@@ -1647,6 +1646,28 @@ typedef struct _DYNAMICZONE {
 /*0x114*/ char   *expeditionName;
 /*0x118*/ // more?
 } DYNAMICZONE, *PDYNAMICZONE;
+
+typedef struct _CHATCHANNELS {
+/*0x000*/ char  *ChannelName[0xa];
+/*0x004*/
+} CHATCHANNELS, *PCHATCHANNELS;
+
+typedef struct _CHATSERVICE {
+/*0x000*/ BYTE   Unknown0x0[0xc];
+/*0x00c*/ struct _CHATCHANNELS *ChannelList;
+/*0x010*/ DWORD  ActiveChannels;   // number of channels joined
+/*0x014*/ BYTE   Unknown0x14[0xc];
+/*0x020*/ CHAR   ChatID[0x30];     // "ServerName.CharName" (0x60?)
+/*0x050*/ BYTE   Unknown0x50[0x30];
+/*0x080*/ CHAR   ServerName[0x30]; // "ServerName."
+/*0x0b0*/ // more data
+} CHATSERVICE, *PCHATSERVICE;
+
+typedef struct _EVERQUEST {
+/*0x000*/ BYTE   Unknown[0x2a4];
+/*0x2a4*/ struct _CHATSERVICE *ChatService;
+/*0x2a8*/ // more data
+} EVERQUEST, *PEVERQUEST;
  
  
 

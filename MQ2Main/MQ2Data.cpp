@@ -512,14 +512,14 @@ TLO(dataLastSpawn)
 {
 	if (ISINDEX())
 	{
-		if (ISNUMBER())
+		if (GETFIRST()[0]=='-')
 		{
-			unsigned long N=GETNUMBER()-1;
-			if (PSPAWNINFO pSpawn=(PSPAWNINFO)pSpawnList)
+			unsigned long N=atoi(&GETFIRST()[1])-1;
+			if (PSPAWNINFO pSpawn=(PSPAWNINFO)pLocalPlayer)
 			{
 				while(N)
 				{
-					pSpawn=pSpawn->pNext;
+					pSpawn=pSpawn->pPrev;
 					if (!pSpawn)
 						return false;
 					N--;
@@ -529,14 +529,14 @@ TLO(dataLastSpawn)
 				return true;
 			}
 		}
-		else if (GETFIRST()[0]=='-')
+                else if (ISNUMBER())
 		{
-			unsigned long N=atoi(&GETFIRST()[1])-1;
-			if (PSPAWNINFO pSpawn=(PSPAWNINFO)pLocalPlayer)
+			unsigned long N=GETNUMBER()-1;
+			if (PSPAWNINFO pSpawn=(PSPAWNINFO)pSpawnList)
 			{
 				while(N)
 				{
-					pSpawn=pSpawn->pPrev;
+					pSpawn=pSpawn->pNext;
 					if (!pSpawn)
 						return false;
 					N--;

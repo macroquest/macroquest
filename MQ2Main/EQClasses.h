@@ -2041,6 +2041,7 @@ EQLIB_OBJECT void CEverQuest::LoadStringTables(void);
 EQLIB_OBJECT void CEverQuest::LoadSwitchesNonAvatar(EQZoneIndex);
 EQLIB_OBJECT void CEverQuest::LocalDeath(struct _EQPlayerDeath *,unsigned char);
 EQLIB_OBJECT void CEverQuest::MouseWheelScrolled(int);
+EQLIB_OBJECT void CEverQuest::MoveToZone(int,char*,int,int,float,float,float,int);
 EQLIB_OBJECT void CEverQuest::MoveToZone(char *,char *,int,enum ZONE_REQ_REASON);
 EQLIB_OBJECT void CEverQuest::MoveToZone(EQZoneIndex,char *,int,enum ZONE_REQ_REASON);
 EQLIB_OBJECT void CEverQuest::PrepareLocalPCForRepop(void);

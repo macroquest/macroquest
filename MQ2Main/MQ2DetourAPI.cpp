@@ -682,11 +682,6 @@ void InitializeMQ2Detours()
 	InitializeCriticalSection(&gDetourCS);
 	HookMemChecker(TRUE);
 #endif
-#ifndef SuccorFunc
-	gFilterMQ=1;
-	gbHUDUnderUI=1;
-	gSpewToFile=1;
-#endif
 	EzDetour(CrashDetected,CrashDetected_Detour,CrashDetected_Trampoline);
 }
 
