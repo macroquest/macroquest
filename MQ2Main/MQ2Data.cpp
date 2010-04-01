@@ -72,6 +72,37 @@ TLO(dataSpawn)
 	return false;
 }
 
+#ifndef ISXEQ
+TLO(dataSelect)
+{
+	if (!szIndex[0])
+		return false;
+
+	// I hate this GetArg shit - Lax
+    CHAR szArg[MAX_STRING] = {0};
+    CHAR szArg1[MAX_STRING] = {0};
+	int N=2;
+    GetArg(szArg1,szIndex,N,FALSE,FALSE,TRUE);
+    while (1) 
+	{
+        GetArg(szArg,szIndex,N,FALSE,FALSE,TRUE);
+		N++;
+        if (!szArg[0])
+		{
+			Ret.DWord=0;
+			Ret.Type=pIntType;
+			return true;
+		}
+		if (!stricmp(szArg1,szArg))
+		{
+			Ret.DWord=N;
+			Ret.Type=pIntType;
+			return true;
+		}
+    }
+}
+#endif
+
 TLO(dataTarget)
 {
 	if (pTarget)

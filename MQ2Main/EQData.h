@@ -397,6 +397,7 @@ typedef struct _ITEMSPELLS {
 /*0x05*/ BYTE EffectType; 
 /*0x06*/ BYTE Unknown[2]; 
 /*0x08*/ DWORD Unknown0x08;
+/*0x0c*/ DWORD Unknown0x0c;
 } ITEMSPELLS, *PITEMSPELLS; 
 
 typedef struct _ITEMINFO {

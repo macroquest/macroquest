@@ -1,3 +1,9 @@
+12 Jul 2005 by Lax
+- Added Top-Level Object:
+  * int Select[value,...]
+    This replaces ${String[ x y z ].Find[ ${Stuff} ]}, like so: ${Select[${Stuff},x,y,z]}
+    The result will be 0 for none, 1 for the first, 2 for the second, ad infinitum (no limit)
+
 11 Jul 2005 by dkaa
 - fixed the AltAbilityTimer members
 - fixed else processing if there is not a "{" on the else line

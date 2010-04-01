@@ -43,4 +43,5 @@ EQLIB_API BOOL dataNamingSpawn(PCHAR szIndex, MQ2TYPEVAR &Ret);
 EQLIB_API BOOL dataSpawnCount(PCHAR szIndex, MQ2TYPEVAR &Ret);
 EQLIB_API BOOL dataLineOfSight(PCHAR szIndex, MQ2TYPEVAR &Ret);
 EQLIB_API BOOL dataPlugin(PCHAR szIndex, MQ2TYPEVAR &Ret);
+EQLIB_API BOOL dataSelect(PCHAR szIndex, MQ2TYPEVAR &Ret);
 #endif

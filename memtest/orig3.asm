@@ -5,10 +5,10 @@ EXTRN _myextern_array:DWORD
 
 _TEXT   SEGMENT PARA USE32 PUBLIC 'CODE'
 
-PUBLIC __MemChecker2
+PUBLIC __MemChecker3
 
-
-__MemChecker2   proc near 
+__MemChecker3   proc near               ; CODE XREF: sub_55A7E0+15p
+                                        ; sub_55A7E0+2Bbp ...
 
 arg_0           = dword ptr  8
 arg_4           = dword ptr  0Ch
@@ -54,10 +54,10 @@ arg_B           = byte ptr  13h
                 mov     edx, [ebp+arg_0]
                 add     edi, edx
                 cmp     edx, edi
-                jnb     short loc_52AE4A
+                jnb     short loc_55A007
                 push    ebx
 
-loc_52AE30:                             ; CODE XREF: memcheck2+84j
+loc_559FED:                             ; CODE XREF: __MemChecker3+84j
                 xor     ebx, ebx
                 mov     bl, [edx]
                 xor     ebx, eax
@@ -67,16 +67,17 @@ loc_52AE30:                             ; CODE XREF: memcheck2+84j
                 xor     eax, _myextern_array[ebx*4]
                 inc     edx
                 cmp     edx, edi
-                jb      short loc_52AE30
+                jb      short loc_559FED
                 pop     ebx
 
-loc_52AE4A:                             ; CODE XREF: memcheck2+6Aj
+loc_55A007:                             ; CODE XREF: __MemChecker3+6Aj
                 pop     edi
                 not     eax
                 pop     esi
                 pop     ebp
                 retn
+__MemChecker3   endp
 
-__MemChecker2   endp
+
 _TEXT   ENDS
 END
