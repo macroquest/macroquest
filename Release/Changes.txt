@@ -1,3 +1,13 @@
+29 Jan 2006 by rswiders
+- Fix to spawninfo struct from merge
+
+29 Jan 2006 by rswiders
+- Fix to re-add class based cfg file loading upon entering game
+- Added global bool for telling if you are zoning or not (gbInZone)
+- Added .GroupSize
+- Fix to allow non-stackable items to return counts in .Stacks, .StackCount, .FreeStack
+- Added LoS parameter to spawn searches
+
 18 Jan 2006 by rswiders
 - Updated for 01/18 patch
 

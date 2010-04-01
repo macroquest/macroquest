@@ -2096,12 +2096,12 @@ bool MQ2CharacterType::GETMEMBER()
 			// number
 			unsigned long nCombatAbility=GETNUMBER()-1;
             if ( PSPELL pSpell = GetSpellByID(pPCData->GetCombatAbility(nCombatAbility)) )
-				{
+            { 
 			   Dest.Ptr=pSpell;
-					Dest.Type=pSpellType;
-					return true;
-				}
+			   Dest.Type=pSpellType;
+			   return true;
 			}
+		}
 		else
 		{
 			// name
@@ -2127,41 +2127,41 @@ bool MQ2CharacterType::GETMEMBER()
             // number 
             unsigned long nCombatAbility=GETNUMBER()-1; 
             if ( PSPELL pSpell = GetSpellByID(pPCData->GetCombatAbility(nCombatAbility)) )
-               { 
-                  DWORD timeNow = (DWORD)time(NULL); 
+            { 
+               DWORD timeNow = (DWORD)time(NULL);
 			   if (pPCData->GetCombatAbilityTimer(pSpell->CARecastTimerID) > timeNow)
-                  { 
+			   {
                   Dest.Int=pPCData->GetCombatAbilityTimer(pSpell->CARecastTimerID)-timeNow+6;
-                     Dest.Int/=6; 
+                  Dest.Int/=6;
 			   }
 			   else Dest.Int=0;
-                     Dest.Type=pTicksType; 
-                     return true; 
-                  } 
-               } 
+			   Dest.Type=pTicksType;
+			   return true;
+            } 
+         } 
          else 
          { 
             // by name 
             for (unsigned long nCombatAbility=0 ; nCombatAbility < NUM_COMBAT_ABILITIES ; nCombatAbility++) 
-            { 
+            {
                if ( PSPELL pSpell = GetSpellByID(pPCData->GetCombatAbility(nCombatAbility)) )
                { 
                   if (!stricmp(GETFIRST(),pSpell->Name)) 
                   { 
-                        DWORD timeNow = (DWORD)time(NULL); 
+					 DWORD timeNow = (DWORD)time(NULL);
                      if (pPCData->GetCombatAbilityTimer(pSpell->CARecastTimerID) > timeNow)
-                        { 
+                     {
                         Dest.Int=pPCData->GetCombatAbilityTimer(pSpell->CARecastTimerID)-timeNow+6;
-                           Dest.Int/=6; 
+                        Dest.Int/=6;
 					 }
                      else Dest.Int=0;
-                           Dest.Type=pTicksType; 
-                           return true; 
-                        } 
-                     } 
+                     Dest.Type=pTicksType;
+                     return true;
                   } 
                } 
             } 
+         } 
+      } 
       return false; 
    case CombatAbilityReady: 
       Dest.DWord=0; 
@@ -2173,15 +2173,15 @@ bool MQ2CharacterType::GETMEMBER()
             // number 
             unsigned long nCombatAbility=GETNUMBER()-1; 
             if ( PSPELL pSpell = GetSpellByID(pPCData->GetCombatAbility(nCombatAbility)) )
-               { 
-                  DWORD timeNow = (DWORD)time(NULL); 
+            { 
+               DWORD timeNow = (DWORD)time(NULL);
 			   if (pPCData->GetCombatAbilityTimer(pSpell->CARecastTimerID) < timeNow)
-                  { 
-                     Dest.DWord=1; 
-                     return true; 
-                  } 
+			   {
+                  Dest.DWord=1;
+                  return true;
                } 
             } 
+         } 
          else 
          { 
             // by name 
@@ -2191,17 +2191,17 @@ bool MQ2CharacterType::GETMEMBER()
                { 
                   if (!stricmp(GETFIRST(),pSpell->Name)) 
                   { 
-                        DWORD timeNow = (DWORD)time(NULL); 
+					 DWORD timeNow = (DWORD)time(NULL);
                      if (pPCData->GetCombatAbilityTimer(pSpell->CARecastTimerID) < timeNow)
-                        { 
-                           Dest.DWord=1; 
-                           return true; 
-                        } 
-                     } 
+                     {
+                        Dest.DWord=1;
+						return true;
+					 }
                   } 
                } 
             } 
          } 
+      } 
         return true; 
 	case Moving:
 		Dest.DWord=((((gbMoving) && ((PSPAWNINFO)pCharSpawn)->SpeedRun==0.0f) && (pChar->pSpawn->Mount ==  NULL )) || (fabs(FindSpeed((PSPAWNINFO)pCharSpawn)) > 0.0f ));
@@ -2796,7 +2796,17 @@ bool MQ2CharacterType::GETMEMBER()
     case Running: 
         Dest.DWord=(*EQADDR_RUNWALKSTATE); 
         Dest.Type=pBoolType; 
-        return true; 
+        return true;
+	case GroupSize:
+		Dest.DWord= 0;
+		Dest.DWord= pGroup->MemberExists[0] +
+					pGroup->MemberExists[1] +
+					pGroup->MemberExists[2] +
+					pGroup->MemberExists[3] +
+					pGroup->MemberExists[4];
+		if (Dest.DWord) Dest.DWord++;
+		Dest.Type=pIntType;
+		return true;	
     }
 	return false;
 #undef pChar
@@ -3302,7 +3312,7 @@ bool MQ2ItemType::GETMEMBER()
          switch (pItem->Item->Clicky.EffectType) 
          { 
          case 4: 
-                Dest.Ptr="Click Worn"; 
+            Dest.Ptr="Click Worn"; 
             break; 
          case 1: 
          case 5: 
@@ -3343,7 +3353,7 @@ bool MQ2ItemType::GETMEMBER()
         {
             Dest.DWord=(GetItemTimer(pItem)+5)/6;
             Dest.Type=pTicksType;
-                return true;
+            return true;
         }
 		if (pItem->Item->Clicky.SpellID!=-1)
 		{
@@ -3379,7 +3389,7 @@ bool MQ2ItemType::GETMEMBER()
 		{
             Dest.DWord=0;
             Dest.Type=pIntType;
-            if (!((EQ_Item*)pItem)->IsStackable()) return false;
+            if (!((EQ_Item*)pItem)->IsStackable()) return true;
             for (DWORD slot=22;slot<30;slot++) 
             {
                 if (PCONTENTS pTempItem = GetCharInfo2()->InventoryArray[slot])
@@ -3414,7 +3424,7 @@ bool MQ2ItemType::GETMEMBER()
 		{
             Dest.DWord=0;
             Dest.Type=pIntType;
-            if (!((EQ_Item*)pItem)->IsStackable()) return false;
+            if (!((EQ_Item*)pItem)->IsStackable()) return true;
             for (DWORD slot=22;slot<30;slot++) 
             {
                 if (PCONTENTS pTempItem = GetCharInfo2()->InventoryArray[slot])
@@ -3449,7 +3459,7 @@ bool MQ2ItemType::GETMEMBER()
 		{
             Dest.DWord=0;
             Dest.Type=pIntType;
-            if (!((EQ_Item*)pItem)->IsStackable()) return false;
+            if (!((EQ_Item*)pItem)->IsStackable()) return true;
             for (DWORD slot=22;slot<30;slot++)
             {
                 if (PCONTENTS pTempItem = GetCharInfo2()->InventoryArray[slot])

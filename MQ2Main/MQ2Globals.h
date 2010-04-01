@@ -102,6 +102,7 @@ EQLIB_VAR DWORD gMaxTurbo;
 
 EQLIB_VAR PCHATBUF gDelayedCommands;
 
+EQLIB_VAR BOOL gbInZone;
 EQLIB_VAR BOOL gZoning;
 EQLIB_VAR BOOL WereWeZoning;
 EQLIB_VAR BOOL gbInDInput;

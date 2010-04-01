@@ -84,6 +84,7 @@ typedef struct _SEARCHSPAWN {
     BOOL bNoPet;
     DWORD SortBy;
     BOOL bNoGuild;
+	BOOL bLoS;
 } SEARCHSPAWN, *PSEARCHSPAWN;
 
 static enum SearchItemFlag
@@ -494,7 +495,7 @@ public:
 	unsigned long Count()
 	{
 		CAutoLock L(&CS);
-		unsigned long ret=0
+		unsigned long ret=0;
 		for (unsigned long i = 0 ; i < Size ; i++)
 		{
 			if (List[i])

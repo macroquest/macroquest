@@ -217,7 +217,6 @@ void AddGroundItem(PGROUNDITEM pGroundItem)
 
 	pFakeSpawn->HPCurrent = 1;
 	pFakeSpawn->HPMax = 1;
-	//pFakeSpawn->pActorInfo = &EnviroActor;
 	pFakeSpawn->Heading=pGroundItem->Heading;
 	pFakeSpawn->Race = pGroundItem->DropID;
 

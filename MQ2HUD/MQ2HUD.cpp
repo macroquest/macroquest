@@ -361,12 +361,12 @@ PLUGIN_API VOID ShutdownPlugin(VOID)
 
 PLUGIN_API VOID SetGameState(DWORD GameState)
 {
-   if (GameState==GAMESTATE_INGAME)
-      sprintf(HUDSection,"%s_%s",GetCharInfo()->Name,EQADDR_SERVERNAME);
-   else
-      strcpy(HUDSection,"MQ2HUD");
-   GetPrivateProfileString(HUDSection,"Last","Elements",HUDNames,MAX_STRING,INIFileName);
-   HandleINI();
+	if (GameState==GAMESTATE_INGAME)
+        sprintf(HUDSection,"%s_%s",GetCharInfo()->Name,EQADDR_SERVERNAME);
+	else 
+		strcpy(HUDSection,"MQ2HUD");
+    GetPrivateProfileString(HUDSection,"Last","Elements",HUDNames,MAX_STRING,INIFileName);
+    HandleINI();
 }
 
 // Called after entering a new zone

@@ -638,8 +638,8 @@ int CMD_MemSpell(int argc, char *argv[])
 //              Does (or lists) your abilities 
 // Usage:       /doability [list|ability|#] 
 // *************************************************************************** 
-int CMD_DoAbility(int argc, char *argv[])
-{
+int CMD_DoAbility(int argc, char *argv[]) 
+{ 
 	if (argc<2)
 	{
 		printf("Syntax: %s list|<ability>",argv[0]);

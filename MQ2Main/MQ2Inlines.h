@@ -50,12 +50,12 @@ static inline PCHAR GetClassDesc(DWORD ClassID)
 		return "LDoN Recruiter";
 	if (ClassID==61)
 		return "LDoN Merchant";
-    if (ClassID==63)
-        return "Tribute Master";
-    if (ClassID==64)
-        return "Guild Tribute Master";
-    if (ClassID==66)
-        return "Guild Banker"; 
+	if (ClassID==63)
+		return "Tribute Master";
+	if (ClassID==64)
+		return "Guild Tribute Master";
+	if (ClassID==66)
+		return "Guild Banker";
 	return pEverQuest->GetClassDesc(ClassID);
 }
 
@@ -63,7 +63,7 @@ static inline BOOL IsAssistNPC(PSPAWNINFO pSpawn)
 {
 	if (GetCharInfo()->pSpawn)
 	{
-        DWORD nAssist;
+		DWORD nAssist;
 		{
 			if (GetCharInfo()->pSpawn->pGroupAssistNPC[0]==pSpawn)
 			{

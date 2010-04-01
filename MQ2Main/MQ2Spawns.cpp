@@ -182,8 +182,8 @@ public:
 class CActorEx
 {
 public:
-  bool CanSetName(DWORD);
-  void SetNameColor(DWORD &Color);
+	bool CanSetName(DWORD);
+	void SetNameColor(DWORD &Color);
 };
 
 FUNCTION_AT_VIRTUAL_ADDRESS(bool CActorEx::CanSetName(DWORD),0x16c);
@@ -475,11 +475,11 @@ BOOL SetNameSpriteState(PSPAWNINFO pSpawn, bool Show)
 	{
 		((EQPlayerHook*)pSpawn)->SetNameSpriteState_Trampoline(Show);
 	}
-    if (!gMQCaptions)
-    {
-       //DebugSpew("Returning default from SetNameSpriteState");
-       return ((EQPlayerHook*)pSpawn)->SetNameSpriteState_Trampoline(Show);
-    } 
+	if (!gMQCaptions)
+	{
+		//DebugSpew("Returning default from SetNameSpriteState");
+		return ((EQPlayerHook*)pSpawn)->SetNameSpriteState_Trampoline(Show);
+	}
 #define SetCaption(CaptionString) \
 		{\
 			if (CaptionString[0])\

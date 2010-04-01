@@ -4311,6 +4311,7 @@ PCHAR FormatSearchSpawn(PCHAR Buffer, PSEARCHSPAWN pSearchSpawn)
 			strcat(Buffer,pSearchSpawn->szLight);
 		}
 	}
+	if (pSearchSpawn->bLoS) strcat(Buffer," LoS");
 
     return Buffer;
 }
@@ -4551,7 +4552,8 @@ BOOL SpawnMatchesSearch(PSEARCHSPAWN pSearchSpawn, PSPAWNINFO pChar, PSPAWNINFO 
 		return FALSE;
 	if (pSearchSpawn->szRace[0] && stricmp(pSearchSpawn->szRace,pEverQuest->GetRaceDesc(pSpawn->Race)))
 		return FALSE;
-
+	if (pSearchSpawn->bLoS && (!LineOfSight(pChar,pSpawn)))
+		return FALSE;
 
 	return TRUE;
 }
@@ -4617,6 +4619,8 @@ PCHAR ParseSearchSpawnArgs(PCHAR szArg, PCHAR szRest, PSEARCHSPAWN pSearchSpawn)
 			pSearchSpawn->bDps = TRUE;
 		} else if (!stricmp(szArg,"slower")) {
 			pSearchSpawn->bSlower = TRUE;
+		} else if (!stricmp(szArg,"los")) {
+			pSearchSpawn->bLoS = TRUE;
         } else if (!stricmp(szArg,"range")) {
             GetArg(szArg,szRest,1);
             pSearchSpawn->MinLevel = atoi(szArg);
@@ -5071,7 +5075,7 @@ VOID SuperWhoDisplay(PSPAWNINFO pSpawn, DWORD Color)
                 }
             }
             if (gFilterSWho.LD && pSpawn->Linkdead) strcat(szMsg," \ag<LD>\ax");
-            if (gFilterSWho.Sneak && pSpawn->Sneak) strcat(szMsg," \ag<Sneak>\ax"); 
+			if (gFilterSWho.Sneak && pSpawn->Sneak) strcat(szMsg," \ag<Sneak>\ax"); 
             if (gFilterSWho.AFK && pSpawn->AFK) strcat(szMsg," \ag<AFK>\ax");
             if (gFilterSWho.LFG && pSpawn->LFG) strcat(szMsg," \ag<LFG>\ax");
             if (gFilterSWho.Trader && pSpawn->Trader) strcat(szMsg," \ag<Trader>\ax");
@@ -5539,17 +5543,16 @@ bool BuffStackTest(PSPELL aSpell, PSPELL bSpell){
 //can be 1 of 3 things: PH(Base=0), CHA(Base>0), Lure(Base=-6). If it is Lure or
 //Placeholder, exclude it so slots don't match up. Now Check to see if the slots
 //have equal attribute values. If the do, they don't stack.
-
-    if (bSpell->Attrib[i]==aSpell->Attrib[i] && !(bSpell->Attrib[i]==254 || aSpell->Attrib[i]==254))
-         if (!((bSpell->Attrib[i]==10 && (bSpell->Base[i]==-6 || bSpell->Base[i]==0)) ||
-              (aSpell->Attrib[i]==10 && (aSpell->Base[i]==-6 || aSpell->Base[i]==0)) ||
-			  (bSpell->Attrib[i]==79 && bSpell->Base[i]>0 && bSpell->TargetType==6) ||
+		if (bSpell->Attrib[i]==aSpell->Attrib[i] && !(bSpell->Attrib[i]==254 || aSpell->Attrib[i]==254))
+            if (!((bSpell->Attrib[i]==10 && (bSpell->Base[i]==-6 || bSpell->Base[i]==0)) ||
+                  (aSpell->Attrib[i]==10 && (aSpell->Base[i]==-6 || aSpell->Base[i]==0)) ||
+				  (bSpell->Attrib[i]==79 && bSpell->Base[i]>0 && bSpell->TargetType==6) ||
                   (aSpell->Attrib[i]==79 && aSpell->Base[i]>0 && aSpell->TargetType==6) ||
 				  (bSpell->Attrib[i]==0  && bSpell->Base[i]<0) ||
 				  (aSpell->Attrib[i]==0  && aSpell->Base[i]<0) ||
 				  (bSpell->Attrib[i]==148 || bSpell->Attrib[i]==149) ||
 				  (aSpell->Attrib[i]==148 || aSpell->Attrib[i]==149)))
-               return false;
+						return false;
 //Check to see if second buffs blocks first buff:
 //148: Stacking: Block new spell if slot %d is effect
 //149: Stacking: Overwrite existing spell if slot %d is effect

@@ -1,31 +1,31 @@
-/******************************************************************************
-    MQ2Main.dll: MacroQuest2's extension DLL for EverQuest
-    Copyright (C) 2002-2003 Plazmic, 2003-2005 Lax
+/****************************************************************************** 
+    MQ2Main.dll: MacroQuest2's extension DLL for EverQuest 
+    Copyright (C) 2002-2003 Plazmic, 2003-2005 Lax 
 
-    This program is free software; you can redistribute it and/or modify
-    it under the terms of the GNU General Public License, version 2, as published by
-    the Free Software Foundation.
+    This program is free software; you can redistribute it and/or modify 
+    it under the terms of the GNU General Public License, version 2, as published by 
+    the Free Software Foundation. 
 
-    This program is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
-******************************************************************************/
-#ifdef PRIVATE
-#include "eqgame-private.h"
-#endif
+    This program is distributed in the hope that it will be useful, 
+    but WITHOUT ANY WARRANTY; without even the implied warranty of 
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the 
+    GNU General Public License for more details. 
+******************************************************************************/ 
+#ifdef PRIVATE 
+#include "eqgame-private.h" 
+#endif 
 
-#define __ClientName                                              "eqgame"
+#define __ClientName                                              "eqgame" 
 #define __ExpectedVersionDate                                     "Jan 16 2006" 
 #define __ExpectedVersionTime                                     "17:06:44" 
 #define __ActualVersionDate                                        0x65181C
 #define __ActualVersionTime                                        0x651828
 
-#define __ClientOverride                                           0
-#define __MacroQuestWinClassName                                  "__MacroQuestTray"
-#define __MacroQuestWinName                                       "MacroQuest"
+#define __ClientOverride                                           0 
+#define __MacroQuestWinClassName                                  "__MacroQuestTray" 
+#define __MacroQuestWinName                                       "MacroQuest" 
 
-// Memory Protection
+// Memory Protection 
 #define __MemChecker0                                              0x4AA8C9
 #define __MemChecker2                                              0x4CCBAB
 #define __MemChecker3                                              0x4CCC38
@@ -76,9 +76,9 @@
 #define __SkillDict                                                0x856EF0
 #define __Socials                                                  0x95FDA8
 
-////
-//Section 1: Vital Offsets
-////
+//// 
+//Section 1: Vital Offsets 
+//// 
 #define instCRaid                                                  0x91FF78
 #define instEQZoneInfo                                             0x926250
 #define instKeypressHandler                                        0x988270
@@ -122,9 +122,9 @@
 #define pinstWorldData                                             0x9082B8
 
 
-////
-//Section 2:  UI Related Offsets
-////
+//// 
+//Section 2:  UI Related Offsets 
+//// 
 #define pinstCTextOverlay                                          0x7A1E50
 #define pinstCCharacterSelect                                      0x85688C
 #define pinstCFacePick                                             0x856890
@@ -221,9 +221,9 @@
 #define pinstCContextMenuManager                                   0x99FD74
 
 
-////
-// Section 3: Miscellaneous Offsets
-////
+//// 
+// Section 3: Miscellaneous Offsets 
+//// 
 #define __CastRay                                                  0x47A7E0
 #define __ConvertItemTags                                          0x471A48
 #define __ExecuteCmd                                               0x46624C
@@ -238,31 +238,31 @@
 #define Util__FastTime                                             0x5723B0
 
 
-////
-// Section 4: Function Offsets
-////
-// AltAdvManager
+//// 
+// Section 4: Function Offsets 
+//// 
+// AltAdvManager 
 #define AltAdvManager__GetCalculatedTimer                          0x44DEBD
 #define AltAdvManager__IsAbilityReady                              0x44DEF3
 #define AltAdvManager__GetAltAbility                               0x44E003
 
-// CBankWnd
+// CBankWnd 
 #define CBankWnd__GetNumBankSlots                                  0x4DC9CC
 
-// CBazaarSearchWnd
+// CBazaarSearchWnd 
 #define CBazaarSearchWnd__HandleBazaarMsg                          0x4E4579
 
-// CButtonWnd
+// CButtonWnd 
 #define CButtonWnd__SetCheck                                       0x5BC060
 
-// CChatManager
+// CChatManager 
 #define CChatManager__GetRGBAFromIndex                             0x4F2C9D
 #define CChatManager__InitContextMenu                              0x4F31FF
 
-// CChatWindow
+// CChatWindow 
 #define CChatWindow__CChatWindow                                   0x4F6992
 
-// CComboWnd
+// CComboWnd 
 #define CComboWnd__DeleteAll                                       0x59D1C0
 #define CComboWnd__Draw                                            0x59D3B0
 #define CComboWnd__GetButtonRect                                   0x59D1F0
@@ -273,11 +273,11 @@
 #define CComboWnd__SetColors                                       0x59D110
 #define CComboWnd__SetChoice                                       0x59D140
 
-// CContainerWnd
+// CContainerWnd 
 #define CContainerWnd__HandleCombine                               0x4FC1F8
 #define CContainerWnd__vftable                                     0x6577D8
 
-// CDisplay
+// CDisplay 
 #define CDisplay__CleanGameUI                                      0x440BF7
 #define CDisplay__GetClickedActor                                  0x43EA98
 #define CDisplay__GetUserDefinedColor                              0x43E164
@@ -285,11 +285,11 @@
 #define CDisplay__ReloadUI                                         0x44A07D
 #define CDisplay__WriteTextHD2                                     0x4420B2
 
-// CEditBaseWnd
+// CEditBaseWnd 
 #define CEditBaseWnd__SetMaxChars                                  0x4D801A
 #define CEditBaseWnd__SetSel                                       0x5BB0C0
 
-// CEditWnd
+// CEditWnd 
 #define CEditWnd__DrawCaret                                        0x5B8870
 #define CEditWnd__GetCharIndexPt                                   0x5B9660
 #define CEditWnd__GetDisplayString                                 0x5B8A00
@@ -301,7 +301,7 @@
 #define CEditWnd__SelectableCharFromPoint                          0x5B93C0
 #define CEditWnd__SetEditable                                      0x5B8DD0
 
-// CEverQuest
+// CEverQuest 
 #define CEverQuest__ClickedPlayer                                  0x488467
 #define CEverQuest__DropHeldItemOnGround                           0x48B62B
 #define CEverQuest__dsp_chat                                       0x48BFA0
@@ -316,29 +316,29 @@
 #define CEverQuest__RightClickedOnPlayer                           0x49B06E
 #define CEverQuest__SetGameState                                   0x4884E8
 
-// CGaugeWnd
+// CGaugeWnd 
 #define CGaugeWnd__CalcFillRect                                    0x50478D
 #define CGaugeWnd__CalcLinesFillRect                               0x5047E9
 #define CGaugeWnd__Draw                                            0x504AE9
 
-// CHotButtonWnd
+// CHotButtonWnd 
 #define CHotButtonWnd__DoHotButton                                 0x51483C
 
-// CInvSlotMgr
+// CInvSlotMgr 
 #define CInvSlotMgr__FindInvSlot                                   0x51AEB3
 #define CInvSlotMgr__MoveItem                                      0x51B00E
 
 // CInvSlotWnd
 #define CInvSlotWnd__DrawTooltip                                   0x51BE1B
 
-// CItemDisplayWnd
+// CItemDisplayWnd 
 #define CItemDisplayWnd__SetItem                                   0x521FBE
 #define CItemDisplayWnd__SetSpell                                  0x51E0CB
 
-// CLabel
+// CLabel 
 #define CLabel__Draw                                               0x52664C
 
-// CListWnd
+// CListWnd 
 #define CListWnd__AddColumn                                        0x59CF20
 #define CListWnd__AddColumn1                                       0x59CA50
 #define CListWnd__AddLine                                          0x59C5E0
@@ -384,19 +384,19 @@
 #define CListWnd__Sort                                             0x59CF50
 #define CListWnd__ToggleSel                                        0x5992B0
 
-// CMapViewWnd
+// CMapViewWnd 
 #define CMapViewWnd__CMapViewWnd                                   0x53649A
 
-// CMerchantWnd
+// CMerchantWnd 
 #define CMerchantWnd__DisplayBuyOrSellPrice                        0x537ABC
 #define CMerchantWnd__RequestBuyItem                               0x538A3B
 #define CMerchantWnd__RequestSellItem                              0x537CB5
 #define CMerchantWnd__SelectBuySellSlot                            0x53879F
 
-// CSidlManager
+// CSidlManager 
 #define CSidlManager__FindScreenPieceTemplate1                     0x5B6B90
 
-// CSidlScreenWnd
+// CSidlScreenWnd 
 #define CSidlScreenWnd__CalculateHSBRange                          0x5A2450
 #define CSidlScreenWnd__CalculateVSBRange                          0x5A2390
 #define CSidlScreenWnd__ConvertToRes                               0x5A2B90
@@ -415,12 +415,12 @@
 #define CSidlScreenWnd__StoreIniInfo                               0x5A2690
 #define CSidlScreenWnd__WndNotification                            0x5A3040
 
-// CSliderWnd
+// CSliderWnd 
 #define CSliderWnd__GetValue                                       0x5BDAA0
 #define CSliderWnd__SetValue                                       0x5BDC30
 #define CSliderWnd__UpdateThumb                                    0x5BDA60
 
-// CSpellBookWnd
+// CSpellBookWnd 
 #define CSpellBookWnd__MemorizeSet                                 0x558473
 
 // CStmlWnd
@@ -441,7 +441,7 @@
 #define CStmlWnd__StripFirstSTMLLines                              0x5ACE20
 #define CStmlWnd__UpdateHistoryString                              0x5A7EE0
 
-// CTabWnd
+// CTabWnd 
 #define CTabWnd__Draw                                              0x5BD550
 #define CTabWnd__DrawCurrentPage                                   0x5BD010
 #define CTabWnd__DrawTab                                           0x5BCE10
@@ -459,25 +459,25 @@
 #define CTabWnd__SetPageRect                                       0x5BD4A0
 #define CTabWnd__UpdatePage                                        0x5BD6D0
 
-// CTextOverlay
+// CTextOverlay 
 #define CTextOverlay__DisplayText                                  0x40CE9C
 
 // CTextureFont
 #define CTextureFont__DrawWrappedText                              0x5A4A60
 
-// CXMLDataManager
+// CXMLDataManager 
 #define CXMLDataManager__GetXMLData                                0x5C3E60
 
-// CXMLSOMDocumentBase
+// CXMLSOMDocumentBase 
 #define CXMLSOMDocumentBase__XMLRead                               0x598750
 
-// CXRect
+// CXRect 
 #define CXRect__CenterPoint                                        0x4DC1CC
 
-// CXStr
-// WARNING:  Be sure that none of these offsets are identical!
-//
-// Note:  dCXStr, CXStr1, &amp; CXStr3 can be found in the 'BookWindow' constructor.
+// CXStr 
+// WARNING:  Be sure that none of these offsets are identical! 
+// 
+// Note:  dCXStr, CXStr1, &amp; CXStr3 can be found in the 'BookWindow' constructor. 
 #define CXStr__CXStr                                               0x40CAD5
 #define CXStr__CXStr1                                              0x4C2EA3
 #define CXStr__CXStr3                                              0x573990
@@ -485,7 +485,7 @@
 #define CXStr__operator_equal1                                     0x573B50
 #define CXStr__operator_plus_equal1                                0x574990
 
-// CXWnd
+// CXWnd 
 #define CXWnd__BringToTop                                          0x59DE80
 #define CXWnd__Center                                              0x5A1280
 #define CXWnd__ClrFocus                                            0x59DBD0
@@ -521,7 +521,7 @@
 #define CXWnd__SetNextSibPointer                                   0x59E9C0
 #define CXWnd__StartFade                                           0x59DEA0
 
-// CXWndManager
+// CXWndManager 
 #define CXWndManager__DrawCursor                                   0x5B0360
 #define CXWndManager__DrawWindows                                  0x5B0030
 #define CXWndManager__GetFirstChildWnd                             0x5AF940
@@ -532,7 +532,7 @@
 // CDBStr
 #define CDBStr__GetString                                          0x43B672
 
-// EQ_Character
+// EQ_Character 
 #define EQ_Character__CastSpell                                    0x416C84
 #define EQ_Character__Cur_HP                                       0x41C8AF
 #define EQ_Character__GetAACastingTimeModifier                     0x412F92
@@ -543,26 +543,26 @@
 #define EQ_Character__Max_Mana                                     0x4B076B
 #define EQ_Character__doCombatAbility                              0x4AF6AE
 
-// EQ_Item
+// EQ_Item 
 #define EQ_Item__CanDrop                                           0x4A5BFA
 #define EQ_Item__GetItemLinkHash                                   0x5E4520
 #define EQ_Item__IsStackable                                       0x5ED4D0
 
-// EQ_LoadingS
+// EQ_LoadingS 
 #define EQ_LoadingS__WriteTextHD                                   0x44E655
 
-// EQ_PC
+// EQ_PC 
 #define EQ_PC__DestroyHeldItemOrMoney                              0x4B2951
 #define EQ_PC__GetAltAbilityIndex                                  0x5F1660
 #define EQ_PC__GetCombatAbility                                    0x5F1750
 #define EQ_PC__GetCombatAbilityTimer                               0x5F1800
 #define EQ_PC__GetItemTimerValue                                   0x4AEF2A
 
-// EQItemList
+// EQItemList 
 #define EQItemList__dEQItemList                                    0x469016
 #define EQItemList__EQItemList                                     0x468F9A
 
-// EQPlayer
+// EQPlayer 
 #define EQPlayer__ChangeBoneStringSprite                           0x4B6B2C
 #define EQPlayer__dEQPlayer                                        0x4B96BF
 #define EQPlayer__DoAttack                                         0x4C2440
@@ -573,7 +573,7 @@
 //EQPlayerManager
 #define EQPlayerManager__GetSpawnByID                              0x4BC191
 
-// KeyPressHandler
+// KeyPressHandler 
 #define KeypressHandler__AttachAltKeyToEqCommand                   0x4A7469
 #define KeypressHandler__AttachKeyToEqCommand                      0x4A7436
 #define KeypressHandler__ClearCommandStateArray                    0x4A7280
@@ -581,9 +581,9 @@
 #define KeypressHandler__HandleKeyUp                               0x4A6352
 #define KeypressHandler__SaveKeymapping                            0x4A7306
 
-// MapViewMap
+// MapViewMap 
 #define MapViewMap__Clear                                          0x532C00
 #define MapViewMap__SaveEx                                         0x5333BD
 
-// StringTable
+// StringTable 
 #define StringTable__getString                                     0x5E06A0

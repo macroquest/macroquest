@@ -809,6 +809,7 @@ public:
         TributeActive=128,
 		CombatAbilityReady=129,
 		Running=130,
+		GroupSize=131,
 	};
 	static enum CharacterMethods
 	{
@@ -943,6 +944,7 @@ public:
         TypeMember(TributeActive);
 		TypeMember(CombatAbilityReady);
 		TypeMember(Running);
+		TypeMember(GroupSize);
 	}
 
 	~MQ2CharacterType()
@@ -1080,11 +1082,11 @@ public:
 		CastOnYou=19, 
 		CastOnAnother=20, 
 		WearOff=21, 
-                CounterType=22,
-                CounterNumber=23,
-                Stacks=24,
-                StacksPet=25,
-                WillStack=26, 
+        CounterType=22,
+        CounterNumber=23,
+        Stacks=24,
+        StacksPet=25,
+        WillStack=26, 
 	};
 	static enum SpellMethods
 	{
@@ -1112,11 +1114,11 @@ public:
 		TypeMember(CastOnYou);//19, 
 		TypeMember(CastOnAnother);//20, 
 		TypeMember(WearOff);//21, 
-                TypeMember(CounterType);//22,
-                TypeMember(CounterNumber);//23,
-                TypeMember(Stacks);//24,
-                TypeMember(StacksPet);//25,
-                TypeMember(WillStack);//26, 
+        TypeMember(CounterType);//22,
+        TypeMember(CounterNumber);//23,
+        TypeMember(Stacks);//24,
+        TypeMember(StacksPet);//25,
+        TypeMember(WillStack);//26, 
 	}
 
 	~MQ2SpellType()

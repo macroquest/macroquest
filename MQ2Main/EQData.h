@@ -934,35 +934,35 @@ typedef struct _EQUIPMENT {
 
 
 // Actual size: 0x1134 12-07-05
-typedef struct _SPAWNINFO {
-/*0x0000*/ void    *vtable;
-/*0x0004*/ struct  _SPAWNINFO *pPrev;
-/*0x0008*/ struct  _SPAWNINFO *pNext;
+typedef struct _SPAWNINFO { 
+/*0x0000*/ void    *vtable; 
+/*0x0004*/ struct  _SPAWNINFO *pPrev; 
+/*0x0008*/ struct  _SPAWNINFO *pNext; 
 /*0x000c*/ DWORD    Unknown0xc;
-/*0x0010*/ CHAR     Lastname[0x20];
-/*0x0030*/ FLOAT    Unknown0x30[0x3];
-/*0x003c*/ FLOAT    Y;
-/*0x0040*/ FLOAT    X;
-/*0x0044*/ FLOAT    Z;
-/*0x0048*/ FLOAT    SpeedY;
-/*0x004c*/ FLOAT    SpeedX;
-/*0x0050*/ FLOAT    SpeedZ;
-/*0x0054*/ FLOAT    SpeedRun;
-/*0x0058*/ FLOAT    Heading;
-/*0x005c*/ FLOAT    SpeedHeading;
-/*0x0060*/ FLOAT    Unknown0x60[0x2];
-/*0x0068*/ FLOAT    CameraAngle;
-/*0x006c*/ DWORD    SpawnID;
-/*0x0070*/ DWORD    Unknown0x70;
-/*0x0074*/ CHAR     Name[0x40]; // ie priest_of_discord00
-/*0x00b4*/ CHAR     DisplayedName[0x40]; // ie Priest of Discord
-/*0x00f4*/ BYTE     IsABoat; // 1 = a type of boat
-/*0x00f5*/ BYTE     Unknown0xf5[0x7];
-/*0x00fc*/ struct  _SPAWNINFO *Mount; //NULL if no mount present
+/*0x0010*/ CHAR     Lastname[0x20]; 
+/*0x0030*/ FLOAT    Unknown0x30[0x3]; 
+/*0x003c*/ FLOAT    Y; 
+/*0x0040*/ FLOAT    X; 
+/*0x0044*/ FLOAT    Z; 
+/*0x0048*/ FLOAT    SpeedY; 
+/*0x004c*/ FLOAT    SpeedX; 
+/*0x0050*/ FLOAT    SpeedZ; 
+/*0x0054*/ FLOAT    SpeedRun; 
+/*0x0058*/ FLOAT    Heading; 
+/*0x005c*/ FLOAT    SpeedHeading; 
+/*0x0060*/ FLOAT    Unknown0x60[0x2]; 
+/*0x0068*/ FLOAT    CameraAngle; 
+/*0x006c*/ DWORD    SpawnID; 
+/*0x0070*/ DWORD    Unknown0x70; 
+/*0x0074*/ CHAR     Name[0x40]; // ie priest_of_discord00 
+/*0x00b4*/ CHAR     DisplayedName[0x40]; // ie Priest of Discord 
+/*0x00f4*/ BYTE     IsABoat; // 1 = a type of boat 
+/*0x00f5*/ BYTE     Unknown0xf5[0x7]; 
+/*0x00fc*/ struct  _SPAWNINFO *Mount; //NULL if no mount present 
 /*0x0100*/ BYTE     Unknown0x100[0x10]; 
 /*0x0110*/ FLOAT    SpeedMultiplier; 
 /*0x0114*/ BYTE     Unknown0x114[0x10]; 
-/*0x0124*/ DWORD    TimeStamp;
+/*0x0124*/ DWORD    TimeStamp; 
 /*0x0128*/ BYTE     Unknown0x128[0x4];
 /*0x012c*/ BYTE     UnderWater;
 /*0x012d*/ BYTE     Unknown0x12d[0xc];
@@ -971,43 +971,43 @@ typedef struct _SPAWNINFO {
 /*0x013b*/ BYTE     Unknown0x13b;
 /*0x013c*/ BYTE     Type;
 /*0x013d*/ BYTE     Unknown0x13d[0x7];
-/*0x0144*/ FLOAT    AvatarHeight; // height of avatar from ground when standing
-/*0x0148*/ BYTE     Unknown0x148[0xc];
-/*0x0154*/ FLOAT    Y2;
-/*0x0158*/ FLOAT    X2;
-/*0x015c*/ FLOAT    Z2;
-/*0x0160*/ FLOAT    SpeedY2;
-/*0x0164*/ FLOAT    SpeedX2;
-/*0x0168*/ FLOAT    SpeedZ2;
-/*0x016c*/ FLOAT    SpeedRun2;
-/*0x0170*/ FLOAT    Heading2;
-/*0x0174*/ BYTE     Unknown0x174[0x8f0]; // player position info
-/*0x0a64*/ BYTE     Unknown0xa64[0x44];
-/*0x0aa8*/ DWORD    SpellETA; //Calculated TimeStamp when current spell being cast will land. 0 while not casting.
+/*0x0144*/ FLOAT    AvatarHeight; // height of avatar from ground when standing 
+/*0x0148*/ BYTE     Unknown0x148[0xc]; 
+/*0x0154*/ FLOAT    Y2; 
+/*0x0158*/ FLOAT    X2; 
+/*0x015c*/ FLOAT    Z2; 
+/*0x0160*/ FLOAT    SpeedY2; 
+/*0x0164*/ FLOAT    SpeedX2; 
+/*0x0168*/ FLOAT    SpeedZ2; 
+/*0x016c*/ FLOAT    SpeedRun2; 
+/*0x0170*/ FLOAT    Heading2; 
+/*0x0174*/ BYTE     Unknown0x174[0x8f0]; // player position info 
+/*0x0a64*/ BYTE     Unknown0xa64[0x44]; 
+/*0x0aa8*/ DWORD    SpellETA; //Calculated TimeStamp when current spell being cast will land. 0 while not casting. 
 /*0x0aac*/ BYTE     Unknown0xaac[0x44];
 /*0x0af0*/ DWORD    FishingETA;
 /*0x0af4*/ DWORD    Unknown0xaf4;
-/*0x0af8*/ DWORD    LastTick;
+/*0x0af8*/ DWORD    LastTick; 
 /*0x0afc*/ BYTE     Unknown0xafc;
 /*0x0afd*/ BYTE     FishingEvent;
 /*0x0afe*/ BYTE     Unknown0xafe[0x12];
 /*0x0b10*/ FLOAT    CastingY;
 /*0x0b14*/ FLOAT    CastingX;
 /*0x0b18*/ BYTE     Unknown0xb18[0x8];
-/*0x0b20*/ DWORD    PetID;
-/*0x0b24*/ struct  _SPAWNINFO *WhoFollowing; // NULL if autofollow off
+/*0x0b20*/ DWORD    PetID; 
+/*0x0b24*/ struct  _SPAWNINFO *WhoFollowing; // NULL if autofollow off 
 /*0x0b28*/ struct  _SPAWNINFO *pGroupAssistNPC[1];
 /*0x0b2c*/ struct  _SPAWNINFO *pRaidAssistNPC[3];
 /*0x0b38*/ struct  _SPAWNINFO *pGroupMarkNPC[3];
 /*0x0b44*/ struct  _SPAWNINFO *pRaidMarkNPC[3];
 /*0x0b50*/ struct  _SPAWNINFO *pTargetOfTarget;
 /*0x0b54*/ DWORD    Unknown0xb54;
-/*0x0b58*/ DWORD    CastingSpellID; // -1 = not casting a spell
-/*0x0b5c*/ DWORD    CastingAnimation; //unsure, FF for not casting, low numbers while casting
-/*0x0b60*/ BYTE     Unknown0xb60[0x60];
+/*0x0b58*/ DWORD    CastingSpellID; // -1 = not casting a spell 
+/*0x0b5c*/ DWORD    CastingAnimation; //unsure, FF for not casting, low numbers while casting 
+/*0x0b60*/ BYTE     Unknown0xb60[0x60]; 
 /*0x0bc0*/ DWORD    Trader;
 /*0x0bc4*/ BYTE     Unknown0xbc4[0x64];
-/*0x0c28*/ BYTE     InNonPCRaceIllusion;
+/*0x0c28*/ BYTE     InNonPCRaceIllusion; 
 /*0x0c29*/ BYTE     Unknown0xc29;
 /*0x0c2a*/ BYTE     FaceHair;
 /*0x0c2b*/ BYTE     HairColor;
@@ -1016,17 +1016,17 @@ typedef struct _SPAWNINFO {
 /*0x0c2e*/ BYTE     EyesType;
 /*0x0c2f*/ BYTE     HairType;
 /*0x0c30*/ BYTE     BeardType;
-/*0x0c31*/ BYTE     Unknown0xc31[0x3];
-/*0x0c34*/ DWORD    Race;
-/*0x0c38*/ BYTE     Gender;
-/*0x0c39*/ CHAR     ActorDef[0x40];
+/*0x0c31*/ BYTE     Unknown0xc31[0x3]; 
+/*0x0c34*/ DWORD    Race; 
+/*0x0c38*/ BYTE     Gender; 
+/*0x0c39*/ CHAR     ActorDef[0x40]; 
 /*0x0c79*/ BYTE     Unknown0xc79[0x3]; 
 /*0x0c7c*/ struct   _EQUIPMENT Equipment;
 /*0x0ca0*/ ARGBCOLOR ArmorColor[0x9];
 /*0x0cc4*/ BYTE     Unknown0xcc4[0x3c];
 /*0x0d00*/ VOID    *pcactorex;
 /*0x0d04*/ DWORD    Unknown0xd04;
-/*0x0d08*/ VOID    *FaceRelatedActorStruct;
+/*0x0d08*/ VOID    *FaceRelatedActorStruct; 
 /*0x0d0c*/ BYTE     Unknown0xd0c[0xf9];
 /*0x0e05*/ BYTE     CanFindLocation;
 /*0x0e06*/ BYTE     Sneak;
@@ -1034,40 +1034,40 @@ typedef struct _SPAWNINFO {
 /*0x0e08*/ BYTE     Unknown0xe08;
 /*0x0e09*/ BYTE     LFG;
 /*0x0e0a*/ BYTE     Unknown0xe0a[0x2];
-/*0x0e0c*/ WORD     Zone;
-/*0x0e0e*/ WORD     Instance;
+/*0x0e0c*/ WORD     Zone; 
+/*0x0e0e*/ WORD     Instance; 
 /*0x0e10*/ DWORD    Unknown0xe10;
 /*0x0e14*/ DWORD    Unknown0xe14;
 /*0x0e18*/ struct  _CHARINFO  *pCharInfo;
 /*0x0e1c*/ BYTE     Unknown0xe1c[0x8];
-/*0x0e24*/ FLOAT    RunSpeed;
-/*0x0e28*/ FLOAT    Unknown0xe28; // avatar/camera height related
+/*0x0e24*/ FLOAT    RunSpeed; 
+/*0x0e28*/ FLOAT    Unknown0xe28; // avatar/camera height related 
 /*0x0e2c*/ FLOAT    WalkSpeed;
-/*0x0e30*/ BYTE     Holding;
-/*0x0e31*/ BYTE     Level;
+/*0x0e30*/ BYTE     Holding; 
+/*0x0e31*/ BYTE     Level; 
 /*0x0e32*/ BYTE     PvPFlag;
-/*0x0e33*/ BYTE     HideMode;
-/*0x0e34*/ BYTE     StandState;
-/*0x0e35*/ BYTE     Class;
+/*0x0e33*/ BYTE     HideMode; 
+/*0x0e34*/ BYTE     StandState; 
+/*0x0e35*/ BYTE     Class; 
 /*0x0e36*/ BYTE     Light;
-/*0x0e37*/ BYTE     GM;
-/*0x0e38*/ DWORD    MasterID;
-/*0x0e3c*/ DWORD    Anon;
-/*0x0e40*/ DWORD    Unknown0xe40;
+/*0x0e37*/ BYTE     GM; 
+/*0x0e38*/ DWORD    MasterID; 
+/*0x0e3c*/ DWORD    Anon; 
+/*0x0e40*/ DWORD    Unknown0xe40; 
 /*0x0e44*/ DWORD    AFK;
 /*0x0e48*/ BYTE     BodyType;
 /*0x0e49*/ BYTE     Unknown0xe49[0x3];
-/*0x0e4c*/ LONG     HPCurrent;
-/*0x0e50*/ BYTE     AARank;
-/*0x0e51*/ BYTE     Unknown0xe51[0x3];
-/*0x0e54*/ DWORD    GuildStatus;
-/*0x0e58*/ DWORD    Deity;
-/*0x0e5c*/ DWORD    HPMax;
+/*0x0e4c*/ LONG     HPCurrent; 
+/*0x0e50*/ BYTE     AARank; 
+/*0x0e51*/ BYTE     Unknown0xe51[0x3]; 
+/*0x0e54*/ DWORD    GuildStatus; 
+/*0x0e58*/ DWORD    Deity; 
+/*0x0e5c*/ DWORD    HPMax; 
 /*0x0e60*/ DWORD    GuildID;
 /*0x0e64*/ BYTE     Unknown0xe64[0x10];
-/*0x0e74*/ CHAR     Title[0x20];
-/*0x0e94*/ CHAR     Suffix[0x20];
-/*0x0eb4*/ BYTE     Unknown0xeb4[0x48];
+/*0x0e74*/ CHAR     Title[0x20]; 
+/*0x0e94*/ CHAR     Suffix[0x20]; 
+/*0x0eb4*/ BYTE     Unknown0xeb4[0x48]; 
 /*0x0efc*/ DWORD    Animation;
 /*0x0f00*/ BYTE     Unknown0xf00[0x24];
 /*0x0f24*/ struct  _MODELINFO *Model[0x11];
@@ -1079,8 +1079,8 @@ typedef struct _SPAWNINFO {
 /*0x1114*/ struct  _SPAWNINFO *pSpawn;
 /*0x1118*/ BYTE     Levitate;
 /*0x1119*/ BYTE     Unknown0x1119[0x1b];
-/*0x1134*/
-} SPAWNINFO, *PSPAWNINFO; 
+/*0x1134*/ 
+} SPAWNINFO, *PSPAWNINFO;
 
 #define STANDSTATE_STAND            0x64
 #define STANDSTATE_CASTING          0x66

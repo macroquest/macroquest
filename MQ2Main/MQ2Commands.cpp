@@ -2995,7 +2995,7 @@ VOID CaptionCmd(PSPAWNINFO pChar, PCHAR szLine)
 	GetArg(Arg1,szLine,1);
 	if (!Arg1[0])
 	{
-		SyntaxError("Usage: /caption <list|type <value>|update #|MQCaptions <on|off>>"); 
+		SyntaxError("Usage: /caption <list|type <value>|update #|MQCaptions <on|off>>");
 		return;
 	}
 	if (!stricmp(Arg1,"list"))
@@ -3041,12 +3041,12 @@ VOID CaptionCmd(PSPAWNINFO pChar, PCHAR szLine)
 			gMaxSpawnCaptions=70;
 		WritePrivateProfileString("Captions","Update",itoa(gMaxSpawnCaptions,Arg1,10),gszINIFilename);
 		WriteChatf("\ay%d\ax nearest spawns will have their caption updated each pass.",gMaxSpawnCaptions);
-        return;
-    } else if (!stricmp(Arg1,"MQCaptions"))
-    {
+		return;
+	} else if (!stricmp(Arg1,"MQCaptions"))
+	{
         gMQCaptions=(!stricmp(GetNextArg(szLine),"On"));
-        WritePrivateProfileString("Captions","MQCaptions",(gMQCaptions?"1":"0"),gszINIFilename);
-        WriteChatf("MQCaptions are now \ay%s\ax.",(gMQCaptions?"On":"Off")); 
+		WritePrivateProfileString("Captions","MQCaptions",(gMQCaptions?"1":"0"),gszINIFilename);
+		WriteChatf("MQCaptions are now \ay%s\ax.",(gMQCaptions?"On":"Off"));
 		return;
 	}
 	else

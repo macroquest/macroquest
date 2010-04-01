@@ -119,6 +119,7 @@ DWORD gRunning = 0;
 BOOL gbMoving = FALSE;
 DWORD gMaxTurbo = 10;
 BOOL gInClick = FALSE;
+BOOL gbInZone = FALSE;
 BOOL gZoning = FALSE;
 BOOL WereWeZoning = TRUE;
 BOOL gbInDInput = FALSE;

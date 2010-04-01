@@ -413,6 +413,11 @@ VOID PluginsSetGameState(DWORD GameState)
 				sprintf(szBuffer,"%s_%s",EQADDR_SERVERNAME,pCharInfo->Name);
 				LoadCfgFile(szBuffer,false);
 			}
+			if (PCHARINFO2 pCharInfo2=GetCharInfo2())
+			{
+				sprintf(szBuffer,"%s",GetClassDesc(pCharInfo2->Class));
+				LoadCfgFile(szBuffer,false);
+			}
 		}
 	}
 	else if (GameState==GAMESTATE_CHARSELECT)
@@ -539,6 +544,7 @@ VOID PluginsBeginZone()
    PluginDebug("PluginsBeginZone()"); 
    if (!bPluginCS) 
       return; 
+   gbInZone=false;
    CAutoLock Lock(&gPluginCS); 
    PMQPLUGIN pPlugin=pPlugins; 
    while(pPlugin) 
@@ -556,7 +562,8 @@ VOID PluginsEndZone()
 { 
    PluginDebug("PluginsEndZone()"); 
    if (!bPluginCS) 
-      return; 
+      return;
+   gbInZone=true;
    CAutoLock Lock(&gPluginCS); 
    PMQPLUGIN pPlugin=pPlugins; 
    while(pPlugin) 
