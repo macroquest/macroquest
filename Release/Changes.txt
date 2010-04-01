@@ -1,3 +1,9 @@
+25 October 2006 by ieatacid, rswiders
+- Updated for today's patch
+
+23 October 2006 by ieatacid
+- Added Spell.MyRange.  This is YOUR actual cast range, including extended range from focus effects.
+
 10 October 2006 by ieatacid
 - Added "HOVER" for use with Me.State
 - Added bool InHoverState() to MQ2Utilities.cpp

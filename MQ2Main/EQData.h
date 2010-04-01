@@ -161,18 +161,19 @@ typedef struct _BodyInfo
 #define SKILLMINDAMAGEMOD_TIGERCLAW     0x07 
 #define SKILLMINDAMAGEMOD_FRENZY        0x08 
 
-#define COLOR_DEFAULT                   0x00 +   0
-#define COLOR_DARKGREY                  0x00 +   1
-#define COLOR_DARKGREEN                 0x00 +   2
-#define COLOR_DARKBLUE                  0x00 +   3
-#define COLOR_PURPLE                    0x00 +   5
-#define COLOR_LIGHTGREY                 0x00 +   6
+#define COLOR_DEFAULT                   0x00
+#define COLOR_DARKGREY                  0x01
+#define COLOR_DARKGREEN                 0x02
+#define COLOR_DARKBLUE                  0x03
+#define COLOR_PURPLE                    0x05
+#define COLOR_LIGHTGREY                 0x06
 
 #define CONCOLOR_GREY                   0x06
 #define CONCOLOR_GREEN                  0x02
 #define CONCOLOR_LIGHTBLUE              0x12
 #define CONCOLOR_BLUE                   0x04
 #define CONCOLOR_BLACK                  0x14
+#define CONCOLOR_WHITE                  0x0a
 #define CONCOLOR_YELLOW                 0x0f
 #define CONCOLOR_RED                    0x0d
 
@@ -682,7 +683,7 @@ typedef struct _CI2_INFO {
 } CI2_INFO, *PCI2_INFO;
 
 
-// actual size 0x11008 09-27-2006
+// actual size 0x11008 10-25-2006
 typedef struct _CHARINFO {
 /*0x00000*/   void      *vtable1;
 /*0x00004*/   void      *punknown;
@@ -785,7 +786,7 @@ typedef struct _CHARINFO {
 /*0x11008*/
 } CHARINFO, *PCHARINFO;
 
-// actual size: 0xb678 09-27-2006
+// actual size: 0xb678 10-25-2006
 typedef struct _CHARINFO2 {
 /*0x0000*/   BYTE       Unknown0x0[0x10];
 union {
@@ -982,7 +983,7 @@ typedef struct _EQUIPMENT {
    };
 } EQUIPMENT, *PEQUIPMENT;
 
-// actual size: 0x130c 09-27-06
+// actual size: 0x130c 10-25-06
 typedef struct _SPAWNINFO {
 /*0x0000*/ void     *vtable;
 /*0x0004*/ struct   _SPAWNINFO *pPrev;
@@ -1342,7 +1343,7 @@ BYTE            unknown[0x68];
 struct _SPELL*  Spells[TOTAL_SPELL_COUNT];
 } SPELLMGR, *PSPELLMGR;
 
-// actual size: 0x4ec 09-27-06
+// actual size: 0x4ec 10-25-06
 typedef struct _SPELL {
 /*0x000*/   BYTE    CastingAnim;
 /*0x001*/   BYTE    Unknown0x1[0x3];
@@ -1445,7 +1446,7 @@ typedef struct _SPELL {
 /*0x4ec*/
 } SPELL, *PSPELL;
 
-// actual size: 0x148 09-20-2006  ieatacid
+// actual size: 0x148 10-25-2006  ieatacid
 typedef struct _SKILL {
 /*0x000*/  PVOID  pUnknown0x0;       //_SKILL *pNext?
 /*0x004*/  PVOID  pUnknown0x4;

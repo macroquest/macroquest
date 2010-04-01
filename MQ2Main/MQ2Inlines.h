@@ -260,7 +260,7 @@ static inline DWORD ConColorToARGB(DWORD ConColor)
             return 0xFF00FFFF;
         case CONCOLOR_BLUE:
             return 0xFF0000FF;
-        case CONCOLOR_BLACK:
+        case CONCOLOR_WHITE:
             return 0xFFFFFFFF;
         case CONCOLOR_YELLOW:
             return 0xFFFFFF00;

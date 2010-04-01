@@ -4227,7 +4227,7 @@ FUNCTION_AT_ADDRESS(int const  EQ_Character::GetFocusConserveRegChance(class EQ_
 FUNCTION_AT_ADDRESS(int const  EQ_Character1::GetFocusCastingTimeModifier(class EQ_Spell const *,class EQ_Equipment * *),EQ_Character__GetFocusCastingTimeModifier);
 #endif
 #ifdef EQ_Character__GetFocusRangeModifier
-FUNCTION_AT_ADDRESS(int const  EQ_Character::GetFocusRangeModifier(class EQ_Spell const *,class EQ_Equipment * *),EQ_Character__GetFocusRangeModifier);
+FUNCTION_AT_ADDRESS(int const  EQ_Character1::GetFocusRangeModifier(class EQ_Spell const *,class EQ_Equipment * *),EQ_Character__GetFocusRangeModifier);
 #endif
 #ifdef EQ_Character__GetFocusItem
 FUNCTION_AT_ADDRESS(class EQ_Equipment *  EQ_Character::GetFocusItem(class EQ_Spell const *,int),EQ_Character__GetFocusItem);

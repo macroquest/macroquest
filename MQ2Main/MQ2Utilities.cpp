@@ -1031,7 +1031,7 @@ DWORD ConColor(PSPAWNINFO pSpawn)
 {
 	PSPAWNINFO pChar=(PSPAWNINFO)pLocalPlayer;
 	if (!pChar)
-		return CONCOLOR_BLACK; // its you
+		return CONCOLOR_WHITE; // its you
 	
 	switch(pCharData->GetConLevel((EQPlayer*)pSpawn))
 	{
@@ -1045,7 +1045,7 @@ DWORD ConColor(PSPAWNINFO pSpawn)
 	case 4:
 		return CONCOLOR_BLUE;
 	case 5:	
-		return CONCOLOR_BLACK;
+		return CONCOLOR_WHITE;
 	case 6:
 		return CONCOLOR_YELLOW;
 	case 7:
@@ -4975,7 +4975,7 @@ VOID SuperWhoDisplay(PSPAWNINFO pSpawn, DWORD Color)
 		{
 			switch(ConColor(pSpawn))
 			{
-			case CONCOLOR_BLACK:
+			case CONCOLOR_WHITE:
 				szMsg[1]='w';
 				break;
 			case CONCOLOR_YELLOW:

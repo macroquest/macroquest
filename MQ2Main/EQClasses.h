@@ -5353,6 +5353,7 @@ EQLIB_OBJECT void EQ_Character1::StopSpellCast(unsigned char,int);
 EQLIB_OBJECT void EQ_Character1::StunMe(unsigned int,unsigned int,unsigned int);
 EQLIB_OBJECT void EQ_Character1::UnStunMe(void);
 EQLIB_OBJECT void EQ_Character1::UseSkill(unsigned char,class EQPlayer *);
+EQLIB_OBJECT int const EQ_Character1::GetFocusRangeModifier(class EQ_Spell const *,class EQ_Equipment * *);
 };
 
 class EQ_Character
@@ -5440,7 +5441,6 @@ EQLIB_OBJECT int EQ_Character::TakeFallDamage(float);
 EQLIB_OBJECT int EQ_Character::TotalSpellAffects(unsigned char,bool,int *);
 EQLIB_OBJECT int EQ_Character::Wis(void);
 EQLIB_OBJECT int const EQ_Character::GetFocusConserveRegChance(class EQ_Spell const *,class EQ_Equipment * *);
-EQLIB_OBJECT int const EQ_Character::GetFocusRangeModifier(class EQ_Spell const *,class EQ_Equipment * *);
 EQLIB_OBJECT long EQ_Character::TotalOnPerson(void);
 EQLIB_OBJECT static int __cdecl EQ_Character::normal_to_special(int);
 EQLIB_OBJECT unsigned char EQ_Character::BarbarianCanWorship(unsigned char,unsigned char);
