@@ -3049,7 +3049,7 @@ bool MQ2SpellType::GETMEMBER()
 
 bool MQ2ItemType::GETMEMBER()
 {
-    DWORD cmp;
+    DWORD N, cmp;
 #define pItem ((PCONTENTS)VarPtr.Ptr)
 	if (!VarPtr.Ptr)
 		return false;
@@ -3220,7 +3220,7 @@ bool MQ2ItemType::GETMEMBER()
 				if (!Count)
 					return false;
 				cmp=pItem->Item->EquipSlots;
-				for (DWORD N = 0 ; N < 32 ; N++)
+				for (N = 0 ; N < 32 ; N++)
 				{
 					if (cmp&(1<<N))
 					{
@@ -3252,7 +3252,7 @@ bool MQ2ItemType::GETMEMBER()
 			Dest.DWord=0;
 			// count bits
 			cmp=pItem->Item->EquipSlots;
-			for (DWORD N = 0 ; N < 32 ; N++)
+			for (N = 0 ; N < 32 ; N++)
 			{
 				if (cmp&(1<<N))
 					Dest.DWord++;
@@ -3507,7 +3507,7 @@ bool MQ2ItemType::GETMEMBER()
             Dest.DWord=0;
             // count bits
             cmp=pItem->Item->Classes;
-            for (DWORD N = 0 ; N < 16 ; N++)
+            for (N = 0 ; N < 16 ; N++)
             {
                 if (cmp&(1<<N))
                     Dest.DWord++;
@@ -3523,7 +3523,7 @@ bool MQ2ItemType::GETMEMBER()
                 if (!Count)
                     return false;
                 cmp=pItem->Item->Classes;
-                for (DWORD N = 0 ; N < 16 ; N++)
+                for (N = 0 ; N < 16 ; N++)
                 {
                     if (cmp&(1<<N))
                     {
@@ -3541,7 +3541,7 @@ bool MQ2ItemType::GETMEMBER()
             {
                 // by name
                 cmp=pItem->Item->Classes;
-                for (DWORD N = 0 ; N < 16 ; N++) {
+                for (N = 0 ; N < 16 ; N++) {
                     if (cmp&(1<<N)) {
                         if (!stricmp(GETFIRST(), GetClassDesc(N+1)) ||
                             !stricmp(GETFIRST(), pEverQuest->GetClassThreeLetterCode(N+1))) {
@@ -3559,7 +3559,7 @@ bool MQ2ItemType::GETMEMBER()
             Dest.DWord=0;
             // count bits
             cmp=pItem->Item->Races;
-            for (DWORD N = 0 ; N < 15 ; N++)
+            for (N = 0 ; N < 15 ; N++)
             {
                 if (cmp&(1<<N))
                     Dest.DWord++;
@@ -3575,7 +3575,7 @@ bool MQ2ItemType::GETMEMBER()
                 if (!Count)
                     return false;
                 cmp=pItem->Item->Races;
-                for (DWORD N = 0 ; N < 15 ; N++)
+                for (N = 0 ; N < 15 ; N++)
                 {
                     if (cmp&(1<<N))
                     {
@@ -3593,7 +3593,7 @@ bool MQ2ItemType::GETMEMBER()
             {
                 // by name
                 cmp=pItem->Item->Races;
-                for (DWORD N = 0 ; N < 15 ; N++) {
+                for (N = 0 ; N < 15 ; N++) {
                     if (cmp&(1<<N)) {
                         if (!stricmp(GETFIRST(), pEverQuest->GetRaceDesc(N))) {
                                 Dest.DWord=N;
@@ -3610,7 +3610,7 @@ bool MQ2ItemType::GETMEMBER()
             Dest.DWord=0;
             // count bits
             cmp=pItem->Item->Diety;
-            for (DWORD N = 0 ; N < 15 ; N++)
+            for (N = 0 ; N < 15 ; N++)
             {
                 if (cmp&(1<<N))
                     Dest.DWord++;
@@ -3626,7 +3626,7 @@ bool MQ2ItemType::GETMEMBER()
                 if (!Count)
                     return false;
                 cmp=pItem->Item->Diety;
-                for (DWORD N = 0 ; N < 15 ; N++)
+                for (N = 0 ; N < 15 ; N++)
                 {
                     if (cmp&(1<<N))
                     {
@@ -3644,7 +3644,7 @@ bool MQ2ItemType::GETMEMBER()
             {
                 // by name
                 cmp=pItem->Item->Diety;
-                for (DWORD N = 0 ; N < 16 ; N++) {
+                for (N = 0 ; N < 16 ; N++) {
                     if (cmp&(1<<N)) {
                         if (!stricmp(GETFIRST(), pEverQuest->GetDeityDesc(N+200))) {
                             Dest.DWord=N+200;
