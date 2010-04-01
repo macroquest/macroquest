@@ -342,8 +342,7 @@ RemoveDetour(CXMLSOMDocumentBase__XMLRead);
 	WindowList.Cleanup();
 }
 
-bool
-GenerateMQUI()
+bool GenerateMQUI()
 {
     // create EverQuest\uifiles\default\MQUI.xml
     PCHARINFO       pCharInfo = NULL;
@@ -446,8 +445,7 @@ GenerateMQUI()
     return true;
 }
 
-void
-DestroyMQUI()
+void DestroyMQUI()
 {
     // delete MQUI.xml files.
     PCHARINFO       pCharInfo = NULL;
@@ -473,8 +471,7 @@ DestroyMQUI()
     }
 }
 
-void
-AddXMLFile(const char *filename)
+void AddXMLFile(const char *filename)
 {
     PMQXMLFILE      pFile = pXMLFiles;
     PMQXMLFILE      pLast = 0;
@@ -527,8 +524,7 @@ AddXMLFile(const char *filename)
     strcpy(pFile->szFilename, filename);
 }
 
-void
-RemoveXMLFile(const char *filename)
+void RemoveXMLFile(const char *filename)
 {
     PMQXMLFILE      pFile = pXMLFiles;
     while (pFile) {

@@ -1,3 +1,6 @@
+27 September 2006 by ieatacid
+- Updated for today's patch
+
 23 September 2006 by dkaa, ieatacid
 - fix for gbInZone, Me.FreeBuffSlots, AA-related stuff, MQ2EQIM compile errors
 

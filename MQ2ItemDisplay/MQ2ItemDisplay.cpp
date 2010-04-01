@@ -183,7 +183,7 @@ public:
         sprintf(temp,"Guild Tribute Value: %d<br>", Item->GuildFavor); 
         strcat(out, temp); 
      }
-	 if (Item->TimerID!=0xFFFFFFFF) {
+	 if (Item->TimerID!=0 && Item->Recast>0) {
 		 int Secs = GetItemTimer(item);
 		 if (!Secs) {
 			 sprintf(temp,"Item Timer: <c \"#20FF20\">Ready</c><br>");
@@ -824,79 +824,69 @@ public:
 class InvSlotWndHook
 {
 public:
-   VOID DrawTooltip_Trampoline(class CXWnd const *);
-   VOID DrawTooltip_Detour(class CXWnd const * pWnd)
-   {
-       CHAR Temp[MAX_STRING]={0};
-       CHAR Temp2[MAX_STRING]={0};
-
-       PCONTENTS pitem = GetItemContentsBySlotID(((CSidlScreenWnd *)pWnd)->SlotID);
-	   if (pitem)
-	   {
-           PITEMINFO pItem = pitem->Item;
-
-           if (pItem && pItem->TimerID!=0xFFFFFFFF)
-           {
-               int Secs=GetItemTimer(pitem);
-               if (Secs)
-               {
-                   int Mins=(Secs/60)%60;
-                   int Hrs=(Secs/3600);
-                   Secs=Secs%60;
-                   if (Hrs)
-                       sprintf(Temp2,"%d:%02d:%02d",Hrs,Mins,Secs);
-                   else
-                       sprintf(Temp2,"%d:%02d",Mins,Secs);
-               } else
-                   strcpy(Temp2,"Ready");
-               sprintf(Temp,"%s (%s)",pItem->Name,Temp2);
-               SetCXStr((PCXSTR *)&pWnd->Tooltip,Temp);
-           }
-	   }
-       DrawTooltip_Trampoline(pWnd);
-       return;
-   }
+	VOID DrawTooltip_Trampoline(class CXWnd const *);
+	VOID DrawTooltip_Detour(class CXWnd const * pWnd)
+	{
+		CHAR Temp[MAX_STRING]={0};
+		CHAR Temp2[MAX_STRING]={0};
+		PCONTENTS pItem = GetItemContentsBySlotID(((CSidlScreenWnd *)pWnd)->SlotID);
+		if(pItem && pItem->Item->TimerID!=0 && pItem->Item->Recast>0)
+		{
+			int Secs=GetItemTimer(pItem);
+			if(Secs)
+			{
+				int Mins=(Secs/60)%60;
+				int Hrs=(Secs/3600);
+				Secs=Secs%60;
+				if(Hrs)
+					sprintf(Temp2,"%d:%02d:%02d",Hrs,Mins,Secs);
+				else
+					sprintf(Temp2,"%d:%02d",Mins,Secs);
+			}
+			else
+				strcpy(Temp2,"Ready");
+			sprintf(Temp,"%s (%s)",pItem->Item->Name,Temp2);
+			SetCXStr((PCXSTR *)&pWnd->Tooltip,Temp);
+		}
+		DrawTooltip_Trampoline(pWnd);
+		return;
+	}
 };
 
 class XWndHook
 {
 public:
-   VOID DrawTooltip_Trampoline(class CXWnd const *);
-   VOID DrawTooltip_Detour(class CXWnd const * pWnd)
-   {
-       if (GetParentWnd(pWnd)==(CXWnd *)pPotionBeltWnd)
-	   {
-           CHAR Temp[MAX_STRING]={0};
-           CHAR Temp2[MAX_STRING]={0};
-
-           STMLToPlainText(&pWnd->Tooltip->Text[0],Temp);
-           PCONTENTS pitem = GetItemContentsByName(Temp);
-           if (pitem)
-           {
-               PITEMINFO pItem = pitem->Item;
-
-               if (pItem && pItem->TimerID!=0xFFFFFFFF)
-               {
-                   int Secs=GetItemTimer(pitem);
-                   if (Secs)
-                   {
-                       int Mins=(Secs/60)%60;
-                       int Hrs=(Secs/3600);
-                       Secs=Secs%60;
-                       if (Hrs)
-                           sprintf(Temp2,"%d:%02d:%02d",Hrs,Mins,Secs);
-                       else
-                           sprintf(Temp2,"%d:%02d",Mins,Secs);
-                   } else
-                       strcpy(Temp2,"Ready");
-                   sprintf(Temp,"%s (%s)",pItem->Name,Temp2);
-                   SetCXStr((PCXSTR *)&pWnd->Tooltip,Temp);
-               }
-           }
-	   }
-       DrawTooltip_Trampoline(pWnd);
-       return;
-   }
+	VOID DrawTooltip_Trampoline(class CXWnd const *);
+	VOID DrawTooltip_Detour(class CXWnd const * pWnd)
+	{
+		if (GetParentWnd(pWnd)==(CXWnd *)pPotionBeltWnd)
+		{
+			CHAR Temp[MAX_STRING]={0};
+			CHAR Temp2[MAX_STRING]={0};
+			STMLToPlainText(&pWnd->Tooltip->Text[0],Temp);
+			PCONTENTS pItem = GetItemContentsByName(Temp);
+			if(pItem && pItem->Item->TimerID!=0 && pItem->Item->Recast>0)
+			{
+				int Secs=GetItemTimer(pItem);
+				if (Secs)
+				{
+					int Mins=(Secs/60)%60;
+					int Hrs=(Secs/3600);
+					Secs=Secs%60;
+					if (Hrs)
+						sprintf(Temp2,"%d:%02d:%02d",Hrs,Mins,Secs);
+					else
+						sprintf(Temp2,"%d:%02d",Mins,Secs);
+				}
+				else
+					strcpy(Temp2,"Ready");
+				sprintf(Temp,"%s (%s)",pItem->Item->Name,Temp2);
+				SetCXStr((PCXSTR *)&pWnd->Tooltip,Temp);
+			}
+		}
+		DrawTooltip_Trampoline(pWnd);
+		return;
+	}
 };
 
 ItemDisplayHook::SEffectType ItemDisplayHook::eEffectType = None;

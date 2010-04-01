@@ -175,11 +175,12 @@ EQLIB_API VOID PluginsSetGameState(DWORD GameState)
 // "Spawn" service
 EQLIB_API VOID PluginsAddSpawn(PSPAWNINFO pNewSpawn)
 {
+	DWORD BodyType=GetBodyType(pNewSpawn);
 	PluginDebug("PluginsAddSpawn(%s,%d,%d)",pNewSpawn->Name,pNewSpawn->Race,pNewSpawn->BodyType);
 	SpawnByName[pNewSpawn->Name]=pNewSpawn;
 	if (gGameState>GAMESTATE_CHARSELECT)
 		SetNameSpriteState(pNewSpawn,1);
-	if (GetBodyTypeDesc(pNewSpawn->BodyType)[0]=='*')
+	if (GetBodyTypeDesc(BodyType)[0]=='*') 
 	{
 		WriteChatf("Spawn '%s' has unknown bodytype %d",pNewSpawn->Name,pNewSpawn->BodyType);
 	}

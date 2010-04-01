@@ -2422,8 +2422,6 @@ bool MQ2CharacterType::GETMEMBER()
 					if (!stricmp(GETFIRST(),szSkills[nSkill]))
 					{
 						// found name
-						if (GetCharInfo2()->Skill[nSkill]>252)
-							return false;
 						for (DWORD nAbility=0;nAbility<10;nAbility++)
 						if (EQADDR_DOABILITYLIST[nAbility] == nSkill) 
 						{
@@ -2476,8 +2474,6 @@ bool MQ2CharacterType::GETMEMBER()
 					if (!stricmp(GETFIRST(),szSkills[nSkill]))
 					{
 						// found name
-						if (GetCharInfo2()->Skill[nSkill]>252)
-							return false;
 						for (DWORD nAbility=0;nAbility<10;nAbility++)
 						if (EQADDR_DOABILITYLIST[nAbility] == nSkill) 
 						{
@@ -2971,7 +2967,15 @@ bool MQ2CharacterType::GETMEMBER()
 		switch(((PCPLAYERWND)pPlayerWnd)->CombatState)
 		{
 		case 0:
-			Dest.Ptr="COMBAT";
+			if(CXWnd *pWnd=FindMQ2Window("PlayerWindow"))
+			{
+				if(pWnd->GetChildItem("PW_CombatStateAnim"))
+				{
+					Dest.Ptr="COMBAT";
+					break;
+				}
+			}
+			Dest.Ptr="NULL";
 			break;
 		case 1:
 			Dest.Ptr="DEBUFFED";

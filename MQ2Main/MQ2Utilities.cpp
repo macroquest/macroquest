@@ -1722,7 +1722,7 @@ PCHAR ShowSpellSlotInfo(PSPELL pSpell, PCHAR szBuffer)
          strcat(szBuff, szTemp); 
          break; 
       case 85: //Add Proc 
-         sprintf(szTemp,"Add Proc: \au%s \axid:\ay%d", GetSpellNameByID(pSpell->Base[i]), pSpell->Base[i]); 
+         sprintf(szTemp,"Add Proc: %s id:%d", GetSpellNameByID(pSpell->Base[i]), pSpell->Base[i]); 
          strcat(szBuff, szTemp); 
          break; 
       case 86: //Reaction Radius(c/level) 
@@ -2549,9 +2549,9 @@ PCHAR ShowSpellSlotInfo(PSPELL pSpell, PCHAR szBuffer)
          strcat(szBuff,szTemp); 
          break; 
       case 334: //Song DoT 
-         sprintf(szTemp, "Decrease Hitpoints by %d (L%d) to %d(L70)", (pSpell->Max[i] + pSpell->Base[i]), pSpell->Level[8], pSpell->Max[i]); 
+         sprintf(szTemp, "Decrease Hitpoints by %d (L%d) to %d(L%d)", (pSpell->Max[i] + pSpell->Base[i]), pSpell->Level[8], pSpell->Max[i],MAX_PC_LEVEL); 
          strcat(szBuff, szTemp); 
-         break; 
+         break;
       default: //undefined effect 
          sprintf(szTemp, "UnknownEffect%03d", pSpell->Attrib[i]); 
          strcat(szBuff,szTemp); 
@@ -2584,7 +2584,7 @@ VOID SlotValueCalculate(PCHAR szBuff, PSPELL pSpell, int i, double mp)
    int minlevel=1; 
    for (int j=0; j<=16; j++) 
    { 
-      if (pSpell->Level[j]>0 && pSpell->Level[j]<=70) { 
+      if (pSpell->Level[j]>0 && pSpell->Level[j]<=MAX_PC_LEVEL) { 
          if ( minlevel==1 )  minlevel=pSpell->Level[j]; 
          if ( pSpell->Level[j]<minlevel )  minlevel=pSpell->Level[j]; 
       } 
@@ -2604,11 +2604,11 @@ VOID SlotValueCalculate(PCHAR szBuff, PSPELL pSpell, int i, double mp)
    case 5: //   Level*5 + Base 
       sprintf(szTemp, "%d (L%d) to ", abs(szBase), minlevel); 
       strcat(szBuff, szTemp); 
-      for (level = minlevel; level <= 70; level++) 
+      for (level = minlevel; level <= MAX_PC_LEVEL; level++) 
       { 
-         if ( pSpell->Max[i]==0 ) level=70;    //problem note: celestial elixir, duration, shouldnt show range calc?! 
+         if ( pSpell->Max[i]==0 ) level=MAX_PC_LEVEL;    //problem note: celestial elixir, duration, shouldnt show range calc?! 
          szValue = (level * 5) + abs(szBase); 
-         if ( abs(szValue) >= abs(pSpell->Max[i]) || level==70 ) 
+         if ( abs(szValue) >= abs(pSpell->Max[i]) || level==MAX_PC_LEVEL ) 
          { 
             sprintf(szTemp, "%d (L%d)", abs(szValue) >= abs(pSpell->Max[i]) ? abs(pSpell->Max[i]) : abs(szValue), level); 
             strcat(szBuff, szTemp); 
@@ -2619,11 +2619,11 @@ VOID SlotValueCalculate(PCHAR szBuff, PSPELL pSpell, int i, double mp)
    case 6: //   Level*6 + Base 
       sprintf(szTemp, "%d (L%d) to ", abs(szBase), minlevel); 
       strcat(szBuff, szTemp); 
-      for (level = minlevel; level <= 70; level++) 
+      for (level = minlevel; level <= MAX_PC_LEVEL; level++) 
       { 
-         if ( pSpell->Max[i]==0 ) level=70;  
+         if ( pSpell->Max[i]==0 ) level=MAX_PC_LEVEL;  
          szValue = (level * 6) + abs(szBase); 
-         if ( abs(szValue) >= abs(pSpell->Max[i]) || level==70 ) 
+         if ( abs(szValue) >= abs(pSpell->Max[i]) || level==MAX_PC_LEVEL ) 
          { 
             sprintf(szTemp, "%d (L%d)", abs(szValue) >= abs(pSpell->Max[i]) ? abs(pSpell->Max[i]) : abs(szValue), level); 
             strcat(szBuff, szTemp); 
@@ -2635,7 +2635,7 @@ VOID SlotValueCalculate(PCHAR szBuff, PSPELL pSpell, int i, double mp)
       sprintf(szTemp, "%d (L%d) to ", abs(szBase), minlevel); 
       strcat(szBuff, szTemp); 
       //assume max level for PC to NPC comparison (usually no max for this formula) 
-      level = 70; 
+      level = MAX_PC_LEVEL; 
       szValue = (level * 10) + abs(szBase); 
       sprintf(szTemp, "%d (L%d)", abs(szValue), level); 
       strcat(szBuff, szTemp); 
@@ -2643,11 +2643,11 @@ VOID SlotValueCalculate(PCHAR szBuff, PSPELL pSpell, int i, double mp)
    case 101: // Level/2 + Base 
       sprintf(szTemp, "%d (L%d) to ", abs(szBase), minlevel); 
       strcat(szBuff, szTemp); 
-      for (level = minlevel; level <= 70; level++) 
+      for (level = minlevel; level <= MAX_PC_LEVEL; level++) 
       { 
-         if ( pSpell->Max[i]==0 ) level=70;  
+         if ( pSpell->Max[i]==0 ) level=MAX_PC_LEVEL;  
          szValue = (long)(level / 2) + abs(szBase); 
-         if ( abs(szValue) >= abs(pSpell->Max[i]) || level==70 ) 
+         if ( abs(szValue) >= abs(pSpell->Max[i]) || level==MAX_PC_LEVEL ) 
          { 
             sprintf(szTemp, "%d (L%d)", abs(szValue) >= abs(pSpell->Max[i]) ? abs(pSpell->Max[i]) : abs(szValue), level); 
             strcat(szBuff, szTemp); 
@@ -2658,11 +2658,11 @@ VOID SlotValueCalculate(PCHAR szBuff, PSPELL pSpell, int i, double mp)
    case 102: // Level + Base 
       sprintf(szTemp, "%d (L%d) to ", abs(szBase+(minlevel)), minlevel); 
       strcat(szBuff, szTemp); 
-      for (level = minlevel; level <= 70; level++) 
+      for (level = minlevel; level <= MAX_PC_LEVEL; level++) 
       { 
-         if ( pSpell->Max[i] ==0 ) level=70;  
+         if ( pSpell->Max[i] ==0 ) level=MAX_PC_LEVEL;  
          szValue = level + abs(szBase); 
-         if ( abs(szValue) >= abs(pSpell->Max[i]) || level==70 ) { 
+         if ( abs(szValue) >= abs(pSpell->Max[i]) || level==MAX_PC_LEVEL ) { 
             sprintf(szTemp, "%d (L%d)", abs(szValue) >= abs(pSpell->Max[i]) ? abs(pSpell->Max[i]) : abs(szValue), level); 
             strcat(szBuff, szTemp); 
             break; 
@@ -2672,11 +2672,11 @@ VOID SlotValueCalculate(PCHAR szBuff, PSPELL pSpell, int i, double mp)
    case 103: // Level*2 + Base 
       sprintf(szTemp, "%d (L%d) to ", abs(szBase+(minlevel*2)), minlevel); 
       strcat(szBuff, szTemp); 
-      for (level = minlevel; level <= 70; level++) 
+      for (level = minlevel; level <= MAX_PC_LEVEL; level++) 
       { 
-         if ( pSpell->Max[i] ==0 ) level=70;  
+         if ( pSpell->Max[i] ==0 ) level=MAX_PC_LEVEL;  
          szValue = (level*2) + abs(szBase); 
-         if ( abs(szValue) >= abs(pSpell->Max[i]) || level==70 ) { 
+         if ( abs(szValue) >= abs(pSpell->Max[i]) || level==MAX_PC_LEVEL ) { 
             sprintf(szTemp, "%d (L%d)", abs(szValue) >= abs(pSpell->Max[i]) ? abs(pSpell->Max[i]) : abs(szValue), level); 
             strcat(szBuff, szTemp); 
             break; 
@@ -2686,11 +2686,11 @@ VOID SlotValueCalculate(PCHAR szBuff, PSPELL pSpell, int i, double mp)
    case 104: // Level*3 + Base 
       sprintf(szTemp, "%d (L%d) to ", abs(szBase+(minlevel*3)), minlevel); 
       strcat(szBuff, szTemp); 
-      for (level = minlevel; level <= 70; level++) 
+      for (level = minlevel; level <= MAX_PC_LEVEL; level++) 
       { 
-         if ( pSpell->Max[i]==0 ) level=70; 
+         if ( pSpell->Max[i]==0 ) level=MAX_PC_LEVEL; 
          szValue = (level*3) + abs(szBase); 
-         if ( abs(szValue) >= abs(pSpell->Max[i]) || level==70 ) { 
+         if ( abs(szValue) >= abs(pSpell->Max[i]) || level==MAX_PC_LEVEL ) { 
             sprintf(szTemp, "%d (L%d)", abs(szValue) >= abs(pSpell->Max[i]) ? abs(pSpell->Max[i]) : abs(szValue), level); 
             strcat(szBuff, szTemp); 
             break; 
@@ -2700,7 +2700,7 @@ VOID SlotValueCalculate(PCHAR szBuff, PSPELL pSpell, int i, double mp)
    case 105: // Level*4 + Base 
       sprintf(szTemp, "%d (L1) to ", abs(szBase)); 
       strcat(szBuff, szTemp); 
-      level = 70; 
+      level=MAX_PC_LEVEL; 
       szValue = (level * 4) + abs(szBase); 
       sprintf(szTemp, "%d (L%d)", abs(szValue), level); 
       strcat(szBuff, szTemp); 
@@ -2708,7 +2708,7 @@ VOID SlotValueCalculate(PCHAR szBuff, PSPELL pSpell, int i, double mp)
    case 109: // Skill/16 + Base ?? 
       sprintf(szTemp, "%d (L1) to ", abs(szBase)); 
       strcat(szBuff, szTemp); 
-      level=70; 
+      level=MAX_PC_LEVEL; 
       szValue = ((long)(235/16)) + abs(szBase); 
       sprintf(szTemp, "%d (L%d)", szValue, level); 
       strcat(szBuff, szTemp); 
@@ -2716,7 +2716,7 @@ VOID SlotValueCalculate(PCHAR szBuff, PSPELL pSpell, int i, double mp)
    case 110: // Skill/8 + Base 
       sprintf(szTemp, "%d (L1) to ", abs(szBase)); 
       strcat(szBuff, szTemp); 
-      level=70; 
+      level=MAX_PC_LEVEL; 
       szValue = ((long)(235/8)) + abs(szBase); 
       sprintf(szTemp, "%d (L%d)", szValue, level); 
       strcat(szBuff, szTemp); 

@@ -227,7 +227,7 @@ VOID InitializeMQ2Plugins()
 	bmCalculate=AddMQ2Benchmark("Calculate");
     bmBeginZone=AddMQ2Benchmark("BeginZone"); 
 	bmEndZone=AddMQ2Benchmark("EndZone"); 
-DebugSpew("InitializeMQ2Plugins 1");
+
 	InitializeCriticalSection(&gPluginCS);
 	bPluginCS=1;
 
@@ -244,7 +244,6 @@ DebugSpew("InitializeMQ2Plugins 1");
         }
         pPluginList+=strlen(pPluginList)+1;
     }
-	 DebugSpew("InitializeMQ2Plugins 2");
 }
 
 VOID UnloadMQ2Plugins()

@@ -548,19 +548,21 @@ int CMD_CastSpell(int argc, char* argv[])
       DWORD item = 0; 
       DWORD slot = 0; 
       DWORD SpawnFooter = NULL; 
-      SpawnFooter = (DWORD)pLocalPlayer; 
+      SpawnFooter = (DWORD)pLocalPlayer;
+		PITEMINFO pItem=0;
       for (int i=0;i<30;i++) { 
          if (GetCharInfo2()->InventoryArray[i]) 
             if (!_stricmp(argv[2],GetCharInfo2()->InventoryArray[i]->Item->Name)) { 
                DebugSpew("cast test slot %d = %s address is %x",i,GetCharInfo2()->InventoryArray[i]->Item->Name,&(GetCharInfo2()->InventoryArray[i])); 
-               item = (DWORD)&GetCharInfo2()->InventoryArray[i]; 
+               item = (DWORD)&GetCharInfo2()->InventoryArray[i];
+					pItem=GetCharInfo2()->InventoryArray[i]->Item; 
                slot = (DWORD)i; 
                FOUND = TRUE; 
                break; 
             } 
       } 
       if (FOUND) { 
-         pCharData1->CastSpell(10,0,(EQ_Item**)item,0,slot,-1,-1,0,0); 
+         pCharData1->CastSpell(10,pItem->Clicky.SpellID,(EQ_Item**)item,0,slot,-1,-1,0,0,1); 
          return 0; 
       } 
    } 

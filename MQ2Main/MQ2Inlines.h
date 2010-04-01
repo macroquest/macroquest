@@ -152,11 +152,11 @@ static inline eSpawnType GetSpawnType(PSPAWNINFO pSpawn)
             return NPC;
 
         case 5:
-            if (strstr(pSpawn->Name,"Soul_Idol") || strstr(pSpawn->Name,"Spirit_Idol") || strstr(pSpawn->Name,"Fire_Rune") || strstr(pSpawn->Name,"Fiery_Rune") || strstr(pSpawn->Name,"Poison_Spikes") || strstr(pSpawn->Name,"Poison_Spurs"))
+			if (strstr(pSpawn->Name,"Idol") || strstr(pSpawn->Name,"Poison") || strstr(pSpawn->Name,"Rune"))
                 return AURA;
             return NPC; 
         case 11:
-            if (strstr(pSpawn->Name,"Aura") || strstr(pSpawn->Name,"Circle_of") || strstr(pSpawn->Name,"Guardian_Circle"))
+			if (strstr(pSpawn->Name,"Aura") || strstr(pSpawn->Name,"Circle of") || strstr(pSpawn->Name,"Guardian Circle") || strstr(pSpawn->Name,"Earthen Strength"))
                 return AURA;
             return UNTARGETABLE;
         case 21:
