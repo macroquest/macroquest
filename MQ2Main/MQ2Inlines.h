@@ -102,9 +102,6 @@ static inline BOOL IsMarkedNPC(PSPAWNINFO pSpawn)
 
 static inline eSpawnType GetSpawnType(PSPAWNINFO pSpawn)
 {
-	if ((pSpawn->MasterID) && (pSpawn->Type == SPAWN_NPC) )
-		return PET;
-
 	switch(pSpawn->Type)
 	{
 	case SPAWN_PLAYER:
@@ -116,6 +113,9 @@ static inline eSpawnType GetSpawnType(PSPAWNINFO pSpawn)
 		{
 			return MOUNT;
 		}
+		if (pSpawn->MasterID)
+			return PET;
+
 		switch(pSpawn->BodyType)
 		{
 		case 3:
@@ -137,10 +137,7 @@ static inline eSpawnType GetSpawnType(PSPAWNINFO pSpawn)
 		case 67:
 			return TRIGGER;
 		default:
-			if (pSpawn->MasterID)
-				return PET;
-			else
-				return NPC;
+			return NPC;
 		}
 		return NPC;
 	case SPAWN_CORPSE:
@@ -239,7 +236,7 @@ static inline BOOL IsGroupMember(PSPAWNINFO pSpawn)
 {
 	for (DWORD N = 0 ; N < 6 ; N++)
 	{
-		if (pSpawn==(PSPAWNINFO)ppGroup[N])
+		if (pSpawn==(PSPAWNINFO)pGroup->pMember[N])
 			return 1;
 	}
 	return 0;

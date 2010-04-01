@@ -189,9 +189,9 @@ fEQProcGameEvts   ProcessGameEvents = (fEQProcGameEvts)__ProcessGameEvents;
 fEQSendMessage    send_message = (fEQSendMessage)__SendMessage;
 fEQExecuteCmd	  ExecuteCmd = (fEQExecuteCmd)__ExecuteCmd;
 fEQGetMelee    get_melee_range = (fEQGetMelee)__get_melee_range;
+fGetLabelFromEQ GetLabelFromEQ = (fGetLabelFromEQ)__GetLabelFromEQ;
 
 // EQ Address Initialization
-PCHAR GroupLeader=(PCHAR)__GroupLeader;
 PSKILL *SkillDict=(PSKILL*)__SkillDict;
 
 DWORD EQADDR_HWND=__HWnd;
@@ -211,7 +211,6 @@ PBYTE EQADDR_ATTACK=(PBYTE)__Attack;
 PBYTE EQADDR_NOTINCHATMODE=(PBYTE)__InChatMode;
 
 PCHAR EQADDR_LASTTELL=(PCHAR)__LastTell;
-PBYTE EQADDR_GROUPCOUNT=(PBYTE)__GroupCount;
 PCHAR gpbRangedAttackReady=(PCHAR)__RangeAttackReady;
 PCHAR gpbShowNetStatus=(PCHAR)__NetStatusToggle;
 PCHAR gpbAltTimerReady=(PCHAR)__AltTimerReady;
@@ -721,7 +720,7 @@ EQPlayer **ppControlledPlayer=(EQPlayer**)pinstControlledPlayer;
 EQWorldData **ppWorldData=(EQWorldData**)pinstWorldData;
 SpellManager **ppSpellMgr=(SpellManager**)pinstSpellManager;
 CInvSlot **ppSelectedItem=(CInvSlot **)pinstSelectedItem;
-EQPlayer **ppGroup=(EQPlayer**)pinstGroup;
+EQGROUP *pGroup=(EQGROUP*)instGroup;
 EQPlayer **ppTarget=(EQPlayer**)pinstTarget;
 EqSwitchManager **ppSwitchMgr=(EqSwitchManager**)pinstSwitchManager;
 EQItemList **ppItemList=(EQItemList**)pinstEQItemList;

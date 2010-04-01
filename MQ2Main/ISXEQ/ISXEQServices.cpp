@@ -56,6 +56,7 @@ EQLIB_API VOID WriteChatColor(PCHAR Line, DWORD Color, DWORD Filter)
 	
 	DebugSpew("WriteChatColor(%s)",Line);
 
+	printf("%s",PlainText);
 	// TEMPORARY
 	/* // use ISXEQChat or ISXEQChatWnd
 	printf("%s",PlainText);

@@ -53,8 +53,6 @@ published by
 #define __DrawHandler                                      0x918734
 #define __EQP_IDArray                                      0x7CDF58
 #define __FriendsList                                      0x8B66B4
-#define __GroupCount                                       0x8E0A30
-#define __GroupLeader                                      0x8E0B8C
 #define __Guilds                                           0x8E8478
 #define __gWorld                                           0x8E2488
 #define __HotkeyPage                                       0x8E0254
@@ -96,7 +94,7 @@ published by
 #define pinstCSidlManager                                  0x917734
 #define pinstCXWndManager                                  0x91772C
 #define pinstEQItemList                                    0x8E24B0
-#define pinstGroup                                         0x8E0B78
+#define instGroup                                          0x8E0A30
 #define pinstLocalPlayer                                   0x8E24D0
 #define pinstPCData                                        0x8E24EC
 #define pinstSelectedItem                                  0x90025C
@@ -212,6 +210,7 @@ published by
 #define __ConvertItemTags                                  0x46DB46
 #define __ExecuteCmd                                       0x460150
 #define __get_melee_range                                  0x4645B9
+#define __GetLabelFromEQ								   0x53276E
 #define __GetGaugeValueFromEQ                              0x531CA6
 #define __LoadSplashScreen                                 0x5CB8D0
 #define __NewUIINI                                         0x53257E

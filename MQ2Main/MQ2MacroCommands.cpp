@@ -882,6 +882,10 @@ VOID DoEvents(PSPAWNINFO pChar, PCHAR szLine)
 	DebugSpewNoFile("DoEvents: Running event type %d (%s) = 0x%p",pEvent->Type,(pEvent->pEventList)?pEvent->pEventList->szName:"NONE",pEvent);
 
     PMACROSTACK pStack = (PMACROSTACK)malloc(sizeof(MACROSTACK));
+
+    // back the current location to previous one so we fall into
+    // /doevents again.  This screams for optimization!
+
     gMacroStack->Location = gMacroStack->Location->pPrev;
     pStack->Location = gMacroBlock;
     pStack->Return[0] = 0;

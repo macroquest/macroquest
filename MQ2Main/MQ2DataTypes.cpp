@@ -1422,7 +1422,7 @@ bool MQ2SpawnType::GETMEMBER()
 		Dest.Ptr=&pSpawn->Title[0];
 		return true;
 	case xGroupLeader:
-		Dest.DWord=(pSpawn->Type==SPAWN_PLAYER && !stricmp(GroupLeader,pSpawn->Name));
+		Dest.DWord=(pSpawn->Type==SPAWN_PLAYER && !stricmp(pGroup->LeaderName,pSpawn->Name));
 		Dest.Type=pBoolType;
 		return true;
 	case Assist:
@@ -2000,8 +2000,11 @@ bool MQ2CharacterType::GETMEMBER()
 		Dest.Type=pIntType;
 		return true;
 	case Grouped:
-		Dest.DWord=0;
-		if (pGroup) Dest.DWord=1;
+		Dest.DWord= pGroup->MemberExists[0] ||
+					pGroup->MemberExists[1] ||
+					pGroup->MemberExists[2] ||
+					pGroup->MemberExists[3] ||
+					pGroup->MemberExists[4];
 		Dest.Type=pBoolType;
 		return true;	
 	case GroupList: // This isn't really working as intended just yet
@@ -4676,9 +4679,11 @@ bool MQ2AltAbilityType::GETMEMBER()
 bool MQ2GroupType::ToString(MQ2VARPTR VarPtr, PCHAR Destination)
 {
 	int nMembers=0;
-	for (int index=0;index<5;index++) 
-		if (EQADDR_GROUPCOUNT[index]) 
+	for (int index=0;index<5;index++)
+	{
+		if (pGroup->MemberExists[index]) 
 			nMembers++;
+	}
 	itoa(nMembers,Destination,10);
 	return true;
 }
@@ -4705,10 +4710,10 @@ bool MQ2GroupType::GETMEMBER()
 			PCHARINFO pChar=GetCharInfo();
 			Dest.DWord=0;
 			for (int index=0;index<5;index++) 
-				if (EQADDR_GROUPCOUNT[index]) 
+				if (pGroup->MemberExists[index]) 
 				{
 					Dest.DWord++;
-					if (!stricmp(pChar->GroupMember[index],GETFIRST()))
+					if (!stricmp(pGroup->MemberName[index],GETFIRST()))
 					{
 						Dest.Type=pIntType;
 						return true;
@@ -4721,7 +4726,7 @@ bool MQ2GroupType::GETMEMBER()
 		{
 			Dest.DWord=0;
 			for (int index=0;index<5;index++) 
-				if (EQADDR_GROUPCOUNT[index]) 
+				if (pGroup->MemberExists[index]) 
 					Dest.DWord++;
 			Dest.Type=pIntType;
 		}
@@ -4730,17 +4735,17 @@ bool MQ2GroupType::GETMEMBER()
 		{
 			PCHARINFO pChar=GetCharInfo();
 			Dest.DWord=0;
-			if (!stricmp(pChar->pSpawn->Name,GroupLeader))
+			if (!stricmp(pChar->pSpawn->Name,pGroup->LeaderName))
 			{
 				Dest.Type=pGroupMemberType;
 				return true;
 			}
 			for (int index=0;index<5;index++) 
 			{
-				if (EQADDR_GROUPCOUNT[index]) 
+				if (pGroup->MemberExists[index]) 
 				{
 					Dest.DWord++;
-					if (!stricmp(pChar->GroupMember[index],GroupLeader))
+					if (!stricmp(pGroup->MemberName[index],pGroup->LeaderName))
 					{
 						Dest.Type=pGroupMemberType;
 						return true;
@@ -4767,12 +4772,12 @@ bool MQ2GroupMemberType::ToString(MQ2VARPTR VarPtr, PCHAR Destination)
 			return false;
 		for (unsigned long i=0; i<5 ; i++)
 		{
-			if (EQADDR_GROUPCOUNT[i])
+			if (pGroup->MemberExists[i])
 			{
 				N--;
 				if (N==0)
 				{
-					strcpy(Destination,GetCharInfo()->GroupMember[i]);
+					strcpy(Destination,pGroup->MemberName[i]);
 					return true;
 				}
 			}
@@ -4797,13 +4802,13 @@ bool MQ2GroupMemberType::GETMEMBER()
 			return false;
 		for (unsigned long i=0; i<5 ; i++)
 		{
-			if (EQADDR_GROUPCOUNT[i])
+			if (pGroup->MemberExists[i])
 			{
 				N--;
 				if (N==0)
 				{
-					pGroupMember=(PSPAWNINFO)ppGroup[i];
-					MemberName=GetCharInfo()->GroupMember[i];
+					pGroupMember=pGroup->pMember[i];
+					MemberName=pGroup->MemberName[i];
 					break;
 				}
 			}
@@ -4833,7 +4838,7 @@ bool MQ2GroupMemberType::GETMEMBER()
 		Dest.Type=pStringType;
 		return true;
 	case Leader:
-		Dest.DWord=((VarPtr.DWord==0 && !GroupLeader[0]) || !stricmp(MemberName,GroupLeader));
+		Dest.DWord=((VarPtr.DWord==0 && !pGroup->LeaderName[0]) || !stricmp(MemberName,pGroup->LeaderName));
 		Dest.Type=pBoolType;
 		return true;
 	case Spawn:

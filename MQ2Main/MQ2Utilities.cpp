@@ -4072,29 +4072,41 @@ DWORD GetAAIndexByID(DWORD ID)
 
 BOOL IsPCNear(PSPAWNINFO pSpawn, FLOAT Radius)
 {
-    PSPAWNINFO pClose = NULL;
-    if (ppSpawnList && pSpawnList) {
-        pClose = (PSPAWNINFO)pSpawnList;
-        }
-    while (pClose) {
-        BOOL InGroup = FALSE;
-        DWORD i;
-        if (pClose==GetCharInfo()->pSpawn) InGroup=TRUE;
-		if (ppGroup) for (i=0;i<5;i++) if (ppGroup[i]==(EQPlayer*)pClose) InGroup=TRUE;
-        if (!InGroup && (pClose->Type == SPAWN_PLAYER)) {
-            if ((pClose != pSpawn) && (DistanceToSpawn(pClose, pSpawn)<Radius)) return TRUE;
-            }
-        pClose = pClose->pNext;
-    }
-    return false;
-            }
+	PSPAWNINFO pClose = NULL;
+	if (ppSpawnList && pSpawnList) 
+	{
+		pClose = (PSPAWNINFO)pSpawnList;
+	}
+	while (pClose) 
+	{
+		BOOL InGroup = FALSE;
+		DWORD i;
+		if (pClose==GetCharInfo()->pSpawn) InGroup=TRUE;
+		for (i=0;i<5;i++) 
+		{
+			if (pGroup->pMember[i]==pClose) 
+				InGroup=TRUE;
+		}
+		if (!InGroup && (pClose->Type == SPAWN_PLAYER)) 
+		{
+			if ((pClose != pSpawn) && (DistanceToSpawn(pClose, pSpawn)<Radius)) 
+				return TRUE;
+		}
+		pClose = pClose->pNext;
+	}
+	return false;
+}
 
 BOOL IsInGroup(PSPAWNINFO pSpawn)
 {
     DWORD i;
-	if (pSpawn==GetCharInfo()->pSpawn) return TRUE;
-    if (!ppGroup) return FALSE;
-	for (i=0;i<5;i++) if (ppGroup[i]==(EQPlayer*)pSpawn) return TRUE;
+	if (pSpawn==GetCharInfo()->pSpawn) 
+		return TRUE;
+	for (i=0;i<5;i++) 
+	{
+		if (pGroup->pMember[i]==pSpawn)
+			return TRUE;
+	}
 	return FALSE;
 }
 

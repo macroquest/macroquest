@@ -35,6 +35,7 @@ typedef BOOL    (__cdecl *fEQExecuteCmd)(DWORD,BOOL,PVOID);
 typedef VOID    (__cdecl *fMQExecuteCmd)(PCHAR Name,BOOL Down);
 typedef VOID    (__cdecl fEQSaveToUIIniFile)(PCHAR Section,PCHAR Key,PCHAR Value);
 typedef DWORD (__cdecl *fMQParm)(PCHAR, PCHAR, PSPAWNINFO);
+typedef bool (__cdecl *fGetLabelFromEQ)(int,class CXStr *,bool *,unsigned long *);
 
 /* PLUGINS */
 typedef DWORD   (__cdecl *fMQWriteChatColor)(PCHAR Line, DWORD Color, DWORD Filter);

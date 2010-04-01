@@ -1500,6 +1500,16 @@ typedef struct _EQRAID {
 /*0x5ab8*/ 
 } EQRAID, *PEQRAID;
 
+// size 0x19C 3-23-2005
+typedef struct _EQGROUP {
+/*0x000*/ DWORD MemberExists[5];
+/*0x005*/ CHAR MemberName[5][0x40];
+/*0x145*/ BYTE Unused[3];
+/*0x148*/ struct _SPAWNINFO* pMember[5];
+/*0x15C*/ CHAR LeaderName[0x40];
+/*0x19C*/
+} EQGROUP, *PEQGROUP;
+
 // size 0x08
 typedef struct _EQSTRING {
 /*0x00*/	DWORD ID;
