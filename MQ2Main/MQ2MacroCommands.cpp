@@ -69,6 +69,7 @@ DWORD Include(PCHAR szFile)
     DWORD LineNumber=0;
     BOOL InBlockComment = FALSE;
     PMACROBLOCK pAddedLine = NULL;
+    char *tmp;
     if (!fMacro) {
         FatalError("Couldn't open include file: %s",szFile);
         return 0;
@@ -76,10 +77,11 @@ DWORD Include(PCHAR szFile)
     DebugSpewNoFile("Include - Including: %s",szFile);
     while (!feof(fMacro)) {
 
-        fgets(szTemp,MAX_STRING,fMacro);
-		CleanMacroLine(szTemp);
+        tmp = fgets(szTemp,MAX_STRING,fMacro);
 
-        if (feof(fMacro)) break;
+        if (!tmp && feof(fMacro)) break;
+
+        CleanMacroLine(szTemp);
 
         LineNumber++;
 

@@ -1,3 +1,6 @@
+9 March 2005 by dkaa
+- refix the include file issue
+
 8 March 2005 by Lax
 - Fixed /itemslots
 - Fixed problem with group.Leader when you are the leader and the group has members
