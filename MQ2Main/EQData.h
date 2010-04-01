@@ -419,8 +419,8 @@ typedef struct _ITEMINFO {
 /*0x0dc*/ DWORD  IconNumber;
 /*0x0e0*/ BYTE   Unknown0xe0[0x9];
 /*0x0e9*/ BYTE   Weight;
-/*0x0ea*/ BYTE   NoDrop; // 0=can drop (and place in bank), 1=no drop, (2=no bank)
-/*0x0eb*/ BYTE   NoRent;
+/*0x0ea*/ BYTE   NoRent; // 0=temp, 1=default
+/*0x0eb*/ BYTE   NoDrop; // 0=no drop, 1=can drop
 /*0x0ec*/ BYTE   Attuneable;
 /*0x0ed*/ BYTE   Size;
 /*0x0ee*/ BYTE   Type;

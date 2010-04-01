@@ -3283,7 +3283,7 @@ bool MQ2ItemType::GETMEMBER()
 		Dest.Type=pBoolType;
 		return true;
 	case NoRent:
-		Dest.DWord=pItem->Item->NoRent;
+		Dest.DWord=!pItem->Item->NoRent;
 		Dest.Type=pBoolType;
 		return true;
 	case Magic:
