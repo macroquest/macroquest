@@ -1,6 +1,7 @@
-15 May 2005 by Amadeus
+21 May 2005 by Amadeus
 - The MQ command known as '/charinfo' is now known as '/char'.  This allows
   for players to use both the EQ and MQ commands seperately.
+- Fixed various structs
   
 13 May 2005 by DKAA
 - Added optional param to Windows.List[...] to indicate column

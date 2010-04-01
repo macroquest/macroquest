@@ -18,9 +18,9 @@
 #include "mqext.h" 
 
 #define KP(X)       dprintf(#X " = %d (offset 0x%x)\n", ci.X, &pnull->X)       
-#define KPp(X)      dprintf(#X " = %d (offset 0x%x)\n", *(int*)ci.X, &pnull->X)       
 #define KPs(X)      dprintf(#X " = %s (offset 0x%x)\n", ci.X, &pnull->X) 
 #define KPf(X)      dprintf(#X " = %f (offset 0x%x)\n", ci.X, &pnull->X) 
+#define KPp(X)      dprintf(#X " = %d (offset 0x%x)\n", *(int*)ci.X, &pnull->X)
 #define offset(X)   printf("/* 0x%03x */ " #X ";\n", &ptr->X)
 
 #if defined(EXT_API_VERSION_NUMBER64) 
@@ -133,7 +133,7 @@ DECLARE_API ( pchar )
 	KP(DamageShieldBonus);
 	KP(AttackSpeed);
     KP(ShortBuff);
-    //KP(ZoneBoundId); 
+    KP(Unknown0x12e0); 
     KPf(ZoneBoundY); 
     KPf(ZoneBoundX); 
     KPf(ZoneBoundZ); 
@@ -164,11 +164,11 @@ DECLARE_API ( pchar )
 	KP(RaidLeadershipExp);
 	KP(GroupLeadershipPoints);
 	KP(RaidLeadershipPoints);
-	KPp(GroupAbilities);
-	KPp(RaidAbilities);
+	KP(GroupAbilities);
+	KP(RaidAbilities);
 	KP(LeadershipExpON);
 	KP(AAPointsSpent);
-    KPp(Bank);
+    KP(Bank);
     for (i=0; i < 5; i++) 
       dprintf("GroupMember%d = %s (offset 0x%x)\n", i+1, ci.GroupMember[i], &pnull->GroupMember[i]); 
 	KPs(GroupLeader);
@@ -671,20 +671,25 @@ DECLARE_API ( pactorinfo )
 
    dprintf("\n\n\n"); 
 
-#if 0
    KPs(ActorDef);
    KP(T3D_POINTLIGHT);
    KPf(Z);
    KP(TimeStamp);
    KP(LastTick);
    KPf(BobbingAmount);
+#if 0
    KP(UnderWaterMirror);
    KP(SwimmingMirror);
    KP(FeetWetMirror);
+#endif
    KP(UnderWater);
+#if 0
    KP(Swimming);
+#endif
    KP(FeetWet);
+#if 0
    KP(LeftWater);
+#endif
    KP(SpellETA);
    KP(FishingETA);
    KP(FaceRelatedActorStruct);
@@ -697,14 +702,13 @@ DECLARE_API ( pactorinfo )
    KP(pGroupMarkNPC);
    KP(pRaidMarkNPC);
    KP(pTargetOfTarget);
-   KPs(NameOfLastSuccessfulTargetHit);
+//   KPs(NameOfLastSuccessfulTargetHit);
    KP(InvitedToGroup);
    KP(CastingSpellID);
    KP(WhoFollowing);
    KPf(CastingY);
    KPf(CastingX);
    KP(Trader);
-#endif
 } 
 
 // This routine exports all spell information in the game (stored 
@@ -990,7 +994,6 @@ DECLARE_API ( ptmp )
     dprintf("\n\n\n"); 
 	
 } 
-
 
 DECLARE_API ( pmerch )
 {

@@ -483,6 +483,8 @@ public:
 		AARank=42,
 		Casting=43,
 		Mount=44,
+		FeetWet=45,
+		Underwater=46,
 		Animation=48,
 		Holding=49,
 		Look=50,
@@ -572,6 +574,8 @@ public:
 		TypeMember(AARank);
 		TypeMember(Casting);
 		TypeMember(Mount);
+		TypeMember(FeetWet);
+		TypeMember(Underwater);
 		TypeMember(Animation);
 		TypeMember(Holding);
 		TypeMember(Look);

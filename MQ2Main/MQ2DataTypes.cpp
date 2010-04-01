@@ -1277,6 +1277,14 @@ bool MQ2SpawnType::GETMEMBER()
 			return true;
 		}
 		return false;
+	case Underwater:
+		Dest.DWord=(pSpawn->pActorInfo->UnderWater==5);
+		Dest.Type=pBoolType;
+		return true;
+	case FeetWet:
+		Dest.DWord=(pSpawn->pActorInfo->FeetWet==5);
+		Dest.Type=pBoolType;
+		return true;
 	case Animation:
 		Dest.DWord=pSpawn->pActorInfo->Animation;
 		Dest.Type=pIntType;

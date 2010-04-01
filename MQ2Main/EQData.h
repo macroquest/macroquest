@@ -726,9 +726,7 @@ union {
 /* 0x100c */   BYTE       Unknown0x100c[0x14];
 /* 0x1020 */   DWORD      Unknown0x1020;
 /* 0x1024 */   SPELLBUFF  ShortBuff[0x23];
-/* 0x     */   BYTE       Unknown0xfd8[0x1f8];
-/* 0x14d8 */   DWORD      ZoneBoundId;
-/* 0x14dc */   BYTE       field_0x14dc[0x10];   
+/* 0x12e0 */   BYTE       Unknown0x12e0[0x14ec-0x12e0];  
 /* 0x14ec */   FLOAT      ZoneBoundY;   
 /* 0x14f0 */   BYTE       field_0x14f0[0x10];   
 /* 0x1500 */   FLOAT      ZoneBoundX;   
@@ -859,16 +857,16 @@ typedef struct _ACTORINFO {
 /*0x008*/ CHAR         ActorDef[0x40]; 
 /*0x048*/ FLOAT        Z;            // Z coordinates for the floor where standing 
 /*0x04c*/ BYTE         Unknown0x04c[0x4]; 
-/*0x050*/ DWORD        TimeStamp;      // Some kind of timestamp in microseconds. Updates as fast as my display can refresh. 
-/*0x054*/ DWORD        Unknown0x054;   // Being set to TimeStamp about once per second 
-/*0x058*/ DWORD        LastTick;      // Being set to TimeStamp on every tick? 
-/*0x05c*/ DWORD        Unknown0x05c;   // Being set to TimeStamp at unknown intervals 
-/*0x060*/ BYTE         Unknown0x060[0x14]; 
-/*0x074*/ DWORD        Unknown0x074;   // Being set to TimeStamp at unknown intervals 
-/*0x078*/ DWORD        Unknown0x078;   // Being set to TimeStamp at unknown intervals 
-/*0x07c*/ BYTE         Unknown0x07c[0x4]; 
+/*0x050*/ DWORD        TimeStamp;      
+/*0x054*/ DWORD        Unknown0x054;  
+/*0x058*/ DWORD        LastTick;    
+/*0x05c*/ BYTE         Unknown0x05c[0x80-0x5c]; 
 /*0x080*/ FLOAT        BobbingAmount; 
-/*0x084*/ BYTE         Unknown0x084[0x54]; 
+/*0x084*/ BYTE         Unknown0x084[0xa0-0x84]; 
+/*0x0a0*/ BYTE		   UnderWater;
+/*0x0a1*/ BYTE		   Unknown0x0a1[0x0ae-0x0a1];
+/*0x0ae*/ BYTE		   FeetWet;
+/*0x0af*/ BYTE		   Unknown0x0af[0x0d8-0x0af];
 /*0x0d8*/ DWORD        SpellETA;      //Calculated TimeStamp when current spell being cast will land. 0 while not casting. 
 /*0x0dc*/ BYTE         Unknown0x0dc[0x44]; 
 /*0x120*/ DWORD        FishingETA;      // EQMisc__SteveGetTime 
