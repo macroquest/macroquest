@@ -270,7 +270,7 @@
 #define __GetLabelFromEQ                                           0x5BEDA0
 #define __NewUIINI                                                 0x5BE280
 #define __ProcessGameEvents                                        0x4CEDB0
-#define __SendMessage                                              0x4B5FD0
+#define __SendMessage                                              0x4B18F0
 #define CrashDetected                                              0x50F1B0
 #define DrawNetStatus                                              0x4E3140
 #define Util__FastTime                                             0x5EC930

@@ -1,3 +1,6 @@
+22 September 2006 by dkaa
+- fix for gbInZone
+
 19 September 2006 by ieatacid
 - Updated for Serpent's Spine expansion release. Many new changes - the important stuff is listed below
 - Skill members SkillCapPre50, SkillCapPre65 and SkillCapPre70 were removed and replaced with int SkillCap.  This returns the skill cap based on your class and current level

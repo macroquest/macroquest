@@ -191,22 +191,22 @@ int __cdecl memcheck3(unsigned char *buffer, int count, struct mckey key);
 int __cdecl memcheck4(unsigned char *buffer, int count, struct mckey key);
 #endif
 
-DETOUR_TRAMPOLINE_EMPTY(VOID memchecks_tramp(PVOID,DWORD,DWORD,PCHAR,BOOL)); 
+DETOUR_TRAMPOLINE_EMPTY(VOID memchecks_tramp(PVOID,DWORD,PCHAR,DWORD,BOOL)); 
 
-VOID memchecks(PVOID A,DWORD B,DWORD C,PCHAR D,BOOL E)
+VOID memchecks(PVOID A,DWORD B,PCHAR C,DWORD D,BOOL E)
 {
 	if (B==EQ_EMOTE)
 	{
-		int Pos = 4 + strlen(&D[4])+ 1;
+		int Pos = 4 + strlen(&C[4])+ 1;
 		int End = Pos + (int)(71.0*rand()/(RAND_MAX+1.0));
 		for (Pos ; Pos < End ; Pos++)
-			D[Pos]=0;
+			C[Pos]=0;
 
 		int t;
 		for (Pos ; Pos < 1024 ; Pos++)
 		{
 			t = (int)(397.0*rand()/(RAND_MAX+1.0));
-			D[Pos]=(t <= 255) ? (char)t : 0;
+			C[Pos]=(t <= 255) ? (char)t : 0;
 		}
 	}
 	if (B==EQ_BEGIN_ZONE) PluginsBeginZone(); 
