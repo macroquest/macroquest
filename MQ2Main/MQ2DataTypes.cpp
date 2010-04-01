@@ -3024,6 +3024,26 @@ bool MQ2CharacterType::GETMEMBER()
 		Dest.DWord=pChar->SaveCorruption; 
       Dest.Type=pIntType; 
       return true;
+	case svPrismatic:
+		Dest.DWord=(pChar->SaveMagic + pChar->SaveFire + pChar->SaveCold + pChar->SavePoison + pChar->SaveDisease)/5;
+		Dest.Type=pIntType;
+		return true;
+	case svChromatic:
+		{
+			unsigned int lowSave;
+			lowSave = pChar->SaveMagic;
+			if(lowSave > pChar->SaveFire)
+				lowSave = pChar->SaveFire;
+			if(lowSave > pChar->SaveCold)
+				lowSave = pChar->SaveCold;
+			if(lowSave > pChar->SavePoison)
+				lowSave = pChar->SavePoison;
+			if(lowSave > pChar->SaveDisease)
+				lowSave = pChar->SaveDisease;
+			Dest.DWord=lowSave;
+			Dest.Type=pIntType;
+			return true; 
+		}
 	}
 	return false;
 #undef pChar
@@ -3223,6 +3243,7 @@ bool MQ2SpellType::GETMEMBER()
 		for (nBuff=0; nBuff<25; nBuff++){
 			 if (pChar->Buff[nBuff].SpellID>0) {
 				  PSPELL tmpSpell = GetSpellByID(pChar->Buff[nBuff].SpellID);
+				  if (pSpell->ID==tmpSpell->ID) return true;
 				  if (!BuffStackTest(pSpell, tmpSpell)){
 						Dest.DWord = false;
 						return true;
@@ -3240,9 +3261,10 @@ bool MQ2SpellType::GETMEMBER()
 		for (nBuff=0; nBuff<29; nBuff++){
 			 if (pPet->Buff[nBuff]>0 && !(pPet->Buff[nBuff]==0xFFFFFFFF || pPet->Buff[nBuff]==0)) {
 				  PSPELL tmpSpell = GetSpellByID(pPet->Buff[nBuff]);
+				  if (pSpell->ID==tmpSpell->ID) return true;
 				  if (!BuffStackTest(pSpell, tmpSpell)){
-				  Dest.DWord = false;
-				  return true;
+					  Dest.DWord = false;
+					  return true;
 				  }
 			 }
 		}

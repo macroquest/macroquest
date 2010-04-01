@@ -1864,7 +1864,7 @@ PCHAR ShowSpellSlotInfo(PSPELL pSpell, PCHAR szBuffer)
          break; 
       case 104: //zone translocate spells 
          strcat(szBuff, "Translocate to "); 
-         if (pSpell->Extra){ 
+         if (pSpell->Extra[0]){ 
            sprintf(szTemp, "%d, %d, %d in %s facing %s", pSpell->Base[1], pSpell->Base[2], pSpell->Base[3], GetFullZone(GetZoneID(pSpell->Extra)), szHeading[pSpell->Base[4]]); 
          } else { 
            strcat(szTemp, "Bind Point"); 
@@ -4606,9 +4606,9 @@ BOOL SpawnMatchesSearch(PSEARCHSPAWN pSearchSpawn, PSPAWNINFO pChar, PSPAWNINFO 
 		if (IsAlert(pChar,pSpawn,pSearchSpawn->NoAlertList)) 
 			return FALSE;
 	}
-	if ((pSearchSpawn->bNotNearAlert) && (GetClosestAlert(pSpawn, pSearchSpawn->NotNearAlertList,NULL))) 
+	if ((pSearchSpawn->bNotNearAlert) && (GetClosestAlert(pSpawn, pSearchSpawn->NotNearAlertList))) 
 		return FALSE;
-	if ((pSearchSpawn->bNearAlert) && (!GetClosestAlert(pSpawn,pSearchSpawn->NearAlertList,NULL))) 
+	if ((pSearchSpawn->bNearAlert) && (!GetClosestAlert(pSpawn,pSearchSpawn->NearAlertList))) 
 		return FALSE;
 	
 	if (pSearchSpawn->szClass[0] && stricmp(pSearchSpawn->szClass,GetClassDesc(pSpawn->Class)))
@@ -4896,15 +4896,15 @@ VOID FreeAlerts(DWORD List)
     WriteChatColor(szBuffer,USERCOLOR_DEFAULT);
 }
 
-PSPAWNINFO GetClosestAlert(PSPAWNINFO pChar, DWORD List, DWORD* pdwCount)
+BOOL GetClosestAlert(PSPAWNINFO pChar, DWORD List)
 {
     CHAR szName[MAX_STRING] = {0};
-    if (!ppSpawnManager) return NULL;
-    if (!pSpawnList) return NULL;
-    PSPAWNINFO pSpawn, pClosest = NULL;
+    if (!ppSpawnManager) return FALSE;
+    if (!pSpawnList) return FALSE;
+    PSPAWNINFO pSpawn, pClosest = FALSE;
     FLOAT ClosestDistance = 50000.0f;
     PALERT pCurrent = GetAlert(List);
-    if (!pCurrent) return NULL;
+    if (!pCurrent) return FALSE;
 
     for (; pCurrent; pCurrent = pCurrent->pNext) {
         if (pSpawn = SearchThroughSpawns(&(pCurrent->SearchSpawn),pChar)) {
@@ -4914,7 +4914,7 @@ PSPAWNINFO GetClosestAlert(PSPAWNINFO pChar, DWORD List, DWORD* pdwCount)
         }
     }
 
-    return pClosest;
+    return (pClosest!=NULL);
 }
 
 BOOL IsAlert(PSPAWNINFO pChar, PSPAWNINFO pSpawn, DWORD List)
@@ -4928,9 +4928,13 @@ BOOL IsAlert(PSPAWNINFO pChar, PSPAWNINFO pSpawn, DWORD List)
         CopyMemory(&SearchSpawn,&(pCurrent->SearchSpawn),sizeof(SEARCHSPAWN));
         if ((SearchSpawn.SpawnID>0) && (SearchSpawn.SpawnID!=pSpawn->SpawnID)) continue;
         SearchSpawn.SpawnID = pSpawn->SpawnID;
-        if (SearchThroughSpawns(&SearchSpawn,pChar)) {
+        // if this spawn matches, it's true 
+        // this is an implied logical or
+        if (SpawnMatchesSearch(&SearchSpawn, pChar, pSpawn))
                 return TRUE;
-        }
+        //if (SearchThroughSpawns(&SearchSpawn,pChar)) {
+        //      return TRUE;
+        //{
     }
     return FALSE;
 }
@@ -5631,6 +5635,8 @@ bool InHoverState()
 // Author:      Pinkfloydx33
 // ***************************************************************************
 bool BuffStackTest(PSPELL aSpell, PSPELL bSpell){
+	if (aSpell->ID==bSpell->ID) return true;
+
     int i;
 
     for (i=0; i<=11; i++) {
@@ -5640,7 +5646,7 @@ bool BuffStackTest(PSPELL aSpell, PSPELL bSpell){
 //Placeholder, exclude it so slots don't match up. Now Check to see if the slots
 //have equal attribute values. If the do, they don't stack.
 		//WriteChatf("\nSlot %d: bSpell->Attrib=%d, bSpell->Base=%d, bSpell->TargetType=%d, aSpell->Attrib=%d, aSpell->Base=%d, aSpell->TargetType=%d", i, bSpell->Attrib[i], bSpell->Base[i], bSpell->TargetType, aSpell->Attrib[i], aSpell->Base[i], aSpell->TargetType);
-		if (bSpell->Attrib[i]==aSpell->Attrib[i] && !(bSpell->Attrib[i]==254 || aSpell->Attrib[i]==254))
+		if (bSpell->Attrib[i]==aSpell->Attrib[i] && !(bSpell->Attrib[i]==254 || aSpell->Attrib[i]==254) && !(bSpell->Attrib[i]==57 && aSpell->Attrib[i]==57))
             if (!((bSpell->Attrib[i]==10 && (bSpell->Base[i]==-6 || bSpell->Base[i]==0)) ||
                   (aSpell->Attrib[i]==10 && (aSpell->Base[i]==-6 || aSpell->Base[i]==0)) ||
 				  (bSpell->Attrib[i]==79 && bSpell->Base[i]>0 && bSpell->TargetType==6) ||

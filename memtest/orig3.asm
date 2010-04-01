@@ -2,13 +2,15 @@
         .386P
 
 EXTRN _myextern_array:DWORD
+__EncryptPad3 EQU _myextern_array
 
 _TEXT   SEGMENT PARA USE32 PUBLIC 'CODE'
 
 PUBLIC __MemChecker3
 
-__MemChecker3   proc near               ; CODE XREF: sub_510930+17p
-                                        ; sub_510930+30bp ...
+
+__MemChecker3   proc near               ; CODE XREF: sub_510940+17p
+                                        ; sub_510940+30bp ...
 
 arg_0           = dword ptr  4
 arg_4           = dword ptr  8
@@ -21,11 +23,11 @@ arg_8           = dword ptr  0Ch
                 push    esi
                 not     eax
                 and     eax, 0FFh
-                mov     eax, _myextern_array[eax*4]
+                mov     eax, __EncryptPad3[eax*4]
                 xor     eax, 0FFFFFFh
                 xor     ecx, eax
                 and     ecx, 0FFh
-                mov     edx, _myextern_array[ecx*4]
+                mov     edx, __EncryptPad3[ecx*4]
                 mov     ecx, [esp+4+arg_8]
                 sar     eax, 8
                 and     eax, 0FFFFFFh
@@ -37,37 +39,37 @@ arg_8           = dword ptr  0Ch
                 xor     edx, eax
                 sar     eax, 8
                 and     edx, 0FFh
-                mov     esi, _myextern_array[edx*4]
+                mov     esi, __EncryptPad3[edx*4]
                 mov     edx, [esp+4+arg_4]
                 and     eax, 0FFFFFFh
                 xor     eax, esi
                 xor     ecx, eax
                 and     ecx, 0FFh
-                mov     esi, _myextern_array[ecx*4]
+                mov     esi, __EncryptPad3[ecx*4]
                 mov     ecx, [esp+4+arg_0]
                 sar     eax, 8
                 and     eax, 0FFFFFFh
                 xor     eax, esi
                 lea     esi, [ecx+edx]
                 cmp     ecx, esi
-                jnb     short loc_51014B
+                jnb     short loc_51015B
                 push    edi
 
-loc_510128:                             ; CODE XREF: __MemChecker3+A8j
+loc_510138:                             ; CODE XREF: __MemChecker3+A8j
                 xor     edx, edx
                 mov     dl, [ecx]
                 xor     edx, eax
                 sar     eax, 8
                 and     edx, 0FFh
-                mov     edi, _myextern_array[edx*4]
+                mov     edi, __EncryptPad3[edx*4]
                 and     eax, 0FFFFFFh
                 xor     eax, edi
                 inc     ecx
                 cmp     ecx, esi
-                jb      short loc_510128
+                jb      short loc_510138
                 pop     edi
 
-loc_51014B:                             ; CODE XREF: __MemChecker3+85j
+loc_51015B:                             ; CODE XREF: __MemChecker3+85j
                 not     eax
                 pop     esi
                 retn

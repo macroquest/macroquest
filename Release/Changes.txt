@@ -1,3 +1,7 @@
+14 January 2007 by rswiders
+- Fix for zone translocate spell information crash displaying items
+- Changes to spell stacking (spells will say they stack with themselves)
+
 12 January 2007 by ieatacid
 - Fix for Me.Aura for Monk auras (spelling error on SoE's part :o)
 - dkaa told me about an AuraMgr struct and how it relates to AuraInfo -.-

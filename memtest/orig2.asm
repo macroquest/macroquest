@@ -2,6 +2,7 @@
         .386P
 
 EXTRN _myextern_array:DWORD
+__EncryptPad2 EQU _myextern_array
 
 _TEXT   SEGMENT PARA USE32 PUBLIC 'CODE'
 
@@ -22,11 +23,11 @@ arg_8           = dword ptr  0Ch
                 push    esi
                 not     eax
                 and     eax, 0FFh
-                mov     eax, _myextern_array[eax*4]
+                mov     eax, __EncryptPad2[eax*4]
                 xor     eax, 0FFFFFFh
                 xor     ecx, eax
                 and     ecx, 0FFh
-                mov     edx, _myextern_array[ecx*4]
+                mov     edx, __EncryptPad2[ecx*4]
                 mov     ecx, [esp+4+arg_8]
                 sar     eax, 8
                 and     eax, 0FFFFFFh
@@ -38,42 +39,41 @@ arg_8           = dword ptr  0Ch
                 xor     edx, eax
                 sar     eax, 8
                 and     edx, 0FFh
-                mov     esi, _myextern_array[edx*4]
+                mov     esi, __EncryptPad2[edx*4]
                 mov     edx, [esp+4+arg_4]
                 and     eax, 0FFFFFFh
                 xor     eax, esi
                 xor     ecx, eax
                 and     ecx, 0FFh
-                mov     esi, _myextern_array[ecx*4]
+                mov     esi, __EncryptPad2[ecx*4]
                 mov     ecx, [esp+4+arg_0]
                 sar     eax, 8
                 and     eax, 0FFFFFFh
                 xor     eax, esi
                 lea     esi, [ecx+edx]
                 cmp     ecx, esi
-                jnb     short loc_51009B
+                jnb     short loc_5100AB
                 push    edi
 
-loc_510078:                             ; CODE XREF: __MemChecker2+A8j
+loc_510088:                             ; CODE XREF: __MemChecker2+A8j
                 xor     edx, edx
                 mov     dl, [ecx]
                 xor     edx, eax
                 sar     eax, 8
                 and     edx, 0FFh
-                mov     edi, _myextern_array[edx*4]
+                mov     edi, __EncryptPad2[edx*4]
                 and     eax, 0FFFFFFh
                 xor     eax, edi
                 inc     ecx
                 cmp     ecx, esi
-                jb      short loc_510078
+                jb      short loc_510088
                 pop     edi
 
-loc_51009B:                             ; CODE XREF: __MemChecker2+85j
+loc_5100AB:                             ; CODE XREF: __MemChecker2+85j
                 not     eax
                 pop     esi
                 retn
 __MemChecker2   endp
-
 
 
 

@@ -848,6 +848,8 @@ public:
 		ActiveFavorCost=151,
 		CombatState=152,
 		svCorruption=153,
+		svPrismatic=154,
+		svChromatic=155,
 	};
 	static enum CharacterMethods
 	{
@@ -1008,6 +1010,8 @@ public:
 		TypeMember(ActiveFavorCost);
 		TypeMember(CombatState);
 		TypeMember(svCorruption);
+		TypeMember(svPrismatic);
+		TypeMember(svChromatic);
 
 		TypeMethod(Stand); 
 		TypeMethod(Sit); 

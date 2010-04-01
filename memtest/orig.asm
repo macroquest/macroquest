@@ -2,6 +2,7 @@
         .386P
 
 EXTRN _myextern_array:DWORD
+__EncryptPad0 EQU _myextern_array
 
 _TEXT   SEGMENT PARA USE32 PUBLIC 'CODE'
 
@@ -26,7 +27,7 @@ loc_4E0CA4:                             ; CODE XREF: __MemChecker0+2Fj
                 movsx   ecx, byte ptr [edx+edi]
                 xor     ecx, eax
                 and     ecx, 0FFh
-                mov     ebx, _myextern_array[ecx*4]
+                mov     ebx, __EncryptPad0[ecx*4]
                 shr     eax, 8
                 inc     edx
                 xor     eax, ebx
