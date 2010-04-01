@@ -29,7 +29,7 @@
 				AdditionalIncludeDirectories="..\PerlCore\inc"
 				PreprocessorDefinitions="EQLIB_EXPORTS;CINTERFACE"
 				StringPooling="TRUE"
-				ExceptionHandling="TRUE"
+				ExceptionHandling="FALSE"
 				BasicRuntimeChecks="0"
 				RuntimeLibrary="0"
 				StructMemberAlignment="1"

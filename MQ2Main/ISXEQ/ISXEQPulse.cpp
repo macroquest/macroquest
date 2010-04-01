@@ -255,6 +255,9 @@ VOID DropTimers(VOID)
 			DebugTry(Benchmark(bmPluginsSetGameState,PluginsSetGameState(GameState)));
 		}
 	}
+	else
+		return;
+
 	DebugTry(UpdateMQ2SpawnSort());
 
     bRunNextCommand   = TRUE;

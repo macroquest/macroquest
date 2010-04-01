@@ -245,6 +245,7 @@ EQLIB_API bool SendWndNotification(PCHAR WindowName, PCHAR ScreenID, DWORD Notif
 EQLIB_API void AddWindow(char *WindowName, CXWnd **ppWindow);
 EQLIB_API void RemoveWindow(char *WindowName);
 EQLIB_API CXWnd *FindMQ2Window(PCHAR Name);
+EQLIB_API CXWnd *GetParentWnd(class CXWnd const * pWnd);
 
 EQLIB_API bool SendListSelect(PCHAR WindowName, PCHAR ScreenID, DWORD Value);
 EQLIB_API bool SendWndClick2(CXWnd *pWnd, PCHAR ClickNotification);
@@ -474,6 +475,7 @@ EQLIB_API PCHAR GetLDoNTheme(DWORD LDTheme);
 EQLIB_API bool BuffStackTest(PSPELL aSpell, PSPELL bSpell);
 EQLIB_API DWORD GetItemTimer(PCONTENTS pItem);
 EQLIB_API PCONTENTS GetItemContentsBySlotID(DWORD dwSlotID);
+EQLIB_API PCONTENTS GetItemContentsByName(CHAR *ItemName);
 
 /* MQ2DATAVARS */
 #ifndef ISXEQ

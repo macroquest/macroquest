@@ -285,7 +285,7 @@ void Heartbeat()
 		DropTimers();
     }
 
-	if (!gStringTableFixed)
+	if (!gStringTableFixed && pStringTable) // Please dont remove the second condition
 	{
 		FixStringTable();
 		gStringTableFixed=TRUE;
@@ -301,6 +301,8 @@ void Heartbeat()
 			DebugTry(Benchmark(bmPluginsSetGameState,PluginsSetGameState(GameState)));
 		}
 	}
+	else
+		return;
 	DebugTry(UpdateMQ2SpawnSort());
 #ifndef ISXEQ_LEGACY
 	DebugTry(DrawHUD());

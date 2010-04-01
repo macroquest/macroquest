@@ -1,3 +1,13 @@
+19 December 2005 by rswiders
+- Corrected offset comments in several structures
+- Fixed Item.Timer issue for insta-click/instant refresh items
+- Added item timers to potion belt window tooltips
+- Added Item.StackSize, .Stacks, .StackCount, .FreeStack, .TimerReady
+- Added class based cfg file loading upon entering game
+
+16 December 2005 by dkaa
+- Fix for Merchant.BuyPrice
+
 15 December 2005 by rswiders
 - Fix for MaxMana, MaxEndurance
 

@@ -447,8 +447,8 @@ typedef struct _ITEMINFO {
 /*0x114*/ DWORD Classes;
 /*0x118*/ DWORD Races;
 /*0x11c*/ DWORD Diety;
-/*0x120*/ BYTE Unknown0x11c[0x4];
-/*0x124*/ DWORD Unknown0x120;
+/*0x120*/ BYTE Unknown0x120[0x4];
+/*0x124*/ DWORD Unknown0x124;
 /*0x128*/ BYTE SkillModType;
 /*0x129*/ BYTE BaneDMGBodyTypeValue;
 /*0x12a*/ BYTE BaneDMGRaceValue;
@@ -463,8 +463,8 @@ typedef struct _ITEMINFO {
 /*0x133*/ BYTE Damage;
 /*0x134*/ BYTE ItemType;
 /*0x135*/ BYTE Material;
-/*0x136*/ BYTE Unknown0x132;
-/*0x137*/ BYTE Unknown0x133;
+/*0x136*/ BYTE Unknown0x136;
+/*0x137*/ BYTE Unknown0x137;
 /*0x138*/ DWORD AugSlot1;
 /*0x13c*/ DWORD AugSlot1_Unknown;
 /*0x140*/ DWORD AugSlot2;
@@ -480,7 +480,7 @@ typedef struct _ITEMINFO {
 /*0x168*/ DWORD LDTheme;
 /*0x16c*/ DWORD LDCost;
 /*0x170*/ DWORD LDType;
-/*0x174*/ BYTE Unknown0x15c[4];
+/*0x174*/ BYTE Unknown0x174[4];
 /*0x178*/ DWORD FactionModType[0x4];
 /*0x188*/ DWORD FactionModValue[0x4];
 /*0x198*/ BYTE CharmFile[0x20];
@@ -490,8 +490,8 @@ typedef struct _ITEMINFO {
 /*0x1dc*/ struct _ITEMSPELLS Worn;
 /*0x1ec*/ struct _ITEMSPELLS Focus;
 /*0x1fc*/ struct _ITEMSPELLS Scroll;
-/*0x20c*/ DWORD Unknown0x1e0;
-/*0x210*/ DWORD Unknown0x1e4;
+/*0x20c*/ DWORD Unknown0x20c;
+/*0x210*/ DWORD Unknown0x210;
 /*0x214*/ DWORD ProcRate;
 /*0x218*/ DWORD CombatEffects;
 /*0x21c*/ DWORD Shielding;
@@ -518,24 +518,26 @@ union{
 /*0x26f*/ BYTE WeightReduction;
 /*0x270*/ DWORD Favor; // Tribute Value
 /*0x274*/ DWORD GuildFavor;
-/*0x278*/ DWORD Unknown0x24c;
+/*0x278*/ DWORD Unknown0x278;
 /*0x27c*/ DWORD Endurance;
 /*0x280*/ DWORD Attack;     
 /*0x284*/ DWORD HPRegen;
-/*0x28c*/ DWORD ManaRegen;
-/*0x290*/ DWORD Haste;
-/*0x294*/ DWORD DamShield;
-/*0x298*/ DWORD Recast;
-/*0x29c*/ DWORD TimerID;
-/*0x2a0*/ DWORD SolventNeeded; //ID# of Solvent (Augs only)
-/*0x2a4*/ DWORD Unknown0x274;
-/*0x2a8*/ DWORD Unknown0x278;
-/*0x2ac*/ DWORD Attuneable;
-/*0x2b0*/ BYTE Unknown0x280[0x14];
+/*0x288*/ DWORD ManaRegen;
+/*0x28c*/ DWORD Haste;
+/*0x290*/ DWORD DamShield;
+/*0x294*/ DWORD Recast;
+/*0x298*/ DWORD TimerID;
+/*0x29c*/ DWORD SolventNeeded; //ID# of Solvent (Augs only)
+/*0x2a0*/ DWORD Unknown0x2a0;
+/*0x2a4*/ DWORD Unknown0x2a4;
+/*0x2a8*/ DWORD Attuneable;
+/*0x2ac*/ BYTE Unknown0x2ac[0x10];
+/*0x2bc*/ DWORD StackSize;
+/*0x2c0*/ DWORD Unknown0x2c0[0x4];
 /*0x2c4*/
 } ITEMINFO, *PITEMINFO;
 
-// 9-17-05 Size 0xa8
+// 12-15-05 Size 0xa8
 typedef struct _CONTENTS {
 /*0x00*/  void   *vtable;
 /*0x04*/  void   *punknown;
@@ -552,8 +554,8 @@ typedef struct _CONTENTS {
 /*0x5c*/  DWORD   Charges;
 /*0x60*/  BYTE    Unknown0x60[0x24];
 /*0x84*/  DWORD   ItemSlot2;// slotid for Merchant Items
-/*0x88*/  DWORD   Unknown0x88;
-/*0x8c*/  DWORD   Price; //price a player vendor set the item at
+/*0x88*/  DWORD   Price; //price a player vendor set the item at
+/*0x8c*/  DWORD   Unknown0x8c;
 /*0x90*/  DWORD   Open;
 /*0x94*/  BYTE    Unknown0x94[0x14];
 /*0xa8*/   
@@ -1577,7 +1579,7 @@ typedef struct _EQSTRINGTABLE {
 /*0x10*/
 } EQSTRINGTABLE, *PEQSTRINGTABLE;
 
-#define EQ_INTERACTGROUNDITEM   0x3BC2
+#define EQ_INTERACTGROUNDITEM   0x3C4B
 #define EQ_BAZAARSEARCHCREATE   0x7620  // CProgSelWnd__WndNotification
 #define EQ_BAZAARSEARCHME       0x6379  // CBazaarSearchWnd__doQuery
 #define EQ_EMOTE                0x547A  // CEverQuest__Emote

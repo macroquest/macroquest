@@ -396,7 +396,10 @@ typedef struct _CSIDLWND {
 /*0x134*/   DWORD   Selector;
 /*0x138*/   DWORD   PushToSelector;
 /*0x13c*/   DWORD   EnableINIStorage;
-/*0x140*/   struct _CXSTR *INIStorageName;
+/*0x140*/   union {
+               struct _CXSTR *INIStorageName;
+			   struct _EQINVSLOT *pEQInvSlot;
+         };
 /*0x144*/   DWORD   Unknown0x144;
 /*0x148*/   DWORD   Unknown0x148;// CTextureAnimation
 /*0x14c*/   DWORD   Unknown0x14c;// CTextureAnimation

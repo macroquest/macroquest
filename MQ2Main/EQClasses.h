@@ -172,6 +172,7 @@ class CPetInfoWnd;
 class CPetitionQWnd;
 class CPlayerNotesWnd;
 class CPlayerWnd;
+class CPotionBeltWnd;
 class CQuantityWnd;
 class CRadioGroup;
 class CRaid;
@@ -766,7 +767,10 @@ EQLIB_OBJECT static bool CSidlScreenWnd::m_useIniFile;
 /*0x134*/   DWORD   Selector;
 /*0x138*/   DWORD   PushToSelector;
 /*0x13c*/   DWORD   EnableINIStorage;
-/*0x140*/   struct _CXSTR *INIStorageName;// -->
+/*0x140*/   union {
+               struct _CXSTR *INIStorageName;
+			   struct _EQINVSLOT *pEQInvSlot;
+         };
 /*0x144*/   DWORD   Unknown0x13C;// CTextureAnimation
 /*0x148*/   DWORD   Unknown0x140;// CTextureAnimation
 /*0x14c*/   LPVOID  ContextMenu; // CTextureAnimation
@@ -3909,6 +3913,12 @@ EQLIB_OBJECT void CPlayerWnd::StoreIniInfo(void);
 EQLIB_OBJECT void CPlayerWnd::Init(void);
 };
 
+class CPotionBeltWnd : public CSidlScreenWnd
+{
+public:
+// virtual
+EQLIB_OBJECT int CPotionBeltWnd::DrawTooltip(class CXWnd const *)const;
+};
 class CQuantityWnd : public CSidlScreenWnd
 {
 public:

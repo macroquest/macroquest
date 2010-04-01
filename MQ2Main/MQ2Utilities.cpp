@@ -5495,6 +5495,34 @@ PCONTENTS GetItemContentsBySlotID(DWORD dwSlotID)
   return NULL; 
 }
 
+PCONTENTS GetItemContentsByName(CHAR *ItemName)
+{
+    for(unsigned long nSlot=0; nSlot<30; nSlot++)
+      if(PCONTENTS pItem=GetCharInfo2()->InventoryArray[nSlot])
+	    if(!strcmp(ItemName,pItem->Item->Name)) return pItem;
+
+    for (unsigned long nPack=0 ; nPack < 8 ; nPack++)
+	  if (PCONTENTS pPack=GetCharInfo2()->Inventory.Pack[nPack])
+	    if (pPack->Item->Type==ITEMTYPE_PACK)
+		  for (unsigned long nItem=0 ; nItem < pPack->Item->Slots ; nItem++)
+		    if (PCONTENTS pItem=pPack->Contents[nItem])
+			  if (!stricmp(ItemName,pItem->Item->Name)) return pItem;
+
+	return NULL; 
+}
+
+CXWnd * GetParentWnd(class CXWnd const * pWnd)
+{
+    CXWnd * tWnd=(CXWnd *)pWnd;
+    while (tWnd)
+    {
+        if (!tWnd->pParentWindow) return tWnd;
+        tWnd=(CXWnd *)tWnd->pParentWindow;
+    }
+    return NULL;
+};
+
+
 // ***************************************************************************
 // Function:    BuffStackTest
 // Description: Return boolean true if the two spells will stack

@@ -1251,6 +1251,12 @@ public:
 		Attuneable=88,
 		Timer=89,
 		ItemDelay=90,
+		TimerReady=91,
+		StackSize=92,
+		Stacks=93,
+		StackCount=94,
+		FreeStack=95,
+
 	};
 	static enum ItemMethods
 	{
@@ -1347,6 +1353,11 @@ public:
 		TypeMember(Attuneable);
 		TypeMember(Timer);//89,
 		TypeMember(ItemDelay);
+		TypeMember(TimerReady);
+		TypeMember(StackSize);
+		TypeMember(Stacks);
+		TypeMember(StackCount);
+		TypeMember(FreeStack);
 	}
 
 	~MQ2ItemType()

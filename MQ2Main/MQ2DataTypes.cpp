@@ -3345,9 +3345,134 @@ bool MQ2ItemType::GETMEMBER()
             Dest.Type=pTicksType;
                 return true;
         }
+		if (pItem->Item->Clicky.SpellID!=-1)
+		{
+			Dest.DWord=0; // insta-clicky
+			Dest.Type=pTicksType;
+			return true;
+		}
 	case ItemDelay:
 		Dest.DWord=pItem->Item->Delay;
 		Dest.Type=pIntType;
+		return true;
+	case TimerReady:
+        if(pItem->Item->TimerID)
+        {
+            Dest.DWord=GetItemTimer(pItem);
+            Dest.Type=pIntType;
+            return true;
+        }
+		if (pItem->Item->Clicky.SpellID!=-1)
+		{
+			Dest.DWord=0; // insta-click or instant recast
+			Dest.Type=pIntType;
+			return true;
+		}
+	case StackSize:
+		if ((pItem->Item->Type != ITEMTYPE_NORMAL) || (((EQ_Item*)pItem)->IsStackable()!=1))
+			Dest.DWord=1;
+		else
+			Dest.DWord=pItem->Item->StackSize;
+		Dest.Type=pIntType;
+		return true;
+	case Stacks:
+        Dest.DWord=0;
+        Dest.Type=pIntType;
+		if (!((EQ_Item*)pItem)->IsStackable()) return false;
+		for (DWORD slot=22;slot<30;slot++) 
+		{
+			if (PCONTENTS pTempItem = GetCharInfo2()->InventoryArray[slot])
+			{
+				if (pTempItem->Item->Type==ITEMTYPE_PACK) 
+				{
+					for (DWORD pslot=0;pslot<(pTempItem->Item->Slots);pslot++) 
+					{
+						if (pTempItem->Contents[pslot])
+						{
+							if (PCONTENTS pSlotItem = pTempItem->Contents[pslot])
+							{
+                                if (pSlotItem->Item->ItemNumber==pItem->Item->ItemNumber)
+                                {
+                                    Dest.DWord++;
+								}
+							}
+						}
+					}
+				}
+				else {
+					if (pTempItem->Item->ItemNumber==pItem->Item->ItemNumber)
+					{
+						Dest.DWord++;
+					}
+				}
+			}
+		}
+		return true;
+	case StackCount:
+        Dest.DWord=0;
+        Dest.Type=pIntType;
+		if (!((EQ_Item*)pItem)->IsStackable()) return false;
+		for (DWORD slot=22;slot<30;slot++) 
+		{
+			if (PCONTENTS pTempItem = GetCharInfo2()->InventoryArray[slot])
+			{
+				if (pTempItem->Item->Type==ITEMTYPE_PACK) 
+				{
+					for (DWORD pslot=0;pslot<(pTempItem->Item->Slots);pslot++) 
+					{
+						if (pTempItem->Contents[pslot])
+						{
+							if (PCONTENTS pSlotItem = pTempItem->Contents[pslot])
+							{
+                                if (pSlotItem->Item->ItemNumber==pItem->Item->ItemNumber)
+                                {
+                                    Dest.DWord+=pSlotItem->StackCount;
+								}
+							}
+						}
+					}
+				}
+				else {
+					if (pTempItem->Item->ItemNumber==pItem->Item->ItemNumber)
+					{
+                        Dest.DWord+=pTempItem->StackCount;
+					}
+				}
+			}
+		}
+		return true;
+	case FreeStack:
+        Dest.DWord=0;
+        Dest.Type=pIntType;
+		if (!((EQ_Item*)pItem)->IsStackable()) return false;
+		for (DWORD slot=22;slot<30;slot++) 
+		{
+			if (PCONTENTS pTempItem = GetCharInfo2()->InventoryArray[slot])
+			{
+				if (pTempItem->Item->Type==ITEMTYPE_PACK) 
+				{
+					for (DWORD pslot=0;pslot<(pTempItem->Item->Slots);pslot++) 
+					{
+						if (pTempItem->Contents[pslot])
+						{
+							if (PCONTENTS pSlotItem = pTempItem->Contents[pslot])
+							{
+                                if (pSlotItem->Item->ItemNumber==pItem->Item->ItemNumber)
+                                {
+                                    Dest.DWord+=(pSlotItem->Item->StackSize-pSlotItem->StackCount);
+								}
+							}
+						}
+					}
+				}
+				else {
+					if (pTempItem->Item->ItemNumber==pItem->Item->ItemNumber)
+					{
+                        Dest.DWord+=(pTempItem->Item->StackSize-pTempItem->StackCount);
+					}
+				}
+			}
+		}
 		return true;
     }
     return false;

@@ -137,6 +137,7 @@
 #define pinstCSkillsSelectWnd                                      0x8567E8
 #define pinstCCombatSkillSelectWnd                                 0x8567EC
 #define pinstCFriendsWnd                                           0x8567F0
+#define pinstCPotionBeltWnd                                        0x8567FC
 #define pinstCAAWnd                                                0x856800
 #define pinstCGroupSearchFiltersWnd                                0x856804
 #define pinstCLoadskinWnd                                          0x856808
@@ -491,6 +492,7 @@
 #define CXWnd__DoAllDrawing                                        0x5A1180
 #define CXWnd__DrawChildren                                        0x5A12B0
 #define CXWnd__DrawColoredRect                                     0x59D3F0
+#define CXWnd__DrawTooltip                                         0x5A10A0
 #define CXWnd__DrawTooltipAtPoint                                  0x5A0400
 #define CXWnd__GetBorderFrame                                      0x59D8A0
 #define CXWnd__GetChildWndAt                                       0x5A0010

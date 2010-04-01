@@ -498,6 +498,7 @@ EQLIB_VAR CPetitionQWnd **ppPetitionQWnd;
 EQLIB_VAR CSoulmarkWnd **ppSoulmarkWnd;
 EQLIB_VAR CTimeLeftWnd **ppTimeLeftWnd;
 EQLIB_VAR CTextOverlay **ppTextOverlay;
+EQLIB_VAR CPotionBeltWnd **ppPotionBeltWnd;
 
 
 #define pContextMenuManager (*ppContextMenuManager)
@@ -584,6 +585,7 @@ EQLIB_VAR CTextOverlay **ppTextOverlay;
 #define pSoulmarkWnd (*ppSoulmarkWnd)
 #define pTimeLeftWnd (*ppTimeLeftWnd)
 #define pTextOverlay (*ppTextOverlay)
+#define pPotionBeltWnd (*ppPotionBeltWnd)
 }
 using namespace MQ2Globals;
 
