@@ -359,7 +359,7 @@ enum MOUSE_DATA_TYPES {
    MD_Button1
 };
 
-#define nEQMappableCommands				0x110
+#define nEQMappableCommands				0x111
 
 
 // ***************************************************************************
@@ -534,8 +534,8 @@ union{
 /*0x2a8*/ DWORD Attuneable;
 /*0x2ac*/ BYTE Unknown0x2ac[0x10];
 /*0x2bc*/ DWORD StackSize;
-/*0x2c0*/ DWORD Unknown0x2c0[0x4];
-/*0x2c4*/
+/*0x2c0*/ DWORD Unknown0x2c0[0x2];
+/*0x2c8*/
 } ITEMINFO, *PITEMINFO;
 
 // 12-15-05 Size 0xa8
@@ -660,15 +660,14 @@ typedef struct _CHARINFO {
 /*0x00008*/   struct     _CI_INFO* charinfo_info;
 /*0x0000c*/   BYTE       Unknown0xc[0xce4];
 /*0x00cf0*/   struct     _CONTENTS*   Bank[NUM_BANK_SLOTS];
-/*0x00d58*/   BYTE       unknown0xd58[0xd4];
-/*0x00e2c*/   DWORD      GuildID;
-/*0x00e30*/   BYTE       Unknown0xe30[0x18];
-/*0x00e48*/   DWORD      AAExp;
-/*0x00e4c*/   BYTE       Unknown0xe4c;
-/*0x00e4d*/   BYTE       PercentEXPtoAA;
-/*0x00e4e*/   BYTE       Unknown0xe4e[0x42];
-/*0x00e90*/   DWORD      TributeTimer;
-/*0x00e94*/   DWORD      Unknown0xe94;
+/*0x00d58*/   BYTE       unknown0xd58[0xd8];
+/*0x00e30*/   DWORD      GuildID; 
+/*0x00e34*/   BYTE       Unknown0xe30[0x18]; 
+/*0x00e4c*/   DWORD      AAExp; 
+/*0x00e50*/   BYTE       Unknown0xe4c; 
+/*0x00e51*/   BYTE       PercentEXPtoAA; 
+/*0x00e52*/   BYTE       Unknown0xe4e[0x42];
+/*0x00e94*/   DWORD      TributeTimer;
 /*0x00e98*/   DWORD      CareerFavor;
 /*0x00e9c*/   DWORD      Unknown0xe9c;
 /*0x00ea0*/   DWORD      CurrFavor;
@@ -1034,7 +1033,9 @@ typedef struct _SPAWNINFO {
 /*0x0404*/ BYTE     Light;
 /*0x0405*/ BYTE     Unknown0x405[0x7];
 /*0x040c*/ BYTE     Class;
-/*0x040d*/ BYTE     Unknown0x40d[0x17];
+/*0x040d*/ BYTE     Unknown0x40d[0x7]; 
+/*0x0414*/ DWORD    Buyer; 
+/*0x0418*/ BYTE     Unknown0x418[0xc]; 
 /*0x0424*/ DWORD    HPMax;
 /*0x0428*/ BYTE     Unknown0x428[0xc];
 /*0x0434*/ WORD     Zone;
@@ -1055,40 +1056,40 @@ typedef struct _SPAWNINFO {
 /*0x0db8*/ struct  _SPAWNINFO *pGroupMarkNPC[3];
 /*0x0dc4*/ struct  _SPAWNINFO *pRaidMarkNPC[3];
 /*0x0dd0*/ struct  _SPAWNINFO *pTargetOfTarget;
-/*0x0dd4*/ BYTE     Unknown0xdd4[0x30];
-/*0x0e04*/ BYTE     InNonPCRaceIllusion;
-/*0x0e05*/ BYTE     Unknown0xe05;
-/*0x0e06*/ BYTE     FaceHair;
-/*0x0e07*/ BYTE     HairColor;
-/*0x0e08*/ BYTE     BeardColor;
-/*0x0e09*/ BYTE     EyesColor;
-/*0x0e0a*/ BYTE     EyesType;
-/*0x0e0b*/ BYTE     HairType;
-/*0x0e0c*/ BYTE     BeardType;
-/*0x0e0d*/ BYTE     Unknown0xe0d[0x3];
-/*0x0e10*/ DWORD    Race;
-/*0x0e14*/ BYTE     Gender;
-/*0x0e15*/ CHAR     ActorDef[0x40];
-/*0x0e55*/ BYTE     Unknown0xe55[0x3];
-/*0x0e58*/ struct   _EQUIPMENT Equipment;
-/*0x0e7c*/ ARGBCOLOR ArmorColor[0x9];
-/*0x0ea0*/ BYTE     Unknown0xea0[0x3c];
-/*0x0edc*/ VOID    *pcactorex;
-/*0x0ee0*/ BYTE     Unknown0xee0[0x4];
-/*0x0ee4*/ VOID    *FaceRelatedActorStruct;
-/*0x0ee8*/ BYTE     Unknown0xee8[0x6c];
-/*0x0f54*/ DWORD    Animation;
-/*0x0f58*/ BYTE     Unknown0xf58[0x24];
-/*0x0f7c*/ struct  _MODELINFO *Model[0x11];
-/*0x0fc0*/ BYTE     Unknown0xfc0[0x80];
-/*0x1040*/ BYTE     InvitedToGroup;
-/*0x1041*/ BYTE     Unknown0x1041[0x1db];
-/*0x121c*/ void    *vtable2;
-/*0x1220*/ DWORD    Unknown0x1220;
-/*0x1224*/ struct  _SPAWNINFO *pSpawn;
-/*0x1228*/ BYTE     Levitate;
-/*0x1229*/ BYTE     Unknown0x1229[0x1b];
-/*0x1244*/
+/*0x0dd4*/ BYTE     Unknown0xdd4[0x34];
+/*0x0e08*/ BYTE     InNonPCRaceIllusion; 
+/*0x0e09*/ BYTE     Unknown0xe09; 
+/*0x0e0a*/ BYTE     FaceHair; 
+/*0x0e0b*/ BYTE     HairColor; 
+/*0x0e0c*/ BYTE     BeardColor; 
+/*0x0e0d*/ BYTE     EyesColor; 
+/*0x0e0e*/ BYTE     EyesType; 
+/*0x0e0f*/ BYTE     HairType; 
+/*0x0e10*/ BYTE     BeardType; 
+/*0x0e11*/ BYTE     Unknown0xe11[0x3]; 
+/*0x0e14*/ DWORD    Race; 
+/*0x0e18*/ BYTE     Gender; 
+/*0x0e19*/ CHAR     ActorDef[0x40]; 
+/*0x0e59*/ BYTE     Unknown0xe59[0x3]; 
+/*0x0e5c*/ struct   _EQUIPMENT Equipment; 
+/*0x0e80*/ ARGBCOLOR ArmorColor[0x9]; 
+/*0x0ea4*/ BYTE     Unknown0xea4[0x3c]; 
+/*0x0ee0*/ VOID    *pcactorex; 
+/*0x0ee4*/ BYTE     Unknown0xee4[0x4]; 
+/*0x0ee8*/ VOID    *FaceRelatedActorStruct; 
+/*0x0eec*/ BYTE     Unknown0xeec[0x6c]; 
+/*0x0f58*/ DWORD    Animation; 
+/*0x0f5c*/ BYTE     Unknown0xf5c[0x24]; 
+/*0x0f80*/ struct  _MODELINFO *Model[0x11]; 
+/*0x0fc4*/ BYTE     Unknown0xfc4[0x80]; 
+/*0x1044*/ BYTE     InvitedToGroup; 
+/*0x1045*/ BYTE     Unknown0x1045[0x1db]; 
+/*0x1220*/ void    *vtable2; 
+/*0x1224*/ DWORD    Unknown0x1224; 
+/*0x1228*/ struct  _SPAWNINFO *pSpawn; 
+/*0x122c*/ BYTE     Levitate; 
+/*0x122d*/ BYTE     Unknown0x122d[0x1b]; 
+/*0x1248*/ 
 } SPAWNINFO, *PSPAWNINFO;
 
 #define STANDSTATE_STAND            0x64
@@ -1289,21 +1290,16 @@ typedef struct _ZONEINFO {
 /*0x2a0*/
 } ZONEINFO, *PZONEINFO;
 
-#define   TOTAL_SPELL_COUNT				0x2701      // # of spells allocated in memory (5/11/2005 :: 0x7d00/4)
+#define   TOTAL_SPELL_COUNT				0x2710      // # of spells allocated in memory (06/13/2006)
 #define   TOTAL_ACTUAL_SPELLS			0x1964      // # of ACTUAL spells in game      (9/14/2004)
 
-// size: 0x7d24 (5/11/2005 :: 0x7d00+0x24)
+// size: 138F0           
 typedef struct _SPELLMGR {
-            BYTE                unknown[0x24];
+            BYTE                unknown[0x68];
             struct _SPELL*      Spells[TOTAL_SPELL_COUNT];
 } SPELLMGR, *PSPELLMGR;
 
-// Size is 0x268 as of 9/14
-// Size is 0x26C as of 2/8
-// Size is 0x26C as of 03/03/2005
-// Size is 0x26c as of 5/11/2005
-// Size is 0x26c as of 9/17/2005
-// Size is 0x294 02-23-06
+// actual size: 0x4d4 06-13-06 
 typedef struct _SPELL {
 /*0x000*/   BYTE    FizzleAdj;
 /*0x001*/   BYTE    Unknown0x1[0x3];
@@ -1379,28 +1375,28 @@ typedef struct _SPELL {
 /*0x225*/   BYTE    Skill;
 /*0x226*/   BYTE    CastingAnim;
 /*0x227*/   BYTE    Unknown0x227;
-/*0x228*/   CHAR    *Name;
-/*0x22c*/   CHAR    *Target; 
-/*0x230*/   CHAR    *Extra;             //This is 'Extra' from Lucy (portal shortnames etc)
-/*0x234*/   CHAR    *Unknown0x234;
-/*0x238*/   CHAR    *Unknown0x238;
-/*0x23c*/   CHAR    *CastOnYou;
-/*0x240*/   CHAR    *CastOnAnother;
-/*0x244*/   CHAR    *WearOff;
-/*0x248*/   DWORD   Unknown0x248;
-/*0x24c*/   DWORD   Unknown0x24c;
-/*0x250*/   DWORD   spaindex;
-/*0x254*/   CHAR    *Unknown0x254;       //spell effect name
-/*0x258*/   DWORD   SpellAnim;
-/*0x25c*/   BYTE    Unknown0x25c[0xc];
-/*0x268*/   DWORD   SpellIcon;
-/*0x26c*/   DWORD   ResistAdj;
-/*0x270*/   BYTE    Unknown0x270[0x18];
-/*0x288*/   BYTE    Unknown0x288;
-/*0x289*/   BYTE    Unknown0x289;
-/*0x28a*/   BYTE    Uninterruptable;    //00=Interruptable, 01=Uninterruptable
-/*0x28b*/   BYTE    Unknown0x28b[0x9];
-/*0x294*/
+/*0x228*/   CHAR    Name[0x40]; 
+/*0x268*/   CHAR    Target[0x40]; 
+/*0x2a8*/   CHAR    Extra[0x40];             //This is 'Extra' from Lucy (portal shortnames etc) 
+/*0x2e8*/   CHAR    Unknown0x234[0x40]; 
+/*0x328*/   CHAR    Unknown0x238[0x40]; 
+/*0x368*/   CHAR    CastOnYou[0x60]; 
+/*0x3c8*/   CHAR    CastOnAnother[0x60]; 
+/*0x428*/   CHAR    WearOff[0x60]; 
+/*0x488*/   DWORD   Unknown0x248; 
+/*0x48c*/   DWORD   Unknown0x24c; 
+/*0x490*/   DWORD   spaindex; 
+/*0x494*/   CHAR    *Unknown0x254;       //spell effect name 
+/*0x498*/   DWORD   SpellAnim; 
+/*0x49c*/   BYTE    Unknown0x25c[0xc]; 
+/*0x4a8*/   DWORD   SpellIcon; 
+/*0x4ac*/   DWORD   ResistAdj; 
+/*0x4b0*/   BYTE    Unknown0x270[0x18]; 
+/*0x4c8*/   BYTE    Unknown0x288; 
+/*0x4c9*/   BYTE    Unknown0x289; 
+/*0x4ca*/   BYTE    Uninterruptable;    //00=Interruptable, 01=Uninterruptable 
+/*0x4cb*/   BYTE    Unknown0x28b[0x9]; 
+/*0x4d4*/ 
 } SPELL, *PSPELL;
 
 
@@ -1654,12 +1650,12 @@ typedef struct _DYNAMICZONE {
  
  
 
-#define EQ_INTERACTGROUNDITEM   0x00a5  // CEverQuest__HandleClick 04/19
-#define EQ_BAZAARSEARCHCREATE   0x2c8f  // CProgSelWnd__WndNotification 04/19
-#define EQ_BAZAARSEARCHME       0x5332  // CBazaarSearchWnd__doQuery 04/19
-#define EQ_EMOTE                0x4308  // CEverQuest__Emote 04/19
-#define EQ_BEGIN_ZONE           0x5C06  // begin_zone_routine 04/19
-#define EQ_END_ZONE             0x3C22  // 04/19
-#define EQ_LoadingS__ArraySize  0x44    // EQ_LoadingS__SetProgressBar 04/19
+#define EQ_INTERACTGROUNDITEM   0x1418  // CEverQuest__HandleClick 04/19
+#define EQ_BAZAARSEARCHCREATE   0x4E56  // CProgSelWnd__WndNotification 04/19
+#define EQ_BAZAARSEARCHME       0x2B26  // CBazaarSearchWnd__doQuery 04/19
+#define EQ_EMOTE                0x5644  // CEverQuest__Emote+8C
+#define EQ_BEGIN_ZONE           0x6F49  // CEverQuest__SavePCForce+433
+#define EQ_END_ZONE             0x443F  // CEverQuest__DoMainLoop+A68
+#define EQ_LoadingS__ArraySize  0x44    // EQ_LoadingS__SetProgressBar+7C
 };
 using namespace EQData;

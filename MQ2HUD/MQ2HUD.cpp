@@ -388,6 +388,7 @@ PLUGIN_API VOID OnDrawHUD(VOID)
       if (Stat(INIFileName,now) && now.st_mtime!=LastRead.st_mtime)
       {
          LoadElements();
+         HandleINI();
       }
 
       // check for EQ in foreground

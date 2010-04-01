@@ -108,7 +108,7 @@ VOID HideDoCommand(PSPAWNINFO pChar, PCHAR szLine, BOOL delayed)
         }
         return;
     }
-	if (szCmd[0]==';')
+	if (szCmd[0]==';' || szCmd[0]=='[')
 	{
 		pEverQuest->InterpretCmd((EQPlayer*)pChar,szOriginalLine);
 		return;

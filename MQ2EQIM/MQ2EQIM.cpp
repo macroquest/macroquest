@@ -332,7 +332,7 @@ VOID LoadBuddyList()
 			//LoadMQ2Plugin(szBuffer);
 			if (FindEQIMBuddy(szBuffer)==-1)
 			{
-				sprintf(szCommand,";buddy %s",szBuffer);
+				sprintf(szCommand,"[buddy %s",szBuffer);
 				DoCommand((PSPAWNINFO)pCharSpawn,szCommand);
 				EQIMBuddy *pBuddy = new EQIMBuddy;
 				strcpy(pBuddy->Name,szBuffer);

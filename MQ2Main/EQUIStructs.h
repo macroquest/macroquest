@@ -862,7 +862,7 @@ typedef struct _EQMAILWINDOW {
 // Actual Size 0x2d4 12-07-2005
 typedef struct _EQMAPWINDOW {
 /*0x000*/ struct _CSIDLWND Wnd;
-/*0x174*/ BYTE Unknown0x174[0x24];
+/*0x174*/ BYTE Unknown0x174[0x28];
 /*0x198*/ CHAR shortzonename[0x20]; 
 /*0x1b8*/ BYTE Unknown0x1b8[0x9c];
 /*0x254*/ struct _CXWND *wnd;           // map wnd?
