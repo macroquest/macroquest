@@ -1716,6 +1716,8 @@ public:
 		ScreenID=29,
 		Type=30,
 		Items=31,
+                HisTradeReady=32,
+                MyTradeReady=33,
 	};
 	static enum WindowMethods
 	{
@@ -1761,6 +1763,8 @@ public:
 		TypeMember(ScreenID);
 		TypeMember(Type);
 		TypeMember(Items);
+                TypeMember(HisTradeReady);
+                TypeMember(MyTradeReady);
 
 	
 		TypeMethod(LeftMouseDown);

@@ -952,44 +952,40 @@ VOID ItemNotify(PSPAWNINFO pChar, PCHAR szLine)
 		WriteChatColor("     or /itemnotify in <bag slot> <slot # in bag> <notification>");
 		RETURN(0);
 	}
-	if (!stricmp(szArg1,"in"))
-	{
-		if (!szArg4[0])
-		{
-			WriteChatColor("Syntax: /itemnotify <slot|#> <notification>");
-			WriteChatColor("     or /itemnotify in <bag slot> <slot # in bag> <notification>");
-			RETURN(0);
-		}
-	}
+
 #else
 int ItemNotify(int argc, char *argv[])
 {
    if (argc!=3 && argc != 5)
    {
-      WriteChatf("ItemNotify got %d args", argc);
+//      WriteChatf("ItemNotify got %d args", argc);
       WriteChatColor("Syntax: /itemnotify <slot|#> <notification>");
       WriteChatColor("     or /itemnotify in <bag slot> <slot # in bag> <notification>");
       RETURN(0);
    }
    char *szArg1=argv[1];
    char *szArg2=argv[2];
-   char *szArg3=NULL;
-   char *szArg4=NULL;
+   char *szArg3="";
+   char *szArg4="";
    
-   if (argc==4)
+   if (argc==5)
    {
       szArg3=argv[3];
       szArg4=argv[4];
    }
    PSPAWNINFO pChar = (PSPAWNINFO)pLocalPlayer;
-
 #endif
    PCHAR pNotification=&szArg2[0];
    CInvSlot *pSlot=0;
  
    if (!stricmp(szArg1,"in"))
    { 
-
+		if (!szArg4[0])
+		{
+			WriteChatColor("Syntax: /itemnotify <slot|#> <notification>");
+			WriteChatColor("     or /itemnotify in <bag slot> <slot # in bag> <notification>");
+			RETURN(0);
+		}
 
 		PCONTENTS pPack=0;
 		if (!strnicmp(szArg2,"bank",4))

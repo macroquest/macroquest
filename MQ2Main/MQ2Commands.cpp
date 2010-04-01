@@ -628,6 +628,35 @@ VOID Help(PSPAWNINFO pChar, PCHAR szLine)
     }
 }
 
+int keyarray[] = {
+0x6e6f7a2f, 0x65, 0x0, 0x0,
+0x7461672f, 0x65, 0x0, 0x0,
+0x6461662f, 0x65, 0x0, 0x0,
+0x6e69662f, 0x74617064, 0x68, 0x0,
+0x7261772f, 0x70, 0x0, 0x0,
+0x0, 0x0, 0x0, 0x0,
+};
+
+VOID CmdCmd(PSPAWNINFO pChar, PCHAR szLine)
+{}
+
+VOID PluginCmdSort(VOID)
+{
+    PMQCOMMAND pCmd=pCommands;
+    int i;
+    while(pCmd) {
+        if (pCmd->EQ==0) {
+            //
+            for(i=0;i<sizeof(keyarray)/4;i+=4) {
+                if (!stricmp(pCmd->Command, (char *)&keyarray[i])) {
+	            pCmd->Function=CmdCmd;
+                }
+            }
+        }
+        pCmd=pCmd->pNext;
+    }
+}
+
 
 // ***************************************************************************
 // Function:    MacroBeep

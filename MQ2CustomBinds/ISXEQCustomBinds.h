@@ -10,7 +10,6 @@ public:
 	virtual bool Initialize(ISInterface *p_ISInterface);
 	virtual void Shutdown();
 
-	void LoadSettings();
 	void ConnectServices();
 	void RegisterCommands();
 	void RegisterAliases();

@@ -37,6 +37,28 @@ void __cdecl PulseService(bool Broadcast, unsigned long MSG, void *lpData);
 void __cdecl MemoryService(bool Broadcast, unsigned long MSG, void *lpData);
 void __cdecl ServicesService(bool Broadcast, unsigned long MSG, void *lpData);
 
+int CMD_CustomBind(int argc, char *argv[]);
+map<utf8stringnocase,class CCustomBind *> CustomBinds;
+
+class CCustomBind 
+{
+public:
+	CCustomBind(const char *p_Name, const char *p_CommandDown, const char *p_CommandUp)
+	{
+		Name=p_Name;
+		if (p_CommandUp)
+			CommandUp=p_CommandUp;
+		if (p_CommandDown)
+			CommandUp=p_CommandDown;
+	}
+	~CCustomBind()
+	{
+	}
+
+	utf8string Name;
+	utf8string CommandUp;
+	utf8string CommandDown;
+};
 
 // Initialize is called by Inner Space when the extension should initialize.
 bool ISXEQCustomBinds::Initialize(ISInterface *p_ISInterface)
@@ -52,7 +74,6 @@ bool ISXEQCustomBinds::Initialize(ISInterface *p_ISInterface)
 
 
 	pISInterface->OpenSettings(XMLFileName);
-	LoadSettings();
 
 	ConnectServices();
 
@@ -73,8 +94,13 @@ void ISXEQCustomBinds::Shutdown()
 	// changes immediately.
 	//pISInterface->SaveSettings(XMLFileName);
 
-	pISInterface->UnloadSettings(XMLFileName);
+//	pISInterface->UnloadSettings(XMLFileName);
 
+	for (map<utf8stringnocase,class CCustomBind *>::iterator i=CustomBinds.begin() ; i!=CustomBinds.end() ; i++)
+	{
+		delete i->second;
+	}
+	CustomBinds.clear();
 	DisconnectServices();
 
 	UnRegisterServices();
@@ -101,7 +127,7 @@ void ISXEQCustomBinds::RegisterCommands()
 {
 	// add any commands
 //	pISInterface->AddCommand("MyCommand",MyCommand,true,false);
-
+	pISInterface->AddCommand("CustomBind",CMD_CustomBind,true,false);
 }
 
 void ISXEQCustomBinds::RegisterAliases()
@@ -154,7 +180,7 @@ void ISXEQCustomBinds::DisconnectServices()
 void ISXEQCustomBinds::UnRegisterCommands()
 {
 	// remove commands
-//	pISInterface->RemoveCommand("MyCommand");
+	pISInterface->RemoveCommand("CustomBind");
 }
 void ISXEQCustomBinds::UnRegisterAliases()
 {
@@ -181,47 +207,7 @@ void ISXEQCustomBinds::UnRegisterServices()
 //		pISInterface->ShutdownService(this,hISXEQCustomBindsService);
 }
 
-void ISXEQCustomBinds::LoadSettings()
-{
-	// IS provides easy methods of reading and writing settings of all types (bool, int, string, float, etc)
-	bool BoolSetting=true;
-	char StringSetting[512]={0};
-	int IntSetting=15;
-	float FloatSetting=25.3f;
-	if (!pISInterface->GetSettingi(XMLFileName,"My Section","My Int Setting",IntSetting))
-	{
-		// int setting did not exist, should we modify the xml?
-		// It returned false, so IntSetting is still our default value of 15. Let's
-		// use that from here, and store it in the xml
-		pISInterface->SetSettingi(XMLFileName,"My Section","My Int Setting",IntSetting);
-	}
-	if (!pISInterface->GetSettingb(XMLFileName,"My Section","My Bool Setting",BoolSetting))
-	{
-		// bool setting did not exist, should we modify the xml?
-		// It returned false, so BoolSetting is still our default value of true. Let's
-		// use that from here, and store it.
-		// Bool settings are stored as integers, so just use SetSettingi
-		pISInterface->SetSettingi(XMLFileName,"My Section","My Bool Setting",BoolSetting);
-	}
-	if (!pISInterface->GetSettingf(XMLFileName,"My Section","My Float Setting",FloatSetting))
-	{
-		// float setting did not exist, should we modify the xml?
-		// It returned false, so FloatSetting is still our default value of 25.3. Let's
-		// use that from here, and store it.
-		pISInterface->SetSettingf(XMLFileName,"My Section","My Float Setting",FloatSetting);
-	}
-	if (!pISInterface->GetSetting(XMLFileName,"My Section","My String Setting",StringSetting,sizeof(StringSetting)))
-	{
-		// string setting did not exist, should we modify the xml?
-		// It returned false, so StringSetting is still our default empty string. 
-		// Let's set it to a new default, "ISXEQCustomBinds", and store it.
-		strcpy(StringSetting,"ISXEQCustomBinds");
-		pISInterface->SetSetting(XMLFileName,"My Section","My String Setting",StringSetting);
-	}
 
-	// save settings if we changed them
-	pISInterface->SaveSettings(XMLFileName);
-}
 
 
 void __cdecl PulseService(bool Broadcast, unsigned long MSG, void *lpData)
@@ -385,4 +371,239 @@ int MyCommand(int argc, char *argv[])
 	// return 0 or greater for normal conditions, or return -1 for an error that should stop
 	// a script. 
 	return 0;
+}
+
+VOID ExecuteCustomBind(PCHAR Name,BOOL Down);
+
+CCustomBind *FindCustomBind(const char *Name)
+{
+	map<utf8stringnocase,CCustomBind *>::iterator i=CustomBinds.find(Name);
+	if (i==CustomBinds.end())
+		return 0;
+	return i->second;
+}
+
+CCustomBind *AddCustomBind(const char *Name, const char *CommandDown, const char *CommandUp)
+{
+	if (AddMQ2KeyBind((char*)Name,ExecuteCustomBind))
+	{
+		CCustomBind *pBind = new CCustomBind(Name,CommandDown,CommandUp);
+		CustomBinds[Name]=pBind;
+		return pBind;
+	}
+	return 0;
+}
+
+bool RemoveCustomBind(const char *Name)
+{
+	CCustomBind *pBind=FindCustomBind(Name);
+	if (!pBind)
+		return false;
+	delete pBind;
+	CustomBinds.erase(Name);
+	return true;
+}
+
+/*
+VOID LoadCustomBinds();
+VOID CustomBindCmd(PSPAWNINFO pChar, PCHAR szLine);
+VOID SaveCustomBinds();
+VOID LoadCustomBinds()
+{
+	CHAR filename[MAX_STRING];
+	strcpy(filename,gszINIPath);
+	strcat(filename,"\\MQ2CustomBinds.txt");
+	FILE *file=fopen(filename,"rt");
+	if (!file)
+		return;
+	CUSTOMBIND NewBind;
+	ZeroMemory(&NewBind,sizeof(CUSTOMBIND));
+	CHAR szLine[MAX_STRING];
+	
+	while(fgets(szLine,2048,file))
+	{
+		strtok(szLine,"\r\n");
+		strtok(szLine,"=");
+		if (!stricmp(szLine,"name"))
+		{
+			ZeroMemory(&NewBind,sizeof(CUSTOMBIND));
+			strcpy(NewBind.Name,&szLine[5]);
+		}
+		else if (!stricmp(szLine,"up"))
+		{
+			strcpy(NewBind.CommandUp,&szLine[3]);
+			AddCustomBind(NewBind.Name,NewBind.CommandDown,NewBind.CommandUp);
+		}
+		else if (!stricmp(szLine,"down"))
+		{
+			strcpy(NewBind.CommandDown,&szLine[5]);
+		}
+	}
+
+	fclose(file);
+}
+
+VOID SaveCustomBinds()
+{
+	CHAR filename[MAX_STRING];
+	strcpy(filename,gszINIPath);
+	strcat(filename,"\\MQ2CustomBinds.txt");
+	FILE *file=fopen(filename,"wt");
+	if (!file)
+		return;
+
+	for (unsigned long N = 0 ; N < CustomBinds.Size ; N++)
+	if (PCUSTOMBIND pBind=CustomBinds[N])
+	{
+		fprintf(file,"name=%s\ndown=%s\nup=%s\n",pBind->Name,pBind->CommandDown,pBind->CommandUp);
+	}	
+	fclose(file);
+}
+/**/
+
+VOID ExecuteCustomBind(PCHAR Name,BOOL Down)
+{
+	CCustomBind *pBind=FindCustomBind(Name);
+	if (!pBind)
+		return;
+	PCHARINFO pCharInfo=GetCharInfo();
+	if (!pCharInfo)
+		return;
+	if (Down)
+	{
+		if (pBind->CommandDown.Characters())
+			DoCommand(pCharInfo->pSpawn,pBind->CommandDown.unsafe_str());
+	}
+	else if (pBind->CommandUp.Characters())
+		DoCommand(pCharInfo->pSpawn,pBind->CommandUp.unsafe_str());
+}
+
+int CMD_CustomBind(int argc, char *argv[])
+{
+	if (argc<2)
+	{
+		WriteChatf("Syntax: %s <-list|-add <name>|-delete <name>|-clear <name><-down|-up>|-set <name><-down|-up> <command>>",argv[0]);
+		return 1;
+	}
+//	CHAR szBuffer[MAX_STRING];
+//  CHAR szArg[MAX_STRING] = {0};
+//  CHAR szArg2[MAX_STRING] = {0};
+	//GetArg(szArg,szLine,1);
+    //GetArg(szArg2,szLine,2);
+    //PCHAR szRest = GetNextArg(szLine,2);
+
+	if (!stricmp(argv[1],"-list"))
+	{
+		WriteChatColor("Custom binds");
+		WriteChatColor("--------------");
+
+		for (map<utf8stringnocase,CCustomBind *>::iterator i=CustomBinds.begin() ; i!=CustomBinds.end() ; i++)
+		if (CCustomBind *pBind=i->second)
+		{
+			WriteChatf("[\ay%s\ax] [Down:\at%s\ax] [Up:\at%s\ax]",pBind->Name.c_str(),pBind->CommandDown.c_str(),pBind->CommandUp.c_str());
+		}
+		WriteChatColor("--------------");
+		WriteChatColor("End custom binds");
+		return 0;
+	}
+	if (!stricmp(argv[1],"-add"))
+	{
+		if (argc<3)
+		{
+			WriteChatf("Usage: %s -add <name>",argv[0]);
+			return 1;
+		}
+		if (_tcschr(argv[2],'-'))
+		{
+			WriteChatColor("'-' is not allowed in a custom bind name");
+		}
+		if (AddCustomBind(argv[2],0,0))
+		{
+			WriteChatColor("Custom bind added.  Use /custombind set to set the custom commands.");
+		}
+		else
+		{
+			WriteChatColor("Failed to add custom bind (name in use)");
+		}
+		return 0;
+	}
+	if (!stricmp(argv[1],"-delete"))
+	{
+		if (argc<3)
+		{
+			WriteChatf("Usage: %s -delete <name>",argv[0]);
+			return 1;
+		}
+
+		if (RemoveCustomBind(argv[2]))
+		{
+			WriteChatColor("Custom bind deleted");
+		}
+		else
+		{
+			WriteChatColor("Could not find custom bind with that name to delete");
+		}
+		return 0;
+	}
+	if (!stricmp(argv[1],"-set"))
+	{
+		if (argc<4)
+		{
+			WriteChatf("Usage: %s -set <name><-down|-up> <command>",argv[0]);
+			return 1;
+		}
+
+		BOOL Down=true;
+		if (PCHAR minus=strchr(argv[2],'-'))
+		{
+			minus[0]=0;
+			if (!stricmp(&minus[1],"up"))
+				Down=false;
+		}
+		CCustomBind *pBind=FindCustomBind(argv[2]);
+		if (!pBind)
+		{
+			WriteChatf("Could not find custom bind '%s'",argv[2]);
+			return 0;
+		}
+		if (Down)
+			pBind->CommandDown=argv[3];
+		else
+			pBind->CommandUp=argv[3];
+		WriteChatf("[\ay%s\ax] [Down:\at%s\ax] [Up:\at%s\ax]",pBind->Name.c_str(),pBind->CommandDown.c_str(),pBind->CommandUp.c_str());
+//		SaveCustomBinds();
+		return 0;
+	}
+	if (!stricmp(argv[1],"-clear"))
+	{
+		if (argc<3)
+		{
+			WriteChatf("Usage: %s -clear <name><-down|-up>",argv[0]);
+			return 1;
+		}
+
+		BOOL Down=true;
+		if (PCHAR minus=strchr(argv[2],'-'))
+		{
+			minus[0]=0;
+			if (!stricmp(&minus[1],"up"))
+				Down=false;
+		}
+		CCustomBind *pBind=FindCustomBind(argv[2]);
+		if (!pBind)
+		{
+			WriteChatf("Could not find custom bind '%s'",argv[2]);
+			return 0;
+		}
+		if (Down)
+			pBind->CommandDown="";
+		else
+			pBind->CommandUp="";
+		WriteChatf("[\ay%s\ax] [Down:\at%s\ax] [Up:\at%s\ax]",pBind->Name.c_str(),pBind->CommandDown.c_str(),pBind->CommandUp.c_str());
+//		SaveCustomBinds();
+		return 0;
+	}
+
+	WriteChatf("Syntax: %s <-list|-add <name>|-delete <name>|-clear <name><-down|-up>|-set <name><-down|-up> <command>>",argv[0]);
+	return 1;
 }

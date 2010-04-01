@@ -3091,6 +3091,10 @@ bool MQ2ItemType::GETMEMBER()
 		Dest.DWord=pItem->Item->Size;
 		Dest.Type=pIntType;
 		return true;
+	case SizeCapacity:
+		Dest.DWord=pItem->Item->SizeCapacity;
+		Dest.Type=pIntType;
+		return true;
 	case Weight:
 		Dest.DWord=pItem->Item->Weight;
 		Dest.Type=pIntType;
@@ -3950,6 +3954,18 @@ DebugSpew("Items: from window 0x%x\n", pWnd);
 			Dest.Type=pIntType;
 		}
 		return true;
+        case HisTradeReady:
+            if(PTRADEWINDOW pTrade=(PTRADEWINDOW)pTradeWnd) {
+                Dest.Int=pTrade->HisTradeReady;
+                Dest.Type=pBoolType;
+                return true;
+            }
+        case MyTradeReady:
+            if(PTRADEWINDOW pTrade=(PTRADEWINDOW)pTradeWnd) {
+                Dest.Int=pTrade->MyTradeReady;
+                Dest.Type=pBoolType;
+                return true;
+            } 
 	}
 
 	return false;

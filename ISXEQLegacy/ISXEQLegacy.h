@@ -2,6 +2,7 @@
 #include "../ISXEQClient.h"
 #define __LSTYPE_H__
 #define LSTYPEVAR DATAVAR
+#define LSOBJECT DATAVAR
 #include <isxdk.h>
 
 class ISXEQLegacy :
