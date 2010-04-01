@@ -9564,6 +9564,12 @@ FUNCTION_AT_ADDRESS(unsigned long CSkillMgr::GetBaseDamage(int),CSkillMgr__GetBa
 #ifdef CSkillMgr__GetReuseTime
 FUNCTION_AT_ADDRESS(unsigned long CSkillMgr::GetReuseTime(int),CSkillMgr__GetReuseTime);
 #endif
+#ifdef CChatService__GetNumberOfFriends
+FUNCTION_AT_ADDRESS(int CChatService::GetNumberOfFriends(void),CChatService__GetNumberOfFriends);
+#endif
+#ifdef CChatService__GetFriendName
+FUNCTION_AT_ADDRESS(char *CChatService::GetFriendName(int),CChatService__GetFriendName);
+#endif
 
 void bogus()
 {

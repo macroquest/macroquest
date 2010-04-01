@@ -619,15 +619,7 @@ typedef struct _INVENTORY {
 } INVENTORY, *PINVENTORY; 
 
 #define NUM_ALT_ABILITIES_ARRAY   0x1F7 
-#define NUM_ALT_ABILITIES   1500            // GetAltAbility require an index
-                                            // which is really a hash table 
-                                            // index.  the index is divided
-                                            // with 0x1f7 and the remainder
-                                            // is used the hash table slot.
-                                            // the slot is walked to find the
-                                            // entry corresponding to the 
-                                            // original index (before the
-                                            // divide
+#define NUM_ALT_ABILITIES   0x270f
 
 //these two will merge when i get a chance
 #define AA_CHAR_MAX         0xF5
@@ -636,6 +628,7 @@ typedef struct _INVENTORY {
 typedef struct _AALIST { 
 /*0x0*/   DWORD		AAIndex;
 /*0x4*/   DWORD		PointsSpent;
+/*0x8*/   DWORD		ChargeSpent;        // charges spent in the last 10 min?
 } AALIST, *PAALIST;
 
 #define      NUM_BANK_SLOTS         0x1a
@@ -846,7 +839,6 @@ union {
 /*0x1640*/   DWORD      ArmorType[0x16];
 /*0x1698*/   BYTE       Unknown0x1698[0xb0];
 /*0x1748*/   AALIST     AAList[AA_CHAR_MAX_REAL];
-/*0x1ec8*/   BYTE       Unknown0x1ec8[0x3c0];
 /*0x2288*/   DWORD      BodyColor[0x9];
 /*0x22ac*/   BYTE       Unknown0x22ac[0x2000];
 /*0x42ac*/   DWORD      CombatAbilities[NUM_COMBAT_ABILITIES];

@@ -634,11 +634,13 @@ typedef struct _EQPETINFOWINDOW {
 /*0x178*/ DWORD Unknown0x178; // pet's spawnid
 /*0x17c*/ DWORD Unknown0x17c; // bool
 /*0x180*/ BYTE  Unknown0x180[0x120];
-/*0x2a0*/ int   Buff[0x1e]; // Spell ID# of each buff -- 30 total
-/*0x318*/ DWORD Unknown0x318;  
-/*0x31c*/ BYTE  Unknown0x31c[4];
-/*0x320*/ DWORD Unknown0x320[2];
-/*0x328*/ DWORD BuffFadeETA[0x1e]; 
+/* buttons are here */
+/*0x2a0*/ struct _CXWND *wnd;           // spell info wnd?
+/*0x2a4*/ int   Buff[0x1e]; // Spell ID# of each buff -- 30 total
+/*0x31c*/ DWORD Unknown0x318;  
+/*0x320*/ BYTE  Unknown0x31c[4];
+/*0x324*/ DWORD Unknown0x320[2];
+/*0x32c*/ DWORD BuffFadeETA[0x1e]; 
 } EQPETINFOWINDOW, *PEQPETINFOWINDOW;
 
 typedef struct _EQTRADESKILLRECIPE {

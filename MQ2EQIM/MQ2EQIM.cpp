@@ -346,13 +346,11 @@ VOID LoadBuddyList()
 
 	// import friends list
 	unsigned long N;
-	for (N = 0 ; N < 100 ; N++)
+	unsigned long nfriends=pChatService->GetNumberOfFriends();
+	for (N = 0 ; N < nfriends ; N++)
 	{
-		if (pFriendsList->Name[N][0])
-		{
-			sprintf(szCommand,";buddy %s",pFriendsList->Name[N]);
-			DoCommand((PSPAWNINFO)pCharSpawn,szCommand);
-		}
+		sprintf(szCommand,";buddy %s",pChatService->GetFriendName(N));
+		DoCommand((PSPAWNINFO)pCharSpawn,szCommand);
 	}
 
 	// import "last seen" global

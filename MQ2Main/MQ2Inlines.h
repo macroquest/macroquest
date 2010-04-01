@@ -132,59 +132,64 @@ static inline DWORD GetBodyType(PSPAWNINFO pSpawn)
 
 static inline eSpawnType GetSpawnType(PSPAWNINFO pSpawn)
 {
-	switch(pSpawn->Type)
-	{
-	case SPAWN_PLAYER:
-		{
-			return PC;
-		}
-	case SPAWN_NPC:
-		if (strstr(pSpawn->Name,"s_Mount"))
-		{
-			return MOUNT;
-		}
-		if (pSpawn->MasterID)
-			return PET;
+    switch(pSpawn->Type)
+    {
+    case SPAWN_PLAYER:
+        {
+            return PC;
+        }
+    case SPAWN_NPC:
+        if (strstr(pSpawn->Name,"s_Mount"))
+        {
+            return MOUNT;
+        }
+        if (pSpawn->MasterID)
+            return PET;
 
-		switch(GetBodyType(pSpawn))
-		{
-		case 3:
-			return NPC;
-		case 11:
-			if (strstr(pSpawn->Name,"Aura") || strstr(pSpawn->Name,"Spirit Idol"))
-				return AURA;
-			return UNTARGETABLE;
-		case 21:
-			return NPC; 
-		case 23:
-			return NPC;
-		case 33:
-			return CHEST;
-		case 34:
-			return NPC;
-		//case 65:
-		//	return TRAP;
-		//case 66:
-		//	return TIMER;
-		//case 67:
-		//	return TRIGGER;
-		case 100:
-			return UNTARGETABLE;
-		case 101:
-			return TRIGGER;
-		case 102:
-			return TIMER;
-		case 103:
-			return TRAP;
-		default:
-			return NPC;
-		}
-		return NPC;
-	case SPAWN_CORPSE:
-		return CORPSE;
-	default:
-		return ITEM;
-	}
+        switch(GetBodyType(pSpawn))
+        {
+        case 3:
+            return NPC;
+
+        case 5:
+            if (strstr(pSpawn->Name,"Soul_Idol") || strstr(pSpawn->Name,"Spirit_Idol") || strstr(pSpawn->Name,"Fire_Rune") || strstr(pSpawn->Name,"Fiery_Rune") || strstr(pSpawn->Name,"Poison_Spikes") || strstr(pSpawn->Name,"Poison_Spurs"))
+                return AURA;
+            return NPC; 
+        case 11:
+            if (strstr(pSpawn->Name,"Aura") || strstr(pSpawn->Name,"Circle_of") || strstr(pSpawn->Name,"Guardian_Circle"))
+                return AURA;
+            return UNTARGETABLE;
+        case 21:
+            return NPC; 
+        case 23:
+            return NPC;
+        case 33:
+            return CHEST;
+        case 34:
+            return NPC;
+        //case 65:
+        //    return TRAP;
+        //case 66:
+        //    return TIMER;
+        //case 67:
+        //    return TRIGGER;
+        case 100:
+            return UNTARGETABLE;
+        case 101:
+            return TRIGGER;
+        case 102:
+            return TIMER;
+        case 103:
+            return TRAP;
+        default:
+            return NPC;
+        }
+        return NPC;
+    case SPAWN_CORPSE:
+        return CORPSE;
+    default:
+        return ITEM;
+    }
 }
 
 static inline FLOAT GetDistance(FLOAT X1,FLOAT Y1)

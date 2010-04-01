@@ -2084,6 +2084,9 @@ bool MQ2CharacterType::GETMEMBER()
 		} else Dest.DWord = 15; 
 		if(GetAAIndexByName("Embrace of the Dark Reign")) Dest.DWord++;
 		if(GetAAIndexByName("Embrace of the Keepers")) Dest.DWord++; 
+                if(GetCharInfo()->pSpawn->Level > 71) Dest.DWord++;
+                if(GetCharInfo()->pSpawn->Level > 74) Dest.DWord++;
+
 		for (nBuff=0 ; nBuff<25 ; nBuff++) 
 		{ 
 			if (GetCharInfo2()->Buff[nBuff].SpellID>0) 
@@ -2907,6 +2910,7 @@ bool MQ2CharacterType::GETMEMBER()
 				return true;
 			}
 		}
+                return false;
 	case LAMarkNPC:
 		Dest.DWord=GetCharInfo()->ActiveAbilities.MarkNPC;
 		Dest.Type=pIntType;

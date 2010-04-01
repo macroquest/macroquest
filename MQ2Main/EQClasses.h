@@ -7029,5 +7029,12 @@ EQLIB_OBJECT unsigned long CSkillMgr::GetBaseDamage(int);
 EQLIB_OBJECT unsigned long CSkillMgr::GetReuseTime(int);
 };
 
+class CChatService
+{
+public:
+EQLIB_OBJECT int CChatService::GetNumberOfFriends(void);
+EQLIB_OBJECT char * CChatService::GetFriendName(int);
+};
+
 };
 using namespace EQClasses;

@@ -1,5 +1,5 @@
-22 September 2006 by dkaa
-- fix for gbInZone
+23 September 2006 by dkaa, ieatacid
+- fix for gbInZone, Me.FreeBuffSlots, AA-related stuff, MQ2EQIM compile errors
 
 19 September 2006 by ieatacid
 - Updated for Serpent's Spine expansion release. Many new changes - the important stuff is listed below

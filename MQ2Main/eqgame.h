@@ -297,6 +297,10 @@
 #define CChatManager__GetRGBAFromIndex                             0x540090
 #define CChatManager__InitContextMenu                              0x540820
 
+// CChatService
+#define CChatService__GetNumberOfFriends                      0x60F1C0
+#define CChatService__GetFriendName                           0x60F1D0
+
 // CChatWindow
 #define CChatWindow__CChatWindow                                   0x544950
 
