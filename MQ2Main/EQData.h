@@ -359,7 +359,7 @@ enum MOUSE_DATA_TYPES {
    MD_Button1
 };
 
-#define nEQMappableCommands				0x10b
+#define nEQMappableCommands				0x10d
 
 
 // ***************************************************************************
@@ -706,43 +706,43 @@ typedef struct _CHARINFO {
 /* 0xc408 */   DWORD      DamageShieldBonus;
 /* 0xc40c */   DWORD      AttackSpeed;
 /* 0xc410 */   DWORD      Unknown0xc410;
-/* 0xc414 */   BYTE       Unknown0xc414[0x1c];
-/* 0xc430 */   _CONTENTS  *ActiveGuildTribute[0xc];
-/* 0xc460 */   struct     _CI2_INFO* pCI2;
-/* 0xc464 */   DWORD      Unknown0xc464;
-/* 0xc468 */   BYTE       languages[0x20];
-/* 0xc488 */   BYTE       Unknown0xc488[0x10];
-/* 0xc498 */   CHAR       Name[0x40];
-/* 0xc4d8 */   CHAR       Lastname[0x20];
-/* 0xc4f8 */   BYTE       Unknown0xc4f8[0x60];
-/* 0xc558 */   BYTE       Stunned;
-/* 0xc559 */   BYTE       Unknown0xc559[0x3];
-/* 0xc55c */   WORD       zoneId;
-/* 0xc55e */   WORD       instance;
-/* 0xc560 */   DWORD      standstate;
-/* 0xc564 */   BYTE       Unknown0xc564[0x24];
-/* 0xc588 */   DWORD      BankSharedPlat;
-/* 0xc58c */   DWORD      BankSharedGold;
-/* 0xc590 */   DWORD      BankSharedSilver;
-/* 0xc594 */   DWORD      BankSharedCopper;
-/* 0xc598 */   DWORD      BankPlat;
-/* 0xc59c */   DWORD      BankGold;
-/* 0xc5a0 */   DWORD      BankSilver;
-/* 0xc5a4 */   DWORD      BankCopper;
-/* 0xc5a8 */   DWORD      STR;
-/* 0xc5ac */   DWORD      STA;
-/* 0xc5b0 */   DWORD      CHA;
-/* 0xc5b4 */   DWORD      DEX;
-/* 0xc5b8 */   DWORD      INT;
-/* 0xc5bc */   DWORD      AGI;
-/* 0xc5c0 */   DWORD      WIS;
-/* 0xc5c4 */   DWORD      SavePoison;
-/* 0xc5c8 */   DWORD      SaveMagic;
-/* 0xc5cc */   DWORD      SaveDisease;
-/* 0xc5d0 */   DWORD      SaveFire;
-/* 0xc5d4 */   DWORD      SaveCold;
-/* 0xc5d8 */   DWORD      Unknown0xc5d8[0x78];
-/* 0xc660 */
+/* 0xc414 */   BYTE       Unknown0xc414[0x84];
+/* 0xc4   */   _CONTENTS  *ActiveGuildTribute[0xc];
+/* 0xc4   */   struct     _CI2_INFO* pCI2;
+/* 0xc4   */   DWORD      Unknown0xc464;
+/* 0xc4   */   BYTE       languages[0x20];
+/* 0xc4   */   BYTE       Unknown0xc488[0x10];
+/* 0xc4   */   CHAR       Name[0x40];
+/* 0xc4   */   CHAR       Lastname[0x20];
+/* 0xc4   */   BYTE       Unknown0xc4f8[0x60];
+/* 0xc5   */   BYTE       Stunned;
+/* 0xc5   */   BYTE       Unknown0xc559[0x3];
+/* 0xc5   */   WORD       zoneId;
+/* 0xc5   */   WORD       instance;
+/* 0xc5   */   DWORD      standstate;
+/* 0xc5   */   BYTE       Unknown0xc564[0x24];
+/* 0xc5   */   DWORD      BankSharedPlat;
+/* 0xc5   */   DWORD      BankSharedGold;
+/* 0xc5   */   DWORD      BankSharedSilver;
+/* 0xc5   */   DWORD      BankSharedCopper;
+/* 0xc5   */   DWORD      BankPlat;
+/* 0xc5   */   DWORD      BankGold;
+/* 0xc5   */   DWORD      BankSilver;
+/* 0xc5   */   DWORD      BankCopper;
+/* 0xc5   */   DWORD      STR;
+/* 0xc5   */   DWORD      STA;
+/* 0xc5   */   DWORD      CHA;
+/* 0xc5   */   DWORD      DEX;
+/* 0xc5   */   DWORD      INT;
+/* 0xc5   */   DWORD      AGI;
+/* 0xc5   */   DWORD      WIS;
+/* 0xc5   */   DWORD      SavePoison;
+/* 0xc5   */   DWORD      SaveMagic;
+/* 0xc5   */   DWORD      SaveDisease;
+/* 0xc5   */   DWORD      SaveFire;
+/* 0xc5   */   DWORD      SaveCold;
+/* 0xc5   */   DWORD      Unknown0xc5d8[0x78];
+/* 0xc6   */
 } CHARINFO, *PCHARINFO;
 
 

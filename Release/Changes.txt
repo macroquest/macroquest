@@ -1,3 +1,6 @@
+18 Jan 2006 by rswiders
+- Updated for 01/18 patch
+
 05 Jan 2006 by dkaa
 - Fixed the crash on re-entering the game
 
