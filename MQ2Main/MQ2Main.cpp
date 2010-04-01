@@ -314,8 +314,8 @@ void __cdecl MQ2Shutdown()
 	DebugTry(ShutdownChatHook());
 #ifndef ISXEQ
 	DebugTry(ShutdownMQ2Pulse());
-#endif
 	DebugTry(ShutdownMQ2Plugins());
+#endif
 	DebugTry(ShutdownMQ2Windows());
 #ifndef ISXEQ
 	DebugTry(ShutdownParser());

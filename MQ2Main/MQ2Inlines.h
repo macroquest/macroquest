@@ -254,27 +254,27 @@ static inline PSPAWNINFO GetRaidMember(unsigned long N)
 {
 	if (N>=72)
 		return 0;
-	PEQRAIDMEMBER pRaidMember=&pRaid->RaidMember[N];
-	if (!pRaidMember)
-		return 0;
-	return SpawnByName[pRaidMember->Name];
+	PEQRAIDMEMBER pRaidMember=&pRaid->RaidMember[N];
+	if (!pRaidMember)
+		return 0;
+	return SpawnByName[pRaidMember->Name];
 }
 
 static inline PSPAWNINFO GetGroupMember(unsigned long N)
 {
-	if (N>5)
-		return false;
-	for (unsigned long i=0; i<5 ; i++)
-	{
-		if (pGroup->MemberExists[i])
-		{
-			N--;
-			if (N==0)
-			{
-				return pGroup->pMember[i];
-			}
-		}
-	}
+	if (N>5)
+		return false;
+	for (unsigned long i=0; i<5 ; i++)
+	{
+		if (pGroup->MemberExists[i])
+		{
+			N--;
+			if (N==0)
+			{
+				return pGroup->pMember[i];
+			}
+		}
+	}
 	return 0;
 }
 
