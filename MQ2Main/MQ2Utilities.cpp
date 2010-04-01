@@ -22,7 +22,7 @@
 #include "MQ2Main.h"
 
 
-
+#ifndef ISXEQ_LEGACY
 // ***************************************************************************
 // Function:    DebugSpew
 // Description: Outputs text to debugger, usage is same as printf ;)
@@ -97,6 +97,7 @@ EQLIB_API VOID DebugSpewNoFile(PCHAR szFormat, ...)
     OutputDebugString("\n");
 #endif
 }
+#endif
 
 VOID StrReplaceSection(PCHAR szInsert,DWORD Length,PCHAR szNewString)
 {
@@ -105,6 +106,7 @@ VOID StrReplaceSection(PCHAR szInsert,DWORD Length,PCHAR szNewString)
 	strncpy(szInsert,szNewString,NewLength);
 }
 
+#ifndef ISXEQ_LEGACY
 VOID ConvertCR(PCHAR Text)
 {// not super-efficient but this is only being called at initialization currently.
 	while (PCHAR Next=strstr(Text,"\\n"))
@@ -112,6 +114,7 @@ VOID ConvertCR(PCHAR Text)
 		StrReplaceSection(Next,2,"\n");
 	}
 }
+#endif
 
 VOID Flavorator(PCHAR szLine)
 {
@@ -237,6 +240,7 @@ VOID MQ2DataError(PCHAR szFormat, ...)
 }
 #endif
 
+#ifndef ISXEQ_LEGACY
 VOID FixStringTable()
 {
 	PEQSTRINGTABLE pTable=(PEQSTRINGTABLE)pStringTable;
@@ -254,6 +258,7 @@ VOID FixStringTable()
 		}
 	}
 }
+#endif
 
 #ifndef ISXEQ
 // ***************************************************************************
@@ -364,7 +369,7 @@ PSTR GetArg(PSTR szDest, PCSTR szSrc, DWORD dwNumber, BOOL LeaveQuotes, BOOL ToP
 
 
 
-
+#ifndef ISXEQ_LEGACY
 PCHAR GetEQPath(PCHAR szBuffer)
 {
     GetModuleFileName(NULL, szBuffer, MAX_STRING);
@@ -2914,6 +2919,8 @@ PCHAR DescribeKeyCombo(KeyCombo &Combo, PCHAR szDest)
 	return &szDest[0];	
 }
 
+#endif
+
 #ifndef ISXEQ
 BOOL LoadCfgFile(PCHAR Filename, BOOL Delayed)
 {
@@ -2951,6 +2958,7 @@ havecfgfile:
 }
 #endif
 
+#ifndef ISXEQ_LEGACY
 int FindInvSlotForContents(PCONTENTS pContents)
 {
 	DebugSpew("FindInvSlotForContents(0x%08X) (0x%08X)",pContents,pContents->Item);
@@ -4546,6 +4554,7 @@ BOOL SpawnMatchesSearch(PSEARCHSPAWN pSearchSpawn, PSPAWNINFO pChar, PSPAWNINFO 
 
 	return TRUE;
 }
+#endif
 
 #ifndef ISXEQ
 PCHAR ParseSearchSpawnArgs(PCHAR szArg, PCHAR szRest, PSEARCHSPAWN pSearchSpawn)
@@ -4753,6 +4762,7 @@ VOID ParseSearchSpawn(int BeginInclusive, int EndExclusive,char *argv[], SEARCHS
 }
 #endif
 
+#ifndef ISXEQ_LEGACY
 PALERT GetAlert(DWORD Id) {
     PALERTLIST pAlertList = gpAlertList;
     for (;pAlertList;pAlertList=pAlertList->pNext) {
@@ -4950,6 +4960,7 @@ PCHAR CleanupName(PCHAR szName, BOOL Article, BOOL ForWhoList)
     return szName;
 }
 
+#endif
 
 // ***************************************************************************
 // Function:    SuperWhoDisplay
@@ -5301,6 +5312,8 @@ VOID SuperWhoDisplay(PSPAWNINFO pChar, PSEARCHSPAWN pSearchSpawn, DWORD Color)
 	}
 }
 
+#ifndef ISXEQ_LEGACY
+
 DWORD WINAPI thrMsgBox(LPVOID lpParameter)
 {
     MessageBox(NULL,(PCHAR)lpParameter,"MacroQuest",MB_OK);
@@ -5513,3 +5526,5 @@ bool BuffStackTest(PSPELL aSpell, PSPELL bSpell){
     }      
     return true;
 } 
+
+#endif

@@ -293,20 +293,24 @@ void Heartbeat()
 		}
 	}
 	DebugTry(UpdateMQ2SpawnSort());
+#ifndef ISXEQ_LEGACY
 	DebugTry(DrawHUD());
 	if (gGameState==GAMESTATE_INGAME && !bMouseLook && ScreenMode==3)
 	{
 		DebugTry(pWndMgr->DrawCursor());
 	}
+#endif
 
     bRunNextCommand   = TRUE;
 	DebugTry(Pulse());
+#ifndef ISXEQ_LEGACY
     DebugTry(Benchmark(bmPluginsPulse,DebugTry(PulsePlugins())));
 	if (HMODULE hmEQPlayNice=GetModuleHandle("EQPlayNice.dll"))
 	{
 		if (fMQPulse pEQPlayNicePulse=(fMQPulse)GetProcAddress(hmEQPlayNice,"Compat_ProcessFrame"))
 			pEQPlayNicePulse();
 	}
+#endif
 	DebugTry(ProcessPendingGroundItems());
 
 
@@ -335,6 +339,7 @@ void Heartbeat()
 	DoTimedCommands();
 }
 
+#ifndef ISXEQ_LEGACY
 // *************************************************************************** 
 // Function:    ProcessGameEvents 
 // Description: Our ProcessGameEvents Hook
@@ -384,4 +389,5 @@ void ShutdownMQ2Pulse()
 	RemoveDetour((DWORD)CEverQuest__EnterZone);
 	RemoveDetour((DWORD)CEverQuest__SetGameState);
 }
+#endif
 #endif

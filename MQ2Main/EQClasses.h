@@ -5346,6 +5346,10 @@ EQLIB_OBJECT int EQ_Character1::Cur_HP(int);
 EQLIB_OBJECT unsigned char EQ_Character1::CastSpell(unsigned char,int,class EQ_Item * *,int,int slot,int,int,int); 
 EQLIB_OBJECT int const EQ_Character1::GetAACastingTimeModifier(class EQ_Spell const *);
 EQLIB_OBJECT int const EQ_Character1::GetFocusCastingTimeModifier(class EQ_Spell const *,class EQ_Equipment * *);
+EQLIB_OBJECT void EQ_Character1::StopSpellCast(unsigned char);
+EQLIB_OBJECT void EQ_Character1::StopSpellCast(unsigned char,int);
+EQLIB_OBJECT void EQ_Character1::StunMe(unsigned int,bool,int);
+EQLIB_OBJECT void EQ_Character1::UnStunMe(void);
 };
 
 class EQ_Character
@@ -5414,9 +5418,6 @@ EQLIB_OBJECT int EQ_Character::IsSpecialBazaarSpot(class EQPlayer *);
 EQLIB_OBJECT int EQ_Character::IsSpellcaster(void);
 EQLIB_OBJECT int EQ_Character::ItemSpellAffects(int);
 EQLIB_OBJECT int EQ_Character::max_encumbrance(void);
-//EQLIB_OBJECT int EQ_Character::Max_HP(int);
-//EQLIB_OBJECT int EQ_Character::Max_Mana(void);
-//EQLIB_OBJECT int EQ_Character::Max_Endurance(void); // lax 4-25-2004
 EQLIB_OBJECT int EQ_Character::NoBashMe(int);
 EQLIB_OBJECT int EQ_Character::NoMezMe(int,class EQPlayer *,class EQ_Spell *);
 EQLIB_OBJECT int EQ_Character::offense(unsigned char);
@@ -5503,10 +5504,6 @@ EQLIB_OBJECT void EQ_Character::RemovePCAffect(class EQ_Affect *);
 EQLIB_OBJECT void EQ_Character::RemovePCAffectex(class EQ_Affect *,int);
 EQLIB_OBJECT void EQ_Character::ResetCur_HP(int);
 EQLIB_OBJECT void EQ_Character::SetEffectId(unsigned char,unsigned int);
-EQLIB_OBJECT void EQ_Character::StopSpellCast(unsigned char);
-EQLIB_OBJECT void EQ_Character::StopSpellCast(unsigned char,int);
-EQLIB_OBJECT void EQ_Character::StunMe(unsigned int,bool);
-EQLIB_OBJECT void EQ_Character::UnStunMe(void);
 EQLIB_OBJECT void EQ_Character::UpdateMyVisibleStatus(void);
 EQLIB_OBJECT void EQ_Character::UseSkill(unsigned char,class EQPlayer *);
 EQLIB_OBJECT void EQ_Character::DoCombatAbility(int spellID); 

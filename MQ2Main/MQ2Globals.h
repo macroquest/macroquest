@@ -35,8 +35,8 @@ EQLIB_API DWORD bmEndZone;
 /* OTHER */
 
 #ifndef ISXEQ
-EQLIB_VAR PDATAVAR pGlobalVariables;
-EQLIB_VAR PDATAVAR pMacroVariables;
+LEGACY_VAR PDATAVAR pGlobalVariables;
+LEGACY_VAR PDATAVAR pMacroVariables;
 #endif
 
 EQLIB_VAR BOOL bAllErrorsFatal;
@@ -63,11 +63,11 @@ EQLIB_VAR BOOL gbEQWLoaded;
 EQLIB_VAR BOOL gbUnload;
 EQLIB_VAR DWORD gpHook;
 #ifndef ISXEQ
-EQLIB_VAR PMACROBLOCK gMacroBlock;
-EQLIB_VAR PMACROSTACK gMacroStack;
-EQLIB_VAR map<string,PMACROBLOCK> gMacroSubLookupMap; 
-EQLIB_VAR PEVENTQUEUE gEventQueue;
-EQLIB_VAR PMACROBLOCK gEventFunc[NUM_EVENTS];
+LEGACY_VAR PMACROBLOCK gMacroBlock;
+LEGACY_VAR PMACROSTACK gMacroStack;
+LEGACY_VAR map<string,PMACROBLOCK> gMacroSubLookupMap; 
+LEGACY_VAR PEVENTQUEUE gEventQueue;
+LEGACY_VAR PMACROBLOCK gEventFunc[NUM_EVENTS];
 #endif
 EQLIB_VAR UCHAR gLastFind;
 EQLIB_VAR BOOL gInClick;
@@ -135,12 +135,12 @@ EQLIB_VAR DOUBLE PI;
 #define ZoneShift			 0
 
 #ifndef ISXEQ
-EQLIB_VAR Blech *pMQ2Blech;
-EQLIB_VAR CHAR EventMsg[MAX_STRING];
+LEGACY_VAR Blech *pMQ2Blech;
+LEGACY_VAR CHAR EventMsg[MAX_STRING];
 #ifdef USEBLECHEVENTS
-EQLIB_VAR Blech *pEventBlech;
+LEGACY_VAR Blech *pEventBlech;
 #endif
-EQLIB_VAR PEVENTLIST pEventList;
+LEGACY_VAR PEVENTLIST pEventList;
 #endif
 
 //EQLIB_VAR PKEYPRESS gKeyStack;

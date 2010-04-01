@@ -29,15 +29,15 @@
 // spawn count
 
 #ifndef ISXEQ
-EQLIB_VAR class MQ2FloatType *pFloatType;
-EQLIB_VAR class MQ2StringType *pStringType;
-EQLIB_VAR class MQ2IntType *pIntType;
-EQLIB_VAR class MQ2ByteType *pByteType;
-EQLIB_VAR class MQ2BoolType *pBoolType;
-EQLIB_VAR class MQ2TimeType *pTimeType;
-EQLIB_VAR class MQ2MathType *pMathType;
-EQLIB_VAR class MQ2MacroType *pMacroType;
-EQLIB_VAR class MQ2PluginType *pPluginType;
+LEGACY_API class MQ2FloatType *pFloatType;
+LEGACY_API class MQ2StringType *pStringType;
+LEGACY_API class MQ2IntType *pIntType;
+LEGACY_API class MQ2ByteType *pByteType;
+LEGACY_API class MQ2BoolType *pBoolType;
+LEGACY_API class MQ2TimeType *pTimeType;
+LEGACY_API class MQ2MathType *pMathType;
+LEGACY_API class MQ2MacroType *pMacroType;
+LEGACY_API class MQ2PluginType *pPluginType;
 
 #define pIntPtrType pIntType
 #define pBytePtrType pByteType
@@ -60,46 +60,46 @@ EQLIB_VAR class MQ2PluginType *pPluginType;
 #define Argb RGB
 #define MQ2VARPTR LSVARPTR
 #endif
-EQLIB_VAR class MQ2SpawnType *pSpawnType;
-EQLIB_VAR class MQ2CharacterType *pCharacterType;
-EQLIB_VAR class MQ2BuffType *pBuffType;
-EQLIB_VAR class MQ2SpellType *pSpellType;
-EQLIB_VAR class MQ2TicksType *pTicksType;
+LEGACY_VAR class MQ2SpawnType *pSpawnType;
+LEGACY_VAR class MQ2CharacterType *pCharacterType;
+LEGACY_VAR class MQ2BuffType *pBuffType;
+LEGACY_VAR class MQ2SpellType *pSpellType;
+LEGACY_VAR class MQ2TicksType *pTicksType;
 
-EQLIB_VAR class MQ2SkillType *pSkillType;
-EQLIB_VAR class MQ2AltAbilityType *pAltAbilityType;
+LEGACY_VAR class MQ2SkillType *pSkillType;
+LEGACY_VAR class MQ2AltAbilityType *pAltAbilityType;
 
-EQLIB_VAR class MQ2ClassType *pClassType;
-EQLIB_VAR class MQ2RaceType *pRaceType;
-EQLIB_VAR class MQ2BodyType *pBodyType;
+LEGACY_VAR class MQ2ClassType *pClassType;
+LEGACY_VAR class MQ2RaceType *pRaceType;
+LEGACY_VAR class MQ2BodyType *pBodyType;
 
-EQLIB_VAR class MQ2GroundType *pGroundType;
-EQLIB_VAR class MQ2SwitchType *pSwitchType;
+LEGACY_VAR class MQ2GroundType *pGroundType;
+LEGACY_VAR class MQ2SwitchType *pSwitchType;
 
-EQLIB_VAR class MQ2MacroQuestType *pMacroQuestType;
+LEGACY_VAR class MQ2MacroQuestType *pMacroQuestType;
 
-EQLIB_VAR class MQ2CorpseType *pCorpseType;
-EQLIB_VAR class MQ2WindowType *pWindowType;
-EQLIB_VAR class MQ2MerchantType *pMerchantType;
-EQLIB_VAR class MQ2ZoneType *pZoneType;
-EQLIB_VAR class MQ2CurrentZoneType *pCurrentZoneType;
-EQLIB_VAR class MQ2ItemType *pItemType;
-EQLIB_VAR class MQ2DeityType *pDeityType;
-EQLIB_VAR class MQ2ArgbType *pArgbType;
-EQLIB_VAR class MQ2TypeType *pTypeType;
+LEGACY_VAR class MQ2CorpseType *pCorpseType;
+LEGACY_VAR class MQ2WindowType *pWindowType;
+LEGACY_VAR class MQ2MerchantType *pMerchantType;
+LEGACY_VAR class MQ2ZoneType *pZoneType;
+LEGACY_VAR class MQ2CurrentZoneType *pCurrentZoneType;
+LEGACY_VAR class MQ2ItemType *pItemType;
+LEGACY_VAR class MQ2DeityType *pDeityType;
+LEGACY_VAR class MQ2ArgbType *pArgbType;
+LEGACY_VAR class MQ2TypeType *pTypeType;
 
-EQLIB_VAR class MQ2HeadingType *pHeadingType;
+LEGACY_VAR class MQ2HeadingType *pHeadingType;
 
-EQLIB_VAR class MQ2InvSlotType *pInvSlotType;
+LEGACY_VAR class MQ2InvSlotType *pInvSlotType;
 
-EQLIB_VAR class MQ2ArrayType *pArrayType;
-EQLIB_VAR class MQ2TimerType *pTimerType;
+LEGACY_VAR class MQ2ArrayType *pArrayType;
+LEGACY_VAR class MQ2TimerType *pTimerType;
 
-EQLIB_VAR class MQ2RaidType *pRaidType;
-EQLIB_VAR class MQ2RaidMemberType *pRaidMemberType;
+LEGACY_VAR class MQ2RaidType *pRaidType;
+LEGACY_VAR class MQ2RaidMemberType *pRaidMemberType;
 
-EQLIB_VAR class MQ2GroupType *pGroupType;
-EQLIB_VAR class MQ2GroupMemberType *pGroupMemberType;
+LEGACY_VAR class MQ2GroupType *pGroupType;
+LEGACY_VAR class MQ2GroupMemberType *pGroupMemberType;
 
 #define UseTemp(mystring) strcpy(DataTypeTemp,mystring)
 #define TypeMember(name) AddMember((DWORD)name,""#name)

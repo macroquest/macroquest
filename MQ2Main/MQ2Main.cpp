@@ -29,7 +29,7 @@ GNU General Public License for more details.
 #endif
 
 DWORD WINAPI MQ2Start(LPVOID lpParameter);
-#ifndef ISXEQ
+#if !defined(ISXEQ) && !defined(ISXEQ_LEGACY)
 
 BOOL APIENTRY DllMain( HANDLE hModule, 
                        DWORD  ul_reason_for_call, 
@@ -267,7 +267,7 @@ bool __cdecl MQ2Initialize()
     szEQMappableCommands[0x107]="UNKNOWN0x107";
     szEQMappableCommands[0x108]="UNKNOWN0x108";
     szEQMappableCommands[0x109]="UNKNOWN0x109";
-    szEQMappableCommands[0x10a]="UNKNOWN0x10a";
+    szEQMappableCommands[0x10a]="UNKNOWN0x10A";
 
 	for (nColorAdjective=0 ; szColorAdjective[nColorAdjective] ; nColorAdjective++){}
 	for (nColorAdjectiveYou=0 ; szColorAdjectiveYou[nColorAdjectiveYou] ; nColorAdjectiveYou++) {}
@@ -535,7 +535,7 @@ VOID InjectDisable()
 #ifdef __CastRay
 FUNCTION_AT_ADDRESS(int CastRay(PSPAWNINFO,float y,float x,float z),__CastRay);
 #endif
-#ifdef __FastTime
-FUNCTION_AT_ADDRESS(unsigned long  GetFastTime(void),__FastTime);
+#ifdef Util__FastTime
+FUNCTION_AT_ADDRESS(unsigned long  GetFastTime(void),Util__FastTime);
 #endif
 

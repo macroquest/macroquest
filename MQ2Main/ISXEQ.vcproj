@@ -122,6 +122,9 @@
 					RelativePath="MQ2CleanUI.cpp">
 				</File>
 				<File
+					RelativePath="MQ2Commands.cpp">
+				</File>
+				<File
 					RelativePath="MQ2Data.cpp">
 				</File>
 				<File
@@ -135,6 +138,9 @@
 				</File>
 				<File
 					RelativePath="MQ2KeyBinds.cpp">
+				</File>
+				<File
+					RelativePath="MQ2MacroCommands.cpp">
 				</File>
 				<File
 					RelativePath="MQ2Main.cpp">
@@ -158,6 +164,9 @@
 			Filter="h;hpp;hxx;hm;inl;inc">
 			<File
 				RelativePath="ISXEQ\ISXEQ.h">
+			</File>
+			<File
+				RelativePath="..\ISXEQClient.h">
 			</File>
 			<File
 				RelativePath="ISXEQ\ISXEQCommandList.h">

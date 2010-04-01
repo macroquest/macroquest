@@ -12,11 +12,11 @@ Sub Main
    /mqlog Head: ${Me.Inventory[head].Name}
    /mqlog Face: ${Me.Inventory[face].Name}
    /mqlog Neck: ${Me.Inventory[neck].Name}
-   /mqlog Earrings: ${Me.Inventory[rightear].Name}, $Me.Inventory[leftear].Name}
+   /mqlog Earrings: ${Me.Inventory[rightear].Name}, ${Me.Inventory[leftear].Name}
    /mqlog Arms: ${Me.Inventory[arms].Name}
    /mqlog Hands: ${Me.Inventory[hands].Name}
-   /mqlog Wrists: ${Me.Inventory[rightwrist].Name}, $Me.Inventory[leftwrist].Name}
-   /mqlog Fingers: ${Me.Inventory[rightfinger].Name}, $Me.Inventory[leftfinger].Name}
+   /mqlog Wrists: ${Me.Inventory[rightwrist].Name}, ${Me.Inventory[leftwrist].Name}
+   /mqlog Fingers: ${Me.Inventory[rightfinger].Name}, ${Me.Inventory[leftfinger].Name}
    /mqlog Shoulders: ${Me.Inventory[shoulder].Name}
    /mqlog Back: ${Me.Inventory[back].Name}
    /mqlog Chest: ${Me.Inventory[chest].Name}

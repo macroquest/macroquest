@@ -20,6 +20,7 @@
 //#define DEBUG_TRY 1
 #include "MQ2Main.h"
 
+#ifndef ISXEQ_LEGACY
 
 
 PMQGROUNDPENDING pPendingGrounds=0;
@@ -187,6 +188,7 @@ public:
 
 FUNCTION_AT_VIRTUAL_ADDRESS(bool CActorEx::CanSetName(DWORD),0x154);
 FUNCTION_AT_VIRTUAL_ADDRESS(void CActorEx::SetNameColor(DWORD &Color),0x144);
+#endif
 
 typedef struct _CAPTIONCOLOR {
 	PCHAR szName;
@@ -365,6 +367,7 @@ CAPTIONCOLOR CaptionColors[]=
 	},
 };
 
+#ifndef ISXEQ_LEGACY
 VOID SetNameSpriteTint(PSPAWNINFO pSpawn)
 {
 	if (!pSpawn->pActorInfo || !pSpawn->pActorInfo->pActorEx || !gMQCaptions)
@@ -696,6 +699,7 @@ VOID UpdateMQ2SpawnSort()
 		SetNameSpriteState((PSPAWNINFO)pTarget,true);
 	}
 }
+#endif
 
 #ifndef ISXEQ
 VOID CaptionColorCmd(PSPAWNINFO pChar, PCHAR szLine)

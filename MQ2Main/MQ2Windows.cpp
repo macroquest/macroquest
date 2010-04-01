@@ -159,6 +159,8 @@ int ItemNotify(int argc, char *argv[]);
 int ListItemSlots(int argc, char *argv[]); 
 #endif
 
+#ifndef ISXEQ_LEGACY
+
 void InitializeMQ2Windows()
 {
         int i;
@@ -480,7 +482,7 @@ CXWnd *FindMQ2Window(PCHAR WindowName)
 	return 0;
 }
 
-bool SendWndClick(CXWnd *pWnd, PCHAR ClickNotification)
+bool SendWndClick2(CXWnd *pWnd, PCHAR ClickNotification)
 {
 	if (!pWnd)
 		return false;
@@ -698,6 +700,7 @@ void RemoveWindow(char *WindowName)
 		}
 	}
 }
+#endif
 
 #ifndef ISXEQ
 #define RETURN(x) return;
@@ -841,7 +844,7 @@ int WndNotify(int argc, char *argv[])
       printf("%s syntax: %s <window|\"item\"> <control|0> <notification> [notification data]",argv[0],argv[0]);
       RETURN(0);
    }
-   if (argc>3)
+   if (argc>4)
       Data=atoi(argv[4]);
    CHAR *szArg1=argv[1];
    CHAR *szArg2=argv[2];
@@ -1016,7 +1019,7 @@ int ItemNotify(int argc, char *argv[])
 		RETURN(0);
 	}
 	DebugSpew("ItemNotify: Calling SendWndClick");
-	if (!SendWndClick((CXWnd*)((PEQINVSLOT)pSlot)->pInvSlotWnd,pNotification))
+	if (!SendWndClick2((CXWnd*)((PEQINVSLOT)pSlot)->pInvSlotWnd,pNotification))
 	{
 		WriteChatf("Could not send notification to %s %s",szArg1,szArg2);
 	}

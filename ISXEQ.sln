@@ -43,6 +43,8 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "ISXEQLabels", "MQ2Labels\IS
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "ISXEQTelnet", "mq2telnet\ISXEQTelnet.vcproj", "{180F862B-CCC9-43CD-823D-4AA8E0F9D820}"
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "ISXEQLegacy", "ISXEQLegacy\ISXEQLegacy.vcproj", "{4BFF15E4-0C88-4D8A-8F4C-7B3B8F4F790C}"
+EndProject
 Global
 	GlobalSection(SolutionConfiguration) = preSolution
 		ConfigName.0 = Debug
@@ -157,6 +159,10 @@ Global
 		{180F862B-CCC9-43CD-823D-4AA8E0F9D820}.Debug.Build.0 = Release|Win32
 		{180F862B-CCC9-43CD-823D-4AA8E0F9D820}.Release.ActiveCfg = Release|Win32
 		{180F862B-CCC9-43CD-823D-4AA8E0F9D820}.Release.Build.0 = Release|Win32
+		{4BFF15E4-0C88-4D8A-8F4C-7B3B8F4F790C}.Debug.ActiveCfg = Release|Win32
+		{4BFF15E4-0C88-4D8A-8F4C-7B3B8F4F790C}.Debug.Build.0 = Release|Win32
+		{4BFF15E4-0C88-4D8A-8F4C-7B3B8F4F790C}.Release.ActiveCfg = Release|Win32
+		{4BFF15E4-0C88-4D8A-8F4C-7B3B8F4F790C}.Release.Build.0 = Release|Win32
 	EndGlobalSection
 	GlobalSection(SolutionItems) = postSolution
 		Item:1 = Release\Changes.txt

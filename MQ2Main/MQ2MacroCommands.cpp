@@ -19,8 +19,11 @@
 
 #define DBG_SPEW
 
-
+#ifdef ISXEQ_LEGACY
+#include "../ISXEQLegacy/ISXEQLegacy.h"
+#else
 #include "MQ2Main.h"
+#endif
 
 /* VAR SYSTEM INDEPENDENT */
 // in-place cleanup of tabs, leading/trailing space
@@ -197,6 +200,9 @@ PMACROBLOCK AddMacroLine(PCHAR szLine)
             if (!stricmp(szLine,"guild")) gEventChat = gEventChat | CHAT_GUILD;
             if (!stricmp(szLine,"group")) gEventChat = gEventChat | CHAT_GROUP;
             if (!stricmp(szLine,"chat"))  gEventChat = gEventChat | CHAT_CHAT;
+        } else if (szLine[1]=='!') {
+			// Like: #!/usr/local/bin/LegacyMQ2
+			// ignore.
         } else {
 			MacroError("Unknown # command: %s",szLine);
             return FALSE;
@@ -268,10 +274,15 @@ VOID Macro(PSPAWNINFO pChar, PCHAR szLine)
     Params = GetNextArg(szLine);
 
     strcpy(gszMacroName,szTemp);
+#ifdef ISXEQ_LEGACY
+	strcpy(Filename,szTemp);
+	FILE *fMacro = fopen(szTemp,"rt");
+#else
     if (!strstr(szTemp,".")) strcat(szTemp,".mac");
     sprintf(Filename,"%s\\%s",gszMacroPath, szTemp);
 
     FILE *fMacro = fopen(Filename,"rt");
+#endif
     if (!fMacro) {
         FatalError("Couldn't open macro file: %s",Filename);
         gszMacroName[0]=0;
@@ -328,6 +339,15 @@ VOID Macro(PSPAWNINFO pChar, PCHAR szLine)
         gszMacroName[0]=0;
         gRunning = 0;
     }
+#ifdef ISXEQ_LEGACY
+	else
+	{
+		char ShortName[128];
+		ShortName[0]=0;
+		_splitpath(Filename,0,0,ShortName,0);
+		IS_ScriptEngineScriptBegins(pExtension,pISInterface,hScriptEngineService,&g_LegacyEngine,ShortName);
+	}
+#endif
 }
 
 // ***************************************************************************
@@ -581,6 +601,13 @@ VOID EndMacro(PSPAWNINFO pChar, PCHAR szLine)
     gDelay = 0;
     gTurbo = FALSE;
     pDoorTarget = NULL;
+#ifdef ISXEQ_LEGACY
+	char ShortName[128];
+	ShortName[0]=0;
+	_splitpath(gszMacroName,0,0,ShortName,0);
+	IS_ScriptEngineScriptEnds(pExtension,pISInterface,hScriptEngineService,&g_LegacyEngine,ShortName);
+#endif
+
     gszMacroName[0]=0;
     gRunning = 0;
 

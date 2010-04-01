@@ -603,7 +603,8 @@ VOID AddCustomEvent(PEVENTLIST pEList, PCHAR szLine)
 VOID CheckChatForEvent(PCHAR szMsg)
 {
 			strcpy(EventMsg,szMsg);
-			pMQ2Blech->Feed(szMsg);
+			if (pMQ2Blech)
+				pMQ2Blech->Feed(szMsg);
 			EventMsg[0]=0;
 		if ((gMacroBlock) && (!gMacroPause) && (!gbUnload) && (!gZoning)) { 
 			CHAR Arg1[MAX_STRING] = {0}; 

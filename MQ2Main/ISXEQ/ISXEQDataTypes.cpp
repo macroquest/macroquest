@@ -391,7 +391,7 @@ bool MQ2MerchantType::GETMETHOD()
 		return pSpawnType->GetMethod(Temp,Method,argc,argv);
 	}
 	// TODO
-//	Merchant((MerchantMethods)pMethod->ID)
+//	switch((MerchantMethods)pMethod->ID)
 //	{
 //	}
 	return false;
@@ -408,7 +408,7 @@ bool MQ2InvSlotType::GETMETHOD()
 		return false;
 	}
 	// TODO
-//	InvSlot((InvSlotMethods)pMethod->ID)
+//	switch((InvSlotMethods)pMethod->ID)
 //	{
 //	}
 	return false;
@@ -460,7 +460,7 @@ bool MQ2SkillType::GETMETHOD()
 		return false;
 	}
 	// TODO
-//	Skill((SkillMethods)pMethod->ID)
+//	switch((SkillMethods)pMethod->ID)
 //	{
 //	}
 	return false;
@@ -478,7 +478,7 @@ bool MQ2AltAbilityType::GETMETHOD()
 		return false;
 	}
 	// TODO
-//	AltAbility((AltAbilityMethods)pMethod->ID)
+//	switch((AltAbilityMethods)pMethod->ID)
 //	{
 //	}
 	return false;
@@ -495,7 +495,7 @@ bool MQ2RaidType::GETMETHOD()
 		return false;
 	}
 	// TODO
-//	Raid((RaidMethods)pMethod->ID)
+//	switch((RaidMethods)pMethod->ID)
 //	{
 //	}
 	return false;
@@ -518,7 +518,7 @@ bool MQ2RaidMemberType::GETMETHOD()
 		return pSpawnType->GetMethod(Temp,Method,argc,argv);
 	}
 	// TODO
-//	RaidMember((RaidMemberMethods)pMethod->ID)
+//	switch((RaidMemberMethods)pMethod->ID)
 //	{
 //	}
 	return false;

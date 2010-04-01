@@ -1,3 +1,11 @@
+15 November 2005 by Lax
+- Turned MacroQuest into swiss cheese with some more #ifdef blocks to support new ISXEQ functionality
+  that allows it to run legacy MQ2 "macros"
+
+11 November 2005 by dkaa
+- remove the ability to use "fake" targets (door & items)
+- added item timers to itemdisplay
+
 01 November 2005 by dkaa
 - updated offset for 11/01 patch
 - /caption <list|type <value>|update #|MQCaptions <on|off>>

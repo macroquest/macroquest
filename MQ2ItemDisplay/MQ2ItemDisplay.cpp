@@ -119,7 +119,7 @@ public:
       PEQITEMWINDOW This=(PEQITEMWINDOW)this;
       //PITEMINFO Item=*(PITEMINFO*)pitem;
       PCONTENTS item=(PCONTENTS)pitem;
-      PITEMINFO Item=(PITEMINFO)item->Item;
+      volatile PITEMINFO Item=(PITEMINFO)item->Item;
       CHAR out[MAX_STRING] = {0};
       CHAR temp[MAX_STRING] = {0};
       CHAR temp2[MAX_STRING] = {0};
@@ -130,39 +130,56 @@ public:
       memcpy(&g_Item, Item, sizeof(ITEMINFO));
 
       strcpy(out,"<BR><c \"#00FFFF\">");
-	 if (Item->Cost>0) {
-		  DWORD cp = Item->Cost;
-		  DWORD sp = cp/10; cp=cp%10;
-		  DWORD gp = sp/10; sp=sp%10;
-		  DWORD pp = gp/10; gp=gp%10;
-		  strcat(out,"Value:");
-		  if (pp>0) {
-			  sprintf(temp," %dpp",pp);
-			  strcat(out,temp);
-		  }
-		  if (gp>0) {
-			  sprintf(temp," %dgp",gp);
-			  strcat(out,temp);
-		  }
-		  if (sp>0) {
-			  sprintf(temp," %dsp",sp);
-			  strcat(out,temp);
-		  }
-		  if (cp>0) {
-			  sprintf(temp," %dcp",cp);
-			  strcat(out,temp);
-		  }
-		  strcat(out,"<BR>");
-	 }
+    if (Item->Cost>0) {
+        DWORD cp = Item->Cost;
+        DWORD sp = cp/10; cp=cp%10;
+        DWORD gp = sp/10; sp=sp%10;
+        DWORD pp = gp/10; gp=gp%10;
+        strcat(out,"Value:");
+        if (pp>0) {
+            sprintf(temp," %dpp",pp);
+            strcat(out,temp);
+        }
+        if (gp>0) {
+            sprintf(temp," %dgp",gp);
+            strcat(out,temp);
+        }
+        if (sp>0) {
+            sprintf(temp," %dsp",sp);
+            strcat(out,temp);
+        }
+        if (cp>0) {
+            sprintf(temp," %dcp",cp);
+            strcat(out,temp);
+        }
+        strcat(out,"<BR>");
+    }
 
-	 if ( Item->Favor > 0 ) {
-		 sprintf(temp,"Tribute Value: %d<br>", Item->Favor);
-		 strcat(out, temp);
-	 }
-     if (Item->GuildFavor > 0 )  { 
+    if ( Item->Favor > 0 ) {
+        sprintf(temp,"Tribute Value: %d<br>", Item->Favor);
+        strcat(out, temp);
+    }
+    if (Item->GuildFavor > 0 )  { 
         sprintf(temp,"Guild Tribute Value: %d<br>", Item->GuildFavor); 
         strcat(out, temp); 
-     } 
+    } 
+
+    if (Item->TimerID) {
+        int Secs = GetItemTimer(item);
+        if (!Secs) {
+            sprintf(temp,"Item Timer: <c \"#20FF20\">Ready</c><br>");
+        } else {
+            int Mins=(Secs/60)%60;
+            int Hrs=(Secs/3600);
+            Secs=Secs%60;
+            if (Hrs)
+                sprintf(temp,"Item Timer: %d:%02d:%02d<br>",Hrs,Mins,Secs);
+            else
+                sprintf(temp,"Item Timer: %d:%02d<br>",Mins,Secs);
+        }
+        strcat(out, temp);
+    } 
+
 	   //Outlaw (AKA CheckinThingsOut) (02/24/2005)
    if (Item->ItemType != 27) { //Arrows..they have dmg/dly but we don't want them
       if ( Item->Delay > 0) {
@@ -265,12 +282,14 @@ public:
      } 
 
 	 sprintf(temp,"%07d",Item->ItemNumber); 
+#ifndef ISXEQ
      GetPrivateProfileString("Notes",temp,"",temp2,MAX_STRING,INIFileName); 
      if (strlen(temp2)>0) 
      { 
         sprintf(temp,"Note: %s<br>",temp2); 
         strcat(out, temp); 
      }  
+#endif
 
      if (out[0]!=17) {
       strcat(out,"</c>");
@@ -642,6 +661,7 @@ bool ItemDisplayHook::bNoSpellTramp = false;
 DETOUR_TRAMPOLINE_EMPTY(VOID ItemDisplayHook::SetItem_Trampoline(class EQ_Item *,bool)); 
 DETOUR_TRAMPOLINE_EMPTY(VOID ItemDisplayHook::SetSpell_Trampoline(int SpellID,bool HasSpellDescr,int));
 
+#ifndef ISXEQ
 void Comment(PSPAWNINFO pChar, PCHAR szLine) 
 { 
    CHAR Arg[MAX_STRING] = {0}; 
@@ -685,7 +705,6 @@ void Comment(PSPAWNINFO pChar, PCHAR szLine)
 } 
  
 
-#ifndef ISXEQ
 // Called once, when the plugin is to initialize
 PLUGIN_API VOID InitializePlugin(VOID)
 {

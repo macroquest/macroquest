@@ -108,6 +108,8 @@ BOOL ParseMouseLoc(PCHARINFO pCharInfo, PCHAR szMouseLoc)
 	return FALSE;
 }
 #endif
+
+#ifndef ISXEQ_LEGACY
 VOID SendEQMessage(DWORD PacketType, PVOID pData, DWORD Length)
 {
 	if (!send_message || !EQADDR_GWORLD) 
@@ -154,6 +156,8 @@ BOOL IsMouseWaiting()
 	}
 	return Result;
 }
+#endif
+
 #ifndef ISXEQ
 
 VOID Click(PSPAWNINFO pChar, PCHAR szLine) { 

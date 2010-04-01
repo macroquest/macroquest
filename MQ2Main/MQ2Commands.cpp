@@ -16,6 +16,7 @@
 #error /DCINTERFACE
 #endif
 
+#ifndef ISXEQ
 #define DBG_SPEW 
 
 #include <direct.h>
@@ -212,7 +213,7 @@ VOID ItemTarget(PSPAWNINFO pChar, PCHAR szLine)
     if (EnviroTarget.Name[0]!=0) {
         sprintf(szBuffer,"Item '%s' targeted.",EnviroTarget.Name);
         WriteChatColor(szBuffer,USERCOLOR_DEFAULT);
-        if (stricmp(Arg2,"notarget") && ppTarget) pTarget = (EQPlayer*)&EnviroTarget;
+        if (stricmp(Arg2,"notarget") && ppTarget && 0) pTarget = (EQPlayer*)&EnviroTarget;
     } else {
         if (ppTarget && (pTarget == (EQPlayer*)&EnviroTarget))
             pTarget = NULL;
@@ -354,7 +355,7 @@ VOID DoorTarget(PSPAWNINFO pChar, PCHAR szLine)
    if (DoorEnviroTarget.Name[0]!=0) {
       sprintf(szBuffer,"Door %d '%s' targeted.", pDoorTarget->ID, DoorEnviroTarget.Name);
       WriteChatColor(szBuffer,USERCOLOR_DEFAULT);
-	  if (stricmp(Arg2,"notarget") && ppTarget) pTarget = (EQPlayer*)&DoorEnviroTarget;
+      if (stricmp(Arg2,"notarget") && ppTarget && 0) pTarget = (EQPlayer*)&DoorEnviroTarget;
    } else {
       if (ppTarget) pTarget = NULL;
       MacroError("Couldn't find door '%s' to target.",szLine);
@@ -1867,7 +1868,7 @@ VOID DoAbility(PSPAWNINFO pChar, PCHAR szLine)
             } 
          } 
         } 
-      if (Index >= 50) 
+      if (Index >= NUM_COMBAT_ABILITIES) 
          WriteChatColor("You do not seem to have that ability available",USERCOLOR_DEFAULT); 
     } 
 } 
@@ -2538,6 +2539,7 @@ VOID DisplayLoginName(PSPAWNINFO pChar, PCHAR szLine)
 	}
 }
 
+#ifndef ISXEQ_LEGACY
 // ***************************************************************************
 // Function:      PluginCommand
 // Description:   Our /plugin command.
@@ -2598,6 +2600,7 @@ VOID PluginCommand(PSPAWNINFO pChar, PCHAR szLine)
       } 
     } 
 }
+#endif
 
 VOID EQDestroyHeldItemOrMoney(PSPAWNINFO pChar, PCHAR szLine)
 {
@@ -3259,3 +3262,4 @@ VOID Echo(PSPAWNINFO pChar, PCHAR szLine)
     WriteChatColor(szEcho,USERCOLOR_CHAT_CHANNEL);
 
 }
+#endif

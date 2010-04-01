@@ -33,4 +33,8 @@ COMMAND("NoModKey",CMD_EQModKey,true,false);
 COMMAND("ctrl",CMD_EQModKey,true,false);
 COMMAND("alt",CMD_EQModKey,true,false);
 COMMAND("shift",CMD_EQModKey,true,false); 
+COMMAND("destroy",CMD_EQDestroy,true,false);
+COMMAND("face",CMD_EQFace,true,false);
+COMMAND("look",CMD_EQLook,true,false);
+COMMAND("items",CMD_EQItems,true,false); 
 //COMMAND("EQAlias",CMD_EQAlias,true,false); // deprecated

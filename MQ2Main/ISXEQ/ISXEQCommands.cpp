@@ -132,11 +132,24 @@ int CMD_Keypress(int argc, char *argv[])
 
 int CMD_Who(int argc, char *argv[])
 {   
+  if (!cmdWho)
+  {
+     PCMDLIST pCmdListOrig = (PCMDLIST)EQADDR_CMDLIST;
+     for (int i=0;pCmdListOrig[i].fAddress != 0;i++) {
+        if (!strcmp(pCmdListOrig[i].szName,"/who")) {
+           cmdWho = (fEQCommand)pCmdListOrig[i].fAddress;
+        }
+     }
+  }
+  if (!cmdWho) return -1;
+
 	for (int i = 1 ; i < argc ; i++)
 	{
 		if (!stricmp(argv[i],"all"))
 		{
-			cmdWho((PSPAWNINFO)pLocalPlayer, argv[1]);
+                      CHAR szRest[MAX_STRING] = {0};
+                      pISInterface->GetArgs(1,argc,argv,szRest);
+                      cmdWho((PSPAWNINFO)pLocalPlayer, szRest);
 			return 0;
 		}
 	}
@@ -552,7 +565,7 @@ int CMD_CastSpell(int argc, char* argv[])
             } 
       } 
       if (FOUND) { 
-         pCharData->CastSpell(10,0,(EQ_Item**)item,0,slot,-1,0,0); 
+         pCharData1->CastSpell(10,0,(EQ_Item**)item,0,slot,-1,0,0); 
          return 0; 
       } 
    } 
@@ -741,4 +754,212 @@ int CMD_EQModKey(int argc, char *argv[])
 	pISInterface->ExecuteCommand(chCommand);
 	*(DWORD*)&((PCXWNDMGR)pWndMgr)->KeyboardFlags=*(DWORD*)&KeyboardFlags;
 	return 0;
+} 
+int CMD_EQDestroy(int argc, char *argv[])
+{
+   (pPCData)->DestroyHeldItemOrMoney();
+   return 0;
+}
+
+
+int CMD_EQFace(int argc, char *argv[])
+{
+//VOID Face(PSPAWNINFO pChar, PCHAR szLine)
+//{
+    if (!ppSpawnList) return 0;
+    if (!pSpawnList) return 0;
+    PSPAWNINFO pSpawnClosest = NULL;
+    PSPAWNINFO psTarget = NULL;
+    SPAWNINFO LocSpawn = {0};
+   PSPAWNINFO pChar = (PSPAWNINFO)pLocalPlayer;
+    SEARCHSPAWN SearchSpawn;
+    ClearSearchSpawn(&SearchSpawn);
+    CHAR szMsg[MAX_STRING] = {0};
+    CHAR szName[MAX_STRING] = {0};
+    CHAR szArg[MAX_STRING] = {0};
+   PCHAR pszArg = NULL;
+    BOOL bArg = TRUE;
+    BOOL bOtherArgs = FALSE;
+    BOOL Away = FALSE;
+    BOOL Predict = FALSE;
+    BOOL Fast = FALSE;
+    BOOL Look = TRUE;
+    BOOL Parsing = TRUE;
+    DOUBLE Distance;
+
+   for(int qq=0; qq<argc; qq++)
+   {
+      if (!strcmp(argv[qq],"predict")) {
+         Predict=TRUE;
+      } else if (!strcmp(argv[qq],"fast")) {
+         Fast = TRUE;
+      } else if (!strcmp(argv[qq],"away")) {
+         Away = TRUE;
+      } else if (!strcmp(argv[qq],"nolook")) {
+         Look = FALSE;
+      } else if (!strnicmp(argv[qq], "loc", 3)) {
+         pSpawnClosest = &LocSpawn;
+         strcpy(LocSpawn.Name,"location");
+         if (((++qq)<argc) && strstr(argv[qq],","))
+         {
+             pSpawnClosest->Y = (FLOAT)atof(argv[qq]);
+            pszArg = strstr(argv[qq],",")+1;
+              pSpawnClosest->X = (FLOAT)atof(pszArg);
+         }
+      } else if (!stricmp(argv[qq], "item")) {
+         if (EnviroTarget.Name[0]==0) {
+            printf("%s: item specified but no item targetted.", argv[0]);
+            return 0;
+         }
+         pSpawnClosest = &EnviroTarget;
+      } else if (!stricmp(argv[qq], "door")) {
+         if (DoorEnviroTarget.Name[0]==0) {
+            printf("%s: door specified but no door targetted.",argv[0]);
+            return 0;
+         }
+         pSpawnClosest = &DoorEnviroTarget;
+      } else if (!stricmp(argv[qq], "heading")) {
+         if ((++qq)<argc)
+         {
+            FLOAT Heading = (FLOAT)(atof(argv[qq]));
+            gFaceAngle = Heading/0.703125f;
+            if (gFaceAngle>=512.0f) gFaceAngle -= 512.0f;
+            if (gFaceAngle<0.0f) gFaceAngle += 512.0f;
+            if (Fast) {
+               ((PSPAWNINFO)pCharSpawn)->Heading = (FLOAT)gFaceAngle;
+               gFaceAngle=10000.0f;
+            }
+         }
+         return 0;
+      } else if (!strcmp(szArg,"help")) {
+         printf("Usage: %s [spawn] [item] [door] [id #] [heading <ang>] [loc <y>,<x>] [away] [alert #]",argv[0]);
+         return 0;
+      } else {
+         bOtherArgs = TRUE;
+         qq+=ParseSearchSpawnArg(qq,argc,argv,SearchSpawn);
+//         szFilter = ParseSearchSpawnArgs(szArg,szFilter,&SearchSpawn);
+      }
+   }
+
+   if (!pSpawnClosest) {
+      if (!bOtherArgs) {
+         if (ppTarget && pTarget) {
+            pSpawnClosest = (PSPAWNINFO)pTarget;
+         }
+      } else {
+         pSpawnClosest = SearchThroughSpawns(&SearchSpawn,pChar);
+      }
+   }
+
+   szMsg[0]=0;
+
+   if (!pSpawnClosest) {
+      printf("There were no matches for: %s",FormatSearchSpawn(szArg,&SearchSpawn));
+   } else {
+      if (Predict) {
+         Distance = DistanceToSpawn(pChar, pSpawnClosest);
+         gFaceAngle = (
+            atan2((pSpawnClosest->X + (pSpawnClosest->SpeedX * Distance)) - pChar->X,
+            (pSpawnClosest->Y + (pSpawnClosest->SpeedY * Distance)) - pChar->Y)
+            * 256.0f / PI);
+      } else {
+         gFaceAngle = (
+            atan2(pSpawnClosest->X - pChar->X,
+            pSpawnClosest->Y - pChar->Y)
+            * 256.0f / PI);
+      }
+      if (Look) {
+         Distance = DistanceToSpawn(pChar, pSpawnClosest);
+         gLookAngle = (
+            atan2(pSpawnClosest->Z + pSpawnClosest->AvatarHeight*StateHeightMultiplier(pSpawnClosest->StandState) - pChar->Z - pChar->AvatarHeight*StateHeightMultiplier(pChar->StandState),
+            (FLOAT)Distance)
+            * 256.0f / PI);
+         if (Away) gLookAngle = -gLookAngle;
+         if (Fast) {
+            pChar->CameraAngle = (FLOAT)gLookAngle;
+            gLookAngle=10000.0f;
+         }
+      }
+      if (Away) {
+         gFaceAngle += 256.0f;
+      }
+      if (gFaceAngle>=512.0f) gFaceAngle -= 512.0f;
+      if (gFaceAngle<0.0f) gFaceAngle += 512.0f;
+      if (Fast) {
+         ((PSPAWNINFO)pCharSpawn)->Heading = (FLOAT)gFaceAngle;
+         gFaceAngle=10000.0f;
+      }
+      sprintf(szMsg,"Facing %s'%s'...",(Away)?"away from ":"", CleanupName(strcpy(szName,pSpawnClosest->Name),FALSE));
+   }
+   if (ppTarget && pTarget) {
+      psTarget = (PSPAWNINFO)pTarget;
+   }
+   if (szMsg[0] && ((pSpawnClosest != &LocSpawn) && ((Away) || (pSpawnClosest != psTarget)))) WriteChatColor(szMsg,USERCOLOR_WHO);
+   DebugSpew("Face - %s",szMsg);
+   return 0;
+}
+
+
+// ***************************************************************************
+// Function:      Look
+// Description:      Our /look command. Changes camera angle
+// 2003-08-30      MacroFiend
+// ***************************************************************************
+int CMD_EQLook(int argc, char *argv[])
+{
+   FLOAT fLookAngle=0.0f;
+   PSPAWNINFO pChar = (PSPAWNINFO)pLocalPlayer;
+   if (argc < 2)
+      return 0;
+   fLookAngle = (FLOAT)atof(argv[1]);
+
+   if (fLookAngle>128.0f || fLookAngle<-128.0f) {
+      printf("%s -- Angle %f out of range.",argv[0],fLookAngle);
+      return 0;
+   }
+
+   pChar->CameraAngle = fLookAngle;
+   gLookAngle = 10000.0f;
+   return 0;
+}
+
+int CMD_EQItems(int argc, char *argv[])
+{
+    if (!ppItemList) return 0;
+    if (!pItemList) return 0;
+   PSPAWNINFO pChar = (PSPAWNINFO)pLocalPlayer;
+    PGROUNDITEM pItem = (PGROUNDITEM)pItemList;
+    DWORD Count=0;
+    CHAR szBuffer[MAX_STRING] = {0};
+   CHAR szName[MAX_STRING]={0};
+    WriteChatColor("Items on the ground:", USERCOLOR_DEFAULT);
+    WriteChatColor("---------------------------", USERCOLOR_DEFAULT);
+    while (pItem) {
+        GetFriendlyNameForGroundItem(pItem,szName);
+
+        if ((argc==1) || (!strnicmp(szName,argv[1],strlen(argv[1])))) {
+            SPAWNINFO TempSpawn;
+            FLOAT Distance;
+            ZeroMemory(&TempSpawn,sizeof(TempSpawn));
+            strcpy(TempSpawn.Name,szName);
+            TempSpawn.Y=pItem->Y;
+            TempSpawn.X=pItem->X;
+            TempSpawn.Z=pItem->Z;
+            Distance = DistanceToSpawn(pChar,&TempSpawn);
+            INT Angle = (INT)((atan2f(pChar->X - pItem->X, pChar->Y - pItem->Y) * 180.0f / PI + 360.0f) / 22.5f + 0.5f) % 16;
+
+            sprintf(szBuffer,"%s: %1.2f away to the %s",szName,Distance,szHeading[Angle]);
+            WriteChatColor(szBuffer,USERCOLOR_DEFAULT);
+            Count++;
+        }
+
+        pItem = pItem->pNext;
+    }
+    if (Count==0) {
+        WriteChatColor("No items found.",USERCOLOR_DEFAULT);
+    } else {
+        sprintf(szBuffer,"%d item%s found.",Count,(Count==1)?"":"s");
+        WriteChatColor(szBuffer,USERCOLOR_DEFAULT);
+    }
+   return 0;
 } 

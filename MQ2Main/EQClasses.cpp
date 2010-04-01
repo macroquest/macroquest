@@ -4137,8 +4137,8 @@ FUNCTION_AT_ADDRESS(int  EQ_Character::NoMezMe(int,class EQPlayer *,class EQ_Spe
 #ifdef EQ_Character__NoBashMe
 FUNCTION_AT_ADDRESS(int  EQ_Character::NoBashMe(int),EQ_Character__NoBashMe);
 #endif
-#ifdef EQ_Character__StunMe
-FUNCTION_AT_ADDRESS(void  EQ_Character::StunMe(unsigned int,bool),EQ_Character__StunMe);
+#ifdef EQ_Character1__StunMe
+FUNCTION_AT_ADDRESS(void  EQ_Character1::StunMe(unsigned int,bool),EQ_Character__StunMe);
 #endif
 #ifdef EQ_Character__UnStunMe
 FUNCTION_AT_ADDRESS(void  EQ_Character::UnStunMe(void),EQ_Character__UnStunMe);

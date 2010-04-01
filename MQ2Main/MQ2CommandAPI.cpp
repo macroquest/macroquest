@@ -608,13 +608,17 @@ void InitializeMQ2Commands()
         {"/look",       Look,1,1},
         {"/keepkeys",   KeepKeys,1,0},
 		{"/windowstate", WindowState,1,0},
+#ifndef ISXEQ_LEGACY
 		{"/plugin",     PluginCommand,1,0},
+#endif
 		{"/destroy",     EQDestroyHeldItemOrMoney,1,1},
 		{"/exec",      Exec,1,0}, 
 		{"/keypress",   DoMappable,1,0},
         {"/popup",      PopupText,1,1},
 		{"/multiline",  MultilineCommand,0,0},
+#ifndef ISXEQ_LEGACY
 		{"/bind",       MQ2KeyBindCommand,1,0},
+#endif
 		{"/ranged",		do_ranged,1,1},
 		{"/loadcfg",	LoadCfgCommand,1,0},
 		{"/dumpbinds",	DumpBindsCommand,1,0},
