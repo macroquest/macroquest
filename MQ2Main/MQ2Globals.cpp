@@ -584,9 +584,9 @@ PCHAR szBodyType[] = {
 	"*UNKNOWN BODYTYPE 98",
 	"*UNKNOWN BODYTYPE 99",
 	"Untargetable",
-	"Trigger",
-	"Timer",
 	"Trap",
+	"Timer",
+	"Trigger",
 };
 
 PCHAR szAugRestrictions[] = { 

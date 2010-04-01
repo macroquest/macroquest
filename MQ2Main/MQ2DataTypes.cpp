@@ -3577,6 +3577,7 @@ bool MQ2ItemType::GETMEMBER()
 			Dest.Type=pTicksType;
 			return true;
 		}
+        return false;
 	case ItemDelay:
 		Dest.DWord=pItem->Item->Delay;
 		Dest.Type=pIntType;
@@ -3594,6 +3595,7 @@ bool MQ2ItemType::GETMEMBER()
 			Dest.Type=pIntType;
 			return true;
 		}
+        return false;
 	case StackSize:
 		if ((pItem->Item->Type != ITEMTYPE_NORMAL) || (((EQ_Item*)pItem)->IsStackable()!=1))
 			Dest.DWord=1;

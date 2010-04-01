@@ -1049,7 +1049,8 @@ typedef struct _SPAWNINFO {
 /*0x0240*/ BYTE     Unknown0x240[0x30];
 /*0x0270*/ DWORD    Unknown0x270;
 /*0x0274*/ BYTE     Sneak;
-/*0x0275*/ BYTE     Unknown0x275[0x7];
+/*0x0275*/ BYTE     Unknown0x275[0x3];
+/*0x0278*/ DWORD    RespawnTimer; // TimeStamp of when RespawnWnd will close - 0 when you're alive
 /*0x027c*/ BYTE     PvPFlag;
 /*0x027d*/ BYTE     Unknown0x27d[0x7];
 /*0x0284*/ BYTE     StandState;

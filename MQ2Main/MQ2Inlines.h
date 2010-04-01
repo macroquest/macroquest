@@ -178,11 +178,11 @@ static inline eSpawnType GetSpawnType(PSPAWNINFO pSpawn)
         case 100:
             return UNTARGETABLE;
         case 101:
-            return TRIGGER;
+            return TRAP;
         case 102:
             return TIMER;
         case 103:
-            return TRAP;
+            return TRIGGER;
         default:
             return NPC;
         }

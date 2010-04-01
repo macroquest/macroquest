@@ -1,3 +1,9 @@
+14 December 2006 by ieatacid
+- Updated for today's patch
+
+7 December 2006 by dkaa
+- Fix for NoDrop & NoRent
+
 6 December 2006 by ieatacid, dkaa
 - Fixed for Dec 5th patch
 
