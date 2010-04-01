@@ -88,6 +88,7 @@ VOID MapFilterSetting( DWORD nMapFilter, int arg, int argc, char *argv[])
 
     itoa(pMapFilter->Enabled,szBuffer,10);
     pISInterface->SetSettingi("ISXEQMap.xml","Map Filters",pMapFilter->szName,pMapFilter->Enabled);
+	pISInterface->SaveSettings("ISXEQMap.xml");
 }
 
 int CMD_MapFilter(int argc, char *argv[])

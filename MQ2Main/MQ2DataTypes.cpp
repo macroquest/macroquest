@@ -3195,14 +3195,12 @@ bool MQ2ItemType::GETMEMBER()
 		}
 		return false;
 	case BuyPrice:
-#if 0
-		if (pActiveMerchant)
+		if (0 && pActiveMerchant)
 		{
-			Dest.DWord=pItem->Price;
-			Dest.Type=pIntType;
+			//Dest.DWord=pItem->Price;
+			//Dest.Type=pIntType;
 			return true;
 		}
-#endif
 		return false;
 	case SellPrice:
 		if (pActiveMerchant)
@@ -3496,6 +3494,14 @@ bool MQ2ItemType::GETMEMBER()
             }
             return true;
         }
+	case MerchQuantity:
+            if (0 && pActiveMerchant) {
+                //Dest.DWord=pItem->MerchantQuantity;
+                //Dest.Type=pIntType;
+                return true;
+            }
+            return false;
+
 	}
     return false;
 #undef pItem
@@ -4223,20 +4229,24 @@ bool MQ2MacroQuestType::GETMEMBER()
 		Dest.Type=pIntType;
 		return true;
     case BuildDate: 
-       SYSTEMTIME st; 
-       HANDLE hFile; 
-       WIN32_FIND_DATA FileData; 
-       CHAR szBuffer[MAX_STRING]; 
-       sprintf(szBuffer,"%s\\MQ2Main.dll", gszINIPath); 
-       hFile = FindFirstFile(szBuffer, &FileData); 
-       // Convert the creation time time to local time. 
-       FileTimeToSystemTime(&FileData.ftLastWriteTime, &st); 
-       FindClose(hFile); 
-       sprintf(DataTypeTemp, "%d%d%d",st.wYear,st.wMonth,st.wDay); 
-       Dest.Ptr=&DataTypeTemp[0]; 
-       Dest.Type=pStringType; 
-       return true; 
-	}
+        SYSTEMTIME st; 
+        HANDLE hFile; 
+        WIN32_FIND_DATA FileData; 
+        CHAR szBuffer[MAX_STRING]; 
+        sprintf(szBuffer,"%s\\MQ2Main.dll", gszINIPath); 
+        hFile = FindFirstFile(szBuffer, &FileData); 
+        // Convert the creation time time to local time. 
+        FileTimeToSystemTime(&FileData.ftLastWriteTime, &st); 
+        FindClose(hFile); 
+        sprintf(DataTypeTemp, "%d%d%d",st.wYear,st.wMonth,st.wDay); 
+        Dest.Ptr=&DataTypeTemp[0]; 
+        Dest.Type=pStringType; 
+        return true; 
+    case Ping:
+        Dest.DWord=pConnection->Last;
+        Dest.Type=pIntType;
+        return true; 
+    }
 	return false;
 }
 #ifndef ISXEQ

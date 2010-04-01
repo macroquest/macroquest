@@ -414,6 +414,9 @@ EQLIB_VAR SPELLFAVORITE *pSpellSets;
 EQLIB_VAR AltAdvManager** ppAltAdvManager;
 #define pAltAdvManager (*ppAltAdvManager)
 
+EQLIB_VAR PCONNECTION_T *ppConnection;
+#define pConnection (*ppConnection) 
+
 /* WINDOW INSTANCES */ 
 EQLIB_VAR CContextMenuManager **ppContextMenuManager;
 EQLIB_VAR CCursorAttachment **ppCursorAttachment;

@@ -150,7 +150,7 @@ PLUGIN_API VOID InitializePlugin(VOID)
 
 	// Add commands, macro parameters, hooks, etc.
 	//EasyClassDetour(CLabel__Draw,CLabelHook,Draw_Detour,VOID,(VOID),Draw_Trampoline);
-	EzDetour(CLabel__Draw,CLabelHook::Draw_Detour,CLabelHook::Draw_Trampoline);
+	EzDetour(CLabel__Draw,&CLabelHook::Draw_Detour,&CLabelHook::Draw_Trampoline);
 
 
 // currently in testing:

@@ -546,11 +546,11 @@ typedef struct _CONTENTS {
 /*0x0c*/  DWORD   Unknown0x0c;
 /*0x10*/  DWORD   Charges; // charges if positive; some things are neg
 /*0x14*/  DWORD   Unknown0x14; 
-/*0x18*/  DWORD   Unknown0x18; // some sort of id
+/*0x18*/  DWORD   Unknonw0x18;
 /*0x1c*/  DWORD   Unknown0x1c;
 /*0x20*/  DWORD   Unknown0x20;
 /*0x24*/  DWORD   Unknown0x24;
-/*0x28*/  DWORD   Unknown0x28; // normally one
+/*0x28*/  DWORD   Unknown0x28;
 /*0x2c*/  struct _CONTENTS *Contents[0x0a]; //addresses to whats inside the bag if its a bag; augs if an item
 /*0x54*/  DWORD   StackCount;
 /*0x58*/  DWORD   Unknown0x58;
@@ -743,7 +743,7 @@ typedef struct _CHARINFO {
 /*0x0ee24*/   DWORD      SaveDisease;
 /*0x0ee28*/   DWORD      SaveFire;
 /*0x0ee2c*/   DWORD      SaveCold;
-/*0x0ee30*/   DWORD      Unknown0xee30[0x2100];
+/*0x0ee30*/   BYTE       Unknown0xee30[0x2100];
 /*0x10f30*/
 } CHARINFO, *PCHARINFO;
 
@@ -1068,18 +1068,19 @@ typedef struct _SPAWNINFO {
 /*0x0ee4*/ VOID    *FaceRelatedActorStruct;
 /*0x0ee8*/ BYTE     Unknown0xee8[0x6c];
 /*0x0f54*/ DWORD    Animation;
-/*0x0f58*/ BYTE     Unknown0xf58[0xe8];
+/*0x0f58*/ BYTE     Unknown0xf58[0x24];
 /*0x0f7c*/ struct  _MODELINFO *Model[0x11];
 /*0x0fc0*/ BYTE     Unknown0xfc0[0x80];
 /*0x1040*/ BYTE     InvitedToGroup;
-/*0x1041*/ BYTE     Unknown0x1041[0x11a4-0x1041];
+/*0x1041*/ BYTE     Unknown0x1041[0x163];
 /*0x11a4*/ DWORD    AARank;
-/*0x11a8*/ BYTE     Unknown0x11a8[0x121c-0x11a8];
+/*0x11a8*/ BYTE     Unknown0x11a8[0x74];
 /*0x121c*/ void    *vtable2;
 /*0x1220*/ DWORD    Unknown0x1220;
 /*0x1224*/ struct  _SPAWNINFO *pSpawn;
 /*0x1228*/ BYTE     Levitate;
-/*0x122c*/ BYTE     Unknown0x122c[0x18];
+/*0x1229*/ BYTE     Unknown0x122c[0x1b];
+/*0x1244*/
 /*0x1244*/
 } SPAWNINFO, *PSPAWNINFO;
 
@@ -1591,6 +1592,18 @@ typedef struct _EQSTRINGTABLE {
 /*0x0c*/ DWORD Unknown0x0c;
 /*0x10*/
 } EQSTRINGTABLE, *PEQSTRINGTABLE;
+
+typedef struct connection_t {
+/*0x000*/ void  *vtable;
+/*0x004*/ BYTE  Unknown0x0[0x100];
+/*0x104*/ DWORD Master;
+/*0x108*/ DWORD Average;
+/*0x10c*/ DWORD Low;
+/*0x110*/ DWORD High;
+/*0x114*/ DWORD Last;
+/*0x118*/
+} CONNECTION_T, *PCONNECTION_T;
+
 
 #define EQ_INTERACTGROUNDITEM   0x5546
 #define EQ_BAZAARSEARCHCREATE   0x7124  // CProgSelWnd__WndNotification 02/21

@@ -1,3 +1,9 @@
+13 March 2006 by Lax
+- Fixed groupmember inheritance of spawn
+
+9 March 2006 by Lax
+- Scripts now work when EQ is minimized.  Some other random fixes have been done recently, too.
+
 28 November 2005 by Lax
 - Added Red-One's changes... sort of.
 - Cleaned up a bunch of random useless and redundant stack usage in ISXEQCommands,

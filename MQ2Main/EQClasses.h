@@ -2977,7 +2977,7 @@ EQLIB_OBJECT void CListWnd::SetColumnWidth(int,int);
 EQLIB_OBJECT void CListWnd::SetCurSel(int);
 EQLIB_OBJECT void CListWnd::SetItemColor(int,int,unsigned long);
 EQLIB_OBJECT void CListWnd::SetItemData(int,unsigned __int32);
-EQLIB_OBJECT void CListWnd::SetItemText(int,int,class CXStr);
+EQLIB_OBJECT void CListWnd::SetItemText(int,int,class CXStr *);
 EQLIB_OBJECT void CListWnd::ShiftColumnSeparator(int,int);
 EQLIB_OBJECT void CListWnd::ToggleSel(int);
 // virtual

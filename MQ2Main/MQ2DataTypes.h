@@ -1260,6 +1260,7 @@ public:
 		Stacks=93,
 		StackCount=94,
 		FreeStack=95,
+		MerchQuantity=96,
 
 	};
 	static enum ItemMethods
@@ -1362,6 +1363,7 @@ public:
 		TypeMember(Stacks);
 		TypeMember(StackCount);
 		TypeMember(FreeStack);
+		TypeMember(MerchQuantity);
 	}
 
 	~MQ2ItemType()
@@ -1963,6 +1965,7 @@ public:
 		MouseX=10,
 		MouseY=11,
 		BuildDate=12,
+		Ping=13,
 	};
 	static enum MacroQuestMethods
 	{
@@ -1981,6 +1984,7 @@ public:
 		TypeMember(MouseX);
 		TypeMember(MouseY);
 		TypeMember(BuildDate);
+		TypeMember(Ping);
 	}
 
 	~MQ2MacroQuestType()
@@ -2882,7 +2886,8 @@ public:
 
    bool GETMEMBER();
 	//DECLAREGETMETHOD();
-   INHERITDIRECT(pSpawnType);
+
+   INHERITINDIRECT(pSpawnType,Temp.Ptr=GetGroupMember(ObjectData.DWord),0);
 
    bool ToString(MQ2VARPTR VarPtr, PCHAR Destination);
 	bool FromData(MQ2VARPTR &VarPtr, MQ2TYPEVAR &Source)

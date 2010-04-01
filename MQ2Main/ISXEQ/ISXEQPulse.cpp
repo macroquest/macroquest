@@ -274,7 +274,6 @@ VOID DropTimers(VOID)
 }
 
 
-DETOUR_TRAMPOLINE_EMPTY(BOOL Trampoline_ProcessGameEvents(VOID)); 
 class CEverQuestHook {
 public:
 	VOID EnterZone_Trampoline(PVOID pVoid);
@@ -297,16 +296,28 @@ public:
 DETOUR_TRAMPOLINE_EMPTY(VOID CEverQuestHook::EnterZone_Trampoline(PVOID));
 DETOUR_TRAMPOLINE_EMPTY(VOID CEverQuestHook::SetGameState_Trampoline(DWORD));
 
+BOOL Trampoline_ProcessGameEvents(VOID); 
+BOOL Detour_ProcessGameEvents(VOID) 
+{ 
+	Heartbeat();
+	if (!pISInterface->ScriptEngineActive()) 
+		pISInterface->LavishScriptPulse();
+	return Trampoline_ProcessGameEvents();
+}
+DETOUR_TRAMPOLINE_EMPTY(BOOL Trampoline_ProcessGameEvents(VOID)); 
+
 void InitializeMQ2Pulse()
 {
 	DebugSpew("Initializing Pulse");
 
+	EzDetour(ProcessGameEvents,Detour_ProcessGameEvents,Trampoline_ProcessGameEvents);
 	EzDetour(CEverQuest__EnterZone,CEverQuestHook::EnterZone_Detour,CEverQuestHook::EnterZone_Trampoline);
 	EzDetour(CEverQuest__SetGameState,CEverQuestHook::SetGameState_Detour,CEverQuestHook::SetGameState_Trampoline);
 }
 
 void ShutdownMQ2Pulse()
 {
+	RemoveDetour((DWORD)ProcessGameEvents);
 	RemoveDetour((DWORD)CEverQuest__EnterZone);
 	RemoveDetour((DWORD)CEverQuest__SetGameState);
 }

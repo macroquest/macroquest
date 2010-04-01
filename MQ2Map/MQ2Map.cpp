@@ -262,7 +262,7 @@ PLUGIN_API VOID InitializePlugin(VOID)
 	AddCommand("/mapnames",MapNames,0,1,1);
 	AddCommand("/mapclick",MapClickCommand,0,1,0);
 
-	EzDetour(CMapViewWnd__CMapViewWnd,CMyMapViewWnd::Constructor_Detour,CMyMapViewWnd::Constructor_Trampoline);
+	EzDetour(CMapViewWnd__CMapViewWnd,&CMyMapViewWnd::Constructor_Detour,&CMyMapViewWnd::Constructor_Trampoline);
 	CMyMapViewWnd::StealVFTable();
 	AddMQ2Data("MapSpawn",dataMapSpawn);
 }

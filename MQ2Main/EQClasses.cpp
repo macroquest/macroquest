@@ -7568,7 +7568,7 @@ FUNCTION_AT_ADDRESS(void  CListWnd::ClearSel(int),CListWnd__ClearSel);
 FUNCTION_AT_ADDRESS(void  CListWnd::SetItemData(int,unsigned __int32),CListWnd__SetItemData);
 #endif
 #ifdef CListWnd__SetItemText
-FUNCTION_AT_ADDRESS(void  CListWnd::SetItemText(int,int,class CXStr),CListWnd__SetItemText);
+FUNCTION_AT_ADDRESS(void  CListWnd::SetItemText(int,int,class CXStr *),CListWnd__SetItemText);
 #endif
 #ifdef CListWnd__SetItemColor
 FUNCTION_AT_ADDRESS(void  CListWnd::SetItemColor(int,int,unsigned long),CListWnd__SetItemColor);

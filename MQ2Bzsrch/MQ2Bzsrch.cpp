@@ -469,7 +469,7 @@ PLUGIN_API VOID InitializePlugin(VOID)
    AddMQ2Data("Bazaar",dataBazaar); // cc - added, but not using TLO yet
 
 //   EasyClassDetour(CBazaarSearchWnd__HandleBazaarMsg,BzSrchHook,BzDetour,void,(char*,int),BzTrampoline);
-   EzDetour(CBazaarSearchWnd__HandleBazaarMsg,BzSrchHook::BzDetour,BzSrchHook::BzTrampoline);
+   EzDetour(CBazaarSearchWnd__HandleBazaarMsg,&BzSrchHook::BzDetour,&BzSrchHook::BzTrampoline);
 
    pBazaarType = new MQ2BazaarType;
    pBazaarItemType = new MQ2BazaarItemType;

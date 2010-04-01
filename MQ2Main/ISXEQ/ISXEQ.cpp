@@ -382,7 +382,7 @@ void __cdecl PulseService(bool Broadcast, unsigned long MSG, void *lpData)
 	if (MSG==PULSE_PREFRAME)
 	{
 		// "OnPulse"
-		Heartbeat();
+//		Heartbeat();
 	}
 }
 

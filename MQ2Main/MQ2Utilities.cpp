@@ -4060,6 +4060,19 @@ PCHAR GetAANameByIndex(DWORD AAIndex)
 
 DWORD GetAAIndexByName(PCHAR AAName)
 {
+    unsigned long nAbility;
+    for (nAbility=0 ; nAbility<AA_CHAR_MAX_REAL ; nAbility++) {
+        if (!pPCData->GetAltAbilityIndex(nAbility)) break;
+        if ( PALTABILITY pAbility=pAltAdvManager->GetAltAbility(pPCData->GetAltAbilityIndex(nAbility))) {
+            if (PCHAR pName=pCDBStr->GetString(pAbility->nName, 1, NULL)) {
+                if (!stricmp(AAName,pName)) {
+                    return pAbility->Index;
+                }
+            }
+        }
+    }
+
+#if  0
     for (unsigned long nAbility=0 ; nAbility<NUM_ALT_ABILITIES_ARRAY ; nAbility++)
     {
 		if ( ((PALTADVMGR)pAltAdvManager)->AltAbilities->AltAbilityList->Abilities[nAbility])
@@ -4076,12 +4089,23 @@ DWORD GetAAIndexByName(PCHAR AAName)
             }
         }
     }
+#endif
 
     return 0;
 }
 
 DWORD GetAAIndexByID(DWORD ID)
 {
+    unsigned long nAbility;
+    for (nAbility=0 ; nAbility<AA_CHAR_MAX_REAL ; nAbility++) {
+        if (!pPCData->GetAltAbilityIndex(nAbility)) break;
+        if ( PALTABILITY pAbility=pAltAdvManager->GetAltAbility(pPCData->GetAltAbilityIndex(nAbility))) {
+            if (pAbility->ID == ID ) {
+                return pAbility->Index;
+            }
+        }
+    }
+#if 0
     for (unsigned long nAbility=0 ; nAbility<NUM_ALT_ABILITIES_ARRAY ; nAbility++)
     {
 		if ( ((PALTADVMGR)pAltAdvManager)->AltAbilities->AltAbilityList->Abilities[nAbility])
@@ -4095,6 +4119,7 @@ DWORD GetAAIndexByID(DWORD ID)
             }
         }
     }
+#endif
 
     return 0;
 }

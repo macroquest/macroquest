@@ -792,10 +792,10 @@ PLUGIN_API VOID InitializePlugin(VOID)
 
 	// Add commands, macro parameters, hooks, etc.
 
-	EzDetour(CItemDisplayWnd__SetItem,ItemDisplayHook::SetItem_Detour,ItemDisplayHook::SetItem_Trampoline);
-	EzDetour(CItemDisplayWnd__SetSpell,ItemDisplayHook::SetSpell_Detour,ItemDisplayHook::SetSpell_Trampoline);
-	EzDetour(CInvSlotWnd__DrawTooltip,InvSlotWndHook::DrawTooltip_Detour,InvSlotWndHook::DrawTooltip_Trampoline);
-	EzDetour(CXWnd__DrawTooltip,XWndHook::DrawTooltip_Detour,XWndHook::DrawTooltip_Trampoline);
+	EzDetour(CItemDisplayWnd__SetItem,&ItemDisplayHook::SetItem_Detour,&ItemDisplayHook::SetItem_Trampoline);
+	EzDetour(CItemDisplayWnd__SetSpell,&ItemDisplayHook::SetSpell_Detour,&ItemDisplayHook::SetSpell_Trampoline);
+	EzDetour(CInvSlotWnd__DrawTooltip,&InvSlotWndHook::DrawTooltip_Detour,&InvSlotWndHook::DrawTooltip_Trampoline);
+	EzDetour(CXWnd__DrawTooltip,&XWndHook::DrawTooltip_Detour,&XWndHook::DrawTooltip_Trampoline);
 
 	AddCommand("/inote",Comment); 
 }

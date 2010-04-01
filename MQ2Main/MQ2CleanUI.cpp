@@ -162,7 +162,7 @@ VOID InitializeDisplayHook()
 #ifndef ISXEQ
 	EzDetour(DrawNetStatus,DrawHUD_Detour,DrawHUD_Trampoline);
 #endif
-	EzDetour(EQ_LoadingS__SetProgressBar,EQ_LoadingSHook::SetProgressBar_Detour,EQ_LoadingSHook::SetProgressBar_Trampoline);
+	EzDetour(EQ_LoadingS__SetProgressBar,&EQ_LoadingSHook::SetProgressBar_Detour,&EQ_LoadingSHook::SetProgressBar_Trampoline);
 }
 
 VOID ShutdownDisplayHook()
