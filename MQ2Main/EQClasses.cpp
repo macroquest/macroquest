@@ -103,6 +103,15 @@ class CXWnd * CSidlScreenWnd::GetChildItem(PCHAR Name)
 	return 0;
 }
 
+class CScreenPieceTemplate *  CSidlManager::FindScreenPieceTemplate(char *str)
+{
+    return FindScreenPieceTemplate(&CXStr(str));
+}
+void  CComboWnd::InsertChoice(char *str)
+{
+    return CComboWnd::InsertChoice(&CXStr(str));
+}
+
 // MANUAL IMPORTS
 #ifdef EQ_Item__GetItemLinkHash
 FUNCTION_AT_ADDRESS(char * EQ_Item::GetItemLinkHash(char *),EQ_Item__GetItemLinkHash); // Lax 11-14-2003
@@ -8266,7 +8275,7 @@ FUNCTION_AT_ADDRESS(class CXRect  CComboWnd::GetListRect(void)const ,CComboWnd__
 FUNCTION_AT_ADDRESS(void  CComboWnd::SetColors(unsigned long,unsigned long,unsigned long),CComboWnd__SetColors);
 #endif
 #ifdef CComboWnd__InsertChoice
-FUNCTION_AT_ADDRESS(void  CComboWnd::InsertChoice(class CXStr),CComboWnd__InsertChoice);
+FUNCTION_AT_ADDRESS(void  CComboWnd::InsertChoice(class CXStr *),CComboWnd__InsertChoice);
 #endif
 #ifdef CComboWnd__SetChoice
 FUNCTION_AT_ADDRESS(void  CComboWnd::SetChoice(int),CComboWnd__SetChoice);
@@ -8698,7 +8707,7 @@ FUNCTION_AT_ADDRESS(class CXWndDrawTemplate *  CSidlManager::FindDrawTemplate(cl
 FUNCTION_AT_ADDRESS(class CScreenPieceTemplate *  CSidlManager::FindScreenPieceTemplate(unsigned __int32)const ,CSidlManager__FindScreenPieceTemplate);
 #endif
 #ifdef CSidlManager__FindScreenPieceTemplate1
-FUNCTION_AT_ADDRESS(class CScreenPieceTemplate *  CSidlManager::FindScreenPieceTemplate(class CXStr)const ,CSidlManager__FindScreenPieceTemplate1);
+FUNCTION_AT_ADDRESS(class CScreenPieceTemplate *  CSidlManager::FindScreenPieceTemplate(class CXStr *)const ,CSidlManager__FindScreenPieceTemplate1);
 #endif
 #ifdef CSidlManager__AddAnimationInOrder
 FUNCTION_AT_ADDRESS(void  CSidlManager::AddAnimationInOrder(class CTextureAnimation *),CSidlManager__AddAnimationInOrder);

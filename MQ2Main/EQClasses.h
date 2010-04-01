@@ -1424,7 +1424,8 @@ EQLIB_OBJECT class CXStr CComboWnd::GetCurChoiceText(void)const;
 EQLIB_OBJECT int CComboWnd::GetCurChoice(void)const;
 EQLIB_OBJECT int CComboWnd::GetItemCount(void);
 EQLIB_OBJECT void CComboWnd::DeleteAll(void);
-EQLIB_OBJECT void CComboWnd::InsertChoice(class CXStr);
+EQLIB_OBJECT void CComboWnd::InsertChoice(class CXStr *);
+EQLIB_OBJECT void CComboWnd::InsertChoice(char *);
 EQLIB_OBJECT void CComboWnd::SetChoice(int);
 EQLIB_OBJECT void CComboWnd::SetColors(unsigned long,unsigned long,unsigned long);
 // virtual
@@ -4124,7 +4125,8 @@ EQLIB_OBJECT class CButtonDrawTemplate * CSidlManager::FindButtonDrawTemplate(un
 EQLIB_OBJECT class CButtonDrawTemplate CSidlManager::GetButtonDrawTemplateFromParamButtonDrawTemplate(class CParamButtonDrawTemplate const &)const;
 EQLIB_OBJECT class CGaugeDrawTemplate CSidlManager::GetGaugeDrawTemplateFromParamGaugeDrawTemplate(class CParamGaugeDrawTemplate const &)const;
 EQLIB_OBJECT class CScreenPieceTemplate * CSidlManager::CreateScreenPieceTemplateFromParamScreenPiece(class CParamScreenPiece const *)const;
-EQLIB_OBJECT class CScreenPieceTemplate * CSidlManager::FindScreenPieceTemplate(class CXStr)const;
+EQLIB_OBJECT class CScreenPieceTemplate * CSidlManager::FindScreenPieceTemplate(class CXStr *)const;
+EQLIB_OBJECT class CScreenPieceTemplate * CSidlManager::FindScreenPieceTemplate(char *);
 EQLIB_OBJECT class CScreenPieceTemplate * CSidlManager::FindScreenPieceTemplate(unsigned __int32)const;
 EQLIB_OBJECT class CScrollbarTemplate CSidlManager::GetScrollbarTemplateFromParamScrollbarTemplate(class CParamScrollbarDrawTemplate const &)const;
 EQLIB_OBJECT class CSliderDrawTemplate * CSidlManager::FindSliderDrawTemplate(class CXStr)const;
