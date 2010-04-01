@@ -1,3 +1,6 @@
+10 March 2005 by Lax
+- CHARINFO update from htw, fixes the new Group stuff
+
 9 March 2005 by dkaa
 - refix the include file issue
 
