@@ -579,6 +579,7 @@
 #define EQ_Character__Max_HP                                       0x424190
 #define EQ_Character__Max_Mana                                     0x4DD310
 #define EQ_Character__doCombatAbility                              0x4DC1C0
+#define EQ_Character__UseSkill                                     0x431140
 
 // EQ_Item
 #define EQ_Item__CanDrop                                           0x4D0030

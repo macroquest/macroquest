@@ -4119,7 +4119,7 @@ FUNCTION_AT_ADDRESS(int  EQ_Character::AntiTwinkAdj(class EQ_Equipment *,int,int
 FUNCTION_AT_ADDRESS(unsigned char  EQ_Character::GetSkillBaseDamage(unsigned char,class EQPlayer *),EQ_Character__GetSkillBaseDamage);
 #endif
 #ifdef EQ_Character__UseSkill
-FUNCTION_AT_ADDRESS(void  EQ_Character::UseSkill(unsigned char,class EQPlayer *),EQ_Character__UseSkill);
+FUNCTION_AT_ADDRESS(void  EQ_Character1::UseSkill(unsigned char,class EQPlayer *),EQ_Character__UseSkill);
 #endif
 #ifdef EQ_Character__DoIntimidationEvent
 FUNCTION_AT_ADDRESS(void  EQ_Character::DoIntimidationEvent(void),EQ_Character__DoIntimidationEvent);
@@ -9537,3 +9537,9 @@ FUNCTION_AT_ADDRESS(void CTextOverlay::DisplayText(char *,int,int,int,int,int,in
 // GetString(index, subindex, &success)
 FUNCTION_AT_ADDRESS(char *CDBStr::GetString(int, int, int *), CDBStr__GetString);
 #endif
+
+void bogus()
+{
+EQ_Character1 *crap = NULL;
+crap->UseSkill(0, NULL);
+}
