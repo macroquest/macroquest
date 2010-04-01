@@ -1,4 +1,8 @@
 02 Jul 2005 by dkaa
+- /aa list all should work now -- fixing AAs in progress
+- CCustomWnd actually works with char * param in constructor
+
+02 Jul 2005 by dkaa
 - opcodes updated for zoning
 
 02 Jul 2005 by dkaa

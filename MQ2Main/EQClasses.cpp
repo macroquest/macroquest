@@ -3759,6 +3759,9 @@ FUNCTION_AT_ADDRESS( EQ_AltAbility::EQ_AltAbility(int),EQ_AltAbility__EQ_AltAbil
 #ifdef AltAdvManager__AltAdvManager
 FUNCTION_AT_ADDRESS( AltAdvManager::AltAdvManager(void),AltAdvManager__AltAdvManager);
 #endif
+#ifdef AltAdvManager__GetAltAbility
+FUNCTION_AT_ADDRESS( struct _ALTABILITY *AltAdvManager::GetAltAbility(int), AltAdvManager__GetAltAbility);
+#endif
 #ifdef AltAdvManager__IsAbilityReady
 FUNCTION_AT_ADDRESS(bool  AltAdvManager::IsAbilityReady(class EQ_PC *,EQData::PALTABILITY,int *),AltAdvManager__IsAbilityReady);
 #endif

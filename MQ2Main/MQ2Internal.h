@@ -354,16 +354,18 @@ private:
 class CCustomWnd : public CSidlScreenWnd
 {
 public:
-	CCustomWnd(CXStr *screenpiece):CSidlScreenWnd(0,(CXStr *)screenpiece,-1,1,0)
+	CCustomWnd(CXStr *screenpiece):CSidlScreenWnd(0,screenpiece,-1,1,0)
 	{
 		CreateChildrenFromSidl();
 		pXWnd()->Show(1,1);
 		ReplacevfTable();
 
 	};
-	CCustomWnd(char *screenpiece)
+	CCustomWnd(char *screenpiece):CSidlScreenWnd(0,&CXStr(screenpiece),-1,1,0)
 	{
-                CCustomWnd(&CXStr(screenpiece));
+		CreateChildrenFromSidl();
+		pXWnd()->Show(1,1);
+		ReplacevfTable();
         }
 
 

@@ -832,6 +832,7 @@ EQLIB_OBJECT int AltAdvManager::MeetsPoPLevelReqs(class EQ_PC *,int,int);
 EQLIB_OBJECT int AltAdvManager::TotalPointsInSkill(int,int);
 EQLIB_OBJECT unsigned long AltAdvManager::GetCalculatedTimer(class EQ_PC *,EQData::PALTABILITY);
 EQLIB_OBJECT void AltAdvManager::GetAbilityReqs(char *,int);
+EQLIB_OBJECT struct _ALTABILITY *AltAdvManager::GetAltAbility(int);
 };
 
 class bad_word_class

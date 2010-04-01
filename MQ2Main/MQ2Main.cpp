@@ -398,7 +398,7 @@ void MQ2Free(void *memblock)
 class CMQNewsWnd : public CCustomWnd
 {
 public:
-	CMQNewsWnd(CXStr *Template):CCustomWnd(Template)
+	CMQNewsWnd(char *Template):CCustomWnd(Template)
 	{
 		SetWndNotification(CMQNewsWnd);
 		InputBox=(CTextEntryWnd*)GetChildItem("CWChatInput");
@@ -440,8 +440,7 @@ VOID CreateMQ2NewsWindow()
 	sprintf(Filename,"%s\\changes.txt",gszINIPath);
 	if (!pNewsWindow && _FileExists(Filename))
 	{
-		class CXStr ChatWnd("ChatWindow");
-		pNewsWindow = new CMQNewsWnd(&ChatWnd);
+		pNewsWindow = new CMQNewsWnd("ChatWindow");
 		pNewsWindow->Location.top=250;
 		pNewsWindow->Location.bottom=450;
 		pNewsWindow->Location.left=250;

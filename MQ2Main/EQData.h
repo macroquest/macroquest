@@ -587,7 +587,10 @@ typedef struct _INVENTORY {
 } INVENTORY, *PINVENTORY; 
 
 #define NUM_ALT_ABILITIES   0x1F7 
+
+//these two will merge when i get a chance
 #define AA_CHAR_MAX         0xF5
+#define AA_CHAR_MAX_REAL    0xF0
 
 typedef struct _AALIST { 
 /*0x0*/   DWORD		AAIndex;
@@ -1424,8 +1427,8 @@ typedef struct _ALTABILITY {
 /*0x48*/ DWORD PointsSpent;		 //ability, then its PointsToBeSpent (or 
 /*0x48*/ DWORD PointsToBeSpent;	 //'Cost', in other words).
 	}; 
-/*0x4c*/ DWORD Unknown0x4c; //some sort of modifier value?
-/*0x50*/ DWORD Unknown0x50; //Index(?) of next level available in this AA "line" (ie, SCRM1-2-3).  It's -1 if line finished or only one level in line.
+/*0x4c*/ DWORD AAIndex;     // -1 if not available
+/*0x50*/ DWORD UseAAIndex;
 /*0x54*/ BYTE  Unknown0x54;
 /*0x55*/ BYTE  Unknown0x55;
 /*0x56*/ BYTE  Unknown0x56;

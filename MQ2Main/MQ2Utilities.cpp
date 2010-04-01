@@ -4018,13 +4018,15 @@ BOOL Calculate(PCHAR szFormula, DOUBLE &Result)
 
 bool PlayerHasAAAbility(PCHARINFO pChar, DWORD AAIndex)
 {
+    // count to 0xf0 -- dkaa 06/29/05
     for (int i = 0; i < NUM_ALT_ABILITIES/4; i++)
 	{
 		if ( pChar->AAList[i].AAIndex == AAIndex )
 			return true;
 
-		if ( pChar->AAList[i].AAIndex == 0 ) //reached the end of the list
+		if ( pChar->AAList[i].AAIndex == 0 )  { //reached the end of the list
 			return false;
+                }
 	}
 
 	return false;

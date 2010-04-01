@@ -228,6 +228,7 @@ published by
 // AltAdvManager
 #define AltAdvManager__GetCalculatedTimer                  0x49ABBC
 #define AltAdvManager__IsAbilityReady                      0x49ABEA
+#define AltAdvManager__GetAltAbility                       0x49ACFF
 
 // CBankWnd
 #define CBankWnd__GetNumBankSlots                          0x40CD0E
