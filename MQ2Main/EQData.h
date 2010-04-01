@@ -699,10 +699,11 @@ typedef struct _CHARINFO {
 /*0x00e55*/   BYTE       PercentEXPtoAA;
 /*0x00e56*/   BYTE       Unknown0xe56[0x42];
 /*0x00e98*/   DWORD      TributeTimer;
-/*0x00e9c*/   DWORD      CareerFavor;
-/*0x00ea0*/   DWORD      Unknown0xea0;
-/*0x00ea4*/   DWORD      CurrFavor;
-/*0x00ea8*/   BYTE       Unknown0xea8[0x10];
+/*0x00e9c*/   BYTE       Unknown0xe9c[0x4];
+/*0x00ea0*/   DWORD      CareerFavor;
+/*0x00ea4*/   DWORD      Unknown0xea4;
+/*0x00ea8*/   DWORD      CurrFavor;
+/*0x00eac*/   BYTE       Unknown0xeac[0xc];
 /*0x00eb8*/   DOUBLE     GroupLeadershipExp;
 /*0x00ec0*/   DOUBLE     RaidLeadershipExp;
 /*0x00ec8*/   DWORD      GroupLeadershipPoints;
@@ -845,9 +846,9 @@ union {
 /*0x42ac*/   DWORD      CombatAbilities[NUM_COMBAT_ABILITIES];
 /*0x443c*/   BYTE       Unknown0x443c[0x28];
 /*0x4464*/   DWORD      CombatAbilityTimes[NUM_COMBAT_ABILITIES];
-/*0x45f4*/   BYTE       Unknown0x45f4[0x1a50];
-/*0x6044*/   DWORD      Deity;
-/*0x6048*/   BYTE       Unknown0x6048[0x8];
+/*0x45f4*/   BYTE       Unknown0x45f4[0x1a54];
+/*0x6048*/   DWORD      Deity;
+/*0x604c*/   BYTE       Unknown0x604c[0x4];
 /*0x6050*/   DWORD      Drunkenness;
 /*0x6054*/   BYTE       Unknown0x6054[0x8];
 /*0x605c*/   DWORD      AAPoints;
@@ -952,28 +953,34 @@ typedef struct _ARGBCOLOR {
     };
 } ARGBCOLOR, *PARGBCOLOR;
 
+typedef struct _ARMOR {
+/*0x00*/ DWORD  ID; //idfile on Lucy
+/*0x04*/ DWORD  Unknown0x04;
+/*0x08*/ DWORD  Unknown0x08;
+/*0x0c*/
+} ARMOR, *PARMOR;
+
 // 10-22-2003 Lax
 typedef struct _EQUIPMENT {
    union {
       struct// EQUIPARRAY
       {
-         DWORD Item[9];
+         struct _ARMOR Item[9];
       };// Array;
       struct //EQUIPUNIQUE
       {
-         DWORD Head;
-         DWORD Chest;
-         DWORD Arms;
-         DWORD Wrists;
-         DWORD Hands;
-         DWORD Legs;
-         DWORD Feet;
-         DWORD Primary;
-         DWORD Offhand;
+         struct _ARMOR Head;
+         struct _ARMOR Chest;
+         struct _ARMOR Arms;
+         struct _ARMOR Wrists;
+         struct _ARMOR Hands;
+         struct _ARMOR Legs;
+         struct _ARMOR Feet;
+         struct _ARMOR Primary;
+         struct _ARMOR Offhand;
       };// Unique;
    };
 } EQUIPMENT, *PEQUIPMENT;
-
 
 // actual size: 0x130c 09-27-06
 typedef struct _SPAWNINFO {
@@ -1108,7 +1115,7 @@ typedef struct _SPAWNINFO {
 /*0x0e64*/ ARGBCOLOR ArmorColor[0x9];
 /*0x0e88*/ BYTE     Unknown0xe88[0x10];
 /*0x0e98*/ struct   _EQUIPMENT Equipment;
-/*0x0ebc*/ BYTE     Unknown0xebc[0x80];
+/*0x0f04*/ BYTE     Unknown0xf04[0x38];
 /*0x0f3c*/ VOID     *pcactorex;
 /*0x0f40*/ DWORD    Unknown0xf40;
 /*0x0f44*/ VOID     *FaceRelatedActorStruct;
@@ -1244,13 +1251,13 @@ typedef struct _DOORTABLE {
 typedef struct _GROUNDITEM {
 /*0x00*/ struct _GROUNDITEM *pPrev;
 /*0x04*/ struct _GROUNDITEM *pNext;
-/*0x0c*/ DWORD  ID;
-/*0x10*/ DWORD  DropID;
-/*0x08*/ DWORD  Unknown0x8;
+/*0x08*/ DWORD  ID;
+/*0x0c*/ DWORD  DropID;
+/*0x10*/ DWORD  Unknown0x10;
 /*0x14*/ PEQSWITCH pSwitch; // (class EQSwitch *)
 /*0x18*/ DWORD  Unknown0x18;
 /*0x1c*/ FLOAT  Heading;
-/*0x20*/ BYTE   Unknown0x2c[0xc];
+/*0x20*/ BYTE   Unknown0x20[0xc];
 /*0x2c*/ FLOAT  Z;
 /*0x30*/ FLOAT  X;
 /*0x34*/ FLOAT  Y;
@@ -1424,7 +1431,7 @@ typedef struct _SPELL {
 /*0x382*/   CHAR    CastOnYou[0x60];
 /*0x3e2*/   CHAR    CastOnAnother[0x60];
 /*0x442*/   CHAR    WearOff[0x60];
-/*0x4a2*/   BYTE    Unknonw0x4a2;
+/*0x4a2*/   BYTE    Unknonw0x4a2[0x2];
 /*0x4a4*/   DWORD   Unknown0x4a4;
 /*0x4a8*/   DWORD   spaindex;
 /*0x4ac*/   CHAR    *Unknown0x4ac;      //spell effect name

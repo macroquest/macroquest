@@ -1035,6 +1035,7 @@ DWORD ConColor(PSPAWNINFO pSpawn)
 	
 	switch(pCharData->GetConLevel((EQPlayer*)pSpawn))
 	{
+	case 0:
 	case 1:
 		return CONCOLOR_GREY;
 	case 2:
@@ -5074,20 +5075,20 @@ VOID SuperWhoDisplay(PSPAWNINFO pSpawn, DWORD Color)
 			strcat(szMsg,szTemp);
 			strcat(szMsg,"\a-u)\ax");
         }
-		if (gFilterSWho.Holding && (pSpawn->Equipment.Primary || pSpawn->Equipment.Offhand )) 
+		if (gFilterSWho.Holding && (pSpawn->Equipment.Primary.ID || pSpawn->Equipment.Offhand.ID )) 
 		{
 			strcat(szMsg," \a-u(\ax");
-			if (pSpawn->Equipment.Primary)
+			if (pSpawn->Equipment.Primary.ID)
 			{
-				itoa(pSpawn->Equipment.Primary,szTemp,10);
+				itoa(pSpawn->Equipment.Primary.ID,szTemp,10);
 				strcat(szMsg,"Pri: ");
 				strcat(szMsg,szTemp);
-				if (pSpawn->Equipment.Offhand)
+				if (pSpawn->Equipment.Offhand.ID)
 					strcat(szMsg," ");
 			}
-			if (pSpawn->Equipment.Offhand)
+			if (pSpawn->Equipment.Offhand.ID)
 			{
-				itoa(pSpawn->Equipment.Offhand,szTemp,10);
+				itoa(pSpawn->Equipment.Offhand.ID,szTemp,10);
 				strcat(szMsg,"Off: ");
 				strcat(szMsg,szTemp);
 			}
@@ -5340,19 +5341,19 @@ PCHAR GetFriendlyNameForGroundItem(PGROUNDITEM pItem, PCHAR szName)
 	szName[0]=0;
         PITEMDB ItemDB=gItemDB;
     DWORD Item = atoi(pItem->Name + 2);
-        while ((ItemDB) && (pItem->ID != ItemDB->ID)) {
+        while ((ItemDB) && (pItem->DropID != ItemDB->ID)) {
             ItemDB = ItemDB->pNext;
         }
         if (ItemDB) {
             strcpy(szName,ItemDB->szName);
         } else if ((Item>=400) && (Item<=MAX_ITEM4xx) && (szItemName4xx[Item-400])) {
-            sprintf(szName,"%s%d",szItemName4xx[Item-400],pItem->ID);
+            sprintf(szName,"%s%d",szItemName4xx[Item-400],pItem->DropID);
         // Regular
         } else if ((Item<=255) && (szItemName[Item])) {
             strcpy(szName,szItemName[Item]);
         // Unknown
         } else {
-            sprintf(szName,"Drop%04d/%d",Item,pItem->ID);
+            sprintf(szName,"Drop%04d/%d",Item,pItem->DropID);
         }
     return &szName[0];
 }

@@ -483,7 +483,7 @@ PCHAR szDmgBonusType[] = {
 }; 
 
 PCHAR szBodyType[] = { 
-   "UNKNOWN BODYTYPE 0",//0
+   "Object",//0       (catapults, tents, practice dummies, etc)
    "Humanoid", //1
    "Lycanthrope", //2
    "Undead", //3

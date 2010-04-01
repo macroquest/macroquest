@@ -66,6 +66,7 @@ MAPFILTER MapFilterOptions[] = {
     {"Menu",         FALSE,-1,         TRUE,MAPFILTER_Invalid,FALSE,   "Allows display of right-click context menu"},
 	{"SpellRadius",  FALSE,0x00C000,   FALSE,MAPFILTER_All,FALSE,  "Sets radius of 2nd casting circle to # (omit or set to 0 to disable)"},
     {"Aura",         FALSE,0x404040,   TRUE,MAPFILTER_All,TRUE,   "Displays Auras"},
+    {"Object",       FALSE,0x404040,   TRUE,MAPFILTER_All,TRUE,   "Displays inanimate objects"},
     {NULL,           FALSE,-1,         FALSE,MAPFILTER_Invalid,FALSE,  NULL}
 };
 
@@ -114,7 +115,6 @@ DWORD __declspec(naked) CMyMapViewWnd__Destructor(const BOOL Deallocate)
 
 bool RButtonDown()
 {
-	CHAR szOut[MAX_STRING]={0};
 	if (pCurrentMapLabel)
 	{
 		MapSelectTarget();

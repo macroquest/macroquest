@@ -5436,37 +5436,38 @@ bool MQ2GroupType::GETMEMBER()
 		return false;
 	switch((GroupMembers)pMember->ID)
 	{
-	case xMember:
-		if (!ISINDEX())
-			return false;
-		if (ISNUMBER())
-		{
-			// by number
-			Dest.DWord=GETNUMBER();
-			Dest.Type=pGroupMemberType;
-			return true;
-		}
-		else
-		{
-			PCHARINFO pChar=GetCharInfo();
-			Dest.DWord=0;
-			for (int index=0;index<5;index++) 
-				if (pGroup->MemberExists[index]) 
-				{
-					Dest.DWord++;
-					if (!stricmp(pGroup->MemberName[index],GETFIRST()))
-					{
-						Dest.Type=pIntType;
-						return true;
-					}
-				}
-			if (!stricmp(pChar->pSpawn->Name,GETFIRST())) {
-			    Dest.DWord=0;
+    case xMember:
+        if (!ISINDEX())
+            return false;
+        if (ISNUMBER())
+        {
+            // by number
+            Dest.DWord=GETNUMBER();
+            Dest.Type=pGroupMemberType;
+            return true;
+        }
+        else
+        {
+            PCHARINFO pChar=GetCharInfo();
+            Dest.DWord=0;
+            for (int index=0;index<5;index++) 
+                if (pGroup->MemberExists[index]) 
+                {
+                    Dest.DWord++;
+                    if (!stricmp(pGroup->MemberName[index],GETFIRST()))
+                    {
+                        Dest.Type=pIntType;
+                        return true;
+                    }
+                }
+            if (!stricmp(pChar->pSpawn->Name,GETFIRST())) {
+                Dest.DWord=0;
+                Dest.Type=pIntType;
                 return true;
             }
-			return false;
-		}
-		break;
+            return false;
+        }
+        break;
 	case Members:
 		{
 			Dest.DWord=0;

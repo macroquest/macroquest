@@ -148,6 +148,8 @@ static inline eSpawnType GetSpawnType(PSPAWNINFO pSpawn)
 
         switch(GetBodyType(pSpawn))
         {
+        case 0:
+            return OBJECT;
         case 3:
             return NPC;
 
@@ -156,7 +158,7 @@ static inline eSpawnType GetSpawnType(PSPAWNINFO pSpawn)
                 return AURA;
             return NPC; 
         case 11:
-			if (strstr(pSpawn->Name,"Aura") || strstr(pSpawn->Name,"Circle of") || strstr(pSpawn->Name,"Guardian Circle") || strstr(pSpawn->Name,"Earthen Strength"))
+			if (strstr(pSpawn->Name,"Aura") || strstr(pSpawn->Name,"Circle_of") || strstr(pSpawn->Name,"Guardian_Circle") || strstr(pSpawn->Name,"Earthen_Strength"))
                 return AURA;
             return UNTARGETABLE;
         case 21:

@@ -36,7 +36,8 @@ enum eSpawnType
 	UNTARGETABLE,
 	CHEST,
 	ITEM,
-	AURA
+	AURA,
+	OBJECT,
 };
 
 typedef struct _SEARCHSPAWN {
