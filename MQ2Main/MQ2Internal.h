@@ -361,6 +361,11 @@ public:
 		ReplacevfTable();
 
 	};
+	CCustomWnd(char *screenpiece)
+	{
+                CCustomWnd(&CXStr(screenpiece));
+        }
+
 
 	~CCustomWnd()
 	{

@@ -1,3 +1,8 @@
+02 Jul 2005 by dkaa
+- String is still out
+- fixed the AA stuff in CHARINFO
+- CCustomWnd constructor now takes char * or CXStr *
+
 26 May 2005 by Lax
 - Fixed negation math operator, which was rounding the value negated
 

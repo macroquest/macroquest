@@ -599,7 +599,7 @@ typedef struct _AALIST {
 #define ExactLocation		 0
 
 //Size: 0xdef0  (5/18/2005)
-typedef struct _CHARINFO { 
+typedef struct _CHARINFO {
 /* 0x0000 */   BYTE       Unknown0x0[0x4]; 
 /* 0x0004 */   BYTE       field_4; 
 /* 0x0005 */   BYTE       Padding0x5; 
@@ -726,7 +726,7 @@ union {
 /* 0x100c */   BYTE       Unknown0x100c[0x14]; 
 /* 0x1020 */   DWORD      Unknown0x1020; 
 /* 0x1024 */   SPELLBUFF  ShortBuff[0x23]; 
-/* 0x12e0 */   BYTE       Unknown0x12e0[0x14ec-0x12e0]; 
+/* 0x12e0 */   BYTE       Unknown0x12e0[0x14f4-0x12e0]; 
 /* 0x14ec */   FLOAT      ZoneBoundY; 
 /* 0x14f0 */   BYTE       field_0x14f0[0x10]; 
 /* 0x1500 */   FLOAT      ZoneBoundX; 
@@ -783,7 +783,7 @@ union {
 /* 0xabac */   BYTE       LeadershipExpON;   //0-off 1-on 
 /* 0xabad */   BYTE       Unknown0xabad[0x113]; 
 /* 0xacc0 */   DWORD      AAPointsSpent; 
-/* 0xacc4 */   BYTE       Unknown0xacc4[0x2ca0]; 
+/* 0xacc4 */   BYTE       Unknown0xacc4[0x2ca8]; 
 /* 0xd964 */   struct     _CONTENTS*   Bank[NUM_BANK_SLOTS]; 
 /* 0xd9ac */   BYTE       Unknown0xd9ac[0xa8]; 
 /* 0xda54 */   CHAR       GroupMember[0x5][0x40]; 
