@@ -288,8 +288,6 @@ PLUGIN_API VOID OnCleanUI(VOID)
 	if (MQChatWnd)
 	{
 		SaveChatToINI((PCSIDLWND)MQChatWnd);
-		DebugSpew("pChatMgr=%x",pChatMgr);
-		RemoveFromChatMgr((EQCHATWINDOW*)MQChatWnd);
 		delete MQChatWnd;
 		MQChatWnd=0;
 	}
@@ -370,7 +368,6 @@ void CreateChatWindow()
 		return;
 	LoadChatFromINI((PCSIDLWND)MQChatWnd);
 	SaveChatToINI((PCSIDLWND)MQChatWnd); // A) we're masochists, B) this creates the file if its not there..
-	AddToChatMgr((EQCHATWINDOW*)MQChatWnd);
 }
 
 VOID DoMQ2ChatBind(PCHAR Name,BOOL Down)
