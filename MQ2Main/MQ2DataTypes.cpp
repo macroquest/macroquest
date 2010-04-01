@@ -3480,8 +3480,8 @@ bool MQ2ItemType::GETMEMBER()
             }
             return true;
         }
-    return false;
 	}
+    return false;
 #undef pItem
 }
 
