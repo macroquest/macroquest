@@ -1480,7 +1480,7 @@ VOID MQMsgBox(PSPAWNINFO pChar, PCHAR szLine)
     DWORD i;
     bRunNextCommand = TRUE;
 
-    sprintf(szBuffer, "$date() $time()\r\n%s",szLine);
+    sprintf(szBuffer, "${Time.Date} ${Time}\r\n%s",szLine);
     ParseMacroParameter(pChar,szBuffer);
 
     CreateThread(NULL,0,thrMsgBox,strdup(szBuffer),0,&i);

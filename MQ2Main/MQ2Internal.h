@@ -318,6 +318,7 @@ typedef struct _MQPlugin
 {
 	char szFilename[MAX_PATH];
 	HMODULE hModule;
+        float fpVersion;
 
 	fMQInitializePlugin Initialize;
 	fMQShutdownPlugin Shutdown;
@@ -333,8 +334,8 @@ typedef struct _MQPlugin
 	fMQSpawn RemoveSpawn;
 	fMQGroundItem AddGroundItem;
 	fMQGroundItem RemoveGroundItem;
-    fMQBeginZone BeginZone; 
-    fMQEndZone EndZone; 
+        fMQBeginZone BeginZone; 
+        fMQEndZone EndZone; 
 	struct _MQPlugin* pLast;
 	struct _MQPlugin* pNext;
 } MQPLUGIN, *PMQPLUGIN;

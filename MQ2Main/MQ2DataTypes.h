@@ -2465,10 +2465,12 @@ public:
    static enum PluginMembers
    {
 	   Name=1,
+	   Version=2,
    };
    MQ2PluginType():MQ2Type("plugin")
    {
 	  TypeMember(Name);
+	  TypeMember(Version);
    }
 
    ~MQ2PluginType()

@@ -231,6 +231,10 @@ bool MQ2PluginType::GETMEMBER()
 		Dest.Ptr=pPlugin->szFilename;
 		Dest.Type=pStringType;
 		return true;
+	case Version:
+		Dest.Float=pPlugin->fpVersion;
+		Dest.Type=pFloatType;
+		return true;
 	}
 	return false;
 #undef pPlugin

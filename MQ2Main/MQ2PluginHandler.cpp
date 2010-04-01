@@ -117,6 +117,10 @@ DWORD LoadMQ2Plugin(const PCHAR pszFilename)
     pPlugin->BeginZone=(fMQBeginZone)GetProcAddress(hmod,"OnBeginZone"); 
     pPlugin->EndZone=(fMQEndZone)GetProcAddress(hmod,"OnEndZone"); 
 
+        float *ftmp = (float*) GetProcAddress(hmod,"?MQ2Version@@3MA");
+        if (ftmp) pPlugin->fpVersion = *ftmp;
+        else pPlugin->fpVersion = 1.0;
+
 	if (pPlugin->Initialize)
 		pPlugin->Initialize();
 	if (pPlugin->SetGameState)

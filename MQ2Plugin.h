@@ -32,7 +32,7 @@
 #endif
 
 #define PLUGIN_API extern "C" __declspec(dllexport)
-
+#define PLUGIN_VERSION(X) __declspec(dllexport) float MQ2Version = (float)X
 
 
 //#define SetINIFileName(ini) sprintf(INIFileName,"%s\\%s",gszINIPath,ini);
