@@ -3125,7 +3125,6 @@ VOID AltAbility(PSPAWNINFO pChar, PCHAR szLine)
             WriteChatColor("Alternative Abilities (Complete List)", CONCOLOR_YELLOW );
             WriteChatColor("-------------------------------------", USERCOLOR_WHO);
             for (nAbility=0 ; nAbility<AA_CHAR_MAX_REAL ; nAbility++) {
-				 if (!pPCData->GetAltAbilityIndex(nAbility)) break;
                  if ( PALTABILITY pAbility=pAltAdvManager->GetAltAbility(pPCData->GetAltAbilityIndex(nAbility))) {
                         sprintf(szBuffer,"[ %d: %s ]", pAbility->ID, 
                             pCDBStr->GetString(pAbility->nName, 1, NULL));
@@ -3138,7 +3137,6 @@ VOID AltAbility(PSPAWNINFO pChar, PCHAR szLine)
            WriteChatColor("Alternative Abilities With Timers", CONCOLOR_YELLOW );
            WriteChatColor("---------------------------------", USERCOLOR_WHO);
            for (nAbility=0 ; nAbility<AA_CHAR_MAX_REAL ; nAbility++) {
-			    if (!pPCData->GetAltAbilityIndex(nAbility)) break;
                 if ( PALTABILITY pAbility=pAltAdvManager->GetAltAbility(pPCData->GetAltAbilityIndex(nAbility)) ) {
                     if ((pAltAdvManager->GetCalculatedTimer(pPCData,pAbility)) > 0)
                     {
@@ -3243,7 +3241,6 @@ VOID AltAbility(PSPAWNINFO pChar, PCHAR szLine)
     {
         // only search through the ones we have....
         for (unsigned long nAbility=0 ; nAbility<AA_CHAR_MAX_REAL ; nAbility++) {
-            if (!pPCData->GetAltAbilityIndex(nAbility)) break;
             if ( PALTABILITY pAbility=pAltAdvManager->GetAltAbility(pPCData->GetAltAbilityIndex(nAbility)) ) {
                 if (PCHAR pName=pCDBStr->GetString(pAbility->nName, 1, NULL)) {
                     if (!stricmp(szName,pName)) {

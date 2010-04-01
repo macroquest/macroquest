@@ -2031,7 +2031,6 @@ bool MQ2CharacterType::GETMEMBER()
 		{ 
 			for (unsigned int j=0; j < AA_CHAR_MAX_REAL; j++) 
 			{ 
-				if (!pPCData->GetAltAbilityIndex(j))   break; 
 				if ( pPCData->GetAltAbilityIndex(j) == Dest.DWord) 
 				{ 
 					Dest.DWord=15+(GetCharInfo2()->AAList[j].PointsSpent/5); 
@@ -2228,7 +2227,6 @@ bool MQ2CharacterType::GETMEMBER()
             if (ISNUMBER()) {
                 //numeric
                 for (unsigned long nAbility=0 ; nAbility<AA_CHAR_MAX_REAL ; nAbility++) {
-                    if (!pPCData->GetAltAbilityIndex(nAbility)) break;
                     if ( PALTABILITY pAbility=pAltAdvManager->GetAltAbility(pPCData->GetAltAbilityIndex(nAbility)) ) {
                         if (pAbility->ID == GETNUMBER() ) {
                             pAltAdvManager->IsAbilityReady(pPCData,pAbility,&Dest.Int);
@@ -2243,7 +2241,6 @@ bool MQ2CharacterType::GETMEMBER()
             } else {
                 // by name
                 for (unsigned long nAbility=0 ; nAbility<AA_CHAR_MAX_REAL ; nAbility++) {
-                    if (!pPCData->GetAltAbilityIndex(nAbility)) break;
                     if ( PALTABILITY pAbility=pAltAdvManager->GetAltAbility(pPCData->GetAltAbilityIndex(nAbility)) ) {
                         if (PCHAR pName=pCDBStr->GetString(pAbility->nName, 1, NULL)) {
                             if (!stricmp(GETFIRST(),pName)) {
@@ -2265,7 +2262,6 @@ bool MQ2CharacterType::GETMEMBER()
             if (ISNUMBER()) {
                 //numeric
                 for (unsigned long nAbility=0 ; nAbility<AA_CHAR_MAX_REAL ; nAbility++) {
-                    if (!pPCData->GetAltAbilityIndex(nAbility)) break;
                     if ( PALTABILITY pAbility=pAltAdvManager->GetAltAbility(pPCData->GetAltAbilityIndex(nAbility)) ) {
                         if (pAbility->ID == GETNUMBER()) {
                             Dest.DWord=pAltAdvManager->IsAbilityReady(pPCData,pAbility,0);
@@ -2277,7 +2273,6 @@ bool MQ2CharacterType::GETMEMBER()
             } else {
                 // by name
                 for (unsigned long nAbility=0 ; nAbility<AA_CHAR_MAX_REAL ; nAbility++) {
-                    if (!pPCData->GetAltAbilityIndex(nAbility)) break;
                     if ( PALTABILITY pAbility=pAltAdvManager->GetAltAbility(pPCData->GetAltAbilityIndex(nAbility)) ) {
                         if (PCHAR pName=pCDBStr->GetString(pAbility->nName, 1, NULL)) {
                             if (!stricmp(GETFIRST(),pName)) {
@@ -2296,7 +2291,6 @@ bool MQ2CharacterType::GETMEMBER()
             if (ISNUMBER()) {
                 //numeric
                 for (unsigned long nAbility=0 ; nAbility<AA_CHAR_MAX_REAL ; nAbility++) {
-                    if (!pPCData->GetAltAbilityIndex(nAbility)) break;
                     if ( PALTABILITY pAbility=pAltAdvManager->GetAltAbility(pPCData->GetAltAbilityIndex(nAbility)) ) {
                         if (pAbility->ID == GETNUMBER()) {
                             Dest.Ptr = pAbility;
@@ -2308,7 +2302,6 @@ bool MQ2CharacterType::GETMEMBER()
             } else {
                 // by name
                 for (unsigned long nAbility=0 ; nAbility<AA_CHAR_MAX_REAL ; nAbility++) {
-                    if (!pPCData->GetAltAbilityIndex(nAbility)) break;
                     if ( PALTABILITY pAbility=pAltAdvManager->GetAltAbility(pPCData->GetAltAbilityIndex(nAbility)) ) {
                         if (PCHAR pName=pCDBStr->GetString(pAbility->nName, 1, NULL)) {
                             if (!stricmp(GETFIRST(),pName)) {
