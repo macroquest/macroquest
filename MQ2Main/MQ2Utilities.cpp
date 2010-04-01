@@ -4053,42 +4053,39 @@ PCHAR GetAANameByIndex(DWORD AAIndex)
 
 DWORD GetAAIndexByName(PCHAR AAName)
 {
-	for (unsigned long nAbility=0 ; nAbility<NUM_ALT_ABILITIES ; nAbility++)
-	{
-		if ( ((PALTADVMGR)pAltAdvManager)->AltAbilities->AltAbilityList->Abilities[nAbility])
-		{
-			if (PALTABILITY pAbility=((PALTADVMGR)pAltAdvManager)->AltAbilities->AltAbilityList->Abilities[nAbility]->Ability)
-			{
-				if (PCHAR pName=pStringTable->getString(pAbility->nName,0))
-				{
-					if (!stricmp(AAName,pName))
-					{
-						return pAbility->Index;
-					}
-				}
-			}
-		}
-	}
-	
-	return 0;
+    for (unsigned long nAbility=0 ; nAbility<NUM_ALT_ABILITIES ; nAbility++)
+    {
+        if (!GetCharInfo2()->AAList[nAbility].AAIndex) break;
+        if ( PALTABILITY pAbility=pAltAdvManager->GetAltAbility(GetCharInfo2()->AAList[nAbility].AAIndex))
+        {
+            if (PCHAR pName=pCDBStr->GetString(pAbility->nName, 1, NULL))
+            {
+                if (!stricmp(AAName,pName))
+                {
+                    return pAbility->Index;
+                }
+            }
+        }
+    }
+
+    return 0;
 }
 
 DWORD GetAAIndexByID(DWORD ID)
 {
-	for (unsigned long nAbility=0 ; nAbility<NUM_ALT_ABILITIES ; nAbility++)
-	{
-		if ( ((PALTADVMGR)pAltAdvManager)->AltAbilities->AltAbilityList->Abilities[nAbility])
-		{
-			if ( PALTABILITY pAbility=((PALTADVMGR)pAltAdvManager)->AltAbilities->AltAbilityList->Abilities[nAbility]->Ability) 
-			{
-				if (pAbility->ID == ID)
-				{
-					return pAbility->Index;
-				}
-			}
-		}
-	}
-	return 0;
+    for (unsigned long nAbility=0 ; nAbility<NUM_ALT_ABILITIES ; nAbility++)
+    {
+        if (!GetCharInfo2()->AAList[nAbility].AAIndex) break;
+        if ( PALTABILITY pAbility=pAltAdvManager->GetAltAbility(GetCharInfo2()->AAList[nAbility].AAIndex))
+        {
+            if (pAbility->ID == ID )
+            {
+			    return pAbility->Index;
+            }
+        }
+    }
+
+    return 0;
 }
 
 BOOL IsPCNear(PSPAWNINFO pSpawn, FLOAT Radius)

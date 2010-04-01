@@ -3214,16 +3214,14 @@ VOID AltAbility(PSPAWNINFO pChar, PCHAR szLine)
     }
     else if (!stricmp(szCommand,"act")) 
     {
-        for (unsigned long nAbility=0 ; nAbility<NUM_ALT_ABILITIES ; nAbility++)
-        {
-            if ( ((PALTADVMGR)pAltAdvManager)->AltAbilities->AltAbilityList->Abilities[nAbility])
-            {
-                if ( PALTABILITY pAbility=((PALTADVMGR)pAltAdvManager)->AltAbilities->AltAbilityList->Abilities[nAbility]->Ability) 
-                {
-                    if (!stricmp(pStringTable->getString(pAbility->nName,0),szName))
-                    {
+        // only search through the ones we have....
+        for (unsigned long nAbility=0 ; nAbility<AA_CHAR_MAX_REAL ; nAbility++) {
+            if (!GetCharInfo2()->AAList[nAbility].AAIndex) break;
+            if ( PALTABILITY pAbility=pAltAdvManager->GetAltAbility(GetCharInfo2()->AAList[nAbility].AAIndex)) {
+                if (PCHAR pName=pCDBStr->GetString(pAbility->nName, 1, NULL)) {
+                    if (!stricmp(szName,pName)) {
                         sprintf(szBuffer,"/alt act %d", pAbility->ID);
-                        DoCommand(pChar,szBuffer);
+                        break;
                     }
                 }
             }
