@@ -418,9 +418,10 @@ typedef struct _CXWNDMGR {
 /*0x008*/ struct _CSIDLWND *pWindows; 
 /*0x00c*/ BYTE Unknown0x00C[0x75];
 /*0x081*/ bool KeyboardFlags[4];
-/*0x085*/ CHAR Unknown0x081[0x6B];
-/*0x0F0*/ DWORD ScreenExtentX;
-/*0x0F4*/ DWORD ScreenExtentY;
+/*0x085*/ CHAR Unknown0x081[0x67];
+/*0x0EC*/ DWORD ScreenExtentX;
+/*0x0F0*/ DWORD ScreenExtentY;
+/*0x0F4*/ DWORD Unknown;
 /*0x0F8*/ DWORD font_list_ptr;
 /*0x0Fc*/ BYTE Unknown0xfc[0xc];
 /*0x108*/ 
