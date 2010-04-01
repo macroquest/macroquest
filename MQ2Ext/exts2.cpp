@@ -21,6 +21,7 @@
 #define KPs(X)      dprintf(#X " = %s (offset 0x%x)\n", ci.X, &pnull->X) 
 #define KPf(X)      dprintf(#X " = %f (offset 0x%x)\n", ci.X, &pnull->X) 
 #define KPp(X)      dprintf(#X " = %d (offset 0x%x)\n", *(int*)ci.X, &pnull->X)
+#define KPh(X)      dprintf(#X " = 0x%x (offset 0x%x)\n", ci.X, &pnull->X) 
 #define offset(X)   printf("/* 0x%03x */ " #X ";\n", &ptr->X)
 
 #if defined(EXT_API_VERSION_NUMBER64) 
@@ -47,60 +48,21 @@ DECLARE_API ( pchar )
 
     KPs(Name); 
     KPs(Lastname); 
-    KP(Gender); 
-    KP(Race); 
-    KP(Class); 
-    KP(Level); 
     KP(Exp); 
-    KP(PracticePoints); 
-    KP(Mana); 
-	KP(Endurance);
-    KP(BaseHP); 
     KP(Stunned); 
-    KP(BaseSTR); 
-    KP(BaseSTA); 
-    KP(BaseCHA); 
-    KP(BaseDEX); 
-    KP(BaseINT); 
-    KP(BaseAGI); 
-    KP(BaseWIS); 
-    KP(Face); 
     KP(languages); 
-    KP(Buff); 
-    KP(SpellBook); 
-    KP(MemorizedSpells); 
-    KPf(y); 
-    KPf(x); 
-    KPf(z); 
-    KPf(heading); 
+    KPh(pCI2);
     KP(standstate); 
-    KP(Plat); 
-    KP(Gold); 
-    KP(Silver); 
-    KP(Copper); 
     KP(BankPlat); 
     KP(BankGold); 
     KP(BankSilver); 
     KP(BankCopper); 
-	KP(CursorPlat);
-	KP(CursorGold);
-	KP(CursorSilver);
-	KP(CursorCopper);
     KP(BankSharedPlat);
-	KP(BankSharedGold);
-	KP(BankSharedSilver);
-	KP(BankSharedCopper);
-    KP(Skill); 
-	KP(InnateSkill);
-    KP(hungerlevel); 
-    KP(thirstlevel); 
+    KP(BankSharedGold);
+    KP(BankSharedSilver);
+    KP(BankSharedCopper);
     KP(zoneId); 
-	KP(Instance);
-	KP(pSpawn);
-	KP(Inventory);
-	KP(Cursor);
-	KPs(Title);
-	KPs(Suffix);
+    KP(pSpawn);
     KP(STR); 
     KP(STA); 
     KP(CHA); 
@@ -108,72 +70,118 @@ DECLARE_API ( pchar )
     KP(INT); 
     KP(AGI); 
     KP(WIS); 
-	KP(AC);
     KP(SaveMagic); 
     KP(SaveCold); 
     KP(SaveFire); 
     KP(SavePoison); 
     KP(SaveDisease); 
     KP(CurrWeight); 
-	KP(HPBonus);
-	KP(ManaBonus);
-	KP(EnduranceBonus);
-	KP(CombatEffectsBonus);
-	KP(ShieldingBonus);
-	KP(SpellShieldBonus);
-	KP(AvoidanceBonus);
-	KP(AccuracyBonus);
-	KP(StunResistBonus);
-	KP(StrikeThroughBonus);
-	KP(SkillMinDamageModBonus);
-	KP(DoTShieldBonus);
-	KP(AttackBonus);
-	KP(HPRegenBonus);
-	KP(ManaRegenBonus);
-	KP(DamageShieldBonus);
-	KP(AttackSpeed);
-    KP(ShortBuff);
-    KP(Unknown0x12e0); 
-    KPf(ZoneBoundY); 
-    KPf(ZoneBoundX); 
-    KPf(ZoneBoundZ); 
-    KP(Deity); 
+    KP(HPBonus);
+    KP(ManaBonus);
+    KP(EnduranceBonus);
+    KP(CombatEffectsBonus);
+    KP(ShieldingBonus);
+    KP(SpellShieldBonus);
+    KP(AvoidanceBonus);
+    KP(AccuracyBonus);
+    KP(StunResistBonus);
+    KP(StrikeThroughBonus);
+    KP(SkillMinDamageModBonus);
+    KP(DoTShieldBonus);
+    KP(AttackBonus);
+    KP(HPRegenBonus);
+    KP(ManaRegenBonus);
+    KP(DamageShieldBonus);
+    KP(AttackSpeed);
+    //KPf(ZoneBoundY); 
+    //KPf(ZoneBoundX); 
+    //KPf(ZoneBoundZ); 
     KP(GuildID); 
-	KP(GuildStatus);
-	KP(Drunkenness);
-	KP(AAExp);
-	KP(PercentEXPtoAA);
-	KP(AAList);
-//	KP(Unknown0x1898);
-//  KP(Unknown0x18a0);
-	KP(AAPoints);
-	KP(ModrodTimer);
-    KPs(Server); 
-//	KP(GukEarned);
-//	KP(MirEarned);
-//	KP(MMEarned);
-//	KP(RujEarned);
-//	KP(TakEarned);
-//	KP(LDoNPoints);
-	KP(CareerFavor);
-	KP(CurrFavor);
-    KP(CombatAbilities);
-	KP(ItemTimer);
-	KP(CombatAbilityTimes);
-	KP(ItemTimes);
-	KP(GroupLeadershipExp);
-	KP(RaidLeadershipExp);
-	KP(GroupLeadershipPoints);
-	KP(RaidLeadershipPoints);
-	KP(GroupAbilities);
-	KP(RaidAbilities);
-	KP(LeadershipExpON);
-	KP(AAPointsSpent);
+    //KP(GuildStatus);
+    KP(AAExp);
+    KP(PercentEXPtoAA);
+    KP(CareerFavor);
+    KP(CurrFavor);
+    KP(GroupLeadershipExp);
+    KP(RaidLeadershipExp);
+    KP(GroupLeadershipPoints);
+    KP(RaidLeadershipPoints);
+    //KP(GroupAbilities);
+    //KP(RaidAbilities);
+    //KP(LeadershipExpON);
+    //KP(AAPointsSpent);
     KP(Bank);
     for (i=0; i < 5; i++) 
       dprintf("GroupMember%d = %s (offset 0x%x)\n", i+1, ci.GroupMember[i], &pnull->GroupMember[i]); 
 	KPs(GroupLeader);
 } 
+
+DECLARE_API ( pchar2 ) 
+{ 
+    CHARINFO2 *p, *pnull=NULL, ci; 
+    DWORD cb; 
+    CHAR buffer[MAX_STRING] = {0}; 
+    CHAR tmp[MAX_STRING] = {0}; 
+    unsigned int bitval = 1; 
+    int i=0; 
+
+    // read param from command line 
+    p = (CHARINFO2 *)GetExpression(args); 
+
+    ReadMemory((PARAM1)p,&ci,sizeof(ci),&cb); 
+
+    dprintf("\n\n\n"); 
+
+    KPh(Inventory);
+    KP(Gender); 
+    KP(Race); 
+    KP(Class); 
+    KP(Level); 
+    //KP(PracticePoints); 
+    KP(Mana); 
+    KP(Endurance);
+    KP(BaseHP); 
+    KP(BaseSTR); 
+    KP(BaseSTA); 
+    KP(BaseCHA); 
+    KP(BaseDEX); 
+    KP(BaseINT); 
+    KP(BaseAGI); 
+    KP(BaseWIS); 
+    //KP(Face); 
+    KP(Buff); 
+    KP(SpellBook); 
+    //KPf(y); 
+    //KPf(x); 
+    //KPf(z); 
+    KP(MemorizedSpells); 
+    //KPf(heading); 
+    KP(Plat); 
+    KP(Gold); 
+    KP(Silver); 
+    KP(Copper); 
+    KP(CursorPlat);
+    KP(CursorGold);
+    KP(CursorSilver);
+    KP(CursorCopper);
+    KP(Skill); 
+    KP(hungerlevel); 
+    KP(thirstlevel); 
+    KP(Cursor);
+    //KPs(Title);
+    //KPs(Suffix);
+    //KP(AC);
+    KP(ShortBuff);
+    KP(Deity); 
+    KP(AAList);
+    KP(AAPoints);
+    //KP(ModrodTimer);
+    KP(CombatAbilities);
+    //KP(ItemTimer);
+    KP(CombatAbilityTimes);
+    //KP(ItemTimes);
+
+}
 
 DECLARE_API ( pspawn ) 
 { 
@@ -196,18 +204,10 @@ DECLARE_API ( pspawn )
    KPf(SpeedRun); 
    KPf(Heading);
    KPf(CameraAngle);	
-   KPf(Y2); 
-   KPf(X2); 
-   KPf(Z2); 
-   KPf(SpeedY2); 
-   KPf(SpeedX2); 
-   KPf(SpeedZ2); 
-   KPf(SpeedRun2); 
-   KPf(Heading2);
    KPs(Name); 
    KPs(DisplayedName);
    KPf(SpeedHeading); 
-   KP(pActorInfo); 
+   //KP(pActorInfo); 
    KP(Sneak);
    KP(Linkdead);
    KP(LFG); 
@@ -225,8 +225,8 @@ DECLARE_API ( pspawn )
    KP(Type); 
    KP(HairColor);
    KP(BeardColor);
-   KP(Eyes);
-   KP(Eyes2);
+   //KP(Eyes);
+   //KP(Eyes2);
    KP(BeardType);
    KP(Holding);
    KP(Level);
@@ -406,7 +406,7 @@ DOOR *p, *pnull=NULL, ci;
 
    dprintf("\n\n\n"); 
 
-   KP(Unknown0x00); 
+   //KP(Unknown0x00); 
    KP(ID); 
    KPs(Name); 
    KP(Unknown0x0d); 
@@ -523,7 +523,7 @@ DECLARE_API ( pspell )
    KP(Unknown145);
    KP(CARecastTimerID);
    KP(PvPResistBase);
-   KP(PvPResistCalc);
+   //KP(PvPResistCalc);
    KP(PvPResistCap);
    ReadMemory((PARAM1)ci.Name, tmp, 128, &cb ); 
    dprintf("Name = %s (offset *0x%x)\n", tmp, &pnull->Name); 
@@ -537,7 +537,7 @@ DECLARE_API ( pspell )
    dprintf("WearOff = %s (offset *0x%x)\n", tmp, &pnull->WearOff); 
    KP(spaindex); 
    KP(SpellAnim); 
-   KP(Unknown130);
+   //KP(Unknown130);
    KP(SpellIcon); 
    KP(ResistAdj);
 } 
@@ -660,58 +660,6 @@ DECLARE_API ( plootcorpse )
    KP(Unknown0x08c); 
 } 
 
-DECLARE_API ( pactorinfo ) 
-{ 
-   ACTORINFO *p, *pnull=NULL, ci; 
-   DWORD cb; 
-
-
-    // read param from command line 
-    p = (ACTORINFO *)GetExpression(args); 
-
-    ReadMemory((PARAM1)p,&ci,sizeof(ci),&cb); 
-
-   dprintf("\n\n\n"); 
-
-   KPs(ActorDef);
-   KP(T3D_POINTLIGHT);
-   KPf(Z);
-   KP(TimeStamp);
-   KP(LastTick);
-   KPf(BobbingAmount);
-#if 0
-   KP(UnderWaterMirror);
-   KP(SwimmingMirror);
-   KP(FeetWetMirror);
-#endif
-   KP(UnderWater);
-#if 0
-   KP(Swimming);
-#endif
-   KP(FeetWet);
-#if 0
-   KP(LeftWater);
-#endif
-   KP(SpellETA);
-   KP(FishingETA);
-   KP(FaceRelatedActorStruct);
-   KP(Animation);
-   KP(FishingEvent);
-   KP(Mount);
-   KP(PetID);
-   KP(pGroupAssistNPC);
-   KP(pRaidAssistNPC);
-   KP(pGroupMarkNPC);
-   KP(pRaidMarkNPC);
-   KP(pTargetOfTarget);
-//   KPs(NameOfLastSuccessfulTargetHit);
-   KP(InvitedToGroup);
-   KP(CastingSpellID);
-   KP(WhoFollowing);
-   KPf(CastingY);
-   KPf(CastingX);
-   KP(Trader);
-} 
 
 // This routine exports all spell information in the game (stored 
 // in memory) into a tilde delimited format which works well with 

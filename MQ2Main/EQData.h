@@ -397,7 +397,7 @@ typedef struct _ITEMSPELLS {
 /*0x05*/ BYTE EffectType; 
 /*0x06*/ BYTE Unknown[2]; 
 /*0x08*/ DWORD Unknown0x08;
-/*0x0c*/ DWORD Unknown0x0c;
+/*0x0c*/
 } ITEMSPELLS, *PITEMSPELLS; 
 
 typedef struct _ITEMINFO {
@@ -486,10 +486,11 @@ typedef struct _ITEMINFO {
 /*0x198*/ BYTE CharmFile[0x20];
 /*0x1b8*/ FLOAT QuestValue;
 /*0x1bc*/ struct _ITEMSPELLS Clicky;
-/*0x1cc*/ struct _ITEMSPELLS Proc;
-/*0x1dc*/ struct _ITEMSPELLS Worn;
-/*0x1ec*/ struct _ITEMSPELLS Focus;
-/*0x1fc*/ struct _ITEMSPELLS Scroll;
+/*0x1c8*/ struct _ITEMSPELLS Proc;
+/*0x1d4*/ struct _ITEMSPELLS Worn;
+/*0x1e0*/ struct _ITEMSPELLS Focus;
+/*0x1ec*/ struct _ITEMSPELLS Scroll;
+/*0x1f8*/ DWORD Unknown0x1f8[5];
 /*0x20c*/ DWORD Unknown0x20c;
 /*0x210*/ DWORD Unknown0x210;
 /*0x214*/ DWORD ProcRate;

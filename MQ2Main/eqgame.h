@@ -125,7 +125,7 @@
 //Section 2:  UI Related Offsets
 ////
 //#define pinstCAdventureMerchantWnd                                 0x801ED0
-#define pinstCTextOverlay                                          0x801F04
+#define pinstCTextOverlay                                          0x801F48
 #define pinstCAudioTriggersWindow                                  0x801F14
 //                                                                   0x803988
 #define pinstCCharacterSelect                                      0x8B471C

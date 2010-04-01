@@ -14,6 +14,7 @@ EXPORTS
     pack
     help
     pchar
+    pchar2
     pspawn
     pitem
     pgroundspawn
@@ -24,7 +25,6 @@ EXPORTS
     pzone
     pzoneinfo
     plootcorpse
-    pactorinfo
     plootwnd
     ptradeskillwnd    
     precipe
