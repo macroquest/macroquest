@@ -3376,106 +3376,112 @@ bool MQ2ItemType::GETMEMBER()
 		Dest.Type=pIntType;
 		return true;
 	case Stacks:
-        Dest.DWord=0;
-        Dest.Type=pIntType;
-		if (!((EQ_Item*)pItem)->IsStackable()) return false;
-		for (DWORD slot=22;slot<30;slot++) 
 		{
-			if (PCONTENTS pTempItem = GetCharInfo2()->InventoryArray[slot])
-			{
-				if (pTempItem->Item->Type==ITEMTYPE_PACK) 
-				{
-					for (DWORD pslot=0;pslot<(pTempItem->Item->Slots);pslot++) 
-					{
-						if (pTempItem->Contents[pslot])
-						{
-							if (PCONTENTS pSlotItem = pTempItem->Contents[pslot])
-							{
-                                if (pSlotItem->Item->ItemNumber==pItem->Item->ItemNumber)
+            Dest.DWord=0;
+            Dest.Type=pIntType;
+            if (!((EQ_Item*)pItem)->IsStackable()) return false;
+            for (DWORD slot=22;slot<30;slot++) 
+            {
+                if (PCONTENTS pTempItem = GetCharInfo2()->InventoryArray[slot])
+                {
+                    if (pTempItem->Item->Type==ITEMTYPE_PACK) 
+                    {
+                        for (DWORD pslot=0;pslot<(pTempItem->Item->Slots);pslot++) 
+                        {
+                            if (pTempItem->Contents[pslot])
+                            {
+                                if (PCONTENTS pSlotItem = pTempItem->Contents[pslot])
                                 {
-                                    Dest.DWord++;
-								}
-							}
-						}
+                                    if (pSlotItem->Item->ItemNumber==pItem->Item->ItemNumber)
+                                    {
+                                        Dest.DWord++;
+                                    }
+                                }
+                            }
+                        }
 					}
-				}
-				else {
-					if (pTempItem->Item->ItemNumber==pItem->Item->ItemNumber)
-					{
-						Dest.DWord++;
-					}
-				}
+                    else {
+                        if (pTempItem->Item->ItemNumber==pItem->Item->ItemNumber)
+                        {
+                            Dest.DWord++;
+                        }
+                    }
+                }
 			}
+            return true;
 		}
-		return true;
 	case StackCount:
-        Dest.DWord=0;
-        Dest.Type=pIntType;
-		if (!((EQ_Item*)pItem)->IsStackable()) return false;
-		for (DWORD slot=22;slot<30;slot++) 
 		{
-			if (PCONTENTS pTempItem = GetCharInfo2()->InventoryArray[slot])
-			{
-				if (pTempItem->Item->Type==ITEMTYPE_PACK) 
-				{
-					for (DWORD pslot=0;pslot<(pTempItem->Item->Slots);pslot++) 
-					{
-						if (pTempItem->Contents[pslot])
-						{
-							if (PCONTENTS pSlotItem = pTempItem->Contents[pslot])
-							{
-                                if (pSlotItem->Item->ItemNumber==pItem->Item->ItemNumber)
-                                {
-                                    Dest.DWord+=pSlotItem->StackCount;
+            Dest.DWord=0;
+            Dest.Type=pIntType;
+            if (!((EQ_Item*)pItem)->IsStackable()) return false;
+            for (DWORD slot=22;slot<30;slot++) 
+            {
+                if (PCONTENTS pTempItem = GetCharInfo2()->InventoryArray[slot])
+                {
+                    if (pTempItem->Item->Type==ITEMTYPE_PACK) 
+                    {
+                        for (DWORD pslot=0;pslot<(pTempItem->Item->Slots);pslot++) 
+                        {
+                            if (pTempItem->Contents[pslot])
+                            {
+                                if (PCONTENTS pSlotItem = pTempItem->Contents[pslot])
+								{
+                                    if (pSlotItem->Item->ItemNumber==pItem->Item->ItemNumber)
+                                    {
+                                        Dest.DWord+=pSlotItem->StackCount;
+									}
 								}
-							}
-						}
-					}
-				}
-				else {
-					if (pTempItem->Item->ItemNumber==pItem->Item->ItemNumber)
-					{
-                        Dest.DWord+=pTempItem->StackCount;
-					}
-				}
-			}
+                            }
+                        }
+                    }
+                    else {
+                        if (pTempItem->Item->ItemNumber==pItem->Item->ItemNumber)
+                        {
+                            Dest.DWord+=pTempItem->StackCount;
+                        }
+                    }
+                }
+            }
+            return true;
 		}
-		return true;
 	case FreeStack:
-        Dest.DWord=0;
-        Dest.Type=pIntType;
-		if (!((EQ_Item*)pItem)->IsStackable()) return false;
-		for (DWORD slot=22;slot<30;slot++) 
 		{
-			if (PCONTENTS pTempItem = GetCharInfo2()->InventoryArray[slot])
-			{
-				if (pTempItem->Item->Type==ITEMTYPE_PACK) 
-				{
-					for (DWORD pslot=0;pslot<(pTempItem->Item->Slots);pslot++) 
-					{
-						if (pTempItem->Contents[pslot])
-						{
-							if (PCONTENTS pSlotItem = pTempItem->Contents[pslot])
+            Dest.DWord=0;
+            Dest.Type=pIntType;
+            if (!((EQ_Item*)pItem)->IsStackable()) return false;
+            for (DWORD slot=22;slot<30;slot++)
+            {
+                if (PCONTENTS pTempItem = GetCharInfo2()->InventoryArray[slot])
+                {
+                    if (pTempItem->Item->Type==ITEMTYPE_PACK)
+                    {
+                        for (DWORD pslot=0;pslot<(pTempItem->Item->Slots);pslot++) 
+                        {
+                            if (pTempItem->Contents[pslot])
 							{
-                                if (pSlotItem->Item->ItemNumber==pItem->Item->ItemNumber)
+                                if (PCONTENTS pSlotItem = pTempItem->Contents[pslot])
                                 {
-                                    Dest.DWord+=(pSlotItem->Item->StackSize-pSlotItem->StackCount);
-								}
-							}
-						}
+                                    if (pSlotItem->Item->ItemNumber==pItem->Item->ItemNumber)
+                                    {
+                                        Dest.DWord+=(pSlotItem->Item->StackSize-pSlotItem->StackCount);
+									}
+                                }
+                            }
+                        }
+                    }
+                    else {
+                        if (pTempItem->Item->ItemNumber==pItem->Item->ItemNumber)
+                        {
+                            Dest.DWord+=(pTempItem->Item->StackSize-pTempItem->StackCount);
+                        }
 					}
-				}
-				else {
-					if (pTempItem->Item->ItemNumber==pItem->Item->ItemNumber)
-					{
-                        Dest.DWord+=(pTempItem->Item->StackSize-pTempItem->StackCount);
-					}
-				}
-			}
-		}
-		return true;
-    }
+                }
+            }
+            return true;
+        }
     return false;
+	}
 #undef pItem
 }
 

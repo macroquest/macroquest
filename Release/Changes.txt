@@ -1,3 +1,6 @@
+20 December 2005 by rswiders
+- Fixed to compile in VC++ 6.0
+
 19 December 2005 by rswiders
 - Corrected offset comments in several structures
 - Fixed Item.Timer issue for insta-click/instant refresh items
