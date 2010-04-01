@@ -2621,22 +2621,11 @@ public:
    ~MQ2AltAbilityType()
    {
    }
+   bool MQ2AltAbilityType::ToString(MQ2VARPTR VarPtr, PCHAR Destination);
 
    bool GETMEMBER();
 	DECLAREGETMETHOD();
 
-   bool ToString(MQ2VARPTR VarPtr, PCHAR Destination)
-   {
-	   if (!VarPtr.Ptr)
-		   return false;
-	   if (PALTABILITY pAbility=*(PALTABILITY*)VarPtr.Ptr)
-	   if (PCHAR pName=pStringTable->getString(pAbility->nName,0))
-	   {
-		   strcpy(Destination,pName);
-		   return true;
-	   }
-	   return false;
-   }
 	bool FromData(MQ2VARPTR &VarPtr, MQ2TYPEVAR &Source)
 	{
 		if (Source.Type!=pAltAbilityType)

@@ -2301,8 +2301,8 @@ bool MQ2CharacterType::GETMEMBER()
                     if (!GetCharInfo2()->AAList[nAbility].AAIndex) break;
                     if ( PALTABILITY pAbility=pAltAdvManager->GetAltAbility(GetCharInfo2()->AAList[nAbility].AAIndex)) {
                         if (pAbility->ID == GETNUMBER()) {
-                            Dest.DWord = GetCharInfo2()->AAList[nAbility].PointsSpent;
-                            Dest.Type = pIntType;
+                            Dest.Ptr = pAbility;
+                            Dest.Type = pAltAbilityType;
                             return true;
                         }
                     }
@@ -2314,8 +2314,8 @@ bool MQ2CharacterType::GETMEMBER()
                     if ( PALTABILITY pAbility=pAltAdvManager->GetAltAbility(GetCharInfo2()->AAList[nAbility].AAIndex)) {
                         if (PCHAR pName=pCDBStr->GetString(pAbility->nName, 1, NULL)) {
                             if (!stricmp(GETFIRST(),pName)) {
-                                Dest.DWord = GetCharInfo2()->AAList[nAbility].PointsSpent;
-                                Dest.Type = pIntType;
+                                Dest.Ptr = pAbility;
+                                Dest.Type = pAltAbilityType;
                                 return true;
                             }
                         }
@@ -4625,11 +4625,20 @@ bool MQ2SkillType::GETMEMBER()
 	return false;
 }
 
+bool MQ2AltAbilityType::ToString(MQ2VARPTR VarPtr, PCHAR Destination)
+{
+    if (!VarPtr.Ptr)
+        return false;
+    PALTABILITY pAbility=(PALTABILITY)VarPtr.Ptr;
+    itoa(pAbility->PointsSpent, Destination,10);
+    return true;
+}
+
 bool MQ2AltAbilityType::GETMEMBER()
 {
 	if (!VarPtr.Ptr)
 		return false;
-	PALTABILITY pAbility=*(PALTABILITY*)VarPtr.Ptr;
+	PALTABILITY pAbility=(PALTABILITY)VarPtr.Ptr;
 
 	PMQ2TYPEMEMBER pMember=MQ2AltAbilityType::FindMember(Member);
 	if (!pMember)

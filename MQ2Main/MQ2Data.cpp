@@ -1191,51 +1191,43 @@ TLO(dataSkill)
 
 TLO(dataAltAbility)
 {
-	if (!ISINDEX())
-		return false;
-	if (ISNUMBER())
-	{
-		for (unsigned long nAbility=0 ; nAbility<NUM_ALT_ABILITIES ; nAbility++)
-		{
-	     if ( ((PALTADVMGR)pAltAdvManager)->AltAbilities->AltAbilityList->Abilities[nAbility])
-		  {
-			if ( PALTABILITY pAbility=((PALTADVMGR)pAltAdvManager)->AltAbilities->AltAbilityList->Abilities[nAbility]->Ability) 
-			{
-				if (pAbility->ID == GETNUMBER() )
-				{
-					if (Ret.Ptr=&((PALTADVMGR)pAltAdvManager)->AltAbilities->AltAbilityList->Abilities[nAbility]->Ability)
-					{
-						Ret.Type=pAltAbilityType;
-						return true;
-					}
-				}
-			}
-		  }
-	    }
-	}
-	else
-	{
-		for (unsigned long nAbility=0 ; nAbility<NUM_ALT_ABILITIES ; nAbility++)
-		{
-	     if ( ((PALTADVMGR)pAltAdvManager)->AltAbilities->AltAbilityList->Abilities[nAbility])
-		  {
-			if ( PALTABILITY pAbility=((PALTADVMGR)pAltAdvManager)->AltAbilities->AltAbilityList->Abilities[nAbility]->Ability) 
-			{
-				if (PCHAR pName=pStringTable->getString(pAbility->nName,0))
-				{
-					if (!stricmp(GETFIRST(),pName))
-					{
-						Ret.Ptr=&((PALTADVMGR)pAltAdvManager)->AltAbilities->AltAbilityList->Abilities[nAbility]->Ability;
-						Ret.Type=pAltAbilityType;
-						return true;
-					}
-				}
-			}
-		  }
-	    }
-	}
+    if (!ISINDEX())
+        return false;
+    if (ISNUMBER())
+    {
+        for (unsigned long nAbility=0 ; nAbility<NUM_ALT_ABILITIES ; nAbility++)
+        {
+            if ( PALTABILITY pAbility=pAltAdvManager->GetAltAbility(nAbility))
+            {
+                if (pAbility->ID == GETNUMBER() )
+                {
+                    Ret.Ptr=pAbility;
+                    Ret.Type=pAltAbilityType;
+                    return true;
+                }
+            }
+        }
+    }
+    else
+    {
+        for (unsigned long nAbility=0 ; nAbility<NUM_ALT_ABILITIES ; nAbility++)
+        {
+            if ( PALTABILITY pAbility=pAltAdvManager->GetAltAbility(nAbility))
+            {
+                if (PCHAR pName=pCDBStr->GetString(pAbility->nName, 1, NULL))
+                {
+                    if (!stricmp(GETFIRST(),pName))
+                    {
+                        Ret.Ptr=pAbility;
+                        Ret.Type=pAltAbilityType;
+                        return true;
+                    }
+                }
+            }
+        }
+    }
 
-	return false;
+    return false;
 }
 
 TLO(dataRaid)
