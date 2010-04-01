@@ -190,6 +190,10 @@ typedef struct _MACROBLOCK {
     CHAR Line[MAX_STRING];
     CHAR SourceFile[MAX_STRING];
     DWORD LineNumber;
+#ifdef MQ2_PROFILING
+    DWORD ExecutionCount;
+    LONGLONG ExecutionTime;
+#endif
     struct _MACROBLOCK *pNext;
     struct _MACROBLOCK *pPrev;
 } MACROBLOCK, *PMACROBLOCK;

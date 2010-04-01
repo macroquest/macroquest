@@ -26,45 +26,56 @@ BOOL TurnNotDone=FALSE;
 
 BOOL DoNextCommand()
 {
-     if (!ppCharSpawn || !pCharSpawn) return FALSE;
-	 PSPAWNINFO pCharOrMount = NULL;
-	PCHARINFO pCharInfo = GetCharInfo();
+    if (!ppCharSpawn || !pCharSpawn) return FALSE;
+    PSPAWNINFO pCharOrMount = NULL;
+    PCHARINFO pCharInfo = GetCharInfo();
     PSPAWNINFO pChar = pCharOrMount = (PSPAWNINFO)pCharSpawn;
-	if (pCharInfo && pCharInfo->pSpawn) pChar=pCharInfo->pSpawn;
+    if (pCharInfo && pCharInfo->pSpawn) pChar=pCharInfo->pSpawn;
     if ((!pChar) || (gZoning)/* || (gDelayZoning)*/) return FALSE;
     if (((gFaceAngle != 10000.0f) || (gLookAngle != 10000.0f)) && (TurnNotDone)) return FALSE;
-	 if (IsMouseWaiting()) return FALSE;
+    if (IsMouseWaiting()) return FALSE;
     if (gDelay && gDelayCondition[0])
-	{
-		CHAR szCond[MAX_STRING];
-		strcpy(szCond,gDelayCondition);
-		ParseMacroParameter(GetCharInfo()->pSpawn,szCond);
-		DOUBLE Result;
-		if (!Calculate(szCond,Result))
-		{
-			FatalError("Failed to parse /delay condition '%s', non-numeric encountered",szCond);
-			return false;
-		}
-		if (Result!=0)
-		{
-			DebugSpewNoFile("/delay ending early, conditions met");
-			gDelay=0;
-		}
-	}
-	if (!gDelay && !gMacroPause && (!gMQPauseOnChat || *EQADDR_NOTINCHATMODE) &&
+    {
+        CHAR szCond[MAX_STRING];
+        strcpy(szCond,gDelayCondition);
+        ParseMacroParameter(GetCharInfo()->pSpawn,szCond);
+        DOUBLE Result;
+        if (!Calculate(szCond,Result))
+        {
+            FatalError("Failed to parse /delay condition '%s', non-numeric encountered",szCond);
+            return false;
+        }
+        if (Result!=0)
+        {
+            DebugSpewNoFile("/delay ending early, conditions met");
+            gDelay=0;
+        }
+    }
+    if (!gDelay && !gMacroPause && (!gMQPauseOnChat || *EQADDR_NOTINCHATMODE) &&
         gMacroBlock && gMacroStack) {
             gMacroStack->Location=gMacroBlock;
+#ifdef MQ2_PROFILING
+            LARGE_INTEGER BeforeCommand;
+            QueryPerformanceCounter(&BeforeCommand);
+            PMACROBLOCK ThisMacroBlock = gMacroBlock; 
+#endif
             DoCommand(pChar,gMacroBlock->Line);
             if (gMacroBlock) {
+#ifdef MQ2_PROFILING
+                LARGE_INTEGER AfterCommand;
+                QueryPerformanceCounter(&AfterCommand);
+                ThisMacroBlock->ExecutionCount++;
+                ThisMacroBlock->ExecutionTime += AfterCommand.QuadPart - BeforeCommand.QuadPart; 
+#endif
                 if (!gMacroBlock->pNext) {
                     FatalError("Reached end of macro.");
                 } else {
                     gMacroBlock = gMacroBlock->pNext;
                 }
             }
-			return TRUE;
+            return TRUE;
     }
-	return FALSE;
+    return FALSE;
 }
 
 

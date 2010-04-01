@@ -160,6 +160,7 @@ void InitializeMQ2Data()
 	AddMQ2Data("SpawnCount",dataSpawnCount);
 	AddMQ2Data("LineOfSight",dataLineOfSight);
 	AddMQ2Data("Plugin",dataPlugin);
+	AddMQ2Data("Select",dataSelect);
 }
 
 

@@ -54,10 +54,10 @@ arg_B           = byte ptr  13h
                 mov     edx, [ebp+arg_0]
                 add     edi, edx
                 cmp     edx, edi
-                jnb     short loc_559F7A
+                jnb     short loc_4C6B08
                 push    ebx
 
-loc_559F60:                             ; CODE XREF: __MemChecker2+84j
+loc_4C6AEE:                             ; CODE XREF: __MemChecker2+84j
                 xor     ebx, ebx
                 mov     bl, [edx]
                 xor     ebx, eax
@@ -67,10 +67,10 @@ loc_559F60:                             ; CODE XREF: __MemChecker2+84j
                 xor     eax, _myextern_array[ebx*4]
                 inc     edx
                 cmp     edx, edi
-                jb      short loc_559F60
+                jb      short loc_4C6AEE
                 pop     ebx
 
-loc_559F7A:                             ; CODE XREF: __MemChecker2+6Aj
+loc_4C6B08:                             ; CODE XREF: __MemChecker2+6Aj
                 pop     edi
                 not     eax
                 pop     esi

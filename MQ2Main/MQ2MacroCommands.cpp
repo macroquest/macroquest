@@ -482,6 +482,65 @@ VOID EndMacro(PSPAWNINFO pChar, PCHAR szLine)
         MacroError("Cannot end a macro when one isn't running.");
         return;
     }
+
+#ifdef MQ2_PROFILING
+    // How many performance counters in 1 second?
+    LARGE_INTEGER PerformanceFrequency;
+    QueryPerformanceCounter(&PerformanceFrequency);
+
+    // Move to first macro line
+    while (gMacroBlock->pPrev) gMacroBlock = gMacroBlock->pPrev;
+
+    CHAR Filename[MAX_STRING] = {0};
+    FILE *fMacro = NULL;
+    while (gMacroBlock) {
+        // Is this a different macro file?
+        if (strcmp(Filename, gMacroBlock->SourceFile)) {
+            // Close existing file
+            if (fMacro) {
+                fclose(fMacro);
+            }
+            // Open new profiling log file
+            strcpy(Filename, gMacroBlock->SourceFile);
+            sprintf(Buffer, "%s\\%s.mqp", gszMacroPath, Filename);
+            fMacro = fopen(Buffer, "w");
+            if (fMacro) {
+                fprintf(fMacro, " Execute |  Total   | Avg uSec | Line | Macro Source Code\n");
+                fprintf(fMacro, " Count   |   uSec   | Per 1000 |\n");
+                fprintf(fMacro, "------------------------------------------------------------------------------------------------------------- \n");
+            }
+        }
+
+        // Log execution/profiling information.  Output format is:
+        // Execution Count | Microseconds | Line # | Macro Source
+        if (fMacro) {
+            DWORD count = gMacroBlock->ExecutionCount;
+            DWORD total = (DWORD)(gMacroBlock->ExecutionTime * 1000000 / PerformanceFrequency.QuadPart);
+            DWORD avg = 0;
+            if (count > 0) {
+                avg = total * 1000 / count;
+            }
+            fprintf(fMacro, "%8lu | %8lu | %8lu | %4lu | %s\n",
+                count,
+                total,
+                avg,
+                gMacroBlock->LineNumber,
+                gMacroBlock->Line);
+        }
+
+        // Terminate on last macro line
+        if (gMacroBlock->pNext) {
+            gMacroBlock = gMacroBlock->pNext;
+        } else {
+            break;
+        }
+    }
+    // Close existing file
+    if (fMacro) {
+        fclose(fMacro);
+    }
+#endif
+
     while (gMacroBlock->pNext) gMacroBlock=gMacroBlock->pNext;
     while (gMacroBlock) {
         pPrev = gMacroBlock->pPrev;
@@ -569,7 +628,7 @@ VOID Call(PSPAWNINFO pChar, PCHAR szLine)
     GetArg(SubName,szLine,1);
     SubParam = GetNextArg(szLine);
 
-        sprintf(SubLine,"sub %s",SubName);
+    sprintf(SubLine,"sub %s",SubName);
     sprintf(SubLineP,"sub %s(",SubName);
 
     // Sub in Map?
@@ -722,6 +781,9 @@ VOID FailIf(PSPAWNINFO pChar, PCHAR szCommand, PMACROBLOCK pStartLine, BOOL All)
         }
         if ((!All) && (!strnicmp(gMacroBlock->Line,"} else ",7))) {
             DoCommand(pChar,gMacroBlock->Line+7);
+        } else if ((!All) && (!strnicmp(gMacroBlock->Line,"} else",6))) {
+		    FatalError("} else lacks command or {");
+            return;
         } else {
             bRunNextCommand = TRUE;
         }
@@ -788,7 +850,7 @@ VOID NewIf(PSPAWNINFO pChar, PCHAR szLine)
 
 	if (Result!=0)
 		DoCommand(pChar,pEnd); 
-	else
+	else 
 		FailIf(pChar,pEnd, gMacroBlock);
 }
 

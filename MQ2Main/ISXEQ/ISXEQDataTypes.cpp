@@ -416,23 +416,35 @@ bool MQ2InvSlotType::GETMETHOD()
 }
 
 
+
 bool MQ2TimerType::GETMETHOD()
 {
 #define pPtr ((PMQTIMER)VarPtr.Ptr)
-	if (!VarPtr.Ptr)
-		return false;
-	PMQ2TYPEMETHOD pMethod=MQ2TimerType::FindMethod(Method);
-	if (!pMethod)
-	{
-		return false;
-	}
-	// TODO
-//	Timer((TimerMethods)pMethod->ID)
-//	{
-//	}
-	return false;
+   if (!VarPtr.Ptr)
+      return false;
+   PMQ2TYPEMETHOD pMethod=MQ2TimerType::FindMethod(Method);
+   if (!pMethod)
+   {
+      return false;
+   }
+   switch((TimerMethods)pMethod->ID)
+   {
+   case Reset:
+      pPtr->Current=pPtr->Original;
+      return true;
+   case Expire:
+      pPtr->Current=1;  // Will expire in a 10th of a second
+      return true;
+   case Set:
+      if (argc)
+      {
+         MQ2TimerType::FromString(VarPtr,argv[0]);
+         return true;
+      }
+   }
+   return false;
 #undef pPtr
-}
+} 
 
 
 bool MQ2SkillType::GETMETHOD()

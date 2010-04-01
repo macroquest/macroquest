@@ -65,7 +65,7 @@ Using Blech:
 #pragma once
 #pragma warning(disable : 4996)
 
-#define BLECHVERSION "Lax/Blech 1.7.1"
+#define BLECHVERSION "Lax/Blech 1.7.2"
 
 #include <map>
 #include <string>
@@ -613,34 +613,63 @@ private:
 	static char *stristr(char *haystack,char *needle)
 	{
 		BlechDebugFull("stristr(%s,%s)",haystack,needle);
-		unsigned long HaystackLength=(unsigned long)strlen(haystack);
-		unsigned long NeedleLength=(unsigned long)strlen(needle);
-		if (NeedleLength>HaystackLength)
-			return 0;//nope
-		if (NeedleLength==HaystackLength)
+		BLECHASSERT(haystack!=0);
+		BLECHASSERT(needle!=0);
+		if (!needle[0])
+			return haystack;
+
+		static bool bInitialized=false;
+		static char ToUpper[256];
+		if (!bInitialized)
 		{
-			if (!STRCMP(haystack,needle))
-				return haystack;
-			return 0;
+			bInitialized=true;
+			ToUpper[0]=0;
+			for(unsigned long i = 1 ; i < 128 ; i++)
+				ToUpper[i]=(char)toupper(i);
+			for (unsigned long i = 128 ; i < 256 ; i++)
+			{
+				ToUpper[i]=(char)i;
+			}
 		}
-		HaystackLength++;
-		NeedleLength++;
-//		char *pHaystack=(char*)malloc(HaystackLength);
-//		char *pNeedle=(char*)malloc(NeedleLength);
-		char pHaystack[4096];
-		char pNeedle[4096];
-		memcpy(pHaystack,haystack,HaystackLength);
-		memcpy(pNeedle,needle,NeedleLength);
-        strlwr(pHaystack);
-		strlwr(pNeedle);
-		char *pReturn=strstr(pHaystack,pNeedle);
-		if (pReturn)
+
+		char *originalneedle=needle;
+		do
 		{
-			pReturn=haystack+(pReturn-pHaystack);
+			char c=*haystack;
+			if (!c)
+				return 0;
+			if (ToUpper[c]==ToUpper[*needle])
+			{
+				char *start=haystack;
+				do
+				{
+					needle++;
+					c=*needle;
+					if (!c)
+						return start;
+					haystack++;
+					char d=*haystack;
+					if (!d)
+					{
+						return 0;
+					}
+					
+					if (ToUpper[c]!=ToUpper[d])
+						break;
+				}
+				while(1);
+
+				haystack=start+1;
+				needle=originalneedle;
+				continue;
+			}
+			haystack++;
 		}
-//		free(pHaystack);
-//		free(pNeedle);
-		return pReturn;
+		while(1);
+
+
+
+		return 0;
 	}
 
 

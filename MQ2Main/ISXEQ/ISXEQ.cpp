@@ -336,7 +336,7 @@ VOID CISXEQ::HookMemChecker(BOOL Patch)
 extern void Heartbeat();
 void __cdecl PulseService(bool Broadcast, unsigned long MSG, void *lpData)
 {
-	if (MSG==PULSE_PULSE)
+	if (MSG==PULSE_PREFRAME)
 	{
 		// "OnPulse"
 		Heartbeat();

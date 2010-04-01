@@ -82,7 +82,7 @@ TLO(dataSelect)
     CHAR szArg[MAX_STRING] = {0};
     CHAR szArg1[MAX_STRING] = {0};
 	int N=2;
-    GetArg(szArg1,szIndex,N,FALSE,FALSE,TRUE);
+    GetArg(szArg1,szIndex,1,FALSE,FALSE,TRUE);
     while (1) 
 	{
         GetArg(szArg,szIndex,N,FALSE,FALSE,TRUE);
@@ -95,7 +95,7 @@ TLO(dataSelect)
 		}
 		if (!stricmp(szArg1,szArg))
 		{
-			Ret.DWord=N;
+			Ret.DWord=N-2;
 			Ret.Type=pIntType;
 			return true;
 		}

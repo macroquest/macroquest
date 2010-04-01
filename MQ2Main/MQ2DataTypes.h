@@ -2660,11 +2660,18 @@ public:
    };
 	static enum TimerMethods
 	{
+      Reset=1,
+      Expire=2,
+      Set=3, 
 	};
    MQ2TimerType():MQ2Type("timer")
    {
 	  TypeMember(Value);
 	  TypeMember(OriginalValue);
+
+     TypeMethod(Reset);
+     TypeMethod(Expire);
+     TypeMethod(Set); 
    }
 
    ~MQ2TimerType()
