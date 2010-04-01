@@ -833,7 +833,6 @@ int WndNotify(int argc, char *argv[])
 		SyntaxError("Syntax: /notify <window|\"item\"> <control|0> <notification> [notification data]");
 		return;
 	}
-	unsigned long Data=0;
 	if (szArg4[0])
 		Data=atoi(szArg4);
 #else
