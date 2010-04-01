@@ -443,10 +443,13 @@ typedef struct _CSIDLWND {
 /*0x12c*/   struct  _CSIDLWND *pParentWindow; // If this is NULL, coordinates are absolute...
 /*0x130*/   ARGBCOLOR BGColor;
 /*0x134*/   union {
+                struct _CXSTR  *SidlText;
+                DWORD  Items;
+            };
+/*0x138*/   union {
                 struct _CXSTR  *SidlScreen;
                 DWORD   SlotID;
             };
-/*0x138*/   struct _CXSTR  *SidlText;
 /*0x13c*/   LPVOID SidlPiece;   // CScreenPieceTemplate (important)
 /*0x140*/   BYTE    Checked;
 /*0x141*/   BYTE    Highlighted;

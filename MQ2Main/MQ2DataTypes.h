@@ -523,6 +523,7 @@ public:
 		Title=84,
 		Suffix=85,
 		Fleeing=86,
+		Named=87,
 	};
 	static enum SpawnMethods
 	{
@@ -616,6 +617,7 @@ public:
 		TypeMember(Title);  //84
 		TypeMember(Suffix); //85
 		TypeMember(Fleeing);
+		TypeMember(Named);
 
 		TypeMethod(Target);
 		TypeMethod(Face);
@@ -813,6 +815,9 @@ public:
 	};
 	static enum CharacterMethods
 	{
+		Stand, 
+		Sit, 
+		Dismount, 
 	};
 	MQ2CharacterType():MQ2Type("character")
 	{
@@ -945,6 +950,10 @@ public:
 		TypeMember(CombatAbilityReady);
 		TypeMember(Running);
 		TypeMember(GroupSize);
+
+		TypeMethod(Stand); 
+		TypeMethod(Sit); 
+		TypeMethod(Dismount); 
 	}
 
 	~MQ2CharacterType()
@@ -1261,13 +1270,13 @@ public:
 		StackCount=94,
 		FreeStack=95,
 		MerchQuantity=96,
-		Classes,
-		Class,
-		Races,
-		Race,
-                Deities,
-                Deity,
-                RequireLevel,
+		Classes=97,
+		Class=98,
+		Races=99,
+		Race=100,
+        Deities=101,
+        Deity=102,
+        RequireLevel=103,
 
 	};
 	static enum ItemMethods

@@ -210,6 +210,7 @@ void InitializeMQ2Commands()
    pISInterface->AddAlias("gu","EQExecute /guildsay");
    pISInterface->AddAlias("key","EQExecute /keys");
    pISInterface->AddAlias("r","EQExecute /reply");
+   pISInterface->AddAlias("time","EQExecute /time");
 }
 
 void ShutdownMQ2Commands()

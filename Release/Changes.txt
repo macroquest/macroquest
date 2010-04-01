@@ -1,3 +1,8 @@
+19 Apr 2006 by dkaa, rswiders
+- updated for 4/19 patch
+- added spawn.IsNamed
+- added personal tribute and radiant/ebon crystals to CHARINFO
+
 31a Mar 2006 by dkaa
 - fixed the VS6 build
 

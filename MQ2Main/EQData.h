@@ -666,7 +666,9 @@ typedef struct _CHARINFO {
 /*0x00e48*/   DWORD      AAExp;
 /*0x00e4c*/   BYTE       Unknown0xe4c;
 /*0x00e4d*/   BYTE       PercentEXPtoAA;
-/*0x00e4e*/   BYTE       Unknown0xe4e[0x4a];
+/*0x00e4e*/   BYTE       Unknown0xe4e[0x42];
+/*0x00e90*/   DWORD      TributeTimer;
+/*0x00e94*/   DWORD      Unknown0xe94;
 /*0x00e98*/   DWORD      CareerFavor;
 /*0x00e9c*/   DWORD      Unknown0xe9c;
 /*0x00ea0*/   DWORD      CurrFavor;
@@ -675,7 +677,11 @@ typedef struct _CHARINFO {
 /*0x00eb8*/   DOUBLE     RaidLeadershipExp;
 /*0x00ec0*/   DWORD      GroupLeadershipPoints;
 /*0x00ec4*/   DWORD      RaidLeadershipPoints;
-/*0x00ec8*/   BYTE       Unknown0xec8[0x708];
+/*0x00ec8*/   BYTE       Unknown0xec8[0x104];
+/*0x00fcc*/   DWORD      RadiantCrystals;
+/*0x00fd0*/   DWORD      Unknown0xfd0;
+/*0x00fd4*/   DWORD      EbonCrystals;
+/*0x00fd8*/   BYTE       Unknown0xfd8[0x5f8];
 /*0x015d0*/   CHAR       GroupMember[0x6][0x40];
 /*0x01750*/   CHAR       GroupLeader[0x40];
 /*0x01790*/   BYTE       Unknown0x1790[0x2a0];
@@ -1602,12 +1608,12 @@ typedef struct connection_t {
 } CONNECTION_T, *PCONNECTION_T;
 
 
-#define EQ_INTERACTGROUNDITEM   0x5546
-#define EQ_BAZAARSEARCHCREATE   0x7124  // CProgSelWnd__WndNotification 02/21
-#define EQ_BAZAARSEARCHME       0x4AA9  // CBazaarSearchWnd__doQuery 02/21
-#define EQ_EMOTE                0x64d4  // CEverQuest__Emote
-#define EQ_BEGIN_ZONE           0x25a0  // CEverQuest__SavePCForce
-#define EQ_END_ZONE             0x2f40  // CEverQuest__DoMainLoop
-#define EQ_LoadingS__ArraySize  0x44    // EQ_LoadingS__SetProgressBar
+#define EQ_INTERACTGROUNDITEM   0x00a5  // CEverQuest__HandleClick 04/19
+#define EQ_BAZAARSEARCHCREATE   0x2cf8  // CProgSelWnd__WndNotification 04/19
+#define EQ_BAZAARSEARCHME       0x5332  // CBazaarSearchWnd__doQuery 04/19
+#define EQ_EMOTE                0x4308  // CEverQuest__Emote 04/19
+#define EQ_BEGIN_ZONE           0x5C06  // begin_zone_routine 04/19
+#define EQ_END_ZONE             0x3C22  // 04/19
+#define EQ_LoadingS__ArraySize  0x44    // EQ_LoadingS__SetProgressBar 04/19
 };
 using namespace EQData;

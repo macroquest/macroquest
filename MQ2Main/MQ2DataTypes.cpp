@@ -1522,6 +1522,10 @@ bool MQ2SpawnType::GETMEMBER()
 		Dest.DWord=IsMobFleeing(GetCharInfo()->pSpawn,pSpawn);
 		Dest.Type=pBoolType;
 		return true;
+	case Named:
+        Dest.DWord=IsNamed(pSpawn);
+		Dest.Type=pBoolType;
+		return true;
 	}
 	return false;
 }
@@ -1553,12 +1557,12 @@ bool MQ2BuffType::GETMEMBER()
 	{
 	case ID:
 		{
-			if (GetBuffID(pBuff,Dest.DWord))
+			if (GetBuffID(pBuff,(DWORD&)Dest.DWord))
 			{
 				Dest.Type=pIntType;
 				return true;
 			}
-			if (GetShortBuffID(pBuff,Dest.DWord))
+			if (GetShortBuffID(pBuff,(DWORD&)Dest.DWord))
 			{
 				Dest.Type=pIntType;
 				return true;
@@ -3838,9 +3842,9 @@ DebugSpew("List: index is %d\n", n);
 #else
 		if (argc==2)
 		{
-			n=atoi(argv[1])-1;
-			if (n<0) 
-				n=0;
+			n=atoi(argv[1]); 
+			if (n<1) 
+				n=1; 
 		}
 #endif
 		if (ISNUMBER())
@@ -3944,13 +3948,12 @@ DebugSpew("List: index is %d\n", n);
 	case Items:
 		if (((CXWnd*)pWnd)->GetType()==UI_Listbox)
 		{
-DebugSpew("Items: from window 0x%x\n", pWnd);
-			Dest.DWord=((CSidlScreenWnd*)pWnd)->SlotID;
+			Dest.DWord=((CSidlScreenWnd*)pWnd)->Items;
 			Dest.Type=pIntType;
 		}
 		else if (((CXWnd*)pWnd)->GetType()==UI_Combobox)
 		{
-			Dest.DWord=((CSidlScreenWnd*)pWnd->SidlText)->SlotID;
+			Dest.DWord=((CSidlScreenWnd*)pWnd->SidlText)->Items;
 			Dest.Type=pIntType;
 		}
 		return true;

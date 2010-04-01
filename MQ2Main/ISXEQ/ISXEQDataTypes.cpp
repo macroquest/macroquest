@@ -138,7 +138,7 @@ bool MQ2BuffType::GETMETHOD()
 		{
 			unsigned long slot;
 			char Temp[16];
-			if (GetBuffID(pPtr,slot))
+			if (GetBuffID(pPtr,(DWORD&)slot))
 			{
 				sprintf(Temp,"Buff%d",slot-1); 
 				DWORD KeyboardFlags;
@@ -148,7 +148,7 @@ bool MQ2BuffType::GETMETHOD()
 				*(DWORD*)&((PCXWNDMGR)pWndMgr)->KeyboardFlags=KeyboardFlags; 		
 				return true;
 			}
-			if (GetShortBuffID(pPtr,slot))
+			if (GetShortBuffID(pPtr,(DWORD&)slot))
 			{
 				sprintf(Temp,"Buff%d",slot-1); 
 				DWORD KeyboardFlags;
@@ -178,10 +178,24 @@ bool MQ2CharacterType::GETMETHOD()
 		Temp.Ptr=pPtr->pSpawn;
 		return pSpawnType->GetMethod(Temp,Method,argc,argv);
 	}
-	// TODO
-//	switch((CharacterMethods)pMethod->ID)
-//	{
-//	}
+   switch((CharacterMethods)pMethod->ID)
+   {
+      case Stand:
+      {
+         EzCommand("/stand");
+         return true;
+      }
+      case Sit:
+      {
+         EzCommand("/sit");
+         return true;
+      }
+      case Dismount:
+      {
+         EzCommand("/dismount");
+         return true;
+      }
+   } 
 	return false;
 #undef pPtr
 }
