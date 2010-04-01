@@ -263,7 +263,13 @@ void Heartbeat()
     static DWORD LastGetTick = 0;
     static bool bFirstHeartBeat = true;
     static DWORD TickDiff=0;
+    static fMQPulse pEQPlayNicePulse = NULL;
+    static DWORD BeatCount=0;
+
     DWORD Tick = GetTickCount();
+
+    BeatCount++;
+
     if (bFirstHeartBeat)
     {
         LastGetTick=Tick;
@@ -308,11 +314,15 @@ void Heartbeat()
 	DebugTry(Pulse());
 #ifndef ISXEQ_LEGACY
     DebugTry(Benchmark(bmPluginsPulse,DebugTry(PulsePlugins())));
-	if (HMODULE hmEQPlayNice=GetModuleHandle("EQPlayNice.dll"))
-	{
-		if (fMQPulse pEQPlayNicePulse=(fMQPulse)GetProcAddress(hmEQPlayNice,"Compat_ProcessFrame"))
-			pEQPlayNicePulse();
-	}
+    if (pEQPlayNicePulse)  {
+        pEQPlayNicePulse();
+    } else {
+        HMODULE hmEQPlayNice;
+        if (((BeatCount%63)==0) && (hmEQPlayNice=GetModuleHandle("EQPlayNice.dll"))) {
+	        if (pEQPlayNicePulse=(fMQPulse)GetProcAddress(hmEQPlayNice,"Compat_ProcessFrame"))
+		        pEQPlayNicePulse();
+        }
+    }
 #endif
 	DebugTry(ProcessPendingGroundItems());
 

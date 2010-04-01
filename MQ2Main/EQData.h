@@ -1578,8 +1578,8 @@ typedef struct _EQSTRINGTABLE {
 } EQSTRINGTABLE, *PEQSTRINGTABLE;
 
 #define EQ_INTERACTGROUNDITEM   0x3BC2
-#define EQ_BAZAARSEARCHCREATE   0x7620
-#define EQ_BAZAARSEARCHME       0x6379
+#define EQ_BAZAARSEARCHCREATE   0x7620  // CProgSelWnd__WndNotification
+#define EQ_BAZAARSEARCHME       0x6379  // CBazaarSearchWnd__doQuery
 #define EQ_EMOTE                0x547A  // CEverQuest__Emote
 #define EQ_BEGIN_ZONE           0x1540  // CEverQuest__SavePCForce
 #define EQ_END_ZONE             0x5e20  // CEverQuest__DoMainLoop
