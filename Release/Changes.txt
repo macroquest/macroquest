@@ -1,3 +1,7 @@
+16 November 2005 by rswiders
+- updated offset for 11/16 patch
+- updated changes to charinfo struct for 11/16 patch
+
 15 November 2005 by Lax
 - Turned MacroQuest into swiss cheese with some more #ifdef blocks to support new ISXEQ functionality
   that allows it to run legacy MQ2 "macros"

@@ -530,6 +530,7 @@ VOID bzpc(PSPAWNINFO pChar, PCHAR szLine)
         *ptr = '\0';
     if (pg_Item) memset(pg_Item, 0, sizeof(ITEMINFO));
     DebugSpewAlways("id = %d, name = %s\n", pc.id, pc.name);
+    // this opcode is in CProgSelWnd__WndNotification
     send_message(EQADDR_GWORLD, 0x667c, &pc, sizeof(pc), TRUE);
 } 
 
