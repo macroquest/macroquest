@@ -434,10 +434,15 @@ int __cdecl memcheck1(unsigned char *buffer, int count, struct mckey key)
 //                pop     ebp
 //                retn
 //
+
+
     for (i=0;i<(unsigned int)count;i++) {
         unsigned char tmp;
-        OurDetours *detour = ourdetours;
         unsigned int b=(int) &buffer[i];
+#ifdef ISXEQ
+		tmp=pExtension->FindByte(b,buffer[i]);
+#else
+        OurDetours *detour = ourdetours;
         while(detour) {
             if (detour->count && (b >= detour->addr) &&
                  (b < detour->addr+detour->count) ) {
@@ -447,6 +452,7 @@ int __cdecl memcheck1(unsigned char *buffer, int count, struct mckey key)
             detour=detour->pNext;
         }
         if (!detour) tmp = buffer[i];
+#endif
         ebx = ((int)tmp ^ eax) & 0xff;
         eax = ((int)eax >> 8) & 0xffffff;
         eax ^= extern_array1[ebx];

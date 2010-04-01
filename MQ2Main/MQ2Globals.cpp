@@ -710,6 +710,7 @@ PCHAR szColorMQ2DataError[]=
 
 StringTable **ppStringTable=(StringTable**)pinstStringTable;
 CDBStr **ppCDBStr = (CDBStr**)pinstCDBStr;
+EQMisc *pEQMisc=(EQMisc*)instEQMisc;
 
 //EQPlayer **ppEQP_IDArray=(EQPlayer**)__EQP_IDArray;
 

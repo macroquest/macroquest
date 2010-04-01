@@ -267,7 +267,11 @@ VOID Macro(PSPAWNINFO pChar, PCHAR szLine)
         return;
     }
     if (gMacroBlock) 
+	{
+		gReturn = false;
 		EndMacro(pChar,"");//"keep keys vars arrays timers");
+		gReturn = true;
+	}
 	gMaxTurbo=20;
 	gTurbo=true;
     GetArg(szTemp,szLine,1);

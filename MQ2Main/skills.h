@@ -39,7 +39,7 @@
     "Dodge",                   // 19
     "Double Attack",           // 20
     "Dragon Punch",            // 21
-    "Duel Wield",              // 22
+    "Dual Wield",              // 22
     "Eagle Strike",            // 23
     "Evocation",               // 24
     "Feign Death",             // 25

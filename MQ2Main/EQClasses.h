@@ -7097,6 +7097,12 @@ EQLIB_OBJECT int CCombatAbilityWnd::OnProcessFrame(void);
 EQLIB_OBJECT int CCombatAbilityWnd::WndNotification(class CXWnd *,unsigned __int32,void *);
 EQLIB_OBJECT CCombatAbilityWnd::~CCombatAbilityWnd(void);
 };
- 
+
+class EQMisc
+{
+public:
+EQLIB_OBJECT int EQMisc::GetActiveFavorCost(void);
+};
+
 };
 using namespace EQClasses;

@@ -841,6 +841,7 @@ public:
 		LAHealthRegen=148,
 		LAFindPathPC=149,
 		LAHoTT=150,
+		ActiveFavorCost=151,
 	};
 	static enum CharacterMethods
 	{
@@ -998,6 +999,7 @@ public:
 		TypeMember(LAHealthRegen);
 		TypeMember(LAFindPathPC);
 		TypeMember(LAHoTT);
+		TypeMember(ActiveFavorCost);
 
 		TypeMethod(Stand); 
 		TypeMethod(Sit); 
@@ -1504,6 +1506,7 @@ public:
 	};
 	static enum SwitchMethods
 	{
+        Toggle=1,
 	};
 	MQ2SwitchType():MQ2Type("switch")
 	{
@@ -1525,6 +1528,7 @@ public:
 
 	~MQ2SwitchType()
 	{
+        TypeMethod(Toggle);
 	}
 
 	bool GETMEMBER();

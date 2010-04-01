@@ -338,6 +338,7 @@ EQLIB_VAR StringTable **ppStringTable;
 
 EQLIB_VAR CDBStr **ppCDBStr;
 #define pCDBStr (*ppCDBStr)
+EQLIB_VAR EQMisc *pEQMisc;
 
 EQLIB_VAR CEverQuest **ppEverQuest;
 #define pEverQuest (*ppEverQuest)

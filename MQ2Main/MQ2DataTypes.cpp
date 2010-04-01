@@ -2900,6 +2900,7 @@ bool MQ2CharacterType::GETMEMBER()
 				return true;
 			}
 		}
+                return false;
 	case LAMarkNPC:
 		Dest.DWord=GetCharInfo()->ActiveAbilities.MarkNPC;
 		Dest.Type=pIntType;
@@ -2948,6 +2949,14 @@ bool MQ2CharacterType::GETMEMBER()
 		Dest.DWord=GetCharInfo()->ActiveAbilities.HoTT;
 		Dest.Type=pIntType;
 		return true;
+	case ActiveFavorCost:
+		if(*pTributeActive)
+		{
+			Dest.Int=pEQMisc->GetActiveFavorCost();
+			Dest.Type=pIntType;
+			return true;
+		}
+		return false;
 	}
 	return false;
 #undef pChar

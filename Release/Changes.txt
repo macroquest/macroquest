@@ -1,4 +1,11 @@
-3 August 2006 by Amadeus
+25 Aug 2006 by dkaa
+- duel->dual
+- aura fix for when you don't have an aura
+
+15 August 2006 by ieatacid
+- Added Me.ActiveFavorCost
+
+5 August 2006 by Amadeus
 * Added a new member to the 'string' datatype.
   1. Replace[ToReplace,ReplaceWith]
      a. This member will return a string replacing every instance of

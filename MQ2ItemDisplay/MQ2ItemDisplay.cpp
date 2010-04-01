@@ -374,7 +374,7 @@ public:
          switch(GetCharInfo2()->Race) {
             case 0x80:  raceNum = 0xc; break;
             case 0x82:  raceNum = 0xd; break;
-            case 0x4a:  raceNum = 0xe; break;
+            case 0x14a:  raceNum = 0xe; break;
             default:    raceNum = GetCharInfo2()->Race - 1;
          }
          int iRaceBit = 1 << raceNum;

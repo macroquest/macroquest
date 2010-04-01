@@ -9537,6 +9537,9 @@ FUNCTION_AT_ADDRESS(void CTextOverlay::DisplayText(char *,int,int,int,int,int,in
 // GetString(index, subindex, &success)
 FUNCTION_AT_ADDRESS(char *CDBStr::GetString(int, int, int *), CDBStr__GetString);
 #endif
+#ifdef EQMisc__GetActiveFavorCost
+FUNCTION_AT_ADDRESS(int EQMisc::GetActiveFavorCost(void),EQMisc__GetActiveFavorCost);
+#endif
 
 void bogus()
 {

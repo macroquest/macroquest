@@ -9,7 +9,7 @@ clean:
 testmem.obj: testmem.c ..\mq2main\mq2detourapi.cpp
 
 
-testmem.exe: testmem.obj orig.obj  orig2.obj orig3.obj orig4.obj
+testmem.exe: testmem.obj orig.obj  orig1.obj orig2.obj orig3.obj orig4.obj
     link $**  /out:testmem.exe /debugtype:cv /pdb:testmem.pdb /debug /libpath:"..\Detours\lib60" user32.lib
 
 .asm.obj:

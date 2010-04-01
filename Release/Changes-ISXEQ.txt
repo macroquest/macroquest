@@ -1,3 +1,7 @@
+25 Aug 2006 by DKAA
+- doortarget, ${NearestDoor}, and ${Switch:Toggle} for ISXEQ
+    from onetimehero
+
 8 July 2006 by Amadeus
 - Updated ISXEQ to compile a bit better with Visual Studio 2005
 - Added ISXEQ project/solution file(s) for Visual Studio 2005.

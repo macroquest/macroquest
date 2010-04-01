@@ -105,6 +105,7 @@
 #define pinstDZMember                                              0x972028
 #define pinstDZTimerInfo                                           0x97202C
 #define pinstEQItemList                                            0x95479C
+#define instEQMisc                                                 0x8A2518
 #define pinstEQSoundManager                                        0x8A3558
 #define instExpeditionLeader                                       0x971F62
 #define instExpeditionName                                         0x971FA2
@@ -611,6 +612,9 @@
 // EQItemList
 #define EQItemList__dEQItemList                                    0x4860A0
 #define EQItemList__EQItemList                                     0x486000
+
+// EQMisc
+#define EQMisc__GetActiveFavorCost                                 0x44E510
 
 // EQPlayer
 #define EQPlayer__ChangeBoneStringSprite                           0x4E39F0

@@ -1075,7 +1075,8 @@ typedef struct _SPAWNINFO {
 /*0x0440*/ DWORD    SpellETA; //Calculated TimeStamp when current spell being cast will land. 0 while not casting.
 /*0x0444*/ DWORD    CastingSpellID; // -1 = not casting a spell
 /*0x0448*/ DWORD    CastingAnimation; //unsure, FF for not casting, low numbers while casting
-/*0x044c*/ BYTE     Unknown0x44c[0x1c];
+/*0x044c*/ BYTE     Unknown0x44c[0x18];
+/*0x0464*/ struct   _CONTENTS *pCastingClicky; //contents of the item if you're casting a clicky
 /*0x0468*/ FLOAT    CastingY;
 /*0x046c*/ FLOAT    CastingX;
 /*0x0470*/ DWORD    FishingETA;
@@ -1708,6 +1709,12 @@ typedef struct _AURAINFO {
 /*0x01c*/
 } AURAINFO, *PAURAINFO;
 
+typedef struct _INTERACTSWITCH {
+/*0x000*/ DWORD   switchID;
+/*0x004*/ DWORD   dwzero;
+/*0x008*/ DWORD   dwneg1;
+/*0x00c*/ DWORD   spawnID;
+} INTERACTSWITCH, *PINTERACTSWITCH;
 
 
 #define EQ_INTERACTGROUNDITEM   0x1418  // CEverQuest__HandleClick 04/19
@@ -1717,5 +1724,6 @@ typedef struct _AURAINFO {
 #define EQ_BEGIN_ZONE           0x6F49  // CEverQuest__SavePCForce+433
 #define EQ_END_ZONE             0x443F  // CEverQuest__DoMainLoop+A68
 #define EQ_LoadingS__ArraySize  0x44    // EQ_LoadingS__SetProgressBar+7C
+#define EQ_INTERACTSWITCH       0x1DC6  // EQSwitch__UseSwitch
 };
 using namespace EQData;

@@ -47,5 +47,6 @@ TOPLEVELOBJECT("SpawnCount",dataSpawnCount);
 TOPLEVELOBJECT("LineOfSight",dataLineOfSight);
 TOPLEVELOBJECT("DoorTarget",dataDoorTarget);
 TOPLEVELOBJECT("ItemTarget",dataItemTarget);
+TOPLEVELOBJECT("NearestDoor",dataNearestDoor); 
 
 /**/

@@ -313,10 +313,19 @@ bool MQ2SwitchType::GETMETHOD()
 	{
 		return false;
 	}
-	// TODO
-//	switch((SwitchMethods)pMethod->ID)
-//	{
-//	}
+    switch((SwitchMethods)pMethod->ID)
+    {
+        case Toggle:
+        {
+            INTERACTSWITCH sw;
+            sw.switchID = pPtr->ID;
+            sw.dwzero=0;
+            sw.dwneg1=0xFFFFFFFF;
+            sw.spawnID = ((PCHARINFO)pCharData)->pSpawn->SpawnID;
+            SendEQMessage(EQ_INTERACTSWITCH,&sw,0x10);
+            return true;
+        }
+    } 
 	return false;
 #undef pPtr
 }

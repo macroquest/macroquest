@@ -39,3 +39,4 @@ COMMAND("look",CMD_EQLook,true,false);
 COMMAND("items",CMD_EQItems,true,false); 
 COMMAND("eqecho",CMD_EQEcho,true,false);
 //COMMAND("EQAlias",CMD_EQAlias,true,false); // deprecated
+COMMAND("doortarget",CMD_DoorTarget,true,false);

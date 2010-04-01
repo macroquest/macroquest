@@ -19,3 +19,28 @@
 #define DBG_SPEW
 
 #include "..\MQ2Main.h"
+
+#define TLO(funcname) bool funcname(int argc, char *argv[], LSTYPEVAR &Ret)
+
+TLO(dataNearestDoor)
+{
+   DWORD Count = 0;
+   FLOAT cDistance = 100000.0f;
+    PDOORTABLE pDoorTable = (PDOORTABLE)pSwitchMgr;
+
+   if (pDoorTable->NumEntries)
+   {
+      for (Count=0; Count<pDoorTable->NumEntries; Count++) {
+         FLOAT Distance = GetDistance(pDoorTable->pDoor[Count]->X, pDoorTable->pDoor[Count]->Y);
+         if (Distance<cDistance) {
+            pDoorTarget = pDoorTable->pDoor[Count];
+            cDistance=Distance;
+         }
+      }
+      Ret.Ptr=pDoorTarget;
+      Ret.Type=pSwitchType;
+      return true;
+   }
+   return false;
+}
+
