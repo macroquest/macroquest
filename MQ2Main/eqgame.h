@@ -454,7 +454,7 @@
 // CSliderWnd
 #define CSliderWnd__GetValue                                       0x63EA00
 #define CSliderWnd__SetValue                                       0x63EB00
-//#define CSliderWnd__UpdateThumb                                    0x0
+#define CSliderWnd__SetNumTicks                                    0x63F040
 
 // CSpellBookWnd
 #define CSpellBookWnd__MemorizeSet                                 0x5A7C80

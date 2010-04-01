@@ -1609,7 +1609,7 @@ typedef struct connection_t {
 
 
 #define EQ_INTERACTGROUNDITEM   0x00a5  // CEverQuest__HandleClick 04/19
-#define EQ_BAZAARSEARCHCREATE   0x2cf8  // CProgSelWnd__WndNotification 04/19
+#define EQ_BAZAARSEARCHCREATE   0x2c8f  // CProgSelWnd__WndNotification 04/19
 #define EQ_BAZAARSEARCHME       0x5332  // CBazaarSearchWnd__doQuery 04/19
 #define EQ_EMOTE                0x4308  // CEverQuest__Emote 04/19
 #define EQ_BEGIN_ZONE           0x5C06  // begin_zone_routine 04/19

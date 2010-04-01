@@ -963,6 +963,20 @@ typedef struct _EQGRAPHICSENGINE {
 } EQGRAPHICSENGINE, *PEQGRAPHICSENGINE;
 #define SafeXLoc 0
 
+typedef struct _CBUTTONWND {
+/*0x000*/ struct    _CXWND Wnd;
+/*0x138*/ BYTE      Unknown[0x1c];
+/*0x154*/ ARGBCOLOR Color;
+/*0x158*/
+} CBUTTONWND, *PCBUTTONWND;
+ 
+typedef struct _CTEXTENTRYWND {
+/*0x000*/ struct    _CXWND Wnd;
+/*0x138*/ DWORD     CursorPos1;
+/*0x13c*/ DWORD     CursorPos2; //same as above but only this needs to be set to update cursor position
+/*0x140*/
+} CTEXTENTRYWND, *PCTEXTENTRYWND;
+
 };
 
 

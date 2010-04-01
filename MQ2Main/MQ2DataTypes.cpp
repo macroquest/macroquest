@@ -3792,7 +3792,10 @@ bool MQ2WindowType::GETMEMBER()
 		Dest.Type=pArgbType;
 		return true;
 	case Text:
-		GetCXStr(pWnd->WindowText,DataTypeTemp,MAX_STRING);
+                if(((CXWnd*)pWnd)->GetType()==UI_STMLBox)
+                        GetCXStr(pWnd->SidlText,DataTypeTemp,MAX_STRING);
+                else
+                        GetCXStr(pWnd->WindowText,DataTypeTemp,MAX_STRING);
 		Dest.Ptr=&DataTypeTemp[0];
 		Dest.Type=pStringType;
 		return true;
