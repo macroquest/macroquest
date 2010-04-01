@@ -803,8 +803,9 @@ public:
 		EnduranceRegen=123,
 		FreeBuffSlots=124,
 		CurrentWeight=125,
-        AAPointsSpent=126,
-        AAPointsTotal=127,
+                AAPointsSpent=126,
+                AAPointsTotal=127,
+                TributeActive=128,
 	};
 	static enum CharacterMethods
 	{
@@ -935,8 +936,9 @@ public:
 		TypeMember(EnduranceRegen);
 		TypeMember(FreeBuffSlots); //124
 		TypeMember(CurrentWeight);
-        TypeMember(AAPointsSpent);
-        TypeMember(AAPointsTotal); 
+                TypeMember(AAPointsSpent);
+                TypeMember(AAPointsTotal); 
+                TypeMember(TributeActive);
 	}
 
 	~MQ2CharacterType()

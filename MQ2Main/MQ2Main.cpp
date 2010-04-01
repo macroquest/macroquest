@@ -294,6 +294,11 @@ bool __cdecl MQ2Initialize()
 #ifndef ISXEQ
 	InitializeMQ2Plugins();
 #endif
+#ifndef ExactLocation
+	bLaxColor=TRUE;
+	gSpewToFile=1;
+	gFilterMQ=1;
+#endif
 
 	return true;
 }

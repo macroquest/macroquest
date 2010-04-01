@@ -7009,7 +7009,7 @@ FUNCTION_AT_ADDRESS( int CSidlScreenWnd::WndNotification(class CXWnd *,unsigned 
 FUNCTION_AT_ADDRESS( CSidlScreenWnd::CSidlScreenWnd(class CXWnd *,unsigned __int32,class CXRect,class CXStr),CSidlScreenWnd__CSidlScreenWnd);
 #endif
 #ifdef CSidlScreenWnd__CSidlScreenWnd1
-FUNCTION_AT_ADDRESS( CSidlScreenWnd::CSidlScreenWnd(class CXWnd *x,class CXStr,int,char *),CSidlScreenWnd__CSidlScreenWnd1);
+FUNCTION_AT_ADDRESS( CSidlScreenWnd::CSidlScreenWnd(class CXWnd *x,class CXStr,int,int,char *),CSidlScreenWnd__CSidlScreenWnd1);
 #endif
 #ifdef CSidlScreenWnd__CSidlScreenWnd2
 FUNCTION_AT_ADDRESS( CSidlScreenWnd::CSidlScreenWnd(class CXWnd *x,class CXStr),CSidlScreenWnd__CSidlScreenWnd2);

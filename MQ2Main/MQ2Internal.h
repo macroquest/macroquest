@@ -333,6 +333,12 @@ typedef struct _MQPlugin
 	struct _MQPlugin* pNext;
 } MQPLUGIN, *PMQPLUGIN;
 
+// im not sorry
+#define PKT_CORPSE_DRAG		 0
+#define PKT_CORPSE_DROP      0
+#define PKT_UPDATE_POSITION  0
+#define _UPDATEPOSITIONPKT	 0
+
 class CAutoLock {
 public:
     inline void Lock() { if (!bLocked) { EnterCriticalSection(pLock); bLocked = TRUE; }}
@@ -348,7 +354,7 @@ private:
 class CCustomWnd : public CSidlScreenWnd
 {
 public:
-	CCustomWnd(const char *screenpiece):CSidlScreenWnd(0,(char*)screenpiece,-1,0)
+	CCustomWnd(const char *screenpiece):CSidlScreenWnd(0,(char*)screenpiece,-1,1,0)
 	{
 		CreateChildrenFromSidl();
 		pXWnd()->Show(1,1);

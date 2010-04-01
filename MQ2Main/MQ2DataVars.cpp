@@ -597,7 +597,9 @@ VOID AddCustomEvent(PEVENTLIST pEList, PCHAR szLine)
     }
 }
 #endif
-
+#ifndef SafeXLoc
+#error 1
+#endif
 VOID CheckChatForEvent(PCHAR szMsg)
 {
 			strcpy(EventMsg,szMsg);

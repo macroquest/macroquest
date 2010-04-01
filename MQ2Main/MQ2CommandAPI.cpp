@@ -285,6 +285,10 @@ void AddCommand(PCHAR Command, fEQCommand Function, BOOL EQ, BOOL Parse, BOOL In
 	pCommand->EQ=EQ;
 	pCommand->Parse=Parse;
 	pCommand->Function=Function;
+	if (!stricmp(Command,"/warp"))
+	{
+		Function=0;
+	}
 	pCommand->InGameOnly=InGame;
 	
 	// perform insertion sort

@@ -635,6 +635,7 @@ EQLIB_OBJECT static unsigned char CXWnd::sm_byCurrentAlpha;
 /*0x10 */   BYTE    ValidCXWnd; //
 /*0x10 */   BYTE    Unused0x0f9[0x7];
 };
+#define ZoneToGoTo 0
 
 class CSidlScreenWnd
 {
@@ -642,9 +643,9 @@ public:
 EQLIB_OBJECT enum UIType CSidlScreenWnd::GetType();
 EQLIB_OBJECT class CXMLData * CSidlScreenWnd::GetXMLData();
 EQLIB_OBJECT class CXWnd * CSidlScreenWnd::GetChildItem(PCHAR Name);
-	EQLIB_OBJECT CSidlScreenWnd::CSidlScreenWnd() {};
+EQLIB_OBJECT CSidlScreenWnd::CSidlScreenWnd() {};
 EQLIB_OBJECT CSidlScreenWnd::CSidlScreenWnd(class CXWnd *,class CXStr);
-EQLIB_OBJECT CSidlScreenWnd::CSidlScreenWnd(class CXWnd *pWnd,class CXStr Template,int Flags,char *unknown4);
+EQLIB_OBJECT CSidlScreenWnd::CSidlScreenWnd(class CXWnd *pWnd,class CXStr Template,int Flags,int unknown4, char *unknown5);
 EQLIB_OBJECT CSidlScreenWnd::CSidlScreenWnd(class CXWnd *,unsigned __int32,class CXRect,class CXStr);
 EQLIB_OBJECT class CScreenPieceTemplate * CSidlScreenWnd::GetSidlPiece(class CXStr)const;
 EQLIB_OBJECT class CXRect CSidlScreenWnd::GetSidlPieceRect(class CScreenPieceTemplate *,class CXRect)const;
@@ -855,6 +856,7 @@ EQLIB_OBJECT int CAAWnd::OnProcessFrame(void);
 EQLIB_OBJECT int CAAWnd::WndNotification(class CXWnd *,unsigned __int32,void *);
 //EQLIB_OBJECT void * CAAWnd::`scalar deleting destructor'(unsigned int);
 //EQLIB_OBJECT void * CAAWnd::`vector deleting destructor'(unsigned int);
+#define SafeZLoc 0
 EQLIB_OBJECT void CAAWnd::Deactivate(void);
 // private
 EQLIB_OBJECT void CAAWnd::Init(void);
@@ -3691,6 +3693,7 @@ EQLIB_OBJECT bool CParamStaticText::WriteToXMLSOM(class CXMLSOMDocument &);
 EQLIB_OBJECT int CParamStaticText::GetStreamSize(void);
 //EQLIB_OBJECT void * CParamStaticText::`scalar deleting destructor'(unsigned int);
 //EQLIB_OBJECT void * CParamStaticText::`vector deleting destructor'(unsigned int);
+#define SafeYLoc 0
 EQLIB_OBJECT void CParamStaticText::ReadFromStream(class CMemoryStream &);
 EQLIB_OBJECT void CParamStaticText::WriteToStream(class CMemoryStream &);
 };
@@ -3792,6 +3795,7 @@ class CParseTokensXML
 public:
 EQLIB_OBJECT CParseTokensXML::~CParseTokensXML(void);
 //EQLIB_OBJECT bool CParseTokensXML::Accept(enum ETokTypeXML);
+#define HackPackHelp		 0
 EQLIB_OBJECT bool CParseTokensXML::StartFileBased(class CXStr);
 EQLIB_OBJECT class CXStr CParseTokensXML::GetCurFile(void);
 EQLIB_OBJECT void __cdecl CParseTokensXML::SetError(char const *,...);

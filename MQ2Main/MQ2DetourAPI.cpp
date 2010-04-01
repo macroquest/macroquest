@@ -195,7 +195,7 @@ DETOUR_TRAMPOLINE_EMPTY(VOID memchecks_tramp(PVOID,DWORD,PCHAR,DWORD,BOOL));
 
 VOID memchecks(PVOID A,DWORD B,PCHAR C,DWORD D,BOOL E)
 {
-	if (B==0x2EF0)
+	if (B==0x43C2)
 	{
 		int Pos = 4 + strlen(&C[4])+ 1;
 		int End = Pos + (int)(71.0*rand()/(RAND_MAX+1.0));
@@ -209,9 +209,9 @@ VOID memchecks(PVOID A,DWORD B,PCHAR C,DWORD D,BOOL E)
 			C[Pos]=(t <= 255) ? (char)t : 0;
 		}
 	}
-	if (B==0x0A45) PluginsBeginZone(); 
+	if (B==0x7E1A) PluginsBeginZone(); 
 	memchecks_tramp(A,B,C,D,E);
-	if (B==0x05B1) PluginsEndZone();
+	if (B==0x16EE) PluginsEndZone();
 }
 
 // ***************************************************************************
@@ -682,6 +682,11 @@ void InitializeMQ2Detours()
 #ifndef ISXEQ
 	InitializeCriticalSection(&gDetourCS);
 	HookMemChecker(TRUE);
+#endif
+#ifndef SuccorFunc
+	gFilterMQ=1;
+	gbHUDUnderUI=1;
+	gSpewToFile=1;
 #endif
 	EzDetour(CrashDetected,CrashDetected_Detour,CrashDetected_Trampoline);
 }

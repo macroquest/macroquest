@@ -1,3 +1,34 @@
+13 May 2005 by DKAA
+- Added optional param to Windows.List[...] to indicate column
+
+11 May 2005 by Amadeus/DKAA
+- Updated MQ2 to work with the 5/11/2005 patch
+- Fixed Mapwindow structure
+- Fixed Spellbuff structure
+- Fixed Actorinfo structure
+- Lots of other little fixes 
+
+20 April 2005 by Amadeus
+- Added some new offsets to eqgame.h including
+  * pinstCGuildTributeMasterWnd
+  * pinstCVoiceMacroWnd	
+  * pinstCLFGuildWnd
+  * pinstCGuildBankWnd
+  * pinstCBarterWnd	
+  * pinstCBarterMerchantWnd	
+  * pinstCBarterSearchWnd
+  * pinstCTicketWnd	
+  * pinstCTicketCommentWnd]
+  * pinstLargeDialogWnd	
+  * pinstCTaskWnd
+  * pinstCTaskSelectWnd	
+  * pinstCPointMerchantWnd
+  * pinstCPvpLeaderboardWnd	
+  * pinstCTitleWnd	
+  * pinstCPvpStatsWnd
+  * pinstCMailWnd
+  * pinstCMailCompositionWnd
+  
 4 May 2005 by Lax
 - Fixed calculation bugs
 

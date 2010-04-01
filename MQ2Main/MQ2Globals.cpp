@@ -219,6 +219,7 @@ PCHAR gpbAltTimerReady=(PCHAR)__AltTimerReady;
 DWORD *g_ppDrawHandler=(DWORD*)__DrawHandler;
 DWORD *gpShowNames=(DWORD*)__ShowNames;
 DWORD *gpPCNames=(DWORD*)__PCNames;
+PBYTE pTributeActive=(PBYTE)instTributeActive;
 
 
 PVOID EQADDR_GWORLD=(PVOID)__gWorld;
@@ -616,7 +617,11 @@ PCHAR szItemSlot[] = {
 
 BOOL bAllErrorsFatal=FALSE;
 BOOL bAllErrorsDumpStack=FALSE;
+#ifndef DoWarp
+BOOL bLaxColor=TRUE;
+#else
 BOOL bLaxColor=FALSE;
+#endif
 BOOL gbHUDUnderUI=1;
 BOOL gbAlwaysDrawMQHUD=0;
 

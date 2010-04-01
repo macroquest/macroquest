@@ -562,7 +562,9 @@ VOID InitializeMQ2Spawns()
 	DebugSpew("Initializing Spawn-related Hooks");
 	bmUpdateSpawnSort=AddMQ2Benchmark("UpdateSpawnSort");
 	bmUpdateSpawnCaptions=AddMQ2Benchmark("UpdateSpawnCaptions");
-
+#ifndef GateBind
+	ProcessGameEvents=0;
+#endif
 	EzDetour(EQPlayer__EQPlayer,EQPlayerHook::EQPlayer_Detour,EQPlayerHook::EQPlayer_Trampoline);
 	EzDetour(EQPlayer__dEQPlayer,EQPlayerHook::dEQPlayer_Detour,EQPlayerHook::dEQPlayer_Trampoline);
 	EzDetour(EQItemList__EQItemList,EQItemListHook::EQItemList_Detour,EQItemListHook::EQItemList_Trampoline);

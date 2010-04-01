@@ -17,9 +17,10 @@
 
 #include "mqext.h" 
 
-#define KP(X)      dprintf(#X " = %d (offset 0x%x)\n", ci.X, &pnull->X)       
+#define KP(X)       dprintf(#X " = %d (offset 0x%x)\n", ci.X, &pnull->X)       
 #define KPs(X)      dprintf(#X " = %s (offset 0x%x)\n", ci.X, &pnull->X) 
 #define KPf(X)      dprintf(#X " = %f (offset 0x%x)\n", ci.X, &pnull->X) 
+#define offset(X)   printf("/* 0x%03x */ " #X ";\n", &ptr->X)
 
 #if defined(EXT_API_VERSION_NUMBER64) 
 #define PARAM1 ULONG64 
@@ -97,6 +98,8 @@ DECLARE_API ( pchar )
 	KP(pSpawn);
 	KP(Inventory);
 	KP(Cursor);
+	KPs(Title);
+	KPs(Suffix);
     KP(STR); 
     KP(STA); 
     KP(CHA); 
@@ -141,7 +144,7 @@ DECLARE_API ( pchar )
 	KP(PercentEXPtoAA);
 	KP(AAList);
 //	KP(Unknown0x1898);
-//      KP(Unknown0x18a0);
+//  KP(Unknown0x18a0);
 	KP(AAPoints);
 	KP(ModrodTimer);
     KPs(Server); 
@@ -163,6 +166,7 @@ DECLARE_API ( pchar )
 	KP(GroupAbilities);
 	KP(RaidAbilities);
 	KP(LeadershipExpON);
+	KP(AAPointsSpent);
     KP(Bank);
     for (i=0; i < 5; i++) 
       dprintf("GroupMember%d = %s (offset 0x%x)\n", i+1, ci.GroupMember[i], &pnull->GroupMember[i]); 
@@ -515,6 +519,9 @@ DECLARE_API ( pspell )
    KP(DurationWindow);
    KP(Unknown144);
    KP(Unknown145);
+   KP(PvPResistBase);
+   KP(PvPResistCalc);
+   KP(PvPResistCap);
    ReadMemory((PARAM1)ci.Name, tmp, 128, &cb ); 
    dprintf("Name = %s (offset *0x%x)\n", tmp, &pnull->Name); 
    ReadMemory((PARAM1)ci.Target, tmp, 128, &cb ); 
@@ -527,7 +534,7 @@ DECLARE_API ( pspell )
    dprintf("WearOff = %s (offset *0x%x)\n", tmp, &pnull->WearOff); 
    KP(spaindex); 
    KP(SpellAnim); 
-   //KP(Unknown130);
+   KP(Unknown130);
    KP(SpellIcon); 
    KP(ResistAdj);
 } 
@@ -694,13 +701,6 @@ DECLARE_API ( pactorinfo )
    KP(WhoFollowing);
    KPf(CastingY);
    KPf(CastingX);
-   KPf(LastPacketZ);
-   KPf(LastPacketY);
-   KPf(LastPacketSpeedY);
-   KPf(LastPacketX);
-   KPf(LastPacketSpeedZ);
-   KPf(LastPacketSpeedX);
-   KPf(LastPacketHeadingTurning);
    KP(Trader);
 } 
 

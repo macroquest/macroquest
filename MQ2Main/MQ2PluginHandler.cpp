@@ -42,7 +42,7 @@ DWORD LoadMQ2Plugin(const PCHAR pszFilename)
 	if (Temp)
 		Temp[0]=0;
 
-	if (!stricmp(Filename,"mq2safe")) // ^_^
+	if (!stricmp(Filename,"mq2warp")) // ^_^
 	{
 		return 0;
 	}

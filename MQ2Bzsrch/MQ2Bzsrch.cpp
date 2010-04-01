@@ -514,7 +514,7 @@ VOID bzpc(PSPAWNINFO pChar, PCHAR szLine)
         *ptr = '\0';
     if (pg_Item) memset(pg_Item, 0, sizeof(ITEMINFO));
     DebugSpewAlways("id = %d, name = %s\n", pc.id, pc.name);
-    send_message(EQADDR_GWORLD, 0x103D, &pc, sizeof(pc), TRUE);
+    send_message(EQADDR_GWORLD, 0x776B, &pc, sizeof(pc), TRUE);
 } 
 
 
@@ -528,7 +528,7 @@ VOID BzSrchMe(PSPAWNINFO pChar, PCHAR szLine)
 
    // clear out the old list or the new entries will be
    // added to them
-   class CListWnd *ptr = *(class CListWnd **) ((char *)pBazaarSearchWnd+0x39BC);
+   class CListWnd *ptr = *(class CListWnd **) ((char *)pBazaarSearchWnd+0x39c0);
    ptr->DeleteAll();
 
 
@@ -692,7 +692,7 @@ VOID BzSrchMe(PSPAWNINFO pChar, PCHAR szLine)
 
    BzCount = 0;
    BzDone = 0;
-   send_message(EQADDR_GWORLD, 0x5363, &bsrp, sizeof(bsrp), FALSE);
+   send_message(EQADDR_GWORLD, 0x3200, &bsrp, sizeof(bsrp), FALSE);
    return;
 
 error_out:

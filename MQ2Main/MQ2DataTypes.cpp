@@ -2794,6 +2794,10 @@ case STR:
         Dest.DWord=pChar->AAPointsSpent+pChar->AAPoints;
         Dest.Type=pIntType;
         return true;
+    case TributeActive:
+        Dest.DWord=*pTributeActive;
+        Dest.Type=pBoolType;
+        return true; 
     }
 	return false;
 #undef pChar
@@ -3388,17 +3392,35 @@ bool MQ2WindowType::GETMEMBER()
 		Dest.Type=pIntType;
 		return true;
 	case List:
+            {
+                int n = 0;
 		if (((CXWnd*)pWnd)->GetType()==UI_Combobox)
 			VarPtr.Ptr=pWnd->SidlText;
 		else if (((CXWnd*)pWnd)->GetType()!=UI_Listbox)
 			return false;
+
+#ifndef ISXEQ
+		if (PCHAR pComma=strchr(Index,',')) {
+                    n = atoi(pComma+1) - 1;
+                    if (n < 0) n=0;
+DebugSpew("List: index is %d\n", n);
+                    *pComma = '\0';
+                }
+#else
+		if (argc==2)
+		{
+			n=atoi(argv[0]);
+			if (n<0) 
+				n=0;
+		}
+#endif
 		if (ISNUMBER())
 		{
 			unsigned long nIndex=GETNUMBER();
 			if (!nIndex)
 				return false;
 			nIndex--;
-			CXStr Str=((CListWnd*)pWnd)->GetItemText(nIndex,0);
+			CXStr Str=((CListWnd*)pWnd)->GetItemText(nIndex,n);
 			GetCXStr(Str.Ptr,DataTypeTemp,MAX_STRING);
 			Dest.Ptr=&DataTypeTemp[0];
 			Dest.Type=pStringType;
@@ -3420,7 +3442,7 @@ bool MQ2WindowType::GETMEMBER()
 			unsigned long nIndex=0;
 			while(1)
 			{
-				CXStr Str=((CListWnd*)pWnd)->GetItemText(nIndex,0);
+				CXStr Str=((CListWnd*)pWnd)->GetItemText(nIndex,n);
 				GetCXStr(Str.Ptr,DataTypeTemp,MAX_STRING);
 				if (DataTypeTemp[0]==0)
 					return false;
@@ -3448,6 +3470,7 @@ bool MQ2WindowType::GETMEMBER()
 			} 
 		}
 		return false;
+            }
 	case Name:
 		{
 			if (CXMLData *pXMLData=((CXWnd*)pWnd)->GetXMLData())
