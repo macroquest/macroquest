@@ -527,8 +527,9 @@ public:
 	{
 		Target=1,
 		Face=2,
-		FaceFast=3,
 		xAssist=4,
+		LeftClick=5,
+		RightClick=6,
 	};
 	MQ2SpawnType():MQ2Type("spawn")
 	{
@@ -616,7 +617,8 @@ public:
 
 		TypeMethod(Target);
 		TypeMethod(Face);
-		TypeMethod(FaceFast);
+		TypeMethod(LeftClick);
+		TypeMethod(RightClick);
 		AddMethod(xAssist,"Assist");
 	}
 

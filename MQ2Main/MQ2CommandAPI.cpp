@@ -88,8 +88,15 @@ VOID HideDoCommand(PSPAWNINFO pChar, PCHAR szLine, BOOL delayed)
   //          DebugSpew("DoCommand - handing {} off to FailIf");
             FailIf(pChar,"{",gMacroBlock,TRUE);
         } else {
-//            DebugSpew("DoCommand - } seen");
-            bRunNextCommand = TRUE;
+            // handle this: 
+            //            /if () {
+            //            } else /echo stuff
+			GetArg(szCmd,szLine,2);
+			if (!stricmp(szCmd,"else")) {
+                FailIf(pChar,"{",gMacroBlock,TRUE);
+            } else {
+                bRunNextCommand = TRUE;
+            }
         }
         return;
     }

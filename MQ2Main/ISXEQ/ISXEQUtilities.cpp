@@ -203,7 +203,7 @@ unsigned long ParseSearchSpawnArg(int arg, int argc, char *argv[], SEARCHSPAWN &
 					return ExtraUsed;
 				}
 			}
-			strcpy(SearchSpawn.szName,argv[arg]);
+			strlwr(strcpy(SearchSpawn.szName,argv[arg]));
         }
     }
     return ExtraUsed;

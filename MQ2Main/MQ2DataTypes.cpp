@@ -2225,58 +2225,43 @@ bool MQ2CharacterType::GETMEMBER()
 		Dest.DWord=pChar->thirstlevel;
 		Dest.Type=pIntType;
 		return true;
-	case AltAbilityTimer:
-		if (ISINDEX())
-		{
-			if (ISNUMBER())
-			{
-				//numeric
-				for (unsigned long nAbility=0 ; nAbility<NUM_ALT_ABILITIES ; nAbility++)
-				{
-					if ( ((PALTADVMGR)pAltAdvManager)->AltAbilities->AltAbilityList->Abilities[nAbility])
-					{
-						if ( PALTABILITY pAbility=((PALTADVMGR)pAltAdvManager)->AltAbilities->AltAbilityList->Abilities[nAbility]->Ability) 
-						{
-							if (pAbility->ID == GETNUMBER() )
-							{
-								pAltAdvManager->IsAbilityReady(pPCData,pAbility,&Dest.Int);
-								if (Dest.Int<0)
-									return false;
-								Dest.Int/=6;
-								Dest.Type=pTicksType;
-								return true;
-							}
-						}
-					}
-				}
-			}
-			else
-			{
-				// by name
-				for (unsigned long nAbility=0 ; nAbility<NUM_ALT_ABILITIES ; nAbility++)
-				{
-			      if ( ((PALTADVMGR)pAltAdvManager)->AltAbilities->AltAbilityList->Abilities[nAbility])
-				  {
-					if (PALTABILITY pAbility=((PALTADVMGR)pAltAdvManager)->AltAbilities->AltAbilityList->Abilities[nAbility]->Ability)
-					{
-						if (PCHAR pName=pStringTable->getString(pAbility->nName,0))
-						{
-							if (!stricmp(GETFIRST(),pName))
-							{
-								pAltAdvManager->IsAbilityReady(pPCData,pAbility,&Dest.Int);
-								if (Dest.Int<0)
-									return false;
-								Dest.Int/=6;
-								Dest.Type=pTicksType;
-								return true;
-							}
-						}
-					}
-				  }
-				}
-			}
-		}
-		return false;
+    case AltAbilityTimer:
+        if (ISINDEX()) {
+            if (ISNUMBER()) {
+                //numeric
+                for (unsigned long nAbility=0 ; nAbility<AA_CHAR_MAX_REAL ; nAbility++) {
+                    if (!pChar->AAList[nAbility].AAIndex) break;
+                    if ( PALTABILITY pAbility=pAltAdvManager->GetAltAbility(pChar->AAList[nAbility].AAIndex)) {
+                        if (pAbility->ID == GETNUMBER() ) {
+                            pAltAdvManager->IsAbilityReady(pPCData,pAbility,&Dest.Int);
+                            if (Dest.Int<0)
+                                return false;
+                            Dest.Int/=6;
+                            Dest.Type=pTicksType;
+                            return true;
+                        }
+                    }
+                }
+            } else {
+                // by name
+                for (unsigned long nAbility=0 ; nAbility<AA_CHAR_MAX_REAL ; nAbility++) {
+                    if (!pChar->AAList[nAbility].AAIndex) break;
+                    if ( PALTABILITY pAbility=pAltAdvManager->GetAltAbility(pChar->AAList[nAbility].AAIndex)) {
+                        if (PCHAR pName=pStringTable->getString(pAbility->nName,0)) {
+                            if (!stricmp(GETFIRST(),pName)) {
+                                pAltAdvManager->IsAbilityReady(pPCData,pAbility,&Dest.Int);
+                                if (Dest.Int<0)
+                                    return false;
+                                Dest.Int/=6;
+                                Dest.Type=pTicksType;
+                                return true;
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        return false;
     case AltAbilityReady:
         if (ISINDEX()) {
             if (ISNUMBER()) {

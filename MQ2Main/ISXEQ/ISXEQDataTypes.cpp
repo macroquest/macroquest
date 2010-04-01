@@ -36,12 +36,76 @@ bool MQ2SpawnType::GETMETHOD()
 	case Target:
 		*ppTarget=GetSpawnByID(pPtr->SpawnID); // this could be a variable, which is just a copy. use its ID
 		return true;
-	case Face:
-		// TODO
-		return true;
-	case FaceFast:
-		// TODO
-		return true;
+   case Face: 
+      { 
+         PSPAWNINFO pSpawn = (PSPAWNINFO)GetSpawnByID(pPtr->SpawnID); 
+         if (pSpawn->SpawnID==((PSPAWNINFO)pCharSpawn)->SpawnID)   // If it is ourself, don't do anything. 
+            return true; 
+         bool bfPredict=false; 
+         bool bfAway=false; 
+         bool bfNolook=false; 
+         bool bfFast=false; 
+         gFaceAngle = ( 
+            atan2(pSpawn->X - ((PSPAWNINFO)pCharSpawn)->X, 
+            pSpawn->Y - ((PSPAWNINFO)pCharSpawn)->Y) 
+            * 256.0f / PI); 
+         while (argc--) 
+         { 
+            if (!stricmp(argv[argc],"predict")) 
+               bfPredict=true; 
+            else if (!stricmp(argv[argc],"nolook")) 
+               bfNolook=true; 
+            else if (!stricmp(argv[argc],"away")) 
+               bfAway=true; 
+            else if (!stricmp(argv[argc],"fast")) 
+               bfFast=true; 
+         } 
+         if (bfPredict) 
+         { 
+            DOUBLE Distance; 
+            Distance = DistanceToSpawn((PSPAWNINFO)pCharSpawn, pSpawn); 
+            gFaceAngle = ( 
+               atan2((pSpawn->X + (pSpawn->SpeedX * Distance)) - ((PSPAWNINFO)pCharSpawn)->X, 
+               (pSpawn->Y + (pSpawn->SpeedY * Distance)) - ((PSPAWNINFO)pCharSpawn)->Y) 
+               * 256.0f / PI); 
+         } 
+         if (!bfNolook) { 
+            DOUBLE Distance = DistanceToSpawn((PSPAWNINFO)pCharSpawn, pSpawn); 
+            gLookAngle = ( 
+               atan2(pSpawn->Z + pSpawn->AvatarHeight*StateHeightMultiplier(pSpawn->StandState) - ((PSPAWNINFO)pCharSpawn)->Z - 
+               ((PSPAWNINFO)pCharSpawn)->AvatarHeight*StateHeightMultiplier(((PSPAWNINFO)pCharSpawn)->StandState), 
+               (FLOAT)Distance) 
+               * 256.0f / PI); 
+            if (bfAway) gLookAngle = -gLookAngle; 
+            if (bfFast) { 
+               ((PSPAWNINFO)pCharSpawn)->CameraAngle = (FLOAT)gLookAngle; 
+               gLookAngle=10000.0f; 
+            } 
+         } 
+         if (bfAway) { 
+            gFaceAngle += 256.0f; 
+         } 
+         if (gFaceAngle>=512.0f) gFaceAngle -= 512.0f; 
+         if (gFaceAngle<0.0f) gFaceAngle += 512.0f; 
+         if (bfFast) { 
+            ((PSPAWNINFO)pCharSpawn)->Heading = (FLOAT)gFaceAngle; 
+            gFaceAngle=10000.0f; 
+         } 
+      } 
+      return true; 
+
+   case LeftClick: 
+      { 
+      PSPAWNINFO pSpawn = (PSPAWNINFO)GetSpawnByID(pPtr->SpawnID); 
+      pEverQuest->LeftClickedOnPlayer((EQPlayer *)pSpawn); 
+      return true; 
+      } 
+   case RightClick: 
+      { 
+      PSPAWNINFO pSpawn = (PSPAWNINFO)GetSpawnByID(pPtr->SpawnID); 
+      pEverQuest->RightClickedOnPlayer((EQPlayer *)pSpawn); 
+      return true; 
+      } 
 	case xAssist:
 		return true;
 	}

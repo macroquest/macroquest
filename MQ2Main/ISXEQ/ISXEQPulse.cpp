@@ -27,6 +27,8 @@ BOOL TurnNotDone=FALSE;
 
 void Pulse()
 {
+	pISInterface->DirectInputMousePosition(EQADDR_MOUSE->X,EQADDR_MOUSE->Y);
+
      if (!ppCharSpawn || !pCharSpawn) return;
 	 PSPAWNINFO pCharOrMount = NULL;
 	PCHARINFO pCharInfo = GetCharInfo();
