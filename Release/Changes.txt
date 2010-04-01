@@ -1,4 +1,7 @@
 02 Jul 2005 by dkaa
+- opcodes updated for zoning
+
+02 Jul 2005 by dkaa
 - String is still out
 - fixed the AA stuff in CHARINFO
 - CCustomWnd constructor now takes char * or CXStr *
