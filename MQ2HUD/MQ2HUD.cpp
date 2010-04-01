@@ -34,6 +34,8 @@ char HUDSection[MAX_STRING]="MQ2HUD";
 int SkipParse=1;
 int CheckINI=10;
 bool bBGUpdate = true;
+bool bClassHUD = true;
+bool bZoneHUD = true;
 
 BOOL Stat(PCHAR Filename, struct _stat &Dest)
 {
@@ -133,6 +135,7 @@ VOID LoadElements()
    ClearElements();
    CHAR ElementList[MAX_STRING*10] = {0};
    CHAR szBuffer[MAX_STRING], CurrentHUD[MAX_STRING] = {0};
+   CHAR ClassDesc[MAX_STRING], ZoneName[MAX_STRING] = {0};
    int argn=1;
    GetArg(CurrentHUD,HUDNames,argn,0,0,0,',');
    while (*CurrentHUD) {
@@ -146,6 +149,32 @@ VOID LoadElements()
          pElementList+=strlen(pElementList)+1;
       }
       GetArg(CurrentHUD,HUDNames,++argn,0,0,0,',');
+   }
+   if (gGameState==GAMESTATE_INGAME) {
+      if (bClassHUD && ((ppCharData) && (pCharData))) {
+         sprintf(ClassDesc,"%s",GetClassDesc(GetCharInfo2()->Class));
+         GetPrivateProfileString(ClassDesc,NULL,"",ElementList,MAX_STRING*10,INIFileName);
+         PCHAR pElementList = ElementList;
+         while (pElementList[0]!=0) {
+            GetPrivateProfileString(ClassDesc,pElementList,"",szBuffer,MAX_STRING,INIFileName);
+            if (szBuffer[0]!=0) {
+               AddElement(szBuffer);
+            }
+            pElementList+=strlen(pElementList)+1;
+         }
+      }
+      if (bZoneHUD && (pZoneInfo)) {
+         sprintf(ZoneName,"%s",((PZONEINFO)pZoneInfo)->LongName);
+         GetPrivateProfileString(ZoneName,NULL,"",ElementList,MAX_STRING*10,INIFileName);
+         PCHAR pElementList = ElementList;
+         while (pElementList[0]!=0) {
+            GetPrivateProfileString(ZoneName,pElementList,"",szBuffer,MAX_STRING,INIFileName);
+            if (szBuffer[0]!=0) {
+               AddElement(szBuffer);
+            }
+            pElementList+=strlen(pElementList)+1;
+         }
+      }
    }
 
    if (!Stat(INIFileName,LastRead))
@@ -162,10 +191,16 @@ VOID HandleINI()
    CheckINI = CheckINI < 10 ? 10 : CheckINI;
    GetPrivateProfileString(HUDSection,"UpdateInBackground","on",szBuffer,MAX_STRING,INIFileName);
    bBGUpdate = strnicmp(szBuffer,"on",2)?false:true;
+   GetPrivateProfileString(HUDSection,"ClassHUD","on",szBuffer,MAX_STRING,INIFileName);
+   bClassHUD = strnicmp(szBuffer,"on",2)?false:true;
+   GetPrivateProfileString(HUDSection,"ZoneHUD","on",szBuffer,MAX_STRING,INIFileName);
+   bZoneHUD = strnicmp(szBuffer,"on",2)?false:true;
    // Write the SkipParse and CheckINI section, in case they didn't have one
    WritePrivateProfileString(HUDSection,"SkipParse",itoa(SkipParse,szBuffer,10),INIFileName);
    WritePrivateProfileString(HUDSection,"CheckINI",itoa(CheckINI,szBuffer,10),INIFileName);
    WritePrivateProfileString(HUDSection,"UpdateInBackground",bBGUpdate?"on":"off",INIFileName);
+   WritePrivateProfileString(HUDSection,"ClassHUD",bClassHUD?"on":"off",INIFileName);
+   WritePrivateProfileString(HUDSection,"ZoneHUD",bZoneHUD?"on":"off",INIFileName);
 
    LoadElements();
 }
@@ -240,6 +275,46 @@ VOID BackgroundHUD(PSPAWNINFO pChar, PCHAR szLine)
    HandleINI();
 }
 
+VOID ClassHUD(PSPAWNINFO pChar, PCHAR szLine)
+{
+   if (!stricmp(szLine,"off"))
+   {
+      WritePrivateProfileString(HUDSection,"ClassHUD","off",INIFileName);
+      WriteChatColor("MQ2HUD::Auto-include HUD per class description is OFF");
+   }
+   else if (!stricmp(szLine,"on"))
+   {
+      WritePrivateProfileString(HUDSection,"ClassHUD","on",INIFileName);
+      WriteChatColor("MQ2HUD::Auto-include HUD per class description is ON");
+   }
+   else
+   {
+      WriteChatColor("Usage: /classhud [on|off]");
+      return;
+   }
+   HandleINI();
+}
+
+VOID ZoneHUD(PSPAWNINFO pChar, PCHAR szLine)
+{
+   if (!stricmp(szLine,"off"))
+   {
+      WritePrivateProfileString(HUDSection,"ZoneHUD","off",INIFileName);
+      WriteChatColor("MQ2HUD::Auto-include HUD per zone name is OFF");
+   }
+   else if (!stricmp(szLine,"on"))
+   {
+      WritePrivateProfileString(HUDSection,"ZoneHUD","on",INIFileName);
+      WriteChatColor("MQ2HUD::Auto-include HUD per zone name is ON");
+   }
+   else
+   {
+      WriteChatColor("Usage: /zonehud [on|off]");
+      return;
+   }
+   HandleINI();
+}
+
 BOOL dataHUD(PCHAR szIndex, MQ2TYPEVAR &Ret)
 {
    Ret.Ptr=HUDNames;
@@ -265,6 +340,8 @@ PLUGIN_API VOID InitializePlugin(VOID)
    AddCommand("/loadhud",LoadHUD);
    AddCommand("/unloadhud",UnLoadHUD);
    AddCommand("/backgroundhud",BackgroundHUD);
+   AddCommand("/classhud",ClassHUD);
+   AddCommand("/zonehud",ClassHUD);
    AddMQ2Data("HUD",dataHUD);
 }
 
@@ -277,6 +354,8 @@ PLUGIN_API VOID ShutdownPlugin(VOID)
    RemoveCommand("/unloadhud");
    RemoveCommand("/defaulthud");
    RemoveCommand("/backgroundhud");
+   RemoveCommand("/classhud");
+   RemoveCommand("/zonehud");
    RemoveMQ2Data("HUD");
 }
 
@@ -288,6 +367,12 @@ PLUGIN_API VOID SetGameState(DWORD GameState)
       strcpy(HUDSection,"MQ2HUD");
    GetPrivateProfileString(HUDSection,"Last","Elements",HUDNames,MAX_STRING,INIFileName);
    HandleINI();
+}
+
+// Called after entering a new zone
+PLUGIN_API VOID OnZoned(VOID)
+{
+	HandleINI();
 }
 
 // Called every frame that the "HUD" is drawn -- e.g. net status / packet loss bar

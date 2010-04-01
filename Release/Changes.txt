@@ -1,3 +1,11 @@
+11 December 2005 by rswiders
+- Corrected offset comments in several structures
+- Added /classhud and /zonehud commands. Automatically load [class] or [zonename] huds.
+- Added SpeedMultiplier into spawninfo
+- Fixed Item.Stack
+- Fixed /doors command (_DOORS and _EQSWITCH structures changed). Other switches may have
+  been effected and fixed with this also.
+
 10 December 2005 by rswiders, dkaa
 - Updated for 12/07 patch
 - PACTORINFO was removed, _ACTORINFO fields were merged into _SPAWNINFO

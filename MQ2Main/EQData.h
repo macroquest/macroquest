@@ -537,23 +537,26 @@ union{
 
 // 9-17-05 Size 0xa8
 typedef struct _CONTENTS {
-/*0x00*/  BYTE    Unknown0x0[0x1c];
+/*0x00*/  void   *vtable;
+/*0x04*/  void   *punknown;
+/*0x08*/  BYTE    Unknown0x8[0x14];
 /*0x1c*/  struct _ITEMINFO *Item;
    union {
 /*0x20*/  struct _CONTENTS *Contents[0x0a]; //addresses to whats inside the bag if its a bag
 /*0x20*/  struct _ITEMINFO *Augments[0x0a]; //Only 1-5 are actually used (for now)
    };
-/*0x48*/  DWORD   StackCount;
-/*0x5c*/  DWORD   ItemSlot;// slotid for Player Items
-/*0x4c*/  BYTE    Unknown0x4c[0x8];
-/*0x58*/  DWORD   Charges;
-/*0x5C*/  BYTE    Unknown0x5c[0x24];
-/*0x80*/  DWORD   ItemSlot2;// slotid for Merchant Items
-/*0x84*/  DWORD   Unknown0x88;
-/*0x88*/  DWORD   Price; //price a player vendor set the item at
-/*0x8c*/  DWORD   Open;
-/*0x90*/  BYTE    Unknown0x90[0x14];
-/*0xa4*/   
+/*0x48*/  DWORD   Unknown0x48;
+/*0x4c*/  DWORD   StackCount;
+/*0x50*/  DWORD   ItemSlot;// slotid for Player Items
+/*0x54*/  BYTE    Unknown0x54[0x8];
+/*0x5c*/  DWORD   Charges;
+/*0x60*/  BYTE    Unknown0x60[0x24];
+/*0x84*/  DWORD   ItemSlot2;// slotid for Merchant Items
+/*0x88*/  DWORD   Unknown0x88;
+/*0x8c*/  DWORD   Price; //price a player vendor set the item at
+/*0x90*/  DWORD   Open;
+/*0x94*/  BYTE    Unknown0x94[0x14];
+/*0xa8*/   
 } CONTENTS, *PCONTENTS;
 
 // 5-11-2005 Amadeus
@@ -674,70 +677,70 @@ typedef struct _CHARINFO {
 /* 0x1770 */   BYTE       Unknown0x1770[0x2a0];
 /* 0x1a10 */   DWORD      Exp;
 /* 0x1a14 */   BYTE       Unknown0x1a14[0xa974];
-/* 0xc280 */   void      *vtable2;
-/* 0xc284 */   struct     _EQC_INFO* eqc_info;
-/* 0xc288 */   struct     _SPAWNINFO*  pSpawn;
-/* 0xc28c */   DWORD      Unknown0xc28c;
-/* 0xc290 */   DWORD      Unknown0xc290;
-/* 0xc294 */   DWORD      CurrWeight;
-/* 0xc298 */   DWORD      Unknown0xc298;
-/* 0xc29c */   DWORD      HPBonus;
-/* 0xc2a0 */   DWORD      ManaBonus;
-/* 0xc2a4 */   DWORD      EnduranceBonus;
-/* 0xc2a8 */   DWORD      CombatEffectsBonus;
-/* 0xc2ac */   DWORD      ShieldingBonus;
-/* 0xc2b0 */   DWORD      SpellShieldBonus;
-/* 0xc2b4 */   DWORD      AvoidanceBonus;
-/* 0xc2b8 */   DWORD      AccuracyBonus;
-/* 0xc2bc */   DWORD      StunResistBonus;
-/* 0xc2c0 */   DWORD      StrikeThroughBonus;
-/* 0xc2c4 */   DWORD      SkillMinDamageModBonus[0x9];
-/* 0xc2e8 */   DWORD      Unknown0xc2e8;
-/* 0xc2ec */   DWORD      DoTShieldBonus;
-/* 0xc2f0 */   DWORD      AttackBonus;
-/* 0xc2f4 */   DWORD      HPRegenBonus;
-/* 0xc2f8 */   DWORD      ManaRegenBonus;
-/* 0xc2fc */   DWORD      Unknown0xc2fc;
-/* 0xc300 */   DWORD      DamageShieldBonus;
-/* 0xc304 */   DWORD      AttackSpeed;
-/* 0xc308 */   DWORD      Unknown0xc308;
-/* 0xc30c */   BYTE       Unknown0xc30c[0x1c];
-/* 0xc328 */   _CONTENTS  *ActiveGuildTribute[0xc];
-/* 0xc358 */   struct     _CI2_INFO* pCI2;
-/* 0xc35c */   DWORD      Unknown0xc35c;
-/* 0xc360 */   BYTE       languages[0x20];
-/* 0xc380 */   BYTE       Unknown0xc380[0x10];
-/* 0xc390 */   CHAR       Name[0x40];
-/* 0xc3d0 */   CHAR       Lastname[0x20];
-/* 0xc3f0 */   BYTE       Unknown0xc3f0[0x60];
-/* 0xc450 */   BYTE       Stunned;
-/* 0xc451 */   BYTE       Unknown0xc451[0x3];
-/* 0xc454 */   WORD       zoneId;
-/* 0xc456 */   WORD       instance;
-/* 0xc458 */   DWORD      standstate;
-/* 0xc45c */   BYTE       Unknown0xc45c[0x24];
-/* 0xc480 */   DWORD      BankSharedPlat;
-/* 0xc484 */   DWORD      BankSharedGold;
-/* 0xc488 */   DWORD      BankSharedSilver;
-/* 0xc48c */   DWORD      BankSharedCopper;
-/* 0xc490 */   DWORD      BankPlat;
-/* 0xc494 */   DWORD      BankGold;
-/* 0xc498 */   DWORD      BankSilver;
-/* 0xc49c */   DWORD      BankCopper;
-/* 0xc4a0 */   DWORD      STR;
-/* 0xc4a4 */   DWORD      STA;
-/* 0xc4a8 */   DWORD      CHA;
-/* 0xc4ac */   DWORD      DEX;
-/* 0xc4b0 */   DWORD      INT;
-/* 0xc4b4 */   DWORD      AGI;
-/* 0xc4b8 */   DWORD      WIS;
-/* 0xc4bc */   DWORD      SavePoison;
-/* 0xc4c0 */   DWORD      SaveMagic;
-/* 0xc4c4 */   DWORD      SaveDisease;
-/* 0xc4c8 */   DWORD      SaveFire;
-/* 0xc4cc */   DWORD      SaveCold;
-/* 0xc4d0 */   DWORD      Unknown0xc4d0;
-/* 0xc4d4 */
+/* 0xc388 */   void      *vtable2;
+/* 0xc38c */   struct     _EQC_INFO* eqc_info;
+/* 0xc390 */   struct     _SPAWNINFO* pSpawn;
+/* 0xc394 */   DWORD      Unknown0xc394;
+/* 0xc398 */   DWORD      Unknown0xc398;
+/* 0xc39c */   DWORD      CurrWeight;
+/* 0xc3a0 */   DWORD      Unknown0xc3a0;
+/* 0xc3a4 */   DWORD      HPBonus;
+/* 0xc3a8 */   DWORD      ManaBonus;
+/* 0xc3ac */   DWORD      EnduranceBonus;
+/* 0xc3b0 */   DWORD      CombatEffectsBonus;
+/* 0xc3b4 */   DWORD      ShieldingBonus;
+/* 0xc3b8 */   DWORD      SpellShieldBonus;
+/* 0xc3bc */   DWORD      AvoidanceBonus;
+/* 0xc3c0 */   DWORD      AccuracyBonus;
+/* 0xc3c4 */   DWORD      StunResistBonus;
+/* 0xc3c8 */   DWORD      StrikeThroughBonus;
+/* 0xc3cc */   DWORD      SkillMinDamageModBonus[0x9];
+/* 0xc3f0 */   DWORD      Unknown0xc3f0;
+/* 0xc3f4 */   DWORD      DoTShieldBonus;
+/* 0xc3f8 */   DWORD      AttackBonus;
+/* 0xc3fc */   DWORD      HPRegenBonus;
+/* 0xc400 */   DWORD      ManaRegenBonus;
+/* 0xc404 */   DWORD      Unknown0xc404;
+/* 0xc408 */   DWORD      DamageShieldBonus;
+/* 0xc40c */   DWORD      AttackSpeed;
+/* 0xc410 */   DWORD      Unknown0xc410;
+/* 0xc414 */   BYTE       Unknown0xc414[0x1c];
+/* 0xc430 */   _CONTENTS  *ActiveGuildTribute[0xc];
+/* 0xc460 */   struct     _CI2_INFO* pCI2;
+/* 0xc464 */   DWORD      Unknown0xc464;
+/* 0xc468 */   BYTE       languages[0x20];
+/* 0xc488 */   BYTE       Unknown0xc488[0x10];
+/* 0xc498 */   CHAR       Name[0x40];
+/* 0xc4d8 */   CHAR       Lastname[0x20];
+/* 0xc4f8 */   BYTE       Unknown0xc4f8[0x60];
+/* 0xc558 */   BYTE       Stunned;
+/* 0xc559 */   BYTE       Unknown0xc559[0x3];
+/* 0xc55c */   WORD       zoneId;
+/* 0xc55e */   WORD       instance;
+/* 0xc560 */   DWORD      standstate;
+/* 0xc564 */   BYTE       Unknown0xc564[0x24];
+/* 0xc588 */   DWORD      BankSharedPlat;
+/* 0xc58c */   DWORD      BankSharedGold;
+/* 0xc590 */   DWORD      BankSharedSilver;
+/* 0xc594 */   DWORD      BankSharedCopper;
+/* 0xc598 */   DWORD      BankPlat;
+/* 0xc59c */   DWORD      BankGold;
+/* 0xc5a0 */   DWORD      BankSilver;
+/* 0xc5a4 */   DWORD      BankCopper;
+/* 0xc5a8 */   DWORD      STR;
+/* 0xc5ac */   DWORD      STA;
+/* 0xc5b0 */   DWORD      CHA;
+/* 0xc5b4 */   DWORD      DEX;
+/* 0xc5b8 */   DWORD      INT;
+/* 0xc5bc */   DWORD      AGI;
+/* 0xc5c0 */   DWORD      WIS;
+/* 0xc5c4 */   DWORD      SavePoison;
+/* 0xc5c8 */   DWORD      SaveMagic;
+/* 0xc5cc */   DWORD      SaveDisease;
+/* 0xc5d0 */   DWORD      SaveFire;
+/* 0xc5d4 */   DWORD      SaveCold;
+/* 0xc5d8 */   DWORD      Unknown0xc5d8[0x78];
+/* 0xc660 */
 } CHARINFO, *PCHARINFO;
 
 
@@ -1143,35 +1146,38 @@ typedef struct _EQSWITCH {
 /*0x18*/	DWORD		UnknownData0x18;
 /*0x1c*/	DWORD		Unknown0x1c;
 /*0x20*/	DWORD		UnknownData0x20;
-/*0x24*/	FLOAT		Y;
-/*0x28*/	FLOAT		X;
-/*0x2c*/	FLOAT		Z;
-/*0x30*/	BYTE		Unknown0x30[0x58]; //A lot of data here.
-/*0x88*/	FLOAT		Y2;
-/*0x8c*/	FLOAT		X2;
-/*0x90*/	FLOAT		Z2;
-/*0x94*/	DWORD		Unknown0x94;
-/*0x98*/	FLOAT		Heading;
-/*0x9c		Data Continues... */
+/*0x24*/	DWORD		Unknown0x24;
+/*0x28*/	FLOAT		Y;
+/*0x2c*/	FLOAT		X;
+/*0x30*/	FLOAT		Z;
+/*0x34*/	BYTE		Unknown0x34[0x74]; //A lot of data here.
+/*0xa8*/	FLOAT		Y2;
+/*0xac*/	FLOAT		X2;
+/*0xb0*/	FLOAT		Z2;
+/*0xb4*/	DWORD		Unknown0xa4;
+/*0xb8*/	FLOAT		Heading;
+/*0xbc		Data Continues... */
 } EQSWITCH, *PEQSWITCH;
 
 typedef struct _DOOR { 
-/*0x00*/   BYTE Unknown0x00; 
-/*0x01*/   BYTE ID; 
-/*0x02*/   CHAR Name[0x0b]; 
-/*0x0d*/   BYTE Unknown0x0d[0x17]; 
-/*0x24*/   FLOAT DefaultY; 
-/*0x28*/   FLOAT DefaultX; 
-/*0x2c*/   FLOAT DefaultZ; 
-/*0x30*/   FLOAT DefaultHeading; 
-/*0x34*/   FLOAT DoorAngle; 
-/*0x38*/   FLOAT Y; 
-/*0x3c*/   FLOAT X; 
-/*0x40*/   FLOAT Z; 
-/*0x44*/   FLOAT Heading; 
-/*0x48*/   BYTE Unknown0x48[0x3c]; 
-/*0x84*/   PEQSWITCH pSwitch; // (class EQSwitch *) 
-/*0x88*/ 
+/*0x00*/   void *vtable; 
+/*0x04*/   BYTE Unknown0x4;
+/*0x05*/   BYTE ID;
+/*0x06*/   CHAR Name[0x0b]; 
+/*0x11*/   BYTE Unknown0x0d[0x17]; 
+/*0x28*/   FLOAT DefaultY; 
+/*0x2c*/   FLOAT DefaultX; 
+/*0x30*/   FLOAT DefaultZ; 
+/*0x34*/   FLOAT DefaultHeading; 
+/*0x38*/   FLOAT DoorAngle;
+/*0x3c*/   BYTE  Unknown0x3c[0x8];
+/*0x44*/   FLOAT Y; 
+/*0x48*/   FLOAT X; 
+/*0x4c*/   FLOAT Z; 
+/*0x50*/   FLOAT Heading; 
+/*0x54*/   BYTE Unknown0x54[0x48]; 
+/*0x9c*/   PEQSWITCH pSwitch; // (class EQSwitch *) 
+/*0xa0*/ 
 } DOOR, *PDOOR; 
 
 // 7-21-2003    Stargazer

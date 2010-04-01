@@ -321,7 +321,7 @@ int CMD_SellItem(int argc, char *argv[])
 
 int CMD_Target(int argc, char* argv[])
 {
-    if (!ppSpawnList) return 0;
+    if (!ppSpawnManager) return 0;
     if (!pSpawnList) return 0;
 	if (argc<2)
 	{
@@ -453,7 +453,7 @@ int CMD_Where(int argc, char* argv[])
       WriteChatf("Syntax: %s <spawn>",argv[0]);
       return 0;
    }
-    if (!ppSpawnList) return 0;
+    if (!ppSpawnManager) return 0;
     if (!pSpawnList) return 0;
    PSPAWNINFO pChar = GetCharInfo()->pSpawn;
     PSPAWNINFO pSpawnClosest = NULL;
@@ -828,7 +828,7 @@ int CMD_EQFace(int argc, char *argv[])
 {
 //VOID Face(PSPAWNINFO pChar, PCHAR szLine)
 //{
-    if (!ppSpawnList) return 0;
+    if (!ppSpawnManager) return 0;
     if (!pSpawnList) return 0;
     PSPAWNINFO pSpawnClosest = NULL;
     PSPAWNINFO psTarget = NULL;

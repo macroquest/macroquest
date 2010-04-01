@@ -238,6 +238,7 @@ void CISXEQ::DisconnectServices()
 
 	if (hSoftwareCursorService)
 	{
+		IS_SoftwareCursorDisable(this,pISInterface,hSoftwareCursorService);
 		pISInterface->DisconnectService(this,hSoftwareCursorService);
 	}
 }

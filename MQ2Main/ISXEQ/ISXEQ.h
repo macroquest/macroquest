@@ -17,7 +17,7 @@
 #pragma pack(4)
 #include <isxdk.h>
 #pragma pack(pop)
-
+#pragma warning(disable: 4996)
 class EQProtected
 {
 public:
