@@ -1,3 +1,13 @@
+18 November 2005 by dkaa
+- Added TLOs DoorTarget and ItemTarget
+
+17 November 2005 by Lax
+- Separated functionality from do_ranged command for use from plugins.  Do this for any case where
+  DoCommand has been used, and submit code changes.  This example has been done for you.
+
+17 November 2005 by dkaa
+- Added Cr4zyb4rd's hud extensions
+
 16 November 2005 by rswiders
 - updated offset for 11/16 patch
 - updated changes to charinfo struct for 11/16 patch

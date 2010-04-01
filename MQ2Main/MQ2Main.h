@@ -557,6 +557,14 @@ EQLIB_API DWORD       GetAAIndexByName		  (PCHAR AAName);
 EQLIB_API DWORD		  GetAAIndexByID		  (DWORD ID);
 
 
+///////////////////////////////////////////////////////////////////////////////////////////////////
+// Functions that were built into commands and people used DoCommand to execute                  //
+
+EQLIB_API void AttackRanged(EQPlayer *pRangedTarget=pTarget);
+
+//                                                                                               //
+///////////////////////////////////////////////////////////////////////////////////////////////////
+
 
 LEGACY_API BOOL Calculate(PCHAR szFormula, DOUBLE& Dest);
 

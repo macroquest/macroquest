@@ -1318,3 +1318,26 @@ TLO(dataLineOfSight)
 	return false;
 }
 
+TLO(dataDoorTarget)
+{
+#ifndef ISXEQ /* CONVERT */
+	if (Ret.Ptr=&DoorEnviroTarget)
+	{
+		Ret.Type=pSpawnType;
+		return true;
+        }
+#endif
+        return false;
+}
+
+TLO(dataItemTarget)
+{
+#ifndef ISXEQ /* CONVERT */
+	if (Ret.Ptr=&EnviroTarget)
+	{
+		Ret.Type=pSpawnType;
+		return true;
+        }
+#endif
+        return false;
+}

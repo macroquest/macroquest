@@ -2048,6 +2048,8 @@ VOID Target(PSPAWNINFO pChar, PCHAR szLine)
             }
         } else if (!strcmp(szArg,"clear")) {
             pTarget = NULL;
+            EnviroTarget.SpawnID = 0;
+            DoorEnviroTarget.SpawnID = 0;
             DebugSpew("Target cleared.");
             WriteChatColor("Target cleared.",USERCOLOR_WHO);
             return;
@@ -2725,11 +2727,7 @@ VOID do_ranged(PSPAWNINFO pChar, PCHAR szLine)
 		MacroError("No target for ranged attack");
 		return;
 	}
-	if (gbRangedAttackReady)
-	{
-		pLocalPlayer->DoAttack(0x0B,0,pRangedTarget);
-		gbRangedAttackReady=0;
-	}
+	AttackRanged(pRangedTarget);
 }
 
 // /loadcfg

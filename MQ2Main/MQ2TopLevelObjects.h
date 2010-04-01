@@ -44,4 +44,6 @@ LEGACY_API BOOL dataSpawnCount(PCHAR szIndex, MQ2TYPEVAR &Ret);
 LEGACY_API BOOL dataLineOfSight(PCHAR szIndex, MQ2TYPEVAR &Ret);
 LEGACY_API BOOL dataPlugin(PCHAR szIndex, MQ2TYPEVAR &Ret);
 LEGACY_API BOOL dataSelect(PCHAR szIndex, MQ2TYPEVAR &Ret);
+LEGACY_API BOOL dataDoorTarget(PCHAR szIndex, MQ2TYPEVAR &Ret);
+LEGACY_API BOOL dataItemTarget(PCHAR szIndex, MQ2TYPEVAR &Ret);
 #endif

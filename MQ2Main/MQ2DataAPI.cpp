@@ -161,6 +161,8 @@ void InitializeMQ2Data()
 	AddMQ2Data("LineOfSight",dataLineOfSight);
 	AddMQ2Data("Plugin",dataPlugin);
 	AddMQ2Data("Select",dataSelect);
+	AddMQ2Data("DoorTarget",dataDoorTarget);
+	AddMQ2Data("ItemTarget",dataItemTarget);
 }
 
 

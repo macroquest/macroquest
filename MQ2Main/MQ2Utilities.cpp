@@ -5527,4 +5527,20 @@ bool BuffStackTest(PSPELL aSpell, PSPELL bSpell){
     return true;
 } 
 
+///////////////////////////////////////////////////////////////////////////////////////////////////
+// Functions that were built into commands and people used DoCommand to execute                  //
+
+void AttackRanged(EQPlayer *pRangedTarget)
+{
+	if (pRangedTarget && gbRangedAttackReady)
+	{
+		pLocalPlayer->DoAttack(0x0B,0,pRangedTarget);
+		gbRangedAttackReady=0;
+	}
+}
+
+//                                                                                               //
+///////////////////////////////////////////////////////////////////////////////////////////////////
+
 #endif
+
