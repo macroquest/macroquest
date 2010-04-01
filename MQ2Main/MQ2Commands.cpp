@@ -22,6 +22,7 @@
 
 #include "MQ2Main.h"
 #include <Shellapi.h>
+#include <mmsystem.h>
 
 // ***************************************************************************
 // Function:    Unload
@@ -639,7 +640,14 @@ VOID Help(PSPAWNINFO pChar, PCHAR szLine)
 VOID MacroBeep(PSPAWNINFO pChar, PCHAR szLine)
 {
     bRunNextCommand = TRUE;
-    Beep(0x500,250);
+    //Beep(0x500,250);
+    CHAR szArg[MAX_STRING] = {0};
+    
+    GetArg(szArg, szLine, 1);
+    if (szArg[0] == '\0')
+        Beep(0x500,250);
+    else
+        PlaySound(szArg,0,SND_ASYNC);
 }
 
 

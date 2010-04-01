@@ -472,7 +472,7 @@ typedef struct _ITEMINFO {
 /*0x14c*/ DWORD AugRestrictions;
 /*0x150*/ DWORD LDTheme;
 /*0x154*/ DWORD LDCost;
-/*0x158*/ DWORD Unknown0x158;
+/*0x158*/ DWORD LDType;
 /*0x15c*/ BYTE Unknown0x15c[4];
 /*0x160*/ DWORD FactionModType[0x4];
 /*0x170*/ DWORD FactionModValue[0x4];

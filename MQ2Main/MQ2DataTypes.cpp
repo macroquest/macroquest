@@ -3054,7 +3054,7 @@ bool MQ2ItemType::GETMEMBER()
 		Dest.Type=pIntType;
 		return true;
 	case LDoNTheme:
-		Dest.Ptr=szTheme[pItem->Item->LDTheme];
+		Dest.Ptr=GetLDoNTheme(pItem->Item->LDTheme);
 		Dest.Type=pStringType;
 		return true;
 	case DMGBonusType:

@@ -422,6 +422,70 @@ public:
 		Initialize();
 	}
 
+	static char *stristr(char *haystack,char *needle)
+	{
+		BlechDebugFull("stristr(%s,%s)",haystack,needle);
+		BLECHASSERT(haystack!=0);
+		BLECHASSERT(needle!=0);
+		if (!needle[0])
+			return haystack;
+
+		static bool bInitialized=false;
+		static char ToUpper[256];
+		if (!bInitialized)
+		{
+			bInitialized=true;
+			ToUpper[0]=0;
+			for(unsigned long iliketmpvars = 1 ; iliketmpvars < 128 ; iliketmpvars++)
+				ToUpper[iliketmpvars]=(char)toupper(iliketmpvars);
+			for (unsigned long iliketmpvarsmore = 128 ; iliketmpvarsmore < 256 ; iliketmpvarsmore++)
+			{
+				ToUpper[iliketmpvarsmore]=(char)iliketmpvarsmore;
+			}
+		}
+
+		char *originalneedle=needle;
+		do
+		{
+			char c=*haystack;
+			if (!c)
+				return 0;
+			if (ToUpper[c]==ToUpper[*needle])
+			{
+				char *start=haystack;
+				do
+				{
+					needle++;
+					c=*needle;
+					if (!c)
+						return start;
+					haystack++;
+					char d=*haystack;
+					if (!d)
+					{
+						return 0;
+					}
+					
+					if (ToUpper[c]!=ToUpper[d])
+						break;
+				}
+				while(1);
+
+				haystack=start+1;
+				needle=originalneedle;
+				continue;
+			}
+			haystack++;
+		}
+		while(1);
+
+
+
+		return 0;
+	}
+
+
+
 	void Reset()
 	{
 		Cleanup();
@@ -607,69 +671,6 @@ private:
 			}
 		}
 		ClearExecutionList();
-	}
-
-
-	static char *stristr(char *haystack,char *needle)
-	{
-		BlechDebugFull("stristr(%s,%s)",haystack,needle);
-		BLECHASSERT(haystack!=0);
-		BLECHASSERT(needle!=0);
-		if (!needle[0])
-			return haystack;
-
-		static bool bInitialized=false;
-		static char ToUpper[256];
-		if (!bInitialized)
-		{
-			bInitialized=true;
-			ToUpper[0]=0;
-			for(unsigned long iliketmpvars = 1 ; iliketmpvars < 128 ; iliketmpvars++)
-				ToUpper[iliketmpvars]=(char)toupper(iliketmpvars);
-			for (unsigned long iliketmpvarsmore = 128 ; iliketmpvarsmore < 256 ; iliketmpvarsmore++)
-			{
-				ToUpper[iliketmpvarsmore]=(char)iliketmpvarsmore;
-			}
-		}
-
-		char *originalneedle=needle;
-		do
-		{
-			char c=*haystack;
-			if (!c)
-				return 0;
-			if (ToUpper[c]==ToUpper[*needle])
-			{
-				char *start=haystack;
-				do
-				{
-					needle++;
-					c=*needle;
-					if (!c)
-						return start;
-					haystack++;
-					char d=*haystack;
-					if (!d)
-					{
-						return 0;
-					}
-					
-					if (ToUpper[c]!=ToUpper[d])
-						break;
-				}
-				while(1);
-
-				haystack=start+1;
-				needle=originalneedle;
-				continue;
-			}
-			haystack++;
-		}
-		while(1);
-
-
-
-		return 0;
 	}
 
 

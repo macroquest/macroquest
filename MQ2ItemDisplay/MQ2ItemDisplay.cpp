@@ -31,6 +31,88 @@ class ItemDisplayHook
    static bool bNoSpellTramp;
    static SEffectType eEffectType;
 public:
+	   bool CXStrReplace (PCXSTR * Str, const char * cFind, const char * cReplace)
+   {
+      char cTemp[2048];
+      DWORD dwSize = GetCXStr (*Str, cTemp, sizeof (cTemp));
+      if (dwSize > 0 && dwSize < sizeof (cTemp) - 20) {
+         char * cPtr = strstr (cTemp, cFind);
+         if (cPtr != NULL) {
+            char * cDup = strdup (cPtr);
+
+            strcpy (cPtr, cReplace);
+            strcpy (cPtr + strlen (cReplace), cDup + strlen (cFind));
+
+            free (cDup);
+
+            SetCXStr (Str, cTemp);
+            return true;
+         }
+      }
+
+      return false;
+   }
+
+   const char * GetRaceThreeLetterCode (int iRace)
+   {
+      switch (iRace) {
+         case 1: return ("HUM");
+         case 2: return ("BAR");
+         case 3: return ("ERU");
+         case 4: return ("ELF");
+         case 5: return ("HIE");
+         case 6: return ("DEF");
+         case 7: return ("HEF");
+         case 8: return ("DWF");
+         case 9: return ("TRL");
+         case 10:return ("OGR");
+         case 11:return ("HLF");
+         case 12:return ("GNM");
+         case 13:return ("IKS");
+         case 14:return ("VAH");
+         case 15:return ("FRG");
+      }
+
+      return ("UNKNOWN RACE");
+   }
+    int GetDmgBonus (PCXSTR * Str)
+   {
+      char cTemp[2048];
+      INT dmgbonuspos;
+      INT dmgbonus = 0;
+      INT badcharpos;
+
+      GetCXStr(*Str, cTemp, sizeof (cTemp));
+      
+      string ItemDisplay;
+      ItemDisplay = cTemp;
+
+      char ActualDmgBonus[3];
+
+      dmgbonuspos = ItemDisplay.find("Dmg Bonus:");
+      
+      if (dmgbonuspos != string::npos) {
+         dmgbonuspos = dmgbonuspos + 11;
+         ItemDisplay = ItemDisplay.substr(dmgbonuspos,3);
+
+         badcharpos = ItemDisplay.find(" ");
+
+         if (badcharpos != string::npos) { //found blank
+            ItemDisplay = ItemDisplay.substr(0,2);
+         }else{
+            //badcharpos = tmpActualDmgBonus.find("<");
+            badcharpos = ItemDisplay.find("<");
+            if (badcharpos != string::npos) { //found <
+               ItemDisplay = ItemDisplay.substr(0,2);
+            }
+         }
+
+         strcpy (ActualDmgBonus,ItemDisplay.c_str());
+         dmgbonus = atoi(ActualDmgBonus);
+      }
+
+      return dmgbonus;
+   }
    VOID SetItem_Trampoline(class EQ_Item *pitem,bool unknown);
    VOID SetItem_Detour(class EQ_Item *pitem,bool unknown)
    {
@@ -79,20 +161,44 @@ public:
         sprintf(temp,"Guild Tribute Value: %d<br>", Item->GuildFavor); 
         strcat(out, temp); 
      } 
+	   //Outlaw (AKA CheckinThingsOut) (02/24/2005)
+   if (Item->ItemType != 27) { //Arrows..they have dmg/dly but we don't want them
+      if ( Item->Delay > 0) {
+         if ( Item->Damage > 0) {
+            sprintf(temp,"Ratio: %5.3f<br>", (float)Item->Delay / (float)Item->Damage);
+            strcat(out, temp);
+            //Calculate Efficiency
+            INT dmgbonus = 0;
 
+            PCHARINFO pCharInfo = GetCharInfo();
+            if (pCharInfo->Level > 27) { //bonus is 0 for anything below 28
+               dmgbonus = GetDmgBonus(&This->ItemInfo);
+            }
+
+            sprintf(temp,"Efficiency: %3.0f<br>",((((float)Item->Damage * 2) + dmgbonus) / (float)Item->Delay) * 50);
+            strcat(out, temp);
+            if (Item->EquipSlots & 16384) { // Equipable In Secondary Slot
+               sprintf(temp,"Offhand Efficiency: %3.0f<br>",((((float)Item->Damage * 2) / (float)Item->Delay) * 50) * 0.62);
+               strcat(out, temp);
+            }
+            sprintf(temp,"<br>");
+            strcat(out,temp);    
+         }
+      }
+   }
      lore=Item->LoreName;
      if (lore[0]=='*') lore++;
      if (strcmp(lore,Item->Name)) {
       sprintf(temp,"Item Lore: %s<BR>",Item->LoreName);
       strcat(out,temp);
      }
-
+	PCHARINFO pChar = GetCharInfo();     // Ziggy - for item level highlights 
     // Will be 0 for no effect or -1 if other effects present 
     if (Item->Proc.SpellID && Item->Proc.SpellID!=-1) { 
        if (Item->Proc.RequiredLevel == 0 ) 
           sprintf(temp, "Procs at level 1 (Proc rate modifier: %d)<BR>", Item->ProcRate); 
       else 
-         sprintf(temp,"Procs at level %d (Proc rate modifier: %d)<BR>",Item->Proc.RequiredLevel, Item->ProcRate);
+         sprintf(temp,"%sProcs at level %d%s (Proc rate modifier: %d)<BR>", (Item->Proc.RequiredLevel > pChar->Level ? "<c \"#FF4040\">" : ""), Item->Proc.RequiredLevel, (Item->Proc.RequiredLevel > pChar->Level ? "</C>" : ""), Item->ProcRate); 
        strcat(out,temp); 
      } 
    /* No longer needed? 
@@ -112,18 +218,30 @@ public:
 	 // Teh_Ish (02/08/2004) 
      if ( Item->Clicky.EffectType==4 || Item->Clicky.EffectType==1 || Item->Clicky.EffectType==5) {
 		 if ( Item->Clicky.RequiredLevel == 0 )
-			 sprintf(temp, "Clickable at level 1<br>", Item->Clicky.RequiredLevel );
+			 sprintf(temp, "Clickable at level 1<br>");
 		else
-			sprintf(temp,"Clickable at level %d<BR>",Item->Clicky.RequiredLevel); 
+			sprintf(temp,"%sClickable at level %d%s<BR>", (Item->Clicky.RequiredLevel > pChar->Level ? "<c \"#FF4040\">" : ""), Item->Clicky.RequiredLevel, (Item->Clicky.RequiredLevel > pChar->Level ? "</C>" : ""));  
         strcat(out,temp); 
      }
 
 	 // TheColonel (12/24/2003)
-     if (Item->LDTheme != 0 && Item->LDTheme <= 5) { // Ziggy: Some themes now > 5 and mean?
-        if(Item->LDCost == 0) 
-          sprintf(temp,"This drops in %s dungeons<BR>", szTheme[Item->LDTheme]); 
-        else 
-          sprintf(temp,"LDoN Cost: %d from %s<BR>", Item->LDCost, szTheme[Item->LDTheme]); 
+	if (Item->LDType == 1) {
+        if(Item->LDCost == 0)
+           sprintf(temp,"This drops in %s dungeons<BR>", GetLDoNTheme(Item->LDTheme));
+        else
+           sprintf(temp,"LDoN Cost: %d from %s<BR>", Item->LDCost, GetLDoNTheme(Item->LDTheme));
+        strcat(out,temp);
+     }
+     if (Item->LDType == 2 && Item->LDCost > 0) {
+        sprintf(temp,"Discord Cost: %d points<BR>", Item->LDCost);
+        strcat(out,temp);
+     }
+     if (Item->LDType == 4 && Item->LDCost > 0) {
+        sprintf(temp,"DoN Cost: %d Radiant Crystals<BR>", Item->LDCost);
+        strcat(out,temp);
+     }
+     if (Item->LDType == 5 && Item->LDCost > 0) {
+        sprintf(temp,"DoN Cost: %d Ebon Crystals<BR>", Item->LDCost);
         strcat(out,temp); 
      } 
      // TheColonel (1/18/2004)
@@ -158,7 +276,182 @@ public:
 	  //((CXStr)This->ItemInfo)+=
       AppendCXStr(&This->ItemInfo,&out[0]);
      }
+      // Ziggy - Highlight existing item display parts.
+      // eg. Required level insufficient
+      //     Wrong class, race, deity etc.
+      if (pChar != NULL) {
+         char cFind[256];
+         char cReplace[256];
 
+         if (Item->RequiredLevel > pChar->Level) {
+            sprintf (cFind, "Required level of %d.", Item->RequiredLevel);
+            sprintf (cReplace, "<c \"#FF4040\">%s</C>", cFind);
+            CXStrReplace (&This->ItemInfo, cFind, cReplace);
+         }
+
+         if (Item->RecommendedLevel > pChar->Level) {
+            int iEffectiveness = (100 * pChar->Level / Item->RecommendedLevel);
+            sprintf (cFind, "Recommended level of %d.", Item->RecommendedLevel);
+            sprintf (cReplace, "<c \"#FF8020\">Recommended level of %d (%d%% effective).</C>", Item->RecommendedLevel, iEffectiveness);
+            CXStrReplace (&This->ItemInfo, cFind, cReplace);
+         }
+
+         if (Item->Proc.RequiredLevel > pChar->Level) {
+            sprintf (cFind, "<BR>Required Level: %d<BR>", Item->Proc.RequiredLevel);
+            sprintf (cReplace, "<BR><c \"#FF4040\">Required Level: %d</C><BR>", Item->Proc.RequiredLevel);
+            CXStrReplace (&This->ItemInfo, cFind, cReplace);
+         }
+
+         if (Item->Clicky.RequiredLevel > pChar->Level) {
+            sprintf (cFind, "<BR>Required Level: %d<BR>", Item->Clicky.RequiredLevel);
+            sprintf (cReplace, "<BR><c \"#FF4040\">Required Level: %d</C><BR>", Item->Clicky.RequiredLevel);
+            CXStrReplace (&This->ItemInfo, cFind, cReplace);
+         }
+
+         // Highlight good/bad class match
+         int iClassBit = 1 << (pChar->Class - 1);
+         if (!(Item->Classes & iClassBit)) {
+            char cClasses[64] = {0};
+            int iClass = 1;
+            for (WORD i = 1; i < 20; i++) {        // Only needs 15, but it's future proof.. oh yeah
+               if (Item->Classes & iClass) {
+                  char * cCode = pEverQuest->GetClassThreeLetterCode(i);
+                  if (cCode == NULL) {
+                     break;
+                  }
+
+                  strcat (cClasses, cCode);
+                  strcat (cClasses, " ");
+               }
+               iClass *= 2;
+            }
+
+            sprintf (cFind, "Class:%s", cClasses);
+            sprintf (cReplace, "Class:<c \"#FF4040\">%s</C>", cClasses);
+            CXStrReplace (&This->ItemInfo, cFind, cReplace);
+
+         } else {
+            char * cCode = pEverQuest->GetClassThreeLetterCode(pChar->Class);
+            sprintf (cFind, "%s ", cCode);
+            sprintf (cReplace, "<c \"#20FF20\">%s</C>", cFind);
+
+            if (!CXStrReplace (&This->ItemInfo, cFind, cReplace)) {
+               sprintf (cReplace, "Class:  <c \"#20FF20\">ALL</C>", cFind);
+               CXStrReplace (&This->ItemInfo, "Class:  ALL", cReplace);
+            }
+         }
+
+         // Highlight good/bad race match
+         DWORD raceNum;
+         switch(pChar->Race) {
+            case 0x80:  raceNum = 0xc; break;
+            case 0x82:  raceNum = 0xd; break;
+            case 0x4a:  raceNum = 0xe; break;
+            default:    raceNum = pChar->Race - 1;
+         }
+         int iRaceBit = 1 << raceNum;
+         if (!(Item->Races & iRaceBit)) {
+            char cRaces[64] = {0};
+            int iRace = 1;
+            for (WORD i = 0; i < 20; i++) {
+               if (Item->Races & iRace) {
+                  const char * cCode = GetRaceThreeLetterCode(i + 1);
+                  if (cCode == NULL) {
+                     break;
+                  }
+
+                  strcat (cRaces, cCode);
+                  strcat (cRaces, " ");
+               }
+               iRace *= 2;
+            }
+
+            sprintf (cFind, "Race:%s", cRaces);
+            sprintf (cReplace, "Race:<c \"#FF4040\">%s</C>", cRaces);
+            CXStrReplace (&This->ItemInfo, cFind, cReplace);
+
+         } else {
+            const char * cCode = GetRaceThreeLetterCode (raceNum + 1);
+            sprintf (cFind, "%s ", cCode);
+            sprintf (cReplace, "<c \"#20FF20\">%s</C>", cFind);
+
+            if (!CXStrReplace (&This->ItemInfo, cFind, cReplace)) {
+               sprintf (cReplace, "Race:  <c \"#20FF20\">ALL</C>", cFind);
+               CXStrReplace (&This->ItemInfo, "Race:  ALL", cReplace);
+            }
+         }
+
+         // Highlight deity mismatch
+         if (Item->Diety != 0) {
+            int iDeityBit = 1 << (pChar->Deity - 200);
+            if (pChar->Deity < DEITY_Bertoxxulous || pChar->Deity > DEITY_Veeshan) {
+               iDeityBit = 0;                         // Agnostic shows as 396
+            }
+
+            char * cPlayerD = pEverQuest->GetDeityDesc (pChar->Deity);
+
+            strcpy (cFind, "Deity:");
+            strcpy (cReplace, "Deity:");
+
+			//Mahull Changes			
+			//bool bMatch = (Item->Diety & iDeityBit);  // Do we have required deity?
+			bool bMatch;
+			
+			if (Item->Diety & iDeityBit) {
+				bMatch = true;
+			}
+			else {
+				bMatch = false;
+			}
+
+            if (!bMatch) {
+               strcat (cReplace, "<c \"#FF4040\">");
+            }
+			
+
+            int iDeity = 1;
+            int iAdded = 0;
+            for (int i = 0; i < 16; i++) {
+               if (Item->Diety & iDeity) {
+                  const char * cDeity = pEverQuest->GetDeityDesc (i + 200);
+                  if (cDeity == NULL) {
+                     break;
+                  }
+
+                  if (strlen (cFind) > 6) {
+                     strcat (cReplace, ",");    // We comma seperate, for clarity
+                  }
+
+                  if (iAdded > 0 && iAdded % 5 == 0) {
+                     strcat (cFind, "<BR>");    // They force a new-line per 5
+                  }
+                  iAdded++;
+
+                  strcat (cFind, "  ");         // 2 spaces before each deity
+                  strcat (cReplace, " ");       // 1 space after our comma though
+
+                  if (strcmp (cDeity, cPlayerD) == 0) {     // Ours?
+                     strcat (cReplace, "<c \"#20FF20\">");  // Green it
+                  }
+
+                  strcat (cFind, cDeity);
+                  strcat (cReplace, cDeity);
+
+                  if (strcmp (cDeity, cPlayerD) == 0) {
+                     strcat (cReplace, "</C>");
+                  }
+               }
+               iDeity *= 2;
+            }
+
+            if (!bMatch) {
+               strcat (cReplace, "</C>");
+            }
+
+            CXStrReplace (&This->ItemInfo, cFind, cReplace);
+         }
+      }
+ 
       // Ziggy - Items showing their spell details:
       bNoSpellTramp=true;
       if (Item->Clicky.SpellID > 0 && Item->Clicky.SpellID != -1) {
@@ -280,22 +573,25 @@ public:
 	 }
 
 	 if (pSpell->TargetType != 0x06 && pSpell->TargetType != 0x0e && pSpell->TargetType != 0x03 && pSpell->TargetType != 0x28 && pSpell->TargetType != 0x29 ) {
-		switch(pSpell->Resist) {
-         case 7:   strcat(out, "Resist: Prismatic" ); break;      // ?? Ian
-			case 6:	strcat(out, "Resist: Chromatic" ); break;
-			case 5:	strcat(out, "Resist: Disease" ); break;
-			case 4:	strcat(out, "Resist: Poison" ); break;
-			case 3:	strcat(out, "Resist: Cold/Ice" ); break;
-			case 2:	strcat(out, "Resist: Fire" ); break;
-			case 1:	strcat(out, "Resist: Magic" ); break;
-         case 0:  strcat(out, "Resist: Unresistable"); break;
-		}
-		if (pSpell->ResistAdj != 0 ) {
-			sprintf(temp, "&nbsp;&nbsp;&nbsp;(Resist Adj.: %d)<br>", pSpell->ResistAdj );
-			strcat(out,temp);
-		}
-		else
-			strcat(out,"<br>");
+		   if (pSpell->SpellType == 0) {   // Ziggy: Only show resist type for detrimental spells
+          switch(pSpell->Resist) {
+             case 7: strcat(out, "Resist: Prismatic[Avg]" ); break; // Ziggy - Added Reminder which..
+             case 6: strcat(out, "Resist: Chromatic[Low]" ); break; // ..is what type of resist
+             case 5: strcat(out, "Resist: Disease" ); break;
+             case 4: strcat(out, "Resist: Poison" ); break;
+             case 3: strcat(out, "Resist: Cold/Ice" ); break;
+             case 2: strcat(out, "Resist: Fire" ); break;
+             case 1: strcat(out, "Resist: Magic" ); break;
+             case 0: strcat(out, "Resist: Unresistable"); break;
+          }
+
+          if (pSpell->ResistAdj != 0 ) {
+             sprintf(temp, "&nbsp;&nbsp;&nbsp;(Resist Adj.: %d)<br>", pSpell->ResistAdj );
+             strcat(out,temp);
+          } else {
+             strcat(out,"<br>");
+          }
+       } 
 	 }
 
 	 strcat(out, "<br>" );
@@ -304,15 +600,15 @@ public:
 	 //show usable classes routine by Koad//
      bool bUseableClasses = false; 
 	 strcat(out, "<br>" ); 
-     for (int j=0; j<16; j++) 
-     { 
-      if (pSpell->Level[j]>0 && pSpell->Level[j]<=70) 
-      { 
-       sprintf(temp,"%s(%d)&nbsp;&nbsp;&nbsp;&nbsp;", GetClassDesc(j+1), pSpell->Level[j]); 
-         strcat(out, temp); 
-      bUseableClasses = true; 
-      } 
-     } 
+    for (int j=0; j<16; j++) {  // Ziggy - output will word wrap properly now
+       if (pSpell->Level[j]>0 && pSpell->Level[j]<=70) {
+          if (bUseableClasses) strcat (out, ", ");
+
+          sprintf(temp,"%s(%d)", GetClassDesc(j+1), pSpell->Level[j]);
+          strcat(out, temp);
+          bUseableClasses = true;
+       }
+    } 
 	 if (bUseableClasses) strcat(out, "<br><br>" ); 
 
      if (pSpell->CastOnYou[0]) { 

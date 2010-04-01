@@ -61,6 +61,7 @@ typedef struct _SEARCHSPAWN {
     BOOL bTargNext;
     BOOL bTargPrev;
 	BOOL bGroup;
+	BOOL bRaid;
 	BOOL bGM;
 	BOOL bNamed;
 	BOOL bMerchant;

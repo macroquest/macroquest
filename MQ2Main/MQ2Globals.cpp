@@ -472,15 +472,6 @@ PCHAR szItemName[] = {
     NULL
 };
 
-PCHAR szTheme[] = { 
-   "Non-LDON",      //0 
-   "Deepest Guk",   //1 
-   "Miragul's",   //2 
-   "Mistmoore",   //3 
-   "Rujarkian",   //4 
-   "Takish",      //5 
-}; 
-
 PCHAR szDmgBonusType[] = { 
     "None", 
     "Magic", 

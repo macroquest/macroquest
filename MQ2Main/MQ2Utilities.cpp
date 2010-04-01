@@ -4130,6 +4130,20 @@ BOOL IsInGroup(PSPAWNINFO pSpawn)
 	return FALSE;
 }
 
+BOOL IsInRaid(PSPAWNINFO pSpawn)
+{
+   DWORD i;
+   if (pSpawn==GetCharInfo()->pSpawn)
+      return TRUE;
+   DWORD l = strlen(pSpawn->Name);
+   for (i=0;i<72;i++)
+   {
+      if (!strnicmp(pRaid->RaidMember[i].Name,pSpawn->Name,l+1) && pRaid->RaidMember[i].nClass == pSpawn->Class)
+         return TRUE;
+   }
+   return FALSE;
+} 
+
 BOOL IsNamed(PSPAWNINFO pSpawn)
 {
     CHAR szTemp[MAX_STRING]={0};
@@ -4483,6 +4497,8 @@ BOOL SpawnMatchesSearch(PSEARCHSPAWN pSearchSpawn, PSPAWNINFO pChar, PSPAWNINFO 
 		return FALSE;
 	if (pSearchSpawn->bGroup && !IsInGroup(pSpawn))
 		return FALSE;
+        if (pSearchSpawn->bRaid && !IsInRaid(pSpawn))
+                return FALSE;
 	if (pSearchSpawn->bKnownLocation) 
 	{
 		if ((pSearchSpawn->xLoc!=pSpawn->X || pSearchSpawn->yLoc!=pSpawn->Y))
@@ -4571,6 +4587,8 @@ PCHAR ParseSearchSpawnArgs(PCHAR szArg, PCHAR szRest, PSEARCHSPAWN pSearchSpawn)
             pSearchSpawn->bGM = TRUE;
         } else if (!stricmp(szArg,"group")) {
             pSearchSpawn->bGroup = TRUE;
+        } else if (!stricmp(szArg,"raid")) {
+            pSearchSpawn->bRaid = TRUE; 
         } else if (!stricmp(szArg,"noguild")) {
             pSearchSpawn->bNoGuild = TRUE;
         } else if (!stricmp(szArg,"trader")) {
@@ -5421,3 +5439,23 @@ bool GetBuffID(PSPELLBUFF pBuff, DWORD &nID)
 	}
 	return false;
 }
+
+
+#define IS_SET(flag, bit)   ((flag) & (bit))
+#define LDON_Non    0
+#define LDON_DG     1
+#define LDON_MIR    2
+#define LDON_MIS    4
+#define LDON_RUJ    8
+#define LDON_TAK    16
+
+PCHAR GetLDoNTheme(DWORD LDTheme)
+{
+   if (LDTheme == 31) return "All";
+   if (IS_SET(LDTheme, LDON_DG )) return "Deepest Guk";
+   if (IS_SET(LDTheme, LDON_MIR)) return "Miragul's";
+   if (IS_SET(LDTheme, LDON_MIS)) return "Mistmoore";
+   if (IS_SET(LDTheme, LDON_RUJ)) return "Rujarkian";
+   if (IS_SET(LDTheme, LDON_TAK)) return "Takish";
+   return "Unknown";
+} 

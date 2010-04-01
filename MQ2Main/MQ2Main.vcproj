@@ -48,7 +48,7 @@
 			<Tool
 				Name="VCLinkerTool"
 				AdditionalOptions="/OPT:NOICF"
-				AdditionalDependencies="wsock32.lib"
+				AdditionalDependencies="wsock32.lib winmm.lib"
 				OutputFile="$(OutDir)/MQ2Main.dll"
 				LinkIncremental="1"
 				SuppressStartupBanner="FALSE"

@@ -436,6 +436,7 @@ EQLIB_API void DisplayOverlayText(PCHAR szText, DWORD dwColor, DWORD dwTranspare
 
 EQLIB_API bool GetShortBuffID(PSPELLBUFF pBuff, DWORD &nID);
 EQLIB_API bool GetBuffID(PSPELLBUFF pBuff, DWORD &nID);
+EQLIB_API PCHAR GetLDoNTheme(DWORD LDTheme);
 
 /* MQ2DATAVARS */
 #ifndef ISXEQ
