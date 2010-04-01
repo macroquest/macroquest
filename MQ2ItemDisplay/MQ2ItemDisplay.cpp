@@ -18,6 +18,14 @@ void Comment(PSPAWNINFO pChar, PCHAR szLine);
 
 extern "C" {
 __declspec(dllexport) ITEMINFO g_Item;
+CONTENTS g_Contents;
+}
+
+BOOL dataLastItem(PCHAR szName, MQ2TYPEVAR &Ret)
+{
+        Ret.Ptr=&g_Contents;
+        Ret.Type=pItemType;
+        return true;
 }
 
 // *************************************************************************** 
@@ -783,12 +791,21 @@ void Comment(PSPAWNINFO pChar, PCHAR szLine)
       return; 
    } 
 } 
+
+void Ireset(PSPAWNINFO pChar, PCHAR szLine) 
+{
+    g_Item.ItemNumber = 0;
+}
  
 
 // Called once, when the plugin is to initialize
 PLUGIN_API VOID InitializePlugin(VOID)
 {
 	DebugSpewAlways("Initializing MQ2ItemDisplay");
+
+        memset(&g_Contents, 0, sizeof(g_Contents));
+        g_Contents.Item = &g_Item;
+        g_Item.ItemNumber = 0;
 
 	// Add commands, macro parameters, hooks, etc.
 
@@ -798,6 +815,8 @@ PLUGIN_API VOID InitializePlugin(VOID)
 	EzDetour(CXWnd__DrawTooltip,&XWndHook::DrawTooltip_Detour,&XWndHook::DrawTooltip_Trampoline);
 
 	AddCommand("/inote",Comment); 
+	AddCommand("/ireset",Ireset); 
+        AddMQ2Data("DisplayItem", dataLastItem);
 }
 
 // Called once, when the plugin is to shutdown
@@ -811,6 +830,8 @@ PLUGIN_API VOID ShutdownPlugin(VOID)
 	RemoveDetour(CInvSlotWnd__DrawTooltip);
 	RemoveDetour(CXWnd__DrawTooltip);
 
+        RemoveMQ2Data("DisplayItem");
+	RemoveCommand("/ireset"); 
 	RemoveCommand("/inote");
 }
 #endif

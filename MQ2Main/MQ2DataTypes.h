@@ -1261,6 +1261,13 @@ public:
 		StackCount=94,
 		FreeStack=95,
 		MerchQuantity=96,
+		Classes,
+		Class,
+		Races,
+		Race,
+                Deities,
+                Deity,
+                RequireLevel,
 
 	};
 	static enum ItemMethods
@@ -1364,6 +1371,13 @@ public:
 		TypeMember(StackCount);
 		TypeMember(FreeStack);
 		TypeMember(MerchQuantity);
+		TypeMember(Classes);
+		TypeMember(Class);
+		TypeMember(Races);
+		TypeMember(Race);
+		TypeMember(Deities);
+		TypeMember(Deity);
+		TypeMember(RequiredLevel);
 	}
 
 	~MQ2ItemType()

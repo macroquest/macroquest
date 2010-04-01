@@ -1,3 +1,15 @@
+31 Mar 2006 by dkaa
+- Added stuff to item type
+    Classes
+    Class
+    Races
+    Race
+    Deities
+    Deity
+    RequiredLevel
+- Added DisplayItem TLO as item type to mq2itemdisplay
+- Added /ireset to reset DisplayItem ID 
+
 29 Mar 2006 by dkaa
 - Fixed /sellitem
 

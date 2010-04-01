@@ -3049,6 +3049,7 @@ bool MQ2SpellType::GETMEMBER()
 
 bool MQ2ItemType::GETMEMBER()
 {
+    DWORD cmp;
 #define pItem ((PCONTENTS)VarPtr.Ptr)
 	if (!VarPtr.Ptr)
 		return false;
@@ -3218,7 +3219,7 @@ bool MQ2ItemType::GETMEMBER()
 				DWORD Count=GETNUMBER();
 				if (!Count)
 					return false;
-				DWORD cmp=pItem->Item->EquipSlots;
+				cmp=pItem->Item->EquipSlots;
 				for (DWORD N = 0 ; N < 32 ; N++)
 				{
 					if (cmp&(1<<N))
@@ -3250,7 +3251,7 @@ bool MQ2ItemType::GETMEMBER()
 		{
 			Dest.DWord=0;
 			// count bits
-			DWORD cmp=pItem->Item->EquipSlots;
+			cmp=pItem->Item->EquipSlots;
 			for (DWORD N = 0 ; N < 32 ; N++)
 			{
 				if (cmp&(1<<N))
@@ -3502,7 +3503,165 @@ bool MQ2ItemType::GETMEMBER()
             }
             return false;
 
-	}
+    case Classes:
+            Dest.DWord=0;
+            // count bits
+            cmp=pItem->Item->Classes;
+            for (DWORD N = 0 ; N < 16 ; N++)
+            {
+                if (cmp&(1<<N))
+                    Dest.DWord++;
+            }
+            Dest.Type=pIntType;
+            return true;
+    case Class:
+        if (ISINDEX())
+        {
+            if (ISNUMBER())
+            {
+                DWORD Count=GETNUMBER();
+                if (!Count)
+                    return false;
+                cmp=pItem->Item->Classes;
+                for (DWORD N = 0 ; N < 16 ; N++)
+                {
+                    if (cmp&(1<<N))
+                    {
+                        Count--;
+                        if (Count==0)
+                        {
+                            Dest.DWord=N+1;
+                            Dest.Type=pClassType;
+                            return true;
+                        }
+                    }
+                }
+            }
+            else
+            {
+                // by name
+                cmp=pItem->Item->Classes;
+                for (DWORD N = 0 ; N < 16 ; N++) {
+                    if (cmp&(1<<N)) {
+                        if (!stricmp(GETFIRST(), GetClassDesc(N+1)) ||
+                            !stricmp(GETFIRST(), pEverQuest->GetClassThreeLetterCode(N+1))) {
+                                Dest.DWord=N+1;
+                                Dest.Type=pClassType;
+                                return true;
+                        }
+                    }
+                }
+                return false;
+            }
+        }
+        return false;
+    case Races:
+            Dest.DWord=0;
+            // count bits
+            cmp=pItem->Item->Races;
+            for (DWORD N = 0 ; N < 15 ; N++)
+            {
+                if (cmp&(1<<N))
+                    Dest.DWord++;
+            }
+            Dest.Type=pIntType;
+            return true;
+    case Race:
+        if (ISINDEX())
+        {
+            if (ISNUMBER())
+            {
+                DWORD Count=GETNUMBER();
+                if (!Count)
+                    return false;
+                cmp=pItem->Item->Races;
+                for (DWORD N = 0 ; N < 15 ; N++)
+                {
+                    if (cmp&(1<<N))
+                    {
+                        Count--;
+                        if (Count==0)
+                        {
+                            Dest.DWord=N;
+                            Dest.Type=pClassType;
+                            return true;
+                        }
+                    }
+                }
+            }
+            else
+            {
+                // by name
+                cmp=pItem->Item->Races;
+                for (DWORD N = 0 ; N < 15 ; N++) {
+                    if (cmp&(1<<N)) {
+                        if (!stricmp(GETFIRST(), pEverQuest->GetRaceDesc(N))) {
+                                Dest.DWord=N;
+                                Dest.Type=pRaceType;
+                                return true;
+                        }
+                    }
+                }
+                return false;
+            }
+        }
+        return false;
+    case Deities:
+            Dest.DWord=0;
+            // count bits
+            cmp=pItem->Item->Diety;
+            for (DWORD N = 0 ; N < 15 ; N++)
+            {
+                if (cmp&(1<<N))
+                    Dest.DWord++;
+            }
+            Dest.Type=pIntType;
+            return true;
+    case Deity:
+        if (ISINDEX())
+        {
+            if (ISNUMBER())
+            {
+                DWORD Count=GETNUMBER();
+                if (!Count)
+                    return false;
+                cmp=pItem->Item->Diety;
+                for (DWORD N = 0 ; N < 15 ; N++)
+                {
+                    if (cmp&(1<<N))
+                    {
+                        Count--;
+                        if (Count==0)
+                        {
+                            Dest.DWord=N+200;
+                            Dest.Type=pDeityType;
+                            return true;
+                        }
+                    }
+                }
+            }
+            else
+            {
+                // by name
+                cmp=pItem->Item->Diety;
+                for (DWORD N = 0 ; N < 16 ; N++) {
+                    if (cmp&(1<<N)) {
+                        if (!stricmp(GETFIRST(), pEverQuest->GetDeityDesc(N+200))) {
+                            Dest.DWord=N+200;
+                            Dest.Type=pDeityType;
+                            return true;
+                        }
+                    }
+                }
+                return false;
+            }
+        }
+        return false;
+    case RequiredLevel:
+        Dest.DWord=pItem->Item->RequiredLevel;
+        Dest.Type=pIntType;
+        return true;
+    }
     return false;
 #undef pItem
 }
