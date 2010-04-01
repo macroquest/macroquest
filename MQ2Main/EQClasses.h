@@ -5819,7 +5819,7 @@ EQLIB_OBJECT static void __cdecl EQPlayer::UpdateAllPlayersVisibility(void);
 EQLIB_OBJECT struct T3D_DAG * EQPlayer::GetBonePointerByITS(int,int);
 EQLIB_OBJECT struct T3D_POINTLIGHT * EQPlayer::CreateUserLight(struct T3D_LIGHTDEFINITION *,int);
 EQLIB_OBJECT unsigned char EQPlayer::DoTeleport(char *,int);
-//EQLIB_OBJECT unsigned char EQPlayer::DoTeleportB(int,float,float,float,float,char *,enum ZONE_REQ_REASON);
+EQLIB_OBJECT unsigned char EQPlayer::DoTeleportB(int,char*,int,int,float,float,float,int);
 EQLIB_OBJECT unsigned char EQPlayer::GetBaseFaceNbr(int,unsigned char *);
 EQLIB_OBJECT unsigned char EQPlayer::GetNearestActorTag(char *,void *);
 EQLIB_OBJECT unsigned char EQPlayer::HandleAmmo(void);

@@ -1,3 +1,11 @@
+22 November 2005 by rswiders
+- Added Item.ItemDelay
+- Config files can contain comment lines. Use ";" as the first character on the line to make it a comment.
+- Updated resistadj location in _SPELL struct
+
+18 November 2005 by rswiders
+- Fixed resists bug
+
 18 November 2005 by dkaa
 - Added TLOs DoorTarget and ItemTarget
 

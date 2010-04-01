@@ -3355,6 +3355,10 @@ bool MQ2ItemType::GETMEMBER()
                 Dest.Type=pIntType;
                 return true;
         }
+	case ItemDelay:
+		Dest.DWord=pItem->Item->Delay;
+		Dest.Type=pIntType;
+		return true;
     }
     return false;
 #undef pItem

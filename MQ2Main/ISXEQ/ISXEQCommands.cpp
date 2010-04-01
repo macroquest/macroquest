@@ -497,8 +497,6 @@ int CMD_Where(int argc, char* argv[])
 int CMD_CastSpell(int argc, char* argv[]) 
 { 
    DWORD Index; 
-   CHAR szBuffer[MAX_STRING] = {0}; 
-
    if (gGameState!=GAMESTATE_INGAME) 
       return -1; 
 
@@ -533,11 +531,10 @@ int CMD_CastSpell(int argc, char* argv[])
       WriteChatColor("Spells:",USERCOLOR_DEFAULT); 
       for (Index=0;Index<9;Index++) { 
          if (GetCharInfo2()->MemorizedSpells[Index]==0xFFFFFFFF) { 
-            sprintf(szBuffer,"%d. <Empty>",Index+1); 
+            WriteChatf("%d. <Empty>",Index+1); 
          } else { 
-            sprintf(szBuffer,"%d. %s",Index+1,GetSpellByID(GetCharInfo2()->MemorizedSpells[Index])); 
+            WriteChatf("%d. %s",Index+1,GetSpellByID(GetCharInfo2()->MemorizedSpells[Index])); 
          } 
-         WriteChatColor(szBuffer,USERCOLOR_DEFAULT); 
       } 
       return 0; 
    } 
@@ -547,8 +544,6 @@ int CMD_CastSpell(int argc, char* argv[])
    //   DebugSpew("Cast: szArg1 = %s szArg2 = %s",szArg1,szArg2); 
    if (!stricmp(argv[1],"item")) 
    { 
-      CHAR szItemToCast[8192]; 
-      pISInterface->GetArgs(2,argc,argv,szItemToCast); 
       BOOL FOUND = FALSE; 
       DWORD item = 0; 
       DWORD slot = 0; 
@@ -556,7 +551,7 @@ int CMD_CastSpell(int argc, char* argv[])
       SpawnFooter = (DWORD)pLocalPlayer; 
       for (int i=0;i<30;i++) { 
          if (GetCharInfo2()->InventoryArray[i]) 
-            if (!_stricmp(szItemToCast,GetCharInfo2()->InventoryArray[i]->Item->Name)) { 
+            if (!_stricmp(argv[2],GetCharInfo2()->InventoryArray[i]->Item->Name)) { 
                DebugSpew("cast test slot %d = %s address is %x",i,GetCharInfo2()->InventoryArray[i]->Item->Name,&(GetCharInfo2()->InventoryArray[i])); 
                item = (DWORD)&GetCharInfo2()->InventoryArray[i]; 
                slot = (DWORD)i; 
@@ -569,14 +564,15 @@ int CMD_CastSpell(int argc, char* argv[])
          return 0; 
       } 
    } 
-   pISInterface->GetArgs(1,argc,argv,szBuffer); 
-   //GetArg(szBuffer,szLine,1); 
    for (Index=0;Index<9;Index++) { 
       if (GetCharInfo2()->MemorizedSpells[Index]!=0xFFFFFFFF) { 
          PCHAR SpellName = GetSpellNameByID(GetCharInfo2()->MemorizedSpells[Index]); 
-         if (!stricmp(szBuffer,SpellName)) { 
+         if (!stricmp(argv[1],SpellName)) { 
             DebugSpew("SpellName = %s",SpellName); 
+
+			char szBuffer[256];
             cmdCast((PSPAWNINFO)pLocalPlayer,itoa(Index+1,szBuffer,10)); 
+
             DebugSpew("pChar = %x SpellName = %s %d",pCharInfo,SpellName,Index+1); 
             return 0; 
          } 
@@ -602,17 +598,12 @@ int CMD_MemSpell(int argc, char *argv[])
    }
     if (!ppSpellBookWnd) return -1;
     DWORD Favorite = (DWORD)&MemSpellFavorite;
-   CHAR szGem[MAX_STRING] = {0};
     DWORD sp;
    WORD Gem = -1;
-   CHAR SpellName[MAX_STRING] = {0};
    PCHARINFO pCharInfo = NULL;
     if (!pSpellBookWnd) return -1;
    if (NULL == (pCharInfo = GetCharInfo())) return -1;
 
-//   GetArg(szGem,szLine,1);
-//   GetArg(SpellName,szLine,2);
-   pISInterface->GetArgs(2,argc,argv,SpellName);
    Gem = atoi(argv[1]);
    if (Gem<1 || Gem>9) return -1;
    Gem--;
@@ -622,7 +613,7 @@ int CMD_MemSpell(int argc, char *argv[])
    for (DWORD N = 0 ; N < NUM_BOOK_SLOTS ; N++)
    if (PSPELL pTempSpell=GetSpellByID(GetCharInfo2()->SpellBook[N]))
    {
-      if (!stricmp(SpellName,pTempSpell->Name))
+      if (!stricmp(argv[2],pTempSpell->Name))
       {
          pSpell=pTempSpell;
          break;
@@ -647,6 +638,77 @@ int CMD_MemSpell(int argc, char *argv[])
 //              Does (or lists) your abilities 
 // Usage:       /doability [list|ability|#] 
 // *************************************************************************** 
+int CMD_DoAbility(int argc, char *argv[])
+{
+	if (argc<2)
+	{
+		printf("Syntax: %s list|<ability>",argv[0]);
+		return 0;
+	}
+
+    DWORD Index, DoIndex = 0xFFFFFFFF;
+
+    if (!stricmp(argv[1],"list") || !stricmp(argv[1], "-list")) 
+	{
+        WriteChatColor("Abilities:",USERCOLOR_DEFAULT);
+        for (Index=4;Index<10;Index++) {
+            if (EQADDR_DOABILITYLIST[Index]==0xFFFFFFFF)
+			{
+                WriteChatf("%d. <Empty>",Index-3);
+            } 
+			else if (szSkills[EQADDR_DOABILITYLIST[Index]]) 
+			{
+                WriteChatf("%d. %s",Index-3,szSkills[EQADDR_DOABILITYLIST[Index]]);
+            } 
+			else 
+			{
+                WriteChatf("%d. *Unknown%d",Index-3,EQADDR_DOABILITYLIST[Index]);
+            }
+        }
+        WriteChatColor("Combat Skills:");
+        for (Index=0;Index<4;Index++) 
+		{
+            if (EQADDR_DOABILITYLIST[Index]==0xFFFFFFFF) 
+			{
+                WriteChatf("%d. <Empty>",Index+7);
+            } 
+			else if (szSkills[EQADDR_DOABILITYLIST[Index]]) 
+			{
+                WriteChatf("%d. %s",Index+7,szSkills[EQADDR_DOABILITYLIST[Index]]);
+            } 
+			else 
+			{
+                WriteChatf("%d. *Unknown%d",Index+7,EQADDR_DOABILITYLIST[Index]);
+            }
+        }
+        WriteChatColor("Combat Abiilities:",USERCOLOR_DEFAULT);
+        for (Index=10;Index<18;Index++) 
+		{
+            if (EQADDR_DOABILITYLIST[Index]==0xFFFFFFFF) 
+			{
+                WriteChatf("%d. <Empty>",Index+1);
+			} 
+			else if (EQADDR_DOABILITYLIST[Index] > 132) 
+			{ // highest number we have defined so far
+				WriteChatf("%d. *Unknown%d",Index+1,EQADDR_DOABILITYLIST[Index]);
+			} 
+			else if (szSkills[EQADDR_DOABILITYLIST[Index]]) 
+			{
+				WriteChatf("%d. %s",Index+1,szSkills[EQADDR_DOABILITYLIST[Index]]);
+			} 
+			else 
+			{
+				WriteChatf("%d. *Unknown%d",Index+1,EQADDR_DOABILITYLIST[Index]);
+			}
+        }
+        return 0;
+    }
+
+   UseAbility(argv[1]);
+
+   return 0;
+}
+/*
 int CMD_DoAbility(int argc, char *argv[]) 
 { 
    if (!cmdDoAbility) 
@@ -727,7 +789,7 @@ int CMD_DoAbility(int argc, char *argv[])
     } 
    return 0; 
 } 
-
+/**/
 
 // CMD_EQModKey
 int CMD_EQModKey(int argc, char *argv[])

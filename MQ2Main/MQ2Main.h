@@ -392,10 +392,11 @@ LEGACY_API PSTR GetArg(PSTR szDest, PCSTR szSrc, DWORD dwNumber, BOOL LeaveQuote
 LEGACY_API VOID AddCustomEvent(PEVENTLIST pEList, PCHAR szLine);
 EQLIB_API FLOAT DistanceToSpawn(PSPAWNINFO pChar, PSPAWNINFO pSpawn);
 EQLIB_API PCHAR GetEQPath(PCHAR szBuffer);
-#ifndef ISXEQ
+
 #define DoCommand(pspawninfo,commandtoexecute) HideDoCommand(pspawninfo,commandtoexecute,FromPlugin)
 LEGACY_API VOID HideDoCommand(PSPAWNINFO pChar, PCHAR szLine, BOOL delayed);
-#endif
+#define EzCommand(commandtoexecute) DoCommand((PSPAWNINFO)pLocalPlayer,commandtoexecute)
+
 EQLIB_API VOID AppendCXStr(PCXSTR *cxstr, PCHAR text); 
 EQLIB_API VOID SetCXStr(PCXSTR *cxstr, PCHAR text); 
 EQLIB_API DWORD GetCXStr(PCXSTR pCXStr, PCHAR szBuffer, DWORD maxlen=MAX_STRING);
@@ -561,7 +562,7 @@ EQLIB_API DWORD		  GetAAIndexByID		  (DWORD ID);
 // Functions that were built into commands and people used DoCommand to execute                  //
 
 EQLIB_API void AttackRanged(EQPlayer *pRangedTarget=pTarget);
-
+EQLIB_API VOID UseAbility(char *sAbility);
 //                                                                                               //
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 

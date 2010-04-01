@@ -1248,6 +1248,7 @@ public:
 		Tribute=87,
 		Attuneable=88,
 		Timer=89,
+		ItemDelay=90,
 	};
 	static enum ItemMethods
 	{
@@ -1343,6 +1344,7 @@ public:
 		TypeMember(Tribute);
 		TypeMember(Attuneable);
 		TypeMember(Timer);//89,
+		TypeMember(ItemDelay);
 	}
 
 	~MQ2ItemType()

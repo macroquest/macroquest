@@ -1,3 +1,10 @@
+28 November 2005 by Lax
+- Added Red-One's changes... sort of.
+- Cleaned up a bunch of random useless and redundant stack usage in ISXEQCommands,
+  most of which involved usage of GetArgs
+- DoCommand and HideDoCommand (which nobody should have been calling in MQ2 plugins,
+  which is what the "Hide" is for) are implemented
+
 16 November 2005 by Lax
 - Fixed compile errors
 - ISXEQLegacy is now available to natively run legacy MQ2 "macros"

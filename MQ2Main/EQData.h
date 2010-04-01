@@ -683,21 +683,21 @@ typedef struct _CHARINFO {
 /* 0xc29c */   DWORD      HPBonus;
 /* 0xc2a0 */   DWORD      ManaBonus;
 /* 0xc2a4 */   DWORD      EnduranceBonus;
-/* 0xc2a8 */   DWORD      CombatEffectsBonus; //15
-/* 0xc2ac */   DWORD      ShieldingBonus; //11
-/* 0xc2b0 */   DWORD      SpellShieldBonus; //10
-/* 0xc2b4 */   DWORD      AvoidanceBonus; //15
-/* 0xc2b8 */   DWORD      AccuracyBonus; //0
-/* 0xc2bc */   DWORD      StunResistBonus; //8
-/* 0xc2c0 */   DWORD      StrikeThroughBonus; //0
+/* 0xc2a8 */   DWORD      CombatEffectsBonus;
+/* 0xc2ac */   DWORD      ShieldingBonus;
+/* 0xc2b0 */   DWORD      SpellShieldBonus;
+/* 0xc2b4 */   DWORD      AvoidanceBonus;
+/* 0xc2b8 */   DWORD      AccuracyBonus;
+/* 0xc2bc */   DWORD      StunResistBonus;
+/* 0xc2c0 */   DWORD      StrikeThroughBonus;
 /* 0xc2c4 */   DWORD      SkillMinDamageModBonus[0x9];
 /* 0xc2e8 */   DWORD      Unknown0xc2e8;
-/* 0xc2ec */   DWORD      DoTShieldBonus;// 8
-/* 0xc2f0 */   DWORD      AttackBonus; //30 
-/* 0xc2f4 */   DWORD      HPRegenBonus; //23
-/* 0xc2f8 */   DWORD      ManaRegenBonus; //32
+/* 0xc2ec */   DWORD      DoTShieldBonus;
+/* 0xc2f0 */   DWORD      AttackBonus;
+/* 0xc2f4 */   DWORD      HPRegenBonus;
+/* 0xc2f8 */   DWORD      ManaRegenBonus;
 /* 0xc2fc */   DWORD      Unknown0xc2fc;
-/* 0xc300 */   DWORD      DamageShieldBonus; //4
+/* 0xc300 */   DWORD      DamageShieldBonus;
 /* 0xc304 */   DWORD      AttackSpeed;
 /* 0xc308 */   DWORD      Unknown0xc308;
 /* 0xc30c */   BYTE       Unknown0xc30c[0x1c];
@@ -729,12 +729,12 @@ typedef struct _CHARINFO {
 /* 0xc4b0 */   DWORD      INT;
 /* 0xc4b4 */   DWORD      AGI;
 /* 0xc4b8 */   DWORD      WIS;
-/* 0xc4bc */   DWORD      AC;
+/* 0xc4bc */   DWORD      SavePoison;
 /* 0xc4c0 */   DWORD      SaveMagic;
-/* 0xc4c4 */   DWORD      SaveCold;
+/* 0xc4c4 */   DWORD      SaveDisease;
 /* 0xc4c8 */   DWORD      SaveFire;
-/* 0xc4cc */   DWORD      SavePoison;
-/* 0xc4d0 */   DWORD      SaveDisease;
+/* 0xc4cc */   DWORD      SaveCold;
+/* 0xc4d0 */   DWORD      Unknown0xc4d0;
 /* 0xc4d4 */
 } CHARINFO, *PCHARINFO;
 
@@ -1336,8 +1336,8 @@ typedef struct _SPELL {
 /*0x240*/   DWORD   Unknown0x240;
 /*0x244*/   DWORD   Unknown130;
 /*0x248*/   DWORD   Unknown0x248;
-/*0x24c*/   DWORD   SpellIcon;
-/*0x250*/   DWORD   ResistAdj;
+/*0x24c*/   DWORD   ResistAdj;
+/*0x250*/   DWORD   Unknown0x250;
 /*0x254*/   BYTE    Unknown0x254[0x18];
 /*0x26c*/
 } SPELL, *PSPELL;

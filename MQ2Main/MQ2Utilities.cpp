@@ -2948,7 +2948,7 @@ havecfgfile:
 	while(fgets(szBuffer,MAX_STRING,file))
 	{
 		PCHAR Cmd=strtok(szBuffer,"\r\n");
-		if (Cmd && Cmd[0])
+		if (Cmd && Cmd[0] && Cmd[0]!=';')
 		{
 			HideDoCommand(((PSPAWNINFO)pLocalPlayer),Cmd,Delayed);
 		}
@@ -5537,6 +5537,65 @@ void AttackRanged(EQPlayer *pRangedTarget)
 		pLocalPlayer->DoAttack(0x0B,0,pRangedTarget);
 		gbRangedAttackReady=0;
 	}
+}
+
+void UseAbility(char *sAbility) {
+   
+   CHAR szBuffer[MAX_STRING] = {0};
+   sprintf(szBuffer, "%s",sAbility);
+
+   if (!cmdDoAbility)
+    {
+      PCMDLIST pCmdListOrig = (PCMDLIST)EQADDR_CMDLIST;
+      for (int i=0;pCmdListOrig[i].fAddress != 0;i++) {
+         if (!strcmp(pCmdListOrig[i].szName,"/doability")) {
+            cmdDoAbility = (fEQCommand)pCmdListOrig[i].fAddress;
+         }
+      }
+    }
+    if (!cmdDoAbility) return;
+   
+   //if (argc<2 || atoi(argv[1]) || !EQADDR_DOABILITYLIST) {
+   if (atoi(szBuffer) || !EQADDR_DOABILITYLIST) {
+        cmdDoAbility((PSPAWNINFO)pLocalPlayer,szBuffer);
+        return;
+    }
+   
+   DWORD Index, DoIndex = 0xFFFFFFFF;
+   PSPAWNINFO pChar =(PSPAWNINFO)pCharSpawn;
+
+    for (Index=0;Index<10;Index++) {
+        if (EQADDR_DOABILITYLIST[Index]!= 0xFFFFFFFF) {
+            if (!strnicmp(szBuffer,szSkills[EQADDR_DOABILITYLIST[Index]],strlen(szSkills[EQADDR_DOABILITYLIST[Index]]))) {
+                if (Index<4) {
+                    DoIndex = Index+7; // 0-3 = Combat abilities (7-10)
+                } else {
+                    DoIndex = Index-3; // 4-9 = Abilities (1-6)
+                }
+         }
+        }
+    }
+   
+    if (DoIndex!=0xFFFFFFFF) {
+      cmdDoAbility(pChar,itoa(DoIndex,szBuffer,10));
+    } else {
+      PSPELL pCA = NULL;
+        for (Index=0;Index<NUM_COMBAT_ABILITIES;Index++) {
+         
+         if (GetCharInfo2()->CombatAbilities[Index]) {
+         
+            pCA = GetSpellByID(GetCharInfo2()->CombatAbilities[Index]);
+         if (!stricmp(pCA->Name, szBuffer)) {
+               //We got the cookie, let's try and do it 
+               pCharData->DoCombatAbility(pCA->ID);
+               break;
+            }
+         }
+        }
+      if (Index >= NUM_COMBAT_ABILITIES)
+         WriteChatColor("You do not seem to have that ability available",USERCOLOR_DEFAULT);
+    }
+   return;
 }
 
 //                                                                                               //
