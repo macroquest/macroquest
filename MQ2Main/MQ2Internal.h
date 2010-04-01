@@ -35,7 +35,8 @@ enum eSpawnType
 	TIMER,
 	UNTARGETABLE,
 	CHEST,
-	ITEM
+	ITEM,
+	AURA
 };
 
 typedef struct _SEARCHSPAWN {
@@ -71,6 +72,7 @@ typedef struct _SEARCHSPAWN {
 	BOOL bHealer;
 	BOOL bDps;
 	BOOL bSlower;
+	BOOL bAura;
     DWORD NotID;
     DWORD NotNearAlertList;
     DWORD NearAlertList;

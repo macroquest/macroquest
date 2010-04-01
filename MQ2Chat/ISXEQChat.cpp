@@ -33,9 +33,9 @@ HISXSERVICE hEQSpawnService=0;
 HISXSERVICE hEQZoneService=0;
 
 // Forward declarations of callbacks
-//void __cdecl PulseService(bool Broadcast, unsigned long MSG, void *lpData);
-//void __cdecl MemoryService(bool Broadcast, unsigned long MSG, void *lpData);
-void __cdecl ServicesService(bool Broadcast, unsigned long MSG, void *lpData);
+//void __cdecl PulseService(bool Broadcast, unsigned int MSG, void *lpData);
+//void __cdecl MemoryService(bool Broadcast, unsigned int MSG, void *lpData);
+void __cdecl ServicesService(bool Broadcast, unsigned int MSG, void *lpData);
 
 
 // Initialize is called by Inner Space when the extension should initialize.
@@ -177,7 +177,7 @@ void ISXEQChat::LoadSettings()
 
 
 
-void __cdecl EQChatService(bool Broadcast, unsigned long MSG, void *lpData)
+void __cdecl EQChatService(bool Broadcast, unsigned int MSG, void *lpData)
 {
 #define pChat ((_EQChat*)lpData)
 	switch(MSG)
@@ -205,7 +205,7 @@ void __cdecl EQChatService(bool Broadcast, unsigned long MSG, void *lpData)
 }
 
 // This uses the Services service to connect to ISXEQ services
-void __cdecl ServicesService(bool Broadcast, unsigned long MSG, void *lpData)
+void __cdecl ServicesService(bool Broadcast, unsigned int MSG, void *lpData)
 {
 #define Name ((char*)lpData)
 	switch(MSG)

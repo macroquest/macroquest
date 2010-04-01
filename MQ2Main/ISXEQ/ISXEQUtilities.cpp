@@ -89,6 +89,8 @@ unsigned long ParseSearchSpawnArg(int arg, int argc, char *argv[], SEARCHSPAWN &
 			SearchSpawn.bDps = TRUE;
 		} else if (!stricmp(argv[arg],"slower")) {
 			SearchSpawn.bSlower = TRUE;
+                } else if (!stricmp(argv[arg],"los")) { 
+                        SearchSpawn.bLoS = TRUE; 
         } else if (!stricmp(argv[arg],"range")) {
 			if (arg+2<argc)
 			{

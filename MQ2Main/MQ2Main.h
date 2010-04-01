@@ -331,7 +331,7 @@ LEGACY_API VOID Echo									(PSPAWNINFO,PCHAR);
 
 /* MACRO PARSING */
 #ifdef USEBLECHEVENTS
-void __stdcall EventBlechCallback(unsigned long ID, void * pData, PBLECHVALUE pValues);
+void __stdcall EventBlechCallback(unsigned int ID, void * pData, PBLECHVALUE pValues);
 #endif
 #define PMP_ERROR_BADPARM 10000
 LEGACY_API PCHAR ParseMacroParameter(PSPAWNINFO pChar, PCHAR szOriginal);

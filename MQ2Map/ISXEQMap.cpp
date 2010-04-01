@@ -36,9 +36,9 @@ HISXSERVICE hEQSpawnService=0;
 //HISXSERVICE hEQZoneService=0;
 
 // Forward declarations of callbacks
-void __cdecl PulseService(bool Broadcast, unsigned long MSG, void *lpData);
-void __cdecl MemoryService(bool Broadcast, unsigned long MSG, void *lpData);
-void __cdecl ServicesService(bool Broadcast, unsigned long MSG, void *lpData);
+void __cdecl PulseService(bool Broadcast, unsigned int MSG, void *lpData);
+void __cdecl MemoryService(bool Broadcast, unsigned int MSG, void *lpData);
+void __cdecl ServicesService(bool Broadcast, unsigned int MSG, void *lpData);
 
 extern VOID CMyMapViewWnd__PostDraw();
 extern VOID CMyMapViewWnd__HandleRButtonDown(DWORD point, DWORD unknown);
@@ -118,7 +118,7 @@ bool ISXEQMap::Initialize(ISInterface *p_ISInterface)
 	pISInterface->OpenSettings("ISXEQMap.XML");
 
 	bmMapRefresh=AddMQ2Benchmark("Map Refresh");
-	unsigned long i;
+	unsigned int i;
 	CHAR szBuffer[MAX_STRING]={0};
     for (i=0;MapFilterOptions[i].szName;i++) {
         sprintf(szBuffer,"%s Color",MapFilterOptions[i].szName);
@@ -297,7 +297,7 @@ void ISXEQMap::UnRegisterServices()
 //		pISInterface->ShutdownService(this,hISXEQMapService);
 }
 
-void __cdecl PulseService(bool Broadcast, unsigned long MSG, void *lpData)
+void __cdecl PulseService(bool Broadcast, unsigned int MSG, void *lpData)
 {
 	if (MSG==PULSE_PULSE)
 	{
@@ -305,13 +305,13 @@ void __cdecl PulseService(bool Broadcast, unsigned long MSG, void *lpData)
 	}
 }
 
-void __cdecl MemoryService(bool Broadcast, unsigned long MSG, void *lpData)
+void __cdecl MemoryService(bool Broadcast, unsigned int MSG, void *lpData)
 {
 	// no messages are currently associated with this service (other than
 	// system messages such as client disconnect), so do nothing.
 }
 
-void __cdecl EQUIService(bool Broadcast, unsigned long MSG, void *lpData)
+void __cdecl EQUIService(bool Broadcast, unsigned int MSG, void *lpData)
 {
 	switch(MSG)
 	{
@@ -321,9 +321,9 @@ void __cdecl EQUIService(bool Broadcast, unsigned long MSG, void *lpData)
 		break;
 	}
 }
-void __cdecl EQGamestateService(bool Broadcast, unsigned long MSG, void *lpData)
+void __cdecl EQGamestateService(bool Broadcast, unsigned int MSG, void *lpData)
 {
-#define GameState ((unsigned long)lpData)
+#define GameState ((unsigned int)lpData)
 	if (MSG==GAMESTATESERVICE_CHANGED)
 	{
 		if (GameState==3)
@@ -333,7 +333,7 @@ void __cdecl EQGamestateService(bool Broadcast, unsigned long MSG, void *lpData)
 	}
 #undef GameState
 }
-void __cdecl EQSpawnService(bool Broadcast, unsigned long MSG, void *lpData)
+void __cdecl EQSpawnService(bool Broadcast, unsigned int MSG, void *lpData)
 {
 	switch(MSG)
 	{
@@ -367,7 +367,7 @@ void __cdecl EQSpawnService(bool Broadcast, unsigned long MSG, void *lpData)
 }
 
 /*
-void __cdecl EQZoneService(bool Broadcast, unsigned long MSG, void *lpData)
+void __cdecl EQZoneService(bool Broadcast, unsigned int MSG, void *lpData)
 {
 	switch(MSG)
 	{
@@ -380,7 +380,7 @@ void __cdecl EQZoneService(bool Broadcast, unsigned long MSG, void *lpData)
 	}
 }/**/
 
-void __cdecl ServicesService(bool Broadcast, unsigned long MSG, void *lpData)
+void __cdecl ServicesService(bool Broadcast, unsigned int MSG, void *lpData)
 {
 #define Name ((char*)lpData)
 	switch(MSG)

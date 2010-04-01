@@ -119,6 +119,12 @@
 #define instTributeActive                                          0x8B3EF5
 #define pinstViewActor                                             0x8B4850
 #define pinstWorldData                                             0x966150
+#define pinstDZMember                                              0x9839E0
+#define pinstDZTimerInfo                                           0x9839E4
+#define pinstTaskMember                                            0x8B3EB4
+#define instExpeditionLeader                                       0x98391A
+#define instExpeditionName                                         0x98395A
+#define pinstDynamicZone                                           0x9838D0
 
 
 ////

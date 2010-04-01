@@ -21,7 +21,7 @@
 class EQProtected
 {
 public:
-   EQProtected(unsigned long p_Address, unsigned long p_Size)
+   EQProtected(unsigned int p_Address, unsigned int p_Size)
    {
       Address=p_Address;
       Size=p_Size;
@@ -34,13 +34,13 @@ public:
       free(Array);
    }
 
-   inline bool Contains(unsigned long TestAddress)
+   inline bool Contains(unsigned int TestAddress)
    {
       return (TestAddress>=Address && TestAddress<Address+Size);
    }
    
-   unsigned long Address;
-   unsigned long Size;
+   unsigned int Address;
+   unsigned int Size;
    unsigned char *Array;
 }; 
 
@@ -68,9 +68,9 @@ public:
 	void UnRegisterTopLevelObjects();
 	void UnRegisterServices();
 
-   inline unsigned char FindByte(unsigned long Address, unsigned char Default)
+   inline unsigned char FindByte(unsigned int Address, unsigned char Default)
    {
-      for (unsigned long i = 0 ; i < ProtectedList.Size ; i++)
+      for (unsigned int i = 0 ; i < ProtectedList.Size ; i++)
       if (EQProtected *pProtected=ProtectedList[i])
       {
          if (pProtected->Contains(Address))
@@ -81,8 +81,8 @@ public:
       return Default;
    } 
 	 VOID HookMemChecker(BOOL Patch); 
-	bool Protect(unsigned long Address, unsigned long Size); 
-	 bool UnProtect(unsigned long Address); 
+	bool Protect(unsigned int Address, unsigned int Size); 
+	 bool UnProtect(unsigned int Address); 
 	CIndex<EQProtected*> ProtectedList; 
 };
 
@@ -100,11 +100,11 @@ extern HISXSERVICE hUIService;
 extern HISXSERVICE hGamestateService;
 extern HISXSERVICE hSpawnService;
 extern HISXSERVICE hZoneService;
-#define EzDetour(Address, Detour, Trampoline) IS_Detour(pExtension,pISInterface,hMemoryService,(unsigned long)Address,Detour,Trampoline)
-#define EzUnDetour(Address) IS_UnDetour(pExtension,pISInterface,hMemoryService,(unsigned long)Address)
+#define EzDetour(Address, Detour, Trampoline) IS_Detour(pExtension,pISInterface,hMemoryService,(unsigned int)Address,Detour,Trampoline)
+#define EzUnDetour(Address) IS_UnDetour(pExtension,pISInterface,hMemoryService,(unsigned int)Address)
 
-#define EzModify(Address,NewData,Length) Memory_Modify(pExtension,pISInterface,hMemoryService,(unsigned long)Address,NewData,Length,false)
-#define EzUnModify(Address) Memory_UnModify(pExtension,pISInterface,hMemoryService,(unsigned long)Address)
+#define EzModify(Address,NewData,Length) Memory_Modify(pExtension,pISInterface,hMemoryService,(unsigned int)Address,NewData,Length,false)
+#define EzUnModify(Address) Memory_UnModify(pExtension,pISInterface,hMemoryService,(unsigned int)Address)
 
 #define EzHttpRequest(_URL_,_pData_) IS_HttpRequest(pExtension,pISInterface,hHTTPService,_URL_,_pData_)
 

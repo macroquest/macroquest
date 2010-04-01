@@ -76,6 +76,15 @@ public:
 			else
 				DebugSpew("InputBox message %Xh, value: %Xh",Message,unknown);
 		}
+		else if (pWnd==(CXWnd*)OutputBox)
+		{
+			if (Message==XWM_NEWVALUE)
+			{
+				SaveChatToXML((PCSIDLWND)MQChatWnd);
+			}
+			else
+				DebugSpew("OutputBox message %Xh, value: %Xh", Message, unknown);
+		}
 		else if (pWnd==0)
 		{
 			if (Message==XWM_CLOSE)
@@ -120,10 +129,10 @@ HISXSERVICE hEQSpawnService=0;
 HISXSERVICE hEQZoneService=0;
 
 // Forward declarations of callbacks
-void __cdecl PulseService(bool Broadcast, unsigned long MSG, void *lpData);
-void __cdecl MemoryService(bool Broadcast, unsigned long MSG, void *lpData);
-void __cdecl ServicesService(bool Broadcast, unsigned long MSG, void *lpData);
-void __cdecl ConsoleService(bool Broadcast, unsigned long MSG, void *lpData);
+void __cdecl PulseService(bool Broadcast, unsigned int MSG, void *lpData);
+void __cdecl MemoryService(bool Broadcast, unsigned int MSG, void *lpData);
+void __cdecl ServicesService(bool Broadcast, unsigned int MSG, void *lpData);
+void __cdecl ConsoleService(bool Broadcast, unsigned int MSG, void *lpData);
 
 // Initialize is called by Inner Space when the extension should initialize.
 bool ISXEQChatWnd::Initialize(ISInterface *p_ISInterface)
@@ -296,7 +305,7 @@ void ISXEQChatWnd::LoadSettings()
 }
 
 
-void __cdecl PulseService(bool Broadcast, unsigned long MSG, void *lpData)
+void __cdecl PulseService(bool Broadcast, unsigned int MSG, void *lpData)
 {
 	if (MSG==PULSE_PULSE)
 	{
@@ -335,13 +344,13 @@ void __cdecl PulseService(bool Broadcast, unsigned long MSG, void *lpData)
 	}
 }
 
-void __cdecl MemoryService(bool Broadcast, unsigned long MSG, void *lpData)
+void __cdecl MemoryService(bool Broadcast, unsigned int MSG, void *lpData)
 {
 	// no messages are currently associated with this service (other than
 	// system messages such as client disconnect), so do nothing.
 }
 
-void __cdecl EQUIService(bool Broadcast, unsigned long MSG, void *lpData)
+void __cdecl EQUIService(bool Broadcast, unsigned int MSG, void *lpData)
 {
 	switch(MSG)
 	{
@@ -359,9 +368,9 @@ void __cdecl EQUIService(bool Broadcast, unsigned long MSG, void *lpData)
 		break;
 	}
 }
-void __cdecl EQGamestateService(bool Broadcast, unsigned long MSG, void *lpData)
+void __cdecl EQGamestateService(bool Broadcast, unsigned int MSG, void *lpData)
 {
-#define GameState ((unsigned long)lpData)
+#define GameState ((unsigned int)lpData)
 	if (MSG==GAMESTATESERVICE_CHANGED)
 	{
 		// same as SetGameState
@@ -384,7 +393,7 @@ void __cdecl EQGamestateService(bool Broadcast, unsigned long MSG, void *lpData)
 	}
 #undef GameState
 }
-void __cdecl EQSpawnService(bool Broadcast, unsigned long MSG, void *lpData)
+void __cdecl EQSpawnService(bool Broadcast, unsigned int MSG, void *lpData)
 {
 	switch(MSG)
 	{
@@ -407,7 +416,7 @@ void __cdecl EQSpawnService(bool Broadcast, unsigned long MSG, void *lpData)
 	}
 }
 
-void __cdecl EQZoneService(bool Broadcast, unsigned long MSG, void *lpData)
+void __cdecl EQZoneService(bool Broadcast, unsigned int MSG, void *lpData)
 {
 	switch(MSG)
 	{
@@ -423,7 +432,7 @@ void __cdecl EQZoneService(bool Broadcast, unsigned long MSG, void *lpData)
 	}
 }
 
-void __cdecl EQChatService(bool Broadcast, unsigned long MSG, void *lpData)
+void __cdecl EQChatService(bool Broadcast, unsigned int MSG, void *lpData)
 {
 #define pChat ((_EQChat*)lpData)
 	switch(MSG)
@@ -478,7 +487,7 @@ void __cdecl EQChatService(bool Broadcast, unsigned long MSG, void *lpData)
 #undef pChat
 }
 
-void __cdecl ConsoleService(bool Broadcast, unsigned long MSG, void *lpData)
+void __cdecl ConsoleService(bool Broadcast, unsigned int MSG, void *lpData)
 {
 #define pConsOutput ((char *)lpData)
 	if (MSG!=CONSOLE_OUTPUT)
@@ -527,7 +536,7 @@ void __cdecl ConsoleService(bool Broadcast, unsigned long MSG, void *lpData)
 #undef pConsOutput 
 
 // This uses the Services service to connect to ISXEQ services
-void __cdecl ServicesService(bool Broadcast, unsigned long MSG, void *lpData)
+void __cdecl ServicesService(bool Broadcast, unsigned int MSG, void *lpData)
 {
 #define Name ((char*)lpData)
 	switch(MSG)

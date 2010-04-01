@@ -41,13 +41,13 @@ HISXSERVICE hSpawnService;
 HISXSERVICE hZoneService;
 
 // Forward declarations of callbacks
-void __cdecl PulseService(bool Broadcast, unsigned long MSG, void *lpData);
-void __cdecl MemoryService(bool Broadcast, unsigned long MSG, void *lpData);
-void __cdecl HTTPService(bool Broadcast, unsigned long MSG, void *lpData);
-void __cdecl TriggerService(bool Broadcast, unsigned long MSG, void *lpData);
-void __cdecl ProtectionRequest(ISXInterface *pClient, unsigned long MSG, void *lpData);
+void __cdecl PulseService(bool Broadcast, unsigned int MSG, void *lpData);
+void __cdecl MemoryService(bool Broadcast, unsigned int MSG, void *lpData);
+void __cdecl HTTPService(bool Broadcast, unsigned int MSG, void *lpData);
+void __cdecl TriggerService(bool Broadcast, unsigned int MSG, void *lpData);
+void __cdecl ProtectionRequest(ISXInterface *pClient, unsigned int MSG, void *lpData);
 
-void __cdecl SoftwareCursorService(bool Broadcast, unsigned long MSG, void *lpData);
+void __cdecl SoftwareCursorService(bool Broadcast, unsigned int MSG, void *lpData);
 
 HISXSERVICE hSoftwareCursorService=0;
 HISXSERVICE hEQProtectionService=0;
@@ -211,8 +211,8 @@ void CISXEQ::RegisterTopLevelObjects()
 #undef TOPLEVELOBJECT
 }
 
-extern void __cdecl GamestateRequest(ISXInterface *pClient, unsigned long MSG, void *lpData);
-extern void __cdecl SpawnRequest(ISXInterface *pClient, unsigned long MSG, void *lpData);
+extern void __cdecl GamestateRequest(ISXInterface *pClient, unsigned int MSG, void *lpData);
+extern void __cdecl SpawnRequest(ISXInterface *pClient, unsigned int MSG, void *lpData);
 
 void CISXEQ::RegisterServices()
 {
@@ -301,9 +301,9 @@ void CISXEQ::UnRegisterServices()
 		pISInterface->ShutdownService(this,hZoneService);
 }
 
-bool CISXEQ::Protect(unsigned long Address, unsigned long Size)
+bool CISXEQ::Protect(unsigned int Address, unsigned int Size)
 {
-   for (unsigned long i = 0 ; i < ProtectedList.Size ; i++)
+   for (unsigned int i = 0 ; i < ProtectedList.Size ; i++)
    if (EQProtected *pProtected=ProtectedList[i])
    {
       if (pProtected->Address==Address)
@@ -318,9 +318,9 @@ bool CISXEQ::Protect(unsigned long Address, unsigned long Size)
    return true; 
 }
 
-bool CISXEQ::UnProtect(unsigned long Address)
+bool CISXEQ::UnProtect(unsigned int Address)
 {
-   for (unsigned long i = 0 ; i < ProtectedList.Size ; i++)
+   for (unsigned int i = 0 ; i < ProtectedList.Size ; i++)
    if (EQProtected *pProtected=ProtectedList[i])
    {
       if (pProtected->Address==Address)
@@ -390,7 +390,7 @@ VOID CISXEQ::HookMemChecker(BOOL Patch)
 }
 
 //extern void Heartbeat();
-void __cdecl PulseService(bool Broadcast, unsigned long MSG, void *lpData)
+void __cdecl PulseService(bool Broadcast, unsigned int MSG, void *lpData)
 {
 	if (MSG==PULSE_PREFRAME)
 	{
@@ -400,17 +400,17 @@ void __cdecl PulseService(bool Broadcast, unsigned long MSG, void *lpData)
 	}
 }
 
-void __cdecl MemoryService(bool Broadcast, unsigned long MSG, void *lpData)
+void __cdecl MemoryService(bool Broadcast, unsigned int MSG, void *lpData)
 {
 	// no messages are currently associated with this service (other than
 	// system messages such as client disconnect), so do nothing.
 }
-void __cdecl TriggerService(bool Broadcast, unsigned long MSG, void *lpData)
+void __cdecl TriggerService(bool Broadcast, unsigned int MSG, void *lpData)
 {
 	// no messages are currently associated with this service (other than
 	// system messages such as client disconnect), so do nothing.
 }
-void __cdecl HTTPService(bool Broadcast, unsigned long MSG, void *lpData)
+void __cdecl HTTPService(bool Broadcast, unsigned int MSG, void *lpData)
 {
 	switch(MSG)
 	{
@@ -428,7 +428,7 @@ void __cdecl HTTPService(bool Broadcast, unsigned long MSG, void *lpData)
 	}
 }
 
-void __cdecl ProtectionRequest(ISXInterface *pClient, unsigned long MSG, void *lpData)
+void __cdecl ProtectionRequest(ISXInterface *pClient, unsigned int MSG, void *lpData)
 {
    switch(MSG)
    {
@@ -439,12 +439,12 @@ void __cdecl ProtectionRequest(ISXInterface *pClient, unsigned long MSG, void *l
 #undef pData
 	   break;
    case MEMPROTECT_UNPROTECT:
-		pExtension->UnProtect((unsigned long)lpData);
+		pExtension->UnProtect((unsigned int)lpData);
 	   break;
    }
 }
 
-void __cdecl SoftwareCursorService(bool Broadcast, unsigned long MSG, void *lpData)
+void __cdecl SoftwareCursorService(bool Broadcast, unsigned int MSG, void *lpData)
 {
 	// receives nothing
 }

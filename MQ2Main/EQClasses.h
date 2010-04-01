@@ -7086,5 +7086,16 @@ public:
 EQLIB_OBJECT char *CDBStr::GetString(int, int, int*);
 };
 
+class CCombatAbilityWnd : public CSidlScreenWnd
+{
+public:
+EQLIB_OBJECT CCombatAbilityWnd::CCombatAbilityWnd(class CXWnd *);
+EQLIB_OBJECT void CCombatAbilityWnd::Activate(int);
+EQLIB_OBJECT void CCombatAbilityWnd::Deactivate(void);
+EQLIB_OBJECT int CCombatAbilityWnd::OnProcessFrame(void);
+EQLIB_OBJECT int CCombatAbilityWnd::WndNotification(class CXWnd *,unsigned __int32,void *);
+EQLIB_OBJECT CCombatAbilityWnd::~CCombatAbilityWnd(void);
+};
+ 
 };
 using namespace EQClasses;

@@ -37,6 +37,8 @@ BOOL Update=false;
 #define CASTRADIUS_ANGLESIZE 10
 PMAPLINE pCastRadius[(360/CASTRADIUS_ANGLESIZE)+1];
 
+PMAPLINE pSpellRadius[(360/CASTRADIUS_ANGLESIZE)+1];
+
 PMAPSPAWN pLastTarget=0;
 
 PMAPLINE pTargetRadius[(360/CASTRADIUS_ANGLESIZE)+1];
@@ -133,6 +135,7 @@ VOID MapInit()
 	for (unsigned long i = 0 ; i < (360/CASTRADIUS_ANGLESIZE) ; i++)
 	{
 		pCastRadius[i]=0;
+		pSpellRadius[i]=0;
 		pTargetRadius[i]=0;
 		pTargetMelee[i]=0;
 	}
@@ -303,6 +306,14 @@ void MapClear()
 		{
 			DeleteLine(pCastRadius[i]);
 			pCastRadius[i]=0;
+		}
+	}
+	if (pSpellRadius[0])
+	{
+		for (unsigned long i = 0 ; i < (360/CASTRADIUS_ANGLESIZE) ; i++)
+		{
+			DeleteLine(pSpellRadius[i]);
+			pSpellRadius[i]=0;
 		}
 	}
 	if (pTargetRadius[0])
@@ -480,6 +491,35 @@ void MapUpdate()
 		{
 			DeleteLine(pCastRadius[i]);
 			pCastRadius[i]=0;
+		}
+	}
+
+	if (IsOptionEnabled(MAPFILTER_SpellRadius))
+	{
+		unsigned long Angle=0;
+		for (unsigned long i = 0 ; i < (360/CASTRADIUS_ANGLESIZE) ; i++,Angle+=CASTRADIUS_ANGLESIZE)
+		{
+			if (!pSpellRadius[i])
+			{
+				pSpellRadius[i]=InitLine();
+				pSpellRadius[i]->Layer=2;
+			}
+
+			pSpellRadius[i]->Color.ARGB=MapFilterOptions[MAPFILTER_SpellRadius].Color;
+			pSpellRadius[i]->Start.Z=pCharInfo->pSpawn->Z;
+			pSpellRadius[i]->End.Z=pCharInfo->pSpawn->Z;
+			pSpellRadius[i]->Start.X=-pCharInfo->pSpawn->X + (FLOAT)MapFilterOptions[MAPFILTER_SpellRadius].Enabled*cosf((FLOAT)Angle/180.0f*(FLOAT)PI);
+			pSpellRadius[i]->Start.Y=-pCharInfo->pSpawn->Y + (FLOAT)MapFilterOptions[MAPFILTER_SpellRadius].Enabled*sinf((FLOAT)Angle/180.0f*(FLOAT)PI);;
+			pSpellRadius[i]->End.X=-pCharInfo->pSpawn->X + (FLOAT)MapFilterOptions[MAPFILTER_SpellRadius].Enabled*cosf((FLOAT)(Angle+CASTRADIUS_ANGLESIZE)/180.0f*(FLOAT)PI);
+			pSpellRadius[i]->End.Y=-pCharInfo->pSpawn->Y + (FLOAT)MapFilterOptions[MAPFILTER_SpellRadius].Enabled*sinf((FLOAT)(Angle+CASTRADIUS_ANGLESIZE)/180.0f*(FLOAT)PI);
+		}
+	}
+	else if (pSpellRadius[0])
+	{
+		for (unsigned long i = 0 ; i < (360/CASTRADIUS_ANGLESIZE) ; i++)
+		{
+			DeleteLine(pSpellRadius[i]);
+			pSpellRadius[i]=0;
 		}
 	}
 
@@ -820,6 +860,8 @@ BOOL CanDisplaySpawn(eSpawnType Type, PSPAWNINFO pSpawn)
 		return IsOptionEnabled(MAPFILTER_Pet);
 	case MOUNT:
 		return IsOptionEnabled(MAPFILTER_Mount);
+	case AURA:
+		return IsOptionEnabled(MAPFILTER_Aura);
 	}
 	return TRUE;
 }
@@ -858,6 +900,8 @@ inline DWORD GetSpawnColor(eSpawnType Type, PSPAWNINFO pSpawn)
 		return MapFilterOptions[MAPFILTER_Mount].Color;
 	case PET:
 		return MapFilterOptions[MAPFILTER_Pet].Color;
+	case AURA:
+		return MapFilterOptions[MAPFILTER_Aura].Color;
 	}
 	return 0;
 }

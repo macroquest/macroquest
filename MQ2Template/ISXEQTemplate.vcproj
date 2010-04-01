@@ -3,6 +3,7 @@
 	ProjectType="Visual C++"
 	Version="7.00"
 	Name="ISXEQTemplate"
+	ProjectGUID="{A8B40FA9-7854-44E8-8440-46F3952DD86A}"
 	Keyword="Win32Proj">
 	<Platforms>
 		<Platform

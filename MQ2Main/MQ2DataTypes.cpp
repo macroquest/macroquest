@@ -3860,12 +3860,10 @@ DebugSpew("List: index is %d\n", n);
                     *pComma = '\0';
                 }
 #else
-		if (argc==2)
-		{
+		if (argc==2) 
 			n=atoi(argv[1]); 
-			if (n<1) 
-				n=1; 
-		}
+		if (n<1) 
+			n=1; 
 #endif
 		if (ISNUMBER())
 		{
@@ -4542,7 +4540,7 @@ bool MQ2TimeType::GETMEMBER()
 		return true;
 	}
 	return false;
-#undef GetTime
+#undef pTime
 }
 #endif
 
@@ -5028,6 +5026,31 @@ bool MQ2SkillType::GETMEMBER()
 	PMQ2TYPEMEMBER pMember=MQ2SkillType::FindMember(Member);
 	if (!pMember)
 		return false;
+    unsigned long nIndex=GetCharInfo2()->Class; 
+    if(ISINDEX()) 
+    { 
+		if(ISNUMBER()) 
+		{ 
+			// class by number 
+			nIndex=GETNUMBER(); 
+		} 
+		else 
+		{ 
+			// class by name or shortname 
+			for (int N=1 ; N<17 ; N++) 
+			{ 
+				if(
+					!stricmp(GETFIRST(), GetClassDesc(N)) ||
+					!stricmp(GETFIRST(), pEverQuest->GetClassThreeLetterCode(N))
+					) 
+				{ 
+					nIndex=N; 
+					break; 
+				} 
+			} 
+		} 
+    } 
+
 	switch((SkillMembers)pMember->ID)
 	{
 	case Name:
@@ -5041,10 +5064,6 @@ bool MQ2SkillType::GETMEMBER()
 		Dest.DWord=(((PSKILL*)VarPtr.Ptr-SkillDict))+1;
 		Dest.Type=pIntType;
 		return true;
-	case Accuracy:
-		Dest.Float=pSkill->Accuracy;
-		Dest.Type=pFloatType;
-		return true;
 	case ReuseTime:
 		Dest.DWord=pSkill->ReuseTimer;
 		Dest.Type=pIntType;
@@ -5054,49 +5073,25 @@ bool MQ2SkillType::GETMEMBER()
 		Dest.Type=pIntType;
 		return true;
 	case MinLevel:
-		if (ISINDEX())
-		{
-			return false;
-		}
-		else
-		{
-			Dest.DWord=pSkill->MinLevel[GetCharInfo2()->Class];
-			Dest.Type=pIntType;
-			return true;
-		}
-	case StartingSkill:
-		if (ISINDEX())
-		{
-			return false;
-		}
-		else
-		{
-			Dest.DWord=pSkill->StartingSkill[GetCharInfo2()->Class];
-			Dest.Type=pIntType;
-			return true;
-		}
+		Dest.DWord=pSkill->MinLevel[nIndex]; 
+		Dest.Type=pIntType;
+		return true;
 	case SkillCapPre50:
-		if (ISINDEX())
-		{
-			return false;
-		}
-		else
-		{
-			Dest.DWord=pSkill->SkillCapsPre50[GetCharInfo2()->Class];
-			Dest.Type=pIntType;
-			return true;
-		}
-	case SkillCapPost50:
-		if (ISINDEX())
-		{
-			return false;
-		}
-		else
-		{
-			Dest.DWord=pSkill->SkillCapsPost50[GetCharInfo2()->Class];
-			Dest.Type=pIntType;
-			return true;
-		}
+		Dest.DWord=pSkill->SkillCapsPre50[nIndex];
+		Dest.Type=pIntType;
+		return true;
+	case SkillCapPre65: 
+		Dest.DWord=pSkill->SkillCapsPre65[nIndex]; 
+		Dest.Type=pIntType; 
+		return true; 
+	case SkillCapPre70: 
+		Dest.DWord=pSkill->SkillCapsPre70[nIndex]; 
+		Dest.Type=pIntType; 
+		return true; 
+	case Activated: 
+		Dest.DWord=pSkill->Activated; 
+		Dest.Type=pBoolType; 
+		return true; 
 	}
 	return false;
 }
@@ -5396,6 +5391,14 @@ bool MQ2RaidType::GETMEMBER()
 		return false;
 	switch((RaidMembers)pMember->ID)
 	{
+	case Locked: 
+		Dest.DWord=pRaid->Locked; 
+		Dest.Type=pBoolType; 
+		return true; 
+	case Invited: 
+		Dest.DWord=pRaid->Invited; 
+		Dest.Type=pBoolType; 
+		return true; 
 	case xMember:
 		if (ISINDEX())
 		{

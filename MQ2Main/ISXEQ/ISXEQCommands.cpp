@@ -985,6 +985,136 @@ int CMD_EQLook(int argc, char *argv[])
    return 0;
 }
 
+int CMD_EQEcho(int argc, char *argv[])
+{
+	static map<utf8stringnocase,unsigned int> Filters;
+	static bool FiltersInitialized=false;
+
+	if (argc<2)
+	{
+		printf("Syntax: %s <-channelfilters>|[-<channelfilter>] <text ...>",argv[0]);
+		return 0;
+	}
+
+	if (!FiltersInitialized)
+	{
+		FiltersInitialized=true;
+
+Filters["say"]=USERCOLOR_SAY;
+Filters["tell"]=USERCOLOR_TELL;
+Filters["group"]=USERCOLOR_GROUP;
+Filters["guild"]=USERCOLOR_GUILD;
+Filters["ooc"]=USERCOLOR_OOC;
+Filters["auction"]=USERCOLOR_AUCTION;
+Filters["shout"]=USERCOLOR_SHOUT;
+Filters["emote"]=USERCOLOR_EMOTE;
+Filters["spells"]=USERCOLOR_SPELLS;
+Filters["youhit"]=USERCOLOR_YOU_HIT_OTHER;
+Filters["hityou"]=USERCOLOR_OTHER_HIT_YOU;
+Filters["youmiss"]=USERCOLOR_YOU_MISS_OTHER;
+Filters["missyou"]=USERCOLOR_OTHER_MISS_YOU;
+Filters["duel"]=USERCOLOR_DUELS;
+Filters["skill"]=USERCOLOR_SKILLS;
+Filters["disc"]=USERCOLOR_DISCIPLINES;
+Filters["unused1"]=USERCOLOR_UNUSED001;
+Filters["default"]=USERCOLOR_DEFAULT;
+Filters["unused2"]=USERCOLOR_UNUSED002;
+Filters["merchantoffer"]=USERCOLOR_MERCHANT_OFFER;
+Filters["merchantexchange"]=USERCOLOR_MERCHANT_EXCHANGE;
+Filters["youdie"]=USERCOLOR_YOUR_DEATH;
+Filters["theydie"]=USERCOLOR_OTHER_DEATH;
+Filters["otherhit"]=USERCOLOR_OTHER_HIT_OTHER;
+Filters["othermiss"]=USERCOLOR_OTHER_MISS_OTHER;
+Filters["who"]=USERCOLOR_WHO;
+Filters["yell"]=USERCOLOR_YELL;
+Filters["nonmelee"]=USERCOLOR_NON_MELEE;
+Filters["spellfade"]=USERCOLOR_SPELL_WORN_OFF;
+Filters["split"]=USERCOLOR_MONEY_SPLIT;
+Filters["loot"]=USERCOLOR_LOOT;
+Filters["random"]=USERCOLOR_RANDOM;
+Filters["otherspell"]=USERCOLOR_OTHERS_SPELLS;
+Filters["spellfail"]=USERCOLOR_SPELL_FAILURE;
+Filters["chatchannel"]=USERCOLOR_CHAT_CHANNEL;
+Filters["chat1"]=USERCOLOR_CHAT_1;
+Filters["chat2"]=USERCOLOR_CHAT_2;
+Filters["chat3"]=USERCOLOR_CHAT_3;
+Filters["chat4"]=USERCOLOR_CHAT_4;
+Filters["chat5"]=USERCOLOR_CHAT_5;
+Filters["chat6"]=USERCOLOR_CHAT_6;
+Filters["chat7"]=USERCOLOR_CHAT_7;
+Filters["chat8"]=USERCOLOR_CHAT_8;
+Filters["chat9"]=USERCOLOR_CHAT_9;
+Filters["chat10"]=USERCOLOR_CHAT_10;
+Filters["meleecrit"]=USERCOLOR_MELEE_CRIT;
+Filters["spellcrit"]=USERCOLOR_SPELL_CRIT;
+Filters["toofar"]=USERCOLOR_TOO_FAR_AWAY;
+Filters["rampage"]=USERCOLOR_NPC_RAMPAGE;
+Filters["flurry"]=USERCOLOR_NPC_FLURRY;
+Filters["enrage"]=USERCOLOR_NPC_ENRAGE;
+Filters["sayecho"]=USERCOLOR_ECHO_SAY;
+Filters["tellecho"]=USERCOLOR_ECHO_TELL;
+Filters["groupecho"]=USERCOLOR_ECHO_GROUP;
+Filters["guildecho"]=USERCOLOR_ECHO_GUILD;
+Filters["oocecho"]=USERCOLOR_ECHO_OOC;
+Filters["auctionecho"]=USERCOLOR_ECHO_AUCTION;
+Filters["shoutecho"]=USERCOLOR_ECHO_SHOUT;
+Filters["emoteecho"]=USERCOLOR_ECHO_EMOTE;
+Filters["chat1echo"]=USERCOLOR_ECHO_CHAT_1;
+Filters["chat2echo"]=USERCOLOR_ECHO_CHAT_2;
+Filters["chat3echo"]=USERCOLOR_ECHO_CHAT_3;
+Filters["chat4echo"]=USERCOLOR_ECHO_CHAT_4;
+Filters["chat5echo"]=USERCOLOR_ECHO_CHAT_5;
+Filters["chat6echo"]=USERCOLOR_ECHO_CHAT_6;
+Filters["chat7echo"]=USERCOLOR_ECHO_CHAT_7;
+Filters["chat8echo"]=USERCOLOR_ECHO_CHAT_8;
+Filters["chat9echo"]=USERCOLOR_ECHO_CHAT_9;
+Filters["chat10echo"]=USERCOLOR_ECHO_CHAT_10;
+Filters["reserved"]=USERCOLOR_RESERVED;
+Filters["link"]=USERCOLOR_LINK;
+Filters["raid"]=USERCOLOR_RAID;
+Filters["pet"]=USERCOLOR_PET;
+Filters["damageshield"]=USERCOLOR_DAMAGESHIELD;
+Filters["leader"]=USERCOLOR_LEADER;
+Filters["petrampflurry"]=USERCOLOR_PETRAMPFLURRY;
+Filters["petcrit"]=USERCOLOR_PETCRITS;
+Filters["focus"]=USERCOLOR_FOCUS;
+Filters["exp"]=USERCOLOR_XP;
+Filters["system"]=USERCOLOR_SYSTEM;
+
+	}
+
+
+	unsigned int Color=USERCOLOR_DEFAULT;
+	int arg=1;
+	if (argv[arg][0]=='-')
+	{
+		if (!stricmp(argv[arg],"-channelfilters"))
+		{
+			CColumnRenderer CR;
+			for (map<utf8stringnocase,unsigned int>::iterator i=Filters.begin() ;i!=Filters.end() ; i++)
+			{
+				CR.AddItem(i->first.c_str());
+			}
+			CR.Render(pISInterface);
+			return 0;
+		}
+		map<utf8stringnocase,unsigned int>::iterator i=Filters.find(&argv[arg][1]);
+		if (i!=Filters.end())
+			Color=i->second;
+		arg++;
+	}
+
+	if (argc<=arg)
+	{
+		printf("Syntax: %s [-<channelfilter>] <text ...>",argv[0]);
+		return 0;
+	}
+	char FullText[8192];
+	pISInterface->GetArgs(arg,argc,argv,FullText);
+	dsp_chat_no_events(FullText,Color,1);
+	return 0;
+}
+
 int CMD_EQItems(int argc, char *argv[])
 {
     if (!ppItemList) return 0;

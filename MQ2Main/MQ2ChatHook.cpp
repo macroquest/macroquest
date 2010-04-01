@@ -60,7 +60,7 @@ VOID dsp_chat_no_events(const char *Text,int Color,bool Something)
 	((CChatHook*)pEverQuest)->Trampoline((PCHAR)Text,Color,Something);
 }
 
-unsigned long __stdcall MQ2DataVariableLookup(char * VarName, char * Value)
+unsigned int __stdcall MQ2DataVariableLookup(char * VarName, char * Value)
 {
 	strcpy(Value,VarName);
 	return strlen(ParseMacroParameter(GetCharInfo()->pSpawn,Value));

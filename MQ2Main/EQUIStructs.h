@@ -717,17 +717,18 @@ typedef struct _EQLOOTWINDOW {
 /*0x24c*/
 } EQLOOTWINDOW, *PEQLOOTWINDOW;
 
-//Size: 0x2f8 (03/25/2004)
+//Size: 0x3a4 (03/25/2004)
 typedef struct _EQPETINFOWINDOW {
 /*0x000*/ struct _CSIDLWND Wnd;
-/*0x150*/ DWORD Unknown0x150;
-/*0x154*/ DWORD Unknown0x154; // pet's spawnid# ??
-/*0x158*/ DWORD Unknown0x158; // 1
-/*0x15c*/ BYTE  Unknown0x15c[0x120];
-/*0x18C*/ // unknown (one per buff)
-/*0x204*/ // window (one per buff)
-/*0x27c*/ int   Buff[0x1e]; // Spell ID# of each buff -- 30 total
-/*0x2f4*/ DWORD Unknown0x2f4;  
+/*0x174*/ DWORD Unknown0x174;
+/*0x178*/ DWORD Unknown0x178; // pet's spawnid
+/*0x17c*/ DWORD Unknown0x17c; // bool
+/*0x180*/ BYTE  Unknown0x180[0x120];
+/*0x2a0*/ int   Buff[0x1e]; // Spell ID# of each buff -- 30 total
+/*0x318*/ DWORD Unknown0x318;  
+/*0x31c*/ BYTE  Unknown0x31c[4];
+/*0x320*/ DWORD Unknown0x320[2];
+/*0x328*/ DWORD BuffFadeETA[0x1e]; 
 } EQPETINFOWINDOW, *PEQPETINFOWINDOW;
 
 typedef struct _EQTRADESKILLRECIPE {

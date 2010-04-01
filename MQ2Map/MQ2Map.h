@@ -28,7 +28,9 @@ using namespace std;
 #define MAPFILTER_CastRadius    21
 #define MAPFILTER_NormalLabels  22
 #define MAPFILTER_ContextMenu   23
-#define MAPFILTER_NUMBER        24
+#define MAPFILTER_SpellRadius	24
+#define MAPFILTER_Aura			25
+#define MAPFILTER_NUMBER        26
 #define MAPFILTER_Invalid		(-1)
 // normal labels
 

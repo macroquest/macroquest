@@ -223,8 +223,8 @@ typedef struct _BodyInfo
 #define USERCOLOR_MELEE_CRIT            0xFF +  46 //  46 - Melee Crits
 #define USERCOLOR_SPELL_CRIT            0xFF +  47 //  47 - Spell Crits
 #define USERCOLOR_TOO_FAR_AWAY          0xFF +  48 //  48 - Too far away (melee)
-#define USERCOLOR_NPC_RAMAGE            0xFF +  49 //  49 - NPC Rampage
-#define USERCOLOR_NPC_FURRY             0xFF +  50 //  50 - NPC Furry
+#define USERCOLOR_NPC_RAMPAGE            0xFF +  49 //  49 - NPC Rampage
+#define USERCOLOR_NPC_FLURRY             0xFF +  50 //  50 - NPC Furry
 #define USERCOLOR_NPC_ENRAGE            0xFF +  51 //  51 - NPC Enrage
 #define USERCOLOR_ECHO_SAY              0xFF +  52 //  52 - say echo
 #define USERCOLOR_ECHO_TELL             0xFF +  53 //  53 - tell echo
@@ -1405,28 +1405,22 @@ typedef struct _SPELL {
 
 
 
-// Size 0x180 4-23-2004 Lax
+// Size 0x2F4 4-30-2006 s0rCieR 
 typedef struct _SKILL {
 /*0x000*/   DWORD nName;
 /*0x004*/   DWORD ReuseTimer;
 /*0x008*/   CHAR  Unknown0x008;
-/*0x009*/   CHAR  Unknown0x009;
+/*0x009*/   CHAR  Activated;
 /*0x00A*/   CHAR  AltTimer;//compare to 2 all over.. alternate timer?
 /*0x00B*/   CHAR  Unknown0x00B;
-/*0x00C*/   CHAR  Unknown0x00C;
-/*0x00D*/   CHAR  MinLevel[0x22];
-/*0x02F*/   CHAR  Unused0x02F;
-/*0x030*/   CHAR  StartingSkill[0x22];
-/*0x052*/   CHAR  Unknown0x052[0x6];
-/*0x058*/   DWORD SkillCapsPre50[0x22];
-/*0x0E0*/   DWORD Unknown0x0E0;// 1 for backstab..
-/*0x0E4*/   DWORD Unknown0x0E4;// 
-/*0x0E8*/   DWORD Unknown0x0E8;
-/*0x0EC*/   FLOAT Accuracy;
-/*0x0F0*/   DWORD Unknown0x0F0;
-/*0x0F4*/   DWORD SkillCapsPost50[0x22];
-/*0x17C*/   DWORD Unknown0x17C;
-/*0x180*/
+/*0x00C*/   DWORD  MinLevel[0x24]; 
+/*0x09C*/   DWORD  Available[0x24];     //FF=not available for that class 
+/*0x12C*/   DWORD  Unknown0x12C[0x5]; 
+/*0x140*/   DWORD  SkillCapsPre50[0x24]; 
+/*0x1D0*/   DWORD  SkillCapsPre65[0x24]; 
+/*0x260*/   DWORD  SkillCapsPre70[0x24]; 
+/*0x2F0*/   DWORD  Unknown0x2F0; 
+/*0x2F4*/ 
 } SKILL, *PSKILL;
 
 #define MAX_GUILDS			0x5DC
@@ -1565,14 +1559,16 @@ typedef struct _EQRAID {
 /*0x51a4*/  CHAR        RaidMOTD[0x400];
 /*0x55a4*/  BYTE        Unknown0x55a4[0x40]; 
 /*0x55e4*/  DWORD       field_55E4; 
-/*0x55e8*/  BYTE        Unknown0x55e8; 
+/*0x55e8*/  BYTE        Invited; 
 /*0x55e9*/  BYTE        IsRaidLeader; 
 /*0x55ea*/  BYTE        Unknown0x55ea[0x2]; 
 /*0x55ec*/  DWORD       RaidTarget; 
 /*0x55f0*/  DWORD       LootType; 
 /*0x55f4*/  CHAR        RaidLooters[0x13][0x40]; 
 /*0x5ab4*/  DWORD       TotalRaidMemberLevels; // TotalRaidMemberLevels/RaidMemberCount=RaidAvgLevel
-/*0x5ab8*/ 
+/*0x5ab8*/  BYTE        Locked; 
+/*0x5ab9*/  BYTE        Padding0x5ab9[0x3]; 
+/*0x5abc*/ 
 } EQRAID, *PEQRAID;
 
 // size 0x19C 3-23-2005
@@ -1617,6 +1613,45 @@ typedef struct _CDISPLAY {
 /*0x148*/ DWORD  TimeStamp; 
 /*0x14c*/ 
 } CDISPLAY, *PCDISPLAY; 
+
+//5-16-06 - ieatacid
+typedef struct _DZTIMERINFO {
+/*0x000*/ CHAR   Zone[0x80];
+/*0x080*/ CHAR   ExpeditionName[0x100];
+/*0x180*/ DWORD  TimeStamp;  // TimeStamp - Util__FastTime = time left
+/*0x184*/ DWORD  TimerID;
+/*0x188*/ struct _DZTIMERINFO *pNext;
+/*0x18c*/
+} DZTIMERINFO, *PDZTIMERINFO;
+
+typedef struct _DZMEMBER {
+/*0x000*/ CHAR   Name[0x40];
+/*0x040*/ DWORD  Status;  // 0="unknown", 1=online, 2=offline, 3="In Dynamic Zone"
+/*0x044*/ struct _DZMEMBER *pNext;
+/*0x048*/
+} DZMEMBER, *PDZMEMBER;
+
+typedef struct _TASKMEMBER {
+/*0x000*/ CHAR   Name[0x40];
+/*0x040*/ DWORD  Unknown0x40;
+/*0x044*/ DWORD  IsLeader;
+/*0x048*/ struct _TASKMEMBER *pNext;
+/*0x04c*/
+} TASKMEMBER, *PTASKMEMBER;
+
+typedef struct _DYNAMICZONE {
+/*0x000*/ void   *vftable;
+/*0x004*/ BYTE   Unknown0x04[0x46];
+/*0x04a*/ CHAR   Name[0x40];
+/*0x08a*/ CHAR   ExpeditionName[0x80];
+/*0x10a*/ BYTE   Unknown0x10a[0x2];
+/*0x10c*/ WORD   MaxPlayers; // maybe?
+/*0x10e*/ BYTE   Unknown0x10e[0x2];
+/*0x110*/ struct _DZMEMBER *pMemberList;
+/*0x114*/ char   *expeditionName;
+/*0x118*/ // more?
+} DYNAMICZONE, *PDYNAMICZONE;
+ 
  
 
 #define EQ_INTERACTGROUNDITEM   0x00a5  // CEverQuest__HandleClick 04/19

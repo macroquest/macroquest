@@ -1816,88 +1816,81 @@ VOID Where(PSPAWNINFO pChar, PCHAR szLine)
 // ***************************************************************************
 VOID DoAbility(PSPAWNINFO pChar, PCHAR szLine) 
 { 
-    if (!cmdDoAbility) return; 
-
-    if (szLine[0]==0 || atoi(szLine) || !EQADDR_DOABILITYLIST) { 
-        cmdDoAbility(pChar,szLine); 
-        return; 
-    } 
-
-   PCHARINFO pCharInfo = GetCharInfo(); 
-
-    DWORD Index, DoIndex = 0xFFFFFFFF; 
-    CHAR szBuffer[MAX_STRING] = {0}; 
-
-    GetArg(szBuffer,szLine,1); 
-
-    if (!stricmp(szBuffer,"list")) { 
-        WriteChatColor("Abilities:",USERCOLOR_DEFAULT); 
-        for (Index=4;Index<10;Index++) { 
-            if (EQADDR_DOABILITYLIST[Index]==0xFFFFFFFF) { 
-                sprintf(szBuffer,"%d. <Empty>",Index-3); 
-            } else if (szSkills[EQADDR_DOABILITYLIST[Index]]) { 
-                sprintf(szBuffer,"%d. %s",Index-3,szSkills[EQADDR_DOABILITYLIST[Index]]); 
-            } else { 
-                sprintf(szBuffer,"%d. *Unknown%d",Index-3,EQADDR_DOABILITYLIST[Index]); 
-            } 
-            WriteChatColor(szBuffer,USERCOLOR_DEFAULT); 
-        } 
-        WriteChatColor("Combat Skills:",USERCOLOR_DEFAULT); 
-        for (Index=0;Index<4;Index++) { 
-            if (EQADDR_DOABILITYLIST[Index]==0xFFFFFFFF) { 
-                sprintf(szBuffer,"%d. <Empty>",Index+7); 
-            } else if (szSkills[EQADDR_DOABILITYLIST[Index]]) { 
-                sprintf(szBuffer,"%d. %s",Index+7,szSkills[EQADDR_DOABILITYLIST[Index]]); 
-            } else { 
-                sprintf(szBuffer,"%d. *Unknown%d",Index+7,EQADDR_DOABILITYLIST[Index]); 
-            } 
-            WriteChatColor(szBuffer,USERCOLOR_DEFAULT); 
-        } 
-        WriteChatColor("Combat Abilities:",USERCOLOR_DEFAULT); 
-        for (Index=0;Index<NUM_COMBAT_ABILITIES;Index++) { 
-         if (GetCharInfo2()->CombatAbilities[Index]) { 
-            PSPELL pCA = GetSpellByID(GetCharInfo2()->CombatAbilities[Index]); 
-            if (pCA) 
-              sprintf(szBuffer, "%d. %s", Index+11, pCA->Name); 
-            else 
-               sprintf(szBuffer, "%d. <Unknown>", Index+11); 
-                WriteChatColor(szBuffer,USERCOLOR_DEFAULT); 
-            } 
-        } 
-
-
-        return; 
-    } 
-
-    for (Index=0;Index<10;Index++) { 
-        if (EQADDR_DOABILITYLIST[Index]!= 0xFFFFFFFF) { 
-            if (!strnicmp(szBuffer,szSkills[EQADDR_DOABILITYLIST[Index]],strlen(szSkills[EQADDR_DOABILITYLIST[Index]]))) { 
-                if (Index<4) { 
-                    DoIndex = Index+7; // 0-3 = Combat abilities (7-10) 
-                } else { 
-                    DoIndex = Index-3; // 4-9 = Abilities (1-6) 
-                } 
-            } 
-        } 
-    } 
-    if (DoIndex!=0xFFFFFFFF) { 
-        cmdDoAbility(pChar,itoa(DoIndex,szBuffer,10)); 
-    } else { 
-      PSPELL pCA = NULL; 
-        for (Index=0;Index<NUM_COMBAT_ABILITIES;Index++) { 
-         if (GetCharInfo2()->CombatAbilities[Index]) { 
-            pCA = GetSpellByID(GetCharInfo2()->CombatAbilities[Index]); 
-            if (!stricmp(pCA->Name, szBuffer)) { 
-               // We got the cookie, let's try and do it... 
-               pCharData->DoCombatAbility(pCA->ID); 
-               break; 
-            } 
-         } 
-        } 
-      if (Index >= NUM_COMBAT_ABILITIES) 
-         WriteChatColor("You do not seem to have that ability available",USERCOLOR_DEFAULT); 
-    } 
-} 
+	if(!szLine[0] || !cmdDoAbility) return;
+	if(atoi(szLine) || !EQADDR_DOABILITYLIST) {
+		cmdDoAbility(pChar,szLine);
+		return;
+	} 
+ 
+	DWORD Index;
+	CHAR szBuffer[MAX_STRING]={0};
+	GetArg(szBuffer,szLine,1); 
+  // display available abilities list
+  if(!stricmp(szBuffer,"list")) {
+    WriteChatColor("Abilities & Combat Skills:",USERCOLOR_DEFAULT);
+ 
+    // display skills that have activated state
+    for(Index=0; Index<100; Index++) {
+     if(SkillDict[Index]->Activated) {
+       bool Avail=(GetCharInfo2()->Skill[Index]>0);
+       for(int btn=0; !Avail && btn<10; btn++) {
+          if(EQADDR_DOABILITYLIST[btn]==Index) Avail=true;
+        }
+        // make sure remove trap is added, they give it to everyone except rogues
+        if(Index==75 && strncmp(pEverQuest->GetClassDesc(GetCharInfo2()->Class & 0xFF),"Rogue",6)) Avail=true;
+        if(Avail) {
+         sprintf(szBuffer,"<\ag%s\ax>",szSkills[Index]);
+          WriteChatColor(szBuffer,USERCOLOR_DEFAULT);
+        }
+      }
+    }
+ 
+    // display innate skills that are available
+    for(Index=0; Index<28; Index++) {
+      if(GetCharInfo2()->InnateSkill[Index]!=0xFF && strlen(szSkills[Index+100])>3) {
+        sprintf(szBuffer,"<\ag%s\ax>",szSkills[Index+100]);
+        WriteChatColor(szBuffer,USERCOLOR_DEFAULT);
+      }
+    }
+ 
+    // display discipline i have
+    WriteChatColor("Combat Abilities:",USERCOLOR_DEFAULT);
+    for(Index=0;Index<NUM_COMBAT_ABILITIES;Index++) {
+      if(GetCharInfo2()->CombatAbilities[Index]) {
+       if(PSPELL pCA=GetSpellByID(GetCharInfo2()->CombatAbilities[Index])) {
+          sprintf(szBuffer, "<\ag%s\ax>",pCA->Name);
+          WriteChatColor(szBuffer,USERCOLOR_DEFAULT);
+        }
+      }
+    }
+    return;
+  } 
+  // scan for matching abilities name
+  for(Index=0; Index<128; Index++) {
+    if((Index< 100 && (SkillDict[Index])->Activated) ||
+      (Index>=100 && GetCharInfo2()->InnateSkill[Index-100]!=0xFF)) {
+      if(!strnicmp(szBuffer,szSkills[Index],strlen(szSkills[Index]))) {
+        pCharData1->UseSkill((unsigned char)Index,(EQPlayer*)pCharData1);
+        return;
+      }
+    }
+  }
+ 
+  // scan for matching discipline name
+  for(Index=0; Index<NUM_COMBAT_ABILITIES; Index++) {
+    if(GetCharInfo2()->CombatAbilities[Index]) {
+     if(PSPELL pCA=GetSpellByID(GetCharInfo2()->CombatAbilities[Index])) {
+       if(!stricmp(pCA->Name,szBuffer)) {
+          pCharData->DoCombatAbility(pCA->ID);
+          return;
+        }
+      }
+    }
+  }
+ 
+  // else display that we didnt found abilities
+  WriteChatColor("You do not seem to have that ability available",USERCOLOR_DEFAULT); 
+}
 
 // ***************************************************************************
 // Function:    LoadSpells

@@ -64,6 +64,8 @@ MAPFILTER MapFilterOptions[] = {
     {"CastRadius",   FALSE,0x808080,   FALSE,MAPFILTER_All,FALSE,  "Sets radius of casting circle to # (omit or set to 0 to disable)"},
     {"NormalLabels", 0,-1,         TRUE,MAPFILTER_Invalid,FALSE,   "Toggles non-MQ2 label display"},
     {"Menu",         FALSE,-1,         TRUE,MAPFILTER_Invalid,FALSE,   "Allows display of right-click context menu"},
+	{"SpellRadius",  FALSE,0x00C000,   FALSE,MAPFILTER_All,FALSE,  "Sets radius of 2nd casting circle to # (omit or set to 0 to disable)"},
+    {"Aura",         FALSE,0x404040,   TRUE,MAPFILTER_All,TRUE,   "Displays Auras"},
     {NULL,           FALSE,-1,         FALSE,MAPFILTER_Invalid,FALSE,  NULL}
 };
 

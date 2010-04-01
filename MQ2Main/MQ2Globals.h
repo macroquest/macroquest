@@ -397,6 +397,9 @@ EQLIB_VAR KeypressHandler **ppKeypressHandler;
 #define pKeypressHandler (*ppKeypressHandler)
 
 EQLIB_VAR PEQRAID pRaid;
+EQLIB_VAR DZMEMBER **ppDZMember;
+EQLIB_VAR TASKMEMBER **ppTaskMember;
+EQLIB_VAR DZTIMERINFO **ppDZTimerInfo;
 
 EQLIB_VAR PINT pgCurrentSocial;
 #define gCurrentSocial (*pgCurrentSocial)
@@ -453,8 +456,8 @@ EQLIB_VAR CMapToolbarWnd **ppMapToolbarWnd;
 EQLIB_VAR CMapViewWnd **ppMapViewWnd;
 EQLIB_VAR CEditLabelWnd **ppEditLabelWnd;
 EQLIB_VAR COptionsWnd **ppOptionsWnd;
-EQLIB_VAR CBuffWindow **ppBuffWindow;
-EQLIB_VAR CBuffWindow **ppBuffWindow;
+EQLIB_VAR CBuffWindow **ppBuffWindowNORMAL;
+EQLIB_VAR CBuffWindow **ppBuffWindowSHORT;
 EQLIB_VAR CTargetWnd **ppTargetWnd;
 EQLIB_VAR CColorPickerWnd **ppColorPickerWnd;
 EQLIB_VAR CHotButtonWnd **ppHotButtonWnd;
@@ -470,7 +473,7 @@ EQLIB_VAR CFileSelectionWnd **ppFileSelectionWnd;
 EQLIB_VAR CLootWnd **ppLootWnd;
 EQLIB_VAR CPetInfoWnd **ppPetInfoWnd;
 EQLIB_VAR CActionsWnd **ppActionsWnd;
-//EQLIB_VAR CCombatAbilityWnd **ppCombatAbilityWnd;
+EQLIB_VAR CCombatAbilityWnd **ppCombatAbilityWnd;
 EQLIB_VAR CMerchantWnd **ppMerchantWnd;
 EQLIB_VAR CTradeWnd **ppTradeWnd;
 EQLIB_VAR CBazaarWnd **ppBazaarWnd;
@@ -540,8 +543,8 @@ EQLIB_VAR CPotionBeltWnd **ppPotionBeltWnd;
 #define pMapViewWnd (*ppMapViewWnd)
 #define pEditLabelWnd (*ppEditLabelWnd)
 #define pOptionsWnd (*ppOptionsWnd)
-#define pBuffWindow (*ppBuffWindow)
-#define pBuffWindow (*ppBuffWindow)
+#define pBuffWnd (*ppBuffWindowNORMAL)
+#define pSongWnd (*ppBuffWindowSHORT)
 #define pTargetWnd (*ppTargetWnd)
 #define pColorPickerWnd (*ppColorPickerWnd)
 #define pHotButtonWnd (*ppHotButtonWnd)
@@ -590,6 +593,9 @@ EQLIB_VAR CPotionBeltWnd **ppPotionBeltWnd;
 #define pTimeLeftWnd (*ppTimeLeftWnd)
 #define pTextOverlay (*ppTextOverlay)
 #define pPotionBeltWnd (*ppPotionBeltWnd)
+#define pDZMember (*ppDZMember)
+#define pDZTimerInfo (*ppDZTimerInfo)
+#define pTaskMember (*ppTaskMember)
 }
 using namespace MQ2Globals;
 

@@ -31,13 +31,13 @@ HISXSERVICE hEQZoneService=0;
 HISXSERVICE hScriptEngineService=0;
 
 // Forward declarations of callbacks
-void __cdecl PulseService(bool Broadcast, unsigned long MSG, void *lpData);
-void __cdecl MemoryService(bool Broadcast, unsigned long MSG, void *lpData);
-void __cdecl ServicesService(bool Broadcast, unsigned long MSG, void *lpData);
-void __cdecl ScriptEngineService(bool Broadcast, unsigned long MSG, void *lpData);
+void __cdecl PulseService(bool Broadcast, unsigned int MSG, void *lpData);
+void __cdecl MemoryService(bool Broadcast, unsigned int MSG, void *lpData);
+void __cdecl ServicesService(bool Broadcast, unsigned int MSG, void *lpData);
+void __cdecl ScriptEngineService(bool Broadcast, unsigned int MSG, void *lpData);
 
 
-extern unsigned long __stdcall MQ2DataVariableLookup(char * VarName, char * Value);
+extern unsigned int __stdcall MQ2DataVariableLookup(char * VarName, char * Value);
 
 // Initialize is called by Inner Space when the extension should initialize.
 bool ISXEQLegacy::Initialize(ISInterface *p_ISInterface)
@@ -186,7 +186,7 @@ void ISXEQLegacy::LoadSettings()
 }
 
 
-void __cdecl PulseService(bool Broadcast, unsigned long MSG, void *lpData)
+void __cdecl PulseService(bool Broadcast, unsigned int MSG, void *lpData)
 {
 	if (MSG==PULSE_PULSE)
 	{
@@ -194,13 +194,13 @@ void __cdecl PulseService(bool Broadcast, unsigned long MSG, void *lpData)
 	}
 }
 
-void __cdecl MemoryService(bool Broadcast, unsigned long MSG, void *lpData)
+void __cdecl MemoryService(bool Broadcast, unsigned int MSG, void *lpData)
 {
 	// no messages are currently associated with this service (other than
 	// system messages such as client disconnect), so do nothing.
 }
 
-void __cdecl EQUIService(bool Broadcast, unsigned long MSG, void *lpData)
+void __cdecl EQUIService(bool Broadcast, unsigned int MSG, void *lpData)
 {
 	switch(MSG)
 	{
@@ -212,16 +212,16 @@ void __cdecl EQUIService(bool Broadcast, unsigned long MSG, void *lpData)
 		break;
 	}
 }
-void __cdecl EQGamestateService(bool Broadcast, unsigned long MSG, void *lpData)
+void __cdecl EQGamestateService(bool Broadcast, unsigned int MSG, void *lpData)
 {
-#define GameState ((unsigned long)lpData)
+#define GameState ((unsigned int)lpData)
 	if (MSG==GAMESTATESERVICE_CHANGED)
 	{
 		// same as SetGameState
 	}
 #undef GameState
 }
-void __cdecl EQSpawnService(bool Broadcast, unsigned long MSG, void *lpData)
+void __cdecl EQSpawnService(bool Broadcast, unsigned int MSG, void *lpData)
 {
 	switch(MSG)
 	{
@@ -244,7 +244,7 @@ void __cdecl EQSpawnService(bool Broadcast, unsigned long MSG, void *lpData)
 	}
 }
 
-void __cdecl EQZoneService(bool Broadcast, unsigned long MSG, void *lpData)
+void __cdecl EQZoneService(bool Broadcast, unsigned int MSG, void *lpData)
 {
 	switch(MSG)
 	{
@@ -260,7 +260,7 @@ void __cdecl EQZoneService(bool Broadcast, unsigned long MSG, void *lpData)
 	}
 }
 
-void __cdecl EQChatService(bool Broadcast, unsigned long MSG, void *lpData)
+void __cdecl EQChatService(bool Broadcast, unsigned int MSG, void *lpData)
 {
 #define pChat ((_EQChat*)lpData)
 	switch(MSG)
@@ -277,7 +277,7 @@ void __cdecl EQChatService(bool Broadcast, unsigned long MSG, void *lpData)
 }
 
 // This uses the Services service to connect to ISXEQ services
-void __cdecl ServicesService(bool Broadcast, unsigned long MSG, void *lpData)
+void __cdecl ServicesService(bool Broadcast, unsigned int MSG, void *lpData)
 {
 #define Name ((char*)lpData)
 	switch(MSG)
@@ -382,7 +382,7 @@ BOOL Calculate(PCHAR szFormula, DOUBLE& Dest)
 	return pISInterface->CalculateResult(szFormula,Dest);
 }
 
-void __cdecl ScriptEngineService(bool Broadcast, unsigned long MSG, void *lpData)
+void __cdecl ScriptEngineService(bool Broadcast, unsigned int MSG, void *lpData)
 {
 	// The messages in this service are more for extensions that want to USE your engine, not
 	// the implementation of the engine

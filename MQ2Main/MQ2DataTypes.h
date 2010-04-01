@@ -2595,13 +2595,13 @@ public:
    {
 	   Name=1,
 	   ID=2,
-	   Accuracy=3,
 	   ReuseTime=4,
 	   MinLevel=5,
-	   StartingSkill=6,
 	   SkillCapPre50=7,
-	   SkillCapPost50=8,
 	   AltTimer=9,
+	   SkillCapPre65,
+	   SkillCapPre70,
+	   Activated,
    };
 	static enum SkillMethods
 	{
@@ -2610,13 +2610,14 @@ public:
    {
 	  TypeMember(Name);
 	  TypeMember(ID);
-	  TypeMember(Accuracy);
 	  TypeMember(ReuseTime);
 	  TypeMember(MinLevel);
-	  TypeMember(StartingSkill);
 	  TypeMember(SkillCapPre50);
-	  TypeMember(SkillCapPost50);
 	  TypeMember(AltTimer);
+
+	  TypeMember(SkillCapPre65);
+	  TypeMember(SkillCapPre70);
+	  TypeMember(Activated);
    }
 
    ~MQ2SkillType()
@@ -2952,6 +2953,8 @@ public:
 	   LootType=7,
 	   Looter=8,
 	   Looters=9,
+	   Locked,
+	   Invited,
    };
 	static enum RaidMethods
 	{
@@ -2967,6 +2970,8 @@ public:
 	  TypeMember(LootType);
 	  TypeMember(Looter);
 	  TypeMember(Looters);
+	  TypeMember(Invited);
+	  TypeMember(Locked);
    }
 
    ~MQ2RaidType()

@@ -32,10 +32,12 @@ HISXSERVICE hEQGamestateService=0;
 HISXSERVICE hEQSpawnService=0;
 HISXSERVICE hEQZoneService=0;
 
+unsigned int ISXEQTemplateXML=0;
+
 // Forward declarations of callbacks
-void __cdecl PulseService(bool Broadcast, unsigned long MSG, void *lpData);
-void __cdecl MemoryService(bool Broadcast, unsigned long MSG, void *lpData);
-void __cdecl ServicesService(bool Broadcast, unsigned long MSG, void *lpData);
+void __cdecl PulseService(bool Broadcast, unsigned int MSG, void *lpData);
+void __cdecl MemoryService(bool Broadcast, unsigned int MSG, void *lpData);
+void __cdecl ServicesService(bool Broadcast, unsigned int MSG, void *lpData);
 
 
 // Initialize is called by Inner Space when the extension should initialize.
@@ -71,9 +73,9 @@ void ISXEQTemplate::Shutdown()
 {
 	// save settings, if you changed them and want to save them now.  You should normally save
 	// changes immediately.
-	//pISInterface->SaveSettings(XMLFileName);
+	//pISInterface->ExportSet(ISXEQTemplateXML,XMLFileName);
 
-	pISInterface->UnloadSettings(XMLFileName);
+	pISInterface->UnloadSet(ISXEQTemplateXML);
 
 	DisconnectServices();
 
@@ -183,48 +185,71 @@ void ISXEQTemplate::UnRegisterServices()
 
 void ISXEQTemplate::LoadSettings()
 {
-	// IS provides easy methods of reading and writing settings of all types (bool, int, string, float, etc)
-	bool BoolSetting=true;
-	char StringSetting[512]={0};
-	int IntSetting=15;
-	float FloatSetting=25.3f;
-	if (!pISInterface->GetSettingi(XMLFileName,"My Section","My Int Setting",IntSetting))
+	bool bChanged=false;
+
+	// open the settings file, and store the ID number in ISXEQTemplateXML
+	ISXEQTemplateXML=pISInterface->OpenSettings(XMLFileName);
+	// This ID is used to refer to the base set of the loaded settings
+
+/*
+Here is an example settings hierarchy:
+base set
+..settings
+.."General" set
+.."Characters" set
+...."Server A" set
+......"Character A" set
+........settings
+......"Character B" set
+........settings
+...."Server B" set
+......"Character A" set
+........settings
+...."Server C" set 
+......"Character A" set
+........settings
+......"Character B" set
+........settings
+......"Character C" set
+........settings
+
+As you can see, there can be any number of nested sets, which can contain sets, settings, and comments.
+Any set can be referred to by its ID.  The base set is stored in ISXEQTemplateXML.  Note that the settings
+are NOT "xml" after loading them, they are simply settings stored in memory!
+*/
+	// Get General set ID, which can be a child of the base set
+	if (unsigned int GeneralGUID=pISInterface->FindSet(ISXEQTemplateXML,"General"))
 	{
-		// int setting did not exist, should we modify the xml?
-		// It returned false, so IntSetting is still our default value of 15. Let's
-		// use that from here, and store it in the xml
-		pISInterface->SetSettingi(XMLFileName,"My Section","My Int Setting",IntSetting);
+		// retrieve a text setting from the General set
+		char Text[512];
+		if (pISInterface->GetSetting(GeneralGUID,"Name of setting",Text,512))
+		{
+			// success
+		}
+		unsigned int IntSetting;
+		if (pISInterface->GetSetting(GeneralGUID,"Name of int setting",IntSetting))
+		{
+			// success
+		}
 	}
-	if (!pISInterface->GetSettingb(XMLFileName,"My Section","My Bool Setting",BoolSetting))
-	{
-		// bool setting did not exist, should we modify the xml?
-		// It returned false, so BoolSetting is still our default value of true. Let's
-		// use that from here, and store it.
-		// Bool settings are stored as integers, so just use SetSettingi
-		pISInterface->SetSettingi(XMLFileName,"My Section","My Bool Setting",BoolSetting);
-	}
-	if (!pISInterface->GetSettingf(XMLFileName,"My Section","My Float Setting",FloatSetting))
-	{
-		// float setting did not exist, should we modify the xml?
-		// It returned false, so FloatSetting is still our default value of 25.3. Let's
-		// use that from here, and store it.
-		pISInterface->SetSettingf(XMLFileName,"My Section","My Float Setting",FloatSetting);
-	}
-	if (!pISInterface->GetSetting(XMLFileName,"My Section","My String Setting",StringSetting,sizeof(StringSetting)))
-	{
-		// string setting did not exist, should we modify the xml?
-		// It returned false, so StringSetting is still our default empty string. 
-		// Let's set it to a new default, "ISXEQTemplate", and store it.
-		strcpy(StringSetting,"ISXEQTemplate");
-		pISInterface->SetSetting(XMLFileName,"My Section","My String Setting",StringSetting);
-	}
+/*
+Deeper sets and settings are accessed in exactly the same way.  If a sub-set of General was to be used,
+accessing it would work like so:
+   if (unsigned int SubSetGUID=pISInterface->FindSet(GeneralGUID,"Sub-set name"))
+   {
+	  // got the sub-set
+   }
+*/
 
 	// save settings if we changed them
-	pISInterface->SaveSettings(XMLFileName);
+	if (bChanged)
+		pISInterface->ExportSet(ISXEQTemplateXML,XMLFileName);
+// Note: ExportSet can save ANY set and its settings, sets, and comments as ANY filename.  The "General" set
+// could be stored as "General.XML" simply by doing pISInterface->ExportSet(GeneralGUID,"General.XML");
 }
 
 
-void __cdecl PulseService(bool Broadcast, unsigned long MSG, void *lpData)
+void __cdecl PulseService(bool Broadcast, unsigned int MSG, void *lpData)
 {
 	if (MSG==PULSE_PULSE)
 	{
@@ -232,13 +257,13 @@ void __cdecl PulseService(bool Broadcast, unsigned long MSG, void *lpData)
 	}
 }
 
-void __cdecl MemoryService(bool Broadcast, unsigned long MSG, void *lpData)
+void __cdecl MemoryService(bool Broadcast, unsigned int MSG, void *lpData)
 {
 	// no messages are currently associated with this service (other than
 	// system messages such as client disconnect), so do nothing.
 }
 
-void __cdecl EQUIService(bool Broadcast, unsigned long MSG, void *lpData)
+void __cdecl EQUIService(bool Broadcast, unsigned int MSG, void *lpData)
 {
 	switch(MSG)
 	{
@@ -250,16 +275,16 @@ void __cdecl EQUIService(bool Broadcast, unsigned long MSG, void *lpData)
 		break;
 	}
 }
-void __cdecl EQGamestateService(bool Broadcast, unsigned long MSG, void *lpData)
+void __cdecl EQGamestateService(bool Broadcast, unsigned int MSG, void *lpData)
 {
-#define GameState ((unsigned long)lpData)
+#define GameState ((unsigned int)lpData)
 	if (MSG==GAMESTATESERVICE_CHANGED)
 	{
 		// same as SetGameState
 	}
 #undef GameState
 }
-void __cdecl EQSpawnService(bool Broadcast, unsigned long MSG, void *lpData)
+void __cdecl EQSpawnService(bool Broadcast, unsigned int MSG, void *lpData)
 {
 	switch(MSG)
 	{
@@ -282,7 +307,7 @@ void __cdecl EQSpawnService(bool Broadcast, unsigned long MSG, void *lpData)
 	}
 }
 
-void __cdecl EQZoneService(bool Broadcast, unsigned long MSG, void *lpData)
+void __cdecl EQZoneService(bool Broadcast, unsigned int MSG, void *lpData)
 {
 	switch(MSG)
 	{
@@ -298,7 +323,7 @@ void __cdecl EQZoneService(bool Broadcast, unsigned long MSG, void *lpData)
 	}
 }
 
-void __cdecl EQChatService(bool Broadcast, unsigned long MSG, void *lpData)
+void __cdecl EQChatService(bool Broadcast, unsigned int MSG, void *lpData)
 {
 #define pChat ((_EQChat*)lpData)
 	switch(MSG)
@@ -314,7 +339,7 @@ void __cdecl EQChatService(bool Broadcast, unsigned long MSG, void *lpData)
 }
 
 // This uses the Services service to connect to ISXEQ services
-void __cdecl ServicesService(bool Broadcast, unsigned long MSG, void *lpData)
+void __cdecl ServicesService(bool Broadcast, unsigned int MSG, void *lpData)
 {
 #define Name ((char*)lpData)
 	switch(MSG)

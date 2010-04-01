@@ -514,7 +514,7 @@ VOID AddEvent(DWORD Event, PCHAR FirstArg, ...)
 } 
 
 #ifdef USEBLECHEVENTS
-void __stdcall EventBlechCallback(unsigned long ID, void * pData, PBLECHVALUE pValues)
+void __stdcall EventBlechCallback(unsigned int ID, void * pData, PBLECHVALUE pValues)
 {
 	DebugSpew("EventBlechCallback(%d,%X,%X) msg='%s'",ID,pData,pValues,EventMsg);
 	PEVENTLIST pEList=(PEVENTLIST)pData;

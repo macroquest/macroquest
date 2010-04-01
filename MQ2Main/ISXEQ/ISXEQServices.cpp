@@ -92,7 +92,7 @@ EQLIB_API VOID PluginsReloadUI()
 	pISInterface->ServiceBroadcast(pExtension,hUIService,UISERVICE_RELOAD,0);
 }
 
-void __cdecl GamestateRequest(ISXInterface *pClient, unsigned long MSG, void *lpData)
+void __cdecl GamestateRequest(ISXInterface *pClient, unsigned int MSG, void *lpData)
 {
 	if (MSG==ISXSERVICE_CLIENTADDED)
 	{
@@ -100,7 +100,7 @@ void __cdecl GamestateRequest(ISXInterface *pClient, unsigned long MSG, void *lp
 		pISInterface->ServiceNotify(pExtension,hGamestateService,(ISXInterface*)lpData,GAMESTATESERVICE_CHANGED,(void*)gGameState);
 	}
 }
-void __cdecl SpawnRequest(ISXInterface *pClient, unsigned long MSG, void *lpData)
+void __cdecl SpawnRequest(ISXInterface *pClient, unsigned int MSG, void *lpData)
 {
 	if (MSG==ISXSERVICE_CLIENTADDED)
 	{
