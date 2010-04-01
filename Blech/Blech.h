@@ -624,11 +624,11 @@ private:
 		{
 			bInitialized=true;
 			ToUpper[0]=0;
-			for(unsigned long i = 1 ; i < 128 ; i++)
-				ToUpper[i]=(char)toupper(i);
-			for (unsigned long i = 128 ; i < 256 ; i++)
+			for(unsigned long iliketmpvars = 1 ; iliketmpvars < 128 ; iliketmpvars++)
+				ToUpper[iliketmpvars]=(char)toupper(iliketmpvars);
+			for (unsigned long iliketmpvarsmore = 128 ; iliketmpvarsmore < 256 ; iliketmpvarsmore++)
 			{
-				ToUpper[i]=(char)i;
+				ToUpper[iliketmpvarsmore]=(char)iliketmpvarsmore;
 			}
 		}
 
