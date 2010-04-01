@@ -866,6 +866,7 @@ PEQRAID pRaid=(PEQRAID)instCRaid;
 DZMEMBER **ppDZMember=(DZMEMBER**)pinstDZMember;
 DZTIMERINFO **ppDZTimerInfo=(DZTIMERINFO**)pinstDZTimerInfo;
 TASKMEMBER **ppTaskMember=(TASKMEMBER**)pinstTaskMember; 
+DYNAMICZONE *pDynamicZone=(DYNAMICZONE*)instDynamicZone;
 
 PMQPLUGIN pPlugins=0;
 PMQXMLFILE pXMLFiles=0;

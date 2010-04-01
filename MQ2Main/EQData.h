@@ -1695,7 +1695,7 @@ typedef struct _DZTIMERINFO {
 
 typedef struct _DZMEMBER {
 /*0x000*/ CHAR   Name[0x40];
-/*0x040*/ DWORD  Status;  // 0="unknown", 1=online, 2=offline, 3="In Dynamic Zone"
+/*0x040*/ DWORD  Status;  // 0="unknown", 1="Online", 2="Offline", 3="In Dynamic Zone", 4="Link Dead"
 /*0x044*/ struct _DZMEMBER *pNext;
 /*0x048*/
 } DZMEMBER, *PDZMEMBER;
@@ -1711,10 +1711,10 @@ typedef struct _TASKMEMBER {
 typedef struct _DYNAMICZONE {
 /*0x000*/ void   *vftable;
 /*0x004*/ BYTE   Unknown0x04[0x46];
-/*0x04a*/ CHAR   Name[0x40];
+/*0x04a*/ CHAR   Name[0x40]; // your name
 /*0x08a*/ CHAR   ExpeditionName[0x80];
 /*0x10a*/ BYTE   Unknown0x10a[0x2];
-/*0x10c*/ WORD   MaxPlayers; // maybe?
+/*0x10c*/ WORD   MaxPlayers;
 /*0x10e*/ BYTE   Unknown0x10e[0x2];
 /*0x110*/ struct _DZMEMBER *pMemberList;
 /*0x114*/ PCHAR  expeditionName;

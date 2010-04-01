@@ -98,7 +98,7 @@
 #define pinstControlledPlayer                                      0x887684
 #define pinstCSidlManager                                          0x91EE4C
 #define pinstCXWndManager                                          0x91EE44
-#define pinstDynamicZone                                           0x8A4DC0
+#define instDynamicZone                                            0x8A4DC0
 #define pinstDZMember                                              0x8A4ED0
 #define pinstDZTimerInfo                                           0x8A4ED4
 #define pinstEQItemList                                            0x887644
@@ -606,6 +606,7 @@
 #define EQ_PC__GetCombatAbility                                    0x5FDF30
 #define EQ_PC__GetCombatAbilityTimer                               0x5FDFE0
 #define EQ_PC__GetItemTimerValue                                   0x4E6AF0
+#define EQ_PC__HasLoreItem                                         0x4E9E30
 
 // EQItemList 
 #define EQItemList__dEQItemList                                    0x48F5A0

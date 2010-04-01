@@ -108,6 +108,8 @@ LEGACY_VAR class MQ2RaidMemberType *pRaidMemberType;
 LEGACY_VAR class MQ2GroupType *pGroupType;
 LEGACY_VAR class MQ2GroupMemberType *pGroupMemberType;
 LEGACY_VAR class MQ2EvolvingItemType *pEvolvingItemType;
+LEGACY_VAR class MQ2DynamicZoneType *pDynamicZoneType;
+LEGACY_VAR class MQ2DZMemberType *pDZMemberType;
 
 #define UseTemp(mystring) strcpy(DataTypeTemp,mystring)
 #define TypeMember(name) AddMember((DWORD)name,""#name)
@@ -3140,6 +3142,80 @@ public:
 			strcpy(Destination,"TRUE");
 		else
 			strcpy(Destination,"FALSE");
+		return true;
+	}
+	bool FromData(MQ2VARPTR &VarPtr, MQ2TYPEVAR &Source)
+	{
+		return false;
+	}
+	bool FromString(MQ2VARPTR &VarPtr, PCHAR Source)
+	{
+		return false;
+	}
+};
+
+class MQ2DynamicZoneType : public MQ2Type
+{
+public:
+	static enum DynamicZoneMembers
+	{
+		Name=1,
+		Members=2,
+		MaxMembers=3,
+		xMember=4,
+		Leader=5,
+	};
+	MQ2DynamicZoneType():MQ2Type("dynamiczone")
+	{
+		TypeMember(Name);
+		TypeMember(Members);
+		TypeMember(MaxMembers);
+		AddMember(xMember,"Member");
+		TypeMember(Leader);
+	}
+	~MQ2DynamicZoneType()
+	{
+	}
+	bool GETMEMBER();
+	bool ToString(MQ2VARPTR VarPtr, PCHAR Destination)
+	{
+		if(pDZMember)
+		{
+			strcpy(Destination,pDynamicZone->ExpeditionName);
+			return true;
+		}
+		return false;
+	}
+	bool FromData(MQ2VARPTR &VarPtr, MQ2TYPEVAR &Source)
+	{
+		return false;
+	}
+	bool FromString(MQ2VARPTR &VarPtr, PCHAR Source)
+	{
+		return false;
+	}
+};
+
+class MQ2DZMemberType : public MQ2Type
+{
+public:
+	static enum DZMemberTypeMembers
+	{
+		Name=1,
+		Status=2,
+	};
+	MQ2DZMemberType():MQ2Type("dzmember")
+	{
+		TypeMember(Name);
+		TypeMember(Status);
+	}
+	~MQ2DZMemberType()
+	{
+	}
+	bool GETMEMBER();
+	bool ToString(MQ2VARPTR VarPtr, PCHAR Destination)
+	{
+		strcpy(Destination,((PDZMEMBER)VarPtr.Ptr)->Name);
 		return true;
 	}
 	bool FromData(MQ2VARPTR &VarPtr, MQ2TYPEVAR &Source)

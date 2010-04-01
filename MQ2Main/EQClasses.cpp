@@ -175,6 +175,7 @@ FUNCTION_AT_VIRTUAL_ADDRESS(int CXWnd::HandleRButtonDown(class CXPoint *,unsigne
 FUNCTION_AT_VIRTUAL_ADDRESS(int CXWnd::HandleRButtonUp(class CXPoint *,unsigned __int32),0x48);
 FUNCTION_AT_VIRTUAL_ADDRESS(int CXWnd::HandleRButtonHeld(class CXPoint *,unsigned __int32),0x4C);
 FUNCTION_AT_VIRTUAL_ADDRESS(int CXWnd::HandleRButtonUpAfterHeld(class CXPoint *,unsigned __int32),0x50);
+FUNCTION_AT_VIRTUAL_ADDRESS(int CXWnd::OnMinimizeBox(void),0x98);
 
 
 FUNCTION_AT_VIRTUAL_ADDRESS(void CListWnd::DeleteAll(void),0x130);
@@ -4537,6 +4538,9 @@ FUNCTION_AT_ADDRESS(int  EQ_PC::GetCombatAbility(int),EQ_PC__GetCombatAbility);
 #endif
 #ifdef EQ_PC__GetCombatAbilityTimer
 FUNCTION_AT_ADDRESS(unsigned long  EQ_PC::GetCombatAbilityTimer(int),EQ_PC__GetCombatAbilityTimer);
+#endif
+#ifdef EQ_PC__HasLoreItem
+FUNCTION_AT_ADDRESS(unsigned long  EQ_PC::HasLoreItem(class EQ_Item *),EQ_PC__HasLoreItem);
 #endif
 #ifdef CInvSlot__HandleLButtonDown
 FUNCTION_AT_ADDRESS(void  CInvSlot::HandleLButtonDown(class CXPoint),CInvSlot__HandleLButtonDown);

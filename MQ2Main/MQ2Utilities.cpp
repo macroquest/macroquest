@@ -1313,17 +1313,53 @@ PCHAR GetSpellEffectName(LONG EffectID, PCHAR szBuffer)
    case 5: 
       strcat(szBuff,"DEX"); 
       break; 
+   case 11: 
+      strcat(szBuff,"Attack Speed"); 
+      break; 
+   case 15: 
+      strcat(szBuff,"Mana Regeneration"); 
+      break; 
+   case 18: 
+      strcat(szBuff,"Pacify"); 
+      break; 
+   case 21: 
+      strcat(szBuff,"Stun"); 
+      break; 
+   case 22: 
+      strcat(szBuff,"Charm"); 
+      break; 
    case 31: 
       strcat(szBuff,"Mesmerize"); 
       break; 
    case 32: 
       strcat(szBuff,"Summon Item"); 
       break; 
+   case 33: 
+      strcat(szBuff,"Summon Pet"); 
+      break; 
+   case 35: 
+      strcat(szBuff,"Disease Counter"); 
+      break; 
+   case 36: 
+      strcat(szBuff,"Poison Counter"); 
+      break; 
    case 40: 
       strcat(szBuff,"Invunerability"); 
       break; 
+   case 46: 
+      strcat(szBuff,"Fire Resist"); 
+      break; 
    case 47: 
       strcat(szBuff,"Cold Resist"); 
+      break; 
+   case 48: 
+      strcat(szBuff,"Poison Resist"); 
+      break; 
+   case 49: 
+      strcat(szBuff,"Disease Resist"); 
+      break; 
+   case 50: 
+      strcat(szBuff,"Magic Resist"); 
       break; 
    case 59: 
       strcat(szBuff,"Damage Shield"); 
@@ -1331,17 +1367,29 @@ PCHAR GetSpellEffectName(LONG EffectID, PCHAR szBuffer)
    case 69: 
       strcat(szBuff,"Max Hitpoints"); 
       break; 
+   case 71: 
+      strcat(szBuff,"Summon Skeleton Pet"); 
+      break; 
    case 86: 
       strcat(szBuff,"Reaction Radius"); 
       break; 
    case 101: 
       strcat(szBuff,"Complete Heal (with duration)"); 
       break; 
+   case 116: 
+      strcat(szBuff,"Curse Counter"); 
+      break; 
    case 123: //screech 
       strcat(szBuff, "Screech"); 
       break;
    case 147: 
       strcat(szBuff,"Percentage Heal"); 
+      break; 
+   case 369: 
+      strcat(szBuff,"Corruption Counter"); 
+      break; 
+   case 370: 
+      strcat(szBuff,"Corruption Resist"); 
       break; 
    default: 
       sprintf(szTemp, "UndefinedEffect%03d", EffectID); 
@@ -1519,10 +1567,16 @@ PCHAR ShowSpellSlotInfo(PSPELL pSpell, PCHAR szBuffer)
          break; 
       case 25: //Bind Affinity 
          strcat(szBuff, "Bind Affinity"); 
+         if (pSpell->Base[i]==2) strcat(szBuff, " (Secondary Bind Point)"); 
          break; 
       case 26: //Gate 
-         strcat(szBuff, "Gate"); 
-         break; 
+         if (pSpell->Base2[1]==1) { 
+             strcat(szBuff, "Gate"); 
+             break; 
+         } else if (pSpell->Base2[1]==2) { 
+                 strcat(szBuff, "Gate to Secondary Bind Point"); 
+                 break;        
+         } 
       case 27: //Cancel Magic(c) 
          sprintf(szTemp, "Cancel Magic(%d)", pSpell->Base[i]); 
          strcat(szBuff, szTemp); 
@@ -1712,8 +1766,9 @@ PCHAR ShowSpellSlotInfo(PSPELL pSpell, PCHAR szBuffer)
          strcat(szBuff, "Summon Player"); 
          break; 
       case 83: //zone portal spells 
-         sprintf(szTemp, "Teleport to %d, %d, %d in %s facing %s", 
-            pSpell->Base[1], pSpell->Base[2], pSpell->Base[3], pSpell->Extra, szHeading[pSpell->Base[4]]); 
+         if (pSpell->TargetType==6) strcat(szBuff, "Gate to "); 
+         else strcat(szBuff, "Teleport Group to "); 
+         sprintf(szTemp, "%d, %d, %d in %s facing %s", pSpell->Base[1], pSpell->Base[2], pSpell->Base[3], GetFullZone(GetZoneID(pSpell->Extra)), szHeading[pSpell->Base[4]]); 
          strcat(szBuff, szTemp); 
          break; 
       case 84: //Toss on Z axis 
@@ -1723,7 +1778,7 @@ PCHAR ShowSpellSlotInfo(PSPELL pSpell, PCHAR szBuffer)
          strcat(szBuff, szTemp); 
          break; 
       case 85: //Add Proc 
-         sprintf(szTemp,"Add Proc: %s id:%d", GetSpellNameByID(pSpell->Base[i]), pSpell->Base[i]); 
+         sprintf(szTemp,"Add Proc: \au%s \axid:\ay%d", GetSpellNameByID(pSpell->Base[i]), pSpell->Base[i]); 
          strcat(szBuff, szTemp); 
          break; 
       case 86: //Reaction Radius(c/level) 
@@ -1808,8 +1863,12 @@ PCHAR ShowSpellSlotInfo(PSPELL pSpell, PCHAR szBuffer)
          strcat(szBuff, "Call Pet"); 
          break; 
       case 104: //zone translocate spells 
-         sprintf(szTemp, "Translocate to %d, %d, %d in %s facing %s", 
-            pSpell->Base[1], pSpell->Base[2], pSpell->Base[3], pSpell->Extra, szHeading[pSpell->Base[4]]); 
+         strcat(szBuff, "Translocate to "); 
+         if (pSpell->Extra){ 
+           sprintf(szTemp, "%d, %d, %d in %s facing %s", pSpell->Base[1], pSpell->Base[2], pSpell->Base[3], GetFullZone(GetZoneID(pSpell->Extra)), szHeading[pSpell->Base[4]]); 
+         } else { 
+           strcat(szTemp, "Bind Point"); 
+         } 
          strcat(szBuff, szTemp); 
          break; 
       case 105: //Anti-Gate 
@@ -2278,13 +2337,13 @@ PCHAR ShowSpellSlotInfo(PSPELL pSpell, PCHAR szBuffer)
       case 185: //Damage Mod (how to tell which, rogues get a backstab only, others get an all skills) 
          if ( pSpell->Base[i] < 0 ) strcat(szBuff, "Decrease "); 
          if ( pSpell->Base[i] > 0 ) strcat(szBuff, "Increase "); 
-         sprintf(szTemp, "(Unknown Calc) Damage Modifier by %dpct", pSpell->Base[i]); 
+         sprintf(szTemp, "All Skills Damage Modifier by %d%%", pSpell->Base[i]); 
          strcat(szBuff, szTemp); 
          break; 
       case 186: //Damage Mod (see above) 
          if ( pSpell->Base[i] < 0 ) strcat(szBuff, "Decrease "); 
          if ( pSpell->Base[i] > 0 ) strcat(szBuff, "Increase "); 
-         sprintf(szTemp, "(Unknown Calc) Minimum Damage Modifier by %dpct", pSpell->Base[i]); 
+         sprintf(szTemp, "All Skills Minimum Damage Modifier by %d%%", pSpell->Base[i]); 
          strcat(szBuff, szTemp); 
          break; 
       case 188: //Block 
@@ -2453,6 +2512,10 @@ PCHAR ShowSpellSlotInfo(PSPELL pSpell, PCHAR szBuffer)
          sprintf(szTemp, "Flurry Chance (%d)", pSpell->Base[i]); 
          strcat(szBuff, szTemp); 
          break; 
+      case 286: // Additional Damage to Spell 
+         sprintf(szTemp, "Additional Damage to Spell(%d)", pSpell->Base[i]); 
+         strcat(szBuff,szTemp); 
+         break; 
       case 289: // Improved Spell Effect 
          sprintf(szTemp,"Improved Spell Effect: %s",GetSpellByID(pSpell->Base[i])->Name); 
          strcat(szBuff,szTemp); 
@@ -2553,6 +2616,45 @@ PCHAR ShowSpellSlotInfo(PSPELL pSpell, PCHAR szBuffer)
          sprintf(szTemp, "Decrease Hitpoints by %d (L%d) to %d(L%d)", (pSpell->Max[i] + pSpell->Base[i]), pSpell->Level[8], pSpell->Max[i],MAX_PC_LEVEL); 
          strcat(szBuff, szTemp); 
          break;
+      case 337: //Experience buff 
+        sprintf(szTemp, "Increase experience rate by %d percent.",pSpell->Base[i]); 
+         strcat(szBuff, szTemp); 
+         break; 
+      case 339: //Cast DoT as well 
+         sprintf(szTemp, "Cast DoT as Well(%d%% Chance, Spell: %s)", pSpell->Base[i], GetSpellNameByID(pSpell->Base2[i])); 
+        strcat(szBuff, szTemp); 
+         break; 
+      case 340: //Cast DD as well 
+         sprintf(szTemp, "Cast DD as Well(%d%% Chance, Spell: %s)", pSpell->Base[i], GetSpellNameByID(pSpell->Base2[i])); 
+         strcat(szBuff, szTemp); 
+         break; 
+      case 360: // Killshot Triggers 
+         if (pSpell->Base2[i]) sprintf(szTemp,"Chance to Trigger on Non-Trivial Killshot: %s", GetSpellByID(pSpell->Base2[i])->Name); 
+         strcat(szBuff,szTemp); 
+         break; 
+      case 365: // Chance to Create EE on killshot 
+         sprintf(szTemp, "Chance to Create Essence Emerald on Non-Trivial Killshot"); 
+         strcat(szBuff,szTemp); 
+         break; 
+      case 367: // Change Body Type 
+         sprintf(szTemp, "Change Body Type to "); 
+         if (pSpell->Base[i]==25) strcat(szTemp, "Plant"); 
+         else if (pSpell->Base[i]==21) strcat(szTemp, "Animal"); 
+         else strcat(szTemp, "Unknown"); 
+         strcat(szBuff,szTemp); 
+         break;
+	  case 369: // Corruption Counters 
+         if (pSpell->Base[i] < 0) strcat(szBuff, "Decrease "); 
+         if (pSpell->Base[i] > 0) strcat(szBuff, "Increase "); 
+         strcat(szBuff," Corruption Counter by "); 
+         SlotValueCalculate(szBuff, pSpell, i, 1); 
+         break; 
+      case 370: // Corruption Resists 
+         if ( pSpell->Base[i] < 0 ) strcat(szBuff, "Decrease "); 
+         if ( pSpell->Base[i] > 0 ) strcat(szBuff, "Increase "); 
+         strcat(szBuff, "Corruption Resist by "); 
+         SlotValueCalculate(szBuff, pSpell, i , 1); 
+         break; 
       default: //undefined effect 
          sprintf(szTemp, "UnknownEffect%03d", pSpell->Attrib[i]); 
          strcat(szBuff,szTemp); 

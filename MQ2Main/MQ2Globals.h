@@ -408,6 +408,7 @@ EQLIB_VAR PEQRAID pRaid;
 EQLIB_VAR DZMEMBER **ppDZMember;
 EQLIB_VAR TASKMEMBER **ppTaskMember;
 EQLIB_VAR DZTIMERINFO **ppDZTimerInfo;
+EQLIB_VAR DYNAMICZONE *pDynamicZone;
 
 EQLIB_VAR PINT pgCurrentSocial;
 #define gCurrentSocial (*pgCurrentSocial)

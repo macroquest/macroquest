@@ -1344,3 +1344,10 @@ TLO(dataItemTarget)
 	}
 	return false;
 }
+
+TLO(dataDynamicZone)
+{
+	Ret.DWord=0;
+	Ret.Type=pDynamicZoneType;
+	return true;
+}

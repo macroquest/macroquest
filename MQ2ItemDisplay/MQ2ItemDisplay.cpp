@@ -343,6 +343,17 @@ public:
             CXStrReplace (&This->ItemInfo, cFind, cReplace);
          }
 
+			//Highlight Lore Items - pinkfloydx33
+			if (Item->Lore) {
+				if (pPCData->HasLoreItem(pitem)) {
+					sprintf (cReplace, "<c \"#FF4040\">LORE ITEM</C>");
+				} else {
+					sprintf (cReplace, "<c \"#20FF20\">LORE ITEM</C>");
+				}
+				sprintf (cFind, "LORE ITEM");
+				CXStrReplace(&This->ItemInfo, cFind, cReplace);
+			}
+
          // Highlight good/bad class match
          int iClassBit = 1 << (GetCharInfo2()->Class - 1);
          if (!(Item->Classes & iClassBit)) {

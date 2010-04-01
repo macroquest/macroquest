@@ -222,7 +222,7 @@ void InitializeMQ2Windows()
 	}
 	AddSlotArray(bank,24,2000);
 	AddSlotArray(sharedbank,2,2500);
-	AddSlotArray(trade,8,3000);
+	AddSlotArray(trade,16,3000);
 	AddSlotArray(world,10,4000);
 	AddSlotArray(enviro,10,4000);
 	AddSlotArray(loot,31,5000);
@@ -1052,7 +1052,7 @@ int WndNotify(int argc, char *argv[])
 // 2000-2015 bank window
 // 2500-2501 shared bank
 // 5000-5031 loot window
-// 3000-3008 trade window (including npc)
+// 3000-30017 trade window (including npc) 3000-3007 are your slots, 3008-3015 are other character's slots
 // 4000-4008 world container window
 // 6000-6080 merchant window
 // 7000-7080 bazaar window

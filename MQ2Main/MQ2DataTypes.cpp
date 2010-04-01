@@ -69,17 +69,15 @@ class MQ2ArgbType *pArgbType=0;
 class MQ2TypeType *pTypeType=0;
 class MQ2HeadingType *pHeadingType=0;
 class MQ2InvSlotType *pInvSlotType=0;
-
 class MQ2TimerType *pTimerType=0;
-
 class MQ2PluginType *pPluginType=0;
-
 class MQ2RaidType *pRaidType=0;
 class MQ2RaidMemberType *pRaidMemberType=0;
-
 class MQ2GroupType *pGroupType=0;
 class MQ2GroupMemberType *pGroupMemberType=0;
 class MQ2EvolvingItemType *pEvolvingItemType=0;
+class MQ2DynamicZoneType *pDynamicZoneType=0;
+class MQ2DZMemberType *pDZMemberType=0;
 
 #ifndef ISXEQ
 
@@ -122,11 +120,12 @@ void InitializeMQ2DataTypes()
 	pAltAbilityType = new MQ2AltAbilityType;
 	pRaidType = new MQ2RaidType;
 	pRaidMemberType = new MQ2RaidMemberType;
-
 	pGroupType = new MQ2GroupType;
 	pGroupMemberType = new MQ2GroupMemberType;
 	pGroupMemberType->SetInheritance(pSpawnType);
 	pEvolvingItemType=new MQ2EvolvingItemType;
+	pDynamicZoneType=new MQ2DynamicZoneType;
+	pDZMemberType=new MQ2DZMemberType;
 
 	// NOTE: SetInheritance does NOT make it inherit, just notifies the syntax checker...
 	pCharacterType->SetInheritance(pSpawnType);
@@ -176,6 +175,7 @@ void ShutdownMQ2DataTypes()
 	delete pGroupType;
 	delete pGroupMemberType;
 	delete pEvolvingItemType;
+	delete pDynamicZoneType;
 }
 
 bool MQ2TypeType::GETMEMBER()
@@ -3168,7 +3168,8 @@ bool MQ2SpellType::GETMEMBER()
 		Dest.Type=pStringType;
 		int i;
 		for (i=0; i<=11; i++){
-			 switch(pSpell->Attrib[i]){
+			 switch(pSpell->Attrib[i])
+			 {
 				  case 35:   
 						Dest.Ptr="Disease";
 						return true;
@@ -3178,6 +3179,9 @@ bool MQ2SpellType::GETMEMBER()
 				  case 116: 
 						Dest.Ptr="Curse";
 						return true;
+				  case 369: 
+						Dest.Ptr="Corruption"; 
+						return true;                
 			 }
 		}
 		Dest.Ptr="None";
@@ -3188,7 +3192,7 @@ bool MQ2SpellType::GETMEMBER()
 		Dest.Type=pIntType;
 		int i;
 		for (i=0; i<=11; i++){
-			 if ((pSpell->Attrib[i] == 35) || (pSpell->Attrib[i] == 36) || (pSpell->Attrib[i] == 116)){
+                if ((pSpell->Attrib[i] == 35) || (pSpell->Attrib[i] == 36) || (pSpell->Attrib[i] == 116) || (pSpell->Attrib[i] == 369)){
 				  Dest.DWord = (int)pSpell->Base[i];
 				  return true;
 			 }
@@ -5867,6 +5871,123 @@ bool MQ2EvolvingItemType::GETMEMBER()
 	case MaxLevel:
 		Dest.DWord=pItem->EvolvingMaxLevel;
 		Dest.Type=pIntType;
+		return true;
+	}
+	return false;
+}
+
+bool MQ2DynamicZoneType::GETMEMBER()
+{
+	if(!pDZMember)
+		return false;
+	PMQ2TYPEMEMBER pMember=MQ2DynamicZoneType::FindMember(Member);
+	if(!pMember)
+		return false;
+	switch((DynamicZoneMembers)pMember->ID)
+	{
+	case Name:
+		Dest.Ptr=pDynamicZone->ExpeditionName;
+		Dest.Type=pStringType;
+		return true;
+	case Members:
+		{
+			Dest.DWord=0;
+			PDZMEMBER pDynamicZoneMember=pDynamicZone->pMemberList;
+			while(pDynamicZoneMember)
+			{
+				Dest.DWord++;
+				pDynamicZoneMember=pDynamicZoneMember->pNext;
+			}
+		}
+		Dest.Type=pIntType;
+		return true;
+	case MaxMembers:
+		Dest.DWord=pDynamicZone->MaxPlayers;
+		Dest.Type=pIntType;
+		return true;
+	case xMember:
+		if(ISINDEX())
+		{
+			PDZMEMBER pDynamicZoneMember=pDynamicZone->pMemberList;
+			if(ISNUMBER())
+			{
+				DWORD Count=GETNUMBER();
+				if (!Count || Count>pDynamicZone->MaxPlayers)
+					return false;
+				Count--;
+				for(DWORD i=0; pDynamicZoneMember!=0; i++)
+				{
+					if(i==Count)
+					{
+						Dest.Ptr=pDynamicZoneMember;
+						Dest.Type=pDZMemberType;
+						return true;
+					}
+					pDynamicZoneMember=pDynamicZoneMember->pNext;
+				}
+			}
+			else
+			{
+				while(pDynamicZoneMember)
+				{
+					if(!stricmp(pDynamicZoneMember->Name,GETFIRST()))
+					{
+						Dest.Ptr=pDynamicZoneMember;
+						Dest.Type=pDZMemberType;
+						return true;
+					}
+					pDynamicZoneMember=pDynamicZoneMember->pNext;
+				}
+			}
+		}
+		return false;
+	case Leader:
+		{
+			PDZMEMBER pDynamicZoneMember=pDynamicZone->pMemberList;
+			for(DWORD i=0; i<pDynamicZone->MaxPlayers; i++)
+			{
+				if(!strcmp(pDynamicZoneMember->Name,(char*)instExpeditionLeader))
+				{
+					Dest.Ptr=pDynamicZoneMember;
+					Dest.Type=pDZMemberType;
+					return true;
+				}
+				pDynamicZoneMember=pDynamicZoneMember->pNext;
+			}
+		}
+	}
+	return false;
+}
+
+bool MQ2DZMemberType::GETMEMBER()
+{
+	if(!VarPtr.Ptr)
+		return false;
+	PMQ2TYPEMEMBER pMember=MQ2DZMemberType::FindMember(Member);
+	if(!pMember)
+		return false;
+	PDZMEMBER pDynamicZoneMember=(PDZMEMBER)VarPtr.Ptr;
+	switch((DZMemberTypeMembers)pMember->ID)
+	{
+	case Name:
+		Dest.Ptr=pDynamicZoneMember->Name;
+		Dest.Type=pStringType;
+		return true;
+	case Status:
+		switch(pDynamicZoneMember->Status)
+		{
+		case 0:
+			Dest.Ptr="Unknown";
+		case 1:
+			Dest.Ptr="Online";
+		case 2:
+			Dest.Ptr="Offline";
+		case 3:
+			Dest.Ptr="In Dynamic Zone";
+		case 4:
+			Dest.Ptr="Link Dead";
+		}
+		Dest.Type=pStringType;
 		return true;
 	}
 	return false;

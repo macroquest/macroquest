@@ -1,3 +1,21 @@
+30 December 2006 by ieatacid
+- Added DynamicZone TLO which has the following members
+.. string Name
+.. int Members
+.. int MaxMembers
+.. dzmember Member (number or string as a parameter)
+.. dzmember Leader
+.. to string - same as Name
+- Added dzmember type, with members:
+.. string Name
+.. string Status - returns: Unknown, Online, Offline, In Dynamic Zone (no idea what this
+   is, it's in the exe), Link Dead
+.. to string - same as Name
+
+23 December 2006 by rswiders
+- Updates for GetSpellEffectName, ShowSpellSlotInfo (differentiation, pinkfloydx33)
+- Updates for Counters in datatypes (pinkfloydx33)
+
 14 December 2006 by ieatacid
 - Updated for today's patch
 

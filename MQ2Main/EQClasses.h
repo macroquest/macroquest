@@ -5625,6 +5625,7 @@ EQLIB_OBJECT void EQ_PC::SetFatigue(int);
 EQLIB_OBJECT void EQ_PC::UnpackMyNetPC(char *,int);
 EQLIB_OBJECT unsigned long EQ_PC::GetCombatAbilityTimer(int);
 EQLIB_OBJECT unsigned long EQ_PC::GetItemTimerValue(class EQ_Item *);
+EQLIB_OBJECT unsigned long EQ_PC::HasLoreItem(class EQ_Item *);
 };
 
 class EQ_Skill
