@@ -512,6 +512,7 @@ LEGACY_API VOID ParseSearchSpawn(int BeginInclusive, int EndExclusive,char *argv
 EQLIB_API PCHAR FormatSearchSpawn(PCHAR Buffer, PSEARCHSPAWN pSearchSpawn);
 EQLIB_API BOOL IsPCNear(PSPAWNINFO pSpawn, FLOAT Radius);
 EQLIB_API BOOL IsInGroup(PSPAWNINFO pSpawn);
+EQLIB_API BOOL IsInRaid(PSPAWNINFO pSpawn);
 EQLIB_API BOOL IsAlert(PSPAWNINFO pChar, PSPAWNINFO pSpawn, DWORD List);
 EQLIB_API PALERT GetAlert(DWORD Id);
 EQLIB_API VOID AddNewAlertList(DWORD Id, PALERT pAlert);

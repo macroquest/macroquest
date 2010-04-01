@@ -135,13 +135,13 @@ public:
 	}
 	/**/
 
-	void EQPlayer_Trampoline(DWORD,DWORD,DWORD,DWORD,DWORD);
-	void EQPlayer_Detour(DWORD a,DWORD b,DWORD c,DWORD d,DWORD e)
+	void EQPlayer_Trampoline(DWORD,DWORD,DWORD,DWORD,DWORD,DWORD,DWORD);
+	void EQPlayer_Detour(DWORD p1,DWORD p2,DWORD p3,DWORD p4,DWORD p5, DWORD p6, DWORD p7)
 	{
 		PSPAWNINFO pSpawn;
 		__asm {mov [pSpawn], ecx};
 
-		EQPlayer_Trampoline(a,b,c,d,e);
+		EQPlayer_Trampoline(p1,p2,p3,p4,p5,p6,p7);
 		EQPlayer_ExtraDetour(pSpawn);
 		/**/
 	}
@@ -182,12 +182,14 @@ public:
 class CActorEx
 {
 public:
-	bool CanSetName(DWORD);
-	void SetNameColor(DWORD &Color);
+    bool CanSetName(DWORD);
+    void SetNameColor(DWORD &Color);
+    void CActorEx::ChangeBoneStringSprite(int, int, char *);
 };
 
-FUNCTION_AT_VIRTUAL_ADDRESS(bool CActorEx::CanSetName(DWORD),0x16c);
-FUNCTION_AT_VIRTUAL_ADDRESS(void CActorEx::SetNameColor(DWORD &Color),0x15c);
+FUNCTION_AT_VIRTUAL_ADDRESS(bool CActorEx::CanSetName(DWORD),0x17c);
+FUNCTION_AT_VIRTUAL_ADDRESS(void CActorEx::SetNameColor(DWORD &Color),0x15c+0xc);
+FUNCTION_AT_VIRTUAL_ADDRESS(void CActorEx::ChangeBoneStringSprite(int, int, char *),0x164);
 #endif
 
 typedef struct _CAPTIONCOLOR {
@@ -488,7 +490,7 @@ BOOL SetNameSpriteState(PSPAWNINFO pSpawn, bool Show)
 				pNamingSpawn=pSpawn;\
 				ParseMacroParameter(GetCharInfo()->pSpawn,NewCaption);\
 				pNamingSpawn=0;\
-				((EQPlayer*)pSpawn)->ChangeBoneStringSprite(0,NewCaption);\
+                                ((EQPlayer*)pSpawn)->ChangeBoneStringSprite(0,NewCaption);\
 				return 1;\
 			}\
 		}
@@ -561,7 +563,7 @@ VOID UpdateSpawnCaptions()
 DETOUR_TRAMPOLINE_EMPTY(bool EQPlayerHook::SetNameSpriteTint_Trampoline(void));
 DETOUR_TRAMPOLINE_EMPTY(int EQPlayerHook::SetNameSpriteState_Trampoline(bool Show));
 DETOUR_TRAMPOLINE_EMPTY(VOID EQPlayerHook::dEQPlayer_Trampoline(VOID)); 
-DETOUR_TRAMPOLINE_EMPTY(VOID EQPlayerHook::EQPlayer_Trampoline(DWORD,DWORD,DWORD,DWORD,DWORD)); 
+DETOUR_TRAMPOLINE_EMPTY(VOID EQPlayerHook::EQPlayer_Trampoline(DWORD,DWORD,DWORD,DWORD,DWORD,DWORD,DWORD)); 
 
 VOID InitializeMQ2Spawns()
 {

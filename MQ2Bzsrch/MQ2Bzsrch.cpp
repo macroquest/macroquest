@@ -22,6 +22,8 @@ GNU General Public License for more details.
 
 #include "../MQ2Plugin.h"
 
+PLUGIN_VERSION(1.1);
+
 struct _BazaarSearchRequestPacket {
    /* 0x0 */   int     BSRCommand;     // should be 7               -7c
    /* 0x4 */   int     BSRTraderID;    // default 0                 -78
@@ -545,7 +547,7 @@ VOID BzSrchMe(PSPAWNINFO pChar, PCHAR szLine)
 
    // clear out the old list or the new entries will be
    // added to them
-   class CListWnd *ptr = *(class CListWnd **) ((char *)pBazaarSearchWnd+0x3ce0);
+   class CListWnd *ptr = *(class CListWnd **) ((char *)pBazaarSearchWnd+0x3cf8);
    ptr->DeleteAll();
 
 

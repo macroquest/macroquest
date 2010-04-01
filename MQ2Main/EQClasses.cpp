@@ -7073,7 +7073,7 @@ FUNCTION_AT_ADDRESS( CSidlScreenWnd::CSidlScreenWnd(class CXWnd *x,class CXStr),
 FUNCTION_AT_ADDRESS(void  CSidlScreenWnd::Init(class CXWnd *,unsigned __int32,class CXRect,class CXStr,int,char *),CSidlScreenWnd__Init);
 #endif
 #ifdef CSidlScreenWnd__Init1
-FUNCTION_AT_ADDRESS(void  CSidlScreenWnd::Init(class CXWnd *,class CXStr*,int,char *),CSidlScreenWnd__Init1);
+FUNCTION_AT_ADDRESS(void  CSidlScreenWnd::Init(int,class CXStr*,int,int,int),CSidlScreenWnd__Init1);
 #endif
 #ifdef CSidlScreenWnd__SetScreen
 FUNCTION_AT_ADDRESS(void  CSidlScreenWnd::SetScreen(class CXStr*),CSidlScreenWnd__SetScreen);

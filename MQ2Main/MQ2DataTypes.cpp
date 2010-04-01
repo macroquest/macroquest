@@ -3195,12 +3195,14 @@ bool MQ2ItemType::GETMEMBER()
 		}
 		return false;
 	case BuyPrice:
+#if 0
 		if (pActiveMerchant)
 		{
 			Dest.DWord=pItem->Price;
 			Dest.Type=pIntType;
 			return true;
 		}
+#endif
 		return false;
 	case SellPrice:
 		if (pActiveMerchant)

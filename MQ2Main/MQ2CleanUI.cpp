@@ -152,7 +152,7 @@ VOID InitializeDisplayHook()
 #ifndef ISXEQ
 	EzDetour(DrawNetStatus,DrawHUD_Detour,DrawHUD_Trampoline);
 #endif
-	EzDetour(EQ_LoadingS__WriteTextHD,EQ_LoadingSHook::WriteTextHD_Detour,EQ_LoadingSHook::WriteTextHD_Trampoline);
+	//EzDetour(EQ_LoadingS__WriteTextHD,EQ_LoadingSHook::WriteTextHD_Detour,EQ_LoadingSHook::WriteTextHD_Trampoline);
 }
 
 VOID ShutdownDisplayHook()
@@ -165,6 +165,6 @@ VOID ShutdownDisplayHook()
 #ifndef ISXEQ
 	RemoveDetour(DrawNetStatus);
 #endif
-	RemoveDetour(EQ_LoadingS__WriteTextHD);
+	//RemoveDetour(EQ_LoadingS__WriteTextHD);
 //	RemoveDetour(CDisplay__GetWorldFilePath);
 }

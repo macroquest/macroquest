@@ -54,6 +54,7 @@ CIndex <_WindowInfo*> WindowList(10);
 bool GenerateMQUI();
 void DestroyMQUI();
 
+#if 0
 class SetScreenHook
 {
 public:
@@ -91,6 +92,46 @@ public:
 	void SetScreen_Trampoline(CXStr*);
 };
 DETOUR_TRAMPOLINE_EMPTY(void SetScreenHook::SetScreen_Trampoline(CXStr*));
+#endif
+ 
+class CSidlInitHook
+{
+public:
+    void Init_Trampoline(int A,class CXStr*pName,int C,int D,int E);
+    void Init_Detour(int A,class CXStr*pName,int C,int D,int E)
+    {
+        CHAR Name[MAX_STRING]={0};
+    	GetCXStr(pName->Ptr,Name,MAX_STRING);
+    	string WindowName=Name;
+    	MakeLower((WindowName));
+
+    	unsigned long N=WindowMap[WindowName];
+    	if (N)
+    	{
+    		N--;
+    		_WindowInfo *pWnd = WindowList[N];
+    		pWnd->pWnd=(CXWnd*)this;
+    		pWnd->ppWnd=0;
+    		DebugSpew("Updating WndNotification target '%s'",Name);
+    	}
+    	else
+    	{
+    		_WindowInfo *pWnd = new _WindowInfo;
+    		strcpy(pWnd->Name,Name);
+    		pWnd->pWnd=(CXWnd*)this;
+    		pWnd->ppWnd=0;
+    		
+    		N=WindowList.GetUnused();
+    		WindowList[N]=pWnd;
+
+    		WindowMap[WindowName]=N+1;
+    		DebugSpew("Adding WndNotification target '%s'",Name);
+    	}
+    	Init_Trampoline(A, pName, C, D, E);
+    }
+};
+DETOUR_TRAMPOLINE_EMPTY(void CSidlInitHook::Init_Trampoline(int,class CXStr*,int,int,int));
+
 
 class CXWndManagerHook
 {
@@ -191,7 +232,7 @@ void InitializeMQ2Windows()
 #undef AddSlotArray
 
 	EzDetour(CXMLSOMDocumentBase__XMLRead,CXMLSOMDocumentBaseHook::XMLRead,CXMLSOMDocumentBaseHook::XMLRead_Trampoline);
-	EzDetour(CSidlScreenWnd__SetScreen,SetScreenHook::SetScreen_Detour,SetScreenHook::SetScreen_Trampoline);
+	EzDetour(CSidlScreenWnd__Init1,CSidlInitHook::Init_Detour,CSidlInitHook::Init_Trampoline);
 	EzDetour(CXWndManager__RemoveWnd,CXWndManagerHook::RemoveWnd_Detour,CXWndManagerHook::RemoveWnd_Trampoline);
 
 #ifndef ISXEQ
@@ -296,7 +337,7 @@ void ShutdownMQ2Windows()
    pISInterface->RemoveCommand("EQItemSlots");
 #endif 
 RemoveDetour(CXMLSOMDocumentBase__XMLRead);
-	RemoveDetour(CSidlScreenWnd__SetScreen);
+	RemoveDetour(CSidlScreenWnd__Init1);
 	RemoveDetour(CXWndManager__RemoveWnd);
 	WindowList.Cleanup();
 }

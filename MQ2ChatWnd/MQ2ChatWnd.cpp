@@ -40,7 +40,7 @@ public:
 		OutputBox=(CStmlWnd*)GetChildItem("CWChatOutput");
 		OutBoxLines=0;
 		*(DWORD*)&(((PCHAR)OutputBox)[0x1C0])=400;
-		OutputBox->Unknown0x019=1;
+		OutputBox->Clickable=1;
 	}
 
 	~CMQChatWnd()

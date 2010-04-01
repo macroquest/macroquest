@@ -4137,7 +4137,7 @@ BOOL IsInGroup(PSPAWNINFO pSpawn)
 	return FALSE;
 }
 
-BOOL IsInRaid(PSPAWNINFO pSpawn)
+EQLIB_API BOOL IsInRaid(PSPAWNINFO pSpawn)
 {
    DWORD i;
    if (pSpawn==GetCharInfo()->pSpawn)
