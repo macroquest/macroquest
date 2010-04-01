@@ -345,6 +345,8 @@ DWORD WINAPI MQ2Start(LPVOID lpParameter)
 	while (gGameState != GAMESTATE_CHARSELECT && gGameState != GAMESTATE_INGAME) 
 		Sleep(500);
 	InitializeMQ2DInput();
+	if (gGameState == GAMESTATE_INGAME)
+		gbInZone = TRUE;
 
 
     WriteChatColor(LoadedString,USERCOLOR_DEFAULT);

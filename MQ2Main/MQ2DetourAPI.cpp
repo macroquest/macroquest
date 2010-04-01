@@ -27,14 +27,13 @@
 #ifndef ISXEQ
 
 typedef struct _OurDetours {
-    unsigned int addr;
-    unsigned int count;
-    unsigned char array[50];
-	PBYTE pfDetour;
-	PBYTE pfTrampoline;
-
-	struct _OurDetours *pNext;
-	struct _OurDetours *pLast;
+/* 0x00 */    unsigned int addr;
+/* 0x04 */    unsigned int count;
+/* 0x08 */    unsigned char array[50];
+/* 0x3a */    PBYTE pfDetour;
+/* 0x3e */    PBYTE pfTrampoline;
+/* 0x42 */    struct _OurDetours *pNext;
+/* 0x46 */    struct _OurDetours *pLast;
 } OurDetours;
 
 OurDetours *ourdetours=0;

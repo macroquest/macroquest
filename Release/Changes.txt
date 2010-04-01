@@ -1,3 +1,13 @@
+28 June 2006 by rswiders, ieatacid
+- fix for 6/28 patch
+- fix for gbInZone on initial load
+
+27 June 2006 by ieatacid
+- added bool Me.AutoFire
+
+16 June 2006 by rswiders, dkaa, ieatacid, and others...
+- fix for 6/16 patch
+
 10 June 2006 by rswiders
 - added Aura to spawn searches and mapfilter
 - added spellradius to map for a second radius circle on the map

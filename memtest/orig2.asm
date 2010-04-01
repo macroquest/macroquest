@@ -9,8 +9,8 @@ PUBLIC __MemChecker2
 
 
 
-__MemChecker2   proc near               ; CODE XREF: sub_500BD0+17p
-                                        ; sub_500BD0+30bp ...
+__MemChecker2   proc near               ; CODE XREF: sub_500BC0+17p
+                                        ; sub_500BC0+30bp ...
 
 arg_0           = dword ptr  4
 arg_4           = dword ptr  8
@@ -52,10 +52,10 @@ arg_8           = dword ptr  0Ch
                 xor     eax, esi
                 lea     esi, [ecx+edx]
                 cmp     ecx, esi
-                jnb     short loc_50023B
+                jnb     short loc_50022B
                 push    edi
 
-loc_500218:                             ; CODE XREF: __MemChecker2+A8j
+loc_500208:                             ; CODE XREF: __MemChecker2+A8j
                 xor     edx, edx
                 mov     dl, [ecx]
                 xor     edx, eax
@@ -66,10 +66,10 @@ loc_500218:                             ; CODE XREF: __MemChecker2+A8j
                 xor     eax, edi
                 inc     ecx
                 cmp     ecx, esi
-                jb      short loc_500218
+                jb      short loc_500208
                 pop     edi
 
-loc_50023B:                             ; CODE XREF: __MemChecker2+85j
+loc_50022B:                             ; CODE XREF: __MemChecker2+85j
                 not     eax
                 pop     esi
                 retn

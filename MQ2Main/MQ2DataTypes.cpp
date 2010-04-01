@@ -2832,6 +2832,10 @@ bool MQ2CharacterType::GETMEMBER()
 		Dest.DWord=GetCharInfo2()->Shrouded;
 		Dest.Type=pBoolType;
 		return true;
+   case AutoFire:
+		Dest.DWord=gAutoFire;
+      Dest.Type=pBoolType;
+      return true;
     }
 	return false;
 #undef pChar

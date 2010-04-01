@@ -228,6 +228,8 @@ EQLIB_VAR DWORD *gpShowNames;
 #define gShowNames (*gpShowNames)
 EQLIB_VAR DWORD *gpPCNames;
 #define gPCNames (*gpPCNames)
+EQLIB_VAR PBYTE gpAutoFire;
+#define gAutoFire (*gpAutoFire)
 
 
 EQLIB_VAR DWORD *g_ppDrawHandler;

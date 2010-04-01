@@ -5575,6 +5575,7 @@ bool BuffStackTest(PSPELL aSpell, PSPELL bSpell){
 //can be 1 of 3 things: PH(Base=0), CHA(Base>0), Lure(Base=-6). If it is Lure or
 //Placeholder, exclude it so slots don't match up. Now Check to see if the slots
 //have equal attribute values. If the do, they don't stack.
+		//WriteChatf("\nSlot %d: bSpell->Attrib=%d, bSpell->Base=%d, bSpell->TargetType=%d, aSpell->Attrib=%d, aSpell->Base=%d, aSpell->TargetType=%d", i, bSpell->Attrib[i], bSpell->Base[i], bSpell->TargetType, aSpell->Attrib[i], aSpell->Base[i], aSpell->TargetType);
 		if (bSpell->Attrib[i]==aSpell->Attrib[i] && !(bSpell->Attrib[i]==254 || aSpell->Attrib[i]==254))
             if (!((bSpell->Attrib[i]==10 && (bSpell->Base[i]==-6 || bSpell->Base[i]==0)) ||
                   (aSpell->Attrib[i]==10 && (aSpell->Base[i]==-6 || aSpell->Base[i]==0)) ||
@@ -5591,6 +5592,7 @@ bool BuffStackTest(PSPELL aSpell, PSPELL bSpell){
         if ((bSpell->Attrib[i] == 148) || (bSpell->Attrib[i] == 149)) {
             int tmpSlot = bSpell->Calc[i]-200;                           
             int tmpAttrib = bSpell->Base[i];
+			//WriteChatf("aSpell->Attrib[%d]=%d, aSpell->Base[%d]=%d, tmpAttrib=%d, tmpVal=%d", tmpSlot-1, aSpell->Attrib[tmpSlot-1], tmpSlot-1, aSpell->Base[tmpSlot-1], tmpAttrib, abs(bSpell->Max[i]));
             if (bSpell->Max[i] > 0) {
                 int tmpVal =  abs(bSpell->Max[i]);
                 if ((aSpell->Attrib[tmpSlot-1] == tmpAttrib) && (aSpell->Base[tmpSlot-1] < tmpVal)) return false;
@@ -5603,6 +5605,7 @@ bool BuffStackTest(PSPELL aSpell, PSPELL bSpell){
         if ((aSpell->Attrib[i] ==  148) || (aSpell->Attrib[i] ==  149)) {
             int tmpSlot = aSpell->Calc[i]-200;
             int tmpAttrib = aSpell->Base[i];
+			//WriteChatf("bSpell->Attrib[%d]=%d, bSpell->Base[%d]=%d, tmpAttrib=%d, tmpVal=%d", tmpSlot-1, bSpell->Attrib[tmpSlot-1], tmpSlot-1, bSpell->Base[tmpSlot-1], tmpAttrib, abs(aSpell->Max[i]));
             if (aSpell->Max[i] > 0) {
                 int tmpVal =  abs(aSpell->Max[i]);
                 if ((bSpell->Attrib[tmpSlot-1] == tmpAttrib) && (bSpell->Base[tmpSlot-1] < tmpVal)) return false;

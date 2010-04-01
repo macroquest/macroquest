@@ -47,9 +47,12 @@ void __cdecl HTTPService(bool Broadcast, unsigned int MSG, void *lpData);
 void __cdecl TriggerService(bool Broadcast, unsigned int MSG, void *lpData);
 void __cdecl ProtectionRequest(ISXInterface *pClient, unsigned int MSG, void *lpData);
 
+#if 0
 void __cdecl SoftwareCursorService(bool Broadcast, unsigned int MSG, void *lpData);
 
 HISXSERVICE hSoftwareCursorService=0;
+#endif
+
 HISXSERVICE hEQProtectionService=0;
 
 
@@ -128,7 +131,7 @@ void CISXEQ::Shutdown()
 	UnRegisterCommands();
 }
 
-
+#if 0
 class EQSoftwareCursorInterface : public ISXSoftwareCursorInterface
 {
 public:
@@ -159,6 +162,7 @@ public:
 		return true;
 	}
 } SoftwareCursorInterface;
+#endif
 
 void CISXEQ::ConnectServices()
 {
@@ -169,9 +173,12 @@ void CISXEQ::ConnectServices()
 	hMemoryService=pISInterface->ConnectService(this,"Memory",MemoryService);
 	hHTTPService=pISInterface->ConnectService(this,"HTTP",HTTPService);
 	hTriggerService=pISInterface->ConnectService(this,"Triggers",TriggerService);
+
+#if 0
 	hSoftwareCursorService=pISInterface->ConnectService(this,"Software Cursor",SoftwareCursorService);
 
 	IS_SoftwareCursorEnable(this,pISInterface,hSoftwareCursorService,&SoftwareCursorInterface);
+#endif
 }
 void CISXEQ::RegisterCommands()
 {
@@ -248,12 +255,13 @@ void CISXEQ::DisconnectServices()
 	{
 		pISInterface->DisconnectService(this,hTriggerService);
 	}
-
+#if 0
 	if (hSoftwareCursorService)
 	{
 		IS_SoftwareCursorDisable(this,pISInterface,hSoftwareCursorService);
 		pISInterface->DisconnectService(this,hSoftwareCursorService);
 	}
+#endif
 }
 
 void CISXEQ::UnRegisterCommands()
@@ -444,7 +452,9 @@ void __cdecl ProtectionRequest(ISXInterface *pClient, unsigned int MSG, void *lp
    }
 }
 
+#if 0
 void __cdecl SoftwareCursorService(bool Broadcast, unsigned int MSG, void *lpData)
 {
 	// receives nothing
 }
+#endif

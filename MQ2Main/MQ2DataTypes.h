@@ -816,6 +816,7 @@ public:
 		RadiantCrystals=133,
 		EbonCrystals=134,
 		Shrouded=135,
+      AutoFire=136,
 	};
 	static enum CharacterMethods
 	{
@@ -948,9 +949,9 @@ public:
 		TypeMember(EnduranceRegen);
 		TypeMember(FreeBuffSlots); //124
 		TypeMember(CurrentWeight);
-        TypeMember(AAPointsSpent);
-        TypeMember(AAPointsTotal); 
-        TypeMember(TributeActive);
+      TypeMember(AAPointsSpent);
+      TypeMember(AAPointsTotal); 
+      TypeMember(TributeActive);
 		TypeMember(CombatAbilityReady);
 		TypeMember(Running);
 		TypeMember(GroupSize);
@@ -958,6 +959,7 @@ public:
 		TypeMember(RadiantCrystals);
 		TypeMember(EbonCrystals);
 		TypeMember(Shrouded);
+      TypeMember(AutoFire);
 
 		TypeMethod(Stand); 
 		TypeMethod(Sit); 

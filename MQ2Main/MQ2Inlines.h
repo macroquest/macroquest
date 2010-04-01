@@ -302,6 +302,8 @@ static inline BOOL IsNumber(PCHAR String)
 {
 	if (*String==0)
 		return FALSE;
+	if (*String=='-')
+		String++;
 	while(*String)
 	{
 		if (!((*String>='0' && *String<='9') || *String=='.'))

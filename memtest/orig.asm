@@ -5,13 +5,8 @@ EXTRN _myextern_array:DWORD
 
 _TEXT   SEGMENT PARA USE32 PUBLIC 'CODE'
 
-PUBLIC __MemChecker0
-
-
-
-
-__MemChecker0   proc near               ; CODE XREF: sub_487260+80p
-                                        ; sub_4914D0+A6p ...
+__MemChecker0   proc near               ; CODE XREF: sub_487250+80p
+                                        ; sub_4914C0+A6p ...
 
 arg_0           = dword ptr  8
 arg_4           = dword ptr  0Ch
@@ -43,7 +38,6 @@ loc_4D50B3:                             ; CODE XREF: __MemChecker0+Cj
                 pop     esi
                 retn
 __MemChecker0   endp
-
 
 
 _TEXT   ENDS

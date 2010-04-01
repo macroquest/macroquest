@@ -490,7 +490,7 @@ BOOL SetNameSpriteState(PSPAWNINFO pSpawn, bool Show)
 				pNamingSpawn=pSpawn;\
 				ParseMacroParameter(GetCharInfo()->pSpawn,NewCaption);\
 				pNamingSpawn=0;\
-                                ((EQPlayer*)pSpawn)->ChangeBoneStringSprite(0,NewCaption);\
+            ((EQPlayer*)pSpawn)->ChangeBoneStringSprite(0,NewCaption);\
 				return 1;\
 			}\
 		}
@@ -541,7 +541,7 @@ VOID UpdateSpawnCaptions()
 	{
 		if (PSPAWNINFO pSpawn=(PSPAWNINFO)EQP_DistArray[N].VarPtr.Ptr)
 		if (pSpawn!=(PSPAWNINFO)pTarget)
-		if (EQP_DistArray[N].Value.Float<=80.0f)
+		if (EQP_DistArray[N].Value.Float<=80.0f && gMQCaptions)
 		{
 			if (SetNameSpriteState(pSpawn,true))
 			{

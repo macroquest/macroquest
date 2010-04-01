@@ -141,6 +141,7 @@ EQLIB_API VOID PluginsSetGameState(DWORD GameState)
 		{
 			AutoExec=true;
 			pISInterface->RunCommandFile("EQ-AutoExec");
+			pISInterface->RunScript("EQ-AutoExec");
 		}
 		if (CharSelect)
 		{
@@ -149,7 +150,8 @@ EQLIB_API VOID PluginsSetGameState(DWORD GameState)
 			if (PCHARINFO pCharInfo=GetCharInfo())
 			{
 				sprintf(szBuffer,"EQ-%s_%s",EQADDR_SERVERNAME,pCharInfo->Name);
-				pISInterface->RunCommandFile("szBuffer");
+				pISInterface->RunCommandFile(szBuffer);
+				pISInterface->RunScript(szBuffer);
 			}
 		}
 	}
@@ -159,9 +161,11 @@ EQLIB_API VOID PluginsSetGameState(DWORD GameState)
 		{
 			AutoExec=true;
 			pISInterface->RunCommandFile("EQ-AutoExec");
+			pISInterface->RunScript("EQ-AutoExec");
 		}
 		CharSelect=true;
 		pISInterface->RunCommandFile("EQ-CharSelect");
+		pISInterface->RunScript("EQ-CharSelect");
 	}
 
 	DebugSpew("PluginsSetGameState(%d)",GameState);
