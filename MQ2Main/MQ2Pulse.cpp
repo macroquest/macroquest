@@ -170,7 +170,7 @@ void Pulse()
 
 	if (LastEndurance && GetCharInfo2()->Endurance > LastEndurance) 
     { 
-		if (GetCharInfo2()->Endurance != (int)pCharData1->Max_Endurance()) 
+		if (GetCharInfo2()->Endurance != GetMaxEndurance()) 
         { 
 			EnduranceGained = GetCharInfo2()->Endurance - LastEndurance; 
         } 

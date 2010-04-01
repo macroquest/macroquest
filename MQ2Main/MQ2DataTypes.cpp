@@ -3341,7 +3341,7 @@ bool MQ2ItemType::GETMEMBER()
     case Timer:
         if(pItem->Item->TimerID)
         {
-            Dest.DWord=GetItemTimer(pItem)/6;
+            Dest.DWord=GetItemTimer(pItem)/6+1;
             Dest.Type=pTicksType;
                 return true;
         }
@@ -4384,6 +4384,20 @@ bool MQ2MerchantType::GETMEMBER()
 		Dest.Float=pMerch->Markup;
 		Dest.Type=pFloatType;
 		return true;
+	case Full:
+		{
+			Dest.DWord=1;
+			for (unsigned long N = 0 ; N < 80 ; N++)
+			{
+				if (!pMerch->ItemDesc[N])
+				{
+					Dest.DWord=0;
+					break;
+				}
+			}
+			Dest.Type=pBoolType;
+			return true;
+		}
 	}
 	return false;
 #undef pMerch

@@ -1605,6 +1605,7 @@ public:
 		Item=2,
 		Items=3,
 		Open=4,
+		Full=5,
 	};
 	static enum MerchantMethods
 	{
@@ -1615,6 +1616,7 @@ public:
 		TypeMember(Item);
 		TypeMember(Items);
 		TypeMember(Open);
+		TypeMember(Full);
 	}
 
 	~MQ2MerchantType()

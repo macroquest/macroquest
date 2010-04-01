@@ -177,6 +177,7 @@ EQLIB_VAR DWORD HealthGained;
 EQLIB_VAR DWORD EnduranceGained;
 
 EQLIB_VAR DWORD gGameState;
+EQLIB_VAR BOOL gbMQ2LoadingMsg;
 
 
 EQLIB_VAR DWORD EQADDR_CONVERTITEMTAGS;
@@ -321,7 +322,7 @@ EQLIB_VAR PMQXMLFILE pXMLFiles;
 EQLIB_VAR fGetLabelFromEQ GetLabelFromEQ;
 
 EQLIB_VAR map<string,PSPAWNINFO> SpawnByName;
-EQLIB_VAR EQPlayer **ppEQP_IDArray;
+//EQLIB_VAR EQPlayer **ppEQP_IDArray;
 EQLIB_VAR MQRANK EQP_DistArray[3000];
 EQLIB_VAR DWORD gSpawnCount;
 //#define ppEQP_IDArray (*pppEQP_IDArray)
@@ -583,86 +584,6 @@ EQLIB_VAR CTextOverlay **ppTextOverlay;
 #define pSoulmarkWnd (*ppSoulmarkWnd)
 #define pTimeLeftWnd (*ppTimeLeftWnd)
 #define pTextOverlay (*ppTextOverlay)
-
-/*
-#define pContextMenuManager (*ppContextMenuManager)
-#define pCursorAttachment (*ppCursorAttachment)
-#define pSocialEditWnd (*ppSocialEditWnd)
-#define pInvSlotMgr (*ppInvSlotMgr)
-#define pContainerMgr (*ppContainerMgr)
-#define pChatManager (*ppChatManager)
-#define pConfirmationDialog (*ppConfirmationDialog)
-#define pFacePick (*ppFacePick)
-#define pItemDisplayMgr (*ppItemDisplayMgr)
-#define pSpellDisplayMgr (*ppSpellDisplayMgr)
-#define pNoteWnd (*ppNoteWnd)
-#define pHelpWnd (*ppHelpWnd)
-#define pTipWnd (*ppTipWnd)
-#define pTipWnd (*ppTipWnd)
-#define pBookWnd (*ppBookWnd)
-#define pFriendsWnd (*ppFriendsWnd)
-#define pMusicPlayerWnd (*ppMusicPlayerWnd)
-#define pAlarmWnd (*ppAlarmWnd)
-#define pLoadskinWnd (*ppLoadskinWnd)
-#define pPetInfoWnd (*ppPetInfoWnd)
-#define pTrainWnd (*ppTrainWnd)
-#define pSkillsWnd (*ppSkillsWnd)
-#define pSkillsSelectWnd (*ppSkillsSelectWnd)
-#define pAAWnd (*ppAAWnd)
-#define pGroupWnd (*ppGroupWnd)
-#define pJournalNPCWnd (*ppJournalNPCWnd)
-#define pGroupSearchWnd (*ppGroupSearchWnd)
-#define pGroupSearchFiltersWnd (*ppGroupSearchFiltersWnd)
-#define pRaidWnd (*ppRaidWnd)
-#define pRaidOptionsWnd (*ppRaidOptionsWnd)
-#define pBreathWnd (*ppBreathWnd)
-#define pMapToolbarWnd (*ppMapToolbarWnd)
-#define pMapViewWnd (*ppMapViewWnd)
-#define pEditLabelWnd (*ppEditLabelWnd)
-#define pOptionsWnd (*ppOptionsWnd)
-#define pBuffWindow (*ppBuffWindow)
-#define pBuffWindow (*ppBuffWindow)
-#define pTargetWnd (*ppTargetWnd)
-#define pColorPickerWnd (*ppColorPickerWnd)
-#define pHotButtonWnd (*ppHotButtonWnd)
-#define pPlayerWnd (*ppPlayerWnd)
-#define pCastingWnd (*ppCastingWnd)
-#define pCastSpellWnd (*ppCastSpellWnd)
-#define pSpellBookWnd (*ppSpellBookWnd)
-#define pInventoryWnd (*ppInventoryWnd)
-#define pBankWnd (*ppBankWnd)
-#define pQuantityWnd (*ppQuantityWnd)
-#define pTextEntryWnd (*ppTextEntryWnd)
-#define pFileSelectionWnd (*ppFileSelectionWnd)
-#define pLootWnd (*ppLootWnd)
-#define pActionsWnd (*ppActionsWnd)
-#define pMerchantWnd (*ppMerchantWnd)
-#define pTradeWnd (*ppTradeWnd)
-#define pBazaarWnd (*ppBazaarWnd)
-#define pBazaarSearchWnd (*ppBazaarSearchWnd)
-#define pGiveWnd (*ppGiveWnd)
-#define pSelectorWnd (*ppSelectorWnd)
-#define pTrackingWnd (*ppTrackingWnd)
-#define pInspectWnd (*ppInspectWnd)
-#define pFeedbackWnd (*ppFeedbackWnd)
-#define pBugReportWnd (*ppBugReportWnd)
-#define pVideoModesWnd (*ppVideoModesWnd)
-#define pCompassWnd (*ppCompassWnd)
-#define pPlayerNotesWnd (*ppPlayerNotesWnd)
-#define pGemsGameWnd (*ppGemsGameWnd)
-#define pStoryWnd (*ppStoryWnd)
-#define pFindLocationWnd (*ppFindLocationWnd)
-#define pAdventureRequestWnd (*ppAdventureRequestWnd)
-#define pAdventureStatsWnd (*ppAdventureStatsWnd)
-#define pAdventureLeaderboardWnd (*ppAdventureLeaderboardWnd)
-#define pBodyTintWnd (*ppBodyTintWnd)
-#define pGuildMgmtWnd (*ppGuildMgmtWnd)
-#define pJournalTextWnd (*ppJournalTextWnd)
-#define pJournalCatWnd (*ppJournalCatWnd)
-#define pPetitionQWnd (*ppPetitionQWnd)
-#define pSoulmarkWnd (*ppSoulmarkWnd)
-#define pTimeLeftWnd (*ppTimeLeftWnd)
-/**/
 }
 using namespace MQ2Globals;
 

@@ -1,3 +1,15 @@
+15 December 2005 by rswiders
+- Updated for 12/15 patch
+- Fixes Item.Timer returning 0 too early
+- Added Merchant.Full (thanks cronic)
+
+13 December 2005 by rswiders
+- Fixed SWho display of primary/offhand for spawns
+- Fixed blocking issue in .Stacks for heal conversion type spells
+- Located more missing fields from 12/07 patch
+- Added MQ2LoadingMsg to macroquest2.ini to allow you to configure 
+  the MQ2 evolution in action message to be displayed or not.
+
 12 December 2005 by rswiders
 - Fixed Me.Levitating
 

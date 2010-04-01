@@ -615,6 +615,7 @@ BOOL bLaxColor=FALSE;
 #endif
 BOOL gbHUDUnderUI=1;
 BOOL gbAlwaysDrawMQHUD=0;
+BOOL gbMQ2LoadingMsg=TRUE;
 
 DWORD nColorAdjective=0;
 DWORD nColorAdjectiveYou=0;
@@ -706,7 +707,7 @@ PCHAR szColorMQ2DataError[]=
 StringTable **ppStringTable=(StringTable**)pinstStringTable;
 CDBStr **ppCDBStr = (CDBStr**)pinstCDBStr;
 
-EQPlayer **ppEQP_IDArray=(EQPlayer**)__EQP_IDArray;
+//EQPlayer **ppEQP_IDArray=(EQPlayer**)__EQP_IDArray;
 
 CEverQuest **ppEverQuest=(CEverQuest**)pinstCEverQuest;
 CDisplay **ppDisplay=(CDisplay**)pinstCDisplay;

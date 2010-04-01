@@ -129,7 +129,10 @@ public:
 	VOID WriteTextHD_Trampoline(char *,int,int,int);
 	VOID WriteTextHD_Detour(char *A,int B,int C,int D)
 	{
-		WriteTextHD_Trampoline("MQ2: Think of it as evolution in action.",B,C,D);
+		if (gbMQ2LoadingMsg)
+			WriteTextHD_Trampoline("MQ2: Think of it as evolution in action.",B,C,D);
+		else
+			WriteTextHD_Trampoline(A,B,C,D);
 	}
 };
 

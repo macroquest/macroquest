@@ -5517,6 +5517,8 @@ bool BuffStackTest(PSPELL aSpell, PSPELL bSpell){
               (aSpell->Attrib[i]==10 && (aSpell->Base[i]==-6 || aSpell->Base[i]==0)) ||
 			  (bSpell->Attrib[i]==79 && bSpell->Base[i]>0 && bSpell->TargetType==6) ||
                   (aSpell->Attrib[i]==79 && aSpell->Base[i]>0 && aSpell->TargetType==6) ||
+				  (bSpell->Attrib[i]==0  && bSpell->Base[i]<0) ||
+				  (aSpell->Attrib[i]==0  && aSpell->Base[i]<0) ||
 				  (bSpell->Attrib[i]==148 || bSpell->Attrib[i]==149) ||
 				  (aSpell->Attrib[i]==148 || aSpell->Attrib[i]==149)))
                return false;

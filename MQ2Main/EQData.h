@@ -792,9 +792,11 @@ union {
 /* 0x1294 */   FLOAT      ZoneBoundX;
 /* 0x1298 */   FLOAT      ZoneBoundZ;
 /* 0x129c */   FLOAT      ZoneBoundHeading;
-/* 0x12a0 */   BYTE       Unknown0x12a0[0xa8];
+/* 0x12a0 */   BYTE       Unknown0x12a0[0x50];
+/* 0x12f0 */   DWORD      ArmorType[0x16];
 /* 0x1348 */   AALIST     AAList[AA_CHAR_MAX_REAL];
-/* 0x1ac8 */   BYTE       Unknown0x1ac8[0x3aec-0x1ac8];
+/* 0x1ac8 */   DWORD      BodyColor[0x9];
+/* 0x1aec */   BYTE       Unknown0x1aec[0x2000];
 /* 0x3aec */   DWORD      CombatAbilities[NUM_COMBAT_ABILITIES];
 /* 0x3c7c */   DWORD      Unknown0x3c7c[0xa];
 /* 0x3ca4 */   DWORD      CombatAbilityTimes[NUM_COMBAT_ABILITIES];
@@ -980,9 +982,13 @@ typedef struct _SPAWNINFO {
 /*0x0174*/ BYTE     Unknown0x174[0x8f0]; // player position info
 /*0x0a64*/ BYTE     Unknown0xa64[0x44];
 /*0x0aa8*/ DWORD    SpellETA; //Calculated TimeStamp when current spell being cast will land. 0 while not casting.
-/*0x0aac*/ BYTE     Unknown0xaac[0x4c];
+/*0x0aac*/ BYTE     Unknown0xaac[0x44];
+/*0x0af0*/ DWORD    FishingETA;
+/*0x0af4*/ DWORD    Unknown0xaf4;
 /*0x0af8*/ DWORD    LastTick;
-/*0x0afc*/ BYTE     Unknown0xafc[0x14];
+/*0x0afc*/ BYTE     Unknown0xafc;
+/*0x0afd*/ BYTE     FishingEvent;
+/*0x0afe*/ BYTE     Unknown0xafe[0x12];
 /*0x0b10*/ FLOAT    CastingY;
 /*0x0b14*/ FLOAT    CastingX;
 /*0x0b18*/ BYTE     Unknown0xb18[0x8];
@@ -1012,11 +1018,11 @@ typedef struct _SPAWNINFO {
 /*0x0c34*/ DWORD    Race;
 /*0x0c38*/ BYTE     Gender;
 /*0x0c39*/ CHAR     ActorDef[0x40];
-/*0x0c79*/ BYTE     Padding0xc79[0x7];
-/*0x0c80*/ BYTE     Unknown0xc80[0x18];
-/*0x0c98*/ struct   _EQUIPMENT Equipment;
-/*0x0cbc*/ BYTE     Unknown0xcbc[0x44];
-/*0x0d00*/ VOID    *actor_vftable;
+/*0x0c79*/ BYTE     Unknown0xc79[0x3]; 
+/*0x0c7c*/ struct   _EQUIPMENT Equipment;
+/*0x0ca0*/ ARGBCOLOR ArmorColor[0x9];
+/*0x0cc4*/ BYTE     Unknown0xcc4[0x3c];
+/*0x0d00*/ VOID    *pcactorex;
 /*0x0d04*/ DWORD    Unknown0xd04;
 /*0x0d08*/ VOID    *FaceRelatedActorStruct;
 /*0x0d0c*/ BYTE     Unknown0xd0c[0xf9];
@@ -1574,8 +1580,8 @@ typedef struct _EQSTRINGTABLE {
 #define EQ_INTERACTGROUNDITEM   0x3BC2
 #define EQ_BAZAARSEARCHCREATE   0x7620
 #define EQ_BAZAARSEARCHME       0x6379
-#define EQ_EMOTE	            0x547A  // CEverquest__Emote
-#define EQ_BEGIN_ZONE           0x1540  // CEverquest__SavePCForce
-#define EQ_END_ZONE             0x5e20  // CEverquest__DoMainLoop
+#define EQ_EMOTE                0x547A  // CEverQuest__Emote
+#define EQ_BEGIN_ZONE           0x1540  // CEverQuest__SavePCForce
+#define EQ_END_ZONE             0x5e20  // CEverQuest__DoMainLoop
 };
 using namespace EQData;

@@ -120,6 +120,7 @@ BOOL ParseINIFile(PCHAR lpINIPath)
 	bLaxColor=1==GetPrivateProfileInt("MacroQuest","LaxColor",0,Filename);
 	bAllErrorsDumpStack = 1==GetPrivateProfileInt("MacroQuest","AllErrorsDumpStack",1,Filename);
 	bAllErrorsFatal = 1==GetPrivateProfileInt("MacroQuest","AllErrorsFatal",0,Filename);
+	gbMQ2LoadingMsg = 1==GetPrivateProfileInt("MacroQuest","MQ2LoadingMsg",1,Filename);
 
 	GetPrivateProfileString("MacroQuest","HUDMode","UnderUI",CustomSettings,MAX_STRING,Filename);
 	if (!stricmp(CustomSettings,"normal"))

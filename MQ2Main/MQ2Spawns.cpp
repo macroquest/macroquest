@@ -465,7 +465,7 @@ VOID SetNameSpriteTint(PSPAWNINFO pSpawn)
 		break;
 	}
 
-	DebugTry(((CActorEx *)pSpawn->actor_vftable)->SetNameColor(NewColor));
+	DebugTry(((CActorEx *)pSpawn->pcactorex)->SetNameColor(NewColor));
 }
 
 BOOL SetNameSpriteState(PSPAWNINFO pSpawn, bool Show)
@@ -494,7 +494,7 @@ BOOL SetNameSpriteState(PSPAWNINFO pSpawn, bool Show)
 		}
 		CHAR NewCaption[MAX_STRING]={0};
 
-                if (!pSpawn->actor_vftable || !((CActorEx*)pSpawn->actor_vftable)->CanSetName(0))
+		if (!pSpawn->pcactorex || !((CActorEx*)pSpawn->pcactorex)->CanSetName(0))
 		{
   			//DebugSpew("CanSetName==0 - %s .. race %d body %d",pSpawn->Name,pSpawn->Race,pSpawn->BodyType);
 			return 1;

@@ -5353,9 +5353,9 @@ class EQ_Character1
 {
 public:
 EQLIB_OBJECT int EQ_Character1::Cur_HP(int);
-EQLIB_OBJECT int EQ_Character1::Max_Endurance(void); // lax 4-25-2004
-EQLIB_OBJECT int EQ_Character1::Max_HP(int);
-EQLIB_OBJECT int EQ_Character1::Max_Mana(void);
+EQLIB_OBJECT int EQ_Character1::Max_Endurance(int); // lax 4-25-2004
+EQLIB_OBJECT int EQ_Character1::Max_HP(int,int); 
+EQLIB_OBJECT int EQ_Character1::Max_Mana(int);
 EQLIB_OBJECT int const EQ_Character1::GetAACastingTimeModifier(class EQ_Spell const *);
 EQLIB_OBJECT int const EQ_Character1::GetFocusCastingTimeModifier(class EQ_Spell const *,class EQ_Equipment * *);
 EQLIB_OBJECT unsigned char EQ_Character1::CastSpell(unsigned char,int,class EQ_Item * *,int,int slot,int,int,int); 

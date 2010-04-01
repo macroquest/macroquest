@@ -135,14 +135,14 @@ FUNCTION_AT_ADDRESS(int EQ_Item::CanDrop(int),EQ_Item__CanDrop); // Lax 4-21-200
 ///////////////////////////////////////////////////////////////////
 // gah, i hate sony
 #ifdef EQ_Character__Max_Endurance
-FUNCTION_AT_ADDRESS(int  EQ_Character1::Max_Endurance(void),EQ_Character__Max_Endurance);
+FUNCTION_AT_ADDRESS(int  EQ_Character1::Max_Endurance(int),EQ_Character__Max_Endurance);
 #endif
 //fuck virtual
 #ifdef EQ_Character__Max_Mana 
-FUNCTION_AT_ADDRESS(int EQ_Character1::Max_Mana(void), EQ_Character__Max_Mana);
+FUNCTION_AT_ADDRESS(int EQ_Character1::Max_Mana(int), EQ_Character__Max_Mana);
 #endif 
 #ifdef EQ_Character__Max_HP
-FUNCTION_AT_ADDRESS(int  EQ_Character1::Max_HP(int),EQ_Character__Max_HP);
+FUNCTION_AT_ADDRESS(int  EQ_Character1::Max_HP(int,int),EQ_Character__Max_HP);
 #endif
 /////////////////////////////////////////////////////////////////////
 
