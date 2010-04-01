@@ -2808,6 +2808,30 @@ bool MQ2CharacterType::GETMEMBER()
 		if (Dest.DWord) Dest.DWord++;
 		Dest.Type=pIntType;
 		return true;	
+	case TributeTimer:
+		{
+            DWORD timeNow = (DWORD)time(NULL);
+            if (pChar->TributeTimer > timeNow)
+            {
+                Dest.Int=pChar->TributeTimer-timeNow+6;
+                Dest.Int/=6;
+            }
+            else Dest.Int=0;
+            Dest.Type=pTicksType;
+            return true;
+		}
+	case RadiantCrystals:
+		Dest.DWord=pChar->RadiantCrystals;
+		Dest.Type=pIntType;
+		return true;
+	case EbonCrystals:
+		Dest.DWord=pChar->EbonCrystals;
+		Dest.Type=pIntType;
+		return true;
+	case Shrouded:
+		Dest.DWord=GetCharInfo2()->Shrouded;
+		Dest.Type=pBoolType;
+		return true;
     }
 	return false;
 #undef pChar

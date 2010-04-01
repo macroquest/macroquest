@@ -812,6 +812,10 @@ public:
 		CombatAbilityReady=129,
 		Running=130,
 		GroupSize=131,
+		TributeTimer=132,
+		RadiantCrystals=133,
+		EbonCrystals=134,
+		Shrouded=135,
 	};
 	static enum CharacterMethods
 	{
@@ -950,6 +954,10 @@ public:
 		TypeMember(CombatAbilityReady);
 		TypeMember(Running);
 		TypeMember(GroupSize);
+		TypeMember(TributeTimer);
+		TypeMember(RadiantCrystals);
+		TypeMember(EbonCrystals);
+		TypeMember(Shrouded);
 
 		TypeMethod(Stand); 
 		TypeMethod(Sit); 

@@ -5548,7 +5548,15 @@ CXWnd * GetParentWnd(class CXWnd const * pWnd)
         tWnd=(CXWnd *)tWnd->pParentWindow;
     }
     return NULL;
-};
+}
+
+bool LoH_HT_Ready() 
+{
+    DWORD i=((PSPAWNINFO)pLocalPlayer)->InnateETA;
+    DWORD j=i-((PCDISPLAY)pDisplay)->TimeStamp;
+    if(i<j) return true;
+    return false;
+}
 
 
 // ***************************************************************************

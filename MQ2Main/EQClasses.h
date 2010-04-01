@@ -5439,6 +5439,7 @@ EQLIB_OBJECT void EQ_Character1::StopSpellCast(unsigned char);
 EQLIB_OBJECT void EQ_Character1::StopSpellCast(unsigned char,int);
 EQLIB_OBJECT void EQ_Character1::StunMe(unsigned int,unsigned int,unsigned int);
 EQLIB_OBJECT void EQ_Character1::UnStunMe(void);
+EQLIB_OBJECT void EQ_Character1::UseSkill(unsigned char,class EQPlayer *);
 };
 
 class EQ_Character
@@ -5593,7 +5594,6 @@ EQLIB_OBJECT void EQ_Character::RemovePCAffect(class EQ_Affect *);
 EQLIB_OBJECT void EQ_Character::RemovePCAffectex(class EQ_Affect *,int);
 EQLIB_OBJECT void EQ_Character::ResetCur_HP(int);
 EQLIB_OBJECT void EQ_Character::UpdateMyVisibleStatus(void);
-EQLIB_OBJECT void EQ_Character::UseSkill(unsigned char,class EQPlayer *);
 EQLIB_OBJECT void EQ_Character::DoCombatAbility(int spellID); 
 // private
 EQLIB_OBJECT int EQ_Character::GetCachEQSPA(int);

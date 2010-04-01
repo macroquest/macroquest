@@ -50,7 +50,7 @@
 #define __DoAbilityAvailable                                       0x984D78
 #define __DoAbilityList                                            0x9BDB84
 #define __DrawHandler                                              0x9FE854
-#define __FriendsList                                              0x987020
+#define __FriendsList                                              0x9BA924
 #define __GroupCount                                               0x9646D8
 #define __GroupLeader                                              0x964834
 #define __Guilds                                                   0x9661C0

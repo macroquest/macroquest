@@ -965,7 +965,10 @@ typedef struct _EQGRAPHICSENGINE {
 
 typedef struct _CBUTTONWND {
 /*0x000*/ struct    _CXWND Wnd;
-/*0x138*/ BYTE      Unknown[0x1c];
+/*0x138*/ BYTE      Unknown[0x8];
+/*0x140*/ BYTE      State;        //1=down 0=up
+/*0x141*/ BYTE      Unknown0x141; //something to do with State
+/*0x142*/ BYTE      Unknown0x142[0x12];
 /*0x154*/ ARGBCOLOR Color;
 /*0x158*/
 } CBUTTONWND, *PCBUTTONWND;

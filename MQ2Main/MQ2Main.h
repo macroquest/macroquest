@@ -477,6 +477,7 @@ EQLIB_API bool BuffStackTest(PSPELL aSpell, PSPELL bSpell);
 EQLIB_API DWORD GetItemTimer(PCONTENTS pItem);
 EQLIB_API PCONTENTS GetItemContentsBySlotID(DWORD dwSlotID);
 EQLIB_API PCONTENTS GetItemContentsByName(CHAR *ItemName);
+EQLIB_API bool LoH_HT_Ready(); 
 
 /* MQ2DATAVARS */
 #ifndef ISXEQ

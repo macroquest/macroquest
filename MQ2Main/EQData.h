@@ -768,7 +768,8 @@ union {
 /*0x0730*/   DWORD      SpellBook[NUM_BOOK_SLOTS];
 /*0x0f30*/   DWORD      MemorizedSpells[0x10];
 /*0x0f70*/   DWORD      Skill[0x64];
-/*0x1100*/   BYTE       Unknown0x1100[0x94];
+/*0x1100*/   DWORD      InnateSkill[0x1c]; 
+/*0x1170*/   DWORD      Unknown0x1170[0x9];
 /*0x1194*/   DWORD      Gender;
 /*0x1198*/   DWORD      Race;
 /*0x119c*/   DWORD      Class;
@@ -796,7 +797,9 @@ union {
 /*0x11f4*/   BYTE       Unknown0x11f4[0x24];
 /*0x1218*/   DWORD      thirstlevel;
 /*0x121c*/   DWORD      hungerlevel;
-/*0x1220*/   BYTE       Unknown0x1220[0x6c];
+/*0x1220*/   DWORD      Unknown0x1220; 
+/*0x1224*/   DWORD      Shrouded; 
+/*0x1228*/   BYTE       Unknown0x1228[0x64];
 /*0x128c*/   DWORD      ZoneBoundID;
 /*0x1290*/   FLOAT      ZoneBoundY;
 /*0x1294*/   FLOAT      ZoneBoundX;
@@ -1015,7 +1018,8 @@ typedef struct _SPAWNINFO {
 /*0x0388*/ BYTE     FishingEvent;
 /*0x0389*/ BYTE     Unknown0x389[0xb];
 /*0x0394*/ DWORD    Anon;
-/*0x0398*/ BYTE     Unknown0x398[0x28];
+/*0x0398*/ BYTE     Unknown0x398[0x24]; 
+/*0x03bc*/ DWORD    InnateETA; //Calculated TimeStamp when innate skill will be ready (LoH, HT, Bash)
 /*0x03c0*/ DWORD    Trader;
 /*0x03c4*/ BYTE     Unknown0x3c4[0x8];
 /*0x03cc*/ FLOAT    WalkSpeed;
@@ -1607,6 +1611,13 @@ typedef struct connection_t {
 /*0x118*/
 } CONNECTION_T, *PCONNECTION_T;
 
+//actual size 0x2d70 04-28-06 - ieatacid 
+typedef struct _CDISPLAY { 
+/*0x000*/ BYTE   Unknown0x000[0x148]; 
+/*0x148*/ DWORD  TimeStamp; 
+/*0x14c*/ 
+} CDISPLAY, *PCDISPLAY; 
+ 
 
 #define EQ_INTERACTGROUNDITEM   0x00a5  // CEverQuest__HandleClick 04/19
 #define EQ_BAZAARSEARCHCREATE   0x2c8f  // CProgSelWnd__WndNotification 04/19

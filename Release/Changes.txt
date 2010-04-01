@@ -1,3 +1,7 @@
+30 Apr 2006 by rswiders
+- added Me.TributeTimer, Me.RadiantCrystals, Me.EbonCrystals
+- added Me.Shrouded, UseSkill, LoH/HT Ready (ieatacid)
+
 20 Apr 2006 by rswiders
 - fix for isxeq compile issue
 
