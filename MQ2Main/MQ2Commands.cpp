@@ -1027,6 +1027,7 @@ VOID Filter(PSPAWNINFO pChar, PCHAR szLine)
             } else if (!stricmp(szArg,"add")) {
                 if (szRest[0]==0) {
                     WriteChatColor("Add what?",USERCOLOR_DEFAULT);
+                    return;
                 }
                 PFILTER pFilter = gpFilters;
                 while (pFilter) {
@@ -3168,7 +3169,7 @@ VOID AltAbility(PSPAWNINFO pChar, PCHAR szLine)
                                  sprintf(szBuffer,"Casts Spell: %s", GetSpellNameByID(pAbility->SpellID) );
                                  WriteChatColor(szBuffer, USERCOLOR_WHO);
                             }
-                            if (PlayerHasAAAbility(pChar->pCharInfo,pAbility->Index)) 
+                            if (PlayerHasAAAbility(pAbility->Index)) 
                             { 
                                 sprintf(szBuffer,"Ready: No (%d seconds until refresh)", i ); 
                                 WriteChatColor(szBuffer,USERCOLOR_WHO); 

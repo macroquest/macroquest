@@ -341,10 +341,20 @@ bool MQ2GroundType::GETMETHOD()
 	{
 		return false;
 	}
-	// TODO
-//	switch((GroundMethods)pMethod->ID)
-//	{
-//	}
+    switch((GroundMethods)pMethod->ID)
+    {
+    case Grab:
+        if (EnviroTarget.Name[0]!=0 && DistanceToSpawn((PSPAWNINFO)pCharSpawn,&EnviroTarget)<20.0f )
+        {
+            INTERACTGROUNDITEM Data;
+            Data.SpawnID = GetCharInfo()->pSpawn->SpawnID;
+            Data.DropID = EnviroTarget.Race;
+            SendEQMessage(EQ_INTERACTGROUNDITEM,&Data,sizeof(INTERACTGROUNDITEM));
+            EnviroTarget.Name[0]=0;
+            return true;
+        }
+        return false;
+    }
 	return false;
 #undef pPtr
 }

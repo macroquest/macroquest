@@ -1028,7 +1028,7 @@ typedef struct _SPAWNINFO {
 /*0x020c*/ BYTE     Unknown0x20c[0x10];
 /*0x021c*/ BYTE     Sneak;
 /*0x021d*/ BYTE     Unknown0x21d[0x13];
-/*0x0230*/ struct  _CHARINFO  *pCharInfo;
+/*0x0230*/ void     *pCharInfo_vtable2; //pointer to vtable2 in charinfo
 /*0x0234*/ BYTE     Unknown0x234[0xc];
 /*0x0240*/ DWORD    PetID;
 /*0x0244*/ DWORD    GuildID;

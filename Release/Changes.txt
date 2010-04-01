@@ -1,3 +1,11 @@
+30 Aug 2006 by dkaa
+- incorporate change from Ceghkmv and teabag to fix the xml file stuff
+
+28 August 2006 by ieatacid
+- Changed spawninfo's pCharInfo member to 'void *pCharInfo_vtable2' since it points to vtable2 in charinfo and made changes where necessary to reflect this.
+  Now things like "/itemnotify in bank1 1 leftmouseup" should work properly.
+- Added spawn.Buyer
+
 25 Aug 2006 by dkaa
 - duel->dual
 - aura fix for when you don't have an aura

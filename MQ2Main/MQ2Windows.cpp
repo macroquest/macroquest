@@ -342,116 +342,205 @@ RemoveDetour(CXMLSOMDocumentBase__XMLRead);
 	WindowList.Cleanup();
 }
 
-bool GenerateMQUI()
+bool
+GenerateMQUI()
 {
-	// create EverQuest\uifiles\default\MQUI.xml
-	if (!pXMLFiles)
-	{
-		DebugSpew("GenerateMQUI::Not Generating MQUI.xml, no files in our list");
-		return false;
+    // create EverQuest\uifiles\default\MQUI.xml
+    PCHARINFO       pCharInfo = NULL;
+    CHAR            szFilename[MAX_PATH] = { 0 };
+    CHAR            szOrgFilename[MAX_PATH] = { 0 };
+    CHAR            UISkin[MAX_STRING] = { 0 };
+    char            Buffer[2048];
+    FILE           *forg,
+                   *fnew;
+
+    if (!pXMLFiles) {
+	DebugSpew
+	    ("GenerateMQUI::Not Generating MQUI.xml, no files in our list");
+	return false;
+    }
+    sprintf(UISkin, "default");
+    sprintf(szOrgFilename, "%s\\uifiles\\%s\\EQUI.xml", gszEQPath, UISkin);
+    sprintf(szFilename, "%s\\uifiles\\%s\\MQUI.xml", gszEQPath, UISkin);
+
+    DebugSpew("GenerateMQUI::Generating %s MQUI.xml", UISkin);
+
+    forg = fopen(szOrgFilename, "rt");
+    if (!forg) {
+	DebugSpew("GenerateMQUI::could not open %s", szOrgFilename);
+	return false;
+    }
+    fnew = fopen(szFilename, "wt");
+    if (!fnew) {
+	DebugSpew("GenerateMQUI::could not open %s", szFilename);
+	fclose(forg);
+	return false;
+    }
+    while (fgets(Buffer, 2048, forg)) {
+	if (strstr(Buffer, "</Composite>")) {
+	    // DebugSpew("GenerateMQUI::Inserting our xml files");
+	    PMQXMLFILE      pFile = pXMLFiles;
+	    while (pFile) {
+		// DebugSpew("GenerateMQUI::Inserting
+		// %s",pFile->szFilename);
+		fprintf(fnew, "<Include>%s</Include>\n",
+			pFile->szFilename);
+		pFile = pFile->pNext;
+	    }
 	}
-	DebugSpew("GenerateMQUI::Generating MQUI.xml");
-	CHAR szOrgFilename[MAX_PATH]={0};
-	CHAR szFilename[MAX_PATH]={0};
-	sprintf(szOrgFilename,"%s\\uifiles\\default\\EQUI.xml",gszEQPath);
-	sprintf(szFilename,"%s\\uifiles\\default\\MQUI.xml",gszEQPath);
-	char Buffer[2048];
-	FILE *forg=fopen(szOrgFilename,"rt");
-	if (!forg)
-	{
-		DebugSpew("GenerateMQUI::could not open %s",szOrgFilename);
+	fprintf(fnew, "%s", Buffer);
+    }
+    fclose(fnew);
+    fclose(forg);
+
+    if ((pCharInfo = GetCharInfo()) != NULL) {
+	sprintf(szFilename, "%s\\UI_%s_%s.ini", gszEQPath, pCharInfo->Name,
+		EQADDR_SERVERNAME);
+	GetPrivateProfileString("Main", "UISkin", "default", UISkin,
+				MAX_STRING, szFilename);
+
+	if (strcmp(UISkin, "default")) {
+
+	    sprintf(szOrgFilename, "%s\\uifiles\\%s\\EQUI.xml",
+		    gszEQPath, UISkin);
+	    sprintf(szFilename, "%s\\uifiles\\%s\\MQUI.xml", gszEQPath,
+		    UISkin);
+
+	    DebugSpew("GenerateMQUI::Generating %s MQUI.xml", UISkin);
+
+	    forg = fopen(szOrgFilename, "rt");
+	    if (!forg) {
+		DebugSpew("GenerateMQUI::could not open %s",
+			  szOrgFilename);
 		return false;
-	}
-	FILE *fnew=fopen(szFilename,"wt");
-	if (!fnew)
-	{
-		DebugSpew("GenerateMQUI::could not open %s",szFilename);
+	    }
+	    fnew = fopen(szFilename, "wt");
+	    if (!fnew) {
+		DebugSpew("GenerateMQUI::could not open %s", szFilename);
 		fclose(forg);
 		return false;
-	}
-	while(fgets(Buffer,2048,forg))
-	{
-		if (strstr(Buffer,"</Composite>"))
-		{
-//			DebugSpew("GenerateMQUI::Inserting our xml files");
-			PMQXMLFILE pFile=pXMLFiles;
-			while(pFile)
-			{
-//				DebugSpew("GenerateMQUI::Inserting %s",pFile->szFilename);
-				fprintf(fnew,"<Include>%s</Include>\n",pFile->szFilename);
-				pFile=pFile->pNext;
-			}
+	    }
+	    while (fgets(Buffer, 2048, forg)) {
+		if (strstr(Buffer, "</Composite>")) {
+		    // DebugSpew("GenerateMQUI::Inserting our xml files");
+		    PMQXMLFILE      pFile = pXMLFiles;
+		    while (pFile) {
+			// DebugSpew("GenerateMQUI::Inserting
+			// %s",pFile->szFilename);
+			fprintf(fnew, "<Include>%s</Include>\n",
+				pFile->szFilename);
+			pFile = pFile->pNext;
+		    }
 		}
-		fprintf(fnew,"%s",Buffer);
+		fprintf(fnew, "%s", Buffer);
+	    }
+	    fclose(fnew);
+	    fclose(forg);
 	}
-	fclose(fnew);
-	fclose(forg);
-	return true;
+    }
+
+    return true;
 }
 
-void DestroyMQUI()
+void
+DestroyMQUI()
 {
-	// delete EverQuest\uifiles\default\MQUI.xml
-	CHAR szFilename[MAX_PATH];
-	sprintf(szFilename,"%s\\uifiles\\default\\MQUI.xml",gszEQPath);
+    // delete MQUI.xml files.
+    PCHARINFO       pCharInfo = NULL;
+    CHAR            szFilename[MAX_PATH] = { 0 };
+    CHAR            UISkin[MAX_STRING] = { 0 };
+
+    sprintf(szFilename, "%s\\uifiles\\%s\\MQUI.xml", gszEQPath, "default");
+    remove(szFilename);
+
+    if ((pCharInfo = GetCharInfo()) != NULL) {
+	sprintf(szFilename, "%s\\UI_%s_%s.ini", gszEQPath, pCharInfo->Name,
+		EQADDR_SERVERNAME);
+	DebugSpew("UI File: %s", szFilename);
+	GetPrivateProfileString("Main", "UISkin", "default", UISkin,
+				MAX_STRING, szFilename);
+	DebugSpew("UISkin=%s", UISkin);
+
+	sprintf(szFilename, "%s\\uifiles\\%s\\MQUI.xml", gszEQPath,
+		UISkin);
 	remove(szFilename);
+    }
 }
 
-void AddXMLFile(const char *filename)
+void
+AddXMLFile(const char *filename)
 {
-	PMQXMLFILE pFile=pXMLFiles;
-	PMQXMLFILE pLast=0;
-	while(pFile)
-	{
-		if (!stricmp(pFile->szFilename,filename))
-			return; // already there.
-		pLast=pFile;
-		pFile=pFile->pNext;
-	}
-	CHAR szBuffer[MAX_PATH]={0};
-	sprintf(szBuffer,"%s\\uifiles\\default\\%s",gszEQPath,filename);
-	if (!_FileExists(szBuffer))
-	{
-		WriteChatf("UI file %s not found in uifiles\\default.  Please copy it there, reload the UI, and reload this plugin.",filename);
-		return;
-	}
+    PMQXMLFILE      pFile = pXMLFiles;
+    PMQXMLFILE      pLast = 0;
+    while (pFile) {
+	if (!stricmp(pFile->szFilename, filename))
+	    return;		// already there.
+	pLast = pFile;
+	pFile = pFile->pNext;
+    }
+    CHAR            szBuffer[MAX_PATH] = { 0 };
+    PCHARINFO       pCharInfo = NULL;
+    CHAR            szFilename[MAX_PATH] = { 0 };
+    CHAR            UISkin[MAX_STRING] = { 0 };
+    sprintf(UISkin, "default");
 
-	DebugSpew("Adding XML File %s",filename);
-	if (gGameState==GAMESTATE_INGAME)
-	{
-		WriteChatf("UI file %s added, you must reload your UI for this to take effect.",filename);
-	}
+    if ((pCharInfo = GetCharInfo()) != NULL) {
+	sprintf(szFilename, "%s\\UI_%s_%s.ini", gszEQPath, pCharInfo->Name,
+		EQADDR_SERVERNAME);
+	GetPrivateProfileString("Main", "UISkin", "default", UISkin,
+				MAX_STRING, szFilename);
+    }
+    sprintf(szBuffer, "%s\\uifiles\\%s\\%s", gszEQPath, UISkin, filename);
 
-	pFile = new MQXMLFILE;
-	pFile->pLast=pLast;
-	if (pLast)
-		pLast->pNext=pFile;
-	else
-		pXMLFiles=pFile;
-	pFile->pNext=0;
-	strcpy(pFile->szFilename,filename);
+    if (!_FileExists(szBuffer)) {
+	sprintf(szBuffer, "%s\\uifiles\\%s\\%s", gszEQPath, "default",
+		filename);
+	if (!_FileExists(szBuffer)) {
+	    WriteChatf
+		("UI file %s not found in either uifiles\\%s or uifiles\\default.  Please copy it there, reload the UI, and reload this plugin.",
+		 filename, UISkin);
+	    return;
+	}
+    }
+
+    DebugSpew("Adding XML File %s", filename);
+    if (gGameState == GAMESTATE_INGAME) {
+	WriteChatf
+	    ("UI file %s added, you must reload your UI for this to take effect.",
+	     filename);
+
+    }
+
+    pFile = new MQXMLFILE;
+    pFile->pLast = pLast;
+    if (pLast)
+	pLast->pNext = pFile;
+    else
+	pXMLFiles = pFile;
+    pFile->pNext = 0;
+    strcpy(pFile->szFilename, filename);
 }
 
-void RemoveXMLFile(const char *filename)
+void
+RemoveXMLFile(const char *filename)
 {
-	PMQXMLFILE pFile=pXMLFiles;
-	while(pFile)
-	{
-		if (!stricmp(pFile->szFilename,filename))
-		{
-			DebugSpew("Removing XML File %s",filename);
-			if (pFile->pLast)
-				pFile->pLast->pNext=pFile->pNext;
-			else
-				pXMLFiles=pFile->pNext;
-			if (pFile->pNext)
-				pFile->pNext=pFile->pLast->pNext;
-			delete pFile;
-			return;
-		}
-		pFile=pFile->pNext;
+    PMQXMLFILE      pFile = pXMLFiles;
+    while (pFile) {
+	if (!stricmp(pFile->szFilename, filename)) {
+	    DebugSpew("Removing XML File %s", filename);
+	    if (pFile->pLast)
+		pFile->pLast->pNext = pFile->pNext;
+	    else
+		pXMLFiles = pFile->pNext;
+	    if (pFile->pNext)
+		pFile->pNext->pLast = pFile->pLast;
+	    delete pFile;
+	    return;
 	}
+	pFile = pFile->pNext;
+    }
 }
+
 
 CXWnd *FindMQ2Window(PCHAR WindowName)
 {
@@ -993,7 +1082,7 @@ int ItemNotify(int argc, char *argv[])
 			unsigned long nPack=atoi(&szArg2[4]);
 			if (nPack && nPack<=NUM_BANK_SLOTS)
 			{
-				pPack=pChar->pCharInfo->Bank[nPack-1];
+				pPack=GetCharInfo()->Bank[nPack-1];
 			}
 		}
 		else if (!strnicmp(szArg2,"sharedbank",10))
@@ -1001,7 +1090,7 @@ int ItemNotify(int argc, char *argv[])
 			unsigned long nPack=atoi(&szArg2[10]);
 			if (nPack && nPack<=2)
 			{
-				pPack=pChar->pCharInfo->Bank[16+nPack-1];
+				pPack=GetCharInfo()->Bank[16+nPack-1];
 			}
 		}
 		else if (!strnicmp(szArg2,"pack",4))

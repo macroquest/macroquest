@@ -1215,7 +1215,7 @@ bool MQ2SpawnType::GETMEMBER()
 		Dest.Type=pStringType;
 		return true;
 	case State:
-		if (pSpawn->pCharInfo && GetCharInfo()->Stunned)
+		if (GetCharInfo() && GetCharInfo()->Stunned)
 		{
 			Dest.Ptr="STUN";
 		}
@@ -1555,12 +1555,16 @@ bool MQ2SpawnType::GETMEMBER()
          return true; 
       } 
         return false;
-    case Fleeing:
+	case Fleeing:
 		Dest.DWord=IsMobFleeing(GetCharInfo()->pSpawn,pSpawn);
 		Dest.Type=pBoolType;
 		return true;
 	case Named:
-        Dest.DWord=IsNamed(pSpawn);
+		Dest.DWord=IsNamed(pSpawn);
+		Dest.Type=pBoolType;
+		return true;
+	case Buyer:
+		Dest.DWord=pSpawn->Buyer;
 		Dest.Type=pBoolType;
 		return true;
 	}
@@ -2064,7 +2068,7 @@ bool MQ2CharacterType::GETMEMBER()
 		return true;
     case FreeBuffSlots: 
 		Dest.DWord=GetAAIndexByName("mystical attuning"); 
-		if (PlayerHasAAAbility(PCHARINFO pChar, Dest.DWord)) 
+		if (PlayerHasAAAbility(Dest.DWord)) 
 		{ 
 			for (unsigned int j=0; j < AA_CHAR_MAX_REAL; j++) 
 			{ 
@@ -3862,28 +3866,36 @@ bool MQ2WindowType::GETMEMBER()
 			Dest.Type=pWindowType;
 			return true;
 		}
-		return false;
+                Dest.DWord=0;
+                Dest.Type=pIntType;
+                return true;
 	case Parent:
 		if (Dest.Ptr=pWnd->pParentWindow)
 		{
 			Dest.Type=pWindowType;
 			return true;
 		}
-		return false;
+                Dest.DWord=0;
+                Dest.Type=pIntType;
+                return true;
 	case FirstChild:
 		if (Dest.Ptr=pWnd->pChildren)
 		{
 			Dest.Type=pWindowType;
 			return true;
 		}
-		return false;
+                Dest.DWord=0;
+                Dest.Type=pIntType;
+                return true;
 	case Next:
 		if (Dest.Ptr=pWnd->pSiblings)
 		{
 			Dest.Type=pWindowType;
 			return true;
 		}
-		return false;
+                Dest.DWord=0;
+                Dest.Type=pIntType;
+                return true;
 	case VScrollMax:
 		Dest.DWord=pWnd->VScrollMax;
 		Dest.Type=pIntType;
@@ -5413,6 +5425,8 @@ bool MQ2GroupType::GETMEMBER()
 						return true;
 					}
 				}
+			if (!stricmp(pChar->pSpawn->Name,GETFIRST()))
+                return true;
 			return false;
 		}
 		break;

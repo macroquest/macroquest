@@ -534,6 +534,7 @@ public:
 		Suffix=85,
 		Fleeing=86,
 		Named=87,
+		Buyer=88,
 	};
 	static enum SpawnMethods
 	{
@@ -628,6 +629,7 @@ public:
 		TypeMember(Suffix); //85
 		TypeMember(Fleeing);
 		TypeMember(Named);
+		TypeMember(Buyer);
 
 		TypeMethod(Target);
 		TypeMethod(Face);
@@ -1586,6 +1588,7 @@ public:
 	};
 	static enum GroundMethods
 	{
+            Grab=1,
 	};
 	MQ2GroundType():MQ2Type("ground")
 	{
@@ -1598,6 +1601,7 @@ public:
 		TypeMember(Name);//7,
 		TypeMember(HeadingTo);
 		AddMember(xLineOfSight,"LineOfSight");
+                TypeMethod(Grab);
 	}
 
 	~MQ2GroundType()

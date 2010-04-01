@@ -1129,7 +1129,7 @@ PEQCONTAINERWINDOW FindContainerForContents(PCONTENTS pContents)
    if (!ppContainerMgr || !pContainerMgr) return NULL;
    PEQ_CONTAINERWND_MANAGER pMgr = (PEQ_CONTAINERWND_MANAGER)pContainerMgr;
 
-   for (int j = 0; j < 25; j++)
+   for (int j = 0; j < 35; j++)
    {
       if (pMgr->pPCContainers[j] && (pMgr->pPCContainers[j]->pContents == pContents))
          return (pMgr->pPCContainers[j]);
@@ -4026,7 +4026,7 @@ BOOL Calculate(PCHAR szFormula, DOUBLE &Result)
 }
 #endif
 
-bool PlayerHasAAAbility(PCHARINFO pChar, DWORD AAIndex)
+bool PlayerHasAAAbility(DWORD AAIndex)
 {
     for (int i = 0; i < AA_CHAR_MAX_REAL; i++)
     {

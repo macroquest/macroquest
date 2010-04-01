@@ -142,6 +142,12 @@ public:
         sprintf(temp,"Item ID: %d<br>", Item->ItemNumber); 
         strcat(out, temp); 
 	 } 
+     if ( pitem->IsStackable() ) {
+        if ( Item->StackSize > 0 ) {
+            sprintf(temp,"Stackable Count: %d<br>", Item->StackSize);
+            strcat(out, temp);
+        }
+     } 
 	 if (Item->Cost>0) {
 		  DWORD cp = Item->Cost;
 		  DWORD sp = cp/10; cp=cp%10;

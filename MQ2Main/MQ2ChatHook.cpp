@@ -37,7 +37,13 @@ public:
 		PFILTER Filter = gpFilters; 
 		while (Filter && !Filtered) { 
 			if (!Filter->pEnabled || (*Filter->pEnabled)) { 
-				if (!strnicmp(szMsg,Filter->FilterText,Filter->Length)) Filtered = TRUE; 
+                if (*Filter->FilterText == '*') {
+                    if (strstr(szMsg,Filter->FilterText+1)) 
+                        Filtered = TRUE;
+                } else { 
+                    if (!strnicmp(szMsg,Filter->FilterText,Filter->Length)) 
+                        Filtered = TRUE; 
+                }
 			} 
 			Filter = Filter->pNext; 
 		} 

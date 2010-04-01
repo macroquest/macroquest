@@ -1231,3 +1231,57 @@ int CMD_DoorTarget(int argc, char *argv[])
    }
    return 0;
 } 
+
+int CMD_ItemTarget(int argc, char *argv[])
+{
+    if (!ppItemList) return 0;
+    if (!pItemList) return 0;
+   PSPAWNINFO pChar = (PSPAWNINFO)pLocalPlayer;
+    PGROUNDITEM pItem = (PGROUNDITEM)pItemList;
+    FLOAT cDistance = 100000.0f;
+   CHAR szName[MAX_STRING]={0};
+    CHAR szBuffer[MAX_STRING] = {0};
+    ZeroMemory(&EnviroTarget,sizeof(EnviroTarget));
+    pGroundTarget = NULL;
+    while (pItem) {
+        GetFriendlyNameForGroundItem(pItem,szName);
+        if (
+                (
+                    (argc<2) ||
+                    (!strnicmp(szName,argv[1],strlen(argv[1])))
+                ) && (
+                    (gZFilter >=10000.0f) ||
+                    (
+                        (pItem->Z <= pChar->Z + gZFilter) &&
+                        (pItem->Z >= pChar->Z - gZFilter)
+                    )
+                )
+            ) {
+            SPAWNINFO tSpawn;
+            ZeroMemory(&tSpawn,sizeof(tSpawn));
+            strcpy(tSpawn.Name,szName);
+            tSpawn.Y=pItem->Y;
+            tSpawn.X=pItem->X;
+            tSpawn.Z=pItem->Z;
+            tSpawn.Type = SPAWN_NPC;
+            tSpawn.HPCurrent = 1;
+            tSpawn.HPMax = 1;
+            tSpawn.Heading=pItem->Heading;
+            tSpawn.Race = pItem->DropID;
+            FLOAT Distance = DistanceToSpawn(pChar,&tSpawn);
+            if (Distance<cDistance) {
+                CopyMemory(&EnviroTarget,&tSpawn,sizeof(EnviroTarget));
+                cDistance=Distance;
+                pGroundTarget = pItem;
+            }
+        }
+
+        pItem = pItem->pNext;
+    }
+    if (EnviroTarget.Name[0]!=0) {
+        sprintf(szBuffer,"Item '%s' targeted.",EnviroTarget.Name);
+        WriteChatColor(szBuffer,USERCOLOR_DEFAULT);
+   }
+
+   return 0;
+} 
