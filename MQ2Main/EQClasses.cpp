@@ -4254,7 +4254,7 @@ FUNCTION_AT_ADDRESS(unsigned int EQ_Character::GetEffectId(int),EQ_Character__Ge
 FUNCTION_AT_ADDRESS(void  EQ_Character1::SetEffectId(unsigned char,unsigned int),EQ_Character__SetEffectId);
 #endif
 #ifdef EQ_Character__CastSpell
-FUNCTION_AT_ADDRESS(unsigned char EQ_Character1::CastSpell(unsigned char gemid,int spellid,class EQ_Item * *ppItem,int,int slot,int,int,int,int),EQ_Character__CastSpell); 
+FUNCTION_AT_ADDRESS(unsigned char EQ_Character1::CastSpell(unsigned char gemid,int spellid,class EQ_Item * *ppItem,int,int slot,int,int,int,int,bool),EQ_Character__CastSpell); 
 #endif
 #ifdef EQ_Character__GetBardInstrumentMod
 FUNCTION_AT_ADDRESS(int  EQ_Character::GetBardInstrumentMod(int),EQ_Character__GetBardInstrumentMod);
@@ -4366,6 +4366,9 @@ FUNCTION_AT_ADDRESS(void  EQ_Character::ReCachItemEffects(void),EQ_Character__Re
 #endif
 #ifdef EQ_Character__GetCachEQSPA
 FUNCTION_AT_ADDRESS(int  EQ_Character::GetCachEQSPA(int),EQ_Character__GetCachEQSPA);
+#endif
+#ifdef EQ_Character__GetConLevel
+FUNCTION_AT_ADDRESS(unsigned long EQ_Character::GetConLevel(class EQPlayer *),EQ_Character__GetConLevel);
 #endif
 #ifdef EQ_Container__EQ_Container
 FUNCTION_AT_ADDRESS( EQ_Container::EQ_Container(void),EQ_Container__EQ_Container);
@@ -5200,6 +5203,9 @@ FUNCTION_AT_ADDRESS(void  EQPlayer::UpdatePlayerVisibility(void),EQPlayer__Updat
 #endif
 #ifdef EQPlayer__UpdateAllPlayersVisibility
 FUNCTION_AT_ADDRESS(void __cdecl EQPlayer::UpdateAllPlayersVisibility(void),EQPlayer__UpdateAllPlayersVisibility);
+#endif
+#ifdef EQPlayer__IsBodyType_j
+FUNCTION_AT_ADDRESS(bool EQPlayer::IsBodyType(unsigned int,int,int),EQPlayer__IsBodyType_j);
 #endif
 #ifdef EQPlayer__SetEyeMaterial
 FUNCTION_AT_ADDRESS(int  EQPlayer::SetEyeMaterial(unsigned char,int),EQPlayer__SetEyeMaterial);
@@ -9539,6 +9545,24 @@ FUNCTION_AT_ADDRESS(char *CDBStr::GetString(int, int, int *), CDBStr__GetString)
 #endif
 #ifdef EQMisc__GetActiveFavorCost
 FUNCTION_AT_ADDRESS(int EQMisc::GetActiveFavorCost(void),EQMisc__GetActiveFavorCost);
+#endif
+#ifdef CSkillMgr__GetStrNumber
+FUNCTION_AT_ADDRESS(unsigned long CSkillMgr::GetStrNumber(int),CSkillMgr__GetStrNumber);
+#endif
+#ifdef CSkillMgr__GetSkillCap
+FUNCTION_AT_ADDRESS(unsigned long CSkillMgr::GetSkillCap(class EQ_Character *,int,int,int),CSkillMgr__GetSkillCap)
+#endif
+#ifdef CSkillMgr__SkillAvailableAtLevel
+FUNCTION_AT_ADDRESS(unsigned long CSkillMgr::SkillAvailableAtLevel(int,int),CSkillMgr__SkillAvailableAtLevel);
+#endif
+#ifdef CSkillMgr__IsActivatableSkill
+FUNCTION_AT_ADDRESS(bool CSkillMgr::IsActivatableSkill(int),CSkillMgr__IsActivatableSkill);
+#endif
+#ifdef CSkillMgr__GetBaseDamage
+FUNCTION_AT_ADDRESS(unsigned long CSkillMgr::GetBaseDamage(int),CSkillMgr__GetBaseDamage);
+#endif
+#ifdef CSkillMgr__GetReuseTime
+FUNCTION_AT_ADDRESS(unsigned long CSkillMgr::GetReuseTime(int),CSkillMgr__GetReuseTime);
 #endif
 
 void bogus()

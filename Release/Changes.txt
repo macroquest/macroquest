@@ -1,3 +1,22 @@
+19 September 2006 by ieatacid
+- Updated for Serpent's Spine expansion release. Many new changes - the important stuff is listed below
+- Skill members SkillCapPre50, SkillCapPre65 and SkillCapPre70 were removed and replaced with int SkillCap.  This returns the skill cap based on your class and current level
+- New character members:
+    1) string CombatState - returns one of the following: COMBAT, DEBUFFED, COOLDOWN, ACTIVE, RESTING.  The same as the new icon in the player info window
+    2) int svCorruption - character's Corruption resist
+- Added Prismatic and Corruption to spell ResistType
+- MQ2ItemDisplay now shows corruption resist
+- "GREY" added to spawn.ConColor
+- Plugin authors:
+  * Skill stuff has been changed
+      Lines like this:
+        if(SkillDict[EQADDR_DOABILITYLIST[nSkill]]->AltTimer==2)
+      Need to be changed to this:
+        if(pSkillMgr->pSkill[EQADDR_DOABILITYLIST[nSkill]]->AltTimer==2)
+
+3 September 2006 by ieatacid
+- Changed the way we handle con-colors.  We now use EQ's function rather than calculate it ourselves.
+
 30 Aug 2006 by dkaa
 - incorporate change from Ceghkmv and teabag to fix the xml file stuff
 

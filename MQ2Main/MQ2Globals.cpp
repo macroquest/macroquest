@@ -195,7 +195,7 @@ fEQGetMelee    get_melee_range = (fEQGetMelee)__get_melee_range;
 fGetLabelFromEQ GetLabelFromEQ = (fGetLabelFromEQ)__GetLabelFromEQ;
 
 // EQ Address Initialization
-PSKILL *SkillDict=(PSKILL*)__SkillDict;
+_SKILLMGR **ppSkillMgr=(_SKILLMGR**)pinstSkillMgr;
 
 DWORD EQADDR_HWND=__HWnd;
 DWORD EQADDR_MEMCHECK0=__MemChecker0;
@@ -207,9 +207,6 @@ PCHAR EQADDR_SERVERHOST=(PCHAR)__ServerHost;
 PCHAR EQADDR_SERVERNAME=(PCHAR)__ServerName;
 DWORD EQADDR_CONVERTITEMTAGS=__ConvertItemTags;
 PCMDLIST EQADDR_CMDLIST=(PCMDLIST)__CommandList;
-
-PEQFRIENDSLIST pFriendsList=(PEQFRIENDSLIST)__FriendsList;
-PEQFRIENDSLIST pIgnoreList=(PEQFRIENDSLIST)__IgnoreList;
 
 PBYTE EQADDR_ATTACK=(PBYTE)__Attack;
 PBYTE EQADDR_NOTINCHATMODE=(PBYTE)__InChatMode;
@@ -486,12 +483,12 @@ PCHAR szDmgBonusType[] = {
 }; 
 
 PCHAR szBodyType[] = { 
-   "Player",//0
+   "UNKNOWN BODYTYPE 0",//0
    "Humanoid", //1
    "Lycanthrope", //2
    "Undead", //3
    "Giant", //4
-   "Construct", //5   (includes confused mutations in ldon)
+   "Construct", //5   (includes confused mutations in ldon, chests as of 9-19-2006)
    "Extraplanar", //6
    "Magical", //7
    "Undead Pet", //8
@@ -519,7 +516,7 @@ PCHAR szBodyType[] = {
    "Bane Dragon",//30
    "Familiar",//31
 	"Proc Pet",//32
-	"Chest",//33
+	"Chest",//33  (5 as of 9-19-2006)
 	"Muramite",//34
 	"*UNKNOWN BODYTYPE 35",
 	"*UNKNOWN BODYTYPE 36",
@@ -557,8 +554,40 @@ PCHAR szBodyType[] = {
 	"*UNKNOWN BODYTYPE 68",
 	"*UNKNOWN BODYTYPE 69",
 	"*UNKNOWN BODYTYPE 70",
-}; 
-/**/
+	"*UNKNOWN BODYTYPE 71",
+	"*UNKNOWN BODYTYPE 72",
+	"*UNKNOWN BODYTYPE 73",
+	"*UNKNOWN BODYTYPE 74",
+	"*UNKNOWN BODYTYPE 75",
+	"*UNKNOWN BODYTYPE 76",
+	"*UNKNOWN BODYTYPE 77",
+	"*UNKNOWN BODYTYPE 78",
+	"*UNKNOWN BODYTYPE 79",
+	"*UNKNOWN BODYTYPE 80",
+	"*UNKNOWN BODYTYPE 81",
+	"*UNKNOWN BODYTYPE 82",
+	"*UNKNOWN BODYTYPE 83",
+	"*UNKNOWN BODYTYPE 84",
+	"*UNKNOWN BODYTYPE 85",
+	"*UNKNOWN BODYTYPE 86",
+	"*UNKNOWN BODYTYPE 87",
+	"*UNKNOWN BODYTYPE 88",
+	"*UNKNOWN BODYTYPE 89",
+	"*UNKNOWN BODYTYPE 90",
+	"*UNKNOWN BODYTYPE 91",
+	"*UNKNOWN BODYTYPE 92",
+	"*UNKNOWN BODYTYPE 93",
+	"*UNKNOWN BODYTYPE 94",
+	"*UNKNOWN BODYTYPE 95",
+	"*UNKNOWN BODYTYPE 96",
+	"*UNKNOWN BODYTYPE 97",
+	"*UNKNOWN BODYTYPE 98",
+	"*UNKNOWN BODYTYPE 99",
+	"Untargetable",
+	"Trigger",
+	"Timer",
+	"Trap",
+};
 
 PCHAR szAugRestrictions[] = { 
 	"None",
@@ -711,6 +740,7 @@ PCHAR szColorMQ2DataError[]=
 StringTable **ppStringTable=(StringTable**)pinstStringTable;
 CDBStr **ppCDBStr = (CDBStr**)pinstCDBStr;
 EQMisc *pEQMisc=(EQMisc*)instEQMisc;
+CSkillMgr **ppCSkillMgr=(CSkillMgr**)pinstSkillMgr;
 
 //EQPlayer **ppEQP_IDArray=(EQPlayer**)__EQP_IDArray;
 

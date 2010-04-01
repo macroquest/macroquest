@@ -193,10 +193,8 @@ EQLIB_VAR PCHAR EQADDR_SERVERHOST;
 EQLIB_VAR PCHAR EQADDR_SERVERNAME;
 EQLIB_VAR DWORD EQADDR_HWND;
 
-EQLIB_VAR PSKILL *SkillDict;
-
-EQLIB_VAR PEQFRIENDSLIST pFriendsList;
-EQLIB_VAR PEQFRIENDSLIST pIgnoreList;
+EQLIB_VAR _SKILLMGR **ppSkillMgr;
+#define pSkillMgr (*ppSkillMgr)
 
 EQLIB_VAR PCMDLIST EQADDR_CMDLIST;
 
@@ -339,6 +337,8 @@ EQLIB_VAR StringTable **ppStringTable;
 EQLIB_VAR CDBStr **ppCDBStr;
 #define pCDBStr (*ppCDBStr)
 EQLIB_VAR EQMisc *pEQMisc;
+EQLIB_VAR CSkillMgr **ppCSkillMgr;
+#define pCSkillMgr (*ppCSkillMgr)
 
 EQLIB_VAR CEverQuest **ppEverQuest;
 #define pEverQuest (*ppEverQuest)
@@ -348,7 +348,7 @@ EQLIB_VAR EQ_PC **ppPCData;
 #define pPCData (*ppPCData)
 EQLIB_VAR EQ_Character **ppCharData;
 #define pCharData (*ppCharData)
-#define pCharData1 ((EQ_Character1 *)(((char *)(*ppCharData))+0xeb78))
+#define pCharData1 ((EQ_Character1 *)(((char *)(*ppCharData))+0xec28))
 EQLIB_VAR EQPlayer **ppCharSpawn;
 #define pCharSpawn (*ppCharSpawn)
 EQLIB_VAR EQPlayer **ppActiveMerchant;

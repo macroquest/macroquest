@@ -5,8 +5,8 @@ EXTRN _myextern_array:DWORD
 
 _TEXT   SEGMENT PARA USE32 PUBLIC 'CODE'
 
-__MemChecker1   proc near               ; CODE XREF: sub_5D8A30+20p
-                                        ; sub_5E0500+1B5_p
+__MemChecker1   proc near               ; CODE XREF: sub_5EC2D0+20p
+                                        ; sub_5F4710+1B5_p
 
 arg_0           = dword ptr  4
 arg_4           = dword ptr  8
@@ -16,7 +16,7 @@ arg_8           = dword ptr  0Ch
                 or      eax, 0FFFFFFFFh
                 test    ecx, ecx
                 push    esi
-                jz      short loc_5D89EF
+                jz      short loc_5EC28F
                 xor     eax, eax
                 mov     al, cl
                 movzx   ecx, ch
@@ -48,16 +48,16 @@ arg_8           = dword ptr  0Ch
                 and     eax, 0FFFFFFh
                 xor     eax, edx
 
-loc_5D89EF:                             ; CODE XREF: sub_5D8970+Aj
+loc_5EC28F:                             ; CODE XREF: __MemChecker1+Aj
                 mov     ecx, [esp+4+arg_0]
                 mov     edx, [esp+4+arg_4]
                 lea     esi, [ecx+edx]
                 cmp     ecx, esi
-                jnb     short loc_5D8A23
+                jnb     short loc_5EC2C3
                 push    edi
                 nop
 
-loc_5D8A00:                             ; CODE XREF: sub_5D8970+B0j
+loc_5EC2A0:                             ; CODE XREF: __MemChecker1+B0j
                 xor     edx, edx
                 mov     dl, [ecx]
                 xor     edx, eax
@@ -68,14 +68,49 @@ loc_5D8A00:                             ; CODE XREF: sub_5D8970+B0j
                 xor     eax, edi
                 inc     ecx
                 cmp     ecx, esi
-                jb      short loc_5D8A00
+                jb      short loc_5EC2A0
                 pop     edi
 
-loc_5D8A23:                             ; CODE XREF: sub_5D8970+8Cj
+loc_5EC2C3:                             ; CODE XREF: __MemChecker1+8Cj
                 not     eax
                 pop     esi
                 retn
 __MemChecker1   endp
+
+; ---------------------------------------------------------------------------
+                align 10h
+
+; ¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦ S U B R O U T I N e ¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦
+
+
+sub_5EC2D0      proc near               ; CODE XREF: EQPlayer__LoadPlayerAnims+ECp
+                                        ; sub_4028A0+1A5p ...
+
+arg_0           = dword ptr  4
+arg_4           = dword ptr  8
+
+                mov     edx, [esp+arg_0]
+                mov     eax, edx
+                push    esi
+                lea     esi, [eax+1]
+                lea     ebx, [ebx+0]
+
+loc_5EC2E0:                             ; CODE XREF: sub_5EC2D0+15j
+                mov     cl, [eax]
+                inc     eax
+                test    cl, cl
+                jnz     short loc_5EC2E0
+                mov     ecx, [esp+4+arg_4]
+                push    ecx
+                sub     eax, esi
+                push    eax
+                push    edx
+                call    __MemChecker1
+                add     esp, 0Ch
+                pop     esi
+                retn
+sub_5EC2D0      endp
+
 
 
 _TEXT   ENDS

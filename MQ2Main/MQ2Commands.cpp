@@ -1231,6 +1231,10 @@ VOID Identify(PSPAWNINFO pChar, PCHAR szLine)
 				sprintf(szTmp,"%dSvC ",pCharInfo->Cursor->Item->SvCold);
                 strcat(szMsg,szTmp);
             }
+			if (pCharInfo->Cursor->Item->SvCorruption) {
+				sprintf(szTmp,"%dSvCorruption ",pCharInfo->Cursor->Item->SvCorruption);
+                strcat(szMsg,szTmp);
+            }
 			if (((EQ_Item*)pCharInfo->Cursor)->IsStackable()==1) {
 				sprintf(szTmp,"Stack size = %d ",pCharInfo->Cursor->StackCount);
                 strcat(szMsg,szTmp);
@@ -1831,8 +1835,8 @@ VOID DoAbility(PSPAWNINFO pChar, PCHAR szLine)
     WriteChatColor("Abilities & Combat Skills:",USERCOLOR_DEFAULT);
  
     // display skills that have activated state
-    for(Index=0; Index<100; Index++) {
-     if(SkillDict[Index]->Activated) {
+    for(Index=0; Index<NUM_SKILLS; Index++) {
+     if(pSkillMgr->pSkill[Index]->Activated) {
        bool Avail=(GetCharInfo2()->Skill[Index]>0);
        for(int btn=0; !Avail && btn<10; btn++) {
           if(EQADDR_DOABILITYLIST[btn]==Index) Avail=true;
@@ -1868,8 +1872,8 @@ VOID DoAbility(PSPAWNINFO pChar, PCHAR szLine)
   } 
   // scan for matching abilities name
   for(Index=0; Index < 128; Index++) {
-    if((Index < 100 && (SkillDict[Index])->Activated) ||
-      (Index >= 100 && GetCharInfo2()->InnateSkill[Index-100]!=0xFF)) {
+    if((Index < NUM_SKILLS && (pSkillMgr->pSkill[Index])->Activated) ||
+      (Index >= NUM_SKILLS && GetCharInfo2()->InnateSkill[Index-100]!=0xFF)) {
       if(!strnicmp(szBuffer,szSkills[Index],strlen(szSkills[Index]))) {
         pCharData1->UseSkill((unsigned char)Index,(EQPlayer*)pCharData1);
         return;
@@ -1980,7 +1984,7 @@ VOID Cast(PSPAWNINFO pChar, PCHAR szLine)
          if (GetCharInfo2()->MemorizedSpells[Index]==0xFFFFFFFF) {
             sprintf(szBuffer,"%d. <Empty>",Index+1);
          } else {
-            sprintf(szBuffer,"%d. %s",Index+1,GetSpellByID(GetCharInfo2()->MemorizedSpells[Index]));
+            sprintf(szBuffer,"%d. %s",Index+1,GetSpellNameByID(GetCharInfo2()->MemorizedSpells[Index]));
          }
          WriteChatColor(szBuffer,USERCOLOR_DEFAULT);
       }
@@ -1998,18 +2002,20 @@ if (!stricmp(szArg1,"item"))
       DWORD slot = 0;
       DWORD SpawnFooter = NULL;
       SpawnFooter = (DWORD)pLocalPlayer;
+		PITEMINFO pItem=0;;
       for (int i=0;i<30;i++) {
          if (GetCharInfo2()->InventoryArray[i])
             if (!_stricmp(szArg2,GetCharInfo2()->InventoryArray[i]->Item->Name)) { 
             DebugSpew("cast test slot %d = %s address is %x",i,GetCharInfo2()->InventoryArray[i]->Item->Name,&(GetCharInfo2()->InventoryArray[i])); 
             item = (DWORD)&GetCharInfo2()->InventoryArray[i];
+				pItem=GetCharInfo2()->InventoryArray[i]->Item;
                slot = (DWORD)i;
                FOUND = TRUE;
                break;
             }
       }
       if (FOUND) {
-		 pCharData1->CastSpell(10,0,(EQ_Item**)item,0,slot,-1,-1,0,0);
+		 pCharData1->CastSpell(10,pItem->Clicky.SpellID,(EQ_Item**)item,0,slot,-1,-1,0,0,1);
          return;
       }
    }

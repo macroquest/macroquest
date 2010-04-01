@@ -5,8 +5,8 @@ EXTRN _myextern_array:DWORD
 
 _TEXT   SEGMENT PARA USE32 PUBLIC 'CODE'
 
-__MemChecker0   proc near               ; CODE XREF: sub_487250+80p
-                                        ; sub_4914C0+A6p ...
+__MemChecker0   proc near               ; CODE XREF: EQMisc__EQChecksumFile+80p
+                                        ; EQMisc__SendSpellChecksum+A6p ...
 
 arg_0           = dword ptr  8
 arg_4           = dword ptr  0Ch
@@ -16,12 +16,12 @@ arg_4           = dword ptr  0Ch
                 or      eax, 0FFFFFFFFh
                 xor     edx, edx
                 test    esi, esi
-                jle     short loc_4D50B3
+                jle     short loc_4E04A3
                 push    ebx
                 push    edi
                 mov     edi, [esp+8+arg_0]
 
-loc_4D5094:                             ; CODE XREF: __MemChecker0+2Fj
+loc_4E0484:                             ; CODE XREF: __MemChecker0+2Fj
                 movsx   ecx, byte ptr [edx+edi]
                 xor     ecx, eax
                 and     ecx, 0FFh
@@ -30,15 +30,14 @@ loc_4D5094:                             ; CODE XREF: __MemChecker0+2Fj
                 inc     edx
                 xor     eax, ebx
                 cmp     edx, esi
-                jl      short loc_4D5094
+                jl      short loc_4E0484
                 pop     edi
                 pop     ebx
 
-loc_4D50B3:                             ; CODE XREF: __MemChecker0+Cj
+loc_4E04A3:                             ; CODE XREF: __MemChecker0+Cj
                 pop     esi
                 retn
 __MemChecker0   endp
-
 
 _TEXT   ENDS
 END

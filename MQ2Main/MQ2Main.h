@@ -563,7 +563,7 @@ EQLIB_API bool		    PlayerHasAAAbility	  (DWORD AAIndex);
 EQLIB_API PCHAR       GetAANameByIndex		  (DWORD AAIndex);
 EQLIB_API DWORD       GetAAIndexByName		  (PCHAR AAName);
 EQLIB_API DWORD		 GetAAIndexByID		  (DWORD ID);
-
+EQLIB_API DWORD       GetSkillIDFromName    (PCHAR name);
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 // Functions that were built into commands and people used DoCommand to execute                  //
@@ -591,7 +591,7 @@ LEGACY_API BOOL Calculate(PCHAR szFormula, DOUBLE& Dest);
 
 #define LIGHT_COUNT     13
 #define MAX_COMBINES    52
-#define MAX_ITEMTYPES   53
+#define MAX_ITEMTYPES   56
 
 #define GAMESTATE_CHARSELECT    1
 #define GAMESTATE_SOMETHING     4
@@ -625,6 +625,6 @@ LEGACY_API BOOL Calculate(PCHAR szFormula, DOUBLE& Dest);
 #include "MQ2Auth0.h"
 #endif
 
-EQLIB_API VOID memchecks_tramp(PVOID,DWORD,PCHAR,DWORD,BOOL); 
-EQLIB_API VOID memchecks(PVOID,DWORD,PCHAR,DWORD,BOOL);
+EQLIB_API VOID memchecks_tramp(PVOID,DWORD,DWORD,PCHAR,BOOL); 
+EQLIB_API VOID memchecks(PVOID,DWORD,DWORD,PCHAR,BOOL);
 

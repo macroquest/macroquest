@@ -69,6 +69,7 @@ VOID dsp_chat_no_events(const char *Text,int Color,bool Something)
 unsigned int __stdcall MQ2DataVariableLookup(char * VarName, char * Value)
 {
 	strcpy(Value,VarName);
+        if (!GetCharInfo()) return strlen(Value);
 	return strlen(ParseMacroParameter(GetCharInfo()->pSpawn,Value));
 }
 

@@ -363,7 +363,7 @@ GenerateMQUI()
     sprintf(szOrgFilename, "%s\\uifiles\\%s\\EQUI.xml", gszEQPath, UISkin);
     sprintf(szFilename, "%s\\uifiles\\%s\\MQUI.xml", gszEQPath, UISkin);
 
-    DebugSpew("GenerateMQUI::Generating %s MQUI.xml", UISkin);
+    DebugSpew("GenerateMQUI::Generating %s", szFilename);
 
     forg = fopen(szOrgFilename, "rt");
     if (!forg) {
@@ -378,11 +378,10 @@ GenerateMQUI()
     }
     while (fgets(Buffer, 2048, forg)) {
 	if (strstr(Buffer, "</Composite>")) {
-	    // DebugSpew("GenerateMQUI::Inserting our xml files");
+	    DebugSpew("GenerateMQUI::Inserting our xml files");
 	    PMQXMLFILE      pFile = pXMLFiles;
 	    while (pFile) {
-		// DebugSpew("GenerateMQUI::Inserting
-		// %s",pFile->szFilename);
+		DebugSpew("GenerateMQUI::Inserting %s",pFile->szFilename);
 		fprintf(fnew, "<Include>%s</Include>\n",
 			pFile->szFilename);
 		pFile = pFile->pNext;
@@ -406,13 +405,19 @@ GenerateMQUI()
 	    sprintf(szFilename, "%s\\uifiles\\%s\\MQUI.xml", gszEQPath,
 		    UISkin);
 
-	    DebugSpew("GenerateMQUI::Generating %s MQUI.xml", UISkin);
+	    DebugSpew("GenerateMQUI::Generating %s", szFilename);
 
 	    forg = fopen(szOrgFilename, "rt");
 	    if (!forg) {
-		DebugSpew("GenerateMQUI::could not open %s",
-			  szOrgFilename);
-		return false;
+		DebugSpew("GenerateMQUI::could not open %s (non-fatal)", szOrgFilename);
+	        sprintf(szOrgFilename, "%s\\uifiles\\%s\\EQUI.xml",
+		    gszEQPath, "default");
+	        forg = fopen(szOrgFilename, "rt");
+	        if (!forg) {
+		    DebugSpew("GenerateMQUI::could not open %s", szOrgFilename);
+		    DebugSpew("GenerateMQUI::giving up");
+		    return false;
+                }
 	    }
 	    fnew = fopen(szFilename, "wt");
 	    if (!fnew) {
@@ -422,11 +427,10 @@ GenerateMQUI()
 	    }
 	    while (fgets(Buffer, 2048, forg)) {
 		if (strstr(Buffer, "</Composite>")) {
-		    // DebugSpew("GenerateMQUI::Inserting our xml files");
+		    //DebugSpew("GenerateMQUI::Inserting our xml files");
 		    PMQXMLFILE      pFile = pXMLFiles;
 		    while (pFile) {
-			// DebugSpew("GenerateMQUI::Inserting
-			// %s",pFile->szFilename);
+			//DebugSpew("GenerateMQUI::Inserting %s",pFile->szFilename);
 			fprintf(fnew, "<Include>%s</Include>\n",
 				pFile->szFilename);
 			pFile = pFile->pNext;
@@ -451,18 +455,20 @@ DestroyMQUI()
     CHAR            UISkin[MAX_STRING] = { 0 };
 
     sprintf(szFilename, "%s\\uifiles\\%s\\MQUI.xml", gszEQPath, "default");
+    DebugSpew("DestroyMQUI: removing file %s", szFilename);
     remove(szFilename);
 
     if ((pCharInfo = GetCharInfo()) != NULL) {
 	sprintf(szFilename, "%s\\UI_%s_%s.ini", gszEQPath, pCharInfo->Name,
 		EQADDR_SERVERNAME);
-	DebugSpew("UI File: %s", szFilename);
+	//DebugSpew("UI File: %s", szFilename);
 	GetPrivateProfileString("Main", "UISkin", "default", UISkin,
 				MAX_STRING, szFilename);
-	DebugSpew("UISkin=%s", UISkin);
+	//DebugSpew("UISkin=%s", UISkin);
 
 	sprintf(szFilename, "%s\\uifiles\\%s\\MQUI.xml", gszEQPath,
 		UISkin);
+        DebugSpew("DestroyMQUI: removing file %s", szFilename);
 	remove(szFilename);
     }
 }

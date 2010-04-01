@@ -67,3 +67,5 @@
    NULL,                    //50
    "All Instruments",       //51
    "Charm",                 //52
+   NULL,                    //53
+	"Augmentation",          //54

@@ -227,7 +227,7 @@ VOID InitializeMQ2Plugins()
 	bmCalculate=AddMQ2Benchmark("Calculate");
     bmBeginZone=AddMQ2Benchmark("BeginZone"); 
 	bmEndZone=AddMQ2Benchmark("EndZone"); 
-
+DebugSpew("InitializeMQ2Plugins 1");
 	InitializeCriticalSection(&gPluginCS);
 	bPluginCS=1;
 
@@ -244,6 +244,7 @@ VOID InitializeMQ2Plugins()
         }
         pPluginList+=strlen(pPluginList)+1;
     }
+	 DebugSpew("InitializeMQ2Plugins 2");
 }
 
 VOID UnloadMQ2Plugins()
@@ -470,15 +471,16 @@ VOID PluginsDrawHUD()
 
 VOID PluginsAddSpawn(PSPAWNINFO pNewSpawn)
 {
-	PluginDebug("PluginsAddSpawn(%s,%d,%d)",pNewSpawn->Name,pNewSpawn->Race,pNewSpawn->BodyType);
+	DWORD BodyType=GetBodyType(pNewSpawn);
+	PluginDebug("PluginsAddSpawn(%s,%d,%d)",pNewSpawn->Name,pNewSpawn->Race,BodyType);
 	SpawnByName[pNewSpawn->Name]=pNewSpawn;
 	if (!bPluginCS)
 		return;
 	if (gGameState>GAMESTATE_CHARSELECT)
 		SetNameSpriteState(pNewSpawn,1);
-	if (GetBodyTypeDesc(pNewSpawn->BodyType)[0]=='*')
+	if (GetBodyTypeDesc(BodyType)[0]=='*')
 	{
-		WriteChatf("Spawn '%s' has unknown bodytype %d",pNewSpawn->Name,pNewSpawn->BodyType);
+		WriteChatf("Spawn '%s' has unknown bodytype %d",pNewSpawn->Name,BodyType);
 	}
 	CAutoLock Lock(&gPluginCS);
 	PMQPLUGIN pPlugin=pPlugins;

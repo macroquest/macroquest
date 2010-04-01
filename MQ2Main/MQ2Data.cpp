@@ -1166,9 +1166,9 @@ TLO(dataSkill)
 	if (ISNUMBER())
 	{
 		unsigned long nSkill=GETNUMBER()-1;
-		if (nSkill>=100)
+		if (nSkill>=NUM_SKILLS)
 			return false;
-		if (Ret.Ptr=&SkillDict[nSkill])
+		if (Ret.Ptr=&pSkillMgr->pSkill[nSkill])
 		{
 			Ret.Type=pSkillType;
 			return true;
@@ -1176,15 +1176,15 @@ TLO(dataSkill)
 	}
 	else
 	{
-		for (unsigned long nSkill=0 ; nSkill<100 ; nSkill++)
+		for (unsigned long nSkill=0 ; nSkill<NUM_SKILLS ; nSkill++)
 		{
-			if (PSKILL pSkill=SkillDict[nSkill])
+			if (PSKILL pSkill=pSkillMgr->pSkill[nSkill])
 			{
 				if (PCHAR pName=pStringTable->getString(pSkill->nName,0))
 				{
 					if (!stricmp(GETFIRST(),pName))
 					{
-						Ret.Ptr=&SkillDict[nSkill];
+						Ret.Ptr=&pSkillMgr->pSkill[nSkill];
 						Ret.Type=pSkillType;
 						return true;
 					}

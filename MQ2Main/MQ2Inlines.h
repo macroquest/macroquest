@@ -39,7 +39,7 @@ static inline PSPELL GetSpellByID(DWORD dwSpellID)
 
 static inline PCHAR GetBodyTypeDesc(DWORD BodyTypeID)
 {
-	if (BodyTypeID<70)
+	if (BodyTypeID<104 && BodyTypeID>=0)
 		return szBodyType[BodyTypeID];
 	return "*UNKNOWN BODYTYPE";
 }
@@ -109,6 +109,27 @@ static inline BOOL IsMarkedNPC(PSPAWNINFO pSpawn)
 #define GetMaxEndurance() pCharData1->Max_Endurance()
 #define GetMaxMana() pCharData1->Max_Mana() 
 
+static inline DWORD GetBodyType(PSPAWNINFO pSpawn)
+{
+	for(int i=0; i<104; i++)
+	{
+		if(((EQPlayer*)pSpawn)->IsBodyType(i,0,0))
+		{
+			if(i==100)
+			{
+				if(((EQPlayer*)pSpawn)->IsBodyType(i,101,0))
+					return 101;
+				if(((EQPlayer*)pSpawn)->IsBodyType(i,102,0))
+					return 102;
+				if(((EQPlayer*)pSpawn)->IsBodyType(i,103,0))
+					return 103;
+			}
+			return i;
+		}
+	}
+	return 0;
+}
+
 static inline eSpawnType GetSpawnType(PSPAWNINFO pSpawn)
 {
 	switch(pSpawn->Type)
@@ -125,7 +146,7 @@ static inline eSpawnType GetSpawnType(PSPAWNINFO pSpawn)
 		if (pSpawn->MasterID)
 			return PET;
 
-		switch(pSpawn->BodyType)
+		switch(GetBodyType(pSpawn))
 		{
 		case 3:
 			return NPC;
@@ -141,12 +162,20 @@ static inline eSpawnType GetSpawnType(PSPAWNINFO pSpawn)
 			return CHEST;
 		case 34:
 			return NPC;
-		case 65:
-			return TRAP;
-		case 66:
-			return TIMER;
-		case 67:
+		//case 65:
+		//	return TRAP;
+		//case 66:
+		//	return TIMER;
+		//case 67:
+		//	return TRIGGER;
+		case 100:
+			return UNTARGETABLE;
+		case 101:
 			return TRIGGER;
+		case 102:
+			return TIMER;
+		case 103:
+			return TRAP;
 		default:
 			return NPC;
 		}
@@ -214,7 +243,10 @@ static inline PSPAWNINFO FindMount(PSPAWNINFO pSpawn)
 // ***************************************************************************
 static inline DWORD ConColorToARGB(DWORD ConColor)
 {
-    switch (ConColor) {
+    switch (ConColor)
+	 {
+        case CONCOLOR_GREY:
+            return 0xFF505050;
         case CONCOLOR_GREEN:
             return 0xFF00FF00;
         case CONCOLOR_LIGHTBLUE:
@@ -268,31 +300,18 @@ static inline PSPAWNINFO GetRaidMember(unsigned long N)
 static inline PSPAWNINFO GetGroupMember(unsigned long N)
 {
 	if (N>5)
-
 		return false;
-
 	for (unsigned long i=0; i<5 ; i++)
-
 	{
-
 		if (pGroup->MemberExists[i])
-
 		{
-
 			N--;
-
 			if (N==0)
-
 			{
-
 				return pGroup->pMember[i];
-
 			}
-
 		}
-
 	}
-
 	return 0;
 }
 

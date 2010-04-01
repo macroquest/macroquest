@@ -187,9 +187,9 @@ public:
     void CActorEx::ChangeBoneStringSprite(int, int, char *);
 };
 
-FUNCTION_AT_VIRTUAL_ADDRESS(bool CActorEx::CanSetName(DWORD),0x17c);
-FUNCTION_AT_VIRTUAL_ADDRESS(void CActorEx::SetNameColor(DWORD &Color),0x168);
-FUNCTION_AT_VIRTUAL_ADDRESS(void CActorEx::ChangeBoneStringSprite(int, int, char *),0x164);
+FUNCTION_AT_VIRTUAL_ADDRESS(bool CActorEx::CanSetName(DWORD),0x180);
+FUNCTION_AT_VIRTUAL_ADDRESS(void CActorEx::SetNameColor(DWORD &Color),0x16c);
+FUNCTION_AT_VIRTUAL_ADDRESS(void CActorEx::ChangeBoneStringSprite(int, int, char *),0x168);
 #endif
 
 typedef struct _CAPTIONCOLOR {
@@ -200,25 +200,25 @@ typedef struct _CAPTIONCOLOR {
 	DWORD Color;
 } CAPTIONCOLOR, PCAPTIONCOLOR;
 
-#define CC_PC			    0
+#define CC_PC					 0
 #define CC_PCConColor	    1
 #define CC_PCPVPTeamColor   2
 #define CC_PCRaidColor      3
 #define CC_PCClassColor     4
 #define CC_PCGroupColor     5
 #define CC_PCTrader		    6
-#define CC_NPC			    7
+#define CC_NPC					 7
 #define CC_NPCConColor      8
 #define CC_NPCClassColor    9
 #define CC_NPCMerchant      10
 #define CC_NPCBanker        11
 #define CC_NPCAssist        12 
-#define CC_NPCMark			13 
-#define CC_PetNPC		    14
-#define CC_PetPC		    15
-#define CC_PetConColor		16
-#define CC_PetClassColor    17
-#define CC_Corpse		    18
+#define CC_NPCMark			 13 
+#define CC_PetNPC				 14
+#define CC_PetPC				 15
+#define CC_PetConColor		 16
+#define CC_PetClassColor	 17
+#define CC_Corpse				 18
 #define CC_CorpseClassColor 19
 
 
@@ -472,7 +472,7 @@ VOID SetNameSpriteTint(PSPAWNINFO pSpawn)
 
 BOOL SetNameSpriteState(PSPAWNINFO pSpawn, bool Show)
 {
-  	//DebugSpew("SetNameSpriteState(%s) --race %d body %d)",pSpawn->Name,pSpawn->Race,pSpawn->BodyType);
+  	//DebugSpew("SetNameSpriteState(%s) --race %d body %d)",pSpawn->Name,pSpawn->Race,GetBodyType(pSpawn));
 	if (!Show)
 	{
 		((EQPlayerHook*)pSpawn)->SetNameSpriteState_Trampoline(Show);
@@ -498,7 +498,7 @@ BOOL SetNameSpriteState(PSPAWNINFO pSpawn, bool Show)
 
 		if (!pSpawn->pcactorex || !((CActorEx*)pSpawn->pcactorex)->CanSetName(0))
 		{
-  			//DebugSpew("CanSetName==0 - %s .. race %d body %d",pSpawn->Name,pSpawn->Race,pSpawn->BodyType);
+  			//DebugSpew("CanSetName==0 - %s .. race %d body %d",pSpawn->Name,pSpawn->Race,GetBodyType(pSpawn));
 			return 1;
 		};
 		

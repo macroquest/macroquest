@@ -1106,7 +1106,7 @@ bool MQ2SpawnType::GETMEMBER()
 		Dest.Type=pClassType;
 		return true;
 	case Body:
-		Dest.DWord=pSpawn->BodyType;
+		Dest.DWord=GetBodyType(pSpawn);
 		Dest.Type=pBodyType;
 		return true;
 	case GM:
@@ -1341,22 +1341,25 @@ bool MQ2SpawnType::GETMEMBER()
 	case xConColor:
 		switch(ConColor(pSpawn))
 		{
-        case CONCOLOR_GREEN:
-            Dest.Ptr="GREEN";
+		case CONCOLOR_GREY:
+			Dest.Ptr="GREY";
 			break;
-        case CONCOLOR_LIGHTBLUE:
-            Dest.Ptr="LIGHT BLUE";
+		case CONCOLOR_GREEN:
+			Dest.Ptr="GREEN";
 			break;
-        case CONCOLOR_BLUE:
-            Dest.Ptr="BLUE";
+		case CONCOLOR_LIGHTBLUE:
+			Dest.Ptr="LIGHT BLUE";
 			break;
-        case CONCOLOR_BLACK:
-            Dest.Ptr="WHITE";
+		case CONCOLOR_BLUE:
+			Dest.Ptr="BLUE";
 			break;
-        case CONCOLOR_YELLOW:
-            Dest.Ptr="YELLOW";
+		case CONCOLOR_BLACK:
+			Dest.Ptr="WHITE";
 			break;
-        case CONCOLOR_RED:
+		case CONCOLOR_YELLOW:
+			Dest.Ptr="YELLOW";
+			break;
+		case CONCOLOR_RED:
 		default:
 			Dest.Ptr="RED";
 			break;
@@ -2454,7 +2457,7 @@ bool MQ2CharacterType::GETMEMBER()
 					/**/
                     if (EQADDR_DOABILITYLIST[nSkill]!=0xFFFFFFFF)
 					{
-						if (SkillDict[EQADDR_DOABILITYLIST[nSkill]]->AltTimer==2)
+						if (pSkillMgr->pSkill[EQADDR_DOABILITYLIST[nSkill]]->AltTimer==2)
 							Dest.DWord=gbAltTimerReady;
 						else
 							Dest.DWord=EQADDR_DOABILITYAVAILABLE[EQADDR_DOABILITYLIST[nSkill]];
@@ -2479,7 +2482,7 @@ bool MQ2CharacterType::GETMEMBER()
 								nAbility+=7;
 							else
 								nAbility-=3;
-							if (SkillDict[nSkill]->AltTimer==2)
+							if (pSkillMgr->pSkill[nSkill]->AltTimer==2)
 								Dest.DWord=gbAltTimerReady;
 							else
 								Dest.DWord=EQADDR_DOABILITYAVAILABLE[nSkill];
@@ -2904,7 +2907,6 @@ bool MQ2CharacterType::GETMEMBER()
 				return true;
 			}
 		}
-                return false;
 	case LAMarkNPC:
 		Dest.DWord=GetCharInfo()->ActiveAbilities.MarkNPC;
 		Dest.Type=pIntType;
@@ -2961,6 +2963,34 @@ bool MQ2CharacterType::GETMEMBER()
 			return true;
 		}
 		return false;
+	case CombatState:		
+		switch(((PCPLAYERWND)pPlayerWnd)->CombatState)
+		{
+		case 0:
+			Dest.Ptr="COMBAT";
+			break;
+		case 1:
+			Dest.Ptr="DEBUFFED";
+			break;
+		case 2:
+			Dest.Ptr="COOLDOWN";
+			break;
+		case 3:
+			Dest.Ptr="ACTIVE";
+			break;
+		case 4:
+			Dest.Ptr="RESTING";
+			break;
+		default:
+			Dest.Ptr="UNKNOWN";
+			break;
+		}
+		Dest.Type=pStringType;
+		return true;
+	case svCorruption:
+		Dest.DWord=pChar->SaveCorruption; 
+      Dest.Type=pIntType; 
+      return true;
 	}
 	return false;
 #undef pChar
@@ -3039,6 +3069,8 @@ bool MQ2SpellType::GETMEMBER()
 	case ResistType:
 		switch(pSpell->Resist)
 		{
+			case 9:  Dest.Ptr="Corruption"; break;
+			case 7:  Dest.Ptr="Prismatic"; break;
 			case 6:	Dest.Ptr="Chromatic"; break;
 			case 5:	Dest.Ptr="Disease"; break;
 			case 4:	Dest.Ptr="Poison"; break;
@@ -3508,7 +3540,7 @@ bool MQ2ItemType::GETMEMBER()
 		Dest.Type=pBoolType;
 		return true;
     case Timer:
-        if(pItem->Item->TimerID)
+        if(pItem->Item->TimerID!=0xFFFFFFFF)
         {
             Dest.DWord=(GetItemTimer(pItem)+5)/6;
             Dest.Type=pTicksType;
@@ -3525,7 +3557,7 @@ bool MQ2ItemType::GETMEMBER()
 		Dest.Type=pIntType;
 		return true;
 	case TimerReady:
-        if(pItem->Item->TimerID)
+        if(pItem->Item->TimerID!=0xFFFFFFFF)
         {
             Dest.DWord=GetItemTimer(pItem);
             Dest.Type=pIntType;
@@ -3866,36 +3898,36 @@ bool MQ2WindowType::GETMEMBER()
 			Dest.Type=pWindowType;
 			return true;
 		}
-                Dest.DWord=0;
-                Dest.Type=pIntType;
-                return true;
+		Dest.DWord=0;
+		Dest.Type=pIntType;
+		return true;
 	case Parent:
 		if (Dest.Ptr=pWnd->pParentWindow)
 		{
 			Dest.Type=pWindowType;
 			return true;
 		}
-                Dest.DWord=0;
-                Dest.Type=pIntType;
-                return true;
+		Dest.DWord=0;
+		Dest.Type=pIntType;
+		return true;
 	case FirstChild:
 		if (Dest.Ptr=pWnd->pChildren)
 		{
 			Dest.Type=pWindowType;
 			return true;
 		}
-                Dest.DWord=0;
-                Dest.Type=pIntType;
-                return true;
+		Dest.DWord=0;
+		Dest.Type=pIntType;
+		return true;
 	case Next:
 		if (Dest.Ptr=pWnd->pSiblings)
 		{
 			Dest.Type=pWindowType;
 			return true;
 		}
-                Dest.DWord=0;
-                Dest.Type=pIntType;
-                return true;
+		Dest.DWord=0;
+		Dest.Type=pIntType;
+		return true;
 	case VScrollMax:
 		Dest.DWord=pWnd->VScrollMax;
 		Dest.Type=pIntType;
@@ -5239,33 +5271,28 @@ bool MQ2SkillType::GETMEMBER()
 		}
 		return false;
 	case ID:
-		Dest.DWord=(((PSKILL*)VarPtr.Ptr-SkillDict))+1;
+		Dest.DWord=GetSkillIDFromName(pStringTable->getString(pSkill->nName,0));
 		Dest.Type=pIntType;
 		return true;
 	case ReuseTime:
 		Dest.DWord=pSkill->ReuseTimer;
 		Dest.Type=pIntType;
 		return true;
-	case AltTimer:
-		Dest.DWord=pSkill->AltTimer;
-		Dest.Type=pIntType;
-		return true;
 	case MinLevel:
 		Dest.DWord=pSkill->MinLevel[nIndex]; 
 		Dest.Type=pIntType;
 		return true;
-	case SkillCapPre50:
-		Dest.DWord=pSkill->SkillCapsPre50[nIndex];
+	case SkillCap:
+		{
+			DWORD i=GetSkillIDFromName(pStringTable->getString(pSkill->nName,0));
+			Dest.DWord=pCSkillMgr->GetSkillCap((EQ_Character*)GetCharInfo(),GetCharInfo2()->Level,GetCharInfo2()->Class,i);
+			Dest.Type=pIntType;
+			return true;
+		}
+	case AltTimer:
+		Dest.DWord=pSkill->AltTimer;
 		Dest.Type=pIntType;
 		return true;
-	case SkillCapPre65: 
-		Dest.DWord=pSkill->SkillCapsPre65[nIndex]; 
-		Dest.Type=pIntType; 
-		return true; 
-	case SkillCapPre70: 
-		Dest.DWord=pSkill->SkillCapsPre70[nIndex]; 
-		Dest.Type=pIntType; 
-		return true; 
 	case Activated: 
 		Dest.DWord=pSkill->Activated; 
 		Dest.Type=pBoolType; 
@@ -5425,8 +5452,10 @@ bool MQ2GroupType::GETMEMBER()
 						return true;
 					}
 				}
-			if (!stricmp(pChar->pSpawn->Name,GETFIRST()))
+			if (!stricmp(pChar->pSpawn->Name,GETFIRST())) {
+			    Dest.DWord=0;
                 return true;
+            }
 			return false;
 		}
 		break;

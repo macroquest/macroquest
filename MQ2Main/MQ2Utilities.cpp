@@ -1032,88 +1032,26 @@ DWORD ConColor(PSPAWNINFO pSpawn)
 	PSPAWNINFO pChar=(PSPAWNINFO)pLocalPlayer;
 	if (!pChar)
 		return CONCOLOR_BLACK; // its you
-      int Diff = pSpawn->Level-pChar->Level;
-   if (PVPServer!=PVP_NONE && pSpawn->Type==SPAWN_PLAYER)
-   {
-      // whiny fuckin baby pvp server logic
-      if (pChar->Level <= 5)
-      {
-         if (pSpawn->Level > 5)
-            return CONCOLOR_RED;
-         return CONCOLOR_GREEN;
-      }
-      if (pSpawn->Level < 5)
-         return CONCOLOR_GREEN;
-
-      if (PVPServer==PVP_TEAM) {
-        if (GetDeityTeamByID(pChar->Deity) == GetDeityTeamByID(pSpawn->Deity))
-        {
-           return CONCOLOR_GREEN; // What should your own teammates be for a color?
-        }
-        if (Diff<=8)
-        {
-           if (Diff>=-8)
-              return CONCOLOR_BLACK;
-           return CONCOLOR_GREEN;
-        }
-        return CONCOLOR_RED;
-      } else if (PVPServer==PVP_RALLOS) {
-        if (Diff<=4)
-        {
-           if (Diff>=-4)
-              return CONCOLOR_BLACK;
-           return CONCOLOR_GREEN;
-        }
-        return CONCOLOR_RED;
-      } else if (PVPServer==PVP_SULLON) {
-        if (Diff<=5)
-        {
-           if (Diff>=-5)
-              return CONCOLOR_BLACK;
-           return CONCOLOR_GREEN;
-        }
-        return CONCOLOR_RED;
-      }
-   }
-    int ConLevels[][3] = { 
-    //  {Lv,Grn,LtB}, 
-        { 7, -4, -4}, 
-        {10, -5, -4}, 
-        {12, -6, -5}, 
-        {20, -8, -6}, 
-        {24, -9, -7}, 
-        {28,-10, -8}, 
-        {30,-11, -9}, 
-        {32,-12, -9}, 
-        {36,-13,-10}, 
-        {41,-14,-11}, 
-        {43,-15,-12}, 
-        {44,-16,-12}, 
-        {48,-17,-13}, 
-        {53,-18,-14}, 
-        {54,-19,-15}, 
-        {56,-20,-15}, 
-        {70,-21,-16}, 
-        {0,0,0} 
-    };
-    int i;
-//  DebugSpew("ConColor - Char = %d, Spawn = %d, Diff = %d",CharLevel, SpawnLevel, Diff);
-    if (Diff==0) return CONCOLOR_BLACK;
-    if (Diff>0) {
-        if (Diff<3) return CONCOLOR_YELLOW;
-        return CONCOLOR_RED;
-    }
-
-    for (i=0;ConLevels[i][0]!=0;i++) {
-        if (pChar->Level<=ConLevels[i][0]) {
-//          DebugSpew("ConColor - i = %d",i);
-            if (Diff>ConLevels[i][2]) return CONCOLOR_BLUE;
-            if (Diff>ConLevels[i][1]) return CONCOLOR_LIGHTBLUE;
-            return CONCOLOR_GREEN;
-        }
-    }
-
-    return COLOR_PURPLE;
+	
+	switch(pCharData->GetConLevel((EQPlayer*)pSpawn))
+	{
+	case 1:
+		return CONCOLOR_GREY;
+	case 2:
+		return CONCOLOR_GREEN;
+	case 3:
+		return CONCOLOR_LIGHTBLUE;
+	case 4:
+		return CONCOLOR_BLUE;
+	case 5:	
+		return CONCOLOR_BLACK;
+	case 6:
+		return CONCOLOR_YELLOW;
+	case 7:
+		return CONCOLOR_RED;
+	default:
+		return COLOR_PURPLE;
+	}
 }
 
 PCONTENTS GetEnviroContainer()
@@ -4572,7 +4510,7 @@ BOOL SpawnMatchesSearch(PSEARCHSPAWN pSearchSpawn, PSPAWNINFO pChar, PSPAWNINFO 
 	
 	if (pSearchSpawn->szClass[0] && stricmp(pSearchSpawn->szClass,GetClassDesc(pSpawn->Class)))
 		return FALSE;
-	if (pSearchSpawn->szBodyType[0] && stricmp(pSearchSpawn->szBodyType,GetBodyTypeDesc(pSpawn->BodyType)))
+	if (pSearchSpawn->szBodyType[0] && stricmp(pSearchSpawn->szBodyType,GetBodyTypeDesc(GetBodyType(pSpawn))))
 		return FALSE;
 	if (pSearchSpawn->szRace[0] && stricmp(pSearchSpawn->szRace,pEverQuest->GetRaceDesc(pSpawn->Race)))
 		return FALSE;
@@ -5054,6 +4992,10 @@ VOID SuperWhoDisplay(PSPAWNINFO pSpawn, DWORD Color)
 			case CONCOLOR_GREEN:
 				szMsg[1]='g';
 				break;
+			case CONCOLOR_GREY:
+				szMsg[1]='-';
+				szMsg[2]='w';
+				break;
 			default:
 				szMsg[1]='m';
 				break;
@@ -5076,7 +5018,7 @@ VOID SuperWhoDisplay(PSPAWNINFO pSpawn, DWORD Color)
 				strcat(szMsg," ");
 			}
 			if (gFilterSWho.Body) {
-				strcat(szMsg,GetBodyTypeDesc(pSpawn->BodyType));
+				strcat(szMsg,GetBodyTypeDesc(GetBodyType(pSpawn)));
 				strcat(szMsg," ");
 			}
 			if (gFilterSWho.Class) {
@@ -5614,6 +5556,15 @@ bool BuffStackTest(PSPELL aSpell, PSPELL bSpell){
     }      
     return true;
 } 
+
+DWORD GetSkillIDFromName(PCHAR name)
+{
+	for(DWORD i=0; i<NUM_SKILLS; i++)
+		if (PSKILL pSkill=pSkillMgr->pSkill[i])
+			if(!stricmp(name,pStringTable->getString(pSkill->nName,0)))
+				return i;
+	return 0;
+}
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 // Functions that were built into commands and people used DoCommand to execute                  //

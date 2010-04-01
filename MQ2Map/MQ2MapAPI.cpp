@@ -169,7 +169,7 @@ PMAPSPAWN AddSpawn(PSPAWNINFO pNewSpawn,BOOL ExplicitAllow)
 	if (Type == SPAWN_CORPSE || Type == ITEM )
 	{
 		sprintf(buf, "AddSpawn(Corpse or Item): Name: %s, Type: %d, BodyType: %d",
-			pMapSpawn->pSpawn->Name, pMapSpawn->pSpawn->Type, pMapSpawn->pSpawn->BodyType );
+			pMapSpawn->pSpawn->Name, pMapSpawn->pSpawn->Type, GetBodyType(pMapSpawn->pSpawn) );
 		DebugSpew(buf);
 	}
 #endif
@@ -371,33 +371,34 @@ void MapUpdate()
 	{
 #if 0
 		// Debugging
+		DWORD BodyType=GetBodyType(pMapSpawn->pSpawn);
 		if ( pMapSpawn->pSpawn->Type == SPAWN_PLAYER )
 		{
-			if ( pMapSpawn->pSpawn->BodyType != 1 )
+			if ( BodyType != 1 )
 			{
 				sprintf(buf, "MapUpdate: Name: %s, Type: %d, BodyType: %d",
-					pMapSpawn->pSpawn->Name, pMapSpawn->pSpawn->Type, pMapSpawn->pSpawn->BodyType );
+					pMapSpawn->pSpawn->Name, pMapSpawn->pSpawn->Type, BodyType );
 				DebugSpew(buf);
 			}
 		}
 		else if ( pMapSpawn->pSpawn->Type == SPAWN_NPC )
 		{
-			if ( pMapSpawn->pSpawn->BodyType != 1 && pMapSpawn->pSpawn->BodyType != 11 &&
-				 pMapSpawn->pSpawn->BodyType != 33 && pMapSpawn->pSpawn->BodyType != 65 &&
-				 pMapSpawn->pSpawn->BodyType != 66 && pMapSpawn->pSpawn->BodyType != 67 &&
-				 pMapSpawn->pSpawn->BodyType != 21 && pMapSpawn->pSpawn->BodyType != 23 &&
-				 pMapSpawn->pSpawn->BodyType != 34 && pMapSpawn->pSpawn->BodyType != 3  &&
-				 pMapSpawn->pSpawn->BodyType != 24 )
+			if ( BodyType != 1 && BodyType != 11 &&
+				 BodyType != 33 && BodyType != 65 &&
+				 BodyType != 66 && BodyType != 67 &&
+				 BodyType != 21 && BodyType != 23 &&
+				 BodyType != 34 && BodyType != 3  &&
+				 BodyType != 24 )
 			{
 				sprintf(buf, "MapUpdate: Name: %s, Type: %d, BodyType: %d",
-					pMapSpawn->pSpawn->Name, pMapSpawn->pSpawn->Type, pMapSpawn->pSpawn->BodyType );
+					pMapSpawn->pSpawn->Name, pMapSpawn->pSpawn->Type, BodyType );
 				DebugSpew(buf);
 			}
 		}
 		else 
 		{
 				sprintf(buf, "MapUpdate: Name: %s, Type: %d, BodyType: %d",
-					pMapSpawn->pSpawn->Name, pMapSpawn->pSpawn->Type, pMapSpawn->pSpawn->BodyType );
+					pMapSpawn->pSpawn->Name, pMapSpawn->pSpawn->Type, BodyType );
 				DebugSpew(buf);
 		}
 

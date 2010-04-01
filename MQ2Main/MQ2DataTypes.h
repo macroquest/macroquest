@@ -844,6 +844,8 @@ public:
 		LAFindPathPC=149,
 		LAHoTT=150,
 		ActiveFavorCost=151,
+		CombatState=152,
+		svCorruption=153,
 	};
 	static enum CharacterMethods
 	{
@@ -1002,6 +1004,8 @@ public:
 		TypeMember(LAFindPathPC);
 		TypeMember(LAHoTT);
 		TypeMember(ActiveFavorCost);
+		TypeMember(CombatState);
+		TypeMember(svCorruption);
 
 		TypeMethod(Stand); 
 		TypeMethod(Sit); 
@@ -1601,7 +1605,7 @@ public:
 		TypeMember(Name);//7,
 		TypeMember(HeadingTo);
 		AddMember(xLineOfSight,"LineOfSight");
-                TypeMethod(Grab);
+		TypeMethod(Grab);
 	}
 
 	~MQ2GroundType()
@@ -2648,13 +2652,11 @@ public:
    {
 	   Name=1,
 	   ID=2,
-	   ReuseTime=4,
-	   MinLevel=5,
-	   SkillCapPre50=7,
-	   AltTimer=9,
-	   SkillCapPre65,
-	   SkillCapPre70,
-	   Activated,
+	   ReuseTime=3,
+	   MinLevel=4,
+	   SkillCap=5,
+	   AltTimer=6,
+	   Activated=7,
    };
 	static enum SkillMethods
 	{
@@ -2665,11 +2667,8 @@ public:
 	  TypeMember(ID);
 	  TypeMember(ReuseTime);
 	  TypeMember(MinLevel);
-	  TypeMember(SkillCapPre50);
+	  TypeMember(SkillCap);
 	  TypeMember(AltTimer);
-
-	  TypeMember(SkillCapPre65);
-	  TypeMember(SkillCapPre70);
 	  TypeMember(Activated);
    }
 
