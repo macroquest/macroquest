@@ -4018,20 +4018,20 @@ BOOL Calculate(PCHAR szFormula, DOUBLE &Result)
 
 bool PlayerHasAAAbility(PCHARINFO pChar, DWORD AAIndex)
 {
-    // count to 0xf0 -- dkaa 06/29/05
-    for (int i = 0; i < NUM_ALT_ABILITIES/4; i++)
-	{
-		if ( GetCharInfo2()->AAList[i].AAIndex == AAIndex )
-			return true;
+    for (int i = 0; i < AA_CHAR_MAX_REAL; i++)
+    {
+        if ( GetCharInfo2()->AAList[i].AAIndex == AAIndex )
+            return true;
 
-		if ( GetCharInfo2()->AAList[i].AAIndex == 0 )  { //reached the end of the list
-			return false;
-                }
-	}
+        if ( GetCharInfo2()->AAList[i].AAIndex == 0 )  { //reached the end of the list
+            return false;
+        }
+    }
 
-	return false;
+    return false;
 }
 
+#if 0
 PCHAR GetAANameByIndex(DWORD AAIndex)
 {
 	for (unsigned long nAbility=0 ; nAbility<NUM_ALT_ABILITIES ; nAbility++)
@@ -4049,6 +4049,7 @@ PCHAR GetAANameByIndex(DWORD AAIndex)
 	}
 	return "AA Not Found";
 }
+#endif
 
 DWORD GetAAIndexByName(PCHAR AAName)
 {

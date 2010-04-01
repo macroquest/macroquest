@@ -597,7 +597,16 @@ typedef struct _INVENTORY {
 /*0x58*/  struct	_CONTENTS* Pack[0x8]; 
 } INVENTORY, *PINVENTORY; 
 
-#define NUM_ALT_ABILITIES   0x1F7 
+#define NUM_ALT_ABILITIES_ARRAY   0x1F7 
+#define NUM_ALT_ABILITIES   1500            // GetAltAbility require an index
+                                            // which is really a hash table 
+                                            // index.  the index is divided
+                                            // with 0x1f7 and the remainder
+                                            // is used the hash table slot.
+                                            // the slot is walked to find the
+                                            // entry corresponding to the 
+                                            // original index (before the
+                                            // divide
 
 //these two will merge when i get a chance
 #define AA_CHAR_MAX         0xF5
@@ -779,12 +788,11 @@ union {
 /* 0x1294 */   FLOAT      ZoneBoundY;
 /* 0x1298 */   FLOAT      ZoneBoundZ;
 /* 0x129c */   BYTE       Unknown0x129c[0xac];
-/* 0x1348 */   AALIST     AAList[NUM_ALT_ABILITIES/4]; // 8*(1f7/4)
-/* 0x1730 */   BYTE       Unknown0x1730[0x23bc];
+/* 0x1348 */   AALIST     AAList[AA_CHAR_MAX_REAL];
+/* 0x1ac8 */   BYTE       Unknown0x1730[0x3aec-0x1ac8];
 /* 0x3aec */   DWORD      CombatAbilities[NUM_COMBAT_ABILITIES];
 /* 0x3c7c */   DWORD      Unknown3c7c[0xa];       // 10 things in this array
-/* 0x3ca4 */   BYTE       Unknown3ca4[0x3cf4-0x3ca4];
-/* 0x3cf4 */   DWORD      CombatAbilityTimes[NUM_COMBAT_ABILITIES];
+/* 0x3ca4 */   DWORD      CombatAbilityTimes[NUM_COMBAT_ABILITIES];
 /* 0x3e34 */   BYTE       Unknown0x3e34[0x19f8];
 /* 0x582c */   DWORD      Deity;
 /* 0x5830 */   DWORD      Unknown0x5830;
@@ -1409,7 +1417,7 @@ typedef struct _EQFRIENDSLIST {
 
 // Size 0x70 (8.11.2004)
 typedef struct _ALTABILITY {
-/*0x00*/ DWORD ID;
+/*0x00*/ DWORD Index;
 /*0x04*/ DWORD Flags;           //?
 /*0x08*/ DWORD nShortName;
 /*0x0c*/ DWORD nShorterName;
@@ -1417,7 +1425,7 @@ typedef struct _ALTABILITY {
 /*0x14*/ DWORD nDesc;           // now a database number
 /*0x18*/ DWORD MinLevel;
 /*0x1c*/ DWORD Cost; //Initial Cost or cost the last time you bought a level of it
-/*0x20*/ DWORD Index;           //?
+/*0x20*/ DWORD ID;              // /alt activate id
 /*0x24*/ DWORD AARankRequired; 
         union {  
 /*0x28*/ LONG  RequiresAbility;          // If the value is positive then its the index number of the AA required.
@@ -1451,7 +1459,7 @@ typedef struct _ALTABILITIESLISTMGR {
 
 //NUM_ALT_ABILITIES is now defined before CHARINFO definition in this same header file.
 typedef struct _ALTABILITIESLIST {
-/*0x00*/ struct _ALTABILITIESLISTMGR* Abilities[NUM_ALT_ABILITIES];
+/*0x00*/ struct _ALTABILITIESLISTMGR* Abilities[NUM_ALT_ABILITIES_ARRAY];
 } ALTABILITIESLIST, *PALTABILITIESLIST;
 
 typedef struct _NEWALTADVMGR {
