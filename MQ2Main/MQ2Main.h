@@ -45,6 +45,7 @@ using namespace std;
 #ifndef ISXEQ
 #include "..\Dxsdk81\include\dinput.h"
 #include "..\Detours\inc\detours.h" 
+#include "..\Blech\Blech.h"
 #else
 #ifndef MQ2PLUGIN
 #include "ISXEQ\ISXEQ.h"
@@ -78,7 +79,6 @@ using namespace std;
 // Lax/Blech event support *READY*
 #define USEBLECHEVENTS
 
-#include "..\Blech\Blech.h"
 
 // reroute malloc/free
 EQLIB_API VOID *MQ2Malloc(size_t size);

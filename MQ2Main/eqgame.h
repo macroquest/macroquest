@@ -65,6 +65,7 @@ published by
 #define __NetStatusToggle                                  0x87FD74
 #define __PCNames                                          0x880E2C
 #define __RangeAttackReady                                 0x880B94
+#define __RunWalkState                                     0x87FCE4
 #define __ScreenMode                                       0x7CBAD8
 #define __ScreenX                                          0x87FCA8
 #define __ScreenY                                          0x87FCAC

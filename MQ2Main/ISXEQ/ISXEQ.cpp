@@ -20,7 +20,6 @@ LSType *pBoolType=0;
 LSType *pFloatType=0;
 LSType *pByteType=0;
 
-LSType *pStringPtrType=0;
 LSType *pIntPtrType=0;
 LSType *pBoolPtrType=0;
 LSType *pFloatPtrType=0;
@@ -32,6 +31,7 @@ ISInterface *pISInterface=0;
 HISXSERVICE hPulseService;
 HISXSERVICE hMemoryService;
 HISXSERVICE hHTTPService;
+HISXSERVICE hTriggerService;
 
 HISXSERVICE hChatService;
 HISXSERVICE hUIService;
@@ -43,6 +43,7 @@ HISXSERVICE hZoneService;
 void __cdecl PulseService(bool Broadcast, unsigned long MSG, void *lpData);
 void __cdecl MemoryService(bool Broadcast, unsigned long MSG, void *lpData);
 void __cdecl HTTPService(bool Broadcast, unsigned long MSG, void *lpData);
+void __cdecl TriggerService(bool Broadcast, unsigned long MSG, void *lpData);
 void __cdecl ProtectionRequest(ISXInterface *pClient, unsigned long MSG, void *lpData);
 HISXSERVICE hEQProtectionService=0;
 
@@ -76,7 +77,6 @@ bool CISXEQ::Initialize(ISInterface *p_ISInterface)
 	pTimeType=pISInterface->FindLSType("time");
 	pByteType=pISInterface->FindLSType("byte");
 
-	pStringPtrType=pISInterface->FindLSType("stringptr");
 	pIntPtrType=pISInterface->FindLSType("intptr");
 	pBoolPtrType=pISInterface->FindLSType("boolptr");
 	pFloatPtrType=pISInterface->FindLSType("floatptr");
@@ -120,6 +120,7 @@ void CISXEQ::ConnectServices()
 	hPulseService=pISInterface->ConnectService(this,"Pulse",PulseService);
 	hMemoryService=pISInterface->ConnectService(this,"Memory",MemoryService);
 	hHTTPService=pISInterface->ConnectService(this,"HTTP",HTTPService);
+	hTriggerService=pISInterface->ConnectService(this,"Triggers",TriggerService);
 }
 void CISXEQ::RegisterCommands()
 {
@@ -185,6 +186,10 @@ void CISXEQ::DisconnectServices()
 	if (hHTTPService)
 	{
 		pISInterface->DisconnectService(this,hHTTPService);
+	}
+	if (hTriggerService)
+	{
+		pISInterface->DisconnectService(this,hTriggerService);
 	}
 }
 
@@ -336,7 +341,11 @@ void __cdecl MemoryService(bool Broadcast, unsigned long MSG, void *lpData)
 	// no messages are currently associated with this service (other than
 	// system messages such as client disconnect), so do nothing.
 }
-
+void __cdecl TriggerService(bool Broadcast, unsigned long MSG, void *lpData)
+{
+	// no messages are currently associated with this service (other than
+	// system messages such as client disconnect), so do nothing.
+}
 void __cdecl HTTPService(bool Broadcast, unsigned long MSG, void *lpData)
 {
 	switch(MSG)

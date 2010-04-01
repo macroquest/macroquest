@@ -104,12 +104,14 @@ CHAR gszSpawnCorpseName[MAX_STRING]="${NamingSpawn.DisplayName}'s corpse";
 
 DWORD DrawHUDParams[4]={0,0,0,0};
 
+#ifndef ISXEQ
 Blech *pMQ2Blech=0;
 CHAR EventMsg[MAX_STRING]={0};
 #ifdef USEBLECHEVENTS
 Blech *pEventBlech = 0;
 #endif
 PEVENTLIST pEventList = NULL;
+#endif
 
 DWORD gEventChat = 0;
 DWORD gRunning = 0;
@@ -209,7 +211,7 @@ PEQFRIENDSLIST pIgnoreList=(PEQFRIENDSLIST)__IgnoreList;
 
 PBYTE EQADDR_ATTACK=(PBYTE)__Attack;
 PBYTE EQADDR_NOTINCHATMODE=(PBYTE)__InChatMode;
-
+PBYTE EQADDR_RUNWALKSTATE=(PBYTE)__RunWalkState;
 PCHAR EQADDR_LASTTELL=(PCHAR)__LastTell;
 PCHAR gpbRangedAttackReady=(PCHAR)__RangeAttackReady;
 PCHAR gpbShowNetStatus=(PCHAR)__NetStatusToggle;

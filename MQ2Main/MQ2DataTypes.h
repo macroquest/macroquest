@@ -38,9 +38,25 @@ EQLIB_VAR class MQ2TimeType *pTimeType;
 EQLIB_VAR class MQ2MathType *pMathType;
 EQLIB_VAR class MQ2MacroType *pMacroType;
 EQLIB_VAR class MQ2PluginType *pPluginType;
+
+#define pIntPtrType pIntType
+#define pBytePtrType pByteType
+#define pBoolPtrType pBoolType
+#define pFloatPtrType pFloatType
+
+#define INTPTR(x) Dest.DWord=x
+#define BYTEPTR(x) Dest.Byte=x
+#define BOOLPTR(x) Dest.DWord=x
+#define FLOATPTR(x) Dest.Float=x
+
 #define TypeMethod(x)
 #define AddMethod(x,y)
 #else
+#define INTPTR(x) Dest.Ptr=&x
+#define BYTEPTR(x) Dest.Ptr=&x
+#define BOOLPTR(x) Dest.Ptr=&x
+#define FLOATPTR(x) Dest.Ptr=&x
+
 #define Argb RGB
 #define MQ2VARPTR LSVARPTR
 #endif

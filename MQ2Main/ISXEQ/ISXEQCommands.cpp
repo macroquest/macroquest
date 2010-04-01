@@ -471,3 +471,244 @@ int CMD_Where(int argc, char* argv[])
    
     return 0;
 }
+
+
+// *************************************************************************** 
+// Function:    CMD_CastSpell 
+// Description: Our '/cast' command 
+//              Displays the direction and distance to the closest spawn 
+// Usage:       /cast [list|#|"name of spell"|item "name of item"] 
+// *************************************************************************** 
+int CMD_CastSpell(int argc, char* argv[]) 
+{ 
+   DWORD Index; 
+   CHAR szBuffer[MAX_STRING] = {0}; 
+
+   if (gGameState!=GAMESTATE_INGAME) 
+      return -1; 
+
+   if (!cmdCast) 
+   { 
+      PCMDLIST pCmdListOrig = (PCMDLIST)EQADDR_CMDLIST; 
+      for (int i=0;pCmdListOrig[i].fAddress != 0;i++) { 
+         if (!strcmp(pCmdListOrig[i].szName,"/cast")) { 
+            cmdCast = (fEQCommand)pCmdListOrig[i].fAddress; 
+         } 
+      } 
+   } 
+   if (!cmdCast) return -1; 
+   if (argc<2) 
+   { 
+      WriteChatf("Syntax: %s list|#|<name of spell>|item <name of item>",argv[0]); 
+      return 0; 
+   } 
+
+   if ( !ppSpellMgr || !ppCharData || !pCharData) { 
+      return -1; 
+   } 
+   PCHARINFO pCharInfo = GetCharInfo(); 
+   if (NULL == pCharInfo) return -1; 
+   if (argc == 2 && atoi(argv[1])){ 
+      cmdCast((PSPAWNINFO)pLocalPlayer, argv[1]); 
+      return 0; 
+   } 
+   //   CHAR szArg1[MAX_STRING] = {0}; 
+   //   CHAR szArg2[MAX_STRING] = {0}; 
+   if (!stricmp(argv[1],"list")) { 
+      WriteChatColor("Spells:",USERCOLOR_DEFAULT); 
+      for (Index=0;Index<9;Index++) { 
+         if (pCharInfo->MemorizedSpells[Index]==0xFFFFFFFF) { 
+            sprintf(szBuffer,"%d. <Empty>",Index+1); 
+         } else { 
+            sprintf(szBuffer,"%d. %s",Index+1,GetSpellByID(pCharInfo->MemorizedSpells[Index])); 
+         } 
+         WriteChatColor(szBuffer,USERCOLOR_DEFAULT); 
+      } 
+      return 0; 
+   } 
+
+   //   GetArg(szArg1,szLine,1); 
+   //   GetArg(szArg2,szLine,2); 
+   //   DebugSpew("Cast: szArg1 = %s szArg2 = %s",szArg1,szArg2); 
+   if (!stricmp(argv[1],"item")) 
+   { 
+      CHAR szItemToCast[8192]; 
+      pISInterface->GetArgs(2,argc,argv,szItemToCast); 
+      BOOL FOUND = FALSE; 
+      DWORD item = 0; 
+      DWORD slot = 0; 
+      DWORD SpawnFooter = NULL; 
+      SpawnFooter = (DWORD)pLocalPlayer; 
+      for (int i=0;i<30;i++) { 
+         if (pCharInfo->InventoryArray[i]) 
+            if (!_stricmp(szItemToCast,pCharInfo->InventoryArray[i]->Item->Name)) { 
+               DebugSpew("cast test slot %d = %s address is %x",i,pCharInfo->InventoryArray[i]->Item->Name,&(pCharInfo->InventoryArray[i])); 
+               item = (DWORD)&pCharInfo->InventoryArray[i]; 
+               slot = (DWORD)i; 
+               FOUND = TRUE; 
+               break; 
+            } 
+      } 
+      if (FOUND) { 
+         pCharData->CastSpell(10,0,(EQ_Item**)item,0,slot,-1,0,0); 
+         return 0; 
+      } 
+   } 
+   pISInterface->GetArgs(1,argc,argv,szBuffer); 
+   //GetArg(szBuffer,szLine,1); 
+   for (Index=0;Index<9;Index++) { 
+      if (pCharInfo->MemorizedSpells[Index]!=0xFFFFFFFF) { 
+         PCHAR SpellName = GetSpellNameByID(pCharInfo->MemorizedSpells[Index]); 
+         if (!stricmp(szBuffer,SpellName)) { 
+            DebugSpew("SpellName = %s",SpellName); 
+            cmdCast((PSPAWNINFO)pLocalPlayer,itoa(Index+1,szBuffer,10)); 
+            DebugSpew("pChar = %x SpellName = %s %d",pCharInfo,SpellName,Index+1); 
+            return 0; 
+         } 
+      } 
+   } 
+   WriteChatColor("You do not seem to have that spell memorized.",USERCOLOR_DEFAULT); 
+   return 0; 
+
+} 
+
+// ***************************************************************************
+// Function:    MemSpell
+// Description: Our '/MemSpell' command
+// Usage:       /MemSpell gem# "spell name"
+// ***************************************************************************
+SPELLFAVORITE MemSpellFavorite;
+int CMD_MemSpell(int argc, char *argv[])
+{
+   if (argc < 3)
+   {
+      WriteChatf("Syntax: %s <gem #> <spellname>",argv[0]);
+      return 0;
+   }
+    if (!ppSpellBookWnd) return -1;
+    DWORD Favorite = (DWORD)&MemSpellFavorite;
+   CHAR szGem[MAX_STRING] = {0};
+    DWORD sp;
+   WORD Gem = -1;
+   CHAR SpellName[MAX_STRING] = {0};
+   PCHARINFO pCharInfo = NULL;
+    if (!pSpellBookWnd) return -1;
+   if (NULL == (pCharInfo = GetCharInfo())) return -1;
+
+//   GetArg(szGem,szLine,1);
+//   GetArg(SpellName,szLine,2);
+   pISInterface->GetArgs(2,argc,argv,SpellName);
+   Gem = atoi(argv[1]);
+   if (Gem<1 || Gem>9) return -1;
+   Gem--;
+
+   pCharInfo->SpellBook;
+   PSPELL pSpell=0;
+   for (DWORD N = 0 ; N < NUM_BOOK_SLOTS ; N++)
+   if (PSPELL pTempSpell=GetSpellByID(pCharInfo->SpellBook[N]))
+   {
+      if (!stricmp(SpellName,pTempSpell->Name))
+      {
+         pSpell=pTempSpell;
+         break;
+      }
+   }
+
+    if (!pSpell) return -1;
+    if (pSpell->Level[pCharInfo->Class-1]>pCharInfo->Level) return -1;
+
+    ZeroMemory(&MemSpellFavorite,sizeof(MemSpellFavorite));
+    strcpy(MemSpellFavorite.Name,"Mem a Spell");
+    MemSpellFavorite.Byte_3e=1;
+    for (sp=0;sp<9;sp++) MemSpellFavorite.SpellId[sp]=0xFFFFFFFF;
+    MemSpellFavorite.SpellId[Gem] = pSpell->ID;
+   pSpellBookWnd->MemorizeSet((int*)Favorite,9);
+   return 0;
+} 
+
+// *************************************************************************** 
+// Function:    DoAbility 
+// Description: Our '/doability' command 
+//              Does (or lists) your abilities 
+// Usage:       /doability [list|ability|#] 
+// *************************************************************************** 
+int CMD_DoAbility(int argc, char *argv[]) 
+{ 
+   if (!cmdDoAbility) 
+   { 
+      PCMDLIST pCmdListOrig = (PCMDLIST)EQADDR_CMDLIST; 
+      for (int i=0;pCmdListOrig[i].fAddress != 0;i++) { 
+         if (!strcmp(pCmdListOrig[i].szName,"/doability")) { 
+            cmdDoAbility = (fEQCommand)pCmdListOrig[i].fAddress; 
+         } 
+      } 
+   } 
+    if (!cmdDoAbility) return -1; 
+
+    if (argc<2 || atoi(argv[1]) || !EQADDR_DOABILITYLIST) { 
+        cmdDoAbility((PSPAWNINFO)pLocalPlayer,argv[1]); 
+        return 0; 
+    } 
+
+    DWORD Index, DoIndex = 0xFFFFFFFF; 
+    CHAR szBuffer[MAX_STRING] = {0}; 
+
+    if (!stricmp(argv[1],"list") || !stricmp(argv[1], "-list")) { 
+        WriteChatColor("Abilities:",USERCOLOR_DEFAULT); 
+        for (Index=4;Index<10;Index++) { 
+            if (EQADDR_DOABILITYLIST[Index]==0xFFFFFFFF) { 
+                sprintf(szBuffer,"%d. <Empty>",Index-3); 
+            } else if (szSkills[EQADDR_DOABILITYLIST[Index]]) { 
+                sprintf(szBuffer,"%d. %s",Index-3,szSkills[EQADDR_DOABILITYLIST[Index]]); 
+            } else { 
+                sprintf(szBuffer,"%d. *Unknown%d",Index-3,EQADDR_DOABILITYLIST[Index]); 
+            } 
+            WriteChatColor(szBuffer,USERCOLOR_DEFAULT); 
+        } 
+        WriteChatColor("Combat Skills:",USERCOLOR_DEFAULT); 
+        for (Index=0;Index<4;Index++) { 
+            if (EQADDR_DOABILITYLIST[Index]==0xFFFFFFFF) { 
+                sprintf(szBuffer,"%d. <Empty>",Index+7); 
+            } else if (szSkills[EQADDR_DOABILITYLIST[Index]]) { 
+                sprintf(szBuffer,"%d. %s",Index+7,szSkills[EQADDR_DOABILITYLIST[Index]]); 
+            } else { 
+                sprintf(szBuffer,"%d. *Unknown%d",Index+7,EQADDR_DOABILITYLIST[Index]); 
+            } 
+            WriteChatColor(szBuffer,USERCOLOR_DEFAULT); 
+        } 
+        WriteChatColor("Combat Abiilities:",USERCOLOR_DEFAULT); 
+        for (Index=10;Index<18;Index++) { 
+            if (EQADDR_DOABILITYLIST[Index]==0xFFFFFFFF) { 
+                sprintf(szBuffer,"%d. <Empty>",Index+1); 
+         } else if (EQADDR_DOABILITYLIST[Index] > 132) { // highest number we have defined so far 
+            sprintf(szBuffer,"%d. *Unknown%d",Index+1,EQADDR_DOABILITYLIST[Index]); 
+            } else if (szSkills[EQADDR_DOABILITYLIST[Index]]) { 
+                sprintf(szBuffer,"%d. %s",Index+1,szSkills[EQADDR_DOABILITYLIST[Index]]); 
+            } else { 
+                sprintf(szBuffer,"%d. *Unknown%d",Index+1,EQADDR_DOABILITYLIST[Index]); 
+            } 
+            WriteChatColor(szBuffer,USERCOLOR_DEFAULT); 
+        } 
+        return 0; 
+    } 
+
+   pISInterface->GetArgs(1,argc,argv,szBuffer); 
+
+    for (Index=0;Index<10;Index++) { 
+        if (EQADDR_DOABILITYLIST[Index]!= 0xFFFFFFFF) { 
+            if (!strnicmp(szBuffer,szSkills[EQADDR_DOABILITYLIST[Index]],strlen(szSkills[EQADDR_DOABILITYLIST[Index]]))) { 
+                if (Index<4) { 
+                    DoIndex = Index+7; // 0-3 = Combat abilities (7-10) 
+                } else { 
+                    DoIndex = Index-3; // 4-9 = Abilities (1-6) 
+                } 
+            } 
+        } 
+    } 
+    if (DoIndex!=0xFFFFFFFF) { 
+        cmdDoAbility((PSPAWNINFO)pLocalPlayer,itoa(DoIndex,szBuffer,10)); 
+    } else { 
+        WriteChatColor("You do not seem to have that ability on a /doability button",USERCOLOR_DEFAULT); 
+    } 
+   return 0; 
+} 

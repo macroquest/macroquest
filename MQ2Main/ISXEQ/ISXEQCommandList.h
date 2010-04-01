@@ -26,3 +26,6 @@ COMMAND("SellItem",CMD_SellItem,true,false);
 COMMAND("Target",CMD_Target,true,false);
 COMMAND("WhoFilter",CMD_WhoFilter,true,false);
 COMMAND("Where",CMD_Where,true,false);
+COMMAND("CastSpell",CMD_CastSpell,true,false);
+COMMAND("MemSpell",CMD_MemSpell,true,false); 
+COMMAND("DoAbility",CMD_DoAbility,true,false);

@@ -5179,7 +5179,7 @@ VOID SuperWhoDisplay(PSPAWNINFO pChar, PSEARCHSPAWN pSearchSpawn, DWORD Color)
 		return;
 	CIndex<PSPAWNINFO> SpawnSet;
 	PSPAWNINFO pSpawn=(PSPAWNINFO)pSpawnList;
-	PSPAWNINFO pOrigin;
+	PSPAWNINFO pOrigin=0;
 	// create our set
 	DWORD TotalMatching=0;
 	if (pSearchSpawn->FromSpawnID)

@@ -26,9 +26,7 @@
 
 VOID CheckChatForEvent(PCHAR szMsg)
 {
-	strcpy(EventMsg,szMsg);
-	pMQ2Blech->Feed(szMsg);
-	pEventBlech->Feed(szMsg);
+	IS_CheckTriggers(pExtension,pISInterface,hTriggerService,szMsg);
 }
 
 unsigned long ParseSearchSpawnArg(int arg, int argc, char *argv[], SEARCHSPAWN &SearchSpawn)

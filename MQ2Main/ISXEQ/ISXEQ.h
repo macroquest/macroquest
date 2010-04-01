@@ -87,6 +87,8 @@ extern ISInterface *pISInterface;
 extern HISXSERVICE hPulseService;
 extern HISXSERVICE hMemoryService;
 extern HISXSERVICE hHTTPService;
+extern HISXSERVICE hTriggerService;
+
 extern CISXEQ *pExtension;
 #define printf pISInterface->Printf
 
@@ -95,7 +97,6 @@ extern HISXSERVICE hUIService;
 extern HISXSERVICE hGamestateService;
 extern HISXSERVICE hSpawnService;
 extern HISXSERVICE hZoneService;
-
 #define EzDetour(Address, Detour, Trampoline) IS_Detour(pExtension,pISInterface,hMemoryService,(unsigned long)Address,Detour,Trampoline)
 #define EzUnDetour(Address) IS_UnDetour(pExtension,pISInterface,hMemoryService,(unsigned long)Address)
 
@@ -111,7 +112,6 @@ extern LSType *pFloatType;
 extern LSType *pTimeType;
 extern LSType *pByteType;
 
-extern LSType *pStringPtrType;
 extern LSType *pIntPtrType;
 extern LSType *pBoolPtrType;
 extern LSType *pFloatPtrType;

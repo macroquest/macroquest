@@ -71,19 +71,23 @@ VOID InitializeChatHook()
 	DebugSpew("Initializing chat hook");
 
 	// initialize Blech
+#ifndef ISXEQ
 #ifdef USEBLECHEVENTS
 	pEventBlech=new Blech('#','|',MQ2DataVariableLookup);
 #endif
 	pMQ2Blech=new Blech('#','|',MQ2DataVariableLookup);
 	DebugSpew("%s",pMQ2Blech->Version);
+#endif
 	EzDetour(CEverQuest__dsp_chat,CChatHook::Detour,CChatHook::Trampoline);
 }
 
 VOID ShutdownChatHook()
 {
 	RemoveDetour((DWORD)CEverQuest__dsp_chat);
+#ifndef ISXEQ
 #ifdef USEBLECHEVENTS
 	delete pEventBlech;
 #endif
 	delete pMQ2Blech;
+#endif
 }

@@ -948,8 +948,8 @@ bool MQ2SpawnType::GETMEMBER()
 		Dest.Type=pIntType;
 		return true;
 	case ID:
-		Dest.Type=pIntType;
-		Dest.DWord=pSpawn->SpawnID;
+		Dest.Type=pIntPtrType;
+		INTPTR(pSpawn->SpawnID);
 		return true;
 	case Name:
 		Dest.Type=pStringType;
@@ -975,8 +975,8 @@ bool MQ2SpawnType::GETMEMBER()
 		return true;
 	case W:
 	case X:
-		Dest.Type=pFloatType;
-		Dest.Float=pSpawn->X; 
+		Dest.Type=pFloatPtrType;
+		FLOATPTR(pSpawn->X); 
 		return true;
 	case S:
 		Dest.Type=pFloatType;
@@ -984,8 +984,8 @@ bool MQ2SpawnType::GETMEMBER()
 		return true;
 	case N:
 	case Y:
-		Dest.Type=pFloatType;
-		Dest.Float=pSpawn->Y; 
+		Dest.Type=pFloatPtrType;
+		FLOATPTR(pSpawn->Y); 
 		return true;
 	case D:
 		Dest.Type=pFloatType;
@@ -993,8 +993,8 @@ bool MQ2SpawnType::GETMEMBER()
 		return true;
 	case U:
 	case Z:
-		Dest.Type=pFloatType;
-		Dest.Float=pSpawn->Z;
+		Dest.Type=pFloatPtrType;
+		FLOATPTR(pSpawn->Z);
 		return true;
 	case Next:
 		if (Dest.Ptr=pSpawn->pNext)
@@ -1329,7 +1329,7 @@ bool MQ2SpawnType::GETMEMBER()
 		Dest.DWord=(pSpawn->pActorInfo->InvitedToGroup);
 		Dest.Type=pBoolType;
 		return true;
-#ifndef ISXEQ /* CONVERT */
+#ifndef ISXEQ
 	case NearestSpawn:
 		if (pSpawn==(PSPAWNINFO)pCharSpawn)
 		{
@@ -1490,7 +1490,7 @@ bool MQ2SpawnType::GETMEMBER()
 		Dest.Type=pBoolType;
 		return true;
    case HeadingToLoc: 
-#ifndef ISXEQ /* CONVERT */
+#ifndef ISXEQ
       if (!ISINDEX()) 
          return false; 
       if (PCHAR pComma=strchr(Index,',')) 

@@ -1,5 +1,13 @@
+28 March 2005 by Lax
+- Added IS "Triggers" service usage.  Macros can now use AddTrigger (IS 0.78) to handle 
+  chat window stuff
+
 19 March 2005 by Lax
 - ISXEQChatWnd bug fixes
+- Commands converted by onetimehero
+  * CastSpell
+  * MemSpell
+  * DoAbility
 
 18 March 2005 by Lax
 - Access to LavishScript stringptr, intptr, boolptr, floatptr, byteptr types built in
