@@ -86,7 +86,7 @@
 #define pinstActiveGMaster                                         0x887698
 #define pinstActiveMerchant                                        0x88768C
 #define pinstAltAdvManager                                         0x7D6380
-#define pinstAuraInfo                                              0x724FD0
+#define pinstAuraMgr                                               0x724FD0
 #define pinstBandageTarget                                         0x887678
 #define pinstCamActor                                              0x7D5E74
 #define pinstCDBStr                                                0x7D5540

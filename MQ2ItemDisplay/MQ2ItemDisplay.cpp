@@ -392,7 +392,7 @@ public:
          switch(GetCharInfo2()->Race) {
             case 0x80:  raceNum = 0xc; break;
             case 0x82:  raceNum = 0xd; break;
-            case 0x14a:  raceNum = 0xe; break;
+            case 0x14a: raceNum = 0xe; break;
             default:    raceNum = GetCharInfo2()->Race - 1;
          }
          int iRaceBit = 1 << raceNum;
@@ -975,7 +975,7 @@ PLUGIN_API VOID InitializePlugin(VOID)
 
 	AddCommand("/inote",Comment); 
 	AddCommand("/ireset",Ireset); 
-        AddMQ2Data("DisplayItem", dataLastItem);
+	AddMQ2Data("DisplayItem", dataLastItem);
 }
 
 // Called once, when the plugin is to shutdown
@@ -989,7 +989,7 @@ PLUGIN_API VOID ShutdownPlugin(VOID)
 	RemoveDetour(CInvSlotWnd__DrawTooltip);
 	RemoveDetour(CXWnd__DrawTooltip);
 
-        RemoveMQ2Data("DisplayItem");
+	RemoveMQ2Data("DisplayItem");
 	RemoveCommand("/ireset"); 
 	RemoveCommand("/inote");
 }

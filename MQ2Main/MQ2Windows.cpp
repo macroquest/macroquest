@@ -72,7 +72,7 @@ public:
 			_WindowInfo *pWnd = WindowList[N];
 			pWnd->pWnd=(CXWnd*)this;
 			pWnd->ppWnd=0;
-			DebugSpew("Updating WndNotification target '%s'",Name);
+			//DebugSpew("Updating WndNotification target '%s'",Name);
 		}
 		else
 		{
@@ -85,7 +85,7 @@ public:
 			WindowList[N]=pWnd;
 
 			WindowMap[WindowName]=N+1;
-			DebugSpew("Adding WndNotification target '%s'",Name);
+			//DebugSpew("Adding WndNotification target '%s'",Name);
 		}
 		SetScreen_Trampoline(pName);
 	}
@@ -145,7 +145,7 @@ public:
 				{
 					if (pWnd==pInfo->pWnd)
 					{
-						DebugSpew("Removing WndNotification target '%s'",pInfo->Name);
+						//DebugSpew("Removing WndNotification target '%s'",pInfo->Name);
 						string Name=pInfo->Name;
 						MakeLower(Name);
 						WindowMap[Name]=0;
@@ -269,7 +269,7 @@ void InitializeMQ2Windows()
 							_WindowInfo *pNewWnd = WindowList[N];
 							pNewWnd->pWnd=(CXWnd*)pWnd;
 							pNewWnd->ppWnd=0;
-							DebugSpew("Updating WndNotification target '%s'",Name);
+							//DebugSpew("Updating WndNotification target '%s'",Name);
 						}
 						else
 						{
@@ -282,7 +282,7 @@ void InitializeMQ2Windows()
 							WindowList[N]=pNewWnd;
 
 							WindowMap[WindowName]=N+1;
-							DebugSpew("Adding WndNotification target '%s'",Name);
+							//DebugSpew("Adding WndNotification target '%s'",Name);
 						}
 
 
@@ -416,7 +416,7 @@ bool GenerateMQUI()
 		    DebugSpew("GenerateMQUI::could not open %s", szOrgFilename);
 		    DebugSpew("GenerateMQUI::giving up");
 		    return false;
-                }
+            }
 	    }
 	    fnew = fopen(szFilename, "wt");
 	    if (!fnew) {
@@ -433,16 +433,16 @@ bool GenerateMQUI()
 			fprintf(fnew, "<Include>%s</Include>\n",
 				pFile->szFilename);
 			pFile = pFile->pNext;
-		    }
+			}
 		}
 		fprintf(fnew, "%s", Buffer);
-	    }
-	    fclose(fnew);
-	    fclose(forg);
+	}
+	fclose(fnew);
+	fclose(forg);
 	}
     }
 
-    return true;
+	return true;
 }
 
 void DestroyMQUI()
@@ -480,7 +480,7 @@ void AddXMLFile(const char *filename)
 	    return;		// already there.
 	pLast = pFile;
 	pFile = pFile->pNext;
-    }
+	}
     CHAR            szBuffer[MAX_PATH] = { 0 };
     PCHARINFO       pCharInfo = NULL;
     CHAR            szFilename[MAX_PATH] = { 0 };
@@ -502,7 +502,7 @@ void AddXMLFile(const char *filename)
 	    WriteChatf
 		("UI file %s not found in either uifiles\\%s or uifiles\\default.  Please copy it there, reload the UI, and reload this plugin.",
 		 filename, UISkin);
-	    return;
+		return;
 	}
     }
 
@@ -825,7 +825,7 @@ void AddWindow(char *WindowName, CXWnd **ppWindow)
 		_WindowInfo *pWnd = WindowList[N];
 		pWnd->pWnd=0;
 		pWnd->ppWnd=ppWindow;
-		DebugSpew("Updating WndNotification target '%s'",WindowName);
+		//DebugSpew("Updating WndNotification target '%s'",WindowName);
 	}
 	else
 	{
@@ -838,7 +838,7 @@ void AddWindow(char *WindowName, CXWnd **ppWindow)
 		WindowList[N]=pWnd;
 
 		WindowMap[WindowName]=N+1;
-		DebugSpew("Adding WndNotification target '%s'",Name);
+		//DebugSpew("Adding WndNotification target '%s'",Name);
 	}
 
 }
@@ -1180,7 +1180,7 @@ int ItemNotify(int argc, char *argv[])
 		WriteChatf("Could not send notification to %s %s",szArg1,szArg2);
 		RETURN(0);
 	}
-	DebugSpew("ItemNotify: Calling SendWndClick");
+	//DebugSpew("ItemNotify: Calling SendWndClick");
 	if (!SendWndClick2((CXWnd*)((PEQINVSLOT)pSlot)->pInvSlotWnd,pNotification))
 	{
 		WriteChatf("Could not send notification to %s %s",szArg1,szArg2);

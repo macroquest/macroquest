@@ -1685,8 +1685,8 @@ typedef struct _CDISPLAY {
 
 //5-16-06 - ieatacid
 typedef struct _DZTIMERINFO {
-/*0x000*/ CHAR   Zone[0x80];
-/*0x080*/ CHAR   ExpeditionName[0x100];
+/*0x000*/ CHAR   ExpeditionName[0x80];
+/*0x080*/ CHAR   EventName[0x100];
 /*0x180*/ DWORD  TimeStamp;  // TimeStamp - Util__FastTime = time left
 /*0x184*/ DWORD  TimerID;
 /*0x188*/ struct _DZTIMERINFO *pNext;
@@ -1744,12 +1744,18 @@ typedef struct _EVERQUEST {
 } EVERQUEST, *PEVERQUEST;
 
 typedef struct _AURAINFO {
-/*0x000*/ DWORD  IsActive;
-/*0x004*/ BYTE   Unknown0x4[0xc];
-/*0x010*/ PCHAR  *Name;
-/*0x014*/ BYTE   Unknown0x14[0x8];
-/*0x01c*/
+/*0x000*/ CHAR   Name[0x40];
+/*0x040*/ BYTE   Unknown0x14[0xc];
+/*0x04c*/
 } AURAINFO, *PAURAINFO;
+
+typedef struct _AURAMGR {
+/*0x000*/ DWORD     NumAuras;
+/*0x004*/ BYTE      Unknown0x4[0xc];
+/*0x010*/ PAURAINFO *AuraArray;
+/*0x014*/ BYTE      Unknown0x14[0x8];
+/*0x01c*/
+} AURAMGR, *PAURAMGR;
 
 typedef struct _INTERACTSWITCH {
 /*0x000*/ DWORD   switchID;

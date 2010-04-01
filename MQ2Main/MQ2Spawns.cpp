@@ -200,25 +200,25 @@ typedef struct _CAPTIONCOLOR {
 	DWORD Color;
 } CAPTIONCOLOR, PCAPTIONCOLOR;
 
-#define CC_PC					 0
+#define CC_PC			    0
 #define CC_PCConColor	    1
 #define CC_PCPVPTeamColor   2
 #define CC_PCRaidColor      3
 #define CC_PCClassColor     4
 #define CC_PCGroupColor     5
 #define CC_PCTrader		    6
-#define CC_NPC					 7
+#define CC_NPC			    7
 #define CC_NPCConColor      8
 #define CC_NPCClassColor    9
 #define CC_NPCMerchant      10
 #define CC_NPCBanker        11
 #define CC_NPCAssist        12 
-#define CC_NPCMark			 13 
-#define CC_PetNPC				 14
-#define CC_PetPC				 15
-#define CC_PetConColor		 16
-#define CC_PetClassColor	 17
-#define CC_Corpse				 18
+#define CC_NPCMark			13 
+#define CC_PetNPC		    14
+#define CC_PetPC		    15
+#define CC_PetConColor		16
+#define CC_PetClassColor    17
+#define CC_Corpse		    18
 #define CC_CorpseClassColor 19
 
 
@@ -492,7 +492,7 @@ BOOL SetNameSpriteState(PSPAWNINFO pSpawn, bool Show)
 				pNamingSpawn=pSpawn;\
 				ParseMacroParameter(GetCharInfo()->pSpawn,NewCaption);\
 				pNamingSpawn=0;\
-            ((EQPlayer*)pSpawn)->ChangeBoneStringSprite(0,NewCaption);\
+				((EQPlayer*)pSpawn)->ChangeBoneStringSprite(0,NewCaption);\
 				return 1;\
 			}\
 		}

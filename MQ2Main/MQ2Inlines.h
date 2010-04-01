@@ -50,12 +50,16 @@ static inline PCHAR GetClassDesc(DWORD ClassID)
 		return "LDoN Recruiter";
 	if (ClassID==61)
 		return "LDoN Merchant";
+	if (ClassID==62)
+		return "Destructible Object";
 	if (ClassID==63)
 		return "Tribute Master";
 	if (ClassID==64)
 		return "Guild Tribute Master";
 	if (ClassID==66)
 		return "Guild Banker";
+	if (ClassID==0xFF)
+		return "Aura";
 	return pEverQuest->GetClassDesc(ClassID);
 }
 
@@ -149,26 +153,29 @@ static inline eSpawnType GetSpawnType(PSPAWNINFO pSpawn)
         switch(GetBodyType(pSpawn))
         {
         case 0:
-            return OBJECT;
-        case 3:
+			if (pSpawn->Class==62)
+                return OBJECT;
             return NPC;
-
+        //case 3:
+        //    return NPC;
         case 5:
 			if (strstr(pSpawn->Name,"Idol") || strstr(pSpawn->Name,"Poison") || strstr(pSpawn->Name,"Rune"))
                 return AURA;
+			if (pSpawn->Class==62)
+			    return OBJECT;
             return NPC; 
         case 11:
 			if (strstr(pSpawn->Name,"Aura") || strstr(pSpawn->Name,"Circle_of") || strstr(pSpawn->Name,"Guardian_Circle") || strstr(pSpawn->Name,"Earthen_Strength"))
                 return AURA;
             return UNTARGETABLE;
-        case 21:
-            return NPC; 
-        case 23:
-            return NPC;
+        //case 21:
+        //    return NPC; 
+        //case 23:
+        //    return NPC;
         case 33:
             return CHEST;
-        case 34:
-            return NPC;
+        //case 34:
+        //    return NPC;
         //case 65:
         //    return TRAP;
         //case 66:

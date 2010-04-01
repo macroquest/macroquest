@@ -1,3 +1,11 @@
+12 January 2007 by ieatacid
+- Fix for Me.Aura for Monk auras (spelling error on SoE's part :o)
+- dkaa told me about an AuraMgr struct and how it relates to AuraInfo -.-
+- Added charinfo svChromatic, svPrismatic (Charisa)
+
+2 January 2007 by rswiders
+- Fix for npcs and objects
+
 30 December 2006 by ieatacid
 - Added DynamicZone TLO which has the following members
 .. string Name

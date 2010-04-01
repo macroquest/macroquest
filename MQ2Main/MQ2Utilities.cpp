@@ -4650,6 +4650,10 @@ PCHAR ParseSearchSpawnArgs(PCHAR szArg, PCHAR szRest, PSEARCHSPAWN pSearchSpawn)
             pSearchSpawn->SpawnType = CHEST;
         } else if (!stricmp(szArg,"timer")) {
             pSearchSpawn->SpawnType = TIMER;
+        } else if (!stricmp(szArg,"aura")) {
+            pSearchSpawn->SpawnType = AURA;
+        } else if (!stricmp(szArg,"object")) {
+            pSearchSpawn->SpawnType = OBJECT;
         } else if (!stricmp(szArg,"any")) {
             pSearchSpawn->SpawnType = NONE;
         } else if (!stricmp(szArg,"next")) {

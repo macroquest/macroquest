@@ -428,8 +428,8 @@ EQLIB_VAR AltAdvManager** ppAltAdvManager;
 
 EQLIB_VAR PCONNECTION_T *ppConnection;
 #define pConnection (*ppConnection)
-EQLIB_VAR AURAINFO **ppAuraInfo;
-#define pAuraInfo (*ppAuraInfo)
+EQLIB_VAR AURAMGR **ppAuraMgr;
+#define pAuraMgr (*ppAuraMgr)
 
 EQLIB_VAR EQCHATMGR **ppEQChatMgr;
 #define pChatMgr (*ppEQChatMgr)

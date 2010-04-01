@@ -39,14 +39,14 @@ class CXMLData * CXWnd::GetXMLData()
 {
 	if (XMLIndex)
 		return ((CXMLDataManager*)&((PCSIDLMGR)pSidlMgr)->pXMLDataMgr)->GetXMLData(XMLIndex>>16,XMLIndex&0xFFFF);
-	DebugSpew("CXWnd::GetXMLData()=0");
+	//DebugSpew("CXWnd::GetXMLData()=0");
 	return 0;
 }
 class CXMLData * CSidlScreenWnd::GetXMLData()
 {
 	if (XMLIndex)
 		return ((CXMLDataManager*)&((PCSIDLMGR)pSidlMgr)->pXMLDataMgr)->GetXMLData(XMLIndex>>16,XMLIndex&0xFFFF);
-	DebugSpew("CSidlScreenWnd::GetXMLData()=0");
+	//DebugSpew("CSidlScreenWnd::GetXMLData()=0");
 	return 0;
 }
 class CXWnd * CXWnd::GetChildItem(PCHAR Name)
@@ -65,12 +65,12 @@ class CXWnd * CXWnd::GetChildItem(PCHAR Name)
 			if (GetCXStr(pXMLData->Name.Ptr,Buffer,MAX_STRING) && !stricmp(Buffer,Name)) {
 //DebugSpew("GetChildItem() 0x%x %s == %s", pWnd, Name, Buffer);
 				return pWnd;
-                        }
+            }
 //DebugSpew("GetChildItem() %s != %s",Name,Buffer);
 			if (GetCXStr(pXMLData->ScreenID.Ptr,Buffer,MAX_STRING) && !stricmp(Buffer,Name)) {
 //DebugSpew("GetChildItem() 0x%x %s == %s",pWnd, Name, Buffer);
 				return pWnd;
-                        }
+			}
 //DebugSpew("GetChildItem() %s != %s",Name,Buffer);
 		}
 		CXWnd *pChild=pWnd->GetChildItem(Name);
@@ -5908,7 +5908,7 @@ FUNCTION_AT_ADDRESS(void  CEverQuest::DeacSpellScreen(void),CEverQuest__DeacSpel
 //FUNCTION_AT_ADDRESS(enum ZONE_REQ_STATUS  CEverQuest::IsZoneAvailable(char *,enum EQZoneIndex,enum ZONE_REQ_REASON),CEverQuest__IsZoneAvailable);
 #endif
 #ifdef CEverQuest__MoveToZone
-//FUNCTION_AT_ADDRESS(void  CEverQuest::MoveToZone(enum EQZoneIndex,char *,int,enum ZONE_REQ_REASON),CEverQuest__MoveToZone);
+FUNCTION_AT_ADDRESS(void CEverQuest::MoveToZone(int EQZoneIndex,char *,int,int ZONE_REQ_REASON,float,float,float,int),CEverQuest__MoveToZone);
 #endif
 #ifdef CEverQuest__MoveToZone1
 //FUNCTION_AT_ADDRESS(void  CEverQuest::MoveToZone(char *,char *,int,enum ZONE_REQ_REASON),CEverQuest__MoveToZone1);

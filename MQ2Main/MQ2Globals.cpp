@@ -765,7 +765,7 @@ SPELLFAVORITE *pSpellSets=(SPELLFAVORITE *)pinstSpellSets;
 EQZoneInfo *pZoneInfo=(EQZoneInfo*)instEQZoneInfo;
 AltAdvManager** ppAltAdvManager=(AltAdvManager**)pinstAltAdvManager;
 CONNECTION_T **ppConnection=(PCONNECTION_T*)__gWorld;
-AURAINFO **ppAuraInfo=(AURAINFO**)pinstAuraInfo;
+AURAMGR **ppAuraMgr=(AURAMGR**)pinstAuraMgr;
 EQCHATMGR **ppEQChatMgr=(EQCHATMGR**)pinstCChatManager;
 
 EQPlayer **ppTradeTarget=(EQPlayer **)pinstTradeTarget;

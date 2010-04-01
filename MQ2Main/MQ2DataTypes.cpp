@@ -1102,7 +1102,10 @@ bool MQ2SpawnType::GETMEMBER()
 		Dest.Type=pRaceType;
 		return true;
 	case Class:
-		Dest.DWord=pSpawn->Class;
+		if (GetSpawnType(pSpawn)!=AURA)
+			Dest.DWord=pSpawn->Class;
+		else
+			Dest.DWord=0xFF;
 		Dest.Type=pClassType;
 		return true;
 	case Body:
@@ -1206,6 +1209,14 @@ bool MQ2SpawnType::GETMEMBER()
 			return true;
 		case CORPSE:
 			Dest.Ptr="Corpse";
+			Dest.Type=pStringType;
+			return true;
+		case AURA:
+			Dest.Ptr="Aura";
+			Dest.Type=pStringType;
+			return true;
+		case OBJECT:
+			Dest.Ptr="Object";
 			Dest.Type=pStringType;
 			return true;
 		}
@@ -2911,16 +2922,19 @@ bool MQ2CharacterType::GETMEMBER()
       Dest.Type=pIntType; 
       return true; 
 	case Aura:
-		if(PAURAINFO pAura=(PAURAINFO)pAuraInfo)
+		if(PAURAMGR pAura=(PAURAMGR)pAuraMgr)
 		{
-			if(pAura->IsActive)
+			if(pAura->NumAuras)
 			{
-				Dest.Ptr=GetSpellByName(*pAura->Name);
+				if(!strcmp(pAura->AuraArray[0]->Name,"Disciples Aura"))
+					Dest.Ptr=GetSpellByName("Disciple's Aura");
+				else
+					Dest.Ptr=GetSpellByName(pAura->AuraArray[0]->Name);
 				Dest.Type=pSpellType;
 				return true;
 			}
 		}
-                return false;
+		return false;
 	case LAMarkNPC:
 		Dest.DWord=GetCharInfo()->ActiveAbilities.MarkNPC;
 		Dest.Type=pIntType;
@@ -5978,14 +5992,19 @@ bool MQ2DZMemberType::GETMEMBER()
 		{
 		case 0:
 			Dest.Ptr="Unknown";
+			break;
 		case 1:
 			Dest.Ptr="Online";
+			break;
 		case 2:
 			Dest.Ptr="Offline";
+			break;
 		case 3:
 			Dest.Ptr="In Dynamic Zone";
+			break;
 		case 4:
 			Dest.Ptr="Link Dead";
+			break;
 		}
 		Dest.Type=pStringType;
 		return true;
