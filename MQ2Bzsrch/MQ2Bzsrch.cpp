@@ -530,7 +530,7 @@ VOID bzpc(PSPAWNINFO pChar, PCHAR szLine)
         *ptr = '\0';
     if (pg_Item) memset(pg_Item, 0, sizeof(ITEMINFO));
     DebugSpewAlways("id = %d, name = %s\n", pc.id, pc.name);
-    send_message(EQADDR_GWORLD, 0x1d43, &pc, sizeof(pc), TRUE);
+    send_message(EQADDR_GWORLD, 0x667c, &pc, sizeof(pc), TRUE);
 } 
 
 
@@ -708,7 +708,7 @@ VOID BzSrchMe(PSPAWNINFO pChar, PCHAR szLine)
 
    BzCount = 0;
    BzDone = 0;
-   send_message(EQADDR_GWORLD, 0x524e, &bsrp, sizeof(bsrp), FALSE);
+   send_message(EQADDR_GWORLD, 0x1ee9, &bsrp, sizeof(bsrp), FALSE);
    return;
 
 error_out:

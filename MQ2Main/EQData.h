@@ -359,7 +359,7 @@ enum MOUSE_DATA_TYPES {
    MD_Button1
 };
 
-#define nEQMappableCommands				0x10a
+#define nEQMappableCommands				0x10b
 
 
 // ***************************************************************************
@@ -646,7 +646,6 @@ typedef struct _CI2_INFO {
 /* 0x0060 */
 } CI2_INFO, *PCI2_INFO;
 
-
 typedef struct _CHARINFO {
 /* 0x0000 */   void      *vtable1;
 /* 0x0004 */   void      *punknown;
@@ -663,59 +662,59 @@ typedef struct _CHARINFO {
 /* 0x0e78 */   DWORD      CareerFavor;
 /* 0x0e7c */   DWORD      Unknown0xe7c;
 /* 0x0e80 */   DWORD      CurrFavor;
-/* 0x0e84 */   BYTE       Unknown0xe84[0xc];
-/* 0x0e90 */   DOUBLE     GroupLeadershipExp;
-/* 0x0e98 */   DOUBLE     RaidLeadershipExp;
-/* 0x0ea0 */   DWORD      GroupLeadershipPoints;
-/* 0x0ea4 */   DWORD      RaidLeadershipPoints;
-/* 0x0ea8 */   BYTE       Unknown0xea8[0x708];
+/* 0x0e84 */   BYTE       Unknown0xe84[0x14];
+/* 0x0e98 */   DOUBLE     GroupLeadershipExp;
+/* 0x0ea0 */   DOUBLE     RaidLeadershipExp;
+/* 0x0ea8 */   DWORD      GroupLeadershipPoints;
+/* 0x0eac */   DWORD      RaidLeadershipPoints;
+/* 0x0eb0 */   BYTE       Unknown0xea8[0x700];
 /* 0x15b0 */   CHAR       GroupMember[0x6][0x40];
 /* 0x1730 */   CHAR       GroupLeader[0x40];
 /* 0x1770 */   BYTE       Unknown0x1770[0x2a0];
 /* 0x1a10 */   DWORD      Exp;
 /* 0x1a14 */   BYTE       Unknown0x1a14[0xa864];
-/* 0xc278 */   void      *vtable2;
-/* 0xc27c */   struct     _EQC_INFO* eqc_info;
-/* 0xc280 */   struct     _SPAWNINFO*  pSpawn;
-/* 0xc284 */   DWORD      Unknown0xc284;
-/* 0xc288 */   DWORD      STR;
-/* 0xc28c */   DWORD      STA;
-/* 0xc290 */   DWORD      CHA;
-/* 0xc294 */   DWORD      DEX;
-/* 0xc298 */   DWORD      INT;
-/* 0xc29c */   DWORD      AGI;
-/* 0xc2a0 */   DWORD      WIS;
-/* 0xc2a4 */   DWORD      AC;
-/* 0xc2a8 */   DWORD      SaveMagic;
-/* 0xc2ac */   DWORD      SaveCold;
-/* 0xc2b0 */   DWORD      SaveFire;
-/* 0xc2b4 */   DWORD      SavePoison;
-/* 0xc2b8 */   DWORD      SaveDisease;
-/* 0xc2bc */   DWORD      Unknown0xc2bc;
-/* 0xc2c0 */   DWORD      CurrWeight;
-/* 0xc2c4 */   DWORD      Unknown0xc2c4;
-/* 0xc2c8 */   DWORD      HPBonus;
-/* 0xc2cc */   DWORD      ManaBonus;
-/* 0xc2d0 */   DWORD      EnduranceBonus;
-/* 0xc2d4 */   DWORD      CombatEffectsBonus;
-/* 0xc2d8 */   DWORD      ShieldingBonus;
-/* 0xc2dc */   DWORD      SpellShieldBonus;
-/* 0xc2e0 */   DWORD      AvoidanceBonus;
-/* 0xc2e4 */   DWORD      AccuracyBonus;
-/* 0xc2e8 */   DWORD      StunResistBonus;
-/* 0xc2ec */   DWORD      StrikeThroughBonus;
-/* 0xc2f0 */   DWORD      SkillMinDamageModBonus[0x9];
-/* 0xc314 */   DWORD      Unknown0xc314;
-/* 0xc318 */   DWORD      DoTShieldBonus;
-/* 0xc31c */   DWORD      AttackBonus;
-/* 0xc320 */   DWORD      HPRegenBonus;
-/* 0xc324 */   DWORD      ManaRegenBonus;
-/* 0xc328 */   DWORD      DamageShieldBonus;
-/* 0xc32c */   DWORD      AttackSpeed;
-/* 0xc330 */   BYTE       Unknown0xc330[0xc];
-/* 0xc33c */   DWORD      Unknown0xc33c[0x4]; // address, 1, address, 1
-/* 0xc34c */   _CONTENTS  *ActiveGuildTribute[0xc];
-/* 0xc37c */   BYTE       Unknown0xc37c[0xc];
+/* 0xc278 */  BYTE       Unknown0xc278[0x8];
+/* 0xc280 */   void      *vtable2;
+/* 0xc284 */   struct     _EQC_INFO* eqc_info;
+/* 0xc288 */   struct     _SPAWNINFO*  pSpawn;
+/* 0xc28c */   DWORD      Unknown0xc284;
+/* 0xc290 */   DWORD      STR;
+/* 0xc294 */   DWORD      STA;
+/* 0xc298 */   DWORD      CHA;
+/* 0xc29c */   DWORD      DEX;
+/* 0xc2a0 */   DWORD      INT;
+/* 0xc2a4 */   DWORD      AGI;
+/* 0xc2a8 */   DWORD      WIS;
+/* 0xc2ac */   DWORD      AC;
+/* 0xc2b0 */   DWORD      SaveMagic;
+/* 0xc2b4 */   DWORD      SaveCold;
+/* 0xc2b8 */   DWORD      SaveFire;
+/* 0xc2bc */   DWORD      SavePoison;
+/* 0xc2c0 */   DWORD      SaveDisease;
+/* 0xc2c4 */   DWORD      Unknown0xc2bc;
+/* 0xc2c8 */   DWORD      CurrWeight;
+/* 0xc2cc */   DWORD      Unknown0xc2c4;
+/* 0xc2d0 */   DWORD      HPBonus;
+/* 0xc2d4 */   DWORD      ManaBonus;
+/* 0xc2d8 */   DWORD      EnduranceBonus;
+/* 0xc2dc */   DWORD      CombatEffectsBonus;
+/* 0xc2e0 */   DWORD      ShieldingBonus;
+/* 0xc2e4 */   DWORD      SpellShieldBonus;
+/* 0xc2e8 */   DWORD      AvoidanceBonus;
+/* 0xc2ec */   DWORD      AccuracyBonus;
+/* 0xc2f0 */   DWORD      StunResistBonus;
+/* 0xc2f4 */   DWORD      StrikeThroughBonus;
+/* 0xc2f8 */   DWORD      SkillMinDamageModBonus[0x9];
+/* 0xc31c */   DWORD      Unknown0xc314;
+/* 0xc320 */   DWORD      DoTShieldBonus;
+/* 0xc324 */   DWORD      AttackBonus;
+/* 0xc328 */   DWORD      HPRegenBonus;
+/* 0xc32c */   DWORD      ManaRegenBonus;
+/* 0xc330 */   DWORD      Unknown0xc328;
+/* 0xc334 */   DWORD      DamageShieldBonus;
+/* 0xc338 */   DWORD      AttackSpeed;
+/* 0xc33c */   BYTE       Unknown0xc330[0x1c];
+/* 0xc358 */   _CONTENTS  *ActiveGuildTribute[0xc];
 /* 0xc388 */   struct     _CI2_INFO* pCI2;
 /* 0xc38c */   DWORD      Unknown0xc38c;
 /* 0xc390 */   BYTE       languages[0x20];
@@ -745,7 +744,7 @@ typedef struct  _CHARINFO2 {
 union {
 /* 0x0010 */   struct     _INVENTORY   Inventory;
 /* 0x0010 */   struct     _CONTENTS*   InventoryArray[0x1e];
-   };
+};
 /* 0x0088 */   struct     _CONTENTS*   Cursor;
 /* 0x008c */   BYTE       Unknown0x8c[0x14];
 /* 0x00a0 */   struct     _SPELLBUFF   Buff[0x19];
@@ -757,8 +756,7 @@ union {
 /* 0x1100 */   BYTE       Unknown0x1100[0x94];
 /* 0x1194 */   DWORD      Gender;
 /* 0x1198 */   DWORD      Race;
-/* 0x119c */   BYTE       Class;
-/* 0x119d */   BYTE       Unknown0x119d[3];
+/* 0x119c */   DWORD      Class;
 /* 0x11a0 */   DWORD      Unknown0x11a0;
 /* 0x11a4 */   DWORD      Level;
 /* 0x11a8 */   DWORD      Mana;
@@ -791,20 +789,20 @@ union {
 /* 0x129c */   FLOAT      ZoneBoundHeading;
 /* 0x12a0 */   BYTE       Unknown0x12a0[0xa8];
 /* 0x1348 */   AALIST     AAList[AA_CHAR_MAX_REAL];
-/* 0x1ac8 */   BYTE       Unknown0x1730[0x3aec-0x1ac8];
+/* 0x1ac8 */   BYTE       Unknown0x1ac8[0x3aec-0x1ac8];
 /* 0x3aec */   DWORD      CombatAbilities[NUM_COMBAT_ABILITIES];
-/* 0x3c7c */   DWORD      Unknown3c7c[0xa];       // 10 things in this array
+/* 0x3c7c */   DWORD      Unknown0x3c7c[0xa];
 /* 0x3ca4 */   DWORD      CombatAbilityTimes[NUM_COMBAT_ABILITIES];
-/* 0x3e34 */   BYTE       Unknown0x3e34[0x19f8];
-/* 0x582c */   DWORD      Deity;
-/* 0x5830 */   DWORD      Unknown0x5830;
-/* 0x5834 */   DWORD      Drunkenness;
-/* 0x5838 */   BYTE       Unknown0x5838[8];
-/* 0x5840 */   DWORD      AAPoints;
-/* 0x5844 */   BYTE       Unknown0x5844[0x5dc8];
-/* 0xb60c */   DWORD      AAPointsSpent;
-/* 0xb610 */   BYTE       Unknown0xb610[0x1c];
-/* 0xb62c */
+/* 0x3e34 */   BYTE       Unknown0x3e34[0x1A28];
+/* 0x585c */   DWORD      Deity;
+/* 0x5860 */   DWORD      Unknown0x5830;
+/* 0x5864 */   DWORD      Drunkenness;
+/* 0x5868 */   BYTE       Unknown0x5838[8];
+/* 0x5870 */   DWORD      AAPoints;
+/* 0x5874 */   BYTE       Unknown0x5844[0x5dc8];
+/* 0xb63c */   DWORD      AAPointsSpent;
+/* 0xb640 */   BYTE       Unknown0xb610[0x1c];
+/* 0xb65c */
 } CHARINFO2, *PCHARINFO2;
 
 
@@ -986,102 +984,104 @@ typedef struct _EQUIPMENT {
 
 // sizeof(_SPAWNINFO) is 0x348 (5/11/2005) 
 typedef struct _SPAWNINFO { 
-/*0x000*/   BYTE    Unknown0x0; 
-/*0x001*/   CHAR    Lastname[0x27];  // // Surname on PCs, Newbie Tag on NPCs 
-/*0x028*/	DWORD   Unknown0x028[0x2];
-/*0x030*/   FLOAT   Y; 
-/*0x034*/   FLOAT   X; 
-/*0x038*/   FLOAT   Z; 
-/*0x03c*/   FLOAT   SpeedY; 
-/*0x040*/   FLOAT   SpeedX; 
-/*0x044*/   FLOAT   SpeedZ; 
-/*0x048*/   FLOAT   SpeedRun; 
-/*0x04c*/   FLOAT   Heading; 
-/*0x050*/   FLOAT   field_50; 
-/*0x054*/   DWORD   field_54; 
-/*0x058*/   DWORD   field_58; 
-/*0x05c*/   FLOAT   CameraAngle; 
-/*0x060*/   BYTE    Unknown0x60[0x50]; 
-/*0x0b0*/	FLOAT	Y2;
-/*0x0b4*/	FLOAT	X2;
-/*0x0b8*/	FLOAT	Z2;
-/*0x0bc*/	FLOAT	SpeedY2;
-/*0x0c0*/	FLOAT	SpeedX2;
-/*0x0c4*/	FLOAT	SpeedZ2;
-/*0x0c8*/	FLOAT	SpeedRun2;
-/*0x0cc*/	FLOAT	Heading2;
-/*0x0d0*/	BYTE	Unknown0x0d0[0x50];
-/*0x120*/   CHAR    Name[0x40]; // ie priest_of_discord00 
-/*0x160*/   CHAR    DisplayedName[0x40]; // ie Priest of Discord 
-/*0x1a0*/   FLOAT   SpeedHeading; 
-/*0x1a4*/   DWORD   field_1a4;  
-/*0x1a8*/   struct  _ACTORINFO   *pActorInfo; 
-/*0x1ac*/   DWORD   field_1ac; 
-/*0x1b0*/   BYTE    CanFindLocation; 
-/*0x1b1*/   BYTE    Sneak;  // returns 01 on both Sneak and Shroud of Stealth 
-/*0x1b2*/   BYTE    Linkdead;  // Uncharmable flag when used on mobs? 
-/*0x1b3*/   BYTE    field_1b3; 
-/*0x1b4*/   BYTE    LFG; 
-/*0x1b5*/   BYTE    field_1b5; 
-/*0x1b6*/   BYTE    IsABoat; // 1 = a type of boat 
-/*0x1b7*/   BYTE    Unknown0x1b7; 
-/*0x1b8*/   ARGBCOLOR ArmorColor[0x9];  // Armor Dye if custom, otherwise Item Tint 
-/*0x1fc*/   struct  _EQUIPMENT Equipment; 
-/*0x200*/   WORD    Zone; 
-/*0x202*/   WORD    Instance; 
-/*0x204*/   DWORD   field_204; 
-/*0x208*/   DWORD   field_208; 
-/*0x20c*/   DWORD   field_20c; 
-/*0x210*/   struct  _SPAWNINFO *pNext; 
-/*0x214*/   struct  _CHARINFO  *pCharInfo; 
-/*0x218*/   DWORD   field_218; 
-/*0x21c*/   struct  _SPAWNINFO *pPrev; 
-/*0x220*/   BYTE    Unknown0x220[0x4]; 
-/*0x224*/   FLOAT   field_224; 
-/*0x228*/   DWORD   field_228; 
-/*0x22c*/   FLOAT   RunSpeed; 
-/*0x230*/   FLOAT   field_230; 
-/*0x234*/   FLOAT   field_234; 
-/*0x238*/   FLOAT   AvatarHeight;  // height of avatar from ground when standing 
-/*0x23c*/   FLOAT   WalkSpeed; 
-/*0x240*/   BYTE    Type; 
-/*0x241*/   BYTE    HairColor;      
-/*0x242*/   BYTE    BeardColor; 
-/*0x243*/   BYTE    Field_243; 
-/*0x244*/   BYTE    Eyes; 
-/*0x245*/   BYTE    Eyes2;      
-/*0x246*/   BYTE    BeardType; 
-/*0x247*/   BYTE    Holding;   // 0=holding/wielding nothing 
-/*0x248*/   BYTE    Level; 
-/*0x249*/   BYTE    FaceHair;  // Face/Hair combination with headgear 
-/*0x24a*/   BYTE    Gender; 
-/*0x24b*/   BYTE    PvPFlag; 
-/*0x24c*/   BYTE    HideMode; 
-/*0x24d*/   BYTE    StandState; 
-/*0x24e*/   BYTE    Class; 
-/*0x24f*/   BYTE    Light; 
-/*0x250*/   BYTE    InNonPCRaceIllusion;  // This is buggy ...not sure exact usage 
-/*0x251*/   BYTE    Field_251;  // form related, unsure how 
-/*0x252*/   BYTE    GM;       
-/*0x253*/   BYTE    Field_253; 
-/*0x254*/   DWORD   SpawnID; 
-/*0x258*/   DWORD   MasterID; 
-/*0x25c*/   DWORD   Race; 
-/*0x260*/   DWORD   Anon; 
-/*0x264*/   DWORD   field_264; 
-/*0x268*/   DWORD   AFK; 
-/*0x26c*/   DWORD   BodyType; 
-/*0x270*/   LONG    HPCurrent; 
-/*0x274*/   BYTE    AARank; 
-/*0x275*/   BYTE    Unknown0x278[0x3]; 
-/*0x278*/   DWORD   GuildStatus; 
-/*0x27c*/   DWORD   Deity; 
-/*0x280*/   DWORD   HPMax; 
-/*0x284*/   DWORD   GuildID; 
-/*0x288*/   BYTE    Levitate;   //0-normal state  2=levitating 3=mob (not levitating) 
-/*0x28c*/   BYTE    Unknown0x28c[0x17]; 
-/*0x2a0*/   CHAR    Title[0x20];
-/*0x2c0*/   CHAR    Suffix[0x20];
+/* 0x0000 */   BYTE    Unknown0x0; 
+/* 0x0001 */   CHAR    Lastname[0x27];  // // Surname on PCs, Newbie Tag on NPCs 
+/* 0x0028 */   DWORD     Unknown0x028[0x2];
+/* 0x0030 */   FLOAT     Y; 
+/* 0x0034 */   FLOAT     X; 
+/* 0x0038 */   FLOAT     Z; 
+/* 0x003c */   FLOAT     SpeedY; 
+/* 0x0040 */   FLOAT     SpeedX; 
+/* 0x0044 */   FLOAT     SpeedZ; 
+/* 0x0048 */   FLOAT     SpeedRun; 
+/* 0x004c */   FLOAT     Heading; 
+/* 0x0050 */   FLOAT     field_50; 
+/* 0x0054 */   DWORD     field_54; 
+/* 0x0058 */   DWORD     field_58; 
+/* 0x005c */   FLOAT     CameraAngle; 
+/* 0x0060 */   BYTE      Unknown0x60[0x50]; 
+/* 0x00b0 */   FLOAT     Y2;
+/* 0x00b4 */   FLOAT     X2;
+/* 0x00b8 */   FLOAT     Z2;
+/* 0x00bc */   FLOAT     SpeedY2;
+/* 0x00c0 */   FLOAT     SpeedX2;
+/* 0x00c4 */   FLOAT     SpeedZ2;
+/* 0x00c8 */   FLOAT     SpeedRun2;
+/* 0x00cc */   FLOAT     Heading2;
+/* 0x00d0 */   BYTE      Unknown0x0d0[0x50];
+/* 0x0120 */   CHAR      Name[0x40]; // ie priest_of_discord00 
+/* 0x0160 */   CHAR      DisplayedName[0x40]; // ie Priest of Discord 
+/* 0x01a0 */   FLOAT     SpeedHeading; 
+/* 0x01a4 */   DWORD     field_1a4;  
+/* 0x01a8 */   struct    _ACTORINFO   *pActorInfo; 
+/* 0x01ac */   DWORD     field_1ac; 
+/* 0x01b0 */   BYTE      CanFindLocation; 
+/* 0x01b1 */   BYTE      Sneak;  // returns 01 on both Sneak and Shroud of Stealth 
+/* 0x01b2 */   BYTE      Linkdead;  // Uncharmable flag when used on mobs? 
+/* 0x01b3 */   BYTE      field_1b3; 
+/* 0x01b4 */   BYTE      LFG; 
+/* 0x01b5 */   BYTE      field_1b5; 
+/* 0x01b6 */   BYTE      IsABoat; // 1 = a type of boat 
+/* 0x01b7 */   BYTE      Unknown0x1b7; 
+/* 0x01b8 */   ARGBCOLOR ArmorColor[0x9];  // Armor Dye if custom, otherwise Item Tint 
+/* 0x01dc */   struct    _EQUIPMENT Equipment; 
+/* 0x0200 */   DWORD     field_200; 
+/* 0x0204 */   WORD      Zone; 
+/* 0x0206 */   WORD      Instance; 
+/* 0x0208 */   DWORD     field_208; 
+/* 0x020c */   DWORD     field_20c; 
+/* 0x0210 */   DWORD     field_210; 
+/* 0x0214 */   struct    _SPAWNINFO *pNext; 
+/* 0x0218 */   struct    _CHARINFO  *pCharInfo; 
+/* 0x021c */   DWORD     field_218; 
+/* 0x0220 */   struct    _SPAWNINFO *pPrev; 
+/* 0x0224 */   BYTE      Unknown0x220[0x4]; 
+/* 0x0228 */   FLOAT     field_228; 
+/* 0x022c */   DWORD     field_22c; 
+/* 0x0230 */   FLOAT     RunSpeed; 
+/* 0x0234 */   FLOAT     field_234; 
+/* 0x0238 */   FLOAT     field_238; 
+/* 0x023c */   FLOAT     AvatarHeight;  // height of avatar from ground when standing 
+/* 0x0240 */   FLOAT     WalkSpeed; 
+/* 0x0244 */   BYTE      Type; 
+/* 0x0245 */   BYTE      HairColor;      
+/* 0x0246 */   BYTE      BeardColor; 
+/* 0x0247 */   BYTE      Field_247; 
+/* 0x0248 */   BYTE      Eyes; 
+/* 0x0249 */   BYTE      Eyes2;      
+/* 0x024a */   BYTE      BeardType; 
+/* 0x024b */   BYTE      Holding;   // 0=holding/wielding nothing 
+/* 0x024c */   BYTE      Level; 
+/* 0x024d */   BYTE      FaceHair;  // Face/Hair combination with headgear 
+/* 0x024e */   BYTE      Gender; 
+/* 0x024f */   BYTE      PvPFlag; 
+/* 0x0250 */   BYTE      HideMode; 
+/* 0x0251 */   BYTE      StandState; 
+/* 0x0252 */   BYTE      Class; 
+/* 0x0253 */   BYTE      Light; 
+/* 0x0254 */   BYTE      InNonPCRaceIllusion;  // This is buggy ...not sure exact usage 
+/* 0x0255 */   BYTE      Field_251;  // form related, unsure how 
+/* 0x0256 */   BYTE      GM;       
+/* 0x0257 */   BYTE      Field_253; 
+/* 0x0258 */   DWORD     SpawnID; 
+/* 0x025c */   DWORD     MasterID; 
+/* 0x0260 */   DWORD     Race; 
+/* 0x0264 */   DWORD     Anon; 
+/* 0x0268 */   DWORD     field_264; 
+/* 0x026c */   DWORD     AFK; 
+/* 0x0270 */   DWORD     BodyType; 
+/* 0x0274 */   LONG      HPCurrent; 
+/* 0x0278 */   BYTE      AARank; 
+/* 0x0279 */   BYTE      Unknown0x278[0x3]; 
+/* 0x027c */   DWORD     GuildStatus; 
+/* 0x0280 */   DWORD     Deity; 
+/* 0x0284 */   DWORD     HPMax; 
+/* 0x0288 */   DWORD     GuildID; 
+/* 0x028c */   BYTE      Levitate;   //0-normal state  2=levitating 3=mob (not levitating) 
+/* 0x028d */   BYTE      Unknown0x28c[0x17]; 
+/* 0x02a4 */   CHAR      Title[0x20];
+/* 0x02c4 */   CHAR      Suffix[0x20];
+/* 0x02e4 */   CHAR      Unknown0x2e4[0x348-0x2e4];
 /*	        More Data */ 
 } SPAWNINFO, *PSPAWNINFO;
 
@@ -1381,7 +1381,6 @@ typedef struct _GUILDS {
 /*0x828c*/
 } GUILDS, *PGUILDS;
 
-#define EQ_INTERACTGROUNDITEM 0x0F47
 typedef struct _INTERACTGROUNDITEM {
 	DWORD DropID;
 	DWORD SpawnID;
@@ -1540,5 +1539,9 @@ typedef struct _EQSTRINGTABLE {
 /*0x10*/
 } EQSTRINGTABLE, *PEQSTRINGTABLE;
 
+#define EQ_INTERACTGROUNDITEM   0x3BC2
+#define EQ_EMOTE	        0x547A
+#define EQ_BEGIN_ZONE           0x1540
+#define EQ_END_ZONE             0x5e20
 };
 using namespace EQData;
