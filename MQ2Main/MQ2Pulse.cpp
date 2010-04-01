@@ -81,67 +81,72 @@ BOOL DoNextCommand()
 
 void Pulse()
 {
-     if (!ppCharSpawn || !pCharSpawn) return;
-	 PSPAWNINFO pCharOrMount = NULL;
-	PCHARINFO pCharInfo = GetCharInfo();
+    if (!ppCharSpawn || !pCharSpawn) return;
+    PSPAWNINFO pCharOrMount = NULL;
+    PCHARINFO pCharInfo = GetCharInfo();
     PSPAWNINFO pChar = pCharOrMount = (PSPAWNINFO)pCharSpawn;
-	if (pCharInfo && pCharInfo->pSpawn) pChar=pCharInfo->pSpawn;
+    if (pCharInfo && pCharInfo->pSpawn) pChar=pCharInfo->pSpawn;
 
-	static WORD LastZone=-1;
-	
+    static WORD LastZone=-1;
+    
     static PSPAWNINFO pCharOld = NULL;
     static  FLOAT LastX = 0.0f;
     static FLOAT LastY = 0.0f;
-	static DWORD LastMoveTick = 0;
+    static DWORD LastMoveTick = 0;
     static DWORD MapDelay = 0;
 
-	static DWORD LastHealth = 0;
-	static DWORD LastMana = 0;
-	static DWORD LastEndurance = 0;
+    static DWORD LastHealth = 0;
+    static DWORD LastMana = 0;
+    static DWORD LastEndurance = 0;
 
 
 
-   // Drop out here if we're waiting for something.
-    if ((!pChar) || (gZoning)/* || (gDelayZoning)*/) return;
+    // Drop out here if we're waiting for something.
+    if (!pChar || gZoning /* || gDelayZoning*/) return;
+    if (!pCharInfo) {
+        //DebugSpew("Pulse: no charinfo returning\n");
+        return;
+    }
+
     if ((unsigned int)GetCharInfo()->charinfo_info & 0x80000000) return;
 
-	if (pChar!=pCharOld && WereWeZoning)
-	{
-		WereWeZoning = FALSE;
-		pCharOld=pChar;
+    if (pChar!=pCharOld && WereWeZoning)
+    {
+        WereWeZoning = FALSE;
+        pCharOld=pChar;
         gFaceAngle = 10000.0f;
         gLookAngle = 10000.0f;
         gbMoving = FALSE;
         LastX = pChar->X;
         LastY = pChar->Y;
-		LastMoveTick=GetTickCount();
-		EnviroTarget.Name[0]=0;
-		DoorEnviroTarget.Name[0]=0;
-		LastHealth=0;
-		LastMana=0;
-		LastEndurance=0; 
-		ManaGained=0;
-		HealthGained=0;
-		EnduranceGained=0;
-		// see if we're on a pvp server
-		if (!strncmp(EQADDR_SERVERNAME,"tallon",6) || !strncmp(EQADDR_SERVERNAME,"vallon",6))
-		{
-			PVPServer=PVP_TEAM;
-		}
-		else if (!strncmp(EQADDR_SERVERNAME,"sullon",6))
-		{
-			PVPServer=PVP_SULLON;
-		}
-		else if (!strncmp(EQADDR_SERVERNAME,"rallos",6))
-		{
-			PVPServer=PVP_RALLOS;
-		}
-		else
-			PVPServer=PVP_NONE;
-		Benchmark(bmPluginsSetGameState,PluginsZoned());
+        LastMoveTick=GetTickCount();
+        EnviroTarget.Name[0]=0;
+        DoorEnviroTarget.Name[0]=0;
+        LastHealth=0;
+        LastMana=0;
+        LastEndurance=0; 
+        ManaGained=0;
+        HealthGained=0;
+        EnduranceGained=0;
+        // see if we're on a pvp server
+        if (!strncmp(EQADDR_SERVERNAME,"tallon",6) || !strncmp(EQADDR_SERVERNAME,"vallon",6))
+        {
+            PVPServer=PVP_TEAM;
+        }
+        else if (!strncmp(EQADDR_SERVERNAME,"sullon",6))
+        {
+            PVPServer=PVP_SULLON;
+        }
+        else if (!strncmp(EQADDR_SERVERNAME,"rallos",6))
+        {
+            PVPServer=PVP_RALLOS;
+        }
+        else
+            PVPServer=PVP_NONE;
+        Benchmark(bmPluginsSetGameState,PluginsZoned());
 
     } else if ((LastX!=pChar->X) || (LastY!=pChar->Y) || LastMoveTick>GetTickCount()-100) {
-		if ((LastX!=pChar->X) || (LastY!=pChar->Y)) LastMoveTick=GetTickCount();
+        if ((LastX!=pChar->X) || (LastY!=pChar->Y)) LastMoveTick=GetTickCount();
         gbMoving = TRUE;
         LastX = pChar->X;
         LastY = pChar->Y;
@@ -149,43 +154,40 @@ void Pulse()
         gbMoving = FALSE;
     }
 
-	DWORD CurrentHealth=GetCurHPS();
-	if (LastHealth && CurrentHealth>LastHealth)
-	{
-		if ((int)pChar->HPCurrent!=GetMaxHPS())
-		{ // gained health, and not max
-			HealthGained=CurrentHealth-LastHealth;
-		}
-	}
-	LastHealth=CurrentHealth;
+    DWORD CurrentHealth=GetCurHPS();
+    if (LastHealth && CurrentHealth>LastHealth)
+    {
+        if ((int)pChar->HPCurrent!=GetMaxHPS())
+        { // gained health, and not max
+            HealthGained=CurrentHealth-LastHealth;
+        }
+    }
+    LastHealth=CurrentHealth;
 
-	if (LastMana && GetCharInfo2()->Mana > LastMana)
-	{
-		if ((int)GetCharInfo2()->Mana-LastMana > 0 )
-		{
-			ManaGained=GetCharInfo2()->Mana-LastMana;
-		}
-	}
-	LastMana=GetCharInfo2()->Mana;
+    if (LastMana && GetCharInfo2()->Mana > LastMana)
+    {
+        if ((int)GetCharInfo2()->Mana-LastMana > 0 )
+        {
+            ManaGained=GetCharInfo2()->Mana-LastMana;
+        }
+    }
+    LastMana=GetCharInfo2()->Mana;
 
-	if (LastEndurance && GetCharInfo2()->Endurance > LastEndurance) 
+    if (LastEndurance && GetCharInfo2()->Endurance > LastEndurance) 
     { 
-		if (GetCharInfo2()->Endurance != GetMaxEndurance()) 
+        if (GetCharInfo2()->Endurance != GetMaxEndurance()) 
         { 
-			EnduranceGained = GetCharInfo2()->Endurance - LastEndurance; 
+            EnduranceGained = GetCharInfo2()->Endurance - LastEndurance; 
         } 
     } 
     LastEndurance = GetCharInfo2()->Endurance;
 
-	// If you are crashing on switching toons at character select,
-	// you can comment out this next if block to disable the autorun
-	// feature for characters.
-    if (gbDoAutoRun && pChar && pChar->pCharInfo) {
+    if (gbDoAutoRun && pChar && pCharInfo) {
         gbDoAutoRun = FALSE;
         CHAR szServerAndName[MAX_STRING] = {0};
         CHAR szAutoRun[MAX_STRING] = {0};
         PCHAR pAutoRun = szAutoRun;
-        sprintf(szServerAndName,"%s.%s",EQADDR_SERVERNAME,pChar->pCharInfo->Name);
+        sprintf(szServerAndName,"%s.%s",EQADDR_SERVERNAME,pCharInfo->Name);
         GetPrivateProfileString("AutoRun",szServerAndName,"",szAutoRun,MAX_STRING,gszINIFilename);
         while (pAutoRun[0]==' ' || pAutoRun[0]=='\t') pAutoRun++;
         if (szAutoRun[0]!=0) DoCommand(pChar,pAutoRun);
@@ -220,7 +222,7 @@ void Pulse()
             if (abs((INT)(pChar->CameraAngle - gLookAngle)) < 5.0f) {
                 pChar->CameraAngle = (FLOAT)gLookAngle;
                 gLookAngle = 10000.0f;
-				TurnNotDone = FALSE;
+                TurnNotDone = FALSE;
             } else {
                 TurnNotDone = TRUE;
                 FLOAT c1 = pChar->CameraAngle;
@@ -238,14 +240,13 @@ void Pulse()
         }
 
         if (TurnNotDone) {
-			bRunNextCommand=FALSE;
+            bRunNextCommand=FALSE;
             IsMouseWaiting();
             return;
         }
     }
-
-
 }
+
 
 DWORD GetGameState(VOID)
 {

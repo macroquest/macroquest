@@ -1059,7 +1059,7 @@ TLO(dataFindItemBankCount)
 							if (!stricmp(Name,pItem->Item->Name))
 							{
                                 if ((pItem->Item->Type != ITEMTYPE_NORMAL) ||
-                                    (((EQ_Item*)pPack)->IsStackable() != 1))
+                                    (((EQ_Item*)pItem)->IsStackable() != 1))
 								    Count++;
                                 else
                                     Count+=pItem->StackCount;
@@ -1070,7 +1070,7 @@ TLO(dataFindItemBankCount)
 							if(strstr(strlwr(strcpy(Temp,pItem->Item->Name)),Name))
 							{
                                 if ((pItem->Item->Type != ITEMTYPE_NORMAL) ||
-                                    (((EQ_Item*)pPack)->IsStackable() != 1))
+                                    (((EQ_Item*)pItem)->IsStackable() != 1))
 								    Count++;
                                 else
                                     Count+=pItem->StackCount;
