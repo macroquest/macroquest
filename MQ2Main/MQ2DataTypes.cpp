@@ -1421,6 +1421,10 @@ bool MQ2SpawnType::GETMEMBER()
 		Dest.Type=pStringType;
 		Dest.Ptr=&pSpawn->Title[0];
 		return true;
+    case Suffix: 
+        Dest.Type=pStringType; 
+        Dest.Ptr=&pSpawn->Suffix[0]; 
+        return true; 
 	case xGroupLeader:
 		Dest.DWord=(pSpawn->Type==SPAWN_PLAYER && !stricmp(pGroup->LeaderName,pSpawn->Name));
 		Dest.Type=pBoolType;
@@ -2782,7 +2786,15 @@ case STR:
       Dest.DWord=pChar->CurrWeight; 
       Dest.Type=pIntType; 
       return true; 
-	}
+    case AAPointsSpent:
+        Dest.DWord=pChar->AAPointsSpent;
+        Dest.Type=pIntType;
+        return true;
+    case AAPointsTotal:
+        Dest.DWord=pChar->AAPointsSpent+pChar->AAPoints;
+        Dest.Type=pIntType;
+        return true;
+    }
 	return false;
 #undef pChar
 }

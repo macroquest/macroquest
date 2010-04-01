@@ -1,3 +1,7 @@
+17 April 2005 by Amadeus
+- Added "Suffix" information to structs
+- Added ${Me.Suffix} and ${Target.Suffix} 
+
 8 March 2005 by Lax
 - Blech 1.6.8 - fixes a crash
 

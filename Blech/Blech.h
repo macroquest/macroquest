@@ -64,7 +64,7 @@ Using Blech:
 
 #pragma once
 
-#define BLECHVERSION "Lax/Blech 1.6.8"
+#define BLECHVERSION "Lax/Blech 1.7.0"
 
 #include <map>
 #include <string>
@@ -261,7 +261,10 @@ public:
 			if (pParent)
 				pParent->pChildren=pNext;
 			else
-				*ppRoot=pNext;
+			{
+				if (*ppRoot==this)
+					*ppRoot=pNext;
+			}
 		}
 		if (pNext)
 			pNext->pPrev=pPrev;
@@ -535,10 +538,6 @@ public:
 			while(pNode && pNode->IsEmpty())
 			{
 				BlechNode *pNext=pNode->pParent;
-				if (!pNode->pParent)
-				{
-					*pNode->ppRoot=0;
-				}
 				delete pNode;
 				pNode=pNext;
 			}
@@ -594,6 +593,7 @@ private:
 		for (unsigned long N = 0 ; N < 256 ; N++)
 		{
 			delete Tree[N];
+			Tree[N]=0;
 		}
 		for (BLECHEVENTMAP::iterator i=Event.begin(); i != Event.end(); i++)
 		{
@@ -602,6 +602,7 @@ private:
 				BLECHASSERT(pEvent);
 				BlechTry(free(pEvent->OriginalString));
 				delete pEvent;
+				Event[i->first]=0;
 			}
 		}
 		ClearExecutionList();

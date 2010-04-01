@@ -522,6 +522,7 @@ public:
 		xLineOfSight=82,
 		HeadingToLoc=83,
 		Title=84,
+		Suffix=85,
 	};
 	static enum SpawnMethods
 	{
@@ -613,6 +614,7 @@ public:
 		AddMember(xLineOfSight,"LineOfSight");
 		TypeMember(HeadingToLoc);
 		TypeMember(Title);  //84
+		TypeMember(Suffix); //85
 
 		TypeMethod(Target);
 		TypeMethod(Face);
@@ -801,6 +803,8 @@ public:
 		EnduranceRegen=123,
 		FreeBuffSlots=124,
 		CurrentWeight=125,
+        AAPointsSpent=126,
+        AAPointsTotal=127,
 	};
 	static enum CharacterMethods
 	{
@@ -931,6 +935,8 @@ public:
 		TypeMember(EnduranceRegen);
 		TypeMember(FreeBuffSlots); //124
 		TypeMember(CurrentWeight);
+        TypeMember(AAPointsSpent);
+        TypeMember(AAPointsTotal); 
 	}
 
 	~MQ2CharacterType()

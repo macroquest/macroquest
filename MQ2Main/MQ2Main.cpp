@@ -268,6 +268,8 @@ bool __cdecl MQ2Initialize()
 	szEQMappableCommands[0xc3]="UNKNOWN0xC3";
 	szEQMappableCommands[0xc4]="UNKNOWN0xC4";
 	szEQMappableCommands[0xc5]="UNKNOWN0xC5";
+        szEQMappableCommands[0xc6]="UNKNOWN0xC6";
+        szEQMappableCommands[0xc7]="UNKNOWN0xC7"; 
 
 	for (nColorAdjective=0 ; szColorAdjective[nColorAdjective] ; nColorAdjective++){}
 	for (nColorAdjectiveYou=0 ; szColorAdjectiveYou[nColorAdjectiveYou] ; nColorAdjectiveYou++) {}

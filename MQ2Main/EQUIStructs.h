@@ -411,16 +411,18 @@ typedef struct _CSIDLMGR {
 
 //11-6-2003 lax
 //Actual size 0x108 4-28-2004
+//Actual size 0x108 4-12-2005
 typedef struct _CXWNDMGR {
-/*0x000*/ BYTE Unknown0x000[0x04];
-/*0x004*/ struct _CSIDLWND *pWindows; 
-/*0x008*/ BYTE Unknown0x00C[0x75];
-/*0x07D*/ bool KeyboardFlags[4];
-/*0x081*/ CHAR Unknown0x081[0x6B];
-/*0x0EC*/ DWORD ScreenExtentX;
-/*0x0F0*/ DWORD ScreenExtentY;
-/*0x0F4*/ DWORD Field_F4;
-/*0x0F8*/ BYTE Unknown0x10;
+/*0x000*/ LPVOID CXWNDMGR__vtable;
+/*0x004*/ DWORD Unknown0x004;
+/*0x008*/ struct _CSIDLWND *pWindows; 
+/*0x00c*/ BYTE Unknown0x00C[0x75];
+/*0x081*/ bool KeyboardFlags[4];
+/*0x085*/ CHAR Unknown0x081[0x6B];
+/*0x0F0*/ DWORD ScreenExtentX;
+/*0x0F4*/ DWORD ScreenExtentY;
+/*0x0F8*/ DWORD font_list_ptr;
+/*0x0Fc*/ BYTE Unknown0xfc[0xc];
 /*0x108*/ 
 } CXWNDMGR, *PCXWNDMGR;
 

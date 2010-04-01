@@ -109,7 +109,7 @@ VOID DrawHUDText(PCHAR Text, DWORD X, DWORD Y, DWORD Argb)
 	DWORD sY=((PCXWNDMGR)pWndMgr)->ScreenExtentY;
 
 	CTextureFont* pFont=0;
-	DWORD* ppDWord=(DWORD*)((PCXWNDMGR)pWndMgr)->Field_F4;
+	DWORD* ppDWord=(DWORD*)((PCXWNDMGR)pWndMgr)->font_list_ptr;
 	if (ppDWord[1]<=2)
 	{
 		pFont=(CTextureFont*)ppDWord[0];

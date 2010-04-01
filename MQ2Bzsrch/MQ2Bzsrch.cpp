@@ -23,17 +23,22 @@ GNU General Public License for more details.
 #include "../MQ2Plugin.h"
 
 struct _BazaarSearchRequestPacket {
-   /* 0x0 */   int     BSRCommand;     // should be 7
-   /* 0x4 */   int     BSRTraderID;    // default 0
-   /* 0x8 */   int     BSRClass;       // default -1
-   /* 0xc */   int     BSRRace;        // default -1
-   /* 0x10 */  int     BSRStat;        // default -1
-   /* 0x14 */  int     BSRSlot;        // default -1
-   /* 0x18 */  int     BSRType;        // default -1
-   /* 0x1c */  char    BSRName[64];    // name
-   /* 0x5c */  int     BSRPriceL;      // price floor, default 0
-   /* 0x60 */  int     BSRPriceH;      // price ceiling, default 0
+   /* 0x0 */   int     BSRCommand;     // should be 7               -7c
+   /* 0x4 */   int     BSRTraderID;    // default 0                 -78
+   /* 0x8 */   int     BSRClass;       // default -1                -74
+   /* 0xc */   int     BSRRace;        // default -1                -70
+   /* 0x10 */  int     BSRStat;        // default -1                -6c
+   /* 0x14 */  int     BSRSlot;        // default -1                -68
+   /* 0x18 */  int     BSRType;        // default -1                -64
+   /* 0x1c */  char    BSRName[64];    // name                      -60
+   /* 0x5c */  int     BSRPriceL;      // price floor, default 0    -20
+   /* 0x60 */  int     BSRPriceH;      // price ceiling, default 0  -1c
+   /* 0x64 */  int     BSRLevelL;      // level low,  default 1     -18
+   /* 0x68 */  int     BSRLevelH;      // level high, default 70    -14
+   /* 0x6c */
 };
+
+// size is 0x6c 4/12/05
 
 struct _BazaarSearchResponsePacket {
    /* 0x0 */   int     BSSmsg;         // should be 7
@@ -538,6 +543,8 @@ VOID BzSrchMe(PSPAWNINFO pChar, PCHAR szLine)
    memset(bsrp.BSRName, 0, 60);
    bsrp.BSRPriceH = 0;
    bsrp.BSRPriceL = 0;
+   bsrp.BSRLevelH = 70;
+   bsrp.BSRLevelL = 1;
 
    while(bArg) {
       GetArg(szArg,szLine,1);
