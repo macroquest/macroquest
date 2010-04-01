@@ -41,13 +41,16 @@ struct _BazaarSearchRequestPacket {
 // size is 0x6c 4/12/05
 
 struct _BazaarSearchResponsePacket {
-   /* 0x0 */   int     BSSmsg;         // should be 7
-   /* 0x4 */   int     BSSQuantity;   
-   /* 0x8 */   int     BSSItemID;       
-   /* 0xc */   int     BSSTraderID;
-   /* 0x10 */  int     BSSPrice;
-   /* 0x14 */  int     BSSValue;       // double check
-   /* 0x18 */  char    BSSName[0x40];  // size is 0x58
+   /* 0x00 */   int     BSSmsg;         // should be 7
+   /* 0x04 */   int     BSSTraderID;    // correct 9/16
+   /* 0x08 */   int     BSSQuantity;    // correct 9/16
+   /* 0x0c */   int     BSSItemID;      // correct 9/16
+   /* 0x10 */   int     BSSUnknown10;   
+   /* 0x14 */   int     BSSUnknown14;       
+   /* 0x18 */   char    BSSName[0x40];  // correct 9/16
+   /* 0x58 */   int     BSSPrice;       // correct 9/16
+   /* 0x5c */   int     BSSValue;       // correct 9/16
+   /* 0x60 */
 };
 
 
@@ -253,6 +256,8 @@ public:
 		Trader=4,
 		Value=5,
 		Name=6,
+		U1=7,
+		U2=8,
 	};
 
 	MQ2BazaarItemType():MQ2Type("bazaaritem")
@@ -263,6 +268,8 @@ public:
 		TypeMember(Trader);
 		TypeMember(Value);
 		TypeMember(Name);
+		TypeMember(U1);
+		TypeMember(U2);
 	}
 	~MQ2BazaarItemType()
 	{
@@ -299,6 +306,14 @@ public:
 			return false;
 		case Value:
 			Dest.DWord=pBzrItem->BSSValue;
+			Dest.Type=pIntType;
+			return true;
+		case U1:
+			Dest.DWord=pBzrItem->BSSUnknown10;
+			Dest.Type=pIntType;
+			return true;
+		case U2:
+			Dest.DWord=pBzrItem->BSSUnknown14;
 			Dest.Type=pIntType;
 			return true;
 		case Name:
@@ -500,16 +515,16 @@ VOID bzpc(PSPAWNINFO pChar, PCHAR szLine)
     CHAR szArg[MAX_STRING] = {0};
     int index;
     struct _pc {
-        int id;
-        int flags;
-        char name[64];
-        /* size 0x48 */
+        /* 0x00 */ int id;
+        /* 0x04 */ int flags;
+        /* 0x08 */ char name[0x40];
+        /* 0x48 */
     } pc;
     GetArg(szArg,szLine,1);
     index = atoi(szArg)-1;
     char *ptr;
     pc.id = BzArray[index].BSSItemID;
-    pc.flags = 0;
+    pc.flags = 0;       // column where click occured; must be 0 or 1
     strncpy(pc.name, BzArray[index].BSSName, 64);
     if (ptr = strrchr(pc.name, '('))
         *ptr = '\0';
@@ -529,15 +544,15 @@ VOID BzSrchMe(PSPAWNINFO pChar, PCHAR szLine)
 
    // clear out the old list or the new entries will be
    // added to them
-   class CListWnd *ptr = *(class CListWnd **) ((char *)pBazaarSearchWnd+0x39c0);
+   class CListWnd *ptr = *(class CListWnd **) ((char *)pBazaarSearchWnd+0x3ce0);
    ptr->DeleteAll();
 
 
    // default to current race and class
    bsrp.BSRCommand = 7;
    bsrp.BSRTraderID = 0;
-   bsrp.BSRClass = pCharInfo->Class;
-   bsrp.BSRRace = pCharInfo->Race;
+   bsrp.BSRClass = GetCharInfo2()->Class;
+   bsrp.BSRRace = GetCharInfo2()->Race;
    bsrp.BSRStat = -1;
    bsrp.BSRSlot = -1;
    bsrp.BSRType = -1;

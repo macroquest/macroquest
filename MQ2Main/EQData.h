@@ -547,13 +547,13 @@ typedef struct _CONTENTS {
 /*0x5c*/  DWORD   ItemSlot;// slotid for Player Items
 /*0x4c*/  BYTE    Unknown0x4c[0x8];
 /*0x58*/  DWORD   Charges;
-/*0x5C*/  BYTE    Unknown0x5c[0x28];
-/*0x84*/  DWORD   ItemSlot2;// slotid for Merchant Items
-/*0x88*/  DWORD   Unknown0x88;
-/*0x8C*/  DWORD   Price; //price a player vendor set the item at
-/*0x90*/  DWORD   Open;
-/*0x94*/  BYTE    Unknown0x94[0x14];
-/*0xa8*/   
+/*0x5C*/  BYTE    Unknown0x5c[0x24];
+/*0x80*/  DWORD   ItemSlot2;// slotid for Merchant Items
+/*0x84*/  DWORD   Unknown0x88;
+/*0x88*/  DWORD   Price; //price a player vendor set the item at
+/*0x8c*/  DWORD   Open;
+/*0x90*/  BYTE    Unknown0x94[0x14];
+/*0xa4*/   
 } CONTENTS, *PCONTENTS;
 
 // 5-11-2005 Amadeus
@@ -771,8 +771,8 @@ union {
 /* 0x11ec */   DWORD      CursorSilver;
 /* 0x11f0 */   DWORD      CursorCopper;
 /* 0x11f4 */   BYTE     Unknown11f4[0x1218-0x11f4];
-/* 0x1218 */   DWORD    hungerlevel;
-/* 0x121c */   DWORD    thirstlevel;
+/* 0x1218 */   DWORD    thirstlevel;
+/* 0x121c */   DWORD    hungerlevel;
 /* 0x1220 */   BYTE     Unknown1220[0x128c-0x1220];
 /* 0x128c */   DWORD    ZoneBoundID;
 /* 0x1290 */   FLOAT    ZoneBoundX;
