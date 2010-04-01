@@ -78,7 +78,7 @@ VOID InitializeChatHook()
 	pMQ2Blech=new Blech('#','|',MQ2DataVariableLookup);
 	DebugSpew("%s",pMQ2Blech->Version);
 #endif
-	EzDetour(CEverQuest__dsp_chat,CChatHook::Detour,CChatHook::Trampoline);
+	EzDetour(CEverQuest__dsp_chat,&CChatHook::Detour,&CChatHook::Trampoline);
 }
 
 VOID ShutdownChatHook()

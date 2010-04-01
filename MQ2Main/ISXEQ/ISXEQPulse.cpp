@@ -50,7 +50,7 @@ void Pulse()
 
 
    // Drop out here if we're waiting for something.
-    if ((!pChar) || (gZoning)/* || (gDelayZoning)*/) return;
+    if ((!pChar) || !pCharInfo || (gZoning)/* || (gDelayZoning)*/) return;
 
 	if (pChar!=pCharOld && WereWeZoning)
 	{
@@ -64,9 +64,9 @@ void Pulse()
 		LastMoveTick=GetTickCount();
 		EnviroTarget.Name[0]=0;
 		DoorEnviroTarget.Name[0]=0;
-		LastHealth=0;
-		LastMana=0;
-		LastEndurance=0; 
+		LastHealth=GetCurHPS();
+		LastMana=GetCharInfo2()->Mana;
+		LastEndurance=GetCharInfo2()->Endurance;
 		ManaGained=0;
 		HealthGained=0;
 		EnduranceGained=0;
@@ -117,7 +117,7 @@ void Pulse()
 
 	if (LastEndurance && GetCharInfo2()->Endurance > LastEndurance) 
     { 
-		if (GetCharInfo2()->Endurance != (int)pCharData1->Max_Endurance()) 
+		if (GetCharInfo2()->Endurance != GetMaxEndurance()) 
         { 
 			EnduranceGained = GetCharInfo2()->Endurance - LastEndurance; 
         } 
@@ -125,14 +125,14 @@ void Pulse()
     LastEndurance = GetCharInfo2()->Endurance;
 
 #if 0
-    if (gbDoAutoRun && pChar && pChar->pCharInfo) 
+    if (gbDoAutoRun && pChar && pCharInfo) 
 	{
 		// this code makes me sad :(
         gbDoAutoRun = FALSE;
         CHAR szServerAndName[MAX_STRING] = {0};
         CHAR szAutoRun[MAX_STRING] = {0};
         PCHAR pAutoRun = szAutoRun;
-        sprintf(szServerAndName,"%s.%s",pChar->pCharInfo->Server,pChar->pCharInfo->Name);
+        sprintf(szServerAndName,"%s.%s",EQADDR_SERVERNAME,pCharInfo->Name);
         GetPrivateProfileString("AutoRun",szServerAndName,"",szAutoRun,MAX_STRING,gszINIFilename);
         while (pAutoRun[0]==' ' || pAutoRun[0]=='\t') pAutoRun++;
         if (szAutoRun[0]!=0) 
@@ -200,7 +200,7 @@ DWORD GetGameState(VOID)
 //		DebugSpew("Could not retrieve gamestate in GetGameState()");
 		return -1;
 	}
-	DWORD GameState=*(DWORD*)(0xB54+pEverQuest);
+	DWORD GameState=*(DWORD*)(0xB5C+pEverQuest);
 	return GameState;
 }
 

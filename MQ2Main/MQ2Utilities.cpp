@@ -35,7 +35,9 @@ VOID DebugSpew(PCHAR szFormat, ...)
     va_list vaList;
     va_start( vaList, szFormat );
     vsprintf(szOutput,szFormat, vaList);
-    DebugSpewAlways(szOutput);
+    OutputDebugString(DebugHeader);
+    OutputDebugString(szOutput);
+    OutputDebugString("\n");
 #endif
 }
 

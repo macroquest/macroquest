@@ -1,3 +1,14 @@
+04 Mar 2006 by Lax
+- Various ISXEQ-related fixes.  Removed the &s from EzDetour to be consistent, and
+  added the &s manually where required
+
+03 Mar 2006 by dkaa
+- fixed the loading screen captions
+- fixed crash on right click on map on ground item
+
+late Feb 2006 by lots of people
+- stuff to get up and running after expansion
+    
 29 Jan 2006 by rswiders
 - Fix to spawninfo struct from merge
 

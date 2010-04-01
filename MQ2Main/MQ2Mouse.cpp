@@ -184,7 +184,7 @@ VOID Click(PSPAWNINFO pChar, PCHAR szLine) {
          return; 
 	  } else if (!strnicmp(szMouseLoc, "item", 4)) {
 			// a right clicked ground spawn does nothing
-			if (!strnicmp(szArg1, "left", 4) && EnviroTarget.Name[0]!=0 && DistanceToSpawn(pChar,&EnviroTarget)<20.0f) {
+			if (!strnicmp(szArg1, "left", 4) && EnviroTarget.Name[0]!=0 && DistanceToSpawn(pChar,&EnviroTarget)<20.0f ) {
 				INTERACTGROUNDITEM Data;
 				Data.SpawnID = GetCharInfo()->pSpawn->SpawnID;
 				Data.DropID = EnviroTarget.Race;

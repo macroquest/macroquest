@@ -662,8 +662,8 @@ void MapSelectTarget()
 	{
 		EnviroTarget=*pMapSpawn->pSpawn;
 		EnviroTarget.Type = SPAWN_NPC;
-		EnviroTarget.SpawnID=2999;
-		pTarget = (EQPlayer*)&EnviroTarget; 				
+		//EnviroTarget.SpawnID=2999;
+		//pTarget = (EQPlayer*)&EnviroTarget; 				
 	}
 	else
 	{

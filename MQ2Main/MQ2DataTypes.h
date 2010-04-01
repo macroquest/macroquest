@@ -953,6 +953,7 @@ public:
 
 	bool GETMEMBER();
 	DECLAREGETMETHOD();
+	INHERITINDIRECT(pSpawnType,Temp.Ptr=((PCHARINFO)ObjectData.Ptr)->pSpawn,0);
 
 	 bool ToString(MQ2VARPTR VarPtr, PCHAR Destination)
 	{
@@ -984,77 +985,6 @@ public:
 	}
 };
 
-class MQ2BuffType : public MQ2Type
-{
-public:
-	static enum BuffMembers
-	{
-		ID=1,
-		Level=2,
-		Spell=3,
-		Mod=4,
-		Duration=5,
-		Dar=6
-	};
-	static enum BuffMethods
-	{
-		Remove=1,
-	};
-	MQ2BuffType():MQ2Type("buff")
-	{
-		TypeMember(ID);
-		TypeMember(Level);
-		TypeMember(Spell);
-		TypeMember(Mod);
-		TypeMember(Duration);
-		TypeMember(Dar);
-
-		TypeMethod(Remove);
-	}
-
-	~MQ2BuffType()
-	{
-	}
-
-	bool GETMEMBER();
-	DECLAREGETMETHOD();
-
-	 bool ToString(MQ2VARPTR VarPtr, PCHAR Destination)
-	{
-		if (!VarPtr.Ptr)
-			return false;
-		if ((int)((PSPELLBUFF)VarPtr.Ptr)->SpellID>0)
-		{
-			if (PSPELL pSpell=GetSpellByID(((PSPELLBUFF)VarPtr.Ptr)->SpellID))
-			{
-				strcpy(Destination,pSpell->Name);
-				return true;
-			}
-		}
-		return false;
-	}
-	void InitVariable(MQ2VARPTR &VarPtr) 
-	{
-		VarPtr.Ptr=malloc(sizeof(SPELLBUFF));
-		ZeroMemory(VarPtr.Ptr,sizeof(SPELLBUFF));
-	}
-	void FreeVariable(MQ2VARPTR &VarPtr)
-	{
-		free(VarPtr.Ptr);
-	}
-
-	bool FromData(MQ2VARPTR &VarPtr, MQ2TYPEVAR &Source)
-	{
-		if (Source.Type!=pBuffType)
-			return false;
-		memcpy(VarPtr.Ptr,Source.Ptr,sizeof(SPELLBUFF));
-		return true;
-	}
-	bool FromString(MQ2VARPTR &VarPtr, PCHAR Source)
-	{
-		return false;
-	}
-};
 
 class MQ2SpellType : public MQ2Type
 {
@@ -1150,6 +1080,78 @@ public:
 		if (Source.Type!=pSpellType)
 			return false;
 		memcpy(VarPtr.Ptr,Source.Ptr,sizeof(PSPELL));
+		return true;
+	}
+	bool FromString(MQ2VARPTR &VarPtr, PCHAR Source)
+	{
+		return false;
+	}
+};
+
+class MQ2BuffType : public MQ2Type
+{
+public:
+	static enum BuffMembers
+	{
+		ID=1,
+		Level=2,
+		Spell=3,
+		Mod=4,
+		Duration=5,
+		Dar=6
+	};
+	static enum BuffMethods
+	{
+		Remove=1,
+	};
+	MQ2BuffType():MQ2Type("buff")
+	{
+		TypeMember(ID);
+		TypeMember(Level);
+		TypeMember(Spell);
+		TypeMember(Mod);
+		TypeMember(Duration);
+		TypeMember(Dar);
+
+		TypeMethod(Remove);
+	}
+
+	~MQ2BuffType()
+	{
+	}
+
+	bool GETMEMBER();
+	DECLAREGETMETHOD();
+	INHERITINDIRECT(pSpellType,Temp.Ptr=GetSpellByID(((PSPELLBUFF)ObjectData.Ptr)->SpellID),0);
+	 bool ToString(MQ2VARPTR VarPtr, PCHAR Destination)
+	{
+		if (!VarPtr.Ptr)
+			return false;
+		if ((int)((PSPELLBUFF)VarPtr.Ptr)->SpellID>0)
+		{
+			if (PSPELL pSpell=GetSpellByID(((PSPELLBUFF)VarPtr.Ptr)->SpellID))
+			{
+				strcpy(Destination,pSpell->Name);
+				return true;
+			}
+		}
+		return false;
+	}
+	void InitVariable(MQ2VARPTR &VarPtr) 
+	{
+		VarPtr.Ptr=malloc(sizeof(SPELLBUFF));
+		ZeroMemory(VarPtr.Ptr,sizeof(SPELLBUFF));
+	}
+	void FreeVariable(MQ2VARPTR &VarPtr)
+	{
+		free(VarPtr.Ptr);
+	}
+
+	bool FromData(MQ2VARPTR &VarPtr, MQ2TYPEVAR &Source)
+	{
+		if (Source.Type!=pBuffType)
+			return false;
+		memcpy(VarPtr.Ptr,Source.Ptr,sizeof(SPELLBUFF));
 		return true;
 	}
 	bool FromString(MQ2VARPTR &VarPtr, PCHAR Source)
@@ -2880,6 +2882,7 @@ public:
 
    bool GETMEMBER();
 	//DECLAREGETMETHOD();
+   INHERITDIRECT(pSpawnType);
 
    bool ToString(MQ2VARPTR VarPtr, PCHAR Destination);
 	bool FromData(MQ2VARPTR &VarPtr, MQ2TYPEVAR &Source)
@@ -2932,6 +2935,7 @@ public:
 
    bool GETMEMBER();
 	DECLAREGETMETHOD();
+	INHERITINDIRECT(pSpawnType,Temp.Ptr=GetRaidMember(ObjectData.DWord-1),0);
 
    bool ToString(MQ2VARPTR VarPtr, PCHAR Destination)
    {

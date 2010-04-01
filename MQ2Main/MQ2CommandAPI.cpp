@@ -515,7 +515,7 @@ void InitializeMQ2Commands()
 	DebugSpew("Initializing Commands");
 	InitializeCriticalSection(&gCommandCS);
 
-	EzDetour(CEverQuest__InterpretCmd,CCommandHook::Detour,CCommandHook::Trampoline);
+	EzDetour(CEverQuest__InterpretCmd,&CCommandHook::Detour,&CCommandHook::Trampoline);
 
 	// Import EQ commands
     PCMDLIST pCmdListOrig = (PCMDLIST)EQADDR_CMDLIST;

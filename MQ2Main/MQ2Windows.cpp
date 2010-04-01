@@ -231,9 +231,9 @@ void InitializeMQ2Windows()
 	AddSlotArray(inspect,31,8000);
 #undef AddSlotArray
 
-	EzDetour(CXMLSOMDocumentBase__XMLRead,CXMLSOMDocumentBaseHook::XMLRead,CXMLSOMDocumentBaseHook::XMLRead_Trampoline);
-	EzDetour(CSidlScreenWnd__Init1,CSidlInitHook::Init_Detour,CSidlInitHook::Init_Trampoline);
-	EzDetour(CXWndManager__RemoveWnd,CXWndManagerHook::RemoveWnd_Detour,CXWndManagerHook::RemoveWnd_Trampoline);
+	EzDetour(CXMLSOMDocumentBase__XMLRead,&CXMLSOMDocumentBaseHook::XMLRead,&CXMLSOMDocumentBaseHook::XMLRead_Trampoline);
+	EzDetour(CSidlScreenWnd__Init1,&CSidlInitHook::Init_Detour,&CSidlInitHook::Init_Trampoline);
+	EzDetour(CXWndManager__RemoveWnd,&CXWndManagerHook::RemoveWnd_Detour,&CXWndManagerHook::RemoveWnd_Trampoline);
 
 #ifndef ISXEQ
 	AddCommand("/windows",ListWindows,false,true,false);

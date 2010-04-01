@@ -1986,7 +1986,7 @@ if (!stricmp(szArg1,"item"))
             }
       }
       if (FOUND) {
-		  pCharData1->CastSpell(10,0,(EQ_Item**)item,0,slot,-1,-1,0,0);
+		 pCharData1->CastSpell(10,0,(EQ_Item**)item,0,slot,-1,-1,0,0);
          return;
       }
    }

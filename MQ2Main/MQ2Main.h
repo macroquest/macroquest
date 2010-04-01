@@ -172,7 +172,7 @@ extern DWORD CountFrees;
 #define EzDetour(offset,detour,trampoline)
 #define DETOUR_TRAMPOLINE_EMPTY(blah)
 #else
-#define EzDetour(offset,detour,trampoline) AddDetourf((DWORD)offset,&detour,&trampoline)
+#define EzDetour(offset,detour,trampoline) AddDetourf((DWORD)offset,detour,trampoline)
 #endif
 #endif
 
@@ -434,6 +434,8 @@ EQLIB_API PSPELL GetSpellByName(PCHAR szName);
 #else
 #define GETMEMBER() GetMember(MQ2VARPTR VarPtr, PCHAR Member, PCHAR Index, MQ2TYPEVAR &Dest)
 #define DECLAREGETMETHOD()
+#define INHERITDIRECT(X)
+#define INHERITINDIRECT(X,Y,Z)
 #endif
 
 #include "MQ2DataTypes.h"

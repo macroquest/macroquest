@@ -586,7 +586,9 @@
 #define EQ_Item__IsStackable                                       0x5FD5B0
 
 // EQ_LoadingS
-#define EQ_LoadingS__WriteTextHD                                   0x411A60
+#define EQ_LoadingS__SetProgressBar                                0x4657F0
+#define EQ_LoadingS__Array                                         0x6FDAC8
+#define EQ_LoadingS__ArraySize                                     0x44
 
 // EQ_PC
 #define EQ_PC__DestroyHeldItemOrMoney                              0x4DF330

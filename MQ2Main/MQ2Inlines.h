@@ -250,6 +250,16 @@ static inline BOOL IsGroupMember(PSPAWNINFO pSpawn)
 	return 0;
 }
 
+static inline PSPAWNINFO GetRaidMember(unsigned long N)
+{
+	if (N>=72)
+		return 0;
+	PEQRAIDMEMBER pRaidMember=&pRaid->RaidMember[N];
+	if (!pRaidMember)
+		return 0;
+	return SpawnByName[pRaidMember->Name];
+}
+
 #ifndef ISXEQ
 static inline BOOL IsNumber(PCHAR String)
 {

@@ -21,6 +21,8 @@
 //#define DEBUG_TRY 1
 #include "MQ2Main.h"
 
+char *OurCaption = "MQ2: Think of it as evolution in action.";
+
 class CDisplayHook 
 { 
 public: 
@@ -126,33 +128,41 @@ class EQ_LoadingSHook
 {
 public:
 
-	VOID WriteTextHD_Trampoline(char *,int,int,int);
-	VOID WriteTextHD_Detour(char *A,int B,int C,int D)
+	VOID SetProgressBar_Trampoline(int,char const *);
+	VOID SetProgressBar_Detour(int A,char const *B)
 	{
 		if (gbMQ2LoadingMsg)
-            WriteTextHD_Trampoline("MQ2: Think of it as evolution in action.",B,C,D);
+            SetProgressBar_Trampoline(A, OurCaption);
 		else
-			WriteTextHD_Trampoline(A,B,C,D);
+			SetProgressBar_Trampoline(A,B);
 	}
 };
 
 //DETOUR_TRAMPOLINE_EMPTY(bool CDisplayHook::GetWorldFilePath_Trampoline(char *, char *)); 
-DETOUR_TRAMPOLINE_EMPTY(VOID EQ_LoadingSHook::WriteTextHD_Trampoline(char *,int,int,int)); 
+DETOUR_TRAMPOLINE_EMPTY(VOID EQ_LoadingSHook::SetProgressBar_Trampoline(int, char const *)); 
 DETOUR_TRAMPOLINE_EMPTY(DWORD DrawHUD_Trampoline(DWORD,DWORD,DWORD,DWORD)); 
 DETOUR_TRAMPOLINE_EMPTY(VOID CDisplayHook::CleanUI_Trampoline(VOID)); 
 DETOUR_TRAMPOLINE_EMPTY(VOID CDisplayHook::ReloadUI_Trampoline(BOOL)); 
 
 VOID InitializeDisplayHook()
 {
+#ifdef EQ_LoadingS__Array
+    char **ptr = (char **) EQ_LoadingS__Array;
+    int i;
+
+    for (i=0;i<EQ_LoadingS__ArraySize;i++)
+        ptr[i] = OurCaption;
+#endif
+
 	DebugSpew("Initializing Display Hooks");
 
-	EzDetour(CDisplay__CleanGameUI,CDisplayHook::CleanUI_Detour,CDisplayHook::CleanUI_Trampoline);
-	EzDetour(CDisplay__ReloadUI,CDisplayHook::ReloadUI_Detour,CDisplayHook::ReloadUI_Trampoline);
+	EzDetour(CDisplay__CleanGameUI,&CDisplayHook::CleanUI_Detour,&CDisplayHook::CleanUI_Trampoline);
+	EzDetour(CDisplay__ReloadUI,&CDisplayHook::ReloadUI_Detour,&CDisplayHook::ReloadUI_Trampoline);
 //	EzDetour(CDisplay__GetWorldFilePath,CDisplayHook::GetWorldFilePath_Detour,CDisplayHook::GetWorldFilePath_Trampoline);
 #ifndef ISXEQ
 	EzDetour(DrawNetStatus,DrawHUD_Detour,DrawHUD_Trampoline);
 #endif
-	//EzDetour(EQ_LoadingS__WriteTextHD,EQ_LoadingSHook::WriteTextHD_Detour,EQ_LoadingSHook::WriteTextHD_Trampoline);
+	EzDetour(EQ_LoadingS__SetProgressBar,EQ_LoadingSHook::SetProgressBar_Detour,EQ_LoadingSHook::SetProgressBar_Trampoline);
 }
 
 VOID ShutdownDisplayHook()
@@ -165,6 +175,6 @@ VOID ShutdownDisplayHook()
 #ifndef ISXEQ
 	RemoveDetour(DrawNetStatus);
 #endif
-	//RemoveDetour(EQ_LoadingS__WriteTextHD);
+	RemoveDetour(EQ_LoadingS__SetProgressBar);
 //	RemoveDetour(CDisplay__GetWorldFilePath);
 }
