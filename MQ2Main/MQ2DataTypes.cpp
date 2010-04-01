@@ -931,6 +931,7 @@ bool MQ2ArgbType::GETMEMBER()
 	}
 	return false;
 }
+
 bool MQ2SpawnType::GETMEMBER()
 {
 	if (!VarPtr.Ptr)
@@ -1276,18 +1277,6 @@ bool MQ2SpawnType::GETMEMBER()
 			return true;
 		}
 		return false;
-	case Swimming:
-		Dest.DWord=(pSpawn->pActorInfo->Swimming==5);
-		Dest.Type=pBoolType;
-		return true;
-	case FeetWet:
-		Dest.DWord=(pSpawn->pActorInfo->FeetWet==5);
-		Dest.Type=pBoolType;
-		return true;
-	case Underwater:
-		Dest.DWord=(pSpawn->pActorInfo->UnderWater==5);
-		Dest.Type=pBoolType;
-		return true;
 	case Animation:
 		Dest.DWord=pSpawn->pActorInfo->Animation;
 		Dest.Type=pIntType;
@@ -1975,10 +1964,6 @@ bool MQ2CharacterType::GETMEMBER()
 		Dest.DWord=pChar->AAPoints;
 		Dest.Type=pIntType;
 		return true;
-	case Bound:
-		Dest.Ptr = ((PWORLDDATA)pWorldData)->ZoneArray[pChar->ZoneBoundId];
-		Dest.Type=pZoneType;
-		return true; 
 	case Combat:
 		Dest.DWord=*EQADDR_ATTACK;
 		Dest.Type=pBoolType;
@@ -2734,7 +2719,7 @@ bool MQ2CharacterType::GETMEMBER()
 			}
 		}
 		return false;
-case STR: 
+   case STR: 
       Dest.DWord=pChar->STR; 
       Dest.Type=pIntType; 
       return true; 

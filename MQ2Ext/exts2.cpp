@@ -18,6 +18,7 @@
 #include "mqext.h" 
 
 #define KP(X)       dprintf(#X " = %d (offset 0x%x)\n", ci.X, &pnull->X)       
+#define KPp(X)      dprintf(#X " = %d (offset 0x%x)\n", *(int*)ci.X, &pnull->X)       
 #define KPs(X)      dprintf(#X " = %s (offset 0x%x)\n", ci.X, &pnull->X) 
 #define KPf(X)      dprintf(#X " = %f (offset 0x%x)\n", ci.X, &pnull->X) 
 #define offset(X)   printf("/* 0x%03x */ " #X ";\n", &ptr->X)
@@ -132,7 +133,7 @@ DECLARE_API ( pchar )
 	KP(DamageShieldBonus);
 	KP(AttackSpeed);
     KP(ShortBuff);
-    KP(ZoneBoundId); 
+    //KP(ZoneBoundId); 
     KPf(ZoneBoundY); 
     KPf(ZoneBoundX); 
     KPf(ZoneBoundZ); 
@@ -163,11 +164,11 @@ DECLARE_API ( pchar )
 	KP(RaidLeadershipExp);
 	KP(GroupLeadershipPoints);
 	KP(RaidLeadershipPoints);
-	KP(GroupAbilities);
-	KP(RaidAbilities);
+	KPp(GroupAbilities);
+	KPp(RaidAbilities);
 	KP(LeadershipExpON);
 	KP(AAPointsSpent);
-    KP(Bank);
+    KPp(Bank);
     for (i=0; i < 5; i++) 
       dprintf("GroupMember%d = %s (offset 0x%x)\n", i+1, ci.GroupMember[i], &pnull->GroupMember[i]); 
 	KPs(GroupLeader);
@@ -670,6 +671,7 @@ DECLARE_API ( pactorinfo )
 
    dprintf("\n\n\n"); 
 
+#if 0
    KPs(ActorDef);
    KP(T3D_POINTLIGHT);
    KPf(Z);
@@ -702,6 +704,7 @@ DECLARE_API ( pactorinfo )
    KPf(CastingY);
    KPf(CastingX);
    KP(Trader);
+#endif
 } 
 
 // This routine exports all spell information in the game (stored 
@@ -987,3 +990,19 @@ DECLARE_API ( ptmp )
     dprintf("\n\n\n"); 
 	
 } 
+
+
+DECLARE_API ( pmerch )
+{
+    EQMERCHWINDOW *p, *pnull=NULL, ci;
+    DWORD cb; 
+
+    // read param from command line 
+    p = (EQMERCHWINDOW *)GetExpression(args); 
+
+    ReadMemory((PARAM1)p,&ci,sizeof(ci),&cb); 
+
+    KPf(Markup);
+    KP(SelectedSlotID);
+
+}

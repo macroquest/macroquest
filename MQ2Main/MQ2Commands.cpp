@@ -368,9 +368,6 @@ VOID DoorTarget(PSPAWNINFO pChar, PCHAR szLine)
 // ***************************************************************************
 
 
-
-
-
 VOID CharInfo(PSPAWNINFO pChar, PCHAR szLine)
 {
     CHAR szBuffer[MAX_STRING] = {0};
@@ -379,7 +376,8 @@ VOID CharInfo(PSPAWNINFO pChar, PCHAR szLine)
     if (gFilterMacro == FILTERMACRO_NONE) cmdCharInfo(pChar, szLine);
     PCHARINFO pCharInfo = NULL;
     if (NULL == (pCharInfo = GetCharInfo())) return;
-    sprintf(szBuffer,"You are bound in %s at %1.2f, %1.2f, %1.2f", GetFullZone(pCharInfo->ZoneBoundId), pCharInfo->ZoneBoundX, pCharInfo->ZoneBoundY, pCharInfo->ZoneBoundZ);
+	DoCommand(pCharInfo->pSpawn,"/charinfo");
+	sprintf(szBuffer,"The location of your bind is: %1.2f, %1.2f, %1.2f", pCharInfo->ZoneBoundX, pCharInfo->ZoneBoundY, pCharInfo->ZoneBoundZ);
     WriteChatColor(szBuffer,USERCOLOR_DEFAULT);
 }
 

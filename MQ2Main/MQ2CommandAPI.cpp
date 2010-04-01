@@ -542,7 +542,7 @@ void InitializeMQ2Commands()
         {"/filter",     Filter,1,0},
 		{"/whofilter",	SWhoFilter,1,1},
         {"/spewfile",   DebugSpewFile,1,0},
-        {"/charinfo",   CharInfo,1,1},
+        {"/char",       CharInfo,1,1},
         {"/face",       Face,1,1},
         {"/identify",   Identify,1,1},
         {"/where",      Where,1,1},

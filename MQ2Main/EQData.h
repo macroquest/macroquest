@@ -586,7 +586,9 @@ typedef struct _INVENTORY {
 /*0x58*/  struct	_CONTENTS* Pack[0x8]; 
 } INVENTORY, *PINVENTORY; 
 
-#define NUM_ALT_ABILITIES 0x1f7
+#define NUM_ALT_ABILITIES   0x1F7 
+#define AA_CHAR_MAX         0xF5
+
 typedef struct _AALIST { 
 /*0x0*/   DWORD		AAIndex;
 /*0x4*/   DWORD		PointsSpent;
@@ -596,7 +598,7 @@ typedef struct _AALIST {
 #define      NUM_BOOK_SLOTS         0x200
 #define ExactLocation		 0
 
-//Size: 0xdb30  (5/11/2005)
+//Size: 0xdef0  (5/18/2005)
 typedef struct _CHARINFO {
 /* 0x0000 */   BYTE       Unknown0x0[0x4];
 /* 0x0004 */   BYTE       field_4;   
@@ -721,11 +723,11 @@ union {
 /* 0x1000 */   DWORD      ManaRegenBonus;     
 /* 0x1004 */   DWORD      DamageShieldBonus;     
 /* 0x1008 */   DWORD      AttackSpeed;   
-/* 0x100c */   BYTE       Unknown0x100c[0x14]; 
+/* 0x100c */   BYTE       Unknown0x100c[0x14];
 /* 0x1020 */   DWORD      Unknown0x1020;
 /* 0x1024 */   SPELLBUFF  ShortBuff[0x23];
-/* 0x     */   BYTE       Unknown0xfd8[0x1f8]; 
-/* 0x14d8 */   DWORD      ZoneBoundId; 
+/* 0x     */   BYTE       Unknown0xfd8[0x1f8];
+/* 0x14d8 */   DWORD      ZoneBoundId;
 /* 0x14dc */   BYTE       field_0x14dc[0x10];   
 /* 0x14ec */   FLOAT      ZoneBoundY;   
 /* 0x14f0 */   BYTE       field_0x14f0[0x10];   
@@ -746,49 +748,47 @@ union {
 /* 0x1558 */   BYTE       GuildStatus;   
 /* 0x1459 */   BYTE       Padding0x1559[0x3];
 /* 0x145c */   DWORD      Unknown0x1460;
-/* 0x1560 */   DWORD      Drunkenness; 
+/* 0x1560 */   DWORD      Drunkenness;
 /* 0x1564 */   BYTE       field_0x1564[0x28];   
 /* 0x158c */   DWORD      AAExp;   
 /* 0x1590 */   BYTE       field_0x1590;   
 /* 0x1591 */   BYTE       PercentEXPtoAA;
 /* 0x1592 */   BYTE       Unknown0x1592[0x86];
-/* 0x1618 */   AALIST     AAList[NUM_ALT_ABILITIES/4]; // Dont ask me how they came to this array size...
-/* 0x1a00 */   BYTE       Unknown0x1a00[0x8];
-/* 0x1a08 */   DWORD      Unknown0x1a08;
-/* 0x1a0c */   DWORD      AAPoints; 
-/* 0x1a10 */   BYTE       Unknown0x1a10[0x330];
-/* 0x1d40 */   DWORD      ModrodTimer;  // Util__fasttime
-/* 0x1d44 */   BYTE       Unknown0x1d44	[0x8b4];
-/* 0x25f8 */   CHAR       Server[0x20];   
-/* 0x2618 */   BYTE       Unknown0x2618[0x7e30];
-/* 0xa448 */   DWORD      CareerFavor;
-/* 0xa44c */   DWORD      field_0xa44c;   
-/* 0xa450 */   DWORD      CurrFavor;
-/* 0xa454 */   DWORD      field_a454;
-/* 0xa458 */   DWORD      field_a458;
-/* 0xa45c */   DWORD      CombatAbilities[0x32];
-/* 0xa524 */   DWORD      CombatAbilityTimes[0x14];
-/* 0xa574 */   DWORD      ItemTimer[0x14];  // Util__fasttime
-/* 0x     */   BYTE       Unknown0xa4dc[0x118];
-/* 0xa6dc */   DWORD      GroupLeadershipExp;      // 0-999
-/* 0xa6e0 */   DWORD      RaidLeadershipExp;       // 0-999
-/* 0xa6e4 */   DWORD      GroupLeadershipPoints;   // 0-8
-/* 0xa6e8 */   DWORD      RaidLeadershipPoints;    // 0-10
-/* 0xa6ec */   DWORD      GroupAbilities[0x10];   //Enumed
-/* 0xa72c */   DWORD      RaidAbilities[0x10];   //Enumed       
-/* 0xa73c */   BYTE       Unknown0xa73c[0x80];		
-/* 0xa7ec */   BYTE       LeadershipExpON;   //0-off 1-on
-/* 0xa73d */   BYTE       Unknown0xa7ed[0x113];
-/* 0xa900 */   DWORD      AAPointsSpent;
-/* 0xa904 */   BYTE       Unknown0xa904[0x2ca0];
-/* 0xd5a0 */   struct     _CONTENTS*   Bank[NUM_BANK_SLOTS];
-/* 0x     */   BYTE       Unknown0xd500[0xa8];
-/* 0xd690 */   CHAR       GroupMember[0x5][0x40];
-/* 0x     */   BYTE       Unknown0xd6e8[0x58];
-/* 0xd828 */   CHAR       GroupLeader[0x40];
-// more data
-/* 0xdb30 */ 
-} CHARINFO, *PCHARINFO; 
+/* 0x1618 */   AALIST     AAList[AA_CHAR_MAX]; // Dont ask me how they came to this array size...
+/* 0x1dc0 */   BYTE       Unknown0x1dc0[0x8];
+/* 0x1dc8 */   DWORD      Unknown0x1dc8;
+/* 0x1dcc */   DWORD      AAPoints;
+/* 0x1dd0 */   BYTE       Unknown0x1dd0[0x330];
+/* 0x2100 */   DWORD      ModrodTimer;  // Util__fasttime
+/* 0x2104 */   BYTE       Unknown0x2104   [0x8b4];
+/* 0x29b8 */   CHAR       Server[0x20];   
+/* 0x29d8 */   BYTE       Unknown0x29d8[0x7e30];
+/* 0xa808 */   DWORD      CareerFavor;
+/* 0xa80c */   DWORD      field_0xa80c;   
+/* 0xa810 */   DWORD      CurrFavor;
+/* 0xa814 */   DWORD      field_a814;
+/* 0xa818 */   DWORD      field_a818;
+/* 0xa81c */   DWORD      CombatAbilities[0x32];
+/* 0xa8e4 */   DWORD      CombatAbilityTimes[0x14];
+/* 0xa934 */   DWORD      ItemTimer[0x14];  // Util__fasttime
+/* 0xa984 */   BYTE       Unknown0xa984[0x118];
+/* 0xaa9c */   DWORD      GroupLeadershipExp;      // 0-999
+/* 0xaaa0 */   DWORD      RaidLeadershipExp;       // 0-999
+/* 0xaaa4 */   DWORD      GroupLeadershipPoints;   // 0-8
+/* 0xaaa8 */   DWORD      RaidLeadershipPoints;    // 0-10
+/* 0xaaac */   DWORD      GroupAbilities[0x10];   //Enumed
+/* 0xaaec */   DWORD      RaidAbilities[0x10];   //Enumed       
+/* 0xab2c */   BYTE       Unknown0xab2c[0x80];      
+/* 0xabac */   BYTE       LeadershipExpON;   //0-off 1-on
+/* 0xabad */   BYTE       Unknown0xabad[0x113];
+/* 0xacc0 */   DWORD      AAPointsSpent;
+/* 0xacc4 */   BYTE       Unknown0xacc4[0x2ca0];
+/* 0xd964 */   struct     _CONTENTS*   Bank[NUM_BANK_SLOTS];
+/* 0xd9ac */   BYTE       Unknown0xd9ac[0xa8];
+/* 0xda54 */   CHAR       GroupMember[0x5][0x40];
+/* 0xdb94 */   BYTE       Unknown0xdb94[0x58];
+/* 0xdbec */   CHAR       GroupLeader[0x40];
+} CHARINFO, *PCHARINFO;
 
 typedef struct _MODELINFONAME {
 /*0x00*/    DWORD Unknown0000;
@@ -868,15 +868,7 @@ typedef struct _ACTORINFO {
 /*0x078*/ DWORD        Unknown0x078;   // Being set to TimeStamp at unknown intervals 
 /*0x07c*/ BYTE         Unknown0x07c[0x4]; 
 /*0x080*/ FLOAT        BobbingAmount; 
-/*0x084*/ BYTE         Unknown0x084[0x1c]; 
-/*0x0a0*/ DWORD        UnderWaterMirror; //copy of UnderWater 
-/*0x0a4*/ DWORD        SwimmingMirror; //copy of Swimming 
-/*0x0a8*/ DWORD        FeetWetMirror;   //copy of FeetWet 
-/*0x0ac*/ BYTE         UnderWater;      // 5 = Underwater; otherwise zero 
-/*0x0ad*/ BYTE         Swimming;      // 5 = Swimming (under or on top of water); otherwise zero 
-/*0x0ae*/ BYTE         FeetWet;      // 5 = Feet are in the water; otherwise zero 
-/*0x0af*/ BYTE         LeftWater;      // 5 = Just got out of water, but still very close to shore 
-/*0x0b0*/ BYTE         Unknown0x0b0[0x28]; 
+/*0x084*/ BYTE         Unknown0x084[0x54]; 
 /*0x0d8*/ DWORD        SpellETA;      //Calculated TimeStamp when current spell being cast will land. 0 while not casting. 
 /*0x0dc*/ BYTE         Unknown0x0dc[0x44]; 
 /*0x120*/ DWORD        FishingETA;      // EQMisc__SteveGetTime 
@@ -896,9 +888,7 @@ typedef struct _ACTORINFO {
 /*0x180*/ struct       _SPAWNINFO *pGroupMarkNPC[3]; 
 /*0x18c*/ struct       _SPAWNINFO *pRaidMarkNPC[3]; 
 /*0x198*/ struct       _SPAWNINFO *pTargetOfTarget; 
-/*0x19c*/ BYTE         Unknown0x19c[0xd41]; 
-/*0xedd*/ CHAR         NameOfLastSuccessfulTargetHit[0x40]; 
-/*0xf1d*/ BYTE         Unknown0xf1d[0xf]; 
+/*0x19c*/ BYTE         Unknown0x19c[0xd90]; 
 /*0xf2c*/ struct       _MODELINFO *Model[0x11];  // 0x11 is the correct number, or are there more? 
 /*0xf70*/ BYTE         Unknown0xf70[0x1c]; 
 /*0xf8c*/ DWORD        InvitedToGroup; // 1=currently invited to group 

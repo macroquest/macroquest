@@ -483,9 +483,6 @@ public:
 		AARank=42,
 		Casting=43,
 		Mount=44,
-		Swimming=45,
-		Underwater=46,
-		FeetWet=47,
 		Animation=48,
 		Holding=49,
 		Look=50,
@@ -575,9 +572,6 @@ public:
 		TypeMember(AARank);
 		TypeMember(Casting);
 		TypeMember(Mount);
-		TypeMember(Swimming);
-		TypeMember(Underwater);
-		TypeMember(FeetWet);
 		TypeMember(Animation);
 		TypeMember(Holding);
 		TypeMember(Look);
@@ -718,7 +712,6 @@ public:
 		Endurance=38,
 		Inventory=39,
 		Bank=40,
-		Bound=41,
 		Combat=42,
 		FreeInventory=43,
 		Gem=44,
@@ -851,7 +844,6 @@ public:
 		TypeMember(Endurance);//38,
 		TypeMember(Inventory);
 		TypeMember(Bank);
-		TypeMember(Bound);
 		TypeMember(Combat);
 		TypeMember(FreeInventory);
 		TypeMember(Gem);
