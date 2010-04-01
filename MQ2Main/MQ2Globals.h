@@ -150,7 +150,6 @@ EQLIB_VAR CHAR gDelayCondition[MAX_STRING];
 EQLIB_VAR PALERTLIST gpAlertList;
 EQLIB_VAR BOOL gMacroPause;
 EQLIB_VAR SPAWNINFO EnviroTarget;
-EQLIB_VAR ACTORINFO EnviroActor;
 EQLIB_VAR PGROUNDITEM pGroundTarget;
 EQLIB_VAR SPAWNINFO DoorEnviroTarget;
 EQLIB_VAR PDOOR pDoorTarget;
@@ -341,13 +340,14 @@ EQLIB_VAR EQ_PC **ppPCData;
 #define pPCData (*ppPCData)
 EQLIB_VAR EQ_Character **ppCharData;
 #define pCharData (*ppCharData)
-#define pCharData1 ((EQ_Character1 *)(((char *)(*ppCharData))+0xc280))
+#define pCharData1 ((EQ_Character1 *)(((char *)(*ppCharData))+0xc388))
 EQLIB_VAR EQPlayer **ppCharSpawn;
 #define pCharSpawn (*ppCharSpawn)
 EQLIB_VAR EQPlayer **ppActiveMerchant;
 #define pActiveMerchant (*ppActiveMerchant)
-EQLIB_VAR EQPlayer **ppSpawnList;
-#define pSpawnList (*ppSpawnList)
+EQLIB_VAR EQPlayerManager **ppSpawnManager;
+#define pSpawnManager (*ppSpawnManager)
+#define pSpawnList (((struct _SPAWNMANAGER *)pSpawnManager)->FirstSpawn)
 
 EQLIB_VAR EQPlayer **ppLocalPlayer;
 #define pLocalPlayer (*ppLocalPlayer)

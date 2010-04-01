@@ -398,7 +398,7 @@ VOID PluginsSetGameState(DWORD GameState)
 	if (GameState==GAMESTATE_INGAME)
 	{
 		gZoning=false;
-		gbDoAutoRun=TRUE;
+		//gbDoAutoRun=TRUE;
 		if (!AutoExec)
 		{
 			AutoExec=true;

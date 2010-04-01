@@ -197,7 +197,6 @@ VOID ItemTarget(PSPAWNINFO pChar, PCHAR szLine)
             tSpawn.Type = SPAWN_NPC;
             tSpawn.HPCurrent = 1;
             tSpawn.HPMax = 1;
-            tSpawn.pActorInfo = &EnviroActor;
             tSpawn.Heading=pItem->Heading;
             tSpawn.Race = pItem->DropID;
             FLOAT Distance = DistanceToSpawn(pChar,&tSpawn);
@@ -316,7 +315,6 @@ VOID DoorTarget(PSPAWNINFO pChar, PCHAR szLine)
 			DoorEnviroTarget.Type = SPAWN_NPC;
 			DoorEnviroTarget.HPCurrent = 1;
 			DoorEnviroTarget.HPMax = 1;
-			DoorEnviroTarget.pActorInfo = &EnviroActor;
             pDoorTarget = pDoorTable->pDoor[Count];
             break;
          }
@@ -338,7 +336,6 @@ VOID DoorTarget(PSPAWNINFO pChar, PCHAR szLine)
 			tSpawn.Type = SPAWN_NPC;
 			tSpawn.HPCurrent = 1;
 			tSpawn.HPMax = 1;
-			tSpawn.pActorInfo = &EnviroActor;
             tSpawn.Heading=pDoorTable->pDoor[Count]->Heading;
             FLOAT Distance = DistanceToSpawn(pChar,&tSpawn);
             if (Distance<cDistance) {
@@ -1555,7 +1552,7 @@ VOID MacroLog(PSPAWNINFO pChar, PCHAR szLine)
 // ***************************************************************************
 VOID Face(PSPAWNINFO pChar, PCHAR szLine)
 {
-    if (!ppSpawnList) return;
+    if (!ppSpawnManager) return;
     if (!pSpawnList) return;
     PSPAWNINFO pSpawnClosest = NULL;
     PSPAWNINFO psTarget = NULL;
@@ -1737,7 +1734,7 @@ VOID Look(PSPAWNINFO pChar, PCHAR szLine)
 // ***************************************************************************
 VOID Where(PSPAWNINFO pChar, PCHAR szLine)
 {
-    if (!ppSpawnList) return;
+    if (!ppSpawnManager) return;
     if (!pSpawnList) return;
     PSPAWNINFO pSpawnClosest = NULL;
     SEARCHSPAWN SearchSpawn;
@@ -2017,7 +2014,7 @@ if (!stricmp(szArg1,"item"))
 // ***************************************************************************
 VOID Target(PSPAWNINFO pChar, PCHAR szLine)
 {
-    if (!ppSpawnList) return;
+    if (!ppSpawnManager) return;
     if (!pSpawnList) return;
     PSPAWNINFO pSpawnClosest = NULL;
     SEARCHSPAWN SearchSpawn;

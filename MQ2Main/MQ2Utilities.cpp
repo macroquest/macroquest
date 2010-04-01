@@ -4100,7 +4100,7 @@ DWORD GetAAIndexByID(DWORD ID)
 BOOL IsPCNear(PSPAWNINFO pSpawn, FLOAT Radius)
 {
 	PSPAWNINFO pClose = NULL;
-	if (ppSpawnList && pSpawnList) 
+	if (ppSpawnManager && pSpawnList) 
 	{
 		pClose = (PSPAWNINFO)pSpawnList;
 	}
@@ -4500,7 +4500,7 @@ BOOL SpawnMatchesSearch(PSEARCHSPAWN pSearchSpawn, PSPAWNINFO pChar, PSPAWNINFO 
 			return FALSE;
 	if (pSearchSpawn->bLFG && !pSpawn->LFG)
 		return FALSE;
-	if (pSearchSpawn->bTrader && !pSpawn->pActorInfo->Trader)
+	if (pSearchSpawn->bTrader && !pSpawn->Trader)
 		return FALSE;
 	if (pSearchSpawn->bGroup && !IsInGroup(pSpawn))
 		return FALSE;
@@ -4826,7 +4826,7 @@ VOID FreeAlerts(DWORD List)
 PSPAWNINFO GetClosestAlert(PSPAWNINFO pChar, DWORD List, DWORD* pdwCount)
 {
     CHAR szName[MAX_STRING] = {0};
-    if (!ppSpawnList) return NULL;
+    if (!ppSpawnManager) return NULL;
     if (!pSpawnList) return NULL;
     PSPAWNINFO pSpawn, pClosest = NULL;
     FLOAT ClosestDistance = 50000.0f;
@@ -4993,7 +4993,6 @@ VOID SuperWhoDisplay(PSPAWNINFO pSpawn, DWORD Color)
             }
         }
         CHAR GM[MAX_STRING] = {0};
-
 		if (gFilterSWho.GM && pSpawn->GM) {
             if (pSpawn->Level >= 50) {
                 strcpy(GM,"\ay*GM*\ax");
@@ -5003,7 +5002,6 @@ VOID SuperWhoDisplay(PSPAWNINFO pSpawn, DWORD Color)
                 strcpy(GM,"\a-y*Guide*\ax");
             }
         }
-
 		szMsg[0]='\a';
 		szMsg[2]=0;
 		if (Color || gFilterSWho.ConColor)
@@ -5073,10 +5071,10 @@ VOID SuperWhoDisplay(PSPAWNINFO pSpawn, DWORD Color)
                 }
             }
             if (gFilterSWho.LD && pSpawn->Linkdead) strcat(szMsg," \ag<LD>\ax");
-			if (gFilterSWho.Sneak && pSpawn->Sneak) strcat(szMsg," \ag<Sneak>\ax"); 
+            if (gFilterSWho.Sneak && pSpawn->Sneak) strcat(szMsg," \ag<Sneak>\ax"); 
             if (gFilterSWho.AFK && pSpawn->AFK) strcat(szMsg," \ag<AFK>\ax");
             if (gFilterSWho.LFG && pSpawn->LFG) strcat(szMsg," \ag<LFG>\ax");
-            if (gFilterSWho.Trader && pSpawn->pActorInfo->Trader) strcat(szMsg," \ag<Trader>\ax");
+            if (gFilterSWho.Trader && pSpawn->Trader) strcat(szMsg," \ag<Trader>\ax");
         } else if (gFilterSWho.NPCTag && pSpawn->Type == SPAWN_NPC) {
             if (pSpawn->MasterID != 0) {
                 strcat(szMsg," <PET>");
@@ -5391,9 +5389,8 @@ PCHAR GetFriendlyNameForGroundItem(PGROUNDITEM pItem, PCHAR szName)
 PCHAR GetModel(PSPAWNINFO pSpawn, DWORD Slot)
 {
     if (!pSpawn) return NULL;
-    if (!pSpawn->pActorInfo) return NULL;
     if (Slot>20) return NULL;
-    PMODELINFO pMod = pSpawn->pActorInfo->Model[Slot];
+    PMODELINFO pMod = pSpawn->Model[Slot];
     if (!pMod) return NULL;
     if (!pMod->pModelInfo) return NULL;
     if (pMod->pModelInfo->Type != 0x48) return NULL;
@@ -5480,6 +5477,24 @@ DWORD GetItemTimer(PCONTENTS pItem)
     return Timer-GetFastTime();
 }
 
+PCONTENTS GetItemContentsBySlotID(DWORD dwSlotID)
+{
+  int InvSlot=-1; 
+  int SubSlot=-1; 
+  if(dwSlotID>=0 && dwSlotID<30) InvSlot=dwSlotID; 
+  else if(dwSlotID>=251 && dwSlotID<361) { 
+    InvSlot=22+(dwSlotID-251)/10; 
+    SubSlot=(dwSlotID-1)%10; 
+  } 
+  if(InvSlot>=0 && InvSlot<30) { 
+    if(PCONTENTS iSlot=GetCharInfo2()->InventoryArray[InvSlot]) { 
+      if(SubSlot<0) return iSlot; 
+      if(PCONTENTS sSlot=GetCharInfo2()->InventoryArray[InvSlot]->Contents[SubSlot]) return sSlot; 
+    } 
+  } 
+  return NULL; 
+}
+
 // ***************************************************************************
 // Function:    BuffStackTest
 // Description: Return boolean true if the two spells will stack
@@ -5501,7 +5516,9 @@ bool BuffStackTest(PSPELL aSpell, PSPELL bSpell){
          if (!((bSpell->Attrib[i]==10 && (bSpell->Base[i]==-6 || bSpell->Base[i]==0)) ||
               (aSpell->Attrib[i]==10 && (aSpell->Base[i]==-6 || aSpell->Base[i]==0)) ||
 			  (bSpell->Attrib[i]==79 && bSpell->Base[i]>0 && bSpell->TargetType==6) ||
-			  (aSpell->Attrib[i]==79 && aSpell->Base[i]>0 && aSpell->TargetType==6)))
+                  (aSpell->Attrib[i]==79 && aSpell->Base[i]>0 && aSpell->TargetType==6) ||
+				  (bSpell->Attrib[i]==148 || bSpell->Attrib[i]==149) ||
+				  (aSpell->Attrib[i]==148 || aSpell->Attrib[i]==149)))
                return false;
 //Check to see if second buffs blocks first buff:
 //148: Stacking: Block new spell if slot %d is effect

@@ -1,3 +1,14 @@
+10 December 2005 by rswiders, dkaa
+- Updated for 12/07 patch
+- PACTORINFO was removed, _ACTORINFO fields were merged into _SPAWNINFO
+- Changed item.timer to a ticks type
+
+5 December 2005 by rswiders
+- More cleanup of several class function declarations
+- Another fix to .Stacks/.WillStack to not fail if the same slot is a blocking slot
+- Added endurancecost to SPELL (thanks s0rCieR)
+- Added item timer to tooltips (thanks ieatacid)
+
 30 November 2005 by rswiders
 - Clean up of several class function declarations
 - Cleanup of CombatAbilility, CombatAbilityReady and CombatAbilityTimer. They are now using

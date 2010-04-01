@@ -141,7 +141,7 @@ public:
 	{
 		if (bMouseLook)
 			return false;
-		pWndMgr->DrawCursor();
+//		pWndMgr->DrawCursor();
 		//pWndMgr->DrawCursor()
 		return true;
 	}

@@ -193,7 +193,23 @@ void InitializeMQ2Commands()
 #include "ISXEQCommandList.h"
 #undef COMMAND
 
-
+   pISInterface->AddAlias("d","EQExecute /duel");
+   pISInterface->AddAlias("t","EQExecute /tell");
+   pISInterface->AddAlias("w","EQExecute /who");
+   pISInterface->AddAlias("a","EQExecute /anonymous");
+   pISInterface->AddAlias("ta","EQExecute /tap");
+   pISInterface->AddAlias("c","EQExecute /consider");
+   pISInterface->AddAlias("cha","EQExecute /channel");
+   pISInterface->AddAlias("f","EQExecute /feedback");
+   pISInterface->AddAlias("fa","EQExecute /fastdrop");
+   pISInterface->AddAlias("m","EQExecute /msg");
+   pISInterface->AddAlias("load","EQExecute /loadspells");
+   pISInterface->AddAlias("b","EQExecute /bazaar");
+   pISInterface->AddAlias("ba","EQExecute /bazaar");
+   pISInterface->AddAlias("g","EQExecute /gsay");
+   pISInterface->AddAlias("gu","EQExecute /guildsay");
+   pISInterface->AddAlias("key","EQExecute /keys");
+   pISInterface->AddAlias("r","EQExecute /reply");
 }
 
 void ShutdownMQ2Commands()

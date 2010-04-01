@@ -655,11 +655,49 @@ public:
    }
 };
 
+class InvSlotWndHook
+{
+public:
+   VOID DrawTooltip_Trampoline(class CXWnd const *);
+   VOID DrawTooltip_Detour(class CXWnd const * pWnd)
+   {
+       CHAR Temp[MAX_STRING]={0};
+       CHAR Temp2[MAX_STRING]={0};
+
+       PCONTENTS pitem = GetItemContentsBySlotID(((CSidlScreenWnd *)pWnd)->SlotID);
+	   if (pitem)
+	   {
+           PITEMINFO pItem = pitem->Item;
+
+           if (pItem && pItem->TimerID)
+           {
+               int Secs=GetItemTimer(pitem);
+               if (Secs)
+               {
+                   int Mins=(Secs/60)%60;
+                   int Hrs=(Secs/3600);
+                   Secs=Secs%60;
+                   if (Hrs)
+                       sprintf(Temp2,"%d:%02d:%02d",Hrs,Mins,Secs);
+                   else
+                       sprintf(Temp2,"%d:%02d",Mins,Secs);
+               } else
+                   strcpy(Temp2,"Ready");
+               sprintf(Temp,"%s (%s)",pItem->Name,Temp2);
+               SetCXStr((PCXSTR *)&pWnd->Tooltip,Temp);
+           }
+	   }
+       DrawTooltip_Trampoline(pWnd);
+       return;
+   }
+};
+
 ItemDisplayHook::SEffectType ItemDisplayHook::eEffectType = None;
 bool ItemDisplayHook::bNoSpellTramp = false;
 
 DETOUR_TRAMPOLINE_EMPTY(VOID ItemDisplayHook::SetItem_Trampoline(class EQ_Item *,bool)); 
 DETOUR_TRAMPOLINE_EMPTY(VOID ItemDisplayHook::SetSpell_Trampoline(int SpellID,bool HasSpellDescr,int));
+DETOUR_TRAMPOLINE_EMPTY(VOID InvSlotWndHook::DrawTooltip_Trampoline(class CXWnd const *));
 
 #ifndef ISXEQ
 void Comment(PSPAWNINFO pChar, PCHAR szLine) 
@@ -712,10 +750,9 @@ PLUGIN_API VOID InitializePlugin(VOID)
 
 	// Add commands, macro parameters, hooks, etc.
 
-//   EasyClassDetour(CItemDisplayWnd__SetItem,ItemDisplayHook,SetItem_Detour,void,(class EQ_Item *, bool),SetItem_Trampoline);
 	EzDetour(CItemDisplayWnd__SetItem,ItemDisplayHook::SetItem_Detour,ItemDisplayHook::SetItem_Trampoline);
-//   EasyClassDetour(CItemDisplayWnd__SetSpell,ItemDisplayHook,SetSpell_Detour,void,(int SpellID,bool HasSpellDescr,int),SetSpell_Trampoline);
 	EzDetour(CItemDisplayWnd__SetSpell,ItemDisplayHook::SetSpell_Detour,ItemDisplayHook::SetSpell_Trampoline);
+	EzDetour(CInvSlotWnd__DrawTooltip,InvSlotWndHook::DrawTooltip_Detour,InvSlotWndHook::DrawTooltip_Trampoline);
 
 	AddCommand("/inote",Comment); 
 }
@@ -728,6 +765,7 @@ PLUGIN_API VOID ShutdownPlugin(VOID)
 	// Remove commands, macro parameters, hooks, etc.
 	RemoveDetour(CItemDisplayWnd__SetItem);
 	RemoveDetour(CItemDisplayWnd__SetSpell);
+	RemoveDetour(CInvSlotWnd__DrawTooltip);
 
 	RemoveCommand("/inote");
 }

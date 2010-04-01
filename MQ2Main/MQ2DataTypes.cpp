@@ -1039,7 +1039,7 @@ bool MQ2SpawnType::GETMEMBER()
 		Dest.Type=pHeadingType;
 		return true;
 	case Pet:
-        if (Dest.Ptr=GetSpawnByID(pSpawn->pActorInfo->PetID))
+        if (Dest.Ptr=GetSpawnByID(pSpawn->PetID))
 		{
 			Dest.Type=pSpawnType;
 			return true;
@@ -1264,29 +1264,29 @@ bool MQ2SpawnType::GETMEMBER()
 		Dest.Type=pHeadingType;
 		return true;
 	case Casting:
-		if (Dest.Ptr=GetSpellByID(pSpawn->pActorInfo->CastingSpellID))
+		if (Dest.Ptr=GetSpellByID(pSpawn->CastingSpellID))
 		{
 			Dest.Type=pSpellType;
 			return true;
 		}
 		return false;
 	case Mount:
-		if (Dest.Ptr=pSpawn->pActorInfo->Mount)
+		if (Dest.Ptr=pSpawn->Mount)
 		{
 			Dest.Type=pSpawnType;
 			return true;
 		}
 		return false;
 	case Underwater:
-		Dest.DWord=(pSpawn->pActorInfo->UnderWater==5);
+		Dest.DWord=(pSpawn->UnderWater==5);
 		Dest.Type=pBoolType;
 		return true;
 	case FeetWet:
-		Dest.DWord=(pSpawn->pActorInfo->FeetWet==5);
+		Dest.DWord=(pSpawn->FeetWet==5);
 		Dest.Type=pBoolType;
 		return true;
 	case Animation:
-		Dest.DWord=pSpawn->pActorInfo->Animation;
+		Dest.DWord=pSpawn->Animation;
 		Dest.Type=pIntType;
 		return true;
 	case Holding:
@@ -1323,7 +1323,7 @@ bool MQ2SpawnType::GETMEMBER()
 		Dest.Type=pStringType;
 		return true;
 	case Invited:
-		Dest.DWord=(pSpawn->pActorInfo->InvitedToGroup);
+		Dest.DWord=(pSpawn->InvitedToGroup);
 		Dest.Type=pBoolType;
 		return true;
 #ifndef ISXEQ
@@ -1395,7 +1395,7 @@ bool MQ2SpawnType::GETMEMBER()
 		return false;
 #endif
 	case Trader:
-		Dest.DWord=pSpawn->pActorInfo->Trader;
+		Dest.DWord=pSpawn->Trader;
 		Dest.Type=pBoolType;
 		return true;
 	case AFK:
@@ -1430,10 +1430,8 @@ bool MQ2SpawnType::GETMEMBER()
 		if (gGameState==GAMESTATE_INGAME && GetCharInfo()->pSpawn)
 		{
 			DWORD nAssist;
-			PACTORINFO pCharActor=GetCharInfo()->pSpawn->pActorInfo;
-//			for (nAssist=0 ; nAssist < 1 ; nAssist++)
 			{
-				if (pCharActor->pGroupAssistNPC[0]==pSpawn)
+				if (GetCharInfo()->pSpawn->pGroupAssistNPC[0]==pSpawn)
 				{
 					Dest.DWord=1;
 					Dest.Type=pBoolType;
@@ -1442,7 +1440,7 @@ bool MQ2SpawnType::GETMEMBER()
 			}
 			for (nAssist=0 ; nAssist < 3 ; nAssist++)
 			{
-				if (pCharActor->pRaidAssistNPC[nAssist]==pSpawn)
+				if (GetCharInfo()->pSpawn->pRaidAssistNPC[nAssist]==pSpawn)
 				{
 					Dest.DWord=1;
 					Dest.Type=pBoolType;
@@ -1457,10 +1455,9 @@ bool MQ2SpawnType::GETMEMBER()
 		if (gGameState==GAMESTATE_INGAME && GetCharInfo()->pSpawn)
 		{
 			DWORD nMark;
-			PACTORINFO pCharActor=GetCharInfo()->pSpawn->pActorInfo;
 			for (nMark=0 ; nMark < 3 ; nMark++)
 			{
-				if (pCharActor->pRaidMarkNPC[nMark]==pSpawn)
+				if (GetCharInfo()->pSpawn->pRaidMarkNPC[nMark]==pSpawn)
 				{
 					Dest.DWord=nMark+1;
 					Dest.Type=pIntType;
@@ -1469,7 +1466,7 @@ bool MQ2SpawnType::GETMEMBER()
 			}
 			for (nMark=0 ; nMark < 3 ; nMark++)
 			{
-				if (pCharActor->pGroupMarkNPC[nMark]==pSpawn)
+				if (GetCharInfo()->pSpawn->pGroupMarkNPC[nMark]==pSpawn)
 				{
 					Dest.DWord=nMark+1;
 					Dest.Type=pIntType;
@@ -2207,7 +2204,7 @@ bool MQ2CharacterType::GETMEMBER()
          } 
         return true; 
 	case Moving:
-		Dest.DWord=((((gbMoving) && ((PSPAWNINFO)pCharSpawn)->SpeedRun==0.0f) && (pChar->pSpawn->pActorInfo->Mount ==  NULL )) || (fabs(FindSpeed((PSPAWNINFO)pCharSpawn)) > 0.0f ));
+		Dest.DWord=((((gbMoving) && ((PSPAWNINFO)pCharSpawn)->SpeedRun==0.0f) && (pChar->pSpawn->Mount ==  NULL )) || (fabs(FindSpeed((PSPAWNINFO)pCharSpawn)) > 0.0f ));
 		Dest.Type=pBoolType;
 		return true;
 	case Hunger:
@@ -2674,7 +2671,7 @@ bool MQ2CharacterType::GETMEMBER()
 		return true;
 	case TargetOfTarget:
 		if (gGameState==GAMESTATE_INGAME && GetCharInfo()->pSpawn)
-		if (Dest.Ptr=pChar->pSpawn->pActorInfo->pTargetOfTarget)
+		if (Dest.Ptr=pChar->pSpawn->pTargetOfTarget)
 		{
 			Dest.Type=pSpawnType;
 			return true;
@@ -2687,7 +2684,7 @@ bool MQ2CharacterType::GETMEMBER()
 			DWORD N=GETNUMBER()-1;
 			if (N>=3)
 				return false;
-			if (Dest.Ptr=pChar->pSpawn->pActorInfo->pRaidAssistNPC[N])
+			if (Dest.Ptr=pChar->pSpawn->pRaidAssistNPC[N])
 			{
 				Dest.Type=pSpawnType;
 				return true;
@@ -2697,7 +2694,7 @@ bool MQ2CharacterType::GETMEMBER()
 	case GroupAssistTarget:
 		if (gGameState==GAMESTATE_INGAME && GetCharInfo()->pSpawn)
 		{
-			if (Dest.Ptr=pChar->pSpawn->pActorInfo->pGroupAssistNPC[0])
+			if (Dest.Ptr=pChar->pSpawn->pGroupAssistNPC[0])
 			{
 				Dest.Type=pSpawnType;
 				return true;
@@ -2711,7 +2708,7 @@ bool MQ2CharacterType::GETMEMBER()
 			DWORD N=GETNUMBER()-1;
 			if (N>=3)
 				return false;
-			if (Dest.Ptr=pChar->pSpawn->pActorInfo->pRaidMarkNPC[N])
+			if (Dest.Ptr=pChar->pSpawn->pRaidMarkNPC[N])
 			{
 				Dest.Type=pSpawnType;
 				return true;
@@ -2725,7 +2722,7 @@ bool MQ2CharacterType::GETMEMBER()
 			DWORD N=GETNUMBER()-1;
 			if (N>=3)
 				return false;
-			if (Dest.Ptr=pChar->pSpawn->pActorInfo->pGroupMarkNPC[N])
+			if (Dest.Ptr=pChar->pSpawn->pGroupMarkNPC[N])
 			{
 				Dest.Type=pSpawnType;
 				return true;
@@ -3344,8 +3341,8 @@ bool MQ2ItemType::GETMEMBER()
     case Timer:
         if(pItem->Item->TimerID)
         {
-                Dest.DWord=GetItemTimer(pItem);
-                Dest.Type=pIntType;
+            Dest.DWord=GetItemTimer(pItem)/6;
+            Dest.Type=pTicksType;
                 return true;
         }
 	case ItemDelay:

@@ -150,6 +150,7 @@ FUNCTION_AT_ADDRESS(int  EQ_Character1::Max_HP(int),EQ_Character__Max_HP);
 FUNCTION_AT_ADDRESS(void EQ_Character::DoCombatAbility(int spellID), EQ_Character__doCombatAbility); 
 #endif 
 
+
 FUNCTION_AT_VIRTUAL_ADDRESS(void CChatWindow::operator delete[](void*),0x04);
 
 FUNCTION_AT_VIRTUAL_ADDRESS(bool CXWnd::IsValid(void)const,0);
@@ -1033,7 +1034,10 @@ FUNCTION_AT_ADDRESS( CConfirmationDialog::CConfirmationDialog(class CXWnd *),CCo
 FUNCTION_AT_ADDRESS(void  CConfirmationDialog::Init(void),CConfirmationDialog__Init);
 #endif
 #ifdef CConfirmationDialog__Activate
-FUNCTION_AT_ADDRESS(void  CConfirmationDialog::Activate(int,unsigned int,char const *),CConfirmationDialog__Activate);
+FUNCTION_AT_ADDRESS(void  CConfirmationDialog::Activate(int,unsigned int,char const *,int,int,int,int),CConfirmationDialog__Activate);
+#endif
+#ifdef CConfirmationDialog__Deactivate
+FUNCTION_AT_ADDRESS(void  CConfirmationDialog::Deactivate(void),CConfirmationDialog__Deactivate);
 #endif
 #ifdef CConfirmationDialog__ExpireCurrentDialog
 FUNCTION_AT_ADDRESS(void  CConfirmationDialog::ExpireCurrentDialog(void),CConfirmationDialog__ExpireCurrentDialog);
@@ -1058,6 +1062,9 @@ FUNCTION_AT_ADDRESS(void  CConfirmationDialog::ProcessNo(int),CConfirmationDialo
 #endif
 #ifdef CConfirmationDialog__SetNameApprovalData
 FUNCTION_AT_ADDRESS(void  CConfirmationDialog::SetNameApprovalData(char *,char *,int,int,char *),CConfirmationDialog__SetNameApprovalData);
+#endif
+#ifdef CConfirmationDialog__WndNotification
+FUNCTION_AT_ADDRESS( int CConfirmationDialog::WndNotification(class CXWnd *,unsigned __int32,void *),CConfirmationDialog__WndNotification);
 #endif
 #ifdef CContainerMgr__GetFreeContainerWnd
 FUNCTION_AT_ADDRESS(class CContainerWnd *  CContainerMgr::GetFreeContainerWnd(void),CContainerMgr__GetFreeContainerWnd);
@@ -5304,6 +5311,9 @@ FUNCTION_AT_ADDRESS(bool  EQPlayer::IsInvisible(class EQPlayer *),EQPlayer__IsIn
 #ifdef EQPlayer__IsAMount
 FUNCTION_AT_ADDRESS(bool  EQPlayer::IsAMount(void),EQPlayer__IsAMount);
 #endif
+#ifdef EQPlayerManager__GetSpawnByID
+FUNCTION_AT_ADDRESS(class EQPlayer * EQPlayerManager::GetSpawnByID(int),EQPlayerManager__GetSpawnByID);
+#endif
 #ifdef EQPMInfo__EQPMInfo
 FUNCTION_AT_ADDRESS( EQPMInfo::EQPMInfo(char *),EQPMInfo__EQPMInfo);
 #endif
@@ -7308,6 +7318,9 @@ FUNCTION_AT_ADDRESS(void  CXWnd::SetKeyTooltip(int,int),CXWnd__SetKeyTooltip);
 #ifdef CXWnd__GetXMLTooltip
 FUNCTION_AT_ADDRESS(class CXStr  CXWnd::GetXMLTooltip(void)const ,CXWnd__GetXMLTooltip);
 #endif
+#ifdef CXWnd__DrawTooltip
+FUNCTION_AT_ADDRESS(int CXWnd::DrawTooltip(class CXWnd const *)const,CXWnd__DrawTooltip);
+#endif
 #ifdef CMutexSyncCounted__CMutexSyncCounted
 FUNCTION_AT_ADDRESS( CMutexSyncCounted::CMutexSyncCounted(void),CMutexSyncCounted__CMutexSyncCounted);
 #endif
@@ -8894,6 +8907,9 @@ FUNCTION_AT_ADDRESS( CInvSlotWnd::CInvSlotWnd(class CXWnd *,unsigned __int32,cla
 #endif
 #ifdef CInvSlotWnd__SetInvSlot
 FUNCTION_AT_ADDRESS(void  CInvSlotWnd::SetInvSlot(class CInvSlot *),CInvSlotWnd__SetInvSlot);
+#endif
+#ifdef CInvSlotWnd__DrawTooltip
+FUNCTION_AT_ADDRESS(int CInvSlotWnd::DrawTooltip(class CXWnd const *)const,CInvSlotWnd__DrawTooltip);
 #endif
 #ifdef CLabel__CLabel
 FUNCTION_AT_ADDRESS( CLabel::CLabel(class CXWnd *,unsigned __int32,class CXRect,int),CLabel__CLabel);

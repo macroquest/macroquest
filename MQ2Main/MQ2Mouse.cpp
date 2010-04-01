@@ -190,7 +190,6 @@ VOID Click(PSPAWNINFO pChar, PCHAR szLine) {
 				Data.DropID = EnviroTarget.Race;
 				SendEQMessage(EQ_INTERACTGROUNDITEM,&Data,sizeof(INTERACTGROUNDITEM));
 				EnviroTarget.Name[0]=0;
-				if (pTarget==(EQPlayer*)&EnviroTarget) pTarget=NULL;
 				return;
 			}
       } else if (!ParseMouseLoc(GetCharInfo(), szMouseLoc)) { 

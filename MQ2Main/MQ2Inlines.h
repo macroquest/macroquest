@@ -25,9 +25,9 @@ static inline PCHARINFO2 GetCharInfo2(VOID) {
 
 static inline EQPlayer *GetSpawnByID(DWORD dwSpawnID)
 {
-	if (dwSpawnID<3000)
-		return ppEQP_IDArray[dwSpawnID];
-	return 0;
+//	if (dwSpawnID<3000)
+//		return ppEQP_IDArray[dwSpawnID];
+ 	return pSpawnManager->GetSpawnByID(dwSpawnID);
 }
 
 static inline PSPELL GetSpellByID(DWORD dwSpellID)
@@ -63,18 +63,16 @@ static inline BOOL IsAssistNPC(PSPAWNINFO pSpawn)
 {
 	if (GetCharInfo()->pSpawn)
 	{
-		DWORD nAssist;
-		PACTORINFO pCharActor=GetCharInfo()->pSpawn->pActorInfo;
-//			for (nAssist=0 ; nAssist < 1 ; nAssist++)
+        DWORD nAssist;
 		{
-			if (pCharActor->pGroupAssistNPC[0]==pSpawn)
+			if (GetCharInfo()->pSpawn->pGroupAssistNPC[0]==pSpawn)
 			{
 				return true;
 			}
 		}
 		for (nAssist=0 ; nAssist < 3 ; nAssist++)
 		{
-			if (pCharActor->pRaidAssistNPC[nAssist]==pSpawn)
+			if (GetCharInfo()->pSpawn->pRaidAssistNPC[nAssist]==pSpawn)
 			{
 				return true;
 			}
@@ -88,17 +86,16 @@ static inline BOOL IsMarkedNPC(PSPAWNINFO pSpawn)
 	if (GetCharInfo()->pSpawn)
 	{
 		DWORD nMark;
-		PACTORINFO pCharActor=GetCharInfo()->pSpawn->pActorInfo;
 		for (nMark=0 ; nMark < 3 ; nMark++)
 		{
-			if (pCharActor->pRaidMarkNPC[nMark]==pSpawn)
+			if (GetCharInfo()->pSpawn->pRaidMarkNPC[nMark]==pSpawn)
 			{
 				return true;
 			}
 		}
 		for (nMark=0 ; nMark < 3 ; nMark++)
 		{
-			if (pCharActor->pGroupMarkNPC[nMark]==pSpawn)
+			if (GetCharInfo()->pSpawn->pGroupMarkNPC[nMark]==pSpawn)
 			{
 				return true;
 			}
@@ -206,8 +203,7 @@ static inline FLOAT GetDistance(PSPAWNINFO pChar, PSPAWNINFO pSpawn)
 // ***************************************************************************
 static inline PSPAWNINFO FindMount(PSPAWNINFO pSpawn)
 {
-   if (!pSpawn->pActorInfo || !pSpawn->pActorInfo->Mount) return pSpawn;
-   return pSpawn->pActorInfo->Mount; 
+   return (pSpawn->Mount?pSpawn->Mount:pSpawn); 
 }
 
 

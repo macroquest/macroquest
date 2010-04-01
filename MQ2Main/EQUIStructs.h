@@ -253,57 +253,57 @@ typedef struct _CXWND {
 /*0x035*/   BYTE    HasSiblings; // 
 /*0x036*/   BYTE    Unknown0x02e[0x2];
 /*0x038*/   DWORD   XMLIndex;
-/*0x03 */   RECT    Location;
-/*0x04 */   RECT    OldLocation;
-/*0x05 */   BYTE    Show;       // 
-/*0x05 */   BYTE    Enabled;
-/*0x05 */   BYTE    Minimized;  // 
-/*0x05 */   BYTE    Unknown0x057; // ontilebox
-/*0x05 */   BYTE    Unknown0x058;
-/*0x05 */   BYTE    Unknown0x059;
-/*0x05 */   BYTE    MouseOver;
-/*0x05 */   BYTE    Unknown0x05b;
-/*0x05 */   DWORD   WindowStyle; // bit 1 - vertical scroll, bit 2 - horizontal scroll, bit 4 - title bar?, bit 8 - border 
-/*0x06 */   DWORD   Unknown0x060;// -> 0x60
-			DWORD   Unknown0x064;
-			DWORD   Unknown0x068;
-/*0x   */   struct _CXSTR  *WindowText; // -> 0x6C
-/*0x0  */   struct _CXSTR  *Tooltip; // -> 0x70
-/*0x06 */   DWORD   Unknown0x06c; // CXWnd::SetLookLikeParent
-/*0x07 */   ARGBCOLOR BGColor; // "BGTint.Red", green, blue
-/*0x07 */   BYTE    Unknown0x074[0x10];
-/*0x08 */   DWORD   BGType; // "BGType" in ini
-/*0x08 */   struct _CXSTR  *XMLToolTip;// -> 0x90
-/*0x08 */   BYTE    Unknown0x08c[0x14];
-/*0x0a */   BYTE    Alpha; // "Alpha" in ini
-/*0x0a */   BYTE    Fades; // "Fades" in ini
-/*0x0a */   BYTE    Unknown0x0a2;
-/*0x0a */   BYTE    Unknown0x0a3;
-/*0x0a */   BYTE    Unknown0x0a4[0x0c];
-/*0x0b */   DWORD   ZLayer; // 
-/*0x0b */   DWORD   Unknown0x0b4;
-/*0x0b */   LPVOID  DrawTemplate; //
-/*0x0b */   BYTE    Unknown0x0b0[0xc];
-/*0x0c */   union {
+/*0x03c*/   RECT    Location;
+/*0x04c*/   RECT    OldLocation;
+/*0x05c*/   BYTE    Show;       // 
+/*0x05d*/   BYTE    Enabled;
+/*0x05e*/   BYTE    Minimized;  // 
+/*0x05f*/   BYTE    Unknown0x057; // ontilebox
+/*0x060*/   BYTE    Unknown0x058;
+/*0x061*/   BYTE    Unknown0x059;
+/*0x062*/   BYTE    MouseOver;
+/*0x063*/   BYTE    Unknown0x05b;
+/*0x064*/   DWORD   WindowStyle; // bit 1 - vertical scroll, bit 2 - horizontal scroll, bit 4 - title bar?, bit 8 - border 
+/*0x068*/   DWORD   Unknown0x060;// -> 0x60
+/*0x06c*/	DWORD   Unknown0x064;
+/*0x070*/	DWORD   Unknown0x068;
+/*0x074*/   struct _CXSTR  *WindowText; // -> 0x6C
+/*0x078*/   struct _CXSTR  *Tooltip; // -> 0x70
+/*0x07c*/   DWORD   Unknown0x06c; // CXWnd::SetLookLikeParent
+/*0x080*/   ARGBCOLOR BGColor; // "BGTint.Red", green, blue
+/*0x084*/   BYTE    Unknown0x074[0x10];
+/*0x094*/   DWORD   BGType; // "BGType" in ini
+/*0x098*/   struct _CXSTR  *XMLToolTip;// -> 0x90
+/*0x09c*/   BYTE    Unknown0x08c[0x14];
+/*0x0b0*/   BYTE    Alpha; // "Alpha" in ini
+/*0x0b1*/   BYTE    Fades; // "Fades" in ini
+/*0x0b2*/   BYTE    Unknown0x0a2;
+/*0x0b3*/   BYTE    Unknown0x0a3;
+/*0x0b4*/   BYTE    Unknown0x0a4[0x0c];
+/*0x0c0*/   DWORD   ZLayer; // 
+/*0x0c4*/   DWORD   Unknown0x0b4;
+/*0x0c8*/   LPVOID  DrawTemplate; //
+/*0x0cc*/   BYTE    Unknown0x0b0[0xc];
+/*0x0d8*/   union {
 					_ITEMINFO* Item;
 					_CSIDLWND* InvDescription;
 			};
-/*0x0c */   BYTE    Unknown0x0c0[0xc];
-/*0x0d */   DWORD   Unknown0x0cc; // CXWnd::StartFade, CXWnd::Minimize
-/*0x0d */   BYTE    Unknown0x0d0[0x10];
-/*0x0e */   DWORD   FadeTickCount; // 
-/*0x0f */   BYTE    Unknown0x0e4; // CXWnd::StartFade  
-/*0x0f */   BYTE    Unknown0x0e5; // CXWnd::StartFade 
-/*0x0f */   BYTE    Unknown0x0e6; 
-/*0x0f */   BYTE    Unknown0x0e7;
-/*0x0f */   DWORD   Unknown0x0e8;// CXWnd::StartFade, CXWnd::Minimize 
-/*0x0f */   DWORD   VScrollMax; //
-/*0x0f */   DWORD   VScrollPos; //
-/*0x10 */   DWORD   HScrollMax; // 
-/*0x10 */   DWORD   HScrollPos; // 
-/*0x10 */   BYTE    ValidCXWnd; //
-/*0x10 */   BYTE    Unused0x0f9[0x7];
-/*0x   */
+/*0x0dc*/   BYTE    Unknown0x0c0[0xc];
+/*0x0e8*/   DWORD   Unknown0x0cc; // CXWnd::StartFade, CXWnd::Minimize
+/*0x0ec*/   BYTE    Unknown0x0d0[0x10];
+/*0x0fc*/   DWORD   FadeTickCount; // 
+/*0x100*/   BYTE    Unknown0x0e4; // CXWnd::StartFade  
+/*0x101*/   BYTE    Unknown0x0e5; // CXWnd::StartFade 
+/*0x102*/   BYTE    Unknown0x0e6; 
+/*0x103*/   BYTE    Unknown0x0e7;
+/*0x104*/   DWORD   Unknown0x0e8;// CXWnd::StartFade, CXWnd::Minimize 
+/*0x108*/   DWORD   VScrollMax; //
+/*0x10c*/   DWORD   VScrollPos; //
+/*0x110*/   DWORD   HScrollMax; // 
+/*0x114*/   DWORD   HScrollPos; // 
+/*0x118*/   BYTE    ValidCXWnd; //
+/*0x119*/   BYTE    Unused0x0f9[0x7];
+/*0x120*/
 } CXWND, *PCXWND;
 #define GateBind			 0
 
@@ -781,17 +781,18 @@ typedef struct _EQMAILWINDOW {
 } EQMAILWINDOW, *PEQMAILWINDOW;
 
 
-// Actual Size 0x270 05-11-2005
+// Actual Size 0x2d4 12-07-2005
 typedef struct _EQMAPWINDOW {
 /*0x000*/ struct _CSIDLWND Wnd;
 /*0x15c*/ BYTE Unknown0x15c[0x24];
 /*0x180*/ CHAR shortzonename[0x20]; 
 /*0x1a0*/ BYTE Unknown0x1a0[0x8c];
-/*0x22c*/ PMAPLINE pLines;       
-/*0x230*/ PMAPLABEL pLabels;			
-/*0x234*/ BYTE Unknown0x234[0x34];
-/*0x268*/ DWORD ContentsCount;  //number of lines/labels on the map (I think)
-/*0x270*/
+/*0x22c*/ BYTE Unknown0x22c[0x60];
+/*0x28c*/ PMAPLINE pLines;       
+/*0x290*/ PMAPLABEL pLabels;			
+/*0x294*/ BYTE Unknown0x294[0x34];
+/*0x2c8*/ DWORD ContentsCount;  //number of lines/labels on the map (I think)
+/*0x2d4*/
 } EQMAPWINDOW, *PEQMAPWINDOW;
 
 // onetimehero 09-17-03

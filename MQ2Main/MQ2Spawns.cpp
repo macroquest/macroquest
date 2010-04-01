@@ -182,12 +182,12 @@ public:
 class CActorEx
 {
 public:
-	bool CanSetName(DWORD);
-	void SetNameColor(DWORD &Color);
+  bool CanSetName(DWORD);
+  void SetNameColor(DWORD &Color);
 };
 
-FUNCTION_AT_VIRTUAL_ADDRESS(bool CActorEx::CanSetName(DWORD),0x154);
-FUNCTION_AT_VIRTUAL_ADDRESS(void CActorEx::SetNameColor(DWORD &Color),0x144);
+FUNCTION_AT_VIRTUAL_ADDRESS(bool CActorEx::CanSetName(DWORD),0x16c);
+FUNCTION_AT_VIRTUAL_ADDRESS(void CActorEx::SetNameColor(DWORD &Color),0x15c);
 #endif
 
 typedef struct _CAPTIONCOLOR {
@@ -370,10 +370,8 @@ CAPTIONCOLOR CaptionColors[]=
 #ifndef ISXEQ_LEGACY
 VOID SetNameSpriteTint(PSPAWNINFO pSpawn)
 {
-	if (!pSpawn->pActorInfo || !pSpawn->pActorInfo->pActorEx || !gMQCaptions)
-		return;
+	if (!gMQCaptions) return;
 //	DebugSpew("SetNameSpriteTint(%s)",pSpawn->Name);
-	CActorEx *pActorEx=(CActorEx *)pSpawn->pActorInfo->pActorEx;
 	DWORD NewColor;
 	switch(GetSpawnType(pSpawn))
 	{
@@ -387,7 +385,7 @@ VOID SetNameSpriteTint(PSPAWNINFO pSpawn)
 #define CC_PCGroupColor     5
 #define CC_PCTrader		    6
 /**/
-		if (pSpawn->pActorInfo->Trader && CaptionColors[CC_PCTrader].Enabled)
+		if (pSpawn->Trader && CaptionColors[CC_PCTrader].Enabled)
 			NewColor=CaptionColors[CC_PCTrader].Color;
 		else if (CaptionColors[CC_PCGroupColor].Enabled && IsGroupMember(pSpawn))
 			NewColor=CaptionColors[CC_PCGroupColor].Color;
@@ -467,12 +465,12 @@ VOID SetNameSpriteTint(PSPAWNINFO pSpawn)
 		break;
 	}
 
-	DebugTry(pActorEx->SetNameColor(NewColor));
+	DebugTry(((CActorEx *)pSpawn->actor_vftable)->SetNameColor(NewColor));
 }
 
 BOOL SetNameSpriteState(PSPAWNINFO pSpawn, bool Show)
 {
-//	DebugSpew("SetNameSpriteState(%s) --race %d body %d)",pSpawn->Name,pSpawn->Race,pSpawn->BodyType);
+  	//DebugSpew("SetNameSpriteState(%s) --race %d body %d)",pSpawn->Name,pSpawn->Race,pSpawn->BodyType);
 	if (!Show)
 	{
 		((EQPlayerHook*)pSpawn)->SetNameSpriteState_Trampoline(Show);
@@ -496,9 +494,9 @@ BOOL SetNameSpriteState(PSPAWNINFO pSpawn, bool Show)
 		}
 		CHAR NewCaption[MAX_STRING]={0};
 
-		if (pSpawn->pActorInfo->pActorEx && !((CActorEx*)pSpawn->pActorInfo->pActorEx)->CanSetName(0))
+                if (!pSpawn->actor_vftable || !((CActorEx*)pSpawn->actor_vftable)->CanSetName(0))
 		{
-//			DebugSpew("CanSetName==0 - %s .. race %d body %d",pSpawn->Name,pSpawn->Race,pSpawn->BodyType);
+  			//DebugSpew("CanSetName==0 - %s .. race %d body %d",pSpawn->Name,pSpawn->Race,pSpawn->BodyType);
 			return 1;
 		};
 		

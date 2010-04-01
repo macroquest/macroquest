@@ -217,7 +217,7 @@ void AddGroundItem(PGROUNDITEM pGroundItem)
 
 	pFakeSpawn->HPCurrent = 1;
 	pFakeSpawn->HPMax = 1;
-	pFakeSpawn->pActorInfo = &EnviroActor;
+	//pFakeSpawn->pActorInfo = &EnviroActor;
 	pFakeSpawn->Heading=pGroundItem->Heading;
 	pFakeSpawn->Race = pGroundItem->DropID;
 
@@ -786,9 +786,6 @@ PCHAR GenerateSpawnName(PSPAWNINFO pSpawn, PCHAR NameString)
 BOOL CanDisplaySpawn(eSpawnType Type, PSPAWNINFO pSpawn)
 {
 	if (!pSpawn)
-		return FALSE;
-
-	if ( (Type == PC || Type == NPC) && (!pSpawn->pActorInfo) )
 		return FALSE;
 
 	if ((pSpawn==(PSPAWNINFO)pTarget) && IsOptionEnabled(MAPFILTER_Target))

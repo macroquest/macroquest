@@ -473,6 +473,7 @@ EQLIB_API bool GetBuffID(PSPELLBUFF pBuff, DWORD &nID);
 EQLIB_API PCHAR GetLDoNTheme(DWORD LDTheme);
 EQLIB_API bool BuffStackTest(PSPELL aSpell, PSPELL bSpell);
 EQLIB_API DWORD GetItemTimer(PCONTENTS pItem);
+EQLIB_API PCONTENTS GetItemContentsBySlotID(DWORD dwSlotID);
 
 /* MQ2DATAVARS */
 #ifndef ISXEQ
