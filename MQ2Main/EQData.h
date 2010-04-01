@@ -1063,8 +1063,7 @@ typedef struct _SPAWNINFO {
 /*0x0efc*/ DWORD    Animation;
 /*0x0f00*/ BYTE     Unknown0xf00[0x24];
 /*0x0f24*/ struct  _MODELINFO *Model[0x11];
-/*0x0f68*/ BYTE     Unknown0xf68[40];
-/*0x0fa8*/ CHAR     NameOfLastSuccessfulTargetHit[0x40];
+/*0x0f68*/ BYTE     Unknown0xf68[x80];
 /*0x0fe8*/ BYTE     InvitedToGroup;
 /*0x0fe9*/ BYTE     Unknown0xfe9[0x123];
 /*0x110c*/ void    *vtable2;
