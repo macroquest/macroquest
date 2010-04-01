@@ -3195,10 +3195,10 @@ bool MQ2ItemType::GETMEMBER()
 		}
 		return false;
 	case BuyPrice:
-		if (0 && pActiveMerchant)
+		if (pActiveMerchant && pItem->MerchantSlot)
 		{
-			//Dest.DWord=pItem->Price;
-			//Dest.Type=pIntType;
+			Dest.DWord=pItem->Price;
+			Dest.Type=pIntType;
 			return true;
 		}
 		return false;
@@ -3495,9 +3495,9 @@ bool MQ2ItemType::GETMEMBER()
             return true;
         }
 	case MerchQuantity:
-            if (0 && pActiveMerchant) {
-                //Dest.DWord=pItem->MerchantQuantity;
-                //Dest.Type=pIntType;
+            if (pActiveMerchant && pItem->MerchantSlot) {
+                Dest.DWord=pItem->MerchantQuantity;
+                Dest.Type=pIntType;
                 return true;
             }
             return false;

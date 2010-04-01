@@ -543,14 +543,14 @@ typedef struct _CONTENTS {
 /*0x00*/  void   *vtable;
 /*0x04*/  void   *punknown;
 /*0x08*/  struct _ITEMINFO *Item;
-/*0x0c*/  DWORD   Unknown0x0c;
-/*0x10*/  DWORD   Charges; // charges if positive; some things are neg
+/*0x0c*/  DWORD   Price;        // merchant price 
+/*0x10*/  DWORD   Charges;      // charges if positive; some things are neg
 /*0x14*/  DWORD   Unknown0x14; 
-/*0x18*/  DWORD   Unknonw0x18;
+/*0x18*/  DWORD   MerchantSlot; // slot id on a merchant 
 /*0x1c*/  DWORD   Unknown0x1c;
 /*0x20*/  DWORD   Unknown0x20;
 /*0x24*/  DWORD   Unknown0x24;
-/*0x28*/  DWORD   Unknown0x28;
+/*0x28*/  DWORD   MerchantQuantity; // amount that a merchant has for sale, -1 for unlimited
 /*0x2c*/  struct _CONTENTS *Contents[0x0a]; //addresses to whats inside the bag if its a bag; augs if an item
 /*0x54*/  DWORD   StackCount;
 /*0x58*/  DWORD   Unknown0x58;
@@ -1080,7 +1080,6 @@ typedef struct _SPAWNINFO {
 /*0x1224*/ struct  _SPAWNINFO *pSpawn;
 /*0x1228*/ BYTE     Levitate;
 /*0x1229*/ BYTE     Unknown0x122c[0x1b];
-/*0x1244*/
 /*0x1244*/
 } SPAWNINFO, *PSPAWNINFO;
 

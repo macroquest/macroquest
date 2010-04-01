@@ -94,7 +94,7 @@
 #define pinstCharData                                              0x966170
 #define pinstCharSpawn                                             0x966194
 #define pinstControlledMissile                                     0x96616C
-#define pinstControlledPlayer                                      0x0
+#define pinstControlledPlayer                                      0x966194
 #define pinstCSidlManager                                          0x9FE108
 #define pinstCXWndManager                                          0x9FE100
 #define pinstEQItemList                                            0x966154
@@ -424,9 +424,9 @@
 #define CMapViewWnd__CMapViewWnd                                   0x57EEC0
 
 // CMerchantWnd
-#define CMerchantWnd__DisplayBuyOrSellPrice                        0x580350 // or 0x580A80
+#define CMerchantWnd__DisplayBuyOrSellPrice                        0x580350
 #define CMerchantWnd__RequestBuyItem                               0x581990
-#define CMerchantWnd__RequestSellItem                              0x5805B0 // or 0x580820
+#define CMerchantWnd__RequestSellItem                              0x5805B0
 #define CMerchantWnd__SelectBuySellSlot                            0x581690
 
 // CSidlManager
@@ -530,7 +530,7 @@
 #define CXWnd__DrawColoredRect                                     0x61CA60
 #define CXWnd__DrawTooltip                                         0x620AE0
 #define CXWnd__DrawTooltipAtPoint                                  0x61FD00
-//#define CXWnd__GetBorderFrame                                      0x0
+#define CXWnd__GetBorderFrame                                      0x61CF00
 #define CXWnd__GetChildWndAt                                       0x61F800
 #define CXWnd__GetClientClipRect                                   0x61CE30
 #define CXWnd__GetFirstChildWnd                                    0x61C8A0

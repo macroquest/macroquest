@@ -1,3 +1,10 @@
+24 Mar 2006 by dkaa
+- Fix the container manager struct
+
+23 Mar 2006 by rswiders
+- Various cleanup from PoR patch
+- Access to the 8 new bank slots
+
 22 Mar 2006 by dkaa
 - Added a message box for plugin load failure
 

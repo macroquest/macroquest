@@ -147,11 +147,14 @@ DETOUR_TRAMPOLINE_EMPTY(VOID CDisplayHook::ReloadUI_Trampoline(BOOL));
 VOID InitializeDisplayHook()
 {
 #ifdef EQ_LoadingS__Array
-    char **ptr = (char **) EQ_LoadingS__Array;
-    int i;
+	if (gbMQ2LoadingMsg)
+	{
+    	char **ptr = (char **) EQ_LoadingS__Array;
+    	int i;
 
-    for (i=0;i<EQ_LoadingS__ArraySize;i++)
-        ptr[i] = OurCaption;
+    	for (i=0;i<EQ_LoadingS__ArraySize;i++)
+        	ptr[i] = OurCaption;
+	}
 #endif
 
 	DebugSpew("Initializing Display Hooks");

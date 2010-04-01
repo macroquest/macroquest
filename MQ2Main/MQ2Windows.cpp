@@ -220,7 +220,7 @@ void InitializeMQ2Windows()
 	sprintf(szOut,#name"%d",i+1);\
 		ItemSlotMap[szOut]=start+i;\
 	}
-	AddSlotArray(bank,16,2000);
+	AddSlotArray(bank,24,2000);
 	AddSlotArray(sharedbank,2,2500);
 	AddSlotArray(trade,8,3000);
 	AddSlotArray(world,10,4000);
