@@ -1352,9 +1352,9 @@ typedef struct _SPELL {
 /*0x134*/   BYTE    Unknown0x134[0x1c];
 /*0x150*/   BYTE    DurationWindow;     //0=Long, 1=Short
 /*0x151*/   BYTE    Unknown0x151[0x3];
-/*0x154*/   LONG    Base[0x0c];         //Base1-Base12
+/*0x154*/   LONG    Max[0x0c];         //Max1-Max12
 /*0x184*/   DWORD   Unknown0x184;
-/*0x188*/   LONG    Max[0x0c];          //Max1-Max12
+/*0x188*/   LONG    Base[0x0c];          //Base1-Base12
 /*0x1b8*/   BYTE    SpellType;          //0=detrimental, 1=Beneficial, 2=Beneficial, Group Only
 /*0x1b9*/   BYTE    Unknown0x1b9[0x3];
 /*0x1bc*/   DWORD   Unknown145;         //Unknown145 from lucy
