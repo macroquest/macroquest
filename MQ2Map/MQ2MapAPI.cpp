@@ -481,8 +481,8 @@ void MapUpdate()
 	{
 		for (unsigned long i = 0 ; i < 5 ; i++)
 		{
-			if (ppGroup[i])
-			if (pMapSpawn=SpawnMap[((PSPAWNINFO)ppGroup[i])->SpawnID])
+			if (pGroup->pMember[i])
+			if (pMapSpawn=SpawnMap[pGroup->pMember[i]->SpawnID])
 			{
 				pMapSpawn->pMapLabel->Color.ARGB=MapFilterOptions[MAPFILTER_Group].Color;
 			}
