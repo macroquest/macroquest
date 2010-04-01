@@ -3049,7 +3049,7 @@ bool MQ2SpellType::GETMEMBER()
 
 bool MQ2ItemType::GETMEMBER()
 {
-    DWORD N, cmp;
+    DWORD N, cmp, tmp;
 #define pItem ((PCONTENTS)VarPtr.Ptr)
 	if (!VarPtr.Ptr)
 		return false;
@@ -3580,10 +3580,21 @@ bool MQ2ItemType::GETMEMBER()
                     if (cmp&(1<<N))
                     {
                         Count--;
-                        if (Count==0)
-                        {
-                            Dest.DWord=N;
-                            Dest.Type=pClassType;
+                        if (Count==0) {
+                            
+                            Dest.DWord=N+1;
+                            switch (N) {
+                                case 12:
+                                    Dest.DWord = 128;   // IKS
+                                    break;
+                                case 13:
+                                    Dest.DWord = 130;   // VAH
+                                    break;
+                                case 14:
+                                    Dest.DWord = 330;   // FRG
+                                    break;
+                            }
+                            Dest.Type=pRaceType;
                             return true;
                         }
                     }
@@ -3595,8 +3606,20 @@ bool MQ2ItemType::GETMEMBER()
                 cmp=pItem->Item->Races;
                 for (N = 0 ; N < 15 ; N++) {
                     if (cmp&(1<<N)) {
-                        if (!stricmp(GETFIRST(), pEverQuest->GetRaceDesc(N))) {
-                                Dest.DWord=N;
+                        tmp = N+1;
+                        switch (N) {
+                            case 12:
+                                tmp = 128;   // IKS
+                                break;
+                            case 13:
+                                tmp = 130;   // VAH
+                                break;
+                            case 14:
+                                tmp = 330;   // FRG
+                                break;
+                        }
+                        if (!stricmp(GETFIRST(), pEverQuest->GetRaceDesc(tmp))) {
+                                Dest.DWord=tmp;
                                 Dest.Type=pRaceType;
                                 return true;
                         }
