@@ -134,7 +134,7 @@ public:
 		{
 			if (GenerateMQUI())
 			{
-				SetCXStr((PCXSTR*)&C,"MQUI.xml");
+				SetCXStr(&C->Ptr,"MQUI.xml");
 				int Ret=XMLRead_Trampoline(A,B,C);
 				DestroyMQUI();
 				return Ret;

@@ -109,7 +109,12 @@ class CScreenPieceTemplate *  CSidlManager::FindScreenPieceTemplate(char *str)
 }
 void  CComboWnd::InsertChoice(char *str)
 {
-    return CComboWnd::InsertChoice(&CXStr(str));
+    InsertChoice(&CXStr(str));
+}
+
+int  CListWnd::AddString(char *p1, unsigned long p2, unsigned __int32 p3, class CTextureAnimation const *p4)
+{
+    return AddString(&CXStr(p1), p2, p3, p4);
 }
 
 // MANUAL IMPORTS
@@ -7498,7 +7503,7 @@ FUNCTION_AT_ADDRESS(class CTextureAnimation const *  CListWnd::GetColumnAnimatio
 FUNCTION_AT_ADDRESS(int  CListWnd::AddLine(class SListWndLine const *),CListWnd__AddLine);
 #endif
 #ifdef CListWnd__AddString
-FUNCTION_AT_ADDRESS(int  CListWnd::AddString(class CXStr,unsigned long,unsigned __int32,class CTextureAnimation const *),CListWnd__AddString);
+FUNCTION_AT_ADDRESS(int  CListWnd::AddString(class CXStr *,unsigned long,unsigned __int32,class CTextureAnimation const *),CListWnd__AddString);
 #endif
 #ifdef CListWnd__RemoveString
 FUNCTION_AT_ADDRESS(void  CListWnd::RemoveString(int),CListWnd__RemoveString);

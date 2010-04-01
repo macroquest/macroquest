@@ -329,7 +329,7 @@ published by
 #define CListWnd__ClearAllSel                              0x584C00
 #define CListWnd__CloseAndUpdateEditWindow                 0x5859E0
 #define CListWnd__Compare                                  0x585D50
-#define CListWnd__Draw                                     0x586B30
+#define CListWnd__Draw                                     0x586C10
 #define CListWnd__DrawColumnSeparators                     0x586A90
 #define CListWnd__DrawHeader                               0x584DD0
 #define CListWnd__DrawItem                                 0x586460
@@ -450,7 +450,7 @@ published by
 #define CXMLDataManager__GetXMLData                        0x5ACD20
 
 // CXMLSOMDocumentBase
-#define CXMLSOMDocumentBase__XMLRead                       0x5971F0
+#define CXMLSOMDocumentBase__XMLRead                       0x59AC70
 
 // CXRect
 #define CXRect__CenterPoint                                0x40C571

@@ -1,3 +1,7 @@
+07 Jul 2005 by dkaa
+- prototypes for CListWnd::AddString changed (fixes mq2tracking)
+- rswiders change to XMLRead
+
 03 Jul 2005 by dkaa
 - prototypes for CSidlManager::FindScreenPieceTemplate and CComboWnd::InsertChoice changed
 
