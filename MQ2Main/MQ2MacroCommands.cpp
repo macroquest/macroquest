@@ -1165,7 +1165,7 @@ PCHAR GetFuncParam(PCHAR szMacroLine, DWORD ParamNum, PCHAR szParamName, PCHAR s
 		CHAR Temp[MAX_STRING]={0};
         GetArg(Temp,szSubParamNamePointer,ParamNum+1,TRUE,TRUE,TRUE,',');
 		DebugSpew("GetFuncParam(%d): '%s'",ParamNum+1,Temp);
-        if (Temp[strlen(Temp)-1]==')') 
+        if (*Temp && Temp[strlen(Temp)-1]==')') 
 			Temp[strlen(Temp)-1]=0;
 		PCHAR pStart=&Temp[0];
 		while(*pStart==' ') 

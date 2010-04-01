@@ -757,7 +757,8 @@ union {
 /* 0x1100 */   BYTE       Unknown0x1100[0x94];
 /* 0x1194 */   DWORD      Gender;
 /* 0x1198 */   DWORD      Race;
-/* 0x119c */   DWORD      Class;
+/* 0x119c */   BYTE       Class;
+/* 0x119d */   BYTE       Unknown0x119d[3];
 /* 0x11a0 */   DWORD      Unknown0x11a0;
 /* 0x11a4 */   DWORD      Level;
 /* 0x11a8 */   DWORD      Mana;
