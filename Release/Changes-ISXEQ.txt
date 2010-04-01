@@ -1,3 +1,9 @@
+16 March 2006 by Lax
+- Merged ISXEQPulse.cpp back into MQ2Pulse.cpp
+- MQ2's DoorTarget and ItemTarget TLOs are now available.  The only TLO that isnt converted
+  at this time is LineOfSight
+- NearestSpawn conversion (echoism)
+
 13 March 2006 by Lax
 - Fixed groupmember inheritance of spawn
 

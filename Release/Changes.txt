@@ -1,3 +1,14 @@
+22 Mar 2006 by dkaa
+- Added a message box for plugin load failure
+
+16 Mar 2006 by Lax
+- Various ISXEQ-related updates
+- Blech updated to fix Feed reentrancy issue (not a problem in MQ2 macros, but with
+  plugins it would have introduced crashes)
+
+14 Mar 2006 by dkaa
+- Added MacroQuest.Ping from ieatacid
+
 04 Mar 2006 by Lax
 - Various ISXEQ-related fixes.  Removed the &s from EzDetour to be consistent, and
   added the &s manually where required

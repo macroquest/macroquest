@@ -588,7 +588,6 @@
 // EQ_LoadingS
 #define EQ_LoadingS__SetProgressBar                                0x465BA0
 #define EQ_LoadingS__Array                                         0x6FDAC8
-#define EQ_LoadingS__ArraySize                                     0x0
 
 // EQ_PC
 #define EQ_PC__DestroyHeldItemOrMoney                              0x4DF600

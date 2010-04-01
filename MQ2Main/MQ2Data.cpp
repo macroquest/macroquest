@@ -558,52 +558,59 @@ TLO(dataLastSpawn)
 
 TLO(dataNearestSpawn)
 {
-#ifndef ISXEQ /* CONVERT */
-	if (ISINDEX())
-	{
-		PCHAR pSearch;
-		unsigned long nth;
-		SEARCHSPAWN ssSpawn;
-		ClearSearchSpawn(&ssSpawn);
-		ssSpawn.FRadius=999999.0f;
-		if (pSearch=strchr(szIndex,','))
-		{
-			*pSearch=0;
-			++pSearch;
-			ParseSearchSpawn(pSearch,&ssSpawn);
-			nth=GETNUMBER();
-		}
-		else
-		{
-			if (IsNumberToComma(szIndex))
-			{
-				nth=GETNUMBER();
-			}
-			else
-			{
-				nth=1;
-				ParseSearchSpawn(szIndex,&ssSpawn);
-			}
-		}
-
-		for (unsigned long N = 0 ; N < gSpawnCount ; N++)
-		{
-			if (EQP_DistArray[N].Value.Float>ssSpawn.FRadius)
-				return false;
-			if (SpawnMatchesSearch(&ssSpawn,(PSPAWNINFO)pCharSpawn,(PSPAWNINFO)EQP_DistArray[N].VarPtr.Ptr))
-			{
-				if (--nth==0)
-				{
-					Ret.Ptr=EQP_DistArray[N].VarPtr.Ptr;
-					Ret.Type=pSpawnType;
-					return true;
-				}
-			}
-		}
-	}
-	// No spawn
+   if (ISINDEX())
+   {
+      unsigned long nth;
+      SEARCHSPAWN ssSpawn;
+      ClearSearchSpawn(&ssSpawn);
+      ssSpawn.FRadius=999999.0f;
+#ifndef ISXEQ
+      PCHAR pSearch;
+      if (pSearch=strchr(szIndex,','))
+      {
+         *pSearch=0;
+         ++pSearch;
+         ParseSearchSpawn(pSearch,&ssSpawn);
+         nth=GETNUMBER();
+      }
+      else
+      {
+         if (IsNumberToComma(szIndex))
+         {
+            nth=GETNUMBER();
+         }
+         else
+         {
+            nth=1;
+            ParseSearchSpawn(szIndex,&ssSpawn);
+         }
+      }
+#else
+      if (!ISNUMBER()) {
+         nth=1;
+         ParseSearchSpawn(0,argc,argv,ssSpawn);
+      } else {
+         nth=GETNUMBER();
+         ParseSearchSpawn(1,argc,argv,ssSpawn);
+      }
 #endif
-	return false;
+      for (unsigned long N = 0 ; N < gSpawnCount ; N++)
+      {
+         if (EQP_DistArray[N].Value.Float>ssSpawn.FRadius)
+            return false;
+         if (SpawnMatchesSearch(&ssSpawn,(PSPAWNINFO)pCharSpawn,(PSPAWNINFO)EQP_DistArray[N].VarPtr.Ptr))
+         {
+            if (--nth==0)
+            {
+               Ret.Ptr=EQP_DistArray[N].VarPtr.Ptr;
+               Ret.Type=pSpawnType;
+               return true;
+            }
+         }
+      }
+   }
+   // No spawn
+   return false;
 }
 
 TLO(dataSpawnCount)
@@ -1320,24 +1327,20 @@ TLO(dataLineOfSight)
 
 TLO(dataDoorTarget)
 {
-#ifndef ISXEQ /* CONVERT */
 	if (Ret.Ptr=&DoorEnviroTarget)
 	{
 		Ret.Type=pSpawnType;
 		return true;
-        }
-#endif
-        return false;
+	}
+	return false;
 }
 
 TLO(dataItemTarget)
 {
-#ifndef ISXEQ /* CONVERT */
 	if (Ret.Ptr=&EnviroTarget)
 	{
 		Ret.Type=pSpawnType;
 		return true;
-        }
-#endif
-        return false;
+	}
+	return false;
 }

@@ -78,7 +78,10 @@ DWORD LoadMQ2Plugin(const PCHAR pszFilename)
 		return 0;
 	}
     if (mq2mainstamp > checkme((char*)hmod)) {
-        DebugSpew("Please recompile %s %d %d", FullFilename, mq2mainstamp, checkme((char*)hmod));
+        char tmpbuff[MAX_PATH];
+        sprintf(tmpbuff, "Please recompile %s -- it is out of date with respect to mq2main (%d>%d)", FullFilename, mq2mainstamp, checkme((char*)hmod));
+        DebugSpew(tmpbuff);
+        MessageBoxA(NULL, tmpbuff, "Plugin Load Failed", MB_OK);
         FreeLibrary(hmod);
         return 0;
     }

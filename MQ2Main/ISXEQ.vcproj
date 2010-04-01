@@ -95,9 +95,6 @@
 				RelativePath="ISXEQ\ISXEQDataTypes.cpp">
 			</File>
 			<File
-				RelativePath="ISXEQ\ISXEQPulse.cpp">
-			</File>
-			<File
 				RelativePath="ISXEQ\ISXEQServices.cpp">
 			</File>
 			<File
@@ -147,6 +144,9 @@
 				</File>
 				<File
 					RelativePath="MQ2Mouse.cpp">
+				</File>
+				<File
+					RelativePath="MQ2Pulse.cpp">
 				</File>
 				<File
 					RelativePath="MQ2Spawns.cpp">

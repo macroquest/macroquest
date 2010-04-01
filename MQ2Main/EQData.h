@@ -1611,5 +1611,6 @@ typedef struct connection_t {
 #define EQ_EMOTE                0x64d4  // CEverQuest__Emote
 #define EQ_BEGIN_ZONE           0x25a0  // CEverQuest__SavePCForce
 #define EQ_END_ZONE             0x2f40  // CEverQuest__DoMainLoop
+#define EQ_LoadingS__ArraySize  0x44    // EQ_LoadingS__SetProgressBar
 };
 using namespace EQData;

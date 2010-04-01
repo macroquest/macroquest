@@ -11,8 +11,6 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
     GNU General Public License for more details.
 ******************************************************************************/
-#ifndef ISXEQ
-
 #if !defined(CINTERFACE)
 #error /DCINTERFACE
 #endif
@@ -24,6 +22,7 @@
 #include "MQ2Main.h"
 BOOL TurnNotDone=FALSE;
 
+#ifndef ISXEQ
 BOOL DoNextCommand()
 {
     if (!ppCharSpawn || !pCharSpawn) return FALSE;
@@ -77,7 +76,7 @@ BOOL DoNextCommand()
     }
     return FALSE;
 }
-
+#endif
 
 void Pulse()
 {
@@ -279,13 +278,13 @@ void Heartbeat()
     // This accounts for rollover
     TickDiff += (Tick-LastGetTick);
     LastGetTick=Tick;
-
+#ifndef ISXEQ
     while (TickDiff>=100) {
         TickDiff-=100;
         if (gDelay>0) gDelay--;
 		DropTimers();
     }
-
+#endif
 	if (!gStringTableFixed && pStringTable) // Please dont remove the second condition
 	{
 		FixStringTable();
@@ -306,17 +305,21 @@ void Heartbeat()
 		return;
 	DebugTry(UpdateMQ2SpawnSort());
 #ifndef ISXEQ_LEGACY
+#ifndef ISXEQ
 	DebugTry(DrawHUD());
 	if (gGameState==GAMESTATE_INGAME && !bMouseLook && ScreenMode==3)
 	{
 		DebugTry(pWndMgr->DrawCursor());
 	}
 #endif
+#endif
 
     bRunNextCommand   = TRUE;
 	DebugTry(Pulse());
 #ifndef ISXEQ_LEGACY
+#ifndef ISXEQ
     DebugTry(Benchmark(bmPluginsPulse,DebugTry(PulsePlugins())));
+#endif
     if (pEQPlayNicePulse)  {
 			pEQPlayNicePulse();
     } else {
@@ -337,7 +340,7 @@ void Heartbeat()
 		CreateMQ2NewsWindow();
 	}
 
-
+#ifndef ISXEQ
 	DWORD CurTurbo=0;
 
 	if (gDelayedCommands)
@@ -353,6 +356,7 @@ void Heartbeat()
 		if (++CurTurbo>gMaxTurbo) break;//bRunNextCommand =   FALSE;
 	}
 	DoTimedCommands();
+#endif
 }
 
 #ifndef ISXEQ_LEGACY
@@ -364,6 +368,10 @@ BOOL Trampoline_ProcessGameEvents(VOID);
 BOOL Detour_ProcessGameEvents(VOID) 
 { 
 	Heartbeat();
+#ifdef ISXEQ
+	if (!pISInterface->ScriptEngineActive()) 
+		pISInterface->LavishScriptPulse();
+#endif
 	return Trampoline_ProcessGameEvents();
 }
 
@@ -405,5 +413,4 @@ void ShutdownMQ2Pulse()
 	RemoveDetour((DWORD)CEverQuest__EnterZone);
 	RemoveDetour((DWORD)CEverQuest__SetGameState);
 }
-#endif
 #endif

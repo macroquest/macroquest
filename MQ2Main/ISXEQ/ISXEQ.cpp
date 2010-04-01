@@ -73,6 +73,19 @@ extern void MQ2Shutdown();
 bool CISXEQ::Initialize(ISInterface *p_ISInterface)
 {
 	pISInterface=p_ISInterface;
+	
+	char CurrentModule[512]={0};
+	GetModuleFileName(0,CurrentModule,512);
+	char *filename;
+	if (filename=strrchr(CurrentModule,'\\'))
+		filename++;
+	else
+		filename=CurrentModule;
+	if (stricmp(CurrentModule,"eqgame.exe"))
+	{
+		printf("ISXEQ is only meant to be used in eqgame.exe");
+		return false;
+	}
 
 	// retrieve basic ISData types
 	pStringType=pISInterface->FindLSType("string");
@@ -376,12 +389,13 @@ VOID CISXEQ::HookMemChecker(BOOL Patch)
     }
 }
 
-extern void Heartbeat();
+//extern void Heartbeat();
 void __cdecl PulseService(bool Broadcast, unsigned long MSG, void *lpData)
 {
 	if (MSG==PULSE_PREFRAME)
 	{
 		// "OnPulse"
+		// Heartbeat is moved back into ProcessGameEvents, where MQ2's heartbeat is
 //		Heartbeat();
 	}
 }

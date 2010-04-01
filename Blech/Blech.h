@@ -1,7 +1,7 @@
 /*****************************************************************************
     Blech.h
 	Lax/Blech  
-    Copyright (C) 2004-2005 Lax
+    Copyright (C) 2004-2006 Lax
 
     This program is free software; you can redistribute it and/or modify
     it under the terms of the GNU General Public License, version 2, as published by
@@ -65,7 +65,7 @@ Using Blech:
 #pragma once
 #pragma warning(disable : 4996)
 
-#define BLECHVERSION "Lax/Blech 1.7.2"
+#define BLECHVERSION "Lax/Blech 1.7.3"
 
 #include <map>
 #include <string>
@@ -84,7 +84,7 @@ Using Blech:
 //#pragma message("Blech: Debug Mode")
 #include <windows.h>
 #define BLECHASSERT(x) if (!(x)) {BlechDebug("Blech Assertion failure: %s",#x); __asm{int 3};}
-static void BlechDebug(char *szFormat, ...)
+static void BlechDebug(const char *szFormat, ...)
 {
     char szOutput[4096] = {0};
     va_list vaList;
@@ -126,8 +126,8 @@ enum eBlechStringType
 
 
 typedef struct _BLECHVALUE {
-	char * Name;
-	char * Value;
+	char *Name;
+	char *Value;
 	struct _BLECHVALUE *pNext;
 } BLECHVALUE, *PBLECHVALUE;
 
@@ -137,13 +137,13 @@ typedef struct _BLECHLISTNODE {
 } BLECHLISTNODE, *PBLECHLISTNODE;
 
 
-typedef unsigned long   (__stdcall *fBlechVariableValue)(char * VarName, char * Value);
+typedef unsigned long   (__stdcall *fBlechVariableValue)(char *VarName, char *Value);
 typedef void (__stdcall *fBlechCallback)(unsigned long ID, void * pData, PBLECHVALUE pValues);
 
 typedef struct _BLECHEVENT {
 	unsigned long ID;
 	void * pData;
-	char * OriginalString;
+	const char *OriginalString;
 	fBlechCallback Callback;
 
 	class BlechNode *pBlechNode;
@@ -167,10 +167,10 @@ typedef struct _BLECHEVENTNODE {
 	struct _BLECHEVENTNODE *pPrev;
 } BLECHEVENTNODE, *PBLECHEVENTNODE;
 
-static unsigned long Equalness(char *StringA, char *StringB)
+static unsigned long Equalness(const char *StringA, const char *StringB)
 {
 	BlechDebugFull("Equalness(%s,%s)",StringA,StringB);
-	char *pPos=StringA;
+	const char *pPos=StringA;
 	while(1)
 	{
 		if (*pPos!=*StringB)
@@ -216,7 +216,7 @@ static unsigned long Equalness(char *StringA, char *StringB)
 class BlechNode
 {
 public:
-	BlechNode(BlechNode *Parent, BlechNode **Root, char * String, eBlechStringType NewStringType=BST_NORMAL)
+	BlechNode(BlechNode *Parent, BlechNode **Root, const char *String, eBlechStringType NewStringType=BST_NORMAL)
 	{
 		BlechDebug("BlechNode(%X,%X,%s,%d)",Parent,Root,String,NewStringType);
 		BLECHASSERT(String && *String);
@@ -274,7 +274,7 @@ public:
 		free(pString);
 	}
 
-	BlechNode *AddChild(char *NewString, eBlechStringType NewStringType)
+	BlechNode *AddChild(const char *NewString, eBlechStringType NewStringType)
 	{
 		BlechDebug("AddChild(%s,%d)",NewString,NewStringType);
 		BLECHASSERT(NewString);
@@ -389,7 +389,7 @@ public:
 	}
 
 	eBlechStringType StringType;
-	char * pString;
+	char *pString;
 	unsigned long Length;
 	BlechNode *pParent;
 	BlechNode **ppRoot;
@@ -422,7 +422,8 @@ public:
 		Initialize();
 	}
 
-	static char *stristr(char *haystack,char *needle)
+
+	static const char *stristr(const char *haystack,const char *needle)
 	{
 		BlechDebugFull("stristr(%s,%s)",haystack,needle);
 		BLECHASSERT(haystack!=0);
@@ -444,7 +445,7 @@ public:
 			}
 		}
 
-		char *originalneedle=needle;
+		const char *originalneedle=needle;
 		do
 		{
 			char c=*haystack;
@@ -452,7 +453,7 @@ public:
 				return 0;
 			if (ToUpper[c]==ToUpper[*needle])
 			{
-				char *start=haystack;
+				const char *start=haystack;
 				do
 				{
 					needle++;
@@ -500,12 +501,13 @@ public:
 		Cleanup();
 	}
 
-	unsigned long Feed(char * Input)
+	unsigned long Feed(const char *Input)
 	{
 		BlechDebug("Feed(%s)",Input);
 		if (!Input || !Input[0])
 			return 0;
 		unsigned long Root=(unsigned char)Input[0];
+
 #ifndef BLECH_CASE_SENSITIVE
 				if (Root>='a' && Root<='z')
 					Root-=32;
@@ -513,20 +515,20 @@ public:
 		return Chew(Tree[Root],Input)+Chew(Tree[0],Input)/*+Swallow(Input)/**/;
 	}
 
-	inline bool IsExact(char *Text)
+	inline bool IsExact(const char *Text)
 	{
 		if (!strchr(Text,ScanVarDelimiter) && (!PrintVarDelimiter || !strchr(Text,PrintVarDelimiter)))
 			return true;
 		return false;
 	}
 
-	unsigned long AddEvent(char *Text,fBlechCallback Callback,void *pData=0)
+	unsigned long AddEvent(const char *Text,fBlechCallback Callback,void *pData=0)
 	{
 		BlechDebug("AddEvent(%s,%X,%X)",Text,Callback,pData);
 		BLECHASSERT(Text);
 		BLECHASSERT(Callback);
-		char *pText=Text;
-		char *Part=Text;
+		const char *pText=Text;
+		const char *Part=Text;
 		eBlechStringType StringType=BST_NORMAL;
 		BlechNode *pNode=0;
 		while(*pText)
@@ -579,7 +581,7 @@ public:
 			return false;
 		Event.erase(ID);
 		{
-			free(pEvent->OriginalString);
+			free((void*)pEvent->OriginalString);
 			
 
 			BlechNode *pNode=pEvent->pBlechNode;
@@ -629,8 +631,10 @@ private:
 		delete pExecute;
 	}
 
-	void ClearExecutionList()
+	void ClearExecutionList(PBLECHEXECUTE *ppExecuteList)
 	{
+		PBLECHEXECUTE pExecuteList=*ppExecuteList;
+		*ppExecuteList=0;
 		while(pExecuteList)
 		{
 			PBLECHEXECUTE pExecuteNext=pExecuteList->pNext;
@@ -639,9 +643,11 @@ private:
 		}
 	}
 
-	unsigned long ProcessExecutionList()
+	unsigned long ProcessExecutionList(PBLECHEXECUTE *ppExecuteList)
 	{
 		unsigned long n=0;
+		PBLECHEXECUTE pExecuteList=*ppExecuteList;
+		*ppExecuteList=0;
 		while(pExecuteList)
 		{
 			n++;
@@ -665,16 +671,15 @@ private:
 			if (PBLECHEVENT pEvent=i->second)
 			{
 				BLECHASSERT(pEvent);
-				BlechTry(free(pEvent->OriginalString));
+				BlechTry(free((void*)pEvent->OriginalString));
 				delete pEvent;
-				Event[i->first]=0;
 			}
 		}
-		ClearExecutionList();
+		Event.clear();
 	}
 
 
-	void QueueEvent(PBLECHEVENT pEvent, PBLECHVALUE pValues)
+	void QueueEvent(PBLECHEXECUTE *ppExecuteList,PBLECHEVENT pEvent, PBLECHVALUE pValues)
 	{
 		BlechDebug("QueueEvent(%X,%X)",pEvent,pValues);
 		BLECHASSERT(pEvent);
@@ -710,11 +715,11 @@ private:
 		else
 			pNew->pValues=0;
 
-		pNew->pNext=pExecuteList;
-		pExecuteList=pNew;
+		pNew->pNext=*ppExecuteList;
+		*ppExecuteList=pNew;
 	}
 
-	void QueueEvents(BlechNode *pNode, char *Input, unsigned long InputLength)
+	void QueueEvents(PBLECHEXECUTE *ppExecuteList,BlechNode *pNode, const char *Input, unsigned long InputLength)
 	{
 		PBLECHEVENTNODE pEventNode;
 		BlechDebug("QueueEvents(%X,%s,%d)",pNode,Input,InputLength);
@@ -754,7 +759,7 @@ private:
 				PBLECHEVENTNODE pEventNode=pNode->pEvents;
 				while(pEventNode)
 				{
-					QueueEvent(pEventNode->pEvent,0);
+					QueueEvent(ppExecuteList,pEventNode->pEvent,0);
 					pEventNode=pEventNode->pNext;
 				}
 			}
@@ -774,7 +779,7 @@ private:
 		char NonVariable[16384];
 		char VarData[4096];
 		NonVariable[0]=0;
-		char *Pos=Input;
+		const char *Pos=Input;
 
 		PBLECHVALUE pValues=0;
 		PBLECHVALUE pValuesTail=0;
@@ -798,7 +803,7 @@ private:
 				{
 					if (NonVariable[0])
 					{
-						char *End=STRFIND(Pos,NonVariable);
+						const char *End=STRFIND(Pos,NonVariable);
 						if (End)
 						{
 							PBLECHVALUE pNewValue = new BLECHVALUE;
@@ -873,7 +878,7 @@ private:
 		{
 			if (NonVariable[0])
 			{
-				char *End=&Input[InputLength]-strlen(NonVariable);
+				const char *End=&Input[InputLength]-strlen(NonVariable);
 				unsigned long Length=End-Pos;
 				if (STRCMP(&Pos[Length],NonVariable))
 				{
@@ -932,7 +937,7 @@ private:
 		pEventNode=pNode->pEvents;
 		while(pEventNode)
 		{
-			QueueEvent(pEventNode->pEvent,pValues);
+			QueueEvent(ppExecuteList,pEventNode->pEvent,pValues);
 			pEventNode=pEventNode->pNext;
 		}
 
@@ -957,18 +962,19 @@ queueeventscleanup:
 
 	struct MatchPos
 	{
-		char *Pos;
+		const char *Pos;
 		BlechNode *pNode;
 	};
 
-	unsigned long Chew(BlechNode *pNode,char * Input)
+	unsigned long Chew(BlechNode *pNode,const char *Input)
 	{
 		BlechDebug("Chew(%X,%s)",pNode,Input);
 		BLECHASSERT(Input);
 		if (!pNode)
 			return 0;
+		PBLECHEXECUTE pExecuteList=0;
 		unsigned long Length=(unsigned long)strlen(Input);
-		char *pEnd=&Input[Length];
+		const char *pEnd=&Input[Length];
 		char VarData[4096];
 		
 #define Push() {	BLECHASSERT(PLP<99) CurrentPos.pNode=pNode;MatchStack[PLP]=CurrentPos;	PLP++;	}
@@ -997,7 +1003,7 @@ queueeventscleanup:
 					BlechDebugFull("BST_NORMAL");
 					if (CurrentPos.Pos+pNode->Length<pEnd)
 					{
-						if (char *pFound=STRFIND(CurrentPos.Pos,pNode->pString))
+						if (const char *pFound=STRFIND(CurrentPos.Pos,pNode->pString))
 						{ // what if we find this multiple times? need to find the right one, depending on the children
 							CurrentPos.Pos=&pFound[pNode->Length];
 							if (!CurrentPos.Pos[0])
@@ -1037,7 +1043,7 @@ queueeventscleanup:
 					BLECHASSERT(VarData[0]);
 					if (CurrentPos.Pos+pNode->Length<pEnd)
 					{
-							if (char *pFound=STRFIND(CurrentPos.Pos,VarData))
+							if (const char *pFound=STRFIND(CurrentPos.Pos,VarData))
 							{ // what if we find this multiple times? need to find the right one, depending on the children
 								CurrentPos.Pos=&pFound[pNode->Length];
 								if (!CurrentPos.Pos[0])
@@ -1073,7 +1079,7 @@ queueeventscleanup:
 feedermatchdoevents:
 			{
 				BlechDebug("feedermatchdoevents");
-				QueueEvents(pNode,Input,Length);
+				QueueEvents(&pExecuteList,pNode,Input,Length);
 			}
 feedermatchnoevent:
 			{
@@ -1163,8 +1169,7 @@ feedernomatch:
 		}
 chewcomplete:
 		// execute any queued events
-		unsigned long Count=ProcessExecutionList();
-
+		unsigned long Count=ProcessExecutionList(&pExecuteList);
 		BlechDebug("Chew returns %d",Count);
 		return Count;
 #undef Push
@@ -1172,7 +1177,7 @@ chewcomplete:
 #undef Peek
 	}
 
-	BlechNode *AddNode(unsigned long nRoot, char *String, eBlechStringType StringType)
+	BlechNode *AddNode(unsigned long nRoot, const char *String, eBlechStringType StringType)
 	{
 		BlechDebug("AddNode(%d,%s,%d)",nRoot,String,StringType);
 		BLECHASSERT(nRoot<256);
@@ -1271,7 +1276,7 @@ chewcomplete:
 		return pNode;
 	}
 
-	BlechNode *AddNode(BlechNode *pNode, char *StringBegin, char *StringEnd, eBlechStringType StringType)
+	BlechNode *AddNode(BlechNode *pNode, const char *StringBegin, const char *StringEnd, eBlechStringType StringType)
 	{
 		BlechDebug("AddNode(%X,%s,%X,%d)",pNode,StringBegin,StringEnd,StringType);
 		BLECHASSERT(StringBegin && *StringBegin);
@@ -1320,7 +1325,6 @@ chewcomplete:
 		strcpy(Version,BLECHVERSION); // store version string always
 		BlechDebug(Version);
 		LastID=0;
-		pExecuteList=0;
 		for (unsigned long N = 0 ; N < 256 ; N++)
 		{
 			Tree[N]=0;
@@ -1339,7 +1343,6 @@ chewcomplete:
 	char ScanVarDelimiter;
 
 	fBlechVariableValue VariableValue;
-	PBLECHEXECUTE pExecuteList;
 };
 
 
