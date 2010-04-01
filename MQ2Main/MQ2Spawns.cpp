@@ -465,8 +465,10 @@ VOID SetNameSpriteTint(PSPAWNINFO pSpawn)
 			return;
 		}
 		break;
+	case OBJECT:
+		((EQPlayerHook*)pSpawn)->SetNameSpriteTint_Trampoline();
+		return;
 	}
-
 	DebugTry(((CActorEx *)pSpawn->pcactorex)->SetNameColor(NewColor));
 }
 

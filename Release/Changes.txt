@@ -1,3 +1,6 @@
+31 October 2006 by ieatacid
+- Fix for Halloween crash
+
 25 October 2006 by ieatacid, rswiders
 - Updated for today's patch
 

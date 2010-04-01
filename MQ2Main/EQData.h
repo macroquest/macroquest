@@ -1123,8 +1123,9 @@ typedef struct _SPAWNINFO {
 /*0x0f48*/ BYTE     Unknown0xf48[0x70];
 /*0x0fb8*/ DWORD    Animation;
 /*0x0fbc*/ BYTE     Unknown0xfb8[0xd0];
-/*0x108c*/ struct   _MODELINFO *Model[0x11];
-/*0x10d0*/ BYTE     Unknown0x10d0[0x38];
+/*0x108c*/ struct   _MODELINFO *Model[0xe]; // this is wrong dkaa 10/21/06
+/*0x10c4*/ DWORD    HideCorpse;
+/*0x10c8*/ BYTE     Unknown0x10c8[0x40];
 /*0x1108*/ BYTE     InvitedToGroup;
 /*0x1109*/ BYTE     Unknown0x1109[0x1db];
 /*0x12e4*/ void     *vtable2;
