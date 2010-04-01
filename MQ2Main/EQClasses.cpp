@@ -7012,7 +7012,7 @@ FUNCTION_AT_ADDRESS( int CSidlScreenWnd::WndNotification(class CXWnd *,unsigned 
 FUNCTION_AT_ADDRESS( CSidlScreenWnd::CSidlScreenWnd(class CXWnd *,unsigned __int32,class CXRect,class CXStr),CSidlScreenWnd__CSidlScreenWnd);
 #endif
 #ifdef CSidlScreenWnd__CSidlScreenWnd1
-FUNCTION_AT_ADDRESS( CSidlScreenWnd::CSidlScreenWnd(class CXWnd *x,class CXStr,int,int,char *),CSidlScreenWnd__CSidlScreenWnd1);
+FUNCTION_AT_ADDRESS( CSidlScreenWnd::CSidlScreenWnd(class CXWnd *x,class CXStr*,int,int,char *),CSidlScreenWnd__CSidlScreenWnd1);
 #endif
 #ifdef CSidlScreenWnd__CSidlScreenWnd2
 FUNCTION_AT_ADDRESS( CSidlScreenWnd::CSidlScreenWnd(class CXWnd *x,class CXStr),CSidlScreenWnd__CSidlScreenWnd2);
@@ -7021,7 +7021,7 @@ FUNCTION_AT_ADDRESS( CSidlScreenWnd::CSidlScreenWnd(class CXWnd *x,class CXStr),
 FUNCTION_AT_ADDRESS(void  CSidlScreenWnd::Init(class CXWnd *,unsigned __int32,class CXRect,class CXStr,int,char *),CSidlScreenWnd__Init);
 #endif
 #ifdef CSidlScreenWnd__Init1
-FUNCTION_AT_ADDRESS(void  CSidlScreenWnd::Init(class CXWnd *,class CXStr,int,char *),CSidlScreenWnd__Init1);
+FUNCTION_AT_ADDRESS(void  CSidlScreenWnd::Init(class CXWnd *,class CXStr*,int,char *),CSidlScreenWnd__Init1);
 #endif
 #ifdef CSidlScreenWnd__SetScreen
 FUNCTION_AT_ADDRESS(void  CSidlScreenWnd::SetScreen(class CXStr*),CSidlScreenWnd__SetScreen);
@@ -7039,7 +7039,7 @@ FUNCTION_AT_ADDRESS(void  CSidlScreenWnd::CalculateHSBRange(void),CSidlScreenWnd
 FUNCTION_AT_ADDRESS(int  CSidlScreenWnd::DrawSidlPiece(class CScreenPieceTemplate *,class CXRect,class CXRect)const ,CSidlScreenWnd__DrawSidlPiece);
 #endif
 #ifdef CSidlScreenWnd__GetSidlPiece
-FUNCTION_AT_ADDRESS(class CScreenPieceTemplate *  CSidlScreenWnd::GetSidlPiece(class CXStr)const ,CSidlScreenWnd__GetSidlPiece);
+FUNCTION_AT_ADDRESS(class CScreenPieceTemplate *  CSidlScreenWnd::GetSidlPiece(class CXStr*)const ,CSidlScreenWnd__GetSidlPiece);
 #endif
 #ifdef CSidlScreenWnd__GetSidlPieceRect
 FUNCTION_AT_ADDRESS(class CXRect  CSidlScreenWnd::GetSidlPieceRect(class CScreenPieceTemplate *,class CXRect)const ,CSidlScreenWnd__GetSidlPieceRect);
@@ -8515,7 +8515,7 @@ FUNCTION_AT_ADDRESS(int  CTextureFont::GetHeight(void)const ,CTextureFont__GetHe
 FUNCTION_AT_ADDRESS(class CXStr  CTextureFont::GetName(void)const ,CTextureFont__GetName);
 #endif
 #ifdef CTextureFont__DrawWrappedText
-FUNCTION_AT_ADDRESS(int  CTextureFont::DrawWrappedText(class CXStr,int,int,int,class CXRect,unsigned long,unsigned short,int)const ,CTextureFont__DrawWrappedText);
+FUNCTION_AT_ADDRESS(int  CTextureFont::DrawWrappedText(class CXStr *,int,int,int,class CXRect *,unsigned long,unsigned short,int)const ,CTextureFont__DrawWrappedText);
 #endif
 #ifdef CTextureFont__DrawWrappedText1
 FUNCTION_AT_ADDRESS(int  CTextureFont::DrawWrappedText(class CXStr,class CXRect,class CXRect,unsigned long,unsigned short,int)const ,CTextureFont__DrawWrappedText1);

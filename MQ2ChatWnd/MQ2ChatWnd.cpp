@@ -28,7 +28,7 @@ VOID DoMQ2ChatBind(PCHAR Name,BOOL Down);
 class CMQChatWnd : public CCustomWnd
 {
 public:
-	CMQChatWnd():CCustomWnd("ChatWindow")
+	CMQChatWnd(CXStr *Template):CCustomWnd(Template)
 	{
 		DebugSpew("CMQChatWnd()");
 		SetWndNotification(CMQChatWnd);
@@ -356,7 +356,8 @@ void CreateChatWindow()
 	DebugSpew("MQ2ChatWnd::CreateChatWindow()");
 	if (MQChatWnd)
 		return;
-	MQChatWnd = new CMQChatWnd();
+	class CXStr ChatWnd("ChatWindow");
+	MQChatWnd = new CMQChatWnd(&ChatWnd);
 	if (!MQChatWnd)
 		return;
 	LoadChatFromINI((PCSIDLWND)MQChatWnd);

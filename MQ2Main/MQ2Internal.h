@@ -354,7 +354,7 @@ private:
 class CCustomWnd : public CSidlScreenWnd
 {
 public:
-	CCustomWnd(const char *screenpiece):CSidlScreenWnd(0,(char*)screenpiece,-1,1,0)
+	CCustomWnd(CXStr *screenpiece):CSidlScreenWnd(0,(CXStr *)screenpiece,-1,1,0)
 	{
 		CreateChildrenFromSidl();
 		pXWnd()->Show(1,1);
@@ -468,8 +468,9 @@ public:
 	// gets the next unused index, resizing if necessary
 	inline unsigned long GetUnused()
 	{
+                unsigned long i;
 		CAutoLock L(&CS);
-		for (unsigned long i = 0 ; i < Size ; i++)
+		for (i = 0 ; i < Size ; i++)
 		{
 			if (!List[i])
 				return i;
@@ -563,7 +564,7 @@ public:
 		pInherits=0;
 	}
 
-	inline InitializeMembers(PMQ2TYPEMEMBER MemberArray)
+	inline void InitializeMembers(PMQ2TYPEMEMBER MemberArray)
 	{
 		for (unsigned long i = 0 ; MemberArray[i].ID ; i++)
 		{

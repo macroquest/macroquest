@@ -752,7 +752,6 @@ CFacePick **ppFacePick=(CFacePick**)pinstCFacePick;
 CInvSlotMgr **ppInvSlotMgr=(CInvSlotMgr**)pinstCInvSlotMgr;
 //CPopupWndManager **ppPopupWndManager=(CPopupWndManager**)pinstCPopupWndManager;
 CNoteWnd **ppNoteWnd=(CNoteWnd**)pinstCNoteWnd;
-CHelpWnd **ppHelpWnd=(CHelpWnd**)pinstCHelpWnd;
 CTipWnd **ppTipWndOFDAY=(CTipWnd**)pinstCTipWndOFDAY;
 CTipWnd **ppTipWndCONTEXT=(CTipWnd**)pinstCTipWndCONTEXT;
 CBookWnd **ppBookWnd=(CBookWnd**)pinstCBookWnd;

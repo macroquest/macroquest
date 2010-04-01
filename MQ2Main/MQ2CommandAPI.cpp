@@ -496,6 +496,7 @@ BOOL RemoveSubstitute(PCHAR Original)
 
 void InitializeMQ2Commands()
 {
+        int i;
 	DebugSpew("Initializing Commands");
 	InitializeCriticalSection(&gCommandCS);
 
@@ -503,7 +504,7 @@ void InitializeMQ2Commands()
 
 	// Import EQ commands
     PCMDLIST pCmdListOrig = (PCMDLIST)EQADDR_CMDLIST;
-    for (int i=0;pCmdListOrig[i].fAddress != 0;i++) {
+    for (i=0;pCmdListOrig[i].fAddress != 0;i++) {
         if (!strcmp(pCmdListOrig[i].szName,"/who")) {
             cmdWho  = (fEQCommand)pCmdListOrig[i].fAddress;
 			AddCommand("/",pCmdListOrig[i].fAddress,TRUE,1,1); // make sure / does EQ who by default

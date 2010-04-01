@@ -22,9 +22,11 @@
 #define _WIN32_WINNT 0x510
 #define DIRECTINPUT_VERSION 0x800
 
+
 // uncomment this line to turn off the single-line benchmark macro
 // #define DISABLE_BENCHMARKS
 
+#pragma warning(disable:4530)
 #pragma warning(disable:4786)
 
 // Windows Header Files:
@@ -50,7 +52,10 @@ using namespace std;
 #ifndef MQ2PLUGIN
 #include "ISXEQ\ISXEQ.h"
 #else
+#pragma pack(push)
+#pragma pack(4)
 #include <isxdk.h>
+#pragma pack(pop)
 #include "ISXEQ\ISXEQServices.h"
 #endif
 #define PMQ2TYPEMEMBER PLSTYPEMEMBER
@@ -140,12 +145,12 @@ extern DWORD CountFrees;
 
 #define SetWndNotification(thisclass) \
 {\
-	int (thisclass::*pfWndNotification)(CXWnd *pWnd, unsigned int Message, void *unknown)=WndNotification;\
+	int (thisclass::*pfWndNotification)(CXWnd *pWnd, unsigned int Message, void *unknown)=&thisclass::WndNotification;\
 	SetvfTable(32,*(DWORD*)&pfWndNotification);\
 }
 
 #ifndef ISXEQ
-#define EzDetour(offset,detour,trampoline) AddDetourf((DWORD)offset,detour,trampoline)
+#define EzDetour(offset,detour,trampoline) AddDetourf((DWORD)offset,&detour,&trampoline)
 #endif
 
 #ifndef DOUBLE

@@ -2080,6 +2080,7 @@ public:
 		ShamanType=8,
 		ClericType=9,
 		PetClass=10,
+		HealerType=11,
 	};
 	MQ2ClassType():MQ2Type("class")
 	{
@@ -2093,6 +2094,7 @@ public:
 		TypeMember(ShamanType);
 		TypeMember(ClericType);
 		TypeMember(PetClass);
+		TypeMember(HealerType);
 	}
 
 	~MQ2ClassType()

@@ -234,7 +234,7 @@ static inline BOOL IsRaidMember(PSPAWNINFO pSpawn)
 
 static inline BOOL IsGroupMember(PSPAWNINFO pSpawn)
 {
-	for (DWORD N = 0 ; N < 6 ; N++)
+	for (DWORD N = 0 ; N < 5 ; N++)
 	{
 		if (pSpawn==(PSPAWNINFO)pGroup->pMember[N])
 			return 1;

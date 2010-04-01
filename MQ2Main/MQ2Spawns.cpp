@@ -72,7 +72,7 @@ public:
 	VOID EQItemList_Trampoline();
 	VOID EQItemList_Detour()
 	{
-		VOID (EQItemListHook::*tmp)(void) = EQItemList_Trampoline; 
+		VOID (EQItemListHook::*tmp)(void) = &EQItemListHook::EQItemList_Trampoline; 
 		__asm {
 			call [tmp];
 			push eax;
@@ -94,7 +94,7 @@ public:
 	void dEQItemList_Trampoline();
 	void dEQItemList_Detour()
 	{
-		void (EQItemListHook::*tmp)(void) = dEQItemList_Trampoline;
+		void (EQItemListHook::*tmp)(void) = &EQItemListHook::dEQItemList_Trampoline;
 		__asm {
 			push ecx;
 			push ecx;
@@ -148,7 +148,7 @@ public:
 	void dEQPlayer_Trampoline(void);
 	void dEQPlayer_Detour(void)
 	{
-		void (EQPlayerHook::*tmp)(void) = dEQPlayer_Trampoline; 
+		void (EQPlayerHook::*tmp)(void) = &EQPlayerHook::dEQPlayer_Trampoline; 
 		__asm {
 			push ecx;
 			push ecx;

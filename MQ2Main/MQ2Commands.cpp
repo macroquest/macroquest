@@ -382,14 +382,16 @@ VOID CharInfo(PSPAWNINFO pChar, PCHAR szLine)
 }
 
 
-VOID UpdateItemInfo(PSPAWNINFO pChar, PCHAR szLine) {
+VOID UpdateItemInfo(PSPAWNINFO pChar, PCHAR szLine) 
+{
    CHAR szBuffer[MAX_STRING] = {0};
    PCONTENTS pContainer = NULL;
+   int nInvIdx;
 
    PCHARINFO pCharInfo = NULL;
    if (NULL == (pCharInfo = GetCharInfo())) return;
 
-   for (int nInvIdx=0; nInvIdx < 30; nInvIdx++) {
+   for (nInvIdx=0; nInvIdx < 30; nInvIdx++) {
       if (pCharInfo->InventoryArray[nInvIdx] != NULL) {
          BOOL Found = FALSE;
          PITEMDB ItemDB = gItemDB;

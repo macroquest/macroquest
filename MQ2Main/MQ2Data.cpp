@@ -261,12 +261,16 @@ TLO(dataInt)
 
 TLO(dataString)
 {
+	WriteChatf("Due to complete misuse of the String Top-Level Object, it has been removed.");
+	return false;
+	/*
 	if (!ISINDEX())
 		return false;
 	strcpy(DataTypeTemp,szIndex);
 	Ret.Ptr=&DataTypeTemp[0];
 	Ret.Type=pStringType;
 	return true;
+	/**/
 }
 
 TLO(dataFloat)

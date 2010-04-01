@@ -81,7 +81,7 @@ extern VOID StrReplaceSection(PCHAR szInsert,DWORD Length,PCHAR szNewString);
 bool ExecuteISCommand(char *Command, char *Parameters=0)
 {
 	char Temp[4096]={0};
-	if (!pISInterface->IsAlias(Command) && !pISInterface->ResolveCommand(Command,Temp,sizeof(Temp)))
+	if (!strchr(Command,':') && !pISInterface->IsAlias(Command) && !pISInterface->ResolveCommand(Command,Temp,sizeof(Temp)))
 	{
 		return false;
 	}

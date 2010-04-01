@@ -27,7 +27,7 @@
 				OptimizeForProcessor="0"
 				OptimizeForWindowsApplication="FALSE"
 				AdditionalIncludeDirectories="..\PerlCore\inc"
-				PreprocessorDefinitions="EQLIB_EXPORTS;CINTERFACE"
+				PreprocessorDefinitions="EQLIB_EXPORTS;CINTERFACE;PRIVATE"
 				StringPooling="TRUE"
 				ExceptionHandling="TRUE"
 				BasicRuntimeChecks="0"

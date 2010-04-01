@@ -63,6 +63,7 @@ Using Blech:
 ******************************************************************************/
 
 #pragma once
+#pragma warning(disable : 4996)
 
 #define BLECHVERSION "Lax/Blech 1.7.1"
 

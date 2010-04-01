@@ -118,8 +118,7 @@ VOID DrawHUDText(PCHAR Text, DWORD X, DWORD Y, DWORD Argb)
 	{
 		pFont=(CTextureFont*)ppDWord[2];
 	}
-
-	pFont->DrawWrappedText(Text,X,Y,sX-X,CXRect(X,Y,sX,sY),Argb,1,0);
+	pFont->DrawWrappedText(&CXStr((char*)Text),X,Y,sX-X,&CXRect(X,Y,sX,sY),Argb,1,0);
 }
 #endif
 

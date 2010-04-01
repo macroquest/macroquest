@@ -54,7 +54,7 @@ void ircout(char *text);
 class CIRCWnd : public CCustomWnd 
 { 
 public: 
-   CIRCWnd():CCustomWnd("ChatWindow") 
+   CIRCWnd(CXStr *Template):CCustomWnd(Template) 
    { 
       SetWndNotification(CIRCWnd); 
       StmlOut = (CStmlWnd *)GetChildItem("CWChatOutput"); 
@@ -884,7 +884,8 @@ PLUGIN_API VOID SetGameState(DWORD GameState)
    { 
       //if (pSidlMgr->FindScreenPieceTemplate("ChatWindow")) 
       if(!strcmp(UseWnd,"Yes")) { 
-         MyWnd=new CIRCWnd; 
+	    class CXStr ChatWnd("ChatWindow");
+	     MyWnd= new CIRCWnd(&ChatWnd);
          MyWnd->Location.top = irctop; 
          MyWnd->Location.bottom = ircbottom; 
          MyWnd->Location.left = ircleft; 
@@ -901,7 +902,8 @@ PLUGIN_API VOID OnReloadUI()
    if (!MyWnd && !strcmp(UseWnd,"Yes")) 
    { 
       //if (pSidlMgr->FindScreenPieceTemplate("TestWindow")) 
-      MyWnd=new CIRCWnd; 
+	  class CXStr ChatWnd("ChatWindow");
+	  MyWnd= new CIRCWnd(&ChatWnd);
       MyWnd->Location.top = irctop; 
       MyWnd->Location.bottom = ircbottom; 
       MyWnd->Location.left = ircleft; 

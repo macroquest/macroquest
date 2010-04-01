@@ -52,11 +52,16 @@ CLEAN :
 	-@erase "$(INTDIR)\MQ2Windows.sbr"
 	-@erase "$(INTDIR)\MQ2Spawns.obj"
 	-@erase "$(INTDIR)\MQ2Spawns.sbr"
-	-@erase "$(INTDIR)\vc60.idb"
 	-@erase "$(OUTDIR)\MQ2Main.dll"
 	-@erase "$(OUTDIR)\MQ2Main.exp"
 	-@erase "$(OUTDIR)\MQ2Main.lib"
 	-@erase "$(OUTDIR)\MQ2Main.pdb"
+	-@erase "$(INTDIR)\vc60.idb"
+	-@erase "$(INTDIR)\vc60.pdb"
+	-@erase "$(INTDIR)\vc70.idb"
+	-@erase "$(INTDIR)\vc70.pdb"
+	-@erase "$(INTDIR)\vc80.idb"
+	-@erase "$(INTDIR)\vc80.pdb"
 
 CPP_PROJ=$(CPP_PROJ) /D "EQLIB_EXPORTS"
 LINK32=link.exe

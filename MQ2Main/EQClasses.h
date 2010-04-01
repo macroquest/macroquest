@@ -363,8 +363,8 @@ EQLIB_OBJECT CXStr::CXStr(class CXStr const &);
 EQLIB_OBJECT CXStr::CXStr(int,int,char);
 EQLIB_OBJECT CXStr::CXStr(unsigned short const *);
 EQLIB_OBJECT CXStr::CXStr(void);
-EQLIB_OBJECT CXStr::operator char *(void)const;
-EQLIB_OBJECT CXStr::operator unsigned short *(void)const;
+EQLIB_OBJECT char *CXStr::operator char *(void)const;
+EQLIB_OBJECT unsigned short *CXStr::operator unsigned short *(void)const;
 EQLIB_OBJECT bool CXStr::Find(char,int &);
 EQLIB_OBJECT bool CXStr::Find(class CXStr const &,int &);
 EQLIB_OBJECT bool CXStr::Find(unsigned short,int &);
@@ -421,6 +421,7 @@ EQLIB_OBJECT void CXStr::FreeRepNoLock(struct CStrRep *);
 EQLIB_OBJECT void CXStr::CheckNoLock(void);
 
 	PCXSTR Ptr;
+
 };
 
 class CXWnd
@@ -645,9 +646,9 @@ EQLIB_OBJECT class CXMLData * CSidlScreenWnd::GetXMLData();
 EQLIB_OBJECT class CXWnd * CSidlScreenWnd::GetChildItem(PCHAR Name);
 EQLIB_OBJECT CSidlScreenWnd::CSidlScreenWnd() {};
 EQLIB_OBJECT CSidlScreenWnd::CSidlScreenWnd(class CXWnd *,class CXStr);
-EQLIB_OBJECT CSidlScreenWnd::CSidlScreenWnd(class CXWnd *pWnd,class CXStr Template,int Flags,int unknown4, char *unknown5);
+EQLIB_OBJECT CSidlScreenWnd::CSidlScreenWnd(class CXWnd *pWnd,class CXStr *Template,int Flags,int unknown4, char *unknown5);
 EQLIB_OBJECT CSidlScreenWnd::CSidlScreenWnd(class CXWnd *,unsigned __int32,class CXRect,class CXStr);
-EQLIB_OBJECT class CScreenPieceTemplate * CSidlScreenWnd::GetSidlPiece(class CXStr)const;
+EQLIB_OBJECT class CScreenPieceTemplate * CSidlScreenWnd::GetSidlPiece(class CXStr*)const;
 EQLIB_OBJECT class CXRect CSidlScreenWnd::GetSidlPieceRect(class CScreenPieceTemplate *,class CXRect)const;
 //EQLIB_OBJECT class CXWnd * CSidlScreenWnd::GetChildItem(class CXStr&)const;
 EQLIB_OBJECT int CSidlScreenWnd::DrawSidlPiece(class CScreenPieceTemplate *,class CXRect,class CXRect)const;
@@ -656,7 +657,7 @@ EQLIB_OBJECT void CSidlScreenWnd::CalculateHSBRange(void);
 EQLIB_OBJECT void CSidlScreenWnd::CalculateVSBRange(void);
 EQLIB_OBJECT void CSidlScreenWnd::CreateChildrenFromSidl(void);
 EQLIB_OBJECT void CSidlScreenWnd::EnableIniStorage(int,char *);
-EQLIB_OBJECT void CSidlScreenWnd::Init(class CXWnd *,class CXStr,int,char *);
+EQLIB_OBJECT void CSidlScreenWnd::Init(class CXWnd *,class CXStr*,int,char *);
 EQLIB_OBJECT void CSidlScreenWnd::Init(class CXWnd *,unsigned __int32,class CXRect,class CXStr,int,char *);
 EQLIB_OBJECT void CSidlScreenWnd::LoadIniListWnd(class CListWnd *,char *);
 EQLIB_OBJECT void CSidlScreenWnd::SetScreen(class CXStr*);
@@ -4452,7 +4453,7 @@ class CStmlWnd : public CSidlScreenWnd
 public:
 EQLIB_OBJECT CStmlWnd::CStmlWnd(class CXWnd *,unsigned __int32,class CXRect);
 EQLIB_OBJECT bool CStmlWnd::CanGoBackward(void);
-EQLIB_OBJECT class CXSize& CStmlWnd::AppendSTML(class CXSize*,class CXStr); // lax 11-15-2003
+EQLIB_OBJECT class CXSize& CStmlWnd::AppendSTML(class CXSize*, class CXStr); // lax 11-15-2003
 EQLIB_OBJECT class CXStr CStmlWnd::GetSTMLText(void)const;
 EQLIB_OBJECT class CXStr CStmlWnd::GetVisiableText(class CXStr&,class CXRect)const;
 EQLIB_OBJECT static class CXStr __cdecl CStmlWnd::MakeStmlColorTag(unsigned long);
@@ -4678,7 +4679,7 @@ class CTextureFont
 public:
 EQLIB_OBJECT class CXStr CTextureFont::GetName(void)const;
 EQLIB_OBJECT int CTextureFont::DrawWrappedText(class CXStr,class CXRect,class CXRect,unsigned long,unsigned short,int)const;
-EQLIB_OBJECT int CTextureFont::DrawWrappedText(class CXStr,int,int,int,class CXRect,unsigned long,unsigned short,int)const;
+EQLIB_OBJECT int CTextureFont::DrawWrappedText(class CXStr *,int,int,int,class CXRect *,unsigned long,unsigned short,int)const;
 EQLIB_OBJECT int CTextureFont::GetHeight(void)const;
 EQLIB_OBJECT int CTextureFont::GetKerning(unsigned short,unsigned short)const;
 EQLIB_OBJECT int CTextureFont::GetTextExtent(class CXStr)const;
@@ -6112,11 +6113,11 @@ inline EQLIB_OBJECT KeyCombo::KeyCombo(void)
 {
 	*(unsigned long*)&Data[0]=0;
 }
-inline EQLIB_OBJECT KeyCombo::Clear(void)
+inline void EQLIB_OBJECT KeyCombo::Clear(void)
 {
 	*(unsigned long*)&Data[0]=0;
 }
-EQLIB_OBJECT KeyCombo::operator int(void)const;
+EQLIB_OBJECT int KeyCombo::operator int(void)const;
 EQLIB_OBJECT bool KeyCombo::GetPrintableLetter(unsigned short *)const;
 inline EQLIB_OBJECT bool KeyCombo::UsesAlt(void)const
 {

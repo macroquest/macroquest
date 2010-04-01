@@ -2,6 +2,7 @@
 // ISXEQ
 //
 
+
 #include "..\MQ2Main.h"
 #pragma comment(lib,"ISXDK.lib")
 

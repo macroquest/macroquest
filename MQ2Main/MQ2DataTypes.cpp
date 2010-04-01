@@ -2276,7 +2276,7 @@ bool MQ2CharacterType::GETMEMBER()
 				}
 			}
 		}
-		return true;
+		return false;
 	case AltAbilityReady:
 		if (ISINDEX())
 		{
@@ -3819,6 +3819,10 @@ bool MQ2ClassType::GETMEMBER()
 			return true;
 		}
 		return false;
+	case HealerType:
+		Dest.DWord=(VarPtr.DWord==2 || VarPtr.DWord==6 || VarPtr.DWord==10);
+		Dest.Type=pBoolType;
+		return true;
 	}
 	return false;
 }

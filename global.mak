@@ -15,10 +15,7 @@ INTDIR=.\Intermediate
 "$(INTDIR)" :
     if not exist "$(INTDIR)/$(NULL)" mkdir "$(INTDIR)"
 
-CPP=cl.exe
-CPP_PROJ=/nologo /Zp1 /Zi /MT /W3 /GX /O2 /D "WIN32" /D "NDEBUG" /D "_WINDOWS" /D "_MBCS" /D "_USRDLL" /D "CINTERFACE" /YX /Fo"$(INTDIR)\\" /Fd"$(INTDIR)\\" /FD /c 
-
-!if ("$(_NMAKE_VER)"=="7.00.9466") || ("$(_NMAKE_VER)"=="7.10.3077") || ("$(COMPILER)"=="7")
+!if ("$(_NMAKE_VER)"=="7.00.9466") || ("$(_NMAKE_VER)"=="7.10.3077") || ("$(COMPILER)"=="7") || ("$(COMPILER)"=="8")
 DETLIB=..\Detours\lib\detours.lib
 !elseif ("$(_NMAKE_VER)"=="6.00.8168.0") || ("$(_NMAKE_VER)"=="6.00.9782.0") || ("$(COMPILER)"=="6")
 DETLIB=..\Detours\lib60\detours.lib
@@ -27,8 +24,18 @@ DETLIB=..\Detours\lib60\detours.lib
 !message Cannot determine compiler version.
 !message use set COMPILER=6
 !message or set COMPILER=7
+!message or set COMPILER=8
 !message as appropriate
 !endif
+
+!if ("$(COMPILER)"=="8")
+!else
+EH=/EHsc
+!endif
+
+CPP=cl.exe
+CPP_PROJ=/nologo /Zp1 /Zi /MT $(EH) /W3 /O2 /D "WIN32" /D "NDEBUG" /D "_WINDOWS" /D "_MBCS" /D "_USRDLL" /D "CINTERFACE" /YX /Fo"$(INTDIR)\\" /Fd"$(INTDIR)\\" /FD /c
+
 
 .c{$(INTDIR)}.obj::
    $(CPP) $(CPP_PROJ) $< 

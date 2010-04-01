@@ -57,10 +57,10 @@ void DestroyMQUI();
 class SetScreenHook
 {
 public:
-	void SetScreen_Detour(class CXStr *pName)
+	void SetScreen_Detour(CXStr *pName)
 	{
 		CHAR Name[MAX_STRING]={0};
-		GetCXStr((PCXSTR)pName,Name,MAX_STRING);
+		GetCXStr(pName->Ptr,Name,MAX_STRING);
 		string WindowName=Name;
 		MakeLower((WindowName));
 
@@ -88,9 +88,9 @@ public:
 		}
 		SetScreen_Trampoline(pName);
 	}
-	void SetScreen_Trampoline(class CXStr*);
+	void SetScreen_Trampoline(CXStr*);
 };
-DETOUR_TRAMPOLINE_EMPTY(void SetScreenHook::SetScreen_Trampoline(class CXStr*));
+DETOUR_TRAMPOLINE_EMPTY(void SetScreenHook::SetScreen_Trampoline(CXStr*));
 
 class CXWndManagerHook
 {
@@ -128,7 +128,7 @@ public:
 	int XMLRead(CXStr *A, CXStr *B, CXStr *C)
 	{
 		char Temp[256]={0};
-		GetCXStr((PCXSTR)C,Temp,256);
+		GetCXStr(C->Ptr,Temp,256);
 		DebugSpew("XMLRead(%s)",Temp);
 		if (!stricmp("EQUI.xml",Temp))
 		{

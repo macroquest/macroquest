@@ -2969,7 +2969,8 @@ int FindInvSlotForContents(PCONTENTS pContents)
 		}
 	}
 
-	for (unsigned long nPack=0 ; nPack < 8 ; nPack++)
+        unsigned long nPack;
+	for (nPack=0 ; nPack < 8 ; nPack++)
 	{
 		PCHARINFO pCharInfo=GetCharInfo();
 		if (PCONTENTS pPack=pCharInfo->Inventory.Pack[nPack])
@@ -3604,7 +3605,7 @@ BOOL EvaluateRPN(_CalcOp *pList, int Size, DOUBLE &Result)
 #define BinaryAssign(op) {DOUBLE RightSide=StackTop();StackPop();StackSetTop(##op##=RightSide);}
 
 #define UnaryIntOp(op) {StackSetTop(=op##((int)StackTop()));}
-
+#define UnaryOp(op)	{StackSetTop(=op##(StackTop()));}
 	for (int i = 0 ; i < Size ; i++)
 	{
 		switch(pList[i].Op)
@@ -3622,7 +3623,7 @@ BOOL EvaluateRPN(_CalcOp *pList, int Size, DOUBLE &Result)
 			BinaryAssign(-);
 			break;
 		case CO_NEGATE:
-			UnaryIntOp(-);
+			UnaryOp(-);
 			break;
 		case CO_DIVIDE:
 			if (StackTop())
@@ -3803,15 +3804,24 @@ BOOL FastCalculate(PCHAR szFormula, DOUBLE &Result)
 			WasParen=true;
 			continue;
 		case '+':
-			NewOp(CO_ADD);
+			if (pCur[1]!='+')
+				NewOp(CO_ADD);
 			break;
 		case '-':
-			if (CurrentToken[0] || WasParen) 
-			{ 
-				NewOp(CO_SUBTRACT); 
-			} 
-			else 
-				NewOp(CO_NEGATE);
+			if (pCur[1]=='-')
+			{
+				pCur++;
+				NewOp(CO_ADD);
+			}
+			else
+			{
+				if (CurrentToken[0] || WasParen) 
+				{ 
+					NewOp(CO_SUBTRACT); 
+				} 
+				else 
+					NewOp(CO_NEGATE);
+			}
 			break;
 		case '*':
 			NewOp(CO_MULTIPLY);
@@ -4288,7 +4298,7 @@ PSPAWNINFO NthNearestSpawn(PSEARCHSPAWN pSearchSpawn, DWORD Nth, PSPAWNINFO pOri
 		return 0;
 	CIndex<PMQRANK> SpawnSet;
 	PSPAWNINFO pSpawn=(PSPAWNINFO)pSpawnList;
-	// create our set
+	// create our set	
 	DWORD TotalMatching=0;
 	if (IncludeOrigin)
 	{
@@ -4418,7 +4428,7 @@ BOOL SpawnMatchesSearch(PSEARCHSPAWN pSearchSpawn, PSPAWNINFO pChar, PSPAWNINFO 
 {
     CHAR szName[MAX_STRING] = {0};
 	eSpawnType SpawnType = GetSpawnType(pSpawn);
-	if (pSearchSpawn->SpawnType!=SpawnType && pSearchSpawn->SpawnType!=NONE)
+	if (pSearchSpawn->SpawnType != SpawnType && pSearchSpawn->SpawnType!=NONE)
 	{
 		if (pSearchSpawn->SpawnType!=NPC || SpawnType!=UNTARGETABLE)
 			return FALSE;
@@ -4426,13 +4436,13 @@ BOOL SpawnMatchesSearch(PSEARCHSPAWN pSearchSpawn, PSPAWNINFO pChar, PSPAWNINFO 
 	_strlwr(strcpy(szName,pSpawn->Name));
 	if (!strstr(szName,pSearchSpawn->szName) && !strstr(CleanupName(szName,FALSE),pSearchSpawn->szName))
 		return FALSE;
-	if (pSpawn->Level<pSearchSpawn->MinLevel)
+	if (pSpawn->Level < pSearchSpawn->MinLevel)
 		return FALSE;
-	if (pSpawn->Level>pSearchSpawn->MaxLevel)
+	if (pSpawn->Level > pSearchSpawn->MaxLevel)
 		return FALSE;
-	if (pSearchSpawn->NotID==pSpawn->SpawnID)
+	if (pSearchSpawn->NotID == pSpawn->SpawnID)
 		return FALSE;
-	if (pSearchSpawn->SpawnID && pSearchSpawn->SpawnID!=pSpawn->SpawnID)
+	if (pSearchSpawn->SpawnID && pSearchSpawn->SpawnID != pSpawn->SpawnID)
 		return FALSE;
 	if (pSearchSpawn->GuildID!=0xFFFF && pSearchSpawn->GuildID!=pSpawn->GuildID)
 		return FALSE;
@@ -4721,7 +4731,7 @@ VOID ParseSearchSpawn(PCHAR Buffer, PSEARCHSPAWN pSearchSpawn)
 VOID ParseSearchSpawn(int BeginInclusive, int EndExclusive,char *argv[], SEARCHSPAWN &SearchSpawn)
 {
 	for (int arg = BeginInclusive ; arg < EndExclusive ; arg++)
-		ParseSearchSpawnArg(arg,EndExclusive,argv,SearchSpawn);
+		arg+=ParseSearchSpawnArg(arg,EndExclusive,argv,SearchSpawn);
 }
 #endif
 

@@ -233,7 +233,7 @@ bool __cdecl MQ2Initialize()
         g_Loaded = FALSE;
         return false;
     }
-    srand(time(0));
+    srand((unsigned int)time(0));
     ZeroMemory(gDiKeyName,sizeof(gDiKeyName));
     unsigned long i;
     for (i = 0 ; gDiKeyID[i].Id ; i++) {
@@ -395,11 +395,10 @@ void MQ2Free(void *memblock)
 }
 #endif
 
-
 class CMQNewsWnd : public CCustomWnd
 {
 public:
-	CMQNewsWnd():CCustomWnd("ChatWindow")
+	CMQNewsWnd(CXStr *Template):CCustomWnd(Template)
 	{
 		SetWndNotification(CMQNewsWnd);
 		InputBox=(CTextEntryWnd*)GetChildItem("CWChatInput");
@@ -432,6 +431,7 @@ public:
 	CStmlWnd *OutputBox;
 };
 
+
 CMQNewsWnd *pNewsWindow=0;
 VOID InsertMQ2News();
 VOID CreateMQ2NewsWindow()
@@ -440,7 +440,8 @@ VOID CreateMQ2NewsWindow()
 	sprintf(Filename,"%s\\changes.txt",gszINIPath);
 	if (!pNewsWindow && _FileExists(Filename))
 	{
-		pNewsWindow = new CMQNewsWnd;
+		class CXStr ChatWnd("ChatWindow");
+		pNewsWindow = new CMQNewsWnd(&ChatWnd);
 		pNewsWindow->Location.top=250;
 		pNewsWindow->Location.bottom=450;
 		pNewsWindow->Location.left=250;

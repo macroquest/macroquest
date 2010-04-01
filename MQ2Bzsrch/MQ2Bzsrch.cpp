@@ -503,6 +503,7 @@ VOID bzpc(PSPAWNINFO pChar, PCHAR szLine)
         int id;
         int flags;
         char name[64];
+        /* size 0x48 */
     } pc;
     GetArg(szArg,szLine,1);
     index = atoi(szArg)-1;
@@ -514,7 +515,7 @@ VOID bzpc(PSPAWNINFO pChar, PCHAR szLine)
         *ptr = '\0';
     if (pg_Item) memset(pg_Item, 0, sizeof(ITEMINFO));
     DebugSpewAlways("id = %d, name = %s\n", pc.id, pc.name);
-    send_message(EQADDR_GWORLD, 0x776B, &pc, sizeof(pc), TRUE);
+    send_message(EQADDR_GWORLD, 0x1d43, &pc, sizeof(pc), TRUE);
 } 
 
 
@@ -692,7 +693,7 @@ VOID BzSrchMe(PSPAWNINFO pChar, PCHAR szLine)
 
    BzCount = 0;
    BzDone = 0;
-   send_message(EQADDR_GWORLD, 0x3200, &bsrp, sizeof(bsrp), FALSE);
+   send_message(EQADDR_GWORLD, 0x524e, &bsrp, sizeof(bsrp), FALSE);
    return;
 
 error_out:
