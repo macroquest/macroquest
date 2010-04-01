@@ -216,6 +216,7 @@
 #define __CastRay                                          0x475152
 #define __ConvertItemTags                                  0x46C731
 #define __ExecuteCmd                                       0x45F7A2
+#define __FastTime                                         0x574270
 #define __get_melee_range                                  0x463726
 #define __GetGaugeValueFromEQ                              0x5594AE
 #define __GetLabelFromEQ                                   0x559BA5
@@ -539,6 +540,7 @@
 
 // EQ_PC
 #define EQ_PC__DestroyHeldItemOrMoney                      0x4BEA6D
+#define EQ_PC__GetItemTimerValue                           0x4BB1DD
 
 // EQItemList
 #define EQItemList__dEQItemList                            0x4624EF
@@ -566,3 +568,4 @@
 
 // StringTable
 #define StringTable__getString                             0x5DF1F0
+

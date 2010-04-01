@@ -1,3 +1,7 @@
+19 October 2005 by dkaa
+- added item timers from ieatacid
+- added stacks from pinkfloydx33
+
 4 August 2005 by Lax
 - Optimized stristr routine in Blech.h, resulting in a little bit of improved performance from Blech
 

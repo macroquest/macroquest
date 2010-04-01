@@ -1078,6 +1078,11 @@ public:
 		CastOnYou=19, 
 		CastOnAnother=20, 
 		WearOff=21, 
+                CounterType=22,
+                CounterNumber=23,
+                Stacks=24,
+                StacksPet=25,
+                WillStack=26, 
 	};
 	static enum SpellMethods
 	{
@@ -1105,6 +1110,11 @@ public:
 		TypeMember(CastOnYou);//19, 
 		TypeMember(CastOnAnother);//20, 
 		TypeMember(WearOff);//21, 
+                TypeMember(CounterType);//22,
+                TypeMember(CounterNumber);//23,
+                TypeMember(Stacks);//24,
+                TypeMember(StacksPet);//25,
+                TypeMember(WillStack);//26, 
 	}
 
 	~MQ2SpellType()
@@ -1237,6 +1247,7 @@ public:
 		EffectType=86,
 		Tribute=87,
 		Attuneable=88,
+		Timer=89,
 	};
 	static enum ItemMethods
 	{
@@ -1331,6 +1342,7 @@ public:
 		TypeMember(EffectType);
 		TypeMember(Tribute);
 		TypeMember(Attuneable);
+		TypeMember(Timer);//89,
 	}
 
 	~MQ2ItemType()

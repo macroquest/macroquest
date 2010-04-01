@@ -5457,3 +5457,59 @@ PCHAR GetLDoNTheme(DWORD LDTheme)
    if (IS_SET(LDTheme, LDON_TAK)) return "Takish";
    return "Unknown";
 } 
+
+
+DWORD GetItemTimer(PCONTENTS pItem)
+{
+    DWORD Timer=pPCData->GetItemTimerValue((EQ_Item*)pItem);
+    if(Timer<GetFastTime()) return 0;
+    return Timer-GetFastTime();
+}
+
+// ***************************************************************************
+// Function:    BuffStackTest
+// Description: Return boolean true if the two spells will stack
+// Usage:       Used by ${Spell[xxx].Stacks}, ${Spell[xxx].StacksPet},
+//            ${Spell[xxx].WillStack[yyy]}
+// Author:      Pinkfloydx33
+// ***************************************************************************
+bool BuffStackTest(PSPELL aSpell, PSPELL bSpell){
+    int i;
+
+    for (i=0; i<=11; i++) {
+
+//Compare 1st Buff to 2nd. If Attrib[i]==254 its a place holder. If it is 10 it
+//can be 1 of 3 things: PH(Base=0), CHA(Base>0), Lure(Base=-6). If it is Lure or
+//Placeholder, exclude it so slots don't match up. Now Check to see if the slots
+//have equal attribute values. If the do, they don't stack.
+
+    if (bSpell->Attrib[i]==aSpell->Attrib[i] && !(bSpell->Attrib[i]==254 || aSpell->Attrib[i]==254))
+         if (!((bSpell->Attrib[i]==10 && (bSpell->Base[i]==-6 || bSpell->Base[i]==0)) ||
+              (aSpell->Attrib[i]==10 && (aSpell->Base[i]==-6 || aSpell->Base[i]==0))))
+               return false;
+//Check to see if second buffs blocks first buff:
+//148: Stacking: Block new spell if slot %d is effect
+//149: Stacking: Overwrite existing spell if slot %d is effect
+        if ((bSpell->Attrib[i] == 148) || (bSpell->Attrib[i] == 149)) {
+            int tmpSlot = bSpell->Calc[i]-200;                           
+            int tmpAttrib = bSpell->Base[i];
+            if (bSpell->Max[i] > 0) {
+                int tmpVal =  abs(bSpell->Max[i]);
+                if ((aSpell->Attrib[tmpSlot-1] == tmpAttrib) && (aSpell->Base[tmpSlot-1] < tmpVal)) return false;
+            } else if (aSpell->Attrib[tmpSlot-1] == tmpAttrib) return false;
+        }
+//Now Check to see if the first buff blocks second buff. This is necessary 
+//because only some spells carry the Block Slot. Ex. Brells and Spiritual 
+//Vigor don't stack Brells has 1 slot total, for HP. Vigor has 4 slots, 2 
+//of which block Brells.
+        if ((aSpell->Attrib[i] ==  148) || (aSpell->Attrib[i] ==  149)) {
+            int tmpSlot = aSpell->Calc[i]-200;
+            int tmpAttrib = aSpell->Base[i];
+            if (aSpell->Max[i] > 0) {
+                int tmpVal =  abs(aSpell->Max[i]);
+                if ((bSpell->Attrib[tmpSlot-1] == tmpAttrib) && (bSpell->Base[tmpSlot-1] < tmpVal)) return false;
+            } else if (bSpell->Attrib[tmpSlot-1] == tmpAttrib)    return false;   
+        }
+    }      
+    return true;
+} 

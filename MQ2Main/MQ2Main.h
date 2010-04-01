@@ -346,6 +346,7 @@ EQLIB_API VOID ShutdownMQ2Pulse();
 
 /* OTHER IMPORTED FROM EQ */
 EQLIB_API int CastRay(PSPAWNINFO,float y,float x,float z);
+EQLIB_API unsigned long GetFastTime(void);
 
 /* UTILITIES */
 EQLIB_API VOID ConvertCR(PCHAR Text);
@@ -437,6 +438,8 @@ EQLIB_API void DisplayOverlayText(PCHAR szText, DWORD dwColor, DWORD dwTranspare
 EQLIB_API bool GetShortBuffID(PSPELLBUFF pBuff, DWORD &nID);
 EQLIB_API bool GetBuffID(PSPELLBUFF pBuff, DWORD &nID);
 EQLIB_API PCHAR GetLDoNTheme(DWORD LDTheme);
+EQLIB_API bool BuffStackTest(PSPELL aSpell, PSPELL bSpell);
+EQLIB_API DWORD GetItemTimer(PCONTENTS pItem);
 
 /* MQ2DATAVARS */
 #ifndef ISXEQ

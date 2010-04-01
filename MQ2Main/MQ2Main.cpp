@@ -534,4 +534,7 @@ VOID InjectDisable()
 #ifdef __CastRay
 FUNCTION_AT_ADDRESS(int CastRay(PSPAWNINFO,float y,float x,float z),__CastRay);
 #endif
+#ifdef __FastTime
+FUNCTION_AT_ADDRESS(unsigned long  GetFastTime(void),__FastTime);
+#endif
 

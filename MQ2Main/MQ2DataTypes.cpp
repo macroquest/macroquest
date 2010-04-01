@@ -2958,6 +2958,86 @@ bool MQ2SpellType::GETMEMBER()
 		Dest.Ptr=pSpell->WearOff; 
 		Dest.Type=pStringType; 
 		return true; 
+        case CounterType:
+        {
+            Dest.Type=pStringType;
+            int i;
+            for (i=0; i<=11; i++){
+                switch(pSpell->Attrib[i]){
+                    case 35:   
+                        Dest.Ptr="Disease";
+                        return true;
+                    case 36:
+                        Dest.Ptr="Poison";
+                        return true;
+                    case 116: 
+                        Dest.Ptr="Curse";
+                        return true;
+                }
+            }
+            Dest.Ptr="None";
+            return true;
+        }
+        case CounterNumber:
+        {
+            Dest.Type=pIntType;
+            int i;
+            for (i=0; i<=11; i++){
+                if ((pSpell->Attrib[i] == 35) || (pSpell->Attrib[i] == 36) || (pSpell->Attrib[i] == 116)){
+                    Dest.DWord = (int)pSpell->Base[i];
+                    return true;
+                }
+            }
+            Dest.DWord = 0;
+            return true;
+        }
+        case Stacks:
+        {
+            unsigned long nBuff;
+            PCHARINFO2 pChar = GetCharInfo2();
+            Dest.DWord = true;      
+            Dest.Type = pBoolType;
+            for (nBuff=0; nBuff<25; nBuff++){
+                if (pChar->Buff[nBuff].SpellID>0) {
+                    PSPELL tmpSpell = GetSpellByID(pChar->Buff[nBuff].SpellID);
+                    if (!BuffStackTest(pSpell, tmpSpell)){
+                        Dest.DWord = false;
+                        return true;
+                    }
+                }
+            }
+            return true;
+        }
+        case StacksPet:
+        {
+            unsigned long nBuff;
+            Dest.DWord = true;      
+            Dest.Type = pBoolType;
+            PEQPETINFOWINDOW pPet = ((PEQPETINFOWINDOW)pPetInfoWnd);
+            for (nBuff=0; nBuff<29; nBuff++){
+                if (pPet->Buff[nBuff]>0 && !(pPet->Buff[nBuff]==0xFFFFFFFF || pPet->Buff[nBuff]==0)) {
+                    PSPELL tmpSpell = GetSpellByID(pPet->Buff[nBuff]);
+                    if (!BuffStackTest(pSpell, tmpSpell)){
+                    Dest.DWord = false;
+                    return true;
+                    }
+                }
+            }
+            return true;
+        }
+        case WillStack:
+            if (!ISINDEX()) 
+                return false;
+            PSPELL tmpSpell = NULL;
+            if (ISNUMBER())   
+                tmpSpell = GetSpellByID(GETNUMBER());
+            else 
+                tmpSpell = GetSpellByName(GETFIRST());
+            if (!tmpSpell) 
+                return false;
+            Dest.Type = pBoolType;
+            Dest.DWord = BuffStackTest(pSpell, tmpSpell);
+            return true;
 	}
 	return false;
 #undef pSpell
@@ -3268,8 +3348,15 @@ bool MQ2ItemType::GETMEMBER()
 		Dest.DWord=pItem->Item->Attuneable;
 		Dest.Type=pBoolType;
 		return true;
-	}
-	return false;
+    case Timer:
+        if(pItem->Item->TimerID)
+        {
+                Dest.DWord=GetItemTimer(pItem);
+                Dest.Type=pIntType;
+                return true;
+        }
+    }
+    return false;
 #undef pItem
 }
 

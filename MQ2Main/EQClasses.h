@@ -5621,6 +5621,7 @@ EQLIB_OBJECT void EQ_PC::SetArmorTint(int,unsigned long);
 EQLIB_OBJECT void EQ_PC::SetArmorType(int,int);
 EQLIB_OBJECT void EQ_PC::SetFatigue(int);
 EQLIB_OBJECT void EQ_PC::UnpackMyNetPC(char *,int);
+EQLIB_OBJECT unsigned long EQ_PC::GetItemTimerValue(class EQ_Item *);
 };
 
 class EQ_Skill

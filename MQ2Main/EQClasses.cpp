@@ -4509,6 +4509,9 @@ FUNCTION_AT_ADDRESS(int  EQ_PC::numInParty(void),EQ_PC__numInParty);
 #ifdef EQ_PC__AtSkillLimit
 FUNCTION_AT_ADDRESS(unsigned char  EQ_PC::AtSkillLimit(int),EQ_PC__AtSkillLimit);
 #endif
+#ifdef EQ_PC__GetItemTimerValue
+FUNCTION_AT_ADDRESS(unsigned long  EQ_PC::GetItemTimerValue(class EQ_Item *),EQ_PC__GetItemTimerValue);
+#endif
 #ifdef CInvSlot__HandleLButtonDown
 FUNCTION_AT_ADDRESS(void  CInvSlot::HandleLButtonDown(class CXPoint),CInvSlot__HandleLButtonDown);
 #endif
