@@ -549,6 +549,9 @@
 
 // EQ_PC
 #define EQ_PC__DestroyHeldItemOrMoney                              0x4BEDF5
+#define EQ_PC__GetAltAbilityIndex                                  0x5F1530
+#define EQ_PC__GetCombatAbility                                    0x5F1620
+#define EQ_PC__GetCombatAbilityTimer                               0x5F16D0
 #define EQ_PC__GetItemTimerValue                                   0x4BB408
 
 // EQItemList

@@ -709,7 +709,8 @@ typedef struct _CHARINFO {
 /* 0xc390 */   CHAR       Name[0x40];
 /* 0xc3d0 */   CHAR       Lastname[0x20];
 /* 0xc3f0 */   BYTE       Unknown0xc3f0[0x60];
-/* 0xc450 */   DWORD      Stunned;
+/* 0xc450 */   BYTE       Stunned;
+/* 0xc451 */   BYTE       Unknown0xc451[0x3];
 /* 0xc454 */   WORD       zoneId;
 /* 0xc456 */   WORD       instance;
 /* 0xc458 */   DWORD      standstate;

@@ -1,3 +1,26 @@
+30 November 2005 by rswiders
+- Clean up of several class function declarations
+- Cleanup of CombatAbilility, CombatAbilityReady and CombatAbilityTimer. They are now using
+  the EQ functions. Cleanup of several functions to use EQ function GetAltAbilityIndex
+  instead of accessing the charinfo structs directly.
+- Fixed Me.State so it recognizes "STUN" correctly
+- Fixed GetAAIndexByName, GetAAIndexByID
+- Fixed Me.FreeBuffSlots to include the additional slot you get when you get either the
+  "Embrace of the Keepers" or "Embrace of the Dark Reign" aa's.
+- Fixed bounds issues on RequiresAbility, GetAANameByIndex, GetAAIndexByName, and GetAAIndexByID
+- Fixed .Stacks/.WillStack to allow self buffs (with a healing component) to stack correctly
+- Added: Spawn.Fleeing
+    Currently this works with your target that is engaged in combat. If it turns to flee
+    this flag is set for use in macros. It checks to see if the heading of the spawn is
+    facing in a direction that is not in an arc of 120 degrees facing you.
+- If you are crashing on switching toons at character select,
+  you can comment out the autorun (per character) section in
+  MQ2Pulse.cpp. This is only needed if you want to automatically
+  process commands upon initial entering of world for a
+  character. If you don't use the feature commenting it out will
+  not cause any lose of functionality for you. Please post any CTD
+  crash dumps to assist with locating this bug.
+
 22 November 2005 by rswiders
 - Added Item.ItemDelay
 - Config files can contain comment lines. Use ";" as the first character on the line to make it a comment.

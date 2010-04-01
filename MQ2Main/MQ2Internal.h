@@ -410,7 +410,7 @@ public:
 //	inline CXWnd *GetChildItem(const char *Name) {return CSidlScreenWnd::GetChildItem(Name);};
 };
 
-#ifndef ISXEQ
+#if !defined(ISXEQ) && !defined(ISXEQ_LEGACY)
 /* CIndex class stolen from teqim - Lax */
 template <class Any>
 class CIndex

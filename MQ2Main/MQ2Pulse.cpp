@@ -177,6 +177,9 @@ void Pulse()
     } 
     LastEndurance = GetCharInfo2()->Endurance;
 
+	// If you are crashing on switching toons at character select,
+	// you can comment out this next if block to disable the autorun
+	// feature for characters.
     if (gbDoAutoRun && pChar && pChar->pCharInfo) {
         gbDoAutoRun = FALSE;
         CHAR szServerAndName[MAX_STRING] = {0};

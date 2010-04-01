@@ -4028,12 +4028,9 @@ bool PlayerHasAAAbility(PCHARINFO pChar, DWORD AAIndex)
 {
     for (int i = 0; i < AA_CHAR_MAX_REAL; i++)
     {
-        if ( GetCharInfo2()->AAList[i].AAIndex == AAIndex )
+        if (!pPCData->GetAltAbilityIndex(i)) return false;
+        if ( pPCData->GetAltAbilityIndex(i) == AAIndex )
             return true;
-
-        if ( GetCharInfo2()->AAList[i].AAIndex == 0 )  { //reached the end of the list
-            return false;
-        }
     }
 
     return false;
@@ -4042,7 +4039,7 @@ bool PlayerHasAAAbility(PCHARINFO pChar, DWORD AAIndex)
 #if 0
 PCHAR GetAANameByIndex(DWORD AAIndex)
 {
-	for (unsigned long nAbility=0 ; nAbility<NUM_ALT_ABILITIES ; nAbility++)
+	for (unsigned long nAbility=0 ; nAbility<NUM_ALT_ABILITIES_ARRAY ; nAbility++)
 	{
 		if ( ((PALTADVMGR)pAltAdvManager)->AltAbilities->AltAbilityList->Abilities[nAbility])
 		{
@@ -4061,16 +4058,18 @@ PCHAR GetAANameByIndex(DWORD AAIndex)
 
 DWORD GetAAIndexByName(PCHAR AAName)
 {
-    for (unsigned long nAbility=0 ; nAbility<NUM_ALT_ABILITIES ; nAbility++)
+    for (unsigned long nAbility=0 ; nAbility<NUM_ALT_ABILITIES_ARRAY ; nAbility++)
     {
-        if (!GetCharInfo2()->AAList[nAbility].AAIndex) break;
-        if ( PALTABILITY pAbility=pAltAdvManager->GetAltAbility(GetCharInfo2()->AAList[nAbility].AAIndex))
-        {
-            if (PCHAR pName=pCDBStr->GetString(pAbility->nName, 1, NULL))
-            {
-                if (!stricmp(AAName,pName))
+		if ( ((PALTADVMGR)pAltAdvManager)->AltAbilities->AltAbilityList->Abilities[nAbility])
+		{
+			if ( PALTABILITY pAbility=((PALTADVMGR)pAltAdvManager)->AltAbilities->AltAbilityList->Abilities[nAbility]->Ability) 
+			{
+                if (PCHAR pName=pCDBStr->GetString(pAbility->nName, 1, NULL))
                 {
-                    return pAbility->Index;
+                    if (!stricmp(AAName,pName))
+                    {
+                        return pAbility->Index;
+					}
                 }
             }
         }
@@ -4081,14 +4080,16 @@ DWORD GetAAIndexByName(PCHAR AAName)
 
 DWORD GetAAIndexByID(DWORD ID)
 {
-    for (unsigned long nAbility=0 ; nAbility<NUM_ALT_ABILITIES ; nAbility++)
+    for (unsigned long nAbility=0 ; nAbility<NUM_ALT_ABILITIES_ARRAY ; nAbility++)
     {
-        if (!GetCharInfo2()->AAList[nAbility].AAIndex) break;
-        if ( PALTABILITY pAbility=pAltAdvManager->GetAltAbility(GetCharInfo2()->AAList[nAbility].AAIndex))
-        {
-            if (pAbility->ID == ID )
-            {
-			    return pAbility->Index;
+		if ( ((PALTADVMGR)pAltAdvManager)->AltAbilities->AltAbilityList->Abilities[nAbility])
+		{
+			if ( PALTABILITY pAbility=((PALTADVMGR)pAltAdvManager)->AltAbilities->AltAbilityList->Abilities[nAbility]->Ability) 
+			{
+                if (pAbility->ID == ID )
+                {
+                    return pAbility->Index;
+                }
             }
         }
     }
@@ -5498,7 +5499,9 @@ bool BuffStackTest(PSPELL aSpell, PSPELL bSpell){
 
     if (bSpell->Attrib[i]==aSpell->Attrib[i] && !(bSpell->Attrib[i]==254 || aSpell->Attrib[i]==254))
          if (!((bSpell->Attrib[i]==10 && (bSpell->Base[i]==-6 || bSpell->Base[i]==0)) ||
-              (aSpell->Attrib[i]==10 && (aSpell->Base[i]==-6 || aSpell->Base[i]==0))))
+              (aSpell->Attrib[i]==10 && (aSpell->Base[i]==-6 || aSpell->Base[i]==0)) ||
+			  (bSpell->Attrib[i]==79 && bSpell->Base[i]>0 && bSpell->TargetType==6) ||
+			  (aSpell->Attrib[i]==79 && aSpell->Base[i]>0 && aSpell->TargetType==6)))
                return false;
 //Check to see if second buffs blocks first buff:
 //148: Stacking: Block new spell if slot %d is effect

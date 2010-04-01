@@ -4137,11 +4137,11 @@ FUNCTION_AT_ADDRESS(int  EQ_Character::NoMezMe(int,class EQPlayer *,class EQ_Spe
 #ifdef EQ_Character__NoBashMe
 FUNCTION_AT_ADDRESS(int  EQ_Character::NoBashMe(int),EQ_Character__NoBashMe);
 #endif
-#ifdef EQ_Character1__StunMe
-FUNCTION_AT_ADDRESS(void  EQ_Character1::StunMe(unsigned int,bool),EQ_Character__StunMe);
+#ifdef EQ_Character__StunMe
+FUNCTION_AT_ADDRESS(void  EQ_Character1::StunMe(unsigned int,unsigned int,unsigned int),EQ_Character__StunMe);
 #endif
 #ifdef EQ_Character__UnStunMe
-FUNCTION_AT_ADDRESS(void  EQ_Character::UnStunMe(void),EQ_Character__UnStunMe);
+FUNCTION_AT_ADDRESS(void  EQ_Character1::UnStunMe(void),EQ_Character__UnStunMe);
 #endif
 #ifdef EQ_Character__ApplyDamage
 FUNCTION_AT_ADDRESS(int  EQ_Character::ApplyDamage(int,struct _EQMissileHitinfo *,bool,class HateListEntry *,bool),EQ_Character__ApplyDamage);
@@ -4240,7 +4240,7 @@ FUNCTION_AT_ADDRESS(unsigned int EQ_Character::GetEffectId(int),EQ_Character__Ge
 FUNCTION_AT_ADDRESS(void  EQ_Character1::SetEffectId(unsigned char,unsigned int),EQ_Character__SetEffectId);
 #endif
 #ifdef EQ_Character__CastSpell
-FUNCTION_AT_ADDRESS(unsigned char EQ_Character1::CastSpell(unsigned char,int,class EQ_Item * *,int,int slot,int,int,int),EQ_Character__CastSpell); 
+FUNCTION_AT_ADDRESS(unsigned char EQ_Character1::CastSpell(unsigned char gemid,int spellid,class EQ_Item * *ppItem,int,int slot,int,int,int),EQ_Character__CastSpell); 
 #endif
 #ifdef EQ_Character__GetBardInstrumentMod
 FUNCTION_AT_ADDRESS(int  EQ_Character::GetBardInstrumentMod(int),EQ_Character__GetBardInstrumentMod);
@@ -4339,10 +4339,10 @@ FUNCTION_AT_ADDRESS(void  EQ_Character::RemovePCAffect(class EQ_Affect *),EQ_Cha
 FUNCTION_AT_ADDRESS(void  EQ_Character::RemovePCAffectex(class EQ_Affect *,int),EQ_Character__RemovePCAffectex);
 #endif
 #ifdef EQ_Character__StopSpellCast
-FUNCTION_AT_ADDRESS(void  EQ_Character::StopSpellCast(unsigned char),EQ_Character__StopSpellCast);
+FUNCTION_AT_ADDRESS(void  EQ_Character1::StopSpellCast(unsigned char),EQ_Character__StopSpellCast);
 #endif
 #ifdef EQ_Character__StopSpellCast1
-FUNCTION_AT_ADDRESS(void  EQ_Character::StopSpellCast(unsigned char,int),EQ_Character__StopSpellCast1);
+FUNCTION_AT_ADDRESS(void  EQ_Character1::StopSpellCast(unsigned char,int),EQ_Character__StopSpellCast1);
 #endif
 #ifdef EQ_Character__ReCachSpellEffects
 FUNCTION_AT_ADDRESS(void  EQ_Character::ReCachSpellEffects(void),EQ_Character__ReCachSpellEffects);
@@ -4512,6 +4512,15 @@ FUNCTION_AT_ADDRESS(unsigned char  EQ_PC::AtSkillLimit(int),EQ_PC__AtSkillLimit)
 #ifdef EQ_PC__GetItemTimerValue
 FUNCTION_AT_ADDRESS(unsigned long  EQ_PC::GetItemTimerValue(class EQ_Item *),EQ_PC__GetItemTimerValue);
 #endif
+#ifdef EQ_PC__GetAltAbilityIndex
+FUNCTION_AT_ADDRESS(int  EQ_PC::GetAltAbilityIndex(int),EQ_PC__GetAltAbilityIndex);
+#endif
+#ifdef EQ_PC__GetCombatAbility
+FUNCTION_AT_ADDRESS(int  EQ_PC::GetCombatAbility(int),EQ_PC__GetCombatAbility);
+#endif
+#ifdef EQ_PC__GetCombatAbilityTimer
+FUNCTION_AT_ADDRESS(unsigned long  EQ_PC::GetCombatAbilityTimer(int),EQ_PC__GetCombatAbilityTimer);
+#endif
 #ifdef CInvSlot__HandleLButtonDown
 FUNCTION_AT_ADDRESS(void  CInvSlot::HandleLButtonDown(class CXPoint),CInvSlot__HandleLButtonDown);
 #endif
@@ -4529,6 +4538,9 @@ FUNCTION_AT_ADDRESS(void  EQ_PC::CheckSkillImprove(int,float),EQ_PC__CheckSkillI
 #endif
 #ifdef EQ_PC__GetBodyTint
 FUNCTION_AT_ADDRESS(unsigned long  EQ_PC::GetBodyTint(int),EQ_PC__GetBodyTint);
+#endif
+#ifdef EQ_PC__SetAltAbilityIndex
+FUNCTION_AT_ADDRESS(void  EQ_PC::SetAltAbilityIndex(int,int),EQ_PC__SetAltAbilityIndex);
 #endif
 #ifdef EQ_PC__GetArmorTint
 FUNCTION_AT_ADDRESS(unsigned long  EQ_PC::GetArmorTint(int),EQ_PC__GetArmorTint);
@@ -5563,7 +5575,7 @@ FUNCTION_AT_ADDRESS(void  CEverQuest::InviteOk(char *),CEverQuest__InviteOk);
 FUNCTION_AT_ADDRESS(void  CEverQuest::doUnInvite(char *),CEverQuest__doUnInvite);
 #endif
 #ifdef CEverQuest__Invite
-FUNCTION_AT_ADDRESS(void  CEverQuest::Invite(void),CEverQuest__Invite);
+FUNCTION_AT_ADDRESS(void  CEverQuest::Invite(int),CEverQuest__Invite);
 #endif
 #ifdef CEverQuest__doInvite
 FUNCTION_AT_ADDRESS(void  CEverQuest::doInvite(unsigned __int32,char *),CEverQuest__doInvite);

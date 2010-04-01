@@ -68,6 +68,8 @@ using namespace std;
 
 #else
 // ISXEQ_LEGACY
+#include <winthreading.h>
+#include <Index.h>
 #include "..\Dxsdk81\include\dinput.h"
 #include "..\Blech\Blech.h"
 #endif

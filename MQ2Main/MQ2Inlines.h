@@ -292,3 +292,20 @@ static inline BOOL LineOfSight(PSPAWNINFO Origin, PSPAWNINFO CanISeeThis)
 {
 	return CastRay(Origin,CanISeeThis->Y,CanISeeThis->X,CanISeeThis->Z);
 }
+
+static inline BOOL IsMobFleeing(PSPAWNINFO pChar, PSPAWNINFO pSpawn)
+{
+    FLOAT HeadingTo = (FLOAT)(atan2f(pChar->Y - pSpawn->Y, pSpawn->X - pChar->X) * 180.0f / PI + 90.0f);
+	FLOAT Heading   = pSpawn->Heading*0.703125f;
+
+	if (HeadingTo<0.0f)
+		HeadingTo += 360.0f;
+	else if (HeadingTo>=360.0f)
+		HeadingTo -= 360.0f;
+
+	FLOAT UB = HeadingTo + 120.0f;
+	FLOAT LB = HeadingTo - 120.0f;
+
+	if (LB < UB) return ((Heading < UB) && (Heading > LB));
+	else return ((Heading < LB) && (Heading > UB));
+}

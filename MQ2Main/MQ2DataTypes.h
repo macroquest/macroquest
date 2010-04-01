@@ -522,6 +522,7 @@ public:
 		HeadingToLoc=83,
 		Title=84,
 		Suffix=85,
+		Fleeing=86,
 	};
 	static enum SpawnMethods
 	{
@@ -614,6 +615,7 @@ public:
 		TypeMember(HeadingToLoc);
 		TypeMember(Title);  //84
 		TypeMember(Suffix); //85
+		TypeMember(Fleeing);
 
 		TypeMethod(Target);
 		TypeMethod(Face);

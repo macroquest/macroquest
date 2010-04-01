@@ -1942,7 +1942,7 @@ EQLIB_OBJECT void CEverQuest::GuildWar(char *,int);
 EQLIB_OBJECT void CEverQuest::InitCommands(void);
 EQLIB_OBJECT void CEverQuest::initCustom(void);
 EQLIB_OBJECT void CEverQuest::InterpretCmd(class EQPlayer *,char *);
-EQLIB_OBJECT void CEverQuest::Invite(void);
+EQLIB_OBJECT void CEverQuest::Invite(int);
 EQLIB_OBJECT void CEverQuest::InviteOk(char *);
 EQLIB_OBJECT void CEverQuest::IssueLfgGroupQuery(struct LfgGroupQuery *);
 EQLIB_OBJECT void CEverQuest::IssueLfgPlayerQuery(struct LfgPlayerQuery *);
@@ -4817,6 +4817,7 @@ EQLIB_OBJECT void CTrainWnd::Deactivate(void);
 // protected
 EQLIB_OBJECT char * CTrainWnd::SkillName(int);
 EQLIB_OBJECT int CTrainWnd::SkillValue(int);
+EQLIB_OBJECT void CTrainWnd::Activate(void);
 EQLIB_OBJECT void CTrainWnd::SortNames(int);
 EQLIB_OBJECT void CTrainWnd::SortSkill(int);
 EQLIB_OBJECT void CTrainWnd::SwapSkill(int,int);
@@ -4968,7 +4969,7 @@ EQLIB_OBJECT void CXMLDataPtr::SetNewPtr(class CXMLData *);
 EQLIB_OBJECT CXMLDataPtr::~CXMLDataPtr(void);
 //EQLIB_OBJECT void * CXMLDataPtr::`vector deleting destructor'(unsigned int);
 // protected
-EQLIB_OBJECT virtual class CXMLData * CXMLDataPtr::AllocPtr(int,class CXMLData const *);
+EQLIB_OBJECT class CXMLData * CXMLDataPtr::AllocPtr(class CXMLDataPtr &,int,class CXMLData const *);
 EQLIB_OBJECT void CXMLDataPtr::Free(void);
 };
 
@@ -5339,16 +5340,17 @@ EQLIB_OBJECT EQ_AltAbility::EQ_AltAbility(int);
 class EQ_Character1
 {
 public:
+EQLIB_OBJECT int EQ_Character1::Cur_HP(int);
+EQLIB_OBJECT int EQ_Character1::Max_Endurance(void); // lax 4-25-2004
 EQLIB_OBJECT int EQ_Character1::Max_HP(int);
 EQLIB_OBJECT int EQ_Character1::Max_Mana(void);
-EQLIB_OBJECT int EQ_Character1::Max_Endurance(void); // lax 4-25-2004
-EQLIB_OBJECT int EQ_Character1::Cur_HP(int);
-EQLIB_OBJECT unsigned char EQ_Character1::CastSpell(unsigned char,int,class EQ_Item * *,int,int slot,int,int,int); 
 EQLIB_OBJECT int const EQ_Character1::GetAACastingTimeModifier(class EQ_Spell const *);
 EQLIB_OBJECT int const EQ_Character1::GetFocusCastingTimeModifier(class EQ_Spell const *,class EQ_Equipment * *);
+EQLIB_OBJECT unsigned char EQ_Character1::CastSpell(unsigned char,int,class EQ_Item * *,int,int slot,int,int,int); 
+EQLIB_OBJECT void EQ_Character1::SetEffectId(unsigned char,unsigned int);
 EQLIB_OBJECT void EQ_Character1::StopSpellCast(unsigned char);
 EQLIB_OBJECT void EQ_Character1::StopSpellCast(unsigned char,int);
-EQLIB_OBJECT void EQ_Character1::StunMe(unsigned int,bool,int);
+EQLIB_OBJECT void EQ_Character1::StunMe(unsigned int,unsigned int,unsigned int);
 EQLIB_OBJECT void EQ_Character1::UnStunMe(void);
 };
 
@@ -5503,7 +5505,6 @@ EQLIB_OBJECT void EQ_Character::ProcessHungerandThirst(unsigned int);
 EQLIB_OBJECT void EQ_Character::RemovePCAffect(class EQ_Affect *);
 EQLIB_OBJECT void EQ_Character::RemovePCAffectex(class EQ_Affect *,int);
 EQLIB_OBJECT void EQ_Character::ResetCur_HP(int);
-EQLIB_OBJECT void EQ_Character::SetEffectId(unsigned char,unsigned int);
 EQLIB_OBJECT void EQ_Character::UpdateMyVisibleStatus(void);
 EQLIB_OBJECT void EQ_Character::UseSkill(unsigned char,class EQPlayer *);
 EQLIB_OBJECT void EQ_Character::DoCombatAbility(int spellID); 
@@ -5590,7 +5591,9 @@ EQLIB_OBJECT int EQ_PC::CheckDupLoreItems(void);
 EQLIB_OBJECT int EQ_PC::checkLang(int);
 EQLIB_OBJECT int EQ_PC::CostToTrain(int,float,int);
 EQLIB_OBJECT int EQ_PC::DelLoreItemDup(int,int,int,class EQ_Item *);
+EQLIB_OBJECT int EQ_PC::GetAltAbilityIndex(int);
 EQLIB_OBJECT int EQ_PC::GetArmorType(int);
+EQLIB_OBJECT int EQ_PC::GetCombatAbility(int);
 EQLIB_OBJECT int EQ_PC::HandleMoney(long);
 EQLIB_OBJECT int EQ_PC::IsAGroupMember(char *);
 EQLIB_OBJECT int EQ_PC::MaxAirSupply(void);
@@ -5614,10 +5617,12 @@ EQLIB_OBJECT void EQ_PC::ProcessAirSupply(void);
 EQLIB_OBJECT void EQ_PC::ProcessFatigue(void);
 EQLIB_OBJECT void EQ_PC::RefitNewbieEQ(void);
 EQLIB_OBJECT void EQ_PC::RefreshMe(int);
+EQLIB_OBJECT void EQ_PC::SetAltAbilityIndex(int,int);
 EQLIB_OBJECT void EQ_PC::SetArmorTint(int,unsigned long);
 EQLIB_OBJECT void EQ_PC::SetArmorType(int,int);
 EQLIB_OBJECT void EQ_PC::SetFatigue(int);
 EQLIB_OBJECT void EQ_PC::UnpackMyNetPC(char *,int);
+EQLIB_OBJECT unsigned long EQ_PC::GetCombatAbilityTimer(int);
 EQLIB_OBJECT unsigned long EQ_PC::GetItemTimerValue(class EQ_Item *);
 };
 
