@@ -5496,6 +5496,7 @@ EQLIB_OBJECT void EQ_Character::StunMe(unsigned int,bool);
 EQLIB_OBJECT void EQ_Character::UnStunMe(void);
 EQLIB_OBJECT void EQ_Character::UpdateMyVisibleStatus(void);
 EQLIB_OBJECT void EQ_Character::UseSkill(unsigned char,class EQPlayer *);
+EQLIB_OBJECT void EQ_Character::DoCombatAbility(int spellID); 
 // private
 EQLIB_OBJECT int EQ_Character::GetCachEQSPA(int);
 EQLIB_OBJECT void EQ_Character::ReCachItemEffects(void);

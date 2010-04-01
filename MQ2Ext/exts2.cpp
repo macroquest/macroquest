@@ -158,8 +158,9 @@ DECLARE_API ( pchar )
 	KP(CareerFavor);
 	KP(CurrFavor);
     KP(CombatAbilities);
-	KP(CombatAbilityTimes);
 	KP(ItemTimer);
+	KP(CombatAbilityTimes);
+	KP(ItemTimes);
 	KP(GroupLeadershipExp);
 	KP(RaidLeadershipExp);
 	KP(GroupLeadershipPoints);
@@ -520,6 +521,7 @@ DECLARE_API ( pspell )
    KP(DurationWindow);
    KP(Unknown144);
    KP(Unknown145);
+   KP(CARecastTimerID);
    KP(PvPResistBase);
    KP(PvPResistCalc);
    KP(PvPResistCap);

@@ -1777,78 +1777,90 @@ VOID Where(PSPAWNINFO pChar, PCHAR szLine)
 //              Does (or lists) your abilities
 // Usage:       /doability [list|ability|#]
 // ***************************************************************************
-VOID DoAbility(PSPAWNINFO pChar, PCHAR szLine)
-{
-    if (!cmdDoAbility) return;
+VOID DoAbility(PSPAWNINFO pChar, PCHAR szLine) 
+{ 
+    if (!cmdDoAbility) return; 
 
-    if (szLine[0]==0 || atoi(szLine) || !EQADDR_DOABILITYLIST) {
-        cmdDoAbility(pChar,szLine);
-        return;
-    }
+    if (szLine[0]==0 || atoi(szLine) || !EQADDR_DOABILITYLIST) { 
+        cmdDoAbility(pChar,szLine); 
+        return; 
+    } 
 
-    DWORD Index, DoIndex = 0xFFFFFFFF;
-    CHAR szBuffer[MAX_STRING] = {0};
+   PCHARINFO pCharInfo = GetCharInfo(); 
 
-    GetArg(szBuffer,szLine,1);
+    DWORD Index, DoIndex = 0xFFFFFFFF; 
+    CHAR szBuffer[MAX_STRING] = {0}; 
 
-    if (!stricmp(szBuffer,"list")) {
-        WriteChatColor("Abilities:",USERCOLOR_DEFAULT);
-        for (Index=4;Index<10;Index++) {
-            if (EQADDR_DOABILITYLIST[Index]==0xFFFFFFFF) {
-                sprintf(szBuffer,"%d. <Empty>",Index-3);
-            } else if (szSkills[EQADDR_DOABILITYLIST[Index]]) {
-                sprintf(szBuffer,"%d. %s",Index-3,szSkills[EQADDR_DOABILITYLIST[Index]]);
-            } else {
-                sprintf(szBuffer,"%d. *Unknown%d",Index-3,EQADDR_DOABILITYLIST[Index]);
-            }
-            WriteChatColor(szBuffer,USERCOLOR_DEFAULT);
-        }
-        WriteChatColor("Combat Skills:",USERCOLOR_DEFAULT);
-        for (Index=0;Index<4;Index++) {
-            if (EQADDR_DOABILITYLIST[Index]==0xFFFFFFFF) {
-                sprintf(szBuffer,"%d. <Empty>",Index+7);
-            } else if (szSkills[EQADDR_DOABILITYLIST[Index]]) {
-                sprintf(szBuffer,"%d. %s",Index+7,szSkills[EQADDR_DOABILITYLIST[Index]]);
-            } else {
-                sprintf(szBuffer,"%d. *Unknown%d",Index+7,EQADDR_DOABILITYLIST[Index]);
-            }
-            WriteChatColor(szBuffer,USERCOLOR_DEFAULT);
-        }
-        WriteChatColor("Combat Abiilities:",USERCOLOR_DEFAULT);
-        for (Index=10;Index<18;Index++) {
-            if (EQADDR_DOABILITYLIST[Index]==0xFFFFFFFF) {
-                sprintf(szBuffer,"%d. <Empty>",Index+1);
-			} else if (EQADDR_DOABILITYLIST[Index] > 132) { // highest number we have defined so far
-				sprintf(szBuffer,"%d. *Unknown%d",Index+1,EQADDR_DOABILITYLIST[Index]);
-            } else if (szSkills[EQADDR_DOABILITYLIST[Index]]) {
-                sprintf(szBuffer,"%d. %s",Index+1,szSkills[EQADDR_DOABILITYLIST[Index]]);
-            } else {
-                sprintf(szBuffer,"%d. *Unknown%d",Index+1,EQADDR_DOABILITYLIST[Index]);
-            }
-            WriteChatColor(szBuffer,USERCOLOR_DEFAULT);
-        }
+    GetArg(szBuffer,szLine,1); 
+
+    if (!stricmp(szBuffer,"list")) { 
+        WriteChatColor("Abilities:",USERCOLOR_DEFAULT); 
+        for (Index=4;Index<10;Index++) { 
+            if (EQADDR_DOABILITYLIST[Index]==0xFFFFFFFF) { 
+                sprintf(szBuffer,"%d. <Empty>",Index-3); 
+            } else if (szSkills[EQADDR_DOABILITYLIST[Index]]) { 
+                sprintf(szBuffer,"%d. %s",Index-3,szSkills[EQADDR_DOABILITYLIST[Index]]); 
+            } else { 
+                sprintf(szBuffer,"%d. *Unknown%d",Index-3,EQADDR_DOABILITYLIST[Index]); 
+            } 
+            WriteChatColor(szBuffer,USERCOLOR_DEFAULT); 
+        } 
+        WriteChatColor("Combat Skills:",USERCOLOR_DEFAULT); 
+        for (Index=0;Index<4;Index++) { 
+            if (EQADDR_DOABILITYLIST[Index]==0xFFFFFFFF) { 
+                sprintf(szBuffer,"%d. <Empty>",Index+7); 
+            } else if (szSkills[EQADDR_DOABILITYLIST[Index]]) { 
+                sprintf(szBuffer,"%d. %s",Index+7,szSkills[EQADDR_DOABILITYLIST[Index]]); 
+            } else { 
+                sprintf(szBuffer,"%d. *Unknown%d",Index+7,EQADDR_DOABILITYLIST[Index]); 
+            } 
+            WriteChatColor(szBuffer,USERCOLOR_DEFAULT); 
+        } 
+        WriteChatColor("Combat Abilities:",USERCOLOR_DEFAULT); 
+        for (Index=0;Index<50;Index++) { 
+         if (pCharInfo->CombatAbilities[Index]) { 
+            PSPELL pCA = GetSpellByID(pCharInfo->CombatAbilities[Index]); 
+            if (pCA) 
+              sprintf(szBuffer, "%d. %s", Index+11, pCA->Name); 
+            else 
+               sprintf(szBuffer, "%d. <Unknown>", Index+11); 
+                WriteChatColor(szBuffer,USERCOLOR_DEFAULT); 
+            } 
+        } 
 
 
-        return;
-    }
+        return; 
+    } 
 
-    for (Index=0;Index<10;Index++) {
-        if (EQADDR_DOABILITYLIST[Index]!= 0xFFFFFFFF) {
-            if (!strnicmp(szBuffer,szSkills[EQADDR_DOABILITYLIST[Index]],strlen(szSkills[EQADDR_DOABILITYLIST[Index]]))) {
-                if (Index<4) {
-                    DoIndex = Index+7; // 0-3 = Combat abilities (7-10)
-                } else {
-                    DoIndex = Index-3; // 4-9 = Abilities (1-6)
-                }
-            }
-        }
-    }
-    if (DoIndex!=0xFFFFFFFF) {
-        cmdDoAbility(pChar,itoa(DoIndex,szBuffer,10));
-    } else {
-        WriteChatColor("You do not seem to have that ability on a /doability button",USERCOLOR_DEFAULT);
-    }
-}
+    for (Index=0;Index<10;Index++) { 
+        if (EQADDR_DOABILITYLIST[Index]!= 0xFFFFFFFF) { 
+            if (!strnicmp(szBuffer,szSkills[EQADDR_DOABILITYLIST[Index]],strlen(szSkills[EQADDR_DOABILITYLIST[Index]]))) { 
+                if (Index<4) { 
+                    DoIndex = Index+7; // 0-3 = Combat abilities (7-10) 
+                } else { 
+                    DoIndex = Index-3; // 4-9 = Abilities (1-6) 
+                } 
+            } 
+        } 
+    } 
+    if (DoIndex!=0xFFFFFFFF) { 
+        cmdDoAbility(pChar,itoa(DoIndex,szBuffer,10)); 
+    } else { 
+      PSPELL pCA = NULL; 
+        for (Index=0;Index<50;Index++) { 
+         if (pCharInfo->CombatAbilities[Index]) { 
+            pCA = GetSpellByID(pCharInfo->CombatAbilities[Index]); 
+            if (!stricmp(pCA->Name, szBuffer)) { 
+               // We got the cookie, let's try and do it... 
+               pCharData->DoCombatAbility(pCA->ID); 
+               break; 
+            } 
+         } 
+        } 
+      if (Index >= 50) 
+         WriteChatColor("You do not seem to have that ability available",USERCOLOR_DEFAULT); 
+    } 
+} 
 
 // ***************************************************************************
 // Function:    LoadSpells
@@ -3144,7 +3156,7 @@ VOID AltAbility(PSPAWNINFO pChar, PCHAR szLine)
 							
 							if ((pAltAdvManager->GetCalculatedTimer(pPCData,pAbility)) > 0)
 							{//has a timer
-								if (!(pAltAdvManager->IsAbilityReady(pPCData,pAbility,0)))
+								if (!(PlayerHasAAAbility(pChar->pCharInfo,pAbility->Index) && pAltAdvManager->IsAbilityReady(pPCData,pAbility,0)))
 								{//it's not ready
 									pAltAdvManager->IsAbilityReady(pPCData,pAbility,&i);
 									sprintf(szBuffer,"[ %d: %s ] %s", pAbility->ID, pStringTable->getString(pAbility->nName,0), pStringTable->getString(pAbility->nDesc,0) );
@@ -3157,8 +3169,16 @@ VOID AltAbility(PSPAWNINFO pChar, PCHAR szLine)
 										sprintf(szBuffer,"Casts Spell: %s", GetSpellNameByID(pAbility->SpellID) );
 										WriteChatColor(szBuffer, USERCOLOR_WHO);
 									}
-									sprintf(szBuffer,"Ready: No (%d seconds until refresh)", i );
-									WriteChatColor(szBuffer,USERCOLOR_WHO);
+									if (PlayerHasAAAbility(pChar->pCharInfo,pAbility->Index)) 
+									{ 
+										sprintf(szBuffer,"Ready: No (%d seconds until refresh)", i ); 
+										WriteChatColor(szBuffer,USERCOLOR_WHO); 
+									} 
+									else 
+									{ 
+										WriteChatColor("Ready: Not Purchased",USERCOLOR_WHO); 
+									} 
+
 								}
 								else
 								{

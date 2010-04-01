@@ -2119,9 +2119,100 @@ bool MQ2CharacterType::GETMEMBER()
 			}
 		}
 		return false;
-	case CombatAbilityTimer:
-		// in progress...
-		return false;
+	case CombatAbilityTimer: 
+      if (ISINDEX()) 
+      { 
+         if (ISNUMBER()) 
+         { 
+            // number 
+            unsigned long nCombatAbility=GETNUMBER()-1; 
+            if ( PSPELL pSpell = GetSpellByID(pChar->CombatAbilities[nCombatAbility])) 
+            { 
+               if (pSpell->CARecastTimerID) 
+               { 
+                  DWORD timeNow = (DWORD)time(NULL); 
+                  if (pChar->CombatAbilityTimes[pSpell->CARecastTimerID] > timeNow) 
+                  { 
+                     Dest.Int=(pChar->CombatAbilityTimes[pSpell->CARecastTimerID] - timeNow)+6; //Stupid ticks. 
+                     Dest.Int/=6; 
+                     Dest.Type=pTicksType; 
+                     return true; 
+                  } 
+               } 
+            } 
+         } 
+         else 
+         { 
+            // by name 
+            for (unsigned long nCombatAbility=0 ; nCombatAbility < 50 ; nCombatAbility++) 
+            { 
+               if (PSPELL pSpell=GetSpellByID(pChar->CombatAbilities[nCombatAbility])) 
+               { 
+                  if (!stricmp(GETFIRST(),pSpell->Name)) 
+                  { 
+                     if (pSpell->CARecastTimerID) 
+                     { 
+                        DWORD timeNow = (DWORD)time(NULL); 
+                        if (pChar->CombatAbilityTimes[pSpell->CARecastTimerID] > timeNow) 
+                        { 
+                           Dest.Int=(pChar->CombatAbilityTimes[pSpell->CARecastTimerID] - timeNow)+6; 
+                           Dest.Int/=6; 
+                           Dest.Type=pTicksType; 
+                           return true; 
+                        } 
+                     } 
+                  } 
+               } 
+            } 
+         } 
+      } 
+      return false; 
+   case CombatAbilityReady: 
+      Dest.DWord=0; 
+      Dest.Type=pBoolType; 
+      if (ISINDEX()) 
+      { 
+         if (ISNUMBER()) 
+         { 
+            // number 
+            unsigned long nCombatAbility=GETNUMBER()-1; 
+            if ( PSPELL pSpell = GetSpellByID(pChar->CombatAbilities[nCombatAbility])) 
+            { 
+               if (pSpell->CARecastTimerID) 
+               { 
+                  DWORD timeNow = (DWORD)time(NULL); 
+                  if (pChar->CombatAbilityTimes[pSpell->CARecastTimerID] < timeNow) 
+                  { 
+                     Dest.DWord=1; 
+                     return true; 
+                  } 
+               } 
+            } 
+         } 
+         else 
+         { 
+            // by name 
+            for (unsigned long nCombatAbility=0 ; nCombatAbility < 50 ; nCombatAbility++) 
+            { 
+               if (PSPELL pSpell=GetSpellByID(pChar->CombatAbilities[nCombatAbility])) 
+               { 
+                  if (!stricmp(GETFIRST(),pSpell->Name)) 
+                  { 
+                     if (pSpell->CARecastTimerID) 
+                     { 
+                        DWORD timeNow = (DWORD)time(NULL); 
+                        if (pChar->CombatAbilityTimes[pSpell->CARecastTimerID] < timeNow) 
+                        { 
+                           Dest.DWord=1; 
+                           return true; 
+                        } 
+                     } 
+                  } 
+               } 
+            } 
+         } 
+      } 
+        return true; 
 	case Moving:
 		Dest.DWord=((((gbMoving) && ((PSPAWNINFO)pCharSpawn)->SpeedRun==0.0f) && (pChar->pSpawn->pActorInfo->Mount ==  NULL )) || (fabs(FindSpeed((PSPAWNINFO)pCharSpawn)) > 0.0f ));
 		Dest.Type=pBoolType;
@@ -2185,7 +2276,7 @@ bool MQ2CharacterType::GETMEMBER()
 				}
 			}
 		}
-		return false;
+		return true;
 	case AltAbilityReady:
 		if (ISINDEX())
 		{
@@ -2200,7 +2291,7 @@ bool MQ2CharacterType::GETMEMBER()
 						{
 							if (pAbility->ID == GETNUMBER() )
 							{
-								Dest.DWord=pAltAdvManager->IsAbilityReady(pPCData,pAbility,0);
+								Dest.DWord=PlayerHasAAAbility(GetCharInfo(),pAbility->Index) && pAltAdvManager->IsAbilityReady(pPCData,pAbility,0);
 								Dest.Type=pBoolType;
 								return true;
 							}
@@ -2221,7 +2312,7 @@ bool MQ2CharacterType::GETMEMBER()
 						{
 							if (!stricmp(GETFIRST(),pName))
 							{
-								Dest.DWord=pAltAdvManager->IsAbilityReady(pPCData,pAbility,0);
+								Dest.DWord=PlayerHasAAAbility(GetCharInfo(),pAbility->Index) && pAltAdvManager->IsAbilityReady(pPCData,pAbility,0);
 								Dest.Type=pBoolType;
 								return true;
 							}
@@ -2790,6 +2881,10 @@ bool MQ2CharacterType::GETMEMBER()
     case TributeActive:
         Dest.DWord=*pTributeActive;
         Dest.Type=pBoolType;
+        return true; 
+    case Running: 
+        Dest.DWord=(*EQADDR_RUNWALKSTATE); 
+        Dest.Type=pBoolType; 
         return true; 
     }
 	return false;

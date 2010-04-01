@@ -805,14 +805,14 @@ typedef struct _EQCASTSPELLWINDOW {
 
 // Individual Gems 2005-05-18 koad 
 typedef struct _EQCASTSPELLGEM { 
-/*0x000*/ struct _CSIDLWND Wnd; 
-/*0x15C*/ BYTE Unknown0x15C[0x08]; 
-/*0x164*/ BYTE Unknown0x164[0x20]; 
-/*0x184*/ BYTE Unknown0x184[0x4];  //after new 2005-05-11 CSIDLWND, 4 bytes lost somewhere~ 
-/*0x188*/ DWORD   spellicon; //if this is equal to FFFFFFFF there is no spell memmed in this slot... 
-/*0x18C*/ DWORD   spellstate; // 1 = cast in progress or refreshtime not met 2 means we ducked or aborted cast, 0 means its ok to cast 
-/*0x190*/ 
-} EQCASTSPELLGEM, *PEQCASTSPELLGEM; 
+/*0x000*/ struct	_CSIDLWND Wnd; 
+/*0x148*/ BYTE		Unknown0x148[0x08]; 
+/*0x054*/ BYTE		Unknown0x154[0x20]; 
+/*0x174*/ BYTE		Unknown0x174[0x4]; 
+/*0x178*/ DWORD		spellicon;//if this is equal to FFFFFFFF there is no spell memmed in this slot... 
+/*0x17C*/ DWORD		spellstate;// 1 = cast in progress or refreshtime not met 2 means we ducked or aborted cast, 0 means its ok to cast 
+/*0x180*/ 
+} EQCASTSPELLGEM, *PEQCASTSPELLGEM;
 #define Fly					 0
 
 // Actual size 0x1c4 10-9-2003

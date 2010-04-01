@@ -767,9 +767,12 @@ union {
 /* 0xa814 */   DWORD      field_a814;
 /* 0xa818 */   DWORD      field_a818;
 /* 0xa81c */   DWORD      CombatAbilities[0x32];
-/* 0xa8e4 */   DWORD      CombatAbilityTimes[0x14];
+/* 0xa8e4 */   DWORD      Unknown0xa8e4[0x14]; 
 /* 0xa934 */   DWORD      ItemTimer[0x14];  // Util__fasttime
-/* 0xa984 */   BYTE       Unknown0xa984[0x118];
+/* 0xa984 */   BYTE		  Unknown0xa984[0x28];
+/* 0xa9ac */   DWORD	  CombatAbilityTimes[0x14];
+/* 0xa9fc */   BYTE		  Unknown0xa9fc[0x50];
+/* 0xaa4c */   DWORD	  ItemTimes[0x14];
 /* 0xaa9c */   DWORD      GroupLeadershipExp;      // 0-999
 /* 0xaaa0 */   DWORD      RaidLeadershipExp;       // 0-999
 /* 0xaaa4 */   DWORD      GroupLeadershipPoints;   // 0-8
@@ -1285,7 +1288,10 @@ typedef struct _SPELL {
 /*0x19b*/   BYTE    DurationWindow;     // 0=Long, 1=Short
 /*0x19c*/   DWORD   Unknown144;         // Unknown144 from lucy
 /*0x1a0*/   DWORD   Unknown145;         // Unknown145 from lucy
-/*0x1a4*/   BYTE    Unknown0x1a4[0x40];
+/*0x1a4*/   BYTE    Unknown0x1a4[0x1c]; 
+/*0x1c0*/   DWORD   CARecastTimerID;    // ID of combat timer, i think. 
+/*0x1c4*/   DWORD   Unknown0x1c4; 
+/*0x1c8*/   BYTE    Unknown0x1c8[0x1C]; 
 /*0x1e4*/   DWORD   PvPResistBase;
 /*0x1e8*/   DWORD   PvPResistCalc;
 /*0x1ec*/   DWORD   PvPResistCap;

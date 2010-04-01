@@ -14,6 +14,8 @@ PreSetup("MQ2ItemDisplay");
 #include "ISXEQItemDisplay.h"
 #endif
 
+void Comment(PSPAWNINFO pChar, PCHAR szLine); 
+
 extern "C" {
 __declspec(dllexport) ITEMINFO g_Item;
 }
@@ -36,6 +38,7 @@ public:
 	  PITEMINFO Item=*(PITEMINFO*)pitem;
       CHAR out[MAX_STRING] = {0};
 	  CHAR temp[MAX_STRING] = {0};
+	  CHAR temp2[MAX_STRING] = {0};
       PCHAR lore = NULL;
       SetItem_Trampoline(pitem,unknown);
 
@@ -141,6 +144,14 @@ public:
         sprintf(temp,"Item ID: %d<br>", Item->ItemNumber); 
         strcat(out, temp); 
      } 
+
+	 sprintf(temp,"%07d",Item->ItemNumber); 
+     GetPrivateProfileString("Notes",temp,"",temp2,MAX_STRING,INIFileName); 
+     if (strlen(temp2)>0) 
+     { 
+        sprintf(temp,"Note: %s<br>",temp2); 
+        strcat(out, temp); 
+     }  
 
      if (out[0]!=17) {
       strcat(out,"</c>");
@@ -334,6 +345,49 @@ bool ItemDisplayHook::bNoSpellTramp = false;
 DETOUR_TRAMPOLINE_EMPTY(VOID ItemDisplayHook::SetItem_Trampoline(class EQ_Item *,bool)); 
 DETOUR_TRAMPOLINE_EMPTY(VOID ItemDisplayHook::SetSpell_Trampoline(int SpellID,bool HasSpellDescr,int));
 
+void Comment(PSPAWNINFO pChar, PCHAR szLine) 
+{ 
+   CHAR Arg[MAX_STRING] = {0}; 
+   CHAR ItemNo[MAX_STRING] = {0}; 
+   CHAR Comment[MAX_STRING] = {0}; 
+   CHAR szTemp[MAX_STRING] = {0}; 
+   GetArg(Arg,szLine,1); 
+   GetArg(ItemNo,szLine,2); 
+   GetArg(szTemp,szLine,3); 
+   for(int i=4;strlen(szTemp);i++){ 
+      strcat(Comment,szTemp); 
+      strcat(Comment," "); 
+      GetArg(szTemp,szLine,i); 
+   } 
+   int itemno = atoi(ItemNo); 
+ 
+   if (stricmp(Arg,"add") && stricmp(Arg,"del")) 
+   { 
+      WriteChatColor("Use: /inote <add|del> <itemno> \"Comment\"",CONCOLOR_YELLOW); 
+      return; 
+   } 
+   if (itemno <= 0) 
+   { 
+      WriteChatColor("Invalid item number"); 
+      WriteChatColor("Use: /inote <add|del> <itemno> \"Comment\"",CONCOLOR_YELLOW); 
+      return; 
+   } 
+   if (strlen(Comment)==0 || !stricmp(Arg,"del")) 
+   { 
+      sprintf(szTemp,"%07d",itemno); 
+      WritePrivateProfileString("Notes",szTemp,"",INIFileName); 
+      return; 
+   } 
+ 
+   if (!stricmp(Arg,"add")) 
+   { 
+      sprintf(szTemp,"%07d",itemno); 
+      WritePrivateProfileString("Notes",szTemp,Comment,INIFileName); 
+      return; 
+   } 
+} 
+ 
+
 #ifndef ISXEQ
 // Called once, when the plugin is to initialize
 PLUGIN_API VOID InitializePlugin(VOID)
@@ -346,6 +400,8 @@ PLUGIN_API VOID InitializePlugin(VOID)
 	EzDetour(CItemDisplayWnd__SetItem,ItemDisplayHook::SetItem_Detour,ItemDisplayHook::SetItem_Trampoline);
 //   EasyClassDetour(CItemDisplayWnd__SetSpell,ItemDisplayHook,SetSpell_Detour,void,(int SpellID,bool HasSpellDescr,int),SetSpell_Trampoline);
 	EzDetour(CItemDisplayWnd__SetSpell,ItemDisplayHook::SetSpell_Detour,ItemDisplayHook::SetSpell_Trampoline);
+
+	AddCommand("/inote",Comment); 
 }
 
 // Called once, when the plugin is to shutdown
@@ -356,5 +412,7 @@ PLUGIN_API VOID ShutdownPlugin(VOID)
 	// Remove commands, macro parameters, hooks, etc.
 	RemoveDetour(CItemDisplayWnd__SetItem);
 	RemoveDetour(CItemDisplayWnd__SetSpell);
+
+	RemoveCommand("/inote");
 }
 #endif

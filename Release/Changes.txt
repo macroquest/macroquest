@@ -1,7 +1,19 @@
+25 May 2005 by Amadeus
+- Added Me.CombatAbilityReady and Me.CombatAbilityTimer
+- Added:  /doability <combat ability>
+- Added Me.Running 
+- Added the command "/inote" for those running the ItemDisplay plugin,
+  which is most everyone :)
+- Currently AltAbilityReady returns TRUE when you inquire about 
+  aa's you have not yet purchased. MQ2 now changes that behavior 
+  to verify that you own the aa prior to saying its READY. 
+- Fixed Me.SpellReady
+
 21 May 2005 by Amadeus
 - The MQ command known as '/charinfo' is now known as '/char'.  This allows
   for players to use both the EQ and MQ commands seperately.
 - Fixed various structs
+- Returned Me.Underwater and Me.FeetWet
   
 13 May 2005 by DKAA
 - Added optional param to Windows.List[...] to indicate column

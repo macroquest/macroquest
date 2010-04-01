@@ -119,6 +119,9 @@ FUNCTION_AT_ADDRESS(int  EQ_Character::Max_Endurance(void),EQ_Character__Max_End
 #ifdef EQ_Character__Max_Mana 
 FUNCTION_AT_VIRTUAL_ADDRESS(int EQ_Character::Max_Mana(void), 0);
 #endif 
+#ifdef EQ_Character__doCombatAbility 
+FUNCTION_AT_ADDRESS(void EQ_Character::DoCombatAbility(int spellID), EQ_Character__doCombatAbility); 
+#endif 
 
 FUNCTION_AT_VIRTUAL_ADDRESS(void CChatWindow::operator delete[](void*),0x04);
 
