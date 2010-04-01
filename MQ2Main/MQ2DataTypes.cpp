@@ -2277,132 +2277,68 @@ bool MQ2CharacterType::GETMEMBER()
 			}
 		}
 		return false;
-	case AltAbilityReady:
-		if (ISINDEX())
-		{
-			if (ISNUMBER())
-			{
-				//numeric
-				for (unsigned long nAbility=0 ; nAbility<NUM_ALT_ABILITIES ; nAbility++)
-				{
-					if ( ((PALTADVMGR)pAltAdvManager)->AltAbilities->AltAbilityList->Abilities[nAbility])
-					{
-						if ( PALTABILITY pAbility=((PALTADVMGR)pAltAdvManager)->AltAbilities->AltAbilityList->Abilities[nAbility]->Ability) 
-						{
-							if (pAbility->ID == GETNUMBER() )
-							{
-								Dest.DWord=PlayerHasAAAbility(GetCharInfo(),pAbility->Index) && pAltAdvManager->IsAbilityReady(pPCData,pAbility,0);
-								Dest.Type=pBoolType;
-								return true;
-							}
-						}
-					}
-				}
-			}
-			else
-			{
-				// by name
-				for (unsigned long nAbility=0 ; nAbility<NUM_ALT_ABILITIES ; nAbility++)
-				{
-			      if ( ((PALTADVMGR)pAltAdvManager)->AltAbilities->AltAbilityList->Abilities[nAbility])
-				  {
-					if (PALTABILITY pAbility=((PALTADVMGR)pAltAdvManager)->AltAbilities->AltAbilityList->Abilities[nAbility]->Ability)
-					{
-						if (PCHAR pName=pStringTable->getString(pAbility->nName,0))
-						{
-							if (!stricmp(GETFIRST(),pName))
-							{
-								Dest.DWord=PlayerHasAAAbility(GetCharInfo(),pAbility->Index) && pAltAdvManager->IsAbilityReady(pPCData,pAbility,0);
-								Dest.Type=pBoolType;
-								return true;
-							}
-						}
-					}
-				  }
-				}
-			}
-		}
-		return false;
-	case AltAbility:
-		if (ISINDEX())
-		{
-			if (ISNUMBER())
-			{
-				//numeric
-				for (unsigned long nAbility=0 ; nAbility<NUM_ALT_ABILITIES ; nAbility++)
-				{
-					if ( ((PALTADVMGR)pAltAdvManager)->AltAbilities->AltAbilityList->Abilities[nAbility])
-					{
-						if ( PALTABILITY pAbility=((PALTADVMGR)pAltAdvManager)->AltAbilities->AltAbilityList->Abilities[nAbility]->Ability) 
-						{
-							if (pAbility->ID == GETNUMBER())
-							{
-								if (PlayerHasAAAbility(pChar,GetAAIndexByID(pAbility->ID)))
-								{
-									for (unsigned int j=0; j < NUM_ALT_ABILITIES; j++)
-									{
-										if ( pChar->AAList[j].AAIndex == pAbility->Index)
-										{
-											Dest.DWord = pChar->AAList[j].PointsSpent;
-											Dest.Type = pIntType;
-											return true;
-										}
-										if (pChar->AAList[j].AAIndex == 0)
-											break;
-									}
-								}
-								else
-								{
-									Dest.DWord = 0;
-									Dest.Type = pIntType;
-									return true;
-								}
-							}
-						}
-					}
-				}
-			}
-			else
-			{
-				// by name
-				for (unsigned long nAbility=0 ; nAbility<NUM_ALT_ABILITIES ; nAbility++)
-				{
-			      if ( ((PALTADVMGR)pAltAdvManager)->AltAbilities->AltAbilityList->Abilities[nAbility])
-				  {
-					if (PALTABILITY pAbility=((PALTADVMGR)pAltAdvManager)->AltAbilities->AltAbilityList->Abilities[nAbility]->Ability)
-					{
-						if (PCHAR pName=pStringTable->getString(pAbility->nName,0))
-						{
-							if (!stricmp(GETFIRST(),pName))
-							{
-								if (PlayerHasAAAbility(pChar,GetAAIndexByID(pAbility->ID)))
-								{
-									for (unsigned int j=0; j < NUM_ALT_ABILITIES; j++)
-									{
-										if ( pChar->AAList[j].AAIndex == pAbility->Index)
-										{
-											Dest.DWord = pChar->AAList[j].PointsSpent;
-											Dest.Type = pIntType;
-											return true;
-										}
-										if (pChar->AAList[j].AAIndex == 0)
-											break;
-									}
-								}
-								else
-								{
-									Dest.DWord = 0;
-									Dest.Type = pIntType;
-									return true;
-								}
-							}
-						}
-					}
-				  }
-				}
-			}
-		}
-		return false;
+    case AltAbilityReady:
+        if (ISINDEX()) {
+            if (ISNUMBER()) {
+                //numeric
+                for (unsigned long nAbility=0 ; nAbility<AA_CHAR_MAX_REAL ; nAbility++) {
+                    if (!pChar->AAList[nAbility].AAIndex) break;
+                    if ( PALTABILITY pAbility=pAltAdvManager->GetAltAbility(pChar->AAList[nAbility].AAIndex)) {
+                        if (pAbility->ID == GETNUMBER()) {
+                            Dest.DWord=pAltAdvManager->IsAbilityReady(pPCData,pAbility,0);
+                            Dest.Type=pBoolType;
+                            return true;
+                        }
+                    }
+                }
+            } else {
+                // by name
+                for (unsigned long nAbility=0 ; nAbility<AA_CHAR_MAX_REAL ; nAbility++) {
+                    if (!pChar->AAList[nAbility].AAIndex) break;
+                    if ( PALTABILITY pAbility=pAltAdvManager->GetAltAbility(pChar->AAList[nAbility].AAIndex)) {
+                        if (PCHAR pName=pStringTable->getString(pAbility->nName,0)) {
+                            if (!stricmp(GETFIRST(),pName)) {
+                                Dest.DWord=pAltAdvManager->IsAbilityReady(pPCData,pAbility,0);
+                                Dest.Type=pBoolType;
+                                return true;
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        return false;
+    case AltAbility:
+        if (ISINDEX()) {
+            if (ISNUMBER()) {
+                //numeric
+                for (unsigned long nAbility=0 ; nAbility<AA_CHAR_MAX_REAL ; nAbility++) {
+                    if (!pChar->AAList[nAbility].AAIndex) break;
+                    if ( PALTABILITY pAbility=pAltAdvManager->GetAltAbility(pChar->AAList[nAbility].AAIndex)) {
+                        if (pAbility->ID == GETNUMBER()) {
+                            Dest.DWord = pChar->AAList[nAbility].PointsSpent;
+                            Dest.Type = pIntType;
+                            return true;
+                        }
+                    }
+                }
+            } else {
+                // by name
+                for (unsigned long nAbility=0 ; nAbility<AA_CHAR_MAX_REAL ; nAbility++) {
+                    if (!pChar->AAList[nAbility].AAIndex) break;
+                    if ( PALTABILITY pAbility=pAltAdvManager->GetAltAbility(pChar->AAList[nAbility].AAIndex)) {
+                        if (PCHAR pName=pStringTable->getString(pAbility->nName,0)) {
+                            if (!stricmp(GETFIRST(),pName)) {
+                                Dest.DWord = pChar->AAList[nAbility].PointsSpent;
+                                Dest.Type = pIntType;
+                                return true;
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        return false;
 	case Skill:
 		if (ISINDEX())
 		{

@@ -1,4 +1,7 @@
-07 Jul 2005 by dkaa
+05 Jul 2005 by dkaa
+- fixed the AltAbilityReady and AltAbility members
+
+04 Jul 2005 by dkaa
 - prototypes for CListWnd::AddString changed (fixes mq2tracking)
 - rswiders change to XMLRead
 
