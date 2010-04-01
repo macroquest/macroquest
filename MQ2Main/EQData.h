@@ -610,6 +610,7 @@ typedef struct _AALIST {
 
 #define      NUM_BANK_SLOTS         0x12
 #define      NUM_BOOK_SLOTS         0x200
+#define      NUM_COMBAT_ABILITIES   0x64
 #define ExactLocation		 0
 
 
@@ -779,10 +780,10 @@ union {
 /* 0x1294 */   FLOAT    ZoneBoundY;
 /* 0x1298 */   FLOAT    ZoneBoundZ;
 /* 0x129c */   BYTE     Unknown129c[0x1348-0x129c];
-/* 0x1348 */   AALIST   AAList[NUM_ALT_ABILITIES/4]; 
-/* 0x134c */   BYTE     Unknown134c[0x3aec-0x134c];
-/* 0x3aec */   DWORD    CombatAbilities[0x64]; 
-/* 0x3c7c */   DWORD    CombatAbilityTimes[0x64]; 
+/* 0x1348 */   AALIST   AAList[NUM_ALT_ABILITIES/4]; // 8*(1f7/4)
+/* 0x1730 */   BYTE     Unknown1730[0x3aec-0x1730];
+/* 0x3aec */   DWORD    CombatAbilities[NUM_COMBAT_ABILITIES]; 
+/* 0x3c7c */   DWORD    CombatAbilityTimes[NUM_COMBAT_ABILITIES]; 
 /* 0x3e0c */   BYTE     Unknown3c7c[0x582c-0x3e0c];
 /* 0x582c */   DWORD    Deity;
 /* 0x5830 */   DWORD    Unknown0x5830;

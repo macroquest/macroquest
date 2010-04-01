@@ -1827,7 +1827,7 @@ VOID DoAbility(PSPAWNINFO pChar, PCHAR szLine)
             WriteChatColor(szBuffer,USERCOLOR_DEFAULT); 
         } 
         WriteChatColor("Combat Abilities:",USERCOLOR_DEFAULT); 
-        for (Index=0;Index<50;Index++) { 
+        for (Index=0;Index<NUM_COMBAT_ABILITIES;Index++) { 
          if (GetCharInfo2()->CombatAbilities[Index]) { 
             PSPELL pCA = GetSpellByID(GetCharInfo2()->CombatAbilities[Index]); 
             if (pCA) 
@@ -1857,7 +1857,7 @@ VOID DoAbility(PSPAWNINFO pChar, PCHAR szLine)
         cmdDoAbility(pChar,itoa(DoIndex,szBuffer,10)); 
     } else { 
       PSPELL pCA = NULL; 
-        for (Index=0;Index<50;Index++) { 
+        for (Index=0;Index<NUM_COMBAT_ABILITIES;Index++) { 
          if (GetCharInfo2()->CombatAbilities[Index]) { 
             pCA = GetSpellByID(GetCharInfo2()->CombatAbilities[Index]); 
             if (!stricmp(pCA->Name, szBuffer)) { 

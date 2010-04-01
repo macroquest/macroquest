@@ -2093,7 +2093,7 @@ bool MQ2CharacterType::GETMEMBER()
 		{
 			// number
 			unsigned long nCombatAbility=GETNUMBER()-1;
-			if (nCombatAbility<50)
+			if (nCombatAbility<NUM_COMBAT_ABILITIES)
 			{
 				if (Dest.Ptr=GetSpellByID(GetCharInfo2()->CombatAbilities[nCombatAbility]))
 				{
@@ -2105,7 +2105,7 @@ bool MQ2CharacterType::GETMEMBER()
 		else
 		{
 			// name
-			for (unsigned long nCombatAbility=0 ; nCombatAbility < 50 ; nCombatAbility++)
+			for (unsigned long nCombatAbility=0 ; nCombatAbility < NUM_COMBAT_ABILITIES ; nCombatAbility++)
 			{
 				if (PSPELL pSpell=GetSpellByID(GetCharInfo2()->CombatAbilities[nCombatAbility]))
 				{
@@ -2144,7 +2144,7 @@ bool MQ2CharacterType::GETMEMBER()
          else 
          { 
             // by name 
-            for (unsigned long nCombatAbility=0 ; nCombatAbility < 50 ; nCombatAbility++) 
+            for (unsigned long nCombatAbility=0 ; nCombatAbility < NUM_COMBAT_ABILITIES ; nCombatAbility++) 
             { 
                if (PSPELL pSpell=GetSpellByID(GetCharInfo2()->CombatAbilities[nCombatAbility])) 
                { 
@@ -2192,7 +2192,7 @@ bool MQ2CharacterType::GETMEMBER()
          else 
          { 
             // by name 
-            for (unsigned long nCombatAbility=0 ; nCombatAbility < 50 ; nCombatAbility++) 
+            for (unsigned long nCombatAbility=0 ; nCombatAbility < NUM_COMBAT_ABILITIES ; nCombatAbility++) 
             { 
                if (PSPELL pSpell=GetSpellByID(GetCharInfo2()->CombatAbilities[nCombatAbility])) 
                { 

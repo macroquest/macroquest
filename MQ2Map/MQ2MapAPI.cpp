@@ -161,6 +161,7 @@ PMAPSPAWN AddSpawn(PSPAWNINFO pNewSpawn,BOOL ExplicitAllow)
 
 	pMapSpawn->Highlight=false;
 
+#if 0
 	//Debugging
 	if (Type == SPAWN_CORPSE || Type == ITEM )
 	{
@@ -168,6 +169,7 @@ PMAPSPAWN AddSpawn(PSPAWNINFO pNewSpawn,BOOL ExplicitAllow)
 			pMapSpawn->pSpawn->Name, pMapSpawn->pSpawn->Type, pMapSpawn->pSpawn->BodyType );
 		DebugSpew(buf);
 	}
+#endif
 
 	return pMapSpawn;
 }
@@ -357,6 +359,7 @@ void MapUpdate()
 
 	while(pMapSpawn)
 	{
+#if 0
 		// Debugging
 		if ( pMapSpawn->pSpawn->Type == SPAWN_PLAYER )
 		{
@@ -389,6 +392,7 @@ void MapUpdate()
 		}
 
 		//End Debugging
+#endif
 
 		//Starting New Checks
 		if (!pMapSpawn->Explicit && !CanDisplaySpawn(GetSpawnType(pMapSpawn->pSpawn),pMapSpawn->pSpawn)) 
