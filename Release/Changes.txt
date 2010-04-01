@@ -1,4 +1,11 @@
 15 December 2005 by rswiders
+- Fix for MaxMana, MaxEndurance
+
+15 December 2005 by rswiders, dkaa
+- Fix for MaxHPs
+- Fix for Item.timer
+
+15 December 2005 by rswiders
 - Updated for 12/15 patch
 - Fixes Item.Timer returning 0 too early
 - Added Merchant.Full (thanks cronic)

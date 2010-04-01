@@ -3341,7 +3341,7 @@ bool MQ2ItemType::GETMEMBER()
     case Timer:
         if(pItem->Item->TimerID)
         {
-            Dest.DWord=GetItemTimer(pItem)/6+1;
+            Dest.DWord=(GetItemTimer(pItem)+5)/6;
             Dest.Type=pTicksType;
                 return true;
         }
