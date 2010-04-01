@@ -564,6 +564,7 @@ EQLIB_API PCHAR       GetAANameByIndex		  (DWORD AAIndex);
 EQLIB_API DWORD       GetAAIndexByName		  (PCHAR AAName);
 EQLIB_API DWORD		 GetAAIndexByID		  (DWORD ID);
 EQLIB_API DWORD       GetSkillIDFromName    (PCHAR name);
+EQLIB_API bool        InHoverState();
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 // Functions that were built into commands and people used DoCommand to execute                  //

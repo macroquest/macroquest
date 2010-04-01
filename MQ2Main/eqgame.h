@@ -331,7 +331,7 @@
 #define CEditBaseWnd__SetSel                                       0x64A770
 
 // CEditWnd 
-#define CEditWnd__DrawCaret                                        0x647ED5
+#define CEditWnd__DrawCaret                                        0x647EC0
 #define CEditWnd__GetCharIndexPt                                   0x648CF0
 #define CEditWnd__GetDisplayString                                 0x648050
 #define CEditWnd__GetHorzOffset                                    0x6482D0
@@ -363,6 +363,9 @@
 #define CGaugeWnd__CalcLinesFillRect                               0x554550
 #define CGaugeWnd__Draw                                            0x5548E0
 
+// CGuild
+#define CGuild__FindMemberByName                                   0x4156C0
+
 // CHotButtonWnd 
 #define CHotButtonWnd__DoHotButton                                 0x568980
 
@@ -372,6 +375,9 @@
 
 // CInvSlotWnd
 #define CInvSlotWnd__DrawTooltip                                   0x570AD0
+
+// CInvSLot
+#define CInvSlot__SliderComplete                                   0x56EA80
 
 // CItemDisplayWnd 
 #define CItemDisplayWnd__SetItem                                   0x5779F0

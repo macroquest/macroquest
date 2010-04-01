@@ -1219,6 +1219,10 @@ bool MQ2SpawnType::GETMEMBER()
 		{
 			Dest.Ptr="STUN";
 		}
+		else if(InHoverState())
+		{
+			Dest.Ptr="HOVER";
+		}
 		else
         switch (pSpawn->StandState) {
             case STANDSTATE_STAND:

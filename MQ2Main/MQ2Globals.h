@@ -339,6 +339,7 @@ EQLIB_VAR CDBStr **ppCDBStr;
 EQLIB_VAR EQMisc *pEQMisc;
 EQLIB_VAR CSkillMgr **ppCSkillMgr;
 #define pCSkillMgr (*ppCSkillMgr)
+EQLIB_VAR CGuild *pGuild;
 
 EQLIB_VAR CEverQuest **ppEverQuest;
 #define pEverQuest (*ppEverQuest)

@@ -741,6 +741,7 @@ StringTable **ppStringTable=(StringTable**)pinstStringTable;
 CDBStr **ppCDBStr = (CDBStr**)pinstCDBStr;
 EQMisc *pEQMisc=(EQMisc*)instEQMisc;
 CSkillMgr **ppCSkillMgr=(CSkillMgr**)pinstSkillMgr;
+CGuild *pGuild=(CGuild*)__Guilds;
 
 //EQPlayer **ppEQP_IDArray=(EQPlayer**)__EQP_IDArray;
 

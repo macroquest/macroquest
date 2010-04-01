@@ -5501,6 +5501,21 @@ bool LoH_HT_Ready()
     return false;
 }
 
+DWORD GetSkillIDFromName(PCHAR name)
+{
+	for(DWORD i=0; i<NUM_SKILLS; i++)
+		if (PSKILL pSkill=pSkillMgr->pSkill[i])
+			if(!stricmp(name,pStringTable->getString(pSkill->nName,0)))
+				return i;
+	return 0;
+}
+
+bool InHoverState()
+{
+	if(GetCharInfo()->Stunned==3)
+		return true;
+	return false;
+}
 
 // ***************************************************************************
 // Function:    BuffStackTest
@@ -5557,15 +5572,6 @@ bool BuffStackTest(PSPELL aSpell, PSPELL bSpell){
     }      
     return true;
 } 
-
-DWORD GetSkillIDFromName(PCHAR name)
-{
-	for(DWORD i=0; i<NUM_SKILLS; i++)
-		if (PSKILL pSkill=pSkillMgr->pSkill[i])
-			if(!stricmp(name,pStringTable->getString(pSkill->nName,0)))
-				return i;
-	return 0;
-}
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 // Functions that were built into commands and people used DoCommand to execute                  //

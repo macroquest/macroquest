@@ -1471,13 +1471,36 @@ typedef struct _SKILLMGR {
 /*0x004*/ //more data
 } SKILLMGR, *PSKILLMGR;
 
+//actual size 0x274  10-2-2006  ieatacid
+typedef struct _GUILDMEMBER {
+/*0x000*/ struct  _GUILDMEMBER *pNext;
+/*0x004*/ BYTE    Online;
+/*0x005*/ BYTE    Unknown0x5[0x3];
+/*0x008*/ WORD    ZoneID;
+/*0x00a*/ WORD    Instance;
+/*0x00c*/ BYTE    Unknown0xc[0x4];
+/*0x010*/ CHAR    Name[0x40];
+/*0x050*/ DWORD   Level;
+/*0x054*/ DWORD   Unknown0x54;
+/*0x058*/ DWORD   Class;
+/*0x05c*/ DWORD   Rank; //0=member 1=officer 2=leader
+/*0x060*/ DWORD   LastSeen; //last seen timestamp
+/*0x064*/ CHAR    PublicNote[0x100];
+/*0x164*/ CHAR    PersonalNote[0x100];
+/*0x264*/ DWORD   TributeStatus;
+/*0x268*/ DWORD   TributeDonations;
+/*0x26c*/ DWORD   LastDonation;//timestamp
+/*0x270*/ DWORD   Unknown0x264;
+/*0x274*/
+} GUILDMEMBER, *PGUILDMEMBER;
+
 #define MAX_GUILDS			0x5DC
 typedef struct _GUILDS {
 /*0x0000*/ PVOID		pOneEntryVTable;
 /*0x0004*/ BYTE		UnknownByte0x0005;
 /*0x0005*/ BYTE		Unknown0x0005[0x3f];
 /*0x0044*/ DWORD		UnknownValue0x0044;
-/*0x0048*/ DWORD		UnknownValue0x0048;
+/*0x0048*/ struct    _GUILDMEMBER *pMember;
 /*0x004c*/ CHAR		GuildName[MAX_GUILDS][0x40];
 /*0x804c*/ BYTE		UnknownByteArray0x804c[0x200];
 /*0x824c*/ BYTE		UnknownByteArray0x824c[0x40];
