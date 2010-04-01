@@ -2472,29 +2472,39 @@ bool MQ2CharacterType::GETMEMBER()
 				}
 			}
 			else
-			{
-				// name
-				for (DWORD nSkill=0;szSkills[nSkill];nSkill++)
-					if (!stricmp(GETFIRST(),szSkills[nSkill]))
-					{
-						// found name
-						for (DWORD nAbility=0;nAbility<10;nAbility++)
-						if (EQADDR_DOABILITYLIST[nAbility] == nSkill) 
-						{
-							if (nAbility<4)
-								nAbility+=7;
-							else
-								nAbility-=3;
-							if (pSkillMgr->pSkill[nSkill]->AltTimer==2)
-								Dest.DWord=gbAltTimerReady;
-							else
-								Dest.DWord=EQADDR_DOABILITYAVAILABLE[nSkill];
-							Dest.Type=pBoolType;
-							return true;
-						}
-					}
-			}
-		}
+            {
+                // name
+                for (DWORD nSkill=0;szSkills[nSkill];nSkill++)
+                    if (!stricmp(GETFIRST(),szSkills[nSkill]))
+                    {
+                        // found name
+                        for (DWORD nAbility=0;nAbility<10;nAbility++)
+                        if (EQADDR_DOABILITYLIST[nAbility] == nSkill) 
+                        {
+                            // thanks s0rcier!
+                            if (nSkill<100) {
+                                if (pSkillMgr->pSkill[nSkill]->AltTimer==2)
+                                    Dest.DWord=gbAltTimerReady;
+                                else
+                                    Dest.DWord=EQADDR_DOABILITYAVAILABLE[nSkill];
+                                Dest.Type=pBoolType;
+                                return true;
+                            }
+                            if (nSkill==111) {
+                                Dest.DWord=gbAltTimerReady;
+                                Dest.Type=pBoolType;
+                                return true;
+                            }
+                            if (nSkill==105 || nSkill==107) {
+                                Dest.DWord=LoH_HT_Ready();
+                                Dest.Type=pBoolType;
+                                return true;
+                            }
+                            return false;
+                        }
+                    }
+            }
+        }
 		return false;
 	case RangedReady:
 		Dest.DWord=gbRangedAttackReady;

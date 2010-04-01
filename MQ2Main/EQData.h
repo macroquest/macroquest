@@ -1680,9 +1680,9 @@ typedef struct connection_t {
 
 //actual size 0x2d70 04-28-06 - ieatacid 
 typedef struct _CDISPLAY { 
-/*0x000*/ BYTE   Unknown0x000[0x148]; 
-/*0x148*/ DWORD  TimeStamp; 
-/*0x14c*/ 
+/*0x000*/ BYTE   Unknown0x000[0x150]; 
+/*0x150*/ DWORD  TimeStamp; 
+/*0x154*/ 
 } CDISPLAY, *PCDISPLAY; 
 
 //5-16-06 - ieatacid
