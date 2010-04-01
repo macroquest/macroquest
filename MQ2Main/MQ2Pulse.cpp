@@ -90,7 +90,7 @@ void Pulse()
 	static WORD LastZone=-1;
 	
     static PSPAWNINFO pCharOld = NULL;
-   static  FLOAT LastX = 0.0f;
+    static  FLOAT LastX = 0.0f;
     static FLOAT LastY = 0.0f;
 	static DWORD LastMoveTick = 0;
     static DWORD MapDelay = 0;
@@ -103,7 +103,7 @@ void Pulse()
 
    // Drop out here if we're waiting for something.
     if ((!pChar) || (gZoning)/* || (gDelayZoning)*/) return;
-    if ((unsigned int)GetCharInfo()->punknown & 0x80000000) return;
+    if ((unsigned int)GetCharInfo()->charinfo_info & 0x80000000) return;
 
 	if (pChar!=pCharOld && WereWeZoning)
 	{
