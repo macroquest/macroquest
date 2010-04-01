@@ -183,7 +183,7 @@ public:
         sprintf(temp,"Guild Tribute Value: %d<br>", Item->GuildFavor); 
         strcat(out, temp); 
      }
-	 if (Item->TimerID!=0 && Item->Recast>0) {
+	 if (Item->Clicky.TimerID!=0) {
 		 int Secs = GetItemTimer(item);
 		 if (!Secs) {
 			 sprintf(temp,"Item Timer: <c \"#20FF20\">Ready</c><br>");
@@ -233,9 +233,9 @@ public:
     // Will be 0 for no effect or -1 if other effects present 
     if (Item->Proc.SpellID && Item->Proc.SpellID!=-1) { 
        if (Item->Proc.RequiredLevel == 0 ) 
-          sprintf(temp, "Procs at level 1 (Proc rate modifier: %d)<BR>", Item->ProcRate); 
+          sprintf(temp, "Procs at level 1 (Proc rate modifier: %d)<BR>", Item->Proc.ProcRate); 
       else 
-         sprintf(temp,"%sProcs at level %d%s (Proc rate modifier: %d)<BR>", (Item->Proc.RequiredLevel > GetCharInfo2()->Level ? "<c \"#FF4040\">" : ""), Item->Proc.RequiredLevel, (Item->Proc.RequiredLevel > GetCharInfo2()->Level ? "</C>" : ""), Item->ProcRate); 
+         sprintf(temp,"%sProcs at level %d%s (Proc rate modifier: %d)<BR>", (Item->Proc.RequiredLevel > GetCharInfo2()->Level ? "<c \"#FF4040\">" : ""), Item->Proc.RequiredLevel, (Item->Proc.RequiredLevel > GetCharInfo2()->Level ? "</C>" : ""), Item->Proc.ProcRate); 
        strcat(out,temp); 
      } 
    /* No longer needed? 
@@ -246,9 +246,9 @@ public:
    */ 
 	
 	 // Just in case...
-	 if ( (!strstr(This->ItemInfo->Text,"(Combat)")) && Item->ProcRate > 0 )
+	 if ( (!strstr(This->ItemInfo->Text,"(Combat)")) && Item->Proc.ProcRate > 0 )
 	 {
-		 sprintf(temp, "Proc rate Modifier: %d<BR>", Item->ProcRate );
+		 sprintf(temp, "Proc rate Modifier: %d<BR>", Item->Proc.ProcRate );
 		 strcat(out,temp);
 	 }
 
@@ -830,7 +830,7 @@ public:
 		CHAR Temp[MAX_STRING]={0};
 		CHAR Temp2[MAX_STRING]={0};
 		PCONTENTS pItem = GetItemContentsBySlotID(((CSidlScreenWnd *)pWnd)->SlotID);
-		if(pItem && pItem->Item->TimerID!=0 && pItem->Item->Recast>0)
+		if(pItem && pItem->Item->Clicky.TimerID!=0)
 		{
 			int Secs=GetItemTimer(pItem);
 			if(Secs)
@@ -865,7 +865,7 @@ public:
 			CHAR Temp2[MAX_STRING]={0};
 			STMLToPlainText(&pWnd->Tooltip->Text[0],Temp);
 			PCONTENTS pItem = GetItemContentsByName(Temp);
-			if(pItem && pItem->Item->TimerID!=0 && pItem->Item->Recast>0)
+			if(pItem && pItem->Item->Clicky.TimerID!=0)
 			{
 				int Secs=GetItemTimer(pItem);
 				if (Secs)

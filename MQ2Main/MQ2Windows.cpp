@@ -758,7 +758,35 @@ bool SendListSelect(PCHAR WindowName, PCHAR ScreenID, DWORD Value)
 	}
 	return false;
 }
-
+bool SendTabSelect(PCHAR WindowName, PCHAR ScreenID, DWORD Value)
+{
+   CXWnd *pWnd=FindMQ2Window(WindowName);
+   if (!pWnd)
+   {
+      MacroError("Window '%s' not available.",WindowName);
+      return false;
+   }
+   if (ScreenID && ScreenID[0] && ScreenID[0]!='0')
+   {
+      CTabWnd *pTab = (CTabWnd*)((CSidlScreenWnd*)(pWnd))->GetChildItem(ScreenID);
+      if (!pTab)
+      {
+         MacroError("Window '%s' child '%s' not found.",WindowName,ScreenID);
+         return false;
+      }
+      if (((CXWnd*)pTab)->GetType()==UI_TabBox)
+      {
+         pTab->SetPage(Value, true);
+      }
+      else
+      {
+         MacroError("Window '%s' child '%s' cannot accept this notification.",WindowName,ScreenID);
+         return false;
+      }
+      return true;
+   }
+   return false;
+}
 bool SendWndNotification(PCHAR WindowName, PCHAR ScreenID, DWORD Notification, VOID *Data)
 {
 	CHAR szOut[MAX_STRING] = {0};
@@ -991,6 +1019,12 @@ int WndNotify(int argc, char *argv[])
 		SendListSelect(szArg1,szArg2,Data-1);
 		RETURN(0);
 	}
+
+        if (!stricmp(szArg3,"tabselect"))
+        {
+            SendTabSelect(szArg1,szArg2, Data-1);
+            RETURN(0);
+        } 
 
 	for (unsigned long i = 0 ; i < 30 ; i++)
 	{

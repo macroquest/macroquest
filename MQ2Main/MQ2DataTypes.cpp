@@ -1764,7 +1764,7 @@ bool MQ2CharacterType::GETMEMBER()
 			{
 				if (PSPELL pSpell=GetSpellByID(GetCharInfo2()->Buff[nBuff].SpellID))
 				{
-					if (!stricmp(GETFIRST(),pSpell->Name))
+					if (!stricmp(GETFIRST(),pSpell->Name) || (strstr(pSpell->Name,"Rk. II") && !strnicmp(GETFIRST(),pSpell->Name,strlen(pSpell->Name)-8)))
 					{
 						Dest.Ptr=&GetCharInfo2()->Buff[nBuff];
 						Dest.Type=pBuffType;
@@ -2604,7 +2604,7 @@ bool MQ2CharacterType::GETMEMBER()
 			{
 				if (PSPELL pSpell=GetSpellByID(pPetInfoWindow->Buff[nBuff]))
 				{
-					if (!stricmp(GETFIRST(),pSpell->Name))
+					if (!stricmp(GETFIRST(),pSpell->Name) || (strstr(pSpell->Name,"Rk. II") && !strnicmp(GETFIRST(),pSpell->Name,strlen(pSpell->Name)-8)))
 					{
 						Dest.DWord=nBuff+1;
 						Dest.Type=pIntType;
@@ -3564,13 +3564,13 @@ bool MQ2ItemType::GETMEMBER()
 		Dest.DWord=pItem->Item->Attuneable;
 		Dest.Type=pBoolType;
 		return true;
-    case Timer:
-        if(pItem->Item->TimerID!=0xFFFFFFFF)
-        {
-            Dest.DWord=(GetItemTimer(pItem)+5)/6;
-            Dest.Type=pTicksType;
-            return true;
-        }
+	case Timer:
+		if(pItem->Item->Clicky.TimerID!=0xFFFFFFFF)
+		{
+			Dest.DWord=(GetItemTimer(pItem)+5)/6;
+			Dest.Type=pTicksType;
+			return true;
+		}
 		if (pItem->Item->Clicky.SpellID!=-1)
 		{
 			Dest.DWord=0; // insta-clicky
@@ -3582,12 +3582,12 @@ bool MQ2ItemType::GETMEMBER()
 		Dest.Type=pIntType;
 		return true;
 	case TimerReady:
-        if(pItem->Item->TimerID!=0xFFFFFFFF)
-        {
-            Dest.DWord=GetItemTimer(pItem);
-            Dest.Type=pIntType;
-            return true;
-        }
+		if(pItem->Item->Clicky.TimerID!=0xFFFFFFFF)
+		{
+			Dest.DWord=GetItemTimer(pItem);
+			Dest.Type=pIntType;
+			return true;
+		}
 		if (pItem->Item->Clicky.SpellID!=-1)
 		{
 			Dest.DWord=0; // insta-click or instant recast
@@ -4514,7 +4514,7 @@ bool MQ2GroundType::GETMEMBER()
 	switch((GroundMembers)pMember->ID)
 	{
 	case ID:
-		Dest.DWord=pGround->ID;
+		Dest.DWord=pGround->DropID;
 		Dest.Type=pIntType;
 		return true;
 	case W:

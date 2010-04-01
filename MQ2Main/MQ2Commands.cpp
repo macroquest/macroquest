@@ -526,21 +526,21 @@ VOID MemSpell(PSPAWNINFO pChar, PCHAR szLine)
 	for (DWORD N = 0 ; N < NUM_BOOK_SLOTS ; N++)
 	if (PSPELL pTempSpell=GetSpellByID(GetCharInfo2()->SpellBook[N]))
 	{
-		if (!stricmp(SpellName,pTempSpell->Name))
+		if (!stricmp(SpellName,pTempSpell->Name) || (strstr(pTempSpell->Name,"Rk. II") && !strnicmp(SpellName,pTempSpell->Name,strlen(pTempSpell->Name)-8)))
 		{
 			pSpell=pTempSpell;
 			break;
 		}
 	}
 
-    if (!pSpell) return;
-    if (pSpell->Level[pChar->Class-1]>pChar->Level) return;
+	if (!pSpell) return;
+	if (pSpell->Level[pChar->Class-1]>pChar->Level) return;
 
-    ZeroMemory(&MemSpellFavorite,sizeof(MemSpellFavorite));
-    strcpy(MemSpellFavorite.Name,"Mem a Spell");
-    MemSpellFavorite.Byte_3e=1;
-    for (sp=0;sp<9;sp++) MemSpellFavorite.SpellId[sp]=0xFFFFFFFF;
-    MemSpellFavorite.SpellId[Gem] = pSpell->ID;
+	ZeroMemory(&MemSpellFavorite,sizeof(MemSpellFavorite));
+	strcpy(MemSpellFavorite.Name,"Mem a Spell");
+	MemSpellFavorite.Byte_3e=1;
+	for (sp=0;sp<9;sp++) MemSpellFavorite.SpellId[sp]=0xFFFFFFFF;
+	MemSpellFavorite.SpellId[Gem] = pSpell->ID;
 	pSpellBookWnd->MemorizeSet((int*)Favorite,9);
 }
 
@@ -2024,7 +2024,7 @@ if (!stricmp(szArg1,"item"))
    for (Index=0;Index<9;Index++) {
       if (GetCharInfo2()->MemorizedSpells[Index]!=0xFFFFFFFF) {
          PCHAR SpellName = GetSpellNameByID(GetCharInfo2()->MemorizedSpells[Index]);
-         if (!stricmp(szBuffer,SpellName)) {
+         if (!stricmp(szBuffer,SpellName) || (strstr(SpellName,"Rk. II") && !strnicmp(szBuffer,SpellName,strlen(SpellName)-8))) {
             DebugSpew("SpellName = %s",SpellName);
             cmdCast(pChar,itoa(Index+1,szBuffer,10));
             DebugSpew("pChar = %x SpellName = %s %s",pChar,SpellName,itoa(Index+1,szBuffer,10));

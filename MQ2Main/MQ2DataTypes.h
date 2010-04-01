@@ -1621,7 +1621,7 @@ public:
 	{
 		if (VarPtr.Ptr)
 		{
-			itoa(((PGROUNDITEM)VarPtr.Ptr)->ID,Destination,10);
+			itoa(((PGROUNDITEM)VarPtr.Ptr)->DropID,Destination,10);
 			return true;
 		}
 		return false;

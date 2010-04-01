@@ -1,3 +1,6 @@
+6 December 2006 by ieatacid, dkaa
+- Fixed for Dec 5th patch
+
 7 November 2006 by ieatacid
 - MQ2ChatWnd should now remain visible while in hover state
 
