@@ -787,7 +787,8 @@ union {
 /* 0x1290 */   FLOAT      ZoneBoundX;
 /* 0x1294 */   FLOAT      ZoneBoundY;
 /* 0x1298 */   FLOAT      ZoneBoundZ;
-/* 0x129c */   BYTE       Unknown0x129c[0xac];
+/* 0x129c */   FLOAT      ZoneBoundHeading;
+/* 0x12a0 */   BYTE       Unknown0x12a0[0xa8];
 /* 0x1348 */   AALIST     AAList[AA_CHAR_MAX_REAL];
 /* 0x1ac8 */   BYTE       Unknown0x1730[0x3aec-0x1ac8];
 /* 0x3aec */   DWORD      CombatAbilities[NUM_COMBAT_ABILITIES];

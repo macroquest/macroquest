@@ -3221,6 +3221,7 @@ VOID AltAbility(PSPAWNINFO pChar, PCHAR szLine)
                 if (PCHAR pName=pCDBStr->GetString(pAbility->nName, 1, NULL)) {
                     if (!stricmp(szName,pName)) {
                         sprintf(szBuffer,"/alt act %d", pAbility->ID);
+                        DoCommand(pChar,szBuffer);
                         break;
                     }
                 }
