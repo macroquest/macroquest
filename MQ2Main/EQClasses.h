@@ -5344,6 +5344,8 @@ EQLIB_OBJECT int EQ_Character1::Max_Mana(void);
 EQLIB_OBJECT int EQ_Character1::Max_Endurance(void); // lax 4-25-2004
 EQLIB_OBJECT int EQ_Character1::Cur_HP(int);
 EQLIB_OBJECT unsigned char EQ_Character1::CastSpell(unsigned char,int,class EQ_Item * *,int,int slot,int,int,int); 
+EQLIB_OBJECT int const EQ_Character1::GetAACastingTimeModifier(class EQ_Spell const *);
+EQLIB_OBJECT int const EQ_Character1::GetFocusCastingTimeModifier(class EQ_Spell const *,class EQ_Equipment * *);
 };
 
 class EQ_Character
@@ -5433,8 +5435,6 @@ EQLIB_OBJECT int EQ_Character::Str(void);
 EQLIB_OBJECT int EQ_Character::TakeFallDamage(float);
 EQLIB_OBJECT int EQ_Character::TotalSpellAffects(unsigned char,bool,int *);
 EQLIB_OBJECT int EQ_Character::Wis(void);
-EQLIB_OBJECT int const EQ_Character::GetAACastingTimeModifier(class EQ_Spell const *);
-EQLIB_OBJECT int const EQ_Character::GetFocusCastingTimeModifier(class EQ_Spell const *,class EQ_Equipment * *);
 EQLIB_OBJECT int const EQ_Character::GetFocusConserveRegChance(class EQ_Spell const *,class EQ_Equipment * *);
 EQLIB_OBJECT int const EQ_Character::GetFocusRangeModifier(class EQ_Spell const *,class EQ_Equipment * *);
 EQLIB_OBJECT long EQ_Character::TotalOnPerson(void);
@@ -6980,6 +6980,13 @@ class CMyInventory
 {
 public:
 EQLIB_OBJECT struct  _CONTENTS* CMyInventory::GetSlot(int);
+};
+
+class CDBStr
+{
+public:
+// GetString(index, subindex, &success)
+EQLIB_OBJECT char *CDBStr::GetString(int, int, int*);
 };
 
 };

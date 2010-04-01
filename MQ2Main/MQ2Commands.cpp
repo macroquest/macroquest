@@ -3094,7 +3094,8 @@ VOID AltAbility(PSPAWNINFO pChar, PCHAR szLine)
             for (nAbility=0 ; nAbility<AA_CHAR_MAX_REAL ; nAbility++) {
                 if (GetCharInfo2()->AAList[nAbility].AAIndex) {
                     if ( PALTABILITY pAbility=pAltAdvManager->GetAltAbility(GetCharInfo2()->AAList[nAbility].AAIndex)) {
-                            sprintf(szBuffer,"[ %d: %s ]", pAbility->ID, pStringTable->getString(pAbility->nName,0) );
+                            sprintf(szBuffer,"[ %d: %s ]", pAbility->ID, 
+                                pCDBStr->GetString(pAbility->nName, 1, NULL));
                             WriteChatColor(szBuffer,USERCOLOR_WHO);
                     } 
                 } else {

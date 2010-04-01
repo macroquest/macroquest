@@ -613,7 +613,6 @@ typedef struct _AALIST {
 #define      NUM_COMBAT_ABILITIES   0x64
 #define ExactLocation		 0
 
-
 typedef struct _EQC_INFO {
 /* 0x0000 */    DWORD   minus4;
 /* 0x0004 */    DWORD   stuff_offset;
@@ -622,51 +621,54 @@ typedef struct _EQC_INFO {
 typedef struct _CI_INFO {
 /* 0x0000 */    DWORD   minus8;
 /* 0x0004 */    DWORD   stuff_offset;
-/* 0x0008 */    DWORD   unknown1;   // 2000
-/* 0x000c */    DWORD   unknown2;   // 2500
-/* 0x0010 */    DWORD   unknown3;   // 3000
-/* 0x0010 */    DWORD   unknown4;   // 4000
-/* 0x0010 */    DWORD   unknown5;   // 10000
+/* 0x0008 */    DWORD   Unknown0x8;    // 2000
+/* 0x000c */    DWORD   Unknown0xc;    // 2500
+/* 0x0010 */    DWORD   Unknown0x10;   // 3000
+/* 0x0014 */    DWORD   Unknown0x14;   // 4000
+/* 0x0018 */    DWORD   Unknown0x18;   // 10000
 } CI_INFO, *PCI_INFO;
 
-typedef struct _SOMETHING {
-/* 0x0000 */   DWORD      Unknown0x0;
-/* 0x0004 */   struct     _CHARINFO2 *charinfo2;
-/* 0x0008 */   struct     _CHARINFO2 *charinfo3; // duplicate of the one above, when i checked mine
-/* 0x000c */   char       Unknown0xc[0x14];
-/* 0x0008 */   void      *Unkown0x8[0x10];       // addresses
+typedef struct _CI2_INFO {
+/* 0x0000 */    DWORD   Unknown0x0;
+/* 0x0004 */    struct  _CHARINFO2* pCharInfo2;
+/* 0x0008 */    struct  _CHARINFO2* pCharInfo3;
+/* 0x000c */    BYTE    Unknown0xc[0x14];
+/* 0x0010 */    void   *Unknown0x10[0x10];
 /* 0x0060 */
-} SOMETHING, *PSOMETHING;
+} CI2_INFO, *PCI2_INFO;
+
 
 typedef struct _CHARINFO {
 /* 0x0000 */   void      *vtable1;
 /* 0x0004 */   void      *punknown;
-/* 0x0008 */   struct     _CI_INFO *charinfo_info;
-/* 0x000c */   BYTE       unknown0xc[0xce4];
+/* 0x0008 */   struct     _CI_INFO* charinfo_info;
+/* 0x000c */   BYTE       Unknown0xc[0xce4];
 /* 0x0cf0 */   struct     _CONTENTS*   Bank[NUM_BANK_SLOTS];
-/* 0x0d38 */   BYTE       unknown0xd38[0xe28-0xd38];
-/* 0x0e28 */   DWORD      AAExp;    
-/* 0x0e2c */   BYTE       unknown0xe2c;    
-/* 0x0e2d */   BYTE       PercentEXPtoAA; 
-/* 0x0e2e */   BYTE       unknown0xe2e[0xe78-0xe2e];
+/* 0x0d38 */   BYTE       unknown0xd38[0xd4];
+/* 0x0e0c */   DWORD      GuildID;
+/* 0x0e10 */   BYTE       Unknown0xe10[0x18];
+/* 0x0e28 */   DWORD      AAExp;
+/* 0x0e2c */   BYTE       Unknown0xe2c;
+/* 0x0e2d */   BYTE       PercentEXPtoAA;
+/* 0x0e2e */   BYTE       Unknown0xe2e[0x4a];
 /* 0x0e78 */   DWORD      CareerFavor;
-/* 0x0e7c */   DWORD      unknown0xe7c;
+/* 0x0e7c */   DWORD      Unknown0xe7c;
 /* 0x0e80 */   DWORD      CurrFavor;
 /* 0x0e84 */   BYTE       Unknown0xe84[0xc];
 /* 0x0e90 */   DOUBLE     GroupLeadershipExp;
 /* 0x0e98 */   DOUBLE     RaidLeadershipExp;
 /* 0x0ea0 */   DWORD      GroupLeadershipPoints;
 /* 0x0ea4 */   DWORD      RaidLeadershipPoints;
-/* 0x0ea8 */   BYTE       Unknown0xea8[0x15b0-0xea8];
+/* 0x0ea8 */   BYTE       Unknown0xea8[0x708];
 /* 0x15b0 */   CHAR       GroupMember[0x6][0x40];
 /* 0x1730 */   CHAR       GroupLeader[0x40];
 /* 0x1770 */   BYTE       Unknown0x1770[0x2a0];
 /* 0x1a10 */   DWORD      Exp;
-/* 0x1a14 */   BYTE       Unknown0x1a14[0xa864]; 
+/* 0x1a14 */   BYTE       Unknown0x1a14[0xa864];
 /* 0xc278 */   void      *vtable2;
 /* 0xc27c */   struct     _EQC_INFO* eqc_info;
 /* 0xc280 */   struct     _SPAWNINFO*  pSpawn;
-/* 0xc284 */   DWORD      unknown0xc284;
+/* 0xc284 */   DWORD      Unknown0xc284;
 /* 0xc288 */   DWORD      STR;
 /* 0xc28c */   DWORD      STA;
 /* 0xc290 */   DWORD      CHA;
@@ -680,9 +682,9 @@ typedef struct _CHARINFO {
 /* 0xc2b0 */   DWORD      SaveFire;
 /* 0xc2b4 */   DWORD      SavePoison;
 /* 0xc2b8 */   DWORD      SaveDisease;
-/* 0xc2bc */   DWORD      unknown0xc2bc;
+/* 0xc2bc */   DWORD      Unknown0xc2bc;
 /* 0xc2c0 */   DWORD      CurrWeight;
-/* 0xc2c4 */   DWORD      unknown0xc2c4;
+/* 0xc2c4 */   DWORD      Unknown0xc2c4;
 /* 0xc2c8 */   DWORD      HPBonus;
 /* 0xc2cc */   DWORD      ManaBonus;
 /* 0xc2d0 */   DWORD      EnduranceBonus;
@@ -694,7 +696,7 @@ typedef struct _CHARINFO {
 /* 0xc2e8 */   DWORD      StunResistBonus;
 /* 0xc2ec */   DWORD      StrikeThroughBonus;
 /* 0xc2f0 */   DWORD      SkillMinDamageModBonus[0x9];
-/* 0xc314 */   DWORD      unknown0xc314;
+/* 0xc314 */   DWORD      Unknown0xc314;
 /* 0xc318 */   DWORD      DoTShieldBonus;
 /* 0xc31c */   DWORD      AttackBonus;
 /* 0xc320 */   DWORD      HPRegenBonus;
@@ -705,19 +707,18 @@ typedef struct _CHARINFO {
 /* 0xc33c */   DWORD      Unknown0xc33c[0x4]; // address, 1, address, 1
 /* 0xc34c */   _CONTENTS  *ActiveGuildTribute[0xc];
 /* 0xc37c */   BYTE       Unknown0xc37c[0xc];
-/* 0xc388 */   struct     _SOMETHING *something;
+/* 0xc388 */   struct     _CI2_INFO* pCI2;
 /* 0xc38c */   DWORD      Unknown0xc38c;
 /* 0xc390 */   BYTE       languages[0x20];
 /* 0xc3b0 */   BYTE       Unknown0xc3b0[0x10];
 /* 0xc3c0 */   CHAR       Name[0x40];
 /* 0xc400 */   CHAR       Lastname[0x20];
 /* 0xc420 */   BYTE       Unknown0xc420[0x60];
-/* 0xc480 */   BYTE       Stunned;
-/* 0xc481 */   BYTE       Unknownc481[3];
+/* 0xc480 */   DWORD      Stunned;
 /* 0xc484 */   WORD       zoneId;
-/* 0xc486 */   WORD       Unknown0xc484;
-/* 0xc488 */   BYTE       standstate;
-/* 0xc489 */   BYTE       Unknown0xc489[0x27];
+/* 0xc486 */   WORD       instance;
+/* 0xc488 */   DWORD      standstate;
+/* 0xc48c */   BYTE       Unknown0xc489[0x24];
 /* 0xc4b0 */   DWORD      BankSharedPlat;
 /* 0xc4b4 */   DWORD      BankSharedGold;
 /* 0xc4b8 */   DWORD      BankSharedSilver;
@@ -729,35 +730,33 @@ typedef struct _CHARINFO {
 /* 0xc4d0 */
 } CHARINFO, *PCHARINFO;
 
+
 typedef struct  _CHARINFO2 {
-/* 0x0000 */   char       Unknown0x0[0x10];
+/* 0x0000 */   BYTE       Unknown0x0[0x10];
 union {
 /* 0x0010 */   struct     _INVENTORY   Inventory;
 /* 0x0010 */   struct     _CONTENTS*   InventoryArray[0x1e];
    };
 /* 0x0088 */   struct     _CONTENTS*   Cursor;
-/* 0x008c */   char       Unknown0x8c[0x14];
+/* 0x008c */   BYTE       Unknown0x8c[0x14];
 /* 0x00a0 */   struct     _SPELLBUFF   Buff[0x19];
 /* 0x0294 */   struct     _SPELLBUFF   ShortBuff[0x23];
-/* 0x0550 */   char       Unknown0x550[0x1e0];
+/* 0x0550 */   BYTE       Unknown0x550[0x1e0];
 /* 0x0730 */   DWORD      SpellBook[NUM_BOOK_SLOTS];
 /* 0x0f30 */   DWORD      MemorizedSpells[0x10];
-/* 0x0f70 */   DWORD      Skill[0x64]; 
-/* 0x1100 */   char       Unknown0xf70[0x94];
-/* 0x1194 */   BYTE       Gender;
-/* 0x1195 */   BYTE       Padding0x1195[0x3];
-/* 0x1198 */   BYTE       Race;
-/* 0x1199 */   BYTE       Pading0x1199[0x3];
-/* 0x119c */   BYTE       Class;
-/* 0x119d */   BYTE       Padding0x119d[0x3];
-/* 0x11a0 */   DWORD      field_0x11a0;
+/* 0x0f70 */   DWORD      Skill[0x64];
+/* 0x1100 */   BYTE       Unknown0x1100[0x94];
+/* 0x1194 */   DWORD      Gender;
+/* 0x1198 */   DWORD      Race;
+/* 0x119c */   DWORD      Class;
+/* 0x11a0 */   DWORD      Unknown0x11a0;
 /* 0x11a4 */   DWORD      Level;
 /* 0x11a8 */   DWORD      Mana;
 /* 0x11ac */   DWORD      Endurance;
 /* 0x11b0 */   DWORD      BaseHP;
 /* 0x11b4 */   DWORD      BaseSTR;
 /* 0x11b8 */   DWORD      BaseSTA;
-/* 0x11bc */   DWORD      BaseCHA;   
+/* 0x11bc */   DWORD      BaseCHA;
 /* 0x11c0 */   DWORD      BaseDEX;
 /* 0x11c4 */   DWORD      BaseINT;
 /* 0x11c8 */   DWORD      BaseAGI;
@@ -771,29 +770,33 @@ union {
 /* 0x11e8 */   DWORD      CursorGold;
 /* 0x11ec */   DWORD      CursorSilver;
 /* 0x11f0 */   DWORD      CursorCopper;
-/* 0x11f4 */   BYTE     Unknown11f4[0x1218-0x11f4];
-/* 0x1218 */   DWORD    thirstlevel;
-/* 0x121c */   DWORD    hungerlevel;
-/* 0x1220 */   BYTE     Unknown1220[0x128c-0x1220];
-/* 0x128c */   DWORD    ZoneBoundID;
-/* 0x1290 */   FLOAT    ZoneBoundX;
-/* 0x1294 */   FLOAT    ZoneBoundY;
-/* 0x1298 */   FLOAT    ZoneBoundZ;
-/* 0x129c */   BYTE     Unknown129c[0x1348-0x129c];
-/* 0x1348 */   AALIST   AAList[NUM_ALT_ABILITIES/4]; // 8*(1f7/4)
-/* 0x1730 */   BYTE     Unknown1730[0x3aec-0x1730];
-/* 0x3aec */   DWORD    CombatAbilities[NUM_COMBAT_ABILITIES]; 
-/* 0x3c7c */   DWORD    CombatAbilityTimes[NUM_COMBAT_ABILITIES]; 
-/* 0x3e0c */   BYTE     Unknown3c7c[0x582c-0x3e0c];
-/* 0x582c */   DWORD    Deity;
-/* 0x5830 */   DWORD    Unknown0x5830;
-/* 0x5834 */   DWORD    Drunkenness;
-/* 0x5838 */   BYTE     Unknown5838[8];
-/* 0x5840 */   DWORD    AAPoints;  
-/* 0x5844 */   BYTE     Unknown5844[0xb60c-0x5844];
-/* 0xb60c */   DWORD    AAPointsSpent;
-/* more needed */
+/* 0x11f4 */   BYTE       Unknown0x11f4[0x24];
+/* 0x1218 */   DWORD      thirstlevel;
+/* 0x121c */   DWORD      hungerlevel;
+/* 0x1220 */   BYTE       Unknown0x1220[0x6c];
+/* 0x128c */   DWORD      ZoneBoundID;
+/* 0x1290 */   FLOAT      ZoneBoundX;
+/* 0x1294 */   FLOAT      ZoneBoundY;
+/* 0x1298 */   FLOAT      ZoneBoundZ;
+/* 0x129c */   BYTE       Unknown0x129c[0xac];
+/* 0x1348 */   AALIST     AAList[NUM_ALT_ABILITIES/4]; // 8*(1f7/4)
+/* 0x1730 */   BYTE       Unknown0x1730[0x23bc];
+/* 0x3aec */   DWORD      CombatAbilities[NUM_COMBAT_ABILITIES];
+/* 0x3c7c */   DWORD      Unknown3c7c[0xa];       // 10 things in this array
+/* 0x3ca4 */   BYTE       Unknown3ca4[0x3cf4-0x3ca4];
+/* 0x3cf4 */   DWORD      CombatAbilityTimes[NUM_COMBAT_ABILITIES];
+/* 0x3e34 */   BYTE       Unknown0x3e34[0x19f8];
+/* 0x582c */   DWORD      Deity;
+/* 0x5830 */   DWORD      Unknown0x5830;
+/* 0x5834 */   DWORD      Drunkenness;
+/* 0x5838 */   BYTE       Unknown0x5838[8];
+/* 0x5840 */   DWORD      AAPoints;
+/* 0x5844 */   BYTE       Unknown0x5844[0x5dc8];
+/* 0xb60c */   DWORD      AAPointsSpent;
+/* 0xb610 */   BYTE       Unknown0xb610[0x1c];
+/* 0xb62c */
 } CHARINFO2, *PCHARINFO2;
+
 
 typedef struct _MODELINFONAME {
 /*0x00*/    DWORD Unknown0000;
@@ -1406,15 +1409,15 @@ typedef struct _EQFRIENDSLIST {
 
 // Size 0x70 (8.11.2004)
 typedef struct _ALTABILITY {
-/*0x00*/ void  *something;
-/*0x04*/ DWORD Index; //?
+/*0x00*/ DWORD ID;
+/*0x04*/ DWORD Flags;           //?
 /*0x08*/ DWORD nShortName;
 /*0x0c*/ DWORD nShorterName;
-/*0x10*/ DWORD nName;
-/*0x14*/ DWORD nDesc;
+/*0x10*/ DWORD nName;           // now a database number
+/*0x14*/ DWORD nDesc;           // now a database number
 /*0x18*/ DWORD MinLevel;
 /*0x1c*/ DWORD Cost; //Initial Cost or cost the last time you bought a level of it
-/*0x20*/ DWORD ID;
+/*0x20*/ DWORD Index;           //?
 /*0x24*/ DWORD AARankRequired; 
         union {  
 /*0x28*/ LONG  RequiresAbility;          // If the value is positive then its the index number of the AA required.

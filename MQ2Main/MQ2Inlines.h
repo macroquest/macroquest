@@ -19,7 +19,7 @@ static inline PCHARINFO GetCharInfo(VOID) {
 
 static inline PCHARINFO2 GetCharInfo2(VOID) {
  //   if (!ppCharData) return NULL;
-    return ((PCHARINFO)pCharData)->something->charinfo2;
+    return ((PCHARINFO)pCharData)->pCI2->pCharInfo2;
 }
 
 

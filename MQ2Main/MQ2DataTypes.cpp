@@ -2247,7 +2247,7 @@ bool MQ2CharacterType::GETMEMBER()
                 for (unsigned long nAbility=0 ; nAbility<AA_CHAR_MAX_REAL ; nAbility++) {
                     if (!GetCharInfo2()->AAList[nAbility].AAIndex) break;
                     if ( PALTABILITY pAbility=pAltAdvManager->GetAltAbility(GetCharInfo2()->AAList[nAbility].AAIndex)) {
-                        if (PCHAR pName=pStringTable->getString(pAbility->nName,0)) {
+                        if (PCHAR pName=pCDBStr->GetString(pAbility->nName, 1, NULL)) {
                             if (!stricmp(GETFIRST(),pName)) {
                                 pAltAdvManager->IsAbilityReady(pPCData,pAbility,&Dest.Int);
                                 if (Dest.Int<0)
@@ -2281,7 +2281,7 @@ bool MQ2CharacterType::GETMEMBER()
                 for (unsigned long nAbility=0 ; nAbility<AA_CHAR_MAX_REAL ; nAbility++) {
                     if (!GetCharInfo2()->AAList[nAbility].AAIndex) break;
                     if ( PALTABILITY pAbility=pAltAdvManager->GetAltAbility(GetCharInfo2()->AAList[nAbility].AAIndex)) {
-                        if (PCHAR pName=pStringTable->getString(pAbility->nName,0)) {
+                        if (PCHAR pName=pCDBStr->GetString(pAbility->nName, 1, NULL)) {
                             if (!stricmp(GETFIRST(),pName)) {
                                 Dest.DWord=pAltAdvManager->IsAbilityReady(pPCData,pAbility,0);
                                 Dest.Type=pBoolType;
@@ -2312,7 +2312,7 @@ bool MQ2CharacterType::GETMEMBER()
                 for (unsigned long nAbility=0 ; nAbility<AA_CHAR_MAX_REAL ; nAbility++) {
                     if (!GetCharInfo2()->AAList[nAbility].AAIndex) break;
                     if ( PALTABILITY pAbility=pAltAdvManager->GetAltAbility(GetCharInfo2()->AAList[nAbility].AAIndex)) {
-                        if (PCHAR pName=pStringTable->getString(pAbility->nName,0)) {
+                        if (PCHAR pName=pCDBStr->GetString(pAbility->nName, 1, NULL)) {
                             if (!stricmp(GETFIRST(),pName)) {
                                 Dest.DWord = GetCharInfo2()->AAList[nAbility].PointsSpent;
                                 Dest.Type = pIntType;
@@ -2939,7 +2939,7 @@ bool MQ2SpellType::GETMEMBER()
 		Dest.Type=pStringType;
 		return true;
    case MyCastTime: 
-      Dest.Float=(FLOAT)(pCharData->GetAACastingTimeModifier((EQ_Spell*)pSpell)+pCharData->GetFocusCastingTimeModifier((EQ_Spell*)pSpell,0)+pSpell->CastTime)/1000.0f; 
+      Dest.Float=(FLOAT)(pCharData1->GetAACastingTimeModifier((EQ_Spell*)pSpell)+pCharData1->GetFocusCastingTimeModifier((EQ_Spell*)pSpell,0)+pSpell->CastTime)/1000.0f; 
       Dest.Type=pFloatType; 
       return true; 
 	case Duration:
@@ -4637,7 +4637,7 @@ bool MQ2AltAbilityType::GETMEMBER()
 	switch((AltAbilityMembers)pMember->ID)
 	{ 
 	case Name:
-		if (Dest.Ptr=pStringTable->getString(pAbility->nName,0))
+		if (Dest.Ptr= pCDBStr->GetString(pAbility->nName, 1, NULL)) 
 		{
 			Dest.Type=pStringType;
 			return true;
@@ -4651,7 +4651,7 @@ bool MQ2AltAbilityType::GETMEMBER()
 		}
 		return false;
 	case Description:
-		if (Dest.Ptr=pStringTable->getString(pAbility->nDesc,0))
+		if (Dest.Ptr= pCDBStr->GetString(pAbility->nName, 4, NULL)) 
 		{
 			Dest.Type=pStringType;
 			return true;

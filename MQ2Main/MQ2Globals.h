@@ -329,6 +329,9 @@ EQLIB_VAR DWORD gSpawnCount;
 EQLIB_VAR StringTable **ppStringTable;
 #define pStringTable (*ppStringTable)
 
+EQLIB_VAR CDBStr **ppCDBStr;
+#define pCDBStr (*ppCDBStr)
+
 EQLIB_VAR CEverQuest **ppEverQuest;
 #define pEverQuest (*ppEverQuest)
 EQLIB_VAR CDisplay **ppDisplay;

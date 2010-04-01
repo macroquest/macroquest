@@ -556,3 +556,5 @@
 
 // StringTable
 #define StringTable__getString                             0x5DF330 
+#define pinstCDBStr                                        0x84E1E0
+#define CDBStr__GetString                                  0x432C90

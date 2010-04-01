@@ -704,6 +704,8 @@ PCHAR szColorMQ2DataError[]=
 };
 
 StringTable **ppStringTable=(StringTable**)pinstStringTable;
+CDBStr **ppCDBStr = (CDBStr**)pinstCDBStr;
+
 EQPlayer **ppEQP_IDArray=(EQPlayer**)__EQP_IDArray;
 
 CEverQuest **ppEverQuest=(CEverQuest**)pinstCEverQuest;

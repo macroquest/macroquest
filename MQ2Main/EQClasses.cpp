@@ -4210,7 +4210,7 @@ FUNCTION_AT_ADDRESS(int  EQ_Character::GetIndexSkillMinDamageMod(int),EQ_Charact
 FUNCTION_AT_ADDRESS(int const  EQ_Character::GetFocusConserveRegChance(class EQ_Spell const *,class EQ_Equipment * *),EQ_Character__GetFocusConserveRegChance);
 #endif
 #ifdef EQ_Character__GetFocusCastingTimeModifier
-FUNCTION_AT_ADDRESS(int const  EQ_Character::GetFocusCastingTimeModifier(class EQ_Spell const *,class EQ_Equipment * *),EQ_Character__GetFocusCastingTimeModifier);
+FUNCTION_AT_ADDRESS(int const  EQ_Character1::GetFocusCastingTimeModifier(class EQ_Spell const *,class EQ_Equipment * *),EQ_Character__GetFocusCastingTimeModifier);
 #endif
 #ifdef EQ_Character__GetFocusRangeModifier
 FUNCTION_AT_ADDRESS(int const  EQ_Character::GetFocusRangeModifier(class EQ_Spell const *,class EQ_Equipment * *),EQ_Character__GetFocusRangeModifier);
@@ -4252,7 +4252,7 @@ FUNCTION_AT_ADDRESS(int  EQ_Character::CalculateBardSongMod(int),EQ_Character__C
 FUNCTION_AT_ADDRESS(unsigned char  EQ_Character::CastingRequirementsMet(int),EQ_Character__CastingRequirementsMet);
 #endif
 #ifdef EQ_Character__GetAACastingTimeModifier
-FUNCTION_AT_ADDRESS(int const  EQ_Character::GetAACastingTimeModifier(class EQ_Spell const *),EQ_Character__GetAACastingTimeModifier);
+FUNCTION_AT_ADDRESS(int const  EQ_Character1::GetAACastingTimeModifier(class EQ_Spell const *),EQ_Character__GetAACastingTimeModifier);
 #endif
 #ifdef EQ_Character__BardCastBard
 FUNCTION_AT_ADDRESS(int  EQ_Character::BardCastBard(class EQ_Spell const *,int)const ,EQ_Character__BardCastBard);
@@ -9494,4 +9494,8 @@ FUNCTION_AT_ADDRESS(char (* EQOldPlayerAnimation::mAnimationPrefix)[20],EQOldPla
 #endif
 #ifdef CTextOverlay__DisplayText
 FUNCTION_AT_ADDRESS(void CTextOverlay::DisplayText(char *,int,int,int,int,int,int),CTextOverlay__DisplayText);
+#endif
+#ifdef CDBStr__GetString
+// GetString(index, subindex, &success)
+FUNCTION_AT_ADDRESS(char *CDBStr::GetString(int, int, int *), CDBStr__GetString);
 #endif
