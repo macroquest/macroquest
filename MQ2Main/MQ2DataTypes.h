@@ -1353,6 +1353,9 @@ public:
 		Power=105,
 		MaxPower=106,
 		Purity=107,
+		Accuracy=108,
+		CombatEffects=109,
+		DoTShielding=110,
 	};
 	static enum ItemMethods
 	{
@@ -1466,6 +1469,9 @@ public:
 		TypeMember(Power);
 		TypeMember(MaxPower);
 		TypeMember(Purity);
+		TypeMember(Accuracy);
+		TypeMember(CombatEffects);
+		TypeMember(DoTShielding);
 	}
 
 	~MQ2ItemType()

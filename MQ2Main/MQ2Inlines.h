@@ -62,6 +62,8 @@ static inline PCHAR GetClassDesc(DWORD ClassID)
 		return "Aura";
 	if (ClassID==0xFE)
 		return "Banner";
+	if (ClassID==0xFD)
+		return "Campfire";
 	return pEverQuest->GetClassDesc(ClassID);
 }
 
@@ -160,8 +162,8 @@ static inline eSpawnType GetSpawnType(PSPAWNINFO pSpawn)
             return NPC;
 		case 1:
 			if ((pSpawn->Class==1) && (pSpawn->Race==567))
-				return OBJECT;
-			if ((pSpawn->Class==8) && (pSpawn->Race==553))
+				return CAMPFIRE;
+			if ((pSpawn->Class==8) && ((pSpawn->Race==553) || (pSpawn->Race==556)))
 				return BANNER;
 			return NPC;
         //case 3:

@@ -596,7 +596,7 @@ TLO(dataNearestSpawn)
 #endif
       for (unsigned long N = 0 ; N < gSpawnCount ; N++)
       {
-         if (EQP_DistArray[N].Value.Float>ssSpawn.FRadius)
+         if (EQP_DistArray[N].Value.Float>ssSpawn.FRadius && !ssSpawn.bKnownLocation)
             return false;
          if (SpawnMatchesSearch(&ssSpawn,(PSPAWNINFO)pCharSpawn,(PSPAWNINFO)EQP_DistArray[N].VarPtr.Ptr))
          {

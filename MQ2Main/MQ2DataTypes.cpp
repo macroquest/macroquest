@@ -1102,13 +1102,15 @@ bool MQ2SpawnType::GETMEMBER()
 		Dest.Type=pRaceType;
 		return true;
 	case Class:
-		if (GetSpawnType(pSpawn)!=AURA && GetSpawnType(pSpawn)!=BANNER)
+		if (GetSpawnType(pSpawn)!=AURA && GetSpawnType(pSpawn)!=BANNER && GetSpawnType(pSpawn)!=CAMPFIRE)
 			Dest.DWord=pSpawn->Class;
 		else
 			if (GetSpawnType(pSpawn)==AURA)
 				Dest.DWord=0xFF;
-			else
+			else if (GetSpawnType(pSpawn)==BANNER)
 				Dest.DWord=0xFE;
+			else
+				Dest.DWord=0xFD;
 		Dest.Type=pClassType;
 		return true;
 	case Body:
@@ -1224,6 +1226,10 @@ bool MQ2SpawnType::GETMEMBER()
 			return true;
 		case BANNER:
 			Dest.Ptr="Banner";
+			Dest.Type=pStringType;
+			return true;
+		case CAMPFIRE:
+			Dest.Ptr="Campfire";
 			Dest.Type=pStringType;
 			return true;
 		}
@@ -4187,7 +4193,63 @@ bool MQ2ItemType::GETMEMBER()
 			   Dest.DWord=pItem->Item->Purity;
         Dest.Type=pIntType;
         return true;
-    }
+	 case Avoidance:
+        if (pItem->Item->Type != ITEMTYPE_NORMAL)
+            Dest.DWord=0;
+        else
+            Dest.DWord=(char)pItem->Item->Avoidance;
+        Dest.Type=pIntType;
+        return true;
+	  case SpellShield:
+        if (pItem->Item->Type != ITEMTYPE_NORMAL)
+            Dest.DWord=0;
+        else
+            Dest.DWord=(char)pItem->Item->SpellShield;
+        Dest.Type=pIntType;
+        return true;
+	  case StrikeThrough:
+        if (pItem->Item->Type != ITEMTYPE_NORMAL)
+            Dest.DWord=0;
+        else
+            Dest.DWord=(char)pItem->Item->StrikeThrough;
+        Dest.Type=pIntType;
+        return true;
+	  case StunResist:
+        if (pItem->Item->Type != ITEMTYPE_NORMAL)
+            Dest.DWord=0;
+        else
+            Dest.DWord=(char)pItem->Item->StunResist;
+        Dest.Type=pIntType;
+        return true;
+	  case Shielding:
+        if (pItem->Item->Type != ITEMTYPE_NORMAL)
+            Dest.DWord=0;
+        else
+            Dest.DWord=(char)pItem->Item->Shielding;
+        Dest.Type=pIntType;
+        return true;	  
+	  case Accuracy:
+		 if (pItem->Item->Type != ITEMTYPE_NORMAL)
+            Dest.DWord=0;
+        else
+            Dest.DWord=(char)pItem->Item->Accuracy;
+        Dest.Type=pIntType;
+        return true;
+	 case CombatEffects:
+        if (pItem->Item->Type != ITEMTYPE_NORMAL)
+            Dest.DWord=0;
+        else
+            Dest.DWord=(char)pItem->Item->CombatEffects;
+        Dest.Type=pIntType;
+        return true;
+	  case DoTShielding:
+        if (pItem->Item->Type != ITEMTYPE_NORMAL)
+            Dest.DWord=0;
+        else
+            Dest.DWord=(char)pItem->Item->DoTShielding;
+        Dest.Type=pIntType;
+        return true;
+	 }
     return false;
 #undef pItem
 }

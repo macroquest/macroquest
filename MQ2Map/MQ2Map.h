@@ -32,7 +32,8 @@ using namespace std;
 #define MAPFILTER_Aura				25
 #define MAPFILTER_Object			26
 #define MAPFILTER_Banner			27
-#define MAPFILTER_NUMBER			28
+#define MAPFILTER_Campfire			28
+#define MAPFILTER_NUMBER			29
 #define MAPFILTER_Invalid			(-1)
 // normal labels
 

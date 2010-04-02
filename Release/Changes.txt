@@ -1,3 +1,17 @@
+25 July 2007 by ieatacid, dkaa
+- Updated for today's patch
+
+23 July 2007 by rswiders
+- Added Campfires to spawn searchs and mapfilters
+
+16 July 2007 by dkaa
+- fixed NearestSpawn to work correctly with loc
+
+12 July 2007 by ieatacid
+- Updated for Today's patch
+- Wrote our own version of EQ's get_melee_range function (thanks Purple for the help with fcomp flags!).
+- Added more stuff to item TLO
+
 6 July 2007 by ieatacid, rswiders
 - Updated for July 5th patch
 - Some of the text coloring was removed from MQ2ItemDisplay since EQ now colors the item name green or red if you can or can't use the item (EQ also handles this text differently now).

@@ -21,12 +21,16 @@
 class EQProtected
 {
 public:
-   EQProtected(unsigned int p_Address, unsigned int p_Size)
+   EQProtected(unsigned int p_Address, unsigned int p_Size, const void *OriginalData)
    {
       Address=p_Address;
       Size=p_Size;
+	  EndAddress=Address+Size;
       Array=(unsigned char*)malloc(p_Size);
-      memcpy(Array,(char *)p_Address, p_Size);
+	  if (OriginalData)
+		memcpy(Array,OriginalData, p_Size);
+	  else
+		memcpy(Array,(char *)p_Address, p_Size);
    }
 
    ~EQProtected()
@@ -40,6 +44,7 @@ public:
    }
    
    unsigned int Address;
+   unsigned int EndAddress;
    unsigned int Size;
    unsigned char *Array;
 }; 
@@ -68,22 +73,11 @@ public:
 	void UnRegisterTopLevelObjects();
 	void UnRegisterServices();
 
-   inline unsigned char FindByte(unsigned int Address, unsigned char Default)
-   {
-      for (unsigned int i = 0 ; i < ProtectedList.Size ; i++)
-      if (EQProtected *pProtected=ProtectedList[i])
-      {
-         if (pProtected->Contains(Address))
-         {
-            return pProtected->Array[Address-pProtected->Address];
-         }
-      }
-      return Default;
-   } 
+	bool Memcpy_Clean(unsigned int BeginAddress, unsigned char *buf, unsigned int buflen);
 	 VOID HookMemChecker(BOOL Patch); 
-	bool Protect(unsigned int Address, unsigned int Size); 
+	bool Protect(unsigned int Address, unsigned int Size, const void *OriginalData); 
 	 bool UnProtect(unsigned int Address); 
-	CIndex<EQProtected*> ProtectedList; 
+	map<unsigned int, EQProtected*> ProtectedMap; 
 };
 
 extern ISInterface *pISInterface;

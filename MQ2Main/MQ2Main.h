@@ -565,6 +565,7 @@ EQLIB_API DWORD		 GetAAIndexByID		  (DWORD ID);
 EQLIB_API DWORD       GetSkillIDFromName    (PCHAR name);
 EQLIB_API bool        InHoverState();
 EQLIB_API DWORD       GetGameState(VOID);
+EQLIB_API float       GetMeleeRange(class EQPlayer *,class EQPlayer *);
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 // Functions that were built into commands and people used DoCommand to execute                  //

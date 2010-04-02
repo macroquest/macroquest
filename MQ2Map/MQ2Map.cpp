@@ -68,6 +68,7 @@ MAPFILTER MapFilterOptions[] = {
     {"Aura",         FALSE,0x404040,   TRUE,MAPFILTER_All,TRUE,   "Displays Auras"},
     {"Object",       FALSE,0x404040,   TRUE,MAPFILTER_All,TRUE,   "Displays inanimate objects"},
     {"Banner",       FALSE,0x404040,   TRUE,MAPFILTER_All,TRUE,   "Displays banners"},
+    {"Campfire",     FALSE,0x404040,   TRUE,MAPFILTER_All,TRUE,   "Displays campfires"},
     {NULL,           FALSE,-1,         FALSE,MAPFILTER_Invalid,FALSE,  NULL}
 };
 
@@ -296,8 +297,10 @@ PLUGIN_API VOID ShutdownPlugin(VOID)
 // NOTE: When you zone, these will come BEFORE OnZoned
 PLUGIN_API VOID OnAddSpawn(PSPAWNINFO pNewSpawn)
 {
-	if (Update && pNewSpawn->SpawnID != 0) {
-	    DebugSpewAlways("MQ2Map::OnAddSpawn(%s)",pNewSpawn->Name);
+        // your toon's spawn id changes and it's no longer zero to start
+        // don't added it all 
+	if (Update && pNewSpawn->SpawnID != 0 && GetCharInfo()->pSpawn != pNewSpawn) {
+	    DebugSpewAlways("MQ2Map::OnAddSpawn(%s) = %d",pNewSpawn->Name, pNewSpawn->SpawnID);
 		AddSpawn(pNewSpawn);
     }
 }
@@ -306,7 +309,7 @@ PLUGIN_API VOID OnAddSpawn(PSPAWNINFO pNewSpawn)
 // It is NOT called for each existing spawn when a plugin shuts down.
 PLUGIN_API VOID OnRemoveSpawn(PSPAWNINFO pSpawn)
 {
-	DebugSpewAlways("MQ2Map::OnRemoveSpawn(%s)",pSpawn->Name);
+	DebugSpewAlways("MQ2Map::OnRemoveSpawn(%s) = %d",pSpawn->Name, pSpawn->SpawnID);
 	if (Update)
 		RemoveSpawn(pSpawn);
 }

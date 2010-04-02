@@ -309,36 +309,31 @@ void CISXEQ::UnRegisterServices()
 		pISInterface->ShutdownService(this,hZoneService);
 }
 
-bool CISXEQ::Protect(unsigned int Address, unsigned int Size)
+bool CISXEQ::Protect(unsigned int Address, unsigned int Size, const void *OriginalData)
 {
-   for (unsigned int i = 0 ; i < ProtectedList.Size ; i++)
-   if (EQProtected *pProtected=ProtectedList[i])
-   {
-      if (pProtected->Address==Address)
-      {
-         return false; // conflict
-      }
-   }
+	EQProtected *pProtected=ProtectedMap[Address];
+	if (pProtected)
+		return false;
 
-   // assumed to be safe
-   EQProtected *pProtected = new EQProtected(Address,Size);
-   ProtectedList+=pProtected;
+	if (IsBadReadPtr((void*)Address,Size))
+		return false;
+
+   pProtected = new EQProtected(Address,Size,OriginalData);
+   ProtectedMap[Address]=pProtected;
    return true; 
 }
 
 bool CISXEQ::UnProtect(unsigned int Address)
 {
-   for (unsigned int i = 0 ; i < ProtectedList.Size ; i++)
-   if (EQProtected *pProtected=ProtectedList[i])
-   {
-      if (pProtected->Address==Address)
-      {
-         delete pProtected;
-         ProtectedList[i]=0;
-         return true;
-      }
-   }
-   return false; 
+		map<unsigned int,EQProtected*>::iterator i=ProtectedMap.find(Address);
+		if (i==ProtectedMap.end())
+			return false;
+		EQProtected *pProtected=i->second;
+		if (!pProtected)
+			return false;
+		delete pProtected;
+		ProtectedMap.erase(Address);
+		return true;
 }
 
 extern int __cdecl memcheck0(unsigned char *buffer, int count);
@@ -370,6 +365,8 @@ DETOUR_TRAMPOLINE_EMPTY(int __cdecl memcheck2_tramp(unsigned char *buffer, int c
 DETOUR_TRAMPOLINE_EMPTY(int __cdecl memcheck3_tramp(unsigned char *buffer, int count, struct mckey key));
 DETOUR_TRAMPOLINE_EMPTY(int __cdecl memcheck4_tramp(unsigned char *buffer, int count, struct mckey key));
 
+extern VOID HookInlineChecks(BOOL Patch);
+
 VOID CISXEQ::HookMemChecker(BOOL Patch)
 {
     if (Patch) {
@@ -398,7 +395,9 @@ VOID CISXEQ::HookMemChecker(BOOL Patch)
 		{
 			printf("CObfuscator::doit detour failed");
 		}
+		HookInlineChecks(Patch);
     } else {
+		HookInlineChecks(Patch);
 		EzUnDetour(__MemChecker0);
 		EzUnDetour(__MemChecker2);
 		EzUnDetour(__MemChecker3);
@@ -453,7 +452,7 @@ void __cdecl ProtectionRequest(ISXInterface *pClient, unsigned int MSG, void *lp
    {
    case MEMPROTECT_PROTECT:
 #define pData ((MemProtect*)lpData)
-	   pData->Success=pExtension->Protect(pData->Address,pData->Length);
+	   pData->Success=pExtension->Protect(pData->Address,pData->Length,pData->OriginalData);
 //	   printf("Protection: %X for %d length, success=%d",pData->Address,pData->Length,pData->Success);
 #undef pData
 	   break;
@@ -469,3 +468,38 @@ void __cdecl SoftwareCursorService(bool Broadcast, unsigned int MSG, void *lpDat
 	// receives nothing
 }
 #endif
+
+bool CISXEQ::Memcpy_Clean(unsigned int BeginAddress, unsigned char *buf, unsigned int buflen)
+{
+	memcpy(buf,(void*)BeginAddress,buflen);
+
+	unsigned int EndAddress=BeginAddress+buflen;
+	for (map<unsigned int,EQProtected*>::iterator i = ProtectedMap.begin() ; i!=ProtectedMap.end() ; i++)
+	{
+		if (EQProtected *pProt=i->second)
+		{
+
+		// find leftmost end
+		unsigned int RangeEnd=pProt->EndAddress;
+		if (RangeEnd>EndAddress)
+			RangeEnd=EndAddress;
+		
+		// find rightmost beginning
+		unsigned int RangeBegin=pProt->Address;
+		if (RangeBegin<BeginAddress)
+			RangeBegin=BeginAddress;
+
+		int Length=RangeEnd-RangeBegin;
+		if (Length<=0)
+			continue;
+
+		unsigned int ProtOffset = RangeBegin-pProt->Address;
+		unsigned int BufOffset = RangeBegin-BeginAddress;
+		unsigned int Range = RangeEnd-RangeBegin;
+		memcpy(&buf[BufOffset],&pProt->Array[ProtOffset],Range);
+		}
+	}		
+	return true;
+}
+
+

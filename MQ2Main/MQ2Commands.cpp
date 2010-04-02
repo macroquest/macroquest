@@ -2673,8 +2673,18 @@ VOID DoMappable(PSPAWNINFO pChar, PCHAR szLine)
 		{
 			if (!stricmp(szArg2,"chat"))
 			{
-				pWndMgr->HandleKeyboardMsg(Temp.Data[3],1);
-				pWndMgr->HandleKeyboardMsg(Temp.Data[3],0);
+                if (Temp.Data[3] != 0x92) {
+				    pWndMgr->HandleKeyboardMsg(Temp.Data[3],1);
+				    pWndMgr->HandleKeyboardMsg(Temp.Data[3],0);
+                } else {
+                    // ugly ass hack -- the ':' char no longer 
+                    // seems to be handled independently.  simulate
+                    // a shift and a ;
+				    pWndMgr->HandleKeyboardMsg(0x2a,1);
+				    pWndMgr->HandleKeyboardMsg(0x27,1);
+				    pWndMgr->HandleKeyboardMsg(0x27,0);
+				    pWndMgr->HandleKeyboardMsg(0x2a,0);
+                }
 			}
 			else
 			{
