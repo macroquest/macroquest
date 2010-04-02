@@ -27,6 +27,11 @@
 VOID CheckChatForEvent(PCHAR szMsg)
 {
 	IS_CheckTriggers(pExtension,pISInterface,hTriggerService,szMsg);
+	char *argv[]=
+	{
+		szMsg
+	};
+	pISInterface->ExecuteEvent(ChatEventID,0,1,argv);
 }
 
 unsigned long ParseSearchSpawnArg(int arg, int argc, char *argv[], SEARCHSPAWN &SearchSpawn)

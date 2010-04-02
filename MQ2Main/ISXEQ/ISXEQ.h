@@ -89,6 +89,7 @@ extern HISXSERVICE hTriggerService;
 extern CISXEQ *pExtension;
 #define printf pISInterface->Printf
 
+extern unsigned int ChatEventID;
 extern HISXSERVICE hChatService;
 extern HISXSERVICE hUIService;
 extern HISXSERVICE hGamestateService;

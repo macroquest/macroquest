@@ -1,3 +1,9 @@
+28 February 2008 by rswiders, ieatacid
+- Updated for today's patch
+
+7 February 2008 by ieatacid
+- Fixed /buyitem and /sellitem to work with stacks of up to 100 -- includes a sanity check so you don't request a stack size from the server that's greater than what's allowed for that item (so, theoretically, you can do "/buyitem 100" on everything to always buy the max stack size of the selected item)
+
 6 February 2008 by ieatacid, rswiders
 - Updated for today's patch
 

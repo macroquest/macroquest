@@ -471,27 +471,26 @@ typedef struct _CXWNDMGR {
 } CXWNDMGR, *PCXWNDMGR;
 
 
-// 06-16-2004 dkaa - size is 0x404
-// 05-13-2004 dkaa - size is 0x2d4
+// 02-07-2008 ieatacid - size is 0x2fc
 typedef struct _EQMERCHWINDOW {
 /*0x000*/   struct _CSIDLWND Wnd;
-/*0x15c*/   BYTE    Unknown0x150[0x8];
-/*0x164*/   PCONTENTS   ItemDesc[0x50];     // the mainwindow has pointers
+/*0x184*/   BYTE    Unknown0x184[0x8];
+/*0x18c*/   PCONTENTS   ItemDesc[0x50];     // the mainwindow has pointers
                                             // directly to the items in the
                                             // slots...
-/*0x2a4*/   FLOAT   Markup;
-/*0x2a8*/   DWORD   SelectedSlotID;
-/*0x2ac*/   DWORD   AddressToPointerForSelectedItem;
-/*0x2b0*/   DWORD   Unknown0x2b0;
-/*0x2b4*/   DWORD   MW_MerchantName;
-/*0x2b8*/   DWORD   MW_SelectedItemLabel;
-/*0x2bc*/   DWORD   MW_SelectedPriceLabel;
-/*0x2c0*/   DWORD   MW_SelectedItem;
-/*0x2c4*/   DWORD   MW_Buy_Button;
-/*0x2c8*/   DWORD   MW_Sell_Button;
-/*0x2cc*/   DWORD   ItemList;
-/*0x2d0*/   DWORD   Unknown0x2d0;
-/*0x2d4*/
+/*0x2cc*/   FLOAT   Markup;
+/*0x2d0*/   DWORD   SelectedSlotID;
+/*0x2d4*/   PCONTENTS *pSelectedItem;
+/*0x2d8*/   DWORD   Unknown0x2d8;
+/*0x2dc*/   DWORD   MW_MerchantName;
+/*0x2e0*/   DWORD   MW_SelectedItemLabel;
+/*0x2e4*/   DWORD   MW_SelectedPriceLabel;
+/*0x2e8*/   DWORD   MW_SelectedItem;
+/*0x2ec*/   DWORD   MW_Buy_Button;
+/*0x2f0*/   DWORD   MW_Sell_Button;
+/*0x2f4*/   DWORD   ItemList;
+/*0x2f8*/   DWORD   Unknown0x2f8;
+/*0x2fc*/
 } EQMERCHWINDOW, *PEQMERCHWINDOW;
 
 

@@ -564,34 +564,39 @@ VOID BuyItem(PSPAWNINFO pChar, PCHAR szLine)
    CHAR szQty[MAX_STRING] = {0};
    PCHARINFO pCharInfo = NULL;
    DWORD Qty;
-   if (NULL == (pCharInfo = GetCharInfo())) return;
-   GetArg(szQty,szLine,1);
-   Qty = (DWORD)atoi(szQty);
-   if (Qty > 20 || Qty < 1) return;
-   pMerchantWnd->RequestBuyItem(Qty);
-   return;
+   if (!GetCharInfo() || !((PEQMERCHWINDOW)pMerchantWnd)->pSelectedItem) return;
+   if (PCONTENTS pBase=(PCONTENTS)*((PEQMERCHWINDOW)pMerchantWnd)->pSelectedItem)
+   {
+      GetArg(szQty,szLine,1);
+      Qty = (DWORD)atoi(szQty);
+      if (Qty < 1) return;
+      pMerchantWnd->RequestBuyItem(Qty>pBase->Item->StackSize?pBase->Item->StackSize:Qty);
+   }
 }
 // ***************************************************************************
 // Function:    sellitem
 // Description: Our '/sellitem' command
 // Usage:       /sellitem Quantity#
 // uses private: void __thiscall CMerchantWnd::RequestSellItem(int)
-// will buy the specified quantity of the currently selected item
+// will sell the specified quantity of the currently selected item
 // ***************************************************************************
 VOID SellItem(PSPAWNINFO pChar, PCHAR szLine)
 {
     bRunNextCommand = FALSE;
+	 if (!pMerchantWnd) return;
+
     CHAR szBuffer[MAX_STRING] = {0};
     CHAR szQty[MAX_STRING] = {0};
     PCHARINFO pCharInfo = NULL;
     DWORD Qty;
-
-    if (NULL == (pCharInfo = GetCharInfo())) return;
-    GetArg(szQty,szLine,1);
-    Qty = (DWORD)atoi(szQty);
-    if (Qty > 20 || Qty < 1) return;
-   pMerchantWnd->RequestSellItem(Qty);
-    return;
+    if (!GetCharInfo() || !((PEQMERCHWINDOW)pMerchantWnd)->pSelectedItem) return;
+	 if (PCONTENTS pBase=(PCONTENTS)*((PEQMERCHWINDOW)pMerchantWnd)->pSelectedItem)
+	 {
+       GetArg(szQty,szLine,1);
+       Qty = (DWORD)atoi(szQty);
+       if (Qty < 1) return;
+       pMerchantWnd->RequestSellItem(Qty>pBase->Item->StackSize?pBase->Item->StackSize:Qty);
+    }
 }
 // ***************************************************************************
 // Function:    Help

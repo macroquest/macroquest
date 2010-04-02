@@ -39,6 +39,7 @@ HISXSERVICE hUIService;
 HISXSERVICE hGamestateService;
 HISXSERVICE hSpawnService;
 HISXSERVICE hZoneService;
+unsigned int ChatEventID=0;
 
 // Forward declarations of callbacks
 void __cdecl PulseService(bool Broadcast, unsigned int MSG, void *lpData);
@@ -232,6 +233,7 @@ void CISXEQ::RegisterServices()
 	hSpawnService=pISInterface->RegisterService(this,"EQ Spawn Service",SpawnRequest);
 	hZoneService=pISInterface->RegisterService(this,"EQ Zone Service",0);
 
+	ChatEventID = pISInterface->RegisterEvent("EQ Chat");
 }
 
 void CISXEQ::DisconnectServices()
