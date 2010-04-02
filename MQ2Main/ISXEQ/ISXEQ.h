@@ -95,6 +95,9 @@ extern HISXSERVICE hUIService;
 extern HISXSERVICE hGamestateService;
 extern HISXSERVICE hSpawnService;
 extern HISXSERVICE hZoneService;
+
+extern unsigned int PersistentPointerClass;
+
 #define EzDetour(Address, Detour, Trampoline) IS_Detour(pExtension,pISInterface,hMemoryService,(unsigned int)Address,Detour,Trampoline)
 #define EzUnDetour(Address) IS_UnDetour(pExtension,pISInterface,hMemoryService,(unsigned int)Address)
 

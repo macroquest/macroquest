@@ -40,6 +40,7 @@ HISXSERVICE hGamestateService;
 HISXSERVICE hSpawnService;
 HISXSERVICE hZoneService;
 unsigned int ChatEventID=0;
+unsigned int PersistentPointerClass=0;
 
 // Forward declarations of callbacks
 void __cdecl PulseService(bool Broadcast, unsigned int MSG, void *lpData);
@@ -198,7 +199,7 @@ void CISXEQ::RegisterDataTypes()
 	// pMyType = new MyType;
 	// pISInterface->AddLSType(*pMyType);
 
-#define DATATYPE(_class_,_variable_) _variable_ = new _class_; pISInterface->AddLSType(*_variable_);
+#define DATATYPE(_class_,_variable_,_persistentclass_) _variable_ = new _class_; pISInterface->AddLSType(*_variable_); if (_persistentclass_) pISInterface->SetPersistentClass(_variable_,pISInterface->RegisterPersistentClass(_persistentclass_));
 #include "ISXEQDataTypes.h"
 #undef DATATYPE
 	pGroupMemberType->SetInheritance(pSpawnType);
@@ -234,6 +235,7 @@ void CISXEQ::RegisterServices()
 	hZoneService=pISInterface->RegisterService(this,"EQ Zone Service",0);
 
 	ChatEventID = pISInterface->RegisterEvent("EQ Chat");
+	PersistentPointerClass = pISInterface->RegisterPersistentClass("EQ Objects");
 }
 
 void CISXEQ::DisconnectServices()
@@ -264,6 +266,7 @@ void CISXEQ::DisconnectServices()
 		pISInterface->DisconnectService(this,hSoftwareCursorService);
 	}
 #endif
+	pISInterface->InvalidatePersistentClass(PersistentPointerClass);
 }
 
 void CISXEQ::UnRegisterCommands()
@@ -278,7 +281,7 @@ void CISXEQ::UnRegisterAliases()
 void CISXEQ::UnRegisterDataTypes()
 {
 	// remove data types
-#define DATATYPE(_class_,_variable_)  if (_variable_) {pISInterface->RemoveLSType(*_variable_);delete _variable_;}
+#define DATATYPE(_class_,_variable_,_persistentclass_)  if (_variable_) {pISInterface->RemoveLSType(*_variable_);delete _variable_; }
 #include "ISXEQDataTypes.h"
 #undef DATATYPE
 

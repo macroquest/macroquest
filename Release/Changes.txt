@@ -1,3 +1,6 @@
+7 March 2008 by ieatacid
+- "some dev please do a new zip and be sure it contains the new ISXEQ.NET folder, thx (Lax)"
+
 28 February 2008 by rswiders, ieatacid
 - Updated for today's patch
 

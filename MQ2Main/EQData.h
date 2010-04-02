@@ -1039,14 +1039,14 @@ typedef struct _FELLOWSHIPMEMBER {
 /*0x46*/  WORD    InstanceID;
 /*0x48*/  DWORD   Level;
 /*0x4c*/  DWORD   Class;
-/*0x50*/  DWORD   LastOn;    // GetFastTime() timestamp
+/*0x50*/  DWORD   LastOn;    // FastTime() timestamp
 /*0x54*/
 } FELLOWSHIPMEMBER, *PFELLOWSHIPMEMBER;
 
-// 9-13-07 - ieatacid
+// 3-2-2008 - ieatacid
 typedef struct _FELLOWSHIPINFO {
 /*0x000*/  DWORD  Unknown0x0;        // always 1?
-/*0x004*/  DWORD  FellowshipID;      // ?
+/*0x004*/  DWORD  FellowshipID;
 /*0x008*/  CHAR   Leader[0x40];
 /*0x048*/  CHAR   MotD[0x400];
 /*0x448*/  DWORD  Members;
@@ -1056,10 +1056,11 @@ typedef struct _FELLOWSHIPINFO {
 /*0x864*/  FLOAT  CampfireY;
 /*0x868*/  FLOAT  CampfireX;
 /*0x86c*/  FLOAT  CampfireZ;
-/*0x870*/  DWORD  CampfireZoneID;    // zone ID where campfire is
-/*0x874*/  DWORD  CampfireTimestamp; // CampfireTimestamp-GetFastTime()=time left on campfire
-/*0x878*/  DWORD  Unknown0x7a0;      // some kind of ID - same as Unknown0x4
-/*0x87c*/  DWORD  Unknown0x7a4;      // campfire type?
+/*0x870*/  WORD   CampfireZoneID;    // zone ID where campfire is
+/*0x872*/  WORD   InstanceID;
+/*0x874*/  DWORD  CampfireTimestamp; // CampfireTimestamp-FastTime()=time left on campfire
+/*0x878*/  DWORD  Unknown0x878;      // same as FellowshipID
+/*0x87c*/  DWORD  Unknown0x87c;      // campfire type?
 /*0x880*/  DWORD  Campfire;          // do we have a campfire up?
 /*0x884*/
 } FELLOWSHIPINFO, *PFELLOWSHIPINFO;

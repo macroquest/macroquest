@@ -195,6 +195,8 @@ EQLIB_API VOID PluginsRemoveSpawn(PSPAWNINFO pSpawn)
 	if (pSpawn->GM) 
 		pISInterface->ServiceBroadcast(pExtension,hSpawnService,SPAWNSERVICE_REMOVEGM,pSpawn);
 	pISInterface->ServiceBroadcast(pExtension,hSpawnService,SPAWNSERVICE_REMOVESPAWN,pSpawn);
+
+	pISInterface->InvalidatePersistentObject(PersistentPointerClass,(unsigned int)pSpawn);
 }
 EQLIB_API VOID PluginsAddGroundItem(PGROUNDITEM pNewGroundItem)
 {

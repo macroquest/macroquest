@@ -1,0 +1,85 @@
+﻿<Project DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <ProductVersion>8.0.50727</ProductVersion>
+    <SchemaVersion>2.0</SchemaVersion>
+    <ProjectGuid>{500B048E-7C30-41F7-A9F5-AF9BCB535E25}</ProjectGuid>
+    <OutputType>Library</OutputType>
+    <AppDesignerFolder>Properties</AppDesignerFolder>
+    <RootNamespace>ISXEQ</RootNamespace>
+    <AssemblyName>ISXEQ.NET</AssemblyName>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>false</Optimize>
+    <OutputPath>bin\Debug\</OutputPath>
+    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <DebugType>pdbonly</DebugType>
+    <Optimize>true</Optimize>
+    <OutputPath>..\ISXEQ Release Files\</OutputPath>
+    <DefineConstants>TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="Lavish.InnerSpace, Version=1.0.0.0, Culture=neutral, PublicKeyToken=9029a3ab4cbe108d, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\..\..\Lavish\Inner Space\Release\Lavish.InnerSpace.dll</HintPath>
+    </Reference>
+    <Reference Include="System" />
+    <Reference Include="System.Data" />
+    <Reference Include="System.Xml" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="EQTypes\EQAltAbility.cs" />
+    <Compile Include="EQTypes\EQArgb.cs" />
+    <Compile Include="EQTypes\EQBody.cs" />
+    <Compile Include="EQTypes\EQBuff.cs" />
+    <Compile Include="EQTypes\EQCharacter.cs" />
+    <Compile Include="EQTypes\EQClass.cs" />
+    <Compile Include="EQTypes\EQCorpse.cs" />
+    <Compile Include="EQTypes\EQCurrentZone.cs" />
+    <Compile Include="EQTypes\EQDeity.cs" />
+    <Compile Include="EQTypes\EQDynamicZone.cs" />
+    <Compile Include="EQTypes\EQDZMember.cs" />
+    <Compile Include="EQTypes\EQEvolvingItem.cs" />
+    <Compile Include="EQTypes\EQFellowship.cs" />
+    <Compile Include="EQTypes\EQFellowshipMember.cs" />
+    <Compile Include="EQTypes\EQGround.cs" />
+    <Compile Include="EQTypes\EQGroup.cs" />
+    <Compile Include="EQTypes\EQGroupMember.cs" />
+    <Compile Include="EQTypes\EQHeading.cs" />
+    <Compile Include="EQTypes\EQInvSlot.cs" />
+    <Compile Include="EQTypes\EQItem.cs" />
+    <Compile Include="EQTypes\EQMacroQuest.cs" />
+    <Compile Include="EQTypes\EQMerchant.cs" />
+    <Compile Include="EQTypes\EQRace.cs" />
+    <Compile Include="EQTypes\EQRaid.cs" />
+    <Compile Include="EQTypes\EQRaidMember.cs" />
+    <Compile Include="EQTypes\EQSkill.cs" />
+    <Compile Include="EQTypes\EQSpawn.cs" />
+    <Compile Include="EQTypes\EQSpell.cs" />
+    <Compile Include="EQTypes\EQSwitch.cs" />
+    <Compile Include="EQTypes\EQTicks.cs" />
+    <Compile Include="EQTypes\EQTime.cs" />
+    <Compile Include="EQTypes\EQTimer.cs" />
+    <Compile Include="EQTypes\EQWindow.cs" />
+    <Compile Include="EQTypes\EQZone.cs" />
+    <Compile Include="ISXEQ.cs" />
+    <Compile Include="Properties\AssemblyInfo.cs" />
+  </ItemGroup>
+  <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
+  <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
+       Other similar extension points exist, see Microsoft.Common.targets.
+  <Target Name="BeforeBuild">
+  </Target>
+  <Target Name="AfterBuild">
+  </Target>
+  -->
+</Project>
