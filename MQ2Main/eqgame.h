@@ -16,8 +16,8 @@
 #endif
 
 #define __ClientName                                              "eqgame" 
-#define __ExpectedVersionDate                                     "Sep  4 2007"
-#define __ExpectedVersionTime                                     "15:45:10"
+#define __ExpectedVersionDate                                     "Sep  7 2007"
+#define __ExpectedVersionTime                                     "09:11:49"
 #define __ActualVersionDate                                        0x6F5E14
 #define __ActualVersionTime                                        0x6F5E20
 
@@ -30,7 +30,7 @@
 #define __MemChecker1                                              0x644E60
 #define __MemChecker2                                              0x51D130
 #define __MemChecker3                                              0x51D1E0
-#define __MemChecker4                                              0x60E340
+#define __MemChecker4                                              0x60E3E0
 #define __EncryptPad0                                              0x752E68
 #define __EncryptPad1                                              0x75CB78
 #define __EncryptPad2                                              0x7553D0
@@ -270,9 +270,9 @@
 #define __ConvertItemTags                                          0x4A2AB0
 #define __ExecuteCmd                                               0x493FD0
 #define __get_melee_range                                          0x4990E0
-#define __GetGaugeValueFromEQ                                      0x5E0DB0
-#define __GetLabelFromEQ                                           0x5E15C0
-#define __NewUIINI                                                 0x5E09A0
+#define __GetGaugeValueFromEQ                                      0x5E0E50
+#define __GetLabelFromEQ                                           0x5E1660
+#define __NewUIINI                                                 0x5E0A40
 #define __ProcessGameEvents                                        0x4D9920
 #define __SendMessage                                              0x4BB750
 #define CrashDetected                                              0x51C1F0
@@ -302,8 +302,8 @@
 #define CChatManager__InitContextMenu                              0x550C50
 
 // CChatService
-#define CChatService__GetNumberOfFriends                           0x635C00
-#define CChatService__GetFriendName                                0x635C10
+#define CChatService__GetNumberOfFriends                           0x635CA0
+#define CChatService__GetFriendName                                0x635CB0
 
 // CChatWindow 
 #define CChatWindow__CChatWindow                                   0x554DC0
@@ -389,11 +389,11 @@
 #define CInvSlot__SliderComplete                                   0x585010
 
 // CItemDisplayWnd 
-#define CItemDisplayWnd__SetItem                                   0x594E00
+#define CItemDisplayWnd__SetItem                                   0x594D60
 #define CItemDisplayWnd__SetSpell                                  0x5DED70
 
 // CLabel 
-#define CLabel__Draw                                               0x59A440
+#define CLabel__Draw                                               0x59A3A0
 
 // CListWnd 
 #define CListWnd__AddColumn                                        0x656D20
@@ -439,16 +439,16 @@
 #define CListWnd__ToggleSel                                        0x652E10
 
 // CMapViewWnd 
-#define CMapViewWnd__CMapViewWnd                                   0x5AD290
+#define CMapViewWnd__CMapViewWnd                                   0x5AD1F0
 
 // CMerchantWnd 
-#define CMerchantWnd__DisplayBuyOrSellPrice                        0x5AEC60
-#define CMerchantWnd__RequestBuyItem                               0x5AFF00
-#define CMerchantWnd__RequestSellItem                              0x5AEEB0
-#define CMerchantWnd__SelectBuySellSlot                            0x5AFC40
+#define CMerchantWnd__DisplayBuyOrSellPrice                        0x5AEBC0
+#define CMerchantWnd__RequestBuyItem                               0x5AFE60
+#define CMerchantWnd__RequestSellItem                              0x5AEE10
+#define CMerchantWnd__SelectBuySellSlot                            0x5AFBA0
 
 // CObfuscator
-#define CObfuscator__doit                                          0x6372C0
+#define CObfuscator__doit                                          0x637360
 
 // CSidlManager 
 #define CSidlManager__FindScreenPieceTemplate1                     0x6669C0
@@ -591,7 +591,7 @@
 #define EQ_Character__CastSpell                                    0x4221B0
 #define EQ_Character__Cur_HP                                       0x429C10
 #define EQ_Character__GetAACastingTimeModifier                     0x41D350
-#define EQ_Character__GetCharInfo2                                 0x61DE80
+#define EQ_Character__GetCharInfo2                                 0x61DF20
 #define EQ_Character__GetFocusCastingTimeModifier                  0x419380
 #define EQ_Character__GetFocusRangeModifier                        0x4194B0
 #define EQ_Character__Max_Endurance                                0x4288F0
@@ -603,8 +603,8 @@
 
 // EQ_Item 
 #define EQ_Item__CanDrop                                           0x4E55B0
-#define EQ_Item__GetItemLinkHash                                   0x61D020
-#define EQ_Item__IsStackable                                       0x613E80
+#define EQ_Item__GetItemLinkHash                                   0x61D0C0
+#define EQ_Item__IsStackable                                       0x613F20
 
 // EQ_LoadingS 
 #define EQ_LoadingS__SetProgressBar                                0x46FF10
@@ -612,9 +612,9 @@
 
 // EQ_PC 
 #define EQ_PC__DestroyHeldItemOrMoney                              0x4F6780
-#define EQ_PC__GetAltAbilityIndex                                  0x622D80
-#define EQ_PC__GetCombatAbility                                    0x622E10
-#define EQ_PC__GetCombatAbilityTimer                               0x622EC0
+#define EQ_PC__GetAltAbilityIndex                                  0x622E20
+#define EQ_PC__GetCombatAbility                                    0x622EB0
+#define EQ_PC__GetCombatAbilityTimer                               0x622F60
 #define EQ_PC__GetItemTimerValue                                   0x4F1930
 #define EQ_PC__HasLoreItem                                         0x4F4DA0
 
@@ -646,10 +646,10 @@
 #define KeypressHandler__SaveKeymapping                            0x4E7070
 
 // MapViewMap 
-#define MapViewMap__Clear                                          0x5A92A0
-#define MapViewMap__SaveEx                                         0x5A9C70
+#define MapViewMap__Clear                                          0x5A9200
+#define MapViewMap__SaveEx                                         0x5A9BD0
 
 #define OtherCharData__GetAltCurrency                              0x63E210
 
 // StringTable 
-#define StringTable__getString                                     0x613810
+#define StringTable__getString                                     0x6138B0

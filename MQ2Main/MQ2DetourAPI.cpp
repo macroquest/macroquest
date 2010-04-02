@@ -259,7 +259,7 @@ VOID HookInlineChecks(BOOL Patch)
 
 // .text:005DE46D 81 3D 28 EF 97 00 0E C0 6D 00  cmp     dword_97EF28, 6DC00Eh
 
-    int cmps[] = {  0x5E161D+6 };
+    int cmps[] = {  0x5E16BD+6 };
 
 
 
