@@ -232,7 +232,8 @@ EQLIB_VAR DWORD *gpPCNames;
 #define gPCNames (*gpPCNames)
 EQLIB_VAR PBYTE gpAutoFire;
 #define gAutoFire (*gpAutoFire)
-
+EQLIB_VAR PBYTE gpShiftKeyDown;
+#define gShiftKeyDown (*gpShiftKeyDown)
 
 EQLIB_VAR DWORD *g_ppDrawHandler;
 #define g_pDrawHandler (*g_ppDrawHandler)

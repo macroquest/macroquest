@@ -2841,7 +2841,9 @@ VOID DoShiftCmd(PSPAWNINFO pChar, PCHAR szLine)
 	}
 	bool Old=((PCXWNDMGR)pWndMgr)->KeyboardFlags[0];
 	((PCXWNDMGR)pWndMgr)->KeyboardFlags[0]=1;
+	gShiftKeyDown=1;
 	DoCommand(pChar,szLine);
+	gShiftKeyDown=0;
 	((PCXWNDMGR)pWndMgr)->KeyboardFlags[0]=Old;
 }
 

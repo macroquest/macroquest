@@ -1746,12 +1746,12 @@ typedef struct connection_t {
 /*0x118*/
 } CONNECTION_T, *PCONNECTION_T;
 
-//actual size 0x2d70 04-28-06 - ieatacid 
-typedef struct _CDISPLAY { 
-/*0x000*/ BYTE   Unknown0x000[0x150]; 
-/*0x150*/ DWORD  TimeStamp; 
-/*0x154*/ 
-} CDISPLAY, *PCDISPLAY; 
+//actual size 0x2d9c 11-20-07 - ieatacid 
+typedef struct _CDISPLAY {
+/*0x000*/ BYTE   Unknown0x000[0x154];
+/*0x154*/ DWORD  TimeStamp;
+/*0x158*/
+} CDISPLAY, *PCDISPLAY;
 
 //5-16-06 - ieatacid
 typedef struct _DZTIMERINFO {

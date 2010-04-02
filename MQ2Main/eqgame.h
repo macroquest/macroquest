@@ -75,6 +75,7 @@
 #define __ScreenYMax                                               0x9401BC
 #define __ServerHost                                               0x92071C
 #define __ServerName                                               0x976588
+#define __ShiftKeyDown                                             0x940854
 #define __ShowNames                                                0x941390
 #define __Socials                                                  0x976688
 

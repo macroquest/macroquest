@@ -627,7 +627,7 @@ int CMD_MemSpell(int argc, char *argv[])
 
     ZeroMemory(&MemSpellFavorite,sizeof(MemSpellFavorite));
     strcpy(MemSpellFavorite.Name,"Mem a Spell");
-    MemSpellFavorite.Byte_3e=1;
+    MemSpellFavorite.inuse=1;
     for (sp=0;sp<9;sp++) MemSpellFavorite.SpellId[sp]=0xFFFFFFFF;
     MemSpellFavorite.SpellId[Gem] = pSpell->ID;
    pSpellBookWnd->MemorizeSet((int*)Favorite,9);

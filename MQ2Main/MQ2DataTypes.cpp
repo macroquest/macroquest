@@ -2398,33 +2398,49 @@ bool MQ2CharacterType::GETMEMBER()
             }
         }
         return false;
-	case Skill:
-		if (ISINDEX())
-		{
-			if (ISNUMBER())
-			{
-				// numeric
-				unsigned long nSkill=GETNUMBER()-1;
-				if (nSkill<0x64)
-				{
-					Dest.DWord=GetCharInfo2()->Skill[nSkill];
-					Dest.Type=pIntType;
-					return true;
-				}
-			}
-			else
-			{
-				// name
-				for (DWORD nSkill=0;szSkills[nSkill];nSkill++)
-					if (!stricmp(GETFIRST(),szSkills[nSkill]))
-					{
-						Dest.DWord=GetCharInfo2()->Skill[nSkill];
-						Dest.Type=pIntType;
-						return true;
-					}
-			}
-		}
-		return false;
+    case Skill:
+        if (ISINDEX())
+        {
+            if (ISNUMBER())
+            {
+                // numeric
+                unsigned long nSkill=GETNUMBER()-1;
+                if (nSkill<0x64)
+                {
+                    Dest.DWord=GetCharInfo2()->Skill[nSkill];
+                    Dest.Type=pIntType;
+                    if (!Dest.DWord) {
+                        if(pSkillMgr->pSkill[nSkill]->Activated) {
+                            for(int btn=0; !Dest.DWord && btn<10; btn++) {
+                                if(EQADDR_DOABILITYLIST[btn]==nSkill) Dest.DWord=1;
+                            }
+                        }
+                    }
+                    return true;
+                }
+            }
+            else
+            {
+                // name
+                for (DWORD nSkill=0;nSkill<NUM_SKILLS;nSkill++)
+                    if (!stricmp(GETFIRST(),szSkills[nSkill]))
+                    {
+                        Dest.DWord=GetCharInfo2()->Skill[nSkill];
+                        Dest.Type=pIntType;
+// note: this change fixes the problem where ${Me.Skill[Forage]} returns
+// 0 even if you have bought the aa for cultural forage...
+                        if (!Dest.DWord) {
+                            if(pSkillMgr->pSkill[nSkill]->Activated) {
+                                for(int btn=0; !Dest.DWord && btn<10; btn++) {
+                                    if(EQADDR_DOABILITYLIST[btn]==nSkill) Dest.DWord=1;
+                                }
+                            }
+                        }
+                        return true;
+                    }
+            }
+        }
+        return false;
 	case Ability:
 		if (ISINDEX())
 		{
@@ -5435,7 +5451,7 @@ bool MQ2InvSlotType::GETMEMBER()
 				if (nInvSlot>=262 && nInvSlot<342)
 				{
 					unsigned long nPack=(nInvSlot-262)/10;
-					unsigned long nSlot=(nInvSlot-1)%10;
+					unsigned long nSlot=(nInvSlot-262)%10;
 					if (PCONTENTS pPack=GetCharInfo2()->Inventory.Pack[nPack])
 					if (pPack->Item->Type==ITEMTYPE_PACK && nSlot<pPack->Item->Slots)
 					{

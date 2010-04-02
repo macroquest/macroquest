@@ -220,7 +220,7 @@ DWORD *gpShowNames=(DWORD*)__ShowNames;
 DWORD *gpPCNames=(DWORD*)__PCNames;
 PBYTE pTributeActive=(PBYTE)instTributeActive;
 PBYTE gpAutoFire=(PBYTE)__Autofire;
-
+PBYTE gpShiftKeyDown=(PBYTE)__ShiftKeyDown; // addr+1=ctrl, addr+2=alt
 
 PVOID EQADDR_GWORLD=(PVOID)__gWorld;
 PDWORD EQADDR_DOABILITYLIST=(PDWORD)__DoAbilityList;
