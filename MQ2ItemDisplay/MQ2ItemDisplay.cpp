@@ -307,7 +307,6 @@ public:
 
 		if (out[0]!=17) {
 			strcat(out,"</c>");
-			//((CXStr)This->ItemInfo)+=
 			AppendCXStr(&This->ItemInfo,&out[0]);
 		}
 
@@ -315,34 +314,34 @@ public:
 		bNoSpellTramp=true;
 		if (Item->Clicky.SpellID > 0 && Item->Clicky.SpellID != -1) {
 			eEffectType = Clicky;
-			ItemSetSpell_Detour(Item->Clicky.SpellID, false, 0);
+			ItemSetSpell_Detour(Item->Clicky.SpellID, false);
 		}
 
 		if (Item->Proc.SpellID > 0 && Item->Proc.SpellID != -1) {
 			eEffectType = Proc;
-			ItemSetSpell_Detour(Item->Proc.SpellID, false, 0);
+			ItemSetSpell_Detour(Item->Proc.SpellID, false);
 		}
 
 		if (Item->Worn.SpellID > 0 && Item->Worn.SpellID != -1) {
 			eEffectType = Worn;
-			ItemSetSpell_Detour(Item->Worn.SpellID, false, 0);
+			ItemSetSpell_Detour(Item->Worn.SpellID, false);
 		}
 
 		if (Item->Focus.SpellID > 0 && Item->Focus.SpellID != -1) {
 			eEffectType = Focus;
-			ItemSetSpell_Detour(Item->Focus.SpellID, false, 0);
+			ItemSetSpell_Detour(Item->Focus.SpellID, false);
 		}
 
 		if (Item->Scroll.SpellID > 0 && Item->Scroll.SpellID != -1) {
 			eEffectType = Scroll;
-			ItemSetSpell_Detour(Item->Scroll.SpellID, false, 0);
+			ItemSetSpell_Detour(Item->Scroll.SpellID, false);
 		}
 		bNoSpellTramp=false;
 		eEffectType = None;
 	}
 
-   VOID SetSpell_Trampoline(int SpellID,bool HasSpellDescr,int unknown_int);
-   VOID SetSpell_Detour(int SpellID,bool HasSpellDescr,int unknown_int)
+   VOID SetSpell_Trampoline(int SpellID,bool HasSpellDescr);
+   VOID SetSpell_Detour(int SpellID,bool HasSpellDescr)
    {
      PEQSPELLINFOWINDOW This=(PEQSPELLINFOWINDOW)this;
      PCHARINFO pCharInfo = NULL;
@@ -354,7 +353,7 @@ public:
      CHAR out[MAX_STRING] = {0};
      CHAR temp[MAX_STRING] = {0};
      if (!bNoSpellTramp) {
-        SetSpell_Trampoline(SpellID,HasSpellDescr,unknown_int);
+        SetSpell_Trampoline(SpellID,HasSpellDescr);
         strcpy(out,"<BR><c \"#00FFFF\">");
      } else {
         char * cColour = "FF0000", * cName = "Blub";
@@ -485,14 +484,12 @@ public:
     strcat(out,temp); 
    } 
 
-
 		if (out[0]!=17) {
 		strcat(out,"</c>");
-		//((CXStr)This->ItemInfo)+=
-		AppendCXStr(&This->ItemInfo,&out[0]);   
+		AppendCXStr(&This->ItemInfo,&out[0]);  
 		}
 	}
-	VOID ItemSetSpell_Detour(int SpellID,bool HasSpellDescr,int unknown_int)
+	VOID ItemSetSpell_Detour(int SpellID,bool HasSpellDescr)
 	{
 		PEQITEMWINDOW This=(PEQITEMWINDOW)this;
 		PCHARINFO pCharInfo = NULL;
@@ -505,7 +502,7 @@ public:
 		CHAR out[MAX_STRING] = {0};
 		CHAR temp[MAX_STRING] = {0};
 		if (!bNoSpellTramp) {
-			SetSpell_Trampoline(SpellID,HasSpellDescr,unknown_int);
+			SetSpell_Trampoline(SpellID,HasSpellDescr);
 			strcpy(out,"<BR><c \"#00FFFF\">");
 		} else {
 			char * cColour = "FF0000", * cName = "Blub";
@@ -690,7 +687,7 @@ ItemDisplayHook::SEffectType ItemDisplayHook::eEffectType = None;
 bool ItemDisplayHook::bNoSpellTramp = false;
 
 DETOUR_TRAMPOLINE_EMPTY(VOID ItemDisplayHook::SetItem_Trampoline(class EQ_Item *,bool)); 
-DETOUR_TRAMPOLINE_EMPTY(VOID ItemDisplayHook::SetSpell_Trampoline(int SpellID,bool HasSpellDescr,int));;
+DETOUR_TRAMPOLINE_EMPTY(VOID ItemDisplayHook::SetSpell_Trampoline(int SpellID,bool HasSpellDescr));;
 DETOUR_TRAMPOLINE_EMPTY(VOID XWndHook::DrawTooltipAtPoint_Trampoline(class CXPoint const &));;
 
 #ifndef ISXEQ

@@ -818,22 +818,25 @@ typedef struct _EQITEMWINDOW
 /*0x240*/ // pointers to stat labels, etc, in this area
 } EQITEMWINDOW, *PEQITEMWINDOW;
 
-// Actual size 0x19c 08-17-2006
+// Actual size 0x1c8 07-09-2008
 typedef struct _EQSPELLINFOWINDOW 
 { 
-/*0x000*/ struct _CSIDLWND Wnd; 
-/*0x174*/ struct _CSIDLWND *DisplayWnd;
-/*0x178*/ BYTE Unknown0x178[0x4]; 
-/*0x17c*/ BYTE Unknown0x17c; 
-/*0x17d*/ BYTE Unknown0x17d[0x3]; 
-/*0x180*/ PCXSTR ItemInfo;
-/*0x184*/ PVOID Unknown0x194;
-/*0x188*/ DWORD Unknown0x198;
-/*0x18c*/ DWORD Unknown0x19c;
-/*0x190*/ DWORD Unknown0x1a0;
-/*0x194*/ DWORD Unknown0x1a4;
-/*0x198*/ PVOID TextureAnim;
-/*0x19c*/ 
+/*0x000*/ struct _CSIDLWND Wnd;
+/*0x190*/ PVOID Unknown0x190;
+/*0x194*/ PVOID Unknown0x194;
+/*0x198*/ struct _CSIDLWND *DisplayWnd;
+/*0x19c*/ PVOID Unknown0x19c; 
+/*0x1a0*/ PVOID Unknown0x1a0; 
+/*0x1a4*/ PCXSTR ItemInfo;
+/*0x1a8*/ PVOID Unknown0x1a8;
+/*0x1ac*/ DWORD Unknown0x1ac;
+/*0x1b0*/ DWORD Unknown0x1b0;
+/*0x1b4*/ DWORD Unknown0x1b4;
+/*0x1b8*/ DWORD Unknown0x1b8;
+/*0x1bc*/ PVOID TextureAnim;
+/*0x1c0*/ DWORD SpellID;
+/*0x1c4*/ DWORD TimeStamp;
+/*0x1c8*/ 
 } EQSPELLINFOWINDOW, *PEQSPELLINFOWINDOW;
 
 // Size: 0x1a4 (4/14/2005)
