@@ -1102,10 +1102,13 @@ bool MQ2SpawnType::GETMEMBER()
 		Dest.Type=pRaceType;
 		return true;
 	case Class:
-		if (GetSpawnType(pSpawn)!=AURA)
+		if (GetSpawnType(pSpawn)!=AURA && GetSpawnType(pSpawn)!=BANNER)
 			Dest.DWord=pSpawn->Class;
 		else
-			Dest.DWord=0xFF;
+			if (GetSpawnType(pSpawn)==AURA)
+				Dest.DWord=0xFF;
+			else
+				Dest.DWord=0xFE;
 		Dest.Type=pClassType;
 		return true;
 	case Body:
@@ -1217,6 +1220,10 @@ bool MQ2SpawnType::GETMEMBER()
 			return true;
 		case OBJECT:
 			Dest.Ptr="Object";
+			Dest.Type=pStringType;
+			return true;
+		case BANNER:
+			Dest.Ptr="Banner";
 			Dest.Type=pStringType;
 			return true;
 		}
@@ -3236,6 +3243,9 @@ bool MQ2SpellType::GETMEMBER()
 	}
 	case Stacks:
 	{
+		unsigned long duration=99999;
+		if (ISNUMBER())
+			duration=GETNUMBER();
 		unsigned long nBuff;
 		PCHARINFO2 pChar = GetCharInfo2();
 		Dest.DWord = true;      
@@ -3243,7 +3253,7 @@ bool MQ2SpellType::GETMEMBER()
 		for (nBuff=0; nBuff<25; nBuff++){
 			 if (pChar->Buff[nBuff].SpellID>0) {
 				  PSPELL tmpSpell = GetSpellByID(pChar->Buff[nBuff].SpellID);
-				  if (!BuffStackTest(pSpell, tmpSpell)){
+				  if (!BuffStackTest(pSpell, tmpSpell) || ((pSpell==tmpSpell) && (pChar->Buff[nBuff].Duration>duration))){
 						Dest.DWord = false;
 						return true;
 				  }
@@ -3253,6 +3263,10 @@ bool MQ2SpellType::GETMEMBER()
 	}
 	case StacksPet:
 	{
+		unsigned long petbuffduration;
+		unsigned long duration=99999;
+		if (ISNUMBER())
+			duration=GETNUMBER();
 		unsigned long nBuff;
 		Dest.DWord = true;      
 		Dest.Type = pBoolType;
@@ -3260,7 +3274,8 @@ bool MQ2SpellType::GETMEMBER()
 		for (nBuff=0; nBuff<29; nBuff++){
 			 if (pPet->Buff[nBuff]>0 && !(pPet->Buff[nBuff]==0xFFFFFFFF || pPet->Buff[nBuff]==0)) {
 				  PSPELL tmpSpell = GetSpellByID(pPet->Buff[nBuff]);
-				  if (!BuffStackTest(pSpell, tmpSpell)){
+				  petbuffduration = ((pPet->BuffFadeETA[nBuff]+5999)/1000)/6;
+				  if (!BuffStackTest(pSpell, tmpSpell) || ((pSpell==tmpSpell) && (petbuffduration>duration))){
 					  Dest.DWord = false;
 					  return true;
 				  }

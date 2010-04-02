@@ -5,13 +5,13 @@ using namespace std;
 #endif
 
 #define MAPFILTER_All				0
-#define MAPFILTER_PC					1
+#define MAPFILTER_PC				1
 #define MAPFILTER_PCConColor		2
 #define MAPFILTER_Group				3
 #define MAPFILTER_Mount				4
 #define MAPFILTER_NPC				5
 #define MAPFILTER_NPCConColor		6
-#define MAPFILTER_Untargetable	7
+#define MAPFILTER_Untargetable		7
 #define MAPFILTER_Pet				8
 #define MAPFILTER_Corpse			9
 #define MAPFILTER_Chest				10
@@ -21,17 +21,18 @@ using namespace std;
 #define MAPFILTER_Ground			14
 #define MAPFILTER_Target			15
 #define MAPFILTER_TargetLine		16
-#define MAPFILTER_TargetRadius	17
+#define MAPFILTER_TargetRadius		17
 #define MAPFILTER_TargetMelee		18
 #define MAPFILTER_Vector			19
 #define MAPFILTER_Custom			20
 #define MAPFILTER_CastRadius		21
-#define MAPFILTER_NormalLabels	22
+#define MAPFILTER_NormalLabels		22
 #define MAPFILTER_ContextMenu		23
 #define MAPFILTER_SpellRadius		24
 #define MAPFILTER_Aura				25
 #define MAPFILTER_Object			26
-#define MAPFILTER_NUMBER			27
+#define MAPFILTER_Banner			27
+#define MAPFILTER_NUMBER			28
 #define MAPFILTER_Invalid			(-1)
 // normal labels
 

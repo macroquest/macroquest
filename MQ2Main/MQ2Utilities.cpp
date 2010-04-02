@@ -1393,6 +1393,7 @@ PCHAR ShowSpellSlotInfo(PSPELL pSpell, PCHAR szBuffer)
       sprintf(szTemp, "Slot %d: ", i+1); 
       strcpy(szBuff, szTemp); 
       bSlotIsPH=false; 
+		szTemp[0]='\0';
       switch(pSpell->Attrib[i]) 
       { 
       case 0: //hp +/-: heals/regen/dd 
@@ -1835,15 +1836,27 @@ PCHAR ShowSpellSlotInfo(PSPELL pSpell, PCHAR szBuffer)
       case 103: //Call Pet 
          strcat(szBuff, "Call Pet"); 
          break; 
-      case 104: //zone translocate spells 
-         strcat(szBuff, "Translocate to "); 
-         if (pSpell->Extra[0]){ 
-           sprintf(szTemp, "%d, %d, %d in %s facing %s", pSpell->Base[1], pSpell->Base[2], pSpell->Base[3], GetFullZone(GetZoneID(pSpell->Extra)), szHeading[pSpell->Base[4]]); 
-         } else { 
-           strcat(szTemp, "Bind Point"); 
-         } 
-         strcat(szBuff, szTemp); 
-         break; 
+		case 104: //zone translocate spells
+			strcat(szBuff, "Translocate to ");
+			if(pSpell->Extra[0])
+			{
+				if(pSpell->Extra[0]=='0') //wtf?
+				{
+					// Spell: Teleport
+					strcat(szTemp, "Bind Point");
+				}
+				else
+				{
+					sprintf(szTemp, "%d, %d, %d in %s facing %s", pSpell->Base[1], pSpell->Base[2], pSpell->Base[3], GetFullZone(GetZoneID(pSpell->Extra)), szHeading[pSpell->Base[4]]);
+				}
+			}
+			else
+			{
+				// Spell: Translocate
+				strcat(szTemp, "Bind Point");
+			}
+			strcat(szBuff, szTemp);
+			break;
       case 105: //Anti-Gate 
          sprintf(szTemp, "Anti-Gate(%d)",pSpell->Base[i]); 
          strcat(szBuff, szTemp); 
@@ -4585,6 +4598,8 @@ PCHAR ParseSearchSpawnArgs(PCHAR szArg, PCHAR szRest, PSEARCHSPAWN pSearchSpawn)
             pSearchSpawn->SpawnType = AURA;
         } else if (!stricmp(szArg,"object")) {
             pSearchSpawn->SpawnType = OBJECT;
+        } else if (!stricmp(szArg,"banner")) {
+            pSearchSpawn->SpawnType = BANNER;
         } else if (!stricmp(szArg,"any")) {
             pSearchSpawn->SpawnType = NONE;
         } else if (!stricmp(szArg,"next")) {
@@ -5547,11 +5562,10 @@ bool InHoverState()
 // Author:      Pinkfloydx33
 // ***************************************************************************
 bool BuffStackTest(PSPELL aSpell, PSPELL bSpell){
+	if (aSpell->ID==bSpell->ID) return true;
 
     int i;
-
     for (i=0; i<=11; i++) {
-
 //Compare 1st Buff to 2nd. If Attrib[i]==254 its a place holder. If it is 10 it
 //can be 1 of 3 things: PH(Base=0), CHA(Base>0), Lure(Base=-6). If it is Lure or
 //Placeholder, exclude it so slots don't match up. Now Check to see if the slots

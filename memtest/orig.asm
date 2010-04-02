@@ -19,12 +19,12 @@ arg_4           = dword ptr  0Ch
                 or      eax, 0FFFFFFFFh
                 xor     edx, edx
                 test    esi, esi
-                jle     short loc_4E2373
+                jle     short loc_4E4053
                 push    ebx
                 push    edi
                 mov     edi, [esp+8+arg_0]
 
-loc_4E2354:                             ; CODE XREF: __MemChecker0+2Fj
+loc_4E4034:                             ; CODE XREF: __MemChecker0+2Fj
                 movsx   ecx, byte ptr [edx+edi]
                 xor     ecx, eax
                 and     ecx, 0FFh
@@ -33,11 +33,11 @@ loc_4E2354:                             ; CODE XREF: __MemChecker0+2Fj
                 inc     edx
                 xor     eax, ebx
                 cmp     edx, esi
-                jl      short loc_4E2354
+                jl      short loc_4E4034
                 pop     edi
                 pop     ebx
 
-loc_4E2373:                             ; CODE XREF: __MemChecker0+Cj
+loc_4E4053:                             ; CODE XREF: __MemChecker0+Cj
                 pop     esi
                 retn
 __MemChecker0   endp

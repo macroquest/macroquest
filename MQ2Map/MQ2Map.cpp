@@ -67,6 +67,7 @@ MAPFILTER MapFilterOptions[] = {
 	{"SpellRadius",  FALSE,0x00C000,   FALSE,MAPFILTER_All,FALSE,  "Sets radius of 2nd casting circle to # (omit or set to 0 to disable)"},
     {"Aura",         FALSE,0x404040,   TRUE,MAPFILTER_All,TRUE,   "Displays Auras"},
     {"Object",       FALSE,0x404040,   TRUE,MAPFILTER_All,TRUE,   "Displays inanimate objects"},
+    {"Banner",       FALSE,0x404040,   TRUE,MAPFILTER_All,TRUE,   "Displays banners"},
     {NULL,           FALSE,-1,         FALSE,MAPFILTER_Invalid,FALSE,  NULL}
 };
 

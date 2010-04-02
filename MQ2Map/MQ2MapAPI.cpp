@@ -869,6 +869,8 @@ BOOL CanDisplaySpawn(eSpawnType Type, PSPAWNINFO pSpawn)
 		return IsOptionEnabled(MAPFILTER_Aura);
 	case OBJECT:
 		return IsOptionEnabled(MAPFILTER_Object);
+	case BANNER:
+		return IsOptionEnabled(MAPFILTER_Banner);
 	}
 	return TRUE;
 }
@@ -911,6 +913,8 @@ inline DWORD GetSpawnColor(eSpawnType Type, PSPAWNINFO pSpawn)
 		return MapFilterOptions[MAPFILTER_Aura].Color;
 	case OBJECT:
 		return MapFilterOptions[MAPFILTER_Object].Color;
+	case BANNER:
+		return MapFilterOptions[MAPFILTER_Banner].Color;
 	}
 	return 0;
 }

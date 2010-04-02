@@ -1,3 +1,16 @@
+18 April 2007 by ieatacid, dkaa
+- Updated for today's patch
+- Updated MQ2EQBugFix to stop a crash that occurs when going from character select to server select (thanks cronic).  This may only be WinEQ2-related, but it's there should you want to use it.
+
+6 April 2007 by rswiders
+- Added Banners to spawn searchs and mapfilters
+- Spell stacking changes are back...
+.. Stacking of spells with themselves will occur again.  For .Stacks and .StacksPet they take
+.. a new parameter [###].  This will check the duration left on the spell, if the duration left is
+.. less then the parameter value the spell will show it stacks with itself.  To retain old behavior
+.. use [0] for the parameter (.Stacks[0] and .StacksPet[0] retain old behavior)
+.. example - .Stacks[4] will return TRUE when less then 4 ticks remain on the spell buff in question
+
 5 April 2007 by ieatacid
 - Updated for today's patch
 

@@ -60,6 +60,8 @@ static inline PCHAR GetClassDesc(DWORD ClassID)
 		return "Guild Banker";
 	if (ClassID==0xFF)
 		return "Aura";
+	if (ClassID==0xFE)
+		return "Banner";
 	return pEverQuest->GetClassDesc(ClassID);
 }
 
@@ -159,6 +161,8 @@ static inline eSpawnType GetSpawnType(PSPAWNINFO pSpawn)
 		case 1:
 			if ((pSpawn->Class==1) && (pSpawn->Race==567))
 				return OBJECT;
+			if ((pSpawn->Class==8) && (pSpawn->Race==553))
+				return BANNER;
 			return NPC;
         //case 3:
         //    return NPC;

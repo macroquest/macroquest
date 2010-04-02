@@ -38,6 +38,7 @@ enum eSpawnType
 	ITEM,
 	AURA,
 	OBJECT,
+	BANNER,
 };
 
 typedef struct _SEARCHSPAWN {
@@ -74,6 +75,7 @@ typedef struct _SEARCHSPAWN {
 	BOOL bDps;
 	BOOL bSlower;
 	BOOL bAura;
+	BOOL bBanner;
     DWORD NotID;
     DWORD NotNearAlertList;
     DWORD NearAlertList;

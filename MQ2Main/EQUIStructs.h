@@ -678,7 +678,7 @@ typedef struct _EQPETINFOWINDOW {
 /*0x31c*/ DWORD Unknown0x318;  
 /*0x320*/ BYTE  Unknown0x31c[4];
 /*0x324*/ DWORD Unknown0x320[2];
-/*0x32c*/ DWORD BuffFadeETA[0x1e]; 
+/*0x32c*/ DWORD BuffFadeETA[0x1e]; // duration until buff fades, in thousands of a second
 } EQPETINFOWINDOW, *PEQPETINFOWINDOW;
 
 typedef struct _EQTRADESKILLRECIPE {
