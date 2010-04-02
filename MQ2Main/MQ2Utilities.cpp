@@ -2243,7 +2243,7 @@ PCHAR ShowSpellSlotInfo(PSPELL pSpell, PCHAR szBuffer)
          strcat(szBuff, szTemp); 
          break; 
       case 169: //Chance to Critical Hit 
-         sprintf(szTemp, "Chance to Critical Hit for %s by %d%%", szSkills[pSpell->Base2[i]],pSpell->Base[i]);
+         sprintf(szTemp, "Chance to Critical Hit for %s by %d%%", pSpell->Base2[i]>=0?szSkills[pSpell->Base2[i]]:"All Skills",pSpell->Base[i]);
          strcat(szBuff, szTemp); 
          break; 
       case 170: //Crit Cast, test spell only 

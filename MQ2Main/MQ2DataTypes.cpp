@@ -2075,7 +2075,7 @@ bool MQ2CharacterType::GETMEMBER()
 	case Dar:
 		Dest.DWord=0;
 		{
-			for (unsigned long k=0; k<15 ; k++)
+			for (unsigned long k=0; k<23 ; k++)
 				Dest.DWord+=GetCharInfo2()->Buff[k].DamageAbsorbRemaining;
 		}
 		Dest.Type=pIntType;
