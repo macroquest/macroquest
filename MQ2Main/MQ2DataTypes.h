@@ -2078,6 +2078,13 @@ public:
 		Ping=13,
 		ChatChannels=14,
 		ChatChannel=15,
+		ViewportX=16,
+		ViewportY=17,
+		ViewportXMax=18,
+		ViewportYMax=19,
+		ViewportXCenter=20,
+		ViewportYCenter=21,
+		LClickedObject=22,
 	};
 	static enum MacroQuestMethods
 	{
@@ -2099,6 +2106,13 @@ public:
 		TypeMember(Ping);
 		TypeMember(ChatChannels);
 		TypeMember(ChatChannel);
+		TypeMember(ViewportX);
+		TypeMember(ViewportY);
+		TypeMember(ViewportXMax);
+		TypeMember(ViewportYMax);
+		TypeMember(ViewportXCenter);
+		TypeMember(ViewportYCenter);
+		TypeMember(LClickedObject);
 	}
 
 	~MQ2MacroQuestType()

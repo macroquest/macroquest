@@ -558,7 +558,7 @@ BOOL ParseMacroData(PCHAR szOriginal)
 		}
 
 		MQ2TYPEVAR Result;
-		if (!ParseMQ2DataPortion(szCurrent,Result) || !Result.Type->ToString(Result.VarPtr,szCurrent))
+		if (!ParseMQ2DataPortion(szCurrent,Result) || !Result.Type || !Result.Type->ToString(Result.VarPtr,szCurrent))
 			strcpy(szCurrent,"NULL");
 
 		NewLength=strlen(szCurrent);

@@ -365,25 +365,26 @@ public:
 		CreateChildrenFromSidl();
 		pXWnd()->Show(1,1);
 		ReplacevfTable();
+		CloseOnESC=0;
+	}
 
-	};
 	CCustomWnd(char *screenpiece):CSidlScreenWnd(0,&CXStr(screenpiece),-1,1,0)
 	{
 		CreateChildrenFromSidl();
 		pXWnd()->Show(1,1);
 		ReplacevfTable();
-        }
-
+		CloseOnESC=0;
+	}
 
 	~CCustomWnd()
 	{
 		RemovevfTable();
-	};
+	}
 
 //	int WndNotification(CXWnd *pWnd, unsigned int Message, void *unknown)
 //	{	
 //		return CSidlScreenWnd::WndNotification(pWnd,Message,unknown);
-//	};
+//	}
 
 	void ReplacevfTable()
 	{
@@ -391,7 +392,7 @@ public:
 		PCSIDLWNDVFTABLE NewvfTable=new CSIDLWNDVFTABLE;
 		memcpy(NewvfTable,OldvfTable,sizeof(CSIDLWNDVFTABLE));
 		((_CSIDLWND*)this)->pvfTable=NewvfTable;
-	};
+	}
 
 	void RemovevfTable()
 	{

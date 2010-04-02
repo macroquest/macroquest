@@ -782,6 +782,7 @@ bool SendWndNotification(PCHAR WindowName, PCHAR ScreenID, DWORD Notification, V
 	if (!pWnd)
 	{
 		sprintf(szOut,"Window '%s' not available.",WindowName);
+		WriteChatColor(szOut,USERCOLOR_DEFAULT);
 		return false;
 	}
 	CXWnd *pButton=0;
@@ -954,7 +955,7 @@ PCHAR szWndNotification[] = {
 	0,		//24
 	0,		//25
 	0,		//26
-	0,		//27
+	"link",		//27
 	0,		//28
 	"resetdefaultposition",		//29
 }; 
@@ -997,8 +998,13 @@ int WndNotify(int argc, char *argv[])
    CHAR *szArg1=argv[1];
    CHAR *szArg2=argv[2];
    CHAR *szArg3=argv[3];
-
+   CHAR *szArg4=argv[4];
 #endif 
+
+    if (!stricmp(szArg3,"link")) {
+        DebugSpewAlways("WndNotify: link found, Data = 1");
+        Data = 1;
+    }
 
 	if (Data==0 && SendWndClick(szArg1,szArg2,szArg3))
 		RETURN(0);
@@ -1014,10 +1020,17 @@ int WndNotify(int argc, char *argv[])
             RETURN(0);
         } 
 
-	for (unsigned long i = 0 ; i < NUM_INV_SLOTS ; i++)
+	for (unsigned long i = 0 ; i < sizeof(szWndNotification)/sizeof(szWndNotification[0]) ; i++)
 	{
 		if (szWndNotification[i] && !stricmp(szWndNotification[i],szArg3))
 		{
+            if (i==XWM_LINK) {
+			    if (!SendWndNotification(szArg1,szArg2,i,(void*)szArg4))
+			    {
+				    MacroError("Could not send notification to %s %s",szArg1,szArg2);
+			    }
+			    RETURN(0);
+            }
 			if (szArg2[0]=='0')
 			{
 				if (!SendWndNotification(szArg1,0,i,(void*)Data))

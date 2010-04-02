@@ -1,3 +1,32 @@
+6 July 2007 by ieatacid, rswiders
+- Updated for July 5th patch
+- Some of the text coloring was removed from MQ2ItemDisplay since EQ now colors the item name green or red if you can or can't use the item (EQ also handles this text differently now).
+
+17 June 2007 by ieatacid
+- '/click left <x> <y>' works again.  It's now possible to
+  click tradeskill containers and ground spawns.  This only
+  works on the actual game play environment.  It does not
+  work on UI windows (there are existing commands for that)
+  or anything out of the viewport area.
+- Added '/click left center' to click the center of the viewport area
+- Added the following to the macroquest TLO:
+  * ViewportX - left edge of the viewport area
+  * ViewportY - top edge of the viewport area
+  * ViewportXMax - right edge of the viewport area
+  * ViewportYMax - bottom edge of the viewport are
+  * ViewportXCenter - center of the viewport area going from left to right
+  * ViewportYCenter - center of the viewport area going from top to bottom
+  * LClickedObject - successfully clicking a ground spawn, TS container,
+    NPC, or PC (using '/click left center|<x> <y>') will set this to TRUE
+- Removed the /mouseto command since it no longer did anything
+
+10 June 2007 by rswiders, dkaa
+- Added clicking links with /notify.  Use /notify ChatWindow CW_ChatOutput link <link structure>
+  The link structure consists of 44 characters of the link starting with the 2nd character of the item id (ie, drop the leading 0).
+
+9 June 2007 by ieatacid
+- Tell windows will now trigger events and '#chat tell'
+
 6 June 2007 by ieatacid
 - Updated for today's patch
 

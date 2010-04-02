@@ -125,6 +125,7 @@ EQLIB_VAR BOOL gSpewToFile;
 EQLIB_VAR BOOL gbDoAutoRun;
 EQLIB_VAR BOOL gMQPauseOnChat;
 EQLIB_VAR BOOL gKeepKeys;
+EQLIB_VAR BOOL gLClickedObject;
 EQLIB_VAR SWHOFILTER gFilterSWho;
 
 EQLIB_VAR BOOL gbHUDUnderUI;
@@ -418,6 +419,10 @@ EQLIB_VAR DWORD *pScreenX;
 #define ScreenX (*pScreenX)
 EQLIB_VAR DWORD *pScreenY;
 #define ScreenY (*pScreenY)
+EQLIB_VAR DWORD *pScreenXMax;
+#define ScreenXMax (*pScreenXMax)
+EQLIB_VAR DWORD *pScreenYMax;
+#define ScreenYMax (*pScreenYMax)
 EQLIB_VAR DWORD *pScreenMode;
 #define ScreenMode (*pScreenMode)
 EQLIB_VAR CHAR  *pMouseLook;

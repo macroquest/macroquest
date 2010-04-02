@@ -140,6 +140,7 @@ BOOL gSpewToFile = FALSE;
 BOOL gbDoAutoRun = FALSE;
 BOOL gMQPauseOnChat = FALSE;
 BOOL gKeepKeys = FALSE;
+BOOL gLClickedObject = FALSE;
 SWHOFILTER gFilterSWho = {0};
 EQLIB_VAR BOOL gFilterMQ2DataErrors=FALSE;
 
@@ -241,6 +242,8 @@ PBYTE EQADDR_ENCRYPTPAD4=(PBYTE)__EncryptPad4;
 
 DWORD *pScreenX=(DWORD*)__ScreenX;
 DWORD *pScreenY=(DWORD*)__ScreenY;
+DWORD *pScreenXMax=(DWORD*)__ScreenXMax;
+DWORD *pScreenYMax=(DWORD*)__ScreenYMax;
 DWORD *pScreenMode=(DWORD*)__ScreenMode;
 CHAR  *pMouseLook=(CHAR*)__MouseLook;
 PMOUSEINFO EQADDR_MOUSE=(PMOUSEINFO)__Mouse;

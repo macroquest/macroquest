@@ -36,7 +36,6 @@ public:
 		OutBoxLines=0;
 		*(DWORD*)&(((PCHAR)OutputBox)[0x1E4])=400;
 		OutputBox->Clickable=1;
-		CloseOnESC=0; // this disables the close on escape
 	}
 	~CMQChatWnd()
 	{
@@ -68,10 +67,22 @@ public:
 				Show=1;
 				return 1;
 			}
-		}
-		else
-		{
-            //DebugSpew("Wnd: 0x%X, Msg: 0x%X, value: %Xh",pWnd,Message,unknown);
+		} else if (Message==XWM_LINK) {
+                    class CChatWindow *p = (class CChatWindow *)this;
+                    if (OutputBox != (CStmlWnd *)pWnd) {
+                        CStmlWnd *tmp;
+                        int ret;
+DebugSpew("MQ2ChatWnd: 0x%X, Msg: 0x%X, value: %Xh",pWnd,Message,unknown);
+DebugSpew("MQ2ChatWnd: pWnd 0x%x != OutputBox 0x%x\n", pWnd, OutputBox);
+                        tmp = OutputBox;
+                        OutputBox = (CStmlWnd *)pWnd;
+                        ret = p->WndNotification(pWnd, Message, unknown);
+                        OutputBox = tmp;
+                        return ret;
+                    }
+                    return p->WndNotification(pWnd, Message, unknown);
+		} else {
+                    //DebugSpew("MQ2ChatWnd: 0x%X, Msg: 0x%X, value: %Xh",pWnd,Message,unknown);
 		}
 		return CSidlScreenWnd::WndNotification(pWnd,Message,unknown);
 	};

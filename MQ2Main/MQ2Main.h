@@ -611,6 +611,7 @@ LEGACY_API BOOL Calculate(PCHAR szFormula, DOUBLE& Dest);
 #define XWM_MOUSEOVER			21
 #define XWM_HISTORY				22
 #define XWM_LCLICKHOLD			23
+#define XWM_LINK      			27
 
 #define XKF_SHIFT				1
 #define XKF_CTRL				2

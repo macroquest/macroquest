@@ -57,9 +57,29 @@ public:
 		} 
 		gbInChat = FALSE; 
 	} 
+
+	VOID TellWnd_Trampoline(char *message,char *name,char *name2,void *unknown,int color,bool b);
+	VOID TellWnd_Detour(char *message,char *name,char *name2,void *unknown,int color,bool b)
+	{
+		char szMsg[MAX_STRING];
+		BOOL SkipTrampoline;
+		gbInChat=true;
+
+		sprintf(szMsg,"%s tells you, '%s'",name,message);
+		
+		CheckChatForEvent(szMsg);
+
+		Benchmark(bmPluginsIncomingChat,SkipTrampoline=PluginsIncomingChat(szMsg,color));
+		
+		if(!SkipTrampoline)
+			TellWnd_Trampoline(message,name,name2,unknown,color,b);
+
+		gbInChat=false;
+	}
 }; 
 
 DETOUR_TRAMPOLINE_EMPTY(VOID CChatHook::Trampoline(PCHAR szMsg, DWORD dwColor, DWORD dwUnknown)); 
+DETOUR_TRAMPOLINE_EMPTY(VOID CChatHook::TellWnd_Trampoline(char *message,char *name,char *name2,void *unknown,int color,bool b)); 
 
 VOID dsp_chat_no_events(const char *Text,int Color,bool Something)
 {
@@ -86,11 +106,13 @@ VOID InitializeChatHook()
 	DebugSpew("%s",pMQ2Blech->Version);
 #endif
 	EzDetour(CEverQuest__dsp_chat,&CChatHook::Detour,&CChatHook::Trampoline);
+	EzDetour(CEverQuest__DoTellWindow,&CChatHook::TellWnd_Detour,&CChatHook::TellWnd_Trampoline);
 }
 
 VOID ShutdownChatHook()
 {
 	RemoveDetour((DWORD)CEverQuest__dsp_chat);
+	RemoveDetour((DWORD)CEverQuest__DoTellWindow);
 #ifndef ISXEQ
 #ifdef USEBLECHEVENTS
 	delete pEventBlech;

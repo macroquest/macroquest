@@ -4990,6 +4990,34 @@ bool MQ2MacroQuestType::GETMEMBER()
 				}
 			}
 		}
+	case ViewportX:
+		Dest.DWord=ScreenX;
+		Dest.Type=pIntType;
+		return true;
+	case ViewportY:
+		Dest.DWord=ScreenY;
+		Dest.Type=pIntType;
+		return true;
+	case ViewportXMax:
+		Dest.DWord=ScreenXMax;
+		Dest.Type=pIntType;
+		return true;
+	case ViewportYMax:
+		Dest.DWord=ScreenYMax;
+		Dest.Type=pIntType;
+		return true;
+	case ViewportXCenter:
+		Dest.DWord=ScreenXMax/2;
+		Dest.Type=pIntType;
+		return true;
+	case ViewportYCenter:
+		Dest.DWord=ScreenYMax/2;
+		Dest.Type=pIntType;
+		return true;
+	case LClickedObject:
+		Dest.DWord=gLClickedObject;
+		Dest.Type=pBoolType;
+		return true;
 	}
 	return false;
 }

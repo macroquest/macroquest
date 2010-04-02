@@ -116,7 +116,7 @@ class CScreenPieceTemplate *  CSidlManager::FindScreenPieceTemplate(char *str)
 }
 void  CComboWnd::InsertChoice(char *str)
 {
-    InsertChoice(&CXStr(str));
+    InsertChoice(&CXStr(str),0);
 }
 
 int  CListWnd::AddString(char *p1, unsigned long p2, unsigned __int32 p3, class CTextureAnimation const *p4)
@@ -995,6 +995,9 @@ FUNCTION_AT_ADDRESS(class CXStr  CStmlWnd::GetSTMLText(void)const ,CStmlWnd__Get
 #endif
 #ifdef CChatWindow__GetInputWnd
 FUNCTION_AT_ADDRESS(class CEditWnd *  CChatWindow::GetInputWnd(void),CChatWindow__GetInputWnd);
+#endif
+#ifdef CChatWindow__WndNotification
+FUNCTION_AT_ADDRESS(int CChatWindow::WndNotification(class CXWnd *,unsigned __int32,void *),CChatWindow__WndNotification);
 #endif
 #ifdef CColorPickerWnd__CColorPickerWnd
 FUNCTION_AT_ADDRESS( CColorPickerWnd::CColorPickerWnd(class CXWnd *),CColorPickerWnd__CColorPickerWnd);
@@ -3652,7 +3655,7 @@ FUNCTION_AT_ADDRESS(void  CDisplay::PlaySoundAtLocation(float,float,float,int),C
 FUNCTION_AT_ADDRESS(long  CDisplay::SetUserRender(int),CDisplay__SetUserRender);
 #endif
 #ifdef CDisplay__GetClickedActor
-FUNCTION_AT_ADDRESS(struct T3D_tagACTORINSTANCE *  CDisplay::GetClickedActor(unsigned long,unsigned long,bool),CDisplay__GetClickedActor);
+FUNCTION_AT_ADDRESS(struct T3D_tagACTORINSTANCE *  CDisplay::GetClickedActor(unsigned long,unsigned long,unsigned long,void *,void *),CDisplay__GetClickedActor);
 #endif
 #ifdef CDisplay__CreateActor
 FUNCTION_AT_ADDRESS(struct T3D_tagACTORINSTANCE *  CDisplay::CreateActor(char *,float,float,float,float,float,float,bool,bool),CDisplay__CreateActor);
@@ -5750,6 +5753,9 @@ FUNCTION_AT_ADDRESS(void  CEverQuest::clr_chat_input(void),CEverQuest__clr_chat_
 #endif
 #ifdef CEverQuest__dsp_chat
 FUNCTION_AT_ADDRESS(void  CEverQuest::dsp_chat(char const *,int,bool),CEverQuest__dsp_chat);
+#endif
+#ifdef CEverQuest__DoTellWindow
+FUNCTION_AT_ADDRESS(void CEverQuest::DoTellWindow(char *message,char *name,char *name2,void *unknown,int color,bool b),CEverQuest__DoTellWindow);
 #endif
 #ifdef CEverQuest__dsp_chat1
 FUNCTION_AT_ADDRESS(void  CEverQuest::dsp_chat(char const *),CEverQuest__dsp_chat1);
@@ -8335,7 +8341,7 @@ FUNCTION_AT_ADDRESS(class CXRect  CComboWnd::GetListRect(void)const ,CComboWnd__
 FUNCTION_AT_ADDRESS(void  CComboWnd::SetColors(unsigned long,unsigned long,unsigned long),CComboWnd__SetColors);
 #endif
 #ifdef CComboWnd__InsertChoice
-FUNCTION_AT_ADDRESS(void  CComboWnd::InsertChoice(class CXStr *),CComboWnd__InsertChoice);
+FUNCTION_AT_ADDRESS(void  CComboWnd::InsertChoice(class CXStr *, unsigned long),CComboWnd__InsertChoice);
 #endif
 #ifdef CComboWnd__SetChoice
 FUNCTION_AT_ADDRESS(void  CComboWnd::SetChoice(int),CComboWnd__SetChoice);
