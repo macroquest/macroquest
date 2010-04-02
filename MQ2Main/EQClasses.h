@@ -1915,6 +1915,7 @@ EQLIB_OBJECT void CEverQuest::DoCharacterSelection(void);
 EQLIB_OBJECT void CEverQuest::doInspect(class EQPlayer *);
 EQLIB_OBJECT void CEverQuest::doInvite(unsigned __int32,char *);
 EQLIB_OBJECT void CEverQuest::DoLoadScreen(int);
+EQLIB_OBJECT void CEverQuest::doLoot(void);
 EQLIB_OBJECT void CEverQuest::DoMainLoop(struct HWND__ *);
 EQLIB_OBJECT void CEverQuest::DoNewCharacterCreation(void);
 EQLIB_OBJECT void CEverQuest::DoPercentConvert(char *,bool);
@@ -2969,6 +2970,9 @@ EQLIB_OBJECT void CLootWnd::Deactivate(void);
 // private
 EQLIB_OBJECT void CLootWnd::FinalizeLoot(void);
 EQLIB_OBJECT void CLootWnd::Init(void);
+/*0x188*/ BYTE Unknown0x188[0x29d-0x188];
+/*0x29d*/ BYTE LootAll;
+/*0x29e*/
 };
 
 class CMapToolbarWnd : public CSidlScreenWnd

@@ -165,7 +165,7 @@ PLUGIN_API VOID ShutdownPlugin(VOID)
 
 	// Remove commands, macro parameters, hooks, etc.
 	RemoveDetour(CLabel__Draw);
-	RemoveDetour(CGaugeWnd__Draw);
-	RemoveDetour(__GetGaugeValueFromEQ);
+	//RemoveDetour(CGaugeWnd__Draw);
+	//RemoveDetour(__GetGaugeValueFromEQ);
 }
 

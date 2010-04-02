@@ -254,21 +254,21 @@ VOID HookInlineChecks(BOOL Patch)
 
     /* add these to eqgame.h */
 
-//.text:005F61BD                 cmp     dword_9B21F0, (offset loc_6FE2EF+4)
+//.text:005F77AD                 cmp     dword_9B85F0, (offset loc_7037AF+4)
 
-    int cmps[] = {  0x5F77AD+6 };
+    int cmps[] = {  0x5F761D+6 };
 
-//.text:004C93F5                 cmp     ecx, 0AA78423Fh
-//.text:004E46D8                 cmp     eax, 0F85C1269h
-//.text:004E9B18                 cmp     eax, 5063513Ch
-//.text:004ECBCB                 cmp     eax, 0FD3FF8A3h
-//.text:004E4CB4                 cmp     ecx, 0E13770E3h
+//.text:004C93B5                 cmp     ecx, 623AE736h
+//.text:004E4978                 cmp     eax, 105AC1Ch
+//.text:004E9DB8                 cmp     eax, 71142AC4h
+//.text:004ECE6B                 cmp     eax, 5CF9828Dh
+//.text:004E4F54                 cmp     ecx, 36D870E4h
 
-    int cmps2[] = {     0x4C93B5,
-                        0x4E4978,
-                        0x4E9DB8,
-                        0x4ECE6B,
-                        0x4E4F54 };
+    int cmps2[] = {     0x4C9325,
+                        0x4E48E8,
+                        0x4E9D28,
+                        0x4ECDDB,
+                        0x4E4EC4 };
     int len2[] = { 6, 5, 5, 5, 6 };
     char NewData2[20];
     static char OldData2[sizeof(cmps2)/sizeof(cmps2[0])][20];
@@ -310,7 +310,7 @@ VOID HookInlineChecks(BOOL Patch)
 	}
 	else
 	{
-        NewData = 0x7037B3;
+        NewData = 0x703703;
         for (i=0;i<sizeof(cmps)/sizeof(cmps[0]);i++) {
 #ifdef ISXEQ
 			EzUnModify(cmps[i]);
@@ -943,16 +943,25 @@ int __cdecl memcheck4(unsigned char *buffer, int count, struct mckey key)
     return eax;
 }
 
+VOID __cdecl CrashDetected_Trampoline(DWORD,DWORD,DWORD,DWORD,DWORD); 
+VOID __cdecl CrashDetected_Detour(DWORD a,DWORD b,DWORD c,DWORD d,DWORD e) 
+{ 
+	MessageBox(0,"MacroQuest2 is blocking the 'send Sony crash info?' box for your safety and privacy.  Crashes are usually bugs either in EQ or in MacroQuest2.  It is generally not something that you yourself did, unless you have custom MQ2 plugins loaded.  If you want to submit a bug report to the MacroQuest2 message boards, please follow the instructions on how to submit a crash bug report at the top of the MQ2::Bug Reports forum.","EverQuest Crash Detected",MB_OK);
+} 
+DETOUR_TRAMPOLINE_EMPTY(VOID CrashDetected_Trampoline(DWORD,DWORD,DWORD,DWORD,DWORD)); 
+
 void InitializeMQ2Detours()
 {
 #ifndef ISXEQ
 	InitializeCriticalSection(&gDetourCS);
 	HookMemChecker(TRUE);
 #endif
+	EzDetour(CrashDetected,CrashDetected_Detour,CrashDetected_Trampoline);
 }
 
 void ShutdownMQ2Detours()
 {
+	RemoveDetour(CrashDetected);
 #ifndef ISXEQ
 	HookMemChecker(FALSE);
 	RemoveOurDetours();

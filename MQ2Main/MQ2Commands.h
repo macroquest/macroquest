@@ -65,6 +65,7 @@ LEGACY_API VOID ListMacros                          (PSPAWNINFO,PCHAR);
 LEGACY_API VOID LoadSpells                          (PSPAWNINFO,PCHAR);
 LEGACY_API VOID Location                            (PSPAWNINFO,PCHAR);
 LEGACY_API VOID Look                                (PSPAWNINFO,PCHAR);
+LEGACY_API VOID LootAll                             (PSPAWNINFO,PCHAR);
 LEGACY_API VOID Macro                               (PSPAWNINFO,PCHAR);
 LEGACY_API VOID MacroBeep                           (PSPAWNINFO,PCHAR);
 LEGACY_API VOID MacroLog                            (PSPAWNINFO,PCHAR);

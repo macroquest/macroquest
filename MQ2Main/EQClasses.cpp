@@ -5868,6 +5868,9 @@ FUNCTION_AT_ADDRESS(bool  CEverQuest::IsInTypingMode(void),CEverQuest__IsInTypin
 #ifdef CEverQuest__doInspect
 FUNCTION_AT_ADDRESS(void  CEverQuest::doInspect(class EQPlayer *),CEverQuest__doInspect);
 #endif
+#ifdef __do_loot
+FUNCTION_AT_ADDRESS(void  CEverQuest::doLoot(void),__do_loot);
+#endif
 #ifdef CEverQuest__SendLightInfo
 FUNCTION_AT_ADDRESS(void  CEverQuest::SendLightInfo(class EQPlayer *,unsigned char),CEverQuest__SendLightInfo);
 #endif

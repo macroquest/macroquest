@@ -570,6 +570,7 @@ void InitializeMQ2Commands()
 		  {"/listmacros", ListMacros,1,0},
 		  {"/echo",       Echo,1,0},
 		  {"/msgbox",     MQMsgBox,1,0},
+		{"/lootall",	LootAll,1,0},
         {"/alert",      Alert,1,1},
         {"/click",      Click,1,0},
         {"/mqpause",    MacroPause,1,0},

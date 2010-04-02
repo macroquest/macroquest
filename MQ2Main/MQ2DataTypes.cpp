@@ -1796,7 +1796,7 @@ bool MQ2CharacterType::GETMEMBER()
 			{
 				if (PSPELL pSpell=GetSpellByID(GetCharInfo2()->Buff[nBuff].SpellID))
 				{
-					if (!stricmp(GETFIRST(),pSpell->Name) || (strstr(pSpell->Name,"Rk. II") && !strnicmp(GETFIRST(),pSpell->Name,strlen(GETFIRST()))))
+					if (!stricmp(GETFIRST(),pSpell->Name))
 					{
 						Dest.Ptr=&GetCharInfo2()->Buff[nBuff];
 						Dest.Type=pBuffType;
@@ -2652,7 +2652,7 @@ bool MQ2CharacterType::GETMEMBER()
 			{
 				if (PSPELL pSpell=GetSpellByID(pPetInfoWindow->Buff[nBuff]))
 				{
-					if (!stricmp(GETFIRST(),pSpell->Name) || (strstr(pSpell->Name,"Rk. II") && !strnicmp(GETFIRST(),pSpell->Name,strlen(GETFIRST()))))
+					if (!stricmp(GETFIRST(),pSpell->Name))
 					{
 						Dest.DWord=nBuff+1;
 						Dest.Type=pIntType;

@@ -341,7 +341,7 @@ PLUGIN_API VOID InitializePlugin(VOID)
    AddCommand("/unloadhud",UnLoadHUD);
    AddCommand("/backgroundhud",BackgroundHUD);
    AddCommand("/classhud",ClassHUD);
-   AddCommand("/zonehud",ClassHUD);
+   AddCommand("/zonehud",ZoneHUD);
    AddMQ2Data("HUD",dataHUD);
 }
 
@@ -372,7 +372,7 @@ PLUGIN_API VOID SetGameState(DWORD GameState)
 // Called after entering a new zone
 PLUGIN_API VOID OnZoned(VOID)
 {
-	HandleINI();
+	if (bZoneHUD) HandleINI();
 }
 
 // Called every frame that the "HUD" is drawn -- e.g. net status / packet loss bar
@@ -386,10 +386,7 @@ PLUGIN_API VOID OnDrawHUD(VOID)
       N=0;
       struct _stat now;
       if (Stat(INIFileName,now) && now.st_mtime!=LastRead.st_mtime)
-      {
-         LoadElements();
          HandleINI();
-      }
 
       // check for EQ in foreground
       HWND EQhWnd = *(HWND*)EQADDR_HWND;

@@ -161,7 +161,7 @@ VOID InitializeDisplayHook()
 
 	EzDetour(CDisplay__CleanGameUI,&CDisplayHook::CleanUI_Detour,&CDisplayHook::CleanUI_Trampoline);
 	EzDetour(CDisplay__ReloadUI,&CDisplayHook::ReloadUI_Detour,&CDisplayHook::ReloadUI_Trampoline);
-//	EzDetour(CDisplay__GetWorldFilePath,CDisplayHook::GetWorldFilePath_Detour,CDisplayHook::GetWorldFilePath_Trampoline);
+//	EzDetour(CDisplay__GetWorldFilePath,&CDisplayHook::GetWorldFilePath_Detour,&CDisplayHook::GetWorldFilePath_Trampoline);
 #ifndef ISXEQ
 	EzDetour(DrawNetStatus,DrawHUD_Detour,DrawHUD_Trampoline);
 #endif

@@ -526,18 +526,8 @@ VOID MemSpell(PSPAWNINFO pChar, PCHAR szLine)
     for (DWORD N = 0 ; N < NUM_BOOK_SLOTS ; N++)
     if (PSPELL pTempSpell=GetSpellByID(GetCharInfo2()->SpellBook[N]))
     {
-
-        // we need to match:
-        // "stupid spell"
-        // "stupid spell Rk. II"
-        // "stupid spell Rk. III"
-        // from user input of "stupid spell"
-        // so exact match or
-        // (has Rk. II (which includes Rk. III) and
-        // matches for the len of the user input
-        if (!stricmp(SpellName,pTempSpell->Name)  || // exact match or
-            (strstr(pTempSpell->Name,"Rk. II") &&  // has rk ii and
-            !strnicmp(SpellName,pTempSpell->Name,strlen(SpellName)))) // match user input
+        // exact name match only
+        if (!stricmp(SpellName,pTempSpell->Name))
         {
             pSpell=pTempSpell;
             break;
@@ -2035,7 +2025,7 @@ if (!stricmp(szArg1,"item"))
    for (Index=0;Index<NUM_SPELL_GEMS;Index++) {
       if (GetCharInfo2()->MemorizedSpells[Index]!=0xFFFFFFFF) {
          PCHAR SpellName = GetSpellNameByID(GetCharInfo2()->MemorizedSpells[Index]);
-         if (!stricmp(szBuffer,SpellName) || (strstr(SpellName,"Rk. II") && !strnicmp(szBuffer,SpellName,strlen(SpellName)-8))) {
+         if (!stricmp(szBuffer,SpellName)) {
             DebugSpew("SpellName = %s",SpellName);
             cmdCast(pChar,itoa(Index+1,szBuffer,10));
             DebugSpew("pChar = %x SpellName = %s %s",pChar,SpellName,itoa(Index+1,szBuffer,10));
@@ -3283,5 +3273,17 @@ VOID Echo(PSPAWNINFO pChar, PCHAR szLine)
     DebugSpewNoFile("Echo - %s",szEcho);
     WriteChatColor(szEcho,USERCOLOR_CHAT_CHANNEL);
 
+}
+
+// ***************************************************************************
+// Function:    LootAll
+// Description: Our '/lootall' command
+//              Loots everything on the targeted corpse
+// Usage:       /lootall
+// ***************************************************************************
+VOID LootAll(PSPAWNINFO pChar, PCHAR szLine)
+{
+	pLootWnd->LootAll=1;
+	pEverQuest->doLoot();
 }
 #endif
