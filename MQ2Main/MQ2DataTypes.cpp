@@ -1944,8 +1944,8 @@ bool MQ2CharacterType::GETMEMBER()
 		{
 			if (ISNUMBER())
 			{
-				unsigned long nSlot=GETNUMBER()%0x1E;
-				if (nSlot<0x1E)
+				unsigned long nSlot=GETNUMBER()%NUM_INV_SLOTS;
+				if (nSlot<NUM_INV_SLOTS)
 				{
 					if (Dest.Ptr=GetCharInfo2()->InventoryArray[nSlot])
 					{
@@ -5084,9 +5084,9 @@ bool MQ2InvSlotType::GETMEMBER()
 			else
 			{
 				PCHARINFO pCharInfo=(PCHARINFO)pCharData;
-				if (nInvSlot>=251 && nInvSlot<361)
+				if (nInvSlot>=262 && nInvSlot<342)
 				{
-					unsigned long nPack=(nInvSlot-251)/10;
+					unsigned long nPack=(nInvSlot-262)/10;
 					unsigned long nSlot=(nInvSlot-1)%10;
 					if (PCONTENTS pPack=GetCharInfo2()->Inventory.Pack[nPack])
 					if (pPack->Item->Type==ITEMTYPE_PACK && nSlot<pPack->Item->Slots)
@@ -5146,9 +5146,9 @@ bool MQ2InvSlotType::GETMEMBER()
 		}
 		return false;
 	case Pack:
-		if (nInvSlot>=251 && nInvSlot<361)
+		if (nInvSlot>=262 && nInvSlot<342)
 		{
-			Dest.DWord=((nInvSlot-251)/10)+22;
+			Dest.DWord=((nInvSlot-262)/10)+23;
 			Dest.Type=pInvSlotType;
 			return true;
 		}
@@ -5167,9 +5167,9 @@ bool MQ2InvSlotType::GETMEMBER()
 		return false;
 	case Slot:
 		{
-			if (nInvSlot>=251 && nInvSlot<361)
+			if (nInvSlot>=262 && nInvSlot<342)
 			{
-				Dest.DWord=(nInvSlot-251)%10;
+				Dest.DWord=(nInvSlot-262)%10;
 				Dest.Type=pIntType;
 				return true;
 			}

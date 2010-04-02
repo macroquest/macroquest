@@ -1,3 +1,14 @@
+17 February 2007 by ieatacid
+- Fixed _SPAWNINFO.Mount
+
+17 February 2007 by ieatacid
+- Fixed item Clicky/Proc/Worn/Focus stuff not working
+- Added dkaa's _EQLOOTWINDOW fix (${Corpse.Item} stuff should now work correctly)
+
+17 February 2007 by dkaa
+- changed the EQ_END_ZONE to the correct value
+- changed the bag slot numbers to start at 262 from 251.  See: http://www.eqinterface.com/forums/showthread.php?p=94698&highlight=262#post94698
+
 16 February 2007 by ieatacid, dkaa
 - Updated for The Buried Sea expansion.  New "Power Source" item slot means slot changes:
  * Slots charm through waist are the same (0-20), "Power Source" is 21, 22 is ammo, 23 - 30 are inventory (bag) slots

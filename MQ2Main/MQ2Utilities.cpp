@@ -1751,7 +1751,7 @@ PCHAR ShowSpellSlotInfo(PSPELL pSpell, PCHAR szBuffer)
          strcat(szBuff, szTemp); 
          break; 
       case 85: //Add Proc 
-         sprintf(szTemp,"Add Proc: \au%s \axid:\ay%d", GetSpellNameByID(pSpell->Base[i]), pSpell->Base[i]); 
+         sprintf(szTemp,"Add Proc: '%s' id: %d", GetSpellNameByID(pSpell->Base[i]), pSpell->Base[i]); 
          strcat(szBuff, szTemp); 
          break; 
       case 86: //Reaction Radius(c/level) 
@@ -2997,7 +2997,7 @@ int FindInvSlotForContents(PCONTENTS pContents)
 					//DebugSpew("Pack[%d]->Contents[%d]==0x%08X",nPack,nItem,pPack->Contents[nItem]);
 					if (pPack->Contents[nItem]==pContents)
 					{
-						return 251+(nPack*10)+nItem;
+						return 262+(nPack*10)+nItem;
 					}
 				}
 			}
@@ -5475,8 +5475,8 @@ PCONTENTS GetItemContentsBySlotID(DWORD dwSlotID)
   int InvSlot=-1; 
   int SubSlot=-1; 
   if(dwSlotID>=0 && dwSlotID<NUM_INV_SLOTS) InvSlot=dwSlotID; 
-  else if(dwSlotID>=251 && dwSlotID<361) { 
-    InvSlot=22+(dwSlotID-251)/10; 
+  else if(dwSlotID>=262 && dwSlotID<342) { 
+    InvSlot=23+(dwSlotID-262)/10; 
     SubSlot=(dwSlotID-1)%10; 
   } 
   if(InvSlot>=0 && InvSlot<NUM_INV_SLOTS) { 

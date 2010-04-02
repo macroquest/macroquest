@@ -48,7 +48,7 @@ public:
 		InputBox->SetMaxChars(512);
 		OutputBox=(CStmlWnd*)GetChildItem("CWChatOutput");
 		OutBoxLines=0;
-		*(DWORD*)&(((PCHAR)OutputBox)[0x1C0])=400;
+		*(DWORD*)&(((PCHAR)OutputBox)[0x1C4])=400;
 		OutputBox->Clickable=1;
 	}
 

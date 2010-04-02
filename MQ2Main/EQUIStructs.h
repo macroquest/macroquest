@@ -626,10 +626,8 @@ typedef struct _MAPLINE { // sizeof() = 0x28 (think this might be 0x34 now)
 
 typedef struct _EQLOOTWINDOW {
 /*0x000*/ struct _CSIDLWND Wnd;
-/*0x148*/ BYTE  Unknown0x148[0x08];
-/*0x150*/ BYTE  Unknown0x150[0x84]; // This is an array of something
-/*0x1d4*/ PCONTENTS   ItemDesc[NUM_INV_SLOTS]; //there can only be 31 items on a corpse since that equals 23 inv slots plus 8 bags...
-/*0x24c*/
+/*0x160*/ BYTE  Unknown0x160[0x90];
+/*0x1f0*/ PCONTENTS   ItemDesc[NUM_INV_SLOTS]; //there can only be 31 items on a corpse since that equals 23 inv slots plus 8 bags...
 } EQLOOTWINDOW, *PEQLOOTWINDOW;
 
 //Size: 0x3a4 (03/25/2004)

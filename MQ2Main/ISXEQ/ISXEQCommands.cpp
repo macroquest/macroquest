@@ -550,7 +550,7 @@ int CMD_CastSpell(int argc, char* argv[])
       DWORD SpawnFooter = NULL; 
       SpawnFooter = (DWORD)pLocalPlayer;
 		PITEMINFO pItem=0;
-      for (int i=0;i<30;i++) { 
+      for (int i=0;i<NUM_INV_SLOTS;i++) { 
          if (GetCharInfo2()->InventoryArray[i]) 
             if (!_stricmp(argv[2],GetCharInfo2()->InventoryArray[i]->Item->Name)) { 
                DebugSpew("cast test slot %d = %s address is %x",i,GetCharInfo2()->InventoryArray[i]->Item->Name,&(GetCharInfo2()->InventoryArray[i])); 

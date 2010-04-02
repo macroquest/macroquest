@@ -393,7 +393,7 @@ typedef struct _UILOCATION {
 #define ITEM_NAME_LEN         0x40
 #define LORE_NAME_LEN         0x70
 
-// size is 0x20 12-05-2006
+// size is 0x64 02-16-2007
 typedef struct _ITEMSPELLS { 
 /*0x00*/ DWORD SpellID; 
 /*0x04*/ BYTE  RequiredLevel; 
@@ -405,7 +405,8 @@ typedef struct _ITEMSPELLS {
 /*0x14*/ DWORD TimerID;
 /*0x18*/ DWORD RecastType;
 /*0x1c*/ DWORD ProcRate;
-/*0x20*/
+/*0x20*/ BYTE  Unknown0x20[0x44];
+/*0x64*/
 } ITEMSPELLS, *PITEMSPELLS; 
 
 // size is 0x4a8 02-16-07
@@ -500,11 +501,11 @@ typedef struct _ITEMINFO {
 /*0x1d4*/ BYTE   CharmFile[0x20];
 /*0x1f4*/ BYTE   Unknown0x1f4[0x4];
 /*0x1f8*/ struct _ITEMSPELLS Clicky;
-/*0x218*/ struct _ITEMSPELLS Proc;
-/*0x238*/ struct _ITEMSPELLS Worn;
-/*0x258*/ struct _ITEMSPELLS Focus;
-/*0x278*/ struct _ITEMSPELLS Scroll;
-/*0x298*/ BYTE   Unknown0x298[0x168];
+/*0x25c*/ struct _ITEMSPELLS Proc;
+/*0x2c0*/ struct _ITEMSPELLS Worn;
+/*0x324*/ struct _ITEMSPELLS Focus;
+/*0x388*/ struct _ITEMSPELLS Scroll;
+/*0x3ec*/ BYTE   Unknown0x3ec[0x14];
 /*0x400*/ DWORD  CombatEffects;
 /*0x404*/ DWORD  Shielding;
 /*0x408*/ DWORD  StunResist;
@@ -1003,9 +1004,8 @@ typedef struct _SPAWNINFO {
 /*0x0074*/ CHAR     Name[0x40]; // ie priest_of_discord00
 /*0x00b4*/ CHAR     DisplayedName[0x40]; // ie Priest of Discord
 /*0x00f4*/ DWORD    IsABoat; // 1 = a type of boat
-/*0x00f8*/ DWORD    Unknown0xf8;
-/*0x00fc*/ struct   _SPAWNINFO *Mount; //NULL if no mount present
-/*0x0100*/ BYTE     Unknown0x100[0x10];	
+/*0x00f8*/ struct   _SPAWNINFO *Mount; //NULL if no mount present
+/*0x0100*/ BYTE     Unknown0x100[0x14];	
 /*0x0110*/ FLOAT    SpeedMultiplier;
 /*0x0114*/ BYTE     Unknown0x114[0x14];
 /*0x0128*/ DWORD    TimeStamp;
