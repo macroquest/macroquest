@@ -741,12 +741,12 @@ typedef struct _EQTRADEWINDOW {
 /*0x238*/
 } EQTRADEWINDOW, *PTRADEWINDOW; 
 
-//Size: 0x28c (08/11/2004) 
+//Size: 0x2c4 (05/29/2008) 
 typedef struct _EQRAIDWINDOW {
 /*0x000*/ struct _CSIDLWND Wnd;
-/*0x158*/ BYTE  Unknown0x158[0xa4];
-/*0x1fc*/ DWORD ClassColors[0x10];
-/*0x23c*/
+/*0x190*/ BYTE  Unknown0x158[0xa4];
+/*0x234*/ DWORD ClassColors[0x40];
+/*0x274*/
 } EQRAIDWINDOW, *PEQRAIDWINDOW;
 
 typedef struct _GUILDMEMBERINFO {

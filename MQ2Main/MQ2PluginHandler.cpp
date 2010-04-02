@@ -472,7 +472,6 @@ VOID PluginsAddSpawn(PSPAWNINFO pNewSpawn)
 {
 	DWORD BodyType=GetBodyType(pNewSpawn);
 	PluginDebug("PluginsAddSpawn(%s,%d,%d)",pNewSpawn->Name,pNewSpawn->Race,BodyType);
-	SpawnByName[pNewSpawn->Name]=pNewSpawn;
 	if (!bPluginCS)
 		return;
 	if (gGameState>GAMESTATE_CHARSELECT)

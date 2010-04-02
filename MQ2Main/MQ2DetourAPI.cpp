@@ -56,7 +56,7 @@ BOOL AddDetour(DWORD address, PBYTE pfDetour, PBYTE pfTrampoline, DWORD Count)
 {
 	CAutoLock Lock(&gDetourCS);
 	BOOL Ret=TRUE;
-	DebugSpew("AddDetour(0x%X,0x%X,0x%X,0x%X)",address,pfDetour,pfTrampoline);
+	DebugSpew("AddDetour(0x%X,0x%X,0x%X,0x%X)",address,pfDetour,pfTrampoline,Count);
 	if (FindDetour(address))
 	{
 

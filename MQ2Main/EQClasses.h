@@ -5936,6 +5936,7 @@ class EQPlayerManager
 {
 public:
 EQLIB_OBJECT class EQPlayer *EQPlayerManager::GetSpawnByID(int);
+EQLIB_OBJECT class EQPlayer *EQPlayerManager::GetSpawnByName(char *);
 SPAWNMANAGER Data;
 };
 

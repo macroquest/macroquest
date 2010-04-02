@@ -30,6 +30,11 @@ static inline EQPlayer *GetSpawnByID(DWORD dwSpawnID)
  	return pSpawnManager->GetSpawnByID(dwSpawnID);
 }
 
+static inline EQPlayer *GetSpawnByName(char *spawnName)
+{
+ 	return pSpawnManager->GetSpawnByName(spawnName);
+}
+
 static inline PSPELL GetSpellByID(DWORD dwSpellID)
 {
 	if (dwSpellID==0 || dwSpellID >= TOTAL_SPELL_COUNT)
@@ -321,7 +326,7 @@ static inline PSPAWNINFO GetRaidMember(unsigned long N)
 
 		return 0;
 
-	return SpawnByName[pRaidMember->Name];
+	return (PSPAWNINFO)GetSpawnByName(pRaidMember->Name);
 
 }
 

@@ -3104,6 +3104,7 @@ public:
 	   Looters=9,
 	   Locked=10,
 	   Invited=11,
+	   MainAssist=12,
    };
 	static enum RaidMethods
 	{
@@ -3121,6 +3122,7 @@ public:
 	  TypeMember(Looters);
 	  TypeMember(Locked);
 	  TypeMember(Invited);
+	  TypeMember(MainAssist);
    }
 
    ~MQ2RaidType()

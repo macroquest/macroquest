@@ -99,6 +99,7 @@
 #define pinstCDisplay                                              0x92C1A4
 #define pinstCEverQuest                                            0x9BE678
 #define pinstCharData                                              0x92C160
+#define pinstCharSpawn                                             0x92C188
 #define pinstControlledMissile                                     0x92C15C
 #define pinstControlledPlayer                                      0x92C188
 #define pinstCSidlManager                                          0x9F81C8
@@ -637,6 +638,7 @@
 
 //EQPlayerManager
 #define EQPlayerManager__GetSpawnByID                              0x5148F0
+#define EQPlayerManager__GetSpawnByName                            0x514C30
 
 // KeyPressHandler 
 #define KeypressHandler__AttachAltKeyToEqCommand                   0x4F4F70

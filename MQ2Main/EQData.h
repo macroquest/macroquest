@@ -764,7 +764,7 @@ typedef struct _CHARINFO {
 /*0x01ad8*/   DWORD      Exp;
 /*0x01adc*/   BYTE       Unknown0x1adc[0x5c];
 /*0x01b38*/   void       *OtherCharData;
-/*0x01b3c*/   BYTE       Unknown0x1b34[0xd3c4];
+/*0x01b3c*/   BYTE       Unknown0x1b3c[0xd3c4];
 /*0x0ef00*/   void       *vtable2;
 /*0x0ef04*/   struct     _EQC_INFO* eqc_info;
 /*0x0ef08*/   struct     _SPAWNINFO* pSpawn;
@@ -1180,11 +1180,11 @@ typedef struct _SPAWNINFO {
 /*0x04ac*/ FLOAT    CastingX;
 /*0x04b0*/ BYTE     Unknown0xb0[0x924];
 /*0x0dd4*/ struct   _SPAWNINFO *WhoFollowing; // NULL if autofollow off
-/*0x0dd8*/ int GroupAssistNPC[1];
-/*0x0ddc*/ int RaidAssistNPC[3];
-/*0x0de8*/ int GroupMarkNPC[3];
-/*0x0df4*/ int RaidMarkNPC[3];
-/*0x0e00*/ int TargetOfTarget;
+/*0x0dd8*/ int      GroupAssistNPC[1];
+/*0x0ddc*/ int      RaidAssistNPC[3];
+/*0x0de8*/ int      GroupMarkNPC[3];
+/*0x0df4*/ int      RaidMarkNPC[3];
+/*0x0e00*/ int      TargetOfTarget;
 /*0x0e04*/ BYTE     Unknown0xe04[0x2c];
 /*0x0e30*/ BYTE     InNonPCRaceIllusion;
 /*0x0e31*/ BYTE     Unknown0xe31[0xb];
@@ -1697,9 +1697,9 @@ typedef struct _EQRAIDMEMBER {
 /*0x108*/ DWORD nClass; 
 /*0x10C*/ BYTE  RaidLeader; 
 /*0x10D*/ BYTE  GroupLeader; 
-/*0x10E*/ BYTE  Field_10E; 
-/*0x10F*/ BYTE  Field_10F; 
-/*0x110*/ BYTE  Field_110; 
+/*0x10E*/ BYTE  RaidMainAssist;
+/*0x10F*/ BYTE  RaidMarker;
+/*0x110*/ BYTE  RaidWaypointer;
 /*0x111*/ BYTE  Padding0x111[0x3]; 
 /*0x114*/ DWORD GroupNumber; 
 /*0x118*/ 

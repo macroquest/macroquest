@@ -628,8 +628,6 @@ LEGACY_API BOOL Calculate(PCHAR szFormula, DOUBLE& Dest);
 #include "MQ2Auth0.h"
 #endif
 
-#define pinstCharSpawn     pinstLocalPlayer
-
 EQLIB_API VOID memchecks_tramp(PCHAR,DWORD,PVOID,DWORD,BOOL); 
 EQLIB_API VOID memchecks(PCHAR,DWORD,PVOID,DWORD,BOOL);
 

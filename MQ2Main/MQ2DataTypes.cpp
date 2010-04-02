@@ -6299,6 +6299,19 @@ bool MQ2RaidType::GETMEMBER()
 			// by name?
 		}
 		return false;
+   case MainAssist:
+      {
+         for (int i=0; i < 72; i++)
+         {
+            if (pRaid->RaidMemberUsed[i] && pRaid->RaidMember[i].RaidMainAssist)
+            {
+               Dest.DWord=i+1;
+               Dest.Type=pRaidMemberType;
+               return true;
+            }
+         }
+      }
+      return false;
 	}
 	/**/
 	return false;
@@ -6316,9 +6329,9 @@ bool MQ2RaidMemberType::GETMEMBER()
 	if (!pMember)
 	{
 #ifndef ISXEQ
-		return pSpawnType->GetMember(*(MQ2VARPTR*)&SpawnByName[pRaidMember->Name],Member,Index,Dest);
+		return pSpawnType->GetMember(*(MQ2VARPTR*)GetSpawnByName(pRaidMember->Name),Member,Index,Dest);
 #else
-		return pSpawnType->GetMember(*(LSVARPTR*)&SpawnByName[pRaidMember->Name],Member,argc,argv,Dest);
+		return pSpawnType->GetMember(*(LSVARPTR*)GetSpawnByName(pRaidMember->Name),Member,argc,argv,Dest);
 #endif
 	}
 
@@ -6369,7 +6382,7 @@ bool MQ2RaidMemberType::GETMEMBER()
 		Dest.Type=pBoolType;
 		return true;
 	case Spawn:
-		if (Dest.Ptr=SpawnByName[pRaidMember->Name])
+		if (Dest.Ptr=(PSPAWNINFO)GetSpawnByName(pRaidMember->Name))
 		{
 			Dest.Type=pSpawnType;
 			return true;
@@ -6385,7 +6398,7 @@ bool MQ2RaidMemberType::GETMEMBER()
 		return true;
 		/*
 		{
-			if (PSPAWNINFO pSpawn=SpawnByName[pRaidMember->Name])
+			if (PSPAWNINFO pSpawn=(PSPAWNINFO)GetSpawnByName(pRaidMember->Name))
 			{
 				Dest.DWord=pSpawn->Class;
 				Dest.Type=pIntType;

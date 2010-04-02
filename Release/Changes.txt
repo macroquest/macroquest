@@ -1,4 +1,9 @@
-29 May 2009 by ieatacid, dkaa, rswiders
+09 June 2008 by ieatacid
+- Added raidmember Raid.MainAssist
+- Added function EQPlayer *GetSpawnByName(char *spawnName)
+- Changed some stuff that used map::SpawnByName to use GetSpawnByName (should fix other stuff)
+
+29 May 2008 by ieatacid, dkaa, rswiders
 - Updated for today's patch
 
 23 May 2008 by rswiders
