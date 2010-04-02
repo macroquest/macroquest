@@ -296,6 +296,7 @@ EQLIB_VAR fEQGetMelee    get_melee_range;
 
 EQLIB_VAR PCHAR szItemName[];
 EQLIB_VAR PCHAR szItemName4xx[];
+EQLIB_VAR ACTORDEFENTRY ActorDefList[];
 //EQLIB_VAR PCHAR szTheme[]; 
 EQLIB_VAR PCHAR szDmgBonusType[];
 EQLIB_VAR PCHAR szBodyType[];

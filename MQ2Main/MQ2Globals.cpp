@@ -27,6 +27,29 @@
 namespace MQ2Globals
 {
 
+struct _actordefentry ActorDefList[] = {
+    10645, "Book",
+    10646, "Book",
+    10714, "Augmentation Sealer",
+    10800, "Pottery Wheel",
+    10801, "Kiln",
+    10802, "Loom",
+    10803, "Oven",
+    10804, "Forge",
+    10805, "Brewing Barrel",
+    10807, "Bottle",
+    10863, "Forge",
+    10864, "Forge",
+    10865, "Oven",
+    11056, "Leaf Pile",
+    11058, "Bones",
+    11059, "Books",
+    11060, "Leaf",
+    11062, "Please report this",
+    11064, "Rock",
+    11073, "Books",
+    0, "NULL"
+    };
 
 /* BENCHMARKS */
 DWORD bmWriteChatColor=0;

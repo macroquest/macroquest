@@ -347,6 +347,11 @@ typedef struct _MQPlugin
 	struct _MQPlugin* pNext;
 } MQPLUGIN, *PMQPLUGIN;
 
+typedef struct _actordefentry {
+    unsigned int Def;
+    char Name[256]; 
+} ACTORDEFENTRY, *PACTORDEFENTRY;
+
 class CAutoLock {
 public:
     inline void Lock() { if (!bLocked) { EnterCriticalSection(pLock); bLocked = TRUE; }}

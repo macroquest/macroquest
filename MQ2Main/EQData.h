@@ -491,7 +491,23 @@ typedef struct _ITEMINFO {
 /*0x155*/ BYTE   Range;
 /*0x156*/ BYTE   Unknown0x156[0x2];
 /*0x158*/ DWORD  Damage;
-/*0x15c*/ BYTE   Unknown0x15c[0x44];
+/*0x15c*/ DWORD  BackstabDamage;
+/*0x160*/ DWORD  DamageShieldMitigation;
+/*0x164*/ DWORD  HeroicSTR;
+/*0x168*/ DWORD  HeroicINT;
+/*0x16c*/ DWORD  HeroicWIZ;
+/*0x170*/ DWORD  HeroicAGI;
+/*0x174*/ DWORD  HeroicDEX;
+/*0x178*/ DWORD  HeroicSTA;
+/*0x17c*/ DWORD  HeroicCHA;
+/*0x180*/ DWORD  HeroicSvMagic;
+/*0x184*/ DWORD  HeroicSvFire;
+/*0x188*/ DWORD  HeroicSvCold;
+/*0x18c*/ DWORD  HeroicSvDisease;
+/*0x190*/ DWORD  HeroicSvPoison;
+/*0x194*/ DWORD  HeroicSvCorruption;
+/*0x198*/ DWORD  HealAmount;
+/*0x19c*/ DWORD  SpellDamage;
 /*0x1a0*/ BYTE   ItemType;
 /*0x1a1*/ BYTE   Unknown0x1a1[0x3];
 /*0x1a4*/ BYTE   Material;
@@ -550,7 +566,7 @@ typedef struct _ITEMINFO {
 /*0x4a8*/ DWORD  Attack;
 /*0x4ac*/ DWORD  HPRegen;
 /*0x4b0*/ DWORD  ManaRegen;
-/*0x4b4*/ DWORD  Unknown0x4b4;
+/*0x4b4*/ DWORD  EnduranceRegen;
 /*0x4b8*/ DWORD  Haste;
 /*0x4bc*/ DWORD  DamShield;
 /*0x4c0*/ BYTE   Unknown0x4c0[0x8];
@@ -562,7 +578,9 @@ typedef struct _ITEMINFO {
 /*0x4e0*/ DWORD  Purity;
 /*0x4e4*/ BYTE   Unknown0x4e4[0x4];
 /*0x4e8*/ BYTE   QuestItem;
-/*0x4e9*/ BYTE   Unknown0x4e9[0xf];
+/*0x4e9*/ BYTE   Unknown0x4e9[0x3];
+/*0x4ec*/ DWORD  Clairvoyance;
+/*0x4f0*/ BYTE   Unknown0x4f0[0x8];
 /*0x4f8*/ 
 } ITEMINFO, *PITEMINFO;
 
@@ -772,7 +790,11 @@ typedef struct _CHARINFO {
 /*0x0efc0*/   DWORD      Unknown0xefc0;
 /*0x0efc4*/   DWORD      DamageShieldBonus;
 /*0x0efc8*/   DWORD      AttackSpeed;
-/*0x0efcc*/   BYTE       Unknown0xefcc[0xd0]; 
+/*0x0efcc*/   BYTE       Unknown0xefcc[0xbc];
+/*0x0f088*/   DWORD      InCombat;
+/*0x0f08c*/   DWORD      Downtime;
+/*0x0f090*/   DWORD      DowntimeStamp;
+/*0x0f094*/   BYTE       Unknown0xf094[0x8];
 /*0x0f09c*/   void       *pUnknown2;
 /*0x0f0a0*/   struct     _CI2_INFO* pCI2;
 /*0x0f0a4*/   DWORD      Unknown0xf0a4;
@@ -812,7 +834,7 @@ typedef struct _CHARINFO {
 /*0x1132c*/
 } CHARINFO, *PCHARINFO;
 
-// actual size: 0xb7b8 11-13-2007
+// actual size: 0xb7e0 2-6-2008
 typedef struct _CHARINFO2 {
 /*0x0000*/   BYTE       Unknown0x0[0x10];
 union {
@@ -873,16 +895,16 @@ union {
 /*0x43a0*/   DWORD      CombatAbilities[NUM_COMBAT_ABILITIES];
 /*0x4530*/   BYTE       Unknown0x4530[0x2c];
 /*0x455c*/   DWORD      CombatAbilityTimes[NUM_COMBAT_ABILITIES];
-/*0x46ec*/   BYTE       Unknown0x46ec[0x1a9c];
-/*0x6188*/   DWORD      Deity;
-/*0x618c*/   BYTE       Unknown0x618c[0x4];
-/*0x6190*/   DWORD      Drunkenness;
-/*0x6194*/   BYTE       Unknown0x6194[0x8];
-/*0x619c*/   DWORD      AAPoints;
-/*0x61a0*/   BYTE       Unknown0x61a0[0x55f8];
-/*0xb798*/   DWORD      AAPointsSpent;
-/*0xb79c*/   BYTE       Unknown0xb79c[0x1c];
-/*0xb7b8*/
+/*0x46ec*/   BYTE       Unknown0x46ec[0x1ac4];
+/*0x61b0*/   DWORD      Deity;
+/*0x61b4*/   BYTE       Unknown0x61b4[0x4];
+/*0x61b8*/   DWORD      Drunkenness;
+/*0x61bc*/   BYTE       Unknown0x61bc[0x8];
+/*0x61c4*/   DWORD      AAPoints;
+/*0x61c8*/   BYTE       Unknown0x61c8[0x55f8];
+/*0xb7c0*/   DWORD      AAPointsSpent;
+/*0xb7c4*/   BYTE       Unknown0xb7c4[0x1c];
+/*0xb7e0*/
 } CHARINFO2, *PCHARINFO2;
 
 typedef struct _MODELINFONAME {
@@ -1062,8 +1084,8 @@ typedef struct _SPAWNINFO {
 /*0x0078*/ FLOAT    SpeedZ;
 /*0x007c*/ FLOAT    SpeedRun;
 /*0x0080*/ FLOAT    Heading;
-/*0x0084*/ FLOAT    SpeedHeading;
-/*0x0088*/ BYTE     Unknown0x88[0x8];
+/*0x0084*/ BYTE     Unknown0x84[0x8];
+/*0x008c*/ FLOAT    SpeedHeading;
 /*0x0090*/ FLOAT    CameraAngle;
 /*0x0094*/ BYTE     UnderWater;
 /*0x0095*/ BYTE     Unknown0x95[0xc];
@@ -1321,7 +1343,7 @@ typedef struct _DOORTABLE {
 } DOORTABLE, *PDOORTABLE;
 
 // actual size 0x5c  2-18-2004 lax
-// 9-20-2006 ieatacid
+// 1-26-2008 ieatacid
 typedef struct _GROUNDITEM {
 /*0x00*/ struct _GROUNDITEM *pPrev;
 /*0x04*/ struct _GROUNDITEM *pNext;
@@ -1336,7 +1358,8 @@ typedef struct _GROUNDITEM {
 /*0x30*/ FLOAT  X;
 /*0x34*/ FLOAT  Y;
 /*0x38*/ CHAR   Name[0x18];
-/*0x50*/
+/*0x50*/ BYTE   Unknown0x50[0x18];
+/*0x68*/
 } GROUNDITEM, *PGROUNDITEM;
 
 #define   MAX_ZONES                                    0x3e8

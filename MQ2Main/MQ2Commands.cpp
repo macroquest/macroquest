@@ -125,6 +125,9 @@ VOID Items(PSPAWNINFO pChar, PCHAR szLine)
     while (pItem) {
         GetFriendlyNameForGroundItem(pItem,szName);
 
+DebugSpew("   Item found - %d: DropID %d %s (%s)", 
+    pItem->ID, pItem->DropID, szName, pItem->Name);
+
         if ((szLine[0]==0) || (!strnicmp(szName,szLine,strlen(szLine)))) {
             SPAWNINFO TempSpawn;
             FLOAT Distance;

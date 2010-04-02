@@ -1,4 +1,21 @@
-17 January 2007 by ieatacid, rswiders, dkaa
+6 February 2008 by ieatacid, rswiders
+- Updated for today's patch
+
+26 January 2008 by ieatacid
+- Added ticks type Me.Downtime (the time left on your combat timer)
+- Added to the item TLO: EnduranceRegen, HealAmount, Clairvoyance,
+  DamageShieldMitigation, SpellDamage, and all the Heroic stats
+
+21 January 2008 by dkaa
+- Added a list of actor defs for ground items.
+
+19 January 2008 by rswiders
+- Fixed /lootall command
+
+18 January 2008 by rswiders
+- Added Macro.Paused, Spawn.StandState
+
+17 January 2008 by ieatacid, rswiders, dkaa
 - Updated for latest patch
 
 2 January 2008 by ieatacid

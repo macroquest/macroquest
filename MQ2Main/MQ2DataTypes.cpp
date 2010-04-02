@@ -851,6 +851,10 @@ bool MQ2MacroType::GETMEMBER()
 		Dest.DWord=(DWORD)((GetTickCount()-gRunning)/1000);
 		Dest.Type=pIntType;
 		return true;
+	case Paused:
+		Dest.DWord=gMacroPause;
+		Dest.Type=pBoolType;
+		return true;
 	case Return:
 		Dest.Ptr=&DataTypeTemp[0];
 		strcpy(DataTypeTemp,gMacroStack->Return);
@@ -1241,6 +1245,10 @@ bool MQ2SpawnType::GETMEMBER()
 	case Light:
 		Dest.Ptr=GetLightForSpawn(pSpawn);
 		Dest.Type=pStringType;
+		return true;
+	case StandState:
+		Dest.Int=pSpawn->StandState;
+		Dest.Type=pIntType;
 		return true;
 	case State:
 		if (GetCharInfo() && GetCharInfo()->Stunned==1)
@@ -3093,6 +3101,13 @@ bool MQ2CharacterType::GETMEMBER()
 		Dest.Ptr=&pChar->pSpawn->Fellowship;
 		Dest.Type=pFellowshipType;
 		return true;
+	case Downtime:
+		if(pChar->DowntimeStamp)
+			Dest.DWord=((pChar->Downtime-(GetFastTime()-pChar->DowntimeStamp))/6)+1;
+		else
+			Dest.DWord=0;
+		Dest.Type=pTicksType;
+		return true;
 	}
 	return false;
 #undef pChar
@@ -4261,7 +4276,7 @@ bool MQ2ItemType::GETMEMBER()
             Dest.DWord=(char)pItem->Item->Accuracy;
         Dest.Type=pIntType;
         return true;
-	 case CombatEffects:
+	  case CombatEffects:
         if (pItem->Item->Type != ITEMTYPE_NORMAL)
             Dest.DWord=0;
         else
@@ -4273,6 +4288,132 @@ bool MQ2ItemType::GETMEMBER()
             Dest.DWord=0;
         else
             Dest.DWord=(char)pItem->Item->DoTShielding;
+        Dest.Type=pIntType;
+        return true;
+	  case HeroicSTR:
+        if (pItem->Item->Type != ITEMTYPE_NORMAL)
+            Dest.DWord=0;
+        else
+            Dest.DWord=pItem->Item->HeroicSTR;
+        Dest.Type=pIntType;
+        return true;
+	  case HeroicINT:
+        if (pItem->Item->Type != ITEMTYPE_NORMAL)
+            Dest.DWord=0;
+        else
+            Dest.DWord=pItem->Item->HeroicINT;
+        Dest.Type=pIntType;
+        return true;
+	  case HeroicWIZ:
+        if (pItem->Item->Type != ITEMTYPE_NORMAL)
+            Dest.DWord=0;
+        else
+            Dest.DWord=pItem->Item->HeroicWIZ;
+        Dest.Type=pIntType;
+        return true;
+	  case HeroicAGI:
+        if (pItem->Item->Type != ITEMTYPE_NORMAL)
+            Dest.DWord=0;
+        else
+            Dest.DWord=pItem->Item->HeroicAGI;
+        Dest.Type=pIntType;
+        return true;
+	  case HeroicDEX:
+        if (pItem->Item->Type != ITEMTYPE_NORMAL)
+            Dest.DWord=0;
+        else
+            Dest.DWord=pItem->Item->HeroicDEX;
+        Dest.Type=pIntType;
+        return true;
+	  case HeroicSTA:
+        if (pItem->Item->Type != ITEMTYPE_NORMAL)
+            Dest.DWord=0;
+        else
+            Dest.DWord=pItem->Item->HeroicSTA;
+        Dest.Type=pIntType;
+        return true;
+	  case HeroicCHA:
+        if (pItem->Item->Type != ITEMTYPE_NORMAL)
+            Dest.DWord=0;
+        else
+            Dest.DWord=pItem->Item->HeroicCHA;
+        Dest.Type=pIntType;
+        return true;
+	  case HeroicSvMagic:
+        if (pItem->Item->Type != ITEMTYPE_NORMAL)
+            Dest.DWord=0;
+        else
+            Dest.DWord=pItem->Item->HeroicSvMagic;
+        Dest.Type=pIntType;
+        return true;
+	  case HeroicSvFire:
+        if (pItem->Item->Type != ITEMTYPE_NORMAL)
+            Dest.DWord=0;
+        else
+            Dest.DWord=pItem->Item->HeroicSvFire;
+        Dest.Type=pIntType;
+        return true;
+	  case HeroicSvCold:
+        if (pItem->Item->Type != ITEMTYPE_NORMAL)
+            Dest.DWord=0;
+        else
+            Dest.DWord=pItem->Item->HeroicSvCold;
+        Dest.Type=pIntType;
+        return true;
+	  case HeroicSvDisease:
+        if (pItem->Item->Type != ITEMTYPE_NORMAL)
+            Dest.DWord=0;
+        else
+            Dest.DWord=pItem->Item->HeroicSvDisease;
+        Dest.Type=pIntType;
+        return true;
+	  case HeroicSvPoison:
+        if (pItem->Item->Type != ITEMTYPE_NORMAL)
+            Dest.DWord=0;
+        else
+            Dest.DWord=pItem->Item->HeroicSvPoison;
+        Dest.Type=pIntType;
+        return true;
+	  case HeroicSvCorruption:
+        if (pItem->Item->Type != ITEMTYPE_NORMAL)
+            Dest.DWord=0;
+        else
+            Dest.DWord=pItem->Item->HeroicSvCorruption;
+        Dest.Type=pIntType;
+        return true;
+	  case EnduranceRegen:
+        if (pItem->Item->Type != ITEMTYPE_NORMAL)
+            Dest.DWord=0;
+        else
+            Dest.DWord=pItem->Item->EnduranceRegen;
+        Dest.Type=pIntType;
+        return true;
+	  case HealAmount:
+        if (pItem->Item->Type != ITEMTYPE_NORMAL)
+            Dest.DWord=0;
+        else
+            Dest.DWord=pItem->Item->HealAmount;
+        Dest.Type=pIntType;
+        return true;
+	  case Clairvoyance:
+        if (pItem->Item->Type != ITEMTYPE_NORMAL)
+            Dest.DWord=0;
+        else
+            Dest.DWord=pItem->Item->Clairvoyance;
+        Dest.Type=pIntType;
+        return true;
+	  case DamageShieldMitigation:
+        if (pItem->Item->Type != ITEMTYPE_NORMAL)
+            Dest.DWord=0;
+        else
+            Dest.DWord=pItem->Item->DamageShieldMitigation;
+        Dest.Type=pIntType;
+        return true;
+	  case SpellDamage:
+        if (pItem->Item->Type != ITEMTYPE_NORMAL)
+            Dest.DWord=0;
+        else
+            Dest.DWord=pItem->Item->SpellDamage;
         Dest.Type=pIntType;
         return true;
 	 }

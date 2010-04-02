@@ -69,7 +69,7 @@ public:
  
         OutputBox = (CStmlWnd*)GetChildItem("CWChatOutput");
         OutputBox->Clickable = 1;
-        *(DWORD*)&(((PCHAR)OutputBox)[0x1e8])=400;
+        *(DWORD*)&(((PCHAR)OutputBox)[0x1e4])=400;
  
         OutBoxLines = 0;
         AutoScroll = true;

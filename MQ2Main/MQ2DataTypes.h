@@ -540,6 +540,7 @@ public:
 		Named=87,
 		Buyer=88,
 		Moving=89,
+		StandState=90,
 	};
 	static enum SpawnMethods
 	{
@@ -636,6 +637,7 @@ public:
 		TypeMember(Named);
 		TypeMember(Buyer);
 		TypeMember(Moving);
+		TypeMember(StandState);
 
 		TypeMethod(Target);
 		TypeMethod(Face);
@@ -859,6 +861,7 @@ public:
 		Phosphenes=158,
 		Phosphites=159,
 		Fellowship=160,
+		Downtime=161,
 	};
 	static enum CharacterMethods
 	{
@@ -1026,6 +1029,7 @@ public:
 		TypeMember(Phosphenes);
 		TypeMember(Phosphites);
 		TypeMember(Fellowship);
+		TypeMember(Downtime);
 
 		TypeMethod(Stand); 
 		TypeMethod(Sit); 
@@ -1362,6 +1366,24 @@ public:
 		Accuracy=108,
 		CombatEffects=109,
 		DoTShielding=110,
+		HeroicSTR=111,
+		HeroicINT=112,
+		HeroicWIZ=113,
+		HeroicAGI=114,
+		HeroicDEX=115,
+		HeroicSTA=116,
+		HeroicCHA=117,
+		HeroicSvMagic=118,
+		HeroicSvFire=119,
+		HeroicSvCold=120,
+		HeroicSvDisease=121,
+		HeroicSvPoison=122,
+		HeroicSvCorruption=123,
+		EnduranceRegen=124,
+		HealAmount=125,
+		Clairvoyance=126,
+		DamageShieldMitigation=127,
+		SpellDamage=128,
 	};
 	static enum ItemMethods
 	{
@@ -1478,6 +1500,24 @@ public:
 		TypeMember(Accuracy);
 		TypeMember(CombatEffects);
 		TypeMember(DoTShielding);
+		TypeMember(HeroicSTR);
+		TypeMember(HeroicINT);
+		TypeMember(HeroicWIZ);
+		TypeMember(HeroicAGI);
+		TypeMember(HeroicDEX);
+		TypeMember(HeroicSTA);
+		TypeMember(HeroicCHA);
+		TypeMember(HeroicSvMagic);
+		TypeMember(HeroicSvFire);
+		TypeMember(HeroicSvCold);
+		TypeMember(HeroicSvDisease);
+		TypeMember(HeroicSvPoison);
+		TypeMember(HeroicSvCorruption);
+		TypeMember(EnduranceRegen);
+		TypeMember(HealAmount);
+		TypeMember(Clairvoyance);
+		TypeMember(DamageShieldMitigation);
+		TypeMember(SpellDamage);
 	}
 
 	~MQ2ItemType()
@@ -1922,6 +1962,7 @@ public:
 	{
 		Name=1,
 		RunTime=2,
+		Paused=3,
 		Return=4,
 		Params=5,
 		Param=6,
@@ -1930,6 +1971,7 @@ public:
 	{
 		TypeMember(Name);
 		TypeMember(RunTime);
+		TypeMember(Paused);
 		TypeMember(Return);
 		TypeMember(Params);
 		TypeMember(Param);

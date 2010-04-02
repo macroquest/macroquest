@@ -5379,25 +5379,38 @@ VOID RewriteSubstitutions(VOID)
 
 PCHAR GetFriendlyNameForGroundItem(PGROUNDITEM pItem, PCHAR szName)
 {
-	szName[0]=0;
-        PITEMDB ItemDB=gItemDB;
+    szName[0]=0;
+    PITEMDB ItemDB=gItemDB;
     DWORD Item = atoi(pItem->Name + 2);
-        while ((ItemDB) && (pItem->DropID != ItemDB->ID)) {
-            ItemDB = ItemDB->pNext;
+    struct _actordefentry *ptr = MQ2Globals::ActorDefList;
+    while ((ItemDB) && (pItem->DropID != ItemDB->ID)) {
+        ItemDB = ItemDB->pNext;
+    }
+
+    if (ItemDB) {
+        strcpy(szName,ItemDB->szName);
+    } else if ((Item>=400) && (Item<=MAX_ITEM4xx) && (szItemName4xx[Item-400])) {
+        sprintf(szName,"%s%d",szItemName4xx[Item-400],pItem->DropID);
+    // Regular
+    } else if ((Item<=255) && (szItemName[Item])) {
+        strcpy(szName,szItemName[Item]);
+    // Unknown
+    } else {
+    
+        while (ptr->Def) {
+            if (ptr->Def == Item) {
+                sprintf(szName,"%s%d/%d",ptr->Name,Item,pItem->DropID);
+                return &szName[0];
+            }
+            ptr++;
         }
-        if (ItemDB) {
-            strcpy(szName,ItemDB->szName);
-        } else if ((Item>=400) && (Item<=MAX_ITEM4xx) && (szItemName4xx[Item-400])) {
-            sprintf(szName,"%s%d",szItemName4xx[Item-400],pItem->DropID);
-        // Regular
-        } else if ((Item<=255) && (szItemName[Item])) {
-            strcpy(szName,szItemName[Item]);
-        // Unknown
-        } else {
-            sprintf(szName,"Drop%04d/%d",Item,pItem->DropID);
-        }
+        sprintf(szName,"Drop%04d/%d",Item,pItem->DropID);
+    }
     return &szName[0];
 }
+
+
+
 PCHAR GetModel(PSPAWNINFO pSpawn, DWORD Slot)
 {
     if (!pSpawn) return NULL;
