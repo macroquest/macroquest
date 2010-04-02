@@ -438,6 +438,9 @@
 #define CMerchantWnd__RequestSellItem                              0x59A2D0
 #define CMerchantWnd__SelectBuySellSlot                            0x59B060
 
+// CObfuscator
+#define CObfuscator__doit                                          0x615BA0
+
 // CSidlManager 
 #define CSidlManager__FindScreenPieceTemplate1                     0x643F10
 

@@ -26,6 +26,8 @@
 #include "MQ2Main.h"
 #ifndef ISXEQ
 
+DWORD g_ConvertedOpcode = 0;
+
 typedef struct _OurDetours {
 /* 0x00 */    unsigned int addr;
 /* 0x04 */    unsigned int count;
@@ -38,6 +40,29 @@ typedef struct _OurDetours {
 
 OurDetours *ourdetours=0;
 CRITICAL_SECTION gDetourCS;
+
+
+
+class CObfuscator 
+{
+public:
+    int doit_tramp(int, int); 
+    int doit_detour(int opcode, int flag)
+    {
+#if 0
+        if (EQ_BEGIN_ZONE == opcode) {
+            DebugSpewAlways("EQ_BEGIN_ZONE");
+        } else {
+            DebugSpewAlways("opcode %d", opcode);
+        }
+#endif
+        g_ConvertedOpcode = opcode;
+        return doit_tramp(opcode, flag);
+    };
+};
+
+DETOUR_TRAMPOLINE_EMPTY(int CObfuscator::doit_tramp(int, int));
+
 
 OurDetours *FindDetour(DWORD address)
 {
@@ -193,9 +218,10 @@ int __cdecl memcheck4(unsigned char *buffer, int count, struct mckey key);
 
 DETOUR_TRAMPOLINE_EMPTY(VOID memchecks_tramp(PCHAR,DWORD,PVOID,DWORD,BOOL)); 
 
+
 VOID memchecks(PCHAR A,DWORD B,PVOID C,DWORD D,BOOL E)
 {
-	if (D==EQ_EMOTE)
+	if (g_ConvertedOpcode==EQ_EMOTE)
 	{
 		int Pos = 4 + strlen(&A[4])+ 1;
 		int End = Pos + (int)(71.0*rand()/(RAND_MAX+1.0));
@@ -209,9 +235,10 @@ VOID memchecks(PCHAR A,DWORD B,PVOID C,DWORD D,BOOL E)
 			A[Pos]=(t <= 255) ? (char)t : 0;
 		}
 	}
-	if (D==EQ_BEGIN_ZONE) PluginsBeginZone(); 
+	if (g_ConvertedOpcode==EQ_BEGIN_ZONE) PluginsBeginZone(); 
 	memchecks_tramp(A,B,C,D,E);
-	if (D==EQ_END_ZONE) PluginsEndZone();
+	if (g_ConvertedOpcode==EQ_END_ZONE) PluginsEndZone();
+        g_ConvertedOpcode = 0;
 }
 
 // ***************************************************************************
@@ -263,6 +290,7 @@ VOID HookMemChecker(BOOL Patch)
         (*(PBYTE*)&memcheck4_tramp) = DetourFunction( (PBYTE) EQADDR_MEMCHECK4,
                                                     (PBYTE) memcheck4);
 
+		EzDetour(CObfuscator__doit,&CObfuscator::doit_detour,&CObfuscator::doit_tramp);
 		EzDetour(send_message,memchecks,memchecks_tramp);
     } else {
         DetourRemove((PBYTE) memcheck0_tramp,
@@ -291,6 +319,7 @@ VOID HookMemChecker(BOOL Patch)
 		RemoveDetour(EQADDR_MEMCHECK4);
 
 		RemoveDetour((DWORD)send_message);
+		RemoveDetour(CObfuscator__doit);
     }
 }
 #endif
