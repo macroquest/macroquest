@@ -3332,6 +3332,7 @@ public:
 		Level=2,
 		Class=3,
 		LastOn=4,
+		Name=5,
 	};
 	MQ2FellowshipMemberType():MQ2Type("fellowshipmember")
 	{
@@ -3339,6 +3340,7 @@ public:
 		TypeMember(Level);
 		TypeMember(Class);
 		TypeMember(LastOn);
+		TypeMember(Name);
 	}
 	~MQ2FellowshipMemberType()
 	{

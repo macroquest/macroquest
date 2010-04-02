@@ -6496,6 +6496,11 @@ bool MQ2FellowshipMemberType::GETMEMBER()
 			Dest.Type=pTicksType;
 			return true;
 		}
+		return false;
+	case Name:
+		Dest.Ptr=pFellowshipMember->Name;
+		Dest.Type=pStringType;
+		return true;
 	}
 	return false;
 }
