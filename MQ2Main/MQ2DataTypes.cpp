@@ -3950,11 +3950,237 @@ bool MQ2ItemType::GETMEMBER()
         Dest.DWord=pItem->Item->RequiredLevel;
         Dest.Type=pIntType;
         return true;
-	 case Evolving:
+    case Evolving:
         Dest.Ptr=pItem;
         Dest.Type=pEvolvingItemType;
         return true;
+ 
+    case AC:
+        if (pItem->Item->Type != ITEMTYPE_NORMAL)
+            Dest.DWord=0;
+        else
+            Dest.DWord=pItem->Item->AC;
+        Dest.Type=pIntType;
+        return true;
+ 
+    case HP:
+        if (pItem->Item->Type != ITEMTYPE_NORMAL)
+            Dest.DWord=0;
+        else
+            Dest.DWord=pItem->Item->HP;
+        Dest.Type=pIntType;
+        return true;
+
+    case STR:
+        if (pItem->Item->Type != ITEMTYPE_NORMAL)
+            Dest.DWord=0;
+        else
+            Dest.DWord=(char)pItem->Item->STR;
+        Dest.Type=pIntType;
+        return true;
+
+    case STA:
+        if (pItem->Item->Type != ITEMTYPE_NORMAL)
+            Dest.DWord=0;
+        else
+            Dest.DWord=(char)pItem->Item->STA;
+        Dest.Type=pIntType;
+        return true;
+
+    case AGI:
+        if (pItem->Item->Type != ITEMTYPE_NORMAL)
+            Dest.DWord=0;
+        else
+            Dest.DWord=(char)pItem->Item->AGI;
+        Dest.Type=pIntType;
+        return true;
+
+    case DEX:
+        if (pItem->Item->Type != ITEMTYPE_NORMAL)
+            Dest.DWord=0;
+        else
+            Dest.DWord=(char)pItem->Item->DEX;
+        Dest.Type=pIntType;
+        return true;
+
+    case CHA:
+        if (pItem->Item->Type != ITEMTYPE_NORMAL)
+            Dest.DWord=0;
+        else
+            Dest.DWord=(char)pItem->Item->CHA;
+        Dest.Type=pIntType;
+        return true;
+
+    case INT:
+        if (pItem->Item->Type != ITEMTYPE_NORMAL)
+            Dest.DWord=0;
+        else
+            Dest.DWord=(char)pItem->Item->INT;
+        Dest.Type=pIntType;
+        return true;
+
+    case WIS:
+        if (pItem->Item->Type != ITEMTYPE_NORMAL)
+            Dest.DWord=0;
+        else
+            Dest.DWord=(char)pItem->Item->WIS;
+        Dest.Type=pIntType;
+        return true;
+
+    case Mana:
+        if (pItem->Item->Type != ITEMTYPE_NORMAL)
+            Dest.DWord=0;
+        else
+            Dest.DWord=pItem->Item->Mana;
+        Dest.Type=pIntType;
+        return true;
+
+    case ManaRegen:
+        if (pItem->Item->Type != ITEMTYPE_NORMAL)
+            Dest.DWord=0;
+        else
+            Dest.DWord=pItem->Item->ManaRegen;
+        Dest.Type=pIntType;
+        return true;
+
+    case HPRegen:
+        if (pItem->Item->Type != ITEMTYPE_NORMAL)
+            Dest.DWord=0;
+        else
+            Dest.DWord=pItem->Item->HPRegen;
+        Dest.Type=pIntType;
+        return true;
+
+    case Attack:
+        if (pItem->Item->Type != ITEMTYPE_NORMAL)
+            Dest.DWord=0;
+        else
+            Dest.DWord=pItem->Item->Attack;
+        Dest.Type=pIntType;
+        return true;
+
+    case svCold:
+        if (pItem->Item->Type != ITEMTYPE_NORMAL)
+            Dest.DWord=0;
+        else
+            Dest.DWord=(char)pItem->Item->SvCold;
+        Dest.Type=pIntType;
+        return true;
+
+    case svFire:
+        if (pItem->Item->Type != ITEMTYPE_NORMAL)
+            Dest.DWord=0;
+        else
+            Dest.DWord=(char)pItem->Item->SvFire;
+        Dest.Type=pIntType;
+        return true;
+
+    case svMagic:
+        if (pItem->Item->Type != ITEMTYPE_NORMAL)
+            Dest.DWord=0;
+        else
+            Dest.DWord=(char)pItem->Item->SvMagic;
+        Dest.Type=pIntType;
+        return true;
+
+    case svDisease:
+        if (pItem->Item->Type != ITEMTYPE_NORMAL)
+            Dest.DWord=0;
+        else
+            Dest.DWord=(char)pItem->Item->SvDisease;
+        Dest.Type=pIntType;
+        return true;
+
+    case svPoison:
+        if (pItem->Item->Type != ITEMTYPE_NORMAL)
+            Dest.DWord=0;
+        else
+            Dest.DWord=(char)pItem->Item->SvPoison;
+        Dest.Type=pIntType;
+        return true;
+#if 0
+    case svCorruption:
+        if (pItem->Item->Type != ITEMTYPE_NORMAL)
+            Dest.DWord=0;
+        else
+            Dest.DWord=(char)pItem->Item->SvCorruption;
+        Dest.Type=pIntType;
+        return true;
+#endif
+    case Haste:
+        if (pItem->Item->Type != ITEMTYPE_NORMAL)
+            Dest.DWord=0;
+        else
+            Dest.DWord=pItem->Item->Haste;
+        Dest.Type=pIntType;
+        return true;
+
+    case DamShield:
+        if (pItem->Item->Type != ITEMTYPE_NORMAL)
+            Dest.DWord=0;
+        else
+            Dest.DWord=pItem->Item->DamShield;
+        Dest.Type=pIntType;
+        return true;
+
+    case AugType:
+        if (pItem->Item->Type != ITEMTYPE_NORMAL)
+            Dest.DWord=0;
+        else
+            Dest.DWord=pItem->Item->AugType;
+        Dest.Type=pIntType;
+        return true;
+
+    case AugRestrictions:
+        if (pItem->Item->Type != ITEMTYPE_NORMAL)
+            Dest.DWord=0;
+        else
+            Dest.DWord=pItem->Item->AugRestrictions;
+        Dest.Type=pIntType;
+        return true;
+
+    case AugSlot1:
+        if (pItem->Item->Type != ITEMTYPE_NORMAL)
+            Dest.DWord=0;
+        else
+            Dest.DWord=pItem->Item->AugSlot1;
+        Dest.Type=pIntType;
+        return true;
+
+    case AugSlot2:
+        if (pItem->Item->Type != ITEMTYPE_NORMAL)
+            Dest.DWord=0;
+        else
+            Dest.DWord=pItem->Item->AugSlot2;
+        Dest.Type=pIntType;
+        return true;
+
+    case AugSlot3:
+        if (pItem->Item->Type != ITEMTYPE_NORMAL)
+            Dest.DWord=0;
+        else
+            Dest.DWord=pItem->Item->AugSlot3;
+        Dest.Type=pIntType;
+        return true;
+
+    case AugSlot4:
+        if (pItem->Item->Type != ITEMTYPE_NORMAL)
+            Dest.DWord=0;
+        else
+            Dest.DWord=pItem->Item->AugSlot4;
+        Dest.Type=pIntType;
+        return true;
+
+    case AugSlot5:
+        if (pItem->Item->Type != ITEMTYPE_NORMAL)
+            Dest.DWord=0;
+        else
+            Dest.DWord=pItem->Item->AugSlot5;
+        Dest.Type=pIntType;
+        return true;
+
     }
+
     return false;
 #undef pItem
 }

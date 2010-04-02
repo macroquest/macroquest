@@ -160,7 +160,8 @@ BOOL IsMouseWaiting()
 
 #ifndef ISXEQ
 
-VOID Click(PSPAWNINFO pChar, PCHAR szLine) { 
+VOID Click(PSPAWNINFO pChar, PCHAR szLine) 
+{ 
    CHAR szArg1[MAX_STRING] = {0}; 
    PCHAR szMouseLoc; 
    MOUSE_DATA_TYPES mdType = MD_Unknown; 
@@ -169,43 +170,43 @@ VOID Click(PSPAWNINFO pChar, PCHAR szLine) {
    GetArg(szArg1, szLine, 1); //left or right 
    szMouseLoc = GetNextArg(szLine, 1); //location to click 
     
-   //parse location for click location (szMouseLoc) here 
-   if (szMouseLoc && szMouseLoc[0]!=0) { 
-      if (!strnicmp(szMouseLoc, "target", 6)) {      
-      if (!pTarget) { 
-        WriteChatColor("You must have a target selected for /click x target.",CONCOLOR_RED); 
-        return; 
-      } 
-         if (!strnicmp(szArg1, "left", 4)) { 
-             pEverQuest->LeftClickedOnPlayer(pTarget); 
-         } else if (!strnicmp(szArg1, "right", 5)) { 
-          pEverQuest->RightClickedOnPlayer(pTarget); 
-         } 
-         return; 
-	  } else if (!strnicmp(szMouseLoc, "item", 4)) {
-			// a right clicked ground spawn does nothing
-			if (!strnicmp(szArg1, "left", 4) && EnviroTarget.Name[0]!=0 && DistanceToSpawn(pChar,&EnviroTarget)<20.0f ) {
-				INTERACTGROUNDITEM Data;
-				Data.SpawnID = GetCharInfo()->pSpawn->SpawnID;
-				Data.DropID = EnviroTarget.Race;
-				SendEQMessage(EQ_INTERACTGROUNDITEM,&Data,sizeof(INTERACTGROUNDITEM));
-				EnviroTarget.Name[0]=0;
-				return;
-			}
-      } else if (!ParseMouseLoc(GetCharInfo(), szMouseLoc)) { 
-         DebugSpew("Invalid mouse loc to click, aborting: %s",szMouseLoc); 
-         return; 
-      } 
-   } 
+    //parse location for click location (szMouseLoc) here 
+    if (szMouseLoc && szMouseLoc[0]!=0) { 
+        if (!strnicmp(szMouseLoc, "target", 6)) {
+            if (!pTarget) { 
+                WriteChatColor("You must have a target selected for /click x target.",CONCOLOR_RED); 
+                return; 
+            } 
+            if (!strnicmp(szArg1, "left", 4)) { 
+                pEverQuest->LeftClickedOnPlayer(pTarget); 
+            } else if (!strnicmp(szArg1, "right", 5)) { 
+                pEverQuest->RightClickedOnPlayer(pTarget); 
+            } 
+            return; 
+        } else if (!strnicmp(szMouseLoc, "item", 4)) {
+            // a right clicked ground spawn does nothing
+            if (!strnicmp(szArg1, "left", 4) && EnviroTarget.Name[0]!=0 && DistanceToSpawn(pChar,&EnviroTarget)<20.0f ) {
+                INTERACTGROUNDITEM Data;
+                Data.SpawnID = GetCharInfo()->pSpawn->SpawnID;
+                Data.DropID = EnviroTarget.Race;
+                SendEQMessage(EQ_INTERACTGROUNDITEM,&Data,sizeof(INTERACTGROUNDITEM));
+                EnviroTarget.Name[0]=0;
+                return;
+            }
+        } else if (!ParseMouseLoc(GetCharInfo(), szMouseLoc)) { 
+            DebugSpew("Invalid mouse loc to click, aborting: %s",szMouseLoc); 
+            return; 
+        } 
+    } 
     
    if (szArg1[0]!=0) { 
       if (!strnicmp(szArg1, "left", 4)) { 
          mdType = MD_Button0; 
-		 if (!((EQADDR_MOUSECLICK->LeftClick == 0x80) && (!EQADDR_MOUSECLICK->ConfirmLeftClick))) EQADDR_MOUSECLICK->LeftClick = 0x80;
+         if (!((EQADDR_MOUSECLICK->LeftClick == 0x80) && (!EQADDR_MOUSECLICK->ConfirmLeftClick))) EQADDR_MOUSECLICK->LeftClick = 0x80;
          gMouseLeftClickInProgress = TRUE; 
       } else if (!strnicmp(szArg1, "right", 5)) { 
          mdType = MD_Button1;
-		 if (!((EQADDR_MOUSECLICK->RightClick == 0x80) && (!EQADDR_MOUSECLICK->ConfirmRightClick))) EQADDR_MOUSECLICK->RightClick = 0x80;
+         if (!((EQADDR_MOUSECLICK->RightClick == 0x80) && (!EQADDR_MOUSECLICK->ConfirmRightClick))) EQADDR_MOUSECLICK->RightClick = 0x80;
          gMouseRightClickInProgress = TRUE;
         } else { 
            WriteChatColor("Usage: /click <left|right>",USERCOLOR_DEFAULT); 

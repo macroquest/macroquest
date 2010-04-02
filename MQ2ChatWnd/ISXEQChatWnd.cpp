@@ -48,8 +48,9 @@ public:
 		InputBox->SetMaxChars(512);
 		OutputBox=(CStmlWnd*)GetChildItem("CWChatOutput");
 		OutBoxLines=0;
-		*(DWORD*)&(((PCHAR)OutputBox)[0x1C4])=400;
+		*(DWORD*)&(((PCHAR)OutputBox)[0x1E4])=400;
 		OutputBox->Clickable=1;
+        Unknown0x88[0] = 0; // this disables the close on escape
 	}
 
 	~CMQChatWnd()
