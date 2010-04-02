@@ -1,3 +1,12 @@
+1 April 2008 by ieatacid, dkaa
+- Updated for today's patch
+
+17 March 2008 by ieatacid
+- Redid item tooltip timers to just use one hook.  This also allows timers to be displayed when all bag tooltips are displayed (i.e., <alt>+<mouse over> a bag)
+
+10 March 2008 by dkaa
+- Fix for #XXXXXX color processing. Thanks QuestionTheAnswers.
+
 7 March 2008 by ieatacid
 - "some dev please do a new zip and be sure it contains the new ISXEQ.NET folder, thx (Lax)"
 

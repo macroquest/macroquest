@@ -3588,7 +3588,7 @@ bool MQ2ItemType::GETMEMBER()
 			return true;
 		}
 	case CastTime:
-		Dest.Float=(FLOAT)pItem->Item->CastTime/1000;
+		Dest.Float=(FLOAT)pItem->Item->Clicky.CastTime/1000;
 		Dest.Type=pFloatType;
 		return true;
 	case Spell: 

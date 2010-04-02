@@ -532,7 +532,7 @@ DWORD MQToSTML(PCHAR in, PCHAR out, DWORD maxlen, DWORD ColorOverride)
 				char temp[7];
 				for (int x = 0 ; x < 6 ; x++)
 				{
-					temp[x++]=in[pchar_in_string_position++];
+					temp[x]=in[pchar_in_string_position++];
 				}
 				pchar_in_string_position--;
 				temp[6]=0;

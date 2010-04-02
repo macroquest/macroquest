@@ -630,11 +630,11 @@ namespace ISXEQ
             }
         }
 
-        public static EQSpawn Me
+        public static EQCharacter Me
         {
             get
             {
-                return new EQSpawn(LavishScriptAPI.LavishScript.Objects.GetPersistentObject("Me"));
+                return new EQCharacter(LavishScriptAPI.LavishScript.Objects.GetPersistentObject("Me"));
             }
         }
 
