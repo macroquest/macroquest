@@ -1375,7 +1375,7 @@ public:
 		DoTShielding=110,
 		HeroicSTR=111,
 		HeroicINT=112,
-		HeroicWIZ=113,
+		HeroicWIS=113,
 		HeroicAGI=114,
 		HeroicDEX=115,
 		HeroicSTA=116,
@@ -1391,6 +1391,7 @@ public:
 		Clairvoyance=126,
 		DamageShieldMitigation=127,
 		SpellDamage=128,
+                Augs=129,
 	};
 	static enum ItemMethods
 	{
@@ -1509,7 +1510,7 @@ public:
 		TypeMember(DoTShielding);
 		TypeMember(HeroicSTR);
 		TypeMember(HeroicINT);
-		TypeMember(HeroicWIZ);
+		TypeMember(HeroicWIS);
 		TypeMember(HeroicAGI);
 		TypeMember(HeroicDEX);
 		TypeMember(HeroicSTA);
@@ -1525,6 +1526,7 @@ public:
 		TypeMember(Clairvoyance);
 		TypeMember(DamageShieldMitigation);
 		TypeMember(SpellDamage);
+		TypeMember(Augs);
 	}
 
 	~MQ2ItemType()

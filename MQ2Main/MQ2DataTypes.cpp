@@ -3523,7 +3523,30 @@ bool MQ2ItemType::GETMEMBER()
 					return true;
 				}
 			}
-		}
+		} else if (pItem->Item->Type == ITEMTYPE_NORMAL && ISNUMBER()) {
+            unsigned long N=GETNUMBER();
+			N--;
+            Dest.Ptr=NULL;
+            switch (N)
+            {
+                case 0: 
+                    if (pItem->Item->AugSlot1) Dest.Ptr=pItem->Contents[N];   
+                    break;
+                case 1: 
+                    if (pItem->Item->AugSlot2) Dest.Ptr=pItem->Contents[N];   
+                    break;
+                case 2: 
+                    if (pItem->Item->AugSlot3) Dest.Ptr=pItem->Contents[N];   
+                    break;
+                case 3: 
+                    if (pItem->Item->AugSlot4) Dest.Ptr=pItem->Contents[N];   
+                    break;
+                case 4: 
+                    if (pItem->Item->AugSlot5) Dest.Ptr=pItem->Contents[N];   
+                    break;
+            }
+            if (Dest.Ptr) return true; 
+        }
 		return false;
 	case Stackable:
 		Dest.DWord=((EQ_Item*)pItem)->IsStackable();
@@ -4319,11 +4342,11 @@ bool MQ2ItemType::GETMEMBER()
             Dest.DWord=pItem->Item->HeroicINT;
         Dest.Type=pIntType;
         return true;
-	  case HeroicWIZ:
+	  case HeroicWIS:
         if (pItem->Item->Type != ITEMTYPE_NORMAL)
             Dest.DWord=0;
         else
-            Dest.DWord=pItem->Item->HeroicWIZ;
+            Dest.DWord=pItem->Item->HeroicWIS;
         Dest.Type=pIntType;
         return true;
 	  case HeroicAGI:
@@ -4430,6 +4453,18 @@ bool MQ2ItemType::GETMEMBER()
         else
             Dest.DWord=pItem->Item->SpellDamage;
         Dest.Type=pIntType;
+        return true;
+      case Augs:
+        Dest.DWord = 0;
+        Dest.Type=pIntType;
+        if (pItem->Item->Type == ITEMTYPE_NORMAL) {
+            if (pItem->Item->AugSlot5) Dest.DWord++;
+            if (pItem->Item->AugSlot4) Dest.DWord++;
+            if (pItem->Item->AugSlot3) Dest.DWord++;
+            if (pItem->Item->AugSlot2) Dest.DWord++;
+            if (pItem->Item->AugSlot1) Dest.DWord++;
+            Dest.Type=pIntType;
+        }
         return true;
 	 }
     return false;

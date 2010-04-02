@@ -249,7 +249,7 @@
 #define pinstCPvPLeaderboardWnd                                    0x9E98DC
 #define pinstCPvPStatsWnd                                          0x9E98F8
 #define pinstCSystemInfoDialogBox                                  0x9E99A8
-#define pinstCTargetOfTargetWnd                                    0x9EA29C
+#define pinstCTargetOfTargetWnd                                    0x9EA284
 #define pinstCTaskSelectWnd                                        0x9EA2B8
 #define pinstCTaskTemplateSelectWnd                                0x9EA2D4
 #define pinstCTaskWnd                                              0x9EA2F0

@@ -497,7 +497,7 @@ typedef struct _ITEMINFO {
 /*0x160*/ DWORD  DamageShieldMitigation;
 /*0x164*/ DWORD  HeroicSTR;
 /*0x168*/ DWORD  HeroicINT;
-/*0x16c*/ DWORD  HeroicWIZ;
+/*0x16c*/ DWORD  HeroicWIS;
 /*0x170*/ DWORD  HeroicAGI;
 /*0x174*/ DWORD  HeroicDEX;
 /*0x178*/ DWORD  HeroicSTA;
