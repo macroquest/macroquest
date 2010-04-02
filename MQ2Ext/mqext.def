@@ -3,13 +3,10 @@
 ; Module:
 ;    mqext.def
 ;--------------------------------------------------------------------
-
 EXPORTS
-
 ;--------------------------------------------------------------------
 ; These are the extensions exported by dll
 ;--------------------------------------------------------------------
-
     inv
     pack
     help
@@ -37,13 +34,11 @@ EXPORTS
     ptmp
     
 ;   pcmdlist
-
 ;--------------------------------------------------------------------
 ;
 ; these are the extension service functions provided for the debugger
 ;
 ;--------------------------------------------------------------------
-
 
     CheckVersion
     WinDbgExtensionDllInit

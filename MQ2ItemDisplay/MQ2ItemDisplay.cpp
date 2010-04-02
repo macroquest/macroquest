@@ -538,7 +538,6 @@ public:
      if (pSpell == NULL) {
         return;
      }
-
      CHAR out[MAX_STRING] = {0};
      CHAR temp[MAX_STRING] = {0};
      if (!bNoSpellTramp) {

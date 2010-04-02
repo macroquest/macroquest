@@ -390,7 +390,7 @@ VOID UpdateItemInfo(PSPAWNINFO pChar, PCHAR szLine)
    PCHARINFO pCharInfo = NULL;
    if (NULL == (pCharInfo = GetCharInfo())) return;
 
-   for (nInvIdx=0; nInvIdx < 30; nInvIdx++) {
+   for (nInvIdx=0; nInvIdx < NUM_INV_SLOTS; nInvIdx++) {
       if (GetCharInfo2()->InventoryArray[nInvIdx] != NULL) {
          BOOL Found = FALSE;
          PITEMDB ItemDB = gItemDB;
@@ -732,7 +732,7 @@ VOID SWhoFilter(PSPAWNINFO pChar, PCHAR szLine)
 	} else if (!stricmp(szArg,"invisible")) {
         SetDisplaySWhoFilter(&gFilterSWho.Invisible,"Invisible",szToggle);
 	} else {
-      SyntaxError("Usage: /whofilter <lastname|class|race|level|gm|guild|holding|ld|sneak|anon|lfg|npctag|spawnid|trader|afk|concolor|invisible> [on|off]");
+      SyntaxError("Usage: /whofilter <lastname|class|race|body|level|gm|guild|ld|sneak|lfg|npctag|spawnid|trader|afk|anon|distance|light|holding|concolor|invisible> [on|off]");
    } 
 }
 
@@ -2004,7 +2004,7 @@ if (!stricmp(szArg1,"item"))
       DWORD SpawnFooter = NULL;
       SpawnFooter = (DWORD)pLocalPlayer;
 		PITEMINFO pItem=0;;
-      for (int i=0;i<30;i++) {
+      for (int i=0;i<NUM_INV_SLOTS;i++) {
          if (GetCharInfo2()->InventoryArray[i])
             if (!_stricmp(szArg2,GetCharInfo2()->InventoryArray[i]->Item->Name)) { 
             DebugSpew("cast test slot %d = %s address is %x",i,GetCharInfo2()->InventoryArray[i]->Item->Name,&(GetCharInfo2()->InventoryArray[i])); 

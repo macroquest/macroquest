@@ -853,7 +853,7 @@ TLO(dataFindItem)
 	strlwr(strcpy(Name,pName));
 	PCHARINFO pCharInfo=GetCharInfo();
 
-	for (unsigned long nSlot=0 ; nSlot < 0x1E ; nSlot++)
+	for (unsigned long nSlot=0 ; nSlot < NUM_INV_SLOTS ; nSlot++)
 	{
 		if (PCONTENTS pItem=GetCharInfo2()->InventoryArray[nSlot])
 		{
@@ -935,7 +935,7 @@ TLO(dataFindItemCount)
 
 	unsigned long Count=0;
 
-	for (unsigned long nSlot=0 ; nSlot < 0x1E ; nSlot++)
+	for (unsigned long nSlot=0 ; nSlot < NUM_INV_SLOTS ; nSlot++)
 	{
 		if (PCONTENTS pItem=GetCharInfo2()->InventoryArray[nSlot])
 		{

@@ -172,7 +172,6 @@ int CMD_MapFilter(int argc, char *argv[])
 	WriteChatf("Usage: %s <option>|help",argv[0]);
 	return 0;
 }
-
 int CMD_MapHide(int argc, char *argv[])
 {
 	if (argc<2)
@@ -271,7 +270,6 @@ int CMD_MapNames(int argc, char *argv[])
 			strcpy(MapTargetNameString,"%N");
 		else
 			pISInterface->GetArgs(2,argc,argv,MapTargetNameString);
-
 		WriteChatf("Target naming string: %s",MapTargetNameString);
 		pISInterface->SetSetting("ISXEQMap.XML","Naming Schemes","Target",MapTargetNameString);
 		pISInterface->SaveSettings("ISXEQMap.XML");
@@ -284,7 +282,6 @@ int CMD_MapNames(int argc, char *argv[])
 			strcpy(MapNameString,"%N");
 		else
 			pISInterface->GetArgs(2,argc,argv,MapNameString);
-
 		WriteChatf("Normal naming string: %s",MapNameString);
 		pISInterface->SetSetting("ISXEQMap.XML","Naming Schemes","Normal",MapNameString);
 		pISInterface->SaveSettings("ISXEQMap.XML");
@@ -299,7 +296,6 @@ int CMD_MapNames(int argc, char *argv[])
 }
 extern PCHAR DescribeCombo(DWORD Combo);
 extern DWORD ParseCombo(PCHAR Combo);
-
 int CMD_MapClick(int argc, char *argv[])
 {
 	if (argc<2)

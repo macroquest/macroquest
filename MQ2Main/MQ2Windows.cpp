@@ -209,7 +209,7 @@ void InitializeMQ2Windows()
         
     extern PCHAR szItemSlot[];
 
-    for(i=0;i<30;i++)
+    for(i=0;i<NUM_INV_SLOTS;i++)
         ItemSlotMap[szItemSlot[i]]=i;
 	
 	CHAR szOut[MAX_STRING]={0};
@@ -256,44 +256,36 @@ void InitializeMQ2Windows()
 			// process window
 			if (CXMLData *pXMLData=((CXWnd*)pWnd)->GetXMLData())
 			{
-					if (pXMLData->Type==UI_Screen)
+				if (pXMLData->Type==UI_Screen)
+				{
+					GetCXStr(pXMLData->Name.Ptr,Name,MAX_STRING);
+					string WindowName=Name;
+					MakeLower((WindowName));
+
+					unsigned long N=WindowMap[WindowName];
+					if (N)
 					{
-						GetCXStr(pXMLData->Name.Ptr,Name,MAX_STRING);
-						string WindowName=Name;
-						MakeLower((WindowName));
-
-						unsigned long N=WindowMap[WindowName];
-						if (N)
-						{
-							N--;
-							_WindowInfo *pNewWnd = WindowList[N];
-							pNewWnd->pWnd=(CXWnd*)pWnd;
-							pNewWnd->ppWnd=0;
-							//DebugSpew("Updating WndNotification target '%s'",Name);
-						}
-						else
-						{
-							_WindowInfo *pNewWnd = new _WindowInfo;
-							strcpy(pNewWnd->Name,Name);
-							pNewWnd->pWnd=(CXWnd*)pWnd;
-							pNewWnd->ppWnd=0;
-							
-							N=WindowList.GetUnused();
-							WindowList[N]=pNewWnd;
-
-							WindowMap[WindowName]=N+1;
-							//DebugSpew("Adding WndNotification target '%s'",Name);
-						}
-
-
-
-
+						N--;
+						_WindowInfo *pNewWnd = WindowList[N];
+						pNewWnd->pWnd=(CXWnd*)pWnd;
+						pNewWnd->ppWnd=0;
+						//DebugSpew("Updating WndNotification target '%s'",Name);
 					}
+					else
+					{
+						_WindowInfo *pNewWnd = new _WindowInfo;
+						strcpy(pNewWnd->Name,Name);
+						pNewWnd->pWnd=(CXWnd*)pWnd;
+						pNewWnd->ppWnd=0;
+						
+						N=WindowList.GetUnused();
+						WindowList[N]=pNewWnd;
+
+						WindowMap[WindowName]=N+1;
+						//DebugSpew("Adding WndNotification target '%s'",Name);
+					}
+				}
 			}
-
-
-
-
 			if (CXWnd *pTemp=((CXWnd*)pWnd)->GetFirstChildWnd())
 			{
 				pWnd=(PCSIDLWND)pTemp;
@@ -315,10 +307,6 @@ void InitializeMQ2Windows()
 				}
 			}
 		}
-
-
-
-
 	}
 }
 
@@ -1026,7 +1014,7 @@ int WndNotify(int argc, char *argv[])
             RETURN(0);
         } 
 
-	for (unsigned long i = 0 ; i < 30 ; i++)
+	for (unsigned long i = 0 ; i < NUM_INV_SLOTS ; i++)
 	{
 		if (szWndNotification[i] && !stricmp(szWndNotification[i],szArg3))
 		{

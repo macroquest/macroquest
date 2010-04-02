@@ -11,9 +11,7 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
     GNU General Public License for more details.
 ******************************************************************************/
-
 #include "mqext.h"
-
 //
 // Extension to dump inventory
 //
@@ -26,7 +24,6 @@ DECLARE_API ( inv )
 	CHAR Name[64];
 	
 	ppCharInfo = GetExpression("EQADDR_CHAR_INFO");
-
 	hr = ReadMemory(ppCharInfo,&pCharInfo,sizeof(pCharInfo),&cb);
 	hr = ReadMemory(pCharInfo,&pCharInfo,sizeof(pCharInfo),&cb);
 	if (cb!=sizeof(pCharInfo) || !pCharInfo) {
@@ -38,7 +35,6 @@ DECLARE_API ( inv )
 	ReadMemory(pCharInfo+offset,Name,sizeof(Name),&cb);
 	dprintf("Inventory for %s:\n",Name);
 	GetFieldOffset("_ITEMINFO","Name",&offset);
-
 	pInventory = ReadField(Inventory);
 	ReadMemory(pInventory,Inventory,sizeof(Inventory[0])*30,&cb);
 	for (index=0;index<30;index++) {
@@ -67,7 +63,6 @@ DECLARE_API ( inv )
     dprintf("command not supported with VS6\n");
 #endif
 }
-
 //
 // Extension to dump pack contents
 //
@@ -80,7 +75,6 @@ DECLARE_API ( pack )
 	CHAR Name[64];
 	
 	pPack = GetExpression(args);
-
 	hr = InitTypeRead(pPack, _ITEMINFO );
 	slots = ReadField(Slots);
 	combine = ReadField(Combine);
@@ -109,7 +103,6 @@ DECLARE_API ( pack )
     dprintf("command not supported with VS6\n");
 #endif
 }
-
 //
 // Extension help
 //
@@ -142,5 +135,4 @@ DECLARE_API ( help )
 			"   praid         - Display EQRAID struct\n"
 			"   paltability   - Display ALTABILITY struct\n"
             );
-
 }

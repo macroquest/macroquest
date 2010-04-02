@@ -1,3 +1,7 @@
+16 February 2007 by ieatacid, dkaa
+- Updated for The Buried Sea expansion.  New "Power Source" item slot means slot changes:
+ * Slots charm through waist are the same (0-20), "Power Source" is 21, 22 is ammo, 23 - 30 are inventory (bag) slots
+
 17 January 2007 by ieatacid
 - Updated for today's patch
 

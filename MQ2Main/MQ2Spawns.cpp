@@ -187,9 +187,9 @@ public:
     void CActorEx::ChangeBoneStringSprite(int, int, char *);
 };
 
-FUNCTION_AT_VIRTUAL_ADDRESS(bool CActorEx::CanSetName(DWORD),0x180);
-FUNCTION_AT_VIRTUAL_ADDRESS(void CActorEx::SetNameColor(DWORD &Color),0x16c);
-FUNCTION_AT_VIRTUAL_ADDRESS(void CActorEx::ChangeBoneStringSprite(int, int, char *),0x168);
+FUNCTION_AT_VIRTUAL_ADDRESS(bool CActorEx::CanSetName(DWORD),0x188);
+FUNCTION_AT_VIRTUAL_ADDRESS(void CActorEx::SetNameColor(DWORD &Color),0x174);
+FUNCTION_AT_VIRTUAL_ADDRESS(void CActorEx::ChangeBoneStringSprite(int, int, char *),0x170);
 #endif
 
 typedef struct _CAPTIONCOLOR {
@@ -497,7 +497,6 @@ BOOL SetNameSpriteState(PSPAWNINFO pSpawn, bool Show)
 			}\
 		}
 		CHAR NewCaption[MAX_STRING]={0};
-
 		if (!pSpawn->pcactorex || !((CActorEx*)pSpawn->pcactorex)->CanSetName(0))
 		{
   			//DebugSpew("CanSetName==0 - %s .. race %d body %d",pSpawn->Name,pSpawn->Race,GetBodyType(pSpawn));

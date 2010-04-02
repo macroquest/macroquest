@@ -11,16 +11,12 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
     GNU General Public License for more details.
 ******************************************************************************/
-
 #if !defined(CINTERFACE)
 #error /DCINTERFACE
 #endif
-
 #define DBG_SPEW
 
-
 #include "MQ2Main.h"
-
 
 #ifndef ISXEQ_LEGACY
 // ***************************************************************************
@@ -50,7 +46,6 @@ VOID WriteChatf(PCHAR szFormat, ...)
 	WriteChatColor(szOutput);
 }
 
-
 VOID DebugSpewAlways(PCHAR szFormat, ...)
 {
     CHAR szOutput[MAX_STRING] = {0};
@@ -64,7 +59,6 @@ VOID DebugSpewAlways(PCHAR szFormat, ...)
 
 #ifdef DBG_SPEW
     if (gSpewToFile) {
-
     FILE *fOut = NULL;
     CHAR Filename[MAX_STRING] = {0};
     sprintf(Filename,"%s\\DebugSpew.log",gszLogPath);
@@ -133,7 +127,6 @@ VOID Flavorator(PCHAR szLine)
 	{
 		StrReplaceSection(pSpot,2,szColorAdjectiveYou[rand()%nColorAdjectiveYou]);
 	}
-
 }
 
 #ifndef ISXEQ
@@ -369,8 +362,6 @@ PSTR GetArg(PSTR szDest, PCSTR szSrc, DWORD dwNumber, BOOL LeaveQuotes, BOOL ToP
 
 
 
-
-
 #ifndef ISXEQ_LEGACY
 PCHAR GetEQPath(PCHAR szBuffer)
 {
@@ -406,9 +397,7 @@ VOID AppendCXStr(PCXSTR *cxstr, PCHAR text)
 	CXStr *Str=(CXStr*)cxstr;
 	(*Str)+=text;
 	cxstr=(PCXSTR*)Str;
-
 //	cxstr+=text;
-
 } 
 
 // YES THIS NEEDS TO BE PCXSTR * 
@@ -710,7 +699,6 @@ BOOL CompareTimes(PCHAR RealTime, PCHAR ExpectedTime)
         !strnicmp(RealTime+19,ExpectedTime+19,5))
         return TRUE;
     return FALSE;
-
 }
 
 VOID AddFilter(PCHAR szFilter, DWORD Length, PBOOL pEnabled)
@@ -773,7 +761,6 @@ PCHAR GetFullZone(DWORD ZoneID)
 {
     if (!ppWorldData | !pWorldData) return NULL;
     PZONELIST pZone = ((PWORLDDATA)pWorldData)->ZoneArray[ZoneID];
-
     return pZone->LongName;
 }
 // ***************************************************************************
@@ -784,7 +771,6 @@ PCHAR GetShortZone(DWORD ZoneID)
 {
     if (!ppWorldData | !pWorldData) return NULL;
     PZONELIST pZone = ((PWORLDDATA)pWorldData)->ZoneArray[ZoneID];
-
     return pZone->ShortName; 
 }
 // ***************************************************************************
@@ -862,7 +848,6 @@ int GetLanguageIDByName( PCHAR SzName )
 	if (!_stricmp(SzName, "Elder Dragon")) return 23;
 	if (!_stricmp(SzName, "Dark Speech")) return 24;
 	if (!_stricmp(SzName, "Vah Shir")) return 25;
-
 	return -1;
 }
 
@@ -973,7 +958,6 @@ DWORD GetDeityTeamByID(DWORD DeityID) {
     }
 }
 
-
 PCHAR GetGuildByID(DWORD GuildID)
 {
 	if (GuildID>=MAX_GUILDS) return NULL;
@@ -1009,7 +993,6 @@ FLOAT DistanceToSpawn3D(PSPAWNINFO pChar, PSPAWNINFO pSpawn)
     FLOAT Z = pChar->Z - pSpawn->Z;
     return sqrtf(X*X + Y*Y + Z*Z);
 }
-
 
 // ***************************************************************************
 // Function:    DistanceToSpawn
@@ -1085,13 +1068,11 @@ FLOAT FindSpeed(PSPAWNINFO pSpawn)
 {
    PSPAWNINFO pMount = NULL;
     FLOAT fRunSpeed = 0;
-
     pMount=FindMount(pSpawn);
 
    if (pMount)
      if(!fRunSpeed)
          fRunSpeed = pMount->SpeedRun * 10000 / 70;
-
 
    return fRunSpeed;
 }
@@ -1105,7 +1086,6 @@ VOID GetItemLink(PCONTENTS Item, PCHAR Buffer)
 {
 	char hash[256];
 	((EQ_Item*)Item)->GetItemLinkHash(hash, 256);
-
 	sprintf(Buffer,"%c0%s%s%c",0x12,hash,Item->Item->Name,0x12);
 	DebugSpew("GetItemLink() returns '%s'",&Buffer[0]);
 }
@@ -1165,7 +1145,6 @@ VOID STMLToPlainText(PCHAR in, PCHAR out)
 				   out[pchar_out_string_position++] = '?';
 			   }
 			   break;
-
 		   default:
 				out[pchar_out_string_position++] = in[pchar_in_string_position++];
 	   }
@@ -1201,14 +1180,12 @@ BOOL ItemMatchesSearch(SEARCHITEM &SearchItem, PCONTENTS pContents)
 	if (SearchItem.szName[0] && !strstr(_strlwr(strcpy(szName,pContents->Item->Name)),SearchItem.szName))
 		return FALSE;
 	
-
 	return true;
 }
 
 BOOL SearchThroughItems(SEARCHITEM &SearchItem, PCONTENTS* pResult, DWORD *nResult)
 {
 	// TODO
-
 #define Result(pcontents,nresult) 	{\
 	if (pResult) \
 		*pResult=pcontents;\
@@ -1240,7 +1217,6 @@ BOOL SearchThroughItems(SEARCHITEM &SearchItem, PCONTENTS* pResult, DWORD *nResu
 					Result(pContents,nPack+21);
 			}
 		}
-
 		for (nPack = 0 ; nPack<8 ; nPack++)
 		{
 			if (PCONTENTS pContents=GetCharInfo2()->Inventory.Pack[nPack])
@@ -1261,7 +1237,6 @@ BOOL SearchThroughItems(SEARCHITEM &SearchItem, PCONTENTS* pResult, DWORD *nResu
 #undef TestFlag
 #undef Flag
 #undef MaskSet
-
 
 VOID ClearSearchSpawn(PSEARCHSPAWN pSearchSpawn)
 {
@@ -1399,8 +1374,6 @@ PCHAR GetSpellEffectName(LONG EffectID, PCHAR szBuffer)
    strcpy(szBuffer, szBuff); 
    return szBuffer; 
 } 
-
-
 
 // *************************************************************************** 
 // Function:    ShowSpellSlotInfo 
@@ -2668,7 +2641,6 @@ PCHAR ShowSpellSlotInfo(PSPELL pSpell, PCHAR szBuffer)
    return szBuffer; 
 } 
 
-
 // *************************************************************************** 
 // Function:    SlotValueCalculateulate 
 // Author:      Koad (used in his SpellSearch Plugin)
@@ -2836,7 +2808,6 @@ VOID SlotValueCalculate(PCHAR szBuff, PSPELL pSpell, int i, double mp)
       sprintf(szTemp, "UnknownCalc%03d", pSpell->Calc[i]); 
       strcat(szBuff, szTemp); 
       break; 
-
    } 
 } 
 
@@ -2849,7 +2820,6 @@ int FindMappableCommand(const char *name)
 	}
 	return -1;
 }	
-
 
 void DisplayOverlayText(PCHAR szText, DWORD dwColor, DWORD dwTransparency, DWORD msFadeIn, DWORD msFadeOut, DWORD msHold)
 {
@@ -2928,11 +2898,9 @@ PCHAR DescribeKeyCombo(KeyCombo &Combo, PCHAR szDest)
 			szDest[pos]='+';
 			pos++;
 		}
-
 		strcpy(&szDest[pos],"ctrl");
 		pos+=4;
 	}
-
 	if (Combo.Data[0])
 	{
 		if (pos)
@@ -2940,11 +2908,9 @@ PCHAR DescribeKeyCombo(KeyCombo &Combo, PCHAR szDest)
 			szDest[pos]='+';
 			pos++;
 		}
-
 		strcpy(&szDest[pos],"alt");
 		pos+=3;
 	}
-
 	if (pos)
 	{
 		szDest[pos]='+';
@@ -2958,10 +2924,8 @@ PCHAR DescribeKeyCombo(KeyCombo &Combo, PCHAR szDest)
 	{
 		strcpy(&szDest[pos],"clear");
 	}
-
 	return &szDest[0];	
 }
-
 #endif
 
 #ifndef ISXEQ
@@ -3030,7 +2994,7 @@ int FindInvSlotForContents(PCONTENTS pContents)
 			{
 				for (unsigned long nItem=0 ; nItem < pPack->Item->Slots ; nItem++)
 				{
-//					DebugSpew("Pack[%d]->Contents[%d]==0x%08X",nPack,nItem,pPack->Contents[nItem]);
+					//DebugSpew("Pack[%d]->Contents[%d]==0x%08X",nPack,nItem,pPack->Contents[nItem]);
 					if (pPack->Contents[nItem]==pContents)
 					{
 						return 251+(nPack*10)+nItem;
@@ -3065,7 +3029,6 @@ int FindInvSlotForContents(PCONTENTS pContents)
 			}
 		}		
 	}
-
 
 	return -1;
 }
@@ -3111,7 +3074,6 @@ int FindInvSlot(PCHAR pName, BOOL Exact)
 			}
 		}
 	}
-
 	LastFoundInvSlot=-1;
 	return -1;
 }
@@ -3344,7 +3306,6 @@ BOOL ActualCalculate(PCHAR szFormula, DOUBLE &Result) {
         }
     }
     j++;
-
     //for (i=0;i<j;i++) DebugSpewNoFile("%d. %s",i,Arg[i]);
     for (i=0;i<j;i++) {
         switch (Arg[i][0]) {
@@ -3360,7 +3321,6 @@ BOOL ActualCalculate(PCHAR szFormula, DOUBLE &Result) {
 				}
 				else
 					strcpy(Arg[i],"1");
-
 				if (i==0)
 				{
 			        for (k=i+1;k<j;k++) 
@@ -3374,7 +3334,6 @@ BOOL ActualCalculate(PCHAR szFormula, DOUBLE &Result) {
 				j--;
         }
     }
-
     for (i=0;i<j;i++) {
         switch (Arg[i][0]) {
             case '^':
@@ -3389,7 +3348,6 @@ BOOL ActualCalculate(PCHAR szFormula, DOUBLE &Result) {
                 for (k=i+1;k<j;k++) strcpy(Arg[k],Arg[k+2]);
         }
     }
-
     for (i=0;i<j;i++) {
         switch (Arg[i][0]) {
             case '%':
@@ -3427,13 +3385,11 @@ BOOL ActualCalculate(PCHAR szFormula, DOUBLE &Result) {
                         sprintf(Buffer,"%f",(atof(Arg[i])*atof(Arg[i+2])));
                         break;
                 }
-
                 strcpy(Arg[i],Buffer);
                 j-=2;
                 for (k=i+1;k<j;k++) strcpy(Arg[k],Arg[k+2]);
         }
     }
-
     for (i=0;i<j;i++) {
         switch (Arg[i][0]) {
             case '-':
@@ -3457,7 +3413,6 @@ BOOL ActualCalculate(PCHAR szFormula, DOUBLE &Result) {
                 for (k=i+1;k<j;k++) strcpy(Arg[k],Arg[k+2]);
         }
     }
-
     for (i=0;i<j;i++) {
         switch ((UCHAR)Arg[i][0]) {
 			case 'n':
@@ -3490,7 +3445,6 @@ BOOL ActualCalculate(PCHAR szFormula, DOUBLE &Result) {
 					case 0xf3:
 						sprintf(Buffer,"%d",atof(Arg[i])<=atof(Arg[i+2]));
 						break;
-
                 }
                 strcpy(Arg[i],Buffer);
                 j-=2;
@@ -3563,7 +3517,6 @@ BOOL ActualCalculate(PCHAR szFormula, DOUBLE &Result) {
                 for (k=i+1;k<j;k++) strcpy(Arg[k],Arg[k+2]);
         }
     }
-
 	Result=atof(Arg[0]);
 	return true;
 }
@@ -3636,7 +3589,6 @@ struct _CalcOp
 	DOUBLE Value;
 };
 
-
 BOOL EvaluateRPN(_CalcOp *pList, int Size, DOUBLE &Result)
 {
 	if (!Size)
@@ -3649,7 +3601,6 @@ BOOL EvaluateRPN(_CalcOp *pList, int Size, DOUBLE &Result)
 #define StackSetTop(do_assign) {pStack[nStack]##do_assign;}
 #define StackPush(val) {nStack++;pStack[nStack]=val;}
 #define StackPop() {if (!nStack) {FatalError("Illegal arithmetic in calculation");free(pStack);return 0;};nStack--;}
-
 
 #define BinaryIntOp(op) {int RightSide=(int)StackTop();StackPop();StackSetTop(=(DOUBLE)(((int)StackTop())##op##RightSide));}
 #define BinaryOp(op) {DOUBLE RightSide=StackTop();StackPop();StackSetTop(=StackTop()##op##RightSide);}
@@ -3806,15 +3757,12 @@ BOOL FastCalculate(PCHAR szFormula, DOUBLE &Result)
 	memset(pStack,0,StackSize);
 	int nOps=0;
 	int nStack=0;
-
 	char *pEnd=szFormula+Length;
-
 	char CurrentToken[MAX_STRING]={0};
 	char *pToken=&CurrentToken[0];
 
 #define OpToList(op) {pOpList[nOps].Op=op;nOps++;}
 #define ValueToList(val) {pOpList[nOps].Value=val;nOps++;}
-
 #define StackEmpty() (nStack==0)
 #define StackTop() (pStack[nStack])
 #define StackPush(op) {nStack++;pStack[nStack]=op;}
@@ -4074,7 +4022,6 @@ bool PlayerHasAAAbility(DWORD AAIndex)
         if ( pPCData->GetAltAbilityIndex(i) == AAIndex )
             return true;
     }
-
     return false;
 }
 
@@ -4110,7 +4057,6 @@ DWORD GetAAIndexByName(PCHAR AAName)
             }
         }
     }
-
 #if  0
     for (unsigned long nAbility=0 ; nAbility<NUM_ALT_ABILITIES_ARRAY ; nAbility++)
     {
@@ -4129,7 +4075,6 @@ DWORD GetAAIndexByName(PCHAR AAName)
         }
     }
 #endif
-
     return 0;
 }
 
@@ -4158,7 +4103,6 @@ DWORD GetAAIndexByID(DWORD ID)
         }
     }
 #endif
-
     return 0;
 }
 
@@ -4222,7 +4166,6 @@ BOOL IsNamed(PSPAWNINFO pSpawn)
    
     if (pSpawn->Type != SPAWN_NPC)
 		return false;
-
 	if (pSpawn->Class >= 20 && pSpawn->Class <= 35 ) // NPC GMs
 		return false;
 	if (pSpawn->Class == 41 )  // NPC merchants
@@ -4244,18 +4187,15 @@ BOOL IsNamed(PSPAWNINFO pSpawn)
 			if (szTemp[2] == '_')
 				return false;
 	}
-
     if ( (!strnicmp(szTemp,"Guard",5))			||
 	     (!strnicmp(szTemp,"Defender",8))		||
 		 (!strnicmp(szTemp,"Soulbinder",10))	||
 		 (!strnicmp(szTemp,"Diaku",5)) )
 			return false;
-
     if (isupper(szTemp[0]))
 		return true;
 	if (szTemp[0] == '#' )
 		return true;
-
 	
 	return false;
 }
@@ -4402,7 +4342,6 @@ PSPAWNINFO NthNearestSpawn(PSEARCHSPAWN pSearchSpawn, DWORD Nth, PSPAWNINFO pOri
 				pNewRank->Value.Float=GetDistance(pOrigin->X,pOrigin->Y,pSpawn->X,pSpawn->Y);
 				SpawnSet+=pNewRank;
 			}
-
 			pSpawn=pSpawn->pNext;
 		}
 	}
@@ -4419,7 +4358,6 @@ PSPAWNINFO NthNearestSpawn(PSEARCHSPAWN pSearchSpawn, DWORD Nth, PSPAWNINFO pOri
 				pNewRank->Value.Float=GetDistance(pOrigin->X,pOrigin->Y,pSpawn->X,pSpawn->Y);
 				SpawnSet+=pNewRank;
 			}
-
 			pSpawn=pSpawn->pNext;
 		}
 	}
@@ -4428,12 +4366,10 @@ PSPAWNINFO NthNearestSpawn(PSEARCHSPAWN pSearchSpawn, DWORD Nth, PSPAWNINFO pOri
 		SpawnSet.Cleanup();
 		return 0;
 	}
-
 	// sort our list
 	qsort(&SpawnSet.List[0],TotalMatching,sizeof(PMQRANK),pMQRankFloatCompare);
 	// get our Nth nearest
 	pSpawn=(PSPAWNINFO)SpawnSet[Nth-1]->VarPtr.Ptr;
-
 	SpawnSet.Cleanup();
 	return pSpawn;
 }
@@ -4452,7 +4388,6 @@ DWORD CountMatchingSpawns(PSEARCHSPAWN pSearchSpawn, PSPAWNINFO pOrigin, BOOL In
 			{
 				TotalMatching++;
 			}
-
 			pSpawn=pSpawn->pNext;
 		}
 	}
@@ -4465,7 +4400,6 @@ DWORD CountMatchingSpawns(PSEARCHSPAWN pSearchSpawn, PSPAWNINFO pOrigin, BOOL In
 				// matches search, add to our set
 				TotalMatching++;
 			}
-
 			pSpawn=pSpawn->pNext;
 		}
 	}
@@ -4476,7 +4410,6 @@ DWORD CountMatchingSpawns(PSEARCHSPAWN pSearchSpawn, PSPAWNINFO pOrigin, BOOL In
 PSPAWNINFO SearchThroughSpawns(PSEARCHSPAWN pSearchSpawn, PSPAWNINFO pChar)
 {
     PSPAWNINFO pFromSpawn = NULL;
-
 
     if (pSearchSpawn->FromSpawnID>0 && (pSearchSpawn->bTargNext ||pSearchSpawn->bTargPrev)) 
 	{
@@ -4581,7 +4514,6 @@ BOOL SpawnMatchesSearch(PSEARCHSPAWN pSearchSpawn, PSPAWNINFO pChar, PSPAWNINFO 
 	else if (pSearchSpawn->FRadius<10000.0f && DistanceToSpawn(pChar, pSpawn)>pSearchSpawn->FRadius)
 		return FALSE;
 
-
 	if (pSearchSpawn->Radius>0.0f && IsPCNear(pSpawn,pSearchSpawn->Radius))
 		return FALSE;
 	if (gZFilter<10000.0f && ( (pSpawn->Z > pChar->Z + gZFilter) || (pSpawn->Z < pChar->Z - gZFilter)))
@@ -4619,7 +4551,6 @@ BOOL SpawnMatchesSearch(PSEARCHSPAWN pSearchSpawn, PSPAWNINFO pChar, PSPAWNINFO 
 		return FALSE;
 	if (pSearchSpawn->bLoS && (!LineOfSight(pChar,pSpawn)))
 		return FALSE;
-
 	return TRUE;
 }
 #endif
@@ -4777,7 +4708,6 @@ PCHAR ParseSearchSpawnArgs(PCHAR szArg, PCHAR szRest, PSEARCHSPAWN pSearchSpawn)
             szRest = GetNextArg(szRest,1);
         } else if (!stricmp(szArg,"nopcnear")) {
             GetArg(szArg,szRest,1);
-
             if ((szArg[0]==0) || (0.0f == (pSearchSpawn->Radius = (FLOAT)atof(szArg)))) {
                 pSearchSpawn->Radius = 200.0f;
             } else {
@@ -4886,7 +4816,6 @@ VOID FreeAlerts(DWORD List)
                     pTempList = pTempList->pNext;
                     FreeAlertList(pAlertList->pNext);
                     pAlertList->pNext = pTempList;
-
                 }
                 pAlertList = pTempList;
             }
@@ -4905,7 +4834,6 @@ BOOL GetClosestAlert(PSPAWNINFO pChar, DWORD List)
     FLOAT ClosestDistance = 50000.0f;
     PALERT pCurrent = GetAlert(List);
     if (!pCurrent) return FALSE;
-
     for (; pCurrent; pCurrent = pCurrent->pNext) {
         if (pSpawn = SearchThroughSpawns(&(pCurrent->SearchSpawn),pChar)) {
             if (DistanceToSpawn(pChar,pSpawn)<ClosestDistance) {
@@ -4913,7 +4841,6 @@ BOOL GetClosestAlert(PSPAWNINFO pChar, DWORD List)
             }
         }
     }
-
     return (pClosest!=NULL);
 }
 
@@ -4923,7 +4850,6 @@ BOOL IsAlert(PSPAWNINFO pChar, PSPAWNINFO pSpawn, DWORD List)
     SEARCHSPAWN SearchSpawn;
     PALERT pCurrent = GetAlert(List);
     if (!pCurrent) return NULL;
-
     for (; pCurrent; pCurrent = pCurrent->pNext) {
         CopyMemory(&SearchSpawn,&(pCurrent->SearchSpawn),sizeof(SEARCHSPAWN));
         if ((SearchSpawn.SpawnID>0) && (SearchSpawn.SpawnID!=pSpawn->SpawnID)) continue;
@@ -4953,7 +4879,6 @@ BOOL CheckAlertForRecursion(PALERT pAlert,DWORD AlertNumber)
                 if (CheckAlertForRecursion(pNextAlert,pAlert->SearchSpawn.AlertList)) return TRUE;
             }
         }
-
         if (pAlert->SearchSpawn.bNoAlert) {
             if (pAlert->SearchSpawn.NoAlertList == AlertNumber) {
                 return TRUE;
@@ -4963,7 +4888,6 @@ BOOL CheckAlertForRecursion(PALERT pAlert,DWORD AlertNumber)
                 if (CheckAlertForRecursion(pNextAlert,pAlert->SearchSpawn.NoAlertList)) return TRUE;
             }
         }
-
         if (pAlert->SearchSpawn.bNearAlert) {
             if (pAlert->SearchSpawn.NearAlertList == AlertNumber) {
                 return TRUE;
@@ -4973,7 +4897,6 @@ BOOL CheckAlertForRecursion(PALERT pAlert,DWORD AlertNumber)
                 if (CheckAlertForRecursion(pNextAlert,pAlert->SearchSpawn.NearAlertList)) return TRUE;
             }
         }
-
         if (pAlert->SearchSpawn.bNotNearAlert) {
             if (pAlert->SearchSpawn.NotNearAlertList == AlertNumber) {
                 return TRUE;
@@ -4984,7 +4907,6 @@ BOOL CheckAlertForRecursion(PALERT pAlert,DWORD AlertNumber)
             }
         }
     }
-
     return FALSE;
 }
 
@@ -5021,9 +4943,7 @@ PCHAR CleanupName(PCHAR szName, BOOL Article, BOOL ForWhoList)
         }
     }
     strcpy(szName,szTemp);
-
     if (!Article) return szName;
-
     if (!strnicmp(szName,"a ",2)) {
         sprintf(szTemp, "%s, a",szName+2);
         strcpy(szName,szTemp);
@@ -5034,10 +4954,8 @@ PCHAR CleanupName(PCHAR szName, BOOL Article, BOOL ForWhoList)
         sprintf(szTemp, "%s, the",szName+4);
         strcpy(szName,szTemp);
     }
-
     return szName;
 }
-
 #endif
 
 // ***************************************************************************
@@ -5321,7 +5239,6 @@ VOID SuperWhoDisplay(PSPAWNINFO pChar, PSEARCHSPAWN pSearchSpawn, DWORD Color)
 			TotalMatching++;
 			SpawnSet+=pSpawn;
 		}
-
 		pSpawn=pSpawn->pNext;
 	}
 	if (TotalMatching)
@@ -5333,7 +5250,6 @@ VOID SuperWhoDisplay(PSPAWNINFO pChar, PSEARCHSPAWN pSearchSpawn, DWORD Color)
 			SWhoSortOrigin=pOrigin;
 			qsort(&SpawnSet.List[0],TotalMatching,sizeof(PSPAWNINFO),pWHOSORTCompare);
 		}
-
 		WriteChatColor("List of matching spawns",USERCOLOR_WHO);
         WriteChatColor("--------------------------------",USERCOLOR_WHO);
 		for (DWORD N=0 ; N < TotalMatching ; N++)
@@ -5379,7 +5295,6 @@ VOID SuperWhoDisplay(PSPAWNINFO pChar, PSEARCHSPAWN pSearchSpawn, DWORD Color)
 			break;
 		}
 		WriteChatf("There %s \ag%d\ax %s%s in %s.",(TotalMatching == 1)?"is":"are",TotalMatching, pszSpawnType, (TotalMatching==1)?"":"s", GetFullZone(pChar->Zone));
-
 	}
 	else
 	{
@@ -5393,7 +5308,6 @@ VOID SuperWhoDisplay(PSPAWNINFO pChar, PSEARCHSPAWN pSearchSpawn, DWORD Color)
 }
 
 #ifndef ISXEQ_LEGACY
-
 DWORD WINAPI thrMsgBox(LPVOID lpParameter)
 {
     MessageBox(NULL,(PCHAR)lpParameter,"MacroQuest",MB_OK);
@@ -5530,7 +5444,6 @@ bool GetBuffID(PSPELLBUFF pBuff, DWORD &nID)
 	return false;
 }
 
-
 #define IS_SET(flag, bit)   ((flag) & (bit))
 #define LDON_Non    0
 #define LDON_DG     1
@@ -5550,7 +5463,6 @@ PCHAR GetLDoNTheme(DWORD LDTheme)
    return "Unknown";
 } 
 
-
 DWORD GetItemTimer(PCONTENTS pItem)
 {
     DWORD Timer=pPCData->GetItemTimerValue((EQ_Item*)pItem);
@@ -5562,12 +5474,12 @@ PCONTENTS GetItemContentsBySlotID(DWORD dwSlotID)
 {
   int InvSlot=-1; 
   int SubSlot=-1; 
-  if(dwSlotID>=0 && dwSlotID<30) InvSlot=dwSlotID; 
+  if(dwSlotID>=0 && dwSlotID<NUM_INV_SLOTS) InvSlot=dwSlotID; 
   else if(dwSlotID>=251 && dwSlotID<361) { 
     InvSlot=22+(dwSlotID-251)/10; 
     SubSlot=(dwSlotID-1)%10; 
   } 
-  if(InvSlot>=0 && InvSlot<30) { 
+  if(InvSlot>=0 && InvSlot<NUM_INV_SLOTS) { 
     if(PCONTENTS iSlot=GetCharInfo2()->InventoryArray[InvSlot]) { 
       if(SubSlot<0) return iSlot; 
       if(PCONTENTS sSlot=GetCharInfo2()->InventoryArray[InvSlot]->Contents[SubSlot]) return sSlot; 
@@ -5578,7 +5490,7 @@ PCONTENTS GetItemContentsBySlotID(DWORD dwSlotID)
 
 PCONTENTS GetItemContentsByName(CHAR *ItemName)
 {
-    for(unsigned long nSlot=0; nSlot<30; nSlot++)
+    for(unsigned long nSlot=0; nSlot<NUM_INV_SLOTS; nSlot++)
       if(PCONTENTS pItem=GetCharInfo2()->InventoryArray[nSlot])
 	    if(!strcmp(ItemName,pItem->Item->Name)) return pItem;
 
@@ -5686,7 +5598,6 @@ bool BuffStackTest(PSPELL aSpell, PSPELL bSpell){
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 // Functions that were built into commands and people used DoCommand to execute                  //
-
 void AttackRanged(EQPlayer *pRangedTarget)
 {
 	if (pRangedTarget && gbRangedAttackReady)
@@ -5757,6 +5668,4 @@ void UseAbility(char *sAbility) {
 
 //                                                                                               //
 ///////////////////////////////////////////////////////////////////////////////////////////////////
-
 #endif
-

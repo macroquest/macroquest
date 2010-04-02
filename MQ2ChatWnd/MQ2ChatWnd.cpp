@@ -1,11 +1,8 @@
 // MQ2ChatWnd.cpp : Defines the entry point for the DLL application.
 //
-
 // Single-window MQ Chat
-
 //#define DEBUG_TRY 1
 #include "../MQ2Plugin.h"
-
 struct ChatBuffer
 {
 	CHAR Text[MAX_STRING];
@@ -16,10 +13,8 @@ DWORD bmStripFirstStmlLines=0;
 DWORD PendingChatLines=0;
 ChatBuffer* pPendingChat=0;
 ChatBuffer* pPendingChatTail=0;
-
 #define MAX_CHAT_SIZE 700
 #define LINES_PER_FRAME 3
-
 void SaveChatToINI(PCSIDLWND pWindow);
 void CreateChatWindow();
 class CMQChatWnd;
@@ -39,14 +34,12 @@ public:
 		InputBox->SetMaxChars(512);
 		OutputBox=(CStmlWnd*)GetChildItem("CWChatOutput");
 		OutBoxLines=0;
-		*(DWORD*)&(((PCHAR)OutputBox)[0x1C0])=400;
+		*(DWORD*)&(((PCHAR)OutputBox)[0x1C4])=400;
 		OutputBox->Clickable=1;
 	}
-
 	~CMQChatWnd()
 	{
 	}
-
 	int WndNotification(CXWnd *pWnd, unsigned int Message, void *unknown)
 	{	
 		if (pWnd==(CXWnd*)InputBox)
@@ -81,18 +74,14 @@ public:
 		}
 		return CSidlScreenWnd::WndNotification(pWnd,Message,unknown);
 	};
-
 	CTextEntryWnd *InputBox;
 	CStmlWnd *OutputBox;
 	DWORD OutBoxLines;
 };
 
-
 PLUGIN_API VOID OnCleanUI(VOID);
 PLUGIN_API VOID SetGameState(DWORD GameState);
-
 PreSetup("MQ2ChatWnd");
-
 
 CHAR szChatINISection[MAX_STRING] = {0};
 void LoadChatFromINI(PCSIDLWND pWindow)
@@ -106,7 +95,6 @@ void LoadChatFromINI(PCSIDLWND pWindow)
 	pWindow->Location.right 	= GetPrivateProfileInt(szChatINISection,"ChatRight", 410,INIFileName);
 	pWindow->Locked			 	= GetPrivateProfileInt(szChatINISection,"Locked",	   0,INIFileName);
 	*(DWORD*)&(((PCHAR)MQChatWnd->OutputBox)[0x174])		= GetPrivateProfileInt(szChatINISection,"FontSize",	   4,INIFileName);
-
 	pWindow->Fades			 	= GetPrivateProfileInt(szChatINISection,"Fades",	   1,INIFileName);
 	pWindow->TimeMouseOver	 	= GetPrivateProfileInt(szChatINISection,"Delay",	 2000,INIFileName);
 	pWindow->FadeDuration	 	= GetPrivateProfileInt(szChatINISection,"Duration",	   500,INIFileName);
@@ -116,12 +104,10 @@ void LoadChatFromINI(PCSIDLWND pWindow)
 	pWindow->BGColor.R				= GetPrivateProfileInt(szChatINISection,"BGTint.red",	   255,INIFileName);
 	pWindow->BGColor.G				= GetPrivateProfileInt(szChatINISection,"BGTint.green",	   255,INIFileName);
 	pWindow->BGColor.B				= GetPrivateProfileInt(szChatINISection,"BGTint.blue",	   255,INIFileName);
-
 	GetPrivateProfileString(szChatINISection,"WindowTitle","MQ",Buffer,MAX_STRING,INIFileName);
 	SetCXStr(&pWindow->WindowText,Buffer);
 	/**/
 }
-
 void SaveChatToINI(PCSIDLWND pWindow)
 {
 	
@@ -141,10 +127,8 @@ void SaveChatToINI(PCSIDLWND pWindow)
 		WritePrivateProfileString(szChatINISection,"ChatRight",	itoa(pWindow->Location.right,	szTemp,10),INIFileName);
 	}
 	WritePrivateProfileString(szChatINISection,"Locked",	itoa(pWindow->Locked,			szTemp,10),INIFileName);
-
 	GetCXStr(pWindow->WindowText,szTemp);
 	WritePrivateProfileString(szChatINISection,"WindowTitle",	szTemp				  ,INIFileName);
-
 	WritePrivateProfileString(szChatINISection,"Fades",	itoa(pWindow->Fades,			szTemp,10),INIFileName);
 	WritePrivateProfileString(szChatINISection,"Delay",	itoa(pWindow->MouseOver,			szTemp,10),INIFileName);
 	WritePrivateProfileString(szChatINISection,"Duration",	itoa(pWindow->FadeDuration,			szTemp,10),INIFileName);
@@ -157,7 +141,6 @@ void SaveChatToINI(PCSIDLWND pWindow)
 	WritePrivateProfileString(szChatINISection,"FontSize",	itoa(*(DWORD*)&(((PCHAR)MQChatWnd->OutputBox)[0x174]),			szTemp,10),INIFileName);
 	/**/
 }
-
 
 VOID Style(PSPAWNINFO pChar, PCHAR szLine)
 {
@@ -184,7 +167,6 @@ VOID Style(PSPAWNINFO pChar, PCHAR szLine)
 	sprintf(out,"Style 0x%X",MQChatWnd->WindowStyle);
 	WriteChatColor(out);
 }
-
 VOID MQChatFont(PSPAWNINFO pChar, PCHAR Line)
 {
 	if (MQChatWnd)
@@ -197,31 +179,25 @@ VOID MQChatFont(PSPAWNINFO pChar, PCHAR Line)
 		WriteChatf("MQ2ChatWnd Font Size=%d",*(DWORD*)&(((PCHAR)MQChatWnd->OutputBox)[0x174]));
 	}
 }
-
 VOID MQChatMin(PSPAWNINFO pChar, PCHAR Line)
 {
 	if (MQChatWnd) {
             ((CXWnd*)MQChatWnd)->OnMinimizeBox();
         }
 }
-
 PLUGIN_API VOID InitializePlugin(VOID)
 {
 	DebugSpewAlways("Initializing MQ2ChatWnd");
-
 	// Add commands, macro parameters, hooks, etc.
 	AddCommand("/style",Style,0,1,0);
 	AddCommand("/mqfont",MQChatFont);
 	AddCommand("/mqmin",MQChatMin);
-
 	AddMQ2KeyBind("MQ2CHAT",DoMQ2ChatBind);
 	bmStripFirstStmlLines=AddMQ2Benchmark("StripFirstStmlLines");
 }
-
 PLUGIN_API VOID ShutdownPlugin(VOID)
 {
 	DebugSpewAlways("Shutting down MQ2ChatWnd");
-
 	while(pPendingChat)
 	{
 		ChatBuffer *pNext=pPendingChat->pNext;
@@ -230,7 +206,6 @@ PLUGIN_API VOID ShutdownPlugin(VOID)
 	}
 	pPendingChatTail=0;
 	PendingChatLines=0;
-
 	// Remove commands, macro parameters, hooks, etc.
 	RemoveCommand("/style");
 	RemoveCommand("/mqfont");
@@ -240,13 +215,12 @@ PLUGIN_API VOID ShutdownPlugin(VOID)
 	OnCleanUI();
 }
 
-
 // This is called every time WriteChatColor is called by MQ2Main or any plugin,
 // IGNORING FILTERS, IF YOU NEED THEM MAKE SURE TO IMPLEMENT THEM. IF YOU DONT
 // CALL CEverQuest::dsp_chat MAKE SURE TO IMPLEMENT EVENTS HERE
 PLUGIN_API DWORD OnWriteChatColor(PCHAR Line, DWORD Color, DWORD Filter)
 {
-//	DebugSpewAlways("MQ2ChatWnd::OnWriteChatColor(%s)",Line);
+	//DebugSpewAlways("MQ2ChatWnd::OnWriteChatColor(%s)",Line);
 	
 	if (!MQChatWnd)
 	{
@@ -258,9 +232,7 @@ PLUGIN_API DWORD OnWriteChatColor(PCHAR Line, DWORD Color, DWORD Filter)
 			return 0; 
 	}
 	MQChatWnd->Show=1;
-
 	PFILTER pFilter = gpFilters; 
-
 	while (pFilter) { 
 		if (!pFilter->pEnabled || (*pFilter->pEnabled)) { 
 			if (!strnicmp(Line,pFilter->FilterText,pFilter->Length)) {return 0;}
@@ -268,13 +240,11 @@ PLUGIN_API DWORD OnWriteChatColor(PCHAR Line, DWORD Color, DWORD Filter)
 		pFilter = pFilter->pNext; 
 	} 
 	Color=pChatManager->GetRGBAFromIndex(Color);
-
 	CHAR szProcessed[MAX_STRING];
 	MQToSTML(Line,szProcessed,MAX_STRING,Color);
 	strcat(szProcessed,"<br>");
 	CXStr NewText(szProcessed);
 	DebugTry(ConvertItemTags(NewText,0));
-
 	ChatBuffer *pNewBuffer = new ChatBuffer;
 	GetCXStr(NewText.Ptr,pNewBuffer->Text,MAX_STRING);
 	pNewBuffer->pPrev=pPendingChatTail;
@@ -285,10 +255,8 @@ PLUGIN_API DWORD OnWriteChatColor(PCHAR Line, DWORD Color, DWORD Filter)
 		pPendingChat=pNewBuffer;
 	pPendingChatTail=pNewBuffer;
 	PendingChatLines++;
-
 	return 0;
 }
-
 // Called once directly before shutdown of the cleanui system, and also
 // every time the game calls CDisplay::CleanGameUI()
 PLUGIN_API VOID OnCleanUI(VOID)
@@ -301,7 +269,6 @@ PLUGIN_API VOID OnCleanUI(VOID)
 		MQChatWnd=0;
 	}
 }
-
 // Called once directly after initialization, and then every time the gamestate changes
 PLUGIN_API VOID SetGameState(DWORD GameState)
 {
@@ -323,7 +290,6 @@ PLUGIN_API VOID SetGameState(DWORD GameState)
 		}
 	}
 }
-
 PLUGIN_API VOID OnPulse(VOID)
 {
 	//DebugSpew("MQ2ChatWnd::OnPulse()");
@@ -346,7 +312,6 @@ PLUGIN_API VOID OnPulse(VOID)
 				MQChatWnd->OutBoxLines-=Diff;
 				Benchmark(bmStripFirstStmlLines,MQChatWnd->OutputBox->StripFirstSTMLLines(Diff));
 			}
-
 			CXSize Whatever;
 			for (DWORD N = 0 ; N < ThisPulse ; N++)
 			{
@@ -365,7 +330,6 @@ PLUGIN_API VOID OnPulse(VOID)
 		}
 	}
 }
-
 void CreateChatWindow()
 {
 	DebugSpew("MQ2ChatWnd::CreateChatWindow()");
@@ -378,7 +342,6 @@ void CreateChatWindow()
 	LoadChatFromINI((PCSIDLWND)MQChatWnd);
 	SaveChatToINI((PCSIDLWND)MQChatWnd); // A) we're masochists, B) this creates the file if its not there..
 }
-
 VOID DoMQ2ChatBind(PCHAR Name,BOOL Down)
 {
 	if (!Down)

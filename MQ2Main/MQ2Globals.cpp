@@ -627,16 +627,17 @@ PCHAR szItemSlot[] = {
     "legs",
     "feet",
     "waist",        // 20
+    "powersource",
     "ammo",
-	"pack1",
-	"pack2",
-	"pack3",
-	"pack4",
-	"pack5",
-	"pack6",
-	"pack7",
-	"pack8",        // 29
-    NULL            // 30
+    "pack1",
+    "pack2",
+    "pack3",
+    "pack4",
+    "pack5",
+    "pack6",
+    "pack7",
+    "pack8",        // 30
+    NULL            // 31
 };
 
 BOOL bAllErrorsFatal=FALSE;

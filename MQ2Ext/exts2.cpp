@@ -367,25 +367,26 @@ DECLARE_API ( pitem )
    KP(Recast);
    KP(TimerID);
    KP(SolventNeeded);
+
    KP(Attuneable);  //verify that this is indeed DWORD and not BYTE
+
 } 
+
+
 
 DECLARE_API ( pgroundspawn ) 
 { 
     GROUNDITEM *p, *pnull=NULL, ci; 
     DWORD cb; 
-
     // read param from command line 
     p = (GROUNDITEM *)GetExpression(args); 
-
     ReadMemory((PARAM1)p,&ci,sizeof(ci),&cb); 
-
    dprintf("\n\n\n"); 
    KP(pPrev); 
    KP(pNext); 
    KP(ID); 
    KP(DropID); 
-   KP(Unknown0x10);
+   //KP(Unknown0x10);
    KP(pSwitch); 
    KPf(Heading); 
    KPf(Z); 
@@ -393,17 +394,13 @@ DECLARE_API ( pgroundspawn )
    KPf(Y); 
    KPs(Name); 
 } 
-
 DECLARE_API ( pdoor ) 
 { 
 DOOR *p, *pnull=NULL, ci; 
     DWORD cb; 
-
     // read param from command line 
     p = (DOOR *)GetExpression(args); 
-
     ReadMemory((PARAM1)p,&ci,sizeof(ci),&cb); 
-
    dprintf("\n\n\n"); 
 
    //KP(Unknown0x00); 
@@ -421,19 +418,14 @@ DOOR *p, *pnull=NULL, ci;
    KPf(Heading); 
    KP(pSwitch);
 } 
-
 DECLARE_API ( pswitch ) 
 { 
 EQSWITCH *p, *pnull=NULL, ci; 
     DWORD cb; 
-
     // read param from command line 
     p = (EQSWITCH *)GetExpression(args); 
-
     ReadMemory((PARAM1)p,&ci,sizeof(ci),&cb); 
-
    dprintf("\n\n\n"); 
-
    KPf(Y); 
    KPf(X); 
    KPf(Z); 
@@ -442,25 +434,19 @@ EQSWITCH *p, *pnull=NULL, ci;
    KPf(Z2);
    KPf(Heading); 
 } 
-
 DECLARE_API ( pspellbuff ) 
 { 
     SPELLBUFF *p, *pnull=NULL, ci; 
     DWORD cb; 
-
     // read param from command line 
     p = (SPELLBUFF *)GetExpression(args); 
-
     ReadMemory((PARAM1)p,&ci,sizeof(ci),&cb); 
-
    dprintf("\n\n\n"); 
-
    KP(Level); 
    KP(SpellID); 
    KP(Duration); 
    KP(DamageAbsorbRemaining);
 } 
-
 //Be sure that you take into account SPELLLIST_STARTOFFSET when testing 
 //this structure! 
 DECLARE_API ( pspell ) 
@@ -470,14 +456,10 @@ DECLARE_API ( pspell )
    CHAR tmp[1024]; 
    CHAR buffer[MAX_STRING] = {0}; 
    unsigned int bitval = 1; 
-
     // read param from command line 
     p = (SPELL *)GetExpression(args); 
-
     ReadMemory((PARAM1)p,&ci,sizeof(ci),&cb); 
-
    dprintf("\n\n\n"); 
-
    KP(ID); 
    KPf(Range); 
    KPf(AERange);
@@ -541,7 +523,6 @@ DECLARE_API ( pspell )
    KP(SpellIcon); 
    KP(ResistAdj);
 } 
-
 DECLARE_API ( pzone ) 
 { 
     ZONELIST *p, *pnull=NULL, ci; 
@@ -550,20 +531,15 @@ DECLARE_API ( pzone )
    CHAR tmp[MAX_STRING] = {0}; 
    unsigned int bitval = 1; 
    int i=0; 
-
     // read param from command line 
     p = (ZONELIST *)GetExpression(args); 
-
     ReadMemory((PARAM1)p,&ci,sizeof(ci),&cb); 
-
    dprintf("\n\n\n"); 
-
    KP(Header); 
    KP(Expansion); 
    KP(Id); 
    KPs(ShortName); 
    KPs(LongName); 
-
    i = ci.Flags; 
    while (ci.Flags > 0) 
    { 
@@ -576,24 +552,18 @@ DECLARE_API ( pzone )
       bitval <<= 1; 
    } 
    dprintf("Flags = %d [%s] (Offset: 0x%x)\n", i, buffer, &pnull->Flags ); 
-
    KP(Id2); 
    KP(PoPValue); 
    KP(MinLevel); 
 } 
-
 DECLARE_API ( pzoneinfo ) 
 { 
     ZONEINFO *p, *pnull=NULL, ci; 
     DWORD cb; 
-
     // read param from command line 
     p = (ZONEINFO *)GetExpression(args); 
-
     ReadMemory((PARAM1)p,&ci,sizeof(ci),&cb); 
-
    dprintf("\n\n\n"); 
-
    KPs(CharacterName); 
    KPs(ShortName); 
    KPs(LongName); 
@@ -622,7 +592,6 @@ DECLARE_API ( pzoneinfo )
 //   for (i=0; i < 14; i++) 
 //      dprintf("Unknown0x220[%d] = %d (offset 0x%x)\n", i, ci.Unknown0x220[i], &pnull->Unknown0x220[i]); 
 } 
-
 DECLARE_API ( plootcorpse ) 
 { 
     LOOTCORPSE *p, *pnull=NULL, ci; 
@@ -631,14 +600,10 @@ DECLARE_API ( plootcorpse )
    CHAR tmp[MAX_STRING] = {0}; 
    unsigned int bitval = 1; 
    int i=0; 
-
     // read param from command line 
     p = (LOOTCORPSE *)GetExpression(args); 
-
     ReadMemory((PARAM1)p,&ci,sizeof(ci),&cb); 
-
    dprintf("\n\n\n"); 
-
    KP(Unknown0x000); 
    KPs(Name); 
    KPf(Timer); 
@@ -659,8 +624,6 @@ DECLARE_API ( plootcorpse )
    dprintf("Flags = %d [%s] (Offset: 0x%x)\n", i, buffer, &pnull->Flags ); 
    KP(Unknown0x08c); 
 } 
-
-
 // This routine exports all spell information in the game (stored 
 // in memory) into a tilde delimited format which works well with 
 // Microsoft Excel. 
@@ -677,7 +640,6 @@ DECLARE_API ( exportallspells )
    int i=1; 
    int j=0; 
    int k=0; 
-
    dprintf("ID~Name~Range~CastTime~FizzleTime~RecastTime~DurationType~DurationValue1~Mana~"); 
    dprintf("Target~CastOnYou~CastOnAnother~WearOff~"); 
    dprintf("BookIcon~GemIcon~SpellIcon~"); 
@@ -688,15 +650,12 @@ DECLARE_API ( exportallspells )
    for (k=0;k<12;k++) dprintf("Calc%d~",k+1); 
    for (k=0;k<12;k++) dprintf("Attrib%d~",k+1); 
    dprintf("DescNum~FizzLeadj\n"); 
-
    while( i <= (TOTAL_SPELL_COUNT+2) ) 
    { 
       q = (DWORD*) GetExpression(args)+j; 
       ReadMemory((PARAM1)q, &r, sizeof(r), &cb); 
-
       p = (SPELL *)r; 
       ReadMemory((PARAM1)p,&ci,sizeof(ci),&cb); 
-
       //Read some memory locations into buffers 
       ReadMemory((PARAM1)ci.Name,Name,256,&cb); 
       ReadMemory((PARAM1)ci.Target,Target,256,&cb); 
@@ -704,7 +663,6 @@ DECLARE_API ( exportallspells )
       ReadMemory((PARAM1)ci.CastOnAnother,CastOnAnother,256,&cb); 
       ReadMemory((PARAM1)ci.WearOff,WearOff,256,&cb); 
       // 
-
       dprintf("%d~%s~%2f~%d~%d~%d~%d~%d~%d~", ci.ID, Name, ci.Range, ci.CastTime, ci.FizzleTime, ci.RecastTime, ci.DurationType, ci.DurationValue1, ci.Mana ); 
       dprintf("%s~%s~Someone%s~%s~", Target, CastOnYou, CastOnAnother, WearOff ); 
       dprintf("%d~%d~%d~", ci.BookIcon, ci.GemIcon, ci.SpellIcon ); 
@@ -715,7 +673,6 @@ DECLARE_API ( exportallspells )
       for (k=0;k<12;k++) dprintf("%d~", ci.Calc[k]); 
       for (k=0;k<12;k++) dprintf("%d~", ci.Attrib[k]); 
       dprintf("~%d\n", ci.FizzleAdj ); 
-
     
       //Clean up (always better to be safe than sorry) 
       Name[0] = Target[0] = CastOnYou[0] = CastOnAnother[0] = WearOff[0] = '\0'; 
@@ -723,40 +680,29 @@ DECLARE_API ( exportallspells )
       j++; 
    } 
 } 
-
 DECLARE_API ( plootwnd ) 
 { 
    EQLOOTWINDOW *p, *pnull=NULL, ci; 
    DWORD cb; 
 
-
     // read param from command line 
     p = (EQLOOTWINDOW *)GetExpression(args); 
-
     ReadMemory((PARAM1)p,&ci,sizeof(ci),&cb); 
-
    dprintf("\n\n\n"); 
-
    KP(Wnd);
    KP(Unknown0x148);
    KP(Unknown0x150);
    KP(ItemDesc);
-
 } 
-
 DECLARE_API ( ptradeskillwnd ) 
 { 
    EQTRADESKILLWINDOW *p, *pnull=NULL, ci; 
    DWORD cb; 
 
-
     // read param from command line 
     p = (EQTRADESKILLWINDOW *)GetExpression(args); 
-
     ReadMemory((PARAM1)p,&ci,sizeof(ci),&cb); 
-
    dprintf("\n\n\n"); 
-
    KP(SearchResults[0]);
    KP(Unknown0x344);
    KP(Container);
@@ -765,18 +711,14 @@ DECLARE_API ( ptradeskillwnd )
    KP(Unknown0x3c4);
    KP(Unknown0x3d4);
 } 
-
 DECLARE_API ( precipe ) 
 { 
    EQTRADESKILLRECIPE *p, *pnull=NULL, ci; 
    DWORD cb; 
 
-
     // read param from command line 
     p = (EQTRADESKILLRECIPE *)GetExpression(args); 
-
     ReadMemory((PARAM1)p,&ci,sizeof(ci),&cb); 
-
    dprintf("\n\n\n"); 
    
    KP(Trivial);
@@ -787,17 +729,13 @@ DECLARE_API ( precipe )
    for (i=0; i < 10; i++) 
      dprintf("IngredientIcon[%d] = %d (offset 0x%x)\n", i, ci.IngredientIcon[i], &pnull->IngredientIcon[i]); 
 }
-
 DECLARE_API ( ppetinfownd ) 
 { 
    EQPETINFOWINDOW *p, *pnull=NULL, ci; 
    DWORD cb; 
-
    // read param from command line 
    p = (EQPETINFOWINDOW *)GetExpression(args); 
-
    ReadMemory((PARAM1)p,&ci,sizeof(ci),&cb); 
-
    dprintf("\n\n\n"); 
 
    KP(Unknown0x150);
@@ -812,12 +750,9 @@ DECLARE_API ( pguildwnd )
 { 
    EQGUILDWINDOW *p, *pnull=NULL, ci; 
    DWORD cb; 
-
    // read param from command line 
    p = (EQGUILDWINDOW *)GetExpression(args); 
-
    ReadMemory((PARAM1)p,&ci,sizeof(ci),&cb); 
-
    dprintf("\n\n\n"); 
    KP(ShowOffline);
    KP(pMember);
@@ -827,19 +762,14 @@ DECLARE_API ( pguildwnd )
    KP(Unknown0x208);
    KP(Unknown0x3c8);
 }
-
 DECLARE_API ( pguildmemberinfo ) 
 { 
    GUILDMEMBERINFO *p, *pnull=NULL, ci; 
    DWORD cb; 
-
    // read param from command line 
    p = (GUILDMEMBERINFO *)GetExpression(args); 
-
    ReadMemory((PARAM1)p,&ci,sizeof(ci),&cb); 
-
    dprintf("\n\n\n"); 
-
    KP(UnknownData0x005);
    KP(UnknownData0x006);
    KPs(Name);
@@ -852,31 +782,23 @@ DECLARE_API ( pguildmemberinfo )
    KP(UnknownData0x264);
    KP(UnknownData0x266);
 }
-
 DECLARE_API ( praidwnd ) 
 { 
    EQRAIDWINDOW *p, *pnull=NULL, ci; 
    DWORD cb; 
-
    // read param from command line 
    p = (EQRAIDWINDOW *)GetExpression(args); 
-
    ReadMemory((PARAM1)p,&ci,sizeof(ci),&cb); 
-
    dprintf("\n\n\n"); 
    KP(ClassColors);
 }
-
 DECLARE_API ( praid ) 
 { 
    EQRAID *p, *pnull=NULL, ci; 
    DWORD cb; 
-
    // read param from command line 
    p = (EQRAID *)GetExpression(args); 
-
    ReadMemory((PARAM1)p,&ci,sizeof(ci),&cb); 
-
    dprintf("\n\n\n"); 
    KP(RaidMemberUsed);
    KP(RaidMember);
@@ -903,12 +825,9 @@ DECLARE_API ( paltability )
    CHAR tmp[MAX_STRING] = {0}; 
    unsigned int bitval = 1; 
    int i=0; 
-
     // read param from command line 
     p = (ALTABILITY  *)GetExpression(args); 
-
     ReadMemory((PARAM1)p,&ci,sizeof(ci),&cb); 
-
     dprintf("\n\n\n"); 
 	KP(Index);
 	KP(nShortName);
@@ -927,8 +846,10 @@ DECLARE_API ( paltability )
 	KP(Unknown0x58);
 } 
 
+
 DECLARE_API ( ptmp ) 
 { 
+
    ALTADVMGR *p, *pnull=NULL, ci; 
    DWORD cb; 
    CHAR buffer[MAX_STRING] = {0}; 

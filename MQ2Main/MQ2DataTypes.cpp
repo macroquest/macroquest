@@ -2658,7 +2658,7 @@ bool MQ2CharacterType::GETMEMBER()
 		{
 		Dest.DWord=0;
 		Dest.Type=pIntType;
-		for (DWORD slot=22;slot<30;slot++) 
+		for (DWORD slot=BAG_SLOT_START;slot<NUM_INV_SLOTS;slot++) 
 		{
 			if (PCONTENTS pItem = GetCharInfo2()->InventoryArray[slot])
 			{
@@ -2689,7 +2689,7 @@ bool MQ2CharacterType::GETMEMBER()
 			if (nSize>4)
 				nSize=4;
 			Dest.DWord=0;
-			for (DWORD slot=22;slot<30;slot++) 
+			for (DWORD slot=BAG_SLOT_START;slot<NUM_INV_SLOTS;slot++) 
 			{
 				if (PCONTENTS pItem = GetCharInfo2()->InventoryArray[slot]) 
 				{
@@ -2713,7 +2713,7 @@ bool MQ2CharacterType::GETMEMBER()
 		else
 		{
 			Dest.DWord=0;
-			for (DWORD slot=22;slot<30;slot++) 
+			for (DWORD slot=BAG_SLOT_START;slot<NUM_INV_SLOTS;slot++) 
 			{
 				if (PCONTENTS pItem = GetCharInfo2()->InventoryArray[slot]) 
 				{
@@ -3646,7 +3646,7 @@ bool MQ2ItemType::GETMEMBER()
             Dest.DWord=0;
             Dest.Type=pIntType;
             if (!((EQ_Item*)pItem)->IsStackable()) return true;
-            for (DWORD slot=22;slot<30;slot++) 
+            for (DWORD slot=BAG_SLOT_START;slot<NUM_INV_SLOTS;slot++) 
             {
                 if (PCONTENTS pTempItem = GetCharInfo2()->InventoryArray[slot])
                 {
@@ -3681,7 +3681,7 @@ bool MQ2ItemType::GETMEMBER()
             Dest.DWord=0;
             Dest.Type=pIntType;
             if (!((EQ_Item*)pItem)->IsStackable()) return true;
-            for (DWORD slot=22;slot<30;slot++) 
+            for (DWORD slot=BAG_SLOT_START;slot<NUM_INV_SLOTS;slot++) 
             {
                 if (PCONTENTS pTempItem = GetCharInfo2()->InventoryArray[slot])
                 {
@@ -3716,7 +3716,7 @@ bool MQ2ItemType::GETMEMBER()
             Dest.DWord=0;
             Dest.Type=pIntType;
             if (!((EQ_Item*)pItem)->IsStackable()) return true;
-            for (DWORD slot=22;slot<30;slot++)
+            for (DWORD slot=BAG_SLOT_START;slot<NUM_INV_SLOTS;slot++)
             {
                 if (PCONTENTS pTempItem = GetCharInfo2()->InventoryArray[slot])
                 {
@@ -4083,20 +4083,19 @@ bool MQ2WindowType::GETMEMBER()
 		Dest.Type=pIntType;
 		return true;
 	case List:
-            {
-                int n = 0;
+		{
+		int n = 0;
 		if (((CXWnd*)pWnd)->GetType()==UI_Combobox)
 			VarPtr.Ptr=pWnd->SidlText;
 		else if (((CXWnd*)pWnd)->GetType()!=UI_Listbox)
 			return false;
-
 #ifndef ISXEQ
 		if (PCHAR pComma=strchr(Index,',')) {
-                    n = atoi(pComma+1) - 1;
-                    if (n < 0) n=0;
+			n = atoi(pComma+1) - 1;
+			if (n < 0) n=0;
 DebugSpew("List: index is %d\n", n);
-                    *pComma = '\0';
-                }
+				*pComma = '\0';
+		}
 #else
 		if (argc==2) 
 			n=atoi(argv[1]); 
@@ -4110,7 +4109,7 @@ DebugSpew("List: index is %d\n", n);
 				return false;
 			nIndex--;
 			CXStr Str;
-                        ((CListWnd*)pWnd)->GetItemText(&Str, nIndex, n);
+			((CListWnd*)pWnd)->GetItemText(&Str, nIndex, n);
 			GetCXStr(Str.Ptr,DataTypeTemp,MAX_STRING);
 			Dest.Ptr=&DataTypeTemp[0];
 			Dest.Type=pStringType;
@@ -4133,7 +4132,7 @@ DebugSpew("List: index is %d\n", n);
 			while(1)
 			{
 				CXStr Str;
-                                ((CListWnd*)pWnd)->GetItemText(&Str, nIndex,n);
+				((CListWnd*)pWnd)->GetItemText(&Str, nIndex,n);
 				GetCXStr(Str.Ptr,DataTypeTemp,MAX_STRING);
 				if (DataTypeTemp[0]==0)
 					return false;
@@ -4161,7 +4160,7 @@ DebugSpew("List: index is %d\n", n);
 			} 
 		}
 		return false;
-            }
+		}
 	case Name:
 		{
 			if (CXMLData *pXMLData=((CXWnd*)pWnd)->GetXMLData())
@@ -5189,13 +5188,13 @@ bool MQ2InvSlotType::GETMEMBER()
 		}
 		return false;
 	case Name:
-		if (nInvSlot>=0 && nInvSlot<30) 
+		if (nInvSlot>=0 && nInvSlot<NUM_INV_SLOTS) 
         {
             Dest.Ptr=szItemSlot[nInvSlot];
             Dest.Type=pStringType;
             return true;
         }
-		if (nInvSlot>=22 && nInvSlot<30)
+		if (nInvSlot>=BAG_SLOT_START && nInvSlot<NUM_INV_SLOTS)
 		{
 			sprintf(DataTypeTemp,"pack%d",nInvSlot-21);
 			Dest.Ptr=&DataTypeTemp[0];
