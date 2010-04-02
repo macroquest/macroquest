@@ -116,7 +116,7 @@ VOID SendEQMessage(DWORD PacketType, PVOID pData, DWORD Length)
 	{
 		return;
 	}
-	send_message(EQADDR_GWORLD,PacketType,pData,Length,TRUE);
+	send_message(pData,Length,EQADDR_GWORLD,PacketType,TRUE);
 }
 
 

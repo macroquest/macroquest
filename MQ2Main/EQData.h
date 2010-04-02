@@ -1089,14 +1089,14 @@ typedef struct _SPAWNINFO {
 /*0x0499*/ BYTE     Unknown0x499[0xb];
 /*0x04a4*/ DWORD    FishingETA;
 /*0x04a8*/ LONG     HPCurrent;
-/*0x04ac*/ BYTE     Unknown0x4ac[0x918];
-/*0x0dc4*/ struct   _SPAWNINFO *WhoFollowing; // NULL if autofollow off
-/*0x0dc8*/ struct   _SPAWNINFO *pGroupAssistNPC[1];
-/*0x0dcc*/ struct   _SPAWNINFO *pRaidAssistNPC[3];
-/*0x0dd8*/ struct   _SPAWNINFO *pGroupMarkNPC[3];
-/*0x0de4*/ struct   _SPAWNINFO *pRaidMarkNPC[3];
-/*0x0df0*/ struct   _SPAWNINFO *pTargetOfTarget;
-/*0x0df4*/ BYTE     Unknown0xdf8[0x30];
+/*0x04ac*/ BYTE     Unknown0x4ac[0x91c];
+/*0x0dc8*/ struct   _SPAWNINFO *WhoFollowing; // NULL if autofollow off
+/*0x0dcc*/ struct   _SPAWNINFO *pGroupAssistNPC[1];
+/*0x0dd0*/ struct   _SPAWNINFO *pRaidAssistNPC[3];
+/*0x0ddc*/ struct   _SPAWNINFO *pGroupMarkNPC[3];
+/*0x0de8*/ struct   _SPAWNINFO *pRaidMarkNPC[3];
+/*0x0df4*/ struct   _SPAWNINFO *pTargetOfTarget;
+/*0x0df8*/ BYTE     Unknown0xdf8[0x2c];
 /*0x0e24*/ BYTE     InNonPCRaceIllusion;
 /*0x0e25*/ BYTE     Unknown0xe2d[0xb];
 /*0x0e30*/ BYTE     FaceStyle;

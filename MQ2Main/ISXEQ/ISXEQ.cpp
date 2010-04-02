@@ -346,7 +346,7 @@ extern int __cdecl memcheck1(unsigned char *buffer, int count, struct mckey key)
 extern int __cdecl memcheck2(unsigned char *buffer, int count, struct mckey key);
 extern int __cdecl memcheck3(unsigned char *buffer, int count, struct mckey key);
 extern int __cdecl memcheck4(unsigned char *buffer, int count, struct mckey key);
-extern VOID memchecks_tramp(PVOID,DWORD,PCHAR,DWORD,BOOL);
+extern VOID memchecks_tramp(PCHAR,DWORD,PVOID,DWORD,BOOL);
 
 // this is the memory checker key struct
 struct mckey {
