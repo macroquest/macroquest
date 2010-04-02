@@ -498,6 +498,9 @@
 #define CStmlWnd__MakeWndNotificationTag                           0x68CB60
 #define CStmlWnd__StripFirstSTMLLines                              0x694DF0
 #define CStmlWnd__UpdateHistoryString                              0x68FAF0
+#define CStmlWnd__SetSTMLText                                      0x691510
+#define CStmlWnd__ForceParseNow                                    0x6954c0
+
 
 // CTabWnd 
 #define CTabWnd__Draw                                              0x698EB0

@@ -1,3 +1,17 @@
+24 December 2007 by ieatacid
+- Added adjustable HUD font size (off by default)
+   To enable it set "UseFontSize=on" in the [MQ2HUD] section
+   in MQ2HUD.ini and edit each HUD line to match this format:
+      TYPE,SIZE,X,Y,RED,GREEN,BLUE,TEXT
+   Example:
+      LastTell=3,2,401,0,255,0,LastTell:  ${MacroQuest.LastTell}
+   becomes this with a font size of 4:
+      LastTell=3,4,2,401,0,255,0,LastTell:  ${MacroQuest.LastTell}
+   * Valid sizes are 0-11.
+
+17 December 2007 by dkaa
+- Added brainiac's /mqfont fix
+
 12 December 2007 by ieatacid, dkaa
 - Updated for today's patch
 

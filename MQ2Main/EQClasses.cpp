@@ -176,6 +176,7 @@ FUNCTION_AT_VIRTUAL_ADDRESS(int CXWnd::HandleRButtonUp(class CXPoint *,unsigned 
 FUNCTION_AT_VIRTUAL_ADDRESS(int CXWnd::HandleRButtonHeld(class CXPoint *,unsigned __int32),0x4C);
 FUNCTION_AT_VIRTUAL_ADDRESS(int CXWnd::HandleRButtonUpAfterHeld(class CXPoint *,unsigned __int32),0x50);
 FUNCTION_AT_VIRTUAL_ADDRESS(int CXWnd::OnMinimizeBox(void),0x9c);
+FUNCTION_AT_VIRTUAL_ADDRESS(int CXWnd::SetFont(void*),0x10c);
 
 
 FUNCTION_AT_VIRTUAL_ADDRESS(void CListWnd::DeleteAll(void),0x14c);
@@ -991,7 +992,7 @@ FUNCTION_AT_ADDRESS(void  CChatWindow::SetChatFont(int),CChatWindow__SetChatFont
 FUNCTION_AT_ADDRESS(void  CChatWindow::Clear(void),CChatWindow__Clear);
 #endif
 #ifdef CStmlWnd__GetSTMLText
-FUNCTION_AT_ADDRESS(class CXStr  CStmlWnd::GetSTMLText(void)const ,CStmlWnd__GetSTMLText);
+FUNCTION_AT_ADDRESS(class CXStr*  CStmlWnd::GetSTMLText(class CXStr*&)const ,CStmlWnd__GetSTMLText);
 #endif
 #ifdef CChatWindow__GetInputWnd
 FUNCTION_AT_ADDRESS(class CEditWnd *  CChatWindow::GetInputWnd(void),CChatWindow__GetInputWnd);
@@ -7927,7 +7928,7 @@ FUNCTION_AT_ADDRESS(bool __cdecl CStmlWnd::CanBreakAtCharacter(unsigned short),C
 FUNCTION_AT_ADDRESS(void  CStmlWnd::UpdateHistoryString(__int32,class CXStr&),CStmlWnd__UpdateHistoryString);
 #endif
 #ifdef CStmlWnd__SetSTMLText
-//FUNCTION_AT_ADDRESS(void  CStmlWnd::SetSTMLText(class CXStr,bool,class SLinkInfo *),CStmlWnd__SetSTMLText);
+FUNCTION_AT_ADDRESS(void  CStmlWnd::SetSTMLText(class CXStr &,bool,class SLinkInfo *),CStmlWnd__SetSTMLText);
 #endif
 #ifdef SLinkInfo__SLinkInfo1
 //FUNCTION_AT_ADDRESS( SLinkInfo::SLinkInfo(void),SLinkInfo__SLinkInfo1);

@@ -86,9 +86,48 @@ DebugSpew("MQ2ChatWnd: pWnd 0x%x != OutputBox 0x%x\n", pWnd, OutputBox);
 		}
 		return CSidlScreenWnd::WndNotification(pWnd,Message,unknown);
 	};
+
+    void SetChatFont(int size) // brainiac 12-12-2007
+    {
+        struct FONTDATA
+        {
+            DWORD NumFonts;
+            PCHAR* Fonts; 
+        };
+        FONTDATA* Fonts;    // font array structure
+        CXStr* str;         // contents of stml window
+        DWORD* SelFont;     // selected font
+ 
+        // get fonts structure -- this offset can be found by looking at
+        // SetChatfont which is called from the /chatfontsize function
+        Fonts = (FONTDATA*)&(((char*)pWndMgr)[0xF4]);
+ 
+        // check font array bounds and pointers
+        if (size < 0 || size >= (int) Fonts->NumFonts) {
+            return;
+        }
+        if (Fonts->Fonts == NULL || MQChatWnd == NULL) {
+            return;
+        }
+        //DebugSpew("Setting Size: %i", size);
+ 
+        SelFont = (DWORD*)Fonts->Fonts[size];
+ 
+        // Save the text, change the font, then restore the text
+        ((CStmlWnd*)MQChatWnd->OutputBox)->GetSTMLText(str);
+        ((CXWnd*)MQChatWnd->OutputBox)->SetFont(SelFont);
+        ((CStmlWnd*)MQChatWnd->OutputBox)->SetSTMLText(*str, 1, 0);
+        ((CStmlWnd*)MQChatWnd->OutputBox)->ForceParseNow();
+        // scroll to bottom of chat window
+        DebugTry(((CXWnd*)MQChatWnd->OutputBox)->SetVScrollPos(MQChatWnd->OutputBox->VScrollMax));
+ 
+        MQChatWnd->FontSize = size;
+    };
+
 	CTextEntryWnd *InputBox;
 	CStmlWnd *OutputBox;
 	DWORD OutBoxLines;
+        DWORD FontSize;
 };
 
 PLUGIN_API VOID OnCleanUI(VOID);
@@ -106,7 +145,6 @@ void LoadChatFromINI(PCSIDLWND pWindow)
 	pWindow->Location.left		= GetPrivateProfileInt(szChatINISection,"ChatLeft",   10,INIFileName);
 	pWindow->Location.right 	= GetPrivateProfileInt(szChatINISection,"ChatRight", 410,INIFileName);
 	pWindow->Locked			 	= GetPrivateProfileInt(szChatINISection,"Locked",	   0,INIFileName);
-	*(DWORD*)&(((PCHAR)MQChatWnd->OutputBox)[0x178])		= GetPrivateProfileInt(szChatINISection,"FontSize",	   4,INIFileName);
 	pWindow->Fades			 	= GetPrivateProfileInt(szChatINISection,"Fades",	   1,INIFileName);
 	pWindow->TimeMouseOver	 	= GetPrivateProfileInt(szChatINISection,"Delay",	 2000,INIFileName);
 	pWindow->FadeDuration	 	= GetPrivateProfileInt(szChatINISection,"Duration",	   500,INIFileName);
@@ -118,6 +156,8 @@ void LoadChatFromINI(PCSIDLWND pWindow)
 	pWindow->BGColor.B				= GetPrivateProfileInt(szChatINISection,"BGTint.blue",	   255,INIFileName);
 	GetPrivateProfileString(szChatINISection,"WindowTitle","MQ",Buffer,MAX_STRING,INIFileName);
 	SetCXStr(&pWindow->WindowText,Buffer);
+        
+        MQChatWnd->SetChatFont(GetPrivateProfileInt(szChatINISection,"FontSize", 4, INIFileName));
 	/**/
 }
 void SaveChatToINI(PCSIDLWND pWindow)
@@ -150,7 +190,7 @@ void SaveChatToINI(PCSIDLWND pWindow)
 	WritePrivateProfileString(szChatINISection,"BGTint.red",	itoa(pWindow->BGColor.R,			szTemp,10),INIFileName);
 	WritePrivateProfileString(szChatINISection,"BGTint.green",	itoa(pWindow->BGColor.G,			szTemp,10),INIFileName);
 	WritePrivateProfileString(szChatINISection,"BGTint.blue",	itoa(pWindow->BGColor.B,			szTemp,10),INIFileName);
-	WritePrivateProfileString(szChatINISection,"FontSize",	itoa(*(DWORD*)&(((PCHAR)MQChatWnd->OutputBox)[0x178]),			szTemp,10),INIFileName);
+	WritePrivateProfileString(szChatINISection,"FontSize", itoa(MQChatWnd->FontSize, szTemp,10),INIFileName);
 	/**/
 }
 
@@ -185,10 +225,14 @@ VOID MQChatFont(PSPAWNINFO pChar, PCHAR Line)
 	{
 		if (Line[0])
 		{
-			*(DWORD*)&(((PCHAR)MQChatWnd->OutputBox)[0x178])=atoi(Line);
+            int size = atoi(Line);
+            if (size < 0 || size > 10) {
+                WriteChatf("Usage: /mqfont 0-10");
+                return;
+            }
+            MQChatWnd->SetChatFont(size);
 			SaveChatToINI((PCSIDLWND)MQChatWnd);
 		}
-		WriteChatf("MQ2ChatWnd Font Size=%d",*(DWORD*)&(((PCHAR)MQChatWnd->OutputBox)[0x178]));
 	}
 }
 VOID MQChatMin(PSPAWNINFO pChar, PCHAR Line)

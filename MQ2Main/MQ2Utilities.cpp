@@ -2317,7 +2317,7 @@ PCHAR ShowSpellSlotInfo(PSPELL pSpell, PCHAR szBuffer)
          strcat(szBuff, szTemp); 
          break; 
       case 184: //Chance to hit with Backstab (or throwing/archery [http://lucy.allakhazam.com/spellraw.html?id=9616&source=Live])
-         sprintf(szTemp, "Increase Chance to Hit by %dpct with %s", pSpell->Base[i], szSkills[pSpell->Base2[i]]); 
+         sprintf(szTemp, "Increase Chance to Hit by %dpct with %s", pSpell->Base[i], pSpell->Base2[i]>=0?szSkills[pSpell->Base2[i]]:"All Skills");
          strcat(szBuff, szTemp); 
          break; 
       case 185: //Damage Mod (how to tell which, rogues get a backstab only, others get an all skills) 

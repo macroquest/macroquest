@@ -11,6 +11,7 @@ fEQW_GetDisplayWindow EQW_GetDisplayWindow=0;
 
 typedef struct _HUDELEMENT {
    DWORD Type;
+   DWORD Size;
    LONG X;
    LONG Y;
    DWORD Color;
@@ -36,6 +37,7 @@ int CheckINI=10;
 bool bBGUpdate = true;
 bool bClassHUD = true;
 bool bZoneHUD = true;
+bool bUseFontSize = false;
 
 BOOL Stat(PCHAR Filename, struct _stat &Dest)
 {
@@ -67,7 +69,7 @@ VOID AddElement(PCHAR IniString)
    Color.A=0xFF;
    // x,y,color,string
    PCHAR pComma;
-
+   DWORD Size;
 
    pComma=strchr(IniString,',');
    if (!pComma)
@@ -75,6 +77,20 @@ VOID AddElement(PCHAR IniString)
    *pComma=0;
    Type=atoi(IniString);
    IniString=&pComma[1];
+
+   if(bUseFontSize)
+   {
+      pComma=strchr(IniString,',');
+      if (!pComma)
+         return;
+      *pComma=0;
+      Size=atoi(IniString);
+      IniString=&pComma[1];
+   }
+   else
+   {
+      Size=2;
+   }
 
    pComma=strchr(IniString,',');
    if (!pComma)
@@ -126,6 +142,7 @@ VOID AddElement(PCHAR IniString)
    pElement->X=X;
    pElement->Y=Y;
    strcpy(pElement->Text,IniString);
+   pElement->Size=Size;
 
    DebugSpew("New element '%s' in color %X",pElement->Text,pElement->Color);
 }
@@ -195,12 +212,15 @@ VOID HandleINI()
    bClassHUD = strnicmp(szBuffer,"on",2)?false:true;
    GetPrivateProfileString(HUDSection,"ZoneHUD","on",szBuffer,MAX_STRING,INIFileName);
    bZoneHUD = strnicmp(szBuffer,"on",2)?false:true;
+   GetPrivateProfileString("MQ2HUD","UseFontSize","off",szBuffer,MAX_STRING,INIFileName);
+   bUseFontSize = strnicmp(szBuffer,"on",2)?false:true;
    // Write the SkipParse and CheckINI section, in case they didn't have one
    WritePrivateProfileString(HUDSection,"SkipParse",itoa(SkipParse,szBuffer,10),INIFileName);
    WritePrivateProfileString(HUDSection,"CheckINI",itoa(CheckINI,szBuffer,10),INIFileName);
    WritePrivateProfileString(HUDSection,"UpdateInBackground",bBGUpdate?"on":"off",INIFileName);
    WritePrivateProfileString(HUDSection,"ClassHUD",bClassHUD?"on":"off",INIFileName);
    WritePrivateProfileString(HUDSection,"ZoneHUD",bZoneHUD?"on":"off",INIFileName);
+   WritePrivateProfileString("MQ2HUD","UseFontSize",bUseFontSize?"on":"off",INIFileName);
 
    LoadElements();
 }
@@ -433,10 +453,9 @@ PLUGIN_API VOID OnDrawHUD(VOID)
          strcpy(szBuffer,pElement->PreParsed);
          if (szBuffer[0] && strcmp(szBuffer,"NULL"))
          {
-            DrawHUDText(szBuffer,X,Y,pElement->Color);
+            DrawHUDText(szBuffer,X,Y,pElement->Color,pElement->Size);
          }
       }
-
       pElement=pElement->pNext;
    }
 }

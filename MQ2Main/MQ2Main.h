@@ -381,7 +381,7 @@ EQLIB_API unsigned long GetFastTime(void);
 
 /* UTILITIES */
 EQLIB_API VOID ConvertCR(PCHAR Text);
-EQLIB_API VOID DrawHUDText(PCHAR Text, DWORD X, DWORD Y, DWORD Argb);
+EQLIB_API VOID DrawHUDText(PCHAR Text, DWORD X, DWORD Y, DWORD Argb, DWORD Size);
 EQLIB_API VOID FixStringTable();
 EQLIB_API VOID DebugSpew(PCHAR szFormat, ...);
 EQLIB_API VOID DebugSpewAlways(PCHAR szFormat, ...);

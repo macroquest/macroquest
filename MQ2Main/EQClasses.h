@@ -563,6 +563,7 @@ EQLIB_OBJECT void CXWnd::SetWindowTextA(class CXStr &);
 EQLIB_OBJECT static class CXWndManager * & CXWnd::sm_pMgr;
 // private
 EQLIB_OBJECT static unsigned char CXWnd::sm_byCurrentAlpha;
+EQLIB_OBJECT int CXWnd::SetFont(void*);
 
 // Data members
 /*0x000*/   struct  _CXWNDVFTABLE   *pvfTable;
@@ -4471,7 +4472,7 @@ public:
 EQLIB_OBJECT CStmlWnd::CStmlWnd(class CXWnd *,unsigned __int32,class CXRect);
 EQLIB_OBJECT bool CStmlWnd::CanGoBackward(void);
 EQLIB_OBJECT class CXSize& CStmlWnd::AppendSTML(class CXSize*, class CXStr); // lax 11-15-2003
-EQLIB_OBJECT class CXStr CStmlWnd::GetSTMLText(void)const;
+EQLIB_OBJECT class CXStr* CStmlWnd::GetSTMLText(class CXStr*&)const;
 EQLIB_OBJECT class CXStr CStmlWnd::GetVisiableText(class CXStr&,class CXRect)const;
 EQLIB_OBJECT static class CXStr __cdecl CStmlWnd::MakeStmlColorTag(unsigned long);
 EQLIB_OBJECT static class CXStr __cdecl CStmlWnd::MakeWndNotificationTag(unsigned __int32,class CXStr&,class CXStr&);
@@ -4479,7 +4480,7 @@ EQLIB_OBJECT void CStmlWnd::ActivateLink(class SLinkInfo);
 EQLIB_OBJECT void CStmlWnd::ForceParseNow(void);
 EQLIB_OBJECT void CStmlWnd::GoToBackHistoryLink(void);
 //EQLIB_OBJECT void CStmlWnd::LoadPage(class CXStr,enum ESTMLTargetValue,bool);
-EQLIB_OBJECT void CStmlWnd::SetSTMLText(class CXStr,bool,class SLinkInfo *);
+EQLIB_OBJECT void CStmlWnd::SetSTMLText(class CXStr &,bool,class SLinkInfo *);
 EQLIB_OBJECT void CStmlWnd::SetSTMLTextWithoutHistory(class CXStr);
 // virtual
 EQLIB_OBJECT CStmlWnd::~CStmlWnd(void);
@@ -4705,6 +4706,8 @@ EQLIB_OBJECT int CTextureFont::GetWidth(unsigned short)const;
 EQLIB_OBJECT CTextureFont::~CTextureFont(void);
 //EQLIB_OBJECT void * CTextureFont::`scalar deleting destructor'(unsigned int);
 //EQLIB_OBJECT void * CTextureFont::`vector deleting destructor'(unsigned int);
+void  *Unknown0x0;
+DWORD Size;
 };
 
 class CTimeLeftWnd : public CSidlScreenWnd

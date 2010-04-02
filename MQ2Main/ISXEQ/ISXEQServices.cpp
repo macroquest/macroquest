@@ -215,6 +215,7 @@ EQLIB_API VOID PluginsBeginZone(VOID)
 EQLIB_API VOID PluginsEndZone(VOID)
 {
 	pISInterface->ServiceBroadcast(pExtension,hZoneService,ZONESERVICE_ENDZONE,0);
+	gbInZone=true;
 }
 EQLIB_API VOID PluginsZoned()
 {

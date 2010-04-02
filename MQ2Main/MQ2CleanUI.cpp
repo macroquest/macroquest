@@ -103,8 +103,7 @@ void DrawHUD()
 		DrawHUDParams[0]=0;
 }
 
-
-VOID DrawHUDText(PCHAR Text, DWORD X, DWORD Y, DWORD Argb)
+VOID DrawHUDText(PCHAR Text, DWORD X, DWORD Y, DWORD Argb, DWORD Size)
 {
 
 	DWORD sX=((PCXWNDMGR)pWndMgr)->ScreenExtentX;
@@ -120,7 +119,10 @@ VOID DrawHUDText(PCHAR Text, DWORD X, DWORD Y, DWORD Argb)
 	{
 		pFont=(CTextureFont*)ppDWord[2];
 	}
+	if(Size!=2 && Size<12)
+		pFont->Size=Size;
 	pFont->DrawWrappedText(&CXStr((char*)Text),X,Y,sX-X,&CXRect(X,Y,sX,sY),Argb,1,0);
+	pFont->Size=2; // reset back to 2 or it screws up other HUD sizes
 }
 #endif
 
