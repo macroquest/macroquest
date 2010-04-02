@@ -50,7 +50,7 @@ public:
 		OutBoxLines=0;
 		*(DWORD*)&(((PCHAR)OutputBox)[0x1E4])=400;
 		OutputBox->Clickable=1;
-        Unknown0x88[0] = 0; // this disables the close on escape
+		CloseOnESC=0; // this disables the close on escape
 	}
 
 	~CMQChatWnd()
