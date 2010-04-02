@@ -759,7 +759,6 @@ EQPlayer **ppLocalPlayer=(EQPlayer**)pinstLocalPlayer;
 EQPlayer **ppControlledPlayer=(EQPlayer**)pinstControlledPlayer;
 EQWorldData **ppWorldData=(EQWorldData**)pinstWorldData;
 SpellManager **ppSpellMgr=(SpellManager**)pinstSpellManager;
-CInvSlot **ppSelectedItem=(CInvSlot **)pinstSelectedItem;
 EQGROUP *pGroup=(EQGROUP*)instGroup;
 EQPlayer **ppTarget=(EQPlayer**)pinstTarget;
 EqSwitchManager **ppSwitchMgr=(EqSwitchManager**)pinstSwitchManager;

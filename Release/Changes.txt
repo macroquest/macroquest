@@ -1,3 +1,9 @@
+17 January 2007 by ieatacid, rswiders, dkaa
+- Updated for latest patch
+
+2 January 2008 by ieatacid
+- Changed "/cast item" so that it should now work on all items
+
 24 December 2007 by ieatacid
 - Added adjustable HUD font size (off by default)
    To enable it set "UseFontSize=on" in the [MQ2HUD] section

@@ -750,9 +750,9 @@ TLO(dataDefined)
 
 TLO(dataSelectedItem)
 {
-	if (pSelectedItem && ((PEQCURRENTSELECTION)pSelectedItem)->TextureAnim)
+	if (((PEQINVSLOTMGR)pInvSlotMgr)->pSelectedItem && ((PEQCURRENTSELECTION)((PEQINVSLOTMGR)pInvSlotMgr)->pSelectedItem)->TextureAnim)
 	{
-		Ret.Ptr=*(PCONTENTS *)((PEQCURRENTSELECTION)pSelectedItem)->TextureAnim;
+		Ret.Ptr=*(PCONTENTS *)((PEQCURRENTSELECTION)((PEQINVSLOTMGR)pInvSlotMgr)->pSelectedItem)->TextureAnim;
 		Ret.Type=pItemType;
 		return true;
 	}

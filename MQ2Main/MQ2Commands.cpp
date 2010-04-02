@@ -1997,29 +1997,29 @@ VOID Cast(PSPAWNINFO pChar, PCHAR szLine)
    GetArg(szArg1,szLine,1);
    GetArg(szArg2,szLine,2);
    DebugSpew("Cast: szArg1 = %s szArg2 = %s",szArg1,szArg2);
-if (!stricmp(szArg1,"item"))
+   if (!stricmp(szArg1,"item"))
    {
       BOOL FOUND = FALSE;
-      DWORD item = 0;
       DWORD slot = 0;
-      DWORD SpawnFooter = NULL;
-      SpawnFooter = (DWORD)pLocalPlayer;
-		PITEMINFO pItem=0;;
       for (int i=0;i<NUM_INV_SLOTS;i++) {
          if (GetCharInfo2()->InventoryArray[i])
             if (!_stricmp(szArg2,GetCharInfo2()->InventoryArray[i]->Item->Name)) { 
-            DebugSpew("cast test slot %d = %s address is %x",i,GetCharInfo2()->InventoryArray[i]->Item->Name,&(GetCharInfo2()->InventoryArray[i])); 
-            item = (DWORD)&GetCharInfo2()->InventoryArray[i];
-				pItem=GetCharInfo2()->InventoryArray[i]->Item;
+            DebugSpew("cast test slot %d = %s",i,GetCharInfo2()->InventoryArray[i]->Item->Name); 
                slot = (DWORD)i;
                FOUND = TRUE;
                break;
             }
       }
       if (FOUND) {
-		 pCharData1->CastSpell(10,pItem->Clicky.SpellID,(EQ_Item**)item,0,slot,-1,-1,0,0,1);
-         return;
+         if(CInvSlot *pSlot=pInvSlotMgr->FindInvSlot(slot)) {
+            CXPoint p; p.A=0; p.B=0;
+            pSlot->HandleRButtonUp(&p);
+         }
       }
+      else {
+         WriteChatf("Item '%s' not found.",szArg2);
+      }
+      return;
    }
    GetArg(szBuffer,szLine,1);
    for (Index=0;Index<NUM_SPELL_GEMS;Index++) {

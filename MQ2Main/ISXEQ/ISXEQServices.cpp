@@ -211,6 +211,7 @@ EQLIB_API VOID PluginsRemoveGroundItem(PGROUNDITEM pGroundItem)
 EQLIB_API VOID PluginsBeginZone(VOID)
 {
 	pISInterface->ServiceBroadcast(pExtension,hZoneService,ZONESERVICE_BEGINZONE,0);
+	gbInZone=false;
 }
 EQLIB_API VOID PluginsEndZone(VOID)
 {

@@ -1880,7 +1880,7 @@ FUNCTION_AT_ADDRESS(void  CInvSlot::HandleLButtonHeld(class CXPoint),CInvSlot__H
 FUNCTION_AT_ADDRESS(void  CInvSlot::DoDrinkEatPoison(class EQ_Item *,int),CInvSlot__DoDrinkEatPoison);
 #endif
 #ifdef CInvSlot__HandleRButtonUp
-FUNCTION_AT_ADDRESS(void  CInvSlot::HandleRButtonUp(class CXPoint),CInvSlot__HandleRButtonUp);
+FUNCTION_AT_ADDRESS(void  CInvSlot::HandleRButtonUp(class CXPoint *),CInvSlot__HandleRButtonUp);
 #endif
 #ifdef CInvSlot__HandleRButtonHeld
 FUNCTION_AT_ADDRESS(void  CInvSlot::HandleRButtonHeld(class CXPoint),CInvSlot__HandleRButtonHeld);
