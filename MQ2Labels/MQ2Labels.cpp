@@ -67,6 +67,46 @@ Id_PMP[] = {
 
 PreSetup("MQ2Labels");
 
+// CSidlManager::CreateLabel 0x5F2470
+
+// the tool tip is already copied out of the 
+// in class CControlTemplate.  use this struct
+// to mock up the class, so we don't have to
+// worry about class instatiation and crap
+
+struct _CControl {
+/*0x000*/    DWORD Fluff[0x1d];
+/*0x06c*/ /* CXSTR * ToolTipReference */
+/*0x074*/    CXSTR * EQType;
+};
+
+// optimize off because the tramp looks blank to the compiler
+// and it doesn't respect the fact the it will be a real routine
+#pragma optimize ("g", off)
+
+class CSidlManagerHook {
+public:
+    class CXWnd * CreateLabel_Trampoline(class CXWnd *, struct _CControl *);
+    class CXWnd * CreateLabel_Detour(class CXWnd *CWin, struct _CControl *CControl)
+    {
+        CSIDLWND *p;
+        class CXWnd *tmp = CreateLabel_Trampoline(CWin, CControl);
+        p = (CSIDLWND *)tmp;
+        if (CControl->EQType) {
+            *((DWORD *)&p->SidlPiece) = atoi(CControl->EQType->Text);
+        } else {
+            *((DWORD *)&p->SidlPiece) = 0;
+        }
+
+        return tmp;
+    }
+};
+
+DETOUR_TRAMPOLINE_EMPTY(class CXWnd * CSidlManagerHook::CreateLabel_Trampoline(class CXWnd *, struct _CControl *));
+
+#pragma optimize ("g", on)
+
+// CLabelHook::Draw_Detour
 
 class CLabelHook {
 public:
@@ -81,16 +121,17 @@ public:
       BOOL Found=FALSE;
       DWORD index;
 
+
       if ((DWORD)pThisLabel->SidlPiece==9999) {
          if (!pThisLabel->XMLToolTip) {
             strcpy(Buffer,"BadCustom");
             Found=TRUE;
          } else {
             //strcpy(Buffer,&pThisLabel->XMLToolTip->Text[0]);
-			STMLToPlainText(&pThisLabel->XMLToolTip->Text[0],Buffer);
+            STMLToPlainText(&pThisLabel->XMLToolTip->Text[0],Buffer);
             ParseMacroParameter(((PCHARINFO)pCharData)->pSpawn,Buffer);
-			if (!strcmp(Buffer,"NULL"))
-				Buffer[0]=0;
+            if (!strcmp(Buffer,"NULL"))
+                Buffer[0]=0;
             Found=TRUE;
          }
       } else if ((DWORD)pThisLabel->SidlPiece>=1000) {
@@ -98,8 +139,8 @@ public:
             if (Id_PMP[index].ID==(DWORD)pThisLabel->SidlPiece) {
                strcpy(Buffer,Id_PMP[index].PMP);
                ParseMacroParameter(((PCHARINFO)pCharData)->pSpawn,Buffer);
-				if (!strcmp(Buffer,"NULL"))
-					Buffer[0]=0;
+	       if (!strcmp(Buffer,"NULL"))
+                    Buffer[0]=0;
                Found=TRUE;
             }
          }
@@ -151,6 +192,7 @@ PLUGIN_API VOID InitializePlugin(VOID)
 	// Add commands, macro parameters, hooks, etc.
 	//EasyClassDetour(CLabel__Draw,CLabelHook,Draw_Detour,VOID,(VOID),Draw_Trampoline);
 	EzDetour(CLabel__Draw,&CLabelHook::Draw_Detour,&CLabelHook::Draw_Trampoline);
+	EzDetour(CSidlManager__CreateLabel,&CSidlManagerHook::CreateLabel_Detour,&CSidlManagerHook::CreateLabel_Trampoline);
 
 
 // currently in testing:
@@ -164,6 +206,7 @@ PLUGIN_API VOID ShutdownPlugin(VOID)
 	DebugSpewAlways("Shutting down MQ2Labels");
 
 	// Remove commands, macro parameters, hooks, etc.
+	RemoveDetour(CSidlManager__CreateLabel);
 	RemoveDetour(CLabel__Draw);
 	//RemoveDetour(CGaugeWnd__Draw);
 	//RemoveDetour(__GetGaugeValueFromEQ);

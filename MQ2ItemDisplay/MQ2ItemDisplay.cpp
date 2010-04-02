@@ -652,7 +652,7 @@ public:
    {
       CHAR Temp[MAX_STRING]={0};
       CHAR Temp2[MAX_STRING]={0};
-      PCONTENTS pItem;
+      PCONTENTS pItem=0;
       CXWnd *pWnd=(CXWnd*)this;
 
       if(GetParentWnd(pWnd)==(CXWnd*)pPotionBeltWnd)
@@ -660,7 +660,7 @@ public:
          STMLToPlainText(&pWnd->Tooltip->Text[0],Temp);
          pItem=GetItemContentsByName(Temp);
       }
-      else
+      else if(GetParentWnd(pWnd)!=(CXWnd*)pBuffWnd)
       {
          pItem=GetItemContentsBySlotID(((CSidlScreenWnd *)pWnd)->SlotID);
       }
