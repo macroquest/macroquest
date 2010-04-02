@@ -34,7 +34,7 @@ public:
 		InputBox->SetMaxChars(512);
 		OutputBox=(CStmlWnd*)GetChildItem("CWChatOutput");
 		OutBoxLines=0;
-		*(DWORD*)&(((PCHAR)OutputBox)[0x1DC])=400;
+		*(DWORD*)&(((PCHAR)OutputBox)[0x1e8])=400;
 		OutputBox->Clickable=1;
 	}
 	~CMQChatWnd()
@@ -106,7 +106,7 @@ void LoadChatFromINI(PCSIDLWND pWindow)
 	pWindow->Location.left		= GetPrivateProfileInt(szChatINISection,"ChatLeft",   10,INIFileName);
 	pWindow->Location.right 	= GetPrivateProfileInt(szChatINISection,"ChatRight", 410,INIFileName);
 	pWindow->Locked			 	= GetPrivateProfileInt(szChatINISection,"Locked",	   0,INIFileName);
-	*(DWORD*)&(((PCHAR)MQChatWnd->OutputBox)[0x16c])		= GetPrivateProfileInt(szChatINISection,"FontSize",	   4,INIFileName);
+	*(DWORD*)&(((PCHAR)MQChatWnd->OutputBox)[0x178])		= GetPrivateProfileInt(szChatINISection,"FontSize",	   4,INIFileName);
 	pWindow->Fades			 	= GetPrivateProfileInt(szChatINISection,"Fades",	   1,INIFileName);
 	pWindow->TimeMouseOver	 	= GetPrivateProfileInt(szChatINISection,"Delay",	 2000,INIFileName);
 	pWindow->FadeDuration	 	= GetPrivateProfileInt(szChatINISection,"Duration",	   500,INIFileName);
@@ -150,7 +150,7 @@ void SaveChatToINI(PCSIDLWND pWindow)
 	WritePrivateProfileString(szChatINISection,"BGTint.red",	itoa(pWindow->BGColor.R,			szTemp,10),INIFileName);
 	WritePrivateProfileString(szChatINISection,"BGTint.green",	itoa(pWindow->BGColor.G,			szTemp,10),INIFileName);
 	WritePrivateProfileString(szChatINISection,"BGTint.blue",	itoa(pWindow->BGColor.B,			szTemp,10),INIFileName);
-	WritePrivateProfileString(szChatINISection,"FontSize",	itoa(*(DWORD*)&(((PCHAR)MQChatWnd->OutputBox)[0x16c]),			szTemp,10),INIFileName);
+	WritePrivateProfileString(szChatINISection,"FontSize",	itoa(*(DWORD*)&(((PCHAR)MQChatWnd->OutputBox)[0x178]),			szTemp,10),INIFileName);
 	/**/
 }
 
@@ -185,10 +185,10 @@ VOID MQChatFont(PSPAWNINFO pChar, PCHAR Line)
 	{
 		if (Line[0])
 		{
-			*(DWORD*)&(((PCHAR)MQChatWnd->OutputBox)[0x16c])=atoi(Line);
+			*(DWORD*)&(((PCHAR)MQChatWnd->OutputBox)[0x178])=atoi(Line);
 			SaveChatToINI((PCSIDLWND)MQChatWnd);
 		}
-		WriteChatf("MQ2ChatWnd Font Size=%d",*(DWORD*)&(((PCHAR)MQChatWnd->OutputBox)[0x16c]));
+		WriteChatf("MQ2ChatWnd Font Size=%d",*(DWORD*)&(((PCHAR)MQChatWnd->OutputBox)[0x178]));
 	}
 }
 VOID MQChatMin(PSPAWNINFO pChar, PCHAR Line)

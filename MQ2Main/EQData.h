@@ -376,7 +376,7 @@ enum MOUSE_DATA_TYPES {
    MD_Button1
 };
 
-#define nEQMappableCommands				 0x114
+#define nEQMappableCommands				 0x115
 
 #define MAX_PC_LEVEL                    75
 
@@ -1378,7 +1378,7 @@ BYTE            unknown[0x68];
 struct _SPELL*  Spells[TOTAL_SPELL_COUNT];
 } SPELLMGR, *PSPELLMGR;
 
-// actual size: 0x4f8 07-05-2007
+// actual size: 0x4fc 07-05-2007
 typedef struct _SPELL {
 /*0x000*/   FLOAT   Range;
 /*0x004*/   BYTE    Resist;             //0=un 1=mr 2=fr 3=cr 4=pr 5=dr 6=chromatic 7=prismatic 8=physical(skills,etc) 9=corruption
@@ -1466,8 +1466,8 @@ typedef struct _SPELL {
 /*0x4d0*/   DWORD   ResistAdj;
 /*0x4d4*/   BYTE    Unknown0x4d4[0x1a];
 /*0x4ee*/   BYTE    Uninterruptable;    //00=Interruptable, 01=Uninterruptable 
-/*0x4ef*/   BYTE    Unknown0x4ef[0x9];
-/*0x4f8*/
+/*0x4ef*/   BYTE    Unknown0x4ef[0xd];
+/*0x4fc*/
 } SPELL, *PSPELL;
 
 // actual size: 0x148 10-25-2006  ieatacid

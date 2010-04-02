@@ -3198,10 +3198,16 @@ bool MQ2SpellType::GETMEMBER()
 		Dest.Ptr=szSkills[pSpell->Skill];
 		Dest.Type=pStringType;
 		return true;
-   case MyCastTime: 
-      Dest.Float=(FLOAT)(pCharData1->GetAACastingTimeModifier((EQ_Spell*)pSpell)+pCharData1->GetFocusCastingTimeModifier((EQ_Spell*)pSpell,0)+pSpell->CastTime)/1000.0f; 
-      Dest.Type=pFloatType; 
-      return true; 
+    case MyCastTime: 
+        {
+        float mct = (FLOAT)(pCharData1->GetAACastingTimeModifier((EQ_Spell*)pSpell)+pCharData1->GetFocusCastingTimeModifier((EQ_Spell*)pSpell,0)+pSpell->CastTime)/1000.0f;
+        if (mct < 0.50 * pSpell->CastTime/1000.0f)
+            Dest.Float=(FLOAT)0.50 * (pSpell->CastTime/1000.0f);
+        else
+            Dest.Float=(FLOAT) mct;
+        }
+        Dest.Type=pFloatType; 
+        return true;
 	case Duration:
 		Dest.DWord=GetSpellDuration(pSpell,(PSPAWNINFO)pCharSpawn);
 		Dest.Type=pTicksType;

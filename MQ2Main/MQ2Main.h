@@ -164,7 +164,7 @@ extern DWORD CountFrees;
 #define SetWndNotification(thisclass) \
 {\
 	int (thisclass::*pfWndNotification)(CXWnd *pWnd, unsigned int Message, void *unknown)=&thisclass::WndNotification;\
-	SetvfTable(32,*(DWORD*)&pfWndNotification);\
+	SetvfTable(33,*(DWORD*)&pfWndNotification);\
 }
 
 #ifndef ISXEQ
