@@ -1,3 +1,6 @@
+5 December 2007 by ieatacid
+- Updated for today's patch
+
 25 November 2007 by ieatacid
 - "/shift /click right target" will now loot all items on a corpse
 
