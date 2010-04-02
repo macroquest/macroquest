@@ -257,23 +257,24 @@ VOID HookInlineChecks(BOOL Patch)
 
     /* add these to eqgame.h */
 
-// .text:005DE39D 81 3D 28 EF 97 00 0E C0 6D 00  cmp     dword_97EF28, 6DC00Eh
+// .text:005DE46D 81 3D 28 EF 97 00 0E C0 6D 00  cmp     dword_97EF28, 6DC00Eh
 
-    int cmps[] = {  0x5DE39D+6 };
-
-
-// .text:004C15F5 81 F9 7E DD 99 6B  cmp     ecx, 6B99DD7Eh  ; bad compare #1
-// .text:004DA594 81 F9 1A F6 AB FF  cmp     ecx, 0FFABF61Ah ; bad compare #2
-// .text:004DF49B 3D 8F 1E 41 ED     cmp     eax, 0ED411E8Fh ; bad compare #3
-// .text:004E1E2F 81 F9 E1 03 AF 2D  cmp     ecx, 2DAF03E1h  ; bad compare #4
-// .text:004DAB84 81 F9 96 65 40 87  cmp     ecx, 87406596h  ; bad compare #5
+    int cmps[] = {  0x5DE46D+6 };
 
 
-    int cmps2[] = {     0x4C15F5,
-                        0x4DA594,
-                        0x4DF49B,
-                        0x4E1E2F,
-                        0x4DAB84 };
+
+// .text:004C1165 81 F9 9E 63 A6 6B  cmp     ecx, 6BA6639Eh  ; bad compare #1
+// .text:004DA104 81 F9 1A F6 9B 93  cmp     ecx, 939BF61Ah  ; bad compare #2
+// .text:004DF00B 3D E5 14 4E 3D     cmp     eax, 3D4E14E5h  ; bad compare #3
+// .text:004E199F 81 F9 01 0F 8F 32  cmp     ecx, 328F0F01h  ; bad compare #4
+// .text:004DA6F4 81 F9 B6 E6 9C 8D  cmp     ecx, 8D9CE6B6h  ; bad compare #5
+
+
+    int cmps2[] = {     0x4C1165,
+                        0x4DA104,
+                        0x4DF00B,
+                        0x4E199F,
+                        0x4DA6F4 };
     int len2[] = { 6, 6, 5, 6, 6 };
     char NewData2[20];
     static char OldData2[sizeof(cmps2)/sizeof(cmps2[0])][20];
@@ -315,7 +316,7 @@ VOID HookInlineChecks(BOOL Patch)
 	}
 	else
 	{
-        NewData = 0x006db89e;
+        NewData = 0x006DC00E;
         for (i=0;i<sizeof(cmps)/sizeof(cmps[0]);i++) {
 #ifdef ISXEQ
 			EzUnModify(cmps[i]);

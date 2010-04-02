@@ -2890,17 +2890,9 @@ bool MQ2CharacterType::GETMEMBER()
 		Dest.Type=pIntType;
 		return true;	
 	case TributeTimer:
-		{
-			DWORD timeNow = (DWORD)time(NULL);
-			if (pChar->TributeTimer > timeNow)
-			{
-				Dest.Int=pChar->TributeTimer-timeNow+6;
-				Dest.Int/=6;
-			}
-			else Dest.Int=0;
-			Dest.Type=pTicksType;
-			return true;
-		}
+		Dest.DWord=pChar->TributeTimer/60/100;
+		Dest.Type=pTicksType;
+		return true;
 	case RadiantCrystals:
 		Dest.DWord=pChar->RadiantCrystals;
 		Dest.Type=pIntType;

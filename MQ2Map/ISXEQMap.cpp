@@ -339,7 +339,7 @@ void __cdecl EQSpawnService(bool Broadcast, unsigned int MSG, void *lpData)
 	{
 #define pSpawn ((PSPAWNINFO)lpData)
 	case SPAWNSERVICE_ADDSPAWN:
-		if (Update && pSpawn->SpawnID != 0) 
+		if (Update && pSpawn->SpawnID != 0 && GetCharInfo()->pSpawn != pSpawn)
 		{
 			DebugSpewAlways("MQ2Map::OnAddSpawn(%s)",pSpawn->Name);
 			AddSpawn(pSpawn);

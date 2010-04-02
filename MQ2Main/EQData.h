@@ -714,14 +714,15 @@ typedef struct _CHARINFO {
 /*0x00cf0*/   struct     _CONTENTS*   Bank[NUM_BANK_SLOTS];
 /*0x00d58*/   BYTE       unknown0xd58[0xdc];
 /*0x00e34*/   DWORD      GuildID;
-/*0x00e38*/   BYTE       Unknown0xe38[0x8]; // added 4
+/*0x00e38*/   BYTE       Unknown0xe38[0x8];
 /*0x00e40*/   DWORD      GuildRank; // 0=Member, 1=Officer, 2=Leader
 /*0x00e44*/   BYTE       Unknown0xe44[0x14];
 /*0x00e58*/   DWORD      AAExp;
 /*0x00e5c*/   BYTE       Unknown0xe5c; 
 /*0x00e5d*/   BYTE       PercentEXPtoAA;
-/*0x00e5e*/   BYTE       Unknown0xe5e[0x46];// added 4
-/*0x00ea4*/   DWORD      TributeTimer;//  8 before here
+/*0x00e5e*/   BYTE       Unknown0xe5e[0x42];
+/*0x00ea0*/   DWORD      TributeTimer;
+/*0x00ea4*/   DWORD      Unknown0xea4;
 /*0x00ea8*/   DWORD      CareerFavor;
 /*0x00eac*/   DWORD      Unknown0xeac;
 /*0x00eb0*/   DWORD      CurrFavor;
@@ -742,7 +743,7 @@ typedef struct _CHARINFO {
 /*0x01ad8*/   DWORD      Exp;
 /*0x01adc*/   BYTE       Unknown0x1adc[0x5c];
 /*0x01b38*/   void       *OtherCharData;
-/*0x01b3c*/   BYTE       Unknown0x1b3c[0xd144];// added 8
+/*0x01b3c*/   BYTE       Unknown0x1b3c[0xd144];
 /*0x0ec80*/   void       *vtable2;
 /*0x0ec84*/   struct     _EQC_INFO* eqc_info;
 /*0x0ec88*/   struct     _SPAWNINFO* pSpawn;
