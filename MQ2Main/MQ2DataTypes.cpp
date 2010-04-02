@@ -1308,6 +1308,18 @@ bool MQ2SpawnType::GETMEMBER()
 		Dest.DWord=pSpawn->StandState==STANDSTATE_BIND;
 		Dest.Type=pBoolType;
 		return true;
+	case Dead:
+		Dest.DWord=pSpawn->StandState==STANDSTATE_DEAD;
+		Dest.Type=pBoolType;
+		return true;
+	case Stunned:
+		Dest.DWord=(GetCharInfo() && GetCharInfo()->Stunned==1);
+		Dest.Type=pBoolType;
+		return true;
+	case Hovering:
+		Dest.DWord=(pSpawn->RespawnTimer);
+		Dest.Type=pBoolType;
+		return true;
 	case Deity:
 		Dest.DWord=pSpawn->Deity;
 		Dest.Type=pDeityType;

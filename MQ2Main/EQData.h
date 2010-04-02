@@ -722,7 +722,7 @@ typedef struct _CI2_INFO {
 /* 0x0060 */
 } CI2_INFO, *PCI2_INFO;
 
-// actual size 0x1133c 04-17-2008  1132c
+// actual size 0x1133c 04-17-2008
 typedef struct _CHARINFO {
 /*0x00000*/   void       *vtable1;
 /*0x00004*/   void       *punknown;
@@ -1065,7 +1065,7 @@ typedef struct _FELLOWSHIPINFO {
 /*0x884*/
 } FELLOWSHIPINFO, *PFELLOWSHIPINFO;
 
-// actual size: 0x1bbc 04-17-2008
+// actual size: 0x1be4 05-22-2008
 typedef struct _SPAWNINFO {
 /*0x0000*/ void     *vtable;
 /*0x0004*/ struct   _SPAWNINFO *pPrev;
@@ -1202,7 +1202,7 @@ typedef struct _SPAWNINFO {
 /*0x0e8c*/ ARGBCOLOR ArmorColor[0x9];
 /*0x0eb0*/ BYTE     Unknown0xeb0[0x4];
 /*0x0eb4*/ DWORD    Heritage;               //drakkin only face setting
-/*0x0eb3*/ DWORD    Tattoo;                 //drakkin only face setting
+/*0x0eb8*/ DWORD    Tattoo;                 //drakkin only face setting
 /*0x0ebc*/ DWORD    Details;                //drakkin only face setting
 /*0x0ec0*/ struct   _EQUIPMENT Equipment;
 /*0x0f2c*/ BYTE     Unknown0xf2c[0x38];
@@ -1225,8 +1225,8 @@ typedef struct _SPAWNINFO {
 /*0x1b98*/ DWORD    Unknown0x1b98;
 /*0x1b9c*/ struct   _SPAWNINFO *pSpawn;
 /*0x1ba0*/ BYTE     Levitate;
-/*0x1ba1*/ BYTE     Unknown0x1ba1[0x1b]; 
-/*0x1bbc*/
+/*0x1ba1*/ BYTE     Unknown0x1ba1[0x43]; 
+/*0x1be4*/
 } SPAWNINFO, *PSPAWNINFO;
 
 #define STANDSTATE_STAND            0x64

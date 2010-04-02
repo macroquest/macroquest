@@ -542,6 +542,9 @@ public:
 		Buyer=88,
 		Moving=89,
 		StandState=90,
+		Dead=91,
+		Stunned=92,
+		Hovering=93,
 	};
 	static enum SpawnMethods
 	{
@@ -639,6 +642,9 @@ public:
 		TypeMember(Buyer);
 		TypeMember(Moving);
 		TypeMember(StandState);
+		TypeMember(Dead);
+		TypeMember(Stunned);
+		TypeMember(Hovering);
 
 		TypeMethod(Target);
 		TypeMethod(Face);

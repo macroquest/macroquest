@@ -529,3 +529,17 @@ bool MQ2RaidMemberType::GETMETHOD()
 //	}
 	return false;
 }
+
+bool MQ2FriendsType::GETMETHOD()
+{
+	PMQ2TYPEMETHOD pMethod=MQ2FriendsType::FindMethod(Method);
+	if (!pMethod)
+	{
+		return false;
+	}
+	// TODO
+//	switch((FriendsMethods)pMethod->ID)
+//	{
+//	}
+	return false;
+}

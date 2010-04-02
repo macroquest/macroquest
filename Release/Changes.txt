@@ -1,3 +1,9 @@
+22 May 2008 by rswiders, ieatacid
+- Updated for today's patch
+
+22 May 2008 by rswiders
+- Added dead, stunned, hovering to Spawn TLO
+
 12 May 2008 by dkaa
 - Added Friends TLO
 

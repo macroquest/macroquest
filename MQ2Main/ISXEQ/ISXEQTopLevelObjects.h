@@ -48,5 +48,6 @@ TOPLEVELOBJECT("LineOfSight",dataLineOfSight);
 TOPLEVELOBJECT("DoorTarget",dataDoorTarget);
 TOPLEVELOBJECT("ItemTarget",dataItemTarget);
 TOPLEVELOBJECT("NearestDoor",dataNearestDoor); 
+TOPLEVELOBJECT("Friends",dataFriends); 
 
 /**/

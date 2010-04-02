@@ -49,3 +49,5 @@ DATATYPE(MQ2RaidType,pRaidType,"EQ Raid");
 DATATYPE(MQ2RaidMemberType,pRaidMemberType,"EQ RaidMember");
 DATATYPE(MQ2GroupType,pGroupType,"EQ Group");
 DATATYPE(MQ2GroupMemberType,pGroupMemberType,"EQ GroupMember");
+
+DATATYPE(MQ2FriendsType,pFriendsType,0);
