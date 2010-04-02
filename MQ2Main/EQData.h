@@ -408,7 +408,7 @@ typedef struct _ITEMSPELLS {
 /*0x20*/
 } ITEMSPELLS, *PITEMSPELLS; 
 
-// size is 0x344 12-05-2006
+// size is 0x34c 1-17-07
 typedef struct _ITEMINFO {
 /*0x000*/ CHAR   Name[ITEM_NAME_LEN];
 /*0x040*/ CHAR   LoreName[LORE_NAME_LEN];
@@ -471,75 +471,77 @@ typedef struct _ITEMINFO {
 /*0x153*/ BYTE   DmgBonusType;
 /*0x154*/ BYTE   DmgBonusVal;
 /*0x155*/ BYTE   Range;
-/*0x156*/ BYTE   Damage;
-/*0x157*/ BYTE   ItemType;
-/*0x158*/ BYTE   Material;
-/*0x159*/ BYTE   Unknown0x159[0xb];
-/*0x164*/ DWORD  AugSlot1;
-/*0x168*/ DWORD  AugSlot1_Unknown;
-/*0x16c*/ DWORD  AugSlot2;
-/*0x170*/ DWORD  AugSlot2_Unknown;
-/*0x174*/ DWORD  AugSlot3;
-/*0x178*/ DWORD  AugSlot3_Unknown;
-/*0x17c*/ DWORD  AugSlot4;
-/*0x180*/ DWORD  AugSlot4_Unknown;
-/*0x184*/ DWORD  AugSlot5;
-/*0x188*/ DWORD  AugSlot5_Unknown;
-/*0x18c*/ DWORD  AugType;
-/*0x190*/ DWORD  AugRestrictions;
-/*0x194*/ DWORD  SolventNeeded; //ID# of Solvent (Augs only)
-/*0x198*/ DWORD  LDTheme;
-/*0x19c*/ DWORD  LDCost;
-/*0x1a0*/ DWORD  LDType;
-/*0x1a4*/ DWORD  Unknown0x1a4;
-/*0x1a8*/ BYTE   Unknown0x1a8[0x4];
-/*0x1ac*/ DWORD  FactionModType[0x4];
-/*0x1bc*/ DWORD  FactionModValue[0x4];
-/*0x1cc*/ BYTE   CharmFile[0x20];
-/*0x1ec*/ BYTE   Unknown0x1cc[0x4];
-/*0x1f0*/ struct _ITEMSPELLS Clicky;
-/*0x210*/ struct _ITEMSPELLS Proc;
-/*0x230*/ struct _ITEMSPELLS Worn;
-/*0x250*/ struct _ITEMSPELLS Focus;
-/*0x270*/ struct _ITEMSPELLS Scroll;
-/*0x290*/ BYTE   Unknown0x290[0x14];
-/*0x2a4*/ DWORD  CombatEffects;
-/*0x2a8*/ DWORD  Shielding;
-/*0x2ac*/ DWORD  StunResist;
-/*0x2b0*/ DWORD  DoTShielding;
-/*0x2b4*/ DWORD  StrikeThrough;
-/*0x234*/ DWORD  DmgBonusSkill; // SkillMinDamageMod;
-/*0x238*/ DWORD  DmgBonusValue; // MinDamageMod;
-/*0x2c0*/ DWORD  SpellShield;
-/*0x2c4*/ DWORD  Avoidance;
-/*0x2c8*/ DWORD  Accuracy;
-/*0x2cc*/ DWORD  CharmFileID;
-/*0x2d0*/ DWORD  CastTime;
-/*0x2d4*/ BYTE   Combine;
-/*0x2d5*/ BYTE   Slots;
-/*0x2d6*/ BYTE   SizeCapacity;
-/*0x2d7*/ BYTE   WeightReduction;
-/*0x2d8*/ BYTE   BookType;      // 0=note, !0=book
-/*0x2d9*/ BYTE   BookLang;
-/*0x2da*/ CHAR   BookFile[0x1e];
-/*0x2f8*/ DWORD  Favor;         // Tribute Value
-/*0x2fc*/ DWORD  GuildFavor;
-/*0x300*/ DWORD  Unknown0x300;
-/*0x304*/ DWORD  Endurance;
-/*0x308*/ DWORD  Attack;
-/*0x30c*/ DWORD  HPRegen;
-/*0x310*/ DWORD  ManaRegen;
-/*0x314*/ DWORD  Unknown0x314;
-/*0x318*/ DWORD  Haste;
-/*0x31c*/ DWORD  DamShield;
-/*0x320*/ BYTE   Unknown0x320[0x8];
-/*0x328*/ BYTE   NoPet;
-/*0x329*/ BYTE   Unknown0x329[0xb];
-/*0x334*/ DWORD  StackSize;
-/*0x338*/ BYTE   Unknown0x338[0x8];
-/*0x340*/ BYTE   QuestItem;
-/*0x341*/ BYTE   Unknown0x341[0x3];
-/*0x344*/
+/*0x156*/ BYTE   Unknown0x156[0x2];
+/*0x158*/ DWORD  Damage;
+/*0x15c*/ BYTE   ItemType;
+/*0x15d*/ BYTE   Unknown0x15d[0x3];
+/*0x160*/ BYTE   Material;
+/*0x161*/ BYTE   Unknown0x161[0xb];
+/*0x16c*/ DWORD  AugSlot1;
+/*0x170*/ DWORD  AugSlot1_Unknown;
+/*0x174*/ DWORD  AugSlot2;
+/*0x178*/ DWORD  AugSlot2_Unknown;
+/*0x17c*/ DWORD  AugSlot3;
+/*0x180*/ DWORD  AugSlot3_Unknown;
+/*0x184*/ DWORD  AugSlot4;
+/*0x188*/ DWORD  AugSlot4_Unknown;
+/*0x18c*/ DWORD  AugSlot5;
+/*0x190*/ DWORD  AugSlot5_Unknown;
+/*0x194*/ DWORD  AugType;
+/*0x198*/ DWORD  AugRestrictions;
+/*0x19c*/ DWORD  SolventNeeded; //ID# of Solvent (Augs only)
+/*0x1a0*/ DWORD  LDTheme;
+/*0x1a4*/ DWORD  LDCost;
+/*0x1a8*/ DWORD  LDType;
+/*0x1ac*/ DWORD  Unknown0x1ac;
+/*0x1b0*/ BYTE   Unknown0x1b0[0x4];
+/*0x1b4*/ DWORD  FactionModType[0x4];
+/*0x1c4*/ DWORD  FactionModValue[0x4];
+/*0x1d4*/ BYTE   CharmFile[0x20];
+/*0x1f4*/ BYTE   Unknown0x1f4[0x4];
+/*0x1f8*/ struct _ITEMSPELLS Clicky;
+/*0x218*/ struct _ITEMSPELLS Proc;
+/*0x238*/ struct _ITEMSPELLS Worn;
+/*0x258*/ struct _ITEMSPELLS Focus;
+/*0x278*/ struct _ITEMSPELLS Scroll;
+/*0x298*/ BYTE   Unknown0x298[0x14];
+/*0x2ac*/ DWORD  CombatEffects;
+/*0x2b0*/ DWORD  Shielding;
+/*0x2b4*/ DWORD  StunResist;
+/*0x2b8*/ DWORD  DoTShielding;
+/*0x2bc*/ DWORD  StrikeThrough;
+/*0x2c0*/ DWORD  DmgBonusSkill; // SkillMinDamageMod;
+/*0x2c4*/ DWORD  DmgBonusValue; // MinDamageMod;
+/*0x2c8*/ DWORD  SpellShield;
+/*0x2cc*/ DWORD  Avoidance;
+/*0x2d0*/ DWORD  Accuracy;
+/*0x2d4*/ DWORD  CharmFileID;
+/*0x2d8*/ DWORD  CastTime;
+/*0x2dc*/ BYTE   Combine;
+/*0x2dd*/ BYTE   Slots;
+/*0x2de*/ BYTE   SizeCapacity;
+/*0x2df*/ BYTE   WeightReduction;
+/*0x2e0*/ BYTE   BookType;      // 0=note, !0=book
+/*0x2e1*/ BYTE   BookLang;
+/*0x2e2*/ CHAR   BookFile[0x1e];
+/*0x300*/ DWORD  Favor;         // Tribute Value
+/*0x304*/ DWORD  GuildFavor;
+/*0x308*/ DWORD  Unknown0x308;
+/*0x30c*/ DWORD  Endurance;
+/*0x310*/ DWORD  Attack;
+/*0x314*/ DWORD  HPRegen;
+/*0x318*/ DWORD  ManaRegen;
+/*0x31c*/ DWORD  Unknown0x31c;
+/*0x320*/ DWORD  Haste;
+/*0x324*/ DWORD  DamShield;
+/*0x328*/ BYTE   Unknown0x328[0x8];
+/*0x330*/ BYTE   NoPet;
+/*0x331*/ BYTE   Unknown0x331[0xb];
+/*0x33c*/ DWORD  StackSize;
+/*0x340*/ BYTE   Unknown0x340[0x8];
+/*0x348*/ BYTE   QuestItem;
+/*0x349*/ BYTE   Unknown0x349[0x3];
+/*0x34c*/
 } ITEMINFO, *PITEMINFO;
 
 // actual size 0xa8 09-27-2006
@@ -616,7 +618,7 @@ typedef struct _INVENTORY {
 /*0x58*/  struct	_CONTENTS* Pack[0x8]; 
 } INVENTORY, *PINVENTORY; 
 
-#define NUM_ALT_ABILITIES_ARRAY   0x1F7 
+#define NUM_ALT_ABILITIES_ARRAY   0x1F7						
 #define NUM_ALT_ABILITIES   0x270f
 
 //these two will merge when i get a chance
