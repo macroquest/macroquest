@@ -1,3 +1,6 @@
+20 April 2007 by ieatacid
+- Updated for today's patch
+
 19 April 2007 by dkaa, ieatacid, eqmule
 - fix for opcode detection to restore plugin zoning functions
 - outgoing messages via SendEQMessage are disabled.  this means

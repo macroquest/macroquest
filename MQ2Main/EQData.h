@@ -409,7 +409,7 @@ typedef struct _ITEMSPELLS {
 /*0x64*/
 } ITEMSPELLS, *PITEMSPELLS; 
 
-// size is 0x4ac 04-18-07
+// size is 0x4ac 04-20-07
 typedef struct _ITEMINFO {
 /*0x000*/ CHAR   Name[ITEM_NAME_LEN];
 /*0x040*/ CHAR   LoreName[LORE_NAME_LEN];
@@ -546,7 +546,7 @@ typedef struct _ITEMINFO {
 /*0x4ac*/
 } ITEMINFO, *PITEMINFO;
 
-// actual size 0xb0 04-18-2007
+// actual size 0xb0 04-20-2007
 typedef struct _CONTENTS {
 /*0x00*/  void    *vtable;
 /*0x04*/  void    *punknown;
@@ -683,7 +683,7 @@ typedef struct _CI2_INFO {
 /* 0x0060 */
 } CI2_INFO, *PCI2_INFO;
 
-// actual size 0x11050 04-18-2007
+// actual size 0x11050 04-20-2007
 typedef struct _CHARINFO {
 /*0x00000*/   void      *vtable1;
 /*0x00004*/   void      *punknown;
@@ -787,7 +787,7 @@ typedef struct _CHARINFO {
 /*0x11050*/
 } CHARINFO, *PCHARINFO;
 
-// actual size: 0xb76c 04-18-2007
+// actual size: 0xb76c 04-20-2007
 typedef struct _CHARINFO2 {
 /*0x0000*/   BYTE       Unknown0x0[0x10];
 union {
@@ -984,7 +984,7 @@ typedef struct _EQUIPMENT {
    };
 } EQUIPMENT, *PEQUIPMENT;
 
-// actual size: 0x1a8c 04-18-2007
+// actual size: 0x1a8c 04-20-2007
 typedef struct _SPAWNINFO {
 /*0x0000*/ void     *vtable;
 /*0x0004*/ struct   _SPAWNINFO *pPrev;
@@ -1348,7 +1348,7 @@ BYTE            unknown[0x68];
 struct _SPELL*  Spells[TOTAL_SPELL_COUNT];
 } SPELLMGR, *PSPELLMGR;
 
-// actual size: 0x4f8 04-18-2007
+// actual size: 0x4f8 04-20-2007
 typedef struct _SPELL {
 /*0x000*/   FLOAT   Range;
 /*0x004*/   BYTE    Resist;             //0=un 1=mr 2=fr 3=cr 4=pr 5=dr 6=chromatic 7=prismatic 8=physical(skills,etc) 9=corruption
