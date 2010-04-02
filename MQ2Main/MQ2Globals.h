@@ -349,7 +349,7 @@ EQLIB_VAR EQ_PC **ppPCData;
 #define pPCData (*ppPCData)
 EQLIB_VAR EQ_Character **ppCharData;
 #define pCharData (*ppCharData)
-#define pCharData1 ((EQ_Character1 *)(((char *)(*ppCharData))+0xec70))
+#define pCharData1 ((EQ_Character1 *)&GetCharInfo()->vtable2)
 EQLIB_VAR EQPlayer **ppCharSpawn;
 #define pCharSpawn (*ppCharSpawn)
 EQLIB_VAR EQPlayer **ppActiveMerchant;
@@ -358,6 +358,7 @@ EQLIB_VAR EQPlayerManager **ppSpawnManager;
 #define pSpawnManager (*ppSpawnManager)
 #define pSpawnList (((struct _SPAWNMANAGER *)pSpawnManager)->FirstSpawn)
 #define pChatService ((CChatService*)((PEVERQUEST)pEverQuest)->ChatService)
+#define pOtherCharData ((OtherCharData*)&GetCharInfo()->OtherCharData)
 
 EQLIB_VAR EQPlayer **ppLocalPlayer;
 #define pLocalPlayer (*ppLocalPlayer)

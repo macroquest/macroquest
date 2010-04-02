@@ -353,6 +353,11 @@ typedef struct _BodyInfo
 #define BitOff(field,bit)					 field&=~bit;
 // End CXWnd WindowStyle Defines
 
+#define ALTCURRENCY_DOUBLOONS           0xa
+#define ALTCURRENCY_ORUX                0xb
+#define ALTCURRENCY_PHOSPHENES          0xc
+#define ALTCURRENCY_PHOSPHITES          0xd
+
 enum MOUSE_DATA_TYPES {
    MD_Unknown = -1,
    MD_Button0Click=0,
@@ -409,7 +414,7 @@ typedef struct _ITEMSPELLS {
 /*0x64*/
 } ITEMSPELLS, *PITEMSPELLS; 
 
-// size is 0x4b0 05-16-07
+// size is 0x4b0 06-06-07
 typedef struct _ITEMINFO {
 /*0x000*/ CHAR   Name[ITEM_NAME_LEN];
 /*0x040*/ CHAR   LoreName[LORE_NAME_LEN];
@@ -540,13 +545,16 @@ typedef struct _ITEMINFO {
 /*0x48c*/ BYTE   NoPet;
 /*0x48d*/ BYTE   Unknown0x48d[0xb];
 /*0x498*/ DWORD  StackSize;
-/*0x49c*/ BYTE   Unknown0x49c[0x10];
+/*0x49c*/ BYTE   Unknown0x49c[0x4];
+/*0x4a0*/ DWORD  MaxPower;
+/*0x4a4*/ DWORD  Purity;
+/*0x4a8*/ BYTE   Unknown0x4a4[0x4];
 /*0x4ac*/ BYTE   QuestItem;
 /*0x4ad*/ BYTE   Unknown0x4ad[0x3];
 /*0x4b0*/
 } ITEMINFO, *PITEMINFO;
 
-// actual size 0xb0 05-16-2007
+// actual size 0xb0 06-06-2007
 typedef struct _CONTENTS {
 /*0x00*/  void    *vtable;
 /*0x04*/  void    *punknown;
@@ -562,7 +570,8 @@ typedef struct _CONTENTS {
 /*0x6d*/  BYTE    Unknown0x6d[0x7];
 /*0x74*/  struct  _ITEMINFO *Item;
 /*0x78*/  BYTE    IsEvolvingItem;
-/*0x79*/  BYTE    Unknown0x79[0x7];
+/*0x79*/  BYTE    Unknown0x79[0x3];
+/*0x7c*/  DWORD   Power;
 /*0x80*/  DWORD   EvolvingLoreGroup; // lore group if it's an evolving item
 /*0x84*/  DWORD   EvolvingMaxLevel;
 /*0x88*/  DOUBLE  EvolvingExpPct;
@@ -683,7 +692,7 @@ typedef struct _CI2_INFO {
 /* 0x0060 */
 } CI2_INFO, *PCI2_INFO;
 
-// actual size 0x1105c 05-16-2007
+// actual size 0x1105c 06-06-2007
 typedef struct _CHARINFO {
 /*0x00000*/   void      *vtable1;
 /*0x00004*/   void      *punknown;
@@ -720,7 +729,9 @@ typedef struct _CHARINFO {
 /*0x0182c*/   struct     _LEADERABILITIES ActiveAbilities; //ability levels of the leader of your group (size 0x40)
 /*0x0186c*/   BYTE       Unknown0x186c[0x264];
 /*0x01ad0*/   DWORD      Exp;
-/*0x01ad4*/   BYTE       Unknown0x1ad4[0xd19c];
+/*0x01ad4*/   BYTE       Unknown0x1ad4[0x5c];
+/*0x01b30*/   void       *OtherCharData;
+/*0x01b34*/   BYTE       Unknown0x1b34[0xd13c];
 /*0x0ec70*/   void       *vtable2;
 /*0x0ec74*/   struct     _EQC_INFO* eqc_info;
 /*0x0ec78*/   struct     _SPAWNINFO* pSpawn;
@@ -787,7 +798,7 @@ typedef struct _CHARINFO {
 /*0x1105c*/
 } CHARINFO, *PCHARINFO;
 
-// actual size: 0xb76c 05-16-2007
+// actual size: 0xb76c 06-06-2007
 typedef struct _CHARINFO2 {
 /*0x0000*/   BYTE       Unknown0x0[0x10];
 union {
@@ -984,7 +995,7 @@ typedef struct _EQUIPMENT {
    };
 } EQUIPMENT, *PEQUIPMENT;
 
-// actual size: 0x1a90 05-16-2007
+// actual size: 0x1a90 06-06-2007
 typedef struct _SPAWNINFO {
 /*0x0000*/ void     *vtable;
 /*0x0004*/ struct   _SPAWNINFO *pPrev;
@@ -1348,7 +1359,7 @@ BYTE            unknown[0x68];
 struct _SPELL*  Spells[TOTAL_SPELL_COUNT];
 } SPELLMGR, *PSPELLMGR;
 
-// actual size: 0x4f8 05-16-2007
+// actual size: 0x4f8 06-06-2007
 typedef struct _SPELL {
 /*0x000*/   FLOAT   Range;
 /*0x004*/   BYTE    Resist;             //0=un 1=mr 2=fr 3=cr 4=pr 5=dr 6=chromatic 7=prismatic 8=physical(skills,etc) 9=corruption
@@ -1452,7 +1463,7 @@ typedef struct _SKILL {
 /*0x018*/  DWORD  Unknown0x18;
 /*0x01c*/  DWORD  Unknown0x1c;
 /*0x020*/  CHAR   Activated;
-/*0x021*/  CHAR   Unknown0x00B;
+/*0x021*/  CHAR   Unknown0x21;
 /*0x022*/  BYTE   Unknown0x22[0x2];
 /*0x024*/  DWORD  MinLevel[0x24];
 /*0x0b4*/  DWORD  Available[0x24];   //FF=not available for that class
@@ -1485,7 +1496,7 @@ typedef struct _GUILDMEMBER {
 /*0x264*/ DWORD   TributeStatus;
 /*0x268*/ DWORD   TributeDonations;
 /*0x26c*/ DWORD   LastDonation;//timestamp
-/*0x270*/ DWORD   Unknown0x264;
+/*0x270*/ DWORD   Unknown0x270;
 /*0x274*/
 } GUILDMEMBER, *PGUILDMEMBER;
 
@@ -1556,7 +1567,7 @@ union {
 /*0x2c*/ DWORD RequiresAbilityPoints;
 /*0x30*/ DWORD Type; 
 /*0x34*/ LONG  SpellID;                  // -1 for no Spell
-/*0x38*/ BYTE  Unknown0x34[0x8]; 
+/*0x38*/ BYTE  Unknown0x38[0x8]; 
 /*0x40*/ DWORD ReuseTimer;               // in seconds
 /*0x44*/ DWORD Classes;                  // Classes/2 is the actual value we want.
 /*0x48*/ DWORD MaxRank;					     //If you have not spent points in this 
@@ -1565,12 +1576,12 @@ union {						                 //If you have not spent points in this
 /*0x4c*/ DWORD PointsToBeSpent;	        //'Cost', in other words).
 }; 
 /*0x50*/ DWORD AAIndex;                  // -1 if not available
-/*0xxx*/ DWORD UseAAIndex;
-/*0xxx*/ BYTE  Unknown0x54;
-/*0xxx*/ BYTE  Unknown0x55;
-/*0xxx*/ BYTE  Unknown0x56;
-/*0xxx*/ BYTE  Unknown0x57;
-/*0xxx*/ BYTE  Unknown0x58[0x18];
+/*0x54*/ DWORD UseAAIndex;
+/*0x55*/ BYTE  Unknown0x55;
+/*0x56*/ BYTE  Unknown0x56;
+/*0x57*/ BYTE  Unknown0x57;
+/*0x58*/ BYTE  Unknown0x58;
+/*0x59*/ BYTE  Unknown0x59[0x18];
 } ALTABILITY, *PALTABILITY;
 #define zWarp				 0
 
@@ -1625,7 +1636,7 @@ typedef struct _EQRAID {
 /*0x51a4*/  CHAR        RaidMOTD[0x400];
 /*0x55a4*/  BYTE        Unknown0x55a4[0x40];
 /*0x55e4*/  BYTE        Invited;
-/*0x55e5*/  BYTE        Unknown0x55a5[0x8];
+/*0x55e5*/  BYTE        Unknown0x55e5[0x8];
 /*0x55ed*/  BYTE        IsRaidLeader; 
 /*0x55ee*/  BYTE        Unknown0x55ee[0x2];
 /*0x55f0*/  DWORD       RaidTarget;
@@ -1664,7 +1675,7 @@ typedef struct _EQSTRINGTABLE {
 
 typedef struct connection_t {
 /*0x000*/ void  *vtable;
-/*0x004*/ BYTE  Unknown0x0[0x100];
+/*0x004*/ BYTE  Unknown0x4[0x100];
 /*0x104*/ DWORD Master;
 /*0x108*/ DWORD Average;
 /*0x10c*/ DWORD Low;
@@ -1765,9 +1776,9 @@ typedef struct _INTERACTSWITCH {
 #define EQ_INTERACTGROUNDITEM   0x21B3  // CEverQuest__LMouseUp            03/14
 #define EQ_BAZAARSEARCHCREATE   0x31E4  // CProgSelWnd__WndNotification    03/14
 #define EQ_BAZAARSEARCHME       0x14F2  // CBazaarSearchWnd__doQuery       03/14
-#define EQ_EMOTE                0x5F4D  // CEverQuest__Emote+8C            05/16
-#define EQ_BEGIN_ZONE           0x1103  // CEverQuest__SavePCForce+433     05/16
-#define EQ_END_ZONE             0x2854  // CEverQuest__DoMainLoop+A68      05/16
+#define EQ_EMOTE                0x5F4D  // CEverQuest__Emote+8C            06/06
+#define EQ_BEGIN_ZONE           0x1103  // CEverQuest__SavePCForce+433     06/06
+#define EQ_END_ZONE             0x2854  // CEverQuest__DoMainLoop+A68      06/06
 #define EQ_LoadingS__ArraySize  0x44    // EQ_LoadingS__SetProgressBar+7C
 #define EQ_INTERACTSWITCH       0x5AC1  // EQSwitch__UseSwitch             03/14
 };

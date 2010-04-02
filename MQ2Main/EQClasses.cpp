@@ -9574,6 +9574,9 @@ FUNCTION_AT_ADDRESS(int CChatService::GetNumberOfFriends(void),CChatService__Get
 #ifdef CChatService__GetFriendName
 FUNCTION_AT_ADDRESS(char *CChatService::GetFriendName(int),CChatService__GetFriendName);
 #endif
+#ifdef OtherCharData__GetAltCurrency
+FUNCTION_AT_ADDRESS(unsigned long OtherCharData::GetAltCurrency(unsigned long,unsigned long),OtherCharData__GetAltCurrency);
+#endif
 
 void bogus()
 {

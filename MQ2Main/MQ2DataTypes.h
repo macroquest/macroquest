@@ -850,6 +850,10 @@ public:
 		svCorruption=153,
 		svPrismatic=154,
 		svChromatic=155,
+		Doubloons=156,
+		Orux=157,
+		Phosphenes=158,
+		Phosphites=159,
 	};
 	static enum CharacterMethods
 	{
@@ -1012,6 +1016,10 @@ public:
 		TypeMember(svCorruption);
 		TypeMember(svPrismatic);
 		TypeMember(svChromatic);
+		TypeMember(Doubloons);
+		TypeMember(Orux);
+		TypeMember(Phosphenes);
+		TypeMember(Phosphites);
 
 		TypeMethod(Stand); 
 		TypeMethod(Sit); 
@@ -1340,8 +1348,11 @@ public:
 		Race=100,
 		Deities=101,
 		Deity=102,
-		RequireLevel=103,
-		Evolving=104,
+		Evolving=103,
+		svCorruption=104,
+		Power=105,
+		MaxPower=106,
+		Purity=107,
 	};
 	static enum ItemMethods
 	{
@@ -1450,8 +1461,11 @@ public:
 		TypeMember(Race);
 		TypeMember(Deities);
 		TypeMember(Deity);
-		TypeMember(RequiredLevel);
 		TypeMember(Evolving);
+		TypeMember(svCorruption);
+		TypeMember(Power);
+		TypeMember(MaxPower);
+		TypeMember(Purity);
 	}
 
 	~MQ2ItemType()

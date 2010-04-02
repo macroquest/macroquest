@@ -596,7 +596,8 @@ EQLIB_OBJECT static unsigned char CXWnd::sm_byCurrentAlpha;
 /*0x080*/   BYTE    FadeToAlpha;
 /*0x081*/   BYTE    Unknown0x81[0x3];
 /*0x084*/   LPVOID  DrawTemplate;
-/*0x088*/   BYTE    Unknown0x88[0x10];
+/*0x088*/   BYTE    CloseOnESC;     // close when ESC is pressed
+/*0x089*/   BYTE    Unknown0x89[0xf];
 /*0x098*/   BYTE    Enabled;
 /*0x099*/   BYTE    Unknown0x99[0x3];
 /*0x09c*/   DWORD   HScrollMax;
@@ -705,7 +706,8 @@ EQLIB_OBJECT static bool CSidlScreenWnd::m_useIniFile;
 /*0x080*/   BYTE    FadeToAlpha;
 /*0x081*/   BYTE    Unknown0x81[0x3];
 /*0x084*/   LPVOID  DrawTemplate;
-/*0x088*/   BYTE    Unknown0x88[0x10];
+/*0x088*/   BYTE    CloseOnESC;     // close when ESC is pressed
+/*0x089*/   BYTE    Unknown0x89[0xf];
 /*0x098*/   BYTE    Enabled;
 /*0x099*/   BYTE    Unknown0x99[0x3];
 /*0x09c*/   DWORD   HScrollMax;
@@ -7044,6 +7046,12 @@ class CChatService
 public:
 EQLIB_OBJECT int CChatService::GetNumberOfFriends(void);
 EQLIB_OBJECT char * CChatService::GetFriendName(int);
+};
+
+class OtherCharData
+{
+public:
+EQLIB_OBJECT unsigned long OtherCharData::GetAltCurrency(unsigned long,unsigned long b=1);
 };
 
 };
