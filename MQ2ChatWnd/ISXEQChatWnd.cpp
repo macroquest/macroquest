@@ -48,7 +48,7 @@ public:
 		InputBox->SetMaxChars(512);
 		OutputBox=(CStmlWnd*)GetChildItem("CWChatOutput");
 		OutBoxLines=0;
-		*(DWORD*)&(((PCHAR)OutputBox)[0x1E4])=400;
+		*(DWORD*)&(((PCHAR)OutputBox)[0x1DC])=400;
 		OutputBox->Clickable=1;
 		CloseOnESC=0; // this disables the close on escape
 	}
@@ -634,7 +634,7 @@ void LoadChatFromXML(PCSIDLWND pWindow)
 	}
 	
 	GetIntSetting("Locked",pWindow->Locked,0);
-	GetIntSetting("FontSize",*(DWORD*)&(((PCHAR)MQChatWnd->OutputBox)[0x174]),4);
+	GetIntSetting("FontSize",*(DWORD*)&(((PCHAR)MQChatWnd->OutputBox)[0x16c]),4);
 
 	GetIntSetting("Fades",pWindow->Fades,1);
 	GetIntSetting("Delay",pWindow->TimeMouseOver,2000);
@@ -690,7 +690,7 @@ void SaveChatToXML(PCSIDLWND pWindow)
 	pISInterface->SetSettingi(XMLFileName,szChatXMLSection,"BGTint.red",pWindow->BGColor.R);
 	pISInterface->SetSettingi(XMLFileName,szChatXMLSection,"BGTint.green",pWindow->BGColor.G);
 	pISInterface->SetSettingi(XMLFileName,szChatXMLSection,"BGTint.blue",pWindow->BGColor.B);
-	pISInterface->SetSettingi(XMLFileName,szChatXMLSection,"FontSize",*(DWORD*)&(((PCHAR)MQChatWnd->OutputBox)[0x174]));
+	pISInterface->SetSettingi(XMLFileName,szChatXMLSection,"FontSize",*(DWORD*)&(((PCHAR)MQChatWnd->OutputBox)[0x16c]));
 
 	pISInterface->SaveSettings(XMLFileName);
 }
@@ -727,10 +727,10 @@ int CMD_MQFont(int argc, char *argv[])
 	{
 		if (argc)
 		{
-			*(DWORD*)&(((PCHAR)MQChatWnd->OutputBox)[0x174])=atoi(argv[0]);
+			*(DWORD*)&(((PCHAR)MQChatWnd->OutputBox)[0x16c])=atoi(argv[0]);
 			SaveChatToXML((PCSIDLWND)MQChatWnd);
 		}
-		WriteChatf("MQ2ChatWnd Font Size=%d",*(DWORD*)&(((PCHAR)MQChatWnd->OutputBox)[0x174]));
+		WriteChatf("MQ2ChatWnd Font Size=%d",*(DWORD*)&(((PCHAR)MQChatWnd->OutputBox)[0x16c]));
 	}
 	return 0;
 }

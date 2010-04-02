@@ -337,20 +337,20 @@ void __cdecl EQSpawnService(bool Broadcast, unsigned int MSG, void *lpData)
 {
 	switch(MSG)
 	{
-#define pSpawn ((PSPAWNINFO)lpData)
+#define pNewSpawn ((PSPAWNINFO)lpData)
 	case SPAWNSERVICE_ADDSPAWN:
-		if (Update && pSpawn->SpawnID != 0 && GetCharInfo()->pSpawn != pSpawn)
+		if (Update && pNewSpawn->SpawnID != 0 && GetCharInfo()->pSpawn != pNewSpawn)
 		{
-			DebugSpewAlways("MQ2Map::OnAddSpawn(%s)",pSpawn->Name);
-			AddSpawn(pSpawn);
+			DebugSpewAlways("MQ2Map::OnAddSpawn(%s)",pNewSpawn->Name);
+			AddSpawn(pNewSpawn);
 		}
 		break;
 	case SPAWNSERVICE_REMOVESPAWN:
-		DebugSpewAlways("MQ2Map::OnRemoveSpawn(%s)",pSpawn->Name);
+		DebugSpewAlways("MQ2Map::OnRemoveSpawn(%s)",pNewSpawn->Name);
 		if (Update)
-			RemoveSpawn(pSpawn);
+			RemoveSpawn(pNewSpawn);
 		break;
-#undef pSpawn
+#undef pNewSpawn
 #define pGroundItem ((PGROUNDITEM)lpData)
 	case SPAWNSERVICE_ADDITEM:
 		DebugSpewAlways("MQ2Map::OnAddGroundItem(%d)",pGroundItem->DropID);

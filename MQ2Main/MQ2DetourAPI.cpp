@@ -259,7 +259,7 @@ VOID HookInlineChecks(BOOL Patch)
 
 // .text:005DE46D 81 3D 28 EF 97 00 0E C0 6D 00  cmp     dword_97EF28, 6DC00Eh
 
-    int cmps[] = {  0x5DE46D+6 };
+    int cmps[] = {  0x5E09DD+6 };
 
 
 
@@ -270,11 +270,11 @@ VOID HookInlineChecks(BOOL Patch)
 // .text:004DA6F4 81 F9 B6 E6 9C 8D  cmp     ecx, 8D9CE6B6h  ; bad compare #5
 
 
-    int cmps2[] = {     0x4C1165,
-                        0x4DA104,
-                        0x4DF00B,
-                        0x4E199F,
-                        0x4DA6F4 };
+    int cmps2[] = {     0x4BFC85,
+                        0x4D8E04,
+                        0x4DDD0B,
+                        0x4E06AF,
+                        0x4D93F4 };
     int len2[] = { 6, 6, 5, 6, 6 };
     char NewData2[20];
     static char OldData2[sizeof(cmps2)/sizeof(cmps2[0])][20];
@@ -316,7 +316,7 @@ VOID HookInlineChecks(BOOL Patch)
 	}
 	else
 	{
-        NewData = 0x006DC00E;
+        NewData = 0x6E337E;
         for (i=0;i<sizeof(cmps)/sizeof(cmps[0]);i++) {
 #ifdef ISXEQ
 			EzUnModify(cmps[i]);
