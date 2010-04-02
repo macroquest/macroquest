@@ -1178,11 +1178,11 @@ typedef struct _SPAWNINFO {
 /*0x04ac*/ FLOAT    CastingX;
 /*0x04b0*/ BYTE     Unknown0xb0[0x924];
 /*0x0dd4*/ struct   _SPAWNINFO *WhoFollowing; // NULL if autofollow off
-/*0x0dd8*/ struct   _SPAWNINFO *pGroupAssistNPC[1];
-/*0x0ddc*/ struct   _SPAWNINFO *pRaidAssistNPC[3];
-/*0x0de8*/ struct   _SPAWNINFO *pGroupMarkNPC[3];
-/*0x0df4*/ struct   _SPAWNINFO *pRaidMarkNPC[3];
-/*0x0e00*/ struct   _SPAWNINFO *pTargetOfTarget;
+/*0x0dd8*/ int GroupAssistNPC[1];
+/*0x0ddc*/ int RaidAssistNPC[3];
+/*0x0de8*/ int GroupMarkNPC[3];
+/*0x0df4*/ int RaidMarkNPC[3];
+/*0x0e00*/ int TargetOfTarget;
 /*0x0e04*/ BYTE     Unknown0xe04[0x2c];
 /*0x0e30*/ BYTE     InNonPCRaceIllusion;
 /*0x0e31*/ BYTE     Unknown0xe31[0xb];

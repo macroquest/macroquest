@@ -69,18 +69,18 @@ static inline PCHAR GetClassDesc(DWORD ClassID)
 
 static inline BOOL IsAssistNPC(PSPAWNINFO pSpawn)
 {
-	if (GetCharInfo()->pSpawn)
+	if (GetCharInfo()->pSpawn && pSpawn)
 	{
 		DWORD nAssist;
 		{
-			if (GetCharInfo()->pSpawn->pGroupAssistNPC[0]==pSpawn)
+			if (GetCharInfo()->pSpawn->GroupAssistNPC[0]==pSpawn->SpawnID)
 			{
 				return true;
 			}
 		}
 		for (nAssist=0 ; nAssist < 3 ; nAssist++)
 		{
-			if (GetCharInfo()->pSpawn->pRaidAssistNPC[nAssist]==pSpawn)
+			if (GetCharInfo()->pSpawn->RaidAssistNPC[nAssist]==pSpawn->SpawnID)
 			{
 				return true;
 			}
@@ -91,19 +91,19 @@ static inline BOOL IsAssistNPC(PSPAWNINFO pSpawn)
 
 static inline BOOL IsMarkedNPC(PSPAWNINFO pSpawn)
 {
-	if (GetCharInfo()->pSpawn)
+	if (GetCharInfo()->pSpawn && pSpawn)
 	{
 		DWORD nMark;
 		for (nMark=0 ; nMark < 3 ; nMark++)
 		{
-			if (GetCharInfo()->pSpawn->pRaidMarkNPC[nMark]==pSpawn)
+			if (GetCharInfo()->pSpawn->RaidMarkNPC[nMark]==pSpawn->SpawnID)
 			{
 				return true;
 			}
 		}
 		for (nMark=0 ; nMark < 3 ; nMark++)
 		{
-			if (GetCharInfo()->pSpawn->pGroupMarkNPC[nMark]==pSpawn)
+			if (GetCharInfo()->pSpawn->GroupMarkNPC[nMark]==pSpawn->SpawnID)
 			{
 				return true;
 			}

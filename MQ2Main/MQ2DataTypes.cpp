@@ -1511,11 +1511,11 @@ bool MQ2SpawnType::GETMEMBER()
 		Dest.Type=pBoolType;
 		return true;
 	case Assist:
-		if (gGameState==GAMESTATE_INGAME && GetCharInfo()->pSpawn)
+		if (gGameState==GAMESTATE_INGAME && GetCharInfo()->pSpawn && pSpawn)
 		{
 			DWORD nAssist;
 			{
-				if (GetCharInfo()->pSpawn->pGroupAssistNPC[0]==pSpawn)
+				if (GetCharInfo()->pSpawn->GroupAssistNPC[0]==pSpawn->SpawnID)
 				{
 					Dest.DWord=1;
 					Dest.Type=pBoolType;
@@ -1524,7 +1524,7 @@ bool MQ2SpawnType::GETMEMBER()
 			}
 			for (nAssist=0 ; nAssist < 3 ; nAssist++)
 			{
-				if (GetCharInfo()->pSpawn->pRaidAssistNPC[nAssist]==pSpawn)
+				if (GetCharInfo()->pSpawn->RaidAssistNPC[nAssist]==pSpawn->SpawnID)
 				{
 					Dest.DWord=1;
 					Dest.Type=pBoolType;
@@ -1536,12 +1536,12 @@ bool MQ2SpawnType::GETMEMBER()
 		Dest.Type=pBoolType;
 		return true;
 	case Mark:
-		if (gGameState==GAMESTATE_INGAME && GetCharInfo()->pSpawn)
+		if (gGameState==GAMESTATE_INGAME && GetCharInfo()->pSpawn && pSpawn)
 		{
 			DWORD nMark;
 			for (nMark=0 ; nMark < 3 ; nMark++)
 			{
-				if (GetCharInfo()->pSpawn->pRaidMarkNPC[nMark]==pSpawn)
+				if (GetCharInfo()->pSpawn->RaidMarkNPC[nMark]==pSpawn->SpawnID)
 				{
 					Dest.DWord=nMark+1;
 					Dest.Type=pIntType;
@@ -1550,7 +1550,7 @@ bool MQ2SpawnType::GETMEMBER()
 			}
 			for (nMark=0 ; nMark < 3 ; nMark++)
 			{
-				if (GetCharInfo()->pSpawn->pGroupMarkNPC[nMark]==pSpawn)
+				if (GetCharInfo()->pSpawn->GroupMarkNPC[nMark]==pSpawn->SpawnID)
 				{
 					Dest.DWord=nMark+1;
 					Dest.Type=pIntType;
@@ -2785,7 +2785,7 @@ bool MQ2CharacterType::GETMEMBER()
 		return true;
 	case TargetOfTarget:
 		if (gGameState==GAMESTATE_INGAME && GetCharInfo()->pSpawn)
-		if (Dest.Ptr=pChar->pSpawn->pTargetOfTarget)
+		if (Dest.Ptr=GetSpawnByID(pChar->pSpawn->TargetOfTarget))
 		{
 			Dest.Type=pSpawnType;
 			return true;
@@ -2798,7 +2798,7 @@ bool MQ2CharacterType::GETMEMBER()
 			DWORD N=GETNUMBER()-1;
 			if (N>=3)
 				return false;
-			if (Dest.Ptr=pChar->pSpawn->pRaidAssistNPC[N])
+			if (Dest.Ptr=GetSpawnByID(pChar->pSpawn->RaidAssistNPC[N]))
 			{
 				Dest.Type=pSpawnType;
 				return true;
@@ -2808,7 +2808,7 @@ bool MQ2CharacterType::GETMEMBER()
 	case GroupAssistTarget:
 		if (gGameState==GAMESTATE_INGAME && GetCharInfo()->pSpawn)
 		{
-			if (Dest.Ptr=pChar->pSpawn->pGroupAssistNPC[0])
+			if (Dest.Ptr=GetSpawnByID(pChar->pSpawn->GroupAssistNPC[0]))
 			{
 				Dest.Type=pSpawnType;
 				return true;
@@ -2822,7 +2822,7 @@ bool MQ2CharacterType::GETMEMBER()
 			DWORD N=GETNUMBER()-1;
 			if (N>=3)
 				return false;
-			if (Dest.Ptr=pChar->pSpawn->pRaidMarkNPC[N])
+			if (Dest.Ptr=GetSpawnByID(pChar->pSpawn->RaidMarkNPC[N]))
 			{
 				Dest.Type=pSpawnType;
 				return true;
@@ -2836,7 +2836,7 @@ bool MQ2CharacterType::GETMEMBER()
 			DWORD N=GETNUMBER()-1;
 			if (N>=3)
 				return false;
-			if (Dest.Ptr=pChar->pSpawn->pGroupMarkNPC[N])
+			if (Dest.Ptr=GetSpawnByID(pChar->pSpawn->GroupMarkNPC[N]))
 			{
 				Dest.Type=pSpawnType;
 				return true;
