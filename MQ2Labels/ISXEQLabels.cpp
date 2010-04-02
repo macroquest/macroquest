@@ -69,6 +69,46 @@ Id_PMP[] = {
    {-1,NULL}
 }; 
 
+
+// CSidlManager::CreateLabel 0x5F2470
+
+// the tool tip is already copied out of the 
+// in class CControlTemplate.  use this struct
+// to mock up the class, so we don't have to
+// worry about class instatiation and crap
+
+struct _CControl {
+   /*0x000*/    DWORD Fluff[0x1d];
+   /*0x06c*/ /* CXSTR * ToolTipReference */
+   /*0x074*/    CXSTR * EQType;
+};
+
+// optimize off because the tramp looks blank to the compiler
+// and it doesn't respect the fact the it will be a real routine
+#pragma optimize ("g", off)
+
+class CSidlManagerHook {
+public:
+   class CXWnd * CreateLabel_Trampoline(class CXWnd *, struct _CControl *);
+   class CXWnd * CreateLabel_Detour(class CXWnd *CWin, struct _CControl *CControl)
+   {
+       CSIDLWND *p;
+       class CXWnd *tmp = CreateLabel_Trampoline(CWin, CControl);
+       p = (CSIDLWND *)tmp;
+       if (CControl->EQType) {
+           *((DWORD *)&p->SidlPiece) = atoi(CControl->EQType->Text);
+       } else {
+           *((DWORD *)&p->SidlPiece) = 0;
+       }
+
+       return tmp;
+   }
+};
+
+DETOUR_TRAMPOLINE_EMPTY(class CXWnd * CSidlManagerHook::CreateLabel_Trampoline(class CXWnd *, struct _CControl *));
+
+#pragma optimize ("g", on)
+
 class CLabelHook {
 public:
    VOID Draw_Trampoline(VOID);
@@ -195,6 +235,7 @@ bool ISXEQLabels::Initialize(ISInterface *p_ISInterface)
     RegisterServices();
 
 	EzDetour(CLabel__Draw,&CLabelHook::Draw_Detour,&CLabelHook::Draw_Trampoline);
+        EzDetour(CSidlManager__CreateLabel,&CSidlManagerHook::CreateLabel_Detour,&CSidlManagerHook::CreateLabel_Trampoline);
 // currently in testing:
 //	EasyClassDetour(CGauge__Draw,CGaugeHook,Draw_Detour,VOID,(VOID),Draw_Trampoline);
 //	EasyDetour(__GetGaugeValueFromEQ,GetGaugeValueFromEQ_Hook,int,(int,class CXStr *,bool *),GetGaugeValueFromEQ_Trampoline);
@@ -206,9 +247,9 @@ bool ISXEQLabels::Initialize(ISInterface *p_ISInterface)
 void ISXEQLabels::Shutdown()
 {
 	RemoveDetour(CLabel__Draw);
-	RemoveDetour(CGaugeWnd__Draw);
-	RemoveDetour(__GetGaugeValueFromEQ);
-
+    RemoveDetour(CSidlManager__CreateLabel);
+    //RemoveDetour(CGaugeWnd__Draw); 
+    //RemoveDetour(__GetGaugeValueFromEQ); 
 
 	// save settings, if you changed them and want to save them now.  You should normally save
 	// changes immediately.

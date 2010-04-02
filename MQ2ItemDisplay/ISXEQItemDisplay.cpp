@@ -66,6 +66,7 @@ bool ISXEQItemDisplay::Initialize(ISInterface *p_ISInterface)
     RegisterServices();
 	EzDetour(CItemDisplayWnd__SetItem,&ItemDisplayHook::SetItem_Detour,&ItemDisplayHook::SetItem_Trampoline);
 	EzDetour(CItemDisplayWnd__SetSpell,&ItemDisplayHook::SetSpell_Detour,&ItemDisplayHook::SetSpell_Trampoline);
+        EzDetour(CXWnd__DrawTooltipAtPoint,&XWndHook::DrawTooltipAtPoint_Detour,&XWndHook::DrawTooltipAtPoint_Trampoline);
 
 	WriteChatf("ISXEQItemDisplay Loaded");
 	return true;
@@ -76,6 +77,8 @@ void ISXEQItemDisplay::Shutdown()
 {
 	RemoveDetour(CItemDisplayWnd__SetItem);
 	RemoveDetour(CItemDisplayWnd__SetSpell);
+        RemoveDetour(CXWnd__DrawTooltipAtPoint);
+
 	// save settings, if you changed them and want to save them now.  You should normally save
 	// changes immediately.
 	//pISInterface->SaveSettings(XMLFileName);
