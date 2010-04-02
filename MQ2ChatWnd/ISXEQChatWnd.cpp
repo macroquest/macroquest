@@ -310,7 +310,7 @@ void __cdecl PulseService(bool Broadcast, unsigned int MSG, void *lpData)
 	if (MSG==PULSE_PULSE)
 	{
 		// Same as OnPulse
-		if (gGameState==GAMESTATE_CHARSELECT && !MQChatWnd)
+		if (GetGameState()==GAMESTATE_CHARSELECT && !MQChatWnd)
 		{
 			CreateChatWindow();
 		}

@@ -5554,6 +5554,17 @@ bool InHoverState()
 	return false;
 }
 
+DWORD GetGameState(VOID)
+{
+	if (!ppEverQuest || !pEverQuest) 
+	{
+//		DebugSpew("Could not retrieve gamestate in GetGameState()");
+		return -1;
+	}
+	DWORD GameState=*(DWORD*)(0x5c4+pEverQuest);
+	return GameState;
+}
+
 // ***************************************************************************
 // Function:    BuffStackTest
 // Description: Return boolean true if the two spells will stack

@@ -247,17 +247,6 @@ void Pulse()
 }
 
 
-DWORD GetGameState(VOID)
-{
-	if (!ppEverQuest || !pEverQuest) 
-	{
-//		DebugSpew("Could not retrieve gamestate in GetGameState()");
-		return -1;
-	}
-	DWORD GameState=*(DWORD*)(0x5c4+pEverQuest);
-	return GameState;
-}
-
 void Heartbeat()
 {
     static DWORD LastGetTick = 0;
