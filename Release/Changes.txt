@@ -1,3 +1,6 @@
+08 October 2007 by dkaa
+- fixed calc where '...) - <expr>' was treated as negate instead of subtract
+
 27 September 2007 by dkaa
 - fixed /next
 

@@ -206,12 +206,14 @@ class CEmoteHook
 { 
 public: 
     VOID Trampoline(void);
-    VOID Detour(void)
-    { 
-        emotify();
-        Trampoline();
-    }
+    VOID Detour(void);
 };
+
+VOID CEmoteHook::Detour(void)
+{ 
+    emotify();
+    Trampoline();
+}
 DETOUR_TRAMPOLINE_EMPTY(VOID CEmoteHook::Trampoline(void)); 
 
 

@@ -313,19 +313,6 @@ bool MQ2SwitchType::GETMETHOD()
 	{
 		return false;
 	}
-    switch((SwitchMethods)pMethod->ID)
-    {
-        case Toggle:
-        {
-            INTERACTSWITCH sw;
-            sw.switchID = pPtr->ID;
-            sw.dwzero=0;
-            sw.dwneg1=0xFFFFFFFF;
-            sw.spawnID = ((PCHARINFO)pCharData)->pSpawn->SpawnID;
-            SendEQMessage(EQ_INTERACTSWITCH,&sw,0x10);
-            return true;
-        }
-    } 
 	return false;
 #undef pPtr
 }
@@ -341,20 +328,6 @@ bool MQ2GroundType::GETMETHOD()
 	{
 		return false;
 	}
-    switch((GroundMethods)pMethod->ID)
-    {
-    case Grab:
-        if (EnviroTarget.Name[0]!=0 && DistanceToSpawn((PSPAWNINFO)pCharSpawn,&EnviroTarget)<20.0f )
-        {
-            INTERACTGROUNDITEM Data;
-            Data.SpawnID = GetCharInfo()->pSpawn->SpawnID;
-            Data.DropID = EnviroTarget.Race;
-            SendEQMessage(EQ_INTERACTGROUNDITEM,&Data,sizeof(INTERACTGROUNDITEM));
-            EnviroTarget.Name[0]=0;
-            return true;
-        }
-        return false;
-    }
 	return false;
 #undef pPtr
 }

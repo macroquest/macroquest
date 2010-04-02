@@ -758,10 +758,11 @@ EQLIB_OBJECT static bool CSidlScreenWnd::m_useIniFile;
 /*0x16c*/   DWORD   Unknown0x16c;
 /*0x170*/   DWORD   Unknown0x170;// CTextureAnimation
 /*0x174*/   DWORD   Unknown0x174;// CTextureAnimation
-/*0x178*/   LPVOID  ContextMenu; // CTextureAnimation
-/*0x17c*/   DWORD   Unknown0x17c;// CTextureAnimation
+/*0x178*/   BYTE    Unknown0x178[0x4];
+/*0x17c*/   LPVOID  ContextMenu; // CTextureAnimation
 /*0x180*/   DWORD   Unknown0x180;// CTextureAnimation
-/*0x184*/
+/*0x184*/   DWORD   Unknown0x184;// CTextureAnimation
+/*0x188*/
 
 	inline CXWnd *pXWnd() {return (CXWnd*)this;};
 };
@@ -1326,20 +1327,20 @@ EQLIB_OBJECT int CChatWindow::WndNotification(class CXWnd *,unsigned __int32,voi
 EQLIB_OBJECT void CChatWindow::operator delete[](void *);
 EQLIB_OBJECT void CChatWindow::Deactivate(void);
 
-/*0x148*/ struct _EQCHATMGR *ChatManager; 
-/*0x14c*/ struct _CSIDLWND* InputWnd;
-/*0x150*/ struct _CSIDLWND* OutputWnd;
-/*0x154*/ DWORD Unknown0x154;
-/*0x158*/ DWORD Unknown0x158;// need to update locations..
-/*0x150*/ BYTE Unknown0x148;
-/*0x151*/ BYTE Unknown0x149[0x3f];
-/*0x18c*/ DWORD Unknown0x188;
-/*0x190*/ DWORD Unknown0x18c;
-/*0x194*/ struct _CXSTR *CommandHistory[0x28]; // ->0x198
-/*0x238*/ DWORD Unknown0x230; // CChatWindow::HistoryBack/forward .. maybe total or current history lines
-/*0x23c*/ DWORD Unknown0x234; // CChatWindow::HistoryBack/forward .. maybe total or current history lines
-/*0x240*/ DWORD FontSize; //
-/*0x244*/ DWORD Unknown0x23C;
+/*0x188*/ struct _EQCHATMGR *ChatManager; 
+/*0x18c*/ struct _CSIDLWND* InputWnd;
+/*0x190*/ struct _CSIDLWND* OutputWnd;
+/*0x194*/ DWORD Unknown0x154;
+/*0x198*/ DWORD Unknown0x158;// need to update locations..
+/*0x19c*/ BYTE Unknown0x148;
+/*0x19d*/ BYTE Unknown0x149[0x3f];
+/*0x1dc*/ DWORD Unknown0x188;
+/*0x1e0*/ DWORD Unknown0x18c;
+/*0x1e4*/ struct _CXSTR *CommandHistory[0x28]; // ->0x198
+/*0x284*/ DWORD Unknown0x230; // CChatWindow::HistoryBack/forward .. maybe total or current history lines
+/*0x288*/ DWORD Unknown0x234; // CChatWindow::HistoryBack/forward .. maybe total or current history lines
+/*0x28c*/ DWORD FontSize; //
+/*0x290*/ DWORD Unknown0x23C;
 
 //EQLIB_OBJECT void *CChatWindow::operator new(size_t stAllocateBlock) {return malloc(sizeof(EQCHATWINDOW));} // 11-15-2003 lax
 };

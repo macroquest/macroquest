@@ -1390,7 +1390,8 @@ typedef struct _ZONEINFO {
 /*0x23a*/   BYTE    SkyType;   
 /*0x23b*/   BYTE    Unknown0x23b[0xd];
 /*0x248*/   FLOAT   ZoneExpModifier;    //This has been nerfed ..now reads 1.0 for all zones
-/*0x24c*/   FLOAT   Unknown0x24c[0x10];
+/*0x24c*/   FLOAT   Unknown0x24c[0x3];
+/*0x258*/   BYTE    Unknown0x258[0x4];
 /*0x25c*/   FLOAT   Ceiling;
 /*0x260*/   FLOAT   Floor;
 /*0x264*/   FLOAT   MinClip;

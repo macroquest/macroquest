@@ -3800,7 +3800,7 @@ BOOL FastCalculate(PCHAR szFormula, DOUBLE &Result)
 		switch(*pCur)
 		{
 		case ' ':
-			break;
+			continue;
 		case '(':
 			FinishString();
 			StackPush(CO_OPENPARENS);

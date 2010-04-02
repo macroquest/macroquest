@@ -4415,8 +4415,8 @@ DebugSpew("List: index is %d\n", n);
 #else
 		if (argc==2) 
 			n=atoi(argv[1]); 
-		if (n<1) 
-			n=1; 
+		if (n<0) 
+			n=0; 
 #endif
 		if (ISNUMBER())
 		{

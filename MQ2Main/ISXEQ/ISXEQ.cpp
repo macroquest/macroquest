@@ -341,7 +341,6 @@ extern int __cdecl memcheck1(unsigned char *buffer, int count, struct mckey key)
 extern int __cdecl memcheck2(unsigned char *buffer, int count, struct mckey key);
 extern int __cdecl memcheck3(unsigned char *buffer, int count, struct mckey key);
 extern int __cdecl memcheck4(unsigned char *buffer, int count, struct mckey key);
-extern VOID memchecks_tramp(PCHAR,DWORD,PVOID,DWORD,BOOL);
 
 // this is the memory checker key struct
 struct mckey {
@@ -357,6 +356,13 @@ class CObfuscator
 public:
     int doit_tramp(int, int); 
     int doit_detour(int opcode, int flag);
+};
+
+class CEmoteHook 
+{ 
+public: 
+    VOID Trampoline(void);
+    VOID Detour(void);
 };
 
 DETOUR_TRAMPOLINE_EMPTY(int __cdecl memcheck0_tramp(unsigned char *buffer, int count));
@@ -387,9 +393,9 @@ VOID CISXEQ::HookMemChecker(BOOL Patch)
 		{
 			printf("memcheck4 detour failed");
 		}
-		if (!EzDetour(__SendMessage,memchecks,memchecks_tramp))
+                if (!EzDetour(CEverQuest__Emote,&CEmoteHook::Detour,&CEmoteHook::Trampoline))
 		{
-			printf("memchecks detour failed");
+			printf("emote detour failed");
 		}
 		if (!EzDetour(CObfuscator__doit,&CObfuscator::doit_detour,&CObfuscator::doit_tramp))
 		{
@@ -402,8 +408,8 @@ VOID CISXEQ::HookMemChecker(BOOL Patch)
 		EzUnDetour(__MemChecker2);
 		EzUnDetour(__MemChecker3);
 		EzUnDetour(__MemChecker4);
-		EzUnDetour(__SendMessage);
 		EzUnDetour(CObfuscator__doit);
+		EzUnDetour(CEverQuest__Emote);
     }
 }
 
