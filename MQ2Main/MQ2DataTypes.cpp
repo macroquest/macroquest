@@ -1920,6 +1920,54 @@ bool MQ2CharacterType::GETMEMBER()
 		Dest.DWord=pChar->DamageShieldBonus;
 		Dest.Type=pIntType;
 		return true;
+   case DamageShieldMitigationBonus:
+      Dest.DWord=pChar->DamageShieldMitigationBonus;
+      Dest.Type=pIntType;
+      return true;
+   case HeroicSTRBonus:
+      Dest.DWord=pChar->HeroicSTRBonus;
+      Dest.Type=pIntType;
+      return true;
+   case HeroicINTBonus:
+      Dest.DWord=pChar->HeroicINTBonus;
+      Dest.Type=pIntType;
+      return true;
+   case HeroicWISBonus:
+      Dest.DWord=pChar->HeroicWISBonus;
+      Dest.Type=pIntType;
+      return true;
+   case HeroicAGIBonus:
+      Dest.DWord=pChar->HeroicAGIBonus;
+      Dest.Type=pIntType;
+      return true;
+   case HeroicDEXBonus:
+      Dest.DWord=pChar->HeroicDEXBonus;
+      Dest.Type=pIntType;
+      return true;
+   case HeroicSTABonus:
+      Dest.DWord=pChar->HeroicSTABonus;
+      Dest.Type=pIntType;
+      return true;
+   case HeroicCHABonus:
+      Dest.DWord=pChar->HeroicCHABonus;
+      Dest.Type=pIntType;
+      return true;
+   case HealAmountBonus:
+      Dest.DWord=pChar->HealAmountBonus;
+      Dest.Type=pIntType;
+      return true;
+   case SpellDamageBonus:
+      Dest.DWord=pChar->SpellDamageBonus;
+      Dest.Type=pIntType;
+      return true;
+   case ClairvoyanceBonus:
+      Dest.DWord=pChar->ClairvoyanceBonus;
+      Dest.Type=pIntType;
+      return true;
+   case EnduranceRegenBonus:
+      Dest.DWord=pChar->EnduranceRegenBonus;
+      Dest.Type=pIntType;
+      return true; 
 	case AttackSpeed:
 		Dest.DWord=pChar->AttackSpeed;
 		Dest.Type=pIntType;
@@ -1929,9 +1977,9 @@ bool MQ2CharacterType::GETMEMBER()
 		Dest.Type=pIntType;
 		return true;
     case CurrentEndurance: 
-        Dest.DWord=GetCharInfo2()->Endurance; 
-        Dest.Type=pIntType; 
-        return true;
+		Dest.DWord=GetCharInfo2()->Endurance; 
+		Dest.Type=pIntType; 
+		return true;
 	case MaxEndurance:
 		Dest.DWord=GetMaxEndurance();
 		Dest.Type=pIntType;

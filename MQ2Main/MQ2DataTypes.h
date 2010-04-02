@@ -869,6 +869,18 @@ public:
 		Phosphites=159,
 		Fellowship=160,
 		Downtime=161,
+      DamageShieldMitigationBonus=162,
+      HeroicSTRBonus=163,
+      HeroicINTBonus=164,
+      HeroicWISBonus=165,
+      HeroicAGIBonus=166,
+      HeroicDEXBonus=167,
+      HeroicSTABonus=168,
+      HeroicCHABonus=169,
+      HealAmountBonus=170,
+      SpellDamageBonus=171,
+      ClairvoyanceBonus=172,
+      EnduranceRegenBonus=173, 
 	};
 	static enum CharacterMethods
 	{
@@ -1037,6 +1049,18 @@ public:
 		TypeMember(Phosphites);
 		TypeMember(Fellowship);
 		TypeMember(Downtime);
+      TypeMember(DamageShieldMitigationBonus);
+      TypeMember(HeroicSTRBonus);
+      TypeMember(HeroicINTBonus);
+      TypeMember(HeroicWISBonus);
+      TypeMember(HeroicAGIBonus);
+      TypeMember(HeroicDEXBonus);
+      TypeMember(HeroicSTABonus);
+      TypeMember(HeroicCHABonus);
+      TypeMember(HealAmountBonus);
+      TypeMember(SpellDamageBonus);
+      TypeMember(ClairvoyanceBonus);
+      TypeMember(EnduranceRegenBonus); 
 
 		TypeMethod(Stand); 
 		TypeMethod(Sit); 

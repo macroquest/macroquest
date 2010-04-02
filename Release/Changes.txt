@@ -1,3 +1,10 @@
+17 July 2008 by ieatacid, rswiders
+- Updated for today's patch
+- Added a bunch of stat bonus stuff to the character type (differentiation).  See this thread for more info: http://macroquest2.com/phpBB2/viewtopic.php?t=15646
+
+14 July 2008 by ieatacid
+- Added "PCCorpse" map filter to MQ2Map, "Corpse" filter now just works on NPC corpses. Default color is the same as default NPC corpse color.
+
 14 July 2008 by dkaa
 - Fixed the pet info wnd struct
 
