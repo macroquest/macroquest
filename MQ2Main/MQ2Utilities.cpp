@@ -901,7 +901,7 @@ DWORD GetSpellDuration(PSPELL pSpell, PSPAWNINFO pSpawn)
                         return 0;        
                 case 1:        
                 case 6: 
-                        min(ceil(double(pSpawn->Level) / 2), pSpell->DurationValue1); 
+                        return unsigned long(min(ceil(double(pSpawn->Level) / 2), pSpell->DurationValue1)); 
                 case 3: 
                 case 4:              
                 case 11: 
@@ -912,7 +912,7 @@ DWORD GetSpellDuration(PSPELL pSpell, PSPAWNINFO pSpawn)
                                 return (pSpell->DurationType*10); 
                         } 
                 case 2: 
-                        min(ceil(double(pSpawn->Level) / 0.6), pSpell->DurationValue1); 
+                        return unsigned long(min(ceil(double(pSpawn->Level) * 0.6), pSpell->DurationValue1)); 
                 case 5:                  
                         return 3; 
                 case 7:              
@@ -4186,6 +4186,8 @@ BOOL IsNamed(PSPAWNINFO pSpawn)
 	if (pSpawn->Class == 60 || pSpawn->Class == 61 )  //Ldon Merchants/Recruiters
 		return false;
 	if (pSpawn->Class == 63 ) // Tribute Master
+		return false;
+	if (pSpawn->Class == 67 || pSpawn->Class == 68 )  //Don Merchants (Norrath's Keepers/Dark Reign)
 		return false;
 
 	strcpy(szTemp,pSpawn->Name);

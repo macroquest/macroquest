@@ -58,6 +58,8 @@ static inline PCHAR GetClassDesc(DWORD ClassID)
 		return "Guild Tribute Master";
 	if (ClassID==66)
 		return "Guild Banker";
+	if (ClassID==67 || ClassID==68)
+		return "DoN Merchant";
 	if (ClassID==69)
 		return "Fellowship Registrar";
 	if (ClassID==0xFF)

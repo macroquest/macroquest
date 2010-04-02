@@ -1,8 +1,15 @@
+29 May 2009 by ieatacid, dkaa, rswiders
+- Updated for today's patch
+
+23 May 2008 by rswiders
+- Updated class descriptions (DoN Merchants / Fellowship Registrar)
+
 22 May 2008 by rswiders, ieatacid
 - Updated for today's patch
 
 22 May 2008 by rswiders
 - Added dead, stunned, hovering to Spawn TLO
+- Fixes to getspellduration
 
 12 May 2008 by dkaa
 - Added Friends TLO
