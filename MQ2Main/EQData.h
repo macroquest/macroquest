@@ -1771,7 +1771,7 @@ typedef struct _INTERACTSWITCH {
 #define EQ_BAZAARSEARCHME       0x175b  // CBazaarSearchWnd__doQuery 02/13
 #define EQ_EMOTE                0x40D0  // CEverQuest__Emote+8C
 #define EQ_BEGIN_ZONE           0x0C9D  // CEverQuest__SavePCForce+433
-#define EQ_END_ZONE             0x78ED  // CEverQuest__DoMainLoop+A68
+#define EQ_END_ZONE             0x5E9C  // CEverQuest__DoMainLoop+A68
 #define EQ_LoadingS__ArraySize  0x44    // EQ_LoadingS__SetProgressBar+7C
 #define EQ_INTERACTSWITCH       0x36E2  // EQSwitch__UseSwitch
 };
