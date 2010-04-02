@@ -266,7 +266,7 @@
 //// 
 // Section 3: Miscellaneous Offsets 
 //// 
-#define __CastRay                                                  0x4B7440
+#define __CastRay                                                  0x4B7660
 #define __ConvertItemTags                                          0x4AAD30
 #define __ExecuteCmd                                               0x49A390
 #define __get_melee_range                                          0x49F5C0

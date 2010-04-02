@@ -1031,15 +1031,16 @@ typedef struct _FELLOWSHIPINFO {
 /*0x448*/  DWORD  Members;
 /*0x44c*/  struct _FELLOWSHIPMEMBER  FellowshipMember[0x9];
 /*0x740*/  DWORD  Unknown0x740;      // timestamp for something
-/*0x744*/  FLOAT  CampfireY;
-/*0x748*/  FLOAT  CampfireX;
-/*0x74c*/  FLOAT  CampfireZ;
-/*0x750*/  DWORD  CampfireZoneID;    // zone ID where campfire is
-/*0x754*/  DWORD  CampfireTimestamp; // CampfireTimestamp-GetFastTime()=time left on campfire
-/*0x758*/  DWORD  Unknown0x7a0;      // some kind of ID - same as Unknown0x4
-/*0x75c*/  DWORD  Unknown0x7a4;      // campfire type?
-/*0x760*/  DWORD  Campfire;          // do we have a campfire up?
-/*0x764*/
+/*0x744*/  BYTE   Unknown0x744[0x120];
+/*0x864*/  FLOAT  CampfireY;
+/*0x868*/  FLOAT  CampfireX;
+/*0x86c*/  FLOAT  CampfireZ;
+/*0x870*/  DWORD  CampfireZoneID;    // zone ID where campfire is
+/*0x874*/  DWORD  CampfireTimestamp; // CampfireTimestamp-GetFastTime()=time left on campfire
+/*0x878*/  DWORD  Unknown0x7a0;      // some kind of ID - same as Unknown0x4
+/*0x87c*/  DWORD  Unknown0x7a4;      // campfire type?
+/*0x880*/  DWORD  Campfire;          // do we have a campfire up?
+/*0x884*/
 } FELLOWSHIPINFO, *PFELLOWSHIPINFO;
 
 // actual size: 0x1bc4 11-13-2007
@@ -1202,8 +1203,8 @@ typedef struct _SPAWNINFO {
 /*0x10fc*/ BYTE     Unknown0x10fc[0x40];
 /*0x113c*/ BYTE     InvitedToGroup;
 /*0x113d*/ BYTE     Unknown0x113d[0x187];
-/*0x12c4*/ struct   _FELLOWSHIPINFO Fellowship;        // size 0x764
-/*0x1a28*/ BYTE     Unknown0x1a28[0x174];
+/*0x12c4*/ struct   _FELLOWSHIPINFO Fellowship;        // size 0x884
+/*0x1b48*/ BYTE     Unknown0x1b48[0x54];
 /*0x1b9c*/ void     *vtable2;
 /*0x1ba0*/ DWORD    Unknown0x1ba0;
 /*0x1ba4*/ struct   _SPAWNINFO *pSpawn;
