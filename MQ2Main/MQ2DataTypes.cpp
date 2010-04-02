@@ -3243,7 +3243,6 @@ bool MQ2SpellType::GETMEMBER()
 		for (nBuff=0; nBuff<25; nBuff++){
 			 if (pChar->Buff[nBuff].SpellID>0) {
 				  PSPELL tmpSpell = GetSpellByID(pChar->Buff[nBuff].SpellID);
-				  if (pSpell->ID==tmpSpell->ID) return true;
 				  if (!BuffStackTest(pSpell, tmpSpell)){
 						Dest.DWord = false;
 						return true;
@@ -3261,7 +3260,6 @@ bool MQ2SpellType::GETMEMBER()
 		for (nBuff=0; nBuff<29; nBuff++){
 			 if (pPet->Buff[nBuff]>0 && !(pPet->Buff[nBuff]==0xFFFFFFFF || pPet->Buff[nBuff]==0)) {
 				  PSPELL tmpSpell = GetSpellByID(pPet->Buff[nBuff]);
-				  if (pSpell->ID==tmpSpell->ID) return true;
 				  if (!BuffStackTest(pSpell, tmpSpell)){
 					  Dest.DWord = false;
 					  return true;

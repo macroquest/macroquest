@@ -5635,7 +5635,6 @@ bool InHoverState()
 // Author:      Pinkfloydx33
 // ***************************************************************************
 bool BuffStackTest(PSPELL aSpell, PSPELL bSpell){
-	if (aSpell->ID==bSpell->ID) return true;
 
     int i;
 
