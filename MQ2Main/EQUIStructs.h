@@ -679,20 +679,22 @@ typedef struct _EQLOOTWINDOW {
 /*0x1f0*/ PCONTENTS   ItemDesc[NUM_INV_SLOTS]; //there can only be 31 items on a corpse since that equals 23 inv slots plus 8 bags...
 } EQLOOTWINDOW, *PEQLOOTWINDOW;
 
-//Size: 0x3a4 (03/25/2004)
+//Size: 0x3e4 (07/09/2008)
 typedef struct _EQPETINFOWINDOW {
 /*0x000*/ struct _CSIDLWND Wnd;
-/*0x174*/ DWORD Unknown0x174;
-/*0x178*/ DWORD Unknown0x178; // pet's spawnid
-/*0x17c*/ DWORD Unknown0x17c; // bool
-/*0x180*/ BYTE  Unknown0x180[0x120];
+/*0x190*/ DWORD Unknown0x190;
+/*0x194*/ DWORD Unknown0x194; // pet's spawnid
+/*0x198*/ DWORD Unknown0x198; // bool
+/*0x19c*/ BYTE  Unknown0x19c[0x120];
 /* buttons are here */
-/*0x2a0*/ struct _CXWND *wnd;           // spell info wnd?
-/*0x2a4*/ int   Buff[0x1e]; // Spell ID# of each buff -- 30 total
-/*0x31c*/ DWORD Unknown0x318;  
-/*0x320*/ BYTE  Unknown0x31c[4];
-/*0x324*/ DWORD Unknown0x320[2];
-/*0x32c*/ DWORD BuffFadeETA[0x1e]; // duration until buff fades, in thousands of a second
+/*0x2bc*/ struct _CXWND *wnd;           // spell info wnd?
+/*0x2c0*/ int   Buff[0x1e]; // Spell ID# of each buff -- 30 total
+/*0x338*/ DWORD Unknown0x338;  
+/*0x33c*/ BYTE  Unknown0x33c[4];
+/*0x340*/ DWORD Unknown0x340[10];
+/*0x368*/ DWORD BuffFadeETA[0x1e]; // duration until buff fades, in thousands of a second
+/*0x3e0*/ DWORD Unknown0x3e0; // really a byte...
+/*0x3e4*/
 } EQPETINFOWINDOW, *PEQPETINFOWINDOW;
 
 typedef struct _EQTRADESKILLRECIPE {

@@ -249,7 +249,7 @@
 #define pinstCPvPLeaderboardWnd                                    0xA0DF2C
 #define pinstCPvPStatsWnd                                          0xA0DF48
 #define pinstCSystemInfoDialogBox                                  0xA0DFF8
-#define pinstCTargetOfTargetWnd                                    0xA0E8EC
+#define pinstCTargetOfTargetWnd                                    0xA0E8D4
 #define pinstCTaskSelectWnd                                        0xA0E908
 #define pinstCTaskTemplateSelectWnd                                0xA0E924
 #define pinstCTaskWnd                                              0xA0E940
@@ -400,7 +400,7 @@
 #define CListWnd__AddLine                                          0x679740
 #define CListWnd__AddString                                        0x679910
 #define CListWnd__CalculateFirstVisibleLine                        0x676B00
-#define CListWnd__CalculateVSBRange                                0x678710
+#define CListWnd__CalculateVSBRange                                0x6954E0
 #define CListWnd__ClearAllSel                                      0x676250
 #define CListWnd__CloseAndUpdateEditWindow                         0x677100
 #define CListWnd__Compare                                          0x677490
