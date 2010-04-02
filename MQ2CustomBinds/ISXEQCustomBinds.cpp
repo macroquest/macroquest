@@ -4,6 +4,7 @@
 #pragma warning(disable:4996)
 #include "../ISXEQClient.h"
 #include "ISXEQCustomBinds.h"
+#include <tchar.h>
 
 // The mandatory pre-setup function.  Our name is "ISXEQCustomBinds", and the class is ISXEQCustomBinds.
 // This sets up a "ModulePath" variable which contains the path to this module in case we want it,

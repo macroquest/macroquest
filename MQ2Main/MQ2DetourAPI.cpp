@@ -26,8 +26,6 @@
 #include "MQ2Main.h"
 #ifndef ISXEQ
 
-DWORD g_ConvertedOpcode = 0;
-
 typedef struct _OurDetours {
 /* 0x00 */    unsigned int addr;
 /* 0x04 */    unsigned int count;
@@ -40,28 +38,6 @@ typedef struct _OurDetours {
 
 OurDetours *ourdetours=0;
 CRITICAL_SECTION gDetourCS;
-
-
-
-class CObfuscator 
-{
-public:
-    int doit_tramp(int, int); 
-    int doit_detour(int opcode, int flag)
-    {
-#if 0
-        if (EQ_BEGIN_ZONE == opcode) {
-            DebugSpewAlways("EQ_BEGIN_ZONE");
-        } else {
-            DebugSpewAlways("opcode %d", opcode);
-        }
-#endif
-        g_ConvertedOpcode = opcode;
-        return doit_tramp(opcode, flag);
-    };
-};
-
-DETOUR_TRAMPOLINE_EMPTY(int CObfuscator::doit_tramp(int, int));
 
 
 OurDetours *FindDetour(DWORD address)
@@ -193,6 +169,30 @@ void RemoveOurDetours()
 
 #endif
 
+DWORD g_ConvertedOpcode = 0;
+
+class CObfuscator 
+{
+public:
+	int doit_tramp(int, int); 
+	int doit_detour(int opcode, int flag);
+};
+
+int CObfuscator::doit_detour(int opcode, int flag)
+{
+#if 0
+	if (EQ_BEGIN_ZONE == opcode) {
+		DebugSpewAlways("EQ_BEGIN_ZONE");
+	} else {
+		DebugSpewAlways("opcode %d", opcode);
+	}
+#endif
+	g_ConvertedOpcode = opcode;
+	return doit_tramp(opcode, flag);
+};
+
+DETOUR_TRAMPOLINE_EMPTY(int CObfuscator::doit_tramp(int, int));
+
 // this is the memory checker key struct
 struct mckey {
     union {
@@ -238,7 +238,7 @@ VOID memchecks(PCHAR A,DWORD B,PVOID C,DWORD D,BOOL E)
 	if (g_ConvertedOpcode==EQ_BEGIN_ZONE) PluginsBeginZone(); 
 	memchecks_tramp(A,B,C,D,E);
 	if (g_ConvertedOpcode==EQ_END_ZONE) PluginsEndZone();
-        g_ConvertedOpcode = 0;
+	g_ConvertedOpcode = 0;
 }
 
 // ***************************************************************************
