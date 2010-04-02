@@ -41,20 +41,21 @@ struct _BazaarSearchRequestPacket
 /* 0x6c */
 };
 
-// size is 0x6c 4/12/05
+// size is 0xa0 4/17/08
 
 struct _BazaarSearchResponsePacket
 {
     /* 0x00 */   int     BSSmsg;         // should be 7
     /* 0x04 */   int     BSSTraderID;    // correct 9/16
-    /* 0x08 */   int     BSSQuantity;    // correct 9/16
-    /* 0x0c */   int     BSSItemID;      // correct 9/16
-    /* 0x10 */   int     BSSUnknown10;
-    /* 0x14 */   int     BSSUnknown14;
-    /* 0x18 */   char    BSSName[0x40];  // correct 9/16
-    /* 0x58 */   int     BSSPrice;       // correct 9/16
-    /* 0x5c */   int     BSSValue;       // correct 9/16
-/* 0x60 */
+    /* 0x08 */   char    BSSTraderName[0x40];
+    /* 0x48 */   int     BSSQuantity;    // correct 9/16
+    /* 0x4c */   int     BSSItemID;      // correct 9/16
+    /* 0x50 */   int     BSSUnknown10;
+    /* 0x54 */   int     BSSUnknown14;
+    /* 0x58 */   char    BSSName[0x40];  // correct 9/16
+    /* 0x98 */   int     BSSPrice;       // correct 9/16
+    /* 0x9c */   int     BSSValue;       // correct 9/16
+/* 0xa0 */
 };
 
 struct _classes
