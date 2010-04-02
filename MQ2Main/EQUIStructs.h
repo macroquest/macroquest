@@ -862,7 +862,7 @@ typedef struct _EQCASTSPELLWINDOW {
 /*0x000*/ struct _CSIDLWND Wnd;
 /*0x188*/ BYTE Unknown0x148[0x0c];
 /*0x194*/  struct _EQCASTSPELLGEM   *SpellSlots[NUM_SPELL_GEMS];
-/*0x1bc*/  BYTE    Unknown0x190[0x30];
+/*0x1bc*/  BYTE    Unknown0x1bc[0x30]; 
 /*0x1ec*/
 } EQCASTSPELLWINDOW, *PEQCASTSPELLWINDOW;
 

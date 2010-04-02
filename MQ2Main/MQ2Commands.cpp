@@ -507,41 +507,52 @@ VOID MemSpell(PSPAWNINFO pChar, PCHAR szLine)
 {
     if (!ppSpellBookWnd) return;
     DWORD Favorite = (DWORD)&MemSpellFavorite;
-   CHAR szGem[MAX_STRING] = {0};
+    CHAR szGem[MAX_STRING] = {0};
     DWORD sp;
-   WORD Gem = -1;
-   CHAR SpellName[MAX_STRING] = {0};
-   PCHARINFO pCharInfo = NULL;
+    WORD Gem = -1;
+    CHAR SpellName[MAX_STRING] = {0};
+    PCHARINFO pCharInfo = NULL;
     if (!pSpellBookWnd) return;
-   if (NULL == (pCharInfo = GetCharInfo())) return;
+    if (NULL == (pCharInfo = GetCharInfo())) return;
 
-   GetArg(szGem,szLine,1);
-   GetArg(SpellName,szLine,2);
-   Gem = atoi(szGem);
-   if (Gem<1 || Gem>NUM_SPELL_GEMS) return;
-   Gem--;
+    GetArg(szGem,szLine,1);
+    GetArg(SpellName,szLine,2);
+    Gem = atoi(szGem);
+    if (Gem<1 || Gem>NUM_SPELL_GEMS) return;
+    Gem--;
 
-   GetCharInfo2()->SpellBook;
-   PSPELL pSpell=0;
-	for (DWORD N = 0 ; N < NUM_BOOK_SLOTS ; N++)
-	if (PSPELL pTempSpell=GetSpellByID(GetCharInfo2()->SpellBook[N]))
-	{
-		if (!stricmp(SpellName,pTempSpell->Name) || (strstr(pTempSpell->Name,"Rk. II") && !strnicmp(SpellName,pTempSpell->Name,strlen(pTempSpell->Name)-8)))
-		{
-			pSpell=pTempSpell;
-			break;
-		}
-	}
+    GetCharInfo2()->SpellBook;
+    PSPELL pSpell=0;
+    for (DWORD N = 0 ; N < NUM_BOOK_SLOTS ; N++)
+    if (PSPELL pTempSpell=GetSpellByID(GetCharInfo2()->SpellBook[N]))
+    {
 
-	if (!pSpell) return;
-	if (pSpell->Level[pChar->Class-1]>pChar->Level) return;
+        // we need to match:
+        // "stupid spell"
+        // "stupid spell Rk. II"
+        // "stupid spell Rk. III"
+        // from user input of "stupid spell"
+        // so exact match or
+        // (has Rk. II (which includes Rk. III) and
+        // matches for the len of the user input
+        if (!stricmp(SpellName,pTempSpell->Name)  || // exact match or
+            (strstr(pTempSpell->Name,"Rk. II") &&  // has rk ii and
+            !strnicmp(SpellName,pTempSpell->Name,strlen(SpellName)))) // match user input
+        {
+            pSpell=pTempSpell;
+            break;
+        }
+    }
 
-	ZeroMemory(&MemSpellFavorite,sizeof(MemSpellFavorite));
-	strcpy(MemSpellFavorite.Name,"Mem a Spell");
-	MemSpellFavorite.Byte_3e=1;
-	for (sp=0;sp<NUM_SPELL_GEMS;sp++) MemSpellFavorite.SpellId[sp]=0xFFFFFFFF;
-	MemSpellFavorite.SpellId[Gem] = pSpell->ID;
-	pSpellBookWnd->MemorizeSet((int*)Favorite,NUM_SPELL_GEMS);
+    if (!pSpell) return;
+    if (pSpell->Level[pChar->Class-1]>pChar->Level) return;
+
+    ZeroMemory(&MemSpellFavorite,sizeof(MemSpellFavorite));
+    strcpy(MemSpellFavorite.Name,"Mem a Spell");
+    MemSpellFavorite.inuse=1;
+    for (sp=0;sp<NUM_SPELL_GEMS;sp++) MemSpellFavorite.SpellId[sp]=0xFFFFFFFF;
+    MemSpellFavorite.SpellId[Gem] = pSpell->ID;
+    pSpellBookWnd->MemorizeSet((int*)Favorite,NUM_SPELL_GEMS);
 }
 
 // ***************************************************************************

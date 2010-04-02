@@ -1114,7 +1114,9 @@ typedef struct _SPAWNINFO {
 /*0x026c*/ BYTE     FishingEvent;
 /*0x026d*/ BYTE     Unknown0x26d[0x3b];
 /*0x02a8*/ BYTE     Sneak;
-/*0x02a9*/ BYTE     Unknown0x2a9[0x2b];
+/*0x02a9*/ BYTE     Unknown0x2a9[0x7];
+/*0x02b0*/ DWORD    Trader;
+/*0x02b4*/ BYTE     Unknown0x2b4[0x20];
 /*0x02d4*/ DWORD    AARank;
 /*0x02d8*/ BYTE     Unknown0x2d8[0x5];
 /*0x02dd*/ BYTE     BetaBuffedPlayer;
@@ -1148,9 +1150,7 @@ typedef struct _SPAWNINFO {
 /*0x03dc*/ DWORD    InnateETA;              //Calculated TimeStamp when innate skill will be ready (LoH, HT, Bash)
 /*0x03e0*/ BYTE     Unknown0x3e0[0x4];
 /*0x03e4*/ BYTE     Linkdead;
-/*0x03e5*/ BYTE     Unknown0x3e5[0x7];
-/*0x03ec*/ DWORD    Trader;
-/*0x03f0*/ BYTE     Unknown0x3f0[0x77];
+/*0x03e5*/ BYTE     Unknown0x3e5[0x82];
 /*0x0467*/ BYTE     StandState;
 /*0x0468*/ BYTE     Unknown0x468[0x4];
 /*0x046c*/ FLOAT    RunSpeed;
@@ -1209,7 +1209,7 @@ typedef struct _SPAWNINFO {
 /*0x1ba0*/ DWORD    Unknown0x1ba0;
 /*0x1ba4*/ struct   _SPAWNINFO *pSpawn;
 /*0x1ba8*/ BYTE     Levitate;
-/*0x1ba9*/ BYTE     Unknown0x1bac[0x1b];
+/*0x1ba9*/ BYTE     Unknown0x1ba9[0x1b]; 
 /*0x1bc4*/
 } SPAWNINFO, *PSPAWNINFO;
 
@@ -1509,7 +1509,7 @@ typedef struct _SPELL {
 /*0x4bc*/   DWORD   ResistAdj;
 /*0x4c0*/   BYTE    Unknown0x4c0[0x1a];
 /*0x4da*/   BYTE    Uninterruptable;    //00=Interruptable, 01=Uninterruptable 
-/*0x4db*/   BYTE    Unknown0x4ef[0x11];
+/*0x4db*/   BYTE    Unknown0x4db[0x11]; 
 /*0x4ec*/
 } SPELL, *PSPELL;
 
@@ -1581,12 +1581,12 @@ typedef struct _INTERACTGROUNDITEM {
 } INTERACTGROUNDITEM, *PINTERACTGROUNDITEM;
 
 typedef struct _SPELLFAVORITE {
-/*0x000*/   DWORD   SpellId[9];
-/*0x024*/   CHAR    Name[25];
-/*0x03d*/   BYTE    Byte_3d;
-/*0x03e*/   BYTE    Byte_3e;
-/*0x03f*/   BYTE    Byte_3f;
-/*0x040*/
+/*0x000*/   DWORD   SpellId[NUM_SPELL_GEMS];
+/*0x028*/   CHAR    Name[25];
+/*0x041*/   BYTE    inuse;
+/*0x042*/   BYTE    Byte_42;
+/*0x043*/   BYTE    Byte_43;
+/*0x044*/
 } SPELLFAVORITE, *PSPELLFAVORITE;
 
 typedef struct _CMDLIST {

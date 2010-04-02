@@ -1796,7 +1796,7 @@ bool MQ2CharacterType::GETMEMBER()
 			{
 				if (PSPELL pSpell=GetSpellByID(GetCharInfo2()->Buff[nBuff].SpellID))
 				{
-					if (!stricmp(GETFIRST(),pSpell->Name) || (strstr(pSpell->Name,"Rk. II") && !strnicmp(GETFIRST(),pSpell->Name,strlen(pSpell->Name)-8)))
+					if (!stricmp(GETFIRST(),pSpell->Name) || (strstr(pSpell->Name,"Rk. II") && !strnicmp(GETFIRST(),pSpell->Name,strlen(GETFIRST()))))
 					{
 						Dest.Ptr=&GetCharInfo2()->Buff[nBuff];
 						Dest.Type=pBuffType;
@@ -2636,7 +2636,7 @@ bool MQ2CharacterType::GETMEMBER()
 			{
 				if (PSPELL pSpell=GetSpellByID(pPetInfoWindow->Buff[nBuff]))
 				{
-					if (!stricmp(GETFIRST(),pSpell->Name) || (strstr(pSpell->Name,"Rk. II") && !strnicmp(GETFIRST(),pSpell->Name,strlen(pSpell->Name)-8)))
+					if (!stricmp(GETFIRST(),pSpell->Name) || (strstr(pSpell->Name,"Rk. II") && !strnicmp(GETFIRST(),pSpell->Name,strlen(GETFIRST()))))
 					{
 						Dest.DWord=nBuff+1;
 						Dest.Type=pIntType;
@@ -5417,7 +5417,7 @@ bool MQ2InvSlotType::GETMEMBER()
 		Dest.Type=pIntType;
 		return true;
 	case Item:
-		{
+		if (pInvSlotMgr) {
 			if (CInvSlot *pSlot=pInvSlotMgr->FindInvSlot(nInvSlot))
 			{
 				if (((PEQINVSLOT)pSlot)->ppContents)

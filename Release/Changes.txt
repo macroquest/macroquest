@@ -1,3 +1,11 @@
+20 November 2007 by rswiders, ieatacid
+- Updated for today's patch
+
+17 November 2007 by dkaa
+- fixed SPELLFAVORITE
+- fixed the crappy Rk. II/III handling
+- fixed a crash on zoning
+
 14 November 2007 by ieatacid, rswiders, dkaa
 - Updated for November 13th patch
 
