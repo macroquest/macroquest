@@ -261,64 +261,69 @@ typedef struct _CXWNDVFTABLE {
 // Actual size                 
 typedef struct _CXWND {
 /*0x000*/   struct  _CXWNDVFTABLE   *pvfTable;
-/*0x004*/   DWORD   HScrollMax;
-/*0x008*/   DWORD   Unknown0x8;
-/*0x00c*/   DWORD   HScrollPos;
-/*0x010*/   BYTE    Unknown0x10[0x10];
-/*0x020*/   BYTE    Alpha;
-/*0x021*/   BYTE    Unknown0x21[0x3];
-/*0x024*/   struct  _CXSTR  *XMLToolTip;
-/*0x028*/   RECT    OldLocation;
-/*0x038*/   DWORD   Unknown0x38;
-/*0x03c*/   DWORD   TickCount2;
-/*0x040*/   struct  _CXSTR  *Tooltip;
-/*0x044*/   ARGBCOLOR BGColor;
-/*0x048*/   BYTE    Unknown0x48[0x24];
-/*0x06c*/   DWORD   FadeDuration;
-/*0x070*/   DWORD   ZLayer;
-/*0x074*/   DWORD   UnknownCW;
-/*0x078*/   struct  _CSIDLWND *pSiblings;
-/*0x07c*/   BYTE    Unknown0x7c[0x8];
-/*0x084*/   struct  _CXSTR  *WindowText;
-/*0x088*/   DWORD   XMLIndex;
-/*0x08c*/   BYTE    Unknown0x8c[0x8];
-/*0x094*/   struct  _CSIDLWND *pParentWindow; // If this is NULL, coordinates are absolute...
-/*0x098*/   RECT    Location;
-/*0x0a8*/   BYTE    Unknown0xa8;
-/*0x0a9*/   BYTE    FadeToAlpha;
-/*0x0aa*/   BYTE    Unknown0xaa[0x6];
-/*0x0b0*/   BYTE    HasSiblings;
-/*0x0b1*/   BYTE    Unknown0xb1[0xb];
-/*0x0bc*/   DWORD   BGType; // "BGType" in ini
-/*0x0c0*/   BYTE    Unknown0xc0[0x9];
-/*0x0c9*/   BYTE    Minimized;
-/*0x0ca*/   BYTE    Unlockable;     // related to Locked
-/*0x0cb*/   BYTE    Unknown0xcb;
-/*0x0cc*/   DWORD   TimeMouseOver;
-/*0x0d0*/   BYTE    HasChildren;
-/*0x0d1*/   BYTE    Unknown0xd1[0x7];
-/*0x0d8*/   BYTE    Locked;
-/*0x0d9*/   BYTE    MouseOver;
-/*0x0da*/   BYTE    Clickable;      // found in the button handlers
-/*0x0db*/   BYTE    Unknown0xdb;
-/*0x0dc*/   DWORD   WindowStyle;  // bit 1 - vertical scroll, bit 2 - horizontal scroll, bit 4 - title bar?, bit 8 - border
-/*0x0e0*/   DWORD   Unknown0xe0;    
-/*0x0e4*/   DWORD   VScrollPos;
-/*0x0e8*/   BYTE    Faded;
-/*0x0e9*/   BYTE    Fades;
-/*0x0ea*/   BYTE    Unknown0xea[0x2];
-/*0x0ec*/   DWORD   VScrollMax;
-/*0x0f0*/   BYTE    Unknown0xf0[0xa];
-/*0x0fa*/   BYTE    Show;
-/*0x0fb*/   BYTE    Unknown0xfb;
-/*0x0fc*/   LPVOID  DrawTemplate;
-/*0x100*/   struct  _CSIDLWND *pChildren;
-/*0x104*/   BYTE    Enabled;
-/*0x105*/   BYTE    Unknown0x105[0x9];
-/*0x10e*/   BYTE    ValidCXWnd;
-/*0x10f*/   BYTE    Unknown0x10f[0x11];
-/*0x120*/   struct  _CXSTR  *SidlText;
-/*0x124*/
+/*0x004*/   BYTE    Show;
+/*0x005*/   BYTE    Unknown0x5[0x13];
+/*0x018*/   struct  _CXSTR  *Tooltip;
+/*0x01c*/   BYTE    Unknown0x1c[0x4];
+/*0x020*/   struct  _CSIDLWND *pSiblings;
+/*0x024*/   BYTE    Unknown0x24[0x4];
+/*0x028*/   DWORD   ZLayer;
+/*0x02c*/   BYTE    Unknown0x2c;
+/*0x02d*/   BYTE    Alpha;
+/*0x02e*/   BYTE    Unknown0x2e[0x2];
+/*0x030*/   DWORD   FadeDuration;
+/*0x034*/   DWORD   UnknownCW;
+/*0x038*/   BYTE    ValidCXWnd;
+/*0x039*/   BYTE    Faded;
+/*0x03a*/   BYTE    Unknown0x3a[0x6];
+/*0x040*/   DWORD   TimeMouseOver;
+/*0x044*/   BYTE    Unknown0x44[0x4];
+/*0x048*/   struct  _CXSTR  *XMLToolTip;
+/*0x04c*/   BYTE    Unknown0x4c[0xc];
+/*0x058*/   BYTE    Clickable;      // found in the button handlers
+/*0x059*/   BYTE    Unknown0x59[0x3];
+/*0x05c*/   RECT    OldLocation;
+/*0x06c*/   BYTE    Unknown0x6c[0x8];
+/*0x074*/   DWORD   VScrollMax;
+/*0x078*/   BYTE    MouseOver;
+/*0x079*/   BYTE    Unknown0x79[0x3];
+/*0x07c*/   DWORD   VScrollPos;
+/*0x080*/   BYTE    FadeToAlpha;
+/*0x081*/   BYTE    Unknown0x81[0x3];
+/*0x084*/   LPVOID  DrawTemplate;
+/*0x088*/   BYTE    Unknown0x88[0x10];
+/*0x098*/   BYTE    Enabled;
+/*0x099*/   BYTE    Unknown0x99[0x3];
+/*0x09c*/   DWORD   HScrollMax;
+/*0x0a0*/   BYTE    HasChildren;
+/*0x0a1*/   BYTE    Unknown0xa1[0x3];
+/*0x0a4*/   struct  _CSIDLWND *pChildren;
+/*0x0a8*/   BYTE    Unknown0xa8[0x4];
+/*0x0ac*/   DWORD   XMLIndex;
+/*0x0b0*/   DWORD   WindowStyle;  // bit 1 - vertical scroll, bit 2 - horizontal scroll, bit 4 - title bar?, bit 8 - border
+/*0x0b4*/   BYTE    Unknown0xb4[0x4];
+/*0x0b8*/   BYTE    Fades;
+/*0x0b9*/   BYTE    Locked;
+/*0x0ba*/   BYTE    Unknown0xba[0x1e];
+/*0x0d8*/   DWORD   BGType; // "BGType" in ini
+/*0x0dc*/   BYTE    Unknown0xdc[0x4];
+/*0x0e0*/   BYTE    Unlockable;     // related to Locked
+/*0x0e1*/   BYTE    Unknown0xe1[0x13];
+/*0x0f4*/   struct  _CXSTR  *WindowText;
+/*0x0f8*/   struct  _CSIDLWND *pParentWindow; // If this is NULL, coordinates are absolute...
+/*0x0fc*/   ARGBCOLOR BGColor;
+/*0x100*/   BYTE    Unknown0x100[0x2];
+/*0x102*/   BYTE    Minimized;
+/*0x103*/   BYTE    Unknown0x103[0x5];
+/*0x108*/   BYTE    HasSiblings;
+/*0x109*/   BYTE    Unknown0x109[0x3];
+/*0x10c*/   DWORD   TickCount2;
+/*0x110*/   BYTE    Unknown0x110[0x14];
+/*0x124*/   RECT    Location;
+/*0x134*/   BYTE    Unknown0x134[0x8];
+/*0x13c*/   DWORD   HScrollPos;
+/*0x140*/   struct  _CXSTR  *SidlText;
+/*0x144*/
 } CXWND, *PCXWND;
 #define GateBind          0
 
@@ -326,90 +331,95 @@ typedef struct _CXWND {
 // Actual size 0x174 08-30-06
 typedef struct _CSIDLWND {
 /*0x000*/   struct  _CSIDLWNDVFTABLE   *pvfTable;
-/*0x004*/   DWORD   HScrollMax;
-/*0x008*/   DWORD   Unknown0x8;
-/*0x00c*/   DWORD   HScrollPos;
-/*0x010*/   BYTE    Unknown0x10[0x10];
-/*0x020*/   BYTE    Alpha;
-/*0x021*/   BYTE    Unknown0x21[0x3];
-/*0x024*/   struct  _CXSTR  *XMLToolTip;
-/*0x028*/   RECT    OldLocation;
-/*0x038*/   DWORD   Unknown0x38;
-/*0x03c*/   DWORD   TickCount2;
-/*0x040*/   struct  _CXSTR  *Tooltip;
-/*0x044*/   ARGBCOLOR BGColor;
-/*0x048*/   BYTE    Unknown0x48[0x24];
-/*0x06c*/   DWORD   FadeDuration;
-/*0x070*/   DWORD   ZLayer;
-/*0x074*/   DWORD   UnknownCW;
-/*0x078*/   struct  _CSIDLWND *pSiblings;
-/*0x07c*/   BYTE    Unknown0x7c[0x8];
-/*0x084*/   struct  _CXSTR  *WindowText;
-/*0x088*/   DWORD   XMLIndex;
-/*0x08c*/   BYTE    Unknown0x8c[0x8];
-/*0x094*/   struct  _CSIDLWND *pParentWindow; // If this is NULL, coordinates are absolute...
-/*0x098*/   RECT    Location;
-/*0x0a8*/   BYTE    Unknown0xa8;
-/*0x0a9*/   BYTE    FadeToAlpha;
-/*0x0aa*/   BYTE    Unknown0xaa[0x6];
-/*0x0b0*/   BYTE    HasSiblings;
-/*0x0b1*/   BYTE    Unknown0xb1[0xb];
-/*0x0bc*/   DWORD   BGType; // "BGType" in ini
-/*0x0c0*/   BYTE    Unknown0xc0[0x9];
-/*0x0c9*/   BYTE    Minimized;
-/*0x0ca*/   BYTE    Unlockable;     // related to Locked
-/*0x0cb*/   BYTE    Unknown0xcb;
-/*0x0cc*/   DWORD   TimeMouseOver;
-/*0x0d0*/   BYTE    HasChildren;
-/*0x0d1*/   BYTE    Unknown0xd1[0x7];
-/*0x0d8*/   BYTE    Locked;
-/*0x0d9*/   BYTE    MouseOver;
-/*0x0da*/   BYTE    Clickable;      // found in the button handlers
-/*0x0db*/   BYTE    Unknown0xdb;
-/*0x0dc*/   DWORD   WindowStyle;  // bit 1 - vertical scroll, bit 2 - horizontal scroll, bit 4 - title bar?, bit 8 - border
-/*0x0e0*/   DWORD   Unknown0xe0;    
-/*0x0e4*/   DWORD   VScrollPos;
-/*0x0e8*/   BYTE    Faded;
-/*0x0e9*/   BYTE    Fades;
-/*0x0ea*/   BYTE    Unknown0xea[0x2];
-/*0x0ec*/   DWORD   VScrollMax;
-/*0x0f0*/   BYTE    Unknown0xf0[0xa];
-/*0x0fa*/   BYTE    Show;
-/*0x0fb*/   BYTE    Unknown0xfb;
-/*0x0fc*/   LPVOID  DrawTemplate;
-/*0x100*/   struct  _CSIDLWND *pChildren;
-/*0x104*/   BYTE    Enabled;
-/*0x105*/   BYTE    Unknown0x105[0x9];
-/*0x10e*/   BYTE    ValidCXWnd;
-/*0x10f*/   BYTE    Unknown0x10f[0x11];
-/*0x120*/   union {
+/*0x004*/   BYTE    Show;
+/*0x005*/   BYTE    Unknown0x5[0x13];
+/*0x018*/   struct  _CXSTR  *Tooltip;
+/*0x01c*/   BYTE    Unknown0x1c[0x4];
+/*0x020*/   struct  _CSIDLWND *pSiblings;
+/*0x024*/   BYTE    Unknown0x24[0x4];
+/*0x028*/   DWORD   ZLayer;
+/*0x02c*/   BYTE    Unknown0x2c;
+/*0x02d*/   BYTE    Alpha;
+/*0x02e*/   BYTE    Unknown0x2e[0x2];
+/*0x030*/   DWORD   FadeDuration;
+/*0x034*/   DWORD   UnknownCW;
+/*0x038*/   BYTE    ValidCXWnd;
+/*0x039*/   BYTE    Faded;
+/*0x03a*/   BYTE    Unknown0x3a[0x6];
+/*0x040*/   DWORD   TimeMouseOver;
+/*0x044*/   BYTE    Unknown0x44[0x4];
+/*0x048*/   struct  _CXSTR  *XMLToolTip;
+/*0x04c*/   BYTE    Unknown0x4c[0xc];
+/*0x058*/   BYTE    Clickable;      // found in the button handlers
+/*0x059*/   BYTE    Unknown0x59[0x3];
+/*0x05c*/   RECT    OldLocation;
+/*0x06c*/   BYTE    Unknown0x6c[0x8];
+/*0x074*/   DWORD   VScrollMax;
+/*0x078*/   BYTE    MouseOver;
+/*0x079*/   BYTE    Unknown0x79[0x3];
+/*0x07c*/   DWORD   VScrollPos;
+/*0x080*/   BYTE    FadeToAlpha;
+/*0x081*/   BYTE    Unknown0x81[0x3];
+/*0x084*/   LPVOID  DrawTemplate;
+/*0x088*/   BYTE    Unknown0x88[0x10];
+/*0x098*/   BYTE    Enabled;
+/*0x099*/   BYTE    Unknown0x99[0x3];
+/*0x09c*/   DWORD   HScrollMax;
+/*0x0a0*/   BYTE    HasChildren;
+/*0x0a1*/   BYTE    Unknown0xa1[0x3];
+/*0x0a4*/   struct  _CSIDLWND *pChildren;
+/*0x0a8*/   BYTE    Unknown0xa8[0x4];
+/*0x0ac*/   DWORD   XMLIndex;
+/*0x0b0*/   DWORD   WindowStyle;  // bit 1 - vertical scroll, bit 2 - horizontal scroll, bit 4 - title bar?, bit 8 - border
+/*0x0b4*/   BYTE    Unknown0xb4[0x4];
+/*0x0b8*/   BYTE    Fades;
+/*0x0b9*/   BYTE    Locked;
+/*0x0ba*/   BYTE    Unknown0xba[0x1e];
+/*0x0d8*/   DWORD   BGType; // "BGType" in ini
+/*0x0dc*/   BYTE    Unknown0xdc[0x4];
+/*0x0e0*/   BYTE    Unlockable;     // related to Locked
+/*0x0e1*/   BYTE    Unknown0xe1[0x13];
+/*0x0f4*/   struct  _CXSTR  *WindowText;
+/*0x0f8*/   struct  _CSIDLWND *pParentWindow; // If this is NULL, coordinates are absolute...
+/*0x0fc*/   ARGBCOLOR BGColor;
+/*0x100*/   BYTE    Unknown0x100[0x2];
+/*0x102*/   BYTE    Minimized;
+/*0x103*/   BYTE    Unknown0x103[0x5];
+/*0x108*/   BYTE    HasSiblings;
+/*0x109*/   BYTE    Unknown0x109[0x3];
+/*0x10c*/   DWORD   TickCount2;
+/*0x110*/   BYTE    Unknown0x110[0x14];
+/*0x124*/   RECT    Location;
+/*0x134*/   BYTE    Unknown0x134[0x8];
+/*0x13c*/   DWORD   HScrollPos;
+/*0x140*/   union {
                 struct _CXSTR  *SidlText;
                 DWORD  Items;
             };
-/*0x124*/   union {
+/*0x144*/   union {
                 struct _CXSTR  *SidlScreen;
                 DWORD   SlotID;
             };
-/*0x128*/   LPVOID  SidlPiece;   // CScreenPieceTemplate (important)
-/*0x12c*/   BYTE    Checked;
-/*0x12d*/   BYTE    Highlighted;
-/*0x12e*/   BYTE    Unused0x12a[0x2];
-/*0x130*/   DWORD   TextureAnim; // used in CSidlScreenWnd::AddButtonToRadioGroup
-/*0x134*/   struct  _CXSTR *   InputText;
-/*0x138*/   DWORD   Selector;
-/*0x13c*/   DWORD   PushToSelector;
-/*0x140*/   DWORD   EnableINIStorage;
-/*0x144*/   union {
+/*0x148*/   LPVOID  SidlPiece;   // CScreenPieceTemplate (important)
+/*0x14c*/   BYTE    Checked;
+/*0x14d*/   BYTE    Highlighted;
+/*0x14e*/   BYTE    Unused0x12a[0x2];
+/*0x150*/   DWORD   TextureAnim; // used in CSidlScreenWnd::AddButtonToRadioGroup
+/*0x154*/   struct  _CXSTR *   InputText;
+/*0x158*/   DWORD   Selector;
+/*0x15c*/   DWORD   PushToSelector;
+/*0x160*/   DWORD   EnableINIStorage;
+/*0x164*/   union {
                 struct _CXSTR *INIStorageName;
                 struct _EQINVSLOT *pEQInvSlot;
             };
-/*0x148*/   DWORD   Unknown0x144;
-/*0x14c*/   DWORD   Unknown0x148;// CTextureAnimation
-/*0x150*/   DWORD   Unknown0x14c;// CTextureAnimation
-/*0x154*/   LPVOID  ContextMenu; // CTextureAnimation
-/*0x158*/   DWORD   Unknown0x154;// CTextureAnimation
-/*0x15c*/   DWORD   Unknown0x158;// CTextureAnimation
-/*0x160*/
+/*0x168*/   DWORD   Unknown0x144;
+/*0x16c*/   DWORD   Unknown0x148;// CTextureAnimation
+/*0x170*/   DWORD   Unknown0x14c;// CTextureAnimation
+/*0x174*/   LPVOID  ContextMenu; // CTextureAnimation
+/*0x178*/   DWORD   Unknown0x154;// CTextureAnimation
+/*0x17c*/   DWORD   Unknown0x158;// CTextureAnimation
+/*0x180*/
 } CSIDLWND, *PCSIDLWND; 
 
 // size 0x26c  02-13-2007

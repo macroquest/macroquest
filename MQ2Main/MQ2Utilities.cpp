@@ -5477,7 +5477,7 @@ PCONTENTS GetItemContentsBySlotID(DWORD dwSlotID)
   if(dwSlotID>=0 && dwSlotID<NUM_INV_SLOTS) InvSlot=dwSlotID; 
   else if(dwSlotID>=262 && dwSlotID<342) { 
     InvSlot=23+(dwSlotID-262)/10; 
-    SubSlot=(dwSlotID-1)%10; 
+    SubSlot=(dwSlotID-262)%10; 
   } 
   if(InvSlot>=0 && InvSlot<NUM_INV_SLOTS) { 
     if(PCONTENTS iSlot=GetCharInfo2()->InventoryArray[InvSlot]) { 
