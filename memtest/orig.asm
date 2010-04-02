@@ -9,7 +9,6 @@ _TEXT   SEGMENT PARA USE32 PUBLIC 'CODE'
 
 __MemChecker0   proc near               ; CODE XREF: EQMisc__EQChecksumFile+80p
                                         ; EQMisc__SendSpellChecksum+AAp ...
-
 arg_0           = dword ptr  4
 arg_4           = dword ptr  8
 
@@ -18,12 +17,12 @@ arg_4           = dword ptr  8
                 or      eax, 0FFFFFFFFh
                 xor     edx, edx
                 test    esi, esi
-                jle     short loc_4FB5F3
+                jle     short loc_4FB923
                 push    ebx
                 push    edi
                 mov     edi, [esp+0Ch+arg_0]
 
-loc_4FB5D4:                             ; CODE XREF: crc32mem(char *,long)+2Fj
+loc_4FB904:                             ; CODE XREF: crc32mem(char *,long)+2Fj
                 movsx   ecx, byte ptr [edx+edi]
                 xor     ecx, eax
                 and     ecx, 0FFh
@@ -32,14 +31,13 @@ loc_4FB5D4:                             ; CODE XREF: crc32mem(char *,long)+2Fj
                 inc     edx
                 xor     eax, ebx
                 cmp     edx, esi
-                jl      short loc_4FB5D4
+                jl      short loc_4FB904
                 pop     edi
                 pop     ebx
 
-loc_4FB5F3:                             ; CODE XREF: crc32mem(char *,long)+Cj
+loc_4FB923:                             ; CODE XREF: crc32mem(char *,long)+Cj
                 pop     esi
                 retn
-
 
 __MemChecker0   endp
 

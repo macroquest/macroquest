@@ -20,7 +20,7 @@ arg_8           = dword ptr  0Ch
                 or      eax, 0FFFFFFFFh
                 test    ecx, ecx
                 push    esi
-                jz      short loc_665B3F
+                jz      short loc_667E5F
                 xor     eax, eax
                 mov     al, cl
                 movzx   ecx, ch
@@ -52,16 +52,16 @@ arg_8           = dword ptr  0Ch
                 and     eax, 0FFFFFFh
                 xor     eax, edx
 
-loc_665B3F:                             ; CODE XREF: CRC::GetBufferCRC(void const *,uint,int)+Aj
+loc_667E5F:                             ; CODE XREF: CRC::GetBufferCRC(void const *,uint,int)+Aj
                 mov     ecx, [esp+4+arg_0]
                 mov     edx, [esp+4+arg_4]
                 lea     esi, [ecx+edx]
                 cmp     ecx, esi
-                jnb     short loc_665B73
+                jnb     short loc_667E93
                 push    edi
                 nop
 
-loc_665B50:                             ; CODE XREF: CRC::GetBufferCRC(void const *,uint,int)+B0j
+loc_667E70:                             ; CODE XREF: CRC::GetBufferCRC(void const *,uint,int)+B0j
                 xor     edx, edx
                 mov     dl, [ecx]
                 xor     edx, eax
@@ -72,10 +72,10 @@ loc_665B50:                             ; CODE XREF: CRC::GetBufferCRC(void cons
                 xor     eax, edi
                 inc     ecx
                 cmp     ecx, esi
-                jb      short loc_665B50
+                jb      short loc_667E70
                 pop     edi
 
-loc_665B73:                             ; CODE XREF: CRC::GetBufferCRC(void const *,uint,int)+8Cj
+loc_667E93:                             ; CODE XREF: CRC::GetBufferCRC(void const *,uint,int)+8Cj
                 not     eax
                 pop     esi
                 retn

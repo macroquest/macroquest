@@ -16,8 +16,8 @@
 #endif
 
 #define __ClientName                                              "eqgame" 
-#define __ExpectedVersionDate                                     "Jul 15 2008"
-#define __ExpectedVersionTime                                     "15:56:36"
+#define __ExpectedVersionDate                                     "Aug 11 2008"
+#define __ExpectedVersionTime                                     "09:05:55"
 #define __ActualVersionDate                                        0x71D384
 #define __ActualVersionTime                                        0x71D390
 
@@ -292,7 +292,7 @@
 #define CBankWnd__GetNumBankSlots                                  0x547110
 
 // CBazaarSearchWnd 
-#define CBazaarSearchWnd__HandleBazaarMsg                          0x5502D0
+#define CBazaarSearchWnd__HandleBazaarMsg                          0x5503B0
 
 // CButtonWnd 
 #define CButtonWnd__SetCheck                                       0x693ED0
@@ -484,7 +484,7 @@
 
 // CStmlWnd
 #define CStmlWnd__AppendSTML                                       0x69D0B0
-#define CStmlWnd__CalculateVSBRange                                0x678560
+#define CStmlWnd__CalculateVSBRange                                0x6953D0
 #define CStmlWnd__CanBreakAtCharacter                              0x695510
 #define CStmlWnd__FastForwardToEndOfTag                            0x696090
 #define CStmlWnd__ForceParseNow                                    0x69D500

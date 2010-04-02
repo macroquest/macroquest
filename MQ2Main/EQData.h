@@ -1845,7 +1845,9 @@ typedef struct _CHATSERVICE {
 typedef struct _EVERQUEST {
 /*0x000*/ BYTE   Unknown[0x2a4];
 /*0x2a4*/ struct _CHATSERVICE *ChatService;
-/*0x2a8*/ // more data
+/*0x2a8*/ BYTE   Unknown0x2a8[0x31c];
+/*0x5c4*/ DWORD  GameState;
+/*0x5c8*/ // more data
 } EVERQUEST, *PEVERQUEST;
 
 typedef struct _AURAINFO {

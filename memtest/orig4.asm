@@ -49,10 +49,10 @@ arg_8           = dword ptr  0Ch
                 xor     eax, esi
                 lea     esi, [ecx+edx]
                 cmp     ecx, esi
-                jnb     short loc_629EA3
+                jnb     short loc_62C1E3
                 push    edi
 
-loc_629E80:                             ; CODE XREF: UdpLibrary::UdpMisc::Crc32(void const *,int,int)+A0j
+loc_62C1C0:                             ; CODE XREF: UdpLibrary::UdpMisc::Crc32(void const *,int,int)+A0j
                 xor     edx, edx
                 mov     dl, [ecx]
                 xor     edx, eax
@@ -63,10 +63,10 @@ loc_629E80:                             ; CODE XREF: UdpLibrary::UdpMisc::Crc32(
                 xor     eax, edi
                 inc     ecx
                 cmp     ecx, esi
-                jb      short loc_629E80
+                jb      short loc_62C1C0
                 pop     edi
 
-loc_629EA3:                             ; CODE XREF: UdpLibrary::UdpMisc::Crc32(void const *,int,int)+7Dj
+loc_62C1E3:                             ; CODE XREF: UdpLibrary::UdpMisc::Crc32(void const *,int,int)+7Dj
                 not     eax
                 pop     esi
                 retn

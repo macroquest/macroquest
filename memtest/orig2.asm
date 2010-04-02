@@ -12,7 +12,6 @@ PUBLIC __MemChecker2
 __MemChecker2   proc near               ; CODE XREF: Win__CodeCrc+17p
                                         ; Win__CodeCrc+30_p ...
 
-
 arg_0           = dword ptr  4
 arg_4           = dword ptr  8
 arg_8           = dword ptr  0Ch
@@ -53,10 +52,10 @@ arg_8           = dword ptr  0Ch
                 xor     eax, esi
                 lea     esi, [ecx+edx]
                 cmp     ecx, esi
-                jnb     short loc_53057B
+                jnb     short loc_53087B
                 push    edi
 
-loc_530558:                             ; CODE XREF: SpecialCrc322(void const *,int,int)+A8j
+loc_530858:                             ; CODE XREF: SpecialCrc322(void const *,int,int)+A8j
                 xor     edx, edx
                 mov     dl, [ecx]
                 xor     edx, eax
@@ -67,10 +66,10 @@ loc_530558:                             ; CODE XREF: SpecialCrc322(void const *,
                 xor     eax, edi
                 inc     ecx
                 cmp     ecx, esi
-                jb      short loc_530558
+                jb      short loc_530858
                 pop     edi
 
-loc_53057B:                             ; CODE XREF: SpecialCrc322(void const *,int,int)+85j
+loc_53087B:                             ; CODE XREF: SpecialCrc322(void const *,int,int)+85j
                 not     eax
                 pop     esi
                 retn

@@ -1,3 +1,6 @@
+11 August 2008 by ieatacid
+- Updated for today's patch
+
 17 July 2008 by ieatacid, rswiders
 - Updated for today's patch
 - Added a bunch of stat bonus stuff to the character type (differentiation).  See this thread for more info: http://macroquest2.com/phpBB2/viewtopic.php?t=15646
