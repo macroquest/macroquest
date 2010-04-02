@@ -1,3 +1,6 @@
+21 February 2007 by ieatacid
+- Updated for today's patch
+
 19 February 2007 by rswiders
 - Fix for campfire objects
 - Fix for short buffs

@@ -1230,7 +1230,7 @@ bool MQ2SpawnType::GETMEMBER()
 		{
 			Dest.Ptr="STUN";
 		}
-		else if(InHoverState())
+		else if(pSpawn->RespawnTimer)
 		{
 			Dest.Ptr="HOVER";
 		}
