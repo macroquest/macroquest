@@ -164,6 +164,7 @@ void InitializeMQ2Data()
 	AddMQ2Data("DoorTarget",dataDoorTarget);
 	AddMQ2Data("ItemTarget",dataItemTarget);
 	AddMQ2Data("DynamicZone",dataDynamicZone);
+	AddMQ2Data("Friends",dataFriends);
 }
 
 

@@ -1,3 +1,6 @@
+12 May 2008 by dkaa
+- Added Friends TLO
+
 7 May 2008 by rswiders, ieatacid
 - Updated for today's patch
 

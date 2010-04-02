@@ -47,4 +47,5 @@ LEGACY_API BOOL dataSelect(PCHAR szIndex, MQ2TYPEVAR &Ret);
 LEGACY_API BOOL dataDoorTarget(PCHAR szIndex, MQ2TYPEVAR &Ret);
 LEGACY_API BOOL dataItemTarget(PCHAR szIndex, MQ2TYPEVAR &Ret);
 LEGACY_API BOOL dataDynamicZone(PCHAR szIndex, MQ2TYPEVAR &Ret);
+LEGACY_API BOOL dataFriends(PCHAR szIndex, MQ2TYPEVAR &Ret);
 #endif

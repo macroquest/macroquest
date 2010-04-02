@@ -80,6 +80,7 @@ class MQ2DynamicZoneType *pDynamicZoneType=0;
 class MQ2DZMemberType *pDZMemberType=0;
 class MQ2FellowshipType *pFellowshipType=0;
 class MQ2FellowshipMemberType *pFellowshipMemberType=0;
+class MQ2FriendsType *pFriendsType=0;
 
 #ifndef ISXEQ
 
@@ -130,6 +131,7 @@ void InitializeMQ2DataTypes()
 	pDZMemberType=new MQ2DZMemberType;
 	pFellowshipType=new MQ2FellowshipType;
 	pFellowshipMemberType=new MQ2FellowshipMemberType;
+	pFriendsType = new MQ2FriendsType;
 
 	// NOTE: SetInheritance does NOT make it inherit, just notifies the syntax checker...
 	pCharacterType->SetInheritance(pSpawnType);
@@ -180,6 +182,7 @@ void ShutdownMQ2DataTypes()
 	delete pGroupMemberType;
 	delete pEvolvingItemType;
 	delete pDynamicZoneType;
+	delete pFriendsType;
 }
 
 bool MQ2TypeType::GETMEMBER()
@@ -6665,3 +6668,41 @@ bool MQ2FellowshipMemberType::GETMEMBER()
 	}
 	return false;
 }
+
+bool MQ2FriendsType::GETMEMBER()
+{
+    PMQ2TYPEMEMBER pMember=MQ2FriendsType::FindMember(Member);
+    if (!pMember)
+        return false;
+    switch((FriendsMembers)pMember->ID)
+    {
+        case xFriend:
+            if(ISINDEX() && ((PEVERQUEST)pEverQuest)->ChatService) {
+                class CChatService *pChat=(class CChatService *) ((PEVERQUEST)pEverQuest)->ChatService;
+                int i;
+                if(ISNUMBER()) {
+                    i=GETNUMBER();
+                    if (i > pChat->GetNumberOfFriends())
+                        return false;
+                    
+		    if (Dest.Ptr=pChat->GetFriendName(i-1)) {
+		        Dest.Type=pStringType;
+		        return true;
+                    }
+                } else {
+                    for(i=0; i<pChat->GetNumberOfFriends(); i++) {
+                        if(!stricmp(pChat->GetFriendName(i),GETFIRST())) {
+                            Dest.DWord=1;
+                            Dest.Type=pBoolType;
+                            return true;
+                        }
+                    }
+                    return false;
+                }
+            }
+            return false;
+        default:
+            return false;
+    };
+}
+

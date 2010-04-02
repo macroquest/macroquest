@@ -112,6 +112,7 @@ LEGACY_VAR class MQ2DynamicZoneType *pDynamicZoneType;
 LEGACY_VAR class MQ2DZMemberType *pDZMemberType;
 LEGACY_VAR class MQ2FellowshipType *pFellowshipType;
 LEGACY_VAR class MQ2FellowshipMemberType *pFellowshipMemberType;
+LEGACY_VAR class MQ2FriendsType *pFriendsType;
 
 #define UseTemp(mystring) strcpy(DataTypeTemp,mystring)
 #define TypeMember(name) AddMember((DWORD)name,""#name)
@@ -3404,3 +3405,47 @@ public:
 		return false;
 	}
 };
+
+class MQ2FriendsType : public MQ2Type
+{
+public:
+    static enum FriendsMembers
+    {
+        xFriend=1
+    };
+    static enum FriendsMethods
+    {
+    };
+
+    MQ2FriendsType():MQ2Type("friend")
+    {
+        AddMember(xFriend,"Friend");
+    }
+
+    ~MQ2FriendsType()
+    {
+    }
+
+    bool GETMEMBER();
+    DECLAREGETMETHOD();
+
+    bool ToString(MQ2VARPTR VarPtr, PCHAR Destination)
+    {
+        // return the number of friends here...
+        if(((PEVERQUEST)pEverQuest)->ChatService) {
+            class CChatService *pChat=(class CChatService *) ((PEVERQUEST)pEverQuest)->ChatService;
+            sprintf(Destination, "%d", pChat->GetNumberOfFriends());
+            return true;
+        }
+        return false;
+    }
+    bool FromData(MQ2VARPTR &VarPtr, MQ2TYPEVAR &Source)
+    {
+        return false;
+    }
+    bool FromString(MQ2VARPTR &VarPtr, PCHAR Source)
+    {
+        return false;
+    }
+}; 
+

@@ -1351,3 +1351,11 @@ TLO(dataDynamicZone)
 	Ret.Type=pDynamicZoneType;
 	return true;
 }
+
+TLO(dataFriends)
+{
+	Ret.DWord=0;
+	Ret.Type=pFriendsType;
+	return true;
+}
+
