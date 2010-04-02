@@ -1791,7 +1791,7 @@ bool MQ2CharacterType::GETMEMBER()
 		if (ISNUMBER())
 		{
 			unsigned long nBuff=GETNUMBER()-1;
-			if (nBuff>=35)
+			if (nBuff>=15)
 				return false;
 			if (GetCharInfo2()->ShortBuff[nBuff].SpellID<=0)
 				return false;

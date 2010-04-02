@@ -562,7 +562,7 @@ VOID BzSrchMe(PSPAWNINFO pChar, PCHAR szLine)
    memset(bsrp.BSRName, 0, 60);
    bsrp.BSRPriceH = 0;
    bsrp.BSRPriceL = 0;
-   bsrp.BSRLevelH = 70;
+   bsrp.BSRLevelH = 75;
    bsrp.BSRLevelL = 1;
 
    while(bArg) {
@@ -711,7 +711,7 @@ VOID BzSrchMe(PSPAWNINFO pChar, PCHAR szLine)
 
    BzCount = 0;
    BzDone = 0;
-   send_message(EQADDR_GWORLD, EQ_BAZAARSEARCHME, &bsrp, sizeof(bsrp), FALSE);
+   send_message(EQADDR_GWORLD, EQ_BAZAARSEARCHME, &bsrp, sizeof(bsrp), TRUE);
    return;
 
 error_out:

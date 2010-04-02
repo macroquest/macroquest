@@ -156,6 +156,10 @@ static inline eSpawnType GetSpawnType(PSPAWNINFO pSpawn)
 			if (pSpawn->Class==62)
                 return OBJECT;
             return NPC;
+		case 1:
+			if ((pSpawn->Class==1) && (pSpawn->Race==567))
+				return OBJECT;
+			return NPC;
         //case 3:
         //    return NPC;
         case 5:

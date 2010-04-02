@@ -343,7 +343,10 @@ void MapUpdate()
 	EnterMQ2Benchmark(bmMapRefresh);
 	eSpawnType Type;
 	PMAPSPAWN pMapSpawn;
+	PMAPSPAWN pOldLastTarget = NULL; 
+	bool bTargetChanged = false; 
 
+	pOldLastTarget = pLastTarget; 
 	if (pLastTarget && pLastTarget->pSpawn!=(PSPAWNINFO)pTarget)
 	{
 		if (pLastTarget->pSpawn==&EnviroTarget || !CanDisplaySpawn(pLastTarget->SpawnType,pLastTarget->pSpawn))
@@ -351,6 +354,7 @@ void MapUpdate()
 			RemoveSpawn(pLastTarget);
 		}
 		pLastTarget=0;
+		bTargetChanged=true;
 	}
 	
 	if (pTarget && IsOptionEnabled(MAPFILTER_Target))
@@ -426,7 +430,7 @@ void MapUpdate()
 		else
 		{
 			Type=GetSpawnType(pMapSpawn->pSpawn);
-			if (Type!=pMapSpawn->SpawnType)
+			if (Type!=pMapSpawn->SpawnType || ((pMapSpawn==pOldLastTarget) && bTargetChanged))
 			{
 				if (!CanDisplaySpawn(Type,pMapSpawn->pSpawn))
 				{

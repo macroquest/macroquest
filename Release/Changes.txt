@@ -1,3 +1,8 @@
+19 February 2007 by rswiders
+- Fix for campfire objects
+- Fix for short buffs
+- Fix for label of last target on map
+
 17 February 2007 by ieatacid
 - Fixed _SPAWNINFO.Mount
 
