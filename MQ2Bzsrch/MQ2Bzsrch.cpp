@@ -547,7 +547,8 @@ VOID BzSrchMe(PSPAWNINFO pChar, PCHAR szLine)
 
    // clear out the old list or the new entries will be
    // added to them
-   class CListWnd *ptr = *(class CListWnd **) ((char *)pBazaarSearchWnd+0x3ce8);
+   // this offset is in doQuery and SortItemList
+   class CListWnd *ptr = *(class CListWnd **) ((char *)pBazaarSearchWnd+0x3d08);
    ptr->DeleteAll();
 
 
