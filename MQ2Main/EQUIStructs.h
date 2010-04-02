@@ -428,8 +428,8 @@ typedef struct _CSIDLWND {
 /*0x174*/   DWORD   Unknown0x174;// CTextureAnimation
 /*0x178*/   BYTE    Unknown0x178[0x4];
 /*0x17c*/   LPVOID  ContextMenu; // CTextureAnimation
-/*0x180*/   DWORD   Unknown0x17c;// CTextureAnimation
-/*0x184*/   DWORD   Unknown0x180;// CTextureAnimation
+/*0x180*/   DWORD   Unknown0x180;// CTextureAnimation
+/*0x184*/   DWORD   Unknown0x184;// CTextureAnimation
 /*0x188*/
 } CSIDLWND, *PCSIDLWND;
 
@@ -799,20 +799,20 @@ typedef struct _EQNOTESWINDOW {
 typedef struct _EQITEMWINDOW 
 { 
 /*0x000*/ struct _CSIDLWND Wnd;
-/*0x188*/ struct _CSIDLWND *DisplayWnd;
-/*0x18c*/ BYTE Unknown0x184[0x18];
-/*0x1xx*/ PCXSTR ItemInfo;
-/*0x1xx*/ PCXSTR WindowTitle;
-/*0x1xx*/ DWORD Unknown0x1a4; // possibly PCXSTR of information as on charms 
-/*0x1xx*/ DWORD Unknown0x1a8;
-/*0x1xx*/ DWORD Unknown0x1ac;
-/*0x1xx*/ PCONTENTS pItem;
-/*0x1xx*/ PVOID TextureAnim;
-/*0x1xx*/ PVOID TextureAnim2;
-/*0x1xx*/ BYTE  Unknown0x1bc[0x50];
-/*0x1xx*/ DWORD IDW_ItemInfo_Num_Lines;
-/*0x2xx*/ struct _CSIDLWND *IDW_ItemInfo[0xc];
-/*0x2xx*/ // pointers to stat labels, etc, in this area
+/*0x180*/ struct _CSIDLWND *DisplayWnd;
+/*0x184*/ BYTE Unknown0x184[0x18];
+/*0x19c*/ PCXSTR ItemInfo;
+/*0x1a0*/ PCXSTR WindowTitle;
+/*0x1a4*/ DWORD Unknown0x1a4; // possibly PCXSTR of information as on charms 
+/*0x1a8*/ DWORD Unknown0x1a8;
+/*0x1ac*/ DWORD Unknown0x1ac;
+/*0x1b0*/ PCONTENTS pItem;
+/*0x1b4*/ PVOID TextureAnim;
+/*0x1b8*/ PVOID TextureAnim2;
+/*0x1bc*/ BYTE  Unknown0x1bc[0x50];
+/*0x1c0*/ DWORD IDW_ItemInfo_Num_Lines;
+/*0x210*/ struct _CSIDLWND *IDW_ItemInfo[0xc];
+/*0x240*/ // pointers to stat labels, etc, in this area
 } EQITEMWINDOW, *PEQITEMWINDOW;
 
 // Actual size 0x19c 08-17-2006
@@ -860,22 +860,21 @@ typedef struct _EQMAPWINDOW {
 // Spell Window
 typedef struct _EQCASTSPELLWINDOW {
 /*0x000*/ struct _CSIDLWND Wnd;
-/*0x160*/ BYTE Unknown0x148[0x0c];
-/*0x16c*/  struct _EQCASTSPELLGEM   *SpellSlots[0x9];
-/*0x190*/  BYTE    Unknown0x190[0x30];
+/*0x188*/ BYTE Unknown0x148[0x0c];
+/*0x194*/  struct _EQCASTSPELLGEM   *SpellSlots[0x9];
+/*0x1xx*/  BYTE    Unknown0x190[0x30];
 /*0x1c0*/
 } EQCASTSPELLWINDOW, *PEQCASTSPELLWINDOW;
 
-// dkaa 02-14-07
 // Individual Gems 
 typedef struct _EQCASTSPELLGEM { 
 /*0x000*/ struct	_CSIDLWND Wnd; 
-/*0x160*/ BYTE		Unknown0x160[0x08]; 
-/*0x168*/ BYTE		Unknown0x168[0x20]; 
-/*0x188*/ BYTE		Unknown0x188[0x4]; 
-/*0x18c*/ DWORD		spellicon;//if this is equal to FFFFFFFF there is no spell memmed in this slot... 
-/*0x190*/ DWORD		spellstate;// 1 = cast in progress or refreshtime not met 2 means we ducked or aborted cast, 0 means its ok to cast 
-/*0x194*/ BYTE          Unknown0x194[0x18];
+/*0x188*/ BYTE		Unknown0x188[0x04]; 
+/*0x18c*/ BYTE		Unknown0x18c[0x20]; 
+/*0x1ac*/ BYTE		Unknown0x1ac[0x4]; 
+/*0x1b0*/ DWORD		spellicon;//if this is equal to FFFFFFFF there is no spell memmed in this slot... 
+/*0x1b4*/ DWORD		spellstate;// 1 = cast in progress or refreshtime not met 2 means we ducked or aborted cast, 0 means its ok to cast 
+/*0x1b8*/ BYTE          Unknown0x194[0x18];
 /*0x1ac*/ 
 } EQCASTSPELLGEM, *PEQCASTSPELLGEM;
 #define Fly					 0
@@ -962,11 +961,12 @@ typedef struct _CTEXTENTRYWND {
 /*0x140*/
 } CTEXTENTRYWND, *PCTEXTENTRYWND;
 
+// size 0x1b4 10/04/07 dkaa
 typedef struct _CPLAYERWND {
-/*0x000*/ struct _CXWND Wnd;
-/*0x138*/ BYTE   Unknown[0x64];
-/*0x19c*/ DWORD  CombatState; // 1=debuffed, 2=combat cooldown, 3=stand, 4=sit
-/*0x*/ 
+/*0x000*/ struct _CSIDLWND Wnd;
+/*0x188*/ BYTE   Unknown[0x28];
+/*0x1b0*/ DWORD  CombatState; // 1=debuffed, 2=combat cooldown, 3=stand, 4=sit
+/*0x1b4*/ 
 } CPLAYERWND, *PCPLAYERWND;
 
 };

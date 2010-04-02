@@ -424,7 +424,7 @@ typedef struct _ITEMSPELLS {
 /*0x64*/
 } ITEMSPELLS, *PITEMSPELLS; 
 
-// size is 0x4f0 07-05-2007
+// size is 0x4f4 10-04-2007
 typedef struct _ITEMINFO {
 /*0x000*/ CHAR   Name[ITEM_NAME_LEN];
 /*0x040*/ CHAR   LoreName[LORE_NAME_LEN];
@@ -561,7 +561,7 @@ typedef struct _ITEMINFO {
 /*0x4e4*/ BYTE   Unknown0x4e4[0x4];
 /*0x4e8*/ BYTE   QuestItem;
 /*0x4e9*/ BYTE   Unknown0x4e9[0xb];
-/*0x4f4*/
+/*0x4f4*/ 
 } ITEMINFO, *PITEMINFO;
 
 // actual size 0xd8 07-25-2007
@@ -1370,8 +1370,6 @@ typedef struct _WORLDDATA {
 /*0x01C*/ PZONELIST ZoneArray[MAX_ZONES];
 } WORLDDATA, *PWORLDDATA;
 
-// 5-15-2003    Amadeus (discovered by Lax)
-// Actual Size 0x240, old
 typedef struct _ZONEINFO {
 /*0x000*/   CHAR    CharacterName[0x40];
 /*0x040*/   CHAR    ShortName[0x20];
@@ -1379,27 +1377,27 @@ typedef struct _ZONEINFO {
 /*0x0c0*/   CHAR    LongName[0x80];
 /*0x140*/   CHAR    Unknown0x140[0x96];  // <-- this isnt part of zone name, see CEverQuest__CEverQuest
 /*0x1d6*/   BYTE    ZoneType; // (usually FF)
-/*0x1d7*/	ARGBCOLOR FogRed;
-/*0x1db*/	ARGBCOLOR FogGreen;
-/*0x1df*/	ARGBCOLOR FogBlue;
+/*0x1d7*/   ARGBCOLOR FogRed;
+/*0x1db*/   ARGBCOLOR FogGreen;
+/*0x1df*/   ARGBCOLOR FogBlue;
 /*0x1e3*/   BYTE    Unknown0x1e3;
-/*0x1e4*/   BYTE	  Unknown0x1e4[0x10];
+/*0x1e4*/   BYTE    Unknown0x1e4[0x10];
 /*0x1f4*/   BYTE    Unknown0x1f4[0x10];
 /*0x204*/   FLOAT   ZoneGravity;
 /*0x208*/   BYTE    Unknown0x208;
 /*0x209*/   BYTE    Unknown0x209[0x3];
 /*0x20c*/   BYTE    Unknown0x20c[0x2e];
-/*0x23a*/	BYTE	  SkyType;	
-/*0x23b*/	BYTE	  Unknown0x23b[0xd];
+/*0x23a*/   BYTE    SkyType;   
+/*0x23b*/   BYTE    Unknown0x23b[0xd];
 /*0x248*/   FLOAT   ZoneExpModifier;    //This has been nerfed ..now reads 1.0 for all zones
-/*0x24c*/   FLOAT   Unknown0x24c[0x3];
-/*0x258*/   FLOAT   Ceiling;
-/*0x25c*/   FLOAT   Floor; 
-/*0x260*/   FLOAT   MinClip; 
-/*0x264*/   FLOAT   MaxClip; 
-/*0x268*/   BYTE    Unknown0x268[0x18];
-/*0x280*/   BYTE    Unknown0x280[0x20];
-/*0x2a0*/
+/*0x24c*/   FLOAT   Unknown0x24c[0x10];
+/*0x25c*/   FLOAT   Ceiling;
+/*0x260*/   FLOAT   Floor;
+/*0x264*/   FLOAT   MinClip;
+/*0x268*/   FLOAT   MaxClip;
+/*0x26c*/   BYTE    Unknown0x26c[0x18];
+/*0x284*/   BYTE    Unknown0x284[0x20];
+/*0x2a4*/
 } ZONEINFO, *PZONEINFO;
 
 #define   TOTAL_SPELL_COUNT				0x3e80      // # of spells allocated in memory (07/05/2007)
