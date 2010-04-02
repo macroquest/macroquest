@@ -97,8 +97,8 @@ DETOUR_TRAMPOLINE_EMPTY(void SetScreenHook::SetScreen_Trampoline(CXStr*));
 class CSidlInitHook
 {
 public:
-    void Init_Trampoline(int A,class CXStr*pName,int C,int D,int E);
-    void Init_Detour(int A,class CXStr*pName,int C,int D,int E)
+    void Init_Trampoline(class CXStr*pName,int A);
+    void Init_Detour(class CXStr*pName,int A)
     {
         CHAR Name[MAX_STRING]={0};
     	GetCXStr(pName->Ptr,Name,MAX_STRING);
@@ -127,10 +127,10 @@ public:
     		WindowMap[WindowName]=N+1;
     		DebugSpew("Adding WndNotification target '%s'",Name);
     	}
-    	Init_Trampoline(A, pName, C, D, E);
+    	Init_Trampoline(pName, A);
     }
 };
-DETOUR_TRAMPOLINE_EMPTY(void CSidlInitHook::Init_Trampoline(int,class CXStr*,int,int,int));
+DETOUR_TRAMPOLINE_EMPTY(void CSidlInitHook::Init_Trampoline(class CXStr*,int));
 
 
 class CXWndManagerHook

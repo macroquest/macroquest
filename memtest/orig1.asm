@@ -7,9 +7,8 @@ __EncryptPad1 EQU _myextern_array
 _TEXT   SEGMENT PARA USE32 PUBLIC 'CODE'
 
 
-
-__MemChecker1   proc near               ; CODE XREF: sub_60E5D0+203p
-                                        ; sub_63E0D0+20bp
+__MemChecker1   proc near               ; CODE XREF: sub_628CC0+203p
+                                        ; sub_6587C0+20bp
 
 arg_0           = dword ptr  4
 arg_4           = dword ptr  8
@@ -19,7 +18,7 @@ arg_8           = dword ptr  0Ch
                 or      eax, 0FFFFFFFFh
                 test    ecx, ecx
                 push    esi
-                jz      short loc_63E08F
+                jz      short loc_65877F
                 xor     eax, eax
                 mov     al, cl
                 movzx   ecx, ch
@@ -51,16 +50,16 @@ arg_8           = dword ptr  0Ch
                 and     eax, 0FFFFFFh
                 xor     eax, edx
 
-loc_63E08F:                             ; CODE XREF: __MemChecker1+Aj
+loc_65877F:                             ; CODE XREF: __MemChecker1+Aj
                 mov     ecx, [esp+4+arg_0]
                 mov     edx, [esp+4+arg_4]
                 lea     esi, [ecx+edx]
                 cmp     ecx, esi
-                jnb     short loc_63E0C3
+                jnb     short loc_6587B3
                 push    edi
                 nop
 
-loc_63E0A0:                             ; CODE XREF: __MemChecker1+B0j
+loc_658790:                             ; CODE XREF: __MemChecker1+B0j
                 xor     edx, edx
                 mov     dl, [ecx]
                 xor     edx, eax
@@ -71,14 +70,16 @@ loc_63E0A0:                             ; CODE XREF: __MemChecker1+B0j
                 xor     eax, edi
                 inc     ecx
                 cmp     ecx, esi
-                jb      short loc_63E0A0
+                jb      short loc_658790
                 pop     edi
 
-loc_63E0C3:                             ; CODE XREF: __MemChecker1+8Cj
+loc_6587B3:                             ; CODE XREF: __MemChecker1+8Cj
                 not     eax
                 pop     esi
                 retn
 __MemChecker1   endp
+
+
 
 
 

@@ -124,15 +124,6 @@ VOID ClickMouseLoc(PCHAR szMouseLoc, PCHAR szButton)
 #endif
 
 #ifndef ISXEQ_LEGACY
-VOID SendEQMessage(DWORD PacketType, PVOID pData, DWORD Length)
-{
-	if (!send_message || !EQADDR_GWORLD) 
-	{
-		return;
-	}
-	//send_message(pData,Length,EQADDR_GWORLD,PacketType,TRUE);
-}
-
 
 // *************************************************************************** 
 // Function: Click 

@@ -426,10 +426,11 @@ typedef struct _CSIDLWND {
 /*0x16c*/   DWORD   Unknown0x16c;
 /*0x170*/   DWORD   Unknown0x170;// CTextureAnimation
 /*0x174*/   DWORD   Unknown0x174;// CTextureAnimation
-/*0x178*/   LPVOID  ContextMenu; // CTextureAnimation
-/*0x17c*/   DWORD   Unknown0x17c;// CTextureAnimation
-/*0x180*/   DWORD   Unknown0x180;// CTextureAnimation
-/*0x184*/
+/*0x178*/   BYTE    Unknown0x178[0x4];
+/*0x17c*/   LPVOID  ContextMenu; // CTextureAnimation
+/*0x180*/   DWORD   Unknown0x17c;// CTextureAnimation
+/*0x184*/   DWORD   Unknown0x180;// CTextureAnimation
+/*0x188*/
 } CSIDLWND, *PCSIDLWND;
 
 // size 0x26c  02-13-2007
@@ -798,20 +799,20 @@ typedef struct _EQNOTESWINDOW {
 typedef struct _EQITEMWINDOW 
 { 
 /*0x000*/ struct _CSIDLWND Wnd;
-/*0x180*/ struct _CSIDLWND *DisplayWnd;
-/*0x184*/ BYTE Unknown0x184[0x18];
-/*0x19c*/ PCXSTR ItemInfo;
-/*0x1a0*/ PCXSTR WindowTitle;
-/*0x1a4*/ DWORD Unknown0x1a4; // possibly PCXSTR of information as on charms 
-/*0x1a8*/ DWORD Unknown0x1a8;
-/*0x1ac*/ DWORD Unknown0x1ac;
-/*0x1b0*/ PCONTENTS pItem;
-/*0x1b4*/ PVOID TextureAnim;
-/*0x1b8*/ PVOID TextureAnim2;
-/*0x1bc*/ BYTE  Unknown0x1bc[0x50];
-/*0x1c0*/ DWORD IDW_ItemInfo_Num_Lines;
-/*0x210*/ struct _CSIDLWND *IDW_ItemInfo[0xc];
-/*0x240*/ // pointers to stat labels, etc, in this area
+/*0x188*/ struct _CSIDLWND *DisplayWnd;
+/*0x18c*/ BYTE Unknown0x184[0x18];
+/*0x1xx*/ PCXSTR ItemInfo;
+/*0x1xx*/ PCXSTR WindowTitle;
+/*0x1xx*/ DWORD Unknown0x1a4; // possibly PCXSTR of information as on charms 
+/*0x1xx*/ DWORD Unknown0x1a8;
+/*0x1xx*/ DWORD Unknown0x1ac;
+/*0x1xx*/ PCONTENTS pItem;
+/*0x1xx*/ PVOID TextureAnim;
+/*0x1xx*/ PVOID TextureAnim2;
+/*0x1xx*/ BYTE  Unknown0x1bc[0x50];
+/*0x1xx*/ DWORD IDW_ItemInfo_Num_Lines;
+/*0x2xx*/ struct _CSIDLWND *IDW_ItemInfo[0xc];
+/*0x2xx*/ // pointers to stat labels, etc, in this area
 } EQITEMWINDOW, *PEQITEMWINDOW;
 
 // Actual size 0x19c 08-17-2006

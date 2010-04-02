@@ -576,7 +576,7 @@ VOID bzpc(PSPAWNINFO pChar, PCHAR szLine)
     if (pg_Item) memset(pg_Item, 0, sizeof(ITEMINFO));
     DebugSpewAlways("id = %d, name = %s\n", pc.id, pc.name);
 // this opcode is in CProgSelWnd__WndNotification
-    SendEQMessage(EQ_BAZAARSEARCHCREATE, &pc, sizeof(pc));
+    //SendEQMessage(EQ_BAZAARSEARCHCREATE, &pc, sizeof(pc));
 }
 
 
@@ -770,7 +770,7 @@ VOID BzSrchMe(PSPAWNINFO pChar, PCHAR szLine)
 
     BzCount = 0;
     BzDone = 0;
-    SendEQMessage(EQ_BAZAARSEARCHME, &bsrp, sizeof(bsrp));
+    //SendEQMessage(EQ_BAZAARSEARCHME, &bsrp, sizeof(bsrp));
     return;
 
     error_out:

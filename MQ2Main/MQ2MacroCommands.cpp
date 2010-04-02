@@ -1148,7 +1148,7 @@ VOID Next(PSPAWNINFO pChar, PCHAR szLine)
         MacroError("Can only use /next during a macro.");
         return;
     }
-    sprintf(szComp,"/for %s",pVar->szName);
+    sprintf(szComp,"/for %s ",pVar->szName);
     while (pMacroLine->pPrev) {
         strcpy(ForLine,pMacroLine->Line);
         if (!strnicmp(ForLine,"Sub ",4)) {

@@ -29,7 +29,6 @@ typedef VOID    (__cdecl *fEQBuyItem)(int);//private: void __thiscall CMerchantW
 typedef VOID    (__cdecl *fEQSellItem)(int);//private: void __thiscall CMerchantWnd::RequestSellItem(int)
 typedef VOID    (__cdecl *fEQWriteMapfile)(PCHAR, int);//void __thiscall ZZZ::WriteMapfile(PCHAR zonename, int Layer);
 typedef BOOL    (__cdecl *fEQProcGameEvts)(VOID);
-typedef VOID    (__cdecl *fEQSendMessage)(PVOID,DWORD,PVOID,DWORD,BOOL);
 typedef FLOAT    (__cdecl *fEQGetMelee)(class EQPlayer *,class EQPlayer *);
 typedef BOOL    (__cdecl *fEQExecuteCmd)(DWORD,BOOL,PVOID);
 typedef VOID    (__cdecl *fMQExecuteCmd)(PCHAR Name,BOOL Down);

@@ -78,6 +78,8 @@ class MQ2GroupMemberType *pGroupMemberType=0;
 class MQ2EvolvingItemType *pEvolvingItemType=0;
 class MQ2DynamicZoneType *pDynamicZoneType=0;
 class MQ2DZMemberType *pDZMemberType=0;
+class MQ2FellowshipType *pFellowshipType=0;
+class MQ2FellowshipMemberType *pFellowshipMemberType=0;
 
 #ifndef ISXEQ
 
@@ -126,6 +128,8 @@ void InitializeMQ2DataTypes()
 	pEvolvingItemType=new MQ2EvolvingItemType;
 	pDynamicZoneType=new MQ2DynamicZoneType;
 	pDZMemberType=new MQ2DZMemberType;
+	pFellowshipType=new MQ2FellowshipType;
+	pFellowshipMemberType=new MQ2FellowshipMemberType;
 
 	// NOTE: SetInheritance does NOT make it inherit, just notifies the syntax checker...
 	pCharacterType->SetInheritance(pSpawnType);
@@ -3065,6 +3069,10 @@ bool MQ2CharacterType::GETMEMBER()
 		Dest.DWord=pOtherCharData->GetAltCurrency(ALTCURRENCY_PHOSPHITES);
 		Dest.Type=pIntType;
 		return true;
+	case Fellowship:
+		Dest.Ptr=&pChar->pSpawn->Fellowship;
+		Dest.Type=pFellowshipType;
+		return true;
 	}
 	return false;
 #undef pChar
@@ -5434,10 +5442,10 @@ bool MQ2InvSlotType::GETMEMBER()
 						}
 					}
 				} 
-				else if (nInvSlot>=2031 && nInvSlot<2191)
+				else if (nInvSlot>=2032 && nInvSlot<2272)
 				{
-					unsigned long nPack=(nInvSlot-2031)/10;
-					unsigned long nSlot=(nInvSlot-1)%10;
+					unsigned long nPack=(nInvSlot-2032)/10;
+					unsigned long nSlot=(nInvSlot-2)%10;
 					if (PCONTENTS pPack=pCharInfo->Bank[nPack])
 					if (pPack->Item->Type==ITEMTYPE_PACK && nSlot<pPack->Item->Slots)
 					{
@@ -5448,10 +5456,10 @@ bool MQ2InvSlotType::GETMEMBER()
 						}
 					}
 				}
-				else if (nInvSlot>=2531 && nInvSlot<2551)
+				else if (nInvSlot>=2532 && nInvSlot<2552)
 				{
-					unsigned long nPack=16+((nInvSlot-2531)/10);
-					unsigned long nSlot=(nInvSlot-1)%10;
+					unsigned long nPack=24+((nInvSlot-2532)/10);
+					unsigned long nSlot=(nInvSlot-2)%10;
 					if (PCONTENTS pPack=pCharInfo->Bank[nPack])
 					if (pPack->Item->Type==ITEMTYPE_PACK && nSlot<pPack->Item->Slots)
 					{
@@ -5462,7 +5470,7 @@ bool MQ2InvSlotType::GETMEMBER()
 						}
 					}
 				}
-				else if (nInvSlot>=2000 && nInvSlot<=2015)
+				else if (nInvSlot>=2000 && nInvSlot<2024)
 				{
 					if (Dest.Ptr=pCharInfo->Bank[nInvSlot-2000])
 					{
@@ -5472,7 +5480,7 @@ bool MQ2InvSlotType::GETMEMBER()
 				}
 				else if (nInvSlot==2500 || nInvSlot==2501)
 				{
-					if (Dest.Ptr=pCharInfo->Bank[nInvSlot-2500+16])
+					if (Dest.Ptr=pCharInfo->Bank[nInvSlot-2500+24])
 					{
 						Dest.Type=pItemType;
 						return true;
@@ -5488,15 +5496,15 @@ bool MQ2InvSlotType::GETMEMBER()
 			Dest.Type=pInvSlotType;
 			return true;
 		}
-		else if (nInvSlot>=2031 && nInvSlot<2191)
+		else if (nInvSlot>=2032 && nInvSlot<2272)
 		{
-			Dest.DWord=((nInvSlot-2031)/10)+2000;
+			Dest.DWord=((nInvSlot-2032)/10)+2000;
 			Dest.Type=pInvSlotType;
 			return true;
 		}
-		else if (nInvSlot>=2531 && nInvSlot<2551)
+		else if (nInvSlot>=2532 && nInvSlot<2552)
 		{
-			Dest.DWord=((nInvSlot-2531)/10)+2500;
+			Dest.DWord=((nInvSlot-2532)/10)+2500;
 			Dest.Type=pInvSlotType;
 			return true;
 		}
@@ -5509,15 +5517,15 @@ bool MQ2InvSlotType::GETMEMBER()
 				Dest.Type=pIntType;
 				return true;
 			}
-			else if (nInvSlot>=2031 && nInvSlot<2191)
+			else if (nInvSlot>=2032 && nInvSlot<2272)
 			{
-				Dest.DWord=(nInvSlot-2031)%10;
+				Dest.DWord=(nInvSlot-2032)%10;
 				Dest.Type=pIntType;
 				return true;
 			}
-			else if (nInvSlot>=2531 && nInvSlot<2551)
+			else if (nInvSlot>=2532 && nInvSlot<2552)
 			{
-				Dest.DWord=(nInvSlot-2531)%10;
+				Dest.DWord=(nInvSlot-2532)%10;
 				Dest.Type=pIntType;
 				return true;
 			}			
@@ -5537,7 +5545,7 @@ bool MQ2InvSlotType::GETMEMBER()
 			Dest.Type=pStringType;
 			return true;
 		}
-		else if (nInvSlot>=2000 && nInvSlot<2016)
+		else if (nInvSlot>=2000 && nInvSlot<2024)
 		{
 			sprintf(DataTypeTemp,"bank%d",nInvSlot-1999);
 			Dest.Ptr=&DataTypeTemp[0];
@@ -6363,6 +6371,131 @@ bool MQ2DZMemberType::GETMEMBER()
 		}
 		Dest.Type=pStringType;
 		return true;
+	}
+	return false;
+}
+
+bool MQ2FellowshipType::GETMEMBER()
+{
+	if(!VarPtr.Ptr)
+		return false;
+	PMQ2TYPEMEMBER pMember=MQ2FellowshipType::FindMember(Member);
+	if(!pMember)
+		return false;
+	PFELLOWSHIPINFO pFellowship=(PFELLOWSHIPINFO)VarPtr.Ptr;
+	switch((FellowshipTypeMembers)pMember->ID)
+	{
+	case ID:
+		Dest.DWord=pFellowship->FellowshipID;
+		Dest.Type=pIntType;
+		return true;
+	case Leader:
+		Dest.Ptr=pFellowship->Leader;
+		Dest.Type=pStringType;
+		return true;
+	case MotD:
+		Dest.Ptr=pFellowship->MotD;
+		Dest.Type=pStringType;
+		return true;
+	case Members:
+		Dest.DWord=pFellowship->Members;
+		Dest.Type=pIntType;
+		return true;
+	case xMember:
+		if(ISINDEX())
+		{
+			if(ISNUMBER())
+			{
+				DWORD i=GETNUMBER();
+				if(!i || i>pFellowship->Members)
+					return false;
+				Dest.Ptr=&pFellowship->FellowshipMember[--i];
+				Dest.Type=pFellowshipMemberType;
+				return true;
+			}
+			else
+			{
+				for(DWORD i=0; i<pFellowship->Members; i++)
+				{
+					if(!stricmp(pFellowship->FellowshipMember[i].Name,GETFIRST()))
+					{
+						Dest.Ptr=&pFellowship->FellowshipMember[i];
+						Dest.Type=pFellowshipMemberType;
+						return true;
+					}
+				}
+			}
+		}
+		return false;
+	case CampfireDuration:
+		if(pFellowship->CampfireTimestamp)
+		{
+			Dest.DWord=(pFellowship->CampfireTimestamp-GetFastTime())/6;
+			Dest.Type=pTicksType;
+			return true;
+		}
+		return false;
+	case CampfireY:
+		Dest.Float=pFellowship->CampfireY;
+		Dest.Type=pFloatType;
+		return true;
+	case CampfireX:
+		Dest.Float=pFellowship->CampfireX;
+		Dest.Type=pFloatType;
+		return true;
+	case CampfireZ:
+		Dest.Float=pFellowship->CampfireZ;
+		Dest.Type=pFloatType;
+		return true;
+	case CampfireZone:
+		if(pFellowship->CampfireZoneID)
+		{
+			Dest.Ptr=((PWORLDDATA)pWorldData)->ZoneArray[pFellowship->CampfireZoneID];
+			Dest.Type=pZoneType;
+			return true;
+		}
+		return false;
+	case Campfire:
+		Dest.Int=pFellowship->Campfire;
+		Dest.Type=pBoolType;
+		return true;
+	}
+	return false;
+}
+
+bool MQ2FellowshipMemberType::GETMEMBER()
+{
+	if(!VarPtr.Ptr)
+		return false;
+	PMQ2TYPEMEMBER pMember=MQ2FellowshipMemberType::FindMember(Member);
+	if(!pMember)
+		return false;
+	PFELLOWSHIPMEMBER pFellowshipMember=(PFELLOWSHIPMEMBER)VarPtr.Ptr;
+	switch((FMTypeMembers)pMember->ID)
+	{
+	case Zone:
+		if(pFellowshipMember->ZoneID)
+		{
+			Dest.Ptr=((PWORLDDATA)pWorldData)->ZoneArray[pFellowshipMember->ZoneID];
+			Dest.Type=pZoneType;
+			return true;
+		}
+		return false;
+	case Level:
+		Dest.DWord=pFellowshipMember->Level;
+		Dest.Type=pIntType;
+		return true;
+	case Class:
+		Dest.DWord=pFellowshipMember->Class;
+		Dest.Type=pClassType;
+		return true;
+	case LastOn:
+		if(pFellowshipMember->LastOn)
+		{
+			Dest.DWord=(GetFastTime()-pFellowshipMember->LastOn)/6;
+			Dest.Type=pTicksType;
+			return true;
+		}
 	}
 	return false;
 }

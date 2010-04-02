@@ -188,10 +188,32 @@ int CObfuscator::doit_detour(int opcode, int flag)
 	}
 #endif
 	g_ConvertedOpcode = opcode;
+	if (g_ConvertedOpcode==EQ_BEGIN_ZONE) PluginsBeginZone(); 
+	if (g_ConvertedOpcode==EQ_END_ZONE) PluginsEndZone();
 	return doit_tramp(opcode, flag);
 };
 
 DETOUR_TRAMPOLINE_EMPTY(int CObfuscator::doit_tramp(int, int));
+
+#define EB_SIZE (1024*4)
+void emotify(void);
+void emotify2(char *buffer);
+
+// we need this detour to clean up the stack because
+// emote sends 1024 bytes no matter how many bytes in the string
+// MQ2 variables get left on the stack....
+class CEmoteHook 
+{ 
+public: 
+    VOID Trampoline(void);
+    VOID Detour(void)
+    { 
+        emotify();
+        Trampoline();
+    }
+};
+DETOUR_TRAMPOLINE_EMPTY(VOID CEmoteHook::Trampoline(void)); 
+
 
 // this is the memory checker key struct
 struct mckey {
@@ -216,31 +238,6 @@ int __cdecl memcheck3(unsigned char *buffer, int count, struct mckey key);
 int __cdecl memcheck4(unsigned char *buffer, int count, struct mckey key);
 #endif
 
-DETOUR_TRAMPOLINE_EMPTY(VOID memchecks_tramp(PCHAR,DWORD,PVOID,DWORD,BOOL)); 
-
-
-VOID memchecks(PCHAR A,DWORD B,PVOID C,DWORD D,BOOL E)
-{
-	if (g_ConvertedOpcode==EQ_EMOTE)
-	{
-		int Pos = 4 + strlen(&A[4])+ 1;
-		int End = Pos + (int)(71.0*rand()/(RAND_MAX+1.0));
-		for (Pos ; Pos < End ; Pos++)
-			A[Pos]=0;
-
-		int t;
-		for (Pos ; Pos < 1024 ; Pos++)
-		{
-			t = (int)(397.0*rand()/(RAND_MAX+1.0));
-			A[Pos]=(t <= 255) ? (char)t : 0;
-		}
-	}
-	if (g_ConvertedOpcode==EQ_BEGIN_ZONE) PluginsBeginZone(); 
-	memchecks_tramp(A,B,C,D,E);
-	if (g_ConvertedOpcode==EQ_END_ZONE) PluginsEndZone();
-	g_ConvertedOpcode = 0;
-}
-
 // ***************************************************************************
 // Function:    HookMemChecker
 // Description: Hook MemChecker
@@ -259,23 +256,20 @@ VOID HookInlineChecks(BOOL Patch)
 
 // .text:005DE46D 81 3D 28 EF 97 00 0E C0 6D 00  cmp     dword_97EF28, 6DC00Eh
 
-    int cmps[] = {  0x5E16BD+6 };
+    int cmps[] = {  0x5F42AD+6 };
 
+// .text:004C73B5 81 F9 9E 02 3D EC  cmp     ecx, 0EC3D029Eh
+// .text:004E25D8 3D 8D 6B 78 79     cmp     eax, 79786B8Dh
+// .text:004E79D8 3D F4 29 B4 6B     cmp     eax, 6BB429F4h
+// .text:004EA94B 3D 1C E1 59 96     cmp     eax, 9659E11Ch
+// .text:004E2BB4 81 F9 23 A3 0A D8  cmp     ecx, 0D80AA323h
 
-
-// .text:004C1165 81 F9 9E 63 A6 6B  cmp     ecx, 6BA6639Eh  ; bad compare #1
-// .text:004DA104 81 F9 1A F6 9B 93  cmp     ecx, 939BF61Ah  ; bad compare #2
-// .text:004DF00B 3D E5 14 4E 3D     cmp     eax, 3D4E14E5h  ; bad compare #3
-// .text:004E199F 81 F9 01 0F 8F 32  cmp     ecx, 328F0F01h  ; bad compare #4
-// .text:004DA6F4 81 F9 B6 E6 9C 8D  cmp     ecx, 8D9CE6B6h  ; bad compare #5
-
-
-    int cmps2[] = {     0x4BF305,
-                        0x4D8484,
-                        0x4DD3CB,
-                        0x4DFD7F,
-                        0x4D8A74 };
-    int len2[] = { 6, 6, 5, 6, 6 };
+    int cmps2[] = {     0x4C73B5,
+                        0x4E25D8,
+                        0x4E79D8,
+                        0x4EA94B,
+                        0x4E2BB4 };
+    int len2[] = { 6, 5, 5, 5, 6 };
     char NewData2[20];
     static char OldData2[sizeof(cmps2)/sizeof(cmps2[0])][20];
 
@@ -316,7 +310,7 @@ VOID HookInlineChecks(BOOL Patch)
 	}
 	else
 	{
-        NewData = 0x6E481E;
+        NewData = 0x6F986E;
         for (i=0;i<sizeof(cmps)/sizeof(cmps[0]);i++) {
 #ifdef ISXEQ
 			EzUnModify(cmps[i]);
@@ -384,7 +378,7 @@ VOID HookMemChecker(BOOL Patch)
                                                     (PBYTE) memcheck4);
 
         EzDetour(CObfuscator__doit,&CObfuscator::doit_detour,&CObfuscator::doit_tramp);
-        EzDetour(send_message,memchecks,memchecks_tramp);
+        EzDetour(CEverQuest__Emote,&CEmoteHook::Detour,&CEmoteHook::Trampoline);
 
 		HookInlineChecks(Patch);
     } else {
@@ -417,8 +411,8 @@ VOID HookMemChecker(BOOL Patch)
         memcheck4_tramp = NULL;
         RemoveDetour(EQADDR_MEMCHECK4);
 
-        RemoveDetour((DWORD)send_message);
         RemoveDetour(CObfuscator__doit);
+        RemoveDetour(CEverQuest__Emote);
     }
 }
 #endif
@@ -974,3 +968,31 @@ void ShutdownMQ2Detours()
 	DeleteCriticalSection(&gDetourCS);
 #endif
 }
+
+
+#pragma optimize( "", off )
+
+void emotify(void)
+{
+    char buffer[EB_SIZE];
+    emotify2(buffer);
+}
+void emotify2(char *A)
+{
+    int i;
+    for (i=0;i<EB_SIZE;i+=1024)
+        memcpy(A+i, EQADDR_ENCRYPTPAD0, 1024);
+    /*
+    int Pos = &A[0];
+    int End = Pos + EB_SIZE;
+    for (Pos ; Pos < End ; Pos++)
+        A[Pos]=0;
+
+    int t;
+    for (Pos ; Pos < 1024 ; Pos++) {
+        t = (int)(397.0*rand()/(RAND_MAX+1.0));
+        A[Pos]=(t <= 255) ? (char)t : 0;
+    }
+    */
+}
+#pragma optimize( "", on )

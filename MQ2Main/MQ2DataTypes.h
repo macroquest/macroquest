@@ -110,6 +110,8 @@ LEGACY_VAR class MQ2GroupMemberType *pGroupMemberType;
 LEGACY_VAR class MQ2EvolvingItemType *pEvolvingItemType;
 LEGACY_VAR class MQ2DynamicZoneType *pDynamicZoneType;
 LEGACY_VAR class MQ2DZMemberType *pDZMemberType;
+LEGACY_VAR class MQ2FellowshipType *pFellowshipType;
+LEGACY_VAR class MQ2FellowshipMemberType *pFellowshipMemberType;
 
 #define UseTemp(mystring) strcpy(DataTypeTemp,mystring)
 #define TypeMember(name) AddMember((DWORD)name,""#name)
@@ -854,6 +856,7 @@ public:
 		Orux=157,
 		Phosphenes=158,
 		Phosphites=159,
+		Fellowship=160,
 	};
 	static enum CharacterMethods
 	{
@@ -1020,6 +1023,7 @@ public:
 		TypeMember(Orux);
 		TypeMember(Phosphenes);
 		TypeMember(Phosphites);
+		TypeMember(Fellowship);
 
 		TypeMethod(Stand); 
 		TypeMethod(Sit); 
@@ -1160,7 +1164,7 @@ public:
 	{
 		if (Source.Type!=pSpellType)
 			return false;
-		memcpy(VarPtr.Ptr,Source.Ptr,sizeof(PSPELL));
+		memcpy(VarPtr.Ptr,Source.Ptr,sizeof(SPELL));
 		return true;
 	}
 	bool FromString(MQ2VARPTR &VarPtr, PCHAR Source)
@@ -1360,7 +1364,7 @@ public:
 	static enum ItemMethods
 	{
 	};
-	MQ2ItemType():MQ2Type("Item")
+	MQ2ItemType():MQ2Type("item")
 	{
 		TypeMember(ID);//1,
 		TypeMember(Name);//2,
@@ -3254,6 +3258,95 @@ public:
 	bool ToString(MQ2VARPTR VarPtr, PCHAR Destination)
 	{
 		strcpy(Destination,((PDZMEMBER)VarPtr.Ptr)->Name);
+		return true;
+	}
+	bool FromData(MQ2VARPTR &VarPtr, MQ2TYPEVAR &Source)
+	{
+		return false;
+	}
+	bool FromString(MQ2VARPTR &VarPtr, PCHAR Source)
+	{
+		return false;
+	}
+};
+
+class MQ2FellowshipType : public MQ2Type
+{
+public:
+	static enum FellowshipTypeMembers
+	{
+		ID=1,
+		Leader=2,
+		MotD=3,
+		Members=4,
+		xMember=5,
+		CampfireDuration=6,
+		CampfireY=7,
+		CampfireX=8,
+		CampfireZ=9,
+		CampfireZone=10,
+		Campfire=11,
+	};
+	MQ2FellowshipType():MQ2Type("fellowship")
+	{
+		TypeMember(ID);
+		TypeMember(Leader);
+		TypeMember(MotD);
+		TypeMember(Members);
+		AddMember(xMember,"Member");
+		TypeMember(CampfireDuration);
+		TypeMember(CampfireY);
+		TypeMember(CampfireX);
+		TypeMember(CampfireZ);
+		TypeMember(CampfireZone);
+		TypeMember(Campfire);
+	}
+	~MQ2FellowshipType()
+	{
+	}
+	bool GETMEMBER();
+	bool ToString(MQ2VARPTR VarPtr, PCHAR Destination)
+	{
+		if(VarPtr.Ptr && ((PFELLOWSHIPINFO)VarPtr.Ptr)->FellowshipID)
+			strcpy(Destination,"TRUE");
+		else
+			strcpy(Destination,"FALSE");
+		return true;
+	}
+	bool FromData(MQ2VARPTR &VarPtr, MQ2TYPEVAR &Source)
+	{
+		return false;
+	}
+	bool FromString(MQ2VARPTR &VarPtr, PCHAR Source)
+	{
+		return false;
+	}
+};
+
+class MQ2FellowshipMemberType : public MQ2Type
+{
+public:
+	static enum FMTypeMembers
+	{
+		Zone=1,
+		Level=2,
+		Class=3,
+		LastOn=4,
+	};
+	MQ2FellowshipMemberType():MQ2Type("fellowshipmember")
+	{
+		TypeMember(Zone);
+		TypeMember(Level);
+		TypeMember(Class);
+		TypeMember(LastOn);
+	}
+	~MQ2FellowshipMemberType()
+	{
+	}
+	bool GETMEMBER();
+	bool ToString(MQ2VARPTR VarPtr, PCHAR Destination)
+	{
+		strcpy(Destination,((PFELLOWSHIPMEMBER)VarPtr.Ptr)->Name);
 		return true;
 	}
 	bool FromData(MQ2VARPTR &VarPtr, MQ2TYPEVAR &Source)

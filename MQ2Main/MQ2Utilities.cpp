@@ -2243,7 +2243,7 @@ PCHAR ShowSpellSlotInfo(PSPELL pSpell, PCHAR szBuffer)
          strcat(szBuff, szTemp); 
          break; 
       case 169: //Chance to Critical Hit 
-         sprintf(szTemp, "Chance to Critical Hit(%d)", pSpell->Base[i]); 
+         sprintf(szTemp, "Chance to Critical Hit for %s by %d%%", szSkills[pSpell->Base2[i]],pSpell->Base[i]);
          strcat(szBuff, szTemp); 
          break; 
       case 170: //Crit Cast, test spell only 
@@ -2316,8 +2316,8 @@ PCHAR ShowSpellSlotInfo(PSPELL pSpell, PCHAR szBuffer)
          sprintf(szTemp, "Increase Melee Skill Check by %dpct", pSpell->Base[i]); 
          strcat(szBuff, szTemp); 
          break; 
-      case 184: //Chance to hit with Backstab 
-         sprintf(szTemp, "Increase Chance to Hit by %dpct with Backstab", pSpell->Base[i]); 
+      case 184: //Chance to hit with Backstab (or throwing/archery [http://lucy.allakhazam.com/spellraw.html?id=9616&source=Live])
+         sprintf(szTemp, "Increase Chance to Hit by %dpct with %s", pSpell->Base[i], szSkills[pSpell->Base2[i]]); 
          strcat(szBuff, szTemp); 
          break; 
       case 185: //Damage Mod (how to tell which, rogues get a backstab only, others get an all skills) 
@@ -3024,7 +3024,7 @@ int FindInvSlotForContents(PCONTENTS pContents)
 		{
 			if (pPack==pContents)
 			{
-				if (nPack<0x10)
+				if (nPack<0x18)
 					return 2000+nPack;
 				return 2500+nPack-0x10;
 			}
@@ -3034,9 +3034,9 @@ int FindInvSlotForContents(PCONTENTS pContents)
 				{
 					if (pPack->Contents[nItem]==pContents)
 					{
-						if (nPack<0x10)
-							return 2031+(nPack*10)+nItem;
-						return 2531-0xa0+(nPack*10)+nItem;
+						if (nPack<0x18)
+							return 2032+(nPack*10)+nItem;
+						return 2532+((nPack-0x18)*10)+nItem;
 					}
 				}
 			}

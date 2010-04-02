@@ -560,8 +560,8 @@ typedef struct _ITEMINFO {
 /*0x4e0*/ DWORD  Purity;
 /*0x4e4*/ BYTE   Unknown0x4e4[0x4];
 /*0x4e8*/ BYTE   QuestItem;
-/*0x4e9*/ BYTE   Unknown0x4e9[0x7];
-/*0x4f0*/
+/*0x4e9*/ BYTE   Unknown0x4e9[0xb];
+/*0x4f4*/
 } ITEMINFO, *PITEMINFO;
 
 // actual size 0xd8 07-25-2007
@@ -1008,6 +1008,37 @@ typedef struct _EQUIPMENT {
    };
 } EQUIPMENT, *PEQUIPMENT;
 
+// 9-13-07 - ieatacid
+typedef struct _FELLOWSHIPMEMBER {
+/*0x00*/  DWORD  Unknown0x0;
+/*0x04*/  CHAR   Name[0x40];
+/*0x44*/  DWORD  ZoneID;
+/*0x48*/  DWORD  Level;
+/*0x4c*/  DWORD  Class;
+/*0x50*/  DWORD  LastOn;    // GetFastTime() timestamp
+/*0x54*/
+} FELLOWSHIPMEMBER, *PFELLOWSHIPMEMBER;
+
+// 9-13-07 - ieatacid
+typedef struct _FELLOWSHIPINFO {
+/*0x000*/  DWORD  Unknown0x0;        // always 1?
+/*0x004*/  DWORD  FellowshipID;      // ?
+/*0x008*/  CHAR   Leader[0x40];
+/*0x048*/  CHAR   MotD[0x400];
+/*0x448*/  DWORD  Members;
+/*0x44c*/  struct _FELLOWSHIPMEMBER  FellowshipMember[0x9];
+/*0x740*/  DWORD  Unknown0x740;      // timestamp for something
+/*0x744*/  FLOAT  CampfireY;
+/*0x748*/  FLOAT  CampfireX;
+/*0x74c*/  FLOAT  CampfireZ;
+/*0x750*/  DWORD  CampfireZoneID;    // zone ID where campfire is
+/*0x754*/  DWORD  CampfireTimestamp; // CampfireTimestamp-GetFastTime()=time left on campfire
+/*0x758*/  DWORD  Unknown0x7a0;      // some kind of ID - same as Unknown0x4
+/*0x75c*/  DWORD  Unknown0x7a4;      // campfire type?
+/*0x760*/  DWORD  Campfire;          // do we have a campfire up?
+/*0x764*/
+} FELLOWSHIPINFO, *PFELLOWSHIPINFO;
+
 // actual size: 0x1a8c 07-05-2007
 typedef struct _SPAWNINFO {
 /*0x0000*/ void     *vtable;
@@ -1161,7 +1192,9 @@ typedef struct _SPAWNINFO {
 /*0x10e0*/ DWORD    HideCorpse;
 /*0x10e4*/ BYTE     Unknown0x10e4[0x40];
 /*0x1124*/ BYTE     InvitedToGroup;
-/*0x1125*/ BYTE     Unknown0x1125[0x93f];
+/*0x1125*/ BYTE     Unknown0x1125[0x187];
+/*0x12ac*/ struct   _FELLOWSHIPINFO Fellowship;        // size 0x764
+/*0x1a10*/ BYTE     Unknown0x1a10[0x54];
 /*0x1a64*/ void     *vtable2;
 /*0x1a68*/ DWORD    Unknown0x1a68;
 /*0x1a6c*/ struct   _SPAWNINFO *pSpawn;
@@ -1506,7 +1539,7 @@ typedef struct _GUILDMEMBER {
 /*0x00c*/ BYTE    Unknown0xc[0x4];
 /*0x010*/ CHAR    Name[0x40];
 /*0x050*/ DWORD   Level;
-/*0x054*/ DWORD   Unknown0x54;
+/*0x054*/ DWORD   Flags; //1=banker, 2=alt
 /*0x058*/ DWORD   Class;
 /*0x05c*/ DWORD   Rank; //0=member 1=officer 2=leader
 /*0x060*/ DWORD   LastSeen; //last seen timestamp

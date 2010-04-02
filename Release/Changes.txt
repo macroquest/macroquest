@@ -1,3 +1,28 @@
+27 September 2007 by dkaa
+- fixed /next
+
+17 September 2007 by ieatacid
+- Added Me.Fellowship
+  * fellowship  type members:
+      int ID: fellowship ID
+      string Leader: leader's name
+      string MotD: message of the day
+      int Members: number of members in fellowship
+      fellowshipmember Member: member info by index (1-9) or name
+      ticks CampfireDuration: how much time is left on campfire
+      float CampfireY: self explanatory
+      float CampfireX: "
+      float CampfireZ: "
+      zone CampfireZone: zoneinfo for the campfire
+      bool Campfire: TRUE if campfire is up, FALSE if not
+      to string: TRUE or FALSE
+  * fellowshipmember type members:
+      zone Zone: zoneinfo for this player
+      int Level: this player's level
+      class Class: class info for this player
+      ticks LastOn: when this player was last online
+      to string: player name
+
 7 September 2007 by ieatacid
 - Updated for patch
 
