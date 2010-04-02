@@ -9,7 +9,6 @@ _TEXT   SEGMENT PARA USE32 PUBLIC 'CODE'
 PUBLIC __MemChecker3
 
 
-
 __MemChecker3   proc near               ; CODE XREF: Win__CodeCrc+17p
                                         ; Win__CodeCrc+30_p ...
 
@@ -53,10 +52,10 @@ arg_8           = dword ptr  0Ch
                 xor     eax, esi
                 lea     esi, [ecx+edx]
                 cmp     ecx, esi
-                jnb     short loc_52A4BB
+                jnb     short loc_52E39B
                 push    edi
 
-loc_52A498:                             ; CODE XREF: __MemChecker3+A8j
+loc_52E378:                             ; CODE XREF: __MemChecker3+A8j
                 xor     edx, edx
                 mov     dl, [ecx]
                 xor     edx, eax
@@ -67,15 +66,14 @@ loc_52A498:                             ; CODE XREF: __MemChecker3+A8j
                 xor     eax, edi
                 inc     ecx
                 cmp     ecx, esi
-                jb      short loc_52A498
+                jb      short loc_52E378
                 pop     edi
 
-loc_52A4BB:                             ; CODE XREF: __MemChecker3+85j
+loc_52E39B:                             ; CODE XREF: __MemChecker3+85j
                 not     eax
                 pop     esi
                 retn
 __MemChecker3   endp
-
 
 
 

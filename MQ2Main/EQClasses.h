@@ -1330,17 +1330,17 @@ EQLIB_OBJECT void CChatWindow::Deactivate(void);
 /*0x188*/ struct _EQCHATMGR *ChatManager; 
 /*0x18c*/ struct _CSIDLWND* InputWnd;
 /*0x190*/ struct _CSIDLWND* OutputWnd;
-/*0x194*/ DWORD Unknown0x154;
-/*0x198*/ DWORD Unknown0x158;// need to update locations..
-/*0x19c*/ BYTE Unknown0x148;
-/*0x19d*/ BYTE Unknown0x149[0x3f];
-/*0x1dc*/ DWORD Unknown0x188;
-/*0x1e0*/ DWORD Unknown0x18c;
+/*0x194*/ DWORD Unknown0x194;
+/*0x198*/ DWORD Unknown0x198;// need to update locations..
+/*0x19c*/ BYTE Unknown0x19c;
+/*0x19d*/ BYTE Unknown0x19d[0x3f];
+/*0x1dc*/ DWORD Unknown0x1dc;
+/*0x1e0*/ DWORD Unknown0x1e0;
 /*0x1e4*/ struct _CXSTR *CommandHistory[0x28]; // ->0x198
-/*0x284*/ DWORD Unknown0x230; // CChatWindow::HistoryBack/forward .. maybe total or current history lines
-/*0x288*/ DWORD Unknown0x234; // CChatWindow::HistoryBack/forward .. maybe total or current history lines
+/*0x284*/ DWORD Unknown0x284; // CChatWindow::HistoryBack/forward .. maybe total or current history lines
+/*0x288*/ DWORD Unknown0x288; // CChatWindow::HistoryBack/forward .. maybe total or current history lines
 /*0x28c*/ DWORD FontSize; //
-/*0x290*/ DWORD Unknown0x23C;
+/*0x290*/ DWORD Unknown0x290;
 
 //EQLIB_OBJECT void *CChatWindow::operator new(size_t stAllocateBlock) {return malloc(sizeof(EQCHATWINDOW));} // 11-15-2003 lax
 };
@@ -5349,13 +5349,13 @@ EQLIB_OBJECT EQ_AltAbility::EQ_AltAbility(int);
 class EQ_Character1
 {
 public:
-EQLIB_OBJECT int EQ_Character1::Cur_HP(int);
+EQLIB_OBJECT int EQ_Character1::Cur_HP(int,unsigned char y=1);
 EQLIB_OBJECT int EQ_Character1::Max_Endurance(int y=1); // lax 4-25-2004
 EQLIB_OBJECT int EQ_Character1::Max_HP(int,int y=1); 
 EQLIB_OBJECT int EQ_Character1::Max_Mana(int y=1);
 EQLIB_OBJECT int const EQ_Character1::GetAACastingTimeModifier(class EQ_Spell const *);
 EQLIB_OBJECT int const EQ_Character1::GetFocusCastingTimeModifier(class EQ_Spell const *,class EQ_Equipment * *);
-EQLIB_OBJECT unsigned char EQ_Character1::CastSpell(unsigned char,int,class EQ_Item * *,int,int slot,int,int,int,int,bool); 
+EQLIB_OBJECT unsigned char EQ_Character1::CastSpell(unsigned char,int,class EQ_Item * *,int,int slot,int,int,int,int,bool,int y=1); 
 EQLIB_OBJECT void EQ_Character1::SetEffectId(unsigned char,unsigned int);
 EQLIB_OBJECT void EQ_Character1::StopSpellCast(unsigned char);
 EQLIB_OBJECT void EQ_Character1::StopSpellCast(unsigned char,int);

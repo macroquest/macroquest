@@ -376,9 +376,11 @@ enum MOUSE_DATA_TYPES {
    MD_Button1
 };
 
-#define nEQMappableCommands				 0x115
+#define nEQMappableCommands				 0x116
 
-#define MAX_PC_LEVEL                    75
+#define MAX_PC_LEVEL                    80
+#define NUM_SPELL_GEMS                  10
+#define NUM_SPELL_SETS                  10
 
 // ***************************************************************************
 // Structures
@@ -424,7 +426,7 @@ typedef struct _ITEMSPELLS {
 /*0x64*/
 } ITEMSPELLS, *PITEMSPELLS; 
 
-// size is 0x4f4 10-04-2007
+// size is 0x4f8 11-13-2007
 typedef struct _ITEMINFO {
 /*0x000*/ CHAR   Name[ITEM_NAME_LEN];
 /*0x040*/ CHAR   LoreName[LORE_NAME_LEN];
@@ -560,8 +562,8 @@ typedef struct _ITEMINFO {
 /*0x4e0*/ DWORD  Purity;
 /*0x4e4*/ BYTE   Unknown0x4e4[0x4];
 /*0x4e8*/ BYTE   QuestItem;
-/*0x4e9*/ BYTE   Unknown0x4e9[0xb];
-/*0x4f4*/ 
+/*0x4e9*/ BYTE   Unknown0x4e9[0xf];
+/*0x4f8*/ 
 } ITEMINFO, *PITEMINFO;
 
 // actual size 0xd8 07-25-2007
@@ -811,7 +813,7 @@ typedef struct _CHARINFO {
 /*0x1132c*/
 } CHARINFO, *PCHARINFO;
 
-// actual size: 0xb7b4 07-05-2007
+// actual size: 0xb7b8 11-13-2007
 typedef struct _CHARINFO2 {
 /*0x0000*/   BYTE       Unknown0x0[0x10];
 union {
@@ -870,18 +872,18 @@ union {
 /*0x237c*/   DWORD      BodyColor[0x9];
 /*0x23a0*/   BYTE       Unknown0x23a0[0x2000];
 /*0x43a0*/   DWORD      CombatAbilities[NUM_COMBAT_ABILITIES];
-/*0x4530*/   BYTE       Unknown0x4530[0x28];
-/*0x4558*/   DWORD      CombatAbilityTimes[NUM_COMBAT_ABILITIES];
-/*0x46e8*/   BYTE       Unknown0x46e8[0x1a9c];
-/*0x6184*/   DWORD      Deity;
-/*0x6188*/   BYTE       Unknown0x6188[0x4];
-/*0x618c*/   DWORD      Drunkenness;
-/*0x6190*/   BYTE       Unknown0x6190[0x8];
-/*0x6198*/   DWORD      AAPoints;
-/*0x619c*/   BYTE       Unknown0x619c[0x55f8];
-/*0xb794*/   DWORD      AAPointsSpent;
-/*0xb798*/   BYTE       Unknown0xb798[0x1c];
-/*0xb7b4*/
+/*0x4530*/   BYTE       Unknown0x4530[0x2c];
+/*0x455c*/   DWORD      CombatAbilityTimes[NUM_COMBAT_ABILITIES];
+/*0x46ec*/   BYTE       Unknown0x46ec[0x1a9c];
+/*0x6188*/   DWORD      Deity;
+/*0x618c*/   BYTE       Unknown0x618c[0x4];
+/*0x6190*/   DWORD      Drunkenness;
+/*0x6194*/   BYTE       Unknown0x6194[0x8];
+/*0x619c*/   DWORD      AAPoints;
+/*0x61a0*/   BYTE       Unknown0x61a0[0x55f8];
+/*0xb798*/   DWORD      AAPointsSpent;
+/*0xb79c*/   BYTE       Unknown0xb79c[0x1c];
+/*0xb7b8*/
 } CHARINFO2, *PCHARINFO2;
 
 typedef struct _MODELINFONAME {
@@ -1040,7 +1042,7 @@ typedef struct _FELLOWSHIPINFO {
 /*0x764*/
 } FELLOWSHIPINFO, *PFELLOWSHIPINFO;
 
-// actual size: 0x1a98 10-30-2007
+// actual size: 0x1bc4 11-13-2007
 typedef struct _SPAWNINFO {
 /*0x0000*/ void     *vtable;
 /*0x0004*/ struct   _SPAWNINFO *pPrev;
@@ -1081,127 +1083,133 @@ typedef struct _SPAWNINFO {
 /*0x0150*/ DWORD    IsABoat;                // 1 = a type of boat
 /*0x0154*/ struct   _SPAWNINFO *Mount;      //NULL if no mount present
 /*0x0158*/ BYTE     Unknown0x158[0x20];
-/*0x0178*/ DWORD    Buyer;
-/*0x017c*/ DWORD    RespawnTimer;           // TimeStamp of when RespawnWnd will close - 0 when you're alive
-/*0x0180*/ DWORD    HPMax;
-/*0x0184*/ DWORD    Unknown0x184;
-/*0x0188*/ void     *pCharInfo_vtable2;
-/*0x018c*/ DWORD    MasterID;
-/*0x0190*/ BYTE     Unknown0x190[0x18];
-/*0x01a8*/ FLOAT    GetMeleeRangeVar1;      // used by GetMeleeRange
-/*0x01ac*/ BYTE     Unknown0x1ac;
-/*0x01ad*/ BYTE     FishingEvent;
-/*0x01ae*/ BYTE     Unknown0x1ae[0x2];
-/*0x01b0*/ DWORD    LastTick;
-/*0x01b4*/ BYTE     Unknown0x1b4[0x38];
-/*0x01ec*/ BYTE     HideMode;
-/*0x01ed*/ BYTE     Unknown0x1ed[0x4];
-/*0x01f1*/ BYTE     Sneak;
-/*0x01f2*/ BYTE     Unknown0x1f2[0x12];
-/*0x0204*/ BYTE     Level;
-/*0x0205*/ BYTE     Unknown0x205[0x3];
-/*0x0208*/ DWORD    GuildID;
-/*0x020c*/ BYTE     Unknown0x20c[0xc];
-/*0x0218*/ BYTE     GM;
-/*0x0219*/ BYTE     Unknown0x219[0x1b];
-/*0x0234*/ BYTE     BetaBuffedPlayer;
-/*0x0235*/ BYTE     Unknown0x235[0xb];
-/*0x0240*/ BYTE     Light;
-/*0x0241*/ BYTE     Unknown0x241[0x3];
-/*0x0244*/ DWORD    SpellETA;               //Calculated TimeStamp when current spell being cast will land. 0 while not casting.
-/*0x0248*/ DWORD    CastingSpellID;         // -1 = not casting a spell
-/*0x024c*/ BYTE     CastingAnimation;       //unsure, FF for not casting, low numbers while casting
-/*0x024d*/ BYTE     Unknown0x24d[0x7];
-/*0x0254*/ DWORD    ClickySlotID;
-/*0x0258*/ BYTE     Unknown0x258[0x10];
-/*0x0268*/ DWORD    ClickyItemID;
-/*0x026c*/ FLOAT    CastingY;
-/*0x0270*/ FLOAT    CastingX;
-/*0x0274*/ BYTE     Unknown0x274[0xd];
-/*0x0281*/ BYTE     LFG;
-/*0x0282*/ BYTE     Unknown0x282[0xbe];
-/*0x0340*/ BYTE     Linkdead;
-/*0x0341*/ CHAR     Suffix[0x20];
-/*0x0361*/ BYTE     Unknown0x361[0x7];
-/*0x0368*/ CHAR     Title[0x20];
-/*0x0388*/ BYTE     Unknown0x388[0x90];
-/*0x0418*/ DWORD    InnateETA;              //Calculated TimeStamp when innate skill will be ready (LoH, HT, Bash)
-/*0x041c*/ DWORD    Anon;
-/*0x0420*/ BYTE     Unknown0x420[0x8];
-/*0x0428*/ DWORD    Trader;
-/*0x042c*/ BYTE     Unknown0x42c[0x8];
-/*0x0434*/ FLOAT    WalkSpeed;
-/*0x0438*/ DWORD    PetID;
-/*0x043c*/ BYTE     Unknown0x43c[0x4];
-/*0x0440*/ DWORD    Deity;
-/*0x0444*/ BYTE     Unknown0x444[0xa];
-/*0x044e*/ BYTE     PvPFlag;
-/*0x044f*/ BYTE     Unknown0x44f[0x1d];
+/*0x0178*/ DWORD    AFK;
+/*0x017c*/ BYTE     Unknown0x17c[0x8];
+/*0x0184*/ DWORD    Buyer;
+/*0x0188*/ BYTE     Unknown0x188[0x4];
+/*0x018c*/ DWORD    Deity;
+/*0x0190*/ BYTE     Unknown0x190[0x4];
+/*0x0194*/ BYTE     Light;
+/*0x0195*/ BYTE     Unknown0x195[0x7];
+/*0x019c*/ DWORD    PetID;
+/*0x01a0*/ BYTE     Unknown0x1a0[0x4];
+/*0x01a4*/ CHAR     Suffix[0x20];
+/*0x01c4*/ BYTE     Unknown0x1c4[0x4];
+/*0x01c8*/ DWORD    GuildStatus;
+/*0x01cc*/ BYTE     Unknown0x1cc[0xc];
+/*0x01d8*/ BYTE     HideMode;
+/*0x01d9*/ BYTE     Unknown0x1d9[0x3];
+/*0x01dc*/ BYTE     Holding;
+/*0x01dd*/ BYTE     Unknown0x1dd[0x3];
+/*0x01e0*/ WORD     Zone;
+/*0x01e2*/ WORD     Instance;
+/*0x01e4*/ BYTE     Unknown0x1e4[0x40];
+/*0x0224*/ DWORD    GuildID;
+/*0x0228*/ CHAR     Title[0x20];
+/*0x0248*/ LONG     HPCurrent;
+/*0x024c*/ BYTE     Unknown0x24c[0x8];
+/*0x0254*/ BYTE     LFG;
+/*0x0255*/ BYTE     Unknown0x255[0x17];
+/*0x026c*/ BYTE     FishingEvent;
+/*0x026d*/ BYTE     Unknown0x26d[0x3b];
+/*0x02a8*/ BYTE     Sneak;
+/*0x02a9*/ BYTE     Unknown0x2a9[0x2b];
+/*0x02d4*/ DWORD    AARank;
+/*0x02d8*/ BYTE     Unknown0x2d8[0x5];
+/*0x02dd*/ BYTE     BetaBuffedPlayer;
+/*0x02de*/ BYTE     Unknown0x2de[0x6];
+/*0x02e4*/ DWORD    MasterID;
+/*0x02e8*/ DWORD    Anon;
+/*0x02ec*/ BYTE     Unknown0x2ec[0x4];
+/*0x02f0*/ DWORD    LastTick;
+/*0x02f4*/ BYTE     Unknown0x2f4[0x4];
+/*0x02f8*/ DWORD    SpellETA;               //Calculated TimeStamp when current spell being cast will land. 0 while not casting.
+/*0x02fc*/ DWORD    CastingSpellID;         // -1 = not casting a spell
+/*0x0300*/ BYTE     CastingAnimation;       //unsure, FF for not casting, low numbers while casting
+/*0x0301*/ BYTE     Unknown0x301[0x7];
+/*0x0308*/ DWORD    ClickySlotID;
+/*0x030c*/ BYTE     Unknown0x30c[0x10];
+/*0x031c*/ DWORD    ClickyItemID;
+/*0x0320*/ FLOAT    CastingY;
+/*0x0324*/ FLOAT    CastingX;
+/*0x0328*/ BYTE     Unknown0x328[0xd];
+/*0x0335*/ BYTE     Level;
+/*0x0336*/ BYTE     GM;
+/*0x0337*/ BYTE     Unknown0x337;
+/*0x0338*/ void     *pCharInfo_vtable2;
+/*0x033c*/ BYTE     Unknown0x33c[0xc];
+/*0x0348*/ DWORD    HPMax;
+/*0x034c*/ BYTE     Unknown0x34c[0x4];
+/*0x0350*/ BYTE     PvPFlag;
+/*0x0351*/ BYTE     Unknown0x351[0x5f];
+/*0x03b0*/ DWORD    RespawnTimer;           // TimeStamp of when RespawnWnd will close - 0 when you're alive
+/*0x03b4*/ BYTE     Unknown0x3b4[0x28];
+/*0x03dc*/ DWORD    InnateETA;              //Calculated TimeStamp when innate skill will be ready (LoH, HT, Bash)
+/*0x03e0*/ BYTE     Unknown0x3e0[0x4];
+/*0x03e4*/ BYTE     Linkdead;
+/*0x03e5*/ BYTE     Unknown0x3e5[0x7];
+/*0x03ec*/ DWORD    Trader;
+/*0x03f0*/ BYTE     Unknown0x3f0[0x77];
+/*0x0467*/ BYTE     StandState;
+/*0x0468*/ BYTE     Unknown0x468[0x4];
 /*0x046c*/ FLOAT    RunSpeed;
-/*0x0470*/ DWORD    AFK;
-/*0x0474*/ BYTE     Unknown0x474[0x4];
-/*0x0478*/ WORD     Zone;
-/*0x047a*/ WORD     Instance;
-/*0x047c*/ BYTE     Holding;
-/*0x047d*/ BYTE     Unknown0x47d[0x13];
-/*0x0490*/ DWORD    GuildStatus;
-/*0x0494*/ BYTE     Unknown0x494[0x8];
-/*0x049c*/ DWORD    AARank;
-/*0x04a0*/ BYTE     StandState;
-/*0x04a1*/ BYTE     Unknown0x4a1[0xb];
-/*0x04ac*/ DWORD    FishingETA;
-/*0x04b0*/ LONG     HPCurrent;
-/*0x04b4*/ BYTE     Unknown0x4b4[0x91c];
-/*0x0dd0*/ struct   _SPAWNINFO *WhoFollowing; // NULL if autofollow off
-/*0x0dd4*/ struct   _SPAWNINFO *pGroupAssistNPC[1];
-/*0x0dd8*/ struct   _SPAWNINFO *pRaidAssistNPC[3];
-/*0x0de4*/ struct   _SPAWNINFO *pGroupMarkNPC[3];
-/*0x0df0*/ struct   _SPAWNINFO *pRaidMarkNPC[3];
-/*0x0dfc*/ struct   _SPAWNINFO *pTargetOfTarget;
-/*0x0e00*/ BYTE     Unknown0xe00[0x2c];
-/*0x0e2c*/ BYTE     InNonPCRaceIllusion;
-/*0x0e2d*/ BYTE     Unknown0xe2d[0xb];
-/*0x0e38*/ BYTE     FaceStyle;
-/*0x0e39*/ BYTE     HairColor;
-/*0x0e3a*/ BYTE     FacialHairColor;
-/*0x0e3b*/ BYTE     EyeColor1;
-/*0x0e3c*/ BYTE     EyeColor2;
-/*0x0e3d*/ BYTE     HairStyle;
-/*0x0e3e*/ BYTE     FacialHair;
-/*0x0e3f*/ BYTE     Unknown0xe3f;
-/*0x0e40*/ DWORD    Race;
-/*0x0e44*/ BYTE     Class;
-/*0x0e45*/ BYTE     Gender;
-/*0x0e46*/ CHAR     ActorDef[0x40];
-/*0x0e86*/ BYTE     Unknown0xe86[0x2];
-/*0x0e88*/ ARGBCOLOR ArmorColor[0x9];
-/*0x0eac*/ BYTE     Unknown0xeac[0x4];
-/*0x0eb0*/ DWORD    Heritage;               //drakkin only face setting
-/*0x0eb4*/ DWORD    Tattoo;                 //drakkin only face setting
-/*0x0eb8*/ DWORD    Details;                //drakkin only face setting
-/*0x0ebc*/ struct   _EQUIPMENT Equipment;
-/*0x0f28*/ BYTE     Unknown0xf28[0x38];
-/*0x0f60*/ VOID     *pcactorex;
-/*0x0f64*/ DWORD    Unknown0xf64;
-/*0x0f68*/ VOID     *FaceRelatedActorStruct;
-/*0x0f6c*/ BYTE     Unknown0xf6c[0x30];
-/*0x0f9c*/ FLOAT    GetMeleeRangeVar2;      // used by GetMeleeRange
-/*0x0fa0*/ BYTE     Unknown0xfa0[0x40];
-/*0x0fe0*/ DWORD    Animation;
-/*0x0fe4*/ BYTE     Unknown0xfe4[0xd0];
-/*0x10b4*/ struct   _MODELINFO *Model[0xe]; // this is wrong dkaa 10/21/06
-/*0x10ec*/ DWORD    HideCorpse;
-/*0x10f0*/ BYTE     Unknown0x10f0[0x40];
-/*0x1130*/ BYTE     InvitedToGroup;
-/*0x1131*/ BYTE     Unknown0x1131[0x187];
-/*0x12b8*/ struct   _FELLOWSHIPINFO Fellowship;        // size 0x764
-/*0x1a1c*/ BYTE     Unknown0x1a1c[0x54];
-/*0x1a70*/ void     *vtable2;
-/*0x1a74*/ DWORD    Unknown0x1a74;
-/*0x1a78*/ struct   _SPAWNINFO *pSpawn;
-/*0x1a7c*/ BYTE     Levitate;
-/*0x1a7d*/ BYTE     Unknown0x1a7d[0x1b];
-/*0x1a98*/
+/*0x0470*/ BYTE     Unknown0x470[0x14];
+/*0x0484*/ FLOAT    WalkSpeed;
+/*0x0488*/ BYTE     Unknown0x488[0xc];
+/*0x0494*/ FLOAT    GetMeleeRangeVar1;      // used by GetMeleeRange
+/*0x0498*/ BYTE     Unknown0x498[0x4];
+/*0x049c*/ DWORD    FishingETA;
+/*0x04a0*/ BYTE     Unknown0x4a0[0x93c];
+/*0x0ddc*/ struct   _SPAWNINFO *WhoFollowing; // NULL if autofollow off
+/*0x0de0*/ struct   _SPAWNINFO *pGroupAssistNPC[1];
+/*0x0de4*/ struct   _SPAWNINFO *pRaidAssistNPC[3];
+/*0x0df0*/ struct   _SPAWNINFO *pGroupMarkNPC[3];
+/*0x0dfc*/ struct   _SPAWNINFO *pRaidMarkNPC[3];
+/*0x0e08*/ struct   _SPAWNINFO *pTargetOfTarget;
+/*0x0e0c*/ BYTE     Unknown0xe0c[0x2c];
+/*0x0e38*/ BYTE     InNonPCRaceIllusion;
+/*0x0e39*/ BYTE     Unknown0xe39[0xb];
+/*0x0e44*/ BYTE     FaceStyle;
+/*0x0e45*/ BYTE     HairColor;
+/*0x0e46*/ BYTE     FacialHairColor;
+/*0x0e47*/ BYTE     EyeColor1;
+/*0x0e48*/ BYTE     EyeColor2;
+/*0x0e49*/ BYTE     HairStyle;
+/*0x0e4a*/ BYTE     FacialHair;
+/*0x0e4b*/ BYTE     Unknown0xe4b;
+/*0x0e4c*/ DWORD    Race;
+/*0x0e50*/ BYTE     Class;
+/*0x0e51*/ BYTE     Gender;
+/*0x0e52*/ CHAR     ActorDef[0x40];
+/*0x0e92*/ BYTE     Unknown0xe92[0x2];
+/*0x0e94*/ ARGBCOLOR ArmorColor[0x9];
+/*0x0eb8*/ BYTE     Unknown0xeb8[0x4];
+/*0x0ebc*/ DWORD    Heritage;               //drakkin only face setting
+/*0x0ec0*/ DWORD    Tattoo;                 //drakkin only face setting
+/*0x0ec4*/ DWORD    Details;                //drakkin only face setting
+/*0x0ec8*/ struct   _EQUIPMENT Equipment;
+/*0x0f34*/ BYTE     Unknown0xf34[0x38];
+/*0x0f6c*/ VOID     *pcactorex;
+/*0x0f70*/ DWORD    Unknown0xf70;
+/*0x0f74*/ VOID     *FaceRelatedActorStruct;
+/*0x0f78*/ BYTE     Unknown0xf78[0x30];
+/*0x0fa8*/ FLOAT    GetMeleeRangeVar2;      // used by GetMeleeRange
+/*0x0fac*/ BYTE     Unknown0xfac[0x40];
+/*0x0fec*/ DWORD    Animation;
+/*0x0ff0*/ BYTE     Unknown0xff0[0xd0];
+/*0x10c0*/ struct   _MODELINFO *Model[0xe]; // this is wrong dkaa 10/21/06
+/*0x10f8*/ DWORD    HideCorpse;
+/*0x10fc*/ BYTE     Unknown0x10fc[0x40];
+/*0x113c*/ BYTE     InvitedToGroup;
+/*0x113d*/ BYTE     Unknown0x113d[0x187];
+/*0x12c4*/ struct   _FELLOWSHIPINFO Fellowship;        // size 0x764
+/*0x1a28*/ BYTE     Unknown0x1a28[0x174];
+/*0x1b9c*/ void     *vtable2;
+/*0x1ba0*/ DWORD    Unknown0x1ba0;
+/*0x1ba4*/ struct   _SPAWNINFO *pSpawn;
+/*0x1ba8*/ BYTE     Levitate;
+/*0x1ba9*/ BYTE     Unknown0x1bac[0x1b];
+/*0x1bc4*/
 } SPAWNINFO, *PSPAWNINFO;
 
 #define STANDSTATE_STAND            0x64
@@ -1411,96 +1419,97 @@ BYTE            unknown[0x68];
 struct _SPELL*  Spells[TOTAL_SPELL_COUNT];
 } SPELLMGR, *PSPELLMGR;
 
-// actual size: 0x4fc 07-05-2007
+// actual size: 0x4ec 11-13-2007
 typedef struct _SPELL {
-/*0x000*/   FLOAT   Range;
-/*0x004*/   BYTE    Resist;             //0=un 1=mr 2=fr 3=cr 4=pr 5=dr 6=chromatic 7=prismatic 8=physical(skills,etc) 9=corruption
-/*0x005*/   BYTE    Unknown0x5[0x3];
-/*0x008*/   DWORD   DurationValue1;
-/*0x00c*/   DWORD   DescriptionNumber;
-/*0x010*/   BYTE    Unknown0x10[0x4];
-/*0x014*/   DWORD   Calc[0x0c];         //Calc1-Calc12
-/*0x044*/   BYTE    Unknown0x44;
-/*0x045*/   BYTE    CastingAnim;
-/*0x046*/   BYTE    Unknown0x46[0x6];
-/*0x04c*/   DWORD   Unknown183;         //Unknown183 from Lucy
-/*0x050*/   DWORD   RecastTime;
-/*0x054*/   BYTE    Unknown0x54[0xc];
-/*0x060*/   BYTE    Environment;
-/*0x061*/   BYTE    Unknown0x61[0x7];
-/*0x068*/   FLOAT   PushBack;
-/*0x06c*/   BYTE    Unknown0x6c[0x18];
-/*0x084*/   BYTE    Location;           //01=Outdoors, 02=dungeons, ff=Any
-/*0x085*/   BYTE    Unknown0x85[0x17];
-/*0x09c*/   LONG    Base2[0x0c];        //Mostly unused, setting name to Base2 from Lucy for now
-/*0x0cc*/   BYTE    FizzleAdj;
-/*0x0cd*/   BYTE    Unknown0xcd[0x2];
-/*0x0cf*/   BYTE    TargetType;         //03=Group v1, 04=PB AE, 05=Single, 06=Self, 08=Targeted AE, 0e=Pet, 28=AE PC v2, 29=Group v2
-/*0x0d0*/   BYTE    Unknown0xd0[0x4];
-/*0x0d4*/   DWORD   CastTime;
-/*0x0d8*/   DWORD   Attrib[0x0c];       //Attrib1-Attrib12
-/*0x108*/   BYTE    Unknown0x108[0x4];
-/*0x10c*/   DWORD   PvPResistCap;
-/*0x110*/   BYTE    Deletable;
-/*0x111*/   BYTE    Unknown0x111[0x3];
-/*0x114*/   DWORD   ReagentId[0x4];     //ReagentId1-ReagentId4
-/*0x124*/   DWORD   Unknown144;         //Unknown144 from lucy
-/*0x128*/   BYTE    Unknown0x128;
-/*0x129*/   BYTE    Level[0x10];        //per class.
-/*0x139*/   BYTE    Unknown0x139[0x13];
-/*0x14c*/   DWORD   Mana;
-/*0x150*/   LONG    Base[0x0c];         //Base1-Base12
-/*0x180*/   BYTE    Unknown0x154[0xc];
-/*0x18c*/   BYTE    DurationWindow;     //0=Long, 1=Short
-/*0x18d*/   BYTE    Unknown0x18d[0x7];
-/*0x194*/   BYTE    TimeOfDay;          // 0=any, 1=day only, 2=night only
-/*0x195*/   BYTE    Unknown0x195[0x13];
-/*0x1a8*/   BYTE    CanMGB;
-/*0x1a9*/   BYTE    Unknown0x1a9[0x7];
-/*0x1b0*/   DWORD   CARecastTimerID;    //ID of combat timer, i think.
-/*0x1b4*/   BYTE    Skill;
-/*0x1b5*/   BYTE    TargetAnim;
-/*0x1b6*/   BYTE    Unknown0x1b6[0x6];
-/*0x1bc*/   DWORD   FizzleTime;
-/*0x1c0*/   BYTE    Unknown0x1c0[0x8];
-/*0x1c8*/   DWORD   PvPResistBase;
-/*0x1cc*/   BYTE    Unknown0x1cc[0x4];
-/*0x1d0*/   DWORD   ID;
-/*0x1d4*/   DWORD   DurationType;       //DurationFormula on Lucy
-/*0x1d8*/   BYTE    Unknown0x1d8[0x4];
-/*0x1dc*/   DWORD   BookIcon;
-/*0x1e0*/   BYTE    LightType;
-/*0x1e1*/   BYTE    Unknown0x1e1[0x3];
-/*0x1e4*/   FLOAT   AERange;
-/*0x1e8*/   DWORD   ReagentCount[0x4];  //ReagentCount1-ReagentCount4
-/*0x1f8*/   DWORD   Autocast;           //SpellID of spell to instacast on caster when current spell lands on target
-/*0x1fc*/   DWORD   EnduranceCost;      //CA Endurance Cost
-/*0x200*/   BYTE    Unknown0x200[0x4];
-/*0x204*/   BYTE    SpellType;          //0=detrimental, 1=Beneficial, 2=Beneficial, Group Only
-/*0x205*/   BYTE    Unknown0x205[0x7];
-/*0x20c*/   LONG    Max[0xc];           //Max1-Max12
-/*0x23c*/   BYTE    Unknown0x23c[0xc];
-/*0x248*/   DWORD   Unknown145;         //Unknown145 from lucy
-/*0x24c*/   BYTE    Unknown0x24c;
-/*0x24d*/   CHAR    Name[0x40];
-/*0x28d*/   CHAR    Target[0x20];
-/*0x2ad*/   CHAR    Extra[0x20];        //This is 'Extra' from Lucy (portal shortnames etc)
-/*0x2cd*/   CHAR    Unknown0x2cd[0x60];
-/*0x32d*/   CHAR    Unknown0x32d[0x60];
-/*0x38d*/   CHAR    CastOnYou[0x60];
-/*0x3ed*/   CHAR    CastOnAnother[0x60];
-/*0x44d*/   CHAR    WearOff[0x60];
-/*0x4ad*/   BYTE    Unknonw0x4ad[0x7];
-/*0x4b4*/   DWORD   spaindex;
-/*0x4b8*/   CHAR    *SpellEffectName;
-/*0x4bc*/   DWORD   SpellAnim;
-/*0x4c0*/   BYTE    Unknown0x4c0[0xc];
-/*0x4cc*/   DWORD   SpellIcon;
-/*0x4d0*/   DWORD   ResistAdj;
-/*0x4d4*/   BYTE    Unknown0x4d4[0x1a];
-/*0x4ee*/   BYTE    Uninterruptable;    //00=Interruptable, 01=Uninterruptable 
-/*0x4ef*/   BYTE    Unknown0x4ef[0xd];
-/*0x4fc*/
+/*0x000*/   BYTE    Unknown0x0[0x4];
+/*0x004*/   DWORD   Unknown144;         //Unknown144 from lucy
+/*0x008*/   BYTE    Unknown0x8[0xc];
+/*0x014*/   LONG    Base2[0x0c];        //Mostly unused, setting name to Base2 from Lucy for now
+/*0x044*/   BYTE    Unknown0x44[0x2];
+/*0x046*/   BYTE    Resist;             //0=un 1=mr 2=fr 3=cr 4=pr 5=dr 6=chromatic 7=prismatic 8=physical(skills,etc) 9=corruption
+/*0x047*/   BYTE    Unknown0x47;
+/*0x048*/   DWORD   CARecastTimerID;    //ID of combat timer, i think.
+/*0x04c*/   BYTE    Unknown0x49[0x4];
+/*0x050*/   DWORD   DurationType;       //DurationFormula on Lucy
+/*0x054*/   DWORD   Unknown183;         //Unknown183 from Lucy
+/*0x058*/   DWORD   DescriptionNumber;
+/*0x05c*/   BYTE    Unknown0x5c[0xc];
+/*0x068*/   BYTE    Unknown0x68;
+/*0x069*/   BYTE    Level[0x10];        //per class.
+/*0x079*/   BYTE    Unknown0x79[0x19];
+/*0x092*/   BYTE    LightType;
+/*0x093*/   BYTE    Unknown0x93;
+/*0x094*/   DWORD   Attrib[0x0c];       //Attrib1-Attrib12
+/*0x0c4*/   BYTE    Unknown0xc4[0x4];
+/*0x0c8*/   DWORD   PvPResistBase;
+/*0x0cc*/   BYTE    Unknown0xcc[0x2];
+/*0x0ce*/   BYTE    DurationWindow;     //0=Long, 1=Short
+/*0x0cf*/   BYTE    Unknown0xcf;
+/*0x0d0*/   DWORD   DurationValue1;
+/*0x0d4*/   BYTE    Unknown0xd4[0x5];
+/*0x0d9*/   BYTE    TargetAnim;
+/*0x0da*/   BYTE    Unknown0xda[0x6];
+/*0x0e0*/   DWORD   Unknown145;         //Unknown145 from lucy
+/*0x0e4*/   BYTE    Deletable;
+/*0x0e5*/   BYTE    Unknown0xe5[0x7];
+/*0x0ec*/   BYTE    CastingAnim;
+/*0x0ed*/   BYTE    Unknown0xed[0xb];
+/*0x0f8*/   DWORD   ReagentCount[0x4];  //ReagentCount1-ReagentCount4
+/*0x108*/   DWORD   ReagentId[0x4];     //ReagentId1-ReagentId4
+/*0x118*/   DWORD   ID;
+/*0x11c*/   FLOAT   Range;
+/*0x120*/   BYTE    Unknown0x120[0x4];
+/*0x124*/   LONG    Base[0x0c];         //Base1-Base12
+/*0x154*/   BYTE    Unknown0x154[0x8];
+/*0x15c*/   DWORD   BookIcon;
+/*0x160*/   BYTE    Unknown0x160[0x8];
+/*0x168*/   BYTE    Environment;
+/*0x169*/   BYTE    Unknown0x169[0x3];
+/*0x16c*/   DWORD   CastTime;
+/*0x170*/   BYTE    FizzleAdj;
+/*0x171*/   BYTE    SpellType;          //0=detrimental, 1=Beneficial, 2=Beneficial, Group Only
+/*0x172*/   BYTE    Unknown0x172[0x6];
+/*0x178*/   DWORD   PvPResistCap;
+/*0x17c*/   BYTE    Unknown0x17c[0x15];
+/*0x191*/   BYTE    Location;           //01=Outdoors, 02=dungeons, ff=Any
+/*0x192*/   BYTE    Unknown0x192[0x2];
+/*0x194*/   DWORD   Mana;
+/*0x198*/   DWORD   FizzleTime;
+/*0x19c*/   BYTE    Unknown0x19c[0x4];
+/*0x1a0*/   FLOAT   PushBack;
+/*0x1a4*/   DWORD   EnduranceCost;      //CA Endurance Cost
+/*0x1a8*/   DWORD   RecastTime;
+/*0x1ac*/   BYTE    TimeOfDay;          // 0=any, 1=day only, 2=night only
+/*0x1ad*/   BYTE    Skill;
+/*0x1ae*/   BYTE    TargetType;         //03=Group v1, 04=PB AE, 05=Single, 06=Self, 08=Targeted AE, 0e=Pet, 28=AE PC v2, 29=Group v2
+/*0x1af*/   BYTE    Unknown0x1af;
+/*0x1b0*/   DWORD   Calc[0x0c];         //Calc1-Calc12
+/*0x1e0*/   LONG    Max[0xc];           //Max1-Max12
+/*0x210*/   BYTE    CanMGB;
+/*0x211*/   BYTE    Unknown0x211[0x1b];
+/*0x22c*/   FLOAT   AERange;
+/*0x230*/   BYTE    Unknown0x230[0x4];
+/*0x234*/   DWORD   Autocast;           //SpellID of spell to instacast on caster when current spell lands on target
+/*0x238*/   BYTE    Unknown0x238[0x3];
+/*0x23b*/   CHAR    Name[0x40];
+/*0x27b*/   CHAR    Target[0x20];
+/*0x29b*/   CHAR    Extra[0x20];        //This is 'Extra' from Lucy (portal shortnames etc)
+/*0x2bb*/   CHAR    Unknown0x2bb[0x60];
+/*0x31b*/   CHAR    Unknown0x31b[0x60];
+/*0x37b*/   CHAR    CastOnYou[0x60];
+/*0x3db*/   CHAR    CastOnAnother[0x60];
+/*0x43b*/   CHAR    WearOff[0x60];
+/*0x49b*/   BYTE    Unknonw0x49b[0x5];
+/*0x4a0*/   DWORD   spaindex;
+/*0x4a4*/   CHAR    *SpellEffectName;
+/*0x4a8*/   DWORD   SpellAnim;
+/*0x4ac*/   BYTE    Unknown0x4ac[0xc];
+/*0x4b8*/   DWORD   SpellIcon;
+/*0x4bc*/   DWORD   ResistAdj;
+/*0x4c0*/   BYTE    Unknown0x4c0[0x1a];
+/*0x4da*/   BYTE    Uninterruptable;    //00=Interruptable, 01=Uninterruptable 
+/*0x4db*/   BYTE    Unknown0x4ef[0x11];
+/*0x4ec*/
 } SPELL, *PSPELL;
 
 // actual size: 0x148 10-25-2006  ieatacid

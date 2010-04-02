@@ -3913,7 +3913,7 @@ FUNCTION_AT_ADDRESS(int  EQ_Character::HasSpell(int),EQ_Character__HasSpell);
 FUNCTION_AT_ADDRESS(void  EQ_Character::ResetCur_HP(int),EQ_Character__ResetCur_HP);
 #endif
 #ifdef EQ_Character__Cur_HP
-FUNCTION_AT_ADDRESS(int  EQ_Character1::Cur_HP(int),EQ_Character__Cur_HP);
+FUNCTION_AT_ADDRESS(int  EQ_Character1::Cur_HP(int,unsigned char),EQ_Character__Cur_HP);
 #endif
 #ifdef EQ_Character__GetHPFromStamina
 FUNCTION_AT_ADDRESS(int  EQ_Character::GetHPFromStamina(int),EQ_Character__GetHPFromStamina);
@@ -4258,7 +4258,7 @@ FUNCTION_AT_ADDRESS(unsigned int EQ_Character::GetEffectId(int),EQ_Character__Ge
 FUNCTION_AT_ADDRESS(void  EQ_Character1::SetEffectId(unsigned char,unsigned int),EQ_Character__SetEffectId);
 #endif
 #ifdef EQ_Character__CastSpell
-FUNCTION_AT_ADDRESS(unsigned char EQ_Character1::CastSpell(unsigned char gemid,int spellid,class EQ_Item * *ppItem,int,int slot,int,int,int,int,bool),EQ_Character__CastSpell); 
+FUNCTION_AT_ADDRESS(unsigned char EQ_Character1::CastSpell(unsigned char gemid,int spellid,class EQ_Item * *ppItem,int,int slot,int,int,int,int,bool,int),EQ_Character__CastSpell); 
 #endif
 #ifdef EQ_Character__GetBardInstrumentMod
 FUNCTION_AT_ADDRESS(int  EQ_Character::GetBardInstrumentMod(int),EQ_Character__GetBardInstrumentMod);

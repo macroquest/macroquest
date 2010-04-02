@@ -1602,6 +1602,10 @@ bool MQ2SpawnType::GETMEMBER()
 		Dest.DWord=pSpawn->Buyer;
 		Dest.Type=pBoolType;
 		return true;
+	case Moving:
+		Dest.DWord=fabs(pSpawn->SpeedRun)>0.0f;
+		Dest.Type=pBoolType;
+		return true;
 	}
 	return false;
 }
@@ -2133,7 +2137,7 @@ bool MQ2CharacterType::GETMEMBER()
 		{
 			// number
 			unsigned long nGem=GETNUMBER()-1;
-			if (nGem<9)
+			if (nGem<NUM_SPELL_GEMS)
 			{
 				if (Dest.Ptr=GetSpellByID(GetCharInfo2()->MemorizedSpells[nGem]))
 				{
@@ -2145,7 +2149,7 @@ bool MQ2CharacterType::GETMEMBER()
 		else
 		{
 			// name
-			for (unsigned long nGem=0 ; nGem < 9 ; nGem++)
+			for (unsigned long nGem=0 ; nGem < NUM_SPELL_GEMS ; nGem++)
 			{
 				if (PSPELL pSpell=GetSpellByID(GetCharInfo2()->MemorizedSpells[nGem]))
 				{
@@ -2579,7 +2583,7 @@ bool MQ2CharacterType::GETMEMBER()
          { 
             // numeric 
             unsigned long nGem=GETNUMBER()-1; 
-            if (nGem<9) 
+            if (nGem<NUM_SPELL_GEMS) 
             { 
                if (!((PEQCASTSPELLWINDOW)pCastSpellWnd)->SpellSlots[nGem]) 
                   Dest.DWord=0; 
@@ -2591,7 +2595,7 @@ bool MQ2CharacterType::GETMEMBER()
          } 
          else 
          { 
-            for (unsigned long nGem=0 ; nGem < 9 ; nGem++) 
+            for (unsigned long nGem=0 ; nGem < NUM_SPELL_GEMS ; nGem++) 
             { 
                if (PSPELL pSpell=GetSpellByID(GetCharInfo2()->MemorizedSpells[nGem])) 
                { 
@@ -5492,7 +5496,7 @@ bool MQ2InvSlotType::GETMEMBER()
 	case Pack:
 		if (nInvSlot>=262 && nInvSlot<342)
 		{
-			Dest.DWord=((nInvSlot-262)/10)+23;
+			Dest.DWord=((nInvSlot-262)/10)+BAG_SLOT_START;
 			Dest.Type=pInvSlotType;
 			return true;
 		}

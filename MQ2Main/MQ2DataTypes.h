@@ -539,6 +539,7 @@ public:
 		Fleeing=86,
 		Named=87,
 		Buyer=88,
+		Moving=89,
 	};
 	static enum SpawnMethods
 	{
@@ -634,6 +635,7 @@ public:
 		TypeMember(Fleeing);
 		TypeMember(Named);
 		TypeMember(Buyer);
+		TypeMember(Moving);
 
 		TypeMethod(Target);
 		TypeMethod(Face);

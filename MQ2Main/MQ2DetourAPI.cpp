@@ -254,21 +254,21 @@ VOID HookInlineChecks(BOOL Patch)
 
     /* add these to eqgame.h */
 
-// .text:005DE46D 81 3D 28 EF 97 00 0E C0 6D 00  cmp     dword_97EF28, 6DC00Eh
+//.text:005F616D                 cmp     dword_9B21F0, (offset loc_6FE24F+4)
 
-    int cmps[] = {  0x5F585D+6 };
+    int cmps[] = {  0x5F616D+6 };
 
-// .text:004C73B5 81 F9 9E 02 3D EC  cmp     ecx, 0EC3D029Eh
-// .text:004E25D8 3D 8D 6B 78 79     cmp     eax, 79786B8Dh
-// .text:004E79D8 3D F4 29 B4 6B     cmp     eax, 6BB429F4h
-// .text:004EA94B 3D 1C E1 59 96     cmp     eax, 9659E11Ch
-// .text:004E2BB4 81 F9 23 A3 0A D8  cmp     ecx, 0D80AA323h
+//.text:004C9395                 cmp     ecx, 0FBC81071h
+//.text:004E4678                 cmp     eax, 311B7269h
+//.text:004E9AB8                 cmp     eax, 4065122Dh
+//.text:004ECB6B                 cmp     eax, 3D4008A7h
+//.text:004E4C54                 cmp     ecx, 0DF664C83h
 
-    int cmps2[] = {     0x4C73C5,
-                        0x4E2618,
-                        0x4E7A18,
-                        0x4EA99B,
-                        0x4E2BF4 };
+    int cmps2[] = {     0x4C9395,
+                        0x4E4678,
+                        0x4E9AB8,
+                        0x4ECB6B,
+                        0x4E4C54 };
     int len2[] = { 6, 5, 5, 5, 6 };
     char NewData2[20];
     static char OldData2[sizeof(cmps2)/sizeof(cmps2[0])][20];
@@ -310,7 +310,7 @@ VOID HookInlineChecks(BOOL Patch)
 	}
 	else
 	{
-        NewData = 0x6FC9E3;
+        NewData = 0x6FE253;
         for (i=0;i<sizeof(cmps)/sizeof(cmps[0]);i++) {
 #ifdef ISXEQ
 			EzUnModify(cmps[i]);
@@ -956,12 +956,12 @@ void InitializeMQ2Detours()
 	InitializeCriticalSection(&gDetourCS);
 	HookMemChecker(TRUE);
 #endif
-	EzDetour(CrashDetected,CrashDetected_Detour,CrashDetected_Trampoline);
+	//EzDetour(CrashDetected,CrashDetected_Detour,CrashDetected_Trampoline);
 }
 
 void ShutdownMQ2Detours()
 {
-	RemoveDetour(CrashDetected);
+	//RemoveDetour(CrashDetected);
 #ifndef ISXEQ
 	HookMemChecker(FALSE);
 	RemoveOurDetours();

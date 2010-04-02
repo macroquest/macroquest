@@ -7,8 +7,9 @@ __EncryptPad1 EQU _myextern_array
 _TEXT   SEGMENT PARA USE32 PUBLIC 'CODE'
 
 
-__MemChecker1   proc near               ; CODE XREF: sub_628CC0+203p
-                                        ; sub_6587C0+20bp
+
+__MemChecker1   proc near               ; CODE XREF: sub_62AA10+203p
+                                        ; sub_65AE00+20bp
 
 arg_0           = dword ptr  4
 arg_4           = dword ptr  8
@@ -18,7 +19,7 @@ arg_8           = dword ptr  0Ch
                 or      eax, 0FFFFFFFFh
                 test    ecx, ecx
                 push    esi
-                jz      short loc_65877F
+                jz      short loc_65ADBF
                 xor     eax, eax
                 mov     al, cl
                 movzx   ecx, ch
@@ -50,16 +51,16 @@ arg_8           = dword ptr  0Ch
                 and     eax, 0FFFFFFh
                 xor     eax, edx
 
-loc_65877F:                             ; CODE XREF: __MemChecker1+Aj
+loc_65ADBF:                             ; CODE XREF: __MemChecker1+Aj
                 mov     ecx, [esp+4+arg_0]
                 mov     edx, [esp+4+arg_4]
                 lea     esi, [ecx+edx]
                 cmp     ecx, esi
-                jnb     short loc_6587B3
+                jnb     short loc_65ADF3
                 push    edi
                 nop
 
-loc_658790:                             ; CODE XREF: __MemChecker1+B0j
+loc_65ADD0:                             ; CODE XREF: __MemChecker1+B0j
                 xor     edx, edx
                 mov     dl, [ecx]
                 xor     edx, eax
@@ -70,10 +71,10 @@ loc_658790:                             ; CODE XREF: __MemChecker1+B0j
                 xor     eax, edi
                 inc     ecx
                 cmp     ecx, esi
-                jb      short loc_658790
+                jb      short loc_65ADD0
                 pop     edi
 
-loc_6587B3:                             ; CODE XREF: __MemChecker1+8Cj
+loc_65ADF3:                             ; CODE XREF: __MemChecker1+8Cj
                 not     eax
                 pop     esi
                 retn

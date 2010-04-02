@@ -518,7 +518,7 @@ VOID MemSpell(PSPAWNINFO pChar, PCHAR szLine)
    GetArg(szGem,szLine,1);
    GetArg(SpellName,szLine,2);
    Gem = atoi(szGem);
-   if (Gem<1 || Gem>9) return;
+   if (Gem<1 || Gem>NUM_SPELL_GEMS) return;
    Gem--;
 
    GetCharInfo2()->SpellBook;
@@ -539,9 +539,9 @@ VOID MemSpell(PSPAWNINFO pChar, PCHAR szLine)
 	ZeroMemory(&MemSpellFavorite,sizeof(MemSpellFavorite));
 	strcpy(MemSpellFavorite.Name,"Mem a Spell");
 	MemSpellFavorite.Byte_3e=1;
-	for (sp=0;sp<9;sp++) MemSpellFavorite.SpellId[sp]=0xFFFFFFFF;
+	for (sp=0;sp<NUM_SPELL_GEMS;sp++) MemSpellFavorite.SpellId[sp]=0xFFFFFFFF;
 	MemSpellFavorite.SpellId[Gem] = pSpell->ID;
-	pSpellBookWnd->MemorizeSet((int*)Favorite,9);
+	pSpellBookWnd->MemorizeSet((int*)Favorite,NUM_SPELL_GEMS);
 }
 
 // ***************************************************************************
@@ -1921,7 +1921,7 @@ VOID LoadSpells(PSPAWNINFO pChar, PCHAR szLine)
     if ((!stricmp(szArg1,"list")) && (szArg2[0]==0)) { 
         WriteChatColor("Spell favorites list:",USERCOLOR_DEFAULT); 
         WriteChatColor("--------------------------",USERCOLOR_DEFAULT); 
-        for (Index=0;Index<10;Index++) { 
+        for (Index=0;Index<NUM_SPELL_SETS;Index++) { 
             if (pSpellSets[Index].Name[0]!=0) { 
             sprintf(szBuffer,"%d) %s",Index,pSpellSets[Index].Name); 
                 WriteChatColor(szBuffer,USERCOLOR_DEFAULT); 
@@ -1933,14 +1933,14 @@ VOID LoadSpells(PSPAWNINFO pChar, PCHAR szLine)
     if (!stricmp(szArg1,"list")) { 
 
         DoIndex = IsNumber(szArg2)?atoi(szArg2):FindSpellListByName(szArg2); 
-        if (DoIndex < 0 || DoIndex > 9) { 
+        if (DoIndex < 0 || DoIndex > NUM_SPELL_SETS-1) { 
             sprintf(szBuffer,"Unable to find favorite list '%s'",szArg2); 
             WriteChatColor(szBuffer,USERCOLOR_DEFAULT); 
             return; 
         } 
         sprintf(szBuffer,"Favorite list '%s':",pSpellSets[DoIndex].Name); 
         WriteChatColor(szBuffer,USERCOLOR_DEFAULT); 
-        for (Index=0;Index<9;Index++) { 
+        for (Index=0;Index<NUM_SPELL_GEMS;Index++) { 
             if (pSpellSets[DoIndex].SpellId[Index]!=0xFFFFFFFF) { 
                 sprintf(szBuffer,"%d) %s",Index,GetSpellByID(pSpellSets[DoIndex].SpellId[Index])->Name ); 
                 WriteChatColor(szBuffer,USERCOLOR_DEFAULT); 
@@ -1950,8 +1950,8 @@ VOID LoadSpells(PSPAWNINFO pChar, PCHAR szLine)
     } 
 
    DoIndex = IsNumber(szArg1)?atoi(szArg1):FindSpellListByName(szArg1); 
-    if (DoIndex >= 0 && DoIndex <=9) { 
-      pSpellBookWnd->MemorizeSet((int*)&pSpellSets[DoIndex],9); 
+    if (DoIndex >= 0 && DoIndex <NUM_SPELL_SETS) { 
+      pSpellBookWnd->MemorizeSet((int*)&pSpellSets[DoIndex],NUM_SPELL_GEMS); 
     } else { 
         sprintf(szBuffer,"Unable to find favorite list '%s'",szArg1); 
         WriteChatColor(szBuffer,USERCOLOR_DEFAULT); 
@@ -1981,7 +1981,7 @@ VOID Cast(PSPAWNINFO pChar, PCHAR szLine)
    CHAR szArg2[MAX_STRING] = {0};
    if (!stricmp(szLine,"list")) {
       WriteChatColor("Spells:",USERCOLOR_DEFAULT);
-      for (Index=0;Index<9;Index++) {
+      for (Index=0;Index<NUM_SPELL_GEMS;Index++) {
          if (GetCharInfo2()->MemorizedSpells[Index]==0xFFFFFFFF) {
             sprintf(szBuffer,"%d. <Empty>",Index+1);
          } else {
@@ -2021,7 +2021,7 @@ if (!stricmp(szArg1,"item"))
       }
    }
    GetArg(szBuffer,szLine,1);
-   for (Index=0;Index<9;Index++) {
+   for (Index=0;Index<NUM_SPELL_GEMS;Index++) {
       if (GetCharInfo2()->MemorizedSpells[Index]!=0xFFFFFFFF) {
          PCHAR SpellName = GetSpellNameByID(GetCharInfo2()->MemorizedSpells[Index]);
          if (!stricmp(szBuffer,SpellName) || (strstr(SpellName,"Rk. II") && !strnicmp(szBuffer,SpellName,strlen(SpellName)-8))) {

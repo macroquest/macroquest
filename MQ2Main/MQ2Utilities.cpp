@@ -5493,7 +5493,7 @@ PCONTENTS GetItemContentsBySlotID(DWORD dwSlotID)
   int SubSlot=-1; 
   if(dwSlotID>=0 && dwSlotID<NUM_INV_SLOTS) InvSlot=dwSlotID; 
   else if(dwSlotID>=262 && dwSlotID<342) { 
-    InvSlot=23+(dwSlotID-262)/10; 
+    InvSlot=BAG_SLOT_START+(dwSlotID-262)/10; 
     SubSlot=(dwSlotID-262)%10; 
   } 
   if(InvSlot>=0 && InvSlot<NUM_INV_SLOTS) { 

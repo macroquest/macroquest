@@ -856,14 +856,14 @@ typedef struct _EQMAPWINDOW {
 /*0x2d4*/
 } EQMAPWINDOW, *PEQMAPWINDOW;
 
-// dkaa 02-14-07
+// ieatacid 11-13-07
 // Spell Window
 typedef struct _EQCASTSPELLWINDOW {
 /*0x000*/ struct _CSIDLWND Wnd;
 /*0x188*/ BYTE Unknown0x148[0x0c];
-/*0x194*/  struct _EQCASTSPELLGEM   *SpellSlots[0x9];
-/*0x1xx*/  BYTE    Unknown0x190[0x30];
-/*0x1c0*/
+/*0x194*/  struct _EQCASTSPELLGEM   *SpellSlots[NUM_SPELL_GEMS];
+/*0x1bc*/  BYTE    Unknown0x190[0x30];
+/*0x1ec*/
 } EQCASTSPELLWINDOW, *PEQCASTSPELLWINDOW;
 
 // Individual Gems 
