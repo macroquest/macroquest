@@ -744,7 +744,7 @@ typedef struct _GROUPMEMBER {
 /*0x04*/ struct _CXSTR *pName;
 /*0x08*/ BYTE   Mercenary;
 /*0x09*/ BYTE   Unknown0x8[0x3];
-/*0x0c*/ struct _CXSTR *pUnknown0xc; // haven't seen this with text yet but it's a CXSTR struct
+/*0x0c*/ struct _CXSTR *pOwner; // name of mercenary's owner
 /*0x10*/ DWORD  Level;
 /*0x14*/ BYTE   Unknown0x14[0x2];
 /*0x16*/ BYTE   MainTank;

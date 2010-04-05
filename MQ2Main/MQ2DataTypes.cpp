@@ -3105,20 +3105,42 @@ bool MQ2CharacterType::GETMEMBER()
       {
          if(pAura->NumAuras)
          {
-            DWORD n = 0;
-            if(ISINDEX() && ISNUMBER())
-            {
-               n = GETNUMBER() - 1;
-               if(n > pAura->NumAuras)
-                  return false;
-            }
             PAURAS pAuras = (PAURAS)(*pAura->pAuraInfo);
-            if(!strcmp(pAuras->Aura[n].Name, "Disciples Aura"))
-               Dest.Ptr = GetSpellByName("Disciple's Aura");
+            if(ISINDEX())
+            {
+               DWORD n = 0;
+               if(ISNUMBER())
+               {
+                  n = GETNUMBER() - 1;
+                  if(n > pAura->NumAuras)
+                     return false;
+                  strcpy(DataTypeTemp, pAuras->Aura[n].Name);
+               }
+               else
+               {
+                  for(n = 0; n < pAura->NumAuras; n++)
+                  {
+                     if(!stricmp(GETFIRST(), pAuras->Aura[n].Name))
+                     {
+                        strcpy(DataTypeTemp, pAuras->Aura[n].Name);
+                     }
+                  }
+               }
+            }
             else
-               Dest.Ptr = GetSpellByName(pAuras->Aura[n].Name);
-            Dest.Type = pSpellType;
-            return true;
+            {
+               strcpy(DataTypeTemp, pAuras->Aura[0].Name);
+            }
+            if(DataTypeTemp[0])
+            {
+               // fucking SoE punctuation error
+               if(!strcmp(DataTypeTemp, "Disciples Aura"))
+                  Dest.Ptr = GetSpellByName("Disciple's Aura");
+               else
+                  Dest.Ptr =  GetSpellByName(DataTypeTemp);
+               Dest.Type = pSpellType;
+               return true;
+            }
          }
       }
       return false;
