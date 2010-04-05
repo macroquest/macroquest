@@ -267,6 +267,7 @@ VOID ShutdownMQ2Plugins()
             UnloadMQ2Plugin(pPlugins->szFilename);
         }
     }
+    Sleep(50); // fixes crash on Windows 7 (Vista too?) in RtlpWaitOnCriticalSection
     DeleteCriticalSection(&gPluginCS);
 }
 

@@ -984,12 +984,12 @@ typedef struct _CPLAYERWND {
 // size 0x798 6-10-09 ieatacid
 typedef struct _CTARGETWND {
 /*0x000*/ struct  _CSIDLWND Wnd;
-/*0x198*/ BYTE    Unknown0x198[0x2b8];
+/*0x198*/ BYTE    Unknown0x198[0x2e0];
 /*0x478*/ int     BuffSpellID[0x5a]; // 0xffffffff if no buff
 /*0x5e0*/ DWORD   BuffTimer[0x5a];
 /*0x748*/ BYTE    Unknown0x748[0x24];
 /*0x76c*/ DWORD   Type;              // 1 = self, 4 = group member, 5 = PC, 7 = NPC
-/*0x770*/ BYTE    Unknown0x730[0x28];
+/*0x770*/ BYTE    Unknown0x770[0x28];
 /*0x798*/
 } CTARGETWND, *PCTARGETWND;
 
