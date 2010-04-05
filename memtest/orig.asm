@@ -6,6 +6,7 @@ __EncryptPad0 EQU _myextern_array
 
 _TEXT   SEGMENT PARA USE32 PUBLIC 'CODE'
 
+
 __MemChecker0   proc near               ; CODE XREF: EQChecksumFile(char *,int *)+80p
                                         ; SendSpellChecksum(UdpLibrary::UdpConnection *)+AAp ...
 
@@ -17,12 +18,12 @@ arg_4           = dword ptr  8
                 or      eax, 0FFFFFFFFh
                 xor     edx, edx
                 test    esi, esi
-                jle     short loc_509AC3
+                jle     short loc_509A33
                 push    ebx
                 push    edi
                 mov     edi, [esp+0Ch+arg_0]
 
-loc_509AA4:                             ; CODE XREF: __MemChecker0+2Fj
+loc_509A14:                             ; CODE XREF: __MemChecker0+2Fj
                 movsx   ecx, byte ptr [edx+edi]
                 xor     ecx, eax
                 and     ecx, 0FFh
@@ -31,15 +32,14 @@ loc_509AA4:                             ; CODE XREF: __MemChecker0+2Fj
                 inc     edx
                 xor     eax, ebx
                 cmp     edx, esi
-                jl      short loc_509AA4
+                jl      short loc_509A14
                 pop     edi
                 pop     ebx
 
-loc_509AC3:                             ; CODE XREF: __MemChecker0+Cj
+loc_509A33:                             ; CODE XREF: __MemChecker0+Cj
                 pop     esi
                 retn
 __MemChecker0   endp
-
 
 
 _TEXT   ENDS

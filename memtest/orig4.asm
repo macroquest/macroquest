@@ -9,7 +9,6 @@ _TEXT   SEGMENT PARA USE32 PUBLIC 'CODE'
 PUBLIC __MemChecker4
 
 
-
 __MemChecker4   proc near               ; CODE XREF: UdpLibrary::UdpConnection::PhysicalSend(uchar const *,int,bool)+161p
                                         ; UdpLibrary::UdpConnection::ProcessRawPacket(UdpLibrary::UdpManager::PacketHistoryEntry const *)+20Bp
 
@@ -50,10 +49,10 @@ arg_8           = dword ptr  0Ch
                 xor     eax, esi
                 lea     esi, [ecx+edx]
                 cmp     ecx, esi
-                jnb     short loc_672853
+                jnb     short loc_672C03
                 push    edi
 
-loc_672830:                             ; CODE XREF: __MemChecker4+A0j
+loc_672BE0:                             ; CODE XREF: __MemChecker4+A0j
                 xor     edx, edx
                 mov     dl, [ecx]
                 xor     edx, eax
@@ -64,10 +63,10 @@ loc_672830:                             ; CODE XREF: __MemChecker4+A0j
                 xor     eax, edi
                 inc     ecx
                 cmp     ecx, esi
-                jb      short loc_672830
+                jb      short loc_672BE0
                 pop     edi
 
-loc_672853:                             ; CODE XREF: __MemChecker4+7Dj
+loc_672C03:                             ; CODE XREF: __MemChecker4+7Dj
                 not     eax
                 pop     esi
                 retn

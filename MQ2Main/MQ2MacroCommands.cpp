@@ -339,6 +339,7 @@ VOID Macro(PSPAWNINFO pChar, PCHAR szLine)
     DebugSpew("Macro - Starting macro with '/call %s'",szTemp);
     Call(pChar, szTemp);
     if ((gMacroBlock) && (gMacroBlock->pNext)) gMacroBlock = gMacroBlock->pNext;
+    if (gMacroBlock) gMacroBlock->MacroCmd = 1;
     if ((!gMacroBlock) || (!gMacroStack)) {
         gszMacroName[0]=0;
         gRunning = 0;

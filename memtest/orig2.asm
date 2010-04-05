@@ -52,10 +52,10 @@ arg_8           = dword ptr  0Ch
                 xor     eax, esi
                 lea     esi, [ecx+edx]
                 cmp     ecx, esi
-                jnb     short loc_55F58B
+                jnb     short loc_55F66B
                 push    edi
 
-loc_55F568:                             ; CODE XREF: __MemChecker2+A8j
+loc_55F648:                             ; CODE XREF: __MemChecker2+A8j
                 xor     edx, edx
                 mov     dl, [ecx]
                 xor     edx, eax
@@ -66,10 +66,10 @@ loc_55F568:                             ; CODE XREF: __MemChecker2+A8j
                 xor     eax, edi
                 inc     ecx
                 cmp     ecx, esi
-                jb      short loc_55F568
+                jb      short loc_55F648
                 pop     edi
 
-loc_55F58B:                             ; CODE XREF: __MemChecker2+85j
+loc_55F66B:                             ; CODE XREF: __MemChecker2+85j
                 not     eax
                 pop     esi
                 retn

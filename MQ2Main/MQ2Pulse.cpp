@@ -27,7 +27,6 @@ BOOL DoNextCommand()
 {
     if (!ppCharSpawn || !pCharSpawn) return FALSE;
     PSPAWNINFO pCharOrMount = NULL;
-    bool macro_cmd = false;
     PCHARINFO pCharInfo = GetCharInfo();
     PSPAWNINFO pChar = pCharOrMount = (PSPAWNINFO)pCharSpawn;
     if (pCharInfo && pCharInfo->pSpawn) pChar=pCharInfo->pSpawn;
@@ -60,7 +59,7 @@ BOOL DoNextCommand()
             QueryPerformanceCounter(&BeforeCommand);
             PMACROBLOCK ThisMacroBlock = gMacroBlock; 
 #endif
-            macro_cmd = strstr(gMacroBlock->Line, "/macro") != NULL;
+            gMacroBlock->MacroCmd = 0;
             DoCommand(pChar,gMacroBlock->Line);
             if (gMacroBlock) {
 #ifdef MQ2_PROFILING
@@ -74,7 +73,7 @@ BOOL DoNextCommand()
                 } else {
                     // if the macro block changed and there was a /macro 
                     // command don't bump the line 
-                    if (gMacroBlock == tmpBlock || !macro_cmd) {
+                    if (gMacroBlock == tmpBlock || !gMacroBlock->MacroCmd) {
                         gMacroBlock = gMacroBlock->pNext;
                     }
                 }
