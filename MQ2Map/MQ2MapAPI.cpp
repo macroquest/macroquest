@@ -853,12 +853,15 @@ BOOL CanDisplaySpawn(eSpawnType Type, PSPAWNINFO pSpawn)
     case PC:
         return IsOptionEnabled(MAPFILTER_PC);
     case NPC:
-        return IsOptionEnabled(MAPFILTER_NPC);
+        if (IsOptionEnabled(MAPFILTER_Named))
+            return IsNamed(pSpawn);
+        else
+            return IsOptionEnabled(MAPFILTER_NPC);
     case CORPSE:
         if(pSpawn->Deity == 0)
-            return IsOptionEnabled(MAPFILTER_Corpse);
+            return (IsOptionEnabled(MAPFILTER_NPCCorpse) && IsOptionEnabled(MAPFILTER_Corpse));
         else
-            return IsOptionEnabled(MAPFILTER_PCCorpse);
+            return (IsOptionEnabled(MAPFILTER_PCCorpse) && IsOptionEnabled(MAPFILTER_Corpse));
     case ITEM:
         return IsOptionEnabled(MAPFILTER_Ground);
     case UNTARGETABLE:
@@ -909,7 +912,7 @@ inline DWORD GetSpawnColor(eSpawnType Type, PSPAWNINFO pSpawn)
         return MapFilterOptions[MAPFILTER_NPC].Color;
     case CORPSE:
         if(pSpawn->Deity == 0)
-            return MapFilterOptions[MAPFILTER_Corpse].Color;
+            return MapFilterOptions[MAPFILTER_NPCCorpse].Color;
         else
             return MapFilterOptions[MAPFILTER_PCCorpse].Color;
     case UNTARGETABLE:

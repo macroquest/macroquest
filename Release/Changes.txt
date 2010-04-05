@@ -1,3 +1,10 @@
+9 February by rswiders
+- Added exact match option to spawn searchs (use a "=" immediately preceeding the name being searched for)
+- Updated named mob identification.  Named mobs will not exist in non-combat zones and warders, familiars, etc. have been demoted from their named status.
+- Added /mapfilter option for named spawns (will toggle between named/normal npcs when npc filtering is active)
+- Updated /mapfilter corpse as a master toggle for PC/NPC corpses.  When active, you can toggle PC/NPC filtering using PCCorpse/NPCCorpse respectively.
+- Added Faycites, Chronobines as additional alternate currencies
+
 31 January 2009 by dkaa
 - added "targetable" as a spawn search modifier
 

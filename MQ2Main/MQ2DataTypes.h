@@ -895,6 +895,8 @@ public:
         ClairvoyanceBonus=172,
         EnduranceRegenBonus=173,
         Counters=174,
+        Faycites=175,
+        Chronobines=176,
     };
     static enum CharacterMethods
     {
@@ -1076,6 +1078,8 @@ public:
         TypeMember(ClairvoyanceBonus);
         TypeMember(EnduranceRegenBonus);
         TypeMember(Counters);
+        TypeMember(Faycites);
+        TypeMember(Chronobines);
 
         TypeMethod(Stand); 
         TypeMethod(Sit); 

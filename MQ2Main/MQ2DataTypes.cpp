@@ -3274,6 +3274,14 @@ bool MQ2CharacterType::GETMEMBER()
         Dest.DWord=pOtherCharData->GetAltCurrency(ALTCURRENCY_PHOSPHITES);
         Dest.Type=pIntType;
         return true;
+    case Faycites:
+        Dest.DWord=pOtherCharData->GetAltCurrency(ALTCURRENCY_FAYCITES);
+        Dest.Type=pIntType;
+        return true;
+    case Chronobines:
+        Dest.DWord=pOtherCharData->GetAltCurrency(ALTCURRENCY_CHRONOBINES);
+        Dest.Type=pIntType;
+        return true;
     case Fellowship:
         Dest.Ptr=&pChar->pSpawn->Fellowship;
         Dest.Type=pFellowshipType;
@@ -6388,7 +6396,6 @@ bool MQ2GroupMemberType::GETMEMBER()
     PSPAWNINFO pGroupMember=0;
     PCHARINFO pChar=GetCharInfo();
     PGROUPMEMBER pGroupMemberData=0;
-    DWORD level=0;
     int i;
     if (!pChar->pGroupInfo) return false;
     if (unsigned long N=VarPtr.DWord)
@@ -6404,7 +6411,6 @@ bool MQ2GroupMemberType::GETMEMBER()
                 {
                     GetCXStr(pChar->pGroupInfo->pMember[i]->pName,MemberName,MAX_STRING);
                     pGroupMember=pChar->pGroupInfo->pMember[i]->pSpawn;
-                    level=pChar->pGroupInfo->pMember[i]->Level;
                     pGroupMemberData=pChar->pGroupInfo->pMember[i];
                     break;
                 }
@@ -6417,7 +6423,6 @@ bool MQ2GroupMemberType::GETMEMBER()
     {
         pGroupMember=pChar->pSpawn;
         strcpy(MemberName,pGroupMember->Name);
-        level=pGroupMember->Level;
         pGroupMemberData=pChar->pGroupInfo->pLeader;
     }
     PMQ2TYPEMEMBER pMember=MQ2GroupMemberType::FindMember(Member);
@@ -6452,9 +6457,19 @@ bool MQ2GroupMemberType::GETMEMBER()
         }
         return false;
     case Level:
-        Dest.DWord=level;
+        if (pGroupMember)
+        {
+            Dest.DWord=pGroupMember->Level;
         Dest.Type=pIntType;
         return true;
+        }
+        else if (pGroupMemberData)
+        {
+            Dest.DWord=pGroupMemberData->Level;
+            Dest.Type=pIntType;
+            return true;
+        }
+        return false;
     case MainTank:
         if(pGroupMemberData)
         {

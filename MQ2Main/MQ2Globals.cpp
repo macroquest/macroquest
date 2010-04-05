@@ -677,6 +677,7 @@ BOOL bAllErrorsLog=FALSE;
 BOOL gbHUDUnderUI=1;
 BOOL gbAlwaysDrawMQHUD=0;
 BOOL gbMQ2LoadingMsg=TRUE;
+BOOL gbExactSearchCleanNames=FALSE;
 
 DWORD nColorAdjective=0;
 DWORD nColorAdjectiveYou=0;

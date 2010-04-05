@@ -35,7 +35,9 @@ using namespace std;
 #define MAPFILTER_Campfire       28
 #define MAPFILTER_PCCorpse       29
 #define MAPFILTER_Mercenary      30
-#define MAPFILTER_NUMBER         31
+#define MAPFILTER_NPCCorpse      31
+#define MAPFILTER_Named          32
+#define MAPFILTER_NUMBER         33
 #define MAPFILTER_Invalid        (-1)
 // normal labels
 

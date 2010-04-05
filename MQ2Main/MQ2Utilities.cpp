@@ -2474,16 +2474,16 @@ PCHAR ShowSpellSlotInfo(PSPELL pSpell, PCHAR szBuffer)
             if ( pSpell->Base[i] > 0 ) strcat(szBuff, "Increase "); 
 
             switch (pSpell->Base2[i]) { 
-        case 0:   strcat (szBuff, "STR");   break; 
-        case 1:   strcat (szBuff, "STA");   break; 
-        case 2:   strcat (szBuff, "AGI");   break; 
-        case 3:   strcat (szBuff, "DEX");   break; 
-        case 4:   strcat (szBuff, "WIS");   break; 
-        case 5:   strcat (szBuff, "INT");   break; 
-        case 6:   strcat (szBuff, "CHA");   break; 
-        default: 
-            sprintf (szTemp, "UnknownStat(%d)", pSpell->Base2[i]); 
-            strcat (szBuff, szTemp); 
+            case 0:   strcat (szBuff, "STR");   break; 
+            case 1:   strcat (szBuff, "STA");   break; 
+            case 2:   strcat (szBuff, "AGI");   break; 
+            case 3:   strcat (szBuff, "DEX");   break; 
+            case 4:   strcat (szBuff, "WIS");   break; 
+            case 5:   strcat (szBuff, "INT");   break; 
+            case 6:   strcat (szBuff, "CHA");   break; 
+            default: 
+                sprintf (szTemp, "UnknownStat(%d)", pSpell->Base2[i]); 
+                strcat (szBuff, szTemp); 
             } 
             sprintf(szTemp, " Cap by %d", abs(pSpell->Base[i])); 
             strcat(szBuff, szTemp); 
@@ -4184,17 +4184,31 @@ BOOL IsNamed(PSPAWNINFO pSpawn)
 {
     CHAR szTemp[MAX_STRING]={0};
 
-    if (pSpawn->Type != SPAWN_NPC)
+    if (!((PZONEINFO)pZoneInfo)->ZoneType)
         return false;
-    if (pSpawn->Class >= 20 && pSpawn->Class <= 35 ) // NPC GMs
+    if (GetSpawnType(pSpawn) != NPC)
         return false;
-    if (pSpawn->Class == 41 )  // NPC merchants
+    if (!IsTargetable(pSpawn))
         return false;
-    if (pSpawn->Class == 60 || pSpawn->Class == 61 )  //Ldon Merchants/Recruiters
+    if (pSpawn->Class >= 20 && pSpawn->Class <= 35)  // NPC GMs
         return false;
-    if (pSpawn->Class == 63 ) // Tribute Master
+    if (pSpawn->Class == 40)  // NPC bankers
         return false;
-    if (pSpawn->Class == 67 || pSpawn->Class == 68 )  //Don Merchants (Norrath's Keepers/Dark Reign)
+    if (pSpawn->Class == 41 || pSpawn->Class == 70)  // NPC/Quest/TBS merchants
+        return false;
+    if (pSpawn->Class == 60 || pSpawn->Class == 61)  //Ldon Merchants/Recruiters
+        return false;
+    if (pSpawn->Class == 62)  // Destructible Objects
+        return false;
+    if (pSpawn->Class == 63 || pSpawn->Class == 64)  // Tribute Master/Guild Tribute Master
+        return false;
+    if (pSpawn->Class == 66)  // Guild Banker
+        return false;
+    if (pSpawn->Class == 67 || pSpawn->Class == 68)  //Don Merchants (Norrath's Keepers/Dark Reign)
+        return false;
+    if (pSpawn->Class == 69)  // Fellowship Registrar
+        return false;
+    if (pSpawn->Class == 71)  // Mercenary Liason
         return false;
 
     strcpy(szTemp,pSpawn->Name);
@@ -4209,14 +4223,16 @@ BOOL IsNamed(PSPAWNINFO pSpawn)
             if (szTemp[2] == '_')
                 return false;
     }
-    if ( (!strnicmp(szTemp,"Guard",5))            ||
-        (!strnicmp(szTemp,"Defender",8))        ||
+    if ((!strnicmp(szTemp,"Guard",5))          ||
+        (!strnicmp(szTemp,"Defender",8))       ||
         (!strnicmp(szTemp,"Soulbinder",10))    ||
-        (!strnicmp(szTemp,"Diaku",5)) )
+        (!strnicmp(szTemp,"Sage",4))           ||
+        //(!strnicmp(szTemp,"High_Priest",11))   ||
+        (!strnicmp(szTemp,"Ward",4))           ||
+        //(!strnicmp(szTemp,"Shroudkeeper",12))  ||
+        (!strnicmp(szTemp,"Diaku",5)))
         return false;
-    if (isupper(szTemp[0]))
-        return true;
-    if (szTemp[0] == '#' )
+    if (isupper(szTemp[0]) || szTemp[0] == '#')
         return true;
 
     return false;
@@ -4487,6 +4503,8 @@ BOOL SpawnMatchesSearch(PSEARCHSPAWN pSearchSpawn, PSPAWNINFO pChar, PSPAWNINFO 
     }
     _strlwr(strcpy(szName,pSpawn->Name));
     if (!strstr(szName,pSearchSpawn->szName) && !strstr(CleanupName(szName,FALSE),pSearchSpawn->szName))
+        return FALSE;
+    if (pSearchSpawn->bExactName && stricmp(CleanupName(szName,FALSE,!gbExactSearchCleanNames),pSearchSpawn->szName))
         return FALSE;
     if (pSpawn->Level < pSearchSpawn->MinLevel)
         return FALSE;
@@ -4773,8 +4791,14 @@ PCHAR ParseSearchSpawnArgs(PCHAR szArg, PCHAR szRest, PSEARCHSPAWN pSearchSpawn)
                 strcat(pSearchSpawn->szName," ");
                 strcat(pSearchSpawn->szName,szArg);
             }
-            else
+            else {
+                if (szArg[0]=='=')
+                {
+                    pSearchSpawn->bExactName=TRUE;
+                    szArg++;
+                }
                 strcpy(pSearchSpawn->szName,szArg);
+            }
         }
     }
     return szRest;
@@ -4963,26 +4987,27 @@ PCHAR CleanupName(PCHAR szName, BOOL Article, BOOL ForWhoList)
     DWORD i,j=0;
     CHAR szTemp[MAX_STRING] = {0};
     for (i=0;i<strlen(szName);i++) {
-        switch (szName[i]) {
-case '_':
-    szTemp[j++]=' ';
-    break;
-case '0':
-case '1':
-case '2':
-case '3':
-case '4':
-case '5':
-case '6':
-case '7':
-case '8':
-case '9':
-    break;
-case '#':
-    if (!ForWhoList)
-        break;
-default:
-    szTemp[j++]=szName[i];
+        switch (szName[i]) 
+        {
+        case '_':
+            szTemp[j++]=' ';
+            break;
+        case '0':
+        case '1':
+        case '2':
+        case '3':
+        case '4':
+        case '5':
+        case '6':
+        case '7':
+        case '8':
+        case '9':
+            break;
+        case '#':
+            if (!ForWhoList)
+                break;
+        default:
+            szTemp[j++]=szName[i];
         }
     }
     strcpy(szName,szTemp);

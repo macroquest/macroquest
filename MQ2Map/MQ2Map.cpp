@@ -49,7 +49,7 @@ MAPFILTER MapFilterOptions[] = {
     {"NPCConColor",  FALSE,-1,         TRUE,MAPFILTER_NPC,FALSE,     "Displays NPCs in consider colors"},
     {"Untargetable", FALSE,0x404040,   TRUE,MAPFILTER_All,TRUE,      "Displays Untargetable NPCs"},
     {"Pet",          FALSE,0x707070,   TRUE,MAPFILTER_All,TRUE,      "Displays pets"},
-    {"Corpse",       FALSE,0x00C000,   TRUE,MAPFILTER_All,TRUE,      "Displays NPC corpses"},
+    {"Corpse",       FALSE,0x00C000,   TRUE,MAPFILTER_All,TRUE,      "Displays corpses"},
     {"Chest",        FALSE,0xC08000,   TRUE,MAPFILTER_All,TRUE,      "Displays chestesses"},
     {"Trigger",      FALSE,0xC08000,   TRUE,MAPFILTER_All,TRUE,      "Displays hidden triggers"},
     {"Trap",         FALSE,0xC08000,   TRUE,MAPFILTER_All,TRUE,      "Displays hidden traps"},
@@ -69,8 +69,10 @@ MAPFILTER MapFilterOptions[] = {
     {"Object",       FALSE,0x404040,   TRUE,MAPFILTER_All,TRUE,      "Displays inanimate objects"},
     {"Banner",       FALSE,0x404040,   TRUE,MAPFILTER_All,TRUE,      "Displays banners"},
     {"Campfire",     FALSE,0x404040,   TRUE,MAPFILTER_All,TRUE,      "Displays campfires"},
-    {"PCCorpse",     FALSE,0x00C000,   TRUE,MAPFILTER_All,TRUE,      "Displays PC corpses"},
+    {"PCCorpse",     FALSE,0x00C000,   TRUE,MAPFILTER_All,TRUE,	     "Displays PC corpses, when corpse setting is on"},
+    {"NPCCorpse",    FALSE,0x00C000,   TRUE,MAPFILTER_All,TRUE,      "Displays NPC corpses, when corpse setting is on"},
     {"Mercenary",    FALSE,0x404040,   TRUE,MAPFILTER_All,TRUE,      "Displays mercenaries"},
+    {"Named",        FALSE,0x404040,   TRUE,MAPFILTER_All,TRUE,      "Displays named NPCs"},
     {NULL,           FALSE,-1,         FALSE,MAPFILTER_Invalid,FALSE,  NULL}
 };
 

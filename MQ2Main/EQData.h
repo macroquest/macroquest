@@ -369,6 +369,8 @@ typedef struct _BodyInfo
 #define ALTCURRENCY_ORUX                0xb
 #define ALTCURRENCY_PHOSPHENES          0xc
 #define ALTCURRENCY_PHOSPHITES          0xd
+#define ALTCURRENCY_FAYCITES            0xe
+#define ALTCURRENCY_CHRONOBINES         0xf
 
 enum MOUSE_DATA_TYPES {
    MD_Unknown = -1,

@@ -95,6 +95,7 @@ namespace MQ2Internal {
         DWORD SortBy;
         BOOL bNoGuild;
         BOOL bLoS;
+        BOOL bExactName;
         BOOL bTargetable;
     } SEARCHSPAWN, *PSEARCHSPAWN;
 

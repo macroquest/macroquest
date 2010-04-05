@@ -67,6 +67,8 @@ static inline PCHAR GetClassDesc(DWORD ClassID)
         return "DoN Merchant";
     if (ClassID==69)
         return "Fellowship Registrar";
+    if (ClassID==70)
+        return "Merchant";
     if (ClassID==71)
         return "Mercenary Liaison";
     if (ClassID==0xFF)
