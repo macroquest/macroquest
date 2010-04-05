@@ -18,22 +18,22 @@ DWORD HighlightColor=0xFF700070;
 
 CHAR MapSpecialClickString[16][MAX_STRING]=
 {
-	"",// unused, will always target
-	"",//SHIFT 
-	"/maphide id %i",//CTRL
-	"",//CTRL|SHIFT
-	"/highlight id %i",//LALT 
-	"",//LALT|SHIFT
-	"",//LALT|CTRL
-	"",//LALT|SHIFT|CTRL
-	"",//RALT
-	"",//RALT|SHIFT
-	"",//RALT|CTRL
-	"",//RALT|SHIFT|CTRL
-	"",//RALT|LALT
-	"",//RALT|LALT|SHIFT
-	"",//RALT|LALT|CTRL
-	"" //RALT|LALT|SHIFT|CTRL
+    "",// unused, will always target
+    "",//SHIFT 
+    "/maphide id %i",//CTRL
+    "",//CTRL|SHIFT
+    "/highlight id %i",//LALT 
+    "",//LALT|SHIFT
+    "",//LALT|CTRL
+    "",//LALT|SHIFT|CTRL
+    "",//RALT
+    "",//RALT|SHIFT
+    "",//RALT|CTRL
+    "",//RALT|SHIFT|CTRL
+    "",//RALT|LALT
+    "",//RALT|LALT|SHIFT
+    "",//RALT|LALT|CTRL
+    "" //RALT|LALT|SHIFT|CTRL
 };
 
 CHAR MapNameString[MAX_STRING]={"%N"};
@@ -85,148 +85,148 @@ DWORD CMyMapViewWnd__OldPostDraw=0;
 
 DWORD __declspec(naked) CMyMapViewWnd__Destructor(const BOOL Deallocate)
 {
-   __asm {   
-   push ecx;
-   push eax;
-   }
+    __asm {   
+        push ecx;
+        push eax;
+    }
 
     if (CMyMapViewWnd__OldvfTable) { 
         // make our own little stack frame here
         // operator delete assumes that it is there
         // it uses (unnecessarily) ebp-4
         __asm {
-            push	ebp
-            push	eax
-            push	eax
-            mov	        ebp, esp
+            push    ebp
+                push    eax
+                push    eax
+                mov            ebp, esp
         }
         delete pMapViewWnd->pvfTable;
         pMapViewWnd->pvfTable=CMyMapViewWnd__OldvfTable;
         CMyMapViewWnd__OldvfTable = NULL;
         __asm {
-            pop 	eax
-            pop 	eax
-            pop 	ebp
+            pop     eax
+                pop     eax
+                pop     ebp
         }
     }
 
-   __asm {
-   pop eax;
-   pop ecx;
-   jmp [CMyMapViewWnd__OldDestructor];
-   }
+    __asm {
+        pop eax;
+        pop ecx;
+        jmp [CMyMapViewWnd__OldDestructor];
+    }
 }
 
 bool RButtonDown()
 {
-	if (pCurrentMapLabel)
-	{
-		MapSelectTarget();
-		return false;
-	}
-	if (!IsOptionEnabled(MAPFILTER_ContextMenu))
-		return false;
-	return true;
+    if (pCurrentMapLabel)
+    {
+        MapSelectTarget();
+        return false;
+    }
+    if (!IsOptionEnabled(MAPFILTER_ContextMenu))
+        return false;
+    return true;
 }
 
 VOID __declspec(naked) CMyMapViewWnd__HandleRButtonDown(DWORD point, DWORD unknown)
 {
-   __asm {   
-   push ecx;
-   push eax;
-  }
-	if (RButtonDown())
-	{
-   __asm {
-   pop eax;
-   pop ecx;
-   jmp [CMyMapViewWnd__OldHandleRButtonDown];
-   };
-	}
-	else
-	{
-		__asm {
-			pop eax;
-			pop ecx;
-			xor eax, eax;
-			retn 8;
-		}
-	}
+    __asm {   
+        push ecx;
+        push eax;
+    }
+    if (RButtonDown())
+    {
+        __asm {
+            pop eax;
+            pop ecx;
+            jmp [CMyMapViewWnd__OldHandleRButtonDown];
+        };
+    }
+    else
+    {
+        __asm {
+            pop eax;
+            pop ecx;
+            xor eax, eax;
+            retn 8;
+        }
+    }
 } 
 
 
 VOID __declspec(naked) CMyMapViewWnd__PostDraw()
 {
-	__asm {
-	
-	push esi;
-	mov esi, ecx;
+    __asm {
 
-	call [MapUpdate];
-	call [MapAttach];
+        push esi;
+        mov esi, ecx;
 
-	mov ecx, esi;
-	call [CMyMapViewWnd__OldPostDraw];
-	push eax;
+        call [MapUpdate];
+        call [MapAttach];
 
-	call [MapDetach];
-	pop eax;
-	mov ecx, esi;
-	pop esi;
-	ret;
-	};
+        mov ecx, esi;
+        call [CMyMapViewWnd__OldPostDraw];
+        push eax;
+
+        call [MapDetach];
+        pop eax;
+        mov ecx, esi;
+        pop esi;
+        ret;
+    };
 }
 
 class CMyMapViewWnd
 {
 public:
-	DWORD Constructor_Trampoline(class CXWnd *);
-	DWORD Constructor_Detour(class CXWnd *wnd)
-	{
-		CMapViewWnd *pWnd=(CMapViewWnd*)this;
-		DWORD Ret=Constructor_Trampoline(wnd);
-		PCSIDLWNDVFTABLE pvfTable = new CSIDLWNDVFTABLE; 
-		*pvfTable=*pWnd->pvfTable;
+    DWORD Constructor_Trampoline(class CXWnd *);
+    DWORD Constructor_Detour(class CXWnd *wnd)
+    {
+        CMapViewWnd *pWnd=(CMapViewWnd*)this;
+        DWORD Ret=Constructor_Trampoline(wnd);
+        PCSIDLWNDVFTABLE pvfTable = new CSIDLWNDVFTABLE; 
+        *pvfTable=*pWnd->pvfTable;
 
-		CMyMapViewWnd__OldvfTable=pWnd->pvfTable;
-		pWnd->pvfTable=pvfTable;
-		CMyMapViewWnd__OldPostDraw=(DWORD)pWnd->pvfTable->PostDraw2;
-		CMyMapViewWnd__OldHandleRButtonDown=(DWORD)pWnd->pvfTable->HandleRButtonDown;
-		CMyMapViewWnd__OldDestructor=(DWORD)pWnd->pvfTable->vector_deleting_destructor;
-		pWnd->pvfTable->vector_deleting_destructor=CMyMapViewWnd__Destructor;
-		pWnd->pvfTable->HandleRButtonDown=CMyMapViewWnd__HandleRButtonDown; 
-		pWnd->pvfTable->PostDraw2=CMyMapViewWnd__PostDraw; 
-		return Ret;
-	}
+        CMyMapViewWnd__OldvfTable=pWnd->pvfTable;
+        pWnd->pvfTable=pvfTable;
+        CMyMapViewWnd__OldPostDraw=(DWORD)pWnd->pvfTable->PostDraw2;
+        CMyMapViewWnd__OldHandleRButtonDown=(DWORD)pWnd->pvfTable->HandleRButtonDown;
+        CMyMapViewWnd__OldDestructor=(DWORD)pWnd->pvfTable->vector_deleting_destructor;
+        pWnd->pvfTable->vector_deleting_destructor=CMyMapViewWnd__Destructor;
+        pWnd->pvfTable->HandleRButtonDown=CMyMapViewWnd__HandleRButtonDown; 
+        pWnd->pvfTable->PostDraw2=CMyMapViewWnd__PostDraw; 
+        return Ret;
+    }
 
-	static void StealVFTable()
-	{
-		if (CMapViewWnd *pWnd=(CMapViewWnd*)pMapViewWnd)
-		{
-			PCSIDLWNDVFTABLE pvfTable = new CSIDLWNDVFTABLE; 
-			*pvfTable=*pWnd->pvfTable;
+    static void StealVFTable()
+    {
+        if (CMapViewWnd *pWnd=(CMapViewWnd*)pMapViewWnd)
+        {
+            PCSIDLWNDVFTABLE pvfTable = new CSIDLWNDVFTABLE; 
+            *pvfTable=*pWnd->pvfTable;
 
-			CMyMapViewWnd__OldvfTable=pWnd->pvfTable;
-			pWnd->pvfTable=pvfTable;
-			CMyMapViewWnd__OldPostDraw=(DWORD)pWnd->pvfTable->PostDraw2;
-			CMyMapViewWnd__OldHandleRButtonDown=(DWORD)pWnd->pvfTable->HandleRButtonDown;
-			CMyMapViewWnd__OldDestructor=(DWORD)pWnd->pvfTable->vector_deleting_destructor;
-			pWnd->pvfTable->vector_deleting_destructor=CMyMapViewWnd__Destructor;
-			pWnd->pvfTable->HandleRButtonDown=CMyMapViewWnd__HandleRButtonDown; 
-			pWnd->pvfTable->PostDraw2=CMyMapViewWnd__PostDraw; 
-		}
-	}
+            CMyMapViewWnd__OldvfTable=pWnd->pvfTable;
+            pWnd->pvfTable=pvfTable;
+            CMyMapViewWnd__OldPostDraw=(DWORD)pWnd->pvfTable->PostDraw2;
+            CMyMapViewWnd__OldHandleRButtonDown=(DWORD)pWnd->pvfTable->HandleRButtonDown;
+            CMyMapViewWnd__OldDestructor=(DWORD)pWnd->pvfTable->vector_deleting_destructor;
+            pWnd->pvfTable->vector_deleting_destructor=CMyMapViewWnd__Destructor;
+            pWnd->pvfTable->HandleRButtonDown=CMyMapViewWnd__HandleRButtonDown; 
+            pWnd->pvfTable->PostDraw2=CMyMapViewWnd__PostDraw; 
+        }
+    }
 
-	static void RestoreVFTable()
-	{
-		if (CMapViewWnd *pWnd=(CMapViewWnd*)pMapViewWnd)
-		{
-			if (CMyMapViewWnd__OldvfTable) { 
-				delete pWnd->pvfTable;
-				pWnd->pvfTable=CMyMapViewWnd__OldvfTable;
-			}
-		}
-	}
+    static void RestoreVFTable()
+    {
+        if (CMapViewWnd *pWnd=(CMapViewWnd*)pMapViewWnd)
+        {
+            if (CMyMapViewWnd__OldvfTable) { 
+                delete pWnd->pvfTable;
+                pWnd->pvfTable=CMyMapViewWnd__OldvfTable;
+            }
+        }
+    }
 };
 
 DETOUR_TRAMPOLINE_EMPTY(DWORD CMyMapViewWnd::Constructor_Trampoline(class CXWnd *)); 
@@ -237,61 +237,61 @@ bool Update=true;
 // Called once, when the plugin is to initialize
 PLUGIN_API VOID InitializePlugin(VOID)
 {
-	DebugSpewAlways("Initializing MQ2Map");
+    DebugSpewAlways("Initializing MQ2Map");
 
-	bmMapRefresh=AddMQ2Benchmark("Map Refresh");
-	unsigned long i;
-	CHAR szBuffer[MAX_STRING]={0};
+    bmMapRefresh=AddMQ2Benchmark("Map Refresh");
+    unsigned long i;
+    CHAR szBuffer[MAX_STRING]={0};
     for (i=0;MapFilterOptions[i].szName;i++) {
         sprintf(szBuffer,"%s-Color",MapFilterOptions[i].szName);
         MapFilterOptions[i].Enabled = GetPrivateProfileInt("Map Filters",MapFilterOptions[i].szName,MapFilterOptions[i].Default,INIFileName);
-       MapFilterOptions[i].Color = GetPrivateProfileInt("Map Filters",szBuffer,MapFilterOptions[i].DefaultColor,INIFileName) | 0xFF000000;
+        MapFilterOptions[i].Color = GetPrivateProfileInt("Map Filters",szBuffer,MapFilterOptions[i].DefaultColor,INIFileName) | 0xFF000000;
     }
-	MapInit();
-	GetPrivateProfileString("Naming Schemes","Normal","%N",MapNameString,MAX_STRING,INIFileName);
-	GetPrivateProfileString("Naming Schemes","Target","%N",MapTargetNameString,MAX_STRING,INIFileName);
+    MapInit();
+    GetPrivateProfileString("Naming Schemes","Normal","%N",MapNameString,MAX_STRING,INIFileName);
+    GetPrivateProfileString("Naming Schemes","Target","%N",MapTargetNameString,MAX_STRING,INIFileName);
 
-	for (i=1;i<16;i++)
-	{
-		sprintf(szBuffer,"KeyCombo%d",i);
-		GetPrivateProfileString("Right Click",szBuffer,MapSpecialClickString[i],MapSpecialClickString[i],MAX_STRING,INIFileName);
-	}
+    for (i=1;i<16;i++)
+    {
+        sprintf(szBuffer,"KeyCombo%d",i);
+        GetPrivateProfileString("Right Click",szBuffer,MapSpecialClickString[i],MapSpecialClickString[i],MAX_STRING,INIFileName);
+    }
 
-	// Do not use Custom, since the string isn't stored
+    // Do not use Custom, since the string isn't stored
     MapFilterOptions[MAPFILTER_Custom].Enabled = 0;
 
 
-	AddCommand("/mapfilter",MapFilters,0,1,1);
-	AddCommand("/maphide",MapHideCmd,0,1,1);
-	AddCommand("/mapshow",MapShowCmd,0,1,1);
-	AddCommand("/highlight",MapHighlightCmd,0,1,1);
-	AddCommand("/mapnames",MapNames,0,1,1);
-	AddCommand("/mapclick",MapClickCommand,0,1,0);
+    AddCommand("/mapfilter",MapFilters,0,1,1);
+    AddCommand("/maphide",MapHideCmd,0,1,1);
+    AddCommand("/mapshow",MapShowCmd,0,1,1);
+    AddCommand("/highlight",MapHighlightCmd,0,1,1);
+    AddCommand("/mapnames",MapNames,0,1,1);
+    AddCommand("/mapclick",MapClickCommand,0,1,0);
 
-	EzDetour(CMapViewWnd__CMapViewWnd,&CMyMapViewWnd::Constructor_Detour,&CMyMapViewWnd::Constructor_Trampoline);
-	CMyMapViewWnd::StealVFTable();
-	AddMQ2Data("MapSpawn",dataMapSpawn);
+    EzDetour(CMapViewWnd__CMapViewWnd,&CMyMapViewWnd::Constructor_Detour,&CMyMapViewWnd::Constructor_Trampoline);
+    CMyMapViewWnd::StealVFTable();
+    AddMQ2Data("MapSpawn",dataMapSpawn);
 }
 
 // Called once, when the plugin is to shutdown
 PLUGIN_API VOID ShutdownPlugin(VOID)
 {
-	DebugSpewAlways("Shutting down MQ2Map");
-	Update=false;
-	RemoveMQ2Data("MapSpawn");
+    DebugSpewAlways("Shutting down MQ2Map");
+    Update=false;
+    RemoveMQ2Data("MapSpawn");
 
-	RemoveDetour(CMapViewWnd__CMapViewWnd);
+    RemoveDetour(CMapViewWnd__CMapViewWnd);
 
-	MapClear();
-	CMyMapViewWnd::RestoreVFTable();
+    MapClear();
+    CMyMapViewWnd::RestoreVFTable();
 
-	RemoveMQ2Benchmark(bmMapRefresh);
-	RemoveCommand("/maphide");
-	RemoveCommand("/mapshow");
-	RemoveCommand("/mapfilter");
-	RemoveCommand("/highlight");
-	RemoveCommand("/mapnames");
-	RemoveCommand("/mapclick");
+    RemoveMQ2Benchmark(bmMapRefresh);
+    RemoveCommand("/maphide");
+    RemoveCommand("/mapshow");
+    RemoveCommand("/mapfilter");
+    RemoveCommand("/highlight");
+    RemoveCommand("/mapnames");
+    RemoveCommand("/mapclick");
 }
 
 // This is called each time a spawn is added to a zone (inserted into EQ's list of spawns),
@@ -299,11 +299,11 @@ PLUGIN_API VOID ShutdownPlugin(VOID)
 // NOTE: When you zone, these will come BEFORE OnZoned
 PLUGIN_API VOID OnAddSpawn(PSPAWNINFO pNewSpawn)
 {
-        // your toon's spawn id changes and it's no longer zero to start
-        // don't added it all 
-	if (Update && pNewSpawn->SpawnID != 0 && GetCharInfo()->pSpawn != pNewSpawn) {
-	    DebugSpewAlways("MQ2Map::OnAddSpawn(%s) = %d",pNewSpawn->Name, pNewSpawn->SpawnID);
-		AddSpawn(pNewSpawn);
+    // your toon's spawn id changes and it's no longer zero to start
+    // don't added it all 
+    if (Update && pNewSpawn->SpawnID != 0 && GetCharInfo()->pSpawn != pNewSpawn) {
+        DebugSpewAlways("MQ2Map::OnAddSpawn(%s) = %d",pNewSpawn->Name, pNewSpawn->SpawnID);
+        AddSpawn(pNewSpawn);
     }
 }
 
@@ -311,17 +311,17 @@ PLUGIN_API VOID OnAddSpawn(PSPAWNINFO pNewSpawn)
 // It is NOT called for each existing spawn when a plugin shuts down.
 PLUGIN_API VOID OnRemoveSpawn(PSPAWNINFO pSpawn)
 {
-	DebugSpewAlways("MQ2Map::OnRemoveSpawn(%s) = %d",pSpawn->Name, pSpawn->SpawnID);
-	if (Update)
-		RemoveSpawn(pSpawn);
+    DebugSpewAlways("MQ2Map::OnRemoveSpawn(%s) = %d",pSpawn->Name, pSpawn->SpawnID);
+    if (Update)
+        RemoveSpawn(pSpawn);
 }
 
 PLUGIN_API VOID SetGameState(DWORD GameState)
 {
-	if (GameState==3)
-	{
-		MapClear();
-	}
+    if (GameState==3)
+    {
+        MapClear();
+    }
 }
 
 // This is called each time a ground item is added to a zone
@@ -329,17 +329,17 @@ PLUGIN_API VOID SetGameState(DWORD GameState)
 // NOTE: When you zone, these will come BEFORE OnZoned
 PLUGIN_API VOID OnAddGroundItem(PGROUNDITEM pNewGroundItem)
 {
-	DebugSpewAlways("MQ2Map::OnAddGroundItem(%d)",pNewGroundItem->DropID);
-	if (Update)
-		AddGroundItem(pNewGroundItem);
+    DebugSpewAlways("MQ2Map::OnAddGroundItem(%d)",pNewGroundItem->DropID);
+    if (Update)
+        AddGroundItem(pNewGroundItem);
 }
 
 // This is called each time a ground item is removed from a zone
 // It is NOT called for each existing ground item when a plugin shuts down.
 PLUGIN_API VOID OnRemoveGroundItem(PGROUNDITEM pGroundItem)
 {
-	DebugSpewAlways("MQ2Map::OnRemoveGroundItem(%d)",pGroundItem->DropID);
-	if (Update)
-		RemoveGroundItem(pGroundItem);
+    DebugSpewAlways("MQ2Map::OnRemoveGroundItem(%d)",pGroundItem->DropID);
+    if (Update)
+        RemoveGroundItem(pGroundItem);
 }
 #endif

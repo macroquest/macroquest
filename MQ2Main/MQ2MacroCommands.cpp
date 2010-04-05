@@ -1,15 +1,15 @@
 /*****************************************************************************
-    MQ2Main.dll: MacroQuest2's extension DLL for EverQuest
-    Copyright (C) 2002-2003 Plazmic, 2003-2005 Lax
+MQ2Main.dll: MacroQuest2's extension DLL for EverQuest
+Copyright (C) 2002-2003 Plazmic, 2003-2005 Lax
 
-    This program is free software; you can redistribute it and/or modify
-    it under the terms of the GNU General Public License, version 2, as published by
-    the Free Software Foundation.
+This program is free software; you can redistribute it and/or modify
+it under the terms of the GNU General Public License, version 2, as published by
+the Free Software Foundation.
 
-    This program is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
 ******************************************************************************/
 
 #if !defined(CINTERFACE)
@@ -29,35 +29,35 @@
 // in-place cleanup of tabs, leading/trailing space
 VOID CleanMacroLine(PCHAR szLine)
 {
-	if (!szLine || szLine[0]==0)
-		return;
-	PCHAR pChar=szLine;
-	while(pChar[0])
-	{
-		if (pChar[0]=='\t' || pChar[0]==0x0a || pChar[0]==0x0d)
-			pChar[0]=' ';
-		++pChar;
-	}
-	// find beginning and end
-	PCHAR pStart=szLine;
-	unsigned long Length=strlen(szLine);
-	PCHAR pEnd=&szLine[Length-1];
+    if (!szLine || szLine[0]==0)
+        return;
+    PCHAR pChar=szLine;
+    while(pChar[0])
+    {
+        if (pChar[0]=='\t' || pChar[0]==0x0a || pChar[0]==0x0d)
+            pChar[0]=' ';
+        ++pChar;
+    }
+    // find beginning and end
+    PCHAR pStart=szLine;
+    unsigned long Length=strlen(szLine);
+    PCHAR pEnd=&szLine[Length-1];
 
-	while(*pStart==' ')
-		++pStart;
-	while(*pEnd==' ')
-		--pEnd;
-	if (!*pStart || !*pEnd)
-	{
-		szLine[0]=0;
-		return;
-	}
-	// keep only this part.
-	unsigned long NewLength=1+pEnd-pStart;
-	if (NewLength==Length)
-		return;//nothing to do
-	memmove(szLine,pStart,NewLength);
-	szLine[NewLength]=0;
+    while(*pStart==' ')
+        ++pStart;
+    while(*pEnd==' ')
+        --pEnd;
+    if (!*pStart || !*pEnd)
+    {
+        szLine[0]=0;
+        return;
+    }
+    // keep only this part.
+    unsigned long NewLength=1+pEnd-pStart;
+    if (NewLength==Length)
+        return;//nothing to do
+    memmove(szLine,pStart,NewLength);
+    szLine[NewLength]=0;
 }
 
 // ***************************************************************************
@@ -93,8 +93,8 @@ DWORD Include(PCHAR szFile)
         }
         if (!InBlockComment) {
             if (NULL == (pAddedLine=AddMacroLine(szTemp))) {
-            MacroError("Unable to add macro line.");
-            fclose(fMacro);
+                MacroError("Unable to add macro line.");
+                fclose(fMacro);
                 gszMacroName[0]=0;
                 gRunning = 0;
                 return 0;
@@ -120,7 +120,7 @@ DWORD Include(PCHAR szFile)
 PMACROBLOCK AddMacroLine(PCHAR szLine)
 {
     PMACROBLOCK pBlock = NULL;
-	// replace all tabs with spaces
+    // replace all tabs with spaces
     if ((szLine[0]==0) || (szLine[0]=='|')) return (PMACROBLOCK)1;
 
     PDEFINE pDef = pDefines;
@@ -150,13 +150,13 @@ PMACROBLOCK AddMacroLine(PCHAR szLine)
             CHAR szArg[MAX_STRING] = {0};
             GetArg(szArg,szLine,2);
             gMaxTurbo = atoi(szArg);
-			if (gMaxTurbo==0)
-				gMaxTurbo=20;
-			else if (gMaxTurbo>40) 
-			{
-				MacroError("#turbo %d is too high, setting at 40 (maximum)",gMaxTurbo);
-				gMaxTurbo=40;
-			}
+            if (gMaxTurbo==0)
+                gMaxTurbo=20;
+            else if (gMaxTurbo>40) 
+            {
+                MacroError("#turbo %d is too high, setting at 40 (maximum)",gMaxTurbo);
+                gMaxTurbo=40;
+            }
         } else if (!strnicmp(szLine,"#define ",8)) {
             CHAR szArg1[MAX_STRING] = {0};
             CHAR szArg2[MAX_STRING] = {0};
@@ -171,7 +171,7 @@ PMACROBLOCK AddMacroLine(PCHAR szLine)
             } else {
                 MacroError("Bad #define: %s",szLine);
             }
-		} else if (!strnicmp(szLine,"#event ",7)) {
+        } else if (!strnicmp(szLine,"#event ",7)) {
             CHAR szArg1[MAX_STRING] = {0};
             CHAR szArg2[MAX_STRING] = {0};
             PEVENTLIST pEvent = (PEVENTLIST)malloc(sizeof(EVENTLIST));
@@ -181,7 +181,7 @@ PMACROBLOCK AddMacroLine(PCHAR szLine)
                 sprintf(pEvent->szName,"Sub Event_%s",szArg1);
                 strcpy(pEvent->szMatch,szArg2);
 #ifdef USEBLECHEVENTS
-				pEvent->BlechID=pEventBlech->AddEvent(pEvent->szMatch,EventBlechCallback,pEvent);
+                pEvent->BlechID=pEventBlech->AddEvent(pEvent->szMatch,EventBlechCallback,pEvent);
 #endif
                 pEvent->pEventFunc = NULL;
                 pEvent->pNext = pEventList;
@@ -201,10 +201,10 @@ PMACROBLOCK AddMacroLine(PCHAR szLine)
             if (!stricmp(szLine,"group")) gEventChat = gEventChat | CHAT_GROUP;
             if (!stricmp(szLine,"chat"))  gEventChat = gEventChat | CHAT_CHAT;
         } else if (szLine[1]=='!') {
-			// Like: #!/usr/local/bin/LegacyMQ2
-			// ignore.
+            // Like: #!/usr/local/bin/LegacyMQ2
+            // ignore.
         } else {
-			MacroError("Unknown # command: %s",szLine);
+            MacroError("Unknown # command: %s",szLine);
             return FALSE;
         }
     }
@@ -222,7 +222,7 @@ PMACROBLOCK AddMacroLine(PCHAR szLine)
         gEventFunc[EVENT_CHAT] = pBlock;
     } else if ((!stricmp(szLine,"Sub Event_Timer")) || (!strnicmp(szLine,"Sub Event_Timer(",16))) {
         gEventFunc[EVENT_TIMER] = pBlock;
-	} else {
+    } else {
         PEVENTLIST pEvent = pEventList;
         while (pEvent) {
             if (!stricmp(szLine,pEvent->szName)) {
@@ -267,20 +267,20 @@ VOID Macro(PSPAWNINFO pChar, PCHAR szLine)
         return;
     }
     if (gMacroBlock) 
-	{
-		gReturn = false;
-		EndMacro(pChar,"");//"keep keys vars arrays timers");
-		gReturn = true;
-	}
-	gMaxTurbo=20;
-	gTurbo=true;
+    {
+        gReturn = false;
+        EndMacro(pChar,"");//"keep keys vars arrays timers");
+        gReturn = true;
+    }
+    gMaxTurbo=20;
+    gTurbo=true;
     GetArg(szTemp,szLine,1);
     Params = GetNextArg(szLine);
 
     strcpy(gszMacroName,szTemp);
 #ifdef ISXEQ_LEGACY
-	strcpy(Filename,szTemp);
-	FILE *fMacro = fopen(szTemp,"rt");
+    strcpy(Filename,szTemp);
+    FILE *fMacro = fopen(szTemp,"rt");
 #else
     if (!strstr(szTemp,".")) strcat(szTemp,".mac");
     sprintf(Filename,"%s\\%s",gszMacroPath, szTemp);
@@ -301,7 +301,7 @@ VOID Macro(PSPAWNINFO pChar, PCHAR szLine)
     PMACROBLOCK pAddedLine = NULL;
     while (!feof(fMacro)) {
         fgets(szTemp,MAX_STRING,fMacro);
-		CleanMacroLine(szTemp);
+        CleanMacroLine(szTemp);
         LineNumber++;
         if (!strncmp(szTemp,"|**",3)) {
             InBlockComment=TRUE;
@@ -345,13 +345,13 @@ VOID Macro(PSPAWNINFO pChar, PCHAR szLine)
         gRunning = 0;
     }
 #ifdef ISXEQ_LEGACY
-	else
-	{
-		char ShortName[128];
-		ShortName[0]=0;
-		_splitpath(Filename,0,0,ShortName,0);
-		IS_ScriptEngineScriptBegins(pExtension,pISInterface,hScriptEngineService,&g_LegacyEngine,ShortName);
-	}
+    else
+    {
+        char ShortName[128];
+        ShortName[0]=0;
+        _splitpath(Filename,0,0,ShortName,0);
+        IS_ScriptEngineScriptBegins(pExtension,pISInterface,hScriptEngineService,&g_LegacyEngine,ShortName);
+    }
 #endif
 }
 
@@ -364,35 +364,35 @@ VOID Macro(PSPAWNINFO pChar, PCHAR szLine)
 VOID Cleanup(PSPAWNINFO pChar, PCHAR szLine)
 {
     DebugSpewNoFile("Cleanup - Cleaning up screen");
-	DWORD i;
-	KeyCombo Escape;
-	ParseKeyCombo("Esc",Escape);
-	if(ppContainerMgr && pContainerMgr) {
-		PEQ_CONTAINERWND_MANAGER ContainerMgr = (PEQ_CONTAINERWND_MANAGER)pContainerMgr;
-		DWORD concount=2; //Close inv + clear target
-		if (ContainerMgr->pWorldContents && ContainerMgr->pWorldContents->Open==1) concount++;
-		for (i=0;i<25;i++) {
-			if (ContainerMgr->pPCContainers[i] && ContainerMgr->pPCContainers[i]->Wnd.Show==1) concount++;
-		}
-		for (i=0;i<concount;i++) 
-		{
-			MQ2HandleKeyDown(Escape);
-			MQ2HandleKeyUp(Escape);
-		}
-		if (!ppInventoryWnd) {
-			PCSIDLWND pInvWindow = (PCSIDLWND)pInventoryWnd;
-			if (pInvWindow && pInvWindow->Show==0) 
-				DoMappable(pChar,"inventory");
-		}
-	} else {
-    DoMappable(pChar,"inventory");
-		for (i=0;i<10;i++) 
-		{
-			MQ2HandleKeyDown(Escape);
-			MQ2HandleKeyUp(Escape);
-		}
-    DoMappable(pChar,"inventory");
-	}
+    DWORD i;
+    KeyCombo Escape;
+    ParseKeyCombo("Esc",Escape);
+    if(ppContainerMgr && pContainerMgr) {
+        PEQ_CONTAINERWND_MANAGER ContainerMgr = (PEQ_CONTAINERWND_MANAGER)pContainerMgr;
+        DWORD concount=2; //Close inv + clear target
+        if (ContainerMgr->pWorldContents && ContainerMgr->pWorldContents->Open==1) concount++;
+        for (i=0;i<25;i++) {
+            if (ContainerMgr->pPCContainers[i] && ContainerMgr->pPCContainers[i]->Wnd.Show==1) concount++;
+        }
+        for (i=0;i<concount;i++) 
+        {
+            MQ2HandleKeyDown(Escape);
+            MQ2HandleKeyUp(Escape);
+        }
+        if (!ppInventoryWnd) {
+            PCSIDLWND pInvWindow = (PCSIDLWND)pInventoryWnd;
+            if (pInvWindow && pInvWindow->Show==0) 
+                DoMappable(pChar,"inventory");
+        }
+    } else {
+        DoMappable(pChar,"inventory");
+        for (i=0;i<10;i++) 
+        {
+            MQ2HandleKeyDown(Escape);
+            MQ2HandleKeyUp(Escape);
+        }
+        DoMappable(pChar,"inventory");
+    }
 }
 
 // ***************************************************************************
@@ -410,8 +410,8 @@ VOID Delay(PSPAWNINFO pChar, PCHAR szLine)
         return;
     }
     GetArg(szVal,szLine,1);
-	ParseMacroParameter(GetCharInfo()->pSpawn,szVal);
-	strcpy(gDelayCondition,GetNextArg(szLine));
+    ParseMacroParameter(GetCharInfo()->pSpawn,szVal);
+    strcpy(gDelayCondition,GetNextArg(szLine));
     VarValue = atol(szVal);
     switch (szVal[strlen(szVal)-1]) {
         case 'm':
@@ -422,8 +422,8 @@ VOID Delay(PSPAWNINFO pChar, PCHAR szLine)
             VarValue *= 10;
     }
     gDelay = VarValue;
-	bRunNextCommand=false;
-//    DebugSpewNoFile("Delay - %d",gDelay);
+    bRunNextCommand=false;
+    //    DebugSpewNoFile("Delay - %d",gDelay);
 }
 
 /* MQ2DataVars */
@@ -437,33 +437,33 @@ VOID Goto(PSPAWNINFO pChar, PCHAR szLine)
         return;
     }
     while (gMacroBlock->pPrev) 
-	{
+    {
         gMacroBlock=gMacroBlock->pPrev;
         if (!strnicmp(gMacroBlock->Line,"Sub ",4)) break;
     }
 
     while (gMacroBlock->pNext) 
-	{
+    {
         gMacroBlock=gMacroBlock->pNext;
         if (!strnicmp(gMacroBlock->Line,"Sub ",4)) 
-		{
-			gMacroBlock=pFromLine;
+        {
+            gMacroBlock=pFromLine;
             FatalError("Couldn't find label %s",szLine);
             return;
         }
         if (!stricmp(szLine,gMacroBlock->Line)) 
-		{
-//            DebugSpewNoFile("Goto - went to label %s",szLine);
+        {
+            //            DebugSpewNoFile("Goto - went to label %s",szLine);
             return;
         }
     }
 
     if (!stricmp(szLine,gMacroBlock->Line)) 
-	{
-//        DebugSpewNoFile("Goto - went to label %s",szLine);
+    {
+        //        DebugSpewNoFile("Goto - went to label %s",szLine);
         return;
     }
-	gMacroBlock=pFromLine;
+    gMacroBlock=pFromLine;
     FatalError("Couldn't find label %s",szLine);
 }
 
@@ -515,26 +515,26 @@ VOID EndMacro(PSPAWNINFO pChar, PCHAR szLine)
         return;
     }
 
-	/////////////// 
-	// Code allowing for a routine for "OnExit"
+    /////////////// 
+    // Code allowing for a routine for "OnExit"
     while (gMacroBlock->pNext) 
-	{
+    {
         gMacroBlock=gMacroBlock->pNext;
-		//DebugSpew("%s",gMacroBlock->Line);
-		if (!stricmp(":OnExit",gMacroBlock->Line)) 
-		{
-			if (gReturn)			// return to the macro the first time around
-			{
-				gReturn = false;	// We don't want to return the 2nd time.
-	            return;
-			}
-			else
-				break;
+        //DebugSpew("%s",gMacroBlock->Line);
+        if (!stricmp(":OnExit",gMacroBlock->Line)) 
+        {
+            if (gReturn)            // return to the macro the first time around
+            {
+                gReturn = false;    // We don't want to return the 2nd time.
+                return;
+            }
+            else
+                break;
         }
     }
-	gReturn = true;			// reset for next time
-	//
-	///////////////
+    gReturn = true;            // reset for next time
+    //
+    ///////////////
 
 #ifdef MQ2_PROFILING
     // How many performance counters in 1 second?
@@ -603,13 +603,13 @@ VOID EndMacro(PSPAWNINFO pChar, PCHAR szLine)
     while (gMacroStack) {
         pStack = gMacroStack->pNext;
         if (gMacroStack->LocalVariables) 
-			ClearMQ2DataVariables(&gMacroStack->LocalVariables);
+            ClearMQ2DataVariables(&gMacroStack->LocalVariables);
         if (gMacroStack->Parameters) 
-			ClearMQ2DataVariables(&gMacroStack->Parameters);
+            ClearMQ2DataVariables(&gMacroStack->Parameters);
         free(gMacroStack);
         gMacroStack = pStack;
     }
-	gMacroSubLookupMap.clear(); 
+    gMacroSubLookupMap.clear(); 
     while (gEventQueue) {
         pEvent = gEventQueue->pNext;
         free(gEventQueue);
@@ -621,7 +621,7 @@ VOID EndMacro(PSPAWNINFO pChar, PCHAR szLine)
         pEventList = pEventL;
     }
 #ifdef USEBLECHEVENTS
-	pEventBlech->Reset();
+    pEventBlech->Reset();
 #endif
     for  (i=0;i<NUM_EVENTS;i++) {
         gEventFunc[i]=NULL;
@@ -635,29 +635,29 @@ VOID EndMacro(PSPAWNINFO pChar, PCHAR szLine)
     gTurbo = FALSE;
     pDoorTarget = NULL;
 #ifdef ISXEQ_LEGACY
-	char ShortName[128];
-	ShortName[0]=0;
-	_splitpath(gszMacroName,0,0,ShortName,0);
-	IS_ScriptEngineScriptEnds(pExtension,pISInterface,hScriptEngineService,&g_LegacyEngine,ShortName);
+    char ShortName[128];
+    ShortName[0]=0;
+    _splitpath(gszMacroName,0,0,ShortName,0);
+    IS_ScriptEngineScriptEnds(pExtension,pISInterface,hScriptEngineService,&g_LegacyEngine,ShortName);
 #endif
 
     gszMacroName[0]=0;
     gRunning = 0;
 
     if (!bKeepKeys) {
-		KeyCombo TempCombo;
+        KeyCombo TempCombo;
         for (i=0;gDiKeyID[i].szName[0];i++) 
-		{
-			TempCombo.Data[3]=(unsigned char)gDiKeyID[i].Id;
-			MQ2HandleKeyUp(TempCombo);
+        {
+            TempCombo.Data[3]=(unsigned char)gDiKeyID[i].Id;
+            MQ2HandleKeyUp(TempCombo);
         }
     }
 
     ClearMQ2DataVariables(&pMacroVariables);
 
     DebugSpewNoFile("EndMacro - Ended");
-	if (gFilterMacro != FILTERMACRO_NONE)
-	    WriteChatColor("The current macro has ended.",USERCOLOR_DEFAULT);
+    if (gFilterMacro != FILTERMACRO_NONE)
+        WriteChatColor("The current macro has ended.",USERCOLOR_DEFAULT);
 }
 
 
@@ -696,26 +696,26 @@ VOID Call(PSPAWNINFO pChar, PCHAR szLine)
 
     // If not, find it and add.
     if (!pSubBlock) {
-      while (gMacroBlock->pPrev) gMacroBlock = gMacroBlock->pPrev;
-      while (gMacroBlock->pNext) {
-        if (!stricmp(gMacroBlock->Line,SubLine) || !strnicmp(gMacroBlock->Line,SubLineP,strlen(SubLineP))) {
-           pSubBlock = gMacroBlock;
-           break;
+        while (gMacroBlock->pPrev) gMacroBlock = gMacroBlock->pPrev;
+        while (gMacroBlock->pNext) {
+            if (!stricmp(gMacroBlock->Line,SubLine) || !strnicmp(gMacroBlock->Line,SubLineP,strlen(SubLineP))) {
+                pSubBlock = gMacroBlock;
+                break;
+            }
+            gMacroBlock = gMacroBlock->pNext;
         }
-        gMacroBlock = gMacroBlock->pNext;
-      }
-      if (!pSubBlock) {
-         gMacroBlock=pCallingPoint;
-         FatalError("Subroutine %s wasn't found",SubName);
-         return;
-      } else {
-         gMacroSubLookupMap[SubName] = pSubBlock;
-      }
+        if (!pSubBlock) {
+            gMacroBlock=pCallingPoint;
+            FatalError("Subroutine %s wasn't found",SubName);
+            return;
+        } else {
+            gMacroSubLookupMap[SubName] = pSubBlock;
+        }
     }
 
     // Prep to call the Sub
     gMacroBlock = pSubBlock;
-   
+
     DebugSpewNoFile("Call - Calling subroutine %s with params %s",SubName,SubParam);
     pStack = (PMACROSTACK)malloc(sizeof(MACROSTACK));
     pStack->Location = gMacroBlock;
@@ -725,22 +725,22 @@ VOID Call(PSPAWNINFO pChar, PCHAR szLine)
     pStack->pNext = gMacroStack;
     gMacroStack = pStack;
     if (SubParam) {
-       StackNum = 0;
-       while (SubParam[0]!=0) {
-          CHAR szParamName[MAX_STRING] = {0};
-          CHAR szParamType[MAX_STRING] = {0};
-          CHAR szNewValue[MAX_STRING]={0};
-          GetArg(szNewValue,SubParam,1);
+        StackNum = 0;
+        while (SubParam[0]!=0) {
+            CHAR szParamName[MAX_STRING] = {0};
+            CHAR szParamType[MAX_STRING] = {0};
+            CHAR szNewValue[MAX_STRING]={0};
+            GetArg(szNewValue,SubParam,1);
 
-          GetFuncParam(gMacroBlock->Line,StackNum,szParamName,szParamType);
-          MQ2Type *pType = FindMQ2DataType(szParamType);
-          if (!pType)
-             pType=pStringType;
+            GetFuncParam(gMacroBlock->Line,StackNum,szParamName,szParamType);
+            MQ2Type *pType = FindMQ2DataType(szParamType);
+            if (!pType)
+                pType=pStringType;
 
-          AddMQ2DataVariable(szParamName,"",pType,&gMacroStack->Parameters,szNewValue);
-          SubParam = GetNextArg(SubParam);
-          StackNum++;
-       }
+            AddMQ2DataVariable(szParamName,"",pType,&gMacroStack->Parameters,szNewValue);
+            SubParam = GetNextArg(SubParam);
+            StackNum++;
+        }
     }
     return;
 } 
@@ -769,7 +769,7 @@ VOID Call(PSPAWNINFO pChar, PCHAR szLine)
     GetArg(SubName,szLine,1);
     SubParam = GetNextArg(szLine);
 
-        sprintf(SubLine,"sub %s",SubName);
+    sprintf(SubLine,"sub %s",SubName);
     sprintf(SubLineP,"sub %s(",SubName);
     while (gMacroBlock->pNext) {
         if (!stricmp(gMacroBlock->Line,SubLine) || !strnicmp(gMacroBlock->Line,SubLineP,strlen(SubLineP))) {
@@ -781,32 +781,32 @@ VOID Call(PSPAWNINFO pChar, PCHAR szLine)
             pStack->LocalVariables = NULL;
             pStack->pNext = gMacroStack;
             gMacroStack = pStack;
-        if (SubParam) 
-		{
-            StackNum = 0;
-            while (SubParam[0]!=0) 
-			{
-				CHAR szParamName[MAX_STRING] = {0};
-				CHAR szParamType[MAX_STRING] = {0};
-				CHAR szNewValue[MAX_STRING]={0};
-				GetArg(szNewValue,SubParam,1);
+            if (SubParam) 
+            {
+                StackNum = 0;
+                while (SubParam[0]!=0) 
+                {
+                    CHAR szParamName[MAX_STRING] = {0};
+                    CHAR szParamType[MAX_STRING] = {0};
+                    CHAR szNewValue[MAX_STRING]={0};
+                    GetArg(szNewValue,SubParam,1);
 
 
-				GetFuncParam(gMacroBlock->Line,StackNum,szParamName,szParamType);
-				MQ2Type *pType = FindMQ2DataType(szParamType);
-				if (!pType)
-					pType=pStringType;
+                    GetFuncParam(gMacroBlock->Line,StackNum,szParamName,szParamType);
+                    MQ2Type *pType = FindMQ2DataType(szParamType);
+                    if (!pType)
+                        pType=pStringType;
 
-				AddMQ2DataVariable(szParamName,"",pType,&gMacroStack->Parameters,szNewValue);
-                SubParam = GetNextArg(SubParam);
-                StackNum++;
+                    AddMQ2DataVariable(szParamName,"",pType,&gMacroStack->Parameters,szNewValue);
+                    SubParam = GetNextArg(SubParam);
+                    StackNum++;
+                }
             }
+            return;
         }
-        return;
-    }
         gMacroBlock = gMacroBlock->pNext;
     }
-	gMacroBlock=pCallingPoint;
+    gMacroBlock=pCallingPoint;
     FatalError("Subroutine %s wasn't found",SubName);
 }
 /**/
@@ -815,10 +815,10 @@ VOID FailIf(PSPAWNINFO pChar, PCHAR szCommand, PMACROBLOCK pStartLine, BOOL All)
 {
     DWORD Scope = 0;
     if (szCommand[strlen(szCommand)-1]=='{') {
-		if (!gMacroBlock) {
-	        DebugSpewNoFile("FailIf - Macro was ended before we could handle the false if command");
-			return;
-		}
+        if (!gMacroBlock) {
+            DebugSpewNoFile("FailIf - Macro was ended before we could handle the false if command");
+            return;
+        }
         Scope++;
         gMacroBlock = gMacroBlock->pNext;
         while ((Scope>0)) {
@@ -827,13 +827,13 @@ VOID FailIf(PSPAWNINFO pChar, PCHAR szCommand, PMACROBLOCK pStartLine, BOOL All)
             if (Scope>0) {
                 if (!All) if (gMacroBlock->Line[strlen(gMacroBlock->Line)-1]=='{') Scope++;
                 if (!strnicmp(gMacroBlock->Line,"sub ",4)) {
-					gMacroBlock=pStartLine;
-					FatalError("{} pairing ran into anther subroutine");
+                    gMacroBlock=pStartLine;
+                    FatalError("{} pairing ran into anther subroutine");
                     return;
                 }
                 if (!gMacroBlock->pNext) {
-					gMacroBlock=pStartLine;
-					FatalError("Bad {} block pairing");
+                    gMacroBlock=pStartLine;
+                    FatalError("Bad {} block pairing");
                     return;
                 }
                 gMacroBlock = gMacroBlock->pNext;
@@ -842,7 +842,7 @@ VOID FailIf(PSPAWNINFO pChar, PCHAR szCommand, PMACROBLOCK pStartLine, BOOL All)
         if ((!All) && (!strnicmp(gMacroBlock->Line,"} else ",7))) {
             DoCommand(pChar,gMacroBlock->Line+7);
         } else if ((!All) && (!strnicmp(gMacroBlock->Line,"} else",6))) {
-		    FatalError("} else lacks command or {");
+            FatalError("} else lacks command or {");
             return;
         } else {
             bRunNextCommand = TRUE;
@@ -856,62 +856,62 @@ VOID NewIf(PSPAWNINFO pChar, PCHAR szLine)
 {
     CHAR szCond[MAX_STRING] = {0};
 
-	if (szLine[0]!='(')
-	{
-	    FatalError("Failed to parse /if command.  Expected () around conditions.");
-	    SyntaxError("Usage: /if (<conditions>) <command>");
+    if (szLine[0]!='(')
+    {
+        FatalError("Failed to parse /if command.  Expected () around conditions.");
+        SyntaxError("Usage: /if (<conditions>) <command>");
         return;
-	}
-	
-	PCHAR pEnd=&szLine[1];
-	DWORD nParens=1;
-	while(1)
-	{
-		if (*pEnd=='(')
-			nParens++;
-		else if (*pEnd==')')
-		{
-			nParens--;
-			if (nParens==0)
-			{
-				pEnd++;
-				if (*pEnd!=' ')
-				{
-					FatalError("Failed to parse /if command.  Could not find command to execute.");
-					SyntaxError("Usage: /if (<conditions>) <command>");
-					return;
-				}
-				break;
-			}
-		}
-		else if (*pEnd==0)
-		{
-			FatalError("Failed to parse /if command.  Could not find command to execute.");
-			SyntaxError("Usage: /if (<conditions>) <command>");
-			return;
-		}
-		++pEnd;
-	}
+    }
 
-	*pEnd=0;
-	strcpy(szCond,szLine);
-	*pEnd=' ';
-	++pEnd;
+    PCHAR pEnd=&szLine[1];
+    DWORD nParens=1;
+    while(1)
+    {
+        if (*pEnd=='(')
+            nParens++;
+        else if (*pEnd==')')
+        {
+            nParens--;
+            if (nParens==0)
+            {
+                pEnd++;
+                if (*pEnd!=' ')
+                {
+                    FatalError("Failed to parse /if command.  Could not find command to execute.");
+                    SyntaxError("Usage: /if (<conditions>) <command>");
+                    return;
+                }
+                break;
+            }
+        }
+        else if (*pEnd==0)
+        {
+            FatalError("Failed to parse /if command.  Could not find command to execute.");
+            SyntaxError("Usage: /if (<conditions>) <command>");
+            return;
+        }
+        ++pEnd;
+    }
 
-
-
-	DOUBLE Result=0;
-	if (!Calculate(szCond,Result))
-	{
-		FatalError("Failed to parse /if condition '%s', non-numeric encountered",szCond);
-		return;
-	}
+    *pEnd=0;
+    strcpy(szCond,szLine);
+    *pEnd=' ';
+    ++pEnd;
 
 
-	if (Result!=0)
-		DoCommand(pChar,pEnd); 
-	else 
-		FailIf(pChar,pEnd, gMacroBlock);
+
+    DOUBLE Result=0;
+    if (!Calculate(szCond,Result))
+    {
+        FatalError("Failed to parse /if condition '%s', non-numeric encountered",szCond);
+        return;
+    }
+
+
+    if (Result!=0)
+        DoCommand(pChar,pEnd); 
+    else 
+        FailIf(pChar,pEnd, gMacroBlock);
 }
 
 
@@ -925,83 +925,83 @@ VOID NewIf(PSPAWNINFO pChar, PCHAR szLine)
 VOID DoEvents(PSPAWNINFO pChar, PCHAR szLine)
 {
     if (!gEventQueue || !gMacroStack) 
-		return;
+        return;
 
-	CHAR Arg1[MAX_STRING]={0};
-	CHAR Arg2[MAX_STRING]={0};
+    CHAR Arg1[MAX_STRING]={0};
+    CHAR Arg2[MAX_STRING]={0};
 
-	GetArg(Arg1,szLine,1);
+    GetArg(Arg1,szLine,1);
 
-	if (!stricmp(Arg1,"flush"))
-	{
-		GetArg(Arg2,szLine,2);
-		if (Arg2[0])
-		{
-			sprintf(Arg1,"Sub Event_%s",Arg2);
-			PEVENTQUEUE pEvent=gEventQueue;
-			while (pEvent) 
-			{
-				if (
-                (pEvent->Type == EVENT_CHAT && !stricmp("Sub Event_Chat",Arg1)) ||
-                (pEvent->Type == EVENT_TIMER && !stricmp("Sub Event_Timer",Arg1)) ||
-                (pEvent->Type == EVENT_CUSTOM && !stricmp(pEvent->pEventList->szName,Arg1))
-				) 
-				{
-					PEVENTQUEUE pEventNext;
-					if (pEventNext = pEvent->pNext)
-						pEventNext->pPrev=pEvent->pPrev;
-					if (pEvent->pPrev)
-						pEvent->pPrev->pNext=pEvent->pNext;
-					else
-						gEventQueue=pEvent->pNext;
-					ClearMQ2DataVariables(&pEvent->Parameters);
-					free(pEvent);
-					pEvent=pEventNext;
-					continue;
-				}
-				pEvent = pEvent->pNext;
-			}
-		}
-		else
-		{
-			while (gEventQueue) 
-			{
-				PEVENTQUEUE pEventNext = gEventQueue->pNext;
-				ClearMQ2DataVariables(&gEventQueue->Parameters);
-				free(gEventQueue);
-				gEventQueue = pEventNext;
-			}
-		}
-		return;
-	}
-	PEVENTQUEUE pEvent=gEventQueue;
-	if (Arg1[0])
-	{
-		sprintf(Arg2,"Sub Event_%s",Arg1);
-		while(pEvent)
-		{
-			if (
-            (pEvent->Type == EVENT_CHAT && !stricmp("Sub Event_Chat",Arg2)) ||
-            (pEvent->Type == EVENT_TIMER && !stricmp("Sub Event_Timer",Arg2)) ||
-            (pEvent->Type == EVENT_CUSTOM && !stricmp(pEvent->pEventList->szName,Arg2))
-			) 
-			{
-				break;
-			}
-			pEvent=pEvent->pNext;
-		}
-		if (!pEvent)
-			return;// no event found
-	}
+    if (!stricmp(Arg1,"flush"))
+    {
+        GetArg(Arg2,szLine,2);
+        if (Arg2[0])
+        {
+            sprintf(Arg1,"Sub Event_%s",Arg2);
+            PEVENTQUEUE pEvent=gEventQueue;
+            while (pEvent) 
+            {
+                if (
+                    (pEvent->Type == EVENT_CHAT && !stricmp("Sub Event_Chat",Arg1)) ||
+                    (pEvent->Type == EVENT_TIMER && !stricmp("Sub Event_Timer",Arg1)) ||
+                    (pEvent->Type == EVENT_CUSTOM && !stricmp(pEvent->pEventList->szName,Arg1))
+                    ) 
+                {
+                    PEVENTQUEUE pEventNext;
+                    if (pEventNext = pEvent->pNext)
+                        pEventNext->pPrev=pEvent->pPrev;
+                    if (pEvent->pPrev)
+                        pEvent->pPrev->pNext=pEvent->pNext;
+                    else
+                        gEventQueue=pEvent->pNext;
+                    ClearMQ2DataVariables(&pEvent->Parameters);
+                    free(pEvent);
+                    pEvent=pEventNext;
+                    continue;
+                }
+                pEvent = pEvent->pNext;
+            }
+        }
+        else
+        {
+            while (gEventQueue) 
+            {
+                PEVENTQUEUE pEventNext = gEventQueue->pNext;
+                ClearMQ2DataVariables(&gEventQueue->Parameters);
+                free(gEventQueue);
+                gEventQueue = pEventNext;
+            }
+        }
+        return;
+    }
+    PEVENTQUEUE pEvent=gEventQueue;
+    if (Arg1[0])
+    {
+        sprintf(Arg2,"Sub Event_%s",Arg1);
+        while(pEvent)
+        {
+            if (
+                (pEvent->Type == EVENT_CHAT && !stricmp("Sub Event_Chat",Arg2)) ||
+                (pEvent->Type == EVENT_TIMER && !stricmp("Sub Event_Timer",Arg2)) ||
+                (pEvent->Type == EVENT_CUSTOM && !stricmp(pEvent->pEventList->szName,Arg2))
+                ) 
+            {
+                break;
+            }
+            pEvent=pEvent->pNext;
+        }
+        if (!pEvent)
+            return;// no event found
+    }
 
-	if (pEvent->pPrev)
-		pEvent->pPrev->pNext=pEvent->pNext;
-	else
-		gEventQueue=pEvent->pNext;
-	if (pEvent->pNext)
-		pEvent->pNext->pPrev=pEvent->pPrev;
+    if (pEvent->pPrev)
+        pEvent->pPrev->pNext=pEvent->pNext;
+    else
+        gEventQueue=pEvent->pNext;
+    if (pEvent->pNext)
+        pEvent->pNext->pPrev=pEvent->pPrev;
 
-	DebugSpewNoFile("DoEvents: Running event type %d (%s) = 0x%p",pEvent->Type,(pEvent->pEventList)?pEvent->pEventList->szName:"NONE",pEvent);
+    DebugSpewNoFile("DoEvents: Running event type %d (%s) = 0x%p",pEvent->Type,(pEvent->pEventList)?pEvent->pEventList->szName:"NONE",pEvent);
 
     PMACROSTACK pStack = (PMACROSTACK)malloc(sizeof(MACROSTACK));
 
@@ -1012,21 +1012,21 @@ VOID DoEvents(PSPAWNINFO pChar, PCHAR szLine)
     pStack->Location = gMacroBlock;
     pStack->Return[0] = 0;
     pStack->Parameters = pEvent->Parameters;
-	PDATAVAR pParam=pStack->Parameters;
-	while(pParam) // FIX THE HEAD ON EVERY VAR WE MOVED
-	{
-		pParam->ppHead=&pStack->Parameters;
-		pParam=pParam->pNext;
-	}
+    PDATAVAR pParam=pStack->Parameters;
+    while(pParam) // FIX THE HEAD ON EVERY VAR WE MOVED
+    {
+        pParam->ppHead=&pStack->Parameters;
+        pParam=pParam->pNext;
+    }
     pStack->LocalVariables = NULL;
     pStack->pNext = gMacroStack;
     gMacroStack = pStack;
     if (pEvent->Type == EVENT_CUSTOM) 
-	{
+    {
         gMacroBlock = pEvent->pEventList->pEventFunc;
     }
-	else 
-	{
+    else 
+    {
         gMacroBlock = gEventFunc[pEvent->Type];
     }
     DebugSpewNoFile("DoEvents - Called event: %s",gMacroBlock->Line);
@@ -1045,20 +1045,20 @@ VOID Return(PSPAWNINFO pChar, PCHAR szLine)
     bRunNextCommand = TRUE;
     PMACROSTACK pStack = gMacroStack;
     if (!gMacroBlock) 
-	{
+    {
         MacroError("Cannot return when a macro isn't running.");
         return;
     }
     if (!pStack->pNext) 
-	{
+    {
         // Top of stack (ie. returning from Sub Main)
         EndMacro(pChar,"");
         return;
     }
     if (pStack->LocalVariables) 
-		ClearMQ2DataVariables(&pStack->LocalVariables);
+        ClearMQ2DataVariables(&pStack->LocalVariables);
     if (pStack->Parameters) 
-		ClearMQ2DataVariables(&pStack->Parameters);
+        ClearMQ2DataVariables(&pStack->Parameters);
 
     strcpy(pStack->pNext->Return,szLine);
     gMacroBlock = pStack->pNext->Location;
@@ -1091,17 +1091,17 @@ VOID For(PSPAWNINFO pChar, PCHAR szLine)
     GetArg(ArgEnd,szLine,4);
     _strlwr(ArgDirection);
 
-	PDATAVAR pVar = FindMQ2DataVariable(ArgLoop);
-	if (!pVar)
-	{
+    PDATAVAR pVar = FindMQ2DataVariable(ArgLoop);
+    if (!pVar)
+    {
         FatalError("/for loop using invalid variable");
         return;
-	}
-	if (pVar->Var.Type!=pIntType)
-	{
+    }
+    if (pVar->Var.Type!=pIntType)
+    {
         FatalError("/for loops must use an int variable");
         return;
-	}
+    }
     if ((ArgStart[0] == 0) || (ArgDirection[0] == 0) || (ArgEnd[0] == 0) || ((strcmp(ArgDirection,"to")) && (strcmp(ArgDirection,"downto")))) {
         FatalError("Usage: /for <variable> <start> <to|downto> <end> [step x]");
         return;
@@ -1111,11 +1111,11 @@ VOID For(PSPAWNINFO pChar, PCHAR szLine)
         return;
     }
 
-	if (!pVar->Var.Type->FromString(pVar->Var.VarPtr,ArgStart))
-	{
+    if (!pVar->Var.Type->FromString(pVar->Var.VarPtr,ArgStart))
+    {
         FatalError("/for loop could not assign value '%s' to variable",ArgStart);
         return;
-	}
+    }
 
 }
 
@@ -1134,17 +1134,17 @@ VOID Next(PSPAWNINFO pChar, PCHAR szLine)
     LONG StepSize = 1;
     GetArg(szNext,szLine,1);
 
-	PDATAVAR pVar = FindMQ2DataVariable(szNext);
-	if (!pVar)
-	{
+    PDATAVAR pVar = FindMQ2DataVariable(szNext);
+    if (!pVar)
+    {
         FatalError("/next using invalid variable");
         return;
-	}
-	if (pVar->Var.Type!=pIntType)
-	{
+    }
+    if (pVar->Var.Type!=pIntType)
+    {
         FatalError("/for loops must use an int variable");
         return;
-	}
+    }
 
     if (!gMacroBlock) {
         MacroError("Can only use /next during a macro.");
@@ -1158,14 +1158,14 @@ VOID Next(PSPAWNINFO pChar, PCHAR szLine)
             return;
         }
         if (strnicmp(ForLine,"/for ",5)) {
-			pMacroLine = pMacroLine->pPrev;
+            pMacroLine = pMacroLine->pPrev;
             continue;
         }
         if (!strnicmp(ParseMacroParameter(pChar,ForLine),szComp,strlen(szComp))) {
-			if (!gMacroBlock) {
-				// PMP bailed on us, we need to exit...
-				return;
-			}
+            if (!gMacroBlock) {
+                // PMP bailed on us, we need to exit...
+                return;
+            }
             CHAR szTemp[MAX_STRING] = {0};
             DWORD VarNum = atoi(szLine+1);
             LONG Loop;
@@ -1175,29 +1175,29 @@ VOID Next(PSPAWNINFO pChar, PCHAR szLine)
                 if (pTemp[0]!=0) StepSize = atoi(pTemp);
             }
 
-			pVar = FindMQ2DataVariable(szNext);
-			if (!pVar)
-			{
-				FatalError("/next without badly matching /for");
-				return;
-			}
+            pVar = FindMQ2DataVariable(szNext);
+            if (!pVar)
+            {
+                FatalError("/next without badly matching /for");
+                return;
+            }
 
             if (strstr(_strlwr(strcpy(szTemp,ForLine)),"downto")) 
-			{
+            {
                 Loop = atoi(strstr(szTemp,"downto")+7);
-				DebugSpewNoFile("Next - End of loop %d downto %d", pVar->Var.Int, Loop);
-				pVar->Var.Int-=StepSize;
-				if (pVar->Var.Int >= Loop) 
-					gMacroBlock = pMacroLine;
+                DebugSpewNoFile("Next - End of loop %d downto %d", pVar->Var.Int, Loop);
+                pVar->Var.Int-=StepSize;
+                if (pVar->Var.Int >= Loop) 
+                    gMacroBlock = pMacroLine;
             } 
-			else 
-			{
+            else 
+            {
                 Loop = atoi(strstr(szTemp,"to")+3);
-				DebugSpewNoFile("Next - End of loop %d to %d", pVar->Var.Int, Loop);
-				pVar->Var.Int+=StepSize;
-				if (pVar->Var.Int <= Loop) 
-					gMacroBlock = pMacroLine;
-			}
+                DebugSpewNoFile("Next - End of loop %d to %d", pVar->Var.Int, Loop);
+                pVar->Var.Int+=StepSize;
+                if (pVar->Var.Int <= Loop) 
+                    gMacroBlock = pMacroLine;
+            }
             return;
         }
         pMacroLine = pMacroLine->pPrev;
@@ -1209,44 +1209,44 @@ VOID Next(PSPAWNINFO pChar, PCHAR szLine)
 
 PCHAR GetFuncParam(PCHAR szMacroLine, DWORD ParamNum, PCHAR szParamName, PCHAR szParamType)
 {
-	szParamName[0]=0;
-	szParamType[0]=0;
+    szParamName[0]=0;
+    szParamType[0]=0;
     if (strnicmp(szMacroLine,"sub ",4)) 
-		return NULL;
+        return NULL;
     PCHAR szSubParamNamePointer = szMacroLine+4;
     while ((szSubParamNamePointer[0]!='(') && (szSubParamNamePointer[0]!=0)) 
-	{
-		szSubParamNamePointer++;
-	}
-    if (szSubParamNamePointer[0]=='(') 
-		szSubParamNamePointer++;
-    if (szSubParamNamePointer[0]!=0) 
-	{
-		CHAR Temp[MAX_STRING]={0};
-        GetArg(Temp,szSubParamNamePointer,ParamNum+1,TRUE,TRUE,TRUE,',');
-		DebugSpew("GetFuncParam(%d): '%s'",ParamNum+1,Temp);
-        if (*Temp && Temp[strlen(Temp)-1]==')') 
-			Temp[strlen(Temp)-1]=0;
-		PCHAR pStart=&Temp[0];
-		while(*pStart==' ') 
-			++pStart;
-		if (pStart!=&Temp[0])
-			memmove(Temp,pStart,MAX_STRING-1);
-		if (PCHAR pSpace=strchr(Temp,' '))
-		{
-			*pSpace=0;
-			strcpy(szParamType,Temp);
-			strcpy(szParamName,&pSpace[1]);
-		}
-		else
-		{
-			strcpy(szParamName,Temp);
-		}
+    {
+        szSubParamNamePointer++;
     }
-	if (szParamType[0]==0)
-		strcpy(szParamType,"string");
+    if (szSubParamNamePointer[0]=='(') 
+        szSubParamNamePointer++;
+    if (szSubParamNamePointer[0]!=0) 
+    {
+        CHAR Temp[MAX_STRING]={0};
+        GetArg(Temp,szSubParamNamePointer,ParamNum+1,TRUE,TRUE,TRUE,',');
+        DebugSpew("GetFuncParam(%d): '%s'",ParamNum+1,Temp);
+        if (*Temp && Temp[strlen(Temp)-1]==')') 
+            Temp[strlen(Temp)-1]=0;
+        PCHAR pStart=&Temp[0];
+        while(*pStart==' ') 
+            ++pStart;
+        if (pStart!=&Temp[0])
+            memmove(Temp,pStart,MAX_STRING-1);
+        if (PCHAR pSpace=strchr(Temp,' '))
+        {
+            *pSpace=0;
+            strcpy(szParamType,Temp);
+            strcpy(szParamName,&pSpace[1]);
+        }
+        else
+        {
+            strcpy(szParamName,Temp);
+        }
+    }
+    if (szParamType[0]==0)
+        strcpy(szParamType,"string");
     if (szParamName[0]==0) 
-		sprintf(szParamName,"Param%d",ParamNum);
+        sprintf(szParamName,"Param%d",ParamNum);
     return szParamName;
 }
 

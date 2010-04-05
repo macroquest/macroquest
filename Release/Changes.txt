@@ -1,3 +1,6 @@
+29 December 2008 by dkaa
+- added params to the /exec command (thanks three-p-o)
+
 11 December 2008 by dkaa
 - fixed a bug in the pet window with BuffFadeETA
 - turned of macro error logging by default because it causes crashes if the log file is unwriteable

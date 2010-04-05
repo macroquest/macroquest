@@ -20,24 +20,24 @@ namespace EQData
 
 enum PlayerClass
 {
-	Unknown=								0,
-	Warrior=								1,
-	Cleric=								2,
-	Paladin=								3,
-	Ranger=								4,
-	Shadowknight=						5,
-	Druid=								6,
-	Monk=									7,
-	Bard=									8,
-	Rogue=								9,
-	Shaman=								10,
-	Necromancer=						11,
-	Wizard=								12,
-	Mage=									13,
-	Enchanter=							14,
-	Beastlord=							15,
-	Berserker=							16,
-	TotalClasses=						16,
+    Unknown=                            0,
+    Warrior=                            1,
+    Cleric=                             2,
+    Paladin=                            3,
+    Ranger=                             4,
+    Shadowknight=                       5,
+    Druid=                              6,
+    Monk=                               7,
+    Bard=                               8,
+    Rogue=                              9,
+    Shaman=                            10,
+    Necromancer=                       11,
+    Wizard=                            12,
+    Mage=                              13,
+    Enchanter=                         14,
+    Beastlord=                         15,
+    Berserker=                         16,
+    TotalClasses=                      16,
 };
 // class 20 through 35 are the NPC GMs (same class order as above)
 // class 41   Merchant
@@ -49,66 +49,66 @@ enum PlayerClass
 
 typedef struct _ClassInfo
 {
-	bool CanCast;
-	bool PureCaster;
-	bool PetClass;
-	bool DruidType;
-	bool NecroType;
-	bool ClericType;
-	bool ShamanType;
-	char RaidColorOrder;
-	PCHAR Name;
-	PCHAR ShortName;
+    bool CanCast;
+    bool PureCaster;
+    bool PetClass;
+    bool DruidType;
+    bool NecroType;
+    bool ClericType;
+    bool ShamanType;
+    char RaidColorOrder;
+    PCHAR Name;
+    PCHAR ShortName;
 } CLASSINFO, *PCLASSINFO;
 
 static _ClassInfo ClassInfo[]=
 {
-	{0,0,0,0,0,0,0,0,"",""},								//unk
-	{0,0,0,0,0,0,0,13,"Warrior","war"},					//war
-	{1,1,0,0,0,1,0,2,"Cleric","clr"},					//clr
-	{1,0,0,0,0,1,0,8,"Paladin","pal"},					//pal
-	{1,0,0,1,0,0,0,9,"Ranger","rng"},					//rng
-	{1,0,0,0,1,0,0,11,"Shadowknight","shd"},			//shd
-	{1,1,0,1,0,0,0,3,"Druid","dru"},						//dru
-	{0,0,0,0,0,0,0,6,"Monk","mnk"},						//mnk
-	{1,0,0,0,0,0,0,0,"Bard","brd"},						//brd
-	{0,0,0,0,0,0,0,10,"Rogue","rog"},					//rog
-	{1,1,1,0,0,0,1,12,"Shaman","shm"},					//shm
-	{1,1,1,0,1,0,0,7,"Necromancer","nec"},				//nec
-	{1,1,0,0,0,0,0,14,"Wizard","wiz"},					//wiz
-	{1,1,1,0,0,0,0,5,"Mage","mag"},						//mag
-	{1,1,0,0,0,0,0,4,"Enchanter","enc"},				//enc
-	{1,0,1,0,0,0,1,1,"Beastlord","bst"},				//bst
-	{0,0,0,0,0,0,0,15,"Berserker","ber"},				//ber
+    {0,0,0,0,0,0,0,0,"",""},                        //unk
+    {0,0,0,0,0,0,0,13,"Warrior","war"},             //war
+    {1,1,0,0,0,1,0,2,"Cleric","clr"},               //clr
+    {1,0,0,0,0,1,0,8,"Paladin","pal"},              //pal
+    {1,0,0,1,0,0,0,9,"Ranger","rng"},               //rng
+    {1,0,0,0,1,0,0,11,"Shadowknight","shd"},        //shd
+    {1,1,0,1,0,0,0,3,"Druid","dru"},                //dru
+    {0,0,0,0,0,0,0,6,"Monk","mnk"},                 //mnk
+    {1,0,0,0,0,0,0,0,"Bard","brd"},                 //brd
+    {0,0,0,0,0,0,0,10,"Rogue","rog"},               //rog
+    {1,1,1,0,0,0,1,12,"Shaman","shm"},              //shm
+    {1,1,1,0,1,0,0,7,"Necromancer","nec"},          //nec
+    {1,1,0,0,0,0,0,14,"Wizard","wiz"},              //wiz
+    {1,1,1,0,0,0,0,5,"Mage","mag"},                 //mag
+    {1,1,0,0,0,0,0,4,"Enchanter","enc"},            //enc
+    {1,0,1,0,0,0,1,1,"Beastlord","bst"},            //bst
+    {0,0,0,0,0,0,0,15,"Berserker","ber"},           //ber
 };
 
 enum GroupAbilityLevels { 
-   G_MarkNPC=									 0,			//0-3 
-   G_NPCHealth=								 1,			//0-1 
-   G_DelegateMA=								 3,			//0-1 
-   G_DelegateMarkNPC=						 4,			//0-1 
-   G_InspectBuffs=							 6,			//0-2 
-   G_SpellAwareness=							 8,			//0-1 
-   G_OffenseEnhancement=					 9,			//0-5 
-   G_ManaEnhancement=						 10,			//0-3 
-   G_HealthEnhancement=						 11,			//0-3 
-   G_HealthRegen=								 12,			//0-3 
-   G_FindPathtoPC=							 13,			//0-1 
-   G_HealthofTargetsTarget=				 14,			//0-1 
+   G_MarkNPC=                           0,          //0-3 
+   G_NPCHealth=                         1,          //0-1 
+   G_DelegateMA=                        3,          //0-1 
+   G_DelegateMarkNPC=                   4,          //0-1 
+   G_InspectBuffs=                      6,          //0-2 
+   G_SpellAwareness=                    8,          //0-1 
+   G_OffenseEnhancement=                9,          //0-5 
+   G_ManaEnhancement=                  10,          //0-3 
+   G_HealthEnhancement=                11,          //0-3 
+   G_HealthRegen=                      12,          //0-3 
+   G_FindPathtoPC=                     13,          //0-1 
+   G_HealthofTargetsTarget=            14,          //0-1 
 }; 
 
 enum RaidAbilityLevels { 
-   R_MarkNPC=									 0,			//0-3 
-   R_NPCHealth=								 1,			//0-1 
-   R_DelegateMA=								 3,			//0-3 
-   R_DelegateMarkNPC=						 4,			//0-4 
-   R_SpellAwareness=							 7,			//0-1 
-   R_OffenseEnhancement=					 8,			//0-5 
-   R_ManaEnhancement=						 9,			//0-3 
-   R_HealthEnhancement=						 10,			//0-3 
-   R_HealthRegen=								 11,			//0-3 
-   R_FindPathtoPC=							 12,			//0-1 
-   R_HealthofTargetsTarget=				 13,			//0-1 
+   R_MarkNPC=                           0,          //0-3 
+   R_NPCHealth=                         1,          //0-1 
+   R_DelegateMA=                        3,          //0-3 
+   R_DelegateMarkNPC=                   4,          //0-4 
+   R_SpellAwareness=                    7,          //0-1 
+   R_OffenseEnhancement=                8,          //0-5 
+   R_ManaEnhancement=                   9,          //0-3 
+   R_HealthEnhancement=                10,          //0-3 
+   R_HealthRegen=                      11,          //0-3 
+   R_FindPathtoPC=                     12,          //0-1 
+   R_HealthofTargetsTarget=            13,          //0-1 
 }; 
 
 #define BI_TARGETABLE                   1
@@ -118,15 +118,15 @@ enum RaidAbilityLevels {
 
 typedef struct _BodyInfo
 {
-	PCHAR Name;
-	DWORD Flags;
+    PCHAR Name;
+    DWORD Flags;
 } BODYINFO, *PBODYINFO;
 
 #define SPAWN_PLAYER                    0
 #define SPAWN_NPC                       1
 #define SPAWN_CORPSE                    2
-//#define SPAWN_ANY                     3
-//#define SPAWN_PET                     4
+//#define SPAWN_ANY                       3
+//#define SPAWN_PET                       4
 
 #define ITEM_NORMAL1                    0x0031
 #define ITEM_NORMAL2                    0x0036
@@ -270,99 +270,99 @@ typedef struct _BodyInfo
 #define USERCOLOR_NPC_SPEECH_TO_YOU     0xFF +  89 //  89 - npc dialogue to you
 #define USERCOLOR_GUILD_MSG             0xFF +  90 //  90 - guild messages
 
-#define DEITY_Bertoxxulous					 201
-#define DEITY_BrellSerilis					 202
-#define DEITY_CazicThule					 203
-#define DEITY_ErollisiMarr					 204
-#define DEITY_Bristlebane					 205
-#define DEITY_Innoruuk						 206
-#define DEITY_Karana							 207
-#define DEITY_MithanielMarr				 208
-#define DEITY_Prexus							 209
-#define DEITY_Quellious						 210
-#define DEITY_RallosZek						 211
-#define DEITY_RodcetNife					 212
-#define DEITY_SolusekRo						 213
-#define DEITY_TheTribunal					 214
-#define DEITY_Tunare							 215
-#define DEITY_Veeshan						 216
+#define DEITY_Bertoxxulous              201
+#define DEITY_BrellSerilis              202
+#define DEITY_CazicThule                203
+#define DEITY_ErollisiMarr              204
+#define DEITY_Bristlebane               205
+#define DEITY_Innoruuk                  206
+#define DEITY_Karana                    207
+#define DEITY_MithanielMarr             208
+#define DEITY_Prexus                    209
+#define DEITY_Quellious                 210
+#define DEITY_RallosZek                 211
+#define DEITY_RodcetNife                212
+#define DEITY_SolusekRo                 213
+#define DEITY_TheTribunal               214
+#define DEITY_Tunare                    215
+#define DEITY_Veeshan                   216
 
-#define ITEMTYPE_NORMAL						 0
-#define ITEMTYPE_PACK						 1
-#define ITEMTYPE_BOOK						 2
+#define ITEMTYPE_NORMAL                 0
+#define ITEMTYPE_PACK                   1
+#define ITEMTYPE_BOOK                   2
 
-#define COMP_NONE								 0
-#define COMP_EQ								 1
-#define COMP_NE								 2
-#define COMP_GT								 3
-#define COMP_LT								 4
-#define COMP_GE								 5
-#define COMP_LE								 6
-#define COMP_CONT								 7
-#define COMP_NOTCONT							 8
-#define COMP_BITAND							 9
-#define COMP_BITOR							 10
+#define COMP_NONE                       0
+#define COMP_EQ                         1
+#define COMP_NE                         2
+#define COMP_GT                         3
+#define COMP_LT                         4
+#define COMP_GE                         5
+#define COMP_LE                         6
+#define COMP_CONT                       7
+#define COMP_NOTCONT                    8
+#define COMP_BITAND                     9
+#define COMP_BITOR                      10
 
-#define COMP_TYPE_STRING					 0
-#define COMP_TYPE_NUMERIC					 1
-#define COMP_TYPE_BIT						 2
+#define COMP_TYPE_STRING                0
+#define COMP_TYPE_NUMERIC               1
+#define COMP_TYPE_BIT                   2
 
-#define CMD_MQ									 1
-#define CMD_EQ									 2		
+#define CMD_MQ                          1
+#define CMD_EQ                          2        
 
-#define LASTFIND_NOTFOUND					 96
-#define LASTFIND_PRIMARY					 97
+#define LASTFIND_NOTFOUND               96
+#define LASTFIND_PRIMARY                97
 
-#define EVENT_CHAT							 0
-#define EVENT_TIMER							 1
-#define EVENT_CUSTOM							 2
-#define EVENT_EVAL							 3
-#define EVENT_EXEC							 4
-#define EVENT_PULSE							 5
-#define EVENT_SHUTDOWN						 6
-#define EVENT_BREAK							 7
-#define NUM_EVENTS							 8
+#define EVENT_CHAT                      0
+#define EVENT_TIMER                     1
+#define EVENT_CUSTOM                    2
+#define EVENT_EVAL                      3
+#define EVENT_EXEC                      4
+#define EVENT_PULSE                     5
+#define EVENT_SHUTDOWN                  6
+#define EVENT_BREAK                     7
+#define NUM_EVENTS                      8
 
-#define CHAT_SAY								 1
-#define CHAT_TELL								 2
-#define CHAT_OOC								 4
-#define CHAT_SHOUT							 8
-#define CHAT_AUC								 16
-#define CHAT_GUILD							 32
-#define CHAT_GROUP							 64
-#define CHAT_CHAT								 128
-#define CHATEVENT(x)							 (gEventChat & x)
+#define CHAT_SAY                        1
+#define CHAT_TELL                       2
+#define CHAT_OOC                        4
+#define CHAT_SHOUT                      8
+#define CHAT_AUC                        16
+#define CHAT_GUILD                      32
+#define CHAT_GROUP                      64
+#define CHAT_CHAT                       128
+#define CHATEVENT(x)                    (gEventChat & x)
 
-#define FILTERSKILL_ALL						 0
-#define FILTERSKILL_INCREASE				 1
-#define FILTERSKILL_NONE					 2
+#define FILTERSKILL_ALL                 0
+#define FILTERSKILL_INCREASE            1
+#define FILTERSKILL_NONE                2
 
-#define FILTERMACRO_ALL						 0
-#define FILTERMACRO_ENHANCED				 1
-#define FILTERMACRO_NONE					 2
+#define FILTERMACRO_ALL                 0
+#define FILTERMACRO_ENHANCED            1
+#define FILTERMACRO_NONE                2
 
 
-#define MAX_STRING							 2048
-#define MAX_VARNAME							 64
+#define MAX_STRING                      2048
+#define MAX_VARNAME                     64
 
 // Defines for CXWnd WindowStyle
-#define CWS_VSCROLL							 0x1
-#define CWS_HSCROLL							 0x2
-#define CWS_TITLE								 0x4
-#define CWS_CLOSE								 0x8
-//#define CWS_UNKNOWN						 0x10
-#define CWS_MINIMIZE							 0x20
-#define CWS_BORDER							 0x40
-//#define CWS_UNKNOWN						 0x80
-//#define CWS_UNKNOWN						 0x100
-#define CWS_RESIZEALL						 0x200
-#define CWS_TRANSPARENT						 0x400
-//#define CWS_UNKNOWN						 0x800
-#define CWS_NOMOVE							 0x8000
-#define CWS_UNKNOWN							 0x40000
-#define ToggleBit(field,bit)				 field^=bit;
-#define BitOn(field,bit)					 field|=bit;
-#define BitOff(field,bit)					 field&=~bit;
+#define CWS_VSCROLL                     0x1
+#define CWS_HSCROLL                     0x2
+#define CWS_TITLE                       0x4
+#define CWS_CLOSE                       0x8
+//#define CWS_UNKNOWN                     0x10
+#define CWS_MINIMIZE                    0x20
+#define CWS_BORDER                      0x40
+//#define CWS_UNKNOWN                     0x80
+//#define CWS_UNKNOWN                     0x100
+#define CWS_RESIZEALL                   0x200
+#define CWS_TRANSPARENT                 0x400
+//#define CWS_UNKNOWN                     0x800
+#define CWS_NOMOVE                      0x8000
+#define CWS_UNKNOWN                     0x40000
+#define ToggleBit(field,bit)            field^=bit;
+#define BitOn(field,bit)                field|=bit;
+#define BitOff(field,bit)               field&=~bit;
 // End CXWnd WindowStyle Defines
 
 #define ALTCURRENCY_DOUBLOONS           0xa
@@ -378,7 +378,7 @@ enum MOUSE_DATA_TYPES {
    MD_Button1
 };
 
-#define nEQMappableCommands				 0x121
+#define nEQMappableCommands             0x121
 
 #define MAX_PC_LEVEL                    85
 #define NUM_SPELL_GEMS                  10
@@ -389,14 +389,14 @@ enum MOUSE_DATA_TYPES {
 // ***************************************************************************
 
 typedef struct _MOUSESPOOF {
-   MOUSE_DATA_TYPES		mdType;
-   DWORD						dwData;
-   struct _MOUSESPOOF	*pNext;
+   MOUSE_DATA_TYPES     mdType;
+   DWORD                dwData;
+   struct _MOUSESPOOF   *pNext;
 } MOUSESPOOF, *PMOUSESPOOF;
 
 typedef struct _MOUSECLICK {
-   BYTE ConfirmLeftClick;// DO NOT WRITE TO THIS BYTE
-   BYTE ConfirmRightClick;// DO NOT WRITE TO THIS BYTE
+   BYTE ConfirmLeftClick;   // DO NOT WRITE TO THIS BYTE
+   BYTE ConfirmRightClick;  // DO NOT WRITE TO THIS BYTE
    BYTE RightClick;
    BYTE LeftClick;
 } MOUSECLICK, *PMOUSECLICK;
@@ -414,13 +414,13 @@ typedef struct _CXSTR {
 /*0x00*/   DWORD   Font;            // maybe, dont know.  04 = Window 01 = button
 /*0x04*/   DWORD   MaxLength;
 /*0x08*/   DWORD   Length;
-/*0x0c*/   BOOL    Encoding; // 0: ASCII, 1:Unicode
+/*0x0c*/   BOOL    Encoding;        // 0: ASCII, 1:Unicode
 /*0x10*/   PCRITICAL_SECTION pLock;
-/*0x14*/   CHAR    Text[1]; // Stub, can be anywhere from Length to MaxLength (which is how much is malloc'd to this CXStr)
+/*0x14*/   CHAR    Text[1];         // Stub, can be anywhere from Length to MaxLength (which is how much is malloc'd to this CXStr)
 } CXSTR, *PCXSTR;
 
-#define ITEM_NAME_LEN         0x40
-#define LORE_NAME_LEN         0x70
+#define ITEM_NAME_LEN                   0x40
+#define LORE_NAME_LEN                   0x70
 
 // size is 0x64 02-16-2007
 typedef struct _ITEMSPELLS { 
@@ -637,9 +637,9 @@ typedef struct _CONTENTS {
 typedef struct _SPELLBUFF {
 /*0x00*/    BYTE      Unknown0x00;
 /*0x01*/    BYTE      Level;
-/*0x02*/    CHAR      Modifier; // bard song modifier, divide by 10 to get 2.8 etc
+/*0x02*/    CHAR      Modifier;      // bard song modifier, divide by 10 to get 2.8 etc
 /*0x03*/    CHAR      DamageShield;  // maybe.. I've noticed this is -1 on a lot of ds's.
-/*0x04*/    LONG      SpellID;// -1 or 0 for no spell..
+/*0x04*/    LONG      SpellID;       // -1 or 0 for no spell..
 /*0x08*/    DWORD     Duration;
 /*0x0c*/    DWORD     DamageAbsorbRemaining;  // Melee or Spellshield type, also buff counters
 /*0x10*/    DWORD     Unknown0x10;
@@ -649,51 +649,51 @@ typedef struct _SPELLBUFF {
 
 // 12-23-2003   TheColonel
 typedef struct _INVENTORY { 
-/*0x00*/  struct	_CONTENTS* Charm; 
-/*0x04*/  struct	_CONTENTS* LeftEar; 
-/*0x08*/  struct	_CONTENTS* Head; 
-/*0x0c*/  struct	_CONTENTS* Face; 
-/*0x10*/  struct	_CONTENTS* RightEar; 
-/*0x14*/  struct	_CONTENTS* Neck; 
-/*0x18*/  struct	_CONTENTS* Shoulders; 
-/*0x1c*/  struct	_CONTENTS* Arms; 
-/*0x20*/  struct	_CONTENTS* Back; 
-/*0x24*/  struct	_CONTENTS* LeftWrist; 
-/*0x28*/  struct	_CONTENTS* RightWrist; 
-/*0x2c*/  struct	_CONTENTS* Range; 
-/*0x30*/  struct	_CONTENTS* Hands; 
-/*0x34*/  struct	_CONTENTS* Primary; 
-/*0x38*/  struct	_CONTENTS* Secondary; 
-/*0x3c*/  struct	_CONTENTS* LeftFinger; 
-/*0x40*/  struct	_CONTENTS* RightFinger; 
-/*0x44*/  struct	_CONTENTS* Chest; 
-/*0x48*/  struct	_CONTENTS* Legs; 
-/*0x4c*/  struct	_CONTENTS* Feet; 
-/*0x50*/  struct	_CONTENTS* Waist; 
-/*0x54*/  struct	_CONTENTS* PowerSource; 
-/*0x58*/  struct	_CONTENTS* Ammo; 
-/*0x5c*/  struct	_CONTENTS* Pack[0x8]; 
+/*0x00*/  struct    _CONTENTS* Charm; 
+/*0x04*/  struct    _CONTENTS* LeftEar; 
+/*0x08*/  struct    _CONTENTS* Head; 
+/*0x0c*/  struct    _CONTENTS* Face; 
+/*0x10*/  struct    _CONTENTS* RightEar; 
+/*0x14*/  struct    _CONTENTS* Neck; 
+/*0x18*/  struct    _CONTENTS* Shoulders; 
+/*0x1c*/  struct    _CONTENTS* Arms; 
+/*0x20*/  struct    _CONTENTS* Back; 
+/*0x24*/  struct    _CONTENTS* LeftWrist; 
+/*0x28*/  struct    _CONTENTS* RightWrist; 
+/*0x2c*/  struct    _CONTENTS* Range; 
+/*0x30*/  struct    _CONTENTS* Hands; 
+/*0x34*/  struct    _CONTENTS* Primary; 
+/*0x38*/  struct    _CONTENTS* Secondary; 
+/*0x3c*/  struct    _CONTENTS* LeftFinger; 
+/*0x40*/  struct    _CONTENTS* RightFinger; 
+/*0x44*/  struct    _CONTENTS* Chest; 
+/*0x48*/  struct    _CONTENTS* Legs; 
+/*0x4c*/  struct    _CONTENTS* Feet; 
+/*0x50*/  struct    _CONTENTS* Waist; 
+/*0x54*/  struct    _CONTENTS* PowerSource; 
+/*0x58*/  struct    _CONTENTS* Ammo; 
+/*0x5c*/  struct    _CONTENTS* Pack[0x8]; 
 } INVENTORY, *PINVENTORY; 
 
-#define NUM_ALT_ABILITIES_ARRAY   0x1F7						
-#define NUM_ALT_ABILITIES   0x270f
+#define NUM_ALT_ABILITIES_ARRAY         0x1F7                        
+#define NUM_ALT_ABILITIES               0x270f
 
 //these two will merge when i get a chance
-#define AA_CHAR_MAX         0xF5
-#define AA_CHAR_MAX_REAL    0x12C
+#define AA_CHAR_MAX                     0xF5
+#define AA_CHAR_MAX_REAL                0x12C
 
 typedef struct _AALIST { 
-/*0x0*/   DWORD		AAIndex;
-/*0x4*/   DWORD		PointsSpent;
-/*0x8*/   DWORD		ChargeSpent;        // charges spent in the last 10 min?
+/*0x0*/   DWORD        AAIndex;
+/*0x4*/   DWORD        PointsSpent;
+/*0x8*/   DWORD        ChargeSpent;        // charges spent in the last 10 min?
 } AALIST, *PAALIST;
 
-#define      NUM_INV_SLOTS          0x1f
-#define      NUM_BANK_SLOTS         0x1a
-#define      NUM_BOOK_SLOTS         0x200
-#define      NUM_COMBAT_ABILITIES   0x64
-#define      BAG_SLOT_START         23
-#define ExactLocation		 0
+#define      NUM_INV_SLOTS              0x1f
+#define      NUM_BANK_SLOTS             0x1a
+#define      NUM_BOOK_SLOTS             0x200
+#define      NUM_COMBAT_ABILITIES       0x64
+#define      BAG_SLOT_START             23
+#define ExactLocation                   0
 
 typedef struct _LEADERABILITIES {
 /*0x00*/ DWORD MarkNPC;
@@ -751,7 +751,7 @@ typedef struct _GROUPMEMBER {
 /*0x17*/ BYTE   MainAssist;
 /*0x18*/ BYTE   Puller;
 /*0x19*/ BYTE   Unknown0x19[0x3];
-/*0x1c*/ DWORD  Roles; // (Roles & 1) = MainTank, 2 = MainAssist, 4 = Puller
+/*0x1c*/ DWORD  Roles;          // (Roles & 1) = MainTank, 2 = MainAssist, 4 = Puller
 /*0x20*/ BYTE   Unknown0x20[0x8];
 /*0x28*/ struct _SPAWNINFO *pSpawn;
 /*0x2c*/
@@ -1023,29 +1023,29 @@ typedef struct _CAMERAINFO {
 } CAMERAINFO, *PCAMERAINFO;
 
 
-#define MODEL_LABEL         0 
-#define MODEL_LABELINFO     1
-#define MODEL_NULL2         2
-#define MODEL_HELD_R        3
-#define MODEL_HELD_L        4
-#define MODEL_SHIELD        5
-#define MODEL_NULL6         6
+#define MODEL_LABEL                     0 
+#define MODEL_LABELINFO                 1
+#define MODEL_NULL2                     2
+#define MODEL_HELD_R                    3
+#define MODEL_HELD_L                    4
+#define MODEL_SHIELD                    5
+#define MODEL_NULL6                     6
 
 /*
 //Work in progress...
-#define MODEL_HEAD			0x00
-#define MODEL_HEAD_POINT	0x01
-#define MODEL_NULL_1		0x02
-#define MODEL_HELD_R		0x03
-#define MODEL_HELD_L		0x04
-#define MODEL_SHIELD		0x05
-#define MODEL_NULL_2		0x06
-#define MODEL_TUNIC			0x07
-#define MODEL_HAIR			0x08
-#define MODEL_BEARD			0x09
-#define MODEL_CHEST			0x0a
-#define MODEL_GLOVES		0x0b
-#define MODEL_GLOVES2		0b0c
+#define MODEL_HEAD                      0x00
+#define MODEL_HEAD_POINT                0x01
+#define MODEL_NULL_1                    0x02
+#define MODEL_HELD_R                    0x03
+#define MODEL_HELD_L                    0x04
+#define MODEL_SHIELD                    0x05
+#define MODEL_NULL_2                    0x06
+#define MODEL_TUNIC                     0x07
+#define MODEL_HAIR                      0x08
+#define MODEL_BEARD                     0x09
+#define MODEL_CHEST                     0x0a
+#define MODEL_GLOVES                    0x0b
+#define MODEL_GLOVES2                   0b0c
 */
 
 typedef struct _ARGBCOLOR {
@@ -1312,20 +1312,20 @@ typedef struct _SPAWNINFO {
 /*0x1c04*/
 } SPAWNINFO, *PSPAWNINFO;
 
-#define STANDSTATE_STAND            0x64
-#define STANDSTATE_CASTING          0x66
-#define STANDSTATE_BIND             0x69
-#define STANDSTATE_SIT              0x6E
-#define STANDSTATE_DUCK             0x6F
-#define STANDSTATE_FEIGN            0x73
-#define STANDSTATE_DEAD             0x78
+#define STANDSTATE_STAND                0x64
+#define STANDSTATE_CASTING              0x66
+#define STANDSTATE_BIND                 0x69
+#define STANDSTATE_SIT                  0x6E
+#define STANDSTATE_DUCK                 0x6F
+#define STANDSTATE_FEIGN                0x73
+#define STANDSTATE_DEAD                 0x78
 
-#define MONITOR_SPAWN_X             1
-#define MONITOR_SPAWN_Y             2
-#define MONITOR_SPAWN_Z             4
-#define MONITOR_SPAWN_HEADING       8
-#define MONITOR_SPAWN_SPEEDRUN      16
-#define MONITOR_SPAWN_HPCURRENT     32
+#define MONITOR_SPAWN_X                 1
+#define MONITOR_SPAWN_Y                 2
+#define MONITOR_SPAWN_Z                 4
+#define MONITOR_SPAWN_HEADING           8
+#define MONITOR_SPAWN_SPEEDRUN          16
+#define MONITOR_SPAWN_HPCURRENT         32
 
 typedef struct _SPAWNMONITORINFO {
     WORD SpawnID;
@@ -1376,24 +1376,24 @@ void *gethashedentry(struct _HASHTABLE  *table, DWORD key)
 #endif
 
 typedef struct _EQSWITCH {
-/*0x00*/	DWORD		Unknown0x0[0x2];
-/*0x08*/	DWORD		UnknownData0x08;
-/*0x0c*/	DWORD		UnknownData0x0c;
-/*0x10*/	DWORD		Unknown0x10[0x2];
-/*0x18*/	DWORD		UnknownData0x18;
-/*0x1c*/	DWORD		Unknown0x1c;
-/*0x20*/	DWORD		UnknownData0x20;
-/*0x24*/	DWORD		Unknown0x24;
-/*0x28*/	FLOAT		Y;
-/*0x2c*/	FLOAT		X;
-/*0x30*/	FLOAT		Z;
-/*0x34*/	BYTE		Unknown0x34[0x74]; //A lot of data here.
-/*0xa8*/	FLOAT		Y2;
-/*0xac*/	FLOAT		X2;
-/*0xb0*/	FLOAT		Z2;
-/*0xb4*/	DWORD		Unknown0xa4;
-/*0xb8*/	FLOAT		Heading;
-/*0xbc		Data Continues... */
+/*0x00*/    DWORD        Unknown0x0[0x2];
+/*0x08*/    DWORD        UnknownData0x08;
+/*0x0c*/    DWORD        UnknownData0x0c;
+/*0x10*/    DWORD        Unknown0x10[0x2];
+/*0x18*/    DWORD        UnknownData0x18;
+/*0x1c*/    DWORD        Unknown0x1c;
+/*0x20*/    DWORD        UnknownData0x20;
+/*0x24*/    DWORD        Unknown0x24;
+/*0x28*/    FLOAT        Y;
+/*0x2c*/    FLOAT        X;
+/*0x30*/    FLOAT        Z;
+/*0x34*/    BYTE        Unknown0x34[0x74]; //A lot of data here.
+/*0xa8*/    FLOAT        Y2;
+/*0xac*/    FLOAT        X2;
+/*0xb0*/    FLOAT        Z2;
+/*0xb4*/    DWORD        Unknown0xa4;
+/*0xb8*/    FLOAT        Heading;
+/*0xbc        Data Continues... */
 } EQSWITCH, *PEQSWITCH;
 
 typedef struct _DOOR { 
@@ -1444,7 +1444,7 @@ typedef struct _GROUNDITEM {
 /*0x68*/
 } GROUNDITEM, *PGROUNDITEM;
 
-#define   MAX_ZONES                                    0x3e8
+#define   MAX_ZONES                     0x3e8
 extern    PCHAR szZoneExpansionName[];     //defined in LibEQ_Utilities.cpp
 
 typedef struct _ZONELIST { 
@@ -1511,8 +1511,8 @@ typedef struct _ZONEINFO {
 /*0x2a4*/
 } ZONEINFO, *PZONEINFO;
 
-#define   TOTAL_SPELL_COUNT				0x5208      // # of spells allocated in memory (10/14/2008)
-#define   TOTAL_ACTUAL_SPELLS			   0x1964      // # of ACTUAL spells in game      (9/14/2004)
+#define   TOTAL_SPELL_COUNT             0x5208      // # of spells allocated in memory (10/14/2008)
+#define   TOTAL_ACTUAL_SPELLS           0x1964      // # of ACTUAL spells in game      (9/14/2004)
 
 // size: 0x17770 08-07-06          
 typedef struct _SPELLMGR {
@@ -1661,22 +1661,22 @@ typedef struct _GUILDMEMBER {
 /*0x274*/
 } GUILDMEMBER, *PGUILDMEMBER;
 
-#define MAX_GUILDS			0x5DC
+#define MAX_GUILDS                      0x5DC
 typedef struct _GUILDS {
-/*0x0000*/ PVOID		pOneEntryVTable;
-/*0x0004*/ BYTE		UnknownByte0x0005;
-/*0x0005*/ BYTE		Unknown0x0005[0x3f];
-/*0x0044*/ DWORD		UnknownValue0x0044;
-/*0x0048*/ struct    _GUILDMEMBER *pMember;
-/*0x004c*/ CHAR		GuildName[MAX_GUILDS][0x40];
-/*0x804c*/ BYTE		UnknownByteArray0x804c[0x200];
-/*0x824c*/ BYTE		UnknownByteArray0x824c[0x40];
+/*0x0000*/ PVOID       pOneEntryVTable;
+/*0x0004*/ BYTE        UnknownByte0x0005;
+/*0x0005*/ BYTE        Unknown0x0005[0x3f];
+/*0x0044*/ DWORD       UnknownValue0x0044;
+/*0x0048*/ struct      _GUILDMEMBER *pMember;
+/*0x004c*/ CHAR        GuildName[MAX_GUILDS][0x40];
+/*0x804c*/ BYTE        UnknownByteArray0x804c[0x200];
+/*0x824c*/ BYTE        UnknownByteArray0x824c[0x40];
 /*0x828c*/
 } GUILDS, *PGUILDS;
 
 typedef struct _INTERACTGROUNDITEM {
-	DWORD DropID;
-	DWORD SpawnID;
+    DWORD DropID;
+    DWORD SpawnID;
 } INTERACTGROUNDITEM, *PINTERACTGROUNDITEM;
 
 typedef struct _SPELLFAVORITE {
@@ -1731,10 +1731,10 @@ union {
 /*0x38*/ BYTE  Unknown0x38[0x8]; 
 /*0x40*/ DWORD ReuseTimer;               // in seconds
 /*0x44*/ DWORD Classes;                  // Classes/2 is the actual value we want.
-/*0x48*/ DWORD MaxRank;					     //If you have not spent points in this 
-union {						                 //If you have not spent points in this 
-/*0x4c*/ DWORD PointsSpent;		        //ability, then its PointsToBeSpent (or 
-/*0x4c*/ DWORD PointsToBeSpent;	        //'Cost', in other words).
+/*0x48*/ DWORD MaxRank;                         //If you have not spent points in this 
+union {                                         //If you have not spent points in this 
+/*0x4c*/ DWORD PointsSpent;                //ability, then its PointsToBeSpent (or 
+/*0x4c*/ DWORD PointsToBeSpent;            //'Cost', in other words).
 }; 
 /*0x50*/ DWORD AAIndex;                  // -1 if not available
 /*0x54*/ DWORD UseAAIndex;
@@ -1744,7 +1744,7 @@ union {						                 //If you have not spent points in this
 /*0x58*/ BYTE  Unknown0x58;
 /*0x59*/ BYTE  Unknown0x59[0x18];
 } ALTABILITY, *PALTABILITY;
-#define zWarp				 0
+#define zWarp                 0
 
 typedef struct _ALTABILITIESLISTMGR {
 /*0x00*/ struct _ALTABILITY* Ability;
@@ -1788,11 +1788,11 @@ typedef struct _EQRAIDMEMBER {
 
 // sizeof(_EQRAID) is 0x5ab8 (8-11-2004)
 typedef struct _EQRAID { 
-/*0x0000*/  BYTE  		Unknown0x0[0x154];
-/*0x0154*/  CHAR  		RaidMemberUsed[0x48];
-/*0x019c*/  struct		_EQRAIDMEMBER RaidMember[0x48];
-/*0x505c*/  DWORD 		field_505c;
-/*0x5060*/  DWORD 		RaidMemberCount;
+/*0x0000*/  BYTE        Unknown0x0[0x154];
+/*0x0154*/  CHAR        RaidMemberUsed[0x48];
+/*0x019c*/  struct      _EQRAIDMEMBER RaidMember[0x48];
+/*0x505c*/  DWORD       field_505c;
+/*0x5060*/  DWORD       RaidMemberCount;
 /*0x5064*/  CHAR        RaidLeaderName[0x140];
 /*0x51a4*/  CHAR        RaidMOTD[0x400];
 /*0x55a4*/  BYTE        Unknown0x55a4[0x40];
@@ -1821,8 +1821,8 @@ typedef struct _EQGROUP {
 
 // size 0x08
 typedef struct _EQSTRING {
-/*0x00*/	DWORD ID;
-/*0x04*/	PCHAR String;
+/*0x00*/    DWORD ID;
+/*0x04*/    PCHAR String;
 } EQSTRING, *PEQSTRING;
 
 // size 0x10 4-28-2004 lax
@@ -1940,8 +1940,8 @@ typedef struct _INTERACTSWITCH {
 } INTERACTSWITCH, *PINTERACTSWITCH;
 
 
-#define EQ_BEGIN_ZONE           0x6eff  // CEverQuest__SavePCForce+45F     12-11-2008 
-#define EQ_END_ZONE             0x6759  // CEverQuest__DoMainLoop+B01      12-11-2008 
-#define EQ_LoadingS__ArraySize  0x45    // EQ_LoadingS__SetProgressBar+7C  12-11-2008
+#define EQ_BEGIN_ZONE                   0x6eff  // CEverQuest__SavePCForce+45F     12-11-2008 
+#define EQ_END_ZONE                     0x6759  // CEverQuest__DoMainLoop+B01      12-11-2008 
+#define EQ_LoadingS__ArraySize          0x45    // EQ_LoadingS__SetProgressBar+7C  12-11-2008
 };
 using namespace EQData;

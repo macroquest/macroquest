@@ -14,30 +14,30 @@ PreSetup("MQ2EQBugFix");
 class CDisplay_Hook
 {
 public:
-   int is_3dON_Trampoline();   
-   int is_3dON_Detour()
-   {
-      if(!this)
-      {
-			DebugSpew("MQ2EQBugFix::Crash avoided!");
-         return 0;
-      }
-      return is_3dON_Trampoline();
-   }
+    int is_3dON_Trampoline();   
+    int is_3dON_Detour()
+    {
+        if(!this)
+        {
+            DebugSpew("MQ2EQBugFix::Crash avoided!");
+            return 0;
+        }
+        return is_3dON_Trampoline();
+    }
 };
 
 DETOUR_TRAMPOLINE_EMPTY(int CDisplay_Hook::is_3dON_Trampoline());
 
 PLUGIN_API VOID InitializePlugin(VOID)
 {
-   DebugSpewAlways("Initializing MQ2EQBugFix");
+    DebugSpewAlways("Initializing MQ2EQBugFix");
 
-   EzDetour(CDisplay__is3dON, &CDisplay_Hook::is_3dON_Detour, &CDisplay_Hook::is_3dON_Trampoline);
+    EzDetour(CDisplay__is3dON, &CDisplay_Hook::is_3dON_Detour, &CDisplay_Hook::is_3dON_Trampoline);
 }
 
 PLUGIN_API VOID ShutdownPlugin(VOID)
 {
-   DebugSpewAlways("Shutting down MQ2EQBugFix");
+    DebugSpewAlways("Shutting down MQ2EQBugFix");
 
-   RemoveDetour(CDisplay__is3dON);
+    RemoveDetour(CDisplay__is3dON);
 }

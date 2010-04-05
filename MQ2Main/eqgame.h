@@ -63,6 +63,7 @@
 #define __LMouseHeldTime                                           0xA60430
 #define __Mouse                                                    0xAD6C40
 #define __MouseLook                                                0xA603DE
+#define __MouseEventTime                                           0xAC12A0
 #define __NetStatusToggle                                          0xA603E1
 #define __PCNames                                                  0xA61A50
 #define __RangeAttackReady                                         0xA616F8

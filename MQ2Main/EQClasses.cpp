@@ -23,31 +23,31 @@
 
 enum UIType CXWnd::GetType()
 {
-	if (CXMLData *pXMLData=GetXMLData())
-		return pXMLData->Type;
-	return UI_Unknown;
+    if (CXMLData *pXMLData=GetXMLData())
+    return pXMLData->Type;
+    return UI_Unknown;
 }
 
 enum UIType CSidlScreenWnd::GetType()
 {
-	if (CXMLData *pXMLData=GetXMLData())
-		return pXMLData->Type;
-	return UI_Unknown;
+    if (CXMLData *pXMLData=GetXMLData())
+    return pXMLData->Type;
+    return UI_Unknown;
 }
 
 class CXMLData * CXWnd::GetXMLData()
 {
-	if (XMLIndex)
-		return ((CXMLDataManager*)&((PCSIDLMGR)pSidlMgr)->pXMLDataMgr)->GetXMLData(XMLIndex>>16,XMLIndex&0xFFFF);
-	//DebugSpew("CXWnd::GetXMLData()=0");
-	return 0;
+    if (XMLIndex)
+        return ((CXMLDataManager*)&((PCSIDLMGR)pSidlMgr)->pXMLDataMgr)->GetXMLData(XMLIndex>>16,XMLIndex&0xFFFF);
+    //DebugSpew("CXWnd::GetXMLData()=0");
+    return 0;
 }
 class CXMLData * CSidlScreenWnd::GetXMLData()
 {
-	if (XMLIndex)
-		return ((CXMLDataManager*)&((PCSIDLMGR)pSidlMgr)->pXMLDataMgr)->GetXMLData(XMLIndex>>16,XMLIndex&0xFFFF);
-	//DebugSpew("CSidlScreenWnd::GetXMLData()=0");
-	return 0;
+    if (XMLIndex)
+        return ((CXMLDataManager*)&((PCSIDLMGR)pSidlMgr)->pXMLDataMgr)->GetXMLData(XMLIndex>>16,XMLIndex&0xFFFF);
+    //DebugSpew("CSidlScreenWnd::GetXMLData()=0");
+    return 0;
 }
 
 // fuck -- if you try to use the native GetChildItem, then
@@ -64,7 +64,7 @@ class CXWnd *RecurseAndFindName(class CXWnd *pWnd, PCHAR Name)
         if (GetCXStr(pXMLData->Name.Ptr,Buffer,MAX_STRING) && !stricmp(Buffer,Name)) {
             return pWnd;
         }
-//DebugSpew("RecurseAndFindName looking for %s but found %s", Name, Buffer);
+        //DebugSpew("RecurseAndFindName looking for %s but found %s", Name, Buffer);
         if (GetCXStr(pXMLData->ScreenID.Ptr,Buffer,MAX_STRING) && !stricmp(Buffer,Name)) {
             return pWnd;
         }

@@ -38,7 +38,7 @@ struct _BazaarSearchRequestPacket
     /* 0x60 */  int     BSRPriceH;      // price ceiling, default 0  -1c
     /* 0x64 */  int     BSRLevelL;      // level low,  default 1     -18
     /* 0x68 */  int     BSRLevelH;      // level high, default 70    -14
-/* 0x6c */
+    /* 0x6c */
 };
 
 // size is 0xa0 4/17/08
@@ -55,7 +55,7 @@ struct _BazaarSearchResponsePacket
     /* 0x58 */   char    BSSName[0x40];  // correct 9/16
     /* 0x98 */   int     BSSPrice;       // correct 9/16
     /* 0x9c */   int     BSSValue;       // correct 9/16
-/* 0xa0 */
+    /* 0xa0 */
 };
 
 struct _classes
@@ -154,7 +154,7 @@ slots[] =
     "arms", 7,
     "back", 8,
     "charm", 0,
-    "chest", 17,                                  // not 11
+    "chest", 17,                         // not 11
     "ear", 1,
     "face", 3,
     "feet", 19,
@@ -233,40 +233,40 @@ BOOL dataBazaar(PCHAR szName, MQ2TYPEVAR &Ret);
 // instanstiate this class, so we don't need constructors.
 class BzSrchHook
 {
-    public:
-        void BzTrampoline(char *itemarray,int count);
+public:
+    void BzTrampoline(char *itemarray,int count);
 
-// count is byte count
-// msg must be 7 on the first item or it is not
-// an item list but a request to resort the list
-        void BzDetour(char *itemarray,int count) {
-            struct _BazaarSearchResponsePacket *ptr = (struct _BazaarSearchResponsePacket *) itemarray;
+    // count is byte count
+    // msg must be 7 on the first item or it is not
+    // an item list but a request to resort the list
+    void BzDetour(char *itemarray,int count) {
+        struct _BazaarSearchResponsePacket *ptr = (struct _BazaarSearchResponsePacket *) itemarray;
 
-            DebugSpewAlways("count = %d\n", count);
+        DebugSpewAlways("count = %d\n", count);
 
-// future: copy these to a list that we keep here for so that
-// they may be retrieved with a $bazaar parm
-            if (ptr->BSSmsg == 7) {
+        // future: copy these to a list that we keep here for so that
+        // they may be retrieved with a $bazaar parm
+        if (ptr->BSSmsg == 7) {
 #if 0
-                for(int i=0;(i<5) && (i<(int)(count/sizeof(struct _BazaarSearchResponsePacket)));i++, ptr++)
-                    DebugSpewAlways("item %d: %s msg %d n %d, itemid %d, value %d", i,
-                        ptr->BSSName,
-                        ptr->BSSmsg,
-                        ptr->BSSQuantity,
-                        ptr->BSSItemID,
-                        ptr->BSSValue);
+            for(int i=0;(i<5) && (i<(int)(count/sizeof(struct _BazaarSearchResponsePacket)));i++, ptr++)
+                DebugSpewAlways("item %d: %s msg %d n %d, itemid %d, value %d", i,
+                ptr->BSSName,
+                ptr->BSSmsg,
+                ptr->BSSQuantity,
+                ptr->BSSItemID,
+                ptr->BSSValue);
 #endif
-                BzCount = count/sizeof(struct _BazaarSearchResponsePacket);
-                memcpy(BzArray, ptr, count);
-            }
-            else {
-// this is an end of list packet but there is only 200
-// suppored now, it comes in one packet.
-                BzDone = TRUE;
-            }
+            BzCount = count/sizeof(struct _BazaarSearchResponsePacket);
+            memcpy(BzArray, ptr, count);
+        }
+        else {
+            // this is an end of list packet but there is only 200
+            // suppored now, it comes in one packet.
+            BzDone = TRUE;
+        }
 
-            BzTrampoline(itemarray, count);
-        };
+        BzTrampoline(itemarray, count);
+    };
 };
 
 DETOUR_TRAMPOLINE_EMPTY(VOID BzSrchHook::BzTrampoline(char *,int));
@@ -276,210 +276,210 @@ class MQ2BazaarItemType *pBazaarItemType=0;
 
 class MQ2BazaarItemType : public MQ2Type
 {
-    public:
-        enum BazaarItemMembers
-        {
-            Price=1,
-            Quantity=2,
-            ItemID=3,
-            Trader=4,
-            Value=5,
-            Name=6,
-            U1=7,
-            U2=8,
-        };
+public:
+    enum BazaarItemMembers
+    {
+        Price=1,
+        Quantity=2,
+        ItemID=3,
+        Trader=4,
+        Value=5,
+        Name=6,
+        U1=7,
+        U2=8,
+    };
 
-        MQ2BazaarItemType():MQ2Type("bazaaritem") {
-            TypeMember(Price);
-            TypeMember(Quantity);
-            TypeMember(ItemID);
-            TypeMember(Trader);
-            TypeMember(Value);
-            TypeMember(Name);
-            TypeMember(U1);
-            TypeMember(U2);
-        }
-        ~MQ2BazaarItemType() {
-        }
+    MQ2BazaarItemType():MQ2Type("bazaaritem") {
+        TypeMember(Price);
+        TypeMember(Quantity);
+        TypeMember(ItemID);
+        TypeMember(Trader);
+        TypeMember(Value);
+        TypeMember(Name);
+        TypeMember(U1);
+        TypeMember(U2);
+    }
+    ~MQ2BazaarItemType() {
+    }
 
-        bool GetMember(MQ2VARPTR VarPtr, PCHAR Member, PCHAR Index, MQ2TYPEVAR &Dest) {
-            if (!VarPtr.Ptr)
-                return false;
+    bool GetMember(MQ2VARPTR VarPtr, PCHAR Member, PCHAR Index, MQ2TYPEVAR &Dest) {
+        if (!VarPtr.Ptr)
+            return false;
 #define pBzrItem ((_BazaarSearchResponsePacket*)VarPtr.Ptr)
-            PMQ2TYPEMEMBER pMember=MQ2BazaarItemType::FindMember(Member);
-            if (!pMember)
-                return false;
-            switch((BazaarItemMembers)pMember->ID) {
-                case Price:
-                    Dest.DWord=pBzrItem->BSSPrice;
-                    Dest.Type=pIntType;
-                    return true;
-                case Quantity:
-                    Dest.DWord=pBzrItem->BSSQuantity;
-                    Dest.Type=pIntType;
-                    return true;
-                case ItemID:
-                    Dest.DWord=pBzrItem->BSSItemID;
-                    Dest.Type=pIntType;
-                    return true;
-                case Trader:
-                    if (Dest.Ptr=GetSpawnByID(pBzrItem->BSSTraderID)) {
-                        Dest.Type=pSpawnType;
-                        return true;
-                    }
-                    return false;
-                case Value:
-                    Dest.DWord=pBzrItem->BSSValue;
-                    Dest.Type=pIntType;
-                    return true;
-                case U1:
-                    Dest.DWord=pBzrItem->BSSUnknown10;
-                    Dest.Type=pIntType;
-                    return true;
-                case U2:
-                    Dest.DWord=pBzrItem->BSSUnknown14;
-                    Dest.Type=pIntType;
-                    return true;
-                case Name:
-                    strcpy(DataTypeTemp, &pBzrItem->BSSName[0]);
-                    if (PCHAR ptr = strrchr(DataTypeTemp,'('))
-                        *ptr = '\0';
-                    Dest.Ptr=&DataTypeTemp[0];
-                    Dest.Type=pStringType;
-                    return true;
-            }
-
+        PMQ2TYPEMEMBER pMember=MQ2BazaarItemType::FindMember(Member);
+        if (!pMember)
             return false;
+        switch((BazaarItemMembers)pMember->ID) {
+case Price:
+    Dest.DWord=pBzrItem->BSSPrice;
+    Dest.Type=pIntType;
+    return true;
+case Quantity:
+    Dest.DWord=pBzrItem->BSSQuantity;
+    Dest.Type=pIntType;
+    return true;
+case ItemID:
+    Dest.DWord=pBzrItem->BSSItemID;
+    Dest.Type=pIntType;
+    return true;
+case Trader:
+    if (Dest.Ptr=GetSpawnByID(pBzrItem->BSSTraderID)) {
+        Dest.Type=pSpawnType;
+        return true;
+    }
+    return false;
+case Value:
+    Dest.DWord=pBzrItem->BSSValue;
+    Dest.Type=pIntType;
+    return true;
+case U1:
+    Dest.DWord=pBzrItem->BSSUnknown10;
+    Dest.Type=pIntType;
+    return true;
+case U2:
+    Dest.DWord=pBzrItem->BSSUnknown14;
+    Dest.Type=pIntType;
+    return true;
+case Name:
+    strcpy(DataTypeTemp, &pBzrItem->BSSName[0]);
+    if (PCHAR ptr = strrchr(DataTypeTemp,'('))
+        *ptr = '\0';
+    Dest.Ptr=&DataTypeTemp[0];
+    Dest.Type=pStringType;
+    return true;
+        }
+
+        return false;
 #undef pBzrItem
-        }
+    }
 
-        bool ToString(MQ2VARPTR VarPtr, PCHAR Destination) {
-            if (!VarPtr.Ptr)
-                return false;
-            strcpy(Destination,((_BazaarSearchResponsePacket*)VarPtr.Ptr)->BSSName);
-            if (PCHAR ptr = strrchr(Destination,'('))
-                *ptr = '\0';
-            return true;
-        }
-        void InitVariable(MQ2VARPTR &VarPtr) {
-            VarPtr.Ptr=malloc(sizeof(_BazaarSearchResponsePacket));
-            ZeroMemory(VarPtr.Ptr,sizeof(_BazaarSearchResponsePacket));
-        }
-        void FreeVariable(MQ2VARPTR &VarPtr) {
-            free(VarPtr.Ptr);
-        }
-
-        bool FromData(MQ2VARPTR &VarPtr, MQ2TYPEVAR &Source) {
-            if (Source.Type!=pBazaarItemType)
-                return false;
-            memcpy(VarPtr.Ptr,Source.Ptr,sizeof(_BazaarSearchResponsePacket));
-            return true;
-        }
-        bool FromString(MQ2VARPTR &VarPtr, PCHAR Source) {
+    bool ToString(MQ2VARPTR VarPtr, PCHAR Destination) {
+        if (!VarPtr.Ptr)
             return false;
-        }
+        strcpy(Destination,((_BazaarSearchResponsePacket*)VarPtr.Ptr)->BSSName);
+        if (PCHAR ptr = strrchr(Destination,'('))
+            *ptr = '\0';
+        return true;
+    }
+    void InitVariable(MQ2VARPTR &VarPtr) {
+        VarPtr.Ptr=malloc(sizeof(_BazaarSearchResponsePacket));
+        ZeroMemory(VarPtr.Ptr,sizeof(_BazaarSearchResponsePacket));
+    }
+    void FreeVariable(MQ2VARPTR &VarPtr) {
+        free(VarPtr.Ptr);
+    }
+
+    bool FromData(MQ2VARPTR &VarPtr, MQ2TYPEVAR &Source) {
+        if (Source.Type!=pBazaarItemType)
+            return false;
+        memcpy(VarPtr.Ptr,Source.Ptr,sizeof(_BazaarSearchResponsePacket));
+        return true;
+    }
+    bool FromString(MQ2VARPTR &VarPtr, PCHAR Source) {
+        return false;
+    }
 };
 
 class MQ2BazaarType : public MQ2Type
 {
-    public:
-        enum BazaarMembers
-        {
-            Count=1,
-            Done=2,
-            Item=3,
-            Pricecheckdone=4,
-            Pricecheck=5
-        };
+public:
+    enum BazaarMembers
+    {
+        Count=1,
+        Done=2,
+        Item=3,
+        Pricecheckdone=4,
+        Pricecheck=5
+    };
 
-        MQ2BazaarType():MQ2Type("bazaar") {
-            TypeMember(Count);
-            TypeMember(Done);
-            TypeMember(Item);
-            TypeMember(Pricecheckdone);
-            TypeMember(Pricecheck);
-        }
-        ~MQ2BazaarType() {
-        }
+    MQ2BazaarType():MQ2Type("bazaar") {
+        TypeMember(Count);
+        TypeMember(Done);
+        TypeMember(Item);
+        TypeMember(Pricecheckdone);
+        TypeMember(Pricecheck);
+    }
+    ~MQ2BazaarType() {
+    }
 
-        bool GetMember(MQ2VARPTR VarPtr, PCHAR Member, PCHAR Index, MQ2TYPEVAR &Dest) {
-            unsigned int isnumber = 1;
-            PMQ2TYPEMEMBER pMember=MQ2BazaarType::FindMember(Member);
-            if (!pMember)
-                return false;
-            switch((BazaarMembers)pMember->ID) {
-                case Count:
-                    Dest.DWord=BzCount;
-                    Dest.Type=pIntType;
-                    return true;
-                case Done:
-                    Dest.DWord=BzDone;
-                    Dest.Type=pBoolType;
-                    return true;
-                case Item:
-                    unsigned int i;
-                    if (Index[0]) {
-                        // check if the index is an array index
-                        // or an item name
-                        for (i=0;i<strlen(Index);i++) {
-                            if (!isdigit(Index[i])) {
-                                isnumber = 0;
-                                break;
-                            }
-                        }
-
-                        if (isnumber) {
-                            unsigned long N=atoi(Index);
-                            if (!N) 
-                                return false;
-                            N--;
-                            if (N>BzCount)
-                                return false;
-                            Dest.Ptr=&BzArray[N];
-                            Dest.Type=pBazaarItemType;
-                            return true;
-                        }
-                        else {
-                            for(i=0;i<BzCount;i++) {
-                                int len = strrchr(&BzArray[i].BSSName[0],'(') - &BzArray[i].BSSName[0];
-                                if (!strncmp(Index, &BzArray[i].BSSName[0], len)) {
-                                    Dest.Ptr=&BzArray[i];
-                                    Dest.Type=pBazaarItemType;
-                                    return true;
-                                }
-                            }
-                        }
-                    }
-                    return false;
-                case Pricecheckdone:
-                    if (pg_Item && pg_Item->ItemNumber)
-                        Dest.DWord=1;
-                    else
-                        Dest.DWord=0;
-                    Dest.Type=pBoolType;
-                    return true;
-                case Pricecheck:
-                    Dest.DWord=pg_Item->Cost;
-                    Dest.Type=pIntType;
-                    return true;
-            }
+    bool GetMember(MQ2VARPTR VarPtr, PCHAR Member, PCHAR Index, MQ2TYPEVAR &Dest) {
+        unsigned int isnumber = 1;
+        PMQ2TYPEMEMBER pMember=MQ2BazaarType::FindMember(Member);
+        if (!pMember)
             return false;
+        switch((BazaarMembers)pMember->ID) {
+case Count:
+    Dest.DWord=BzCount;
+    Dest.Type=pIntType;
+    return true;
+case Done:
+    Dest.DWord=BzDone;
+    Dest.Type=pBoolType;
+    return true;
+case Item:
+    unsigned int i;
+    if (Index[0]) {
+        // check if the index is an array index
+        // or an item name
+        for (i=0;i<strlen(Index);i++) {
+            if (!isdigit(Index[i])) {
+                isnumber = 0;
+                break;
+            }
         }
 
-        bool ToString(MQ2VARPTR VarPtr, PCHAR Destination) {
-            if (BzDone)
-                strcpy(Destination,"TRUE");
-            else
-                strcpy(Destination,"FALSE");
+        if (isnumber) {
+            unsigned long N=atoi(Index);
+            if (!N) 
+                return false;
+            N--;
+            if (N>BzCount)
+                return false;
+            Dest.Ptr=&BzArray[N];
+            Dest.Type=pBazaarItemType;
             return true;
         }
+        else {
+            for(i=0;i<BzCount;i++) {
+                int len = strrchr(&BzArray[i].BSSName[0],'(') - &BzArray[i].BSSName[0];
+                if (!strncmp(Index, &BzArray[i].BSSName[0], len)) {
+                    Dest.Ptr=&BzArray[i];
+                    Dest.Type=pBazaarItemType;
+                    return true;
+                }
+            }
+        }
+    }
+    return false;
+case Pricecheckdone:
+    if (pg_Item && pg_Item->ItemNumber)
+        Dest.DWord=1;
+    else
+        Dest.DWord=0;
+    Dest.Type=pBoolType;
+    return true;
+case Pricecheck:
+    Dest.DWord=pg_Item->Cost;
+    Dest.Type=pIntType;
+    return true;
+        }
+        return false;
+    }
 
-        bool FromData(MQ2VARPTR &VarPtr, MQ2TYPEVAR &Source) {
-            return false;
-        }
-        bool FromString(MQ2VARPTR &VarPtr, PCHAR Source) {
-            return false;
-        }
+    bool ToString(MQ2VARPTR VarPtr, PCHAR Destination) {
+        if (BzDone)
+            strcpy(Destination,"TRUE");
+        else
+            strcpy(Destination,"FALSE");
+        return true;
+    }
+
+    bool FromData(MQ2VARPTR &VarPtr, MQ2TYPEVAR &Source) {
+        return false;
+    }
+    bool FromString(MQ2VARPTR &VarPtr, PCHAR Source) {
+        return false;
+    }
 };
 
 // Called once, when the plugin is to initialize
@@ -497,14 +497,14 @@ PLUGIN_API VOID InitializePlugin(VOID)
     }
     FreeLibrary(h);
 
-// Add commands, macro parameters, hooks, etc.
+    // Add commands, macro parameters, hooks, etc.
     AddCommand("/bzsrch",BzSrchMe);
     AddCommand("/breset",BzSrchMe);
     AddCommand("/mq2bzsrch",MQ2BzSrch);
     //AddCommand("/pricecheck",bzpc);
     AddMQ2Data("Bazaar",dataBazaar);              // cc - added, but not using TLO yet
 
-//   EasyClassDetour(CBazaarSearchWnd__HandleBazaarMsg,BzSrchHook,BzDetour,void,(char*,int),BzTrampoline);
+    //   EasyClassDetour(CBazaarSearchWnd__HandleBazaarMsg,BzSrchHook,BzDetour,void,(char*,int),BzTrampoline);
     EzDetour(CBazaarSearchWnd__HandleBazaarMsg,&BzSrchHook::BzDetour,&BzSrchHook::BzTrampoline);
 
     pBazaarType = new MQ2BazaarType;
@@ -517,7 +517,7 @@ PLUGIN_API VOID ShutdownPlugin(VOID)
 {
     DebugSpewAlways("Shutting down MQ2Bzsrch");
 
-// Remove commands, macro parameters, hooks, etc.
+    // Remove commands, macro parameters, hooks, etc.
     RemoveDetour(CBazaarSearchWnd__HandleBazaarMsg);
     RemoveMQ2Data("Bazaar");
     //RemoveCommand("/pricecheck");
@@ -561,7 +561,7 @@ VOID bzpc(PSPAWNINFO pChar, PCHAR szLine)
         /* 0x00 */ int id;
         /* 0x04 */ int flags;
         /* 0x08 */ char name[0x40];
-/* 0x48 */
+        /* 0x48 */
     } pc;
 
     return;
@@ -576,7 +576,7 @@ VOID bzpc(PSPAWNINFO pChar, PCHAR szLine)
         *ptr = '\0';
     if (pg_Item) memset(pg_Item, 0, sizeof(ITEMINFO));
     DebugSpewAlways("id = %d, name = %s\n", pc.id, pc.name);
-// this opcode is in CProgSelWnd__WndNotification
+    // this opcode is in CProgSelWnd__WndNotification
     //SendEQMessage(EQ_BAZAARSEARCHCREATE, &pc, sizeof(pc));
 }
 
@@ -589,20 +589,20 @@ VOID BzSrchMe(PSPAWNINFO pChar, PCHAR szLine)
     BOOL bArg = TRUE;
     int i, first = 1;
 
-// don't do anything but reset the count and the done flag
+    // don't do anything but reset the count and the done flag
 
     BzCount = 0;
     BzDone = 0;
 
     return;
 
-// clear out the old list or the new entries will be
-// added to them
-// this offset is in doQuery and SortItemList
+    // clear out the old list or the new entries will be
+    // added to them
+    // this offset is in doQuery and SortItemList
     class CListWnd *ptr = *(class CListWnd **) ((char *)pBazaarSearchWnd+0x3d08);
     ptr->DeleteAll();
 
-// default to current race and class
+    // default to current race and class
     bsrp.BSRCommand = 7;
     bsrp.BSRTraderID = 0;
     bsrp.BSRClass = GetCharInfo2()->Class;
@@ -774,7 +774,7 @@ VOID BzSrchMe(PSPAWNINFO pChar, PCHAR szLine)
     //SendEQMessage(EQ_BAZAARSEARCHME, &bsrp, sizeof(bsrp));
     return;
 
-    error_out:
+error_out:
     return;
 }
 

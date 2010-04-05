@@ -1,15 +1,15 @@
 /*****************************************************************************
-    MQ2Main.dll: MacroQuest2's extension DLL for EverQuest
-    Copyright (C) 2002-2003 Plazmic, 2003-2005 Lax
+MQ2Main.dll: MacroQuest2's extension DLL for EverQuest
+Copyright (C) 2002-2003 Plazmic, 2003-2005 Lax
 
-    This program is free software; you can redistribute it and/or modify
-    it under the terms of the GNU General Public License, version 2, as published by
-    the Free Software Foundation.
+This program is free software; you can redistribute it and/or modify
+it under the terms of the GNU General Public License, version 2, as published by
+the Free Software Foundation.
 
-    This program is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
 ******************************************************************************/
 
 #define VersionString "September 23, 2004"
@@ -125,46 +125,46 @@ extern DWORD CountFrees;
 #ifndef ISXEQ
 #define FUNCTION_AT_ADDRESS(function,offset) __declspec(naked) function\
 {\
-	__asm{mov eax, offset};\
-	__asm{jmp eax};\
+    __asm{mov eax, offset};\
+    __asm{jmp eax};\
 }
 
 #define FUNCTION_AT_VARIABLE_ADDRESS(function,variable) __declspec(naked) function\
 {\
-	__asm{mov eax, [variable]};\
-	__asm{jmp eax};\
+    __asm{mov eax, [variable]};\
+    __asm{jmp eax};\
 }
 
 #define FUNCTION_AT_VIRTUAL_ADDRESS(function,virtualoffset) __declspec(naked) function\
 {\
-	__asm{mov eax, [ecx]};\
-	__asm{lea eax, [eax+virtualoffset]};\
-	__asm{mov eax, [eax]};\
-	__asm{jmp eax};\
+    __asm{mov eax, [ecx]};\
+    __asm{lea eax, [eax+virtualoffset]};\
+    __asm{mov eax, [eax]};\
+    __asm{jmp eax};\
 }
 #endif
 
 #define PreserveRegisters(code) \
 {\
-	__asm {push eax};\
-	__asm {push ebx};\
-	__asm {push ecx};\
-	__asm {push edx};\
-	__asm {push esi};\
-	__asm {push edi};\
-	code;\
-	__asm {pop edi};\
-	__asm {pop esi};\
-	__asm {pop edx};\
-	__asm {pop ecx};\
-	__asm {pop ebx};\
-	__asm {pop eax};\
+    __asm {push eax};\
+    __asm {push ebx};\
+    __asm {push ecx};\
+    __asm {push edx};\
+    __asm {push esi};\
+    __asm {push edi};\
+    code;\
+    __asm {pop edi};\
+    __asm {pop esi};\
+    __asm {pop edx};\
+    __asm {pop ecx};\
+    __asm {pop ebx};\
+    __asm {pop eax};\
 }
 
 #define SetWndNotification(thisclass) \
 {\
-	int (thisclass::*pfWndNotification)(CXWnd *pWnd, unsigned int Message, void *unknown)=&thisclass::WndNotification;\
-	SetvfTable(33,*(DWORD*)&pfWndNotification);\
+    int (thisclass::*pfWndNotification)(CXWnd *pWnd, unsigned int Message, void *unknown)=&thisclass::WndNotification;\
+    SetvfTable(33,*(DWORD*)&pfWndNotification);\
 }
 
 #ifndef ISXEQ
@@ -327,7 +327,7 @@ LEGACY_API VOID TimedCommand(PCHAR Command, DWORD msDelay);
 /* MACRO COMMANDS */
 LEGACY_API VOID DumpStack                           (PSPAWNINFO,PCHAR);
 LEGACY_API VOID EndMacro                            (PSPAWNINFO,PCHAR);
-LEGACY_API VOID Echo									(PSPAWNINFO,PCHAR);
+LEGACY_API VOID Echo                                (PSPAWNINFO,PCHAR);
 
 
 /* MACRO PARSING */
@@ -538,7 +538,7 @@ extern VOID SuperWhoDisplay(PSPAWNINFO pSpawn, DWORD Color);
 
 EQLIB_API VOID        OverwriteTable          (DWORD Address);
 #ifndef ISXEQ
-LEGACY_API DWORD       Include                 (PCHAR szFile);
+LEGACY_API DWORD      Include                 (PCHAR szFile);
 #endif
 EQLIB_API PCHAR       GetFullZone             (DWORD ZoneID);
 EQLIB_API DWORD       GetZoneID               (PCHAR ZoneShortName);
@@ -551,7 +551,7 @@ EQLIB_API PCHAR       CleanupName             (PCHAR szName, BOOL Article = TRUE
 EQLIB_API FLOAT       DistanceToSpawn3D       (PSPAWNINFO pChar, PSPAWNINFO pSpawn);
 EQLIB_API FLOAT       EstimatedDistanceToSpawn(PSPAWNINFO pChar, PSPAWNINFO pSpawn);
 #ifndef ISXEQ
-LEGACY_API PMACROBLOCK AddMacroLine            (PCHAR szLine);
+LEGACY_API PMACROBLOCK AddMacroLine           (PCHAR szLine);
 #endif
 EQLIB_API VOID        FreeAlertList           (PALERTLIST pAlertList);
 EQLIB_API DWORD WINAPI InsertCommands         (LPVOID lpParameter);
@@ -559,11 +559,11 @@ EQLIB_API VOID        UpdateMonitoredSpawns   (VOID);
 EQLIB_API PCHAR       GetModel                (PSPAWNINFO pSpawn, DWORD Slot);
 //EQLIB_API PSPAWNINFO  GetPet                  (DWORD OwnerID);
 //EQLIB_API BOOL        IfCompare               (PCHAR szCond);
-EQLIB_API bool		    PlayerHasAAAbility	  (DWORD AAIndex);
-EQLIB_API PCHAR       GetAANameByIndex		  (DWORD AAIndex);
-EQLIB_API DWORD       GetAAIndexByName		  (PCHAR AAName);
-EQLIB_API DWORD		 GetAAIndexByID		  (DWORD ID);
-EQLIB_API DWORD       GetSkillIDFromName    (PCHAR name);
+EQLIB_API bool        PlayerHasAAAbility      (DWORD AAIndex);
+EQLIB_API PCHAR       GetAANameByIndex        (DWORD AAIndex);
+EQLIB_API DWORD       GetAAIndexByName        (PCHAR AAName);
+EQLIB_API DWORD       GetAAIndexByID          (DWORD ID);
+EQLIB_API DWORD       GetSkillIDFromName      (PCHAR name);
 EQLIB_API bool        InHoverState();
 EQLIB_API DWORD       GetGameState(VOID);
 EQLIB_API float       GetMeleeRange(class EQPlayer *,class EQPlayer *);
@@ -603,26 +603,26 @@ LEGACY_API BOOL Calculate(PCHAR szFormula, DOUBLE& Dest);
 #define GAMESTATE_LOGGINGIN     253
 #define GAMESTATE_UNLOADING     255
 
-#define XWM_LCLICK				1
-#define XWM_LMOUSEUP			2
-#define XWM_RCLICK				3
-#define XWM_HITENTER			6
-#define XWM_CLOSE				10
-#define XWM_NEWVALUE	        14
-#define XWM_UNKNOWN				19
-#define XWM_MOUSEOVER			21
-#define XWM_HISTORY				22
-#define XWM_LCLICKHOLD			23
-#define XWM_LINK      			27
+#define XWM_LCLICK              1
+#define XWM_LMOUSEUP            2
+#define XWM_RCLICK              3
+#define XWM_HITENTER            6
+#define XWM_CLOSE               10
+#define XWM_NEWVALUE            14
+#define XWM_UNKNOWN             19
+#define XWM_MOUSEOVER           21
+#define XWM_HISTORY             22
+#define XWM_LCLICKHOLD          23
+#define XWM_LINK                27
 
-#define XKF_SHIFT				1
-#define XKF_CTRL				2
-#define XKF_LALT				4
-#define XKF_RALT				8
+#define XKF_SHIFT               1
+#define XKF_CTRL                2
+#define XKF_LALT                4
+#define XKF_RALT                8
 
-#define MAX_ITEM4xx			416
+#define MAX_ITEM4xx             416
 
-#define MAX_WEAPONS		0x000000ff
+#define MAX_WEAPONS             0x000000ff
 
 #ifndef ISXEQ
 #define MQ2AUTH(z) EQLIB_API VOID z(DWORD x);

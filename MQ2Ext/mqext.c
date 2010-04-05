@@ -1,15 +1,15 @@
 /*****************************************************************************
-    mqext.dll: NTSD extensions for EQLib.dll
-    Copyright (C) 2002 Plazmic
+mqext.dll: NTSD extensions for EQLib.dll
+Copyright (C) 2002 Plazmic
 
-    This program is free software; you can redistribute it and/or modify
-    it under the terms of the GNU General Public License, version 2, as published by
-    the Free Software Foundation.
+This program is free software; you can redistribute it and/or modify
+it under the terms of the GNU General Public License, version 2, as published by
+the Free Software Foundation.
 
-    This program is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
 ******************************************************************************/
 
 #include "mqext.h"
@@ -29,10 +29,10 @@ ULONG SavedMajorVersion;
 ULONG SavedMinorVersion;
 
 DllInit(
-    HANDLE hModule,
-    DWORD  dwReason,
-    DWORD  dwReserved
-    )
+        HANDLE hModule,
+        DWORD  dwReason,
+        DWORD  dwReserved
+        )
 {
     switch (dwReason) {
         case DLL_THREAD_ATTACH:
@@ -54,10 +54,10 @@ DllInit(
 
 VOID
 WinDbgExtensionDllInit(
-    PWINDBG_EXTENSION_APIS lpExtensionApis,
-    USHORT MajorVersion,
-    USHORT MinorVersion
-    )
+                       PWINDBG_EXTENSION_APIS lpExtensionApis,
+                       USHORT MajorVersion,
+                       USHORT MinorVersion
+                       )
 {
     ExtensionApis = *lpExtensionApis;
 
@@ -69,8 +69,8 @@ WinDbgExtensionDllInit(
 
 LPEXT_API_VERSION
 ExtensionApiVersion(
-    VOID
-    )
+                    VOID
+                    )
 {
     return &ApiVersion;
 }
@@ -80,8 +80,8 @@ ExtensionApiVersion(
 //
 VOID
 CheckVersion(
-    VOID
-    )
+             VOID
+             )
 {
     return;
 }

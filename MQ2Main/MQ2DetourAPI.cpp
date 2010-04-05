@@ -1,15 +1,15 @@
 /*****************************************************************************
-    MQ2Main.dll: MacroQuest2's extension DLL for EverQuest
-    Copyright (C) 2002-2003 Plazmic, 2003-2005 Lax
+MQ2Main.dll: MacroQuest2's extension DLL for EverQuest
+Copyright (C) 2002-2003 Plazmic, 2003-2005 Lax
 
-    This program is free software; you can redistribute it and/or modify
-    it under the terms of the GNU General Public License, version 2, as published by
-    the Free Software Foundation.
+This program is free software; you can redistribute it and/or modify
+it under the terms of the GNU General Public License, version 2, as published by
+the Free Software Foundation.
 
-    This program is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
 ******************************************************************************/
 
 // Exclude rarely-used stuff from Windows headers
@@ -27,13 +27,13 @@
 #ifndef ISXEQ
 
 typedef struct _OurDetours {
-/* 0x00 */    unsigned int addr;
-/* 0x04 */    unsigned int count;
-/* 0x08 */    unsigned char array[50];
-/* 0x3a */    PBYTE pfDetour;
-/* 0x3e */    PBYTE pfTrampoline;
-/* 0x42 */    struct _OurDetours *pNext;
-/* 0x46 */    struct _OurDetours *pLast;
+    /* 0x00 */    unsigned int addr;
+    /* 0x04 */    unsigned int count;
+    /* 0x08 */    unsigned char array[50];
+    /* 0x3a */    PBYTE pfDetour;
+    /* 0x3e */    PBYTE pfTrampoline;
+    /* 0x42 */    struct _OurDetours *pNext;
+    /* 0x46 */    struct _OurDetours *pLast;
 } OurDetours;
 
 OurDetours *ourdetours=0;
@@ -42,129 +42,129 @@ CRITICAL_SECTION gDetourCS;
 
 OurDetours *FindDetour(DWORD address)
 {
-	OurDetours *pDetour=ourdetours;
-	while(pDetour)
-	{
-		if (pDetour->addr==address)
-			return pDetour;
-		pDetour=pDetour->pNext;
-	}
-	return 0;
+    OurDetours *pDetour=ourdetours;
+    while(pDetour)
+    {
+        if (pDetour->addr==address)
+            return pDetour;
+        pDetour=pDetour->pNext;
+    }
+    return 0;
 }
 
 BOOL AddDetour(DWORD address, PBYTE pfDetour, PBYTE pfTrampoline, DWORD Count)
 {
-	CAutoLock Lock(&gDetourCS);
-	BOOL Ret=TRUE;
-	DebugSpew("AddDetour(0x%X,0x%X,0x%X,0x%X)",address,pfDetour,pfTrampoline,Count);
-	if (FindDetour(address))
-	{
+    CAutoLock Lock(&gDetourCS);
+    BOOL Ret=TRUE;
+    DebugSpew("AddDetour(0x%X,0x%X,0x%X,0x%X)",address,pfDetour,pfTrampoline,Count);
+    if (FindDetour(address))
+    {
 
-		DebugSpew("Address 0x%x already detoured.",address);
-		return FALSE;
-	}
-	OurDetours *detour = new OurDetours;
-	detour->addr=address;
-	detour->count=Count;
-	memcpy(detour->array,(char *)address, Count);
-	detour->pNext=ourdetours;
-	if (ourdetours)
-		ourdetours->pLast=detour;
-	detour->pLast=0;
+        DebugSpew("Address 0x%x already detoured.",address);
+        return FALSE;
+    }
+    OurDetours *detour = new OurDetours;
+    detour->addr=address;
+    detour->count=Count;
+    memcpy(detour->array,(char *)address, Count);
+    detour->pNext=ourdetours;
+    if (ourdetours)
+        ourdetours->pLast=detour;
+    detour->pLast=0;
     if (pfDetour && !DetourFunctionWithEmptyTrampoline(pfTrampoline, 
-         (PBYTE)address, 
-         pfDetour))
-	{
-		detour->pfDetour=0;
-		detour->pfTrampoline=0;
-		Ret=FALSE;
-		DebugSpew("Detour failed.");
-	}
-	else
-	{
-		detour->pfDetour=pfDetour;
-		detour->pfTrampoline=pfTrampoline;
-		DebugSpew("Detour success.");
-	}
-	ourdetours=detour;
-	return Ret;
+        (PBYTE)address, 
+        pfDetour))
+    {
+        detour->pfDetour=0;
+        detour->pfTrampoline=0;
+        Ret=FALSE;
+        DebugSpew("Detour failed.");
+    }
+    else
+    {
+        detour->pfDetour=pfDetour;
+        detour->pfTrampoline=pfTrampoline;
+        DebugSpew("Detour success.");
+    }
+    ourdetours=detour;
+    return Ret;
 }
 
 void AddDetourf(DWORD address, ...)
 {
-	va_list marker;
-	int i=0;
-	va_start(marker, address);
-	DWORD Parameters[3];
-	DWORD nParameters=0;
-	while (i!=-1) 
-	{
-		if (nParameters<3)
-		{
-			Parameters[nParameters]=i;
-			nParameters++;
-		}
-		i = va_arg(marker,int);
-	}
-	va_end(marker);
-	if (nParameters==3)
-	{
-		AddDetour(address,(PBYTE)Parameters[1],(PBYTE)Parameters[2],20);
-	}
-	else
-	{
-		DebugSpew("Illegal AddDetourf call");
-	}
+    va_list marker;
+    int i=0;
+    va_start(marker, address);
+    DWORD Parameters[3];
+    DWORD nParameters=0;
+    while (i!=-1) 
+    {
+        if (nParameters<3)
+        {
+            Parameters[nParameters]=i;
+            nParameters++;
+        }
+        i = va_arg(marker,int);
+    }
+    va_end(marker);
+    if (nParameters==3)
+    {
+        AddDetour(address,(PBYTE)Parameters[1],(PBYTE)Parameters[2],20);
+    }
+    else
+    {
+        DebugSpew("Illegal AddDetourf call");
+    }
 }
 
 void RemoveDetour(DWORD address)
 {
-	CAutoLock Lock(&gDetourCS);
-	DebugSpew("RemoveDetour(%X)",address);
-	OurDetours *detour = ourdetours;
-	while (detour)
-	{
-		if (detour->addr==address)
-		{
-			if (detour->pfDetour)
-			{
-		      DetourRemove(detour->pfTrampoline, 
-				detour->pfDetour); 		
-			}
-			  if (detour->pLast)
-				detour->pLast->pNext=detour->pNext;
-			  else
-				  ourdetours=detour->pNext;
+    CAutoLock Lock(&gDetourCS);
+    DebugSpew("RemoveDetour(%X)",address);
+    OurDetours *detour = ourdetours;
+    while (detour)
+    {
+        if (detour->addr==address)
+        {
+            if (detour->pfDetour)
+            {
+                DetourRemove(detour->pfTrampoline, 
+                    detour->pfDetour);         
+            }
+            if (detour->pLast)
+                detour->pLast->pNext=detour->pNext;
+            else
+                ourdetours=detour->pNext;
 
-			  if (detour->pNext)
-				  detour->pNext->pLast=detour->pLast;
-			delete detour;
-			  DebugSpew("Detour removed.");
-			  return;
-		}
-		detour=detour->pNext;
-	}
-	DebugSpew("Detour not found in RemoveDetour()");
+            if (detour->pNext)
+                detour->pNext->pLast=detour->pLast;
+            delete detour;
+            DebugSpew("Detour removed.");
+            return;
+        }
+        detour=detour->pNext;
+    }
+    DebugSpew("Detour not found in RemoveDetour()");
 }
 
 void RemoveOurDetours()
 {
-	CAutoLock Lock(&gDetourCS);
-	DebugSpew("RemoveOurDetours()");
-	if (!ourdetours)
-		return;
-	while (ourdetours)
-	{
-		if (ourdetours->pfDetour)
-		{
-			DebugSpew("RemoveOurDetours() -- Removing %X",ourdetours->addr);
-			DetourRemove(ourdetours->pfTrampoline,ourdetours->pfDetour); 				
-		}
+    CAutoLock Lock(&gDetourCS);
+    DebugSpew("RemoveOurDetours()");
+    if (!ourdetours)
+        return;
+    while (ourdetours)
+    {
+        if (ourdetours->pfDetour)
+        {
+            DebugSpew("RemoveOurDetours() -- Removing %X",ourdetours->addr);
+            DetourRemove(ourdetours->pfTrampoline,ourdetours->pfDetour);                 
+        }
 
-		OurDetours *pNext=ourdetours->pNext;
-		delete ourdetours;
-		ourdetours=pNext;
-	}
+        OurDetours *pNext=ourdetours->pNext;
+        delete ourdetours;
+        ourdetours=pNext;
+    }
 }
 
 #endif
@@ -173,22 +173,22 @@ void RemoveOurDetours()
 class CObfuscator 
 {
 public:
-	int doit_tramp(int, int); 
-	int doit_detour(int opcode, int flag);
+    int doit_tramp(int, int); 
+    int doit_detour(int opcode, int flag);
 };
 
 int CObfuscator::doit_detour(int opcode, int flag)
 {
 #if 0
-	if (EQ_BEGIN_ZONE == opcode) {
-		DebugSpewAlways("EQ_BEGIN_ZONE");
-	} else {
-		DebugSpewAlways("opcode %d", opcode);
-	}
+    if (EQ_BEGIN_ZONE == opcode) {
+        DebugSpewAlways("EQ_BEGIN_ZONE");
+    } else {
+        DebugSpewAlways("opcode %d", opcode);
+    }
 #endif
-	if (opcode==EQ_BEGIN_ZONE) PluginsBeginZone(); 
-	if (opcode==EQ_END_ZONE) PluginsEndZone();
-	return doit_tramp(opcode, flag);
+    if (opcode==EQ_BEGIN_ZONE) PluginsBeginZone(); 
+    if (opcode==EQ_END_ZONE) PluginsEndZone();
+    return doit_tramp(opcode, flag);
 };
 
 DETOUR_TRAMPOLINE_EMPTY(int CObfuscator::doit_tramp(int, int));
@@ -254,34 +254,35 @@ VOID HookInlineChecks(BOOL Patch)
 
     /* add these to eqgame.h */
 
-//.text:0063BA30                 cmp     int g_radd, (offset loc_7C1AB9+1)
+    //.text:0063BA30                 cmp     int g_radd, (offset loc_7C1AB9+1)
 
-   int cmps[] = {  0x63BA30+6 };
+    int cmps[] = { 0x63BA30+6 };
 
-//.text:004D6D55                 cmp     ecx, 0D7BD62AEh
-//.text:004F2488                 cmp     eax, 0F1BD3A34h
-//.text:004F7A48                 cmp     eax, 4123EADBh
-//.text:004FAC3B                 cmp     eax, 0D6711350h
-//.text:004F2A64                 cmp     ecx, 0C38F1142h
+    //.text:004D6D55                 cmp     ecx, 0D7BD62AEh
+    //.text:004F2488                 cmp     eax, 0F1BD3A34h
+    //.text:004F7A48                 cmp     eax, 4123EADBh
+    //.text:004FAC3B                 cmp     eax, 0D6711350h
+    //.text:004F2A64                 cmp     ecx, 0C38F1142h
 
-    int cmps2[] = {     0x4D6D55,
-                        0x4F2488,
-                        0x4F7A48,
-                        0x4FAC3B,
-                        0x4F2A64 };
+    int cmps2[] = { 0x4D6D55,
+                    0x4F2488,
+                    0x4F7A48,
+                    0x4FAC3B,
+                    0x4F2A64 };
+
     int len2[] = { 6, 5, 5, 5, 6 }; 
     char NewData2[20];
     static char OldData2[sizeof(cmps2)/sizeof(cmps2[0])][20];
 
 
-	if (Patch)
-	{
-// .text:005DE39D 81 3D 28 EF 97 00 0E C0 6D 00  cmp     dword_97EF28, 6DC00Eh
-//  change only these bytes         ^^ ^^ ^^ ^^
+    if (Patch)
+    {
+        // .text:005DE39D 81 3D 28 EF 97 00 0E C0 6D 00  cmp     dword_97EF28, 6DC00Eh
+        //  change only these bytes         ^^ ^^ ^^ ^^
         NewData = 0x7fffffff;
         for (i=0;i<sizeof(cmps)/sizeof(cmps[0]);i++) {
 #ifdef ISXEQ
-			EzModify(cmps[i],&NewData,4);
+            EzModify(cmps[i],&NewData,4);
 #else
             AddDetour(cmps[i], NULL, NULL, 4);
             VirtualProtectEx(GetCurrentProcess(), (LPVOID)cmps[i], 4, PAGE_EXECUTE_READWRITE, &oldperm);
@@ -290,13 +291,13 @@ VOID HookInlineChecks(BOOL Patch)
 #endif
         }
 
-// .text:004E1AEF 81 F9 31 BD 3E CE              cmp     ecx, 0CE3EBD31h
-// zap these into oblivion
-       
+        // .text:004E1AEF 81 F9 31 BD 3E CE              cmp     ecx, 0CE3EBD31h
+        // zap these into oblivion
+
         memset(NewData2, 0x90, 20);
         for (i=0;i<sizeof(cmps2)/sizeof(cmps2[0]);i++) {
 #ifdef ISXEQ
-			EzModify(cmps2[i],NewData2,len2[i]);
+            EzModify(cmps2[i],NewData2,len2[i]);
 #else
             AddDetour(cmps2[i], NULL, NULL, len2[i]);
             VirtualProtectEx(GetCurrentProcess(), (LPVOID)cmps2[i], len2[i], PAGE_EXECUTE_READWRITE, &oldperm);
@@ -307,13 +308,13 @@ VOID HookInlineChecks(BOOL Patch)
         }
 
         // __asm int 3;
-	}
-	else
-	{
+    }
+    else
+    {
         NewData = 0x7C1ABA;
         for (i=0;i<sizeof(cmps)/sizeof(cmps[0]);i++) {
 #ifdef ISXEQ
-			EzUnModify(cmps[i]);
+            EzUnModify(cmps[i]);
 #else
             VirtualProtectEx(GetCurrentProcess(), (LPVOID)cmps[i], 4, PAGE_EXECUTE_READWRITE, &oldperm);
             WriteProcessMemory(GetCurrentProcess(), (LPVOID)cmps[i], (LPVOID)&NewData, 4, NULL);
@@ -324,7 +325,7 @@ VOID HookInlineChecks(BOOL Patch)
 
         for (i=0;i<sizeof(cmps2)/sizeof(cmps2[0]);i++) {
 #ifdef ISXEQ
-			EzUnModify(cmps2[i]);
+            EzUnModify(cmps2[i]);
 #else
             VirtualProtectEx(GetCurrentProcess(), (LPVOID)cmps2[i], len2[i], PAGE_EXECUTE_READWRITE, &oldperm);
             WriteProcessMemory(GetCurrentProcess(), (LPVOID)cmps2[i], (LPVOID)OldData2[i], len2[i], NULL);
@@ -332,7 +333,7 @@ VOID HookInlineChecks(BOOL Patch)
             RemoveDetour(cmps2[i]);
 #endif
         }
-	}
+    }
 }
 
 #ifndef ISXEQ
@@ -346,7 +347,7 @@ VOID HookMemChecker(BOOL Patch)
         (!EQADDR_MEMCHECK2) ||
         (!EQADDR_MEMCHECK3) ||
         (!EQADDR_MEMCHECK4)) {
-        _asm int 3
+            _asm int 3
     }
 
     DebugSpew("HookMemChecker - %satching",(Patch)?"P":"Unp");
@@ -355,59 +356,59 @@ VOID HookMemChecker(BOOL Patch)
         AddDetour((DWORD)EQADDR_MEMCHECK0);
 
         (*(PBYTE*)&memcheck0_tramp) = DetourFunction( (PBYTE) EQADDR_MEMCHECK0,
-                                                    (PBYTE) memcheck0);
+            (PBYTE) memcheck0);
 
         AddDetour((DWORD)EQADDR_MEMCHECK1);
 
         (*(PBYTE*)&memcheck1_tramp) = DetourFunction( (PBYTE) EQADDR_MEMCHECK1,
-                                                    (PBYTE) memcheck1);
+            (PBYTE) memcheck1);
 
         AddDetour((DWORD)EQADDR_MEMCHECK2);
 
         (*(PBYTE*)&memcheck2_tramp) = DetourFunction( (PBYTE) EQADDR_MEMCHECK2,
-                                                    (PBYTE) memcheck2);
+            (PBYTE) memcheck2);
 
         AddDetour((DWORD)EQADDR_MEMCHECK3);
 
         (*(PBYTE*)&memcheck3_tramp) = DetourFunction( (PBYTE) EQADDR_MEMCHECK3,
-                                                    (PBYTE) memcheck3);
+            (PBYTE) memcheck3);
 
         AddDetour((DWORD)EQADDR_MEMCHECK4);
 
         (*(PBYTE*)&memcheck4_tramp) = DetourFunction( (PBYTE) EQADDR_MEMCHECK4,
-                                                    (PBYTE) memcheck4);
+            (PBYTE) memcheck4);
 
         EzDetour(CObfuscator__doit,&CObfuscator::doit_detour,&CObfuscator::doit_tramp);
         EzDetour(CEverQuest__Emote,&CEmoteHook::Detour,&CEmoteHook::Trampoline);
 
-		HookInlineChecks(Patch);
+        HookInlineChecks(Patch);
     } else {
-		HookInlineChecks(Patch);
-       
+        HookInlineChecks(Patch);
+
 
 
         DetourRemove((PBYTE) memcheck0_tramp,
-                     (PBYTE) memcheck0);
+            (PBYTE) memcheck0);
         memcheck0_tramp = NULL;
         RemoveDetour(EQADDR_MEMCHECK0);
 
         DetourRemove((PBYTE) memcheck1_tramp,
-                     (PBYTE) memcheck1);
+            (PBYTE) memcheck1);
         memcheck1_tramp = NULL;
         RemoveDetour(EQADDR_MEMCHECK1);
 
         DetourRemove((PBYTE) memcheck2_tramp,
-                     (PBYTE) memcheck2);
+            (PBYTE) memcheck2);
         memcheck2_tramp = NULL;
         RemoveDetour(EQADDR_MEMCHECK2);
 
         DetourRemove((PBYTE) memcheck3_tramp,
-                     (PBYTE) memcheck3);
+            (PBYTE) memcheck3);
         memcheck3_tramp = NULL;
         RemoveDetour(EQADDR_MEMCHECK3);
 
         DetourRemove((PBYTE) memcheck4_tramp,
-                     (PBYTE) memcheck4);
+            (PBYTE) memcheck4);
         memcheck4_tramp = NULL;
         RemoveDetour(EQADDR_MEMCHECK4);
 
@@ -426,13 +427,13 @@ int __cdecl memcheck0(unsigned char *buffer, int count)
         if (!EQADDR_ENCRYPTPAD0) {
             //_asm int 3
         } else {
-          extern_array0 = (unsigned int *)EQADDR_ENCRYPTPAD0;
+            extern_array0 = (unsigned int *)EQADDR_ENCRYPTPAD0;
         }
     }
 
 #ifdef ISXEQ
-	unsigned char *realbuffer=(unsigned char *)malloc(count);
-	pExtension->Memcpy_Clean((unsigned int)buffer,realbuffer,count);
+    unsigned char *realbuffer=(unsigned char *)malloc(count);
+    pExtension->Memcpy_Clean((unsigned int)buffer,realbuffer,count);
 #endif
 
     for (i=0;i<(unsigned int)count;i++) {
@@ -441,16 +442,16 @@ int __cdecl memcheck0(unsigned char *buffer, int count)
         tmp=realbuffer[i];
 #else
         unsigned int b=(int) &buffer[i];
-		OurDetours *detour = ourdetours;
-		while(detour)
-		{
-			if (detour->count && (b >= detour->addr) &&
-                 (b < detour->addr+detour->count) ) {
-                 tmp = detour->array[b - detour->addr];
-                 break;
+        OurDetours *detour = ourdetours;
+        while(detour)
+        {
+            if (detour->count && (b >= detour->addr) &&
+                (b < detour->addr+detour->count) ) {
+                    tmp = detour->array[b - detour->addr];
+                    break;
             }
-			detour=detour->pNext;
-		}
+            detour=detour->pNext;
+        }
         if (!detour) tmp = buffer[i];
 #endif
         x = (int)tmp ^ (eax & 0xff);
@@ -460,7 +461,7 @@ int __cdecl memcheck0(unsigned char *buffer, int count)
     }
 
 #ifdef ISXEQ
-	free(realbuffer);
+    free(realbuffer);
 #endif
     return eax;
 }
@@ -475,7 +476,7 @@ int __cdecl memcheck1(unsigned char *buffer, int count, struct mckey key)
         if (!EQADDR_ENCRYPTPAD1) {
             //_asm int 3
         } else {
-          extern_array1 = (unsigned int *)EQADDR_ENCRYPTPAD1;
+            extern_array1 = (unsigned int *)EQADDR_ENCRYPTPAD1;
         }
     }
 //                push    ebp
@@ -492,44 +493,44 @@ int __cdecl memcheck1(unsigned char *buffer, int count, struct mckey key)
 //                mov     al, byte ptr [ebp+arg_8]
 //                xor     edx, edx
 //                mov     dl, byte ptr [ebp+arg_8+1]
-    edx = key.a[1];
+        edx = key.a[1];
 //                not     eax
 //                and     eax, esi
-    eax = ~key.a[0] & 0xff;
+        eax = ~key.a[0] & 0xff;
 //                mov     eax, encryptpad1[eax*4]
-    eax = extern_array1[eax];
+        eax = extern_array1[eax];
 //                xor     eax, ecx
-    eax ^= 0xffffff;
+        eax ^= 0xffffff;
 //                xor     edx, eax
 //                and     edx, esi
-    edx = (edx ^ eax) & 0xff;
+        edx = (edx ^ eax) & 0xff;
 //                sar     eax, 8
 //                and     eax, ecx
-    eax = ((int)eax >> 8) & 0xffffff;
+        eax = ((int)eax >> 8) & 0xffffff;
 //                xor     eax, encryptpad1[edx*4]
-    eax ^= extern_array1[edx];
+        eax ^= extern_array1[edx];
 //                xor     edx, edx
 //                mov     dl, byte ptr [ebp+arg_8+2]
-    edx = key.a[2];
+        edx = key.a[2];
 //                xor     edx, eax
 //                sar     eax, 8
 //                and     edx, esi
-    edx = (edx ^ eax) & 0xff;
+        edx = (edx ^ eax) & 0xff;
 //                and     eax, ecx
-    eax = ((int)eax >> 8) & 0xffffff;
+        eax = ((int)eax >> 8) & 0xffffff;
 //                xor     eax, encryptpad1[edx*4]
-    eax ^= extern_array1[edx];
+        eax ^= extern_array1[edx];
 //                xor     edx, edx
 //                mov     dl, byte ptr [ebp+arg_8+3]
-    edx = key.a[3];
+        edx = key.a[3];
 //                xor     edx, eax
 //                sar     eax, 8
 //                and     edx, esi
-    edx = (edx ^ eax) & 0xff;
+        edx = (edx ^ eax) & 0xff;
 //                and     eax, ecx
-    eax = ((int)eax >> 8) & 0xffffff;
+        eax = ((int)eax >> 8) & 0xffffff;
 //                xor     eax, encryptpad1[edx*4]
-    eax ^= extern_array1[edx];
+        eax ^= extern_array1[edx];
 //                mov     edi, eax
 //
     } else { // key.x != 0
@@ -566,8 +567,8 @@ int __cdecl memcheck1(unsigned char *buffer, int count, struct mckey key)
 //
 
 #ifdef ISXEQ
-	unsigned char *realbuffer=(unsigned char *)malloc(count);
-	pExtension->Memcpy_Clean((unsigned int)buffer,realbuffer,count);
+    unsigned char *realbuffer=(unsigned char *)malloc(count);
+    pExtension->Memcpy_Clean((unsigned int)buffer,realbuffer,count);
 #endif
 
     for (i=0;i<(unsigned int)count;i++) {
@@ -579,9 +580,9 @@ int __cdecl memcheck1(unsigned char *buffer, int count, struct mckey key)
         OurDetours *detour = ourdetours;
         while(detour) {
             if (detour->count && (b >= detour->addr) &&
-                 (b < detour->addr+detour->count) ) {
-                tmp = detour->array[b - detour->addr];
-                break;
+                (b < detour->addr+detour->count) ) {
+                    tmp = detour->array[b - detour->addr];
+                    break;
             }
             detour=detour->pNext;
         }
@@ -592,7 +593,7 @@ int __cdecl memcheck1(unsigned char *buffer, int count, struct mckey key)
         eax ^= extern_array1[ebx];
     }
 #ifdef ISXEQ
-	free(realbuffer);
+    free(realbuffer);
 #endif
     return ~eax;
 }
@@ -610,7 +611,7 @@ int __cdecl memcheck2(unsigned char *buffer, int count, struct mckey key)
         if (!EQADDR_ENCRYPTPAD2) {
             //_asm int 3
         } else {
-          extern_array2 = (unsigned int *)EQADDR_ENCRYPTPAD2;
+            extern_array2 = (unsigned int *)EQADDR_ENCRYPTPAD2;
         }
     }
 //                push    ebp
@@ -699,23 +700,23 @@ int __cdecl memcheck2(unsigned char *buffer, int count, struct mckey key)
 
 
 #ifdef ISXEQ
-	unsigned char *realbuffer=(unsigned char *)malloc(count);
-	pExtension->Memcpy_Clean((unsigned int)buffer,realbuffer,count);
+    unsigned char *realbuffer=(unsigned char *)malloc(count);
+    pExtension->Memcpy_Clean((unsigned int)buffer,realbuffer,count);
 #endif
 
     for (i=0;i<(unsigned int)count;i++) {
         unsigned char tmp;
 
 #ifdef ISXEQ
-      tmp=realbuffer[i];
+        tmp=realbuffer[i];
 #else
         unsigned int b=(int) &buffer[i];
         OurDetours *detour = ourdetours;
         while(detour) {
             if (detour->count && (b >= detour->addr) &&
-               (b < detour->addr+detour->count) ) {
-                tmp = detour->array[b - detour->addr];
-                break;
+                (b < detour->addr+detour->count) ) {
+                    tmp = detour->array[b - detour->addr];
+                    break;
             }
             detour=detour->pNext;
         }
@@ -728,7 +729,7 @@ int __cdecl memcheck2(unsigned char *buffer, int count, struct mckey key)
     }
     eax = ~edx ^ 0;
 #ifdef ISXEQ
-	free(realbuffer);
+    free(realbuffer);
 #endif
     return eax;
 }
@@ -754,7 +755,7 @@ int __cdecl memcheck3(unsigned char *buffer, int count, struct mckey key)
         if (!EQADDR_ENCRYPTPAD3) {
             //_asm int 3
         } else {
-          extern_array3 = (unsigned int *)EQADDR_ENCRYPTPAD3;
+            extern_array3 = (unsigned int *)EQADDR_ENCRYPTPAD3;
         }
     }
 //                push    ebp
@@ -797,7 +798,7 @@ int __cdecl memcheck3(unsigned char *buffer, int count, struct mckey key)
 //                xor     eax, encryptpad3[edx*4]
 //                mov     edx, eax
     edx = eax ^ extern_array3[edx];
-    
+
 //                call    null_sub_ret_0
     eax = 0;
 //                mov     edi, [ebp+arg_0]
@@ -832,23 +833,23 @@ int __cdecl memcheck3(unsigned char *buffer, int count, struct mckey key)
 //
 
 #ifdef ISXEQ
-	unsigned char *realbuffer=(unsigned char *)malloc(count);
-	pExtension->Memcpy_Clean((unsigned int)buffer,realbuffer,count);
+    unsigned char *realbuffer=(unsigned char *)malloc(count);
+    pExtension->Memcpy_Clean((unsigned int)buffer,realbuffer,count);
 #endif
 
     for (i=0;i<(unsigned int)count;i++) {
         unsigned char tmp;
 #ifdef ISXEQ
-      tmp=realbuffer[i];
+        tmp=realbuffer[i];
 #else
         unsigned int b=(int) &buffer[i];
-		OurDetours *detour = ourdetours;
-		while(detour)
+        OurDetours *detour = ourdetours;
+        while(detour)
         {
             if (detour->count && (b >= detour->addr) &&
-                 (b < detour->addr+detour->count) ) {
-                 tmp = detour->array[b - detour->addr];
-                 break;
+                (b < detour->addr+detour->count) ) {
+                    tmp = detour->array[b - detour->addr];
+                    break;
             }
             detour=detour->pNext;
         }
@@ -869,7 +870,7 @@ int __cdecl memcheck3(unsigned char *buffer, int count, struct mckey key)
     eax = ~edx ^ 0;
 
 #ifdef ISXEQ
-	free(realbuffer);
+    free(realbuffer);
 #endif
     return eax;
 //                pop     esi
@@ -886,7 +887,7 @@ int __cdecl memcheck4(unsigned char *buffer, int count, struct mckey key)
         if (!EQADDR_ENCRYPTPAD4) {
             //_asm int 3
         } else {
-          extern_array4 = (unsigned int *)EQADDR_ENCRYPTPAD4;
+            extern_array4 = (unsigned int *)EQADDR_ENCRYPTPAD4;
         }
     }
     edx = key.a[1];
@@ -908,23 +909,23 @@ int __cdecl memcheck4(unsigned char *buffer, int count, struct mckey key)
     edx ^= eax;
 
 #ifdef ISXEQ
-	unsigned char *realbuffer=(unsigned char *)malloc(count);
-	pExtension->Memcpy_Clean((unsigned int)buffer,realbuffer,count);
+    unsigned char *realbuffer=(unsigned char *)malloc(count);
+    pExtension->Memcpy_Clean((unsigned int)buffer,realbuffer,count);
 #endif
 
     for (i=0;i<(unsigned int)count;i++) {
         unsigned char tmp;
 #ifdef ISXEQ
-      tmp=realbuffer[i];
+        tmp=realbuffer[i];
 #else
         unsigned int b=(int) &buffer[i];
         OurDetours *detour = ourdetours;
         while(detour)
         {
             if (detour->count && (b >= detour->addr) &&
-                 (b < detour->addr+detour->count) ) {
-                 tmp = detour->array[b - detour->addr];
-                 break;
+                (b < detour->addr+detour->count) ) {
+                    tmp = detour->array[b - detour->addr];
+                    break;
             }
             detour=detour->pNext;
         }
@@ -938,7 +939,7 @@ int __cdecl memcheck4(unsigned char *buffer, int count, struct mckey key)
     eax = ~edx ^ 0;
 
 #ifdef ISXEQ
-	free(realbuffer);
+    free(realbuffer);
 #endif
     return eax;
 }
@@ -946,26 +947,26 @@ int __cdecl memcheck4(unsigned char *buffer, int count, struct mckey key)
 VOID __cdecl CrashDetected_Trampoline(DWORD,DWORD,DWORD,DWORD,DWORD); 
 VOID __cdecl CrashDetected_Detour(DWORD a,DWORD b,DWORD c,DWORD d,DWORD e) 
 { 
-	MessageBox(0,"MacroQuest2 is blocking the 'send Sony crash info?' box for your safety and privacy.  Crashes are usually bugs either in EQ or in MacroQuest2.  It is generally not something that you yourself did, unless you have custom MQ2 plugins loaded.  If you want to submit a bug report to the MacroQuest2 message boards, please follow the instructions on how to submit a crash bug report at the top of the MQ2::Bug Reports forum.","EverQuest Crash Detected",MB_OK);
+    MessageBox(0,"MacroQuest2 is blocking the 'send Sony crash info?' box for your safety and privacy.  Crashes are usually bugs either in EQ or in MacroQuest2.  It is generally not something that you yourself did, unless you have custom MQ2 plugins loaded.  If you want to submit a bug report to the MacroQuest2 message boards, please follow the instructions on how to submit a crash bug report at the top of the MQ2::Bug Reports forum.","EverQuest Crash Detected",MB_OK);
 } 
 DETOUR_TRAMPOLINE_EMPTY(VOID CrashDetected_Trampoline(DWORD,DWORD,DWORD,DWORD,DWORD)); 
 
 void InitializeMQ2Detours()
 {
 #ifndef ISXEQ
-	InitializeCriticalSection(&gDetourCS);
-	HookMemChecker(TRUE);
+    InitializeCriticalSection(&gDetourCS);
+    HookMemChecker(TRUE);
 #endif
-	EzDetour(CrashDetected,CrashDetected_Detour,CrashDetected_Trampoline);
+    EzDetour(CrashDetected,CrashDetected_Detour,CrashDetected_Trampoline);
 }
 
 void ShutdownMQ2Detours()
 {
-	RemoveDetour(CrashDetected);
+    RemoveDetour(CrashDetected);
 #ifndef ISXEQ
-	HookMemChecker(FALSE);
-	RemoveOurDetours();
-	DeleteCriticalSection(&gDetourCS);
+    HookMemChecker(FALSE);
+    RemoveOurDetours();
+    DeleteCriticalSection(&gDetourCS);
 #endif
 }
 

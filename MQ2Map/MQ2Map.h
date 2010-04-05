@@ -42,16 +42,16 @@ using namespace std;
 
 
 typedef struct _MAPFILTER {
-   PCHAR szName;
-   //DWORD Index;
-   DWORD Default;
-   DWORD DefaultColor;
-   BOOL bIsToggle;
-   DWORD RequiresOption;
-   BOOL RegenerateOnChange;
-   PCHAR szHelpString;
-   DWORD Enabled;
-   DWORD Color;
+    PCHAR szName;
+    //DWORD Index;
+    DWORD Default;
+    DWORD DefaultColor;
+    BOOL bIsToggle;
+    DWORD RequiresOption;
+    BOOL RegenerateOnChange;
+    PCHAR szHelpString;
+    DWORD Enabled;
+    DWORD Color;
 } MAPFILTER, *PMAPFILTER;
 
 extern unsigned long bmMapRefresh;
@@ -100,15 +100,15 @@ void RemoveGroundItem(PGROUNDITEM pGroundItem);
 
 static inline BOOL IsOptionEnabled(DWORD Option)
 {
-	if (Option==MAPFILTER_Invalid)
-		return true;
-	return (MapFilterOptions[Option].Enabled && IsOptionEnabled(MapFilterOptions[Option].RequiresOption));
+    if (Option==MAPFILTER_Invalid)
+        return true;
+    return (MapFilterOptions[Option].Enabled && IsOptionEnabled(MapFilterOptions[Option].RequiresOption));
 }
 
 static inline BOOL RequirementsMet(DWORD Option)
 {
-	if (Option==MAPFILTER_Invalid)
-		return true;
-	return (IsOptionEnabled(MapFilterOptions[Option].RequiresOption));
+    if (Option==MAPFILTER_Invalid)
+        return true;
+    return (IsOptionEnabled(MapFilterOptions[Option].RequiresOption));
 }
 

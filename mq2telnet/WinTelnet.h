@@ -8,8 +8,8 @@
 class CWinTelnet : public CTelnet
 {
 public:
-	CWinTelnet(void);
-	~CWinTelnet(void);
+    CWinTelnet(void);
+    ~CWinTelnet(void);
 
      bool Connect   (char*, int);
      bool Disconnect(void);
@@ -19,7 +19,7 @@ public:
 
      bool Write(char);
      int  Write(const void*, int);
-	 int  CWinTelnet::WriteStr(const char* csend);
+     int  CWinTelnet::WriteStr(const char* csend);
 
      bool Read(char*);
      int  Read(void*, int);
@@ -28,9 +28,9 @@ public:
      bool isConnected(void);
      long isData     (void);
 
- 	SOCKET m_Socket;
+     SOCKET m_Socket;
 
 private:
-//	WSADATA wsa;
-	bool Valid;
+//    WSADATA wsa;
+    bool Valid;
 };

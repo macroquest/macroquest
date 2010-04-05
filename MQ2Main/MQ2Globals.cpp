@@ -213,7 +213,7 @@ fEQCommand        cmdCast        =  NULL;
 
 fEQNewUIINI       NewUIINI   =  (fEQNewUIINI)__NewUIINI;
 fEQProcGameEvts   ProcessGameEvents = (fEQProcGameEvts)__ProcessGameEvents;
-fEQExecuteCmd	  ExecuteCmd = (fEQExecuteCmd)__ExecuteCmd;
+fEQExecuteCmd      ExecuteCmd = (fEQExecuteCmd)__ExecuteCmd;
 fEQGetMelee    get_melee_range = (fEQGetMelee)GetMeleeRange;
 fGetLabelFromEQ GetLabelFromEQ = (fGetLabelFromEQ)__GetLabelFromEQ;
 
@@ -244,6 +244,7 @@ DWORD *gpPCNames=(DWORD*)__PCNames;
 PBYTE pTributeActive=(PBYTE)instTributeActive;
 PBYTE gpAutoFire=(PBYTE)__Autofire;
 PBYTE gpShiftKeyDown=(PBYTE)__ShiftKeyDown; // addr+1=ctrl, addr+2=alt
+DWORD *gpMouseEventTime = (DWORD*)__MouseEventTime;
 
 PVOID EQADDR_GWORLD=(PVOID)__gWorld;
 PDWORD EQADDR_DOABILITYLIST=(PDWORD)__DoAbilityList;
@@ -387,15 +388,15 @@ PCHAR szSpawnType[] = {
     "NPC",
     "corpse",
     "any",
-	"pet",
+    "pet",
     NULL // SuperWhoTarget
 };
 
 PCHAR szGuildStatus[] = {
-	"Member",
-	"Officer",
-	"Leader",
-	NULL
+    "Member",
+    "Officer",
+    "Leader",
+    NULL
 };
 
 PCHAR szGender[] = {
@@ -452,21 +453,21 @@ PCHAR szSkills[] = {
 };
 
 PCHAR szInnates[] = {
-	"Awareness",//c4c
-	"Bash Door",//c50
-	"Breathe Fire",//c54
-	"Harmony",//c58
-	"Harm Touch",//c5c
-	"Infravision",//c60
-	"Lay Hands",//c64
-	"Lore",//c68
-	"No Bash",//c6c
-	"Regeneration",//c70
-	"Slam",//c74
-	"Surprise",//c78
-	"Ultravision",//c7c
-	"Inspect",//c80
-	"Open",//c84
+    "Awareness",//c4c
+    "Bash Door",//c50
+    "Breathe Fire",//c54
+    "Harmony",//c58
+    "Harm Touch",//c5c
+    "Infravision",//c60
+    "Lay Hands",//c64
+    "Lore",//c68
+    "No Bash",//c6c
+    "Regeneration",//c70
+    "Slam",//c74
+    "Surprise",//c78
+    "Ultravision",//c7c
+    "Inspect",//c80
+    "Open",//c84
     NULL
 };
 
@@ -488,8 +489,8 @@ PCHAR szZoneExpansionName[] = {
     "Planes of Power",          //4
     "Legacy of Ykesha",         //5
     "Lost Dungeons of Norrath", //6
-	"Gates of Discord",         //7
-	"Omens of War",				//8
+    "Gates of Discord",         //7
+    "Omens of War",             //8
 }; 
 
 #include "grounds.h"
@@ -540,95 +541,95 @@ PCHAR szBodyType[] = {
    "Dragon",//29
    "Bane Dragon",//30
    "Familiar",//31
-	"Proc Pet",//32
-	"Chest",//33  (5 as of 9-19-2006)
-	"Muramite",//34
-	"*UNKNOWN BODYTYPE 35",
-	"*UNKNOWN BODYTYPE 36",
-	"*UNKNOWN BODYTYPE 37",
-	"*UNKNOWN BODYTYPE 38",
-	"*UNKNOWN BODYTYPE 39",
-	"*UNKNOWN BODYTYPE 40",
-	"*UNKNOWN BODYTYPE 41",
-	"*UNKNOWN BODYTYPE 42",
-	"*UNKNOWN BODYTYPE 43",
-	"*UNKNOWN BODYTYPE 44",
-	"*UNKNOWN BODYTYPE 45",
-	"*UNKNOWN BODYTYPE 46",
-	"*UNKNOWN BODYTYPE 47",
-	"*UNKNOWN BODYTYPE 48",
-	"*UNKNOWN BODYTYPE 49",
-	"*UNKNOWN BODYTYPE 50",
-	"*UNKNOWN BODYTYPE 51",
-	"*UNKNOWN BODYTYPE 52",
-	"*UNKNOWN BODYTYPE 53",
-	"*UNKNOWN BODYTYPE 54",
-	"*UNKNOWN BODYTYPE 55",
-	"*UNKNOWN BODYTYPE 56",
-	"*UNKNOWN BODYTYPE 57",
-	"*UNKNOWN BODYTYPE 58",
-	"*UNKNOWN BODYTYPE 59",
-	"*UNKNOWN BODYTYPE 60",
-	"*UNKNOWN BODYTYPE 61",
-	"*UNKNOWN BODYTYPE 62",
-	"*UNKNOWN BODYTYPE 63",
-	"*UNKNOWN BODYTYPE 64",
-	"Trap",
-	"Timer",
-	"Trigger",
-	"*UNKNOWN BODYTYPE 68",
-	"*UNKNOWN BODYTYPE 69",
-	"*UNKNOWN BODYTYPE 70",
-	"*UNKNOWN BODYTYPE 71",
-	"*UNKNOWN BODYTYPE 72",
-	"*UNKNOWN BODYTYPE 73",
-	"*UNKNOWN BODYTYPE 74",
-	"*UNKNOWN BODYTYPE 75",
-	"*UNKNOWN BODYTYPE 76",
-	"*UNKNOWN BODYTYPE 77",
-	"*UNKNOWN BODYTYPE 78",
-	"*UNKNOWN BODYTYPE 79",
-	"*UNKNOWN BODYTYPE 80",
-	"*UNKNOWN BODYTYPE 81",
-	"*UNKNOWN BODYTYPE 82",
-	"*UNKNOWN BODYTYPE 83",
-	"*UNKNOWN BODYTYPE 84",
-	"*UNKNOWN BODYTYPE 85",
-	"*UNKNOWN BODYTYPE 86",
-	"*UNKNOWN BODYTYPE 87",
-	"*UNKNOWN BODYTYPE 88",
-	"*UNKNOWN BODYTYPE 89",
-	"*UNKNOWN BODYTYPE 90",
-	"*UNKNOWN BODYTYPE 91",
-	"*UNKNOWN BODYTYPE 92",
-	"*UNKNOWN BODYTYPE 93",
-	"*UNKNOWN BODYTYPE 94",
-	"*UNKNOWN BODYTYPE 95",
-	"*UNKNOWN BODYTYPE 96",
-	"*UNKNOWN BODYTYPE 97",
-	"*UNKNOWN BODYTYPE 98",
-	"*UNKNOWN BODYTYPE 99",
-	"Untargetable",
-	"Trap",
-	"Timer",
-	"Trigger",
+    "Proc Pet",//32
+    "Chest",//33  (5 as of 9-19-2006)
+    "Muramite",//34
+    "*UNKNOWN BODYTYPE 35",
+    "*UNKNOWN BODYTYPE 36",
+    "*UNKNOWN BODYTYPE 37",
+    "*UNKNOWN BODYTYPE 38",
+    "*UNKNOWN BODYTYPE 39",
+    "*UNKNOWN BODYTYPE 40",
+    "*UNKNOWN BODYTYPE 41",
+    "*UNKNOWN BODYTYPE 42",
+    "*UNKNOWN BODYTYPE 43",
+    "*UNKNOWN BODYTYPE 44",
+    "*UNKNOWN BODYTYPE 45",
+    "*UNKNOWN BODYTYPE 46",
+    "*UNKNOWN BODYTYPE 47",
+    "*UNKNOWN BODYTYPE 48",
+    "*UNKNOWN BODYTYPE 49",
+    "*UNKNOWN BODYTYPE 50",
+    "*UNKNOWN BODYTYPE 51",
+    "*UNKNOWN BODYTYPE 52",
+    "*UNKNOWN BODYTYPE 53",
+    "*UNKNOWN BODYTYPE 54",
+    "*UNKNOWN BODYTYPE 55",
+    "*UNKNOWN BODYTYPE 56",
+    "*UNKNOWN BODYTYPE 57",
+    "*UNKNOWN BODYTYPE 58",
+    "*UNKNOWN BODYTYPE 59",
+    "*UNKNOWN BODYTYPE 60",
+    "*UNKNOWN BODYTYPE 61",
+    "*UNKNOWN BODYTYPE 62",
+    "*UNKNOWN BODYTYPE 63",
+    "*UNKNOWN BODYTYPE 64",
+    "Trap",
+    "Timer",
+    "Trigger",
+    "*UNKNOWN BODYTYPE 68",
+    "*UNKNOWN BODYTYPE 69",
+    "*UNKNOWN BODYTYPE 70",
+    "*UNKNOWN BODYTYPE 71",
+    "*UNKNOWN BODYTYPE 72",
+    "*UNKNOWN BODYTYPE 73",
+    "*UNKNOWN BODYTYPE 74",
+    "*UNKNOWN BODYTYPE 75",
+    "*UNKNOWN BODYTYPE 76",
+    "*UNKNOWN BODYTYPE 77",
+    "*UNKNOWN BODYTYPE 78",
+    "*UNKNOWN BODYTYPE 79",
+    "*UNKNOWN BODYTYPE 80",
+    "*UNKNOWN BODYTYPE 81",
+    "*UNKNOWN BODYTYPE 82",
+    "*UNKNOWN BODYTYPE 83",
+    "*UNKNOWN BODYTYPE 84",
+    "*UNKNOWN BODYTYPE 85",
+    "*UNKNOWN BODYTYPE 86",
+    "*UNKNOWN BODYTYPE 87",
+    "*UNKNOWN BODYTYPE 88",
+    "*UNKNOWN BODYTYPE 89",
+    "*UNKNOWN BODYTYPE 90",
+    "*UNKNOWN BODYTYPE 91",
+    "*UNKNOWN BODYTYPE 92",
+    "*UNKNOWN BODYTYPE 93",
+    "*UNKNOWN BODYTYPE 94",
+    "*UNKNOWN BODYTYPE 95",
+    "*UNKNOWN BODYTYPE 96",
+    "*UNKNOWN BODYTYPE 97",
+    "*UNKNOWN BODYTYPE 98",
+    "*UNKNOWN BODYTYPE 99",
+    "Untargetable",
+    "Trap",
+    "Timer",
+    "Trigger",
 };
 
 PCHAR szAugRestrictions[] = { 
-	"None",
-	"Armor Only",
-	"Weapons Only",
-	"1H Weapons Only",
-	"2H Weapons Only",
-	"1H Slash Only",
-	"1H Blunt Only",
-	"Piercing Only",
-	"Hand to Hand Only",
-	"2H Slash Only",
-	"2H Blunt Only",
-	"2H Pierce Only",
-	"Bows Only",
-	"Shields Only"
+    "None",
+    "Armor Only",
+    "Weapons Only",
+    "1H Weapons Only",
+    "2H Weapons Only",
+    "1H Slash Only",
+    "1H Blunt Only",
+    "Piercing Only",
+    "Hand to Hand Only",
+    "2H Slash Only",
+    "2H Blunt Only",
+    "2H Pierce Only",
+    "Bows Only",
+    "Shields Only"
 }; 
 PCHAR szItemSlot[] = {
     "charm",        // 0
@@ -687,81 +688,81 @@ DWORD nColorFatalError=0;
 
 PCHAR szColorAdjective[]=
 {
-	"",
-	"GOD DAMN ",
-	"FUCKING ",
-	"MOTHER FUCKING ",
-	NULL
+    "",
+    "GOD DAMN ",
+    "FUCKING ",
+    "MOTHER FUCKING ",
+    NULL
 };
 
 PCHAR szColorAdjectiveYou[]=
 {
-	"",
-	" FUCKER",
-	" MOTHER FUCKER",
-	" ASSHOLE",
-	" FUCKTARD",
-	" FUCKING RETARDED MONKEY",
-	" GOD DAMN SHORT BUS PASSENGER",
-	" ASSMONKEY",
-	" PIGFUCKER",
-	" PEEN",
-	" FUCKING IDIOT",
-	" STUPID FUCKER",
-	" DUMBASS",
-	" FUCKING DUMBASS",
-	" STUPID FUCK",
-	NULL
+    "",
+    " FUCKER",
+    " MOTHER FUCKER",
+    " ASSHOLE",
+    " FUCKTARD",
+    " FUCKING RETARDED MONKEY",
+    " GOD DAMN SHORT BUS PASSENGER",
+    " ASSMONKEY",
+    " PIGFUCKER",
+    " PEEN",
+    " FUCKING IDIOT",
+    " STUPID FUCKER",
+    " DUMBASS",
+    " FUCKING DUMBASS",
+    " STUPID FUCK",
+    NULL
 };
 
 PCHAR szColorExpletive[]=
 {
-	"",
-	"CHRIST ",
-	"JESUS FUCK ",
-	"GOD ",
-	"JESUS FUCKING CHRIST ",
-	"FUCKING CHRIST ",
-	"GKFJDGJKFDGJKDF ",
-	NULL
+    "",
+    "CHRIST ",
+    "JESUS FUCK ",
+    "GOD ",
+    "JESUS FUCKING CHRIST ",
+    "FUCKING CHRIST ",
+    "GKFJDGJKFDGJKDF ",
+    NULL
 };
 
 PCHAR szColorSyntaxError[]=
 {
-	"",
-	"%edont you know how to use a simple %acommand%y",
-	NULL
+    "",
+    "%edont you know how to use a simple %acommand%y",
+    NULL
 };
 
 PCHAR szColorMacroError[]=
 {
-	"",
-	"%ei'm pretty sure you're on %acrack%y"
-	"%egood job%y, cant you do anything %aright%y",
-	"%ewhatever you're %asmoking, pass it %aalong%y",
-	"%e%aRTFM%y",
-	"%e%aRTFM%y, until then fuck off%y",
-	"%eget a %abrain%y",
-	NULL
+    "",
+    "%ei'm pretty sure you're on %acrack%y"
+    "%egood job%y, cant you do anything %aright%y",
+    "%ewhatever you're %asmoking, pass it %aalong%y",
+    "%e%aRTFM%y",
+    "%e%aRTFM%y, until then fuck off%y",
+    "%eget a %abrain%y",
+    NULL
 };
 
 PCHAR szColorFatalError[]=
 {
-	"",
-	"%eyou fucking broke it%y",
-	"%egood job%y. what's next? your head on a %astick thats %awhat%y",
-	NULL
+    "",
+    "%eyou fucking broke it%y",
+    "%egood job%y. what's next? your head on a %astick thats %awhat%y",
+    NULL
 };
 
 PCHAR szColorMQ2DataError[]=
 {
-	"",
-	"%ewhy dont you %aread the %areference%y",
-	"%eget a %aclue%y",
-	"%ewhatever you're %asmoking, pass it %aalong%y",
-	"%e%aread the %areference%y",
-	"%e%aread the %areference%y, until then fuck off%y",
-	NULL
+    "",
+    "%ewhy dont you %aread the %areference%y",
+    "%eget a %aclue%y",
+    "%ewhatever you're %asmoking, pass it %aalong%y",
+    "%e%aread the %areference%y",
+    "%e%aread the %areference%y, until then fuck off%y",
+    NULL
 };
 
 StringTable **ppStringTable=(StringTable**)pinstStringTable;

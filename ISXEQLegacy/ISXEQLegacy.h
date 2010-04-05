@@ -6,19 +6,19 @@
 #include <isxdk.h>
 
 class ISXEQLegacy :
-	public ISXInterface
+    public ISXInterface
 {
 public:
 
-	virtual bool Initialize(ISInterface *p_ISInterface);
-	virtual void Shutdown();
+    virtual bool Initialize(ISInterface *p_ISInterface);
+    virtual void Shutdown();
 
-	void LoadSettings();
-	void ConnectServices();
-	void RegisterServices();
+    void LoadSettings();
+    void ConnectServices();
+    void RegisterServices();
 
-	void DisconnectServices();
-	void UnRegisterServices();
+    void DisconnectServices();
+    void UnRegisterServices();
 
 };
 

@@ -88,9 +88,9 @@ enum UIType
 
 typedef struct _EQCURRENTSELECTION {
 /*0x00*/   DWORD   Unknown;
-/*0x04*/   DWORD   SelectedWnd;//address to selection in tree
+/*0x04*/   DWORD   SelectedWnd;     //address to selection in tree
 /*0x08*/   DWORD   Unknownlodncrap;
-/*0x0c*/   DWORD   NumberOfSlots;//merchantslots == 79
+/*0x0c*/   DWORD   NumberOfSlots;   //merchantslots == 79
 /*0x10*/   DWORD   TextureAnim;
 /*0x14*/
 } EQCURRENTSELECTION, *PEQCURRENTSELECTION;
@@ -264,7 +264,7 @@ typedef struct _CXWNDVFTABLE {
 /*010c*/ LPVOID  Unknown0x10c;
 /*0110*/ LPVOID  SetWindowTextA;
 /*0114*/ LPVOID  Unknown0x110;
-/*0118*/ LPVOID  SetVScrollPos;//->0
+/*0118*/ LPVOID  SetVScrollPos;  //->0
 /*011c*/ LPVOID  SetHScrollPos;
 /*0120*/ LPVOID  SetAttributesFromSidl;
 /*0124*/ LPVOID  nullsub_1;
@@ -412,11 +412,11 @@ typedef struct _CSIDLWND {
                 struct _CXSTR  *SidlScreen;
                 DWORD   SlotID;
             };
-/*0x15c*/   LPVOID  SidlPiece;   // CScreenPieceTemplate (important)
+/*0x15c*/   LPVOID  SidlPiece;      // CScreenPieceTemplate (important)
 /*0x160*/   BYTE    Checked;
 /*0x161*/   BYTE    Highlighted;
 /*0x162*/   BYTE    Unused0x162[0x2];
-/*0x164*/   DWORD   TextureAnim; // used in CSidlScreenWnd::AddButtonToRadioGroup
+/*0x164*/   DWORD   TextureAnim;    // used in CSidlScreenWnd::AddButtonToRadioGroup
 /*0x168*/   struct  _CXSTR *   InputText;
 /*0x16c*/   DWORD   Selector;
 /*0x170*/   DWORD   PushToSelector;
@@ -426,20 +426,20 @@ typedef struct _CSIDLWND {
                 struct _EQINVSLOT *pEQInvSlot;
             };
 /*0x17c*/   DWORD   Unknown0x17c;
-/*0x180*/   DWORD   Unknown0x180;// CTextureAnimation
-/*0x184*/   DWORD   Unknown0x184;// CTextureAnimation
+/*0x180*/   DWORD   Unknown0x180;   // CTextureAnimation
+/*0x184*/   DWORD   Unknown0x184;   // CTextureAnimation
 /*0x188*/   BYTE    Unknown0x188[0x4];
-/*0x18c*/   LPVOID  ContextMenu; // CTextureAnimation
-/*0x190*/   DWORD   Unknown0x190;// CTextureAnimation
-/*0x194*/   DWORD   Unknown0x194;// CTextureAnimation
+/*0x18c*/   LPVOID  ContextMenu;    // CTextureAnimation
+/*0x190*/   DWORD   Unknown0x190;   // CTextureAnimation
+/*0x194*/   DWORD   Unknown0x194;   // CTextureAnimation
 /*0x198*/
 } CSIDLWND, *PCSIDLWND;
 
 // size 0x298  09-03-2008
 typedef struct _CSIDLMGR {
-/*0x000*/	BYTE	Unknown0x000[0x144];
-/*0x144*/	PVOID pXMLDataMgr;
-/*0x148*/	BYTE	Unknown0x11c[0x150];
+/*0x000*/    BYTE    Unknown0x000[0x144];
+/*0x144*/    PVOID pXMLDataMgr;
+/*0x148*/    BYTE    Unknown0x11c[0x150];
 /*0x298*/
 } CSIDLMGR, *PCSIDLMGR;
 
@@ -451,7 +451,7 @@ typedef struct _CXWNDMGR {
 /*0x004*/ DWORD Count;
 /*0x008*/ struct _CSIDLWND **pWindows;
 /*0x00c*/ BYTE Unknown0x00C[0x71];
-/*0x07d*/ bool KeyboardFlags[4];  // 7d-80
+/*0x07d*/ bool KeyboardFlags[4];    // 7d-80
 /*0x081*/ CHAR Unknown0x081[0x6b];
 /*0x0EC*/ DWORD ScreenExtentX;
 /*0x0F0*/ DWORD ScreenExtentY;
@@ -555,15 +555,15 @@ typedef struct _EQCHATWINDOW
 /*0x164*/ struct _CSIDLWND* InputWnd;
 /*0x168*/ struct _CSIDLWND* OutputWnd;
 /*0x16c*/ DWORD Unknown0x154;
-/*0x170*/ DWORD Unknown0x158;// need to update locations..
+/*0x170*/ DWORD Unknown0x158;       // need to update locations..
 /*0x174*/ BYTE Unknown0x148;
 /*0x175*/ BYTE Unknown0x149[0x3f];
 /*0x1b4*/ DWORD Unknown0x188;
 /*0x1b8*/ DWORD Unknown0x18c;
 /*0x1bc*/ struct _CXSTR *CommandHistory[0x28]; // ->0x198
-/*0x25c*/ DWORD Unknown0x230; // CChatWindow::HistoryBack/forward .. maybe total or current history lines
-/*0x260*/ DWORD Unknown0x234; // CChatWindow::HistoryBack/forward .. maybe total or current history lines
-/*0x264*/ DWORD FontSize; //
+/*0x25c*/ DWORD Unknown0x230;       // CChatWindow::HistoryBack/forward .. maybe total or current history lines
+/*0x260*/ DWORD Unknown0x234;       // CChatWindow::HistoryBack/forward .. maybe total or current history lines
+/*0x264*/ DWORD FontSize;
 /*0x268*/ DWORD Unknown0x23C;
 /*0x26c*/
 } EQCHATWINDOW, *PEQCHATWINDOW;
@@ -574,41 +574,41 @@ typedef struct _EQBUFFWINDOW
 {
 /*0x000*/ struct _CSIDLWND Wnd;
 /*0x148*/ BYTE  Unknown0x148[0x48];
-/*0x184*/ DWORD pBuff[0x0f];    // CButton*
+/*0x184*/ DWORD pBuff[0x0f];        // CButton*
 /*0x1C0*/ DWORD Unknown0x1C0;
 /*0x1C4*/ DWORD Unknown0x1C4;
 /*0x1C8*/ DWORD Unknown0x1C8;
 /*0x1CC*/ DWORD Unknown0x1CC;
-/*0x1D0*/ DWORD FirstEffectSlot; //0-15
-/*0x1D4*/ DWORD LastEffectSlot;  //0-15
-/*0x1D8*/ DWORD MaxBuffs;  // either 0x0F or 0x06  (normal or shortbuffs)
+/*0x1D0*/ DWORD FirstEffectSlot;    //0-15
+/*0x1D4*/ DWORD LastEffectSlot;     //0-15
+/*0x1D8*/ DWORD MaxBuffs;           // either 0x0F or 0x06  (normal or shortbuffs)
 /*0x1DC*/
 } EQBUFFWINDOW, *PEQBUFFWINDOW;
 
 // actual size 0x148
 typedef struct _EQINVSLOTWND {
 /*0x000*/   struct _CXWND Wnd;
-/*0x110*/	LONG InvSlot;
+/*0x110*/    LONG InvSlot;
 /*0x114*/   BYTE Unknown0x114[0x28];
 /*0x13C*/   BOOL ProcessClick;
 } EQINVSLOTWND, *PEQINVSLOTWND;
 
 // actual size 0x14 2-18-2004 Lax
 typedef struct _EQINVSLOT {
-/*0x00*/	LPVOID pvfTable; // not based on cxwnd
-/*0x04*/	struct _EQINVSLOTWND *pInvSlotWnd;
-/*0x08*/	DWORD Unknown0x08;
-/*0x0C*/	DWORD Unknown0x0C;
-/*0x10*/	PCONTENTS *ppContents;
+/*0x00*/    LPVOID pvfTable;        // not based on cxwnd
+/*0x04*/    struct _EQINVSLOTWND *pInvSlotWnd;
+/*0x08*/    DWORD Unknown0x08;
+/*0x0C*/    DWORD Unknown0x0C;
+/*0x10*/    PCONTENTS *ppContents;
 /*0x14*/
 } EQINVSLOT, *PEQINVSLOT;
 
 // actual size 0x1010 01-16-2008
 typedef struct _EQINVSLOTMGR {
-/*0x0000*/	DWORD Unknown0x0000;
-/*0x0004*/	struct _EQINVSLOT *SlotArray[0x400];
-/*0x1004*/	DWORD TotalSlots;
-/*0x1008*/	DWORD Unknown0x1008;
+/*0x0000*/    DWORD Unknown0x0000;
+/*0x0004*/    struct _EQINVSLOT *SlotArray[0x400];
+/*0x1004*/    DWORD TotalSlots;
+/*0x1008*/    DWORD Unknown0x1008;
 /*0x100c*/  void  *pSelectedItem;
 /*0x1010*/
 } EQINVSLOTMGR, *PEQINVSLOTMGR;
@@ -619,7 +619,7 @@ typedef struct _EQINVSLOTMGR {
 // Actual Size 0x17C old
 typedef struct _EQCONTAINERWINDOW {
 /*0x000*/ struct _CSIDLWND Wnd;
-/*0x148*/ struct _CONTENTS*   pContents;     // Pointer to the contents of the container;
+/*0x148*/ struct _CONTENTS*   pContents;         // Pointer to the contents of the container;
                                                  // Matches the pointer in CHARINFO.Inventory/Bank/World
 /*0x14c*/ struct _CSIDLWND*   pSlots[0x0a];
 /*0x000*/ struct _CSIDLWND*   pCombine;
@@ -633,10 +633,10 @@ typedef struct _EQCONTAINERWINDOW {
 
 // Actual Size 0x98  03/15/06
 typedef struct _EQ_CONTAINERWND_MANAGER {
-/*0x000*/   DWORD pvfTable; // NOT based on CXWnd.  Contains only destructor
-/*0x004*/   PEQCONTAINERWINDOW pPCContainers[0x22];  // All open containers, including World, in order of opening...
-/*0x08c*/   PCONTENTS   pWorldContents;            // Pointer to the contents of the world   If NULL, world container isn't open;
-/*0x090*/   DWORD dwWorldContainerID;            // ID of container in zone, starts at one (zero?) and goes up.
+/*0x000*/   DWORD pvfTable;                           // NOT based on CXWnd.  Contains only destructor
+/*0x004*/   PEQCONTAINERWINDOW pPCContainers[0x22];   // All open containers, including World, in order of opening...
+/*0x08c*/   PCONTENTS   pWorldContents;               // Pointer to the contents of the world   If NULL, world container isn't open;
+/*0x090*/   DWORD dwWorldContainerID;                 // ID of container in zone, starts at one (zero?) and goes up.
 /*0x094*/   DWORD dwTimeSpentWithWorldContainerOpen;  // Cumulative counter?
 /*0x078*/
 } EQ_CONTAINERWND_MANAGER, *PEQ_CONTAINERWND_MANAGER;
@@ -654,7 +654,7 @@ typedef struct _MAPLABEL { // sizeof() = 0x28
 /*0x04*/    struct _MAPLABEL *pPrev;
 /*0x08*/    POINT3 Location;
 /*0x14*/    ARGBCOLOR Color;
-/*0x18*/    DWORD Size; //1-3;
+/*0x18*/    DWORD Size;     //1-3;
 /*0x1C*/    PCHAR Label;
 /*0x20*/    DWORD Layer;    //0-3;
 /*0x24*/    DWORD Width;
@@ -669,7 +669,7 @@ typedef struct _MAPLINE { // sizeof() = 0x28 (think this might be 0x34 now)
     POINT3 Start;
     POINT3 End;
     ARGBCOLOR Color;
-    DWORD Layer;    //0-3;
+    DWORD Layer;          //0-3;
 } MAPLINE, *PMAPLINE;
 
 typedef struct _EQLOOTWINDOW {
@@ -682,7 +682,7 @@ typedef struct _EQLOOTWINDOW {
 typedef struct _EQPETINFOWINDOW {
 /*0x000*/ struct _CSIDLWND Wnd;
 /*0x198*/ DWORD Unknown0x198[0xba];
-/*0x480*/ int   Buff[85]; // Spell ID# of each buff -- 85 total
+/*0x480*/ int   Buff[85];        // Spell ID# of each buff -- 85 total
 /*0x5d4*/ BYTE  Unknown0x5d4[0x604-0x5d4];
 /*0x604*/ DWORD BuffFadeETA[85]; // duration until buff fades, in thousands of a second
 /*0x758*/ BYTE  Unknown0x758[4];
@@ -697,7 +697,7 @@ typedef struct _EQTRADESKILLRECIPE {
 /*0x10*/ DWORD Unknown0x10;
 /*0x14*/ CHAR  Name[0x40];
 /*0x54*/ DWORD Unknown0x54;
-/*0x58*/ DWORD Ingredient[0xa];  // ID# of ingredient(s)
+/*0x58*/ DWORD Ingredient[0xa];     // ID# of ingredient(s)
 /*0x80*/ DWORD IngredientIcon[0xa]; //Icon# of ingredient(s) (Note: 499 is blank)
 } EQTRADESKILLRECIPE, *PEQTRADESKILLRECIPE;
 
@@ -706,7 +706,7 @@ typedef struct _EQTRADESKILLWINDOW {
 /*0x000*/   struct _CSIDLWND Wnd;
 /*0x148*/ DWORD Unknown0x148[0x1b];  
 /*0x1b4*/ PEQTRADESKILLRECIPE SearchResults[0x64]; 
-/*0x344*/ DWORD	Unknown0x344;
+/*0x344*/ DWORD    Unknown0x344;
 /*0x348*/ DWORD Unknown0x348;
 /*0x34c*/ DWORD Unknown0x34c;
 /*0x350*/ PCONTENTS Container;
@@ -745,7 +745,7 @@ typedef struct _EQRAIDWINDOW {
 
 typedef struct _GUILDMEMBERINFO {
 /*0x000*/ DWORD Unknown0x000; //pointer?
-/*0x004*/ BYTE OnlineStatus; // 00=offline, 01=online
+/*0x004*/ BYTE OnlineStatus;  // 00=offline, 01=online
 /*0x005*/ BYTE UnknownData0x005;
 /*0x006*/ BYTE UnknownData0x006;
 /*0x007*/ BYTE Unknown0x007;
@@ -753,7 +753,7 @@ typedef struct _GUILDMEMBERINFO {
 /*0x010*/ CHAR Name[0x40];
 /*0x050*/ DWORD Level;
 /*0x054*/ DWORD Class; 
-/*0x058*/ DWORD Rank; //0=member, 1=officer, 2=leader
+/*0x058*/ DWORD Rank;         //0=member, 1=officer, 2=leader
 /*0x05c*/ FLOAT UnknownData0x05c;
 /*0x060*/ CHAR PublicNote[0x80];
 /*0x0e0*/ BYTE Unknown0x0e0[0x180];
@@ -768,20 +768,20 @@ typedef struct _EQGUILDWINDOW {
 /*0x000*/ struct _CSIDLWND Wnd;
 /*0x148*/ BYTE  Unknown0x148[0x4c];
 /*0x194*/ BYTE Unknown0x194;
-/*0x195*/ BYTE ShowOffline; // 01 = show offline box is checked
+/*0x195*/ BYTE ShowOffline;                  // 01 = show offline box is checked
 /*0x196*/ BYTE Unknown0x196[0x2];
 /*0x198*/ struct _GUILDMEMBERINFO **pMember; // This is a pointer to the beginning of a list of pointers, 
-	                                         // each representing one player in the guild.  The number of 
-	                                         // pointers depends upon TotalMemberCount.
+                                             // each representing one player in the guild.  The number of 
+                                             // pointers depends upon TotalMemberCount.
 /*0x19c*/ DWORD TotalMemberCount;
-/*0x1a0*/ DWORD Unknown0x1a0;  // 150?
-/*0x1a4*/ DWORD Unknown0x1a4;  // 1?
+/*0x1a0*/ DWORD Unknown0x1a0;                // 150?
+/*0x1a4*/ DWORD Unknown0x1a4;                // 1?
 /*0x1a8*/ DWORD TotalMemberCountAgain;
 /*0x1ac*/ BYTE Unknown0x1ac[0x1c];
 /*0x1c8*/ CHAR PersonalNotesFilePath[0x40];  // path to personal notes file
-/*0x208*/ BYTE Unknown0x208[0x1c0]; // empty
-/*0x3c8*/ DWORD Unknown0x3c8; // 1?
-/*0x3cc*/ DWORD Unknown0x3cc; // some sort of bizaare pointer...
+/*0x208*/ BYTE Unknown0x208[0x1c0];          // empty
+/*0x3c8*/ DWORD Unknown0x3c8;                // 1?
+/*0x3cc*/ DWORD Unknown0x3cc;                // some sort of bizaare pointer...
 /*0x3d0*/
 } EQGUILDWINDOW, *PEQGUILDWINDOW;
 
@@ -850,9 +850,9 @@ typedef struct _EQMAPWINDOW {
 /*0x258*/ BYTE Unknown0x258[0xc];
 /*0x264*/ BYTE MapViewMapStart[0x40];
 /*0x2a4*/ PMAPLINE pLines;       
-/*0x2a8*/ PMAPLABEL pLabels;			
+/*0x2a8*/ PMAPLABEL pLabels;            
 /*0x294*/ BYTE Unknown0x294[0x34];
-/*0x2c8*/ DWORD ContentsCount;  //number of lines/labels on the map (I think)
+/*0x2c8*/ DWORD ContentsCount;          //number of lines/labels on the map (I think)
 /*0x2d4*/
 } EQMAPWINDOW, *PEQMAPWINDOW;
 
@@ -868,22 +868,22 @@ typedef struct _EQCASTSPELLWINDOW {
 
 // Individual Gems 
 typedef struct _EQCASTSPELLGEM { 
-/*0x000*/ struct	_CSIDLWND Wnd; 
-/*0x188*/ BYTE		Unknown0x188[0x04]; 
-/*0x18c*/ BYTE		Unknown0x18c[0x20]; 
-/*0x1ac*/ BYTE		Unknown0x1ac[0x4]; 
-/*0x1b0*/ DWORD		spellicon;//if this is equal to FFFFFFFF there is no spell memmed in this slot... 
-/*0x1b4*/ DWORD		spellstate;// 1 = cast in progress or refreshtime not met 2 means we ducked or aborted cast, 0 means its ok to cast 
+/*0x000*/ struct    _CSIDLWND Wnd; 
+/*0x188*/ BYTE        Unknown0x188[0x04]; 
+/*0x18c*/ BYTE        Unknown0x18c[0x20]; 
+/*0x1ac*/ BYTE        Unknown0x1ac[0x4]; 
+/*0x1b0*/ DWORD        spellicon;       //if this is equal to FFFFFFFF there is no spell memmed in this slot... 
+/*0x1b4*/ DWORD        spellstate;      // 1 = cast in progress or refreshtime not met 2 means we ducked or aborted cast, 0 means its ok to cast 
 /*0x1b8*/ BYTE          Unknown0x194[0x18];
 /*0x1ac*/ 
 } EQCASTSPELLGEM, *PEQCASTSPELLGEM;
-#define Fly					 0
+#define Fly                     0
 
 // Actual size 0x1c4 10-9-2003
 typedef struct _EQHOTBUTTONWINDOW {
 /*0x000*/ struct _CSIDLWND Wnd;
 /*0x148*/ BYTE Unknown0x138[0xc];
-/*0x000*/ DWORD   HotButtonWndView;//0 to 9 for the different views
+/*0x000*/ DWORD   HotButtonWndView;     //0 to 9 for the different views
 /*0x14c*/ struct _CSIDLWND   *HotButtons[0x0a];//these will change when you switch page...
 /*0x174*/
 } EQHOTBUTTONWINDOW, *PEQHOTBUTTONWINDOW;
@@ -891,7 +891,7 @@ typedef struct _EQHOTBUTTONWINDOW {
 typedef struct _LOOTCORPSE {
 /*0x000*/   BYTE    Unknown0x000;   // 03 seems very common (for NPC anyway)
 /*0x001*/   CHAR    Name[0x4b];
-/*0x04c*/   FLOAT   Timer;  //Uncertain the equation used here, but fairly certain it's the timer
+/*0x04c*/   FLOAT   Timer;          //Uncertain the equation used here, but fairly certain it's the timer
 /*0x050*/   FLOAT   X;
 /*0x054*/   BYTE    Unknown0x054[0x4];
 /*0x058*/   FLOAT   Y;
@@ -906,29 +906,29 @@ typedef struct _LOOTCORPSE {
 
 // size 0x180 3-10-2004
 typedef struct _EQCOMPASSWINDOW {
-/*0x000*/	struct _CSIDLWND Wnd;
-/*0x148*/	struct _CSIDLWND *pStrip1;
-/*0x14C*/	struct _CSIDLWND *pStrip2;
+/*0x000*/    struct _CSIDLWND Wnd;
+/*0x148*/    struct _CSIDLWND *pStrip1;
+/*0x14C*/    struct _CSIDLWND *pStrip2;
 // in progress.
 /*0x16C*/   BOOL DrawLine;
 /*0x170*/   DWORD Unknown0x170;
-/*0x174*/	DWORD LineRed;
-/*0x178*/	DWORD LineGreen;
-/*0x17C*/	DWORD LineBlue;
+/*0x174*/    DWORD LineRed;
+/*0x178*/    DWORD LineGreen;
+/*0x17C*/    DWORD LineBlue;
 /*0x180*/
 } EQCOMPASSWINDOW, *PEQCOMPASSWINDOW;
 
 // used by options window
 typedef struct _EQKBASSIGN
 {
-/*0x00*/	struct _CXSTR *pDescription;
-/*0x04*/	DWORD nAssignmentNumber;
+/*0x00*/    struct _CXSTR *pDescription;
+/*0x04*/    DWORD nAssignmentNumber;
 /*0x08*/
 } EQKBASSIGN, *PEQKBASSIGN;
 
 // size 0x904 3-10-2004
 typedef struct _EQOPTIONSWINDOW {
-/*0x000*/	struct _CSIDLWND Wnd;
+/*0x000*/    struct _CSIDLWND Wnd;
 /*0x148*/
 
 /*0x264*/ struct _EQKBASSIGN Binds[0xA1];
@@ -965,7 +965,7 @@ typedef struct _CTEXTENTRYWND {
 typedef struct _CPLAYERWND {
 /*0x000*/ struct _CSIDLWND Wnd;
 /*0x198*/ BYTE   Unknown[0x84];
-/*0x21c*/ DWORD  CombatState; // 1=debuffed, 2=combat cooldown, 3=stand, 4=sit
+/*0x21c*/ DWORD  CombatState;   // 1=debuffed, 2=combat cooldown, 3=stand, 4=sit
 /*0x220*/ 
 } CPLAYERWND, *PCPLAYERWND;
 

@@ -19,13 +19,13 @@ VOID MapFilterSetting(PSPAWNINFO pChar, DWORD nMapFilter, PCHAR szValue)
         NULL
     };
     if (!pChar) return;
-	PMAPFILTER pMapFilter=&MapFilterOptions[nMapFilter];
-	if (!RequirementsMet(nMapFilter))
-	{
-		sprintf(szBuffer,"'%s' requires '%s' option.  Please enable this option first.",pMapFilter->szName,MapFilterOptions[pMapFilter->RequiresOption].szName);
-		WriteChatColor(szBuffer,USERCOLOR_DEFAULT);
-		return;
-	}
+    PMAPFILTER pMapFilter=&MapFilterOptions[nMapFilter];
+    if (!RequirementsMet(nMapFilter))
+    {
+        sprintf(szBuffer,"'%s' requires '%s' option.  Please enable this option first.",pMapFilter->szName,MapFilterOptions[pMapFilter->RequiresOption].szName);
+        WriteChatColor(szBuffer,USERCOLOR_DEFAULT);
+        return;
+    }
     if (!szValue) {
         if (pMapFilter->bIsToggle) {
             sprintf(szBuffer,"%s: %s",pMapFilter->szName,szFilterMap[pMapFilter->Enabled]);
@@ -49,13 +49,13 @@ VOID MapFilterSetting(PSPAWNINFO pChar, DWORD nMapFilter, PCHAR szValue)
         }
     } else {
         if (pMapFilter->bIsToggle) {
-                        if (!stricmp(szFilterMap[0],szValue)) {
-                            pMapFilter->Enabled = 0;
-                        } else if (!stricmp(szFilterMap[1],szValue)) {
-                            pMapFilter->Enabled = 1;
-                        } else {
+            if (!stricmp(szFilterMap[0],szValue)) {
+                pMapFilter->Enabled = 0;
+            } else if (!stricmp(szFilterMap[1],szValue)) {
+                pMapFilter->Enabled = 1;
+            } else {
                 pMapFilter->Enabled = 1 - pMapFilter->Enabled;
-                        }
+            }
             sprintf(szBuffer,"%s is now set to: %s",pMapFilter->szName,szFilterMap[IsOptionEnabled(nMapFilter)]);
         } else if (nMapFilter == MAPFILTER_Custom) {
             ClearSearchSpawn(&MapFilterCustom);
@@ -90,15 +90,15 @@ VOID MapFilters(PSPAWNINFO pChar, PCHAR szLine)
     // Display settings
     if (szArg[0]==0) {
         WriteChatColor("Map filtering settings:",USERCOLOR_DEFAULT);
-		WriteChatColor("-----------------------",USERCOLOR_DEFAULT);
+        WriteChatColor("-----------------------",USERCOLOR_DEFAULT);
         for (DWORD i=0;MapFilterOptions[i].szName!=NULL;i++) 
-			if (RequirementsMet(i))
-				MapFilterSetting(pChar,i);
+            if (RequirementsMet(i))
+                MapFilterSetting(pChar,i);
 
-    // Display Help
+        // Display Help
     } 
-	else if (!strnicmp(szArg,"help",4)) 
-	{
+    else if (!strnicmp(szArg,"help",4)) 
+    {
         WriteChatColor("Map filtering options:",USERCOLOR_DEFAULT);
         for (DWORD i=0;MapFilterOptions[i].szName!=NULL;i++) {
             sprintf(szBuffer,"%s%s: %s",MapFilterOptions[i].szName,(MapFilterOptions[i].bIsToggle)?"":" #",MapFilterOptions[i].szHelpString);
@@ -106,7 +106,7 @@ VOID MapFilters(PSPAWNINFO pChar, PCHAR szLine)
         }
         WriteChatColor("'option' color [r g b]: Set display color for 'option' (Omit to reset to default)",USERCOLOR_DEFAULT);
 
-    // Set option
+        // Set option
     } else {
         PMAPFILTER Found = 0;
         for (DWORD i=0;MapFilterOptions[i].szName!=NULL;i++) {
@@ -128,7 +128,7 @@ VOID MapFilters(PSPAWNINFO pChar, PCHAR szLine)
                             if (R>255) R=255;
                             if (G>255) G=255;
                             if (B>255) B=255;
-                           MapFilterOptions[i].Color = R*0x10000 + G*0x100 + B;
+                            MapFilterOptions[i].Color = R*0x10000 + G*0x100 + B;
                         }
                         sprintf(szBuffer,"Option '%s' color set to: %d %d %d",MapFilterOptions[i].szName,R,G,B);
                         WriteChatColor(szBuffer,USERCOLOR_DEFAULT);
@@ -144,12 +144,12 @@ VOID MapFilters(PSPAWNINFO pChar, PCHAR szLine)
             }
         }
         if (!Found) 
-			SyntaxError("Usage: /mapfilter [option|help]");
-		else if (Found->RegenerateOnChange)
-		{
-			MapClear();
-			MapGenerate();
-		}
+            SyntaxError("Usage: /mapfilter [option|help]");
+        else if (Found->RegenerateOnChange)
+        {
+            MapClear();
+            MapGenerate();
+        }
     }
 }
 
@@ -159,45 +159,45 @@ VOID MapHighlightCmd(PSPAWNINFO pChar, PCHAR szLine)
     CHAR szArg[MAX_STRING] = {0};
     CHAR szBuffer[MAX_STRING] = {0};
     bRunNextCommand = TRUE;
-	if (szLine==0 || szLine[0]==0)
-	{
-		SyntaxError("Usage: /highlight [reset|spawnfilter|[color # # #]]");
-		return;
-	};
+    if (szLine==0 || szLine[0]==0)
+    {
+        SyntaxError("Usage: /highlight [reset|spawnfilter|[color # # #]]");
+        return;
+    };
 
     GetArg(szArg,szLine,1);
-	if (!stricmp(szArg,"color"))
-	{
-		GetArg(szArg,szLine,2);
-		if (szLine[0]==0)
-		{
-			sprintf(szBuffer,"Highlight color: %d %d %d",(HighlightColor&0x00FF0000)>>16,(HighlightColor&0x0000FF00)>>8,(HighlightColor&0x000000FF));
-			WriteChatColor(szBuffer);
-			return;
-		}
+    if (!stricmp(szArg,"color"))
+    {
+        GetArg(szArg,szLine,2);
+        if (szLine[0]==0)
+        {
+            sprintf(szBuffer,"Highlight color: %d %d %d",(HighlightColor&0x00FF0000)>>16,(HighlightColor&0x0000FF00)>>8,(HighlightColor&0x000000FF));
+            WriteChatColor(szBuffer);
+            return;
+        }
         unsigned char R=atoi(szArg);
         unsigned char G=atoi(GetArg(szArg,szLine,3));
         unsigned char B=atoi(GetArg(szArg,szLine,4));
-		HighlightColor=0xFF000000 | (R << 16) | (G << 8) | (B);
-		sprintf(szBuffer,"Highlight color: %d %d %d",R,G,B);
-		WriteChatColor(szBuffer);
-		return;
-	}
-	else if (!stricmp(szArg,"reset"))
-	{
-		MapHighlight(0);
-		WriteChatColor("Highlighting reset",USERCOLOR_DEFAULT);
-		return;
-	}
+        HighlightColor=0xFF000000 | (R << 16) | (G << 8) | (B);
+        sprintf(szBuffer,"Highlight color: %d %d %d",R,G,B);
+        WriteChatColor(szBuffer);
+        return;
+    }
+    else if (!stricmp(szArg,"reset"))
+    {
+        MapHighlight(0);
+        WriteChatColor("Highlighting reset",USERCOLOR_DEFAULT);
+        return;
+    }
 
-	if (PCHARINFO pCharInfo=GetCharInfo())
-	{
-		SEARCHSPAWN ssHighlight;
-		ClearSearchSpawn(&ssHighlight);
-		ParseSearchSpawn(szLine,&ssHighlight);
-		sprintf(szBuffer,"%d mapped spawns highlighted",MapHighlight(&ssHighlight));
-		WriteChatColor(szBuffer,USERCOLOR_DEFAULT);
-	}
+    if (PCHARINFO pCharInfo=GetCharInfo())
+    {
+        SEARCHSPAWN ssHighlight;
+        ClearSearchSpawn(&ssHighlight);
+        ParseSearchSpawn(szLine,&ssHighlight);
+        sprintf(szBuffer,"%d mapped spawns highlighted",MapHighlight(&ssHighlight));
+        WriteChatColor(szBuffer,USERCOLOR_DEFAULT);
+    }
 }
 
 VOID MapHideCmd(PSPAWNINFO pChar, PCHAR szLine)
@@ -205,27 +205,27 @@ VOID MapHideCmd(PSPAWNINFO pChar, PCHAR szLine)
     CHAR szArg[MAX_STRING] = {0};
     CHAR szBuffer[MAX_STRING] = {0};
     bRunNextCommand = TRUE;
-	if (szLine==0 || szLine[0]==0)
-	{
-		SyntaxError("Usage: /maphide [spawnfilter|reset]");
-		return;
-	};
-	GetArg(szArg,szLine,1);
-	if (!stricmp(szArg,"reset"))
-	{
-		MapClear();
-		MapGenerate();
-		WriteChatColor("Map spawns regenerated",USERCOLOR_DEFAULT);
-		return;
-	}
-	if (PCHARINFO pCharInfo=GetCharInfo())
-	{
-		SEARCHSPAWN ssHide;
-		ClearSearchSpawn(&ssHide);
-		ParseSearchSpawn(szLine,&ssHide);
-		sprintf(szBuffer,"%d mapped spawns hidden",MapHide(ssHide));
-		WriteChatColor(szBuffer,USERCOLOR_DEFAULT);
-	}
+    if (szLine==0 || szLine[0]==0)
+    {
+        SyntaxError("Usage: /maphide [spawnfilter|reset]");
+        return;
+    };
+    GetArg(szArg,szLine,1);
+    if (!stricmp(szArg,"reset"))
+    {
+        MapClear();
+        MapGenerate();
+        WriteChatColor("Map spawns regenerated",USERCOLOR_DEFAULT);
+        return;
+    }
+    if (PCHARINFO pCharInfo=GetCharInfo())
+    {
+        SEARCHSPAWN ssHide;
+        ClearSearchSpawn(&ssHide);
+        ParseSearchSpawn(szLine,&ssHide);
+        sprintf(szBuffer,"%d mapped spawns hidden",MapHide(ssHide));
+        WriteChatColor(szBuffer,USERCOLOR_DEFAULT);
+    }
 }
 
 VOID MapShowCmd(PSPAWNINFO pChar, PCHAR szLine)
@@ -233,216 +233,216 @@ VOID MapShowCmd(PSPAWNINFO pChar, PCHAR szLine)
     CHAR szArg[MAX_STRING] = {0};
     CHAR szBuffer[MAX_STRING] = {0};
     bRunNextCommand = TRUE;
-	if (szLine==0 || szLine[0]==0)
-	{
-		SyntaxError("Usage: /mapshow [spawnfilter|reset]");
-		return;
-	};
-	GetArg(szArg,szLine,1);
-	if (!stricmp(szArg,"reset"))
-	{
-		MapClear();
-		MapGenerate();
-		WriteChatColor("Map spawns regenerated");
-		return;
-	}
-	if (PCHARINFO pCharInfo=GetCharInfo())
-	{
-		SEARCHSPAWN ssShow;
-		ClearSearchSpawn(&ssShow);
-		ParseSearchSpawn(szLine,&ssShow);
-		sprintf(szBuffer,"%d previously hidden spawns shown",MapShow(ssShow));
-		WriteChatColor(szBuffer,USERCOLOR_DEFAULT);
-	}
+    if (szLine==0 || szLine[0]==0)
+    {
+        SyntaxError("Usage: /mapshow [spawnfilter|reset]");
+        return;
+    };
+    GetArg(szArg,szLine,1);
+    if (!stricmp(szArg,"reset"))
+    {
+        MapClear();
+        MapGenerate();
+        WriteChatColor("Map spawns regenerated");
+        return;
+    }
+    if (PCHARINFO pCharInfo=GetCharInfo())
+    {
+        SEARCHSPAWN ssShow;
+        ClearSearchSpawn(&ssShow);
+        ParseSearchSpawn(szLine,&ssShow);
+        sprintf(szBuffer,"%d previously hidden spawns shown",MapShow(ssShow));
+        WriteChatColor(szBuffer,USERCOLOR_DEFAULT);
+    }
 }
 
 VOID MapNames(PSPAWNINFO pChar, PCHAR szLine)
 {
-	bRunNextCommand = TRUE;
-	CHAR szOut[MAX_STRING]={0};
-	if (!szLine[0])
-	{
-		sprintf(szOut,"Normal naming string: %s",MapNameString);
-		WriteChatColor(szOut,USERCOLOR_DEFAULT);
-		sprintf(szOut,"Target naming string: %s",MapTargetNameString);
-		WriteChatColor(szOut,USERCOLOR_DEFAULT);
-		return;
-	}
+    bRunNextCommand = TRUE;
+    CHAR szOut[MAX_STRING]={0};
+    if (!szLine[0])
+    {
+        sprintf(szOut,"Normal naming string: %s",MapNameString);
+        WriteChatColor(szOut,USERCOLOR_DEFAULT);
+        sprintf(szOut,"Target naming string: %s",MapTargetNameString);
+        WriteChatColor(szOut,USERCOLOR_DEFAULT);
+        return;
+    }
     CHAR szArg[MAX_STRING] = {0};
     GetArg(szArg,szLine,1);
     PCHAR szRest = GetNextArg(szLine);
-	if (!stricmp(szArg,"target"))
-	{
-		if (!stricmp(szRest,"reset"))
-			strcpy(MapTargetNameString,"%N");
-		else
-			strcpy(MapTargetNameString,szRest);
-		sprintf(szOut,"Target naming string: %s",MapTargetNameString);
-		WriteChatColor(szOut,USERCOLOR_DEFAULT);
-		WritePrivateProfileString("Naming Schemes","Target",MapTargetNameString,INIFileName);
-		MapClear();
-		MapGenerate();
-	}
-	else if (!stricmp(szArg,"normal"))
-	{
-		if (!stricmp(szRest,"reset"))
-			strcpy(MapNameString,"%N");
-		else
-			strcpy(MapNameString,szRest);
-		sprintf(szOut,"Normal naming string: %s",MapNameString);
-		WriteChatColor(szOut,USERCOLOR_DEFAULT);
-		WritePrivateProfileString("Naming Schemes","Normal",MapNameString,INIFileName);
-		MapClear();
-		MapGenerate();
-	}
-	else
-	{
-		SyntaxError("Usage: /mapnames <target|normal> [value|reset]");
-	}
+    if (!stricmp(szArg,"target"))
+    {
+        if (!stricmp(szRest,"reset"))
+            strcpy(MapTargetNameString,"%N");
+        else
+            strcpy(MapTargetNameString,szRest);
+        sprintf(szOut,"Target naming string: %s",MapTargetNameString);
+        WriteChatColor(szOut,USERCOLOR_DEFAULT);
+        WritePrivateProfileString("Naming Schemes","Target",MapTargetNameString,INIFileName);
+        MapClear();
+        MapGenerate();
+    }
+    else if (!stricmp(szArg,"normal"))
+    {
+        if (!stricmp(szRest,"reset"))
+            strcpy(MapNameString,"%N");
+        else
+            strcpy(MapNameString,szRest);
+        sprintf(szOut,"Normal naming string: %s",MapNameString);
+        WriteChatColor(szOut,USERCOLOR_DEFAULT);
+        WritePrivateProfileString("Naming Schemes","Normal",MapNameString,INIFileName);
+        MapClear();
+        MapGenerate();
+    }
+    else
+    {
+        SyntaxError("Usage: /mapnames <target|normal> [value|reset]");
+    }
 }
 #endif
 
 PCHAR DescribeCombo(DWORD Combo)
 {
-	static char Description[256];
-	Description[0]=0;
-	int pos=0;
-	if (Combo&XKF_SHIFT)
-	{
-		strcpy(&Description[pos],"shift");
-		pos+=5;
-	}
-	if (Combo&XKF_CTRL)
-	{
-		if (pos)
-		{
-			Description[pos]='+';
-			pos++;
-		}
+    static char Description[256];
+    Description[0]=0;
+    int pos=0;
+    if (Combo&XKF_SHIFT)
+    {
+        strcpy(&Description[pos],"shift");
+        pos+=5;
+    }
+    if (Combo&XKF_CTRL)
+    {
+        if (pos)
+        {
+            Description[pos]='+';
+            pos++;
+        }
 
-		strcpy(&Description[pos],"ctrl");
-		pos+=4;
-	}
+        strcpy(&Description[pos],"ctrl");
+        pos+=4;
+    }
 
-	if (Combo&XKF_LALT)
-	{
-		if (pos)
-		{
-			Description[pos]='+';
-			pos++;
-		}
+    if (Combo&XKF_LALT)
+    {
+        if (pos)
+        {
+            Description[pos]='+';
+            pos++;
+        }
 
-		strcpy(&Description[pos],"lalt");
-		pos+=4;
-	}
+        strcpy(&Description[pos],"lalt");
+        pos+=4;
+    }
 
-	if (Combo&XKF_RALT)
-	{
-		if (pos)
-		{
-			Description[pos]='+';
-			pos++;
-		}
+    if (Combo&XKF_RALT)
+    {
+        if (pos)
+        {
+            Description[pos]='+';
+            pos++;
+        }
 
-		strcpy(&Description[pos],"ralt");
-	}
+        strcpy(&Description[pos],"ralt");
+    }
 
-	if (!Description[0])
-	{
-		return "Invalid";
-	}
+    if (!Description[0])
+    {
+        return "Invalid";
+    }
 
-	return &Description[0];
+    return &Description[0];
 }
 
 DWORD ParseCombo(PCHAR Combo)
 {
-	DWORD Ret=0;
-	if (!Combo || !Combo[0])
-		return 0;
-	CHAR Copy[MAX_STRING];
-	strcpy(Copy,Combo);
-	Combo=strtok(Copy,"+");
-	while(Combo)
-	{
-		if (!stricmp(Combo,"ctrl"))
-			Ret+=XKF_CTRL;
-		else if (!stricmp(Combo,"shift"))
-			Ret+=XKF_SHIFT;
-		else if (!stricmp(Combo,"lalt"))
-			Ret+=XKF_LALT;
-		else if (!stricmp(Combo,"ralt"))
-			Ret+=XKF_RALT;
-		else if (!stricmp(Combo,"alt"))
-			Ret+=XKF_LALT;
-		Combo=strtok(NULL,"+");
-	}
-	return Ret;
+    DWORD Ret=0;
+    if (!Combo || !Combo[0])
+        return 0;
+    CHAR Copy[MAX_STRING];
+    strcpy(Copy,Combo);
+    Combo=strtok(Copy,"+");
+    while(Combo)
+    {
+        if (!stricmp(Combo,"ctrl"))
+            Ret+=XKF_CTRL;
+        else if (!stricmp(Combo,"shift"))
+            Ret+=XKF_SHIFT;
+        else if (!stricmp(Combo,"lalt"))
+            Ret+=XKF_LALT;
+        else if (!stricmp(Combo,"ralt"))
+            Ret+=XKF_RALT;
+        else if (!stricmp(Combo,"alt"))
+            Ret+=XKF_LALT;
+        Combo=strtok(NULL,"+");
+    }
+    return Ret;
 }
 #ifndef ISXEQ
 VOID MapClickCommand(PSPAWNINFO pChar, PCHAR szLine)
 {
-	if (!szLine[0])
-	{
-		SyntaxError("Usage: /mapclick <list|<key[+key[...]]> <clear|command>>");
-		return;
-	}
-	bRunNextCommand = TRUE;
+    if (!szLine[0])
+    {
+        SyntaxError("Usage: /mapclick <list|<key[+key[...]]> <clear|command>>");
+        return;
+    }
+    bRunNextCommand = TRUE;
 
     CHAR szArg[MAX_STRING] = {0};
-	CHAR szBuffer[MAX_STRING] = {0};
+    CHAR szBuffer[MAX_STRING] = {0};
     GetArg(szArg,szLine,1);
     PCHAR szRest = GetNextArg(szLine);
 
-	if (!stricmp(szArg,"list"))
-	{
-		int Count=0;
-		for (int i=1 ; i < 16 ; i++)
-		{
-			if (MapSpecialClickString[i][0])
-			{
-				sprintf(szBuffer,"%s: %s",DescribeCombo(i),MapSpecialClickString[i]);
-				WriteChatColor(szBuffer);
-				Count++;
-			}
-		}
-		sprintf(szBuffer,"%d special right-click commands",Count);
-		WriteChatColor(szBuffer);
-		return;
-	}
+    if (!stricmp(szArg,"list"))
+    {
+        int Count=0;
+        for (int i=1 ; i < 16 ; i++)
+        {
+            if (MapSpecialClickString[i][0])
+            {
+                sprintf(szBuffer,"%s: %s",DescribeCombo(i),MapSpecialClickString[i]);
+                WriteChatColor(szBuffer);
+                Count++;
+            }
+        }
+        sprintf(szBuffer,"%d special right-click commands",Count);
+        WriteChatColor(szBuffer);
+        return;
+    }
 
-	DWORD Combo=ParseCombo(szArg);
-	if (!Combo)
-	{
-		sprintf(szBuffer,"Invalid combo '%s'",szArg);
-		WriteChatColor(szBuffer);
-		return;
-	}
+    DWORD Combo=ParseCombo(szArg);
+    if (!Combo)
+    {
+        sprintf(szBuffer,"Invalid combo '%s'",szArg);
+        WriteChatColor(szBuffer);
+        return;
+    }
 
-	if (!szRest[0])
-	{
-		sprintf(szBuffer,"%s: %s",DescribeCombo(Combo),MapSpecialClickString[Combo]);
-		WriteChatColor(szBuffer);
-		return;
-	}
+    if (!szRest[0])
+    {
+        sprintf(szBuffer,"%s: %s",DescribeCombo(Combo),MapSpecialClickString[Combo]);
+        WriteChatColor(szBuffer);
+        return;
+    }
 
-	if (!stricmp(szRest,"clear"))
-	{
+    if (!stricmp(szRest,"clear"))
+    {
 
-		MapSpecialClickString[Combo][0]=0;
+        MapSpecialClickString[Combo][0]=0;
 
-		sprintf(szBuffer,"KeyCombo%d",Combo);
-		WritePrivateProfileString("Right Click",szBuffer,MapSpecialClickString[Combo],INIFileName);
-		sprintf(szBuffer,"%s cleared",DescribeCombo(Combo));
-		WriteChatColor(szBuffer);
-		return;
-	}
+        sprintf(szBuffer,"KeyCombo%d",Combo);
+        WritePrivateProfileString("Right Click",szBuffer,MapSpecialClickString[Combo],INIFileName);
+        sprintf(szBuffer,"%s cleared",DescribeCombo(Combo));
+        WriteChatColor(szBuffer);
+        return;
+    }
 
-	strcpy(MapSpecialClickString[Combo],szRest);
-	sprintf(szBuffer,"KeyCombo%d",Combo);
-	WritePrivateProfileString("Right Click",szBuffer,MapSpecialClickString[Combo],INIFileName);
-	sprintf(szBuffer,"%s: %s",DescribeCombo(Combo),MapSpecialClickString[Combo]);
-	WriteChatColor(szBuffer);
+    strcpy(MapSpecialClickString[Combo],szRest);
+    sprintf(szBuffer,"KeyCombo%d",Combo);
+    WritePrivateProfileString("Right Click",szBuffer,MapSpecialClickString[Combo],INIFileName);
+    sprintf(szBuffer,"%s: %s",DescribeCombo(Combo),MapSpecialClickString[Combo]);
+    WriteChatColor(szBuffer);
 }
 
 

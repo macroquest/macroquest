@@ -17,7 +17,7 @@ namespace EQClasses
 // Other
 class CXSize
 {
-	DWORD A,B,C,D,E,F;
+    DWORD A,B,C,D,E,F;
 };
 
 // Enumerations...
@@ -421,7 +421,7 @@ EQLIB_OBJECT void CXStr::FreeRepNoLock(struct CStrRep *);
 // private
 EQLIB_OBJECT void CXStr::CheckNoLock(void);
 
-	PCXSTR Ptr;
+    PCXSTR Ptr;
 
 };
 
@@ -763,7 +763,7 @@ EQLIB_OBJECT static bool CSidlScreenWnd::m_useIniFile;
 /*0x194*/   DWORD   Unknown0x194;// CTextureAnimation
 /*0x198*/
 
-	inline CXWnd *pXWnd() {return (CXWnd*)this;};
+    inline CXWnd *pXWnd() {return (CXWnd*)this;};
 };
 
 
@@ -1481,10 +1481,10 @@ EQLIB_OBJECT void CConfirmationDialog::ResetFocusOnClose(void);
 // Data members
 /*0x15c*/   struct _CXWND *OutputText;
 /*0x160*/   struct _CXWND *pYesButton;
-/*0x164*/	struct _CXWND *pNoButton;
-/*0x168*/	DWORD	Unknown0x168;
-/*0x16c*/	struct _CXWND *pOKButton;
-/*0x170*/	BYTE	Unknown0x170[0x18];
+/*0x164*/    struct _CXWND *pNoButton;
+/*0x168*/    DWORD    Unknown0x168;
+/*0x16c*/    struct _CXWND *pOKButton;
+/*0x170*/    BYTE    Unknown0x170[0x18];
 /*0x188*/
 };
 
@@ -3805,7 +3805,7 @@ class CParseTokensXML
 public:
 EQLIB_OBJECT CParseTokensXML::~CParseTokensXML(void);
 //EQLIB_OBJECT bool CParseTokensXML::Accept(enum ETokTypeXML);
-#define HackPackHelp		 0
+#define HackPackHelp         0
 EQLIB_OBJECT bool CParseTokensXML::StartFileBased(class CXStr);
 EQLIB_OBJECT class CXStr CParseTokensXML::GetCurFile(void);
 EQLIB_OBJECT void __cdecl CParseTokensXML::SetError(char const *,...);
@@ -4654,7 +4654,7 @@ EQLIB_OBJECT void CTextEntryWnd::Deactivate(void);
 // private
 EQLIB_OBJECT void CTextEntryWnd::UpdateButtons(void);
 
-/*0x148*///	DWORD Unknown0x148;
+/*0x148*///    DWORD Unknown0x148;
 /*0x14C*/// DWORD Unknown0x14c;
 /*0x150*/// PCXSTR Data;
 /*0x154*/// DWORD Unknown0x154;
@@ -5211,10 +5211,10 @@ class CXRect
 public:
 EQLIB_OBJECT CXRect::CXRect(int nA,int nB,int nC,int nD)
 {
-	A=nA;
-	B=nB;
-	C=nC;
-	D=nD;
+    A=nA;
+    B=nB;
+    C=nC;
+    D=nD;
 }
 EQLIB_OBJECT CXRect::CXRect(void)
 {
@@ -6142,51 +6142,51 @@ class KeyCombo
 public:
 EQLIB_OBJECT KeyCombo::KeyCombo(int);
 inline EQLIB_OBJECT KeyCombo::KeyCombo(unsigned char keycode,bool alt,bool ctrl,bool shift)
-{	
-	Data[3]= keycode;
-	Data[0]=alt;
-	Data[1]=ctrl;
-	Data[2]=shift;
+{    
+    Data[3]= keycode;
+    Data[0]=alt;
+    Data[1]=ctrl;
+    Data[2]=shift;
 }
 EQLIB_OBJECT KeyCombo::KeyCombo(unsigned int,unsigned int,bool,bool,bool);
 inline EQLIB_OBJECT KeyCombo::KeyCombo(void)
 {
-	*(unsigned long*)&Data[0]=0;
+    *(unsigned long*)&Data[0]=0;
 }
 inline void EQLIB_OBJECT KeyCombo::Clear(void)
 {
-	*(unsigned long*)&Data[0]=0;
+    *(unsigned long*)&Data[0]=0;
 }
 EQLIB_OBJECT int KeyCombo::operator int(void)const;
 EQLIB_OBJECT bool KeyCombo::GetPrintableLetter(unsigned short *)const;
 inline EQLIB_OBJECT bool KeyCombo::UsesAlt(void)const
 {
-	return (Data[0]!=0);
+    return (Data[0]!=0);
 }
 inline EQLIB_OBJECT bool KeyCombo::UsesCtrl(void)const
 {
-	return (Data[1]!=0);
+    return (Data[1]!=0);
 }
 inline EQLIB_OBJECT bool KeyCombo::UsesShift(void)const
 {
-	return (Data[2]!=0);
+    return (Data[2]!=0);
 }
 EQLIB_OBJECT class CXStr KeyCombo::GetTextDescription(void)const;
 EQLIB_OBJECT class KeyCombo const & KeyCombo::operator=(int);
 inline EQLIB_OBJECT int KeyCombo::operator==(class KeyCombo const &Combo)
 {
-	return ((*(unsigned long*)&Data)==(*(unsigned long*)&Combo.Data));
+    return ((*(unsigned long*)&Data)==(*(unsigned long*)&Combo.Data));
 }
 inline EQLIB_OBJECT unsigned int KeyCombo::GetKey(void)const
 {
-	return Data[3];
+    return Data[3];
 }
 // private
 EQLIB_OBJECT bool KeyCombo::GetPrintableLetterFromScanCode(unsigned char,bool,bool,unsigned short *)const;
 EQLIB_OBJECT bool KeyCombo::GetPrintableLetterFromVirtualKey(unsigned int,unsigned int,bool,bool,unsigned short *)const;
 EQLIB_OBJECT bool KeyCombo::GetScanCodeFromVirtualKey(unsigned int,unsigned int,unsigned char *)const;
 EQLIB_OBJECT bool KeyCombo::GetVirtualKeyFromScanCode(unsigned char,int *)const;
-	unsigned char Data[4];
+    unsigned char Data[4];
 };
 
 class KeypressHandler
@@ -6212,7 +6212,7 @@ EQLIB_OBJECT void KeypressHandler::LoadAndSetKeymappings(void);
 EQLIB_OBJECT void KeypressHandler::SaveKeymapping(unsigned int,class KeyCombo const &,int);
 /*0x000*/   class KeyCombo NormalKey[nEQMappableCommands];
 /*0x2 4*/   class KeyCombo AltKey[nEQMappableCommands];
-/*0x5C8*/	char CommandState[nEQMappableCommands];
+/*0x5C8*/    char CommandState[nEQMappableCommands];
 };
 
 class LogicalPacket
