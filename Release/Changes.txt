@@ -1,3 +1,10 @@
+21 June 2009 by ieatacid
+- Fixed suffix display bug in captions (the error was in _SPAWNINFO)
+
+20 June 2009 by rswiders
+- Backed out bug fix for MQ captions.
+- Generate correct gGameState when camping (server/desktop).  This should fix random crashes in plugins when they think they are still "INGAME" but are really at server select screen.
+
 18 June 2009 by rswiders, ieatacid
 - Updated for today's patch
 - Added NUM_BUFF_SLOTS to handle the everchanging number of buffs in the target and pet windows.

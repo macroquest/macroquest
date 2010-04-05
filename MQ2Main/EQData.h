@@ -1229,8 +1229,9 @@ typedef struct _SPAWNINFO {
 /*0x03cc*/ DWORD    PetID;
 /*0x03d0*/ BYTE     Holding;
 /*0x03d1*/ BYTE     Linkdead;
-/*0x03d2*/ BYTE     Unknown0x3d2[0x1a];
-/*0x03ec*/ CHAR     Suffix[0x20];
+/*0x03d2*/ BYTE     Unknown0x3d2[0x12];
+/*0x03e4*/ CHAR     Suffix[0x20];
+/*0x0404*/ BYTE     Unknown0x404[0x8];
 /*0x040c*/ BYTE     StandState;
 /*0x040d*/ BYTE     Sneak;
 /*0x040e*/ BYTE     Unknown0x40e[0x42];

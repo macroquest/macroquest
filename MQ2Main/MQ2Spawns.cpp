@@ -478,7 +478,7 @@ BOOL SetNameSpriteState(PSPAWNINFO pSpawn, bool Show)
     //DebugSpew("SetNameSpriteState(%s) --race %d body %d)",pSpawn->Name,pSpawn->Race,GetBodyType(pSpawn));
     if (!Show)
     {
-        return ((EQPlayerHook*)pSpawn)->SetNameSpriteState_Trampoline(!Show);
+        ((EQPlayerHook*)pSpawn)->SetNameSpriteState_Trampoline(Show);
     }
     if (!gMQCaptions)
     {

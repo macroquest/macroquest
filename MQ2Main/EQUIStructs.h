@@ -688,12 +688,13 @@ typedef struct _EQLOOTWINDOW {
 /*0x1f0*/ PCONTENTS   ItemDesc[NUM_INV_SLOTS]; //there can only be 31 items on a corpse since that equals 23 inv slots plus 8 bags...
 } EQLOOTWINDOW, *PEQLOOTWINDOW;
 
-//Size: 0x7d0 6-18-09 rswiders
+//Size: 0x7d0 6-20-09 by ieatacid
 typedef struct _EQPETINFOWINDOW {
 /*0x000*/ struct _CSIDLWND Wnd;
 /*0x198*/ DWORD Unknown0x198[0x4];
 /*0x1a8*/ struct _CBUTTONWND *pButton[0xe];
-/*0x1e0*/ BYTE  Unknown0x1e0[0x300];
+/*0x1e0*/ BYTE  Unknown0x1e0[0x1ac];
+/*0x38c*/ struct _CSIDLWND *pWnd[NUM_BUFF_SLOTS]; // buff icons?
 /*0x4e0*/ int   Buff[NUM_BUFF_SLOTS];        // Spell ID# of each buff -- 85 total
 /*0x634*/ BYTE  Unknown0x634[0x20];
 /*0x654*/ DWORD BuffFadeETA[NUM_BUFF_SLOTS]; // duration until buff fades, in thousands of a second
@@ -981,10 +982,11 @@ typedef struct _CPLAYERWND {
 /*0x220*/ 
 } CPLAYERWND, *PCPLAYERWND;
 
-// size 0x748 6-18-09 rswiders
+// size 0x748 6-21-09 ieatacid
 typedef struct _CTARGETWND {
 /*0x000*/ struct  _CSIDLWND Wnd;
-/*0x198*/ BYTE    Unknown0x198[0x2b8];
+/*0x198*/ BYTE    Unknown0x198[0x178];
+/*0x2fc*/ struct _CSIDLWND *pWnd[NUM_BUFF_SLOTS]; // buff icons?
 /*0x450*/ int     BuffSpellID[NUM_BUFF_SLOTS]; // 0xffffffff if no buff
 /*0x5a4*/ DWORD   BuffTimer[NUM_BUFF_SLOTS];
 /*0x6f8*/ BYTE    Unknown0x6f8[0x24];
