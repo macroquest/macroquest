@@ -43,7 +43,7 @@
 #define __AC5                                                      0x4F29D8
 #define __AC6                                                      0x4F5CEB
 #define __AC7                                                      0x4EEF34
-#define __AC1_Data                                                 0x7DAED1
+#define __AC1_Data                                                 0x7DAED0
 
 // Direct Input
 #define DI8__Main                                                  0xADD88C

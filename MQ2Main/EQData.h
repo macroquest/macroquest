@@ -1151,7 +1151,7 @@ typedef struct _LAUNCHSPELLDATA {
 /*0x3c*/
 } LAUNCHSPELLDATA, *PLAUNCHSPELLDATA;
 
-// actual size: 0x1c18 6-18-09 - ieatacid
+// actual size: 0x1c38 7-15-09 - ieatacid
 typedef struct _SPAWNINFO {
 /*0x0000*/ void     *vtable;
 /*0x0004*/ struct   _SPAWNINFO *pPrev;
@@ -1301,22 +1301,22 @@ typedef struct _SPAWNINFO {
 /*0x0fd4*/ FLOAT    GetMeleeRangeVar2;      // used by GetMeleeRange
 /*0x0fd8*/ BYTE     Unknown0xfd8[0x40];
 /*0x1018*/ DWORD    Animation;
-/*0x101c*/ BYTE     Unknown0x101c[0x104]; 
-/*0x1120*/ FLOAT    WalkSpeed;
-/*0x1124*/ DWORD    HideCorpse;
-/*0x1128*/ BYTE     Unknown0x1128[0x40];
-/*0x1168*/ BYTE     InvitedToGroup;
-/*0x1169*/ BYTE     Unknown0x1169[0x3];
-/*0x116c*/ DWORD    GroupMemberTargeted;    // 0xFFFFFFFF if no target, else 1 through 5
-/*0x1170*/ BYTE     Unknown0x1170[0x180];
-/*0x12f0*/ struct   _FELLOWSHIPINFO Fellowship; // size 0x884
-/*0x1b74*/ BYTE     Unknown0x1b74[0x54];
-/*0x1bc8*/ void     *vtable2;
-/*0x1bcc*/ DWORD    Unknown0x1bcc;
-/*0x1bd0*/ struct   _SPAWNINFO *pSpawn;
-/*0x1bd4*/ BYTE     Levitate;
-/*0x1bd5*/ BYTE     Unknown0x1bd5[0x43]; 
-/*0x1c18*/
+/*0x101c*/ BYTE     Unknown0x101c[0x124]; 
+/*0x1140*/ FLOAT    WalkSpeed;
+/*0x1144*/ DWORD    HideCorpse;
+/*0x1148*/ BYTE     Unknown0x1148[0x40];
+/*0x1188*/ BYTE     InvitedToGroup;
+/*0x1189*/ BYTE     Unknown0x1189[0x3];
+/*0x118c*/ DWORD    GroupMemberTargeted;    // 0xFFFFFFFF if no target, else 1 through 5
+/*0x1190*/ BYTE     Unknown0x1190[0x180];
+/*0x1310*/ struct   _FELLOWSHIPINFO Fellowship; // size 0x884
+/*0x1b94*/ BYTE     Unknown0x1b94[0x54];
+/*0x1be8*/ void     *vtable2;
+/*0x1bec*/ DWORD    Unknown0x1bec;
+/*0x1bf0*/ struct   _SPAWNINFO *pSpawn;
+/*0x1bf4*/ BYTE     Levitate;
+/*0x1bf5*/ BYTE     Unknown0x1bf5[0x43]; 
+/*0x1c38*/
 } SPAWNINFO, *PSPAWNINFO;
 
 #define STANDSTATE_STAND                0x64
