@@ -1,11 +1,19 @@
-12 Febryary by dkaa, ieatacid, rswiders
+12 March 2009 by ieatacid, rswiders
+- Updated for today's patch
+
+09 March 2009 by rswiders
+- Fixed aura (by name).  You can determine if an aura is active with Me.Aura[#aura name effect].ID
+- Fix for buff stacking issue
+- Cleaned up merc names for Group.Member[#]
+
+12 February 2009 by dkaa, ieatacid, rswiders
 - Fixed pet buff window information/stackspet
 - Fixed NPCCorpse mapfilter toggle
 
-12 February by ieatacid, rswiders
+12 February 2009 by ieatacid, rswiders
 - Updated for the patch on the 11th
 
-9 February by rswiders
+9 February 2009 by rswiders
 - Added exact match option to spawn searchs (use a "=" immediately preceeding the name being searched for)
 - Updated named mob identification.  Named mobs will not exist in non-combat zones and warders, familiars, etc. have been demoted from their named status.
 - Added /mapfilter option for named spawns (will toggle between named/normal npcs when npc filtering is active)

@@ -3109,6 +3109,7 @@ bool MQ2CharacterType::GETMEMBER()
         {
             if(pAura->NumAuras)
             {
+                DataTypeTemp[0] = 0;
                 PAURAS pAuras = (PAURAS)(*pAura->pAuraInfo);
                 if(ISINDEX())
                 {
@@ -3501,6 +3502,7 @@ bool MQ2SpellType::GETMEMBER()
         }
     case Stacks:
         {
+            unsigned long buffduration;
             unsigned long duration=99999;
             if (ISNUMBER())
                 duration=GETNUMBER();
@@ -3511,7 +3513,9 @@ bool MQ2SpellType::GETMEMBER()
             for (nBuff=0; nBuff<25; nBuff++){
                 if (pChar->Buff[nBuff].SpellID>0) {
                     PSPELL tmpSpell = GetSpellByID(pChar->Buff[nBuff].SpellID);
-                    if (!BuffStackTest(pSpell, tmpSpell) || ((pSpell==tmpSpell) && (pChar->Buff[nBuff].Duration>duration))){
+                    buffduration = pChar->Buff[nBuff].Duration;
+                    if (GetSpellDuration(tmpSpell,(PSPAWNINFO)pCharSpawn)>=0xFFFFFFFE) buffduration = 99999+1;
+                    if (!BuffStackTest(pSpell, tmpSpell) || ((pSpell==tmpSpell) && (buffduration>duration))){
                         Dest.DWord = false;
                         return true;
                     }
@@ -3529,10 +3533,11 @@ bool MQ2SpellType::GETMEMBER()
             Dest.DWord = true;      
             Dest.Type = pBoolType;
             PEQPETINFOWINDOW pPet = ((PEQPETINFOWINDOW)pPetInfoWnd);
-            for (nBuff=0; nBuff<29; nBuff++){
+            for (nBuff=0; nBuff<85; nBuff++){
                 if (pPet->Buff[nBuff]>0 && !(pPet->Buff[nBuff]==0xFFFFFFFF || pPet->Buff[nBuff]==0)) {
                     PSPELL tmpSpell = GetSpellByID(pPet->Buff[nBuff]);
                     petbuffduration = ((pPet->BuffFadeETA[nBuff]+5999)/1000)/6;
+                    if (GetSpellDuration(tmpSpell,(PSPAWNINFO)pCharSpawn)>=0xFFFFFFFE) petbuffduration = 99999+1;
                     if (!BuffStackTest(pSpell, tmpSpell) || ((pSpell==tmpSpell) && (petbuffduration>duration))){
                         Dest.DWord = false;
                         return true;
@@ -6375,7 +6380,7 @@ bool MQ2GroupMemberType::ToString(MQ2VARPTR VarPtr, PCHAR Destination)
                 {
                     CHAR Name[MAX_STRING]={0};
                     GetCXStr(pChar->pGroupInfo->pMember[i]->pName,Name,MAX_STRING);
-                    strcpy(Destination,Name);
+                    strcpy(Destination,CleanupName(Name));
                     return true;
                 }
             }
@@ -6383,7 +6388,7 @@ bool MQ2GroupMemberType::ToString(MQ2VARPTR VarPtr, PCHAR Destination)
     }
     else
     {
-        strcpy(Destination,GetCharInfo()->pSpawn->Name);
+        strcpy(Destination,CleanupName(GetCharInfo()->pSpawn->Name));
         return true;
     }
     return false;
@@ -6440,7 +6445,7 @@ bool MQ2GroupMemberType::GETMEMBER()
     switch((GroupMemberMembers)pMember->ID)
     {
     case Name:
-        Dest.Ptr=MemberName;
+        Dest.Ptr=CleanupName(MemberName);
         Dest.Type=pStringType;
         return true;
     case Leader:

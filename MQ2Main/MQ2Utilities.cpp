@@ -4230,6 +4230,7 @@ BOOL IsNamed(PSPAWNINFO pSpawn)
         //(!strnicmp(szTemp,"High_Priest",11))   ||
         (!strnicmp(szTemp,"Ward",4))           ||
         //(!strnicmp(szTemp,"Shroudkeeper",12))  ||
+        (!strnicmp(szTemp,"Eye of",6))         ||
         (!strnicmp(szTemp,"Diaku",5)))
         return false;
     if (isupper(szTemp[0]) || szTemp[0] == '#')
