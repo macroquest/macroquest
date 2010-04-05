@@ -3049,6 +3049,7 @@ public:
 	   xMember=1,
 	   Members=2,
 	   Leader=3,
+	   GroupSize=4
    };
 	static enum GroupMethods
 	{
@@ -3058,6 +3059,7 @@ public:
 	  AddMember(xMember,"Member");
 	  TypeMember(Members);
 	  TypeMember(Leader);
+	  TypeMember(GroupSize);
    }
 
    ~MQ2GroupType()

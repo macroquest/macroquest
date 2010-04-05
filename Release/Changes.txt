@@ -1,7 +1,11 @@
-09 September 2008 by rswiders, dkaa
+05 September 2008 by rswiders
+- Fixes for group CTD issues
+- Added Group.GroupSize back in... it's in the html manual but wasn't in the source
+
+05 September 2008 by rswiders, dkaa
 - Fix for v6 compiles
 
-09 September 2008 by ieatacid, rswiders, dkaa
+05 September 2008 by ieatacid, rswiders, dkaa
 - Updated for today's patch
 
 21 August 2008 by dkaa

@@ -530,20 +530,21 @@ void MapUpdate()
 
 	if (IsOptionEnabled(MAPFILTER_Group))
 	{
-       PCHARINFO pChar=GetCharInfo();
-		for (unsigned long i = 0 ; i < 5 ; i++)
+		PCHARINFO pChar=GetCharInfo();
+		for (unsigned long i=1; i<6; i++)
 		{
-         if (pChar->pGroupInfo->pMember[i])
-         {
-            CHAR Name[MAX_STRING]={0};
-            GetCXStr(pChar->pGroupInfo->pMember[i]->pName,Name,MAX_STRING);
-            PSPAWNINFO pSpawn=(PSPAWNINFO)GetSpawnByName(Name);
-            if (pMapSpawn=SpawnMap[pSpawn->SpawnID])
+			if (pChar->pGroupInfo && pChar->pGroupInfo->pMember[i])
 			{
-				pMapSpawn->pMapLabel->Color.ARGB=MapFilterOptions[MAPFILTER_Group].Color;
+				CHAR Name[MAX_STRING]={0};
+				GetCXStr(pChar->pGroupInfo->pMember[i]->pName,Name,MAX_STRING);
+				PSPAWNINFO pSpawn=(PSPAWNINFO)GetSpawnByName(Name);
+				if (pSpawn)
+					if (pMapSpawn=SpawnMap[pSpawn->SpawnID])
+					{
+						pMapSpawn->pMapLabel->Color.ARGB=MapFilterOptions[MAPFILTER_Group].Color;
+					}
 			}
 		}
-	}
    }
 
 	if (pLastTarget)

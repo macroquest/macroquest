@@ -4142,10 +4142,10 @@ BOOL IsInGroup(PSPAWNINFO pSpawn)
 {
     DWORD i;
     PCHARINFO pChar=GetCharInfo();
-   if (pSpawn==pChar->pSpawn)
+	if (!pChar->pGroupInfo) return FALSE;
+	if (pSpawn==pChar->pSpawn)
 		return TRUE;
-	for (i=0;i<5;i++) 
-	{
+	for (i=1;i<6;i++) 
       if (pChar->pGroupInfo->pMember[i])
       {
          CHAR Name[MAX_STRING]={0};
@@ -4153,7 +4153,6 @@ BOOL IsInGroup(PSPAWNINFO pSpawn)
          if (!stricmp(Name,pSpawn->Name))
 			return TRUE;
       }
-	}
 	return FALSE;
 }
 
