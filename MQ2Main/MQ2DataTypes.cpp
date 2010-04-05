@@ -1967,35 +1967,35 @@ bool MQ2CharacterType::GETMEMBER()
         Dest.Type=pIntType;
         return true;
     case CombatEffectsBonus:
-        Dest.DWord=pChar->CombatEffectsBonus;
+        Dest.DWord=(pChar->CombatEffectsBonus > pChar->CombatEffectsCap ? pChar->CombatEffectsCap : pChar->CombatEffectsBonus);
         Dest.Type=pIntType;
         return true;
     case ShieldingBonus:
-        Dest.DWord=pChar->ShieldingBonus;
+        Dest.DWord=(pChar->ShieldingBonus > pChar->ShieldingCap ? pChar->ShieldingCap : pChar->ShieldingBonus);
         Dest.Type=pIntType;
         return true;
     case SpellShieldBonus:
-        Dest.DWord=pChar->SpellShieldBonus;
+        Dest.DWord=(pChar->SpellShieldBonus > pChar->SpellShieldCap ? pChar->SpellShieldCap : pChar->SpellShieldBonus);
         Dest.Type=pIntType;
         return true;
     case AvoidanceBonus:
-        Dest.DWord=pChar->AvoidanceBonus;
+        Dest.DWord=(pChar->AvoidanceBonus > pChar->AvoidanceCap ? pChar->AvoidanceCap : pChar->AvoidanceBonus);
         Dest.Type=pIntType;
         return true;
     case AccuracyBonus:
-        Dest.DWord=pChar->AccuracyBonus;
+        Dest.DWord=(pChar->AccuracyBonus > pChar->AccuracyCap ? pChar->AccuracyCap : pChar->AccuracyBonus);
         Dest.Type=pIntType;
         return true;
     case StunResistBonus:
-        Dest.DWord=pChar->StunResistBonus;
+        Dest.DWord=(pChar->StunResistBonus > pChar->StunResistCap ? pChar->StunResistCap : pChar->StunResistBonus);
         Dest.Type=pIntType;
         return true;
     case StrikeThroughBonus:
-        Dest.DWord=pChar->StrikeThroughBonus;
+        Dest.DWord=(pChar->StrikeThroughBonus > pChar->StrikeThroughCap ? pChar->StrikeThroughCap : pChar->StrikeThroughBonus);
         Dest.Type=pIntType;
         return true;
     case DoTShieldBonus:
-        Dest.DWord=pChar->DoTShieldBonus;
+        Dest.DWord=(pChar->DoTShieldBonus > pChar->DoTShieldCap ? pChar->DoTShieldCap : pChar->DoTShieldBonus);
         Dest.Type=pIntType;
         return true;
     case AttackBonus:
@@ -2011,11 +2011,11 @@ bool MQ2CharacterType::GETMEMBER()
         Dest.Type=pIntType;
         return true;
     case DamageShieldBonus:
-        Dest.DWord=pChar->DamageShieldBonus;
+        Dest.DWord=(pChar->DamageShieldBonus > pChar->DamageShieldCap ? pChar->DamageShieldCap : pChar->DamageShieldBonus);
         Dest.Type=pIntType;
         return true;
     case DamageShieldMitigationBonus:
-        Dest.DWord=pChar->DamageShieldMitigationBonus;
+        Dest.DWord=(pChar->DamageShieldMitigationBonus > pChar->DamageShieldMitigationCap ? pChar->DamageShieldMitigationCap : pChar->DamageShieldMitigationBonus);
         Dest.Type=pIntType;
         return true;
     case HeroicSTRBonus:

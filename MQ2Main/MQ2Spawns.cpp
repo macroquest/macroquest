@@ -29,7 +29,7 @@ BOOL ProcessPending=false;
 
 void AddGroundItem()
 {
-    PGROUNDITEM pGroundItem=(PGROUNDITEM)pItemList;
+    PGROUNDITEM pGroundItem=*(PGROUNDITEM*)pItemList;
     EnterCriticalSection(&csPendingGrounds);
     PMQGROUNDPENDING pPending=new MQGROUNDPENDING;
     pPending->pGroundItem=pGroundItem;
@@ -70,45 +70,38 @@ void RemoveGroundItem(PGROUNDITEM pGroundItem)
 class EQItemListHook
 {
 public:
-    VOID EQItemList_Trampoline();
-    VOID EQItemList_Detour()
+    void FreeItemList_Trampoline();
+    void FreeItemList_Detour()
     {
-        VOID (EQItemListHook::*tmp)(void) = &EQItemListHook::EQItemList_Trampoline; 
-        __asm {
-            call [tmp];
-            push eax;
-            push ebx;
-            push ecx;
-            push edx;
-            push esi;
-            push edi;
-            call AddGroundItem;
-            pop edi;
-            pop esi;
-            pop edx;
-            pop ecx;
-            pop ebx;
-            pop eax;
-        };
+        PGROUNDITEM pItem = *(PGROUNDITEM*)pItemList;
+
+        while(pItem)
+        {
+            RemoveGroundItem(pItem);
+
+            pItem = pItem->pNext;
+        }
+        
+        FreeItemList_Trampoline();
     }
 
-    void dEQItemList_Trampoline();
-    void dEQItemList_Detour()
+    void AddItem_Trampoline(PGROUNDITEM);
+    void AddItem_Detour(PGROUNDITEM pItem)
     {
-        void (EQItemListHook::*tmp)(void) = &EQItemListHook::dEQItemList_Trampoline;
-        __asm {
-            push ecx;
-            push ecx;
-            call RemoveGroundItem;
-            pop ecx;
-            pop ecx;
-            call [tmp];
-        };
+        AddItem_Trampoline(pItem);
+        AddGroundItem();
+    }
+
+    void DeleteItem_Trampoline(PGROUNDITEM);
+    void DeleteItem_Detour(PGROUNDITEM pItem)
+    {
+        RemoveGroundItem(pItem);
+        DeleteItem_Trampoline(pItem);
     }
 };
-
-DETOUR_TRAMPOLINE_EMPTY(VOID EQItemListHook::EQItemList_Trampoline(VOID)); 
-DETOUR_TRAMPOLINE_EMPTY(VOID EQItemListHook::dEQItemList_Trampoline(VOID)); 
+DETOUR_TRAMPOLINE_EMPTY(void EQItemListHook::FreeItemList_Trampoline(VOID)); 
+DETOUR_TRAMPOLINE_EMPTY(void EQItemListHook::AddItem_Trampoline(PGROUNDITEM));
+DETOUR_TRAMPOLINE_EMPTY(void EQItemListHook::DeleteItem_Trampoline(PGROUNDITEM));
 
 VOID SetNameSpriteTint(PSPAWNINFO pSpawn);
 
@@ -180,42 +173,6 @@ public:
 
 };
 FUNCTION_AT_ADDRESS(bool EQPlayerHook::IsTargetable(void), EQPlayer__IsTargetable);
-
-class CDisplayHook
-{
-public:
-    void FreeAllItemLists_Trampoline();
-    void FreeAllItemLists_Detour()
-    {
-        PGROUNDITEM pItem = (PGROUNDITEM)pItemList;
-
-        while(pItem)
-        {
-            RemoveGroundItem(pItem);
-
-            pItem = pItem->pNext;
-        }
-        
-        FreeAllItemLists_Trampoline();
-    }
-};
-
-DETOUR_TRAMPOLINE_EMPTY(void CDisplayHook::FreeAllItemLists_Trampoline());
-
-DETOUR_TRAMPOLINE_EMPTY(void AddEqItem_Trampoline(PGROUNDITEM));
-void AddEqItem_Detour(PGROUNDITEM pItem)
-{
-    AddEqItem_Trampoline(pItem);
-    AddGroundItem();
-}
-
-DETOUR_TRAMPOLINE_EMPTY(void DeleteEqItem_Trampoline(PGROUNDITEM));
-void DeleteEqItem_Detour(PGROUNDITEM pItem)
-{
-    RemoveGroundItem(pItem);
-
-    DeleteEqItem_Trampoline(pItem);
-}
 
 class CActorEx
 {
@@ -613,13 +570,11 @@ VOID InitializeMQ2Spawns()
 #endif
     EzDetour(EQPlayer__EQPlayer,&EQPlayerHook::EQPlayer_Detour,&EQPlayerHook::EQPlayer_Trampoline);
     EzDetour(EQPlayer__dEQPlayer,&EQPlayerHook::dEQPlayer_Detour,&EQPlayerHook::dEQPlayer_Trampoline);
-    //EzDetour(EQItemList__EQItemList,&EQItemListHook::EQItemList_Detour,&EQItemListHook::EQItemList_Trampoline);
-    //EzDetour(EQItemList__dEQItemList,&EQItemListHook::dEQItemList_Detour,&EQItemListHook::dEQItemList_Trampoline);
     EzDetour(EQPlayer__SetNameSpriteState,&EQPlayerHook::SetNameSpriteState_Detour,&EQPlayerHook::SetNameSpriteState_Trampoline);
     EzDetour(EQPlayer__SetNameSpriteTint,&EQPlayerHook::SetNameSpriteTint_Detour,&EQPlayerHook::SetNameSpriteTint_Trampoline);
-    EzDetour(CDisplay__FreeAllItemLists, &CDisplayHook::FreeAllItemLists_Detour, &CDisplayHook::FreeAllItemLists_Trampoline);
-    EzDetour(__AddEqItem, AddEqItem_Detour, AddEqItem_Trampoline);
-    EzDetour(__DeleteEqItem, DeleteEqItem_Detour, DeleteEqItem_Trampoline);
+    EzDetour(EQItemList__FreeItemList, &EQItemListHook::FreeItemList_Detour, &EQItemListHook::FreeItemList_Trampoline);
+    EzDetour(EQItemList__add_item, &EQItemListHook::AddItem_Detour, &EQItemListHook::AddItem_Trampoline);
+    EzDetour(EQItemList__delete_item, &EQItemListHook::DeleteItem_Detour, &EQItemListHook::DeleteItem_Trampoline);
 
     InitializeCriticalSection(&csPendingGrounds);
     ProcessPending=true;
@@ -663,13 +618,11 @@ VOID ShutdownMQ2Spawns()
     DebugSpew("Shutting Down Spawn-related Hooks");
     RemoveDetour(EQPlayer__EQPlayer);
     RemoveDetour(EQPlayer__dEQPlayer);
-    //RemoveDetour(EQItemList__EQItemList);
-    //RemoveDetour(EQItemList__dEQItemList);
     RemoveDetour(EQPlayer__SetNameSpriteState);
     RemoveDetour(EQPlayer__SetNameSpriteTint);
-    RemoveDetour(CDisplay__FreeAllItemLists);
-    RemoveDetour(__AddEqItem);
-    RemoveDetour(__DeleteEqItem);
+    RemoveDetour(EQItemList__FreeItemList);
+    RemoveDetour(EQItemList__add_item);
+    RemoveDetour(EQItemList__delete_item);
 
     ProcessPending=false;
     EnterCriticalSection(&csPendingGrounds);

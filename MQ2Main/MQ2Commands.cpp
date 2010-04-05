@@ -116,7 +116,7 @@ VOID Items(PSPAWNINFO pChar, PCHAR szLine)
 
     if (!ppItemList) return;
     if (!pItemList) return;
-    PGROUNDITEM pItem = (PGROUNDITEM)pItemList;
+    PGROUNDITEM pItem = *(PGROUNDITEM*)pItemList;
     DWORD Count=0;
     CHAR szBuffer[MAX_STRING] = {0};
     CHAR szName[MAX_STRING]={0};
@@ -167,7 +167,7 @@ VOID ItemTarget(PSPAWNINFO pChar, PCHAR szLine)
 
     if (!ppItemList) return;
     if (!pItemList) return;
-    PGROUNDITEM pItem = (PGROUNDITEM)pItemList;
+    PGROUNDITEM pItem = *(PGROUNDITEM*)pItemList;
     CHAR Arg1[MAX_STRING] = {0};
     CHAR Arg2[MAX_STRING] = {0};
     CHAR szBuffer[MAX_STRING] = {0};

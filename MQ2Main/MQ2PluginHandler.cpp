@@ -140,7 +140,7 @@ DWORD LoadMQ2Plugin(const PCHAR pszFilename)
     }
     if (pPlugin->AddGroundItem && gGameState==GAMESTATE_INGAME)
     {
-        PGROUNDITEM pItem=(PGROUNDITEM)pItemList;
+        PGROUNDITEM pItem=*(PGROUNDITEM*)pItemList;
         while(pItem)
         {
             pPlugin->AddGroundItem(pItem);
