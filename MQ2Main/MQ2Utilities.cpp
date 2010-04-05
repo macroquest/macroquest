@@ -4254,6 +4254,9 @@ PCHAR FormatSearchSpawn(PCHAR Buffer, PSEARCHSPAWN pSearchSpawn)
 		case UNTARGETABLE:
 			pszSpawnType="untargetable";
 			break;
+      case MERCENARY:
+         pszSpawnType="mercenary";
+         break;
 		}
 
     sprintf(Buffer,"(%d-%d) %s",pSearchSpawn->MinLevel,pSearchSpawn->MaxLevel,pszSpawnType);
@@ -4601,6 +4604,8 @@ PCHAR ParseSearchSpawnArgs(PCHAR szArg, PCHAR szRest, PSEARCHSPAWN pSearchSpawn)
             pSearchSpawn->SpawnType = BANNER;
         } else if (!stricmp(szArg,"campfire")) {
             pSearchSpawn->SpawnType = CAMPFIRE;
+        } else if (!stricmp(szArg,"mercenary")) {
+            pSearchSpawn->SpawnType = MERCENARY;
         } else if (!stricmp(szArg,"any")) {
             pSearchSpawn->SpawnType = NONE;
         } else if (!stricmp(szArg,"next")) {
@@ -5309,6 +5314,9 @@ VOID SuperWhoDisplay(PSPAWNINFO pChar, PSEARCHSPAWN pSearchSpawn, DWORD Color)
 		case UNTARGETABLE:
 			pszSpawnType="untargetable";
 			break;
+      case MERCENARY:
+         pszSpawnType="mercenary";
+         break;
 		}
 		WriteChatf("There %s \ag%d\ax %s%s in %s.",(TotalMatching == 1)?"is":"are",TotalMatching, pszSpawnType, (TotalMatching==1)?"":"s", GetFullZone(pChar->Zone));
 	}

@@ -1,3 +1,8 @@
+22 October 2008 by ieatacid
+- Added mercenary as a spawn type and map filter option
+- Added bool mercenary to groupmember type
+- Me.Aura now can now receive an index to access more than one aura (no index defaults to the first aura)
+
 21 October 2008 by rswiders
 - Updated for October 21st patch
 

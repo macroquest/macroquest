@@ -742,7 +742,8 @@ typedef struct _CI2_INFO {
 typedef struct _GROUPMEMBER {
 /*0x00*/ void   *vftable;
 /*0x04*/ struct _CXSTR *pName;
-/*0x08*/ BYTE   Unknown0x8[0x4];
+/*0x08*/ BYTE   Mercenary;
+/*0x09*/ BYTE   Unknown0x8[0x3];
 /*0x0c*/ struct _CXSTR *pUnknown0xc; // haven't seen this with text yet but it's a CXSTR struct
 /*0x10*/ DWORD  Level;
 /*0x14*/ BYTE   Unknown0x14[0x2];
@@ -1210,7 +1211,8 @@ typedef struct _SPAWNINFO {
 /*0x0260*/ DWORD    MasterID;
 /*0x0264*/ BYTE     Unknown0x264[0x4];
 /*0x0268*/ DWORD    FishingETA;
-/*0x026c*/ BYTE     Unknown0x26c[0xd];
+/*0x026c*/ BYTE     Mercenary;
+/*0x026d*/ BYTE     Unknown0x26d[0xc];
 /*0x0279*/ BYTE     StandState;
 /*0x027a*/ BYTE     Unknown0x27a[0x6];
 /*0x0280*/ FLOAT    WalkSpeed;
@@ -1913,16 +1915,20 @@ typedef struct _EVERQUEST {
 } EVERQUEST, *PEVERQUEST;
 
 typedef struct _AURAINFO {
-/*0x000*/ CHAR   Name[0x40];
-/*0x040*/ BYTE   Unknown0x14[0xc];
+/*0x000*/ CHAR    Name[0x40];
+/*0x040*/ BYTE    Unknown0x14[0xc];
 /*0x04c*/
 } AURAINFO, *PAURAINFO;
 
+typedef struct _AURAS {
+/*0x000*/ _AURAINFO Aura[0x2];
+} AURAS, *PAURAS;
+
 typedef struct _AURAMGR {
-/*0x000*/ DWORD     NumAuras;
-/*0x004*/ BYTE      Unknown0x4[0xc];
-/*0x010*/ PAURAINFO *AuraArray;
-/*0x014*/ BYTE      Unknown0x14[0x8];
+/*0x000*/ DWORD   NumAuras;
+/*0x004*/ BYTE    Unknown0x4[0xc];
+/*0x010*/ _AURAS  **pAuraInfo;
+/*0x014*/ BYTE    Unknown0x14[0x8];
 /*0x01c*/
 } AURAMGR, *PAURAMGR;
 

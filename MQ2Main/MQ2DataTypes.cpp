@@ -1252,6 +1252,10 @@ bool MQ2SpawnType::GETMEMBER()
 			Dest.Ptr="Campfire";
 			Dest.Type=pStringType;
 			return true;
+      case MERCENARY:
+         Dest.Ptr="Mercenary";
+         Dest.Type=pStringType;
+         return true;
 		}
 		return false;
 	case Light:
@@ -3097,19 +3101,27 @@ bool MQ2CharacterType::GETMEMBER()
       Dest.Type=pIntType; 
       return true; 
 	case Aura:
-		if(PAURAMGR pAura=(PAURAMGR)pAuraMgr)
-		{
-			if(pAura->NumAuras)
-			{
-				if(!strcmp(pAura->AuraArray[0]->Name,"Disciples Aura"))
-					Dest.Ptr=GetSpellByName("Disciple's Aura");
-				else
-					Dest.Ptr=GetSpellByName(pAura->AuraArray[0]->Name);
-				Dest.Type=pSpellType;
-				return true;
-			}
-		}
-		return false;
+      if(PAURAMGR pAura=(PAURAMGR)pAuraMgr)
+      {
+         if(pAura->NumAuras)
+         {
+            DWORD n = 0;
+            if(ISINDEX() && ISNUMBER())
+            {
+               n = GETNUMBER() - 1;
+               if(n > pAura->NumAuras)
+                  return false;
+            }
+            PAURAS pAuras = (PAURAS)(*pAura->pAuraInfo);
+            if(!strcmp(pAuras->Aura[n].Name, "Disciples Aura"))
+               Dest.Ptr = GetSpellByName("Disciple's Aura");
+            else
+               Dest.Ptr = GetSpellByName(pAuras->Aura[n].Name);
+            Dest.Type = pSpellType;
+            return true;
+         }
+      }
+      return false;
 	case LAMarkNPC:
 		Dest.DWord=GetCharInfo()->ActiveAbilities.MarkNPC;
 		Dest.Type=pIntType;
@@ -6439,6 +6451,13 @@ bool MQ2GroupMemberType::GETMEMBER()
 			Dest.Type=pBoolType;
 			return true;
 		}
+   case Mercenary:
+      if(pGroupMemberData)
+      {
+         Dest.DWord=pGroupMemberData->Mercenary;
+         Dest.Type=pBoolType;
+         return true;
+      }
 	}
 	return false;
 }

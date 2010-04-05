@@ -40,6 +40,7 @@ enum eSpawnType
 	OBJECT,
 	BANNER,
 	CAMPFIRE,
+   MERCENARY,
 };
 
 typedef struct _SEARCHSPAWN {

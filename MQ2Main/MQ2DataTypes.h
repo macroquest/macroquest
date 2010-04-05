@@ -3111,6 +3111,7 @@ public:
       MainTank=5,
       MainAssist=6,
       Puller=7,
+      Mercenary=8,
    };
 	static enum GroupMemberMethods
 	{
@@ -3124,6 +3125,7 @@ public:
      TypeMember(MainTank);
      TypeMember(MainAssist);
      TypeMember(Puller);
+     TypeMember(Mercenary);
    }
 
    ~MQ2GroupMemberType()

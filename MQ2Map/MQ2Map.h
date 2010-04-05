@@ -34,25 +34,24 @@ using namespace std;
 #define MAPFILTER_Banner         27
 #define MAPFILTER_Campfire       28
 #define MAPFILTER_PCCorpse       29
-#define MAPFILTER_NUMBER         30
+#define MAPFILTER_Mercenary      30
+#define MAPFILTER_NUMBER         31
 #define MAPFILTER_Invalid        (-1)
 // normal labels
 
 
 
 typedef struct _MAPFILTER {
-    PCHAR szName;
-//    DWORD Index;
-	DWORD Default;
-    DWORD DefaultColor;
-    BOOL bIsToggle;
-	DWORD RequiresOption;
-	BOOL RegenerateOnChange;
-    PCHAR szHelpString;
-
-	DWORD Enabled;
-	DWORD Color;
-
+   PCHAR szName;
+   //DWORD Index;
+   DWORD Default;
+   DWORD DefaultColor;
+   BOOL bIsToggle;
+   DWORD RequiresOption;
+   BOOL RegenerateOnChange;
+   PCHAR szHelpString;
+   DWORD Enabled;
+   DWORD Color;
 } MAPFILTER, *PMAPFILTER;
 
 extern unsigned long bmMapRefresh;

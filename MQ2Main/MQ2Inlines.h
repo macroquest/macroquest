@@ -164,6 +164,8 @@ static inline eSpawnType GetSpawnType(PSPAWNINFO pSpawn)
         }
         if (pSpawn->MasterID)
             return PET;
+        if (pSpawn->Mercenary)
+           return MERCENARY;
 
         switch(GetBodyType(pSpawn))
         {

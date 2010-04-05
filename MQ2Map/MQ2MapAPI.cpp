@@ -883,6 +883,8 @@ BOOL CanDisplaySpawn(eSpawnType Type, PSPAWNINFO pSpawn)
 		return IsOptionEnabled(MAPFILTER_Banner);
 	case CAMPFIRE:
 		return IsOptionEnabled(MAPFILTER_Campfire);
+   case MERCENARY:
+      return IsOptionEnabled(MAPFILTER_Mercenary);
 	}
 	return TRUE;
 }
@@ -932,6 +934,8 @@ inline DWORD GetSpawnColor(eSpawnType Type, PSPAWNINFO pSpawn)
 		return MapFilterOptions[MAPFILTER_Banner].Color;
 	case CAMPFIRE:
 		return MapFilterOptions[MAPFILTER_Campfire].Color;
+   case MERCENARY:
+      return MapFilterOptions[MAPFILTER_Mercenary].Color;
 	}
 	return 0;
 }
