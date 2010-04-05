@@ -176,8 +176,10 @@ public:
         return 1;
     }
 
+    bool EQPlayerHook::IsTargetable(void);
 
 };
+    FUNCTION_AT_ADDRESS(bool EQPlayerHook::IsTargetable(void), EQPlayer__IsTargetable);
 
 class CActorEx
 {
@@ -773,5 +775,9 @@ VOID CaptionColorCmd(PSPAWNINFO pChar, PCHAR szLine)
             }
             return;
         }
+}
+BOOL IsTargetable(PSPAWNINFO pSpawn)
+{
+    return ((EQPlayerHook*)pSpawn)->IsTargetable();
 }
 #endif

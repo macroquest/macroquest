@@ -235,6 +235,7 @@ EQLIB_API VOID ShutdownMQ2Spawns();
 EQLIB_API VOID ProcessPendingGroundItems();
 EQLIB_API VOID UpdateMQ2SpawnSort();
 EQLIB_API BOOL SetNameSpriteState(PSPAWNINFO pSpawn, bool Show);
+EQLIB_API BOOL IsTargetable(PSPAWNINFO pSpawn);
 
 /* WINDOWS */
 EQLIB_API VOID InitializeMQ2Windows();

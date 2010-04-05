@@ -4480,6 +4480,8 @@ BOOL SpawnMatchesSearch(PSEARCHSPAWN pSearchSpawn, PSPAWNINFO pChar, PSPAWNINFO 
     eSpawnType SpawnType = GetSpawnType(pSpawn);
     if (pSearchSpawn->SpawnType != SpawnType && pSearchSpawn->SpawnType!=NONE)
     {
+        // if the search type is not npc or the mob type is UNT, continue?
+        // stupid /who
         if (pSearchSpawn->SpawnType!=NPC || SpawnType!=UNTARGETABLE)
             return FALSE;
     }
@@ -4579,6 +4581,8 @@ BOOL SpawnMatchesSearch(PSEARCHSPAWN pSearchSpawn, PSPAWNINFO pChar, PSPAWNINFO 
         return FALSE;
     if (pSearchSpawn->bLoS && (!LineOfSight(pChar,pSpawn)))
         return FALSE;
+    if (pSearchSpawn->bTargetable && (!IsTargetable(pSpawn)))
+        return FALSE;
     return TRUE;
 }
 #endif
@@ -4657,6 +4661,8 @@ PCHAR ParseSearchSpawnArgs(PCHAR szArg, PCHAR szRest, PSEARCHSPAWN pSearchSpawn)
             pSearchSpawn->bSlower = TRUE;
         } else if (!stricmp(szArg,"los")) {
             pSearchSpawn->bLoS = TRUE;
+        } else if (!stricmp(szArg,"targetable")) {
+            pSearchSpawn->bTargetable = TRUE;
         } else if (!stricmp(szArg,"range")) {
             GetArg(szArg,szRest,1);
             pSearchSpawn->MinLevel = atoi(szArg);

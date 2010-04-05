@@ -631,6 +631,7 @@
 #define EQPlayer__SetNameSpriteState                               0x521C40
 #define EQPlayer__SetNameSpriteTint                                0x51FD10
 #define EQPlayer__IsBodyType_j                                     0x7189D0
+#define EQPlayer__IsTargetable                                     0x718B60
 
 //EQPlayerManager
 #define EQPlayerManager__GetSpawnByID                              0x5289F0

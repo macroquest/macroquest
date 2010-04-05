@@ -95,6 +95,7 @@ namespace MQ2Internal {
         DWORD SortBy;
         BOOL bNoGuild;
         BOOL bLoS;
+        BOOL bTargetable;
     } SEARCHSPAWN, *PSEARCHSPAWN;
 
     static enum SearchItemFlag
