@@ -2244,7 +2244,7 @@ bool MQ2CharacterType::GETMEMBER()
     case Dar:
         Dest.DWord=0;
         {
-            for (unsigned long k=0; k<23 ; k++)
+            for (unsigned long k=0; k<NUM_LONG_BUFFS ; k++)
                 if(PSPELL pSpell = GetSpellByID(GetCharInfo2()->Buff[k].SpellID))
                     if(pSpell->SpellType != 0)
                         Dest.DWord+=GetCharInfo2()->Buff[k].DamageAbsorbRemaining;
@@ -3324,7 +3324,7 @@ bool MQ2CharacterType::GETMEMBER()
     case Counters:
         Dest.DWord=0;
         {
-            for (unsigned long k=0; k<23 ; k++)
+            for (unsigned long k=0; k<NUM_LONG_BUFFS ; k++)
                 if(PSPELL pSpell = GetSpellByID(GetCharInfo2()->Buff[k].SpellID))
                     if(pSpell->SpellType == 0 && GetCharInfo2()->Buff[k].DamageAbsorbRemaining)
                         Dest.DWord += GetCharInfo2()->Buff[k].DamageAbsorbRemaining;
