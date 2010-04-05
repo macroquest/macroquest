@@ -473,26 +473,35 @@ typedef struct _CXWNDMGR {
 } CXWNDMGR, *PCXWNDMGR;
 
 
-// 02-07-2008 ieatacid - size is 0x2fc
+// 11-11-2009 ieatacid - size is 0x514
 typedef struct _EQMERCHWINDOW {
 /*0x000*/   struct _CSIDLWND Wnd;
-/*0x184*/   BYTE    Unknown0x184[0x8];
-/*0x18c*/   PCONTENTS   ItemDesc[0x50];     // the mainwindow has pointers
+/*0x1f0*/   BYTE    Unknown0x184[0x8];
+/*0x1f8*/   PCONTENTS   ItemDesc[0x50];     // the mainwindow has pointers
                                             // directly to the items in the
                                             // slots...
-/*0x2cc*/   FLOAT   Markup;
-/*0x2d0*/   DWORD   SelectedSlotID;
-/*0x2d4*/   PCONTENTS *pSelectedItem;
-/*0x2d8*/   DWORD   Unknown0x2d8;
-/*0x2dc*/   DWORD   MW_MerchantName;
-/*0x2e0*/   DWORD   MW_SelectedItemLabel;
-/*0x2e4*/   DWORD   MW_SelectedPriceLabel;
-/*0x2e8*/   DWORD   MW_SelectedItem;
-/*0x2ec*/   DWORD   MW_Buy_Button;
-/*0x2f0*/   DWORD   MW_Sell_Button;
-/*0x2f4*/   DWORD   ItemList;
-/*0x2f8*/   DWORD   Unknown0x2f8;
-/*0x2fc*/
+/*0x338*/   PCONTENTS   RecoveryItems[0x64];// (guessing) not yet implemented in this window
+/*0x4c8*/   FLOAT   Markup;
+/*0x4cc*/   DWORD   SelectedSlotID;
+/*0x4d0*/   PCONTENTS *pSelectedItem;
+/*0x4d4*/   DWORD   Unknown0x4d4;
+/*0x4d8*/   DWORD   Unknown0x4d8;
+/*0x4dc*/   BYTE    Unknown0x4dc;
+/*0x4dd*/   BYTE    padding0x4dd[3];
+/*0x4e0*/   DWORD   MW_MerchantName;
+/*0x4e4*/   DWORD   MW_SelectedItemLabel;
+/*0x4e8*/   DWORD   MW_SelectedPriceLabel;
+/*0x4ec*/   DWORD   MW_SelectedItem;
+/*0x4f0*/   DWORD   MW_Buy_Button;
+/*0x4f4*/   DWORD   MW_Sell_Button;
+/*0x4f8*/   DWORD   MW_Recover_Button;
+/*0x4fc*/   DWORD   ItemList;
+/*0x500*/   DWORD   MW_ItemListRecovery;
+/*0x504*/   DWORD   MW_Done_Button;
+/*0x508*/   DWORD   MW_PurchasePage;
+/*0x50c*/   DWORD   MW_RecoveryPage;
+/*0x510*/   DWORD   MW_MerchantSubwindows;
+/*0x514*/
 } EQMERCHWINDOW, *PEQMERCHWINDOW;
 
 

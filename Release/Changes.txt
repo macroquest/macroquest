@@ -1,3 +1,6 @@
+14 November 2009 by ieatacid
+- Fix for EQMERCHWINDOW struct which will fix various things that reference it
+
 14 November 2009 by dkaa
 - Fix for labels -- added CLABELWND which is not, in fact, a CSIDLWND
 
