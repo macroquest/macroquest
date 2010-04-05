@@ -1682,6 +1682,20 @@ bool MQ2SpawnType::GETMEMBER()
         Dest.Ptr=&DataTypeTemp[0];
         Dest.Type=pStringType;
         return true;
+    case Owner:
+        if(pSpawn->Mercenary)
+        {
+            unsigned int pos = strchr(pSpawn->Lastname, '\'') - &pSpawn->Lastname[0];
+            strncpy(DataTypeTemp, pSpawn->Lastname, pos);
+            DataTypeTemp[pos] = 0;
+            if(PSPAWNINFO pOwner = (PSPAWNINFO)GetSpawnByName(DataTypeTemp))
+            {
+                Dest.Ptr = pOwner;
+                Dest.Type = pSpawnType;
+                return true;
+            }
+            return false;
+        }
     }
     return false;
 }
@@ -6341,35 +6355,68 @@ bool MQ2GroupType::GETMEMBER()
         }
         return true;
     case MainTank:
-        for(i = 0; i < 6; i++)
         {
-            if(pChar->pGroupInfo->pMember[i] && pChar->pGroupInfo->pMember[i]->MainTank)
+            Dest.DWord = 0;
+            if(pChar->pGroupInfo->pMember[0]->MainTank)
             {
-                Dest.DWord=i;
-                Dest.Type=pGroupMemberType;
+                Dest.Type = pGroupMemberType;
                 return true;
+            }
+            for(i = 1; i < 6; i++)
+            {
+                if(pChar->pGroupInfo->pMember[i])
+                {
+                    Dest.DWord++;
+                    if(pChar->pGroupInfo->pMember[i]->MainTank)
+                    {
+                        Dest.Type = pGroupMemberType;
+                        return true;
+                    }
+                }
             }
         }
         return false;
     case MainAssist:
-        for(i = 0; i < 6; i++)
         {
-            if(pChar->pGroupInfo->pMember[i] && pChar->pGroupInfo->pMember[i]->MainAssist)
+            Dest.DWord = 0;
+            if(pChar->pGroupInfo->pMember[0]->MainAssist)
             {
-                Dest.DWord=i;
-                Dest.Type=pGroupMemberType;
+                Dest.Type = pGroupMemberType;
                 return true;
+            }
+            for(i = 1; i < 6; i++)
+            {
+                if(pChar->pGroupInfo->pMember[i])
+                {
+                    Dest.DWord++;
+                    if(pChar->pGroupInfo->pMember[i]->MainAssist)
+                    {
+                        Dest.Type = pGroupMemberType;
+                        return true;
+                    }
+                }
             }
         }
         return false;
     case Puller:
-        for(i = 0; i < 6; i++)
         {
-            if(pChar->pGroupInfo->pMember[i] && pChar->pGroupInfo->pMember[i]->Puller)
+            Dest.DWord = 0;
+            if(pChar->pGroupInfo->pMember[0]->Puller)
             {
-                Dest.DWord=i;
-                Dest.Type=pGroupMemberType;
+                Dest.Type = pGroupMemberType;
                 return true;
+            }
+            for(i = 1; i < 6; i++)
+            {
+                if(pChar->pGroupInfo->pMember[i])
+                {
+                    Dest.DWord++;
+                    if(pChar->pGroupInfo->pMember[i]->Puller)
+                    {
+                        Dest.Type = pGroupMemberType;
+                        return true;
+                    }
+                }
             }
         }
     }
@@ -6442,7 +6489,7 @@ bool MQ2GroupMemberType::GETMEMBER()
     {
         pGroupMember=pChar->pSpawn;
         strcpy(MemberName,pGroupMember->Name);
-        pGroupMemberData=pChar->pGroupInfo->pLeader;
+        pGroupMemberData=pChar->pGroupInfo->pMember[0];
     }
     PMQ2TYPEMEMBER pMember=MQ2GroupMemberType::FindMember(Member);
     if (!pMember)
@@ -6512,6 +6559,7 @@ bool MQ2GroupMemberType::GETMEMBER()
             Dest.Type=pBoolType;
             return true;
         }
+        return false;
     case Mercenary:
         if(pGroupMemberData)
         {

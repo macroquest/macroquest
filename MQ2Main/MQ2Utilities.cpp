@@ -5467,8 +5467,8 @@ PCHAR GetFriendlyNameForGroundItem(PGROUNDITEM pItem, PCHAR szName)
     return &szName[0];
 }
 
-
-
+// deprecated
+#if 0
 PCHAR GetModel(PSPAWNINFO pSpawn, DWORD Slot)
 {
     if (!pSpawn) return NULL;
@@ -5483,6 +5483,8 @@ PCHAR GetModel(PSPAWNINFO pSpawn, DWORD Slot)
     if (!szModel) return szItemName[0];
     return szItemName[atoi(szModel+2)];
 }
+#endif
+
 VOID SetDisplaySWhoFilter(PBOOL bToggle, PCHAR szFilter, PCHAR szToggle)
 {
     CHAR szTemp[MAX_STRING] = {0};

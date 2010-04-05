@@ -1263,7 +1263,7 @@ typedef struct _SPAWNINFO {
 /*0x0e18*/ int      RaidMarkNPC[3];
 /*0x0e24*/ int      TargetOfTarget;
 /*0x0e28*/ BYTE     Unknown0xe1c[0x30];
-/*0x0e58*/ void     *pActorClient;          // ActorClient*
+/*0x0e58*/ void     *pActorClient;          // start of ActorClient struct
 /*0x0e5c*/ BYTE     InNonPCRaceIllusion;
 /*0x0e5d*/ BYTE     Unknown0xe51[3];
 /*0x0e60*/ BYTE     FaceStyle;
@@ -1285,7 +1285,7 @@ typedef struct _SPAWNINFO {
 /*0x0edc*/ DWORD    Tattoo;                 //drakkin only face setting
 /*0x0ee0*/ DWORD    Details;                //drakkin only face setting
 /*0x0ee4*/ struct   _EQUIPMENT Equipment;   // size 0x6c
-/*0x0f50*/ struct   _MODELINFO *Model[0xe]; // it's somwhere in this area but model data has changed so this should be removed
+/*0x0f50*/ BYTE     Unknown0xf50[0x38];
 /*0x0f88*/ VOID     *pcactorex;             // ActorInterface*
 /*0x0f8c*/ DWORD    Unknown0xf80;
 /*0x0f90*/ VOID     *FaceRelatedActorStruct;
@@ -1378,23 +1378,37 @@ void *gethashedentry(struct _HASHTABLE  *table, DWORD key)
 // actual size: 0x120 3-3-2009
 typedef struct _EQSWITCH {
 /*0x00*/    DWORD        Unknown0x0[0x2];
-/*0x08*/    DWORD        UnknownData0x08;
-/*0x0c*/    DWORD        UnknownData0x0c;
-/*0x10*/    DWORD        Unknown0x10[0x2];
-/*0x18*/    DWORD        UnknownData0x18;
-/*0x1c*/    DWORD        Unknown0x1c;
-/*0x20*/    DWORD        UnknownData0x20;
-/*0x24*/    DWORD        Unknown0x24;
+/*0x08*/    float        UnknownData0x08;
+/*0x0c*/    float        UnknownData0x0c;
+/*0x10*/    float        Unknown0x10[0x2];
+/*0x18*/    float        UnknownData0x18;
+/*0x1c*/    float        Unknown0x1c;
+/*0x20*/    float        UnknownData0x20;
+/*0x24*/    float        Unknown0x24;
 /*0x28*/    FLOAT        Y;
 /*0x2c*/    FLOAT        X;
 /*0x30*/    FLOAT        Z;
-/*0x34*/    BYTE         Unknown0x34[0x80]; //A lot of data here.
+/*0x34*/    BYTE         Unknown0x34[0x50]; //A lot of data here.
+/*0x84*/    float        yAdjustment1;
+/*0x88*/    float        xAdjustment1;
+/*0x8c*/    float        zAdjustment1;
+/*0x90*/    float        headingAdjustment1;
+/*0x94*/    float        yAdjustment2;
+/*0x98*/    float        xAdjustment2;
+/*0x9c*/    float        zAdjustment2;
+/*0xa0*/    float        headingAdjustment2;
+/*0xa4*/    float        yAdjustment3;
+/*0xa8*/    float        xAdjustment3;
+/*0xac*/    float        zAdjustment3;
+/*0xb0*/    float        headingAdjustment3;
 /*0xb4*/    FLOAT        Y2;
 /*0xb8*/    FLOAT        X2;
 /*0xbc*/    FLOAT        Z2;
 /*0xc0*/    DWORD        Unknown0xa4;
 /*0xc4*/    FLOAT        Heading;
-/*0xc8        Data Continues... */
+/*0xc8*/    BYTE         Unknown0xc8[0x18];
+/*0xe0*/    float        HeightAdjustment;
+/*0xe4*/    // more data
 } EQSWITCH, *PEQSWITCH;
 
 // actual size 0xdc 2-9-2009
@@ -1860,9 +1874,11 @@ typedef struct connection_t {
 /*0x118*/
 } CONNECTION_T, *PCONNECTION_T;
 
-//actual size 0x2d9c 11-20-07 - ieatacid 
+//actual size 0x2dfc 3-19-09 - ieatacid 
 typedef struct _CDISPLAY {
-/*0x000*/ BYTE   Unknown0x000[0x154];
+/*0x000*/ BYTE   Unknown0x000[0x12c];
+/*0x12c*/ void   *pActorTagManager;
+/*0x130*/ BYTE   Unknown0x130[0x24];
 /*0x154*/ DWORD  TimeStamp;
 /*0x158*/
 } CDISPLAY, *PCDISPLAY;
@@ -1924,9 +1940,9 @@ typedef struct _CHATSERVICE {
 typedef struct _EVERQUEST {
 /*0x000*/ BYTE   Unknown[0x2a4];
 /*0x2a4*/ struct _CHATSERVICE *ChatService;
-/*0x2a8*/ BYTE   Unknown0x2a8[0x324];
-/*0x5cc*/ DWORD  GameState;
-/*0x5d0*/ // more data
+/*0x2a8*/ BYTE   Unknown0x2a8[0x328];
+/*0x5d0*/ DWORD  GameState;
+/*0x5d4*/ // more data
 } EVERQUEST, *PEVERQUEST;
 
 typedef struct _AURAINFO {
@@ -1960,8 +1976,8 @@ typedef struct _MERCENARYINFO {
 /*0x040*/ DWORD MercState; // 1 = suspended, 5 = active
 } MERCENARYINFO, *PMERCENARYINFO;
 
-#define EQ_BEGIN_ZONE                   0x6eff  // CEverQuest__SavePCForce+45F     04-07-2009
-#define EQ_END_ZONE                     0x6759  // CEverQuest__DoMainLoop+B01      04-07-2009
-#define EQ_LoadingS__ArraySize          0x45    // EQ_LoadingS__SetProgressBar+7C  04-07-2009
+#define EQ_BEGIN_ZONE                   0x6eff  // CEverQuest__SavePCForce+45F     05-14-2009
+#define EQ_END_ZONE                     0x6759  // CEverQuest__DoMainLoop+B01      05-14-2009
+#define EQ_LoadingS__ArraySize          0x45    // EQ_LoadingS__SetProgressBar+7C  05-14-2009
 };
 using namespace EQData;

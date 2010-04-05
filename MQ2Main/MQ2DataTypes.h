@@ -552,6 +552,7 @@ public:
         MaxEndurance=97,
         Loc=98,
         LocYX=99,
+        Owner=100,
     };
     static enum SpawnMethods
     {
@@ -658,6 +659,7 @@ public:
         TypeMember(MaxEndurance);
         TypeMember(Loc);
         TypeMember(LocYX);
+        TypeMember(Owner);
 
         TypeMethod(Target);
         TypeMethod(Face);
