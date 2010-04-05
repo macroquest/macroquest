@@ -641,11 +641,12 @@ public:
 	}
 };
 
+// CXWnd::DrawTooltipAtPoint(const CXStr &new, CXStr *old)
 class XWndHook
 {
 public:
-   VOID DrawTooltipAtPoint_Trampoline(class CXPoint const &);
-   VOID DrawTooltipAtPoint_Detour(class CXPoint const &pPoint)
+   VOID DrawTooltipAtPoint_Trampoline(const CXStr &, CXStr *);
+   VOID DrawTooltipAtPoint_Detour(const CXStr &New, CXStr *Old)
    {
       CHAR Temp[MAX_STRING]={0};
       CHAR Temp2[MAX_STRING]={0};
@@ -679,7 +680,7 @@ public:
          sprintf(Temp,"%s (%s)",pItem->Item->Name,Temp2);
          SetCXStr((PCXSTR*)&pWnd->Tooltip,Temp);
       }
-      DrawTooltipAtPoint_Trampoline(pPoint);
+      DrawTooltipAtPoint_Trampoline(New, Old);
    }
 };
 
@@ -688,7 +689,7 @@ bool ItemDisplayHook::bNoSpellTramp = false;
 
 DETOUR_TRAMPOLINE_EMPTY(VOID ItemDisplayHook::SetItem_Trampoline(class EQ_Item *,bool)); 
 DETOUR_TRAMPOLINE_EMPTY(VOID ItemDisplayHook::SetSpell_Trampoline(int SpellID,bool HasSpellDescr));;
-DETOUR_TRAMPOLINE_EMPTY(VOID XWndHook::DrawTooltipAtPoint_Trampoline(class CXPoint const &));;
+DETOUR_TRAMPOLINE_EMPTY(VOID XWndHook::DrawTooltipAtPoint_Trampoline(const CXStr &, CXStr *));;
 
 #ifndef ISXEQ
 void Comment(PSPAWNINFO pChar, PCHAR szLine) 

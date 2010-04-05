@@ -1360,7 +1360,7 @@ bool MQ2SpawnType::GETMEMBER()
 		Dest.Type=pHeadingType;
 		return true;
 	case Casting:
-		if (Dest.Ptr=GetSpellByID(pSpawn->CastingSpellID))
+		if (Dest.Ptr=GetSpellByID(pSpawn->CastingData.CastingSpellID))
 		{
 			Dest.Type=pSpellType;
 			return true;
@@ -1635,6 +1635,22 @@ bool MQ2SpawnType::GETMEMBER()
 		Dest.DWord=fabs(pSpawn->SpeedRun)>0.0f;
 		Dest.Type=pBoolType;
 		return true;
+   case CurrentMana:
+      Dest.DWord=pSpawn->ManaCurrent;
+      Dest.Type=pIntType;
+      return true;
+   case MaxMana:
+      Dest.DWord=pSpawn->ManaMax;
+      Dest.Type=pIntType;
+      return true;
+   case CurrentEndurance:
+      Dest.DWord=pSpawn->EnduranceCurrent;
+      Dest.Type=pIntType;
+      return true;
+   case MaxEndurance:
+      Dest.DWord=pSpawn->EnduranceMax;
+      Dest.Type=pIntType;
+      return true;
 	}
 	return false;
 }
@@ -6274,7 +6290,8 @@ bool MQ2GroupMemberType::GETMEMBER()
 	CHAR MemberName[MAX_STRING]={0};
 	CHAR LeaderName[MAX_STRING]={0};
 	PSPAWNINFO pGroupMember=0;
-    PCHARINFO pChar=GetCharInfo();
+   PCHARINFO pChar=GetCharInfo();
+   DWORD level=0;
 	if (!pChar->pGroupInfo) return false;
 	if (unsigned long N=VarPtr.DWord)
 	{
@@ -6288,7 +6305,8 @@ bool MQ2GroupMemberType::GETMEMBER()
 				if (N==0)
 				{
 					GetCXStr(pChar->pGroupInfo->pMember[i]->pName,MemberName,MAX_STRING);
-					pGroupMember=(PSPAWNINFO)GetSpawnByName(MemberName);
+               pGroupMember=pChar->pGroupInfo->pMember[i]->pSpawn;
+               level=pChar->pGroupInfo->pMember[i]->Level;
 					break;
 				}
 			}
@@ -6300,6 +6318,7 @@ bool MQ2GroupMemberType::GETMEMBER()
 	{
 		pGroupMember=pChar->pSpawn;
 		strcpy(MemberName,pGroupMember->Name);
+      level=pGroupMember->Level;
 	}
 	PMQ2TYPEMEMBER pMember=MQ2GroupMemberType::FindMember(Member);
 	if (!pMember)
@@ -6331,7 +6350,11 @@ bool MQ2GroupMemberType::GETMEMBER()
 			Dest.Type=pSpawnType;
 			return true;
 		}
-		break;
+      return false;
+   case Level:
+      Dest.DWord=level;
+      Dest.Type=pIntType;
+      return true;
 	}
 	return false;
 }

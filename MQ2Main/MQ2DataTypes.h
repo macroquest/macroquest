@@ -545,6 +545,10 @@ public:
 		Dead=91,
 		Stunned=92,
 		Hovering=93,
+      CurrentMana=94,
+      MaxMana=95,
+      CurrentEndurance=96,
+      MaxEndurance=97,
 	};
 	static enum SpawnMethods
 	{
@@ -645,6 +649,10 @@ public:
 		TypeMember(Dead);
 		TypeMember(Stunned);
 		TypeMember(Hovering);
+      TypeMember(CurrentMana);
+      TypeMember(MaxMana);
+      TypeMember(CurrentEndurance);
+      TypeMember(MaxEndurance);
 
 		TypeMethod(Target);
 		TypeMethod(Face);
@@ -3088,6 +3096,7 @@ public:
 	   Name=1,
 	   Leader=2,
 	   Spawn=3,
+      Level=4,
    };
 	static enum GroupMemberMethods
 	{
@@ -3097,6 +3106,7 @@ public:
 	  TypeMember(Name);
 	  TypeMember(Leader);
 	  TypeMember(Spawn);
+     TypeMember(Level);
    }
 
    ~MQ2GroupMemberType()

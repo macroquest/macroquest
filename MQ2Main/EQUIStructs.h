@@ -183,7 +183,9 @@ typedef struct _CSIDLWNDVFTABLE {
 /*0134*/ LPVOID  LoadIniInfo;
 /*0138*/ LPVOID  StoreIniInfo;
 /*013c*/ LPVOID  Unknown0x13c;
-/*0140*/ 
+/*0140*/ LPVOID  Unknown0x140;
+/*0144*/ LPVOID  Unknown0x144;
+/*0148*/
 } CSIDLWNDVFTABLE, *PCSIDLWNDVFTABLE;
 
 // Lax

@@ -252,8 +252,13 @@ void InitializeMQ2Windows()
 		CHAR Name[MAX_STRING]={0};
 		PCSIDLWND *ppWnd=((_CXWNDMGR*)pWndMgr)->pWindows;
 		PCSIDLWND pWnd=*ppWnd;
+      DWORD count = ((_CXWNDMGR*)pWndMgr)->Count;
+
 		while(pWnd = *ppWnd)
 		{
+         if(count-- == 0)
+            break;
+
 			// process window
 			if (CXMLData *pXMLData=((CXWnd*)pWnd)->GetXMLData())
 			{

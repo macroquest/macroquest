@@ -1,3 +1,10 @@
+09 October 2008 by ieatacid, dkaa, rswiders
+- Updated for October 7th patch
+- Added spawn type members: CurrentMana, MaxMana, Current Endurance, MaxEndurance -- these behave like CurrentHPs (only updated when you target a spawn)
+
+08 September 2008 by ieatacid
+- Added Level to groupmember type
+
 07 September 2008 by rswiders, ieatacid
 - Fixed Group.Member[x].Name and .Leader 
 
