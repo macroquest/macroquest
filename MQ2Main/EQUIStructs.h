@@ -688,17 +688,17 @@ typedef struct _EQLOOTWINDOW {
 /*0x1f0*/ PCONTENTS   ItemDesc[NUM_INV_SLOTS]; //there can only be 31 items on a corpse since that equals 23 inv slots plus 8 bags...
 } EQLOOTWINDOW, *PEQLOOTWINDOW;
 
-//Size: 0x7b8 (3/12/2009)
+//Size: 0x7cc (4/07/2009)
 typedef struct _EQPETINFOWINDOW {
 /*0x000*/ struct _CSIDLWND Wnd;
 /*0x198*/ DWORD Unknown0x198[0x4];
 /*0x1a8*/ struct _CBUTTONWND *pButton[0xe];
-/*0x1e0*/ BYTE  Unknown0x1e0[0x2f4];
-/*0x4d4*/ int   Buff[0x55];        // Spell ID# of each buff -- 85 total
-/*0x628*/ BYTE  Unknown0x628[0x20];
-/*0x648*/ DWORD BuffFadeETA[0x55]; // duration until buff fades, in thousands of a second
-/*0x79c*/ BYTE  Unknown0x79c[0x1c];
-/*0x7b8*/
+/*0x1e0*/ BYTE  Unknown0x1e0[0x2fc];
+/*0x4dc*/ int   Buff[0x55];        // Spell ID# of each buff -- 85 total
+/*0x630*/ BYTE  Unknown0x630[0x20];
+/*0x650*/ DWORD BuffFadeETA[0x55]; // duration until buff fades, in thousands of a second
+/*0x7a4*/ BYTE  Unknown0x7a4[0x28];
+/*0x7cc*/
 } EQPETINFOWINDOW, *PEQPETINFOWINDOW;
 
 typedef struct _EQTRADESKILLRECIPE {
