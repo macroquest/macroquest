@@ -6169,6 +6169,7 @@ bool MQ2GroupType::GETMEMBER()
 {
 	PMQ2TYPEMEMBER pMember=MQ2GroupType::FindMember(Member);
 	PCHARINFO pChar=GetCharInfo();
+        int i;
 	if (!pMember || !pChar->pGroupInfo)
 		return false;
 	switch((GroupMembers)pMember->ID)
@@ -6186,12 +6187,12 @@ bool MQ2GroupType::GETMEMBER()
         else
         {
             Dest.DWord=0;
-            for (int index=1;index<6;index++) 
-                if (pChar->pGroupInfo->pMember[index])
+            for (i=1;i<6;i++) 
+                if (pChar->pGroupInfo->pMember[i])
                 {
                     Dest.DWord++;
 					CHAR Name[MAX_STRING]={0};
-					GetCXStr(pChar->pGroupInfo->pMember[index]->pName,Name,MAX_STRING);
+					GetCXStr(pChar->pGroupInfo->pMember[i]->pName,Name,MAX_STRING);
 					if (!stricmp(Name,GETFIRST()))
                     {
                         Dest.Type=pIntType;
@@ -6209,8 +6210,8 @@ bool MQ2GroupType::GETMEMBER()
 	case Members:
 		{
 			Dest.DWord=0;
-			for (int index=1;index<6;index++) 
-            if (pChar->pGroupInfo->pMember[index])
+			for (i=1;i<6;i++) 
+            if (pChar->pGroupInfo->pMember[i])
 					Dest.DWord++;
 			Dest.Type=pIntType;
 		}
@@ -6226,13 +6227,13 @@ bool MQ2GroupType::GETMEMBER()
 				Dest.Type=pGroupMemberType;
 				return true;
 			}
-			for (int index=1;index<6;index++) 
+			for (i=1;i<6;i++) 
 			{
-            if (pChar->pGroupInfo->pMember[index])
+            if (pChar->pGroupInfo->pMember[i])
 				{
 					Dest.DWord++;
 					CHAR Name[MAX_STRING]={0};
-					GetCXStr(pChar->pGroupInfo->pMember[index]->pName,Name,MAX_STRING);
+					GetCXStr(pChar->pGroupInfo->pMember[i]->pName,Name,MAX_STRING);
 					if (!stricmp(Name,LeaderName))
 					{
 						Dest.Type=pGroupMemberType;
@@ -6251,15 +6252,15 @@ bool MQ2GroupType::GETMEMBER()
 	case GroupSize:
 		{
 			Dest.DWord=0;
-			for (int index=1;index<6;index++) 
-            if (pChar->pGroupInfo->pMember[index])
+			for (i=1;i<6;i++) 
+            if (pChar->pGroupInfo->pMember[i])
 					Dest.DWord++;
 			if (Dest.DWord) Dest.DWord++;
 			Dest.Type=pIntType;
 		}
 		return true;
    case MainTank:
-      for(int i = 0; i < 6; i++)
+      for(i = 0; i < 6; i++)
       {
          if(pChar->pGroupInfo->pMember[i] && pChar->pGroupInfo->pMember[i]->MainTank)
          {
@@ -6270,7 +6271,7 @@ bool MQ2GroupType::GETMEMBER()
       }
       return false;
    case MainAssist:
-      for(int i = 0; i < 6; i++)
+      for(i = 0; i < 6; i++)
       {
          if(pChar->pGroupInfo->pMember[i] && pChar->pGroupInfo->pMember[i]->MainAssist)
          {
@@ -6281,7 +6282,7 @@ bool MQ2GroupType::GETMEMBER()
       }
       return false;
    case Puller:
-      for(int i = 0; i < 6; i++)
+      for(i = 0; i < 6; i++)
       {
          if(pChar->pGroupInfo->pMember[i] && pChar->pGroupInfo->pMember[i]->Puller)
          {
@@ -6296,13 +6297,14 @@ bool MQ2GroupType::GETMEMBER()
 
 bool MQ2GroupMemberType::ToString(MQ2VARPTR VarPtr, PCHAR Destination)
 {
+        int i;
 	if (unsigned long N=VarPtr.DWord)
 	{
 		if (N>5)
 			return false;
 		PCHARINFO pChar=GetCharInfo();
 		if (!pChar->pGroupInfo) return false;
-		for (int i=1; i<6 ; i++)
+		for (i=1; i<6 ; i++)
 		{
          if (pChar->pGroupInfo->pMember[i])
 			{
@@ -6333,12 +6335,13 @@ bool MQ2GroupMemberType::GETMEMBER()
    PCHARINFO pChar=GetCharInfo();
    PGROUPMEMBER pGroupMemberData=0;
    DWORD level=0;
+   int i;
 	if (!pChar->pGroupInfo) return false;
 	if (unsigned long N=VarPtr.DWord)
 	{
 		if (N>5)
 			return false;
-		for (int i=1; i<6 ; i++)
+		for (i=1; i<6 ; i++)
 		{
 			if (pChar->pGroupInfo->pMember[i])
 			{
@@ -6427,6 +6430,7 @@ bool MQ2GroupMemberType::GETMEMBER()
 
 bool MQ2RaidType::GETMEMBER()
 {
+    int i;
 	if (!pRaid)
 		return false;
 	PMQ2TYPEMEMBER pMember=MQ2RaidType::FindMember(Member);
@@ -6550,7 +6554,7 @@ bool MQ2RaidType::GETMEMBER()
 		return false;
    case MainAssist:
       {
-         for (int i=0; i < 72; i++)
+         for (i=0; i < 72; i++)
          {
             if (pRaid->RaidMemberUsed[i] && pRaid->RaidMember[i].RaidMainAssist)
             {
