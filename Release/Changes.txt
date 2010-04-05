@@ -1,3 +1,6 @@
+06 September 2008 by rswiders
+- Fixed Group.Member[x].Name
+
 05 September 2008 by rswiders
 - Fixes for group CTD issues
 - Added Group.GroupSize back in... it's in the html manual but wasn't in the source
