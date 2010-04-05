@@ -1360,7 +1360,7 @@ bool MQ2SpawnType::GETMEMBER()
 		Dest.Type=pHeadingType;
 		return true;
 	case Casting:
-		if (Dest.Ptr=GetSpellByID(pSpawn->CastingData.CastingSpellID))
+		if (Dest.Ptr=GetSpellByID(pSpawn->CastingData.SpellID))
 		{
 			Dest.Type=pSpellType;
 			return true;
