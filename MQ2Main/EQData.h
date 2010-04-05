@@ -1786,27 +1786,27 @@ typedef struct _EQRAIDMEMBER {
 /*0x118*/ 
 } EQRAIDMEMBER, *PEQRAIDMEMBER;
 
-// sizeof(_EQRAID) is 0x5ab8 (8-11-2004)
+// sizeof(_EQRAID) is 0x5ac4 (1-20-2009)
 typedef struct _EQRAID { 
-/*0x0000*/  BYTE        Unknown0x0[0x154];
-/*0x0154*/  CHAR        RaidMemberUsed[0x48];
-/*0x019c*/  struct      _EQRAIDMEMBER RaidMember[0x48];
-/*0x505c*/  DWORD       field_505c;
-/*0x5060*/  DWORD       RaidMemberCount;
-/*0x5064*/  CHAR        RaidLeaderName[0x140];
-/*0x51a4*/  CHAR        RaidMOTD[0x400];
-/*0x55a4*/  BYTE        Unknown0x55a4[0x40];
-/*0x55e4*/  BYTE        Invited;
-/*0x55e5*/  BYTE        Unknown0x55e5[0x8];
-/*0x55ed*/  BYTE        IsRaidLeader; 
-/*0x55ee*/  BYTE        Unknown0x55ee[0x2];
-/*0x55f0*/  DWORD       RaidTarget;
-/*0x55f4*/  DWORD       LootType;
-/*0x55f8*/  CHAR        RaidLooters[0x13][0x40];
-/*0x5ab8*/  DWORD       TotalRaidMemberLevels; // TotalRaidMemberLevels/RaidMemberCount=RaidAvgLevel
-/*0x5abc*/  BYTE        Locked;
-/*0x5abd*/  BYTE        Padding0x5abd[0x3];
-/*0x5ac0*/ 
+/*0x0000*/  BYTE        Unknown0x0[0x158];
+/*0x0158*/  CHAR        RaidMemberUsed[0x48];
+/*0x01a0*/  struct      _EQRAIDMEMBER RaidMember[0x48];
+/*0x5060*/  DWORD       field_5060;
+/*0x5064*/  DWORD       RaidMemberCount;
+/*0x5068*/  CHAR        RaidLeaderName[0x140];
+/*0x51a8*/  CHAR        RaidMOTD[0x400];
+/*0x55a8*/  BYTE        Unknown0x55a8[0x40];
+/*0x55e8*/  BYTE        Invited;
+/*0x55e9*/  BYTE        Unknown0x55e9[0x8];
+/*0x55f1*/  BYTE        IsRaidLeader; 
+/*0x55f2*/  BYTE        Unknown0x55f2[0x2];
+/*0x55f4*/  DWORD       RaidTarget;
+/*0x55f8*/  DWORD       LootType;
+/*0x55fc*/  CHAR        RaidLooters[0x13][0x40];
+/*0x5abc*/  DWORD       TotalRaidMemberLevels; // TotalRaidMemberLevels/RaidMemberCount=RaidAvgLevel
+/*0x5ac0*/  BYTE        Locked;
+/*0x5ac1*/  BYTE        Padding0x5ac1[0x3];
+/*0x5ac4*/ 
 } EQRAID, *PEQRAID;
 
 // size 0x19C 3-23-2005
