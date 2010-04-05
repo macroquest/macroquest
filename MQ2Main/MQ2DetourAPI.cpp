@@ -252,36 +252,25 @@ VOID HookInlineChecks(BOOL Patch)
     int i;
     DWORD oldperm, tmp, NewData;
 
-    /* add these to eqgame.h */
+    int cmps[] = { __AC1 + 6 };
 
-//.text:00642B40                 cmp     dword_AC92B8, (offset loc_7CB3C7+3)
-
-    int cmps[] = { 0x642B40+6 };
-
-//.text:004D9FB5                 cmp     ecx, 0E4519D46h
-//.text:004EC668                 cmp     eax, 98D712E3h
-//.text:004F03F8                 cmp     eax, 3AF9D08Fh
-//.text:004FA778                 cmp     eax, 4D063845h
-//.text:004FDA2B                 cmp     eax, 7BFB6853h
-//.text:004F6CF4                 cmp     ecx, 0B8099588h
-
-    int cmps2[] = { 0x4D9FB5,
-                    0x4EC668,
-                    0x4F03F8,
-                    0x4FA778,
-                    0x4FDA2B,
-                    0x4F6CF4 };
+    int cmps2[] = { __AC2,
+                    __AC3,
+                    __AC4,
+                    __AC5,
+                    __AC6,
+                    __AC7 };
 
     int len2[] = { 6, 5, 5, 5, 5, 6 }; 
-    char NewData2[20];
-    static char OldData2[sizeof(cmps2)/sizeof(cmps2[0])][20];
 
+    char NewData2[20];
+
+    static char OldData2[sizeof(cmps2)/sizeof(cmps2[0])][20];
 
     if (Patch)
     {
-        // .text:005DE39D 81 3D 28 EF 97 00 0E C0 6D 00  cmp     dword_97EF28, 6DC00Eh
-        //  change only these bytes         ^^ ^^ ^^ ^^
         NewData = 0x7fffffff;
+
         for (i=0;i<sizeof(cmps)/sizeof(cmps[0]);i++) {
 #ifdef ISXEQ
             EzModify(cmps[i],&NewData,4);
@@ -293,10 +282,8 @@ VOID HookInlineChecks(BOOL Patch)
 #endif
         }
 
-        // .text:004E1AEF 81 F9 31 BD 3E CE              cmp     ecx, 0CE3EBD31h
-        // zap these into oblivion
-
         memset(NewData2, 0x90, 20);
+
         for (i=0;i<sizeof(cmps2)/sizeof(cmps2[0]);i++) {
 #ifdef ISXEQ
             EzModify(cmps2[i],NewData2,len2[i]);
@@ -308,12 +295,11 @@ VOID HookInlineChecks(BOOL Patch)
             VirtualProtectEx(GetCurrentProcess(), (LPVOID)cmps2[i], len2[i], oldperm, &tmp);
 #endif
         }
-
-        // __asm int 3;
     }
     else
     {
-        NewData = 0x7CB3CA;
+        NewData = __AC1_Data;
+
         for (i=0;i<sizeof(cmps)/sizeof(cmps[0]);i++) {
 #ifdef ISXEQ
             EzUnModify(cmps[i]);

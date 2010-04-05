@@ -7157,10 +7157,10 @@ bool MQ2TargetType::GETMEMBER()
             if(ISNUMBER())
             {
                 DWORD nBuff = GETNUMBER();
-                if (!nBuff || nBuff >= 0x55)
+                if (!nBuff || nBuff >= 0x5a)
                     return false;
                 j = 0;
-                for(i = 0; i < 0x55; i++)
+                for(i = 0; i < 0x5a; i++)
                 {
                     buffID = ((PCTARGETWND)pTargetWnd)->BuffSpellID[i];
                     if(buffID && nBuff == ++j)
@@ -7173,7 +7173,7 @@ bool MQ2TargetType::GETMEMBER()
             }
             else
             {
-                for(i = 0; i < 0x55; i++)
+                for(i = 0; i < 0x5a; i++)
                 {
                     buffID = ((PCTARGETWND)pTargetWnd)->BuffSpellID[i];
                     if(buffID && !stricmp(GETFIRST(), GetSpellNameByID(buffID)))
@@ -7188,7 +7188,7 @@ bool MQ2TargetType::GETMEMBER()
         else
         {
             // return first buff
-            for(i = 0; i < 0x55; i++)
+            for(i = 0; i < 0x5a; i++)
             {
                 buffID = ((PCTARGETWND)pTargetWnd)->BuffSpellID[i];
                 if(buffID)
@@ -7208,7 +7208,7 @@ bool MQ2TargetType::GETMEMBER()
         if(!(((PCTARGETWND)pTargetWnd)->Type > 0))
             return false;
         Dest.DWord = 0;
-        for(i = 0; i < 0x55; i++)
+        for(i = 0; i < 0x5a; i++)
             if(((PCTARGETWND)pTargetWnd)->BuffSpellID[i])
                 Dest.DWord++;
         Dest.Type = pIntType;
@@ -7221,10 +7221,10 @@ bool MQ2TargetType::GETMEMBER()
             if(ISNUMBER())
             {
                 DWORD nBuff = GETNUMBER();
-                if (!nBuff || nBuff >= 0x55)
+                if (!nBuff || nBuff >= 0x5a)
                     return false;
                 j = 0;
-                for(i = 0; i < 0x55; i++)
+                for(i = 0; i < 0x5a; i++)
                 {
                     buffID = ((PCTARGETWND)pTargetWnd)->BuffSpellID[i];
                     if(buffID && nBuff == ++j)
@@ -7237,7 +7237,7 @@ bool MQ2TargetType::GETMEMBER()
             }
             else
             {
-                for(i = 0; i < 0x55; i++)
+                for(i = 0; i < 0x5a; i++)
                 {
                     buffID = ((PCTARGETWND)pTargetWnd)->BuffSpellID[i];
                     if(buffID && !stricmp(GETFIRST(), GetSpellNameByID(buffID)))
@@ -7252,7 +7252,7 @@ bool MQ2TargetType::GETMEMBER()
         else
         {
             // return first buff
-            for(i = 0; i < 0x55; i++)
+            for(i = 0; i < 0x5a; i++)
             {
                 buffID = ((PCTARGETWND)pTargetWnd)->BuffSpellID[i];
                 if(buffID)
