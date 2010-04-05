@@ -6921,6 +6921,7 @@ bool MQ2FriendsType::GETMEMBER()
 bool MQ2TargetType::GETMEMBER()
 {
    int buffID = 0;
+   DWORD i,j;
 	if (!VarPtr.Ptr)
 		return false;
 	PMQ2TYPEMEMBER pMember=MQ2TargetType::FindMember(Member);
@@ -6942,10 +6943,10 @@ bool MQ2TargetType::GETMEMBER()
          if(ISNUMBER())
          {
             DWORD nBuff = GETNUMBER();
-            DWORD i = 0;
             if (!nBuff || nBuff >= 0x55)
                return false;
-            for(DWORD j = 0; j < 0x55; j++)
+            i = 0;
+            for(j = 0; j < 0x55; j++)
             {
                buffID = ((PCTARGETWND)pTargetWnd)->BuffSpellID[j];
                if(buffID != 0xffffffff && nBuff == ++i)
@@ -6958,7 +6959,7 @@ bool MQ2TargetType::GETMEMBER()
          }
          else
          {
-            for(DWORD i = 0; i < 0x55; i++)
+            for(i = 0; i < 0x55; i++)
             {
                buffID = ((PCTARGETWND)pTargetWnd)->BuffSpellID[i];
                if(buffID != 0xffffffff && !strcmp(Index, GetSpellNameByID(buffID)))
@@ -6973,7 +6974,7 @@ bool MQ2TargetType::GETMEMBER()
       else
       {
          // return first buff
-         for(DWORD i = 0; i < 0x55; i++)
+         for(i = 0; i < 0x55; i++)
          {
             buffID = ((PCTARGETWND)pTargetWnd)->BuffSpellID[i];
             if(buffID != 0xffffffff)
@@ -6993,7 +6994,7 @@ bool MQ2TargetType::GETMEMBER()
       if(!(((PCTARGETWND)pTargetWnd)->BuffInfo > 0))
          return false;
       Dest.DWord = 0;
-      for(DWORD i = 0; i < 0x55; i++)
+      for(i = 0; i < 0x55; i++)
          if(((PCTARGETWND)pTargetWnd)->BuffSpellID[i] != 0xffffffff)
             Dest.DWord++;
       Dest.Type = pIntType;

@@ -1,3 +1,6 @@
+10 October 2008 by dkaa
+- Fix for VC6 compile problems.
+
 09 October 2008 by ieatacid
 - Changed target TLO. It now uses the new TargetType which inherits the spawn type.  The TargetType contains the following members:
    Buff (access to spell type): returns the target's spell by index (${Target.Buff[n]}) or name (${Target.Buff[name]}).  If no index is given (${Target.Buff}) it returns the first spell name or "NULL" if the target has no buffs
