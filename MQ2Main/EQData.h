@@ -1281,7 +1281,7 @@ typedef struct _SPAWNINFO {
 /*0x0ea4*/ ARGBCOLOR ArmorColor[0x9];
 /*0x0ec8*/ BYTE     Unknown0xec8[0x4];
 /*0x0ecc*/ DWORD    Heritage;               //drakkin only face setting
-/*0x0ed0 */ DWORD    Tattoo;                //drakkin only face setting
+/*0x0ed0*/ DWORD    Tattoo;                //drakkin only face setting
 /*0x0ed4*/ DWORD    Details;                //drakkin only face setting
 /*0x0ed8*/ struct   _EQUIPMENT Equipment;
 /*0x0f44*/ BYTE     Unknown0xf44[0x38];
@@ -1784,46 +1784,45 @@ typedef struct _ALTADVMGR {
 /*0x00*/ struct _NEWALTADVMGR* AltAbilities;
 } ALTADVMGR, *PALTADVMGR;
 
-// size 0x120 (3-12-2009)
+// size 0x94 (3-19-2009)
 typedef struct _EQRAIDMEMBER { 
-/*0x00*/ CHAR Name[0x40]; 
-/*0x40*/ CHAR RaidNote[0x40]; 
-/*0x80*/ CHAR Level[0x08]; 
-/*0x88*/ CHAR Class[0x20]; 
-/*0xC8*/ BYTE Unknown0xC8[0x60]; 
-/*0x108*/ DWORD nClass; 
-/*0x10C*/ BYTE  RaidLeader; 
-/*0x10D*/ BYTE  GroupLeader; 
-/*0x10E*/ BYTE  RaidMainAssist;
-/*0x10F*/ BYTE  RaidMarker;
-/*0x110*/ BYTE  RaidWaypointer;
-/*0x111*/ BYTE  Padding0x111[0x3]; 
-/*0x114*/ DWORD GroupNumber; 
-/*0x118*/ BYTE  Unknown0x118[0x8];
-/*0x120*/ 
+/*0x000*/ CHAR      Name[0x40]; 
+/*0x040*/ CHAR      RaidNote[0x40]; 
+/*0x080*/ BYTE      nLevel;
+/*0x081*/ BYTE      nClass; 
+/*0x082*/ BYTE      RaidLeader; 
+/*0x083*/ BYTE      GroupLeader; 
+/*0x084*/ BYTE      RaidMainAssist;
+/*0x085*/ BYTE      RaidMarker;
+/*0x086*/ BYTE      RaidWaypointer;
+/*0x087*/ BYTE      Unknown0x87;
+/*0x088*/ DWORD     GroupNumber;
+/*0x08c*/ BYTE      Unknown0x8c[0x8];
+/*0x094*/ 
 } EQRAIDMEMBER, *PEQRAIDMEMBER;
 
-// sizeof(_EQRAID) is 0x5d04 (3-12-2009)
+// sizeof(_EQRAID) is 0x35a8 (3-19-2009)
 typedef struct _EQRAID {
-/*0x0000*/  BYTE        Unknown0x0[0x158];
-/*0x0158*/  CHAR        RaidMemberUsed[0x48];
-/*0x01a0*/  struct      _EQRAIDMEMBER RaidMember[0x48];
-/*0x52a0*/  BYTE        Unknown0x5100[0x4];
-/*0x52a4*/  DWORD       RaidMemberCount;
-/*0x52a8*/  CHAR        RaidLeaderName[0x140];
-/*0x53e8*/  CHAR        RaidMOTD[0x400];
-/*0x57e8*/  BYTE        Unknown0x57e8[0x40];
-/*0x5828*/  BYTE        Invited; // 1 = default?, 2 = invited, 4 = in raid
-/*0x5829*/  BYTE        Unknown0x5829[0x8];
-/*0x5831*/  BYTE        IsRaidLeader;
-/*0x5832*/  BYTE        Unknown0x5832[0x2];
-/*0x5834*/  DWORD       RaidTarget;
-/*0x5838*/  DWORD       LootType;
-/*0x583c*/  CHAR        RaidLooters[0x13][0x40];
-/*0x5cfc*/  DWORD       TotalRaidMemberLevels; // TotalRaidMemberLevels/RaidMemberCount=RaidAvgLevel
-/*0x5d00*/  BYTE        Locked;
-/*0x5d01*/  BYTE        Padding0x5d01[0x3];
-/*0x5d04*/
+/*0x0000*/ BYTE     Unknown0x0[0x158];
+/*0x0158*/ CHAR     RaidMemberUsed[0x48];
+/*0x01a0*/ struct   _EQRAIDMEMBER RaidMember[0x48];
+/*0x2b40*/ BYTE     Unknown0x2b40[0x4];
+/*0x2b44*/ DWORD    RaidMemberCount;
+/*0x2b48*/ CHAR     RaidLeaderName[0x40];
+/*0x2b88*/ BYTE     Unknown0x2b88[0x100];
+/*0x2c88*/ CHAR     RaidMOTD[0x400];
+/*0x3088*/ BYTE     Unknown0x3088[0x40];
+/*0x30c8*/ BYTE     Invited; // 1 = default?, 2 = invited, 4 = in raid
+/*0x30c9*/ BYTE     Unknown0x30c9[0x8];
+/*0x30d1*/ BYTE     IsRaidLeader;
+/*0x30d2*/ BYTE     Unknown0x0x30d2[0x2];
+/*0x30d4*/ DWORD    RaidTarget;
+/*0x30d8*/ DWORD    LootType;
+/*0x30dc*/ CHAR     RaidLooters[0x13][0x40];
+/*0x359c*/ DWORD    TotalRaidMemberLevels; // TotalRaidMemberLevels/RaidMemberCount=RaidAvgLevel
+/*0x35a0*/ BYTE     Locked;
+/*0x35a1*/ BYTE     Padding0x35a1[0x7];
+/*0x35a8*/
 } EQRAID, *PEQRAID;
 
 // size 0x19C 3-23-2005

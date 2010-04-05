@@ -6723,7 +6723,7 @@ bool MQ2RaidMemberType::GETMEMBER()
         }
         return false;
     case Level:
-        Dest.DWord=atoi(pRaidMember->Level);
+        Dest.DWord=pRaidMember->nLevel;
         Dest.Type=pIntType;
         return true;
     case Class:
