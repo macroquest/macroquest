@@ -380,7 +380,7 @@ enum MOUSE_DATA_TYPES {
    MD_Button1
 };
 
-#define nEQMappableCommands             0x121
+#define nEQMappableCommands             0x122
 
 #define MAX_PC_LEVEL                    85
 #define NUM_SPELL_GEMS                  10
@@ -852,7 +852,7 @@ typedef struct _CHARINFO {
 /*0x22c0*/   DWORD      DowntimeStamp;
 /*0x22c4*/   BYTE       Unknown0x22c4[0x4];
 /*0x22c8*/   struct     _GROUPINFO *pGroupInfo;
-/*0x22c8*/   BYTE       Unknown0x22c8[0x18];
+/*0x22cc*/   BYTE       Unknown0x22cc[0x18];
 /*0x22e4*/   void       *pUnknown2;
 /*0x22e8*/   struct     _CI2_INFO* pCI2;
 /*0x22ec*/   DWORD      Unknown0x22ec;
@@ -1925,9 +1925,9 @@ typedef struct _CHATSERVICE {
 typedef struct _EVERQUEST {
 /*0x000*/ BYTE   Unknown[0x2a4];
 /*0x2a4*/ struct _CHATSERVICE *ChatService;
-/*0x2a8*/ BYTE   Unknown0x2a8[0x31c];
-/*0x5c4*/ DWORD  GameState;
-/*0x5c8*/ // more data
+/*0x2a8*/ BYTE   Unknown0x2a8[0x324];
+/*0x5cc*/ DWORD  GameState;
+/*0x5d0*/ // more data
 } EVERQUEST, *PEVERQUEST;
 
 typedef struct _AURAINFO {
@@ -1955,9 +1955,14 @@ typedef struct _INTERACTSWITCH {
 /*0x00c*/ DWORD   spawnID;
 } INTERACTSWITCH, *PINTERACTSWITCH;
 
+typedef struct _MERCENARYINFO {
+/*0x000*/ BYTE Unknown0x0[0x3c];
+/*0x03c*/ DWORD HaveMerc;
+/*0x040*/ DWORD MercState; // 1 = suspended, 5 = active
+} MERCENARYINFO, *PMERCENARYINFO;
 
-#define EQ_BEGIN_ZONE                   0x6eff  // CEverQuest__SavePCForce+45F     03-19-2009
-#define EQ_END_ZONE                     0x6759  // CEverQuest__DoMainLoop+B01      03-19-2009
-#define EQ_LoadingS__ArraySize          0x45    // EQ_LoadingS__SetProgressBar+7C  03-19-2009
+#define EQ_BEGIN_ZONE                   0x6eff  // CEverQuest__SavePCForce+45F     04-07-2009
+#define EQ_END_ZONE                     0x6759  // CEverQuest__DoMainLoop+B01      04-07-2009
+#define EQ_LoadingS__ArraySize          0x45    // EQ_LoadingS__SetProgressBar+7C  04-07-2009
 };
 using namespace EQData;

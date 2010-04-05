@@ -894,6 +894,7 @@ DZMEMBER **ppDZMember=(DZMEMBER**)pinstDZMember;
 DZTIMERINFO **ppDZTimerInfo=(DZTIMERINFO**)pinstDZTimerInfo;
 TASKMEMBER **ppTaskMember=(TASKMEMBER**)pinstTaskMember; 
 DYNAMICZONE *pDynamicZone=(DYNAMICZONE*)instDynamicZone;
+MERCENARYINFO **ppMercInfo=(MERCENARYINFO**)pinstMercenaryData;
 
 PMQPLUGIN pPlugins=0;
 PMQXMLFILE pXMLFiles=0;

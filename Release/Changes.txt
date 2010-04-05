@@ -1,3 +1,9 @@
+29 March 2009 by ieatacid
+- Added Me.Mercenary which returns one of the following: SUSPEND, ACTIVE, NULL, UNKNOWN
+
+21 March 2009 by ieatacid
+- Me.CombatAbilityTimer and Me.CombatAbilityReady should now function correctly
+
 19 March 2009 by rswiders
 - Updated for today's patch
 

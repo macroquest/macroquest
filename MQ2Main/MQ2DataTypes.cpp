@@ -2373,7 +2373,7 @@ bool MQ2CharacterType::GETMEMBER()
                 if ( PSPELL pSpell = GetSpellByID(pPCData->GetCombatAbility(nCombatAbility)) )
                 { 
                     DWORD timeNow = (DWORD)time(NULL);
-                    if (pSpell->CARecastTimerID && pSpell->CARecastTimerID != -1 && pPCData->GetCombatAbilityTimer(pSpell->CARecastTimerID) > timeNow)
+                    if (pSpell->CARecastTimerID != -1 && pPCData->GetCombatAbilityTimer(pSpell->CARecastTimerID) > timeNow)
                     {
                         Dest.Int=pPCData->GetCombatAbilityTimer(pSpell->CARecastTimerID)-timeNow+6;
                         Dest.Int/=6;
@@ -2393,7 +2393,7 @@ bool MQ2CharacterType::GETMEMBER()
                         if (!stricmp(GETFIRST(),pSpell->Name)) 
                         { 
                             DWORD timeNow = (DWORD)time(NULL);
-                            if (pSpell->CARecastTimerID && pSpell->CARecastTimerID != -1 && pPCData->GetCombatAbilityTimer(pSpell->CARecastTimerID) > timeNow)
+                            if (pSpell->CARecastTimerID != -1 && pPCData->GetCombatAbilityTimer(pSpell->CARecastTimerID) > timeNow)
                             {
                                 Dest.Int=pPCData->GetCombatAbilityTimer(pSpell->CARecastTimerID)-timeNow+6;
                                 Dest.Int/=6;
@@ -2419,7 +2419,7 @@ bool MQ2CharacterType::GETMEMBER()
                 if ( PSPELL pSpell = GetSpellByID(pPCData->GetCombatAbility(nCombatAbility)) )
                 { 
                     DWORD timeNow = (DWORD)time(NULL);
-                    if (pSpell->CARecastTimerID && pSpell->CARecastTimerID != -1 && pPCData->GetCombatAbilityTimer(pSpell->CARecastTimerID) < timeNow)
+                    if (pSpell->CARecastTimerID != -1 && pPCData->GetCombatAbilityTimer(pSpell->CARecastTimerID) < timeNow)
                     {
                         Dest.DWord=1;
                         return true;
@@ -2436,7 +2436,7 @@ bool MQ2CharacterType::GETMEMBER()
                         if (!stricmp(GETFIRST(),pSpell->Name)) 
                         { 
                             DWORD timeNow = (DWORD)time(NULL);
-                            if (pSpell->CARecastTimerID && pSpell->CARecastTimerID != -1 && pPCData->GetCombatAbilityTimer(pSpell->CARecastTimerID) < timeNow)
+                            if (pSpell->CARecastTimerID != -1 && pPCData->GetCombatAbilityTimer(pSpell->CARecastTimerID) < timeNow)
                             {
                                 Dest.DWord=1;
                                 return true;
@@ -3303,6 +3303,20 @@ bool MQ2CharacterType::GETMEMBER()
                         Dest.DWord += GetCharInfo2()->Buff[k].DamageAbsorbRemaining;
         }
         Dest.Type=pIntType;
+        return true;
+    case Mercenary:
+        if(pMercInfo->HaveMerc)
+        {
+            if(pMercInfo->MercState == 1)
+                Dest.Ptr = "SUSPENDED";
+            else if(pMercInfo->MercState == 5)
+                Dest.Ptr = "ACTIVE";
+            else
+                Dest.Ptr = "UNKNOWN";
+        }
+        else
+            Dest.Ptr = "NULL";
+        Dest.Type = pStringType;
         return true;
     }
     return false;
@@ -6660,7 +6674,7 @@ bool MQ2RaidMemberType::GETMEMBER()
         return false;
     PEQRAIDMEMBER pRaidMember=&pRaid->RaidMember[nRaidMember];
     PMQ2TYPEMEMBER pMember=MQ2RaidMemberType::FindMember(Member);
-    if (!pMember)
+    if (!pMember && GetSpawnByName(pRaidMember->Name))
     {
 #ifndef ISXEQ
         return pSpawnType->GetMember(*(MQ2VARPTR*)GetSpawnByName(pRaidMember->Name),Member,Index,Dest);

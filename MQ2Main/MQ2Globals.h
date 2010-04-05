@@ -441,6 +441,9 @@ EQLIB_VAR AURAMGR **ppAuraMgr;
 EQLIB_VAR EQCHATMGR **ppEQChatMgr;
 #define pChatMgr (*ppEQChatMgr)
 
+EQLIB_VAR MERCENARYINFO **ppMercInfo;
+#define pMercInfo (*ppMercInfo)
+
 /* WINDOW INSTANCES */ 
 EQLIB_VAR CContextMenuManager **ppContextMenuManager;
 EQLIB_VAR CCursorAttachment **ppCursorAttachment;

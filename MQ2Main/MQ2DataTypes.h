@@ -897,6 +897,7 @@ public:
         Counters=174,
         Faycites=175,
         Chronobines=176,
+        Mercenary=177,
     };
     static enum CharacterMethods
     {
@@ -1080,6 +1081,7 @@ public:
         TypeMember(Counters);
         TypeMember(Faycites);
         TypeMember(Chronobines);
+        TypeMember(Mercenary);
 
         TypeMethod(Stand); 
         TypeMethod(Sit); 
