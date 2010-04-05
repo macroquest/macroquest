@@ -712,27 +712,28 @@ public:
         PMQ2TYPEMEMBER pMember=MQ2IrcType::FindMember(Member); 
         if (!pMember) 
             return false; 
-        switch((IrcMembers)pMember->ID) { 
-case Server: 
-    strcpy(DataTypeTemp, IrcServer); 
-    Dest.Ptr=DataTypeTemp; 
-    Dest.Type=pStringType; 
-    return true; 
-case Port: 
-    Dest.Int=atoi(IrcPort); 
-    Dest.Type=pIntType; 
-    return true; 
-case Channel: 
-    strcpy(DataTypeTemp, IrcChan); 
-    Dest.Ptr=DataTypeTemp; 
-    Dest.Type=pStringType; 
-    return true; 
-case Nick: 
-    strcpy(DataTypeTemp, IrcNick); 
-    Dest.Ptr=DataTypeTemp; 
-    Dest.Type=pStringType; 
-    return true; 
-        } 
+        switch((IrcMembers)pMember->ID)
+        {
+        case Server: 
+            strcpy(DataTypeTemp, IrcServer); 
+            Dest.Ptr=DataTypeTemp; 
+            Dest.Type=pStringType; 
+            return true; 
+        case Port: 
+            Dest.Int=atoi(IrcPort); 
+            Dest.Type=pIntType; 
+            return true; 
+        case Channel: 
+            strcpy(DataTypeTemp, IrcChan); 
+            Dest.Ptr=DataTypeTemp; 
+            Dest.Type=pStringType; 
+            return true; 
+        case Nick: 
+            strcpy(DataTypeTemp, IrcNick); 
+            Dest.Ptr=DataTypeTemp; 
+            Dest.Type=pStringType; 
+            return true; 
+        }
         return false; 
     } 
 

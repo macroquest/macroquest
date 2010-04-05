@@ -370,7 +370,7 @@ CAPTIONCOLOR CaptionColors[]=
 VOID SetNameSpriteTint(PSPAWNINFO pSpawn)
 {
     if (!gMQCaptions) return;
-    //    DebugSpew("SetNameSpriteTint(%s)",pSpawn->Name);
+    //DebugSpew("SetNameSpriteTint(%s)",pSpawn->Name);
     DWORD NewColor;
     switch(GetSpawnType(pSpawn))
     {
@@ -527,14 +527,14 @@ BOOL SetNameSpriteState(PSPAWNINFO pSpawn, bool Show)
         SetCaption(gszSpawnPetName);
         break;
     }
-    //        DebugSpew("Returning default from SetNameSpriteState");
+    //DebugSpew("Returning default from SetNameSpriteState");
     return ((EQPlayerHook*)pSpawn)->SetNameSpriteState_Trampoline(Show);
 #undef SetCaption
 }
 
 VOID UpdateSpawnCaptions()
 {
-    //    DebugSpew("UpdateSpawnCaptions()");
+    //DebugSpew("UpdateSpawnCaptions()");
     DWORD N;
     DWORD Count=0;
     for (N = 0 ; N < 120 ; N++)

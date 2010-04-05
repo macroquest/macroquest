@@ -376,7 +376,6 @@ EQLIB_VAR EQWorldData **ppWorldData;
 #define pWorldData (*ppWorldData)
 EQLIB_VAR SpellManager **ppSpellMgr;
 #define pSpellMgr (*ppSpellMgr)
-EQLIB_VAR EQGROUP *pGroup;
 EQLIB_VAR EQPlayer **ppTarget;
 #define pTarget (*ppTarget)
 EQLIB_VAR EqSwitchManager **ppSwitchMgr;

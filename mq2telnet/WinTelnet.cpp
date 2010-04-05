@@ -4,10 +4,10 @@
 CWinTelnet::CWinTelnet(void)
 {
     Valid=true;
-    //    if (WSAStartup(MAKEWORD(2,0),&wsa) || (HIBYTE(wsa.wVersion) != 0) || (LOBYTE(wsa.wVersion) != 2))
-    //    {
-    //        Valid=false;
-    //    }
+    //if (WSAStartup(MAKEWORD(2,0),&wsa) || (HIBYTE(wsa.wVersion) != 0) || (LOBYTE(wsa.wVersion) != 2))
+    //{
+    //    Valid=false;
+    //}
     m_Socket=INVALID_SOCKET;    // init socket to invalid
 }
 
@@ -20,7 +20,7 @@ CWinTelnet::~CWinTelnet(void)
         closesocket(m_Socket);
         m_Socket=INVALID_SOCKET;
     }
-    //    WSACleanup();
+    //WSACleanup();
 }
 
 bool CWinTelnet::Connect(char* addr , int port)

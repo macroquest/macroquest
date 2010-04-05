@@ -151,8 +151,8 @@ void InitializeMQ2Data()
     AddMQ2Data("SelectedItem",dataSelectedItem);
     AddMQ2Data("FindItemCount",dataFindItemCount);
     AddMQ2Data("FindItemBankCount",dataFindItemBankCount);
-    //    AddMQ2Data("GroupLeader",dataGroupLeader);    
-    //    AddMQ2Data("GroupLeaderName",dataGroupLeaderName);
+    //AddMQ2Data("GroupLeader",dataGroupLeader);    
+    //AddMQ2Data("GroupLeaderName",dataGroupLeaderName);
     AddMQ2Data("Skill",dataSkill);
     AddMQ2Data("AltAbility",dataAltAbility);
     AddMQ2Data("Raid",dataRaid);
@@ -196,7 +196,7 @@ BOOL ParseMQ2DataPortion(PCHAR szOriginal, MQ2TYPEVAR &Result)
                     MQ2DataError("Nothing to parse");
                     return FALSE;
                 }
-                //                Result.Type->ToString(Result.VarPtr,szCurrent);
+                //Result.Type->ToString(Result.VarPtr,szCurrent);
                 return TRUE;
             }
             else
@@ -243,7 +243,7 @@ BOOL ParseMQ2DataPortion(PCHAR szOriginal, MQ2TYPEVAR &Result)
                     }
                 }
             }
-            //            Result.Type->ToString(Result.VarPtr,szCurrent);
+            //Result.Type->ToString(Result.VarPtr,szCurrent);
 
             // done processing
             return TRUE;
@@ -258,7 +258,7 @@ BOOL ParseMQ2DataPortion(PCHAR szOriginal, MQ2TYPEVAR &Result)
                     MQ2DataError("Encountered typecast without object to cast");
                     return FALSE;
                 }
-                //                Result.Type->ToString(Result.VarPtr,szCurrent);
+                //Result.Type->ToString(Result.VarPtr,szCurrent);
                 return TRUE;
             }
             else
@@ -347,7 +347,7 @@ BOOL ParseMQ2DataPortion(PCHAR szOriginal, MQ2TYPEVAR &Result)
             }
             else if (!pPos[1])
             {
-                //                Result.Type->ToString(Result.VarPtr,szCurrent);
+                //Result.Type->ToString(Result.VarPtr,szCurrent);
                 return TRUE;
             }
             else
@@ -426,7 +426,7 @@ BOOL ParseMQ2DataPortion(PCHAR szOriginal, MQ2TYPEVAR &Result)
                             MQ2DataError("Encountered member access without object");
                             return FALSE;
                         }
-                        //                Result.Type->ToString(Result.VarPtr,szCurrent);
+                        //Result.Type->ToString(Result.VarPtr,szCurrent);
                         return TRUE;
                     }
                     else
@@ -490,9 +490,9 @@ BOOL ParseMacroData(PCHAR szOriginal)
         return false;
     unsigned long NewLength;
     BOOL Changed=false;
-    //    PCHAR pPos;
-    //    PCHAR pStart;
-    //    PCHAR pIndex;
+    //PCHAR pPos;
+    //PCHAR pStart;
+    //PCHAR pIndex;
     CHAR szCurrent[MAX_STRING]={0};
 
     do

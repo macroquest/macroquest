@@ -57,6 +57,7 @@ namespace MQ2Internal {
         CHAR szClass[MAX_STRING];
         CHAR szLight[MAX_STRING];
         DWORD GuildID;
+        BOOL bSpawnID;
         BOOL bNotNearAlert;
         BOOL bNearAlert;
         BOOL bNoAlert;

@@ -2995,13 +2995,14 @@ public:
 
 
         FLOAT VarValue = (FLOAT)atof(Source);
-        switch (Source[strlen(Source)-1]) {
-case 'm':
-case 'M':
-    VarValue *= 60;
-case 's':
-case 'S':
-    VarValue *= 10;
+        switch (Source[strlen(Source)-1])
+        {
+        case 'm':
+        case 'M':
+            VarValue *= 60;
+        case 's':
+        case 'S':
+            VarValue *= 10;
         }
         pTimer->Current = (DWORD)VarValue;
         pTimer->Original = pTimer->Current;

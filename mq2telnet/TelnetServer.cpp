@@ -348,7 +348,7 @@ void CTelnetServer::Shutdown()
     while(bThreading) Sleep(20);
 
     // the critical section wasnt holding for some reason..
-    //    EnterCriticalSection(&ProcessingCS); // wait until thread shuts down..
+    //EnterCriticalSection(&ProcessingCS); // wait until thread shuts down..
     EnterCriticalSection(&CommandCS);
 
     // close all connections
@@ -383,7 +383,7 @@ void CTelnetServer::Shutdown()
     }
     LeaveCriticalSection(&CommandCS);
 
-    //    DebugTry(LeaveCriticalSection(&ProcessingCS));
+    //DebugTry(LeaveCriticalSection(&ProcessingCS));
 }
 
 bool CTelnetServer::IsValidUser(char *user, char *pwdest)

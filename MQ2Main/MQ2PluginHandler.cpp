@@ -330,7 +330,7 @@ VOID PulsePlugins()
     {
         if (pPlugin->Pulse)
         {
-            //            DebugSpew("%s->Pulse()",pPlugin->szFilename);
+            //DebugSpew("%s->Pulse()",pPlugin->szFilename);
             pPlugin->Pulse();
         }
         pPlugin=pPlugin->pNext;
@@ -353,6 +353,9 @@ VOID PluginsZoned()
         }
         pPlugin=pPlugin->pNext;
     }
+    char szTemp[256];
+    sprintf(szTemp, "You have entered %s.", ((PZONEINFO)pZoneInfo)->LongName);
+    CheckChatForEvent(szTemp);
 }
 
 VOID PluginsCleanUI()

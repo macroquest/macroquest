@@ -183,8 +183,8 @@ static inline eSpawnType GetSpawnType(PSPAWNINFO pSpawn)
             if ((pSpawn->Class==8) && ((pSpawn->Race==553) || (pSpawn->Race==556)))
                 return BANNER;
             return NPC;
-            //case 3:
-            //    return NPC;
+        //case 3:
+        //    return NPC;
         case 5:
             if (strstr(pSpawn->Name,"Idol") || strstr(pSpawn->Name,"Poison") || strstr(pSpawn->Name,"Rune"))
                 return AURA;
@@ -195,20 +195,20 @@ static inline eSpawnType GetSpawnType(PSPAWNINFO pSpawn)
             if (strstr(pSpawn->Name,"Aura") || strstr(pSpawn->Name,"Circle_of") || strstr(pSpawn->Name,"Guardian_Circle") || strstr(pSpawn->Name,"Earthen_Strength"))
                 return AURA;
             return UNTARGETABLE;
-            //case 21:
-            //    return NPC; 
-            //case 23:
-            //    return NPC;
+        //case 21:
+        //    return NPC; 
+        //case 23:
+        //    return NPC;
         case 33:
             return CHEST;
-            //case 34:
-            //    return NPC;
-            //case 65:
-            //    return TRAP;
-            //case 66:
-            //    return TIMER;
-            //case 67:
-            //    return TRIGGER;
+        //case 34:
+        //    return NPC;
+        //case 65:
+        //    return TRAP;
+        //case 66:
+        //    return TIMER;
+        //case 67:
+        //    return TRIGGER;
         case 100:
             return UNTARGETABLE;
         case 101:

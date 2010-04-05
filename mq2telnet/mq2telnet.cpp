@@ -51,13 +51,13 @@ PLUGIN_API VOID OnPulse(VOID)
 PLUGIN_API DWORD OnWriteChatColor(PCHAR Line, DWORD Color, DWORD Filter)
 {
     CHAR Stripped[MAX_STRING];
-    //    if (gFilterMacro == FILTERMACRO_NONE) return 0;
+    //if (gFilterMacro == FILTERMACRO_NONE) return 0;
     if (server)
     {
         // ANSI not currently implemented
-        //        if (ANSI)
-        //            MQToANSI(Line,Stripped);
-        //        else
+        //if (ANSI)
+        //    MQToANSI(Line,Stripped);
+        //else
         StripMQChat(Line,Stripped);
         server->Broadcast(Stripped);
     }
@@ -71,9 +71,9 @@ PLUGIN_API DWORD OnIncomingChat(PCHAR Line, DWORD Color)
     if (server)
     {
         // ANSI not currently implemented
-        //        if (ANSI)
-        //            MQToANSI(Line,Stripped);
-        //        else
+        //if (ANSI)
+        //    MQToANSI(Line,Stripped);
+        //else
         StripMQChat(Line,Stripped);
         server->Broadcast(Stripped);
     }

@@ -10,6 +10,7 @@ EXPORTS
     inv
     pack
     help
+    exportallspells
     pchar
     pchar2
     pspawn

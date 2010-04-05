@@ -63,24 +63,25 @@ public:
 
     const char * GetRaceThreeLetterCode (int iRace)
     {
-        switch (iRace) {
-case 1: return ("HUM");
-case 2: return ("BAR");
-case 3: return ("ERU");
-case 4: return ("ELF");
-case 5: return ("HIE");
-case 6: return ("DEF");
-case 7: return ("HEF");
-case 8: return ("DWF");
-case 9: return ("TRL");
-case 10:return ("OGR");
-case 11:return ("HLF");
-case 12:return ("GNM");
-case 13:return ("IKS");
-case 14:return ("VAH");
-case 15:return ("FRG");
-case 16:return ("DRK");
-case 17:return ("SHD"); //shroud
+        switch (iRace)
+        {
+        case 1: return ("HUM");
+        case 2: return ("BAR");
+        case 3: return ("ERU");
+        case 4: return ("ELF");
+        case 5: return ("HIE");
+        case 6: return ("DEF");
+        case 7: return ("HEF");
+        case 8: return ("DWF");
+        case 9: return ("TRL");
+        case 10:return ("OGR");
+        case 11:return ("HLF");
+        case 12:return ("GNM");
+        case 13:return ("IKS");
+        case 14:return ("VAH");
+        case 15:return ("FRG");
+        case 16:return ("DRK");
+        case 17:return ("SHD"); //shroud
         }
 
         return ("UNKNOWN RACE");
@@ -358,27 +359,28 @@ case 17:return ("SHD"); //shroud
         } else {
             char * cColour = "FF0000", * cName = "Blub";
 
-            switch (eEffectType) {
-case Clicky:
-    cColour = "00FF00";
-    cName = "Clicky";
-    break;
-case Proc:
-    cColour = "FF00FF";
-    cName = "Proc";
-    break;
-case Worn:
-    cColour = "FFFF00";
-    cName = "Worn";
-    break;
-case Focus:
-    cColour = "9F9F00";
-    cName = "Focus";
-    break;
-case Scroll:
-    cColour = "9F9F9F";
-    cName = "Scroll";
-    break;
+            switch (eEffectType)
+            {
+            case Clicky:
+                cColour = "00FF00";
+                cName = "Clicky";
+                break;
+            case Proc:
+                cColour = "FF00FF";
+                cName = "Proc";
+                break;
+            case Worn:
+                cColour = "FFFF00";
+                cName = "Worn";
+                break;
+            case Focus:
+                cColour = "9F9F00";
+                cName = "Focus";
+                break;
+            case Scroll:
+                cColour = "9F9F9F";
+                cName = "Scroll";
+                break;
             }
 
             sprintf (out, "<BR><c \"#%s\">Spell Info for %s effect: %s<br>", cColour, cName, pSpell->Name);
@@ -431,16 +433,17 @@ case Scroll:
 
         if (pSpell->TargetType != 0x06 && pSpell->TargetType != 0x0e && pSpell->TargetType != 0x03 && pSpell->TargetType != 0x28 && pSpell->TargetType != 0x29 ) {
             if (pSpell->SpellType == 0) {   // Ziggy: Only show resist type for detrimental spells
-                switch(pSpell->Resist) {
-case 9: strcat(out, "Resist: Corruption" ); break;
-case 7: strcat(out, "Resist: Prismatic[Avg]" ); break; // Ziggy - Added Reminder which..
-case 6: strcat(out, "Resist: Chromatic[Low]" ); break; // ..is what type of resist
-case 5: strcat(out, "Resist: Disease" ); break;
-case 4: strcat(out, "Resist: Poison" ); break;
-case 3: strcat(out, "Resist: Cold/Ice" ); break;
-case 2: strcat(out, "Resist: Fire" ); break;
-case 1: strcat(out, "Resist: Magic" ); break;
-case 0: strcat(out, "Resist: Unresistable"); break;
+                switch(pSpell->Resist)
+                {
+                case 9: strcat(out, "Resist: Corruption" ); break;
+                case 7: strcat(out, "Resist: Prismatic[Avg]" ); break; // Ziggy - Added Reminder which..
+                case 6: strcat(out, "Resist: Chromatic[Low]" ); break; // ..is what type of resist
+                case 5: strcat(out, "Resist: Disease" ); break;
+                case 4: strcat(out, "Resist: Poison" ); break;
+                case 3: strcat(out, "Resist: Cold/Ice" ); break;
+                case 2: strcat(out, "Resist: Fire" ); break;
+                case 1: strcat(out, "Resist: Magic" ); break;
+                case 0: strcat(out, "Resist: Unresistable"); break;
                 }
 
                 if (pSpell->ResistAdj != 0 ) {
@@ -507,27 +510,28 @@ case 0: strcat(out, "Resist: Unresistable"); break;
         } else {
             char * cColour = "FF0000", * cName = "Blub";
 
-            switch (eEffectType) {
-case Clicky:
-    cColour = "00FF00";
-    cName = "Clicky";
-    break;
-case Proc:
-    cColour = "FF00FF";
-    cName = "Proc";
-    break;
-case Worn:
-    cColour = "FFFF00";
-    cName = "Worn";
-    break;
-case Focus:
-    cColour = "9F9F00";
-    cName = "Focus";
-    break;
-case Scroll:
-    cColour = "9F9F9F";
-    cName = "Scroll";
-    break;
+            switch (eEffectType)
+            {
+            case Clicky:
+                cColour = "00FF00";
+                cName = "Clicky";
+                break;
+            case Proc:
+                cColour = "FF00FF";
+                cName = "Proc";
+                break;
+            case Worn:
+                cColour = "FFFF00";
+                cName = "Worn";
+                break;
+            case Focus:
+                cColour = "9F9F00";
+                cName = "Focus";
+                break;
+            case Scroll:
+                cColour = "9F9F9F";
+                cName = "Scroll";
+                break;
             }
 
             sprintf (out, "<BR><c \"#%s\">Spell Info for %s effect: %s<br>", cColour, cName, pSpell->Name);
@@ -580,16 +584,17 @@ case Scroll:
 
         if (pSpell->TargetType != 0x06 && pSpell->TargetType != 0x0e && pSpell->TargetType != 0x03 && pSpell->TargetType != 0x28 && pSpell->TargetType != 0x29 ) {
             if (pSpell->SpellType == 0) {   // Ziggy: Only show resist type for detrimental spells
-                switch(pSpell->Resist) {
-case 9: strcat(out, "Resist: Corruption" ); break;
-case 7: strcat(out, "Resist: Prismatic[Avg]" ); break; // Ziggy - Added Reminder which..
-case 6: strcat(out, "Resist: Chromatic[Low]" ); break; // ..is what type of resist
-case 5: strcat(out, "Resist: Disease" ); break;
-case 4: strcat(out, "Resist: Poison" ); break;
-case 3: strcat(out, "Resist: Cold/Ice" ); break;
-case 2: strcat(out, "Resist: Fire" ); break;
-case 1: strcat(out, "Resist: Magic" ); break;
-case 0: strcat(out, "Resist: Unresistable"); break;
+                switch(pSpell->Resist)
+                {
+                case 9: strcat(out, "Resist: Corruption" ); break;
+                case 7: strcat(out, "Resist: Prismatic[Avg]" ); break; // Ziggy - Added Reminder which..
+                case 6: strcat(out, "Resist: Chromatic[Low]" ); break; // ..is what type of resist
+                case 5: strcat(out, "Resist: Disease" ); break;
+                case 4: strcat(out, "Resist: Poison" ); break;
+                case 3: strcat(out, "Resist: Cold/Ice" ); break;
+                case 2: strcat(out, "Resist: Fire" ); break;
+                case 1: strcat(out, "Resist: Magic" ); break;
+                case 0: strcat(out, "Resist: Unresistable"); break;
                 }
 
                 if (pSpell->ResistAdj != 0 ) {

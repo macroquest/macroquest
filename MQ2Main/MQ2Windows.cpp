@@ -1096,7 +1096,7 @@ int ItemNotify(int argc, char *argv[])
 {
     if (argc!=3 && argc != 5)
     {
-        //      WriteChatf("ItemNotify got %d args", argc);
+        //WriteChatf("ItemNotify got %d args", argc);
         WriteChatColor("Syntax: /itemnotify <slot|#> <notification>");
         WriteChatColor("     or /itemnotify in <bag slot> <slot # in bag> <notification>");
         RETURN(0);
@@ -1210,7 +1210,7 @@ int ListItemSlots(int argc, char *argv[])
     PEQINVSLOTMGR pMgr=(PEQINVSLOTMGR)pInvSlotMgr;
     if (!pMgr)
         RETURN(0);
-    //    CHAR szOut[MAX_STRING]={0};
+    //CHAR szOut[MAX_STRING]={0};
     unsigned long Count=0;
     WriteChatColor("List of available item slots");
     WriteChatColor("-------------------------");

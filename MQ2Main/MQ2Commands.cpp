@@ -1163,7 +1163,7 @@ VOID Identify(PSPAWNINFO pChar, PCHAR szLine)
         }
         sprintf(szMsg,"Container: %d Slot %s, %d%% Reduction, Combine=%s",pCharInfo->Cursor->Item->Slots,szSize[pCharInfo->Cursor->Item->SizeCapacity],pCharInfo->Cursor->Item->WeightReduction,szCombine);
     } else if (pCharInfo->Cursor->Item->Type == ITEMTYPE_BOOK) {
-        //        sprintf(szMsg,"Book file: %s", pCharInfo->Cursor->Item->Book.File);
+        //sprintf(szMsg,"Book file: %s", pCharInfo->Cursor->Item->Book.File);
     } else {
         strcpy(szMsg,"Item: ");
         if (pCharInfo->Cursor->Item->AC) {
@@ -1414,7 +1414,7 @@ VOID SuperWhoTarget(PSPAWNINFO pChar, PCHAR szLine)
     gFilterSWho.Distance=TRUE;
     SuperWhoDisplay(psTarget,USERCOLOR_WHO);
     gFilterSWho.Distance=Temp;
-    //    SuperWhoDisplay(pChar,NULL,psTarget,0,TRUE);
+    //SuperWhoDisplay(pChar,NULL,psTarget,0,TRUE);
 }
 
 // ***************************************************************************
@@ -1446,10 +1446,10 @@ VOID SuperWho(PSPAWNINFO pChar, PCHAR szLine)
         cmdWho(pChar, szLine);
         return;
     }
-    //    if (szLine[0])
-    //    {
-    //        SearchSpawn.bTargInvis=true;
-    //    }
+    //if (szLine[0])
+    //{
+    //    SearchSpawn.bTargInvis=true;
+    //}
 
     while (Parsing) {
         GetArg(szArg,szRest,1);

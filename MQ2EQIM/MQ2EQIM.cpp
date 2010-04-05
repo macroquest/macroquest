@@ -245,7 +245,7 @@ PLUGIN_API VOID ShutdownPlugin(VOID)
 
 PLUGIN_API VOID SetGameState(DWORD GameState)
 {
-    //    DebugSpewAlways("MQ2EQIM::SetGameState()");
+    //DebugSpewAlways("MQ2EQIM::SetGameState()");
     if (GameState==GAMESTATE_INGAME)
     {
         if (!Detoured)

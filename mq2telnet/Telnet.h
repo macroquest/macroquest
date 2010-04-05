@@ -292,10 +292,10 @@ public:
                     TCPos=0;
                     continue;
                 }
-                //                if (TCPos>=TELNET_MAXCOMMANDSIZE)
-                //                {
-                //                    // ... problem.
-                //                }
+                //if (TCPos>=TELNET_MAXCOMMANDSIZE)
+                //{
+                //    // ... problem.
+                //}
                 continue;
             }
             // not inside telnet command, check for IAC

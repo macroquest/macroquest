@@ -403,13 +403,13 @@ VOID AppendCXStr(PCXSTR *cxstr, PCHAR text)
     CXStr *Str=(CXStr*)cxstr;
     (*Str)+=text;
     cxstr=(PCXSTR*)Str;
-    //    cxstr+=text;
+    //cxstr+=text;
 } 
 
 // YES THIS NEEDS TO BE PCXSTR * 
 VOID SetCXStr(PCXSTR *cxstr, PCHAR text) 
 { 
-    //    cxstr=text;
+    //cxstr=text;
     CXStr *Str=(CXStr*)cxstr;
     (*Str)=text;
     cxstr=(PCXSTR*)Str;
@@ -457,7 +457,7 @@ DWORD GetCXStr(PCXSTR pCXStr, PCHAR szBuffer, DWORD maxlen)
 
 VOID StripMQChat(PCHAR in, PCHAR out)
 {
-    //    DebugSpew("StripMQChat(%s)",in);
+    //DebugSpew("StripMQChat(%s)",in);
     int i = 0;
     int o = 0;
     while(in[i])
@@ -482,12 +482,12 @@ VOID StripMQChat(PCHAR in, PCHAR out)
         i++;
     }
     out[o]=0;
-    //    DebugSpew("StripMQChat=>(%s)",out);
+    //DebugSpew("StripMQChat=>(%s)",out);
 }
 
 DWORD MQToSTML(PCHAR in, PCHAR out, DWORD maxlen, DWORD ColorOverride)
 {
-    //    DebugSpew("MQToSTML(%s)",in);
+    //DebugSpew("MQToSTML(%s)",in);
     // 1234567890123
     // <c "#123456">
     if (maxlen>14)
@@ -2039,9 +2039,9 @@ PCHAR ShowSpellSlotInfo(PSPELL pSpell, PCHAR szBuffer)
             break; 
         case 136: //limit target types this affects 
             strcat(szBuff, "Limit: Target("); 
-            //       sprintf(buf, "$spell(%d,targettype)", pSpell->TargetType); 
-            //       parmSpell(buf, szTemp, NULL );       // <---- wtf. 
-            //       strcat(szBuff,szTemp); 
+            //sprintf(buf, "$spell(%d,targettype)", pSpell->TargetType); 
+            //parmSpell(buf, szTemp, NULL );       // <---- wtf. 
+            //strcat(szBuff,szTemp); 
 
             switch(abs(pSpell->Base[i])) 
             { 
@@ -2647,6 +2647,10 @@ PCHAR ShowSpellSlotInfo(PSPELL pSpell, PCHAR szBuffer)
             strcat(szBuff, "Corruption Resist by "); 
             SlotValueCalculate(szBuff, pSpell, i , 1); 
             break; 
+        case 374:
+            sprintf(szTemp, "Skeleton illusion");
+            strcat(szBuff,szTemp);
+            break;
         default: //undefined effect 
             sprintf(szTemp, "UnknownEffect%03d", pSpell->Attrib[i]); 
             strcat(szBuff,szTemp); 
@@ -2993,7 +2997,7 @@ int FindInvSlotForContents(PCONTENTS pContents)
     {
         if (pInvMgr->SlotArray[N] && pInvMgr->SlotArray[N]->ppContents)
         {
-            //            DebugSpew("pInvSlotMgr->SlotArray[%d]->pContents==0x%08X",N,*pInvMgr->SlotArray[N]->ppContents);
+            //DebugSpew("pInvSlotMgr->SlotArray[%d]->pContents==0x%08X",N,*pInvMgr->SlotArray[N]->ppContents);
             if (*pInvMgr->SlotArray[N]->ppContents==pContents)
             {
                 if (pInvMgr->SlotArray[N]->pInvSlotWnd && pInvMgr->SlotArray[N]->pInvSlotWnd->InvSlot>=0)
@@ -3653,7 +3657,7 @@ BOOL EvaluateRPN(_CalcOp *pList, int Size, DOUBLE &Result)
             }
             else
             {
-                //                printf("Divide by zero error\n");
+                //printf("Divide by zero error\n");
                 FatalError("Divide by zero in calculation");
                 free(pStack);
                 return false;
@@ -3671,7 +3675,7 @@ BOOL EvaluateRPN(_CalcOp *pList, int Size, DOUBLE &Result)
                 }
                 else
                 {
-                    //                    printf("Integer divide by zero error\n");
+                    //printf("Integer divide by zero error\n");
                     FatalError("Divide by zero in calculation");
                     free(pStack);
                     return false;
@@ -3690,7 +3694,7 @@ BOOL EvaluateRPN(_CalcOp *pList, int Size, DOUBLE &Result)
                 }
                 else
                 {
-                    //                    printf("Modulus by zero error\n");
+                    //printf("Modulus by zero error\n");
                     FatalError("Modulus by zero in calculation");
                     free(pStack);
                     return false;
@@ -3914,7 +3918,7 @@ BOOL FastCalculate(PCHAR szFormula, DOUBLE &Result)
             }
             else
             {
-                //                printf("Unparsable: '%c'\n",*pCur);
+                //printf("Unparsable: '%c'\n",*pCur);
                 // error
                 free(pOpList);
                 free(pStack);
@@ -3968,7 +3972,7 @@ BOOL FastCalculate(PCHAR szFormula, DOUBLE &Result)
             break;
         default:
             {
-                //                printf("Unparsable: '%c'\n",*pCur);
+                //printf("Unparsable: '%c'\n",*pCur);
                 FatalError("Unparsable in Calculation: '%c'",*pCur);
                 // unparsable
                 free(pOpList);
@@ -4488,7 +4492,7 @@ BOOL SpawnMatchesSearch(PSEARCHSPAWN pSearchSpawn, PSPAWNINFO pChar, PSPAWNINFO 
         return FALSE;
     if (pSearchSpawn->NotID == pSpawn->SpawnID)
         return FALSE;
-    if (pSearchSpawn->SpawnID && pSearchSpawn->SpawnID != pSpawn->SpawnID)
+    if (pSearchSpawn->bSpawnID && pSearchSpawn->SpawnID != pSpawn->SpawnID)
         return FALSE;
     if (pSearchSpawn->GuildID!=0xFFFF && pSearchSpawn->GuildID!=pSpawn->GuildID)
         return FALSE;
@@ -4668,6 +4672,7 @@ PCHAR ParseSearchSpawnArgs(PCHAR szArg, PCHAR szRest, PSEARCHSPAWN pSearchSpawn)
             szRest = GetNextArg(szRest,2);
         } else if (!stricmp(szArg,"id")) {
             GetArg(szArg,szRest,1);
+            pSearchSpawn->bSpawnID = TRUE;
             pSearchSpawn->SpawnID = atoi(szArg);
             szRest = GetNextArg(szRest,1);
         } else if (!stricmp(szArg,"radius")) {
@@ -5091,7 +5096,7 @@ VOID SuperWhoDisplay(PSPAWNINFO pSpawn, DWORD Color)
     }
     strcat(szMsg," ");
     strcat(szMsg,szName);
-    //        strcat(szMsg,"\ax");
+    //strcat(szMsg,"\ax");
 
     if (pSpawn->Type == SPAWN_PLAYER) {
         if (gFilterSWho.Anon && pSpawn->Anon>0) {
@@ -5203,8 +5208,8 @@ static int pWHOSORTCompare(const void *A, const void *B)
         if (SpawnA->Level<SpawnB->Level)
             return -1;
         break;
-        //    case 1://name   done at the bottom ;)
-        //        break;
+    //case 1://name   done at the bottom ;)
+    //    break;
     case 2://race
         {
             int RaceCompare=stricmp(pEverQuest->GetRaceDesc(SpawnA->Race),pEverQuest->GetRaceDesc(SpawnB->Race));
@@ -5594,7 +5599,7 @@ DWORD GetGameState(VOID)
 {
     if (!ppEverQuest || !pEverQuest) 
     {
-        //        DebugSpew("Could not retrieve gamestate in GetGameState()");
+        //DebugSpew("Could not retrieve gamestate in GetGameState()");
         return -1;
     }
     return ((PEVERQUEST)pEverQuest)->GameState;
@@ -5617,7 +5622,7 @@ bool BuffStackTest(PSPELL aSpell, PSPELL bSpell){
         //Placeholder, exclude it so slots don't match up. Now Check to see if the slots
         //have equal attribute values. If the do, they don't stack.
         //WriteChatf("\nSlot %d: bSpell->Attrib=%d, bSpell->Base=%d, bSpell->TargetType=%d, aSpell->Attrib=%d, aSpell->Base=%d, aSpell->TargetType=%d", i, bSpell->Attrib[i], bSpell->Base[i], bSpell->TargetType, aSpell->Attrib[i], aSpell->Base[i], aSpell->TargetType);
-        if (bSpell->Attrib[i]==aSpell->Attrib[i] && !(bSpell->Attrib[i]==254 || aSpell->Attrib[i]==254) && !(bSpell->Attrib[i]==57 && aSpell->Attrib[i]==57))
+        if (bSpell->Attrib[i]==aSpell->Attrib[i] && !(bSpell->Attrib[i]==254 || aSpell->Attrib[i]==254) && !(bSpell->Attrib[i]==57 && aSpell->Attrib[i]==57)&& !(bSpell->Attrib[i]==311 && aSpell->Attrib[i]==311))
             if (!((bSpell->Attrib[i]==10 && (bSpell->Base[i]==-6 || bSpell->Base[i]==0)) ||
                 (aSpell->Attrib[i]==10 && (aSpell->Base[i]==-6 || aSpell->Base[i]==0)) ||
                 (bSpell->Attrib[i]==79 && bSpell->Base[i]>0 && bSpell->TargetType==6) ||

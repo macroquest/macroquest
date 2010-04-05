@@ -85,7 +85,7 @@ PLUGIN_API VOID ShutdownPlugin(VOID)
 {
     DebugSpewAlways("Shutting down MQ2CustomBinds");
     RemoveCommand("/custombind");
-    //    SaveCustomBinds();
+    //SaveCustomBinds();
 
     for (unsigned long N = 0 ; N < CustomBinds.Size ; N++)
         if (PCUSTOMBIND pBind=CustomBinds[N])

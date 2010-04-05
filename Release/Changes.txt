@@ -1,3 +1,9 @@
+11 January 2008 by ieatacid, rswiders
+- Events will once again trigger on "You have entered <zone name>."
+- Completed formatting corrections for using spaces vs. tabs
+- Corrected bug with spawnsearch.  Spawn[id 0] WILL NO LONGER return the same values as ${Me}.  You have been warned.
+- Corrected spell stacking bug with some new spells (.Stacks/.WillStack)
+
 29 December 2008 by dkaa
 - added params to the /exec command (thanks three-p-o)
 

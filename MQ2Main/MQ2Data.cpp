@@ -1312,7 +1312,7 @@ TLO(dataLineOfSight)
             P1[0]=(FLOAT)atof(szIndex);
 
 
-        //        DebugSpew("GetDistance3D(%1.0f,%1.0f,%1.0f,%1.0f,%1.0f,%1.0f)",P1[0],P1[1],P1[2],P2[0],P2[1],P2[2]);
+        //DebugSpew("GetDistance3D(%1.0f,%1.0f,%1.0f,%1.0f,%1.0f,%1.0f)",P1[0],P1[1],P1[2],P2[0],P2[1],P2[2]);
         SPAWNINFO Temp=*GetCharInfo()->pSpawn;
         Temp.Y=P2[0];
         Temp.X=P2[1];
