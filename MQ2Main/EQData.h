@@ -1957,8 +1957,8 @@ typedef struct _INTERACTSWITCH {
 } INTERACTSWITCH, *PINTERACTSWITCH;
 
 
-#define EQ_BEGIN_ZONE                   0x6eff  // CEverQuest__SavePCForce+45F     02-11-2009
-#define EQ_END_ZONE                     0x6759  // CEverQuest__DoMainLoop+B01      02-11-2009
-#define EQ_LoadingS__ArraySize          0x45    // EQ_LoadingS__SetProgressBar+7C  02-11-2009
+#define EQ_BEGIN_ZONE                   0x6eff  // CEverQuest__SavePCForce+45F     03-19-2009
+#define EQ_END_ZONE                     0x6759  // CEverQuest__DoMainLoop+B01      03-19-2009
+#define EQ_LoadingS__ArraySize          0x45    // EQ_LoadingS__SetProgressBar+7C  03-19-2009
 };
 using namespace EQData;
