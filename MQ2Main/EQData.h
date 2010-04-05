@@ -1740,12 +1740,12 @@ typedef struct _INTERACTGROUNDITEM {
 } INTERACTGROUNDITEM, *PINTERACTGROUNDITEM;
 
 typedef struct _SPELLFAVORITE {
-/*0x000*/   DWORD   SpellId[NUM_SPELL_GEMS];
-/*0x028*/   CHAR    Name[25];
-/*0x041*/   BYTE    inuse;
-/*0x042*/   BYTE    Byte_42;
-/*0x043*/   BYTE    Byte_43;
-/*0x044*/
+/*0x000*/   DWORD   SpellId[NUM_SPELL_GEMS + 2];  // update NUM_SPELL_GEMS to 12 when we actually get 12
+/*0x030*/   CHAR    Name[0x19];
+/*0x049*/   BYTE    inuse;
+/*0x04a*/   BYTE    Byte_0x4a;
+/*0x04b*/   BYTE    Byte_0x4b;
+/*0x04c*/
 } SPELLFAVORITE, *PSPELLFAVORITE;
 
 typedef struct _CMDLIST {

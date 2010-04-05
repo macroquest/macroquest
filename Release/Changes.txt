@@ -1,3 +1,7 @@
+3 July 2009 by ieatacid
+- Fixed /loadspells and other functions that rely on the _SPELLFAVORITE struct
+- Updated MQ2ItemDisplay -- it now shows our extra item info when the modified/unmodified button is pressed (thanks pms for the idea)
+
 29 June 2009 by ieatacid
 - gGameState now gets set correctly when camping to desktop or server-select screen
 

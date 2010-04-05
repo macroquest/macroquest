@@ -124,17 +124,324 @@ public:
 
         return dmgbonus;
     }
-    VOID SetItem_Trampoline(class EQ_Item *pitem,bool unknown);
-    VOID SetItem_Detour(class EQ_Item *pitem,bool unknown)
+
+    VOID SetSpell_Trampoline(int SpellID,bool HasSpellDescr);
+    VOID SetSpell_Detour(int SpellID,bool HasSpellDescr)
+    {
+        PEQSPELLINFOWINDOW This=(PEQSPELLINFOWINDOW)this;
+        PCHARINFO pCharInfo = NULL;
+        if (NULL == (pCharInfo = GetCharInfo())) return;
+        PSPELL pSpell = GetSpellByID(SpellID);
+        if (pSpell == NULL) {
+            return;
+        }
+        CHAR out[MAX_STRING] = {0};
+        CHAR temp[MAX_STRING] = {0};
+        if (!bNoSpellTramp) {
+            SetSpell_Trampoline(SpellID,HasSpellDescr);
+            strcpy(out,"<BR><c \"#00FFFF\">");
+        } else {
+            char * cColour = "FF0000", * cName = "Blub";
+
+            switch (eEffectType)
+            {
+            case Clicky:
+                cColour = "00FF00";
+                cName = "Clicky";
+                break;
+            case Proc:
+                cColour = "FF00FF";
+                cName = "Proc";
+                break;
+            case Worn:
+                cColour = "FFFF00";
+                cName = "Worn";
+                break;
+            case Focus:
+                cColour = "9F9F00";
+                cName = "Focus";
+                break;
+            case Scroll:
+                cColour = "9F9F9F";
+                cName = "Scroll";
+                break;
+            }
+
+            sprintf (out, "<BR><c \"#%s\">Spell Info for %s effect: %s<br>", cColour, cName, pSpell->Name);
+        }
+
+        sprintf(temp, "ID: %04d&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;", pSpell->ID );
+        strcat(out,temp);
+
+        DWORD Tics=GetSpellDuration(pSpell,pCharInfo->pSpawn);
+        if (Tics==0xFFFFFFFF)
+            strcat(out, "Duration: Permanent<br>" );
+        else if (Tics==0xFFFFFFFE) 
+            strcat(out, "Duration: Unknown<br>" );
+        else if (Tics==0) {
+            // It's "instant", who cares?
+            strcat(out,"<br>");
+        }
+        else {
+            sprintf(temp, "Duration: %1.1f minutes<br>",(float)((Tics*6.0f)/60.0f));
+            strcat(out, temp);
+        }
+
+        sprintf(temp, "RecoveryTime: %1.2f&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;RecastTime: %1.2f <br>", (float)(pSpell->FizzleTime/1000.0f), (float)(pSpell->RecastTime/1000.0f) );
+        strcat(out,temp);
+
+        if (pSpell->Range > 0.0f ) {
+            sprintf(temp, "Range: %1.0f", pSpell->Range );
+            strcat(out,temp);
+            if ( pSpell->PushBack == 0.0f && pSpell->AERange == 0.0f)
+                strcat(out, "<br>");
+        }
+
+        if (pSpell->PushBack != 0.0f ) {
+            if (pSpell->Range > 0.0f ) 
+                strcat(out, "&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;" );
+            sprintf(temp, "PushBack: %1.1f", pSpell->PushBack );
+            strcat(out, temp);
+            if (pSpell->AERange == 0.0f || pSpell->Range > 0.0f )
+                strcat(out, "<br>" );
+        }
+
+        if (pSpell->AERange > 0.0f ) {
+            if (pSpell->Range > 0.0f)
+                strcat(out, "&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;" );
+            else if (pSpell->PushBack > 0.0f )
+                strcat(out, "&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;" );
+            sprintf(temp, "AERange: %1.0f<br>", pSpell->AERange );
+            strcat(out, temp);
+        }
+
+        if (pSpell->TargetType != 0x06 && pSpell->TargetType != 0x0e && pSpell->TargetType != 0x03 && pSpell->TargetType != 0x28 && pSpell->TargetType != 0x29 ) {
+            if (pSpell->SpellType == 0) {   // Ziggy: Only show resist type for detrimental spells
+                switch(pSpell->Resist)
+                {
+                case 9: strcat(out, "Resist: Corruption" ); break;
+                case 7: strcat(out, "Resist: Prismatic[Avg]" ); break; // Ziggy - Added Reminder which..
+                case 6: strcat(out, "Resist: Chromatic[Low]" ); break; // ..is what type of resist
+                case 5: strcat(out, "Resist: Disease" ); break;
+                case 4: strcat(out, "Resist: Poison" ); break;
+                case 3: strcat(out, "Resist: Cold/Ice" ); break;
+                case 2: strcat(out, "Resist: Fire" ); break;
+                case 1: strcat(out, "Resist: Magic" ); break;
+                case 0: strcat(out, "Resist: Unresistable"); break;
+                }
+
+                if (pSpell->ResistAdj != 0 ) {
+                    sprintf(temp, "&nbsp;&nbsp;&nbsp;(Resist Adj.: %d)<br>", pSpell->ResistAdj );
+                    strcat(out,temp);
+                } else {
+                    strcat(out,"<br>");
+                }
+            } 
+        }
+
+        strcat(out, "<br>" );
+        ShowSpellSlotInfo(pSpell,&out[strlen(out)]);
+
+        //show usable classes routine by Koad//
+        bool bUseableClasses = false; 
+        strcat(out, "<br>" ); 
+        for (int j=0; j<16; j++) {  // Ziggy - output will word wrap properly now
+            if (pSpell->Level[j]>0 && pSpell->Level[j]<=70) {
+                if (bUseableClasses) strcat (out, ", ");
+
+                sprintf(temp,"%s(%d)", GetClassDesc(j+1), pSpell->Level[j]);
+                strcat(out, temp);
+                bUseableClasses = true;
+            }
+        } 
+        if (bUseableClasses) strcat(out, "<br><br>" ); 
+
+        if (pSpell->CastOnYou[0]) { 
+            sprintf(temp, "Cast on you: %s<br>", pSpell->CastOnYou); 
+            strcat(out,temp); 
+        } 
+
+        if (pSpell->CastOnAnother[0]) { 
+            sprintf(temp, "Cast on another: %s<br>", pSpell->CastOnAnother); 
+            strcat(out,temp); 
+        } 
+
+        if (pSpell->WearOff[0]) { 
+            sprintf(temp, "Wears off: %s<br>", pSpell->WearOff); 
+            strcat(out,temp); 
+        } 
+
+        if (out[0]!=17) {
+            strcat(out,"</c>");
+            AppendCXStr(&This->ItemInfo,&out[0]);  
+        }
+    }
+
+    VOID ItemSetSpell_Detour(int SpellID,bool HasSpellDescr)
     {
         PEQITEMWINDOW This=(PEQITEMWINDOW)this;
-        PCONTENTS item=(PCONTENTS)pitem;
-        volatile PITEMINFO Item=(PITEMINFO)item->Item;
+        PCHARINFO pCharInfo = NULL;
+        if (NULL == (pCharInfo = GetCharInfo())) return;
+        PSPELL pSpell = GetSpellByID(SpellID);
+        if (pSpell == NULL) {
+            return;
+        }
+
+        CHAR out[MAX_STRING] = {0};
+        CHAR temp[MAX_STRING] = {0};
+        if (!bNoSpellTramp) {
+            SetSpell_Trampoline(SpellID,HasSpellDescr);
+            strcpy(out,"<BR><c \"#00FFFF\">");
+        } else {
+            char * cColour = "FF0000", * cName = "Blub";
+
+            switch (eEffectType)
+            {
+            case Clicky:
+                cColour = "00FF00";
+                cName = "Clicky";
+                break;
+            case Proc:
+                cColour = "FF00FF";
+                cName = "Proc";
+                break;
+            case Worn:
+                cColour = "FFFF00";
+                cName = "Worn";
+                break;
+            case Focus:
+                cColour = "9F9F00";
+                cName = "Focus";
+                break;
+            case Scroll:
+                cColour = "9F9F9F";
+                cName = "Scroll";
+                break;
+            }
+
+            sprintf (out, "<BR><c \"#%s\">Spell Info for %s effect: %s<br>", cColour, cName, pSpell->Name);
+        }
+
+        sprintf(temp, "ID: %04d&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;", pSpell->ID );
+        strcat(out,temp);
+
+        DWORD Tics=GetSpellDuration(pSpell,pCharInfo->pSpawn);
+        if (Tics==0xFFFFFFFF)
+            strcat(out, "Duration: Permanent<br>" );
+        else if (Tics==0xFFFFFFFE) 
+            strcat(out, "Duration: Unknown<br>" );
+        else if (Tics==0) {
+            // It's "instant", who cares?
+            strcat(out,"<br>");
+        }
+        else {
+            sprintf(temp, "Duration: %1.1f minutes<br>",(float)((Tics*6.0f)/60.0f));
+            strcat(out, temp);
+        }
+
+        sprintf(temp, "RecoveryTime: %1.2f&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;RecastTime: %1.2f <br>", (float)(pSpell->FizzleTime/1000.0f), (float)(pSpell->RecastTime/1000.0f) );
+        strcat(out,temp);
+
+        if (pSpell->Range > 0.0f ) {
+            sprintf(temp, "Range: %1.0f", pSpell->Range );
+            strcat(out,temp);
+            if ( pSpell->PushBack == 0.0f && pSpell->AERange == 0.0f)
+                strcat(out, "<br>");
+        }
+
+        if (pSpell->PushBack != 0.0f ) {
+            if (pSpell->Range > 0.0f ) 
+                strcat(out, "&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;" );
+            sprintf(temp, "PushBack: %1.1f", pSpell->PushBack );
+            strcat(out, temp);
+            if (pSpell->AERange == 0.0f || pSpell->Range > 0.0f )
+                strcat(out, "<br>" );
+        }
+
+        if (pSpell->AERange > 0.0f ) {
+            if (pSpell->Range > 0.0f)
+                strcat(out, "&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;" );
+            else if (pSpell->PushBack > 0.0f )
+                strcat(out, "&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;" );
+            sprintf(temp, "AERange: %1.0f<br>", pSpell->AERange );
+            strcat(out, temp);
+        }
+
+        if (pSpell->TargetType != 0x06 && pSpell->TargetType != 0x0e && pSpell->TargetType != 0x03 && pSpell->TargetType != 0x28 && pSpell->TargetType != 0x29 ) {
+            if (pSpell->SpellType == 0) {   // Ziggy: Only show resist type for detrimental spells
+                switch(pSpell->Resist)
+                {
+                case 9: strcat(out, "Resist: Corruption" ); break;
+                case 7: strcat(out, "Resist: Prismatic[Avg]" ); break; // Ziggy - Added Reminder which..
+                case 6: strcat(out, "Resist: Chromatic[Low]" ); break; // ..is what type of resist
+                case 5: strcat(out, "Resist: Disease" ); break;
+                case 4: strcat(out, "Resist: Poison" ); break;
+                case 3: strcat(out, "Resist: Cold/Ice" ); break;
+                case 2: strcat(out, "Resist: Fire" ); break;
+                case 1: strcat(out, "Resist: Magic" ); break;
+                case 0: strcat(out, "Resist: Unresistable"); break;
+                }
+
+                if (pSpell->ResistAdj != 0 ) {
+                    sprintf(temp, "&nbsp;&nbsp;&nbsp;(Resist Adj.: %d)<br>", pSpell->ResistAdj );
+                    strcat(out,temp);
+                } else {
+                    strcat(out,"<br>");
+                }
+            } 
+        }
+
+        strcat(out, "<br>" );
+        ShowSpellSlotInfo(pSpell,&out[strlen(out)]);
+
+        //show usable classes routine by Koad//
+        bool bUseableClasses = false; 
+        strcat(out, "<br>" ); 
+        for (int j=0; j<16; j++) {  // Ziggy - output will word wrap properly now
+            if (pSpell->Level[j]>0 && pSpell->Level[j]<=70) {
+                if (bUseableClasses) strcat (out, ", ");
+
+                sprintf(temp,"%s(%d)", GetClassDesc(j+1), pSpell->Level[j]);
+                strcat(out, temp);
+                bUseableClasses = true;
+            }
+        } 
+        if (bUseableClasses) strcat(out, "<br><br>" ); 
+
+        if (pSpell->CastOnYou[0]) { 
+            sprintf(temp, "Cast on you: %s<br>", pSpell->CastOnYou); 
+            strcat(out,temp); 
+        } 
+
+        if (pSpell->CastOnAnother[0]) { 
+            sprintf(temp, "Cast on another: %s<br>", pSpell->CastOnAnother); 
+            strcat(out,temp); 
+        } 
+
+        if (pSpell->WearOff[0]) { 
+            sprintf(temp, "Wears off: %s<br>", pSpell->WearOff); 
+            strcat(out,temp); 
+        } 
+
+        if (out[0]!=17) {
+            strcat(out,"</c>");
+            //((CXStr)This->ItemInfo)+=
+            AppendCXStr(&This->ItemInfo,&out[0]);   
+        }
+    }
+
+    VOID UpdateStrings_Trampoline();
+    VOID UpdateStrings_Detour()
+    {
+        PEQITEMWINDOW This=(PEQITEMWINDOW)this;
+        PCONTENTS item=(PCONTENTS)This->pItem;
+        volatile PITEMINFO Item=item->Item;
         CHAR out[MAX_STRING] = {0};
         CHAR temp[MAX_STRING] = {0};
         CHAR temp2[MAX_STRING] = {0};
         PCHAR lore = NULL;
-        SetItem_Trampoline(pitem,unknown);
+
+        UpdateStrings_Trampoline();
 
         // keep a global copy of the last item displayed...
         memcpy(&g_Item, Item, sizeof(ITEMINFO));
@@ -144,7 +451,7 @@ public:
             sprintf(temp,"Item ID: %d<br>", Item->ItemNumber); 
             strcat(out, temp); 
         }
-        if ( pitem->IsStackable() ) {
+        if ( ((EQ_Item*)item)->IsStackable() ) {
             if ( Item->StackSize > 0 ) {
                 sprintf(temp,"Stackable Count: %d<br>", Item->StackSize);
                 strcat(out, temp);
@@ -308,7 +615,8 @@ public:
 
         if (out[0]!=17) {
             strcat(out,"</c>");
-            AppendCXStr(&This->ItemInfo,&out[0]);
+            CXSize Whatever;
+            ((CStmlWnd*)This->DisplayWnd)->AppendSTML(&Whatever, &out[0]);
         }
 
         // Ziggy - Items showing their spell details:
@@ -339,310 +647,6 @@ public:
         }
         bNoSpellTramp=false;
         eEffectType = None;
-    }
-
-    VOID SetSpell_Trampoline(int SpellID,bool HasSpellDescr);
-    VOID SetSpell_Detour(int SpellID,bool HasSpellDescr)
-    {
-        PEQSPELLINFOWINDOW This=(PEQSPELLINFOWINDOW)this;
-        PCHARINFO pCharInfo = NULL;
-        if (NULL == (pCharInfo = GetCharInfo())) return;
-        PSPELL pSpell = GetSpellByID(SpellID);
-        if (pSpell == NULL) {
-            return;
-        }
-        CHAR out[MAX_STRING] = {0};
-        CHAR temp[MAX_STRING] = {0};
-        if (!bNoSpellTramp) {
-            SetSpell_Trampoline(SpellID,HasSpellDescr);
-            strcpy(out,"<BR><c \"#00FFFF\">");
-        } else {
-            char * cColour = "FF0000", * cName = "Blub";
-
-            switch (eEffectType)
-            {
-            case Clicky:
-                cColour = "00FF00";
-                cName = "Clicky";
-                break;
-            case Proc:
-                cColour = "FF00FF";
-                cName = "Proc";
-                break;
-            case Worn:
-                cColour = "FFFF00";
-                cName = "Worn";
-                break;
-            case Focus:
-                cColour = "9F9F00";
-                cName = "Focus";
-                break;
-            case Scroll:
-                cColour = "9F9F9F";
-                cName = "Scroll";
-                break;
-            }
-
-            sprintf (out, "<BR><c \"#%s\">Spell Info for %s effect: %s<br>", cColour, cName, pSpell->Name);
-        }
-
-        sprintf(temp, "ID: %04d&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;", pSpell->ID );
-        strcat(out,temp);
-
-        DWORD Tics=GetSpellDuration(pSpell,pCharInfo->pSpawn);
-        if (Tics==0xFFFFFFFF)
-            strcat(out, "Duration: Permanent<br>" );
-        else if (Tics==0xFFFFFFFE) 
-            strcat(out, "Duration: Unknown<br>" );
-        else if (Tics==0) {
-            // It's "instant", who cares?
-            strcat(out,"<br>");
-        }
-        else {
-            sprintf(temp, "Duration: %1.1f minutes<br>",(float)((Tics*6.0f)/60.0f));
-            strcat(out, temp);
-        }
-
-        sprintf(temp, "RecoveryTime: %1.2f&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;RecastTime: %1.2f <br>", (float)(pSpell->FizzleTime/1000.0f), (float)(pSpell->RecastTime/1000.0f) );
-        strcat(out,temp);
-
-        if (pSpell->Range > 0.0f ) {
-            sprintf(temp, "Range: %1.0f", pSpell->Range );
-            strcat(out,temp);
-            if ( pSpell->PushBack == 0.0f && pSpell->AERange == 0.0f)
-                strcat(out, "<br>");
-        }
-
-        if (pSpell->PushBack != 0.0f ) {
-            if (pSpell->Range > 0.0f ) 
-                strcat(out, "&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;" );
-            sprintf(temp, "PushBack: %1.1f", pSpell->PushBack );
-            strcat(out, temp);
-            if (pSpell->AERange == 0.0f || pSpell->Range > 0.0f )
-                strcat(out, "<br>" );
-        }
-
-        if (pSpell->AERange > 0.0f ) {
-            if (pSpell->Range > 0.0f)
-                strcat(out, "&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;" );
-            else if (pSpell->PushBack > 0.0f )
-                strcat(out, "&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;" );
-            sprintf(temp, "AERange: %1.0f<br>", pSpell->AERange );
-            strcat(out, temp);
-        }
-
-        if (pSpell->TargetType != 0x06 && pSpell->TargetType != 0x0e && pSpell->TargetType != 0x03 && pSpell->TargetType != 0x28 && pSpell->TargetType != 0x29 ) {
-            if (pSpell->SpellType == 0) {   // Ziggy: Only show resist type for detrimental spells
-                switch(pSpell->Resist)
-                {
-                case 9: strcat(out, "Resist: Corruption" ); break;
-                case 7: strcat(out, "Resist: Prismatic[Avg]" ); break; // Ziggy - Added Reminder which..
-                case 6: strcat(out, "Resist: Chromatic[Low]" ); break; // ..is what type of resist
-                case 5: strcat(out, "Resist: Disease" ); break;
-                case 4: strcat(out, "Resist: Poison" ); break;
-                case 3: strcat(out, "Resist: Cold/Ice" ); break;
-                case 2: strcat(out, "Resist: Fire" ); break;
-                case 1: strcat(out, "Resist: Magic" ); break;
-                case 0: strcat(out, "Resist: Unresistable"); break;
-                }
-
-                if (pSpell->ResistAdj != 0 ) {
-                    sprintf(temp, "&nbsp;&nbsp;&nbsp;(Resist Adj.: %d)<br>", pSpell->ResistAdj );
-                    strcat(out,temp);
-                } else {
-                    strcat(out,"<br>");
-                }
-            } 
-        }
-
-        strcat(out, "<br>" );
-        ShowSpellSlotInfo(pSpell,&out[strlen(out)]);
-
-        //show usable classes routine by Koad//
-        bool bUseableClasses = false; 
-        strcat(out, "<br>" ); 
-        for (int j=0; j<16; j++) {  // Ziggy - output will word wrap properly now
-            if (pSpell->Level[j]>0 && pSpell->Level[j]<=70) {
-                if (bUseableClasses) strcat (out, ", ");
-
-                sprintf(temp,"%s(%d)", GetClassDesc(j+1), pSpell->Level[j]);
-                strcat(out, temp);
-                bUseableClasses = true;
-            }
-        } 
-        if (bUseableClasses) strcat(out, "<br><br>" ); 
-
-        if (pSpell->CastOnYou[0]) { 
-            sprintf(temp, "Cast on you: %s<br>", pSpell->CastOnYou); 
-            strcat(out,temp); 
-        } 
-
-        if (pSpell->CastOnAnother[0]) { 
-            sprintf(temp, "Cast on another: %s<br>", pSpell->CastOnAnother); 
-            strcat(out,temp); 
-        } 
-
-        if (pSpell->WearOff[0]) { 
-            sprintf(temp, "Wears off: %s<br>", pSpell->WearOff); 
-            strcat(out,temp); 
-        } 
-
-        if (out[0]!=17) {
-            strcat(out,"</c>");
-            AppendCXStr(&This->ItemInfo,&out[0]);  
-        }
-    }
-    VOID ItemSetSpell_Detour(int SpellID,bool HasSpellDescr)
-    {
-        PEQITEMWINDOW This=(PEQITEMWINDOW)this;
-        PCHARINFO pCharInfo = NULL;
-        if (NULL == (pCharInfo = GetCharInfo())) return;
-        PSPELL pSpell = GetSpellByID(SpellID);
-        if (pSpell == NULL) {
-            return;
-        }
-
-        CHAR out[MAX_STRING] = {0};
-        CHAR temp[MAX_STRING] = {0};
-        if (!bNoSpellTramp) {
-            SetSpell_Trampoline(SpellID,HasSpellDescr);
-            strcpy(out,"<BR><c \"#00FFFF\">");
-        } else {
-            char * cColour = "FF0000", * cName = "Blub";
-
-            switch (eEffectType)
-            {
-            case Clicky:
-                cColour = "00FF00";
-                cName = "Clicky";
-                break;
-            case Proc:
-                cColour = "FF00FF";
-                cName = "Proc";
-                break;
-            case Worn:
-                cColour = "FFFF00";
-                cName = "Worn";
-                break;
-            case Focus:
-                cColour = "9F9F00";
-                cName = "Focus";
-                break;
-            case Scroll:
-                cColour = "9F9F9F";
-                cName = "Scroll";
-                break;
-            }
-
-            sprintf (out, "<BR><c \"#%s\">Spell Info for %s effect: %s<br>", cColour, cName, pSpell->Name);
-        }
-
-        sprintf(temp, "ID: %04d&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;", pSpell->ID );
-        strcat(out,temp);
-
-        DWORD Tics=GetSpellDuration(pSpell,pCharInfo->pSpawn);
-        if (Tics==0xFFFFFFFF)
-            strcat(out, "Duration: Permanent<br>" );
-        else if (Tics==0xFFFFFFFE) 
-            strcat(out, "Duration: Unknown<br>" );
-        else if (Tics==0) {
-            // It's "instant", who cares?
-            strcat(out,"<br>");
-        }
-        else {
-            sprintf(temp, "Duration: %1.1f minutes<br>",(float)((Tics*6.0f)/60.0f));
-            strcat(out, temp);
-        }
-
-        sprintf(temp, "RecoveryTime: %1.2f&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;RecastTime: %1.2f <br>", (float)(pSpell->FizzleTime/1000.0f), (float)(pSpell->RecastTime/1000.0f) );
-        strcat(out,temp);
-
-        if (pSpell->Range > 0.0f ) {
-            sprintf(temp, "Range: %1.0f", pSpell->Range );
-            strcat(out,temp);
-            if ( pSpell->PushBack == 0.0f && pSpell->AERange == 0.0f)
-                strcat(out, "<br>");
-        }
-
-        if (pSpell->PushBack != 0.0f ) {
-            if (pSpell->Range > 0.0f ) 
-                strcat(out, "&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;" );
-            sprintf(temp, "PushBack: %1.1f", pSpell->PushBack );
-            strcat(out, temp);
-            if (pSpell->AERange == 0.0f || pSpell->Range > 0.0f )
-                strcat(out, "<br>" );
-        }
-
-        if (pSpell->AERange > 0.0f ) {
-            if (pSpell->Range > 0.0f)
-                strcat(out, "&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;" );
-            else if (pSpell->PushBack > 0.0f )
-                strcat(out, "&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;" );
-            sprintf(temp, "AERange: %1.0f<br>", pSpell->AERange );
-            strcat(out, temp);
-        }
-
-        if (pSpell->TargetType != 0x06 && pSpell->TargetType != 0x0e && pSpell->TargetType != 0x03 && pSpell->TargetType != 0x28 && pSpell->TargetType != 0x29 ) {
-            if (pSpell->SpellType == 0) {   // Ziggy: Only show resist type for detrimental spells
-                switch(pSpell->Resist)
-                {
-                case 9: strcat(out, "Resist: Corruption" ); break;
-                case 7: strcat(out, "Resist: Prismatic[Avg]" ); break; // Ziggy - Added Reminder which..
-                case 6: strcat(out, "Resist: Chromatic[Low]" ); break; // ..is what type of resist
-                case 5: strcat(out, "Resist: Disease" ); break;
-                case 4: strcat(out, "Resist: Poison" ); break;
-                case 3: strcat(out, "Resist: Cold/Ice" ); break;
-                case 2: strcat(out, "Resist: Fire" ); break;
-                case 1: strcat(out, "Resist: Magic" ); break;
-                case 0: strcat(out, "Resist: Unresistable"); break;
-                }
-
-                if (pSpell->ResistAdj != 0 ) {
-                    sprintf(temp, "&nbsp;&nbsp;&nbsp;(Resist Adj.: %d)<br>", pSpell->ResistAdj );
-                    strcat(out,temp);
-                } else {
-                    strcat(out,"<br>");
-                }
-            } 
-        }
-
-        strcat(out, "<br>" );
-        ShowSpellSlotInfo(pSpell,&out[strlen(out)]);
-
-        //show usable classes routine by Koad//
-        bool bUseableClasses = false; 
-        strcat(out, "<br>" ); 
-        for (int j=0; j<16; j++) {  // Ziggy - output will word wrap properly now
-            if (pSpell->Level[j]>0 && pSpell->Level[j]<=70) {
-                if (bUseableClasses) strcat (out, ", ");
-
-                sprintf(temp,"%s(%d)", GetClassDesc(j+1), pSpell->Level[j]);
-                strcat(out, temp);
-                bUseableClasses = true;
-            }
-        } 
-        if (bUseableClasses) strcat(out, "<br><br>" ); 
-
-        if (pSpell->CastOnYou[0]) { 
-            sprintf(temp, "Cast on you: %s<br>", pSpell->CastOnYou); 
-            strcat(out,temp); 
-        } 
-
-        if (pSpell->CastOnAnother[0]) { 
-            sprintf(temp, "Cast on another: %s<br>", pSpell->CastOnAnother); 
-            strcat(out,temp); 
-        } 
-
-        if (pSpell->WearOff[0]) { 
-            sprintf(temp, "Wears off: %s<br>", pSpell->WearOff); 
-            strcat(out,temp); 
-        } 
-
-        if (out[0]!=17) {
-            strcat(out,"</c>");
-            //((CXStr)This->ItemInfo)+=
-            AppendCXStr(&This->ItemInfo,&out[0]);   
-        }
     }
 };
 
@@ -729,10 +733,10 @@ public:
 ItemDisplayHook::SEffectType ItemDisplayHook::eEffectType = None;
 bool ItemDisplayHook::bNoSpellTramp = false;
 
-DETOUR_TRAMPOLINE_EMPTY(VOID ItemDisplayHook::SetItem_Trampoline(class EQ_Item *,bool)); 
-DETOUR_TRAMPOLINE_EMPTY(VOID ItemDisplayHook::SetSpell_Trampoline(int SpellID,bool HasSpellDescr));;
-DETOUR_TRAMPOLINE_EMPTY(VOID XWndHook::DrawTooltipAtPoint_Trampoline(const CXStr &, CXStr *));;
-DETOUR_TRAMPOLINE_EMPTY(VOID InvSlotWndHook::DrawTooltip_Trampoline(CXWnd *)); 
+DETOUR_TRAMPOLINE_EMPTY(VOID ItemDisplayHook::SetSpell_Trampoline(int SpellID,bool HasSpellDescr));
+DETOUR_TRAMPOLINE_EMPTY(VOID ItemDisplayHook::UpdateStrings_Trampoline());
+DETOUR_TRAMPOLINE_EMPTY(VOID XWndHook::DrawTooltipAtPoint_Trampoline(const CXStr &, CXStr *));
+DETOUR_TRAMPOLINE_EMPTY(VOID InvSlotWndHook::DrawTooltip_Trampoline(CXWnd *));
 
 #ifndef ISXEQ
 void Comment(PSPAWNINFO pChar, PCHAR szLine) 
@@ -794,8 +798,8 @@ PLUGIN_API VOID InitializePlugin(VOID)
 
     // Add commands, macro parameters, hooks, etc.
 
-    EzDetour(CItemDisplayWnd__SetItem,&ItemDisplayHook::SetItem_Detour,&ItemDisplayHook::SetItem_Trampoline);
     EzDetour(CItemDisplayWnd__SetSpell,&ItemDisplayHook::SetSpell_Detour,&ItemDisplayHook::SetSpell_Trampoline);
+    EzDetour(CItemDisplayWnd__UpdateStrings, &ItemDisplayHook::UpdateStrings_Detour, &ItemDisplayHook::UpdateStrings_Trampoline);
     EzDetour(CXWnd__DrawTooltipAtPoint,&XWndHook::DrawTooltipAtPoint_Detour,&XWndHook::DrawTooltipAtPoint_Trampoline);
     EzDetour(CInvSlotWnd__DrawTooltip, &InvSlotWndHook::DrawTooltip_Detour, &InvSlotWndHook::DrawTooltip_Trampoline);
 
@@ -810,8 +814,8 @@ PLUGIN_API VOID ShutdownPlugin(VOID)
     DebugSpewAlways("Shutting down MQ2ItemDisplay");
 
     // Remove commands, macro parameters, hooks, etc.
-    RemoveDetour(CItemDisplayWnd__SetItem);
     RemoveDetour(CItemDisplayWnd__SetSpell);
+    RemoveDetour(CItemDisplayWnd__UpdateStrings);
     RemoveDetour(CXWnd__DrawTooltipAtPoint);
     RemoveDetour(CInvSlotWnd__DrawTooltip);
 

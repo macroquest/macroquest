@@ -401,8 +401,8 @@
 #define CInvSlotWnd__DrawTooltip                                   0x5DCA10
 
 // CItemDisplayWnd 
-#define CItemDisplayWnd__SetItem                                   0x5EA7D0
 #define CItemDisplayWnd__SetSpell                                  0x6478F0
+#define CItemDisplayWnd__UpdateStrings                             0x5DD710
 
 // CLabel 
 #define CLabel__Draw                                               0x5F00C0
