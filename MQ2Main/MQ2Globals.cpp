@@ -672,7 +672,7 @@ BOOL bLaxColor=TRUE;
 #else
 BOOL bLaxColor=FALSE;
 #endif
-BOOL bAllErrorsLog=TRUE;
+BOOL bAllErrorsLog=FALSE;
 BOOL gbHUDUnderUI=1;
 BOOL gbAlwaysDrawMQHUD=0;
 BOOL gbMQ2LoadingMsg=TRUE;

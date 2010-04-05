@@ -683,9 +683,9 @@ typedef struct _EQPETINFOWINDOW {
 /*0x000*/ struct _CSIDLWND Wnd;
 /*0x198*/ DWORD Unknown0x198[0xba];
 /*0x480*/ int   Buff[85]; // Spell ID# of each buff -- 85 total
-/*0x5d4*/ BYTE  Unknown0x5d4[0x600-0x5d4];
-/*0x600*/ DWORD BuffFadeETA[85]; // duration until buff fades, in thousands of a second
-/*0x754*/ BYTE  Unknown0x754[8];
+/*0x5d4*/ BYTE  Unknown0x5d4[0x604-0x5d4];
+/*0x604*/ DWORD BuffFadeETA[85]; // duration until buff fades, in thousands of a second
+/*0x758*/ BYTE  Unknown0x758[4];
 /*0x75c*/
 } EQPETINFOWINDOW, *PEQPETINFOWINDOW;
 
