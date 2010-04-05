@@ -1,3 +1,6 @@
+09 September 2008 by rswiders, dkaa
+- Fix for v6 compiles
+
 09 September 2008 by ieatacid, rswiders, dkaa
 - Updated for today's patch
 

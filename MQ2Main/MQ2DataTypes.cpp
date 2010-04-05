@@ -2187,18 +2187,20 @@ bool MQ2CharacterType::GETMEMBER()
 		Dest.Type=pBoolType;
 		return true;	
 	case GroupList: // This isn't really working as intended just yet
-		if(!pChar->pGroupInfo) return false;
-      for(unsigned long i = 0; i < 5; i++)
-      {
-         if(pChar->pGroupInfo->pMember[i])
-         {
-            char tmp[MAX_STRING];
-            GetCXStr(pChar->pGroupInfo->pMember[i]->pName, tmp, sizeof(tmp));
-            strcat(buf, tmp);
-         }
-         if(pChar->pGroupInfo->pMember[i+1])
-            strcat(buf, " ");
-      }
+		{
+			if(!pChar->pGroupInfo) return false;
+			for(int i=0; i<5; i++)
+			{
+				if(pChar->pGroupInfo->pMember[i])
+				{
+					char tmp[MAX_STRING];
+					GetCXStr(pChar->pGroupInfo->pMember[i]->pName, tmp, sizeof(tmp));
+					strcat(buf, tmp);
+				}
+				if(pChar->pGroupInfo->pMember[i+1])
+					strcat(buf, " ");
+			}
+		}
 		Dest.Ptr=&buf[0];
 		Dest.Type=pStringType;
 		return true;
@@ -3010,11 +3012,13 @@ bool MQ2CharacterType::GETMEMBER()
       Dest.Type=pBoolType; 
       return true;
 	case GroupSize:
-      if(!pChar->pGroupInfo) return false;
 		Dest.DWord= 0;
-      for(unsigned long i = 0; i < 5; i++)
-         if (pChar->pGroupInfo->pMember[i]) Dest.DWord++;
-		if (Dest.DWord) Dest.DWord++;
+		{
+			if(!pChar->pGroupInfo) return false;
+			for(int i=0; i<5; i++)
+				if (pChar->pGroupInfo->pMember[i]) Dest.DWord++;
+			if (Dest.DWord) Dest.DWord++;
+		}
 		Dest.Type=pIntType;
 		return true;	
 	case TributeTimer:
@@ -6180,7 +6184,7 @@ bool MQ2GroupType::GETMEMBER()
         break;
 	case Members:
 		{
-         PCHARINFO pChar=GetCharInfo();
+			PCHARINFO pChar=GetCharInfo();
 			Dest.DWord=0;
 			for (int index=0;index<5;index++) 
             if (pChar->pGroupInfo->pMember[index])
@@ -6233,7 +6237,7 @@ bool MQ2GroupMemberType::ToString(MQ2VARPTR VarPtr, PCHAR Destination)
 		if (N>5)
 			return false;
        PCHARINFO pChar=GetCharInfo();
-		for (unsigned long i=0; i<5 ; i++)
+		for (int i=0; i<5 ; i++)
 		{
          if (pChar->pGroupInfo->pMember[i])
 			{
@@ -6266,7 +6270,7 @@ bool MQ2GroupMemberType::GETMEMBER()
 	{
 		if (N>5)
 			return false;
-		for (unsigned long i=0; i<5 ; i++)
+		for (int i=0; i<5 ; i++)
 		{
          if (pChar->pGroupInfo->pMember[i])
 			{
