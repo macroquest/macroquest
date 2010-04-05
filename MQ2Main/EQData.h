@@ -1690,17 +1690,40 @@ typedef struct _GUILDMEMBER {
 /*0x274*/
 } GUILDMEMBER, *PGUILDMEMBER;
 
-#define MAX_GUILDS                      0x5DC
+typedef struct _GUILDDATA
+{
+/*0x00*/ char   Name[0x40];
+/*0x04*/ DWORD  ID;
+/*0x08*/
+} GUILDDATA, *PGUILDDATA;
+
+typedef struct _GUILD
+{
+/*0x00*/ struct _GUILDDATA *pGuildData;
+/*0x04*/ DWORD  ID;
+/*0x08*/ _GUILD *pNext;
+/*0x0c*/ BYTE   Unknown0xc[0xc];
+/*0x18*/
+} GUILD, *PGUILD;
+
 typedef struct _GUILDS {
-/*0x0000*/ PVOID       pOneEntryVTable;
-/*0x0004*/ BYTE        UnknownByte0x0005;
-/*0x0005*/ BYTE        Unknown0x0005[0x3f];
-/*0x0044*/ DWORD       UnknownValue0x0044;
-/*0x0048*/ struct      _GUILDMEMBER *pMember;
-/*0x004c*/ CHAR        GuildName[MAX_GUILDS][0x40];
-/*0x804c*/ BYTE        UnknownByteArray0x804c[0x200];
-/*0x824c*/ BYTE        UnknownByteArray0x824c[0x40];
-/*0x828c*/
+/*0x0000*/ PVOID    pOneEntryVTable;
+/*0x0004*/ BYTE     Unknown0x4[0x40];
+/*0x0044*/ DWORD    GuildMemberCount;
+/*0x0048*/ struct   _GUILDMEMBER *pMember;
+/*0x004c*/ CHAR     GuildMotD[0x200];
+/*0x024c*/ CHAR     GuildLeader[0x40];
+/*0x028c*/ BYTE     Unknown0x288[0x4];
+/*0x0290*/ struct _GUILD **GuildList;
+/*0x0294*/ DWORD    HashValue;
+/*0x0298*/ DWORD    NumberOfGuilds;
+/*0x029c*/ BYTE     Unknown0x29c[0x10];
+/*0x02ac*/ DWORD    GuildTribute;
+/*0x02b0*/ BYTE     Unknown0x2b0[0x17];
+/*0x02c7*/ CHAR     GuildUrl[0x200];
+/*0x04c7*/ CHAR     GuildChannelName[0x80];
+/*0x0547*/ BYTE     Unknown0x547[0x1];
+/*0x0548*/
 } GUILDS, *PGUILDS;
 
 typedef struct _INTERACTGROUNDITEM {
@@ -1940,9 +1963,9 @@ typedef struct _CHATSERVICE {
 typedef struct _EVERQUEST {
 /*0x000*/ BYTE   Unknown[0x2a4];
 /*0x2a4*/ struct _CHATSERVICE *ChatService;
-/*0x2a8*/ BYTE   Unknown0x2a8[0x328];
-/*0x5d0*/ DWORD  GameState;
-/*0x5d4*/ // more data
+/*0x2a8*/ BYTE   Unknown0x2a8[0x320];
+/*0x5c8*/ DWORD  GameState;
+/*0x5cc*/ // more data
 } EVERQUEST, *PEVERQUEST;
 
 typedef struct _AURAINFO {
@@ -1976,8 +1999,8 @@ typedef struct _MERCENARYINFO {
 /*0x040*/ DWORD MercState; // 1 = suspended, 5 = active
 } MERCENARYINFO, *PMERCENARYINFO;
 
-#define EQ_BEGIN_ZONE                   0x6eff  // CEverQuest__SavePCForce+45F     05-14-2009
-#define EQ_END_ZONE                     0x6759  // CEverQuest__DoMainLoop+B01      05-14-2009
-#define EQ_LoadingS__ArraySize          0x45    // EQ_LoadingS__SetProgressBar+7C  05-14-2009
+#define EQ_BEGIN_ZONE                   0x6eff  // CEverQuest__SavePCForce+45F     05-21-2009
+#define EQ_END_ZONE                     0x6759  // CEverQuest__DoMainLoop+B01      05-21-2009
+#define EQ_LoadingS__ArraySize          0x45    // EQ_LoadingS__SetProgressBar+7C  05-21-2009
 };
 using namespace EQData;

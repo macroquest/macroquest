@@ -1,3 +1,11 @@
+21 May 2009 by rswiders
+- Updated for today's patch
+
+15 May 2009 by ieatacid, dkaa
+- Fixed guild struct and related functions
+- Fixed pet window struct
+- Removed MAX_GUILDS as it is no longer used
+
 14 May 2009 by rswiders
 - Updated for today's patch
 

@@ -693,12 +693,12 @@ typedef struct _EQPETINFOWINDOW {
 /*0x000*/ struct _CSIDLWND Wnd;
 /*0x198*/ DWORD Unknown0x198[0x4];
 /*0x1a8*/ struct _CBUTTONWND *pButton[0xe];
-/*0x1e0*/ BYTE  Unknown0x1e0[0x2fc];
-/*0x4dc*/ int   Buff[0x55];        // Spell ID# of each buff -- 85 total
-/*0x630*/ BYTE  Unknown0x630[0x20];
-/*0x650*/ DWORD BuffFadeETA[0x55]; // duration until buff fades, in thousands of a second
-/*0x7a4*/ BYTE  Unknown0x7a4[0x28];
-/*0x7cc*/
+/*0x1e0*/ BYTE  Unknown0x1e0[0x300];
+/*0x4e0*/ int   Buff[0x55];        // Spell ID# of each buff -- 85 total
+/*0x634*/ BYTE  Unknown0x630[0x20];
+/*0x654*/ DWORD BuffFadeETA[0x55]; // duration until buff fades, in thousands of a second
+/*0x7a8*/ BYTE  Unknown0x7a4[0x28];
+/*0x7d0*/
 } EQPETINFOWINDOW, *PEQPETINFOWINDOW;
 
 typedef struct _EQTRADESKILLRECIPE {

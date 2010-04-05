@@ -1174,15 +1174,18 @@ bool MQ2SpawnType::GETMEMBER()
         }
         return false;
     case Guild:
-        if (pSpawn->GuildID < MAX_GUILDS)
+        if (pSpawn->GuildID != 0xFFFFFFFF)
         {
-            Dest.Ptr=GetGuildByID(pSpawn->GuildID);
-            Dest.Type=pStringType;
-            return true;
+            if(char *szGuild = GetGuildByID(pSpawn->GuildID))
+            {
+                Dest.Ptr=szGuild;
+                Dest.Type=pStringType;
+                return true;
+            }
         }
         return false;
     case GuildStatus:
-        if (pSpawn->GuildID < MAX_GUILDS)
+        if (pSpawn->GuildID != 0xFFFFFFFF)
         {
             Dest.Ptr=szGuildStatus[pSpawn->GuildStatus];
             Dest.Type=pStringType;

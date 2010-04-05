@@ -966,18 +966,39 @@ DWORD GetDeityTeamByID(DWORD DeityID) {
 
 PCHAR GetGuildByID(DWORD GuildID)
 {
-    if (GuildID>=MAX_GUILDS) return NULL;
-    return pGuildList->GuildName[GuildID];
+    if(PGUILD pGuild = pGuildList->GuildList[GuildID % pGuildList->HashValue])
+    {
+        while(pGuild->ID != GuildID)
+        {
+            pGuild = pGuild->pNext;
+
+            if(!pGuild)
+                return 0;
+        }
+
+        if(pGuild->pGuildData->Name[0])
+            return pGuild->pGuildData->Name;        
+    }
+
+    return 0;
 }
 
 DWORD GetGuildIDByName(PCHAR szGuild)
 {
-    PCHAR szCurrentGuild = NULL;
-    DWORD GuildID = 0;
-    for (GuildID=0;GuildID<MAX_GUILDS;GuildID++) {
-        szCurrentGuild = pGuildList->GuildName[GuildID];
-        if (!strnicmp(szGuild,szCurrentGuild,strlen(szGuild))) return GuildID;
+    for(DWORD n = 0; n < pGuildList->HashValue - 1; n++)
+    {
+        if(PGUILD pGuild = pGuildList->GuildList[n])
+        {
+            while (pGuild)
+            {
+                if(!strnicmp(pGuild->pGuildData->Name, szGuild, strlen(szGuild)))
+                    return pGuild->ID;
+
+                pGuild = pGuild->pNext;
+            }
+        }
     }
+
     return 0xFFFF;
 }
 
@@ -4308,7 +4329,8 @@ PCHAR FormatSearchSpawn(PCHAR Buffer, PSEARCHSPAWN pSearchSpawn)
         strcat(Buffer,szTemp);
     }
     if (pSearchSpawn->GuildID!=0xFFFF) {
-        sprintf(szTemp," Guild:%s",GetGuildByID(pSearchSpawn->GuildID));
+        char *szGuild = GetGuildByID(pSearchSpawn->GuildID);
+        sprintf(szTemp," Guild:%s", szGuild ? szGuild : "Unknown");
         strcat(Buffer,szTemp);
     }
     if (pSearchSpawn->bKnownLocation) {
@@ -4529,7 +4551,7 @@ BOOL SpawnMatchesSearch(PSEARCHSPAWN pSearchSpawn, PSPAWNINFO pChar, PSPAWNINFO 
         return FALSE;
     if (pSearchSpawn->bTributeMaster && pSpawn->Class != 63 )
         return FALSE;
-    if (pSearchSpawn->bNoGuild && (pSpawn->GuildID < MAX_GUILDS))
+    if (pSearchSpawn->bNoGuild && (pSpawn->GuildID != 0xFFFFFFFF))
         return FALSE;
     if (pSearchSpawn->bKnight && pSearchSpawn->SpawnType != NPC) 
         if (pSpawn->Class != 3 && pSpawn->Class != 5 )
@@ -5043,9 +5065,10 @@ VOID SuperWhoDisplay(PSPAWNINFO pSpawn, DWORD Color)
             strcat(szName," ");
             strcat(szName,pSpawn->Lastname);
         }
-        if (gFilterSWho.Guild && pSpawn->GuildID < MAX_GUILDS && pGuildList) {
+        if (gFilterSWho.Guild && pSpawn->GuildID != 0xFFFFFFFF && pGuildList) {
             strcat(szName," <");
-            strcat(szName,GetGuildByID(pSpawn->GuildID));
+            char *szGuild = GetGuildByID(pSpawn->GuildID);
+            strcat(szName, szGuild ? szGuild : "Unknown Guild");
             strcat(szName,">");
         }
     } else {
@@ -5268,9 +5291,16 @@ static int pWHOSORTCompare(const void *A, const void *B)
         break;
     case 5://guild
         {
-            int GuildCompare=stricmp(GetGuildByID(SpawnA->GuildID),GetGuildByID(SpawnB->GuildID));
-            if (GuildCompare)
-                return GuildCompare;
+            char *szGuild1 = GetGuildByID(SpawnA->GuildID);
+            char *szGuild2 = GetGuildByID(SpawnB->GuildID);
+            if(szGuild1 && szGuild2)
+            {
+                int GuildCompare=stricmp(szGuild1, szGuild2);
+                if (GuildCompare)
+                    return GuildCompare;
+            }
+            else
+                return -1;
         }
         break;
     case 6://id
