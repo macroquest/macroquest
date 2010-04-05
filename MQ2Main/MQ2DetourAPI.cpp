@@ -256,7 +256,7 @@ VOID HookInlineChecks(BOOL Patch)
 
 //.text:0062C180                 cmp     dword_A2E290, (offset sub_74BAB0+1)
 
-   int cmps[] = {  0x74BAB0+6 };
+   int cmps[] = {  0x62C180+6 };
 
 //.text:004CD0C5                 cmp     ecx, 0A740F207h
 //.text:004E8778                 cmp     eax, 0A325B532h
