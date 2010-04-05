@@ -73,9 +73,9 @@ BOOL DoNextCommand()
                 } else {
                     // if the macro block changed and there was a /macro 
                     // command don't bump the line 
-                    if (gMacroBlock == tmpBlock || !gMacroBlock->MacroCmd) {
+                    //if (gMacroBlock == tmpBlock || !gMacroBlock->MacroCmd) {
                         gMacroBlock = gMacroBlock->pNext;
-                    }
+                    //}
                 }
             }
             return TRUE;
