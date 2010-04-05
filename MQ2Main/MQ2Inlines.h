@@ -160,7 +160,7 @@ static inline eSpawnType GetSpawnType(PSPAWNINFO pSpawn)
             return PC;
         }
     case SPAWN_NPC:
-        if (strstr(pSpawn->Name,"s_Mount"))
+        if (pSpawn->Rider)
         {
             return MOUNT;
         }

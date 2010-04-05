@@ -1,3 +1,6 @@
+12 February by ieatacid, rswiders
+- Updated for the patch on the 11th
+
 9 February by rswiders
 - Added exact match option to spawn searchs (use a "=" immediately preceeding the name being searched for)
 - Updated named mob identification.  Named mobs will not exist in non-combat zones and warders, familiars, etc. have been demoted from their named status.

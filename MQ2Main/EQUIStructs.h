@@ -969,16 +969,16 @@ typedef struct _CPLAYERWND {
 /*0x220*/ 
 } CPLAYERWND, *PCPLAYERWND;
 
-// size 0x754 10-7-08 ieatacid
+// size 0x758 2-11-2009 ieatacid
 typedef struct _CTARGETWND {
 /*0x000*/ struct  _CSIDLWND Wnd;
 /*0x198*/ BYTE    Unknown0x198[0x2b8];
 /*0x450*/ int     BuffSpellID[0x55]; // 0xffffffff if no buff
 /*0x5a4*/ DWORD   BuffTimer[0x55];
-/*0x6F8*/ BYTE    Unknown0x6f8[0x34];
-/*0x72c*/ DWORD   Type;              // 1 = self, 4 = group member, 5 = PC, 7 = NPC
+/*0x6F8*/ BYTE    Unknown0x6f8[0x24];
+/*0x71c*/ DWORD   Type;              // 1 = self, 4 = group member, 5 = PC, 7 = NPC
 /*0x730*/ BYTE    Unknown0x730[0x24];
-/*0x754*/
+/*0x758*/
 } CTARGETWND, *PCTARGETWND;
 
 };

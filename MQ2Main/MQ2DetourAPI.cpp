@@ -254,23 +254,25 @@ VOID HookInlineChecks(BOOL Patch)
 
     /* add these to eqgame.h */
 
-    //.text:0063BA30                 cmp     int g_radd, (offset loc_7C1AB9+1)
+//.text:0063CAC0                 cmp     dword_AD9988, offset loc_7C39DA
 
-    int cmps[] = { 0x63C010+6 };
+    int cmps[] = { 0x63CAC0+6 };
 
-    //.text:004D6D55                 cmp     ecx, 0D7BD62AEh
-    //.text:004F2488                 cmp     eax, 0F1BD3A34h
-    //.text:004F7A48                 cmp     eax, 4123EADBh
-    //.text:004FAC3B                 cmp     eax, 0D6711350h
-    //.text:004F2A64                 cmp     ecx, 0C38F1142h
+//.text:004D79A5                 cmp     ecx, 96C2FC54h
+//.text:004EB458                 cmp     eax, 98D712E3h
+//.text:004F31A8                 cmp     eax, 60515CE5h
+//.text:004F8768                 cmp     eax, 9199D3A6h
+//.text:004FB95B                 cmp     eax, 0E81D2DB3h
+//.text:004F3784                 cmp     ecx, 398FCDD6h
 
-    int cmps2[] = { 0x4D7005,
-                    0x4F27A8,
-                    0x4F7D68,
-                    0x4FAF5B,
-                    0x4F2D84 };
+    int cmps2[] = { 0x4D79A5,
+                    0x4EB458,
+                    0x4F31A8,
+                    0x4F8768,
+                    0x4FB95B,
+                    0x4F3784 };
 
-    int len2[] = { 6, 5, 5, 5, 6 }; 
+    int len2[] = { 6, 5, 5, 5, 5, 6 }; 
     char NewData2[20];
     static char OldData2[sizeof(cmps2)/sizeof(cmps2[0])][20];
 
@@ -311,7 +313,7 @@ VOID HookInlineChecks(BOOL Patch)
     }
     else
     {
-        NewData = 0x7C215A;
+        NewData = 0x7C39DA;
         for (i=0;i<sizeof(cmps)/sizeof(cmps[0]);i++) {
 #ifdef ISXEQ
             EzUnModify(cmps[i]);

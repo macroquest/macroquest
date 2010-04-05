@@ -7091,7 +7091,7 @@ bool MQ2TargetType::GETMEMBER()
                 for(i = 0; i < 0x55; i++)
                 {
                     buffID = ((PCTARGETWND)pTargetWnd)->BuffSpellID[i];
-                    if(buffID != 0xffffffff && nBuff == ++j)
+                    if(buffID && nBuff == ++j)
                     {
                         Dest.Ptr = GetSpellByID((DWORD)buffID);
                         Dest.Type = pSpellType;
@@ -7104,7 +7104,7 @@ bool MQ2TargetType::GETMEMBER()
                 for(i = 0; i < 0x55; i++)
                 {
                     buffID = ((PCTARGETWND)pTargetWnd)->BuffSpellID[i];
-                    if(buffID != 0xffffffff && !stricmp(GETFIRST(), GetSpellNameByID(buffID)))
+                    if(buffID && !stricmp(GETFIRST(), GetSpellNameByID(buffID)))
                     {
                         Dest.Ptr = GetSpellByID((DWORD)buffID);
                         Dest.Type = pSpellType;
@@ -7119,7 +7119,7 @@ bool MQ2TargetType::GETMEMBER()
             for(i = 0; i < 0x55; i++)
             {
                 buffID = ((PCTARGETWND)pTargetWnd)->BuffSpellID[i];
-                if(buffID != 0xffffffff)
+                if(buffID)
                 {
                     if(PSPELL pSpell = GetSpellByID(buffID))
                     {
@@ -7137,7 +7137,7 @@ bool MQ2TargetType::GETMEMBER()
             return false;
         Dest.DWord = 0;
         for(i = 0; i < 0x55; i++)
-            if(((PCTARGETWND)pTargetWnd)->BuffSpellID[i] != 0xffffffff)
+            if(((PCTARGETWND)pTargetWnd)->BuffSpellID[i])
                 Dest.DWord++;
         Dest.Type = pIntType;
         return true;
@@ -7155,7 +7155,7 @@ bool MQ2TargetType::GETMEMBER()
                 for(i = 0; i < 0x55; i++)
                 {
                     buffID = ((PCTARGETWND)pTargetWnd)->BuffSpellID[i];
-                    if(buffID != 0xffffffff && nBuff == ++j)
+                    if(buffID && nBuff == ++j)
                     {
                         Dest.DWord = ((((PCTARGETWND)pTargetWnd)->BuffTimer[i] / 1000) + 6) / 6;
                         Dest.Type = pTicksType;
@@ -7168,7 +7168,7 @@ bool MQ2TargetType::GETMEMBER()
                 for(i = 0; i < 0x55; i++)
                 {
                     buffID = ((PCTARGETWND)pTargetWnd)->BuffSpellID[i];
-                    if(buffID != 0xffffffff && !stricmp(GETFIRST(), GetSpellNameByID(buffID)))
+                    if(buffID && !stricmp(GETFIRST(), GetSpellNameByID(buffID)))
                     {
                         Dest.DWord = ((((PCTARGETWND)pTargetWnd)->BuffTimer[i] / 1000) + 6) / 6;
                         Dest.Type = pTicksType;
@@ -7183,7 +7183,7 @@ bool MQ2TargetType::GETMEMBER()
             for(i = 0; i < 0x55; i++)
             {
                 buffID = ((PCTARGETWND)pTargetWnd)->BuffSpellID[i];
-                if(buffID != 0xffffffff)
+                if(buffID)
                 {
                     Dest.DWord = ((((PCTARGETWND)pTargetWnd)->BuffTimer[i] / 1000) + 6) / 6;
                     Dest.Type = pTicksType;

@@ -196,7 +196,7 @@ VOID ItemTarget(PSPAWNINFO pChar, PCHAR szLine)
                 strcpy(tSpawn.Name,szName);
                 tSpawn.Y=pItem->Y;
                 tSpawn.X=pItem->X;
-                tSpawn.Z=pItem->Z;
+                tSpawn.Z=pItem->pSwitch->Z;
                 tSpawn.Type = SPAWN_NPC;
                 tSpawn.HPCurrent = 1;
                 tSpawn.HPMax = 1;
