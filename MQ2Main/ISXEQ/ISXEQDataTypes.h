@@ -53,3 +53,5 @@ DATATYPE(MQ2GroupMemberType,pGroupMemberType,"EQ GroupMember");
 DATATYPE(MQ2FriendsType,pFriendsType,0);
 
 DATATYPE(MQ2TargetType,pTargetType,"EQ Target");
+
+DATATYPE(MQ2XTargetType,pXTargetType,"EQ XTarget");

@@ -556,3 +556,16 @@ bool MQ2TargetType::GETMETHOD()
       return true;
 #undef pPtr
 }
+
+bool MQ2XTargetType::GETMETHOD()
+{
+#define pPtr ((PSPAWNINFO)VarPtr.Ptr)
+   if (!VarPtr.Ptr)
+      return false;
+   PMQ2TYPEMETHOD pMethod=MQ2XTargetType::FindMethod(Method);
+   if (!pMethod)
+      return false;
+   else
+      return true;
+#undef pPtr
+}

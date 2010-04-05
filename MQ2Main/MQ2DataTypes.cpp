@@ -1885,7 +1885,7 @@ bool MQ2CharacterType::GETMEMBER()
     case CountBuffs:
         Dest.DWord=0;
         {
-            for (unsigned long nBuff=0 ; nBuff<25 ; nBuff++)
+            for (unsigned long nBuff=0 ; nBuff<NUM_LONG_BUFFS ; nBuff++)
             {
                 if (GetCharInfo2()->Buff[nBuff].SpellID>0)
                     Dest.DWord++;
@@ -1899,7 +1899,7 @@ bool MQ2CharacterType::GETMEMBER()
         if (ISNUMBER())
         {
             unsigned long nBuff=GETNUMBER()-1;
-            if (nBuff>=25)
+            if (nBuff>=NUM_LONG_BUFFS)
                 return false;
             if (GetCharInfo2()->Buff[nBuff].SpellID<=0)
                 return false;
@@ -1909,7 +1909,7 @@ bool MQ2CharacterType::GETMEMBER()
         }
         else
         {
-            for (unsigned long nBuff=0 ; nBuff < 25 ; nBuff++)
+            for (unsigned long nBuff=0 ; nBuff < NUM_LONG_BUFFS ; nBuff++)
             {
                 if (PSPELL pSpell=GetSpellByID(GetCharInfo2()->Buff[nBuff].SpellID))
                 {
@@ -1929,7 +1929,7 @@ bool MQ2CharacterType::GETMEMBER()
         if (ISNUMBER())
         {
             unsigned long nBuff=GETNUMBER()-1;
-            if (nBuff>=15)
+            if (nBuff>=NUM_SHORT_BUFFS)
                 return false;
             if (GetCharInfo2()->ShortBuff[nBuff].SpellID<=0)
                 return false;
@@ -2304,7 +2304,7 @@ bool MQ2CharacterType::GETMEMBER()
         if(GetCharInfo()->pSpawn->Level > 71) Dest.DWord++;
         if(GetCharInfo()->pSpawn->Level > 74) Dest.DWord++;
 
-        for (nBuff=0 ; nBuff<25 ; nBuff++) 
+        for (nBuff=0 ; nBuff<NUM_LONG_BUFFS ; nBuff++) 
         { 
             if (GetCharInfo2()->Buff[nBuff].SpellID>0) 
                 Dest.DWord--; 
@@ -3594,7 +3594,7 @@ bool MQ2SpellType::GETMEMBER()
             PCHARINFO2 pChar = GetCharInfo2();
             Dest.DWord = true;      
             Dest.Type = pBoolType;
-            for (nBuff=0; nBuff<25; nBuff++){
+            for (nBuff=0; nBuff<NUM_LONG_BUFFS; nBuff++){
                 if (pChar->Buff[nBuff].SpellID>0) {
                     PSPELL tmpSpell = GetSpellByID(pChar->Buff[nBuff].SpellID);
                     buffduration = pChar->Buff[nBuff].Duration;

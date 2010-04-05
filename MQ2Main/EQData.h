@@ -388,6 +388,8 @@ enum MOUSE_DATA_TYPES {
 #define NUM_SPELL_GEMS                  12
 #define NUM_SPELL_SETS                  10
 #define NUM_BUFF_SLOTS					0x55
+#define NUM_LONG_BUFFS                  30
+#define NUM_SHORT_BUFFS                 20
 
 // ***************************************************************************
 // Structures
@@ -909,7 +911,7 @@ union {
 };
 /*0x008c*/   struct     _CONTENTS*   Cursor;
 /*0x0090*/   BYTE       Unknown0x90[0x14];
-/*0x00a4*/   struct     _SPELLBUFF   Buff[0x1e];
+/*0x00a4*/   struct     _SPELLBUFF   Buff[NUM_LONG_BUFFS];
 /*0x03ec*/   struct     _SPELLBUFF   ShortBuff[0x37];
 /*0x09f0*/   DWORD      Unknown0x9f0[NUM_BUFF_SLOTS]; // effect IDs
 /*0x0b44*/   DWORD      Unknown0xb44[NUM_BUFF_SLOTS];
@@ -2048,6 +2050,7 @@ enum xTargetTypes
     XTARGET_MY_MERCENTARY_TARGET
 };
 
+// size 0x4c 12-25-09 - ieatacid
 typedef struct _XTARGETDATA
 {
 /*0x00*/ DWORD  xTargetType;
@@ -2062,11 +2065,19 @@ typedef struct _XTARGETARRAY
     XTARGETDATA pXTargetData[MAX_XTARGETS];
 } XTARGETARRAY, *PXTARGETARRAY;
 
+// size 0x20 12-25-09 - ieatacid
 typedef struct _XTARGETMGR
 {
-    void  *vftable;
-    DWORD five; // always 5?
-    PXTARGETARRAY pXTargetArray;
+/*0x00*/ void  *vftable;
+/*0x04*/ DWORD TargetSlots; // MAX_XTARGETS
+/*0x08*/ PXTARGETARRAY pXTargetArray;
+/*0x0c*/ DWORD Unknown0xc;  // same as TargetSlots?
+/*0x10*/ BYTE  Unknown0x10[0x4];
+/*0x14*/ BYTE  AutoAddHaters; // 1 = auto add haters, 0 = do not auto add haters
+/*0x15*/ BYTE  Unknown0x15[0x3];
+/*0x18*/ BYTE  Unknown0x18[0x4];
+/*0x1c*/ BYTE  Unknown0x1c[0x4];
+/*0x20*/
 } XTARGETMGR, *PXTARGETMGR;
 
 #define EQ_BEGIN_ZONE                   0x2913  // CEverQuest__SavePCForce+45F     12-15-2009

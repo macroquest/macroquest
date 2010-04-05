@@ -3626,6 +3626,7 @@ public:
     }
 
     bool GETMEMBER();
+    DECLAREGETMETHOD();
 
     bool ToString(MQ2VARPTR VarPtr, PCHAR Destination)
     {

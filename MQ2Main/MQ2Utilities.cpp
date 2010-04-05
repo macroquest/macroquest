@@ -5558,7 +5558,7 @@ bool GetShortBuffID(PSPELLBUFF pBuff, DWORD &nID)
 {
     PCHARINFO2 pChar=GetCharInfo2();
     unsigned long N=(pBuff-&pChar->ShortBuff[0]);
-    if (N<15)
+    if (N<NUM_SHORT_BUFFS)
     {
         nID=N+1;
         return true;
@@ -5569,7 +5569,7 @@ bool GetBuffID(PSPELLBUFF pBuff, DWORD &nID)
 {
     PCHARINFO2 pChar=GetCharInfo2();
     unsigned long N=(pBuff-&pChar->Buff[0]);
-    if (N<25)
+    if (N<NUM_LONG_BUFFS)
     {
         nID=N+1;
         return true;
