@@ -1,3 +1,7 @@
+12 Febryary by dkaa, ieatacid, rswiders
+- Fixed pet buff window information/stackspet
+- Fixed NPCCorpse mapfilter toggle
+
 12 February by ieatacid, rswiders
 - Updated for the patch on the 11th
 

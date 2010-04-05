@@ -683,10 +683,10 @@ typedef struct _EQPETINFOWINDOW {
 /*0x000*/ struct _CSIDLWND Wnd;
 /*0x198*/ DWORD Unknown0x198[0xba];
 /*0x480*/ int   Buff[85];        // Spell ID# of each buff -- 85 total
-/*0x5d4*/ BYTE  Unknown0x5d4[0x604-0x5d4];
-/*0x604*/ DWORD BuffFadeETA[85]; // duration until buff fades, in thousands of a second
-/*0x758*/ BYTE  Unknown0x758[4];
-/*0x75c*/
+/*0x5d4*/ BYTE  Unknown0x5d4[0x20];
+/*0x5f4*/ DWORD BuffFadeETA[85]; // duration until buff fades, in thousands of a second
+/*0x748*/ BYTE  Unknown0x758[4];
+/*0x74c*/
 } EQPETINFOWINDOW, *PEQPETINFOWINDOW;
 
 typedef struct _EQTRADESKILLRECIPE {
@@ -969,7 +969,7 @@ typedef struct _CPLAYERWND {
 /*0x220*/ 
 } CPLAYERWND, *PCPLAYERWND;
 
-// size 0x758 2-11-2009 ieatacid
+// size 0x748 2-11-2009 ieatacid
 typedef struct _CTARGETWND {
 /*0x000*/ struct  _CSIDLWND Wnd;
 /*0x198*/ BYTE    Unknown0x198[0x2b8];
@@ -977,8 +977,8 @@ typedef struct _CTARGETWND {
 /*0x5a4*/ DWORD   BuffTimer[0x55];
 /*0x6F8*/ BYTE    Unknown0x6f8[0x24];
 /*0x71c*/ DWORD   Type;              // 1 = self, 4 = group member, 5 = PC, 7 = NPC
-/*0x730*/ BYTE    Unknown0x730[0x24];
-/*0x758*/
+/*0x720*/ BYTE    Unknown0x730[0x28];
+/*0x748*/
 } CTARGETWND, *PCTARGETWND;
 
 };
