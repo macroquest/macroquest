@@ -27,6 +27,7 @@ BOOL DoNextCommand()
 {
     if (!ppCharSpawn || !pCharSpawn) return FALSE;
     PSPAWNINFO pCharOrMount = NULL;
+    bool macro_cmd = false;
     PCHARINFO pCharInfo = GetCharInfo();
     PSPAWNINFO pChar = pCharOrMount = (PSPAWNINFO)pCharSpawn;
     if (pCharInfo && pCharInfo->pSpawn) pChar=pCharInfo->pSpawn;
@@ -52,12 +53,14 @@ BOOL DoNextCommand()
     }
     if (!gDelay && !gMacroPause && (!gMQPauseOnChat || *EQADDR_NOTINCHATMODE) &&
         gMacroBlock && gMacroStack) {
+            PMACROBLOCK tmpBlock = gMacroBlock;
             gMacroStack->Location=gMacroBlock;
 #ifdef MQ2_PROFILING
             LARGE_INTEGER BeforeCommand;
             QueryPerformanceCounter(&BeforeCommand);
             PMACROBLOCK ThisMacroBlock = gMacroBlock; 
 #endif
+            macro_cmd = strstr(gMacroBlock->Line, "/macro") != NULL;
             DoCommand(pChar,gMacroBlock->Line);
             if (gMacroBlock) {
 #ifdef MQ2_PROFILING
@@ -69,7 +72,11 @@ BOOL DoNextCommand()
                 if (!gMacroBlock->pNext) {
                     FatalError("Reached end of macro.");
                 } else {
-                    gMacroBlock = gMacroBlock->pNext;
+                    // if the macro block changed and there was a /macro 
+                    // command don't bump the line 
+                    if (gMacroBlock == tmpBlock || !macro_cmd) {
+                        gMacroBlock = gMacroBlock->pNext;
+                    }
                 }
             }
             return TRUE;

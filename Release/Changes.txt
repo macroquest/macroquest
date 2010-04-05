@@ -1,3 +1,15 @@
+21 October 2008 by rswiders
+- Updated for October 21st patch
+
+19 October 2008 by dkaa
+- fixed the problem with the first line of macro not being run if /macro 
+    was invoke within a macro.
+
+17 October 2008 by rswiders
+- Added Spawn.Loc and .LocYX.  Loc is a float formatted string, LocYX is an int formatted string.
+- Display permanent buff timers as "Perm" not "-0:18"
+- Misc source cleanup
+
 12 October 2008 by ieatacid
 - Added BuffDuration to target type. It takes the buff name or number as a parameter and returns a ticks type.
 - Added to Group TLO: string MainTank, string MainAssist, string Puller

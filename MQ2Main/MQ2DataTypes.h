@@ -546,10 +546,12 @@ public:
 		Dead=91,
 		Stunned=92,
 		Hovering=93,
-      CurrentMana=94,
-      MaxMana=95,
-      CurrentEndurance=96,
-      MaxEndurance=97,
+		CurrentMana=94,
+		MaxMana=95,
+		CurrentEndurance=96,
+		MaxEndurance=97,
+		Loc=98,
+		LocYX=99,
 	};
 	static enum SpawnMethods
 	{
@@ -650,10 +652,12 @@ public:
 		TypeMember(Dead);
 		TypeMember(Stunned);
 		TypeMember(Hovering);
-      TypeMember(CurrentMana);
-      TypeMember(MaxMana);
-      TypeMember(CurrentEndurance);
-      TypeMember(MaxEndurance);
+		TypeMember(CurrentMana);
+		TypeMember(MaxMana);
+		TypeMember(CurrentEndurance);
+		TypeMember(MaxEndurance);
+		TypeMember(Loc);
+		TypeMember(LocYX);
 
 		TypeMethod(Target);
 		TypeMethod(Face);

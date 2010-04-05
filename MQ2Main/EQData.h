@@ -742,8 +742,7 @@ typedef struct _CI2_INFO {
 typedef struct _GROUPMEMBER {
 /*0x00*/ void   *vftable;
 /*0x04*/ struct _CXSTR *pName;
-/*0x08*/ BYTE   Unknown0x8;
-/*0x09*/ BYTE   Unknown0x9[0x3];
+/*0x08*/ BYTE   Unknown0x8[0x4];
 /*0x0c*/ struct _CXSTR *pUnknown0xc; // haven't seen this with text yet but it's a CXSTR struct
 /*0x10*/ DWORD  Level;
 /*0x14*/ BYTE   Unknown0x14[0x2];
@@ -1510,7 +1509,7 @@ typedef struct _ZONEINFO {
 /*0x2a4*/
 } ZONEINFO, *PZONEINFO;
 
-#define   TOTAL_SPELL_COUNT				0x3e80      // # of spells allocated in memory (07/05/2007)
+#define   TOTAL_SPELL_COUNT				0x5208      // # of spells allocated in memory (10/14/2008)
 #define   TOTAL_ACTUAL_SPELLS			   0x1964      // # of ACTUAL spells in game      (9/14/2004)
 
 // size: 0x17770 08-07-06          
@@ -1935,8 +1934,8 @@ typedef struct _INTERACTSWITCH {
 } INTERACTSWITCH, *PINTERACTSWITCH;
 
 
-#define EQ_BEGIN_ZONE           0x6eff  // CEverQuest__SavePCForce+45F     04-24-2008 
-#define EQ_END_ZONE             0x6759  // CEverQuest__DoMainLoop+AEE      04-24-2008 
-#define EQ_LoadingS__ArraySize  0x45    // EQ_LoadingS__SetProgressBar+7C  07/05
+#define EQ_BEGIN_ZONE           0x6eff  // CEverQuest__SavePCForce+45F     10-07-2008 
+#define EQ_END_ZONE             0x6759  // CEverQuest__DoMainLoop+B01      10-07-2008 
+#define EQ_LoadingS__ArraySize  0x45    // EQ_LoadingS__SetProgressBar+7C  10-07-2008
 };
 using namespace EQData;

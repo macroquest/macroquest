@@ -126,7 +126,7 @@ DWORD LoadMQ2Plugin(const PCHAR pszFilename)
 
 	if (pPlugin->Initialize)
 		pPlugin->Initialize();
-        PluginCmdSort();
+		PluginCmdSort();
 	if (pPlugin->SetGameState)
 		pPlugin->SetGameState(gGameState);
 	if (pPlugin->AddSpawn && gGameState==GAMESTATE_INGAME)

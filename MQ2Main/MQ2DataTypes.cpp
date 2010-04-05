@@ -918,7 +918,9 @@ bool MQ2TicksType::GETMEMBER()
 			int Mins=(Secs/60)%60;
 			int Hrs=(Secs/3600);
 			Secs=Secs%60;
-			if (Hrs)
+			if (Secs<0)
+				sprintf(DataTypeTemp,"Perm");
+			else if (Hrs)
 				sprintf(DataTypeTemp,"%d:%02d:%02d",Hrs,Mins,Secs);
 			else
 				sprintf(DataTypeTemp,"%d:%02d",Mins,Secs);
@@ -931,7 +933,10 @@ bool MQ2TicksType::GETMEMBER()
 			int Secs=nTicks*6;
 			int Mins=(Secs/60);
 			Secs=Secs%60;
-			sprintf(DataTypeTemp,"%d:%02d",Mins,Secs);
+			if (Secs<0)
+				sprintf(DataTypeTemp,"Perm");
+			else
+				sprintf(DataTypeTemp,"%d:%02d",Mins,Secs);
 			Dest.Ptr=&DataTypeTemp[0];
 			Dest.Type=pStringType;
 		}
@@ -1659,6 +1664,16 @@ bool MQ2SpawnType::GETMEMBER()
       Dest.DWord=pSpawn->EnduranceMax;
       Dest.Type=pIntType;
       return true;
+	case Loc:
+		sprintf(DataTypeTemp,"%.2f, %.2f",pSpawn->Y,pSpawn->X);
+		Dest.Ptr=&DataTypeTemp[0];
+		Dest.Type=pStringType;
+		return true;
+	case LocYX:
+		sprintf(DataTypeTemp,"%.0f, %.0f",pSpawn->Y,pSpawn->X);
+		Dest.Ptr=&DataTypeTemp[0];
+		Dest.Type=pStringType;
+		return true;
 	}
 	return false;
 }
@@ -6332,10 +6347,10 @@ bool MQ2GroupMemberType::GETMEMBER()
 	CHAR MemberName[MAX_STRING]={0};
 	CHAR LeaderName[MAX_STRING]={0};
 	PSPAWNINFO pGroupMember=0;
-   PCHARINFO pChar=GetCharInfo();
-   PGROUPMEMBER pGroupMemberData=0;
-   DWORD level=0;
-   int i;
+	PCHARINFO pChar=GetCharInfo();
+	PGROUPMEMBER pGroupMemberData=0;
+	DWORD level=0;
+	int i;
 	if (!pChar->pGroupInfo) return false;
 	if (unsigned long N=VarPtr.DWord)
 	{
@@ -6349,8 +6364,8 @@ bool MQ2GroupMemberType::GETMEMBER()
 				if (N==0)
 				{
 					GetCXStr(pChar->pGroupInfo->pMember[i]->pName,MemberName,MAX_STRING);
-               pGroupMember=pChar->pGroupInfo->pMember[i]->pSpawn;
-               level=pChar->pGroupInfo->pMember[i]->Level;
+					pGroupMember=pChar->pGroupInfo->pMember[i]->pSpawn;
+					level=pChar->pGroupInfo->pMember[i]->Level;
                pGroupMemberData=pChar->pGroupInfo->pMember[i];
 					break;
 				}
@@ -6363,8 +6378,8 @@ bool MQ2GroupMemberType::GETMEMBER()
 	{
 		pGroupMember=pChar->pSpawn;
 		strcpy(MemberName,pGroupMember->Name);
-      level=pGroupMember->Level;
-      pGroupMemberData=pChar->pGroupInfo->pLeader;
+		level=pGroupMember->Level;
+		pGroupMemberData=pChar->pGroupInfo->pLeader;
 	}
 	PMQ2TYPEMEMBER pMember=MQ2GroupMemberType::FindMember(Member);
 	if (!pMember)
@@ -6396,41 +6411,41 @@ bool MQ2GroupMemberType::GETMEMBER()
 			Dest.Type=pSpawnType;
 			return true;
 		}
-      return false;
-   case Level:
-      Dest.DWord=level;
-      Dest.Type=pIntType;
-      return true;
-   case MainTank:
-      if(pGroupMemberData)
-      {
-         Dest.DWord=pGroupMemberData->MainTank;
-         Dest.Type=pBoolType;
-         return true;
-      }
-      return false;
-   case MainAssist:
-      if(pGroupMemberData)
-      {
-         Dest.DWord=pGroupMemberData->MainAssist;
-         Dest.Type=pBoolType;
-         return true;
-      }
-      return false;
-   case Puller:
-      if(pGroupMemberData)
-      {
-         Dest.DWord=pGroupMemberData->Puller;
-         Dest.Type=pBoolType;
-         return true;
-      }
+		return false;
+	case Level:
+		Dest.DWord=level;
+		Dest.Type=pIntType;
+		return true;
+	case MainTank:
+		if(pGroupMemberData)
+		{
+			Dest.DWord=pGroupMemberData->MainTank;
+			Dest.Type=pBoolType;
+			return true;
+		}
+		return false;
+	case MainAssist:
+		if(pGroupMemberData)
+		{
+			Dest.DWord=pGroupMemberData->MainAssist;
+			Dest.Type=pBoolType;
+			return true;
+		}
+		return false;
+	case Puller:
+		if(pGroupMemberData)
+		{
+			Dest.DWord=pGroupMemberData->Puller;
+			Dest.Type=pBoolType;
+			return true;
+		}
 	}
 	return false;
 }
 
 bool MQ2RaidType::GETMEMBER()
 {
-    int i;
+	int i;
 	if (!pRaid)
 		return false;
 	PMQ2TYPEMEMBER pMember=MQ2RaidType::FindMember(Member);
