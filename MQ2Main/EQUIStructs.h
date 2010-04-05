@@ -997,6 +997,13 @@ typedef struct _CTARGETWND {
 /*0x748*/
 } CTARGETWND, *PCTARGETWND;
 
+typedef struct _CLABELWND {
+/*0x000*/ struct    _CXWND Wnd;
+/*0x1ac*/ BYTE      Unknown[0xc];
+/*0x1b8*/ DWORD     SidlPiece;
+/*0x1bc*/
+} CLABELWND, *PCLABELWND;
+
 };
 
 using namespace EQUIStructs;

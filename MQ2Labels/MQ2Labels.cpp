@@ -76,8 +76,7 @@ PreSetup("MQ2Labels");
 
 struct _CControl {
     /*0x000*/    DWORD Fluff[0x21]; // if this changes update ISXEQLabels.cpp too
-    /*0x06c*/ /* CXSTR * ToolTipReference */
-    /*0x074*/    CXSTR * EQType;
+    /*0x084*/    CXSTR * EQType;
 };
 
 // optimize off because the tramp looks blank to the compiler
@@ -89,9 +88,9 @@ public:
     class CXWnd * CreateLabel_Trampoline(class CXWnd *, struct _CControl *);
     class CXWnd * CreateLabel_Detour(class CXWnd *CWin, struct _CControl *CControl)
     {
-        CSIDLWND *p;
+        CLABELWND *p;
         class CXWnd *tmp = CreateLabel_Trampoline(CWin, CControl);
-        p = (CSIDLWND *)tmp;
+        p = (CLABELWND *)tmp;
         if (CControl->EQType) {
             *((DWORD *)&p->SidlPiece) = atoi(CControl->EQType->Text);
         } else {
@@ -113,9 +112,9 @@ public:
     VOID Draw_Trampoline(VOID);
     VOID Draw_Detour(VOID)
     {
-        PCSIDLWND pThisLabel;
+        PCLABELWND pThisLabel;
         __asm {mov [pThisLabel], ecx};
-        //          (PCSIDLWND)this;
+        //          (PCLABELWND)this;
         Draw_Trampoline();
         CHAR Buffer[MAX_STRING] = {0};
         BOOL Found=FALSE;
@@ -123,12 +122,12 @@ public:
 
 
         if ((DWORD)pThisLabel->SidlPiece==9999) {
-            if (!pThisLabel->XMLToolTip) {
+            if (!pThisLabel->Wnd.XMLToolTip) {
                 strcpy(Buffer,"BadCustom");
                 Found=TRUE;
             } else {
                 //strcpy(Buffer,&pThisLabel->XMLToolTip->Text[0]);
-                STMLToPlainText(&pThisLabel->XMLToolTip->Text[0],Buffer);
+                STMLToPlainText(&pThisLabel->Wnd.XMLToolTip->Text[0],Buffer);
                 ParseMacroParameter(((PCHARINFO)pCharData)->pSpawn,Buffer);
                 if (!strcmp(Buffer,"NULL"))
                     Buffer[0]=0;
@@ -145,7 +144,7 @@ public:
                 }
             }
         }
-        if (Found) SetCXStr(&(pThisLabel->WindowText),Buffer);
+        if (Found) SetCXStr(&(pThisLabel->Wnd.WindowText),Buffer);
     }
 }; 
 
@@ -153,36 +152,6 @@ DETOUR_TRAMPOLINE_EMPTY(VOID CLabelHook::Draw_Trampoline(VOID));
 
 BOOL StealNextGauge=FALSE;
 DWORD NextGauge=0;
-
-DETOUR_TRAMPOLINE_EMPTY(int GetGaugeValueFromEQ_Trampoline(int,class CXStr *,bool *));
-int GetGaugeValueFromEQ_Hook(int A,class CXStr *B,bool *C)
-{
-    if (StealNextGauge)
-        return NextGauge;
-    return GetGaugeValueFromEQ_Trampoline(A,B,C);
-}
-
-class CGaugeHook
-{
-public:
-    VOID Draw_Trampoline(VOID);
-    VOID Draw_Detour(VOID)
-    {
-        PCSIDLWND pThisGauge;
-        __asm {mov [pThisGauge], ecx};
-        StealNextGauge=false;
-        if ((DWORD)pThisGauge->SidlPiece==9999)
-        {
-            StealNextGauge=true;
-            CHAR Buffer[MAX_STRING]={0};
-            STMLToPlainText(&pThisGauge->XMLToolTip->Text[0],Buffer);
-            ParseMacroParameter(((PCHARINFO)pCharData)->pSpawn,Buffer);
-            NextGauge=atoi(Buffer);
-        }
-        Draw_Trampoline();
-    }
-};
-DETOUR_TRAMPOLINE_EMPTY(VOID CGaugeHook::Draw_Trampoline(VOID));
 
 // Called once, when the plugin is to initialize
 PLUGIN_API VOID InitializePlugin(VOID)

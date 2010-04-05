@@ -1,3 +1,9 @@
+14 November 2009 by dkaa
+- Fix for labels -- added CLABELWND which is not, in fact, a CSIDLWND
+
+13 November 2009 by dkaa
+- Fix for inventory problems (corrected InvSlotWnd)
+
 12 November 2009 by ieatacid, dkaa, rswiders
 - Updated for November 11th patch
 
