@@ -281,6 +281,7 @@
 #define __get_melee_range                                          0x4A9530
 #define __GetGaugeValueFromEQ                                      0x65B500
 #define __GetLabelFromEQ                                           0x65C5E0
+#define __GetXTargetType                                           0x74E570
 #define __LoadFrontEnd                                             0x56FD50
 #define __NewUIINI                                                 0x65B090
 #define __ProcessGameEvents                                        0x4F80A0

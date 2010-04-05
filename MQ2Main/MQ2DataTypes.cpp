@@ -82,6 +82,7 @@ class MQ2FellowshipType *pFellowshipType=0;
 class MQ2FellowshipMemberType *pFellowshipMemberType=0;
 class MQ2FriendsType *pFriendsType=0;
 class MQ2TargetType *pTargetType=0;
+class MQ2XTargetType *pXTargetType=0;
 
 #ifndef ISXEQ
 
@@ -134,6 +135,7 @@ void InitializeMQ2DataTypes()
     pFellowshipMemberType=new MQ2FellowshipMemberType;
     pFriendsType = new MQ2FriendsType;
     pTargetType = new MQ2TargetType;
+    pXTargetType = new MQ2XTargetType;
 
     // NOTE: SetInheritance does NOT make it inherit, just notifies the syntax checker...
     pCharacterType->SetInheritance(pSpawnType);
@@ -187,6 +189,7 @@ void ShutdownMQ2DataTypes()
     delete pDynamicZoneType;
     delete pFriendsType;
     delete pTargetType;
+    delete pXTargetType;
 }
 
 bool MQ2TypeType::GETMEMBER()
@@ -3342,6 +3345,49 @@ bool MQ2CharacterType::GETMEMBER()
             Dest.Ptr = "NULL";
         Dest.Type = pStringType;
         return true;
+    case XTarget:
+        if(PXTARGETMGR xtm = pChar->pXTargetMgr)
+        {
+            DWORD n = 0;
+            if(PXTARGETARRAY xta = xtm->pXTargetArray)
+            {
+                if(ISINDEX())
+                {
+                    if(ISNUMBER())
+                    {
+                        Dest.Ptr = &xta->pXTargetData[GETNUMBER() - 1];
+                        Dest.Type = pXTargetType;
+                        return true;
+                    }
+                    else
+                    {
+                        for(n = 0; n < MAX_XTARGETS; n++)
+                        {
+                            if(xta->pXTargetData[n].xTargetType && xta->pXTargetData[n].Unknown0x4 && !stricmp(GETFIRST(), xta->pXTargetData[n].Name))
+                            {
+                                Dest.Ptr = &xta->pXTargetData[n];
+                                Dest.Type = pXTargetType;
+                                return true;
+                            }
+                        }
+                    }
+                }
+                else
+                {
+                    DWORD x = 0;
+                    for(n = 0; n < MAX_XTARGETS; n++)
+                    {
+                        if(xta->pXTargetData[n].xTargetType && xta->pXTargetData[n].Unknown0x4)
+                        {
+                            x++;
+                        }
+                    }
+                    Dest.DWord = x;
+                    Dest.Type = pIntType;
+                    return true;
+                }
+            }
+        }
     }
     return false;
 #undef pChar
@@ -7274,3 +7320,34 @@ bool MQ2TargetType::GETMEMBER()
     }
     return false;
 }
+
+bool MQ2XTargetType::GETMEMBER()
+{
+    if(!VarPtr.Ptr)
+        return false;
+    if(PMQ2TYPEMEMBER pMember=MQ2XTargetType::FindMember(Member))
+    {
+        PXTARGETDATA xtd = (PXTARGETDATA)VarPtr.Ptr;
+
+        switch((xTargetMembers)pMember->ID)
+        {
+        case Type:
+            {
+                char *pType = GetXtargetType(xtd->xTargetType);
+                Dest.Ptr = pType[0] ? pType : "UNKNOWN";
+                Dest.Type = pStringType;
+                return true;
+            }
+        case ID:
+            Dest.DWord = xtd->SpawnID;
+            Dest.Type = pIntType;
+            return true;
+        case Name:
+            Dest.Ptr = xtd->Name[0] ? xtd->Name : "NULL";
+            Dest.Type = pStringType;
+            return true;
+        }
+    }
+    return false;
+};
+            

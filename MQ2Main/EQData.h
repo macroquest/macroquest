@@ -851,7 +851,8 @@ typedef struct _CHARINFO {
 /*0x2240*/   DWORD      EnduranceRegenBonus; 
 /*0x2244*/   DWORD      DamageShieldBonus;
 /*0x2248*/   DWORD      AttackSpeed;
-/*0x224c*/   BYTE       Unknown0x224c[0xa8];
+/*0x224c*/   BYTE       Unknown0x224c[0xa4];
+/*0x22f0*/   struct     _XTARGETMGR *pXTargetMgr;
 /*0x22f4*/   DWORD      InCombat;
 /*0x22f8*/   DWORD      Downtime;
 /*0x22fc*/   DWORD      DowntimeStamp;
@@ -2013,6 +2014,60 @@ typedef struct _MERCENARYINFO {
 /*0x03c*/ DWORD HaveMerc;
 /*0x040*/ DWORD MercState; // 1 = suspended, 5 = active
 } MERCENARYINFO, *PMERCENARYINFO;
+
+#define MAX_XTARGETS 5
+
+enum xTargetTypes
+{
+    XTARGET_EMPTY_TARGET,
+    XTARGET_AUTO_HATER,
+    XTARGET_SPECIFIC_PC,
+    XTARGET_SPECIFIC_NPC,
+    XTARGET_TARGETS_TARGET,
+    XTARGET_GROUP_TANK,
+    XTARGET_GROUP_TANKS_TARGET,
+    XTARGET_GROUP_ASSIST,
+    XTARGET_GROUP_ASSIST_TARGET,
+    XTARGET_GROUP_PULLER,
+    XTARGET_GROUP_PULLER_TARGET,
+    XTARGET_GROUP_MARK1,
+    XTARGET_GROUP_MARK2,
+    XTARGET_GROUP_MARK3,
+    XTARGET_RAID_ASSIST1,
+    XTARGET_RAID_ASSIST2,
+    XTARGET_RAID_ASSIST3,
+    XTARGET_RAID_ASSIST1_TARGET,
+    XTARGET_RAID_ASSIST2_TARGET,
+    XTARGET_RAID_ASSIST3_TARGET,
+    XTARGET_RAID_MARK1,
+    XTARGET_RAID_MARK2,
+    XTARGET_RAID_MARK3,
+    XTARGET_MY_PET,
+    XTARGET_MY_PET_TARGET,
+    XTARGET_MY_MERCENARY,
+    XTARGET_MY_MERCENTARY_TARGET
+};
+
+typedef struct _XTARGETDATA
+{
+/*0x00*/ DWORD  xTargetType;
+/*0x04*/ DWORD  Unknown0x4;
+/*0x08*/ DWORD  SpawnID;
+/*0x0c*/ char   Name[0x40];
+/*0x4c*/
+} XTARGETDATA, *PXTARGETDATA;
+
+typedef struct _XTARGETARRAY
+{
+    XTARGETDATA pXTargetData[MAX_XTARGETS];
+} XTARGETARRAY, *PXTARGETARRAY;
+
+typedef struct _XTARGETMGR
+{
+    void  *vftable;
+    DWORD five; // always 5?
+    PXTARGETARRAY pXTargetArray;
+} XTARGETMGR, *PXTARGETMGR;
 
 #define EQ_BEGIN_ZONE                   0x2913  // CEverQuest__SavePCForce+45F     12-15-2009
 #define EQ_END_ZONE                     0x6CDC  // CEverQuest__DoMainLoop+B2F      12-15-2009

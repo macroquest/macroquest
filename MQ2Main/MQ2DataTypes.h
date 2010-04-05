@@ -114,6 +114,7 @@ LEGACY_VAR class MQ2FellowshipType *pFellowshipType;
 LEGACY_VAR class MQ2FellowshipMemberType *pFellowshipMemberType;
 LEGACY_VAR class MQ2FriendsType *pFriendsType;
 LEGACY_VAR class MQ2TargetType *pTargetType;
+LEGACY_VAR class MQ2XTargetType *pXTargetType;
 
 #define UseTemp(mystring) strcpy(DataTypeTemp,mystring)
 #define TypeMember(name) AddMember((DWORD)name,""#name)
@@ -902,6 +903,7 @@ public:
         Faycites=175,
         Chronobines=176,
         Mercenary=177,
+        XTarget=178,
     };
     static enum CharacterMethods
     {
@@ -1086,6 +1088,7 @@ public:
         TypeMember(Faycites);
         TypeMember(Chronobines);
         TypeMember(Mercenary);
+        TypeMember(XTarget);
 
         TypeMethod(Stand); 
         TypeMethod(Sit); 
@@ -3597,6 +3600,49 @@ public:
             memcpy(VarPtr.Ptr,pOther,sizeof(SPAWNINFO));
             return true;
         }
+        return false;
+    }
+};
+
+class MQ2XTargetType : public MQ2Type
+{
+public:
+    static enum xTargetMembers
+    {
+        Type = 1,
+        ID = 2,
+        Name = 3,
+    };
+
+    MQ2XTargetType():MQ2Type("xtarget")
+    {
+        TypeMember(Type);
+        TypeMember(ID);
+        TypeMember(Name);
+    }
+
+    ~MQ2XTargetType()
+    {
+    }
+
+    bool GETMEMBER();
+
+    bool ToString(MQ2VARPTR VarPtr, PCHAR Destination)
+    {
+        if(VarPtr.Ptr && ((PXTARGETDATA)VarPtr.Ptr)->Name[0])
+            strcpy(Destination, ((PXTARGETDATA)VarPtr.Ptr)->Name);
+        else
+            strcpy(Destination, "NULL");
+        return true;
+    }
+
+    bool FromData(MQ2VARPTR &VarPtr, MQ2TYPEVAR &Source)
+    {
+        return false;
+    }
+
+    bool FromString(MQ2VARPTR &VarPtr, PCHAR Source)
+    {
         return false;
     }
 };

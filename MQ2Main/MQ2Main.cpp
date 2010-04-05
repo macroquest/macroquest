@@ -543,4 +543,6 @@ FUNCTION_AT_ADDRESS(int CastRay(PSPAWNINFO,float y,float x,float z),__CastRay);
 #ifdef Util__FastTime
 FUNCTION_AT_ADDRESS(unsigned long  GetFastTime(void),Util__FastTime);
 #endif
-
+#ifdef __GetXTargetType
+FUNCTION_AT_ADDRESS(char * __stdcall GetXtargetType(DWORD type), __GetXTargetType);
+#endif

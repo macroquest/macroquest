@@ -1,3 +1,6 @@
+24 December 2009 by ieatacid
+- Added Me.XTarget.  See wiki for details: http://www.macroquest2.com/wiki/index.php/DataType:xtarget
+
 18 December 2009 by rswiders
 - Updated for today's patch
 

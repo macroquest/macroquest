@@ -380,6 +380,7 @@ EQLIB_API VOID ShutdownMQ2Pulse();
 /* OTHER IMPORTED FROM EQ */
 EQLIB_API int CastRay(PSPAWNINFO,float y,float x,float z);
 EQLIB_API unsigned long GetFastTime(void);
+EQLIB_API char * __stdcall GetXtargetType(DWORD type);
 
 /* UTILITIES */
 EQLIB_API VOID ConvertCR(PCHAR Text);
