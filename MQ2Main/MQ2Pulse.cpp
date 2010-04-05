@@ -303,10 +303,10 @@ void Heartbeat()
 #ifndef ISXEQ_LEGACY
 #ifndef ISXEQ
 	DebugTry(DrawHUD());
-	if (gGameState==GAMESTATE_INGAME && !bMouseLook && ScreenMode==3)
-	{
-		DebugTry(pWndMgr->DrawCursor());
-	}
+	//if (gGameState==GAMESTATE_INGAME && !bMouseLook && ScreenMode==3)
+	//{
+	//	DebugTry(pWndMgr->DrawCursor());
+	//}
 #endif
 #endif
 

@@ -167,6 +167,8 @@ VOID MacroError(PCHAR szFormat, ...)
 		}
 	}
 	WriteChatColor(szOutput,CONCOLOR_RED);
+    if (bAllErrorsLog) MacroLog(NULL, "Macro Error");
+    if (bAllErrorsLog) MacroLog(NULL, szOutput);
 	strcpy(gszLastNormalError,szOutput);
 	if (gMacroBlock)
 	{
@@ -195,6 +197,8 @@ VOID FatalError(PCHAR szFormat, ...)
 	}
 	WriteChatColor(szOutput,CONCOLOR_RED);
 	strcpy(gszLastNormalError,szOutput);
+    if (bAllErrorsLog) MacroLog(NULL, "Fatal Error");
+    if (bAllErrorsLog) MacroLog(NULL, szOutput);
 	if (gMacroBlock)
 	{
 		DumpStack(0,0);
@@ -225,6 +229,8 @@ VOID MQ2DataError(PCHAR szFormat, ...)
 		WriteChatColor(szOutput,CONCOLOR_RED);
 	}
 	strcpy(gszLastMQ2DataError,szOutput);
+    if (bAllErrorsLog) MacroLog(NULL, "Data Error");
+    if (bAllErrorsLog) MacroLog(NULL, szOutput);
 	if (gMacroBlock)
 	{
 		if (bAllErrorsDumpStack || bAllErrorsFatal)

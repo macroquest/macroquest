@@ -476,6 +476,7 @@ VOID DumpStack(PSPAWNINFO pChar, PCHAR szLine)
     while (pMS!=NULL) {
         sprintf(szTemp,"%s@%d (%s): %s",pMS->Location->SourceFile,pMS->Location->LineNumber, GetSubFromLine(pMS->Location,szSub), pMS->Location->Line);
         WriteChatColor(szTemp,USERCOLOR_DEFAULT);
+        if (bAllErrorsLog) MacroLog(NULL, szTemp);
         pMS=pMS->pNext;
     }
 }

@@ -9,7 +9,6 @@ _TEXT   SEGMENT PARA USE32 PUBLIC 'CODE'
 
 
 
-
 __MemChecker1   proc near               ; CODE XREF: ItemBase::ParseDynamicData(char const *,ItemParsedData *,bool *)+229p
                                         ; CRC::GetStringCRC(char const *,int)+20cp
 
@@ -21,7 +20,7 @@ arg_8           = dword ptr  0Ch
                 or      eax, 0FFFFFFFFh
                 test    ecx, ecx
                 push    esi
-                jz      short loc_69FBDF
+                jz      short loc_6AFF7F
                 xor     eax, eax
                 mov     al, cl
                 movzx   ecx, ch
@@ -53,16 +52,16 @@ arg_8           = dword ptr  0Ch
                 and     eax, 0FFFFFFh
                 xor     eax, edx
 
-loc_69FBDF:                             ; CODE XREF: __MemChecker1+Aj
+loc_6AFF7F:                             ; CODE XREF: __MemChecker1+Aj
                 mov     ecx, [esp+4+arg_0]
                 mov     edx, [esp+4+arg_4]
                 lea     esi, [ecx+edx]
                 cmp     ecx, esi
-                jnb     short loc_69FC13
+                jnb     short loc_6AFFB3
                 push    edi
                 nop
 
-loc_69FBF0:                             ; CODE XREF: __MemChecker1+B0j
+loc_6AFF90:                             ; CODE XREF: __MemChecker1+B0j
                 xor     edx, edx
                 mov     dl, [ecx]
                 xor     edx, eax
@@ -73,15 +72,14 @@ loc_69FBF0:                             ; CODE XREF: __MemChecker1+B0j
                 xor     eax, edi
                 inc     ecx
                 cmp     ecx, esi
-                jb      short loc_69FBF0
+                jb      short loc_6AFF90
                 pop     edi
 
-loc_69FC13:                             ; CODE XREF: __MemChecker1+8Cj
+loc_6AFFB3:                             ; CODE XREF: __MemChecker1+8Cj
                 not     eax
                 pop     esi
                 retn
 __MemChecker1   endp
-
 
 
 

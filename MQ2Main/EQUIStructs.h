@@ -64,10 +64,13 @@ enum UIType
 	UI_HorizontalLayoutBox=42,
 	UI_VerticalLayoutBox=43,
    UI_FinderBox=44,
-   UI_NamedTemplatePiece=45,
-   UI_TemplateContainer=46,
-	UI_Screen=47,
-	UI_SuiteDefaults=48,
+   UI_TileLayoutBox=45,
+   UI_NamedTemplatePiece=46,
+        UI_TemplateContainer=47,
+	UI_Screen=48,
+	UI_SuiteDefaults=49,
+	UI_Screens=50,
+	UI_TopLevelWindowList=51,
 };
 
 // ***************************************************************************
@@ -675,22 +678,15 @@ typedef struct _EQLOOTWINDOW {
 /*0x1f0*/ PCONTENTS   ItemDesc[NUM_INV_SLOTS]; //there can only be 31 items on a corpse since that equals 23 inv slots plus 8 bags...
 } EQLOOTWINDOW, *PEQLOOTWINDOW;
 
-//Size: 0x3e4 (07/09/2008)
+//Size: 0x754 (12/09/2008)
 typedef struct _EQPETINFOWINDOW {
 /*0x000*/ struct _CSIDLWND Wnd;
-/*0x190*/ DWORD Unknown0x190;
-/*0x194*/ DWORD Unknown0x194; // pet's spawnid
-/*0x198*/ DWORD Unknown0x198; // bool
-/*0x19c*/ BYTE  Unknown0x19c[0x120];
-/* buttons are here */
-/*0x2bc*/ struct _CXWND *wnd;           // spell info wnd?
-/*0x2c0*/ int   Buff[0x1e]; // Spell ID# of each buff -- 30 total
-/*0x338*/ DWORD Unknown0x338;  
-/*0x33c*/ BYTE  Unknown0x33c[4];
-/*0x340*/ DWORD Unknown0x340[10];
-/*0x368*/ DWORD BuffFadeETA[0x1e]; // duration until buff fades, in thousands of a second
-/*0x3e0*/ DWORD Unknown0x3e0; // really a byte...
-/*0x3e4*/
+/*0x198*/ DWORD Unknown0x198[0xba];
+/*0x480*/ int   Buff[85]; // Spell ID# of each buff -- 85 total
+/*0x5d4*/ BYTE  Unknown0x5d4[0x600-0x5d4];
+/*0x600*/ DWORD BuffFadeETA[85]; // duration until buff fades, in thousands of a second
+/*0x754*/ BYTE  Unknown0x754[8];
+/*0x75c*/
 } EQPETINFOWINDOW, *PEQPETINFOWINDOW;
 
 typedef struct _EQTRADESKILLRECIPE {

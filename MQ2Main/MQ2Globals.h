@@ -41,6 +41,7 @@ LEGACY_VAR PDATAVAR pMacroVariables;
 
 EQLIB_VAR BOOL bAllErrorsFatal;
 EQLIB_VAR BOOL bAllErrorsDumpStack;
+EQLIB_VAR BOOL bAllErrorsLog;
 EQLIB_API CHAR DataTypeTemp[MAX_STRING];
 
 EQLIB_API CHAR gszVersion[32];

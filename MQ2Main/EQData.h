@@ -378,7 +378,7 @@ enum MOUSE_DATA_TYPES {
    MD_Button1
 };
 
-#define nEQMappableCommands				 0x120
+#define nEQMappableCommands				 0x121
 
 #define MAX_PC_LEVEL                    85
 #define NUM_SPELL_GEMS                  10
@@ -1608,8 +1608,8 @@ typedef struct _SPELL {
 /*0x4c8*/   DWORD   ResistAdj;
 /*0x4cc*/   BYTE    Unknown0x4cc[0x1a];
 /*0x4e6*/   BYTE    Uninterruptable;    //00=Interruptable, 01=Uninterruptable 
-/*0x4e7*/   BYTE    Unknown0x4e7[0x15]; 
-/*0x4fc*/
+/*0x4e7*/   BYTE    Unknown0x4e7[0x19]; 
+/*0x500*/
 } SPELL, *PSPELL;
 
 // actual size: 0x148 10-25-2006  ieatacid

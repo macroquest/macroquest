@@ -75,7 +75,7 @@ PreSetup("MQ2Labels");
 // worry about class instatiation and crap
 
 struct _CControl {
-/*0x000*/    DWORD Fluff[0x1d];
+/*0x000*/    DWORD Fluff[0x21];
 /*0x06c*/ /* CXSTR * ToolTipReference */
 /*0x074*/    CXSTR * EQType;
 };

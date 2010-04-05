@@ -1,3 +1,12 @@
+10 December 2008 by rswiders, ieatacid, dkaa
+- updated for today's patch
+
+10 December 2008 by dkaa
+- Macro errors are now logged to a file
+
+29 November 2008 by ieatacid
+- Removed window manager drawing of the cursor on each pulse while in screen mode 3 (UI hidden) -- not needed since EQ switched to using Windows' cursor
+
 05 November 2008 by ieatacid
 - Fixed caption crash that happened on some untargetables
 - Added "Flyer" spawn type for spawns that appear in some zones with NaN location data, which will filter them from NPC spawns
