@@ -974,7 +974,7 @@ typedef struct _CTEXTENTRYWND {
 /*0x140*/
 } CTEXTENTRYWND, *PCTEXTENTRYWND;
 
-// size 0x1b4 10/09/08 ieatacid
+// size 0x220 6-23-09 ieatacid
 typedef struct _CPLAYERWND {
 /*0x000*/ struct _CSIDLWND Wnd;
 /*0x198*/ BYTE   Unknown[0x84];
@@ -982,11 +982,11 @@ typedef struct _CPLAYERWND {
 /*0x220*/ 
 } CPLAYERWND, *PCPLAYERWND;
 
-// size 0x748 6-21-09 ieatacid
+// size 0x748 6-23-09 ieatacid
 typedef struct _CTARGETWND {
 /*0x000*/ struct  _CSIDLWND Wnd;
-/*0x198*/ BYTE    Unknown0x198[0x178];
-/*0x2fc*/ struct _CSIDLWND *pWnd[NUM_BUFF_SLOTS]; // buff icons?
+/*0x198*/ BYTE    Unknown0x198[0x164];
+/*0x2fc*/ struct _CBUTTONWND *pBuff[NUM_BUFF_SLOTS]; // buff icons
 /*0x450*/ int     BuffSpellID[NUM_BUFF_SLOTS]; // 0xffffffff if no buff
 /*0x5a4*/ DWORD   BuffTimer[NUM_BUFF_SLOTS];
 /*0x6f8*/ BYTE    Unknown0x6f8[0x24];

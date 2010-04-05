@@ -247,30 +247,33 @@ bool __cdecl MQ2Initialize()
     for (i = 0 ; i < nEQMappableCommands && EQMappableCommandList[i] ; i++) {
         szEQMappableCommands[i]=EQMappableCommandList[i];
     }
-    gnNormalEQMappableCommands=i; 
-    szEQMappableCommands[0x10d]="UNKNOWN0x10d";
-    szEQMappableCommands[0x10e]="UNKNOWN0x10e";
-    szEQMappableCommands[0x10f]="UNKNOWN0x10f";
-    szEQMappableCommands[0x110]="UNKNOWN0x110";
-    szEQMappableCommands[0x111]="CHAT_SEMICOLON";
-    szEQMappableCommands[0x112]="CHAT_SLASH";
-    szEQMappableCommands[0x113]="UNKNOWN0x113";
-    szEQMappableCommands[0x114]="UNKNOWN0x114";
-    szEQMappableCommands[0x115]="INSTANT_CAMP";
-    szEQMappableCommands[0x116]="UNKNOWN0x116";
-    szEQMappableCommands[0x117]="UNKNOWN0x117";
-    szEQMappableCommands[0x118]="CHAT_EMPTY";
-    szEQMappableCommands[0x119]="TOGGLE_WINDOWMODE";
-    szEQMappableCommands[0x11a]="UNKNOWN0x11a";
-    szEQMappableCommands[0x11b]="UNKNOWN0x11b";
-    szEQMappableCommands[0x11c]="CHANGEFACE"; // maybe? something that requires models.
-    szEQMappableCommands[0x11d]="UNKNOWN0x11d";
-    szEQMappableCommands[0x11e]="UNKNOWN0x11e";
-    szEQMappableCommands[0x11f]="UNKNOWN0x11f";
-    szEQMappableCommands[0x120]="UNKNOWN0x120";
-    szEQMappableCommands[0x121]="UNKNOWN0x121";
-    szEQMappableCommands[0x122]="UNKNOWN0x122"; 
-    szEQMappableCommands[0x123]="UNKNOWN0x123"; 
+    gnNormalEQMappableCommands=i;
+
+    // as long nEQMappableCommands is right and these remain at the end, these should never need updating
+    // who uses the unknowns anyway? - ieatacid
+    szEQMappableCommands[nEQMappableCommands - 23]="UNKNOWN0x10d";
+    szEQMappableCommands[nEQMappableCommands - 22]="UNKNOWN0x10e";
+    szEQMappableCommands[nEQMappableCommands - 21]="UNKNOWN0x10f";
+    szEQMappableCommands[nEQMappableCommands - 20]="UNKNOWN0x110";
+    szEQMappableCommands[nEQMappableCommands - 19]="CHAT_SEMICOLON";
+    szEQMappableCommands[nEQMappableCommands - 18]="CHAT_SLASH";
+    szEQMappableCommands[nEQMappableCommands - 17]="UNKNOWN0x113";
+    szEQMappableCommands[nEQMappableCommands - 16]="UNKNOWN0x114";
+    szEQMappableCommands[nEQMappableCommands - 15]="INSTANT_CAMP";
+    szEQMappableCommands[nEQMappableCommands - 14]="UNKNOWN0x116";
+    szEQMappableCommands[nEQMappableCommands - 13]="UNKNOWN0x117";
+    szEQMappableCommands[nEQMappableCommands - 12]="CHAT_EMPTY";
+    szEQMappableCommands[nEQMappableCommands - 11]="TOGGLE_WINDOWMODE";
+    szEQMappableCommands[nEQMappableCommands - 10]="UNKNOWN0x11a";
+    szEQMappableCommands[nEQMappableCommands -  9]="UNKNOWN0x11b";
+    szEQMappableCommands[nEQMappableCommands -  8]="CHANGEFACE"; // maybe? something that requires models.
+    szEQMappableCommands[nEQMappableCommands -  7]="UNKNOWN0x11d";
+    szEQMappableCommands[nEQMappableCommands -  6]="UNKNOWN0x11e";
+    szEQMappableCommands[nEQMappableCommands -  5]="UNKNOWN0x11f";
+    szEQMappableCommands[nEQMappableCommands -  4]="UNKNOWN0x120";
+    szEQMappableCommands[nEQMappableCommands -  3]="UNKNOWN0x121";
+    szEQMappableCommands[nEQMappableCommands -  2]="UNKNOWN0x122"; 
+    szEQMappableCommands[nEQMappableCommands -  1]="UNKNOWN0x123"; 
 
     for (nColorAdjective=0 ; szColorAdjective[nColorAdjective] ; nColorAdjective++){}
     for (nColorAdjectiveYou=0 ; szColorAdjectiveYou[nColorAdjectiveYou] ; nColorAdjectiveYou++) {}

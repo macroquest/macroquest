@@ -1,3 +1,6 @@
+24 June 2009 by rswiders
+- Updated for today's patch
+
 21 June 2009 by ieatacid
 - Fixed suffix display bug in captions (the error was in _SPAWNINFO)
 
