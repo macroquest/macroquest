@@ -1,3 +1,9 @@
+29 October 2008 by rswiders
+- Updated for today's patch
+
+27 October 2008 by ieatacid
+- Removed BuffUpdate from the target type. It's no longer cleared when you switch/release targets and, as such, serves no real purpose
+
 22 October 2008 by ieatacid
 - Added mercenary as a spawn type and map filter option
 - Added bool mercenary to groupmember type

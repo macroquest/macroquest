@@ -3527,15 +3527,13 @@ public:
    {
       Buff = 1,
       BuffCount = 2,
-      BuffUpdate = 3,
-      BuffDuration = 4,
+      BuffDuration = 3,
    };
 
    MQ2TargetType():MQ2Type("target")
    {
       TypeMember(Buff);
       TypeMember(BuffCount);
-      TypeMember(BuffUpdate);
       TypeMember(BuffDuration);
    }
 

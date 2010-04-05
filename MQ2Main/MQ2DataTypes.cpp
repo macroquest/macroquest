@@ -7058,7 +7058,7 @@ bool MQ2TargetType::GETMEMBER()
    switch((TargetMembers)pMember->ID)
    {
    case Buff:
-      if(!(((PCTARGETWND)pTargetWnd)->BuffInfo > 0))
+      if(!(((PCTARGETWND)pTargetWnd)->Type > 0))
          return false;
       if(ISINDEX())
       {
@@ -7084,7 +7084,7 @@ bool MQ2TargetType::GETMEMBER()
             for(i = 0; i < 0x55; i++)
             {
                buffID = ((PCTARGETWND)pTargetWnd)->BuffSpellID[i];
-               if(buffID != 0xffffffff && !stricmp(Index, GetSpellNameByID(buffID)))
+               if(buffID != 0xffffffff && !stricmp(GETFIRST(), GetSpellNameByID(buffID)))
                {
                   Dest.Ptr = GetSpellByID((DWORD)buffID);
                   Dest.Type = pSpellType;
@@ -7113,7 +7113,7 @@ bool MQ2TargetType::GETMEMBER()
       }
       return false;
    case BuffCount:
-      if(!(((PCTARGETWND)pTargetWnd)->BuffInfo > 0))
+      if(!(((PCTARGETWND)pTargetWnd)->Type > 0))
          return false;
       Dest.DWord = 0;
       for(i = 0; i < 0x55; i++)
@@ -7121,12 +7121,8 @@ bool MQ2TargetType::GETMEMBER()
             Dest.DWord++;
       Dest.Type = pIntType;
       return true;
-   case BuffUpdate:
-      Dest.DWord = ((PCTARGETWND)pTargetWnd)->BuffInfo > 0;
-      Dest.Type = pBoolType;
-      return true;
    case BuffDuration:
-      if(!(((PCTARGETWND)pTargetWnd)->BuffInfo > 0))
+      if(!(((PCTARGETWND)pTargetWnd)->Type > 0))
          return false;
       if(ISINDEX())
       {

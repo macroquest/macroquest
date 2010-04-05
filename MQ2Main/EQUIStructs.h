@@ -980,7 +980,7 @@ typedef struct _CTARGETWND {
 /*0x450*/ int     BuffSpellID[0x55]; // 0xffffffff if no buff
 /*0x5a4*/ DWORD   BuffTimer[0x55];
 /*0x6F8*/ BYTE    Unknown0x6f8[0x34];
-/*0x72c*/ DWORD   BuffInfo;          // zero if target is cleared or buff info not updated
+/*0x72c*/ DWORD   Type;              // 1 = self, 4 = group member, 5 = PC, 7 = NPC
 /*0x730*/ BYTE    Unknown0x730[0x24];
 /*0x754*/
 } CTARGETWND, *PCTARGETWND;
