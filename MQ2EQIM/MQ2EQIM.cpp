@@ -375,7 +375,7 @@ VOID SaveBuddyList()
         if (EQIMBuddy *pBuddy = BuddyList[N])
         {
             WritePrivateProfileString(Character,pBuddy->Name,pBuddy->Name,INIFileName);
-            WritePrivateProfileString("LastSeen",pBuddy->Name,itoa(pBuddy->LastSeen,Buffer,10),INIFileName);
+            WritePrivateProfileString("LastSeen",pBuddy->Name,itoa((int)pBuddy->LastSeen,Buffer,10),INIFileName);
         }
     }
 }

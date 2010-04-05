@@ -769,6 +769,7 @@ VOID Filter(PSPAWNINFO pChar, PCHAR szLine)
         "all",
         "enhanced",
         "none",
+		"macroended",
         NULL
     };
 
@@ -841,7 +842,7 @@ VOID Filter(PSPAWNINFO pChar, PCHAR szLine)
                 return;
             }
         }
-        SyntaxError("Usage: /filter macros [all|enhanced|none]");
+        SyntaxError("Usage: /filter macros [all|enhanced|none|macroended]");
     } else if (!stricmp("mq",szArg)) {
         if (szRest[0]==0) {
             sprintf(szCmd,"Filtering of MQ is set to: %s",szUseChat[gFilterMQ]);

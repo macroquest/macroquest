@@ -656,7 +656,7 @@ VOID EndMacro(PSPAWNINFO pChar, PCHAR szLine)
     ClearMQ2DataVariables(&pMacroVariables);
 
     DebugSpewNoFile("EndMacro - Ended");
-    if (gFilterMacro != FILTERMACRO_NONE)
+    if (gFilterMacro != FILTERMACRO_NONE && gFilterMacro != FILTERMACRO_MACROENDED)
         WriteChatColor("The current macro has ended.",USERCOLOR_DEFAULT);
 }
 

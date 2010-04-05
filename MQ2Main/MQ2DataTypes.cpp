@@ -2807,7 +2807,7 @@ bool MQ2CharacterType::GETMEMBER()
         if (ISNUMBER())
         {
             unsigned long nBuff=GETNUMBER()-1;
-            if (nBuff>29)
+            if (nBuff>NUM_BUFF_SLOTS)
                 return false;
             if (pPetInfoWindow->Buff[nBuff]==0xFFFFFFFF || pPetInfoWindow->Buff[nBuff]==0)
                 return false;
@@ -2819,7 +2819,7 @@ bool MQ2CharacterType::GETMEMBER()
         }
         else
         {
-            for (unsigned long nBuff=0 ; nBuff < 29 ; nBuff++)
+            for (unsigned long nBuff=0 ; nBuff < NUM_BUFF_SLOTS ; nBuff++)
             {
                 if (PSPELL pSpell=GetSpellByID(pPetInfoWindow->Buff[nBuff]))
                 {
@@ -3564,7 +3564,7 @@ bool MQ2SpellType::GETMEMBER()
             Dest.DWord = true;      
             Dest.Type = pBoolType;
             PEQPETINFOWINDOW pPet = ((PEQPETINFOWINDOW)pPetInfoWnd);
-            for (nBuff=0; nBuff<85; nBuff++){
+            for (nBuff=0; nBuff<NUM_BUFF_SLOTS; nBuff++){
                 if (pPet->Buff[nBuff]>0 && !(pPet->Buff[nBuff]==0xFFFFFFFF || pPet->Buff[nBuff]==0)) {
                     PSPELL tmpSpell = GetSpellByID(pPet->Buff[nBuff]);
                     petbuffduration = ((pPet->BuffFadeETA[nBuff]+5999)/1000)/6;
@@ -3626,7 +3626,7 @@ bool MQ2ItemType::GETMEMBER()
         Dest.Type=pBoolType;
         return true;
     case NoDrop:
-        Dest.DWord=!pItem->Item->NoDrop;
+        Dest.DWord=!((EQ_Item*)pItem)->CanDrop(666);
         Dest.Type=pBoolType;
         return true;
     case NoRent:
@@ -7157,10 +7157,10 @@ bool MQ2TargetType::GETMEMBER()
             if(ISNUMBER())
             {
                 DWORD nBuff = GETNUMBER();
-                if (!nBuff || nBuff >= 0x5a)
+                if (!nBuff || nBuff >= NUM_BUFF_SLOTS)
                     return false;
                 j = 0;
-                for(i = 0; i < 0x5a; i++)
+                for(i = 0; i < NUM_BUFF_SLOTS; i++)
                 {
                     buffID = ((PCTARGETWND)pTargetWnd)->BuffSpellID[i];
                     if(buffID && nBuff == ++j)
@@ -7173,7 +7173,7 @@ bool MQ2TargetType::GETMEMBER()
             }
             else
             {
-                for(i = 0; i < 0x5a; i++)
+                for(i = 0; i < NUM_BUFF_SLOTS; i++)
                 {
                     buffID = ((PCTARGETWND)pTargetWnd)->BuffSpellID[i];
                     if(buffID && !stricmp(GETFIRST(), GetSpellNameByID(buffID)))
@@ -7188,7 +7188,7 @@ bool MQ2TargetType::GETMEMBER()
         else
         {
             // return first buff
-            for(i = 0; i < 0x5a; i++)
+            for(i = 0; i < NUM_BUFF_SLOTS; i++)
             {
                 buffID = ((PCTARGETWND)pTargetWnd)->BuffSpellID[i];
                 if(buffID)
@@ -7208,7 +7208,7 @@ bool MQ2TargetType::GETMEMBER()
         if(!(((PCTARGETWND)pTargetWnd)->Type > 0))
             return false;
         Dest.DWord = 0;
-        for(i = 0; i < 0x5a; i++)
+        for(i = 0; i < NUM_BUFF_SLOTS; i++)
             if(((PCTARGETWND)pTargetWnd)->BuffSpellID[i])
                 Dest.DWord++;
         Dest.Type = pIntType;
@@ -7221,10 +7221,10 @@ bool MQ2TargetType::GETMEMBER()
             if(ISNUMBER())
             {
                 DWORD nBuff = GETNUMBER();
-                if (!nBuff || nBuff >= 0x5a)
+                if (!nBuff || nBuff >= NUM_BUFF_SLOTS)
                     return false;
                 j = 0;
-                for(i = 0; i < 0x5a; i++)
+                for(i = 0; i < NUM_BUFF_SLOTS; i++)
                 {
                     buffID = ((PCTARGETWND)pTargetWnd)->BuffSpellID[i];
                     if(buffID && nBuff == ++j)
@@ -7237,7 +7237,7 @@ bool MQ2TargetType::GETMEMBER()
             }
             else
             {
-                for(i = 0; i < 0x5a; i++)
+                for(i = 0; i < NUM_BUFF_SLOTS; i++)
                 {
                     buffID = ((PCTARGETWND)pTargetWnd)->BuffSpellID[i];
                     if(buffID && !stricmp(GETFIRST(), GetSpellNameByID(buffID)))
@@ -7252,7 +7252,7 @@ bool MQ2TargetType::GETMEMBER()
         else
         {
             // return first buff
-            for(i = 0; i < 0x5a; i++)
+            for(i = 0; i < NUM_BUFF_SLOTS; i++)
             {
                 buffID = ((PCTARGETWND)pTargetWnd)->BuffSpellID[i];
                 if(buffID)

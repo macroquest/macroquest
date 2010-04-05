@@ -663,7 +663,7 @@ public:
             STMLToPlainText(&pWnd->Tooltip->Text[0],Temp);
             pItem=GetItemContentsByName(Temp);
         }
-        else if(GetParentWnd(pWnd)!=(CXWnd*)pBuffWnd)
+        else if(GetParentWnd(pWnd)!=(CXWnd*)pBuffWnd && GetParentWnd(pWnd)!=(CXWnd*)pSongWnd && GetParentWnd(pWnd)!=(CXWnd*)pTargetWnd && GetParentWnd(pWnd)!=(CXWnd*)pPetInfoWnd)
         {
             pItem=GetItemContentsBySlotID(((CSidlScreenWnd *)pWnd)->SlotID);
         }

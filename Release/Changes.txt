@@ -1,3 +1,23 @@
+18 June 2009 by rswiders, ieatacid
+- Updated for today's patch
+- Added NUM_BUFF_SLOTS to handle the everchanging number of buffs in the target and pet windows.
+
+17 June 2009 by rswiders
+- Added the command history functionality to MQ2ChatWnd (thanks PMS)
+
+15 June 2009 by dkaa
+- Fixed bug NoDrop on items on FV and other special servers
+
+15 June 2009 by rswiders
+- Fixed bug with flashing MQ captions.
+- Fixed bug with tooltips.  If you had a clicky item equipped in the left ear, the target window (and possibly others) would show tooltips baseed on "item name(ready)" instead of "buff name (time remaining)".
+- Added filtering of macro ended messages.
+- Added additional functionality to MQ2ChatWnd (thanks PMS)
+   The window will redraw right away when you reload your UI in game, rather than waiting for the first text output request to recreate itself. 
+   AutoScroll - on by default/normal behavior 
+   NoCharSelect - off by default/normal behavior 
+   SaveByChar - on by default/normal behavior 
+
 12 June 2009 by rswiders
 - Updated for today's patch
 
