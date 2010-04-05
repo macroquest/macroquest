@@ -1148,7 +1148,7 @@ typedef struct _LAUNCHSPELLDATA {
 /*0x3c*/
 } LAUNCHSPELLDATA, *PLAUNCHSPELLDATA;
 
-// actual size: 0x1bfc 2-11-2009
+// actual size: 0x1c08 4-07-2009
 typedef struct _SPAWNINFO {
 /*0x0000*/ void     *vtable;
 /*0x0004*/ struct   _SPAWNINFO *pPrev;
@@ -1249,67 +1249,67 @@ typedef struct _SPAWNINFO {
 /*0x03b0*/ DWORD    EnduranceMax;
 /*0x03b4*/ BYTE     Unknown0x3b4[0x90];
 /*0x0444*/ struct   _LAUNCHSPELLDATA CastingData; // size: 0x3c
-/*0x0480*/ BYTE     Unknown0x480[0x24];
-/*0x04a4*/ DWORD    LastTick;
-/*0x04a8*/ BYTE     Unknown0x4a8[0x4];
-/*0x04ac*/ CHAR     Suffix[0x20];
-/*0x04cc*/ BYTE     FishingEvent;
-/*0x04cd*/ BYTE     Unknown0x4cd[0x91f];
-/*0x0dec*/ struct   _SPAWNINFO *WhoFollowing; // NULL if autofollow off
-/*0x0df0*/ int      GroupAssistNPC[1];
-/*0x0df4*/ int      RaidAssistNPC[3];
-/*0x0e00*/ int      GroupMarkNPC[3];
-/*0x0e0c*/ int      RaidMarkNPC[3];
-/*0x0e18*/ int      TargetOfTarget;
-/*0x0e1c*/ BYTE     Unknown0xe1c[0x30];
-/*0x0e4c*/ void     *pActorClient;          // ActorClient*
-/*0x0e50*/ BYTE     InNonPCRaceIllusion;
-/*0x0e51*/ BYTE     Unknown0xe51[3];
-/*0x0e54*/ BYTE     FaceStyle;
-/*0x0e55*/ BYTE     HairColor;
-/*0x0e56*/ BYTE     FacialHairColor;
-/*0x0e57*/ BYTE     EyeColor1;
-/*0x0e58*/ BYTE     EyeColor2;
-/*0x0e59*/ BYTE     HairStyle;
-/*0x0e5a*/ BYTE     FacialHair;
-/*0x0e5b*/ BYTE     Unknown0xe5b;
-/*0x0e5c*/ DWORD    Race;
-/*0x0e60*/ BYTE     Class;
-/*0x0e61*/ BYTE     Gender;
-/*0x0e62*/ CHAR     ActorDef[0x40];
-/*0x0ea2*/ BYTE     Unknown0xea2[0x2];
-/*0x0ea4*/ ARGBCOLOR ArmorColor[0x9];
-/*0x0ec8*/ BYTE     Unknown0xec8[0x4];
-/*0x0ecc*/ DWORD    Heritage;               //drakkin only face setting
-/*0x0ed0*/ DWORD    Tattoo;                //drakkin only face setting
-/*0x0ed4*/ DWORD    Details;                //drakkin only face setting
-/*0x0ed8*/ struct   _EQUIPMENT Equipment;
-/*0x0f44*/ BYTE     Unknown0xf44[0x38];
-/*0x0f7c*/ VOID     *pcactorex;             // ActorInterface*
-/*0x0f80*/ DWORD    Unknown0xf80;
-/*0x0f84*/ VOID     *FaceRelatedActorStruct;
-/*0x0f88*/ BYTE     Unknown0xf88[0x30];
-/*0x0fb8*/ FLOAT    GetMeleeRangeVar2;      // used by GetMeleeRange
-/*0x0fbc*/ BYTE     Unknown0xfbc[0x40];
-/*0x0ffc*/ DWORD    Animation;
-/*0x1000*/ BYTE     Unknown0x1000[0x60]; 
-/*0x1060*/ struct   _MODELINFO *Model[0xf]; // this is wrong dkaa 10/21/06 (offset should be right 2/11/2009. needs to be worked on - ieatacid [0xf = 15 models])
-/*0x109c*/ BYTE     Unknown0x109c[0x68]; 
-/*0x1104*/ FLOAT    WalkSpeed;
-/*0x1108*/ DWORD    HideCorpse;
-/*0x110c*/ BYTE     Unknown0x110c[0x40];
-/*0x114c*/ BYTE     InvitedToGroup;
-/*0x114d*/ BYTE     Unknown0x114d[0x3];
-/*0x1150*/ DWORD    GroupMemberTargeted;    // 0xFFFFFFFF if no target, else 1 through 5
-/*0x1154*/ BYTE     Unknown0x1154[0x180];
-/*0x12d4*/ struct   _FELLOWSHIPINFO Fellowship; // size 0x884
-/*0x1b58*/ BYTE     Unknown0x1b58[0x54];
-/*0x1bac*/ void     *vtable2;
-/*0x1bb0*/ DWORD    Unknown0x1bb0;
-/*0x1bb4*/ struct   _SPAWNINFO *pSpawn;
-/*0x1bb8*/ BYTE     Levitate;
-/*0x1bb9*/ BYTE     Unknown0x1bb9[0x43]; 
-/*0x1bfc*/
+/*0x0480*/ BYTE     Unknown0x480[0x30];
+/*0x04b0*/ DWORD    LastTick;
+/*0x04b4*/ BYTE     Unknown0x4a8[0x4];
+/*0x04b8*/ CHAR     Suffix[0x20];
+/*0x04d8*/ BYTE     FishingEvent;
+/*0x04d9*/ BYTE     Unknown0x4cd[0x91f];
+/*0x0df8*/ struct   _SPAWNINFO *WhoFollowing; // NULL if autofollow off
+/*0x0dfc*/ int      GroupAssistNPC[1];
+/*0x0e00*/ int      RaidAssistNPC[3];
+/*0x0e0c*/ int      GroupMarkNPC[3];
+/*0x0e18*/ int      RaidMarkNPC[3];
+/*0x0e24*/ int      TargetOfTarget;
+/*0x0e28*/ BYTE     Unknown0xe1c[0x30];
+/*0x0e58*/ void     *pActorClient;          // ActorClient*
+/*0x0e5c*/ BYTE     InNonPCRaceIllusion;
+/*0x0e5d*/ BYTE     Unknown0xe51[3];
+/*0x0e60*/ BYTE     FaceStyle;
+/*0x0e61*/ BYTE     HairColor;
+/*0x0e62*/ BYTE     FacialHairColor;
+/*0x0e63*/ BYTE     EyeColor1;
+/*0x0e64*/ BYTE     EyeColor2;
+/*0x0e65*/ BYTE     HairStyle;
+/*0x0e66*/ BYTE     FacialHair;
+/*0x0e67*/ BYTE     Unknown0xe5b;
+/*0x0e68*/ DWORD    Race;
+/*0x0e6c*/ BYTE     Class;
+/*0x0e6d*/ BYTE     Gender;
+/*0x0e6e*/ CHAR     ActorDef[0x40];
+/*0x0eae*/ BYTE     Unknown0xea2[0x2];
+/*0x0eb0*/ ARGBCOLOR ArmorColor[0x9];
+/*0x0ed4*/ BYTE     Unknown0xec8[0x4];
+/*0x0ed8*/ DWORD    Heritage;               //drakkin only face setting
+/*0x0edc*/ DWORD    Tattoo;                 //drakkin only face setting
+/*0x0ee0*/ DWORD    Details;                //drakkin only face setting
+/*0x0ee4*/ struct   _EQUIPMENT Equipment;
+/*0x0f50*/ BYTE     Unknown0xf44[0x38];
+/*0x0f88*/ VOID     *pcactorex;             // ActorInterface*
+/*0x0f8c*/ DWORD    Unknown0xf80;
+/*0x0f90*/ VOID     *FaceRelatedActorStruct;
+/*0x0f94*/ BYTE     Unknown0xf88[0x30];
+/*0x0fc4*/ FLOAT    GetMeleeRangeVar2;      // used by GetMeleeRange
+/*0x0fc8*/ BYTE     Unknown0xfbc[0x40];
+/*0x1004*/ DWORD    Animation;
+/*0x100c*/ BYTE     Unknown0x1000[0x60]; 
+/*0x106c*/ struct   _MODELINFO *Model[0xf]; // this is wrong dkaa 10/21/06 (offset should be right 2/11/2009. needs to be worked on - ieatacid [0xf = 15 models])
+/*0x10a8*/ BYTE     Unknown0x109c[0x68]; 
+/*0x1110*/ FLOAT    WalkSpeed;
+/*0x1114*/ DWORD    HideCorpse;
+/*0x1118*/ BYTE     Unknown0x110c[0x40];
+/*0x1158*/ BYTE     InvitedToGroup;
+/*0x1159*/ BYTE     Unknown0x114d[0x3];
+/*0x115c*/ DWORD    GroupMemberTargeted;    // 0xFFFFFFFF if no target, else 1 through 5
+/*0x1160*/ BYTE     Unknown0x1154[0x180];
+/*0x12e0*/ struct   _FELLOWSHIPINFO Fellowship; // size 0x884
+/*0x1b64*/ BYTE     Unknown0x1b58[0x54];
+/*0x1bb8*/ void     *vtable2;
+/*0x1bbc*/ DWORD    Unknown0x1bb0;
+/*0x1bc0*/ struct   _SPAWNINFO *pSpawn;
+/*0x1bc4*/ BYTE     Levitate;
+/*0x1bc5*/ BYTE     Unknown0x1bb9[0x43]; 
+/*0x1c08*/
 } SPAWNINFO, *PSPAWNINFO;
 
 #define STANDSTATE_STAND                0x64

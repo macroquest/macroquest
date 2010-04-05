@@ -1,3 +1,6 @@
+07 April 2009 by rswiders, dkaa, ieatacid
+- Updated for today's patch
+
 29 March 2009 by ieatacid
 - Added Me.Mercenary which returns one of the following: SUSPEND, ACTIVE, NULL, UNKNOWN
 
