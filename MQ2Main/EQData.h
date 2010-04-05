@@ -1299,9 +1299,9 @@ typedef struct _SPAWNINFO {
 /*0x0fa0*/ VOID     *FaceRelatedActorStruct;
 /*0x0fa4*/ BYTE     Unknown0xfa4[0x30];
 /*0x0fd4*/ FLOAT    GetMeleeRangeVar2;      // used by GetMeleeRange
-/*0x0fd8*/ BYTE     Unknown0xfd8[0x40];
-/*0x1018*/ DWORD    Animation;
-/*0x101c*/ BYTE     Unknown0x101c[0x124]; 
+/*0x0fd8*/ BYTE     Unknown0xfd8[0x60];
+/*0x1038*/ DWORD    Animation;
+/*0x103c*/ BYTE     Unknown0x101c[0x104]; 
 /*0x1140*/ FLOAT    WalkSpeed;
 /*0x1144*/ DWORD    HideCorpse;
 /*0x1148*/ BYTE     Unknown0x1148[0x40];
