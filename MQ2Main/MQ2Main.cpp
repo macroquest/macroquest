@@ -262,8 +262,8 @@ bool __cdecl MQ2Initialize()
     szEQMappableCommands[0x116]="CHAT_EMPTY";
     szEQMappableCommands[0x117]="TOGGLE_WINDOWMODE";
     szEQMappableCommands[0x118]="UNKNOWN0x118";
-    szEQMappableCommands[0x119]="UNKNOWN0x119";// maybe? something that requires models.
-    szEQMappableCommands[0x11a]="CHANGEFACE";
+    szEQMappableCommands[0x119]="UNKNOWN0x119";
+    szEQMappableCommands[0x11a]="CHANGEFACE"; // maybe? something that requires models.
     szEQMappableCommands[0x11b]="UNKNOWN0x11b";
     szEQMappableCommands[0x11c]="UNKNOWN0x11c";
     szEQMappableCommands[0x11d]="UNKNOWN0x11d";

@@ -529,7 +529,7 @@ int CMD_CastSpell(int argc, char* argv[])
    //   CHAR szArg2[MAX_STRING] = {0}; 
    if (!stricmp(argv[1],"list")) { 
       WriteChatColor("Spells:",USERCOLOR_DEFAULT); 
-      for (Index=0;Index<9;Index++) { 
+      for (Index=0;Index<NUM_SPELL_GEMS;Index++) {
          if (GetCharInfo2()->MemorizedSpells[Index]==0xFFFFFFFF) { 
             WriteChatf("%d. <Empty>",Index+1); 
          } else { 
@@ -566,7 +566,7 @@ int CMD_CastSpell(int argc, char* argv[])
          return 0; 
       } 
    } 
-   for (Index=0;Index<9;Index++) { 
+   for (Index=0;Index<NUM_SPELL_GEMS;Index++) { 
       if (GetCharInfo2()->MemorizedSpells[Index]!=0xFFFFFFFF) { 
          PCHAR SpellName = GetSpellNameByID(GetCharInfo2()->MemorizedSpells[Index]); 
          if (!stricmp(argv[1],SpellName)) { 
@@ -598,16 +598,16 @@ int CMD_MemSpell(int argc, char *argv[])
       WriteChatf("Syntax: %s <gem #> <spellname>",argv[0]);
       return 0;
    }
-    if (!ppSpellBookWnd) return -1;
-    DWORD Favorite = (DWORD)&MemSpellFavorite;
-    DWORD sp;
+   if (!ppSpellBookWnd) return -1;
+   DWORD Favorite = (DWORD)&MemSpellFavorite;
+   DWORD sp;
    WORD Gem = -1;
    PCHARINFO pCharInfo = NULL;
-    if (!pSpellBookWnd) return -1;
+   if (!pSpellBookWnd) return -1;
    if (NULL == (pCharInfo = GetCharInfo())) return -1;
 
    Gem = atoi(argv[1]);
-   if (Gem<1 || Gem>9) return -1;
+   if (Gem<1 || Gem>NUM_SPELL_GEMS) return -1;
    Gem--;
 
    GetCharInfo2()->SpellBook;
@@ -622,15 +622,15 @@ int CMD_MemSpell(int argc, char *argv[])
       }
    }
 
-    if (!pSpell) return -1;
-    if (pSpell->Level[GetCharInfo2()->Class-1]>GetCharInfo2()->Level) return -1;
+   if (!pSpell) return -1;
+   if (pSpell->Level[GetCharInfo2()->Class-1]>GetCharInfo2()->Level) return -1;
 
-    ZeroMemory(&MemSpellFavorite,sizeof(MemSpellFavorite));
-    strcpy(MemSpellFavorite.Name,"Mem a Spell");
-    MemSpellFavorite.inuse=1;
-    for (sp=0;sp<9;sp++) MemSpellFavorite.SpellId[sp]=0xFFFFFFFF;
-    MemSpellFavorite.SpellId[Gem] = pSpell->ID;
-   pSpellBookWnd->MemorizeSet((int*)Favorite,9);
+   ZeroMemory(&MemSpellFavorite,sizeof(MemSpellFavorite));
+   strcpy(MemSpellFavorite.Name,"Mem a Spell");
+   MemSpellFavorite.inuse=1;
+   for (sp=0;sp<NUM_SPELL_GEMS;sp++) MemSpellFavorite.SpellId[sp]=0xFFFFFFFF; 
+   MemSpellFavorite.SpellId[Gem] = pSpell->ID;
+   pSpellBookWnd->MemorizeSet((int*)Favorite,NUM_SPELL_GEMS); 
    return 0;
 } 
 

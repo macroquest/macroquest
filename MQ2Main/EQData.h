@@ -1183,7 +1183,8 @@ typedef struct _SPAWNINFO {
 /*0x0128*/ DWORD    **BodyType;
 /*0x012c*/ BYTE     Unknown0x12c[0xc];
 /*0x0138*/ FLOAT    AvatarHeight;           // height of avatar from ground when standing
-/*0x013c*/ BYTE     Unknown0x13c[0xc];
+/*0x013c*/ BYTE     Unknown0x13c[0x8];
+/*0x0144*/ FLOAT    AvatarHeight2;          // height of avatar from ground when crouched/sitting
 /*0x0148*/ DWORD    SpawnID;
 /*0x014c*/ BYTE     Unknown0x14c[0x4];
 /*0x0150*/ DWORD    IsABoat;                // 1 = a type of boat
@@ -1283,18 +1284,16 @@ typedef struct _SPAWNINFO {
 /*0x0ed8*/ DWORD    Heritage;               //drakkin only face setting
 /*0x0edc*/ DWORD    Tattoo;                 //drakkin only face setting
 /*0x0ee0*/ DWORD    Details;                //drakkin only face setting
-/*0x0ee4*/ struct   _EQUIPMENT Equipment;
-/*0x0f50*/ BYTE     Unknown0xf44[0x38];
+/*0x0ee4*/ struct   _EQUIPMENT Equipment;   // size 0x6c
+/*0x0f50*/ struct   _MODELINFO *Model[0xe]; // it's somwhere in this area but model data has changed so this should be removed
 /*0x0f88*/ VOID     *pcactorex;             // ActorInterface*
 /*0x0f8c*/ DWORD    Unknown0xf80;
 /*0x0f90*/ VOID     *FaceRelatedActorStruct;
 /*0x0f94*/ BYTE     Unknown0xf88[0x30];
 /*0x0fc4*/ FLOAT    GetMeleeRangeVar2;      // used by GetMeleeRange
 /*0x0fc8*/ BYTE     Unknown0xfbc[0x40];
-/*0x1004*/ DWORD    Animation;
-/*0x100c*/ BYTE     Unknown0x1000[0x60]; 
-/*0x106c*/ struct   _MODELINFO *Model[0xf]; // this is wrong dkaa 10/21/06 (offset should be right 2/11/2009. needs to be worked on - ieatacid [0xf = 15 models])
-/*0x10a8*/ BYTE     Unknown0x109c[0x68]; 
+/*0x1008*/ DWORD    Animation;
+/*0x100c*/ BYTE     Unknown0x1000[0x104]; 
 /*0x1110*/ FLOAT    WalkSpeed;
 /*0x1114*/ DWORD    HideCorpse;
 /*0x1118*/ BYTE     Unknown0x110c[0x40];
@@ -1527,8 +1526,8 @@ typedef struct _ZONEINFO {
 /*0x2a4*/
 } ZONEINFO, *PZONEINFO;
 
-#define   TOTAL_SPELL_COUNT             0x5208      // # of spells allocated in memory (10/14/2008)
-#define   TOTAL_ACTUAL_SPELLS           0x1964      // # of ACTUAL spells in game      (9/14/2004)
+#define   TOTAL_SPELL_COUNT             0x6d60      // # of spells allocated in memory (4/7/2009)
+#define   TOTAL_ACTUAL_SPELLS           0x1964      // # of ACTUAL spells in game      (9/14/2004) - wrong and unused
 
 // size: 0x17770 08-07-06          
 typedef struct _SPELLMGR {

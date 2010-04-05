@@ -776,8 +776,9 @@ VOID CaptionColorCmd(PSPAWNINFO pChar, PCHAR szLine)
             return;
         }
 }
+#endif
+
 BOOL IsTargetable(PSPAWNINFO pSpawn)
 {
     return ((EQPlayerHook*)pSpawn)->IsTargetable();
 }
-#endif

@@ -543,3 +543,16 @@ bool MQ2FriendsType::GETMETHOD()
 //	}
 	return false;
 }
+
+bool MQ2TargetType::GETMETHOD()
+{
+#define pPtr ((PSPAWNINFO)VarPtr.Ptr)
+   if (!VarPtr.Ptr)
+      return false;
+   PMQ2TYPEMETHOD pMethod=MQ2TargetType::FindMethod(Method);
+   if (!pMethod)
+      return false;
+   else
+      return true;
+#undef pPtr
+}

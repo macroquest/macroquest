@@ -1,3 +1,6 @@
+08 April 2009 by ieatacid
+- TOTAL_SPELL_COUNT fix
+
 07 April 2009 by rswiders, dkaa, ieatacid
 - Updated for today's patch
 
