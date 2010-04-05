@@ -4128,15 +4128,7 @@ BOOL IsPCNear(PSPAWNINFO pSpawn, FLOAT Radius)
 	}
 	while (pClose) 
 	{
-		BOOL InGroup = FALSE;
-		DWORD i;
-		if (pClose==GetCharInfo()->pSpawn) InGroup=TRUE;
-		for (i=0;i<5;i++) 
-		{
-			if (pGroup->pMember[i]==pClose) 
-				InGroup=TRUE;
-		}
-		if (!InGroup && (pClose->Type == SPAWN_PLAYER)) 
+      if (!IsInGroup(pClose) && (pClose->Type == SPAWN_PLAYER))
 		{
 			if ((pClose != pSpawn) && (DistanceToSpawn(pClose, pSpawn)<Radius)) 
 				return TRUE;
@@ -4149,12 +4141,18 @@ BOOL IsPCNear(PSPAWNINFO pSpawn, FLOAT Radius)
 BOOL IsInGroup(PSPAWNINFO pSpawn)
 {
     DWORD i;
-	if (pSpawn==GetCharInfo()->pSpawn) 
+    PCHARINFO pChar=GetCharInfo();
+   if (pSpawn==pChar->pSpawn)
 		return TRUE;
 	for (i=0;i<5;i++) 
 	{
-		if (pGroup->pMember[i]==pSpawn)
+      if (pChar->pGroupInfo->pMember[i])
+      {
+         CHAR Name[MAX_STRING]={0};
+         GetCXStr(pChar->pGroupInfo->pMember[i]->pName,Name,MAX_STRING);
+         if (!stricmp(Name,pSpawn->Name))
 			return TRUE;
+      }
 	}
 	return FALSE;
 }

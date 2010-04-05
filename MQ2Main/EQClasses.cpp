@@ -49,65 +49,44 @@ class CXMLData * CSidlScreenWnd::GetXMLData()
 	//DebugSpew("CSidlScreenWnd::GetXMLData()=0");
 	return 0;
 }
+
+// fuck -- if you try to use the native GetChildItem, then
+// it fails to find things without a ScreenID
+
+class CXWnd *RecurseAndFindName(class CXWnd *pWnd, PCHAR Name)
+{
+    CHAR Buffer[MAX_STRING]={0};
+    class CXWnd *tmp;
+
+    if (!pWnd) return pWnd;
+
+    if (CXMLData *pXMLData=pWnd->GetXMLData()) {
+        if (GetCXStr(pXMLData->Name.Ptr,Buffer,MAX_STRING) && !stricmp(Buffer,Name)) {
+            return pWnd;
+        }
+//DebugSpew("RecurseAndFindName looking for %s but found %s", Name, Buffer);
+        if (GetCXStr(pXMLData->ScreenID.Ptr,Buffer,MAX_STRING) && !stricmp(Buffer,Name)) {
+            return pWnd;
+        }
+    }
+
+    if (pWnd->pFirstChildWnd) {
+        tmp = RecurseAndFindName((class CXWnd *)pWnd->pFirstChildWnd, Name);
+        if (tmp)
+            return tmp;
+    }
+    return RecurseAndFindName((class CXWnd *)pWnd->pNextSiblingWnd, Name);
+}
+
 class CXWnd * CXWnd::GetChildItem(PCHAR Name)
 {
-	CXWnd *pWnd;
-	if (HasChildren)
-		pWnd=(CXWnd*)pChildren;
-	else
-		pWnd=pWndMgr->GetFirstChildWnd(this);
-	//DebugSpew("CXWnd::GetChildItem(%s). pWnd=0x%08X",Name,pWnd);
-	CHAR Buffer[MAX_STRING]={0};
-	while(pWnd)
-	{
-		if (CXMLData *pXMLData=pWnd->GetXMLData())
-		{
-			if (GetCXStr(pXMLData->Name.Ptr,Buffer,MAX_STRING) && !stricmp(Buffer,Name)) {
-//DebugSpew("GetChildItem() 0x%x %s == %s", pWnd, Name, Buffer);
-				return pWnd;
-            }
-//DebugSpew("GetChildItem() %s != %s",Name,Buffer);
-			if (GetCXStr(pXMLData->ScreenID.Ptr,Buffer,MAX_STRING) && !stricmp(Buffer,Name)) {
-//DebugSpew("GetChildItem() 0x%x %s == %s",pWnd, Name, Buffer);
-				return pWnd;
-			}
-//DebugSpew("GetChildItem() %s != %s",Name,Buffer);
-		}
-		CXWnd *pChild=pWnd->GetChildItem(Name);
-		if (pChild)
-			return pChild;
-		pWnd=((CXWnd*)this)->GetNextChildWnd(pWnd);//pWnd=(CXWnd*)pWnd->pSiblings;
-	}
-	return 0;
+    //return GetChildItem(CXStr(Name));
+    return RecurseAndFindName(this, Name);
 }
 
 class CXWnd * CSidlScreenWnd::GetChildItem(PCHAR Name)
 {
-	CXWnd *pWnd;
-	if (HasChildren)
-		pWnd=(CXWnd*)pChildren;
-	else
-		pWnd=pWndMgr->GetFirstChildWnd((CXWnd*)this);
-	//DebugSpew("CSidlScreenWnd::GetChildItem(%s). pWnd=0x%08X",Name,pWnd);
-	CHAR Buffer[MAX_STRING]={0};
-	while(pWnd)
-	{
-		if (CXMLData *pXMLData=pWnd->GetXMLData())
-		{
-			//DebugSpew("GetChildItem() Got pXMLData",Name,pWnd);
-			if (GetCXStr(pXMLData->Name.Ptr,Buffer,MAX_STRING) && !stricmp(Buffer,Name))
-				return pWnd;
-//DebugSpew("GetChildItem() %s != %s",Name,Buffer);
-			if (GetCXStr(pXMLData->ScreenID.Ptr,Buffer,MAX_STRING) && !stricmp(Buffer,Name))
-				return pWnd;
-//DebugSpew("GetChildItem() %s != %s",Name,Buffer);
-		}
-		CXWnd *pChild=pWnd->GetChildItem(Name);
-		if (pChild)
-			return pChild;
-		pWnd=((CXWnd*)this)->GetNextChildWnd(pWnd);//(CXWnd*)pWnd->pSiblings;
-	}
-	return 0;
+    return RecurseAndFindName((class CXWnd *)this, Name);
 }
 
 class CScreenPieceTemplate *  CSidlManager::FindScreenPieceTemplate(char *str)
@@ -7147,9 +7126,9 @@ FUNCTION_AT_ADDRESS(void  CSidlScreenWnd::EnableIniStorage(int,char *),CSidlScre
 #ifdef CSidlScreenWnd__ConvertToRes
 FUNCTION_AT_ADDRESS(int  CSidlScreenWnd::ConvertToRes(int,int,int,int),CSidlScreenWnd__ConvertToRes);
 #endif
-//#ifdef CSidlScreenWnd__GetChildItem
-//FUNCTION_AT_ADDRESS(class CXWnd *  CSidlScreenWnd::GetChildItem(class CXStr&)const ,CSidlScreenWnd__GetChildItem);
-//#endif
+#ifdef CSidlScreenWnd__GetChildItem
+FUNCTION_AT_ADDRESS(class CXWnd *  CSidlScreenWnd::GetChildItem(CXStr const &),CSidlScreenWnd__GetChildItem);
+#endif
 #ifdef CSidlScreenWnd__LoadIniListWnd
 FUNCTION_AT_ADDRESS(void  CSidlScreenWnd::LoadIniListWnd(class CListWnd *,char *),CSidlScreenWnd__LoadIniListWnd);
 #endif
@@ -7328,7 +7307,7 @@ FUNCTION_AT_ADDRESS(class CXRect  CXWnd::GetScreenRect(void)const ,CXWnd__GetScr
 FUNCTION_AT_ADDRESS(int  CXWnd::Resize(int,int),CXWnd__Resize);
 #endif
 #ifdef CXWnd__GetChildItem
-FUNCTION_AT_ADDRESS(class CXWnd *  CXWnd::GetChildItem(class CXStr)const ,CXWnd__GetChildItem);
+FUNCTION_AT_ADDRESS(class CXWnd *  CXWnd::GetChildItem(CXStr const &),CXWnd__GetChildItem);
 #endif
 #ifdef CXWnd__SetZLayer
 FUNCTION_AT_ADDRESS(void  CXWnd::SetZLayer(int),CXWnd__SetZLayer);

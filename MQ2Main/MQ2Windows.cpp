@@ -250,8 +250,9 @@ void InitializeMQ2Windows()
 	if (pWndMgr)
 	{
 		CHAR Name[MAX_STRING]={0};
-		PCSIDLWND pWnd=((_CXWNDMGR*)pWndMgr)->pWindows;
-		while(pWnd)
+		PCSIDLWND *ppWnd=((_CXWNDMGR*)pWndMgr)->pWindows;
+		PCSIDLWND pWnd=*ppWnd;
+		while(pWnd = *ppWnd)
 		{
 			// process window
 			if (CXMLData *pXMLData=((CXWnd*)pWnd)->GetXMLData())
@@ -286,26 +287,7 @@ void InitializeMQ2Windows()
 					}
 				}
 			}
-			if (CXWnd *pTemp=((CXWnd*)pWnd)->GetFirstChildWnd())
-			{
-				pWnd=(PCSIDLWND)pTemp;
-			}
-			else
-			{
-				while(1)
-				{
-					if (CXWnd *pTemp=((CXWnd*)pWnd)->GetNextSib())
-					{
-						pWnd=(PCSIDLWND)pTemp;
-						break;
-					}
-					pWnd=pWnd->pParentWindow;
-					if (!pWnd)
-					{
-						break;
-					}
-				}
-			}
+                        ppWnd++;
 		}
 	}
 }
@@ -857,6 +839,34 @@ void RemoveWindow(char *WindowName)
 #define RETURN(x) return x;
 #endif
 
+CHAR tmpName[MAX_STRING]={0};
+CHAR tmpAltName[MAX_STRING]={0};
+CHAR tmpType[MAX_STRING]={0};
+
+int RecurseAndListWindows(PCSIDLWND pWnd)
+{
+    int Count = 0;
+
+    if (CXMLData *pXMLData=((CXWnd*)pWnd)->GetXMLData()) {
+        Count++;
+        GetCXStr(pXMLData->TypeName.Ptr,tmpType,MAX_STRING);
+        GetCXStr(pXMLData->Name.Ptr,tmpName,MAX_STRING);
+        GetCXStr(pXMLData->ScreenID.Ptr,tmpAltName,MAX_STRING);
+        if (tmpAltName[0] && stricmp(tmpName,tmpAltName))
+            WriteChatf("[\ay%s\ax] [\at%s\ax] [Custom UI-specific: \at%s\ax]",tmpType,tmpName,tmpAltName);
+        else
+            WriteChatf("[\ay%s\ax] [\at%s\ax]",tmpType,tmpName);
+    }
+    if (pWnd->pFirstChildWnd)
+        Count += RecurseAndListWindows(pWnd->pFirstChildWnd);
+
+    if (pWnd->pNextSiblingWnd)
+        Count += RecurseAndListWindows(pWnd->pNextSiblingWnd);
+
+    return Count;
+}
+
+
 #ifndef ISXEQ 
 VOID ListWindows(PSPAWNINFO pChar, PCHAR szLine)
 {
@@ -868,9 +878,6 @@ int ListWindows(int argc, char *argv[])
       szLine = argv[1];
 
 #endif 
-	CHAR Name[MAX_STRING]={0};
-	CHAR AltName[MAX_STRING]={0};
-	CHAR Type[MAX_STRING]={0};
 	unsigned long Count=0;
 	if (!szLine || !szLine[0])
 	{
@@ -900,27 +907,11 @@ int ListWindows(int argc, char *argv[])
 		WriteChatColor("-------------------------");
 		if (_WindowInfo *pInfo=WindowList[N])
 		{
-			PCSIDLWND pWnd;//=pInfo->pWnd->pChildren;
-			if (pInfo->pWnd->HasChildren)
-				pWnd=(PCSIDLWND)pInfo->pWnd->pChildren;
-			else
-				pWnd=(PCSIDLWND)pWndMgr->GetFirstChildWnd(pInfo->pWnd);
+			PCSIDLWND pWnd= pInfo->pWnd->pFirstChildWnd;
 
-			while(pWnd)
-			{
-				if (CXMLData *pXMLData=((CXWnd*)pWnd)->GetXMLData())
-				{
-					Count++;
-					GetCXStr(pXMLData->TypeName.Ptr,Type,MAX_STRING);
-					GetCXStr(pXMLData->Name.Ptr,Name,MAX_STRING);
-					GetCXStr(pXMLData->ScreenID.Ptr,AltName,MAX_STRING);
-					if (AltName[0] && stricmp(Name,AltName))
-						WriteChatf("[\ay%s\ax] [\at%s\ax] [Custom UI-specific: \at%s\ax]",Type,Name,AltName);
-					else
-						WriteChatf("[\ay%s\ax] [\at%s\ax]",Type,Name);
-				}
-				pWnd=(PCSIDLWND)pInfo->pWnd->GetNextChildWnd((CXWnd*)pWnd);
-			}
+			if (pWnd)
+                Count = RecurseAndListWindows(pWnd);
+
 			WriteChatf("%d child windows",Count);
 		}
 	}
@@ -948,7 +939,7 @@ PCHAR szWndNotification[] = {
 	0,		//17
 	0,		//18
 	0,		//19
-	0,		//20
+	"contextmenu",		//20
 	"mouseover",	//21
 	"history",		//22
 	"leftmousehold",	//23

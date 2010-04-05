@@ -880,7 +880,8 @@ public:
       HealAmountBonus=170,
       SpellDamageBonus=171,
       ClairvoyanceBonus=172,
-      EnduranceRegenBonus=173, 
+      EnduranceRegenBonus=173,
+      Counters=174,
 	};
 	static enum CharacterMethods
 	{
@@ -1060,7 +1061,8 @@ public:
       TypeMember(HealAmountBonus);
       TypeMember(SpellDamageBonus);
       TypeMember(ClairvoyanceBonus);
-      TypeMember(EnduranceRegenBonus); 
+      TypeMember(EnduranceRegenBonus);
+      TypeMember(Counters);
 
 		TypeMethod(Stand); 
 		TypeMethod(Sit); 
@@ -1220,7 +1222,8 @@ public:
 		Spell=3,
 		Mod=4,
 		Duration=5,
-		Dar=6
+		Dar=6,
+      Counters=7
 	};
 	static enum BuffMethods
 	{
@@ -1234,6 +1237,7 @@ public:
 		TypeMember(Mod);
 		TypeMember(Duration);
 		TypeMember(Dar);
+      TypeMember(Counters);
 
 		TypeMethod(Remove);
 	}
@@ -1416,6 +1420,7 @@ public:
 		DamageShieldMitigation=127,
 		SpellDamage=128,
                 Augs=129,
+                Tradeskills=130,
 	};
 	static enum ItemMethods
 	{
@@ -1551,6 +1556,7 @@ public:
 		TypeMember(DamageShieldMitigation);
 		TypeMember(SpellDamage);
 		TypeMember(Augs);
+		TypeMember(Tradeskills);
 	}
 
 	~MQ2ItemType()

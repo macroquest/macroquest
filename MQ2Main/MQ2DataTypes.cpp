@@ -1522,9 +1522,15 @@ bool MQ2SpawnType::GETMEMBER()
         Dest.Ptr=&pSpawn->Suffix[0]; 
         return true; 
 	case xGroupLeader:
-		Dest.DWord=(pSpawn->Type==SPAWN_PLAYER && !stricmp(pGroup->LeaderName,pSpawn->Name));
+      if (GetCharInfo()->pGroupInfo && GetCharInfo()->pGroupInfo->pLeader)
+      {
+         CHAR Name[MAX_STRING]={0};
+         GetCXStr(GetCharInfo()->pGroupInfo->pLeader->pName,Name,MAX_STRING);
+         Dest.DWord=(pSpawn->Type==SPAWN_PLAYER && !stricmp(Name,pSpawn->Name));
 		Dest.Type=pBoolType;
 		return true;
+      }
+      return false;
 	case Assist:
 		if (gGameState==GAMESTATE_INGAME && GetCharInfo()->pSpawn && pSpawn)
 		{
@@ -1696,9 +1702,23 @@ bool MQ2BuffType::GETMEMBER()
 		Dest.Type=pTicksType;
 		return true;
 	case Dar:
-		Dest.DWord=pBuff->DamageAbsorbRemaining;
-		Dest.Type=pIntType;
-		return true;
+      if(PSPELL pSpell = GetSpellByID(pBuff->SpellID))
+      {
+         if(pSpell->SpellType != 0)
+         {
+		      Dest.DWord=pBuff->DamageAbsorbRemaining;
+		      Dest.Type=pIntType;
+		      return true;
+         }
+      }
+      return false;
+   case Counters:
+      if(GetSpellByID(pBuff->SpellID)->SpellType == 0)
+      {
+         Dest.DWord=pBuff->DamageAbsorbRemaining;
+         Dest.Type=pIntType;
+         return true;
+      }
 	}
 	return false;
 #undef pBuff
@@ -2151,29 +2171,44 @@ bool MQ2CharacterType::GETMEMBER()
 		Dest.DWord=0;
 		{
 			for (unsigned long k=0; k<23 ; k++)
-				Dest.DWord+=GetCharInfo2()->Buff[k].DamageAbsorbRemaining;
+            if(PSPELL pSpell = GetSpellByID(GetCharInfo2()->Buff[k].SpellID))
+               if(pSpell->SpellType != 0)
+				      Dest.DWord+=GetCharInfo2()->Buff[k].DamageAbsorbRemaining;
 		}
 		Dest.Type=pIntType;
 		return true;
 	case Grouped:
-		Dest.DWord= pGroup->MemberExists[0] ||
-					pGroup->MemberExists[1] ||
-					pGroup->MemberExists[2] ||
-					pGroup->MemberExists[3] ||
-					pGroup->MemberExists[4];
+      if(!pChar->pGroupInfo) return false;
+      Dest.DWord= pChar->pGroupInfo->pMember[0] ||
+               pChar->pGroupInfo->pMember[1] ||
+               pChar->pGroupInfo->pMember[2] ||
+               pChar->pGroupInfo->pMember[3] ||
+               pChar->pGroupInfo->pMember[4];
 		Dest.Type=pBoolType;
 		return true;	
 	case GroupList: // This isn't really working as intended just yet
-		if (pChar->GroupMember[0][0] == '\0') return false;
-		sprintf(buf, "%s %s %s %s %s", pChar->GroupMember[0], pChar->GroupMember[1], pChar->GroupMember[2],
-									   pChar->GroupMember[3], pChar->GroupMember[4] );
+		if(!pChar->pGroupInfo) return false;
+      for(unsigned long i = 0; i < 5; i++)
+      {
+         if(pChar->pGroupInfo->pMember[i])
+         {
+            char tmp[MAX_STRING];
+            GetCXStr(pChar->pGroupInfo->pMember[i]->pName, tmp, sizeof(tmp));
+            strcat(buf, tmp);
+         }
+         if(pChar->pGroupInfo->pMember[i+1])
+            strcat(buf, " ");
+      }
 		Dest.Ptr=&buf[0];
 		Dest.Type=pStringType;
 		return true;
 	case AmIGroupLeader:
-		if (!stricmp(pChar->GroupLeader, pChar->Name)) sprintf(buf,"%s","TRUE");
-		else sprintf(buf,"FALSE");
-		Dest.Ptr=&buf[0];
+      if(!pChar->pGroupInfo) return false;
+      GetCXStr(pChar->pGroupInfo->pLeader->pName, buf, sizeof(buf));
+		if(!stricmp(buf, pChar->Name))
+         Dest.Ptr="TRUE";
+		else
+         Dest.Ptr="FALSE";
 		Dest.Type=pStringType;
 		return true;
     case FreeBuffSlots: 
@@ -2975,12 +3010,10 @@ bool MQ2CharacterType::GETMEMBER()
       Dest.Type=pBoolType; 
       return true;
 	case GroupSize:
+      if(!pChar->pGroupInfo) return false;
 		Dest.DWord= 0;
-		Dest.DWord= pGroup->MemberExists[0] +
-			pGroup->MemberExists[1] +
-			pGroup->MemberExists[2] +
-			pGroup->MemberExists[3] +
-			pGroup->MemberExists[4];
+      for(unsigned long i = 0; i < 5; i++)
+         if (pChar->pGroupInfo->pMember[i]) Dest.DWord++;
 		if (Dest.DWord) Dest.DWord++;
 		Dest.Type=pIntType;
 		return true;	
@@ -3170,6 +3203,16 @@ bool MQ2CharacterType::GETMEMBER()
 		else
 			Dest.DWord=0;
 		Dest.Type=pTicksType;
+		return true;
+   case Counters:
+      Dest.DWord=0;
+		{
+			for (unsigned long k=0; k<23 ; k++)
+            if(PSPELL pSpell = GetSpellByID(GetCharInfo2()->Buff[k].SpellID))
+               if(pSpell->SpellType == 0 && GetCharInfo2()->Buff[k].DamageAbsorbRemaining)
+				      Dest.DWord += GetCharInfo2()->Buff[k].DamageAbsorbRemaining;
+		}
+		Dest.Type=pIntType;
 		return true;
 	}
 	return false;
@@ -4514,6 +4557,11 @@ bool MQ2ItemType::GETMEMBER()
             Dest.Type=pIntType;
         }
         return true;
+      case Tradeskills:
+        Dest.DWord=pItem->Item->TradeSkills;
+        Dest.Type=pBoolType;
+        return true;
+
 	 }
     return false;
 #undef pItem
@@ -4551,7 +4599,7 @@ bool MQ2WindowType::GETMEMBER()
 		Dest.Type=pIntType;
 		return true;
 	case FirstChild:
-		if (Dest.Ptr=pWnd->pChildren)
+		if (Dest.Ptr=pWnd->pFirstChildWnd)
 		{
 			Dest.Type=pWindowType;
 			return true;
@@ -4560,7 +4608,7 @@ bool MQ2WindowType::GETMEMBER()
 		Dest.Type=pIntType;
 		return true;
 	case Next:
-		if (Dest.Ptr=pWnd->pSiblings)
+		if (Dest.Ptr=pWnd->pNextSiblingWnd)
 		{
 			Dest.Type=pWindowType;
 			return true;
@@ -4593,11 +4641,11 @@ bool MQ2WindowType::GETMEMBER()
 		Dest.Type=pIntType;
 		return true;
 	case Children:
-		Dest.DWord=pWnd->HasChildren;
+		Dest.DWord=(DWORD)pWnd->pFirstChildWnd;
 		Dest.Type=pBoolType;
 		return true;
 	case Siblings:
-		Dest.DWord=pWnd->HasSiblings;
+		Dest.DWord=(DWORD)pWnd->pNextSiblingWnd;
 		Dest.Type=pBoolType;
 		return true;
 	case Minimized:
@@ -6079,9 +6127,10 @@ bool MQ2AltAbilityType::GETMEMBER()
 bool MQ2GroupType::ToString(MQ2VARPTR VarPtr, PCHAR Destination)
 {
 	int nMembers=0;
+    PCHARINFO pChar=GetCharInfo();
 	for (int index=0;index<5;index++)
 	{
-		if (pGroup->MemberExists[index]) 
+      if (pChar->pGroupInfo->pMember[index])
 			nMembers++;
 	}
 	itoa(nMembers,Destination,10);
@@ -6091,7 +6140,7 @@ bool MQ2GroupType::ToString(MQ2VARPTR VarPtr, PCHAR Destination)
 bool MQ2GroupType::GETMEMBER()
 {
 	PMQ2TYPEMEMBER pMember=MQ2GroupType::FindMember(Member);
-	if (!pMember)
+	if (!pMember || !GetCharInfo()->pGroupInfo)
 		return false;
 	switch((GroupMembers)pMember->ID)
 	{
@@ -6110,10 +6159,12 @@ bool MQ2GroupType::GETMEMBER()
             PCHARINFO pChar=GetCharInfo();
             Dest.DWord=0;
             for (int index=0;index<5;index++) 
-                if (pGroup->MemberExists[index]) 
+                if (pChar->pGroupInfo->pMember[index])
                 {
                     Dest.DWord++;
-                    if (!stricmp(pGroup->MemberName[index],GETFIRST()))
+               CHAR Name[MAX_STRING]={0};
+               GetCXStr(pChar->pGroupInfo->pMember[index]->pName,Name,MAX_STRING);
+               if (!stricmp(Name,GETFIRST()))
                     {
                         Dest.Type=pIntType;
                         return true;
@@ -6129,9 +6180,10 @@ bool MQ2GroupType::GETMEMBER()
         break;
 	case Members:
 		{
+         PCHARINFO pChar=GetCharInfo();
 			Dest.DWord=0;
 			for (int index=0;index<5;index++) 
-				if (pGroup->MemberExists[index]) 
+            if (pChar->pGroupInfo->pMember[index])
 					Dest.DWord++;
 			Dest.Type=pIntType;
 		}
@@ -6139,18 +6191,23 @@ bool MQ2GroupType::GETMEMBER()
 	case Leader:
 		{
 			PCHARINFO pChar=GetCharInfo();
+         if (!pChar->pGroupInfo->pLeader) return false;
+         CHAR LeaderName[MAX_STRING]={0};
+         GetCXStr(pChar->pGroupInfo->pLeader->pName,LeaderName,MAX_STRING);
 			Dest.DWord=0;
-			if (!stricmp(pChar->pSpawn->Name,pGroup->LeaderName))
+         if (!stricmp(pChar->pSpawn->Name,LeaderName))
 			{
 				Dest.Type=pGroupMemberType;
 				return true;
 			}
 			for (int index=0;index<5;index++) 
 			{
-				if (pGroup->MemberExists[index]) 
+            if (pChar->pGroupInfo->pMember[index])
 				{
 					Dest.DWord++;
-					if (!stricmp(pGroup->MemberName[index],pGroup->LeaderName))
+               CHAR Name[MAX_STRING]={0};
+               GetCXStr(pChar->pGroupInfo->pMember[index]->pName,Name,MAX_STRING);
+               if (!stricmp(Name,LeaderName))
 					{
 						Dest.Type=pGroupMemberType;
 						return true;
@@ -6175,14 +6232,17 @@ bool MQ2GroupMemberType::ToString(MQ2VARPTR VarPtr, PCHAR Destination)
 	{
 		if (N>5)
 			return false;
+       PCHARINFO pChar=GetCharInfo();
 		for (unsigned long i=0; i<5 ; i++)
 		{
-			if (pGroup->MemberExists[i])
+         if (pChar->pGroupInfo->pMember[i])
 			{
 				N--;
 				if (N==0)
 				{
-					strcpy(Destination,pGroup->MemberName[i]);
+               CHAR Name[MAX_STRING]={0};
+               GetCXStr(pChar->pGroupInfo->pMember[i]->pName,Name,MAX_STRING);
+               strcpy(Destination,Name);
 					return true;
 				}
 			}
@@ -6201,19 +6261,22 @@ bool MQ2GroupMemberType::GETMEMBER()
 	//DWORD nGroupMember=VarPtr.DWord-1;
 	char *MemberName=0;
 	PSPAWNINFO pGroupMember=0;
+    PCHARINFO pChar=GetCharInfo();
 	if (unsigned long N=VarPtr.DWord)
 	{
 		if (N>5)
 			return false;
 		for (unsigned long i=0; i<5 ; i++)
 		{
-			if (pGroup->MemberExists[i])
+         if (pChar->pGroupInfo->pMember[i])
 			{
 				N--;
 				if (N==0)
 				{
-					pGroupMember=pGroup->pMember[i];
-					MemberName=pGroup->MemberName[i];
+               CHAR Name[MAX_STRING]={0};
+               GetCXStr(pChar->pGroupInfo->pMember[i]->pName,Name,MAX_STRING);
+               pGroupMember=(PSPAWNINFO)GetSpawnByName(Name);
+               MemberName=pGroupMember->Name;
 					break;
 				}
 			}
@@ -6245,9 +6308,13 @@ bool MQ2GroupMemberType::GETMEMBER()
 		Dest.Type=pStringType;
 		return true;
 	case Leader:
-		Dest.DWord=((VarPtr.DWord==0 && !pGroup->LeaderName[0]) || !stricmp(MemberName,pGroup->LeaderName));
+      {
+         CHAR LeaderName[MAX_STRING]={0};
+         GetCXStr(pChar->pGroupInfo->pLeader->pName,LeaderName,MAX_STRING);
+         Dest.DWord=((VarPtr.DWord==0 && !pChar->pGroupInfo->pLeader) || !stricmp(MemberName,LeaderName));
 		Dest.Type=pBoolType;
 		return true;
+      }
 	case Spawn:
 		if (Dest.Ptr=pGroupMember)
 		{

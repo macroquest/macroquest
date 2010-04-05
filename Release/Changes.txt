@@ -1,3 +1,12 @@
+09 September 2008 by ieatacid, rswiders, dkaa
+- Updated for today's patch
+
+21 August 2008 by dkaa
+- Add Tradeskills to TLO Item courtesy of brainiac
+
+20 August 2008 by ieatacid
+- Added Counters to the character type (total number of detrimental counters you have) and Counter to the buff type (counters per buff)
+
 11 August 2008 by ieatacid
 - Updated for today's patch
 

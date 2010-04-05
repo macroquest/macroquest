@@ -308,11 +308,17 @@ static inline BOOL IsRaidMember(PSPAWNINFO pSpawn)
 
 static inline BOOL IsGroupMember(PSPAWNINFO pSpawn)
 {
+    PCHARINFO pChar=GetCharInfo();
 	for (DWORD N = 0 ; N < 5 ; N++)
 	{
-		if (pSpawn==(PSPAWNINFO)pGroup->pMember[N])
+      if (pChar->pGroupInfo->pMember[N])
+      {
+         CHAR Name[MAX_STRING]={0};
+         GetCXStr(pChar->pGroupInfo->pMember[N]->pName,Name,MAX_STRING);
+         if (!stricmp(pSpawn->Name,Name))
 			return 1;
 	}
+   }
 	return 0;
 }
 
@@ -334,14 +340,17 @@ static inline PSPAWNINFO GetGroupMember(unsigned long N)
 {
 	if (N>5)
 		return false;
+    PCHARINFO pChar=GetCharInfo();
 	for (unsigned long i=0; i<5 ; i++)
 	{
-		if (pGroup->MemberExists[i])
+      if (pChar->pGroupInfo->pMember[i])
 		{
 			N--;
 			if (N==0)
 			{
-				return pGroup->pMember[i];
+            CHAR Name[MAX_STRING]={0};
+            GetCXStr(pChar->pGroupInfo->pMember[i]->pName,Name,MAX_STRING);
+            return (PSPAWNINFO)GetSpawnByName(Name);
 			}
 		}
 	}
