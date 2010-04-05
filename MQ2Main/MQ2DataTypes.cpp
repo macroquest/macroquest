@@ -81,6 +81,7 @@ class MQ2DZMemberType *pDZMemberType=0;
 class MQ2FellowshipType *pFellowshipType=0;
 class MQ2FellowshipMemberType *pFellowshipMemberType=0;
 class MQ2FriendsType *pFriendsType=0;
+class MQ2TargetType *pTargetType=0;
 
 #ifndef ISXEQ
 
@@ -132,12 +133,14 @@ void InitializeMQ2DataTypes()
 	pFellowshipType=new MQ2FellowshipType;
 	pFellowshipMemberType=new MQ2FellowshipMemberType;
 	pFriendsType = new MQ2FriendsType;
+   pTargetType = new MQ2TargetType;
 
 	// NOTE: SetInheritance does NOT make it inherit, just notifies the syntax checker...
 	pCharacterType->SetInheritance(pSpawnType);
 	pBuffType->SetInheritance(pSpellType);
 //	pCurrentZoneType->SetInheritance(pZoneType);
 	pRaidMemberType->SetInheritance(pSpawnType);
+   pTargetType->SetInheritance(pSpawnType);
 }
 
 void ShutdownMQ2DataTypes()
@@ -183,6 +186,7 @@ void ShutdownMQ2DataTypes()
 	delete pEvolvingItemType;
 	delete pDynamicZoneType;
 	delete pFriendsType;
+   delete pTargetType;
 }
 
 bool MQ2TypeType::GETMEMBER()
@@ -6914,3 +6918,90 @@ bool MQ2FriendsType::GETMEMBER()
     };
 }
 
+bool MQ2TargetType::GETMEMBER()
+{
+   int buffID = 0;
+	if (!VarPtr.Ptr)
+		return false;
+	PMQ2TYPEMEMBER pMember=MQ2TargetType::FindMember(Member);
+	if (!pMember)
+	{
+#ifndef ISXEQ
+		return pSpawnType->GetMember(*(MQ2VARPTR*)&VarPtr.Ptr,Member,Index,Dest);
+#else
+		return pSpawnType->GetMember(*(LSVARPTR*)&VarPtr.Ptr,Member,argc,argv,Dest);
+#endif
+	}
+   switch((TargetMembers)pMember->ID)
+   {
+   case Buff:
+      if(!(((PCTARGETWND)pTargetWnd)->BuffInfo > 0))
+         return false;
+      if(ISINDEX())
+      {
+         if(ISNUMBER())
+         {
+            DWORD nBuff = GETNUMBER();
+            DWORD i = 0;
+            if (!nBuff || nBuff >= 0x55)
+               return false;
+            for(DWORD j = 0; j < 0x55; j++)
+            {
+               buffID = ((PCTARGETWND)pTargetWnd)->BuffSpellID[j];
+               if(buffID != 0xffffffff && nBuff == ++i)
+               {
+                  Dest.Ptr = GetSpellByID((DWORD)buffID);
+                  Dest.Type = pSpellType;
+                  return true;
+               }
+            }
+         }
+         else
+         {
+            for(DWORD i = 0; i < 0x55; i++)
+            {
+               buffID = ((PCTARGETWND)pTargetWnd)->BuffSpellID[i];
+               if(buffID != 0xffffffff && !strcmp(Index, GetSpellNameByID(buffID)))
+               {
+                  Dest.Ptr = GetSpellByID((DWORD)buffID);
+                  Dest.Type = pSpellType;
+                  return true;
+               }
+            }
+         }
+      }
+      else
+      {
+         // return first buff
+         for(DWORD i = 0; i < 0x55; i++)
+         {
+            buffID = ((PCTARGETWND)pTargetWnd)->BuffSpellID[i];
+            if(buffID != 0xffffffff)
+            {
+               if(PSPELL pSpell = GetSpellByID(buffID))
+               {
+                  strcpy(DataTypeTemp, pSpell->Name);
+                  Dest.Ptr = &DataTypeTemp[0];
+                  Dest.Type = pStringType;
+                  return true;
+               }
+            }
+         }
+      }
+      return false;
+   case BuffCount:
+      if(!(((PCTARGETWND)pTargetWnd)->BuffInfo > 0))
+         return false;
+      Dest.DWord = 0;
+      for(DWORD i = 0; i < 0x55; i++)
+         if(((PCTARGETWND)pTargetWnd)->BuffSpellID[i] != 0xffffffff)
+            Dest.DWord++;
+      Dest.Type = pIntType;
+      return true;
+   case BuffUpdate:
+      Dest.DWord = ((PCTARGETWND)pTargetWnd)->BuffInfo > 0;
+      Dest.Type = pBoolType;
+      return true;
+   }
+   return false;
+}

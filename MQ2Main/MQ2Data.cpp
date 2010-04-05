@@ -108,7 +108,7 @@ TLO(dataTarget)
 	if (pTarget)
 	{
 		Ret.Ptr=pTarget;
-		Ret.Type=pSpawnType;
+		Ret.Type=pTargetType;
 		return true;
 	}
 	return false;

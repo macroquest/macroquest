@@ -1,3 +1,9 @@
+09 October 2008 by ieatacid
+- Changed target TLO. It now uses the new TargetType which inherits the spawn type.  The TargetType contains the following members:
+   Buff (access to spell type): returns the target's spell by index (${Target.Buff[n]}) or name (${Target.Buff[name]}).  If no index is given (${Target.Buff}) it returns the first spell name or "NULL" if the target has no buffs
+   BuffCount: returns the number of buffs on the target
+   BuffUpdate: since there's a delay between when you target a spawn and when you get their buff data, this lets you know if the buff data is available
+      
 09 October 2008 by ieatacid, dkaa, rswiders
 - Updated for October 7th patch
 - Added spawn type members: CurrentMana, MaxMana, Current Endurance, MaxEndurance -- these behave like CurrentHPs (only updated when you target a spawn)

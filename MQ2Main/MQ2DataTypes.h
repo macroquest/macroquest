@@ -113,6 +113,7 @@ LEGACY_VAR class MQ2DZMemberType *pDZMemberType;
 LEGACY_VAR class MQ2FellowshipType *pFellowshipType;
 LEGACY_VAR class MQ2FellowshipMemberType *pFellowshipMemberType;
 LEGACY_VAR class MQ2FriendsType *pFriendsType;
+LEGACY_VAR class MQ2TargetType *pTargetType;
 
 #define UseTemp(mystring) strcpy(DataTypeTemp,mystring)
 #define TypeMember(name) AddMember((DWORD)name,""#name)
@@ -3501,3 +3502,71 @@ public:
     }
 }; 
 
+class MQ2TargetType : public MQ2Type
+{
+public:
+   static enum TargetMembers
+   {
+      Buff = 1,
+      BuffCount = 2,
+      BuffUpdate = 3,
+   };
+
+   MQ2TargetType():MQ2Type("target")
+   {
+      TypeMember(Buff);
+      TypeMember(BuffCount);
+      TypeMember(BuffUpdate);
+   }
+
+   ~MQ2TargetType()
+   {
+   }
+
+   bool GETMEMBER();
+   DECLAREGETMETHOD();
+
+   bool ToString(MQ2VARPTR VarPtr, PCHAR Destination)
+   {
+      if (!VarPtr.Ptr)
+         return false;
+      strcpy(Destination,((PSPAWNINFO)VarPtr.Ptr)->Name);
+      return true;
+   }
+   void InitVariable(MQ2VARPTR &VarPtr) 
+   {
+      VarPtr.Ptr=malloc(sizeof(SPAWNINFO));
+      ZeroMemory(VarPtr.Ptr,sizeof(SPAWNINFO));
+   }
+   void FreeVariable(MQ2VARPTR &VarPtr) 
+   {
+      free(VarPtr.Ptr);
+   }
+
+   virtual bool FromData(MQ2VARPTR &VarPtr, MQ2TYPEVAR &Source)
+   {
+      if (Source.Type==pSpawnType)
+      {
+         memcpy(VarPtr.Ptr,Source.Ptr,sizeof(SPAWNINFO));
+         return true;
+      }
+      else
+      {
+         if (PSPAWNINFO pOther=(PSPAWNINFO)GetSpawnByID(Source.DWord))
+         {
+            memcpy(VarPtr.Ptr,pOther,sizeof(SPAWNINFO));
+            return true;
+         }
+      }
+      return false;
+   }
+   bool FromString(MQ2VARPTR &VarPtr, PCHAR Source)
+   {
+      if (PSPAWNINFO pOther=(PSPAWNINFO)GetSpawnByID(atoi(Source)))
+      {
+         memcpy(VarPtr.Ptr,pOther,sizeof(SPAWNINFO));
+         return true;
+      }
+      return false;
+   }
+};
