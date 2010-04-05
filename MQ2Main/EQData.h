@@ -1784,7 +1784,7 @@ typedef struct _ALTADVMGR {
 /*0x00*/ struct _NEWALTADVMGR* AltAbilities;
 } ALTADVMGR, *PALTADVMGR;
 
-// size 0x118 (8.11.2004)
+// size 0x120 (3-12-2009)
 typedef struct _EQRAIDMEMBER { 
 /*0x00*/ CHAR Name[0x40]; 
 /*0x40*/ CHAR RaidNote[0x40]; 
@@ -1799,22 +1799,23 @@ typedef struct _EQRAIDMEMBER {
 /*0x110*/ BYTE  RaidWaypointer;
 /*0x111*/ BYTE  Padding0x111[0x3]; 
 /*0x114*/ DWORD GroupNumber; 
-/*0x118*/ 
+/*0x118*/ BYTE  Unknown0x118[0x8];
+/*0x120*/ 
 } EQRAIDMEMBER, *PEQRAIDMEMBER;
 
 // sizeof(_EQRAID) is 0x5d04 (3-12-2009)
-typedef struct _EQRAID { 
+typedef struct _EQRAID {
 /*0x0000*/  BYTE        Unknown0x0[0x158];
 /*0x0158*/  CHAR        RaidMemberUsed[0x48];
 /*0x01a0*/  struct      _EQRAIDMEMBER RaidMember[0x48];
-/*0x5060*/  BYTE        Unknown0x5060[0x244];
+/*0x52a0*/  BYTE        Unknown0x5100[0x4];
 /*0x52a4*/  DWORD       RaidMemberCount;
 /*0x52a8*/  CHAR        RaidLeaderName[0x140];
 /*0x53e8*/  CHAR        RaidMOTD[0x400];
 /*0x57e8*/  BYTE        Unknown0x57e8[0x40];
-/*0x5828*/  BYTE        Invited;
+/*0x5828*/  BYTE        Invited; // 1 = default?, 2 = invited, 4 = in raid
 /*0x5829*/  BYTE        Unknown0x5829[0x8];
-/*0x5831*/  BYTE        IsRaidLeader; 
+/*0x5831*/  BYTE        IsRaidLeader;
 /*0x5832*/  BYTE        Unknown0x5832[0x2];
 /*0x5834*/  DWORD       RaidTarget;
 /*0x5838*/  DWORD       LootType;
@@ -1822,7 +1823,7 @@ typedef struct _EQRAID {
 /*0x5cfc*/  DWORD       TotalRaidMemberLevels; // TotalRaidMemberLevels/RaidMemberCount=RaidAvgLevel
 /*0x5d00*/  BYTE        Locked;
 /*0x5d01*/  BYTE        Padding0x5d01[0x3];
-/*0x5d04*/ 
+/*0x5d04*/
 } EQRAID, *PEQRAID;
 
 // size 0x19C 3-23-2005

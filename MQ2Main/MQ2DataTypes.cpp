@@ -6524,7 +6524,7 @@ bool MQ2RaidType::GETMEMBER()
         Dest.Type=pBoolType; 
         return true; 
     case Invited: 
-        Dest.DWord=pRaid->Invited; 
+        Dest.DWord=pRaid->Invited == 2; 
         Dest.Type=pBoolType; 
         return true; 
     case xMember:
