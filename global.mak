@@ -15,8 +15,9 @@ INTDIR=.\Intermediate
 "$(INTDIR)" :
     if not exist "$(INTDIR)/$(NULL)" mkdir "$(INTDIR)"
 
-!if ("$(_NMAKE_VER)"=="7.00.9466") || ("$(_NMAKE_VER)"=="7.10.3077") || ("$(COMPILER)"=="7") || ("$(COMPILER)"=="8")
+!if ("$(_NMAKE_VER)"=="7.00.9466") || ("$(_NMAKE_VER)"=="7.10.3077") || ("$(COMPILER)"=="7") || ("$(COMPILER)"=="8") || ("$(_NMAKE_VER)"=="9.00.30729.01")
 DETLIB=..\Detours\lib\detours.lib
+COMPILER=7
 !elseif ("$(_NMAKE_VER)"=="6.00.8168.0") || ("$(_NMAKE_VER)"=="6.00.9782.0") || ("$(COMPILER)"=="6")
 DETLIB=..\Detours\lib60\detours.lib
 !else
@@ -28,7 +29,7 @@ DETLIB=..\Detours\lib60\detours.lib
 !message as appropriate
 !endif
 
-!if ("$(COMPILER)"=="8")
+!if ($(COMPILER)>=7)
 !else
 EH=/EHsc
 !endif

@@ -596,12 +596,13 @@ typedef struct _EQBUFFWINDOW
 /*0x1DC*/
 } EQBUFFWINDOW, *PEQBUFFWINDOW;
 
-// actual size 0x148
+// actual size 0x1ec 11/11/2009 dkaa
 typedef struct _EQINVSLOTWND {
 /*0x000*/   struct _CXWND Wnd;
-/*0x110*/    LONG InvSlot;
-/*0x114*/   BYTE Unknown0x114[0x28];
-/*0x13C*/   BOOL ProcessClick;
+/*0x1ac*/   DWORD Unknown0x1ac;
+/*0x1b0*/   LONG InvSlot;
+/*0x1b4*/   BYTE Unknown0x114[0x28];
+/*0x1dc*/   BOOL ProcessClick;
 } EQINVSLOTWND, *PEQINVSLOTWND;
 
 // actual size 0x14 2-18-2004 Lax
