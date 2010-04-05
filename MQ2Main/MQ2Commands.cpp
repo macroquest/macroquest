@@ -2490,6 +2490,7 @@ VOID WindowState(PSPAWNINFO pChar, PCHAR szLine)
                 case 0:
                     ((CXWnd*)pWnd)->Show(0,1);
                     sprintf(szBuffer,"Window '%s' is now closed.",pWnd->WindowText->Text);
+                    ((CSidlScreenWnd*)pWnd)->StoreIniVis();
                     break;
                 case 1:
                     __asm {
@@ -2499,6 +2500,7 @@ VOID WindowState(PSPAWNINFO pChar, PCHAR szLine)
                         pop ecx;
                     }
                     sprintf(szBuffer,"Window '%s' is now open.",pWnd->WindowText->Text);
+                    ((CSidlScreenWnd*)pWnd)->StoreIniVis();
                     break;
                 case 99:
                     sprintf(szBuffer,"Window '%s' is currently %s",pWnd->WindowText->Text,(pWnd->Show==0)?"closed":"open");

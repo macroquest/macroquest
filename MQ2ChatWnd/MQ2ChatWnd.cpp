@@ -52,7 +52,7 @@ public:
         OutStruct=(_CSIDLWND*)GetChildItem("CWChatOutput");
         OutWnd=(CXWnd*)OutputBox;
         OutBoxLines=0; 
-        *(DWORD*)&(((PCHAR)OutputBox)[0x1f8])=400; 
+        *(DWORD*)&(((PCHAR)OutputBox)[0x250])=400; 
         OutputBox->Clickable=1; 
         iCurrentCmd=-1;
     } 
@@ -189,7 +189,7 @@ public:
 
         // get fonts structure -- this offset can be found by looking at 
         // SetChatfont which is called from the /chatfontsize function 
-        Fonts = (FONTDATA*)&(((char*)pWndMgr)[0xF4]); 
+        Fonts = (FONTDATA*)&(((char*)pWndMgr)[0x114]); 
 
         // check font array bounds and pointers 
         if (size<0 || size>=(int)Fonts->NumFonts) 
