@@ -1,3 +1,12 @@
+12 October 2008 by ieatacid
+- Added BuffDuration to target type. It takes the buff name or number as a parameter and returns a ticks type.
+- Added to Group TLO: string MainTank, string MainAssist, string Puller
+- Added to groupmember type: bool MainTank, bool MainAssist, bool Puller
+
+11 October 2008 by rswiders
+- Update mappable commands with all correct values, looks like it was not done in initial patch
+- Update for Me.State.  If you are on a mount it will return "MOUNT" instead of continuing on and returning "STAND"
+
 11 October 2008 by dkaa
 - Fix for mappable commands -- thanks, brainiac
 - Fix for class type 71, merc liaison.

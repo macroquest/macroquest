@@ -1266,6 +1266,10 @@ bool MQ2SpawnType::GETMEMBER()
 		{
 			Dest.Ptr="HOVER";
 		}
+		else if(pSpawn->Mount)
+		{
+			Dest.Ptr="MOUNT";
+		}
 		else
         switch (pSpawn->StandState) {
             case STANDSTATE_STAND:
@@ -6254,6 +6258,38 @@ bool MQ2GroupType::GETMEMBER()
 			Dest.Type=pIntType;
 		}
 		return true;
+   case MainTank:
+      for(int i = 0; i < 6; i++)
+      {
+         if(pChar->pGroupInfo->pMember[i] && pChar->pGroupInfo->pMember[i]->MainTank)
+         {
+            Dest.DWord=i;
+            Dest.Type=pGroupMemberType;
+            return true;
+         }
+      }
+      return false;
+   case MainAssist:
+      for(int i = 0; i < 6; i++)
+      {
+         if(pChar->pGroupInfo->pMember[i] && pChar->pGroupInfo->pMember[i]->MainAssist)
+         {
+            Dest.DWord=i;
+            Dest.Type=pGroupMemberType;
+            return true;
+         }
+      }
+      return false;
+   case Puller:
+      for(int i = 0; i < 6; i++)
+      {
+         if(pChar->pGroupInfo->pMember[i] && pChar->pGroupInfo->pMember[i]->Puller)
+         {
+            Dest.DWord=i;
+            Dest.Type=pGroupMemberType;
+            return true;
+         }
+      }
 	}
 	return false;
 }
@@ -6295,6 +6331,7 @@ bool MQ2GroupMemberType::GETMEMBER()
 	CHAR LeaderName[MAX_STRING]={0};
 	PSPAWNINFO pGroupMember=0;
    PCHARINFO pChar=GetCharInfo();
+   PGROUPMEMBER pGroupMemberData=0;
    DWORD level=0;
 	if (!pChar->pGroupInfo) return false;
 	if (unsigned long N=VarPtr.DWord)
@@ -6311,6 +6348,7 @@ bool MQ2GroupMemberType::GETMEMBER()
 					GetCXStr(pChar->pGroupInfo->pMember[i]->pName,MemberName,MAX_STRING);
                pGroupMember=pChar->pGroupInfo->pMember[i]->pSpawn;
                level=pChar->pGroupInfo->pMember[i]->Level;
+               pGroupMemberData=pChar->pGroupInfo->pMember[i];
 					break;
 				}
 			}
@@ -6323,6 +6361,7 @@ bool MQ2GroupMemberType::GETMEMBER()
 		pGroupMember=pChar->pSpawn;
 		strcpy(MemberName,pGroupMember->Name);
       level=pGroupMember->Level;
+      pGroupMemberData=pChar->pGroupInfo->pLeader;
 	}
 	PMQ2TYPEMEMBER pMember=MQ2GroupMemberType::FindMember(Member);
 	if (!pMember)
@@ -6359,6 +6398,29 @@ bool MQ2GroupMemberType::GETMEMBER()
       Dest.DWord=level;
       Dest.Type=pIntType;
       return true;
+   case MainTank:
+      if(pGroupMemberData)
+      {
+         Dest.DWord=pGroupMemberData->MainTank;
+         Dest.Type=pBoolType;
+         return true;
+      }
+      return false;
+   case MainAssist:
+      if(pGroupMemberData)
+      {
+         Dest.DWord=pGroupMemberData->MainAssist;
+         Dest.Type=pBoolType;
+         return true;
+      }
+      return false;
+   case Puller:
+      if(pGroupMemberData)
+      {
+         Dest.DWord=pGroupMemberData->Puller;
+         Dest.Type=pBoolType;
+         return true;
+      }
 	}
 	return false;
 }
@@ -6945,11 +7007,11 @@ bool MQ2TargetType::GETMEMBER()
             DWORD nBuff = GETNUMBER();
             if (!nBuff || nBuff >= 0x55)
                return false;
-            i = 0;
-            for(j = 0; j < 0x55; j++)
+            j = 0;
+            for(i = 0; i < 0x55; i++)
             {
-               buffID = ((PCTARGETWND)pTargetWnd)->BuffSpellID[j];
-               if(buffID != 0xffffffff && nBuff == ++i)
+               buffID = ((PCTARGETWND)pTargetWnd)->BuffSpellID[i];
+               if(buffID != 0xffffffff && nBuff == ++j)
                {
                   Dest.Ptr = GetSpellByID((DWORD)buffID);
                   Dest.Type = pSpellType;
@@ -6962,7 +7024,7 @@ bool MQ2TargetType::GETMEMBER()
             for(i = 0; i < 0x55; i++)
             {
                buffID = ((PCTARGETWND)pTargetWnd)->BuffSpellID[i];
-               if(buffID != 0xffffffff && !strcmp(Index, GetSpellNameByID(buffID)))
+               if(buffID != 0xffffffff && !stricmp(Index, GetSpellNameByID(buffID)))
                {
                   Dest.Ptr = GetSpellByID((DWORD)buffID);
                   Dest.Type = pSpellType;
@@ -7003,6 +7065,57 @@ bool MQ2TargetType::GETMEMBER()
       Dest.DWord = ((PCTARGETWND)pTargetWnd)->BuffInfo > 0;
       Dest.Type = pBoolType;
       return true;
+   case BuffDuration:
+      if(!(((PCTARGETWND)pTargetWnd)->BuffInfo > 0))
+         return false;
+      if(ISINDEX())
+      {
+         if(ISNUMBER())
+         {
+            DWORD nBuff = GETNUMBER();
+            if (!nBuff || nBuff >= 0x55)
+               return false;
+            j = 0;
+            for(i = 0; i < 0x55; i++)
+            {
+               buffID = ((PCTARGETWND)pTargetWnd)->BuffSpellID[i];
+               if(buffID != 0xffffffff && nBuff == ++j)
+               {
+                  Dest.DWord = ((((PCTARGETWND)pTargetWnd)->BuffTimer[i] / 1000) + 6) / 6;
+                  Dest.Type = pTicksType;
+                  return true;
+               }
+            }
+         }
+         else
+         {
+            for(i = 0; i < 0x55; i++)
+            {
+               buffID = ((PCTARGETWND)pTargetWnd)->BuffSpellID[i];
+               if(buffID != 0xffffffff && !stricmp(Index, GetSpellNameByID(buffID)))
+               {
+                  Dest.DWord = ((((PCTARGETWND)pTargetWnd)->BuffTimer[i] / 1000) + 6) / 6;
+                  Dest.Type = pTicksType;
+                  return true;
+               }
+            }
+         }
+      }
+      else
+      {
+         // return first buff
+         for(i = 0; i < 0x55; i++)
+         {
+            buffID = ((PCTARGETWND)pTargetWnd)->BuffSpellID[i];
+            if(buffID != 0xffffffff)
+            {
+               Dest.DWord = ((((PCTARGETWND)pTargetWnd)->BuffTimer[i] / 1000) + 6) / 6;
+               Dest.Type = pTicksType;
+               return true;
+            }
+         }
+      }
+      return false;
    }
    return false;
 }

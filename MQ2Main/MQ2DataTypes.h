@@ -3058,7 +3058,10 @@ public:
 	   xMember=1,
 	   Members=2,
 	   Leader=3,
-	   GroupSize=4
+	   GroupSize=4,
+      MainTank=5,
+      MainAssist=6,
+      Puller=7,
    };
 	static enum GroupMethods
 	{
@@ -3069,6 +3072,9 @@ public:
 	  TypeMember(Members);
 	  TypeMember(Leader);
 	  TypeMember(GroupSize);
+     TypeMember(MainTank);
+     TypeMember(MainAssist);
+     TypeMember(Puller);
    }
 
    ~MQ2GroupType()
@@ -3098,6 +3104,9 @@ public:
 	   Leader=2,
 	   Spawn=3,
       Level=4,
+      MainTank=5,
+      MainAssist=6,
+      Puller=7,
    };
 	static enum GroupMemberMethods
 	{
@@ -3108,6 +3117,9 @@ public:
 	  TypeMember(Leader);
 	  TypeMember(Spawn);
      TypeMember(Level);
+     TypeMember(MainTank);
+     TypeMember(MainAssist);
+     TypeMember(Puller);
    }
 
    ~MQ2GroupMemberType()
@@ -3510,6 +3522,7 @@ public:
       Buff = 1,
       BuffCount = 2,
       BuffUpdate = 3,
+      BuffDuration = 4,
    };
 
    MQ2TargetType():MQ2Type("target")
@@ -3517,6 +3530,7 @@ public:
       TypeMember(Buff);
       TypeMember(BuffCount);
       TypeMember(BuffUpdate);
+      TypeMember(BuffDuration);
    }
 
    ~MQ2TargetType()

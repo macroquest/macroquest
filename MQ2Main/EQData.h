@@ -746,7 +746,12 @@ typedef struct _GROUPMEMBER {
 /*0x09*/ BYTE   Unknown0x9[0x3];
 /*0x0c*/ struct _CXSTR *pUnknown0xc; // haven't seen this with text yet but it's a CXSTR struct
 /*0x10*/ DWORD  Level;
-/*0x14*/ BYTE   Unknown0x14[0x10];
+/*0x14*/ BYTE   Unknown0x14[0x2];
+/*0x16*/ BYTE   MainTank;
+/*0x17*/ BYTE   MainAssist;
+/*0x18*/ BYTE   Puller;
+/*0x19*/ BYTE   Unknown0x19[0x3];
+/*0x1c*/ DWORD  Roles; // (Roles & 1) = MainTank, 2 = MainAssist, 4 = Puller
 /*0x24*/ struct _SPAWNINFO *pSpawn;
 /*0x28*/
 } GROUPMEMBER, *PGROUPMEMBER;
