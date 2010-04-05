@@ -149,6 +149,9 @@ BOOL ParseINIFile(PCHAR lpINIPath)
             GetPrivateProfileString("Captions","Player2",gszSpawnPlayerName[2],gszSpawnPlayerName[2],MAX_STRING,Filename);
             GetPrivateProfileString("Captions","Player3",gszSpawnPlayerName[3],gszSpawnPlayerName[3],MAX_STRING,Filename);
             GetPrivateProfileString("Captions","Player4",gszSpawnPlayerName[4],gszSpawnPlayerName[4],MAX_STRING,Filename);
+            GetPrivateProfileString("Captions","Player5",gszSpawnPlayerName[5],gszSpawnPlayerName[5],MAX_STRING,Filename);
+            GetPrivateProfileString("Captions","Player6",gszSpawnPlayerName[6],gszSpawnPlayerName[6],MAX_STRING,Filename);
+
             GetPrivateProfileString("Captions","Corpse",gszSpawnCorpseName,gszSpawnCorpseName,MAX_STRING,Filename);
             GetPrivateProfileString("Captions","Pet",gszSpawnPetName,gszSpawnPetName,MAX_STRING,Filename);
             gMaxSpawnCaptions=GetPrivateProfileInt("Captions","Update",gMaxSpawnCaptions,Filename);
@@ -158,6 +161,8 @@ BOOL ParseINIFile(PCHAR lpINIPath)
             ConvertCR(gszSpawnPlayerName[2]);
             ConvertCR(gszSpawnPlayerName[3]);
             ConvertCR(gszSpawnPlayerName[4]);
+            ConvertCR(gszSpawnPlayerName[5]);
+            ConvertCR(gszSpawnPlayerName[6]);
             ConvertCR(gszSpawnCorpseName);
             ConvertCR(gszSpawnPetName);
 

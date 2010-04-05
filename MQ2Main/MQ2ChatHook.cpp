@@ -81,9 +81,9 @@ public:
 DETOUR_TRAMPOLINE_EMPTY(VOID CChatHook::Trampoline(PCHAR szMsg, DWORD dwColor, bool EqLog, bool dopercentsubst)); 
 DETOUR_TRAMPOLINE_EMPTY(VOID CChatHook::TellWnd_Trampoline(char *message,char *name,char *name2,void *unknown,int color,bool b)); 
 
-VOID dsp_chat_no_events(const char *Text,int Color,bool EqLog)
+VOID dsp_chat_no_events(const char *Text,int Color,bool EqLog, bool dopercentsubst)
 {
-    ((CChatHook*)pEverQuest)->Trampoline((PCHAR)Text,Color,EqLog, 1);
+    ((CChatHook*)pEverQuest)->Trampoline((PCHAR)Text,Color,EqLog, dopercentsubst);
 }
 
 unsigned int __stdcall MQ2DataVariableLookup(char * VarName, char * Value)

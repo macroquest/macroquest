@@ -3045,6 +3045,8 @@ VOID CaptionCmd(PSPAWNINFO pChar, PCHAR szLine)
         WriteChatf("\ayPlayer2\ax: \ag%s\ax",gszSpawnPlayerName[2]);
         WriteChatf("\ayPlayer3\ax: \ag%s\ax",gszSpawnPlayerName[3]);
         WriteChatf("\ayPlayer4\ax: \ag%s\ax",gszSpawnPlayerName[4]);
+        WriteChatf("\ayPlayer5\ax: \ag%s\ax",gszSpawnPlayerName[5]);
+        WriteChatf("\ayPlayer6\ax: \ag%s\ax",gszSpawnPlayerName[6]);
 
         WriteChatf("\ayNPC\ax: \ag%s\ax",gszSpawnNPCName);
         WriteChatf("\ayPet\ax: \ag%s\ax",gszSpawnPetName);
@@ -3064,6 +3066,12 @@ VOID CaptionCmd(PSPAWNINFO pChar, PCHAR szLine)
     } else if (!stricmp(Arg1,"Player4"))
     {
         pCaption=gszSpawnPlayerName[4];
+    } else if (!stricmp(Arg1,"Player5"))
+    {
+        pCaption=gszSpawnPlayerName[5];
+    } else if (!stricmp(Arg1,"Player6"))
+    {
+        pCaption=gszSpawnPlayerName[6]; 
     } else if (!stricmp(Arg1,"Pet"))
     {
         pCaption=gszSpawnPetName;
