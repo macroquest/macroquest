@@ -959,9 +959,9 @@ union {
 /*0x6598*/   DWORD      Deity;
 /*0x659c*/   BYTE       Unknown0x659c[0x4];
 /*0x65a0*/   DWORD      Drunkenness;
-/*0x65a4*/   BYTE       Unknown0x65a4[0x8];
+/*0x65a4*/   BYTE       Unknown0x65a4[0x10];
 /*0x65b4*/   DWORD      AAPoints;
-/*0x65b8*/   BYTE       Unknown0x65b0[0xfac];
+/*0x65b8*/   BYTE       Unknown0x65b8[0xfac];
 /*0x7564*/   DWORD      AAPointsSpent;
 /*0x7568*/   BYTE       Unknown0x7568[0x1c];
 /*0x7584*/
