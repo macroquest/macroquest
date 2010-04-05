@@ -241,6 +241,11 @@ VOID MQChatMin(PSPAWNINFO pChar, PCHAR Line)
         ((CXWnd*)MQChatWnd)->OnMinimizeBox();
     }
 }
+VOID MQChatClear(PSPAWNINFO pChar, PCHAR Line)
+{
+    if(MQChatWnd)
+        ((CChatWindow*)MQChatWnd)->Clear();
+}
 PLUGIN_API VOID InitializePlugin(VOID)
 {
     DebugSpewAlways("Initializing MQ2ChatWnd");
@@ -248,6 +253,7 @@ PLUGIN_API VOID InitializePlugin(VOID)
     AddCommand("/style",Style,0,1,0);
     AddCommand("/mqfont",MQChatFont);
     AddCommand("/mqmin",MQChatMin);
+    AddCommand("/mqclear",MQChatClear);
     AddMQ2KeyBind("MQ2CHAT",DoMQ2ChatBind);
     bmStripFirstStmlLines=AddMQ2Benchmark("StripFirstStmlLines");
 }
@@ -266,6 +272,7 @@ PLUGIN_API VOID ShutdownPlugin(VOID)
     RemoveCommand("/style");
     RemoveCommand("/mqfont");
     RemoveCommand("/mqmin");
+    RemoveCommand("/mqclear");
     RemoveMQ2KeyBind("MQ2CHAT");
     RemoveMQ2Benchmark(bmStripFirstStmlLines);
     OnCleanUI();

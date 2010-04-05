@@ -1,4 +1,9 @@
-11 January 2008 by ieatacid, rswiders
+17 January 2009 by ieatacid
+- Added "/mqclear" command to MQ2ChatWnd which, you guessed it, clears the MQ2 chat window.  This does it the right way and removes all text from the window, unlike some plugins I've seen that just add 11ty new lines (\n) to the chat window
+- Fixed "/setautorun".  It was saving incorrectly so AutoRun ini entries would never be processed (thanks pms)
+- The "/dosocial" command should now work properly
+
+11 January 2009 by ieatacid, rswiders
 - Events will once again trigger on "You have entered <zone name>."
 - Completed formatting corrections for using spaces vs. tabs
 - Corrected bug with spawnsearch.  Spawn[id 0] WILL NO LONGER return the same values as ${Me}.  You have been warned.

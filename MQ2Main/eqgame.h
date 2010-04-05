@@ -306,6 +306,7 @@
 
 // CChatWindow 
 #define CChatWindow__CChatWindow                                   0x599A70
+#define CChatWindow__Clear                                         0x59A3E0
 #define CChatWindow__WndNotification                               0x59A4C0
 
 // CComboWnd 

@@ -2257,7 +2257,7 @@ VOID SetAutoRun(PSPAWNINFO pChar, PCHAR szLine)
 {
     CHAR szServerAndName[MAX_STRING] = {0};
     sprintf(szServerAndName,"%s.%s",EQADDR_SERVERNAME,((PCHARINFO)pCharData)->Name);
-    WritePrivateProfileString(szServerAndName,"AutoRun",szLine,gszINIFilename);
+    WritePrivateProfileStringA("AutoRun",szServerAndName,szLine,gszINIFilename);
     sprintf(szServerAndName,"Set autorun to: '%s'",szLine);
     WriteChatColor(szServerAndName,USERCOLOR_DEFAULT);
 }
@@ -2925,7 +2925,7 @@ VOID DoSocial(PSPAWNINFO pChar, PCHAR szLine)
 
     if (gCurrentSocial==-1)
     {
-        gCurrentSocial=SocialIndex<<3;
+        gCurrentSocial=SocialIndex;
     }
     else
     {
