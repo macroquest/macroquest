@@ -1,3 +1,6 @@
+18 November 2009 by dkaa
+- added npccorpse and pccorpse to the spawn search filters
+
 14 November 2009 by ieatacid
 - Fix for EQMERCHWINDOW struct which will fix various things that reference it
 

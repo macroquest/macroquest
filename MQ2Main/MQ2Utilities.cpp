@@ -4519,10 +4519,19 @@ BOOL SpawnMatchesSearch(PSEARCHSPAWN pSearchSpawn, PSPAWNINFO pChar, PSPAWNINFO 
     eSpawnType SpawnType = GetSpawnType(pSpawn);
     if (pSearchSpawn->SpawnType != SpawnType && pSearchSpawn->SpawnType!=NONE)
     {
-        // if the search type is not npc or the mob type is UNT, continue?
-        // stupid /who
-        if (pSearchSpawn->SpawnType!=NPC || SpawnType!=UNTARGETABLE)
-            return FALSE;
+        if (pSearchSpawn->SpawnType==NPCCORPSE) {
+            if (SpawnType != CORPSE || pSpawn->Deity)
+                return FALSE;
+        } else if (pSearchSpawn->SpawnType==PCCORPSE) {
+            if (SpawnType != CORPSE || !pSpawn->Deity)
+                return FALSE;
+        } else {
+
+            // if the search type is not npc or the mob type is UNT, continue?
+            // stupid /who
+            if (pSearchSpawn->SpawnType!=NPC || SpawnType!=UNTARGETABLE)
+                return FALSE;
+        }
     }
     _strlwr(strcpy(szName,pSpawn->Name));
     if (!strstr(szName,pSearchSpawn->szName) && !strstr(CleanupName(szName,FALSE),pSearchSpawn->szName))
@@ -4644,6 +4653,10 @@ PCHAR ParseSearchSpawnArgs(PCHAR szArg, PCHAR szRest, PSEARCHSPAWN pSearchSpawn)
             pSearchSpawn->bNoPet = TRUE; 
         } else if (!stricmp(szArg,"corpse")) {
             pSearchSpawn->SpawnType = CORPSE;
+        } else if (!stricmp(szArg,"npccorpse")) {
+            pSearchSpawn->SpawnType = NPCCORPSE;
+        } else if (!stricmp(szArg,"pccorpse")) {
+            pSearchSpawn->SpawnType = PCCORPSE;
         } else if (!stricmp(szArg,"trigger")) {
             pSearchSpawn->SpawnType = TRIGGER;
         } else if (!stricmp(szArg,"untargetable")) {
