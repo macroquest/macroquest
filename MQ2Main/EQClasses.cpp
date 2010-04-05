@@ -3712,6 +3712,9 @@ FUNCTION_AT_ADDRESS(void  CDisplay::SetViewActorByName(char *),CDisplay__SetView
 #ifdef CDisplay__SetActorSpriteTint
 FUNCTION_AT_ADDRESS(void  CDisplay::SetActorSpriteTint(struct _EQRGB *,struct T3D_tagACTORINSTANCE *),CDisplay__SetActorSpriteTint);
 #endif
+#ifdef CDisplay__FreeAllItemLists
+FUNCTION_AT_ADDRESS(void  CDisplay::FreeAllItemLists(void),CDisplay__FreeAllItemLists);
+#endif
 #ifdef CActionsWnd__MainPageActivate
 FUNCTION_AT_ADDRESS(int  CActionsWnd::MainPageActivate(void),CActionsWnd__MainPageActivate);
 #endif
@@ -4208,7 +4211,7 @@ FUNCTION_AT_ADDRESS(int  EQ_Character::GetIndexSkillMinDamageMod(int),EQ_Charact
 FUNCTION_AT_ADDRESS(int const  EQ_Character::GetFocusConserveRegChance(class EQ_Spell const *,class EQ_Equipment * *),EQ_Character__GetFocusConserveRegChance);
 #endif
 #ifdef EQ_Character__GetFocusCastingTimeModifier
-FUNCTION_AT_ADDRESS(int const  EQ_Character1::GetFocusCastingTimeModifier(class EQ_Spell const *,class EQ_Equipment * *),EQ_Character__GetFocusCastingTimeModifier);
+FUNCTION_AT_ADDRESS(int const  EQ_Character1::GetFocusCastingTimeModifier(class EQ_Spell const *,class EQ_Equipment * *, int),EQ_Character__GetFocusCastingTimeModifier);
 #endif
 #ifdef EQ_Character__GetFocusRangeModifier
 FUNCTION_AT_ADDRESS(int const  EQ_Character1::GetFocusRangeModifier(class EQ_Spell const *,class EQ_Equipment * *),EQ_Character__GetFocusRangeModifier);

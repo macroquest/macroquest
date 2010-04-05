@@ -1748,6 +1748,7 @@ EQLIB_OBJECT void CDisplay::ToggleView(void);
 EQLIB_OBJECT void CDisplay::UpdateCameraAfterModeSwitch(void);
 EQLIB_OBJECT void CDisplay::updateGrassObjects(void);
 EQLIB_OBJECT void CDisplay::UpdateMobileEmitterLocations(void);
+EQLIB_OBJECT void CDisplay::FreeAllItemLists(void);
 // private
 EQLIB_OBJECT struct T3D_HIERARCHICALSPRITEINSTANCE * CDisplay::dupActorHierarchicalSprite(struct T3D_tagACTORINSTANCE *);
 EQLIB_OBJECT void CDisplay::CleanCharSelectUI(void);
@@ -5371,7 +5372,7 @@ EQLIB_OBJECT int EQ_Character1::Max_Endurance(int y=1); // lax 4-25-2004
 EQLIB_OBJECT int EQ_Character1::Max_HP(int,int y=1); 
 EQLIB_OBJECT int EQ_Character1::Max_Mana(int y=1);
 EQLIB_OBJECT int const EQ_Character1::GetAACastingTimeModifier(class EQ_Spell const *);
-EQLIB_OBJECT int const EQ_Character1::GetFocusCastingTimeModifier(class EQ_Spell const *,class EQ_Equipment * *);
+EQLIB_OBJECT int const EQ_Character1::GetFocusCastingTimeModifier(class EQ_Spell const *,class EQ_Equipment * *,int);
 EQLIB_OBJECT unsigned char EQ_Character1::CastSpell(unsigned char,int,class EQ_Item * *,int,int slot,int,int,int,int,bool,int y=1); 
 EQLIB_OBJECT void EQ_Character1::SetEffectId(unsigned char,unsigned int);
 EQLIB_OBJECT void EQ_Character1::StopSpellCast(unsigned char);

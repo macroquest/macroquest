@@ -443,7 +443,7 @@ typedef struct _ITEMSPELLS {
 /*0x64*/
 } ITEMSPELLS, *PITEMSPELLS; 
 
-// actual size: 0x564 12-8-2009 - ieatacid
+// actual size: 0x56c 2-10-2010 - ieatacid
 typedef struct _ITEMINFO {
 /*0x000*/ CHAR   Name[ITEM_NAME_LEN];
 /*0x040*/ CHAR   LoreName[LORE_NAME_LEN];
@@ -600,8 +600,8 @@ typedef struct _ITEMINFO {
 /*0x554*/ BYTE   QuestItem;
 /*0x555*/ BYTE   Unknown0x555[0x3];
 /*0x558*/ DWORD  Clairvoyance;
-/*0x55c*/ BYTE   Unknown0x55c[0x8];
-/*0x564*/ 
+/*0x55c*/ BYTE   Unknown0x55c[0x10];
+/*0x56c*/ 
 } ITEMINFO, *PITEMINFO;
 
 // actual size 0xd8 01-16-2008
@@ -641,19 +641,20 @@ typedef struct _CONTENTS {
 /*0xd8*/
 } CONTENTS, *PCONTENTS;
 
-// 11-11-09 Size 0x1c
+// Size 0x20 2-10-2010 - ieatacid
 typedef struct _SPELLBUFF {
 /*0x00*/    BYTE      Unknown0x00;
 /*0x01*/    BYTE      Level;
 /*0x02*/    CHAR      Modifier;      // bard song modifier, divide by 10 to get 2.8 etc
 /*0x03*/    CHAR      DamageShield;  // maybe.. I've noticed this is -1 on a lot of ds's.
-/*0x04*/    LONG      SpellID;       // -1 or 0 for no spell..
-/*0x08*/    DWORD     Duration;
-/*0x0c*/    DWORD     DamageAbsorbRemaining;  // Melee or Spellshield type, also buff counters
-/*0x10*/    DWORD     Unknown0x10;
-/*0x14*/    DWORD     Unknown0x14;
-/*0x18*/    DWORD     Unknown0x18;
-/*0x1c*/
+/*0x04*/    FLOAT     Unknown0x4;
+/*0x08*/    LONG      SpellID;       // -1 or 0 for no spell..
+/*0x0c*/    DWORD     Duration;
+/*0x10*/    DWORD     DamageAbsorbRemaining;  // Melee or Spellshield type, also buff counters
+/*0x14*/    DWORD     Unknown0x10;
+/*0x18*/    DWORD     Unknown0x14;
+/*0x1c*/    DWORD     Unknown0x18;
+/*0x20*/
 } SPELLBUFF, *PSPELLBUFF;
 
 // 12-23-2003   TheColonel
@@ -902,7 +903,7 @@ typedef struct _CHARINFO {
 /*0x4908*/
 } CHARINFO, *PCHARINFO;
 
-// actual size: 0x7bcc 12-8-09 - ieatacid
+// actual size: 0x7d20 2-10-2010 - ieatacid
 typedef struct _CHARINFO2 {
 /*0x0000*/   BYTE       Unknown0x0[0x10];
 union {
@@ -912,68 +913,68 @@ union {
 /*0x008c*/   struct     _CONTENTS*   Cursor;
 /*0x0090*/   BYTE       Unknown0x90[0x14];
 /*0x00a4*/   struct     _SPELLBUFF   Buff[NUM_LONG_BUFFS];
-/*0x03ec*/   struct     _SPELLBUFF   ShortBuff[0x37];
-/*0x09f0*/   DWORD      Unknown0x9f0[NUM_BUFF_SLOTS]; // effect IDs
-/*0x0b44*/   DWORD      Unknown0xb44[NUM_BUFF_SLOTS];
-/*0x0c98*/   DWORD      SpellBook[NUM_BOOK_SLOTS];
-/*0x17d8*/   DWORD      MemorizedSpells[0x10];
-/*0x1818*/   DWORD      Skill[0x64];
-/*0x19a8*/   DWORD      InnateSkill[0x19];
-/*0x1a0c*/   DWORD      Unknown0x1a0c[0x24];
-/*0x1a9c*/   DWORD      Gender;
-/*0x1aa0*/   DWORD      Race;
-/*0x1aa4*/   DWORD      Class;
-/*0x1aa8*/   BYTE       Unknown0x1aa8[0x10];
-/*0x1ab8*/   DWORD      Level;
-/*0x1abc*/   DWORD      Mana;
-/*0x1ac0*/   DWORD      Endurance;
-/*0x1ac4*/   DWORD      BaseHP;
-/*0x1ac8*/   DWORD      BaseSTR;
-/*0x1acc*/   DWORD      BaseSTA;
-/*0x1ad0*/   DWORD      BaseCHA;
-/*0x1ad4*/   DWORD      BaseDEX;
-/*0x1ad8*/   DWORD      BaseINT;
-/*0x1adc*/   DWORD      BaseAGI;
-/*0x1ae0*/   DWORD      BaseWIS;
-/*0x1ae4*/   DWORD      Unknown0x1ae4;
-/*0x1ae8*/   DWORD      Plat;
-/*0x1aec*/   DWORD      Gold;
-/*0x1af0*/   DWORD      Silver;
-/*0x1af4*/   DWORD      Copper;
-/*0x1af8*/   DWORD      CursorPlat;
-/*0x1afc*/   DWORD      CursorGold;
-/*0x1b00*/   DWORD      CursorSilver;
-/*0x1b04*/   DWORD      CursorCopper;
-/*0x1b08*/   BYTE       Unknown0x1b08[0x28];
-/*0x1b30*/   DWORD      thirstlevel;
-/*0x1b34*/   DWORD      hungerlevel;
-/*0x1b38*/   DWORD      Unknown0x1b38; 
-/*0x1b3c*/   DWORD      Shrouded;
-/*0x1b40*/   BYTE       Unknown0x1b40[0x74];
-/*0x1bb4*/   DWORD      ZoneBoundID;
-/*0x1bb8*/   FLOAT      ZoneBoundY;
-/*0x1bbc*/   FLOAT      ZoneBoundX;
-/*0x1bc0*/   FLOAT      ZoneBoundZ;
-/*0x1bc4*/   FLOAT      ZoneBoundHeading;
-/*0x1bc8*/   BYTE       Unknown0x1bc8[0x50];
-/*0x1c18*/   DWORD      ArmorType[0x16];
-/*0x1c70*/   BYTE       Unknown0x1c70[0xb0];
-/*0x1d20*/   AALIST     AAList[AA_CHAR_MAX_REAL];
-/*0x2b30*/   DWORD      BodyColor[0x9];
-/*0x2b54*/   BYTE       Unknown0x2b54[0x2000];
-/*0x4b54*/   DWORD      CombatAbilities[NUM_COMBAT_ABILITIES];
-/*0x4e74*/   BYTE       Unknown0x4e74[0x34];
-/*0x4ea8*/   DWORD      CombatAbilityTimes[0x14];
-/*0x4ef8*/   BYTE       Unknown0x4ef8[0x1ccc];
-/*0x6bc4*/   DWORD      Deity;
-/*0x6bc8*/   BYTE       Unknown0x6bc8[0x4];
-/*0x6bcc*/   DWORD      Drunkenness;
-/*0x6bd0*/   BYTE       Unknown0x6bd0[0x10];
-/*0x6be0*/   DWORD      AAPoints;
-/*0x6be4*/   BYTE       Unknown0x6be4[0xfac];
-/*0x7b90*/   DWORD      AAPointsSpent;
-/*0x7b94*/   BYTE       Unknown0x7b94[0x38];
-/*0x7bcc*/
+/*0x0464*/   struct     _SPELLBUFF   ShortBuff[0x37];
+/*0x0b44*/   DWORD      Unknown0xb44[NUM_BUFF_SLOTS]; // effect IDs
+/*0x0c98*/   DWORD      Unknown0xc98[NUM_BUFF_SLOTS];
+/*0x0dec*/   DWORD      SpellBook[NUM_BOOK_SLOTS];
+/*0x192c*/   DWORD      MemorizedSpells[0x10];
+/*0x196c*/   DWORD      Skill[0x64];
+/*0x1afc*/   DWORD      InnateSkill[0x19];
+/*0x1b60*/   DWORD      Unknown0x1b60[0x24];
+/*0x1bf0*/   DWORD      Gender;
+/*0x1bf4*/   DWORD      Race;
+/*0x1bf8*/   DWORD      Class;
+/*0x1bfc*/   BYTE       Unknown0x1bfc[0x10];
+/*0x1c0c*/   DWORD      Level;
+/*0x1c10*/   DWORD      Mana;
+/*0x1c14*/   DWORD      Endurance;
+/*0x1c18*/   DWORD      BaseHP;
+/*0x1c1c*/   DWORD      BaseSTR;
+/*0x1c20*/   DWORD      BaseSTA;
+/*0x1c24*/   DWORD      BaseCHA;
+/*0x1c28*/   DWORD      BaseDEX;
+/*0x1c2c*/   DWORD      BaseINT;
+/*0x1c30*/   DWORD      BaseAGI;
+/*0x1c34*/   DWORD      BaseWIS;
+/*0x1c38*/   DWORD      Unknown0x1ae4;
+/*0x1c3c*/   DWORD      Plat;
+/*0x1c40*/   DWORD      Gold;
+/*0x1c44*/   DWORD      Silver;
+/*0x1c48*/   DWORD      Copper;
+/*0x1c4c*/   DWORD      CursorPlat;
+/*0x1c50*/   DWORD      CursorGold;
+/*0x1c54*/   DWORD      CursorSilver;
+/*0x1c58*/   DWORD      CursorCopper;
+/*0x1c5c*/   BYTE       Unknown0x1c5c[0x28];
+/*0x1c84*/   DWORD      thirstlevel;
+/*0x1c88*/   DWORD      hungerlevel;
+/*0x1c8c*/   DWORD      Unknown0x1b38; 
+/*0x1c90*/   DWORD      Shrouded;
+/*0x1c94*/   BYTE       Unknown0x1c94[0x74];
+/*0x1d08*/   DWORD      ZoneBoundID;
+/*0x1d0c*/   FLOAT      ZoneBoundY;
+/*0x1d10*/   FLOAT      ZoneBoundX;
+/*0x1d14*/   FLOAT      ZoneBoundZ;
+/*0x1d18*/   FLOAT      ZoneBoundHeading;
+/*0x1d1c*/   BYTE       Unknown0x1d1c[0x50];
+/*0x1d6c*/   DWORD      ArmorType[0x16];
+/*0x1dc4*/   BYTE       Unknown0x1dc4[0xb0];
+/*0x1e74*/   AALIST     AAList[AA_CHAR_MAX_REAL];
+/*0x2c84*/   DWORD      BodyColor[0x9];
+/*0x2ca8*/   BYTE       Unknown0x2ca8[0x2000];
+/*0x4ca8*/   DWORD      CombatAbilities[NUM_COMBAT_ABILITIES];
+/*0x4fc8*/   BYTE       Unknown0x4fc8[0x34];
+/*0x4ffc*/   DWORD      CombatAbilityTimes[0x14];
+/*0x504c*/   BYTE       Unknown0x504c[0x1ccc];
+/*0x6d18*/   DWORD      Deity;
+/*0x6d1c*/   BYTE       Unknown0x6d1c[0x4];
+/*0x6d20*/   DWORD      Drunkenness;
+/*0x6d24*/   BYTE       Unknown0x6d24[0x10];
+/*0x6d34*/   DWORD      AAPoints;
+/*0x6d38*/   BYTE       Unknown0x6d38[0xfac];
+/*0x7ce4*/   DWORD      AAPointsSpent;
+/*0x7ce8*/   BYTE       Unknown0x7ce8[0x38];
+/*0x7d20*/
 } CHARINFO2, *PCHARINFO2;
 
 typedef struct _MODELINFONAME {
@@ -1470,23 +1471,23 @@ typedef struct _DOORTABLE {
 /*0x400*/
 } DOORTABLE, *PDOORTABLE;
 
-// actual size 0x5c  2-18-2004 lax
-// 1-26-2008 ieatacid
+// actual size 0x68 2-10-2010 - ieatacid
 typedef struct _GROUNDITEM {
 /*0x00*/ struct _GROUNDITEM *pPrev;
 /*0x04*/ struct _GROUNDITEM *pNext;
 /*0x08*/ DWORD  ID;
 /*0x0c*/ DWORD  DropID;
 /*0x10*/ DWORD  Unknown0x10;
-/*0x14*/ PEQSWITCH pSwitch; // (class EQSwitch *)
-/*0x18*/ DWORD  Unknown0x18;
-/*0x1c*/ FLOAT  Heading;
-/*0x20*/ BYTE   Unknown0x20[0xc];
-/*0x2c*/ FLOAT  Z;
-/*0x30*/ FLOAT  X;
-/*0x34*/ FLOAT  Y;
-/*0x38*/ CHAR   Name[0x18];
-/*0x50*/ BYTE   Unknown0x50[0x18];
+/*0x14*/ DWORD  Unknown0x14;
+/*0x18*/ PEQSWITCH pSwitch; // (class EQSwitch *)
+/*0x1c*/ CHAR   Name[0x18];
+/*0x34*/ BYTE   Unknown0x34[0xc];
+/*0x40*/ FLOAT  Heading;
+/*0x44*/ BYTE   Unknown0x44[0xc];
+/*0x50*/ FLOAT  Y;
+/*0x54*/ FLOAT  X;
+/*0x58*/ FLOAT  Z;
+/*0x5c*/ BYTE   Unknown0x5c[0xc];
 /*0x68*/
 } GROUNDITEM, *PGROUNDITEM;
 

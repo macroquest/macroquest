@@ -179,7 +179,43 @@ public:
     bool EQPlayerHook::IsTargetable(void);
 
 };
-    FUNCTION_AT_ADDRESS(bool EQPlayerHook::IsTargetable(void), EQPlayer__IsTargetable);
+FUNCTION_AT_ADDRESS(bool EQPlayerHook::IsTargetable(void), EQPlayer__IsTargetable);
+
+class CDisplayHook
+{
+public:
+    void FreeAllItemLists_Trampoline();
+    void FreeAllItemLists_Detour()
+    {
+        PGROUNDITEM pItem = (PGROUNDITEM)pItemList;
+
+        while(pItem)
+        {
+            RemoveGroundItem(pItem);
+
+            pItem = pItem->pNext;
+        }
+        
+        FreeAllItemLists_Trampoline();
+    }
+};
+
+DETOUR_TRAMPOLINE_EMPTY(void CDisplayHook::FreeAllItemLists_Trampoline());
+
+DETOUR_TRAMPOLINE_EMPTY(void AddEqItem_Trampoline(PGROUNDITEM));
+void AddEqItem_Detour(PGROUNDITEM pItem)
+{
+    AddEqItem_Trampoline(pItem);
+    AddGroundItem();
+}
+
+DETOUR_TRAMPOLINE_EMPTY(void DeleteEqItem_Trampoline(PGROUNDITEM));
+void DeleteEqItem_Detour(PGROUNDITEM pItem)
+{
+    RemoveGroundItem(pItem);
+
+    DeleteEqItem_Trampoline(pItem);
+}
 
 class CActorEx
 {
@@ -577,10 +613,13 @@ VOID InitializeMQ2Spawns()
 #endif
     EzDetour(EQPlayer__EQPlayer,&EQPlayerHook::EQPlayer_Detour,&EQPlayerHook::EQPlayer_Trampoline);
     EzDetour(EQPlayer__dEQPlayer,&EQPlayerHook::dEQPlayer_Detour,&EQPlayerHook::dEQPlayer_Trampoline);
-    EzDetour(EQItemList__EQItemList,&EQItemListHook::EQItemList_Detour,&EQItemListHook::EQItemList_Trampoline);
-    EzDetour(EQItemList__dEQItemList,&EQItemListHook::dEQItemList_Detour,&EQItemListHook::dEQItemList_Trampoline);
+    //EzDetour(EQItemList__EQItemList,&EQItemListHook::EQItemList_Detour,&EQItemListHook::EQItemList_Trampoline);
+    //EzDetour(EQItemList__dEQItemList,&EQItemListHook::dEQItemList_Detour,&EQItemListHook::dEQItemList_Trampoline);
     EzDetour(EQPlayer__SetNameSpriteState,&EQPlayerHook::SetNameSpriteState_Detour,&EQPlayerHook::SetNameSpriteState_Trampoline);
     EzDetour(EQPlayer__SetNameSpriteTint,&EQPlayerHook::SetNameSpriteTint_Detour,&EQPlayerHook::SetNameSpriteTint_Trampoline);
+    EzDetour(CDisplay__FreeAllItemLists, &CDisplayHook::FreeAllItemLists_Detour, &CDisplayHook::FreeAllItemLists_Trampoline);
+    EzDetour(__AddEqItem, AddEqItem_Detour, AddEqItem_Trampoline);
+    EzDetour(__DeleteEqItem, DeleteEqItem_Detour, DeleteEqItem_Trampoline);
 
     InitializeCriticalSection(&csPendingGrounds);
     ProcessPending=true;
@@ -624,10 +663,14 @@ VOID ShutdownMQ2Spawns()
     DebugSpew("Shutting Down Spawn-related Hooks");
     RemoveDetour(EQPlayer__EQPlayer);
     RemoveDetour(EQPlayer__dEQPlayer);
-    RemoveDetour(EQItemList__EQItemList);
-    RemoveDetour(EQItemList__dEQItemList);
+    //RemoveDetour(EQItemList__EQItemList);
+    //RemoveDetour(EQItemList__dEQItemList);
     RemoveDetour(EQPlayer__SetNameSpriteState);
     RemoveDetour(EQPlayer__SetNameSpriteTint);
+    RemoveDetour(CDisplay__FreeAllItemLists);
+    RemoveDetour(__AddEqItem);
+    RemoveDetour(__DeleteEqItem);
+
     ProcessPending=false;
     EnterCriticalSection(&csPendingGrounds);
     DeleteCriticalSection(&csPendingGrounds);
