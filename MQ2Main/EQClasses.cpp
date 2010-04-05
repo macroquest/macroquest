@@ -9547,7 +9547,7 @@ FUNCTION_AT_ADDRESS(int EQMisc::GetActiveFavorCost(void),EQMisc__GetActiveFavorC
 FUNCTION_AT_ADDRESS(unsigned long CSkillMgr::GetStrNumber(int),CSkillMgr__GetStrNumber);
 #endif
 #ifdef CSkillMgr__GetSkillCap
-FUNCTION_AT_ADDRESS(unsigned long CSkillMgr::GetSkillCap(class EQ_Character *,int,int,int),CSkillMgr__GetSkillCap)
+FUNCTION_AT_ADDRESS(unsigned long CSkillMgr::GetSkillCap(class EQ_Character *,int,int,int,bool,bool,bool),CSkillMgr__GetSkillCap)
 #endif
 #ifdef CSkillMgr__SkillAvailableAtLevel
 FUNCTION_AT_ADDRESS(unsigned long CSkillMgr::SkillAvailableAtLevel(int,int),CSkillMgr__SkillAvailableAtLevel);

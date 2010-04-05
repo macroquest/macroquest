@@ -441,7 +441,7 @@ typedef struct _ITEMSPELLS {
 /*0x64*/
 } ITEMSPELLS, *PITEMSPELLS; 
 
-// actual size: 0x55c 2-11-2009
+// actual size: 0x564 12-8-2009 - ieatacid
 typedef struct _ITEMINFO {
 /*0x000*/ CHAR   Name[ITEM_NAME_LEN];
 /*0x040*/ CHAR   LoreName[LORE_NAME_LEN];
@@ -455,148 +455,151 @@ typedef struct _ITEMINFO {
 /*0x0ea*/ BYTE   NoRent; // 0=temp, 1=default
 /*0x0eb*/ BYTE   NoDrop; // 0=no drop, 1=can drop
 /*0x0ec*/ BYTE   Attuneable;
-/*0x0ed*/ BYTE   Size;
-/*0x0ee*/ BYTE   Type;
-/*0x0ef*/ BYTE   TradeSkills;
-/*0x0f0*/ BYTE   Lore;
-/*0x0f1*/ BYTE   Unknown0xf1[0x3];
-/*0x0f4*/ BYTE   Artifact;
-/*0x0f5*/ BYTE   Summoned;
-/*0x0f6*/ BYTE   SvCold;
-/*0x0f7*/ BYTE   SvFire;
-/*0x0f8*/ BYTE   SvMagic;
-/*0x0f9*/ BYTE   SvDisease;
-/*0x0fa*/ BYTE   SvPoison;
-/*0x0fb*/ BYTE   SvCorruption;
-/*0x0fc*/ BYTE   STR;
-/*0x0fd*/ BYTE   STA;
-/*0x0fe*/ BYTE   AGI;
-/*0x0ff*/ BYTE   DEX;
-/*0x100*/ BYTE   CHA;
-/*0x101*/ BYTE   INT;
-/*0x102*/ BYTE   WIS;
-/*0x103*/ BYTE   Unknown0x103;
-/*0x104*/ DWORD  HP;
-/*0x108*/ DWORD  Mana;
-/*0x10c*/ DWORD  AC;
-/*0x110*/ DWORD  RequiredLevel;
-/*0x114*/ DWORD  RecommendedLevel;
-/*0x118*/ BYTE   RecommendedSkill;
-/*0x119*/ BYTE   Unknown0x119[0x3];
-/*0x11c*/ BYTE   SkillModType;
+/*0x0ed*/ BYTE   Unknown0xf0;
+/*0x0ee*/ BYTE   Size;
+/*0x0ef*/ BYTE   Type;
+/*0x0f0*/ BYTE   TradeSkills;
+/*0x0f1*/ BYTE   Padding0xf1[0x3];
+/*0x0f4*/ BYTE   Lore;
+/*0x0f5*/ BYTE   Unknown0xf5[0x3];
+/*0x0f8*/ BYTE   Artifact;
+/*0x0f9*/ BYTE   Summoned;
+/*0x0fa*/ BYTE   SvCold;
+/*0x0fb*/ BYTE   SvFire;
+/*0x0fc*/ BYTE   SvMagic;
+/*0x0fd*/ BYTE   SvDisease;
+/*0x0fe*/ BYTE   SvPoison;
+/*0x0ff*/ BYTE   SvCorruption;
+/*0x100*/ BYTE   STR;
+/*0x101*/ BYTE   STA;
+/*0x102*/ BYTE   AGI;
+/*0x103*/ BYTE   DEX;
+/*0x104*/ BYTE   CHA;
+/*0x105*/ BYTE   INT;
+/*0x106*/ BYTE   WIS;
+/*0x107*/ BYTE   Unknown0x107;
+/*0x108*/ DWORD  HP;
+/*0x10c*/ DWORD  Mana;
+/*0x110*/ DWORD  AC;
+/*0x114*/ DWORD  RequiredLevel;
+/*0x118*/ DWORD  RecommendedLevel;
+/*0x11c*/ BYTE   RecommendedSkill;
 /*0x11d*/ BYTE   Unknown0x11d[0x3];
-/*0x120*/ DWORD  Unknown0x120;
-/*0x124*/ DWORD  SkillModValue;
-/*0x128*/ DWORD  BaneDMGRace;
-/*0x12c*/ DWORD  BaneDMGBodyType;
-/*0x130*/ BYTE   BaneDMGBodyTypeValue;
-/*0x131*/ BYTE   BaneDMGRaceValue;
-/*0x132*/ BYTE   Unknown0x132[0x6];
-/*0x138*/ DWORD  InstrumentType;
-/*0x13c*/ DWORD  InstrumentMod;
-/*0x140*/ DWORD  Classes;
-/*0x144*/ DWORD  Races;
-/*0x148*/ DWORD  Diety;
-/*0x14c*/ BYTE   Unknown0x14c[0x4];
-/*0x150*/ BYTE   Magic;
-/*0x151*/ BYTE   Light;
-/*0x152*/ BYTE   Delay;
-/*0x153*/ BYTE   DmgBonusType;
-/*0x154*/ BYTE   DmgBonusVal;
-/*0x155*/ BYTE   Range;
-/*0x156*/ BYTE   Unknown0x156[0x2];
-/*0x158*/ DWORD  Damage;
-/*0x15c*/ DWORD  BackstabDamage;
-/*0x160*/ DWORD  DamageShieldMitigation;
-/*0x164*/ DWORD  HeroicSTR;
-/*0x168*/ DWORD  HeroicINT;
-/*0x16c*/ DWORD  HeroicWIS;
-/*0x170*/ DWORD  HeroicAGI;
-/*0x174*/ DWORD  HeroicDEX;
-/*0x178*/ DWORD  HeroicSTA;
-/*0x17c*/ DWORD  HeroicCHA;
-/*0x180*/ DWORD  HeroicSvMagic;
-/*0x184*/ DWORD  HeroicSvFire;
-/*0x188*/ DWORD  HeroicSvCold;
-/*0x18c*/ DWORD  HeroicSvDisease;
-/*0x190*/ DWORD  HeroicSvPoison;
-/*0x194*/ DWORD  HeroicSvCorruption;
-/*0x198*/ DWORD  HealAmount;
-/*0x19c*/ DWORD  SpellDamage;
-/*0x1a0*/ BYTE   ItemType;
-/*0x1a1*/ BYTE   Unknown0x1a1[0x3];
-/*0x1a4*/ BYTE   Material;
-/*0x1a5*/ BYTE   Unknown0x1a5[0xb];
-/*0x1b0*/ DWORD  AugSlot1;
-/*0x1b4*/ DWORD  AugSlot1_Unknown;
-/*0x1b8*/ DWORD  AugSlot2;
-/*0x1bc*/ DWORD  AugSlot2_Unknown;
-/*0x1c0*/ DWORD  AugSlot3;
-/*0x1c4*/ DWORD  AugSlot3_Unknown;
-/*0x1c8*/ DWORD  AugSlot4;
-/*0x1cc*/ DWORD  AugSlot4_Unknown;
-/*0x1d0*/ DWORD  AugSlot5;
-/*0x1d4*/ DWORD  AugSlot5_Unknown;
-/*0x1d8*/ DWORD  AugType;
-/*0x1dc*/ DWORD  AugRestrictions;
-/*0x1e0*/ DWORD  SolventNeeded; //ID# of Solvent (Augs only)
-/*0x1e4*/ DWORD  LDTheme;
-/*0x1e8*/ DWORD  LDCost;
-/*0x1ec*/ DWORD  LDType;
-/*0x1f0*/ DWORD  Unknown0x1f0;
-/*0x1f4*/ BYTE   Unknown0x1f4[0x4];
-/*0x1f8*/ DWORD  FactionModType[0x4];
-/*0x208*/ DWORD  FactionModValue[0x4];
-/*0x218*/ BYTE   CharmFile[0x20];
-/*0x238*/ BYTE   Unknown0x238[0x4];
-/*0x23c*/ struct _ITEMSPELLS Clicky;
-/*0x2a0*/ struct _ITEMSPELLS Proc;
-/*0x304*/ struct _ITEMSPELLS Worn;
-/*0x368*/ struct _ITEMSPELLS Focus;
-/*0x3cc*/ struct _ITEMSPELLS Scroll;
-/*0x430*/ BYTE   Unknown0x430[0x78];
-/*0x4a8*/ DWORD  CombatEffects;
-/*0x4ac*/ DWORD  Shielding;
-/*0x4b0*/ DWORD  StunResist;
-/*0x4b4*/ DWORD  DoTShielding;
-/*0x4b8*/ DWORD  StrikeThrough;
-/*0x4bc*/ DWORD  DmgBonusSkill; // SkillMinDamageMod;
-/*0x4c0*/ DWORD  DmgBonusValue; // MinDamageMod;
-/*0x4c4*/ DWORD  SpellShield;
-/*0x4c8*/ DWORD  Avoidance;
-/*0x4cc*/ DWORD  Accuracy;
-/*0x4d0*/ DWORD  CharmFileID;
-/*0x4d4*/ DWORD  CastTime;
-/*0x4d8*/ BYTE   Combine;
-/*0x4d9*/ BYTE   Slots;
-/*0x4da*/ BYTE   SizeCapacity;
-/*0x4db*/ BYTE   WeightReduction;
-/*0x4dc*/ BYTE   BookType;      // 0=note, !0=book
-/*0x4dd*/ BYTE   BookLang;
-/*0x4de*/ CHAR   BookFile[0x1e];
-/*0x4fc*/ DWORD  Favor;         // Tribute Value
-/*0x500*/ DWORD  GuildFavor;
-/*0x504*/ DWORD  Unknown0x504;
-/*0x508*/ DWORD  Endurance;
-/*0x50c*/ DWORD  Attack;
-/*0x510*/ DWORD  HPRegen;
-/*0x514*/ DWORD  ManaRegen;
-/*0x518*/ DWORD  EnduranceRegen;
-/*0x51c*/ DWORD  Haste;
-/*0x520*/ DWORD  DamShield;
-/*0x524*/ BYTE   Unknown0x524[0x8];
-/*0x52c*/ BYTE   NoPet;
-/*0x52d*/ BYTE   Unknown0x52d[0xb];
-/*0x538*/ DWORD  StackSize;
-/*0x53c*/ BYTE   Unknown0x53c[0x4];
-/*0x540*/ DWORD  MaxPower;
-/*0x544*/ DWORD  Purity;
-/*0x548*/ BYTE   Unknown0x448[0x4];
-/*0x54c*/ BYTE   QuestItem;
-/*0x54d*/ BYTE   Unknown0x54d[0x3];
-/*0x550*/ DWORD  Clairvoyance;
-/*0x554*/ BYTE   Unknown0x554[0x8];
-/*0x55c*/ 
+/*0x120*/ BYTE   SkillModType;
+/*0x121*/ BYTE   Unknown0x121[0x3];
+/*0x124*/ DWORD  Unknown0x124;
+/*0x128*/ DWORD  SkillModValue;
+/*0x12c*/ DWORD  BaneDMGRace;
+/*0x130*/ DWORD  BaneDMGBodyType;
+/*0x134*/ BYTE   BaneDMGBodyTypeValue;
+/*0x135*/ BYTE   BaneDMGRaceValue;
+/*0x136*/ BYTE   Unknown0x136[0x6];
+/*0x13c*/ DWORD  InstrumentType;
+/*0x140*/ DWORD  InstrumentMod;
+/*0x144*/ DWORD  Classes;
+/*0x148*/ DWORD  Races;
+/*0x14c*/ DWORD  Diety;
+/*0x150*/ BYTE   Unknown0x150[0x4];
+/*0x154*/ BYTE   Magic;
+/*0x155*/ BYTE   Light;
+/*0x156*/ BYTE   Delay;
+/*0x157*/ BYTE   DmgBonusType;
+/*0x158*/ BYTE   DmgBonusVal;
+/*0x159*/ BYTE   Range;
+/*0x15a*/ BYTE   Unknown0x15a[0x2];
+/*0x15c*/ DWORD  Damage;
+/*0x160*/ DWORD  BackstabDamage;
+/*0x164*/ DWORD  DamageShieldMitigation;
+/*0x168*/ DWORD  HeroicSTR;
+/*0x16c*/ DWORD  HeroicINT;
+/*0x170*/ DWORD  HeroicWIS;
+/*0x174*/ DWORD  HeroicAGI;
+/*0x178*/ DWORD  HeroicDEX;
+/*0x17c*/ DWORD  HeroicSTA;
+/*0x180*/ DWORD  HeroicCHA;
+/*0x184*/ DWORD  HeroicSvMagic;
+/*0x188*/ DWORD  HeroicSvFire;
+/*0x18c*/ DWORD  HeroicSvCold;
+/*0x190*/ DWORD  HeroicSvDisease;
+/*0x194*/ DWORD  HeroicSvPoison;
+/*0x198*/ DWORD  HeroicSvCorruption;
+/*0x19c*/ DWORD  HealAmount;
+/*0x1a0*/ DWORD  SpellDamage;
+/*0x1a4*/ BYTE   ItemType;
+/*0x1a5*/ BYTE   Unknown0x1a5[0x3];
+/*0x1a8*/ BYTE   Material;
+/*0x1a9*/ BYTE   Unknown0x1a9[0xb];
+/*0x1b4*/ DWORD  AugSlot1;
+/*0x1b8*/ DWORD  AugSlot1_Unknown;
+/*0x1bc*/ DWORD  AugSlot2;
+/*0x1c0*/ DWORD  AugSlot2_Unknown;
+/*0x1c4*/ DWORD  AugSlot3;
+/*0x1c8*/ DWORD  AugSlot3_Unknown;
+/*0x1cc*/ DWORD  AugSlot4;
+/*0x1d0*/ DWORD  AugSlot4_Unknown;
+/*0x1d4*/ DWORD  AugSlot5;
+/*0x1d8*/ DWORD  AugSlot5_Unknown;
+/*0x1dc*/ DWORD  AugType;
+/*0x1e0*/ DWORD  AugRestrictions;
+/*0x1e4*/ DWORD  SolventNeeded; //ID# of Solvent (Augs only)
+/*0x1e8*/ DWORD  LDTheme;
+/*0x1ec*/ DWORD  LDCost;
+/*0x1f0*/ DWORD  LDType;
+/*0x1f4*/ DWORD  Unknown0x1f4;
+/*0x1f8*/ BYTE   Unknown0x1f8[0x4];
+/*0x1fc*/ DWORD  FactionModType[0x4];
+/*0x20c*/ DWORD  FactionModValue[0x4];
+/*0x21c*/ BYTE   CharmFile[0x20];
+/*0x23c*/ BYTE   Unknown0x23c[0x4];
+/*0x240*/ struct _ITEMSPELLS Clicky;
+/*0x2a4*/ struct _ITEMSPELLS Proc;
+/*0x308*/ struct _ITEMSPELLS Worn;
+/*0x36c*/ struct _ITEMSPELLS Focus;
+/*0x3d0*/ struct _ITEMSPELLS Scroll;
+/*0x434*/ BYTE   Unknown0x434[0x78];
+/*0x4ac*/ DWORD  CombatEffects;
+/*0x4b0*/ DWORD  Shielding;
+/*0x4b4*/ DWORD  StunResist;
+/*0x4b8*/ DWORD  DoTShielding;
+/*0x4bc*/ DWORD  StrikeThrough;
+/*0x4c0*/ DWORD  DmgBonusSkill; // SkillMinDamageMod;
+/*0x4c4*/ DWORD  DmgBonusValue; // MinDamageMod;
+/*0x4c8*/ DWORD  SpellShield;
+/*0x4cc*/ DWORD  Avoidance;
+/*0x4d0*/ DWORD  Accuracy;
+/*0x4d4*/ DWORD  CharmFileID;
+/*0x4d8*/ DWORD  CastTime;
+/*0x4dc*/ BYTE   Combine;
+/*0x4dd*/ BYTE   Slots;
+/*0x4de*/ BYTE   SizeCapacity;
+/*0x4df*/ BYTE   WeightReduction;
+/*0x4e0*/ BYTE   BookType;      // 0=note, !0=book
+/*0x4e1*/ BYTE   BookLang;
+/*0x4e2*/ CHAR   BookFile[0x1e];
+/*0x500*/ DWORD  Favor;         // Tribute Value
+/*0x504*/ DWORD  GuildFavor;
+/*0x508*/ DWORD  Unknown0x508;
+/*0x50c*/ DWORD  Endurance;
+/*0x510*/ DWORD  Attack;
+/*0x514*/ DWORD  HPRegen;
+/*0x518*/ DWORD  ManaRegen;
+/*0x51c*/ DWORD  EnduranceRegen;
+/*0x520*/ DWORD  Haste;
+/*0x524*/ DWORD  DamShield;
+/*0x528*/ BYTE   Unknown0x528[0x8];
+/*0x530*/ BYTE   NoPet;
+/*0x531*/ BYTE   Unknown0x531[0xb];
+/*0x53c*/ DWORD  StackSize;
+/*0x540*/ BYTE   Unknown0x540[0x4];
+/*0x544*/ DWORD  MaxPower;
+/*0x548*/ DWORD  Purity;
+/*0x54c*/ BYTE   Unknown0x54c[0x4];
+/*0x550*/ DWORD  Unknown0x550;
+/*0x554*/ BYTE   QuestItem;
+/*0x555*/ BYTE   Unknown0x555[0x3];
+/*0x558*/ DWORD  Clairvoyance;
+/*0x55c*/ BYTE   Unknown0x55c[0x8];
+/*0x564*/ 
 } ITEMINFO, *PITEMINFO;
 
 // actual size 0xd8 01-16-2008
@@ -768,7 +771,7 @@ typedef struct _GROUPINFO {
 /*0x20*/
 } GROUPINFO, *PGROUPINFO;
 
-// actual size: 0x4848 11-11-09 - ieatacid
+// actual size: 0x4908 12-8-09 - ieatacid
 typedef struct _CHARINFO {
 /*0x0000*/   void       *vtable1;
 /*0x0004*/   void       *punknown;
@@ -870,33 +873,33 @@ typedef struct _CHARINFO {
 /*0x2428*/   DWORD      standstate;
 /*0x242c*/   BYTE       Unknown0x242c[0x4];
 /*0x2430*/   struct     _LEADERABILITIES ActiveAbilities; //ability levels of the leader of your group (size 0x40)
-/*0x2470*/   BYTE       Unknown0x2470[0x274];
-/*0x26e4*/   DWORD      BankSharedPlat;
-/*0x26e8*/   DWORD      BankSharedGold;
-/*0x26ec*/   DWORD      BankSharedSilver;
-/*0x26f0*/   DWORD      BankSharedCopper;
-/*0x26f4*/   DWORD      BankPlat;
-/*0x26f8*/   DWORD      BankGold;
-/*0x26fc*/   DWORD      BankSilver;
-/*0x2700*/   DWORD      BankCopper;
-/*0x2704*/   DWORD      STR;
-/*0x2708*/   DWORD      STA;
-/*0x270c*/   DWORD      CHA;
-/*0x2710*/   DWORD      DEX;
-/*0x2714*/   DWORD      INT;
-/*0x2718*/   DWORD      AGI;
-/*0x271c*/   DWORD      WIS;
-/*0x2720*/   DWORD      SavePoison;
-/*0x2724*/   DWORD      SaveMagic;
-/*0x2728*/   DWORD      SaveDisease;
-/*0x272c*/   DWORD      SaveCorruption;
-/*0x2730*/   DWORD      SaveFire;
-/*0x2724*/   DWORD      SaveCold;
-/*0x2738*/   BYTE       Unknown0x2738[0x2110];
-/*0x4848*/
+/*0x2470*/   BYTE       Unknown0x2470[0x334];
+/*0x27a4*/   DWORD      BankSharedPlat;
+/*0x27a8*/   DWORD      BankSharedGold;
+/*0x27ac*/   DWORD      BankSharedSilver;
+/*0x27b0*/   DWORD      BankSharedCopper;
+/*0x27b4*/   DWORD      BankPlat;
+/*0x27b8*/   DWORD      BankGold;
+/*0x27bc*/   DWORD      BankSilver;
+/*0x27c0*/   DWORD      BankCopper;
+/*0x27c4*/   DWORD      STR;
+/*0x27c8*/   DWORD      STA;
+/*0x27cc*/   DWORD      CHA;
+/*0x27d0*/   DWORD      DEX;
+/*0x27d4*/   DWORD      INT;
+/*0x27d8*/   DWORD      AGI;
+/*0x27dc*/   DWORD      WIS;
+/*0x27e0*/   DWORD      SavePoison;
+/*0x27e4*/   DWORD      SaveMagic;
+/*0x27e8*/   DWORD      SaveDisease;
+/*0x27ec*/   DWORD      SaveCorruption;
+/*0x27f0*/   DWORD      SaveFire;
+/*0x27f4*/   DWORD      SaveCold;
+/*0x27f8*/   BYTE       Unknown0x27f8[0x2110];
+/*0x4908*/
 } CHARINFO, *PCHARINFO;
 
-// actual size: 0x7bb8 11-11-09 - ieatacid
+// actual size: 0x7bcc 12-8-09 - ieatacid
 typedef struct _CHARINFO2 {
 /*0x0000*/   BYTE       Unknown0x0[0x10];
 union {
@@ -966,8 +969,8 @@ union {
 /*0x6be0*/   DWORD      AAPoints;
 /*0x6be4*/   BYTE       Unknown0x6be4[0xfac];
 /*0x7b90*/   DWORD      AAPointsSpent;
-/*0x7b94*/   BYTE       Unknown0x7b94[0x24];
-/*0x7bb8*/
+/*0x7b94*/   BYTE       Unknown0x7b94[0x38];
+/*0x7bcc*/
 } CHARINFO2, *PCHARINFO2;
 
 typedef struct _MODELINFONAME {
@@ -1560,7 +1563,7 @@ BYTE            unknown[0x68];
 struct _SPELL*  Spells[TOTAL_SPELL_COUNT];
 } SPELLMGR, *PSPELLMGR;
 
-// actual size: 0x520 7-15-09 - ieatacid
+// actual size: 0x524 12-8-09 - ieatacid
 typedef struct _SPELL {
 /*0x000*/   BYTE    Location;           //01=Outdoors, 02=dungeons, ff=Any
 /*0x001*/   BYTE    Unknown0x1[0x3];
@@ -1648,8 +1651,8 @@ typedef struct _SPELL {
 /*0x4c8*/   DWORD   ResistAdj;
 /*0x4cc*/   BYTE    Unknown0x4cc[0x1a];
 /*0x4e6*/   BYTE    Uninterruptable;    //00=Interruptable, 01=Uninterruptable 
-/*0x4e7*/   BYTE    Unknown0x4e7[0x39]; 
-/*0x520*/
+/*0x4e7*/   BYTE    Unknown0x4e7[0x3d]; 
+/*0x524*/
 } SPELL, *PSPELL;
 
 // actual size: 0x148 10-25-2006  ieatacid

@@ -6132,7 +6132,7 @@ bool MQ2SkillType::GETMEMBER()
     case SkillCap:
         {
             DWORD i=GetSkillIDFromName(pStringTable->getString(pSkill->nName,0));
-            Dest.DWord=pCSkillMgr->GetSkillCap((EQ_Character*)GetCharInfo(),GetCharInfo2()->Level,GetCharInfo2()->Class,i);
+            Dest.DWord=pCSkillMgr->GetSkillCap((EQ_Character*)GetCharInfo(),GetCharInfo2()->Level,GetCharInfo2()->Class,i,true,true,true);
             Dest.Type=pIntType;
             return true;
         }
