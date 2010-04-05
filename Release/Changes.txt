@@ -1,3 +1,6 @@
+16 August 2009 by ieatacid
+- Added mouse buttons to dikeys.h (Mouse_Mid, Mouse_Aux1, Mouse_Aux2).  This should let you /bind them now and eliminate associated crashes
+
 14 August 2009 by pms
 - fix for shownames
   http://www.macroquest2.com/phpBB2/viewtopic.php?t=16365

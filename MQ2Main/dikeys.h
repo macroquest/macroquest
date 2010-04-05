@@ -150,3 +150,7 @@
     {"My_Computer",    235},
     {"Mail",    236},
     {"Media",    237},
+
+    {"Mouse_Mid", 240},
+    {"Mouse_Aux1", 241},
+    {"Mouse_Aux2", 242},
