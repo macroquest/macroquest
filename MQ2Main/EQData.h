@@ -2014,8 +2014,8 @@ typedef struct _MERCENARYINFO {
 /*0x040*/ DWORD MercState; // 1 = suspended, 5 = active
 } MERCENARYINFO, *PMERCENARYINFO;
 
-#define EQ_BEGIN_ZONE                   0x2913  // CEverQuest__SavePCForce+45F     09-15-2009
-#define EQ_END_ZONE                     0x6CDC  // CEverQuest__DoMainLoop+B2F      09-15-2009
-#define EQ_LoadingS__ArraySize          0x45    // EQ_LoadingS__SetProgressBar+7C  09-15-2009
+#define EQ_BEGIN_ZONE                   0x2913  // CEverQuest__SavePCForce+45F     12-15-2009
+#define EQ_END_ZONE                     0x6CDC  // CEverQuest__DoMainLoop+B2F      12-15-2009
+#define EQ_LoadingS__ArraySize          0x45    // EQ_LoadingS__SetProgressBar+7C  12-15-2009
 };
 using namespace EQData;
