@@ -1,3 +1,7 @@
+11 October 2008 by dkaa
+- Fix for mappable commands -- thanks, brainiac
+- Fix for class type 71, merc liaison.
+
 10 October 2008 by dkaa
 - Fix for VC6 compile problems.
 
