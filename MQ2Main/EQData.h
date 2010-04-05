@@ -683,7 +683,7 @@ typedef struct _INVENTORY {
 } INVENTORY, *PINVENTORY; 
 
 #define NUM_ALT_ABILITIES_ARRAY         0x1F7                        
-#define NUM_ALT_ABILITIES               0x270f
+#define NUM_ALT_ABILITIES               0xC34F
 
 //these two will merge when i get a chance
 #define AA_CHAR_MAX                     0xF5
