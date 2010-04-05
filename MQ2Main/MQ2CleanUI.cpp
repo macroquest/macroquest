@@ -31,8 +31,6 @@ public:
     { 
         Benchmark(bmPluginsCleanUI,DebugTry(PluginsCleanUI()));
         DebugTry(CleanUI_Trampoline());
-		gGameState=GetGameState();
-        DebugTry(Benchmark(bmPluginsSetGameState,PluginsSetGameState(gGameState)));
     } 
 
     VOID ReloadUI_Trampoline(BOOL);

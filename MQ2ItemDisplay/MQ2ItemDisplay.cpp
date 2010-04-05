@@ -662,11 +662,45 @@ public:
         {
             STMLToPlainText(&pWnd->Tooltip->Text[0],Temp);
             pItem=GetItemContentsByName(Temp);
+
+            if(pItem && pItem->Item->Clicky.TimerID)
+            {
+                int Secs=GetItemTimer(pItem);
+                if(Secs)
+                {
+                    int Mins=(Secs/60)%60;
+                    int Hrs=(Secs/3600);
+                    Secs=Secs%60;
+                    if(Hrs)
+                        sprintf(Temp2,"%d:%02d:%02d",Hrs,Mins,Secs);
+                    else
+                        sprintf(Temp2,"%d:%02d",Mins,Secs);
+                }
+                else
+                    strcpy(Temp2,"Ready");
+                sprintf(Temp,"%s (%s)",pItem->Item->Name,Temp2);
+                SetCXStr((PCXSTR*)&pWnd->Tooltip,Temp);
+            }
         }
-        else if(GetParentWnd(pWnd)!=(CXWnd*)pBuffWnd && GetParentWnd(pWnd)!=(CXWnd*)pSongWnd && GetParentWnd(pWnd)!=(CXWnd*)pTargetWnd && GetParentWnd(pWnd)!=(CXWnd*)pPetInfoWnd)
-        {
-            pItem=GetItemContentsBySlotID(((CSidlScreenWnd *)pWnd)->SlotID);
-        }
+
+        DrawTooltipAtPoint_Trampoline(New, Old);
+    }
+};
+
+class InvSlotWndHook
+{
+public:
+    VOID DrawTooltip_Trampoline(CXWnd *);
+    VOID DrawTooltip_Detour(CXWnd *pWindow)
+    {
+        CHAR Temp[MAX_STRING]={0};
+        CHAR Temp2[MAX_STRING]={0};
+        PCONTENTS pItem = 0;
+        
+        STMLToPlainText(&pWindow->Tooltip->Text[0],Temp);
+
+        pItem = GetItemContentsByName(Temp);
+
         if(pItem && pItem->Item->Clicky.TimerID)
         {
             int Secs=GetItemTimer(pItem);
@@ -682,10 +716,13 @@ public:
             }
             else
                 strcpy(Temp2,"Ready");
+
             sprintf(Temp,"%s (%s)",pItem->Item->Name,Temp2);
-            SetCXStr((PCXSTR*)&pWnd->Tooltip,Temp);
+            SetCXStr((PCXSTR*)&pWindow->Tooltip,Temp);
         }
-        DrawTooltipAtPoint_Trampoline(New, Old);
+
+        DrawTooltip_Trampoline(pWindow);
+        return;
     }
 };
 
@@ -695,6 +732,7 @@ bool ItemDisplayHook::bNoSpellTramp = false;
 DETOUR_TRAMPOLINE_EMPTY(VOID ItemDisplayHook::SetItem_Trampoline(class EQ_Item *,bool)); 
 DETOUR_TRAMPOLINE_EMPTY(VOID ItemDisplayHook::SetSpell_Trampoline(int SpellID,bool HasSpellDescr));;
 DETOUR_TRAMPOLINE_EMPTY(VOID XWndHook::DrawTooltipAtPoint_Trampoline(const CXStr &, CXStr *));;
+DETOUR_TRAMPOLINE_EMPTY(VOID InvSlotWndHook::DrawTooltip_Trampoline(CXWnd *)); 
 
 #ifndef ISXEQ
 void Comment(PSPAWNINFO pChar, PCHAR szLine) 
@@ -759,6 +797,7 @@ PLUGIN_API VOID InitializePlugin(VOID)
     EzDetour(CItemDisplayWnd__SetItem,&ItemDisplayHook::SetItem_Detour,&ItemDisplayHook::SetItem_Trampoline);
     EzDetour(CItemDisplayWnd__SetSpell,&ItemDisplayHook::SetSpell_Detour,&ItemDisplayHook::SetSpell_Trampoline);
     EzDetour(CXWnd__DrawTooltipAtPoint,&XWndHook::DrawTooltipAtPoint_Detour,&XWndHook::DrawTooltipAtPoint_Trampoline);
+    EzDetour(CInvSlotWnd__DrawTooltip, &InvSlotWndHook::DrawTooltip_Detour, &InvSlotWndHook::DrawTooltip_Trampoline);
 
     AddCommand("/inote",Comment); 
     AddCommand("/ireset",Ireset); 
@@ -774,6 +813,7 @@ PLUGIN_API VOID ShutdownPlugin(VOID)
     RemoveDetour(CItemDisplayWnd__SetItem);
     RemoveDetour(CItemDisplayWnd__SetSpell);
     RemoveDetour(CXWnd__DrawTooltipAtPoint);
+    RemoveDetour(CInvSlotWnd__DrawTooltip);
 
     RemoveMQ2Data("DisplayItem");
     RemoveCommand("/ireset"); 

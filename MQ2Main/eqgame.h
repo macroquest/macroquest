@@ -281,6 +281,7 @@
 #define __get_melee_range                                          0x4AD330
 #define __GetGaugeValueFromEQ                                      0x649BF0
 #define __GetLabelFromEQ                                           0x64A950
+#define __LoadFrontEnd                                             0x569C40
 #define __NewUIINI                                                 0x649780
 #define __ProcessGameEvents                                        0x4F83A0
 #define CrashDetected                                              0x569A40
@@ -395,6 +396,9 @@
 // CInvSLot
 #define CInvSlot__HandleRButtonUp                                  0x5DB170
 #define CInvSlot__SliderComplete                                   0x5DA2C0
+
+// CInvSlotWnd
+#define CInvSlotWnd__DrawTooltip                                   0x5DCA10
 
 // CItemDisplayWnd 
 #define CItemDisplayWnd__SetItem                                   0x5EA7D0
