@@ -261,13 +261,13 @@ VOID HookInlineChecks(BOOL Patch)
 //.text:004D6D55                 cmp     ecx, 0D7BD62AEh
 //.text:004F2488                 cmp     eax, 0F1BD3A34h
 //.text:004F7A48                 cmp     eax, 4123EADBh
-//.text:004FAC0B                 cmp     eax, 3C12B82Dh
+//.text:004FAC3B                 cmp     eax, 0D6711350h
 //.text:004F2A64                 cmp     ecx, 0C38F1142h
 
     int cmps2[] = {     0x4D6D55,
                         0x4F2488,
                         0x4F7A48,
-                        0x4FAC0B,
+                        0x4FAC3B,
                         0x4F2A64 };
     int len2[] = { 6, 5, 5, 5, 6 }; 
     char NewData2[20];
