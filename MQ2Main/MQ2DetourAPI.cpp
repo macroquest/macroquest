@@ -256,7 +256,7 @@ VOID HookInlineChecks(BOOL Patch)
 
     //.text:0063BA30                 cmp     int g_radd, (offset loc_7C1AB9+1)
 
-    int cmps[] = { 0x63BA30+6 };
+    int cmps[] = { 0x63C010+6 };
 
     //.text:004D6D55                 cmp     ecx, 0D7BD62AEh
     //.text:004F2488                 cmp     eax, 0F1BD3A34h
@@ -264,11 +264,11 @@ VOID HookInlineChecks(BOOL Patch)
     //.text:004FAC3B                 cmp     eax, 0D6711350h
     //.text:004F2A64                 cmp     ecx, 0C38F1142h
 
-    int cmps2[] = { 0x4D6D55,
-                    0x4F2488,
-                    0x4F7A48,
-                    0x4FAC3B,
-                    0x4F2A64 };
+    int cmps2[] = { 0x4D7005,
+                    0x4F27A8,
+                    0x4F7D68,
+                    0x4FAF5B,
+                    0x4F2D84 };
 
     int len2[] = { 6, 5, 5, 5, 6 }; 
     char NewData2[20];
@@ -311,7 +311,7 @@ VOID HookInlineChecks(BOOL Patch)
     }
     else
     {
-        NewData = 0x7C1ABA;
+        NewData = 0x7C215A;
         for (i=0;i<sizeof(cmps)/sizeof(cmps[0]);i++) {
 #ifdef ISXEQ
             EzUnModify(cmps[i]);

@@ -178,9 +178,9 @@ static inline eSpawnType GetSpawnType(PSPAWNINFO pSpawn)
                 return OBJECT;
             return NPC;
         case 1:
-            if ((pSpawn->Class==1) && (pSpawn->Race==567))
+            if (pSpawn->Race == 567)
                 return CAMPFIRE;
-            if ((pSpawn->Class==8) && ((pSpawn->Race==553) || (pSpawn->Race==556)))
+            if (pSpawn->Race == 500 || (pSpawn->Race >= 553 && pSpawn->Race <= 557) || pSpawn->Race == 586)
                 return BANNER;
             return NPC;
         //case 3:

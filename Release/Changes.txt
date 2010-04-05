@@ -1,3 +1,9 @@
+20 January 2009 by ieatacid, dkaa
+- Updated for today's patch
+
+18 January 2009 by ieatacid
+- Adjusted spawn types for banners.  The client lists the following races as banners: 500, 553-557, 586
+
 17 January 2009 by ieatacid
 - Added "/mqclear" command to MQ2ChatWnd which, you guessed it, clears the MQ2 chat window.  This does it the right way and removes all text from the window, unlike some plugins I've seen that just add 11ty new lines (\n) to the chat window
 - Fixed "/setautorun".  It was saving incorrectly so AutoRun ini entries would never be processed (thanks pms)
