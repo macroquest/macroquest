@@ -1,3 +1,11 @@
+05 November 2008 by ieatacid
+- Fixed caption crash that happened on some untargetables
+- Added "Flyer" spawn type for spawns that appear in some zones with NaN location data, which will filter them from NPC spawns
+- Fixed Me.Aura bug when passing a number to it
+
+03 November 2008 by dkaa
+- added Triple Attack to skills.h
+
 29 October 2008 by rswiders
 - Updated for today's patch
 

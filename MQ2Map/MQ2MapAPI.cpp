@@ -885,6 +885,8 @@ BOOL CanDisplaySpawn(eSpawnType Type, PSPAWNINFO pSpawn)
 		return IsOptionEnabled(MAPFILTER_Campfire);
    case MERCENARY:
       return IsOptionEnabled(MAPFILTER_Mercenary);
+   case FLYER:
+      return FALSE; // they have no location data, no use trying to display them
 	}
 	return TRUE;
 }

@@ -9,8 +9,9 @@ _TEXT   SEGMENT PARA USE32 PUBLIC 'CODE'
 
 
 
-__MemChecker1   proc near               ; CODE XREF: sub_62FB70+203p
-                                        ; sub_6600E0+20bp
+
+__MemChecker1   proc near               ; CODE XREF: ItemBase::ParseDynamicData(char const *,ItemParsedData *,bool *)+229p
+                                        ; CRC::GetStringCRC(char const *,int)+20cp
 
 arg_0           = dword ptr  4
 arg_4           = dword ptr  8
@@ -20,17 +21,17 @@ arg_8           = dword ptr  0Ch
                 or      eax, 0FFFFFFFFh
                 test    ecx, ecx
                 push    esi
-                jz      short loc_667E5F
+                jz      short loc_69FBDF
                 xor     eax, eax
                 mov     al, cl
                 movzx   ecx, ch
                 not     eax
                 and     eax, 0FFh
-                mov     eax, crc32_table[eax*4]
+                mov     eax, __EncryptPad1[eax*4]
                 xor     eax, 0FFFFFFh
                 xor     ecx, eax
                 and     ecx, 0FFh
-                mov     edx, crc32_table[ecx*4]
+                mov     edx, __EncryptPad1[ecx*4]
                 mov     ecx, [esp+4+arg_8]
                 sar     eax, 8
                 and     eax, 0FFFFFFh
@@ -42,46 +43,44 @@ arg_8           = dword ptr  0Ch
                 xor     edx, eax
                 sar     eax, 8
                 and     edx, 0FFh
-                mov     esi, crc32_table[edx*4]
+                mov     esi, __EncryptPad1[edx*4]
                 and     eax, 0FFFFFFh
                 xor     eax, esi
                 xor     ecx, eax
                 and     ecx, 0FFh
-                mov     edx, crc32_table[ecx*4]
+                mov     edx, __EncryptPad1[ecx*4]
                 sar     eax, 8
                 and     eax, 0FFFFFFh
                 xor     eax, edx
 
-loc_667E5F:                             ; CODE XREF: CRC::GetBufferCRC(void const *,uint,int)+Aj
+loc_69FBDF:                             ; CODE XREF: __MemChecker1+Aj
                 mov     ecx, [esp+4+arg_0]
                 mov     edx, [esp+4+arg_4]
                 lea     esi, [ecx+edx]
                 cmp     ecx, esi
-                jnb     short loc_667E93
+                jnb     short loc_69FC13
                 push    edi
                 nop
 
-loc_667E70:                             ; CODE XREF: CRC::GetBufferCRC(void const *,uint,int)+B0j
+loc_69FBF0:                             ; CODE XREF: __MemChecker1+B0j
                 xor     edx, edx
                 mov     dl, [ecx]
                 xor     edx, eax
                 sar     eax, 8
                 and     edx, 0FFh
-                mov     edi, crc32_table[edx*4]
+                mov     edi, __EncryptPad1[edx*4]
                 and     eax, 0FFFFFFh
                 xor     eax, edi
                 inc     ecx
                 cmp     ecx, esi
-                jb      short loc_667E70
+                jb      short loc_69FBF0
                 pop     edi
 
-loc_667E93:                             ; CODE XREF: CRC::GetBufferCRC(void const *,uint,int)+8Cj
+loc_69FC13:                             ; CODE XREF: __MemChecker1+8Cj
                 not     eax
                 pop     esi
                 retn
-
 __MemChecker1   endp
-
 
 
 

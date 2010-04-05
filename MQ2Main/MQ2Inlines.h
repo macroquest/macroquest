@@ -167,6 +167,10 @@ static inline eSpawnType GetSpawnType(PSPAWNINFO pSpawn)
         if (pSpawn->Mercenary)
            return MERCENARY;
 
+        // some type of controller spawn for flying mobs - locations, speed, heading, all NaN
+        if (IsNaN(pSpawn->Y) && IsNaN(pSpawn->X) && IsNaN(pSpawn->Z))
+           return FLYER;
+
         switch(GetBodyType(pSpawn))
         {
         case 0:

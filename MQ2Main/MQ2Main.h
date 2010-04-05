@@ -200,6 +200,7 @@ typedef double DOUBLE;
 #define MAX_VARNAME 64
 #define MAX_STRING            2048
 
+#define IsNaN(x) (x != x)
 
 #include "EQData.h"
 #include "EQUIStructs.h"

@@ -4217,27 +4217,27 @@ PCHAR FormatSearchSpawn(PCHAR Buffer, PSEARCHSPAWN pSearchSpawn)
     CHAR szTemp[MAX_STRING] = {0};
     if (!Buffer) return NULL;
     if (!pSearchSpawn) return strcpy(Buffer,"None");
-		PCHAR pszSpawnType;
-		switch(pSearchSpawn->SpawnType)
-		{
-		case NONE:
-		default:
-			pszSpawnType="any";
-			break;
-		case PC:
-			pszSpawnType="pc";
-			break;
-		case MOUNT:
-			pszSpawnType="mount";
-			break;
-		case PET:
-			pszSpawnType="pet";
-			break;
-		case NPC:
-			pszSpawnType="npc";
-			break;
-		case CORPSE:
-			pszSpawnType="corpse";
+      PCHAR pszSpawnType;
+      switch(pSearchSpawn->SpawnType)
+      {
+      case NONE:
+      default:
+         pszSpawnType="any";
+         break;
+      case PC:
+         pszSpawnType="pc";
+         break;
+      case MOUNT:
+         pszSpawnType="mount";
+         break;
+      case PET:
+         pszSpawnType="pet";
+         break;
+      case NPC:
+         pszSpawnType="npc";
+         break;
+      case CORPSE:
+         pszSpawnType="corpse";
 			break;
 		case TRIGGER:
 			pszSpawnType="trigger";
@@ -4256,6 +4256,9 @@ PCHAR FormatSearchSpawn(PCHAR Buffer, PSEARCHSPAWN pSearchSpawn)
 			break;
       case MERCENARY:
          pszSpawnType="mercenary";
+         break;
+      case FLYER:
+         pszSpawnType="flyer";
          break;
 		}
 
@@ -4606,6 +4609,8 @@ PCHAR ParseSearchSpawnArgs(PCHAR szArg, PCHAR szRest, PSEARCHSPAWN pSearchSpawn)
             pSearchSpawn->SpawnType = CAMPFIRE;
         } else if (!stricmp(szArg,"mercenary")) {
             pSearchSpawn->SpawnType = MERCENARY;
+        } else if (!stricmp(szArg,"flyer")) {
+            pSearchSpawn->SpawnType = FLYER;
         } else if (!stricmp(szArg,"any")) {
             pSearchSpawn->SpawnType = NONE;
         } else if (!stricmp(szArg,"next")) {
@@ -5316,6 +5321,9 @@ VOID SuperWhoDisplay(PSPAWNINFO pChar, PSEARCHSPAWN pSearchSpawn, DWORD Color)
 			break;
       case MERCENARY:
          pszSpawnType="mercenary";
+         break;
+      case FLYER:
+         pszSpawnType="flyer";
          break;
 		}
 		WriteChatf("There %s \ag%d\ax %s%s in %s.",(TotalMatching == 1)?"is":"are",TotalMatching, pszSpawnType, (TotalMatching==1)?"":"s", GetFullZone(pChar->Zone));

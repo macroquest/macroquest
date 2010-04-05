@@ -466,6 +466,8 @@ VOID SetNameSpriteTint(PSPAWNINFO pSpawn)
 		}
 		break;
 	case OBJECT:
+   case MERCENARY:
+   case UNTARGETABLE:
 		((EQPlayerHook*)pSpawn)->SetNameSpriteTint_Trampoline();
 		return;
 	}

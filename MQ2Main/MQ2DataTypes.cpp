@@ -1256,6 +1256,10 @@ bool MQ2SpawnType::GETMEMBER()
          Dest.Ptr="Mercenary";
          Dest.Type=pStringType;
          return true;
+      case FLYER:
+         Dest.Ptr="Flyer";
+         Dest.Type=pStringType;
+         return true;
 		}
 		return false;
 	case Light:
@@ -3111,9 +3115,10 @@ bool MQ2CharacterType::GETMEMBER()
                DWORD n = 0;
                if(ISNUMBER())
                {
-                  n = GETNUMBER() - 1;
+                  n = GETNUMBER();
                   if(n > pAura->NumAuras)
                      return false;
+                  n--;
                   strcpy(DataTypeTemp, pAuras->Aura[n].Name);
                }
                else
@@ -3137,7 +3142,7 @@ bool MQ2CharacterType::GETMEMBER()
                if(!strcmp(DataTypeTemp, "Disciples Aura"))
                   Dest.Ptr = GetSpellByName("Disciple's Aura");
                else
-                  Dest.Ptr =  GetSpellByName(DataTypeTemp);
+                  Dest.Ptr = GetSpellByName(DataTypeTemp);
                Dest.Type = pSpellType;
                return true;
             }
@@ -7148,7 +7153,7 @@ bool MQ2TargetType::GETMEMBER()
             for(i = 0; i < 0x55; i++)
             {
                buffID = ((PCTARGETWND)pTargetWnd)->BuffSpellID[i];
-               if(buffID != 0xffffffff && !stricmp(Index, GetSpellNameByID(buffID)))
+               if(buffID != 0xffffffff && !stricmp(GETFIRST(), GetSpellNameByID(buffID)))
                {
                   Dest.DWord = ((((PCTARGETWND)pTargetWnd)->BuffTimer[i] / 1000) + 6) / 6;
                   Dest.Type = pTicksType;
