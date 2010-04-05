@@ -1,3 +1,9 @@
+8 October 2009 by ieatacid
+- Updated for today's patch
+
+21 September 2009 by ieatacid
+- FindItemCount TLO now searches for augs on items
+
 15 September 2009 by rswiders
 - Updated for today's patch
 
@@ -5,7 +11,7 @@
 - added el_nene's FromData changes
 
 6 September 2009 by ieatacid
-- Added spawn.Following which returns the spawn that a player or NPC is /following (this is also your pet's target)
+- Added spawn.Following which returns the spawn that a player is /following, or your pet's target
 
 31 August 2009 by ieatacid
 - Fixed _SPELL struct that changed in July

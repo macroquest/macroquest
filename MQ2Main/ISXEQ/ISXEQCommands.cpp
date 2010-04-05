@@ -562,7 +562,11 @@ int CMD_CastSpell(int argc, char* argv[])
             } 
       } 
       if (FOUND) { 
-         pCharData1->CastSpell(10,pItem->Clicky.SpellID,(EQ_Item**)item,0,slot,-1,-1,0,0,1); 
+       if(CInvSlot *pSlot = pInvSlotMgr->FindInvSlot(slot))
+       {
+          CXPoint p; p.A=0; p.B=0;
+          pSlot->HandleRButtonUp(&p);
+       }
          return 0; 
       } 
    } 

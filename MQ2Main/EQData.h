@@ -894,7 +894,7 @@ typedef struct _CHARINFO {
 /*0x4820*/
 } CHARINFO, *PCHARINFO;
 
-// actual size: 0x7a5c 06-18-09
+// actual size: 0x7a64 09-15-09 - ieatacid
 typedef struct _CHARINFO2 {
 /*0x0000*/   BYTE       Unknown0x0[0x10];
 union {
@@ -964,8 +964,8 @@ union {
 /*0x6a8c*/   DWORD      AAPoints;
 /*0x6a90*/   BYTE       Unknown0x6a90[0xfac];
 /*0x7a3c*/   DWORD      AAPointsSpent;
-/*0x7a40*/   BYTE       Unknown0x7a40[0x1c];
-/*0x7a5c*/
+/*0x7a40*/   BYTE       Unknown0x7a40[0x24];
+/*0x7a64*/
 } CHARINFO2, *PCHARINFO2;
 
 typedef struct _MODELINFONAME {

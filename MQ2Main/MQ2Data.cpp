@@ -934,6 +934,7 @@ TLO(dataFindItemCount)
     PCHARINFO pCharInfo=GetCharInfo();
 
     unsigned long Count=0;
+    DWORD nAug = 0;
 
     for (unsigned long nSlot=0 ; nSlot < NUM_INV_SLOTS ; nSlot++)
     {
@@ -949,6 +950,15 @@ TLO(dataFindItemCount)
                     else
                         Count+=pItem->StackCount;
                 }
+                else // for augs
+                {
+                    for(nAug = 0; nAug < 0xa; nAug++)
+                    {
+                        if(pItem->Contents[nAug] && pItem->Contents[nAug]->Item->Type == ITEMTYPE_NORMAL && pItem->Contents[nAug]->Item->AugType &&
+                            !stricmp(Name, pItem->Contents[nAug]->Item->Name))
+                            Count++;
+                    }
+                }
             }
             else 
             {
@@ -959,6 +969,15 @@ TLO(dataFindItemCount)
                         Count++;
                     else
                         Count+=pItem->StackCount;
+                }
+                else // for augs
+                {
+                    for(nAug = 0; nAug < 0xa; nAug++)
+                    {
+                        if(pItem->Contents[nAug] && pItem->Contents[nAug]->Item->Type == ITEMTYPE_NORMAL && pItem->Contents[nAug]->Item->AugType &&
+                            strstr(strlwr(strcpy(Temp, pItem->Contents[nAug]->Item->Name)), Name))
+                            Count++;
+                    }
                 }
             }
         }
@@ -984,6 +1003,15 @@ TLO(dataFindItemCount)
                                 else
                                     Count+=pItem->StackCount;
                             }
+                            else // for augs
+                            {
+                                for(nAug = 0; nAug < 0xa; nAug++)
+                                {
+                                    if(pItem->Contents[nAug] && pItem->Contents[nAug]->Item->Type == ITEMTYPE_NORMAL && pItem->Contents[nAug]->Item->AugType &&
+                                        !stricmp(Name, pItem->Contents[nAug]->Item->Name))
+                                        Count++;
+                                }
+                            }
                         }
                         else 
                         {
@@ -994,6 +1022,15 @@ TLO(dataFindItemCount)
                                     Count++;
                                 else
                                     Count+=pItem->StackCount;
+                            }
+                            else // for augs
+                            {
+                                for(nAug = 0; nAug < 0xa; nAug++)
+                                {
+                                    if(pItem->Contents[nAug] && pItem->Contents[nAug]->Item->Type == ITEMTYPE_NORMAL && pItem->Contents[nAug]->Item->AugType &&
+                                        strstr(strlwr(strcpy(Temp, pItem->Contents[nAug]->Item->Name)), Name))
+                                        Count++;
+                                }
                             }
                         }
                     }
