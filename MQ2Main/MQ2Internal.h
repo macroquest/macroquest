@@ -42,8 +42,6 @@ namespace MQ2Internal {
         CAMPFIRE,
         MERCENARY,
         FLYER,
-        NPCCORPSE=2000,
-        PCCORPSE,
     };
 
     typedef struct _SEARCHSPAWN {

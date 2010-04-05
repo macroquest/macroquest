@@ -1,3 +1,6 @@
+19 November 2009 by ieatacid
+- Updated for today's patch
+
 18 November 2009 by dkaa
 - added npccorpse and pccorpse to the spawn search filters
 
