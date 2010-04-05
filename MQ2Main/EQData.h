@@ -1520,7 +1520,7 @@ BYTE            unknown[0x68];
 struct _SPELL*  Spells[TOTAL_SPELL_COUNT];
 } SPELLMGR, *PSPELLMGR;
 
-// actual size: 0x4fc 10-7-2008
+// actual size: 0x500 12-9-2008
 typedef struct _SPELL {
 /*0x000*/   BYTE    Location;           //01=Outdoors, 02=dungeons, ff=Any
 /*0x001*/   BYTE    Unknown0x1[0x3];
@@ -1940,8 +1940,8 @@ typedef struct _INTERACTSWITCH {
 } INTERACTSWITCH, *PINTERACTSWITCH;
 
 
-#define EQ_BEGIN_ZONE           0x6eff  // CEverQuest__SavePCForce+45F     10-29-2008 
-#define EQ_END_ZONE             0x6759  // CEverQuest__DoMainLoop+B01      10-29-2008 
-#define EQ_LoadingS__ArraySize  0x45    // EQ_LoadingS__SetProgressBar+7C  10-29-2008
+#define EQ_BEGIN_ZONE           0x6eff  // CEverQuest__SavePCForce+45F     12-11-2008 
+#define EQ_END_ZONE             0x6759  // CEverQuest__DoMainLoop+B01      12-11-2008 
+#define EQ_LoadingS__ArraySize  0x45    // EQ_LoadingS__SetProgressBar+7C  12-11-2008
 };
 using namespace EQData;

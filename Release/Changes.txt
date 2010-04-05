@@ -1,3 +1,6 @@
+11 December 2008 by rswiders
+- updated for today's patch
+
 10 December 2008 by rswiders, ieatacid, dkaa
 - updated for today's patch
 
