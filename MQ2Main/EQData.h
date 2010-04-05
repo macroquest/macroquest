@@ -1558,7 +1558,7 @@ BYTE            unknown[0x68];
 struct _SPELL*  Spells[TOTAL_SPELL_COUNT];
 } SPELLMGR, *PSPELLMGR;
 
-// actual size: 0x51c 6-10-09
+// actual size: 0x520 7-15-09 - ieatacid
 typedef struct _SPELL {
 /*0x000*/   BYTE    Location;           //01=Outdoors, 02=dungeons, ff=Any
 /*0x001*/   BYTE    Unknown0x1[0x3];
@@ -1646,8 +1646,8 @@ typedef struct _SPELL {
 /*0x4c8*/   DWORD   ResistAdj;
 /*0x4cc*/   BYTE    Unknown0x4cc[0x1a];
 /*0x4e6*/   BYTE    Uninterruptable;    //00=Interruptable, 01=Uninterruptable 
-/*0x4e7*/   BYTE    Unknown0x4e7[0x35]; 
-/*0x51c*/
+/*0x4e7*/   BYTE    Unknown0x4e7[0x39]; 
+/*0x520*/
 } SPELL, *PSPELL;
 
 // actual size: 0x148 10-25-2006  ieatacid
@@ -2008,8 +2008,8 @@ typedef struct _MERCENARYINFO {
 /*0x040*/ DWORD MercState; // 1 = suspended, 5 = active
 } MERCENARYINFO, *PMERCENARYINFO;
 
-#define EQ_BEGIN_ZONE                   0x2913  // CEverQuest__SavePCForce+45F     06-24-2009
-#define EQ_END_ZONE                     0x6CDC  // CEverQuest__DoMainLoop+B1B      06-24-2009
-#define EQ_LoadingS__ArraySize          0x45    // EQ_LoadingS__SetProgressBar+7C  06-24-2009
+#define EQ_BEGIN_ZONE                   0x2913  // CEverQuest__SavePCForce+45F     09-15-2009
+#define EQ_END_ZONE                     0x6CDC  // CEverQuest__DoMainLoop+B2F      09-15-2009
+#define EQ_LoadingS__ArraySize          0x45    // EQ_LoadingS__SetProgressBar+7C  09-15-2009
 };
 using namespace EQData;

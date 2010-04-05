@@ -709,7 +709,7 @@ namespace MQ2Internal {
             TotalElements=0;
         }
 
-        CDataArray(MQ2Type *Type, PCHAR Index, PCHAR Default)
+        CDataArray(MQ2Type *Type, PCHAR Index, PCHAR Default, BOOL ByData=FALSE)
         {
             nExtents=1;
 
@@ -753,7 +753,10 @@ namespace MQ2Internal {
                 for (N = 0 ; N < TotalElements ; N++)
                 {
                     pType->InitVariable(pData[N]);
-                    pType->FromString(pData[N],Default);
+                    if (ByData)
+                        pType->FromData(pData[N],*(MQ2TYPEVAR *)Default);
+                    else
+                        pType->FromString(pData[N],Default);
                 }
 
         }

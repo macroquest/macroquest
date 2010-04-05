@@ -111,7 +111,7 @@ BOOL AddMQ2DataEventVariable(PCHAR Name, PCHAR Index, MQ2Type *pType, PDATAVAR *
 }
 
 
-BOOL AddMQ2DataVariable(PCHAR Name, PCHAR Index, MQ2Type *pType, PDATAVAR *ppHead, PCHAR Default)
+BOOL AddMQ2DataVariableBy(PCHAR Name, PCHAR Index, MQ2Type *pType, PDATAVAR *ppHead, PCHAR Default, BOOL ByData)
 {
     if (!ppHead || !Name[0])
         return FALSE;
@@ -143,7 +143,10 @@ BOOL AddMQ2DataVariable(PCHAR Name, PCHAR Index, MQ2Type *pType, PDATAVAR *ppHea
     {
         pVar->Var.Type=pType;
         pType->InitVariable(pVar->Var.VarPtr);
-        pType->FromString(pVar->Var.VarPtr,Default);
+        if (ByData)
+            pType->FromData(pVar->Var.VarPtr,*(MQ2TYPEVAR *)Default);
+        else
+            pType->FromString(pVar->Var.VarPtr,Default);
     }
     if (!(gMacroStack && (ppHead==&gMacroStack->LocalVariables || ppHead==&gMacroStack->Parameters)))
     {
@@ -151,6 +154,19 @@ BOOL AddMQ2DataVariable(PCHAR Name, PCHAR Index, MQ2Type *pType, PDATAVAR *ppHea
     }
     return TRUE;
 }
+
+BOOL AddMQ2DataVariable(PCHAR Name, PCHAR Index, MQ2Type *pType, PDATAVAR *ppHead, PCHAR Default)
+{
+    return AddMQ2DataVariableBy(Name, Index, pType, ppHead, Default, 0);
+}
+
+
+BOOL AddMQ2DataVariableFromData(PCHAR Name, PCHAR Index, MQ2Type *pType, PDATAVAR *ppHead, MQ2TYPEVAR Default)
+{
+    return AddMQ2DataVariableBy(Name, Index, pType, ppHead, (PCHAR)&Default, 1);
+}
+
+
 
 PDATAVAR *FindVariableScope(PCHAR Name)
 {

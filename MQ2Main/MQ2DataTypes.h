@@ -553,6 +553,7 @@ public:
         Loc=98,
         LocYX=99,
         Owner=100,
+        Following=101,
     };
     static enum SpawnMethods
     {
@@ -660,6 +661,7 @@ public:
         TypeMember(Loc);
         TypeMember(LocYX);
         TypeMember(Owner);
+        TypeMember(Following);
 
         TypeMethod(Target);
         TypeMethod(Face);

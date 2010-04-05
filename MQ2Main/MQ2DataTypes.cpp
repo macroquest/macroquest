@@ -1699,6 +1699,13 @@ bool MQ2SpawnType::GETMEMBER()
             }
             return false;
         }
+        return false;
+    case Following:
+        if(Dest.Ptr = pSpawn->WhoFollowing)
+        {
+            Dest.Type = pSpawnType;
+            return true;
+        }
     }
     return false;
 }

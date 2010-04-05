@@ -486,6 +486,7 @@ EQLIB_API bool LoH_HT_Ready();
 LEGACY_API PCHAR GetFuncParam(PCHAR szMacroLine, DWORD ParamNum, PCHAR szParamName, PCHAR szParamType);
 LEGACY_API PDATAVAR FindMQ2DataVariable(PCHAR Name);
 LEGACY_API BOOL AddMQ2DataVariable(PCHAR Name, PCHAR Index, MQ2Type *pType, PDATAVAR *ppHead, PCHAR Default);
+LEGACY_API BOOL AddMQ2DataVariableFromData(PCHAR Name, PCHAR Index, MQ2Type *pType, PDATAVAR *ppHead, MQ2TYPEVAR Default); 
 LEGACY_API PDATAVAR *FindVariableScope(PCHAR Name);
 LEGACY_API BOOL DeleteMQ2DataVariable(PCHAR Name);
 LEGACY_API VOID ClearMQ2DataVariables(PDATAVAR *ppHead);
@@ -601,7 +602,7 @@ LEGACY_API BOOL Calculate(PCHAR szFormula, DOUBLE& Dest);
 #define GAMESTATE_CHARCREATE    2
 #define GAMESTATE_SOMETHING     4
 #define GAMESTATE_INGAME        5
-#define GAMESTATE_PRECHARSELECT 6
+#define GAMESTATE_PRECHARSELECT -1
 #define GAMESTATE_LOGGINGIN     253
 #define GAMESTATE_UNLOADING     255
 

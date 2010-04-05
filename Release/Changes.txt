@@ -1,3 +1,16 @@
+15 September 2009 by rswiders
+- Updated for today's patch
+
+6 September 2009 by dkaa
+- added el_nene's FromData changes
+
+6 September 2009 by ieatacid
+- Added spawn.Following which returns the spawn that a player or NPC is /following (this is also your pet's target)
+
+31 August 2009 by ieatacid
+- Fixed _SPELL struct that changed in July
+- Changed GAMESTATE_PRECHARSELECT from '6' to '-1'
+
 19 August 2009 by ieatacid
 - Updated offsets for today's patch
 
