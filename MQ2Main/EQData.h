@@ -1908,11 +1908,12 @@ typedef struct connection_t {
 
 //actual size 0x2dfc 3-19-09 - ieatacid 
 typedef struct _CDISPLAY {
-/*0x000*/ BYTE   Unknown0x000[0x12c];
-/*0x12c*/ void   *pActorTagManager;
-/*0x130*/ BYTE   Unknown0x130[0x24];
-/*0x154*/ DWORD  TimeStamp;
-/*0x158*/
+/*0x0000*/ BYTE   Unknown0x000[0x12c];
+/*0x012c*/ void   *pActorTagManager;
+/*0x0130*/ BYTE   Unknown0x130[0x24];
+/*0x0154*/ DWORD  TimeStamp;
+/*0x0158*/ BYTE   Unknown0x158[0x2c12];
+/*0x2d6a*/ BYTE   NpcNames; // show npc names
 } CDISPLAY, *PCDISPLAY;
 
 //5-16-06 - ieatacid

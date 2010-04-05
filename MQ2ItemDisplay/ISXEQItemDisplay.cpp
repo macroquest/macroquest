@@ -65,9 +65,10 @@ bool ISXEQItemDisplay::Initialize(ISInterface *p_ISInterface)
     RegisterDataTypes();
     RegisterTopLevelObjects();
     RegisterServices();
-    EzDetour(CItemDisplayWnd__SetItem,&ItemDisplayHook::SetItem_Detour,&ItemDisplayHook::SetItem_Trampoline);
     EzDetour(CItemDisplayWnd__SetSpell,&ItemDisplayHook::SetSpell_Detour,&ItemDisplayHook::SetSpell_Trampoline);
+    EzDetour(CItemDisplayWnd__UpdateStrings, &ItemDisplayHook::UpdateStrings_Detour, &ItemDisplayHook::UpdateStrings_Trampoline);
     EzDetour(CXWnd__DrawTooltipAtPoint,&XWndHook::DrawTooltipAtPoint_Detour,&XWndHook::DrawTooltipAtPoint_Trampoline);
+    EzDetour(CInvSlotWnd__DrawTooltip, &InvSlotWndHook::DrawTooltip_Detour, &InvSlotWndHook::DrawTooltip_Trampoline);
 
     WriteChatf("ISXEQItemDisplay Loaded");
     return true;
@@ -76,9 +77,10 @@ bool ISXEQItemDisplay::Initialize(ISInterface *p_ISInterface)
 // shutdown sequence
 void ISXEQItemDisplay::Shutdown()
 {
-    RemoveDetour(CItemDisplayWnd__SetItem);
     RemoveDetour(CItemDisplayWnd__SetSpell);
+    RemoveDetour(CItemDisplayWnd__UpdateStrings);
     RemoveDetour(CXWnd__DrawTooltipAtPoint);
+    RemoveDetour(CInvSlotWnd__DrawTooltip);
 
     // save settings, if you changed them and want to save them now.  You should normally save
     // changes immediately.
