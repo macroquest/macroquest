@@ -154,3 +154,6 @@
     {"Mouse_Mid", 240},
     {"Mouse_Aux1", 241},
     {"Mouse_Aux2", 242},
+    {"Mouse_Aux3", 243},
+    {"Mouse_Aux4", 244},
+    {"Mouse_Aux5", 245},
