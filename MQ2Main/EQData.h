@@ -752,6 +752,7 @@ typedef struct _GROUPMEMBER {
 /*0x18*/ BYTE   Puller;
 /*0x19*/ BYTE   Unknown0x19[0x3];
 /*0x1c*/ DWORD  Roles; // (Roles & 1) = MainTank, 2 = MainAssist, 4 = Puller
+/*0x20*/ BYTE   Unknown0x20[0x4];
 /*0x24*/ struct _SPAWNINFO *pSpawn;
 /*0x28*/
 } GROUPMEMBER, *PGROUPMEMBER;
@@ -1297,7 +1298,9 @@ typedef struct _SPAWNINFO {
 /*0x1110*/ DWORD    HideCorpse;
 /*0x1114*/ BYTE     Unknown0x1114[0x40];
 /*0x1154*/ BYTE     InvitedToGroup;
-/*0x1155*/ BYTE     Unknown0x1155[0x187];
+/*0x1155*/ BYTE     Unknown0x1155[0x3];
+/*0x1158*/ DWORD    GroupMemberTargeted;    // 0xFFFFFFFF if no target, else 1 through 5
+/*0x115c*/ BYTE     Unknown0x115c[0x180];
 /*0x12dc*/ struct   _FELLOWSHIPINFO Fellowship; // size 0x884
 /*0x1b60*/ BYTE     Unknown0x1b60[0x54];
 /*0x1bb4*/ void     *vtable2;

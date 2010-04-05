@@ -2086,6 +2086,8 @@ VOID Target(PSPAWNINFO pChar, PCHAR szLine)
             pTarget = NULL;
             EnviroTarget.SpawnID = 0;
             DoorEnviroTarget.SpawnID = 0;
+            if(pChar)
+               pChar->GroupMemberTargeted = 0xFFFFFFFF;
             DebugSpew("Target cleared.");
             WriteChatColor("Target cleared.",USERCOLOR_WHO);
             return;
