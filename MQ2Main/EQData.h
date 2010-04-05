@@ -384,7 +384,7 @@ enum MOUSE_DATA_TYPES {
 #define nEQMappableCommands             0x124
 
 #define MAX_PC_LEVEL                    85
-#define NUM_SPELL_GEMS                  10
+#define NUM_SPELL_GEMS                  12
 #define NUM_SPELL_SETS                  10
 #define NUM_BUFF_SLOTS					0x55
 
@@ -1740,7 +1740,7 @@ typedef struct _INTERACTGROUNDITEM {
 } INTERACTGROUNDITEM, *PINTERACTGROUNDITEM;
 
 typedef struct _SPELLFAVORITE {
-/*0x000*/   DWORD   SpellId[NUM_SPELL_GEMS + 2];  // update NUM_SPELL_GEMS to 12 when we actually get 12
+/*0x000*/   DWORD   SpellId[NUM_SPELL_GEMS];
 /*0x030*/   CHAR    Name[0x19];
 /*0x049*/   BYTE    inuse;
 /*0x04a*/   BYTE    Byte_0x4a;

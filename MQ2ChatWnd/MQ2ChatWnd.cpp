@@ -402,6 +402,7 @@ VOID DoMQ2ChatBind(PCHAR Name, BOOL Down)
 
 PLUGIN_API VOID OnReloadUI() 
 { 
+    DebugSpewAlways("MQ2ChatWnd::OnReloadUI()"); 
     // redraw window when you load/reload UI 
     DebugTry(CreateChatWindow()); 
 } 
