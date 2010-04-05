@@ -691,7 +691,9 @@ typedef struct _EQLOOTWINDOW {
 //Size: 0x7b8 (3/12/2009)
 typedef struct _EQPETINFOWINDOW {
 /*0x000*/ struct _CSIDLWND Wnd;
-/*0x198*/ DWORD Unknown0x198[0xcf];
+/*0x198*/ DWORD Unknown0x198[0x4];
+/*0x1a8*/ struct _CBUTTONWND *pButton[0xe];
+/*0x1e0*/ BYTE  Unknown0x1e0[0x2f4];
 /*0x4d4*/ int   Buff[0x55];        // Spell ID# of each buff -- 85 total
 /*0x628*/ BYTE  Unknown0x628[0x20];
 /*0x648*/ DWORD BuffFadeETA[0x55]; // duration until buff fades, in thousands of a second

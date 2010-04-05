@@ -2373,7 +2373,7 @@ bool MQ2CharacterType::GETMEMBER()
                 if ( PSPELL pSpell = GetSpellByID(pPCData->GetCombatAbility(nCombatAbility)) )
                 { 
                     DWORD timeNow = (DWORD)time(NULL);
-                    if (pPCData->GetCombatAbilityTimer(pSpell->CARecastTimerID) > timeNow)
+                    if (pSpell->CARecastTimerID && pSpell->CARecastTimerID != -1 && pPCData->GetCombatAbilityTimer(pSpell->CARecastTimerID) > timeNow)
                     {
                         Dest.Int=pPCData->GetCombatAbilityTimer(pSpell->CARecastTimerID)-timeNow+6;
                         Dest.Int/=6;
@@ -2393,7 +2393,7 @@ bool MQ2CharacterType::GETMEMBER()
                         if (!stricmp(GETFIRST(),pSpell->Name)) 
                         { 
                             DWORD timeNow = (DWORD)time(NULL);
-                            if (pPCData->GetCombatAbilityTimer(pSpell->CARecastTimerID) > timeNow)
+                            if (pSpell->CARecastTimerID && pSpell->CARecastTimerID != -1 && pPCData->GetCombatAbilityTimer(pSpell->CARecastTimerID) > timeNow)
                             {
                                 Dest.Int=pPCData->GetCombatAbilityTimer(pSpell->CARecastTimerID)-timeNow+6;
                                 Dest.Int/=6;
@@ -2419,7 +2419,7 @@ bool MQ2CharacterType::GETMEMBER()
                 if ( PSPELL pSpell = GetSpellByID(pPCData->GetCombatAbility(nCombatAbility)) )
                 { 
                     DWORD timeNow = (DWORD)time(NULL);
-                    if (pPCData->GetCombatAbilityTimer(pSpell->CARecastTimerID) < timeNow)
+                    if (pSpell->CARecastTimerID && pSpell->CARecastTimerID != -1 && pPCData->GetCombatAbilityTimer(pSpell->CARecastTimerID) < timeNow)
                     {
                         Dest.DWord=1;
                         return true;
@@ -2436,7 +2436,7 @@ bool MQ2CharacterType::GETMEMBER()
                         if (!stricmp(GETFIRST(),pSpell->Name)) 
                         { 
                             DWORD timeNow = (DWORD)time(NULL);
-                            if (pPCData->GetCombatAbilityTimer(pSpell->CARecastTimerID) < timeNow)
+                            if (pSpell->CARecastTimerID && pSpell->CARecastTimerID != -1 && pPCData->GetCombatAbilityTimer(pSpell->CARecastTimerID) < timeNow)
                             {
                                 Dest.DWord=1;
                                 return true;

@@ -1,3 +1,7 @@
+15 March 2009 by ieatacid
+- Fix for active leadership abilities
+- Fix for GetCombatAbilityTimer crash (dkaa)
+
 12 March 2009 by ieatacid, rswiders
 - Updated for today's patch
 

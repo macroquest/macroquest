@@ -771,9 +771,7 @@ typedef struct _CHARINFO {
 /*0x0000*/   void       *vtable1;
 /*0x0004*/   void       *punknown;
 /*0x0008*/   struct     _CI_INFO* charinfo_info;
-/*0x000c*/   BYTE       Unknown0xc[0x2ac];
-/*0x02b8*/   struct     _LEADERABILITIES ActiveAbilities; //ability levels of the leader of your group (size 0x40)
-/*0x02f8*/   BYTE       Unknown0x2f8[0xd30];
+/*0x000c*/   BYTE       Unknown0xc[0x101c];
 /*0x1028*/   struct     _LEADERABILITIES MyAbilities; //points spent in each ability (size 0x40)
 /*0x1068*/   BYTE       Unknown0x1068[0xc0];
 /*0x1128*/   struct     _CONTENTS*   Bank[NUM_BANK_SLOTS];
@@ -868,7 +866,9 @@ typedef struct _CHARINFO {
 /*0x23e4*/   WORD       zoneId;
 /*0x23e6*/   WORD       instance;
 /*0x23e8*/   DWORD      standstate;
-/*0x23ec*/   BYTE       Unknown0x23ec[0x2b8];
+/*0x23ec*/   BYTE       Unknown0x23ec[0x4];
+/*0x23f0*/   struct     _LEADERABILITIES ActiveAbilities; //ability levels of the leader of your group (size 0x40)
+/*0x2430*/   BYTE       Unknown0x2430[0x274];
 /*0x26a4*/   DWORD      BankSharedPlat;
 /*0x26a8*/   DWORD      BankSharedGold;
 /*0x26ac*/   DWORD      BankSharedSilver;
