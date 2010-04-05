@@ -252,8 +252,7 @@ EQLIB_VAR IDirectInputDevice8A **EQADDR_DIMOUSE;
 
 EQLIB_VAR DWORD EQADDR_EQLABELS;
 
-EQLIB_VAR BOOL gMouseLeftClickInProgress;
-EQLIB_VAR BOOL gMouseRightClickInProgress;
+EQLIB_VAR BOOL gMouseClickInProgress[8];
 EQLIB_VAR BOOL bDetMouse;
 
 // ***************************************************************************

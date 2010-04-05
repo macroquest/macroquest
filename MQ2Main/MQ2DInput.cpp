@@ -146,8 +146,8 @@ HRESULT __stdcall DInputStateDetour(IDirectInputDevice8A* This, DWORD cbData, LP
     {
         if(IsMouseWaitingForButton() && (EQADDR_MOUSECLICK))
         {
-            ((LPDIMOUSESTATE)lpvData)->rgbButtons[0] = EQADDR_MOUSECLICK->LeftClick;
-            ((LPDIMOUSESTATE)lpvData)->rgbButtons[1] = EQADDR_MOUSECLICK->RightClick;
+            ((LPDIMOUSESTATE)lpvData)->rgbButtons[0] = EQADDR_MOUSECLICK->Click[0];
+            ((LPDIMOUSESTATE)lpvData)->rgbButtons[1] = EQADDR_MOUSECLICK->Click[1];
         }
     }
 

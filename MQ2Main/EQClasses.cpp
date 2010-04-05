@@ -5735,7 +5735,8 @@ FUNCTION_AT_ADDRESS(char *  CEverQuest::stripName(char *),CEverQuest__stripName)
 FUNCTION_AT_ADDRESS(void  CEverQuest::clr_chat_input(void),CEverQuest__clr_chat_input);
 #endif
 #ifdef CEverQuest__dsp_chat
-FUNCTION_AT_ADDRESS(void  CEverQuest::dsp_chat(char const *,int,bool),CEverQuest__dsp_chat);
+FUNCTION_AT_ADDRESS(void  CEverQuest::dsp_chat(char const *,int,bool,bool),CEverQuest__dsp_chat);
+void CEverQuest::dsp_chat(char const *a, int b, bool c) { dsp_chat(a, b, c, 1); }
 #endif
 #ifdef CEverQuest__DoTellWindow
 FUNCTION_AT_ADDRESS(void CEverQuest::DoTellWindow(char *message,char *name,char *name2,void *unknown,int color,bool b),CEverQuest__DoTellWindow);

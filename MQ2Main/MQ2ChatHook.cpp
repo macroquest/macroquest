@@ -24,8 +24,8 @@ GNU General Public License for more details.
 class CChatHook 
 { 
 public: 
-    VOID Trampoline(PCHAR szMsg, DWORD dwColor, bool EqLog); 
-    VOID Detour(PCHAR szMsg, DWORD dwColor, bool EqLog) 
+    VOID Trampoline(PCHAR szMsg, DWORD dwColor, bool EqLog, bool dopercentsubst); 
+    VOID Detour(PCHAR szMsg, DWORD dwColor, bool EqLog, bool dopercentsubst) 
     { 
         //DebugSpew("CChatHook::Detour(%s)",szMsg); 
         gbInChat = TRUE; 
@@ -53,7 +53,7 @@ public:
             BOOL SkipTrampoline;
             Benchmark(bmPluginsIncomingChat,SkipTrampoline=PluginsIncomingChat(szMsg,dwColor));
             if (!SkipTrampoline)
-                Trampoline(szMsg, dwColor, EqLog); 
+                Trampoline(szMsg, dwColor, EqLog, dopercentsubst); 
         } 
         gbInChat = FALSE; 
     } 
@@ -78,12 +78,12 @@ public:
     }
 }; 
 
-DETOUR_TRAMPOLINE_EMPTY(VOID CChatHook::Trampoline(PCHAR szMsg, DWORD dwColor, bool EqLog)); 
+DETOUR_TRAMPOLINE_EMPTY(VOID CChatHook::Trampoline(PCHAR szMsg, DWORD dwColor, bool EqLog, bool dopercentsubst)); 
 DETOUR_TRAMPOLINE_EMPTY(VOID CChatHook::TellWnd_Trampoline(char *message,char *name,char *name2,void *unknown,int color,bool b)); 
 
 VOID dsp_chat_no_events(const char *Text,int Color,bool EqLog)
 {
-    ((CChatHook*)pEverQuest)->Trampoline((PCHAR)Text,Color,EqLog);
+    ((CChatHook*)pEverQuest)->Trampoline((PCHAR)Text,Color,EqLog, 1);
 }
 
 unsigned int __stdcall MQ2DataVariableLookup(char * VarName, char * Value)

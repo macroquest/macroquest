@@ -1935,6 +1935,7 @@ EQLIB_OBJECT void CEverQuest::DropHeldItemOnGround(int);
 EQLIB_OBJECT void CEverQuest::DropHeldMoneyOnGround(int);
 EQLIB_OBJECT void CEverQuest::DropItemOrMoneyOnPlayer(class EQPlayer *);
 EQLIB_OBJECT void CEverQuest::dsp_chat(char const *);
+EQLIB_OBJECT void CEverQuest::dsp_chat(char const *,int,bool,bool);
 EQLIB_OBJECT void CEverQuest::dsp_chat(char const *,int,bool);
 EQLIB_OBJECT void CEverQuest::Emote(void);
 EQLIB_OBJECT void CEverQuest::EnterZone(struct HWND__ *);

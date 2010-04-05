@@ -284,8 +284,7 @@ IDirectInputDevice8A **EQADDR_DIMOUSE=(IDirectInputDevice8A **)DI8__Mouse;
 #endif
 
 // Motd and Pulse's mouse variables
-BOOL gMouseLeftClickInProgress = FALSE;
-BOOL gMouseRightClickInProgress = FALSE;
+BOOL gMouseClickInProgress[8] = {FALSE};
 // End of mouse variables
 
 // Arrays  (Note:  See also EQLib_Utilities.cpp)

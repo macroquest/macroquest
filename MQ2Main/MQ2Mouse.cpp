@@ -68,6 +68,34 @@ BOOL ExtractValue(PCHAR szFile, PCHAR szStart, PCHAR szEnd, PCHAR szValue)
 
 #ifndef ISXEQ
 
+// TODO: Expand this to support mouse buttons 3->8
+VOID ClickMouse(DWORD button)
+{
+   if (button > 1)
+      return;
+   DWORD mdType = (DWORD)MD_Button0 + button;
+
+   if (!((EQADDR_MOUSECLICK->Click[button] == 0x80) && (!EQADDR_MOUSECLICK->Confirm[button])))
+      EQADDR_MOUSECLICK->Click[button] = 0x80;
+
+   gMouseClickInProgress[button] = TRUE;
+
+   gMouseEventTime = GetFastTime();
+   PMOUSESPOOF pData = (PMOUSESPOOF)malloc(sizeof(MOUSESPOOF));
+   pData->mdType = (MOUSE_DATA_TYPES)mdType;
+   pData->dwData = 0x00;
+   pData->pNext = NULL;
+   if (!gMouseData) {
+      gMouseData = pData;
+   } else {
+      PMOUSESPOOF pTemp = gMouseData;
+      while (pTemp->pNext) {
+         pTemp = pTemp->pNext;
+      }
+      pTemp->pNext = pData;
+   }
+}
+
 VOID MouseButtonUp(DWORD x, DWORD y, PCHAR szButton)
 {
     char c[MAX_STRING]={0};
@@ -133,8 +161,8 @@ VOID ClickMouseLoc(PCHAR szMouseLoc, PCHAR szButton)
 // *************************************************************************** 
 BOOL IsMouseWaitingForButton()
 {
-    return ((EQADDR_MOUSECLICK->RightClick == EQADDR_MOUSECLICK->ConfirmRightClick) 
-        && (EQADDR_MOUSECLICK->LeftClick == EQADDR_MOUSECLICK->ConfirmLeftClick)) ? FALSE : TRUE;
+    return ((EQADDR_MOUSECLICK->Click[1] == EQADDR_MOUSECLICK->Confirm[1])
+        && (EQADDR_MOUSECLICK->Click[0] == EQADDR_MOUSECLICK->Confirm[0])) ? FALSE : TRUE;
 }
 
 BOOL IsMouseWaiting()
@@ -145,16 +173,16 @@ BOOL IsMouseWaiting()
     else {
         // Here we basically force the MQ script engine to wait for the button up on mouse clicks
 
-        if (gMouseLeftClickInProgress) {
+        if (gMouseClickInProgress[0]) {
             //SetMouseButtonUpL();
-            if (!((!EQADDR_MOUSECLICK->LeftClick) && (EQADDR_MOUSECLICK->ConfirmLeftClick == 0x80))) EQADDR_MOUSECLICK->LeftClick = 0x0;
-            gMouseLeftClickInProgress = FALSE;
+            if (!((!EQADDR_MOUSECLICK->Click[0]) && (EQADDR_MOUSECLICK->Confirm[0] == 0x80))) EQADDR_MOUSECLICK->Click[0] = 0x0;
+            gMouseClickInProgress[0] = FALSE;
             Result = TRUE;
         }
-        if (gMouseRightClickInProgress) {
+        if (gMouseClickInProgress[1]) {
             //SetMouseButtonUpR();
-            if (!((!EQADDR_MOUSECLICK->RightClick) && (EQADDR_MOUSECLICK->ConfirmRightClick == 0x80))) EQADDR_MOUSECLICK->RightClick = 0x0;
-            gMouseRightClickInProgress = FALSE;
+            if (!((!EQADDR_MOUSECLICK->Click[1]) && (EQADDR_MOUSECLICK->Confirm[1] == 0x80))) EQADDR_MOUSECLICK->Click[1] = 0x0;
+            gMouseClickInProgress[1] = FALSE;
             Result = TRUE;
         }
     }
@@ -200,31 +228,13 @@ VOID Click(PSPAWNINFO pChar, PCHAR szLine)
 
     if (szArg1[0]!=0) { 
         if (!strnicmp(szArg1, "left", 4)) { 
-            mdType = MD_Button0; 
-            if (!((EQADDR_MOUSECLICK->LeftClick == 0x80) && (!EQADDR_MOUSECLICK->ConfirmLeftClick))) EQADDR_MOUSECLICK->LeftClick = 0x80;
-            gMouseLeftClickInProgress = TRUE; 
+            ClickMouse(0);
         } else if (!strnicmp(szArg1, "right", 5)) { 
-            mdType = MD_Button1;
-            if (!((EQADDR_MOUSECLICK->RightClick == 0x80) && (!EQADDR_MOUSECLICK->ConfirmRightClick))) EQADDR_MOUSECLICK->RightClick = 0x80;
-            gMouseRightClickInProgress = TRUE;
+            ClickMouse(1);
         } else { 
             WriteChatColor("Usage: /click <left|right>",USERCOLOR_DEFAULT); 
             DebugSpew("Bad command: %s",szLine); 
             return; 
-        } 
-        gMouseEventTime = GetFastTime();
-        PMOUSESPOOF pData = (PMOUSESPOOF)malloc(sizeof(MOUSESPOOF)); 
-        pData->mdType = mdType; 
-        pData->dwData = 0x00; 
-        pData->pNext = NULL; 
-        if (!gMouseData) { 
-            gMouseData = pData; 
-        } else { 
-            PMOUSESPOOF pTemp = gMouseData; 
-            while (pTemp->pNext) { 
-                pTemp = pTemp->pNext; 
-            } 
-            pTemp->pNext = pData; 
         } 
     } 
 }
