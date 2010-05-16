@@ -588,6 +588,9 @@ typedef struct _EQCHATWINDOW
 /*0x26c*/
 } EQCHATWINDOW, *PEQCHATWINDOW;
 
+// in CChatWindow__CChatWindow
+#define EQ_CHAT_HISTORY_OFFSET 0x25c
+
 // Actual size 0x1dc old
 // Lax 10-24-2003
 typedef struct _EQBUFFWINDOW

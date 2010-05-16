@@ -1789,7 +1789,7 @@ bool MQ2BuffType::GETMEMBER()
     case Counters:
         if(GetSpellByID(pBuff->SpellID)->SpellType == 0)
         {
-            Dest.DWord=pBuff->DamageAbsorbRemaining;
+            Dest.DWord=pBuff->Counters;
             Dest.Type=pIntType;
             return true;
         }
@@ -2251,6 +2251,8 @@ bool MQ2CharacterType::GETMEMBER()
                             Dest.DWord+=GetCharInfo2()->Buff[k].DamageAbsorbRemaining;
                         else if(GetCharInfo2()->Buff[k].DamageAbsorbRemaining2)
                             Dest.DWord+=GetCharInfo2()->Buff[k].DamageAbsorbRemaining2;
+                        else if(GetCharInfo2()->Buff[k].DamageAbsorbRemaining2)
+                            Dest.DWord+=GetCharInfo2()->Buff[k].DamageAbsorbRemaining3;
         }
         Dest.Type=pIntType;
         return true;

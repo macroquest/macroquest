@@ -650,10 +650,12 @@ typedef struct _SPELLBUFF {
 /*0x04*/    FLOAT     Unknown0x4;
 /*0x08*/    LONG      SpellID;       // -1 or 0 for no spell..
 /*0x0c*/    DWORD     Duration;
-/*0x10*/    BYTE      Unknown0x10[0x10];
-/*0x20*/    DWORD     DamageAbsorbRemaining;  // Melee or Spellshield type, also buff counters
-/*0x24*/    BYTE      Unknown0x24[0x4];
-/*0x28*/    DWORD     DamageAbsorbRemaining2;
+/*0x10*/    BYTE      Unknown0x10[0x8];
+/*0x18*/    DWORD     DamageAbsorbRemaining;
+/*0x1c*/    BYTE      Unknown0x1c[0x4];
+/*0x20*/    DWORD     DamageAbsorbRemaining2;
+/*0x24*/    DWORD     Counters;
+/*0x28*/    DWORD     DamageAbsorbRemaining3;
 /*0x2c*/    BYTE      Unknown0x2c[0x20];
 /*0x4c*/
 } SPELLBUFF, *PSPELLBUFF;

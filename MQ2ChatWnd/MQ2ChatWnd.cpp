@@ -52,7 +52,7 @@ public:
         OutStruct=(_CSIDLWND*)GetChildItem("CWChatOutput");
         OutWnd=(CXWnd*)OutputBox;
         OutBoxLines=0; 
-        *(DWORD*)&(((PCHAR)OutputBox)[0x250])=400; 
+        *(DWORD*)&(((PCHAR)OutputBox)[EQ_CHAT_HISTORY_OFFSET])=400; 
         OutputBox->Clickable=1; 
         iCurrentCmd=-1;
     } 
