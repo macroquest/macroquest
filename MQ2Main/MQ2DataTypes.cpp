@@ -2247,7 +2247,10 @@ bool MQ2CharacterType::GETMEMBER()
             for (unsigned long k=0; k<NUM_LONG_BUFFS ; k++)
                 if(PSPELL pSpell = GetSpellByID(GetCharInfo2()->Buff[k].SpellID))
                     if(pSpell->SpellType != 0)
-                        Dest.DWord+=GetCharInfo2()->Buff[k].DamageAbsorbRemaining;
+                        if(GetCharInfo2()->Buff[k].DamageAbsorbRemaining)
+                            Dest.DWord+=GetCharInfo2()->Buff[k].DamageAbsorbRemaining;
+                        else if(GetCharInfo2()->Buff[k].DamageAbsorbRemaining2)
+                            Dest.DWord+=GetCharInfo2()->Buff[k].DamageAbsorbRemaining2;
         }
         Dest.Type=pIntType;
         return true;
