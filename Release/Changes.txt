@@ -1,3 +1,9 @@
+12 May 2010 by ieatacid
+- Updated for today's patch
+
+10 May 2010 by ieatacid
+- Fixed the 'listselect' window notification so you no longer need to 'leftmouse' and 'leftmouseup' after. Macros will need to be adjusted accordingly
+
 14 April 2010 by ieatacid
 - Updated for today's patch
 

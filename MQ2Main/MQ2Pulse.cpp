@@ -126,7 +126,9 @@ void Pulse()
         LastY = pChar->Y;
         LastMoveTick=GetTickCount();
         EnviroTarget.Name[0]=0;
+        pGroundTarget=0;
         DoorEnviroTarget.Name[0]=0;
+        pDoorTarget=0;
         LastHealth=GetCurHPS();
         LastMana=GetCharInfo2()->Mana;
         LastEndurance=GetCharInfo2()->Endurance; 

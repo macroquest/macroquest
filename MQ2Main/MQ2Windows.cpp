@@ -715,6 +715,7 @@ bool SendWndClick(PCHAR WindowName, PCHAR ScreenID, PCHAR ClickNotification)
 bool SendListSelect(PCHAR WindowName, PCHAR ScreenID, DWORD Value)
 {
     CXWnd *pWnd=FindMQ2Window(WindowName);
+    CXWnd *pParentWnd = 0;
     if (!pWnd)
     {
         MacroError("Window '%s' not available.",WindowName);
@@ -731,11 +732,23 @@ bool SendListSelect(PCHAR WindowName, PCHAR ScreenID, DWORD Value)
         if (((CXWnd*)pList)->GetType()==UI_Listbox)
         {
             pList->SetCurSel(Value);
+
+            if(pParentWnd = GetParentWnd((CXWnd*)pList))
+            {
+                pParentWnd->WndNotification((CXWnd*)pList, XWM_LCLICK, (void*)Value);
+            }
+
             gMouseEventTime = GetFastTime();
         }
         else if (((CXWnd*)pList)->GetType()==UI_Combobox)
         {
             ((CComboWnd*)pList)->SetChoice(Value);
+
+            if(pParentWnd = GetParentWnd((CXWnd*)pList))
+            {
+                pParentWnd->WndNotification((CXWnd*)pList, XWM_LCLICK, (void*)Value);
+            }
+            
             gMouseEventTime = GetFastTime();
         }
         else

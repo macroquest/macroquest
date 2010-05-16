@@ -1,3 +1,4 @@
+#define TESTMEM
 #include "../mq2main/MQ2DetourAPI.cpp"
 
 

@@ -940,6 +940,7 @@ VOID __cdecl CrashDetected_Detour(DWORD a,DWORD b,DWORD c,DWORD d,DWORD e)
 DETOUR_TRAMPOLINE_EMPTY(VOID CrashDetected_Trampoline(DWORD,DWORD,DWORD,DWORD,DWORD)); 
 
 DETOUR_TRAMPOLINE_EMPTY(int LoadFrontEnd_Trampoline());
+#ifndef TESTMEM
 int LoadFrontEnd_Detour()
 {
     gGameState=GetGameState();
@@ -948,7 +949,7 @@ int LoadFrontEnd_Detour()
 
     return LoadFrontEnd_Trampoline();
 }
-
+#endif
 void InitializeMQ2Detours()
 {
 #ifndef ISXEQ
@@ -956,7 +957,9 @@ void InitializeMQ2Detours()
     HookMemChecker(TRUE);
 #endif
     EzDetour(CrashDetected,CrashDetected_Detour,CrashDetected_Trampoline);
+#ifndef TESTMEM
     EzDetour(__LoadFrontEnd, LoadFrontEnd_Detour, LoadFrontEnd_Trampoline);
+#endif
 }
 
 void ShutdownMQ2Detours()
