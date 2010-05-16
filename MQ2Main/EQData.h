@@ -650,8 +650,9 @@ typedef struct _SPELLBUFF {
 /*0x04*/    FLOAT     Unknown0x4;
 /*0x08*/    LONG      SpellID;       // -1 or 0 for no spell..
 /*0x0c*/    DWORD     Duration;
-/*0x10*/    DWORD     DamageAbsorbRemaining;  // Melee or Spellshield type, also buff counters
-/*0x14*/    BYTE      Unknown0x14[0x38];
+/*0x10*/    BYTE      Unknown0x10[0x10];
+/*0x20*/    DWORD     DamageAbsorbRemaining;  // Melee or Spellshield type, also buff counters
+/*0x24*/    BYTE      Unknown0x24[0x28];
 /*0x4c*/
 } SPELLBUFF, *PSPELLBUFF;
 
@@ -912,7 +913,7 @@ typedef struct _CHARINFO {
 /*0x498c*/
 } CHARINFO, *PCHARINFO;
 
-// actual size: 0x8bbc 5-12-2010 - ieatacid
+// actual size: 0x9c1c 5-13-2010 - ieatacid
 typedef struct _CHARINFO2 {
 /*0x0000*/   BYTE       Unknown0x0[0x10];
 union {
@@ -980,10 +981,10 @@ union {
 /*0x7bbc*/   DWORD      Drunkenness;
 /*0x7bc0*/   BYTE       Unknown0x7bc0[0x10];
 /*0x7bd0*/   DWORD      AAPoints;
-/*0x7bd4*/   BYTE       Unknown0x7bd4[0xfac];
-/*0x8b80*/   DWORD      AAPointsSpent;
-/*0x8b84*/   BYTE       Unknown0x8b84[0x38];
-/*0x8bbc*/
+/*0x7bd4*/   BYTE       Unknown0x7bd4[0x200c];
+/*0x9be0*/   DWORD      AAPointsSpent;
+/*0x9be4*/   BYTE       Unknown0x9be4[0x38];
+/*0x9c1c*/
 } CHARINFO2, *PCHARINFO2;
 
 typedef struct _MODELINFONAME {
