@@ -7339,7 +7339,7 @@ bool MQ2XTargetType::GETMEMBER()
         case Type:
             {
                 char *pType = GetXtargetType(xtd->xTargetType);
-                Dest.Ptr = pType[0] ? pType : "UNKNOWN";
+                Dest.Ptr = pType ? pType : "UNKNOWN";
                 Dest.Type = pStringType;
                 return true;
             }

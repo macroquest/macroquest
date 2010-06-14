@@ -1,3 +1,6 @@
+9 June 2010 by ieatacid
+- Updated for today's patch
+
 13 May 2010 by dkaa
 - made the chat window history a constant to promote harmony
 
