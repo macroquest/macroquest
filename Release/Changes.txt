@@ -1,3 +1,9 @@
+18 August 2010 by ieatacid
+- Updated for today's patch
+
+29 July 2010 by dkaa
+- Fixed a problem with Dar.  Thanks, Minymezz
+
 28 July 2010 by ieatacid
 - Updated for today's patch
 - Adjusted /doability to look for your abilities in a similar way the client does, further eliminating it relying on abilities being mapped to action window buttons

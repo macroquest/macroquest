@@ -2251,7 +2251,7 @@ bool MQ2CharacterType::GETMEMBER()
                             Dest.DWord+=GetCharInfo2()->Buff[k].DamageAbsorbRemaining;
                         else if(GetCharInfo2()->Buff[k].DamageAbsorbRemaining2)
                             Dest.DWord+=GetCharInfo2()->Buff[k].DamageAbsorbRemaining2;
-                        else if(GetCharInfo2()->Buff[k].DamageAbsorbRemaining2)
+                        else if(GetCharInfo2()->Buff[k].DamageAbsorbRemaining3)
                             Dest.DWord+=GetCharInfo2()->Buff[k].DamageAbsorbRemaining3;
         }
         Dest.Type=pIntType;
