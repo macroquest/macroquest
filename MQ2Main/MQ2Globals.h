@@ -362,7 +362,7 @@ EQLIB_VAR EQPlayerManager **ppSpawnManager;
 #define pSpawnManager (*ppSpawnManager)
 #define pSpawnList (((struct _SPAWNMANAGER *)pSpawnManager)->FirstSpawn)
 #define pChatService ((CChatService*)((PEVERQUEST)pEverQuest)->ChatService)
-#define pOtherCharData ((OtherCharData*)&GetCharInfo()->OtherCharData)
+#define pPlayerPointManager ((PlayerPointManager*)&GetCharInfo()->PlayerPointManager)
 
 EQLIB_VAR EQPlayer **ppLocalPlayer;
 #define pLocalPlayer (*ppLocalPlayer)

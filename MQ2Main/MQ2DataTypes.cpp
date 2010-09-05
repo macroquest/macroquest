@@ -3292,27 +3292,27 @@ bool MQ2CharacterType::GETMEMBER()
             return true; 
         }
     case Doubloons:
-        Dest.DWord=pOtherCharData->GetAltCurrency(ALTCURRENCY_DOUBLOONS);
+        Dest.DWord=pPlayerPointManager->GetAltCurrency(ALTCURRENCY_DOUBLOONS);
         Dest.Type=pIntType;
         return true;
     case Orux:
-        Dest.DWord=pOtherCharData->GetAltCurrency(ALTCURRENCY_ORUX);
+        Dest.DWord=pPlayerPointManager->GetAltCurrency(ALTCURRENCY_ORUX);
         Dest.Type=pIntType;
         return true;
     case Phosphenes:
-        Dest.DWord=pOtherCharData->GetAltCurrency(ALTCURRENCY_PHOSPHENES);
+        Dest.DWord=pPlayerPointManager->GetAltCurrency(ALTCURRENCY_PHOSPHENES);
         Dest.Type=pIntType;
         return true;
     case Phosphites:
-        Dest.DWord=pOtherCharData->GetAltCurrency(ALTCURRENCY_PHOSPHITES);
+        Dest.DWord=pPlayerPointManager->GetAltCurrency(ALTCURRENCY_PHOSPHITES);
         Dest.Type=pIntType;
         return true;
     case Faycites:
-        Dest.DWord=pOtherCharData->GetAltCurrency(ALTCURRENCY_FAYCITES);
+        Dest.DWord=pPlayerPointManager->GetAltCurrency(ALTCURRENCY_FAYCITES);
         Dest.Type=pIntType;
         return true;
     case Chronobines:
-        Dest.DWord=pOtherCharData->GetAltCurrency(ALTCURRENCY_CHRONOBINES);
+        Dest.DWord=pPlayerPointManager->GetAltCurrency(ALTCURRENCY_CHRONOBINES);
         Dest.Type=pIntType;
         return true;
     case Fellowship:
