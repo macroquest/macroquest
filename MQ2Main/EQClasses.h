@@ -7062,4 +7062,11 @@ EQLIB_OBJECT unsigned long PlayerPointManager::GetAltCurrency(unsigned long,unsi
 };
 
 };
+
+class CharacterZoneClient
+{
+public:
+    bool HasSkill(int);
+};
+
 using namespace EQClasses;

@@ -9573,6 +9573,9 @@ FUNCTION_AT_ADDRESS(char *CChatService::GetFriendName(int),CChatService__GetFrie
 #ifdef PlayerPointManager__GetAltCurrency
 FUNCTION_AT_ADDRESS(unsigned long PlayerPointManager::GetAltCurrency(unsigned long,unsigned long),PlayerPointManager__GetAltCurrency);
 #endif
+#ifdef CharacterZoneClient__HasSkill
+FUNCTION_AT_ADDRESS(bool CharacterZoneClient::HasSkill(int), CharacterZoneClient__HasSkill);
+#endif
 
 void bogus()
 {

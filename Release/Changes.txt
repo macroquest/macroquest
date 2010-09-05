@@ -1,3 +1,7 @@
+28 July 2010 by ieatacid
+- Updated for today's patch
+- Adjusted /doability to look for your abilities in a similar way the client does, further eliminating it relying on abilities being mapped to action window buttons
+
 14 July 2010 by ieatacid, dkaa
 - Updated for today's patch
 

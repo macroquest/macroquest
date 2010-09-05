@@ -1840,20 +1840,25 @@ VOID DoAbility(PSPAWNINFO pChar, PCHAR szLine)
     DWORD Index;
     CHAR szBuffer[MAX_STRING]={0};
     GetArg(szBuffer,szLine,1); 
+
     // display available abilities list
     if(!stricmp(szBuffer,"list")) {
         WriteChatColor("Abilities & Combat Skills:",USERCOLOR_DEFAULT);
 
         // display skills that have activated state
-        for(Index=0; Index<NUM_SKILLS; Index++) {
-            if(pSkillMgr->pSkill[Index]->Activated) {
-                bool Avail=(GetCharInfo2()->Skill[Index]>0);
-                for(int btn=0; !Avail && btn<10; btn++) {
-                    if(EQADDR_DOABILITYLIST[btn]==Index) Avail=true;
-                }
+        for(Index=0; Index<NUM_SKILLS; Index++)
+        {
+            if(((CharacterZoneClient*)pCharData1)->HasSkill(Index))
+            {
+                
+                bool Avail=pSkillMgr->pSkill[Index]->Activated;
+
                 // make sure remove trap is added, they give it to everyone except rogues
-                if(Index==75 && strncmp(pEverQuest->GetClassDesc(GetCharInfo2()->Class & 0xFF),"Rogue",6)) Avail=true;
-                if(Avail) {
+                if(Index==75 && strncmp(pEverQuest->GetClassDesc(GetCharInfo2()->Class & 0xFF),"Rogue",6))
+                    Avail=true;
+
+                if(Avail)
+                {
                     sprintf(szBuffer,"<\ag%s\ax>",szSkills[Index]);
                     WriteChatColor(szBuffer,USERCOLOR_DEFAULT);
                 }
@@ -1861,8 +1866,10 @@ VOID DoAbility(PSPAWNINFO pChar, PCHAR szLine)
         }
 
         // display innate skills that are available
-        for(Index=0; Index<28; Index++) {
-            if(GetCharInfo2()->InnateSkill[Index]!=0xFF && strlen(szSkills[Index+100])>3) {
+        for(Index=0; Index<28; Index++)
+        {
+            if(GetCharInfo2()->InnateSkill[Index]!=0xFF && strlen(szSkills[Index+100])>3)
+            {
                 sprintf(szBuffer,"<\ag%s\ax>",szSkills[Index+100]);
                 WriteChatColor(szBuffer,USERCOLOR_DEFAULT);
             }
@@ -1870,9 +1877,12 @@ VOID DoAbility(PSPAWNINFO pChar, PCHAR szLine)
 
         // display discipline i have
         WriteChatColor("Combat Abilities:",USERCOLOR_DEFAULT);
-        for(Index=0;Index<NUM_COMBAT_ABILITIES;Index++) {
-            if(GetCharInfo2()->CombatAbilities[Index]) {
-                if(PSPELL pCA=GetSpellByID(GetCharInfo2()->CombatAbilities[Index])) {
+        for(Index=0;Index<NUM_COMBAT_ABILITIES;Index++)
+        {
+            if(GetCharInfo2()->CombatAbilities[Index])
+            {
+                if(PSPELL pCA=GetSpellByID(GetCharInfo2()->CombatAbilities[Index]))
+                {
                     sprintf(szBuffer, "<\ag%s\ax>",pCA->Name);
                     WriteChatColor(szBuffer,USERCOLOR_DEFAULT);
                 }
@@ -1884,19 +1894,30 @@ VOID DoAbility(PSPAWNINFO pChar, PCHAR szLine)
     // scan for matching abilities name
     for(Index=0; Index < 128; Index++) {
         if((Index < NUM_SKILLS && (pSkillMgr->pSkill[Index])->Activated) ||
-            (Index >= NUM_SKILLS && GetCharInfo2()->InnateSkill[Index-100]!=0xFF)) {
-                if(!stricmp(szBuffer,szSkills[Index])) {
-                    pCharData1->UseSkill((unsigned char)Index,(EQPlayer*)pCharData1);
+            (Index >= NUM_SKILLS && GetCharInfo2()->InnateSkill[Index-100]!=0xFF))
+        {
+            if(!stricmp(szBuffer,szSkills[Index]))
+            {
+                if(!((CharacterZoneClient*)pCharData1)->HasSkill(Index))
+                {
+                    WriteChatf("you do not have this skill");
                     return;
                 }
+                pCharData1->UseSkill((unsigned char)Index,(EQPlayer*)pCharData1);
+                return;
+            }
         }
     }
 
     // scan for matching discipline name
-    for(Index=0; Index<NUM_COMBAT_ABILITIES; Index++) {
-        if(GetCharInfo2()->CombatAbilities[Index]) {
-            if(PSPELL pCA=GetSpellByID(GetCharInfo2()->CombatAbilities[Index])) {
-                if(!stricmp(pCA->Name,szBuffer)) {
+    for(Index=0; Index<NUM_COMBAT_ABILITIES; Index++)
+    {
+        if(GetCharInfo2()->CombatAbilities[Index])
+        {
+            if(PSPELL pCA=GetSpellByID(GetCharInfo2()->CombatAbilities[Index]))
+            {
+                if(!stricmp(pCA->Name,szBuffer))
+                {
                     pCharData->DoCombatAbility(pCA->ID);
                     return;
                 }
