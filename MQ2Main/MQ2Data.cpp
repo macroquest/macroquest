@@ -675,7 +675,7 @@ TLO(dataIni)
             {
                 if (!strcmp(pKey,"-1"))
                     pKey=0;
-                pDefault=strtok(NULL,"¦");
+                pDefault=strtok(NULL,"\xA6");
                 if (!pDefault)
                     pDefault="";
             }
