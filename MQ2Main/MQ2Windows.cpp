@@ -166,7 +166,7 @@ DETOUR_TRAMPOLINE_EMPTY(int CXWndManagerHook::RemoveWnd_Trampoline(class CXWnd *
 class CXMLSOMDocumentBaseHook
 {
 public:
-    int XMLRead(CXStr *A, CXStr *B, CXStr *C)
+    int XMLRead(CXStr *A, CXStr *B, CXStr *C, CXStr *D)
     {
         char Temp[256]={0};
         GetCXStr(C->Ptr,Temp,256);
@@ -176,16 +176,16 @@ public:
             if (GenerateMQUI())
             {
                 SetCXStr(&C->Ptr,"MQUI.xml");
-                int Ret=XMLRead_Trampoline(A,B,C);
+                int Ret=XMLRead_Trampoline(A,B,C,D);
                 DestroyMQUI();
                 return Ret;
             }
         }
-        return XMLRead_Trampoline(A,B,C);
+        return XMLRead_Trampoline(A,B,C,D);
     }
-    int XMLRead_Trampoline(CXStr *A, CXStr *B, CXStr *C);
+    int XMLRead_Trampoline(CXStr *A, CXStr *B, CXStr *C, CXStr *D);
 };
-DETOUR_TRAMPOLINE_EMPTY(int CXMLSOMDocumentBaseHook::XMLRead_Trampoline(CXStr *A, CXStr *B, CXStr *C)); 
+DETOUR_TRAMPOLINE_EMPTY(int CXMLSOMDocumentBaseHook::XMLRead_Trampoline(CXStr *A, CXStr *B, CXStr *C, CXStr *D)); 
 
 
 #ifndef ISXEQ
@@ -535,15 +535,15 @@ CXWnd *FindMQ2Window(PCHAR WindowName)
             unsigned long nPack=atoi(&WindowName[4]);
             if (nPack && nPack<=NUM_BANK_SLOTS)
             {
-                pPack=((PCHARINFO)pCharData)->Bank[nPack-1];
+                pPack=((PCHARINFO)pCharData)->pBankArray->Bank[nPack-1];
             }
         }
         else if (!strnicmp(WindowName,"pack",4))
         {
             unsigned long nPack=atoi(&WindowName[4]);
-            if (nPack && nPack<=8)
+            if (nPack && nPack<=10)
             {
-                pPack=GetCharInfo2()->Inventory.Pack[nPack-1];
+                pPack=GetCharInfo2()->pInventoryArray->Inventory.Pack[nPack-1];
             }
         }
         else if (!stricmp(WindowName,"enviro"))
@@ -1144,7 +1144,7 @@ int ItemNotify(int argc, char *argv[])
             unsigned long nPack=atoi(&szArg2[4]);
             if (nPack && nPack<=NUM_BANK_SLOTS)
             {
-                pPack=GetCharInfo()->Bank[nPack-1];
+                pPack=GetCharInfo()->pBankArray->Bank[nPack-1];
             }
         }
         else if (!strnicmp(szArg2,"sharedbank",10))
@@ -1152,15 +1152,15 @@ int ItemNotify(int argc, char *argv[])
             unsigned long nPack=atoi(&szArg2[10]);
             if (nPack && nPack<=2)
             {
-                pPack=GetCharInfo()->Bank[16+nPack-1];
+                pPack=GetCharInfo()->pBankArray->Bank[16+nPack-1];
             }
         }
         else if (!strnicmp(szArg2,"pack",4))
         {
             unsigned long nPack=atoi(&szArg2[4]);
-            if (nPack && nPack<=8)
+            if (nPack && nPack<=10)
             {
-                pPack=GetCharInfo2()->Inventory.Pack[nPack-1];
+                pPack=GetCharInfo2()->pInventoryArray->Inventory.Pack[nPack-1];
             }
         }
         else if (!stricmp(szArg2,"enviro"))
@@ -1227,12 +1227,12 @@ int ListItemSlots(int argc, char *argv[])
     unsigned long Count=0;
     WriteChatColor("List of available item slots");
     WriteChatColor("-------------------------");
-    for (unsigned long N = 0 ; N < 0x400 ; N++)
+    for (unsigned long N = 0 ; N < 0x800 ; N++)
         if (PEQINVSLOT pSlot=pMgr->SlotArray[N])
         {
             if (pSlot->pInvSlotWnd)
             {
-                WriteChatf("inv slot %d",pSlot->pInvSlotWnd->InvSlot);
+                WriteChatf("inv slot %d",pSlot->InvSlot);
                 Count++;
             }
         }

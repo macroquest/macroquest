@@ -171,22 +171,23 @@ typedef struct _CSIDLWNDVFTABLE {
 /*0114*/ LPVOID  SetFont;
 /*0118*/ LPVOID  SetWindowTextA;
 /*011C*/ LPVOID  Unknown0x11c;
-/*0120*/ LPVOID  SetVScrollPos;  //->0
-/*0124*/ LPVOID  SetHScrollPos;
-/*0128*/ LPVOID  Unknown0x120;
-/*012c*/ LPVOID  Unknown0x124;
-/*0130*/ LPVOID  SetAttributesFromSidl;
-/*0134*/ LPVOID  nullsub_1;
-/*0138*/ LPVOID  Unknown0x138;
+/*0120*/ LPVOID  Unknown0x120;
+/*0124*/ LPVOID  SetVScrollPos;  //->0
+/*0128*/ LPVOID  SetHScrollPos;
+/*012c*/ LPVOID  Unknown0x12c;
+/*0130*/ LPVOID  Unknown0x130;
+/*0134*/ LPVOID  SetAttributesFromSidl;
+/*0138*/ LPVOID  nullsub_1;
 /*013c*/ LPVOID  Unknown0x13c;
-/*0140*/ LPVOID  PostDraw8;
-/*0144*/ LPVOID  Unknown0x144;
+/*0140*/ LPVOID  Unknown0x140;
+/*0144*/ LPVOID  PostDraw8;
 /*0148*/ LPVOID  Unknown0x148;
-/*014c*/ LPVOID  LoadIniInfo;
-/*0150*/ LPVOID  StoreIniInfo;
-/*0154*/ LPVOID  Unknown0x154;
+/*014c*/ LPVOID  Unknown0x14c;
+/*0150*/ LPVOID  LoadIniInfo;
+/*0154*/ LPVOID  StoreIniInfo;
 /*0158*/ LPVOID  Unknown0x158;
-/*015c*/
+/*015c*/ LPVOID  Unknown0x15c;
+/*0160*/
 } CSIDLWNDVFTABLE, *PCSIDLWNDVFTABLE; 
 
 // dkaa
@@ -264,16 +265,17 @@ typedef struct _CXWNDVFTABLE {
 /*0114*/ LPVOID  SetFont;
 /*0118*/ LPVOID  SetWindowTextA;
 /*011C*/ LPVOID  Unknown0x11c;
-/*0120*/ LPVOID  SetVScrollPos;  //->0
-/*0124*/ LPVOID  SetHScrollPos;
-/*0128*/ LPVOID  Unknown0x120;
-/*012c*/ LPVOID  Unknown0x124;
-/*0130*/ LPVOID  SetAttributesFromSidl;
-/*0134*/ LPVOID  nullsub_1;
-/*0138*/ LPVOID  Unknown0x128;
-/*013c*/ LPVOID  Unknown0x12c;
-/*0140*/ LPVOID  PostDraw8;
-/*0144*/
+/*0120*/ LPVOID  Unknown0x120;
+/*0124*/ LPVOID  SetVScrollPos;  //->0
+/*0128*/ LPVOID  SetHScrollPos;
+/*012c*/ LPVOID  Unknown0x12c;
+/*0130*/ LPVOID  Unknown0x130;
+/*0134*/ LPVOID  SetAttributesFromSidl;
+/*0138*/ LPVOID  nullsub_1;
+/*013c*/ LPVOID  Unknown0x13c;
+/*0140*/ LPVOID  Unknown0x140;
+/*0144*/ LPVOID  PostDraw8;
+/*0148*/
 } CXWNDVFTABLE, *PCXWNDVFTABLE; 
 
 // Actual size 0x1b8 7-14-10 - ieatacid
@@ -613,7 +615,7 @@ typedef struct _EQINVSLOT {
 /*0x00*/    LPVOID pvfTable;        // not based on cxwnd
 /*0x04*/    struct _EQINVSLOTWND *pInvSlotWnd;
 /*0x08*/    DWORD Unknown0x08;
-/*0x0C*/    DWORD Unknown0x0C;
+/*0x0C*/    DWORD InvSlot;
 /*0x10*/    PCONTENTS *ppContents;
 /*0x14*/
 } EQINVSLOT, *PEQINVSLOT;

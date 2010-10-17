@@ -41,7 +41,7 @@ private:
 public: 
     CMQChatWnd(CXStr *Template):CCustomWnd(Template) 
     { 
-        DebugSpew("CMQChatWnd()"); 
+        DebugSpew("CMQChatWnd()");
         SetWndNotification(CMQChatWnd); 
         InputBox=(CTextEntryWnd*)GetChildItem("CWChatInput"); 
         InputBox->WindowStyle|=0x800C0; 

@@ -664,6 +664,9 @@ PCHAR szItemSlot[] = {
     "pack6",
     "pack7",
     "pack8",        // 30
+    "pack9",
+    "pack10",
+    "cursor",
     NULL            // 31
 };
 

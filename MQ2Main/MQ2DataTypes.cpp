@@ -2133,7 +2133,7 @@ bool MQ2CharacterType::GETMEMBER()
                 unsigned long nSlot=GETNUMBER()%NUM_INV_SLOTS;
                 if (nSlot<NUM_INV_SLOTS)
                 {
-                    if (Dest.Ptr=GetCharInfo2()->InventoryArray[nSlot])
+                    if (Dest.Ptr=GetCharInfo2()->pInventoryArray->InventoryArray[nSlot])
                     {
                         Dest.Type=pItemType;
                         return true;
@@ -2146,7 +2146,7 @@ bool MQ2CharacterType::GETMEMBER()
                 {
                     if (!stricmp(GETFIRST(),szItemSlot[nSlot]))
                     {
-                        if (Dest.Ptr=GetCharInfo2()->InventoryArray[nSlot])
+                        if (Dest.Ptr=GetCharInfo2()->pInventoryArray->InventoryArray[nSlot])
                         {
                             Dest.Type=pItemType;
                             return true;
@@ -2164,7 +2164,7 @@ bool MQ2CharacterType::GETMEMBER()
                 unsigned long nSlot=GETNUMBER()-1;
                 if (nSlot<NUM_BANK_SLOTS)
                 {
-                    if (Dest.Ptr=pChar->Bank[nSlot])
+                    if (Dest.Ptr=pChar->pBankArray->Bank[nSlot])
                     {
                         Dest.Type=pItemType;
                         return true;
@@ -2883,13 +2883,13 @@ bool MQ2CharacterType::GETMEMBER()
             Dest.Type=pIntType;
             for (DWORD slot=BAG_SLOT_START;slot<NUM_INV_SLOTS;slot++) 
             {
-                if (PCONTENTS pItem = GetCharInfo2()->InventoryArray[slot])
+                if (PCONTENTS pItem = GetCharInfo2()->pInventoryArray->InventoryArray[slot])
                 {
                     if (pItem->Item->Type==ITEMTYPE_PACK && pItem->Item->SizeCapacity>Dest.DWord) 
                     {
                         for (DWORD pslot=0;pslot<(pItem->Item->Slots);pslot++) 
                         {
-                            if (!pItem->Contents[pslot])
+                            if (!pItem->pContentsArray->Contents[pslot])
                             {
                                 Dest.DWord=pItem->Item->SizeCapacity;
                                 break;// break the loop for this pack
@@ -2914,13 +2914,13 @@ bool MQ2CharacterType::GETMEMBER()
             Dest.DWord=0;
             for (DWORD slot=BAG_SLOT_START;slot<NUM_INV_SLOTS;slot++) 
             {
-                if (PCONTENTS pItem = GetCharInfo2()->InventoryArray[slot]) 
+                if (PCONTENTS pItem = GetCharInfo2()->pInventoryArray->InventoryArray[slot]) 
                 {
                     if (pItem->Item->Type==ITEMTYPE_PACK && pItem->Item->SizeCapacity>=nSize) 
                     {
                         for (DWORD pslot=0;pslot<(pItem->Item->Slots);pslot++) 
                         {
-                            if (!pItem->Contents[pslot]) 
+                            if (!pItem->pContentsArray->Contents[pslot]) 
                                 Dest.DWord++;
                         }
                     }
@@ -2938,13 +2938,13 @@ bool MQ2CharacterType::GETMEMBER()
             Dest.DWord=0;
             for (DWORD slot=BAG_SLOT_START;slot<NUM_INV_SLOTS;slot++) 
             {
-                if (PCONTENTS pItem = GetCharInfo2()->InventoryArray[slot]) 
+                if (PCONTENTS pItem = GetCharInfo2()->pInventoryArray->InventoryArray[slot]) 
                 {
                     if (pItem->Item->Type==ITEMTYPE_PACK) 
                     {
                         for (DWORD pslot=0;pslot<(pItem->Item->Slots);pslot++) 
                         {
-                            if (!pItem->Contents[pslot]) 
+                            if (!pItem->pContentsArray->Contents[pslot]) 
                                 Dest.DWord++;
                         }
                     }
@@ -3777,7 +3777,7 @@ bool MQ2ItemType::GETMEMBER()
             Dest.DWord=0;
             for (unsigned long N=0 ; N < pItem->Item->Slots ; N++)
             {
-                if (pItem->Contents[N])
+                if (pItem->pContentsArray->Contents[N])
                     Dest.DWord++;
             }
             Dest.Type=pIntType;
@@ -3791,7 +3791,7 @@ bool MQ2ItemType::GETMEMBER()
             N--;
             if (N<pItem->Item->Slots)
             {
-                if (Dest.Ptr=pItem->Contents[N])
+                if (Dest.Ptr=pItem->pContentsArray->Contents[N])
                 {
                     Dest.Type=pItemType;
                     return true;
@@ -3804,19 +3804,19 @@ bool MQ2ItemType::GETMEMBER()
             switch (N)
             {
             case 0: 
-                if (pItem->Item->AugSlot1) Dest.Ptr=pItem->Contents[N];   
+                if (pItem->Item->AugSlot1) Dest.Ptr=pItem->pContentsArray->Contents[N];   
                 break;
             case 1: 
-                if (pItem->Item->AugSlot2) Dest.Ptr=pItem->Contents[N];   
+                if (pItem->Item->AugSlot2) Dest.Ptr=pItem->pContentsArray->Contents[N];   
                 break;
             case 2: 
-                if (pItem->Item->AugSlot3) Dest.Ptr=pItem->Contents[N];   
+                if (pItem->Item->AugSlot3) Dest.Ptr=pItem->pContentsArray->Contents[N];   
                 break;
             case 3: 
-                if (pItem->Item->AugSlot4) Dest.Ptr=pItem->Contents[N];   
+                if (pItem->Item->AugSlot4) Dest.Ptr=pItem->pContentsArray->Contents[N];   
                 break;
             case 4: 
-                if (pItem->Item->AugSlot5) Dest.Ptr=pItem->Contents[N];   
+                if (pItem->Item->AugSlot5) Dest.Ptr=pItem->pContentsArray->Contents[N];   
                 break;
             }
             if (Dest.Ptr) return true; 
@@ -4038,15 +4038,15 @@ bool MQ2ItemType::GETMEMBER()
             if (!((EQ_Item*)pItem)->IsStackable()) return true;
             for (DWORD slot=BAG_SLOT_START;slot<NUM_INV_SLOTS;slot++) 
             {
-                if (PCONTENTS pTempItem = GetCharInfo2()->InventoryArray[slot])
+                if (PCONTENTS pTempItem = GetCharInfo2()->pInventoryArray->InventoryArray[slot])
                 {
                     if (pTempItem->Item->Type==ITEMTYPE_PACK) 
                     {
                         for (DWORD pslot=0;pslot<(pTempItem->Item->Slots);pslot++) 
                         {
-                            if (pTempItem->Contents[pslot])
+                            if (pTempItem->pContentsArray->Contents[pslot])
                             {
-                                if (PCONTENTS pSlotItem = pTempItem->Contents[pslot])
+                                if (PCONTENTS pSlotItem = pTempItem->pContentsArray->Contents[pslot])
                                 {
                                     if (pSlotItem->Item->ItemNumber==pItem->Item->ItemNumber)
                                     {
@@ -4073,15 +4073,15 @@ bool MQ2ItemType::GETMEMBER()
             if (!((EQ_Item*)pItem)->IsStackable()) return true;
             for (DWORD slot=BAG_SLOT_START;slot<NUM_INV_SLOTS;slot++) 
             {
-                if (PCONTENTS pTempItem = GetCharInfo2()->InventoryArray[slot])
+                if (PCONTENTS pTempItem = GetCharInfo2()->pInventoryArray->InventoryArray[slot])
                 {
                     if (pTempItem->Item->Type==ITEMTYPE_PACK) 
                     {
                         for (DWORD pslot=0;pslot<(pTempItem->Item->Slots);pslot++) 
                         {
-                            if (pTempItem->Contents[pslot])
+                            if (pTempItem->pContentsArray->Contents[pslot])
                             {
-                                if (PCONTENTS pSlotItem = pTempItem->Contents[pslot])
+                                if (PCONTENTS pSlotItem = pTempItem->pContentsArray->Contents[pslot])
                                 {
                                     if (pSlotItem->Item->ItemNumber==pItem->Item->ItemNumber)
                                     {
@@ -4108,15 +4108,15 @@ bool MQ2ItemType::GETMEMBER()
             if (!((EQ_Item*)pItem)->IsStackable()) return true;
             for (DWORD slot=BAG_SLOT_START;slot<NUM_INV_SLOTS;slot++)
             {
-                if (PCONTENTS pTempItem = GetCharInfo2()->InventoryArray[slot])
+                if (PCONTENTS pTempItem = GetCharInfo2()->pInventoryArray->InventoryArray[slot])
                 {
                     if (pTempItem->Item->Type==ITEMTYPE_PACK)
                     {
                         for (DWORD pslot=0;pslot<(pTempItem->Item->Slots);pslot++) 
                         {
-                            if (pTempItem->Contents[pslot])
+                            if (pTempItem->pContentsArray->Contents[pslot])
                             {
-                                if (PCONTENTS pSlotItem = pTempItem->Contents[pslot])
+                                if (PCONTENTS pSlotItem = pTempItem->pContentsArray->Contents[pslot])
                                 {
                                     if (pSlotItem->Item->ItemNumber==pItem->Item->ItemNumber)
                                     {
@@ -5903,78 +5903,83 @@ bool MQ2InvSlotType::GETMEMBER()
         Dest.Type=pIntType;
         return true;
     case Item:
-        if (pInvSlotMgr) {
-            if (CInvSlot *pSlot=pInvSlotMgr->FindInvSlot(nInvSlot))
+#if 0
+        if (CInvSlot *pSlot=pInvSlotMgr->FindInvSlot(nInvSlot))
+        {
+            if (((PEQINVSLOT)pSlot)->ppContents)
             {
-                if (((PEQINVSLOT)pSlot)->ppContents)
+                if (Dest.Ptr=*((PEQINVSLOT)pSlot)->ppContents)
                 {
-                    if (Dest.Ptr=*((PEQINVSLOT)pSlot)->ppContents)
-                    {
-                        Dest.Type=pItemType;
-                        return true;
-                    }
+                    Dest.Type=pItemType;
+                    return true;
                 }
             }
-            else
+        }
+#endif
+        if(Dest.Ptr = GetCharInfo2()->pInventoryArray->InventoryArray[nInvSlot])
+        {
+            Dest.Type = pItemType;
+            return true;
+        }
+        else
+        {
+            PCHARINFO pCharInfo=(PCHARINFO)pCharData;
+            if (nInvSlot>=262 && nInvSlot<342)
             {
-                PCHARINFO pCharInfo=(PCHARINFO)pCharData;
-                if (nInvSlot>=262 && nInvSlot<342)
-                {
-                    unsigned long nPack=(nInvSlot-262)/10;
-                    unsigned long nSlot=(nInvSlot-262)%10;
-                    if (PCONTENTS pPack=GetCharInfo2()->Inventory.Pack[nPack])
-                        if (pPack->Item->Type==ITEMTYPE_PACK && nSlot<pPack->Item->Slots)
-                        {
-                            if (Dest.Ptr=pPack->Contents[nSlot])
-                            {
-                                Dest.Type=pItemType;
-                                return true;
-                            }
-                        }
-                } 
-                else if (nInvSlot>=2032 && nInvSlot<2272)
-                {
-                    unsigned long nPack=(nInvSlot-2032)/10;
-                    unsigned long nSlot=(nInvSlot-2)%10;
-                    if (PCONTENTS pPack=pCharInfo->Bank[nPack])
-                        if (pPack->Item->Type==ITEMTYPE_PACK && nSlot<pPack->Item->Slots)
-                        {
-                            if (Dest.Ptr=pPack->Contents[nSlot])
-                            {
-                                Dest.Type=pItemType;
-                                return true;
-                            }
-                        }
-                }
-                else if (nInvSlot>=2532 && nInvSlot<2552)
-                {
-                    unsigned long nPack=24+((nInvSlot-2532)/10);
-                    unsigned long nSlot=(nInvSlot-2)%10;
-                    if (PCONTENTS pPack=pCharInfo->Bank[nPack])
-                        if (pPack->Item->Type==ITEMTYPE_PACK && nSlot<pPack->Item->Slots)
-                        {
-                            if (Dest.Ptr=pPack->Contents[nSlot])
-                            {
-                                Dest.Type=pItemType;
-                                return true;
-                            }
-                        }
-                }
-                else if (nInvSlot>=2000 && nInvSlot<2024)
-                {
-                    if (Dest.Ptr=pCharInfo->Bank[nInvSlot-2000])
+                unsigned long nPack=(nInvSlot-262)/10;
+                unsigned long nSlot=(nInvSlot-262)%10;
+                if (PCONTENTS pPack=GetCharInfo2()->pInventoryArray->Inventory.Pack[nPack])
+                    if (pPack->Item->Type==ITEMTYPE_PACK && nSlot<pPack->Item->Slots)
                     {
-                        Dest.Type=pItemType;
-                        return true;
+                        if (Dest.Ptr=pPack->pContentsArray->Contents[nSlot])
+                        {
+                            Dest.Type=pItemType;
+                            return true;
+                        }
                     }
-                }
-                else if (nInvSlot==2500 || nInvSlot==2501)
-                {
-                    if (Dest.Ptr=pCharInfo->Bank[nInvSlot-2500+24])
+            } 
+            else if (nInvSlot>=2032 && nInvSlot<2272)
+            {
+                unsigned long nPack=(nInvSlot-2032)/10;
+                unsigned long nSlot=(nInvSlot-2)%10;
+                if (PCONTENTS pPack=pCharInfo->pBankArray->Bank[nPack])
+                    if (pPack->Item->Type==ITEMTYPE_PACK && nSlot<pPack->Item->Slots)
                     {
-                        Dest.Type=pItemType;
-                        return true;
+                        if (Dest.Ptr=pPack->pContentsArray->Contents[nSlot])
+                        {
+                            Dest.Type=pItemType;
+                            return true;
+                        }
                     }
+            }
+            else if (nInvSlot>=2532 && nInvSlot<2552)
+            {
+                unsigned long nPack=24+((nInvSlot-2532)/10);
+                unsigned long nSlot=(nInvSlot-2)%10;
+                if (PCONTENTS pPack=pCharInfo->pBankArray->Bank[nPack])
+                    if (pPack->Item->Type==ITEMTYPE_PACK && nSlot<pPack->Item->Slots)
+                    {
+                        if (Dest.Ptr=pPack->pContentsArray->Contents[nSlot])
+                        {
+                            Dest.Type=pItemType;
+                            return true;
+                        }
+                    }
+            }
+            else if (nInvSlot>=2000 && nInvSlot<2024)
+            {
+                if (Dest.Ptr=pCharInfo->pBankArray->Bank[nInvSlot-2000])
+                {
+                    Dest.Type=pItemType;
+                    return true;
+                }
+            }
+            else if (nInvSlot==2500 || nInvSlot==2501)
+            {
+                if (Dest.Ptr=pCharInfo->pBankArray->Bank[nInvSlot-2500+24])
+                {
+                    Dest.Type=pItemType;
+                    return true;
                 }
             }
         }

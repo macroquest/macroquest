@@ -500,7 +500,7 @@ TLO(dataIf)
 #endif
 TLO(dataCursor)
 {
-    if (Ret.Ptr=GetCharInfo2()->Cursor)
+    if (Ret.Ptr=GetCharInfo2()->pInventoryArray->Inventory.Cursor)
     {
         Ret.Type=pItemType;
         return true;
@@ -781,7 +781,7 @@ TLO(dataFindItemBank)
     for (unsigned long nPack=0 ; nPack < NUM_BANK_SLOTS ; nPack++)
     {
         PCHARINFO pCharInfo=GetCharInfo();
-        if (PCONTENTS pPack=pCharInfo->Bank[nPack])
+        if (PCONTENTS pPack=pCharInfo->pBankArray->Bank[nPack])
         {
             if (bExact)
             {
@@ -805,7 +805,7 @@ TLO(dataFindItemBank)
             {
                 for (unsigned long nItem=0 ; nItem < pPack->Item->Slots ; nItem++)
                 {
-                    if (PCONTENTS pItem=pPack->Contents[nItem])
+                    if (PCONTENTS pItem=pPack->pContentsArray->Contents[nItem])
                     {
                         if (bExact)
                         {
@@ -855,7 +855,7 @@ TLO(dataFindItem)
 
     for (unsigned long nSlot=0 ; nSlot < NUM_INV_SLOTS ; nSlot++)
     {
-        if (PCONTENTS pItem=GetCharInfo2()->InventoryArray[nSlot])
+        if (PCONTENTS pItem=GetCharInfo2()->pInventoryArray->InventoryArray[nSlot])
         {
             if (bExact)
             {
@@ -878,15 +878,15 @@ TLO(dataFindItem)
         }
     }
 
-    for (unsigned long nPack=0 ; nPack < 8 ; nPack++)
+    for (unsigned long nPack=0 ; nPack < 10 ; nPack++)
     {
-        if (PCONTENTS pPack=GetCharInfo2()->Inventory.Pack[nPack])
+        if (PCONTENTS pPack=GetCharInfo2()->pInventoryArray->Inventory.Pack[nPack])
         {
             if (pPack->Item->Type==ITEMTYPE_PACK)
             {
                 for (unsigned long nItem=0 ; nItem < pPack->Item->Slots ; nItem++)
                 {
-                    if (PCONTENTS pItem=pPack->Contents[nItem])
+                    if (PCONTENTS pItem=pPack->pContentsArray->Contents[nItem])
                     {
                         if (bExact)
                         {
@@ -938,7 +938,7 @@ TLO(dataFindItemCount)
 
     for (unsigned long nSlot=0 ; nSlot < NUM_INV_SLOTS ; nSlot++)
     {
-        if (PCONTENTS pItem=GetCharInfo2()->InventoryArray[nSlot])
+        if (PCONTENTS pItem=GetCharInfo2()->pInventoryArray->InventoryArray[nSlot])
         {
             if (bExact)
             {
@@ -954,8 +954,8 @@ TLO(dataFindItemCount)
                 {
                     for(nAug = 0; nAug < 0xa; nAug++)
                     {
-                        if(pItem->Contents[nAug] && pItem->Contents[nAug]->Item->Type == ITEMTYPE_NORMAL && pItem->Contents[nAug]->Item->AugType &&
-                            !stricmp(Name, pItem->Contents[nAug]->Item->Name))
+                        if(pItem->pContentsArray->Contents[nAug] && pItem->pContentsArray->Contents[nAug]->Item->Type == ITEMTYPE_NORMAL && pItem->pContentsArray->Contents[nAug]->Item->AugType &&
+                            !stricmp(Name, pItem->pContentsArray->Contents[nAug]->Item->Name))
                             Count++;
                     }
                 }
@@ -974,8 +974,8 @@ TLO(dataFindItemCount)
                 {
                     for(nAug = 0; nAug < 0xa; nAug++)
                     {
-                        if(pItem->Contents[nAug] && pItem->Contents[nAug]->Item->Type == ITEMTYPE_NORMAL && pItem->Contents[nAug]->Item->AugType &&
-                            strstr(strlwr(strcpy(Temp, pItem->Contents[nAug]->Item->Name)), Name))
+                        if(pItem->pContentsArray->Contents[nAug] && pItem->pContentsArray->Contents[nAug]->Item->Type == ITEMTYPE_NORMAL && pItem->pContentsArray->Contents[nAug]->Item->AugType &&
+                            strstr(strlwr(strcpy(Temp, pItem->pContentsArray->Contents[nAug]->Item->Name)), Name))
                             Count++;
                     }
                 }
@@ -983,15 +983,15 @@ TLO(dataFindItemCount)
         }
     }
 
-    for (unsigned long nPack=0 ; nPack < 8 ; nPack++)
+    for (unsigned long nPack=0 ; nPack < 10 ; nPack++)
     {
-        if (PCONTENTS pPack=GetCharInfo2()->Inventory.Pack[nPack])
+        if (PCONTENTS pPack=GetCharInfo2()->pInventoryArray->Inventory.Pack[nPack])
         {
             if (pPack->Item->Type==ITEMTYPE_PACK)
             {
                 for (unsigned long nItem=0 ; nItem < pPack->Item->Slots ; nItem++)
                 {
-                    if (PCONTENTS pItem=pPack->Contents[nItem])
+                    if (PCONTENTS pItem=pPack->pContentsArray->Contents[nItem])
                     {
                         if (bExact)
                         {
@@ -1007,8 +1007,8 @@ TLO(dataFindItemCount)
                             {
                                 for(nAug = 0; nAug < 0xa; nAug++)
                                 {
-                                    if(pItem->Contents[nAug] && pItem->Contents[nAug]->Item->Type == ITEMTYPE_NORMAL && pItem->Contents[nAug]->Item->AugType &&
-                                        !stricmp(Name, pItem->Contents[nAug]->Item->Name))
+                                    if(pItem->pContentsArray->Contents[nAug] && pItem->pContentsArray->Contents[nAug]->Item->Type == ITEMTYPE_NORMAL && pItem->pContentsArray->Contents[nAug]->Item->AugType &&
+                                        !stricmp(Name, pItem->pContentsArray->Contents[nAug]->Item->Name))
                                         Count++;
                                 }
                             }
@@ -1027,8 +1027,8 @@ TLO(dataFindItemCount)
                             {
                                 for(nAug = 0; nAug < 0xa; nAug++)
                                 {
-                                    if(pItem->Contents[nAug] && pItem->Contents[nAug]->Item->Type == ITEMTYPE_NORMAL && pItem->Contents[nAug]->Item->AugType &&
-                                        strstr(strlwr(strcpy(Temp, pItem->Contents[nAug]->Item->Name)), Name))
+                                    if(pItem->pContentsArray->Contents[nAug] && pItem->pContentsArray->Contents[nAug]->Item->Type == ITEMTYPE_NORMAL && pItem->pContentsArray->Contents[nAug]->Item->AugType &&
+                                        strstr(strlwr(strcpy(Temp, pItem->pContentsArray->Contents[nAug]->Item->Name)), Name))
                                         Count++;
                                 }
                             }
@@ -1068,7 +1068,7 @@ TLO(dataFindItemBankCount)
     for (unsigned long nPack=0 ; nPack < NUM_BANK_SLOTS ; nPack++)
     {
         PCHARINFO pCharInfo=GetCharInfo();
-        if (PCONTENTS pPack=pCharInfo->Bank[nPack])
+        if (PCONTENTS pPack=pCharInfo->pBankArray->Bank[nPack])
         {
             if (bExact)
             {
@@ -1096,7 +1096,7 @@ TLO(dataFindItemBankCount)
             {
                 for (unsigned long nItem=0 ; nItem < pPack->Item->Slots ; nItem++)
                 {
-                    if (PCONTENTS pItem=pPack->Contents[nItem])
+                    if (PCONTENTS pItem=pPack->pContentsArray->Contents[nItem])
                     {
                         if (bExact)
                         {
