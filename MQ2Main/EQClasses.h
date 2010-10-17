@@ -2651,13 +2651,22 @@ EQLIB_OBJECT CInvSlot::~CInvSlot(void);
 //EQLIB_OBJECT void * CInvSlot::`vector deleting destructor'(unsigned int);
 };
 
+class CMoveItemData
+{
+public:
+    unsigned short InventoryType;   // 0 = regular inventory slots, 1 = bank slots, 2 = shared bank slots
+    unsigned short Unknown2;        // always 0?
+    unsigned short InvSlot;
+    unsigned short BagSlot;         // 0xFFFF if not in a bag, otherwise the bag slot number (0 through 9, or 0 through 19 if it's a 20-slot bag, etc)
+};
+
 class CInvSlotMgr
 {
 public:
 EQLIB_OBJECT CInvSlotMgr::CInvSlotMgr(void);
 EQLIB_OBJECT class CInvSlot * CInvSlotMgr::CreateInvSlot(class CInvSlotWnd *);
 EQLIB_OBJECT class CInvSlot * CInvSlotMgr::FindInvSlot(int);
-EQLIB_OBJECT int CInvSlotMgr::MoveItem(int,int,int,int);
+EQLIB_OBJECT bool CInvSlotMgr::MoveItem(CMoveItemData*,CMoveItemData*,int valueOne,int valueOne2,int valueZero,int valueZero2);
 EQLIB_OBJECT void CInvSlotMgr::Process(void);
 EQLIB_OBJECT void CInvSlotMgr::SelectSlot(class CInvSlot *);
 EQLIB_OBJECT void CInvSlotMgr::UpdateSlots(void);

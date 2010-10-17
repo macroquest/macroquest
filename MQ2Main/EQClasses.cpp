@@ -1874,7 +1874,7 @@ FUNCTION_AT_ADDRESS(bool  CInvSlot::IllegalBigBank(int),CInvSlot__IllegalBigBank
 FUNCTION_AT_ADDRESS( CInvSlotMgr::CInvSlotMgr(void),CInvSlotMgr__CInvSlotMgr);
 #endif
 #ifdef CInvSlotMgr__MoveItem
-FUNCTION_AT_ADDRESS(int  CInvSlotMgr::MoveItem(int,int,int,int),CInvSlotMgr__MoveItem);
+FUNCTION_AT_ADDRESS(bool  CInvSlotMgr::MoveItem(CMoveItemData*,CMoveItemData*,int valueOne,int valueOne2,int valueZero,int valueZero2),CInvSlotMgr__MoveItem);
 #endif
 #ifdef CInvSlotMgr__CreateInvSlot
 FUNCTION_AT_ADDRESS(class CInvSlot *  CInvSlotMgr::CreateInvSlot(class CInvSlotWnd *),CInvSlotMgr__CreateInvSlot);

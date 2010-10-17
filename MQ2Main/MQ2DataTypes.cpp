@@ -3528,7 +3528,8 @@ bool MQ2SpellType::GETMEMBER()
         return true;
     case MyCastTime: 
         {
-            float mct = (FLOAT)(pCharData1->GetAACastingTimeModifier((EQ_Spell*)pSpell)+pCharData1->GetFocusCastingTimeModifier((EQ_Spell*)pSpell,0,0)+pSpell->CastTime)/1000.0f;
+            DWORD n = 0;
+            float mct = (FLOAT)(pCharData1->GetAACastingTimeModifier((EQ_Spell*)pSpell)+pCharData1->GetFocusCastingTimeModifier((EQ_Spell*)pSpell,(EQ_Equipment**)&n,0)+pSpell->CastTime)/1000.0f;
             if (mct < 0.50 * pSpell->CastTime/1000.0f)
                 Dest.Float=(FLOAT)0.50 * (pSpell->CastTime/1000.0f);
             else
