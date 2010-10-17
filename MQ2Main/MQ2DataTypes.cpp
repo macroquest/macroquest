@@ -2889,7 +2889,7 @@ bool MQ2CharacterType::GETMEMBER()
                     {
                         for (DWORD pslot=0;pslot<(pItem->Item->Slots);pslot++) 
                         {
-                            if (!pItem->pContentsArray->Contents[pslot])
+                            if (!pItem->pContentsArray || !pItem->pContentsArray->Contents[pslot])
                             {
                                 Dest.DWord=pItem->Item->SizeCapacity;
                                 break;// break the loop for this pack
@@ -2918,10 +2918,14 @@ bool MQ2CharacterType::GETMEMBER()
                 {
                     if (pItem->Item->Type==ITEMTYPE_PACK && pItem->Item->SizeCapacity>=nSize) 
                     {
-                        for (DWORD pslot=0;pslot<(pItem->Item->Slots);pslot++) 
-                        {
-                            if (!pItem->pContentsArray->Contents[pslot]) 
-                                Dest.DWord++;
+                        if (!pItem->pContentsArray) {
+                            Dest.DWord+= pItem->Item->Slots;
+                        } else {
+                            for (DWORD pslot=0;pslot<(pItem->Item->Slots);pslot++) 
+                            {
+                                if (!pItem->pContentsArray->Contents[pslot]) 
+                                    Dest.DWord++;
+                            }
                         }
                     }
                 } 
@@ -2942,10 +2946,14 @@ bool MQ2CharacterType::GETMEMBER()
                 {
                     if (pItem->Item->Type==ITEMTYPE_PACK) 
                     {
-                        for (DWORD pslot=0;pslot<(pItem->Item->Slots);pslot++) 
-                        {
-                            if (!pItem->pContentsArray->Contents[pslot]) 
-                                Dest.DWord++;
+                        if (!pItem->pContentsArray) {
+                            Dest.DWord+= pItem->Item->Slots;
+                        } else {
+                            for (DWORD pslot=0;pslot<(pItem->Item->Slots);pslot++) 
+                            {
+                                if (!pItem->pContentsArray->Contents[pslot]) 
+                                    Dest.DWord++;
+                            }
                         }
                     }
                 } 
@@ -3776,10 +3784,11 @@ bool MQ2ItemType::GETMEMBER()
         if (pItem->Item->Type == ITEMTYPE_PACK)
         {
             Dest.DWord=0;
-            for (unsigned long N=0 ; N < pItem->Item->Slots ; N++)
-            {
-                if (pItem->pContentsArray->Contents[N])
-                    Dest.DWord++;
+            if (pItem->pContentsArray) {
+                for (unsigned long N=0 ; N < pItem->Item->Slots ; N++) {
+                    if (pItem->pContentsArray->Contents[N])
+                        Dest.DWord++;
+                }
             }
             Dest.Type=pIntType;
             return true;
@@ -3792,6 +3801,7 @@ bool MQ2ItemType::GETMEMBER()
             N--;
             if (N<pItem->Item->Slots)
             {
+                if (pItem->pContentsArray)
                 if (Dest.Ptr=pItem->pContentsArray->Contents[N])
                 {
                     Dest.Type=pItemType;
@@ -3802,6 +3812,7 @@ bool MQ2ItemType::GETMEMBER()
             unsigned long N=GETNUMBER();
             N--;
             Dest.Ptr=NULL;
+            if (pItem->pContentsArray)
             switch (N)
             {
             case 0: 
@@ -4045,6 +4056,7 @@ bool MQ2ItemType::GETMEMBER()
                     {
                         for (DWORD pslot=0;pslot<(pTempItem->Item->Slots);pslot++) 
                         {
+                            if (pItem->pContentsArray)
                             if (pTempItem->pContentsArray->Contents[pslot])
                             {
                                 if (PCONTENTS pSlotItem = pTempItem->pContentsArray->Contents[pslot])
@@ -4080,6 +4092,7 @@ bool MQ2ItemType::GETMEMBER()
                     {
                         for (DWORD pslot=0;pslot<(pTempItem->Item->Slots);pslot++) 
                         {
+                            if (pItem->pContentsArray)
                             if (pTempItem->pContentsArray->Contents[pslot])
                             {
                                 if (PCONTENTS pSlotItem = pTempItem->pContentsArray->Contents[pslot])
@@ -4115,6 +4128,7 @@ bool MQ2ItemType::GETMEMBER()
                     {
                         for (DWORD pslot=0;pslot<(pTempItem->Item->Slots);pslot++) 
                         {
+                            if (pItem->pContentsArray)
                             if (pTempItem->pContentsArray->Contents[pslot])
                             {
                                 if (PCONTENTS pSlotItem = pTempItem->pContentsArray->Contents[pslot])
@@ -5932,6 +5946,7 @@ bool MQ2InvSlotType::GETMEMBER()
                 if (PCONTENTS pPack=GetCharInfo2()->pInventoryArray->Inventory.Pack[nPack])
                     if (pPack->Item->Type==ITEMTYPE_PACK && nSlot<pPack->Item->Slots)
                     {
+                        if (pPack->pContentsArray)
                         if (Dest.Ptr=pPack->pContentsArray->Contents[nSlot])
                         {
                             Dest.Type=pItemType;
@@ -5946,6 +5961,7 @@ bool MQ2InvSlotType::GETMEMBER()
                 if (PCONTENTS pPack=pCharInfo->pBankArray->Bank[nPack])
                     if (pPack->Item->Type==ITEMTYPE_PACK && nSlot<pPack->Item->Slots)
                     {
+                        if (pPack->pContentsArray)
                         if (Dest.Ptr=pPack->pContentsArray->Contents[nSlot])
                         {
                             Dest.Type=pItemType;
@@ -5960,6 +5976,7 @@ bool MQ2InvSlotType::GETMEMBER()
                 if (PCONTENTS pPack=pCharInfo->pBankArray->Bank[nPack])
                     if (pPack->Item->Type==ITEMTYPE_PACK && nSlot<pPack->Item->Slots)
                     {
+                        if (pPack->pContentsArray)
                         if (Dest.Ptr=pPack->pContentsArray->Contents[nSlot])
                         {
                             Dest.Type=pItemType;

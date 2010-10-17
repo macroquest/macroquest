@@ -465,19 +465,19 @@ typedef struct _ITEMINFO {
 /*0x0f8 */ DWORD  Lore;
 /*0x0fc */ BYTE   Artifact;
 /*0x0fd */ BYTE   Summoned;
-/*0x0fe */ BYTE   SvCold;
-/*0x0ff */ BYTE   SvFire;
-/*0x100 */ BYTE   SvMagic;
-/*0x101 */ BYTE   SvDisease;
-/*0x102 */ BYTE   SvPoison;
-/*0x103 */ BYTE   SvCorruption;
-/*0x104 */ BYTE   STR;
-/*0x105 */ BYTE   STA;
-/*0x106 */ BYTE   AGI;
-/*0x107 */ BYTE   DEX;
-/*0x108 */ BYTE   CHA;
-/*0x109 */ BYTE   INT;
-/*0x10a */ BYTE   WIS;
+/*0x0fe */ CHAR   SvCold;
+/*0x0ff */ CHAR   SvFire;
+/*0x100 */ CHAR   SvMagic;
+/*0x101 */ CHAR   SvDisease;
+/*0x102 */ CHAR   SvPoison;
+/*0x103 */ CHAR   SvCorruption;
+/*0x104 */ CHAR   STR;
+/*0x105 */ CHAR   STA;
+/*0x106 */ CHAR   AGI;
+/*0x107 */ CHAR   DEX;
+/*0x108 */ CHAR   CHA;
+/*0x109 */ CHAR   INT;
+/*0x10a */ CHAR   WIS;
 /*0x10b */ BYTE   Unknown0x10b;
 /*0x10c */ DWORD  HP;
 /*0x110 */ DWORD  Mana;
@@ -635,7 +635,8 @@ typedef struct _CONTENTS {
 /*0x0e0*/  DWORD   EvolvingLoreGroup; // lore group if it's an evolving item
 /*0x0e4*/  BYTE    Unknown0xe4[0xd];
 /*0x0f1*/  BYTE    EvolvingExpOn;
-/*0x0f2*/  BYTE    Unknown0xf2[0x6];
+/*0x0f2*/  DWORD   charmPerc;
+/*0x0f6*/  BYTE    Unknown0xf6[0x2];
 /*0x0f8*/  DWORD   Open;
 /*0x0fc*/  DWORD   StackCount;
 /*0x100*/  DWORD   MerchantSlot;      // slot id on a merchant 
