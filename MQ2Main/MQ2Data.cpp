@@ -801,7 +801,7 @@ TLO(dataFindItemBank)
                     return true;
                 }
             }
-            if (pPack->Item->Type==ITEMTYPE_PACK)
+            if (pPack->Item->Type==ITEMTYPE_PACK && pPack->pContentsArray)
             {
                 for (unsigned long nItem=0 ; nItem < pPack->Item->Slots ; nItem++)
                 {
@@ -882,7 +882,7 @@ TLO(dataFindItem)
     {
         if (PCONTENTS pPack=GetCharInfo2()->pInventoryArray->Inventory.Pack[nPack])
         {
-            if (pPack->Item->Type==ITEMTYPE_PACK)
+            if (pPack->Item->Type==ITEMTYPE_PACK && pPack->pContentsArray)
             {
                 for (unsigned long nItem=0 ; nItem < pPack->Item->Slots ; nItem++)
                 {
@@ -952,6 +952,7 @@ TLO(dataFindItemCount)
                 }
                 else // for augs
                 {
+                    if (pItem->pContentsArray)
                     for(nAug = 0; nAug < 0xa; nAug++)
                     {
                         if(pItem->pContentsArray->Contents[nAug] && pItem->pContentsArray->Contents[nAug]->Item->Type == ITEMTYPE_NORMAL && pItem->pContentsArray->Contents[nAug]->Item->AugType &&
@@ -972,6 +973,7 @@ TLO(dataFindItemCount)
                 }
                 else // for augs
                 {
+                    if (pItem->pContentsArray)
                     for(nAug = 0; nAug < 0xa; nAug++)
                     {
                         if(pItem->pContentsArray->Contents[nAug] && pItem->pContentsArray->Contents[nAug]->Item->Type == ITEMTYPE_NORMAL && pItem->pContentsArray->Contents[nAug]->Item->AugType &&
@@ -987,7 +989,7 @@ TLO(dataFindItemCount)
     {
         if (PCONTENTS pPack=GetCharInfo2()->pInventoryArray->Inventory.Pack[nPack])
         {
-            if (pPack->Item->Type==ITEMTYPE_PACK)
+            if (pPack->Item->Type==ITEMTYPE_PACK && pPack->pContentsArray)
             {
                 for (unsigned long nItem=0 ; nItem < pPack->Item->Slots ; nItem++)
                 {
@@ -1005,6 +1007,7 @@ TLO(dataFindItemCount)
                             }
                             else // for augs
                             {
+                                if (pItem->pContentsArray)
                                 for(nAug = 0; nAug < 0xa; nAug++)
                                 {
                                     if(pItem->pContentsArray->Contents[nAug] && pItem->pContentsArray->Contents[nAug]->Item->Type == ITEMTYPE_NORMAL && pItem->pContentsArray->Contents[nAug]->Item->AugType &&
@@ -1025,6 +1028,7 @@ TLO(dataFindItemCount)
                             }
                             else // for augs
                             {
+                                if (pItem->pContentsArray)
                                 for(nAug = 0; nAug < 0xa; nAug++)
                                 {
                                     if(pItem->pContentsArray->Contents[nAug] && pItem->pContentsArray->Contents[nAug]->Item->Type == ITEMTYPE_NORMAL && pItem->pContentsArray->Contents[nAug]->Item->AugType &&
@@ -1092,7 +1096,7 @@ TLO(dataFindItemBankCount)
                         Count+=pPack->StackCount;
                 }
             }
-            if (pPack->Item->Type==ITEMTYPE_PACK)
+            if (pPack->Item->Type==ITEMTYPE_PACK && pPack->pContentsArray)
             {
                 for (unsigned long nItem=0 ; nItem < pPack->Item->Slots ; nItem++)
                 {
