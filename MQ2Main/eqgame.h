@@ -620,7 +620,7 @@
 // EQ_Item 
 #define EQ_Item__CanDrop                                           0x5191E0
 #define EQ_Item__GetItemLinkHash                                   0x6E7810
-#define EQ_Item__IsStackable                                       0x6DBB50
+#define EQ_Item__IsStackable                                       0x6DBE80
 
 // EQ_LoadingS 
 #define EQ_LoadingS__SetProgressBar                                0x484780

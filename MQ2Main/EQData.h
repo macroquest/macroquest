@@ -706,7 +706,8 @@ typedef struct _AALIST {
 } AALIST, *PAALIST;
 
 #define      NUM_INV_SLOTS              0x21
-#define      NUM_BANK_SLOTS             0x1a
+#define      NUM_BANK_SLOTS             0x18
+#define      NUM_SHAREDBANK_SLOTS       0x02
 #define      NUM_BOOK_SLOTS             0x2d0
 #define      NUM_COMBAT_ABILITIES       0xc8
 #define      BAG_SLOT_START             23
@@ -786,6 +787,11 @@ typedef struct _BANKARRAY {
 /*0x68*/
 } BANKARRAY, *PBANKARRAY;
 
+typedef struct _SHAREDBANKARRAY {
+/*0x00*/ struct _CONTENTS* SharedBank[NUM_SHAREDBANK_SLOTS];
+/*0x68*/
+} SHAREDBANKARRAY, *PSHAREDBANKARRAY;
+
 // actual size: 0x4a44 20101012 - ieatacid
 typedef struct _CHARINFO {
 /*0x0000*/   void       *vtable1;
@@ -798,7 +804,12 @@ typedef struct _CHARINFO {
 /*0x117c*/   DWORD      Unknown0x117c;
 /*0x1180*/   struct     _BANKARRAY *pBankArray;
 /*0x1184*/   DWORD      Unknown0x1184; // # of bank slots?
-/*0x1188*/   BYTE       unknown0x1188[0x154];
+/*0x1188*/   BYTE       Unknown0x1188[0x28];
+/*0x11b0*/   DWORD      Unknown0x11b0; // # of bank slots?
+/*0x11b4*/   DWORD      Unknown0x11b4;
+/*0x11b8*/   struct     _SHAREDBANKARRAY *pSharedBankArray;
+/*0x11bc*/   DWORD      Unknown0x11bc; // # of bank slots?
+/*0x11c0*/   BYTE       Unknown0x11a0[0x11c];
 /*0x12dc*/   DWORD      GuildID;
 /*0x12e0*/   BYTE       Unknown0x12e0[0x8];
 /*0x12e8*/   DWORD      GuildRank; // 0=Member, 1=Officer, 2=Leader

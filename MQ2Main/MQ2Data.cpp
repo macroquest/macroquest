@@ -830,6 +830,58 @@ TLO(dataFindItemBank)
             }
         }
     }
+    for (unsigned long nPack=0 ; nPack < NUM_SHAREDBANK_SLOTS ; nPack++)
+    {
+        PCHARINFO pCharInfo=GetCharInfo();
+        if (PCONTENTS pPack=pCharInfo->pSharedBankArray->SharedBank[nPack])
+        {
+            if (bExact)
+            {
+                if (!stricmp(Name,pPack->Item->Name))
+                {
+                    Ret.Ptr=pPack;
+                    Ret.Type=pItemType;
+                    return true;
+                }
+            }
+            else 
+            {
+                if(strstr(strlwr(strcpy(Temp,pPack->Item->Name)),Name))
+                {
+                    Ret.Ptr=pPack;
+                    Ret.Type=pItemType;
+                    return true;
+                }
+            }
+            if (pPack->Item->Type==ITEMTYPE_PACK && pPack->pContentsArray)
+            {
+                for (unsigned long nItem=0 ; nItem < pPack->Item->Slots ; nItem++)
+                {
+                    if (PCONTENTS pItem=pPack->pContentsArray->Contents[nItem])
+                    {
+                        if (bExact)
+                        {
+                            if (!stricmp(Name,pItem->Item->Name))
+                            {
+                                Ret.Ptr=pItem;
+                                Ret.Type=pItemType;
+                                return true;
+                            }
+                        }
+                        else 
+                        {
+                            if(strstr(strlwr(strcpy(Temp,pItem->Item->Name)),Name))
+                            {
+                                Ret.Ptr=pItem;
+                                Ret.Type=pItemType;
+                                return true;
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
 
 
     return false;
@@ -1073,6 +1125,66 @@ TLO(dataFindItemBankCount)
     {
         PCHARINFO pCharInfo=GetCharInfo();
         if (PCONTENTS pPack=pCharInfo->pBankArray->Bank[nPack])
+        {
+            if (bExact)
+            {
+                if (!stricmp(Name,pPack->Item->Name))
+                {
+                    if ((pPack->Item->Type != ITEMTYPE_NORMAL) ||
+                        (((EQ_Item*)pPack)->IsStackable() != 1))
+                        Count++;
+                    else
+                        Count+=pPack->StackCount;
+                }
+            }
+            else 
+            {
+                if(strstr(strlwr(strcpy(Temp,pPack->Item->Name)),Name))
+                {
+                    if ((pPack->Item->Type != ITEMTYPE_NORMAL) ||
+                        (((EQ_Item*)pPack)->IsStackable() != 1))
+                        Count++;
+                    else
+                        Count+=pPack->StackCount;
+                }
+            }
+            if (pPack->Item->Type==ITEMTYPE_PACK && pPack->pContentsArray)
+            {
+                for (unsigned long nItem=0 ; nItem < pPack->Item->Slots ; nItem++)
+                {
+                    if (PCONTENTS pItem=pPack->pContentsArray->Contents[nItem])
+                    {
+                        if (bExact)
+                        {
+                            if (!stricmp(Name,pItem->Item->Name))
+                            {
+                                if ((pItem->Item->Type != ITEMTYPE_NORMAL) ||
+                                    (((EQ_Item*)pItem)->IsStackable() != 1))
+                                    Count++;
+                                else
+                                    Count+=pItem->StackCount;
+                            }
+                        }
+                        else 
+                        {
+                            if(strstr(strlwr(strcpy(Temp,pItem->Item->Name)),Name))
+                            {
+                                if ((pItem->Item->Type != ITEMTYPE_NORMAL) ||
+                                    (((EQ_Item*)pItem)->IsStackable() != 1))
+                                    Count++;
+                                else
+                                    Count+=pItem->StackCount;
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+    for (unsigned long nPack=0 ; nPack < NUM_SHAREDBANK_SLOTS ; nPack++)
+    {
+        PCHARINFO pCharInfo=GetCharInfo();
+        if (PCONTENTS pPack=pCharInfo->pSharedBankArray->SharedBank[nPack])
         {
             if (bExact)
             {
