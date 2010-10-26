@@ -604,30 +604,37 @@ typedef struct _EQBUFFWINDOW
 // actual size 0x1ec 11/11/2009 dkaa
 typedef struct _EQINVSLOTWND {
 /*0x000*/   struct _CXWND Wnd;
-/*0x1ac*/   DWORD Unknown0x1ac;
-/*0x1b0*/   LONG InvSlot;
-/*0x1b4*/   BYTE Unknown0x114[0x28];
-/*0x1dc*/   BOOL ProcessClick;
+/*0x1b8*/   DWORD Unknown0x1b8;
+/*0x1bc*/   LONG WindowType;        // ieatacid has this as InventoryType
+                                    // 0 for inventory
+                                    // 11 for loot window
+                                    // xx for trader window
+/*0x1c0*/   WORD InvSlotForBag;
+/*0x1c2*/   WORD BagSlot;
+/*0x1c4*/   BYTE Unknown0x1c0[0x24];
+/*0x1e8*/   BOOL ProcessClick;
+/*0x1ec*/
 } EQINVSLOTWND, *PEQINVSLOTWND;
 
-// actual size 0x14 2-18-2004 Lax
+// actual size 0x14 10-12-2010
 typedef struct _EQINVSLOT {
 /*0x00*/    LPVOID pvfTable;        // not based on cxwnd
 /*0x04*/    struct _EQINVSLOTWND *pInvSlotWnd;
 /*0x08*/    DWORD Unknown0x08;
 /*0x0C*/    DWORD InvSlot;
-/*0x10*/    PCONTENTS *ppContents;
-/*0x14*/
+/*0x10*/    DWORD Unknown0x10;      // Enabled?
+/*0x14*/    
 } EQINVSLOT, *PEQINVSLOT;
 
-// actual size 0x1010 01-16-2008
+// actual size 0x2014 10-12-2010
 typedef struct _EQINVSLOTMGR {
 /*0x0000*/    DWORD Unknown0x0000;
-/*0x0004*/    struct _EQINVSLOT *SlotArray[0x400];
-/*0x1004*/    DWORD TotalSlots;
-/*0x1008*/    DWORD Unknown0x1008;
-/*0x100c*/  void  *pSelectedItem;
-/*0x1010*/
+/*0x0004*/    struct _EQINVSLOT *SlotArray[0x800];
+/*0x2004*/    DWORD TotalSlots;
+/*0x2008*/    DWORD Unknown0x2008;
+/*0x200c*/    void  *pSelectedItem;
+/*0x2010*/    DWORD Unknown0x2010;
+/*0x2014*/
 } EQINVSLOTMGR, *PEQINVSLOTMGR;
 
 
@@ -689,10 +696,31 @@ typedef struct _MAPLINE { // sizeof() = 0x28 (think this might be 0x34 now)
     DWORD Layer;          //0-3;
 } MAPLINE, *PMAPLINE;
 
+// size 0x380 10-21-2010
 typedef struct _EQLOOTWINDOW {
 /*0x000*/ struct _CSIDLWND Wnd;
-/*0x190*/ BYTE  Unknown0x160[0x90];
-/*0x1f0*/ PCONTENTS   ItemDesc[NUM_INV_SLOTS]; //there can only be 31 items on a corpse since that equals 23 inv slots plus 8 bags...
+/*0x1fc*/ void   *vftable; // for CLootWnd::DialogResponse handler 
+/*0x200*/ BYTE   Unknown0x200;
+/*0x201*/ BYTE   Unknown0x201[3];
+/*0x204*/ DWORD  Unknown0x204[37];
+/*0x298*/ DWORD  NumOfSlots1;
+/*0x29c*/ DWORD  Unknown0x94;
+/*0x2a0*/ struct _INVENTORYARRAY *pInventoryArray;
+/*0x2a4*/ DWORD  NumOfSlots2;
+/*0x2a8*/ DWORD  NumOfSlots3;
+/*0x2ac*/ DWORD  Unknown0x2ac[9];
+/*0x2d0*/ BYTE   Unknown0x2d0;
+/*0x2d1*/ BYTE   Unknown0x2d1;
+/*0x2d2*/ BYTE   Unknown0x2d2;
+/*0x2d3*/ BYTE   Unknown0x2d3;
+/*0x2d4*/ struct _CSIDLWND *CLoot_LootInvWnd;
+/*0x2d8*/ struct _CSILDWND *CLoot_LootSlotWnd[0x22];
+/*0x360*/ struct _CSIDLWND *CLoot_CorpseName;
+/*0x364*/ struct _CSIDLWND *CLoot_DoneButton;
+/*0x368*/ struct _CSIDLWND *CLoot_BroadcastButton;
+/*0x36c*/ struct _CSIDLWND *CLoot_LootAllButton;
+/*0x370*/ DWORD Unknown0x370[4];
+/*0x380*/
 } EQLOOTWINDOW, *PEQLOOTWINDOW;
 
 //Size: 0x828 11-11-09 by dkaa

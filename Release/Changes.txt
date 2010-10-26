@@ -1,3 +1,15 @@
+23 October 2010 by dkaa
+- Fixed the loot window and looting
+
+22 October 2010 by dkaa
+- Fixed the VC6 compile issue.
+- Fixed some crashes.
+- Fixed FindItem so it returns the correct slot.
+
+21 October 2010 by ieatacid, dkaa
+- Updated for today's patch
+- Bug fixes and code changes for the October 16th patch
+
 16 October 2010 by ieatacid, dkaa
 - Updated for October 12th patch
 

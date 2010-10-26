@@ -2645,6 +2645,7 @@ EQLIB_OBJECT void CInvSlot::HandleRButtonUpAfterHeld(class CXPoint);
 EQLIB_OBJECT void CInvSlot::SetInvSlotWnd(class CInvSlotWnd *);
 EQLIB_OBJECT void CInvSlot::SetItem(class EQ_Item *);
 EQLIB_OBJECT void CInvSlot::SliderComplete(int);
+EQLIB_OBJECT void CInvSlot::GetItemBase(struct _CONTENTS **);
 // virtual
 EQLIB_OBJECT CInvSlot::~CInvSlot(void);
 //EQLIB_OBJECT void * CInvSlot::`scalar deleting destructor'(unsigned int);

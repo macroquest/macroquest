@@ -1840,6 +1840,11 @@ FUNCTION_AT_ADDRESS(void  CInventoryWnd::UpdateMoneyDisplay(void),CInventoryWnd_
 #ifdef CInvSlot__CInvSlot
 FUNCTION_AT_ADDRESS( CInvSlot::CInvSlot(void),CInvSlot__CInvSlot);
 #endif
+
+#ifdef CInvSlot__GetItemBase
+FUNCTION_AT_ADDRESS( void CInvSlot::GetItemBase(struct _CONTENTS **), CInvSlot__GetItemBase );
+#endif
+
 #ifdef CInvSlot__SetInvSlotWnd
 FUNCTION_AT_ADDRESS(void  CInvSlot::SetInvSlotWnd(class CInvSlotWnd *),CInvSlot__SetInvSlotWnd);
 #endif

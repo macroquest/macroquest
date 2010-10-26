@@ -1127,7 +1127,7 @@ int ItemNotify(int argc, char *argv[])
     PSPAWNINFO pChar = (PSPAWNINFO)pLocalPlayer;
 #endif
     PCHAR pNotification=&szArg2[0];
-    CInvSlot *pSlot=0;
+    EQINVSLOT *pSlot=0;
 
     if (!stricmp(szArg1,"in"))
     { 
@@ -1139,6 +1139,8 @@ int ItemNotify(int argc, char *argv[])
         }
 
         PCONTENTS pPack=0;
+        PCONTENTS pItem=0;
+        
         if (!strnicmp(szArg2,"bank",4))
         {
             unsigned long nPack=atoi(&szArg2[4]);
@@ -1152,7 +1154,7 @@ int ItemNotify(int argc, char *argv[])
             unsigned long nPack=atoi(&szArg2[10]);
             if (nPack && nPack<=2)
             {
-                pPack=GetCharInfo()->pBankArray->Bank[16+nPack-1];
+                pPack=GetCharInfo()->pSharedBankArray->SharedBank[nPack-1];
             }
         }
         else if (!strnicmp(szArg2,"pack",4))
@@ -1173,18 +1175,21 @@ int ItemNotify(int argc, char *argv[])
             WriteChatf("No item at '%s'",szArg2);
             RETURN(0);
         }
-        PEQCONTAINERWINDOW pWnd=FindContainerForContents(pPack);
-        if (!pWnd)
-        {
-            WriteChatf("No container at '%s' open",szArg2);
-            RETURN(0);
+        if (pPack->Item->Type == ITEMTYPE_PACK) {
+            
+            unsigned long N = atoi(szArg3)-1;
+
+            if (N<pPack->Item->Slots && pPack->pContentsArray) {
+                pItem =  pPack->pContentsArray->Contents[N];
+            }
+
+            if (pItem) {
+                unsigned long nSlot=FindInvSlotForContents(pItem);
+                PEQINVSLOTMGR pInvMgr=(PEQINVSLOTMGR)pInvSlotMgr;
+                pSlot = pInvMgr->SlotArray[nSlot];
+            }
         }
-        unsigned long nSlot=atoi(szArg3);
-        if (nSlot && nSlot <= 10)
-        {
-            PEQINVSLOTWND pSlotWnd=(PEQINVSLOTWND)pWnd->pSlots[nSlot-1];
-            pSlot=pInvSlotMgr->FindInvSlot(pSlotWnd->InvSlot);
-        }
+
         pNotification=&szArg4[0];
     }
     else
@@ -1199,15 +1204,20 @@ int ItemNotify(int argc, char *argv[])
             WriteChatf("Invalid item slot '%s'",szArg1);
             RETURN(0);
         }
-        DebugTry(pSlot=pInvSlotMgr->FindInvSlot(Slot));
+        //DebugTry(pSlot=pInvSlotMgr->FindInvSlot(Slot));
+        {
+            PEQINVSLOTMGR pInvMgr=(PEQINVSLOTMGR)pInvSlotMgr;
+            pSlot = pInvMgr->SlotArray[Slot];
+
+        }
     }
     if (!pSlot)
     {
-        WriteChatf("Could not send notification to %s %s",szArg1,szArg2);
+        WriteChatf("SLOT IS NULL: Could not send notification to %s %s",szArg1,szArg2);
         RETURN(0);
     }
     //DebugSpew("ItemNotify: Calling SendWndClick");
-    if (!SendWndClick2((CXWnd*)((PEQINVSLOT)pSlot)->pInvSlotWnd,pNotification))
+    if (!pSlot->pInvSlotWnd || !SendWndClick2((CXWnd*)pSlot->pInvSlotWnd,pNotification))
     {
         WriteChatf("Could not send notification to %s %s",szArg1,szArg2);
     }
@@ -1232,8 +1242,10 @@ int ListItemSlots(int argc, char *argv[])
         {
             if (pSlot->pInvSlotWnd)
             {
-                WriteChatf("inv slot %d",pSlot->InvSlot);
+                WriteChatf("%d %d %d", N, pSlot->pInvSlotWnd->WindowType, pSlot->InvSlot);
                 Count++;
+            } else if (pSlot->InvSlot) {
+                WriteChatf("%d %d", N, pSlot->InvSlot);
             }
         }
         WriteChatf("%d available item slots",Count);

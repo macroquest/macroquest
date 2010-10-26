@@ -2130,8 +2130,8 @@ bool MQ2CharacterType::GETMEMBER()
         {
             if (ISNUMBER())
             {
-                unsigned long nSlot=GETNUMBER()%NUM_INV_SLOTS;
-                if (nSlot<NUM_INV_SLOTS)
+                unsigned long nSlot=GETNUMBER();
+                if (nSlot<0x800)
                 {
                     if (Dest.Ptr=GetCharInfo2()->pInventoryArray->InventoryArray[nSlot])
                     {
@@ -2168,6 +2168,16 @@ bool MQ2CharacterType::GETMEMBER()
                     {
                         Dest.Type=pItemType;
                         return true;
+                    }
+                } else {
+                    nSlot -= NUM_BANK_SLOTS;
+                    if (nSlot<NUM_SHAREDBANK_SLOTS)
+                    {
+                        if (Dest.Ptr=pChar->pSharedBankArray->SharedBank[nSlot])
+                        {
+                            Dest.Type=pItemType;
+                            return true;
+                        }
                     }
                 }
             }
@@ -3660,7 +3670,8 @@ bool MQ2SpellType::GETMEMBER()
             return true;
         }
     case MyRange:
-        Dest.Float=pSpell->Range+(float)pCharData1->GetFocusRangeModifier((EQ_Spell*)pSpell,0);
+        DWORD n = 0;
+        Dest.Float=pSpell->Range+(float)pCharData1->GetFocusRangeModifier((EQ_Spell*)pSpell,(EQ_Equipment**)&n);
         Dest.Type=pFloatType;
         return true;
     }
@@ -5731,9 +5742,9 @@ bool MQ2CorpseType::GETMEMBER()
             if (ISNUMBER())
             {
                 unsigned long nIndex=GETNUMBER()-1;
-                if (nIndex<31)
+                if (nIndex<34 && pLoot->pInventoryArray)
                 {
-                    if (Dest.Ptr=pLoot->ItemDesc[nIndex])
+                    if (Dest.Ptr=pLoot->pInventoryArray->InventoryArray[nIndex])
                     {
                         Dest.Type=pItemType;
                         return true;
@@ -5752,9 +5763,10 @@ bool MQ2CorpseType::GETMEMBER()
                 }
                 strlwr(pName);
                 CHAR Temp[MAX_STRING]={0};
-                for (unsigned long nIndex = 0 ; nIndex < 31 ; nIndex++)
+                if (pLoot->pInventoryArray)
+                for (unsigned long nIndex = 0 ; nIndex < 34 ; nIndex++)
                 {
-                    if (PCONTENTS pContents=pLoot->ItemDesc[nIndex])
+                    if (PCONTENTS pContents=pLoot->pInventoryArray->InventoryArray[nIndex])
                     {
                         if (bExact)
                         {
@@ -5783,9 +5795,10 @@ bool MQ2CorpseType::GETMEMBER()
     case Items:
         {
             Dest.DWord=0;
+            if (pLoot->pInventoryArray)
             for (unsigned long N = 0 ; N < 31 ; N++)
             {
-                if (pLoot->ItemDesc[N])
+                if (pLoot->pInventoryArray->InventoryArray[N])
                     Dest.DWord++;
             }
             Dest.Type=pIntType;

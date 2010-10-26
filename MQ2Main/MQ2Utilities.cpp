@@ -1247,7 +1247,7 @@ BOOL SearchThroughItems(SEARCHITEM &SearchItem, PCONTENTS* pResult, DWORD *nResu
         for (nPack = 0 ; nPack<10 ; nPack++)
         {
             if (PCONTENTS pContents=GetCharInfo2()->pInventoryArray->Inventory.Pack[nPack])
-                if (pContents->Item->ItemType==ITEMTYPE_PACK)
+                if (pContents->Item->ItemType==ITEMTYPE_PACK && pContents->pContentsArray)
                 {
                     for (unsigned long nItem = 0 ; nItem<pContents->Item->Slots ; nItem++)
                     {
@@ -3012,26 +3012,57 @@ havecfgfile:
 #ifndef ISXEQ_LEGACY
 int FindInvSlotForContents(PCONTENTS pContents)
 {
+    int LastMatch = -1;
+
+    // screw the old style InvSlot numbers
+    // return the index into the INVSLOTMGR array
     DebugSpew("FindInvSlotForContents(0x%08X) (0x%08X)",pContents,pContents->Item);
 
-#if 0
+#if 1
     PEQINVSLOTMGR pInvMgr=(PEQINVSLOTMGR)pInvSlotMgr;
     for (unsigned long N = 0 ; N < 0x800 ; N++)
     {
-        if (pInvMgr->SlotArray[N] && pInvMgr->SlotArray[N]->ppContents)
-        {
-            DebugSpew("pInvSlotMgr->SlotArray[%d]->pContents==0x%08X",N,*pInvMgr->SlotArray[N]->ppContents);
-            return -1;
-            if (*pInvMgr->SlotArray[N]->ppContents==pContents)
-            {
-                if (pInvMgr->SlotArray[N]->pInvSlotWnd && pInvMgr->SlotArray[N]->pInvSlotWnd->InvSlot>=0)
-                    return pInvMgr->SlotArray[N]->pInvSlotWnd->InvSlot; 
-                break;
+        class CInvSlot *pCIS = NULL;
+        struct _CONTENTS *pC = NULL;
+
+        if (pInvMgr->SlotArray[N]) {
+            pCIS = (class CInvSlot *)pInvMgr->SlotArray[N];
+
+            pCIS->GetItemBase(&pC);
+
+            if (pC) {
+                DebugSpew("pInvSlotMgr->SlotArray[%d] Contents==0x%08X",N,pC);
+                if (pC==pContents) {
+
+if (pInvMgr->SlotArray[N]->pInvSlotWnd) {
+DebugSpew("%d slot %d wnd %d %d %d", N, pInvMgr->SlotArray[N]->InvSlot, 
+    pInvMgr->SlotArray[N]->pInvSlotWnd->WindowType,
+    pInvMgr->SlotArray[N]->pInvSlotWnd->InvSlotForBag,
+    pInvMgr->SlotArray[N]->pInvSlotWnd->BagSlot
+    );
+}
+                    // if it is in the primary inventory,
+                    // then pInvSlotWnd->WindowType is 0
+                    if (pInvMgr->SlotArray[N]->pInvSlotWnd && pInvMgr->SlotArray[N]->pInvSlotWnd->WindowType == 0) {
+                        return pInvMgr->SlotArray[N]->InvSlot; 
+                    } else if (pInvMgr->SlotArray[N]->pInvSlotWnd && pInvMgr->SlotArray[N]->pInvSlotWnd->BagSlot!=65535) {
+                        return pInvMgr->SlotArray[N]->InvSlot; 
+                    } else if (pInvMgr->SlotArray[N]->pInvSlotWnd && pInvMgr->SlotArray[N]->pInvSlotWnd->WindowType==11) {
+                        // loot window items should not be anywhere else
+                        return pInvMgr->SlotArray[N]->InvSlot; 
+                    } else {
+                        LastMatch = N;
+                    }
+                }
             }
         }
     }
+    // return specific window type if needed
+    if (LastMatch != -1 && pInvMgr->SlotArray[LastMatch]->pInvSlotWnd->WindowType== 9999)
+        return  pInvMgr->SlotArray[LastMatch]->InvSlot;
 #endif
 
+#if 0
     for(DWORD n = 0; n < NUM_INV_SLOTS; n++)
     {
         if(GetCharInfo2()->pInventoryArray->InventoryArray[n] && GetCharInfo2()->pInventoryArray->InventoryArray[n] == pContents)
@@ -3047,7 +3078,7 @@ int FindInvSlotForContents(PCONTENTS pContents)
         PCHARINFO pCharInfo=GetCharInfo();
         if (PCONTENTS pPack=GetCharInfo2()->pInventoryArray->Inventory.Pack[nPack])
         {
-            if (pPack->Item->Type==ITEMTYPE_PACK)
+            if (pPack->Item->Type==ITEMTYPE_PACK && pContents->pContentsArray)
             {
                 for (unsigned long nItem=0 ; nItem < pPack->Item->Slots ; nItem++)
                 {
@@ -3072,7 +3103,7 @@ int FindInvSlotForContents(PCONTENTS pContents)
                     return 2000+nPack;
                 return 2500+nPack-0x10;
             }
-            if (pPack->Item->Type==ITEMTYPE_PACK)
+            if (pPack->Item->Type==ITEMTYPE_PACK && pContents->pContentsArray)
             {
                 for (unsigned long nItem=0 ; nItem < pPack->Item->Slots ; nItem++)
                 {
@@ -3086,6 +3117,7 @@ int FindInvSlotForContents(PCONTENTS pContents)
             }
         }        
     }
+#endif
 
     return -1;
 }
@@ -3097,33 +3129,38 @@ int FindInvSlot(PCHAR pName, BOOL Exact)
     CHAR Name[MAX_STRING]={0};
     strlwr(strcpy(Name,pName));
     CHAR szTemp[MAX_STRING]={0};
-
     PEQINVSLOTMGR pInvMgr=(PEQINVSLOTMGR)pInvSlotMgr;
     for (unsigned long N = 0 ; N < 0x800 ; N++)
     {
         if (pInvMgr->SlotArray[N])
         {
-            if (pInvMgr->SlotArray[N]->ppContents && *pInvMgr->SlotArray[N]->ppContents)
+            class CInvSlot *x = (class CInvSlot *)pInvMgr->SlotArray[N];
+            struct _CONTENTS *y = NULL;
+
+            if (x) 
+               x->GetItemBase(&y);
+
+            if (y)
             {
                 if (!Exact)
                 {
-                    _strlwr(strcpy(szTemp,(*pInvMgr->SlotArray[N]->ppContents)->Item->Name));
+                    _strlwr(strcpy(szTemp,y->Item->Name));
                     if (strstr(szTemp,Name))
                     {
                         if (pInvMgr->SlotArray[N]->pInvSlotWnd)
                         {
                             LastFoundInvSlot=N;
-                            return pInvMgr->SlotArray[N]->pInvSlotWnd->InvSlot;
+                            return pInvMgr->SlotArray[N]->InvSlot;
                         }
                         // let it try to find it in an open slot if this fails
                     }
                 }
-                else if (!stricmp(Name,(*pInvMgr->SlotArray[N]->ppContents)->Item->Name))
+                else if (!stricmp(Name,y->Item->Name))
                 {
                     if (pInvMgr->SlotArray[N]->pInvSlotWnd)
                     {
                         LastFoundInvSlot=N;
-                        return pInvMgr->SlotArray[N]->pInvSlotWnd->InvSlot;
+                        return pInvMgr->SlotArray[N]->InvSlot;
                     }
                     // let it try to find it in an open slot if this fails
                 }
@@ -3141,6 +3178,7 @@ int FindNextInvSlot(PCHAR pName, BOOL Exact)
     CHAR Name[MAX_STRING]={0};
     strlwr(strcpy(Name,pName));
 
+#if 0
     PEQINVSLOTMGR pInvMgr=(PEQINVSLOTMGR)pInvSlotMgr;
     for (unsigned long N = LastFoundInvSlot+1 ; N < 0x800 ; N++)
     {
@@ -3174,6 +3212,7 @@ int FindNextInvSlot(PCHAR pName, BOOL Exact)
             }
         }
     }
+#endif
     LastFoundInvSlot=-1;
     return -1;
 }
@@ -5628,6 +5667,7 @@ PCONTENTS GetItemContentsBySlotID(DWORD dwSlotID)
     if(InvSlot>=0 && InvSlot<NUM_INV_SLOTS) { 
         if(PCONTENTS iSlot=GetCharInfo2()->pInventoryArray->InventoryArray[InvSlot]) {
             if(SubSlot<0) return iSlot; 
+            if(GetCharInfo2()->pInventoryArray->InventoryArray[InvSlot]->pContentsArray)
             if(PCONTENTS sSlot=GetCharInfo2()->pInventoryArray->InventoryArray[InvSlot]->pContentsArray->Contents[SubSlot]) return sSlot; 
         } 
     } 
@@ -5642,11 +5682,10 @@ PCONTENTS GetItemContentsByName(CHAR *ItemName)
 
     for (unsigned long nPack=0 ; nPack < 10 ; nPack++)
         if (PCONTENTS pPack=GetCharInfo2()->pInventoryArray->Inventory.Pack[nPack])
-            if (pPack->Item->Type==ITEMTYPE_PACK)
+            if (pPack->Item->Type==ITEMTYPE_PACK && pPack->pContentsArray)
                 for (unsigned long nItem=0 ; nItem < pPack->Item->Slots ; nItem++)
-                    if(pPack->pContentsArray)
-                        if (PCONTENTS pItem=pPack->pContentsArray->Contents[nItem])
-                            if (!stricmp(ItemName,pItem->Item->Name)) return pItem;
+                    if (PCONTENTS pItem=pPack->pContentsArray->Contents[nItem])
+                        if (!stricmp(ItemName,pItem->Item->Name)) return pItem;
 
     return NULL; 
 }

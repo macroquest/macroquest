@@ -776,9 +776,10 @@ TLO(dataFindItemBank)
     CHAR Temp[MAX_STRING]={0};
     strlwr(strcpy(Name,pName));
     PCHARINFO pCharInfo=GetCharInfo();
+    unsigned long nPack;
 
 
-    for (unsigned long nPack=0 ; nPack < NUM_BANK_SLOTS ; nPack++)
+    for (nPack=0 ; nPack < NUM_BANK_SLOTS ; nPack++)
     {
         PCHARINFO pCharInfo=GetCharInfo();
         if (PCONTENTS pPack=pCharInfo->pBankArray->Bank[nPack])
@@ -830,7 +831,7 @@ TLO(dataFindItemBank)
             }
         }
     }
-    for (unsigned long nPack=0 ; nPack < NUM_SHAREDBANK_SLOTS ; nPack++)
+    for (nPack=0 ; nPack < NUM_SHAREDBANK_SLOTS ; nPack++)
     {
         PCHARINFO pCharInfo=GetCharInfo();
         if (PCONTENTS pPack=pCharInfo->pSharedBankArray->SharedBank[nPack])
@@ -1120,8 +1121,9 @@ TLO(dataFindItemBankCount)
     PCHARINFO pCharInfo=GetCharInfo();
 
     unsigned long Count=0;
+    unsigned long nPack=0;
 
-    for (unsigned long nPack=0 ; nPack < NUM_BANK_SLOTS ; nPack++)
+    for (nPack=0 ; nPack < NUM_BANK_SLOTS ; nPack++)
     {
         PCHARINFO pCharInfo=GetCharInfo();
         if (PCONTENTS pPack=pCharInfo->pBankArray->Bank[nPack])
@@ -1181,7 +1183,7 @@ TLO(dataFindItemBankCount)
             }
         }
     }
-    for (unsigned long nPack=0 ; nPack < NUM_SHAREDBANK_SLOTS ; nPack++)
+    for (nPack=0 ; nPack < NUM_SHAREDBANK_SLOTS ; nPack++)
     {
         PCHARINFO pCharInfo=GetCharInfo();
         if (PCONTENTS pPack=pCharInfo->pSharedBankArray->SharedBank[nPack])
