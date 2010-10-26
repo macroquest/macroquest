@@ -1004,8 +1004,8 @@ TLO(dataFindItemCount)
                 }
                 else // for augs
                 {
-                    if (pItem->pContentsArray)
-                    for(nAug = 0; nAug < 0xa; nAug++)
+                    if (pItem->pContentsArray && pItem->NumOfSlots2)
+                    for(nAug = 0; nAug < pItem->NumOfSlots2; nAug++)
                     {
                         if(pItem->pContentsArray->Contents[nAug] && pItem->pContentsArray->Contents[nAug]->Item->Type == ITEMTYPE_NORMAL && pItem->pContentsArray->Contents[nAug]->Item->AugType &&
                             !stricmp(Name, pItem->pContentsArray->Contents[nAug]->Item->Name))
@@ -1025,8 +1025,8 @@ TLO(dataFindItemCount)
                 }
                 else // for augs
                 {
-                    if (pItem->pContentsArray)
-                    for(nAug = 0; nAug < 0xa; nAug++)
+                    if (pItem->pContentsArray && pItem->NumOfSlots2 )
+                    for(nAug = 0; nAug < pItem->NumOfSlots2; nAug++)
                     {
                         if(pItem->pContentsArray->Contents[nAug] && pItem->pContentsArray->Contents[nAug]->Item->Type == ITEMTYPE_NORMAL && pItem->pContentsArray->Contents[nAug]->Item->AugType &&
                             strstr(strlwr(strcpy(Temp, pItem->pContentsArray->Contents[nAug]->Item->Name)), Name))
@@ -1059,8 +1059,8 @@ TLO(dataFindItemCount)
                             }
                             else // for augs
                             {
-                                if (pItem->pContentsArray)
-                                for(nAug = 0; nAug < 0xa; nAug++)
+                                if (pItem->pContentsArray && pItem->NumOfSlots2)
+                                for(nAug = 0; nAug < pItem->NumOfSlots2; nAug++)
                                 {
                                     if(pItem->pContentsArray->Contents[nAug] && pItem->pContentsArray->Contents[nAug]->Item->Type == ITEMTYPE_NORMAL && pItem->pContentsArray->Contents[nAug]->Item->AugType &&
                                         !stricmp(Name, pItem->pContentsArray->Contents[nAug]->Item->Name))
@@ -1080,8 +1080,8 @@ TLO(dataFindItemCount)
                             }
                             else // for augs
                             {
-                                if (pItem->pContentsArray)
-                                for(nAug = 0; nAug < 0xa; nAug++)
+                                if (pItem->pContentsArray && pItem->NumOfSlots2)
+                                for(nAug = 0; nAug < pItem->NumOfSlots2; nAug++)
                                 {
                                     if(pItem->pContentsArray->Contents[nAug] && pItem->pContentsArray->Contents[nAug]->Item->Type == ITEMTYPE_NORMAL && pItem->pContentsArray->Contents[nAug]->Item->AugType &&
                                         strstr(strlwr(strcpy(Temp, pItem->pContentsArray->Contents[nAug]->Item->Name)), Name))

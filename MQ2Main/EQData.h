@@ -635,7 +635,8 @@ typedef struct _CONTENTS {
 /*0x0e0*/  DWORD   EvolvingLoreGroup; // lore group if it's an evolving item
 /*0x0e4*/  BYTE    Unknown0xe4[0xd];
 /*0x0f1*/  BYTE    EvolvingExpOn;
-/*0x0f2*/  DWORD   charmPerc;
+/*0x0f2*/  BYTE    Unknown0xf2[0x3];
+/*0x0f5*/  BYTE    charmPerc;
 /*0x0f6*/  BYTE    Unknown0xf6[0x2];
 /*0x0f8*/  DWORD   Open;
 /*0x0fc*/  DWORD   StackCount;
