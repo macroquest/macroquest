@@ -838,7 +838,6 @@ typedef struct _CHARINFO {
 /*0x1b64*/   BYTE       Unknown0x1b64[0x64];
 /*0x1bc8*/   void       *PlayerPointManager;
 /*0x1bcc*/   BYTE       Unknown0x1bcc[0xa9c];
-
 /*0x2668*/   void       *vtable2;
 /*0x266c*/   struct     _EQC_INFO* eqc_info;
 /*0x2670*/   struct     _SPAWNINFO* pSpawn;
