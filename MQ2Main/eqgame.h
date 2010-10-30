@@ -376,7 +376,7 @@
 #define CEverQuest__GetRaceDesc                                    0x4E5BB0
 #define CEverQuest__InterpretCmd                                   0x4EF650
 #define CEverQuest__LeftClickedOnPlayer                            0x501DD0
-#define CEverQuest__LMouseUp                                       0x507A20
+#define CEverQuest__LMouseUp                                       0x505760
 #define CEverQuest__RightClickedOnPlayer                           0x5068B0
 #define CEverQuest__RMouseUp                                       0x507A20
 #define CEverQuest__SetGameState                                   0x4E8B90

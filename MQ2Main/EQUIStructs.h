@@ -611,7 +611,8 @@ typedef struct _EQINVSLOTWND {
                                     // xx for trader window
 /*0x1c0*/   WORD InvSlotForBag;
 /*0x1c2*/   WORD BagSlot;
-/*0x1c4*/   BYTE Unknown0x1c0[0x24];
+/*0x1c4*/   BYTE Unknown0x1c0[0x20];
+/*0x1e4*/   struct _EQINVSLOT *pInvSlot;
 /*0x1e8*/   BOOL ProcessClick;
 /*0x1ec*/
 } EQINVSLOTWND, *PEQINVSLOTWND;
@@ -632,7 +633,7 @@ typedef struct _EQINVSLOTMGR {
 /*0x0004*/    struct _EQINVSLOT *SlotArray[0x800];
 /*0x2004*/    DWORD TotalSlots;
 /*0x2008*/    DWORD Unknown0x2008;
-/*0x200c*/    void  *pSelectedItem;
+/*0x200c*/    struct _EQINVSLOT *pSelectedItem;
 /*0x2010*/    DWORD Unknown0x2010;
 /*0x2014*/
 } EQINVSLOTMGR, *PEQINVSLOTMGR;
@@ -772,15 +773,15 @@ typedef struct _EQTRADESKILLWINDOW {
 /*0x3d8*/ DWORD Unknown0x3d8;
 } EQTRADESKILLWINDOW, *PTRADESKILLWINDOW;
 
-//Actual Size 0x238 - 02/08/06 - ieatacid
+//Actual Size 0x2d8 - 20101026 - ieatacid
 typedef struct _EQTRADEWINDOW {
 /*0x000*/ struct _CSIDLWND Wnd;
-/*0x15c*/ BYTE   Unknown0x15c[0xd8];
-/*0x234*/ BYTE   HisTradeReady;
-/*0x235*/ BYTE   MyTradeReady;
-/*0x236*/ BYTE   TradeWndOpen;
-/*0x237*/ BYTE   Unknown0x236;
-/*0x238*/
+/*0x1fc*/ BYTE   Unknown0x1fc[0xd4];
+/*0x2d0*/ BYTE   HisTradeReady;
+/*0x2d1*/ BYTE   MyTradeReady;
+/*0x2d2*/ BYTE   TradeWndOpen;
+/*0x2d3*/ BYTE   Unknown0x2d3[0x5];
+/*0x2d8*/
 } EQTRADEWINDOW, *PTRADEWINDOW; 
 
 //Size: 0x2dc (03/12/2009) 

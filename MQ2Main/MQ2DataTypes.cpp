@@ -2454,7 +2454,7 @@ bool MQ2CharacterType::GETMEMBER()
         Dest.Type=pBoolType; 
         if (ISINDEX()) 
         { 
-            if (ISNUMBER()) 
+            if (ISNUMBER() && GETNUMBER()-1 < NUM_COMBAT_ABILITIES) 
             { 
                 // number 
                 unsigned long nCombatAbility=GETNUMBER()-1; 

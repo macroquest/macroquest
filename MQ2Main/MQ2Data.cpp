@@ -750,11 +750,19 @@ TLO(dataDefined)
 
 TLO(dataSelectedItem)
 {
-    if (((PEQINVSLOTMGR)pInvSlotMgr)->pSelectedItem && ((PEQCURRENTSELECTION)((PEQINVSLOTMGR)pInvSlotMgr)->pSelectedItem)->TextureAnim)
+    if (((PEQINVSLOTMGR)pInvSlotMgr)->pSelectedItem && ((PEQINVSLOTMGR)pInvSlotMgr)->pSelectedItem->InvSlot)
     {
-        Ret.Ptr=*(PCONTENTS *)((PEQCURRENTSELECTION)((PEQINVSLOTMGR)pInvSlotMgr)->pSelectedItem)->TextureAnim;
-        Ret.Type=pItemType;
-        return true;
+        class CInvSlot *pCIS = NULL;
+        struct _CONTENTS *pC = NULL;
+
+        pCIS = (class CInvSlot *) ((PEQINVSLOTMGR)pInvSlotMgr)->pSelectedItem;
+        pCIS->GetItemBase(&pC);
+
+        if (pC) {
+            Ret.Ptr = pC;
+            Ret.Type=pItemType;
+            return true;
+        }
     }
     return false;
 }

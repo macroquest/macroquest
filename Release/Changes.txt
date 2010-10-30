@@ -1,3 +1,6 @@
+29 October 2010 by dkaa
+- Fixed SelectedItem and some crashes
+
 26 October 2010 by ieatacid
 - Updated for today's patch
 
