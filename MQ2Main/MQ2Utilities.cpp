@@ -766,6 +766,10 @@ PCHAR ConvertHotkeyNameToKeyName(PCHAR szName)
 PCHAR GetFullZone(DWORD ZoneID)
 {
     if (!ppWorldData | !pWorldData) return NULL;
+    if(ZoneID > MAX_ZONES)
+        ZoneID &= 0x7FFF;
+    if(ZoneID > MAX_ZONES || ZoneID <= 0)
+        return "UNKNOWN_ZONE";
     PZONELIST pZone = ((PWORLDDATA)pWorldData)->ZoneArray[ZoneID];
     return pZone->LongName;
 }
@@ -776,6 +780,10 @@ PCHAR GetFullZone(DWORD ZoneID)
 PCHAR GetShortZone(DWORD ZoneID)
 {
     if (!ppWorldData | !pWorldData) return NULL;
+    if(ZoneID > MAX_ZONES)
+        ZoneID &= 0x7FFF;
+    if(ZoneID > MAX_ZONES || ZoneID <= 0)
+        return "UNKNOWN_ZONE";
     PZONELIST pZone = ((PWORLDDATA)pWorldData)->ZoneArray[ZoneID];
     return pZone->ShortName; 
 }
@@ -788,7 +796,7 @@ DWORD GetZoneID(PCHAR ZoneShortName)
 {
     PZONELIST pZone = NULL;
     if (!ppWorldData | !pWorldData) return -1;
-    for (int nIndex=0; nIndex < MAX_ZONES+1; nIndex++) {
+    for (int nIndex=0; nIndex <= MAX_ZONES; nIndex++) {
         pZone = ((PWORLDDATA)pWorldData)->ZoneArray[nIndex];
         if(pZone )
             if (!_stricmp(pZone->ShortName,ZoneShortName)) {
