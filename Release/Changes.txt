@@ -1,3 +1,13 @@
+10 November 2010 by ieatacid
+- Updated for today's patch
+
+9 November 2010 by ieatacid
+- Fixed /lootall crash
+
+5 November 2010 by dkaa
+- Fixed RightClickedOnPlayer
+- Fixed item.Stacks, item.FreeStacks, and item.StackCount
+
 1 November 2010 by ieatacid
 - Fixed GetFullZone and GetShortZone crashes
 

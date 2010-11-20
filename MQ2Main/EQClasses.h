@@ -1978,7 +1978,7 @@ EQLIB_OBJECT void CEverQuest::ReportDeath(struct _EQPlayerDeath *);
 EQLIB_OBJECT void CEverQuest::ReportSuccessfulHit(struct _EQSuccessfulHit *,unsigned char,int);
 EQLIB_OBJECT void CEverQuest::reqChannel(void);
 EQLIB_OBJECT void CEverQuest::ResetVisionRGBs(void);
-EQLIB_OBJECT void CEverQuest::RightClickedOnPlayer(class EQPlayer *);
+EQLIB_OBJECT void CEverQuest::RightClickedOnPlayer(class EQPlayer *, int);
 EQLIB_OBJECT void CEverQuest::RMouseDown(int,int);
 EQLIB_OBJECT void CEverQuest::RMouseUp(int,int);
 EQLIB_OBJECT void CEverQuest::SaveCamerasToINI(void);
@@ -2982,8 +2982,8 @@ EQLIB_OBJECT void CLootWnd::Deactivate(void);
 // private
 EQLIB_OBJECT void CLootWnd::FinalizeLoot(void);
 EQLIB_OBJECT void CLootWnd::Init(void);
-/*0x190*/ BYTE Unknown0x184[0x2a1-0x190];
-/*0x2a1*/ BYTE LootAll;
+/*0x1fc*/ BYTE Unknown0x1b8[0xd5];
+/*0x2d1*/ BYTE LootAll;
 /*0x2a2*/
 };
 
@@ -5581,7 +5581,7 @@ EQLIB_OBJECT int EQ_Item::Silver(void);
 EQLIB_OBJECT long EQ_Item::ValueSellMerchant(float,long);
 EQLIB_OBJECT bool EQ_Item::IsStackable(void); // Valerian 12-20-2004 
 
-EQLIB_OBJECT char * EQ_Item::GetItemLinkHash(char *, int); // Lax 11-14-2003
+EQLIB_OBJECT char * EQ_Item::CreateItemTagString(char *, int); // Lax 11-14-2003
 EQLIB_OBJECT int EQ_Item::CanDrop(int); // Lax 04-22-2004
 ITEMINFO Data;
 };

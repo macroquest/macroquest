@@ -213,7 +213,7 @@ VOID Click(PSPAWNINFO pChar, PCHAR szLine)
                 pEverQuest->LeftClickedOnPlayer(pTarget); 
                 gMouseEventTime = GetFastTime();
             } else if (!strnicmp(szArg1, "right", 5)) { 
-                pEverQuest->RightClickedOnPlayer(pTarget); 
+                pEverQuest->RightClickedOnPlayer(pTarget, 0); 
                 gMouseEventTime = GetFastTime();
             } 
             return;

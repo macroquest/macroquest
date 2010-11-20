@@ -465,36 +465,45 @@ typedef struct _CXWNDMGR {
 /*0x140*/ 
 } CXWNDMGR, *PCXWNDMGR;
 
+typedef struct _CONTENTSARRAY {
+    struct _CONTENTS* Array[1];
+} CONTENTSARRAY, *PCONTENTSARRAY;
 
-// 11-11-2009 ieatacid - size is 0x514
+// 10-26-2009 size 0x2d8
 typedef struct _EQMERCHWINDOW {
 /*0x000*/   struct _CSIDLWND Wnd;
-/*0x1f0*/   BYTE    Unknown0x184[0x8];
-/*0x1f8*/   PCONTENTS   ItemDesc[0x50];     // the mainwindow has pointers
-                                            // directly to the items in the
-                                            // slots...
-/*0x338*/   PCONTENTS   RecoveryItems[0x64];// (guessing) not yet implemented in this window
-/*0x4c8*/   FLOAT   Markup;
-/*0x4cc*/   DWORD   SelectedSlotID;
-/*0x4d0*/   PCONTENTS *pSelectedItem;
-/*0x4d4*/   DWORD   Unknown0x4d4;
-/*0x4d8*/   DWORD   Unknown0x4d8;
-/*0x4dc*/   BYTE    Unknown0x4dc;
-/*0x4dd*/   BYTE    padding0x4dd[3];
-/*0x4e0*/   DWORD   MW_MerchantName;
-/*0x4e4*/   DWORD   MW_SelectedItemLabel;
-/*0x4e8*/   DWORD   MW_SelectedPriceLabel;
-/*0x4ec*/   DWORD   MW_SelectedItem;
-/*0x4f0*/   DWORD   MW_Buy_Button;
-/*0x4f4*/   DWORD   MW_Sell_Button;
-/*0x4f8*/   DWORD   MW_Recover_Button;
-/*0x4fc*/   DWORD   ItemList;
-/*0x500*/   DWORD   MW_ItemListRecovery;
-/*0x504*/   DWORD   MW_Done_Button;
-/*0x508*/   DWORD   MW_PurchasePage;
-/*0x50c*/   DWORD   MW_RecoveryPage;
-/*0x510*/   DWORD   MW_MerchantSubwindows;
-/*0x514*/
+/*0x1fc*/   BYTE    Unknown0x184[0xc];
+/*0x208*/   DWORD   MerchSlots;      // # of bank slots?
+/*0x20c*/   DWORD   Unknown0x20c;
+/*0x210*/   struct  _CONTENTSARRAY *pMerchArray;
+/*0x214*/   DWORD   MerchMaxSlots;   // # of bank slots?
+/*0x218*/   BYTE    Unknown0x218[0x28];
+/*0x240*/   DWORD   MerchRecSlots;   // # of bank slots?
+/*0x244*/   DWORD   Unknown0x244;
+/*0x248*/   struct  _CONTENTSARRAY *pMerchRecArray;
+/*0x24c*/   DWORD   MerchMaxRecSlots;// # of bank slots?
+/*0x250*/   BYTE    Unknown0x250[0x28];
+/*0x278*/   FLOAT   Markup;
+/*0x27c*/   BYTE    Unknown0x27c[0xc];
+/*0x288*/   DWORD   SelectedSlotID;
+/*0x28c*/   BYTE    Unknown0x28c[0xc];
+/*0x298*/   DWORD   MW_MerchantName;
+/*0x29c*/   DWORD   MW_SelectedItemLabel;
+/*0x2a0*/   DWORD   MW_SelectedPriceLabel;
+/*0x2a4*/   DWORD   MW_Inspect_Button;
+/*0x2a8*/   DWORD   MW_Preview_Button;
+/*0x2ac*/   DWORD   MW_SelectedItem;
+/*0x2b0*/   DWORD   MW_Buy_Button;
+/*0x2b4*/   DWORD   MW_Sell_Button;
+/*0x2b8*/   DWORD   MW_Recover_Button;
+/*0x2bc*/   DWORD   ItemList;
+/*0x2c0*/   DWORD   MW_ItemListRecovery;
+/*0x2c4*/   DWORD   MW_Done_Button;
+/*0x2c8*/   DWORD   MW_PurchasePage;
+/*0x2cc*/   DWORD   MW_RecoveryPage;
+/*0x2d0*/   DWORD   MW_MerchantSubwindows;
+/*0x2d4*/   DWORD   Unknown0x2d4;
+/*0x2d8*/
 } EQMERCHWINDOW, *PEQMERCHWINDOW;
 
 

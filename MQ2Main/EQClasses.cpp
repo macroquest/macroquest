@@ -108,8 +108,8 @@ int  CListWnd::AddString(char *p1, unsigned long p2, unsigned __int32 p3, class 
 FUNCTION_AT_ADDRESS(struct  _CONTENTS* CMyInventory::GetSlot(int), CMyInventory__GetSlot);
 #endif
 
-#ifdef EQ_Item__GetItemLinkHash
-FUNCTION_AT_ADDRESS(char * EQ_Item::GetItemLinkHash(char *, int),EQ_Item__GetItemLinkHash); // Lax 11-14-2003
+#ifdef EQ_Item__CreateItemTagString
+FUNCTION_AT_ADDRESS(char * EQ_Item::CreateItemTagString(char *, int),EQ_Item__CreateItemTagString); // Lax 11-14-2003
 #endif
 #ifdef CStmlWnd__AppendSTML
 FUNCTION_AT_ADDRESS(class CXSize& CStmlWnd::AppendSTML(class CXSize*,class CXStr),CStmlWnd__AppendSTML);
@@ -5638,7 +5638,7 @@ FUNCTION_AT_ADDRESS(void  CEverQuest::LeftClickedOnPlayer(class EQPlayer *),CEve
 FUNCTION_AT_ADDRESS(void  CEverQuest::DropItemOrMoneyOnPlayer(class EQPlayer *),CEverQuest__DropItemOrMoneyOnPlayer);
 #endif
 #ifdef CEverQuest__RightClickedOnPlayer
-FUNCTION_AT_ADDRESS(void  CEverQuest::RightClickedOnPlayer(class EQPlayer *),CEverQuest__RightClickedOnPlayer);
+FUNCTION_AT_ADDRESS(void  CEverQuest::RightClickedOnPlayer(class EQPlayer *, int),CEverQuest__RightClickedOnPlayer);
 #endif
 #ifdef CEverQuest__send_social
 FUNCTION_AT_ADDRESS(void  CEverQuest::send_social(int,char *,char *),CEverQuest__send_social);

@@ -4063,11 +4063,10 @@ bool MQ2ItemType::GETMEMBER()
             {
                 if (PCONTENTS pTempItem = GetCharInfo2()->pInventoryArray->InventoryArray[slot])
                 {
-                    if (pTempItem->Item->Type==ITEMTYPE_PACK) 
+                    if (pTempItem->Item->Type==ITEMTYPE_PACK && pTempItem->pContentsArray) 
                     {
                         for (DWORD pslot=0;pslot<(pTempItem->Item->Slots);pslot++) 
                         {
-                            if (pItem->pContentsArray)
                             if (pTempItem->pContentsArray->Contents[pslot])
                             {
                                 if (PCONTENTS pSlotItem = pTempItem->pContentsArray->Contents[pslot])
@@ -4099,11 +4098,10 @@ bool MQ2ItemType::GETMEMBER()
             {
                 if (PCONTENTS pTempItem = GetCharInfo2()->pInventoryArray->InventoryArray[slot])
                 {
-                    if (pTempItem->Item->Type==ITEMTYPE_PACK) 
+                    if (pTempItem->Item->Type==ITEMTYPE_PACK && pTempItem->pContentsArray) 
                     {
                         for (DWORD pslot=0;pslot<(pTempItem->Item->Slots);pslot++) 
                         {
-                            if (pItem->pContentsArray)
                             if (pTempItem->pContentsArray->Contents[pslot])
                             {
                                 if (PCONTENTS pSlotItem = pTempItem->pContentsArray->Contents[pslot])
@@ -4135,11 +4133,10 @@ bool MQ2ItemType::GETMEMBER()
             {
                 if (PCONTENTS pTempItem = GetCharInfo2()->pInventoryArray->InventoryArray[slot])
                 {
-                    if (pTempItem->Item->Type==ITEMTYPE_PACK)
+                    if (pTempItem->Item->Type==ITEMTYPE_PACK && pTempItem->pContentsArray)
                     {
                         for (DWORD pslot=0;pslot<(pTempItem->Item->Slots);pslot++) 
                         {
-                            if (pItem->pContentsArray)
                             if (pTempItem->pContentsArray->Contents[pslot])
                             {
                                 if (PCONTENTS pSlotItem = pTempItem->pContentsArray->Contents[pslot])
@@ -5836,9 +5833,9 @@ bool MQ2MerchantType::GETMEMBER()
             if (ISNUMBER())
             {
                 unsigned long nIndex=GETNUMBER()-1;
-                if (nIndex<80)
+                if (nIndex<pMerch->MerchSlots && pMerch->pMerchArray)
                 {
-                    if (Dest.Ptr=pMerch->ItemDesc[nIndex])
+                    if (Dest.Ptr=pMerch->pMerchArray->Array[nIndex])
                     {
                         Dest.Type=pItemType;
                         return true;
@@ -5857,9 +5854,10 @@ bool MQ2MerchantType::GETMEMBER()
                 }
                 strlwr(pName);
                 CHAR Temp[MAX_STRING]={0};
-                for (unsigned long nIndex = 0 ; nIndex < 80 ; nIndex++)
+                if (pMerch->pMerchArray)
+                for (unsigned long nIndex = 0 ; nIndex < pMerch->MerchSlots ; nIndex++)
                 {
-                    if (PCONTENTS pContents=pMerch->ItemDesc[nIndex])
+                    if (PCONTENTS pContents=pMerch->pMerchArray->Array[nIndex])
                     {
                         if (bExact)
                         {
@@ -5887,11 +5885,11 @@ bool MQ2MerchantType::GETMEMBER()
     case Items:
         {
             Dest.DWord=0;
-            for (unsigned long N = 0 ; N < 80 ; N++)
-            {
-                if (pMerch->ItemDesc[N])
+            if (pMerch->pMerchArray)
+            for (unsigned long nIndex = 0 ; nIndex < pMerch->MerchSlots ; nIndex++)
+                if (!pMerch->pMerchArray->Array[nIndex])
                     Dest.DWord++;
-            }
+
             Dest.Type=pIntType;
             return true;
         }
@@ -5902,9 +5900,14 @@ bool MQ2MerchantType::GETMEMBER()
     case Full:
         {
             Dest.DWord=1;
-            for (unsigned long N = 0 ; N < 80 ; N++)
+            if (!pMerch->pMerchArray || pMerch->MerchSlots < 0x80)  {
+                Dest.DWord=0;
+                Dest.Type=pBoolType;
+                return true;
+            }
+            for (unsigned long N = 0 ; N < pMerch->MerchSlots ; N++)
             {
-                if (!pMerch->ItemDesc[N])
+                if (!pMerch->pMerchArray->Array[N])
                 {
                     Dest.DWord=0;
                     break;

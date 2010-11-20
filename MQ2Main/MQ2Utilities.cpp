@@ -1114,13 +1114,13 @@ FLOAT FindSpeed(PSPAWNINFO pSpawn)
 
 VOID GetItemLinkHash(PCONTENTS Item, PCHAR Buffer)
 {
-    ((EQ_Item*)Item)->GetItemLinkHash(Buffer, 256);
+    ((EQ_Item*)Item)->CreateItemTagString(Buffer, 256);
 }
 
 VOID GetItemLink(PCONTENTS Item, PCHAR Buffer)
 {
     char hash[256];
-    ((EQ_Item*)Item)->GetItemLinkHash(hash, 256);
+    ((EQ_Item*)Item)->CreateItemTagString(hash, 256);
     sprintf(Buffer,"%c0%s%s%c",0x12,hash,Item->Item->Name,0x12);
     DebugSpew("GetItemLink() returns '%s'",&Buffer[0]);
 }
