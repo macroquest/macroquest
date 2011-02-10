@@ -1,3 +1,9 @@
+8 December 2010 by ieatacid
+- Updated for today's patch
+
+7 December 2010 by ieatacid
+- Fixed "/click left" crash
+
 4 December 2010 by ieatacid
 - Added Me.Haste which reports total haste as it appears in the stats tab of the inventory window
 - Changed EQ_Character::DoCombatAbility to return bool instead of void, as it is in the client

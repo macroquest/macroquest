@@ -98,7 +98,7 @@ VOID ClickMouse(DWORD button)
 
 VOID MouseButtonUp(DWORD x, DWORD y, PCHAR szButton)
 {
-    char c[MAX_STRING]={0};
+    float c[3];
     gLClickedObject=false;
     if(((CDisplay*)pDisplay)->GetClickedActor(x,y,0,&c,&c))
     {
