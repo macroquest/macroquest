@@ -100,24 +100,27 @@ VOID MouseButtonUp(DWORD x, DWORD y, PCHAR szButton)
 {
     float c[3];
     gLClickedObject=false;
-    if(((CDisplay*)pDisplay)->GetClickedActor(x,y,0,&c,&c))
+    
+    if(!strnicmp(szButton,"left",4))
     {
-        if(!strnicmp(szButton,"left",4))
+        // click will fail if this isn't set to a time less than TimeStamp minus 750ms
+        *((DWORD*)__LMouseHeldTime)=((PCDISPLAY)pDisplay)->TimeStamp-0x45;
+        pEverQuest->LMouseUp(x,y);
+
+        if(((CDisplay*)pDisplay)->GetClickedActor(x,y,0,&c,&c))
         {
-            // click will fail if this isn't set to a time less than TimeStamp minus 750ms
-            *((DWORD*)__LMouseHeldTime)=((PCDISPLAY)pDisplay)->TimeStamp-0x45;
-            pEverQuest->LMouseUp(x,y);
             gLClickedObject=true;
             EnviroTarget.Name[0]=0;
         }
-        /* i don't think there's any use for this currently - ieatacid
-        else if(!strnicmp(szButton,"right",5))
-        {
+    }
+
+    /* i don't think there's any use for this currently - ieatacid
+    else if(!strnicmp(szButton,"right",5))
+    {
         // click will fail if this isn't set to a time less than TimeStamp minus 500ms
         *((DWORD*)__RMouseHeldTime)=((PCDISPLAY)pDisplay)->TimeStamp-0x45;
         pEverQuest->RMouseUp(x,y);
-        }*/
-    }
+    }*/
 }
 
 VOID ClickMouseLoc(PCHAR szMouseLoc, PCHAR szButton) 

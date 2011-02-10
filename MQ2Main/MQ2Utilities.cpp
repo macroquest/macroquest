@@ -937,6 +937,8 @@ DWORD GetSpellDuration(PSPELL pSpell, PSPAWNINFO pSpawn)
                     return min(unsigned int(pSpawn->Level) * 2 + 10, pSpell->DurationValue1); 
                 case 10:        
                     return min(unsigned int(pSpawn->Level) * 3 + 10, pSpell->DurationValue1); 
+                case 13:
+                    return pSpell->DurationValue1 * 6 / 10;
                 case 50: 
                     return 0xFFFFFFFF; 
                 case 3600: 
