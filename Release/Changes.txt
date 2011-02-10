@@ -1,3 +1,7 @@
+16 January 2011 by ieatacid
+- Fixed spawn.Levitate
+- Fixed Me.FreeInventory
+
 13 January 2011 by ieatacid
 - Updated for today's patch
 

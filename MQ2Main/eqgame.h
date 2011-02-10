@@ -288,7 +288,7 @@
 #define CrashDetected                                              0x595A90
 #define DrawNetStatus                                              0x5314C0
 #define Util__FastTime                                             0x798AB0
-
+#define Expansion_HoT                                              0xAFFC14
 
 //// 
 // Section 4: Function Offsets 
@@ -617,7 +617,6 @@
 #define EQ_Character__doCombatAbility                              0x538340
 #define EQ_Character__UseSkill                                     0x4474F0
 #define EQ_Character__GetConLevel                                  0x5330F0
-#define EQ_Character__IsExpansionFlag                              0x40D930
 #define EQ_Character__TotalEffect                                  0x429550
 
 // EQ_Item 

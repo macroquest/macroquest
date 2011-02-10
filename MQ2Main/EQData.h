@@ -1207,7 +1207,7 @@ typedef struct _LAUNCHSPELLDATA {
 /*0x44*/
 } LAUNCHSPELLDATA, *PLAUNCHSPELLDATA;
 
-// actual size: 0x1c6c 20101110 - ieatacid
+// actual size: 0x1dc8 20110113 - ieatacid
 typedef struct _SPAWNINFO {
 /*0x0000*/ void     *vtable;
 /*0x0004*/ struct   _SPAWNINFO *pPrev;
@@ -1366,13 +1366,13 @@ typedef struct _SPAWNINFO {
 /*0x11b8*/ DWORD    GroupMemberTargeted;    // 0xFFFFFFFF if no target, else 1 through 5
 /*0x11bc*/ BYTE     Unknown0x11bc[0x180];
 /*0x133c*/ struct   _FELLOWSHIPINFO Fellowship; // size 0x884
-/*0x1bc0*/ BYTE     Unknown0x1bc0[0x58];
-/*0x1c18*/ void     *vtable2;
-/*0x1c1c*/ DWORD    Unknown0x1c1c;
-/*0x1c20*/ struct   _SPAWNINFO *pSpawn;
-/*0x1c24*/ BYTE     Levitate;
-/*0x1c25*/ BYTE     Unknown0x1c25[0x47];
-/*0x1c6c*/
+/*0x1bc0*/ BYTE     Unknown0x1bc0[0x1b4];
+/*0x1d74*/ void     *vtable2;
+/*0x1d78*/ DWORD    Unknown0x1d78;
+/*0x1d7c*/ struct   _SPAWNINFO *pSpawn;
+/*0x1d80*/ BYTE     Levitate;
+/*0x1d81*/ BYTE     Unknown0x1d80[0x47];
+/*0x1dc8*/
 } SPAWNINFO, *PSPAWNINFO;
 
 #define STANDSTATE_STAND                0x64

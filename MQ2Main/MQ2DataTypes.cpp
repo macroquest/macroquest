@@ -2950,7 +2950,7 @@ bool MQ2CharacterType::GETMEMBER()
         else
         {
             Dest.DWord=0;
-            DWORD x = pCharData1->IsExpansionFlag(XPAC_FLAG_HoT);
+            DWORD x = *(DWORD*)Expansion_HoT;
             for (DWORD slot=BAG_SLOT_START;slot<NUM_INV_SLOTS;slot++) 
             {
                 if(!x && slot > 30)
