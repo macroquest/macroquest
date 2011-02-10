@@ -133,7 +133,7 @@ FUNCTION_AT_ADDRESS(int  EQ_Character1::Max_HP(int,int),EQ_Character__Max_HP);
 /////////////////////////////////////////////////////////////////////
 
 #ifdef EQ_Character__doCombatAbility 
-FUNCTION_AT_ADDRESS(void EQ_Character::DoCombatAbility(int spellID), EQ_Character__doCombatAbility); 
+FUNCTION_AT_ADDRESS(bool EQ_Character::DoCombatAbility(int spellID), EQ_Character__doCombatAbility); 
 #endif 
 
 
@@ -4221,6 +4221,9 @@ FUNCTION_AT_ADDRESS(int const  EQ_Character1::GetFocusCastingTimeModifier(class 
 #ifdef EQ_Character__GetFocusRangeModifier
 FUNCTION_AT_ADDRESS(int const  EQ_Character1::GetFocusRangeModifier(class EQ_Spell const *,class EQ_Equipment * *),EQ_Character__GetFocusRangeModifier);
 #endif
+#ifdef EQ_Character__IsExpansionFlag
+FUNCTION_AT_ADDRESS(int EQ_Character1::IsExpansionFlag(int),EQ_Character__IsExpansionFlag);
+#endif
 #ifdef EQ_Character__GetFocusItem
 FUNCTION_AT_ADDRESS(class EQ_Equipment *  EQ_Character::GetFocusItem(class EQ_Spell const *,int),EQ_Character__GetFocusItem);
 #endif
@@ -4361,6 +4364,9 @@ FUNCTION_AT_ADDRESS(int  EQ_Character::GetCachEQSPA(int),EQ_Character__GetCachEQ
 #endif
 #ifdef EQ_Character__GetConLevel
 FUNCTION_AT_ADDRESS(unsigned long EQ_Character::GetConLevel(class EQPlayer *),EQ_Character__GetConLevel);
+#endif
+#ifdef EQ_Character__TotalEffect
+FUNCTION_AT_ADDRESS(int EQ_Character1::TotalEffect(int, bool, int, bool, bool), EQ_Character__TotalEffect);
 #endif
 #ifdef EQ_Container__EQ_Container
 FUNCTION_AT_ADDRESS( EQ_Container::EQ_Container(void),EQ_Container__EQ_Container);

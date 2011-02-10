@@ -45,34 +45,34 @@ Sub Main
       /if (${Me.Bank[${index}].Container})  {
         /call BankPack ${index}
       } else {
-        /mqlog ${index}) ${Me.Bank[${index}].Stack}x ${Me.Bank[${index}].Name}
+        /if (${Me.Bank[${index}].ID}) /mqlog ${index}) ${Me.Bank[${index}].Stack}x ${Me.Bank[${index}].Name}
       }
    /next index
    /echo Done...
 /return
 
 |
-| note: InvSlot goes through EQ's SlotMgr so bank slots will only work
-| if the bank window is open.
 |
 Sub MainPack(int PackSlot)
     /declare index int local
-    /mqlog ${PackSlot}) ${InvSlot[pack${PackSlot}].Item.Name} has ${InvSlot[pack${PackSlot}].Item.Container}/${InvSlot[pack${PackSlot}].Item.Items} slots/used, combine type: ${InvSlot[pack${PackSlot}].Item.Type}
-    /for index 1 to ${InvSlot[pack${PackSlot}].Item.Container}
-        /if (${InvSlot[pack${PackSlot}].Item.Item[${index}].ID}) {
-            /mqlog ${InvSlot[pack${PackSlot}].Item.Item[${index}].Stack}x ${InvSlot[pack${PackSlot}].Item.Item[${index}].Name}
+    /mqlog ${PackSlot}) ${Me.Inventory[pack${PackSlot}].Name} has ${Me.Inventory[pack${PackSlot}].Container}/${Me.Inventory[pack${PackSlot}].Items} slots/used, combine type: ${Me.Inventory[pack${PackSlot}].Type}
+    /for index 1 to ${Me.Inventory[pack${PackSlot}].Container}
+        /if (${Me.Inventory[pack${PackSlot}].Item[${index}].ID}) {
+            /mqlog ${Me.Inventory[pack${PackSlot}].Item[${index}].Stack}x ${Me.Inventory[pack${PackSlot}].Item[${index}].Name}
         }
    /next index
 /return
 
 Sub BankPack(int PackSlot)
     /declare index int local
+    /if (${Me.Bank[${PackSlot}].ID}) {
     /mqlog ${PackSlot}) ${Me.Bank[${PackSlot}].Name} has ${Me.Bank[${PackSlot}].Container}/${Me.Bank[${PackSlot}].Items} slots/used, combine type: ${Me.Bank[${PackSlot}].Type}
     /for index 1 to ${Me.Bank[${PackSlot}].Container}
         /if (${Me.Bank[${PackSlot}].Item[${index}].ID}) {
             /mqlog ${Me.Bank[${PackSlot}].Item[${index}].Stack}x ${Me.Bank[${PackSlot}].Item[${index}].Name}
         }
    /next index
+   }
 /return
 
 | End of PackTest.mac

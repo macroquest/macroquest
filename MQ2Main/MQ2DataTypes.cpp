@@ -2950,8 +2950,11 @@ bool MQ2CharacterType::GETMEMBER()
         else
         {
             Dest.DWord=0;
+            DWORD x = pCharData1->IsExpansionFlag(XPAC_FLAG_HoT);
             for (DWORD slot=BAG_SLOT_START;slot<NUM_INV_SLOTS;slot++) 
             {
+                if(!x && slot > 30)
+                    break;
                 if (PCONTENTS pItem = GetCharInfo2()->pInventoryArray->InventoryArray[slot]) 
                 {
                     if (pItem->Item->Type==ITEMTYPE_PACK) 
@@ -3411,6 +3414,11 @@ bool MQ2CharacterType::GETMEMBER()
                 }
             }
         }
+        return false;
+    case Haste:
+        Dest.DWord = pCharData1->TotalEffect(0xb, 1, 0, 1, 1);
+        Dest.Type = pIntType;
+        return true;
     }
     return false;
 #undef pChar

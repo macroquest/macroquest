@@ -282,6 +282,7 @@
 #define __GetGaugeValueFromEQ                                      0x6A39D0
 #define __GetLabelFromEQ                                           0x6A4AF0
 #define __GetXTargetType                                           0x7171A0
+#define __HasteLabelValue                                          0xBA5C4C
 #define __LoadFrontEnd                                             0x595510
 #define __NewUIINI                                                 0x6A34F0
 #define __ProcessGameEvents                                        0x508350
@@ -611,12 +612,14 @@
 #define EQ_Character__GetCharInfo2                                 0x6F9310
 #define EQ_Character__GetFocusCastingTimeModifier                  0x420A00
 #define EQ_Character__GetFocusRangeModifier                        0x420BE0
+#define EQ_Character__IsExpansionFlag                              0x40D8E0
 #define EQ_Character__Max_Endurance                                0x539850
 #define EQ_Character__Max_HP                                       0x433B20
 #define EQ_Character__Max_Mana                                     0x539680
 #define EQ_Character__doCombatAbility                              0x5384E0
 #define EQ_Character__UseSkill                                     0x447730
 #define EQ_Character__GetConLevel                                  0x533D70
+#define EQ_Character__TotalEffect                                  0x429590
 
 // EQ_Item 
 #define EQ_Item__CanDrop                                           0x519630

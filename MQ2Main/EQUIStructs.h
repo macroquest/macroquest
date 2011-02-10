@@ -330,8 +330,9 @@ typedef struct _CXWND {
 /*0x13c*/   BYTE    Unlockable;     // related to Locked
 /*0x13d*/   BYTE    Unknown0x13d[0x3];
 /*0x140*/   DWORD   FadeDuration;
-/*0x144*/   BYTE    Unknown0x144[0x19];
-/*0x15d*/   BYTE    Enabled;
+/*0x144*/   BYTE    Unknown0x144[0x11];
+/*0x155*/   BYTE    Enabled;
+/*0x156*/   BYTE    Unknown0x156[0x8];
 /*0x15e*/   BYTE    Locked;
 /*0x15f*/   BYTE    Unknown0x15f[0x11];
 /*0x170*/   BYTE    Fades;
@@ -398,8 +399,9 @@ typedef struct _CSIDLWND {
 /*0x13c*/   BYTE    Unlockable;     // related to Locked
 /*0x13d*/   BYTE    Unknown0x13d[0x3];
 /*0x140*/   DWORD   FadeDuration;
-/*0x144*/   BYTE    Unknown0x144[0x19];
-/*0x15d*/   BYTE    Enabled;
+/*0x144*/   BYTE    Unknown0x144[0x11];
+/*0x155*/   BYTE    Enabled;
+/*0x156*/   BYTE    Unknown0x156[0x8];
 /*0x15e*/   BYTE    Locked;
 /*0x15f*/   BYTE    Unknown0x15f[0x11];
 /*0x170*/   BYTE    Fades;

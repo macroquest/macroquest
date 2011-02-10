@@ -616,8 +616,9 @@ EQLIB_OBJECT int CXWnd::SetFont(void*);
 /*0x13c*/   BYTE    Unlockable;     // related to Locked
 /*0x13d*/   BYTE    Unknown0x13d[0x3];
 /*0x140*/   DWORD   FadeDuration;
-/*0x144*/   BYTE    Unknown0x144[0x19];
-/*0x15d*/   BYTE    Enabled;
+/*0x144*/   BYTE    Unknown0x144[0x11];
+/*0x155*/   BYTE    Enabled;
+/*0x156*/   BYTE    Unknown0x156[0x8];
 /*0x15e*/   BYTE    Locked;
 /*0x15f*/   BYTE    Unknown0x15f[0x11];
 /*0x170*/   BYTE    Fades;
@@ -723,8 +724,9 @@ EQLIB_OBJECT static bool CSidlScreenWnd::m_useIniFile;
 /*0x13c*/   BYTE    Unlockable;     // related to Locked
 /*0x13d*/   BYTE    Unknown0x13d[0x3];
 /*0x140*/   DWORD   FadeDuration;
-/*0x144*/   BYTE    Unknown0x144[0x19];
-/*0x15d*/   BYTE    Enabled;
+/*0x144*/   BYTE    Unknown0x144[0x11];
+/*0x155*/   BYTE    Enabled;
+/*0x156*/   BYTE    Unknown0x156[0x8];
 /*0x15e*/   BYTE    Locked;
 /*0x15f*/   BYTE    Unknown0x15f[0x11];
 /*0x170*/   BYTE    Fades;
@@ -5381,6 +5383,8 @@ EQLIB_OBJECT void EQ_Character1::StunMe(unsigned int,unsigned int,unsigned int);
 EQLIB_OBJECT void EQ_Character1::UnStunMe(void);
 EQLIB_OBJECT void EQ_Character1::UseSkill(unsigned char,class EQPlayer *);
 EQLIB_OBJECT int const EQ_Character1::GetFocusRangeModifier(class EQ_Spell const *,class EQ_Equipment * *);
+EQLIB_OBJECT int EQ_Character1::IsExpansionFlag(int);
+EQLIB_OBJECT int EQ_Character1::TotalEffect(int,bool,int,bool,bool);
 };
 
 class EQ_Character
@@ -5534,7 +5538,7 @@ EQLIB_OBJECT void EQ_Character::RemovePCAffect(class EQ_Affect *);
 EQLIB_OBJECT void EQ_Character::RemovePCAffectex(class EQ_Affect *,int);
 EQLIB_OBJECT void EQ_Character::ResetCur_HP(int);
 EQLIB_OBJECT void EQ_Character::UpdateMyVisibleStatus(void);
-EQLIB_OBJECT void EQ_Character::DoCombatAbility(int spellID);
+EQLIB_OBJECT bool EQ_Character::DoCombatAbility(int spellID);
 EQLIB_OBJECT unsigned long EQ_Character::GetConLevel(class EQPlayer *);
 // private
 EQLIB_OBJECT int EQ_Character::GetCachEQSPA(int);

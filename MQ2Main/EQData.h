@@ -1268,10 +1268,7 @@ typedef struct _SPAWNINFO {
 /*0x021c*/ BYTE     Unknown0x21c[0x4];
 /*0x0220*/ DWORD    AFK;
 /*0x0224*/ DWORD    HPMax;
-/*0x0228*/ BYTE     Unknown0x228[0x4];
-/*0x022c*/ WORD     Zone;
-/*0x022e*/ WORD     Instance;
-/*0x0230*/ BYTE     Unknown0x230[0x28];
+/*0x0228*/ BYTE     Unknown0x228[0x30];
 /*0x0258*/ FLOAT    RunSpeed;
 /*0x025c*/ BYTE     Unknown0x25c[0x10];
 /*0x026c*/ BYTE     GM;
@@ -1285,7 +1282,10 @@ typedef struct _SPAWNINFO {
 /*0x02b4*/ LONG     HPCurrent;
 /*0x02b8*/ BYTE     Unknown0x2b8[0x6];
 /*0x02be*/ BYTE     StandState;
-/*0x02bf*/ BYTE     Unknown0x2bf[0x15];
+/*0x02bf*/ BYTE     Unknown0x2bf[0xd];
+/*0x02cc*/ WORD     Zone;
+/*0x02ce*/ WORD     Instance;
+/*0x02d0*/ BYTE     Unknown0x2d0[0x4];
 /*0x02d4*/ DWORD    FishingETA;
 /*0x02d8*/ BYTE     Unknown0x2d8[0x18];
 /*0x02f0*/ DWORD    Anon;
@@ -2126,6 +2126,8 @@ typedef struct _XTARGETMGR
 /*0x1c*/ BYTE  Unknown0x1c[0x4];
 /*0x20*/
 } XTARGETMGR, *PXTARGETMGR;
+
+#define XPAC_FLAG_HoT       0x10000
 
 #define EQ_BEGIN_ZONE                   0x2913  // CEverQuest__SavePCForce+45F     12-15-2009
 #define EQ_END_ZONE                     0x6CDC  // CEverQuest__DoMainLoop+B2F      12-15-2009

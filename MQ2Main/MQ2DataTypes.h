@@ -904,6 +904,7 @@ public:
         Chronobines=176,
         Mercenary=177,
         XTarget=178,
+        Haste=179,
     };
     static enum CharacterMethods
     {
@@ -1089,6 +1090,7 @@ public:
         TypeMember(Chronobines);
         TypeMember(Mercenary);
         TypeMember(XTarget);
+        TypeMember(Haste);
 
         TypeMethod(Stand); 
         TypeMethod(Sit); 
