@@ -852,24 +852,25 @@ typedef struct _EQNOTESWINDOW {
 } EQNOTESWINDOW, *PEQNOTESWINDOW;
 
 // Lax 10-29-2003 
-// Actual size 0x4e8 07-05-2007
+// Actual size 0x568 20110209 - ieatacid
 typedef struct _EQITEMWINDOW 
 { 
 /*0x000*/ struct _CSIDLWND Wnd;
-/*0x180*/ struct _CSIDLWND *DisplayWnd;
-/*0x184*/ BYTE Unknown0x184[0x18];
-/*0x19c*/ PCXSTR ItemInfo;
-/*0x1a0*/ PCXSTR WindowTitle;
-/*0x1a4*/ DWORD Unknown0x1a4; // possibly PCXSTR of information as on charms 
-/*0x1a8*/ DWORD Unknown0x1a8;
-/*0x1ac*/ DWORD Unknown0x1ac;
-/*0x1b0*/ PCONTENTS pItem;
-/*0x1b4*/ PVOID TextureAnim;
-/*0x1b8*/ PVOID TextureAnim2;
-/*0x1bc*/ BYTE  Unknown0x1bc[0x50];
-/*0x1c0*/ DWORD IDW_ItemInfo_Num_Lines;
-/*0x210*/ struct _CSIDLWND *IDW_ItemInfo[0xc];
-/*0x240*/ // pointers to stat labels, etc, in this area
+/*0x1fc*/ struct _CSIDLWND *DisplayWnd;
+/*0x200*/ BYTE Unknown0x200[0x18];
+/*0x218*/ PCXSTR ItemInfo;
+/*0x21c*/ PCXSTR WindowTitle;
+/*0x220*/ DWORD Unknown0x220; // possibly PCXSTR of information as on charms 
+/*0x224*/ DWORD Unknown0x224;
+/*0x228*/ DWORD Unknown0x228;
+/*0x228*/ DWORD Unknown0x22c;
+/*0x22c*/ PCONTENTS pItem;
+/*0x230*/ PVOID TextureAnim;
+/*0x234*/ PVOID TextureAnim2;
+/*0x238*/ BYTE  Unknown0x238[0x50];
+/*0x288*/ DWORD IDW_ItemInfo_Num_Lines;
+/*0x28c*/ struct _CSIDLWND *IDW_ItemInfo[0xc];
+/*0x2bc*/ // pointers to stat labels, etc, in this area
 } EQITEMWINDOW, *PEQITEMWINDOW;
 
 // Actual size 0x1c8 07-09-2008

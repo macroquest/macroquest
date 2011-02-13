@@ -468,7 +468,7 @@ EQLIB_OBJECT int CXWnd::Move(class CXPoint);
 EQLIB_OBJECT int CXWnd::Move(class CXRect);
 EQLIB_OBJECT int CXWnd::ProcessTransition(void);
 EQLIB_OBJECT int CXWnd::Resize(int,int);
-EQLIB_OBJECT int CXWnd::Show(bool,bool);
+EQLIB_OBJECT int CXWnd::Show(bool,bool,bool mq_c = 1);
 EQLIB_OBJECT int CXWnd::Tile(bool);
 EQLIB_OBJECT static class CXRect __cdecl CXWnd::GetTooltipRect(class CXPoint,class CXSize);
 EQLIB_OBJECT static class CXRect __cdecl CXWnd::GetTooltipRect(class CXSize);

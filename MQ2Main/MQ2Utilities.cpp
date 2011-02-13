@@ -4267,8 +4267,6 @@ BOOL IsNamed(PSPAWNINFO pSpawn)
 {
     CHAR szTemp[MAX_STRING]={0};
 
-    if (!((PZONEINFO)pZoneInfo)->ZoneType)
-        return false;
     if (GetSpawnType(pSpawn) != NPC)
         return false;
     if (!IsTargetable(pSpawn))

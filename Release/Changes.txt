@@ -1,3 +1,9 @@
+12 February 2011 by ieatacid, dkaa
+- Updated for February 9th and 11th patches
+
+16 January 2011 by dkaa
+- Fixed IsNamed for some of the newer zone.  Thanks, el_nene.
+
 16 January 2011 by ieatacid
 - Fixed spawn.Levitate
 - Fixed Me.FreeInventory
