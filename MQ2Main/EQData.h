@@ -1168,26 +1168,26 @@ typedef struct _FELLOWSHIPMEMBER {
 /*0x54*/
 } FELLOWSHIPMEMBER, *PFELLOWSHIPMEMBER;
 
-// 3-2-2008 - ieatacid
+// 20110209 - ieatacid  0x9e0
 typedef struct _FELLOWSHIPINFO {
 /*0x000*/  DWORD  Unknown0x0;        // always 1?
 /*0x004*/  DWORD  FellowshipID;
 /*0x008*/  CHAR   Leader[0x40];
 /*0x048*/  CHAR   MotD[0x400];
 /*0x448*/  DWORD  Members;
-/*0x44c*/  struct _FELLOWSHIPMEMBER  FellowshipMember[0x9];
-/*0x740*/  DWORD  Unknown0x740;      // timestamp for something
-/*0x744*/  BYTE   Unknown0x744[0x120];
-/*0x864*/  FLOAT  CampfireY;
-/*0x868*/  FLOAT  CampfireX;
-/*0x86c*/  FLOAT  CampfireZ;
-/*0x870*/  WORD   CampfireZoneID;    // zone ID where campfire is
-/*0x872*/  WORD   InstanceID;
-/*0x874*/  DWORD  CampfireTimestamp; // CampfireTimestamp-FastTime()=time left on campfire
-/*0x878*/  DWORD  Unknown0x878;      // same as FellowshipID
-/*0x87c*/  DWORD  Unknown0x87c;      // campfire type?
-/*0x880*/  DWORD  Campfire;          // do we have a campfire up?
-/*0x884*/
+/*0x44c*/  struct _FELLOWSHIPMEMBER  FellowshipMember[0xc];
+/*0x83c*/  DWORD  Unknown0x83c;      // timestamp for something
+/*0x840*/  BYTE   Unknown0x840[0x180];
+/*0x9c0*/  FLOAT  CampfireY;
+/*0x9c4*/  FLOAT  CampfireX;
+/*0x9c8*/  FLOAT  CampfireZ;
+/*0x9cc*/  WORD   CampfireZoneID;    // zone ID where campfire is
+/*0x9ce*/  WORD   InstanceID;
+/*0x9d0*/  DWORD  CampfireTimestamp; // CampfireTimestamp-FastTime()=time left on campfire
+/*0x9d4*/  DWORD  Unknown0x878;      // same as FellowshipID
+/*0x9d8*/  DWORD  Unknown0x87c;      // campfire type?
+/*0x9dc*/  DWORD  Campfire;          // do we have a campfire up?
+/*0x9e0*/
 } FELLOWSHIPINFO, *PFELLOWSHIPINFO;
 
 // offsets are relative to their position in _LAUNCHSPELLDATA
@@ -1372,8 +1372,8 @@ typedef struct _SPAWNINFO {
 /*0x11b5*/ BYTE     Unknown0x11b5[0x3];
 /*0x11b8*/ DWORD    GroupMemberTargeted;    // 0xFFFFFFFF if no target, else 1 through 5
 /*0x11bc*/ BYTE     Unknown0x11bc[0x180];
-/*0x133c*/ struct   _FELLOWSHIPINFO Fellowship; // size 0x884
-/*0x1bc0*/ BYTE     Unknown0x1bc0[0x1b4];
+/*0x133c*/ struct   _FELLOWSHIPINFO Fellowship; // size 0x9e0
+/*0x1d1c*/ BYTE     Unknown0x1d1c[0x58];
 /*0x1d74*/ void     *vtable2;
 /*0x1d78*/ DWORD    Unknown0x1d78;
 /*0x1d7c*/ struct   _SPAWNINFO *pSpawn;

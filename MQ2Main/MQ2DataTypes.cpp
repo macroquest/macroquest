@@ -3197,8 +3197,18 @@ bool MQ2CharacterType::GETMEMBER()
                         Dest.Ptr = GetSpellByName("Disciple's Aura");
                     else
                         Dest.Ptr = GetSpellByName(DataTypeTemp);
-                    Dest.Type = pSpellType;
-                    return true;
+
+                    if(Dest.Ptr)
+                    {
+                        Dest.Type = pSpellType;
+                        return true;
+                    }
+                    else
+                    {
+                        Dest.Ptr = DataTypeTemp;
+                        Dest.Type = pStringType;
+                        return true;
+                    }
                 }
             }
         }
@@ -3712,7 +3722,7 @@ bool MQ2ItemType::GETMEMBER()
         Dest.Type=pBoolType;
         return true;
     case NoDrop:
-        Dest.DWord=!((EQ_Item*)pItem)->CanDrop(666);
+        Dest.DWord=!((EQ_Item*)pItem)->CanDrop(0,1);
         Dest.Type=pBoolType;
         return true;
     case NoRent:

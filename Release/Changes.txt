@@ -1,3 +1,9 @@
+13 February 2011 by ieatacid
+- Fixed item.NoDrop
+- Me.Aura now returns the name of the effect in the aura window if it can't find the matching spell
+- _FELLOWSHIPINFO fix (thanks, Drakhhen)
+- Fixed CListWnd::DeleteAll function offset (thanks, brainiac)
+
 12 February 2011 by ieatacid, dkaa
 - Updated for February 9th and 11th patches
 

@@ -3013,7 +3013,7 @@ VOID DropCmd(PSPAWNINFO pChar, PCHAR szLine)
 {
     if (GetCharInfo2()->pInventoryArray->Inventory.Cursor)
     {
-        if (((EQ_Item*)GetCharInfo2()->pInventoryArray->Inventory.Cursor)->CanDrop(1))
+        if (((EQ_Item*)GetCharInfo2()->pInventoryArray->Inventory.Cursor)->CanDrop(0,1))
         {
             pEverQuest->DropHeldItemOnGround(1);
         }

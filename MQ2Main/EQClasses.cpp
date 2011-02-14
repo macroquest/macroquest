@@ -115,7 +115,7 @@ FUNCTION_AT_ADDRESS(char * EQ_Item::CreateItemTagString(char *, int),EQ_Item__Cr
 FUNCTION_AT_ADDRESS(class CXSize& CStmlWnd::AppendSTML(class CXSize*,class CXStr),CStmlWnd__AppendSTML);
 #endif
 #ifdef EQ_Item__CanDrop
-FUNCTION_AT_ADDRESS(int EQ_Item::CanDrop(int),EQ_Item__CanDrop); // Lax 4-21-2004
+FUNCTION_AT_ADDRESS(int EQ_Item::CanDrop(bool,int),EQ_Item__CanDrop); // Lax 4-21-2004
 #endif
 
 ///////////////////////////////////////////////////////////////////
@@ -158,7 +158,7 @@ FUNCTION_AT_VIRTUAL_ADDRESS(int CXWnd::OnMinimizeBox(void),0x9c);
 FUNCTION_AT_VIRTUAL_ADDRESS(int CXWnd::SetFont(void*),0x114);
 
 
-FUNCTION_AT_VIRTUAL_ADDRESS(void CListWnd::DeleteAll(void),0x160);
+FUNCTION_AT_VIRTUAL_ADDRESS(void CListWnd::DeleteAll(void),0x164);
 
 
 // AUTO IMPORTS
