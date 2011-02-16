@@ -1005,13 +1005,13 @@ typedef struct _CHARINFO2 {
 /*0x2f3c*/   DWORD      hungerlevel;
 /*0x2f40*/   DWORD      Unknown0x2f40; 
 /*0x2f44*/   DWORD      Shrouded;
-/*0x2f48*/   BYTE       Unknown0x2f48[0x74];
+/*0x2f48*/   BYTE       Unknown0x2f48[0x78];
 /*0x2fbc*/   DWORD      ZoneBoundID;
 /*0x2fc0*/   FLOAT      ZoneBoundY;
 /*0x2fc4*/   FLOAT      ZoneBoundX;
 /*0x2fc8*/   FLOAT      ZoneBoundZ;
 /*0x2fcc*/   FLOAT      ZoneBoundHeading;
-/*0x2fd0*/   BYTE       Unknown0x2fd0[0x54];
+/*0x2fd0*/   BYTE       Unknown0x2fd0[0x50];
 /*0x3024*/   DWORD      ArmorType[0x16];
 /*0x307c*/   BYTE       Unknown0x307c[0xb0];
 /*0x312c*/   AALIST     AAList[AA_CHAR_MAX_REAL];

@@ -1,3 +1,6 @@
+15 February 2011 by dkaa
+- fixed NoDrop again
+
 13 February 2011 by ieatacid
 - Fixed item.NoDrop
 - Me.Aura now returns the name of the effect in the aura window if it can't find the matching spell

@@ -5586,7 +5586,7 @@ EQLIB_OBJECT long EQ_Item::ValueSellMerchant(float,long);
 EQLIB_OBJECT bool EQ_Item::IsStackable(void); // Valerian 12-20-2004 
 
 EQLIB_OBJECT char * EQ_Item::CreateItemTagString(char *, int); // Lax 11-14-2003
-EQLIB_OBJECT int EQ_Item::CanDrop(bool,int); // Lax 04-22-2004
+EQLIB_OBJECT int EQ_Item::CanDrop(bool,int,int mq2_dummy=0); 
 ITEMINFO Data;
 };
 
