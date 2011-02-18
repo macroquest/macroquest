@@ -287,7 +287,7 @@
 #define CrashDetected                                              0x599150
 #define DrawNetStatus                                              0x5307C0
 #define Util__FastTime                                             0x7B03F0
-
+#define Expansion_HoT                                              0xB2B160
 
 //// 
 // Section 4: Function Offsets 
