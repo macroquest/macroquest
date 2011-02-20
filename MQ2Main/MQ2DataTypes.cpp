@@ -3192,23 +3192,9 @@ bool MQ2CharacterType::GETMEMBER()
                 }
                 if(DataTypeTemp[0])
                 {
-                    // fucking SoE punctuation error
-                    if(!strcmp(DataTypeTemp, "Disciples Aura"))
-                        Dest.Ptr = GetSpellByName("Disciple's Aura");
-                    else
-                        Dest.Ptr = GetSpellByName(DataTypeTemp);
-
-                    if(Dest.Ptr)
-                    {
-                        Dest.Type = pSpellType;
-                        return true;
-                    }
-                    else
-                    {
-                        Dest.Ptr = DataTypeTemp;
-                        Dest.Type = pStringType;
-                        return true;
-                    }
+                    Dest.Ptr = DataTypeTemp;
+                    Dest.Type = pStringType;
+                    return true;
                 }
             }
         }

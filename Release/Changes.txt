@@ -1,3 +1,6 @@
+19 February 2011 by ieatacid
+- Me.Aura now returns the effect name as a string instead of a spell type.  If you need access to the spell data, look it up using the Spell TLO
+
 17 February 2011 by ieatacid
 - Updated for today's patch
 
