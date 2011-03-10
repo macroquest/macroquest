@@ -2476,11 +2476,14 @@ VOID BankList(PSPAWNINFO pChar, PCHAR szLine)
             GetItemLink(pContainer,&Link[0]);
             sprintf(szTemp,"Slot %d: %dx %s (%s)",a,pContainer->StackCount ? pContainer->StackCount : 1,Link,pContainer->Item->LoreName);
             WriteChatColor(szTemp,USERCOLOR_DEFAULT);
-            for (int b=0;b<pContainer->Item->Slots;b++) {
-                if (pContainer->pContentsArray->Contents[b]) {
-                    GetItemLink(pContainer->pContentsArray->Contents[b],&Link[0]);
-                    sprintf(szTemp,"- Slot %d: %dx %s (%s)",b,pContainer->pContentsArray->Contents[b]->StackCount ? pContainer->pContentsArray->Contents[b]->StackCount : 1,Link,pContainer->pContentsArray->Contents[b]->Item->LoreName);
-                    WriteChatColor(szTemp,USERCOLOR_DEFAULT);
+            if(pContainer->pContentsArray)
+            {
+                for (int b=0;b<pContainer->Item->Slots;b++) {
+                    if (pContainer->pContentsArray->Contents[b]) {
+                        GetItemLink(pContainer->pContentsArray->Contents[b],&Link[0]);
+                        sprintf(szTemp,"- Slot %d: %dx %s (%s)",b,pContainer->pContentsArray->Contents[b]->StackCount ? pContainer->pContentsArray->Contents[b]->StackCount : 1,Link,pContainer->pContentsArray->Contents[b]->Item->LoreName);
+                        WriteChatColor(szTemp,USERCOLOR_DEFAULT);
+                    }
                 }
             }
         }
