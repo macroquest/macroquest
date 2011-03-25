@@ -84,7 +84,7 @@ public:
                     //MQToSTML(szBuffer,szProcessed,MAX_STRING);
                     //strcat(szProcessed,"<br>");
                     //CXStr NewText(szProcessed);
-                    //OutputBox->AppendSTML(&Whatever,NewText);
+                    //OutputBox->AppendSTML(NewText);
                     //if (bScrollDown) ((CXWnd*)MQChatWnd->OutputBox)->SetVScrollPos(MQChatWnd->OutputBox->VScrollMax);
                     SetCXStr(&InputBox->InputText,"");
                     if (szBuffer[0]=='/')
@@ -184,12 +184,11 @@ public:
             PCHAR* Fonts; 
         }; 
         FONTDATA* Fonts;            // font array structure 
-        CXStr* str;                 // contents of stml window 
-        DWORD* SelFont;     // selected font 
+        DWORD* SelFont;             // selected font 
 
         // get fonts structure -- this offset can be found by looking at 
         // SetChatfont which is called from the /chatfontsize function 
-        Fonts = (FONTDATA*)&(((char*)pWndMgr)[0x114]); 
+        Fonts = (FONTDATA*)&(((char*)pWndMgr)[EQ_CHAT_FONT_OFFSET]); 
 
         // check font array bounds and pointers 
         if (size<0 || size>=(int)Fonts->NumFonts) 
@@ -205,9 +204,9 @@ public:
         SelFont = (DWORD*)Fonts->Fonts[size]; 
 
         // Save the text, change the font, then restore the text 
-        ((CStmlWnd*)MQChatWnd->OutputBox)->GetSTMLText(str); 
+        CXStr str(((CStmlWnd*)MQChatWnd->OutputBox)->GetSTMLText()); 
         ((CXWnd*)MQChatWnd->OutputBox)->SetFont(SelFont); 
-        ((CStmlWnd*)MQChatWnd->OutputBox)->SetSTMLText(*str,1,0); 
+        ((CStmlWnd*)MQChatWnd->OutputBox)->SetSTMLText(str,1,0); 
         ((CStmlWnd*)MQChatWnd->OutputBox)->ForceParseNow(); 
         // scroll to bottom of chat window 
         DebugTry(((CXWnd*)MQChatWnd->OutputBox)->SetVScrollPos(MQChatWnd->OutputBox->VScrollMax)); 
@@ -530,7 +529,7 @@ PLUGIN_API VOID OnPulse()
             CXSize Whatever; 
             for (DWORD N=0 ; N<ThisPulse ; N++) 
             { 
-                DebugTry(MQChatWnd->OutputBox->AppendSTML(&Whatever,pPendingChat->Text)); 
+                DebugTry(MQChatWnd->OutputBox->AppendSTML(pPendingChat->Text)); 
                 ChatBuffer *pNext=pPendingChat->pNext; 
                 delete pPendingChat; 
                 pPendingChat=pNext; 

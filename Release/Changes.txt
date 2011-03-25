@@ -1,3 +1,11 @@
+23 March 2011 by dkaa
+- Fixed GetSTMLText -- you need the new eqbcs
+- Fixed SetSTMLText -- you need the new eqbcs
+- Fixed AppendSTMLText -- you need the new eqbcs
+- Added a constant for the chat font offset so the /bcfont will work again
+- Added the class CXStr &  CXStr::operator=(class CXStr const &) offset.
+- This is all brainiac's fault.
+
 17 March 2011 by dkaa
 -  Jaysus, a patch on Paddy's day.
 

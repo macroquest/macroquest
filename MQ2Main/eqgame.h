@@ -557,6 +557,7 @@
 #define CXStr__CXStr1                                              0x7C7C60
 #define CXStr__CXStr3                                              0x7B4F00
 #define CXStr__dCXStr                                              0x780420
+#define CXStr__operator_equal                                      0x7B5070
 #define CXStr__operator_equal1                                     0x7B50C0
 #define CXStr__operator_plus_equal1                                0x7B6150
 

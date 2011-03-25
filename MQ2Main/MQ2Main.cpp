@@ -465,8 +465,7 @@ VOID AddNewsLine(PCHAR Line, DWORD Color)
     strcat(szProcessed,"<br>");
     CXStr NewText(szProcessed);
     ConvertItemTags(NewText,0);
-    CXSize Whatever;
-    pNewsWindow->OutputBox->AppendSTML(&Whatever,NewText);
+    pNewsWindow->OutputBox->AppendSTML(NewText);
     //    ((CXWnd*)pNewsWindow->OutputBox)->SetVScrollPos(0);
 
 }

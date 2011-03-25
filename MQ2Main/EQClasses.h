@@ -4484,8 +4484,8 @@ class CStmlWnd : public CSidlScreenWnd
 public:
 EQLIB_OBJECT CStmlWnd::CStmlWnd(class CXWnd *,unsigned __int32,class CXRect);
 EQLIB_OBJECT bool CStmlWnd::CanGoBackward(void);
-EQLIB_OBJECT class CXSize& CStmlWnd::AppendSTML(class CXSize*, class CXStr); // lax 11-15-2003
-EQLIB_OBJECT class CXStr* CStmlWnd::GetSTMLText(class CXStr*&)const;
+EQLIB_OBJECT class CXSize CStmlWnd::AppendSTML(class CXStr); // lax 11-15-2003
+EQLIB_OBJECT class CXStr CStmlWnd::GetSTMLText(void)const;
 EQLIB_OBJECT class CXStr CStmlWnd::GetVisiableText(class CXStr&,class CXRect)const;
 EQLIB_OBJECT static class CXStr __cdecl CStmlWnd::MakeStmlColorTag(unsigned long);
 EQLIB_OBJECT static class CXStr __cdecl CStmlWnd::MakeWndNotificationTag(unsigned __int32,class CXStr&,class CXStr&);
@@ -4493,7 +4493,7 @@ EQLIB_OBJECT void CStmlWnd::ActivateLink(class SLinkInfo);
 EQLIB_OBJECT void CStmlWnd::ForceParseNow(void);
 EQLIB_OBJECT void CStmlWnd::GoToBackHistoryLink(void);
 //EQLIB_OBJECT void CStmlWnd::LoadPage(class CXStr,enum ESTMLTargetValue,bool);
-EQLIB_OBJECT void CStmlWnd::SetSTMLText(class CXStr &,bool,class SLinkInfo *);
+EQLIB_OBJECT void CStmlWnd::SetSTMLText(class CXStr,bool,class SLinkInfo *);
 EQLIB_OBJECT void CStmlWnd::SetSTMLTextWithoutHistory(class CXStr);
 // virtual
 EQLIB_OBJECT CStmlWnd::~CStmlWnd(void);

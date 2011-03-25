@@ -595,6 +595,8 @@ typedef struct _EQCHATWINDOW
 
 // in CChatWindow__CChatWindow
 #define EQ_CHAT_HISTORY_OFFSET 0x268
+// in CChatWindow__SetChatFont
+#define EQ_CHAT_FONT_OFFSET    0x114
 
 // Actual size 0x1dc old
 // Lax 10-24-2003

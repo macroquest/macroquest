@@ -615,8 +615,7 @@ public:
 
         if (out[0]!=17) {
             strcat(out,"</c>");
-            CXSize Whatever;
-            ((CStmlWnd*)This->DisplayWnd)->AppendSTML(&Whatever, &out[0]);
+            ((CStmlWnd*)This->DisplayWnd)->AppendSTML(&out[0]);
         }
 
         // Ziggy - Items showing their spell details:

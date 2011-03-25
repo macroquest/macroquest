@@ -112,7 +112,7 @@ FUNCTION_AT_ADDRESS(struct  _CONTENTS* CMyInventory::GetSlot(int), CMyInventory_
 FUNCTION_AT_ADDRESS(char * EQ_Item::CreateItemTagString(char *, int),EQ_Item__CreateItemTagString); // Lax 11-14-2003
 #endif
 #ifdef CStmlWnd__AppendSTML
-FUNCTION_AT_ADDRESS(class CXSize& CStmlWnd::AppendSTML(class CXSize*,class CXStr),CStmlWnd__AppendSTML);
+FUNCTION_AT_ADDRESS(class CXSize CStmlWnd::AppendSTML(class CXStr),CStmlWnd__AppendSTML);
 #endif
 #ifdef EQ_Item__CanDrop
 FUNCTION_AT_ADDRESS(int EQ_Item::CanDrop(bool,int,int),EQ_Item__CanDrop); // dkaa 2-11-2011
@@ -971,7 +971,7 @@ FUNCTION_AT_ADDRESS(void  CChatWindow::SetChatFont(int),CChatWindow__SetChatFont
 FUNCTION_AT_ADDRESS(void  CChatWindow::Clear(void),CChatWindow__Clear);
 #endif
 #ifdef CStmlWnd__GetSTMLText
-FUNCTION_AT_ADDRESS(class CXStr*  CStmlWnd::GetSTMLText(class CXStr*&)const ,CStmlWnd__GetSTMLText);
+FUNCTION_AT_ADDRESS(class CXStr CStmlWnd::GetSTMLText(void)const, CStmlWnd__GetSTMLText);
 #endif
 #ifdef CChatWindow__GetInputWnd
 FUNCTION_AT_ADDRESS(class CEditWnd *  CChatWindow::GetInputWnd(void),CChatWindow__GetInputWnd);
@@ -7925,7 +7925,7 @@ FUNCTION_AT_ADDRESS(bool __cdecl CStmlWnd::CanBreakAtCharacter(unsigned short),C
 FUNCTION_AT_ADDRESS(void  CStmlWnd::UpdateHistoryString(__int32,class CXStr&),CStmlWnd__UpdateHistoryString);
 #endif
 #ifdef CStmlWnd__SetSTMLText
-FUNCTION_AT_ADDRESS(void  CStmlWnd::SetSTMLText(class CXStr &,bool,class SLinkInfo *),CStmlWnd__SetSTMLText);
+FUNCTION_AT_ADDRESS(void  CStmlWnd::SetSTMLText(class CXStr,bool,class SLinkInfo *),CStmlWnd__SetSTMLText);
 #endif
 #ifdef SLinkInfo__SLinkInfo1
 //FUNCTION_AT_ADDRESS( SLinkInfo::SLinkInfo(void),SLinkInfo__SLinkInfo1);

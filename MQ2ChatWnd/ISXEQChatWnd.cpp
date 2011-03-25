@@ -69,7 +69,7 @@ public:
 
         OutputBox = (CStmlWnd*)GetChildItem("CWChatOutput");
         OutputBox->Clickable = 1;
-        *(DWORD*)&(((PCHAR)OutputBox)[0x1f0])=400;
+        *(DWORD*)&(((PCHAR)OutputBox)[EQ_CHAT_HISTORY_OFFSET])=400;
 
         OutBoxLines = 0;
         AutoScroll = true;
@@ -91,7 +91,7 @@ public:
                 char szBuffer[2048];
                 GetCXStr((PCXSTR)InputBox->InputText, szBuffer, 2047);
                 if (szBuffer[0]) {
-                    OutputBox->AppendSTML(&Whatever, szBuffer);
+                    OutputBox->AppendSTML(szBuffer);
                     SetCXStr(&InputBox->InputText, "");
                     pISInterface->ExecuteCommand(szBuffer);
                 }
@@ -146,7 +146,7 @@ public:
         DWORD* SelFont;     // selected font
 
         // get fonts structure
-        Fonts = (FONTDATA*)&(((char*)pWndMgr)[0xF4]);
+        Fonts = (FONTDATA*)&(((char*)pWndMgr)[EQ_CHAT_FONT_OFFSET]);
 
         // check font array bounds and pointers
         if (size < 0 || size >= Fonts->NumFonts) {
@@ -160,9 +160,9 @@ public:
         SelFont = (DWORD*)Fonts->Fonts[size];
 
         // Save the text, change the font, then restore the text
-        MQChatWnd->OutputBox->GetSTMLText(str);
+        CXStr str(MQChatWnd->OutputBox->GetSTMLText());
         ((CXWnd*)MQChatWnd->OutputBox)->SetFont(SelFont);
-        ((CStmlWnd*)MQChatWnd->OutputBox)->SetSTMLText(*str, 1, 0);
+        ((CStmlWnd*)MQChatWnd->OutputBox)->SetSTMLText(str, 1, 0);
         ((CStmlWnd*)MQChatWnd->OutputBox)->ForceParseNow();
         // scroll to bottom of chat window
         ((CXWnd*)MQChatWnd->OutputBox)->SetVScrollPos(MQChatWnd->OutputBox->VScrollMax);
@@ -255,7 +255,7 @@ void PulseService(bool Broadcast, unsigned int MSG, void *lpData)
             }
             CXSize Whatever;
             for (DWORD N = 0 ; N < ThisPulse ; N++) {
-                DebugTry(MQChatWnd->OutputBox->AppendSTML(&Whatever, pPendingChat->Text));
+                DebugTry(MQChatWnd->OutputBox->AppendSTML( pPendingChat->Text));
                 ChatBuffer *pNext = pPendingChat->pNext;
                 delete pPendingChat;
                 pPendingChat = pNext;
