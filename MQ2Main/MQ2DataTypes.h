@@ -905,6 +905,7 @@ public:
         Mercenary=177,
         XTarget=178,
         Haste=179,
+        MercenaryStance=180,
     };
     static enum CharacterMethods
     {
@@ -1091,6 +1092,7 @@ public:
         TypeMember(Mercenary);
         TypeMember(XTarget);
         TypeMember(Haste);
+        TypeMember(MercenaryStance);
 
         TypeMethod(Stand); 
         TypeMethod(Sit); 

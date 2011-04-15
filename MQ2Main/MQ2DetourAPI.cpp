@@ -261,7 +261,7 @@ VOID HookInlineChecks(BOOL Patch)
                     __AC6,
                     __AC7 };
 
-    int len2[] = { 6, 5, 5, 5, 5, 5 }; 
+    int len2[] = { 6, 5, 6, 5, 5, 5 }; 
 
     char NewData2[20];
 

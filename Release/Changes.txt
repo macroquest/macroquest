@@ -1,3 +1,9 @@
+14 April 2011 by ieatacid
+- Updated for April 13th patch
+
+6 April 2011 by ieatacid
+- Added Me.MercenaryStance -- returns current active mercenary stance as a string, default is NULL
+
 23 March 2011 by dkaa
 - Fixed GetSTMLText -- you need the new eqbcs
 - Fixed SetSTMLText -- you need the new eqbcs

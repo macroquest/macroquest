@@ -995,12 +995,20 @@ PCHAR GetGuildByID(DWORD GuildID)
 
 DWORD GetGuildIDByName(PCHAR szGuild)
 {
-    for(DWORD n = 0; n < pGuildList->HashValue - 1; n++)
-    {
-        if(PGUILD pGuild = pGuildList->GuildList[n])
-        {
-            while (pGuild)
-            {
+    for(DWORD n = 0; n < pGuildList->HashValue - 1; n++) {
+        if(PGUILD pGuild = pGuildList->GuildList[n]) {
+            while (pGuild) {
+                if(!stricmp(pGuild->pGuildData->Name, szGuild))
+                    return pGuild->ID;
+
+                pGuild = pGuild->pNext;
+            }
+        }
+    }
+
+    for(DWORD n = 0; n < pGuildList->HashValue - 1; n++) {
+        if(PGUILD pGuild = pGuildList->GuildList[n]) {
+            while (pGuild) {
                 if(!strnicmp(pGuild->pGuildData->Name, szGuild, strlen(szGuild)))
                     return pGuild->ID;
 

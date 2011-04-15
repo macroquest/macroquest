@@ -3415,6 +3415,21 @@ bool MQ2CharacterType::GETMEMBER()
         Dest.DWord = pCharData1->TotalEffect(0xb, 1, 0, 1, 1);
         Dest.Type = pIntType;
         return true;
+    case MercenaryStance:
+        Dest.Ptr = "NULL";
+        if(pMercInfo->HaveMerc)
+        {
+            for(DWORD n = 0; n < pMercInfo->NumStances; n++)
+            {
+                if(pMercInfo->pMercStanceData[n]->nStance == pMercInfo->ActiveStance)
+                {
+                    Dest.Ptr = pCDBStr->GetString(pMercInfo->pMercStanceData[n]->nDbStance, 24, 0);
+                    break;
+                }
+            }
+        }
+        Dest.Type = pStringType;
+        return true;
     }
     return false;
 #undef pChar
