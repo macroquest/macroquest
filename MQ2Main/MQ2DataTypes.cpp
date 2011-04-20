@@ -4242,7 +4242,7 @@ bool MQ2ItemType::GETMEMBER()
         Dest.DWord=0;
         // count bits
         cmp=GetItemFromContents(pItem)->Races;
-        for (N = 0 ; N < 15 ; N++)
+        for (N = 0 ; N < 17 ; N++)
         {
             if (cmp&(1<<N))
                 Dest.DWord++;
@@ -4258,7 +4258,7 @@ bool MQ2ItemType::GETMEMBER()
                 if (!Count)
                     return false;
                 cmp=GetItemFromContents(pItem)->Races;
-                for (N = 0 ; N < 15 ; N++)
+                for (N = 0 ; N < 17 ; N++)
                 {
                     if (cmp&(1<<N))
                     {
@@ -4287,7 +4287,7 @@ bool MQ2ItemType::GETMEMBER()
             {
                 // by name
                 cmp=GetItemFromContents(pItem)->Races;
-                for (N = 0 ; N < 15 ; N++) {
+                for (N = 0 ; N < 17 ; N++) {
                     if (cmp&(1<<N)) {
                         tmp = N+1;
                         switch (N) {
