@@ -1816,7 +1816,7 @@ typedef struct _EQFRIENDSLIST {
 /*0x1900*/
 } EQFRIENDSLIST, *PEQFRIENDSLIST;
 
-// Size 0x70 (8.11.2004)
+// Size 0x98    04/13/2011 dkaa in msg_set_alt_data
 typedef struct _ALTABILITY {
 /*0x00*/ DWORD Index;
 /*0x04*/ DWORD Flags;                    //?
@@ -1828,28 +1828,21 @@ typedef struct _ALTABILITY {
 /*0x1c*/ DWORD Cost;                     //Initial Cost or cost the last time you bought a level of it
 /*0x20*/ DWORD ID;                       // /alt activate id
 /*0x24*/ DWORD AARankRequired;
-union {  
-/*0x28*/ LONG  RequiresAbility;          // If the value is positive then its the index number of the AA required.
-/*0x28*/ DWORD RequiresPointsInCategory; // If the value is negative then abs(value) is the
-};                                       // category, while (abs(value))*6 is the points required.
-/*0x2c*/ DWORD RequiresAbilityPoints;
-/*0x30*/ DWORD Type; 
-/*0x34*/ LONG  SpellID;                  // -1 for no Spell
-/*0x38*/ BYTE  Unknown0x38[0x8]; 
-/*0x40*/ DWORD ReuseTimer;               // in seconds
-/*0x44*/ DWORD Classes;                  // Classes/2 is the actual value we want.
-/*0x48*/ DWORD MaxRank;                         //If you have not spent points in this 
+// ks clear to here
+/*0x28*/ BYTE  Unknown0x28[0x10];   // abilities requirements
+/*0x38*/ DWORD RequiresAbilityPoints;
+/*0x3c*/ DWORD Type; 
+/*0x40*/ LONG  SpellID;                  // -1 for no Spell
+/*0x44*/ DWORD Unknown0x44;
+/*0x48*/ BYTE  Unknown0x38[0x10]; 
+/*0x58*/ DWORD ReuseTimer;               // in seconds
+/*0x5c*/ DWORD Classes;                  // Classes/2 is the actual value we want.
+/*0x60*/ DWORD MaxRank;                         //If you have not spent points in this 
 union {                                         //If you have not spent points in this 
-/*0x4c*/ DWORD PointsSpent;                //ability, then its PointsToBeSpent (or 
-/*0x4c*/ DWORD PointsToBeSpent;            //'Cost', in other words).
+/*0x64*/ DWORD PointsSpent;                //ability, then its PointsToBeSpent (or 
+/*0x64*/ DWORD PointsToBeSpent;            //'Cost', in other words).
 }; 
-/*0x50*/ DWORD AAIndex;                  // -1 if not available
-/*0x54*/ DWORD UseAAIndex;
-/*0x55*/ BYTE  Unknown0x55;
-/*0x56*/ BYTE  Unknown0x56;
-/*0x57*/ BYTE  Unknown0x57;
-/*0x58*/ BYTE  Unknown0x58;
-/*0x59*/ BYTE  Unknown0x59[0x18];
+/*0x68*/ BYTE  Unknown0x68[0x30];
 } ALTABILITY, *PALTABILITY;
 #define zWarp                 0
 

@@ -6337,6 +6337,7 @@ bool MQ2AltAbilityType::GETMEMBER()
         }
         return false;
     case RequiresAbility:
+#if 0
         if (pAbility->RequiresAbility>0)
         {
             for (unsigned long nAbility=0 ; nAbility<NUM_ALT_ABILITIES_ARRAY ; nAbility++)
@@ -6355,6 +6356,7 @@ bool MQ2AltAbilityType::GETMEMBER()
                 }        
             }
         }
+#endif
         return false;
     case RequiresAbilityPoints:
         Dest.DWord=pAbility->RequiresAbilityPoints;
