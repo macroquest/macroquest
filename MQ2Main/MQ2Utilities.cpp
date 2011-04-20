@@ -1131,7 +1131,7 @@ VOID GetItemLink(PCONTENTS Item, PCHAR Buffer)
 {
     char hash[256];
     ((EQ_Item*)Item)->CreateItemTagString(hash, 256);
-    sprintf(Buffer,"%c0%s%s%c",0x12,hash,Item->Item->Name,0x12);
+    sprintf(Buffer,"%c0%s%s%c",0x12,hash,GetItemFromContents(Item)->Name,0x12);
     DebugSpew("GetItemLink() returns '%s'",&Buffer[0]);
 }
 
@@ -1207,22 +1207,22 @@ VOID ClearSearchItem(SEARCHITEM &SearchItem)
 
 BOOL ItemMatchesSearch(SEARCHITEM &SearchItem, PCONTENTS pContents)
 {
-    if (SearchItem.ID && pContents->Item->ItemNumber!=SearchItem.ID)
+    if (SearchItem.ID && GetItemFromContents(pContents)->ItemNumber!=SearchItem.ID)
         return false;
-    RequireFlag(Lore,pContents->Item->Lore);
-    RequireFlag(NoRent,pContents->Item->NoRent);
-    RequireFlag(NoDrop,pContents->Item->NoDrop);
-    RequireFlag(Magic,pContents->Item->Magic);
-    RequireFlag(Pack,pContents->Item->Type==ITEMTYPE_PACK);
-    RequireFlag(Book,pContents->Item->Type==ITEMTYPE_BOOK);
-    RequireFlag(Combinable,pContents->Item->ItemType==17);
-    RequireFlag(Summoned,pContents->Item->Summoned);
-    RequireFlag(Instrument,pContents->Item->InstrumentType);
-    RequireFlag(Weapon,pContents->Item->Damage && pContents->Item->Delay);
-    RequireFlag(Normal,pContents->Item->Type==ITEMTYPE_NORMAL);
+    RequireFlag(Lore,GetItemFromContents(pContents)->Lore);
+    RequireFlag(NoRent,GetItemFromContents(pContents)->NoRent);
+    RequireFlag(NoDrop,GetItemFromContents(pContents)->NoDrop);
+    RequireFlag(Magic,GetItemFromContents(pContents)->Magic);
+    RequireFlag(Pack,GetItemFromContents(pContents)->Type==ITEMTYPE_PACK);
+    RequireFlag(Book,GetItemFromContents(pContents)->Type==ITEMTYPE_BOOK);
+    RequireFlag(Combinable,GetItemFromContents(pContents)->ItemType==17);
+    RequireFlag(Summoned,GetItemFromContents(pContents)->Summoned);
+    RequireFlag(Instrument,GetItemFromContents(pContents)->InstrumentType);
+    RequireFlag(Weapon,GetItemFromContents(pContents)->Damage && GetItemFromContents(pContents)->Delay);
+    RequireFlag(Normal,GetItemFromContents(pContents)->Type==ITEMTYPE_NORMAL);
 
     CHAR szName[MAX_STRING] = {0};
-    if (SearchItem.szName[0] && !strstr(_strlwr(strcpy(szName,pContents->Item->Name)),SearchItem.szName))
+    if (SearchItem.szName[0] && !strstr(_strlwr(strcpy(szName,GetItemFromContents(pContents)->Name)),SearchItem.szName))
         return FALSE;
 
     return true;
@@ -1265,9 +1265,9 @@ BOOL SearchThroughItems(SEARCHITEM &SearchItem, PCONTENTS* pResult, DWORD *nResu
         for (nPack = 0 ; nPack<10 ; nPack++)
         {
             if (PCONTENTS pContents=GetCharInfo2()->pInventoryArray->Inventory.Pack[nPack])
-                if (pContents->Item->ItemType==ITEMTYPE_PACK && pContents->pContentsArray)
+                if (GetItemFromContents(pContents)->ItemType==ITEMTYPE_PACK && pContents->pContentsArray)
                 {
-                    for (unsigned long nItem = 0 ; nItem<pContents->Item->Slots ; nItem++)
+                    for (unsigned long nItem = 0 ; nItem<GetItemFromContents(pContents)->Slots ; nItem++)
                     {
                         if (PCONTENTS pItem=pContents->pContentsArray->Contents[nItem])
                             if (ItemMatchesSearch(SearchItem,pItem))
@@ -3034,7 +3034,7 @@ int FindInvSlotForContents(PCONTENTS pContents)
 
     // screw the old style InvSlot numbers
     // return the index into the INVSLOTMGR array
-    DebugSpew("FindInvSlotForContents(0x%08X) (0x%08X)",pContents,pContents->Item);
+    DebugSpew("FindInvSlotForContents(0x%08X) (0x%08X)",pContents,GetItemFromContents(pContents));
 
 #if 1
     PEQINVSLOTMGR pInvMgr=(PEQINVSLOTMGR)pInvSlotMgr;
@@ -3162,7 +3162,7 @@ int FindInvSlot(PCHAR pName, BOOL Exact)
             {
                 if (!Exact)
                 {
-                    _strlwr(strcpy(szTemp,y->Item->Name));
+                    _strlwr(strcpy(szTemp,GetItemFromContents(y)->Name));
                     if (strstr(szTemp,Name))
                     {
                         if (pInvMgr->SlotArray[N]->pInvSlotWnd)
@@ -3173,7 +3173,7 @@ int FindInvSlot(PCHAR pName, BOOL Exact)
                         // let it try to find it in an open slot if this fails
                     }
                 }
-                else if (!stricmp(Name,y->Item->Name))
+                else if (!stricmp(Name,GetItemFromContents(y)->Name))
                 {
                     if (pInvMgr->SlotArray[N]->pInvSlotWnd)
                     {
@@ -5694,14 +5694,14 @@ PCONTENTS GetItemContentsByName(CHAR *ItemName)
 {
     for(unsigned long nSlot=0; nSlot<NUM_INV_SLOTS; nSlot++)
         if(PCONTENTS pItem=GetCharInfo2()->pInventoryArray->InventoryArray[nSlot])
-            if(!strcmp(ItemName,pItem->Item->Name)) return pItem;
+            if(!strcmp(ItemName,GetItemFromContents(pItem)->Name)) return pItem;
 
     for (unsigned long nPack=0 ; nPack < 10 ; nPack++)
         if (PCONTENTS pPack=GetCharInfo2()->pInventoryArray->Inventory.Pack[nPack])
-            if (pPack->Item->Type==ITEMTYPE_PACK && pPack->pContentsArray)
-                for (unsigned long nItem=0 ; nItem < pPack->Item->Slots ; nItem++)
+            if (GetItemFromContents(pPack)->Type==ITEMTYPE_PACK && pPack->pContentsArray)
+                for (unsigned long nItem=0 ; nItem < GetItemFromContents(pPack)->Slots ; nItem++)
                     if (PCONTENTS pItem=pPack->pContentsArray->Contents[nItem])
-                        if (!stricmp(ItemName,pItem->Item->Name)) return pItem;
+                        if (!stricmp(ItemName,GetItemFromContents(pItem)->Name)) return pItem;
 
     return NULL; 
 }
@@ -5905,3 +5905,12 @@ void UseAbility(char *sAbility) {
 //                                                                                               //
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 #endif
+
+namespace EQData 
+{
+
+EQLIB_API struct  _ITEMINFO *GetItemFromContents(struct _CONTENTS *c)
+{
+    return c->Item1 ? c->Item1 : c->Item2;
+}
+};

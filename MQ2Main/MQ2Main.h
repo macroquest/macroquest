@@ -425,6 +425,7 @@ EQLIB_API int FindMappableCommand(const char *name);
 EQLIB_API int GetLanguageIDByName(PCHAR szName);
 EQLIB_API PCHAR GetSpellNameByID(DWORD dwSpellID);
 EQLIB_API PSPELL GetSpellByName(PCHAR szName);
+EQLIB_API struct  _ITEMINFO *GetItemFromContents(struct _CONTENTS *c);
 #include "MQ2Inlines.h"
 
 

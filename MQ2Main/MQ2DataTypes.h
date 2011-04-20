@@ -1600,7 +1600,7 @@ public:
     {
         if (!VarPtr.Ptr)
             return false;
-        strcpy(Destination,((PCONTENTS)VarPtr.Ptr)->Item->Name);
+        strcpy(Destination,GetItemFromContents((PCONTENTS)VarPtr.Ptr)->Name);
         return true;
     }
     void InitVariable(MQ2VARPTR &VarPtr) 

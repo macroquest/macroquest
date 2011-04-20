@@ -2895,13 +2895,13 @@ bool MQ2CharacterType::GETMEMBER()
             {
                 if (PCONTENTS pItem = GetCharInfo2()->pInventoryArray->InventoryArray[slot])
                 {
-                    if (pItem->Item->Type==ITEMTYPE_PACK && pItem->Item->SizeCapacity>Dest.DWord) 
+                    if (GetItemFromContents(pItem)->Type==ITEMTYPE_PACK && GetItemFromContents(pItem)->SizeCapacity>Dest.DWord) 
                     {
-                        for (DWORD pslot=0;pslot<(pItem->Item->Slots);pslot++) 
+                        for (DWORD pslot=0;pslot<(GetItemFromContents(pItem)->Slots);pslot++) 
                         {
                             if (!pItem->pContentsArray || !pItem->pContentsArray->Contents[pslot])
                             {
-                                Dest.DWord=pItem->Item->SizeCapacity;
+                                Dest.DWord=GetItemFromContents(pItem)->SizeCapacity;
                                 break;// break the loop for this pack
                             }
                         }
@@ -2926,12 +2926,12 @@ bool MQ2CharacterType::GETMEMBER()
             {
                 if (PCONTENTS pItem = GetCharInfo2()->pInventoryArray->InventoryArray[slot]) 
                 {
-                    if (pItem->Item->Type==ITEMTYPE_PACK && pItem->Item->SizeCapacity>=nSize) 
+                    if (GetItemFromContents(pItem)->Type==ITEMTYPE_PACK && GetItemFromContents(pItem)->SizeCapacity>=nSize) 
                     {
                         if (!pItem->pContentsArray) {
-                            Dest.DWord+= pItem->Item->Slots;
+                            Dest.DWord+= GetItemFromContents(pItem)->Slots;
                         } else {
-                            for (DWORD pslot=0;pslot<(pItem->Item->Slots);pslot++) 
+                            for (DWORD pslot=0;pslot<(GetItemFromContents(pItem)->Slots);pslot++) 
                             {
                                 if (!pItem->pContentsArray->Contents[pslot]) 
                                     Dest.DWord++;
@@ -2957,12 +2957,12 @@ bool MQ2CharacterType::GETMEMBER()
                     break;
                 if (PCONTENTS pItem = GetCharInfo2()->pInventoryArray->InventoryArray[slot]) 
                 {
-                    if (pItem->Item->Type==ITEMTYPE_PACK) 
+                    if (GetItemFromContents(pItem)->Type==ITEMTYPE_PACK) 
                     {
                         if (!pItem->pContentsArray) {
-                            Dest.DWord+= pItem->Item->Slots;
+                            Dest.DWord+= GetItemFromContents(pItem)->Slots;
                         } else {
-                            for (DWORD pslot=0;pslot<(pItem->Item->Slots);pslot++) 
+                            for (DWORD pslot=0;pslot<(GetItemFromContents(pItem)->Slots);pslot++) 
                             {
                                 if (!pItem->pContentsArray->Contents[pslot]) 
                                     Dest.DWord++;
@@ -3711,15 +3711,15 @@ bool MQ2ItemType::GETMEMBER()
     switch((ItemMembers)pMember->ID)
     {
     case ID:
-        Dest.DWord=pItem->Item->ItemNumber;
+        Dest.DWord=GetItemFromContents(pItem)->ItemNumber;
         Dest.Type=pIntType;
         return true;
     case Name:
-        Dest.Ptr=&pItem->Item->Name[0];
+        Dest.Ptr=&GetItemFromContents(pItem)->Name[0];
         Dest.Type=pStringType;
         return true;
     case Lore:
-        Dest.DWord=pItem->Item->Lore;
+        Dest.DWord=GetItemFromContents(pItem)->Lore;
         Dest.Type=pBoolType;
         return true;
     case NoDrop:
@@ -3727,95 +3727,95 @@ bool MQ2ItemType::GETMEMBER()
         Dest.Type=pBoolType;
         return true;
     case NoRent:
-        Dest.DWord=!pItem->Item->NoRent;
+        Dest.DWord=!GetItemFromContents(pItem)->NoRent;
         Dest.Type=pBoolType;
         return true;
     case Magic:
-        Dest.DWord=((pItem->Item->Type == ITEMTYPE_NORMAL) && (pItem->Item->Magic));
+        Dest.DWord=((GetItemFromContents(pItem)->Type == ITEMTYPE_NORMAL) && (GetItemFromContents(pItem)->Magic));
         Dest.Type=pBoolType;
         return true;
     case Value:
-        Dest.DWord=pItem->Item->Cost;
+        Dest.DWord=GetItemFromContents(pItem)->Cost;
         Dest.Type=pIntType;
         return true;
     case Size:
-        Dest.DWord=pItem->Item->Size;
+        Dest.DWord=GetItemFromContents(pItem)->Size;
         Dest.Type=pIntType;
         return true;
     case SizeCapacity:
-        Dest.DWord=pItem->Item->SizeCapacity;
+        Dest.DWord=GetItemFromContents(pItem)->SizeCapacity;
         Dest.Type=pIntType;
         return true;
     case Weight:
-        Dest.DWord=pItem->Item->Weight;
+        Dest.DWord=GetItemFromContents(pItem)->Weight;
         Dest.Type=pIntType;
         return true;
     case Stack:
-        if ((pItem->Item->Type != ITEMTYPE_NORMAL) || (((EQ_Item*)pItem)->IsStackable()!=1))
+        if ((GetItemFromContents(pItem)->Type != ITEMTYPE_NORMAL) || (((EQ_Item*)pItem)->IsStackable()!=1))
             Dest.DWord=1;
         else
             Dest.DWord=pItem->StackCount;
         Dest.Type=pIntType;
         return true;
     case Type:
-        if (pItem->Item->Type == ITEMTYPE_NORMAL) 
+        if (GetItemFromContents(pItem)->Type == ITEMTYPE_NORMAL) 
         {
-            if ((pItem->Item->ItemType < MAX_ITEMTYPES) && (szItemTypes[pItem->Item->ItemType] != NULL)) 
+            if ((GetItemFromContents(pItem)->ItemType < MAX_ITEMTYPES) && (szItemTypes[GetItemFromContents(pItem)->ItemType] != NULL)) 
             {
-                Dest.Ptr=szItemTypes[pItem->Item->ItemType];
+                Dest.Ptr=szItemTypes[GetItemFromContents(pItem)->ItemType];
             } 
             else 
             {
                 Dest.Ptr=&DataTypeTemp[0];
-                sprintf(DataTypeTemp,"*UnknownType%d",pItem->Item->ItemType);
+                sprintf(DataTypeTemp,"*UnknownType%d",GetItemFromContents(pItem)->ItemType);
             }
         }
-        else if (pItem->Item->Type == ITEMTYPE_PACK) 
+        else if (GetItemFromContents(pItem)->Type == ITEMTYPE_PACK) 
         {
-            if ((pItem->Item->Combine < MAX_COMBINES) && (szCombineTypes[pItem->Item->Combine] != NULL)) 
+            if ((GetItemFromContents(pItem)->Combine < MAX_COMBINES) && (szCombineTypes[GetItemFromContents(pItem)->Combine] != NULL)) 
             {
-                Dest.Ptr=szCombineTypes[pItem->Item->Combine];
+                Dest.Ptr=szCombineTypes[GetItemFromContents(pItem)->Combine];
             } 
             else 
             {
                 Dest.Ptr=&DataTypeTemp[0];
-                sprintf(DataTypeTemp,"*UnknownCombine%d",pItem->Item->Combine);
+                sprintf(DataTypeTemp,"*UnknownCombine%d",GetItemFromContents(pItem)->Combine);
             }
         }
-        else if (pItem->Item->Type == ITEMTYPE_BOOK)
+        else if (GetItemFromContents(pItem)->Type == ITEMTYPE_BOOK)
             Dest.Ptr="Book";
         Dest.Type=pStringType;
         return true;
     case Charges:
-        if (pItem->Item->Type != ITEMTYPE_NORMAL)
+        if (GetItemFromContents(pItem)->Type != ITEMTYPE_NORMAL)
             Dest.DWord=0;
         else
             Dest.DWord=pItem->Charges;
         Dest.Type=pIntType;
         return true;
     case LDoNTheme:
-        Dest.Ptr=GetLDoNTheme(pItem->Item->LDTheme);
+        Dest.Ptr=GetLDoNTheme(GetItemFromContents(pItem)->LDTheme);
         Dest.Type=pStringType;
         return true;
     case DMGBonusType:
-        Dest.Ptr=szDmgBonusType[pItem->Item->DmgBonusType];
+        Dest.Ptr=szDmgBonusType[GetItemFromContents(pItem)->DmgBonusType];
         Dest.Type=pStringType;
         return true;
     case Container:
-        if (pItem->Item->Type == ITEMTYPE_PACK)
+        if (GetItemFromContents(pItem)->Type == ITEMTYPE_PACK)
         {
-            Dest.DWord=pItem->Item->Slots;
+            Dest.DWord=GetItemFromContents(pItem)->Slots;
         }
         else
             Dest.DWord=0;
         Dest.Type=pIntType;
         return true;
     case Items:
-        if (pItem->Item->Type == ITEMTYPE_PACK)
+        if (GetItemFromContents(pItem)->Type == ITEMTYPE_PACK)
         {
             Dest.DWord=0;
             if (pItem->pContentsArray) {
-                for (unsigned long N=0 ; N < pItem->Item->Slots ; N++) {
+                for (unsigned long N=0 ; N < GetItemFromContents(pItem)->Slots ; N++) {
                     if (pItem->pContentsArray->Contents[N])
                         Dest.DWord++;
                 }
@@ -3825,11 +3825,11 @@ bool MQ2ItemType::GETMEMBER()
         }
         return false;
     case Item:
-        if (pItem->Item->Type == ITEMTYPE_PACK && ISNUMBER())
+        if (GetItemFromContents(pItem)->Type == ITEMTYPE_PACK && ISNUMBER())
         {
             unsigned long N=GETNUMBER();
             N--;
-            if (N<pItem->Item->Slots)
+            if (N<GetItemFromContents(pItem)->Slots)
             {
                 if (pItem->pContentsArray)
                 if (Dest.Ptr=pItem->pContentsArray->Contents[N])
@@ -3838,7 +3838,7 @@ bool MQ2ItemType::GETMEMBER()
                     return true;
                 }
             }
-        } else if (pItem->Item->Type == ITEMTYPE_NORMAL && ISNUMBER()) {
+        } else if (GetItemFromContents(pItem)->Type == ITEMTYPE_NORMAL && ISNUMBER()) {
             unsigned long N=GETNUMBER();
             N--;
             Dest.Ptr=NULL;
@@ -3846,19 +3846,19 @@ bool MQ2ItemType::GETMEMBER()
             switch (N)
             {
             case 0: 
-                if (pItem->Item->AugSlot1) Dest.Ptr=pItem->pContentsArray->Contents[N];   
+                if (GetItemFromContents(pItem)->AugSlot1) Dest.Ptr=pItem->pContentsArray->Contents[N];   
                 break;
             case 1: 
-                if (pItem->Item->AugSlot2) Dest.Ptr=pItem->pContentsArray->Contents[N];   
+                if (GetItemFromContents(pItem)->AugSlot2) Dest.Ptr=pItem->pContentsArray->Contents[N];   
                 break;
             case 2: 
-                if (pItem->Item->AugSlot3) Dest.Ptr=pItem->pContentsArray->Contents[N];   
+                if (GetItemFromContents(pItem)->AugSlot3) Dest.Ptr=pItem->pContentsArray->Contents[N];   
                 break;
             case 3: 
-                if (pItem->Item->AugSlot4) Dest.Ptr=pItem->pContentsArray->Contents[N];   
+                if (GetItemFromContents(pItem)->AugSlot4) Dest.Ptr=pItem->pContentsArray->Contents[N];   
                 break;
             case 4: 
-                if (pItem->Item->AugSlot5) Dest.Ptr=pItem->pContentsArray->Contents[N];   
+                if (GetItemFromContents(pItem)->AugSlot5) Dest.Ptr=pItem->pContentsArray->Contents[N];   
                 break;
             }
             if (Dest.Ptr) return true; 
@@ -3887,7 +3887,7 @@ bool MQ2ItemType::GETMEMBER()
     case SellPrice:
         if (pActiveMerchant)
         {
-            Dest.DWord=(DWORD)((FLOAT)pItem->Item->Cost*(1.0f/((PEQMERCHWINDOW)pMerchantWnd)->Markup));
+            Dest.DWord=(DWORD)((FLOAT)GetItemFromContents(pItem)->Cost*(1.0f/((PEQMERCHWINDOW)pMerchantWnd)->Markup));
             Dest.Type=pIntType;
             return true;
         }
@@ -3900,7 +3900,7 @@ bool MQ2ItemType::GETMEMBER()
                 DWORD Count=GETNUMBER();
                 if (!Count)
                     return false;
-                cmp=pItem->Item->EquipSlots;
+                cmp=GetItemFromContents(pItem)->EquipSlots;
                 for (N = 0 ; N < 32 ; N++)
                 {
                     if (cmp&(1<<N))
@@ -3921,7 +3921,7 @@ bool MQ2ItemType::GETMEMBER()
                 DWORD nInvSlot=ItemSlotMap[GETFIRST()];
                 if ((nInvSlot || !stricmp(GETFIRST(),"charm")) && nInvSlot<32)
                 {
-                    Dest.DWord=(pItem->Item->EquipSlots&(1<<nInvSlot));
+                    Dest.DWord=(GetItemFromContents(pItem)->EquipSlots&(1<<nInvSlot));
                     Dest.Type=pBoolType;
                     return true;
                 }
@@ -3932,7 +3932,7 @@ bool MQ2ItemType::GETMEMBER()
         {
             Dest.DWord=0;
             // count bits
-            cmp=pItem->Item->EquipSlots;
+            cmp=GetItemFromContents(pItem)->EquipSlots;
             for (N = 0 ; N < 32 ; N++)
             {
                 if (cmp&(1<<N))
@@ -3942,31 +3942,31 @@ bool MQ2ItemType::GETMEMBER()
             return true;
         }
     case CastTime:
-        Dest.Float=(FLOAT)pItem->Item->Clicky.CastTime/1000;
+        Dest.Float=(FLOAT)GetItemFromContents(pItem)->Clicky.CastTime/1000;
         Dest.Type=pFloatType;
         return true;
     case Spell: 
-        if (Dest.Ptr=GetSpellByID(pItem->Item->Clicky.SpellID)) 
+        if (Dest.Ptr=GetSpellByID(GetItemFromContents(pItem)->Clicky.SpellID)) 
         { 
             Dest.Type=pSpellType; 
             return true; 
         } 
-        if (Dest.Ptr=GetSpellByID(pItem->Item->Scroll.SpellID)) 
+        if (Dest.Ptr=GetSpellByID(GetItemFromContents(pItem)->Scroll.SpellID)) 
         { 
             Dest.Type=pSpellType; 
             return true; 
         } 
-        if (Dest.Ptr=GetSpellByID(pItem->Item->Proc.SpellID)) 
+        if (Dest.Ptr=GetSpellByID(GetItemFromContents(pItem)->Proc.SpellID)) 
         { 
             Dest.Type=pSpellType; 
             return true; 
         } 
-        if (Dest.Ptr=GetSpellByID(pItem->Item->Focus.SpellID)) 
+        if (Dest.Ptr=GetSpellByID(GetItemFromContents(pItem)->Focus.SpellID)) 
         { 
             Dest.Type=pSpellType; 
             return true; 
         } 
-        if (Dest.Ptr=GetSpellByID(pItem->Item->Worn.SpellID)) 
+        if (Dest.Ptr=GetSpellByID(GetItemFromContents(pItem)->Worn.SpellID)) 
         { 
             Dest.Type=pSpellType; 
             return true; 
@@ -3984,18 +3984,18 @@ bool MQ2ItemType::GETMEMBER()
         // This used to return an int type with a case statment, items could have 
         // only one effect. For backwards compatibility we return based on a hierarchy. 
         // A zero in any field indicates no effect (others will also be zero) 
-        if (!pItem->Item->Clicky.SpellID) 
+        if (!GetItemFromContents(pItem)->Clicky.SpellID) 
         { 
             return false; 
         } 
-        else if (pItem->Item->Scroll.SpellID!=-1) 
+        else if (GetItemFromContents(pItem)->Scroll.SpellID!=-1) 
         { 
             Dest.Ptr="Spell Scroll"; 
         } 
-        else if (pItem->Item->Clicky.SpellID!=-1) 
+        else if (GetItemFromContents(pItem)->Clicky.SpellID!=-1) 
         { 
             // code to detect must-be-worn etc here 
-            switch (pItem->Item->Clicky.EffectType) 
+            switch (GetItemFromContents(pItem)->Clicky.EffectType) 
             { 
             case 4: 
                 Dest.Ptr="Click Worn"; 
@@ -4008,11 +4008,11 @@ bool MQ2ItemType::GETMEMBER()
                 Dest.Ptr="Click Unknown"; 
             } 
         } 
-        else if (pItem->Item->Focus.SpellID!=-1 || pItem->Item->Worn.SpellID!=-1) 
+        else if (GetItemFromContents(pItem)->Focus.SpellID!=-1 || GetItemFromContents(pItem)->Worn.SpellID!=-1) 
         { 
             Dest.Ptr="Worn"; 
         } 
-        else if (pItem->Item->Proc.SpellID!=-1) 
+        else if (GetItemFromContents(pItem)->Proc.SpellID!=-1) 
         { 
             Dest.Ptr="Combat"; 
         } 
@@ -4023,25 +4023,25 @@ bool MQ2ItemType::GETMEMBER()
         Dest.Type=pStringType; 
         return true; 
     case InstrumentMod:
-        Dest.Float=((FLOAT)pItem->Item->InstrumentMod)/10.0f;
+        Dest.Float=((FLOAT)GetItemFromContents(pItem)->InstrumentMod)/10.0f;
         Dest.Type=pFloatType;
         return true;
     case Tribute:
-        Dest.DWord=pItem->Item->Favor;
+        Dest.DWord=GetItemFromContents(pItem)->Favor;
         Dest.Type=pIntType;
         return true;
     case Attuneable:
-        Dest.DWord=pItem->Item->Attuneable;
+        Dest.DWord=GetItemFromContents(pItem)->Attuneable;
         Dest.Type=pBoolType;
         return true;
     case Timer:
-        if(pItem->Item->Clicky.TimerID!=0xFFFFFFFF)
+        if(GetItemFromContents(pItem)->Clicky.TimerID!=0xFFFFFFFF)
         {
             Dest.DWord=(GetItemTimer(pItem)+5)/6;
             Dest.Type=pTicksType;
             return true;
         }
-        if (pItem->Item->Clicky.SpellID!=-1)
+        if (GetItemFromContents(pItem)->Clicky.SpellID!=-1)
         {
             Dest.DWord=0; // insta-clicky
             Dest.Type=pTicksType;
@@ -4049,17 +4049,17 @@ bool MQ2ItemType::GETMEMBER()
         }
         return false;
     case ItemDelay:
-        Dest.DWord=pItem->Item->Delay;
+        Dest.DWord=GetItemFromContents(pItem)->Delay;
         Dest.Type=pIntType;
         return true;
     case TimerReady:
-        if(pItem->Item->Clicky.TimerID!=0xFFFFFFFF)
+        if(GetItemFromContents(pItem)->Clicky.TimerID!=0xFFFFFFFF)
         {
             Dest.DWord=GetItemTimer(pItem);
             Dest.Type=pIntType;
             return true;
         }
-        if (pItem->Item->Clicky.SpellID!=-1)
+        if (GetItemFromContents(pItem)->Clicky.SpellID!=-1)
         {
             Dest.DWord=0; // insta-click or instant recast
             Dest.Type=pIntType;
@@ -4067,10 +4067,10 @@ bool MQ2ItemType::GETMEMBER()
         }
         return false;
     case StackSize:
-        if ((pItem->Item->Type != ITEMTYPE_NORMAL) || (((EQ_Item*)pItem)->IsStackable()!=1))
+        if ((GetItemFromContents(pItem)->Type != ITEMTYPE_NORMAL) || (((EQ_Item*)pItem)->IsStackable()!=1))
             Dest.DWord=1;
         else
-            Dest.DWord=pItem->Item->StackSize;
+            Dest.DWord=GetItemFromContents(pItem)->StackSize;
         Dest.Type=pIntType;
         return true;
     case Stacks:
@@ -4082,15 +4082,15 @@ bool MQ2ItemType::GETMEMBER()
             {
                 if (PCONTENTS pTempItem = GetCharInfo2()->pInventoryArray->InventoryArray[slot])
                 {
-                    if (pTempItem->Item->Type==ITEMTYPE_PACK && pTempItem->pContentsArray) 
+                    if (GetItemFromContents(pTempItem)->Type==ITEMTYPE_PACK && pTempItem->pContentsArray) 
                     {
-                        for (DWORD pslot=0;pslot<(pTempItem->Item->Slots);pslot++) 
+                        for (DWORD pslot=0;pslot<(GetItemFromContents(pTempItem)->Slots);pslot++) 
                         {
                             if (pTempItem->pContentsArray->Contents[pslot])
                             {
                                 if (PCONTENTS pSlotItem = pTempItem->pContentsArray->Contents[pslot])
                                 {
-                                    if (pSlotItem->Item->ItemNumber==pItem->Item->ItemNumber)
+                                    if (GetItemFromContents(pSlotItem)->ItemNumber==GetItemFromContents(pItem)->ItemNumber)
                                     {
                                         Dest.DWord++;
                                     }
@@ -4099,7 +4099,7 @@ bool MQ2ItemType::GETMEMBER()
                         }
                     }
                     else {
-                        if (pTempItem->Item->ItemNumber==pItem->Item->ItemNumber)
+                        if (GetItemFromContents(pTempItem)->ItemNumber==GetItemFromContents(pItem)->ItemNumber)
                         {
                             Dest.DWord++;
                         }
@@ -4117,15 +4117,15 @@ bool MQ2ItemType::GETMEMBER()
             {
                 if (PCONTENTS pTempItem = GetCharInfo2()->pInventoryArray->InventoryArray[slot])
                 {
-                    if (pTempItem->Item->Type==ITEMTYPE_PACK && pTempItem->pContentsArray) 
+                    if (GetItemFromContents(pTempItem)->Type==ITEMTYPE_PACK && pTempItem->pContentsArray) 
                     {
-                        for (DWORD pslot=0;pslot<(pTempItem->Item->Slots);pslot++) 
+                        for (DWORD pslot=0;pslot<(GetItemFromContents(pTempItem)->Slots);pslot++) 
                         {
                             if (pTempItem->pContentsArray->Contents[pslot])
                             {
                                 if (PCONTENTS pSlotItem = pTempItem->pContentsArray->Contents[pslot])
                                 {
-                                    if (pSlotItem->Item->ItemNumber==pItem->Item->ItemNumber)
+                                    if (GetItemFromContents(pSlotItem)->ItemNumber==GetItemFromContents(pItem)->ItemNumber)
                                     {
                                         Dest.DWord+=pSlotItem->StackCount;
                                     }
@@ -4134,7 +4134,7 @@ bool MQ2ItemType::GETMEMBER()
                         }
                     }
                     else {
-                        if (pTempItem->Item->ItemNumber==pItem->Item->ItemNumber)
+                        if (GetItemFromContents(pTempItem)->ItemNumber==GetItemFromContents(pItem)->ItemNumber)
                         {
                             Dest.DWord+=pTempItem->StackCount;
                         }
@@ -4152,26 +4152,26 @@ bool MQ2ItemType::GETMEMBER()
             {
                 if (PCONTENTS pTempItem = GetCharInfo2()->pInventoryArray->InventoryArray[slot])
                 {
-                    if (pTempItem->Item->Type==ITEMTYPE_PACK && pTempItem->pContentsArray)
+                    if (GetItemFromContents(pTempItem)->Type==ITEMTYPE_PACK && pTempItem->pContentsArray)
                     {
-                        for (DWORD pslot=0;pslot<(pTempItem->Item->Slots);pslot++) 
+                        for (DWORD pslot=0;pslot<(GetItemFromContents(pTempItem)->Slots);pslot++) 
                         {
                             if (pTempItem->pContentsArray->Contents[pslot])
                             {
                                 if (PCONTENTS pSlotItem = pTempItem->pContentsArray->Contents[pslot])
                                 {
-                                    if (pSlotItem->Item->ItemNumber==pItem->Item->ItemNumber)
+                                    if (GetItemFromContents(pSlotItem)->ItemNumber==GetItemFromContents(pItem)->ItemNumber)
                                     {
-                                        Dest.DWord+=(pSlotItem->Item->StackSize-pSlotItem->StackCount);
+                                        Dest.DWord+=(GetItemFromContents(pSlotItem)->StackSize-pSlotItem->StackCount);
                                     }
                                 }
                             }
                         }
                     }
                     else {
-                        if (pTempItem->Item->ItemNumber==pItem->Item->ItemNumber)
+                        if (GetItemFromContents(pTempItem)->ItemNumber==GetItemFromContents(pItem)->ItemNumber)
                         {
-                            Dest.DWord+=(pTempItem->Item->StackSize-pTempItem->StackCount);
+                            Dest.DWord+=(GetItemFromContents(pTempItem)->StackSize-pTempItem->StackCount);
                         }
                     }
                 }
@@ -4189,7 +4189,7 @@ bool MQ2ItemType::GETMEMBER()
     case Classes:
         Dest.DWord=0;
         // count bits
-        cmp=pItem->Item->Classes;
+        cmp=GetItemFromContents(pItem)->Classes;
         for (N = 0 ; N < 16 ; N++)
         {
             if (cmp&(1<<N))
@@ -4205,7 +4205,7 @@ bool MQ2ItemType::GETMEMBER()
                 DWORD Count=GETNUMBER();
                 if (!Count)
                     return false;
-                cmp=pItem->Item->Classes;
+                cmp=GetItemFromContents(pItem)->Classes;
                 for (N = 0 ; N < 16 ; N++)
                 {
                     if (cmp&(1<<N))
@@ -4223,7 +4223,7 @@ bool MQ2ItemType::GETMEMBER()
             else
             {
                 // by name
-                cmp=pItem->Item->Classes;
+                cmp=GetItemFromContents(pItem)->Classes;
                 for (N = 0 ; N < 16 ; N++) {
                     if (cmp&(1<<N)) {
                         if (!stricmp(GETFIRST(), GetClassDesc(N+1)) ||
@@ -4241,7 +4241,7 @@ bool MQ2ItemType::GETMEMBER()
     case Races:
         Dest.DWord=0;
         // count bits
-        cmp=pItem->Item->Races;
+        cmp=GetItemFromContents(pItem)->Races;
         for (N = 0 ; N < 15 ; N++)
         {
             if (cmp&(1<<N))
@@ -4257,7 +4257,7 @@ bool MQ2ItemType::GETMEMBER()
                 DWORD Count=GETNUMBER();
                 if (!Count)
                     return false;
-                cmp=pItem->Item->Races;
+                cmp=GetItemFromContents(pItem)->Races;
                 for (N = 0 ; N < 15 ; N++)
                 {
                     if (cmp&(1<<N))
@@ -4286,7 +4286,7 @@ bool MQ2ItemType::GETMEMBER()
             else
             {
                 // by name
-                cmp=pItem->Item->Races;
+                cmp=GetItemFromContents(pItem)->Races;
                 for (N = 0 ; N < 15 ; N++) {
                     if (cmp&(1<<N)) {
                         tmp = N+1;
@@ -4315,7 +4315,7 @@ bool MQ2ItemType::GETMEMBER()
     case Deities:
         Dest.DWord=0;
         // count bits
-        cmp=pItem->Item->Diety;
+        cmp=GetItemFromContents(pItem)->Diety;
         for (N = 0 ; N < 15 ; N++)
         {
             if (cmp&(1<<N))
@@ -4331,7 +4331,7 @@ bool MQ2ItemType::GETMEMBER()
                 DWORD Count=GETNUMBER();
                 if (!Count)
                     return false;
-                cmp=pItem->Item->Diety;
+                cmp=GetItemFromContents(pItem)->Diety;
                 for (N = 0 ; N < 15 ; N++)
                 {
                     if (cmp&(1<<N))
@@ -4349,7 +4349,7 @@ bool MQ2ItemType::GETMEMBER()
             else
             {
                 // by name
-                cmp=pItem->Item->Diety;
+                cmp=GetItemFromContents(pItem)->Diety;
                 for (N = 0 ; N < 16 ; N++) {
                     if (cmp&(1<<N)) {
                         if (!stricmp(GETFIRST(), pEverQuest->GetDeityDesc(N+200))) {
@@ -4364,7 +4364,7 @@ bool MQ2ItemType::GETMEMBER()
         }
         return false;
     case RequiredLevel:
-        Dest.DWord=pItem->Item->RequiredLevel;
+        Dest.DWord=GetItemFromContents(pItem)->RequiredLevel;
         Dest.Type=pIntType;
         return true;
     case Evolving:
@@ -4372,418 +4372,418 @@ bool MQ2ItemType::GETMEMBER()
         Dest.Type=pEvolvingItemType;
         return true;
     case AC:
-        if (pItem->Item->Type != ITEMTYPE_NORMAL)
+        if (GetItemFromContents(pItem)->Type != ITEMTYPE_NORMAL)
             Dest.DWord=0;
         else
-            Dest.DWord=pItem->Item->AC;
+            Dest.DWord=GetItemFromContents(pItem)->AC;
         Dest.Type=pIntType;
         return true;
     case HP:
-        if (pItem->Item->Type != ITEMTYPE_NORMAL)
+        if (GetItemFromContents(pItem)->Type != ITEMTYPE_NORMAL)
             Dest.DWord=0;
         else
-            Dest.DWord=pItem->Item->HP;
+            Dest.DWord=GetItemFromContents(pItem)->HP;
         Dest.Type=pIntType;
         return true;
     case STR:
-        if (pItem->Item->Type != ITEMTYPE_NORMAL)
+        if (GetItemFromContents(pItem)->Type != ITEMTYPE_NORMAL)
             Dest.DWord=0;
         else
-            Dest.DWord=(char)pItem->Item->STR;
+            Dest.DWord=(char)GetItemFromContents(pItem)->STR;
         Dest.Type=pIntType;
         return true;
     case STA:
-        if (pItem->Item->Type != ITEMTYPE_NORMAL)
+        if (GetItemFromContents(pItem)->Type != ITEMTYPE_NORMAL)
             Dest.DWord=0;
         else
-            Dest.DWord=(char)pItem->Item->STA;
+            Dest.DWord=(char)GetItemFromContents(pItem)->STA;
         Dest.Type=pIntType;
         return true;
     case AGI:
-        if (pItem->Item->Type != ITEMTYPE_NORMAL)
+        if (GetItemFromContents(pItem)->Type != ITEMTYPE_NORMAL)
             Dest.DWord=0;
         else
-            Dest.DWord=(char)pItem->Item->AGI;
+            Dest.DWord=(char)GetItemFromContents(pItem)->AGI;
         Dest.Type=pIntType;
         return true;
     case DEX:
-        if (pItem->Item->Type != ITEMTYPE_NORMAL)
+        if (GetItemFromContents(pItem)->Type != ITEMTYPE_NORMAL)
             Dest.DWord=0;
         else
-            Dest.DWord=(char)pItem->Item->DEX;
+            Dest.DWord=(char)GetItemFromContents(pItem)->DEX;
         Dest.Type=pIntType;
         return true;
     case CHA:
-        if (pItem->Item->Type != ITEMTYPE_NORMAL)
+        if (GetItemFromContents(pItem)->Type != ITEMTYPE_NORMAL)
             Dest.DWord=0;
         else
-            Dest.DWord=(char)pItem->Item->CHA;
+            Dest.DWord=(char)GetItemFromContents(pItem)->CHA;
         Dest.Type=pIntType;
         return true;
     case INT:
-        if (pItem->Item->Type != ITEMTYPE_NORMAL)
+        if (GetItemFromContents(pItem)->Type != ITEMTYPE_NORMAL)
             Dest.DWord=0;
         else
-            Dest.DWord=(char)pItem->Item->INT;
+            Dest.DWord=(char)GetItemFromContents(pItem)->INT;
         Dest.Type=pIntType;
         return true;
     case WIS:
-        if (pItem->Item->Type != ITEMTYPE_NORMAL)
+        if (GetItemFromContents(pItem)->Type != ITEMTYPE_NORMAL)
             Dest.DWord=0;
         else
-            Dest.DWord=(char)pItem->Item->WIS;
+            Dest.DWord=(char)GetItemFromContents(pItem)->WIS;
         Dest.Type=pIntType;
         return true;
     case Mana:
-        if (pItem->Item->Type != ITEMTYPE_NORMAL)
+        if (GetItemFromContents(pItem)->Type != ITEMTYPE_NORMAL)
             Dest.DWord=0;
         else
-            Dest.DWord=pItem->Item->Mana;
+            Dest.DWord=GetItemFromContents(pItem)->Mana;
         Dest.Type=pIntType;
         return true;
     case ManaRegen:
-        if (pItem->Item->Type != ITEMTYPE_NORMAL)
+        if (GetItemFromContents(pItem)->Type != ITEMTYPE_NORMAL)
             Dest.DWord=0;
         else
-            Dest.DWord=pItem->Item->ManaRegen;
+            Dest.DWord=GetItemFromContents(pItem)->ManaRegen;
         Dest.Type=pIntType;
         return true;
     case HPRegen:
-        if (pItem->Item->Type != ITEMTYPE_NORMAL)
+        if (GetItemFromContents(pItem)->Type != ITEMTYPE_NORMAL)
             Dest.DWord=0;
         else
-            Dest.DWord=pItem->Item->HPRegen;
+            Dest.DWord=GetItemFromContents(pItem)->HPRegen;
         Dest.Type=pIntType;
         return true;
     case Attack:
-        if (pItem->Item->Type != ITEMTYPE_NORMAL)
+        if (GetItemFromContents(pItem)->Type != ITEMTYPE_NORMAL)
             Dest.DWord=0;
         else
-            Dest.DWord=pItem->Item->Attack;
+            Dest.DWord=GetItemFromContents(pItem)->Attack;
         Dest.Type=pIntType;
         return true;
     case svCold:
-        if (pItem->Item->Type != ITEMTYPE_NORMAL)
+        if (GetItemFromContents(pItem)->Type != ITEMTYPE_NORMAL)
             Dest.DWord=0;
         else
-            Dest.DWord=(char)pItem->Item->SvCold;
+            Dest.DWord=(char)GetItemFromContents(pItem)->SvCold;
         Dest.Type=pIntType;
         return true;
     case svFire:
-        if (pItem->Item->Type != ITEMTYPE_NORMAL)
+        if (GetItemFromContents(pItem)->Type != ITEMTYPE_NORMAL)
             Dest.DWord=0;
         else
-            Dest.DWord=(char)pItem->Item->SvFire;
+            Dest.DWord=(char)GetItemFromContents(pItem)->SvFire;
         Dest.Type=pIntType;
         return true;
     case svMagic:
-        if (pItem->Item->Type != ITEMTYPE_NORMAL)
+        if (GetItemFromContents(pItem)->Type != ITEMTYPE_NORMAL)
             Dest.DWord=0;
         else
-            Dest.DWord=(char)pItem->Item->SvMagic;
+            Dest.DWord=(char)GetItemFromContents(pItem)->SvMagic;
         Dest.Type=pIntType;
         return true;
     case svDisease:
-        if (pItem->Item->Type != ITEMTYPE_NORMAL)
+        if (GetItemFromContents(pItem)->Type != ITEMTYPE_NORMAL)
             Dest.DWord=0;
         else
-            Dest.DWord=(char)pItem->Item->SvDisease;
+            Dest.DWord=(char)GetItemFromContents(pItem)->SvDisease;
         Dest.Type=pIntType;
         return true;
     case svPoison:
-        if (pItem->Item->Type != ITEMTYPE_NORMAL)
+        if (GetItemFromContents(pItem)->Type != ITEMTYPE_NORMAL)
             Dest.DWord=0;
         else
-            Dest.DWord=(char)pItem->Item->SvPoison;
+            Dest.DWord=(char)GetItemFromContents(pItem)->SvPoison;
         Dest.Type=pIntType;
         return true;
     case svCorruption:
-        if (pItem->Item->Type != ITEMTYPE_NORMAL)
+        if (GetItemFromContents(pItem)->Type != ITEMTYPE_NORMAL)
             Dest.DWord=0;
         else
-            Dest.DWord=(char)pItem->Item->SvCorruption;
+            Dest.DWord=(char)GetItemFromContents(pItem)->SvCorruption;
         Dest.Type=pIntType;
         return true;
     case Haste:
-        if (pItem->Item->Type != ITEMTYPE_NORMAL)
+        if (GetItemFromContents(pItem)->Type != ITEMTYPE_NORMAL)
             Dest.DWord=0;
         else
-            Dest.DWord=pItem->Item->Haste;
+            Dest.DWord=GetItemFromContents(pItem)->Haste;
         Dest.Type=pIntType;
         return true;
     case DamShield:
-        if (pItem->Item->Type != ITEMTYPE_NORMAL)
+        if (GetItemFromContents(pItem)->Type != ITEMTYPE_NORMAL)
             Dest.DWord=0;
         else
-            Dest.DWord=pItem->Item->DamShield;
+            Dest.DWord=GetItemFromContents(pItem)->DamShield;
         Dest.Type=pIntType;
         return true;
     case AugType:
-        if (pItem->Item->Type != ITEMTYPE_NORMAL)
+        if (GetItemFromContents(pItem)->Type != ITEMTYPE_NORMAL)
             Dest.DWord=0;
         else
-            Dest.DWord=pItem->Item->AugType;
+            Dest.DWord=GetItemFromContents(pItem)->AugType;
         Dest.Type=pIntType;
         return true;
     case AugRestrictions:
-        if (pItem->Item->Type != ITEMTYPE_NORMAL)
+        if (GetItemFromContents(pItem)->Type != ITEMTYPE_NORMAL)
             Dest.DWord=0;
         else
-            Dest.DWord=pItem->Item->AugRestrictions;
+            Dest.DWord=GetItemFromContents(pItem)->AugRestrictions;
         Dest.Type=pIntType;
         return true;
     case AugSlot1:
-        if (pItem->Item->Type != ITEMTYPE_NORMAL)
+        if (GetItemFromContents(pItem)->Type != ITEMTYPE_NORMAL)
             Dest.DWord=0;
         else
-            Dest.DWord=pItem->Item->AugSlot1;
+            Dest.DWord=GetItemFromContents(pItem)->AugSlot1;
         Dest.Type=pIntType;
         return true;
     case AugSlot2:
-        if (pItem->Item->Type != ITEMTYPE_NORMAL)
+        if (GetItemFromContents(pItem)->Type != ITEMTYPE_NORMAL)
             Dest.DWord=0;
         else
-            Dest.DWord=pItem->Item->AugSlot2;
+            Dest.DWord=GetItemFromContents(pItem)->AugSlot2;
         Dest.Type=pIntType;
         return true;
     case AugSlot3:
-        if (pItem->Item->Type != ITEMTYPE_NORMAL)
+        if (GetItemFromContents(pItem)->Type != ITEMTYPE_NORMAL)
             Dest.DWord=0;
         else
-            Dest.DWord=pItem->Item->AugSlot3;
+            Dest.DWord=GetItemFromContents(pItem)->AugSlot3;
         Dest.Type=pIntType;
         return true;
     case AugSlot4:
-        if (pItem->Item->Type != ITEMTYPE_NORMAL)
+        if (GetItemFromContents(pItem)->Type != ITEMTYPE_NORMAL)
             Dest.DWord=0;
         else
-            Dest.DWord=pItem->Item->AugSlot4;
+            Dest.DWord=GetItemFromContents(pItem)->AugSlot4;
         Dest.Type=pIntType;
         return true;
     case AugSlot5:
-        if (pItem->Item->Type != ITEMTYPE_NORMAL)
+        if (GetItemFromContents(pItem)->Type != ITEMTYPE_NORMAL)
             Dest.DWord=0;
         else
-            Dest.DWord=pItem->Item->AugSlot5;
+            Dest.DWord=GetItemFromContents(pItem)->AugSlot5;
         Dest.Type=pIntType;
         return true;
     case Power:
-        if (pItem->Item->Type != ITEMTYPE_NORMAL)
+        if (GetItemFromContents(pItem)->Type != ITEMTYPE_NORMAL)
             Dest.DWord=0;
         else
             Dest.DWord=pItem->Power;
         Dest.Type=pIntType;
         return true;
     case MaxPower:
-        if (pItem->Item->Type != ITEMTYPE_NORMAL)
+        if (GetItemFromContents(pItem)->Type != ITEMTYPE_NORMAL)
             Dest.DWord=0;
         else
-            Dest.DWord=pItem->Item->MaxPower;
+            Dest.DWord=GetItemFromContents(pItem)->MaxPower;
         Dest.Type=pIntType;
         return true;
     case Purity:
-        if (pItem->Item->Type != ITEMTYPE_NORMAL)
+        if (GetItemFromContents(pItem)->Type != ITEMTYPE_NORMAL)
             Dest.DWord=0;
         else
-            Dest.DWord=pItem->Item->Purity;
+            Dest.DWord=GetItemFromContents(pItem)->Purity;
         Dest.Type=pIntType;
         return true;
     case Avoidance:
-        if (pItem->Item->Type != ITEMTYPE_NORMAL)
+        if (GetItemFromContents(pItem)->Type != ITEMTYPE_NORMAL)
             Dest.DWord=0;
         else
-            Dest.DWord=(char)pItem->Item->Avoidance;
+            Dest.DWord=(char)GetItemFromContents(pItem)->Avoidance;
         Dest.Type=pIntType;
         return true;
     case SpellShield:
-        if (pItem->Item->Type != ITEMTYPE_NORMAL)
+        if (GetItemFromContents(pItem)->Type != ITEMTYPE_NORMAL)
             Dest.DWord=0;
         else
-            Dest.DWord=(char)pItem->Item->SpellShield;
+            Dest.DWord=(char)GetItemFromContents(pItem)->SpellShield;
         Dest.Type=pIntType;
         return true;
     case StrikeThrough:
-        if (pItem->Item->Type != ITEMTYPE_NORMAL)
+        if (GetItemFromContents(pItem)->Type != ITEMTYPE_NORMAL)
             Dest.DWord=0;
         else
-            Dest.DWord=(char)pItem->Item->StrikeThrough;
+            Dest.DWord=(char)GetItemFromContents(pItem)->StrikeThrough;
         Dest.Type=pIntType;
         return true;
     case StunResist:
-        if (pItem->Item->Type != ITEMTYPE_NORMAL)
+        if (GetItemFromContents(pItem)->Type != ITEMTYPE_NORMAL)
             Dest.DWord=0;
         else
-            Dest.DWord=(char)pItem->Item->StunResist;
+            Dest.DWord=(char)GetItemFromContents(pItem)->StunResist;
         Dest.Type=pIntType;
         return true;
     case Shielding:
-        if (pItem->Item->Type != ITEMTYPE_NORMAL)
+        if (GetItemFromContents(pItem)->Type != ITEMTYPE_NORMAL)
             Dest.DWord=0;
         else
-            Dest.DWord=(char)pItem->Item->Shielding;
+            Dest.DWord=(char)GetItemFromContents(pItem)->Shielding;
         Dest.Type=pIntType;
         return true;      
     case Accuracy:
-        if (pItem->Item->Type != ITEMTYPE_NORMAL)
+        if (GetItemFromContents(pItem)->Type != ITEMTYPE_NORMAL)
             Dest.DWord=0;
         else
-            Dest.DWord=(char)pItem->Item->Accuracy;
+            Dest.DWord=(char)GetItemFromContents(pItem)->Accuracy;
         Dest.Type=pIntType;
         return true;
     case CombatEffects:
-        if (pItem->Item->Type != ITEMTYPE_NORMAL)
+        if (GetItemFromContents(pItem)->Type != ITEMTYPE_NORMAL)
             Dest.DWord=0;
         else
-            Dest.DWord=(char)pItem->Item->CombatEffects;
+            Dest.DWord=(char)GetItemFromContents(pItem)->CombatEffects;
         Dest.Type=pIntType;
         return true;
     case DoTShielding:
-        if (pItem->Item->Type != ITEMTYPE_NORMAL)
+        if (GetItemFromContents(pItem)->Type != ITEMTYPE_NORMAL)
             Dest.DWord=0;
         else
-            Dest.DWord=(char)pItem->Item->DoTShielding;
+            Dest.DWord=(char)GetItemFromContents(pItem)->DoTShielding;
         Dest.Type=pIntType;
         return true;
     case HeroicSTR:
-        if (pItem->Item->Type != ITEMTYPE_NORMAL)
+        if (GetItemFromContents(pItem)->Type != ITEMTYPE_NORMAL)
             Dest.DWord=0;
         else
-            Dest.DWord=pItem->Item->HeroicSTR;
+            Dest.DWord=GetItemFromContents(pItem)->HeroicSTR;
         Dest.Type=pIntType;
         return true;
     case HeroicINT:
-        if (pItem->Item->Type != ITEMTYPE_NORMAL)
+        if (GetItemFromContents(pItem)->Type != ITEMTYPE_NORMAL)
             Dest.DWord=0;
         else
-            Dest.DWord=pItem->Item->HeroicINT;
+            Dest.DWord=GetItemFromContents(pItem)->HeroicINT;
         Dest.Type=pIntType;
         return true;
     case HeroicWIS:
-        if (pItem->Item->Type != ITEMTYPE_NORMAL)
+        if (GetItemFromContents(pItem)->Type != ITEMTYPE_NORMAL)
             Dest.DWord=0;
         else
-            Dest.DWord=pItem->Item->HeroicWIS;
+            Dest.DWord=GetItemFromContents(pItem)->HeroicWIS;
         Dest.Type=pIntType;
         return true;
     case HeroicAGI:
-        if (pItem->Item->Type != ITEMTYPE_NORMAL)
+        if (GetItemFromContents(pItem)->Type != ITEMTYPE_NORMAL)
             Dest.DWord=0;
         else
-            Dest.DWord=pItem->Item->HeroicAGI;
+            Dest.DWord=GetItemFromContents(pItem)->HeroicAGI;
         Dest.Type=pIntType;
         return true;
     case HeroicDEX:
-        if (pItem->Item->Type != ITEMTYPE_NORMAL)
+        if (GetItemFromContents(pItem)->Type != ITEMTYPE_NORMAL)
             Dest.DWord=0;
         else
-            Dest.DWord=pItem->Item->HeroicDEX;
+            Dest.DWord=GetItemFromContents(pItem)->HeroicDEX;
         Dest.Type=pIntType;
         return true;
     case HeroicSTA:
-        if (pItem->Item->Type != ITEMTYPE_NORMAL)
+        if (GetItemFromContents(pItem)->Type != ITEMTYPE_NORMAL)
             Dest.DWord=0;
         else
-            Dest.DWord=pItem->Item->HeroicSTA;
+            Dest.DWord=GetItemFromContents(pItem)->HeroicSTA;
         Dest.Type=pIntType;
         return true;
     case HeroicCHA:
-        if (pItem->Item->Type != ITEMTYPE_NORMAL)
+        if (GetItemFromContents(pItem)->Type != ITEMTYPE_NORMAL)
             Dest.DWord=0;
         else
-            Dest.DWord=pItem->Item->HeroicCHA;
+            Dest.DWord=GetItemFromContents(pItem)->HeroicCHA;
         Dest.Type=pIntType;
         return true;
     case HeroicSvMagic:
-        if (pItem->Item->Type != ITEMTYPE_NORMAL)
+        if (GetItemFromContents(pItem)->Type != ITEMTYPE_NORMAL)
             Dest.DWord=0;
         else
-            Dest.DWord=pItem->Item->HeroicSvMagic;
+            Dest.DWord=GetItemFromContents(pItem)->HeroicSvMagic;
         Dest.Type=pIntType;
         return true;
     case HeroicSvFire:
-        if (pItem->Item->Type != ITEMTYPE_NORMAL)
+        if (GetItemFromContents(pItem)->Type != ITEMTYPE_NORMAL)
             Dest.DWord=0;
         else
-            Dest.DWord=pItem->Item->HeroicSvFire;
+            Dest.DWord=GetItemFromContents(pItem)->HeroicSvFire;
         Dest.Type=pIntType;
         return true;
     case HeroicSvCold:
-        if (pItem->Item->Type != ITEMTYPE_NORMAL)
+        if (GetItemFromContents(pItem)->Type != ITEMTYPE_NORMAL)
             Dest.DWord=0;
         else
-            Dest.DWord=pItem->Item->HeroicSvCold;
+            Dest.DWord=GetItemFromContents(pItem)->HeroicSvCold;
         Dest.Type=pIntType;
         return true;
     case HeroicSvDisease:
-        if (pItem->Item->Type != ITEMTYPE_NORMAL)
+        if (GetItemFromContents(pItem)->Type != ITEMTYPE_NORMAL)
             Dest.DWord=0;
         else
-            Dest.DWord=pItem->Item->HeroicSvDisease;
+            Dest.DWord=GetItemFromContents(pItem)->HeroicSvDisease;
         Dest.Type=pIntType;
         return true;
     case HeroicSvPoison:
-        if (pItem->Item->Type != ITEMTYPE_NORMAL)
+        if (GetItemFromContents(pItem)->Type != ITEMTYPE_NORMAL)
             Dest.DWord=0;
         else
-            Dest.DWord=pItem->Item->HeroicSvPoison;
+            Dest.DWord=GetItemFromContents(pItem)->HeroicSvPoison;
         Dest.Type=pIntType;
         return true;
     case HeroicSvCorruption:
-        if (pItem->Item->Type != ITEMTYPE_NORMAL)
+        if (GetItemFromContents(pItem)->Type != ITEMTYPE_NORMAL)
             Dest.DWord=0;
         else
-            Dest.DWord=pItem->Item->HeroicSvCorruption;
+            Dest.DWord=GetItemFromContents(pItem)->HeroicSvCorruption;
         Dest.Type=pIntType;
         return true;
     case EnduranceRegen:
-        if (pItem->Item->Type != ITEMTYPE_NORMAL)
+        if (GetItemFromContents(pItem)->Type != ITEMTYPE_NORMAL)
             Dest.DWord=0;
         else
-            Dest.DWord=pItem->Item->EnduranceRegen;
+            Dest.DWord=GetItemFromContents(pItem)->EnduranceRegen;
         Dest.Type=pIntType;
         return true;
     case HealAmount:
-        if (pItem->Item->Type != ITEMTYPE_NORMAL)
+        if (GetItemFromContents(pItem)->Type != ITEMTYPE_NORMAL)
             Dest.DWord=0;
         else
-            Dest.DWord=pItem->Item->HealAmount;
+            Dest.DWord=GetItemFromContents(pItem)->HealAmount;
         Dest.Type=pIntType;
         return true;
     case Clairvoyance:
-        if (pItem->Item->Type != ITEMTYPE_NORMAL)
+        if (GetItemFromContents(pItem)->Type != ITEMTYPE_NORMAL)
             Dest.DWord=0;
         else
-            Dest.DWord=pItem->Item->Clairvoyance;
+            Dest.DWord=GetItemFromContents(pItem)->Clairvoyance;
         Dest.Type=pIntType;
         return true;
     case DamageShieldMitigation:
-        if (pItem->Item->Type != ITEMTYPE_NORMAL)
+        if (GetItemFromContents(pItem)->Type != ITEMTYPE_NORMAL)
             Dest.DWord=0;
         else
-            Dest.DWord=pItem->Item->DamageShieldMitigation;
+            Dest.DWord=GetItemFromContents(pItem)->DamageShieldMitigation;
         Dest.Type=pIntType;
         return true;
     case SpellDamage:
-        if (pItem->Item->Type != ITEMTYPE_NORMAL)
+        if (GetItemFromContents(pItem)->Type != ITEMTYPE_NORMAL)
             Dest.DWord=0;
         else
-            Dest.DWord=pItem->Item->SpellDamage;
+            Dest.DWord=GetItemFromContents(pItem)->SpellDamage;
         Dest.Type=pIntType;
         return true;
     case Augs:
         Dest.DWord = 0;
         Dest.Type=pIntType;
-        if (pItem->Item->Type == ITEMTYPE_NORMAL) {
-            if (pItem->Item->AugSlot5) Dest.DWord++;
-            if (pItem->Item->AugSlot4) Dest.DWord++;
-            if (pItem->Item->AugSlot3) Dest.DWord++;
-            if (pItem->Item->AugSlot2) Dest.DWord++;
-            if (pItem->Item->AugSlot1) Dest.DWord++;
+        if (GetItemFromContents(pItem)->Type == ITEMTYPE_NORMAL) {
+            if (GetItemFromContents(pItem)->AugSlot5) Dest.DWord++;
+            if (GetItemFromContents(pItem)->AugSlot4) Dest.DWord++;
+            if (GetItemFromContents(pItem)->AugSlot3) Dest.DWord++;
+            if (GetItemFromContents(pItem)->AugSlot2) Dest.DWord++;
+            if (GetItemFromContents(pItem)->AugSlot1) Dest.DWord++;
             Dest.Type=pIntType;
         }
         return true;
     case Tradeskills:
-        Dest.DWord=pItem->Item->TradeSkills;
+        Dest.DWord=GetItemFromContents(pItem)->TradeSkills;
         Dest.Type=pBoolType;
         return true;
 
@@ -5786,7 +5786,7 @@ bool MQ2CorpseType::GETMEMBER()
                     {
                         if (bExact)
                         {
-                            if (!stricmp(pName,pContents->Item->Name))
+                            if (!stricmp(pName,GetItemFromContents(pContents)->Name))
                             {
                                 Dest.Ptr=pContents;
                                 Dest.Type=pItemType;
@@ -5795,7 +5795,7 @@ bool MQ2CorpseType::GETMEMBER()
                         }
                         else
                         {
-                            if(strstr(strlwr(strcpy(Temp,pContents->Item->Name)),pName))
+                            if(strstr(strlwr(strcpy(Temp,GetItemFromContents(pContents)->Name)),pName))
                             {
                                 Dest.Ptr=pContents;
                                 Dest.Type=pItemType;
@@ -5880,7 +5880,7 @@ bool MQ2MerchantType::GETMEMBER()
                     {
                         if (bExact)
                         {
-                            if (!stricmp(pName,pContents->Item->Name))
+                            if (!stricmp(pName,GetItemFromContents(pContents)->Name))
                             {
                                 Dest.Ptr=pContents;
                                 Dest.Type=pItemType;
@@ -5889,7 +5889,7 @@ bool MQ2MerchantType::GETMEMBER()
                         }
                         else
                         {
-                            if(strstr(strlwr(strcpy(Temp,pContents->Item->Name)),pName))
+                            if(strstr(strlwr(strcpy(Temp,GetItemFromContents(pContents)->Name)),pName))
                             {
                                 Dest.Ptr=pContents;
                                 Dest.Type=pItemType;
@@ -5979,7 +5979,7 @@ bool MQ2InvSlotType::GETMEMBER()
                 unsigned long nPack=(nInvSlot-262)/10;
                 unsigned long nSlot=(nInvSlot-262)%10;
                 if (PCONTENTS pPack=GetCharInfo2()->pInventoryArray->Inventory.Pack[nPack])
-                    if (pPack->Item->Type==ITEMTYPE_PACK && nSlot<pPack->Item->Slots)
+                    if (GetItemFromContents(pPack)->Type==ITEMTYPE_PACK && nSlot<GetItemFromContents(pPack)->Slots)
                     {
                         if (pPack->pContentsArray)
                         if (Dest.Ptr=pPack->pContentsArray->Contents[nSlot])
@@ -5994,7 +5994,7 @@ bool MQ2InvSlotType::GETMEMBER()
                 unsigned long nPack=(nInvSlot-2032)/10;
                 unsigned long nSlot=(nInvSlot-2)%10;
                 if (PCONTENTS pPack=pCharInfo->pBankArray->Bank[nPack])
-                    if (pPack->Item->Type==ITEMTYPE_PACK && nSlot<pPack->Item->Slots)
+                    if (GetItemFromContents(pPack)->Type==ITEMTYPE_PACK && nSlot<GetItemFromContents(pPack)->Slots)
                     {
                         if (pPack->pContentsArray)
                         if (Dest.Ptr=pPack->pContentsArray->Contents[nSlot])
@@ -6009,7 +6009,7 @@ bool MQ2InvSlotType::GETMEMBER()
                 unsigned long nPack=24+((nInvSlot-2532)/10);
                 unsigned long nSlot=(nInvSlot-2)%10;
                 if (PCONTENTS pPack=pCharInfo->pBankArray->Bank[nPack])
-                    if (pPack->Item->Type==ITEMTYPE_PACK && nSlot<pPack->Item->Slots)
+                    if (GetItemFromContents(pPack)->Type==ITEMTYPE_PACK && nSlot<GetItemFromContents(pPack)->Slots)
                     {
                         if (pPack->pContentsArray)
                         if (Dest.Ptr=pPack->pContentsArray->Contents[nSlot])

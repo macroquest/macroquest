@@ -2661,6 +2661,7 @@ public:
     unsigned short Unknown2;        // always 0?
     unsigned short InvSlot;
     unsigned short BagSlot;         // 0xFFFF if not in a bag, otherwise the bag slot number (0 through 9, or 0 through 19 if it's a 20-slot bag, etc)
+    DWORD Unknown8;
 };
 
 class CInvSlotMgr

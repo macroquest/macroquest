@@ -435,7 +435,7 @@ public:
     {
         PEQITEMWINDOW This=(PEQITEMWINDOW)this;
         PCONTENTS item=(PCONTENTS)This->pItem;
-        volatile PITEMINFO Item=item->Item;
+        volatile PITEMINFO Item=GetItemFromContents(item);
         CHAR out[MAX_STRING] = {0};
         CHAR temp[MAX_STRING] = {0};
         CHAR temp2[MAX_STRING] = {0};
@@ -666,7 +666,7 @@ public:
             STMLToPlainText(&pWnd->Tooltip->Text[0],Temp);
             pItem=GetItemContentsByName(Temp);
 
-            if(pItem && pItem->Item->Clicky.TimerID)
+            if(pItem && GetItemFromContents(pItem)->Clicky.TimerID)
             {
                 int Secs=GetItemTimer(pItem);
                 if(Secs)
@@ -681,7 +681,7 @@ public:
                 }
                 else
                     strcpy(Temp2,"Ready");
-                sprintf(Temp,"%s (%s)",pItem->Item->Name,Temp2);
+                sprintf(Temp,"%s (%s)",GetItemFromContents(pItem)->Name,Temp2);
                 SetCXStr((PCXSTR*)&pWnd->Tooltip,Temp);
             }
         }
@@ -704,7 +704,7 @@ public:
 
         pItem = GetItemContentsByName(Temp);
 
-        if(pItem && pItem->Item->Clicky.TimerID)
+        if(pItem && GetItemFromContents(pItem)->Clicky.TimerID)
         {
             int Secs=GetItemTimer(pItem);
             if(Secs)
@@ -720,7 +720,7 @@ public:
             else
                 strcpy(Temp2,"Ready");
 
-            sprintf(Temp,"%s (%s)",pItem->Item->Name,Temp2);
+            sprintf(Temp,"%s (%s)",GetItemFromContents(pItem)->Name,Temp2);
             SetCXStr((PCXSTR*)&pWindow->Tooltip,Temp);
         }
 
@@ -792,7 +792,8 @@ PLUGIN_API VOID InitializePlugin(VOID)
     DebugSpewAlways("Initializing MQ2ItemDisplay");
 
     memset(&g_Contents, 0, sizeof(g_Contents));
-    g_Contents.Item = &g_Item;
+    g_Contents.Item1 = NULL;
+    g_Contents.Item2 = &g_Item;
     g_Item.ItemNumber = 0;
 
     // Add commands, macro parameters, hooks, etc.

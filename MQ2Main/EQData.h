@@ -501,12 +501,12 @@ typedef struct _ITEMINFO {
 /*0x164*/ DWORD  Classes;
 /*0x168*/ DWORD  Races;
 /*0x16c*/ DWORD  Diety;
-/*0x170*/ BYTE   Unknown0x154[0x4];
-/*0x174*/ BYTE   Magic;
-/*0x175*/ BYTE   Light;
-/*0x176*/ BYTE   Delay;
-/*0x177*/ BYTE   DmgBonusType;
-/*0x178*/ BYTE   DmgBonusVal;
+/*0x170*/ BYTE   Unknown0x154[0x8];
+/*0x178*/ BYTE   Magic;
+/*0x179*/ BYTE   Light;
+/*0x17a*/ BYTE   Delay;
+/*0x17b*/ BYTE   DmgBonusType;
+/*0x17c*/ BYTE   DmgBonusVal;
 /*0x179*/ BYTE   Range;
 /*0x17a*/ BYTE   Unknown0x15e[0x2];
 /*0x17c*/ DWORD  Damage;
@@ -530,7 +530,7 @@ typedef struct _ITEMINFO {
 /*0x1c4*/ BYTE   ItemType;
 /*0x1c5*/ BYTE   Unknown0x1c5[0x3];
 /*0x1c8*/ BYTE   Material;
-/*0x1c9*/ BYTE   Unknown0x1c9[0xf];
+/*0x1c9*/ BYTE   Unknown0x1c9[0xb];
 /*0x1d8*/ DWORD  AugSlot1;
 /*0x1dc*/ DWORD  AugSlot1_Unknown;
 /*0x1e0*/ DWORD  AugSlot2;
@@ -632,7 +632,7 @@ typedef struct _CONTENTS {
 /*0x0a1*/  BYTE    Unknown0xa1[0x3];
 /*0x0a4*/  DWORD   EvolvingCurrentLevel;
 /*0x0a8*/  BYTE    Unknown0xa8[0x18];
-/*0x0c0*/  struct  _ITEMINFO *Item;
+/*0x0c0*/  struct  _ITEMINFO *Item1;
 /*0x0c4*/  BYTE    Unknown0xc4[0x8];
 /*0x0cc*/  DWORD   EvolvingMaxLevel;
 /*0x0d0*/  BYTE    Unknown0xd0[0x1c];
@@ -645,7 +645,9 @@ typedef struct _CONTENTS {
 /*0x108*/  DWORD   Open;
 /*0x10c*/  BYTE    Unknown0x10c[0x24];
 /*0x130*/  DWORD   Power;
-/*0x134*/  BYTE    Unknown0x134[0x1c];
+/*0x134*/  BYTE    Unknown0x134[0x10];
+/*0x144*/  struct   _ITEMINFO *Item2;
+/*0x148*/  BYTE    Unknown0x148[0x8];
 /*0x150*/
 } CONTENTS, *PCONTENTS;
 
@@ -1622,7 +1624,7 @@ typedef struct _ZONEINFO {
 
 // size: 0x17770 08-07-06          
 typedef struct _SPELLMGR {
-BYTE            unknown[0x68];
+BYTE            unknown[0x1E6B0];
 struct _SPELL*  Spells[TOTAL_SPELL_COUNT];
 } SPELLMGR, *PSPELLMGR;
 

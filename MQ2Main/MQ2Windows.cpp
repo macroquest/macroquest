@@ -1175,11 +1175,11 @@ int ItemNotify(int argc, char *argv[])
             WriteChatf("No item at '%s'",szArg2);
             RETURN(0);
         }
-        if (pPack->Item->Type == ITEMTYPE_PACK) {
+        if (GetItemFromContents(pPack)->Type == ITEMTYPE_PACK) {
             
             unsigned long N = atoi(szArg3)-1;
 
-            if (N<pPack->Item->Slots && pPack->pContentsArray) {
+            if (N<GetItemFromContents(pPack)->Slots && pPack->pContentsArray) {
                 pItem =  pPack->pContentsArray->Contents[N];
             }
 
