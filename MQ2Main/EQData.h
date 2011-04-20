@@ -653,26 +653,14 @@ typedef struct _CONTENTS {
 
 // Size 0x64 20110309 - ieatacid
 typedef struct _SPELLBUFF {
-/*0x00*/    DWORD     Unknown0x0;
-/*0x04*/    DWORD     Unknown0x4;
-/*0x08*/    DWORD     Unknown0x8;
-/*0x0c*/    DWORD     Unknown0xc;
-/*0x10*/    DWORD     Unknown0x10;
-/*0x14*/    DWORD     Unknown0x14;
-/*0x18*/    BYTE      Unknown0x18;
-/*0x19*/    BYTE      Level;
-/*0x1a*/    CHAR      Modifier;      // bard song modifier, divide by 10 to get 2.8 etc
-/*0x1b*/    CHAR      DamageShield;  // maybe.. I've noticed this is -1 on a lot of ds's.
-/*0x1c*/    FLOAT     Unknown0x1c;
-/*0x20*/    LONG      SpellID;       // -1 or 0 for no spell..
-/*0x24*/    DWORD     Duration;
-/*0x28*/    BYTE      Unknown0x28[0x8];
-/*0x30*/    DWORD     DamageAbsorbRemaining;
-/*0x34*/    BYTE      Unknown0x34[0x4];
-/*0x38*/    DWORD     DamageAbsorbRemaining2;
-/*0x3c*/    DWORD     Counters;
-/*0x40*/    DWORD     DamageAbsorbRemaining3;
-/*0x44*/    BYTE      Unknown0x44[0x20];
+/*0x00*/    BYTE      Unknown0x0;
+/*0x01*/    BYTE      Level;
+/*0x02*/    CHAR      Modifier;      // bard song modifier, divide by 10 to get 2.8 etc
+/*0x03*/    CHAR      DamageShield;  // maybe.. I've noticed this is -1 on a lot of ds's.
+/*0x04*/    FLOAT     Unknown0x4;
+/*0x08*/    LONG      SpellID;       // -1 or 0 for no spell..
+/*0x0c*/    DWORD     Duration;
+/*0x10*/    BYTE      Unknown0x10[0x54];
 /*0x64*/
 } SPELLBUFF, *PSPELLBUFF;
 

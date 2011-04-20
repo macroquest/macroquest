@@ -1776,6 +1776,7 @@ bool MQ2BuffType::GETMEMBER()
         Dest.Type=pTicksType;
         return true;
     case Dar:
+#if 0
         if(PSPELL pSpell = GetSpellByID(pBuff->SpellID))
         {
             if(pSpell->SpellType != 0)
@@ -1785,14 +1786,18 @@ bool MQ2BuffType::GETMEMBER()
                 return true;
             }
         }
+#endif
         return false;
     case Counters:
+#if 0
         if(GetSpellByID(pBuff->SpellID)->SpellType == 0)
         {
             Dest.DWord=pBuff->Counters;
             Dest.Type=pIntType;
             return true;
         }
+#endif
+        return false;
     }
     return false;
 #undef pBuff
@@ -2252,6 +2257,7 @@ bool MQ2CharacterType::GETMEMBER()
         Dest.Type=pIntType; 
         return true;
     case Dar:
+#if 0
         Dest.DWord=0;
         {
             for (unsigned long k=0; k<NUM_LONG_BUFFS ; k++)
@@ -2266,6 +2272,8 @@ bool MQ2CharacterType::GETMEMBER()
         }
         Dest.Type=pIntType;
         return true;
+#endif 
+        return false;
     case Grouped:
         if(!pChar->pGroupInfo) return false;
         Dest.DWord= pChar->pGroupInfo->pMember[1] ||
@@ -3344,6 +3352,7 @@ bool MQ2CharacterType::GETMEMBER()
         Dest.Type=pTicksType;
         return true;
     case Counters:
+#if 0
         Dest.DWord=0;
         {
             for (unsigned long k=0; k<NUM_LONG_BUFFS ; k++)
@@ -3353,6 +3362,8 @@ bool MQ2CharacterType::GETMEMBER()
         }
         Dest.Type=pIntType;
         return true;
+#endif
+        return false;
     case Mercenary:
         if(pMercInfo->HaveMerc)
         {
