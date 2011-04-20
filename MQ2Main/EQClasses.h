@@ -7084,4 +7084,10 @@ public:
     bool HasSkill(int);
 };
 
+class PcZoneClient
+{
+public:
+    int GetPcSkillLimit(int);
+};
+
 using namespace EQClasses;

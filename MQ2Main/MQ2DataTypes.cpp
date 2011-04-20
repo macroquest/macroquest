@@ -2609,7 +2609,7 @@ bool MQ2CharacterType::GETMEMBER()
             {
                 // numeric
                 unsigned long nSkill=GETNUMBER()-1;
-                if (nSkill<0x64)
+                if (nSkill<NUM_SKILLS)
                 {
                     Dest.DWord=GetCharInfo2()->Skill[nSkill];
                     Dest.Type=pIntType;
@@ -2645,6 +2645,28 @@ bool MQ2CharacterType::GETMEMBER()
             }
         }
         return false;
+
+    case SkillCap:
+        if (ISINDEX()) {
+            class PcZoneClient *p = (PcZoneClient *)GetCharInfo();
+            unsigned long nSkill = 0;
+
+            if (ISNUMBER()) {
+                // numeric
+                nSkill=GETNUMBER()-1;
+            } else {
+                for (nSkill=0;nSkill<NUM_SKILLS;nSkill++)
+                    if (!stricmp(GETFIRST(),szSkills[nSkill]))
+                        break;
+            }
+            if (nSkill < NUM_SKILLS) {
+                Dest.Type=pIntType;
+                Dest.DWord = p->GetPcSkillLimit(nSkill);
+                return true;
+            }
+        }
+        return false;
+
     case Ability:
         if (ISINDEX())
         {

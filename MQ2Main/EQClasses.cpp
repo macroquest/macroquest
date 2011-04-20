@@ -9588,8 +9588,8 @@ FUNCTION_AT_ADDRESS(unsigned long PlayerPointManager::GetAltCurrency(unsigned lo
 FUNCTION_AT_ADDRESS(bool CharacterZoneClient::HasSkill(int), CharacterZoneClient__HasSkill);
 #endif
 
-void bogus()
-{
-EQ_Character1 *crap = NULL;
-crap->UseSkill(0, NULL);
-}
+
+#ifdef PcZoneClient__GetPcSkillLimit
+FUNCTION_AT_ADDRESS(int PcZoneClient::GetPcSkillLimit(int), PcZoneClient__GetPcSkillLimit);
+#endif
+

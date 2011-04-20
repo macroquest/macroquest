@@ -676,3 +676,6 @@
 
 // StringTable 
 #define StringTable__getString                                     0x6F6790
+
+// PcZoneClient
+#define PcZoneClient__GetPcSkillLimit                              0x53E2B0
