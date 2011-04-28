@@ -1,3 +1,6 @@
+28 Apr 2011 by dkaa
+- brought the source up to a compiles-without-error state
+
 25 Aug 2006 by DKAA
 - doortarget, ${NearestDoor}, and ${Switch:Toggle} for ISXEQ
     from onetimehero

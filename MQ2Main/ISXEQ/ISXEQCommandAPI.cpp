@@ -174,7 +174,7 @@ int CMD_EQExecute(int argc, char *argv[])
 		return 0;
 	}
 	char Line[8192]={0};
-	pISInterface->GetArgs(1,argc,argv,Line);
+	pISInterface->GetArgs(1,argc,argv,Line,sizeof(Line));
 	((CCommandHook*)pEverQuest)->Trampoline((PSPAWNINFO)pLocalPlayer,Line);
 	return 0;
 }

@@ -148,7 +148,7 @@ int CMD_Who(int argc, char *argv[])
 		if (!stricmp(argv[i],"all"))
 		{
                       CHAR szRest[MAX_STRING] = {0};
-                      pISInterface->GetArgs(1,argc,argv,szRest);
+                      pISInterface->GetArgs(1,argc,argv,szRest,sizeof(szRest));
                       cmdWho((PSPAWNINFO)pLocalPlayer, szRest);
 			return 0;
 		}
@@ -275,7 +275,7 @@ int CMD_PopupText(int argc, char *argv[])
 	}
 
 	CHAR szRest[MAX_STRING] = {0};
-	pISInterface->GetArgs(1,argc,argv,szRest);
+	pISInterface->GetArgs(1,argc,argv,szRest, sizeof(szRest));
 	DisplayOverlayText(szRest, CONCOLOR_LIGHTBLUE, 100, 500,500,3000);
 	return 0;
 }
@@ -551,11 +551,11 @@ int CMD_CastSpell(int argc, char* argv[])
       SpawnFooter = (DWORD)pLocalPlayer;
 		PITEMINFO pItem=0;
       for (int i=0;i<NUM_INV_SLOTS;i++) { 
-         if (GetCharInfo2()->InventoryArray[i]) 
-            if (!_stricmp(argv[2],GetCharInfo2()->InventoryArray[i]->Item->Name)) { 
-               DebugSpew("cast test slot %d = %s address is %x",i,GetCharInfo2()->InventoryArray[i]->Item->Name,&(GetCharInfo2()->InventoryArray[i])); 
-               item = (DWORD)&GetCharInfo2()->InventoryArray[i];
-					pItem=GetCharInfo2()->InventoryArray[i]->Item; 
+         if (GetCharInfo2()->pInventoryArray->InventoryArray[i]) 
+            if (!_stricmp(argv[2],GetItemFromContents(GetCharInfo2()->pInventoryArray->InventoryArray[i])->Name)) { 
+               DebugSpew("cast test slot %d = %s address is %x",i,GetItemFromContents(GetCharInfo2()->pInventoryArray->InventoryArray[i])->Name,&(GetCharInfo2()->pInventoryArray->InventoryArray[i])); 
+               item = (DWORD)&GetCharInfo2()->pInventoryArray->InventoryArray[i];
+					pItem=GetItemFromContents(GetCharInfo2()->pInventoryArray->InventoryArray[i]); 
                slot = (DWORD)i; 
                FOUND = TRUE; 
                break; 
@@ -808,7 +808,7 @@ int CMD_EQModKey(int argc, char *argv[])
 			WriteChatf("Usage: %s <command>", argv[0]);
 			return 0;
 	}
-	pISInterface->GetArgs(1,argc,argv,chCommand);
+	pISInterface->GetArgs(1,argc,argv,chCommand,sizeof(chCommand));
 	*(DWORD*)&KeyboardFlags=*(DWORD*)&((PCXWNDMGR)pWndMgr)->KeyboardFlags;
 	if (!stricmp(argv[0],"nomodkey"))
 			*(DWORD*)&((PCXWNDMGR)pWndMgr)->KeyboardFlags=0;
@@ -1116,7 +1116,7 @@ Filters["system"]=USERCOLOR_SYSTEM;
 		return 0;
 	}
 	char FullText[8192];
-	pISInterface->GetArgs(arg,argc,argv,FullText);
+	pISInterface->GetArgs(arg,argc,argv,FullText,sizeof(FullText));
 	dsp_chat_no_events(FullText,Color,1);
 	return 0;
 }

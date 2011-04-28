@@ -269,7 +269,7 @@ int CMD_MapNames(int argc, char *argv[])
         if (argc==3 && !stricmp(argv[2],"reset"))
             strcpy(MapTargetNameString,"%N");
         else
-            pISInterface->GetArgs(2,argc,argv,MapTargetNameString);
+            pISInterface->GetArgs(2,argc,argv,MapTargetNameString,sizeof(MapTargetNameString));
         WriteChatf("Target naming string: %s",MapTargetNameString);
         pISInterface->SetSetting("ISXEQMap.XML","Naming Schemes","Target",MapTargetNameString);
         pISInterface->SaveSettings("ISXEQMap.XML");
@@ -281,7 +281,7 @@ int CMD_MapNames(int argc, char *argv[])
         if (argc==3 && !stricmp(argv[2],"reset"))
             strcpy(MapNameString,"%N");
         else
-            pISInterface->GetArgs(2,argc,argv,MapNameString);
+            pISInterface->GetArgs(2,argc,argv,MapNameString,sizeof(MapNameString));
         WriteChatf("Normal naming string: %s",MapNameString);
         pISInterface->SetSetting("ISXEQMap.XML","Naming Schemes","Normal",MapNameString);
         pISInterface->SaveSettings("ISXEQMap.XML");
@@ -344,7 +344,7 @@ int CMD_MapClick(int argc, char *argv[])
         return 0;
     }
 
-    pISInterface->GetArgs(2,argc,argv,MapSpecialClickString[Combo]);
+    pISInterface->GetArgs(2,argc,argv,MapSpecialClickString[Combo], MAX_STRING);
     pISInterface->SetSetting("ISXEQMap.XML","Right Click",szBuffer,MapSpecialClickString[Combo]);
     pISInterface->SaveSettings("ISXEQMap.XML");
     WriteChatf("%s: %s",DescribeCombo(Combo),MapSpecialClickString[Combo]);

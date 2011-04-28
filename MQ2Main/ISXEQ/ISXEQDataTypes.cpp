@@ -103,7 +103,7 @@ bool MQ2SpawnType::GETMETHOD()
    case RightClick: 
       { 
       PSPAWNINFO pSpawn = (PSPAWNINFO)GetSpawnByID(pPtr->SpawnID); 
-      pEverQuest->RightClickedOnPlayer((EQPlayer *)pSpawn); 
+      pEverQuest->RightClickedOnPlayer((EQPlayer *)pSpawn, 0); 
       return true; 
       } 
 	case xAssist:

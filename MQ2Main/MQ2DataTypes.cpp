@@ -3410,13 +3410,15 @@ bool MQ2CharacterType::GETMEMBER()
                 {
                     if(ISNUMBER())
                     {
-                        Dest.Ptr = &xta->pXTargetData[GETNUMBER() - 1];
-                        Dest.Type = pXTargetType;
-                        return true;
+                        if(GETNUMBER() <= (int)xtm->TargetSlots) {
+                            Dest.Ptr = &xta->pXTargetData[GETNUMBER() - 1];
+                            Dest.Type = pXTargetType;
+                            return true;
+                        }
                     }
                     else
                     {
-                        for(n = 0; n < MAX_XTARGETS; n++)
+                        for(n = 0; n < xtm->TargetSlots; n++)
                         {
                             if(xta->pXTargetData[n].xTargetType && xta->pXTargetData[n].Unknown0x4 && !stricmp(GETFIRST(), xta->pXTargetData[n].Name))
                             {
@@ -3430,7 +3432,7 @@ bool MQ2CharacterType::GETMEMBER()
                 else
                 {
                     DWORD x = 0;
-                    for(n = 0; n < MAX_XTARGETS; n++)
+                    for(n = 0; n < xtm->TargetSlots; n++)
                     {
                         if(xta->pXTargetData[n].xTargetType && xta->pXTargetData[n].Unknown0x4)
                         {
@@ -4936,9 +4938,10 @@ bool MQ2WindowType::GETMEMBER()
         return true;
     case Text:
         if(((CXWnd*)pWnd)->GetType()==UI_STMLBox)
-            GetCXStr(pWnd->SidlText,DataTypeTemp,MAX_STRING);
+            GetCXStr(pWnd->SidlText,DataTypeTemp,MAX_STRING-1);
         else
-            GetCXStr(pWnd->WindowText,DataTypeTemp,MAX_STRING);
+            GetCXStr(pWnd->WindowText,DataTypeTemp,MAX_STRING-1);
+        DataTypeTemp[MAX_STRING-1]='\0';
         Dest.Ptr=&DataTypeTemp[0];
         Dest.Type=pStringType;
         return true;

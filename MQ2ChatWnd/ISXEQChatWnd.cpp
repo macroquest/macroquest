@@ -142,7 +142,6 @@ public:
             PCHAR* Fonts; 
         };
         FONTDATA* Fonts;    // font array structure
-        CXStr* str;         // contents of stml window
         DWORD* SelFont;     // selected font
 
         // get fonts structure
