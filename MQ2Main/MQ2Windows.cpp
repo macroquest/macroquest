@@ -1205,7 +1205,7 @@ int ItemNotify(int argc, char *argv[])
             bagslot=atoi(szArg3)-1;
             type=2;
         } else if (!strnicmp(szArg2,"pack",4)) {
-            invslot=atoi(&szArg2[4])-1;
+            invslot=atoi(&szArg2[4])-1+23;
             bagslot=atoi(szArg3)-1;
             type=0;
         }
