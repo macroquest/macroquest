@@ -621,8 +621,11 @@ typedef struct _EQINVSLOTWND {
 /*0x1b8*/   DWORD Unknown0x1b8;
 /*0x1bc*/   LONG WindowType;        // ieatacid has this as InventoryType
                                     // 0 for inventory
+                                    // 01 for bank
+                                    // 02 for shared bank
+                                    // 03 for trader window
+                                    // 04 for World/Tradeskill/Combine
                                     // 11 for loot window
-                                    // xx for trader window
 /*0x1c0*/   WORD InvSlotForBag;
 /*0x1c2*/   WORD BagSlot;
 /*0x1c4*/   BYTE Unknown0x1c0[0x20];
@@ -637,7 +640,8 @@ typedef struct _EQINVSLOT {
 /*0x04*/    struct _EQINVSLOTWND *pInvSlotWnd;
 /*0x08*/    DWORD Unknown0x08;
 /*0x0C*/    DWORD InvSlot;
-/*0x10*/    DWORD Unknown0x10;      // Enabled?
+/*0x10*/    BYTE Valid;
+/*0x11*/    BYTE Unknown0x11[3];
 /*0x14*/    
 } EQINVSLOT, *PEQINVSLOT;
 

@@ -1127,7 +1127,12 @@ int ItemNotify(int argc, char *argv[])
     PSPAWNINFO pChar = (PSPAWNINFO)pLocalPlayer;
 #endif
     PCHAR pNotification=&szArg2[0];
-    EQINVSLOT *pSlot=0;
+    EQINVSLOT *pSlot=NULL;
+    DWORD i;
+    PEQINVSLOTMGR pInvMgr=(PEQINVSLOTMGR)pInvSlotMgr;
+    int bagslot = -1;
+    int invslot = -1;
+    int type = -1;
 
     if (!stricmp(szArg1,"in"))
     { 
@@ -1138,6 +1143,7 @@ int ItemNotify(int argc, char *argv[])
             RETURN(0);
         }
 
+#if 0
         PCONTENTS pPack=0;
         PCONTENTS pItem=0;
         
@@ -1189,26 +1195,77 @@ int ItemNotify(int argc, char *argv[])
                 pSlot = pInvMgr->SlotArray[nSlot];
             }
         }
+#endif
+        if (!strnicmp(szArg2,"bank",4)) {
+            invslot=atoi(&szArg2[4])-1;
+            bagslot=atoi(szArg3)-1;
+            type=1;
+        } else if (!strnicmp(szArg2,"sharedbank",10)) {
+            invslot=atoi(&szArg2[10])-1;
+            bagslot=atoi(szArg3)-1;
+            type=2;
+        } else if (!strnicmp(szArg2,"pack",4)) {
+            invslot=atoi(&szArg2[4])-1;
+            bagslot=atoi(szArg3)-1;
+            type=0;
+        }
+        for (i=0;i<pInvMgr->TotalSlots;i++) {
+            pSlot = pInvMgr->SlotArray[i];
+            if ((pSlot->Valid) &&
+                (pSlot->pInvSlotWnd->WindowType == type) &&
+                (pSlot->pInvSlotWnd->InvSlotForBag == invslot) &&
+                (pSlot->pInvSlotWnd->BagSlot == bagslot)) {
+                break;
+            }
+        }
+        if (i == pInvMgr->TotalSlots) pSlot = NULL;
 
         pNotification=&szArg4[0];
-    }
-    else
-    {
+    } else {
         unsigned long Slot=atoi(szArg1);
         if (Slot==0)
         {
-            Slot=ItemSlotMap[strlwr(szArg1)];
+            Slot=ItemSlotMap[strlwr(szArg1)]; 
+            if (Slot<NUM_INV_SLOTS) {
+                DebugTry(pSlot=(EQINVSLOT *)pInvSlotMgr->FindInvSlot(Slot));
+            } else {
+                if (!strnicmp(szArg1, "loot", 4)) {
+                    invslot = atoi(szArg1+4) - 1;
+                    type = 11;
+                } else if (!strnicmp(szArg1, "enviro", 6)) {
+                    invslot = atoi(szArg1+6) - 1;
+                    type = 4;
+                } else if (!strnicmp(szArg1, "pack", 4)) {
+                    invslot = atoi(szArg1+4) - 1 + 23;
+                    type = 0;
+                } else if (!strnicmp(szArg1, "bank", 4)) {
+                    invslot = atoi(szArg1+4) - 1;
+                    type = 1;
+                } else if (!strnicmp(szArg1, "sharedbank", 10)) {
+                    invslot = atoi(szArg1+10) - 1;
+                    type = 2;
+                } else if (!strnicmp(szArg1, "trade", 5)) {
+                    invslot = atoi(szArg1+5) - 1;
+                    type = 3;
+                }
+                for (i=0;i<pInvMgr->TotalSlots;i++) {
+                    pSlot = pInvMgr->SlotArray[i];
+                    if ((pSlot->Valid) &&
+                        (pSlot->pInvSlotWnd->WindowType == type) &&
+                        (pSlot->pInvSlotWnd->InvSlotForBag == invslot)) {
+                        Slot = 1;
+                        break;
+                    }
+                }
+                if (i == pInvMgr->TotalSlots) Slot = 0;
+            }
         }
         if (Slot==0 && szArg1[0]!='0' && stricmp(szArg1,"charm"))
         {
             WriteChatf("Invalid item slot '%s'",szArg1);
             RETURN(0);
-        }
-        //DebugTry(pSlot=pInvSlotMgr->FindInvSlot(Slot));
-        {
-            PEQINVSLOTMGR pInvMgr=(PEQINVSLOTMGR)pInvSlotMgr;
+        } else if (Slot && !pSlot) {
             pSlot = pInvMgr->SlotArray[Slot];
-
         }
     }
     if (!pSlot)
@@ -1216,7 +1273,7 @@ int ItemNotify(int argc, char *argv[])
         WriteChatf("SLOT IS NULL: Could not send notification to %s %s",szArg1,szArg2);
         RETURN(0);
     }
-    //DebugSpew("ItemNotify: Calling SendWndClick");
+    DebugSpew("ItemNotify: Calling SendWndClick");
     if (!pSlot->pInvSlotWnd || !SendWndClick2((CXWnd*)pSlot->pInvSlotWnd,pNotification))
     {
         WriteChatf("Could not send notification to %s %s",szArg1,szArg2);
