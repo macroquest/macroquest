@@ -64,8 +64,7 @@ public:
         if (pWnd==(CXWnd*)InputBox) 
         { 
             if (Message==XWM_HITENTER) 
-            { 
-                //CXSize Whatever; 
+            {  
                 char szBuffer[2048]; 
                 GetCXStr((PCXSTR)InputBox->InputText,szBuffer,2047); 
                 if (szBuffer[0]) 
@@ -526,7 +525,6 @@ PLUGIN_API VOID OnPulse()
                 MQChatWnd->OutBoxLines-=Diff; 
                 Benchmark(bmStripFirstStmlLines,MQChatWnd->OutputBox->StripFirstSTMLLines(Diff)); 
             } 
-            CXSize Whatever; 
             for (DWORD N=0 ; N<ThisPulse ; N++) 
             { 
                 DebugTry(MQChatWnd->OutputBox->AppendSTML(pPendingChat->Text)); 
