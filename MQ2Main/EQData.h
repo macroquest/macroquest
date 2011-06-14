@@ -951,7 +951,7 @@ union {
 } INVENTORYARRAY, *PINVENTORYARRAY;
 
 // *note* Cursor is no longer a member of _CHARINFO2.  access with pInventoryArray->Inventory.Cursor
-// actual size: 0xa4b8 20110309 - ieatacid
+// actual size: 0xa5f8 201100525- dkaa
 typedef struct _CHARINFO2 {
 /*0x0000*/   BYTE       Unknown0x0[0x18];
 /*0x0018*/   DWORD      Unknown0x18; // # of inventory slots?
@@ -1013,16 +1013,17 @@ typedef struct _CHARINFO2 {
 /*0x6358*/   DWORD      CombatAbilities[NUM_COMBAT_ABILITIES];
 /*0x6678*/   BYTE       Unknown0x6678[0x34];
 /*0x66ac*/   DWORD      CombatAbilityTimes[0x14];
-/*0x66fc*/   BYTE       Unknown0x66fc[0x1d50];
-/*0x844C*/   DWORD      Deity;
-/*0x8450*/   BYTE       Unknown0x8450[0x4];
-/*0x8454*/   DWORD      Drunkenness;
-/*0x8458*/   BYTE       Unknown0x8458[0x10];
-/*0x8468*/   DWORD      AAPoints;
-/*0x846c*/   BYTE       Unknown0x846c[0x200c];
-/*0xa478*/   DWORD      AAPointsSpent;
-/*0xa47c*/   BYTE       Unknown0xa47c[0x3c];
-/*0xa4b8*/
+/*0x66fc*/   BYTE       Unknown0x66fc[0x1e90];
+/*0x858C*/   DWORD      Deity;
+/*0x8590*/   BYTE       Unknown0x8450[0x4];
+/*0x8594*/   DWORD      Drunkenness;
+/*0x8598*/   BYTE       Unknown0x8458[0x10];
+/*0x85a8*/   DWORD      AAPoints;
+/*0x85ac*/   BYTE       Unknown0x846c[0x200c];
+
+/*0xa5b8*/   DWORD      AAPointsSpent;
+/*0xa5bc*/   BYTE       Unknown0xa47c[0x3c];
+/*0xa5f8*/
 } CHARINFO2, *PCHARINFO2;
 
 typedef struct _MODELINFONAME {
@@ -1607,12 +1608,12 @@ typedef struct _ZONEINFO {
 /*0x2a4*/
 } ZONEINFO, *PZONEINFO;
 
-#define   TOTAL_SPELL_COUNT             0x6d60      // # of spells allocated in memory (4/7/2009)
+#define   TOTAL_SPELL_COUNT             33001       // # of spells allocated in memory (5/25/2011)
 #define   TOTAL_ACTUAL_SPELLS           0x1964      // # of ACTUAL spells in game      (9/14/2004) - wrong and unused
 
-// size: 0x17770 08-07-06          
+// size: 0x810DC 05-25-2011
 typedef struct _SPELLMGR {
-BYTE            unknown[0x1E6B0];
+BYTE            unknown[0x205F0];
 struct _SPELL*  Spells[TOTAL_SPELL_COUNT];
 } SPELLMGR, *PSPELLMGR;
 
