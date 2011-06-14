@@ -115,7 +115,7 @@ FUNCTION_AT_ADDRESS(char * EQ_Item::CreateItemTagString(char *, int),EQ_Item__Cr
 FUNCTION_AT_ADDRESS(class CXSize CStmlWnd::AppendSTML(class CXStr),CStmlWnd__AppendSTML);
 #endif
 #ifdef EQ_Item__CanDrop
-FUNCTION_AT_ADDRESS(int EQ_Item::CanDrop(bool,int,int),EQ_Item__CanDrop); // dkaa 2-11-2011
+FUNCTION_AT_ADDRESS(int EQ_Item::CanDrop(bool,int,int,int),EQ_Item__CanDrop); // dkaa 2-11-2011
 #endif
 
 ///////////////////////////////////////////////////////////////////
