@@ -61,10 +61,12 @@ LINK32=link.exe
 # Begin Source File
 
 SOURCE=.\MQ2Bzsrch.cpp
+SOURCE=.\netstream.cpp
 # End Source File
 # End Group
 # Begin Group "Header Files"
 
+SOURCE=.\netstream.h
 # PROP Default_Filter "h;hpp;hxx;hm;inl"
 # End Group
 # Begin Group "Resource Files"

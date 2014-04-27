@@ -385,6 +385,7 @@ enum MOUSE_DATA_TYPES {
 #define nEQMappableCommands             0x1f3
 
 #define MAX_PC_LEVEL                    100
+#define MAX_NPC_LEVEL                   110
 #define NUM_SPELL_GEMS                  12
 #define NUM_SPELL_SETS                  10
 #define NUM_BUFF_SLOTS					0x61

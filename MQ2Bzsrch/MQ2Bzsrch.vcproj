@@ -85,12 +85,18 @@
 			<File
 				RelativePath="MQ2Bzsrch.cpp">
 			</File>
+            <File
+				RelativePath="netstream.cpp">
+			</File>
 		</Filter>
 		<Filter
 			Name="Header Files"
 			Filter="h;hpp;hxx;hm;inl;inc">
 			<File
 				RelativePath="..\MQ2Plugin.h">
+			</File>
+            <File
+				RelativePath="netstream.h">
 			</File>
 		</Filter>
 		<Filter
