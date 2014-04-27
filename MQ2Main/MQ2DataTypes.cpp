@@ -7172,35 +7172,35 @@ bool MQ2FellowshipType::GETMEMBER()
         }
         return false;
     case CampfireDuration:
-        if(pFellowship->CampfireTimestamp)
+        if(((PSPAWNINFO)pCharSpawn)->CampfireTimestamp)
         {
-            Dest.DWord=(pFellowship->CampfireTimestamp-GetFastTime())/6;
+            Dest.DWord=(((PSPAWNINFO)pCharSpawn)->CampfireTimestamp-GetFastTime())/6;
             Dest.Type=pTicksType;
             return true;
         }
         return false;
     case CampfireY:
-        Dest.Float=pFellowship->CampfireY;
+        Dest.Float=((PSPAWNINFO)pCharSpawn)->CampfireY;
         Dest.Type=pFloatType;
         return true;
     case CampfireX:
-        Dest.Float=pFellowship->CampfireX;
+        Dest.Float=((PSPAWNINFO)pCharSpawn)->CampfireX;
         Dest.Type=pFloatType;
         return true;
     case CampfireZ:
-        Dest.Float=pFellowship->CampfireZ;
+        Dest.Float=((PSPAWNINFO)pCharSpawn)->CampfireZ;
         Dest.Type=pFloatType;
         return true;
     case CampfireZone:
-        if(pFellowship->CampfireZoneID)
+        if(((PSPAWNINFO)pCharSpawn)->CampfireZoneID)
         {
-            Dest.Ptr=((PWORLDDATA)pWorldData)->ZoneArray[pFellowship->CampfireZoneID];
+            Dest.Ptr=((PWORLDDATA)pWorldData)->ZoneArray[((PSPAWNINFO)pCharSpawn)->CampfireZoneID];
             Dest.Type=pZoneType;
             return true;
         }
         return false;
     case Campfire:
-        Dest.Int=pFellowship->Campfire;
+        Dest.Int=((PSPAWNINFO)pCharSpawn)->Campfire;
         Dest.Type=pBoolType;
         return true;
     }

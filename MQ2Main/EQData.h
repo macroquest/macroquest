@@ -793,7 +793,7 @@ typedef struct _SHAREDBANKARRAY {
 /*0x68*/
 } SHAREDBANKARRAY, *PSHAREDBANKARRAY;
 
-// actual size: 0x4f5c 20110413 - ieatacid
+// actual size: 0x4f74 20110915 - ieatacid
 typedef struct _CHARINFO {
 /*0x0000*/   void       *vtable1;
 /*0x0004*/   void       *punknown;
@@ -838,109 +838,109 @@ typedef struct _CHARINFO {
 /*0x1b60*/   DWORD      Exp;
 /*0x1b64*/   BYTE       Unknown0x1b64[0x64];
 /*0x1bc8*/   void       *PlayerPointManager;
-/*0x1bcc*/   BYTE       Unknown0x1bcc[0xb74];
-/*0x2740*/   void       *vtable2;
-/*0x2744*/   struct     _EQC_INFO* eqc_info;
-/*0x2748*/   struct     _SPAWNINFO* pSpawn;
-/*0x274c*/   DWORD      Unknown0x274c;
-/*0x2750*/   DWORD      Unknown0x2750;
-/*0x2754*/   DWORD      CurrWeight;
-/*0x2758*/   BYTE       Unknown0x2758[0xc];
-/*0x2764*/   DWORD      HPBonus;
-/*0x2768*/   DWORD      ManaBonus;
-/*0x276c*/   DWORD      EnduranceBonus;
-/*0x2770*/   DWORD      CombatEffectsCap;
-/*0x2774*/   DWORD      ShieldingCap;
-/*0x2778*/   DWORD      SpellShieldCap;
-/*0x277c*/   DWORD      AvoidanceCap;
-/*0x2780*/   DWORD      AccuracyCap;
-/*0x2784*/   DWORD      StunResistCap;
-/*0x2788*/   DWORD      StrikeThroughCap;
-/*0x278c*/   DWORD      Unknown0x278c[0x9];
-/*0x27b0*/   DWORD      SkillMinDamageModBonus[0x9];
-/*0x27d4*/   BYTE       Unknown0x27d4[0x4];
-/*0x27d8*/   DWORD      DoTShieldCap;
-/*0x27dc*/   DWORD      DamageShieldMitigationCap;
-/*0x27e0*/   DWORD      CombatEffectsBonus;
-/*0x27e4*/   DWORD      SpellShieldBonus;
-/*0x27e8*/   DWORD      ShieldingBonus;
-/*0x27ec*/   DWORD      DamageShieldBonus;
-/*0x27f0*/   DWORD      DoTShieldBonus;
-/*0x27f4*/   DWORD      DamageShieldMitigationBonus;
-/*0x27f8*/   DWORD      AvoidanceBonus;
-/*0x27fc*/   DWORD      AccuracyBonus;
-/*0x2800*/   DWORD      StunResistBonus;
-/*0x2804*/   DWORD      StrikeThroughBonus;
-/*0x2808*/   DWORD      HeroicSTRBonus;
-/*0x280c*/   DWORD      HeroicINTBonus;
-/*0x2810*/   DWORD      HeroicWISBonus;
-/*0x2814*/   DWORD      HeroicAGIBonus;
-/*0x2818*/   DWORD      HeroicDEXBonus;
-/*0x281c*/   DWORD      HeroicSTABonus;
-/*0x2820*/   DWORD      HeroicCHABonus;
-/*0x2824*/   DWORD      HeroicSvMagicBonus;
-/*0x2828*/   DWORD      HeroicSvFireBonus;
-/*0x282c*/   DWORD      HeroicSvColdBonus;
-/*0x2830*/   DWORD      HeroicSvDiseaseBonus;
-/*0x2834*/   DWORD      HeroicSvPoisonBonus;
-/*0x2838*/   DWORD      HeroicSvCorruptionBonus;
-/*0x283c*/   DWORD      HealAmountBonus;
-/*0x2840*/   DWORD      SpellDamageBonus;
-/*0x2844*/   DWORD      Unknown0x2844[0x2];
-/*0x284c*/   DWORD      ClairvoyanceBonus;
-/*0x2850*/   DWORD      AttackBonus;
-/*0x2854*/   DWORD      HPRegenBonus;
-/*0x2858*/   DWORD      ManaRegenBonus;
-/*0x285c*/   DWORD      EnduranceRegenBonus;
-/*0x2860*/   DWORD      DamageShieldCap;
-/*0x2864*/   DWORD      AttackSpeed;
-/*0x2868*/   BYTE       Unknown0x2868[0xb0];
-/*0x2918*/   struct     _XTARGETMGR *pXTargetMgr;
-/*0x291c*/   DWORD      InCombat;
-/*0x2920*/   DWORD      Downtime;
-/*0x2924*/   DWORD      DowntimeStamp;
-/*0x2928*/   BYTE       Unknown0x2928[0x4];
-/*0x292c*/   struct     _GROUPINFO *pGroupInfo;
-/*0x2930*/   BYTE       Unknown0x2930[0x14];
-/*0x2944*/   void       *pUnknown2;
-/*0x2948*/   struct     _CI2_INFO* pCI2;
-/*0x294c*/   DWORD      Unknown0x294c;
-/*0x2950*/   BYTE       languages[0x20];
-/*0x2970*/   BYTE       Unknown0x2970[0x10];
-/*0x2980*/   CHAR       Name[0x40];
-/*0x29c0*/   CHAR       Lastname[0x20];
-/*0x29e0*/   BYTE       Unknown0x29e0[0x60];
-/*0x2a40*/   BYTE       Stunned;
-/*0x2a41*/   BYTE       Unknown0x2a41[0x3];
-/*0x2a44*/   WORD       zoneId;
-/*0x2a46*/   WORD       instance;
-/*0x2a48*/   DWORD      standstate;
-/*0x2a4c*/   BYTE       Unknown0x2a4c[0x4];
-/*0x2a50*/   struct     _LEADERABILITIES ActiveAbilities; //ability levels of the leader of your group (size 0x40)
-/*0x2a90*/   BYTE       Unknown0x2a90[0x334];
-/*0x2dc4*/   DWORD      BankSharedPlat;
-/*0x2dc8*/   DWORD      BankSharedGold;
-/*0x2dcc*/   DWORD      BankSharedSilver;
-/*0x2dd0*/   DWORD      BankSharedCopper;
-/*0x2dd4*/   DWORD      BankPlat;
-/*0x2dd8*/   DWORD      BankGold;
-/*0x2ddc*/   DWORD      BankSilver;
-/*0x2de0*/   DWORD      BankCopper;
-/*0x2de4*/   DWORD      STR;
-/*0x2de8*/   DWORD      STA;
-/*0x2dec*/   DWORD      CHA;
-/*0x2df0*/   DWORD      DEX;
-/*0x2df4*/   DWORD      INT;
-/*0x2df8*/   DWORD      AGI;
-/*0x2dfc*/   DWORD      WIS;
-/*0x2e00*/   DWORD      SavePoison;
-/*0x2e04*/   DWORD      SaveMagic;
-/*0x2e08*/   DWORD      SaveDisease;
-/*0x2e0c*/   DWORD      SaveCorruption;
-/*0x2e10*/   DWORD      SaveFire;
-/*0x2e14*/   DWORD      SaveCold;
-/*0x2e18*/   BYTE       Unknown0x2e18[0x2144];
-/*0x4f5c*/
+/*0x1bcc*/   BYTE       Unknown0x1bcc[0xb8c];
+/*0x2758*/   void       *vtable2;
+/*0x275c*/   struct     _EQC_INFO* eqc_info;
+/*0x2760*/   struct     _SPAWNINFO* pSpawn;
+/*0x2764*/   DWORD      Unknown0x2764;
+/*0x2768*/   DWORD      Unknown0x2768;
+/*0x276c*/   DWORD      CurrWeight;
+/*0x2770*/   BYTE       Unknown0x2770[0xc];
+/*0x277c*/   DWORD      HPBonus;
+/*0x2780*/   DWORD      ManaBonus;
+/*0x2784*/   DWORD      EnduranceBonus;
+/*0x2788*/   DWORD      CombatEffectsCap;
+/*0x278c*/   DWORD      ShieldingCap;
+/*0x2790*/   DWORD      SpellShieldCap;
+/*0x2794*/   DWORD      AvoidanceCap;
+/*0x2798*/   DWORD      AccuracyCap;
+/*0x279c*/   DWORD      StunResistCap;
+/*0x27a0*/   DWORD      StrikeThroughCap;
+/*0x27a4*/   DWORD      Unknown0x27a4[0x9];
+/*0x27c8*/   DWORD      SkillMinDamageModBonus[0x9];
+/*0x27ec*/   BYTE       Unknown0x27ec[0x4];
+/*0x27f0*/   DWORD      DoTShieldCap;
+/*0x27f4*/   DWORD      DamageShieldMitigationCap;
+/*0x27f8*/   DWORD      CombatEffectsBonus;
+/*0x27fc*/   DWORD      SpellShieldBonus;
+/*0x2800*/   DWORD      ShieldingBonus;
+/*0x2804*/   DWORD      DamageShieldBonus;
+/*0x2808*/   DWORD      DoTShieldBonus;
+/*0x280c*/   DWORD      DamageShieldMitigationBonus;
+/*0x2810*/   DWORD      AvoidanceBonus;
+/*0x2814*/   DWORD      AccuracyBonus;
+/*0x2818*/   DWORD      StunResistBonus;
+/*0x281c*/   DWORD      StrikeThroughBonus;
+/*0x2820*/   DWORD      HeroicSTRBonus;
+/*0x2824*/   DWORD      HeroicINTBonus;
+/*0x2828*/   DWORD      HeroicWISBonus;
+/*0x282c*/   DWORD      HeroicAGIBonus;
+/*0x2830*/   DWORD      HeroicDEXBonus;
+/*0x2834*/   DWORD      HeroicSTABonus;
+/*0x2838*/   DWORD      HeroicCHABonus;
+/*0x283c*/   DWORD      HeroicSvMagicBonus;
+/*0x2840*/   DWORD      HeroicSvFireBonus;
+/*0x2844*/   DWORD      HeroicSvColdBonus;
+/*0x2848*/   DWORD      HeroicSvDiseaseBonus;
+/*0x284c*/   DWORD      HeroicSvPoisonBonus;
+/*0x2850*/   DWORD      HeroicSvCorruptionBonus;
+/*0x2854*/   DWORD      HealAmountBonus;
+/*0x2858*/   DWORD      SpellDamageBonus;
+/*0x285c*/   DWORD      Unknown0x285c[0x2];
+/*0x2864*/   DWORD      ClairvoyanceBonus;
+/*0x2868*/   DWORD      AttackBonus;
+/*0x286c*/   DWORD      HPRegenBonus;
+/*0x2870*/   DWORD      ManaRegenBonus;
+/*0x2874*/   DWORD      EnduranceRegenBonus;
+/*0x2878*/   DWORD      DamageShieldCap;
+/*0x287c*/   DWORD      AttackSpeed;
+/*0x2880*/   BYTE       Unknown0x2880[0xb0];
+/*0x2930*/   struct     _XTARGETMGR *pXTargetMgr;
+/*0x2934*/   DWORD      InCombat;
+/*0x2938*/   DWORD      Downtime;
+/*0x293c*/   DWORD      DowntimeStamp;
+/*0x2940*/   BYTE       Unknown0x2940[0x4];
+/*0x2944*/   struct     _GROUPINFO *pGroupInfo;
+/*0x2948*/   BYTE       Unknown0x2948[0x14];
+/*0x295c*/   void       *pUnknown2;
+/*0x2960*/   struct     _CI2_INFO* pCI2;
+/*0x2964*/   DWORD      Unknown0x2964;
+/*0x2968*/   BYTE       languages[0x20];
+/*0x2988*/   BYTE       Unknown0x2988[0x10];
+/*0x2998*/   CHAR       Name[0x40];
+/*0x29d8*/   CHAR       Lastname[0x20];
+/*0x29f8*/   BYTE       Unknown0x29f8[0x60];
+/*0x2a58*/   BYTE       Stunned;
+/*0x2a59*/   BYTE       Unknown0x2a59[0x3];
+/*0x2a5c*/   WORD       zoneId;
+/*0x2a5e*/   WORD       instance;
+/*0x2a60*/   DWORD      standstate;
+/*0x2a64*/   BYTE       Unknown0x2a64[0x4];
+/*0x2a68*/   struct     _LEADERABILITIES ActiveAbilities; //ability levels of the leader of your group (size 0x40)
+/*0x2aa8*/   BYTE       Unknown0x2aa8[0x334];
+/*0x2ddc*/   DWORD      BankSharedPlat;
+/*0x2de0*/   DWORD      BankSharedGold;
+/*0x2de4*/   DWORD      BankSharedSilver;
+/*0x2de8*/   DWORD      BankSharedCopper;
+/*0x2dec*/   DWORD      BankPlat;
+/*0x2df0*/   DWORD      BankGold;
+/*0x2df4*/   DWORD      BankSilver;
+/*0x2df8*/   DWORD      BankCopper;
+/*0x2dfc*/   DWORD      STR;
+/*0x2e00*/   DWORD      STA;
+/*0x2e04*/   DWORD      CHA;
+/*0x2e08*/   DWORD      DEX;
+/*0x2e0c*/   DWORD      INT;
+/*0x2e10*/   DWORD      AGI;
+/*0x2e14*/   DWORD      WIS;
+/*0x2e18*/   DWORD      SavePoison;
+/*0x2e1c*/   DWORD      SaveMagic;
+/*0x2e20*/   DWORD      SaveDisease;
+/*0x2e24*/   DWORD      SaveCorruption;
+/*0x2e28*/   DWORD      SaveFire;
+/*0x2e2c*/   DWORD      SaveCold;
+/*0x2e30*/   BYTE       Unknown0x2e18[0x2144];
+/*0x4f74*/
 } CHARINFO, *PCHARINFO;
 
 typedef struct _INVENTORYARRAY {
@@ -999,13 +999,13 @@ typedef struct _CHARINFO2 {
 /*0x2f3c*/   DWORD      hungerlevel;
 /*0x2f40*/   DWORD      Unknown0x333c; 
 /*0x2f44*/   DWORD      Shrouded;
-/*0x2f48*/   BYTE       Unknown0x3344[0x74];
-/*0x2fbc*/   DWORD      ZoneBoundID;
-/*0x2fc0*/   FLOAT      ZoneBoundY;
-/*0x2fc4*/   FLOAT      ZoneBoundX;
-/*0x2fc8*/   FLOAT      ZoneBoundZ;
-/*0x2fcc*/   FLOAT      ZoneBoundHeading;
-/*0x2fd0*/   BYTE       Unknown0x33cc[0x54];
+/*0x2f48*/   BYTE       Unknown0x3344[0x78];
+/*0x2fc0*/   DWORD      ZoneBoundID;
+/*0x2fc4*/   FLOAT      ZoneBoundY;
+/*0x2fc8*/   FLOAT      ZoneBoundX;
+/*0x2fcc*/   FLOAT      ZoneBoundZ;
+/*0x2fd0*/   FLOAT      ZoneBoundHeading;
+/*0x2fd4*/   BYTE       Unknown0x33d4[0x50];
 /*0x3024*/   DWORD      ArmorType[0x16];
 /*0x307c*/   BYTE       Unknown0x3474[0xb0];
 /*0x312c*/   AALIST     AAList[AA_CHAR_MAX_REAL];
@@ -1162,7 +1162,7 @@ typedef struct _FELLOWSHIPMEMBER {
 /*0x54*/
 } FELLOWSHIPMEMBER, *PFELLOWSHIPMEMBER;
 
-// 20110209 - ieatacid  0x9e0
+// 20110915 - ieatacid  0x9d8
 typedef struct _FELLOWSHIPINFO {
 /*0x000*/  DWORD  Unknown0x0;        // always 1?
 /*0x004*/  DWORD  FellowshipID;
@@ -1171,18 +1171,8 @@ typedef struct _FELLOWSHIPINFO {
 /*0x448*/  DWORD  Members;
 /*0x44c*/  struct _FELLOWSHIPMEMBER  FellowshipMember[0xc];
 /*0x83c*/  DWORD  Unknown0x83c;      // timestamp for something
-/*0x840*/  BYTE   Unknown0x840[0x18c];
-/*0x9cc*/  FLOAT  CampfireY;   	     // this is really in SPAWNINFO
-/*0x9d0*/  FLOAT  CampfireX;
-/*0x9d4*/  FLOAT  CampfireZ;
-/*0x9d8*/  WORD   CampfireZoneID;    // zone ID where campfire is
-/*0x9da*/  WORD   InstanceID;
-/*0x9dc*/  DWORD  CampfireTimestamp; // CampfireTimestamp-FastTime()=time left on campfire
-/*0x9e0*/  DWORD  Unknown0x8e0;      // same as FellowshipID
-/*0x9e4*/  DWORD  Unknown0x8e4;      // campfire type?
-/*0x9e8*/  DWORD  Unknown0x8e8;      // campfire type?
-/*0x9ec*/  DWORD  Campfire;          // do we have a campfire up?
-/*0x9f0*/
+/*0x840*/  BYTE   Unknown0x840[0x198];
+/*0x9d8*/
 } FELLOWSHIPINFO, *PFELLOWSHIPINFO;
 
 // offsets are relative to their position in _LAUNCHSPELLDATA
@@ -1212,7 +1202,7 @@ typedef struct _LAUNCHSPELLDATA {
 /*0x50*/
 } LAUNCHSPELLDATA, *PLAUNCHSPELLDATA;
 
-// actual size: 0x1DE8 20110629 - dkaa
+// actual size: 0x1DF4 20110915 - ieatacid
 typedef struct _SPAWNINFO {
 /*0x0000*/ void     *vtable;
 /*0x0004*/ struct   _SPAWNINFO *pPrev;
@@ -1370,14 +1360,23 @@ typedef struct _SPAWNINFO {
 /*0x11c1*/ BYTE     Unknown0x11c1[0x3];
 /*0x11c4*/ DWORD    GroupMemberTargeted;    // 0xFFFFFFFF if no target, else 1 through 5
 /*0x11c8*/ BYTE     Unknown0x11c8[0x184];
-/*0x134c*/ struct   _FELLOWSHIPINFO Fellowship; // size 0x9f0
-/*0x1d3c*/ BYTE     Unknown0x1d2c[0x54];
-/*0x1d90*/ void     *vtable2;
-/*0x1d94*/ DWORD    Unknown0x1d88;
-/*0x1d98*/ struct   _SPAWNINFO *pSpawn;
-/*0x1d9c*/ DWORD    Levitate;
-/*0x1da0*/ BYTE     Unknown0x1d9d[0x48];
-/*0x1de8*/
+/*0x134c*/ struct   _FELLOWSHIPINFO Fellowship; // size 0x9d8
+/*0x1d24*/ FLOAT    CampfireY;
+/*0x1d28*/ FLOAT    CampfireX;
+/*0x1d2c*/ FLOAT    CampfireZ;
+/*0x1d30*/ WORD     CampfireZoneID;         // zone ID where campfire is
+/*0x1d32*/ WORD     InstanceID;
+/*0x1d34*/ DWORD    CampfireTimestamp;      // CampfireTimestamp-FastTime()=time left on campfire
+/*0x1d38*/ DWORD    Unknown0x1d3c;
+/*0x1d3c*/ DWORD    Unknown0x1d40;          // campfire type?
+/*0x1d40*/ DWORD    Campfire;               // do we have a campfire up?
+/*0x1d44*/ BYTE     Unknown0x1d44[0x58];
+/*0x1d9c*/ void     *vtable2;
+/*0x1da0*/ DWORD    Unknown0x1da0;
+/*0x1da4*/ struct   _SPAWNINFO *pSpawn;
+/*0x1da8*/ DWORD    Levitate;
+/*0x1dac*/ BYTE     Unknown0x1dac[0x48];
+/*0x1df4*/
 } SPAWNINFO, *PSPAWNINFO;
 
 #define STANDSTATE_STAND                0x64
