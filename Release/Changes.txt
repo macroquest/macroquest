@@ -1,3 +1,23 @@
+15 Dec 2013 by eqmule
+-This is NOT a critical update (no need to update unless you really need the following:)
+ I just added FindItemByID and renamed FindItem to FindItemByName
+-Updated ${Mercenary.State} to return "NOMERC" if you dont have a merc.
+
+-There is a /while command in right now (has been for a while -pun intended)
+ I just wasnt ready to announce it earlier, look, this is extremely beta.
+ IF you are gonna try it, you cannot expect it to work perfectly
+ I basically only tried:
+ /while (${Target.ID}) {
+	/delay 1s <--- IMPORTANT
+	/echo Hi there we have a target
+ }
+ You can NOT do:
+ /while (something) /echo hi there
+ 
+ right now it NEEDS the {} enclosure...
+ and please unless you want your cpu to freak out... use a "/delay something" within that closure...
+ see my example above (the <-- IMPORTANT)
+
 11 Dec 2013 by eqmule
 -Updated for patch
 -Updated AltAdvManager::GetAltAbility with second parameter, I dont know what it is yet, rank? level?

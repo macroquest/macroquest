@@ -2034,7 +2034,7 @@ VOID Cast(PSPAWNINFO pChar, PCHAR szLine)
     {
 		if ( HasExpansion(EXPANSION_VoA) )
 		{
-			if (PCONTENTS pItem = FindItem(szArg2, true))
+			if (PCONTENTS pItem = FindItemByName(szArg2, true))
 			{
 				if (GetItemFromContents(pItem)->Clicky.SpellID)
 				{
@@ -2046,7 +2046,7 @@ VOID Cast(PSPAWNINFO pChar, PCHAR szLine)
 				WriteChatf("Item '%s' not found.",szArg2);
 			}
 		} else {
-			if (PCONTENTS pItem = FindItem(szArg2, true))
+			if (PCONTENTS pItem = FindItemByName(szArg2, true))
 			{
 				if ( pItem->ItemSlot<NUM_INV_SLOTS )
 				{

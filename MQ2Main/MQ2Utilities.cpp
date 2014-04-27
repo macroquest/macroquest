@@ -5962,7 +5962,7 @@ VOID ListMercAltAbilities()
 		}
 	}
 }
-PCONTENTS FindItem(PCHAR pName, BOOL bExact)
+PCONTENTS FindItemByName(PCHAR pName, BOOL bExact)
 {
 	CHAR Name[MAX_STRING]={0};
 	CHAR Temp[MAX_STRING]={0};
@@ -6010,6 +6010,43 @@ PCONTENTS FindItem(PCHAR pName, BOOL bExact)
 								{
 									return pItem;
 								}
+							}
+						}
+					}
+				}
+			}
+		}
+	}
+    return 0;
+}
+PCONTENTS FindItemByID(DWORD ItemID)
+{
+	PCHARINFO2 pChar2 = GetCharInfo2();
+	if(pChar2 && pChar2->pInventoryArray && pChar2->pInventoryArray->InventoryArray) {
+		for (unsigned long nSlot=0 ; nSlot < NUM_INV_SLOTS ; nSlot++)
+		{
+			if (PCONTENTS pItem=pChar2->pInventoryArray->InventoryArray[nSlot])
+			{
+				if (ItemID==GetItemFromContents(pItem)->ItemNumber)
+				{
+						return pItem;
+				}
+			}
+		}
+	}
+	if(pChar2 && pChar2->pInventoryArray) {
+		for (unsigned long nPack=0 ; nPack < 10 ; nPack++)
+		{
+			if (PCONTENTS pPack=pChar2->pInventoryArray->Inventory.Pack[nPack])
+			{
+				if (GetItemFromContents(pPack)->Type==ITEMTYPE_PACK && pPack->pContentsArray)
+				{
+					for (unsigned long nItem=0 ; nItem < GetItemFromContents(pPack)->Slots ; nItem++)
+					{
+						if (PCONTENTS pItem=pPack->pContentsArray->Contents[nItem])
+						{
+							if (ItemID==GetItemFromContents(pItem)->ItemNumber) {
+									return pItem;
 							}
 						}
 					}
@@ -6148,6 +6185,20 @@ PEQINVSLOT GetInvSlot(DWORD type,WORD invslot,WORD bagslot)
 		}
 	}
 	return NULL;
+}
+//work in progress -eqmule
+BOOL IsItemInsideContainer(PCONTENTS pItem)
+{
+	PCONTENTS pItemFound = FindItemBySlot(pItem->ItemSlot);
+	if(pItemFound) {
+		PITEMINFO pItemInfo = GetItemFromContents(pItem);
+        if (pItemInfo) {
+            if (pItemInfo->Type == ITEMTYPE_PACK) {
+				return TRUE;
+			}
+		}
+	}
+	return FALSE;
 }
 //                                                                                               //
 ///////////////////////////////////////////////////////////////////////////////////////////////////

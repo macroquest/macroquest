@@ -6294,8 +6294,14 @@ bool MQ2MercenaryType::GETMEMBER()
             Dest.Ptr = "SUSPENDED";
 			break;
 		case 5:
-            Dest.Ptr = "ACTIVE";
+		{
+			if(pMercInfo->HaveMerc) {
+				Dest.Ptr = "ACTIVE";
+			} else {
+				Dest.Ptr = "NOMERC";
+			}
 			break;
+		}
 		default:
             Dest.Ptr = "UNKNOWN";
 			break;
