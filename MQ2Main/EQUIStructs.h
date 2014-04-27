@@ -1062,8 +1062,8 @@ typedef struct _CTARGETWND {
 
 typedef struct _CLABELWND {
 /*0x000*/ struct    _CXWND Wnd;
-/*0x1ac*/ BYTE      Unknown[0xc];
-/*0x1b8*/ DWORD     SidlPiece;
+/*0x1c4*/ BYTE      Unknown[0xc];
+/*0x1d0*/ DWORD     SidlPiece;
 /*0x1bc*/
 } CLABELWND, *PCLABELWND;
 

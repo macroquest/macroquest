@@ -2669,7 +2669,7 @@ class CInvSlotMgr
 public:
 EQLIB_OBJECT CInvSlotMgr::CInvSlotMgr(void);
 EQLIB_OBJECT class CInvSlot * CInvSlotMgr::CreateInvSlot(class CInvSlotWnd *);
-EQLIB_OBJECT class CInvSlot * CInvSlotMgr::FindInvSlot(int);
+EQLIB_OBJECT class CInvSlot * CInvSlotMgr::FindInvSlot(int,int x=-1);
 EQLIB_OBJECT bool CInvSlotMgr::MoveItem(CMoveItemData*,CMoveItemData*,int valueOne,int valueOne2,int valueZero,int valueZero2);
 EQLIB_OBJECT void CInvSlotMgr::Process(void);
 EQLIB_OBJECT void CInvSlotMgr::SelectSlot(class CInvSlot *);

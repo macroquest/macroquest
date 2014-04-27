@@ -1885,7 +1885,7 @@ FUNCTION_AT_ADDRESS(bool  CInvSlotMgr::MoveItem(CMoveItemData*,CMoveItemData*,in
 FUNCTION_AT_ADDRESS(class CInvSlot *  CInvSlotMgr::CreateInvSlot(class CInvSlotWnd *),CInvSlotMgr__CreateInvSlot);
 #endif
 #ifdef CInvSlotMgr__FindInvSlot
-FUNCTION_AT_ADDRESS(class CInvSlot *  CInvSlotMgr::FindInvSlot(int),CInvSlotMgr__FindInvSlot);
+FUNCTION_AT_ADDRESS(class CInvSlot *  CInvSlotMgr::FindInvSlot(int,int),CInvSlotMgr__FindInvSlot);
 #endif
 #ifdef CInvSlotMgr__SelectSlot
 FUNCTION_AT_ADDRESS(void  CInvSlotMgr::SelectSlot(class CInvSlot *),CInvSlotMgr__SelectSlot);

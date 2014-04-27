@@ -75,7 +75,7 @@ PreSetup("MQ2Labels");
 // worry about class instatiation and crap
 
 struct _CControl {
-    /*0x000*/    DWORD Fluff[0x21]; // if this changes update ISXEQLabels.cpp too
+    /*0x000*/    DWORD Fluff[0x23]; // if this changes update ISXEQLabels.cpp too
     /*0x084*/    CXSTR * EQType;
 };
 
