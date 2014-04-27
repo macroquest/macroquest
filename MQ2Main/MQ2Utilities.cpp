@@ -1516,28 +1516,29 @@ PCHAR GetSpellRestrictions(PSPELL pSpell, unsigned int nIndex, PCHAR szBuffer)
 	return szBuffer;
 }
 
-// *************************************************************************** 
+// ***************************************************************************
 // Function:    GetSpellEffectName, GetSpellEffectNameByID
 // Description: Return spell effect string 
-// *************************************************************************** 
+// ***************************************************************************
 PCHAR GetSpellEffectNameByID(LONG EffectID)
 {
 	CHAR szTemp[MAX_STRING] = {0};
 
-	return GetSpellEffectName(EffectID, szTemp);
+	return GetSpellEffectName(abs(EffectID), szTemp);
 }
 
 PCHAR GetSpellEffectName(LONG EffectID, PCHAR szBuffer) 
 {
-	if(EffectID<=MAX_SPELLEFFECTS) {
-		//we CAN do an abs here cause IF it is negative, it just means we should display is as "Exclude: "
-		strcat(szBuffer,szSPATypes[abs(EffectID)]);
+	//we CAN do an abs here cause IF it is negative, it just means we should display is as "Exclude: "
+	LONG absEffectID = abs(EffectID);
+	if(absEffectID<=MAX_SPELLEFFECTS) {
+		strcat(szBuffer,szSPATypes[absEffectID]);
 	} else {
 		CHAR szTemp[MAX_STRING]={0};
-		sprintf_s(szTemp, "UndefinedEffect%03d", EffectID);
+		sprintf_s(szTemp, "UndefinedEffect%03d", absEffectID);
 		strcat(szBuffer,szTemp);
     }
-	return szBuffer; 
+	return szBuffer;
 } 
 
 PCHAR GetResistTypeName(LONG ResistType, PCHAR szBuffer)
@@ -1641,7 +1642,7 @@ PCHAR GetFactionName(LONG FactionType, PCHAR szBuffer)
 	case 1178: strcat(szBuffer, "(S.H.I.P. Workshop Base Population)"); break;
 	case 1150: strcat(szBuffer, "(Jewel of Atiiki Efreetis)"); break;
 	case 1229: strcat(szBuffer, "(Sebilisian Empire)"); break;
-    default: strcat (szBuffer, "Unknown"); break;
+    default: strcat (szBuffer, "(Unknown)"); break;
     } 
 	return szBuffer;
 }
@@ -2157,7 +2158,7 @@ PCHAR FormatTimer(PCHAR szEffectName, FLOAT value, PCHAR szBuffer)
 	return szBuffer;
 }
 
-PCHAR ParseSpellEffect(PSPELL pSpell, int i, PCHAR szBuffer, LONG level=100)
+PCHAR ParseSpellEffect(PSPELL pSpell, int i, PCHAR szBuffer, LONG level)
 {
 	CHAR szBuff[MAX_STRING]={0};
 	CHAR szTemp[MAX_STRING]={0};
@@ -2352,7 +2353,7 @@ PCHAR ParseSpellEffect(PSPELL pSpell, int i, PCHAR szBuffer, LONG level=100)
         if (ItemDB) { 
 			sprintf(szTemp,"%s (Qty:%d)", ItemDB->szName, (LONG)ItemDB->StackSize<calc?ItemDB->StackSize:calc); 
         } else { 
-            sprintf(szTemp,"[%5d] (Qty:%d)", base, (LONG)ItemDB->StackSize<calc?ItemDB->StackSize:calc); 
+            sprintf(szTemp,"[%5d] (Qty:%d)", base, calc); 
         } 
 		strcat(szBuff, FormatExtra(spelleffectname, szTemp, szTemp2));
         break;
@@ -3020,7 +3021,7 @@ PCHAR ParseSpellEffect(PSPELL pSpell, int i, PCHAR szBuffer, LONG level=100)
 		strcat(szBuff, spelleffectname);
 		break;
     case 310: //Reuse Timer 
-        strcat(szBuff, FormatTimer(spelleffectname, base/1000.0f, szTemp2)); 
+        strcat(szBuff, FormatTimer(spelleffectname, -base/1000.0f, szTemp2)); 
         break; 
     case 311: //No Combat Skills 
 		strcat(szBuff, spelleffectname);
@@ -3408,7 +3409,7 @@ PCHAR ShowSpellSlotInfo(PSPELL pSpell, PCHAR szBuffer)
     CHAR szTemp[MAX_STRING]={0}; 
     CHAR szBuff[MAX_STRING]={0}; 
 
-    for (int i=0; i<=11; i++) 
+    for (int i=0; i<12; i++) 
     { 
         szBuff[0]=szTemp[0]='\0';
 		strcat(szBuff, ParseSpellEffect(pSpell, i, szTemp));

@@ -63,7 +63,7 @@ DWORD LoadMQ2Plugin(const PCHAR pszFilename,BOOL bCustom)
     CHAR TheFilename[MAX_STRING]={0};
     sprintf(TheFilename,"%s.dll",Filename);
 	if(HMODULE hThemod = GetModuleHandle(TheFilename)) {
-		DebugSpew("LoadMQ2Plugin(%s) already loaded",TheFilename);
+		DebugSpew("LoadMQ2Plugin(0)(%s) already loaded",TheFilename);
 		return 2;
 	}
     CAutoLock Lock(&gPluginCS);

@@ -1,3 +1,14 @@
+26 Apr 2014 by eqmule
+- If using an old ItemDB.txt you will now see a message asking you to update it.
+
+24 Apr 2014 by rswiders
+- Fix for reuse timer in spell slot information
+- Fix for random CTD on some spell display
+- Fix for CTD when item missing in ItemDB
+- Added command /SpellSlotInfo [#|"spell name"]. You can use this to see the spell slot
+  information for any spell without having to right-click display through the MQ2ItemDisplay plugin.
+- Ground spawn updates
+
 18 Apr 2014 by eqmule
 - Fixed a bug in GetSpellByID that would make it return "Unknown Spell" when it 
   should just return 0

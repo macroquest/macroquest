@@ -91,5 +91,6 @@ LEGACY_API VOID Where                               (PSPAWNINFO,PCHAR);
 LEGACY_API VOID ZapVars                             (PSPAWNINFO,PCHAR);
 LEGACY_API VOID PopupText                           (PSPAWNINFO,PCHAR);
 LEGACY_API VOID UseItemCmd                          (PSPAWNINFO,PCHAR);
+LEGACY_API VOID SpellSlotInfo                       (PSPAWNINFO,PCHAR);
 LEGACY_API VOID PluginCmdSort                       (VOID);
 #endif

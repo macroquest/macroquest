@@ -516,6 +516,37 @@ VOID UpdateItemInfo(PSPAWNINFO pChar, PCHAR szLine)
 }
 
 // ***************************************************************************
+// Function:    ShowSpellSlotInfo
+// Description: Our '/SpellSlotInfo' command
+// Usage:       /SpellSlotInfo [#|"spell name"]
+// ***************************************************************************
+VOID SpellSlotInfo(PSPAWNINFO pChar, PCHAR szLine)
+{
+    CHAR szArg1[MAX_STRING] = {0}; 
+    CHAR szBuff[MAX_STRING] = {0};
+	CHAR szTemp[MAX_STRING] = {0};
+
+	PSPELL pSpell=NULL;
+
+	GetArg(szArg1,szLine,1); 
+
+	IsNumber(szArg1)?pSpell=GetSpellByID(atoi(szArg1)):pSpell=GetSpellByName(szLine);
+	if (!pSpell) {
+		WriteChatf("Usage: /SpellSlotInfo [#|\"spell name\"]");
+		return;
+	}
+
+	//ItemDisplayHook->SetSpell_Detour(pSpell->ID, TRUE);
+	WriteChatf("\ay%s\ax (ID: %d)", pSpell->Name, pSpell->ID);
+    for (int i=0; i<12; i++) { 
+        szBuff[0]=szTemp[0]='\0';
+		strcat(szBuff, ParseSpellEffect(pSpell, i, szTemp));
+		if (strlen(szBuff)>0)
+			WriteChatf("%s", szBuff);
+    }
+}
+
+// ***************************************************************************
 // Function:    MemSpell
 // Description: Our '/MemSpell' command
 // Usage:       /MemSpell gem# "spell name"

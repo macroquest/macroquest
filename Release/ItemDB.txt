@@ -1,3 +1,4 @@
+1132	1	Tinker Wrench
 1348	1	Muzzle of Mardu
 1726	100	Shattering Hammer
 2441	20	Brell's Blessed Stout
@@ -51,8 +52,10 @@
 8318	100	Arrow of Marr
 8319	100	Knife of Luclin
 8333	100	Shuriken of Quellious
+8990	1	A Firework
 8991	20	Ale
 8992	20	Cake
+8993	1	Spinning Bottle
 9963	100	Essence Emerald
 10028	100	Peridot
 10198	1	Lava Diamond
@@ -668,6 +671,8 @@
 83666	100	Frozen Heart Shard
 85799	1	Sanguine Mind Crystal
 85800	1	Azure Mind Crystal
+85829	20	Murky Globe of Water
+85830	20	Burned Black Bread
 87555	20	Eggnog
 87577	20	Hargar's Special Bait
 88111	1	Silkfang Pack

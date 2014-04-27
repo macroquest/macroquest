@@ -4588,7 +4588,7 @@ EQLIB_OBJECT CTextureFont::~CTextureFont(void);
 //EQLIB_OBJECT void * CTextureFont::`scalar deleting destructor'(unsigned int);
 //EQLIB_OBJECT void * CTextureFont::`vector deleting destructor'(unsigned int);
 void  *Unknown0x0;
-DWORD Size;
+DWORD Font;
 };
 
 class CTimeLeftWnd : public CSidlScreenWnd

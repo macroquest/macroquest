@@ -686,6 +686,7 @@ void InitializeMQ2Commands()
         {"/noparse",    NoParseCmd,0,0},
         {"/nomodkey",   NoModKeyCmd,0,0},
         {"/useitem",    UseItemCmd,1,1},
+		{"/spellslotinfo",SpellSlotInfo,1,1},
         {NULL,          NULL,0,1},
     };
 

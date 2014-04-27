@@ -224,6 +224,7 @@ BOOL ParseINIFile(PCHAR lpINIPath)
             sprintf(Filename,"%s\\ItemDB.txt",lpINIPath);
             FILE *fDB = fopen(Filename,"rt");
             strcpy(gszItemDB,Filename);
+			char *pDest = 0;
             if (fDB) {
                 fgets(szBuffer,MAX_STRING,fDB);
                 while ((!feof(fDB)) && (strstr(szBuffer,"\t"))) {
@@ -232,10 +233,16 @@ BOOL ParseINIFile(PCHAR lpINIPath)
                     Item->ID = atoi(szBuffer);
 					strcpy(szBuffer2, strstr(szBuffer,"\t")+1);
 					Item->StackSize = atoi(szBuffer2);
-                    strcpy(Item->szName,strstr(szBuffer2,"\t")+1);
-                    Item->szName[strstr(Item->szName,"\n")-Item->szName]=0;
-                    gItemDB = Item;
-                    fgets(szBuffer,MAX_STRING,fDB);
+					if(pDest = strstr(szBuffer2,"\t")) {
+						strcpy(Item->szName,pDest+1);
+						Item->szName[strstr(Item->szName,"\n")-Item->szName]=0;
+						gItemDB = Item;
+						fgets(szBuffer,MAX_STRING,fDB);
+					} else {
+						sprintf_s(szBuffer,"Your file: %s is old.\nPlease replace it with the one from the latest zip",Filename);
+						MessageBox(NULL,szBuffer,"ItemDB.txt version mismatch",MB_OK);
+						exit(0);
+					}
                 }
                 fclose(fDB);
 			}
