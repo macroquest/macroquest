@@ -818,9 +818,9 @@ typedef struct _CHARINFO {
 /*0x1308*/   DWORD      AAExp;
 /*0x130c*/   BYTE       Unknown0x130c;
 /*0x130d*/   BYTE       PercentEXPtoAA;
-/*0x130a*/   BYTE       Unknown0x130a[0x46];
+/*0x130e*/   BYTE       Unknown0x130a[0x42];
 /*0x1350*/   DWORD      TributeTimer;
-/*0x1354*/   DWORD      Unknown0x1354;
+/*0x1354*/   DWORD      BenefitTimer;
 /*0x1358*/   DWORD      CareerFavor;
 /*0x135c*/   DWORD      Unknown0x135c;
 /*0x1360*/   DWORD      CurrFavor;
