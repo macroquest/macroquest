@@ -12,14 +12,19 @@
     GNU General Public License for more details.
 ******************************************************************************/
 
-TOPLEVELOBJECT("Spawn",dataSpawn);
+#ifdef ISBOXER_COMPAT
+TOPLEVELOBJECT("EQTarget",dataTarget);
+TOPLEVELOBJECT("EQWindow",dataWindow);
+#else
 TOPLEVELOBJECT("Target",dataTarget);
+TOPLEVELOBJECT("Window",dataWindow);
+#endif
+TOPLEVELOBJECT("Spawn",dataSpawn);
 TOPLEVELOBJECT("Me",dataCharacter);
 TOPLEVELOBJECT("Spell",dataSpell);
 TOPLEVELOBJECT("Switch",dataSwitch);
 TOPLEVELOBJECT("GroundItem",dataGroundItem);
 TOPLEVELOBJECT("Merchant",dataMerchant);
-TOPLEVELOBJECT("Window",dataWindow);
 TOPLEVELOBJECT("MacroQuest",dataMacroQuest);
 TOPLEVELOBJECT("Zone",dataZone);
 TOPLEVELOBJECT("Group",dataGroup);

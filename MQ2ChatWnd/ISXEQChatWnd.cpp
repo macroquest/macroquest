@@ -87,7 +87,6 @@ public:
     {   
         if (pWnd == (CXWnd*)InputBox) {
             if (Message == XWM_HITENTER) {
-                CXSize Whatever; 
                 char szBuffer[2048];
                 GetCXStr((PCXSTR)InputBox->InputText, szBuffer, 2047);
                 if (szBuffer[0]) {
@@ -111,7 +110,7 @@ public:
         }
         else if (pWnd == 0) {
             if (Message == XWM_CLOSE) {
-                Show = 1;
+                dShow = 1;
                 return 1;
             }
         } else if (Message == XWM_LINK) {
@@ -252,7 +251,6 @@ void PulseService(bool Broadcast, unsigned int MSG, void *lpData)
                 MQChatWnd->OutBoxLines -= Diff;
                 Benchmark(bmStripFirstStmlLines, MQChatWnd->OutputBox->StripFirstSTMLLines(Diff));
             }
-            CXSize Whatever;
             for (DWORD N = 0 ; N < ThisPulse ; N++) {
                 DebugTry(MQChatWnd->OutputBox->AppendSTML( pPendingChat->Text));
                 ChatBuffer *pNext = pPendingChat->pNext;
@@ -280,7 +278,7 @@ void EQUIService(bool Broadcast, unsigned int MSG, void *lpData)
     }
     else if (MSG == UISERVICE_RELOAD) {
         if (MQChatWnd != NULL) {
-            MQChatWnd->Show = 1;
+            MQChatWnd->dShow = 1;
         }
     }
 }
@@ -315,7 +313,7 @@ void EQChatService(bool Broadcast, unsigned int MSG, void *lpData)
                 return; 
             }
         }
-        MQChatWnd->Show = 1;
+        MQChatWnd->dShow = 1;
         _EQChat* pChat = (_EQChat*)lpData;
 
         PFILTER pFilter = gpFilters; 
@@ -363,7 +361,7 @@ void ConsoleService(bool Broadcast, unsigned int MSG, void *lpData)
             return;
         }
     }
-    MQChatWnd->Show = 1;
+    MQChatWnd->dShow = 1;
 
     PCHAR pConsOutput = (PCHAR)lpData;
     PFILTER pFilter = gpFilters;

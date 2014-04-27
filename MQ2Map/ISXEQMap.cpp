@@ -41,13 +41,13 @@ void __cdecl MemoryService(bool Broadcast, unsigned int MSG, void *lpData);
 void __cdecl ServicesService(bool Broadcast, unsigned int MSG, void *lpData);
 
 extern VOID CMyMapViewWnd__PostDraw();
-extern VOID CMyMapViewWnd__HandleRButtonDown(DWORD point, DWORD unknown);
-extern bool RButtonDown();
+extern VOID MapViewMap__HandleRButtonDown(DWORD point, DWORD unknown);
 extern DWORD CMyMapViewWnd__Destructor(const BOOL Deallocate);
 extern PCSIDLWNDVFTABLE CMyMapViewWnd__OldvfTable;
+extern PCSIDLWNDVFTABLE MapViewMap_OldvfTable;
 extern DWORD CMyMapViewWnd__OldDestructor;
-extern DWORD CMyMapViewWnd__OldHandleRButtonDown;
 extern DWORD CMyMapViewWnd__OldPostDraw;
+extern DWORD MapViewMap__OldHandleRButtonDown;
 
 class CMyMapViewWnd
 {
@@ -58,16 +58,21 @@ public:
         CMapViewWnd *pWnd=(CMapViewWnd*)this;
         DWORD Ret=Constructor_Trampoline(wnd);
         PCSIDLWNDVFTABLE pvfTable = new CSIDLWNDVFTABLE; 
+        PCSIDLWNDVFTABLE pMapViewMapVfTable = new CSIDLWNDVFTABLE;
         *pvfTable=*pWnd->pvfTable;
+        *pMapViewMapVfTable=*((PEQMAPWINDOW)pWnd)->pMapViewMapVfTable;
 
         CMyMapViewWnd__OldvfTable=pWnd->pvfTable;
         pWnd->pvfTable=pvfTable;
-        CMyMapViewWnd__OldPostDraw=(DWORD)pWnd->pvfTable->PostDraw2;
-        CMyMapViewWnd__OldHandleRButtonDown=(DWORD)pWnd->pvfTable->HandleRButtonDown;
+        MapViewMap_OldvfTable=((PEQMAPWINDOW)pWnd)->pMapViewMapVfTable;
+        ((PEQMAPWINDOW)pWnd)->pMapViewMapVfTable=pMapViewMapVfTable;
+        CMyMapViewWnd__OldPostDraw=(DWORD)((PEQMAPWINDOW)pWnd)->pMapViewMapVfTable->PostDraw2;
         CMyMapViewWnd__OldDestructor=(DWORD)pWnd->pvfTable->vector_deleting_destructor;
         pWnd->pvfTable->vector_deleting_destructor=CMyMapViewWnd__Destructor;
-        pWnd->pvfTable->HandleRButtonDown=CMyMapViewWnd__HandleRButtonDown; 
-        pWnd->pvfTable->PostDraw2=CMyMapViewWnd__PostDraw; 
+        ((PEQMAPWINDOW)pWnd)->pMapViewMapVfTable->PostDraw2=CMyMapViewWnd__PostDraw;
+        MapViewMap__OldHandleRButtonDown=(DWORD)((PEQMAPWINDOW)pWnd)->pMapViewMapVfTable->HandleRButtonDown;
+        ((PEQMAPWINDOW)pWnd)->pMapViewMapVfTable->HandleRButtonDown=MapViewMap__HandleRButtonDown;
+
         return Ret;
     }
 
@@ -75,17 +80,21 @@ public:
     {
         if (CMapViewWnd *pWnd=(CMapViewWnd*)pMapViewWnd)
         {
-            PCSIDLWNDVFTABLE pvfTable = new CSIDLWNDVFTABLE; 
+            PCSIDLWNDVFTABLE pvfTable = new CSIDLWNDVFTABLE;
+            PCSIDLWNDVFTABLE pMapViewMapVfTable = new CSIDLWNDVFTABLE;
             *pvfTable=*pWnd->pvfTable;
+            *pMapViewMapVfTable=*((PEQMAPWINDOW)pWnd)->pMapViewMapVfTable;
 
             CMyMapViewWnd__OldvfTable=pWnd->pvfTable;
             pWnd->pvfTable=pvfTable;
-            CMyMapViewWnd__OldPostDraw=(DWORD)pWnd->pvfTable->PostDraw2;
-            CMyMapViewWnd__OldHandleRButtonDown=(DWORD)pWnd->pvfTable->HandleRButtonDown;
+            MapViewMap_OldvfTable=((PEQMAPWINDOW)pWnd)->pMapViewMapVfTable;
+            ((PEQMAPWINDOW)pWnd)->pMapViewMapVfTable=pMapViewMapVfTable;
+            CMyMapViewWnd__OldPostDraw=(DWORD)((PEQMAPWINDOW)pWnd)->pMapViewMapVfTable->PostDraw2;
             CMyMapViewWnd__OldDestructor=(DWORD)pWnd->pvfTable->vector_deleting_destructor;
             pWnd->pvfTable->vector_deleting_destructor=CMyMapViewWnd__Destructor;
-            pWnd->pvfTable->HandleRButtonDown=CMyMapViewWnd__HandleRButtonDown; 
-            pWnd->pvfTable->PostDraw2=CMyMapViewWnd__PostDraw; 
+            ((PEQMAPWINDOW)pWnd)->pMapViewMapVfTable->PostDraw2=CMyMapViewWnd__PostDraw;
+            MapViewMap__OldHandleRButtonDown=(DWORD)((PEQMAPWINDOW)pWnd)->pMapViewMapVfTable->HandleRButtonDown;
+            ((PEQMAPWINDOW)pWnd)->pMapViewMapVfTable->HandleRButtonDown=MapViewMap__HandleRButtonDown;
         }
     }
 
@@ -93,9 +102,12 @@ public:
     {
         if (CMapViewWnd *pWnd=(CMapViewWnd*)pMapViewWnd)
         {
-            if (CMyMapViewWnd__OldvfTable) { 
+            if (CMyMapViewWnd__OldvfTable && MapViewMap_OldvfTable)
+            { 
                 delete pWnd->pvfTable;
                 pWnd->pvfTable=CMyMapViewWnd__OldvfTable;
+                delete ((PEQMAPWINDOW)pWnd)->pMapViewMapVfTable;
+                ((PEQMAPWINDOW)pWnd)->pMapViewMapVfTable = MapViewMap_OldvfTable;
             }
         }
     }
@@ -106,60 +118,60 @@ extern bool Update;
 bool ISXEQMap::Initialize(ISInterface *p_ISInterface)
 {    pISInterface=p_ISInterface;
 
-// retrieve basic ISData types
-pStringType=pISInterface->FindLSType("string");
-pIntType=pISInterface->FindLSType("int");
-pBoolType=pISInterface->FindLSType("bool");
-pFloatType=pISInterface->FindLSType("float");
-pTimeType=pISInterface->FindLSType("time");
-pByteType=pISInterface->FindLSType("byte");
+    // retrieve basic ISData types
+    pStringType=pISInterface->FindLSType("string");
+    pIntType=pISInterface->FindLSType("int");
+    pBoolType=pISInterface->FindLSType("bool");
+    pFloatType=pISInterface->FindLSType("float");
+    pTimeType=pISInterface->FindLSType("time");
+    pByteType=pISInterface->FindLSType("byte");
 
 
-pISInterface->OpenSettings("ISXEQMap.XML");
+    pISInterface->OpenSettings("ISXEQMap.XML");
 
-bmMapRefresh=AddMQ2Benchmark("Map Refresh");
-unsigned int i;
-CHAR szBuffer[MAX_STRING]={0};
-for (i=0;MapFilterOptions[i].szName;i++) {
-    sprintf(szBuffer,"%s Color",MapFilterOptions[i].szName);
-    int Temp;
-    if (pISInterface->GetSettingi("ISXEQMap.XML","Map Filters",MapFilterOptions[i].szName,Temp))
-        MapFilterOptions[i].Enabled=Temp;
-    else
-        MapFilterOptions[i].Enabled=MapFilterOptions[i].Default;
+    bmMapRefresh=AddMQ2Benchmark("Map Refresh");
+    unsigned int i;
+    CHAR szBuffer[MAX_STRING]={0};
+    for (i=0;MapFilterOptions[i].szName;i++) {
+        sprintf(szBuffer,"%s Color",MapFilterOptions[i].szName);
+        int Temp;
+        if (pISInterface->GetSettingi("ISXEQMap.XML","Map Filters",MapFilterOptions[i].szName,Temp))
+            MapFilterOptions[i].Enabled=Temp;
+        else
+            MapFilterOptions[i].Enabled=MapFilterOptions[i].Default;
 
-    if (pISInterface->GetSettingi("ISXEQMap.XML","Map Filters",szBuffer,Temp))
-        MapFilterOptions[i].Color=Temp|0xFF000000;
-    else
-        MapFilterOptions[i].Color=MapFilterOptions[i].DefaultColor|0xFF000000;
-}
-MapInit();
-pISInterface->GetSetting("ISXEQMap.XML","Naming Schemes","Normal",MapNameString,sizeof(MapNameString));
-pISInterface->GetSetting("ISXEQMap.XML","Naming Schemes","Target",MapTargetNameString,sizeof(MapTargetNameString));
+        if (pISInterface->GetSettingi("ISXEQMap.XML","Map Filters",szBuffer,Temp))
+            MapFilterOptions[i].Color=Temp|0xFF000000;
+        else
+            MapFilterOptions[i].Color=MapFilterOptions[i].DefaultColor|0xFF000000;
+    }
+    MapInit();
+    pISInterface->GetSetting("ISXEQMap.XML","Naming Schemes","Normal",MapNameString,sizeof(MapNameString));
+    pISInterface->GetSetting("ISXEQMap.XML","Naming Schemes","Target",MapTargetNameString,sizeof(MapTargetNameString));
 
-for (i=1;i<16;i++)
-{
-    sprintf(szBuffer,"KeyCombo%d",i);
-    pISInterface->GetSetting("ISXEQMap.XML","Right Click",szBuffer,MapSpecialClickString[i],sizeof(MapSpecialClickString[i]));
-}
+    for (i=1;i<16;i++)
+    {
+        sprintf(szBuffer,"KeyCombo%d",i);
+        pISInterface->GetSetting("ISXEQMap.XML","Right Click",szBuffer,MapSpecialClickString[i],sizeof(MapSpecialClickString[i]));
+    }
 
-// Do not use Custom, since the string isn't stored
-MapFilterOptions[MAPFILTER_Custom].Enabled = 0;
+    // Do not use Custom, since the string isn't stored
+    MapFilterOptions[MAPFILTER_Custom].Enabled = 0;
 
 
-ConnectServices();
+    ConnectServices();
 
-RegisterCommands();
-RegisterAliases();
-RegisterDataTypes();
-RegisterTopLevelObjects();
-RegisterServices();
+    RegisterCommands();
+    RegisterAliases();
+    RegisterDataTypes();
+    RegisterTopLevelObjects();
+    RegisterServices();
 
-EzDetour(CMapViewWnd__CMapViewWnd,&CMyMapViewWnd::Constructor_Detour,&CMyMapViewWnd::Constructor_Trampoline);
-CMyMapViewWnd::StealVFTable();
+    EzDetour(CMapViewWnd__CMapViewWnd,&CMyMapViewWnd::Constructor_Detour,&CMyMapViewWnd::Constructor_Trampoline);
+    CMyMapViewWnd::StealVFTable();
 
-printf("ISXEQMap Loaded");
-return true;
+    printf("ISXEQMap Loaded");
+    return true;
 }
 
 // shutdown sequence
@@ -338,30 +350,30 @@ void __cdecl EQSpawnService(bool Broadcast, unsigned int MSG, void *lpData)
     switch(MSG)
     {
 #define pNewSpawn ((PSPAWNINFO)lpData)
-case SPAWNSERVICE_ADDSPAWN:
-    if (Update && pNewSpawn->SpawnID != 0 && GetCharInfo()->pSpawn != pNewSpawn)
-    {
-        DebugSpewAlways("MQ2Map::OnAddSpawn(%s)",pNewSpawn->Name);
-        AddSpawn(pNewSpawn);
-    }
-    break;
-case SPAWNSERVICE_REMOVESPAWN:
-    DebugSpewAlways("MQ2Map::OnRemoveSpawn(%s)",pNewSpawn->Name);
-    if (Update)
-        RemoveSpawn(pNewSpawn);
-    break;
+    case SPAWNSERVICE_ADDSPAWN:
+        if (Update && pNewSpawn->SpawnID != 0 && GetCharInfo()->pSpawn != pNewSpawn)
+        {
+            DebugSpewAlways("MQ2Map::OnAddSpawn(%s)",pNewSpawn->Name);
+            AddSpawn(pNewSpawn);
+        }
+        break;
+    case SPAWNSERVICE_REMOVESPAWN:
+        DebugSpewAlways("MQ2Map::OnRemoveSpawn(%s)",pNewSpawn->Name);
+        if (Update)
+            RemoveSpawn(pNewSpawn);
+        break;
 #undef pNewSpawn
 #define pGroundItem ((PGROUNDITEM)lpData)
-case SPAWNSERVICE_ADDITEM:
-    DebugSpewAlways("MQ2Map::OnAddGroundItem(%d)",pGroundItem->DropID);
-    if (Update)
-        AddGroundItem(pGroundItem);
-    break;
-case SPAWNSERVICE_REMOVEITEM:
-    DebugSpewAlways("MQ2Map::OnRemoveGroundItem(%d)",pGroundItem->DropID);
-    if (Update)
-        RemoveGroundItem(pGroundItem);
-    break;
+    case SPAWNSERVICE_ADDITEM:
+        DebugSpewAlways("MQ2Map::OnAddGroundItem(%d)",pGroundItem->DropID);
+        if (Update)
+            AddGroundItem(pGroundItem);
+        break;
+    case SPAWNSERVICE_REMOVEITEM:
+        DebugSpewAlways("MQ2Map::OnRemoveGroundItem(%d)",pGroundItem->DropID);
+        if (Update)
+            RemoveGroundItem(pGroundItem);
+        break;
 #undef pGroundItem
     }
 }

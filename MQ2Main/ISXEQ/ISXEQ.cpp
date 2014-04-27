@@ -3,6 +3,10 @@
 //
 
 
+// uncomment this line to enable ISBoxer compatibility.  changes ${Target} to ${EQTarget} and ${Window} to ${EQWindow}
+//#define ISBOXER_COMPAT
+
+
 #include "..\MQ2Main.h"
 #pragma comment(lib,"ISXDK.lib")
 

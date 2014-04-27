@@ -1948,7 +1948,11 @@ public:
         RightMouseHeldUp=8,
         ListSelect=9,
     };
+#ifdef ISBOXER_COMPAT
+    MQ2WindowType():MQ2Type("eqwindow")
+#else
     MQ2WindowType():MQ2Type("window")
+#endif
     {
         TypeMember(Open);
         TypeMember(Child);
@@ -3552,7 +3556,11 @@ public:
         BuffDuration = 3,
     };
 
+#ifdef ISBOXER_COMPAT
+    MQ2TargetType():MQ2Type("eqtarget")
+#else
     MQ2TargetType():MQ2Type("target")
+#endif
     {
         TypeMember(Buff);
         TypeMember(BuffCount);
