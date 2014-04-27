@@ -642,8 +642,8 @@ typedef struct _CONTENTS {
 /*0x000c*/ BYTE         Unknown0x000c[0x4];
 /*0x0010*/ DOUBLE       EvolvingExpPct;
 /*0x0018*/ DWORD        StackCount;
-/*0x001c*/ BYTE         Unknown0x001c[0x28];
-/*0x0044*/ DWORD        Power;
+/*0x001c*/ DWORD        Power;
+/*0x0020*/ BYTE         Unknown0x0028[0x28];
 /*0x0048*/ BYTE         Unknown0x0048[0x4];
 /*0x004c*/ DWORD        MerchantQuantity;
 /*0x0050*/ BYTE         Unknown0x0050[0x24];

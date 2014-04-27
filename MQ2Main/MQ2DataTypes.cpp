@@ -4788,6 +4788,18 @@ bool MQ2ItemType::GETMEMBER()
             Dest.DWord=pItem->Power;
         Dest.Type=pIntType;
         return true;
+	case PctPower:
+        if (GetItemFromContents(pItem)->Type != ITEMTYPE_NORMAL)
+            Dest.Float=0;
+        else {
+			DWORD power = pItem->Power*100;
+			if(DWORD maxpower = GetItemFromContents(pItem)->MaxPower)
+				Dest.Float=power/maxpower;
+			else
+				Dest.Float=0;
+		}
+        Dest.Type=pFloatType;
+        return true;
     case MaxPower:
         if (GetItemFromContents(pItem)->Type != ITEMTYPE_NORMAL)
             Dest.DWord=0;
