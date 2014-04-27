@@ -2128,8 +2128,8 @@ typedef struct _XTARGETMGR
 
 #define XPAC_FLAG_HoT       0x10000
 
-#define EQ_BEGIN_ZONE                   0x5408  // CEverQuest__SavePCForce+45F     12-15-2009
-#define EQ_END_ZONE                     0x1272  // CEverQuest__DoMainLoop+B2F      12-15-2009
+#define EQ_BEGIN_ZONE                   0x598   // CEverQuest__SavePCForce          7-18-2012
+#define EQ_END_ZONE                     0x3D06  // CEverQuest__DoMainLoop+B2F       7-18-2012
 #define EQ_LoadingS__ArraySize          0x5b    // EQ_LoadingS__SetProgressBar+8C  12-08-2010
 };
 using namespace EQData;
