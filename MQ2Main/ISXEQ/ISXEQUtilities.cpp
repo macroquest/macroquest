@@ -112,6 +112,7 @@ unsigned long ParseSearchSpawnArg(int arg, int argc, char *argv[], SEARCHSPAWN &
 			}
 			ExtraUsed=2;
         } else if (!stricmp(argv[arg],"id")) {
+            SearchSpawn.bSpawnID = TRUE;
 			if (arg+1<argc)
 				SearchSpawn.SpawnID = atoi(argv[arg+1]);
 			ExtraUsed=1;

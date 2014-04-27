@@ -52,7 +52,7 @@ bool InitOffsets()
     gpbRangedAttackReady = (PCHAR)__RangeAttackReady;
     gpbShowNetStatus = (PCHAR)__NetStatusToggle;
     gpbAltTimerReady = (PCHAR)__AltTimerReady;
-    g_ppDrawHandler = (DWORD*)&__DrawHandler;
+    g_ppDrawHandler = (DWORD*)__DrawHandler;
     gpShowNames = (DWORD*)__ShowNames;
     gpPCNames = (DWORD*)__PCNames;
     pTributeActive = (PBYTE)instTributeActive;

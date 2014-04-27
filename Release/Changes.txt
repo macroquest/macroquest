@@ -1,3 +1,6 @@
+23 November 2012 by ieatacid
+- Fixed MQ2FPS (it once again stops rendering)
+
 15 November 2012 by ieatacid
 - Fixed custom chat channel join/leave messages not firing
 
