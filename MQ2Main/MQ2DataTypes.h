@@ -555,7 +555,9 @@ public:
         LocYX=99,
         Owner=100,
         Following=101,
-    };
+        PetTarget=102,
+		PetCombat=103,
+	};
     static enum SpawnMethods
     {
         Target=1,
@@ -663,6 +665,8 @@ public:
         TypeMember(LocYX);
         TypeMember(Owner);
         TypeMember(Following);
+		TypeMember(PetTarget);
+		TypeMember(PetCombat);
 
         TypeMethod(Target);
         TypeMethod(Face);
@@ -1952,6 +1956,7 @@ public:
         HisTradeReady=32,
         MyTradeReady=33,
 		GetCurSel=34,
+		Address=35,
     };
     static enum WindowMethods
     {
@@ -1981,6 +1986,7 @@ public:
         TypeMember(HScrollPos);
         TypeMember(HScrollPct);
         TypeMember(Children);
+        TypeMember(Parent);
         TypeMember(Siblings);
         TypeMember(FirstChild);
         TypeMember(Next);
@@ -2017,6 +2023,7 @@ public:
         TypeMethod(ListSelect);
 		TypeMember(GetCurSel);
 		TypeMember(ComboSelect);
+		TypeMember(Address);
     }
 
     ~MQ2WindowType()

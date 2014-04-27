@@ -1704,12 +1704,22 @@ bool MQ2SpawnType::GETMEMBER()
             return false;
         }
         return false;
-    case Following:
+	case Following:
+	case PetTarget://yes we CAN use this to determine if the pet has agro from a target cause if it does this WILL point to that spawn...
         if(Dest.Ptr = pSpawn->WhoFollowing)
         {
             Dest.Type = pSpawnType;
             return true;
-        }
+        }//GetSpawnType(pSpawn)
+	case PetCombat://if WhoFollowing is 0 the pet does NOT have agro... pretty useful
+        if(pSpawn->WhoFollowing)
+        {
+			Dest.DWord = TRUE;
+        } else {
+			Dest.DWord = FALSE;
+		}
+        Dest.Type = pBoolType;
+        return true;
     }
     return false;
 }
@@ -4951,6 +4961,10 @@ bool MQ2WindowType::GETMEMBER()
 
     switch((WindowMembers)pMember->ID)
     {
+	case Address:
+		Dest.DWord=(DWORD)pWnd;
+        Dest.Type=pIntType;
+        return true;
     case Open:
         Dest.DWord=pWnd->dShow;
         Dest.Type=pBoolType;

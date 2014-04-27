@@ -1,3 +1,10 @@
+08 Oct 2013 by EqMule
+- Updated for Oct 7-8 2013 patch
+- Shared Bank now has 4 slots
+- I will add a TLO for the new mercenary AA
+  but I need more time to look into it, unless someone beats me to it.
+  For now use the UI...
+
 22 Sep 2013 by EqMule
 - Added Me.ZoneBound which returns Zone information for the zone you are bound in
   Usage:
