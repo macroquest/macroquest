@@ -418,13 +418,17 @@ VOID PluginsSetGameState(DWORD GameState)
         {
             CharSelect=false;
             CHAR szBuffer[MAX_STRING]={0};
+
+DebugSpew("PluginsSetGameState( %s server)",EQADDR_SERVERNAME);
             if (PCHARINFO pCharInfo=GetCharInfo())
             {
+DebugSpew("PluginsSetGameState( %s name)",pCharInfo->Name);
                 sprintf(szBuffer,"%s_%s",EQADDR_SERVERNAME,pCharInfo->Name);
                 LoadCfgFile(szBuffer,false);
             }
             if (PCHARINFO2 pCharInfo2=GetCharInfo2())
             {
+DebugSpew("PluginsSetGameState( %d clasee)",pCharInfo2->Class);
                 sprintf(szBuffer,"%s",GetClassDesc(pCharInfo2->Class));
                 LoadCfgFile(szBuffer,false);
             }

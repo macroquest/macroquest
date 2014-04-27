@@ -1,3 +1,9 @@
+23 March 2012 by ieatacid, dkaa
+- Updated for March 22nd patch
+- Added mapfilter TargetPath
+... when enabled, right-clicking a spawn on the map will make it your target and draw a path to it on the map and in the world
+... off by default
+
 03 February 2012 by dkaa
 - Kill launchpad if we are injected.  Launchpad is snooping into all processes.
 

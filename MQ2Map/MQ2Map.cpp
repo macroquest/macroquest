@@ -73,17 +73,17 @@ MAPFILTER MapFilterOptions[] = {
     {"NPCCorpse",    FALSE,0x00C000,   TRUE,MAPFILTER_All,TRUE,      "Displays NPC corpses, when corpse setting is on"},
     {"Mercenary",    FALSE,0x404040,   TRUE,MAPFILTER_All,TRUE,      "Displays mercenaries"},
     {"Named",        FALSE,0x404040,   TRUE,MAPFILTER_All,TRUE,      "Displays named NPCs"},
+    {"TargetPath",   FALSE,-1,         TRUE,MAPFILTER_Target,FALSE,  "Draws EQ Path to selected target"},
     {NULL,           FALSE,-1,         FALSE,MAPFILTER_Invalid,FALSE,  NULL}
 };
 
 
-
-
-
 PCSIDLWNDVFTABLE CMyMapViewWnd__OldvfTable=0;
+PCSIDLWNDVFTABLE MapViewMap_OldvfTable=0;
 DWORD CMyMapViewWnd__OldDestructor=0;
 DWORD CMyMapViewWnd__OldHandleRButtonDown=0;
 DWORD CMyMapViewWnd__OldPostDraw=0;
+DWORD MapViewMap__OldHandleRButtonDown=0;
 
 DWORD __declspec(naked) CMyMapViewWnd__Destructor(const BOOL Deallocate)
 {
@@ -92,7 +92,7 @@ DWORD __declspec(naked) CMyMapViewWnd__Destructor(const BOOL Deallocate)
         push eax;
     }
 
-    if (CMyMapViewWnd__OldvfTable) { 
+    if (CMyMapViewWnd__OldvfTable && MapViewMap_OldvfTable) { 
         // make our own little stack frame here
         // operator delete assumes that it is there
         // it uses (unnecessarily) ebp-4
@@ -105,6 +105,9 @@ DWORD __declspec(naked) CMyMapViewWnd__Destructor(const BOOL Deallocate)
         delete pMapViewWnd->pvfTable;
         pMapViewWnd->pvfTable=CMyMapViewWnd__OldvfTable;
         CMyMapViewWnd__OldvfTable = NULL;
+        delete ((PEQMAPWINDOW)pMapViewWnd)->pMapViewMapVfTable;
+        ((PEQMAPWINDOW)pMapViewWnd)->pMapViewMapVfTable = MapViewMap_OldvfTable;
+        MapViewMap_OldvfTable = NULL;
         __asm {
             pop     eax
                 pop     eax
@@ -123,15 +126,14 @@ bool RButtonDown()
 {
     if (pCurrentMapLabel)
     {
-        MapSelectTarget();
-        return false;
+        return MapSelectTarget();
     }
     if (!IsOptionEnabled(MAPFILTER_ContextMenu))
         return false;
     return true;
 }
 
-VOID __declspec(naked) CMyMapViewWnd__HandleRButtonDown(DWORD point, DWORD unknown)
+VOID __declspec(naked) MapViewMap__HandleRButtonDown(DWORD point, DWORD unknown)
 {
     __asm {   
         push ecx;
@@ -142,7 +144,7 @@ VOID __declspec(naked) CMyMapViewWnd__HandleRButtonDown(DWORD point, DWORD unkno
         __asm {
             pop eax;
             pop ecx;
-            jmp [CMyMapViewWnd__OldHandleRButtonDown];
+            jmp [MapViewMap__OldHandleRButtonDown];
         };
     }
     else
@@ -187,17 +189,21 @@ public:
     {
         CMapViewWnd *pWnd=(CMapViewWnd*)this;
         DWORD Ret=Constructor_Trampoline(wnd);
-        PCSIDLWNDVFTABLE pvfTable = new CSIDLWNDVFTABLE; 
+        PCSIDLWNDVFTABLE pvfTable = new CSIDLWNDVFTABLE;
+        PCSIDLWNDVFTABLE pMapViewMapVfTable = new CSIDLWNDVFTABLE;
         *pvfTable=*pWnd->pvfTable;
+        *pMapViewMapVfTable=*((PEQMAPWINDOW)pWnd)->pMapViewMapVfTable;
 
         CMyMapViewWnd__OldvfTable=pWnd->pvfTable;
         pWnd->pvfTable=pvfTable;
-        CMyMapViewWnd__OldPostDraw=(DWORD)pWnd->pvfTable->PostDraw2;
-        CMyMapViewWnd__OldHandleRButtonDown=(DWORD)pWnd->pvfTable->HandleRButtonDown;
+        MapViewMap_OldvfTable=((PEQMAPWINDOW)pWnd)->pMapViewMapVfTable;
+        ((PEQMAPWINDOW)pWnd)->pMapViewMapVfTable=pMapViewMapVfTable;
+        CMyMapViewWnd__OldPostDraw=(DWORD)((PEQMAPWINDOW)pWnd)->pMapViewMapVfTable->PostDraw2;
         CMyMapViewWnd__OldDestructor=(DWORD)pWnd->pvfTable->vector_deleting_destructor;
         pWnd->pvfTable->vector_deleting_destructor=CMyMapViewWnd__Destructor;
-        pWnd->pvfTable->HandleRButtonDown=CMyMapViewWnd__HandleRButtonDown; 
-        pWnd->pvfTable->PostDraw2=CMyMapViewWnd__PostDraw; 
+        ((PEQMAPWINDOW)pWnd)->pMapViewMapVfTable->PostDraw2=CMyMapViewWnd__PostDraw;
+        MapViewMap__OldHandleRButtonDown=(DWORD)((PEQMAPWINDOW)pWnd)->pMapViewMapVfTable->HandleRButtonDown;
+        ((PEQMAPWINDOW)pWnd)->pMapViewMapVfTable->HandleRButtonDown=MapViewMap__HandleRButtonDown;
         return Ret;
     }
 
@@ -205,17 +211,21 @@ public:
     {
         if (CMapViewWnd *pWnd=(CMapViewWnd*)pMapViewWnd)
         {
-            PCSIDLWNDVFTABLE pvfTable = new CSIDLWNDVFTABLE; 
+            PCSIDLWNDVFTABLE pvfTable = new CSIDLWNDVFTABLE;
+            PCSIDLWNDVFTABLE pMapViewMapVfTable = new CSIDLWNDVFTABLE;
             *pvfTable=*pWnd->pvfTable;
+            *pMapViewMapVfTable=*((PEQMAPWINDOW)pWnd)->pMapViewMapVfTable;
 
             CMyMapViewWnd__OldvfTable=pWnd->pvfTable;
             pWnd->pvfTable=pvfTable;
-            CMyMapViewWnd__OldPostDraw=(DWORD)pWnd->pvfTable->PostDraw2;
-            CMyMapViewWnd__OldHandleRButtonDown=(DWORD)pWnd->pvfTable->HandleRButtonDown;
+            MapViewMap_OldvfTable=((PEQMAPWINDOW)pWnd)->pMapViewMapVfTable;
+            ((PEQMAPWINDOW)pWnd)->pMapViewMapVfTable=pMapViewMapVfTable;
+            CMyMapViewWnd__OldPostDraw=(DWORD)((PEQMAPWINDOW)pWnd)->pMapViewMapVfTable->PostDraw2;
             CMyMapViewWnd__OldDestructor=(DWORD)pWnd->pvfTable->vector_deleting_destructor;
             pWnd->pvfTable->vector_deleting_destructor=CMyMapViewWnd__Destructor;
-            pWnd->pvfTable->HandleRButtonDown=CMyMapViewWnd__HandleRButtonDown; 
-            pWnd->pvfTable->PostDraw2=CMyMapViewWnd__PostDraw; 
+            ((PEQMAPWINDOW)pWnd)->pMapViewMapVfTable->PostDraw2=CMyMapViewWnd__PostDraw;
+            MapViewMap__OldHandleRButtonDown=(DWORD)((PEQMAPWINDOW)pWnd)->pMapViewMapVfTable->HandleRButtonDown;
+            ((PEQMAPWINDOW)pWnd)->pMapViewMapVfTable->HandleRButtonDown=MapViewMap__HandleRButtonDown;
         }
     }
 
@@ -223,9 +233,11 @@ public:
     {
         if (CMapViewWnd *pWnd=(CMapViewWnd*)pMapViewWnd)
         {
-            if (CMyMapViewWnd__OldvfTable) { 
+            if (CMyMapViewWnd__OldvfTable && MapViewMap_OldvfTable) { 
                 delete pWnd->pvfTable;
                 pWnd->pvfTable=CMyMapViewWnd__OldvfTable;
+                delete ((PEQMAPWINDOW)pWnd)->pMapViewMapVfTable;
+                ((PEQMAPWINDOW)pWnd)->pMapViewMapVfTable = MapViewMap_OldvfTable;
             }
         }
     }

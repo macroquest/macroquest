@@ -37,7 +37,8 @@ using namespace std;
 #define MAPFILTER_NPCCorpse      30
 #define MAPFILTER_Mercenary      31
 #define MAPFILTER_Named          32
-#define MAPFILTER_NUMBER         33
+#define MAPFILTER_TargetPath     33
+#define MAPFILTER_NUMBER         34
 #define MAPFILTER_Invalid        (-1)
 // normal labels
 
@@ -87,7 +88,7 @@ VOID MapUpdate();
 VOID MapAttach();
 VOID MapDetach();
 
-VOID MapSelectTarget();
+bool MapSelectTarget();
 
 #ifndef ISXEQ
 BOOL dataMapSpawn(PCHAR szIndex, MQ2TYPEVAR &Ret);

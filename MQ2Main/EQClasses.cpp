@@ -133,7 +133,7 @@ FUNCTION_AT_ADDRESS(int  EQ_Character1::Max_HP(int,int),EQ_Character__Max_HP);
 /////////////////////////////////////////////////////////////////////
 
 #ifdef EQ_Character__doCombatAbility 
-FUNCTION_AT_ADDRESS(bool EQ_Character::DoCombatAbility(int spellID), EQ_Character__doCombatAbility); 
+FUNCTION_AT_ADDRESS(bool EQ_Character::DoCombatAbility(int spellID, int dummy), EQ_Character__doCombatAbility); 
 #endif 
 
 
@@ -142,9 +142,9 @@ FUNCTION_AT_VIRTUAL_ADDRESS(void CChatWindow::operator delete[](void*),0x04);
 FUNCTION_AT_VIRTUAL_ADDRESS(bool CXWnd::IsValid(void)const,0);
 FUNCTION_AT_VIRTUAL_ADDRESS(int CXWnd::WndNotification(class CXWnd *,unsigned __int32,void *),0x88);
 FUNCTION_AT_VIRTUAL_ADDRESS(int CXWnd::OnResize(int,int),0x098);
-FUNCTION_AT_VIRTUAL_ADDRESS(int CXWnd::Show(bool,bool,bool),0x0d4);
-FUNCTION_AT_VIRTUAL_ADDRESS(int CXWnd::SetVScrollPos(int),0x134);
-FUNCTION_AT_VIRTUAL_ADDRESS(void CXWnd::SetWindowTextA(class CXStr &),0x128);
+FUNCTION_AT_VIRTUAL_ADDRESS(int CXWnd::Show(bool,bool,bool),0x0d8);
+FUNCTION_AT_VIRTUAL_ADDRESS(int CXWnd::SetVScrollPos(int),0x13c);
+FUNCTION_AT_VIRTUAL_ADDRESS(void CXWnd::SetWindowTextA(class CXStr &),0x12c);
 
 FUNCTION_AT_VIRTUAL_ADDRESS(int CXWnd::HandleLButtonDown(class CXPoint *,unsigned __int32),0x38);
 FUNCTION_AT_VIRTUAL_ADDRESS(int CXWnd::HandleLButtonUp(class CXPoint *,unsigned __int32),0x3c);
@@ -158,7 +158,7 @@ FUNCTION_AT_VIRTUAL_ADDRESS(int CXWnd::OnMinimizeBox(void),0xa8);
 FUNCTION_AT_VIRTUAL_ADDRESS(int CXWnd::SetFont(void*),0x124);
 
 
-FUNCTION_AT_VIRTUAL_ADDRESS(void CListWnd::DeleteAll(void),0x174);
+FUNCTION_AT_VIRTUAL_ADDRESS(void CListWnd::DeleteAll(void),0x180);
 
 
 // AUTO IMPORTS
@@ -7115,7 +7115,7 @@ FUNCTION_AT_ADDRESS(void  CSidlScreenWnd::CalculateHSBRange(void),CSidlScreenWnd
 FUNCTION_AT_ADDRESS(int  CSidlScreenWnd::DrawSidlPiece(class CScreenPieceTemplate *,class CXRect,class CXRect)const ,CSidlScreenWnd__DrawSidlPiece);
 #endif
 #ifdef CSidlScreenWnd__GetSidlPiece
-FUNCTION_AT_ADDRESS(class CScreenPieceTemplate *  CSidlScreenWnd::GetSidlPiece(class CXStr*)const ,CSidlScreenWnd__GetSidlPiece);
+FUNCTION_AT_ADDRESS(class CScreenPieceTemplate *  CSidlScreenWnd::GetSidlPiece(class CXStr*, int dummy)const ,CSidlScreenWnd__GetSidlPiece);
 #endif
 #ifdef CSidlScreenWnd__GetSidlPieceRect
 FUNCTION_AT_ADDRESS(class CXRect  CSidlScreenWnd::GetSidlPieceRect(class CScreenPieceTemplate *,class CXRect)const ,CSidlScreenWnd__GetSidlPieceRect);

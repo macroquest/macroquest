@@ -703,13 +703,13 @@ void MapDetach()
     }
 }
 
-void MapSelectTarget()
+bool MapSelectTarget()
 {
     if (!pCurrentMapLabel)
-        return;
+        return false;
     PMAPSPAWN pMapSpawn=LabelMap[pCurrentMapLabel];
     if (!pMapSpawn)
-        return;
+        return true;
     if (pMapSpawn->SpawnType==ITEM)
     {
         EnviroTarget=*pMapSpawn->pSpawn;
@@ -732,8 +732,13 @@ void MapSelectTarget()
             free(Cmd);
         }
         else
+        {
             pTarget=(EQPlayer*)pMapSpawn->pSpawn;
+        }
     }
+    if(IsOptionEnabled(MAPFILTER_TargetPath))
+        return true;
+    return false;
 }
 
 DWORD MapHighlight(SEARCHSPAWN *pSearch)

@@ -5927,9 +5927,11 @@ bool MQ2MerchantType::GETMEMBER()
             if (ISNUMBER())
             {
                 unsigned long nIndex=GETNUMBER()-1;
-                if (nIndex<pMerch->MerchSlots && pMerch->pMerchArray)
+                if(!pMerch->pMerchOther->pMerchData->pMerchArray)
+                    return false;
+                if (nIndex < pMerch->pMerchOther->pMerchData->MerchSlots)
                 {
-                    if (Dest.Ptr=pMerch->pMerchArray->Array[nIndex])
+                    if (Dest.Ptr=pMerch->pMerchOther->pMerchData->pMerchArray->Array[nIndex])
                     {
                         Dest.Type=pItemType;
                         return true;
@@ -5948,10 +5950,11 @@ bool MQ2MerchantType::GETMEMBER()
                 }
                 strlwr(pName);
                 CHAR Temp[MAX_STRING]={0};
-                if (pMerch->pMerchArray)
-                for (unsigned long nIndex = 0 ; nIndex < pMerch->MerchSlots ; nIndex++)
+                if(!pMerch->pMerchOther->pMerchData->pMerchArray)
+                    return false;
+                for (unsigned long nIndex = 0 ; nIndex < pMerch->pMerchOther->pMerchData->MerchSlots ; nIndex++)
                 {
-                    if (PCONTENTS pContents=pMerch->pMerchArray->Array[nIndex])
+                    if (PCONTENTS pContents=pMerch->pMerchOther->pMerchData->pMerchArray->Array[nIndex])
                     {
                         if (bExact)
                         {
@@ -5979,9 +5982,10 @@ bool MQ2MerchantType::GETMEMBER()
     case Items:
         {
             Dest.DWord=0;
-            if (pMerch->pMerchArray)
-            for (unsigned long nIndex = 0 ; nIndex < pMerch->MerchSlots ; nIndex++)
-                if (!pMerch->pMerchArray->Array[nIndex])
+            if(!pMerch->pMerchOther->pMerchData->pMerchArray)
+                return false;
+            for (unsigned long nIndex = 0 ; nIndex < pMerch->pMerchOther->pMerchData->MerchSlots ; nIndex++)
+                if (pMerch->pMerchOther->pMerchData->pMerchArray->Array[nIndex])
                     Dest.DWord++;
 
             Dest.Type=pIntType;
@@ -5993,15 +5997,17 @@ bool MQ2MerchantType::GETMEMBER()
         return true;
     case Full:
         {
+            if(!pMerch->pMerchOther->pMerchData->pMerchArray)
+                return false;
             Dest.DWord=1;
-            if (!pMerch->pMerchArray || pMerch->MerchSlots < 0x80)  {
+            if (pMerch->pMerchOther->pMerchData->MerchSlots < 0x80)  {
                 Dest.DWord=0;
                 Dest.Type=pBoolType;
                 return true;
             }
-            for (unsigned long N = 0 ; N < pMerch->MerchSlots ; N++)
+            for (unsigned long N = 0 ; N < pMerch->pMerchOther->pMerchData->MerchSlots ; N++)
             {
-                if (!pMerch->pMerchArray->Array[N])
+                if (!pMerch->pMerchOther->pMerchData->pMerchArray->Array[N])
                 {
                     Dest.DWord=0;
                     break;
