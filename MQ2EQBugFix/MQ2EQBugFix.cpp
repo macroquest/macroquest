@@ -36,7 +36,6 @@ PLUGIN_API VOID InitializePlugin(VOID)
 
 PLUGIN_API VOID ShutdownPlugin(VOID)
 {
-	RemoveCommand("pickupitem");
     DebugSpewAlways("Shutting down MQ2EQBugFix");
     RemoveDetour(CDisplay__is3dON);
 }

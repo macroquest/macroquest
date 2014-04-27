@@ -494,27 +494,32 @@ typedef struct _EQBUFFWINDOW
 } EQBUFFWINDOW, *PEQBUFFWINDOW;
 
 // actual size 0x294 20120316 - ieatacid
-//not in use, perhaps by plugins?
+// actual size 0x2ac (see 75E879) in nov 13 2013 eqgame.exe - eqmule
 typedef struct _EQINVSLOTWND {
 /*0x000*/   struct _CXWND Wnd;      //----/ actually CButtonWnd
-/*0x1d4*/   BYTE Unknown0x1d4[0x88];  //___/
-/*0x25c*/   DWORD Unknown0x25c;
-/*0x260*/   LONG WindowType;        // ieatacid has this as InventoryType
+/*0x1d8*/   BYTE Unknown0x1d8[0x88];  //___/
+/*0x260*/   DWORD Unknown0x25c;
+/*0x264*/   LONG WindowType;        // ieatacid has this as InventoryType
                                     // 0 for inventory
                                     // 01 for bank
                                     // 02 for shared bank
                                     // 03 for trader window
                                     // 04 for World/Tradeskill/Combine
                                     // 11 for loot window
-/*0x264*/   WORD InvSlotForBag;
-/*0x266*/   WORD BagSlot;
-/*0x268*/   BYTE Unknown0x268[0x24];
-/*0x28c*/   struct _EQINVSLOT *pInvSlot;
-/*0x290*/   BOOL ProcessClick;
-/*0x290*/
+/*0x268*/   WORD InvSlotForBag;
+/*0x26a*/   WORD BagSlot;
+/*0x26c*/   WORD Unknown0x26c;
+/*0x26e*/   WORD WeirdVariable;		//no idea what this is, it changes upon login but we need it for moveitem... -eqmule
+/*0x270*/   BYTE Unknown0x270[0x20];
+/*0x290*/   struct _EQINVSLOT *pInvSlot;
+/*0x294*/   BYTE Unknown0x294[0x8];
+/*0x29c*/   BOOL ProcessClick;
+/*0x2ac*/
 } EQINVSLOTWND, *PEQINVSLOTWND;
 
 // actual size 0x14 10-12-2010
+//I think this is correct:
+//see (69FF1E) in eqgame.exe dated 2013 11 13 -eqmule
 typedef struct _EQINVSLOT {
 /*0x00*/    LPVOID pvfTable;        // not based on cxwnd
 /*0x04*/    struct _EQINVSLOTWND *pInvSlotWnd;

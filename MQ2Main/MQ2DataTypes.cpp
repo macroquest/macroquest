@@ -1014,6 +1014,10 @@ bool MQ2SpawnType::GETMEMBER()
     PSPAWNINFO pSpawn=(PSPAWNINFO)VarPtr.Ptr;
     switch((SpawnMembers)pMember->ID)
     {
+	case Address://This is for debugging purposes/correcting struct on patchday, probably not of any use to the end users.
+		Dest.DWord=(DWORD)VarPtr.Ptr;
+		Dest.Type=pIntType;
+        return true;
     case Level:
         Dest.DWord=pSpawn->Level;
         Dest.Type=pIntType;
@@ -3925,6 +3929,10 @@ bool MQ2SpellType::GETMEMBER()
 		Dest.DWord=pSpell->EnduranceCost;
 		Dest.Type=pIntType;
         return true;
+	case MaxLevel:
+		Dest.DWord=pSpell->Max[0];
+		Dest.Type=pIntType;
+		return true;
     }
     return false;
 #undef pSpell
@@ -7919,13 +7927,29 @@ bool MQ2TargetType::GETMEMBER()
 		PCHAR pTargetAggroHolder = EQADDR_TARGETAGGROHOLDER;
         if(pTargetAggroHolder[0]!='\0')
         {
-			if(PSPAWNINFO pAggroHolder = (PSPAWNINFO)GetSpawnByName(pTargetAggroHolder))
+			PSPAWNINFO pAggroHolder = (PSPAWNINFO)GetSpawnByName(pTargetAggroHolder);
+			if(pAggroHolder)
             {
                 Dest.Ptr = pAggroHolder;
                 Dest.Type = pSpawnType;
                 return true;
-            }
-        }
+            } else {
+				//ok no spawn was found for the name given, this can only mean one thing... its a pet or a mercenary
+				SEARCHSPAWN sp = {0};
+				strcpy_s(sp.szName,pTargetAggroHolder);
+				sp.GuildID=0xFFFF;
+				pAggroHolder = SearchThroughSpawns(&sp,(PSPAWNINFO)pCharSpawn);
+				if(pAggroHolder)
+				{
+					Dest.Ptr = pAggroHolder;
+					Dest.Type = pSpawnType;
+					return true;
+				}
+			}
+        } else {
+			//it could be me...
+			//lets check
+		}
 		return false;
     }
     return false;

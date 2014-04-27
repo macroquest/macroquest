@@ -5356,6 +5356,9 @@ FUNCTION_AT_ADDRESS(class EQPlayer * EQPlayerManager::GetSpawnByID(int),EQPlayer
 #ifdef EQPlayerManager__GetSpawnByName_x
 FUNCTION_AT_ADDRESS(class EQPlayer * EQPlayerManager::GetSpawnByName(char *),EQPlayerManager__GetSpawnByName);
 #endif
+#ifdef EQPlayerManager__GetSpawnByName2_x
+FUNCTION_AT_ADDRESS(class EQPlayer * EQPlayerManager::GetSpawnByName2(CXStr *,int),EQPlayerManager__GetSpawnByName2);
+#endif
 #ifdef EQPMInfo__EQPMInfo_x
 FUNCTION_AT_ADDRESS( EQPMInfo::EQPMInfo(char *),EQPMInfo__EQPMInfo);
 #endif

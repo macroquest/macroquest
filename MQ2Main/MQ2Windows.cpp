@@ -1299,81 +1299,98 @@ int ItemNotify(int argc, char *argv[])
             bagslot=atoi(szArg3)-1;
             type=2;
         } else if (!strnicmp(szArg2,"pack",4)) {
-            invslot=atoi(&szArg2[4])-1+23;
+            invslot=atoi(&szArg2[4])-1+BAG_SLOT_START;
             bagslot=atoi(szArg3)-1;
             type=0;
         }
-        for (i=0;i<pInvMgr->TotalSlots;i++) {
-            pSlot = pInvMgr->SlotArray[i];
-            if (pSlot->Valid && pSlot->pInvSlotWnd && pSlot->pInvSlotWnd->WindowType == type && pSlot->pInvSlotWnd->InvSlotForBag == invslot && pSlot->pInvSlotWnd->BagSlot == bagslot) {
-                break;
-            }
-        }
-        if (i == pInvMgr->TotalSlots)
-			pSlot = NULL;
-
+		//ok look, I wish I could just call:
+		//pSlot = (PEQINVSLOT)pInvSlotMgr->FindInvSlot(invslot,bagslot);
+		//BUT it returns HB_InvSlot as well as containers AND it doesn't take "type" into account...
+		//which is why I use GetInvSlot instead...
+		pSlot = GetInvSlot(type,invslot,bagslot);
         pNotification=&szArg4[0];
 		if(!pSlot && type!=-1) {//ok we can "click" it anyway with moveitem so lets just do that if pNotification is leftmoseup
 			if(invslot<0 || invslot>NUM_INV_SLOTS) {
+				WriteChatf("%d is not a valid invslot. (itemnotify)",invslot);
 				RETURN(0);
 			}
 			if(pNotification && !strnicmp(pNotification,"leftmouseup",11)) {
 				BOOL bMoveFromCursor = 0;
 				PCHARINFO2 pChar2 = GetCharInfo2();
+				PCONTENTS pCursor = 0;
 				if(pChar2 && pChar2->pInventoryArray) {
-					PCONTENTS pCursor = pChar2->pInventoryArray->Inventory.Cursor;
+					pCursor = pChar2->pInventoryArray->Inventory.Cursor;
 					if(pCursor) {
 						bMoveFromCursor=1;
 					}
 				}
-				PCONTENTS pItem = FindItemBySlot(invslot);//we dont care about the bagslot here
-				if(!pItem) {
+				PCONTENTS pContainer = FindItemBySlot(invslot);// we dont care about the bagslot here
+				if(!pContainer) {                              // and we dont care if the user has something
+														  // on cursor either, cause we know they
+														  // specified "in" so a container MUST exist... -eqmule
 					WriteChatf("There was no container in slot %d",invslot);
 					RETURN(0);
 				}
-				if(GetItemFromContents(pItem)->Type!=ITEMTYPE_PACK) {
+				if(GetItemFromContents(pContainer)->Type!=ITEMTYPE_PACK) {
 					WriteChatf("There was no container in slot %d",invslot);
 					RETURN(0);
 				}
-				if(bagslot<0 && bagslot >= pItem->NumOfSlots1) {
+				if(bagslot<0 && bagslot >= (int)pContainer->NumOfSlots1) {
 					WriteChatf("%d is not a valid slot for this container.",bagslot);
 					RETURN(0);
 				}
+				//ok we made it this far, now we need to know the container slot:
+				pSlot = GetInvSlot(type,invslot);
+				if(!pSlot || !pSlot->pInvSlotWnd) {
+					//if we got all the way here this really shouldnt happen... but why assume...
+					WriteChatf("Could not find a container in slot %d",invslot);
+					RETURN(0);
+				}
 				if(!bMoveFromCursor) {//user is picking up something
+					//ok we need to know if whatever they are picking up is stackable:
+					PCONTENTS pItem = FindItemBySlot(invslot,bagslot);
+					if(!pItem) {
+						WriteChatf("Could not find an item in slot %d",bagslot);
+						RETURN(0);
+					}
 					CMoveItemData From = {0};
-					From.BagSlot = bagslot;
-					From.InvSlot = invslot;
 					From.InventoryType = type;
 					From.Unknown2 = 0;
-					From.Unknown8 = 0xFFFF;
-					From.Unknowna = 0xE0;//224 this needs work, where does it pick up this number?
+					From.InvSlot = invslot;
+					From.BagSlot = bagslot;
+					From.Unknown8 = pSlot->pInvSlotWnd->Unknown0x26c;
+					From.Unknowna = pSlot->pInvSlotWnd->WeirdVariable;
 	
 					CMoveItemData To = {0};
-					To.BagSlot = 0xFFFF;
-					To.InvSlot = 33;//cursor
 					To.InventoryType = 0;
 					To.Unknown2 = 0;
+					To.InvSlot = 33;//cursor
+					To.BagSlot = 0xFFFF;
 					To.Unknown8 = 0xFFFF;
-					To.Unknowna = 0xD4;//212 this needs work, where does it pick up this number?
+					if(((EQ_Item *)pItem)->IsStackable()) {
+						To.Unknowna = From.Unknowna-0xc;//I *THINK* this is correct, want to get dkaa to look at assembly and confirm... -eqmule
+					} else {
+						To.Unknowna = 0;
+					}
 					pInvSlotMgr->MoveItem(&From,&To,1,1,0,0);
 					RETURN(0);
 				} else {
 					//user has something on the cursor, lets drop it
-					CMoveItemData To = {0};
-					To.BagSlot = bagslot;
-					To.InvSlot = invslot;
-					To.InventoryType = type;
-					To.Unknown2 = 0;
-					To.Unknown8 = 0xFFFF;
-					To.Unknowna = 236;//224
-					//WriteChatf("pInvMgr->TotalSlots = %d",pInvMgr->TotalSlots);
 					CMoveItemData From = {0};
-					From.BagSlot = 0xFFFF;
-					From.InvSlot = 33;//cursor
 					From.InventoryType = 0;
 					From.Unknown2 = 0;
+					From.InvSlot = 33;//cursor
+					From.BagSlot = 0xFFFF;
 					From.Unknown8 = 0xFFFF;
 					From.Unknowna = 0;
+
+					CMoveItemData To = {0};
+					To.InventoryType = type;
+					To.Unknown2 = 0;
+					To.InvSlot = invslot;
+					To.BagSlot = bagslot;
+					To.Unknown8 = pSlot->pInvSlotWnd->Unknown0x26c;
+					To.Unknowna = pSlot->pInvSlotWnd->WeirdVariable;
 					pInvSlotMgr->MoveItem(&From,&To,1,1,0,0);
 					RETURN(0);
 				}
@@ -1411,7 +1428,7 @@ int ItemNotify(int argc, char *argv[])
                     invslot = atoi(szArg1+6) - 1;
                     type = 4;
                 } else if (!strnicmp(szArg1, "pack", 4)) {
-                    invslot = atoi(szArg1+4) - 1 + 23;
+                    invslot = atoi(szArg1+4) - 1 + BAG_SLOT_START;
                     type = 0;
                 } else if (!strnicmp(szArg1, "bank", 4)) {
                     invslot = atoi(szArg1+4) - 1;
@@ -1426,7 +1443,15 @@ int ItemNotify(int argc, char *argv[])
                 for (i=0;i<pInvMgr->TotalSlots;i++) {
                     pSlot = pInvMgr->SlotArray[i];
                     if (pSlot && pSlot->Valid && pSlot->pInvSlotWnd && pSlot->pInvSlotWnd->WindowType == type && pSlot->pInvSlotWnd->InvSlotForBag == invslot) {
-                        Slot = 1;
+						CXMLData *pXMLData=((CXWnd*)pSlot->pInvSlotWnd)->GetXMLData();
+						if(pXMLData) {
+							CHAR szType[256] = {0};
+							GetCXStr(pXMLData->ScreenID.Ptr,szType,255);
+							if(!_stricmp(szType,"HB_InvSlot")) {
+								continue;
+							}
+						}
+						Slot = 1;
                         break;
                     }
                 }

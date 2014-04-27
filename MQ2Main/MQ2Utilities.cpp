@@ -4596,6 +4596,7 @@ PSPAWNINFO SearchThroughSpawns(PSEARCHSPAWN pSearchSpawn, PSPAWNINFO pChar)
 BOOL SpawnMatchesSearch(PSEARCHSPAWN pSearchSpawn, PSPAWNINFO pChar, PSPAWNINFO pSpawn)
 {
     CHAR szName[MAX_STRING] = {0};
+    CHAR szSearchName[MAX_STRING] = {0};
     eSpawnType SpawnType = GetSpawnType(pSpawn);
     if (pSearchSpawn->SpawnType != SpawnType && pSearchSpawn->SpawnType!=NONE)
     {
@@ -4614,13 +4615,14 @@ BOOL SpawnMatchesSearch(PSEARCHSPAWN pSearchSpawn, PSPAWNINFO pChar, PSPAWNINFO 
         }
     }
     _strlwr(strcpy(szName,pSpawn->Name));
-    if (!strstr(szName,pSearchSpawn->szName) && !strstr(CleanupName(szName,FALSE),pSearchSpawn->szName))
+    _strlwr(strcpy(szSearchName,pSearchSpawn->szName));
+    if (!strstr(szName,szSearchName) && !strstr(CleanupName(szName,FALSE),szSearchName))
         return FALSE;
     if (pSearchSpawn->bExactName && stricmp(CleanupName(szName,FALSE,!gbExactSearchCleanNames),pSearchSpawn->szName))
         return FALSE;
-    if (pSpawn->Level < pSearchSpawn->MinLevel)
+    if (pSearchSpawn->MinLevel && pSpawn->Level < pSearchSpawn->MinLevel)
         return FALSE;
-    if (pSpawn->Level > pSearchSpawn->MaxLevel)
+    if (pSearchSpawn->MaxLevel && pSpawn->Level > pSearchSpawn->MaxLevel)
         return FALSE;
     if (pSearchSpawn->NotID == pSpawn->SpawnID)
         return FALSE;
@@ -4671,14 +4673,14 @@ BOOL SpawnMatchesSearch(PSEARCHSPAWN pSearchSpawn, PSPAWNINFO pChar, PSPAWNINFO 
             if (pSearchSpawn->FRadius<10000.0f && DistanceToPoint(pSpawn,pSearchSpawn->xLoc,pSearchSpawn->yLoc)>pSearchSpawn->FRadius)
                 return FALSE;
     }
-    else if (pSearchSpawn->FRadius<10000.0f && DistanceToSpawn(pChar, pSpawn)>pSearchSpawn->FRadius)
+    else if (pSearchSpawn->FRadius>0.0f && pSearchSpawn->FRadius<10000.0f && DistanceToSpawn(pChar, pSpawn)>pSearchSpawn->FRadius)
         return FALSE;
 
     if (pSearchSpawn->Radius>0.0f && IsPCNear(pSpawn,pSearchSpawn->Radius))
         return FALSE;
     if (gZFilter<10000.0f && ( (pSpawn->Z > pChar->Z + gZFilter) || (pSpawn->Z < pChar->Z - gZFilter)))
         return FALSE;
-    if (pSearchSpawn->ZRadius<10000.0f &&  (pSpawn->Z > pChar->Z + pSearchSpawn->ZRadius ||pSpawn->Z < pChar->Z - pSearchSpawn->ZRadius))
+    if (pSearchSpawn->ZRadius>0.0f && pSearchSpawn->ZRadius<10000.0f &&  (pSpawn->Z > pChar->Z + pSearchSpawn->ZRadius ||pSpawn->Z < pChar->Z - pSearchSpawn->ZRadius))
         return FALSE;
     if (pSearchSpawn->bLight) 
     {
@@ -6020,6 +6022,7 @@ PCONTENTS FindItem(PCHAR pName, BOOL bExact)
 PCONTENTS FindItemBySlot(WORD InvSlot, WORD BagSlot)
 {
 	PCHARINFO2 pChar2 = GetCharInfo2();
+	//check regular inventory
 	if(pChar2 && pChar2->pInventoryArray && pChar2->pInventoryArray->InventoryArray) {
 		for (unsigned long nSlot=0 ; nSlot < NUM_INV_SLOTS ; nSlot++)
 		{
@@ -6032,6 +6035,7 @@ PCONTENTS FindItemBySlot(WORD InvSlot, WORD BagSlot)
 			}
 		}
 	}
+	//not found? ok check inside bags
 	if(pChar2 && pChar2->pInventoryArray) {
 		for (unsigned long nPack=0 ; nPack < 10 ; nPack++)
 		{
@@ -6052,7 +6056,98 @@ PCONTENTS FindItemBySlot(WORD InvSlot, WORD BagSlot)
 			}
 		}
 	}
+	//still not found? check bank
+	PCHARINFO pChar = GetCharInfo();
+	if(pChar && pChar->pBankArray && pChar->pBankArray->Bank) {
+		for (unsigned long nSlot=0 ; nSlot < NUM_BANK_SLOTS ; nSlot++)
+		{
+			if (PCONTENTS pItem=pChar->pBankArray->Bank[nSlot])
+			{
+				if (pItem->ItemSlot==InvSlot && pItem->ItemSlot2==BagSlot)
+				{
+					return pItem;
+				}
+			}
+		}
+	}
+	//not found? ok check inside bank bags
+	if(pChar && pChar->pBankArray && pChar->pBankArray->Bank) {
+		for (unsigned long nPack=0 ; nPack < NUM_BANK_SLOTS ; nPack++)
+		{
+			if (PCONTENTS pPack=pChar->pBankArray->Bank[nPack])
+			{
+				if (GetItemFromContents(pPack)->Type==ITEMTYPE_PACK && pPack->pContentsArray)
+				{
+					for (unsigned long nItem=0 ; nItem < GetItemFromContents(pPack)->Slots ; nItem++)
+					{
+						if (PCONTENTS pItem=pPack->pContentsArray->Contents[nItem])
+						{
+							if (pItem->ItemSlot==InvSlot && pItem->ItemSlot2==BagSlot)	{
+								return pItem;
+							}
+						}
+					}
+				}
+			}
+		}
+	}
+	//what? still not found? ok fine, check shared bank
+	if(pChar && pChar->pSharedBankArray && pChar->pSharedBankArray->SharedBank) {
+		for (unsigned long nSlot=0 ; nSlot < NUM_SHAREDBANK_SLOTS ; nSlot++)
+		{
+			if (PCONTENTS pItem=pChar->pSharedBankArray->SharedBank[nSlot])
+			{
+				if (pItem->ItemSlot==InvSlot && pItem->ItemSlot2==BagSlot)
+				{
+					return pItem;
+				}
+			}
+		}
+	}
+    //not found? ok check inside sharedbank bags
+	if(pChar && pChar->pSharedBankArray && pChar->pSharedBankArray->SharedBank) {
+		for (unsigned long nPack=0 ; nPack < NUM_SHAREDBANK_SLOTS ; nPack++)
+		{
+			if (PCONTENTS pPack=pChar->pSharedBankArray->SharedBank[nPack])
+			{
+				if (GetItemFromContents(pPack)->Type==ITEMTYPE_PACK && pPack->pContentsArray)
+				{
+					for (unsigned long nItem=0 ; nItem < GetItemFromContents(pPack)->Slots ; nItem++)
+					{
+						if (PCONTENTS pItem=pPack->pContentsArray->Contents[nItem])
+						{
+							if (pItem->ItemSlot==InvSlot && pItem->ItemSlot2==BagSlot)	{
+								return pItem;
+							}
+						}
+					}
+				}
+			}
+		}
+	}
     return 0;
+}
+PEQINVSLOT GetInvSlot(DWORD type,WORD invslot,WORD bagslot)
+{
+	PEQINVSLOTMGR pInvMgr=(PEQINVSLOTMGR)pInvSlotMgr;
+	if(pInvMgr) {
+		PEQINVSLOT pSlot = 0;
+		for (DWORD i=0;i<pInvMgr->TotalSlots;i++) {
+			pSlot = pInvMgr->SlotArray[i];	
+			if (pSlot && pSlot->Valid && pSlot->pInvSlotWnd && pSlot->pInvSlotWnd->WindowType == type && pSlot->pInvSlotWnd->InvSlotForBag == invslot && pSlot->pInvSlotWnd->BagSlot == bagslot) {
+				CXMLData *pXMLData=((CXWnd*)pSlot->pInvSlotWnd)->GetXMLData();
+				if(pXMLData) {
+					CHAR szType[256] = {0};
+					GetCXStr(pXMLData->ScreenID.Ptr,szType,255);
+					if(!_stricmp(szType,"HB_InvSlot")) {//we dont want this, the user specified a container , not a hotbutton...
+						continue;
+					}
+				}
+				return pSlot;
+			}
+		}
+	}
+	return NULL;
 }
 //                                                                                               //
 ///////////////////////////////////////////////////////////////////////////////////////////////////

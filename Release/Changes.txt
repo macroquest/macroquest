@@ -1,9 +1,26 @@
+16 Nov 2013 by EqMule
+-Fix for ${Target.AggroHolder} it now properly return Pets and Mercenary SpawnTypes as well as Players.
+ There is still some work to do on this TLO, for example it wont return
+ yourself, this is not intentional, its on my todo list.
+
+-Added support for /itemnotify with bags closed for bank and shared bank as well.
+
+-Fixed a bug where if you sent a /itemnotify in <pack> <slot> leftmouseup 
+ and you had the item on a hotbutton, instead of picking it up, it would activate it.
+ This means that from now on, if you issue a /itemnotify leftmouseup command... you can be 100% sure
+ it WILL pick up the item, not activate it...
+
 14 Nov 2013 by EqMule
 -Updated for patch
 -"/itemnotify in" changed to work even if bags are closed.
  example: /itemnotify in pack1 1 leftmouseup ( Will pick up the item in pack1 slot 1 even if the bag is closed...)
 
  Note: that this is pretty much untested right now, let me know of any issues.
+
+10 Nov 2013 by rswiders
+- added MaxLevel to Spell TLO
+  the purpose was to allow autobot to get the max mezz level automatically
+  and avoid hardcoding it in the macro itself.
 
 07 Nov 2013 by EqMule
 -Fix for Contents.Power

@@ -557,6 +557,7 @@ public:
         LocYX=99,
         Owner=100,
         Following=101,
+		Address=102,
 	};
     static enum SpawnMethods
     {
@@ -665,6 +666,7 @@ public:
         TypeMember(LocYX);
         TypeMember(Owner);
         TypeMember(Following);
+        TypeMember(Address);
         TypeMethod(Target);
         TypeMethod(Face);
         TypeMethod(LeftClick);
@@ -1195,6 +1197,7 @@ public:
         MyRange=27,
         Address=28,
 		EnduranceCost=29,
+		MaxLevel=30,
     };
     static enum SpellMethods
     {
@@ -1230,6 +1233,7 @@ public:
         TypeMember(MyRange);//27
         TypeMember(Address);//28
 		TypeMember(EnduranceCost);//29
+		TypeMember(MaxLevel);//30
     }
 
     ~MQ2SpellType()
