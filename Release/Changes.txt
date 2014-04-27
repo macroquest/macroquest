@@ -1,3 +1,6 @@
+21 March 2013 by ieatacid
+- Fixed keybind issues (?)
+
 16 March 2013 by ieatacid
 - Updated for March 13th/14th patch
 

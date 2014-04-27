@@ -263,7 +263,7 @@ bool __cdecl MQ2Initialize()
     ZeroMemory(szEQMappableCommands,sizeof(szEQMappableCommands));
     for (i = 0 ; i < nEQMappableCommands; i++)
     {
-        if((DWORD)EQMappableCommandList[i] == 0 || (DWORD)EQMappableCommandList[i] > 0xFFFFFF)
+        if((DWORD)EQMappableCommandList[i] == 0 || (DWORD)EQMappableCommandList[i] > (DWORD)__AC1_Data)
             continue;
         szEQMappableCommands[i]=EQMappableCommandList[i];
     }

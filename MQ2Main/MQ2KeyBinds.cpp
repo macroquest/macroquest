@@ -369,7 +369,7 @@ VOID MQ2KeyBindCommand(PSPAWNINFO pChar, PCHAR szLine)
         WriteChatColor("--------------");
         for (i = 0 ; i < nEQMappableCommands ; i++)
         {
-            if((DWORD)szEQMappableCommands[i] == 0 || (DWORD)szEQMappableCommands[i] > 0xFFFFFF)
+            if((DWORD)szEQMappableCommands[i] == 0 || (DWORD)szEQMappableCommands[i] > (DWORD)__AC1_Data)
                 continue;
             sprintf(szArg1,"[\ay%s\ax] Nrm:\at%s\ax Alt:\at%s\ax",szEQMappableCommands[i],DescribeKeyCombo(pKeypressHandler->NormalKey[i],szNormal),DescribeKeyCombo(pKeypressHandler->AltKey[i],szAlt));
             WriteChatColor(szArg1);            
@@ -411,7 +411,7 @@ VOID MQ2KeyBindCommand(PSPAWNINFO pChar, PCHAR szLine)
         // eq binds
         for (i = 0; i < nEQMappableCommands; i++) 
         {
-            if((DWORD)szEQMappableCommands[i] == 0 || (DWORD)szEQMappableCommands[i] > 0xFFFFFF)
+            if((DWORD)szEQMappableCommands[i] == 0 || (DWORD)szEQMappableCommands[i] > (DWORD)__AC1_Data)
                 continue;
             if (pKeypressHandler->AltKey[i] == NewCombo && SetEQKeyBindByNumber(i,true,ClearCombo)) 
             {
@@ -485,7 +485,7 @@ int CMD_MQ2Bind(int argc, char *argv[])
         WriteChatColor("--------------");
         for (i = 0 ; i < nEQMappableCommands ; i++)
         {
-            if((DWORD)szEQMappableCommands[i] == 0 || (DWORD)szEQMappableCommands[i] > 0xFFFFFF)
+            if((DWORD)szEQMappableCommands[i] == 0 || (DWORD)szEQMappableCommands[i] > (DWORD)__AC1_Data)
                 continue;
             WriteChatf("[\ay%s\ax] Nrm:\at%s\ax Alt:\at%s\ax",szEQMappableCommands[i],DescribeKeyCombo(pKeypressHandler->NormalKey[i],szNormal),DescribeKeyCombo(pKeypressHandler->AltKey[i],szAlt));
         }
@@ -525,7 +525,7 @@ int CMD_MQ2Bind(int argc, char *argv[])
         // eq binds
         for (i = 0; i < nEQMappableCommands; i++) 
         {
-            if((DWORD)szEQMappableCommands[i] == 0 || (DWORD)szEQMappableCommands[i] > 0xFFFFFF)
+            if((DWORD)szEQMappableCommands[i] == 0 || (DWORD)szEQMappableCommands[i] > (DWORD)__AC1_Data)
                 continue;
             if (pKeypressHandler->AltKey[i] == NewCombo && SetEQKeyBindByNumber(i,true,ClearCombo)) 
             {
@@ -604,7 +604,7 @@ BOOL DumpBinds(PCHAR Filename)
     unsigned long N;
     for ( N = 0 ; N < nEQMappableCommands ; N++)
     {
-        if((DWORD)szEQMappableCommands[N] == 0 || (DWORD)szEQMappableCommands[N] > 0xFFFFFF)
+        if((DWORD)szEQMappableCommands[N] == 0 || (DWORD)szEQMappableCommands[N] > (DWORD)__AC1_Data)
             continue;
         fprintf(file,"/bind %s %s\n",szEQMappableCommands[N],DescribeKeyCombo(pKeypressHandler->NormalKey[N],szBuffer));
         fprintf(file,"/bind ~%s %s\n",szEQMappableCommands[N],DescribeKeyCombo(pKeypressHandler->AltKey[N],szBuffer));
