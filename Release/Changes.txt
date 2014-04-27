@@ -1,3 +1,6 @@
+16 February 2013 by ieatacid
+- Updated for Feb. 13th/14th patch
+
 20 January 2013 by ieatacid
 - Fixed _CXWND.pParentWindow crash
 - Fixed MQ2ItemDisplay crash

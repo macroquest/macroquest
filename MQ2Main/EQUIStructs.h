@@ -209,67 +209,71 @@ VFTABLE;
 /*0x008*/   struct  _CSIDLWND *pNextSiblingWnd; \
 /*0x00c*/   void    *pUnknown0xc; \
 /*0x010*/   struct  _CSIDLWND *pFirstChildWnd; \
-/*0x014*/   BYTE    Unknown0x14[0xc]; \
-/*0x020*/   RECT    OldLocation; \
-/*0x030*/   BYTE    Unknown0x30[0xc]; \
-/*0x03c*/   DWORD   TickCount2; \
-/*0x040*/   BYTE    Unknown0x40[0x14]; \
-/*0x054*/   ARGBCOLOR BGColor; \
-/*0x058*/   BYTE    Unknown0x58[0x10]; \
-/*0x068*/   DWORD   WindowStyle;    /* bit 1 - vertical scroll, bit 2 - horizontal scroll, bit 4 - title bar?, bit 8 - border */ \
-/*0x06c*/   BYTE    Unknown0x6c[0x4]; \
-/*0x070*/   struct  _CXSTR  *XMLToolTip; \
-/*0x074*/   BYTE    Unlockable;     /* related to Locked */ \
-/*0x075*/   BYTE    Clickable;      /* found in the button handlers */ \
-/*0x076*/   BYTE    Minimized; \
-/*0x077*/   BYTE    Unknown0x77[0x1a]; \
-/*0x091*/   BYTE    Alpha; \
-/*0x092*/   BYTE    Unknown0x92[0x22]; \
-/*0x0b4*/   BYTE    Fades; \
-/*0x0b5*/   BYTE    Unknown0xb5[0x3]; \
-/*0x0b8*/   DWORD   XMLIndex; \
-/*0x0bc*/   DWORD   VScrollPos; \
-/*0x0c0*/   BYTE    Unknown0xc0[0x24]; \
-/*0x0e4*/   DWORD   TimeMouseOver; \
-/*0x0e8*/   BYTE    Unknown0xe8[0x28]; \
-/*0x110*/   DWORD   FadeDuration; \
-/*0x114*/   BYTE    CloseOnESC;     /* close when ESC is pressed */ \
-/*0x115*/   BYTE    FadeToAlpha; \
-/*0x116*/   BYTE    Unknown0x116[0x6]; \
-/*0x11c*/   BYTE    ValidCXWnd; \
-/*0x11d*/   BYTE    Unknown0x11d[0xb]; \
-/*0x128*/   BYTE    dShow; \
+/*0x014*/   BYTE    Unknown0x14[0x4]; \
+/*0x018*/   struct  _CXSTR  *Tooltip; \
+/*0x01c*/   BYTE    Unknown0x1c[0x8]; \
+/*0x024*/   DWORD   VScrollMax; \
+/*0x028*/   BYTE    Unknown0x28[0x28]; \
+/*0x050*/   BYTE    MouseOver; \
+/*0x051*/   BYTE    Unknown0x51[0x3]; \
+/*0x054*/   DWORD   WindowStyle;    /* bit 1 - vertical scroll, bit 2 - horizontal scroll, bit 4 - title bar?, bit 8 - border */ \
+/*0x058*/   BYTE    Unknown0x58[0x8]; \
+/*0x060*/   DWORD   TickCount2; \
+/*0x064*/   struct  _CXSTR  *XMLToolTip; \
+/*0x068*/   BYTE    Unknown0x68[0x4]; \
+/*0x06c*/   LPVOID  DrawTemplate; \
+/*0x070*/   BYTE    Unknown0x70[0x4]; \
+/*0x074*/   DWORD   UnknownCW; \
+/*0x078*/   BYTE    Unknown0x78[0x34]; \
+/*0x0ac*/   BYTE    Faded; \
+/*0x0ad*/   BYTE    Unknown0xad[0x19]; \
+/*0x0c6*/   BYTE    Unlockable;     /* related to Locked */ \
+/*0x0c7*/   BYTE    Unknown0xc7[0x1d]; \
+/*0x0e4*/   ARGBCOLOR BGColor; \
+/*0x0e8*/   BYTE    Unknown0xe8[0x1c]; \
+/*0x104*/   BYTE    Fades; \
+/*0x105*/   BYTE    Unknown0x105[0xb]; \
+/*0x110*/   DWORD   HScrollMax; \
+/*0x114*/   BYTE    Unknown0x114[0x4]; \
+/*0x118*/   BYTE    Clickable;      /* found in the button handlers */ \
+/*0x119*/   BYTE    Unknown0x119[0x7]; \
+/*0x120*/   BYTE    Alpha; \
+/*0x121*/   BYTE    Unknown0x121[0x3]; \
+/*0x124*/   struct  _CXSTR  *WindowText; \
+/*0x128*/   BYTE    Locked; \
 /*0x129*/   BYTE    Unknown0x129[0x3]; \
-/*0x12c*/   struct  _CXSTR  *WindowText; \
-/*0x130*/   BYTE    Unknown0x130[0x14]; \
-/*0x144*/   BYTE    Locked; \
-/*0x145*/   BYTE    Unknown0x145[0x3]; \
-/*0x148*/   DWORD   UnknownCW; \
-/*0x14c*/   RECT    Location; \
-/*0x15c*/   DWORD   BGType;         /* "BGType" in ini */ \
-/*0x160*/   BYTE    Unknown0x160[0x4]; \
-/*0x164*/   DWORD   ZLayer; \
-/*0x168*/   BYTE    Unknown0x168[0x4]; \
-/*0x16c*/   DWORD   HScrollMax; \
-/*0x170*/   BYTE    Unknown0x170; \
-/*0x171*/   BYTE    Faded; \
-/*0x172*/   BYTE    Enabled; \
-/*0x173*/   BYTE    Unknown0x173; \
-/*0x174*/   DWORD   VScrollMax; \
-/*0x178*/   BYTE    MouseOver; \
-/*0x179*/   BYTE    Unknown0x179[0x7]; \
-/*0x180*/   struct  _CSIDLWND *pParentWindow; /* If this is NULL, coordinates are absolute... */ \
-/*0x184*/   BYTE    Unknown0x190[0x14]; \
-/*0x198*/   LPVOID  DrawTemplate; \
-/*0x19c*/   BYTE    Unknown0x19c[0x18]; \
-/*0x1b4*/   DWORD   HScrollPos; \
-/*0x1b8*/   BYTE    Unknown0x1b8[0x10]; \
-/*0x1c8*/   struct  _CXSTR  *Tooltip; \
-/*0x1cc*/   BYTE    Unknown0x1c0[0x8]; \
+/*0x12c*/   DWORD   FadeDuration; \
+/*0x130*/   BYTE    Unknown0x130; \
+/*0x131*/   BYTE    Enabled; \
+/*0x132*/   BYTE    Unknown0x132[0x2]; \
+/*0x134*/   DWORD   HScrollPos; \
+/*0x138*/   BYTE    Unknown0x138[0x8]; \
+/*0x140*/   DWORD   VScrollPos; \
+/*0x144*/   BYTE    Unknown0x144[0xc]; \
+/*0x150*/   DWORD   XMLIndex; \
+/*0x154*/   BYTE    dShow; \
+/*0x155*/   BYTE    Unknown0x155[0x11]; \
+/*0x166*/   BYTE    ValidCXWnd; \
+/*0x167*/   BYTE    Unknown0x167[0xd]; \
+/*0x174*/   RECT    OldLocation; \
+/*0x184*/   BYTE    Unknown0x184[0x8]; \
+/*0x18c*/   DWORD   ZLayer; \
+/*0x190*/   BYTE    Unknown0x190[0x4]; \
+/*0x194*/   BYTE    FadeToAlpha; \
+/*0x195*/   BYTE    Unknown0x195[0xb]; \
+/*0x1a0*/   struct  _CSIDLWND *pParentWindow; /* If this is NULL, coordinates are absolute... */ \
+/*0x1a4*/   DWORD   BGType;         /* "BGType" in ini */ \
+/*0x1a8*/   DWORD   TimeMouseOver; \
+/*0x1ac*/   BYTE    Minimized; \
+/*0x1ad*/   BYTE    Unknown0x1ad[0x3]; \
+/*0x1b0*/   RECT    Location; \
+/*0x1c0*/   BYTE    Unknown0x1c0[0x4]; \
+/*0x1c4*/   BYTE    CloseOnESC;     /* close when ESC is pressed */ \
+/*0x1c5*/   BYTE    Unknown0x1c5[0xf]; \
 /*0x1d4*/
 
 #define CXW \
-/* Actual size 0x1d4 20130116 - ieatacid */ \
+/* Actual size 0x1d4 20130214 - ieatacid */ \
 /*0x000*/   struct  _CXWNDVFTABLE   *pvfTable; \
 CXW_NO_VTABLE \
 /*0x1d4*/
@@ -490,21 +494,21 @@ typedef struct _EQBUFFWINDOW
 // actual size 0x294 20120316 - ieatacid
 typedef struct _EQINVSLOTWND {
 /*0x000*/   struct _CXWND Wnd;      //----/ actually CButtonWnd
-/*0x1c0*/   BYTE Unknown0x1c0[0x88];  //___/
-/*0x248*/   DWORD Unknown0x1b8;
-/*0x24c*/   LONG WindowType;        // ieatacid has this as InventoryType
+/*0x1d4*/   BYTE Unknown0x1d4[0x88];  //___/
+/*0x25c*/   DWORD Unknown0x25c;
+/*0x260*/   LONG WindowType;        // ieatacid has this as InventoryType
                                     // 0 for inventory
                                     // 01 for bank
                                     // 02 for shared bank
                                     // 03 for trader window
                                     // 04 for World/Tradeskill/Combine
                                     // 11 for loot window
-/*0x250*/   WORD InvSlotForBag;
-/*0x254*/   WORD BagSlot;
-/*0x258*/   BYTE Unknown0x25c[0x20];
-/*0x278*/   struct _EQINVSLOT *pInvSlot;
-/*0x27c*/   BOOL ProcessClick;
-/*0x280*/
+/*0x264*/   WORD InvSlotForBag;
+/*0x266*/   WORD BagSlot;
+/*0x268*/   BYTE Unknown0x268[0x20];
+/*0x288*/   struct _EQINVSLOT *pInvSlot;
+/*0x28c*/   BOOL ProcessClick;
+/*0x290*/
 } EQINVSLOTWND, *PEQINVSLOTWND;
 
 // actual size 0x14 10-12-2010
