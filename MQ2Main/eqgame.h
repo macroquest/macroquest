@@ -16,10 +16,10 @@
 #endif
 
 #define __ClientName                                              "eqgame"
-#define __ExpectedVersionDate                                     "Feb 14 2014"
-#define __ExpectedVersionTime                                     "11:19:18"
-#define __ActualVersionDate_x                                      0x9F1600
-#define __ActualVersionTime_x                                      0x9F160C
+#define __ExpectedVersionDate                                     "Feb 20 2014"
+#define __ExpectedVersionTime                                     "15:58:25"
+#define __ActualVersionDate_x                                      0x9F15B8
+#define __ActualVersionTime_x                                      0x9F15C4
 
 #define __ClientOverride                                           0
 #define __MacroQuestWinClassName                                  "__MacroQuestTray"
@@ -43,7 +43,7 @@
 #define __AC5_x                                                    0x544431
 #define __AC6_x                                                    0x547EE2
 #define __AC7_x                                                    0x53DF4C
-#define __AC1_Data                                                 0x11110111
+#define __AC1_Data                                                 0x1110E172
 // Direct Input
 #define DI8__Main_x                                                0xF25B60
 #define DI8__Keyboard_x                                            0xF25B64
@@ -59,7 +59,7 @@
 #define __DoAbilityList_x                                          0xDCB9CC
 #define __do_loot_x                                                0x4EC5A0
 #define __DrawHandler_x                                            0x158B104
-#define __GroupCount_x                                             0xD85E5A
+#define __GroupCount_x                                             0xD85E70
 
 #define __Guilds_x                                                 0xD8B820
 #define __gWorld_x                                                 0xD88314
@@ -90,7 +90,6 @@
 #define __TargetAggroHolder_x                                      0xF2BCF0
 #define __GroupAggro_x                                             0xF2BD30
 #define __LoginName_x                                              0xE1C640
-
 
 //// 
 //Section 1: Vital Offsets 
@@ -124,7 +123,7 @@
 #define pinstEQSoundManager_x                                      0xCD6040
 #define instExpeditionLeader_x                                     0xD9504A
 #define instExpeditionName_x                                       0xD9508A
-#define pinstGroup_x                                               0xD85E56
+#define pinstGroup_x                                               0xD85E6C
 #define pinstImeManager_x                                          0x158A7BC
 #define pinstLocalPlayer_x                                         0xD88398
 #define pinstMercenaryData_x                                       0xE19DD0
@@ -332,7 +331,7 @@
 
 // CContainerWnd 
 #define CContainerWnd__HandleCombine_x                             0x663880
-#define CContainerWnd__vftable_x                                   0x9FA450
+#define CContainerWnd__vftable_x                                   0x9FA408
 
 // CDisplay 
 #define CDisplay__CleanGameUI_x                                    0x494160
@@ -365,7 +364,7 @@
 #define CEverQuest__dsp_chat_x                                     0x5253D0
 #define CEverQuest__Emote_x                                        0x525630
 #define CEverQuest__EnterZone_x                                    0x538150
-#define CEverQuest__GetBodyTypeDesc_x                              0x51B980
+#define CEverQuest__GetBodyTypeDesc_x                              0x51B984
 #define CEverQuest__GetClassDesc_x                                 0x51B0E0
 #define CEverQuest__GetClassThreeLetterCode_x                      0x51B6E0
 #define CEverQuest__GetDeityDesc_x                                 0x51C290
@@ -393,7 +392,7 @@
 // CInvSlotMgr 
 #define CInvSlotMgr__FindInvSlot_x                                 0x69C340
 #define CInvSlotMgr__MoveItem_x                                    0x69D280
-#define CInvSlotMgr__SelectSlot_x								   0x69C3F0
+#define CInvSlotMgr__SelectSlot_x                                  0x69C3F0
 
 // CInvSLot
 #define CInvSlot__HandleRButtonUp_x                                0x69B670

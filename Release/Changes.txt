@@ -1,8 +1,11 @@
-20 Feb 2013 by eqmule
+21 Feb 2014 by rswiders, eqmule
+- Updated for patch
+
+20 Feb 2014 by eqmule
 -Fixed EQRAID struct 
  This means, things like /echo ${Raid.Members} will again work.
 
-19 Feb 2013 by eqmule
+19 Feb 2014 by eqmule
 -Updated for patch
 -Added LoreGroup and LinkDBValue to CONTENTS struct
  It is used in the linkdb plugin. Cred: rswiders
