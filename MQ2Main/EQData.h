@@ -384,7 +384,7 @@ enum MOUSE_DATA_TYPES {
 
 #define nEQMappableCommands             0x1f3
 
-#define MAX_PC_LEVEL                    95
+#define MAX_PC_LEVEL                    100
 #define NUM_SPELL_GEMS                  12
 #define NUM_SPELL_SETS                  10
 #define NUM_BUFF_SLOTS					0x61
@@ -2135,8 +2135,8 @@ typedef struct _XTARGETMGR
 
 #define XPAC_FLAG_HoT       0x10000
 
-#define EQ_BEGIN_ZONE                   0x630A  // CEverQuest__SavePCForce         10-16-2012
-#define EQ_END_ZONE                     0x4E2B  // CEverQuest__DoMainLoop+B2F      10-16-2012
+#define EQ_BEGIN_ZONE                   0x3D81  // CEverQuest__SavePCForce         11-28-2012
+#define EQ_END_ZONE                     0x3977  // CEverQuest__DoMainLoop+B2F      11-28-2012
 #define EQ_LoadingS__ArraySize          0x5b    // EQ_LoadingS__SetProgressBar+8C  12-08-2010
 };
 using namespace EQData;

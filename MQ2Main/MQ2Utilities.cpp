@@ -1289,7 +1289,7 @@ VOID ClearSearchSpawn(PSEARCHSPAWN pSearchSpawn)
     if (!pSearchSpawn) return;
     ZeroMemory(pSearchSpawn,sizeof(SEARCHSPAWN));
     // 0? fine. set anything thats NOT zero.
-    pSearchSpawn->MaxLevel = 100;
+    pSearchSpawn->MaxLevel = 110;
     pSearchSpawn->SpawnType = NONE;
     pSearchSpawn->GuildID = 0xFFFF;
     pSearchSpawn->ZRadius = 10000.0f;
