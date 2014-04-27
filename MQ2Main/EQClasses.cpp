@@ -158,7 +158,7 @@ FUNCTION_AT_VIRTUAL_ADDRESS(int CXWnd::OnMinimizeBox(void),0xa8);
 FUNCTION_AT_VIRTUAL_ADDRESS(int CXWnd::SetFont(void*),0x124);
 
 
-FUNCTION_AT_VIRTUAL_ADDRESS(void CListWnd::DeleteAll(void),0x180);
+FUNCTION_AT_VIRTUAL_ADDRESS(void CListWnd::DeleteAll(void),0x184);
 
 
 // AUTO IMPORTS

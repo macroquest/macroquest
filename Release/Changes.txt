@@ -1,3 +1,6 @@
+31a March 2012 by dkaa
+-- Fixed DeleteAll, which was crashing MQ2Tracking...
+
 31 March 2012 by dkaa
 -- Fixed MyTradeReady, etc
 -- Fixed various window crashes
