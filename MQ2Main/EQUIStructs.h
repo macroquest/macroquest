@@ -735,7 +735,7 @@ typedef struct _EQNOTESWINDOW {
 } EQNOTESWINDOW, *PEQNOTESWINDOW;
 
 // Lax 10-29-2003 
-// Actual size 0x5d4 20120815 - ieatacid
+// Actual size 0x5dc 20121212 - ieatacid
 typedef struct _EQITEMWINDOW 
 { 
 /*0x000*/ struct _CSIDLWND Wnd;
@@ -747,13 +747,14 @@ typedef struct _EQITEMWINDOW
 /*0x288*/ DWORD Unknown0x288;
 /*0x28c*/ DWORD Unknown0x28c;
 /*0x290*/ DWORD Unknown0x290;
-/*0x294*/ PCONTENTS pItem;
-/*0x298*/ PVOID TextureAnim;
-/*0x29c*/ PVOID TextureAnim2;
-/*0x2a0*/ BYTE  Unknown0x2a0[0x4c];
-/*0x2ec*/ DWORD IDW_ItemInfo_Num_Lines;
-/*0x2f0*/ struct _CSIDLWND *IDW_ItemInfo[0xc];
-/*0x320*/ // pointers to stat labels, etc, in this area
+/*0x294*/ DWORD Unknown0x294;
+/*0x298*/ PCONTENTS pItem;
+/*0x29c*/ PVOID TextureAnim;
+/*0x2a0*/ PVOID TextureAnim2;
+/*0x2a4*/ BYTE  Unknown0x2a4[0x4c];
+/*0x2f0*/ DWORD IDW_ItemInfo_Num_Lines;
+/*0x2f4*/ struct _CSIDLWND *IDW_ItemInfo[0xc];
+/*0x324*/ // pointers to stat labels, etc, in this area
 } EQITEMWINDOW, *PEQITEMWINDOW;
 
 // Actual size 0x1c8 07-09-2008
