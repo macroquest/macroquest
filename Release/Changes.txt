@@ -1,3 +1,8 @@
+31 March 2012 by dkaa
+-- Fixed MyTradeReady, etc
+-- Fixed various window crashes
+-- Broke all the plugins that create their own window.  While consolidating some code, I ran into the problem that Show is both member data and function.  Do the data member changed to dShow, which means plugins like MQ2BagWnd have to change too.
+
 23 March 2012 by ieatacid, dkaa
 - Updated for March 22nd patch
 - Added mapfilter TargetPath
