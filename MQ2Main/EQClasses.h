@@ -803,7 +803,7 @@ class AltAdvManager
 {
 public:
 EQLIB_OBJECT AltAdvManager::AltAdvManager(void);
-EQLIB_OBJECT bool AltAdvManager::IsAbilityReady(class EQ_PC *,EQData::PALTABILITY,int *);
+EQLIB_OBJECT bool AltAdvManager::IsAbilityReady(class EQ_PC *,EQData::PALTABILITY,int *,int mq2_dummy = 0);
 EQLIB_OBJECT int AltAdvManager::AbilitiesByClass(int,int);
 EQLIB_OBJECT int AltAdvManager::AltSkillReqs(class EQ_PC *,int);
 EQLIB_OBJECT int AltAdvManager::CalculateDoubleAttackChance(class EQ_PC *,int,unsigned char);

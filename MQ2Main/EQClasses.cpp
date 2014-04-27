@@ -3796,7 +3796,7 @@ FUNCTION_AT_ADDRESS( AltAdvManager::AltAdvManager(void),AltAdvManager__AltAdvMan
 FUNCTION_AT_ADDRESS( struct _ALTABILITY *AltAdvManager::GetAltAbility(int), AltAdvManager__GetAltAbility);
 #endif
 #ifdef AltAdvManager__IsAbilityReady
-FUNCTION_AT_ADDRESS(bool  AltAdvManager::IsAbilityReady(class EQ_PC *,EQData::PALTABILITY,int *),AltAdvManager__IsAbilityReady);
+FUNCTION_AT_ADDRESS(bool  AltAdvManager::IsAbilityReady(class EQ_PC *,EQData::PALTABILITY,int *,int),AltAdvManager__IsAbilityReady);
 #endif
 #ifdef AltAdvManager__CalculateHideTimeReduce
 FUNCTION_AT_ADDRESS(int  AltAdvManager::CalculateHideTimeReduce(class EQ_PC *),AltAdvManager__CalculateHideTimeReduce);

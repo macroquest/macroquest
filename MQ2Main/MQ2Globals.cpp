@@ -394,9 +394,15 @@ PCHAR szSpawnType[] = {
 };
 
 PCHAR szGuildStatus[] = {
-    "Member",
-    "Officer",
+    "",
     "Leader",
+    "Senior Officer",
+    "Officer",
+    "Active Member",
+    "Member",
+    "Junior Member",
+    "Initiate",
+    "Recruit",
     NULL
 };
 
