@@ -484,7 +484,7 @@ typedef struct _EQBUFFWINDOW
 // actual size 0x294 20120316 - ieatacid
 typedef struct _EQINVSLOTWND {
 /*0x000*/   struct _CXWND Wnd;      //----/ actually CButtonWnd
-/*0x1c4*/   BYTE Unknown0x1c4[0x84];  //___/
+/*0x1c0*/   BYTE Unknown0x1c0[0x88];  //___/
 /*0x248*/   DWORD Unknown0x1b8;
 /*0x24c*/   LONG WindowType;        // ieatacid has this as InventoryType
                                     // 0 for inventory
