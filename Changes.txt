@@ -1,3 +1,7 @@
+15 Oct 2013 by EqMule
+-Added EnduranceCost to the Spell TLO:
+usage: /echo ${Spell[Malarian Mantle].EnduranceCost} returns an pIntType
+
 14 Oct 2013 by EqMule
 -Added 2 new Members to the Character TLO:
 ${Me.PctMercAAExp} which returns a float of the current percent of exp your mercenary has.

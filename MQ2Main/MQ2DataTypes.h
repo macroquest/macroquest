@@ -915,6 +915,8 @@ public:
         SecondaryAggroPlayer=186,
         AggroLock=187,
         ZoneBound=188,
+		PctMercAAExp=189,
+		MercAAExp=190,
     };
     static enum CharacterMethods
     {
@@ -1110,7 +1112,9 @@ public:
         TypeMember(SecondaryAggroPlayer);
         TypeMember(AggroLock);
         TypeMember(ZoneBound);
-		
+        TypeMember(PctMercAAExp);
+        TypeMember(MercAAExp);
+
         TypeMethod(Stand); 
         TypeMethod(Sit); 
         TypeMethod(Dismount); 
@@ -1187,6 +1191,8 @@ public:
         StacksPet=25,
         WillStack=26,
         MyRange=27,
+        Address=28,
+		EnduranceCost=29,
     };
     static enum SpellMethods
     {
@@ -1220,6 +1226,8 @@ public:
         TypeMember(StacksPet);//25,
         TypeMember(WillStack);//26,
         TypeMember(MyRange);//27
+        TypeMember(Address);//28
+		TypeMember(EnduranceCost);//29
     }
 
     ~MQ2SpellType()
@@ -1470,6 +1478,7 @@ public:
         Tradeskills=130,
 		ItemSlot=131,
 		ItemSlot2=132,
+		Address=133,
     };
     static enum ItemMethods
     {
@@ -1608,6 +1617,7 @@ public:
         TypeMember(Tradeskills);
         TypeMember(ItemSlot);
         TypeMember(ItemSlot2);
+        TypeMember(Address);
     }
 
     ~MQ2ItemType()

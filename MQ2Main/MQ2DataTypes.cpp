@@ -1094,8 +1094,7 @@ bool MQ2SpawnType::GETMEMBER()
 		Dest.Type=pIntType;
 		//fix for a rare crash that can occur if HPMax is 0
 		//we should not divide something by 0... -eqmule
-		int maxhp = pSpawn->HPMax;
-		if(maxhp>0)
+		if (unsigned long maxhp=pSpawn->HPMax)
 			Dest.Int=pSpawn->HPCurrent*100/maxhp;
 		else
 			Dest.Int=0;
@@ -1885,9 +1884,14 @@ bool MQ2CharacterType::GETMEMBER()
         Dest.Int=GetMaxHPS();
         return true;
     case PctHPs:
-        Dest.Type=pIntType;
-        Dest.Int=GetCurHPS()*100/GetMaxHPS();
-        return true;
+    {
+		Dest.Type=pIntType;
+		if (unsigned long maxhp=GetMaxHPS())
+			Dest.Int=GetCurHPS()*100/maxhp;
+        else
+			Dest.Int=0;	
+		return true;
+	}
     case CurrentMana:
         Dest.DWord=GetCharInfo2()->Mana;
         Dest.Type=pIntType;
@@ -3610,6 +3614,14 @@ bool MQ2CharacterType::GETMEMBER()
 			Dest.Type=pZoneType;
 			return true;
 		}
+	case PctMercAAExp:
+		Dest.Float=(float)((pChar->MercAAExp+5)/10);//yes this is how it looks like the client is doing it in the disasm...
+        Dest.Type=pFloatType;
+        return true;
+	case MercAAExp:
+		Dest.DWord=pChar->MercAAExp;
+        Dest.Type=pIntType;
+        return true;
     }
     return false;
 #undef pChar
@@ -3869,9 +3881,19 @@ bool MQ2SpellType::GETMEMBER()
             return true;
         }
     case MyRange:
-        DWORD n = 0;
+    {
+		DWORD n = 0;
         Dest.Float=pSpell->Range+(float)pCharData1->GetFocusRangeModifier((EQ_Spell*)pSpell,(EQ_Equipment**)&n);
         Dest.Type=pFloatType;
+        return true;
+	}
+    case Address://This is for debugging purposes/correcting struct on patchday, probably not of any use to the end users.
+		Dest.DWord=(DWORD)VarPtr.Ptr;
+		Dest.Type=pIntType;
+        return true;
+	case EnduranceCost://This is for debugging purposes/correcting struct on patchday, probably not of any use to the end users.
+		Dest.DWord=pSpell->EnduranceCost;
+		Dest.Type=pIntType;
         return true;
     }
     return false;
@@ -4978,7 +5000,10 @@ bool MQ2ItemType::GETMEMBER()
         Dest.DWord=GetItemFromContents(pItem)->TradeSkills;
         Dest.Type=pBoolType;
         return true;
-
+    case Address:
+        Dest.DWord=(DWORD)pItem;
+        Dest.Type=pIntType;
+        return true;
     }
     return false;
 #undef pItem
