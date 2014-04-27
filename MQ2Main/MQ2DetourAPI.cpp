@@ -932,12 +932,12 @@ int __cdecl memcheck4(unsigned char *buffer, int count, struct mckey key)
     return eax;
 }
 
-VOID __cdecl CrashDetected_Trampoline(DWORD,DWORD,DWORD,DWORD,DWORD); 
-VOID __cdecl CrashDetected_Detour(DWORD a,DWORD b,DWORD c,DWORD d,DWORD e) 
+VOID __cdecl CrashDetected_Trampoline(); 
+VOID __cdecl CrashDetected_Detour()
 { 
     MessageBox(0,"MacroQuest2 is blocking the 'send Sony crash info?' box for your safety and privacy.  Crashes are usually bugs either in EQ or in MacroQuest2.  It is generally not something that you yourself did, unless you have custom MQ2 plugins loaded.  If you want to submit a bug report to the MacroQuest2 message boards, please follow the instructions on how to submit a crash bug report at the top of the MQ2::Bug Reports forum.","EverQuest Crash Detected",MB_OK);
 } 
-DETOUR_TRAMPOLINE_EMPTY(VOID CrashDetected_Trampoline(DWORD,DWORD,DWORD,DWORD,DWORD)); 
+DETOUR_TRAMPOLINE_EMPTY(VOID CrashDetected_Trampoline()); 
 
 DETOUR_TRAMPOLINE_EMPTY(int LoadFrontEnd_Trampoline());
 #ifndef TESTMEM

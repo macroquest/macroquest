@@ -791,7 +791,7 @@ typedef struct _SHAREDBANKARRAY {
 /*0x68*/
 } SHAREDBANKARRAY, *PSHAREDBANKARRAY;
 
-// actual size: 0x5064 20120316 - dkaa
+// actual size: 0x6064 20120718 - ieatacid
 typedef struct _CHARINFO {
 /*0x0000*/   void       *vtable1;
 /*0x0004*/   void       *punknown;
@@ -834,109 +834,109 @@ typedef struct _CHARINFO {
 /*0x1be8*/   DWORD      Exp;
 /*0x1bec*/   BYTE       Unknown0x1bec[0x64];
 /*0x1c50*/   void       *PlayerPointManager;
-/*0x1c54*/   BYTE       Unknown0x1c54[0xbec];
-/*0x2840*/   void       *vtable2;
-/*0x2844*/   struct     _EQC_INFO* eqc_info;
-/*0x2848*/   struct     _SPAWNINFO* pSpawn;
-/*0x284c*/   DWORD      Unknown0x284c;
-/*0x2850*/   DWORD      Unknown0x2850;
-/*0x2854*/   DWORD      CurrWeight;
-/*0x2858*/   BYTE       Unknown0x2858[0xc];
-/*0x2864*/   DWORD      HPBonus;
-/*0x2868*/   DWORD      ManaBonus;
-/*0x286c*/   DWORD      EnduranceBonus;
-/*0x2870*/   DWORD      CombatEffectsCap;//CombatEffectsBonus
-/*0x2874*/   DWORD      ShieldingCap;//ShieldingBonus
-/*0x2878*/   DWORD      SpellShieldCap;//SpellShieldBonus
-/*0x287c*/   DWORD      AvoidanceCap;//AvoidanceBonus
-/*0x2880*/   DWORD      AccuracyCap;//AccuracyBonus
-/*0x2884*/   DWORD      StunResistCap;//StunResistBonus
-/*0x2888*/   DWORD      StrikeThroughCap;//StrikeThroughBonus
-/*0x288c*/   DWORD      Unknown0x288c[0x9];
-/*0x28b0*/   DWORD      SkillMinDamageModBonus[0x9];
-/*0x28d4*/   BYTE       Unknown0x28d4[0x4];
-/*0x28d8*/   DWORD      DoTShieldCap;//DoTShieldBonus
-/*0x28dc*/   DWORD      DamageShieldMitigationCap;//DamageShieldMitigationBonus
-/*0x28e0*/   DWORD      CombatEffectsBonus;
-/*0x28e4*/   DWORD      SpellShieldBonus;
-/*0x28e8*/   DWORD      ShieldingBonus;
-/*0x28ec*/   DWORD      DamageShieldBonus;
-/*0x28f0*/   DWORD      DoTShieldBonus;
-/*0x28f4*/   DWORD      DamageShieldMitigationBonus;
-/*0x28f8*/   DWORD      AvoidanceBonus;
-/*0x28fc*/   DWORD      AccuracyBonus;
-/*0x2900*/   DWORD      StunResistBonus;
-/*0x2904*/   DWORD      StrikeThroughBonus;
-/*0x2908*/   DWORD      HeroicSTRBonus;
-/*0x290c*/   DWORD      HeroicINTBonus;
-/*0x2910*/   DWORD      HeroicWISBonus;
-/*0x2914*/   DWORD      HeroicAGIBonus;
-/*0x2918*/   DWORD      HeroicDEXBonus;
-/*0x291c*/   DWORD      HeroicSTABonus;
-/*0x2920*/   DWORD      HeroicCHABonus;
-/*0x2924*/   DWORD      HeroicSvMagicBonus;
-/*0x2928*/   DWORD      HeroicSvFireBonus;
-/*0x292c*/   DWORD      HeroicSvColdBonus;
-/*0x2930*/   DWORD      HeroicSvDiseaseBonus;
-/*0x2934*/   DWORD      HeroicSvPoisonBonus;
-/*0x2938*/   DWORD      HeroicSvCorruptionBonus;
-/*0x293c*/   DWORD      HealAmountBonus;
-/*0x2940*/   DWORD      SpellDamageBonus;
-/*0x2944*/   DWORD      Unknown0x2944[0x2];
-/*0x294c*/   DWORD      ClairvoyanceBonus;
-/*0x2950*/   DWORD      AttackBonus;
-/*0x2954*/   DWORD      HPRegenBonus;
-/*0x2958*/   DWORD      ManaRegenBonus;
-/*0x295c*/   DWORD      EnduranceRegenBonus;
-/*0x2960*/   DWORD      DamageShieldCap;
-/*0x2964*/   DWORD      AttackSpeed;
-/*0x2968*/   BYTE       Unknown0x2968[0xb0];
-/*0x2a18*/   struct     _XTARGETMGR *pXTargetMgr;
-/*0x2a1c*/   DWORD      InCombat;
-/*0x2a20*/   DWORD      Downtime;
-/*0x2a24*/   DWORD      DowntimeStamp;
-/*0x2a28*/   BYTE       Unknown0x2a28[0x4];
-/*0x2a2c*/   struct     _GROUPINFO *pGroupInfo;
-/*0x2a30*/   BYTE       Unknown0x2a30[0x1c];
-/*0x2a4c*/   void       *pUnknown2;
-/*0x2a50*/   struct     _CI2_INFO* pCI2;
-/*0x2a54*/   DWORD      Unknown0x2a54;
-/*0x2a58*/   BYTE       languages[0x20];
-/*0x2a78*/   BYTE       Unknown0x2a78[0x10];
-/*0x2a88*/   CHAR       Name[0x40];
-/*0x2ac8*/   CHAR       Lastname[0x20];
-/*0x2ae8*/   BYTE       Unknown0x2ae8[0x60];
-/*0x2b48*/   BYTE       Stunned;
-/*0x2b49*/   BYTE       Unknown0x2b49[0x3];
-/*0x2b4c*/   WORD       zoneId;
-/*0x2b4e*/   WORD       instance;
-/*0x2b50*/   DWORD      standstate;
-/*0x2b54*/   BYTE       Unknown0x2b54[0x4];
-/*0x2b58*/   struct     _LEADERABILITIES ActiveAbilities; //ability levels of the leader of your group (size 0x40)
-/*0x2b98*/   BYTE       Unknown0x2b98[0x334];
-/*0x2ecc*/   DWORD      BankSharedPlat;
-/*0x2ed0*/   DWORD      BankSharedGold;
-/*0x2ed4*/   DWORD      BankSharedSilver;
-/*0x2ed8*/   DWORD      BankSharedCopper;
-/*0x2edc*/   DWORD      BankPlat;
-/*0x2ee0*/   DWORD      BankGold;
-/*0x2ee4*/   DWORD      BankSilver;
-/*0x2ee8*/   DWORD      BankCopper;
-/*0x2eec*/   DWORD      STR;
-/*0x2ef0*/   DWORD      STA;
-/*0x2ef4*/   DWORD      CHA;
-/*0x2ef8*/   DWORD      DEX;
-/*0x2efc*/   DWORD      INT;
-/*0x2f00*/   DWORD      AGI;
-/*0x2f04*/   DWORD      WIS;
-/*0x2f08*/   DWORD      SavePoison;
-/*0x2f0c*/   DWORD      SaveMagic;
-/*0x2f10*/   DWORD      SaveDisease;
-/*0x2f14*/   DWORD      SaveCorruption;
-/*0x2f18*/   DWORD      SaveFire;
-/*0x2f1c*/   DWORD      SaveCold;
-/*0x2f20*/   BYTE       Unknown0x2f20[0x2144];
-/*0x5064*/
+/*0x1c54*/   BYTE       Unknown0x1c54[0x1bec];
+/*0x4840*/   void       *vtable2;
+/*0x3844*/   struct     _EQC_INFO* eqc_info;
+/*0x3848*/   struct     _SPAWNINFO* pSpawn;
+/*0x384c*/   DWORD      Unknown0x384c;
+/*0x3850*/   DWORD      Unknown0x3850;
+/*0x3854*/   DWORD      CurrWeight;
+/*0x3858*/   BYTE       Unknown0x3858[0xc];
+/*0x3864*/   DWORD      HPBonus;
+/*0x3868*/   DWORD      ManaBonus;
+/*0x386c*/   DWORD      EnduranceBonus;
+/*0x3870*/   DWORD      CombatEffectsCap;//CombatEffectsBonus
+/*0x3874*/   DWORD      ShieldingCap;//ShieldingBonus
+/*0x3878*/   DWORD      SpellShieldCap;//SpellShieldBonus
+/*0x387c*/   DWORD      AvoidanceCap;//AvoidanceBonus
+/*0x3880*/   DWORD      AccuracyCap;//AccuracyBonus
+/*0x3884*/   DWORD      StunResistCap;//StunResistBonus
+/*0x3888*/   DWORD      StrikeThroughCap;//StrikeThroughBonus
+/*0x388c*/   DWORD      Unknown0x388c[0x9];
+/*0x38b0*/   DWORD      SkillMinDamageModBonus[0x9];
+/*0x38d4*/   BYTE       Unknown0x38d4[0x4];
+/*0x38d8*/   DWORD      DoTShieldCap;//DoTShieldBonus
+/*0x38dc*/   DWORD      DamageShieldMitigationCap;//DamageShieldMitigationBonus
+/*0x38e0*/   DWORD      CombatEffectsBonus;
+/*0x38e4*/   DWORD      SpellShieldBonus;
+/*0x38e8*/   DWORD      ShieldingBonus;
+/*0x38ec*/   DWORD      DamageShieldBonus;
+/*0x38f0*/   DWORD      DoTShieldBonus;
+/*0x38f4*/   DWORD      DamageShieldMitigationBonus;
+/*0x38f8*/   DWORD      AvoidanceBonus;
+/*0x38fc*/   DWORD      AccuracyBonus;
+/*0x3900*/   DWORD      StunResistBonus;
+/*0x3904*/   DWORD      StrikeThroughBonus;
+/*0x3908*/   DWORD      HeroicSTRBonus;
+/*0x390c*/   DWORD      HeroicINTBonus;
+/*0x3910*/   DWORD      HeroicWISBonus;
+/*0x3914*/   DWORD      HeroicAGIBonus;
+/*0x3918*/   DWORD      HeroicDEXBonus;
+/*0x391c*/   DWORD      HeroicSTABonus;
+/*0x3920*/   DWORD      HeroicCHABonus;
+/*0x3924*/   DWORD      HeroicSvMagicBonus;
+/*0x3928*/   DWORD      HeroicSvFireBonus;
+/*0x392c*/   DWORD      HeroicSvColdBonus;
+/*0x3930*/   DWORD      HeroicSvDiseaseBonus;
+/*0x3934*/   DWORD      HeroicSvPoisonBonus;
+/*0x3938*/   DWORD      HeroicSvCorruptionBonus;
+/*0x393c*/   DWORD      HealAmountBonus;
+/*0x3940*/   DWORD      SpellDamageBonus;
+/*0x3944*/   DWORD      Unknown0x3944[0x2];
+/*0x394c*/   DWORD      ClairvoyanceBonus;
+/*0x3950*/   DWORD      AttackBonus;
+/*0x3954*/   DWORD      HPRegenBonus;
+/*0x3958*/   DWORD      ManaRegenBonus;
+/*0x395c*/   DWORD      EnduranceRegenBonus;
+/*0x3960*/   DWORD      DamageShieldCap;
+/*0x3964*/   DWORD      AttackSpeed;
+/*0x3968*/   BYTE       Unknown0x3968[0xb0];
+/*0x3a18*/   struct     _XTARGETMGR *pXTargetMgr;
+/*0x3a1c*/   DWORD      InCombat;
+/*0x3a20*/   DWORD      Downtime;
+/*0x3a24*/   DWORD      DowntimeStamp;
+/*0x3a28*/   BYTE       Unknown0x3a28[0x4];
+/*0x3a2c*/   struct     _GROUPINFO *pGroupInfo;
+/*0x3a30*/   BYTE       Unknown0x3a30[0x1c];
+/*0x3a4c*/   void       *pUnknown2;
+/*0x3a50*/   struct     _CI2_INFO* pCI2;
+/*0x3a54*/   DWORD      Unknown0x3a54;
+/*0x3a58*/   BYTE       languages[0x20];
+/*0x3a78*/   BYTE       Unknown0x3a78[0x10];
+/*0x3a88*/   CHAR       Name[0x40];
+/*0x3ac8*/   CHAR       Lastname[0x20];
+/*0x3ae8*/   BYTE       Unknown0x3ae8[0x60];
+/*0x3b48*/   BYTE       Stunned;
+/*0x3b49*/   BYTE       Unknown0x3b49[0x3];
+/*0x3b4c*/   WORD       zoneId;
+/*0x3b4e*/   WORD       instance;
+/*0x3b50*/   DWORD      standstate;
+/*0x3b54*/   BYTE       Unknown0x3b54[0x4];
+/*0x3b58*/   struct     _LEADERABILITIES ActiveAbilities; //ability levels of the leader of your group (size 0x40)
+/*0x3b98*/   BYTE       Unknown0x3b98[0x334];
+/*0x3ecc*/   DWORD      BankSharedPlat;
+/*0x3ed0*/   DWORD      BankSharedGold;
+/*0x3ed4*/   DWORD      BankSharedSilver;
+/*0x3ed8*/   DWORD      BankSharedCopper;
+/*0x3edc*/   DWORD      BankPlat;
+/*0x3ee0*/   DWORD      BankGold;
+/*0x3ee4*/   DWORD      BankSilver;
+/*0x3ee8*/   DWORD      BankCopper;
+/*0x3eec*/   DWORD      STR;
+/*0x3ef0*/   DWORD      STA;
+/*0x3ef4*/   DWORD      CHA;
+/*0x3ef8*/   DWORD      DEX;
+/*0x3efc*/   DWORD      INT;
+/*0x3f00*/   DWORD      AGI;
+/*0x3f04*/   DWORD      WIS;
+/*0x3f08*/   DWORD      SavePoison;
+/*0x3f0c*/   DWORD      SaveMagic;
+/*0x3f10*/   DWORD      SaveDisease;
+/*0x3f14*/   DWORD      SaveCorruption;
+/*0x3f18*/   DWORD      SaveFire;
+/*0x3f1c*/   DWORD      SaveCold;
+/*0x3f20*/   BYTE       Unknown0x3f20[0x2144];
+/*0x6064*/
 } CHARINFO, *PCHARINFO;
 
 typedef struct _INVENTORYARRAY {
