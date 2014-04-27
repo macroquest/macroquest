@@ -2,7 +2,7 @@ global.mak
 ISXEQ-VS2005.sln
 ISXEQ.sln
 ISXEQClient.h
-MacroQuest2-VS2010.sln
+MacroQuest2-VS2012.sln
 MacroQuest2.sln
 macroquest2.dsw
 makefile

@@ -54,6 +54,7 @@ bool InitOffsets()
     gpbAltTimerReady = (PCHAR)__AltTimerReady;
     g_ppDrawHandler = (DWORD*)__DrawHandler;
     gpShowNames = (DWORD*)__ShowNames;
+    EQADDR_SUBSCRIPTIONTYPE = (PDWORD)__SubscriptionType;
     gpPCNames = (DWORD*)__PCNames;
     pTributeActive = (PBYTE)instTributeActive;
     gpAutoFire = (PBYTE)__Autofire;
@@ -948,6 +949,7 @@ PCMDLIST EQADDR_CMDLIST=0;
 PBYTE EQADDR_ATTACK=0;
 PBYTE EQADDR_NOTINCHATMODE=0;
 PBYTE EQADDR_RUNWALKSTATE=0;
+PDWORD EQADDR_SUBSCRIPTIONTYPE=0;
 PCHAR EQADDR_LASTTELL=0;
 PCHAR gpbRangedAttackReady=0;
 PCHAR gpbShowNetStatus=0;
@@ -1177,6 +1179,7 @@ INITIALIZE_EQGAME_OFFSET(__ServerName);
 INITIALIZE_EQGAME_OFFSET(__ShiftKeyDown);
 INITIALIZE_EQGAME_OFFSET(__ShowNames);
 INITIALIZE_EQGAME_OFFSET(__Socials);
+INITIALIZE_EQGAME_OFFSET(__SubscriptionType);
 
 INITIALIZE_EQGAME_OFFSET(instCRaid);
 INITIALIZE_EQGAME_OFFSET(instEQZoneInfo);

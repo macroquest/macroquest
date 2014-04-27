@@ -86,7 +86,7 @@
 #define __ShiftKeyDown_x                                           0xD98434
 #define __ShowNames_x                                              0xD991A4
 #define __Socials_x                                                0xDCE644
-
+#define __SubscriptionType_x                                       0xF55CC0
 
 //// 
 //Section 1: Vital Offsets 

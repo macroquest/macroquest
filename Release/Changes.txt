@@ -1,6 +1,10 @@
+19 Oct 2013 by EqMule
+-Added Subscription to the Character TLO:
+usage: /echo ${Me.Subscription} returns a pStringType "UNKNOWN","FREE","SILVER" or "GOLD"
+
 15 Oct 2013 by EqMule
 -Added EnduranceCost to the Spell TLO:
-usage: /echo ${Spell[Malarian Mantle].EnduranceCost} returns an pIntType
+usage: /echo ${Spell[Malarian Mantle].EnduranceCost} returns a pIntType
 -Added PctPower to Item TLO:
 usage /echo ${Me.Inventory[powersource].PctPower} returns a pFloatType
 

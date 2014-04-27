@@ -917,6 +917,7 @@ public:
         ZoneBound=188,
 		PctMercAAExp=189,
 		MercAAExp=190,
+		Subscription=191,
     };
     static enum CharacterMethods
     {
@@ -1114,7 +1115,8 @@ public:
         TypeMember(ZoneBound);
         TypeMember(PctMercAAExp);
         TypeMember(MercAAExp);
-
+        TypeMember(Subscription);
+		
         TypeMethod(Stand); 
         TypeMethod(Sit); 
         TypeMethod(Dismount); 

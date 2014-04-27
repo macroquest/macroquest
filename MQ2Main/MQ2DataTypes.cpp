@@ -3622,6 +3622,28 @@ bool MQ2CharacterType::GETMEMBER()
 		Dest.DWord=pChar->MercAAExp;
         Dest.Type=pIntType;
         return true;
+	case Subscription:
+		Dest.Ptr="UNKNOWN";
+		if(EQADDR_SUBSCRIPTIONTYPE && *EQADDR_SUBSCRIPTIONTYPE) {
+			DWORD dwsubtype = *(DWORD *)EQADDR_SUBSCRIPTIONTYPE;
+			if(dwsubtype) {
+				BYTE subtype = *(BYTE*)dwsubtype;
+				switch(subtype)
+				{
+					case 0:
+						Dest.Ptr="FREE";
+						break;
+					case 1:
+						Dest.Ptr="SILVER";
+						break;
+					case 2:
+						Dest.Ptr="GOLD";
+						break;
+				}
+			}
+		}
+        Dest.Type=pStringType;
+        return true;
     }
     return false;
 #undef pChar
@@ -4789,23 +4811,24 @@ bool MQ2ItemType::GETMEMBER()
         Dest.Type=pIntType;
         return true;
 	case PctPower:
-        if (GetItemFromContents(pItem)->Type != ITEMTYPE_NORMAL)
+        if (GetItemFromContents(pItem)->Type != ITEMTYPE_NORMAL) {
             Dest.Float=0;
-        else {
-			DWORD power = pItem->Power*100;
-			if(DWORD maxpower = GetItemFromContents(pItem)->MaxPower)
-				Dest.Float=power/maxpower;
-			else
+		} else {
+			if(DWORD maxpower = GetItemFromContents(pItem)->MaxPower) {
+				Dest.Float=(float)((pItem->Power*100)/maxpower);
+			} else {
 				Dest.Float=0;
+			}
 		}
         Dest.Type=pFloatType;
         return true;
     case MaxPower:
-        if (GetItemFromContents(pItem)->Type != ITEMTYPE_NORMAL)
+        if (GetItemFromContents(pItem)->Type != ITEMTYPE_NORMAL) {
             Dest.DWord=0;
-        else
+		} else {
             Dest.DWord=GetItemFromContents(pItem)->MaxPower;
-        Dest.Type=pIntType;
+		}
+		Dest.Type=pIntType;
         return true;
     case Purity:
         if (GetItemFromContents(pItem)->Type != ITEMTYPE_NORMAL)
