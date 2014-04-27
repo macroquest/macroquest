@@ -1214,6 +1214,9 @@ EQLIB_VAR DWORD PcZoneClient__GetPcSkillLimit;
 
 EQLIB_VAR DWORD EQSwitch__UseSwitch;
 
+EQLIB_VAR BOOL gbTimeStampChat;
+
+EQLIB_VAR BOOL gbBeepOnTells;
 
 }
 using namespace MQ2Globals;

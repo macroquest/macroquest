@@ -966,6 +966,8 @@ PBYTE pTributeActive=0;
 PBYTE gpAutoFire=0;
 PBYTE gpShiftKeyDown=0; // addr+1=ctrl, addr+2=alt
 DWORD *gpMouseEventTime=0;
+BOOL gbTimeStampChat=0;
+BOOL gbBeepOnTells=0;
 
 PVOID EQADDR_GWORLD=0;
 PDWORD EQADDR_DOABILITYLIST=0;

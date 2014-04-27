@@ -20,7 +20,11 @@ GNU General Public License for more details.
 
 
 #include "MQ2Main.h"
-
+DWORD __stdcall BeepOnTellThread(PVOID pData)
+{
+	Beep(1000,100);
+	return 0;
+}
 class CChatHook 
 { 
 public: 
@@ -52,8 +56,23 @@ public:
             //if (gTelnetServer && gTelnetConnection && !gPauseTelnetOutput) TelnetServer_Write(szMsg); 
             BOOL SkipTrampoline;
             Benchmark(bmPluginsIncomingChat,SkipTrampoline=PluginsIncomingChat(szMsg,dwColor));
-            if (!SkipTrampoline)
-                Trampoline(szMsg, dwColor, EqLog, dopercentsubst); 
+            if (!SkipTrampoline) {
+				if (gbTimeStampChat) {
+					CHAR tmpbuf[32] = {0};
+					_strtime_s( tmpbuf, 32 );
+					int len = strlen(szMsg);
+					char *szTimeStamedMsg = (char *)LocalAlloc(LPTR,len+64);
+					if(szTimeStamedMsg) {
+						sprintf_s(szTimeStamedMsg,len+63,"[%s] %s",tmpbuf,szMsg);
+						Trampoline(szTimeStamedMsg, dwColor, EqLog, dopercentsubst);
+						LocalFree(szTimeStamedMsg);
+					} else {
+						Trampoline(szMsg, dwColor, EqLog, dopercentsubst);
+					}
+				} else {
+					Trampoline(szMsg, dwColor, EqLog, dopercentsubst);
+				}
+			}
         } 
         gbInChat = FALSE; 
     } 
@@ -61,19 +80,36 @@ public:
     VOID TellWnd_Trampoline(char *message,char *name,char *name2,void *unknown,int color,bool b);
     VOID TellWnd_Detour(char *message,char *name,char *name2,void *unknown,int color,bool b)
     {
-        char szMsg[MAX_STRING];
-        BOOL SkipTrampoline;
+		int len = strlen(message);
+		char *szMsg = (char *)LocalAlloc(LPTR,len+64);
+        BOOL SkipTrampoline = 0;
         gbInChat=true;
+		if(szMsg) {
+			sprintf_s(szMsg,len+63,"%s tells you, '%s'",name,message);
+			CheckChatForEvent(szMsg);
+			Benchmark(bmPluginsIncomingChat,SkipTrampoline=PluginsIncomingChat(szMsg,color));
+		}
 
-        sprintf(szMsg,"%s tells you, '%s'",name,message);
-
-        CheckChatForEvent(szMsg);
-
-        Benchmark(bmPluginsIncomingChat,SkipTrampoline=PluginsIncomingChat(szMsg,color));
-
-        if(!SkipTrampoline)
-            TellWnd_Trampoline(message,name,name2,unknown,color,b);
-
+        if(!SkipTrampoline) {
+			if(gbBeepOnTells) {
+				if(PCHARINFO pChar = GetCharInfo()) {
+					if(_stricmp(pChar->Name,name)) {//dont beep if its our own character doing the tell...
+						DWORD nThreadId = 0;
+						CreateThread(NULL,NULL,BeepOnTellThread,0,0,&nThreadId);
+					}
+				}
+			}
+			if (gbTimeStampChat && szMsg) {
+				CHAR tmpbuf[32] = {0};
+				_strtime_s( tmpbuf, 32 );
+				sprintf_s(szMsg,len+63,"[%s] %s",tmpbuf,name);
+				TellWnd_Trampoline(message,szMsg,name2,unknown,color,b);
+			} else {
+				TellWnd_Trampoline(message,name,name2,unknown,color,b);
+			}
+		}
+		if(szMsg)
+			LocalFree(szMsg);
         gbInChat=false;
     }
 
@@ -136,7 +172,26 @@ unsigned int __stdcall MQ2DataVariableLookup(char * VarName, char * Value)
     if (!GetCharInfo()) return strlen(Value);
     return strlen(ParseMacroParameter(GetCharInfo()->pSpawn,Value));
 }
-
+VOID BeepOnTells(PSPAWNINFO pChar, char *szLine)
+{
+	if(gbBeepOnTells) {
+		gbBeepOnTells=0;
+		WriteChatColor("Beep On Tells is OFF",CONCOLOR_LIGHTBLUE);
+	} else {
+		gbBeepOnTells=1;
+		WriteChatColor("Beep On Tells is ON",CONCOLOR_YELLOW);
+	}
+}
+VOID TimeStampChat(PSPAWNINFO pChar, char *szLine)
+{
+	if(gbTimeStampChat) {
+		gbTimeStampChat=0;
+		WriteChatColor("Chat Time Stamping is OFF",CONCOLOR_LIGHTBLUE);
+	} else {
+		gbTimeStampChat=1;
+		WriteChatColor("Chat Time Stamping is ON",CONCOLOR_YELLOW);
+	}
+}
 VOID InitializeChatHook()
 {
     DebugSpew("Initializing chat hook");
@@ -152,10 +207,14 @@ VOID InitializeChatHook()
     EzDetour(CEverQuest__dsp_chat,&CChatHook::Detour,&CChatHook::Trampoline);
     EzDetour(CEverQuest__DoTellWindow,&CChatHook::TellWnd_Detour,&CChatHook::TellWnd_Trampoline);
     EzDetour(CEverQuest__UPCNotificationFlush,&CChatHook::UPCNotificationFlush_Detour,&CChatHook::UPCNotificationFlush_Trampoline);
+	AddCommand("/timestamp", TimeStampChat);
+	AddCommand("/beepontells", BeepOnTells);
 }
 
 VOID ShutdownChatHook()
 {
+	RemoveCommand("/beepontells");
+	RemoveCommand("/timestamp");
     RemoveDetour(CEverQuest__dsp_chat);
     RemoveDetour(CEverQuest__DoTellWindow);
     RemoveDetour(CEverQuest__UPCNotificationFlush);

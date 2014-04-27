@@ -127,7 +127,9 @@ BOOL ParseINIFile(PCHAR lpINIPath)
     bAllErrorsFatal = 1==GetPrivateProfileInt("MacroQuest","AllErrorsFatal",0,Filename);
     gbMQ2LoadingMsg = 1==GetPrivateProfileInt("MacroQuest","MQ2LoadingMsg",1,Filename);
     gbExactSearchCleanNames = 1==GetPrivateProfileInt("MacroQuest","ExactSearchCleanNames",0,Filename);
-
+    gbTimeStampChat = 1==GetPrivateProfileInt("MacroQuest","TimeStampChat",0,Filename);
+    gbBeepOnTells = 1==GetPrivateProfileInt("MacroQuest","BeepOnTells",0,Filename);
+	
     GetPrivateProfileString("MacroQuest","HUDMode","UnderUI",CustomSettings,MAX_STRING,Filename);
     if (!stricmp(CustomSettings,"normal")) {
         gbAlwaysDrawMQHUD=false;
