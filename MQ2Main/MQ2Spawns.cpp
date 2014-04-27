@@ -364,7 +364,8 @@ CAPTIONCOLOR CaptionColors[]=
 #ifndef ISXEQ_LEGACY
 VOID SetNameSpriteTint(PSPAWNINFO pSpawn)
 {
-    if (!gMQCaptions) return;
+    if (!gMQCaptions)
+		return;
     //DebugSpew("SetNameSpriteTint(%s)",pSpawn->Name);
     DWORD NewColor;
     switch(GetSpawnType(pSpawn))
@@ -463,7 +464,13 @@ VOID SetNameSpriteTint(PSPAWNINFO pSpawn)
         ((EQPlayerHook*)pSpawn)->SetNameSpriteTint_Trampoline();
         return;
     }
-    DebugTry(((CActorEx *)pSpawn->pcactorex)->SetNameColor(NewColor));
+	if(pSpawn->pcactorex)
+		DebugTry(((CActorEx *)pSpawn->pcactorex)->SetNameColor(NewColor));
+	else {
+#ifdef _DEBUG
+		WriteChatf("We got an Empty pSpawn->pcactorex at %x class = 0x%x ",pSpawn,pSpawn->Class);
+#endif
+	}
 }
 
 BOOL SetNameSpriteState(PSPAWNINFO pSpawn, bool Show)

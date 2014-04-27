@@ -157,6 +157,8 @@ EQLIB_VAR CHAR gDelayCondition[MAX_STRING];
 EQLIB_VAR PALERTLIST gpAlertList;
 EQLIB_VAR BOOL gMacroPause;
 EQLIB_VAR SPAWNINFO EnviroTarget;
+EQLIB_VAR SPAWNINFO PetSpawn;
+EQLIB_VAR SPAWNINFO MercenarySpawn;
 EQLIB_VAR PGROUNDITEM pGroundTarget;
 EQLIB_VAR SPAWNINFO DoorEnviroTarget;
 EQLIB_VAR PDOOR pDoorTarget;
@@ -447,6 +449,9 @@ EQLIB_VAR EQCHATMGR **ppEQChatMgr;
 EQLIB_VAR MERCENARYINFO **ppMercInfo;
 #define pMercInfo (*ppMercInfo)
 
+EQLIB_VAR EQMERCALTABILITIES **ppMercAltAbilities;
+#define pMercAltAbilities (*ppMercAltAbilities)
+
 EQLIB_VAR AGGROINFO **ppAggroInfo;
 #define pAggroInfo (*ppAggroInfo)
 
@@ -719,6 +724,7 @@ EQLIB_VAR DWORD pinstGroup;
 EQLIB_VAR DWORD pinstImeManager;
 EQLIB_VAR DWORD pinstLocalPlayer;
 EQLIB_VAR DWORD pinstMercenaryData;
+EQLIB_VAR DWORD pinstMercAltAbilities;
 EQLIB_VAR DWORD pinstModelPlayer;
 EQLIB_VAR DWORD pinstPCData;
 EQLIB_VAR DWORD pinstSkillMgr;

@@ -1,9 +1,76 @@
+13 Oct 2013 by EqMule
+-Fix For macros not loading...
+
+13 Oct 2013 by EqMule
+-Fix for ${Group.Member[x].Pet}
+
+12 Oct 2013 by EqMule
+-Added Support for CustomPlugins.ini
+ it only have 2 sections and in the Macroquest Section only DebugSpewToFile is valid
+ in the Plugins section you can add as many plugins as u like...
+ /plugin unload on a custom plugin will unload it (as it should), but it will NOT write the change to the CustomPlugins.ini.
+ That behaviour is by design. If you dont want a plugin to be loaded, you should manually remove it from the list.
+ Example of what my CustomPlugins.ini looks like:
+ [MacroQuest]
+ DebugSpewToFile=1
+
+ [Plugins]
+ mq2AutoLogin=mq2AutoLogin
+
+12 Oct 2013 by EqMule
+-Fix for a crash in the "Clearing A Path" instance in Dead Hills
+ this will most likely fix other instance crashes as well in the new zones.
+ however i couldnt log in game to test, so report in bugs forum if u still crash
+ when zoning in.
+
+12 Oct 2013 by EqMule
+-Fix for ${Me.Pet.Following} and ${Me.Mercenary.Following}
+-Todo: Fix ${Me.Inventory[powersource].Power}
+
+11 Oct 2013 by EqMule
+-Removed PetTarget and PetCombat
+-Added new TLO members for ${Me.Pet}
+- Buff		example: /echo ${Me.Pet.Buff[1]} returns a pSpellType
+			example: /echo ${Me.Pet.Buff[Spirit of Wolf]} returns a pIntType (The slot the buff is in)
+- Combat	example: /echo ${Me.Pet.Combat} returns a pBoolType TRUE or FALSE (on/off)
+- GHold		example: /echo ${Me.Pet.GHold} returns a pBoolType TRUE or FALSE (on/off)
+- Hold		example: /echo ${Me.Pet.Hold} returns a pBoolType TRUE or FALSE (on/off)
+- ReGroup	example: /echo ${Me.Pet.ReGroup} returns a pBoolType TRUE or FALSE (on/off)
+- Stance	example: /echo ${Me.Pet.Stance} returns a pStringType "FOLLOW" or "GUARD"
+- Stop		example: /echo ${Me.Pet.Stop} returns a pBoolType TRUE or FALSE (on/off)
+- Target	example: /echo ${Me.Pet.Target} returns a pSpawnType of the pets current target
+- Taunt		example: /echo ${Me.Pet.Taunt} returns a pBoolType TRUE or FALSE (on/off)
+
+10 Oct 2013 by EqMule
+-Updated for patch
+-Added new TLO ${Mercenary}
+It returns a SpawnType so you have access to all spawnmembers.
+As well as these four new ones:
+${Mercenary.State} (stringtype) which returns strings: "DEAD" "SUSPENDED" "ACTIVE" or "UNKNOWN";
+${Mercenary.StateID} (int) which returns the state as a number (mostly good for debugging)
+${Mercenary.Stance} (stringtype) which return the Stance as a string
+${Mercenary.AAPoints} (int) returns how many unspent mercenary AA you have.
+I Plan to add more stuff later if needed. Those are the most useful for now...
+
+09 Oct 2013 by EqMule
+-Fix for Bank and SharedBank members in CHARINFO struct
+(thanks to Drakhhen for making me aware of this bug)
+
 08 Oct 2013 by EqMule
 - Updated for Oct 7-8 2013 patch
 - Shared Bank now has 4 slots
 - I will add a TLO for the new mercenary AA
-  but I need more time to look into it, unless someone beats me to it.
-  For now use the UI...
+ but I need more time to look into it, unless someone beats me to it.
+ For now use the UI...
+- Added a couple new TLO's
+ /echo ${Me.PetTarget}
+ will return the spawn your pet has targeted.
+ so you can do /echo ${Me.PetTarget.ID} and so on to get more info out... 
+- /echo ${Me.PetCombat}
+ is the pet attacking something? 
+ returns TRUE or FALSE 
+
+Im pretty sure these 2 can use some more work, but should work in most situations I think...
 
 22 Sep 2013 by EqMule
 - Added Me.ZoneBound which returns Zone information for the zone you are bound in

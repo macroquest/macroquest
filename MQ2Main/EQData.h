@@ -412,7 +412,8 @@ enum MOUSE_DATA_TYPES {
 #define EXPANSION_HoT                   EQ_EXPANSION(17)
 #define EXPANSION_VoA                   EQ_EXPANSION(18)
 #define EXPANSION_RoF                   EQ_EXPANSION(19)
-#define NUM_EXPANSIONS                  19
+#define EXPANSION_CotF                  EQ_EXPANSION(20)
+#define NUM_EXPANSIONS                  20
 // ***************************************************************************
 // Structures
 // ***************************************************************************
@@ -976,7 +977,13 @@ typedef struct _CHARINFO
 /*0x0008*/ struct _CI_INFO*      charinfo_info;
 /*0x000c*/ BYTE         Unknown0x000c[0x10e4];
 /*0x10f0*/ struct _LEADERABILITIES       MyAbilities; //points spent in each ability (size 0x3c)
-/*0x112c*/ BYTE         Unknown0x112c[0x2a8];
+/*0x112c*/ BYTE         Unknown0x112c[0xcc];
+/*0x11f8*/ struct _BANKARRAY*    pBankArray;
+/*0x11fc*/ DWORD        NumBankSlots;//how many bank slots we have
+/*0x1200*/ BYTE         Unknown0x1200[0x30];
+/*0x1230*/ struct _SHAREDBANKARRAY*      pSharedBankArray;
+/*0x1234*/ DWORD        NumSharedSlots;//how many sharedbank slots we have
+/*0x1238*/ BYTE         Unknown0x1238[0x19c];
 /*0x13d4*/ DWORD        GuildID;//GuildID_0
 /*0x13d8*/ BYTE         Unknown0x13d8[0x2c];
 /*0x1404*/ DWORD        AAExp;
@@ -1002,13 +1009,9 @@ typedef struct _CHARINFO
 /*0x1ca0*/ DWORD        Exp;
 /*0x1ca4*/ BYTE         Unknown0x1ca4[0x64];
 /*0x1d08*/ void*        PlayerPointManager;
-/*0x1d0c*/ BYTE         Unknown0x1d0c[0x1a0];
-/*0x1eac*/ struct _BANKARRAY*    pBankArray;
-/*0x1eb0*/ BYTE         Unknown0x1eb0[0x34];
-/*0x1ee4*/ struct _SHAREDBANKARRAY*      pSharedBankArray;
-/*0x1ee8*/ BYTE         Unknown0x1ee8[0x1e0];
-/*0x20c8*/ DWORD		MercAAPoints;
-/*0x20cc*/ DWORD		MercAAPointsSpent;
+/*0x1d0c*/ BYTE         Unknown0x1d0c[0x3bc];
+/*0x20c8*/ DWORD		MercAAPoints;//number of unspent merc AA points
+/*0x20cc*/ DWORD		MercAAPointsSpent;//number of spent merc AA points
 /*0x20d0*/ DWORD		MercAARelated1;
 /*0x20d4*/ DWORD		MercAARelated2;
 /*0x20d8*/ DWORD		MercAARelated3;
@@ -2051,6 +2054,28 @@ typedef struct _ALTADVMGR {
 /*0x00*/ struct _NEWALTADVMGR* AltAbilities;
 } ALTADVMGR, *PALTADVMGR;
 
+typedef struct _MERCAADATA {
+/*0x00*/ DWORD nName;//I would guess we can find aapoints spent on the ability in this struct as well
+} MERCAADATA,*PMERCAADATA;//but I dont know yet, I dont have a mercenary with aa yet... -eqmule
+
+typedef struct _MERCAA {
+/*0x00*/ DWORD Unknown0x00;
+/*0x04*/ DWORD Unknown0x04;
+/*0x08*/ struct _MERCAADATA *Ptr;
+/*0x0c*/ DWORD Unknown0x00c;
+/*0x10*/ DWORD Max;//how many AA can be spent on this ability
+} MERCAA, *PMERCAA;
+//pinstMercAltAbilities_x
+//CMercAltAbilities__CMercAltAbilities
+//Actual Size: 0x478 in eqgame dated oct 04 2013 (see 4A96D4) - eqmule 
+
+typedef struct _EQMERCALTABILITIES {
+/*0x000*/ BYTE Unknown0x000[0x408];
+/*0x408*/ PMERCAA MercAAInfo[0xc];//12 pointers since there are currently only 12 mercenary aa's
+/*0x438*/ BYTE Unknown0x438[0x40];
+/*0x478*/
+} EQMERCALTABILITIES, *PEQMERCALTABILITIES;
+
 // size 0x94 (3-19-2009)
 typedef struct _EQRAIDMEMBER { 
 /*0x000*/ CHAR      Name[0x40]; 
@@ -2236,16 +2261,25 @@ typedef struct _MERCSTANCEDATA {
 DWORD nStance;
 DWORD nDbStance;
 } MERCSTANCEDATA, *PMERCSTANCEDATA;
-
+//Actual Size: 0x2F8 (See 56F2CF in eqgame dated 04 oct 2013) - eqmule
+//MercenaryInfo__MercenaryInfo
 typedef struct _MERCENARYINFO {
-/*0x000*/ BYTE Unknown0x0[0x10c];
-/*0x10c*/ DWORD HaveMerc;
-/*0x110*/ DWORD MercState; // 1 = suspended, 5 = active
-/*0x114*/ BYTE  Unknown0x114[0x30];
-/*0x144*/ DWORD ActiveStance;
-/*0x148*/ BYTE  Unknown0x148[0xf0];
-/*0x238*/ DWORD NumStances;
-/*0x23c*/ _MERCSTANCEDATA **pMercStanceData;
+/*0x000*/ BYTE Unknown0x0[0x110];
+/*0x110*/ DWORD HaveMerc;
+/*0x114*/ DWORD MercState; // 1 = suspended, 5 = active
+/*0x118*/ BYTE  Unknown0x118[0x30];
+/*0x148*/ DWORD ActiveStance;
+/*0x14c*/ BYTE  Unknown0x14c[0x10];
+/*0x15c*/ CHAR	MercName[0x18];
+/*0x174*/ BYTE  Unknown0x174[0x7c];
+/*0x1F0*/ DWORD MercenaryCount;//how many mercenaries we have
+/*0x1F4*/ BYTE  Unknown0x1f4[0x2c];
+/*0x220*/ DWORD MercSpawnId;//yes its the spawnID of the mercenary
+/*0x224*/ BYTE  Unknown0x224[0x30];
+/*0x254*/ DWORD NumStances;
+/*0x258*/ _MERCSTANCEDATA **pMercStanceData;
+/*0x25c*/ BYTE  Unknown0x25c[0x9c];
+/*0x2F8*/
 } MERCENARYINFO, *PMERCENARYINFO;
 
 #define MAX_XTARGETS 20

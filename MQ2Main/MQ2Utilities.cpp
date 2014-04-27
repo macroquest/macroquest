@@ -765,13 +765,17 @@ PCHAR ConvertHotkeyNameToKeyName(PCHAR szName)
 // ***************************************************************************
 PCHAR GetFullZone(DWORD ZoneID)
 {
-    if (!ppWorldData | !pWorldData) return NULL;
+    if (!ppWorldData | !pWorldData)
+		return NULL;
     if(ZoneID > MAX_ZONES)
         ZoneID &= 0x7FFF;
-    if(ZoneID > MAX_ZONES || ZoneID <= 0)
+    if(ZoneID > MAX_ZONES || ZoneID < 0)
         return "UNKNOWN_ZONE";
     PZONELIST pZone = ((PWORLDDATA)pWorldData)->ZoneArray[ZoneID];
-    return pZone->LongName;
+   if(pZone)
+	   return pZone->LongName;
+   else
+		return "UNKNOWN_ZONE";
 }
 // ***************************************************************************
 // Function:    GetShortZone
@@ -782,10 +786,13 @@ PCHAR GetShortZone(DWORD ZoneID)
     if (!ppWorldData | !pWorldData) return NULL;
     if(ZoneID > MAX_ZONES)
         ZoneID &= 0x7FFF;
-    if(ZoneID > MAX_ZONES || ZoneID <= 0)
+    if(ZoneID > MAX_ZONES || ZoneID < 0)
         return "UNKNOWN_ZONE";
     PZONELIST pZone = ((PWORLDDATA)pWorldData)->ZoneArray[ZoneID];
-    return pZone->ShortName; 
+	if(pZone)
+		return pZone->ShortName;
+	else
+		return "UNKNOWN_ZONE";
 }
 // ***************************************************************************
 // Function:    GetZoneID
@@ -795,13 +802,15 @@ PCHAR GetShortZone(DWORD ZoneID)
 DWORD GetZoneID(PCHAR ZoneShortName)
 {
     PZONELIST pZone = NULL;
-    if (!ppWorldData | !pWorldData) return -1;
-    for (int nIndex=0; nIndex <= MAX_ZONES; nIndex++) {
+    if (!ppWorldData | !pWorldData)
+		return -1;
+    for (int nIndex=0; nIndex < MAX_ZONES; nIndex++) {
         pZone = ((PWORLDDATA)pWorldData)->ZoneArray[nIndex];
-        if(pZone )
+        if(pZone) {
             if (!_stricmp(pZone->ShortName,ZoneShortName)) {
                 return nIndex;
             }
+		}
     }
     return -1; 
 }
@@ -5921,7 +5930,28 @@ bool HasExpansion(DWORD nExpansion)
 {
     return (bool)((GetCharInfo()->ExpansionFlags & nExpansion) != 0);
 }
-
+//Just a Function that needs more work
+//I use this to test merc aa struct -eqmule
+VOID ListMercAltAbilities()
+{
+	if(pMercAltAbilities) {
+		int mercaapoints = ((PCHARINFO)pCharData)->MercAAPoints;
+		for(int i=0;i<12;i++) {
+			PEQMERCALTABILITIES pinfo = pMercAltAbilities;
+			if(pinfo->MercAAInfo[i]) {
+				if(pinfo->MercAAInfo[i]->Ptr) {
+					int nName = pinfo->MercAAInfo[i]->Ptr->nName;
+					int maxpoints = pinfo->MercAAInfo[i]->Max;
+					if(nName) {
+						CHAR szBuffer[256] = {0};
+						sprintf(szBuffer,"%s",pCDBStr->GetString(nName, 37, NULL));
+						WriteChatf("You have %d mercaapoints to spend on %s (max is %d)",mercaapoints,szBuffer,maxpoints);
+					}
+				}
+			}
+		}
+	}
+}
 //                                                                                               //
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 #endif

@@ -209,6 +209,7 @@ bool InitOffsets()
     ppTaskMember = (TASKMEMBER**)pinstTaskMember; 
     pDynamicZone = (DYNAMICZONE*)instDynamicZone;
     ppMercInfo = (MERCENARYINFO**)pinstMercenaryData;
+    ppMercAltAbilities = (EQMERCALTABILITIES**)pinstMercAltAbilities;
     ppAggroInfo = (AGGROINFO **)pinstAggroInfo;
 
     return true;
@@ -367,6 +368,8 @@ BOOL bAllowCommandParse=TRUE;
 LONG gDelayZoning = 0;
 PALERTLIST gpAlertList = NULL;
 BOOL gMacroPause = FALSE;
+SPAWNINFO MercenarySpawn = {0};
+SPAWNINFO PetSpawn = {0};
 SPAWNINFO EnviroTarget = {0};
 PGROUNDITEM pGroundTarget = NULL;
 SPAWNINFO DoorEnviroTarget = {0};
@@ -1111,6 +1114,7 @@ DZTIMERINFO **ppDZTimerInfo=0;
 TASKMEMBER **ppTaskMember=0; 
 DYNAMICZONE *pDynamicZone=0;
 MERCENARYINFO **ppMercInfo=0;
+EQMERCALTABILITIES **ppMercAltAbilities=0;
 AGGROINFO **ppAggroInfo=0;
 
 #define INITIALIZE_EQGAME_OFFSET(var) DWORD var = (((DWORD)var##_x - 0x400000) + baseAddress)
@@ -1207,6 +1211,7 @@ INITIALIZE_EQGAME_OFFSET(pinstGroup);
 INITIALIZE_EQGAME_OFFSET(pinstImeManager);
 INITIALIZE_EQGAME_OFFSET(pinstLocalPlayer);
 INITIALIZE_EQGAME_OFFSET(pinstMercenaryData);
+INITIALIZE_EQGAME_OFFSET(pinstMercAltAbilities);
 INITIALIZE_EQGAME_OFFSET(pinstModelPlayer);
 INITIALIZE_EQGAME_OFFSET(pinstPCData);
 INITIALIZE_EQGAME_OFFSET(pinstSkillMgr);

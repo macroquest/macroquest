@@ -193,6 +193,10 @@ static inline eSpawnType GetSpawnType(PSPAWNINFO pSpawn)
             if (pSpawn->Class==62)
                 return OBJECT;
             return NPC; 
+        case 7:
+			if (pSpawn->Class==62)
+                return OBJECT;
+			return NPC;
         case 11:
             if (strstr(pSpawn->Name,"Aura") || strstr(pSpawn->Name,"Circle_of") || strstr(pSpawn->Name,"Guardian_Circle") || strstr(pSpawn->Name,"Earthen_Strength"))
                 return AURA;

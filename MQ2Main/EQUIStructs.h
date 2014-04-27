@@ -610,25 +610,38 @@ typedef struct _EQLOOTWINDOW {
 /*0x3a0*/
 } EQLOOTWINDOW, *PEQLOOTWINDOW;
 
-//Size: 0x920 20130514 - ieatacid
+//Actual Size: 91Ch (see 4988B2 in oct 10 2013 eqgame.exe) -eqmule
+//CPetInfoWindow__CPetInfoWindow
 typedef struct _EQPETINFOWINDOW {
 /*0x000*/ struct _CSIDLWND Wnd;
-/*0x224*/ BYTE  Unknown0x224[0x8];
-/*0x22C*/ DWORD	SpawnID;//The pets SpawnID
-/*0x230*/ BYTE  Unknown0x230[0xc];
-/*0x23c*/ struct _CBUTTONWND *pButton[0xe];
-/*0x274*/ BYTE  Unknown0x274[0x1d8];
-/*0x44c*/ struct _CSIDLWND *pWnd[NUM_BUFF_SLOTS]; // buff icons?
-/*0x5d0*/ int   Buff[NUM_BUFF_SLOTS];        // Spell ID# of each buff -- 97 total
-/*0x754*/ BYTE  Unknown0x754[0x20];
-/*0x774*/ DWORD BuffFadeETA[NUM_BUFF_SLOTS]; // duration until buff fades, in thousands of a second
-/*0x8f8*/ BYTE  Unknown0x8f8[0x1f];
-/*0x917*/ BYTE	Sit;//0/1 is off/on
-/*0x918*/ BYTE	Stop;//0/1 is off/on
-/*0x919*/ BYTE	ReGroup;//0/1 is off/on
-/*0x91a*/ BYTE	Follow;//0/1 is off/on
-
-/*0x920*/
+/*0x21c*/ BYTE  Unknown0x21c[0x8];
+/*0x224*/ DWORD	PetSpawnID;//The pets SpawnID
+/*0x228*/ BYTE  Unknown0x228[0x8];
+/*0x230*/ struct _CBUTTONWND *pButton[0xe];//there are 14 buttons on the petinfowin with text that can be set to attack,none,back and so on, these are those...
+/*0x268*/ BYTE  Unknown0x268[0x8];
+/*0x270*/ struct _CBUTTONWND *pAttackButton;//if 0 its not assigned.
+/*0x274*/ struct _CBUTTONWND *pQAttackButton;//if 0 its not assigned.
+/*0x278*/ struct _CBUTTONWND *pFollowButton;//if 0 its not assigned.
+/*0x27c*/ struct _CBUTTONWND *pGuardButton;//if 0 its not assigned.
+/*0x280*/ struct _CBUTTONWND *pSitButton;//if 0 its not assigned.
+/*0x284*/ struct _CBUTTONWND *pStopButton;//if 0 its not assigned.
+/*0x288*/ BYTE  Unknown0x288[0x1bc];//just more buttons i havent looked up...
+/*0x444*/ struct _CSIDLWND *pWnd[NUM_BUFF_SLOTS]; // buff icons?
+/*0x5c8*/ int   Buff[NUM_BUFF_SLOTS];        // Spell ID# of each buff -- 97 total
+/*0x74c*/ BYTE  Unknown0x74c[0x20];
+/*0x76c*/ DWORD BuffFadeETA[NUM_BUFF_SLOTS]; // duration until buff fades, in thousands of a second
+/*0x8f0*/ BYTE  Unknown0x8f0[0x1f];
+/*0x90f*/ BYTE	Sit;//0/1 is off/on
+/*0x910*/ BYTE	Stop;//0/1 is off/on
+/*0x911*/ BYTE	ReGroup;//0/1 is off/on
+/*0x912*/ BYTE	Follow;//0/1 is off/on
+/*0x913*/ BYTE	Guard;//0/1 is off/on
+/*0x914*/ BYTE	Taunt;//0/1 is off/on
+/*0x915*/ BYTE	Hold;//0/1 is off/on
+/*0x916*/ BYTE	GHold;//0/1 is off/on
+/*0x917*/ BYTE	Focus;//0/1 is off/on
+/*0x918*/ BYTE	Unknown0x918[0x4];//just more buttonstates i havent looked at yet...
+/*0x91c*/
 } EQPETINFOWINDOW, *PEQPETINFOWINDOW; 
 
 typedef struct _EQTRADESKILLRECIPE {

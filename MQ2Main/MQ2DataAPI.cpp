@@ -124,6 +124,8 @@ void InitializeMQ2Data()
     AddMQ2Data("Switch",dataSwitch);
     AddMQ2Data("Ground",dataGroundItem);
     AddMQ2Data("Merchant",dataMerchant);
+    AddMQ2Data("Mercenary",dataMercenary);
+    AddMQ2Data("Pet",dataPet);
     AddMQ2Data("Window",dataWindow);
     AddMQ2Data("Macro",dataMacro);
     AddMQ2Data("MacroQuest",dataMacroQuest);

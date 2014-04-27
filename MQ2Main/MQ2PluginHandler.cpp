@@ -47,7 +47,7 @@ DWORD checkme(char *module)
 static unsigned int mq2mainstamp = 0;
 
 
-DWORD LoadMQ2Plugin(const PCHAR pszFilename)
+DWORD LoadMQ2Plugin(const PCHAR pszFilename,BOOL bCustom)
 {
     CHAR Filename[MAX_PATH]={0};
 
@@ -101,6 +101,7 @@ DWORD LoadMQ2Plugin(const PCHAR pszFilename)
 
     pPlugin = new MQPLUGIN;
     memset(pPlugin,0,sizeof(MQPLUGIN));
+	pPlugin->bCustom=bCustom;
     pPlugin->hModule=hmod;
     strcpy(pPlugin->szFilename,Filename);
     pPlugin->Initialize=(fMQInitializePlugin)GetProcAddress(hmod,"InitializePlugin");
@@ -209,7 +210,8 @@ VOID RewriteMQ2Plugins(VOID)
     while (pLoop->pNext)
         pLoop=pLoop->pNext; 
     while (pLoop) {
-        WritePrivateProfileString("Plugins",pLoop->szFilename,pLoop->szFilename,gszINIFilename);
+		if(!pLoop->bCustom)
+			WritePrivateProfileString("Plugins",pLoop->szFilename,pLoop->szFilename,gszINIFilename);
         pLoop = pLoop->pLast;
     }
 }
@@ -242,6 +244,17 @@ VOID InitializeMQ2Plugins()
         GetPrivateProfileString("Plugins",pPluginList,"",szBuffer,MAX_STRING,MainINI);
         if (szBuffer[0]!=0) {
             LoadMQ2Plugin(szBuffer);
+        }
+        pPluginList+=strlen(pPluginList)+1;
+    }
+	//ok now check if user has a CustomPlugin.ini and load those as well...
+	sprintf(MainINI,"%s\\CustomPlugins.ini",gszINIPath);
+    GetPrivateProfileString("Plugins",NULL,"",PluginList,MAX_STRING*10,MainINI);
+    pPluginList = PluginList;
+    while (pPluginList[0]!=0) {
+        GetPrivateProfileString("Plugins",pPluginList,"",szBuffer,MAX_STRING,MainINI);
+        if (szBuffer[0]!=0) {
+            LoadMQ2Plugin(szBuffer,1);
         }
         pPluginList+=strlen(pPluginList)+1;
     }

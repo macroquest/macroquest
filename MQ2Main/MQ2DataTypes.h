@@ -88,6 +88,8 @@ LEGACY_VAR class MQ2MacroQuestType *pMacroQuestType;
 LEGACY_VAR class MQ2CorpseType *pCorpseType;
 LEGACY_VAR class MQ2WindowType *pWindowType;
 LEGACY_VAR class MQ2MerchantType *pMerchantType;
+LEGACY_VAR class MQ2MercenaryType *pMercenaryType;
+LEGACY_VAR class MQ2PetType *pPetType;
 LEGACY_VAR class MQ2ZoneType *pZoneType;
 LEGACY_VAR class MQ2CurrentZoneType *pCurrentZoneType;
 LEGACY_VAR class MQ2ItemType *pItemType;
@@ -555,8 +557,6 @@ public:
         LocYX=99,
         Owner=100,
         Following=101,
-        PetTarget=102,
-		PetCombat=103,
 	};
     static enum SpawnMethods
     {
@@ -665,9 +665,6 @@ public:
         TypeMember(LocYX);
         TypeMember(Owner);
         TypeMember(Following);
-		TypeMember(PetTarget);
-		TypeMember(PetCombat);
-
         TypeMethod(Target);
         TypeMethod(Face);
         TypeMethod(LeftClick);
@@ -1913,6 +1910,163 @@ public:
     }
     bool FromString(MQ2VARPTR &VarPtr, PCHAR Source)
     {
+        return false;
+    }
+};
+class MQ2MercenaryType : public MQ2Type
+{
+public:
+    static enum MercenaryMembers
+    {
+        Stance=1,
+        AAPoints=2,
+        State=3,
+		StateID=4,
+    };
+    static enum MercenaryMethods
+    {
+    };
+    MQ2MercenaryType():MQ2Type("mercenary")
+    {
+        TypeMember(Stance);
+        TypeMember(AAPoints);
+        TypeMember(State);
+        TypeMember(StateID);
+    }
+
+    ~MQ2MercenaryType()
+    {
+
+    }
+	bool GETMEMBER();
+    DECLAREGETMETHOD();
+    INHERITDIRECT(pSpawnType);
+
+    bool ToString(MQ2VARPTR VarPtr, PCHAR Destination)
+    {
+        if (!VarPtr.Ptr)
+            return false;
+        strcpy(Destination,((PSPAWNINFO)VarPtr.Ptr)->Name);
+        return true;
+    }
+    void InitVariable(MQ2VARPTR &VarPtr) 
+    {
+        VarPtr.Ptr=malloc(sizeof(SPAWNINFO));
+        ZeroMemory(VarPtr.Ptr,sizeof(SPAWNINFO));
+    }
+    void FreeVariable(MQ2VARPTR &VarPtr) 
+    {
+        free(VarPtr.Ptr);
+    }
+
+    virtual bool FromData(MQ2VARPTR &VarPtr, MQ2TYPEVAR &Source)
+    {
+        if (Source.Type==pSpawnType)
+        {
+            memcpy(VarPtr.Ptr,Source.Ptr,sizeof(SPAWNINFO));
+            return true;
+        }
+        else
+        {
+            if (PSPAWNINFO pOther=(PSPAWNINFO)GetSpawnByID(Source.DWord))
+            {
+                memcpy(VarPtr.Ptr,pOther,sizeof(SPAWNINFO));
+                return true;
+            }
+        }
+        return false;
+    }
+    bool FromString(MQ2VARPTR &VarPtr, PCHAR Source)
+    {
+        if (PSPAWNINFO pOther=(PSPAWNINFO)GetSpawnByID(atoi(Source)))
+        {
+            memcpy(VarPtr.Ptr,pOther,sizeof(SPAWNINFO));
+            return true;
+        }
+        return false;
+    }
+};
+class MQ2PetType : public MQ2Type
+{
+public:
+    static enum PetMembers
+    {
+        Buff=1,
+        Combat=2,
+		Hold=3,
+		GHold=4,
+		ReGroup=5,
+		Stance=6,
+		Stop=7,
+		Target=8,
+		Taunt=9,
+    };
+    static enum PetMethods
+    {
+    };
+    MQ2PetType():MQ2Type("pet")
+    {
+        TypeMember(Buff);
+        TypeMember(Combat);
+        TypeMember(GHold);
+        TypeMember(Hold);
+		TypeMember(ReGroup);
+        TypeMember(Stance);
+		TypeMember(Stop);
+        TypeMember(Target);
+        TypeMember(Taunt);
+    }
+
+    ~MQ2PetType()
+    {
+
+    }
+	bool GETMEMBER();
+    DECLAREGETMETHOD();
+	//INHERITINDIRECT(pSpawnType,Temp.Ptr=GetSpawnByID(((PCHARINFO)ObjectData.Ptr)->pSpawn->PetID),0);
+    INHERITDIRECT(pSpawnType);
+
+    bool ToString(MQ2VARPTR VarPtr, PCHAR Destination)
+    {
+        if (!VarPtr.Ptr)
+            return false;
+        strcpy(Destination,((PSPAWNINFO)VarPtr.Ptr)->Name);
+        return true;
+    }
+    void InitVariable(MQ2VARPTR &VarPtr) 
+    {
+        VarPtr.Ptr=malloc(sizeof(SPAWNINFO));
+        ZeroMemory(VarPtr.Ptr,sizeof(SPAWNINFO));
+    }
+    void FreeVariable(MQ2VARPTR &VarPtr) 
+    {
+        free(VarPtr.Ptr);
+    }
+
+    virtual bool FromData(MQ2VARPTR &VarPtr, MQ2TYPEVAR &Source)
+    {
+        if (Source.Type==pSpawnType)
+        {
+            memcpy(VarPtr.Ptr,Source.Ptr,sizeof(SPAWNINFO));
+            return true;
+        }
+        else
+        {
+            if (PSPAWNINFO pOther=(PSPAWNINFO)GetSpawnByID(Source.DWord))
+            {
+                memcpy(VarPtr.Ptr,pOther,sizeof(SPAWNINFO));
+                return true;
+            }
+        }
+        return false;
+    }
+    bool FromString(MQ2VARPTR &VarPtr, PCHAR Source)
+    {
+        if (PSPAWNINFO pOther=(PSPAWNINFO)GetSpawnByID(atoi(Source)))
+        {
+            memcpy(VarPtr.Ptr,pOther,sizeof(SPAWNINFO));
+            return true;
+        }
         return false;
     }
 };
