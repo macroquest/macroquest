@@ -588,29 +588,29 @@ typedef struct _MAPLINE { // sizeof() = 0x28 (think this might be 0x34 now)
     DWORD Layer;          //0-3;
 } MAPLINE, *PMAPLINE;
 
-// size 0x3a0 20130116 - ieatacid
+// size 0x3a8 20130514 - eqmule
 typedef struct _EQLOOTWINDOW {
 /*0x000*/ struct _CSIDLWND Wnd;
-/*0x21c*/ void   *vftable; // for CLootWnd::DialogResponse handler 
-/*0x220*/ BYTE   Unknown0x220[0x98];
-/*0x2b8*/ DWORD  NumOfSlots;
-/*0x2bc*/ DWORD  Unknown0x2bc;
-/*0x2c0*/ struct _INVENTORYARRAY *pInventoryArray;
-/*0x2c4*/ DWORD  NumOfSlots2;
-/*0x2c8*/ DWORD  NumOfSlots3;
-/*0x2cc*/ BYTE   Unknown0x2cc[0x24];
-/*0x2f0*/ BYTE   Unknown0x2f0;
-/*0x2f1*/ BYTE   Unknown0x2f1;
-/*0x2f2*/ BYTE   Unknown0x2f2;
-/*0x2f3*/ BYTE   Unknown0x2f3;
-/*0x2f4*/ struct _CSIDLWND *CLoot_LootInvWnd;
-/*0x2f8*/ struct _CSILDWND *CLoot_LootSlotWnd[0x22];
-/*0x380*/ struct _CSIDLWND *CLoot_CorpseName;
-/*0x384*/ struct _CSIDLWND *CLoot_DoneButton;
-/*0x388*/ struct _CSIDLWND *CLoot_BroadcastButton;
-/*0x38c*/ struct _CSIDLWND *CLoot_LootAllButton;
-/*0x390*/ BYTE   Unknown0x390[0x10];
-/*0x3a0*/
+/*0x220*/ void   *vftable; // for CLootWnd::DialogResponse handler
+/*0x224*/ BYTE   Unknown0x224[0x9c];
+/*0x2c0*/ DWORD  NumOfSlots;
+/*0x2c4*/ DWORD  Unknown0x2c4;
+/*0x2c8*/ struct _INVENTORYARRAY *pInventoryArray;
+/*0x2cc*/ DWORD  NumOfSlots2;
+/*0x2d0*/ DWORD  NumOfSlots3;
+/*0x2d4*/ BYTE   Unknown0x2d4[0x24];
+/*0x2f8*/ BYTE   Unknown0x2f8;
+/*0x2f9*/ BYTE   Unknown0x2f9;
+/*0x2fa*/ BYTE   Unknown0x2fa;
+/*0x2fb*/ BYTE   Unknown0x2fb;
+/*0x2fc*/ struct _CSIDLWND *CLoot_LootInvWnd;
+/*0x300*/ struct _CSILDWND *CLoot_LootSlotWnd[0x22];
+/*0x388*/ struct _CSIDLWND *CLoot_CorpseName;
+/*0x38c*/ struct _CSIDLWND *CLoot_DoneButton;
+/*0x390*/ struct _CSIDLWND *CLoot_BroadcastButton;
+/*0x394*/ struct _CSIDLWND *CLoot_LootAllButton;
+/*0x398*/ BYTE   Unknown0x398[0x10];
+/*0x3a8*/
 } EQLOOTWINDOW, *PEQLOOTWINDOW;
 
 //Size: 0x91c 20120316 - ieatacid
