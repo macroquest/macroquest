@@ -1,3 +1,6 @@
+21 April 2013 by ieatacid, EqMule
+- Updated for April 17th patch
+
 21 March 2013 by ieatacid
 - Fixed keybind issues (?)
 
