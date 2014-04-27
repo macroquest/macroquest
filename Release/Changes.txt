@@ -1,3 +1,9 @@
+20 June 2013 by EqMule, ieatacid
+- Updated for Jun 19th patch
+
+2 June 2013 by ieatacid
+- MacroQuest.GameState now returns 'PRECHARSELECT' when applicable
+
 17 May 2013 by EqMule, ieatacid
 - Updated for May 14th patch
 

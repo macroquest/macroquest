@@ -141,7 +141,6 @@ void ircout(char *text) {
         MQToSTML(text,processed,MAX_STRING); 
         strcat(processed,"<br>"); 
         CXStr NewText(processed); 
-        CXSize Whatever; 
         (MyWnd->StmlOut)->AppendSTML(NewText); 
         (MyWnd->OutWnd)->SetVScrollPos(MyWnd->OutStruct->VScrollMax); 
     } else { 

@@ -5591,6 +5591,8 @@ bool MQ2MacroQuestType::GETMEMBER()
             Dest.Ptr="CHARSELECT";
         else if (gGameState==GAMESTATE_INGAME)
             Dest.Ptr="INGAME";
+        else if (GetGameState() == GAMESTATE_PRECHARSELECT)
+            Dest.Ptr="PRECHARSELECT";
         else
             Dest.Ptr="UNKNOWN";
         Dest.Type=pStringType;
