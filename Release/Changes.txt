@@ -1,3 +1,6 @@
+28 Jan 2014 by eqmule
+-Updated for patch
+
 27 Jan 2014 by eqmule
 -New Feature: /useitem "item name here"
 -New Feature: /itemnotify "item name here" left/rightmouseup

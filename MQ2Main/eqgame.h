@@ -16,10 +16,10 @@
 #endif
 
 #define __ClientName                                              "eqgame"
-#define __ExpectedVersionDate                                     "Jan 21 2014"
-#define __ExpectedVersionTime                                     "16:19:56"
-#define __ActualVersionDate_x                                      0x9F7410
-#define __ActualVersionTime_x                                      0x9F741C
+#define __ExpectedVersionDate                                     "Jan 27 2014"
+#define __ExpectedVersionTime                                     "15:07:39"
+#define __ActualVersionDate_x                                      0x9F7420
+#define __ActualVersionTime_x                                      0x9F742C
 
 #define __ClientOverride                                           0
 #define __MacroQuestWinClassName                                  "__MacroQuestTray"
@@ -257,7 +257,7 @@
 #define pinstCProgressionSelectionWnd_x                            0xF2F3E0
 #define pinstCPvPStatsWnd_x                                        0xF2F480
 #define pinstCSystemInfoDialogBox_x                                0xF2F8D0
-#define pinstCTaskWnd_x											   0xF30990
+#define pinstCTaskWnd_x                                            0xF30990
 #define pinstCTaskTemplateSelectWnd_x                              0xF30940
 #define pinstCTipWndOFDAY_x                                        0xF30B00
 #define pinstCTipWndCONTEXT_x                                      0xF30B04
@@ -330,7 +330,7 @@
 
 // CContainerWnd 
 #define CContainerWnd__HandleCombine_x                             0x666C00
-#define CContainerWnd__vftable_x                                   0xA001F0
+#define CContainerWnd__vftable_x                                   0xA00200
 
 // CDisplay 
 #define CDisplay__CleanGameUI_x                                    0x4943A0
