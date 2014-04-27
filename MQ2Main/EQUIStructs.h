@@ -662,16 +662,16 @@ typedef struct _EQTRADESKILLWINDOW {
 /*0x3d8*/ DWORD Unknown0x3d8;
 } EQTRADESKILLWINDOW, *PTRADESKILLWINDOW;
 
-//Actual Size 0x2f8 - 20130116 - ieatacid
+//Actual Size 0x308 - 20130514 - eqmule
 typedef struct _EQTRADEWINDOW {
 /*0x000*/ struct _CSIDLWND Wnd;
-/*0x21c*/ BYTE   Unknown0x21c[0xd4];
-/*0x2f0*/ BYTE   HisTradeReady;
-/*0x2f1*/ BYTE   MyTradeReady;
-/*0x2f2*/ BYTE   TradeWndOpen;
-/*0x2f3*/ BYTE   Unknown0x2f3[0x5];
-/*0x2f8*/
-} EQTRADEWINDOW, *PTRADEWINDOW; 
+/*0x220*/ BYTE   Unknown0x220[0xd8];
+/*0x2f8*/ BYTE   HisTradeReady;
+/*0x2f9*/ BYTE   MyTradeReady;
+/*0x300*/ BYTE   TradeWndOpen;
+/*0x301*/ BYTE   Unknown0x301[0x7];
+/*0x308*/
+} EQTRADEWINDOW, *PTRADEWINDOW;
 
 //Actual Size: 0x388 20121016 - ieatacid
 typedef struct _EQRAIDWINDOW {
