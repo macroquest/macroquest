@@ -248,4 +248,5 @@
 12499, "Dusty Piece of Ham",
 12533, "RoF (Collectors) Globe",
 12535, "Glowing Globe",			// (Collections Item)
+20026, "Behroe Style Stone House",
 20129, "Chest of Crystal Shards",

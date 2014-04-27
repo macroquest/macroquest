@@ -407,6 +407,12 @@ enum MOUSE_DATA_TYPES {
 #define EXPANSION_RoF                   EQ_EXPANSION(19)
 #define EXPANSION_CotF                  EQ_EXPANSION(20)
 #define NUM_EXPANSIONS                  20
+
+#ifndef nullptr
+#define nullptr                         NULL
+#endif
+
+
 // ***************************************************************************
 // Structures
 // ***************************************************************************
@@ -1661,11 +1667,13 @@ struct _SPELL*  Spells[TOTAL_SPELL_COUNT];
 #define   AC_EFFECTS                    0.3000005   // Spell effects multiplier for AC effects (adding a little due to float rounding issues)
 #define   DEFAULT_EFFECTS               1.0000000   // Default effects multplier
 // actual size: 0x4ed 20120316 - ieatacid
+// confirmed in mar 31 2014 eqgame - eqmule
+// EQ_Spell__EQ_Spell_x
 typedef struct _SPELL {
 /*0x000*/   FLOAT   Range;
 /*0x004*/   FLOAT   AERange;
 /*0x008*/   FLOAT   PushBack;
-/*0x00c*/   BYTE    Unknown0xc[0x4];
+/*0x00c*/   FLOAT   Unknown0x00c;
 /*0x010*/   DWORD   CastTime;
 /*0x014*/   DWORD   FizzleTime;
 /*0x018*/   DWORD   RecastTime;

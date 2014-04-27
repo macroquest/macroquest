@@ -1,3 +1,9 @@
+04 Apr 2014 by eqmule
+- Update for patch
+
+02 Apr 2014 by rswiders
+- TEMPORARY fix for C2065 compiler issue on vs2008
+
 02 Apr 2014 by eqmule
 - Update for patch
 - MacroQuest.ini is now created (from the _default template) if it doesnt exist.
