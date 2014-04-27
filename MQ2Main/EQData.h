@@ -61,28 +61,29 @@ typedef struct _ClassInfo
     char RaidColorOrder;
     PCHAR Name;
     PCHAR ShortName;
+	PCHAR UCShortName;
 } CLASSINFO, *PCLASSINFO;
 
 static _ClassInfo ClassInfo[]=
 {
-    {0,0,0,0,0,0,0,0,0,"",""},                      //unk
-    {0,0,0,0,0,0,0,0,13,"Warrior","war"},           //war
-    {1,1,0,0,0,1,0,0,2,"Cleric","clr"},             //clr
-    {1,0,0,0,0,1,0,0,8,"Paladin","pal"},            //pal
-    {1,0,0,1,0,0,0,0,9,"Ranger","rng"},             //rng
-    {1,0,0,0,1,0,0,0,11,"Shadowknight","shd"},      //shd
-    {1,1,0,1,0,0,0,0,3,"Druid","dru"},              //dru
-    {0,0,0,0,0,0,0,0,6,"Monk","mnk"},               //mnk
-    {1,0,0,0,0,0,0,0,0,"Bard","brd"},               //brd
-    {0,0,0,0,0,0,0,0,10,"Rogue","rog"},             //rog
-    {1,1,1,0,0,0,1,0,12,"Shaman","shm"},            //shm
-    {1,1,1,0,1,0,0,0,7,"Necromancer","nec"},        //nec
-    {1,1,0,0,0,0,0,0,14,"Wizard","wiz"},            //wiz
-    {1,1,1,0,0,0,0,0,5,"Mage","mag"},               //mag
-    {1,1,0,0,0,0,0,0,4,"Enchanter","enc"},          //enc
-    {1,0,1,0,0,0,1,0,1,"Beastlord","bst"},          //bst
-    {0,0,0,0,0,0,0,0,15,"Berserker","ber"},         //ber
-	{1,1,0,0,0,0,0,1,16,"Mercenary","mer"},         //mer
+    {0,0,0,0,0,0,0,0,0,"","",""},                         //unk
+    {0,0,0,0,0,0,0,0,13,"Warrior","war","WAR"},           //war
+    {1,1,0,0,0,1,0,0,2,"Cleric","clr","CLR"},             //clr
+    {1,0,0,0,0,1,0,0,8,"Paladin","pal","PAL"},            //pal
+    {1,0,0,1,0,0,0,0,9,"Ranger","rng","RNG"},             //rng
+    {1,0,0,0,1,0,0,0,11,"Shadowknight","shd","SHD"},      //shd
+    {1,1,0,1,0,0,0,0,3,"Druid","dru","DRU"},              //dru
+    {0,0,0,0,0,0,0,0,6,"Monk","mnk","MNK"},               //mnk
+    {1,0,0,0,0,0,0,0,0,"Bard","brd","BRD"},               //brd
+    {0,0,0,0,0,0,0,0,10,"Rogue","rog","ROG"},             //rog
+    {1,1,1,0,0,0,1,0,12,"Shaman","shm","SHM"},            //shm
+    {1,1,1,0,1,0,0,0,7,"Necromancer","nec","NEC"},        //nec
+    {1,1,0,0,0,0,0,0,14,"Wizard","wiz","WIZ"},            //wiz
+    {1,1,1,0,0,0,0,0,5,"Mage","mag","MAG"},               //mag
+    {1,1,0,0,0,0,0,0,4,"Enchanter","enc","ENC"},          //enc
+    {1,0,1,0,0,0,1,0,1,"Beastlord","bst","BST"},          //bst
+    {0,0,0,0,0,0,0,0,15,"Berserker","ber","BER"},         //ber
+	{1,1,0,0,0,0,0,1,16,"Mercenary","mer","MER"},         //mer
 };
 
 #define BI_TARGETABLE                   1
@@ -411,6 +412,43 @@ enum MOUSE_DATA_TYPES {
 #if _MSC_VER < 1600
 #define nullptr                         NULL
 #endif
+
+#define SPA_AC                          1
+#define SPA_MOVEMENTRATE                3
+#define SPA_LURE                        10
+#define SPA_HASTE                       11
+#define SPA_ILLUSION                    58
+#define SPA_MAGNIFICATION               87
+#define SPA_PLAYERSIZE                  89
+#define SPA_SUMMONCORPSE                91
+#define SPA_BARDOVERHASTE               98
+#define SPA_SPELLDAMAGE                 124
+#define SPA_REAGENTCHANCE               131
+#define SPA_SPELLMANACOST               132
+#define SPA_DOUBLEATTACK                177
+#define SPA_STUNRESIST                  195
+#define SPA_PROCMOD                     200
+#define SPA_DIVINEREZ                   232
+#define SPA_METABOLISM                  233
+#define SPA_PLACEHOLDER                 254
+#define SPA_TRIPLEBACKSTAB              258
+#define SPA_DOTCRIT                     273
+#define SPA_HEALCRIT                    274
+#define SPA_MENDCRIT                    275
+#define SPA_FLURRY                      279
+#define SPA_PETFLURRY                   280
+#define SPA_SPELLCRITCHANCE             294
+#define SPA_INCSPELLDMG                 296
+#define SPA_DAMAGECRITMOD               302
+#define SPA_SHIELDBLOCKCHANCE           320
+#define SPA_AC2                         416
+
+#define TT_PBAE                         0x04
+#define TT_TARGETED_AE                  0x08
+#define TT_AE_PC_V2                     0x28
+#define TT_DIRECTIONAL                  0x2a
+
+#define EQHeading(heading) (int)(((heading + 16) % 256) / 32) * 2
 
 
 // ***************************************************************************
@@ -1664,8 +1702,6 @@ BYTE            unknown[SPELLMGR_FILLER];
 struct _SPELL*  Spells[TOTAL_SPELL_COUNT];
 } SPELLMGR, *PSPELLMGR;
 
-#define   AC_EFFECTS                    0.3000005   // Spell effects multiplier for AC effects (adding a little due to float rounding issues)
-#define   DEFAULT_EFFECTS               1.0000000   // Default effects multplier
 // actual size: 0x4ed 20120316 - ieatacid
 // confirmed in mar 31 2014 eqgame - eqmule
 // EQ_Spell__EQ_Spell_x
@@ -1711,7 +1747,11 @@ typedef struct _SPELL {
 /*0x1bc*/   DWORD   PvPResistCap;
 /*0x1c0*/   BYTE    Unknown0x1c0[0x4];
 /*0x1c4*/   DWORD   Unknown183;         //Unknown183 from Lucy
-/*0x1c8*/   BYTE    Unknown0x1c8[0x6f];
+/*0x1c8*/   BYTE    Unknown0x1c8[0xc];
+/*0x1d4*/   DWORD   SpellGroup;
+/*0x1d8*/   BYTE    Unknown0x1d8[0x34];
+/*0x20c*/   DWORD   MaxTargets;     //how many targets a spell will affect
+/*0x210*/   BYTE    Unknown0x210[0x27];
 /*0x237*/   BYTE    DurationWindow;     //0=Long, 1=Short
 /*0x238*/   BYTE    Unknown0x238[0x2];
 /*0x23a*/   BYTE    Deletable;
@@ -1723,7 +1763,7 @@ typedef struct _SPELL {
 /*0x26b*/   BYTE    SpellType;          //0=detrimental, 1=Beneficial, 2=Beneficial, Group Only
 /*0x26c*/   BYTE    Unknown0x26c;
 /*0x26d*/   BYTE    Resist;             //0=un 1=mr 2=fr 3=cr 4=pr 5=dr 6=chromatic 7=prismatic 8=physical(skills,etc) 9=corruption
-/*0x26e*/   BYTE    TargetType;         //03=Group v1, 04=PB AE, 05=Single, 06=Self, 08=Targeted AE, 0e=Pet, 28=AE PC v2, 29=Group v2
+/*0x26e*/   BYTE    TargetType;         //03=Group v1, 04=PB AE, 05=Single, 06=Self, 08=Targeted AE, 0e=Pet, 28=AE PC v2, 29=Group v2, 2a=Directional
 /*0x26f*/   BYTE    FizzleAdj;
 /*0x270*/   BYTE    Skill;
 /*0x271*/   BYTE    Location;           //01=Outdoors, 02=dungeons, ff=Any

@@ -87,6 +87,7 @@ BOOL ParseINIFile(PCHAR lpINIPath)
     CHAR CustomSettings[MAX_STRING] = {0};
     CHAR ClientINI[MAX_STRING] = {0};
     CHAR szBuffer[MAX_STRING] = {0};
+	CHAR szBuffer2[MAX_STRING] = {0};
     CHAR ClientName[MAX_STRING] = {0};
     CHAR FilterList[MAX_STRING*10] = {0};
     GetEQPath(gszEQPath);
@@ -229,7 +230,9 @@ BOOL ParseINIFile(PCHAR lpINIPath)
                     PITEMDB Item = (PITEMDB)malloc(sizeof(ITEMDB));
                     Item->pNext = gItemDB;
                     Item->ID = atoi(szBuffer);
-                    strcpy(Item->szName,strstr(szBuffer,"\t")+1);
+					strcpy(szBuffer2, strstr(szBuffer,"\t")+1);
+					Item->StackSize = atoi(szBuffer2);
+                    strcpy(Item->szName,strstr(szBuffer2,"\t")+1);
                     Item->szName[strstr(Item->szName,"\n")-Item->szName]=0;
                     gItemDB = Item;
                     fgets(szBuffer,MAX_STRING,fDB);

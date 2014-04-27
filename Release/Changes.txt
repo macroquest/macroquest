@@ -1,3 +1,20 @@
+08 Apr 2014 by rswiders
+- Rewrite of SpellSlotInfo, uses new function ParseSpellEffect. Pass a pSpell structure, slot number,
+  character buffer and it will return a character buffer with the spell effect information
+- Fixed issue with MQ2ItemDisplay that would sometimes display the wrong usable classes
+
+08 Apr 2014 by rswiders, eqmule
+- Corrected datatype refactor to allow for correct type inheritence in MQ2 parser
+
+08 Apr 2014 by eqmule
+- Added MaxTargets to the SPELL struct
+  This means we can check how many targets a spell will affect, 12 for example.
+- Added SpellGroup to the SPELL struct
+  This is used to display the spell family for the "Limit: SpellGroup"
+
+06 Apr 2014 by rswiders
+- Fixed issues with GetSpellNameByID and GetSpellbyID that would cause undefined results or CTD
+
 05 Apr 2014 by eqmule
 - Fixed a crash in GetSpellEffectName
 - MacroQuest2.exe should work on windows 8.x now

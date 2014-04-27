@@ -248,7 +248,7 @@ public:
         //show usable classes routine by Koad//
         bool bUseableClasses = false; 
         strcat(out, "<br>" ); 
-        for (int j=0; j<17; j++) {  // Ziggy - output will word wrap properly now
+        for (int j=Warrior; j<=Berserker; j++) {  // Ziggy - output will word wrap properly now
 			if (((EQ_Spell*)pSpell)->GetSpellLevelNeeded(j)>0 && ((EQ_Spell*)pSpell)->GetSpellLevelNeeded(j)<=MAX_PC_LEVEL) {
                 if (bUseableClasses) strcat (out, ", ");
 
@@ -408,7 +408,7 @@ public:
         //show usable classes routine by Koad//
         bool bUseableClasses = false; 
         strcat(out, "<br>" ); 
-        for (int j=0; j<17; j++) {  // Ziggy - output will word wrap properly now
+        for (int j=Warrior; j<=Berserker; j++) {  // Ziggy - output will word wrap properly now
 			if (((EQ_Spell*)pSpell)->GetSpellLevelNeeded(j)>0 && ((EQ_Spell*)pSpell)->GetSpellLevelNeeded(j)<=MAX_PC_LEVEL) {
                 if (bUseableClasses) strcat (out, ", ");
 

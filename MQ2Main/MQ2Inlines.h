@@ -35,11 +35,11 @@ static inline EQPlayer *GetSpawnByName(char *spawnName)
     return pSpawnManager->GetSpawnByName(spawnName);
 }
 
-static inline PSPELL GetSpellByID(DWORD dwSpellID)
+static inline PSPELL GetSpellByID(LONG dwSpellID)
 {
     if (dwSpellID==0 || dwSpellID >= TOTAL_SPELL_COUNT)
         return 0;
-    return &(*((PSPELLMGR)pSpellMgr)->Spells[dwSpellID]);
+    return &(*((PSPELLMGR)pSpellMgr)->Spells[abs(dwSpellID)]);
 }
 
 static inline PCHAR GetBodyTypeDesc(DWORD BodyTypeID)

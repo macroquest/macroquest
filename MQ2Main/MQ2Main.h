@@ -431,7 +431,7 @@ EQLIB_API int FindMappableCommand(const char *name);
 
 EQLIB_API int GetLanguageIDByName(PCHAR szName);
 EQLIB_API int GetCurrencyIDByName(PCHAR szName);
-EQLIB_API PCHAR GetSpellNameByID(DWORD dwSpellID);
+EQLIB_API PCHAR GetSpellNameByID(LONG dwSpellID);
 EQLIB_API PSPELL GetSpellByName(PCHAR szName);
 namespace EQData {
 EQLIB_API struct _ITEMINFO *GetItemFromContents(struct _CONTENTS *c);
@@ -473,6 +473,7 @@ EQLIB_API PCHAR GetLoginName();
 EQLIB_API FLOAT DistanceToPoint(PSPAWNINFO pSpawn, FLOAT xLoc, FLOAT yLoc);
 EQLIB_API PCHAR ShowSpellSlotInfo(PSPELL pSpell, PCHAR szBuffer);
 EQLIB_API VOID SlotValueCalculate(PCHAR szBuff, PSPELL pSpell, int i, double mp=1.0);
+EQLIB_API LONG CalcValue(LONG calc, LONG base, LONG max, LONG tick, LONG level=MAX_PC_LEVEL);
 EQLIB_API PCHAR GetSpellEffectName(LONG EffectID, PCHAR szBuffer);
 EQLIB_API VOID GetGameDate(int* Month, int* Day, int* Year);
 EQLIB_API VOID GetGameTime(int* Hour, int* Minute, int* Night);

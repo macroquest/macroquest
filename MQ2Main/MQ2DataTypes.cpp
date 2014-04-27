@@ -1684,11 +1684,13 @@ bool MQ2BuffType::GETMEMBER()
         return false;
     case Counters:
 #if 0
-        if(GetSpellByID(pBuff->SpellID)->SpellType == 0)
+        if(PSPELL pSpell = GetSpellByID(pBuff->SpellID))
         {
-            Dest.DWord=pBuff->Counters;
-            Dest.Type=pIntType;
-            return true;
+			if(pSpell->SpellType == 0) {
+				Dest.DWord=pBuff->Counters;
+				Dest.Type=pIntType;
+				return true;
+			}
         }
 #endif
         return false;

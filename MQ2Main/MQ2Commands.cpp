@@ -390,6 +390,12 @@ VOID CharInfo(PSPAWNINFO pChar, PCHAR szLine)
 
 VOID UpdateItemInfo(PSPAWNINFO pChar, PCHAR szLine) 
 {
+    CHAR szEcho[MAX_STRING] = {0};
+
+    strcpy(szEcho,DebugHeader);
+	strcat(szEcho, " This command has been disabled since the itemdb is maintained by the devs.");
+    WriteChatColor(szEcho,USERCOLOR_CHAT_CHANNEL);
+/*
     CHAR szBuffer[MAX_STRING] = {0};
     PCONTENTS pContainer = NULL;
     int nInvIdx;
@@ -411,6 +417,7 @@ VOID UpdateItemInfo(PSPAWNINFO pChar, PCHAR szLine)
                 PITEMDB Item = (PITEMDB)malloc(sizeof(ITEMDB));
                 Item->pNext = gItemDB;
                 Item->ID = GetItemFromContents(GetCharInfo2()->pInventoryArray->InventoryArray[nInvIdx])->ItemNumber;
+				Item->StackSize = GetItemFromContents(GetCharInfo2()->pInventoryArray->InventoryArray[nInvIdx])->StackSize;
                 strcpy(Item->szName, GetItemFromContents(GetCharInfo2()->pInventoryArray->InventoryArray[nInvIdx])->Name);
                 DebugSpew("   New Item found - %d: %s", Item->ID, Item->szName);
                 gItemDB = Item;
@@ -434,6 +441,7 @@ VOID UpdateItemInfo(PSPAWNINFO pChar, PCHAR szLine)
                             PITEMDB Item = (PITEMDB)malloc(sizeof(ITEMDB));
                             Item->pNext = gItemDB;
                             Item->ID = GetItemFromContents(pContainer->pContentsArray->Contents[nPackIdx])->ItemNumber;
+							Item->StackSize = GetItemFromContents(GetCharInfo2()->pInventoryArray->InventoryArray[nInvIdx])->StackSize;
                             strcpy(Item->szName, GetItemFromContents(pContainer->pContentsArray->Contents[nPackIdx])->Name);
                             DebugSpew("      New Item found - %d: %s", Item->ID, Item->szName);
                             gItemDB = Item;
@@ -458,6 +466,7 @@ VOID UpdateItemInfo(PSPAWNINFO pChar, PCHAR szLine)
                 PITEMDB Item = (PITEMDB)malloc(sizeof(ITEMDB));
                 Item->pNext = gItemDB;
                 Item->ID = GetItemFromContents(GetCharInfo()->pBankArray->Bank[nInvIdx])->ItemNumber;
+				Item->StackSize = GetItemFromContents(GetCharInfo2()->pInventoryArray->InventoryArray[nInvIdx])->StackSize;
                 strcpy(Item->szName, GetItemFromContents(pCharInfo->pBankArray->Bank[nInvIdx])->Name);
                 DebugSpew("   New Item found - %d: %s", Item->ID, Item->szName);
                 gItemDB = Item;
@@ -482,6 +491,7 @@ VOID UpdateItemInfo(PSPAWNINFO pChar, PCHAR szLine)
                             PITEMDB Item = (PITEMDB)malloc(sizeof(ITEMDB));
                             Item->pNext = gItemDB;
                             Item->ID = GetItemFromContents(pContainer->pContentsArray->Contents[nPackIdx])->ItemNumber;
+							Item->StackSize = GetItemFromContents(GetCharInfo2()->pInventoryArray->InventoryArray[nInvIdx])->StackSize;
                             strcpy(Item->szName, GetItemFromContents(pContainer->pContentsArray->Contents[nPackIdx])->Name);
                             DebugSpew("      New Item found - %d: %s", Item->ID, Item->szName);
                             gItemDB = Item;
@@ -496,12 +506,13 @@ VOID UpdateItemInfo(PSPAWNINFO pChar, PCHAR szLine)
     if (ItemDB) {
         FILE *fDB = fopen(gszItemDB, "wt");
         while (ItemDB) {
-            sprintf(szBuffer, "%d\t%s\n", ItemDB->ID, ItemDB->szName);
+			sprintf(szBuffer, "%d\t%d\t%s\n", ItemDB->ID, ItemDB->StackSize, ItemDB->szName);
             fputs(szBuffer, fDB);
             ItemDB = ItemDB->pNext;
         }
         fclose(fDB);
     }
+*/
 }
 
 // ***************************************************************************

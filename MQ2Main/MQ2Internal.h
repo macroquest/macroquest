@@ -250,6 +250,7 @@ namespace MQ2Internal {
     typedef struct _ITEMDB {
         struct _ITEMDB *pNext;
         DWORD ID;
+		DWORD StackSize;
         CHAR szName[256];
     } ITEMDB, *PITEMDB;
 
