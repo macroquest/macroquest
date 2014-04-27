@@ -1,3 +1,6 @@
+18 January 2013 by ieatacid
+- Updated for January 16/17 patch
+
 4 January 2013 by ieatacid
 - Fixed _ITEMINFO.Clairvoyance
 - Fixed HasExpansion function
