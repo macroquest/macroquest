@@ -2985,9 +2985,9 @@ EQLIB_OBJECT void CLootWnd::Deactivate(void);
 // private
 EQLIB_OBJECT void CLootWnd::FinalizeLoot(void);
 EQLIB_OBJECT void CLootWnd::Init(void);
-/*0x1fc*/ BYTE Unknown0x1b8[0xd5];
-/*0x2d1*/ BYTE LootAll;
-/*0x2a2*/
+/*0x208*/ BYTE Unknown0x1b8[0xd1];   // should be 2d9 on 2012/01/11
+/*0x2d9*/ BYTE LootAll;
+/*0x2da*/
 };
 
 class CMapToolbarWnd : public CSidlScreenWnd
