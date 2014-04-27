@@ -1,3 +1,6 @@
+22 Jan 2014 by eqmule
+-Updated for patch
+
 21 Jan 2014 by eqmule
 -Added two new features
 -New Command: /beepontells which is a toggle, can be set in MacroQuest.ini BeepOnTells=1 in the [MacroQuest] section.
