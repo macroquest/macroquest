@@ -46,6 +46,7 @@ class MQ2ArrayType *pArrayType=0;
 #endif
 class MQ2SpawnType *pSpawnType=0;
 class MQ2BuffType *pBuffType=0;
+class MQ2TargetBuffType *pTargetBuffType=0;
 class MQ2SpellType *pSpellType=0;
 class MQ2TicksType *pTicksType=0;
 class MQ2CharacterType *pCharacterType=0;
@@ -99,6 +100,7 @@ void InitializeMQ2DataTypes()
     pSpawnType = new MQ2SpawnType;
     pSpellType = new MQ2SpellType;
     pBuffType = new MQ2BuffType;
+    pTargetBuffType = new MQ2TargetBuffType;
     pTicksType = new MQ2TicksType;
     pCharacterType = new MQ2CharacterType;
     pClassType=new MQ2ClassType;
@@ -150,6 +152,7 @@ void InitializeMQ2DataTypes()
     // NOTE: SetInheritance does NOT make it inherit, just notifies the syntax checker...
     pCharacterType->SetInheritance(pSpawnType);
     pBuffType->SetInheritance(pSpellType);
+    pTargetBuffType->SetInheritance(pSpellType);
     //pCurrentZoneType->SetInheritance(pZoneType);
     pRaidMemberType->SetInheritance(pSpawnType);
     pTargetType->SetInheritance(pSpawnType);
@@ -1845,6 +1848,46 @@ bool MQ2BuffType::GETMEMBER()
 #undef pBuff
 }
 
+bool MQ2TargetBuffType::GETMEMBER()
+{
+	//int theindex VarPtr.Int;
+    if (VarPtr.Int==-1)
+        return false;
+	int buffid = ((PCTARGETWND)pTargetWnd)->BuffSpellID[VarPtr.Int];
+    if (buffid<=0)
+        return false;
+    PMQ2TYPEMEMBER pMember=MQ2TargetBuffType::FindMember(Member);
+    if (!pMember)
+    {
+        if (PSPELL pSpell=GetSpellByID(buffid))
+        {
+#ifndef ISXEQ 
+            return pSpellType->GetMember(*(MQ2VARPTR*)&pSpell,Member,Index,Dest);
+#else
+            return pSpellType->GetMember(*(LSVARPTR*)&pSpell,Member,argc,argv,Dest);
+#endif
+        }
+        return false;
+    }
+
+    static CHAR Temp[128];
+    switch((TargetBuffMembers)pMember->ID)
+    {
+    case Address:
+		Dest.DWord=(DWORD)&((PCTARGETWND)pTargetWnd)->BuffSpellID[VarPtr.Int];
+		Dest.Type=pIntType;
+        return true;
+    case xIndex:
+		Dest.Int=VarPtr.Int;
+		Dest.Type=pIntType;
+        return true;
+    case Duration:
+		Dest.DWord = ((((PCTARGETWND)pTargetWnd)->BuffTimer[VarPtr.Int] / 1000) + 6) / 6;
+        Dest.Type=pTicksType;
+        return true;
+    }
+    return false;
+}
 
 bool MQ2CharacterType::GETMEMBER()
 {
@@ -4218,9 +4261,12 @@ bool MQ2SpellType::GETMEMBER()
 		Dest.Type=pStringType;
 		return true;
 	case Description:
-		Dest.DWord=pSpell->DescriptionNumber;
-		Dest.Type=pStringType;
-		return true;
+		if (Dest.Ptr= pCDBStr->GetString(pSpell->DescriptionNumber, 6, NULL)) 
+        {
+            Dest.Type=pStringType;
+            return true;
+        }
+        return false;
 	}
     return false;
 #undef pSpell
@@ -8270,6 +8316,7 @@ bool MQ2TargetType::GETMEMBER()
         }
 		return false;
     case AggroHolder:
+	{
 		//who the Target has the MOST aggro on
 		PCHAR pTargetAggroHolder = EQADDR_TARGETAGGROHOLDER;
         if(pTargetAggroHolder[0]!='\0')
@@ -8299,6 +8346,67 @@ bool MQ2TargetType::GETMEMBER()
 			//lets check
 		}
 		return false;
+	}
+	case Slowed:
+		if ((Dest.Int=GetTargetBufFBySPA(11,0))!=-1)
+        {
+            Dest.Type=pTargetBuffType;
+            return true;
+        }
+		break;
+	case Rooted:
+		if ((Dest.Int=GetTargetBufFBySPA(99,0))!=-1)//Root
+        {
+            Dest.Type=pTargetBuffType;
+            return true;
+        }
+		break;
+	case Mezzed:
+		if ((Dest.Int=GetTargetBufFBySPA(31,0))!=-1)//Entrall
+        {
+            Dest.Type=pTargetBuffType;
+            return true;
+        }
+		break;
+	case Crippled:
+		if ((Dest.Int=GetTargetBuffBySubCat("Disempowering"))!=-1)
+        {
+            Dest.Type=pTargetBuffType;
+            return true;
+        }
+		break;
+	case Malod:
+	case Tashed:
+		break;
+	case Snared:
+		if ((Dest.Int=GetTargetBufFBySPA(3,0))!=-1)//Movement Rate
+        {
+            Dest.Type=pTargetBuffType;
+            return true;
+        }
+		break;
+	case Hasted:
+		if ((Dest.Int=GetTargetBufFBySPA(11,1))!=-1)
+        {
+            Dest.Type=pTargetBuffType;
+            return true;
+        }
+		break;
+	case Aego:
+	case Skin:
+	case Focus:
+	case Regen:
+	case Symbol:
+	case Clarity:
+	case Pred:
+	case Strength:
+	case Brells:
+	case SV:
+	case SE:
+	case HybridHP:
+	case Growth:
+	case Shining:
+		break;
     }
     return false;
 }

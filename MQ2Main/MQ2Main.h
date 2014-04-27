@@ -473,7 +473,7 @@ EQLIB_API PCHAR GetLoginName();
 EQLIB_API FLOAT DistanceToPoint(PSPAWNINFO pSpawn, FLOAT xLoc, FLOAT yLoc);
 EQLIB_API PCHAR ShowSpellSlotInfo(PSPELL pSpell, PCHAR szBuffer);
 EQLIB_API VOID SlotValueCalculate(PCHAR szBuff, PSPELL pSpell, int i, double mp=1.0);
-EQLIB_API PCHAR GetSpellEffectName(DWORD EffectID, PCHAR szBuffer);
+EQLIB_API PCHAR GetSpellEffectName(LONG EffectID, PCHAR szBuffer);
 EQLIB_API VOID GetGameDate(int* Month, int* Day, int* Year);
 EQLIB_API VOID GetGameTime(int* Hour, int* Minute, int* Night);
 LEGACY_API VOID SyntaxError(PCHAR szFormat, ...);
@@ -593,7 +593,8 @@ EQLIB_API BOOL		  IsItemInsideContainer(PCONTENTS pItem);
 EQLIB_API BOOL		  PickupOrDropItem(DWORD type, PCONTENTS pItem);
 EQLIB_API BOOL		  OpenContainer(PCONTENTS pItem,bool hidden,bool flag = 0);
 EQLIB_API BOOL		  CloseContainer(PCONTENTS pItem);
-
+EQLIB_API int		  GetTargetBuffBySubCat(PCHAR subcat);
+EQLIB_API int		  GetTargetBufFBySPA(int spa,bool bIncrease);
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 // Functions that were built into commands and people used DoCommand to execute                  //
 

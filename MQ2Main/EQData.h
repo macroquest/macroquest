@@ -1379,9 +1379,9 @@ typedef struct _SPAWNINFO {
 /*0x11d0*/ DWORD        HideCorpse;
 /*0x11d4*/ BYTE         Unknown0x11d4[0x3c];
 /*0x1210*/ BYTE         InvitedToGroup;
-/*0x1211*/ BYTE         Unknown0x1211[0x7];
-/*0x1218*/ DWORD        GroupMemberTargeted;    // 0xFFFFFFFF if no target, else 1 through 5
-/*0x121c*/ BYTE         Unknown0x121c[0x180];
+/*0x1211*/ BYTE         Unknown0x1211[0x3];
+/*0x1214*/ DWORD        GroupMemberTargeted;    // 0xFFFFFFFF if no target, else 1 through 5
+/*0x1218*/ BYTE         Unknown0x1218[0x184];
 /*0x139c*/ struct _FELLOWSHIPINFO        Fellowship; // size 0x9e4
 /*0x1d80*/ FLOAT        CampfireY;
 /*0x1d84*/ FLOAT        CampfireX;

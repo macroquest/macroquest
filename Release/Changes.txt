@@ -1,7 +1,22 @@
+26 Mar 2014 by eqmule
+- Fixed Spell[some spell].Description
+  it now returns the correct string.
+- Added a Slowed,Rooted,Mezzed,Crippled,Snared and Hasted
+  to the TargetType TLO.
+  they all return a pTargetBuffType TLO which has 3 members:
+  Address (pIntType), Index (pIntType) and Duration (pTicksType).
+  It also inherits pSpellType.
+  This means that you can to stuff like:
+  /echo ${Target.Slowed.Name} will fade in ${Target.Slowed.Duration.TotalSeconds}s
+  [MQ2] Tepid Deeds will fade in 114s
+  /echo ${Target} will break mezz in ${Target.Mezzed.Duration.TotalSeconds}s
+  [MQ2] a_pyre_beetle48 will break mezz in 66s
+
 24 Mar 2014 by eqmule
 - Added exact match option to spawn searches (Suggested by: petesampras)
  example: /echo ${Spawn[=eqmule]} will find eqmule but not eqmulee.
--Added new TLO Member 'Inviter' to the character TLO. (its a pStringType)
+- Fixed GroupMemberTargeted (this means /target clear works again)
+- Added new TLO Member 'Inviter' to the character TLO. (its a pStringType)
  You can check ${Me.Invited} to see if you have a
  group invitation so I figured it would be useful
  to know who actually sent the invite:
@@ -239,7 +254,7 @@ so u should all have plently of time to adjust to this change.
 -Added new TLO "Task" its useful for shared tasks(quests).
  it has the following members:
  -Title returns a pStringType of the shared task.
- -Timer returns a pTickType of the amount of time left before task expires.
+ -Timer returns a pTicksType of the amount of time left before task expires.
  -Members returns a pIntType of how many members the task has.
  -Member returns a pTaskMemberType
   pTaskMemberType has the following members:

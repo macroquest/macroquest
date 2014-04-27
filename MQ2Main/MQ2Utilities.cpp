@@ -1561,9 +1561,9 @@ PCHAR ShowSpellSlotInfo(PSPELL pSpell, PCHAR szBuffer)
             } 
             break; 
         case 11: //haste mod 
-            if ( pSpell->Base[i] < 0 ) strcat(szBuff, " Decrease"); 
-            if ( pSpell->Base[i] > 0 ) strcat(szBuff, " Increase"); 
-			/*
+            //if ( pSpell->Base[i] < 0 ) strcat(szBuff, " Decrease"); 
+            //if ( pSpell->Base[i] > 0 ) strcat(szBuff, " Increase"); 
+			
             // Ziggy 31/12/04: Some haste buffs (Miraculous Visions) don't fill in the max slot, so use base instead. 
             if (pSpell->Max[i] == 0) { 
                 szBase=pSpell->Base[i]-100; 
@@ -1572,7 +1572,7 @@ PCHAR ShowSpellSlotInfo(PSPELL pSpell, PCHAR szBuffer)
             } 
             if ( szBase < 0 ) strcat(szBuff, " Decrease"); 
             if ( szBase > 0 ) strcat(szBuff, " Increase"); 
-			*/
+			
             strcat(szBuff, " by "); 
             SlotValueCalculate(szBuff, pSpell, i); 
             //_itoa(abs(szBase), szTemp, 10); strcat(szBuff, szTemp); 
@@ -2886,7 +2886,7 @@ PCHAR ShowSpellSlotInfo(PSPELL pSpell, PCHAR szBuffer)
             strcat(szBuff, " by "); 
             SlotValueCalculate(szBuff, pSpell, i); 
             if ( pSpell->DurationValue1 > 0 ) strcat(szBuff, " per tick"); 
-            //sprintf(szTemp, " Decrease Hitpoints by %d (L%d) to %d(L%d)", (pSpell->Max[i] + pSpell->Base[i]), pSpell->Level[8], pSpell->Max[i],MAX_PC_LEVEL); 
+            //sprintf(szTemp, " Decrease Hitpoints by %d (L%d) to %d(L%d)", (pSpell->Max[i] + pSpell->Base[i]), pSpell->Level[Bard], pSpell->Max[i],MAX_PC_LEVEL); 
             //strcat(szBuff, szTemp); 
             break;
 		case 335: //Fc_Immunity Focus
@@ -3402,11 +3402,12 @@ VOID SlotValueCalculate(PCHAR szBuff, PSPELL pSpell, int i, double mp)
 
     //find min level spell is usable 
 	//int minlevel=pSpell->ClassLevel[1];
-	int minlevel=((EQ_Spell*)pSpell)->GetSpellLevelNeeded(1);
+	int minlevel=((EQ_Spell*)pSpell)->GetSpellLevelNeeded(Warrior);
 	int maxlevel=MAX_PC_LEVEL;
 	int incrementblevel=0;
-    for (int j=1; j<=16; j++) 
-		if ( ((EQ_Spell*)pSpell)->GetSpellLevelNeeded(j)<minlevel )  minlevel=((EQ_Spell*)pSpell)->GetSpellLevelNeeded(j);
+    for (int j=Warrior; j<=Berserker; j++) 
+		if ( ((EQ_Spell*)pSpell)->GetSpellLevelNeeded(j)<minlevel )
+			minlevel=((EQ_Spell*)pSpell)->GetSpellLevelNeeded(j);
 
     switch(pSpell->Calc[i]) 
     { 
@@ -3484,6 +3485,126 @@ VOID SlotValueCalculate(PCHAR szBuff, PSPELL pSpell, int i, double mp)
 		else sprintf(szTemp, " (L%d) to %d (L%d)", minlevel, (long)(szMax*mp), maxlevel);
 		strcat(szBuff, szTemp);
 	}
+	//debugging info below
+	//sprintf(szTemp, " (inc: %0.2f, mp: %0.1f, calc: %d)", increment, mp, pSpell->Calc[i]);
+	//strcat(szBuff, szTemp);
+}
+
+VOID SlotValueCalculateOld(PCHAR szBuff, PSPELL pSpell, int i, double mp) 
+{ 
+    CHAR szTemp[MAX_STRING]={0};
+	LONG SPAID = pSpell->Attrib[i];
+    int level=0; 
+	double incrementa=0.00;
+	double incrementb=0.00;
+    int szBase = abs(pSpell->Base[i]);
+	int szMax = pSpell->Max[i];
+
+    //find min level spell is usable 
+	//int minlevel=pSpell->ClassLevel[1];
+	int minlevel=((EQ_Spell*)pSpell)->GetSpellLevelNeeded(Warrior);
+	int maxlevel=MAX_PC_LEVEL;
+	int incrementblevel=0;
+    for (int j=Warrior; j<=Berserker; j++) 
+		if ( ((EQ_Spell*)pSpell)->GetSpellLevelNeeded(j)<minlevel )
+			minlevel=((EQ_Spell*)pSpell)->GetSpellLevelNeeded(j);
+
+    switch(pSpell->Calc[i]) 
+    { 
+    case 0:
+	case 1:
+	case 2:
+	case 3:
+	case 4:
+	case 5:
+	case 6:
+	case 7:
+	case 8:
+	case 9:
+	case 10:
+		incrementa=pSpell->Calc[i];
+		break;
+	case 14:
+		incrementa=10.0;
+		incrementb=20.0;
+		incrementblevel=40;
+	case 100: // Display Base[i]
+		break;
+	case 101: // Level/2
+		incrementa=0.50;
+		break;
+	case 102:
+	case 103:
+	case 104:
+	case 105:
+		incrementa=pSpell->Calc[i]-101;
+		break;
+	case 109: // Level/4
+		incrementa=0.25;
+	case 110:
+		incrementa=1.00;
+		break;
+	case 119: // Display Max[i]
+	case 121: // Display Max[i]
+		sprintf(szTemp, "%d", (long)(szMax*mp));
+		strcat(szBuff, szTemp);
+		return;
+	case 123: // Display szBase[i] to Max[i] (random)
+		sprintf(szTemp, "%d to %d (random)", abs(szBase), (long)(szMax*mp));
+		strcat(szBuff, szTemp);
+		return;
+	case 201: // Display Max[i]
+	case 202: // Display Max[i]
+	case 203: // Display Max[i]
+	case 204: // Display Max[i]
+		sprintf(szTemp, "%d", (long)(szMax*mp));
+		strcat(szBuff, szTemp);
+		return;
+    default: //undefined calc 
+        sprintf(szTemp, "UnknownCalc: %d Range: %d->%d", pSpell->Calc[i], pSpell->Base[i], pSpell->Max[i]); 
+        strcat(szBuff, szTemp); 
+        return; 
+    } 
+
+	if (minlevel>MAX_PC_LEVEL) {
+		minlevel=1;
+		szBase=(long)(minlevel * (incrementa * mp) + szBase);
+	}
+	if (szMax==0) {
+		szMax=(long)((MAX_PC_LEVEL-minlevel) * (incrementa * mp) + (MAX_PC_LEVEL-incrementblevel) * (incrementb * mp) + szBase);
+	}
+	// Modify Base/Max for Haste Mod
+	if (SPAID==11) {
+		if(pSpell->Base[i]>100)//its a hastespell
+			szBase=pSpell->Base[i]-100;
+		else //its a slowspell
+			szBase=100-pSpell->Base[i];
+		szMax=pSpell->Max[i];
+	}
+	if (incrementa>0) {
+		if (incrementb>0) {
+			maxlevel=(int)((szMax-szBase-(incrementa*incrementblevel)) / incrementb + incrementblevel + minlevel);
+		} else {
+			szBase = (int)(minlevel * incrementa) + szBase;
+			maxlevel = ((szMax-szBase) * 2) + minlevel;
+			maxlevel=(int)((szMax-szBase) / incrementa + minlevel);
+		}
+	}
+	if (maxlevel>MAX_PC_LEVEL)
+		maxlevel=MAX_PC_LEVEL;
+	if (SPAID==11)
+		sprintf(szTemp, "%d%%", abs(szBase));
+	else
+		sprintf(szTemp, "%d", abs(szBase));
+	strcat(szBuff, szTemp);
+	if (SPAID==11) {
+		sprintf(szTemp, " (L%d) to %d%% (L%d)", minlevel, (long)(szMax*mp), maxlevel);
+		strcat(szBuff, szTemp);
+	} else if (szMax>szBase) {
+		sprintf(szTemp, " (L%d) to %d (L%d)", minlevel, (long)(szMax*mp), maxlevel);
+		strcat(szBuff, szTemp);
+	}
+
 	//debugging info below
 	//sprintf(szTemp, " (inc: %0.2f, mp: %0.1f, calc: %d)", increment, mp, pSpell->Calc[i]);
 	//strcat(szBuff, szTemp);
@@ -7090,6 +7211,66 @@ BOOL PickupOrDropItem(DWORD type, PCONTENTS pItem)
 		}*/
 	}
 	return FALSE;
+}
+int GetTargetBuffBySubCat(PCHAR subcat)
+{
+	if(!(((PCTARGETWND)pTargetWnd)->Type > 0))
+		return false;
+	int buffID = 0;
+	for(int i = 0; i < NUM_BUFF_SLOTS; i++)
+	{
+		buffID = ((PCTARGETWND)pTargetWnd)->BuffSpellID[i];
+		if(buffID > 0) {
+			PSPELL pSpell = GetSpellByID(buffID);
+			if(DWORD cat = pSpell->Subcategory) {
+				if (char *ptr = pCDBStr->GetString(cat, 5, NULL)) {
+					if(!_stricmp(ptr,subcat))  
+					{
+						return i;//Dest.DWord = ((((PCTARGETWND)pTargetWnd)->BuffTimer[i] / 1000) + 6)/6;
+					}
+				}
+			}
+		}
+	}
+	return -1;
+}
+//Usage: The spa is the spellaffect id, for example 11 for Melee Speed
+//       the bIncrease tells the function if we want spells that increase or decrease the SPA
+int GetTargetBufFBySPA(int spa,bool bIncrease)
+{
+	if(!(((PCTARGETWND)pTargetWnd)->Type > 0))
+		return false;
+	int buffID = 0;
+	for(int i = 0; i < NUM_BUFF_SLOTS; i++)
+	{
+		buffID = ((PCTARGETWND)pTargetWnd)->BuffSpellID[i];
+		if(buffID > 0) {
+			PSPELL pSpell = GetSpellByID(buffID);
+			if (LONG base = ((EQ_Spell *)pSpell)->GetSpellBaseByAttrib(spa)) {
+				//int test = ((CharacterZoneClient*)pCharData1)->CalcAffectChange((EQ_Spell*)pSpell,0,0,NULL,1,1);
+				if(spa==11)//Melee Speed
+				{
+					if(!bIncrease && base<100) {//below 100 means its a slow above its haste...
+						return i;
+					} else if(bIncrease && base>100) {
+						return i;
+					}
+					return -1;
+				}
+				if(spa==3)//Movement Rate
+				{
+					if(!bIncrease && base<0) {//below 0 means its a snare above its runspeed increase...
+						return i;
+					} else if(bIncrease && base>0) {
+						return i;
+					}
+					return -1;
+				}
+				return i;
+			}
+		}
+	}
+	return -1;
 }
 //                                                                                               //
 ///////////////////////////////////////////////////////////////////////////////////////////////////

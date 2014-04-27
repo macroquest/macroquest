@@ -1188,6 +1188,7 @@ EQLIB_VAR DWORD EQ_PC__AlertInventoryChanged;
 EQLIB_VAR DWORD EQ_PC__DestroyHeldItemOrMoney;
 EQLIB_VAR DWORD EQ_PC__GetAltAbilityIndex;
 EQLIB_VAR DWORD EQ_PC__GetCombatAbility;
+EQLIB_VAR DWORD EQ_PC__GetPcZoneClient;
 EQLIB_VAR DWORD EQ_PC__GetCombatAbilityTimer;
 EQLIB_VAR DWORD EQ_PC__GetItemTimerValue;
 EQLIB_VAR DWORD EQ_PC__HasLoreItem;
@@ -1243,7 +1244,9 @@ EQLIB_VAR DWORD CQuantityWnd__Open;
 
 EQLIB_VAR DWORD CHelpWnd__SetFile;
 EQLIB_VAR DWORD EQ_Spell__GetSpellLevelNeeded;
-
+EQLIB_VAR DWORD EQ_Spell__SpellAffects;
+EQLIB_VAR DWORD EQ_Spell__GetSpellBaseByAttrib;
+EQLIB_VAR DWORD CharacterZoneClient__CalcAffectChange;
 
 }
 using namespace MQ2Globals;

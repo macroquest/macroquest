@@ -637,7 +637,7 @@
 #define EQ_PC__GetItemTimerValue_x                                 0x58C5B0
 #define EQ_PC__HasLoreItem_x                                       0x586FD0
 #define EQ_PC__AlertInventoryChanged_x                             0x583DF0
-
+#define EQ_PC__GetPcZoneClient_x                                   0x5AC250
 // EQItemList 
 #define EQItemList__EQItemList_x                                   0x4E4400
 #define EQItemList__add_item_x                                     0x4E4340
@@ -699,3 +699,6 @@
 
 //EQ_Spell
 #define EQ_Spell__GetSpellLevelNeeded_x                            0x4B5760
+#define EQ_Spell__SpellAffects_x                                   0x4B5800
+#define EQ_Spell__GetSpellBaseByAttrib_x                           0x4B5830
+#define CharacterZoneClient__CalcAffectChange_x                    0x436080

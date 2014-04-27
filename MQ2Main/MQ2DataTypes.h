@@ -70,6 +70,7 @@ LEGACY_API class MQ2PluginType *pPluginType;
 LEGACY_VAR class MQ2SpawnType *pSpawnType;
 LEGACY_VAR class MQ2CharacterType *pCharacterType;
 LEGACY_VAR class MQ2BuffType *pBuffType;
+LEGACY_VAR class MQ2TargetBuffType *pTargetBuffType;
 LEGACY_VAR class MQ2SpellType *pSpellType;
 LEGACY_VAR class MQ2TicksType *pTicksType;
 
@@ -1408,7 +1409,56 @@ public:
         return false;
     }
 };
+class MQ2TargetBuffType : public MQ2Type
+{
+public:
+    static enum TargetBuffMembers
+    {
+        Address=1,
+        xIndex=2,
+        Duration=3,
+    };
+    MQ2TargetBuffType():MQ2Type("targetbuff")
+    {
+        TypeMember(Address);
+		AddMember(xIndex,"Index");
+        TypeMember(Duration);
+    }
 
+    ~MQ2TargetBuffType()
+    {
+    }
+	//buffID = ((PCTARGETWND)pTargetWnd)->BuffSpellID[i];
+    bool GETMEMBER();
+    //DECLAREGETMETHOD();
+    INHERITINDIRECT(pSpellType,Temp.Ptr=GetSpellByID(((PCTARGETWND)pTargetWnd)->BuffSpellID[ObjectData.Int]),0);
+    bool ToString(MQ2VARPTR VarPtr, PCHAR Destination)
+    {
+        if (VarPtr.Int==-1)
+            return false;
+		int buffid = ((PCTARGETWND)pTargetWnd)->BuffSpellID[VarPtr.Int];
+        if (buffid > 0)
+        {
+            if (PSPELL pSpell=GetSpellByID(buffid))
+            {
+                strcpy(Destination,pSpell->Name);
+                return true;
+            }
+        }
+        return false;
+    }
+    bool FromData(MQ2VARPTR &VarPtr, MQ2TYPEVAR &Source)
+    {
+        VarPtr.Int=Source.Int;
+        return true;
+    }
+
+    bool FromString(MQ2VARPTR &VarPtr, PCHAR Source)
+    {
+        VarPtr.Int=atoi(Source);
+        return true;
+    }
+};
 class MQ2ItemType : public MQ2Type
 {
 public:
@@ -3844,6 +3894,28 @@ public:
         SecondaryPctAggro = 5,
         SecondaryAggroPlayer = 6,
 		AggroHolder = 7,
+		Slowed = 8,
+		Rooted=9,
+		Mezzed=10,
+		Crippled=11,
+		Malod=12,
+		Tashed=13,
+		Snared=14,
+		Hasted=15,
+		Aego=16,
+		Skin=17,
+		Focus=18,
+		Regen=19,
+		Symbol=20,
+		Clarity=21,
+		Pred=22,
+		Strength=23,
+		Brells=24,
+		SV=25,
+		SE=26,
+		HybridHP=27,
+		Growth=28,
+		Shining=29,
     };
 
 #ifdef ISBOXER_COMPAT
@@ -3859,6 +3931,28 @@ public:
         TypeMember(SecondaryPctAggro);
         TypeMember(SecondaryAggroPlayer);
         TypeMember(AggroHolder);
+        TypeMember(Slowed);
+		TypeMember(Rooted);
+		TypeMember(Mezzed);
+		TypeMember(Crippled);
+		TypeMember(Malod);
+		TypeMember(Tashed);
+		TypeMember(Snared);
+		TypeMember(Hasted);
+		TypeMember(Aego);
+		TypeMember(Skin);
+		TypeMember(Focus);
+		TypeMember(Regen);
+		TypeMember(Symbol);
+		TypeMember(Clarity);
+		TypeMember(Pred);
+		TypeMember(Strength);
+		TypeMember(Brells);
+		TypeMember(SV);
+		TypeMember(SE);
+		TypeMember(HybridHP);
+		TypeMember(Growth);
+		TypeMember(Shining);
     }
 
     ~MQ2TargetType()

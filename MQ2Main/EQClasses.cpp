@@ -4319,8 +4319,8 @@ FUNCTION_AT_ADDRESS(unsigned char  EQ_Character::LaunchSpell(unsigned char,int,c
 #ifdef EQ_Character__HandleSpecialPCAffects_x
 FUNCTION_AT_ADDRESS(void  EQ_Character::HandleSpecialPCAffects(int),EQ_Character__HandleSpecialPCAffects);
 #endif
-#ifdef EQ_Character__CalcAffectChange_x
-FUNCTION_AT_ADDRESS(int  EQ_Character::CalcAffectChange(class EQ_Spell *,unsigned char,unsigned char,class EQ_Affect *),EQ_Character__CalcAffectChange);
+#ifdef CharacterZoneClient__CalcAffectChange_x
+FUNCTION_AT_ADDRESS(int  CharacterZoneClient::CalcAffectChange(class EQ_Spell *,unsigned char,unsigned char,class EQ_Affect *,DWORD,DWORD),CharacterZoneClient__CalcAffectChange);
 #endif
 #ifdef EQ_Character__GetPCSpellAffect_x
 FUNCTION_AT_ADDRESS(class EQ_Affect *  EQ_Character::GetPCSpellAffect(unsigned char,int *),EQ_Character__GetPCSpellAffect);
@@ -4580,6 +4580,9 @@ FUNCTION_AT_ADDRESS(int  EQ_PC::GetAltAbilityIndex(int),EQ_PC__GetAltAbilityInde
 #ifdef EQ_PC__GetCombatAbility_x
 FUNCTION_AT_ADDRESS(int  EQ_PC::GetCombatAbility(int),EQ_PC__GetCombatAbility);
 #endif
+#ifdef EQ_PC__GetPcZoneClient_x
+FUNCTION_AT_ADDRESS(class PcZoneClient *EQ_PC::GetPcZoneClient(void)const,EQ_PC__GetPcZoneClient);
+#endif
 #ifdef EQ_PC__GetCombatAbilityTimer_x
 FUNCTION_AT_ADDRESS(unsigned long  EQ_PC::GetCombatAbilityTimer(int),EQ_PC__GetCombatAbilityTimer);
 #endif
@@ -4819,6 +4822,9 @@ FUNCTION_AT_ADDRESS(int  EQ_Spell::IsPermIllusionSpell(void)const ,EQ_Spell__IsP
 #endif
 #ifdef EQ_Spell__GetSpellLevelNeeded_x
 FUNCTION_AT_ADDRESS(unsigned char EQ_Spell::GetSpellLevelNeeded(int)const ,EQ_Spell__GetSpellLevelNeeded);
+#endif
+#ifdef EQ_Spell__GetSpellBaseByAttrib_x
+FUNCTION_AT_ADDRESS(LONG  EQ_Spell::GetSpellBaseByAttrib(int)const ,EQ_Spell__GetSpellBaseByAttrib);
 #endif
 #ifdef EQOldPlayerAnimation__InitAnimationData_x
 FUNCTION_AT_ADDRESS(void __cdecl EQOldPlayerAnimation::InitAnimationData(void),EQOldPlayerAnimation__InitAnimationData);
@@ -9646,8 +9652,6 @@ FUNCTION_AT_ADDRESS(unsigned long PlayerPointManager::GetAltCurrency(unsigned lo
 #ifdef CharacterZoneClient__HasSkill_x
 FUNCTION_AT_ADDRESS(bool CharacterZoneClient::HasSkill(int), CharacterZoneClient__HasSkill);
 #endif
-
-
 #ifdef PcZoneClient__GetPcSkillLimit_x
 FUNCTION_AT_ADDRESS(int PcZoneClient::GetPcSkillLimit(int), PcZoneClient__GetPcSkillLimit);
 #endif

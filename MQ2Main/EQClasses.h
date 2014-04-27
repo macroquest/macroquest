@@ -352,6 +352,8 @@ class WrappedLogicalPacket;
 class ZlibUtil;
 class ZoneNPCLoadTextManager;
 class CTextOverlay;
+class PcZoneClient;
+class CharacterZoneClient;
 // End forward class declarations
 
 // Class declarations
@@ -5284,7 +5286,6 @@ EQLIB_OBJECT int EQ_Character::basesave_disease(void);
 EQLIB_OBJECT int EQ_Character::basesave_fire(void);
 EQLIB_OBJECT int EQ_Character::basesave_magic(void);
 EQLIB_OBJECT int EQ_Character::basesave_poison(void);
-EQLIB_OBJECT int EQ_Character::CalcAffectChange(class EQ_Spell *,unsigned char,unsigned char,class EQ_Affect *);
 EQLIB_OBJECT int EQ_Character::CalculateBardSongMod(int);
 EQLIB_OBJECT int EQ_Character::CanUseItem(class EQ_Item *);
 EQLIB_OBJECT int EQ_Character::CapStat(int,int);
@@ -5493,6 +5494,7 @@ EQLIB_OBJECT int EQ_PC::DelLoreItemDup(int,int,int,class EQ_Item *);
 EQLIB_OBJECT int EQ_PC::GetAltAbilityIndex(int);
 EQLIB_OBJECT int EQ_PC::GetArmorType(int);
 EQLIB_OBJECT int EQ_PC::GetCombatAbility(int);
+EQLIB_OBJECT class PcZoneClient *EQ_PC::GetPcZoneClient(void)const;
 EQLIB_OBJECT int EQ_PC::HandleMoney(long);
 EQLIB_OBJECT int EQ_PC::IsAGroupMember(char *);
 EQLIB_OBJECT int EQ_PC::MaxAirSupply(void);
@@ -5543,8 +5545,9 @@ EQLIB_OBJECT bool EQ_Spell::IsStackableDot(void)const;
 EQLIB_OBJECT int EQ_Spell::IsPermIllusionSpell(void)const;
 EQLIB_OBJECT int EQ_Spell::SpellUsesDragonBreathEffect(void);
 EQLIB_OBJECT static bool __cdecl EQ_Spell::IsSPAIgnoredByStacking(int);
-EQLIB_OBJECT unsigned char EQ_Spell::SpellAffects(int)const;
-EQLIB_OBJECT unsigned char EQ_Spell::GetSpellLevelNeeded(int Class)const;//takes a Class, druid for example is 6
+EQLIB_OBJECT unsigned char EQ_Spell::SpellAffects(int)const;//this one takes an attrib(soe calls it affect) and returns the index for it...
+EQLIB_OBJECT unsigned char EQ_Spell::GetSpellLevelNeeded(int)const;//takes a Class, druid for example is 6
+EQLIB_OBJECT LONG EQ_Spell::GetSpellBaseByAttrib(int)const;//takes a attrib, returns the baseval for it.
 SPELL Data;
 };
 
@@ -6953,18 +6956,17 @@ public:
 EQLIB_OBJECT unsigned long PlayerPointManager::GetAltCurrency(unsigned long,unsigned long b=1);
 };
 
-};
-
 class CharacterZoneClient
 {
 public:
+EQLIB_OBJECT int CharacterZoneClient::CalcAffectChange(class EQ_Spell *,unsigned char,unsigned char,class EQ_Affect *,DWORD,DWORD);
     bool HasSkill(int);
 };
 
 class PcZoneClient
 {
 public:
-    int GetPcSkillLimit(int);
+EQLIB_OBJECT int PcZoneClient::GetPcSkillLimit(int);
 };
-
+};
 using namespace EQClasses;
