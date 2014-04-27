@@ -382,7 +382,7 @@ enum MOUSE_DATA_TYPES {
    MD_Button1
 };
 
-#define nEQMappableCommands             0x153
+#define nEQMappableCommands             0x154
 
 #define MAX_PC_LEVEL                    90
 #define NUM_SPELL_GEMS                  12
@@ -818,9 +818,8 @@ typedef struct _CHARINFO {
 /*0x1308*/   DWORD      AAExp;
 /*0x130c*/   BYTE       Unknown0x130c;
 /*0x130d*/   BYTE       PercentEXPtoAA;
-/*0x130a*/   BYTE       Unknown0x130a[0x3e];
-/*0x134c*/   DWORD      TributeTimer;
-/*0x1350*/   DWORD      Unknown0x1350;
+/*0x130a*/   BYTE       Unknown0x130a[0x46];
+/*0x1350*/   DWORD      TributeTimer;
 /*0x1354*/   DWORD      Unknown0x1354;
 /*0x1358*/   DWORD      CareerFavor;
 /*0x135c*/   DWORD      Unknown0x135c;

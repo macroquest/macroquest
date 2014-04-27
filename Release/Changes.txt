@@ -1,3 +1,6 @@
+11 October 2011 by ieatacid
+- Fixed Me.TributeTimer
+
 15 September 2011 by ieatacid
 - Updated for today's patch
 
