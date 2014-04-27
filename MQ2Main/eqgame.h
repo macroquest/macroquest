@@ -548,7 +548,7 @@
 // 
 // Note:  dCXStr, CXStr1, & CXStr3 can be found in the 'BookWindow' constructor. 
 #define CXStr__CXStr_x                                             0x558690
-#define CXStr__CXStr1_x                                            0x46D8B0
+#define CXStr__CXStr1_x                                            0x4B0390
 #define CXStr__CXStr3_x                                            0x7FDBD0
 #define CXStr__dCXStr_x                                            0x41CBC0
 #define CXStr__operator_equal_x                                    0x7FDD40

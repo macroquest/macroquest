@@ -19,8 +19,8 @@ GNU General Public License for more details.
 // Original MQ2Data update by CyberCide... but it didn't work like the rest of
 //  MQ2Data so Lax redid it.
 //
-#include "netstream.h"
 #include "../MQ2Plugin.h"
+#include "netstream.h"
 
 
 PLUGIN_VERSION(1.1);
@@ -277,7 +277,7 @@ public:
 
         _BazaarSearchResponsePacket bzResponse;
         memset(&bzResponse, 0, sizeof(bzrItemData));
-        NetStream ns((uint8_t*)bz->pData, bz->nSize);
+        NetStream ns((BYTE*)bz->pData, bz->nSize);
         _BAZAARSEARCHWND *pBzWnd = *((_BAZAARSEARCHWND**)pinstCBazaarSearchWnd);
         DWORD nIndex = 0;
 

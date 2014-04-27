@@ -12,7 +12,7 @@
 #include "netstream.h"
 
 
-NetStream::NetStream(const uint8_t* data, size_t length)
+NetStream::NetStream(const unsigned char* data, unsigned int length)
   : m_data(data),
     m_length(length)
 {
@@ -31,9 +31,9 @@ void NetStream::reset()
   m_pos = m_data;
 }
 
-uint8_t NetStream::readUInt8()
+unsigned char NetStream::readUInt8()
 {
-  uint8_t val;
+  unsigned char val;
 
   // make sure there is enough data left
   if ((m_lastPos - m_pos) >= 1)
@@ -48,15 +48,15 @@ uint8_t NetStream::readUInt8()
   return val;
 }
 
-int8_t NetStream::readInt8()
+signed char NetStream::readInt8()
 {
-  int8_t val;
+  signed char val;
 
   // make sure there is enough data left
   if ((m_lastPos - m_pos) >= 1)
   {
     // convert the data and increment past it
-    val = *(int8_t*)m_pos;
+    val = *(signed char*)m_pos;
     m_pos++;
   }
   else 
@@ -65,9 +65,9 @@ int8_t NetStream::readInt8()
   return val;
 }
 
-uint16_t NetStream::readUInt16n()
+unsigned short NetStream::readUInt16n()
 {
-  uint16_t val;
+  unsigned short val;
 
   // make sure there is enough data left
   if ((m_lastPos - m_pos) >= 2)
@@ -82,9 +82,9 @@ uint16_t NetStream::readUInt16n()
   return val;
 }
 
-int16_t NetStream::readInt16()
+short NetStream::readInt16()
 {
-  int16_t val;
+  short val;
 
   // make sure there is enough data left
   if ((m_lastPos - m_pos) >= 2)
@@ -99,9 +99,9 @@ int16_t NetStream::readInt16()
   return val;
 }
 
-uint32_t NetStream::readUInt32n()
+unsigned int NetStream::readUInt32n()
 {
-  uint32_t val;
+  unsigned int val;
 
   // make sure there is enough data left
   if ((m_lastPos - m_pos) >= 4)
@@ -116,9 +116,9 @@ uint32_t NetStream::readUInt32n()
   return val;
 }
 
-int32_t NetStream::readInt32()
+int NetStream::readInt32()
 {
-  uint32_t val;
+  unsigned int val;
 
   // make sure there is enough data left
   if ((m_lastPos - m_pos) >= 4)
@@ -139,13 +139,13 @@ std::string NetStream::readText()
   if (m_pos < m_lastPos)
   {
     // note the starting positino
-    const uint8_t* startPos = m_pos;
+    const unsigned char* startPos = m_pos;
     
     // search for the end of the NULL terminated string
     while ((*m_pos != '\0') && (m_pos < m_lastPos))
       m_pos++;
     
-    size_t len = m_pos - startPos;
+    unsigned int len = m_pos - startPos;
 
     // skip over trailing null
     if (m_pos < m_lastPos)
@@ -158,9 +158,9 @@ std::string NetStream::readText()
     return std::string();
 }
 
-uint16_t NetStream::readUInt16()
+unsigned short NetStream::readUInt16()
 {
-    uint16_t val;
+    unsigned short val;
 
   // make sure there is enough data left
     if ((m_lastPos - m_pos) >= 2)
@@ -175,9 +175,9 @@ uint16_t NetStream::readUInt16()
     return val;
 }
 
-uint32_t NetStream::readUInt32()
+unsigned int NetStream::readUInt32()
 {
-  uint32_t val;
+  unsigned int val;
 
   // make sure there is enough data left
   if ((m_lastPos - m_pos) >= 4)
@@ -192,15 +192,15 @@ uint32_t NetStream::readUInt32()
   return val;
 }
 
-void NetStream::skipBytes(size_t byteCount)
+void NetStream::skipBytes(unsigned int byteCount)
 {
-  if (uint32_t(m_lastPos - m_pos) >= byteCount)
+  if (unsigned int(m_lastPos - m_pos) >= byteCount)
   {
     m_pos += byteCount;
   }
 }
 
-BitStream::BitStream(const uint8_t* data, size_t length)
+BitStream::BitStream(const unsigned char* data, unsigned int length)
   : m_data(data)
 {
     // Length in bits.
@@ -218,7 +218,7 @@ void BitStream::reset()
     m_currentBit = 0;
 }
 
-uint32_t BitStream::readUInt(size_t bitCount)
+unsigned int BitStream::readUInt(unsigned int bitCount)
 {
     // Make sure we have the bits first.
     if (m_currentBit + bitCount > m_totalBits)
@@ -226,13 +226,13 @@ uint32_t BitStream::readUInt(size_t bitCount)
         return 0;
     }
 
-    const uint8_t* currentByte = m_data + (m_currentBit >> 3);
-    uint32_t out = 0;
+    const unsigned char* currentByte = m_data + (m_currentBit >> 3);
+    unsigned int out = 0;
 
     // Partial bytes in the lead and end. Full bytes in the middle.
-    size_t leadPartialBitCount = 8 - (m_currentBit % 8);
-    size_t middleByteCount;
-    size_t tailPartialBitCount;
+    unsigned int leadPartialBitCount = 8 - (m_currentBit % 8);
+    unsigned int middleByteCount;
+    unsigned int tailPartialBitCount;
 
     if (leadPartialBitCount == 8)
     {
@@ -267,7 +267,7 @@ uint32_t BitStream::readUInt(size_t bitCount)
     }
 
     // Middle
-    for (size_t i=0; i<middleByteCount; i++)
+    for (unsigned int i=0; i<middleByteCount; i++)
     {
         out = (out << 8) | *currentByte;
         currentByte++;
@@ -286,11 +286,11 @@ uint32_t BitStream::readUInt(size_t bitCount)
     return out;
 }
 
-int32_t BitStream::readInt(size_t bitCount)
+int BitStream::readInt(unsigned int bitCount)
 {
     // Sign
-    uint32_t sign = readUInt(1);
-    uint32_t retval = readUInt(bitCount - 1);
+    unsigned int sign = readUInt(1);
+    unsigned int retval = readUInt(bitCount - 1);
 
     return retval * (sign ? -1 : 1);
 }

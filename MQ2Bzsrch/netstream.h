@@ -11,37 +11,36 @@
 #ifndef _NETSTREAM_H_
 #define _NETSTREAM_H_
 
-#include <stdint.h>
 #include <string>
 
 class NetStream
 {
  public:
-  NetStream(const uint8_t* data, size_t length);
+  NetStream(const unsigned char* data, unsigned int length);
   ~NetStream();
 
-  const uint8_t* data() { return m_data; }
-  size_t length() { return m_length; }
+  const unsigned char* data() { return m_data; }
+  unsigned int length() { return m_length; }
   void reset();
   bool end() { return (m_pos >= m_lastPos); }
-  const uint8_t* pos() { return m_pos; }
+  const unsigned char* pos() { return m_pos; }
 
-  uint8_t readUInt8();
-  int8_t readInt8();
-  uint16_t readUInt16n();
-  int16_t readInt16();
-  uint32_t readUInt32n();
-  int32_t readInt32();
+  unsigned char readUInt8();
+  signed char readInt8();
+  unsigned short readUInt16n();
+  short readInt16();
+  unsigned int readUInt32n();
+  int readInt32();
   std::string readText();
-  uint16_t readUInt16();
-  uint32_t readUInt32();
-  void skipBytes(size_t byteCount);
+  unsigned short readUInt16();
+  unsigned int readUInt32();
+  void skipBytes(unsigned int byteCount);
 
  protected:
-  const uint8_t* m_data;
-  size_t m_length;
-  const uint8_t* m_lastPos;
-  const uint8_t* m_pos;
+  const unsigned char* m_data;
+  unsigned int m_length;
+  const unsigned char* m_lastPos;
+  const unsigned char* m_pos;
 };
 
 /**
@@ -51,64 +50,64 @@ class NetStream
 class BitStream
 {
 public:
-    BitStream(const uint8_t* data, size_t length);
+    BitStream(const unsigned char* data, unsigned int length);
     ~BitStream();
 
-    const uint8_t* data() { return m_data; }
-    size_t length() { return m_totalBits >> 3; }
+    const unsigned char* data() { return m_data; }
+    unsigned int length() { return m_totalBits >> 3; }
     void reset();
     bool end() { return (m_currentBit >= m_totalBits); }
 
     bool readBit();
-    uint32_t readUInt(size_t bitCount);
-    int32_t readInt(size_t bitCount);
+    unsigned int readUInt(unsigned int bitCount);
+    int readInt(unsigned int bitCount);
 
 protected:
-    const uint8_t* m_data;
-    size_t m_totalBits;
-    size_t m_currentBit;
+    const unsigned char* m_data;
+    unsigned int m_totalBits;
+    unsigned int m_currentBit;
 };
 
-inline uint16_t eqntohuint16(const uint8_t* data)
+inline unsigned short eqntohuint16(const unsigned char* data)
 {
-    return (uint16_t)((data[0] << 8) | data[1]);
+    return (unsigned short)((data[0] << 8) | data[1]);
 }
 
-inline int16_t eqntohint16(const uint8_t* data)
+inline short eqntohint16(const unsigned char* data)
 {
-    return (int16_t)((data[0] << 8) | data[1]);
+    return (short)((data[0] << 8) | data[1]);
 }
 
-inline  uint32_t eqntohuint32(const uint8_t* data)
+inline  unsigned int eqntohuint32(const unsigned char* data)
 {
-    return (uint32_t)((data[0] << 24) | (data[1] << 16) |
+    return (unsigned int)((data[0] << 24) | (data[1] << 16) |
         (data[2] << 8) | data[3]);
 }
 
-inline int32_t eqntohint32(const uint8_t* data)
+inline int eqntohint32(const unsigned char* data)
 {
-    return (int32_t)((data[0] << 24) | (data[1] << 16) |
+    return (int)((data[0] << 24) | (data[1] << 16) |
         (data[2] << 8) | data[3]);
 }
 
-inline uint16_t eqtohuint16(const uint8_t* data)
+inline unsigned short eqtohuint16(const unsigned char* data)
 {
-    return *(uint16_t*)data;
+    return *(unsigned short*)data;
 }
 
-inline int16_t eqtohint16(const uint8_t* data)
+inline short eqtohint16(const unsigned char* data)
 {
-    return *(int16_t*)data;
+    return *(short*)data;
 }
 
-inline uint32_t eqtohuint32(const uint8_t* data)
+inline unsigned int eqtohuint32(const unsigned char* data)
 {
-    return *(uint32_t*)data;
+    return *(unsigned int*)data;
 }
 
-inline int32_t eqtohint32(const uint8_t* data)
+inline int eqtohint32(const unsigned char* data)
 {
-    return *(int32_t*)data;
+    return *(int*)data;
 }
 
 #endif // _NETSTREAM_H_
