@@ -485,10 +485,13 @@ LEGACY_API VOID MQ2DataError(PCHAR szFormat, ...);
 #endif
 EQLIB_API void DisplayOverlayText(PCHAR szText, DWORD dwColor, DWORD dwTransparency, DWORD msFadeIn, DWORD msFadeOut, DWORD msHold);
 
+EQLIB_API BOOL IsBardSong(PSPELL pSpell);
+EQLIB_API BOOL IsSPAEffect(PSPELL pSpell, LONG EffectID);
 EQLIB_API bool GetShortBuffID(PSPELLBUFF pBuff, DWORD &nID);
 EQLIB_API bool GetBuffID(PSPELLBUFF pBuff, DWORD &nID);
 EQLIB_API PCHAR GetLDoNTheme(DWORD LDTheme);
-EQLIB_API bool BuffStackTest(PSPELL aSpell, PSPELL bSpell);
+EQLIB_API BOOL TriggeringEffectSpell (PSPELL aSpell, int i);
+EQLIB_API BOOL BuffStackTest(PSPELL aSpell, PSPELL bSpell);
 EQLIB_API DWORD GetItemTimer(PCONTENTS pItem);
 EQLIB_API PCONTENTS GetItemContentsBySlotID(DWORD dwSlotID);
 EQLIB_API PCONTENTS GetItemContentsByName(CHAR *ItemName);

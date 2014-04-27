@@ -129,6 +129,7 @@ BOOL ParseINIFile(PCHAR lpINIPath)
     gbExactSearchCleanNames = 1==GetPrivateProfileInt("MacroQuest","ExactSearchCleanNames",0,Filename);
     gbTimeStampChat = 1==GetPrivateProfileInt("MacroQuest","TimeStampChat",0,Filename);
     gbBeepOnTells = 1==GetPrivateProfileInt("MacroQuest","BeepOnTells",0,Filename);
+	gCreateMQ2NewsWindow = 1==GetPrivateProfileInt("MacroQuest","CreateMQ2NewsWindow",1,Filename);
 	
     GetPrivateProfileString("MacroQuest","HUDMode","UnderUI",CustomSettings,MAX_STRING,Filename);
     if (!stricmp(CustomSettings,"normal")) {

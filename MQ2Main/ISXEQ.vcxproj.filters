@@ -1,0 +1,179 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="Source Files">
+      <UniqueIdentifier>{61224fa6-af58-4fad-9532-068dfd13b62d}</UniqueIdentifier>
+      <Extensions>cpp;c;cxx;def;odl;idl;hpj;bat;asm</Extensions>
+    </Filter>
+    <Filter Include="Source Files\From MQ2Main">
+      <UniqueIdentifier>{d7dc6865-7b20-48ec-ade1-a44883056ce4}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files">
+      <UniqueIdentifier>{38b4d8f3-473b-44c6-b103-171f90e09c48}</UniqueIdentifier>
+      <Extensions>h;hpp;hxx;hm;inl;inc</Extensions>
+    </Filter>
+    <Filter Include="Header Files\From MQ2Main">
+      <UniqueIdentifier>{e48309d0-17e2-42c3-a827-a8bbdcf2a400}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Build Files">
+      <UniqueIdentifier>{aa579893-08a9-4e01-a943-efc2f155f80b}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="ISXEQ\ISXEQ.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="ISXEQ\ISXEQCommandAPI.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="ISXEQ\ISXEQCommands.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="ISXEQ\ISXEQDataTypes.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="ISXEQ\ISXEQServices.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="ISXEQ\ISXEQTopLevelObjects.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="ISXEQ\ISXEQUtilities.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="EQClasses.cpp">
+      <Filter>Source Files\From MQ2Main</Filter>
+    </ClCompile>
+    <ClCompile Include="MQ2Benchmarks.cpp">
+      <Filter>Source Files\From MQ2Main</Filter>
+    </ClCompile>
+    <ClCompile Include="MQ2ChatHook.cpp">
+      <Filter>Source Files\From MQ2Main</Filter>
+    </ClCompile>
+    <ClCompile Include="MQ2CleanUI.cpp">
+      <Filter>Source Files\From MQ2Main</Filter>
+    </ClCompile>
+    <ClCompile Include="MQ2Commands.cpp">
+      <Filter>Source Files\From MQ2Main</Filter>
+    </ClCompile>
+    <ClCompile Include="MQ2Data.cpp">
+      <Filter>Source Files\From MQ2Main</Filter>
+    </ClCompile>
+    <ClCompile Include="MQ2DataTypes.cpp">
+      <Filter>Source Files\From MQ2Main</Filter>
+    </ClCompile>
+    <ClCompile Include="MQ2DetourAPI.cpp">
+      <Filter>Source Files\From MQ2Main</Filter>
+    </ClCompile>
+    <ClCompile Include="MQ2Globals.cpp">
+      <Filter>Source Files\From MQ2Main</Filter>
+    </ClCompile>
+    <ClCompile Include="MQ2KeyBinds.cpp">
+      <Filter>Source Files\From MQ2Main</Filter>
+    </ClCompile>
+    <ClCompile Include="MQ2MacroCommands.cpp">
+      <Filter>Source Files\From MQ2Main</Filter>
+    </ClCompile>
+    <ClCompile Include="MQ2Main.cpp">
+      <Filter>Source Files\From MQ2Main</Filter>
+    </ClCompile>
+    <ClCompile Include="MQ2Mouse.cpp">
+      <Filter>Source Files\From MQ2Main</Filter>
+    </ClCompile>
+    <ClCompile Include="MQ2Pulse.cpp">
+      <Filter>Source Files\From MQ2Main</Filter>
+    </ClCompile>
+    <ClCompile Include="MQ2Spawns.cpp">
+      <Filter>Source Files\From MQ2Main</Filter>
+    </ClCompile>
+    <ClCompile Include="MQ2Utilities.cpp">
+      <Filter>Source Files\From MQ2Main</Filter>
+    </ClCompile>
+    <ClCompile Include="MQ2Windows.cpp">
+      <Filter>Source Files\From MQ2Main</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="ISXEQ\ISXEQ.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\ISXEQClient.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="ISXEQ\ISXEQCommandList.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="ISXEQ\ISXEQCommands.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="ISXEQ\ISXEQServices.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="ISXEQ\ISXEQTopLevelObjects.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="ISXEQ\ISXEQUtilities.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Blech\Blech.h">
+      <Filter>Header Files\From MQ2Main</Filter>
+    </ClInclude>
+    <ClInclude Include="EQClasses.h">
+      <Filter>Header Files\From MQ2Main</Filter>
+    </ClInclude>
+    <ClInclude Include="EQData.h">
+      <Filter>Header Files\From MQ2Main</Filter>
+    </ClInclude>
+    <ClInclude Include="EQUIStructs.h">
+      <Filter>Header Files\From MQ2Main</Filter>
+    </ClInclude>
+    <ClInclude Include="MQ2DataTypes.h">
+      <Filter>Header Files\From MQ2Main</Filter>
+    </ClInclude>
+    <ClInclude Include="MQ2Globals.h">
+      <Filter>Header Files\From MQ2Main</Filter>
+    </ClInclude>
+    <ClInclude Include="MQ2Inlines.h">
+      <Filter>Header Files\From MQ2Main</Filter>
+    </ClInclude>
+    <ClInclude Include="MQ2Internal.h">
+      <Filter>Header Files\From MQ2Main</Filter>
+    </ClInclude>
+    <ClInclude Include="MQ2Main.h">
+      <Filter>Header Files\From MQ2Main</Filter>
+    </ClInclude>
+    <ClInclude Include="MQ2Prototypes.h">
+      <Filter>Header Files\From MQ2Main</Filter>
+    </ClInclude>
+    <ClInclude Include="MQ2TopLevelObjects.h">
+      <Filter>Header Files\From MQ2Main</Filter>
+    </ClInclude>
+    <ClInclude Include="eqgame.h">
+      <Filter>Header Files\From MQ2Main</Filter>
+    </ClInclude>
+    <ClInclude Include="grounds.h">
+      <Filter>Header Files\From MQ2Main</Filter>
+    </ClInclude>
+    <ClInclude Include="itemtypes.h">
+      <Filter>Header Files\From MQ2Main</Filter>
+    </ClInclude>
+    <ClInclude Include="skills.h">
+      <Filter>Header Files\From MQ2Main</Filter>
+    </ClInclude>
+    <ClInclude Include="weapons.h">
+      <Filter>Header Files\From MQ2Main</Filter>
+    </ClInclude>
+    <ClInclude Include="DataTypeList.h">
+      <Filter>Header Files\From MQ2Main</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="..\Release\Changes-ISXEQ.txt" />
+    <None Include="..\ISXEQ\isxGamesCommon.props">
+      <Filter>Build Files</Filter>
+    </None>
+    <None Include="..\ISXEQ\PostBuild.bat">
+      <Filter>Build Files</Filter>
+    </None>
+  </ItemGroup>
+</Project>

@@ -1329,6 +1329,29 @@ FLOAT DistanceToPoint(PSPAWNINFO pSpawn, FLOAT xLoc, FLOAT yLoc)
     FLOAT Y = pSpawn->Y - yLoc; 
     return sqrtf(X*X + Y*Y); 
 }
+
+// *************************************************************************** 
+// Function:    IsBardSong
+// Description: Return TRUE if the spell is a bard song
+// *************************************************************************** 
+BOOL IsBardSong(PSPELL pSpell)
+{ 
+    return (((EQ_Spell*)pSpell)->GetSpellLevelNeeded(Bard)<=MAX_PC_LEVEL)
+				&& !(pSpell->DurationWindow);
+}
+
+// *************************************************************************** 
+// Function:    IsSPAEffect
+// Description: Return TRUE if the spell contains the SPAEffect
+// *************************************************************************** 
+BOOL IsSPAEffect(PSPELL pSpell, LONG EffectID)
+{ 
+    for (int slot=0; slot<12; slot++) 
+		if (pSpell->Attrib[slot]==EffectID)
+			return true;
+    return false;
+}
+
 // *************************************************************************** 
 // Function:    GetSpellRestrictions 
 // Author: htw
@@ -2716,10 +2739,14 @@ PCHAR ShowSpellSlotInfo(PSPELL pSpell, PCHAR szBuffer)
 			sprintf(szTemp, " (%d) (Please Check)", pSpell->Base[i]); 
             strcat(szBuff, szTemp); 
 			break;
-        case 289: //Improved Spell Effect 
-            sprintf(szTemp,": %s",GetSpellByID(pSpell->Base[i])->Name); 
-            strcat(szBuff,szTemp); 
-            break; 
+        case 289: //Improved Spell Effect
+		{
+			if(PSPELL pEffect = GetSpellByID(pSpell->Base[i])) {
+				sprintf(szTemp,": %s",pEffect->Name); 
+				strcat(szBuff,szTemp);
+			}
+            break;
+		}
         case 290://Increase Movement Cap
 			sprintf(szTemp, " (%d) (Please Check)", pSpell->Base[i]); 
             strcat(szBuff, szTemp); 
@@ -2876,10 +2903,14 @@ PCHAR ShowSpellSlotInfo(PSPELL pSpell, PCHAR szBuffer)
 			break;
         case 332: //Call of the Wild 
             break; 
-        case 333: //Trigger on fade 
-            sprintf(szTemp,": %s on Fade",GetSpellByID(pSpell->Base[i])->Name); 
-            strcat(szBuff,szTemp); 
-            break; 
+        case 333: //Trigger on fade
+		{
+			if(PSPELL pEffect = GetSpellByID(pSpell->Base[i])) {
+				sprintf(szTemp,": %s on Fade",pEffect->Name); 
+				strcat(szBuff,szTemp); 
+			}
+            break;
+		}
         case 334: //Song DoT 
             if ( pSpell->Base[i] < 0 ) strcat(szBuff, " Decrease"); 
             if ( pSpell->Base[i] > 0 ) strcat(szBuff, " Increase"); 
@@ -2980,10 +3011,16 @@ PCHAR ShowSpellSlotInfo(PSPELL pSpell, PCHAR szBuffer)
 			sprintf(szTemp, " (%d)", pSpell->Base[i]); 
             strcat(szBuff, szTemp); 
             break; 
-		case 360: //Killshot Triggers 
-            if (pSpell->Base2[i]) sprintf(szTemp,"Chance to Trigger on Non-Trivial Killshot: %s", GetSpellByID(pSpell->Base2[i])->Name); 
-            strcat(szBuff,szTemp); 
-            break; 
+		case 360: //Killshot Triggers
+		{
+            if (pSpell->Base2[i]) {
+				if(PSPELL pEffect = GetSpellByID(pSpell->Base2[i])) {
+					sprintf(szTemp,"Chance to Trigger on Non-Trivial Killshot: %s", pEffect->Name); 
+					strcat(szBuff,szTemp);
+				}
+			}
+            break;
+		}
 		case 361: //Proc On Death
 			sprintf(szTemp, " (%d)", pSpell->Base[i]); 
             strcat(szBuff, szTemp); 
@@ -3000,9 +3037,15 @@ PCHAR ShowSpellSlotInfo(PSPELL pSpell, PCHAR szBuffer)
             //sprintf(szTemp, " by %d%%",pSpell->Base[i]); 
             //strcat(szBuff, szTemp); 
 		case 365: //Chance to Create EE on killshot 
-            if (pSpell->Base2[i]) sprintf(szTemp,"Chance to Trigger on Non-Trivial Killshot: %s by %d%%", GetSpellByID(pSpell->Base2[i])->Name, pSpell->Base[i]); 
-            strcat(szBuff,szTemp); 
-            break; 
+		{	
+			if (pSpell->Base2[i]) {
+				if(PSPELL pEffect = GetSpellByID(pSpell->Base2[i])) {
+					sprintf(szTemp,"Chance to Trigger on Non-Trivial Killshot: %s by %d%%", pEffect->Name, pSpell->Base[i]); 
+					strcat(szBuff,szTemp);
+				}
+			}
+            break;
+		}
 		case 366: //Group Shielding
 			sprintf(szTemp, " (%d)", pSpell->Base[i]); 
             strcat(szBuff, szTemp); 
@@ -3401,7 +3444,7 @@ VOID SlotValueCalculate(PCHAR szBuff, PSPELL pSpell, int i, double mp)
 	long szMax = pSpell->Max[i];
 
     //find min level spell is usable 
-	//int minlevel=pSpell->ClassLevel[1];
+	//int minlevel=pSpell->ClassLevel[Warrior];
 	int minlevel=((EQ_Spell*)pSpell)->GetSpellLevelNeeded(Warrior);
 	int maxlevel=MAX_PC_LEVEL;
 	int incrementblevel=0;
@@ -5341,16 +5384,12 @@ BOOL SpawnMatchesSearch(PSEARCHSPAWN pSearchSpawn, PSPAWNINFO pChar, PSPAWNINFO 
                 return FALSE;
         }
     }
-	if(gbExactSearchCleanNames)
-		pSearchSpawn->bExactName = 1;
     _strlwr(strcpy(szName,pSpawn->Name));
     _strlwr(strcpy(szSearchName,pSearchSpawn->szName));
-	if (!strstr(szName,szSearchName) && !strstr(CleanupName(szName,FALSE),szSearchName))
-		return FALSE;
-	if(pSearchSpawn->bExactName) {
-		if (stricmp(CleanupName(szName,FALSE,FALSE),pSearchSpawn->szName))
-			return FALSE;
-	}
+    if (!strstr(szName,szSearchName) && !strstr(CleanupName(szName,FALSE),szSearchName))
+        return FALSE;
+    if (pSearchSpawn->bExactName && stricmp(CleanupName(szName,FALSE,!gbExactSearchCleanNames),pSearchSpawn->szName))
+        return FALSE;
     if (pSearchSpawn->MinLevel && pSpawn->Level < pSearchSpawn->MinLevel)
         return FALSE;
     if (pSearchSpawn->MaxLevel && pSpawn->Level > pSearchSpawn->MaxLevel)
@@ -6490,11 +6529,23 @@ DWORD GetGameState(VOID)
 }
 
 // ***************************************************************************
+// Function:    TriggeringEffectSpell
+// Description: Return boolean true if the spell effect is to be ignored
+//              for stacking purposes
+// ***************************************************************************
+BOOL TriggeringEffectSpell (PSPELL aSpell, int i)
+{
+	return ((aSpell->Attrib[i]==85)		// Add Proc
+		 || (aSpell->Attrib[i]==374) 	// Trigger Spell
+		 || (aSpell->Attrib[i]==419));	// Contact_Ability_2
+}
+
+// ***************************************************************************
 // Function:    SpellEffectTest
 // Description: Return boolean true if the spell effect is to be ignored
 //              for stacking purposes
 // ***************************************************************************
-bool SpellEffectTest (PSPELL aSpell, PSPELL bSpell, int i){
+BOOL SpellEffectTest (PSPELL aSpell, PSPELL bSpell, int i){
 	return ((aSpell->Attrib[i]==57 || bSpell->Attrib[i]==57)		// Levitate
 		 || (aSpell->Attrib[i]==134 || bSpell->Attrib[i]==134)		// Limit: Max Level
 		 || (aSpell->Attrib[i]==135 || bSpell->Attrib[i]==135)		// Limit: Resist
@@ -6509,36 +6560,20 @@ bool SpellEffectTest (PSPELL aSpell, PSPELL bSpell, int i){
 		 || (aSpell->Attrib[i]==144 || bSpell->Attrib[i]==144)		// Limit: Max Cast Time
 		 || (aSpell->Attrib[i]==254 || bSpell->Attrib[i]==254)		// Placeholder
 		 || (aSpell->Attrib[i]==311 || bSpell->Attrib[i]==311)		// Limit: Combat Skills not Allowed
+		 || (aSpell->Attrib[i]==339 || bSpell->Attrib[i]==339)		// Trigger DoT on cast
+		 || (aSpell->Attrib[i]==340 || bSpell->Attrib[i]==340)		// Trigger DD on cast
+		 || (aSpell->Attrib[i]==348 || bSpell->Attrib[i]==348)		// Limit: Min Mana
 		 || (aSpell->Attrib[i]==385 || bSpell->Attrib[i]==385)		// Limit: SpellGroup
 		 || (aSpell->Attrib[i]==391 || bSpell->Attrib[i]==391)		// Limit: Max Mana
 		 || (aSpell->Attrib[i]==403 || bSpell->Attrib[i]==403)		// Limit: SpellClass
 		 || (aSpell->Attrib[i]==404 || bSpell->Attrib[i]==404)		// Limit: SpellSubclass
 		 || (aSpell->Attrib[i]==411 || bSpell->Attrib[i]==411)		// Limit: PlayerClass
 		 || (aSpell->Attrib[i]==412 || bSpell->Attrib[i]==412)		// Limit: Race
+		 || (aSpell->Attrib[i]==414 || bSpell->Attrib[i]==414)		// Limit: CastingSkill
 		 || (aSpell->Attrib[i]==422 || bSpell->Attrib[i]==422)		// Limit: Use Min
 		 || (aSpell->Attrib[i]==423 || bSpell->Attrib[i]==423)		// Limit: Use Type
 	     || (aSpell->Attrib[i]==428 || bSpell->Attrib[i]==428)		// Skill_Proc_Modifier
-		 || ((aSpell->Attrib[i]==2 && bSpell->Attrib[i]==2) &&      // ATK
-				((aSpell->SpellType==1 || aSpell->SpellType==2) && (bSpell->SpellType==1 || bSpell->SpellType==2)) &&
-				!(aSpell->DurationWindow==bSpell->DurationWindow))
-		 || ((aSpell->Attrib[i]==4 && bSpell->Attrib[i]==4) &&      // STR
-				((aSpell->SpellType==1 || aSpell->SpellType==2) && (bSpell->SpellType==1 || bSpell->SpellType==2)) &&
-				!(aSpell->DurationWindow==bSpell->DurationWindow))
-		 || ((aSpell->Attrib[i]==5 && bSpell->Attrib[i]==5) &&      // DEX
-				((aSpell->SpellType==1 || aSpell->SpellType==2) && (bSpell->SpellType==1 || bSpell->SpellType==2)) &&
-				!(aSpell->DurationWindow==bSpell->DurationWindow))
-		 || ((aSpell->Attrib[i]==6 && bSpell->Attrib[i]==6) &&      // AGI
-				((aSpell->SpellType==1 || aSpell->SpellType==2) && (bSpell->SpellType==1 || bSpell->SpellType==2)) &&
-				!(aSpell->DurationWindow==bSpell->DurationWindow))
-		 || ((aSpell->Attrib[i]==7 && bSpell->Attrib[i]==7) &&      // STA
-				((aSpell->SpellType==1 || aSpell->SpellType==2) && (bSpell->SpellType==1 || bSpell->SpellType==2)) &&
-				!(aSpell->DurationWindow==bSpell->DurationWindow))
-		 || ((aSpell->Attrib[i]==8 && bSpell->Attrib[i]==8) &&      // INT
-				((aSpell->SpellType==1 || aSpell->SpellType==2) && (bSpell->SpellType==1 || bSpell->SpellType==2)) &&
-				!(aSpell->DurationWindow==bSpell->DurationWindow))
-		 || ((aSpell->Attrib[i]==9 && bSpell->Attrib[i]==9) &&      // WIS
-				((aSpell->SpellType==1 || aSpell->SpellType==2) && (bSpell->SpellType==1 || bSpell->SpellType==2)) &&
-				!(aSpell->DurationWindow==bSpell->DurationWindow)));
+		 || ((aSpell->SpellType==1 || aSpell->SpellType==2) && (bSpell->SpellType==1 || bSpell->SpellType==2) && !(aSpell->DurationWindow==bSpell->DurationWindow)));
 }
 
 // ***************************************************************************
@@ -6548,7 +6583,7 @@ bool SpellEffectTest (PSPELL aSpell, PSPELL bSpell, int i){
 //                ${Spell[xxx].WillStack[yyy]}, ${Spell[xxx].StacksWith[yyy]}
 // Author:      Pinkfloydx33
 // ***************************************************************************
-bool BuffStackTest(PSPELL aSpell, PSPELL bSpell){
+BOOL BuffStackTest(PSPELL aSpell, PSPELL bSpell){
     if (aSpell->ID==bSpell->ID) return true;
 
     int i;
@@ -6683,17 +6718,15 @@ void UseAbility(char *sAbility) {
     if (DoIndex!=0xFFFFFFFF) {
         cmdDoAbility(pChar,itoa(DoIndex,szBuffer,10));
     } else {
-        PSPELL pCA = NULL;
         for (Index=0;Index<NUM_COMBAT_ABILITIES;Index++) {
-
             if (GetCharInfo2()->CombatAbilities[Index]) {
-
-                pCA = GetSpellByID(GetCharInfo2()->CombatAbilities[Index]);
-                if (!stricmp(pCA->Name, szBuffer)) {
-                    //We got the cookie, let's try and do it 
-                    pCharData->DoCombatAbility(pCA->ID);
-                    break;
-                }
+                if(PSPELL pCA = GetSpellByID(GetCharInfo2()->CombatAbilities[Index])) {
+					if (!stricmp(pCA->Name, szBuffer)) {
+						//We got the cookie, let's try and do it 
+						pCharData->DoCombatAbility(pCA->ID);
+						break;
+					}
+				}
             }
         }
         if (Index >= NUM_COMBAT_ABILITIES)
@@ -7221,12 +7254,13 @@ int GetTargetBuffBySubCat(PCHAR subcat)
 	{
 		buffID = ((PCTARGETWND)pTargetWnd)->BuffSpellID[i];
 		if(buffID > 0) {
-			PSPELL pSpell = GetSpellByID(buffID);
-			if(DWORD cat = pSpell->Subcategory) {
-				if (char *ptr = pCDBStr->GetString(cat, 5, NULL)) {
-					if(!_stricmp(ptr,subcat))  
-					{
-						return i;//Dest.DWord = ((((PCTARGETWND)pTargetWnd)->BuffTimer[i] / 1000) + 6)/6;
+			if(PSPELL pSpell = GetSpellByID(buffID)) {
+				if(DWORD cat = pSpell->Subcategory) {
+					if (char *ptr = pCDBStr->GetString(cat, 5, NULL)) {
+						if(!_stricmp(ptr,subcat))  
+						{
+							return i;//Dest.DWord = ((((PCTARGETWND)pTargetWnd)->BuffTimer[i] / 1000) + 6)/6;
+						}
 					}
 				}
 			}
@@ -7244,29 +7278,30 @@ int GetTargetBuffBySPA(int spa,bool bIncrease)
 	for(int i = 0; i < NUM_BUFF_SLOTS; i++)
 	{
 		buffID = ((PCTARGETWND)pTargetWnd)->BuffSpellID[i];
-		if(buffID > 0) {
-			PSPELL pSpell = GetSpellByID(buffID);
-			if (LONG base = ((EQ_Spell *)pSpell)->GetSpellBaseByAttrib(spa)) {
-				//int test = ((CharacterZoneClient*)pCharData1)->CalcAffectChange((EQ_Spell*)pSpell,0,0,NULL,1,1);
-				if(spa==11)//Melee Speed
-				{
-					if(!bIncrease && base<100) {//below 100 means its a slow above its haste...
-						return i;
-					} else if(bIncrease && base>100) {
-						return i;
+		if(buffID > 0 && buffID!=-1) {
+			if(PSPELL pSpell = GetSpellByID(buffID)) {
+				if (LONG base = ((EQ_Spell *)pSpell)->GetSpellBaseByAttrib(spa)) {
+					//int test = ((CharacterZoneClient*)pCharData1)->CalcAffectChange((EQ_Spell*)pSpell,0,0,NULL,1,1);
+					if(spa==11)//Melee Speed
+					{
+						if(!bIncrease && base<100) {//below 100 means its a slow above its haste...
+							return i;
+						} else if(bIncrease && base>100) {
+							return i;
+						}
+						return -1;
 					}
-					return -1;
-				}
-				if(spa==3)//Movement Rate
-				{
-					if(!bIncrease && base<0) {//below 0 means its a snare above its runspeed increase...
-						return i;
-					} else if(bIncrease && base>0) {
-						return i;
+					if(spa==3)//Movement Rate
+					{
+						if(!bIncrease && base<0) {//below 0 means its a snare above its runspeed increase...
+							return i;
+						} else if(bIncrease && base>0) {
+							return i;
+						}
+						return -1;
 					}
-					return -1;
+					return i;
 				}
-				return i;
 			}
 		}
 	}

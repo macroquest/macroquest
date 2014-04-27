@@ -150,6 +150,7 @@ void Pulse()
         }
         else
             PVPServer=PVP_NONE;
+		srand((unsigned int)time(NULL) + (unsigned int)GetCurrentProcessId()); // reseed
         Benchmark(bmPluginsSetGameState,PluginsZoned());
 
     } else if ((LastX!=pChar->X) || (LastY!=pChar->Y) || LastMoveTick>GetTickCount()-100) {
@@ -334,7 +335,8 @@ void Heartbeat()
     if (gGameState==GAMESTATE_CHARSELECT && !ShownNews)
     {
         ShownNews=true;
-        CreateMQ2NewsWindow();
+		if (gCreateMQ2NewsWindow)
+	        CreateMQ2NewsWindow();
     }
 
 #ifndef ISXEQ

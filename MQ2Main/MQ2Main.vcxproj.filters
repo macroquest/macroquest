@@ -139,5 +139,8 @@
     <ClInclude Include="SpellEffects.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="DataTypeList.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

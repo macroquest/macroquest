@@ -199,20 +199,17 @@ void CISXEQ::RegisterAliases()
 
 void CISXEQ::RegisterDataTypes()
 {
-	// add any datatypes
-	// pMyType = new MyType;
-	// pISInterface->AddLSType(*pMyType);
-
-#define DATATYPE(_class_,_variable_,_persistentclass_) _variable_ = new _class_; pISInterface->AddLSType(*_variable_); if (_persistentclass_) pISInterface->SetPersistentClass(_variable_,pISInterface->RegisterPersistentClass(_persistentclass_));
-#include "ISXEQDataTypes.h"
+#define DATATYPE(_class_, _var_, _inherits_, _persistentclass_) \
+    _var_ = new _class_; \
+    pISInterface->AddLSType(*_var_); \
+    if (_persistentclass_ != 0) pISInterface->SetPersistentClass(_var_, _persistentclass_); \
+    if (_inherits_ != nullptr) \
+    { \
+        _var_->SetInheritance(_inherits_); \
+    }
+    // NOTE: SetInheritance does NOT make it inherit, just notifies the syntax checker...
+#include "DataTypeList.h"
 #undef DATATYPE
-	pGroupMemberType->SetInheritance(pSpawnType);
-
-	// NOTE: SetInheritance does NOT make it inherit, just notifies the syntax checker...
-	pCharacterType->SetInheritance(pSpawnType);
-	pBuffType->SetInheritance(pSpellType);
-//	pCurrentZoneType->SetInheritance(pZoneType);
-	pRaidMemberType->SetInheritance(pSpawnType);
 }
 
 void CISXEQ::RegisterTopLevelObjects()
@@ -284,16 +281,17 @@ void CISXEQ::UnRegisterAliases()
 }
 void CISXEQ::UnRegisterDataTypes()
 {
-	// remove data types
-#define DATATYPE(_class_,_variable_,_persistentclass_)  if (_variable_) {pISInterface->RemoveLSType(*_variable_);delete _variable_; }
-#include "ISXEQDataTypes.h"
+#define DATATYPE(_class_, _var_, _inherits_, _persistentclass_) \
+    if (_var_) \
+    { \
+        pISInterface->RemoveLSType(*_var_); \
+        delete _var_; \
+    }
+#include "DataTypeList.h"
 #undef DATATYPE
-
 }
 void CISXEQ::UnRegisterTopLevelObjects()
 {
-	// remove data items
-//	pISInterface->RemoveTopLevelObject("ISXEQ");
 #define TOPLEVELOBJECT(_name_,_function_) pISInterface->RemoveTopLevelObject(_name_);
 #include "ISXEQTopLevelObjects.h"
 #undef TOPLEVELOBJECT

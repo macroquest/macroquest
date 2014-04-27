@@ -627,7 +627,7 @@ int CMD_MemSpell(int argc, char *argv[])
    }
 
    if (!pSpell) return -1;
-   if (pSpell->Level[GetCharInfo2()->Class-1]>GetCharInfo2()->Level) return -1;
+   if (pSpell->ClassLevel[GetCharInfo2()->Class]>GetCharInfo2()->Level) return -1;
 
    ZeroMemory(&MemSpellFavorite,sizeof(MemSpellFavorite));
    strcpy(MemSpellFavorite.Name,"Mem a Spell");

@@ -1,0 +1,143 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" ToolsVersion="12.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup Label="ProjectConfigurations">
+    <ProjectConfiguration Include="Release|Win32">
+      <Configuration>Release</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+  </ItemGroup>
+  <PropertyGroup Label="Globals">
+    <ProjectGuid>{4EDFEF3C-E331-44E6-BC7A-CF25BFA2BFEA}</ProjectGuid>
+    <Keyword>Win32Proj</Keyword>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
+    <ConfigurationType>DynamicLibrary</ConfigurationType>
+    <PlatformToolset>v120_xp</PlatformToolset>
+    <CharacterSet>MultiByte</CharacterSet>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
+  <ImportGroup Label="ExtensionSettings">
+  </ImportGroup>
+  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="PropertySheets">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+    <Import Project="..\ISXEQ\isxGamesCommon.props" />
+  </ImportGroup>
+  <PropertyGroup Label="UserMacros" />
+  <PropertyGroup>
+    <_ProjectFileVersion>12.0.21005.1</_ProjectFileVersion>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <OutDir>..\Release\</OutDir>
+    <IntDir>.\ISXEQIntermediate\</IntDir>
+    <LinkIncremental>false</LinkIncremental>
+    <CodeAnalysisRuleSet>AllRules.ruleset</CodeAnalysisRuleSet>
+    <RunCodeAnalysis>false</RunCodeAnalysis>
+  </PropertyGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <ClCompile>
+      <Optimization>MaxSpeed</Optimization>
+      <InlineFunctionExpansion>OnlyExplicitInline</InlineFunctionExpansion>
+      <FavorSizeOrSpeed>Neither</FavorSizeOrSpeed>
+      <OmitFramePointers>false</OmitFramePointers>
+      <PreprocessorDefinitions>EQLIB_EXPORTS;CINTERFACE;ISXEQ;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <StringPooling>true</StringPooling>
+      <ExceptionHandling />
+      <BasicRuntimeChecks>Default</BasicRuntimeChecks>
+      <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
+      <StructMemberAlignment>1Byte</StructMemberAlignment>
+      <BufferSecurityCheck>false</BufferSecurityCheck>
+      <FunctionLevelLinking>false</FunctionLevelLinking>
+      <DisableLanguageExtensions>false</DisableLanguageExtensions>
+      <PrecompiledHeader />
+      <WarningLevel>Level4</WarningLevel>
+      <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
+      <CallingConvention>Cdecl</CallingConvention>
+      <CompileAs>CompileAsCpp</CompileAs>
+      <EnablePREfast>false</EnablePREfast>
+      <AdditionalOptions> /Qvec-report:2</AdditionalOptions>
+      <MultiProcessorCompilation>true</MultiProcessorCompilation>
+    </ClCompile>
+    <Link>
+      <AdditionalOptions>/OPT:NOICF %(AdditionalOptions)</AdditionalOptions>
+      <AdditionalDependencies>wsock32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <OutputFile>$(OutDir)ISXEQ.dll</OutputFile>
+      <SuppressStartupBanner>false</SuppressStartupBanner>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <GenerateMapFile>true</GenerateMapFile>
+      <MapExports>true</MapExports>
+      <SubSystem>Windows</SubSystem>
+      <OptimizeReferences>false</OptimizeReferences>
+      <EnableCOMDATFolding>false</EnableCOMDATFolding>
+      <BaseAddress>0x03000000</BaseAddress>
+      <ImportLibrary>$(OutDir)ISXEQ.lib</ImportLibrary>
+      <TargetMachine>MachineX86</TargetMachine>
+    </Link>
+    <PostBuildEvent>
+      <Command>"$(SolutionDir)ISXEQ\PostBuild.bat" "$(SolutionDir)" "$(TargetDir)" $(TargetName)</Command>
+    </PostBuildEvent>
+    <PostBuildEvent>
+      <Message>Copy files to release</Message>
+    </PostBuildEvent>
+  </ItemDefinitionGroup>
+  <ItemGroup>
+    <ClCompile Include="ISXEQ\ISXEQ.cpp" />
+    <ClCompile Include="ISXEQ\ISXEQCommandAPI.cpp" />
+    <ClCompile Include="ISXEQ\ISXEQCommands.cpp" />
+    <ClCompile Include="ISXEQ\ISXEQDataTypes.cpp" />
+    <ClCompile Include="ISXEQ\ISXEQServices.cpp" />
+    <ClCompile Include="ISXEQ\ISXEQTopLevelObjects.cpp" />
+    <ClCompile Include="ISXEQ\ISXEQUtilities.cpp" />
+    <ClCompile Include="EQClasses.cpp" />
+    <ClCompile Include="MQ2Benchmarks.cpp" />
+    <ClCompile Include="MQ2ChatHook.cpp" />
+    <ClCompile Include="MQ2CleanUI.cpp" />
+    <ClCompile Include="MQ2Commands.cpp" />
+    <ClCompile Include="MQ2Data.cpp" />
+    <ClCompile Include="MQ2DataTypes.cpp" />
+    <ClCompile Include="MQ2DetourAPI.cpp" />
+    <ClCompile Include="MQ2Globals.cpp" />
+    <ClCompile Include="MQ2KeyBinds.cpp" />
+    <ClCompile Include="MQ2MacroCommands.cpp" />
+    <ClCompile Include="MQ2Main.cpp" />
+    <ClCompile Include="MQ2Mouse.cpp" />
+    <ClCompile Include="MQ2Pulse.cpp" />
+    <ClCompile Include="MQ2Spawns.cpp" />
+    <ClCompile Include="MQ2Utilities.cpp" />
+    <ClCompile Include="MQ2Windows.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="DataTypeList.h" />
+    <ClInclude Include="ISXEQ\ISXEQ.h" />
+    <ClInclude Include="..\ISXEQClient.h" />
+    <ClInclude Include="ISXEQ\ISXEQCommandList.h" />
+    <ClInclude Include="ISXEQ\ISXEQCommands.h" />
+    <ClInclude Include="ISXEQ\ISXEQServices.h" />
+    <ClInclude Include="ISXEQ\ISXEQTopLevelObjects.h" />
+    <ClInclude Include="ISXEQ\ISXEQUtilities.h" />
+    <ClInclude Include="..\Blech\Blech.h" />
+    <ClInclude Include="EQClasses.h" />
+    <ClInclude Include="EQData.h" />
+    <ClInclude Include="EQUIStructs.h" />
+    <ClInclude Include="MQ2DataTypes.h" />
+    <ClInclude Include="MQ2Globals.h" />
+    <ClInclude Include="MQ2Inlines.h" />
+    <ClInclude Include="MQ2Internal.h" />
+    <ClInclude Include="MQ2Main.h" />
+    <ClInclude Include="MQ2Prototypes.h" />
+    <ClInclude Include="MQ2TopLevelObjects.h" />
+    <ClInclude Include="eqgame.h" />
+    <ClInclude Include="grounds.h" />
+    <ClInclude Include="itemtypes.h" />
+    <ClInclude Include="skills.h" />
+    <ClInclude Include="weapons.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="..\ISXEQ\isxGamesCommon.props" />
+    <None Include="..\ISXEQ\PostBuild.bat" />
+    <None Include="..\Release\Changes-ISXEQ.txt" />
+  </ItemGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
+  <ImportGroup Label="ExtensionTargets">
+  </ImportGroup>
+</Project>

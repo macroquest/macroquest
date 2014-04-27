@@ -20,8 +20,8 @@
 
 #include "..\MQ2Main.h"
 
-// These are the same types as in MQ2DataTypes.cpp, however ISXEQ types have members, as
-// the GetMember function takes care of here.
+// These are the same types as in MQ2DataTypes.cpp, however ISXEQ types have method, as
+// the GetMethod function takes care of here.
 
 bool MQ2SpawnType::GETMETHOD()
 {

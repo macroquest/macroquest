@@ -342,6 +342,7 @@ BOOL gKeepKeys = FALSE;
 BOOL gLClickedObject = FALSE;
 SWHOFILTER gFilterSWho = {0};
 EQLIB_VAR BOOL gFilterMQ2DataErrors=FALSE;
+BOOL gCreateMQ2NewsWindow = TRUE;
 
 DOUBLE DegToRad = 57.295779513082320876846364344191;
 DOUBLE PI = 3.1415926535;
@@ -831,11 +832,7 @@ PCHAR szExpansions[] = {
 
 BOOL bAllErrorsFatal=FALSE;
 BOOL bAllErrorsDumpStack=FALSE;
-#ifndef DoWarp
-BOOL bLaxColor=TRUE;
-#else
 BOOL bLaxColor=FALSE;
-#endif
 BOOL bAllErrorsLog=FALSE;
 BOOL gbHUDUnderUI=1;
 BOOL gbAlwaysDrawMQHUD=0;

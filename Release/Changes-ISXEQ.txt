@@ -1,3 +1,24 @@
+27 March 2014 by CyberTech
+- Refactor datatype definitions for MQ2 and ISEQ code
+    All datatypes are declared in one file (DataTypeList.h), one time, for both ISXEQ and MQ2.
+    Inheritance and Persistence are defined at the same time and location.
+    This will avoid the ISXEQ build breaking or falling behind when new datatypes are added to MQ2.
+    Additionally, it simplifies the code required for a new MQ2 datatype -- 1 line of code instead of 4
+- Add missing MQ2DynamicZoneType to ISXEQ datatype definitions
+- Add missing MQ2DZMemberType to ISXEQ datatype definitions
+- Add missing MQ2EvolvingItemType to ISXEQ datatype definitions
+- Add missing MQ2FellowshipMemberType to ISXEQ datatype definitions
+- Add missing MQ2FellowshipType to ISXEQ datatype definitions
+- Add missing MQ2TaskMemberType to ISXEQ datatype definitions
+- Add missing MQ2TaskType to ISXEQ datatype definitions
+
+26 March 2014 by CyberTech
+- Update for IS SDK34
+- Fix Level->ClassLevel rename that wans't ported to ISXEQ-only code on initial change
+- Add missing MQ2PetType to ISXEQ datatype definitions
+- Add missing MQ2MercenaryType to ISXEQ datatype definitions
+- Add missing MQ2TargetBuffType (added in MQ2-20140326) to ISXEQ datatype definitions
+
 20 March 2014 by rswiders
 - Brought source into compliance with current ISXDX (thanks CyberTech)
 
@@ -5,10 +26,10 @@
 - Brought the source up to a compiles-without-error state (thanks iluvseq)
 - Added ISBOXER_COMPAT macro at the top of ISXEQ.cpp -- uncomment this line to enable ISBoxer compatibility. Changes ${Target} to ${EQTarget} and ${Window} to ${EQWindow}
 
-28 Apr 2011 by dkaa
+28 April 2011 by dkaa
 - brought the source up to a compiles-without-error state
 
-25 Aug 2006 by DKAA
+25 August 2006 by DKAA
 - doortarget, ${NearestDoor}, and ${Switch:Toggle} for ISXEQ
     from onetimehero
 

@@ -58,6 +58,7 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "MQ2HUD", "MQ2HUD\MQ2HUD.vcx
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{1DC6A1B4-844B-4365-922C-2362BCC8BE8F}"
 	ProjectSection(SolutionItems) = preProject
+		Release\Changes-ISXEQ.txt = Release\Changes-ISXEQ.txt
 		Release\Changes.txt = Release\Changes.txt
 		Release\Custom.ini = Release\Custom.ini
 		Release\eqgame.ini = Release\eqgame.ini

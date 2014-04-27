@@ -1,9 +1,31 @@
+02 Apr 2014 by eqmule
+- Update for patch
+- MacroQuest.ini is now created (from the _default template) if it doesnt exist.
+- The item and spelldisplay plugin should display more correct info now
+  rswiders did most of that grunt work, big props to him for taking it on.
+  We will carefully monitor this code and add more fixes as we go to make stacking
+  and spell/iteminfo 100% perfect.
+
+30 Mar 2014 by rswiders
+- Added CreateMQ2NewsWindow for Macroquest.ini file to turn on/off the creation of
+  the news window
+- Updated stacking checking to ignore bard songs and song window illusions
+- Removed the stat change portion of the additional checks for stacking introduced
+  on 23 Mar 2014
+
 30 Mar 2014 by eqmule
 - Fixed /lootall
 - Added Caster to the Spell TLO
   returns a pStringType of the caster of a buff
   Usage: /echo ${Target.Buff[Ancient Flames].Caster}
   [MQ2] eqmule
+
+27 Mar 2014 by CyberTech
+- Refactor datatype definitions for MQ2 and ISEQ code
+    All datatypes are declared in one file (DataTypeList.h), one time, for both ISXEQ and MQ2.
+    Inheritance and Persistence are defined at the same time and location.
+    This will avoid the ISXEQ build breaking or falling behind when new datatypes are added to MQ2.
+    Additionally, it simplifies the code required for a new MQ2 datatype -- 1 line of code instead of 4
 
 26 Mar 2014 by eqmule
 - Fixed Spell[some spell].Description
@@ -29,7 +51,6 @@
  to know who actually sent the invite:
  Usage: /echo ${Me.Inviter} just invited me to join their group
  Output: [MQ2] uberplayer00 just invited me to join their group
- 
 
 23 Mar 2014 by rswiders
 - Corrected itemdisplay to show useable classes for the spell when over level 70

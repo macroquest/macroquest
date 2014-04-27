@@ -3409,7 +3409,5 @@ VOID Echo(PSPAWNINFO pChar, PCHAR szLine)
 VOID LootAll(PSPAWNINFO pChar, PCHAR szLine)
 {
 	pLootWnd->LootAll(1);
-    //pLootWnd->LootAll=1;
-    //pEverQuest->doLoot();
 }
 #endif
