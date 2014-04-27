@@ -352,12 +352,15 @@ VOID DoorTarget(PSPAWNINFO pChar, PCHAR szLine)
     }
 
 
-    if (DoorEnviroTarget.Name[0]!=0) {
+    if (DoorEnviroTarget.Name[0]!='\0') {
         sprintf(szBuffer,"Door %d '%s' targeted.", pDoorTarget->ID, DoorEnviroTarget.Name);
         WriteChatColor(szBuffer,USERCOLOR_DEFAULT);
-        if (stricmp(Arg2,"notarget") && ppTarget && 0) pTarget = (EQPlayer*)&DoorEnviroTarget;
+		//DO NOT mess with the pTarget here doors should not ever be targeted...
+        //if (stricmp(Arg2,"notarget") && ppTarget && 0)
+		//	pTarget = (EQPlayer*)&DoorEnviroTarget;
     } else {
-        if (ppTarget) pTarget = NULL;
+        //if (ppTarget)
+		//	pTarget = NULL;
         MacroError("Couldn't find door '%s' to target.",szLine);
     }
 }

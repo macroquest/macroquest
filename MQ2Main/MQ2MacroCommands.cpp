@@ -152,10 +152,10 @@ PMACROBLOCK AddMacroLine(PCHAR szLine)
             gMaxTurbo = atoi(szArg);
             if (gMaxTurbo==0)
                 gMaxTurbo=20;
-            else if (gMaxTurbo>40) 
+            else if (gMaxTurbo>80) 
             {
-                MacroError("#turbo %d is too high, setting at 40 (maximum)",gMaxTurbo);
-                gMaxTurbo=40;
+                MacroError("#turbo %d is too high, setting at 80 (maximum)",gMaxTurbo);
+                gMaxTurbo=80;
             }
         } else if (!strnicmp(szLine,"#define ",8)) {
             CHAR szArg1[MAX_STRING] = {0};
@@ -668,7 +668,7 @@ VOID EndMacro(PSPAWNINFO pChar, PCHAR szLine)
 // ***************************************************************************
 VOID Call(PSPAWNINFO pChar, PCHAR szLine)
 {
-    PMACROSTACK pStack;
+    PMACROSTACK pStack = 0;
     PMACROBLOCK pCallingPoint = gMacroBlock;
     CHAR SubName[MAX_STRING] = {0};
     PCHAR SubParam = NULL;
@@ -716,10 +716,18 @@ VOID Call(PSPAWNINFO pChar, PCHAR szLine)
     // Prep to call the Sub
     gMacroBlock = pSubBlock;
 
-    DebugSpewNoFile("Call - Calling subroutine %s with params %s",SubName,SubParam);
-    pStack = (PMACROSTACK)malloc(sizeof(MACROSTACK));
+	if(SubName && SubName[0]!='\0' && SubParam && SubParam[0]!='\0') {
+		DebugSpewNoFile("Call - Calling subroutine %s with params %s",SubName,SubParam);
+	} else {
+		DebugSpewNoFile("Call - SubName and SubParam was empty");
+	}
+    pStack = (PMACROSTACK)calloc(1,sizeof(MACROSTACK));
+	if( pStack == NULL ) {
+		MacroError("Failed to allocate pStack for /call");
+        return;
+	}
     pStack->Location = gMacroBlock;
-    pStack->Return[0] = 0;
+    pStack->Return[0] = '\0';
     pStack->Parameters = NULL;
     pStack->LocalVariables = NULL;
     pStack->pNext = gMacroStack;

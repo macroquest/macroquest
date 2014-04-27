@@ -224,7 +224,50 @@ VOID Click(PSPAWNINFO pChar, PCHAR szLine)
         else if(!strnicmp(szMouseLoc,"center",6))
         {
             sprintf(szMouseLoc,"%d %d",ScreenXMax/2,ScreenYMax/2);
-        }
+        } else if (!strnicmp(szMouseLoc, "door", 4)) {
+			// a right clicked door spawn does nothing
+			if(pDoorTarget) {
+				if (!strnicmp(szArg1, "left", 4)) {
+					if(DoorEnviroTarget.Name[0]!=0) {
+						if(DistanceToSpawn(pChar,&DoorEnviroTarget)<20.0f) {
+							EQSwitch *pSwitch = (EQSwitch *)pDoorTarget;
+							srand((unsigned int)time(0));
+							int randclickY = rand() % 5;
+							int randclickX = rand() % 5;
+							int randclickZ = rand() % 5;
+							PSWITCHCLICK pclick = new SWITCHCLICK;
+							if(pclick) {
+								pclick->Y=pDoorTarget->Y+randclickY;
+								pclick->X=pDoorTarget->X+randclickX;
+								pclick->Z=pDoorTarget->Z+randclickZ;
+								randclickY = rand() % 5;
+								randclickX = rand() % 5;
+								randclickZ = rand() % 5;
+								pclick->Y1=pclick->Y+randclickY;
+								pclick->X1=pclick->X+randclickX;
+								pclick->Z1=pclick->Z+randclickZ;
+								pSwitch->UseSwitch(GetCharInfo()->pSpawn->SpawnID,0xFFFFFFFF,0,(DWORD)pclick);
+								delete pclick;
+							}
+							//DoorEnviroTarget.Name[0]='\0';
+							if (pTarget==(EQPlayer*)&DoorEnviroTarget) {//this should NEVER happen
+								pTarget=NULL;
+							}
+							return;
+						} else {
+							WriteChatf("You are to far away from the door, please move closer before issuing the /click left door command.");
+						}
+					} else {
+						WriteChatf("No Door targeted, use /doortarget <theid> before issuing a /click left door command.");
+					}
+				} else {
+					WriteChatf("Invalid click args, use \"/click left door\", aborting: %s",szMouseLoc);
+				}
+			} else {
+				WriteChatf("No Door targeted, use /doortarget <theid> before issuing a /click left door command.");
+			}
+			return;;
+		} 
         ClickMouseLoc(szMouseLoc, szArg1);
         return;
     }

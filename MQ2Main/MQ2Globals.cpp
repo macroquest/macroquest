@@ -1695,4 +1695,5 @@ INITIALIZE_EQGAME_OFFSET(PlayerPointManager__GetAltCurrency);
 INITIALIZE_EQGAME_OFFSET(StringTable__getString);
 
 INITIALIZE_EQGAME_OFFSET(PcZoneClient__GetPcSkillLimit);
+INITIALIZE_EQGAME_OFFSET(EQSwitch__UseSwitch);
 };

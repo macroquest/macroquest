@@ -5877,7 +5877,7 @@ EQLIB_OBJECT void EQSwitch::PostInit(void);
 EQLIB_OBJECT void EQSwitch::PreInit(void);
 EQLIB_OBJECT void EQSwitch::RepopSwitch(void);
 EQLIB_OBJECT void EQSwitch::ResetSwitchState(unsigned char);
-EQLIB_OBJECT void EQSwitch::UseSwitch(unsigned int,int,int);
+EQLIB_OBJECT void EQSwitch::UseSwitch(DWORD,DWORD,DWORD,DWORD);
 };
 
 class EqSwitchManager

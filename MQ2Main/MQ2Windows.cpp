@@ -954,18 +954,62 @@ int ListWindows(int argc, char *argv[])
     PCHAR szLine = NULL;
     if (argc>0)
         szLine = argv[1];
-
 #endif 
+	char szArg1[MAX_STRING] = {0};
+    char szArg2[MAX_STRING] = {0};
+    char szArg3[MAX_STRING] = {0};
+	GetArg(szArg1,szLine,1);
+	GetArg(szArg2,szLine,2);
+	GetArg(szArg3,szLine,3);
+	BOOL bOpen = 0;
+	BOOL bPartial = 0;
+	if(!_stricmp(szArg1,"open")) {
+		bOpen = 1;
+		szLine[0] = '\0';
+		szLine = 0;
+		if(!_stricmp(szArg2,"partial")) {
+			bPartial = 1;
+			strcpy_s(szArg2,szArg3);
+		}
+	} else if(!_stricmp(szArg1,"partial")) {
+		bPartial = 1;
+		szLine[0] = '\0';
+		szLine = 0;
+	}
     unsigned long Count=0;
     if (!szLine || !szLine[0])
     {
-        WriteChatColor("List of available windows");
+        if(bOpen)
+			WriteChatColor("List of available OPEN windows");
+		else
+			WriteChatColor("List of available windows");
         WriteChatColor("-------------------------");
         for (unsigned long N = 0 ; N < WindowList.Size ; N++)
             if (_WindowInfo *pInfo=WindowList[N])
             {
-                WriteChatf("%s",pInfo->Name);
-                Count++;
+				if(bOpen) {
+					if(pInfo->pWnd && pInfo->pWnd->dShow==1) {
+						if(bPartial) {
+							if(strstr(pInfo->Name,szArg2)) {
+								WriteChatf("[PARTIAL MATCH][OPEN] %s",pInfo->Name);
+								Count++;
+							}
+						} else {
+							WriteChatf("[OPEN] %s",pInfo->Name);
+							Count++;
+						}
+					}
+				} else {
+					if(bPartial) {
+						if(strstr(pInfo->Name,szArg2)) {
+							WriteChatf("[PARTIAL MATCH] %s",pInfo->Name);
+							Count++;
+						}
+					} else {
+						WriteChatf("%s",pInfo->Name);
+						Count++;
+					}
+				}
             }
             WriteChatf("%d available windows",Count);
     }

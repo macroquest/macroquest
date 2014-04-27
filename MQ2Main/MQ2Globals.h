@@ -1209,6 +1209,8 @@ EQLIB_VAR DWORD StringTable__getString;
 
 EQLIB_VAR DWORD PcZoneClient__GetPcSkillLimit;
 
+EQLIB_VAR DWORD EQSwitch__UseSwitch;
+
 
 }
 using namespace MQ2Globals;

@@ -5408,7 +5408,7 @@ FUNCTION_AT_ADDRESS(unsigned char  EQSwitch::SwitchWasOpenedActual(int,int,class
 FUNCTION_AT_ADDRESS(unsigned char  EQSwitch::SwitchIsNotUsable(int),EQSwitch__SwitchIsNotUsable);
 #endif
 #ifdef EQSwitch__UseSwitch_x
-FUNCTION_AT_ADDRESS(void  EQSwitch::UseSwitch(unsigned int,int,int),EQSwitch__UseSwitch);
+FUNCTION_AT_ADDRESS(void  EQSwitch::UseSwitch(DWORD,DWORD,DWORD,DWORD),EQSwitch__UseSwitch);
 #endif
 #ifdef EQSwitch__LoadSwitchSounds_x
 FUNCTION_AT_ADDRESS(void  EQSwitch::LoadSwitchSounds(int),EQSwitch__LoadSwitchSounds);

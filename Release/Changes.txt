@@ -1,3 +1,26 @@
+06 Nov 2013 by EqMule
+-Updated for patch
+- Changed top #turbo to 80, still defaults to 20
+-Brought back an old friend from the dead... /click left door
+ You do not *HAVE* to face the door to "click" it but I still recommend that you do, your char doesn't need the attention...
+Usage:
+Sub OpenDoor
+:retrydoortarget
+	/doortarget DOOR1
+	/delay 1
+	/if (!${Switch.ID}) {
+		/goto :retrydoortarget
+	}
+	/face door nolook
+	/delay 1
+:retryopendoor
+	/if (!${Switch.Open}) {
+		/click left door
+		/delay 1s
+		/goto :retryopendoor
+	}
+/return
+
 29 Oct 2013 by EqMule
 -Cast item works on items in bags now if you have VoA or higher expansion.
 cred to desgn for code/suggestion
