@@ -508,9 +508,9 @@ typedef struct _EQINVSLOTWND {
                                     // 11 for loot window
 /*0x264*/   WORD InvSlotForBag;
 /*0x266*/   WORD BagSlot;
-/*0x268*/   BYTE Unknown0x268[0x20];
-/*0x288*/   struct _EQINVSLOT *pInvSlot;
-/*0x28c*/   BOOL ProcessClick;
+/*0x268*/   BYTE Unknown0x268[0x24];
+/*0x28c*/   struct _EQINVSLOT *pInvSlot;
+/*0x290*/   BOOL ProcessClick;
 /*0x290*/
 } EQINVSLOTWND, *PEQINVSLOTWND;
 

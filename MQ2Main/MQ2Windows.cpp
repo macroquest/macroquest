@@ -1195,6 +1195,7 @@ VOID ItemNotify(PSPAWNINFO pChar, PCHAR szLine)
     {
         WriteChatColor("Syntax: /itemnotify <slot|#> <notification>");
         WriteChatColor("     or /itemnotify in <bag slot> <slot # in bag> <notification>");
+		//WriteChatColor("     or /itemnotify <itemname> <notification>");
         RETURN(0);
     }
 
@@ -1232,8 +1233,7 @@ int ItemNotify(int argc, char *argv[])
     { 
         if (!szArg4[0])
         {
-            WriteChatColor("Syntax: /itemnotify <slot|#> <notification>");
-            WriteChatColor("     or /itemnotify in <bag slot> <slot # in bag> <notification>");
+            WriteChatColor("Syntax: /itemnotify in <bag slot> <slot # in bag> <notification>");
             RETURN(0);
         }
 
@@ -1305,17 +1305,98 @@ int ItemNotify(int argc, char *argv[])
         }
         for (i=0;i<pInvMgr->TotalSlots;i++) {
             pSlot = pInvMgr->SlotArray[i];
-            if ((pSlot->Valid) &&
-                (pSlot->pInvSlotWnd->WindowType == type) &&
-                (pSlot->pInvSlotWnd->InvSlotForBag == invslot) &&
-                (pSlot->pInvSlotWnd->BagSlot == bagslot)) {
+            if (pSlot->Valid && pSlot->pInvSlotWnd && pSlot->pInvSlotWnd->WindowType == type && pSlot->pInvSlotWnd->InvSlotForBag == invslot && pSlot->pInvSlotWnd->BagSlot == bagslot) {
                 break;
             }
         }
-        if (i == pInvMgr->TotalSlots) pSlot = NULL;
+        if (i == pInvMgr->TotalSlots)
+			pSlot = NULL;
 
         pNotification=&szArg4[0];
-    } else {
+		if(!pSlot && type!=-1) {//ok we can "click" it anyway with moveitem so lets just do that if pNotification is leftmoseup
+			if(invslot<0 || invslot>NUM_INV_SLOTS) {
+				RETURN(0);
+			}
+			if(pNotification && !strnicmp(pNotification,"leftmouseup",11)) {
+				BOOL bMoveFromCursor = 0;
+				PCHARINFO2 pChar2 = GetCharInfo2();
+				if(pChar2 && pChar2->pInventoryArray) {
+					PCONTENTS pCursor = pChar2->pInventoryArray->Inventory.Cursor;
+					if(pCursor) {
+						bMoveFromCursor=1;
+					}
+				}
+				PCONTENTS pItem = FindItemBySlot(invslot);//we dont care about the bagslot here
+				if(!pItem) {
+					WriteChatf("There was no container in slot %d",invslot);
+					RETURN(0);
+				}
+				if(GetItemFromContents(pItem)->Type!=ITEMTYPE_PACK) {
+					WriteChatf("There was no container in slot %d",invslot);
+					RETURN(0);
+				}
+				if(bagslot<0 && bagslot >= pItem->NumOfSlots1) {
+					WriteChatf("%d is not a valid slot for this container.",bagslot);
+					RETURN(0);
+				}
+				if(!bMoveFromCursor) {//user is picking up something
+					CMoveItemData From = {0};
+					From.BagSlot = bagslot;
+					From.InvSlot = invslot;
+					From.InventoryType = type;
+					From.Unknown2 = 0;
+					From.Unknown8 = 0xFFFF;
+					From.Unknowna = 0xE0;//224 this needs work, where does it pick up this number?
+	
+					CMoveItemData To = {0};
+					To.BagSlot = 0xFFFF;
+					To.InvSlot = 33;//cursor
+					To.InventoryType = 0;
+					To.Unknown2 = 0;
+					To.Unknown8 = 0xFFFF;
+					To.Unknowna = 0xD4;//212 this needs work, where does it pick up this number?
+					pInvSlotMgr->MoveItem(&From,&To,1,1,0,0);
+					RETURN(0);
+				} else {
+					//user has something on the cursor, lets drop it
+					CMoveItemData To = {0};
+					To.BagSlot = bagslot;
+					To.InvSlot = invslot;
+					To.InventoryType = type;
+					To.Unknown2 = 0;
+					To.Unknown8 = 0xFFFF;
+					To.Unknowna = 236;//224
+					//WriteChatf("pInvMgr->TotalSlots = %d",pInvMgr->TotalSlots);
+					CMoveItemData From = {0};
+					From.BagSlot = 0xFFFF;
+					From.InvSlot = 33;//cursor
+					From.InventoryType = 0;
+					From.Unknown2 = 0;
+					From.Unknown8 = 0xFFFF;
+					From.Unknowna = 0;
+					pInvSlotMgr->MoveItem(&From,&To,1,1,0,0);
+					RETURN(0);
+				}
+			} else if(pNotification && !strnicmp(pNotification,"rightmouseup",12)) {//we fake it with /useitem
+				if ( HasExpansion(EXPANSION_VoA) )
+				{
+					PCONTENTS pItem = FindItemBySlot(invslot,bagslot);
+					if(pItem) {
+						if (GetItemFromContents(pItem)->Clicky.SpellID)
+						{
+							CHAR cmd[40] = {0};
+							sprintf(cmd, "/useitem %d %d", pItem->ItemSlot, pItem->ItemSlot2);
+							EzCommand(cmd);
+							RETURN(0);
+						}
+					} else {
+						WriteChatf("Item '%s' not found.",szArg2);
+					}
+				}
+			}
+		}
+    } else {//user didnt specify "in" so it should be outside a container
+			//OR it's an item, either way we can "click" it -eqmule
         unsigned long Slot=atoi(szArg1);
         if (Slot==0)
         {
@@ -1344,14 +1425,13 @@ int ItemNotify(int argc, char *argv[])
                 }
                 for (i=0;i<pInvMgr->TotalSlots;i++) {
                     pSlot = pInvMgr->SlotArray[i];
-                    if ((pSlot->Valid) &&
-                        (pSlot->pInvSlotWnd->WindowType == type) &&
-                        (pSlot->pInvSlotWnd->InvSlotForBag == invslot)) {
+                    if (pSlot && pSlot->Valid && pSlot->pInvSlotWnd && pSlot->pInvSlotWnd->WindowType == type && pSlot->pInvSlotWnd->InvSlotForBag == invslot) {
                         Slot = 1;
                         break;
                     }
                 }
-                if (i == pInvMgr->TotalSlots) Slot = 0;
+                if (i == pInvMgr->TotalSlots)
+					Slot = 0;
             }
         }
         if (Slot==0 && szArg1[0]!='0' && stricmp(szArg1,"charm"))

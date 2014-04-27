@@ -6017,6 +6017,43 @@ PCONTENTS FindItem(PCHAR pName, BOOL bExact)
 	}
     return 0;
 }
+PCONTENTS FindItemBySlot(WORD InvSlot, WORD BagSlot)
+{
+	PCHARINFO2 pChar2 = GetCharInfo2();
+	if(pChar2 && pChar2->pInventoryArray && pChar2->pInventoryArray->InventoryArray) {
+		for (unsigned long nSlot=0 ; nSlot < NUM_INV_SLOTS ; nSlot++)
+		{
+			if (PCONTENTS pItem=pChar2->pInventoryArray->InventoryArray[nSlot])
+			{
+				if (pItem->ItemSlot==InvSlot && pItem->ItemSlot2==BagSlot)
+				{
+					return pItem;
+				}
+			}
+		}
+	}
+	if(pChar2 && pChar2->pInventoryArray) {
+		for (unsigned long nPack=0 ; nPack < 10 ; nPack++)
+		{
+			if (PCONTENTS pPack=pChar2->pInventoryArray->Inventory.Pack[nPack])
+			{
+				if (GetItemFromContents(pPack)->Type==ITEMTYPE_PACK && pPack->pContentsArray)
+				{
+					for (unsigned long nItem=0 ; nItem < GetItemFromContents(pPack)->Slots ; nItem++)
+					{
+						if (PCONTENTS pItem=pPack->pContentsArray->Contents[nItem])
+						{
+							if (pItem->ItemSlot==InvSlot && pItem->ItemSlot2==BagSlot)	{
+								return pItem;
+							}
+						}
+					}
+				}
+			}
+		}
+	}
+    return 0;
+}
 //                                                                                               //
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 #endif

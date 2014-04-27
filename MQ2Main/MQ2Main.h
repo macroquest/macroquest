@@ -580,6 +580,7 @@ EQLIB_API DWORD       GetSpellGemTimer(DWORD nGem);
 EQLIB_API bool        HasExpansion(DWORD nExpansion);
 EQLIB_API VOID		  ListMercAltAbilities();
 EQLIB_API PCONTENTS	  FindItem(PCHAR pName, BOOL bExact=false);
+EQLIB_API PCONTENTS	  FindItemBySlot(WORD InvSlot, WORD BagSlot=0xFFFF);
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 // Functions that were built into commands and people used DoCommand to execute                  //
 

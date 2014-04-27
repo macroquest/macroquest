@@ -317,6 +317,8 @@ TLO(dataZone)
                 Ret.Ptr = ((PWORLDDATA)pWorldData)->ZoneArray[nIndex];
                 Ret.Type=pZoneType;
             }
+            if (!Ret.Ptr) 
+                return false;
             return true;
         }
     } 
@@ -820,7 +822,13 @@ TLO(dataSelectedItem)
             Ret.Ptr = pC;
             Ret.Type=pItemType;
             return true;
-        }
+        } else {
+			PCONTENTS pItem = FindItem("Worn Totem");
+			if(pItem) {
+				CInvSlot *pSlot=pInvSlotMgr->FindInvSlot(pItem->ItemSlot);
+				Sleep(0);
+			}
+		}
     }
     return false;
 }

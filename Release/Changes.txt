@@ -1,3 +1,10 @@
+14 Nov 2013 by EqMule
+-Updated for patch
+-"/itemnotify in" changed to work even if bags are closed.
+ example: /itemnotify in pack1 1 leftmouseup ( Will pick up the item in pack1 slot 1 even if the bag is closed...)
+
+ Note: that this is pretty much untested right now, let me know of any issues.
+
 07 Nov 2013 by EqMule
 -Fix for Contents.Power
 -Added a manifest to MacroQuest2.exe so it will requireAdmin automatically.
