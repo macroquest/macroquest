@@ -860,7 +860,7 @@ PLUGIN_API VOID OnCleanUI(VOID)
 { 
     CHAR szTemp[MAX_STRING] = {0}; 
 
-    DebugSpewAlways("MQ2WndTest::OnCleanUI()"); 
+    DebugSpewAlways("MQ2Irc::OnCleanUI()"); 
     if (MyWnd) 
     { 
         irctop = MyWnd->Location.top; 
@@ -879,7 +879,7 @@ PLUGIN_API VOID OnCleanUI(VOID)
 } 
 PLUGIN_API VOID SetGameState(DWORD GameState) 
 { 
-    //   DebugSpewAlways("MQ2WndTest::SetGameState()"); 
+    //   DebugSpewAlways("MQ2Irc::SetGameState()"); 
     if (GameState==GAMESTATE_INGAME && !MyWnd) 
     { 
         //if (pSidlMgr->FindScreenPieceTemplate("ChatWindow")) 
@@ -898,7 +898,7 @@ PLUGIN_API VOID SetGameState(DWORD GameState)
 
 PLUGIN_API VOID OnReloadUI() 
 { 
-    //   DebugSpewAlways("MQ2WndTest::OnReloadUI()"); 
+    //   DebugSpewAlways("MQ2Irc::OnReloadUI()"); 
     if (!MyWnd && !strcmp(UseWnd,"Yes")) 
     { 
         //if (pSidlMgr->FindScreenPieceTemplate("TestWindow")) 

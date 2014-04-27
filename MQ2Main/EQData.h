@@ -465,217 +465,213 @@ typedef struct _ITEMSPELLS {
 /*0x64*/
 } ITEMSPELLS, *PITEMSPELLS; 
 
-// actual size: 0x634 20130116 - ieatacid
+// actual size: 0x62c 20130819 (see 0x4C2950) - eqmule
+//CItemInfo__CItemInfo
 typedef struct _ITEMINFO {
-/*0x000*/ CHAR   Name[ITEM_NAME_LEN];
-/*0x040*/ CHAR   LoreName[LORE_NAME_LEN];
-/*0x0b0*/ CHAR   IDFile[0x20];
-/*0x0d0*/ BYTE   Unknown0xd0[0x1c];
-/*0x0ec*/ DWORD  ItemNumber;
-/*0x0f0*/ DWORD  EquipSlots;
-/*0x0f4*/ DWORD  Cost;
-/*0x0f8*/ DWORD  IconNumber;
-/*0x0fc*/ BYTE   Unknown0xfc[0xc];
-/*0x108*/ DWORD  Weight;
-/*0x10c*/ BYTE   NoRent; // 0=temp, 1=default
-/*0x10d*/ BYTE   NoDrop; // 0=no drop, 1=can drop
-/*0x10e*/ BYTE   Attuneable;
-/*0x10f*/ BYTE   Unknown0x10f[0xa];
-/*0x119*/ BYTE   Size;
-/*0x11a*/ BYTE   Type;
-/*0x11b*/ BYTE   TradeSkills;
-/*0x11c*/ DWORD  Lore;
-/*0x120*/ BYTE   Artifact;
-/*0x121*/ BYTE   Summoned;
-/*0x122*/ CHAR   SvCold;
-/*0x123*/ CHAR   SvFire;
-/*0x124*/ CHAR   SvMagic;
-/*0x125*/ CHAR   SvDisease;
-/*0x126*/ CHAR   SvPoison;
-/*0x127*/ CHAR   SvCorruption;
-/*0x128*/ CHAR   STR;
-/*0x129*/ CHAR   STA;
-/*0x12a*/ CHAR   AGI;
-/*0x12b*/ CHAR   DEX;
-/*0x12c*/ CHAR   CHA;
-/*0x12d*/ CHAR   INT;
-/*0x12e*/ CHAR   WIS;
-/*0x12f*/ BYTE   Unknown0x12f;
-/*0x130*/ DWORD  HP;
-/*0x134*/ DWORD  Mana;
-/*0x138*/ DWORD  AC;
-/*0x13c*/ DWORD  RequiredLevel;
-/*0x140*/ DWORD  RecommendedLevel;
-/*0x144*/ BYTE   RecommendedSkill;
-/*0x145*/ BYTE   Unknown0x145[0x3];
-/*0x148*/ DWORD  SkillModType;
-/*0x14c*/ DWORD  SkillModValue;
-/*0x150*/ DWORD  Unknown0x150;
-/*0x154*/ DWORD  Unknown0x154;
-/*0x158*/ DWORD  BaneDMGRace;
-/*0x15c*/ DWORD  BaneDMGBodyType;
-/*0x160*/ BYTE   BaneDMGBodyTypeValue;
-/*0x161*/ BYTE   BaneDMGRaceValue;
-/*0x162*/ BYTE   Unknown0x162[0x6];
-/*0x168*/ DWORD  InstrumentType;
-/*0x16c*/ DWORD  InstrumentMod;
-/*0x170*/ DWORD  Classes;
-/*0x174*/ DWORD  Races;
-/*0x178*/ DWORD  Diety;
-/*0x17c*/ BYTE   Unknown0x17c[0x4];
-/*0x180*/ BYTE   Magic;
-/*0x181*/ BYTE   Light;
-/*0x182*/ BYTE   Delay;
-/*0x183*/ BYTE   DmgBonusType;
-/*0x184*/ BYTE   DmgBonusVal;
-/*0x185*/ BYTE   Range;
-/*0x186*/ BYTE   Unknown0x186[0x2];
-/*0x188*/ DWORD  Damage;
-/*0x18c*/ DWORD  BackstabDamage;
-/*0x190*/ DWORD  DamageShieldMitigation;
-/*0x194*/ DWORD  HeroicSTR;
-/*0x198*/ DWORD  HeroicINT;
-/*0x19c*/ DWORD  HeroicWIS;
-/*0x1a0*/ DWORD  HeroicAGI;
-/*0x1a4*/ DWORD  HeroicDEX;
-/*0x1a8*/ DWORD  HeroicSTA;
-/*0x1ac*/ DWORD  HeroicCHA;
-/*0x1b0*/ DWORD  HeroicSvMagic;
-/*0x1b4*/ DWORD  HeroicSvFire;
-/*0x1b8*/ DWORD  HeroicSvCold;
-/*0x1bc*/ DWORD  HeroicSvDisease;
-/*0x1c0*/ DWORD  HeroicSvPoison;
-/*0x1c4*/ DWORD  HeroicSvCorruption;
-/*0x1c8*/ DWORD  HealAmount;
-/*0x1cc*/ DWORD  SpellDamage;
-/*0x1d0*/ DWORD  Unknown0x1d0;
-/*0x1d4*/ BYTE   ItemType;
-/*0x1d5*/ BYTE   Unknown0x1d5[0x3];
-/*0x1d8*/ BYTE   Material;
-/*0x1d9*/ BYTE   Unknown0x1d9[0x13];
-/*0x1ec*/ DWORD  AugSlot1;
-/*0x1f0*/ DWORD  AugSlot1_Unknown;
-/*0x1f4*/ DWORD  AugSlot2;
-/*0x1f8*/ DWORD  AugSlot2_Unknown;
-/*0x1fc*/ DWORD  AugSlot3;
-/*0x200*/ DWORD  AugSlot3_Unknown;
-/*0x204*/ DWORD  AugSlot4;
-/*0x208*/ DWORD  AugSlot4_Unknown;
-/*0x20c*/ DWORD  AugSlot5;
-/*0x210*/ DWORD  AugSlot5_Unknown;
-/*0x214*/ DWORD  AugSlot6;
-/*0x218*/ DWORD  AugSlot6_Unknown;
-/*0x21c*/ DWORD  AugType;
-/*0x220*/ DWORD  AugRestrictions;
-/*0x224*/ DWORD  Unknown0x224;
-/*0x228*/ DWORD  SolventNeeded; //ID# of Solvent (Augs only)
-/*0x22c*/ DWORD  LDTheme;
-/*0x230*/ DWORD  LDCost;
-/*0x234*/ DWORD  LDType;
-/*0x238*/ DWORD  Unknown0x238;
-/*0x23c*/ BYTE   Unknown0x23c[0x4];
-/*0x240*/ DWORD  FactionModType[0x4];
-/*0x250*/ DWORD  FactionModValue[0x4];
-/*0x260*/ BYTE   CharmFile[0x20];
-/*0x280*/ BYTE   Unknown0x280[0x4];
-/*0x284*/ struct _ITEMSPELLS Clicky;
-/*0x2e8*/ struct _ITEMSPELLS Proc;
-/*0x34c*/ struct _ITEMSPELLS Worn;
-/*0x3b0*/ struct _ITEMSPELLS Focus;
-/*0x414*/ struct _ITEMSPELLS Scroll;
-/*0x478*/ struct _ITEMSPELLS itemSpellUnknown;
-/*0x4dc*/ BYTE   Unknown0x4dc[0x14];
-/*0x4f0*/ DWORD  CombatEffects;
-/*0x4f4*/ DWORD  Shielding;
-/*0x4f8*/ DWORD  StunResist;
-/*0x4fc*/ DWORD  DoTShielding;
-/*0x500*/ DWORD  StrikeThrough;
-/*0x504*/ DWORD  DmgBonusSkill; // SkillMinDamageMod;
-/*0x508*/ DWORD  DmgBonusValue; // MinDamageMod;
-/*0x50c*/ DWORD  SpellShield;
-/*0x510*/ DWORD  Avoidance;
-/*0x514*/ DWORD  Accuracy;
-/*0x518*/ DWORD  CharmFileID;
-/*0x51c*/ DWORD  CastTime;
-/*0x520*/ BYTE   Combine;
-/*0x521*/ BYTE   Slots;
-/*0x522*/ BYTE   SizeCapacity;
-/*0x523*/ BYTE   WeightReduction;
-/*0x524*/ BYTE   BookType;      // 0=note, !0=book
-/*0x525*/ BYTE   BookLang;
-/*0x526*/ CHAR   BookFile[0x1e];
-/*0x544*/ DWORD  Favor;         // Tribute Value
-/*0x548*/ DWORD  GuildFavor;
-/*0x54c*/ DWORD  Unknown0x54c;
-/*0x550*/ DWORD  Endurance;
-/*0x554*/ DWORD  Attack;
-/*0x558*/ DWORD  HPRegen;
-/*0x55c*/ DWORD  ManaRegen;
-/*0x560*/ DWORD  EnduranceRegen;
-/*0x564*/ DWORD  Haste;
-/*0x568*/ DWORD  DamShield;
-/*0x56c*/ BYTE   Unknown0x56c[0x8];
-/*0x574*/ BYTE   NoPet;
-/*0x575*/ BYTE   Unknown0x575[0xb];
-/*0x580*/ DWORD  StackSize;
-/*0x584*/ BYTE   Unknown0x584[0x4];
-/*0x588*/ DWORD  MaxPower;
-/*0x58c*/ DWORD  Purity;
-/*0x590*/ BYTE   Unknown0x590[0x4];
-/*0x594*/ DWORD  Unknown0x594;
-/*0x598*/ BYTE   QuestItem;
-/*0x599*/ BYTE   Unknown0x599[0x7];
-/*0x5a0*/ DWORD  Clairvoyance;
-/*0x5a4*/ BYTE   Unknown0x5a4[0x90];
-/*0x634*/
+/*0x0000*/ CHAR			Name[ITEM_NAME_LEN];
+/*0x0040*/ CHAR			LoreName[LORE_NAME_LEN];
+/*0x00b0*/ CHAR         IDFile[0x20];
+/*0x00d0*/ BYTE         Unknown0x00d0[0x1c];
+/*0x00ec*/ DWORD        ItemNumber;
+/*0x00f0*/ DWORD        EquipSlots;
+/*0x00f4*/ DWORD        Cost;
+/*0x00f8*/ DWORD        IconNumber;
+/*0x00fc*/ BYTE         Unknown0x00fc[0x4];
+/*0x0100*/ DWORD        Weight;
+/*0x0104*/ BYTE         NoRent; // 0=temp, 1=default
+/*0x0105*/ BYTE         NoDrop; // 0=no drop, 1=can drop
+/*0x0106*/ BYTE         Attuneable;
+/*0x0107*/ BYTE         Unknown0x0107[0xa];
+/*0x0111*/ BYTE         Size;
+/*0x0112*/ BYTE         Type;
+/*0x0113*/ BYTE         TradeSkills;
+/*0x0114*/ DWORD        Lore;
+/*0x0118*/ BYTE         Artifact;
+/*0x0119*/ BYTE         Summoned;
+/*0x011a*/ CHAR         SvCold;
+/*0x011b*/ CHAR         SvFire;
+/*0x011c*/ CHAR         SvMagic;
+/*0x011d*/ CHAR         SvDisease;
+/*0x011e*/ CHAR         SvPoison;
+/*0x011f*/ CHAR         SvCorruption;
+/*0x0120*/ CHAR         STR;
+/*0x0121*/ CHAR         STA;
+/*0x0122*/ CHAR         AGI;
+/*0x0123*/ CHAR         DEX;
+/*0x0124*/ CHAR         CHA;
+/*0x0125*/ CHAR         INT;
+/*0x0126*/ CHAR         WIS;
+/*0x0127*/ BYTE         Unknown0x0127;
+/*0x0128*/ DWORD        HP;
+/*0x012c*/ DWORD        Mana;
+/*0x0130*/ DWORD        AC;
+/*0x0134*/ DWORD        RequiredLevel;
+/*0x0138*/ DWORD        RecommendedLevel;
+/*0x013c*/ BYTE         RecommendedSkill;
+/*0x013d*/ BYTE         Unknown0x013d[0x3];
+/*0x0140*/ DWORD        SkillModType;
+/*0x0144*/ DWORD        SkillModValue;
+/*0x0148*/ BYTE         Unknown0x0148[0x8];
+/*0x0150*/ DWORD        BaneDMGRace;
+/*0x0154*/ DWORD        BaneDMGBodyType;
+/*0x0158*/ BYTE         BaneDMGBodyTypeValue;
+/*0x0159*/ BYTE         BaneDMGRaceValue;
+/*0x015a*/ BYTE         Unknown0x015a[0x6];
+/*0x0160*/ DWORD        InstrumentType;
+/*0x0164*/ DWORD        InstrumentMod;
+/*0x0168*/ DWORD        Classes;
+/*0x016c*/ DWORD        Races;
+/*0x0170*/ DWORD        Diety;
+/*0x0174*/ BYTE         Unknown0x0174[0x4];
+/*0x0178*/ BYTE         Magic;
+/*0x0179*/ BYTE         Light;
+/*0x017a*/ BYTE         Delay;
+/*0x017b*/ BYTE         DmgBonusType;
+/*0x017c*/ BYTE         DmgBonusVal;
+/*0x017d*/ BYTE         Range;
+/*0x017e*/ BYTE         Unknown0x017e[0x2];
+/*0x0180*/ DWORD        Damage;
+/*0x0184*/ DWORD        BackstabDamage;
+/*0x0188*/ DWORD        DamageShieldMitigation;
+/*0x018c*/ DWORD        HeroicSTR;
+/*0x0190*/ DWORD        HeroicINT;
+/*0x0194*/ DWORD        HeroicWIS;
+/*0x0198*/ DWORD        HeroicAGI;
+/*0x019c*/ DWORD        HeroicDEX;
+/*0x01a0*/ DWORD        HeroicSTA;
+/*0x01a4*/ DWORD        HeroicCHA;
+/*0x01a8*/ DWORD        HeroicSvMagic;
+/*0x01ac*/ DWORD        HeroicSvFire;
+/*0x01b0*/ DWORD        HeroicSvCold;
+/*0x01b4*/ DWORD        HeroicSvDisease;
+/*0x01b8*/ DWORD        HeroicSvPoison;
+/*0x01bc*/ DWORD        HeroicSvCorruption;
+/*0x01c0*/ DWORD        HealAmount;
+/*0x01c4*/ DWORD        SpellDamage;
+/*0x01c8*/ BYTE         Unknown0x01c8[0x4];
+/*0x01cc*/ BYTE         ItemType;
+/*0x01cd*/ BYTE         Unknown0x01cd[0xb];
+/*0x01d8*/ BYTE         Material;
+/*0x01d9*/ BYTE         Unknown0x01d9[0xb];
+/*0x01e4*/ DWORD        AugSlot1;
+/*0x01e8*/ DWORD        AugSlot1_Unknown;
+/*0x01ec*/ DWORD        AugSlot2;
+/*0x01f0*/ DWORD        AugSlot2_Unknown;
+/*0x01f4*/ DWORD        AugSlot3;
+/*0x01f8*/ DWORD        AugSlot3_Unknown;
+/*0x01fc*/ DWORD        AugSlot4;
+/*0x0200*/ DWORD        AugSlot4_Unknown;
+/*0x0204*/ DWORD        AugSlot5;
+/*0x0208*/ DWORD        AugSlot5_Unknown;
+/*0x020c*/ DWORD        AugSlot6;
+/*0x0210*/ DWORD        AugSlot6_Unknown;
+/*0x0214*/ DWORD        AugType;
+/*0x0218*/ DWORD        AugRestrictions;
+/*0x021c*/ BYTE         Unknown0x021c[0x4];
+/*0x0220*/ DWORD        SolventNeeded; //ID# of Solvent (Augs only)
+/*0x0224*/ DWORD        LDTheme;
+/*0x0228*/ DWORD        LDCost;
+/*0x022c*/ DWORD        LDType;
+/*0x0230*/ BYTE         Unknown0x0230[0x8];
+/*0x0238*/ DWORD        FactionModType[0x4];
+/*0x0248*/ DWORD        FactionModValue[0x4];
+/*0x0258*/ BYTE         CharmFile[0x20];
+/*0x0278*/ BYTE         Unknown0x0278[0x4];
+/*0x027c*/ struct _ITEMSPELLS    Clicky;
+/*0x02e0*/ struct _ITEMSPELLS    Proc;
+/*0x0344*/ struct _ITEMSPELLS    Worn;
+/*0x03a8*/ struct _ITEMSPELLS    Focus;
+/*0x040c*/ struct _ITEMSPELLS    Scroll;
+/*0x0470*/ struct _ITEMSPELLS    itemSpellUnknown;
+/*0x04d4*/ BYTE         Unknown0x04d4[0x14];
+/*0x04e8*/ DWORD        CombatEffects;
+/*0x04ec*/ DWORD        Shielding;
+/*0x04f0*/ DWORD        StunResist;
+/*0x04f4*/ DWORD        DoTShielding;
+/*0x04f8*/ DWORD        StrikeThrough;
+/*0x04fc*/ DWORD        DmgBonusSkill; // SkillMinDamageMod;
+/*0x0500*/ DWORD        DmgBonusValue; // MinDamageMod;
+/*0x0504*/ DWORD        SpellShield;
+/*0x0508*/ DWORD        Avoidance;
+/*0x050c*/ DWORD        Accuracy;
+/*0x0510*/ DWORD        CharmFileID;
+/*0x0514*/ DWORD        CastTime;
+/*0x0518*/ BYTE         Combine;
+/*0x0519*/ BYTE         Slots;
+/*0x051a*/ BYTE         SizeCapacity;
+/*0x051b*/ BYTE         WeightReduction;
+/*0x051c*/ BYTE         BookType;      // 0=note, !0=book
+/*0x051d*/ BYTE         BookLang;
+/*0x051e*/ CHAR         BookFile[0x1e];
+/*0x053c*/ DWORD        Favor;         // Tribute Value
+/*0x0540*/ DWORD        GuildFavor;
+/*0x0544*/ BYTE         Unknown0x0544[0x4];
+/*0x0548*/ DWORD        Endurance;
+/*0x054c*/ DWORD        Attack;
+/*0x0550*/ DWORD        HPRegen;
+/*0x0554*/ DWORD        ManaRegen;
+/*0x0558*/ DWORD        EnduranceRegen;
+/*0x055c*/ DWORD        Haste;
+/*0x0560*/ DWORD        DamShield;
+/*0x0564*/ BYTE         Unknown0x0564[0x8];
+/*0x056c*/ BYTE         NoPet;
+/*0x056d*/ BYTE         Unknown0x056d[0xb];
+/*0x0578*/ DWORD        StackSize;
+/*0x057c*/ BYTE         Unknown0x057c[0x4];
+/*0x0580*/ DWORD        MaxPower;
+/*0x0584*/ DWORD        Purity;
+/*0x0588*/ BYTE         Unknown0x0588[0x8];
+/*0x0590*/ BYTE         QuestItem;
+/*0x0591*/ BYTE         Unknown0x0591[0x7];
+/*0x0598*/ DWORD        Clairvoyance;
+/*0x059c*/ BYTE			Unknown0x059c[0x90];
+/*0x062c*/
 } ITEMINFO, *PITEMINFO;
 
 typedef struct _CONTENTSARRAY {
     struct  _CONTENTS *Contents[0x14]; // 20 bag-slot max - addresses to whats inside the bag if its a bag; augs if an item
 } CONTENTSARRAY, *PCONTENTSARRAY;
 
-// actual size 0x158 for eqgame.exe dated july 15 2013 - eqmule
+// actual size 0x160 for eqgame.exe dated aug 19 2013 - eqmule
 typedef struct _CONTENTS {
 /*0x0000*/ void*        vtable;
 /*0x0004*/ DWORD        ItemType;           // ? 1 = normal, 2 = pack ?
 /*0x0008*/ void*        punknown;
-/*0x000c*/ BYTE         Unknown0x000c[0x38];
-/*0x0044*/ DWORD        MerchantQuantity;
-/*0x0048*/ BYTE         Unknown0x0048[0x8];
-/*0x0050*/ DWORD        NumOfSlots1;
-/*0x0054*/ BYTE         Unknown0x0054[0x4];
-/*0x0058*/ struct _CONTENTSARRAY*        pContentsArray;
-/*0x005c*/ DWORD        NumOfSlots2;
-/*0x0060*/ BYTE         Unknown0x0060[0x6];
-/*0x0066*/ WORD         ItemSlot;           // Inventory slot id
-/*0x0068*/ WORD         ItemSlot2;          // Bag slot id, starts at 0 for first slot in bag, or FFFF if item is on cursor
-/*0x006a*/ BYTE         Unknown0x006a[0x1e];
-/*0x0088*/ DOUBLE       EvolvingExpPct;
-/*0x0090*/ BYTE         Unknown0x0088[0x1c];
-/*0x00ac*/ DWORD        Price;
-/*0x00b0*/ BYTE         Unknown0x00b0[0x24];
-/*0x00d4*/ BYTE         EvolvingExpOn;
-/*0x00d5*/ BYTE         Unknown0x00d5[0xb];
-/*0x00e0*/ struct _ITEMINFO*     Item1;
-/*0x00e4*/ BYTE         Unknown0x00e4[0x4];
-/*0x00e8*/ DWORD        StackCount;
-/*0x00ec*/ BYTE         Unknown0x00ec[0x14];
+/*0x000c*/ DWORD        Open;
+/*0x0010*/ BYTE         Unknown0x0010[0x20];
+/*0x0030*/ DWORD        Power;
+/*0x0034*/ BYTE         Unknown0x0034[0x8];
+/*0x003c*/ BYTE         EvolvingExpOn;
+/*0x003d*/ BYTE         Unknown0x003d[0xf];
+/*0x004c*/ DWORD        EvolvingMaxLevel;
+/*0x0050*/ struct _ITEMINFO*     Item1;
+/*0x0054*/ BYTE         Unknown0x0054[0xc];
+/*0x0060*/ DOUBLE       EvolvingExpPct;
+/*0x0068*/ BYTE         Unknown0x0068[0x8];
+/*0x0070*/ DWORD        Charges;
+/*0x0074*/ BYTE         IsEvolvingItem;
+/*0x0075*/ BYTE         Unknown0x0075[0x23];
+/*0x0098*/ DWORD        StackCount;
+/*0x009c*/ BYTE         Unknown0x009c[0xc];
+/*0x00a8*/ DWORD        MerchantQuantity;
+/*0x00ac*/ BYTE         Unknown0x00ac[0x4];
+/*0x00b0*/ DWORD        EvolvingCurrentLevel;
+/*0x00b4*/ BYTE         Unknown0x00b4[0x4];
+/*0x00b8*/ DWORD        NumOfSlots1;//ItemSlot is this address + 16 in 20130708
+/*0x00bc*/ BYTE         Unknown0x00bc[0x4];
+/*0x00c0*/ struct _CONTENTSARRAY*        pContentsArray;
+/*0x00c4*/ DWORD        NumOfSlots2;
+/*0x00c8*/ BYTE         Unknown0x00c8[0x6];
+/*0x00ce*/ WORD         ItemSlot;           // Inventory slot id
+/*0x00d0*/ WORD         ItemSlot2;          // Bag slot id, starts at 0 for first slot in bag, or FFFF if item is on cursor
+/*0x00d2*/ BYTE         Unknown0x00d2[0x1e];
+/*0x00f0*/ DWORD        Price;
+/*0x00f4*/ BYTE         Unknown0x00f4[0xc];
 /*0x0100*/ DWORD        MerchantSlot;       // slot id on a merchant
-/*0x0104*/ BYTE         Unknown0x0104[0x4];
-/*0x0108*/ DWORD        Power;
-/*0x010c*/ BYTE         Unknown0x010c[0xc];
-/*0x0118*/ DWORD        Open;
-/*0x011c*/ BYTE         IsEvolvingItem;
-/*0x011d*/ BYTE         Unknown0x011d[0x3];
-/*0x0120*/ DWORD        Charges;
-/*0x0124*/ BYTE         Unknown0x0124[0x4];
-/*0x0128*/ DWORD        EvolvingCurrentLevel;
-/*0x012c*/ BYTE         Unknown0x012c[0x10];
-/*0x013c*/ DWORD        EvolvingMaxLevel;
-/*0x0140*/ BYTE         Unknown0x0140[0xc];
-/*0x014c*/ struct _ITEMINFO*     Item2;
-/*0x0150*/ BYTE    Unknown0x150[0x8];
-/*0x0158*/
+/*0x0104*/ BYTE         Unknown0x0104[0x50];
+/*0x0154*/ struct _ITEMINFO*     Item2;
+/*0x0158*/ BYTE    Unknown0x158[0x8];
+/*0x0160*/
 } CONTENTS, *PCONTENTS;
 
 
@@ -1230,7 +1226,7 @@ typedef struct _LAUNCHSPELLDATA {
 /*0x50*/
 } LAUNCHSPELLDATA, *PLAUNCHSPELLDATA;
 
-// actual size is 0x1F1C in 07-15-2013 version of eqgame.exe - eqmule
+// actual size is 0x1F18 in 08-19-2013 version of eqgame.exe - eqmule
 typedef struct _SPAWNINFO {
 /*0x0000*/ void*        vtable;
 /*0x0004*/ struct _SPAWNINFO*    pPrev;
@@ -1273,134 +1269,130 @@ typedef struct _SPAWNINFO {
 /*0x0150*/ DWORD        IsABoat;                // 1 = a type of boat
 /*0x0154*/ struct _SPAWNINFO*    Mount;      // NULL if no mount present
 /*0x0158*/ struct _SPAWNINFO*    Rider;      // _SPAWNINFO of mount's rider
-/*0x015c*/ BYTE         Unknown0x015c[0x44];
-/*0x01a0*/ FLOAT        RunSpeed;//0.70 on runspeed 5...
-/*0x01a4*/ BYTE         PvPFlag;
-/*0x01a5*/ BYTE         Unknown0x01a5[0x13];
-/*0x01b8*/ DWORD        GuildID;
-/*0x01bc*/ BYTE         Unknown0x01bc[0x4];
-/*0x01c0*/ DWORD        EnduranceCurrent;
-/*0x01c4*/ BYTE         Holding;
-/*0x01c5*/ BYTE         Unknown0x01c5[0x3];
-/*0x01c8*/ DWORD        PetID;
-/*0x01cc*/ BYTE         Unknown0x01cc[0x44];
-/*0x0210*/ DWORD        GuildStatus;
-/*0x0214*/ BYTE         Linkdead;
-/*0x0215*/ BYTE         Unknown0x0215[0x3];
-/*0x0218*/ WORD         Zone;
-/*0x021a*/ WORD         Instance;
-/*0x021c*/ BYTE         Unknown0x021c[0x20];
-/*0x023c*/ struct _LAUNCHSPELLDATA       CastingData; // size: 0x50
-/*0x028c*/ BYTE         Unknown0x028c[0x8];
-/*0x0294*/ DWORD        Anon;//found in EQPlayer__SetNameSpriteTint_x
-/*0x0298*/ BYTE         Unknown0x0298[0x80];
-/*0x0318*/ DWORD        MasterID;
-/*0x031c*/ BYTE         Unknown0x031c[0x8];
-/*0x0324*/ DWORD        Trader;//found in CEverQuest__RightClickedOnPlayer_x
-/*0x0328*/ BYTE         Unknown0x0328[0xc];
-/*0x0334*/ DWORD        FishingETA;
-/*0x0338*/ BYTE         Unknown0x0338[0x4];
-/*0x033c*/ CHAR         Suffix[0x20];
-/*0x035c*/ BYTE         LFG;
-/*0x035d*/ BYTE         Unknown0x035d[0x3];
-/*0x0360*/ DWORD        AFK;
-/*0x0364*/ BYTE         Unknown0x0364[0x6c];
-/*0x03d0*/ BYTE         Mercenary;
-/*0x03d1*/ BYTE         GM;
-/*0x03d2*/ BYTE         Unknown0x03d2;
-/*0x03d3*/ BYTE         Level;
-/*0x03d4*/ DWORD        AARank;
-/*0x03d8*/ BYTE         Sneak;
-/*0x03d9*/ BYTE         Unknown0x03d9[0x7];
-/*0x03e0*/ DWORD        Deity;
-/*0x03e4*/ BYTE         Unknown0x03e4[0x3c];
-/*0x0420*/ DWORD        ManaMax;
-/*0x0424*/ BYTE         Unknown0x0424[0x4];
-/*0x0428*/ DWORD        Buyer;
-/*0x042c*/ BYTE         Unknown0x042c[0x14];
-/*0x0440*/ DWORD        ManaCurrent;
-/*0x0444*/ BYTE         Unknown0x0444[0x10];
-/*0x0454*/ DWORD        HPMax;
-/*0x0458*/ BYTE         StandState;
-/*0x0459*/ BYTE         Unknown0x0459[0xb];
-/*0x0464*/ BYTE         FishingEvent;
-/*0x0465*/ BYTE         Unknown0x0465[0xb];
-/*0x0470*/ BYTE         Light;
-/*0x0471*/ BYTE         Unknown0x0471[0x7];
-/*0x0478*/ BYTE         HideMode;
-/*0x0479*/ BYTE         Unknown0x0479[0x33];
-/*0x04ac*/ DWORD        InnateETA;              //Calculated TimeStamp when innate skill will be ready (LoH, HT, Bash)
-/*0x04b0*/ BYTE         Unknown0x04b0[0x28];
-/*0x04d8*/ CHAR         Title[0x20];
-/*0x04f8*/ BYTE         Unknown0x04f8[0xc];
-/*0x0504*/ DWORD        RespawnTimer;           // TimeStamp of when RespawnWnd will close - 0 when you're alive
-/*0x0508*/ DWORD        EnduranceMax;
-/*0x050c*/ LONG         HPCurrent;
-/*0x0510*/ BYTE         Unknown0x0510[0xc];
-/*0x051c*/ FLOAT        GetMeleeRangeVar1;      // used by GetMeleeRange
-/*0x0520*/ BYTE         Unknown0x0520[0x4];
-/*0x0524*/ DWORD        LastTick;
-/*0x0528*/ BYTE         Unknown0x0528[0x920];
-/*0x0e48*/ struct _SPAWNINFO*    WhoFollowing; // NULL if autofollow off
-/*0x0e4c*/ int          GroupAssistNPC[0x1];
-/*0x0e50*/ int          RaidAssistNPC[0x3];
-/*0x0e5c*/ int          GroupMarkNPC[0x3];
-/*0x0e68*/ int          RaidMarkNPC[0x3];
-/*0x0e74*/ int          TargetOfTarget;
-/*0x0e78*/ BYTE         Unknown0x0e78[0x34];
-/*0x0eac*/ void*        pActorClient;          // start of ActorClient struct
-/*0x0eb0*/ BYTE         InNonPCRaceIllusion;
-/*0x0eb1*/ BYTE         Unknown0x0eb1[0x3];
-/*0x0eb4*/ BYTE         FaceStyle;
-/*0x0eb5*/ BYTE         HairColor;
-/*0x0eb6*/ BYTE         FacialHairColor;
-/*0x0eb7*/ BYTE         EyeColor1;
-/*0x0eb8*/ BYTE         EyeColor2;
-/*0x0eb9*/ BYTE         HairStyle;
-/*0x0eba*/ BYTE         FacialHair;
-/*0x0ebb*/ BYTE         Unknown0x0ebb;
-/*0x0ebc*/ DWORD        Race;
-/*0x0ec0*/ BYTE         Class;
-/*0x0ec1*/ BYTE         Gender;
-/*0x0ec2*/ CHAR         ActorDef[0x40];
-/*0x0f02*/ BYTE         Unknown0x0f02[0x2];
-/*0x0f04*/ ARGBCOLOR    ArmorColor[0x9];
-/*0x0f28*/ BYTE         Unknown0x0f28[0x4];
-/*0x0f2c*/ DWORD        Heritage;               //drakkin only face setting
-/*0x0f30*/ DWORD        Tattoo;                 //drakkin only face setting
-/*0x0f34*/ DWORD        Details;                //drakkin only face setting
-/*0x0f38*/ struct _EQUIPMENT     Equipment;   // size 0xb4
-/*0x0fec*/ BYTE         Unknown0x0fec[0x38];
-/*0x1024*/ VOID*        pcactorex;             // ActorInterface*
-/*0x1028*/ BYTE         Unknown0x1028[0x4];
-/*0x102c*/ VOID*        FaceRelatedActorStruct;
-/*0x1030*/ BYTE         Unknown0x1030[0x34];
-/*0x1064*/ FLOAT        GetMeleeRangeVar2;      // used by GetMeleeRange
-/*0x1068*/ BYTE         Unknown0x1068[0x64];
-/*0x10cc*/ DWORD        Animation;
-/*0x10d0*/ BYTE         Unknown0x10d0[0x104];
-/*0x11d4*/ FLOAT        WalkSpeed;
-/*0x11d8*/ DWORD        HideCorpse;
-/*0x11dc*/ BYTE         Unknown0x11dc[0x40];
-/*0x121c*/ BYTE         InvitedToGroup;
-/*0x121d*/ BYTE         Unknown0x121d[0x3];
-/*0x1220*/ DWORD        GroupMemberTargeted;    // 0xFFFFFFFF if no target, else 1 through 5
-/*0x1224*/ BYTE         Unknown0x1224[0x180];
-/*0x13a4*/ struct _FELLOWSHIPINFO        Fellowship; // size 0x9e4
-/*0x1d88*/ FLOAT        CampfireY;
-/*0x1d8c*/ FLOAT        CampfireX;
-/*0x1d90*/ FLOAT        CampfireZ;
-/*0x1d94*/ WORD         CampfireZoneID;         // zone ID where campfire is
-/*0x1d96*/ WORD         InstanceID;
-/*0x1d98*/ DWORD        CampfireTimestamp;      // CampfireTimestamp-FastTime()=time left on campfire
-/*0x1d9c*/ DWORD        Campfire;               // do we have a campfire up?
-/*0x1da0*/ BYTE         Unknown0x1da0[0x124];
-/*0x1ec4*/ void*        vtable2;
-/*0x1ec8*/ BYTE         Unknown0x1ec8[0x4];
-/*0x1ecc*/ struct _SPAWNINFO*    pSpawn;
-/*0x1ed0*/ DWORD        Levitate;
-/*0x1ed4*/ BYTE         Unknown0x1ed4[0x48];
-/*0x1f1c*/
+/*0x015c*/ BYTE         Unknown0x015c[0x64];
+/*0x01c0*/ DWORD        Buyer;
+/*0x01c4*/ BYTE         Unknown0x01c4[0x18];
+/*0x01dc*/ BYTE         HideMode;
+/*0x01dd*/ BYTE         Unknown0x01dd[0xb];
+/*0x01e8*/ DWORD        Trader;//found in CEverQuest__RightClickedOnPlayer_x
+/*0x01ec*/ DWORD        HPMax;
+/*0x01f0*/ CHAR         Title[0x20];
+/*0x0210*/ BYTE         Unknown0x0210[0xa];
+/*0x021a*/ BYTE         FishingEvent;
+/*0x021b*/ BYTE         Unknown0x021b[0xd];
+/*0x0228*/ DWORD        EnduranceMax;
+/*0x022c*/ FLOAT        RunSpeed;//0.70 on runspeed 5...
+/*0x0230*/ BYTE         Unknown0x0230[0x4];
+/*0x0234*/ LONG         HPCurrent;
+/*0x0238*/ BYTE         Unknown0x0238[0x8];
+/*0x0240*/ DWORD        Deity;
+/*0x0244*/ DWORD        MasterID;
+/*0x0248*/ BYTE         StandState;
+/*0x0249*/ BYTE         Unknown0x0249[0x1d];
+/*0x0266*/ BYTE         PvPFlag;
+/*0x0267*/ CHAR         Suffix[0x20];
+/*0x0287*/ BYTE         Unknown0x0287[0x5];
+/*0x028c*/ DWORD        ManaCurrent;
+/*0x0290*/ DWORD        LastTick;
+/*0x0294*/ BYTE         LFG;
+/*0x0295*/ BYTE         Unknown0x0295[0x3b];
+/*0x02d0*/ DWORD        InnateETA;              //Calculated TimeStamp when innate skill will be ready (LoH, HT, Bash)
+/*0x02d4*/ BYTE         Unknown0x02d4[0x14];
+/*0x02e8*/ WORD         Zone;
+/*0x02ea*/ WORD         Instance;
+/*0x02ec*/ BYTE         Unknown0x02ec[0x30];
+/*0x031c*/ BYTE         Level;
+/*0x031d*/ BYTE         Unknown0x031d[0x17];
+/*0x0334*/ DWORD        AARank;
+/*0x0338*/ DWORD        GuildID;
+/*0x033c*/ DWORD        AFK;
+/*0x0340*/ BYTE         Unknown0x0340[0x44];
+/*0x0384*/ DWORD        RespawnTimer;           // TimeStamp of when RespawnWnd will close - 0 when you're alive
+/*0x0388*/ BYTE         Sneak;
+/*0x0389*/ BYTE         Unknown0x0389[0x1b];
+/*0x03a4*/ DWORD        Anon;//found in EQPlayer__SetNameSpriteTint_x
+/*0x03a8*/ BYTE         Unknown0x03a8[0x4];
+/*0x03ac*/ BYTE         Linkdead;
+/*0x03ad*/ BYTE         Mercenary;
+/*0x03ae*/ BYTE         Unknown0x03ae[0x6];
+/*0x03b4*/ DWORD        ManaMax;
+/*0x03b8*/ BYTE         Unknown0x03b8[0x14];
+/*0x03cc*/ DWORD        EnduranceCurrent;
+/*0x03d0*/ struct _LAUNCHSPELLDATA       CastingData; // size: 0x50
+/*0x0420*/ BYTE         Unknown0x0420[0x10];
+/*0x0430*/ FLOAT        GetMeleeRangeVar1;      // used by GetMeleeRange
+/*0x0434*/ BYTE         Light;
+/*0x0435*/ BYTE         Unknown0x0435[0x3];
+/*0x0438*/ DWORD        PetID;
+/*0x043c*/ BYTE         Unknown0x043c[0x48];
+/*0x0484*/ BYTE         GM;
+/*0x0485*/ BYTE         Unknown0x0485[0x3];
+/*0x0488*/ DWORD        GuildStatus;
+/*0x048c*/ DWORD        FishingETA;
+/*0x0490*/ BYTE         Unknown0x0490[0x90];
+/*0x0520*/ BYTE         Holding;
+/*0x0521*/ BYTE         Unknown0x0521[0x92b];
+/*0x0e4c*/ struct _SPAWNINFO*    WhoFollowing; // NULL if autofollow off
+/*0x0e50*/ int          GroupAssistNPC[0x1];
+/*0x0e54*/ int          RaidAssistNPC[0x3];
+/*0x0e60*/ int          GroupMarkNPC[0x3];
+/*0x0e6c*/ int          RaidMarkNPC[0x3];
+/*0x0e78*/ int          TargetOfTarget;
+/*0x0e7c*/ BYTE         Unknown0x0e7c[0x2c];
+/*0x0ea8*/ void*        pActorClient;          // start of ActorClient struct
+/*0x0eac*/ BYTE         InNonPCRaceIllusion;
+/*0x0ead*/ BYTE         Unknown0x0ead[0x3];
+/*0x0eb0*/ BYTE         FaceStyle;
+/*0x0eb1*/ BYTE         HairColor;
+/*0x0eb2*/ BYTE         FacialHairColor;
+/*0x0eb3*/ BYTE         EyeColor1;
+/*0x0eb4*/ BYTE         EyeColor2;
+/*0x0eb5*/ BYTE         HairStyle;
+/*0x0eb6*/ BYTE         FacialHair;
+/*0x0eb7*/ BYTE         Unknown0x0eb7;
+/*0x0eb8*/ DWORD        Race;
+/*0x0ebc*/ BYTE         Class;
+/*0x0ebd*/ BYTE         Gender;
+/*0x0ebe*/ CHAR         ActorDef[0x40];
+/*0x0efe*/ BYTE         Unknown0x0efe[0x2];
+/*0x0f00*/ ARGBCOLOR    ArmorColor[0x9];
+/*0x0f24*/ BYTE         Unknown0x0f24[0x4];
+/*0x0f28*/ DWORD        Heritage;               //drakkin only face setting
+/*0x0f2c*/ DWORD        Tattoo;                 //drakkin only face setting
+/*0x0f30*/ DWORD        Details;                //drakkin only face setting
+/*0x0f34*/ struct _EQUIPMENT     Equipment;   // size 0xb4
+/*0x0fe8*/ BYTE         Unknown0x0fe8[0x38];
+/*0x1020*/ VOID*        pcactorex;             // ActorInterface*
+/*0x1024*/ BYTE         Unknown0x1024[0x4];
+/*0x1028*/ VOID*        FaceRelatedActorStruct;
+/*0x102c*/ BYTE         Unknown0x102c[0x34];
+/*0x1060*/ FLOAT        GetMeleeRangeVar2;      // used by GetMeleeRange
+/*0x1064*/ BYTE         Unknown0x1064[0x64];
+/*0x10c8*/ DWORD        Animation;
+/*0x10cc*/ BYTE         Unknown0x10cc[0x104];
+/*0x11d0*/ FLOAT        WalkSpeed;
+/*0x11d4*/ DWORD        HideCorpse;
+/*0x11d8*/ BYTE         Unknown0x11d8[0x40];
+/*0x1218*/ BYTE         InvitedToGroup;
+/*0x1219*/ BYTE         Unknown0x1219[0x3];
+/*0x121c*/ DWORD        GroupMemberTargeted;    // 0xFFFFFFFF if no target, else 1 through 5
+/*0x1220*/ BYTE         Unknown0x1220[0x180];
+/*0x13a0*/ struct _FELLOWSHIPINFO        Fellowship; // size 0x9e4
+/*0x1d84*/ FLOAT        CampfireY;
+/*0x1d88*/ FLOAT        CampfireX;
+/*0x1d8c*/ FLOAT        CampfireZ;
+/*0x1d90*/ WORD         CampfireZoneID;         // zone ID where campfire is
+/*0x1d92*/ WORD         InstanceID;
+/*0x1d94*/ DWORD        CampfireTimestamp;      // CampfireTimestamp-FastTime()=time left on campfire
+/*0x1d98*/ BYTE         Unknown0x1d98[0x8];
+/*0x1da0*/ DWORD        Campfire;               // do we have a campfire up?
+/*0x1da4*/ BYTE         Unknown0x1da4[0x11c];
+/*0x1ec0*/ void*        vtable2;
+/*0x1ec4*/ BYTE         Unknown0x1ec4[0x4];
+/*0x1ec8*/ struct _SPAWNINFO*    pSpawn;
+/*0x1ecc*/ DWORD        Levitate;
+/*0x1ec8*/ BYTE         Unknown0x1ec8[0x50];
+/*0x1f18*/
 } SPAWNINFO, *PSPAWNINFO;
 
 #define STANDSTATE_STAND                0x64
@@ -2207,8 +2199,8 @@ enum AggroDataTypes
     AD_xTarget20,
 };
 
-#define EQ_BEGIN_ZONE                   0x2214  // CEverQuest__SavePCForce         20130619
-#define EQ_END_ZONE                     0x1280  // CEverQuest__DoMainLoop+B2F      20130619
+#define EQ_BEGIN_ZONE                   0x4FC0  // CEverQuest__SavePCForce         20130819
+#define EQ_END_ZONE                     0x778C  // CEverQuest__DoMainLoop+B2F      20130819
 #define EQ_LoadingS__ArraySize          0x5b    // EQ_LoadingS__SetProgressBar_x+8C  20130619
 };
 using namespace EQData;

@@ -1,3 +1,5 @@
+21 Aug 2013 by EqMule
+- Updated for patch
 18 July 2013 by EqMule
 - Added support for /useitem
   Example: /useitem ${FindItem[=worn totem].ItemSlot} ${FindItem[=worn totem].ItemSlot2}
