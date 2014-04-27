@@ -3660,7 +3660,22 @@ bool MQ2CharacterType::GETMEMBER()
 		}
         Dest.Type=pStringType;
         return true;
-    }
+	case AltCurrency:
+		if (!ISINDEX())
+			return false;
+		if (ISNUMBER()) {
+			Dest.DWord = pPlayerPointManager->GetAltCurrency(GETNUMBER());
+			Dest.Type = pIntType;
+			return true;
+		} else {
+			int nCurrency = GetCurrencyIDByName(GETFIRST());
+			if (nCurrency < 0)
+				return false;
+			Dest.DWord = pPlayerPointManager->GetAltCurrency(nCurrency);
+			Dest.Type = pIntType;
+			return true;
+		}
+	}
     return false;
 #undef pChar
 }
@@ -3936,6 +3951,24 @@ bool MQ2SpellType::GETMEMBER()
 	case MaxLevel:
 		Dest.DWord=pSpell->Max[0];
 		Dest.Type=pIntType;
+		return true;
+	case Category:
+		Dest.Ptr="Unknown";
+		if(DWORD cat = pSpell->Category) {
+			if (PVOID ptr = pCDBStr->GetString(cat, 5, NULL)) {
+				 Dest.Ptr=ptr; 
+			}
+		}
+		Dest.Type=pStringType;
+		return true;
+	case Subcategory:
+		Dest.Ptr="Unknown";
+		if(DWORD cat = pSpell->Subcategory) {
+			if (PVOID ptr = pCDBStr->GetString(cat, 5, NULL)) {
+				 Dest.Ptr=ptr; 
+			}
+		}
+		Dest.Type=pStringType;
 		return true;
     }
     return false;
@@ -4322,13 +4355,26 @@ bool MQ2ItemType::GETMEMBER()
             return true;
         }
         return false;
-    case StackSize:
-        if ((GetItemFromContents(pItem)->Type != ITEMTYPE_NORMAL) || (((EQ_Item*)pItem)->IsStackable()!=1))
-            Dest.DWord=1;
-        else
-            Dest.DWord=GetItemFromContents(pItem)->StackSize;
+    case StackSize: //This returns the MAX size of a stack for the item
+	{				//If this was properly named it should be called MaxStack... but ah well... to late now...
+		Dest.DWord=1;//we know its at least 1
+		if(pItem) {
+			if(pItem->punknown) {// since the call to >IsStackable() needs this vtable... we crash if its 0...
+				if ((GetItemFromContents(pItem)->Type != ITEMTYPE_NORMAL) || (((EQ_Item*)pItem)->IsStackable()!=1)) {
+					//do nothing
+				} else {
+					Dest.DWord=GetItemFromContents(pItem)->StackSize;
+				}
+			} else {
+				PITEMINFO theitem = GetItemFromContents(pItem);
+				if(theitem && theitem->StackSize>=1) {
+					Dest.DWord=theitem->StackSize;
+				}
+			}
+		}
         Dest.Type=pIntType;
         return true;
+	}
     case Stacks:
         {
             Dest.DWord=0;
@@ -5375,6 +5421,10 @@ bool MQ2CurrentZoneType::GETMEMBER()
     //return pZoneType->GetMember(*(MQ2VARPTR*)&((PWORLDDATA)pWorldData)->ZoneArray[GetCharInfo()->zoneId],Member,Index,Dest);
     switch((CurrentZoneMembers)pMember->ID)
     {
+    case Address:
+		Dest.DWord=(DWORD)VarPtr.Ptr;
+		Dest.Type=pIntType;
+        return true;
     case ID:
         Dest.Int = GetCharInfo()->zoneId;
         Dest.Type=pIntType;
@@ -5437,6 +5487,10 @@ bool MQ2ZoneType::GETMEMBER()
         return false;
     switch((ZoneMembers)pMember->ID)
     {
+	case Address:
+		Dest.DWord=(DWORD)VarPtr.Ptr;
+		Dest.Type=pIntType;
+        return true;
     case Name:
         Dest.Ptr=&pZone->LongName[0];
         Dest.Type=pStringType;
@@ -5449,6 +5503,10 @@ bool MQ2ZoneType::GETMEMBER()
         Dest.Int=pZone->Id;
         Dest.Type=pIntType;
         return true;
+	case ZoneFlags:
+		Dest.Int=pZone->ZoneFlags;
+        Dest.Type=pIntType;
+		return true;
     }
     return false;
 #undef pZone

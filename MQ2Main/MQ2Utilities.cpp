@@ -874,21 +874,44 @@ int GetLanguageIDByName( PCHAR SzName )
     return -1;
 }
 
+int GetCurrencyIDByName(PCHAR szName)
+{
+	if (!_stricmp(szName, "DOUBLOONS")) return ALTCURRENCY_DOUBLOONS;  // 0XA
+	if (!_stricmp(szName, "ORUX")) return ALTCURRENCY_ORUX; //0XB
+	if (!_stricmp(szName, "PHOSPHENES")) return ALTCURRENCY_PHOSPHENES; //0XC
+	if (!_stricmp(szName, "PHOSPHITES")) return ALTCURRENCY_PHOSPHITES; //0XD
+	if (!_stricmp(szName, "FAYCITUM")) return ALTCURRENCY_FAYCITES; //0XE
+	if (!_stricmp(szName, "CHRONOBINES")) return ALTCURRENCY_CHRONOBINES; //0XF
+	if (!_stricmp(szName, "SILVER TOKENS")) return ALTCURRENCY_SILVERTOKENS; //0X10
+	if (!_stricmp(szName, "GOLD TOKENS")) return ALTCURRENCY_GOLDTOKENS; //0X11
+	if (!_stricmp(szName, "MCKENZIE'S SPECIAL BREW")) return ALTCURRENCY_MCKENZIE; //0X12
+	if (!_stricmp(szName, "BAYLE MARKS")) return ALTCURRENCY_BAYLE; //0X13   
+	if (!_stricmp(szName, "TOKENS OF RECLAMATION")) return ALTCURRENCY_RECLAMATION; //0X14
+	if (!_stricmp(szName, "BRELLIUM TOKENS")) return ALTCURRENCY_BRELLIUM; //0X15
+	if (!_stricmp(szName, "DREAM MOTES")) return ALTCURRENCY_MOTES; //0X16
+	if (!_stricmp(szName, "REBELLION CHITS")) return ALTCURRENCY_REBELLIONCHITS; //0X17
+	if (!_stricmp(szName, "DIAMOND COINS")) return ALTCURRENCY_DIAMONDCOINS; //0X18
+	if (!_stricmp(szName, "BRONZE FIATS")) return ALTCURRENCY_BRONZEFIATS; //0X19
+	if (!_stricmp(szName, "EXPEDIENT DELIVERY VOUCHERS")) return ALTCURRENCY_VOUCHER; //0x1a
+	if (!_stricmp(szName, "VELIUM SHARDS")) return ALTCURRENCY_VELIUMSHARDS; //0X1b
+	if (!_stricmp(szName, "CRYSTALLIZED FEAR")) return ALTCURRENCY_CRYSTALLIZEDFEAR; //0X1c
+	if (!_stricmp(szName, "SHADOWSTONES")) return ALTCURRENCY_SHADOWSTONES; //0X1d
+	if (!_stricmp(szName, "DREADSTONES")) return ALTCURRENCY_DREADSTONES; //0X1e
+	if (!_stricmp(szName, "Marks of Valor")) return ALTCURRENCY_MARKSOFVALOR; //0X1F
+	if (!_stricmp(szName, "Marks of Heroism")) return ALTCURRENCY_MEDALSOFHEROISM; //0X20   
+	return -1;
+}
 //CHAR szUnknownSpell[MAX_STRING] = "Unknown Spell";
 // ^^ this shit is unnecessary, static strings are already stored at a location in the
 // file itself. Changed the function to return "Unknown Spell". - Lax
 PCHAR GetSpellNameByID(DWORD dwSpellID)
 {
-    PSPELL pSpell = NULL;
-    if (ppSpellMgr == NULL) return "Unknown Spell";
-    pSpell =  &(*((PSPELLMGR)pSpellMgr)->Spells[dwSpellID]);
-    if (pSpell != NULL) {
-        if (pSpell->Name != NULL) {
-            if (pSpell->Name[0]!='\0') {
-                return pSpell->Name;
-            }
-        }
-    }
+    if (ppSpellMgr) {
+		PSPELL pSpell = &(*((PSPELLMGR)pSpellMgr)->Spells[dwSpellID]);
+		if (pSpell && pSpell->Name && pSpell->Name[0]!='\0') {
+			return pSpell->Name;
+		}
+	}
     return "Unknown Spell";
 }
 

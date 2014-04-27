@@ -429,6 +429,7 @@ EQLIB_API int FindNextInvSlot(PCHAR Name, BOOL Exact);
 EQLIB_API int FindMappableCommand(const char *name);
 
 EQLIB_API int GetLanguageIDByName(PCHAR szName);
+EQLIB_API int GetCurrencyIDByName(PCHAR szName);
 EQLIB_API PCHAR GetSpellNameByID(DWORD dwSpellID);
 EQLIB_API PSPELL GetSpellByName(PCHAR szName);
 EQLIB_API struct  _ITEMINFO *GetItemFromContents(struct _CONTENTS *c);

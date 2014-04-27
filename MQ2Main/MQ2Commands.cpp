@@ -2459,14 +2459,31 @@ VOID IniOutput(PSPAWNINFO pChar, PCHAR szLine)
     }
     if (!strstr(szArg1,".")) strcat(szArg1,".ini");
     ZeroMemory(szOutput,MAX_STRING);
-
-    if (!WritePrivateProfileString(szArg2,szArg3,szArg4,szArg1)) {
-        sprintf(szOutput,"IniOutput ERROR -- during WritePrivateProfileString: %s",szLine);
-        DebugSpew(szOutput);
+	if ( (!strlen(szArg4) && strlen(szArg3)) || (!_strnicmp(szArg4,"NULL",4) && strlen(szArg4)==4 && strlen(szArg3)) ) { //Deleting a key within a [section].
+		if (!WritePrivateProfileString(szArg2,szArg3,NULL,szArg1)) {
+            sprintf(szOutput,"IniOutput ERROR -- during WritePrivateProfileString: %s",szLine);
+            DebugSpew(szOutput);
+        } else {
+            sprintf(szOutput,"IniOutput Write Successful!");
+            DebugSpew("%s: %s",szOutput,szLine);
+        }
+    } else if ( (!strlen(szArg4) && !strlen(szArg3)) || (!_strnicmp(szArg3,"NULL",4) && strlen(szArg3)==4 && !_strnicmp(szArg4,"NULL",4) && strlen(szArg4)==4) ) { //Deleting a [section] and all keys under it.
+        if (!WritePrivateProfileString(szArg2,NULL,NULL,szArg1)) {
+            sprintf(szOutput,"IniOutput ERROR -- during WritePrivateProfileString: %s",szLine);
+            DebugSpew(szOutput);
+        } else {
+            sprintf(szOutput,"IniOutput Write Successful!");
+            DebugSpew("%s: %s",szOutput,szLine);
+        }
     } else {
-        sprintf(szOutput,"IniOutput Write Successful!");
-        DebugSpew("%s: %s",szOutput,szLine);
-    }
+		if (!WritePrivateProfileString(szArg2,szArg3,szArg4,szArg1)) {
+			sprintf(szOutput,"IniOutput ERROR -- during WritePrivateProfileString: %s",szLine);
+			DebugSpew(szOutput);
+		} else {
+			sprintf(szOutput,"IniOutput Write Successful!");
+			DebugSpew("%s: %s",szOutput,szLine);
+		}
+	}
 }
 
 // ***************************************************************************

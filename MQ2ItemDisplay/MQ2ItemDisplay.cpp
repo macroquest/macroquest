@@ -455,6 +455,7 @@ public:
         UpdateStrings_Trampoline();
 
         // keep a global copy of the last item displayed...
+        memcpy(&g_Contents, item, sizeof(CONTENTS));
         memcpy(&g_Item, Item, sizeof(ITEMINFO));
 
         strcpy(out,"<BR><c \"#00FFFF\">");

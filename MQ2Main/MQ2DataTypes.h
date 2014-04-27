@@ -921,6 +921,7 @@ public:
 		MercAAExp=190,
 		Subscription=191,
 		AAPointsAssigned=192,
+		AltCurrency=193,
     };
     static enum CharacterMethods
     {
@@ -1120,6 +1121,7 @@ public:
         TypeMember(MercAAExp);
         TypeMember(Subscription);
 		TypeMember(AAPointsAssigned);
+		TypeMember(AltCurrency);
 		
         TypeMethod(Stand); 
         TypeMethod(Sit); 
@@ -1200,6 +1202,8 @@ public:
         Address=28,
 		EnduranceCost=29,
 		MaxLevel=30,
+		Category=31,
+		Subcategory=32,
     };
     static enum SpellMethods
     {
@@ -1236,6 +1240,8 @@ public:
         TypeMember(Address);//28
 		TypeMember(EnduranceCost);//29
 		TypeMember(MaxLevel);//30
+		TypeMember(Category);//31
+		TypeMember(Subcategory);//32
     }
 
     ~MQ2SpellType()
@@ -2298,12 +2304,16 @@ public:
         Name=1,
         ShortName=2,
         ID=3,
+        Address=4,
+        ZoneFlags=5,
     };
     MQ2ZoneType():MQ2Type("zone")
     {
         TypeMember(Name);
         TypeMember(ShortName);//2,
         TypeMember(ID);//3,
+        TypeMember(Address);//4,
+        TypeMember(ZoneFlags);//5,
     }
 
     ~MQ2ZoneType()
@@ -2356,6 +2366,7 @@ public:
         SafeN=12,
         SafeW=13,
         SafeU=14,
+        Address=15,
     };
     MQ2CurrentZoneType():MQ2Type("currentzone")
     {
@@ -2373,6 +2384,7 @@ public:
         TypeMember(SafeN);
         TypeMember(SafeW);
         TypeMember(SafeU);
+        TypeMember(Address);
     }
 
     ~MQ2CurrentZoneType()

@@ -373,6 +373,23 @@ typedef struct _BodyInfo
 #define ALTCURRENCY_PHOSPHITES          0xd
 #define ALTCURRENCY_FAYCITES            0xe
 #define ALTCURRENCY_CHRONOBINES         0xf
+#define ALTCURRENCY_SILVERTOKENS        0x10
+#define ALTCURRENCY_GOLDTOKENS          0x11
+#define ALTCURRENCY_MCKENZIE            0x12
+#define ALTCURRENCY_BAYLE               0x13
+#define ALTCURRENCY_RECLAMATION         0x14
+#define ALTCURRENCY_BRELLIUM            0x15
+#define ALTCURRENCY_MOTES               0x16
+#define ALTCURRENCY_REBELLIONCHITS      0x17
+#define ALTCURRENCY_DIAMONDCOINS        0x18
+#define ALTCURRENCY_BRONZEFIATS         0x19
+#define ALTCURRENCY_VOUCHER             0x1a
+#define ALTCURRENCY_VELIUMSHARDS        0x1b
+#define ALTCURRENCY_CRYSTALLIZEDFEAR    0x1c
+#define ALTCURRENCY_SHADOWSTONES        0x1d
+#define ALTCURRENCY_DREADSTONES         0x1e
+#define ALTCURRENCY_MARKSOFVALOR        0x1f
+#define ALTCURRENCY_MEDALSOFHEROISM     0x20
 
 enum MOUSE_DATA_TYPES {
    MD_Unknown = -1,
@@ -939,9 +956,10 @@ typedef struct _CHARINFO
 /*0x26a9*/ BYTE         Unknown0x26a9[0x3];
 /*0x26ac*/ WORD         zoneId;//CharBaseBegin+108 Zone_0
 /*0x26ae*/ WORD         instance;
-/*0x26b0*/ DWORD        standstate;//CharBaseBegin+10c
-/*0x26b4*/ struct _LEADERABILITIES       ActiveAbilities;//CharBaseBegin+114 //ability levels of the leader of your group (size 0x3c)
-/*0x26f0*/ BYTE         Unknown0x26f0[0x318];
+/*0x26b0*/ BYTE         standstate;//CharBaseBegin+10c
+/*0x26b1*/ BYTE         Unknown0x26b1[0x7];
+/*0x26b8*/ struct _LEADERABILITIES       ActiveAbilities;//vtable2+530 or CharBaseBegin+114 ? //ability levels of the leader of your group (size 0x3c)
+/*0x26f4*/ BYTE         Unknown0x26f0[0x314];
 /*0x2a08*/ DWORD        ExpansionFlags;//CharBaseBegin+464
 /*0x2a0c*/ BYTE         Unknown0x2a0c[0x20];
 /*0x2a2c*/ DWORD        BankSharedPlat;//31e4 CharBaseBegin+488
@@ -1478,6 +1496,10 @@ typedef struct _SWITCHCLICK
 } SWITCHCLICK,*PSWITCHCLICK;
 // this is actually ActorInterface
 // actual size: 0x120 3-3-2009
+// semi corrected on dec 16 2013 eqmule
+// i *think* the size is 0x190
+//however i couldnt confirm from 0x38 to 0x114
+//more work is needed... anyone feel free to step up...
 typedef struct _EQSWITCH {
 /*0x00*/    DWORD        Unknown0x0[0x2];
 /*0x08*/    float        UnknownData0x08;
@@ -1486,12 +1508,12 @@ typedef struct _EQSWITCH {
 /*0x18*/    float        UnknownData0x18;
 /*0x1c*/    float        Unknown0x1c;
 /*0x20*/    float        UnknownData0x20;
-/*0x24*/    float        Unknown0x24;
-/*0x28*/    FLOAT        Y;
-/*0x2c*/    FLOAT        X;
-/*0x30*/    FLOAT        Z;
-/*0x34*/    BYTE         Unknown0x34[0x50]; //A lot of data here.
-/*0x84*/    float        yAdjustment1;
+/*0x24*/    float        Unknown0x24[0x2];
+/*0x2C*/    FLOAT        Y;
+/*0x30*/    FLOAT        X;
+/*0x34*/    FLOAT        Z;
+/*0x38*/    BYTE         Unknown0x38[0x4c]; //A lot of data here.
+/*0x84*/    float        yAdjustment1;//from this point on im not sure -eqmule 2013 dec 16
 /*0x88*/    float        xAdjustment1;
 /*0x8c*/    float        zAdjustment1;
 /*0x90*/    float        headingAdjustment1;
@@ -1503,14 +1525,16 @@ typedef struct _EQSWITCH {
 /*0xa8*/    float        xAdjustment3;
 /*0xac*/    float        zAdjustment3;
 /*0xb0*/    float        headingAdjustment3;
-/*0xb4*/    FLOAT        Y2;
-/*0xb8*/    FLOAT        X2;
-/*0xbc*/    FLOAT        Z2;
-/*0xc0*/    DWORD        Unknown0xa4;
-/*0xc4*/    FLOAT        Heading;
-/*0xc8*/    BYTE         Unknown0xc8[0x18];
-/*0xe0*/    float        HeightAdjustment;
-/*0xe4*/    // more data
+/*0xb4*/    BYTE         Unknown0xb4[0x60];
+/*0x114*/   FLOAT        Y2;
+/*0x118*/   FLOAT        X2;
+/*0x11c*/   FLOAT        Z2;
+/*0x120*/   FLOAT        Unknown0xa4;
+/*0x124*/   FLOAT        Heading;
+/*0x128*/   BYTE         Unknown0x128[0x18];
+/*0x140*/   float        HeightAdjustment;//this is most likely wrong dec 16 2013 eqmule
+/*0x144*/   BYTE         Unknown0x144[0x4c];
+/*0x190*/
 } EQSWITCH, *PEQSWITCH;
 
 // actual size 0xdc 2-9-2009
@@ -1578,6 +1602,12 @@ typedef struct _GROUNDITEM {
 #define   MAX_ZONES                     0x3e8
 extern    PCHAR szZoneExpansionName[];     //defined in LibEQ_Utilities.cpp
 
+//I looked into this one on dec 27 2013
+//I confirmed it all the way to 0x198 see (7F9735 and 7F9D50) in eqgame.exe dated 10 dec 2013
+// however... ZoneFlags seems to be 0 for a lot of zones...
+// more investigation is needed
+// im creating a new tlo member for ZoneFlags
+// so I can continue testing...
 typedef struct _ZONELIST { 
 /*0x000*/   DWORD   Header; 
 /*0x004*/   DWORD   Unknown0x4;         //pointer to something? 
@@ -1587,7 +1617,7 @@ typedef struct _ZONELIST {
 /*0x010*/   CHAR    ShortName[0x81]; 
 /*0x091*/   CHAR    LongName[0x103]; 
 /*0x194*/   DWORD   Unknown0x194; 
-/*0x198*/   DWORD   Flags;              // (Flags & 0x100000) = HasMinLevel, 0x4000 no air, 0x2 newbie zone, 0x20 no bind, 0x400000 something, 0x80000000 guild hall
+/*0x198*/   DWORD   ZoneFlags;              // (Flags & 0x100000) = HasMinLevel, 0x4000 no air, 0x2 newbie zone, 0x20 no bind, 0x400000 something, 0x80000000 guild hall
 /*0x19c*/   DWORD   Unknown0x19c; 
 /*0x1a0*/   DWORD   Id2;                // This is Id+2242 
 /*0x1a4*/   DWORD   PoPValue;           // This has something to do with PoP zones. 

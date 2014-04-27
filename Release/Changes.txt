@@ -1,3 +1,25 @@
+02 Jan 2014 by eqmule
+
+								HAPPY NEW YEAR!!!
+We have had a good 2013, I expect to add some exciting new things as well as continue
+work on updating and making MQ2 better and better this year.
+Stay tuned, and thank you for all of your support!
+
+-This is NOT a critical update (no need to update unless you really need the following:)
+-Added GetCurrencyIDByName
+-Added new Character TLO Member AltCurrency which returns a pIntType
+ usage: /echo ${Me.AltCurrency[Marks of Valor]}
+        /echo ${Me.AltCurrency[31]}
+ Cred: desgn
+-Added ZoneFlags to the pZoneType TLO, it returns a pIntType
+-Added Category and Subcategory Members to the Spell TLO, they return pStringType
+-Fixed a CTD in ${DisplayItem.StackSize}
+-Added delete functionality to the /ini command
+ usage: NULL required: http://www.macroquest2.com/phpBB3/viewtopic.php?t=12574&highlight=delete
+       no NULL needed: http://www.macroquest2.com/phpBB3/viewtopic.php?f=28&t=18467
+
+ Both approaches are valid and will work for backward compatability.
+
 15 Dec 2013 by eqmule
 -This is NOT a critical update (no need to update unless you really need the following:)
  I just added FindItemByID and renamed FindItem to FindItemByName

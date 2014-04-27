@@ -1,9 +1,9 @@
 #turbo
 Sub Main
    :Loop
-      /if (${Target.Distance}>60) /keypress up hold
-      /if (${Target.Distance}<40) /keypress up 
+      /if (${Target.Distance}>20) /keypress up hold
+      /if (${Target.Distance}<20) /keypress up 
       /face fast
-      /delay 2
+      /delay 1
    /if (${Target.ID}) /goto :Loop
 /return

@@ -266,8 +266,52 @@ VOID Click(PSPAWNINFO pChar, PCHAR szLine)
 			} else {
 				WriteChatf("No Door targeted, use /doortarget <theid> before issuing a /click left door command.");
 			}
-			return;;
-		} 
+			return;
+			//work in progress... eqmule dec 26 2013
+		/*} else if (!strnicmp(szMouseLoc, "item", 4)) {
+			// a right clicked item spawn does nothing
+			if(pGroundTarget) {
+				if (!strnicmp(szArg1, "left", 4)) {
+					if(EnviroTarget.Name[0]!=0) {
+						if(DistanceToSpawn(pChar,&EnviroTarget)<20.0f) {
+							EQSwitch *pSwitch = (EQSwitch *)pGroundTarget->pSwitch;
+							srand((unsigned int)time(0));
+							int randclickY = rand() % 5;
+							int randclickX = rand() % 5;
+							int randclickZ = rand() % 5;
+							PSWITCHCLICK pclick = new SWITCHCLICK;
+							if(pclick) {
+								pclick->Y=pGroundTarget->Y+randclickY;
+								pclick->X=pGroundTarget->X+randclickX;
+								pclick->Z=pGroundTarget->Z+randclickZ;
+								randclickY = rand() % 5;
+								randclickX = rand() % 5;
+								randclickZ = rand() % 5;
+								pclick->Y1=pclick->Y+randclickY;
+								pclick->X1=pclick->X+randclickX;
+								pclick->Z1=pclick->Z+randclickZ;
+								pSwitch->UseSwitch(GetCharInfo()->pSpawn->SpawnID,0xFFFFFFFF,0,(DWORD)pclick);
+								delete pclick;
+							}
+							//DoorEnviroTarget.Name[0]='\0';
+							if (pTarget==(EQPlayer*)&EnviroTarget) {//this should NEVER happen
+								pTarget=NULL;
+							}
+							return;
+						} else {
+							WriteChatf("You are to far away from the item, please move closer before issuing the /click left item command.");
+						}
+					} else {
+						WriteChatf("No Door targeted, use /itemtarget <theid> before issuing a /click left item command.");
+					}
+				} else {
+					WriteChatf("Invalid click args, use \"/click left item\", aborting: %s",szMouseLoc);
+				}
+			} else {
+				WriteChatf("No Item targeted, use /itemtarget <theid> before issuing a /click left item command.");
+			}
+			return;*/
+		}
         ClickMouseLoc(szMouseLoc, szArg1);
         return;
     }
