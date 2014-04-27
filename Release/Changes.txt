@@ -1,3 +1,19 @@
+9 December 2012 by ieatacid
+- Added ability to check if your account has a specific expansion enabled
+... bool character.HaveExpansion[n]: Check if you have an expansion by number
+... bool character.HaveExpansion[name]: Check if you have an expansion by name (full name not abbreviation)
+... Added function for checking expansion availability. See HasExpansion function in MQ2Utilities.cpp for more info
+- Added access to aggro data
+... int character.PctAggro: Your aggro percentage
+... int character.SecondaryPctAggro: Secondary aggro percentage
+... spawn character.SecondaryAggroPlayer: spawninfo for secondary aggro player
+... spawn character.AggroLock: spawninfo for aggro lock player
+... int target.PctAggro: target's aggro percentage on you (same as character.PctAggro)
+... int target.SecondaryPctAggro: target's secondary aggro percent (same as character.SecondaryPctAggro)
+... spawn target.SecondaryAggroPlayer: spawninfo for target's secondary aggro player (same as character.SecondaryAggroPlayer)
+... int groupmember.PctAggro: group member's aggro percentage
+... int xtarget.PctAggro: xtarget's aggro percentage
+
 3 December 2012 by ieatacid
 - Fixed MQ2Bzsrch.  bazaaritem.Value has been removed because it's no longer sent with the item data
 

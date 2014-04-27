@@ -392,6 +392,27 @@ enum MOUSE_DATA_TYPES {
 #define NUM_LONG_BUFFS                  42
 #define NUM_SHORT_BUFFS                 20
 
+#define EQ_EXPANSION(x)                 (1 << (x - 1))
+#define EXPANSION_RoK                   EQ_EXPANSION(1)
+#define EXPANSION_SoV                   EQ_EXPANSION(2)
+#define EXPANSION_SoL                   EQ_EXPANSION(3)
+#define EXPANSION_PoP                   EQ_EXPANSION(4)
+#define EXPANSION_LoY                   EQ_EXPANSION(5)
+#define EXPANSION_LDoN                  EQ_EXPANSION(6)
+#define EXPANSION_GoD                   EQ_EXPANSION(7)
+#define EXPANSION_OoW                   EQ_EXPANSION(8)
+#define EXPANSION_DoN                   EQ_EXPANSION(9)
+#define EXPANSION_DoD                   EQ_EXPANSION(10)
+#define EXPANSION_PoR                   EQ_EXPANSION(11)
+#define EXPANSION_TSS                   EQ_EXPANSION(12)
+#define EXPANSION_TBS                   EQ_EXPANSION(13)
+#define EXPANSION_SoF                   EQ_EXPANSION(14)
+#define EXPANSION_SoD                   EQ_EXPANSION(15)
+#define EXPANSION_UFT                   EQ_EXPANSION(16)
+#define EXPANSION_HoT                   EQ_EXPANSION(17)
+#define EXPANSION_VoA                   EQ_EXPANSION(18)
+#define EXPANSION_RoF                   EQ_EXPANSION(19)
+#define NUM_EXPANSIONS                  19
 // ***************************************************************************
 // Structures
 // ***************************************************************************
@@ -920,7 +941,9 @@ typedef struct _CHARINFO {
 /*0x23a8*/   DWORD      standstate;
 /*0x23ac*/   BYTE       Unknown0x23ac[0x4];
 /*0x23b0*/   struct     _LEADERABILITIES ActiveAbilities; //ability levels of the leader of your group (size 0x40)
-/*0x23f0*/   BYTE       Unknown0x23f0[0x334];
+/*0x23f0*/   BYTE       Unknown0x23f0[0x310];
+/*0x2700*/   DWORD      ExpansionFlags;
+/*0x2704*/   BYTE       Unknown0x2704[0x20];
 /*0x2724*/   DWORD      BankSharedPlat;
 /*0x2728*/   DWORD      BankSharedGold;
 /*0x272c*/   DWORD      BankSharedSilver;
@@ -2071,7 +2094,7 @@ typedef struct _MERCENARYINFO {
 /*0x23c*/ _MERCSTANCEDATA **pMercStanceData;
 } MERCENARYINFO, *PMERCENARYINFO;
 
-#define MAX_XTARGETS 5
+#define MAX_XTARGETS 20
 
 enum xTargetTypes
 {
@@ -2134,7 +2157,52 @@ typedef struct _XTARGETMGR
 /*0x20*/
 } XTARGETMGR, *PXTARGETMGR;
 
-#define XPAC_FLAG_HoT       0x10000
+typedef struct _AGGRODATA {
+/*0x00*/ DWORD Unknown0x0;
+/*0x04*/ BYTE  AggroPct;
+/*0x05*/ BYTE  padding[3];
+/*0x00*/
+} AGGRODATA, *PAGGRODATA;
+
+// size 0xe4 11-28-12 - ieatacid (in GetAggroInfo)
+typedef struct _AGGROINFO {
+/*0x00*/ struct _AGGRODATA aggroData[0x1b];
+/*0xd8*/ DWORD  AggroLockID;
+/*0xdc*/ DWORD  AggroTargetID;
+/*0xe0*/ DWORD  AggroSecondaryID;
+/*0xe4*/
+} AGGROINFO, *PAGGROINFO;
+
+enum AggroDataTypes
+{
+    AD_Player,
+    AD_Secondary,
+    AD_Group1,
+    AD_Group2,
+    AD_Group3,
+    AD_Group4,
+    AD_Group5,
+    AD_xTarget1,
+    AD_xTarget2,
+    AD_xTarget3,
+    AD_xTarget4,
+    AD_xTarget5,
+    AD_xTarget6,
+    AD_xTarget7,
+    AD_xTarget8,
+    AD_xTarget9,
+    AD_xTarget10,
+    AD_xTarget11,
+    AD_xTarget12,
+    AD_xTarget13,
+    AD_xTarget14,
+    AD_xTarget15,
+    AD_xTarget16,
+    AD_xTarget17,
+    AD_xTarget18,
+    AD_xTarget19,
+    AD_xTarget20,
+};
 
 #define EQ_BEGIN_ZONE                   0x3D81  // CEverQuest__SavePCForce         11-28-2012
 #define EQ_END_ZONE                     0x3977  // CEverQuest__DoMainLoop+B2F      11-28-2012

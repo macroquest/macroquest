@@ -209,6 +209,7 @@ bool InitOffsets()
     ppTaskMember = (TASKMEMBER**)pinstTaskMember; 
     pDynamicZone = (DYNAMICZONE*)instDynamicZone;
     ppMercInfo = (MERCENARYINFO**)pinstMercenaryData;
+    ppAggroInfo = (AGGROINFO **)pinstAggroInfo;
 
     return true;
 }
@@ -794,6 +795,29 @@ PCHAR szItemSlot[] = {
     NULL            // 31
 };
 
+PCHAR szExpansions[] = {
+    "The Ruins of Kunark",
+    "The Scars of Velious",
+    "The Shadows of Luclin",
+    "The Planes of Power",
+    "The Legacy of Ykesha",
+    "Lost Dungeons of Norrath",
+    "Gates of Discord",
+    "Omens of War",
+    "Dragons of Norrath",
+    "Depths of Darkhollow",
+    "Prophecy of Ro",
+    "The Serpent's Spine",
+    "The Buried Sea",
+    "Secrets of Faydwer",
+    "Seeds of Destruction",
+    "Underfoot",
+    "House of Thule",
+    "Veil of Alaris",
+    "Rain of Fear",
+    NULL
+};
+
 BOOL bAllErrorsFatal=FALSE;
 BOOL bAllErrorsDumpStack=FALSE;
 #ifndef DoWarp
@@ -1087,7 +1111,7 @@ DZTIMERINFO **ppDZTimerInfo=0;
 TASKMEMBER **ppTaskMember=0; 
 DYNAMICZONE *pDynamicZone=0;
 MERCENARYINFO **ppMercInfo=0;
-
+AGGROINFO **ppAggroInfo=0;
 
 #define INITIALIZE_EQGAME_OFFSET(var) DWORD var = (((DWORD)var##_x - 0x400000) + baseAddress)
 
@@ -1157,6 +1181,7 @@ INITIALIZE_EQGAME_OFFSET(pinstActiveBanker);
 INITIALIZE_EQGAME_OFFSET(pinstActiveCorpse);
 INITIALIZE_EQGAME_OFFSET(pinstActiveGMaster);
 INITIALIZE_EQGAME_OFFSET(pinstActiveMerchant);
+INITIALIZE_EQGAME_OFFSET(pinstAggroInfo);
 INITIALIZE_EQGAME_OFFSET(pinstAltAdvManager);
 INITIALIZE_EQGAME_OFFSET(pinstAuraMgr);
 INITIALIZE_EQGAME_OFFSET(pinstBandageTarget);

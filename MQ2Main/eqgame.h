@@ -98,6 +98,7 @@
 #define pinstActiveCorpse_x                                        0xD528DC
 #define pinstActiveGMaster_x                                       0xD528E0
 #define pinstActiveMerchant_x                                      0xD528D4
+#define pinstAggroInfo_x                                           0xB66180
 #define pinstAltAdvManager_x                                       0xCA06E0
 #define pinstAuraMgr_x                                             0xB6F968
 #define pinstBandageTarget_x                                       0xD528C0

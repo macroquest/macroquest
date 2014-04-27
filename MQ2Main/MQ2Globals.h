@@ -307,6 +307,7 @@ EQLIB_VAR PCHAR szDmgBonusType[];
 EQLIB_VAR PCHAR szBodyType[];
 EQLIB_VAR PCHAR szAugRestrictions[];
 EQLIB_VAR PCHAR szItemSlot[];
+EQLIB_VAR PCHAR szExpansions[];
 
 EQLIB_VAR BOOL bLaxColor;
 EQLIB_VAR PCHAR szColorAdjective[];
@@ -445,6 +446,9 @@ EQLIB_VAR EQCHATMGR **ppEQChatMgr;
 
 EQLIB_VAR MERCENARYINFO **ppMercInfo;
 #define pMercInfo (*ppMercInfo)
+
+EQLIB_VAR AGGROINFO **ppAggroInfo;
+#define pAggroInfo (*ppAggroInfo)
 
 /* WINDOW INSTANCES */ 
 EQLIB_VAR CContextMenuManager **ppContextMenuManager;
@@ -689,6 +693,7 @@ EQLIB_VAR DWORD pinstActiveBanker;
 EQLIB_VAR DWORD pinstActiveCorpse;
 EQLIB_VAR DWORD pinstActiveGMaster;
 EQLIB_VAR DWORD pinstActiveMerchant;
+EQLIB_VAR DWORD pinstAggroInfo;
 EQLIB_VAR DWORD pinstAltAdvManager;
 EQLIB_VAR DWORD pinstAuraMgr;
 EQLIB_VAR DWORD pinstBandageTarget;

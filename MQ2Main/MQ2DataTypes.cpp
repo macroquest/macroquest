@@ -3415,8 +3415,9 @@ bool MQ2CharacterType::GETMEMBER()
                 {
                     if(ISNUMBER())
                     {
-                        if(GETNUMBER() <= (int)xtm->TargetSlots) {
-                            Dest.Ptr = &xta->pXTargetData[GETNUMBER() - 1];
+                        if(GETNUMBER() > 0 && GETNUMBER() <= (int)xtm->TargetSlots)
+                        {
+                            Dest.DWord = GETNUMBER() - 1;
                             Dest.Type = pXTargetType;
                             return true;
                         }
@@ -3427,7 +3428,7 @@ bool MQ2CharacterType::GETMEMBER()
                         {
                             if(xta->pXTargetData[n].xTargetType && xta->pXTargetData[n].Unknown0x4 && !stricmp(GETFIRST(), xta->pXTargetData[n].Name))
                             {
-                                Dest.Ptr = &xta->pXTargetData[n];
+                                Dest.DWord = n;
                                 Dest.Type = pXTargetType;
                                 return true;
                             }
@@ -3504,6 +3505,62 @@ bool MQ2CharacterType::GETMEMBER()
             }
         }
         return false;
+    case HaveExpansion:
+        if (!ISINDEX())
+            return false;
+        if (ISNUMBER())
+        {
+            DWORD nExpansion = GETNUMBER();
+            if (nExpansion > NUM_EXPANSIONS)
+                return false;
+            Dest.DWord = GetCharInfo()->ExpansionFlags & EQ_EXPANSION(nExpansion);
+            Dest.Type = pBoolType;
+            return true;
+        }
+        else
+        {
+            for (DWORD n = 0; n < NUM_EXPANSIONS; n++)
+            {
+                if (!stricmp(GETFIRST(), szExpansions[n]))
+                {
+                    Dest.DWord = GetCharInfo()->ExpansionFlags & EQ_EXPANSION(n + 1);
+                    Dest.Type = pBoolType;
+                    return true;
+                }
+            }
+        }
+        return false;
+    case PctAggro:
+        if(pAggroInfo)
+        {
+            Dest.DWord = pAggroInfo->aggroData[AggroDataTypes::AD_Player].AggroPct;
+            Dest.Type = pIntType;
+            return true;
+        }
+        return false;
+    case SecondaryPctAggro:
+        if(pAggroInfo)
+        {
+            Dest.DWord = pAggroInfo->aggroData[AggroDataTypes::AD_Secondary].AggroPct;
+            Dest.Type = pIntType;
+            return true;
+        }
+        return false;
+    case SecondaryAggroPlayer:
+        if(pAggroInfo && pAggroInfo->AggroSecondaryID)
+        {
+            Dest.Ptr = GetSpawnByID(pAggroInfo->AggroSecondaryID);
+            Dest.Type = pSpawnType;
+            return true;
+        }
+        return false;
+    case AggroLock:
+        if(pAggroInfo && pAggroInfo->AggroLockID)
+        {
+            Dest.Ptr = GetSpawnByID(pAggroInfo->AggroLockID);
+            Dest.Type = pSpawnType;
+            return true;
+        }
     }
     return false;
 #undef pChar
@@ -6664,8 +6721,9 @@ bool MQ2GroupMemberType::GETMEMBER()
     PCHARINFO pChar=GetCharInfo();
     PGROUPMEMBER pGroupMemberData=0;
     int i;
+    DWORD nMember = VarPtr.DWord;
     if (!pChar->pGroupInfo) return false;
-    if (unsigned long N=VarPtr.DWord)
+    if (unsigned long N=nMember)
     {
         if (N>5)
             return false;
@@ -6766,6 +6824,14 @@ bool MQ2GroupMemberType::GETMEMBER()
         {
             Dest.DWord=pGroupMemberData->Mercenary;
             Dest.Type=pBoolType;
+            return true;
+        }
+        return false;
+    case PctAggro:
+        if(pAggroInfo)
+        {
+            Dest.DWord = pAggroInfo->aggroData[nMember + 1].AggroPct;
+            Dest.Type = pIntType;
             return true;
         }
     }
@@ -7462,35 +7528,64 @@ bool MQ2TargetType::GETMEMBER()
             }
         }
         return false;
+    case PctAggro:
+        if(pAggroInfo)
+        {
+            Dest.DWord = pAggroInfo->aggroData[AggroDataTypes::AD_Player].AggroPct;
+            Dest.Type = pIntType;
+            return true;
+        }
+        return false;
+    case SecondaryPctAggro:
+        if(pAggroInfo)
+        {
+            Dest.DWord = pAggroInfo->aggroData[AggroDataTypes::AD_Secondary].AggroPct;
+            Dest.Type = pIntType;
+            return true;
+        }
+        return false;
+    case SecondaryAggroPlayer:
+        if(pAggroInfo && pAggroInfo->AggroSecondaryID)
+        {
+            Dest.Ptr = GetSpawnByID(pAggroInfo->AggroSecondaryID);
+            Dest.Type = pSpawnType;
+            return true;
+        }
     }
     return false;
 }
 
 bool MQ2XTargetType::GETMEMBER()
 {
-    if(!VarPtr.Ptr)
+    if(!GetCharInfo() || !GetCharInfo()->pXTargetMgr)
         return false;
     if(PMQ2TYPEMEMBER pMember=MQ2XTargetType::FindMember(Member))
     {
-        PXTARGETDATA xtd = (PXTARGETDATA)VarPtr.Ptr;
-
+        XTARGETDATA xtd = GetCharInfo()->pXTargetMgr->pXTargetArray->pXTargetData[VarPtr.DWord];
         switch((xTargetMembers)pMember->ID)
         {
         case Type:
             {
-                char *pType = GetXtargetType(xtd->xTargetType);
+                char *pType = GetXtargetType(xtd.xTargetType);
                 Dest.Ptr = pType ? pType : "UNKNOWN";
                 Dest.Type = pStringType;
                 return true;
             }
         case ID:
-            Dest.DWord = xtd->SpawnID;
+            Dest.DWord = xtd.SpawnID;
             Dest.Type = pIntType;
             return true;
         case Name:
-            Dest.Ptr = xtd->Name[0] ? xtd->Name : "NULL";
+            Dest.Ptr = xtd.Name[0] ? xtd.Name : "NULL";
             Dest.Type = pStringType;
             return true;
+        case PctAggro:
+            if(pAggroInfo)
+            {
+                Dest.DWord = pAggroInfo->aggroData[AggroDataTypes::AD_xTarget1 + VarPtr.DWord].AggroPct;
+                Dest.Type = pIntType;
+                return true;
+            }
         }
     }
     return false;

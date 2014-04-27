@@ -5913,6 +5913,15 @@ void UseAbility(char *sAbility) {
     return;
 }
 
+// Function to check if the account has a given expansion enabled.
+// Pass exansion macros from EQData.h to it -- e.g. HasExpansion(EXPANSION_RoF)
+bool HasExpansion(DWORD nExpansion)
+{
+    if(nExpansion > NUM_EXPANSIONS)
+        return false;
+    return (bool)((GetCharInfo()->ExpansionFlags & nExpansion) != 0);
+}
+
 //                                                                                               //
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 #endif
