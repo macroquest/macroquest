@@ -14,6 +14,9 @@ PreSetup("MQ2ItemDisplay");
 #include "ISXEQItemDisplay.h"
 #endif
 
+// thanks, finally, SOE. we'll leave this here for a while and eventually remove it
+#define DISABLE_TOOLTIP_TIMERS
+
 void Comment(PSPAWNINFO pChar, PCHAR szLine); 
 
 extern "C" {
@@ -649,6 +652,7 @@ public:
     }
 };
 
+#ifndef DISABLE_TOOLTIP_TIMERS
 // CXWnd::DrawTooltipAtPoint(const CXStr &new, CXStr *old)
 class XWndHook
 {
@@ -729,13 +733,15 @@ public:
     }
 };
 
+DETOUR_TRAMPOLINE_EMPTY(VOID XWndHook::DrawTooltipAtPoint_Trampoline(const CXStr &, CXStr *));
+DETOUR_TRAMPOLINE_EMPTY(VOID InvSlotWndHook::DrawTooltip_Trampoline(CXWnd *));
+#endif
+
 ItemDisplayHook::SEffectType ItemDisplayHook::eEffectType = None;
 bool ItemDisplayHook::bNoSpellTramp = false;
 
 DETOUR_TRAMPOLINE_EMPTY(VOID ItemDisplayHook::SetSpell_Trampoline(int SpellID,bool HasSpellDescr));
 DETOUR_TRAMPOLINE_EMPTY(VOID ItemDisplayHook::UpdateStrings_Trampoline());
-DETOUR_TRAMPOLINE_EMPTY(VOID XWndHook::DrawTooltipAtPoint_Trampoline(const CXStr &, CXStr *));
-DETOUR_TRAMPOLINE_EMPTY(VOID InvSlotWndHook::DrawTooltip_Trampoline(CXWnd *));
 
 #ifndef ISXEQ
 void Comment(PSPAWNINFO pChar, PCHAR szLine) 
@@ -800,8 +806,10 @@ PLUGIN_API VOID InitializePlugin(VOID)
 
     EzDetour(CItemDisplayWnd__SetSpell,&ItemDisplayHook::SetSpell_Detour,&ItemDisplayHook::SetSpell_Trampoline);
     EzDetour(CItemDisplayWnd__UpdateStrings, &ItemDisplayHook::UpdateStrings_Detour, &ItemDisplayHook::UpdateStrings_Trampoline);
+#ifndef DISABLE_TOOLTIP_TIMERS
     EzDetour(CXWnd__DrawTooltipAtPoint,&XWndHook::DrawTooltipAtPoint_Detour,&XWndHook::DrawTooltipAtPoint_Trampoline);
     EzDetour(CInvSlotWnd__DrawTooltip, &InvSlotWndHook::DrawTooltip_Detour, &InvSlotWndHook::DrawTooltip_Trampoline);
+#endif
 
     AddCommand("/inote",Comment); 
     AddCommand("/ireset",Ireset); 
@@ -816,8 +824,10 @@ PLUGIN_API VOID ShutdownPlugin(VOID)
     // Remove commands, macro parameters, hooks, etc.
     RemoveDetour(CItemDisplayWnd__SetSpell);
     RemoveDetour(CItemDisplayWnd__UpdateStrings);
+#ifndef DISABLE_TOOLTIP_TIMERS
     RemoveDetour(CXWnd__DrawTooltipAtPoint);
     RemoveDetour(CInvSlotWnd__DrawTooltip);
+#endif
 
     RemoveMQ2Data("DisplayItem");
     RemoveCommand("/ireset"); 

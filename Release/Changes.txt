@@ -1,3 +1,6 @@
+28 November 2012 by ieatacid
+- Updated for today's patch
+
 23 November 2012 by ieatacid
 - Fixed MQ2FPS (it once again stops rendering)
 
