@@ -1,7 +1,10 @@
+13 Mar 2014 by eqmule
+-Updated for patch
+-Fixed a problem with MQ2Labels showing up as Unknown
+
 12 Mar 2014 by eqmule
 -Updated for patch
 -The MQ2Type destructor is now virtual Cred: TypePun
-
 
 09 Mar 2014 by eqmule
 -Added Distance3D float member to the Switch TLO

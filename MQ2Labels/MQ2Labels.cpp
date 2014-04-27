@@ -75,8 +75,8 @@ PreSetup("MQ2Labels");
 // worry about class instatiation and crap
 
 struct _CControl {
-    /*0x000*/    DWORD Fluff[0x24]; // if this changes update ISXEQLabels.cpp too
-    /*0x090*/    CXSTR * EQType;
+    /*0x000*/    BYTE Fluff[0x94]; // if this changes update ISXEQLabels.cpp too
+    /*0x094*/    CXSTR * EQType;
 };
 
 // optimize off because the tramp looks blank to the compiler
@@ -144,7 +144,8 @@ public:
                 }
             }
         }
-        if (Found) SetCXStr(&(pThisLabel->Wnd.WindowText),Buffer);
+        if (Found)
+			SetCXStr(&(pThisLabel->Wnd.WindowText),Buffer);
     }
 }; 
 
