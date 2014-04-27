@@ -781,20 +781,20 @@ typedef struct _EQMAILWINDOW {
 } EQMAILWINDOW, *PEQMAILWINDOW;
 
 
-// Actual Size 0x5ec 20130313 - ieatacid
+// Actual Size 0x63c 20130417 - ieatacid
 typedef struct _EQMAPWINDOW {
 /*0x000*/ struct    _CSIDLWND   Wnd;
-/*0x204*/ BYTE      Unknown0x204[0x40];
-/*0x244*/ CHAR      shortzonename[0x20];
-/*0x264*/ BYTE      Unknown0x264[0x9c];
-/*0x300*/ struct    _CXWND  *wnd;           // MVW_MapRenderArea
-/*0x304*/ BYTE      Unknown0x304[0x38];
-/*0x33c*/ struct    _CSIDLWNDVFTABLE    *pMapViewMapVfTable; // start of MapViewMap
-/*0x340*/ BYTE      Unknown0x340[0x230];
-/*0x570*/ PMAPLINE  pLines;//0x234
-/*0x574*/ PMAPLABEL pLabels;//0x238
-/*0x578*/ BYTE      Unknown0x578[0x74];
-/*0x5ec*/
+/*0x22c*/ BYTE      Unknown0x22c[0x40];
+/*0x26c*/ CHAR      shortzonename[0x20];
+/*0x28c*/ BYTE      Unknown0x28c[0x9c];
+/*0x328*/ struct    _CXWND  *wnd;           // MVW_MapRenderArea
+/*0x32c*/ BYTE      Unknown0x32c[0x38];
+/*0x364*/ struct    _CSIDLWNDVFTABLE    *pMapViewMapVfTable; // start of MapViewMap
+/*0x368*/ BYTE      Unknown0x368[0x258];
+/*0x5c0*/ PMAPLINE  pLines;//0x25c
+/*0x5c4*/ PMAPLABEL pLabels;//0x260
+/*0x5c8*/ BYTE      Unknown0x5c8[0x74];
+/*0x63c*/
 } EQMAPWINDOW, *PEQMAPWINDOW;
 
 // ieatacid 20120316
