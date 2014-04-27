@@ -624,7 +624,7 @@
 
 // EQ_PC 
 #define EQ_PC__DestroyHeldItemOrMoney_x                            0x57CAE0
-#define EQ_PC__GetAltAbilityIndex_x                                0x7B7190
+#define EQ_PC__GetAltAbilityIndex_x                                0x7B7160
 #define EQ_PC__GetCombatAbility_x                                  0x7B71F0
 #define EQ_PC__GetCombatAbilityTimer_x                             0x7B72A0
 #define EQ_PC__GetItemTimerValue_x                                 0x576EE0
