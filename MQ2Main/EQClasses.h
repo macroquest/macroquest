@@ -4445,7 +4445,7 @@ EQLIB_OBJECT int CTabWnd::GetCurrentTabIndex(void)const;
 EQLIB_OBJECT int CTabWnd::GetNumTabs(void)const;
 EQLIB_OBJECT void CTabWnd::InsertPage(class CPageWnd *,int);
 EQLIB_OBJECT void CTabWnd::SetPage(class CPageWnd *,bool);
-EQLIB_OBJECT void CTabWnd::SetPage(bool,int,bool);
+EQLIB_OBJECT void CTabWnd::SetPage(int,bool,bool);
 EQLIB_OBJECT void CTabWnd::SetPageRect(class CXRect);
 EQLIB_OBJECT void CTabWnd::UpdatePage(void);
 // virtual

@@ -1,3 +1,8 @@
+06 Dec 2013 by eqmule
+-Fixed void CTabWnd::SetPage(int,bool,bool);
+(this means aapurchase and the likes works again...)
+your're welcome...
+
 05 Dec 2013 by eqmule
 -Updated for patch
 

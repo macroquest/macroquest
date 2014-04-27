@@ -822,7 +822,7 @@ bool SendTabSelect(PCHAR WindowName, PCHAR ScreenID, DWORD Value)
         }
         if (((CXWnd*)pTab)->GetType()==UI_TabBox)
         {
-            pTab->SetPage(false,Value, true);//this needs to be checked... 03 dec 2013 -eqmule
+            pTab->SetPage(Value,true, true);//this needs to be checked... 03 dec 2013 -eqmule
             gMouseEventTime = GetFastTime();
         }
         else

@@ -8031,7 +8031,7 @@ FUNCTION_AT_ADDRESS(class CXRect  CTabWnd::GetPageClientRect(void)const ,CTabWnd
 FUNCTION_AT_ADDRESS(class CXRect  CTabWnd::GetPageInnerRect(void)const ,CTabWnd__GetPageInnerRect);
 #endif
 #ifdef CTabWnd__SetPage_x
-FUNCTION_AT_ADDRESS(void  CTabWnd::SetPage(bool,int,bool),CTabWnd__SetPage);
+FUNCTION_AT_ADDRESS(void  CTabWnd::SetPage(int,bool,bool),CTabWnd__SetPage);
 #endif
 #ifdef CTabWnd__SetPage1_x
 FUNCTION_AT_ADDRESS(void  CTabWnd::SetPage(class CPageWnd *,bool),CTabWnd__SetPage1);

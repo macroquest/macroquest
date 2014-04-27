@@ -1,5 +1,7 @@
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 2012
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "MQ2Main", "MQ2Main\MQ2Main.vcxproj", "{2A0A06A4-E9C6-4229-82EE-BD2D4E0A7221}"
+EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "MQ2Chat", "MQ2Chat\MQ2Chat.vcxproj", "{D43171FB-8208-4E52-860A-6BAE2A2FA573}"
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "MQ2Labels", "MQ2Labels\MQ2Labels.vcxproj", "{60814EE3-1457-44A9-82D8-DBFF1B924CE4}"
@@ -31,8 +33,6 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "MQ2EQBugFix", "MQ2EQBugFix\
 	ProjectSection(ProjectDependencies) = postProject
 		{2A0A06A4-E9C6-4229-82EE-BD2D4E0A7221} = {2A0A06A4-E9C6-4229-82EE-BD2D4E0A7221}
 	EndProjectSection
-EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "MQ2Main", "MQ2Main\MQ2Main.vcxproj", "{2A0A06A4-E9C6-4229-82EE-BD2D4E0A7221}"
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "MQ2Irc", "MQ2Irc\MQ2Irc.vcxproj", "{8CF9409E-6F66-48B7-B370-0754F2184EB0}"
 	ProjectSection(ProjectDependencies) = postProject
