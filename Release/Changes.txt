@@ -1,3 +1,6 @@
+17 December 2011 by ieatacid
+- Updated for today's patch
+
 15 December 2011 by ieatacid
 - Fixed spell manager crash
 
