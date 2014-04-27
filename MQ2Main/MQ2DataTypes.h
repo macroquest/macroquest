@@ -560,6 +560,7 @@ public:
         Owner=100,
         Following=101,
 		Address=102,
+		Inviter=103,
 	};
     static enum SpawnMethods
     {
@@ -669,6 +670,7 @@ public:
         TypeMember(Owner);
         TypeMember(Following);
         TypeMember(Address);
+        TypeMember(Inviter);
         TypeMethod(Target);
         TypeMethod(Face);
         TypeMethod(LeftClick);

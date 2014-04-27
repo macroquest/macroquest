@@ -1482,6 +1482,10 @@ bool MQ2SpawnType::GETMEMBER()
         Dest.DWord=(pSpawn->InvitedToGroup);
         Dest.Type=pBoolType;
         return true;
+    case Inviter:
+		Dest.Ptr=(PCHAR)__Inviter;
+		Dest.Type=pStringType;
+		return true;
 #ifndef ISXEQ
     case NearestSpawn:
         if (pSpawn==(PSPAWNINFO)pCharSpawn)

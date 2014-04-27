@@ -90,6 +90,7 @@
 #define __TargetAggroHolder_x                                      0x10CF360
 #define __GroupAggro_x                                             0x10CF3A0
 #define __LoginName_x                                              0xFBDFA8
+#define __Inviter_x                                                0xFB9FF0
 
 
 //// 

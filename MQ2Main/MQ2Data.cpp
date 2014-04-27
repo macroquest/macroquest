@@ -52,9 +52,17 @@ TLO(dataSpawn)
         }
         else
         {
-            // set up search spawn
             SEARCHSPAWN ssSpawn;
             ClearSearchSpawn(&ssSpawn);
+            //PCHAR pName=GETFIRST();
+            if (*szIndex=='=')
+            {
+                szIndex++;
+				ssSpawn.bExactName = TRUE;
+            }
+            strlwr(szIndex);
+            // set up search spawn
+
 #ifndef ISXEQ
             ParseSearchSpawn(szIndex,&ssSpawn);
 #else

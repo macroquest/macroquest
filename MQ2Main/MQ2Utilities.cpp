@@ -5220,12 +5220,16 @@ BOOL SpawnMatchesSearch(PSEARCHSPAWN pSearchSpawn, PSPAWNINFO pChar, PSPAWNINFO 
                 return FALSE;
         }
     }
+	if(gbExactSearchCleanNames)
+		pSearchSpawn->bExactName = 1;
     _strlwr(strcpy(szName,pSpawn->Name));
     _strlwr(strcpy(szSearchName,pSearchSpawn->szName));
-    if (!strstr(szName,szSearchName) && !strstr(CleanupName(szName,FALSE),szSearchName))
-        return FALSE;
-    if (pSearchSpawn->bExactName && stricmp(CleanupName(szName,FALSE,!gbExactSearchCleanNames),pSearchSpawn->szName))
-        return FALSE;
+	if (!strstr(szName,szSearchName) && !strstr(CleanupName(szName,FALSE),szSearchName))
+		return FALSE;
+	if(pSearchSpawn->bExactName) {
+		if (stricmp(CleanupName(szName,FALSE,FALSE),pSearchSpawn->szName))
+			return FALSE;
+	}
     if (pSearchSpawn->MinLevel && pSpawn->Level < pSearchSpawn->MinLevel)
         return FALSE;
     if (pSearchSpawn->MaxLevel && pSpawn->Level > pSearchSpawn->MaxLevel)

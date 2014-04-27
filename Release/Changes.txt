@@ -1,3 +1,14 @@
+24 Mar 2014 by eqmule
+- Added exact match option to spawn searches (Suggested by: petesampras)
+ example: /echo ${Spawn[=eqmule]} will find eqmule but not eqmulee.
+-Added new TLO Member 'Inviter' to the character TLO. (its a pStringType)
+ You can check ${Me.Invited} to see if you have a
+ group invitation so I figured it would be useful
+ to know who actually sent the invite:
+ Usage: /echo ${Me.Inviter} just invited me to join their group
+ Output: [MQ2] uberplayer00 just invited me to join their group
+ 
+
 23 Mar 2014 by rswiders
 - Corrected itemdisplay to show useable classes for the spell when over level 70
 - Corrected to make sure cfg files are executed during refresh injections
