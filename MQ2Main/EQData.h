@@ -609,47 +609,44 @@ typedef struct _CONTENTSARRAY {
     struct  _CONTENTS *Contents[0x14]; // 20 bag-slot max - addresses to whats inside the bag if its a bag; augs if an item
 } CONTENTSARRAY, *PCONTENTSARRAY;
 
-// actual size 0x150 20110413 - ieatacid
+// actual size 0x148 20120412 - ieatacid
 typedef struct _CONTENTS {
 /*0x000*/  void    *vtable;
 /*0x004*/  DWORD   ItemType;          // ? 1 = normal, 2 = pack ?
 /*0x008*/  void    *punknown;
-/*0x00c*/  BYTE    Unknown0xc[0x34];
-/*0x040*/  DWORD   MerchantSlot;      // slot id on a merchant 
-/*0x044*/  BYTE    Unknown0x44[0x4];
-/*0x048*/  DWORD   EvolvingLoreGroup; // lore group if it's an evolving item
-/*0x04c*/  DWORD   ItemSlot;
-/*0x050*/  BYTE    Unknown0x50[0x4];
-/*0x054*/  DWORD   StackCount;
-/*0x058*/  DWORD   Price;             // merchant price
-/*0x05c*/  BYTE    Unknown0x5c[0xc];
-/*0x068*/  DWORD   NumOfSlots1; // ?
-/*0x06c*/  DWORD   Unknown0x6c; // ?
-/*0x070*/  struct  _CONTENTSARRAY *pContentsArray;
-/*0x074*/  DWORD   NumOfSlots2; // ?
-/*0x078*/  DWORD   NumOfSlots3; // ?
-/*0x07c*/  BYTE    Unknown0x7c[0x24];
-/*0x0a0*/  BYTE    EvolvingExpOn;
-/*0x0a1*/  BYTE    Unknown0xa1[0x3];
-/*0x0a4*/  DWORD   EvolvingCurrentLevel;
-/*0x0a8*/  BYTE    Unknown0xa8[0x18];
-/*0x0c0*/  struct  _ITEMINFO *Item1;
-/*0x0c4*/  BYTE    Unknown0xc4[0x8];
-/*0x0cc*/  DWORD   EvolvingMaxLevel;
-/*0x0d0*/  BYTE    Unknown0xd0[0x1c];
-/*0x0ec*/  DWORD   Charges;           // charges if positive; some things are neg
-/*0x0f0*/  BYTE    IsEvolvingItem;
-/*0x0f1*/  BYTE    Unknown0xf1[0x7];
-/*0x0f8*/  DOUBLE  EvolvingExpPct;
-/*0x100*/  DWORD   MerchantQuantity;  // amount that a merchant has for sale, -1 for unlimited
-/*0x104*/  BYTE    Unknown0x104[0x4];
-/*0x108*/  DWORD   Open;
-/*0x10c*/  BYTE    Unknown0x10c[0x24];
-/*0x130*/  DWORD   Power;
-/*0x134*/  BYTE    Unknown0x134[0x10];
-/*0x144*/  struct   _ITEMINFO *Item2;
-/*0x148*/  BYTE    Unknown0x148[0x8];
-/*0x150*/
+/*0x00c*/  DWORD   EvolvingMaxLevel;
+/*0x010*/  BYTE    Unknown0x10[0x28];
+/*0x038*/  DWORD   ItemSlot;
+/*0x03c*/  DWORD   EvolvingLoreGroup; // lore group if it's an evolving item
+/*0x040*/  DWORD   Price;             // merchant price        
+/*0x044*/  BYTE    Unknown0x44[0x24];
+/*0x068*/  DOUBLE  EvolvingExpPct;
+/*0x070*/  BYTE    Unknown0x70[0x14];
+/*0x084*/  struct  _ITEMINFO *Item1;
+/*0x088*/  BYTE    Unknown0x88[0x5];
+/*0x08d*/  BYTE    IsEvolvingItem;
+/*0x08e*/  BYTE    Unknown0x8e[0x3a];
+/*0x0c8*/  DWORD   Open;
+/*0x0cc*/  DWORD   EvolvingCurrentLevel;
+/*0x0d0*/  DWORD   MerchantQuantity;  // amount that a merchant has for sale, -1 for unlimited
+/*0x0d4*/  DWORD   Charges;           // charges if positive; some things are neg
+/*0x0d8*/  DWORD   MerchantSlot;      // slot id on a merchant
+/*0x0dc*/  BYTE    Unknown0xdc[0x4];
+/*0x0e0*/  DWORD   Power;
+/*0x0e4*/  BYTE    Unknown0xe4[0x4];
+/*0x0e8*/  BYTE    EvolvingExpOn;
+/*0x0e9*/  BYTE    Unknown0xe9[0x7];
+/*0x0f0*/  DWORD   NumOfSlots1; // ?
+/*0x0f4*/  DWORD   Unknown0x6c; // ?
+/*0x0f8*/  struct  _CONTENTSARRAY *pContentsArray;
+/*0x0fc*/  DWORD   NumOfSlots2; // ?
+/*0x100*/  DWORD   NumOfSlots3; // ?
+/*0x104*/  BYTE    Unknown0x104[0x30];
+/*0x134*/  DWORD   StackCount;
+/*0x138*/  BYTE    Unknown0x138[0x4];        
+/*0x13c*/  struct   _ITEMINFO *Item2;
+/*0x140*/  BYTE    Unknown0x140[0x8];
+/*0x148*/
 } CONTENTS, *PCONTENTS;
 
 // Size 0x58 20110810 - dkaa
