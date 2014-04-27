@@ -1,3 +1,7 @@
+15 Mar 2014 by eqmule
+-Fixed the EQRAID struct 
+ This means, things like /echo ${Raid.Members} will work again.
+
 13 Mar 2014 by eqmule
 -Updated for patch
 -Fixed a problem with MQ2Labels showing up as Unknown
