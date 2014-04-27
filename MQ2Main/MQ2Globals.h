@@ -929,9 +929,10 @@ EQLIB_VAR DWORD CEditWnd__SelectableCharFromPoint;
 EQLIB_VAR DWORD CEditWnd__SetEditable;
 
 EQLIB_VAR DWORD CEverQuest__ClickedPlayer;
+EQLIB_VAR DWORD CEverQuest__DoTellWindow;
 EQLIB_VAR DWORD CEverQuest__DropHeldItemOnGround;
 EQLIB_VAR DWORD CEverQuest__dsp_chat;
-EQLIB_VAR DWORD CEverQuest__DoTellWindow;
+EQLIB_VAR DWORD CEverQuest__Emote;
 EQLIB_VAR DWORD CEverQuest__EnterZone;
 EQLIB_VAR DWORD CEverQuest__GetBodyTypeDesc;
 EQLIB_VAR DWORD CEverQuest__GetClassDesc;
@@ -945,7 +946,7 @@ EQLIB_VAR DWORD CEverQuest__LMouseUp;
 EQLIB_VAR DWORD CEverQuest__RightClickedOnPlayer;
 EQLIB_VAR DWORD CEverQuest__RMouseUp;
 EQLIB_VAR DWORD CEverQuest__SetGameState;
-EQLIB_VAR DWORD CEverQuest__Emote;
+EQLIB_VAR DWORD CEverQuest__UPCNotificationFlush;
 
 EQLIB_VAR DWORD CGaugeWnd__CalcFillRect;
 EQLIB_VAR DWORD CGaugeWnd__CalcLinesFillRect;

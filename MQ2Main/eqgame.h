@@ -362,9 +362,10 @@
 
 // CEverQuest 
 #define CEverQuest__ClickedPlayer_x                                0x5108A0
+#define CEverQuest__DoTellWindow_x                                 0x5150F0
 #define CEverQuest__DropHeldItemOnGround_x                         0x51D910
 #define CEverQuest__dsp_chat_x                                     0x516890
-#define CEverQuest__DoTellWindow_x                                 0x5150F0
+#define CEverQuest__Emote_x                                        0x516AF0
 #define CEverQuest__EnterZone_x                                    0x529560
 #define CEverQuest__GetBodyTypeDesc_x                              0x50CEC0
 #define CEverQuest__GetClassDesc_x                                 0x50C620
@@ -378,7 +379,7 @@
 #define CEverQuest__RightClickedOnPlayer_x                         0x52E140
 #define CEverQuest__RMouseUp_x                                     0x52F100
 #define CEverQuest__SetGameState_x                                 0x510F50
-#define CEverQuest__Emote_x                                        0x516AF0
+#define CEverQuest__UPCNotificationFlush_x                         0x518330
 
 // CGaugeWnd 
 #define CGaugeWnd__CalcFillRect_x                                  0x6624A0

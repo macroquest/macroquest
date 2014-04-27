@@ -76,10 +76,54 @@ public:
 
         gbInChat=false;
     }
+
+    VOID UPCNotificationFlush_Trampoline();
+    VOID UPCNotificationFlush_Detour()
+    {
+        PEVERQUEST eq = (PEVERQUEST)this;
+        char szBuf[MAX_STRING] = {0};
+
+        if(eq->ChannelQty > 0)
+        {
+            int len = 0;
+            char *pTmp;
+
+            if(eq->bJoinedChannel)
+            {
+                pTmp = "* %s has entered channel ";
+            }
+            else
+            {
+                pTmp = "* %s has left channel ";
+            }
+
+            sprintf(szBuf, pTmp, eq->ChannelPlayerName);
+
+            for(DWORD i = 0; i < eq->ChannelQty; i++)
+            {
+                if(i)
+                {
+                    pTmp = ", %s:%d";
+                }
+                else
+                {
+                    pTmp = "%s:%d";
+                }
+
+                len = strlen(szBuf);
+                sprintf(&szBuf[len], pTmp, eq->ChannelName[i], eq->ChannelNumber[i] + 1);
+            }
+
+            CheckChatForEvent(szBuf);
+        }
+
+        UPCNotificationFlush_Trampoline();
+    }
 }; 
 
 DETOUR_TRAMPOLINE_EMPTY(VOID CChatHook::Trampoline(PCHAR szMsg, DWORD dwColor, bool EqLog, bool dopercentsubst)); 
 DETOUR_TRAMPOLINE_EMPTY(VOID CChatHook::TellWnd_Trampoline(char *message,char *name,char *name2,void *unknown,int color,bool b)); 
+DETOUR_TRAMPOLINE_EMPTY(VOID CChatHook::UPCNotificationFlush_Trampoline());
 
 VOID dsp_chat_no_events(const char *Text,int Color,bool EqLog, bool dopercentsubst)
 {
@@ -107,12 +151,14 @@ VOID InitializeChatHook()
 #endif
     EzDetour(CEverQuest__dsp_chat,&CChatHook::Detour,&CChatHook::Trampoline);
     EzDetour(CEverQuest__DoTellWindow,&CChatHook::TellWnd_Detour,&CChatHook::TellWnd_Trampoline);
+    EzDetour(CEverQuest__UPCNotificationFlush,&CChatHook::UPCNotificationFlush_Detour,&CChatHook::UPCNotificationFlush_Trampoline);
 }
 
 VOID ShutdownChatHook()
 {
     RemoveDetour(CEverQuest__dsp_chat);
     RemoveDetour(CEverQuest__DoTellWindow);
+    RemoveDetour(CEverQuest__UPCNotificationFlush);
 #ifndef ISXEQ
 #ifdef USEBLECHEVENTS
     delete pEventBlech;
