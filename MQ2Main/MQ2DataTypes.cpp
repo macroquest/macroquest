@@ -4876,7 +4876,7 @@ bool MQ2WindowType::GETMEMBER()
     switch((WindowMembers)pMember->ID)
     {
     case Open:
-        Dest.DWord=pWnd->Show;
+        Dest.DWord=pWnd->dShow;
         Dest.Type=pBoolType;
         return true;
     case Child:

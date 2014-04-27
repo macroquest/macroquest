@@ -2509,7 +2509,7 @@ VOID WindowState(PSPAWNINFO pChar, PCHAR szLine)
         BYTE State=99;
         if (!stricmp(Arg2,"open")) State=1;
         if (!stricmp(Arg2,"close")) State=0;
-        if (pWnd->Show==State) State=99;
+        if (pWnd->dShow==State) State=99;
         switch (State) {
                 case 0:
                     ((CXWnd*)pWnd)->Show(0,1);
@@ -2527,7 +2527,7 @@ VOID WindowState(PSPAWNINFO pChar, PCHAR szLine)
                     ((CSidlScreenWnd*)pWnd)->StoreIniVis();
                     break;
                 case 99:
-                    sprintf(szBuffer,"Window '%s' is currently %s",pWnd->WindowText->Text,(pWnd->Show==0)?"closed":"open");
+                    sprintf(szBuffer,"Window '%s' is currently %s",pWnd->WindowText->Text,(pWnd->dShow==0)?"closed":"open");
                     break;
         }
         WriteChatColor(szBuffer,USERCOLOR_DEFAULT);

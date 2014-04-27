@@ -2005,7 +2005,7 @@ public:
 
     bool ToString(MQ2VARPTR VarPtr, PCHAR Destination)
     {
-        if (VarPtr.Ptr && ((PCSIDLWND)VarPtr.Ptr)->Show)
+        if (VarPtr.Ptr && ((PCSIDLWND)VarPtr.Ptr)->dShow)
             strcpy(Destination,"TRUE");
         else
             strcpy(Destination,"FALSE");

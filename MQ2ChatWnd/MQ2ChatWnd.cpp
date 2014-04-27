@@ -147,7 +147,7 @@ public:
         { 
             if (Message==XWM_CLOSE) 
             { 
-                Show=1; 
+                dShow=1; 
                 return 1; 
             } 
         } 
@@ -459,7 +459,7 @@ PLUGIN_API DWORD OnWriteChatColor(PCHAR Line, DWORD Color, DWORD Filter)
             return 0; 
         } 
     } 
-    MQChatWnd->Show=1; 
+    MQChatWnd->dShow=1; 
     PFILTER pFilter=gpFilters; 
     while (pFilter) 
     { 

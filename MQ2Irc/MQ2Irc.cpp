@@ -109,7 +109,7 @@ public:
         { 
             if (Message==XWM_CLOSE) 
             { 
-                Show=1; 
+                dShow=1; 
                 return 0; 
                 //MyWnd=0; 
             } 
