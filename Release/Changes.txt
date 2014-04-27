@@ -1,3 +1,9 @@
+16 Mar 2014 by eqmule
+-Fixed EQRAIDMEMBER struct
+ This means /echo ${Raid.Member[${Me}].Class} (and the likes) will work again.
+-Fixed a bug with pRaidType where pSpawnType members wouldn't inherit correctly.
+ This means things like /echo ${Raid.Member[${Me}].Race} will work properly (again)... (did it ever work?)
+
 15 Mar 2014 by eqmule
 -Fixed the EQRAID struct 
  This means, things like /echo ${Raid.Members} will work again.

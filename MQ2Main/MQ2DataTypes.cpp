@@ -7467,12 +7467,13 @@ bool MQ2RaidMemberType::GETMEMBER()
     PMQ2TYPEMEMBER pMember=MQ2RaidMemberType::FindMember(Member);
     if (!pMember)
     {
-        if(!GetSpawnByName(pRaidMember->Name))
+		PSPAWNINFO pSpawn = (PSPAWNINFO)GetSpawnByName(pRaidMember->Name);
+        if(!pSpawn)
             return false;
 #ifndef ISXEQ
-        return pSpawnType->GetMember(*(MQ2VARPTR*)GetSpawnByName(pRaidMember->Name),Member,Index,Dest);
+        return pSpawnType->GetMember(*(MQ2VARPTR*)&pSpawn,Member,Index,Dest);
 #else
-        return pSpawnType->GetMember(*(LSVARPTR*)GetSpawnByName(pRaidMember->Name),Member,argc,argv,Dest);
+        return pSpawnType->GetMember(*(LSVARPTR*)&pSpawn,Member,argc,argv,Dest);
 #endif
     }
 

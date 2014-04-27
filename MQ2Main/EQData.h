@@ -1936,21 +1936,19 @@ typedef struct _EQMERCALTABILITIES {
 /*0x478*/
 } EQMERCALTABILITIES, *PEQMERCALTABILITIES;
 
-// size 0x94 (3-19-2009)
+// size 0x98 (3-12-2014) -eqmule
 typedef struct _EQRAIDMEMBER { 
 /*0x000*/ CHAR      Name[0x40]; 
 /*0x040*/ CHAR      RaidNote[0x40]; 
-/*0x080*/ BYTE      nLevel;
-/*0x081*/ BYTE      nClass; 
-/*0x082*/ BYTE      RaidLeader; 
-/*0x083*/ BYTE      GroupLeader; 
-/*0x084*/ BYTE      RaidMainAssist;
-/*0x085*/ BYTE      RaidMarker;
-/*0x086*/ BYTE      RaidWaypointer;
-/*0x087*/ BYTE      Unknown0x87;
-/*0x088*/ DWORD     GroupNumber;
-/*0x08c*/ BYTE      Unknown0x8c[0x8];
-/*0x094*/ 
+/*0x080*/ DWORD     nLevel;
+/*0x084*/ DWORD     nClass; 
+/*0x088*/ BYTE      RaidLeader; 
+/*0x089*/ BYTE      GroupLeader; 
+/*0x08a*/ BYTE      RaidMainAssist;
+/*0x08b*/ BYTE      RaidMarker;
+/*0x08c*/ DWORD     GroupNumber;
+/*0x090*/ BYTE      Unknown0x90[0x8];
+/*0x098*/ 
 } EQRAIDMEMBER, *PEQRAIDMEMBER;
 
 // sizeof(_EQRAID) is 0x3668 (12-09-2009)
