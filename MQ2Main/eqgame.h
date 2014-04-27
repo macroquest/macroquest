@@ -87,6 +87,8 @@
 #define __ShowNames_x                                              0xD991A4
 #define __Socials_x                                                0xDCE644
 #define __SubscriptionType_x                                       0xF55CC0
+#define __TargetAggroHolder_x									   0xF2E9A0
+#define __GroupAggro_x											   0xF2E9E0
 
 //// 
 //Section 1: Vital Offsets 

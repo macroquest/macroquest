@@ -1718,7 +1718,7 @@ bool MQ2SpawnType::GETMEMBER()
                 return true;
             }
         }
-        break;
+        return false;
 	case Following:
         if(Dest.Ptr = pSpawn->WhoFollowing)
         {
@@ -6240,7 +6240,7 @@ bool MQ2MercenaryType::GETMEMBER()
         Dest.Type=pIntType;
         return true;
     case Name:
-		Dest.Ptr=CleanupName(&pSpawn->Name[0]);
+		Dest.Ptr=CleanupName(&pSpawn->Name[0],FALSE,FALSE);
         Dest.Type=pStringType;
         return true;
     case Stance:
@@ -6365,7 +6365,7 @@ bool MQ2PetType::GETMEMBER()
 		return true;
 	case Name:
         Dest.Type=pStringType;
-		Dest.Ptr=CleanupName(&pSpawn->Name[0]);
+		Dest.Ptr=CleanupName(&pSpawn->Name[0],FALSE,FALSE);
         return true;
 	case ReGroup:
 		if(((PEQPETINFOWINDOW)pPetInfoWnd)->ReGroup)
@@ -6864,7 +6864,6 @@ bool MQ2GroupType::GETMEMBER()
     switch((GroupMembers)pMember->ID)
     {
     case xMember:
-		Index;
         if (!ISINDEX())
             return false;
         if (ISNUMBER())
@@ -6882,16 +6881,14 @@ bool MQ2GroupType::GETMEMBER()
                 {
                     Dest.DWord++;
                     CHAR Name[MAX_STRING]={0};
-					Index;
                     GetCXStr(pChar->pGroupInfo->pMember[i]->pName,Name,MAX_STRING);
-					CleanupName(Name);
+					CleanupName(Name,FALSE,FALSE);//we do this to fix the mercenaryname bug
                     if (!stricmp(Name,GETFIRST()))
                     {
                         Dest.Type=pGroupMemberType;
                         return true;
                     }
                 }
-				Index;
                 if (!stricmp(pChar->pSpawn->Name,GETFIRST())) {
                     Dest.DWord=0;
                     Dest.Type=pGroupMemberType;
@@ -7039,7 +7036,7 @@ bool MQ2GroupMemberType::ToString(MQ2VARPTR VarPtr, PCHAR Destination)
                 {
                     CHAR Name[MAX_STRING]={0};
                     GetCXStr(pChar->pGroupInfo->pMember[i]->pName,Name,MAX_STRING);
-                    strcpy(Destination,CleanupName(Name));
+                    strcpy(Destination,CleanupName(Name,FALSE,FALSE));
                     return true;
                 }
             }
@@ -7047,7 +7044,7 @@ bool MQ2GroupMemberType::ToString(MQ2VARPTR VarPtr, PCHAR Destination)
     }
     else
     {
-        strcpy(Destination,CleanupName(GetCharInfo()->pSpawn->Name));
+        strcpy(Destination,CleanupName(GetCharInfo()->pSpawn->Name,FALSE,FALSE));
         return true;
     }
     return false;
@@ -7105,7 +7102,7 @@ bool MQ2GroupMemberType::GETMEMBER()
     switch((GroupMemberMembers)pMember->ID)
     {
     case Name:
-        Dest.Ptr=CleanupName(MemberName);
+        Dest.Ptr=CleanupName(MemberName,FALSE,FALSE);
         Dest.Type=pStringType;
         return true;
     case Leader:
@@ -7168,12 +7165,18 @@ bool MQ2GroupMemberType::GETMEMBER()
         }
         return false;
     case PctAggro:
-        if(pAggroInfo)
-        {
-            Dest.DWord = pAggroInfo->aggroData[nMember + 1].AggroPct;
-            Dest.Type = pIntType;
-            return true;
-        }
+		{
+			PGROUPAGGRO pAggrp = (PGROUPAGGRO)EQADDR_GROUPAGGRO;
+			if(pAggrp)
+			{
+				if(nMember==0)//Player is always nMember 0 but in the GroupMemberAggro struct its always 5...
+					Dest.DWord = pAggrp->GroupMemberAggro[5];
+				else
+					Dest.DWord = pAggrp->GroupMemberAggro[nMember-1];
+				Dest.Type = pIntType;
+				return true;
+			}
+		}
 		return false;
     case xIndex:
 		Dest.DWord = nMember;
@@ -7520,17 +7523,25 @@ bool MQ2DynamicZoneType::GETMEMBER()
     case Leader:
         {
             PDZMEMBER pDynamicZoneMember=pDynamicZone->pMemberList;
-            for(DWORD i=0; i<pDynamicZone->MaxPlayers; i++)
-            {
-                if(!strcmp(pDynamicZoneMember->Name,(char*)instExpeditionLeader))
-                {
-                    Dest.Ptr=pDynamicZoneMember;
-                    Dest.Type=pDZMemberType;
-                    return true;
-                }
-                pDynamicZoneMember=pDynamicZoneMember->pNext;
-            }
+			for(DWORD i=0; i<pDynamicZone->MaxPlayers && pDynamicZoneMember; i++)
+			{
+				if(!strcmp(pDynamicZoneMember->Name,(char*)instExpeditionLeader))
+				{
+					Dest.Ptr=pDynamicZoneMember;
+					Dest.Type=pDZMemberType;
+					return true;
+				}
+				pDynamicZoneMember=pDynamicZoneMember->pNext;
+			}
         }
+		return false;
+	case InRaid:
+		Dest.DWord=0;
+		Dest.Type=pBoolType;
+		if(pDynamicZone && pDynamicZone->Name[0]) {
+			Dest.DWord=1;
+		}
+		return true;
     }
     return false;
 }
@@ -7896,6 +7907,20 @@ bool MQ2TargetType::GETMEMBER()
             Dest.Type = pSpawnType;
             return true;
         }
+		return false;
+    case AggroHolder:
+		//who the Target has the MOST aggro on
+		PCHAR pTargetAggroHolder = EQADDR_TARGETAGGROHOLDER;
+        if(pTargetAggroHolder[0]!='\0')
+        {
+			if(PSPAWNINFO pAggroHolder = (PSPAWNINFO)GetSpawnByName(pTargetAggroHolder))
+            {
+                Dest.Ptr = pAggroHolder;
+                Dest.Type = pSpawnType;
+                return true;
+            }
+        }
+		return false;
     }
     return false;
 }

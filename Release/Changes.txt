@@ -1,3 +1,23 @@
+26 Oct 2013 by EqMule
+-Added a new member to the Target TLO:
+${Target.AggroHolder} it returns a pSpawnType of whoever your target is most angry with and currently attacking, 
+i.e they guy that has the most aggro.
+This can be used for ANY Target, you dont even have to have aggro yourself or even be in group with them.
+You can run by someone fighting, select their target and this will return whoever its most angry with...
+/echo ${Target.AggroHolder}
+[MQ2] EqMule
+
+***OK THE NEXT FIX "might" break some macros, BUT, this is how it is meant to work for consistency, so... deal with it please.***
+-Fixed ${Group.Member[<thename>].PctAggro and ${Group.Member[x].PctAggro
+/echo ${Group.Member[eqmule].Index}
+[MQ2] 3			<-- im groupmember 3
+/echo ${Group.Member[3].Name}
+[MQ2] Eqmule	<-- see?
+/echo ${Group.Member[3].PctAggro	<-- it works with the number
+[MQ2] 54		<-- my aggro
+/echo ${Group.Member[Eqmule].PctAggro	<-- as well as the name
+[MQ2] 54		<-- my aggro
+
 23 Oct 2013 by EqMule
 -NOTE TO: Macroauthors, Macro breaking CHANGE!
 

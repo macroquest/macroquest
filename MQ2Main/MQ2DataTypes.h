@@ -3552,6 +3552,7 @@ public:
         MaxMembers=3,
         xMember=4,
         Leader=5,
+        InRaid=6,
     };
     MQ2DynamicZoneType():MQ2Type("dynamiczone")
     {
@@ -3560,6 +3561,7 @@ public:
         TypeMember(MaxMembers);
         AddMember(xMember,"Member");
         TypeMember(Leader);
+        TypeMember(InRaid);
     }
     ~MQ2DynamicZoneType()
     {
@@ -3761,6 +3763,7 @@ public:
         PctAggro = 4,
         SecondaryPctAggro = 5,
         SecondaryAggroPlayer = 6,
+		AggroHolder = 7,
     };
 
 #ifdef ISBOXER_COMPAT
@@ -3775,6 +3778,7 @@ public:
         TypeMember(PctAggro);
         TypeMember(SecondaryPctAggro);
         TypeMember(SecondaryAggroPlayer);
+        TypeMember(AggroHolder);
     }
 
     ~MQ2TargetType()

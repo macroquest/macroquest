@@ -2043,7 +2043,7 @@ typedef struct _TASKMEMBER {
 typedef struct _DYNAMICZONE {
 /*0x000*/ void   *vftable;
 /*0x004*/ BYTE   Unknown0x04[0x46];
-/*0x04a*/ CHAR   Name[0x40]; // your name
+/*0x04a*/ CHAR   Name[0x40]; // Leaders name
 /*0x08a*/ CHAR   ExpeditionName[0x80];
 /*0x10a*/ BYTE   Unknown0x10a[0x2];
 /*0x10c*/ WORD   MaxPlayers;
@@ -2207,9 +2207,9 @@ typedef struct _AGGRODATA {
 // size 0xe4 11-28-12 - ieatacid (in GetAggroInfo)
 typedef struct _AGGROINFO {
 /*0x00*/ struct _AGGRODATA aggroData[0x1b];
-/*0xd8*/ DWORD  AggroLockID;
-/*0xdc*/ DWORD  AggroTargetID;
-/*0xe0*/ DWORD  AggroSecondaryID;
+/*0xd8*/ DWORD  AggroLockID;//this can be 0, I dont know what it is... -eqmule
+/*0xdc*/ DWORD  AggroTargetID;//this is id of whoever we are fighting -eqmule
+/*0xe0*/ DWORD  AggroSecondaryID;//this is id of whoever the npc is fighting -eqmule
 /*0xe4*/
 } AGGROINFO, *PAGGROINFO;
 
@@ -2243,6 +2243,11 @@ enum AggroDataTypes
     AD_xTarget19,
     AD_xTarget20,
 };
+typedef struct _GROUPAGGRO {
+/*0x00*/ DWORD Unknown0x00;
+/*0x04*/ DWORD Unknown0x04;
+/*0x08*/ DWORD  GroupMemberAggro[6];//player is ALWAYS the 6th member...
+} GROUPAGGRO, *PGROUPAGGRO;
 
 #define EQ_BEGIN_ZONE                   0x0ABF  // CEverQuest__SavePCForce         oct042013
 #define EQ_END_ZONE                     0x163D  // CEverQuest__DoMainLoop+B2F      oct042013
