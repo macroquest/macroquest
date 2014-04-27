@@ -906,12 +906,12 @@ typedef struct _CTEXTENTRYWND {
 /*0x140*/
 } CTEXTENTRYWND, *PCTEXTENTRYWND;
 
-// size 0x2a0 20120316 - ieatacid
+// size 0x2c8 20121128 - ieatacid
 typedef struct _CPLAYERWND {
 /*0x000*/ struct _CSIDLWND Wnd;
-/*0x208*/ BYTE   Unknown[0x94];
-/*0x29c*/ DWORD  CombatState;   // 1=debuffed, 2=combat cooldown, 3=stand, 4=sit
-/*0x2a0*/ 
+/*0x214*/ BYTE   Unknown[0xb0];
+/*0x2c4*/ DWORD  CombatState;   // 1=debuffed, 2=combat cooldown, 3=stand, 4=sit
+/* more data */ 
 } CPLAYERWND, *PCPLAYERWND;
 
 // size 0x87c 20120316 - ieatacid

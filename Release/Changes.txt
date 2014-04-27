@@ -1,3 +1,8 @@
+29 November 2012 by ieatacid
+- Fixed alternate ability bug
+- Fixed Me.CombatState
+- MQ2Bzsrch is still broken, don't load it
+
 28 November 2012 by ieatacid
 - Updated for today's patch
 

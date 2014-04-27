@@ -304,7 +304,7 @@
 #define CBankWnd__GetNumBankSlots_x                                0x6233A0
 
 // CBazaarSearchWnd 
-#define CBazaarSearchWnd__HandleBazaarMsg_x                        0x0
+#define CBazaarSearchWnd__HandleBazaarMsg_x                        0x630500
 
 // CButtonWnd 
 #define CButtonWnd__SetCheck_x                                     0x54B990
@@ -625,7 +625,7 @@
 
 // EQ_PC 
 #define EQ_PC__DestroyHeldItemOrMoney_x                            0x581EA0
-#define EQ_PC__GetAltAbilityIndex_x                                0x7BC500
+#define EQ_PC__GetAltAbilityIndex_x                                0x7BC4D0
 #define EQ_PC__GetCombatAbility_x                                  0x7BC560
 #define EQ_PC__GetCombatAbilityTimer_x                             0x7BC610
 #define EQ_PC__GetItemTimerValue_x                                 0x57C190
