@@ -814,11 +814,11 @@ typedef struct _CHARINFO {
 /*0x12dc*/   DWORD      GuildID;
 /*0x12e0*/   BYTE       Unknown0x12e0[0x8];
 /*0x12e8*/   DWORD      GuildRank; // 0=Member, 1=Officer, 2=Leader
-/*0x12ec*/   BYTE       Unknown0x12ec[0x18];
-/*0x1304*/   DWORD      AAExp;
-/*0x1308*/   BYTE       Unknown0x1308;
-/*0x1309*/   BYTE       PercentEXPtoAA;
-/*0x130a*/   BYTE       Unknown0x130a[0x42];
+/*0x12ec*/   BYTE       Unknown0x12ec[0x1c];
+/*0x1308*/   DWORD      AAExp;
+/*0x130c*/   BYTE       Unknown0x130c;
+/*0x130d*/   BYTE       PercentEXPtoAA;
+/*0x130a*/   BYTE       Unknown0x130a[0x3e];
 /*0x134c*/   DWORD      TributeTimer;
 /*0x1350*/   DWORD      Unknown0x1350;
 /*0x1354*/   DWORD      Unknown0x1354;
@@ -1176,10 +1176,11 @@ typedef struct _FELLOWSHIPINFO {
 /*0x9d0*/  FLOAT  CampfireX;
 /*0x9d4*/  FLOAT  CampfireZ;
 /*0x9d8*/  WORD   CampfireZoneID;    // zone ID where campfire is
-/*0x9dc*/  WORD   InstanceID;
-/*0x9e0*/  DWORD  CampfireTimestamp; // CampfireTimestamp-FastTime()=time left on campfire
-/*0x9e4*/  DWORD  Unknown0x878;      // same as FellowshipID
-/*0x9e8*/  DWORD  Unknown0x87c;      // campfire type?
+/*0x9da*/  WORD   InstanceID;
+/*0x9dc*/  DWORD  CampfireTimestamp; // CampfireTimestamp-FastTime()=time left on campfire
+/*0x9e0*/  DWORD  Unknown0x8e0;      // same as FellowshipID
+/*0x9e4*/  DWORD  Unknown0x8e4;      // campfire type?
+/*0x9e8*/  DWORD  Unknown0x8e8;      // campfire type?
 /*0x9ec*/  DWORD  Campfire;          // do we have a campfire up?
 /*0x9f0*/
 } FELLOWSHIPINFO, *PFELLOWSHIPINFO;
@@ -1370,13 +1371,13 @@ typedef struct _SPAWNINFO {
 /*0x11c4*/ DWORD    GroupMemberTargeted;    // 0xFFFFFFFF if no target, else 1 through 5
 /*0x11c8*/ BYTE     Unknown0x11c8[0x184];
 /*0x134c*/ struct   _FELLOWSHIPINFO Fellowship; // size 0x9f0
-/*0x1d3c*/ BYTE     Unknown0x1d2c[0x48];
-/*0x1d84*/ void     *vtable2;
-/*0x1d88*/ DWORD    Unknown0x1d88;
-/*0x1d8c*/ struct   _SPAWNINFO *pSpawn;
-/*0x1d90*/ BYTE     Levitate;
-/*0x1d91*/ BYTE     Unknown0x1d91[0x4b];
-/*0x1ddc*/
+/*0x1d3c*/ BYTE     Unknown0x1d2c[0x54];
+/*0x1d90*/ void     *vtable2;
+/*0x1d94*/ DWORD    Unknown0x1d88;
+/*0x1d98*/ struct   _SPAWNINFO *pSpawn;
+/*0x1d9c*/ DWORD    Levitate;
+/*0x1da0*/ BYTE     Unknown0x1d9d[0x48];
+/*0x1de8*/
 } SPAWNINFO, *PSPAWNINFO;
 
 #define STANDSTATE_STAND                0x64

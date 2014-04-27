@@ -347,7 +347,7 @@ typedef struct _CXWND {
 #define GateBind          0
 
 
-// Actual size 0x20c 6-30-11
+// Actual size 0x1ec 6-30-11
 typedef struct _CSIDLWND {
 /*0x000*/   struct  _CSIDLWNDVFTABLE   *pvfTable;
 /*0x004*/   void    *pUnknown0x4;
