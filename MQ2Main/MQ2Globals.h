@@ -297,6 +297,7 @@ EQLIB_VAR fEQCommand         cmdCharInfo;
 EQLIB_VAR fEQCommand         cmdFilter;
 EQLIB_VAR fEQCommand         cmdDoAbility;
 EQLIB_VAR fEQCommand         cmdCast;
+EQLIB_VAR fEQCommand         cmdUseItem;
 
 
 EQLIB_VAR fEQNewUIINI        NewUIINI;

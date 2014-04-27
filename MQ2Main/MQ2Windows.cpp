@@ -1204,7 +1204,7 @@ VOID ItemNotify(PSPAWNINFO pChar, PCHAR szLine)
     {
         WriteChatColor("Syntax: /itemnotify <slot|#> <notification>");
         WriteChatColor("     or /itemnotify in <bag slot> <slot # in bag> <notification>");
-		//WriteChatColor("     or /itemnotify <itemname> <notification>");
+		WriteChatColor("     or /itemnotify <itemname> <notification>");
         RETURN(0);
     }
 
@@ -1318,29 +1318,16 @@ int ItemNotify(int argc, char *argv[])
 		//which is why I use GetInvSlot instead...
 		pSlot = GetInvSlot(type,invslot,bagslot);
         pNotification=&szArg4[0];
-		if(!pSlot && type!=-1) {//ok we can "click" it anyway with moveitem so lets just do that if pNotification is leftmoseup
+		if(!pSlot && type!=-1) {//ok pSlot was not foundm (so bag is closed) BUT we can "click" it anyway with moveitem so lets just do that if pNotification is leftmoseup
 			if(invslot<0 || invslot>NUM_INV_SLOTS) {
 				WriteChatf("%d is not a valid invslot. (itemnotify)",invslot);
 				RETURN(0);
 			}
 			if(pNotification && !strnicmp(pNotification,"leftmouseup",11)) {
-				BOOL bMoveFromCursor = 0;
-				PCHARINFO2 pChar2 = GetCharInfo2();
-				PCONTENTS pCursor = 0;
-				if(pChar2 && pChar2->pInventoryArray) {
-					pCursor = pChar2->pInventoryArray->Inventory.Cursor;
-					if(pCursor) {
-						bMoveFromCursor=1;
-					}
-				}
-				PCONTENTS pContainer = FindItemBySlot(invslot);// we dont care about the bagslot here
-				if(!pContainer) {                              // and we dont care if the user has something
-														  // on cursor either, cause we know they
-														  // specified "in" so a container MUST exist... -eqmule
-					WriteChatf("There was no container in slot %d",invslot);
-					RETURN(0);
-				}
-				if(GetItemFromContents(pContainer)->Type!=ITEMTYPE_PACK) {
+				PCONTENTS pContainer = FindItemBySlot(invslot);	// we dont care about the bagslot here
+				if(!pContainer) {								// and we dont care if the user has something
+																// on cursor either, cause we know they
+																// specified "in" so a container MUST exist... -eqmule
 					WriteChatf("There was no container in slot %d",invslot);
 					RETURN(0);
 				}
@@ -1348,61 +1335,13 @@ int ItemNotify(int argc, char *argv[])
 					WriteChatf("%d is not a valid slot for this container.",bagslot);
 					RETURN(0);
 				}
-				//ok we made it this far, now we need to know the container slot:
-				pSlot = GetInvSlot(type,invslot);
-				if(!pSlot || !pSlot->pInvSlotWnd) {
-					//if we got all the way here this really shouldnt happen... but why assume...
-					WriteChatf("Could not find a container in slot %d",invslot);
+				if(GetItemFromContents(pContainer)->Type!=ITEMTYPE_PACK) {
+					WriteChatf("There was no container in slot %d",invslot);
 					RETURN(0);
 				}
-				if(!bMoveFromCursor) {//user is picking up something
-					//ok we need to know if whatever they are picking up is stackable:
-					PCONTENTS pItem = FindItemBySlot(invslot,bagslot);
-					if(!pItem) {
-						WriteChatf("Could not find an item in slot %d",bagslot);
-						RETURN(0);
-					}
-					CMoveItemData From = {0};
-					From.InventoryType = type;
-					From.Unknown2 = 0;
-					From.InvSlot = invslot;
-					From.BagSlot = bagslot;
-					From.Unknown8 = pSlot->pInvSlotWnd->WeirdVariable1;
-					From.Unknowna = pSlot->pInvSlotWnd->WeirdVariable2;
-	
-					CMoveItemData To = {0};
-					To.InventoryType = 0;
-					To.Unknown2 = 0;
-					To.InvSlot = 33;//cursor
-					To.BagSlot = 0xFFFF;
-					To.Unknown8 = 0xFFFF;
-					if(((EQ_Item *)pItem)->IsStackable()) {
-						To.Unknowna = From.Unknowna-0xc;//I *THINK* this is correct, want to get dkaa to look at assembly and confirm... -eqmule
-					} else {
-						To.Unknowna = 0;
-					}
-					pInvSlotMgr->MoveItem(&From,&To,1,1,0,0);
-					RETURN(0);
-				} else {
-					//user has something on the cursor, lets drop it
-					CMoveItemData From = {0};
-					From.InventoryType = 0;
-					From.Unknown2 = 0;
-					From.InvSlot = 33;//cursor
-					From.BagSlot = 0xFFFF;
-					From.Unknown8 = 0xFFFF;
-					From.Unknowna = 0;
-
-					CMoveItemData To = {0};
-					To.InventoryType = type;
-					To.Unknown2 = 0;
-					To.InvSlot = invslot;
-					To.BagSlot = bagslot;
-					To.Unknown8 = pSlot->pInvSlotWnd->WeirdVariable1;
-					To.Unknowna = pSlot->pInvSlotWnd->WeirdVariable2;
-					pInvSlotMgr->MoveItem(&From,&To,1,1,0,0);
-					RETURN(0);
-				}
+				;
+				PickupOrDropItem(type,FindItemBySlot(invslot,bagslot));
+				RETURN(0);
 			} else if(pNotification && !strnicmp(pNotification,"rightmouseup",12)) {//we fake it with /useitem
 				if ( HasExpansion(EXPANSION_VoA) )
 				{
@@ -1470,7 +1409,27 @@ int ItemNotify(int argc, char *argv[])
         }
         if (Slot==0 && szArg1[0]!='0' && stricmp(szArg1,"charm"))
         {
-            WriteChatf("Invalid item slot '%s'",szArg1);
+            //could it be an itemname?
+			//lets check:
+			if(PCONTENTS ptheitem = FindItemByName(szArg1)) {
+				if(pNotification && !strnicmp(pNotification,"leftmouseup",11)) {
+					PickupOrDropItem(0,ptheitem);
+				} else if(pNotification && !strnicmp(pNotification,"rightmouseup",12)) {//we fake it with /useitem
+					if ( HasExpansion(EXPANSION_VoA) ) {
+						if (GetItemFromContents(ptheitem)->Clicky.SpellID)
+						{
+							CHAR cmd[40] = {0};
+							sprintf(cmd, "/useitem %d %d", ptheitem->ItemSlot, ptheitem->ItemSlot2);
+							EzCommand(cmd);
+							RETURN(0);
+						}
+					} else {
+						WriteChatf("Item '%s' not found.",szArg2);
+					}
+				}
+				RETURN(0);
+			}
+			WriteChatf("Invalid item slot '%s'",szArg1);
             RETURN(0);
         } else if (Slot && !pSlot) {
             pSlot = pInvMgr->SlotArray[Slot];

@@ -579,6 +579,8 @@ void InitializeMQ2Commands()
             cmdDoAbility = (fEQCommand)pCmdListOrig[i].fAddress;
         } else if (!strcmp(pCmdListOrig[i].szName,"/cast")) {
             cmdCast = (fEQCommand)pCmdListOrig[i].fAddress;
+        } else if (!strcmp(pCmdListOrig[i].szName,"/useitem")) {
+            cmdUseItem = (fEQCommand)pCmdListOrig[i].fAddress;
         }
         AddCommand(pCmdListOrig[i].szName,pCmdListOrig[i].fAddress,TRUE,1,1);
     }    
@@ -679,6 +681,7 @@ void InitializeMQ2Commands()
         {"/captioncolor",CaptionColorCmd,1,0},
         {"/noparse",    NoParseCmd,0,0},
         {"/nomodkey",   NoModKeyCmd,0,0},
+        {"/useitem",    UseItemCmd,1,1},
         {NULL,          NULL,0,1},
     };
 

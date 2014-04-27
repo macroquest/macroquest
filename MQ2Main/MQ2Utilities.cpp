@@ -6202,14 +6202,78 @@ PEQINVSLOT GetInvSlot(DWORD type,WORD invslot,WORD bagslot)
 //work in progress -eqmule
 BOOL IsItemInsideContainer(PCONTENTS pItem)
 {
-	PCONTENTS pItemFound = FindItemBySlot(pItem->ItemSlot);
-	if(pItemFound) {
-		PITEMINFO pItemInfo = GetItemFromContents(pItem);
-        if (pItemInfo) {
-            if (pItemInfo->Type == ITEMTYPE_PACK) {
-				return TRUE;
+	if(pItem && pItem->ItemSlot>=0 && pItem->ItemSlot<=NUM_INV_SLOTS) {
+		PCHARINFO2 pChar2 = GetCharInfo2();
+		if(pChar2 && pChar2->pInventoryArray && pChar2->pInventoryArray->InventoryArray[pItem->ItemSlot]) {
+			if(PCONTENTS pItemFound = pChar2->pInventoryArray->InventoryArray[pItem->ItemSlot]) {
+				if(pItemFound!=pItem) {
+					return TRUE;
+				}
 			}
 		}
+	}
+	return FALSE;
+}
+BOOL PickupOrDropItem(DWORD type, PCONTENTS pItem)
+{
+	if(!pItem)
+		return FALSE;
+	WORD InvSlot = pItem->ItemSlot,BagSlot = 0xFFFF;
+	if(IsItemInsideContainer(pItem)) {
+		BagSlot = pItem->ItemSlot2;
+	}
+	BOOL bMoveFromCursor = 0;
+	PCHARINFO2 pChar2 = GetCharInfo2();
+	if(pChar2 && pChar2->pInventoryArray && pChar2->pInventoryArray->Inventory.Cursor) {
+		bMoveFromCursor=1;
+	}
+	PEQINVSLOT pSlot = GetInvSlot(type,InvSlot);
+	if(!pSlot || !pSlot->pInvSlotWnd) {
+		//if we got all the way here this really shouldnt happen... but why assume...
+		WriteChatf("Could not find an item in slot %d",InvSlot);
+		return FALSE;
+	}
+	if(!bMoveFromCursor) {//user is picking up something
+		CMoveItemData From = {0};
+		From.InventoryType = type;
+		From.Unknown2 = 0;
+		From.InvSlot = InvSlot;
+		From.BagSlot = BagSlot;
+		From.Unknown8 = pSlot->pInvSlotWnd->WeirdVariable1;
+		From.Unknowna = pSlot->pInvSlotWnd->WeirdVariable2;
+	
+		CMoveItemData To = {0};
+		To.InventoryType = 0;
+		To.Unknown2 = 0;
+		To.InvSlot = 33;//cursor
+		To.BagSlot = 0xFFFF;
+		To.Unknown8 = 0xFFFF;
+		if(((EQ_Item *)pItem)->IsStackable()) {
+			To.Unknowna = From.Unknowna-0xc;//I *THINK* this is correct, want to get dkaa to look at assembly and confirm... -eqmule
+		} else {
+			To.Unknowna = 0;
+		}
+		pInvSlotMgr->MoveItem(&From,&To,1,1,0,0);
+		return TRUE;
+	} else {
+		//user has something on the cursor, lets drop it
+		CMoveItemData From = {0};
+		From.InventoryType = 0;
+		From.Unknown2 = 0;
+		From.InvSlot = 33;//cursor
+		From.BagSlot = 0xFFFF;
+		From.Unknown8 = 0xFFFF;
+		From.Unknowna = 0;
+
+		CMoveItemData To = {0};
+		To.InventoryType = type;
+		To.Unknown2 = 0;
+		To.InvSlot = InvSlot;
+		To.BagSlot = BagSlot;
+		To.Unknown8 = pSlot->pInvSlotWnd->WeirdVariable1;
+		To.Unknowna = pSlot->pInvSlotWnd->WeirdVariable2;
+		pInvSlotMgr->MoveItem(&From,&To,1,1,0,0);
+		return TRUE;
 	}
 	return FALSE;
 }

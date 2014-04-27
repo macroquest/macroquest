@@ -586,6 +586,7 @@ EQLIB_API PCONTENTS	  FindItemByID(DWORD ItemID);
 EQLIB_API PCONTENTS	  FindItemBySlot(WORD InvSlot, WORD BagSlot=0xFFFF);
 EQLIB_API PEQINVSLOT  GetInvSlot(DWORD type,WORD invslot,WORD bagslot=0xFFFF);
 EQLIB_API BOOL		  IsItemInsideContainer(PCONTENTS pItem);
+EQLIB_API BOOL		  PickupOrDropItem(DWORD type, PCONTENTS pItem);
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 // Functions that were built into commands and people used DoCommand to execute                  //

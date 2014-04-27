@@ -8195,7 +8195,7 @@ bool MQ2XTargetType::GETMEMBER()
 			Dest.DWord=(DWORD)GetCharInfo()->pXTargetMgr->pXTargetArray;
 			Dest.Type=pIntType;
 			return true;
-        case Type:
+        case TargetType:
             {
                 char *pType = GetXtargetType(xtd.xTargetType);
                 Dest.Ptr = pType ? pType : "UNKNOWN";

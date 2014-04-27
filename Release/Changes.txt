@@ -1,3 +1,50 @@
+27 Jan 2014 by eqmule
+-New Feature: /useitem "item name here"
+-New Feature: /itemnotify "item name here" left/rightmouseup
+ This means no more need to figure out which slot an item is in, as long as its in our inventory
+ it will be "clicked".
+ For obvious reasons, rightmouseup only works on clicky items...
+
+-NOTE! MACRO AUTHORS:
+Keeping with my modus operandi of "breaking things that are'nt fixed" (properly)
+I have made changes to the following:
+Macro breaking changes: (please dont panic, its easy to adjust)
+1. TLO ${Me.XTarget[x].Type} is now ${Me.XTarget[x].TargetType}
+ Reason: XTarget inherits Spawn and since that already contains a .Type member, it was necasary to change it.
+
+2. Ok , so I noticed that everquest sometimes mark chat as SPAM
+and in order to do that, they "tag" say,tell, and the rest of the chat if it orignates from another player.
+This messes up our eventhandling, and I believe it has for several years.
+So, its well overdue for a change, I am sorry about this though, cause this WILL
+break some macros (and possibly plugins) that "fixes" this internally...
+Here is an example of how a macro would deal with this:
+
+#event healme "#1# says,#*#heal me#*#"
+
+Sub Event_healme(line, Sender)
+	/varset Sender ${Sender.Right[-2].Left[-1]}
+	/if (${Sender.Equal[eqmule]}) {
+		/echo eqmule needs a heal
+		/varset healneeded 1
+	}
+/return
+
+As you can see, unless we "strip" ${Sender} it will never be equal to "eqmule"
+cause "eqmule" is actually "\x12\x31eqmule\x12"
+
+Now, the fix for this obviously should be taken care of by core mq, and not your individial macros.
+So I have done precicely that.
+After building this version of mq, the new event should look like this instead:
+Sub Event_tagged(line, Sender)
+	/if (${Sender.Equal[eqmule]}) {
+		/echo eqmule needs a heal
+		/varset healneeded 1
+	}
+/return
+
+Ok? questions? post on the forum, im releasing this version a month or so before next patch, 
+so u should all have plently of time to adjust to this change.
+
 22 Jan 2014 by eqmule
 -Updated for patch
 

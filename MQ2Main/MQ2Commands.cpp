@@ -2937,6 +2937,34 @@ VOID NoModKeyCmd(PSPAWNINFO pChar, PCHAR szLine)
 }
 
 // ***************************************************************************
+// Function:    UseItemCmd
+// Description: '/useitem' command
+//              Activates an item that has a clicky effect.
+// Usage:       /useitem "item name"
+// ***************************************************************************
+VOID UseItemCmd(PSPAWNINFO pChar, PCHAR szLine)
+{
+    if (!szLine[0])
+    {
+		WriteChatColor("Usage: /useitem \"item name\"");
+		cmdUseItem(pChar,szLine);
+        return;
+    } else {
+		CHAR szSlot1[MAX_STRING] = {0};
+		GetArg(szSlot1,szLine,1);
+		if(IsNumber(szSlot1)) {
+			cmdUseItem(pChar,szLine);
+		} else {
+			if(PCONTENTS pItem = FindItemByName(szSlot1)) {
+				CHAR szTemp[32] = {0};
+				sprintf_s(szTemp,"%d %d",pItem->ItemSlot,pItem->ItemSlot2);
+				cmdUseItem(pChar,szTemp);
+			}
+		}
+	}
+}
+
+// ***************************************************************************
 // Function:    DoSocial
 // Description: '/dosocial' command
 //              Does (or lists) your programmed socials

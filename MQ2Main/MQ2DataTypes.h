@@ -3948,7 +3948,7 @@ public:
     static enum xTargetMembers
     {
         xAddress = 1,
-        Type = 2,
+        TargetType = 2,
         ID = 3,
         Name = 4,
         PctAggro = 5,
@@ -3957,7 +3957,7 @@ public:
     MQ2XTargetType():MQ2Type("xtarget")
     {
         TypeMember(xAddress);
-        TypeMember(Type);
+        TypeMember(TargetType);
         TypeMember(ID);
         TypeMember(Name);
         TypeMember(PctAggro);

@@ -618,83 +618,102 @@ VOID AddCustomEvent(PEVENTLIST pEList, PCHAR szLine)
 #endif
 VOID CheckChatForEvent(PCHAR szMsg)
 {
-    strcpy(EventMsg,szMsg);
-    if (pMQ2Blech)
-        pMQ2Blech->Feed(szMsg);
-    EventMsg[0]=0;
-    if ((gMacroBlock) && (!gMacroPause) && (!gbUnload) && (!gZoning)) { 
-        CHAR Arg1[MAX_STRING] = {0}; 
-        CHAR Arg2[MAX_STRING] = {0}; 
-        CHAR Arg3[MAX_STRING] = {0}; 
+	int len = strlen(szMsg);
+	if(char *szClean = (char *)LocalAlloc(LPTR,len+64)) {
+		strcpy_s(szClean,len+63,szMsg);
+		if(szClean[0]==0x12) {//its spamchecked
+			if(len>2) {
+				if(char *szTemp = (char *)LocalAlloc(LPTR,len+64)) {
+					strcpy_s(szTemp,len+63,&szClean[2]);
+					if(char *pDest = strrchr(szTemp,'\x12')) {
+						pDest[0] = '\0';
+						sprintf_s(EventMsg,"%s%s",szTemp,&pDest[1]);
+						strcpy_s(szClean,len+63,EventMsg);
+					}
+					LocalFree(szTemp);
+				}
+			}
+		} else {
+			strcpy_s(EventMsg,szClean);
+		}
+		if (pMQ2Blech)
+			pMQ2Blech->Feed(szClean);
+		EventMsg[0]=0;
+		if ((gMacroBlock) && (!gMacroPause) && (!gbUnload) && (!gZoning)) { 
+			CHAR Arg1[MAX_STRING] = {0}; 
+			CHAR Arg2[MAX_STRING] = {0}; 
+			CHAR Arg3[MAX_STRING] = {0}; 
 
-        if ((CHATEVENT(CHAT_GUILD)) && (strstr(szMsg," tells the guild, '"))) { 
-            strncpy(Arg1,szMsg,(DWORD)(strstr(szMsg," tells the guild, '")-szMsg)); 
-            strcpy(Arg2,strstr(szMsg," tells the guild, '")+19); 
-            Arg2[strlen(Arg2)-1]=0; 
-            AddEvent(EVENT_CHAT,"guild",Arg1,Arg2,NULL); 
-        } else if ((CHATEVENT(CHAT_GROUP)) && (strstr(szMsg," tells the group, '"))) { 
-            strncpy(Arg1,szMsg,(DWORD)(strstr(szMsg," tells the group, '")-szMsg)); 
-            strcpy(Arg2,strstr(szMsg," tells the group, '")+19); 
-            Arg2[strlen(Arg2)-1]=0; 
-            AddEvent(EVENT_CHAT,"group",Arg1,Arg2,NULL); 
-        } else if ((CHATEVENT(CHAT_TELL)) && (strstr(szMsg," tells you, '"))) { 
-            strncpy(Arg1,szMsg,(DWORD)(strstr(szMsg," tells you, '")-szMsg)); 
-            strcpy(Arg2,strstr(szMsg," tells you, '")+13); 
-            Arg2[strlen(Arg2)-1]=0; 
-            AddEvent(EVENT_CHAT,"tell",Arg1,Arg2,NULL); 
-        } else if ((CHATEVENT(CHAT_OOC)) && (strstr(szMsg," says out of character, '"))) { 
-            strncpy(Arg1,szMsg,(DWORD)(strstr(szMsg," says out of character, '")-szMsg)); 
-            strcpy(Arg2,strstr(szMsg," says out of character, '")+25); 
-            Arg2[strlen(Arg2)-1]=0; 
-            AddEvent(EVENT_CHAT,"ooc",Arg1,Arg2,NULL); 
-        } else if ((CHATEVENT(CHAT_SHOUT)) && (strstr(szMsg," shouts, '"))) { 
-            strncpy(Arg1,szMsg,(DWORD)(strstr(szMsg," shouts, '")-szMsg)); 
-            strcpy(Arg2,strstr(szMsg," shouts, '")+10); 
-            Arg2[strlen(Arg2)-1]=0; 
-            AddEvent(EVENT_CHAT,"shout",Arg1,Arg2,NULL); 
-        } else if ((CHATEVENT(CHAT_AUC)) && (strstr(szMsg," auctions, '"))) { 
-            strncpy(Arg1,szMsg,(DWORD)(strstr(szMsg," auctions, '")-szMsg)); 
-            strcpy(Arg2,strstr(szMsg," auctions, '")+12); 
-            Arg2[strlen(Arg2)-1]=0; 
-            AddEvent(EVENT_CHAT,"auc",Arg1,Arg2,NULL); 
-        } else if ((CHATEVENT(CHAT_SAY)) && (strstr(szMsg," says '"))) { 
-            strncpy(Arg1,szMsg,(DWORD)(strstr(szMsg," says '")-szMsg)); 
-            strcpy(Arg2,strstr(szMsg," says '")+7); 
-            Arg2[strlen(Arg2)-1]=0; 
-            AddEvent(EVENT_CHAT,"say",Arg1,Arg2,NULL); 
-        } else if ((CHATEVENT(CHAT_SAY)) && (strstr(szMsg," says, '"))) { 
-            strncpy(Arg1,szMsg,(DWORD)(strstr(szMsg," says, '")-szMsg)); 
-            strcpy(Arg2,strstr(szMsg," says, '")+8); 
-            Arg2[strlen(Arg2)-1]=0; 
-            AddEvent(EVENT_CHAT,"say",Arg1,Arg2,NULL); 
-        } else if ((CHATEVENT(CHAT_CHAT)) && (strstr(szMsg," tells ")) && (strstr(szMsg,":")) && (strstr(szMsg,", '"))) {
-            strncpy(Arg1,szMsg,(DWORD)(strstr(szMsg," tells ")-szMsg)); 
-            strcpy(Arg3,strstr(szMsg," tells ")+7); 
-            Arg3[strlen(Arg3)-1]=0; 
-            strcpy(Arg2,strstr(Arg3,", '")+3); 
-            Arg3[strstr(Arg3,":")-Arg3]=0; 
-            AddEvent(EVENT_CHAT,Arg3,Arg1,Arg2,NULL); 
-#ifndef USEBLECHEVENTS
-        } else { 
-            //strcpy(EventMsg,szMsg);
-            //pMQ2Blech->Feed(szMsg);
-            //EventMsg[0]=0;
-            PEVENTLIST pEvent = pEventList; 
-            while (pEvent) { 
-                if (strstr(szMsg,pEvent->szMatch)) { 
-                    AddCustomEvent(pEvent,szMsg); 
-                } 
-                pEvent = pEvent->pNext; 
-            } 
-        } 
-#else // blech
-        }
-        strcpy(EventMsg,szMsg);
-        //pMQ2Blech->Feed(szMsg);
-        pEventBlech->Feed(szMsg);
-        EventMsg[0]=0;
-#endif
-    } 
+			if ((CHATEVENT(CHAT_GUILD)) && (strstr(szClean," tells the guild, '"))) { 
+				strncpy(Arg1,szClean,(DWORD)(strstr(szClean," tells the guild, '")-szClean)); 
+				strcpy(Arg2,strstr(szClean," tells the guild, '")+19); 
+			Arg2[strlen(Arg2)-1]=0; 
+			AddEvent(EVENT_CHAT,"guild",Arg1,Arg2,NULL); 
+			} else if ((CHATEVENT(CHAT_GROUP)) && (strstr(szClean," tells the group, '"))) { 
+				strncpy(Arg1,szClean,(DWORD)(strstr(szClean," tells the group, '")-szClean)); 
+				strcpy(Arg2,strstr(szClean," tells the group, '")+19); 
+			Arg2[strlen(Arg2)-1]=0; 
+			AddEvent(EVENT_CHAT,"group",Arg1,Arg2,NULL); 
+			} else if ((CHATEVENT(CHAT_TELL)) && (strstr(szClean," tells you, '"))) { 
+				strncpy(Arg1,szClean,(DWORD)(strstr(szClean," tells you, '")-szClean)); 
+				strcpy(Arg2,strstr(szClean," tells you, '")+13); 
+			Arg2[strlen(Arg2)-1]=0; 
+			AddEvent(EVENT_CHAT,"tell",Arg1,Arg2,NULL); 
+			} else if ((CHATEVENT(CHAT_OOC)) && (strstr(szClean," says out of character, '"))) { 
+				strncpy(Arg1,szClean,(DWORD)(strstr(szClean," says out of character, '")-szClean)); 
+				strcpy(Arg2,strstr(szClean," says out of character, '")+25); 
+			Arg2[strlen(Arg2)-1]=0; 
+			AddEvent(EVENT_CHAT,"ooc",Arg1,Arg2,NULL); 
+			} else if ((CHATEVENT(CHAT_SHOUT)) && (strstr(szClean," shouts, '"))) { 
+				strncpy(Arg1,szClean,(DWORD)(strstr(szClean," shouts, '")-szClean)); 
+				strcpy(Arg2,strstr(szClean," shouts, '")+10); 
+			Arg2[strlen(Arg2)-1]=0; 
+			AddEvent(EVENT_CHAT,"shout",Arg1,Arg2,NULL); 
+			} else if ((CHATEVENT(CHAT_AUC)) && (strstr(szClean," auctions, '"))) { 
+				strncpy(Arg1,szClean,(DWORD)(strstr(szClean," auctions, '")-szClean)); 
+				strcpy(Arg2,strstr(szClean," auctions, '")+12); 
+			Arg2[strlen(Arg2)-1]=0; 
+			AddEvent(EVENT_CHAT,"auc",Arg1,Arg2,NULL); 
+			} else if ((CHATEVENT(CHAT_SAY)) && (strstr(szClean," says '"))) { 
+				strncpy(Arg1,szClean,(DWORD)(strstr(szClean," says '")-szClean)); 
+				strcpy(Arg2,strstr(szClean," says '")+7); 
+			Arg2[strlen(Arg2)-1]=0; 
+			AddEvent(EVENT_CHAT,"say",Arg1,Arg2,NULL); 
+			} else if ((CHATEVENT(CHAT_SAY)) && (strstr(szClean," says, '"))) { 
+				strncpy(Arg1,szClean,(DWORD)(strstr(szClean," says, '")-szClean)); 
+				strcpy(Arg2,strstr(szClean," says, '")+8); 
+			Arg2[strlen(Arg2)-1]=0; 
+			AddEvent(EVENT_CHAT,"say",Arg1,Arg2,NULL); 
+			} else if ((CHATEVENT(CHAT_CHAT)) && (strstr(szClean," tells ")) && (strstr(szClean,":")) && (strstr(szClean,", '"))) {
+				strncpy(Arg1,szClean,(DWORD)(strstr(szClean," tells ")-szClean)); 
+				strcpy(Arg3,strstr(szClean," tells ")+7); 
+				Arg3[strlen(Arg3)-1]=0; 
+				strcpy(Arg2,strstr(Arg3,", '")+3); 
+				Arg3[strstr(Arg3,":")-Arg3]=0; 
+				AddEvent(EVENT_CHAT,Arg3,Arg1,Arg2,NULL); 
+		#ifndef USEBLECHEVENTS
+			} else { 
+				//strcpy(EventMsg,szClean);
+				//pMQ2Blech->Feed(szClean);
+				//EventMsg[0]=0;
+				PEVENTLIST pEvent = pEventList; 
+				while (pEvent) { 
+					if (strstr(szClean,pEvent->szMatch)) { 
+						AddCustomEvent(pEvent,szClean); 
+					} 
+					pEvent = pEvent->pNext; 
+				} 
+			} 
+		#else // blech
+			}
+			strcpy(EventMsg,szClean);
+			//pMQ2Blech->Feed(szClean);
+			pEventBlech->Feed(szClean);
+			EventMsg[0]=0;
+		#endif
+		} 
+		LocalFree(szClean);
+	}
 }
 
 VOID DropTimers(VOID)

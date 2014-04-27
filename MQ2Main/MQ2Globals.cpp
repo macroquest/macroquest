@@ -400,6 +400,7 @@ fEQCommand        cmdCharInfo    =  NULL;
 fEQCommand        cmdFilter      =  NULL;
 fEQCommand        cmdDoAbility   =  NULL;
 fEQCommand        cmdCast        =  NULL;
+fEQCommand        cmdUseItem     =  NULL;
 
 DWORD gnNormalEQMappableCommands;
 PCHAR szEQMappableCommands[nEQMappableCommands];
