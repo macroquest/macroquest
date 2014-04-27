@@ -41,7 +41,6 @@ class ItemDisplayHook
 
     static bool bNoSpellTramp;
     static SEffectType eEffectType;
-    static DWORD updateStrings;
 public:
     bool CXStrReplace (PCXSTR * Str, const char * cFind, const char * cReplace)
     {
@@ -324,6 +323,14 @@ public:
             }
 
             sprintf (out, "<BR><c \"#%s\">Spell Info for %s effect: %s<br>", cColour, cName, pSpell->Name);
+
+            if(This->ItemInfo && GetCXStr(This->ItemInfo, temp))
+            {
+                if(strstr(temp, out))
+                {
+                    return;
+                }
+            }
         }
 
         sprintf(temp, "ID: %04d&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;", pSpell->ID );
@@ -447,21 +454,6 @@ public:
 
         UpdateStrings_Trampoline();
 
-        if(item->ItemSlot == 0xFFFF) // krono slot.  crashes if we try to get item data for it but since there is none, don't even bother.
-            return;
-
-        switch(updateStrings++)
-        {
-        case 0:
-        case 1:
-            return;
-        case 2:
-            break;
-        case 3:
-            updateStrings = 0;
-            break;
-        }
-
         // keep a global copy of the last item displayed...
         memcpy(&g_Item, Item, sizeof(ITEMINFO));
 
@@ -534,7 +526,7 @@ public:
                     //Calculate Efficiency
                     INT dmgbonus = 0;
 
-                    if (GetCharInfo2()->Level > 27) { //bonus is 0 for anything below 28
+                    if (GetCharInfo2()->Level > 27 && This->ItemInfo) { //bonus is 0 for anything below 28
                         dmgbonus = GetDmgBonus(&This->ItemInfo);
                     }
 
@@ -572,7 +564,7 @@ public:
         */ 
 
         // Just in case...
-        if ( (!strstr(This->ItemInfo->Text,"(Combat)")) && Item->Proc.ProcRate > 0 )
+        if (This->ItemInfo && (!strstr(This->ItemInfo->Text,"(Combat)")) && Item->Proc.ProcRate > 0 )
         {
             sprintf(temp, "Proc rate Modifier: %d<BR>", Item->Proc.ProcRate );
             strcat(out,temp);
@@ -670,7 +662,6 @@ public:
 
 ItemDisplayHook::SEffectType ItemDisplayHook::eEffectType = None;
 bool ItemDisplayHook::bNoSpellTramp = false;
-DWORD ItemDisplayHook::updateStrings = 0;
 
 DETOUR_TRAMPOLINE_EMPTY(VOID ItemDisplayHook::SetSpell_Trampoline(int SpellID,bool HasSpellDescr));
 DETOUR_TRAMPOLINE_EMPTY(VOID ItemDisplayHook::UpdateStrings_Trampoline());

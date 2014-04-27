@@ -1,3 +1,13 @@
+20 January 2013 by ieatacid
+- Fixed _CXWND.pParentWindow crash
+- Fixed MQ2ItemDisplay crash
+
+19 January 2013 by ieatacid
+- Fixed MQ2ItemDisplay
+- Fix corpse crashes
+- Fixed a couple inventory struct members that were off -- item.stack and some others should work correctly now
+- Fixed Me.Pet
+
 18 January 2013 by ieatacid
 - Updated for January 16/17 patch
 

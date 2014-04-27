@@ -583,7 +583,8 @@ typedef struct _ITEMINFO {
 /*0x34c*/ struct _ITEMSPELLS Worn;
 /*0x3b0*/ struct _ITEMSPELLS Focus;
 /*0x414*/ struct _ITEMSPELLS Scroll;
-/*0x478*/ BYTE   Unknown0x478[0x78];
+/*0x478*/ struct _ITEMSPELLS itemSpellUnknown;
+/*0x4dc*/ BYTE   Unknown0x4dc[0x14];
 /*0x4f0*/ DWORD  CombatEffects;
 /*0x4f4*/ DWORD  Shielding;
 /*0x4f8*/ DWORD  StunResist;

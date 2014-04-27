@@ -257,9 +257,9 @@ VFTABLE;
 /*0x173*/   BYTE    Unknown0x173; \
 /*0x174*/   DWORD   VScrollMax; \
 /*0x178*/   BYTE    MouseOver; \
-/*0x179*/   BYTE    Unknown0x179[0x13]; \
-/*0x18c*/   struct  _CSIDLWND *pParentWindow; /* If this is NULL, coordinates are absolute... */ \
-/*0x190*/   BYTE    Unknown0x190[0x8]; \
+/*0x179*/   BYTE    Unknown0x179[0x7]; \
+/*0x180*/   struct  _CSIDLWND *pParentWindow; /* If this is NULL, coordinates are absolute... */ \
+/*0x184*/   BYTE    Unknown0x190[0x14]; \
 /*0x198*/   LPVOID  DrawTemplate; \
 /*0x19c*/   BYTE    Unknown0x19c[0x18]; \
 /*0x1b4*/   DWORD   HScrollPos; \
