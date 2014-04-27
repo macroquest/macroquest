@@ -1482,6 +1482,7 @@ public:
 		ItemSlot2=132,
 		Address=133,
 		PctPower=134,
+		Prestige=135,
     };
     static enum ItemMethods
     {
@@ -1622,6 +1623,7 @@ public:
         TypeMember(ItemSlot2);
         TypeMember(Address);
         TypeMember(PctPower);
+        TypeMember(Prestige);
     }
 
     ~MQ2ItemType()

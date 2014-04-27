@@ -1,3 +1,7 @@
+20 Oct 2013 by EqMule
+-Added Prestige to the Item TLO:
+usage: /echo ${Cursor.Prestige} returns a pBoolType TRUE if its a Prestige item otherwise FALSE
+
 19 Oct 2013 by EqMule
 -Added Subscription to the Character TLO:
 usage: /echo ${Me.Subscription} returns a pStringType "UNKNOWN","FREE","SILVER" or "GOLD"

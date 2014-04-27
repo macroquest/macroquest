@@ -550,7 +550,7 @@ typedef struct _ITEMINFO {
 /*0x01bc*/ DWORD        HeroicSvCorruption;
 /*0x01c0*/ DWORD        HealAmount;
 /*0x01c4*/ DWORD        SpellDamage;
-/*0x01c8*/ BYTE         Unknown0x01c8[0x4];
+/*0x01c8*/ DWORD        Prestige;
 /*0x01cc*/ BYTE         ItemType;
 /*0x01cd*/ BYTE         Unknown0x01cd[0xb];
 /*0x01d8*/ BYTE         Material;

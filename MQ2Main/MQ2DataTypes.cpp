@@ -5039,6 +5039,10 @@ bool MQ2ItemType::GETMEMBER()
         Dest.DWord=(DWORD)pItem;
         Dest.Type=pIntType;
         return true;
+    case Prestige:
+		Dest.DWord=GetItemFromContents(pItem)->Prestige;
+        Dest.Type=pBoolType;
+        return true;
     }
     return false;
 #undef pItem
