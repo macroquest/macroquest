@@ -725,31 +725,31 @@ typedef struct _MAPLINE { // sizeof() = 0x28 (think this might be 0x34 now)
     DWORD Layer;          //0-3;
 } MAPLINE, *PMAPLINE;
 
-// size 0x380 10-21-2010
+// size 0x388 11-15-2011 - ieatacid
 typedef struct _EQLOOTWINDOW {
 /*0x000*/ struct _CSIDLWND Wnd;
-/*0x1fc*/ void   *vftable; // for CLootWnd::DialogResponse handler 
-/*0x200*/ BYTE   Unknown0x200;
-/*0x201*/ BYTE   Unknown0x201[3];
-/*0x204*/ DWORD  Unknown0x204[37];
-/*0x298*/ DWORD  NumOfSlots1;
-/*0x29c*/ DWORD  Unknown0x94;
-/*0x2a0*/ struct _INVENTORYARRAY *pInventoryArray;
-/*0x2a4*/ DWORD  NumOfSlots2;
-/*0x2a8*/ DWORD  NumOfSlots3;
-/*0x2ac*/ DWORD  Unknown0x2ac[9];
-/*0x2d0*/ BYTE   Unknown0x2d0;
-/*0x2d1*/ BYTE   Unknown0x2d1;
-/*0x2d2*/ BYTE   Unknown0x2d2;
-/*0x2d3*/ BYTE   Unknown0x2d3;
-/*0x2d4*/ struct _CSIDLWND *CLoot_LootInvWnd;
-/*0x2d8*/ struct _CSILDWND *CLoot_LootSlotWnd[0x22];
-/*0x360*/ struct _CSIDLWND *CLoot_CorpseName;
-/*0x364*/ struct _CSIDLWND *CLoot_DoneButton;
-/*0x368*/ struct _CSIDLWND *CLoot_BroadcastButton;
-/*0x36c*/ struct _CSIDLWND *CLoot_LootAllButton;
-/*0x370*/ DWORD Unknown0x370[4];
-/*0x380*/
+/*0x208*/ void   *vftable; // for CLootWnd::DialogResponse handler 
+/*0x20c*/ BYTE   Unknown0x20c;
+/*0x20d*/ BYTE   Unknown0x20d[3];
+/*0x210*/ DWORD  Unknown0x204[0x24];
+/*0x2a0*/ DWORD  NumOfSlots1;//0x2a0
+/*0x2a4*/ DWORD  Unknown0x2a4;
+/*0x2a8*/ struct _INVENTORYARRAY *pInventoryArray;
+/*0x2ac*/ DWORD  NumOfSlots2;
+/*0x2b0*/ DWORD  NumOfSlots3;
+/*0x2b4*/ DWORD  Unknown0x2ac[9];
+/*0x2d8*/ BYTE   Unknown0x2d8;
+/*0x2d9*/ BYTE   Unknown0x2d9;
+/*0x2da*/ BYTE   Unknown0x2da;
+/*0x2db*/ BYTE   Unknown0x2db;
+/*0x2dc*/ struct _CSIDLWND *CLoot_LootInvWnd;
+/*0x2e0*/ struct _CSILDWND *CLoot_LootSlotWnd[0x22];
+/*0x368*/ struct _CSIDLWND *CLoot_CorpseName;
+/*0x36c*/ struct _CSIDLWND *CLoot_DoneButton;
+/*0x370*/ struct _CSIDLWND *CLoot_BroadcastButton;
+/*0x374*/ struct _CSIDLWND *CLoot_LootAllButton;
+/*0x378*/ DWORD Unknown0x378[4];
+/*0x388*/
 } EQLOOTWINDOW, *PEQLOOTWINDOW;
 
 //Size: 0x828 11-11-09 by dkaa
@@ -1047,17 +1047,18 @@ typedef struct _CPLAYERWND {
 /*0x220*/ 
 } CPLAYERWND, *PCPLAYERWND;
 
-// size 0x748 6-23-09 ieatacid
+// size 0x878 11-17-11 dkaa
 typedef struct _CTARGETWND {
 /*0x000*/ struct  _CSIDLWND Wnd;
-/*0x198*/ BYTE    Unknown0x198[0x164];
-/*0x2fc*/ struct _CBUTTONWND *pBuff[NUM_BUFF_SLOTS]; // buff icons
-/*0x450*/ int     BuffSpellID[NUM_BUFF_SLOTS]; // 0xffffffff if no buff
-/*0x5a4*/ DWORD   BuffTimer[NUM_BUFF_SLOTS];
-/*0x6f8*/ BYTE    Unknown0x6f8[0x24];
-/*0x71c*/ DWORD   Type;              // 1 = self, 4 = group member, 5 = PC, 7 = NPC
-/*0x720*/ BYTE    Unknown0x720[0x28];
-/*0x748*/
+/*0x208*/ BYTE    Unknown0x198[0x194];
+/*0x39c*/ struct _CBUTTONWND *pBuff[NUM_BUFF_SLOTS]; // buff icons
+
+/*0x520*/ int     BuffSpellID[NUM_BUFF_SLOTS]; // 0xffffffff if no buff
+/*0x6a4*/ DWORD   BuffTimer[NUM_BUFF_SLOTS];
+/*0x828*/ BYTE    Unknown0x6f8[0x24];
+/*0x84c*/ DWORD   Type;              // 1 = self, 4 = group member, 5 = PC, 7 = NPC
+/*0x850*/ BYTE    Unknown0x720[0x28];
+/*0x878*/
 } CTARGETWND, *PCTARGETWND;
 
 typedef struct _CLABELWND {

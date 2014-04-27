@@ -2758,20 +2758,20 @@ bool MQ2CharacterType::GETMEMBER()
                             if (EQADDR_DOABILITYLIST[nAbility] == nSkill) 
                             {
                                 // thanks s0rcier!
-                                if (nSkill<100)
+                                if (nSkill<100 || nSkill == 111 || nSkill == 114 || nSkill == 115 || nSkill == 116)
                                 {
-                                    if (pSkillMgr->pSkill[nSkill]->AltTimer==2)
-                                        Dest.DWord=gbAltTimerReady;
-                                    else
-                                        Dest.DWord=pCSkillMgr->IsAvailable(EQADDR_DOABILITYLIST[nAbility]);
+                                    //if (pSkillMgr->pSkill[nSkill]->AltTimer==2) // this check is included in CSkillMgr::IsAvailable
+                                    //    Dest.DWord=gbAltTimerReady;
+                                    //else
+                                    Dest.DWord=pCSkillMgr->IsAvailable(EQADDR_DOABILITYLIST[nAbility]);
                                     Dest.Type=pBoolType;
                                     return true;
                                 }
-                                if (nSkill==111) {
-                                    Dest.DWord=gbAltTimerReady;
-                                    Dest.Type=pBoolType;
-                                    return true;
-                                }
+                                //if (nSkill==111) { // this check is included in CSkillMgr::IsAvailable
+                                //    Dest.DWord=gbAltTimerReady;
+                                //    Dest.Type=pBoolType;
+                                //    return true;
+                                //}
                                 if (nSkill==105 || nSkill==107) {
                                     Dest.DWord=LoH_HT_Ready();
                                     Dest.Type=pBoolType;

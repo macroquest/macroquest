@@ -1820,7 +1820,7 @@ typedef struct _EQFRIENDSLIST {
 /*0x1900*/
 } EQFRIENDSLIST, *PEQFRIENDSLIST;
 
-// Size 0x98    04/13/2011 dkaa in msg_send_alt_data
+// Size 0xa4    11/15/2011 ieatacid in msg_send_alt_data
 typedef struct _ALTABILITY {
 /*0x00*/ DWORD Index;
 /*0x04*/ DWORD Flags;                    //?
@@ -1832,21 +1832,21 @@ typedef struct _ALTABILITY {
 /*0x1c*/ DWORD Cost;                     //Initial Cost or cost the last time you bought a level of it
 /*0x20*/ DWORD ID;                       // /alt activate id
 /*0x24*/ DWORD AARankRequired;
-// ks clear to here
-/*0x28*/ BYTE  Unknown0x28[0x10];   // abilities requirements
-/*0x38*/ DWORD RequiresAbilityPoints;
-/*0x3c*/ DWORD Type; 
-/*0x40*/ LONG  SpellID;                  // -1 for no Spell
-/*0x44*/ DWORD Unknown0x44;
-/*0x48*/ BYTE  Unknown0x38[0x10]; 
-/*0x58*/ DWORD ReuseTimer;               // in seconds
-/*0x5c*/ DWORD Classes;                  // Classes/2 is the actual value we want.
-/*0x60*/ DWORD MaxRank;                         //If you have not spent points in this 
+/*0x28*/ BYTE  Unknown0x28[0x1c];   // abilities requirements
+/*0x44*/ DWORD RequiresAbilityPoints;
+/*0x48*/ DWORD Type; 
+/*0x4c*/ LONG  SpellID;                  // -1 for no Spell
+/*0x50*/ DWORD Unknown0x50;
+/*0x54*/ BYTE  Unknown0x54[0x10]; 
+/*0x64*/ DWORD ReuseTimer;               // in seconds
+/*0x68*/ DWORD Classes;                  // Classes/2 is the actual value we want.
+/*0x6c*/ DWORD MaxRank;                         //If you have not spent points in this 
 union {                                         //If you have not spent points in this 
-/*0x64*/ DWORD PointsSpent;                //ability, then its PointsToBeSpent (or 
-/*0x64*/ DWORD PointsToBeSpent;            //'Cost', in other words).
+/*0x70*/ DWORD PointsSpent;                //ability, then its PointsToBeSpent (or 
+/*0x70*/ DWORD PointsToBeSpent;            //'Cost', in other words).
 }; 
-/*0x68*/ BYTE  Unknown0x68[0x30];
+/*0x74*/ BYTE  Unknown0x74[0x30];
+/*0xa4*/
 } ALTABILITY, *PALTABILITY;
 #define zWarp                 0
 
