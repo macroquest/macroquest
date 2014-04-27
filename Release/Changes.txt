@@ -1,3 +1,41 @@
+18 Mar 2014 by rswiders
+- Added CountSongs
+- Changed .Stacks and .StacksPet to allow the comparison of the songs too
+- Added MercType to the list of PlayerClasses
+- Added the ability to allow custom offsets for those that need that (See the new privates files, MQ2Globals-private.cpp/.h)
+- Added an actordef list to define the names for the various groundspawns.
+  (If you find any missing (there are some), please post and they can be added.) Use "/items drop" to see
+  the value that needs to be added. I removed the use of weapons.h and grounds.h. They were merged into
+  the actordef list.
+- Added some missing expansion names
+- Added additional spelltype members (thanks PeteSampras)
+
+18 Mar 2014 by eqmule
+-IMPORTANT: MacroQuest.ini has been renamed to MacroQuest_default.ini
+ I did this because I got tired of that unzipping would overwrite
+ mine (which has custom settings in it) everytime there was a new zip.
+ New Users that never run MacroQuest2.exe before
+ SHOULD remove the _default extension on that file before they start MacroQues2.exe.
+ (I want to make MacroQuest2.exe automatically do that at some point if no ini exist,
+ but for now its a manual thing)
+-Fixed a ctd when you did a /echo ${FindItemBankCount[blah]} with an empty shared bank...
+-Fixed EQRAID struct (again)
+-Added all known SPAs (458 of them), this means you should not get any more Unknown Spell Effects
+ in the Spell Display. (You will get "Please Check" instead but thats for me
+ so I know which ones I need to look closer at, dont worry about that for now.
+-Added Spell restrictions as well to the spell display info - cred htw
+
+-This is mainly a maintenance release, which means, it has code i am going to finetune later
+ as well as some code that is now redundant and will be removed at a later point so we can avoid bloat.
+ Hopefully releasing this now, will give those of you that maintain your own versions enough time
+ to merge in the new stuff with your own builds before next patch...
+
+-The Readme.chm file is back! (Click ReadMe on the macroquest2 icon...)
+ it has compile instructions for VS 2012...
+
+ more can be done to update other sections of it, but we need to start somewhere.
+ contact me if you are interested in helping out with that.
+
 16 Mar 2014 by eqmule
 -Fixed EQRAIDMEMBER struct
  This means /echo ${Raid.Member[${Me}].Class} (and the likes) will work again.

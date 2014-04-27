@@ -925,6 +925,7 @@ public:
 		AAPointsAssigned=192,
 		AltCurrency=193,
 		ActiveDisc=194,
+		CountSongs=195,
     };
     static enum CharacterMethods
     {
@@ -1126,6 +1127,7 @@ public:
 		TypeMember(AAPointsAssigned);
 		TypeMember(AltCurrency);
 		TypeMember(ActiveDisc);
+		TypeMember(CountSongs);
 		
         TypeMethod(Stand); 
         TypeMethod(Sit); 
@@ -1208,6 +1210,26 @@ public:
 		MaxLevel=30,
 		Category=31,
 		Subcategory=32,
+		Restrictions=33,
+		Base=34,
+		Base2=35,
+		Max=36,
+		Calc=37,
+		Attrib=38,
+		AutoCast=39,
+		Extra=40,
+		RecastTimerID=41,
+		SPA=42,
+		ReagentID=43,
+		ReagentCount=44,
+		CastByOther=45,
+		TimeOfDay=46,
+		DurationWindow=47,
+		CanMGB=48,
+		Deletable=49,
+		BookIcon=50,
+		Target=51,
+		Description=52,
     };
     static enum SpellMethods
     {
@@ -1246,6 +1268,26 @@ public:
 		TypeMember(MaxLevel);//30
 		TypeMember(Category);//31
 		TypeMember(Subcategory);//32
+		TypeMember(Restrictions);//33
+		TypeMember(Base);
+		TypeMember(Base2);
+		TypeMember(Max);
+		TypeMember(Calc);
+		TypeMember(Attrib);
+		TypeMember(AutoCast);
+		TypeMember(Extra);
+		TypeMember(RecastTimerID);
+		TypeMember(SPA);
+		TypeMember(ReagentID);
+		TypeMember(ReagentCount);
+		TypeMember(CastByOther);
+		TypeMember(TimeOfDay);
+		TypeMember(DurationWindow);
+		TypeMember(CanMGB);
+		TypeMember(Deletable);
+		TypeMember(BookIcon);
+		TypeMember(Target);
+		TypeMember(Description);
     }
 
     ~MQ2SpellType()
@@ -2611,6 +2653,7 @@ public:
         ClericType=9,
         PetClass=10,
         HealerType=11,
+		MercType=12,
     };
     MQ2ClassType():MQ2Type("class")
     {
@@ -2625,6 +2668,7 @@ public:
         TypeMember(ClericType);
         TypeMember(PetClass);
         TypeMember(HealerType);
+		TypeMember(MercType);
     }
 
     ~MQ2ClassType()

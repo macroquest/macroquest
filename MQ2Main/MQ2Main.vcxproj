@@ -109,7 +109,7 @@
       <ExceptionHandling>
       </ExceptionHandling>
       <BasicRuntimeChecks>Default</BasicRuntimeChecks>
-      <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
+      <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
       <StructMemberAlignment>1Byte</StructMemberAlignment>
       <BufferSecurityCheck>false</BufferSecurityCheck>
       <FunctionLevelLinking>false</FunctionLevelLinking>
@@ -180,10 +180,10 @@
     <ClInclude Include="MQ2TopLevelObjects.h" />
     <ClInclude Include="dikeys.h" />
     <ClInclude Include="eqgame.h" />
-    <ClInclude Include="grounds.h" />
     <ClInclude Include="itemtypes.h" />
     <ClInclude Include="skills.h" />
-    <ClInclude Include="weapons.h" />
+    <ClInclude Include="SpellEffects.h" />
+    <ClInclude Include="actordef.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

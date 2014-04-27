@@ -92,14 +92,14 @@
 	".\EQData.h"\
 	".\eqgame.h"\
 	".\EQUIStructs.h"\
-	".\grounds.h"\
 	".\itemtypes.h"\
 	".\MQ2Globals.h"\
 	".\MQ2Internal.h"\
 	".\MQ2Main.h"\
 	".\MQ2Prototypes.h"\
 	".\skills.h"\
-	".\weapons.h"\
+	".\SpellEffects.h"\
+	".\actordef.h"\
 	
 
 .\MQ2MacroCommands.cpp : \

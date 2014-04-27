@@ -479,6 +479,7 @@ EQLIB_API VOID GetGameTime(int* Hour, int* Minute, int* Night);
 LEGACY_API VOID SyntaxError(PCHAR szFormat, ...);
 LEGACY_API VOID MacroError(PCHAR szFormat, ...);
 LEGACY_API VOID FatalError(PCHAR szFormat, ...);
+EQLIB_API PCHAR GetSpellRestrictions(PSPELL pSpell, unsigned int nIndex, PCHAR szBuffer);
 #ifndef ISXEQ
 LEGACY_API VOID MQ2DataError(PCHAR szFormat, ...);
 #endif
@@ -620,6 +621,7 @@ LEGACY_API BOOL Calculate(PCHAR szFormula, DOUBLE& Dest);
 #define LIGHT_COUNT     13
 #define MAX_COMBINES    52
 #define MAX_ITEMTYPES   56
+#define MAX_SPELLEFFECTS   458
 
 #define GAMESTATE_CHARSELECT    1
 #define GAMESTATE_CHARCREATE    2
@@ -646,9 +648,9 @@ LEGACY_API BOOL Calculate(PCHAR szFormula, DOUBLE& Dest);
 #define XKF_LALT                4
 #define XKF_RALT                8
 
-#define MAX_ITEM4xx             416
+//#define MAX_ITEM4xx             416
 
-#define MAX_WEAPONS             0x000000ff
+//#define MAX_WEAPONS             0x000000ff
 
 #ifndef ISXEQ
 #define MQ2AUTH(z) EQLIB_API VOID z(DWORD x);

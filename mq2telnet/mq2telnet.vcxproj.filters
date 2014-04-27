@@ -21,7 +21,7 @@
     <ClCompile Include="WinTelnet.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="mq2telnet.cpp">
+    <ClCompile Include="MQ2Telnet.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

@@ -37,7 +37,8 @@ enum PlayerClass
     Enchanter=                         14,
     Beastlord=                         15,
     Berserker=                         16,
-    TotalClasses=                      16,
+	Mercenary=                         17,
+    TotalClasses=                      17,
 };
 // class 20 through 35 are the NPC GMs (same class order as above)
 // class 41   Merchant
@@ -56,6 +57,7 @@ typedef struct _ClassInfo
     bool NecroType;
     bool ClericType;
     bool ShamanType;
+	bool MercType;
     char RaidColorOrder;
     PCHAR Name;
     PCHAR ShortName;
@@ -63,23 +65,24 @@ typedef struct _ClassInfo
 
 static _ClassInfo ClassInfo[]=
 {
-    {0,0,0,0,0,0,0,0,"",""},                        //unk
-    {0,0,0,0,0,0,0,13,"Warrior","war"},             //war
-    {1,1,0,0,0,1,0,2,"Cleric","clr"},               //clr
-    {1,0,0,0,0,1,0,8,"Paladin","pal"},              //pal
-    {1,0,0,1,0,0,0,9,"Ranger","rng"},               //rng
-    {1,0,0,0,1,0,0,11,"Shadowknight","shd"},        //shd
-    {1,1,0,1,0,0,0,3,"Druid","dru"},                //dru
-    {0,0,0,0,0,0,0,6,"Monk","mnk"},                 //mnk
-    {1,0,0,0,0,0,0,0,"Bard","brd"},                 //brd
-    {0,0,0,0,0,0,0,10,"Rogue","rog"},               //rog
-    {1,1,1,0,0,0,1,12,"Shaman","shm"},              //shm
-    {1,1,1,0,1,0,0,7,"Necromancer","nec"},          //nec
-    {1,1,0,0,0,0,0,14,"Wizard","wiz"},              //wiz
-    {1,1,1,0,0,0,0,5,"Mage","mag"},                 //mag
-    {1,1,0,0,0,0,0,4,"Enchanter","enc"},            //enc
-    {1,0,1,0,0,0,1,1,"Beastlord","bst"},            //bst
-    {0,0,0,0,0,0,0,15,"Berserker","ber"},           //ber
+    {0,0,0,0,0,0,0,0,0,"",""},                      //unk
+    {0,0,0,0,0,0,0,0,13,"Warrior","war"},           //war
+    {1,1,0,0,0,1,0,0,2,"Cleric","clr"},             //clr
+    {1,0,0,0,0,1,0,0,8,"Paladin","pal"},            //pal
+    {1,0,0,1,0,0,0,0,9,"Ranger","rng"},             //rng
+    {1,0,0,0,1,0,0,0,11,"Shadowknight","shd"},      //shd
+    {1,1,0,1,0,0,0,0,3,"Druid","dru"},              //dru
+    {0,0,0,0,0,0,0,0,6,"Monk","mnk"},               //mnk
+    {1,0,0,0,0,0,0,0,0,"Bard","brd"},               //brd
+    {0,0,0,0,0,0,0,0,10,"Rogue","rog"},             //rog
+    {1,1,1,0,0,0,1,0,12,"Shaman","shm"},            //shm
+    {1,1,1,0,1,0,0,0,7,"Necromancer","nec"},        //nec
+    {1,1,0,0,0,0,0,0,14,"Wizard","wiz"},            //wiz
+    {1,1,1,0,0,0,0,0,5,"Mage","mag"},               //mag
+    {1,1,0,0,0,0,0,0,4,"Enchanter","enc"},          //enc
+    {1,0,1,0,0,0,1,0,1,"Beastlord","bst"},          //bst
+    {0,0,0,0,0,0,0,0,15,"Berserker","ber"},         //ber
+	{1,1,0,0,0,0,0,1,16,"Mercenary","mer"},         //mer
 };
 
 #define BI_TARGETABLE                   1
@@ -1959,7 +1962,7 @@ typedef struct _EQRAID {
 /*0x0000*/ BYTE     Unknown0x0000[0xdc];
 /*0x00dc*/ CHAR     RaidMemberUsed[0x48];
 /*0x0124*/ struct   _EQRAIDMEMBER RaidMember[0x48];
-/*0x2ac4*/ BYTE     Unknown0x2ac4[0x124];
+/*0x2be4*/ BYTE     Unknown0x2be4[0x4];
 /*0x2be8*/ DWORD    RaidMemberCount;
 /*0x2bec*/ CHAR     RaidLeaderName[0x40];
 /*0x2c2c*/ CHAR     RaidMOTD[0x400];

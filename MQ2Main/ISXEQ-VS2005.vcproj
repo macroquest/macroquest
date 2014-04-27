@@ -262,6 +262,10 @@
 				Name="From MQ2Main"
 				>
 				<File
+					RelativePath="actordef.h"
+					>
+				</File>
+				<File
 					RelativePath="..\Blech\Blech.h"
 					>
 				</File>
@@ -279,10 +283,6 @@
 				</File>
 				<File
 					RelativePath="EQUIStructs.h"
-					>
-				</File>
-				<File
-					RelativePath="grounds.h"
 					>
 				</File>
 				<File
@@ -322,7 +322,7 @@
 					>
 				</File>
 				<File
-					RelativePath="weapons.h"
+					RelativePath="SpellEffects.h"
 					>
 				</File>
 			</Filter>

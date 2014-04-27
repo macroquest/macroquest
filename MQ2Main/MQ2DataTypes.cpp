@@ -1941,6 +1941,17 @@ bool MQ2CharacterType::GETMEMBER()
             Dest.Type=pIntType;
         }
         return true;
+    case CountSongs:
+        Dest.DWord=0;
+        {
+            for (unsigned long nBuff=0 ; nBuff<NUM_SHORT_BUFFS ; nBuff++)
+            {
+                if (GetCharInfo2()->ShortBuff[nBuff].SpellID>0)
+                    Dest.DWord++;
+            }
+            Dest.Type=pIntType;
+        }
+        return true;
     case Buff:
         if (!ISINDEX())
             return false;
@@ -2366,7 +2377,8 @@ bool MQ2CharacterType::GETMEMBER()
             { 
                 if ( pPCData->GetAltAbilityIndex(j) == Dest.DWord) 
                 { 
-                    Dest.DWord=15+(GetCharInfo2()->AAList[j].PointsSpent/5); 
+					PCHARINFO2 pChar2 = GetCharInfo2();
+                    Dest.DWord=15+(pChar2->AAList[j].PointsSpent/5); 
                     break; 
                 } 
             } 
@@ -3783,15 +3795,15 @@ bool MQ2SpellType::GETMEMBER()
     case ResistType:
         switch(pSpell->Resist)
         {
-        case 9:  Dest.Ptr="Corruption"; break;
-        case 7:  Dest.Ptr="Prismatic"; break;
-        case 6:    Dest.Ptr="Chromatic"; break;
-        case 5:    Dest.Ptr="Disease"; break;
-        case 4:    Dest.Ptr="Poison"; break;
-        case 3:    Dest.Ptr="Cold"; break;
-        case 2:    Dest.Ptr="Fire"; break;
-        case 1:    Dest.Ptr="Magic"; break;
-        case 0:    Dest.Ptr="Unresistable"; break;
+        case 9: Dest.Ptr="Corruption"; break;
+        case 7: Dest.Ptr="Prismatic"; break;
+        case 6: Dest.Ptr="Chromatic"; break;
+        case 5: Dest.Ptr="Disease"; break;
+        case 4: Dest.Ptr="Poison"; break;
+        case 3: Dest.Ptr="Cold"; break;
+        case 2: Dest.Ptr="Fire"; break;
+        case 1: Dest.Ptr="Magic"; break;
+        case 0: Dest.Ptr="Unresistable"; break;
         default: Dest.Ptr="Unknown"; break;
         }
         Dest.Type=pStringType;
@@ -3809,8 +3821,23 @@ bool MQ2SpellType::GETMEMBER()
     case TargetType:
         switch(pSpell->TargetType)
         {
+        case 50: Dest.Ptr="Target_AE_No_Players_Pets"; break; // blanket of forgetfullness. beneficial, AE mem blur, with max targets
+        case 47: Dest.Ptr="Pet Owner"; break;
+        case 46: Dest.Ptr="Target of Target"; break;
+        case 45: Dest.Ptr="Free Target"; break;
+        case 44: Dest.Ptr="Beam"; break;
+        case 43: Dest.Ptr="Single in Group"; break;
+        case 42: Dest.Ptr="Directional AE"; break;
         case 41: Dest.Ptr="Group v2"; break;
         case 40: Dest.Ptr="AE PC v2"; break;
+        case 39: Dest.Ptr="No Pets"; break;
+        case 38: Dest.Ptr="Pet2"; break;
+        case 37: Dest.Ptr="Caster PB NPC"; break;
+        case 36: Dest.Ptr="Caster PB PC"; break;
+        case 35: Dest.Ptr="Special Muramites"; break;
+        case 34: Dest.Ptr="Chest"; break;
+        case 33: Dest.Ptr="Hatelist2"; break;
+        case 32: Dest.Ptr="Hatelist"; break;
         case 25: Dest.Ptr="AE Summoned"; break;
         case 24: Dest.Ptr="AE Undead"; break;
         case 20: Dest.Ptr="Targeted AE Tap"; break;
@@ -3912,10 +3939,43 @@ bool MQ2SpellType::GETMEMBER()
             PCHARINFO2 pChar = GetCharInfo2();
             Dest.DWord = true;      
             Dest.Type = pBoolType;
+			// Check Buffs
             for (nBuff=0; nBuff<NUM_LONG_BUFFS; nBuff++){
                 if (pChar->Buff[nBuff].SpellID>0) {
                     PSPELL tmpSpell = GetSpellByID(pChar->Buff[nBuff].SpellID);
                     buffduration = pChar->Buff[nBuff].Duration;
+					for (int nSlot=0; nSlot<=11; nSlot++){
+						if (pSpell->Attrib[nSlot]==374){
+							PSPELL tmpSpell2 = GetSpellByID(pSpell->Base2[nSlot]);
+							if (GetSpellDuration(tmpSpell2,(PSPAWNINFO)pCharSpawn)>=0xFFFFFFFE) buffduration = 99999+1;
+							if (!BuffStackTest(tmpSpell, tmpSpell2) || ((pSpell==tmpSpell2) && (buffduration>duration))){
+								Dest.DWord = false;
+								return true;
+							}
+						}
+					}
+                    if (GetSpellDuration(tmpSpell,(PSPAWNINFO)pCharSpawn)>=0xFFFFFFFE) buffduration = 99999+1;
+                    if (!BuffStackTest(pSpell, tmpSpell) || ((pSpell==tmpSpell) && (buffduration>duration))){
+                        Dest.DWord = false;
+                        return true;
+                    }
+                }
+            }
+			// Check Songs
+            for (nBuff=0; nBuff<NUM_SHORT_BUFFS; nBuff++){
+                if (pChar->ShortBuff[nBuff].SpellID>0) {
+                    PSPELL tmpSpell = GetSpellByID(pChar->ShortBuff[nBuff].SpellID);
+                    buffduration = pChar->ShortBuff[nBuff].Duration;
+					for (int nSlot=0; nSlot<=11; nSlot++){
+						if (pSpell->Attrib[nSlot]==374){
+							PSPELL tmpSpell2 = GetSpellByID(pSpell->Base2[nSlot]);
+							if (GetSpellDuration(tmpSpell2,(PSPAWNINFO)pCharSpawn)>=0xFFFFFFFE) buffduration = 99999+1;
+							if (!BuffStackTest(tmpSpell, tmpSpell2) || ((pSpell==tmpSpell2) && (buffduration>duration))){
+								Dest.DWord = false;
+								return true;
+							}
+						}
+					}
                     if (GetSpellDuration(tmpSpell,(PSPAWNINFO)pCharSpawn)>=0xFFFFFFFE) buffduration = 99999+1;
                     if (!BuffStackTest(pSpell, tmpSpell) || ((pSpell==tmpSpell) && (buffduration>duration))){
                         Dest.DWord = false;
@@ -3939,6 +3999,16 @@ bool MQ2SpellType::GETMEMBER()
                 if (pPet->Buff[nBuff]>0 && !(pPet->Buff[nBuff]==0xFFFFFFFF || pPet->Buff[nBuff]==0)) {
                     PSPELL tmpSpell = GetSpellByID(pPet->Buff[nBuff]);
                     petbuffduration = ((pPet->BuffFadeETA[nBuff]+5999)/1000)/6;
+					for (int nSlot=0; nSlot<=11; nSlot++){
+						if (pSpell->Attrib[nSlot]==374){
+							PSPELL tmpSpell2 = GetSpellByID(pSpell->Base2[nSlot]);
+							if (GetSpellDuration(tmpSpell2,(PSPAWNINFO)pCharSpawn)>=0xFFFFFFFE) petbuffduration = 99999+1;
+							if (!BuffStackTest(tmpSpell, tmpSpell2) || ((pSpell==tmpSpell2) && (petbuffduration>duration))){
+								Dest.DWord = false;
+								return true;
+							}
+						}
+					}
                     if (GetSpellDuration(tmpSpell,(PSPAWNINFO)pCharSpawn)>=0xFFFFFFFE) petbuffduration = 99999+1;
                     if (!BuffStackTest(pSpell, tmpSpell) || ((pSpell==tmpSpell) && (petbuffduration>duration))){
                         Dest.DWord = false;
@@ -4000,7 +4070,153 @@ bool MQ2SpellType::GETMEMBER()
 		}
 		Dest.Type=pStringType;
 		return true;
-    }
+	case Restrictions:
+		if (!ISINDEX()) 
+			return false;
+		Dest.Type = pStringType;
+		if (ISNUMBER())
+		{
+			unsigned long nIndex = GETNUMBER() - 1;
+			Dest.Ptr = GetSpellRestrictions(pSpell, nIndex, DataTypeTemp);
+			if (!Dest.Ptr)
+				Dest.Ptr = "Unknown";
+		}
+		else
+			Dest.Ptr = "Unknown";
+		return true;
+	case Base:
+		Dest.DWord=0;
+		Dest.Type=pIntType;
+		if (!ISINDEX())
+			return false;
+		if (ISNUMBER())
+		{
+			unsigned long nIndex=GETNUMBER()-1;
+			Dest.DWord=pSpell->Base[nIndex];
+			Dest.Type=pIntType;
+		}
+		return true;
+	case Base2:
+		Dest.DWord=0;
+		Dest.Type=pIntType;
+		if (!ISINDEX()) 
+			return false;
+		if (ISNUMBER())
+		{
+			unsigned long nIndex=GETNUMBER()-1;
+			Dest.DWord=pSpell->Base2[nIndex];
+			Dest.Type=pIntType;
+		}
+		return true;
+	case Max:
+		Dest.DWord=0;
+		Dest.Type=pIntType;
+		if (!ISINDEX())
+			return false;
+		if (ISNUMBER())
+		{
+			unsigned long nIndex=GETNUMBER()-1;
+			Dest.DWord=pSpell->Max[nIndex];
+			Dest.Type=pIntType;
+		}
+		return true;
+	case Calc:
+		Dest.DWord=0;
+		Dest.Type=pIntType;
+		if (!ISINDEX())
+			return false;
+		if (ISNUMBER())
+		{
+			unsigned long nIndex=GETNUMBER()-1;
+			Dest.DWord=pSpell->Calc[nIndex];
+			Dest.Type=pIntType;
+		}
+		return true;
+	case Attrib:
+		Dest.DWord=0;
+		Dest.Type=pIntType;
+		if (!ISINDEX())
+			return false;
+		if (ISNUMBER())
+		{
+			unsigned long nIndex=GETNUMBER()-1;
+			Dest.DWord=pSpell->Attrib[nIndex];
+			Dest.Type=pIntType;
+		}
+		return true;
+	case AutoCast:
+		Dest.DWord=pSpell->Autocast;
+		Dest.Type=pIntType;
+		return true;
+	case Extra:
+		Dest.Ptr=pSpell->Extra;
+		Dest.Type=pStringType;
+		return true;
+	case RecastTimerID:
+		Dest.DWord=pSpell->CARecastTimerID;
+		Dest.Type=pIntType;
+		return true;
+	case SPA:
+		Dest.DWord=pSpell->spaindex;
+		Dest.Type=pIntType;
+		return true;
+	case ReagentID:
+		Dest.DWord=0;
+		Dest.Type=pIntType;
+		if (!ISINDEX())
+			return false;
+		if (ISNUMBER())
+		{
+			unsigned long nIndex=GETNUMBER()-1;
+			Dest.DWord=pSpell->ReagentId[nIndex];
+			Dest.Type=pIntType;
+		}
+		return true;
+	case ReagentCount:
+		Dest.DWord=0;
+		Dest.Type=pIntType;
+		if (!ISINDEX())
+			return false;
+		if (ISNUMBER())
+		{
+			unsigned long nIndex=GETNUMBER()-1;
+			Dest.DWord=pSpell->ReagentCount[nIndex];
+			Dest.Type=pIntType;
+		}
+		return true;
+	case CastByOther:
+		Dest.Ptr=pSpell->CastByOther;
+		Dest.Type=pStringType;
+		return true;
+	case TimeOfDay:
+		Dest.DWord=pSpell->TimeOfDay;
+		Dest.Type=pIntType;
+		return true;
+	case DurationWindow:
+		Dest.DWord=pSpell->DurationWindow;
+		Dest.Type=pIntType;
+		return true;
+	case CanMGB:
+		Dest.DWord=pSpell->CanMGB;
+		Dest.Type=pBoolType;
+		return true;
+	case Deletable:
+		Dest.DWord=pSpell->Deletable;
+		Dest.Type=pBoolType;
+		return true;
+	case BookIcon:
+		Dest.DWord=pSpell->BookIcon;
+		Dest.Type=pIntType;
+		return true;
+	case Target:
+		Dest.Ptr=pSpell->Target;
+		Dest.Type=pStringType;
+		return true;
+	case Description:
+		Dest.DWord=pSpell->DescriptionNumber;
+		Dest.Type=pStringType;
+		return true;
+	}
     return false;
 #undef pSpell
 }
@@ -5661,6 +5877,14 @@ bool MQ2ClassType::GETMEMBER()
         Dest.DWord=(VarPtr.DWord==2 || VarPtr.DWord==6 || VarPtr.DWord==10);
         Dest.Type=pBoolType;
         return true;
+    case MercType:
+        if (VarPtr.DWord<=17)
+        {
+            Dest.DWord=ClassInfo[VarPtr.DWord].MercType;
+            Dest.Type=pBoolType;
+            return true;
+        }
+        return false;
     }
     return false;
 }

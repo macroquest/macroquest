@@ -283,6 +283,7 @@ EQLIB_VAR PCHAR szSkills[];
 EQLIB_VAR PCHAR szInnates[];
 EQLIB_VAR PCHAR szCombineTypes[];
 EQLIB_VAR PCHAR szItemTypes[];
+EQLIB_VAR PCHAR szSPATypes[];
 
 EQLIB_VAR PCHAR szWornLoc[];
 
@@ -305,8 +306,8 @@ EQLIB_VAR fEQProcGameEvts    ProcessGameEvents;
 EQLIB_VAR fEQExecuteCmd         ExecuteCmd;
 EQLIB_VAR fEQGetMelee    get_melee_range;
 
-EQLIB_VAR PCHAR szItemName[];
-EQLIB_VAR PCHAR szItemName4xx[];
+//EQLIB_VAR PCHAR szItemName[];
+//EQLIB_VAR PCHAR szItemName4xx[];
 EQLIB_VAR ACTORDEFENTRY ActorDefList[];
 //EQLIB_VAR PCHAR szTheme[]; 
 EQLIB_VAR PCHAR szDmgBonusType[];
@@ -638,6 +639,10 @@ EQLIB_VAR CPotionBeltWnd **ppPotionBeltWnd;
 #define pDZMember (*ppDZMember)
 #define pDZTimerInfo (*ppDZTimerInfo)
 #define pTaskMember (*ppTaskMember)
+
+#ifdef PRIVATE
+#include "MQ2Globals-private.h"
+#endif
 
 EQLIB_VAR DWORD __ActualVersionDate;
 EQLIB_VAR DWORD __ActualVersionTime;

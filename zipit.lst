@@ -12,6 +12,7 @@ MQ2-API.chm
 MQ2Auth.exe
 MQ2Plugin.h
 MQ2PluginDevelopment.html
+readme.chm
 zipit.lst
 MacroQuest2.sln
 Blech\Blech.h
@@ -199,6 +200,7 @@ MQ2Labels\MQ2Labels.mak
 MQ2Labels\MQ2Labels.vcproj
 MQ2Labels\MQ2Labels.vcxproj
 MQ2Labels\MQ2Labels.vcxproj.filters
+MQ2Main\actordef.h
 MQ2Main\combines.h
 MQ2Main\dikeys.h
 MQ2Main\EQClasses.cpp
@@ -206,7 +208,6 @@ MQ2Main\EQClasses.h
 MQ2Main\EQData.h
 MQ2Main\eqgame.h
 MQ2Main\EQUIStructs.h
-MQ2Main\grounds.h
 MQ2Main\ISXEQ
 MQ2Main\ISXEQ-VS2005.vcproj
 MQ2Main\ISXEQ.vcproj
@@ -227,7 +228,9 @@ MQ2Main\MQ2DataVars.cpp
 MQ2Main\MQ2DetourAPI.cpp
 MQ2Main\MQ2DInput.cpp
 MQ2Main\MQ2Globals.cpp
+MQ2Main\MQ2Globals-private.cpp
 MQ2Main\MQ2Globals.h
+MQ2Main\MQ2Globals-private.h
 MQ2Main\MQ2Inlines.h
 MQ2Main\MQ2Internal.h
 MQ2Main\MQ2KeyBinds.cpp
@@ -251,8 +254,8 @@ MQ2Main\MQ2Utilities.cpp
 MQ2Main\MQ2Windows.cpp
 MQ2Main\ReadMe.txt
 MQ2Main\skills.h
+MQ2Main\SpellEffects.h
 MQ2Main\str_com
-MQ2Main\weapons.h
 MQ2Main\ISXEQ\ISXEQ.cpp
 MQ2Main\ISXEQ\ISXEQ.h
 MQ2Main\ISXEQ\ISXEQCommandAPI.cpp
@@ -319,7 +322,7 @@ Release\Changes.txt
 Release\GPL.txt
 Release\ItemDB.txt
 Release\locations.txt
-Release\MacroQuest.ini
+Release\MacroQuest_default.ini
 Release\MacroQuest2.exe
 Release\Macros\ArrayTest.mac
 Release\Macros\Arrows.mac

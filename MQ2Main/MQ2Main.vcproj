@@ -202,16 +202,16 @@
 				RelativePath="eqgame.h">
 			</File>
 			<File
-				RelativePath="grounds.h">
-			</File>
-			<File
 				RelativePath="itemtypes.h">
 			</File>
 			<File
 				RelativePath="skills.h">
 			</File>
 			<File
-				RelativePath="weapons.h">
+				RelativePath="SpellEffects.h">
+			</File>
+			<File
+				RelativePath="actordef.h">
 			</File>
 		</Filter>
 	</Files>

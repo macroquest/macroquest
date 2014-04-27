@@ -1329,6 +1329,130 @@ FLOAT DistanceToPoint(PSPAWNINFO pSpawn, FLOAT xLoc, FLOAT yLoc)
     FLOAT Y = pSpawn->Y - yLoc; 
     return sqrtf(X*X + Y*Y); 
 }
+// *************************************************************************** 
+// Function:    GetSpellRestrictions 
+// Author: htw
+// *************************************************************************** 
+PCHAR GetSpellRestrictions(PSPELL pSpell, unsigned int nIndex, PCHAR szBuffer)
+{
+	CHAR szTemp[MAX_STRING] = { 0 };
+	if (!szBuffer)
+		return NULL;
+	if (!pSpell)
+	{
+		szBuffer[0] = 0;
+		return(szBuffer);
+	}
+	switch (pSpell->Base2[nIndex])
+	{
+	case 0:		  strcpy(szTemp, "None"); break;
+	case 100:     strcpy(szTemp, "Only work on Animal or Humanoid"); break;
+	case 101:     strcpy(szTemp, "Only work on Dragon"); break;
+	case 102:     strcpy(szTemp, "Only work on Animal or Insect"); break;
+	case 104:     strcpy(szTemp, "Only work on Animal"); break;
+	case 105:     strcpy(szTemp, "Only work on Plant"); break;
+	case 106:     strcpy(szTemp, "Only work on Giant"); break;
+	case 108:     strcpy(szTemp, "Doesn't work on Animals or Humanoids"); break;
+	case 109:     strcpy(szTemp, "Only work on Bixie"); break;
+	case 110:     strcpy(szTemp, "Only work on Harpy"); break;
+	case 111:     strcpy(szTemp, "Only work on Gnoll"); break;
+	case 112:     strcpy(szTemp, "Only work on Sporali"); break;
+	case 113:     strcpy(szTemp, "Only work on Kobold"); break;
+	case 114:     strcpy(szTemp, "Only work on Shade"); break;
+	case 115:     strcpy(szTemp, "Only work on Drakkin"); break;
+	case 117:     strcpy(szTemp, "Only work on Animals or Plants"); break;
+	case 118:     strcpy(szTemp, "Only work on Summoned"); break;
+	case 119:     strcpy(szTemp, "Only work on Fire_Pet"); break;
+	case 120:     strcpy(szTemp, "Only work on Undead"); break;
+	case 121:     strcpy(szTemp, "Only work on Living"); break;
+	case 122:     strcpy(szTemp, "Only work on Fairy"); break;
+	case 123:     strcpy(szTemp, "Only work on Humanoid"); break;
+	case 124:     strcpy(szTemp, "Undead HP Less Than 10%"); break;
+	case 125:     strcpy(szTemp, "Clockwork HP Less Than 45%"); break;
+	case 126:     strcpy(szTemp, "Wisp HP Less Than 10%"); break;
+	case 190:     strcpy(szTemp, "Doesn't work on Raid Boss"); break;
+	case 191:     strcpy(szTemp, "Only work on Raid Boss"); break;
+	case 201:     strcpy(szTemp, "HP Above 75%"); break;
+	case 203:     strcpy(szTemp, "HP Less Than 20%"); break;
+	case 204:     strcpy(szTemp, "HP Less Than 50%"); break;
+	case 216:     strcpy(szTemp, "Not In Combat"); break;
+	case 221:     strcpy(szTemp, "At Least 1 Pet On Hatelist"); break;
+	case 222:     strcpy(szTemp, "At Least 2 Pets On Hatelist"); break;
+	case 223:     strcpy(szTemp, "At Least 3 Pets On Hatelist"); break;
+	case 224:     strcpy(szTemp, "At Least 4 Pets On Hatelist"); break;
+	case 225:     strcpy(szTemp, "At Least 5 Pets On Hatelist"); break;
+	case 226:     strcpy(szTemp, "At Least 6 Pets On Hatelist"); break;
+	case 227:     strcpy(szTemp, "At Least 7 Pets On Hatelist"); break;
+	case 228:     strcpy(szTemp, "At Least 8 Pets On Hatelist"); break;
+	case 229:     strcpy(szTemp, "At Least 9 Pets On Hatelist"); break;
+	case 230:     strcpy(szTemp, "At Least 10 Pets On Hatelist"); break;
+	case 231:     strcpy(szTemp, "At Least 11 Pets On Hatelist"); break;
+	case 232:     strcpy(szTemp, "At Least 12 Pets On Hatelist"); break;
+	case 233:     strcpy(szTemp, "At Least 13 Pets On Hatelist"); break;
+	case 234:     strcpy(szTemp, "At Least 14 Pets On Hatelist"); break;
+	case 235:     strcpy(szTemp, "At Least 15 Pets On Hatelist"); break;
+	case 236:     strcpy(szTemp, "At Least 16 Pets On Hatelist"); break;
+	case 237:     strcpy(szTemp, "At Least 17 Pets On Hatelist"); break;
+	case 238:     strcpy(szTemp, "At Least 18 Pets On Hatelist"); break;
+	case 239:     strcpy(szTemp, "At Least 19 Pets On Hatelist"); break;
+	case 240:     strcpy(szTemp, "At Least 20 Pets On Hatelist"); break;
+	case 250:     strcpy(szTemp, "HP Less Than 35%"); break;
+	case 304:     strcpy(szTemp, "Chain Plate Classes"); break;
+	case 399:     strcpy(szTemp, "HP Between 15 and 25%"); break;
+	case 400:     strcpy(szTemp, "HP Between 1 and 25%"); break;
+	case 401:     strcpy(szTemp, "HP Between 25 and 35%"); break;
+	case 402:     strcpy(szTemp, "HP Between 35 and 45%"); break;
+	case 403:     strcpy(szTemp, "HP Between 45 and 55%"); break;
+	case 404:     strcpy(szTemp, "HP Between 55 and 65%"); break;
+	case 412:     strcpy(szTemp, "HP Above 99%"); break;
+	case 501:     strcpy(szTemp, "HP Below 5%"); break;
+	case 502:     strcpy(szTemp, "HP Below 10%"); break;
+	case 503:     strcpy(szTemp, "HP Below 15%"); break;
+	case 504:     strcpy(szTemp, "HP Below 20%"); break;
+	case 505:     strcpy(szTemp, "HP Below 25%"); break;
+	case 506:     strcpy(szTemp, "HP Below 30%"); break;
+	case 507:     strcpy(szTemp, "HP Below 35%"); break;
+	case 508:     strcpy(szTemp, "HP Below 40%"); break;
+	case 509:     strcpy(szTemp, "HP Below 45%"); break;
+	case 510:     strcpy(szTemp, "HP Below 50%"); break;
+	case 511:     strcpy(szTemp, "HP Below 55%"); break;
+	case 512:     strcpy(szTemp, "HP Below 60%"); break;
+	case 513:     strcpy(szTemp, "HP Below 65%"); break;
+	case 514:     strcpy(szTemp, "HP Below 70%"); break;
+	case 515:     strcpy(szTemp, "HP Below 75%"); break;
+	case 516:     strcpy(szTemp, "HP Below 80%"); break;
+	case 517:     strcpy(szTemp, "HP Below 85%"); break;
+	case 518:     strcpy(szTemp, "HP Below 90%"); break;
+	case 519:     strcpy(szTemp, "HP Below 95%"); break;
+	case 521:     strcpy(szTemp, "Mana Below X%"); break;
+	case 522:     strcpy(szTemp, "End Below 40%"); break;
+	case 523:     strcpy(szTemp, "Mana Below 40%"); break;
+	case 603:     strcpy(szTemp, "Only work on Undead2"); break;
+	case 608:     strcpy(szTemp, "Only work on Undead3"); break;
+	case 624:     strcpy(szTemp, "Only work on Summoned2"); break;
+	case 701:     strcpy(szTemp, "Doesn't work on Pets"); break;
+	case 818:     strcpy(szTemp, "Only work on Undead4"); break;
+	case 819:     strcpy(szTemp, "Doesn't work on Undead4"); break;
+	case 825:     strcpy(szTemp, "End Below 21%"); break;
+	case 826:     strcpy(szTemp, "End Below 25%"); break;
+	case 827:     strcpy(szTemp, "End Below 29%"); break;
+	case 836:     strcpy(szTemp, "Only work on Regular Servers"); break;
+	case 837:     strcpy(szTemp, "Doesn't work on Progression Servers"); break;
+	case 842:     strcpy(szTemp, "Only work on Humanoid Level 84 Max"); break;
+	case 843:     strcpy(szTemp, "Only work on Humanoid Level 86 Max"); break;
+	case 844:     strcpy(szTemp, "Only work on Humanoid Level 88 Max"); break;
+	case 1000:     strcpy(szTemp, "Between Level 1 and 75"); break;
+	case 1001:     strcpy(szTemp, "Between Level 76 and 85"); break;
+	case 1002:     strcpy(szTemp, "Between Level 86 and 95"); break;
+	case 1003:     strcpy(szTemp, "Between Level 96 and 100"); break;
+	case 1004:     strcpy(szTemp, "HP Less Than 80%"); break;
+	case 38311:     strcpy(szTemp, "Mana Below 20%"); break;
+	case 38312:     strcpy(szTemp, "Mana Below 10%"); break;
+	default: strcpy(szTemp, "Unknown"); break;
+	}
+	strcpy(szBuffer, szTemp);
+	return szBuffer;
+}
 
 // *************************************************************************** 
 // Function:    GetSpellEffectName 
@@ -1337,111 +1461,15 @@ FLOAT DistanceToPoint(PSPAWNINFO pSpawn, FLOAT xLoc, FLOAT yLoc)
 // Author:      Koad [Taken from his MQ2SpellSearch Plugin
 // *************************************************************************** 
 PCHAR GetSpellEffectName(LONG EffectID, PCHAR szBuffer) 
-{ 
-    CHAR szBuff[MAX_STRING]={0}; 
-    CHAR szTemp[MAX_STRING]={0}; 
-    switch(abs(EffectID))
-    { 
-    case 0: 
-        strcat(szBuff,"Hitpoints"); 
-        break; 
-    case 1: 
-        strcat(szBuff,"AC"); 
-        break; 
-    case 2: 
-        strcat(szBuff,"ATK"); 
-        break; 
-    case 4: 
-        strcat(szBuff,"STR"); 
-        break; 
-    case 5: 
-        strcat(szBuff,"DEX"); 
-        break; 
-    case 11: 
-        strcat(szBuff,"Attack Speed"); 
-        break; 
-    case 15: 
-        strcat(szBuff,"Mana Regeneration"); 
-        break; 
-    case 18: 
-        strcat(szBuff,"Pacify"); 
-        break; 
-    case 21: 
-        strcat(szBuff,"Stun"); 
-        break; 
-    case 22: 
-        strcat(szBuff,"Charm"); 
-        break; 
-    case 31: 
-        strcat(szBuff,"Mesmerize"); 
-        break; 
-    case 32: 
-        strcat(szBuff,"Summon Item"); 
-        break; 
-    case 33: 
-        strcat(szBuff,"Summon Pet"); 
-        break; 
-    case 35: 
-        strcat(szBuff,"Disease Counter"); 
-        break; 
-    case 36: 
-        strcat(szBuff,"Poison Counter"); 
-        break; 
-    case 40: 
-        strcat(szBuff,"Invunerability"); 
-        break; 
-    case 46: 
-        strcat(szBuff,"Fire Resist"); 
-        break; 
-    case 47: 
-        strcat(szBuff,"Cold Resist"); 
-        break; 
-    case 48: 
-        strcat(szBuff,"Poison Resist"); 
-        break; 
-    case 49: 
-        strcat(szBuff,"Disease Resist"); 
-        break; 
-    case 50: 
-        strcat(szBuff,"Magic Resist"); 
-        break; 
-    case 59: 
-        strcat(szBuff,"Damage Shield"); 
-        break; 
-    case 69: 
-        strcat(szBuff,"Max Hitpoints"); 
-        break; 
-    case 71: 
-        strcat(szBuff,"Summon Skeleton Pet"); 
-        break; 
-    case 86: 
-        strcat(szBuff,"Reaction Radius"); 
-        break; 
-    case 101: 
-        strcat(szBuff,"Complete Heal (with duration)"); 
-        break; 
-    case 116: 
-        strcat(szBuff,"Curse Counter"); 
-        break; 
-    case 123: //screech 
-        strcat(szBuff, "Screech"); 
-        break;
-    case 147: 
-        strcat(szBuff,"Percentage Heal"); 
-        break; 
-    case 369: 
-        strcat(szBuff,"Corruption Counter"); 
-        break; 
-    case 370: 
-        strcat(szBuff,"Corruption Resist"); 
-        break; 
-    default: 
-        sprintf(szTemp, "UndefinedEffect%03d", EffectID); 
-        strcat(szBuff,szTemp); 
-        break; 
-    } 
-    strcpy(szBuffer, szBuff); 
-    return szBuffer; 
+{
+	if(EffectID<=MAX_SPELLEFFECTS) {
+		strcat(szBuffer,szSPATypes[EffectID]);
+	} else {
+		CHAR szTemp[MAX_STRING]={0};
+		sprintf_s(szTemp, "UndefinedEffect%03d", EffectID);
+		strcat(szBuffer,szTemp);
+    }
+	return szBuffer; 
 } 
 
 // *************************************************************************** 
@@ -1463,31 +1491,41 @@ PCHAR ShowSpellSlotInfo(PSPELL pSpell, PCHAR szBuffer)
         strcpy(szBuff, szTemp); 
         bSlotIsPH=false; 
         szTemp[0]='\0';
-        switch(pSpell->Attrib[i]) 
+		LONG SPAID = pSpell->Attrib[i];
+		//we do this here we can dump a crapload of cases where
+		//this is the only thing added to szBuff...
+		GetSpellEffectName(SPAID,szBuff);
+        switch(SPAID)
         { 
         case 0: //hp +/-: heals/regen/dd 
-            if ( pSpell->Base[i] < 0 ) strcat(szBuff, "Decrease "); 
-            if ( pSpell->Base[i] > 0 ) strcat(szBuff, "Increase "); 
-            strcat(szBuff, "Hitpoints by "); 
+            if ( pSpell->Base[i] < 0 ) strcat(szBuff, " Decrease"); 
+            if ( pSpell->Base[i] > 0 ) strcat(szBuff, " Increase"); 
+            strcat(szBuff, " by "); 
             SlotValueCalculate(szBuff, pSpell, i, 1); 
             if ( pSpell->DurationValue1 > 0 ) strcat(szBuff, " per tick"); 
-            break; 
+            if (pSpell->Base2[i] > 99) {
+				GetSpellRestrictions(pSpell,i,szTemp);
+				strcat(szBuff, " -- Restrictions: ");
+				strcat(szBuff, szTemp);
+			}
+			break; 
         case 1: //ac mod 
-            if ( pSpell->Base[i] < 0 ) strcat(szBuff, "Decrease "); 
-            if ( pSpell->Base[i] > 0 ) strcat(szBuff, "Increase "); 
-            strcat(szBuff, "AC by "); 
+            if ( pSpell->Base[i] < 0 ) strcat(szBuff, " Decrease"); 
+            if ( pSpell->Base[i] > 0 ) strcat(szBuff, " Increase"); 
+            strcat(szBuff, " by "); 
             SlotValueCalculate(szBuff, pSpell, i, 0.3); 
             break; 
         case 2: //attack mod 
-            if ( pSpell->Base[i] < 0 ) strcat(szBuff, "Decrease "); 
-            if ( pSpell->Base[i] > 0 ) strcat(szBuff, "Increase "); 
-            strcat(szBuff, "ATK by "); 
+            if ( pSpell->Base[i] < 0 ) strcat(szBuff, " Decrease"); 
+            if ( pSpell->Base[i] > 0 ) strcat(szBuff, " Increase"); 
+            strcat(szBuff, " by "); 
             SlotValueCalculate(szBuff, pSpell, i, 1); 
+            if ( pSpell->DurationValue1 > 0 ) strcat(szBuff, " per tick"); 
             break; 
         case 3: //movement speed mod 
-            if ( pSpell->Base[i] < 0 ) strcat(szBuff, "Decrease "); 
-            if ( pSpell->Base[i] > 0 ) strcat(szBuff, "Increase "); 
-            strcat(szBuff, "Movement by "); 
+            if ( pSpell->Base[i] < 0 ) strcat(szBuff, " Decrease"); 
+            if ( pSpell->Base[i] > 0 ) strcat(szBuff, " Increase"); 
+            strcat(szBuff, " by "); 
             if ( pSpell->Max[i] == 0 ) { 
                 _itoa(abs(pSpell->Base[i]), szTemp, 10); strcat(szBuff, szTemp); 
             } else { 
@@ -1496,48 +1534,23 @@ PCHAR ShowSpellSlotInfo(PSPELL pSpell, PCHAR szBuffer)
             strcat(szBuff, "%"); 
             break; 
         case 4: //str mod 
-            if ( pSpell->Base[i] < 0 ) strcat(szBuff, "Decrease "); 
-            if ( pSpell->Base[i] > 0 ) strcat(szBuff, "Increase "); 
-            strcat(szBuff, "STR by "); 
-            SlotValueCalculate(szBuff, pSpell, i, 1); 
-            break; 
         case 5: //dex mod 
-            if ( pSpell->Base[i] < 0 ) strcat(szBuff, "Decrease "); 
-            if ( pSpell->Base[i] > 0 ) strcat(szBuff, "Increase "); 
-            strcat(szBuff, "DEX by "); 
-            SlotValueCalculate(szBuff, pSpell, i, 1); 
-            break; 
         case 6: //agi mod 
-            if ( pSpell->Base[i] < 0 ) strcat(szBuff, "Decrease "); 
-            if ( pSpell->Base[i] > 0 ) strcat(szBuff, "Increase "); 
-            strcat(szBuff, "AGI by "); 
-            SlotValueCalculate(szBuff, pSpell, i, 1); 
-            break; 
         case 7: //sta mod 
-            if ( pSpell->Base[i] < 0 ) strcat(szBuff, "Decrease "); 
-            if ( pSpell->Base[i] > 0 ) strcat(szBuff, "Increase "); 
-            strcat(szBuff, "STA by "); 
-            SlotValueCalculate(szBuff, pSpell, i, 1); 
-            break; 
         case 8: //int mod 
-            if ( pSpell->Base[i] < 0 ) strcat(szBuff, "Decrease "); 
-            if ( pSpell->Base[i] > 0 ) strcat(szBuff, "Increase "); 
-            strcat(szBuff, "INT by "); 
-            SlotValueCalculate(szBuff, pSpell, i, 1); 
-            break; 
         case 9: //wis mod 
-            if ( pSpell->Base[i] < 0 ) strcat(szBuff, "Decrease "); 
-            if ( pSpell->Base[i] > 0 ) strcat(szBuff, "Increase "); 
-            strcat(szBuff, "WIS by "); 
+            if ( pSpell->Base[i] < 0 ) strcat(szBuff, " Decrease"); 
+            if ( pSpell->Base[i] > 0 ) strcat(szBuff, " Increase"); 
+            strcat(szBuff, " by "); 
             SlotValueCalculate(szBuff, pSpell, i, 1); 
             break; 
         case 10: //old lure slot: leaving this since even though patched, som 
             //spells still have a lure effect slot when base = (-6) 
             //this slot is also charisma 
             if ( (abs(pSpell->Base[i]) > 0) && (pSpell->Base[i] != -6) ) { 
-                if ( pSpell->Base[i] < 0 ) strcat(szBuff, "Decrease "); 
-                if ( pSpell->Base[i] > 0 ) strcat(szBuff, "Increase "); 
-                strcat(szBuff, "CHA by "); 
+                if ( pSpell->Base[i] < 0 ) strcat(szBuff, " Decrease"); 
+                if ( pSpell->Base[i] > 0 ) strcat(szBuff, " Increase"); 
+                strcat(szBuff, " by "); 
                 SlotValueCalculate(szBuff, pSpell, i, 1); 
             } else { 
                 if (pSpell->Base[i] == -6 ){ 
@@ -1554,359 +1567,293 @@ PCHAR ShowSpellSlotInfo(PSPELL pSpell, PCHAR szBuffer)
             } else { 
                 szBase=pSpell->Max[i]-100; 
             } 
-            if ( szBase < 0 ) strcat(szBuff, "Decrease "); 
-            if ( szBase > 0 ) strcat(szBuff, "Increase "); 
-            strcat(szBuff, "Attack Speed by "); 
+            if ( szBase < 0 ) strcat(szBuff, " Decrease"); 
+            if ( szBase > 0 ) strcat(szBuff, " Increase"); 
+            strcat(szBuff, " by "); 
             _itoa(abs(szBase), szTemp, 10); strcat(szBuff, szTemp); 
             strcat(szBuff, "%"); 
             break; 
         case 12: //Invisibility 
-            sprintf(szTemp, "Invisibility(%d)", pSpell->Base[i]); 
-            strcat(szBuff, szTemp); 
-            break; 
         case 13: //See Invisible(c) 
-            sprintf(szTemp, "See Invisible(%d)", pSpell->Base[i]); 
+            sprintf(szTemp, "(%d)", pSpell->Base[i]); 
             strcat(szBuff, szTemp); 
             break; 
         case 14: //Water Breathing 
-            strcat(szBuff, "Water Breathing"); 
             break; 
         case 15: //mana +/- 
-            if ( pSpell->Base[i] < 0 ) strcat(szBuff, "Decrease "); 
-            if ( pSpell->Base[i] > 0 ) strcat(szBuff, "Increase "); 
-            strcat(szBuff, "Mana by "); 
-            SlotValueCalculate(szBuff, pSpell, i, 1); 
-            if ( pSpell->DurationValue1 > 0 ) strcat(szBuff, " per tick"); 
+            if ( pSpell->Base[i] < 0 ) strcat(szBuff, " Decrease"); 
+            if ( pSpell->Base[i] > 0 ) strcat(szBuff, " Increase"); 
+            strcat(szBuff, " by "); 
+            SlotValueCalculate(szBuff, pSpell, i, 1);
+			if ( pSpell->DurationValue1 > 0 ) strcat(szBuff, " per tick");
+			if (pSpell->Base2[i] > 99) {
+				GetSpellRestrictions(pSpell,i,szTemp);
+				strcat(szBuff, " -- Restrictions: ");
+				strcat(szBuff, szTemp);
+			}
             break; 
-        case 18: //Pacify 
-            strcat(szBuff, "Pacify"); 
-            break; 
-        case 19: //faction 
-            if ( pSpell->Base[i] < 0 ) strcat(szBuff, "Decrease "); 
-            if ( pSpell->Base[i] > 0 ) strcat(szBuff, "Increase "); 
-            strcat(szBuff, "Faction by "); 
-            SlotValueCalculate(szBuff, pSpell, i, 1); 
+        case 16: //NPC-Frenzy
+        case 17: //NPC-Awareness
+        case 18: //NPC Aggro
+        case 19: //NPC Faction
+            if ( pSpell->Base[i] < 0 ) strcat(szBuff, " Decrease"); 
+            if ( pSpell->Base[i] > 0 ) strcat(szBuff, " Increase"); 
+            strcat(szBuff, " by "); 
+            SlotValueCalculate(szBuff, pSpell, i, 1);
+			if ( pSpell->DurationValue1 > 0 ) strcat(szBuff, " per tick");
             break; 
         case 20: //Blindness 
-            strcat(szBuff, "Blindness"); 
             break; 
         case 21: //stun  time = base in ms 
-            sprintf(szTemp, "Stun(%.1f sec/%d)", (float)(pSpell->Base[i] / 1000), pSpell->Max[i]); 
+            sprintf(szTemp, "(%.1f sec/%d)", (float)(pSpell->Base[i] / 1000), pSpell->Max[i]); 
             strcat(szBuff, szTemp); 
             break; 
         case 22: //Charm(c/level) 
-            sprintf(szTemp, "Charm(%d/%d)", pSpell->Base[i], pSpell->Max[i]); 
+            sprintf(szTemp, "(%d/%d)", pSpell->Base[i], pSpell->Max[i]); 
             strcat(szBuff, szTemp); 
             break; 
         case 23: //Fear(c) 
-            sprintf(szTemp, "Fear(%d)", pSpell->Base[i]); 
+            sprintf(szTemp, "(%d)", pSpell->Base[i]); 
             strcat(szBuff, szTemp); 
             break; 
-        case 24: //Stamina Loss 
-            if ( pSpell->Base[i] < 0 ) strcat(szBuff, "Decrease "); 
-            if ( pSpell->Base[i] > 0 ) strcat(szBuff, "Increase "); 
-            strcat(szBuff, "Stamina Loss by "); 
+        case 24: //Fatigue 
+            if ( pSpell->Base[i] < 0 ) strcat(szBuff, " Decrease"); 
+            if ( pSpell->Base[i] > 0 ) strcat(szBuff, " Increase"); 
+            strcat(szBuff, " by "); 
             SlotValueCalculate(szBuff, pSpell, i, 1); 
             break; 
         case 25: //Bind Affinity 
-            strcat(szBuff, "Bind Affinity"); 
-            if (pSpell->Base[i]==2) strcat(szBuff, " (Secondary Bind Point)"); 
+            if (pSpell->Base[i]==2)
+				strcat(szBuff, " (Secondary Bind Point)"); 
             break; 
         case 26: //Gate 
             if (pSpell->Base2[1]==1) { 
-                strcat(szBuff, "Gate"); 
                 break; 
             } else if (pSpell->Base2[1]==2) { 
-                strcat(szBuff, "Gate to Secondary Bind Point"); 
+                strcat(szBuff, " to Secondary Bind Point"); 
                 break;        
             } 
         case 27: //Cancel Magic(c) 
-            sprintf(szTemp, "Cancel Magic(%d)", pSpell->Base[i]); 
-            strcat(szBuff, szTemp); 
-            break; 
         case 28: //Invisibility versus Undead 
-            sprintf(szTemp, "Invisibility versus Undead(%d)", pSpell->Base[i]); 
-            strcat(szBuff, szTemp); 
-            break; 
         case 29: //Invisibility versus Animal 
-            sprintf(szTemp, "Invisibility versus Animal(%d)", pSpell->Base[i]); 
+            sprintf(szTemp, "(%d)", pSpell->Base[i]); 
             strcat(szBuff, szTemp); 
             break; 
-        case 30: //Frenzy Radius(c/level) 
-            sprintf(szTemp, "Frenzy Radius(%d/%d)", pSpell->Base[i], pSpell->Max[i]); 
-            strcat(szBuff, szTemp); 
-            break; 
+        case 30: //NPC-ReactRange(c/level) 
         case 31: //Mesmerize(c/level) 
-            sprintf(szTemp, "Mesmerize(%d/%d)", pSpell->Base[i], pSpell->Max[i]); 
+            sprintf(szTemp, "(%d/%d)", pSpell->Base[i], pSpell->Max[i]); 
             strcat(szBuff, szTemp); 
             break; 
-        case 32: //Summon Item 
+        case 32: //Create Item
             while ((ItemDB) && ((DWORD)pSpell->Base[i] != ItemDB->ID)) { 
                 ItemDB = ItemDB->pNext; 
             } 
             if (ItemDB) { 
                 strcpy(szTemp,ItemDB->szName); 
             } else { 
-                sprintf(szTemp,"Unknown%d",(DWORD)pSpell->Base[i]); 
+                sprintf(szTemp,"Unknown%5d",(DWORD)pSpell->Base[i]); 
             } 
-            strcat(szBuff, "Summon Item: ");   strcat(szBuff, szTemp); 
+            strcat(szBuff, ": ");   strcat(szBuff, szTemp); 
             break; 
-        case 33: //Summon Pet 
-            sprintf(szTemp, "Summon Pet: %s", pSpell->Extra); 
+        case 33: //Spawn NPC 
+            sprintf(szTemp, ": %s", pSpell->Extra); 
             strcat(szBuff, szTemp); 
+            break; 
+        case 34: //Confuse
             break; 
         case 35: //disease counters 
-            if ( pSpell->Base[i] < 0 ) strcat(szBuff, "Decrease "); 
-            if ( pSpell->Base[i] > 0 ) strcat(szBuff, "Increase "); 
-            strcat(szBuff, "Disease Counter by "); 
-            SlotValueCalculate(szBuff, pSpell, i, 1); 
-            break; 
         case 36: //poison counters 
-            if ( pSpell->Base[i] < 0 ) strcat(szBuff, "Decrease "); 
-            if ( pSpell->Base[i] > 0 ) strcat(szBuff, "Increase "); 
-            strcat(szBuff, "Poison Counter by "); 
+            if ( pSpell->Base[i] < 0 ) strcat(szBuff, " Decrease"); 
+            if ( pSpell->Base[i] > 0 ) strcat(szBuff, " Increase"); 
+            strcat(szBuff, " Counter by "); 
             SlotValueCalculate(szBuff, pSpell, i, 1); 
             break; 
+        case 37: //DetectHostile 
+        case 38: //DetectMagic 
+        case 39: //DetectPoison 
         case 40: //Invulnerability 
-            strcat(szBuff, "Invulnerability"); 
+        case 41: //Banish
             break; 
-        case 41: //Destroy Target 
-            strcat(szBuff, "Destroy Target"); 
-            break; 
-        case 42: //Shadowstep(c) 
-            sprintf(szTemp, "Shadowstep(%d)", pSpell->Base[i]); 
+        case 42: //Shadow Step(c) 
+            sprintf(szTemp, "(%d)", pSpell->Base[i]); 
             strcat(szBuff, szTemp); 
             break; 
+        case 43: //Berserk
         case 44: //Lycanthropy 
-            strcat(szBuff, "Lycanthropy"); 
+        case 45: //Vampirism 
             break; 
         case 46: //fire resist 
-            if ( pSpell->Base[i] < 0 ) strcat(szBuff, "Decrease "); 
-            if ( pSpell->Base[i] > 0 ) strcat(szBuff, "Increase "); 
-            strcat(szBuff, "Fire Resist by "); 
-            SlotValueCalculate(szBuff, pSpell, i , 1); 
-            break; 
         case 47: //cold resist 
-            if ( pSpell->Base[i] < 0 ) strcat(szBuff, "Decrease "); 
-            if ( pSpell->Base[i] > 0 ) strcat(szBuff, "Increase "); 
-            strcat(szBuff, "Cold Resist by "); 
-            SlotValueCalculate(szBuff, pSpell, i , 1); 
-            break; 
         case 48: //poison resist 
-            if ( pSpell->Base[i] < 0 ) strcat(szBuff, "Decrease "); 
-            if ( pSpell->Base[i] > 0 ) strcat(szBuff, "Increase "); 
-            strcat(szBuff, "Poison Resist by "); 
-            SlotValueCalculate(szBuff, pSpell, i , 1); 
-            break; 
         case 49: //disease resist 
-            if ( pSpell->Base[i] < 0 ) strcat(szBuff, "Decrease "); 
-            if ( pSpell->Base[i] > 0 ) strcat(szBuff, "Increase "); 
-            strcat(szBuff, "Disease Resist by "); 
-            SlotValueCalculate(szBuff, pSpell, i , 1); 
-            break; 
         case 50: //magic resist 
-            if ( pSpell->Base[i] < 0 ) strcat(szBuff, "Decrease "); 
-            if ( pSpell->Base[i] > 0 ) strcat(szBuff, "Increase "); 
-            strcat(szBuff, "Magic Resist by "); 
+            if ( pSpell->Base[i] < 0 ) strcat(szBuff, " Decrease"); 
+            if ( pSpell->Base[i] > 0 ) strcat(szBuff, " Increase"); 
+            strcat(szBuff, " by "); 
             SlotValueCalculate(szBuff, pSpell, i , 1); 
             break; 
+        case 51: //Detect Traps
         case 52: //Sense Undead 
-            strcat(szBuff, "Sense Undead"); 
-            break; 
         case 53: //Sense Summoned 
-            strcat(szBuff, "Sense Summoned"); 
-            break; 
         case 54: //Sense Animals 
-            strcat(szBuff, "Sense Animals"); 
             break; 
         case 55: //most runes 
-            if ( pSpell->Base[i] < 0 ) strcat(szBuff, "Decrease "); 
-            if ( pSpell->Base[i] > 0 ) strcat(szBuff, "Increase "); 
-            strcat(szBuff, "Absorb Damage by "); 
+            if ( pSpell->Base[i] < 0 ) strcat(szBuff, " Decrease"); 
+            if ( pSpell->Base[i] > 0 ) strcat(szBuff, " Increase"); 
+            strcat(szBuff, " by "); 
             SlotValueCalculate(szBuff, pSpell, i , 1); 
             break; 
         case 56: //True North 
-            strcat(szBuff, "True North"); 
             break; 
         case 57: //Levitate(c) 
-            sprintf(szTemp, "Levitate(%d)", pSpell->Base[i]); 
+            sprintf(szTemp, "(%d)", pSpell->Base[i]); 
             strcat(szBuff, szTemp); 
             break; 
         case 58: //Illusion: Base=Race 
-            strcat(szBuff, "Illusion: "); strcat(szBuff, pEverQuest->GetRaceDesc(pSpell->Base[i])); 
+            strcat(szBuff, " : "); strcat(szBuff, pEverQuest->GetRaceDesc(pSpell->Base[i])); 
             break; 
         case 59: //damage shield 
             //base value sign has opposite effect.. 
-            if ( pSpell->Base[i] > 0 ) strcat(szBuff, "Decrease "); 
-            if ( pSpell->Base[i] < 0 ) strcat(szBuff, "Increase "); 
-            strcat(szBuff, "Damage Shield by "); 
+            if ( pSpell->Base[i] > 0 ) strcat(szBuff, " Decrease"); 
+            if ( pSpell->Base[i] < 0 ) strcat(szBuff, " Increase"); 
+            strcat(szBuff, " by "); 
             SlotValueCalculate(szBuff, pSpell, i, 1); 
             break; 
+        case 60: //Transfer Item
         case 61: //Identify 
-            strcat(szBuff, "Identify"); 
+        case 62: //Item ID
             break; 
         case 63: //Memblur e% 
-            sprintf(szTemp, "Memblur %d", pSpell->Base[i]); 
+            sprintf(szTemp, " %d", pSpell->Base[i]); 
             strcat(szBuff, szTemp); 
             strcat(szBuff, "%"); 
             break; 
         case 64: //SpinStun 
-            strcat(szBuff, "SpinStun"); 
-            break; 
         case 65: //Infravision 
-            strcat(szBuff, "Infravision"); 
-            break; 
         case 66: //ultravision 
-            strcat(szBuff, "Ultravision"); 
-            break; 
         case 67: //Eye of Zomm 
-            strcat(szBuff, "Eye Of Zomm"); 
-            break; 
-        case 68: //reclaim 
-            strcat(szBuff, "Reclaim Mana"); 
+        case 68: //Reclaim Energy
             break; 
         case 69: //max hp mod 
-            if ( pSpell->Base[i] < 0 ) strcat(szBuff, "Decrease "); 
-            if ( pSpell->Base[i] > 0 ) strcat(szBuff, "Increase "); 
-            strcat(szBuff, "Max Hitpoints by "); 
+            if ( pSpell->Base[i] < 0 ) strcat(szBuff, " Decrease"); 
+            if ( pSpell->Base[i] > 0 ) strcat(szBuff, " Increase"); 
+            strcat(szBuff, " by "); 
             SlotValueCalculate(szBuff, pSpell, i , 1); 
             break; 
-        case 71: //Summon Skeleton Pet 
-            sprintf(szTemp, "Summon Skeleton Pet: %s", pSpell->Extra); 
+        case 70: //CorpseBomb
+			break;
+        case 71: //Create Undead Pet
+            sprintf(szTemp, ": %s", pSpell->Extra); 
             strcat(szBuff, szTemp); 
             break; 
+        case 72: //Preserve Corpse
         case 73: //Bind Sight 
-            strcat(szBuff, "Bind Sight"); 
-            break; 
         case 74: //Feign Death 
-            strcat(szBuff, "Feign Death"); 
-            break; 
         case 75: //Voice Graft 
-            strcat(szBuff, "Voice Graft"); 
-            break; 
         case 76: //Sentinel 
-            strcat(szBuff, "Sentinel"); 
-            break; 
         case 77: //Locate Corpse 
-            strcat(szBuff, "Locate Corpse"); 
             break; 
         case 78: //Absorb Magic Damage 
-            if ( pSpell->Base[i] < 0 ) strcat(szBuff, "Decrease "); 
-            if ( pSpell->Base[i] > 0 ) strcat(szBuff, "Increase "); 
-            strcat(szBuff, "Absorb Magic Damage by "); 
-            SlotValueCalculate(szBuff, pSpell, i , 1); 
-            break; 
         case 79: //+hp when cast (priest buffs that have heal component, DoTs with DDs) 
-            if ( pSpell->Base[i] < 0 ) strcat(szBuff, "Decrease "); 
-            if ( pSpell->Base[i] > 0 ) strcat(szBuff, "Increase "); 
-            strcat(szBuff, "HP when cast by "); 
+            if ( pSpell->Base[i] < 0 ) strcat(szBuff, " Decrease"); 
+            if ( pSpell->Base[i] > 0 ) strcat(szBuff, " Increase"); 
+            strcat(szBuff, " by "); 
             SlotValueCalculate(szBuff, pSpell, i , 1); 
             break; 
-        case 81: //Resurrection 
-            sprintf(szTemp, "Resurrect and restore %d&pct experience", pSpell->Base[i]); 
+        case 80: //Enchant:Light
+            break; 
+        case 81: //Resurrect
+            sprintf(szTemp, " and restore %d&pct experience", pSpell->Base[i]); 
             strcat(szBuff, szTemp); 
         case 82: //Summon Player 
-            strcat(szBuff, "Summon Player"); 
             break; 
         case 83: //zone portal spells 
-            if (pSpell->TargetType==6) strcat(szBuff, "Gate to "); 
-            else strcat(szBuff, "Teleport Group to "); 
+            if (pSpell->TargetType==6)
+				strcat(szBuff, " Self to "); 
+            else strcat(szBuff, " Group to "); 
             sprintf(szTemp, "%d, %d, %d in %s facing %s", pSpell->Base[1], pSpell->Base[2], pSpell->Base[3], GetFullZone(GetZoneID(pSpell->Extra)), szHeading[pSpell->Base[4]]); 
             strcat(szBuff, szTemp); 
             break; 
         case 84: //Toss on Z axis 
             //base value sign has opposite effect.. 
-            if ( pSpell->Base[i] > 0 ) sprintf(szTemp, "Toss Down(%d)", abs(pSpell->Base[i])); 
-            if ( pSpell->Base[i] < 0 ) sprintf(szTemp, "Toss Up(%d)", abs(pSpell->Base[i])); 
+            if ( pSpell->Base[i] > 0 ) sprintf(szTemp, " Down(%d)", abs(pSpell->Base[i])); 
+            if ( pSpell->Base[i] < 0 ) sprintf(szTemp, " Up(%d)", abs(pSpell->Base[i])); 
             strcat(szBuff, szTemp); 
             break; 
         case 85: //Add Proc 
-            sprintf(szTemp,"Add Proc: '%s' id: %d", GetSpellNameByID(pSpell->Base[i]), pSpell->Base[i]); 
+            sprintf(szTemp,": '%s' id: %d", GetSpellNameByID(pSpell->Base[i]), pSpell->Base[i]); 
             strcat(szBuff, szTemp); 
             break; 
         case 86: //Reaction Radius(c/level) 
-            sprintf(szTemp, "Reaction Radius(%d/%d)", pSpell->Base[i], pSpell->Max[i]); 
+            sprintf(szTemp, "(%d/%d)", pSpell->Base[i], pSpell->Max[i]); 
             strcat(szBuff, szTemp); 
             break; 
         case 87: //perspective magnification 
             szBase=pSpell->Base[i]-100; 
-            if ( szBase < 0 ) strcat(szBuff, "Decrease "); 
-            if ( szBase > 0 ) strcat(szBuff, "Increase "); 
-            strcat(szBuff, "Magnification by "); 
+            if ( szBase < 0 ) strcat(szBuff, " Decrease"); 
+            if ( szBase > 0 ) strcat(szBuff, " Increase"); 
+            strcat(szBuff, " by "); 
             _itoa(abs(szBase), szTemp, 10); strcat(szBuff, szTemp); 
             strcat(szBuff, "%"); 
             break; 
         case 88: //evac portal spells 
-            sprintf(szTemp, "Evacuate to %d, %d, %d in %s facing %s", 
+            sprintf(szTemp, " to %d, %d, %d in %s facing %s", 
                 pSpell->Base[1], pSpell->Base[2], pSpell->Base[3], pSpell->Extra, szHeading[pSpell->Base[4]]); 
             strcat(szBuff, szTemp); 
             break; 
         case 89: //player size 
             szBase=pSpell->Base[i]-100; 
-            if ( szBase < 0 ) strcat(szBuff, "Decrease "); 
-            if ( szBase > 0 ) strcat(szBuff, "Increase "); 
-            strcat(szBuff, "Player Size by "); 
+            if ( szBase < 0 ) strcat(szBuff, " Decrease"); 
+            if ( szBase > 0 ) strcat(szBuff, " Increase"); 
+            strcat(szBuff, " by "); 
             _itoa(abs(szBase), szTemp, 10); strcat(szBuff, szTemp); 
             strcat(szBuff, "%"); 
             break; 
         case 90: //Cloak 
-            strcat(szBuff, "Cloak"); 
-            break; 
         case 91: //Summon Corpse 
-            strcat(szBuff, "Summon Corpse"); 
-            break; 
+            break;
         case 92: //hate mod 
-            if ( pSpell->Base[i] < 0 ) strcat(szBuff, "Decrease "); 
-            if ( pSpell->Base[i] > 0 ) strcat(szBuff, "Increase "); 
-            strcat(szBuff, "Hate by "); 
+            if ( pSpell->Base[i] < 0 ) strcat(szBuff, " Decrease"); 
+            if ( pSpell->Base[i] > 0 ) strcat(szBuff, " Increase"); 
+            strcat(szBuff, " by "); 
             SlotValueCalculate(szBuff, pSpell, i, 1); 
             break; 
         case 93: //Stop Rain 
-            strcat(szBuff, "Stop Rain"); 
-            break; 
         case 94: //Make Fragile 
-            strcat(szBuff, "Make Fragile"); 
-            break; 
         case 95: //Sacrifice 
-            strcat(szBuff, "Sacrifice"); 
-            break; 
         case 96: //Silence 
-            strcat(szBuff, "Silence"); 
             break; 
         case 97: //mana pool 
-            if ( pSpell->Base[i] < 0 ) strcat(szBuff, "Decrease "); 
-            if ( pSpell->Base[i] > 0 ) strcat(szBuff, "Increase "); 
-            strcat(szBuff, "Mana Pool by "); 
+            if ( pSpell->Base[i] < 0 ) strcat(szBuff, " Decrease"); 
+            if ( pSpell->Base[i] > 0 ) strcat(szBuff, " Increase"); 
+            strcat(szBuff, " by "); 
             SlotValueCalculate(szBuff, pSpell, i, 1); 
             break; 
         case 98:  //Haste v2 
-            if ( pSpell->Base[i] < 0 ) strcat(szBuff, "Decrease "); 
-            if ( pSpell->Base[i] > 0 ) strcat(szBuff, "Increase "); 
-            strcat(szBuff, "Haste v2 by "); 
+            if ( pSpell->Base[i] < 0 ) strcat(szBuff, " Decrease"); 
+            if ( pSpell->Base[i] > 0 ) strcat(szBuff, " Increase"); 
+            strcat(szBuff, " by "); 
             _itoa(abs(pSpell->Base[i]), szTemp, 10); strcat(szBuff, szTemp); 
             strcat(szBuff, "%"); 
             break; 
         case 99: //Root 
-            strcat(szBuff, "Root"); 
             break; 
         case 100: //hp mod: pet heals/regen 
-            if ( pSpell->Base[i] < 0 ) strcat(szBuff, "Decrease "); 
-            if ( pSpell->Base[i] > 0 ) strcat(szBuff, "Increase "); 
-            strcat(szBuff, "Hitpoints v2 by "); 
+            if ( pSpell->Base[i] < 0 ) strcat(szBuff, " Decrease"); 
+            if ( pSpell->Base[i] > 0 ) strcat(szBuff, " Increase"); 
+            strcat(szBuff, " by "); 
             SlotValueCalculate(szBuff, pSpell, i, 1); 
             if ( pSpell->DurationValue1 > 0 ) strcat(szBuff, " per tick"); 
             break; 
         case 101: //Complete Heal (with duration) 
-            strcat(szBuff, "Complete Heal (with duration)"); 
+            strcat(szBuff, " (with duration)"); 
             break; 
         case 102: //Fearless 
-            strcat(szBuff, "Fearless"); 
             break; 
         case 103: //Call Pet 
-            strcat(szBuff, "Call Pet"); 
             break; 
         case 104: //zone translocate spells
-            strcat(szBuff, "Translocate to ");
+            strcat(szBuff, " to ");
             if(pSpell->Extra[0])
             {
                 if(pSpell->Extra[0]=='0') //wtf?
@@ -1927,166 +1874,145 @@ PCHAR ShowSpellSlotInfo(PSPELL pSpell, PCHAR szBuffer)
             strcat(szBuff, szTemp);
             break;
         case 105: //Anti-Gate 
-            sprintf(szTemp, "Anti-Gate(%d)",pSpell->Base[i]); 
+            sprintf(szTemp, "(%d)",pSpell->Base[i]); 
             strcat(szBuff, szTemp); 
             break; 
         case 106: //Summon Warder 
-            sprintf(szTemp, "Summon Warder: %s", pSpell->Extra); 
+            sprintf(szTemp, ": %s", pSpell->Extra); 
             strcat(szBuff, szTemp); 
             break; 
+        case 107: //Alter NPC Level
+			break;
         case 108: //Summon Familiar 
-            sprintf(szTemp, "Summon Familiar: %s", pSpell->Extra); 
+            sprintf(szTemp, ": %s", pSpell->Extra); 
             strcat(szBuff, szTemp); 
             break; 
-        case 109: // Summon Into Bag 
+        case 109: //Summon Into Bag 
             while ((ItemDB) && ((DWORD)pSpell->Base[i] != ItemDB->ID)) { 
                 ItemDB = ItemDB->pNext; 
             } 
             if (ItemDB) { 
                 strcpy(szTemp,ItemDB->szName); 
             } else { 
-                sprintf(szTemp,"Unknown%d",(DWORD)pSpell->Base[i]); 
+                sprintf(szTemp,"Unknown%5d",(DWORD)pSpell->Base[i]); 
             } 
-            strcat(szBuff, "Summon Item Into Bag: ");   strcat(szBuff, szTemp); 
+            strcat(szBuff, ": ");   strcat(szBuff, szTemp); 
             break; 
-        case 112: //Effective Casting Level 
-            if ( pSpell->Base[i] < 0 ) strcat(szBuff, "Decrease "); 
-            if ( pSpell->Base[i] > 0 ) strcat(szBuff, "Increase "); 
-            strcat(szBuff, "Effective Casting Level by "); 
+        case 110: //Increase Archery
+			strcat(szBuff, " by "); 
+            SlotValueCalculate(szBuff, pSpell, i , 1);
+			break;
+        case 111: //Resistances 
+        case 112: //Casting Level 
+            if ( pSpell->Base[i] < 0 ) strcat(szBuff, " Decrease"); 
+            if ( pSpell->Base[i] > 0 ) strcat(szBuff, " Increase"); 
+            strcat(szBuff, " by "); 
             SlotValueCalculate(szBuff, pSpell, i , 1); 
             break; 
-        case 113: //Summon Horse 
-            sprintf(szTemp, "Summon Horse: %s", pSpell->Extra); 
+        case 113: //Summon Mount 
+            sprintf(szTemp, ": %s", pSpell->Extra); 
             strcat(szBuff, szTemp); 
             break; 
-        case 111: //resist all 
-            if ( pSpell->Base[i] < 0 ) strcat(szBuff, "Decrease "); 
-            if ( pSpell->Base[i] > 0 ) strcat(szBuff, "Increase "); 
-            strcat(szBuff, "All Resists by "); 
-            SlotValueCalculate(szBuff, pSpell, i , 1); 
-            break; 
         case 114: //aggro multiplier 
-            if ( pSpell->Base[i] < 0 ) strcat(szBuff, "Decrease "); 
-            if ( pSpell->Base[i] > 0 ) strcat(szBuff, "Increase "); 
-            strcat(szBuff, "Aggro Multiplier by "); 
+            if ( pSpell->Base[i] < 0 ) strcat(szBuff, " Decrease"); 
+            if ( pSpell->Base[i] > 0 ) strcat(szBuff, " Increase"); 
+            strcat(szBuff, " by "); 
             _itoa(abs(pSpell->Base[i]), szTemp, 10); strcat(szBuff, szTemp); 
             strcat(szBuff, "%"); 
             break; 
         case 115: //Food/Water 
-            strcat(szBuff, "Food/Water"); 
             break; 
         case 116: //curse counters 
-            if ( pSpell->Base[i] < 0 ) strcat(szBuff, "Decrease "); 
-            if ( pSpell->Base[i] > 0 ) strcat(szBuff, "Increase "); 
-            strcat(szBuff, "Curse Counter by "); 
+            if ( pSpell->Base[i] < 0 ) strcat(szBuff, " Decrease"); 
+            if ( pSpell->Base[i] > 0 ) strcat(szBuff, " Increase"); 
+            strcat(szBuff, " by "); 
             SlotValueCalculate(szBuff, pSpell, i, 1); 
             break; 
         case 117: //Make Weapons Magical 
-            strcat(szBuff, "Make Weapons Magical"); 
+            strcat(szBuff, " (Make Weapons Magical)"); 
             break; 
         case 118: //Singing Skill 
-            if ( pSpell->Base[i] < 0 ) strcat(szBuff, "Decrease "); 
-            if ( pSpell->Base[i] > 0 ) strcat(szBuff, "Increase "); 
-            strcat(szBuff, "Singing Skill by "); 
+            if ( pSpell->Base[i] < 0 ) strcat(szBuff, " Decrease"); 
+            if ( pSpell->Base[i] > 0 ) strcat(szBuff, " Increase"); 
+            strcat(szBuff, " by "); 
             SlotValueCalculate(szBuff, pSpell, i, 1); 
             break; 
         case 119: //bard overhaste 
-            if ( pSpell->Base[i] < 0 ) strcat(szBuff, "Decrease "); 
-            if ( pSpell->Base[i] > 0 ) strcat(szBuff, "Increase "); 
-            strcat(szBuff, "Haste v3 by "); 
+            if ( pSpell->Base[i] < 0 ) strcat(szBuff, " Decrease"); 
+            if ( pSpell->Base[i] > 0 ) strcat(szBuff, " Increase"); 
+            strcat(szBuff, " by "); 
             _itoa(abs(pSpell->Base[i]), szTemp, 10); strcat(szBuff, szTemp); 
             strcat(szBuff, "%"); 
             break; 
         case 120: //Reduce Healing Effectiveness (%) 
-            if (pSpell->Base[i] > 0) strcat(szBuff, "Increase "); 
-            if (pSpell->Base[i] < 0) strcat(szBuff, "Decrease "); 
-            strcat(szBuff, "Healing Effectiveness by "); 
+            if (pSpell->Base[i] > 0) strcat(szBuff, " Increase"); 
+            if (pSpell->Base[i] < 0) strcat(szBuff, " Decrease"); 
+            strcat(szBuff, " by "); 
             _itoa(abs(pSpell->Base[i]), szTemp, 10); strcat(szBuff, szTemp); 
             strcat(szBuff, "%"); 
             break; 
         case 121: //Reverse Damage Shield 
-            sprintf(szTemp, "Reverse Damage Shield (%d)", abs(pSpell->Base[i])); 
+            sprintf(szTemp, " (%d)", abs(pSpell->Base[i])); 
             strcat(szBuff, szTemp); 
             break; 
-        case 123: //Screech 
-            sprintf(szTemp,"Screech(%d)",pSpell->Base[i]); 
+        case 122: //Reduce Skill
+			break;
+        case 123: //Immunity
+            sprintf(szTemp,"(%d)",pSpell->Base[i]); 
             strcat(szBuff,szTemp); 
             break; 
         case 124: //spell damage 
-            if ( pSpell->Base[i] < 0 ) strcat(szBuff, "Decrease "); 
-            if ( pSpell->Base[i] > 0 ) strcat(szBuff, "Increase "); 
-            strcat(szBuff, "Spell Damage by "); 
-            _itoa(abs(pSpell->Base[i]), szTemp, 10); strcat(szBuff, szTemp); 
-            strcat(szBuff, "%"); 
-            break; 
         case 125: //healing 
-            if ( pSpell->Base[i] < 0 ) strcat(szBuff, "Decrease "); 
-            if ( pSpell->Base[i] > 0 ) strcat(szBuff, "Increase "); 
-            strcat(szBuff, "Healing by "); 
+            if ( pSpell->Base[i] < 0 ) strcat(szBuff, " Decrease"); 
+            if ( pSpell->Base[i] > 0 ) strcat(szBuff, " Increase"); 
+            strcat(szBuff, " by "); 
             _itoa(abs(pSpell->Base[i]), szTemp, 10); strcat(szBuff, szTemp); 
             strcat(szBuff, "%"); 
             break; 
         case 126: //spell resist rate 
-            if ( pSpell->Base[i] > 0 ) strcat(szBuff, "Decrease "); 
-            if ( pSpell->Base[i] < 0 ) strcat(szBuff, "Increase "); 
-            sprintf(szTemp, "Spell Resist Rate by %d",abs(pSpell->Base[i])); 
+            if ( pSpell->Base[i] > 0 ) strcat(szBuff, " Decrease"); 
+            if ( pSpell->Base[i] < 0 ) strcat(szBuff, " Increase"); 
+            sprintf(szTemp, " by %d",abs(pSpell->Base[i])); 
             strcat(szBuff,szTemp); 
             strcat(szBuff,"%"); 
             break; 
         case 127: //spell haste 
-            if ( pSpell->Base[i] < 0 ) strcat(szBuff, "Decrease "); 
-            if ( pSpell->Base[i] > 0 ) strcat(szBuff, "Increase "); 
-            strcat(szBuff, "Spell Haste by "); 
-            _itoa(abs(pSpell->Base[i]), szTemp, 10); strcat(szBuff, szTemp); 
-            strcat(szBuff, "%"); 
-            break; 
         case 128: //spell duration 
-            if ( pSpell->Base[i] < 0 ) strcat(szBuff, "Decrease "); 
-            if ( pSpell->Base[i] > 0 ) strcat(szBuff, "Increase "); 
-            strcat(szBuff, "Spell Duration by "); 
-            _itoa(abs(pSpell->Base[i]), szTemp, 10); strcat(szBuff, szTemp); 
-            strcat(szBuff, "%"); 
-            break; 
         case 129: //spell range 
-            if ( pSpell->Base[i] < 0 ) strcat(szBuff, "Decrease "); 
-            if ( pSpell->Base[i] > 0 ) strcat(szBuff, "Increase "); 
-            strcat(szBuff, "Spell Range by "); 
-            _itoa(abs(pSpell->Base[i]), szTemp, 10); strcat(szBuff, szTemp); 
-            strcat(szBuff, "%"); 
-            break; 
         case 130: //spell/bash hate 
-            if ( pSpell->Base[i] < 0 ) strcat(szBuff, "Decrease "); 
-            if ( pSpell->Base[i] > 0 ) strcat(szBuff, "Increase "); 
-            strcat(szBuff, "Spell/Bash Hate by "); 
+            if ( pSpell->Base[i] < 0 ) strcat(szBuff, " Decrease"); 
+            if ( pSpell->Base[i] > 0 ) strcat(szBuff, " Increase"); 
+            strcat(szBuff, " by "); 
             _itoa(abs(pSpell->Base[i]), szTemp, 10); strcat(szBuff, szTemp); 
             strcat(szBuff, "%"); 
             break; 
         case 131: //Decrease Chance of Using Reagent 
-            strcat(szBuff, "Decrease Chance of Using Reagent by "); 
+            strcat(szBuff, " by "); 
             _itoa(abs(pSpell->Base[i]), szTemp, 10); strcat(szBuff, szTemp); 
             strcat(szBuff, "%"); 
             break; 
         case 132: //Spell Mana Cost - signs reversed 
-            if ( pSpell->Base[i] > 0 ) strcat(szBuff, "Decrease "); 
-            if ( pSpell->Base[i] < 0 ) strcat(szBuff, "Increase "); 
-            strcat(szBuff, "Spell Mana Cost by "); 
+        case 133: //Spell Mana Cost - signs reversed 
+            if ( pSpell->Base[i] > 0 ) strcat(szBuff, " Decrease"); 
+            if ( pSpell->Base[i] < 0 ) strcat(szBuff, " Increase"); 
+            strcat(szBuff, " by "); 
             _itoa(abs(pSpell->Base[i]), szTemp, 10); strcat(szBuff, szTemp); 
             strcat(szBuff, "%"); 
             break; 
         case 134: //limit max level 
             if(pSpell->Base2[i]>0) 
             { 
-                sprintf(szTemp, "Limit: Max Level(%d) (lose %d%c per level over cap)", pSpell->Base[i],pSpell->Base2[i],'%'); 
+                sprintf(szTemp, "(%d) (lose %d%c per level over cap)", pSpell->Base[i],pSpell->Base2[i],'%'); 
             } 
             else 
             { 
-                sprintf(szTemp, "Limit: Max Level(%d)", pSpell->Base[i]); 
+                sprintf(szTemp, "(%d)", pSpell->Base[i]); 
             } 
             strcat(szBuff, szTemp); 
             break; 
         case 135: //Limit: Resist 
-            strcat(szBuff, "Limit: Resist "); 
-            switch(pSpell->Base[i]) 
+            strcat(szBuff, " "); 
+            switch(pSpell->Base[i])
             { 
             case 1: strcat(szBuff, "Magic"); break; 
             case 2: strcat(szBuff, "Fire"); break; 
@@ -2101,13 +2027,28 @@ PCHAR ShowSpellSlotInfo(PSPELL pSpell, PCHAR szBuffer)
             if ( pSpell->Base[i] < 0 )  strcat(szBuff, " excluded"); 
             break; 
         case 136: //limit target types this affects 
-            strcat(szBuff, "Limit: Target("); 
+            strcat(szBuff, "("); 
             //sprintf(buf, "$spell(%d,targettype)", pSpell->TargetType); 
             //parmSpell(buf, szTemp, NULL );       // <---- wtf. 
             //strcat(szBuff,szTemp); 
 
             switch(abs(pSpell->Base[i])) 
             { 
+			case 50:  strcat(szBuff,"Target AE No Players Pets"); break; // blanket of forgetfullness. beneficial, AE mem blur, with max targets
+			case 47:  strcat(szBuff,"Pet Owner"); break;
+			case 46:  strcat(szBuff,"Target of Target"); break;
+			case 45:  strcat(szBuff,"Free Target"); break;
+			case 44:  strcat(szBuff,"Beam"); break;
+			case 43:  strcat(szBuff,"Single in Group"); break;
+			case 42:  strcat(szBuff,"Directional AE"); break;
+			case 39:  strcat(szBuff,"No Pets"); break;
+			case 38:  strcat(szBuff,"Pet2"); break;
+			case 37:  strcat(szBuff,"Caster PB NPC"); break;
+			case 36:  strcat(szBuff,"Caster PB PC"); break;
+			case 35:  strcat(szBuff,"Special Muramites"); break;
+			case 34:  strcat(szBuff,"Chest"); break;
+			case 33:  strcat(szBuff,"Hatelist2"); break;
+			case 32:  strcat(szBuff,"Hatelist"); break;
             case 41:  strcat(szBuff,"Group v2"); break; 
             case 40:  strcat(szBuff,"AE PC v2"); break; 
             case 25:  strcat(szBuff,"AE Summoned"); break; 
@@ -2138,14 +2079,14 @@ PCHAR ShowSpellSlotInfo(PSPELL pSpell, PCHAR szBuffer)
             strcat(szBuff, ")"); 
             break; 
         case 137: //limit effect types this affects 
-            strcat(szBuff, "Limit: Effect("); 
-            GetSpellEffectName(pSpell->Base[i],szTemp);       strcat(szBuff,szTemp); 
+            strcat(szBuff, "("); 
+            GetSpellEffectName(pSpell->Base[i],szBuff);
             if ( pSpell->Base[i] > 0 )  strcat(szBuff, " allowed"); 
             if ( pSpell->Base[i] < 0 )  strcat(szBuff, " excluded"); 
             strcat(szBuff, ")"); 
             break; 
         case 138: //limit spelltype this affects 
-            strcat(szBuff, "Limit: SpellType("); 
+            strcat(szBuff, "("); 
             switch(pSpell->Base[i]) 
             { 
             case 0: 
@@ -2165,7 +2106,7 @@ PCHAR ShowSpellSlotInfo(PSPELL pSpell, PCHAR szBuffer)
             strcat(szBuff, ")"); 
             break; 
         case 139: //limit spell this affects 
-            strcat(szBuff, "Limit: Spell("); 
+            strcat(szBuff, "("); 
             // changed this case to work for any future changes by referencing 
             // the spell array for the name 
             strcat(szBuff, GetSpellByID(abs(pSpell->Base[i]))->Name); 
@@ -2174,35 +2115,38 @@ PCHAR ShowSpellSlotInfo(PSPELL pSpell, PCHAR szBuffer)
             strcat(szBuff, ")"); 
             break; 
         case 140: //limit min duration of spells this affects (base= #ticks) 
-            sprintf(szTemp, "Limit: Min Duraction(%d sec)", (pSpell->Base[i] *6)); 
+            sprintf(szTemp, "(%d sec)", (pSpell->Base[i] *6)); 
             strcat(szBuff, szTemp); 
             break; 
         case 141: //limit to instant spells only 
-            strcat(szBuff, "Limit: Instant spells only"); 
+            strcat(szBuff, " spells only"); 
             break; 
         case 142: //Limit: Min Level 
-            sprintf(szTemp, "Limit: Min Level(%d)", pSpell->Base[i]); 
+            sprintf(szTemp, "(%d)", pSpell->Base[i]); 
             strcat(szBuff, szTemp); 
             break; 
         case 143: //limit min casting time of spells this affects (base= seconds in ms) 
-            sprintf(szTemp, "Limit: Min Cast Time(%.1f sec)", (float)(pSpell->Base[i] / 1000)); 
+        case 144: //limit max casting time of spells this affects (base= seconds in ms) 
+            sprintf(szTemp, "(%.1f sec)", (float)(pSpell->Base[i] / 1000)); 
             strcat(szBuff, szTemp); 
             break; 
         case 145: //Teleportv2 
-            sprintf(szTemp, "Teleportv2 to %d, %d, %d in %s facing %s", 
+            sprintf(szTemp, " to %d, %d, %d in %s facing %s", 
                 pSpell->Base[1], pSpell->Base[2], pSpell->Base[3], pSpell->Extra, szHeading[pSpell->Base[4]]); 
             strcat(szBuff, szTemp); 
             break; 
+        case 146: //Resist Electricity
+			break;
         case 147: //Hit Points (75% Max) 
-            if ( pSpell->Base[i] < 0 ) strcat(szBuff, "Decrease "); 
-            if ( pSpell->Base[i] > 0 ) strcat(szBuff, "Increase "); 
-            sprintf(szTemp, "Hitpoints by %d (%dpct max)", pSpell->Max[i], pSpell->Base[i]); 
+            if ( pSpell->Base[i] < 0 ) strcat(szBuff, " Decrease"); 
+            if ( pSpell->Base[i] > 0 ) strcat(szBuff, " Increase"); 
+            sprintf(szTemp, " by %d (%dpct max)", pSpell->Max[i], pSpell->Base[i]); 
             strcat(szBuff, szTemp); 
             break; 
         case 148: //Stacking: Block 
-            sprintf(szTemp, "Stacking: Block new spell if slot %d is effect '", pSpell->Calc[i]-200); 
+            sprintf(szTemp, " new spell if slot %d is effect '", pSpell->Calc[i]-200); 
             strcat(szBuff, szTemp); 
-            GetSpellEffectName(pSpell->Base[i],szTemp);       strcat(szBuff,szTemp); 
+            GetSpellEffectName(pSpell->Base[i],szBuff);
             if ( pSpell->Max[i] > 0) { 
                 strcat(szBuff, "' and < "); 
                 _itoa(abs(pSpell->Max[i]), szTemp, 10); 
@@ -2210,9 +2154,9 @@ PCHAR ShowSpellSlotInfo(PSPELL pSpell, PCHAR szBuffer)
             } 
             break; 
         case 149: //Stacking: Overwrite 
-            sprintf(szTemp, "Stacking: Overwrite existing spell if slot %d is effect '", pSpell->Calc[i]-200); 
+            sprintf(szTemp, " existing spell if slot %d is effect '", pSpell->Calc[i]-200); 
             strcat(szBuff, szTemp); 
-            GetSpellEffectName(pSpell->Base[i],szTemp);       strcat(szBuff,szTemp); 
+            GetSpellEffectName(pSpell->Base[i],szBuff);
             if ( pSpell->Max[i] > 0) { 
                 strcat(szBuff, "' and < "); 
                 _itoa(abs(pSpell->Max[i]), szTemp, 10); 
@@ -2220,11 +2164,11 @@ PCHAR ShowSpellSlotInfo(PSPELL pSpell, PCHAR szBuffer)
             } 
             break; 
         case 150: //Death Save - Restore Full Health 
-            sprintf(szTemp, "Death Save - Restore Full Health"); 
+            sprintf(szTemp, " - Restore Full Health"); 
             strcat(szBuff, szTemp); 
             break; 
         case 151: //Suspended Minion 
-            strcat(szBuff, "Suspended Minion ("); 
+            strcat(szBuff, " ("); 
             switch(pSpell->Base[i]) 
             { 
             case 0: 
@@ -2241,300 +2185,323 @@ PCHAR ShowSpellSlotInfo(PSPELL pSpell, PCHAR szBuffer)
             strcat(szBuff, ")"); 
             break; 
         case 152: //Summon Pets (swarm) 
-            sprintf(szTemp, "Summon Pets: %s x%d for %dsec", pSpell->Extra, pSpell->Base[i], pSpell->Max[i]); 
+            sprintf(szTemp, ": %s x%d for %dsec", pSpell->Extra, pSpell->Base[i], pSpell->Max[i]); 
             strcat(szBuff, szTemp); 
             break; 
         case 153: //Balance Party Health 
-            sprintf(szTemp, "Balance Party Health(%dpct penalty)", pSpell->Base[i]); 
+            sprintf(szTemp, "(%dpct penalty)", pSpell->Base[i]); 
             strcat(szBuff, szTemp); 
             break; 
         case 154: //Remove Detrimental(c) 
-            sprintf(szTemp, "Remove Detrimental(%d)", pSpell->Base[i]); 
+            sprintf(szTemp, "(%d)", pSpell->Base[i]); 
             strcat(szBuff, szTemp); 
             break; 
+        case 155: //PoP Resurrect
         case 156: //Illusion: Target 
-            sprintf(szTemp, "Illusion: Target"); 
-            strcat(szBuff, szTemp); 
             break; 
         case 157: //Spell-Damage Shield 
-            sprintf(szTemp, "Spell-Damage Shield(%d)", pSpell->Base[i]); 
+            sprintf(szTemp, "(%d)", pSpell->Base[i]); 
             strcat(szBuff, szTemp); 
             break; 
         case 158: //Chance to Reflect Spell 
-            if ( pSpell->Base[i] < 0 ) strcat(szBuff, "Decrease "); 
-            if ( pSpell->Base[i] > 0 ) strcat(szBuff, "Increase "); 
-            strcat(szBuff, "Chance to Reflect Spell by "); 
+            if ( pSpell->Base[i] < 0 ) strcat(szBuff, " Decrease"); 
+            if ( pSpell->Base[i] > 0 ) strcat(szBuff, " Increase"); 
+            strcat(szBuff, " Spell by "); 
             _itoa(abs(pSpell->Base[i]), szTemp, 10); strcat(szBuff, szTemp); 
             strcat(szBuff, "%"); 
             break; 
         case 159: //Stats 
-            if ( pSpell->Base[i] < 0 ) strcat(szBuff, "Decrease "); 
-            if ( pSpell->Base[i] > 0 ) strcat(szBuff, "Increase "); 
-            sprintf(szTemp, "Stats by %d", abs(pSpell->Base[i])); 
+            if ( pSpell->Base[i] < 0 ) strcat(szBuff, " Decrease"); 
+            if ( pSpell->Base[i] > 0 ) strcat(szBuff, " Increase"); 
+            sprintf(szTemp, " by %d", abs(pSpell->Base[i])); 
             strcat(szBuff, szTemp); 
             break; 
-        case 160: // Drunk effect 
-            sprintf(szTemp,"Drunk if Alcholol Tolerance is below %d",pSpell->Base[i]); 
+        case 160: //Drunk effect 
+            sprintf(szTemp," if Alcholol Tolerance is above %d",pSpell->Base[i]); 
             strcat(szBuff,szTemp); 
             break; 
         case 161: //Mitigate Spell Damage 
-            sprintf(szTemp, "Mitigate Spell Damage by %dpct until %d absorbed", pSpell->Base[i], pSpell->Max[i]); 
+            sprintf(szTemp, " by %dpct until %d absorbed", pSpell->Base[i], pSpell->Max[i]); 
             strcat(szBuff, szTemp); 
             break; 
         case 162: //Mitigate Melee Damage 
-            sprintf(szTemp, "Mitigate Melee Damage by %dpct until %d absorbed", pSpell->Base[i], pSpell->Max[i]); 
+            sprintf(szTemp, " by %dpct until %d absorbed", pSpell->Base[i], pSpell->Max[i]); 
             strcat(szBuff, szTemp); 
             break; 
         case 163: //Absorb damage 
-            sprintf(szTemp, "Absorb Damage (melee or spell, calc unknown)"); 
+            sprintf(szTemp, " (melee or spell, calc unknown)"); 
             strcat(szBuff, szTemp); 
             break; 
         case 164: //Attempt Sense (Cursed) Trap 
-            sprintf(szTemp, "Attempt Sense (Cursed) Trap(%d,%d)", pSpell->Base[i], pSpell->Max[i]); 
-            strcat(szBuff, szTemp); 
-            break; 
         case 165: //Attempt Disarm (Cursed) Trap 
-            sprintf(szTemp, "Attempt Disarm (Cursed) Trap(%d,%d)", pSpell->Base[i], pSpell->Max[i]); 
-            strcat(szBuff, szTemp); 
-            break; 
         case 166: //Attempt Destroy (Cursed) Lock 
-            sprintf(szTemp, "Attempt Destroy (Cursed) Lock(%d,%d)", pSpell->Base[i], pSpell->Max[i]); 
+            sprintf(szTemp, "(%d,%d)", pSpell->Base[i], pSpell->Max[i]); 
             strcat(szBuff, szTemp); 
             break; 
         case 167: //Increase Pet Power 
-            sprintf(szTemp, "Increase Pet Power(%d)", pSpell->Base[i]); 
+            sprintf(szTemp, "(%d)", pSpell->Base[i]); 
             strcat(szBuff, szTemp); 
             break; 
         case 168: //Mitigation 
-            if ( pSpell->Base[i] < 0 ) strcat(szBuff, "Decrease "); 
-            if ( pSpell->Base[i] > 0 ) strcat(szBuff, "Increase "); 
-            sprintf(szTemp, "Melee Mitigation by %dpct", pSpell->Base[i]); 
+            if ( pSpell->Base[i] < 0 ) strcat(szBuff, " Decrease"); 
+            if ( pSpell->Base[i] > 0 ) strcat(szBuff, " Increase"); 
+            sprintf(szTemp, " by %dpct", pSpell->Base[i]); 
             strcat(szBuff, szTemp); 
             break; 
         case 169: //Chance to Critical Hit 
-            sprintf(szTemp, "Chance to Critical Hit for %s by %d%%", pSpell->Base2[i]>=0?szSkills[pSpell->Base2[i]]:"All Skills",pSpell->Base[i]);
+            sprintf(szTemp, " for %s by %d%%", pSpell->Base2[i]>=0?szSkills[pSpell->Base2[i]]:"All Skills",pSpell->Base[i]);
             strcat(szBuff, szTemp); 
             break; 
         case 170: //Crit Cast, test spell only 
-            sprintf(szTemp, "Chance to Critical Cast (unknown calc)"); 
+            sprintf(szTemp, " (unknown calc)"); 
             strcat(szBuff, szTemp); 
             break; 
         case 171: //Crippling Blow 
-            if ( pSpell->Base[i] < 0 ) strcat(szBuff, "Decrease "); 
-            if ( pSpell->Base[i] > 0 ) strcat(szBuff, "Increase "); 
-            sprintf(szTemp, "Chance to Crippling Blow by %dpct", pSpell->Base[i]); 
-            strcat(szBuff, szTemp); 
-            break; 
         case 172: //Melee Avoidance 
-            if ( pSpell->Base[i] < 0 ) strcat(szBuff, "Decrease "); 
-            if ( pSpell->Base[i] > 0 ) strcat(szBuff, "Increase "); 
-            sprintf(szTemp, "Chance to Avoid Melee by %dpct", pSpell->Base[i]); 
-            strcat(szBuff, szTemp); 
-            break; 
         case 173: //Riposte 
-            if ( pSpell->Base[i] < 0 ) strcat(szBuff, "Decrease "); 
-            if ( pSpell->Base[i] > 0 ) strcat(szBuff, "Increase "); 
-            sprintf(szTemp, "Chance to Riposte by %dpct", pSpell->Base[i]); 
-            strcat(szBuff, szTemp); 
-            break; 
         case 174: //Dodge 
-            if ( pSpell->Base[i] < 0 ) strcat(szBuff, "Decrease "); 
-            if ( pSpell->Base[i] > 0 ) strcat(szBuff, "Increase "); 
-            sprintf(szTemp, "Chance to Dodge by %dpct", pSpell->Base[i]); 
-            strcat(szBuff, szTemp); 
-            break; 
         case 175: //Parry 
-            if ( pSpell->Base[i] < 0 ) strcat(szBuff, "Decrease "); 
-            if ( pSpell->Base[i] > 0 ) strcat(szBuff, "Increase "); 
-            sprintf(szTemp, "Chance to Parry by %dpct", pSpell->Base[i]); 
-            strcat(szBuff, szTemp); 
-            break; 
-        case 176: //Parry 
-            if ( pSpell->Base[i] < 0 ) strcat(szBuff, "Decrease "); 
-            if ( pSpell->Base[i] > 0 ) strcat(szBuff, "Increase "); 
-            sprintf(szTemp, "Dual Wield by %dpct", pSpell->Base[i]); 
-            strcat(szBuff, szTemp); 
-            break; 
+        case 176: //Dual Wield 
         case 177: //Stat Cap Mod (how do they know which?) 
-            sprintf(szTemp, "Increase Double Attack by %dpct", pSpell->Base[i]); 
+            if ( pSpell->Base[i] < 0 ) strcat(szBuff, " Decrease"); 
+            if ( pSpell->Base[i] > 0 ) strcat(szBuff, " Increase"); 
+            sprintf(szTemp, " by %dpct", pSpell->Base[i]); 
             strcat(szBuff, szTemp); 
             break; 
         case 178: //Lifetap Proc 
-            sprintf(szTemp, "Lifetap from Weapon Damage (%d)", pSpell->Base[i]); 
+            sprintf(szTemp, " (%d)", pSpell->Base[i]); 
             strcat(szBuff, szTemp); 
             break; 
         case 179: //Puretone 
-            sprintf(szTemp, "Instrument Modifier (%d)", pSpell->Base[i]); 
+            sprintf(szTemp, " (%d)", pSpell->Base[i]); 
             strcat(szBuff, szTemp); 
             break; 
         case 180: //Spell Resist 
-            if ( pSpell->Base[i] < 0 ) strcat(szBuff, "Decrease "); 
-            if ( pSpell->Base[i] > 0 ) strcat(szBuff, "Increase "); 
-            sprintf(szTemp, "Chance to Resist Spells by %dpct", pSpell->Base[i]); 
+            if ( pSpell->Base[i] < 0 ) strcat(szBuff, " Decrease"); 
+            if ( pSpell->Base[i] > 0 ) strcat(szBuff, " Increase"); 
+            sprintf(szTemp, " by %dpct", pSpell->Base[i]); 
             strcat(szBuff, szTemp); 
             break; 
         case 181: //Fearless 
-            sprintf(szTemp, "Increase Chance to Resist Fear Spell by %dpct", pSpell->Base[i]); 
+            sprintf(szTemp, " by %dpct", pSpell->Base[i]); 
             strcat(szBuff, szTemp); 
             break; 
         case 182: //Hundred Hands 
-            sprintf(szTemp, "Hundred Hands Effect"); 
-            strcat(szBuff, szTemp); 
             break; 
         case 183: //Melee Fury 
-            sprintf(szTemp, "Increase Melee Skill Check by %dpct", pSpell->Base[i]); 
+            sprintf(szTemp, " by %dpct", pSpell->Base[i]); 
             strcat(szBuff, szTemp); 
             break; 
         case 184: //Chance to hit with Backstab (or throwing/archery [http://lucy.allakhazam.com/spellraw.html?id=9616&source=Live])
-            sprintf(szTemp, "Increase Chance to Hit by %dpct with %s", pSpell->Base[i], pSpell->Base2[i]>=0?szSkills[pSpell->Base2[i]]:"All Skills");
+            sprintf(szTemp, " by %dpct with %s", pSpell->Base[i], pSpell->Base2[i]>=0?szSkills[pSpell->Base2[i]]:"All Skills");
             strcat(szBuff, szTemp); 
             break; 
         case 185: //Damage Mod (how to tell which, rogues get a backstab only, others get an all skills) 
-            if ( pSpell->Base[i] < 0 ) strcat(szBuff, "Decrease "); 
-            if ( pSpell->Base[i] > 0 ) strcat(szBuff, "Increase "); 
-            sprintf(szTemp, "All Skills Damage Modifier by %d%%", pSpell->Base[i]); 
+            if ( pSpell->Base[i] < 0 ) strcat(szBuff, " Decrease"); 
+            if ( pSpell->Base[i] > 0 ) strcat(szBuff, " Increase"); 
+            sprintf(szTemp, " by %d%%", pSpell->Base[i]); 
             strcat(szBuff, szTemp); 
             break; 
         case 186: //Damage Mod (see above) 
-            if ( pSpell->Base[i] < 0 ) strcat(szBuff, "Decrease "); 
-            if ( pSpell->Base[i] > 0 ) strcat(szBuff, "Increase "); 
-            sprintf(szTemp, "All Skills Minimum Damage Modifier by %d%%", pSpell->Base[i]); 
+            if ( pSpell->Base[i] < 0 ) strcat(szBuff, " Decrease"); 
+            if ( pSpell->Base[i] > 0 ) strcat(szBuff, " Increase"); 
+            sprintf(szTemp, " by %d%%", pSpell->Base[i]); 
             strcat(szBuff, szTemp); 
             break; 
+        case 187: //Mana Balance
+			sprintf(szTemp, "(%dpct penalty)", pSpell->Base[i]); 
+            strcat(szBuff, szTemp); 
         case 188: //Block 
-            if ( pSpell->Base[i] < 0 ) strcat(szBuff, "Decrease "); 
-            if ( pSpell->Base[i] > 0 ) strcat(szBuff, "Increase "); 
-            sprintf(szTemp, "Chance to block by %dpct", pSpell->Base[i]); 
+            if ( pSpell->Base[i] < 0 ) strcat(szBuff, " Decrease"); 
+            if ( pSpell->Base[i] > 0 ) strcat(szBuff, " Increase"); 
+            sprintf(szTemp, " by %dpct", pSpell->Base[i]); 
             strcat(szBuff, szTemp); 
             break; 
         case 189: //Endurance DoT/Regen 
-            if ( pSpell->Base[i] < 0 ) strcat(szBuff, "Decrease "); 
-            if ( pSpell->Base[i] > 0 ) strcat(szBuff, "Increase "); 
-            sprintf(szTemp, "Endurance by %d per tick", pSpell->Base[i]); 
+            if ( pSpell->Base[i] < 0 ) strcat(szBuff, " Decrease"); 
+            if ( pSpell->Base[i] > 0 ) strcat(szBuff, " Increase"); 
+            sprintf(szTemp, " by %d per tick", pSpell->Base[i]); 
             strcat(szBuff, szTemp); 
             break; 
         case 190: // Endurance pool 
-            if ( pSpell->Base[i] < 0 ) strcat(szBuff, "Decrease "); 
-            if ( pSpell->Base[i] > 0 ) strcat(szBuff, "Increase "); 
-            sprintf(szTemp,"Endurance Pool by %d",abs(pSpell->Base[i])); 
+            if ( pSpell->Base[i] < 0 ) strcat(szBuff, " Decrease"); 
+            if ( pSpell->Base[i] > 0 ) strcat(szBuff, " Increase"); 
+            sprintf(szTemp," by %d",abs(pSpell->Base[i])); 
             strcat(szBuff,szTemp); 
             break; 
+        case 191: //Amnesia
+			break;
         case 192: //Discord Hate 
-            if ( pSpell->Base[i] < 0 ) strcat(szBuff, "Decrease "); 
-            if ( pSpell->Base[i] > 0 ) strcat(szBuff, "Increase "); 
-            sprintf(szTemp, "Hate by %dpct", pSpell->Base[i]); 
+            if ( pSpell->Base[i] < 0 ) strcat(szBuff, " Decrease"); 
+            if ( pSpell->Base[i] > 0 ) strcat(szBuff, " Increase"); 
+            sprintf(szTemp, " by %dpct", pSpell->Base[i]); 
             strcat(szBuff, szTemp); 
             break; 
         case 193: //Skill Attack 
-            sprintf(szTemp, "Skill Attack (%d)", pSpell->Base[i]); 
+            sprintf(szTemp, " (%d)", pSpell->Base[i]); 
             strcat(szBuff, szTemp); 
             break; 
         case 194: //Fade 
-            sprintf(szTemp, "Fade Memories"); 
-            strcat(szBuff, szTemp); 
             break; 
         case 195: //Stun Resist 
-            sprintf(szTemp, "Stun Resist (%d)", pSpell->Base[i]); 
+            sprintf(szTemp, " (%d)", pSpell->Base[i]); 
             strcat(szBuff, szTemp); 
             break; 
         case 196: //Strikethrough 
-            sprintf(szTemp, "Strikethrough (%d)", pSpell->Base[i]); 
+            sprintf(szTemp, " (%d)", pSpell->Base[i]); 
             strcat(szBuff, szTemp); 
             break; 
         case 197: //Skill Damage 
-            sprintf(szTemp, "Skill Damage Taken (%d)", pSpell->Base[i]); 
+            sprintf(szTemp, " (%d)", pSpell->Base[i]); 
             strcat(szBuff, szTemp); 
             break; 
         case 198: //Endurance Heals 
-            if ( pSpell->Base[i] < 0 ) strcat(szBuff, "Decrease "); 
-            if ( pSpell->Base[i] > 0 ) strcat(szBuff, "Increase "); 
-            sprintf(szTemp, "Endurance by %d", pSpell->Base[i]); 
+            if ( pSpell->Base[i] < 0 ) strcat(szBuff, " Decrease"); 
+            if ( pSpell->Base[i] > 0 ) strcat(szBuff, " Increase"); 
+            sprintf(szTemp, " by %d", pSpell->Base[i]); 
             strcat(szBuff, szTemp); 
             break; 
+        case 199: //Taunt
+			break;
         case 200: //Proc Mod 
-            sprintf(szTemp, "Increase Proc Modifier by %dpct", pSpell->Base[i]); 
+            sprintf(szTemp, " by %dpct", pSpell->Base[i]); 
             strcat(szBuff, szTemp); 
             break; 
         case 201: //Ranged Proc 
-            sprintf(szTemp, "Ranged Proc (%d)", pSpell->Base[i]); 
+            sprintf(szTemp, " (%d)", pSpell->Base[i]); 
             strcat(szBuff, szTemp); 
             break; 
         case 202: //Illusion 
-            sprintf(szTemp, "Illusion Other"); 
-            strcat(szBuff, szTemp); 
-            break; 
-        case 203: //Illusion 
-            sprintf(szTemp, "Mass Group Buff"); 
-            strcat(szBuff, szTemp); 
+        case 203: //Mass Group Buff
             break; 
         case 204: //War Cry 
-            sprintf(szTemp, "Group Fear Immunity (%d0.00 sec)", pSpell->Base[i]); 
+            sprintf(szTemp, " (%d0.00 sec)", pSpell->Base[i]); 
             strcat(szBuff, szTemp); 
             break; 
         case 205: //Rampage 
-            sprintf(szTemp, "Rampage"); 
-            strcat(szBuff, szTemp); 
-            break; 
         case 206: //AE Taunt 
-            sprintf(szTemp, "AE Taunt"); 
-            strcat(szBuff, szTemp); 
-            break; 
-        case 207: //AE Taunt 
-            sprintf(szTemp, "Flesh to Bone"); 
-            strcat(szBuff, szTemp); 
+        case 207: //Flesh to Bone 
             break; 
         case 209: // Disspell beneficial buffs 
-            sprintf(szTemp,"Cancel Magic - Benefical Only(%d)",pSpell->Base[i]); 
+            sprintf(szTemp," (%d)",pSpell->Base[i]); 
             strcat(szBuff,szTemp); 
             break; 
         case 210: //Pet Shield 
-            sprintf(szTemp, "Pet Shield (%d.00 sec)", (12*(pSpell->Base[i]))); 
+            sprintf(szTemp, " (%d.00 sec)", (12*(pSpell->Base[i]))); 
             strcat(szBuff, szTemp); 
             break; 
         case 211: //AE Melee 
-            sprintf(szTemp, "AE Melee (%d)", pSpell->Base[i]); 
+            sprintf(szTemp, " (%d)", pSpell->Base[i]); 
             strcat(szBuff, szTemp); 
             break; 
         case 212: //Frenzied Devastation 
-            sprintf(szTemp, "Frenzied Devastation (%d0.00 sec)", pSpell->Base[i]); 
+            sprintf(szTemp, " (%d0.00 sec)", pSpell->Base[i]); 
             strcat(szBuff, szTemp); 
             break; 
-        case 214: //Plague 
-            sprintf(szTemp, "Max HP change by (%d)", ((pSpell->Base[i])/100)); 
+        case 213://Pet HP
+			if ( pSpell->Base[i] < 0 ) strcat(szBuff, " Decrease"); 
+            if ( pSpell->Base[i] > 0 ) strcat(szBuff, " Increase"); 
+            sprintf(szTemp, " by %dpct", pSpell->Base[i]); 
+            strcat(szBuff, szTemp);
+            break; 
+        case 214: //Change Max HP
+            sprintf(szTemp, " by (%d)", ((pSpell->Base[i])/100)); 
             strcat(szBuff, szTemp); 
             break; 
+        case 215: //Pet Avoidance
         case 216: //Accuracy 
-            if ( pSpell->Base[i] < 0 ) strcat(szBuff, "Decrease "); 
-            if ( pSpell->Base[i] > 0 ) strcat(szBuff, "Increase "); 
-            sprintf(szTemp, "Accuracy by %dpct", pSpell->Base[i]); 
+        case 217: //Headshot 
+        case 218: //Pet Crit Melee 
+            if ( pSpell->Base[i] < 0 ) strcat(szBuff, " Decrease"); 
+            if ( pSpell->Base[i] > 0 ) strcat(szBuff, " Increase"); 
+            sprintf(szTemp, " by %dpct", pSpell->Base[i]); 
             strcat(szBuff, szTemp); 
             break; 
-        case 219: // Slay undead (Holyforge) 
-            sprintf(szTemp,"Slay Undead(%d)",pSpell->Base[i]); 
+        case 219: //Slay undead (Holyforge) 
+            sprintf(szTemp," (%d)",pSpell->Base[i]); 
             strcat(szBuff,szTemp); 
             break; 
-        case 227: //Skill Timer 
-            sprintf(szTemp, "Reduce Skill Timer(%d)", pSpell->Base[i]); 
+        case 220: //Skill Damage Amt 
+        case 221: //Reduce Weight
+        case 222: //Block Behind 
+        case 223: //Double Riposte 
+        case 224: //AddRiposte
+        case 225: //Give Dbl Atk 
+        case 226: //2h bash 
+			if ( pSpell->Base[i] < 0 ) strcat(szBuff, " Decrease"); 
+            if ( pSpell->Base[i] > 0 ) strcat(szBuff, " Increase"); 
+            sprintf(szTemp, " by %dpct", pSpell->Base[i]); 
+            strcat(szBuff, szTemp); 
+            break; 
+        case 227: //Reduce Skill Timer
+        case 228: //Reduce Fall Dmg 
+        case 229: //Cast Through Stun 
+        case 230: //Increase Shield Dist
+            sprintf(szTemp, " (%d)", pSpell->Base[i]); 
+            strcat(szBuff, szTemp); 
+            break; 
+        case 231: //Stun Bash Chance
+			if ( pSpell->Base[i] < 0 ) strcat(szBuff, " Decrease"); 
+            if ( pSpell->Base[i] > 0 ) strcat(szBuff, " Increase"); 
+            sprintf(szTemp, " by %dpct", pSpell->Base[i]); 
             strcat(szBuff, szTemp); 
             break; 
         case 232: //Divine Rez 
-            sprintf(szTemp, "Divine Save (%d)", pSpell->Base[i]); 
+            sprintf(szTemp, " (%d)", pSpell->Base[i]); 
             strcat(szBuff, szTemp); 
-            break; 
+            break;
+		case 233: //Metabolism
+        case 234: //Poison Mastery
+        case 235: //Focus Channelling
+        case 236: //Free Pet
+        case 237: //Pet Affinity
+        case 238: //Permanent Illusion
+        case 239: //Stonewall
+        case 240: //String Unbreakable
+        case 241: //Improve Reclaim Energy
+        case 242: //Increase Chance Memwipe
+        case 243: //NoBreak Charm Chance
+        case 244: //Root Break Chance
+        case 245: //Trap Circumvention
+        case 246: //Lung Capacity
+        case 247: //Increase SkillCap
+        case 248: //Extra Specialization
+        case 249: //Offhand Min
+        case 250: //Spell Proc Chance
+        case 251: //Endless Quiver
+        case 252: //Backstab Front
+        case 253: //Chaotic Stab
+			sprintf(szTemp, " (%d) (Please Check)", pSpell->Base[i]); 
+            strcat(szBuff, szTemp); 
+			break;
         case 254: //placeholder of some kind 
             bSlotIsPH=true; 
-            break; 
+            break;
+		case 255: //Shielding Duration Mod
+		case 256: //Shroud Of Stealth
+		case 257: //Give Pet Hold
+			sprintf(szTemp, " (%d) (Please Check)", pSpell->Base[i]); 
+            strcat(szBuff, szTemp); 
+			break;
         case 258: //Triple Backstab 
-            sprintf(szTemp, "Triple Backstab (%d)", pSpell->Base[i]); 
+            sprintf(szTemp, " (%d)", pSpell->Base[i]); 
             strcat(szBuff, szTemp); 
             break; 
+        case 259: //AC Limit Mod
+			sprintf(szTemp, " (%d) (Please Check)", pSpell->Base[i]); 
+            strcat(szBuff, szTemp); 
+			break;
         case 260: //test puretone 
-            sprintf(szTemp, "Add Instrument Modifier(%d)", pSpell->Base[i]); 
+            sprintf(szTemp, " (%d)", pSpell->Base[i]); 
             strcat(szBuff, szTemp); 
             break; 
-        case 262: 
-            if ( pSpell->Base[i] < 0 ) strcat(szBuff, "Decrease "); 
-            if ( pSpell->Base[i] > 0 ) strcat(szBuff, "Increase "); 
+		case 261: //Song Mod Cap
+			sprintf(szTemp, " (%d) (Please Check)", pSpell->Base[i]); 
+            strcat(szBuff, szTemp); 
+			break;
+        case 262: //Stats Cap
+            if ( pSpell->Base[i] < 0 ) strcat(szBuff, " Decrease"); 
+            if ( pSpell->Base[i] > 0 ) strcat(szBuff, " Increase"); 
 
             switch (pSpell->Base2[i]) { 
             case 0:   strcat (szBuff, "STR");   break; 
@@ -2548,171 +2515,337 @@ PCHAR ShowSpellSlotInfo(PSPELL pSpell, PCHAR szBuffer)
                 sprintf (szTemp, "UnknownStat(%d)", pSpell->Base2[i]); 
                 strcat (szBuff, szTemp); 
             } 
-            sprintf(szTemp, " Cap by %d", abs(pSpell->Base[i])); 
+            sprintf(szTemp, " by %d", abs(pSpell->Base[i])); 
             strcat(szBuff, szTemp); 
             break; 
+        case 263: //Tradeskill Masteries
+        case 264: //Reduce AATimer
+        case 265: //No Fizzle
+			sprintf(szTemp, " (%d) (Please Check)", pSpell->Base[i]); 
+            strcat(szBuff, szTemp); 
+			break;
         case 266: //Attack Chance 
-            sprintf(szTemp, "Add Attack Chance(%d)", pSpell->Base[i]); 
+            sprintf(szTemp, " (%d)", pSpell->Base[i]); 
             strcat(szBuff, szTemp); 
-            break; 
+            break;
+		case 267: //Add Pet Commands
+        case 268: //Alc Fail Rate
+        case 269: //Bandage Perc Limit
+        case 270: //Bard Song Range
+        case 271: //BaseRunMod
+        case 272: //CastingLevel
+			sprintf(szTemp, " (%d) (Please Check)", pSpell->Base[i]); 
+            strcat(szBuff, szTemp); 
+			break;
         case 273: //DoT Crit 
-            sprintf(szTemp, "Critical DoT (%d)", pSpell->Base[i]); 
+            sprintf(szTemp, " (%d)", pSpell->Base[i]); 
             strcat(szBuff, szTemp); 
             break; 
         case 274: //Heal Crit 
-            sprintf(szTemp, "Critical Heal (%d)", pSpell->Base[i]); 
+            sprintf(szTemp, " (%d)", pSpell->Base[i]); 
             strcat(szBuff, szTemp); 
-            break; 
+            break;
+		case 275: //Critical Mend
+        case 276: //Dual Wield Amt
+        case 277: //Extra DI Chance
+        case 278: //Finishing Blow
+			sprintf(szTemp, " (%d) (Please Check)", pSpell->Base[i]); 
+            strcat(szBuff, szTemp); 
+			break;
         case 279: //Flurry 
-            sprintf(szTemp, "Flurry Chance (%d)", pSpell->Base[i]); 
+            sprintf(szTemp, " (%d)", pSpell->Base[i]); 
             strcat(szBuff, szTemp); 
-            break; 
-        case 286: // Additional Damage to Spell 
-            sprintf(szTemp, "Additional Damage to Spell(%d)", pSpell->Base[i]); 
+            break;
+		case 280: //Pet Flurry Chance
+        case 281: //Give Pet Feign
+        case 282: //Increase Bandage Amt
+        case 283: //Special Attack Chain
+        case 284: //LoH Set Heal
+        case 285: //NoMove Check Sneak
+			sprintf(szTemp, " (%d) (Please Check)", pSpell->Base[i]); 
+            strcat(szBuff, szTemp); 
+			break;
+        case 286: //Additional Damage to Spell 
+            sprintf(szTemp, " (%d)", pSpell->Base[i]); 
+            strcat(szBuff,szTemp); 
+            break;
+		case 287: //Fc_DurationMod (static)
+        case 288: //Add Proc Hit
+			sprintf(szTemp, " (%d) (Please Check)", pSpell->Base[i]); 
+            strcat(szBuff, szTemp); 
+			break;
+        case 289: //Improved Spell Effect 
+            sprintf(szTemp,": %s",GetSpellByID(pSpell->Base[i])->Name); 
             strcat(szBuff,szTemp); 
             break; 
-        case 289: // Improved Spell Effect 
-            sprintf(szTemp,"Improved Spell Effect: %s",GetSpellByID(pSpell->Base[i])->Name); 
-            strcat(szBuff,szTemp); 
-            break; 
-        case 291: //Purifacation 
-            sprintf(szTemp, "Purify (%d)", pSpell->Base[i]); 
+        case 290://Increase Movement Cap
+			sprintf(szTemp, " (%d) (Please Check)", pSpell->Base[i]); 
+            strcat(szBuff, szTemp); 
+			break;
+		case 291: //Purify
+            sprintf(szTemp, " (%d)", pSpell->Base[i]); 
             strcat(szBuff, szTemp); 
             break; 
-        case 294: //DD Crit 
-            sprintf(szTemp, "Spell Crit Chance (%d)", pSpell->Base[i]); 
+		case 292: //Strikethrough2
+        case 293: //StunResist2
+			sprintf(szTemp, " (%d) (Please Check)", pSpell->Base[i]); 
+            strcat(szBuff, szTemp); 
+			break;
+        case 294: //Spell Crit Chance
+            sprintf(szTemp, " (%d)", pSpell->Base[i]); 
             strcat(szBuff, szTemp); 
             break; 
+        case 295: //Reduce Timer Special
+			sprintf(szTemp, " (%d) (Please Check)", pSpell->Base[i]); 
+            strcat(szBuff, szTemp); 
+			break;
         case 296: //Blight 
-            sprintf(szTemp, "Increase Incoming Spell Damage by %dpct", pSpell->Base[i]); 
+            sprintf(szTemp, " by %dpct", pSpell->Base[i]); 
             strcat(szBuff, szTemp); 
             break; 
-        case 297: //Empathy 
-            sprintf(szTemp, "Empathy"); 
+        case 297: //Fc_Damage_Amt_Incoming 
+            sprintf(szTemp, " (%d) (Empathy? Please Check)", pSpell->Base[i]); 
             strcat(szBuff, szTemp); 
-            break; 
+			break;
         case 298: //Tiny Companion 
-            sprintf(szTemp, "Decrease Height by %dpct", pSpell->Base[i]); 
+            sprintf(szTemp, " by %dpct", pSpell->Base[i]); 
             strcat(szBuff, szTemp); 
             break; 
         case 299: //Wake the Dead 
-            sprintf(szTemp, "Wake the Dead (%d)", pSpell->Base[i]); 
+            sprintf(szTemp, " (%d)  (Please Check)", pSpell->Base[i]); 
             strcat(szBuff, szTemp); 
             break; 
         case 300: //Doppleganger 
-            sprintf(szTemp, "Doppleganger"); 
-            strcat(szBuff, szTemp); 
-            break; 
+        case 301: //Increase Range Damage
+        case 302: //Fc_Damage % Crit
+        case 303: //Fc_Damage Amt Crit
+        case 304: //Secondary Riposte Mod
+        case 305: //Mitigate Damage Shield
         case 306: //Army of Dead 
-            sprintf(szTemp, "Wake the Dead 2 (%d)", pSpell->Base[i]); 
-            strcat(szBuff, szTemp); 
-            break; 
+        case 307: //Army of Dead 
         case 308: //Suspend minion 
-            sprintf(szTemp, "Zone Suspend minion"); 
-            strcat(szBuff, szTemp); 
-            break; 
         case 309: //Teleport Bind 
-            sprintf(szTemp, "Gate to Casters Bindpoint"); 
+            sprintf(szTemp, " (%d) (Please Check)", pSpell->Base[i]); 
             strcat(szBuff, szTemp); 
             break; 
         case 310: //Reuse Timer 
-            sprintf(szTemp, "Decrease Reuse Timer by %d.00 sec", ((pSpell->Base[i])/1000)); 
+            sprintf(szTemp, " by %d.00 sec", ((pSpell->Base[i])/1000)); 
             strcat(szBuff, szTemp); 
             break; 
         case 311: //No Combat Skills 
-            sprintf(szTemp, "Limit: Combat Skills Not Allowed"); 
-            strcat(szBuff, szTemp); 
-            break; 
         case 312: //Sanc 
-            sprintf(szTemp, "Observer (%d)", pSpell->Base[i]); 
-            strcat(szBuff, szTemp); 
-            break; 
-        case 314: //Invis 
-            sprintf(szTemp, "Set Duration Invis"); 
-            strcat(szBuff, szTemp); 
-            break; 
-        case 315: //Invis2undead 
-            sprintf(szTemp, "Set Duration Invis to Undead"); 
-            strcat(szBuff, szTemp); 
-            break; 
+        case 313: //Forage Master
+        case 314: //Improved Invis
+        case 315: //Improved Invis Undead
+        case 316: //Improved Invis Animals
+        case 317: //Worn Regen Cap
+        case 318: //Worn Mana Cap
+        case 319: //Critical HP Regen
+        case 320: //Shield Block Chance
         case 321: //Soothing 
-            sprintf(szTemp, "Reduce Target Hate (%d)", pSpell->Base[i]); 
+            sprintf(szTemp, " (%d) (Please Check)", pSpell->Base[i]); 
             strcat(szBuff, szTemp); 
-            break; 
+			break;
         case 322: //Origin 
-            sprintf(szTemp, "Gate to Starting City"); 
-            strcat(szBuff, szTemp); 
             break; 
         case 323: //Add Defensive Proc 
-            sprintf(szTemp,"Add Defensive Proc: %s", GetSpellNameByID(pSpell->Base[i])); 
+            sprintf(szTemp,": %s", GetSpellNameByID(pSpell->Base[i])); 
             strcat(szBuff, szTemp); 
             break; 
-        case 324: //Spirit Channel 
-            sprintf(szTemp, "Hp to Mana (%d)", pSpell->Base[i]); 
-            strcat(szBuff, szTemp); 
-            break; 
+        case 324: //Spirit Channel
+		case 325: //No Break AE Sneak
+        case 326: //Spell Slots
+        case 327: //Buff Slots
+        case 328: //Negative HP Limit
         case 329: //Mind over Matter 
-            sprintf(szTemp, "Mana Absorb percent Damage (%d)", pSpell->Base[i]); 
-            strcat(szBuff, szTemp); 
-            break; 
         case 330: //Crit Damage 
-            sprintf(szTemp, "Critical Damage Mob(%d)", pSpell->Base[i]); 
+        case 331: //Alchemy Item Recovery
+            sprintf(szTemp, " (%d) (Please Check)", pSpell->Base[i]); 
             strcat(szBuff, szTemp); 
             break; 
         case 332: //Call of the Wild 
-            sprintf(szTemp, "Summon to Corpse"); 
-            strcat(szBuff, szTemp); 
             break; 
         case 333: //Trigger on fade 
-            sprintf(szTemp,"Trigger Effect: %s on Fade",GetSpellByID(pSpell->Base[i])->Name); 
+            sprintf(szTemp,": %s on Fade",GetSpellByID(pSpell->Base[i])->Name); 
             strcat(szBuff,szTemp); 
             break; 
         case 334: //Song DoT 
-            sprintf(szTemp, "Decrease Hitpoints by %d (L%d) to %d(L%d)", (pSpell->Max[i] + pSpell->Base[i]), pSpell->Level[8], pSpell->Max[i],MAX_PC_LEVEL); 
+            sprintf(szTemp, " Decrease Hitpoints by %d (L%d) to %d(L%d)", (pSpell->Max[i] + pSpell->Base[i]), pSpell->Level[8], pSpell->Max[i],MAX_PC_LEVEL); 
             strcat(szBuff, szTemp); 
             break;
-        case 337: //Experience buff 
-            sprintf(szTemp, "Increase experience rate by %d percent.",pSpell->Base[i]); 
+		case 335: //Fc_Immunity Focus
+		case 336: //Illusionary Target
+			sprintf(szTemp, " (%d) (Please Check)", pSpell->Base[i]); 
             strcat(szBuff, szTemp); 
             break; 
+		case 337: //Experience buff 
+            sprintf(szTemp, " by %d percent.",pSpell->Base[i]); 
+            strcat(szBuff, szTemp); 
+            break; 
+        case 338: //Expedient Recovery
+			break;
         case 339: //Cast DoT as well 
-            sprintf(szTemp, "Cast DoT as Well(%d%% Chance, Spell: %s)", pSpell->Base[i], GetSpellNameByID(pSpell->Base2[i])); 
+            sprintf(szTemp, "(%d%% Chance, Spell: %s)", pSpell->Base[i], GetSpellNameByID(pSpell->Base2[i])); 
             strcat(szBuff, szTemp); 
             break; 
         case 340: //Cast DD as well 
-            sprintf(szTemp, "Cast DD as Well(%d%% Chance, Spell: %s)", pSpell->Base[i], GetSpellNameByID(pSpell->Base2[i])); 
+            sprintf(szTemp, "(%d%% Chance, Spell: %s)", pSpell->Base[i], GetSpellNameByID(pSpell->Base2[i])); 
             strcat(szBuff, szTemp); 
             break; 
-        case 360: // Killshot Triggers 
+        case 341: //Worn Attack Cap
+        case 342: //No Panic
+        case 343: //Spell Interrupt
+        case 344: //Item Channeling
+        case 345: //Assassinate Max
+        case 346: //Headshot Max
+        case 347: //Double Ranged Attack
+        case 348: //Ff_Mana Min
+        case 349: //Increase Damage With Shield
+        case 350: //Manaburn
+        case 351: //Spawn Interactive Object
+        case 352: //Increase Trap Count
+        case 353: //Increase SOI Count
+        case 354: //Deactivate All Traps
+        case 355: //Learn Trap
+        case 356: //Change Trigger Type
+        case 357: //Fc_Mute
+        case 358: //Instant Mana
+        case 359: //Passive Sense Trap
+			sprintf(szTemp, " (%d) (Please Check)", pSpell->Base[i]); 
+            strcat(szBuff, szTemp); 
+            break; 
+		case 360: //Killshot Triggers 
             if (pSpell->Base2[i]) sprintf(szTemp,"Chance to Trigger on Non-Trivial Killshot: %s", GetSpellByID(pSpell->Base2[i])->Name); 
             strcat(szBuff,szTemp); 
             break; 
-        case 365: // Chance to Create EE on killshot 
-            sprintf(szTemp, "Chance to Create Essence Emerald on Non-Trivial Killshot"); 
-            strcat(szBuff,szTemp); 
-            break; 
-        case 367: // Change Body Type 
-            sprintf(szTemp, "Change Body Type to "); 
+		case 361: //Proc On Death
+        case 362: //Potion Belt
+        case 363: //Bandolier
+        case 364: //AddTripleAttackChance
+		case 365: //Chance to Create EE on killshot 
+		case 366: //Group Shielding
+			sprintf(szTemp, " (%d) (Please Check)", pSpell->Base[i]); 
+            strcat(szBuff, szTemp); 
+            break;
+        case 367: //Change Body Type 
+            sprintf(szTemp, " to "); 
             if (pSpell->Base[i]==25) strcat(szTemp, "Plant"); 
             else if (pSpell->Base[i]==21) strcat(szTemp, "Animal"); 
             else strcat(szTemp, "Unknown"); 
             strcat(szBuff,szTemp); 
             break;
-        case 369: // Corruption Counters 
-            if (pSpell->Base[i] < 0) strcat(szBuff, "Decrease "); 
-            if (pSpell->Base[i] > 0) strcat(szBuff, "Increase "); 
-            strcat(szBuff," Corruption Counter by "); 
+		case 368: //Modify Faction
+			sprintf(szTemp, " (%d) (Please Check)", pSpell->Base[i]); 
+            strcat(szBuff, szTemp); 
+            break;
+        case 369: //Corruption Counters 
+            if (pSpell->Base[i] < 0) strcat(szBuff, " Decrease"); 
+            if (pSpell->Base[i] > 0) strcat(szBuff, " Increase"); 
+            strcat(szBuff," by "); 
             SlotValueCalculate(szBuff, pSpell, i, 1); 
             break; 
-        case 370: // Corruption Resists 
-            if ( pSpell->Base[i] < 0 ) strcat(szBuff, "Decrease "); 
-            if ( pSpell->Base[i] > 0 ) strcat(szBuff, "Increase "); 
-            strcat(szBuff, "Corruption Resist by "); 
+        case 370: //Corruption Resists 
+            if ( pSpell->Base[i] < 0 ) strcat(szBuff, " Decrease"); 
+            if ( pSpell->Base[i] > 0 ) strcat(szBuff, " Increase"); 
+            strcat(szBuff, " by "); 
             SlotValueCalculate(szBuff, pSpell, i , 1); 
             break; 
-        case 374:
-            sprintf(szTemp, "Skeleton illusion");
-            strcat(szBuff,szTemp);
+        case 371: //Slow
+        case 372: //Grant Foraging
+        case 373: //Doom Always
+			sprintf(szTemp, " (%d) (Please Check)", pSpell->Base[i]); 
+            strcat(szBuff, szTemp);
+            break;
+		case 374:
+			sprintf(szTemp, ": Spell: %s", GetSpellNameByID(pSpell->Base2[i])); 
+            strcat(szBuff, szTemp);
+			break;
+		case 375: //Critical DoT Damage Mod
+        case 376: //Fling
+        case 377: //Doom Entity
+        case 378: //Resist Other SPA
+        case 379: //Directional Shadowstep
+        case 380: //Knockback Explosive
+        case 381: //Fling to Self
+        case 382: //Suppression
+        case 383: //Fc_CastProcNormalized
+        case 384: //Fling to Target
+        case 385: //Ff_WhichSpellGroup
+        case 386: //Doom Dispeller
+        case 387: //Doom Dispellee
+        case 388: //Summon All Corpses
+        case 389: //Fc_Timer Refresh
+        case 390: //Fc_Timer Lockout
+        case 391: //Ff_Mana Max
+        case 392: //Fc_Heal Amt
+        case 393: //Fc_Heal % Incoming
+        case 394: //Fc_Heal Amt Incoming
+        case 395: //Fc_Heal % Crit
+        case 396: //Fc_Heal Amt Crit
+        case 397: //Pet Amt Mitigation
+        case 398: //Fc_Swarm Pet Duration
+        case 399: //Fc_Twincast
+        case 400: //Healburn
+        case 401: //Mana Ignite
+        case 402: //Endurance Ignite
+        case 403: //Ff_SpellClass
+        case 404: //Ff_SpellSubclass
+        case 405: //Staff Block Chance
+        case 406: //Doom Limit Use
+        case 407: //Doom Focus Used
+        case 408: //Limit HP
+        case 409: //Limit Mana
+        case 410: //Limit Endurance
+        case 411: //Ff_ClassPlayer
+        case 412: //Ff_Race
+        case 413: //Fc_BaseEffects
+        case 414: //Ff_CastingSkill
+        case 415: //Ff_ItemClass
+        case 416: //AC2
+        case 417: //Mana2
+        case 418: //Increased Skill Damage2
+        case 419: //Contact Ability2
+        case 420: //Fc_Limit Use
+        case 421: //Fc_Limit Use Amt
+        case 422: //Ff_Limit Use Min
+        case 423: //Ff_Limit Use Type
+        case 424: //Gravitate
+        case 425: //Fly
+        case 426: //AddExtTargetSlots
+        case 427: //Skill Proc
+        case 428: //Skill Proc Modifier
+        case 429: //Skill Proc Success
+        case 430: //PostEffect
+        case 431: //PostEffectData
+        case 432: //ExpandMaxActiveTrophyBenefits
+        case 433: //CriticalDotDecay
+        case 434: //CriticalHealDecay
+        case 435: //CriticalRegenDecay
+        case 436: //Beneficial Countdown Hold
+        case 437: //Teleport to Anchor
+        case 438: //Translocate to Anchor
+        case 439: //Assassinate
+        case 440: //FinishingBlowMax
+        case 441: //Distance Removal
+        case 442: //Doom Req Target
+        case 443: //Doom Req Caster
+        case 444: //Improved Taunt
+        case 445: //Add Merc Slot
+        case 446: //A_Stacker
+        case 447: //B_Stacker
+        case 448: //C_Stacker
+        case 449: //D_Stacker
+        case 450: //DoT Guard
+        case 451: //Melee Threshold Guard
+        case 452: //Spell Threshold Guard
+        case 453: //Doom Melee Threshold
+        case 454: //Doom Spell Threshold
+        case 455: //Add Hate %
+        case 456: //Add Hate Over Time %
+        case 457: //Resource Tap
+        case 458: //Faction Mod %
+			sprintf(szTemp, " (%d) (Please Check)", pSpell->Base[i]); 
+            strcat(szBuff, szTemp);
             break;
         default: //undefined effect 
             sprintf(szTemp, "UnknownEffect%03d", pSpell->Attrib[i]); 
@@ -5577,33 +5710,18 @@ VOID RewriteSubstitutions(VOID)
 PCHAR GetFriendlyNameForGroundItem(PGROUNDITEM pItem, PCHAR szName)
 {
     szName[0]=0;
-    PITEMDB ItemDB=gItemDB;
     DWORD Item = atoi(pItem->Name + 2);
     struct _actordefentry *ptr = MQ2Globals::ActorDefList;
-    while ((ItemDB) && (pItem->DropID != ItemDB->ID)) {
-        ItemDB = ItemDB->pNext;
-    }
 
-    if (ItemDB) {
-        strcpy(szName,ItemDB->szName);
-    } else if ((Item>=400) && (Item<=MAX_ITEM4xx) && (szItemName4xx[Item-400])) {
-        sprintf(szName,"%s%d",szItemName4xx[Item-400],pItem->DropID);
-        // Regular
-    } else if ((Item<=255) && (szItemName[Item])) {
-        strcpy(szName,szItemName[Item]);
-        // Unknown
-    } else {
-
-        while (ptr->Def) {
-            if (ptr->Def == Item) {
-                sprintf(szName,"%s%d/%d",ptr->Name,Item,pItem->DropID);
-                return &szName[0];
-            }
-            ptr++;
+    while (ptr->Def) {
+        if (ptr->Def == Item) {
+            sprintf(szName,"%s",ptr->Name);
+            return &szName[0];
         }
-        sprintf(szName,"Drop%04d/%d",Item,pItem->DropID);
+        ptr++;
     }
-    return &szName[0];
+    sprintf(szName,"Drop%05d/%d",Item,pItem->DropID);
+	return &szName[0];
 }
 
 // deprecated

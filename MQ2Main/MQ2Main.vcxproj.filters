@@ -127,16 +127,16 @@
     <ClInclude Include="eqgame.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="grounds.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="itemtypes.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="skills.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="weapons.h">
+    <ClInclude Include="actordef.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="SpellEffects.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

@@ -184,10 +184,6 @@ SOURCE=.\EQUIStructs.h
 # End Source File
 # Begin Source File
 
-SOURCE=.\grounds.h
-# End Source File
-# Begin Source File
-
 SOURCE=.\itemtypes.h
 # End Source File
 # Begin Source File
@@ -216,7 +212,11 @@ SOURCE=.\skills.h
 # End Source File
 # Begin Source File
 
-SOURCE=.\weapons.h
+SOURCE=.\SpellEffects.h
+# End Source File
+# End Group
+
+SOURCE=.\actordef.h
 # End Source File
 # End Group
 # Begin Group "Resource Files"

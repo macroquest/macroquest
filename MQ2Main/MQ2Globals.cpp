@@ -221,28 +221,9 @@ bool InitOffsets()
 }
 
 struct _actordefentry ActorDefList[] = {
-    10645, "Book",
-    10646, "Book",
-    10714, "Augmentation Sealer",
-    10800, "Pottery Wheel",
-    10801, "Kiln",
-    10802, "Loom",
-    10803, "Oven",
-    10804, "Forge",
-    10805, "Brewing Barrel",
-    10807, "Bottle",
-    10863, "Forge",
-    10864, "Forge",
-    10865, "Oven",
-    11056, "Leaf Pile",
-    11058, "Bones",
-    11059, "Books",
-    11060, "Leaf",
-    11062, "Please report this",
-    11064, "Rock",
-    11073, "Books",
-    0, "NULL"
-    };
+#include "actordef.h"
+	0, "NULL"
+};
 
 /* BENCHMARKS */
 DWORD bmWriteChatColor=0;
@@ -616,6 +597,11 @@ PCHAR szItemTypes[] = {
     NULL
 };
 
+PCHAR szSPATypes[] = {
+    #include "SpellEffects.h"
+    NULL
+};
+
 PCHAR szZoneExpansionName[] = {
     "Original EQ",              //0
     "Kunark",                   //1
@@ -626,13 +612,28 @@ PCHAR szZoneExpansionName[] = {
     "Lost Dungeons of Norrath", //6
     "Gates of Discord",         //7
     "Omens of War",             //8
+	"Dragons of Norrath",		//9
+	"Depths of Darkhollow",		//10
+	"Prophecy of Ro",			//11
+	"Serpent's Spine",			//12
+	"Buried Sea",				//13
+	"Secrets of Faydwer",		//14
+	"Seeds of Destruction",		//15
+	"Underfoot",				//16
+	"House of Thule",			//17
+	"Veil of Alaris",			//18
+	"Rain of Fear",				//19
+	"Call of the Forsaken",		//20
 }; 
 
+//depricated
+#if 0
 #include "grounds.h"
 PCHAR szItemName[] = {
     #include "weapons.h"
     NULL
 };
+#endif
 
 PCHAR szDmgBonusType[] = { 
     "None", 
@@ -1132,6 +1133,10 @@ EQMERCALTABILITIES **ppMercAltAbilities=0;
 AGGROINFO **ppAggroInfo=0;
 
 #define INITIALIZE_EQGAME_OFFSET(var) DWORD var = (((DWORD)var##_x - 0x400000) + baseAddress)
+
+#ifdef PRIVATE
+#include "MQ2Globals-private.cpp"
+#endif
 
 INITIALIZE_EQGAME_OFFSET(__ActualVersionDate);
 INITIALIZE_EQGAME_OFFSET(__ActualVersionTime);

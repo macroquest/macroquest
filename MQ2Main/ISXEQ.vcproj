@@ -190,6 +190,9 @@
 				Name="From MQ2Main"
 				Filter="">
 				<File
+					RelativePath="actordef.h">
+				</File>
+				<File
 					RelativePath="..\Blech\Blech.h">
 				</File>
 				<File
@@ -226,16 +229,13 @@
 					RelativePath="eqgame.h">
 				</File>
 				<File
-					RelativePath="grounds.h">
-				</File>
-				<File
 					RelativePath="itemtypes.h">
 				</File>
 				<File
 					RelativePath="skills.h">
 				</File>
 				<File
-					RelativePath="weapons.h">
+					RelativePath="SpellEffects.h">
 				</File>
 			</Filter>
 		</Filter>

@@ -137,9 +137,9 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="MQ2Telnet.cpp" />
     <ClCompile Include="TelnetServer.cpp" />
     <ClCompile Include="WinTelnet.cpp" />
-    <ClCompile Include="mq2telnet.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\MQ2Plugin.h" />
