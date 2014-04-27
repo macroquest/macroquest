@@ -4179,6 +4179,10 @@ bool MQ2ItemType::GETMEMBER()
             return true;
         }
         return false;
+	case Damage:
+        Dest.DWord=GetItemFromContents(pItem)->Damage;
+        Dest.Type=pIntType;
+        return true;
     case ItemDelay:
         Dest.DWord=GetItemFromContents(pItem)->Delay;
         Dest.Type=pIntType;
@@ -5204,8 +5208,15 @@ bool MQ2WindowType::GETMEMBER()
             Dest.Type=pBoolType;
             return true;
         } 
+	case GetCurSel:
+        if (((CXWnd*)pWnd)->GetType()==UI_Combobox)
+            VarPtr.Ptr=pWnd->SidlText;
+        else if (((CXWnd*)pWnd)->GetType()!=UI_Listbox)
+            return false;
+        Dest.DWord=1+((CListWnd*)pWnd)->GetCurSel();
+        Dest.Type=pIntType;
+		return true;
     }
-
     return false;
 #undef pWnd
 }

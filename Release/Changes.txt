@@ -1,3 +1,9 @@
+16 July 2013 by EqMule
+- Updated for Jul 16 patch
+- Added Item.Damage (thanks to nod77)
+- Added new TLO GetCurSel (thanks to Dewey2461) see http://www.macroquest2.com/phpBB3/viewtopic.php?f=30&t=18947
+- report bugs to me on irc or on the forum
+
 22 June 2013 by ieatacid
 - Fixed window.Enabled
 

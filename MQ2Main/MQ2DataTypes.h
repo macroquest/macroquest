@@ -1945,6 +1945,7 @@ public:
         Items=31,
         HisTradeReady=32,
         MyTradeReady=33,
+		GetCurSel=34,
     };
     static enum WindowMethods
     {
@@ -2007,7 +2008,7 @@ public:
         TypeMethod(RightMouseHeldDown);
         TypeMethod(RightMouseHeldUp);
         TypeMethod(ListSelect);
-
+		TypeMember(GetCurSel);
     }
 
     ~MQ2WindowType()
