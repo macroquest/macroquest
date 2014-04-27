@@ -756,7 +756,7 @@ typedef struct _EQLOOTWINDOW {
 //Size: 0x900 11-15-11 by ieatacid
 typedef struct _EQPETINFOWINDOW {
 /*0x000*/ struct _CSIDLWND Wnd;
-/*0x208*/ DWORD Unknown0x208[0x10];
+/*0x208*/ DWORD Unknown0x208[0x4];
 /*0x218*/ struct _CBUTTONWND *pButton[0xe];
 /*0x250*/ BYTE  Unknown0x250[0x1dc];
 /*0x42c*/ struct _CSIDLWND *pWnd[NUM_BUFF_SLOTS]; // buff icons?
