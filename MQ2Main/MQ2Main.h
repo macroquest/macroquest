@@ -12,14 +12,17 @@ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 GNU General Public License for more details.
 ******************************************************************************/
 
-#define VersionString "September 23, 2004"
+#define VersionString "November 07, 2013"
 #define DebugHeader "[MQ2]"
 #define LoadedString "MQ2 Loaded."
 #define ToUnloadString "MQ2 Unloading..."
 #define UnloadedString "MQ2 Unloaded."
 
 #define WIN32_LEAN_AND_MEAN
-#define _WIN32_WINNT 0x510
+#if defined(_WIN32_WINNT)
+#undef _WIN32_WINNT
+#define  _WIN32_WINNT   0x510
+#endif
 #define DIRECTINPUT_VERSION 0x800
 
 

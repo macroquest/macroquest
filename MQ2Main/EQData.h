@@ -642,9 +642,7 @@ typedef struct _CONTENTS {
 /*0x000c*/ DWORD        EvolvingCurrentLevel;
 /*0x0010*/ BYTE         Unknown0x0010[0x1c];
 /*0x002c*/ DWORD        Charges;
-/*0x0030*/ BYTE         Unknown0x0030[0x8];
-/*0x0038*/ DWORD        Power;
-/*0x003c*/ BYTE         Unknown0x003c[0x10];
+/*0x0030*/ BYTE         Unknown0x0030[0x1c];
 /*0x004c*/ DWORD        StackCount;
 /*0x0050*/ DWORD        NumOfSlots1;//ItemSlot is this address + 16 in 20130708
 /*0x0054*/ BYTE         Unknown0x0054[0x4];
@@ -660,7 +658,9 @@ typedef struct _CONTENTS {
 /*0x009c*/ DWORD        Open;
 /*0x00a0*/ BYTE         Unknown0x00a0[0x10];
 /*0x00b0*/ BYTE         IsEvolvingItem;
-/*0x00b1*/ BYTE         Unknown0x00b1[0x59];
+/*0x00b1*/ BYTE         Unknown0x00b1[0x37];
+/*0x00e8*/ DWORD        Power;
+/*0x00ec*/ BYTE         Unknown0x00ec[0x1e];
 /*0x010a*/ BYTE         EvolvingExpOn;
 /*0x010b*/ BYTE         Unknown0x010b[0x21];
 /*0x012c*/ struct _ITEMINFO*     Item1;

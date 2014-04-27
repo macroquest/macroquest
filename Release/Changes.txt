@@ -1,3 +1,14 @@
+07 Nov 2013 by EqMule
+-Fix for Contents.Power
+-Added a manifest to MacroQuest2.exe so it will requireAdmin automatically.
+-Updated all visual studio vcxproj files to use the v110xp toolset.
+
+its time for you guys to update to vs2012 sp3 or newer if you want to use the vs2012 .sln
+For the rest of you, this shouldnt have an impact, just use old MacroQuest2.sln
+
+as for the strcpy_s error, this is intentional, upgrade your visual studio to a version released after 2006.
+you cannot use vs 6.0 anymore (unless you change them all back to strcpy)
+
 06 Nov 2013 by EqMule
 -Updated for patch
 - Changed top #turbo to 80, still defaults to 20
