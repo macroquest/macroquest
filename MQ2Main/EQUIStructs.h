@@ -211,11 +211,10 @@ VFTABLE;
 /*0x010*/   struct  _CSIDLWND *pFirstChildWnd; \
 /*0x014*/   BYTE    Unknown0x14[0x5]; \
 /*0x019*/   BYTE    Alpha; \
-/*0x01a*/   BYTE    Unknown0x1a[0x6]; \
+/*0x01a*/   BYTE    Enabled; \
+/*0x01b*/   BYTE    Unknown0x1b[0x5]; \
 /*0x020*/   BYTE    MouseOver; /*found in CXWnd__SetMouseOver_x*/ \
-/*0x021*/   BYTE    Unknown0x21; \
-/*0x022*/   BYTE    Enabled; \
-/*0x023*/   BYTE    Unknown0x23[0xa]; \
+/*0x021*/   BYTE    Unknown0x21[0xc]; \
 /*0x02d*/   BYTE    Locked; /*found in CSidlScreenWnd__LoadIniInfo_x*/ \
 /*0x02e*/   BYTE    Unknown0x2e[0x32]; \
 /*0x060*/   RECT    Location; \
@@ -613,18 +612,18 @@ typedef struct _EQLOOTWINDOW {
 /*0x3a8*/
 } EQLOOTWINDOW, *PEQLOOTWINDOW;
 
-//Size: 0x91c 20120316 - ieatacid
+//Size: 0x920 20130514 - ieatacid
 typedef struct _EQPETINFOWINDOW {
 /*0x000*/ struct _CSIDLWND Wnd;
-/*0x21c*/ BYTE  Unknown0x21c[0x14];
-/*0x230*/ struct _CBUTTONWND *pButton[0xe];
-/*0x268*/ BYTE  Unknown0x268[0x1dc];
-/*0x444*/ struct _CSIDLWND *pWnd[NUM_BUFF_SLOTS]; // buff icons?
-/*0x5c8*/ int   Buff[NUM_BUFF_SLOTS];        // Spell ID# of each buff -- 85 total
-/*0x74c*/ BYTE  Unknown0x74c[0x20];
-/*0x76c*/ DWORD BuffFadeETA[NUM_BUFF_SLOTS]; // duration until buff fades, in thousands of a second
-/*0x8f0*/ BYTE  Unknown0x8f0[0x2c];
-/*0x91c*/
+/*0x220*/ BYTE  Unknown0x21c[0x14];
+/*0x234*/ struct _CBUTTONWND *pButton[0xe];
+/*0x26c*/ BYTE  Unknown0x26c[0x1dc];
+/*0x448*/ struct _CSIDLWND *pWnd[NUM_BUFF_SLOTS]; // buff icons?
+/*0x5cc*/ int   Buff[NUM_BUFF_SLOTS];        // Spell ID# of each buff -- 85 total
+/*0x750*/ BYTE  Unknown0x750[0x20];
+/*0x770*/ DWORD BuffFadeETA[NUM_BUFF_SLOTS]; // duration until buff fades, in thousands of a second
+/*0x8f4*/ BYTE  Unknown0x8f4[0x2c];
+/*0x920*/
 } EQPETINFOWINDOW, *PEQPETINFOWINDOW; 
 
 typedef struct _EQTRADESKILLRECIPE {
