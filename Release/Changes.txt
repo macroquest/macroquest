@@ -1,6 +1,7 @@
 11 Dec 2013 by eqmule
 -Updated for patch
 -Updated AltAdvManager::GetAltAbility with second parameter, I dont know what it is yet, rank? level?
+-Fix for SpawnInfo->Trader and SpawnInfo->Buyer
 
 06 Dec 2013 by eqmule
 -Fixed void CTabWnd::SetPage(int,bool,bool);

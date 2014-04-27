@@ -1273,8 +1273,7 @@ typedef struct _SPAWNINFO {
 /*0x0150*/ DWORD        IsABoat;                // 1 = a type of boat
 /*0x0154*/ struct _SPAWNINFO*    Mount;      // NULL if no mount present
 /*0x0158*/ struct _SPAWNINFO*    Rider;      // _SPAWNINFO of mount's rider
-/*0x015c*/ BYTE         Unknown0x015c[0x6c];
-/*0x01c8*/ DWORD        Trader;//found in CEverQuest__RightClickedOnPlayer_x
+/*0x015c*/ BYTE         Unknown0x015c[0x70];
 /*0x01cc*/ DWORD        ManaCurrent;
 /*0x01d0*/ DWORD        ManaMax;
 /*0x01d4*/ DWORD        HPMax;
@@ -1323,7 +1322,7 @@ typedef struct _SPAWNINFO {
 /*0x03de*/ BYTE         Light;
 /*0x03df*/ BYTE         Unknown0x03df[0x1d];
 /*0x03fc*/ FLOAT        RunSpeed;//0.70 on runspeed 5...
-/*0x0400*/ DWORD        Buyer;
+/*0x0400*/ DWORD        Trader;//found in CEverQuest__RightClickedOnPlayer_x
 /*0x0404*/ BYTE         Unknown0x0404[0x18];
 /*0x041c*/ WORD         Zone;
 /*0x041e*/ WORD         Instance;
@@ -1333,7 +1332,8 @@ typedef struct _SPAWNINFO {
 /*0x04d0*/ BYTE         StandState;
 /*0x04d1*/ BYTE         Unknown0x04d1[0x2];
 /*0x04d3*/ BYTE         FishingEvent;
-/*0x04d4*/ BYTE         Unknown0x04d4[0x8];
+/*0x04d4*/ BYTE         Unknown0x04d4[0x4];
+/*0x04d8*/ DWORD        Buyer;
 /*0x04dc*/ DWORD        Anon;//found in EQPlayer__SetNameSpriteTint_x
 /*0x04e0*/ BYTE         Unknown0x04e0[0x20];
 /*0x0500*/ DWORD        PetID;//the unknown above this is petwindow target related I think
