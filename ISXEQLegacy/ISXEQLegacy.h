@@ -3,7 +3,10 @@
 #define __LSTYPE_H__
 #define LSTYPEVAR DATAVAR
 #define LSOBJECT DATAVAR
+#pragma pack(push)
+#pragma pack(8)
 #include <isxdk.h>
+#pragma pack(pop)
 
 class ISXEQLegacy :
     public ISXInterface

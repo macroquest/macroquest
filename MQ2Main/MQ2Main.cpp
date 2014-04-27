@@ -388,6 +388,7 @@ DWORD WINAPI MQ2Start(LPVOID lpParameter)
 
     DebugSpew("Shutdown completed");
     g_Loaded = FALSE;
+	FreeLibraryAndExitThread(GetModuleHandle("MQ2Main.dll"),0);
     return 0;
 }
 
@@ -468,10 +469,10 @@ VOID CreateMQ2NewsWindow()
     if (!pNewsWindow && _FileExists(Filename))
     {
         pNewsWindow = new CMQNewsWnd("ChatWindow");
-        pNewsWindow->Location.top=250;
-        pNewsWindow->Location.bottom=450;
-        pNewsWindow->Location.left=250;
-        pNewsWindow->Location.right=950;
+        pNewsWindow->Location.top=620;
+        pNewsWindow->Location.bottom=920;
+        pNewsWindow->Location.left=230;
+        pNewsWindow->Location.right=850;
         SetCXStr(&pNewsWindow->WindowText,"MacroQuest2 Recent Changes");
     }
     InsertMQ2News();

@@ -542,7 +542,7 @@ VOID MemSpell(PSPAWNINFO pChar, PCHAR szLine)
         }
 
         if (!pSpell) return;
-        if (pSpell->Level[pChar->Class-1]>pChar->Level) return;
+        if (pSpell->ClassLevel[pChar->Class]>pChar->Level) return;
 
         ZeroMemory(&MemSpellFavorite,sizeof(MemSpellFavorite));
         strcpy(MemSpellFavorite.Name,"Mem a Spell");

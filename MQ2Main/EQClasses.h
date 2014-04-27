@@ -5367,7 +5367,7 @@ EQLIB_OBJECT unsigned char EQ_Character::HalflingCanWorship(unsigned char,unsign
 EQLIB_OBJECT unsigned char EQ_Character::HighElfCanWorship(unsigned char,unsigned char);
 EQLIB_OBJECT unsigned char EQ_Character::HumanCanWorship(unsigned char,unsigned char);
 EQLIB_OBJECT unsigned char EQ_Character::IksarCanWorship(unsigned char,unsigned char);
-EQLIB_OBJECT unsigned char EQ_Character::IsSpellAffectingPC(int);
+EQLIB_OBJECT unsigned char EQ_Character::IsSpellAffectingPC(int,int);
 EQLIB_OBJECT unsigned char EQ_Character::LaunchSpell(unsigned char,int,class EQ_Item * *);
 EQLIB_OBJECT unsigned char EQ_Character::OgreCanWorship(unsigned char,unsigned char);
 EQLIB_OBJECT unsigned char EQ_Character::SpellFizzled(unsigned char,class EQ_Spell *);
@@ -5544,6 +5544,7 @@ EQLIB_OBJECT int EQ_Spell::IsPermIllusionSpell(void)const;
 EQLIB_OBJECT int EQ_Spell::SpellUsesDragonBreathEffect(void);
 EQLIB_OBJECT static bool __cdecl EQ_Spell::IsSPAIgnoredByStacking(int);
 EQLIB_OBJECT unsigned char EQ_Spell::SpellAffects(int)const;
+EQLIB_OBJECT unsigned char EQ_Spell::GetSpellLevelNeeded(int Class)const;//takes a Class, druid for example is 6
 SPELL Data;
 };
 

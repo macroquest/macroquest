@@ -1724,5 +1724,7 @@ INITIALIZE_EQGAME_OFFSET(CContainerMgr__OpenContainer);
 INITIALIZE_EQGAME_OFFSET(CContainerMgr__CloseContainer);
 INITIALIZE_EQGAME_OFFSET(CQuantityWnd__Open);
 INITIALIZE_EQGAME_OFFSET(CHelpWnd__SetFile);
+INITIALIZE_EQGAME_OFFSET(EQ_Spell__GetSpellLevelNeeded);
+
 
 };

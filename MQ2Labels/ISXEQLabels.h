@@ -1,5 +1,8 @@
 #pragma once
+#pragma pack(push)
+#pragma pack(8)
 #include <isxdk.h>
+#pragma pack(pop)
 
 
 class ISXEQLabels :

@@ -12,7 +12,6 @@ MQ2-API.chm
 MQ2Auth.exe
 MQ2Plugin.h
 MQ2PluginDevelopment.html
-readme.chm
 zipit.lst
 MacroQuest2.sln
 Blech\Blech.h
@@ -319,6 +318,7 @@ MQ2Template\MQ2Template.vcproj
 MQ2Template\ReadMe.txt
 Release\Changes-ISXEQ.txt
 Release\Changes.txt
+Release\readme.chm
 Release\GPL.txt
 Release\ItemDB.txt
 Release\locations.txt

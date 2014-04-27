@@ -695,3 +695,6 @@
 
 //CHelpWnd
 #define CHelpWnd__SetFile_x                                        0x55E630
+
+//EQ_Spell
+#define EQ_Spell__GetSpellLevelNeeded_x                            0x4B5760

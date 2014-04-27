@@ -12,7 +12,7 @@ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 GNU General Public License for more details.
 ******************************************************************************/
 
-#define VersionString "November 07, 2013"
+#define VersionString __ExpectedVersionDate
 #define DebugHeader "[MQ2]"
 #define LoadedString "MQ2 Loaded."
 #define ToUnloadString "MQ2 Unloading..."
@@ -59,7 +59,7 @@ using namespace std;
 #include "ISXEQ\ISXEQ.h"
 #else
 #pragma pack(push)
-#pragma pack(4)
+#pragma pack(8)
 #include <isxdk.h>
 #pragma pack(pop)
 #include "ISXEQ\ISXEQServices.h"

@@ -1,3 +1,6 @@
+20 March 2014 by rswiders
+- Brought source into compliance with current ISXDX (thanks CyberTech)
+
 5 November 2012 by ieatacid
 - Brought the source up to a compiles-without-error state (thanks iluvseq)
 - Added ISBOXER_COMPAT macro at the top of ISXEQ.cpp -- uncomment this line to enable ISBoxer compatibility. Changes ${Target} to ${EQTarget} and ${Window} to ${EQWindow}

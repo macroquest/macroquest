@@ -248,11 +248,11 @@ public:
         //show usable classes routine by Koad//
         bool bUseableClasses = false; 
         strcat(out, "<br>" ); 
-        for (int j=0; j<16; j++) {  // Ziggy - output will word wrap properly now
-            if (pSpell->Level[j]>0 && pSpell->Level[j]<=70) {
+        for (int j=0; j<17; j++) {  // Ziggy - output will word wrap properly now
+            if (pSpell->ClassLevel[j]>0 && pSpell->ClassLevel[j]<=70) {
                 if (bUseableClasses) strcat (out, ", ");
 
-                sprintf(temp,"%s(%d)", GetClassDesc(j+1), pSpell->Level[j]);
+                sprintf(temp,"%s(%d)", GetClassDesc(j+1), pSpell->ClassLevel[j]);
                 strcat(out, temp);
                 bUseableClasses = true;
             }
@@ -408,11 +408,11 @@ public:
         //show usable classes routine by Koad//
         bool bUseableClasses = false; 
         strcat(out, "<br>" ); 
-        for (int j=0; j<16; j++) {  // Ziggy - output will word wrap properly now
-            if (pSpell->Level[j]>0 && pSpell->Level[j]<=70) {
+        for (int j=0; j<17; j++) {  // Ziggy - output will word wrap properly now
+            if (pSpell->ClassLevel[j]>0 && pSpell->ClassLevel[j]<=70) {
                 if (bUseableClasses) strcat (out, ", ");
 
-                sprintf(temp,"%s(%d)", GetClassDesc(j+1), pSpell->Level[j]);
+                sprintf(temp,"%s(%d)", GetClassDesc(j+1), pSpell->ClassLevel[j]);
                 strcat(out, temp);
                 bUseableClasses = true;
             }

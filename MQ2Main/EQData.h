@@ -1707,9 +1707,8 @@ typedef struct _SPELL {
 /*0x23a*/   BYTE    Deletable;
 /*0x23b*/   BYTE    Unknown0x23b[0x6];
 /*0x241*/   BYTE    CanMGB;
-/*0x242*/   BYTE    Unknown0x242[0x5];
-/*0x247*/   BYTE    Level[0x10];        //per class.
-/*0x257*/   BYTE    Unknown0x257[0x13];
+/*0x242*/   BYTE    Unknown0x242[0x4];
+/*0x246*/   BYTE    ClassLevel[0x24];        //per class., yes there are allocations for 0x24 see 4B5776 in eqgame dated 12 mar 2014 -eqmule
 /*0x26a*/   BYTE    LightType;
 /*0x26b*/   BYTE    SpellType;          //0=detrimental, 1=Beneficial, 2=Beneficial, Group Only
 /*0x26c*/   BYTE    Unknown0x26c;

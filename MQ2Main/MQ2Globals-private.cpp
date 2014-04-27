@@ -11,4 +11,4 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
     GNU General Public License for more details.
 ******************************************************************************/
-
+INITIALIZE_EQGAME_OFFSET(EQ_Character__IsSpellAffectingPC);

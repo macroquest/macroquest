@@ -1241,6 +1241,8 @@ EQLIB_VAR DWORD CContainerMgr__CloseContainer;
 EQLIB_VAR DWORD CQuantityWnd__Open;
 
 EQLIB_VAR DWORD CHelpWnd__SetFile;
+EQLIB_VAR DWORD EQ_Spell__GetSpellLevelNeeded;
+
 
 }
 using namespace MQ2Globals;

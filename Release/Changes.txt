@@ -1,3 +1,25 @@
+18 Mar 2014 by eqmule
+-NOTE, THIS UPDATE WILL BREAK PLUGINS. (but not that much see below)
+ SPELL struct member Level is now ClassLevel
+ this was done cause i want you to know which plugins to update.
+ ANY place that refers to Level-1 muct be changed to ClassLevel
+ do NOT forget to remove the -1
+-Updated the launcher.
+-Injecting is now faster, it will happen even when eq is not in focus.
+ This means injecting will no longer attach to any process it feels like.
+ it will only attach to eqgame.exe.
+ This is a good thing, (cause it means you wont have to kill the tasktray icon)
+ if you need to /unload to do a rebuild for example.
+ Also, since mq2main only attaches to eqgame, launchpad will now
+ run just fine without dying even when the tasktray icon is up...
+ If you /unload you can "reload" from the tasktray icon by selecting
+ "Refresh Injections"
+ If you start a new session of eqgame.exe mq2main.dll will be autoinjected.
+ "Refresh Injections" will only reattach to eqgame.exe(s) that doesn't already
+ have a mq2main.dll loaded in its address-space. 
+ If one is loaded already it will move on to the next eqgame.exe it finds and try there
+ until it has made sure all running eqgame.exe has mq loaded...
+
 18 Mar 2014 by rswiders
 - Added CountSongs
 - Changed .Stacks and .StacksPet to allow the comparison of the songs too

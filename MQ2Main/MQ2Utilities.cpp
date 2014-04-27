@@ -2670,7 +2670,7 @@ PCHAR ShowSpellSlotInfo(PSPELL pSpell, PCHAR szBuffer)
             strcat(szBuff,szTemp); 
             break; 
         case 334: //Song DoT 
-            sprintf(szTemp, " Decrease Hitpoints by %d (L%d) to %d(L%d)", (pSpell->Max[i] + pSpell->Base[i]), pSpell->Level[8], pSpell->Max[i],MAX_PC_LEVEL); 
+            sprintf(szTemp, " Decrease Hitpoints by %d (L%d) to %d(L%d)", (pSpell->Max[i] + pSpell->Base[i]), pSpell->ClassLevel[i], pSpell->Max[i],MAX_PC_LEVEL); 
             strcat(szBuff, szTemp); 
             break;
 		case 335: //Fc_Immunity Focus
@@ -2876,11 +2876,11 @@ VOID SlotValueCalculate(PCHAR szBuff, PSPELL pSpell, int i, double mp)
 
     //find min level spell is usable 
     int minlevel=1; 
-    for (int j=0; j<=16; j++) 
+    for (int j=0; j<=17; j++) 
     { 
-        if (pSpell->Level[j]>0 && pSpell->Level[j]<=MAX_PC_LEVEL) { 
-            if ( minlevel==1 )  minlevel=pSpell->Level[j]; 
-            if ( pSpell->Level[j]<minlevel )  minlevel=pSpell->Level[j]; 
+        if (pSpell->ClassLevel[j]>0 && pSpell->ClassLevel[j]<=MAX_PC_LEVEL) { 
+            if ( minlevel==1 )  minlevel=pSpell->ClassLevel[j]; 
+            if ( pSpell->ClassLevel[j]<minlevel )  minlevel=pSpell->ClassLevel[j]; 
         } 
     } 
 

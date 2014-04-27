@@ -4329,7 +4329,7 @@ FUNCTION_AT_ADDRESS(class EQ_Affect *  EQ_Character::GetPCSpellAffect(unsigned c
 FUNCTION_AT_ADDRESS(int  EQ_Character::TotalSpellAffects(unsigned char,bool,int *),EQ_Character__TotalSpellAffects);
 #endif
 #ifdef EQ_Character__IsSpellAffectingPC_x
-FUNCTION_AT_ADDRESS(unsigned char  EQ_Character::IsSpellAffectingPC(int),EQ_Character__IsSpellAffectingPC);
+FUNCTION_AT_ADDRESS(unsigned char  EQ_Character::IsSpellAffectingPC(int,int),EQ_Character__IsSpellAffectingPC);
 #endif
 #ifdef EQ_Character__SpellFizzled_x
 FUNCTION_AT_ADDRESS(unsigned char  EQ_Character::SpellFizzled(unsigned char,class EQ_Spell *),EQ_Character__SpellFizzled);
@@ -4816,6 +4816,9 @@ FUNCTION_AT_ADDRESS(unsigned char  EQ_Spell::SpellAffects(int)const ,EQ_Spell__S
 #endif
 #ifdef EQ_Spell__IsPermIllusionSpell_x
 FUNCTION_AT_ADDRESS(int  EQ_Spell::IsPermIllusionSpell(void)const ,EQ_Spell__IsPermIllusionSpell);
+#endif
+#ifdef EQ_Spell__GetSpellLevelNeeded_x
+FUNCTION_AT_ADDRESS(unsigned char EQ_Spell::GetSpellLevelNeeded(int)const ,EQ_Spell__GetSpellLevelNeeded);
 #endif
 #ifdef EQOldPlayerAnimation__InitAnimationData_x
 FUNCTION_AT_ADDRESS(void __cdecl EQOldPlayerAnimation::InitAnimationData(void),EQOldPlayerAnimation__InitAnimationData);

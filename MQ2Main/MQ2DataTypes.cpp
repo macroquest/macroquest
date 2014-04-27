@@ -3744,7 +3744,7 @@ bool MQ2SpellType::GETMEMBER()
     case Level:
         if (!ISINDEX() && GetCharInfo()->pSpawn)
         {
-            Dest.DWord=pSpell->Level[GetCharInfo()->pSpawn->Class-1];
+            Dest.DWord=pSpell->ClassLevel[GetCharInfo()->pSpawn->Class];
             Dest.Type=pIntType;
             return true;
         }
@@ -3752,8 +3752,8 @@ bool MQ2SpellType::GETMEMBER()
         {
             if (ISNUMBER())
             {
-                unsigned long nIndex=GETNUMBER()-1;
-                Dest.DWord=pSpell->Level[nIndex];
+                unsigned long nIndex=GETNUMBER();
+                Dest.DWord=pSpell->ClassLevel[nIndex];
                 Dest.Type=pIntType;
                 return true;
             }
