@@ -16,8 +16,8 @@
 #endif
 
 #define __ClientName                                              "eqgame"
-#define __ExpectedVersionDate                                     "Sep 14 2011"
-#define __ExpectedVersionTime                                     "16:54:01"
+#define __ExpectedVersionDate                                     "Sep 20 2011"
+#define __ExpectedVersionTime                                     "14:30:41"
 #define __ActualVersionDate                                        0x8AFE5C
 #define __ActualVersionTime                                        0x8AFE68
 
