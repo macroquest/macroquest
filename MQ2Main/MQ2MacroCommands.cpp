@@ -209,12 +209,12 @@ PMACROBLOCK AddMacroLine(PCHAR szLine)
         }
     }
 
-    pBlock = (PMACROBLOCK)malloc(sizeof(MACROBLOCK));
+    pBlock = (PMACROBLOCK)calloc(1,sizeof(MACROBLOCK));
     if (!pBlock) return NULL;
     //DebugSpewNoFile("AddMacroLine - Adding: %s",szLine);
     strcpy(pBlock->Line,szLine);
     pBlock->LineNumber = -1;
-    pBlock->SourceFile[0]=0;
+    pBlock->SourceFile[0]='\0';
     pBlock->pNext=NULL;
     pBlock->pPrev=NULL;
 
@@ -241,7 +241,8 @@ PMACROBLOCK AddMacroLine(PCHAR szLine)
         gMacroBlock=pBlock;
     } else {
         PMACROBLOCK pLoop = gMacroBlock;
-        while (pLoop->pNext) pLoop = pLoop->pNext;
+        while (pLoop->pNext)
+			pLoop = pLoop->pNext;
         pLoop->pNext = pBlock;
         pBlock->pPrev = pLoop;
     }
