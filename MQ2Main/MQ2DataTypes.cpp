@@ -84,6 +84,8 @@ class MQ2FellowshipType *pFellowshipType=0;
 class MQ2FellowshipMemberType *pFellowshipMemberType=0;
 class MQ2FriendsType *pFriendsType=0;
 class MQ2TargetType *pTargetType=0;
+class MQ2TaskMemberType *pTaskMemberType=0;
+class MQ2TaskType *pTaskType=0;
 class MQ2XTargetType *pXTargetType=0;
 
 #ifndef ISXEQ
@@ -141,6 +143,8 @@ void InitializeMQ2DataTypes()
     pFellowshipMemberType=new MQ2FellowshipMemberType;
     pFriendsType = new MQ2FriendsType;
     pTargetType = new MQ2TargetType;
+    pTaskMemberType = new MQ2TaskMemberType;
+    pTaskType = new MQ2TaskType;
     pXTargetType = new MQ2XTargetType;
 
     // NOTE: SetInheritance does NOT make it inherit, just notifies the syntax checker...
@@ -149,6 +153,7 @@ void InitializeMQ2DataTypes()
     //pCurrentZoneType->SetInheritance(pZoneType);
     pRaidMemberType->SetInheritance(pSpawnType);
     pTargetType->SetInheritance(pSpawnType);
+    pXTargetType->SetInheritance(pSpawnType);
 }
 
 void ShutdownMQ2DataTypes()
@@ -170,6 +175,8 @@ void ShutdownMQ2DataTypes()
     delete pMacroQuestType;
     delete pMathType;
     delete pWindowType;
+	delete pMercenaryType;
+	delete pPetType;
     delete pMerchantType;
     delete pZoneType;
     delete pItemType;
@@ -195,6 +202,8 @@ void ShutdownMQ2DataTypes()
     delete pDynamicZoneType;
     delete pFriendsType;
     delete pTargetType;
+	delete pTaskMemberType;
+	delete pTaskType;
     delete pXTargetType;
 }
 
@@ -5837,7 +5846,6 @@ bool MQ2MacroQuestType::GETMEMBER()
             if (PCHAR pTemp=GetLoginName())
             {
                 strcpy(DataTypeTemp,pTemp);
-                free(pTemp);
                 Dest.Ptr=&DataTypeTemp[0];
                 Dest.Type=pStringType;
                 return true;
@@ -8044,7 +8052,136 @@ bool MQ2TargetType::GETMEMBER()
     }
     return false;
 }
+/*
+ else {
+			for(;pTaskmember;pTaskmember=pTaskmember->pNext) {
+				if(!_stricmp(pTaskmember->Name,GETFIRST())) {
+					strcpy_s(DataTypeTemp, pTaskmember->Name);
+					Dest.Ptr=&DataTypeTemp[0];
+				}
+			}
+        }
+*/
+bool MQ2TaskMemberType::GETMEMBER()
+{
+	PTASKMEMBER pTaskMemberData=(PTASKMEMBER)VarPtr.Ptr;
+    if (!pTaskMemberData)
+		return false;
+	DataTypeTemp[0] = '\0';
+    PMQ2TYPEMEMBER pMember=MQ2TaskMemberType::FindMember(Member);
+	if (!pMember)
+	{
+		return false;
+	}
 
+    switch((TaskMemberTypeMembers)pMember->ID)
+    {
+    case Name:
+		strcpy_s(DataTypeTemp, pTaskMemberData->Name);
+		Dest.Ptr=&DataTypeTemp[0];
+		Dest.Type=pStringType;
+		return true;
+    case Leader:
+        Dest.Type=pBoolType;
+		if (pTaskMemberData->IsLeader) {
+			return true;
+		}
+        return false;
+	case xIndex:
+		PTASKMEMBER pTaskmember = pTaskMember;
+		for(int i = 1;pTaskmember;pTaskmember=pTaskmember->pNext,i++) {
+			if(!_stricmp(pTaskmember->Name,pTaskMemberData->Name)) {
+				Dest.DWord = i;
+				Dest.Type=pIntType;
+				return true;
+			}
+		}
+		return false;
+	}
+    return false;
+}
+
+bool MQ2TaskType::GETMEMBER()
+{
+    if(!VarPtr.Ptr)
+        return false;
+    PMQ2TYPEMEMBER pMember=MQ2TaskType::FindMember(Member);
+    if(!pMember)
+        return false;
+    PTASKMEMBER pTaskmember=(PTASKMEMBER)VarPtr.Ptr;
+    switch((TaskTypeMembers)pMember->ID)
+    {
+    case Address:
+		Dest.DWord=(DWORD)VarPtr.Ptr;
+		Dest.Type=pIntType;
+		return true;
+    case Title:
+	{
+		CListWnd *clist = (CListWnd *)pTaskkWnd->GetChildItem("TASK_TaskList");
+		if(clist) {
+			CXStr Str;
+			clist->GetItemText(&Str, 0, 1);
+			CHAR szOut[255] = {0};
+			GetCXStr(Str.Ptr,szOut,254);
+			if(szOut[0]!='\0') {
+				strcpy_s(DataTypeTemp, szOut);
+	            Dest.Ptr=&DataTypeTemp[0];
+				Dest.Type=pStringType;
+				return true;
+			}
+		}
+		return false;
+	}
+    case Timer:
+	{
+		CListWnd *clist = (CListWnd *)pTaskkWnd->GetChildItem("TASK_TaskList");
+		if(clist) {
+			CXStr Str;
+			clist->GetItemText(&Str, 0, 2);
+			CHAR szOut[255] = {0};
+			GetCXStr(Str.Ptr,szOut,254);
+			if(szOut[0]!='\0') {
+				int hh, mm, ss;
+				sscanf_s(szOut, "%d:%d:%d", &hh, &mm, &ss);
+				Dest.Int = ((hh*3600)+(mm*60)+ss)/6;
+				Dest.Type=pTicksType;
+				return true;
+			}
+		}
+		return false;
+	}
+	case xMember:
+		if (!ISINDEX())
+            return false;
+        if (ISNUMBER())
+        {
+			for(int i=1;pTaskmember && i<7;pTaskmember=pTaskmember->pNext,i++) {
+				if(i==GETNUMBER()) {
+					Dest.Ptr = pTaskmember;
+					Dest.Type=pTaskMemberType;
+					return true;
+				}
+			}
+        } else {
+			for(;pTaskmember;pTaskmember=pTaskmember->pNext) {
+				if(!_stricmp(pTaskmember->Name,GETFIRST())) {
+					Dest.Ptr = pTaskmember;
+					Dest.Type=pTaskMemberType;
+					return true;
+				}
+			}
+		}
+		return false;
+	case Members:
+		pTaskmember=pTaskMember;
+		Dest.DWord=0;
+		for(;pTaskmember && Dest.DWord<6;pTaskmember=pTaskmember->pNext,Dest.DWord++) {
+		}
+		Dest.Type = pIntType;
+		return true;
+    }
+    return false;
+}
 bool MQ2XTargetType::GETMEMBER()
 {
     if(!GetCharInfo() || !GetCharInfo()->pXTargetMgr)
@@ -8054,6 +8191,10 @@ bool MQ2XTargetType::GETMEMBER()
         XTARGETDATA xtd = GetCharInfo()->pXTargetMgr->pXTargetArray->pXTargetData[VarPtr.DWord];
         switch((xTargetMembers)pMember->ID)
         {
+        case xAddress:
+			Dest.DWord=(DWORD)GetCharInfo()->pXTargetMgr->pXTargetArray;
+			Dest.Type=pIntType;
+			return true;
         case Type:
             {
                 char *pType = GetXtargetType(xtd.xTargetType);
@@ -8077,7 +8218,17 @@ bool MQ2XTargetType::GETMEMBER()
                 return true;
             }
         }
-    }
+    } else {
+		XTARGETDATA xtd = GetCharInfo()->pXTargetMgr->pXTargetArray->pXTargetData[VarPtr.DWord];
+		PSPAWNINFO pSpawn = (PSPAWNINFO)GetSpawnByID(xtd.SpawnID);
+		if(pSpawn) {
+			#ifndef ISXEQ
+				return pSpawnType->GetMember(*(MQ2VARPTR*)&pSpawn,Member,Index,Dest);
+			#else
+				return pSpawnType->GetMember(*(LSVARPTR*)&pSpawn,Member,argc,argv,Dest);
+			#endif
+		}
+	}
     return false;
 };
             

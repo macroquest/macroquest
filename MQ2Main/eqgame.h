@@ -89,7 +89,7 @@
 #define __SubscriptionType_x                                       0xF4D620
 #define __TargetAggroHolder_x                                      0xF26330
 #define __GroupAggro_x                                             0xF26370
-
+#define __LoginName_x                                              0xE16BE0
 
 //// 
 //Section 1: Vital Offsets 
@@ -257,6 +257,7 @@
 #define pinstCProgressionSelectionWnd_x                            0xF250A0
 #define pinstCPvPStatsWnd_x                                        0xF25140
 #define pinstCSystemInfoDialogBox_x                                0xF25590
+#define pinstCTaskWnd_x											   0xF26650
 #define pinstCTaskTemplateSelectWnd_x                              0xF26600
 #define pinstCTipWndOFDAY_x                                        0xF267C0
 #define pinstCTipWndCONTEXT_x                                      0xF267C4

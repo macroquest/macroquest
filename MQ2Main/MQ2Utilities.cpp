@@ -1169,20 +1169,10 @@ VOID GetItemLink(PCONTENTS Item, PCHAR Buffer)
 }
 
 PCHAR GetLoginName() 
-{ 
-    CHAR equname[MAX_STRING] = {0}; 
-    CHAR szTemp[MAX_STRING] = {0}; 
-    GetEQPath(gszEQPath);
-    sprintf(equname, "%s\\equname.txt", gszEQPath); 
-    DebugSpew("equname = %s",equname); 
-    FILE *fequname = fopen("equname.txt", "rt"); 
-    if(fequname) { 
-        while (!feof(fequname)) { 
-            fgets(szTemp,MAX_STRING,fequname); 
-        }
-        fclose(fequname); 
-        return strdup(szTemp);
-    }
+{
+	if(__LoginName) {
+		return (PCHAR)__LoginName;
+	}
     return NULL;
 }
 

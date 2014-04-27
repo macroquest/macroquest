@@ -210,6 +210,7 @@ class CTabBoxTemplate;
 class CTabWnd;
 class CTAFrameDraw;
 class CTargetWnd;
+class CTaskWnd;
 class CTextEntryWnd;
 class CTextureAnimation;
 class CTextureFont;
@@ -4501,6 +4502,14 @@ EQLIB_OBJECT int CTargetWnd::OnProcessFrame(void);
 EQLIB_OBJECT void CTargetWnd::Deactivate(void);
 // private
 EQLIB_OBJECT void CTargetWnd::Init(void);
+};
+
+class CTaskWnd : public CSidlScreenWnd
+{
+public:
+EQLIB_OBJECT CTaskWnd::CTaskWnd(class CXWnd *);
+// virtual
+EQLIB_OBJECT CTaskWnd::~CTaskWnd(void);
 };
 
 class CTextEntryWnd : public CEditBaseWnd

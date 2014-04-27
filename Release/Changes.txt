@@ -1,3 +1,40 @@
+17 Jan 2014 by eqmule
+-pinstCTaskWnd is back, dont know when it got lost...
+-Added new TLO "Task" its useful for shared tasks(quests).
+ it has the following members:
+ -Title returns a pStringType of the shared task.
+ -Timer returns a pTickType of the amount of time left before task expires.
+ -Members returns a pIntType of how many members the task has.
+ -Member returns a pTaskMemberType
+  pTaskMemberType has the following members:
+  -Name returns a pStringType
+  -Leader returns a pBoolType of TRUE or FALSE if the member is the task leader or not
+  -Index returns a pIntType of the members taskindex, i.e where in the list it is... 1-6
+Usage:
+       /if (${Task.Member[Eqmule].Leader}) {
+              /echo I am the leader of ${Task.Title} which expires in ${Task.Timer.TotalMinutes}...
+	   }
+	   /echo Task Member 2 is ${Task.Member[2]}
+Output:
+      [MQ2] I am the leader of Hatching a Plan which expires in 243 minutes...
+      [MQ2] Task Member 2 is Eluidiaan
+
+-XTarget now inherits pSpawnType
+ this means that you can now do stuff like:
+ /echo ${Me.XTarget[1].PctHPs}
+ [MQ2] 93
+ /echo ${Me.XTarget[8].Level}
+ [MQ2] 16
+ NOTE: max XTarget is 10... I dont think doing /echo ${Me.XTarget[11].Level} will turn out good for anyone...
+
+ Please update ALL macros that targets mobs around you *when fighting* to check their HP to use XTarget[x].PctHPs instead.
+ HINT: This is not a suggestion, its a very strong recommendation/borderline order.
+ The reason for this is that:
+ 1. Targeting multiple mobs over and over just to check their HP, SLAMS the eq servers with targetpackets.
+ 2. It is BAD practice and it slows down YOUR macro, as well as the eq servers.
+ 3. For your own good, detecting botters are extremely easy by just watching how your character targets.
+    no "real" player will target 50 mobs around him in a couple seconds, just to select the one with the lowest HP.
+
 04 Jan 2014 by eqmule
 -Added ActiveDisc to the Character TLO, it returns a pSpellType if a discipline is active. (otherwise NULL)
 

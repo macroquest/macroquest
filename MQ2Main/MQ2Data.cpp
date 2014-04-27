@@ -1615,3 +1615,13 @@ TLO(dataFriends)
     return true;
 }
 
+TLO(dataTask)
+{
+	if (Ret.Ptr=pTaskMember)
+    {
+        Ret.Type=pTaskType;
+        return true;
+    }
+    return false;
+}
+

@@ -115,6 +115,8 @@ LEGACY_VAR class MQ2DZMemberType *pDZMemberType;
 LEGACY_VAR class MQ2FellowshipType *pFellowshipType;
 LEGACY_VAR class MQ2FellowshipMemberType *pFellowshipMemberType;
 LEGACY_VAR class MQ2FriendsType *pFriendsType;
+LEGACY_VAR class MQ2TaskMemberType *pTaskMemberType;
+LEGACY_VAR class MQ2TaskType *pTaskType;
 LEGACY_VAR class MQ2TargetType *pTargetType;
 LEGACY_VAR class MQ2XTargetType *pXTargetType;
 
@@ -3858,19 +3860,103 @@ public:
     }
 };
 
+class MQ2TaskMemberType : public MQ2Type
+{
+public:
+    static enum TaskMemberTypeMembers
+    {
+        Name=1,
+        Leader=2,
+		xIndex=3,
+    };
+    MQ2TaskMemberType():MQ2Type("taskmember")
+    {
+        TypeMember(Name);
+        TypeMember(Leader);
+		AddMember(xIndex,"Index");
+    }
+    ~MQ2TaskMemberType()
+    {
+    }
+    bool GETMEMBER();
+    bool ToString(MQ2VARPTR VarPtr, PCHAR Destination)
+    {
+        strcpy(Destination,((PTASKMEMBER)VarPtr.Ptr)->Name);
+        return true;
+    }
+    bool FromData(MQ2VARPTR &VarPtr, MQ2TYPEVAR &Source)
+    {
+        return false;
+    }
+    bool FromString(MQ2VARPTR &VarPtr, PCHAR Source)
+    {
+        return false;
+    }
+};
+class MQ2TaskType : public MQ2Type
+{
+public:
+	static enum TaskTypeMembers
+    {
+		Address=1,
+        Title=2,
+        Timer=3,
+        xMember=4,
+        Members=5,
+    };
+    MQ2TaskType():MQ2Type("task")
+    {
+        TypeMember(Address);
+        TypeMember(Title);
+        TypeMember(Timer);
+        AddMember(xMember,"Member");
+        TypeMember(Members);
+    }
+    ~MQ2TaskType()
+    {
+    }
+    bool GETMEMBER();
+    bool ToString(MQ2VARPTR VarPtr, PCHAR Destination)
+    {
+		if(pTaskkWnd) {
+			if(CListWnd *clist = (CListWnd *)pTaskkWnd->GetChildItem("TASK_TaskList")) {
+				CXStr Str;
+				clist->GetItemText(&Str, 0, 1);
+				CHAR szOut[255] = {0};
+				GetCXStr(Str.Ptr,szOut,254);
+				if(szOut[0]!='\0') {
+					strcpy(Destination,szOut);
+					return true;
+				}
+			}
+		}
+        return false;
+    }
+    bool FromData(MQ2VARPTR &VarPtr, MQ2TYPEVAR &Source)
+    {
+        return false;
+    }
+    bool FromString(MQ2VARPTR &VarPtr, PCHAR Source)
+    {
+        return false;
+    }
+};
+
 class MQ2XTargetType : public MQ2Type
 {
 public:
     static enum xTargetMembers
     {
-        Type = 1,
-        ID = 2,
-        Name = 3,
-        PctAggro = 4,
+        xAddress = 1,
+        Type = 2,
+        ID = 3,
+        Name = 4,
+        PctAggro = 5,
     };
 
     MQ2XTargetType():MQ2Type("xtarget")
     {
+        TypeMember(xAddress);
         TypeMember(Type);
         TypeMember(ID);
         TypeMember(Name);
@@ -3883,6 +3969,7 @@ public:
 
     bool GETMEMBER();
     DECLAREGETMETHOD();
+	INHERITDIRECT(pSpawnType);
 
     bool ToString(MQ2VARPTR VarPtr, PCHAR Destination)
     {
@@ -3895,14 +3982,47 @@ public:
             strcpy(Destination, "NULL");
         return true;
     }
-
-    bool FromData(MQ2VARPTR &VarPtr, MQ2TYPEVAR &Source)
+	void InitVariable(MQ2VARPTR &VarPtr) 
     {
+        VarPtr.Ptr=malloc(sizeof(SPAWNINFO));
+        ZeroMemory(VarPtr.Ptr,sizeof(SPAWNINFO));
+    }
+    void FreeVariable(MQ2VARPTR &VarPtr) 
+    {
+        free(VarPtr.Ptr);
+    }
+    virtual bool FromData(MQ2VARPTR &VarPtr, MQ2TYPEVAR &Source)
+    {
+        if (Source.Type==pSpawnType)
+        {
+            memcpy(VarPtr.Ptr,Source.Ptr,sizeof(SPAWNINFO));
+            return true;
+        }
+        else
+        {
+			if(GetCharInfo() && GetCharInfo()->pXTargetMgr)
+			{
+				XTARGETDATA xtd = GetCharInfo()->pXTargetMgr->pXTargetArray->pXTargetData[Source.DWord];
+				if (PSPAWNINFO pOther=(PSPAWNINFO)GetSpawnByID(xtd.SpawnID))
+				{
+					memcpy(VarPtr.Ptr,pOther,sizeof(SPAWNINFO));
+					return true;
+				}
+			}
+        }
         return false;
     }
-
     bool FromString(MQ2VARPTR &VarPtr, PCHAR Source)
     {
+		if(GetCharInfo() && GetCharInfo()->pXTargetMgr)
+		{
+			XTARGETDATA xtd = GetCharInfo()->pXTargetMgr->pXTargetArray->pXTargetData[atoi(Source)];
+			if (PSPAWNINFO pOther=(PSPAWNINFO)GetSpawnByID(xtd.SpawnID))
+			{
+				memcpy(VarPtr.Ptr,pOther,sizeof(SPAWNINFO));
+				return true;
+			}
+		}
         return false;
     }
 };

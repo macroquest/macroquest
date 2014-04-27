@@ -541,6 +541,7 @@ EQLIB_VAR CJournalCatWnd **ppJournalCatWnd;
 //EQLIB_VAR CTributeMasterWnd **ppTributeMasterWnd;
 EQLIB_VAR CPetitionQWnd **ppPetitionQWnd;
 EQLIB_VAR CSoulmarkWnd **ppSoulmarkWnd;
+EQLIB_VAR CTaskWnd **ppTaskWnd;
 EQLIB_VAR CTimeLeftWnd **ppTimeLeftWnd;
 EQLIB_VAR CTextOverlay **ppTextOverlay;
 EQLIB_VAR CPotionBeltWnd **ppPotionBeltWnd;
@@ -628,6 +629,7 @@ EQLIB_VAR CPotionBeltWnd **ppPotionBeltWnd;
 #define pTributeMasterWnd (*ppTributeMasterWnd)
 #define pPetitionQWnd (*ppPetitionQWnd)
 #define pSoulmarkWnd (*ppSoulmarkWnd)
+#define pTaskkWnd (*ppTaskWnd)
 #define pTimeLeftWnd (*ppTimeLeftWnd)
 #define pTextOverlay (*ppTextOverlay)
 #define pPotionBeltWnd (*ppPotionBeltWnd)
@@ -676,6 +678,7 @@ EQLIB_VAR DWORD __HWnd;
 EQLIB_VAR DWORD __InChatMode;
 EQLIB_VAR DWORD __LastTell;
 EQLIB_VAR DWORD __LMouseHeldTime;
+EQLIB_VAR DWORD __LoginName;
 EQLIB_VAR DWORD __Mouse;
 EQLIB_VAR DWORD __MouseLook;
 EQLIB_VAR DWORD __MouseEventTime;

@@ -2616,7 +2616,6 @@ VOID DisplayLoginName(PSPAWNINFO pChar, PCHAR szLine)
         MacroError("Unable to retrieve login name.");
     } else {
         WriteChatf("Login name: \ay%s\ax",szLogin);
-        free(szLogin);
     }
 }
 
