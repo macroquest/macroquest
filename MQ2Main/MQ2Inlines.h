@@ -426,3 +426,8 @@ static inline BOOL IsMobFleeing(PSPAWNINFO pChar, PSPAWNINFO pSpawn)
     if (LB < UB) return ((Heading < UB) && (Heading > LB));
     else return ((Heading < LB) && (Heading > UB));
 }
+
+static inline DWORD FixOffset(DWORD nOffset)
+{
+    return ((nOffset - 0x400000) + baseAddress);
+}

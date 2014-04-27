@@ -294,9 +294,14 @@ CXW_NO_VTABLE; \
                 DWORD   SlotID; \
             }; \
 /*0x1d4*/   LPVOID  SidlPiece;      /* CScreenPieceTemplate (important) */ \
-/*0x1d8*/   BYTE    Checked; \
-/*0x1d9*/   BYTE    Highlighted; \
-/*0x1da*/   BYTE    Unused0x1da[0x2]; \
+/*0x1d8*/   union { \
+                struct { \
+                    BYTE    Checked; \
+                    BYTE    Highlighted; \
+                    BYTE    Unused0x1da[0x2]; \
+                }; \
+                DWORD MaxChars; \
+            }; \
 /*0x1dc*/   DWORD   TextureAnim; \
 /*0x1e0*/   struct  _CXSTR *   InputText; \
 /*0x1e4*/   DWORD   Selector; \

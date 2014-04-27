@@ -111,8 +111,8 @@ VOID InitializeChatHook()
 
 VOID ShutdownChatHook()
 {
-    RemoveDetour((DWORD)CEverQuest__dsp_chat);
-    RemoveDetour((DWORD)CEverQuest__DoTellWindow);
+    RemoveDetour(CEverQuest__dsp_chat);
+    RemoveDetour(CEverQuest__DoTellWindow);
 #ifndef ISXEQ
 #ifdef USEBLECHEVENTS
     delete pEventBlech;

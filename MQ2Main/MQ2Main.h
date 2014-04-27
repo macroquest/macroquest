@@ -427,6 +427,7 @@ EQLIB_API int GetLanguageIDByName(PCHAR szName);
 EQLIB_API PCHAR GetSpellNameByID(DWORD dwSpellID);
 EQLIB_API PSPELL GetSpellByName(PCHAR szName);
 EQLIB_API struct  _ITEMINFO *GetItemFromContents(struct _CONTENTS *c);
+EQLIB_API DWORD FixOffset(DWORD nOffset);
 #include "MQ2Inlines.h"
 
 

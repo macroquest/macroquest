@@ -407,7 +407,7 @@ void InitializeMQ2Pulse()
 void ShutdownMQ2Pulse()
 {
     RemoveDetour((DWORD)ProcessGameEvents);
-    RemoveDetour((DWORD)CEverQuest__EnterZone);
-    RemoveDetour((DWORD)CEverQuest__SetGameState);
+    RemoveDetour(CEverQuest__EnterZone);
+    RemoveDetour(CEverQuest__SetGameState);
 }
 #endif

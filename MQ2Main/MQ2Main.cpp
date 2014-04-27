@@ -241,6 +241,13 @@ BOOL ParseINIFile(PCHAR lpINIPath)
 
 bool __cdecl MQ2Initialize()
 {
+    if(!InitOffsets())
+    {
+        DebugSpewAlways("InitOffsets returned false - thread aborted.");
+        g_Loaded = FALSE;
+        return false;
+    }
+
     if (!ParseINIFile(gszINIPath)) {
         DebugSpewAlways("ParseINIFile returned false - thread aborted.");
         g_Loaded = FALSE;
@@ -541,15 +548,15 @@ VOID InjectDisable()
 #endif
 
 /* OTHER FUNCTIONS IMPORTED FROM EQ */
-#ifdef __CastRay
+#ifdef __CastRay_x
 FUNCTION_AT_ADDRESS(int CastRay(PSPAWNINFO,float y,float x,float z),__CastRay);
 #endif
-#ifdef Util__FastTime
+#ifdef Util__FastTime_x
 FUNCTION_AT_ADDRESS(unsigned long  GetFastTime(void),Util__FastTime);
 #endif
-#ifdef __GetXTargetType
+#ifdef __GetXTargetType_x
 FUNCTION_AT_ADDRESS(char * __stdcall GetXtargetType(DWORD type), __GetXTargetType);
 #endif
-#ifdef __EQGetTime
+#ifdef __EQGetTime_x
 FUNCTION_AT_ADDRESS(DWORD EQGetTime(), __EQGetTime);
 #endif

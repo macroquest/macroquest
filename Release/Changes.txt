@@ -1,3 +1,9 @@
+9 November 2012 by ieatacid
+- Updated for November 7th patch
+- Due to the introduction of ASLR into the client, offset names in eqgame.h have been changed as it was the easiest route to take in adapting the code base
+- A function has been added to MQ2Inlines.h for plugins that need to adjust their own offsets for ASLR: DWORD FixOffset(DWORD nOffset);
+... It takes the offset as a parameter and returns the recalculated offset
+
 18 September 2012 by ieatacid
 - Updated for patch on the 16th
 
