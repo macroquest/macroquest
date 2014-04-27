@@ -334,11 +334,12 @@ typedef struct _CSIDLWND {
 /*0x1af*/   BYTE    Unknown0x1af[0x5];
 /*0x1b4*/   DWORD   TickCount2;
 /*0x1b8*/   DWORD   TimeMouseOver;
-/*0x1bc*/   BYTE    Unknown0x1bc[0x8];
-/*0x1c4*/   union {
+/*0x1bc*/   BYTE    Unknown0x1bc[0x4];
+/*0x1c0*/   union {
                 struct _CXSTR  *SidlText;
                 DWORD  Items;
             };
+/*0x1c4*/   BYTE    Unknown0x1c4[0x4]; // InputText is at 1d8 but from here to there ????
 /*0x1c8*/   union {
                 struct _CXSTR  *SidlScreen;
                 DWORD   SlotID;
@@ -347,7 +348,7 @@ typedef struct _CSIDLWND {
 /*0x1d0*/   BYTE    Checked;
 /*0x1d1*/   BYTE    Highlighted;
 /*0x1d2*/   BYTE    Unused0x1ce[0x2];
-/*0x1d4*/   DWORD   TextureAnim;    // used in CSidlScreenWnd::AddButtonToRadioGroup
+/*0x1d4*/   DWORD   TextureAnim;
 /*0x1d8*/   struct  _CXSTR *   InputText;
 /*0x1dc*/   DWORD   Selector;
 /*0x1e0*/   DWORD   PushToSelector;

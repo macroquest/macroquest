@@ -6407,31 +6407,30 @@ bool MQ2AltAbilityType::GETMEMBER()
         }
         return false;
     case RequiresAbility:
-#if 0
-        if (pAbility->RequiresAbility>0)
+        if (pAbility->RequiresAbility && *pAbility->RequiresAbility>0)
         {
-            for (unsigned long nAbility=0 ; nAbility<NUM_ALT_ABILITIES_ARRAY ; nAbility++)
+            for (unsigned long nAbility=0 ; nAbility<NUM_ALT_ABILITIES ; nAbility++)
             {
-                if ( ((PALTADVMGR)pAltAdvManager)->AltAbilities->AltAbilityList->Abilities[nAbility])
+                if ( PALTABILITY tmppAbility=pAltAdvManager->GetAltAbility(nAbility))
                 {
-                    if ( PALTABILITY pAA=((PALTADVMGR)pAltAdvManager)->AltAbilities->AltAbilityList->Abilities[nAbility]->Ability) 
+                    if (tmppAbility->ID == *pAbility->RequiresAbility )
                     {
-                        if (pAA->ID == pAbility->RequiresAbility)
-                        {
-                            Dest.Ptr=&pAA;
-                            Dest.Type=pAltAbilityType;
-                            return true;
-                        }
+                        Dest.Ptr=tmppAbility;
+                        Dest.Type=pAltAbilityType;
+                        return true;
                     }
-                }        
+                }
             }
         }
-#endif
+        DebugSpew("ability %d not found\n", *pAbility->RequiresAbility);
         return false;
     case RequiresAbilityPoints:
-        Dest.DWord=pAbility->RequiresAbilityPoints;
-        Dest.Type=pIntType;
-        return true;
+        if (pAbility->RequiresAbilityPoints) {
+            Dest.DWord=*pAbility->RequiresAbilityPoints;
+            Dest.Type=pIntType;
+            return true;
+        }
+        return false;
     case MaxRank:
         Dest.DWord=pAbility->MaxRank;
         Dest.Type=pIntType;

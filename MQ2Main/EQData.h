@@ -1005,7 +1005,7 @@ typedef struct _CHARINFO2 {
 /*0x3470*/   FLOAT      ZoneBoundHeading;
 /*0x3474*/   BYTE       Unknown0x3474[0x50];
 /*0x34c4*/   DWORD      ArmorType[0x16];
-/*0x351c*/   BYTE       Unknown0x351c[0xb0];
+/*0x351c*/   BYTE       Unknown0x351c[0x108];
 /*0x3624*/   AALIST     AAList[AA_CHAR_MAX_REAL];
 /*0x4434*/   DWORD      BodyColor[0x9];
 /*0x4458*/   BYTE       Unknown0x4458[0x2000];
@@ -1833,8 +1833,11 @@ typedef struct _ALTABILITY {
 /*0x1c*/ DWORD Cost;                     //Initial Cost or cost the last time you bought a level of it
 /*0x20*/ DWORD ID;                       // /alt activate id
 /*0x24*/ DWORD AARankRequired;
-/*0x28*/ BYTE  Unknown0x28[0x1c];   // abilities requirements
-/*0x44*/ DWORD RequiresAbilityPoints;
+/*0x28*/ DWORD Unknown0x28;
+/*0x2c*/ DWORD *RequiresAbility;
+/*0x30*/ DWORD Unknown0x30[3];
+/*0x3c*/ DWORD *RequiresAbilityPoints;
+/*0x40*/ DWORD Unknown0x40[2];
 /*0x48*/ DWORD Type; 
 /*0x4c*/ LONG  SpellID;                  // -1 for no Spell
 /*0x50*/ DWORD Unknown0x50;
