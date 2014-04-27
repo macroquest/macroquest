@@ -443,7 +443,7 @@ typedef struct _ITEMSPELLS {
 /*0x64*/
 } ITEMSPELLS, *PITEMSPELLS; 
 
-// actual size: 0x620 20120316 - ieatacid
+// actual size: 0x61c 20120627 - ieatacid
 typedef struct _ITEMINFO {
 /*0x000*/ CHAR   Name[ITEM_NAME_LEN];
 /*0x040*/ CHAR   LoreName[LORE_NAME_LEN];
@@ -601,8 +601,8 @@ typedef struct _ITEMINFO {
 /*0x580*/ BYTE   QuestItem;
 /*0x581*/ BYTE   Unknown0x581[0x3];
 /*0x584*/ DWORD  Clairvoyance;
-/*0x588*/ BYTE   Unknown0x588[0x98];
-/*0x620*/
+/*0x588*/ BYTE   Unknown0x588[0x94];
+/*0x61c*/
 } ITEMINFO, *PITEMINFO;
 
 typedef struct _CONTENTSARRAY {
@@ -1605,12 +1605,12 @@ typedef struct _ZONEINFO {
 /*0x2a4*/
 } ZONEINFO, *PZONEINFO;
 
-#define   TOTAL_SPELL_COUNT             38001       // # of spells allocated in memory (12/14/2011)
+#define   TOTAL_SPELL_COUNT             0xAFC9      // # of spells allocated in memory (06/27/2012)
 #define   TOTAL_ACTUAL_SPELLS           0x1964      // # of ACTUAL spells in game      (9/14/2004) - wrong and unused
 
 // size: 0x9496C 20120316
 typedef struct _SPELLMGR {
-BYTE            unknown[0x25420];
+BYTE            unknown[0x2C180];
 struct _SPELL*  Spells[TOTAL_SPELL_COUNT];
 } SPELLMGR, *PSPELLMGR;
 
