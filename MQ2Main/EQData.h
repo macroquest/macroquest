@@ -1952,27 +1952,29 @@ typedef struct _EQRAIDMEMBER {
 } EQRAIDMEMBER, *PEQRAIDMEMBER;
 
 // sizeof(_EQRAID) is 0x3668 (12-09-2009)
+//instCRaid_x
+//feb 14 2014 eqgame.exe - eqmule
+//as for the size... I have no idea...
 typedef struct _EQRAID {
-/*0x0000*/ BYTE     Unknown0x0[0x218];
-/*0x0218*/ CHAR     RaidMemberUsed[0x48];
-/*0x0260*/ struct   _EQRAIDMEMBER RaidMember[0x48];
-/*0x2c00*/ BYTE     Unknown0x2c00[0x4];
-/*0x2c04*/ DWORD    RaidMemberCount;
-/*0x2c08*/ CHAR     RaidLeaderName[0x40];
-/*0x2c48*/ BYTE     Unknown0x2b88[0x100];
-/*0x2d48*/ CHAR     RaidMOTD[0x400];
-/*0x3148*/ BYTE     Unknown0x3148[0x40];
-/*0x3188*/ BYTE     Invited; // 1 = default?, 2 = invited, 4 = in raid
-/*0x3189*/ BYTE     Unknown0x3189[0x8];
-/*0x3191*/ BYTE     IsRaidLeader;
-/*0x3192*/ BYTE     Unknown0x0x30d2[0x2];
-/*0x3194*/ DWORD    RaidTarget;
-/*0x3198*/ DWORD    LootType;
-/*0x319c*/ CHAR     RaidLooters[0x13][0x40];
-/*0x365c*/ DWORD    TotalRaidMemberLevels; // TotalRaidMemberLevels/RaidMemberCount=RaidAvgLevel
-/*0x3660*/ BYTE     Locked;
-/*0x3661*/ BYTE     Padding0x35a1[0x7];
-/*0x3668*/
+/*0x0000*/ BYTE     Unknown0x0[0xdc];
+/*0x00dc*/ CHAR     RaidMemberUsed[0x48];
+/*0x0124*/ struct   _EQRAIDMEMBER RaidMember[0x48];
+/*0x2ac4*/ BYTE     Unknown0x2ac4[0x4];
+/*0x2ac8*/ DWORD    RaidMemberCount;
+/*0x2acc*/ CHAR     RaidLeaderName[0x40];
+/*0x2b0c*/ CHAR     RaidMOTD[0x400];
+/*0x2f0c*/ BYTE     Unknown0x2f0c[0x40];
+/*0x2f4c*/ BYTE     Invited; // 1 = default?, 2 = invited, 4 = in raid
+/*0x2f4d*/ BYTE     Unknown0x2f4d[0x8];
+/*0x2f55*/ BYTE     IsRaidLeader;
+/*0x2f56*/ BYTE     Unknown0x0x2f56[0x2];
+/*0x2f58*/ DWORD    RaidTarget;
+/*0x2f5c*/ DWORD    LootType;
+/*0x2f60*/ CHAR     RaidLooters[0x13][0x40];
+/*0x3420*/ DWORD    TotalRaidMemberLevels; // TotalRaidMemberLevels/RaidMemberCount=RaidAvgLevel
+/*0x3424*/ BYTE     Locked;
+/*0x3425*/ BYTE     Padding0x3425[0x7];
+/*0x342c*/
 } EQRAID, *PEQRAID;
 
 // size 0x19C 3-23-2005
