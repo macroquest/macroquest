@@ -251,7 +251,7 @@ DWORD *gpMouseEventTime = (DWORD*)__MouseEventTime;
 PVOID EQADDR_GWORLD=(PVOID)__gWorld;
 PDWORD EQADDR_DOABILITYLIST=(PDWORD)__DoAbilityList;
 
-PBYTE EQADDR_DOABILITYAVAILABLE=(PBYTE)__DoAbilityAvailable;
+//PBYTE EQADDR_DOABILITYAVAILABLE=(PBYTE)__DoAbilityAvailable;
 
 PMAPLABEL *ppCurrentMapLabel=(PMAPLABEL*)__CurrentMapLabel;
 PCHAR *EQMappableCommandList=(PCHAR*)__BindList;

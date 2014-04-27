@@ -2739,7 +2739,7 @@ bool MQ2CharacterType::GETMEMBER()
                         if (pSkillMgr->pSkill[EQADDR_DOABILITYLIST[nSkill]]->AltTimer==2)
                             Dest.DWord=gbAltTimerReady;
                         else
-                            Dest.DWord=EQADDR_DOABILITYAVAILABLE[EQADDR_DOABILITYLIST[nSkill]];
+                            Dest.DWord=pCSkillMgr->IsAvailable(EQADDR_DOABILITYLIST[nSkill]);
                         Dest.Type=pBoolType;
                         return true;
                     }
@@ -2749,18 +2749,21 @@ bool MQ2CharacterType::GETMEMBER()
             {
                 // name
                 for (DWORD nSkill=0;szSkills[nSkill];nSkill++)
+                {
                     if (!stricmp(GETFIRST(),szSkills[nSkill]))
                     {
                         // found name
                         for (DWORD nAbility=0;nAbility<10;nAbility++)
+                        {
                             if (EQADDR_DOABILITYLIST[nAbility] == nSkill) 
                             {
                                 // thanks s0rcier!
-                                if (nSkill<100) {
+                                if (nSkill<100)
+                                {
                                     if (pSkillMgr->pSkill[nSkill]->AltTimer==2)
                                         Dest.DWord=gbAltTimerReady;
                                     else
-                                        Dest.DWord=EQADDR_DOABILITYAVAILABLE[nSkill];
+                                        Dest.DWord=pCSkillMgr->IsAvailable(EQADDR_DOABILITYLIST[nAbility]);
                                     Dest.Type=pBoolType;
                                     return true;
                                 }
@@ -2776,7 +2779,9 @@ bool MQ2CharacterType::GETMEMBER()
                                 }
                                 return false;
                             }
+                        }
                     }
+                }
             }
         }
         return false;

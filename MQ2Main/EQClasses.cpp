@@ -140,25 +140,25 @@ FUNCTION_AT_ADDRESS(bool EQ_Character::DoCombatAbility(int spellID), EQ_Characte
 FUNCTION_AT_VIRTUAL_ADDRESS(void CChatWindow::operator delete[](void*),0x04);
 
 FUNCTION_AT_VIRTUAL_ADDRESS(bool CXWnd::IsValid(void)const,0);
-FUNCTION_AT_VIRTUAL_ADDRESS(int CXWnd::WndNotification(class CXWnd *,unsigned __int32,void *),0x84);
+FUNCTION_AT_VIRTUAL_ADDRESS(int CXWnd::WndNotification(class CXWnd *,unsigned __int32,void *),0x88);
 FUNCTION_AT_VIRTUAL_ADDRESS(int CXWnd::OnResize(int,int),0x098);
-FUNCTION_AT_VIRTUAL_ADDRESS(int CXWnd::Show(bool,bool,bool),0x0C8);
-FUNCTION_AT_VIRTUAL_ADDRESS(int CXWnd::SetVScrollPos(int),0x124);
-FUNCTION_AT_VIRTUAL_ADDRESS(void CXWnd::SetWindowTextA(class CXStr &),0x118);
+FUNCTION_AT_VIRTUAL_ADDRESS(int CXWnd::Show(bool,bool,bool),0x0d4);
+FUNCTION_AT_VIRTUAL_ADDRESS(int CXWnd::SetVScrollPos(int),0x134);
+FUNCTION_AT_VIRTUAL_ADDRESS(void CXWnd::SetWindowTextA(class CXStr &),0x128);
 
-FUNCTION_AT_VIRTUAL_ADDRESS(int CXWnd::HandleLButtonDown(class CXPoint *,unsigned __int32),0x34);
-FUNCTION_AT_VIRTUAL_ADDRESS(int CXWnd::HandleLButtonUp(class CXPoint *,unsigned __int32),0x38);
-FUNCTION_AT_VIRTUAL_ADDRESS(int CXWnd::HandleLButtonHeld(class CXPoint *,unsigned __int32),0x3C);
-FUNCTION_AT_VIRTUAL_ADDRESS(int CXWnd::HandleLButtonUpAfterHeld(class CXPoint *,unsigned __int32),0x40);
-FUNCTION_AT_VIRTUAL_ADDRESS(int CXWnd::HandleRButtonDown(class CXPoint *,unsigned __int32),0x44);
-FUNCTION_AT_VIRTUAL_ADDRESS(int CXWnd::HandleRButtonUp(class CXPoint *,unsigned __int32),0x48);
-FUNCTION_AT_VIRTUAL_ADDRESS(int CXWnd::HandleRButtonHeld(class CXPoint *,unsigned __int32),0x4C);
-FUNCTION_AT_VIRTUAL_ADDRESS(int CXWnd::HandleRButtonUpAfterHeld(class CXPoint *,unsigned __int32),0x50);
-FUNCTION_AT_VIRTUAL_ADDRESS(int CXWnd::OnMinimizeBox(void),0x9c);
-FUNCTION_AT_VIRTUAL_ADDRESS(int CXWnd::SetFont(void*),0x114);
+FUNCTION_AT_VIRTUAL_ADDRESS(int CXWnd::HandleLButtonDown(class CXPoint *,unsigned __int32),0x38);
+FUNCTION_AT_VIRTUAL_ADDRESS(int CXWnd::HandleLButtonUp(class CXPoint *,unsigned __int32),0x3c);
+FUNCTION_AT_VIRTUAL_ADDRESS(int CXWnd::HandleLButtonHeld(class CXPoint *,unsigned __int32),0x40);
+FUNCTION_AT_VIRTUAL_ADDRESS(int CXWnd::HandleLButtonUpAfterHeld(class CXPoint *,unsigned __int32),0x44);
+FUNCTION_AT_VIRTUAL_ADDRESS(int CXWnd::HandleRButtonDown(class CXPoint *,unsigned __int32),0x48);
+FUNCTION_AT_VIRTUAL_ADDRESS(int CXWnd::HandleRButtonUp(class CXPoint *,unsigned __int32),0x4c);
+FUNCTION_AT_VIRTUAL_ADDRESS(int CXWnd::HandleRButtonHeld(class CXPoint *,unsigned __int32),0x50);
+FUNCTION_AT_VIRTUAL_ADDRESS(int CXWnd::HandleRButtonUpAfterHeld(class CXPoint *,unsigned __int32),0x54);
+FUNCTION_AT_VIRTUAL_ADDRESS(int CXWnd::OnMinimizeBox(void),0xa8);
+FUNCTION_AT_VIRTUAL_ADDRESS(int CXWnd::SetFont(void*),0x124);
 
 
-FUNCTION_AT_VIRTUAL_ADDRESS(void CListWnd::DeleteAll(void),0x164);
+FUNCTION_AT_VIRTUAL_ADDRESS(void CListWnd::DeleteAll(void),0x174);
 
 
 // AUTO IMPORTS
@@ -9574,6 +9574,9 @@ FUNCTION_AT_ADDRESS(unsigned long CSkillMgr::GetBaseDamage(int),CSkillMgr__GetBa
 #endif
 #ifdef CSkillMgr__GetReuseTime
 FUNCTION_AT_ADDRESS(unsigned long CSkillMgr::GetReuseTime(int),CSkillMgr__GetReuseTime);
+#endif
+#ifdef CSkillMgr__IsAvailable
+FUNCTION_AT_ADDRESS(bool CSkillMgr::IsAvailable(int),CSkillMgr__IsAvailable);
 #endif
 #ifdef CChatService__GetNumberOfFriends
 FUNCTION_AT_ADDRESS(int CChatService::GetNumberOfFriends(void),CChatService__GetNumberOfFriends);

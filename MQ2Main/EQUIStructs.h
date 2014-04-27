@@ -72,6 +72,7 @@ enum UIType
    UI_SuiteDefaults=50,
    UI_Screens=51,
    UI_TopLevelWindowList=52,
+   UI_HotButton=53,
 };
 
 // ***************************************************************************
@@ -97,7 +98,7 @@ typedef struct _EQCURRENTSELECTION {
 } EQCURRENTSELECTION, *PEQCURRENTSELECTION;
 
 // ieatacid
-// Actual Size 0x15c 7-14-10
+// Actual Size 0x174 11-15-11
 typedef struct _CSIDLWNDVFTABLE {
 /*0000*/ LPVOID  IsValid;
 /*0004*/ LPVOID  vector_deleting_destructor;
@@ -105,93 +106,98 @@ typedef struct _CSIDLWNDVFTABLE {
 /*000C*/ LPVOID  PostDraw;
 /*0010*/ LPVOID  PostDraw2;
 /*0014*/ LPVOID  DrawCursor;
-/*0018*/ LPVOID  OnResize;
+/*0018*/ LPVOID  nullsub0x18;
 /*001C*/ LPVOID  PostDraw3;
 /*0020*/ LPVOID  DrawBackground;
 /*0024*/ LPVOID  DrawTooltip;
-/*0028*/ LPVOID  GetMinimizedRect;
-/*002C*/ LPVOID  DrawTitleBar;
-/*0030*/ LPVOID  GetCursorToDisplay;
-/*0034*/ LPVOID  HandleLButtonDown;
-/*0038*/ LPVOID  HandleLButtonUp;
-/*003C*/ LPVOID  HandleLButtonHeld;
-/*0040*/ LPVOID  HandleLButtonUpAfterHeld;
-/*0044*/ LPVOID  HandleRButtonDown;
-/*0048*/ LPVOID  HandleRButtonUp;
-/*004C*/ LPVOID  HandleRButtonHeld;
-/*0050*/ LPVOID  HandleRButtonUpAfterHeld;
-/*0054*/ LPVOID  HandleWheelButtonDown;
-/*0058*/ LPVOID  HandleWheelButtonUp;
-/*005C*/ LPVOID  HandleMouseMove;
-/*0060*/ LPVOID  HandleWheelMove;
-/*0064*/ LPVOID  GetDragDropCursor;
-/*0068*/ LPVOID  PostDraw4;
-/*006C*/ LPVOID  OnDragDrop;
-/*0070*/ LPVOID  GetClickStickCursor;
-/*0074*/ LPVOID  QueryDropOK;
-/*0078*/ LPVOID  OnClickStick;
-/*007C*/ LPVOID  GetClickStickCursor2;
-/*0080*/ LPVOID  QueryClickStickDropOK;
-/*0084*/ LPVOID  WndNotification;
-/*0088*/ LPVOID  ShowWindow;     // Activate
-/*008C*/ LPVOID  Deactivate;
-/*0090*/ LPVOID  PostDraw5;
-/*0094*/ LPVOID  OnMove;
-/*0098*/ LPVOID  OnResize2;
-/*009C*/ LPVOID  OnMinimizeBox;
+/*0028*/ LPVOID  DrawTooltipAtPoint;
+/*002c*/ LPVOID  GetMinimizedRect;
+/*0030*/ LPVOID  DrawTitleBar;
+/*0034*/ LPVOID  GetCursorToDisplay;
+/*0038*/ LPVOID  HandleLButtonDown;
+/*003C*/ LPVOID  HandleLButtonUp;
+/*0040*/ LPVOID  HandleLButtonHeld;
+/*0044*/ LPVOID  HandleLButtonUpAfterHeld;
+/*0048*/ LPVOID  HandleRButtonDown;
+/*004C*/ LPVOID  HandleRButtonUp;
+/*0050*/ LPVOID  HandleRButtonHeld;
+/*0054*/ LPVOID  HandleRButtonUpAfterHeld;
+/*0058*/ LPVOID  HandleWheelButtonDown;
+/*005C*/ LPVOID  HandleWheelButtonUp;
+/*0060*/ LPVOID  HandleMouseMove;
+/*0064*/ LPVOID  HandleWheelMove;
+/*0068*/ LPVOID  GetDragDropCursor;
+/*006C*/ LPVOID  PostDraw4;
+/*0070*/ LPVOID  OnDragDrop;
+/*0074*/ LPVOID  GetClickStickCursor;
+/*0078*/ LPVOID  QueryDropOK;
+/*007C*/ LPVOID  OnClickStick;
+/*0080*/ LPVOID  GetClickStickCursor2;
+/*0084*/ LPVOID  QueryClickStickDropOK;
+/*0088*/ LPVOID  WndNotification;
+/*008C*/ LPVOID  ShowWindow;     // Activate
+/*0090*/ LPVOID  Deactivate;
+/*0094*/ LPVOID  PostDraw5;
+/*0098*/ LPVOID  OnResize;
+/*009C*/ LPVOID  OnResize2;
 /*00A0*/ LPVOID  Unknown0xa0;
-/*00A4*/ LPVOID  OnTileBox;
-/*00A8*/ LPVOID  PostDraw6;
-/*00AC*/ LPVOID  OnMove2;
-/*00B0*/ LPVOID  OnMove3;
-/*00B4*/ LPVOID  OnProcessFrame;
-/*00B8*/ LPVOID  OnVScroll;
-/*00BC*/ LPVOID  OnHScroll;
-/*00C0*/ LPVOID  PostDraw7;
-/*00C4*/ LPVOID  OnMove4;
-/*00C8*/ LPVOID  Show;
-/*00CC*/ LPVOID  Unknown0x0cc;
-/*00D0*/ LPVOID  Unknown0x0d0;
-/*00D4*/ LPVOID  OnMove5;
-/*00D8*/ LPVOID  RequestDockInfo;
-/*00DC*/ LPVOID  GetTooltip;
-/*00E0*/ LPVOID  HitTest;
-/*00E4*/ LPVOID  GetHitTestRect;
-/*00E8*/ LPVOID  GetInnerRect;
-/*00EC*/ LPVOID  GetClientRect;
-/*00F0*/ LPVOID  GetMinSize;
-/*00F4*/ LPVOID  GetMaxSize;
-/*00F8*/ LPVOID  GetUntileSize;
-/*00FC*/ LPVOID  IsPointTransparent;
-/*0100*/ LPVOID  Unknown100;
-/*0104*/ LPVOID  Unknown104;
-/*0108*/ LPVOID  SetDrawTemplate;
-/*010C*/ LPVOID  Move_Rect;
-/*0110*/ LPVOID  Move_Point;
-/*0114*/ LPVOID  SetFont;
-/*0118*/ LPVOID  SetWindowTextA;
-/*011C*/ LPVOID  Unknown0x11c;
-/*0120*/ LPVOID  Unknown0x120;
-/*0124*/ LPVOID  SetVScrollPos;  //->0
-/*0128*/ LPVOID  SetHScrollPos;
-/*012c*/ LPVOID  Unknown0x12c;
+/*00A4*/ LPVOID  Unknown0xa4;
+/*00A8*/ LPVOID  OnMinimizeBox;
+/*00AC*/ LPVOID  Unknown0xac;
+/*00B0*/ LPVOID  OnTileBox;
+/*00B4*/ LPVOID  PostDraw6;
+/*00B8*/ LPVOID  OnMove2;
+/*00BC*/ LPVOID  OnMove3;
+/*00C0*/ LPVOID  OnProcessFrame;
+/*00C4*/ LPVOID  OnVScroll;
+/*00C8*/ LPVOID  OnHScroll;
+/*00CC*/ LPVOID  PostDraw7;
+/*00D0*/ LPVOID  OnMove4;
+/*00D4*/ LPVOID  Show;
+/*00D8*/ LPVOID  Unknown0x0d8;
+/*00DC*/ LPVOID  Unknown0x0dc;
+/*00E0*/ LPVOID  OnMove5;
+/*00E4*/ LPVOID  RequestDockInfo;
+/*00E8*/ LPVOID  GetTooltip;
+/*00EC*/ LPVOID  HitTest;
+/*00F0*/ LPVOID  GetHitTestRect;
+/*00F4*/ LPVOID  GetInnerRect;
+/*00F8*/ LPVOID  GetClientRect;
+/*00FC*/ LPVOID  GetMinSize;
+/*0100*/ LPVOID  GetMaxSize;
+/*0104*/ LPVOID  GetUntileSize;
+/*0108*/ LPVOID  IsPointTransparent;
+/*010C*/ LPVOID  Unknown10c;
+/*0110*/ LPVOID  Unknown110;
+/*0114*/ LPVOID  Unknown114;
+/*0118*/ LPVOID  SetDrawTemplate;
+/*011C*/ LPVOID  Move_Rect;
+/*0120*/ LPVOID  Move_Point;
+/*0124*/ LPVOID  SetFont;
+/*0128*/ LPVOID  SetWindowTextA;
+/*012C*/ LPVOID  Unknown0x12c;
 /*0130*/ LPVOID  Unknown0x130;
-/*0134*/ LPVOID  SetAttributesFromSidl;
-/*0138*/ LPVOID  nullsub_1;
-/*013c*/ LPVOID  Unknown0x13c;
+/*0134*/ LPVOID  SetVScrollPos;  //->0
+/*0138*/ LPVOID  SetHScrollPos;
+/*013C*/ LPVOID  Unknown0x13c;
 /*0140*/ LPVOID  Unknown0x140;
-/*0144*/ LPVOID  PostDraw8;
-/*0148*/ LPVOID  Unknown0x148;
-/*014c*/ LPVOID  Unknown0x14c;
-/*0150*/ LPVOID  LoadIniInfo;
-/*0154*/ LPVOID  StoreIniInfo;
+/*0144*/ LPVOID  SetAttributesFromSidl;
+/*0148*/ LPVOID  nullsub_1;
+/*014C*/ LPVOID  Unknown0x14c;
+/*0150*/ LPVOID  Unknown0x150;
+/*0154*/ LPVOID  PostDraw8;
 /*0158*/ LPVOID  Unknown0x158;
-/*015c*/ LPVOID  Unknown0x15c;
-/*0160*/
+/*015C*/ LPVOID  Unknown0x15c;
+/*0160*/ LPVOID  LoadIniInfo;
+/*0164*/ LPVOID  StoreIniInfo;
+/*0168*/ LPVOID  Unknown0x168;
+/*016C*/ LPVOID  Unknown0x16c;
+/*0170*/ LPVOID  Unknown0x170;
+/*0174*/
 } CSIDLWNDVFTABLE, *PCSIDLWNDVFTABLE; 
 
-// dkaa
-// Actual Size 0x144 11-11-2009
+// ieatacid
+// Actual Size 0x15c 11-15-11
 typedef struct _CXWNDVFTABLE {
 /*0000*/ LPVOID  IsValid;
 /*0004*/ LPVOID  vector_deleting_destructor;
@@ -199,247 +205,252 @@ typedef struct _CXWNDVFTABLE {
 /*000C*/ LPVOID  PostDraw;
 /*0010*/ LPVOID  PostDraw2;
 /*0014*/ LPVOID  DrawCursor;
-/*0018*/ LPVOID  OnResize;
+/*0018*/ LPVOID  nullsub0x18;
 /*001C*/ LPVOID  PostDraw3;
 /*0020*/ LPVOID  DrawBackground;
 /*0024*/ LPVOID  DrawTooltip;
-/*0028*/ LPVOID  GetMinimizedRect;
-/*002C*/ LPVOID  DrawTitleBar;
-/*0030*/ LPVOID  GetCursorToDisplay;
-/*0034*/ LPVOID  HandleLButtonDown;
-/*0038*/ LPVOID  HandleLButtonUp;
-/*003C*/ LPVOID  HandleLButtonHeld;
-/*0040*/ LPVOID  HandleLButtonUpAfterHeld;
-/*0044*/ LPVOID  HandleRButtonDown;
-/*0048*/ LPVOID  HandleRButtonUp;
-/*004C*/ LPVOID  HandleRButtonHeld;
-/*0050*/ LPVOID  HandleRButtonUpAfterHeld;
-/*0054*/ LPVOID  HandleWheelButtonDown;
-/*0058*/ LPVOID  HandleWheelButtonUp;
-/*005C*/ LPVOID  HandleMouseMove;
-/*0060*/ LPVOID  HandleWheelMove;
-/*0064*/ LPVOID  GetDragDropCursor;
-/*0068*/ LPVOID  PostDraw4;
-/*006C*/ LPVOID  OnDragDrop;
-/*0070*/ LPVOID  GetClickStickCursor;
-/*0074*/ LPVOID  QueryDropOK;
-/*0078*/ LPVOID  OnClickStick;
-/*007C*/ LPVOID  GetClickStickCursor2;
-/*0080*/ LPVOID  QueryClickStickDropOK;
-/*0084*/ LPVOID  WndNotification;
-/*0088*/ LPVOID  ShowWindow;     // Activate
-/*008C*/ LPVOID  Deactivate;
-/*0090*/ LPVOID  PostDraw5;
-/*0094*/ LPVOID  OnMove;
-/*0098*/ LPVOID  OnResize2;
-/*009C*/ LPVOID  OnMinimizeBox;
+/*0028*/ LPVOID  DrawTooltipAtPoint;
+/*002c*/ LPVOID  GetMinimizedRect;
+/*0030*/ LPVOID  DrawTitleBar;
+/*0034*/ LPVOID  GetCursorToDisplay;
+/*0038*/ LPVOID  HandleLButtonDown;
+/*003C*/ LPVOID  HandleLButtonUp;
+/*0040*/ LPVOID  HandleLButtonHeld;
+/*0044*/ LPVOID  HandleLButtonUpAfterHeld;
+/*0048*/ LPVOID  HandleRButtonDown;
+/*004C*/ LPVOID  HandleRButtonUp;
+/*0050*/ LPVOID  HandleRButtonHeld;
+/*0054*/ LPVOID  HandleRButtonUpAfterHeld;
+/*0058*/ LPVOID  HandleWheelButtonDown;
+/*005C*/ LPVOID  HandleWheelButtonUp;
+/*0060*/ LPVOID  HandleMouseMove;
+/*0064*/ LPVOID  HandleWheelMove;
+/*0068*/ LPVOID  GetDragDropCursor;
+/*006C*/ LPVOID  PostDraw4;
+/*0070*/ LPVOID  OnDragDrop;
+/*0074*/ LPVOID  GetClickStickCursor;
+/*0078*/ LPVOID  QueryDropOK;
+/*007C*/ LPVOID  OnClickStick;
+/*0080*/ LPVOID  GetClickStickCursor2;
+/*0084*/ LPVOID  QueryClickStickDropOK;
+/*0088*/ LPVOID  WndNotification;
+/*008C*/ LPVOID  ShowWindow;     // Activate
+/*0090*/ LPVOID  Deactivate;
+/*0094*/ LPVOID  PostDraw5;
+/*0098*/ LPVOID  OnResize;
+/*009C*/ LPVOID  OnResize2;
 /*00A0*/ LPVOID  Unknown0xa0;
-/*00A4*/ LPVOID  OnTileBox;
-/*00A8*/ LPVOID  PostDraw6;
-/*00AC*/ LPVOID  OnMove2;
-/*00B0*/ LPVOID  OnMove3;
-/*00B4*/ LPVOID  OnProcessFrame;
-/*00B8*/ LPVOID  OnVScroll;
-/*00BC*/ LPVOID  OnHScroll;
-/*00C0*/ LPVOID  PostDraw7;
-/*00C4*/ LPVOID  OnMove4;
-/*00C8*/ LPVOID  Show;
-/*00CC*/ LPVOID  Unknown0x0cc;
-/*00D0*/ LPVOID  Unknown0x0d0;
-/*00D4*/ LPVOID  OnMove5;
-/*00D8*/ LPVOID  RequestDockInfo;
-/*00DC*/ LPVOID  GetTooltip;
-/*00E0*/ LPVOID  HitTest;
-/*00E4*/ LPVOID  GetHitTestRect;
-/*00E8*/ LPVOID  GetInnerRect;
-/*00EC*/ LPVOID  GetClientRect;
-/*00F0*/ LPVOID  GetMinSize;
-/*00F4*/ LPVOID  GetMaxSize;
-/*00F8*/ LPVOID  GetUntileSize;
-/*00FC*/ LPVOID  IsPointTransparent;
-/*0100*/ LPVOID  Unknown100;
-/*0104*/ LPVOID  Unknown104;
-/*0108*/ LPVOID  SetDrawTemplate;
-/*010C*/ LPVOID  Move_Rect;
-/*0110*/ LPVOID  Move_Point;
-/*0114*/ LPVOID  SetFont;
-/*0118*/ LPVOID  SetWindowTextA;
-/*011C*/ LPVOID  Unknown0x11c;
-/*0120*/ LPVOID  Unknown0x120;
-/*0124*/ LPVOID  SetVScrollPos;  //->0
-/*0128*/ LPVOID  SetHScrollPos;
-/*012c*/ LPVOID  Unknown0x12c;
+/*00A4*/ LPVOID  Unknown0xa4;
+/*00A8*/ LPVOID  OnMinimizeBox;
+/*00AC*/ LPVOID  Unknown0xac;
+/*00B0*/ LPVOID  OnTileBox;
+/*00B4*/ LPVOID  PostDraw6;
+/*00B8*/ LPVOID  OnMove2;
+/*00BC*/ LPVOID  OnMove3;
+/*00C0*/ LPVOID  OnProcessFrame;
+/*00C4*/ LPVOID  OnVScroll;
+/*00C8*/ LPVOID  OnHScroll;
+/*00CC*/ LPVOID  PostDraw7;
+/*00D0*/ LPVOID  OnMove4;
+/*00D4*/ LPVOID  Show;
+/*00D8*/ LPVOID  Unknown0x0d8;
+/*00DC*/ LPVOID  Unknown0x0dc;
+/*00E0*/ LPVOID  OnMove5;
+/*00E4*/ LPVOID  RequestDockInfo;
+/*00E8*/ LPVOID  GetTooltip;
+/*00EC*/ LPVOID  HitTest;
+/*00F0*/ LPVOID  GetHitTestRect;
+/*00F4*/ LPVOID  GetInnerRect;
+/*00F8*/ LPVOID  GetClientRect;
+/*00FC*/ LPVOID  GetMinSize;
+/*0100*/ LPVOID  GetMaxSize;
+/*0104*/ LPVOID  GetUntileSize;
+/*0108*/ LPVOID  IsPointTransparent;
+/*010C*/ LPVOID  Unknown10c;
+/*0110*/ LPVOID  Unknown110;
+/*0114*/ LPVOID  Unknown114;
+/*0118*/ LPVOID  SetDrawTemplate;
+/*011C*/ LPVOID  Move_Rect;
+/*0120*/ LPVOID  Move_Point;
+/*0124*/ LPVOID  SetFont;
+/*0128*/ LPVOID  SetWindowTextA;
+/*012C*/ LPVOID  Unknown0x12c;
 /*0130*/ LPVOID  Unknown0x130;
-/*0134*/ LPVOID  SetAttributesFromSidl;
-/*0138*/ LPVOID  nullsub_1;
-/*013c*/ LPVOID  Unknown0x13c;
+/*0134*/ LPVOID  SetVScrollPos;  //->0
+/*0138*/ LPVOID  SetHScrollPos;
+/*013C*/ LPVOID  Unknown0x13c;
 /*0140*/ LPVOID  Unknown0x140;
-/*0144*/ LPVOID  PostDraw8;
-/*0148*/
+/*0144*/ LPVOID  SetAttributesFromSidl;
+/*0148*/ LPVOID  nullsub_1;
+/*014C*/ LPVOID  Unknown0x14c;
+/*0150*/ LPVOID  Unknown0x150;
+/*0154*/ LPVOID  PostDraw8;
+/*0158*/ LPVOID  Unknown0x158;
+/*015C*/
 } CXWNDVFTABLE, *PCXWNDVFTABLE; 
 
-// Actual size 0x1a8 6-30-11 - ieatacid
+// Actual size 0x1c4 11-15-11 - ieatacid
 typedef struct _CXWND {
 /*0x000*/   struct  _CXWNDVFTABLE   *pvfTable;
 /*0x004*/   void    *pUnknown0x4;
 /*0x008*/   struct  _CSIDLWND *pNextSiblingWnd;
 /*0x00c*/   void    *pUnknown0xc;
 /*0x010*/   struct  _CSIDLWND *pFirstChildWnd;
-/*0x014*/   BYTE    Unknown0x14[0x18];
-/*0x02c*/   DWORD   HScrollPos;
-/*0x030*/   LPVOID  DrawTemplate;
-/*0x034*/   DWORD   WindowStyle;    // bit 1 - vertical scroll, bit 2 - horizontal scroll, bit 4 - title bar?, bit 8 - border
-/*0x038*/   BYTE    Unknown0x38[0x4];
-/*0x03c*/   DWORD   VScrollPos;
-/*0x040*/   DWORD   TimeMouseOver;
-/*0x044*/   BYTE    Unknown0x44[0x8];
-/*0x04c*/   DWORD   FadeDuration;
-/*0x050*/   BYTE    Enabled;
-/*0x051*/   BYTE    Unknown0x51[0x13];
-/*0x064*/   DWORD   VScrollMax;
-/*0x068*/   struct  _CSIDLWND *pParentWindow; // If this is NULL, coordinates are absolute...
-/*0x06c*/   BYTE    Unknown0x6c[0x2];
-/*0x06e*/   BYTE    Show;
-/*0x06f*/   BYTE    FadeToAlpha;
-/*0x070*/   BYTE    MouseOver;
-/*0x071*/   BYTE    Unknown0x71[0x8];
-/*0x079*/   BYTE    Minimized;
-/*0x07a*/   BYTE    Unknown0x7a[0x6];
-/*0x080*/   BYTE    ValidCXWnd;
-/*0x081*/   BYTE    Unknown0x81[0x3];
-/*0x084*/   struct  _CXSTR  *XMLToolTip;
-/*0x088*/   BYTE    Unknown0x88[0x19];
-/*0x0a1*/   BYTE    CloseOnESC;     // close when ESC is pressed
-/*0x0a2*/   BYTE    Unknown0xa2[0x2];
-/*0x0a4*/   DWORD   HScrollMax;
-/*0x0a8*/   BYTE    Unknown0xa8[0x24];
-/*0x0cc*/   RECT    OldLocation;
-/*0x0dc*/   BYTE    Unknown0xdc[0x8];
-/*0x0e4*/   DWORD   UnknownCW;
-/*0x0e8*/   BYTE    Unknown0xe8[0x4];
-/*0x0ec*/   DWORD   XMLIndex;
-/*0x0f0*/   BYTE    Unknown0xf0[0x2c];
-/*0x11c*/   struct  _CXSTR  *Tooltip;
-/*0x120*/   BYTE    Unknown0x120[0x1];
-/*0x121*/   BYTE    Locked;
-/*0x122*/   BYTE    Unknown0x122[0xa];
-/*0x12c*/   DWORD   ZLayer;
-/*0x130*/   RECT    Location;
-/*0x140*/   BYTE    Unknown0x140[0x10];
-/*0x150*/   BYTE    Faded;
-/*0x151*/   BYTE    Unknown0x151[0x8];
-/*0x159*/   BYTE    Alpha;
-/*0x15a*/   BYTE    Unknown0x15a[0xa];
-/*0x164*/   DWORD   BGType;         // "BGType" in ini
-/*0x168*/   BYTE    Unknown0x168[0x9];
-/*0x171*/   BYTE    Clickable;      // found in the button handlers
-/*0x172*/   BYTE    Unknown0x172[0x1a];
-/*0x18c*/   ARGBCOLOR BGColor;
-/*0x190*/   BYTE    Unknown0x190[0x7];
-/*0x197*/   BYTE    Fades;
-/*0x198*/   struct  _CXSTR  *WindowText;
-/*0x19c*/   DWORD   TickCount2;
-/*0x1a0*/   BYTE    Unknown0x1a0[0x4];
-/*0x1a4*/   BYTE    Unlockable;     // related to Locked
-/*0x1a5*/   BYTE    Unknown0x1a5[0x3];
-/*0x1a8*/
+/*0x014*/   BYTE    Unknown0x14[0x8];
+/*0x01c*/   DWORD   FadeDuration;
+/*0x020*/   BYTE    Unknown0x20[0xc];
+/*0x02c*/   DWORD   TimeMouseOver;
+/*0x030*/   BYTE    Unknown0x30[0x14];
+/*0x044*/   BYTE    Alpha;
+/*0x045*/   BYTE    Unknown0x45[0x27];
+/*0x06c*/   BYTE    Clickable;      // found in the button handlers
+/*0x06d*/   BYTE    Unknown0x6d[0x7];
+/*0x074*/   DWORD   VScrollMax;
+/*0x078*/   BYTE    Unknown0x78[0xc];
+/*0x084*/   ARGBCOLOR BGColor;
+/*0x088*/   BYTE    Unknown0x88[0x4];
+/*0x08c*/   DWORD   ZLayer;
+/*0x090*/   BYTE    Unknown0x90[0x10];
+/*0x0a0*/   struct  _CXSTR  *Tooltip;
+/*0x0a4*/   BYTE    Unknown0xa4[0x8];
+/*0x0ac*/   DWORD   WindowStyle;    // bit 1 - vertical scroll, bit 2 - horizontal scroll, bit 4 - title bar?, bit 8 - border
+/*0x0b0*/   DWORD   HScrollMax;
+/*0x0b4*/   BYTE    Unknown0xb4[0x4];
+/*0x0b8*/   struct  _CXSTR  *XMLToolTip;
+/*0x0bc*/   BYTE    Enabled;
+/*0x0bd*/   BYTE    Unknown0xbd[0x3];
+/*0x0c0*/   DWORD   XMLIndex;
+/*0x0c4*/   BYTE    Unknown0xc4[0x1c];
+/*0x0e0*/   BYTE    MouseOver;
+/*0x0e1*/   BYTE    Unknown0xe1[0x17];
+/*0x0f8*/   DWORD   TickCount2;
+/*0x0fc*/   struct  _CSIDLWND *pParentWindow; // If this is NULL, coordinates are absolute...
+/*0x100*/   DWORD   BGType;         // "BGType" in ini
+/*0x104*/   BYTE    Unknown0x104[0x1c];
+/*0x120*/   RECT    OldLocation;
+/*0x130*/   struct  _CXSTR  *WindowText;
+/*0x134*/   LPVOID  DrawTemplate;
+/*0x138*/   BYTE    Unknown0x138[0x24];
+/*0x15c*/   BYTE    Unlockable;     // related to Locked
+/*0x15d*/   BYTE    Minimized;
+/*0x15e*/   BYTE    Unknown0x15e[0xa];
+/*0x168*/   BYTE    Faded;
+/*0x169*/   BYTE    Unknown0x169[0x13];
+/*0x17c*/   DWORD   VScrollPos;
+/*0x180*/   BYTE    Fades;
+/*0x181*/   BYTE    Unknown0x181;
+/*0x182*/   BYTE    Locked;
+/*0x183*/   BYTE    Unknown0x183[0x6];
+/*0x189*/   BYTE    ValidCXWnd;
+/*0x18a*/   BYTE    Unknown0x18a[0xe];
+/*0x198*/   RECT    Location;
+/*0x1a8*/   BYTE    Unknown0x1a8;
+/*0x1a9*/   BYTE    FadeToAlpha;
+/*0x1aa*/   BYTE    Unknown0x1aa[0x2];
+/*0x1ac*/   DWORD   HScrollPos;
+/*0x1b0*/   BYTE    CloseOnESC;     // close when ESC is pressed
+/*0x1b1*/   BYTE    Unknown0x1b1[0xb];
+/*0x1bc*/   DWORD   UnknownCW;
+/*0x1c0*/   BYTE    Show;
+/*0x1c1*/   BYTE    Unknown0x1c1[0x3];
+/*0x1c4*/
 } CXWND, *PCXWND;
 #define GateBind          0
 
 
-// Actual size 0x1ec 6-30-11
+// Actual size 0x208 11-15-11
 typedef struct _CSIDLWND {
 /*0x000*/   struct  _CSIDLWNDVFTABLE   *pvfTable;
 /*0x004*/   void    *pUnknown0x4;
 /*0x008*/   struct  _CSIDLWND *pNextSiblingWnd;
 /*0x00c*/   void    *pUnknown0xc;
 /*0x010*/   struct  _CSIDLWND *pFirstChildWnd;
-/*0x014*/   BYTE    Unknown0x14[0x18];
-/*0x02c*/   DWORD   HScrollPos;
-/*0x030*/   LPVOID  DrawTemplate;
-/*0x034*/   DWORD   WindowStyle;    // bit 1 - vertical scroll, bit 2 - horizontal scroll, bit 4 - title bar?, bit 8 - border
-/*0x038*/   BYTE    Unknown0x38[0x4];
-/*0x03c*/   DWORD   VScrollPos;
-/*0x040*/   DWORD   TimeMouseOver;
-/*0x044*/   BYTE    Unknown0x44[0x8];
-/*0x04c*/   DWORD   FadeDuration;
-/*0x050*/   BYTE    Enabled;
-/*0x051*/   BYTE    Unknown0x51[0x13];
-/*0x064*/   DWORD   VScrollMax;
-/*0x068*/   struct  _CSIDLWND *pParentWindow; // If this is NULL, coordinates are absolute...
-/*0x06c*/   BYTE    Unknown0x6c[0x2];
-/*0x06e*/   BYTE    Show;
-/*0x06f*/   BYTE    FadeToAlpha;
-/*0x070*/   BYTE    MouseOver;
-/*0x071*/   BYTE    Unknown0x71[0x8];
-/*0x079*/   BYTE    Minimized;
-/*0x07a*/   BYTE    Unknown0x7a[0x6];
-/*0x080*/   BYTE    ValidCXWnd;
-/*0x081*/   BYTE    Unknown0x81[0x3];
-/*0x084*/   struct  _CXSTR  *XMLToolTip;
-/*0x088*/   BYTE    Unknown0x88[0x19];
-/*0x0a1*/   BYTE    CloseOnESC;     // close when ESC is pressed
-/*0x0a2*/   BYTE    Unknown0xa2[0x2];
-/*0x0a4*/   DWORD   HScrollMax;
-/*0x0a8*/   BYTE    Unknown0xa8[0x24];
-/*0x0cc*/   RECT    OldLocation;
-/*0x0dc*/   BYTE    Unknown0xdc[0x8];
-/*0x0e4*/   DWORD   UnknownCW;
-/*0x0e8*/   BYTE    Unknown0xe8[0x4];
-/*0x0ec*/   DWORD   XMLIndex;
-/*0x0f0*/   BYTE    Unknown0xf0[0x2c];
-/*0x11c*/   struct  _CXSTR  *Tooltip;
-/*0x120*/   BYTE    Unknown0x120[0x1];
-/*0x121*/   BYTE    Locked;
-/*0x122*/   BYTE    Unknown0x122[0xa];
-/*0x12c*/   DWORD   ZLayer;
-/*0x130*/   RECT    Location;
-/*0x140*/   BYTE    Unknown0x140[0x10];
-/*0x150*/   BYTE    Faded;
-/*0x151*/   BYTE    Unknown0x151[0x8];
-/*0x159*/   BYTE    Alpha;
-/*0x15a*/   BYTE    Unknown0x15a[0xa];
-/*0x164*/   DWORD   BGType;         // "BGType" in ini
-/*0x168*/   BYTE    Unknown0x168[0x9];
-/*0x171*/   BYTE    Clickable;      // found in the button handlers
-/*0x172*/   BYTE    Unknown0x172[0x1a];
-/*0x18c*/   ARGBCOLOR BGColor;
-/*0x190*/   BYTE    Unknown0x190[0x7];
-/*0x197*/   BYTE    Fades;
-/*0x198*/   struct  _CXSTR  *WindowText;
-/*0x19c*/   DWORD   TickCount2;
-/*0x1a0*/   BYTE    Unknown0x1a0[0x4];
-/*0x1a4*/   BYTE    Unlockable;     // related to Locked
-/*0x1a5*/   BYTE    Unknown0x1a5[0x3];
-/*0x1a8*/   union {
+/*0x014*/   BYTE    Unknown0x14[0x8];
+/*0x01c*/   DWORD   FadeDuration;
+/*0x020*/   BYTE    Unknown0x20[0xc];
+/*0x02c*/   DWORD   TimeMouseOver;
+/*0x030*/   BYTE    Unknown0x30[0x14];
+/*0x044*/   BYTE    Alpha;
+/*0x045*/   BYTE    Unknown0x45[0x27];
+/*0x06c*/   BYTE    Clickable;      // found in the button handlers
+/*0x06d*/   BYTE    Unknown0x6d[0x7];
+/*0x074*/   DWORD   VScrollMax;
+/*0x078*/   BYTE    Unknown0x78[0xc];
+/*0x084*/   ARGBCOLOR BGColor;
+/*0x088*/   BYTE    Unknown0x88[0x4];
+/*0x08c*/   DWORD   ZLayer;
+/*0x090*/   BYTE    Unknown0x90[0x10];
+/*0x0a0*/   struct  _CXSTR  *Tooltip;
+/*0x0a4*/   BYTE    Unknown0xa4[0x8];
+/*0x0ac*/   DWORD   WindowStyle;    // bit 1 - vertical scroll, bit 2 - horizontal scroll, bit 4 - title bar?, bit 8 - border
+/*0x0b0*/   DWORD   HScrollMax;
+/*0x0b4*/   BYTE    Unknown0xb4[0x4];
+/*0x0b8*/   struct  _CXSTR  *XMLToolTip;
+/*0x0bc*/   BYTE    Enabled;
+/*0x0bd*/   BYTE    Unknown0xbd[0x3];
+/*0x0c0*/   DWORD   XMLIndex;
+/*0x0c4*/   BYTE    Unknown0xc4[0x1c];
+/*0x0e0*/   BYTE    MouseOver;
+/*0x0e1*/   BYTE    Unknown0xe1[0x17];
+/*0x0f8*/   DWORD   TickCount2;
+/*0x0fc*/   struct  _CSIDLWND *pParentWindow; // If this is NULL, coordinates are absolute...
+/*0x100*/   DWORD   BGType;         // "BGType" in ini
+/*0x104*/   BYTE    Unknown0x104[0x1c];
+/*0x120*/   RECT    OldLocation;
+/*0x130*/   struct  _CXSTR  *WindowText;
+/*0x134*/   LPVOID  DrawTemplate;
+/*0x138*/   BYTE    Unknown0x138[0x24];
+/*0x15c*/   BYTE    Unlockable;     // related to Locked
+/*0x15d*/   BYTE    Minimized;
+/*0x15e*/   BYTE    Unknown0x15e[0xa];
+/*0x168*/   BYTE    Faded;
+/*0x169*/   BYTE    Unknown0x169[0x13];
+/*0x17c*/   DWORD   VScrollPos;
+/*0x180*/   BYTE    Fades;
+/*0x181*/   BYTE    Unknown0x181;
+/*0x182*/   BYTE    Locked;
+/*0x183*/   BYTE    Unknown0x183[0x6];
+/*0x189*/   BYTE    ValidCXWnd;
+/*0x18a*/   BYTE    Unknown0x18a[0xe];
+/*0x198*/   RECT    Location;
+/*0x1a8*/   BYTE    Unknown0x1a8;
+/*0x1a9*/   BYTE    FadeToAlpha;
+/*0x1aa*/   BYTE    Unknown0x1aa[0x2];
+/*0x1ac*/   DWORD   HScrollPos;
+/*0x1b0*/   BYTE    CloseOnESC;     // close when ESC is pressed
+/*0x1b1*/   BYTE    Unknown0x1b1[0xb];
+/*0x1bc*/   DWORD   UnknownCW;
+/*0x1c0*/   BYTE    Show;
+/*0x1c1*/   BYTE    Unknown0x1c1[0x3];
+/*0x1c4*/   union {
                 struct _CXSTR  *SidlText;
                 DWORD  Items;
             };
-/*0x1ac*/   union {
+/*0x1c8*/   union {
                 struct _CXSTR  *SidlScreen;
                 DWORD   SlotID;
             };
-/*0x1b0*/   LPVOID  SidlPiece;      // CScreenPieceTemplate (important)
-/*0x1b4*/   BYTE    Checked;
-/*0x1b5*/   BYTE    Highlighted;
-/*0x1b6*/   BYTE    Unused0x1b6[0x2];
-/*0x1b8*/   DWORD   TextureAnim;    // used in CSidlScreenWnd::AddButtonToRadioGroup
-/*0x1bc*/   struct  _CXSTR *   InputText;
-/*0x1c0*/   DWORD   Selector;
-/*0x1c4*/   DWORD   PushToSelector;
-/*0x1c8*/   DWORD   EnableINIStorage;
-/*0x1cc*/   union {
+/*0x1cc*/   LPVOID  SidlPiece;      // CScreenPieceTemplate (important)
+/*0x1d0*/   BYTE    Checked;
+/*0x1d1*/   BYTE    Highlighted;
+/*0x1d2*/   BYTE    Unused0x1d2[0x2];
+/*0x1d4*/   DWORD   TextureAnim;    // used in CSidlScreenWnd::AddButtonToRadioGroup
+/*0x1d8*/   struct  _CXSTR *   InputText;
+/*0x1dc*/   DWORD   Selector;
+/*0x1e0*/   DWORD   PushToSelector;
+/*0x1e4*/   DWORD   EnableINIStorage;
+/*0x1e8*/   union {
                 struct _CXSTR *INIStorageName;
                 struct _EQINVSLOT *pEQInvSlot;
             };
-/*0x1d0*/   DWORD   Unknown0x1d0;
-/*0x1d4*/   DWORD   Unknown0x1d4;   // CTextureAnimation
-/*0x1d8*/   DWORD   Unknown0x1d8;   // CTextureAnimation
-/*0x1dc*/   BYTE    Unknown0x1dc[0x4];
-/*0x1e0*/   LPVOID  ContextMenu;    // CTextureAnimation
-/*0x1e4*/   DWORD   Unknown0x1e4;   // CTextureAnimation
-/*0x1e8*/   DWORD   Unknown0x1e8;   // CTextureAnimation
-/*0x1ec*/
+/*0x1ec*/   DWORD   Unknown0x1ec;
+/*0x1f0*/   DWORD   Unknown0x1f0;   // CTextureAnimation
+/*0x1f4*/   DWORD   Unknown0x1f4;   // CTextureAnimation
+/*0x1f8*/   BYTE    Unknown0x1f8[0x4];
+/*0x1fc*/   LPVOID  ContextMenu;    // CTextureAnimation
+/*0x200*/   DWORD   Unknown0x200;   // CTextureAnimation
+/*0x204*/   DWORD   Unknown0x204;   // CTextureAnimation
+/*0x208*/
 } CSIDLWND, *PCSIDLWND;
 
 // size 0x298  09-03-2008
@@ -593,7 +604,7 @@ typedef struct _EQCHATWINDOW
 } EQCHATWINDOW, *PEQCHATWINDOW;
 
 // in CChatWindow__CChatWindow
-#define EQ_CHAT_HISTORY_OFFSET 0x258
+#define EQ_CHAT_HISTORY_OFFSET 0x274
 // in CChatWindow__SetChatFont
 #define EQ_CHAT_FONT_OFFSET    0x114
 

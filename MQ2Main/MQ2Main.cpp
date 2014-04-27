@@ -491,7 +491,7 @@ VOID InsertMQ2News()
         DeleteMQ2NewsWindow();    
         return;
     }
-    AddNewsLine("If you need help, refer to README.CHM, the MacroQuest2 manual.",CONCOLOR_RED);
+    AddNewsLine("If you need help, refer to www.macroquest2.com/wiki",CONCOLOR_RED);
     AddNewsLine("Recent changes...",CONCOLOR_RED);
     CHAR szLine[MAX_STRING]={0};
     DWORD nLines=0;
