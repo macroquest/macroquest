@@ -259,14 +259,14 @@ VFTABLE;
 /*0x138**/   DWORD   XMLIndex; \
 /*0x13c*/   BYTE  Unknown0x13c[0x8]; \
 /*0x144**/   BYTE    dShow; \
-/*0x145*/   BYTE  Unknown0x145[0x37]; \
+/*0x145*/   BYTE  Unknown0x145[0x7]; \
+/*0x14c**/   BYTE    Enabled; \
+/*0x14d*/   BYTE  Unknown0x14d[0x2f]; \
 /*0x17c**/   ARGBCOLOR BGColor; \
 /*0x180**/   DWORD   HScrollMax; \
 /*0x184*/   BYTE  Unknown0x184[0x2c]; \
 /*0x1b0**/   DWORD   BGType;         /* found in CSidlScreenWnd__StoreIniInfo_x "BGType" in ini */ \
-/*0x1b4*/   BYTE  Unknown0x1b4[0x4]; \
-/*0x1b8**/   BYTE    Enabled; \
-/*0x1b9*/   BYTE  Unknown0x1b9[0x7]; \
+/*0x1b4*/   BYTE  Unknown0x1b4[0xc]; \
 /*0x1c0**/   struct  _CXSTR  *WindowText; /*CXWnd__GetWindowTextA_x has this one*/ \
 /*0x1c4*/	BYTE Unknown0x1c4[0xc]; \
 /*0x1d0*/
