@@ -3533,7 +3533,7 @@ bool MQ2CharacterType::GETMEMBER()
     case PctAggro:
         if(pAggroInfo)
         {
-            Dest.DWord = pAggroInfo->aggroData[AggroDataTypes::AD_Player].AggroPct;
+            Dest.DWord = pAggroInfo->aggroData[AD_Player].AggroPct;
             Dest.Type = pIntType;
             return true;
         }
@@ -3541,7 +3541,7 @@ bool MQ2CharacterType::GETMEMBER()
     case SecondaryPctAggro:
         if(pAggroInfo)
         {
-            Dest.DWord = pAggroInfo->aggroData[AggroDataTypes::AD_Secondary].AggroPct;
+            Dest.DWord = pAggroInfo->aggroData[AD_Secondary].AggroPct;
             Dest.Type = pIntType;
             return true;
         }
@@ -7531,7 +7531,7 @@ bool MQ2TargetType::GETMEMBER()
     case PctAggro:
         if(pAggroInfo)
         {
-            Dest.DWord = pAggroInfo->aggroData[AggroDataTypes::AD_Player].AggroPct;
+            Dest.DWord = pAggroInfo->aggroData[AD_Player].AggroPct;
             Dest.Type = pIntType;
             return true;
         }
@@ -7539,7 +7539,7 @@ bool MQ2TargetType::GETMEMBER()
     case SecondaryPctAggro:
         if(pAggroInfo)
         {
-            Dest.DWord = pAggroInfo->aggroData[AggroDataTypes::AD_Secondary].AggroPct;
+            Dest.DWord = pAggroInfo->aggroData[AD_Secondary].AggroPct;
             Dest.Type = pIntType;
             return true;
         }
@@ -7582,7 +7582,7 @@ bool MQ2XTargetType::GETMEMBER()
         case PctAggro:
             if(pAggroInfo)
             {
-                Dest.DWord = pAggroInfo->aggroData[AggroDataTypes::AD_xTarget1 + VarPtr.DWord].AggroPct;
+                Dest.DWord = pAggroInfo->aggroData[AD_xTarget1 + VarPtr.DWord].AggroPct;
                 Dest.Type = pIntType;
                 return true;
             }

@@ -181,7 +181,6 @@ FUNCTION_AT_VIRTUAL_ADDRESS(int CXWnd::HandleRButtonUp(class CXPoint *,unsigned 
 FUNCTION_AT_VIRTUAL_ADDRESS(int CXWnd::HandleRButtonHeld(class CXPoint *,unsigned __int32),0x50);
 FUNCTION_AT_VIRTUAL_ADDRESS(int CXWnd::HandleRButtonUpAfterHeld(class CXPoint *,unsigned __int32),0x54);
 FUNCTION_AT_VIRTUAL_ADDRESS(int CXWnd::OnMinimizeBox(void),0xa8);
-FUNCTION_AT_VIRTUAL_ADDRESS(int CXWnd::SetFont(void*),0x124);
 
 
 FUNCTION_AT_VIRTUAL_ADDRESS(void CListWnd::DeleteAll(void),0x184);
@@ -9622,3 +9621,6 @@ FUNCTION_AT_ADDRESS(bool CharacterZoneClient::HasSkill(int), CharacterZoneClient
 FUNCTION_AT_ADDRESS(int PcZoneClient::GetPcSkillLimit(int), PcZoneClient__GetPcSkillLimit);
 #endif
 
+#ifdef CXWnd__SetFont_x
+FUNCTION_AT_ADDRESS(int CXWnd::SetFont(void*), CXWnd__SetFont);
+#endif
