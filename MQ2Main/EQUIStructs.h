@@ -753,18 +753,18 @@ typedef struct _EQLOOTWINDOW {
 /*0x388*/
 } EQLOOTWINDOW, *PEQLOOTWINDOW;
 
-//Size: 0x828 11-11-09 by dkaa
+//Size: 0x900 11-15-11 by ieatacid
 typedef struct _EQPETINFOWINDOW {
 /*0x000*/ struct _CSIDLWND Wnd;
-/*0x1f0*/ DWORD Unknown0x198[0x4];
-/*0x200*/ struct _CBUTTONWND *pButton[0xe];
-/*0x238*/ BYTE  Unknown0x1e0[0x1ac];
-/*0x3e4*/ struct _CSIDLWND *pWnd[NUM_BUFF_SLOTS]; // buff icons?
-/*0x538*/ int   Buff[NUM_BUFF_SLOTS];        // Spell ID# of each buff -- 85 total
-/*0x68c*/ BYTE  Unknown0x634[0x20];
-/*0x6ac*/ DWORD BuffFadeETA[NUM_BUFF_SLOTS]; // duration until buff fades, in thousands of a second
-/*0x800*/ BYTE  Unknown0x7a8[0x28];
-/*0x828*/
+/*0x208*/ DWORD Unknown0x208[0x10];
+/*0x218*/ struct _CBUTTONWND *pButton[0xe];
+/*0x250*/ BYTE  Unknown0x250[0x1dc];
+/*0x42c*/ struct _CSIDLWND *pWnd[NUM_BUFF_SLOTS]; // buff icons?
+/*0x5b0*/ int   Buff[NUM_BUFF_SLOTS];        // Spell ID# of each buff -- 85 total
+/*0x734*/ BYTE  Unknown0x734[0x20];
+/*0x754*/ DWORD BuffFadeETA[NUM_BUFF_SLOTS]; // duration until buff fades, in thousands of a second
+/*0x8d8*/ BYTE  Unknown0x8d8[0x28];
+/*0x900*/
 } EQPETINFOWINDOW, *PEQPETINFOWINDOW; 
 
 typedef struct _EQTRADESKILLRECIPE {
@@ -802,15 +802,15 @@ typedef struct _EQTRADESKILLWINDOW {
 /*0x3d8*/ DWORD Unknown0x3d8;
 } EQTRADESKILLWINDOW, *PTRADESKILLWINDOW;
 
-//Actual Size 0x2d8 - 20101026 - ieatacid
+//Actual Size 0x2e0 - 20111123 - ieatacid
 typedef struct _EQTRADEWINDOW {
 /*0x000*/ struct _CSIDLWND Wnd;
-/*0x1fc*/ BYTE   Unknown0x1fc[0xd4];
-/*0x2d0*/ BYTE   HisTradeReady;
-/*0x2d1*/ BYTE   MyTradeReady;
-/*0x2d2*/ BYTE   TradeWndOpen;
-/*0x2d3*/ BYTE   Unknown0x2d3[0x5];
-/*0x2d8*/
+/*0x208*/ BYTE   Unknown0x1fc[0xd0];
+/*0x2d8*/ BYTE   HisTradeReady;
+/*0x2d9*/ BYTE   MyTradeReady;
+/*0x2da*/ BYTE   TradeWndOpen;
+/*0x2db*/ BYTE   Unknown0x2db[0x5];
+/*0x2e0*/
 } EQTRADEWINDOW, *PTRADEWINDOW; 
 
 //Size: 0x2dc (03/12/2009) 
