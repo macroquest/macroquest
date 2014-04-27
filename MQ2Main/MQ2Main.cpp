@@ -318,6 +318,7 @@ bool __cdecl MQ2Initialize()
     InitializeMQ2Pulse();
     InitializeMQ2Commands();
     InitializeMQ2Windows();
+	MQ2MouseHooks(1);
     Sleep(100);
     InitializeMQ2KeyBinds();
 #ifndef ISXEQ
@@ -340,6 +341,7 @@ void __cdecl MQ2Shutdown()
     DebugTry(ShutdownMQ2Plugins());
 #endif
     DebugTry(ShutdownMQ2Windows());
+	DebugTry(MQ2MouseHooks(0));
 #ifndef ISXEQ
     DebugTry(ShutdownParser());
 #endif

@@ -5761,6 +5761,15 @@ bool MQ2SwitchType::GETMEMBER()
         Dest.Float=GetDistance(pSwitch->X,pSwitch->Y);
         Dest.Type=pFloatType;
         return true;
+	case Distance3D:
+	{
+		FLOAT X = ((PSPAWNINFO)pCharSpawn)->X - pSwitch->X;
+		FLOAT Y = ((PSPAWNINFO)pCharSpawn)->Y - pSwitch->Y;
+		FLOAT Z = ((PSPAWNINFO)pCharSpawn)->Z - pSwitch->Z;
+        Dest.Float=sqrtf(X*X + Y*Y + Z*Z);
+        Dest.Type=pFloatType;
+        return true;
+	}
     case xLineOfSight:
         Dest.DWord=(CastRay(GetCharInfo()->pSpawn,pSwitch->Y,pSwitch->X,pSwitch->Z));
         Dest.Type=pBoolType;

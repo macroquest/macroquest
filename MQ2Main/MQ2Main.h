@@ -365,6 +365,7 @@ LEGACY_API BOOL ParseMQ2DataPortion(PCHAR szOriginal, MQ2TYPEVAR &Result);
 /* MOUSE */
 EQLIB_API BOOL IsMouseWaiting(VOID);
 EQLIB_API BOOL IsMouseWaitingForButton();
+EQLIB_API void MQ2MouseHooks(BOOL bFlag);
 
 /* KEY BINDS */
 EQLIB_API VOID InitializeMQ2KeyBinds();

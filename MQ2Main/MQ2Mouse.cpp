@@ -21,7 +21,43 @@ GNU General Public License for more details.
 
 #include "MQ2Main.h" 
 
+// ***************************************************************************
+// EqMule Mar 08 2014
+// Adding a detour here
+// All it does is check if EnviroTarget.StandState==STANDSTATE_STAND
+// if it is, we know the user issued a /click left item
+// so we force the return of the correct switch...
+// That will have the effect of actually "clicking" it...
+// ***************************************************************************
+class FakeCDisplay
+{
+public:
+	struct T3D_tagACTORINSTANCE *GetClickedActor_Tramp(unsigned long,unsigned long,unsigned long,void *,void *);
+	struct T3D_tagACTORINSTANCE *GetClickedActor_Detour(unsigned long X,unsigned long Y,unsigned long Flag,void *Vector1,void *Vector2)
+	{
+		if(pGroundTarget && EnviroTarget.Name[0]!=0 && (EnviroTarget.StandState==STANDSTATE_STAND || EnviroTarget.StandState==STANDSTATE_SIT)) {
+			//we do this to take both mousedown and mouseup into account
+			if(EnviroTarget.StandState==STANDSTATE_STAND) {
+				EnviroTarget.StandState=STANDSTATE_SIT;
+			} else if(EnviroTarget.StandState==STANDSTATE_SIT) {
+				EnviroTarget.StandState=STANDSTATE_DEAD;
+			}
+			return (T3D_tagACTORINSTANCE*)pGroundTarget->pSwitch;
+		} else {
+			return GetClickedActor_Tramp(X,Y,Flag,Vector1,Vector2);
+		}
+	}
+};
+DETOUR_TRAMPOLINE_EMPTY(struct T3D_tagACTORINSTANCE *FakeCDisplay::GetClickedActor_Tramp(unsigned long,unsigned long,unsigned long,void *,void *)); 
 
+void MQ2MouseHooks(BOOL bFlag)
+{
+	if(bFlag) {
+		EzDetour(CDisplay__GetClickedActor,&FakeCDisplay::GetClickedActor_Detour,&FakeCDisplay::GetClickedActor_Tramp);
+	} else {
+		RemoveDetour(CDisplay__GetClickedActor);
+	}
+}
 // *************************************************************************** 
 // Function: ParseMouseLoc 
 // Description: Parses mouseloc for /click and /mouseto 
@@ -29,7 +65,7 @@ GNU General Public License for more details.
 //Function used by ParseLocationXML to extract parameter
 // ExtractValue - gets value between specified start and end markers
 // - Parameters:
-// szFile - pointer to tring to look in
+// szFile - pointer to string to look in
 // szStart - pointer to string to mark start of value
 // szEnd - pointer to string to mark end of value
 // szValue - pointer to string to contain the value found
@@ -220,10 +256,36 @@ VOID Click(PSPAWNINFO pChar, PCHAR szLine)
                 gMouseEventTime = GetFastTime();
             } 
             return;
-        }
-        else if(!strnicmp(szMouseLoc,"center",6))
-        {
+        } else if(!strnicmp(szMouseLoc,"center",6)) {
             sprintf(szMouseLoc,"%d %d",ScreenXMax/2,ScreenYMax/2);
+        } else if (!strnicmp(szMouseLoc, "item", 4)) {
+			if(pGroundTarget) {
+				if (!strnicmp(szArg1, "left", 4)) {
+					if(EnviroTarget.Name[0]!=0) {
+						if(DistanceToSpawn(pChar,&EnviroTarget)<=20.0f) {
+							//do stuff
+							if(PEQSWITCH pSwitch = (PEQSWITCH)pGroundTarget->pSwitch) {
+								*((DWORD*)__LMouseHeldTime)=((PCDISPLAY)pDisplay)->TimeStamp-0x45;
+								//we "click" at -1000,-1000 because we know the user doesnt have any windows there...
+								//if its possible, i would like to figure out a pixel
+								//on the users screen that isnt covered by a window...
+								//the click need to be issued on the main UI...
+								//but for now this will work -eqmule 8 mar 2014
+								pEverQuest->LMouseUp(-1000,-1000);
+							}
+						} else {
+							WriteChatf("You are to far away from the item, please move closer before issuing the /click left item command.");
+						}
+					} else {
+						WriteChatf("No Item targeted, use /itemtarget <theid> before issuing a /click left item command.");
+					}
+				} else {
+					WriteChatf("Invalid click args, use \"/click left item\", aborting: %s",szMouseLoc);
+				}
+			} else {
+				WriteChatf("No Item targeted, use /itemtarget <theid> before issuing a /click left item command.");
+			}
+			return;
         } else if (!strnicmp(szMouseLoc, "door", 4)) {
 			// a right clicked door spawn does nothing
 			if(pDoorTarget) {
@@ -266,52 +328,8 @@ VOID Click(PSPAWNINFO pChar, PCHAR szLine)
 			} else {
 				WriteChatf("No Door targeted, use /doortarget <theid> before issuing a /click left door command.");
 			}
-			return;
-			//work in progress... eqmule dec 26 2013
-		/*} else if (!strnicmp(szMouseLoc, "item", 4)) {
-			// a right clicked item spawn does nothing
-			if(pGroundTarget) {
-				if (!strnicmp(szArg1, "left", 4)) {
-					if(EnviroTarget.Name[0]!=0) {
-						if(DistanceToSpawn(pChar,&EnviroTarget)<20.0f) {
-							EQSwitch *pSwitch = (EQSwitch *)pGroundTarget->pSwitch;
-							srand((unsigned int)time(0));
-							int randclickY = rand() % 5;
-							int randclickX = rand() % 5;
-							int randclickZ = rand() % 5;
-							PSWITCHCLICK pclick = new SWITCHCLICK;
-							if(pclick) {
-								pclick->Y=pGroundTarget->Y+randclickY;
-								pclick->X=pGroundTarget->X+randclickX;
-								pclick->Z=pGroundTarget->Z+randclickZ;
-								randclickY = rand() % 5;
-								randclickX = rand() % 5;
-								randclickZ = rand() % 5;
-								pclick->Y1=pclick->Y+randclickY;
-								pclick->X1=pclick->X+randclickX;
-								pclick->Z1=pclick->Z+randclickZ;
-								pSwitch->UseSwitch(GetCharInfo()->pSpawn->SpawnID,0xFFFFFFFF,0,(DWORD)pclick);
-								delete pclick;
-							}
-							//DoorEnviroTarget.Name[0]='\0';
-							if (pTarget==(EQPlayer*)&EnviroTarget) {//this should NEVER happen
-								pTarget=NULL;
-							}
-							return;
-						} else {
-							WriteChatf("You are to far away from the item, please move closer before issuing the /click left item command.");
-						}
-					} else {
-						WriteChatf("No Door targeted, use /itemtarget <theid> before issuing a /click left item command.");
-					}
-				} else {
-					WriteChatf("Invalid click args, use \"/click left item\", aborting: %s",szMouseLoc);
-				}
-			} else {
-				WriteChatf("No Item targeted, use /itemtarget <theid> before issuing a /click left item command.");
-			}
-			return;*/
-		}
+			return;;
+		} 
         ClickMouseLoc(szMouseLoc, szArg1);
         return;
     }

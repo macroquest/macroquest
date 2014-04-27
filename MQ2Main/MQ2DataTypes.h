@@ -1710,6 +1710,7 @@ public:
         DefaultU=19,
         xLineOfSight=20,
 		Address=21,
+		Distance3D=22,
     };
     static enum SwitchMethods
     {
@@ -1732,6 +1733,7 @@ public:
         TypeMember(Name);//13,
         AddMember(xLineOfSight,"LineOfSight");
         TypeMember(Address);//21,
+        TypeMember(Distance3D);//22,
     }
 
     ~MQ2SwitchType()

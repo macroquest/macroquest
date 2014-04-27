@@ -6426,12 +6426,13 @@ BOOL PickupOrDropItem(DWORD type, PCONTENTS pItem)
 			//if(wechangedpackopenstatus)
 			//	CloseContainer(pItem);
 		} else {
-			pInvSlotMgr->MoveItem(&From,&To,2,2,2,2);
+			pInvSlotMgr->MoveItem(&From,&To,1,1,0,0);
+			//pPCData->AlertInventoryChanged();
 		}
 		return TRUE;
 	} else {
 		//user has something on the cursor, lets drop it
-		/*CMoveItemData From = {0};
+		CMoveItemData From = {0};
 		From.InventoryType = 0;
 		From.Unknown0x02 = 0;
 		From.InvSlot = 33;//cursor
@@ -6446,11 +6447,14 @@ BOOL PickupOrDropItem(DWORD type, PCONTENTS pItem)
 		To.BagSlot = BagSlot;
 		To.GlobalSlot = pSlot->pInvSlotWnd->GlobalSlot;
 		To.RandomNum = pSlot->pInvSlotWnd->RandomNum;
-		pInvSlotMgr->MoveItem(&From,&To,1,1,0,0);*/
-		if(pCharSpawn) {
+		pInvSlotMgr->MoveItem(&From,&To,1,1,0,0);
+		return TRUE;
+		//need to update cursor here
+		//pPCData->AlertInventoryChanged();
+		/*if(pCharSpawn) {
 			DoCommand((PSPAWNINFO)pCharSpawn,"/autoinventory");
 			return TRUE;
-		}
+		}*/
 	}
 	return FALSE;
 }

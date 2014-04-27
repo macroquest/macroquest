@@ -202,6 +202,7 @@ VOID ItemTarget(PSPAWNINFO pChar, PCHAR szLine)
                 tSpawn.HPMax = 1;
                 tSpawn.Heading=pItem->Heading;
                 tSpawn.Race = pItem->DropID;
+				tSpawn.StandState = STANDSTATE_STAND;//im using this for /clicked left item -eqmule
                 FLOAT Distance = DistanceToSpawn(pChar,&tSpawn);
                 if (Distance<cDistance) {
                     CopyMemory(&EnviroTarget,&tSpawn,sizeof(EnviroTarget));
