@@ -944,23 +944,32 @@ int RecurseAndListWindows(PCSIDLWND pWnd)
     return Count;
 }
 
-
-#ifndef ISXEQ 
+#ifndef ISXEQ
 VOID ListWindows(PSPAWNINFO pChar, PCHAR szLine)
 {
+    char szArg1[MAX_STRING] = {0};
+    char szArg2[MAX_STRING] = {0};
+    char szArg3[MAX_STRING] = {0};
+    GetArg(szArg1,szLine,1);
+    GetArg(szArg2,szLine,2);
+    GetArg(szArg3,szLine,3);
+ 
 #else
 int ListWindows(int argc, char *argv[])
 {
-    PCHAR szLine = NULL;
-    if (argc>0)
-        szLine = argv[1];
-#endif 
-	char szArg1[MAX_STRING] = {0};
+    char szArg1[MAX_STRING] = {0};
     char szArg2[MAX_STRING] = {0};
     char szArg3[MAX_STRING] = {0};
-	GetArg(szArg1,szLine,1);
-	GetArg(szArg2,szLine,2);
-	GetArg(szArg3,szLine,3);
+    PCHAR szLine = NULL;
+    if (argc > 0)
+        szLine = argv[1];
+    if (argc > 1)
+		strcpy_s(szArg1,argv[1]);
+    if (argc > 2)
+		strcpy_s(szArg2,argv[2]);
+    if (argc > 3)
+		strcpy_s(szArg3,argv[3]);
+#endif
 	BOOL bOpen = 0;
 	BOOL bPartial = 0;
 	if(!_stricmp(szArg1,"open")) {

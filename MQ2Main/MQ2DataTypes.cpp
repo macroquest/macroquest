@@ -5606,6 +5606,10 @@ bool MQ2SwitchType::GETMEMBER()
         return false;
     switch((SwitchMembers)pMember->ID)
     {
+	case Address:
+		Dest.DWord=(DWORD)VarPtr.Ptr;
+		Dest.Type=pIntType;
+        return true;
     case ID:
         Dest.DWord=pSwitch->ID;
         Dest.Type=pIntType;
@@ -5688,6 +5692,10 @@ bool MQ2GroundType::GETMEMBER()
         return false;
     switch((GroundMembers)pMember->ID)
     {
+    case Address:
+		Dest.DWord=(DWORD)VarPtr.Ptr;
+		Dest.Type=pIntType;
+        return true;
     case ID:
         Dest.DWord=pGround->DropID;
         Dest.Type=pIntType;

@@ -1695,6 +1695,7 @@ public:
         DefaultW=18,
         DefaultU=19,
         xLineOfSight=20,
+		Address=21,
     };
     static enum SwitchMethods
     {
@@ -1716,6 +1717,7 @@ public:
         TypeMember(HeadingTo);//12,
         TypeMember(Name);//13,
         AddMember(xLineOfSight,"LineOfSight");
+        TypeMember(Address);//21,
     }
 
     ~MQ2SwitchType()
@@ -1775,6 +1777,7 @@ public:
         W=10,
         U=11,
         xLineOfSight=12,
+        Address=13,
     };
     static enum GroundMethods
     {
@@ -1792,6 +1795,7 @@ public:
         TypeMember(HeadingTo);
         AddMember(xLineOfSight,"LineOfSight");
         TypeMethod(Grab);
+        TypeMember(Address);
     }
 
     ~MQ2GroundType()
