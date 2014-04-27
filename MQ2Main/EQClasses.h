@@ -2827,6 +2827,7 @@ EQLIB_OBJECT void CLootWnd::AddContainerToLootArray(class EQ_Item *);
 EQLIB_OBJECT void CLootWnd::AddEquipmentToLootArray(class EQ_Item *);
 EQLIB_OBJECT void CLootWnd::AddNoteToLootArray(class EQ_Item *);
 EQLIB_OBJECT void CLootWnd::Deactivate(bool);
+EQLIB_OBJECT void CLootWnd::LootAll(bool);
 EQLIB_OBJECT void CLootWnd::RequestLootSlot(int,bool);
 EQLIB_OBJECT void CLootWnd::SlotLooted(int);
 // virtual
@@ -2841,7 +2842,7 @@ EQLIB_OBJECT void CLootWnd::Deactivate(void);
 EQLIB_OBJECT void CLootWnd::FinalizeLoot(void);
 EQLIB_OBJECT void CLootWnd::Init(void);
 /*0x208*/ BYTE Unknown0x1b8[0xd1];   // should be 2d9 on 2012/01/11
-/*0x2d9*/ BYTE LootAll;
+/*0x2d9*/ BYTE bLootAll;
 /*0x2da*/
 };
 
@@ -4503,6 +4504,7 @@ EQLIB_OBJECT CTargetWnd::CTargetWnd(class CXWnd *);
 EQLIB_OBJECT void CTargetWnd::Activate(void);
 // virtual
 EQLIB_OBJECT CTargetWnd::~CTargetWnd(void);
+EQLIB_OBJECT class CXStr *CTargetWnd::GetBuffCaster(int SpellID);
 EQLIB_OBJECT int CTargetWnd::OnProcessFrame(void);
 //EQLIB_OBJECT void * CTargetWnd::`scalar deleting destructor'(unsigned int);
 //EQLIB_OBJECT void * CTargetWnd::`vector deleting destructor'(unsigned int);

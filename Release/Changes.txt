@@ -1,3 +1,10 @@
+30 Mar 2014 by eqmule
+- Fixed /lootall
+- Added Caster to the Spell TLO
+  returns a pStringType of the caster of a buff
+  Usage: /echo ${Target.Buff[Ancient Flames].Caster}
+  [MQ2] eqmule
+
 26 Mar 2014 by eqmule
 - Fixed Spell[some spell].Description
   it now returns the correct string.

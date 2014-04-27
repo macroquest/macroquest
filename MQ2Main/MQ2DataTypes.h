@@ -1234,6 +1234,7 @@ public:
 		Target=51,
 		Description=52,
 		StacksWith=53,
+		Caster=54,
     };
     static enum SpellMethods
     {
@@ -1293,6 +1294,7 @@ public:
 		TypeMember(Target);
 		TypeMember(Description);
 		TypeMember(StacksWith);
+		TypeMember(Caster);
     }
 
     ~MQ2SpellType()

@@ -702,3 +702,5 @@
 #define EQ_Spell__SpellAffects_x                                   0x4B5800
 #define EQ_Spell__GetSpellBaseByAttrib_x                           0x4B5830
 #define CharacterZoneClient__CalcAffectChange_x                    0x436080
+#define CLootWnd__LootAll_x                                        0x6CB4A0
+#define CTargetWnd__GetBuffCaster_x                                0x778FC0

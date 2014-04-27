@@ -363,8 +363,9 @@ DWORD WINAPI MQ2Start(LPVOID lpParameter)
     free(lpINIPath);
     CHAR szBuffer[MAX_STRING] = {0};
 
-    if (!MQ2Initialize())
-        return 1;
+    if (!MQ2Initialize()) {
+        FreeLibraryAndExitThread(GetModuleHandle("MQ2Main.dll"),0);
+	}
 
     while (gGameState != GAMESTATE_CHARSELECT && gGameState != GAMESTATE_INGAME) 
         Sleep(500);

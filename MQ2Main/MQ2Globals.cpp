@@ -1730,6 +1730,8 @@ INITIALIZE_EQGAME_OFFSET(EQ_Spell__GetSpellLevelNeeded);
 INITIALIZE_EQGAME_OFFSET(EQ_Spell__SpellAffects);
 INITIALIZE_EQGAME_OFFSET(EQ_Spell__GetSpellBaseByAttrib);
 INITIALIZE_EQGAME_OFFSET(CharacterZoneClient__CalcAffectChange);
+INITIALIZE_EQGAME_OFFSET(CLootWnd__LootAll);
+INITIALIZE_EQGAME_OFFSET(CTargetWnd__GetBuffCaster);
 
 
 };

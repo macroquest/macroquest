@@ -7236,7 +7236,7 @@ int GetTargetBuffBySubCat(PCHAR subcat)
 }
 //Usage: The spa is the spellaffect id, for example 11 for Melee Speed
 //       the bIncrease tells the function if we want spells that increase or decrease the SPA
-int GetTargetBufFBySPA(int spa,bool bIncrease)
+int GetTargetBuffBySPA(int spa,bool bIncrease)
 {
 	if(!(((PCTARGETWND)pTargetWnd)->Type > 0))
 		return false;

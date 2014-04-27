@@ -2096,6 +2096,9 @@ FUNCTION_AT_ADDRESS(void  CLootWnd::Activate(unsigned char,long,long,long,long),
 #ifdef CLootWnd__Deactivate1_x
 FUNCTION_AT_ADDRESS(void  CLootWnd::Deactivate(bool),CLootWnd__Deactivate1);
 #endif
+#ifdef CLootWnd__LootAll_x
+FUNCTION_AT_ADDRESS(void  CLootWnd::LootAll(bool),CLootWnd__LootAll);
+#endif
 #ifdef CLootWnd__FinalizeLoot_x
 FUNCTION_AT_ADDRESS(void  CLootWnd::FinalizeLoot(void),CLootWnd__FinalizeLoot);
 #endif
@@ -2818,6 +2821,9 @@ FUNCTION_AT_ADDRESS( CTargetWnd::CTargetWnd(class CXWnd *),CTargetWnd__CTargetWn
 #endif
 #ifdef CTargetWnd__Activate_x
 FUNCTION_AT_ADDRESS(void  CTargetWnd::Activate(void),CTargetWnd__Activate);
+#endif
+#ifdef CTargetWnd__GetBuffCaster_x
+FUNCTION_AT_ADDRESS(class CXStr *CTargetWnd::GetBuffCaster(int),CTargetWnd__GetBuffCaster);
 #endif
 #ifdef CTextEntryWnd__CTextEntryWnd_x
 FUNCTION_AT_ADDRESS( CTextEntryWnd::CTextEntryWnd(class CXWnd *),CTextEntryWnd__CTextEntryWnd);

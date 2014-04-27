@@ -4267,6 +4267,18 @@ bool MQ2SpellType::GETMEMBER()
             return true;
         }
         return false;
+	case Caster:
+		if (CXStr *ptr=pTargetWnd->GetBuffCaster(pSpell->ID))
+        {
+			CHAR szBuffer[64] = {0};
+			if(GetCXStr(ptr->Ptr,szBuffer,63)) {
+				strcpy_s(DataTypeTemp,szBuffer);
+				Dest.Ptr=&DataTypeTemp[0];
+				Dest.Type=pStringType;
+				return true;
+			}
+        }
+        return false;
 	}
     return false;
 #undef pSpell
@@ -8348,21 +8360,21 @@ bool MQ2TargetType::GETMEMBER()
 		return false;
 	}
 	case Slowed:
-		if ((Dest.Int=GetTargetBufFBySPA(11,0))!=-1)
+		if ((Dest.Int=GetTargetBuffBySPA(11,0))!=-1)
         {
             Dest.Type=pTargetBuffType;
             return true;
         }
 		break;
 	case Rooted:
-		if ((Dest.Int=GetTargetBufFBySPA(99,0))!=-1)//Root
+		if ((Dest.Int=GetTargetBuffBySPA(99,0))!=-1)//Root
         {
             Dest.Type=pTargetBuffType;
             return true;
         }
 		break;
 	case Mezzed:
-		if ((Dest.Int=GetTargetBufFBySPA(31,0))!=-1)//Entrall
+		if ((Dest.Int=GetTargetBuffBySPA(31,0))!=-1)//Entrall
         {
             Dest.Type=pTargetBuffType;
             return true;
@@ -8379,14 +8391,14 @@ bool MQ2TargetType::GETMEMBER()
 	case Tashed:
 		break;
 	case Snared:
-		if ((Dest.Int=GetTargetBufFBySPA(3,0))!=-1)//Movement Rate
+		if ((Dest.Int=GetTargetBuffBySPA(3,0))!=-1)//Movement Rate
         {
             Dest.Type=pTargetBuffType;
             return true;
         }
 		break;
 	case Hasted:
-		if ((Dest.Int=GetTargetBufFBySPA(11,1))!=-1)
+		if ((Dest.Int=GetTargetBuffBySPA(11,1))!=-1)
         {
             Dest.Type=pTargetBuffType;
             return true;

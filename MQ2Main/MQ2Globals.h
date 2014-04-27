@@ -1247,6 +1247,8 @@ EQLIB_VAR DWORD EQ_Spell__GetSpellLevelNeeded;
 EQLIB_VAR DWORD EQ_Spell__SpellAffects;
 EQLIB_VAR DWORD EQ_Spell__GetSpellBaseByAttrib;
 EQLIB_VAR DWORD CharacterZoneClient__CalcAffectChange;
+EQLIB_VAR DWORD CLootWnd__LootAll;
+EQLIB_VAR DWORD CTargetWnd__GetBuffCaster;
 
 }
 using namespace MQ2Globals;

@@ -594,7 +594,7 @@ EQLIB_API BOOL		  PickupOrDropItem(DWORD type, PCONTENTS pItem);
 EQLIB_API BOOL		  OpenContainer(PCONTENTS pItem,bool hidden,bool flag = 0);
 EQLIB_API BOOL		  CloseContainer(PCONTENTS pItem);
 EQLIB_API int		  GetTargetBuffBySubCat(PCHAR subcat);
-EQLIB_API int		  GetTargetBufFBySPA(int spa,bool bIncrease);
+EQLIB_API int		  GetTargetBuffBySPA(int spa,bool bIncrease);
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 // Functions that were built into commands and people used DoCommand to execute                  //
 
