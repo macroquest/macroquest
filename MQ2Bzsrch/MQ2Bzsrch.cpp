@@ -19,8 +19,9 @@ GNU General Public License for more details.
 // Original MQ2Data update by CyberCide... but it didn't work like the rest of
 //  MQ2Data so Lax redid it.
 //
-
+#include "netstream.h"
 #include "../MQ2Plugin.h"
+
 
 PLUGIN_VERSION(1.1);
 
@@ -228,48 +229,108 @@ void MQ2BzSrch(PSPAWNINFO pChar, PCHAR szLine);
 VOID bzpc(PSPAWNINFO pChar, PCHAR szLine);
 DWORD parmBazaar(PCHAR szVar, PCHAR szOutput, PSPAWNINFO pChar);
 BOOL dataBazaar(PCHAR szName, MQ2TYPEVAR &Ret);
-// we need to specify a class because we are hooking a class member
-// function.  This should preserve ecx (*this).   We don't ever
-// instanstiate this class, so we don't need constructors.
+
+// length is variable based on item name
+struct bzrItemData {
+/*0x00*/ DWORD  nTrader;
+/*0x04*/ WORD   b;
+/*0x06*/ DWORD  c;  // float
+/*0x0a*/ DWORD  nItems;
+/*0x0e*/ DWORD  nTrader1;
+/*0x12*/ CHAR   f[0x11];
+/*0x23*/ DWORD  price;
+/*0x27*/ DWORD  quantity;
+/*0x2b*/ DWORD  ItemID;
+/*0x2f*/ DWORD  icon;
+/*0x33*/ char   ItemName[0x40];
+/*0x73*/ DWORD  m;
+};
+
+struct bzrData {
+    void *pData; // ptr to bzrItemData
+    DWORD nSize; // size of bzrItemData
+    DWORD nPos;  // store position
+};
+
+struct traderData {
+    DWORD a;
+    DWORD b;
+    DWORD c;
+    char  name[0x40];
+};
+
 class BzSrchHook
 {
 public:
-    void BzTrampoline(char *itemarray,int count);
+    void BzTrampoline(bzrData *bz);
+    void BzDetour(bzrData *bz)
+    {
 
-    // count is byte count
-    // msg must be 7 on the first item or it is not
-    // an item list but a request to resort the list
-    void BzDetour(char *itemarray,int count) {
-        struct _BazaarSearchResponsePacket *ptr = (struct _BazaarSearchResponsePacket *) itemarray;
-
-        DebugSpewAlways("count = %d\n", count);
-
-        // future: copy these to a list that we keep here for so that
-        // they may be retrieved with a $bazaar parm
-        if (ptr->BSSmsg == 7) {
-#if 0
-            for(int i=0;(i<5) && (i<(int)(count/sizeof(struct _BazaarSearchResponsePacket)));i++, ptr++)
-                DebugSpewAlways("item %d: %s msg %d n %d, itemid %d, value %d", i,
-                ptr->BSSName,
-                ptr->BSSmsg,
-                ptr->BSSQuantity,
-                ptr->BSSItemID,
-                ptr->BSSValue);
-#endif
-            BzCount = count/sizeof(struct _BazaarSearchResponsePacket);
-            memcpy(BzArray, ptr, count);
-        }
-        else {
-            // this is an end of list packet but there is only 200
-            // suppored now, it comes in one packet.
-            BzDone = TRUE;
+#define SetTraderName(trader)\
+        {\
+        nTmp = trader % pBzWnd->hashVal;\
+        if(pBzWnd->ppTraderData[nTmp])\
+        {\
+        strcpy(bzResponse.BSSTraderName, ((traderData*)pBzWnd->ppTraderData[nTmp])->name);\
+        }\
         }
 
-        BzTrampoline(itemarray, count);
+        _BazaarSearchResponsePacket bzResponse;
+        memset(&bzResponse, 0, sizeof(bzrItemData));
+        NetStream ns((uint8_t*)bz->pData, bz->nSize);
+        _BAZAARSEARCHWND *pBzWnd = *((_BAZAARSEARCHWND**)pinstCBazaarSearchWnd);
+        DWORD nIndex = 0;
+
+        DWORD nTrader           = ns.readUInt32();
+        DWORD wTmp              = ns.readUInt16();
+        DWORD nTmp              = ns.readUInt32();
+        BzCount                 = ns.readUInt32();
+        DWORD nTrader1          = ns.readUInt32();
+        string sTmp             = ns.readText();
+        bzResponse.BSSPrice     = ns.readUInt32();
+        bzResponse.BSSQuantity  = ns.readUInt32();
+        bzResponse.BSSItemID    = ns.readUInt32();
+        DWORD nIcon             = ns.readUInt32();
+        sTmp                    = ns.readText();
+        nTmp                    = ns.readUInt32();
+
+        strcpy(bzResponse.BSSName, sTmp.c_str());
+
+        SetTraderName(nTrader1);
+
+        memcpy(&BzArray[nIndex++], &bzResponse, sizeof(_BazaarSearchResponsePacket));
+
+        while(nIndex < BzCount)
+        {
+            memset(&bzResponse, 0, sizeof(bzrItemData));
+
+            nTrader                 = ns.readUInt32();
+            wTmp                    = ns.readUInt16();
+            nTmp                    = ns.readUInt32();
+            nTmp                    = ns.readUInt32();
+            nTrader1                = ns.readUInt32();
+            sTmp                    = ns.readText();
+            bzResponse.BSSPrice     = ns.readUInt32();
+            bzResponse.BSSQuantity  = ns.readUInt32();
+            bzResponse.BSSItemID    = ns.readUInt32();
+            nIcon                   = ns.readUInt32();
+            sTmp                    = ns.readText();
+            nTmp                    = ns.readUInt32();
+
+            strcpy(bzResponse.BSSName, sTmp.c_str());
+
+            SetTraderName(nTrader);
+
+            memcpy(&BzArray[nIndex++], &bzResponse, sizeof(_BazaarSearchResponsePacket));
+        }
+
+        BzDone = TRUE;
+
+        BzTrampoline(bz);
     };
 };
 
-DETOUR_TRAMPOLINE_EMPTY(VOID BzSrchHook::BzTrampoline(char *,int));
+DETOUR_TRAMPOLINE_EMPTY(VOID BzSrchHook::BzTrampoline(bzrData *));
 
 class MQ2BazaarType *pBazaarType=0;
 class MQ2BazaarItemType *pBazaarItemType=0;
@@ -283,10 +344,7 @@ public:
         Quantity=2,
         ItemID=3,
         Trader=4,
-        Value=5,
         Name=6,
-        U1=7,
-        U2=8,
     };
 
     MQ2BazaarItemType():MQ2Type("bazaaritem") {
@@ -294,10 +352,7 @@ public:
         TypeMember(Quantity);
         TypeMember(ItemID);
         TypeMember(Trader);
-        TypeMember(Value);
         TypeMember(Name);
-        TypeMember(U1);
-        TypeMember(U2);
     }
     ~MQ2BazaarItemType() {
     }
@@ -324,23 +379,11 @@ public:
             Dest.Type=pIntType;
             return true;
         case Trader:
-            if (Dest.Ptr=GetSpawnByID(pBzrItem->BSSTraderID)) {
+            if (Dest.Ptr=GetSpawnByName(pBzrItem->BSSTraderName)) {
                 Dest.Type=pSpawnType;
                 return true;
             }
             return false;
-        case Value:
-            Dest.DWord=pBzrItem->BSSValue;
-            Dest.Type=pIntType;
-            return true;
-        case U1:
-            Dest.DWord=pBzrItem->BSSUnknown10;
-            Dest.Type=pIntType;
-            return true;
-        case U2:
-            Dest.DWord=pBzrItem->BSSUnknown14;
-            Dest.Type=pIntType;
-            return true;
         case Name:
             strcpy(DataTypeTemp, &pBzrItem->BSSName[0]);
             if (PCHAR ptr = strrchr(DataTypeTemp,'('))
@@ -506,9 +549,7 @@ PLUGIN_API VOID InitializePlugin(VOID)
     //AddCommand("/pricecheck",bzpc);
     AddMQ2Data("Bazaar",dataBazaar);              // cc - added, but not using TLO yet
 
-    //EasyClassDetour(CBazaarSearchWnd__HandleBazaarMsg,BzSrchHook,BzDetour,void,(char*,int),BzTrampoline);
     EzDetour(CBazaarSearchWnd__HandleBazaarMsg,&BzSrchHook::BzDetour,&BzSrchHook::BzTrampoline);
-
     pBazaarType = new MQ2BazaarType;
     pBazaarItemType = new MQ2BazaarItemType;
 }

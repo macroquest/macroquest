@@ -1,3 +1,6 @@
+3 December 2012 by ieatacid
+- Fixed MQ2Bzsrch.  bazaaritem.Value has been removed because it's no longer sent with the item data
+
 29 November 2012 by ieatacid
 - Fixed alternate ability bug
 - Fixed Me.CombatState

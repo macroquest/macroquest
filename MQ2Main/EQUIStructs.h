@@ -935,6 +935,15 @@ typedef struct _CLABELWND {
 /*0x1d0*/
 } CLABELWND, *PCLABELWND;
 
+// size 0x9298 20121128 - ieatacid
+typedef struct _BAZAARSEARCHWND {
+/*0x0000*/ struct _CSIDLWND     Wnd;
+/*0x0214*/ BYTE                 Unknown0x214[0x8ff4];
+/*0x9208*/ void                 **ppTraderData;
+/*0x920c*/ DWORD                hashVal;
+/* more data */
+} BAZAARSEARCHWND, *PBAZAARSEARCHWND;
+
 };
 
 using namespace EQUIStructs;
