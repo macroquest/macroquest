@@ -809,26 +809,29 @@ typedef struct _EQMAPWINDOW {
 // ieatacid 20120316
 // eqmule sep 13 2013
 //Actual Size: 2B4 (see 498D72)
+//pinstCCastSpellWnd_x
 // CCastSpellWnd__CCastSpellWnd 
 typedef struct _EQCASTSPELLWINDOW {
 /*0x000*/ struct _CSIDLWND Wnd;
 /*0x224*/ BYTE Unknown0x224[0x14];
-/*0x238*/  struct _EQCASTSPELLGEM   *SpellSlots[NUM_SPELL_GEMS];
+/*0x238*/  struct _EQCASTSPELLGEM   *SpellSlots[NUM_SPELL_GEMS];//CSPW_Spell%d
 /*0x268*/  BYTE    Unknown0x268[0x4c]; 
 /*0x2b4*/
 } EQCASTSPELLWINDOW, *PEQCASTSPELLWINDOW;
 
-// Individual Gems 
+// CSpellGemWnd__CSpellGemWnd
+// Actual Size: 0x2fc see 759438 in sep 13 2013 eqgame.exe - eqmule
+// Individual Gems
 typedef struct _EQCASTSPELLGEM { 
 /*0x000*/ struct    _CXWND Wnd;
-/*0x1cc*/ BYTE      Unknown0x1cc[0x44]; 
-/*0x210*/ DWORD     TimeStamp;
-/*0x214*/ DWORD     RecastTime;
-/*0x218*/ BYTE      Unknown0x218[0xa8]; 
-/*0x2c0*/ DWORD     spellicon;       //if this is equal to FFFFFFFF there is no spell memmed in this slot... 
-/*0x2c4*/ DWORD     spellstate;      // 1 = cast in progress or refreshtime not met 2 means we ducked or aborted cast, 0 means its ok to cast 
-/*0x2c8*/ BYTE      Unknown0x2c8[0x18];
-/*0x2e0*/ 
+/*0x1dc*/ BYTE      Unknown0x1dc[0x44]; 
+/*0x220*/ DWORD     TimeStamp;//set to 0 when fully castable and ready, I suppose its currenttick + RecastTime
+/*0x224*/ DWORD     RecastTime;//for example 7500 if recast time is 7.5 seconds
+/*0x228*/ BYTE      Unknown0x228[0xa8]; 
+/*0x2d0*/ DWORD     spellicon;       //if this is equal to FFFFFFFF there is no spell memmed in this slot... 
+/*0x2d4*/ DWORD     spellstate;      // 1 = cast in progress or refreshtime not met 2 means we ducked or aborted cast, 0 means its ok to cast 
+/*0x2d8*/ BYTE      Unknown0x2d8[0x24];
+/*0x2fc*/ 
 } EQCASTSPELLGEM, *PEQCASTSPELLGEM;
 #define Fly                     0
 
@@ -915,11 +918,13 @@ typedef struct _CTEXTENTRYWND {
 } CTEXTENTRYWND, *PCTEXTENTRYWND;
 
 // size 0x2c8 20121128 - ieatacid
+// size 0x2d8 Sep 13 2013 (498C5E) - eqmule
+//CPlayerWindow__CPlayerWindow
 typedef struct _CPLAYERWND {
 /*0x000*/ struct _CSIDLWND Wnd;
-/*0x214*/ BYTE   Unknown[0xb0];
-/*0x2c4*/ DWORD  CombatState;   // 1=debuffed, 2=combat cooldown, 3=stand, 4=sit
-/* more data */ 
+/*0x224*/ BYTE   Unknown[0xb0]; // can pick up attack on/off in here as well 0x284 on sep 13 2013
+/*0x2d4*/ DWORD  CombatState;   // 1=debuffed, 2=combat cooldown, 3=stand, 4=sit
+/*0x2d8*/ 
 } CPLAYERWND, *PCPLAYERWND;
 
 // 20120316 - ieatacid

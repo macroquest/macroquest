@@ -1,3 +1,9 @@
+22 Sep 2013 by EqMule
+- Added Me.ZoneBound which returns Zone information for the zone you are bound in
+  Usage:
+	/if (${Zone.ID}==${Me.ZoneBound.ID}) {
+		/echo crap im back at bindpoint, did I die?
+	}
 18 Sep 2013 by EqMule
 - Updated for patch
 21 Aug 2013 by EqMule

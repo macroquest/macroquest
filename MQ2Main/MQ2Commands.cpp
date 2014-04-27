@@ -379,7 +379,7 @@ VOID CharInfo(PSPAWNINFO pChar, PCHAR szLine)
     PCHARINFO pCharInfo = NULL;
     if (NULL == (pCharInfo = GetCharInfo())) return;
     DoCommand(pCharInfo->pSpawn,"/charinfo");
-    sprintf(szBuffer,"The location of your bind is: %1.2f, %1.2f, %1.2f", GetCharInfo2()->ZoneBoundX, GetCharInfo2()->ZoneBoundY, GetCharInfo2()->ZoneBoundZ);
+	sprintf(szBuffer,"The location of your bind is: %1.2f, %1.2f, %1.2f", GetCharInfo2()->ZoneBoundX, GetCharInfo2()->ZoneBoundY, GetCharInfo2()->ZoneBoundZ);
     WriteChatColor(szBuffer,USERCOLOR_DEFAULT);
 }
 

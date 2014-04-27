@@ -3561,6 +3561,13 @@ bool MQ2CharacterType::GETMEMBER()
             Dest.Type = pSpawnType;
             return true;
         }
+	case ZoneBound:
+		if(GetCharInfo2()->ZoneBoundID)
+        {
+			Dest.Ptr= ((PWORLDDATA)pWorldData)->ZoneArray[GetCharInfo2()->ZoneBoundID];
+			Dest.Type=pZoneType;
+			return true;
+		}
     }
     return false;
 #undef pChar

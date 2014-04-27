@@ -1160,7 +1160,7 @@ typedef struct _EQUIPMENT {
       };// Array;
       struct //EQUIPUNIQUE
       {
-         struct _ARMOR Head;
+         struct _ARMOR Head;//0x14
          struct _ARMOR Chest;
          struct _ARMOR Arms;
          struct _ARMOR Wrists;

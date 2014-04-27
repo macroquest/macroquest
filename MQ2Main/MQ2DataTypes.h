@@ -913,6 +913,7 @@ public:
         SecondaryPctAggro=185,
         SecondaryAggroPlayer=186,
         AggroLock=187,
+        ZoneBound=188,
     };
     static enum CharacterMethods
     {
@@ -1107,7 +1108,8 @@ public:
         TypeMember(SecondaryPctAggro);
         TypeMember(SecondaryAggroPlayer);
         TypeMember(AggroLock);
-
+        TypeMember(ZoneBound);
+		
         TypeMethod(Stand); 
         TypeMethod(Sit); 
         TypeMethod(Dismount); 
