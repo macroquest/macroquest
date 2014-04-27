@@ -249,10 +249,10 @@ public:
         bool bUseableClasses = false; 
         strcat(out, "<br>" ); 
         for (int j=0; j<17; j++) {  // Ziggy - output will word wrap properly now
-            if (pSpell->ClassLevel[j]>0 && pSpell->ClassLevel[j]<=70) {
+			if (((EQ_Spell*)pSpell)->GetSpellLevelNeeded(j)>0 && ((EQ_Spell*)pSpell)->GetSpellLevelNeeded(j)<=MAX_PC_LEVEL) {
                 if (bUseableClasses) strcat (out, ", ");
 
-                sprintf(temp,"%s(%d)", GetClassDesc(j+1), pSpell->ClassLevel[j]);
+                sprintf(temp,"%s(%d)", GetClassDesc(j), ((EQ_Spell*)pSpell)->GetSpellLevelNeeded(j));
                 strcat(out, temp);
                 bUseableClasses = true;
             }
@@ -409,10 +409,10 @@ public:
         bool bUseableClasses = false; 
         strcat(out, "<br>" ); 
         for (int j=0; j<17; j++) {  // Ziggy - output will word wrap properly now
-            if (pSpell->ClassLevel[j]>0 && pSpell->ClassLevel[j]<=70) {
+			if (((EQ_Spell*)pSpell)->GetSpellLevelNeeded(j)>0 && ((EQ_Spell*)pSpell)->GetSpellLevelNeeded(j)<=MAX_PC_LEVEL) {
                 if (bUseableClasses) strcat (out, ", ");
 
-                sprintf(temp,"%s(%d)", GetClassDesc(j+1), pSpell->ClassLevel[j]);
+                sprintf(temp,"%s(%d)", GetClassDesc(j), ((EQ_Spell*)pSpell)->GetSpellLevelNeeded(j));
                 strcat(out, temp);
                 bUseableClasses = true;
             }

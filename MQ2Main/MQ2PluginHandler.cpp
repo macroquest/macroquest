@@ -442,7 +442,7 @@ DebugSpew("PluginsSetGameState( %s name)",pCharInfo->Name);
             }
             if (PCHARINFO2 pCharInfo2=GetCharInfo2())
             {
-DebugSpew("PluginsSetGameState( %d clasee)",pCharInfo2->Class);
+DebugSpew("PluginsSetGameState( %d class)",pCharInfo2->Class);
                 sprintf(szBuffer,"%s",GetClassDesc(pCharInfo2->Class));
                 LoadCfgFile(szBuffer,false);
             }

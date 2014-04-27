@@ -1230,6 +1230,7 @@ public:
 		BookIcon=50,
 		Target=51,
 		Description=52,
+		StacksWith=53,
     };
     static enum SpellMethods
     {
@@ -1288,6 +1289,7 @@ public:
 		TypeMember(BookIcon);
 		TypeMember(Target);
 		TypeMember(Description);
+		TypeMember(StacksWith);
     }
 
     ~MQ2SpellType()

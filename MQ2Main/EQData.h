@@ -378,6 +378,7 @@ enum MOUSE_DATA_TYPES {
 
 #define MAX_PC_LEVEL                    100
 #define MAX_NPC_LEVEL                   110
+#define MAX_SPELL_LEVEL					255
 #define NUM_SPELL_GEMS                  0xc
 #define NUM_SPELL_SETS                  0xa
 #define NUM_BUFF_SLOTS					0x61
@@ -1658,6 +1659,8 @@ BYTE            unknown[SPELLMGR_FILLER];
 struct _SPELL*  Spells[TOTAL_SPELL_COUNT];
 } SPELLMGR, *PSPELLMGR;
 
+#define   AC_EFFECTS                    0.3000005   // Spell effects multiplier for AC effects (adding a little due to float rounding issues)
+#define   DEFAULT_EFFECTS               1.0000000   // Default effects multplier
 // actual size: 0x4ed 20120316 - ieatacid
 typedef struct _SPELL {
 /*0x000*/   FLOAT   Range;

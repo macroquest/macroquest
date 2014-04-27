@@ -75,7 +75,7 @@
         "Stoneskin (Absorb Damage)",            // 055
         "True North",                           // 056
         "Levitation",                           // 057
-        "Change Form(Illusion)",                // 058
+        "Illusion",                             // 058
         "Damage Shield",                        // 059
         "Transfer Item",                        // 060
         "Identify",                             // 061
@@ -136,59 +136,59 @@
         "Curse Counter",                        // 116
         "HitMagic",                             // 117
         "Singing Skill",                        // 118
-        "Bard Overhaste",                       // 119
+        "Melee Overhaste",                      // 119
         "Healing Effectiveness",                // 120
         "Reverse Damage Shield",                // 121
         "Reduce Skill",                         // 122
         "Immunity",                             // 123
-        "Spell Damage",                          // 124
-        "Heal Mod",                           // 125
-        "Spell Resist Rate",                         // 126
-        "Spell Cast Time",                       // 127
+        "Spell Damage",                         // 124
+        "Heal Mod",                             // 125
+        "Spell Resist Rate",                    // 126
+        "Spell Cast Time",                      // 127
         "Spell Duration",                       // 128
         "Spell Range",                          // 129
-        "Spell/Bash Hate",                           // 130
-        "Decrease Chance of Using Reagent",                        // 131
-        "Spell Mana Cost",                           // 132
-        "Spell Stun Duration",                       // 133
-        "Limit: Max Level",                          // 134
+        "Spell/Bash Hate",                      // 130
+        "Decrease Chance of Using Reagent",     // 131
+        "Spell Mana Cost",                      // 132
+        "Spell Stun Duration",                  // 133
+        "Limit: Max Level",                     // 134
         "Limit: Resist",                        // 135
         "Limit: Target",                        // 136
-        "Limit: Effect",                          // 137
-        "Limit: SpellType",                        // 138
-        "Limit: Spell",                      // 139
-        "Limit: Min Duraction",                       // 140
+        "Limit: Effect",                        // 137
+        "Limit: SpellType",                     // 138
+        "Limit: Spell",                         // 139
+        "Limit: Min Duraction",                 // 140
         "Limit: Instant",                       // 141
-        "Limit: Min Level",                          // 142
+        "Limit: Min Level",                     // 142
         "Limit: Min Cast Time",                 // 143
-        "Limit: Max Cast Time",                       // 144
+        "Limit: Max Cast Time",                 // 144
         "NPC Warder Banish",                    // 145
-        "Resist Electricity",                    // 146
+        "Resist Electricity",                   // 146
         "Heal Percent",                         // 147
         "Stacking: Block",                      // 148
-        "Stacking: Overwrite",                     // 149
-        "Death Pact",                            // 150
-        "Pocket Pet",                            // 151
-        "Summon a Pet Swarm",                             // 152
-        "Balance Party Damage",                        // 153
+        "Stacking: Overwrite",                  // 149
+        "Death Pact",                           // 150
+        "Pocket Pet",                           // 151
+        "Summon a Pet Swarm",                   // 152
+        "Balance Party Damage",                 // 153
         "Cancel Negative",                      // 154
         "PoP Resurrect",                        // 155
         "Mirror",                               // 156
         "Feedback",                             // 157
         "Reflect",                              // 158
-        "all Stats",                        // 159
-        "Sober",                             // 160
-        "Mitigate Spell Damage",                          // 161
-        "Mitigate Melee Damage",                          // 162
-        "Absorb Damage",                           // 163
+        "All Stats",                            // 159
+        "Sober",                                // 160
+        "Mitigate Spell Damage",                // 161
+        "Mitigate Melee Damage",                // 162
+        "Absorb Damage",                        // 163
         "Object - Sense Trap",                  // 164
         "Object - Disarm Trap",                 // 165
         "Object - Picklock",                    // 166
-        "Increase Pet Power",                               // 167
+        "Increase Pet Power",                   // 167
         "Defensive",                            // 168
-        "Chance to Critical Melee",                       // 169
-        "Chance to Critical Cast",                       // 170
-        "Chance to Crippling Blow",                       // 171
+        "Chance to Critical Melee",             // 169
+        "Chance to Critical Cast",              // 170
+        "Chance to Crippling Blow",             // 171
         "Evasion",                              // 172
         "Riposte",                              // 173
         "Dodge",                                // 174
@@ -196,123 +196,123 @@
         "Dual Wield",                           // 176
         "Double Attack",                        // 177
         "Melee Lifetap",                        // 178
-        "Instrument Modifier",                             // 179
-        "Chance to Resist Spells",                       // 180
-        "Increase Chance to Resist Fear Spell",                             // 181
-        "Hundred Hands Effect",                        // 182
+        "Instrument Modifier",                  // 179
+        "Chance to Resist Spells",              // 180
+        "Increase Chance to Resist Fear Spell", // 181
+        "Hundred Hands Effect",                 // 182
         "Skill Increase Chance",                // 183
-        "Increase Chance to Hit",                           // 184
-        "All Skills Damage Modifier",                     // 185
-        "All Skills Minimum Damage Modifier",                  // 186
-        "Balance Party Mana",                         // 187
-        "Chance to block",                                // 188
+        "Increase Chance to Hit",               // 184
+        "All Skills Damage Modifier",           // 185
+        "All Skills Minimum Damage Modifier",   // 186
+        "Balance Party Mana",                   // 187
+        "Chance to block",                      // 188
         "Endurance",                            // 189
         "Max Endurance",                        // 190
         "Amnesia",                              // 191
         "Hate",                                 // 192
         "Skill Attack",                         // 193
-        "Fade Memories",                                 // 194
+        "Fade Memories",                        // 194
         "Stun Resist",                          // 195
         "Strikethrough",                        // 196
         "Skill Damage Taken",                   // 197
         "Instant Endurance",                    // 198
         "Taunt",                                // 199
-        "Increase Proc Chance",                          // 200
+        "Increase Proc Chance",                 // 200
         "Ranged Proc",                          // 201
-        "Illusion Other",                        // 202
-        "Mass Group Buff",                             // 203
+        "Illusion Other",                       // 202
+        "Mass Group Buff",                      // 203
         "Group Fear Immunity",                  // 204
         "Rampage",                              // 205
-        "AE Taunt",                              // 206
+        "AE Taunt",                             // 206
         "Flesh to Bone",                        // 207
         "Purge Poison",                         // 208
         "Cancel Beneficial",                    // 209
-        "Pet Shield",                            // 210
-        "AE Melee",                              // 211
+        "Pet Shield",                           // 210
+        "AE Melee",                             // 211
         "Frenzied Devastation",                 // 212
-        "Pet HP",                             // 213
-        "Change Max HP",                       // 214
+        "Pet HP",                               // 213
+        "Change Max HP",                        // 214
         "Pet Avoidance",                        // 215
-        "Accuracy",                          // 216
+        "Accuracy",                             // 216
         "Headshot",                             // 217
         "Pet Crit Melee",                       // 218
-        "Slay Undead",                           // 219
+        "Slay Undead",                          // 219
         "Skill Damage Amt",                     // 220
-        "Reduce Weight",                         // 221
-        "Block Behind",                          // 222
+        "Reduce Weight",                        // 221
+        "Block Behind",                         // 222
         "Double Riposte",                       // 223
-        "Add Riposte",                           // 224
-        "Give Dbl Atk",                           // 225
-        "2h bash",                               // 226
-        "Reduce Skill Timer",                     // 227
-        "Reduce Fall Dmg",                        // 228
-        "Cast Through Stun",                      // 229
-        "Increase Shield Dist",                   // 230
-        "Stun Bash Chance",                       // 231
-        "Divine Save",                           // 232
+        "Add Riposte",                          // 224
+        "Give Dbl Atk",                         // 225
+        "2h bash",                              // 226
+        "Reduce Skill Timer",                   // 227
+        "Reduce Fall Dmg",                      // 228
+        "Cast Through Stun",                    // 229
+        "Increase Shield Dist",                 // 230
+        "Stun Bash Chance",                     // 231
+        "Divine Save",                          // 232
         "Metabolism",                           // 233
         "Poison Mastery",                       // 234
-        "Focus Channelling",                     // 235
+        "Focus Channelling",                    // 235
         "Free Pet",                             // 236
-        "Pet Affinity",                          // 237
-        "Permanent Illusion",                    // 238
+        "Pet Affinity",                         // 237
+        "Permanent Illusion",                   // 238
         "Stonewall",                            // 239
         "String Unbreakable",                   // 240
-        "Improve Reclaim Energy",                 // 241
-        "Increase Chance Memwipe",                // 242
-        "NoBreak Charm Chance",                   // 243
-        "Root Break Chance",                      // 244
-        "Trap Circumvention",                    // 245
+        "Improve Reclaim Energy",               // 241
+        "Increase Chance Memwipe",              // 242
+        "NoBreak Charm Chance",                 // 243
+        "Root Break Chance",                    // 244
+        "Trap Circumvention",                   // 245
         "Lung Capacity",                        // 246
-        "Increase SkillCap",                     // 247
-        "Extra Specialization",                  // 248
-        "Offhand Min",                           // 249
-        "Spell Proc Chance",                      // 250
-        "Endless Quiver",                        // 251
-        "Backstab Front",                        // 252
-        "Chaotic Stab",                          // 253
+        "Increase SkillCap",                    // 247
+        "Extra Specialization",                 // 248
+        "Offhand Min",                          // 249
+        "Spell Proc Chance",                    // 250
+        "Endless Quiver",                       // 251
+        "Backstab Front",                       // 252
+        "Chaotic Stab",                         // 253
         "NoSpell",                              // 254
         "Shielding Duration Mod",               // 255
-        "Shroud Of Stealth",                      // 256
-        "Give Pet Hold",                          // 257
-        "Triple Backstab",                       // 258
-        "AC Limit Mod",                           // 259
-        "Add Instrument Mod",                     // 260
-        "Song Mod Cap",                           // 261
-        "Stats Cap",                             // 262
-        "Tradeskill Masteries",                  // 263
-        "Reduce AATimer",                        // 264
-        "No Fizzle",                             // 265
-        "Add Extra Attack Chance (2h)",            // 266
-        "Add Pet Commands",                       // 267
-        "Alc Fail Rate",                          // 268
-        "Bandage Perc Limit",                     // 269
-        "Bard Song Range",                        // 270
+        "Shroud Of Stealth",                    // 256
+        "Give Pet Hold",                        // 257
+        "Triple Backstab",                      // 258
+        "AC Limit Mod",                         // 259
+        "Add Instrument Mod",                   // 260
+        "Song Mod Cap",                         // 261
+        "Stats Cap",                            // 262
+        "Tradeskill Masteries",                 // 263
+        "Reduce AATimer",                       // 264
+        "No Fizzle",                            // 265
+        "Add Extra Attack Chance (2h)",         // 266
+        "Add Pet Commands",                     // 267
+        "Alc Fail Rate",                        // 268
+        "Bandage Perc Limit",                   // 269
+        "Bard Song Range",                      // 270
         "BaseRunMod",                           // 271
         "CastingLevel",                         // 272
         "Critical DoT",                         // 273
-        "Critical Heal",                         // 274
-        "Critical Mend",                         // 275
-        "Dual Wield Amt",                         // 276
-        "Extra DI Chance",                        // 277
-        "Finishing Blow",                        // 278
-        "Flurry Chance",                         // 279
-        "Pet Flurry Chance",                      // 280
-        "Give Pet Feign",                         // 281
-        "Increase Bandage Amt",                   // 282
-        "Special Attack Chain",                   // 283
-        "LoH Set Heal",                           // 284
-        "NoMove Check Sneak",                     // 285
-        "Additional Damage to Spell",                        // 286
+        "Critical Heal",                        // 274
+        "Critical Mend",                        // 275
+        "Dual Wield Amt",                       // 276
+        "Extra DI Chance",                      // 277
+        "Finishing Blow",                       // 278
+        "Flurry Chance",                        // 279
+        "Pet Flurry Chance",                    // 280
+        "Give Pet Feign",                       // 281
+        "Increase Bandage Amt",                 // 282
+        "Special Attack Chain",                 // 283
+        "LoH Set Heal",                         // 284
+        "NoMove Check Sneak",                   // 285
+        "Additional Damage to Spell",           // 286
         "Fc_DurationMod (static)",              // 287
-        "Add Proc Hit",                           // 288
+        "Add Proc Hit",                         // 288
         "Doom Effect",                          // 289
-        "Increase Movement Cap",                  // 290
+        "Increase Movement Cap",                // 290
         "Purify",                               // 291
         "Strikethrough2",                       // 292
         "StunResist2",                          // 293
-        "Spell Crit Chance",                      // 294
-        "Reduce Timer Special",                   // 295
+        "Spell Crit Chance",                    // 294
+        "Reduce Timer Special",                 // 295
         "Increase Incoming Spell Damage",       // 296
         "Fc_Damage_Amt_Incoming",               // 297
         "Height (Small)",                       // 298
@@ -339,25 +339,25 @@
         "Critical HP Regen",                    // 319
         "Shield Block Chance",                  // 320
         "Reduce Target Hate",                   // 321
-        "Gate to Starting City",                   // 322
-        "Add Defensive Proc",                       // 323
+        "Gate to Starting City",                // 322
+        "Add Defensive Proc",                   // 323
         "HP for Mana",                          // 324
         "No Break AE Sneak",                    // 325
         "Spell Slots",                          // 326
         "Buff Slots",                           // 327
         "Negative HP Limit",                    // 328
-        "Mana Absorb pct Damage",                 // 329
+        "Mana Absorb pct Damage",               // 329
         "Critical Melee Damage Mod",            // 330
         "Alchemy Item Recovery",                // 331
         "Summon to Corpse",                     // 332
-        "Doom Rune Effect",                     // 333
+        "Trigger",                              // 333
         "HP No Move",                           // 334
         "Fc_Immunity_Focus",                    // 335
         "Illusionary Target",                   // 336
-        "Increase Exp pct",                       // 337
+        "Increase Exp",                         // 337
         "Expedient Recovery",                   // 338
-        "Cast DoT as Well",                          // 339
-        "Cast DD as Well",                         // 340
+        "Cast DoT as Well",                     // 339
+        "Cast DD as Well",                      // 340
         "Worn Attack Cap",                      // 341
         "No Panic",                             // 342
         "Spell Interrupt",                      // 343
@@ -365,7 +365,7 @@
         "Assassinate Max",                      // 345
         "Headshot Max",                         // 346
         "Double Ranged Attack",                 // 347
-        "Ff_Mana_Min",                          // 348
+        "Limit: Min Mana",                      // 348
         "Increase Damage With Shield",          // 349
         "Manaburn",                             // 350
         "Spawn Interactive Object",             // 351
@@ -386,8 +386,8 @@
         "Group Shielding",                      // 366
         "Modify Body Type",                     // 367
         "Modify Faction",                       // 368
-        "Corruption Counter",                           // 369
-        "Corruption Resist",                     // 370
+        "Corruption Counter",                   // 369
+        "Corruption Resist",                    // 370
         "Slow",                                 // 371
         "Grant Foraging",                       // 372
         "Doom Always",                          // 373
@@ -402,13 +402,13 @@
         "Suppression",                          // 382
         "Fc_CastProcNormalized",                // 383
         "Fling to Target",                      // 384
-        "Ff_WhichSpellGroup",                   // 385
+        "Limit: SpellGroup",                    // 385
         "Doom Dispeller",                       // 386
         "Doom Dispellee",                       // 387
         "Summon All Corpses",                   // 388
         "Fc_Timer_Refresh",                     // 389
         "Fc_Timer_Lockout",                     // 390
-        "Ff_Mana_Max",                          // 391
+        "Limit: Max Mana",                      // 391
         "Fc_Heal_Amt",                          // 392
         "Fc_Heal_%_Incoming",                   // 393
         "Fc_Heal_Amt_Incoming",                 // 394
@@ -420,27 +420,27 @@
         "Healburn",                             // 400
         "Mana Ignite",                          // 401
         "Endurance Ignite",                     // 402
-        "Ff_SpellClass",                        // 403
-        "Ff_SpellSubclass",                     // 404
+        "Limit: SpellClass",                    // 403
+        "Limit: SpellSubclass",                 // 404
         "Staff Block Chance",                   // 405
         "Doom Limit Use",                       // 406
         "Doom Focus Used",                      // 407
         "Limit HP",                             // 408
         "Limit Mana",                           // 409
         "Limit Endurance",                      // 410
-        "Ff_ClassPlayer",                       // 411
-        "Ff_Race",                              // 412
+        "Limit: PlayerClass",                   // 411
+        "Limit: Race",                          // 412
         "Fc_BaseEffects",                       // 413
-        "Ff_CastingSkill",                      // 414
-        "Ff_ItemClass",                         // 415
-        "AC_2",                                 // 416
-        "Mana_2",                               // 417
+        "Limit: CastingSkill",                  // 414
+        "Limit: ItemClass",                     // 415
+        "AC",                                   // 416
+        "Mana Regen",                           // 417
         "Increased_Skill_Damage_2",             // 418
         "Contact_Ability_2",                    // 419
         "Fc_Limit_Use",                         // 420
         "Fc_Limit_Use_Amt",                     // 421
-        "Ff_Limit_Use_Min",                     // 422
-        "Ff_Limit_Use_Type",                    // 423
+        "Limit: Use Min",                       // 422
+        "Limit: Use Type",                      // 423
         "Gravitate",                            // 424
         "Fly",                                  // 425
         "AddExtTargetSlots",                    // 426

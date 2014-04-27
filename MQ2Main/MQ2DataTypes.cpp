@@ -4018,6 +4018,7 @@ bool MQ2SpellType::GETMEMBER()
             }
             return true;
         }
+	case StacksWith:
     case WillStack:
         {
             if (!ISINDEX()) 

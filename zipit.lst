@@ -227,9 +227,9 @@ MQ2Main\MQ2DataVars.cpp
 MQ2Main\MQ2DetourAPI.cpp
 MQ2Main\MQ2DInput.cpp
 MQ2Main\MQ2Globals.cpp
-MQ2Main\MQ2Globals-private.cpp
+MQ2Main\MQ2Globals-private_default.cpp
 MQ2Main\MQ2Globals.h
-MQ2Main\MQ2Globals-private.h
+MQ2Main\MQ2Globals-private_default.h
 MQ2Main\MQ2Inlines.h
 MQ2Main\MQ2Internal.h
 MQ2Main\MQ2KeyBinds.cpp

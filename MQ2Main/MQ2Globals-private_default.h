@@ -11,4 +11,4 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
     GNU General Public License for more details.
 ******************************************************************************/
-EQLIB_VAR DWORD EQ_Character__IsSpellAffectingPC;
+//EQLIB_VAR DWORD SomeClass__SomeFunction;

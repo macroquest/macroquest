@@ -1,4 +1,17 @@
-18 Mar 2014 by eqmule
+23 Mar 2014 by rswiders
+- Corrected itemdisplay to show useable classes for the spell when over level 70
+- Corrected to make sure cfg files are executed during refresh injections
+- Additional checks for spell stacking.
+  (Buffs/Songs will stack (both land) if they are benefical spells and it's some type
+  of stat change that was currently causing it to fail)
+
+22 Mar 2014 by rswiders
+- Corrected useable class name in itemdisplay extension.
+- Additional updates for spell effects
+- Updates for spell stacking. Added .StacksWith as an alias
+  for .WillStack
+
+22 Mar 2014 by eqmule
 -NOTE, THIS UPDATE WILL BREAK PLUGINS. (but not that much see below)
  SPELL struct member Level is now ClassLevel
  this was done cause i want you to know which plugins to update.
