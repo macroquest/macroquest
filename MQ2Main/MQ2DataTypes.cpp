@@ -2986,10 +2986,9 @@ bool MQ2CharacterType::GETMEMBER()
         else
         {
             Dest.DWord=0;
-            DWORD x = *(DWORD*)Expansion_HoT;
             for (DWORD slot=BAG_SLOT_START;slot<NUM_INV_SLOTS;slot++) 
             {
-                if(!x && slot > 30)
+                if(!HasExpansion(EXPANSION_HoT) && slot > 30)
                     break;
                 if (PCONTENTS pItem = GetCharInfo2()->pInventoryArray->InventoryArray[slot]) 
                 {

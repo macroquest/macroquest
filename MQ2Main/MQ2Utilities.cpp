@@ -5917,8 +5917,6 @@ void UseAbility(char *sAbility) {
 // Pass exansion macros from EQData.h to it -- e.g. HasExpansion(EXPANSION_RoF)
 bool HasExpansion(DWORD nExpansion)
 {
-    if(nExpansion > NUM_EXPANSIONS)
-        return false;
     return (bool)((GetCharInfo()->ExpansionFlags & nExpansion) != 0);
 }
 
