@@ -776,20 +776,20 @@ typedef struct _EQMAILWINDOW {
 } EQMAILWINDOW, *PEQMAILWINDOW;
 
 
-// Actual Size 0x5f0 20120316 - ieatacid
+// Actual Size 0x5f4 20120919 - ieatacid
 typedef struct _EQMAPWINDOW {
 /*0x000*/ struct    _CSIDLWND   Wnd;
 /*0x208*/ BYTE      Unknown0x20c[0x40];
 /*0x248*/ CHAR      shortzonename[0x20];
 /*0x268*/ BYTE      Unknown0x268[0x9c];
-/*0x304*/ struct    _CXWND  *wnd;           // map wnd?
-/*0x308*/ BYTE      Unknown0x308[0x34];
-/*0x33c*/ struct    _CSIDLWNDVFTABLE    *pMapViewMapVfTable; // start of MapViewMap
-/*0x308*/ BYTE      Unknown0x340[0x234];
-/*0x574*/ PMAPLINE  pLines;
-/*0x578*/ PMAPLABEL pLabels;
-/*0x57c*/ BYTE      Unknown0x57c[0x74];
-/*0x5f0*/
+/*0x304*/ struct    _CXWND  *wnd;           // MVW_MapRenderArea
+/*0x308*/ BYTE      Unknown0x308[0x38];
+/*0x340*/ struct    _CSIDLWNDVFTABLE    *pMapViewMapVfTable; // start of MapViewMap
+/*0x344*/ BYTE      Unknown0x344[0x234];
+/*0x578*/ PMAPLINE  pLines;
+/*0x57c*/ PMAPLABEL pLabels;
+/*0x580*/ BYTE      Unknown0x57c[0x74];
+/*0x5f4*/
 } EQMAPWINDOW, *PEQMAPWINDOW;
 
 // ieatacid 20120316
