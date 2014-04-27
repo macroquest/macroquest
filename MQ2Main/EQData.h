@@ -651,7 +651,7 @@ typedef struct _CONTENTS {
 /*0x150*/
 } CONTENTS, *PCONTENTS;
 
-// Size 0x64 20110309 - ieatacid
+// Size 0x58 20110810 - dkaa
 typedef struct _SPELLBUFF {
 /*0x00*/    BYTE      Unknown0x0;
 /*0x01*/    BYTE      Level;
@@ -660,8 +660,8 @@ typedef struct _SPELLBUFF {
 /*0x04*/    FLOAT     Unknown0x4;
 /*0x08*/    LONG      SpellID;       // -1 or 0 for no spell..
 /*0x0c*/    DWORD     Duration;
-/*0x10*/    BYTE      Unknown0x10[0x54];
-/*0x64*/
+/*0x10*/    BYTE      Unknown0x10[0x48];
+/*0x58*/
 } SPELLBUFF, *PSPELLBUFF;
 
 // 20101012 - ieatacid
@@ -951,7 +951,8 @@ union {
 } INVENTORYARRAY, *PINVENTORYARRAY;
 
 // *note* Cursor is no longer a member of _CHARINFO2.  access with pInventoryArray->Inventory.Cursor
-// actual size: 0xa5f8 201100525- dkaa
+// actual size: 0xa200 20110810- dkaa
+// actual size: 0xa5f8 20110525- dkaa
 typedef struct _CHARINFO2 {
 /*0x0000*/   BYTE       Unknown0x0[0x18];
 /*0x0018*/   DWORD      Unknown0x18; // # of inventory slots?
@@ -961,69 +962,68 @@ typedef struct _CHARINFO2 {
 /*0x0024*/   DWORD      Unknown0x28; // # of inventory slots?
 /*0x0028*/   BYTE       Unknown0x2c[0x94];
 /*0x00c0*/   struct     _SPELLBUFF   Buff[NUM_LONG_BUFFS];
-/*0x0c78*/   struct     _SPELLBUFF   ShortBuff[0x37];
-/*0x21f4*/   DWORD      Unknown0x21f4[NUM_BUFF_SLOTS]; // effect IDs
-/*0x2348*/   DWORD      Unknown0x2348[NUM_BUFF_SLOTS];
-/*0x249c*/   DWORD      SpellBook[NUM_BOOK_SLOTS];
-/*0x2fdc*/   DWORD      MemorizedSpells[0x10];
-/*0x301c*/   DWORD      Skill[0x64];
-/*0x31ac*/   DWORD      InnateSkill[0x19];
-/*0x3210*/   DWORD      Unknown0x3210[0x24];
-/*0x32a0*/   DWORD      Gender;
-/*0x32a4*/   DWORD      Race;
-/*0x32a8*/   DWORD      Class;
-/*0x32ac*/   BYTE       Unknown0x32ac[0x10];
-/*0x32bc*/   DWORD      Level;
-/*0x32c0*/   DWORD      Mana;
-/*0x32c4*/   DWORD      Endurance;
-/*0x32c8*/   DWORD      BaseHP;
-/*0x32cc*/   DWORD      BaseSTR;
-/*0x32d0*/   DWORD      BaseSTA;
-/*0x32d4*/   DWORD      BaseCHA;
-/*0x32d8*/   DWORD      BaseDEX;
-/*0x32dc*/   DWORD      BaseINT;
-/*0x32e0*/   DWORD      BaseAGI;
-/*0x32e4*/   DWORD      BaseWIS;
-/*0x32e8*/   DWORD      Unknown0x32e8;
-/*0x32ec*/   DWORD      Plat;
-/*0x32f0*/   DWORD      Gold;
-/*0x32f4*/   DWORD      Silver;
-/*0x32f8*/   DWORD      Copper;
-/*0x32fc*/   DWORD      CursorPlat;
-/*0x3300*/   DWORD      CursorGold;
-/*0x3304*/   DWORD      CursorSilver;
-/*0x3308*/   DWORD      CursorCopper;
-/*0x330c*/   BYTE       Unknown0x330c[0x28];
-/*0x3334*/   DWORD      thirstlevel;
-/*0x3338*/   DWORD      hungerlevel;
-/*0x333c*/   DWORD      Unknown0x333c; 
-/*0x3340*/   DWORD      Shrouded;
-/*0x3344*/   BYTE       Unknown0x3344[0x74];
-/*0x33b8*/   DWORD      ZoneBoundID;
-/*0x33bc*/   FLOAT      ZoneBoundY;
-/*0x33c0*/   FLOAT      ZoneBoundX;
-/*0x33c4*/   FLOAT      ZoneBoundZ;
-/*0x33c8*/   FLOAT      ZoneBoundHeading;
-/*0x33cc*/   BYTE       Unknown0x33cc[0x50];
-/*0x341c*/   DWORD      ArmorType[0x16];
-/*0x3474*/   BYTE       Unknown0x3474[0xb0];
-/*0x3524*/   AALIST     AAList[AA_CHAR_MAX_REAL];
-/*0x4334*/   DWORD      BodyColor[0x9];
-/*0x4358*/   BYTE       Unknown0x4358[0x2000];
-/*0x6358*/   DWORD      CombatAbilities[NUM_COMBAT_ABILITIES];
-/*0x6678*/   BYTE       Unknown0x6678[0x34];
-/*0x66ac*/   DWORD      CombatAbilityTimes[0x14];
-/*0x66fc*/   BYTE       Unknown0x66fc[0x1e90];
-/*0x858C*/   DWORD      Deity;
-/*0x8590*/   BYTE       Unknown0x8450[0x4];
-/*0x8594*/   DWORD      Drunkenness;
-/*0x8598*/   BYTE       Unknown0x8458[0x10];
-/*0x85a8*/   DWORD      AAPoints;
-/*0x85ac*/   BYTE       Unknown0x846c[0x200c];
-
-/*0xa5b8*/   DWORD      AAPointsSpent;
-/*0xa5bc*/   BYTE       Unknown0xa47c[0x3c];
-/*0xa5f8*/
+/*0x0b10*/   struct     _SPELLBUFF   ShortBuff[0x37];
+/*0x1df8*/   DWORD      Unknown0x21f4[NUM_BUFF_SLOTS]; // effect IDs
+/*0x1f4c*/   DWORD      Unknown0x2348[NUM_BUFF_SLOTS];
+/*0x20a0*/   DWORD      SpellBook[NUM_BOOK_SLOTS];
+/*0x2be0*/   DWORD      MemorizedSpells[0x10];
+/*0x2c20*/   DWORD      Skill[0x64];
+/*0x2db0*/   DWORD      InnateSkill[0x19];
+/*0x2e14*/   DWORD      Unknown0x3210[0x24];
+/*0x2ea4*/   DWORD      Gender;
+/*0x2ea8*/   DWORD      Race;
+/*0x2eac*/   DWORD      Class;
+/*0x2eb0*/   BYTE       Unknown0x32ac[0x10];
+/*0x2ec0*/   DWORD      Level;
+/*0x2ec4*/   DWORD      Mana;
+/*0x2ec8*/   DWORD      Endurance;
+/*0x2ecc*/   DWORD      BaseHP;
+/*0x2ed0*/   DWORD      BaseSTR;
+/*0x2ed4*/   DWORD      BaseSTA;
+/*0x2ed8*/   DWORD      BaseCHA;
+/*0x2edc*/   DWORD      BaseDEX;
+/*0x2ee0*/   DWORD      BaseINT;
+/*0x2ee4*/   DWORD      BaseAGI;
+/*0x2ee8*/   DWORD      BaseWIS;
+/*0x2eec*/   DWORD      Unknown0x32e8;
+/*0x2ef0*/   DWORD      Plat;
+/*0x2ef4*/   DWORD      Gold;
+/*0x2ef8*/   DWORD      Silver;
+/*0x2efc*/   DWORD      Copper;
+/*0x2f00*/   DWORD      CursorPlat;
+/*0x2f04*/   DWORD      CursorGold;
+/*0x2f08*/   DWORD      CursorSilver;
+/*0x2f0c*/   DWORD      CursorCopper;
+/*0x2f10*/   BYTE       Unknown0x330c[0x28];
+/*0x2f38*/   DWORD      thirstlevel;
+/*0x2f3c*/   DWORD      hungerlevel;
+/*0x2f40*/   DWORD      Unknown0x333c; 
+/*0x2f44*/   DWORD      Shrouded;
+/*0x2f48*/   BYTE       Unknown0x3344[0x74];
+/*0x2fbc*/   DWORD      ZoneBoundID;
+/*0x2fc0*/   FLOAT      ZoneBoundY;
+/*0x2fc4*/   FLOAT      ZoneBoundX;
+/*0x2fc8*/   FLOAT      ZoneBoundZ;
+/*0x2fcc*/   FLOAT      ZoneBoundHeading;
+/*0x2fd0*/   BYTE       Unknown0x33cc[0x54];
+/*0x3024*/   DWORD      ArmorType[0x16];
+/*0x307c*/   BYTE       Unknown0x3474[0xb0];
+/*0x312c*/   AALIST     AAList[AA_CHAR_MAX_REAL];
+/*0x3f3c*/   DWORD      BodyColor[0x9];
+/*0x3f60*/   BYTE       Unknown0x4358[0x2000];
+/*0x5f60*/   DWORD      CombatAbilities[NUM_COMBAT_ABILITIES];
+/*0x6280*/   BYTE       Unknown0x6678[0x34];
+/*0x62b4*/   DWORD      CombatAbilityTimes[0x14];
+/*0x6304*/   BYTE       Unknown0x66fc[0x1e90];
+/*0x8194*/   DWORD      Deity;
+/*0x8198*/   BYTE       Unknown0x8450[0x4];
+/*0x819c*/   DWORD      Drunkenness;
+/*0x81a0*/   BYTE       Unknown0x8458[0x10];
+/*0x81b0*/   DWORD      AAPoints;
+/*0x81b4*/   BYTE       Unknown0x846c[0x200c];
+/*0xa1c0*/   DWORD      AAPointsSpent;
+/*0xa1c4*/   BYTE       Unknown0xa47c[0x3c];
+/*0xa200*/
 } CHARINFO2, *PCHARINFO2;
 
 typedef struct _MODELINFONAME {
