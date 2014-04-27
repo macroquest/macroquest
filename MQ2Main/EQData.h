@@ -2053,14 +2053,14 @@ DWORD nDbStance;
 } MERCSTANCEDATA, *PMERCSTANCEDATA;
 
 typedef struct _MERCENARYINFO {
-/*0x000*/ BYTE Unknown0x0[0x3c];
-/*0x03c*/ DWORD HaveMerc;
-/*0x040*/ DWORD MercState; // 1 = suspended, 5 = active
-/*0x044*/ BYTE  Unknown0x44[0x30];
-/*0x074*/ DWORD ActiveStance;
-/*0x078*/ BYTE  Unknown0x78[0x120];
-/*0x198*/ DWORD NumStances;
-/*0x19c*/ _MERCSTANCEDATA **pMercStanceData;
+/*0x000*/ BYTE Unknown0x0[0x10c];
+/*0x10c*/ DWORD HaveMerc;
+/*0x110*/ DWORD MercState; // 1 = suspended, 5 = active
+/*0x114*/ BYTE  Unknown0x114[0x30];
+/*0x144*/ DWORD ActiveStance;
+/*0x148*/ BYTE  Unknown0x148[0xf0];
+/*0x238*/ DWORD NumStances;
+/*0x23c*/ _MERCSTANCEDATA **pMercStanceData;
 } MERCENARYINFO, *PMERCENARYINFO;
 
 #define MAX_XTARGETS 5
