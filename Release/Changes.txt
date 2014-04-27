@@ -1,3 +1,6 @@
+01 Mar 2014 by eqmule
+-Fixed InvitedToGroup (it was in the wrong place in the struct)
+
 26 Feb 2014 by eqmule
 -Made some preparations for future updates related to Custom Help Windows
  Not a critical update unless you are a hardcore plugin author.

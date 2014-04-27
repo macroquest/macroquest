@@ -1059,6 +1059,7 @@ EQLIB_VAR DWORD CSidlScreenWnd__StoreIniInfo;
 EQLIB_VAR DWORD CSidlScreenWnd__StoreIniVis;
 EQLIB_VAR DWORD CSidlScreenWnd__WndNotification;
 EQLIB_VAR DWORD CSidlScreenWnd__GetChildItem;
+EQLIB_VAR DWORD CSidlScreenWnd__HandleLButtonUp;
 
 EQLIB_VAR DWORD CSkillMgr__IsAvailable;
 EQLIB_VAR DWORD CSkillMgr__GetSkillCap;

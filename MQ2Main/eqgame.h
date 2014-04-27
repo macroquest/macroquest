@@ -489,7 +489,8 @@
 #define CSidlScreenWnd__StoreIniVis_x                              0x8763A0
 #define CSidlScreenWnd__WndNotification_x                          0x877FE0
 #define CSidlScreenWnd__GetChildItem_x                             0x8764E0
-
+#define CSidlScreenWnd__GetChildItem_x                             0x8764E0
+#define CSidlScreenWnd__HandleLButtonUp_x                          0x87CF50
 // CSkillMgr
 #define CSkillMgr__IsAvailable_x                                   0x5BDD50
 #define CSkillMgr__GetSkillCap_x                                   0x5BDDD0

@@ -7194,6 +7194,9 @@ FUNCTION_AT_ADDRESS(int  CSidlScreenWnd::ConvertToRes(int,int,int,int),CSidlScre
 #ifdef CSidlScreenWnd__GetChildItem_x
 FUNCTION_AT_ADDRESS(class CXWnd *  CSidlScreenWnd::GetChildItem(CXStr const &),CSidlScreenWnd__GetChildItem);
 #endif
+#ifdef CSidlScreenWnd__HandleLButtonUp_x
+FUNCTION_AT_ADDRESS(int  CSidlScreenWnd::HandleLButtonUp(class CXPoint,unsigned __int32),CSidlScreenWnd__HandleLButtonUp);
+#endif
 #ifdef CSidlScreenWnd__LoadIniListWnd_x
 FUNCTION_AT_ADDRESS(void  CSidlScreenWnd::LoadIniListWnd(class CListWnd *,char *),CSidlScreenWnd__LoadIniListWnd);
 #endif

@@ -600,6 +600,7 @@ EQLIB_OBJECT void CSidlScreenWnd::StoreIniVis(void);
 // virtual
 EQLIB_OBJECT CSidlScreenWnd::~CSidlScreenWnd(void);
 EQLIB_OBJECT int CSidlScreenWnd::DrawBackground(void)const;
+EQLIB_OBJECT int CSidlScreenWnd::HandleLButtonUp(class CXPoint,unsigned __int32);
 EQLIB_OBJECT int CSidlScreenWnd::HandleRButtonDown(class CXPoint,unsigned __int32);
 EQLIB_OBJECT int CSidlScreenWnd::OnResize(int,int);
 EQLIB_OBJECT int CSidlScreenWnd::OnShow(void);
