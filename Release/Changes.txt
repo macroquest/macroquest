@@ -1,3 +1,29 @@
+23 Oct 2013 by EqMule
+-NOTE TO: Macroauthors, Macro breaking CHANGE!
+
+ Look, to prepare for a PctAggro fix, I needed to make a change to how ${Group.Member[<TheName>]} works
+ This will most likely BREAK some people macros
+ BUT it is going to be consistant with how other TLO's work that deal with Names and so on.
+ so in the end you will thank me for making this change.
+ From Now On: ${Group.Member[<TheName>} returns a pGroupMemberType NOT a pIntType
+ SO IF you need the Index of a GroupMember, I have added a new member called: Index
+ Example of how it worked BEFORE THIS PATCH:
+ /echo ${Group.Member[${Me.Name}]}
+ [MQ2] 0
+ Example of how it works AFTER THIS PATCH:
+ /echo ${Group.Member[${Me.Name}]}
+ [MQ2] Soandso
+ BECAUSE the new type is a pGroupMemberType, it also inherits pSpawnType which is why you can also do:
+ /echo ${Group.Member[${Me.Name}].Class}
+ [MQ2] Wizard
+ I hope you all can see the benefit of being able to directly access the pSpawnType in this way...
+ But, to get back to the index:
+ To actually get the index do a:
+ /echo ${Group.Member[${Me.Name}].Index}
+ [MQ2] 0
+
+ We good?
+
 21 Oct 2013 by EqMule
 -Fixed ${Pet.Body.ID} and ${Mercenary.Body.ID} crashes (when no pet/mercenary was up)
 

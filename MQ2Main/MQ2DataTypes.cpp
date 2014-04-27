@@ -3607,6 +3607,7 @@ bool MQ2CharacterType::GETMEMBER()
             Dest.Type = pSpawnType;
             return true;
         }
+		break;
 	case ZoneBound:
 		if(GetCharInfo2()->ZoneBoundID)
         {
@@ -3614,6 +3615,7 @@ bool MQ2CharacterType::GETMEMBER()
 			Dest.Type=pZoneType;
 			return true;
 		}
+		break;
 	case PctMercAAExp:
 		Dest.Float=(float)((pChar->MercAAExp+5)/10);//yes this is how it looks like the client is doing it in the disasm...
         Dest.Type=pFloatType;
@@ -6238,7 +6240,7 @@ bool MQ2MercenaryType::GETMEMBER()
         Dest.Type=pIntType;
         return true;
     case Name:
-		Dest.Ptr=&pSpawn->Name[0];
+		Dest.Ptr=CleanupName(&pSpawn->Name[0]);
         Dest.Type=pStringType;
         return true;
     case Stance:
@@ -6363,7 +6365,7 @@ bool MQ2PetType::GETMEMBER()
 		return true;
 	case Name:
         Dest.Type=pStringType;
-        Dest.Ptr=&pSpawn->Name[0];
+		Dest.Ptr=CleanupName(&pSpawn->Name[0]);
         return true;
 	case ReGroup:
 		if(((PEQPETINFOWINDOW)pPetInfoWnd)->ReGroup)
@@ -6862,6 +6864,7 @@ bool MQ2GroupType::GETMEMBER()
     switch((GroupMembers)pMember->ID)
     {
     case xMember:
+		Index;
         if (!ISINDEX())
             return false;
         if (ISNUMBER())
@@ -6879,16 +6882,19 @@ bool MQ2GroupType::GETMEMBER()
                 {
                     Dest.DWord++;
                     CHAR Name[MAX_STRING]={0};
+					Index;
                     GetCXStr(pChar->pGroupInfo->pMember[i]->pName,Name,MAX_STRING);
+					CleanupName(Name);
                     if (!stricmp(Name,GETFIRST()))
                     {
-                        Dest.Type=pIntType;
+                        Dest.Type=pGroupMemberType;
                         return true;
                     }
                 }
+				Index;
                 if (!stricmp(pChar->pSpawn->Name,GETFIRST())) {
                     Dest.DWord=0;
-                    Dest.Type=pIntType;
+                    Dest.Type=pGroupMemberType;
                     return true;
                 }
                 return false;
@@ -7168,6 +7174,11 @@ bool MQ2GroupMemberType::GETMEMBER()
             Dest.Type = pIntType;
             return true;
         }
+		return false;
+    case xIndex:
+		Dest.DWord = nMember;
+		Dest.Type = pIntType;
+		return true;
     }
     return false;
 }

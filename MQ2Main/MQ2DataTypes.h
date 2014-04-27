@@ -3339,6 +3339,7 @@ public:
         Puller=7,
         Mercenary=8,
         PctAggro=9,
+        xIndex=10,
     };
     static enum GroupMemberMethods
     {
@@ -3354,6 +3355,7 @@ public:
         TypeMember(Puller);
         TypeMember(Mercenary);
         TypeMember(PctAggro);
+        AddMember(xIndex,"Index");
     }
 
     ~MQ2GroupMemberType()
