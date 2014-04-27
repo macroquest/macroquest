@@ -6219,50 +6219,28 @@ bool MQ2MercenaryType::GETMEMBER()
 {
 	if (!VarPtr.Ptr)
         return false;
+	PSPAWNINFO pSpawn = (PSPAWNINFO)VarPtr.Ptr;
     PMQ2TYPEMEMBER pMember=MQ2MercenaryType::FindMember(Member);
     if (!pMember)
     {
-		PSPAWNINFO ptr = 0;
-		if(!pMercInfo) {
-			ZeroMemory(&MercenarySpawn,sizeof(MercenarySpawn));
-			strcpy_s(MercenarySpawn.Name,"NOT FOUND");
-			ptr = &MercenarySpawn;
-		} else {
-			ptr = (PSPAWNINFO)GetSpawnByID(((PMERCENARYINFO)pMercInfo)->MercSpawnId);
-			if(!ptr)
-			{
-				ZeroMemory(&MercenarySpawn,sizeof(MercenarySpawn));
-				if(pMercInfo->HaveMerc==1) {
-					switch(pMercInfo->MercState)
-					{
-					case 0:
-						strcpy_s(MercenarySpawn.Name,"DEAD");
-						break;
-					case 1:
-						strcpy_s(MercenarySpawn.Name,"SUSPENDED");
-						break;
-					default:
-						strcpy_s(MercenarySpawn.Name,"UNKNOWN");
-						break;
-					}
-				} else {
-					if(pMercInfo->MercenaryCount>=1) {
-						strcpy_s(MercenarySpawn.Name,"SUSPENDED");
-					} else {
-						strcpy_s(MercenarySpawn.Name,"NOT FOUND");
-					}
-				}
-				ptr = &MercenarySpawn;
-			}
-		}
+		if(!pSpawn->SpawnID)
+			return false;
 #ifndef ISXEQ
-        return pSpawnType->GetMember(*(MQ2VARPTR*)&ptr,Member,Index,Dest);
+        return pSpawnType->GetMember(*(MQ2VARPTR*)&VarPtr.Ptr,Member,Index,Dest);
 #else
-        return pSpawnType->GetMember(*(LSVARPTR*)&ptr,Member,argc,argv,Dest);
+        return pSpawnType->GetMember(*(LSVARPTR*)&VarPtr.Ptr,Member,argc,argv,Dest);
 #endif
     }
     switch((MercenaryMembers)pMember->ID)
     {
+    case AAPoints:
+		Dest.DWord=GetCharInfo()->MercAAPoints;
+        Dest.Type=pIntType;
+        return true;
+    case Name:
+		Dest.Ptr=&pSpawn->Name[0];
+        Dest.Type=pStringType;
+        return true;
     case Stance:
         Dest.Ptr = "NULL";
         if(pMercInfo->HaveMerc)
@@ -6277,14 +6255,6 @@ bool MQ2MercenaryType::GETMEMBER()
             }
         }
         Dest.Type = pStringType;
-        return true;
-    case AAPoints:
-		Dest.DWord=GetCharInfo()->MercAAPoints;
-        Dest.Type=pIntType;
-        return true;
-	case StateID:
-		Dest.DWord=pMercInfo->MercState;
-		Dest.Type=pIntType;
         return true;
 	case State:
 		switch(pMercInfo->MercState)
@@ -6304,6 +6274,10 @@ bool MQ2MercenaryType::GETMEMBER()
 		}
 		Dest.Type = pStringType;
 		return true;
+	case StateID:
+		Dest.DWord=pMercInfo->MercState;
+		Dest.Type=pIntType;
+        return true;
 	}
 	return false;
 }
@@ -6311,9 +6285,12 @@ bool MQ2PetType::GETMEMBER()
 {
 	if (!VarPtr.Ptr)
         return false;
+	PSPAWNINFO pSpawn = (PSPAWNINFO)VarPtr.Ptr;
     PMQ2TYPEMEMBER pMember=MQ2PetType::FindMember(Member);
     if (!pMember)
     {
+		if(!pSpawn->SpawnID)
+			return false;
 #ifndef ISXEQ
 		return pSpawnType->GetMember(*(MQ2VARPTR*)&VarPtr.Ptr,Member,Index,Dest);
 #else
@@ -6358,7 +6335,7 @@ bool MQ2PetType::GETMEMBER()
 #undef pPetInfoWindow
         return false;
     case Combat:
-		if(((PSPAWNINFO)VarPtr.Ptr)->WhoFollowing)
+		if(pSpawn->WhoFollowing)
         {
 			Dest.DWord = TRUE;
         } else {
@@ -6384,6 +6361,10 @@ bool MQ2PetType::GETMEMBER()
 		}
         Dest.Type = pBoolType;
 		return true;
+	case Name:
+        Dest.Type=pStringType;
+        Dest.Ptr=&pSpawn->Name[0];
+        return true;
 	case ReGroup:
 		if(((PEQPETINFOWINDOW)pPetInfoWnd)->ReGroup)
 		{
@@ -6412,7 +6393,7 @@ bool MQ2PetType::GETMEMBER()
         Dest.Type = pBoolType;
 		return true;
     case Target:
-		if(Dest.Ptr = ((PSPAWNINFO)VarPtr.Ptr)->WhoFollowing)
+		if(Dest.Ptr = pSpawn->WhoFollowing)
         {
             Dest.Type = pSpawnType;
             return true;

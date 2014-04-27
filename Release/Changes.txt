@@ -1,3 +1,6 @@
+21 Oct 2013 by EqMule
+-Fixed ${Pet.Body.ID} and ${Mercenary.Body.ID} crashes (when no pet/mercenary was up)
+
 20 Oct 2013 by EqMule
 -Added Prestige to the Item TLO:
 usage: /echo ${Cursor.Prestige} returns a pBoolType TRUE if its a Prestige item otherwise FALSE

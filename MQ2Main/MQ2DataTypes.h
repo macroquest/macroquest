@@ -1934,18 +1934,20 @@ class MQ2MercenaryType : public MQ2Type
 public:
     static enum MercenaryMembers
     {
-        Stance=1,
-        AAPoints=2,
-        State=3,
-		StateID=4,
+		AAPoints=1,
+		Name=2,
+		Stance=3,
+        State=4,
+		StateID=5,
     };
     static enum MercenaryMethods
     {
     };
     MQ2MercenaryType():MQ2Type("mercenary")
     {
-        TypeMember(Stance);
         TypeMember(AAPoints);
+        TypeMember(Name);
+        TypeMember(Stance);
         TypeMember(State);
         TypeMember(StateID);
     }
@@ -2009,13 +2011,14 @@ public:
     {
         Buff=1,
         Combat=2,
-		Hold=3,
-		GHold=4,
-		ReGroup=5,
-		Stance=6,
-		Stop=7,
-		Target=8,
-		Taunt=9,
+		GHold=3,
+		Hold=4,
+		Name=5,
+		ReGroup=6,
+		Stance=7,
+		Stop=8,
+		Target=9,
+		Taunt=10,
     };
     static enum PetMethods
     {
@@ -2026,6 +2029,7 @@ public:
         TypeMember(Combat);
         TypeMember(GHold);
         TypeMember(Hold);
+        TypeMember(Name);
 		TypeMember(ReGroup);
         TypeMember(Stance);
 		TypeMember(Stop);
