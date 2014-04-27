@@ -1171,17 +1171,17 @@ typedef struct _FELLOWSHIPINFO {
 /*0x448*/  DWORD  Members;
 /*0x44c*/  struct _FELLOWSHIPMEMBER  FellowshipMember[0xc];
 /*0x83c*/  DWORD  Unknown0x83c;      // timestamp for something
-/*0x840*/  BYTE   Unknown0x840[0x180];
-/*0x9c0*/  FLOAT  CampfireY;
-/*0x9c4*/  FLOAT  CampfireX;
-/*0x9c8*/  FLOAT  CampfireZ;
-/*0x9cc*/  WORD   CampfireZoneID;    // zone ID where campfire is
-/*0x9ce*/  WORD   InstanceID;
-/*0x9d0*/  DWORD  CampfireTimestamp; // CampfireTimestamp-FastTime()=time left on campfire
-/*0x9d4*/  DWORD  Unknown0x878;      // same as FellowshipID
-/*0x9d8*/  DWORD  Unknown0x87c;      // campfire type?
-/*0x9dc*/  DWORD  Campfire;          // do we have a campfire up?
-/*0x9e0*/
+/*0x840*/  BYTE   Unknown0x840[0x18c];
+/*0x9cc*/  FLOAT  CampfireY;   	     // this is really in SPAWNINFO
+/*0x9d0*/  FLOAT  CampfireX;
+/*0x9d4*/  FLOAT  CampfireZ;
+/*0x9d8*/  WORD   CampfireZoneID;    // zone ID where campfire is
+/*0x9dc*/  WORD   InstanceID;
+/*0x9e0*/  DWORD  CampfireTimestamp; // CampfireTimestamp-FastTime()=time left on campfire
+/*0x9e4*/  DWORD  Unknown0x878;      // same as FellowshipID
+/*0x9e8*/  DWORD  Unknown0x87c;      // campfire type?
+/*0x9ec*/  DWORD  Campfire;          // do we have a campfire up?
+/*0x9f0*/
 } FELLOWSHIPINFO, *PFELLOWSHIPINFO;
 
 // offsets are relative to their position in _LAUNCHSPELLDATA
@@ -1369,10 +1369,8 @@ typedef struct _SPAWNINFO {
 /*0x11c1*/ BYTE     Unknown0x11c1[0x3];
 /*0x11c4*/ DWORD    GroupMemberTargeted;    // 0xFFFFFFFF if no target, else 1 through 5
 /*0x11c8*/ BYTE     Unknown0x11c8[0x184];
-// dkaa note: _FELLOWSHIPINFO changed from 0x9c0 to 0x9cc on 20110629
-// which means FS has been broken for some time
-/*0x134c*/ struct   _FELLOWSHIPINFO Fellowship; // size 0x9e0
-/*0x1d2c*/ BYTE     Unknown0x1d2c[0x64];
+/*0x134c*/ struct   _FELLOWSHIPINFO Fellowship; // size 0x9f0
+/*0x1d3c*/ BYTE     Unknown0x1d2c[0x48];
 /*0x1d84*/ void     *vtable2;
 /*0x1d88*/ DWORD    Unknown0x1d88;
 /*0x1d8c*/ struct   _SPAWNINFO *pSpawn;
