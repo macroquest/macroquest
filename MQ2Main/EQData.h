@@ -1211,7 +1211,7 @@ typedef struct _LAUNCHSPELLDATA {
 /*0x50*/
 } LAUNCHSPELLDATA, *PLAUNCHSPELLDATA;
 
-// actual size: 0x1ddc 20110413 - ieatacid
+// actual size: 0x1DE8 20110629 - dkaa
 typedef struct _SPAWNINFO {
 /*0x0000*/ void     *vtable;
 /*0x0004*/ struct   _SPAWNINFO *pPrev;
@@ -1369,8 +1369,10 @@ typedef struct _SPAWNINFO {
 /*0x11c1*/ BYTE     Unknown0x11c1[0x3];
 /*0x11c4*/ DWORD    GroupMemberTargeted;    // 0xFFFFFFFF if no target, else 1 through 5
 /*0x11c8*/ BYTE     Unknown0x11c8[0x184];
+// dkaa note: _FELLOWSHIPINFO changed from 0x9c0 to 0x9cc on 20110629
+// which means FS has been broken for some time
 /*0x134c*/ struct   _FELLOWSHIPINFO Fellowship; // size 0x9e0
-/*0x1d2c*/ BYTE     Unknown0x1d2c[0x58];
+/*0x1d2c*/ BYTE     Unknown0x1d2c[0x64];
 /*0x1d84*/ void     *vtable2;
 /*0x1d88*/ DWORD    Unknown0x1d88;
 /*0x1d8c*/ struct   _SPAWNINFO *pSpawn;
@@ -1817,7 +1819,7 @@ typedef struct _EQFRIENDSLIST {
 /*0x1900*/
 } EQFRIENDSLIST, *PEQFRIENDSLIST;
 
-// Size 0x98    04/13/2011 dkaa in msg_set_alt_data
+// Size 0x98    04/13/2011 dkaa in msg_send_alt_data
 typedef struct _ALTABILITY {
 /*0x00*/ DWORD Index;
 /*0x04*/ DWORD Flags;                    //?
