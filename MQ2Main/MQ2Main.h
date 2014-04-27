@@ -576,6 +576,7 @@ EQLIB_API float       GetMeleeRange(class EQPlayer *,class EQPlayer *);
 EQLIB_API DWORD       GetSpellGemTimer(DWORD nGem);
 EQLIB_API bool        HasExpansion(DWORD nExpansion);
 EQLIB_API VOID		  ListMercAltAbilities();
+EQLIB_API PCONTENTS	  FindItem(PCHAR pName, BOOL bExact=false);
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 // Functions that were built into commands and people used DoCommand to execute                  //
 

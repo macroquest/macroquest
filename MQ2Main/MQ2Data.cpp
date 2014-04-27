@@ -976,66 +976,68 @@ TLO(dataFindItem)
     CHAR Temp[MAX_STRING]={0};
     strlwr(strcpy(Name,pName));
     PCHARINFO pCharInfo=GetCharInfo();
-
-    for (unsigned long nSlot=0 ; nSlot < NUM_INV_SLOTS ; nSlot++)
-    {
-        if (PCONTENTS pItem=GetCharInfo2()->pInventoryArray->InventoryArray[nSlot])
-        {
-            if (bExact)
-            {
-                if (!stricmp(Name,GetItemFromContents(pItem)->Name))
-                {
-                    Ret.Ptr=pItem;
-                    Ret.Type=pItemType;
-                    return true;
-                }
-            }
-            else 
-            {
-                if(strstr(strlwr(strcpy(Temp,GetItemFromContents(pItem)->Name)),Name))
-                {
-                    Ret.Ptr=pItem;
-                    Ret.Type=pItemType;
-                    return true;
-                }
-            }
-        }
-    }
-
-    for (unsigned long nPack=0 ; nPack < 10 ; nPack++)
-    {
-        if (PCONTENTS pPack=GetCharInfo2()->pInventoryArray->Inventory.Pack[nPack])
-        {
-            if (GetItemFromContents(pPack)->Type==ITEMTYPE_PACK && pPack->pContentsArray)
-            {
-                for (unsigned long nItem=0 ; nItem < GetItemFromContents(pPack)->Slots ; nItem++)
-                {
-                    if (PCONTENTS pItem=pPack->pContentsArray->Contents[nItem])
-                    {
-                        if (bExact)
-                        {
-                            if (!stricmp(Name,GetItemFromContents(pItem)->Name))
-                            {
-                                Ret.Ptr=pItem;
-                                Ret.Type=pItemType;
-                                return true;
-                            }
-                        }
-                        else 
-                        {
-                            if(strstr(strlwr(strcpy(Temp,GetItemFromContents(pItem)->Name)),Name))
-                            {
-                                Ret.Ptr=pItem;
-                                Ret.Type=pItemType;
-                                return true;
-                            }
-                        }
-                    }
-                }
-            }
-        }
-    }
-
+	PCHARINFO2 pChar2 = GetCharInfo2();
+	if(pChar2 && pChar2->pInventoryArray && pChar2->pInventoryArray->InventoryArray) {
+		for (unsigned long nSlot=0 ; nSlot < NUM_INV_SLOTS ; nSlot++)
+		{
+			if (PCONTENTS pItem=pChar2->pInventoryArray->InventoryArray[nSlot])
+			{
+				if (bExact)
+				{
+					if (!stricmp(Name,GetItemFromContents(pItem)->Name))
+					{
+						Ret.Ptr=pItem;
+						Ret.Type=pItemType;
+						return true;
+					}
+				}
+				else 
+				{
+					if(strstr(strlwr(strcpy(Temp,GetItemFromContents(pItem)->Name)),Name))
+					{
+						Ret.Ptr=pItem;
+						Ret.Type=pItemType;
+						return true;
+					}
+				}
+			}
+		}
+	}
+	if(pChar2 && pChar2->pInventoryArray) {
+		for (unsigned long nPack=0 ; nPack < 10 ; nPack++)
+		{
+			if (PCONTENTS pPack=pChar2->pInventoryArray->Inventory.Pack[nPack])
+			{
+				if (GetItemFromContents(pPack)->Type==ITEMTYPE_PACK && pPack->pContentsArray)
+				{
+					for (unsigned long nItem=0 ; nItem < GetItemFromContents(pPack)->Slots ; nItem++)
+					{
+						if (PCONTENTS pItem=pPack->pContentsArray->Contents[nItem])
+						{
+							if (bExact)
+							{
+								if (!stricmp(Name,GetItemFromContents(pItem)->Name))
+								{
+									Ret.Ptr=pItem;
+									Ret.Type=pItemType;
+									return true;
+								}
+							}
+							else 
+							{
+								if(strstr(strlwr(strcpy(Temp,GetItemFromContents(pItem)->Name)),Name))
+								{
+									Ret.Ptr=pItem;
+									Ret.Type=pItemType;
+									return true;
+								}
+							}
+						}
+					}
+				}
+			}
+		}
+	}
     return false;
 }
 
@@ -1059,113 +1061,116 @@ TLO(dataFindItemCount)
 
     unsigned long Count=0;
     DWORD nAug = 0;
-
-    for (unsigned long nSlot=0 ; nSlot < NUM_INV_SLOTS ; nSlot++)
-    {
-        if (PCONTENTS pItem=GetCharInfo2()->pInventoryArray->InventoryArray[nSlot])
-        {
-            if (bExact)
-            {
-                if (!stricmp(Name,GetItemFromContents(pItem)->Name))
-                {
-                    if ((GetItemFromContents(pItem)->Type != ITEMTYPE_NORMAL) ||
-                        (((EQ_Item*)pItem)->IsStackable() != 1)) 
-                        Count++;
-                    else
-                        Count+=pItem->StackCount;
-                }
-                else // for augs
-                {
-                    if (pItem->pContentsArray && pItem->NumOfSlots2)
-                    for(nAug = 0; nAug < pItem->NumOfSlots2; nAug++)
-                    {
-                        if(pItem->pContentsArray->Contents[nAug] && GetItemFromContents(pItem->pContentsArray->Contents[nAug])->Type == ITEMTYPE_NORMAL && GetItemFromContents(pItem->pContentsArray->Contents[nAug])->AugType &&
-                            !stricmp(Name, GetItemFromContents(pItem->pContentsArray->Contents[nAug])->Name))
-                            Count++;
-                    }
-                }
-            }
-            else 
-            {
-                if(strstr(strlwr(strcpy(Temp,GetItemFromContents(pItem)->Name)),Name))
-                {
-                    if ((GetItemFromContents(pItem)->Type != ITEMTYPE_NORMAL) ||
-                        (((EQ_Item*)pItem)->IsStackable() != 1)) 
-                        Count++;
-                    else
-                        Count+=pItem->StackCount;
-                }
-                else // for augs
-                {
-                    if (pItem->pContentsArray && pItem->NumOfSlots2 )
-                    for(nAug = 0; nAug < pItem->NumOfSlots2; nAug++)
-                    {
-                        if(pItem->pContentsArray->Contents[nAug] && GetItemFromContents(pItem->pContentsArray->Contents[nAug])->Type == ITEMTYPE_NORMAL && GetItemFromContents(pItem->pContentsArray->Contents[nAug])->AugType &&
-                            strstr(strlwr(strcpy(Temp, GetItemFromContents(pItem->pContentsArray->Contents[nAug])->Name)), Name))
-                            Count++;
-                    }
-                }
-            }
-        }
-    }
-
-    for (unsigned long nPack=0 ; nPack < 10 ; nPack++)
-    {
-        if (PCONTENTS pPack=GetCharInfo2()->pInventoryArray->Inventory.Pack[nPack])
-        {
-            if (GetItemFromContents(pPack)->Type==ITEMTYPE_PACK && pPack->pContentsArray)
-            {
-                for (unsigned long nItem=0 ; nItem < GetItemFromContents(pPack)->Slots ; nItem++)
-                {
-                    if (PCONTENTS pItem=pPack->pContentsArray->Contents[nItem])
-                    {
-                        if (bExact)
-                        {
-                            if (!stricmp(Name,GetItemFromContents(pItem)->Name))
-                            {
-                                if ((GetItemFromContents(pItem)->Type != ITEMTYPE_NORMAL) ||
-                                    (((EQ_Item*)pItem)->IsStackable() != 1)) 
-                                    Count++;
-                                else
-                                    Count+=pItem->StackCount;
-                            }
-                            else // for augs
-                            {
-                                if (pItem->pContentsArray && pItem->NumOfSlots2)
-                                for(nAug = 0; nAug < pItem->NumOfSlots2; nAug++)
-                                {
-                                    if(pItem->pContentsArray->Contents[nAug] && GetItemFromContents(pItem->pContentsArray->Contents[nAug])->Type == ITEMTYPE_NORMAL && GetItemFromContents(pItem->pContentsArray->Contents[nAug])->AugType &&
-                                        !stricmp(Name, GetItemFromContents(pItem->pContentsArray->Contents[nAug])->Name))
-                                        Count++;
-                                }
-                            }
-                        }
-                        else 
-                        {
-                            if(strstr(strlwr(strcpy(Temp,GetItemFromContents(pItem)->Name)),Name))
-                            {
-                                if ((GetItemFromContents(pItem)->Type != ITEMTYPE_NORMAL) ||
-                                    (((EQ_Item*)pItem)->IsStackable() != 1)) 
-                                    Count++;
-                                else
-                                    Count+=pItem->StackCount;
-                            }
-                            else // for augs
-                            {
-                                if (pItem->pContentsArray && pItem->NumOfSlots2)
-                                for(nAug = 0; nAug < pItem->NumOfSlots2; nAug++)
-                                {
-                                    if(pItem->pContentsArray->Contents[nAug] && GetItemFromContents(pItem->pContentsArray->Contents[nAug])->Type == ITEMTYPE_NORMAL && GetItemFromContents(pItem->pContentsArray->Contents[nAug])->AugType &&
-                                        strstr(strlwr(strcpy(Temp, GetItemFromContents(pItem->pContentsArray->Contents[nAug])->Name)), Name))
-                                        Count++;
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-        }
-    }
+    PCHARINFO2 pChar2 = GetCharInfo2();
+	if(pChar2 && pChar2->pInventoryArray && pChar2->pInventoryArray->InventoryArray) {
+		for (unsigned long nSlot=0 ; nSlot < NUM_INV_SLOTS ; nSlot++)
+		{
+			if (PCONTENTS pItem=pChar2->pInventoryArray->InventoryArray[nSlot])
+			{
+				if (bExact)
+				{
+					if (!stricmp(Name,GetItemFromContents(pItem)->Name))
+					{
+						if ((GetItemFromContents(pItem)->Type != ITEMTYPE_NORMAL) ||
+							(((EQ_Item*)pItem)->IsStackable() != 1)) 
+							Count++;
+						else
+							Count+=pItem->StackCount;
+					}
+					else // for augs
+					{
+						if (pItem->pContentsArray && pItem->NumOfSlots2)
+						for(nAug = 0; nAug < pItem->NumOfSlots2; nAug++)
+						{
+							if(pItem->pContentsArray->Contents[nAug] && GetItemFromContents(pItem->pContentsArray->Contents[nAug])->Type == ITEMTYPE_NORMAL && GetItemFromContents(pItem->pContentsArray->Contents[nAug])->AugType &&
+								!stricmp(Name, GetItemFromContents(pItem->pContentsArray->Contents[nAug])->Name))
+								Count++;
+						}
+					}
+				}
+				else 
+				{
+					if(strstr(strlwr(strcpy(Temp,GetItemFromContents(pItem)->Name)),Name))
+					{
+						if ((GetItemFromContents(pItem)->Type != ITEMTYPE_NORMAL) ||
+							(((EQ_Item*)pItem)->IsStackable() != 1)) 
+							Count++;
+						else
+							Count+=pItem->StackCount;
+					}
+					else // for augs
+					{
+						if (pItem->pContentsArray && pItem->NumOfSlots2 )
+						for(nAug = 0; nAug < pItem->NumOfSlots2; nAug++)
+						{
+							if(pItem->pContentsArray->Contents[nAug] && GetItemFromContents(pItem->pContentsArray->Contents[nAug])->Type == ITEMTYPE_NORMAL && GetItemFromContents(pItem->pContentsArray->Contents[nAug])->AugType &&
+								strstr(strlwr(strcpy(Temp, GetItemFromContents(pItem->pContentsArray->Contents[nAug])->Name)), Name))
+								Count++;
+						}
+					}
+				}
+			}
+		}
+	}
+	if(pChar2 && pChar2->pInventoryArray) {
+		for (unsigned long nPack=0 ; nPack < 10 ; nPack++)
+		{
+			if (PCONTENTS pPack=pChar2->pInventoryArray->Inventory.Pack[nPack])
+			{
+				if (GetItemFromContents(pPack)->Type==ITEMTYPE_PACK && pPack->pContentsArray)
+				{
+					for (unsigned long nItem=0 ; nItem < GetItemFromContents(pPack)->Slots ; nItem++)
+					{
+						if (PCONTENTS pItem=pPack->pContentsArray->Contents[nItem])
+						{
+							if (bExact)
+							{
+								if (!stricmp(Name,GetItemFromContents(pItem)->Name))
+								{
+									if ((GetItemFromContents(pItem)->Type != ITEMTYPE_NORMAL) ||
+										(((EQ_Item*)pItem)->IsStackable() != 1)) 
+										Count++;
+									else
+										Count+=pItem->StackCount;
+								}
+								else // for augs
+								{
+									if (pItem->pContentsArray && pItem->NumOfSlots2)
+									for(nAug = 0; nAug < pItem->NumOfSlots2; nAug++)
+									{
+										if(pItem->pContentsArray->Contents[nAug] && GetItemFromContents(pItem->pContentsArray->Contents[nAug])->Type == ITEMTYPE_NORMAL && GetItemFromContents(pItem->pContentsArray->Contents[nAug])->AugType &&
+											!stricmp(Name, GetItemFromContents(pItem->pContentsArray->Contents[nAug])->Name))
+											Count++;
+									}
+								}
+							}
+							else 
+							{
+								if(strstr(strlwr(strcpy(Temp,GetItemFromContents(pItem)->Name)),Name))
+								{
+									if ((GetItemFromContents(pItem)->Type != ITEMTYPE_NORMAL) ||
+										(((EQ_Item*)pItem)->IsStackable() != 1)) 
+										Count++;
+									else
+										Count+=pItem->StackCount;
+								}
+								else // for augs
+								{
+									if (pItem->pContentsArray && pItem->NumOfSlots2)
+									for(nAug = 0; nAug < pItem->NumOfSlots2; nAug++)
+									{
+										if(pItem->pContentsArray->Contents[nAug] && GetItemFromContents(pItem->pContentsArray->Contents[nAug])->Type == ITEMTYPE_NORMAL && GetItemFromContents(pItem->pContentsArray->Contents[nAug])->AugType &&
+											strstr(strlwr(strcpy(Temp, GetItemFromContents(pItem->pContentsArray->Contents[nAug])->Name)), Name))
+											Count++;
+									}
+								}
+							}
+						}
+					}
+				}
+			}
+		}
+	}
 
     Ret.DWord=Count;
     Ret.Type=pIntType;

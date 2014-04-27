@@ -1,3 +1,7 @@
+29 Oct 2013 by EqMule
+-Cast item works on items in bags now if you have VoA or higher expansion.
+cred to desgn for code/suggestion
+
 26 Oct 2013 by EqMule
 -Added a new member to the Target TLO:
 ${Target.AggroHolder} it returns a pSpawnType of whoever your target is most angry with and currently attacking, 

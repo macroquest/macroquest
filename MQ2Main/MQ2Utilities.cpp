@@ -5704,9 +5704,17 @@ PCONTENTS GetItemContentsBySlotID(DWORD dwSlotID)
 
 PCONTENTS GetItemContentsByName(CHAR *ItemName)
 {
-    for(unsigned long nSlot=0; nSlot<NUM_INV_SLOTS; nSlot++)
-        if(PCONTENTS pItem=GetCharInfo2()->pInventoryArray->InventoryArray[nSlot])
-            if(!strcmp(ItemName,GetItemFromContents(pItem)->Name)) return pItem;
+    for(unsigned long nSlot=0; nSlot<NUM_INV_SLOTS; nSlot++) {
+		PCHARINFO2 pChar2 = GetCharInfo2();
+		if(pChar2 && pChar2->pInventoryArray && pChar2->pInventoryArray->InventoryArray) {
+			if(PCONTENTS pItem=pChar2->pInventoryArray->InventoryArray[nSlot]) {
+				if(!strcmp(ItemName,GetItemFromContents(pItem)->Name)) {
+					return pItem;
+				}
+			}
+		}
+	}
+
 
     for (unsigned long nPack=0 ; nPack < 10 ; nPack++)
         if (PCONTENTS pPack=GetCharInfo2()->pInventoryArray->Inventory.Pack[nPack])
@@ -5951,6 +5959,63 @@ VOID ListMercAltAbilities()
 			}
 		}
 	}
+}
+PCONTENTS FindItem(PCHAR pName, BOOL bExact)
+{
+	CHAR Name[MAX_STRING]={0};
+	CHAR Temp[MAX_STRING]={0};
+	strlwr(strcpy(Name, pName));
+	PCHARINFO2 pChar2 = GetCharInfo2();
+	if(pChar2 && pChar2->pInventoryArray && pChar2->pInventoryArray->InventoryArray) {
+		for (unsigned long nSlot=0 ; nSlot < NUM_INV_SLOTS ; nSlot++)
+		{
+			if (PCONTENTS pItem=pChar2->pInventoryArray->InventoryArray[nSlot])
+			{
+				if (bExact)
+				{
+					if (!stricmp(Name,GetItemFromContents(pItem)->Name))
+					{
+						return pItem;
+					}
+				} else {
+					if(strstr(strlwr(strcpy(Temp,GetItemFromContents(pItem)->Name)),Name))
+					{
+						return pItem;
+					}
+				}
+			}
+		}
+	}
+	if(pChar2 && pChar2->pInventoryArray) {
+		for (unsigned long nPack=0 ; nPack < 10 ; nPack++)
+		{
+			if (PCONTENTS pPack=pChar2->pInventoryArray->Inventory.Pack[nPack])
+			{
+				if (GetItemFromContents(pPack)->Type==ITEMTYPE_PACK && pPack->pContentsArray)
+				{
+					for (unsigned long nItem=0 ; nItem < GetItemFromContents(pPack)->Slots ; nItem++)
+					{
+						if (PCONTENTS pItem=pPack->pContentsArray->Contents[nItem])
+						{
+							if (bExact)
+							{
+								if (!stricmp(Name,GetItemFromContents(pItem)->Name))
+								{
+									return pItem;
+								}
+							} else {
+								if(strstr(strlwr(strcpy(Temp,GetItemFromContents(pItem)->Name)),Name))
+								{
+									return pItem;
+								}
+							}
+						}
+					}
+				}
+			}
+		}
+	}
+    return 0;
 }
 //                                                                                               //
 ///////////////////////////////////////////////////////////////////////////////////////////////////

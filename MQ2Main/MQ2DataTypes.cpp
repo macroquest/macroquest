@@ -2160,11 +2160,14 @@ bool MQ2CharacterType::GETMEMBER()
                 unsigned long nSlot=GETNUMBER();
                 if (nSlot<0x800)
                 {
-                    if (Dest.Ptr=GetCharInfo2()->pInventoryArray->InventoryArray[nSlot])
-                    {
-                        Dest.Type=pItemType;
-                        return true;
-                    }
+					PCHARINFO2 pChar2 = GetCharInfo2();
+					if(pChar2 && pChar2->pInventoryArray && pChar2->pInventoryArray->InventoryArray) {
+						if (Dest.Ptr=GetCharInfo2()->pInventoryArray->InventoryArray[nSlot])
+						{
+							Dest.Type=pItemType;
+							return true;
+						}
+					}
                 }
             }
             else
@@ -2173,11 +2176,14 @@ bool MQ2CharacterType::GETMEMBER()
                 {
                     if (!stricmp(GETFIRST(),szItemSlot[nSlot]))
                     {
-                        if (Dest.Ptr=GetCharInfo2()->pInventoryArray->InventoryArray[nSlot])
-                        {
-                            Dest.Type=pItemType;
-                            return true;
-                        }
+						PCHARINFO2 pChar2 = GetCharInfo2();
+						if(pChar2 && pChar2->pInventoryArray && pChar2->pInventoryArray->InventoryArray) {
+							if (Dest.Ptr=pChar2->pInventoryArray->InventoryArray[nSlot])
+							{
+								Dest.Type=pItemType;
+								return true;
+							}
+						}
                     }
                 }
             }
@@ -3009,7 +3015,7 @@ bool MQ2CharacterType::GETMEMBER()
             Dest.DWord=0;
             for (DWORD slot=BAG_SLOT_START;slot<NUM_INV_SLOTS;slot++) 
             {
-                if(!HasExpansion(EXPANSION_HoT) && slot > 30)
+				if(!HasExpansion(EXPANSION_HoT) && slot > BAG_SLOT_START+7)
                     break;
                 if (PCONTENTS pItem = GetCharInfo2()->pInventoryArray->InventoryArray[slot]) 
                 {
@@ -5953,7 +5959,7 @@ bool MQ2TimeType::GETMEMBER()
             Dest.Type=pStringType; 
         return true;
     case Night:
-        Dest.DWord=((pTime->tm_hour<7) || (pTime->tm_hour>18));
+        Dest.DWord=((pTime->tm_hour<7) || (pTime->tm_hour>20));
         Dest.Type=pBoolType;
         return true;
     case SecondsSinceMidnight:

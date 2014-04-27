@@ -1678,9 +1678,9 @@ typedef struct _SPELL {
 /*0x168*/   DWORD   SpellIcon;
 /*0x16c*/   BYTE    Unknown0x16c[0x8];
 /*0x174*/   DWORD   ID;
-/*0x178*/   DWORD   Autocast;           //SpellID of spell to instacast on caster when current spell lands on target
-/*0x17c*/   DWORD   Unknown144;         //Unknown144 from lucy
-/*0x180*/   DWORD   Unknown145;         //Unknown145 from lucy
+/*0x178*/   DWORD   Autocast;         //SpellID of spell to instacast on caster when current spell lands on target
+/*0x17c*/   DWORD   Category;         //Unknown144 from lucy
+/*0x180*/   DWORD   Subcategory;      //Subcat to Category. Unknown145 from lucy
 /*0x184*/   BYTE    Unknown0x184[0x10];
 /*0x194*/   DWORD   EnduranceCost;      //CA Endurance Cost
 /*0x198*/   DWORD   CARecastTimerID;    //ID of combat timer, i think.
@@ -1717,7 +1717,7 @@ typedef struct _SPELL {
 /*0x2ba*/   CHAR    Target[0x20];
 /*0x2da*/   CHAR    Extra[0x20];        //This is 'Extra' from Lucy (portal shortnames etc)
 /*0x2fa*/   CHAR    Unknown0x2fa[0x60];
-/*0x35a*/   CHAR    Unknown0x35a[0x60];
+/*0x35a*/   CHAR    CastByOther[0x60];  //cast by other
 /*0x3ba*/   CHAR    CastOnYou[0x60];
 /*0x41a*/   CHAR    CastOnAnother[0x60];
 /*0x47a*/   CHAR    WearOff[0x60];

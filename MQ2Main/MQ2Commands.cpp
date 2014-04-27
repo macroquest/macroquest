@@ -2029,27 +2029,38 @@ VOID Cast(PSPAWNINFO pChar, PCHAR szLine)
     DebugSpew("Cast: szArg1 = %s szArg2 = %s",szArg1,szArg2);
     if (!stricmp(szArg1,"item"))
     {
-        BOOL FOUND = FALSE;
-        DWORD slot = 0;
-        for (int i=0;i<NUM_INV_SLOTS;i++) {
-            if (GetCharInfo2()->pInventoryArray->InventoryArray[i])
-                if (!_stricmp(szArg2,GetItemFromContents(GetCharInfo2()->pInventoryArray->InventoryArray[i])->Name)) { 
-                    DebugSpew("cast test slot %d = %s",i,GetItemFromContents(GetCharInfo2()->pInventoryArray->InventoryArray[i])->Name); 
-                    slot = (DWORD)i;
-                    FOUND = TRUE;
-                    break;
-                }
-        }
-        if (FOUND) {
-            if(CInvSlot *pSlot=pInvSlotMgr->FindInvSlot(slot)) {
-                CXPoint p; p.A=0; p.B=0;
-                pSlot->HandleRButtonUp(&p);
-            }
-        }
-        else {
-            WriteChatf("Item '%s' not found.",szArg2);
-        }
-        return;
+		if ( HasExpansion(EXPANSION_VoA) )
+		{
+			if (PCONTENTS pItem = FindItem(szArg2, true))
+			{
+				if (GetItemFromContents(pItem)->Clicky.SpellID)
+				{
+					CHAR cmd[40] = {0};
+					sprintf(cmd, "/useitem %d %d", pItem->ItemSlot, pItem->ItemSlot2);
+					EzCommand(cmd);
+				}
+			} else {
+				WriteChatf("Item '%s' not found.",szArg2);
+			}
+		} else {
+			if (PCONTENTS pItem = FindItem(szArg2, true))
+			{
+				if ( pItem->ItemSlot<NUM_INV_SLOTS )
+				{
+					if (GetItemFromContents(pItem)->Clicky.SpellID)
+					{
+						if (CInvSlot *pSlot=pInvSlotMgr->FindInvSlot(pItem->ItemSlot))
+						{
+							CXPoint p; p.A=0; p.B=0;
+							pSlot->HandleRButtonUp(&p);
+						}
+					}
+				}
+			} else {
+				WriteChatf("Item '%s' not found.",szArg2);
+			}
+		}
+		return;
     }
     GetArg(szBuffer,szLine,1);
     for (Index=0;Index<NUM_SPELL_GEMS;Index++) {
