@@ -41,6 +41,7 @@ class ItemDisplayHook
 
     static bool bNoSpellTramp;
     static SEffectType eEffectType;
+    static DWORD updateStrings;
 public:
     bool CXStrReplace (PCXSTR * Str, const char * cFind, const char * cReplace)
     {
@@ -446,9 +447,20 @@ public:
 
         UpdateStrings_Trampoline();
 
-        // this prevents duplicate spell data
-        if(!This->Unknown0x290)
+        if(item->ItemSlot == 0xFFFF) // krono slot.  crashes if we try to get item data for it but since there is none, don't even bother.
             return;
+
+        switch(updateStrings++)
+        {
+        case 0:
+        case 1:
+            return;
+        case 2:
+            break;
+        case 3:
+            updateStrings = 0;
+            break;
+        }
 
         // keep a global copy of the last item displayed...
         memcpy(&g_Item, Item, sizeof(ITEMINFO));
@@ -656,93 +668,9 @@ public:
     }
 };
 
-#ifndef DISABLE_TOOLTIP_TIMERS
-// CXWnd::DrawTooltipAtPoint(const CXStr &new, CXStr *old)
-class XWndHook
-{
-public:
-    VOID DrawTooltipAtPoint_Trampoline(const CXStr &, CXStr *);
-    VOID DrawTooltipAtPoint_Detour(const CXStr &New, CXStr *Old)
-    {
-        CHAR Temp[MAX_STRING]={0};
-        CHAR Temp2[MAX_STRING]={0};
-        PCONTENTS pItem=0;
-        CXWnd *pWnd=(CXWnd*)this;
-
-        if(GetParentWnd(pWnd)==(CXWnd*)pPotionBeltWnd)
-        {
-            STMLToPlainText(&pWnd->Tooltip->Text[0],Temp);
-            pItem=GetItemContentsByName(Temp);
-
-            if(pItem && GetItemFromContents(pItem)->Clicky.TimerID)
-            {
-                int Secs=GetItemTimer(pItem);
-                if(Secs)
-                {
-                    int Mins=(Secs/60)%60;
-                    int Hrs=(Secs/3600);
-                    Secs=Secs%60;
-                    if(Hrs)
-                        sprintf(Temp2,"%d:%02d:%02d",Hrs,Mins,Secs);
-                    else
-                        sprintf(Temp2,"%d:%02d",Mins,Secs);
-                }
-                else
-                    strcpy(Temp2,"Ready");
-                sprintf(Temp,"%s (%s)",GetItemFromContents(pItem)->Name,Temp2);
-                SetCXStr((PCXSTR*)&pWnd->Tooltip,Temp);
-            }
-        }
-
-        DrawTooltipAtPoint_Trampoline(New, Old);
-    }
-};
-
-class InvSlotWndHook
-{
-public:
-    VOID DrawTooltip_Trampoline(CXWnd *);
-    VOID DrawTooltip_Detour(CXWnd *pWindow)
-    {
-        CHAR Temp[MAX_STRING]={0};
-        CHAR Temp2[MAX_STRING]={0};
-        PCONTENTS pItem = 0;
-        
-        STMLToPlainText(&pWindow->Tooltip->Text[0],Temp);
-
-        pItem = GetItemContentsByName(Temp);
-
-        if(pItem && GetItemFromContents(pItem)->Clicky.TimerID)
-        {
-            int Secs=GetItemTimer(pItem);
-            if(Secs)
-            {
-                int Mins=(Secs/60)%60;
-                int Hrs=(Secs/3600);
-                Secs=Secs%60;
-                if(Hrs)
-                    sprintf(Temp2,"%d:%02d:%02d",Hrs,Mins,Secs);
-                else
-                    sprintf(Temp2,"%d:%02d",Mins,Secs);
-            }
-            else
-                strcpy(Temp2,"Ready");
-
-            sprintf(Temp,"%s (%s)",GetItemFromContents(pItem)->Name,Temp2);
-            SetCXStr((PCXSTR*)&pWindow->Tooltip,Temp);
-        }
-
-        DrawTooltip_Trampoline(pWindow);
-        return;
-    }
-};
-
-DETOUR_TRAMPOLINE_EMPTY(VOID XWndHook::DrawTooltipAtPoint_Trampoline(const CXStr &, CXStr *));
-DETOUR_TRAMPOLINE_EMPTY(VOID InvSlotWndHook::DrawTooltip_Trampoline(CXWnd *));
-#endif
-
 ItemDisplayHook::SEffectType ItemDisplayHook::eEffectType = None;
 bool ItemDisplayHook::bNoSpellTramp = false;
+DWORD ItemDisplayHook::updateStrings = 0;
 
 DETOUR_TRAMPOLINE_EMPTY(VOID ItemDisplayHook::SetSpell_Trampoline(int SpellID,bool HasSpellDescr));
 DETOUR_TRAMPOLINE_EMPTY(VOID ItemDisplayHook::UpdateStrings_Trampoline());
@@ -806,14 +734,8 @@ PLUGIN_API VOID InitializePlugin(VOID)
     g_Contents.Item2 = &g_Item;
     g_Item.ItemNumber = 0;
 
-    // Add commands, macro parameters, hooks, etc.
-
     EzDetour(CItemDisplayWnd__SetSpell,&ItemDisplayHook::SetSpell_Detour,&ItemDisplayHook::SetSpell_Trampoline);
     EzDetour(CItemDisplayWnd__UpdateStrings, &ItemDisplayHook::UpdateStrings_Detour, &ItemDisplayHook::UpdateStrings_Trampoline);
-#ifndef DISABLE_TOOLTIP_TIMERS
-    EzDetour(CXWnd__DrawTooltipAtPoint,&XWndHook::DrawTooltipAtPoint_Detour,&XWndHook::DrawTooltipAtPoint_Trampoline);
-    EzDetour(CInvSlotWnd__DrawTooltip, &InvSlotWndHook::DrawTooltip_Detour, &InvSlotWndHook::DrawTooltip_Trampoline);
-#endif
 
     AddCommand("/inote",Comment); 
     AddCommand("/ireset",Ireset); 
@@ -825,13 +747,8 @@ PLUGIN_API VOID ShutdownPlugin(VOID)
 {
     DebugSpewAlways("Shutting down MQ2ItemDisplay");
 
-    // Remove commands, macro parameters, hooks, etc.
     RemoveDetour(CItemDisplayWnd__SetSpell);
     RemoveDetour(CItemDisplayWnd__UpdateStrings);
-#ifndef DISABLE_TOOLTIP_TIMERS
-    RemoveDetour(CXWnd__DrawTooltipAtPoint);
-    RemoveDetour(CInvSlotWnd__DrawTooltip);
-#endif
 
     RemoveMQ2Data("DisplayItem");
     RemoveCommand("/ireset"); 

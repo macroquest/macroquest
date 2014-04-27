@@ -405,7 +405,7 @@
 // CInvSlotWnd
 #define CInvSlotWnd__DrawTooltip_x                                 0x697400
 
-// CItemDisplayWnd 
+// CItemDisplayWnd
 #define CItemDisplayWnd__SetSpell_x                                0x75BDF0
 #define CItemDisplayWnd__UpdateStrings_x                           0x698740
 

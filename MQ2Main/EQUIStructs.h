@@ -589,29 +589,29 @@ typedef struct _MAPLINE { // sizeof() = 0x28 (think this might be 0x34 now)
     DWORD Layer;          //0-3;
 } MAPLINE, *PMAPLINE;
 
-// size 0x390 20121212 - ieatacid
+// size 0x3a0 20130116 - ieatacid
 typedef struct _EQLOOTWINDOW {
 /*0x000*/ struct _CSIDLWND Wnd;
-/*0x208*/ void   *vftable; // for CLootWnd::DialogResponse handler 
-/*0x20c*/ BYTE   Unknown0x20c[0x9c];
-/*0x2a8*/ DWORD  NumOfSlots1;
-/*0x2ac*/ DWORD  Unknown0x2ac;
-/*0x2b0*/ struct _INVENTORYARRAY *pInventoryArray;
-/*0x2b4*/ DWORD  NumOfSlots2;
-/*0x2b8*/ DWORD  NumOfSlots3;
-/*0x2bc*/ BYTE   Unknown0x2bc[0x24];
-/*0x2e0*/ BYTE   Unknown0x2e0;
-/*0x2e1*/ BYTE   Unknown0x2e1;
-/*0x2e2*/ BYTE   Unknown0x2e2;
-/*0x2e3*/ BYTE   Unknown0x2e3;
-/*0x2e4*/ struct _CSIDLWND *CLoot_LootInvWnd;
-/*0x2e8*/ struct _CSILDWND *CLoot_LootSlotWnd[0x22];
-/*0x370*/ struct _CSIDLWND *CLoot_CorpseName;
-/*0x374*/ struct _CSIDLWND *CLoot_DoneButton;
-/*0x378*/ struct _CSIDLWND *CLoot_BroadcastButton;
-/*0x37c*/ struct _CSIDLWND *CLoot_LootAllButton;
-/*0x380*/ BYTE   Unknown0x380[0x10];
-/*0x390*/
+/*0x21c*/ void   *vftable; // for CLootWnd::DialogResponse handler 
+/*0x220*/ BYTE   Unknown0x220[0x98];
+/*0x2b8*/ DWORD  NumOfSlots;
+/*0x2bc*/ DWORD  Unknown0x2bc;
+/*0x2c0*/ struct _INVENTORYARRAY *pInventoryArray;
+/*0x2c4*/ DWORD  NumOfSlots2;
+/*0x2c8*/ DWORD  NumOfSlots3;
+/*0x2cc*/ BYTE   Unknown0x2cc[0x24];
+/*0x2f0*/ BYTE   Unknown0x2f0;
+/*0x2f1*/ BYTE   Unknown0x2f1;
+/*0x2f2*/ BYTE   Unknown0x2f2;
+/*0x2f3*/ BYTE   Unknown0x2f3;
+/*0x2f4*/ struct _CSIDLWND *CLoot_LootInvWnd;
+/*0x2f8*/ struct _CSILDWND *CLoot_LootSlotWnd[0x22];
+/*0x380*/ struct _CSIDLWND *CLoot_CorpseName;
+/*0x384*/ struct _CSIDLWND *CLoot_DoneButton;
+/*0x388*/ struct _CSIDLWND *CLoot_BroadcastButton;
+/*0x38c*/ struct _CSIDLWND *CLoot_LootAllButton;
+/*0x390*/ BYTE   Unknown0x390[0x10];
+/*0x3a0*/
 } EQLOOTWINDOW, *PEQLOOTWINDOW;
 
 //Size: 0x91c 20120316 - ieatacid
@@ -736,22 +736,22 @@ typedef struct _EQNOTESWINDOW {
 typedef struct _EQITEMWINDOW 
 { 
 /*0x000*/ struct _CSIDLWND Wnd;
-/*0x208*/ struct _CSIDLWND *DisplayWnd;
-/*0x20c*/ BYTE Unknown0x20c[0x70];
-/*0x27c*/ PCXSTR ItemInfo;
-/*0x280*/ PCXSTR WindowTitle;
-/*0x284*/ DWORD Unknown0x284; // possibly PCXSTR of information as on charms 
-/*0x288*/ DWORD Unknown0x288;
-/*0x28c*/ DWORD Unknown0x28c;
-/*0x290*/ PCXSTR Unknown0x290; // if this is NULL don't populate item data in MQ2ItemDisplay
-/*0x294*/ DWORD Unknown0x294;
-/*0x298*/ PCONTENTS pItem;
+/*0x21c*/ struct _CSIDLWND *DisplayWnd;
+/*0x220*/ BYTE Unknown0x220[0x70];
+/*0x290*/ PCXSTR ItemInfo;
+/*0x294*/ PCXSTR WindowTitle;
+/*0x298*/ PCXSTR Unknown0x298; // possibly PCXSTR of information as on charms 
+/*0x29c*/ DWORD Unknown0x29c;
+/*0x2a0*/ DWORD Unknown0x2a0;
+/*0x2a4*/ PCXSTR UnknownCXStr; // if this is NULL don't populate item data in MQ2ItemDisplay
+/*0x2a8*/ PCXSTR Unknown0x2a8;
+/*0x2ac*/ PCONTENTS pItem;
 /*0x29c*/ PVOID TextureAnim;
 /*0x2a0*/ PVOID TextureAnim2;
 /*0x2a4*/ BYTE  Unknown0x2a4[0x4c];
 /*0x2f0*/ DWORD IDW_ItemInfo_Num_Lines;
 /*0x2f4*/ struct _CSIDLWND *IDW_ItemInfo[0xc];
-/*0x324*/ // pointers to stat labels, etc, in this area
+// pointers to stat labels, etc, in this area
 } EQITEMWINDOW, *PEQITEMWINDOW;
 
 // Actual size 0x1c8 07-09-2008

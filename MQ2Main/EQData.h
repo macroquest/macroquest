@@ -465,7 +465,7 @@ typedef struct _ITEMSPELLS {
 /*0x64*/
 } ITEMSPELLS, *PITEMSPELLS; 
 
-// actual size: 0x634 20121212 - ieatacid
+// actual size: 0x634 20130116 - ieatacid
 typedef struct _ITEMINFO {
 /*0x000*/ CHAR   Name[ITEM_NAME_LEN];
 /*0x040*/ CHAR   LoreName[LORE_NAME_LEN];
@@ -480,12 +480,11 @@ typedef struct _ITEMINFO {
 /*0x10c*/ BYTE   NoRent; // 0=temp, 1=default
 /*0x10d*/ BYTE   NoDrop; // 0=no drop, 1=can drop
 /*0x10e*/ BYTE   Attuneable;
-/*0x10f*/ BYTE   Unknown0x10f[0x9];
-/*0x118*/ BYTE   Size;
-/*0x119*/ BYTE   Type;
-/*0x11a*/ BYTE   TradeSkills;
-/*0x11b*/ BYTE   Unknown0x11b;
-/*0x11c*/ DWORD  Lore;
+/*0x10f*/ BYTE   Unknown0x10f[0xa];
+/*0x119*/ BYTE   Size;
+/*0x11a*/ BYTE   Type;
+/*0x11b*/ BYTE   TradeSkills;
+/*0x11c*/ DWORD  Lore;//0x11c
 /*0x120*/ BYTE   Artifact;
 /*0x121*/ BYTE   Summoned;
 /*0x122*/ CHAR   SvCold;
@@ -1317,7 +1316,8 @@ typedef struct _SPAWNINFO {
 /*0x030c*/ DWORD    HPMax;
 /*0x0310*/ FLOAT    GetMeleeRangeVar1;      // used by GetMeleeRange
 /*0x0314*/ CHAR     Title[0x20];
-/*0x0334*/ BYTE     Unknown0x334[0x14];
+/*0x0334*/ BYTE     Unknown0x334[0x10];
+/*0x0344*/ DWORD    PetID;
 /*0x0348*/ DWORD    ManaCurrent;
 /*0x034c*/ BYTE     Unknown0x34c[0x1a];
 /*0x0366*/ BYTE     FishingEvent;
@@ -1334,9 +1334,7 @@ typedef struct _SPAWNINFO {
 /*0x0418*/ BYTE     PvPFlag;
 /*0x0419*/ BYTE     Unknown0x419[0x3];
 /*0x041c*/ struct   _LAUNCHSPELLDATA CastingData; // size: 0x50
-/*0x046c*/ BYTE     Unknown0x46c[0x10];
-/*0x047c*/ DWORD    PetID;
-/*0x0480*/ BYTE     Unknown0x480[0x90];
+/*0x046c*/ BYTE     Unknown0x46c[0xa4];
 /*0x0510*/ BYTE     Level;
 /*0x0511*/ BYTE     Unknown0x511[0x91b];
 /*0x0e2c*/ struct   _SPAWNINFO *WhoFollowing; // NULL if autofollow off
