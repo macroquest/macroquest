@@ -2528,7 +2528,20 @@ bool MQ2CharacterType::GETMEMBER()
                 } 
             } 
         } 
-        return true; 
+        return true;
+	case ActiveDisc:
+		if(pCombatAbilityWnd) {
+			if(CXWnd *Child=((CXWnd*)pCombatAbilityWnd)->GetChildItem("CAW_CombatEffectLabel")) {
+				CHAR szBuffer[2048] = {0};
+				if(GetCXStr(Child->WindowText,szBuffer,2047) && szBuffer[0]!='\0') {
+					if(Dest.Ptr=GetSpellByName(szBuffer)) {
+						Dest.Type=pSpellType;
+						return true;
+					}
+				}
+			}
+		}
+		return false;
     case Moving:
         Dest.DWord=((((gbMoving) && ((PSPAWNINFO)pCharSpawn)->SpeedRun==0.0f) && (pChar->pSpawn->Mount ==  NULL )) || (fabs(FindSpeed((PSPAWNINFO)pCharSpawn)) > 0.0f ));
         Dest.Type=pBoolType;

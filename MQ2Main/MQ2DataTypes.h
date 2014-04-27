@@ -922,6 +922,7 @@ public:
 		Subscription=191,
 		AAPointsAssigned=192,
 		AltCurrency=193,
+		ActiveDisc=194,
     };
     static enum CharacterMethods
     {
@@ -1122,6 +1123,7 @@ public:
         TypeMember(Subscription);
 		TypeMember(AAPointsAssigned);
 		TypeMember(AltCurrency);
+		TypeMember(ActiveDisc);
 		
         TypeMethod(Stand); 
         TypeMethod(Sit); 

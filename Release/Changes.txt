@@ -1,3 +1,10 @@
+04 Jan 2014 by eqmule
+-Added ActiveDisc to the Character TLO, it returns a pSpellType if a discipline is active. (otherwise NULL)
+
+ usage: /if (${Me.ActiveDisc.ID}) {
+			/echo Yes I am using a Discipline, and its ${Me.ActiveDisc.Name}, the spell id is ${Me.ActiveDisc.ID}
+		}
+ 
 02 Jan 2014 by eqmule
 
 								HAPPY NEW YEAR!!!
