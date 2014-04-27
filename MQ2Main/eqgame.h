@@ -509,7 +509,7 @@
 #define CStmlWnd__ForceParseNow_x                                  0x876320
 #define CStmlWnd__GetNextTagPiece_x                                0x86E950
 #define CStmlWnd__GetSTMLText_x                                    0x6487B0
-#define CStmlWnd__GetVisibleText_x                                 0x86FC10
+#define CStmlWnd__GetVisibleText_x                                 0x86FB90
 #define CStmlWnd__InitializeWindowVariables_x                      0x871480
 #define CStmlWnd__MakeStmlColorTag_x                               0x86D140
 #define CStmlWnd__MakeWndNotificationTag_x                         0x86D1A0
@@ -547,7 +547,7 @@
 // 
 // Note:  dCXStr, CXStr1, & CXStr3 can be found in the 'BookWindow' constructor. 
 #define CXStr__CXStr_x                                             0x5539D0
-#define CXStr__CXStr1_x                                            0x46A060
+#define CXStr__CXStr1_x                                            0x780DC0
 #define CXStr__CXStr3_x                                            0x7F1290
 #define CXStr__dCXStr_x                                            0x553D40
 #define CXStr__operator_equal_x                                    0x7F1400

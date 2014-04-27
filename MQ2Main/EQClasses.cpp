@@ -7897,7 +7897,7 @@ FUNCTION_AT_ADDRESS( STableCell::~STableCell(void),STableCell__dSTableCell);
 FUNCTION_AT_ADDRESS(void  CStmlWnd::ParseSTMLTableAttributes(class CXStr,class STable *),CStmlWnd__ParseSTMLTableAttributes);
 #endif
 #ifdef CStmlWnd__GetVisibleText_x
-FUNCTION_AT_ADDRESS(class CXStr  CStmlWnd::GetVisiableText(class CXStr&,class CXRect)const ,CStmlWnd__GetVisibleText);
+FUNCTION_AT_ADDRESS(class CXStr  CStmlWnd::GetVisibleText(class CXStr&,class CXRect)const ,CStmlWnd__GetVisibleText);
 #endif
 #ifdef CStmlWnd__ForceParseNow_x
 FUNCTION_AT_ADDRESS(void  CStmlWnd::ForceParseNow(void),CStmlWnd__ForceParseNow);
