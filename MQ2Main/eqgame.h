@@ -43,7 +43,7 @@
 #define __AC5_x                                                    0x544431
 #define __AC6_x                                                    0x547EE2
 #define __AC7_x                                                    0x53DF4C
-#define __AC1_Data                                                 0x1110E172
+#define __AC1_Data                                                 0x11111111
 // Direct Input
 #define DI8__Main_x                                                0xF25B60
 #define DI8__Keyboard_x                                            0xF25B64
@@ -123,7 +123,7 @@
 #define pinstEQSoundManager_x                                      0xCD6040
 #define instExpeditionLeader_x                                     0xD9504A
 #define instExpeditionName_x                                       0xD9508A
-#define pinstGroup_x                                               0xD85E6C
+#define pinstGroup_x                                               0xD85E56
 #define pinstImeManager_x                                          0x158A7BC
 #define pinstLocalPlayer_x                                         0xD88398
 #define pinstMercenaryData_x                                       0xE19DD0
@@ -364,7 +364,7 @@
 #define CEverQuest__dsp_chat_x                                     0x5253D0
 #define CEverQuest__Emote_x                                        0x525630
 #define CEverQuest__EnterZone_x                                    0x538150
-#define CEverQuest__GetBodyTypeDesc_x                              0x51B984
+#define CEverQuest__GetBodyTypeDesc_x                              0x51B980
 #define CEverQuest__GetClassDesc_x                                 0x51B0E0
 #define CEverQuest__GetClassThreeLetterCode_x                      0x51B6E0
 #define CEverQuest__GetDeityDesc_x                                 0x51C290
@@ -548,7 +548,7 @@
 // 
 // Note:  dCXStr, CXStr1, & CXStr3 can be found in the 'BookWindow' constructor. 
 #define CXStr__CXStr_x                                             0x563350
-#define CXStr__CXStr1_x                                            0x46ED10
+#define CXStr__CXStr1_x                                            0x703FC0
 #define CXStr__CXStr3_x                                            0x822020
 #define CXStr__dCXStr_x                                            0x401000
 #define CXStr__operator_equal_x                                    0x822190

@@ -176,14 +176,26 @@ unsigned int __stdcall MQ2DataVariableLookup(char * VarName, char * Value)
 VOID BeepOnTells(PSPAWNINFO pChar, char *szLine)
 #else
 int BeepOnTells(int argc, char *argv[])
+	PCHAR szLine = NULL;
+    if (argc > 0)
+        szLine = argv[1];
 #endif
 {
+	if(szLine[0]!='\0') {
+		if(!_stricmp(szLine,"on")) {
+			gbBeepOnTells = 0;
+		} else if(!_stricmp(szLine,"off")) {
+			gbBeepOnTells = 1;
+		}
+	}
 	if(gbBeepOnTells) {
 		gbBeepOnTells=0;
 		WriteChatColor("Beep On Tells is OFF",CONCOLOR_LIGHTBLUE);
+		WritePrivateProfileString("MacroQuest","BeepOnTells","0",gszINIFilename);
 	} else {
 		gbBeepOnTells=1;
 		WriteChatColor("Beep On Tells is ON",CONCOLOR_YELLOW);
+		WritePrivateProfileString("MacroQuest","BeepOnTells","1",gszINIFilename);
 	}
 #ifdef ISXEQ
    return 0;
@@ -193,14 +205,26 @@ int BeepOnTells(int argc, char *argv[])
 VOID TimeStampChat(PSPAWNINFO pChar, char *szLine)
 #else
 int TimeStampChat(int argc, char *argv[])
+	PCHAR szLine = NULL;
+    if (argc > 0)
+        szLine = argv[1];
 #endif
 {
+	if(szLine[0]!='\0') {
+		if(!_stricmp(szLine,"on")) {
+			gbTimeStampChat = 0;
+		} else if(!_stricmp(szLine,"off")) {
+			gbTimeStampChat = 1;
+		}
+	}
 	if(gbTimeStampChat) {
 		gbTimeStampChat=0;
 		WriteChatColor("Chat Time Stamping is OFF",CONCOLOR_LIGHTBLUE);
+		WritePrivateProfileString("MacroQuest","TimeStampChat","0",gszINIFilename);
 	} else {
 		gbTimeStampChat=1;
 		WriteChatColor("Chat Time Stamping is ON",CONCOLOR_YELLOW);
+		WritePrivateProfileString("MacroQuest","TimeStampChat","1",gszINIFilename);
 	}
 #ifdef ISXEQ
    return 0;

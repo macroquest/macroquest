@@ -7779,9 +7779,12 @@ bool MQ2FellowshipType::GETMEMBER()
     case CampfireZone:
         if(((PSPAWNINFO)pCharSpawn)->CampfireZoneID)
         {
-            Dest.Ptr=((PWORLDDATA)pWorldData)->ZoneArray[((PSPAWNINFO)pCharSpawn)->CampfireZoneID];
-            Dest.Type=pZoneType;
-            return true;
+			DWORD zoneID = ((PSPAWNINFO)pCharSpawn)->CampfireZoneID;
+			if(zoneID<=1000) {//ugly but for now until i can figure out where the other zones are stored...
+				Dest.Ptr=((PWORLDDATA)pWorldData)->ZoneArray[zoneID];
+				Dest.Type=pZoneType;
+				return true;
+			}
         }
         return false;
     case Campfire:

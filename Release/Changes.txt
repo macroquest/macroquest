@@ -1,3 +1,13 @@
+23 Feb 2014 by eqmule
+-Corrected some offsets that where wrong.
+ This should fix a couple ctd's reported on the forum (hopefully)
+ Sorry about any downtime this may have caused to your crews...
+-CampfireZone wont ctd in neigboirhoods or greater guild halls anymore
+ however it wont return anything either until I figure out where that info is located.
+-Updated /beepontells and /timestamp to take on AND off as arguments.
+ no argument will just toggle, just like before this change.
+ This is also saved to macroquest.ini from now on.
+
 21 Feb 2014 by rswiders, eqmule
 - Updated for patch
 
