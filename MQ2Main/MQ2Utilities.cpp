@@ -1486,7 +1486,8 @@ PCHAR GetSpellRestrictions(PSPELL pSpell, unsigned int nIndex, PCHAR szBuffer)
 PCHAR GetSpellEffectName(LONG EffectID, PCHAR szBuffer) 
 {
 	if(EffectID<=MAX_SPELLEFFECTS) {
-		strcat(szBuffer,szSPATypes[EffectID]);
+		//we CAN do an abs here cause IF it is negative, it just means we should display is as "Exclude: "
+		strcat(szBuffer,szSPATypes[abs(EffectID)]);
 	} else {
 		CHAR szTemp[MAX_STRING]={0};
 		sprintf_s(szTemp, "UndefinedEffect%03d", EffectID);

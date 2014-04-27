@@ -408,7 +408,7 @@ enum MOUSE_DATA_TYPES {
 #define EXPANSION_CotF                  EQ_EXPANSION(20)
 #define NUM_EXPANSIONS                  20
 
-#ifndef nullptr
+#if _MSC_VER < 1600
 #define nullptr                         NULL
 #endif
 
