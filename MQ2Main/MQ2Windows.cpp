@@ -760,6 +760,46 @@ bool SendListSelect(PCHAR WindowName, PCHAR ScreenID, DWORD Value)
     }
     return false;
 }
+bool SendComboSelect(PCHAR WindowName, PCHAR ScreenID, DWORD Value)
+{
+    CXWnd *pWnd=FindMQ2Window(WindowName);
+    CXWnd *pParentWnd = 0;
+    if (!pWnd)
+    {
+        MacroError("Window '%s' not available.",WindowName);
+        return false;
+    }
+    if (ScreenID && ScreenID[0] && ScreenID[0]!='0')
+    {
+		CComboWnd *pCombo=(CComboWnd*)((CSidlScreenWnd*)(pWnd))->GetChildItem(ScreenID);
+        if (!pCombo)
+        {
+            MacroError("Window '%s' child '%s' not found.",WindowName,ScreenID);
+            return false;
+        }
+        if (((CXWnd*)pCombo)->GetType()==UI_Combobox)
+        {
+			CXRect comborect=((CXWnd*)pCombo)->GetScreenRect(); 
+			CXPoint combopt=comborect.CenterPoint(); 
+			((CComboWnd*)pCombo)->SetChoice(Value);
+			((CXWnd*)pCombo)->HandleLButtonDown(&combopt,0);
+			CListWnd*pListWnd = (CListWnd*)pCombo->Items;
+			int index = pListWnd->GetCurSel();
+			CXRect listrect=pListWnd->GetItemRect(index,0);
+			CXPoint listpt=listrect.CenterPoint();
+			((CXWnd*)pListWnd)->HandleLButtonDown(&listpt,0);
+            gMouseEventTime = GetFastTime();
+        }
+        else
+        {
+            MacroError("Window '%s' child '%s' cannot accept this notification.",WindowName,ScreenID);
+            return false;
+        }
+        return true;
+    }
+    return false;
+}
+
 bool SendTabSelect(PCHAR WindowName, PCHAR ScreenID, DWORD Value)
 {
     CXWnd *pWnd=FindMQ2Window(WindowName);
@@ -1036,6 +1076,12 @@ int WndNotify(int argc, char *argv[])
     if (!stricmp(szArg3,"listselect"))
     {
         SendListSelect(szArg1,szArg2,Data-1);
+        RETURN(0);
+    }
+
+	if (!stricmp(szArg3,"comboselect"))
+    {
+        SendComboSelect(szArg1,szArg2,Data-1);
         RETURN(0);
     }
 

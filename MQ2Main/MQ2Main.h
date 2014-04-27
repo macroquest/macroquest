@@ -249,6 +249,7 @@ EQLIB_API void RemoveWindow(char *WindowName);
 EQLIB_API CXWnd *FindMQ2Window(PCHAR Name);
 EQLIB_API CXWnd *GetParentWnd(class CXWnd const * pWnd);
 
+EQLIB_API bool SendComboSelect(PCHAR WindowName, PCHAR ScreenID, DWORD Value);
 EQLIB_API bool SendListSelect(PCHAR WindowName, PCHAR ScreenID, DWORD Value);
 EQLIB_API bool SendWndClick2(CXWnd *pWnd, PCHAR ClickNotification);
 

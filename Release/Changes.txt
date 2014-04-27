@@ -1,3 +1,11 @@
+17 July 2013 by EqMule
+- Added comboselect*
+	Example: /notify MMTW_MerchantWnd TypeComboBox comboselect 2
+			 Will select Journeyman Mercenaries in the Mercenary Merchant Window.
+	
+	*listselect still works when you just need to "set" an item in a combobox
+	but when you want it to actually do the "select" use comboselect.
+
 16 July 2013 by EqMule
 - Updated for Jul 16 patch
 - Added Item.Damage (thanks to nod77)

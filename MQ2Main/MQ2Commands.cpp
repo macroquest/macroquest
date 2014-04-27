@@ -3024,7 +3024,12 @@ VOID DropCmd(PSPAWNINFO pChar, PCHAR szLine)
         }
     }
 }
-
+class mercenary
+{
+public:
+	void SelectMercenaryType();
+};
+FUNCTION_AT_ADDRESS(void mercenary::SelectMercenaryType(void), EQ_Character__Max_Mana);
 VOID HudCmd(PSPAWNINFO pChar, PCHAR szLine)
 {
     if (!szLine[0])

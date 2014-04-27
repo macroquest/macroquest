@@ -1958,6 +1958,7 @@ public:
         RightMouseHeldDown=7,
         RightMouseHeldUp=8,
         ListSelect=9,
+        ComboSelect=10,
     };
 #ifdef ISBOXER_COMPAT
     MQ2WindowType():MQ2Type("eqwindow")
@@ -2009,6 +2010,7 @@ public:
         TypeMethod(RightMouseHeldUp);
         TypeMethod(ListSelect);
 		TypeMember(GetCurSel);
+		TypeMember(ComboSelect);
     }
 
     ~MQ2WindowType()

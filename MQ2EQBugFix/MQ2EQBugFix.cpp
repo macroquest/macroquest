@@ -31,13 +31,11 @@ DETOUR_TRAMPOLINE_EMPTY(int CDisplay_Hook::is_3dON_Trampoline());
 PLUGIN_API VOID InitializePlugin(VOID)
 {
     DebugSpewAlways("Initializing MQ2EQBugFix");
-
     EzDetour(CDisplay__is3dON, &CDisplay_Hook::is_3dON_Detour, &CDisplay_Hook::is_3dON_Trampoline);
 }
 
 PLUGIN_API VOID ShutdownPlugin(VOID)
 {
     DebugSpewAlways("Shutting down MQ2EQBugFix");
-
     RemoveDetour(CDisplay__is3dON);
 }
