@@ -746,7 +746,7 @@ typedef struct _EQITEMWINDOW
 /*0x284*/ DWORD Unknown0x284; // possibly PCXSTR of information as on charms 
 /*0x288*/ DWORD Unknown0x288;
 /*0x28c*/ DWORD Unknown0x28c;
-/*0x290*/ DWORD Unknown0x290;
+/*0x290*/ PCXSTR Unknown0x290; // if this is NULL don't populate item data in MQ2ItemDisplay
 /*0x294*/ DWORD Unknown0x294;
 /*0x298*/ PCONTENTS pItem;
 /*0x29c*/ PVOID TextureAnim;

@@ -446,6 +446,10 @@ public:
 
         UpdateStrings_Trampoline();
 
+        // this prevents duplicate spell data
+        if(!This->Unknown0x290)
+            return;
+
         // keep a global copy of the last item displayed...
         memcpy(&g_Item, Item, sizeof(ITEMINFO));
 

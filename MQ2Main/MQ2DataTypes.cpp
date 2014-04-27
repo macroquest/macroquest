@@ -1281,7 +1281,7 @@ bool MQ2SpawnType::GETMEMBER()
         {
             Dest.Ptr="STUN";
         }
-        else if(pSpawn->RespawnTimer)
+        else if(pSpawn == (PSPAWNINFO)pLocalPlayer && pSpawn->RespawnTimer)
         {
             Dest.Ptr="HOVER";
         }
@@ -1290,28 +1290,29 @@ bool MQ2SpawnType::GETMEMBER()
             Dest.Ptr="MOUNT";
         }
         else
-            switch (pSpawn->StandState) {
-    case STANDSTATE_STAND:
-        Dest.Ptr="STAND";
-        break;
-    case STANDSTATE_SIT:
-        Dest.Ptr="SIT";
-        break;
-    case STANDSTATE_DUCK:
-        Dest.Ptr="DUCK";
-        break;
-    case STANDSTATE_BIND:
-        Dest.Ptr="BIND";
-        break;
-    case STANDSTATE_FEIGN:
-        Dest.Ptr="FEIGN";
-        break;
-    case STANDSTATE_DEAD:
-        Dest.Ptr="DEAD";
-        break;
-    default:
-        Dest.Ptr="UNKNOWN";
-        break;
+            switch (pSpawn->StandState)
+        {
+            case STANDSTATE_STAND:
+                Dest.Ptr="STAND";
+                break;
+            case STANDSTATE_SIT:
+                Dest.Ptr="SIT";
+                break;
+            case STANDSTATE_DUCK:
+                Dest.Ptr="DUCK";
+                break;
+            case STANDSTATE_BIND:
+                Dest.Ptr="BIND";
+                break;
+            case STANDSTATE_FEIGN:
+                Dest.Ptr="FEIGN";
+                break;
+            case STANDSTATE_DEAD:
+                Dest.Ptr="DEAD";
+                break;
+            default:
+                Dest.Ptr="UNKNOWN";
+                break;
         }
         Dest.Type=pStringType;
         return true;
