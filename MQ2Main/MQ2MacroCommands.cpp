@@ -439,7 +439,8 @@ VOID Goto(PSPAWNINFO pChar, PCHAR szLine)
     while (gMacroBlock->pPrev) 
     {
         gMacroBlock=gMacroBlock->pPrev;
-        if (!strnicmp(gMacroBlock->Line,"Sub ",4)) break;
+        if (!strnicmp(gMacroBlock->Line,"Sub ",4))
+			break;
     }
 
     while (gMacroBlock->pNext) 
@@ -922,9 +923,202 @@ VOID NewIf(PSPAWNINFO pChar, PCHAR szLine)
         FailIf(pChar,pEnd, gMacroBlock);
 }
 
+VOID ContinueWhile(PSPAWNINFO pChar, PMACROBLOCK pStartLine)
+{
+   if (!gMacroBlock) {
+      DebugSpewNoFile("ContinueWhile - Macro was ended before we could handle the end of while command");
+      return;
+   }
+
+   while (1)
+   {
+      if (!strnicmp(gMacroBlock->Line,"sub ",4))
+      {
+         gMacroBlock=pStartLine;
+         FatalError("/while ran into another subroutine");
+            return;
+      }
+      if (!gMacroBlock->pPrev)
+      {
+         gMacroBlock=pStartLine;
+         FatalError("/while without an end");
+            return;
+      }
+      if (!strnicmp(gMacroBlock->Line,"/while",6))
+      {
+         gMacroBlock = gMacroBlock->pPrev;
+         break;
+      }
+      gMacroBlock = gMacroBlock->pPrev;
+   }
+}
+VOID EndWhile(PSPAWNINFO pChar, PCHAR szCommand, PMACROBLOCK pStartLine, BOOL All=0)
+{
+    DWORD Scope = 0;
+    if (szCommand[strlen(szCommand)-1]=='{') {
+        if (!gMacroBlock) {
+            DebugSpewNoFile("EndWhile - Macro was ended before we could handle the false while command");
+            return;
+        }
+        Scope++;
+        gMacroBlock = gMacroBlock->pNext;
+        while ((Scope>0)) {
+            if (gMacroBlock->Line[0]=='}') Scope--;
+            if (All) if (gMacroBlock->Line[strlen(gMacroBlock->Line)-1]=='{') Scope++;
+            if (Scope>0) {
+                if (!All) if (gMacroBlock->Line[strlen(gMacroBlock->Line)-1]=='{') Scope++;
+                if (!strnicmp(gMacroBlock->Line,"sub ",4)) {
+                    gMacroBlock=pStartLine;
+                    FatalError("{} pairing ran into anther subroutine");
+                    return;
+                }
+                if (!gMacroBlock->pNext) {
+                    gMacroBlock=pStartLine;
+                    FatalError("Bad {} block pairing");
+                    return;
+                }
+                gMacroBlock = gMacroBlock->pNext;
+            }
+        }
+    } else {
+        bRunNextCommand = TRUE;
+    }
+}
+VOID MarkWhile(PSPAWNINFO pChar, PCHAR szCommand, BOOL All=0)
+{
+	PMACROBLOCK pSaveLine = gMacroBlock;
+	BOOL bDelay = 0;
+    DWORD Scope = 0;
+    if (szCommand[strlen(szCommand)-1]=='{') {
+        if (!gMacroBlock) {
+            DebugSpewNoFile("MarkWhile - Macro was ended before we could handle the command");
+            return;
+        }
+        Scope++;
+        gMacroBlock = gMacroBlock->pNext;
+		gMacroBlock->CmdScope=1;
+        while ((Scope>0)) {
+            if (gMacroBlock->Line[0]=='}') {
+				Scope--;
+			}
+            if (All) {
+				if (gMacroBlock->Line[strlen(gMacroBlock->Line)-1]=='{') {
+					Scope++;
+				}
+			}
+            if (Scope>0) {
+                if (!All) {
+					if (gMacroBlock->Line[strlen(gMacroBlock->Line)-1]=='{') {
+						Scope++;
+					}
+				}
+                if (!strnicmp(gMacroBlock->Line,"sub ",4)) {
+                    gMacroBlock=pSaveLine;
+                    FatalError("{} pairing ran into anther subroutine");
+                    return;
+                }
+                if (!gMacroBlock->pNext) {
+                    gMacroBlock=pSaveLine;
+                    FatalError("Bad {} block pairing");
+                    return;
+                }
+				CHAR szOut[MAX_STRING] = {0};
+				GetArg(szOut,gMacroBlock->Line,1);
+                if (!strnicmp(szOut,"/delay",6)) {
+					bDelay = 1;
+				}
+				gMacroBlock->CmdScope=1;
+                gMacroBlock = gMacroBlock->pNext;
+            }
+        }
+    } else {
+		//its a /while (something) /dosomething
+		//but we know, that unless that /dosomething is a /delay ... we WILL fail them...
+		CHAR szOut[MAX_STRING] = {0};
+		GetArg(szOut,gMacroBlock->Line,3);
+		if (!strnicmp(szOut,"/delay",6)) {
+			bDelay = 1;
+		}
+		gMacroBlock->CmdScope=1;
+    }
+	if(!bDelay) {
+		FatalError("ERROR: /while used without /delay, thats a big nono, we dont want your cpu to lock up now do we?");
+		FatalError("example of proper usage1: /while (something) /delay 1s");
+		FatalError("example of proper usage2: /while (something) {");
+		FatalError("								/echo hi there im in a while loop...");
+		FatalError("								/delay 1s");
+		FatalError("						  }");
+        return;
+	}
+	gMacroBlock = pSaveLine;
+}
+//yes this is going to work, i just need some more time testing it -eqmule
+VOID WhileCmd(PSPAWNINFO pChar, PCHAR szLine)
+{
+    CHAR szCond[MAX_STRING] = {0};
+
+    if (szLine[0]!='(')
+    {
+        FatalError("Failed to parse /while command.  Expected () around conditions.");
+        SyntaxError("Usage: /while (<conditions>) <command>");
+        return;
+    }
+
+    PCHAR pEnd=&szLine[1];
+    DWORD nParens=1;
+    while(1)
+    {
+        if (*pEnd=='(')
+            nParens++;
+        else if (*pEnd==')')
+        {
+            nParens--;
+            if (nParens==0)
+            {
+                pEnd++;
+                if (*pEnd!=' ')
+                {
+                    FatalError("Failed to parse /while command.  Could not find command to execute.");
+                    SyntaxError("Usage: /while (<conditions>) <command>");
+                    return;
+                }
+                break;
+            }
+        }
+        else if (*pEnd==0)
+        {
+            FatalError("Failed to parse /while command.  Could not find command to execute.");
+            SyntaxError("Usage: /while (<conditions>) <command>");
+            return;
+        }
+        ++pEnd;
+    }
+
+    *pEnd=0;
+    strcpy(szCond,szLine);
+    *pEnd=' ';
+    ++pEnd;
 
 
 
+    DOUBLE Result=0;
+    if (!Calculate(szCond,Result))
+    {
+        FatalError("Failed to parse /while condition '%s', non-numeric encountered",szCond);
+        return;
+    }
+
+	//ok so we have a loop...
+	//lets check all the lines within it
+	//and mark them so the interpreter knows not to exit it
+	MarkWhile(pChar,pEnd);
+	
+	
+    if (Result!=0)
+        DoCommand(pChar,pEnd); 
+    else 
+		EndWhile(pChar,pEnd, gMacroBlock);
+}
 // ***************************************************************************
 // Function:    DoEvents
 // Description: Our '/doevents' command
@@ -1161,7 +1355,7 @@ VOID Next(PSPAWNINFO pChar, PCHAR szLine)
     sprintf(szComp,"/for %s ",pVar->szName);
     while (pMacroLine->pPrev) {
         strcpy(ForLine,pMacroLine->Line);
-        if (!strnicmp(ForLine,"Sub ",4)) {
+        if (!strnicmp(ForLine,"sub ",4)) {
             FatalError("/next without matching /for");
             return;
         }

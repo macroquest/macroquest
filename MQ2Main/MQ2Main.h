@@ -343,6 +343,7 @@ void __stdcall EventBlechCallback(unsigned int ID, void * pData, PBLECHVALUE pVa
 LEGACY_API PCHAR ParseMacroParameter(PSPAWNINFO pChar, PCHAR szOriginal);
 #ifndef ISXEQ
 LEGACY_API VOID FailIf(PSPAWNINFO pChar, PCHAR szCommand, PMACROBLOCK pStartLine, BOOL All=FALSE);
+LEGACY_API VOID FailWhile(PSPAWNINFO pChar, PCHAR szCommand, PMACROBLOCK pStartLine, BOOL All=FALSE);
 LEGACY_API VOID InitializeParser();
 LEGACY_API VOID ShutdownParser();
 

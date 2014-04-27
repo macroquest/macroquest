@@ -382,7 +382,7 @@ enum MOUSE_DATA_TYPES {
    MD_Button1
 };
 
-#define nEQMappableCommands             0x1f4
+#define nEQMappableCommands             0x1f5
 
 #define MAX_PC_LEVEL                    100
 #define MAX_NPC_LEVEL                   110
@@ -1049,7 +1049,8 @@ typedef struct _CHARINFO2 {
 /*0x8900*/   DWORD      AAPoints;
 /*0x8904*/   BYTE       Unknown0x8904[0x100c];
 /*0x9910*/   DWORD      AAPointsSpent;
-/*0x9914*/   BYTE       Unknown0x9914[0x3c];
+/*0x9914*/   DWORD      AAPointsAssigned;
+/*0x9918*/   DWORD      Unknown0x9918[0x38];
 /*0x9950*/
 } CHARINFO2, *PCHARINFO2;
 
@@ -1471,7 +1472,7 @@ void *gethashedentry(struct _HASHTABLE  *table, DWORD key)
 }
 
 #endif
-//eqmule oct 30 2013
+//eqmule oct 31 2013
 typedef struct _SWITCHCLICK
 {
 	FLOAT Y;

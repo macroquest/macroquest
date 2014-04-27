@@ -3168,6 +3168,10 @@ bool MQ2CharacterType::GETMEMBER()
         Dest.DWord=GetCharInfo2()->AAPointsSpent+GetCharInfo2()->AAPoints;
         Dest.Type=pIntType;
         return true;
+	case AAPointsAssigned:
+		Dest.DWord=GetCharInfo2()->AAPointsAssigned;
+		Dest.Type=pIntType;
+		return true;
     case TributeActive:
         Dest.DWord=*pTributeActive;
         Dest.Type=pBoolType;
@@ -7935,10 +7939,11 @@ bool MQ2TargetType::GETMEMBER()
                 return true;
             } else {
 				//ok no spawn was found for the name given, this can only mean one thing... its a pet or a mercenary
-				SEARCHSPAWN sp = {0};
-				strcpy_s(sp.szName,pTargetAggroHolder);
-				sp.GuildID=0xFFFF;
-				pAggroHolder = SearchThroughSpawns(&sp,(PSPAWNINFO)pCharSpawn);
+				SEARCHSPAWN SearchSpawn;
+				ClearSearchSpawn(&SearchSpawn);
+				SearchSpawn.FRadius=999999.0f;
+				strcpy_s(SearchSpawn.szName,pTargetAggroHolder);
+				pAggroHolder = SearchThroughSpawns(&SearchSpawn,(PSPAWNINFO)pCharSpawn);
 				if(pAggroHolder)
 				{
 					Dest.Ptr = pAggroHolder;

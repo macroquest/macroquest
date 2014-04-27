@@ -920,6 +920,7 @@ public:
 		PctMercAAExp=189,
 		MercAAExp=190,
 		Subscription=191,
+		AAPointsAssigned=192,
     };
     static enum CharacterMethods
     {
@@ -1118,6 +1119,7 @@ public:
         TypeMember(PctMercAAExp);
         TypeMember(MercAAExp);
         TypeMember(Subscription);
+		TypeMember(AAPointsAssigned);
 		
         TypeMethod(Stand); 
         TypeMethod(Sit); 

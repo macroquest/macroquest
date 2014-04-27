@@ -11,6 +11,7 @@ LEGACY_API VOID CombineCmd                          (PSPAWNINFO pChar, PCHAR szL
 LEGACY_API VOID ClearErrorsCmd                      (PSPAWNINFO pChar, PCHAR szLine);
 LEGACY_API VOID DeleteVarCmd                        (PSPAWNINFO pChar, PCHAR szLine);
 LEGACY_API VOID NewIf                               (PSPAWNINFO pChar, PCHAR szLine);
+LEGACY_API VOID WhileCmd                            (PSPAWNINFO pChar, PCHAR szLine);
 LEGACY_API VOID DoTimedCmd                          (PSPAWNINFO pChar, PCHAR szLine);
 LEGACY_API VOID DoShiftCmd                          (PSPAWNINFO pChar, PCHAR szLine);
 LEGACY_API VOID DoCtrlCmd                           (PSPAWNINFO pChar, PCHAR szLine);

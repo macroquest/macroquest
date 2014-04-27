@@ -1,3 +1,9 @@
+05 Dec 2013 by eqmule
+-Updated for patch
+
+27 Nov 2013 by rswiders
+-Added AAPointsAssigned to Me TLO
+
 16 Nov 2013 by EqMule
 -Fix for ${Target.AggroHolder} it now properly return Pets and Mercenary SpawnTypes as well as Players.
  There is still some work to do on this TLO, for example it wont return

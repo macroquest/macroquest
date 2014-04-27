@@ -822,7 +822,7 @@ bool SendTabSelect(PCHAR WindowName, PCHAR ScreenID, DWORD Value)
         }
         if (((CXWnd*)pTab)->GetType()==UI_TabBox)
         {
-            pTab->SetPage(Value, true);
+            pTab->SetPage(false,Value, true);//this needs to be checked... 03 dec 2013 -eqmule
             gMouseEventTime = GetFastTime();
         }
         else
@@ -1358,8 +1358,8 @@ int ItemNotify(int argc, char *argv[])
 					From.Unknown2 = 0;
 					From.InvSlot = invslot;
 					From.BagSlot = bagslot;
-					From.Unknown8 = pSlot->pInvSlotWnd->Unknown0x26c;
-					From.Unknowna = pSlot->pInvSlotWnd->WeirdVariable;
+					From.Unknown8 = pSlot->pInvSlotWnd->WeirdVariable1;
+					From.Unknowna = pSlot->pInvSlotWnd->WeirdVariable2;
 	
 					CMoveItemData To = {0};
 					To.InventoryType = 0;
@@ -1389,8 +1389,8 @@ int ItemNotify(int argc, char *argv[])
 					To.Unknown2 = 0;
 					To.InvSlot = invslot;
 					To.BagSlot = bagslot;
-					To.Unknown8 = pSlot->pInvSlotWnd->Unknown0x26c;
-					To.Unknowna = pSlot->pInvSlotWnd->WeirdVariable;
+					To.Unknown8 = pSlot->pInvSlotWnd->WeirdVariable1;
+					To.Unknowna = pSlot->pInvSlotWnd->WeirdVariable2;
 					pInvSlotMgr->MoveItem(&From,&To,1,1,0,0);
 					RETURN(0);
 				}

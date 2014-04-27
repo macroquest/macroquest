@@ -4673,14 +4673,14 @@ BOOL SpawnMatchesSearch(PSEARCHSPAWN pSearchSpawn, PSPAWNINFO pChar, PSPAWNINFO 
             if (pSearchSpawn->FRadius<10000.0f && DistanceToPoint(pSpawn,pSearchSpawn->xLoc,pSearchSpawn->yLoc)>pSearchSpawn->FRadius)
                 return FALSE;
     }
-    else if (pSearchSpawn->FRadius>0.0f && pSearchSpawn->FRadius<10000.0f && DistanceToSpawn(pChar, pSpawn)>pSearchSpawn->FRadius)
+    else if (pSearchSpawn->FRadius<10000.0f && DistanceToSpawn(pChar, pSpawn)>pSearchSpawn->FRadius)
         return FALSE;
 
     if (pSearchSpawn->Radius>0.0f && IsPCNear(pSpawn,pSearchSpawn->Radius))
         return FALSE;
     if (gZFilter<10000.0f && ( (pSpawn->Z > pChar->Z + gZFilter) || (pSpawn->Z < pChar->Z - gZFilter)))
         return FALSE;
-    if (pSearchSpawn->ZRadius>0.0f && pSearchSpawn->ZRadius<10000.0f &&  (pSpawn->Z > pChar->Z + pSearchSpawn->ZRadius ||pSpawn->Z < pChar->Z - pSearchSpawn->ZRadius))
+    if (pSearchSpawn->ZRadius<10000.0f &&  (pSpawn->Z > pChar->Z + pSearchSpawn->ZRadius ||pSpawn->Z < pChar->Z - pSearchSpawn->ZRadius))
         return FALSE;
     if (pSearchSpawn->bLight) 
     {

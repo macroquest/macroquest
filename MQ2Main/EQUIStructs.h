@@ -284,7 +284,7 @@ CXW;
 } CXWND, *PCXWND;
 #define GateBind          0
 //CSidlScreenWnd__CSidlScreenWnd1_x
-//size is 220h in eqgame dated oct 31 2013 (see 5C101D) -eqmule
+//size is 220h in eqgame dated oct 31 2013 (see 5C101D (cswsize)) -eqmule
 #define CSW \
 /*0x000*/ struct _CSIDLWNDVFTABLE* pvfTable; \
 CXW_NO_VTABLE; \
@@ -373,7 +373,7 @@ struct merch_other {
     void *other2;
 };
 //CMerchantWnd__CMerchantWnd (aMerchantwnd)
-// size 2b0 (see 4998FF in 20131031 version) - eqmule
+// size 2b0 (see 4998FF in 20131031 version (merchwndsize)) - eqmule
 typedef struct _EQMERCHWINDOW {
 /*0x000*/   struct  _CSIDLWND Wnd;
 /*0x220*/   BYTE    Unknown0x220[0x0c];
@@ -494,11 +494,11 @@ typedef struct _EQBUFFWINDOW
 } EQBUFFWINDOW, *PEQBUFFWINDOW;
 
 // actual size 0x294 20120316 - ieatacid
-// actual size 0x2ac (see 75E879) in nov 13 2013 eqgame.exe - eqmule
+// actual size 0x2ac (see 75E879 (invslotwndsize)) in nov 13 2013 eqgame.exe - eqmule
 typedef struct _EQINVSLOTWND {
 /*0x000*/   struct _CXWND Wnd;      //----/ actually CButtonWnd
 /*0x1d8*/   BYTE Unknown0x1d8[0x88];  //___/
-/*0x260*/   DWORD Unknown0x25c;
+/*0x260*/   DWORD Unknown0x260;
 /*0x264*/   LONG WindowType;        // ieatacid has this as InventoryType
                                     // 0 for inventory
                                     // 01 for bank
@@ -508,12 +508,13 @@ typedef struct _EQINVSLOTWND {
                                     // 11 for loot window
 /*0x268*/   WORD InvSlotForBag;
 /*0x26a*/   WORD BagSlot;
-/*0x26c*/   WORD Unknown0x26c;
-/*0x26e*/   WORD WeirdVariable;		//no idea what this is, it changes upon login but we need it for moveitem... -eqmule
+/*0x26c*/   WORD WeirdVariable1;
+/*0x26e*/   WORD WeirdVariable2;		//no idea what this is, it changes upon login but we need it for moveitem... -eqmule
 /*0x270*/   BYTE Unknown0x270[0x20];
 /*0x290*/   struct _EQINVSLOT *pInvSlot;
 /*0x294*/   BYTE Unknown0x294[0x8];
 /*0x29c*/   BOOL ProcessClick;
+/*0x2a0*/   BYTE Unknown0x2a0[0xc];
 /*0x2ac*/
 } EQINVSLOTWND, *PEQINVSLOTWND;
 
@@ -531,6 +532,7 @@ typedef struct _EQINVSLOT {
 } EQINVSLOT, *PEQINVSLOT;
 
 // actual size 0x2014 10-12-2010
+// confirmed (size) 2013 nov 13 eqgame.exe at 497E1A -eqmule
 typedef struct _EQINVSLOTMGR {
 /*0x0000*/    DWORD Unknown0x0000;
 /*0x0004*/    struct _EQINVSLOT *SlotArray[0x800];

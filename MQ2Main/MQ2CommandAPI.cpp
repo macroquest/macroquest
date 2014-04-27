@@ -34,6 +34,36 @@ typedef struct _TIMEDCOMMAND
 
 PTIMEDCOMMAND pTimedCommands=0;
 
+PMACROBLOCK GetWhileBlock()
+{
+	BOOL bFound = 0;
+	PMACROBLOCK pblock = gMacroBlock;
+	while(pblock->pPrev) {
+		if (!strnicmp(pblock->Line,"sub ",4)) {
+			//we are at top of sub, shouldnt go up any further...
+			//next line must be the /while or we fail out...
+			if(pblock && pblock->pNext) {
+				if (!strnicmp(pblock->pNext->Line,"/while",6)) {
+					bFound=1;
+				}
+			}
+			break;
+		}
+		if (!strnicmp(pblock->Line,"/while",6)) {
+			if(pblock && pblock->pPrev) {
+				pblock=pblock->pPrev;
+				bFound=1;
+			}
+			break;
+		}
+		pblock=pblock->pPrev;
+	}
+	if(!bFound) {
+		FatalError("Bad while block pairing");
+		return NULL;
+	}
+	return pblock;
+}
 VOID HideDoCommand(PSPAWNINFO pChar, PCHAR szLine, BOOL delayed)
 {
     if (delayed)
@@ -71,46 +101,58 @@ VOID HideDoCommand(PSPAWNINFO pChar, PCHAR szLine, BOOL delayed)
 
 
     GetArg(szCmd,szLine,1);
-    if (szCmd[0]==0) return;
+    if (szCmd[0]==0)
+		return;
     strcpy(szParam, GetNextArg(szLine));
 
     if ((szCmd[0]==':') || (szCmd[0]=='{')) {
         bRunNextCommand = TRUE;
         return;
     }
-
-    if (szCmd[0]=='}') {
-        if (strstr(szLine,"{")) {
-            GetArg(szCmd,szLine,2);
-            if (stricmp(szCmd,"else")) {
-                FatalError("} and { seen on the same line without an else present");
-            }
-            //          DebugSpew("DoCommand - handing {} off to FailIf");
-            FailIf(pChar,"{",gMacroBlock,TRUE);
-        } else {
-            // handle this: 
-            //            /if () {
-            //            } else /echo stuff
-            GetArg(szCmd,szLine,2);
-            if (!stricmp(szCmd,"else")) {
-                // check here to fail this:
-                //            /if () {
-                //            } else 
-                //                /echo stuff
-                GetArg(szCmd,szLine,3);
-                if (!stricmp(szCmd,"")) {
-                    FatalError("no command or { following else");
-                }
-                bRunNextCommand = TRUE;
-            } else {
-                bRunNextCommand = TRUE;
-            }
-        }
-        return;
+	BOOL bLoopBack = 0;
+	if(gMacroBlock && gMacroBlock->CmdScope==1) {
+		//this is a command thats inside a while loop
+		if(gMacroBlock->pNext && gMacroBlock->pNext->CmdScope!=1) {
+			//next one is NOT part of the while loop
+			//so its time to loop back
+			bLoopBack = 1;
+		}
+	} else if (szCmd[0]=='}') {
+		if (strstr(szLine,"{")) {
+			GetArg(szCmd,szLine,2);
+			if (stricmp(szCmd,"else")) {
+				FatalError("} and { seen on the same line without an else present");
+			}
+			//          DebugSpew("DoCommand - handing {} off to FailIf");
+			FailIf(pChar,"{",gMacroBlock,TRUE);
+		} else {
+			// handle this: 
+			//            /if () {
+			//            } else /echo stuff
+			GetArg(szCmd,szLine,2);
+			if (!stricmp(szCmd,"else")) {
+				// check here to fail this:
+				//            /if () {
+				//            } else 
+				//                /echo stuff
+				GetArg(szCmd,szLine,3);
+				if (!stricmp(szCmd,"")) {
+					FatalError("no command or { following else");
+				}
+				bRunNextCommand = TRUE;
+			} else {
+				bRunNextCommand = TRUE;
+			}
+		}
+		return;
     }
     if (szCmd[0]==';' || szCmd[0]=='[')
     {
         pEverQuest->InterpretCmd((EQPlayer*)pChar,szOriginalLine);
+		
+		if(bLoopBack) {
+			 gMacroBlock = GetWhileBlock();
+		}
         return;
     }
 
@@ -134,10 +176,13 @@ VOID HideDoCommand(PSPAWNINFO pChar, PCHAR szLine, BOOL delayed)
             if (pCommand->Parse && bAllowCommandParse)
             {
                 pCommand->Function(pChar,ParseMacroParameter(pChar,szParam)); 
-            }
-            else
+            } else {
                 pCommand->Function(pChar,szParam);
+			}
             strcpy(szLastCommand,szOriginalLine);
+			if(bLoopBack) {
+				gMacroBlock = GetWhileBlock();
+			}
             return;
         }
         pCommand=pCommand->pNext;
@@ -150,7 +195,6 @@ VOID HideDoCommand(PSPAWNINFO pChar, PCHAR szLine, BOOL delayed)
     strcpy(szLastCommand,szOriginalLine);
     MacroError("DoCommand - Couldn't parse '%s'",szOriginalLine);
 }
-
 
 class CCommandHook 
 { 
@@ -626,6 +670,7 @@ void InitializeMQ2Commands()
         {"/shiftkey",   DoShiftCmd,0,0},
         {"/timed",      DoTimedCmd,0,0},
         {"/if",         NewIf,1,0},
+        {"/while",      WhileCmd,1,0},
         {"/combine",    CombineCmd,1,1},
         {"/clearerrors",ClearErrorsCmd,1,0},
         {"/drop",       DropCmd,1,0},

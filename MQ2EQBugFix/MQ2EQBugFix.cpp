@@ -24,6 +24,7 @@ public:
         }
         return is_3dON_Trampoline();
     }
+	
 };
 
 DETOUR_TRAMPOLINE_EMPTY(int CDisplay_Hook::is_3dON_Trampoline());
