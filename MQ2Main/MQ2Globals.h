@@ -887,6 +887,7 @@ EQLIB_VAR DWORD CrashDetected;
 EQLIB_VAR DWORD DrawNetStatus;
 EQLIB_VAR DWORD Util__FastTime;
 EQLIB_VAR DWORD Expansion_HoT;
+EQLIB_VAR DWORD __HelpPath;
 
 EQLIB_VAR DWORD AltAdvManager__GetCalculatedTimer;
 EQLIB_VAR DWORD AltAdvManager__IsAbilityReady;
@@ -1232,6 +1233,8 @@ EQLIB_VAR DWORD CContainerMgr__OpenContainer;
 EQLIB_VAR DWORD CContainerMgr__CloseContainer;
 
 EQLIB_VAR DWORD CQuantityWnd__Open;
+
+EQLIB_VAR DWORD CHelpWnd__SetFile;
 
 }
 using namespace MQ2Globals;

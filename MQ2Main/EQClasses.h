@@ -2323,7 +2323,7 @@ class CHelpWnd : public CSidlScreenWnd
 public:
 EQLIB_OBJECT CHelpWnd::CHelpWnd(class CXWnd *);
 EQLIB_OBJECT void CHelpWnd::Activate(void);
-EQLIB_OBJECT void CHelpWnd::SetFile(char *);
+EQLIB_OBJECT void CHelpWnd::SetFile(class CXStr);
 // virtual
 EQLIB_OBJECT CHelpWnd::~CHelpWnd(void);
 EQLIB_OBJECT int CHelpWnd::HandleKeyboardMsg(unsigned __int32,unsigned __int32,bool);

@@ -1810,7 +1810,7 @@ FUNCTION_AT_ADDRESS(int  EQPlayer::GetGuild(void)const ,EQPlayer__GetGuild);
 FUNCTION_AT_ADDRESS( CHelpWnd::CHelpWnd(class CXWnd *),CHelpWnd__CHelpWnd);
 #endif
 #ifdef CHelpWnd__SetFile_x
-FUNCTION_AT_ADDRESS(void  CHelpWnd::SetFile(char *),CHelpWnd__SetFile);
+FUNCTION_AT_ADDRESS(void  CHelpWnd::SetFile(class CXStr),CHelpWnd__SetFile);
 #endif
 #ifdef CHotButtonWnd__CHotButtonWnd_x
 FUNCTION_AT_ADDRESS( CHotButtonWnd::CHotButtonWnd(class CXWnd *),CHotButtonWnd__CHotButtonWnd);

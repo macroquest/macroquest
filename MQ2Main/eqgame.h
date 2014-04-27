@@ -286,6 +286,7 @@
 #define DrawNetStatus_x                                            0x576420
 #define Util__FastTime_x                                           0x824F90
 #define Expansion_HoT_x                                            0xD9651C
+#define __HelpPath_x                                               0xE19768
 //// 
 // Section 4: Function Offsets 
 //// 
@@ -689,3 +690,6 @@
 
 //CQuantityWnd
 #define CQuantityWnd__Open_x                                       0x7297B0
+
+//CHelpWnd
+#define CHelpWnd__SetFile_x                                        0x554F30
