@@ -242,15 +242,15 @@ VFTABLE;
 /*0x0fc*/   BYTE    MouseOver; \
 /*0x0fd*/   BYTE    Unknown0xfd[0x3]; \
 /*0x100*/   RECT    Location; \
-/*0x110*/   BYTE    Unknown0x110[0x13]; \
+/*0x110*/   BYTE    Unknown0x110[0x12]; \
+/*0x122*/   BYTE    Enabled; \
 /*0x123*/   BYTE    Unlockable;     /* related to Locked */ \
 /*0x124*/   BYTE    Unknown0x124[0x10]; \
 /*0x134*/   DWORD   XMLIndex; \
 /*0x138*/   struct  _CXSTR  *Tooltip; \
 /*0x13c*/   struct  _CXSTR  *XMLToolTip; \
 /*0x140*/   BYTE    Unknown0x140[0x4]; \
-/*0x144*/   BYTE    Enabled; \
-/*0x145*/   BYTE    Unknown0x145[0x7]; \
+/*0x144*/   BYTE    Unknown0x144[0x8]; \
 /*0x14c*/   RECT    OldLocation; \
 /*0x15c*/   BYTE    Unknown0x15c[0x24]; \
 /*0x180*/   DWORD   VScrollPos; \
