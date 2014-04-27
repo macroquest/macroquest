@@ -1607,12 +1607,12 @@ typedef struct _ZONEINFO {
 /*0x2a4*/
 } ZONEINFO, *PZONEINFO;
 
-#define   TOTAL_SPELL_COUNT             33001       // # of spells allocated in memory (5/25/2011)
+#define   TOTAL_SPELL_COUNT             38001       // # of spells allocated in memory (12/14/2011)
 #define   TOTAL_ACTUAL_SPELLS           0x1964      // # of ACTUAL spells in game      (9/14/2004) - wrong and unused
 
 // size: 0x810DC 05-25-2011
 typedef struct _SPELLMGR {
-BYTE            unknown[0x205F0];
+BYTE            unknown[0x25410];
 struct _SPELL*  Spells[TOTAL_SPELL_COUNT];
 } SPELLMGR, *PSPELLMGR;
 
