@@ -2684,7 +2684,9 @@ VOID PluginCommand(PSPAWNINFO pChar, PCHAR szLine)
         { 
             sprintf(szBuffer,"Plugin '%s' unloaded.",szName); 
             WriteChatColor(szBuffer,USERCOLOR_DEFAULT); 
-            if (!strstr(szCommand,"noauto")) RewriteMQ2Plugins(); 
+            if (!strstr(szCommand,"noauto")) {
+				RewriteMQ2Plugins();
+			}
 
         } 
         else 
@@ -2696,7 +2698,9 @@ VOID PluginCommand(PSPAWNINFO pChar, PCHAR szLine)
         { 
             sprintf(szBuffer,"Plugin '%s' loaded.",szName); 
             WriteChatColor(szBuffer,USERCOLOR_DEFAULT); 
-            if (stricmp(szCommand,"noauto")) RewriteMQ2Plugins(); 
+            if (stricmp(szCommand,"noauto")) {
+				RewriteMQ2Plugins();
+			}
         } 
         else 
         { 

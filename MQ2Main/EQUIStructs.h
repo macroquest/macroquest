@@ -707,13 +707,13 @@ typedef struct _EQTRADEWINDOW {
 /*0x2f0*/
 } EQTRADEWINDOW, *PTRADEWINDOW; 
 
-//Actual Size: 0x388 20121016 - ieatacid
+//Actual Size: 0x384 20140403 - eqmule
 typedef struct _EQRAIDWINDOW {
 /*0x000*/ struct _CSIDLWND Wnd;
-/*0x214*/ BYTE  Unknown0x214[0xb8];
-/*0x2cc*/ DWORD ClassColors[0x10];
-/*0x30c*/ BYTE  Unknown0x30c[0x7c];
-/*0x388*/
+/*0x214*/ BYTE  Unknown0x214[0xb4];
+/*0x2c8*/ DWORD ClassColors[0x10];
+/*0x308*/ BYTE  Unknown0x308[0x7c];
+/*0x384*/
 } EQRAIDWINDOW, *PEQRAIDWINDOW;
 
 typedef struct _GUILDMEMBERINFO {

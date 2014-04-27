@@ -54,23 +54,28 @@ DWORD LoadMQ2Plugin(const PCHAR pszFilename,BOOL bCustom)
     strcpy(Filename,pszFilename);
     strlwr(Filename);
     PCHAR Temp=strstr(Filename,".dll");
-    if (Temp)
+	if (Temp)
         Temp[0]=0;
-
     if (!stricmp(Filename,"mq2warp")) // ^_^
     {
         return 0;
     }
-
+    CHAR TheFilename[MAX_STRING]={0};
+    sprintf(TheFilename,"%s.dll",Filename);
+	if(HMODULE hThemod = GetModuleHandle(TheFilename)) {
+		DebugSpew("LoadMQ2Plugin(%s) already loaded",TheFilename);
+		return 2;
+	}
     CAutoLock Lock(&gPluginCS);
     DebugSpew("LoadMQ2Plugin(%s)",Filename);
+
     CHAR FullFilename[MAX_STRING]={0};
     sprintf(FullFilename,"%s\\%s.dll",gszINIPath,Filename);
 
     if (!mq2mainstamp) {
         mq2mainstamp = checkme((char*)GetModuleHandle("mq2main.dll"));
     }
-
+	
     HMODULE hmod=LoadLibrary(FullFilename);
     if (!hmod)
     {
@@ -202,18 +207,42 @@ BOOL UnloadMQ2Plugin(const PCHAR pszFilename)
 VOID RewriteMQ2Plugins(VOID)
 {
     CAutoLock Lock(&gPluginCS);
-    WritePrivateProfileSection("Plugins","",gszINIFilename);
+	CHAR PluginList[MAX_STRING*10] = {0};
+    CHAR szBuffer[MAX_STRING] = {0};
+    CHAR MainINI[MAX_STRING] = {0};
+    sprintf(MainINI,"%s\\macroquest.ini",gszINIPath);
+	DWORD dwAttrs = 0,bChangedfileattribs = 0;
+	if (dwAttrs = GetFileAttributes(MainINI)!=INVALID_FILE_ATTRIBUTES) {
+		if(dwAttrs&FILE_ATTRIBUTE_READONLY) {
+			bChangedfileattribs = 1;
+			SetFileAttributes(MainINI,FILE_ATTRIBUTE_NORMAL);
+		}
+	}
+    GetPrivateProfileString("Plugins",NULL,"",PluginList,MAX_STRING*10,MainINI);
+    PCHAR pPluginList = PluginList;
+	BOOL loadvalue = 0;
+    while (pPluginList[0]!=0) {
+		WritePrivateProfileString("Plugins",pPluginList,"0",gszINIFilename);
+        pPluginList+=strlen(pPluginList)+1;
+    }
     PMQPLUGIN pLoop = pPlugins;
-    if (!pLoop)
+    if (!pLoop) {
+		if(bChangedfileattribs) {
+			SetFileAttributes(MainINI,dwAttrs);
+		}
         return;
+	}
     // start from the end, we're writing this the order they were added.
     while (pLoop->pNext)
         pLoop=pLoop->pNext; 
     while (pLoop) {
 		if(!pLoop->bCustom)
-			WritePrivateProfileString("Plugins",pLoop->szFilename,pLoop->szFilename,gszINIFilename);
+			WritePrivateProfileString("Plugins",pLoop->szFilename,"1",gszINIFilename);
         pLoop = pLoop->pLast;
     }
+	if(bChangedfileattribs) {
+		SetFileAttributes(MainINI,dwAttrs);
+	}
 }
 
 VOID InitializeMQ2Plugins()
@@ -240,10 +269,15 @@ VOID InitializeMQ2Plugins()
     sprintf(MainINI,"%s\\macroquest.ini",gszINIPath);
     GetPrivateProfileString("Plugins",NULL,"",PluginList,MAX_STRING*10,MainINI);
     PCHAR pPluginList = PluginList;
+	BOOL loadvalue = 0;
     while (pPluginList[0]!=0) {
         GetPrivateProfileString("Plugins",pPluginList,"",szBuffer,MAX_STRING,MainINI);
-        if (szBuffer[0]!=0) {
-            LoadMQ2Plugin(szBuffer);
+        if (IsNumber(szBuffer)) {
+			loadvalue=atoi(szBuffer);
+			szBuffer[0] = '\0';
+		}
+		if(loadvalue==1 || szBuffer[0]!=0) {
+            LoadMQ2Plugin(pPluginList);
         }
         pPluginList+=strlen(pPluginList)+1;
     }
@@ -253,8 +287,12 @@ VOID InitializeMQ2Plugins()
     pPluginList = PluginList;
     while (pPluginList[0]!=0) {
         GetPrivateProfileString("Plugins",pPluginList,"",szBuffer,MAX_STRING,MainINI);
-        if (szBuffer[0]!=0) {
-            LoadMQ2Plugin(szBuffer,1);
+        if (IsNumber(szBuffer)) {
+			loadvalue=atoi(szBuffer);
+			szBuffer[0] = '\0';
+		}
+		if(loadvalue==1 || szBuffer[0]!=0) {
+            LoadMQ2Plugin(pPluginList,1);
         }
         pPluginList+=strlen(pPluginList)+1;
     }

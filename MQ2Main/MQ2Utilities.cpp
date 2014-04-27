@@ -1687,12 +1687,12 @@ LONG CalcDuration(LONG calc, LONG max, LONG level)
 	return value;
 }
 
-LONG CalcValue(LONG calc, LONG base, LONG max, LONG tick, LONG level)
+LONG CalcValue(LONG calc, LONG base, LONG max, LONG tick, LONG minlevel, LONG level)
 {
 	if (calc == 0)
 		return base;
 	if (calc == 100) {
-		if (max > 0 && base > max)
+		if (max > 0 && ((base > max) || (level > minlevel)))
 			return max;
 		return base;
 	}
@@ -1862,15 +1862,15 @@ LONG CalcValue(LONG calc, LONG base, LONG max, LONG tick, LONG level)
 	return value;
 }
 
-LONG CalcMaxSpellLevel(LONG calc, LONG base, LONG max, LONG tick, LONG level)
+LONG CalcMaxSpellLevel(LONG calc, LONG base, LONG max, LONG tick, LONG minlevel, LONG level)
 {
 	//WriteChatf("CalcMaxSpellLevel(CALC:%d, BASE:%d, MAX:%d, TICK:%d, LEVEL:%d)", calc, base, max, tick, level);
 	if (abs(max)>0) {
 		//WriteChatf("Inside if (abs(max)>0)");
 		for (LONG maxlevel=1; maxlevel<=level; maxlevel++) {
-			LONG value=CalcValue(calc, base, max, tick, maxlevel);
+			LONG value=CalcValue(calc, base, max, tick, minlevel, maxlevel);
 			//WriteChatf("VALUE:%d, MAX:%d", abs(value), abs(max));
-			if (abs(CalcValue(calc, base, max, tick, maxlevel)) >= abs(max))
+			if (abs(CalcValue(calc, base, max, tick, minlevel, maxlevel)) >= abs(max))
 				return maxlevel;
 		}
 		return level;
@@ -1890,8 +1890,8 @@ LONG CalcMinSpellLevel(PSPELL pSpell)
 
 PCHAR CalcValueRange(LONG calc, LONG base, LONG max, LONG duration, LONG minlevel, LONG level, PCHAR szBuffer, PCHAR szPercent)
 {
-	LONG start=CalcValue(calc, base, max, 1, minlevel);
-	LONG finish=CalcValue(calc, base, max, duration, level);
+	LONG start=CalcValue(calc, base, max, 1, minlevel, minlevel);
+	LONG finish=CalcValue(calc, base, max, duration, minlevel, level);
 	CHAR type[MAX_STRING]={0};
 
 	sprintf(type, "%s", abs(start) < abs(finish)?"Growing":"Decaying");
@@ -2198,10 +2198,11 @@ PCHAR ParseSpellEffect(PSPELL pSpell, int i, PCHAR szBuffer, LONG level=100)
 		base=0;
 		break;
 	case SPA_SPELLDAMAGE:
+	case SPA_HEALING:
+	case SPA_SPELLMANACOST:
 		max=base2;
 		break;
 	case SPA_REAGENTCHANCE:
-	case SPA_SPELLMANACOST:
 	case SPA_INCSPELLDMG:
 		base=base2;
 		break;
@@ -2221,14 +2222,14 @@ PCHAR ParseSpellEffect(PSPELL pSpell, int i, PCHAR szBuffer, LONG level=100)
 	GetSpellEffectName(spa, spelleffectname);
 	strcpy(extra, pSpell->Extra);
 
-	LONG maxspelllvl=CalcMaxSpellLevel(calc, base, max, ticks, level);
 	LONG minspelllvl=CalcMinSpellLevel(pSpell);
-	LONG value=CalcValue(calc, base, max, 1, minspelllvl);
-	LONG finish=CalcValue(calc, base, max, ticks, level);
+	LONG maxspelllvl=CalcMaxSpellLevel(calc, base, max, ticks, minspelllvl, level);
+	LONG value=CalcValue(calc, base, max, 1, minspelllvl, minspelllvl);
+	LONG finish=CalcValue(calc, base, max, ticks, minspelllvl, level);
 
-	BOOL usePercent=(spa==SPA_MOVEMENTRATE||spa==SPA_HASTE||spa==SPA_BARDOVERHASTE||spa==SPA_DOUBLEATTACK||spa==SPA_STUNRESIST||spa==SPA_PROCMOD||spa==SPA_DIVINEREZ||
-					 spa==SPA_METABOLISM||spa==SPA_TRIPLEBACKSTAB||spa==SPA_DOTCRIT||spa==SPA_HEALCRIT||spa==SPA_MENDCRIT||spa==SPA_FLURRY||spa==SPA_PETFLURRY||spa==SPA_SPELLCRITCHANCE||
-					 spa==SPA_SHIELDBLOCKCHANCE||spa==SPA_DAMAGECRITMOD);
+	BOOL usePercent=(spa==SPA_MOVEMENTRATE||spa==SPA_HASTE||spa==SPA_BARDOVERHASTE||spa==SPA_SPELLDAMAGE||spa==SPA_HEALING||spa==SPA_DOUBLEATTACK||spa==SPA_STUNRESIST||spa==SPA_PROCMOD||
+					 spa==SPA_DIVINEREZ||spa==SPA_METABOLISM||spa==SPA_TRIPLEBACKSTAB||spa==SPA_DOTCRIT||spa==SPA_HEALCRIT||spa==SPA_MENDCRIT||spa==SPA_FLURRY||spa==SPA_PETFLURRY||
+					 spa==SPA_SPELLCRITCHANCE||spa==SPA_SHIELDBLOCKCHANCE||spa==SPA_DAMAGECRITMOD);
 	BOOL AEEffect=(targettype==TT_PBAE||targettype==TT_TARGETED_AE||targettype==TT_AE_PC_V2||targettype==TT_DIRECTIONAL);
 
 	strcat(range, CalcValueRange(calc, base, max, ticks, minspelllvl, level, szTemp2, usePercent?szPercent:""));
@@ -2595,8 +2596,6 @@ PCHAR ParseSpellEffect(PSPELL pSpell, int i, PCHAR szBuffer, LONG level=100)
 		strcat(szBuff, spelleffectname);
 		break;
     case 124: //spell damage 
-		strcat(szBuff, FormatRange(spelleffectname, value, extendedrange, szTemp2));
-		break;
     case 125: //healing 
 		strcat(szBuff, FormatPercent(spelleffectname, value, finish, szTemp2));
 		break;
@@ -2960,8 +2959,11 @@ PCHAR ParseSpellEffect(PSPELL pSpell, int i, PCHAR szBuffer, LONG level=100)
         strcat(szBuff, FormatBase(spelleffectname, base, szTemp2));
 		break;
     case 286: //DD Bonus
-    case 287: //Focus Combat Duration
 		strcat(szBuff, FormatRange(spelleffectname, value, extendedrange, szTemp2));
+        break;
+    case 287: //Focus Combat Duration
+		strcat(szBuff, FormatCount(spelleffectname, value, szTemp2));
+		strcat(szBuff, " tick(s)");
         break;
     case 288: //Add Proc Hit (no spells currently)
         strcat(szBuff, FormatBase(spelleffectname, base, szTemp2));

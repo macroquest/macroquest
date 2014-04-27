@@ -1,3 +1,29 @@
+16 Apr 2014 by eqmule
+- Fixed the EQRAIDWINDOW struct
+  This means caption classcolors for raidmembers will again work as intended.
+- Changed how plugins are loaded from MacroQuest.ini
+  I don't think this will affect anyone, but from now on
+  when a plugin is unloaded the [Plugins] section will not be erased
+  The old mq2plugin=mq2plugin is still valid, but eventually
+  you will end up with a list of plugins where the entries
+  will look like mq2plugin=1 or mq2plugin=0
+  I did this because I'm preparing the loader for being able to unload/load
+  plugins directly from its iconmenu.
+
+13 Apr 2014 by rswiders
+- Added GemIcon, HateGenerated, PvPCalc, Unknown182, Unknown222, Unknown223 to the SPELL struct
+- Added HateGenerated to MQ2ItemDisplay output
+
+11 Apr 2014 by rswiders
+- Merged the MQ2GearScore logic into the base code for MQ2ItemDisplay. This means that MQ2GearScore
+  is no longer necessary and MQ2Bzsrch will work correctly for those that want scores.
+  In order to use the new functionality, rename your old ini file to MQ2ItemDisplay.ini to get all
+  the same values. You can stop using MQ2GearScore and go back to use the base code MQ2ItemDisplay
+
+10 Apr 2014 by rswiders
+- Update of SpellSlotInfo for SPA's 124/125/132 to format as a ranged percent and specify that SPA 132
+  is a # of tick(s)
+
 08 Apr 2014 by rswiders
 - Rewrite of SpellSlotInfo, uses new function ParseSpellEffect. Pass a pSpell structure, slot number,
   character buffer and it will return a character buffer with the spell effect information

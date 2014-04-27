@@ -423,6 +423,7 @@ enum MOUSE_DATA_TYPES {
 #define SPA_SUMMONCORPSE                91
 #define SPA_BARDOVERHASTE               98
 #define SPA_SPELLDAMAGE                 124
+#define SPA_HEALING                     125
 #define SPA_REAGENTCHANCE               131
 #define SPA_SPELLMANACOST               132
 #define SPA_DOUBLEATTACK                177
@@ -1682,7 +1683,9 @@ typedef struct _ZONEINFO {
 /*0x23a*/   BYTE    SkyType;   
 /*0x23b*/   BYTE    Unknown0x23b[0xd];
 /*0x248*/   FLOAT   ZoneExpModifier;    //This has been nerfed ..now reads 1.0 for all zones
-/*0x24c*/   FLOAT   Unknown0x24c[0x3];
+/*0x24c*/   FLOAT   SafeYLoc;
+/*0x250*/   FLOAT   SafeXLoc;
+/*0x254*/   FLOAT   SafeZLoc;
 /*0x258*/   BYTE    Unknown0x258[0x4];
 /*0x25c*/   FLOAT   Ceiling;
 /*0x260*/   FLOAT   Floor;
@@ -1726,7 +1729,7 @@ typedef struct _SPELL {
 /*0x0ec*/   DWORD   Calc[0x0c];         //Calc1-Calc12
 /*0x11c*/   DWORD   Attrib[0xc];       //Attrib1-Attrib12
 /*0x14c*/   DWORD   BookIcon;
-/*0x150*/   BYTE    Unknown0x150[0x4];
+/*0x150*/   DWORD   GemIcon;
 /*0x154*/   DWORD   DescriptionNumber;
 /*0x158*/   DWORD   ResistAdj;
 /*0x15c*/   BYTE    Unknown0x15c[0x4];
@@ -1741,15 +1744,20 @@ typedef struct _SPELL {
 /*0x184*/   BYTE    Unknown0x184[0x10];
 /*0x194*/   DWORD   EnduranceCost;      //CA Endurance Cost
 /*0x198*/   DWORD   CARecastTimerID;    //ID of combat timer, i think.
-/*0x19c*/   BYTE    Unknown0x19c[0x18];
+/*0x19c*/   BYTE    Unknown0x19c[0x4];
+/*0x1a0*/   DWORD   HateGenerated;
+/*0x1a4*/   BYTE    Unknown0x1a4[0x10];
 /*0x1b4*/   DWORD   PvPResistBase;
-/*0x1b8*/   BYTE    Unknown0x1b8[0x4];
+/*0x1b8*/   DWORD   PvPCalc;
 /*0x1bc*/   DWORD   PvPResistCap;
-/*0x1c0*/   BYTE    Unknown0x1c0[0x4];
+/*0x1c0*/   DWORD   Unknown182;         //Unknown182 from Lucy
 /*0x1c4*/   DWORD   Unknown183;         //Unknown183 from Lucy
 /*0x1c8*/   BYTE    Unknown0x1c8[0xc];
 /*0x1d4*/   DWORD   SpellGroup;
-/*0x1d8*/   BYTE    Unknown0x1d8[0x34];
+/*0x1d8*/   BYTE    Unknown0x1d8[0x8];
+/*0x1e0*/   DWORD   Unknown222;         //Unknown222 from Lucy
+/*0x1e4*/   DWORD   Unknown223;         //Unknown223 from Lucy
+/*0x1e8*/   BYTE    Unknown0x1e8[0x24];
 /*0x20c*/   DWORD   MaxTargets;     //how many targets a spell will affect
 /*0x210*/   BYTE    Unknown0x210[0x27];
 /*0x237*/   BYTE    DurationWindow;     //0=Long, 1=Short
@@ -1942,7 +1950,6 @@ union {                                         //If you have not spent points i
 /*0x74*/ BYTE  Unknown0x74[0x30];
 /*0xa4*/
 } ALTABILITY, *PALTABILITY;
-#define zWarp                 0
 
 typedef struct _ALTABILITIESLISTMGR {
 /*0x00*/ struct _ALTABILITY* Ability;
