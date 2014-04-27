@@ -164,7 +164,3 @@ VOID ShutdownMQ2Benchmarks()
     }
     pBenchmarks=0;
 }
-
-
-
-

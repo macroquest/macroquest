@@ -1,3 +1,8 @@
+18 Apr 2014 by eqmule
+- Fixed a bug in GetSpellByID that would make it return "Unknown Spell" when it 
+  should just return 0
+  This means macros like scribe.mac will work again.
+
 16 Apr 2014 by eqmule
 - Fixed the EQRAIDWINDOW struct
   This means caption classcolors for raidmembers will again work as intended.

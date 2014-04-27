@@ -37,7 +37,7 @@ static inline EQPlayer *GetSpawnByName(char *spawnName)
 
 static inline PSPELL GetSpellByID(LONG dwSpellID)
 {
-    if (dwSpellID==0 || dwSpellID >= TOTAL_SPELL_COUNT)
+    if (dwSpellID==0 || dwSpellID==-1 || dwSpellID >= TOTAL_SPELL_COUNT)
         return 0;
     return &(*((PSPELLMGR)pSpellMgr)->Spells[abs(dwSpellID)]);
 }
