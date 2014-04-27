@@ -646,7 +646,10 @@ typedef struct _CONTENTS {
 /*0x0054*/ BYTE         Unknown0x0054[0x4];
 /*0x0058*/ struct _CONTENTSARRAY*        pContentsArray;
 /*0x005c*/ DWORD        NumOfSlots2;
-/*0x0060*/ BYTE         Unknown0x0060[0x28];
+/*0x0060*/ BYTE         Unknown0x0060[0x6];
+/*0x0066*/ WORD         ItemSlot;           // Inventory slot id
+/*0x0068*/ WORD         ItemSlot2;          // Bag slot id, starts at 0 for first slot in bag, or FFFF if item is on cursor
+/*0x006a*/ BYTE         Unknown0x006a[0x1e];
 /*0x0088*/ DOUBLE       EvolvingExpPct;
 /*0x0090*/ BYTE         Unknown0x0088[0x1c];
 /*0x00ac*/ DWORD        Price;
