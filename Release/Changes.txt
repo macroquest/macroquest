@@ -1,4 +1,7 @@
-15 December 2012 by dkaa
+03 February 2012 by dkaa
+- Kill launchpad if we are injected.  Launchpad is snooping into all processes.
+
+15 January 2012 by dkaa
 - Updated to fix /lootall
 
 17 December 2011 by ieatacid

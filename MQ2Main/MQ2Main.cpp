@@ -66,6 +66,11 @@ BOOL APIENTRY DllMain( HANDLE hModule,
             return TRUE;
         }
     }
+    if (!stricmp(szProcessName,"LaunchPad")) {
+        if (ul_reason_for_call == DLL_PROCESS_ATTACH) {
+            exit(-1);
+        }
+    }
     return TRUE;
 }
 
