@@ -382,7 +382,7 @@ enum MOUSE_DATA_TYPES {
    MD_Button1
 };
 
-#define nEQMappableCommands             0x1f0
+#define nEQMappableCommands             0x1f3
 
 #define MAX_PC_LEVEL                    95
 #define NUM_SPELL_GEMS                  12
