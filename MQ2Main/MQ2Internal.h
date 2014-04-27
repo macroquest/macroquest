@@ -606,7 +606,7 @@ namespace MQ2Internal {
             }
         }
 
-        inline ~MQ2Type() 
+        virtual inline ~MQ2Type() 
         {
             if (Official)
                 RemoveMQ2Type(*this);

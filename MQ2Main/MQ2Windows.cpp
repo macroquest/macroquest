@@ -1413,7 +1413,7 @@ int ItemNotify(int argc, char *argv[])
         {
             //could it be an itemname?
 			//lets check:
-			if(PCONTENTS ptheitem = FindItemByName(szArg1)) {
+			if(PCONTENTS ptheitem = FindItemByName(szArg1,1)) {
 				if(pNotification && !strnicmp(pNotification,"leftmouseup",11)) {
 					PickupOrDropItem(0,ptheitem);
 				} else if(pNotification && !strnicmp(pNotification,"rightmouseup",12)) {//we fake it with /useitem
