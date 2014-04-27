@@ -804,22 +804,23 @@ typedef struct _EQMAPWINDOW {
 // Spell Window
 typedef struct _EQCASTSPELLWINDOW {
 /*0x000*/ struct _CSIDLWND Wnd;
-/*0x208*/ BYTE Unknown0x148[0x14];
-/*0x21c*/  struct _EQCASTSPELLGEM   *SpellSlots[NUM_SPELL_GEMS];
-/*0x22c*/  BYTE    Unknown0x22c[0x30]; 
-/*0x25c*/
+/*0x214*/ BYTE Unknown0x214[0x14];
+/*0x228*/  struct _EQCASTSPELLGEM   *SpellSlots[NUM_SPELL_GEMS];
+/*0x258*/  BYTE    Unknown0x258[0x30]; 
+/*0x288*/
 } EQCASTSPELLWINDOW, *PEQCASTSPELLWINDOW;
 
 // Individual Gems 
 typedef struct _EQCASTSPELLGEM { 
-/*0x000*/ struct    _CSIDLWND Wnd;
-/*0x208*/ DWORD     TimeStamp;
-/*0x20c*/ DWORD     RecastTime;
-/*0x210*/ BYTE      Unknown0x210[0xa4]; 
-/*0x2b4*/ DWORD     spellicon;       //if this is equal to FFFFFFFF there is no spell memmed in this slot... 
-/*0x2b8*/ DWORD     spellstate;      // 1 = cast in progress or refreshtime not met 2 means we ducked or aborted cast, 0 means its ok to cast 
-/*0x2bc*/ BYTE      Unknown0x2bc[0x18];
-/*0x2d4*/ 
+/*0x000*/ struct    _CXWND Wnd;
+/*0x1cc*/ BYTE      Unknown0x1cc[0x44]; 
+/*0x210*/ DWORD     TimeStamp;
+/*0x214*/ DWORD     RecastTime;
+/*0x218*/ BYTE      Unknown0x218[0xa8]; 
+/*0x2c0*/ DWORD     spellicon;       //if this is equal to FFFFFFFF there is no spell memmed in this slot... 
+/*0x2c4*/ DWORD     spellstate;      // 1 = cast in progress or refreshtime not met 2 means we ducked or aborted cast, 0 means its ok to cast 
+/*0x2c8*/ BYTE      Unknown0x2c8[0x18];
+/*0x2e0*/ 
 } EQCASTSPELLGEM, *PEQCASTSPELLGEM;
 #define Fly                     0
 
