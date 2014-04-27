@@ -1,3 +1,12 @@
+18 July 2013 by EqMule
+- Added support for /useitem
+  Example: /useitem ${FindItem[=worn totem].ItemSlot} ${FindItem[=worn totem].ItemSlot2}
+  Note: you need VOA expansion or newer for /useitem to work, its a soe, not an mq2 command
+- Fixed listselect *
+	Example: /notify MMTW_MerchantWnd SubtypeListBox listselect 10
+			 Will select the Tier V Healer listitem in the Mercenary Merchant Window.
+	
+	*listselect wasnt able to actually "select" items, it only "highlighted" them prior to this fix.
 17 July 2013 by EqMule
 - Added comboselect*
 	Example: /notify MMTW_MerchantWnd TypeComboBox comboselect 2

@@ -4007,6 +4007,14 @@ bool MQ2ItemType::GETMEMBER()
             return true;
         }
         return false;
+	case ItemSlot:
+		Dest.Int=pItem->ItemSlot;
+		Dest.Type=pIntType;
+		return true;
+	case ItemSlot2:
+		Dest.Int=pItem->ItemSlot2;
+		Dest.Type=pIntType;
+		return true;
     case BuyPrice:
         if (pActiveMerchant && pItem->MerchantSlot)
         {

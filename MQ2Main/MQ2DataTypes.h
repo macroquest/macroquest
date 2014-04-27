@@ -1465,6 +1465,8 @@ public:
         SpellDamage=128,
         Augs=129,
         Tradeskills=130,
+		ItemSlot=131,
+		ItemSlot2=132,
     };
     static enum ItemMethods
     {
@@ -1601,6 +1603,8 @@ public:
         TypeMember(SpellDamage);
         TypeMember(Augs);
         TypeMember(Tradeskills);
+        TypeMember(ItemSlot);
+        TypeMember(ItemSlot2);
     }
 
     ~MQ2ItemType()

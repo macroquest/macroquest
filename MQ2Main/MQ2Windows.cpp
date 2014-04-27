@@ -723,32 +723,35 @@ bool SendListSelect(PCHAR WindowName, PCHAR ScreenID, DWORD Value)
     }
     if (ScreenID && ScreenID[0] && ScreenID[0]!='0')
     {
-        CListWnd *pList=(CListWnd*)((CSidlScreenWnd*)(pWnd))->GetChildItem(ScreenID);
+        CXWnd *pList=pWnd->GetChildItem(ScreenID);
         if (!pList)
         {
             MacroError("Window '%s' child '%s' not found.",WindowName,ScreenID);
             return false;
         }
-        if (((CXWnd*)pList)->GetType()==UI_Listbox)
+        if (pList->GetType()==UI_Listbox)
         {
-            pList->SetCurSel(Value);
-
-            if(pParentWnd = GetParentWnd((CXWnd*)pList))
-            {
-                pParentWnd->WndNotification((CXWnd*)pList, XWM_LCLICK, (void*)Value);
-            }
-
+			((CListWnd*)pList)->SetCurSel(Value);
+			int index = ((CListWnd*)pList)->GetCurSel();		
+			((CListWnd*)pList)->EnsureVisible(index);
+			CXRect rect = ((CListWnd*)pList)->GetItemRect(index,0);
+            CXPoint pt = rect.CenterPoint();
+			pList->HandleLButtonDown(&pt,0);
+			pList->HandleLButtonUp(&pt,0);
             gMouseEventTime = GetFastTime();
         }
-        else if (((CXWnd*)pList)->GetType()==UI_Combobox)
+        else if (pList->GetType()==UI_Combobox)
         {
-            ((CComboWnd*)pList)->SetChoice(Value);
-
-            if(pParentWnd = GetParentWnd((CXWnd*)pList))
-            {
-                pParentWnd->WndNotification((CXWnd*)pList, XWM_LCLICK, (void*)Value);
-            }
-            
+            CXRect comborect=pList->GetScreenRect(); 
+			CXPoint combopt=comborect.CenterPoint(); 
+			((CComboWnd*)pList)->SetChoice(Value);
+			((CXWnd*)pList)->HandleLButtonDown(&combopt,0);
+			CListWnd*pListWnd = (CListWnd*)((CListWnd*)pList)->Items;
+			int index = pListWnd->GetCurSel();
+			CXRect listrect=pListWnd->GetItemRect(index,0);
+			CXPoint listpt=listrect.CenterPoint();
+			((CXWnd*)pListWnd)->HandleLButtonDown(&listpt,0);
+			((CXWnd*)pListWnd)->HandleLButtonUp(&listpt,0);            
             gMouseEventTime = GetFastTime();
         }
         else
@@ -788,6 +791,7 @@ bool SendComboSelect(PCHAR WindowName, PCHAR ScreenID, DWORD Value)
 			CXRect listrect=pListWnd->GetItemRect(index,0);
 			CXPoint listpt=listrect.CenterPoint();
 			((CXWnd*)pListWnd)->HandleLButtonDown(&listpt,0);
+			((CXWnd*)pListWnd)->HandleLButtonUp(&listpt,0);
             gMouseEventTime = GetFastTime();
         }
         else
