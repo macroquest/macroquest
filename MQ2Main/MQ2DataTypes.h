@@ -907,6 +907,7 @@ public:
         Haste=179,
         MercenaryStance=180,
         SkillCap=181,
+        GemTimer=182,
     };
     static enum CharacterMethods
     {
@@ -1095,6 +1096,7 @@ public:
         TypeMember(Haste);
         TypeMember(MercenaryStance);
         TypeMember(SkillCap);  // 181
+        TypeMember(GemTimer);
 
         TypeMethod(Stand); 
         TypeMethod(Sit); 

@@ -5833,6 +5833,16 @@ float GetMeleeRange(class EQPlayer *pSpawn1,class EQPlayer *pSpawn2)
     return 14.0f;
 }
 
+DWORD GetSpellGemTimer(DWORD nGem)
+{
+    _EQCASTSPELLGEM *g = ((PEQCASTSPELLWINDOW)pCastSpellWnd)->SpellSlots[nGem];
+
+    if(g->TimeStamp)
+        return g->TimeStamp + g->RecastTime - EQGetTime();
+
+    return 0;
+}
+
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 // Functions that were built into commands and people used DoCommand to execute                  //
 void AttackRanged(EQPlayer *pRangedTarget)

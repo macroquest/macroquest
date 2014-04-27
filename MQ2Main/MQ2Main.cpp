@@ -545,3 +545,6 @@ FUNCTION_AT_ADDRESS(unsigned long  GetFastTime(void),Util__FastTime);
 #ifdef __GetXTargetType
 FUNCTION_AT_ADDRESS(char * __stdcall GetXtargetType(DWORD type), __GetXTargetType);
 #endif
+#ifdef __EQGetTime
+FUNCTION_AT_ADDRESS(DWORD EQGetTime(), __EQGetTime);
+#endif

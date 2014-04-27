@@ -277,6 +277,7 @@
 #define __CastRay                                                  0x4D6590
 #define __ConvertItemTags                                          0x4C75B0
 #define __ExecuteCmd                                               0x4B3320
+#define __EQGetTime                                                0x7E5F90
 #define __get_melee_range                                          0x4B9440
 #define __GetGaugeValueFromEQ                                      0x6D57A0
 #define __GetLabelFromEQ                                           0x6D6990

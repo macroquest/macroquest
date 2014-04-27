@@ -2736,10 +2736,10 @@ bool MQ2CharacterType::GETMEMBER()
                     /**/
                     if (EQADDR_DOABILITYLIST[nSkill]!=0xFFFFFFFF)
                     {
-                        if (pSkillMgr->pSkill[EQADDR_DOABILITYLIST[nSkill]]->AltTimer==2)
-                            Dest.DWord=gbAltTimerReady;
-                        else
-                            Dest.DWord=pCSkillMgr->IsAvailable(EQADDR_DOABILITYLIST[nSkill]);
+                        //if (pSkillMgr->pSkill[EQADDR_DOABILITYLIST[nSkill]]->AltTimer==2)
+                        //    Dest.DWord=gbAltTimerReady;
+                        //else
+                        Dest.DWord=pCSkillMgr->IsAvailable(EQADDR_DOABILITYLIST[nSkill]);
                         Dest.Type=pBoolType;
                         return true;
                     }
@@ -3470,6 +3470,40 @@ bool MQ2CharacterType::GETMEMBER()
         }
         Dest.Type = pStringType;
         return true;
+    case GemTimer:
+        if (!ISINDEX())
+            return false;
+        if (ISNUMBER())
+        {
+            // number
+            unsigned long nGem=GETNUMBER()-1;
+            if (nGem<NUM_SPELL_GEMS)
+            {
+                if(GetCharInfo2()->MemorizedSpells[nGem] != 0xFFFFFFFF)
+                {
+                    Dest.DWord = (((GetSpellGemTimer(nGem) / 1000) + 5) / 6);
+                    Dest.Type = pTicksType;
+                    return true;
+                }
+            }
+        }
+        else
+        {
+            // name
+            for (unsigned long nGem=0 ; nGem < NUM_SPELL_GEMS ; nGem++)
+            {
+                if (PSPELL pSpell=GetSpellByID(GetCharInfo2()->MemorizedSpells[nGem]))
+                {
+                    if (!stricmp(GETFIRST(),pSpell->Name))
+                    {
+                        Dest.DWord = (((GetSpellGemTimer(nGem) / 1000) + 5) / 6);
+                        Dest.Type = pTicksType;
+                        return true;
+                    }
+                }
+            }
+        }
+        return false;
     }
     return false;
 #undef pChar

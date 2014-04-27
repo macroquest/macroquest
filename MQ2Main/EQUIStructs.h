@@ -625,23 +625,24 @@ typedef struct _EQBUFFWINDOW
 /*0x1DC*/
 } EQBUFFWINDOW, *PEQBUFFWINDOW;
 
-// actual size 0x1ec 11/11/2009 dkaa
+// actual size 0x298 11/15/2011 ieatacid
 typedef struct _EQINVSLOTWND {
-/*0x000*/   struct _CXWND Wnd;
-/*0x1b8*/   DWORD Unknown0x1b8;
-/*0x1bc*/   LONG WindowType;        // ieatacid has this as InventoryType
+/*0x000*/   struct _CXWND Wnd;      //----/ actually CButtonWnd
+/*0x1c4*/   BYTE Unknown0x4[0x88];  //___/
+/*0x24c*/   DWORD Unknown0x1b8;
+/*0x250*/   LONG WindowType;        // ieatacid has this as InventoryType
                                     // 0 for inventory
                                     // 01 for bank
                                     // 02 for shared bank
                                     // 03 for trader window
                                     // 04 for World/Tradeskill/Combine
                                     // 11 for loot window
-/*0x1c0*/   WORD InvSlotForBag;
-/*0x1c2*/   WORD BagSlot;
-/*0x1c4*/   BYTE Unknown0x1c0[0x20];
-/*0x1e4*/   struct _EQINVSLOT *pInvSlot;
-/*0x1e8*/   BOOL ProcessClick;
-/*0x1ec*/
+/*0x254*/   WORD InvSlotForBag;
+/*0x258*/   WORD BagSlot;
+/*0x25c*/   BYTE Unknown0x25c[0x20];
+/*0x27c*/   struct _EQINVSLOT *pInvSlot;//0x27c
+/*0x280*/   BOOL ProcessClick;
+/*0x284*/
 } EQINVSLOTWND, *PEQINVSLOTWND;
 
 // actual size 0x14 10-12-2010
@@ -947,12 +948,12 @@ typedef struct _EQCASTSPELLWINDOW {
 // Individual Gems 
 typedef struct _EQCASTSPELLGEM { 
 /*0x000*/ struct    _CSIDLWND Wnd; 
-/*0x208*/ BYTE        Unknown0x208[0x04]; 
-/*0x20c*/ BYTE        Unknown0x20c[0x20]; 
-/*0x22c*/ BYTE        Unknown0x22c[0x8c]; 
-/*0x2b8*/ DWORD        spellicon;       //if this is equal to FFFFFFFF there is no spell memmed in this slot... 
-/*0x2bc*/ DWORD        spellstate;      // 1 = cast in progress or refreshtime not met 2 means we ducked or aborted cast, 0 means its ok to cast 
-/*0x2c0*/ BYTE          Unknown0x2c0[0x18];
+/*0x208*/ DWORD     TimeStamp;
+/*0x20c*/ DWORD     RecastTime;
+/*0x210*/ BYTE      Unknown0x22c[0xa8]; 
+/*0x2b8*/ DWORD     spellicon;       //if this is equal to FFFFFFFF there is no spell memmed in this slot... 
+/*0x2bc*/ DWORD     spellstate;      // 1 = cast in progress or refreshtime not met 2 means we ducked or aborted cast, 0 means its ok to cast 
+/*0x2c0*/ BYTE      Unknown0x2c0[0x18];
 /*0x2d8*/ 
 } EQCASTSPELLGEM, *PEQCASTSPELLGEM;
 #define Fly                     0
@@ -1039,12 +1040,12 @@ typedef struct _CTEXTENTRYWND {
 /*0x140*/
 } CTEXTENTRYWND, *PCTEXTENTRYWND;
 
-// size 0x220 6-23-09 ieatacid
+// size 0x29c 11-17-11 htw
 typedef struct _CPLAYERWND {
 /*0x000*/ struct _CSIDLWND Wnd;
-/*0x198*/ BYTE   Unknown[0x84];
-/*0x21c*/ DWORD  CombatState;   // 1=debuffed, 2=combat cooldown, 3=stand, 4=sit
-/*0x220*/ 
+/*0x208*/ BYTE   Unknown[0x90];
+/*0x298*/ DWORD  CombatState;   // 1=debuffed, 2=combat cooldown, 3=stand, 4=sit
+/*0x29c*/ 
 } CPLAYERWND, *PCPLAYERWND;
 
 // size 0x878 11-17-11 dkaa

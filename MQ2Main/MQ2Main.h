@@ -381,6 +381,7 @@ EQLIB_API VOID ShutdownMQ2Pulse();
 EQLIB_API int CastRay(PSPAWNINFO,float y,float x,float z);
 EQLIB_API unsigned long GetFastTime(void);
 EQLIB_API char * __stdcall GetXtargetType(DWORD type);
+EQLIB_API DWORD EQGetTime();
 
 /* UTILITIES */
 EQLIB_API VOID ConvertCR(PCHAR Text);
@@ -571,6 +572,7 @@ EQLIB_API DWORD       GetSkillIDFromName      (PCHAR name);
 EQLIB_API bool        InHoverState();
 EQLIB_API DWORD       GetGameState(VOID);
 EQLIB_API float       GetMeleeRange(class EQPlayer *,class EQPlayer *);
+EQLIB_API DWORD       GetSpellGemTimer(DWORD nGem);
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 // Functions that were built into commands and people used DoCommand to execute                  //
