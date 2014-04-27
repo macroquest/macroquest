@@ -1,3 +1,6 @@
+17 May 2013 by EqMule, ieatacid
+- Updated for May 14th patch
+
 21 April 2013 by ieatacid
 - MQ2Map fixed
 
