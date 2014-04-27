@@ -790,7 +790,9 @@ TLO(dataFindItemBank)
     for (nPack=0 ; nPack < NUM_BANK_SLOTS ; nPack++)
     {
         PCHARINFO pCharInfo=GetCharInfo();
-        if (PCONTENTS pPack=pCharInfo->pBankArray->Bank[nPack])
+        PCONTENTS pPack;
+
+	if (pCharInfo->pBankArray && (pPack=pCharInfo->pBankArray->Bank[nPack]))
         {
             if (bExact)
             {
@@ -814,7 +816,8 @@ TLO(dataFindItemBank)
             {
                 for (unsigned long nItem=0 ; nItem < GetItemFromContents(pPack)->Slots ; nItem++)
                 {
-                    if (PCONTENTS pItem=pPack->pContentsArray->Contents[nItem])
+                    PCONTENTS pItem;
+                    if (pPack->pContentsArray && (pItem=pPack->pContentsArray->Contents[nItem]))
                     {
                         if (bExact)
                         {
@@ -842,7 +845,8 @@ TLO(dataFindItemBank)
     for (nPack=0 ; nPack < NUM_SHAREDBANK_SLOTS ; nPack++)
     {
         PCHARINFO pCharInfo=GetCharInfo();
-        if (PCONTENTS pPack=pCharInfo->pSharedBankArray->SharedBank[nPack])
+        PCONTENTS pPack;
+        if (pCharInfo->pSharedBankArray && (pPack=pCharInfo->pSharedBankArray->SharedBank[nPack]))
         {
             if (bExact)
             {
@@ -866,7 +870,8 @@ TLO(dataFindItemBank)
             {
                 for (unsigned long nItem=0 ; nItem < GetItemFromContents(pPack)->Slots ; nItem++)
                 {
-                    if (PCONTENTS pItem=pPack->pContentsArray->Contents[nItem])
+                    PCONTENTS pItem;
+                    if (pPack->pContentsArray && (pItem=pPack->pContentsArray->Contents[nItem]))
                     {
                         if (bExact)
                         {

@@ -443,7 +443,7 @@ typedef struct _ITEMSPELLS {
 /*0x64*/
 } ITEMSPELLS, *PITEMSPELLS; 
 
-// actual size: 0x5ec 20110413 - ieatacid
+// actual size: 0x5f0 20110615 - dkaa
 typedef struct _ITEMINFO {
 /*0x000*/ CHAR   Name[ITEM_NAME_LEN];
 /*0x040*/ CHAR   LoreName[LORE_NAME_LEN];
@@ -600,7 +600,7 @@ typedef struct _ITEMINFO {
 /*0x578*/ BYTE   QuestItem;
 /*0x579*/ BYTE   Unknown0x579[0x3];
 /*0x57c*/ DWORD  Clairvoyance;
-/*0x580*/ BYTE   Unknown0x580[0x6c];
+/*0x580*/ BYTE   Unknown0x580[0x70];
 /*0x5ec*/
 } ITEMINFO, *PITEMINFO;
 
