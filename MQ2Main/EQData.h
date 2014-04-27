@@ -1345,18 +1345,18 @@ typedef struct _SPAWNINFO {
 /*0x1004*/ VOID     *pcactorex;             // ActorInterface*
 /*0x1008*/ DWORD    Unknown0x1008;
 /*0x100c*/ VOID     *FaceRelatedActorStruct;
-/*0x1010*/ BYTE     Unknown0x1010[0x34];         // add 4
-/*0x1044*/ FLOAT    GetMeleeRangeVar2;      // used by GetMeleeRange
-/*0x1048*/ BYTE     Unknown0x1048[0x60];
-/*0x10a8*/ DWORD    Animation;
-/*0x10ac*/ BYTE     Unknown0x10ac[0x104];
-/*0x11b0*/ FLOAT    WalkSpeed;
-/*0x11b4*/ DWORD    HideCorpse;
-/*0x11b8*/ BYTE     Unknown0x11b8[0x40];
-/*0x11f8*/ BYTE     InvitedToGroup;
-/*0x11f9*/ BYTE     Unknown0x11f9[0x3];
-/*0x11fc*/ DWORD    GroupMemberTargeted;    // 0xFFFFFFFF if no target, else 1 through 5
-/*0x1200*/ BYTE     Unknown0x1200[0x180];
+/*0x1010*/ BYTE     Unknown0x1010[0x38];
+/*0x1048*/ FLOAT    GetMeleeRangeVar2;      // used by GetMeleeRange
+/*0x104c*/ BYTE     Unknown0x104c[0x60];
+/*0x10ac*/ DWORD    Animation;
+/*0x10b0*/ BYTE     Unknown0x10b0[0x104];
+/*0x11b4*/ FLOAT    WalkSpeed;
+/*0x11b8*/ DWORD    HideCorpse;
+/*0x11bc*/ BYTE     Unknown0x11bc[0x40];
+/*0x11fc*/ BYTE     InvitedToGroup;
+/*0x11fd*/ BYTE     Unknown0x11fd[0x3];
+/*0x1200*/ DWORD    GroupMemberTargeted;    // 0xFFFFFFFF if no target, else 1 through 5
+/*0x1204*/ BYTE     Unknown0x1204[0x180];
 /*0x1384*/ struct   _FELLOWSHIPINFO Fellowship; // size 0x9e4
 /*0x1d68*/ FLOAT    CampfireY;
 /*0x1d6c*/ FLOAT    CampfireX;
