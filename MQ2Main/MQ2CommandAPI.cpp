@@ -38,7 +38,7 @@ PMACROBLOCK GetWhileBlock()
 {
 	BOOL bFound = 0;
 	PMACROBLOCK pblock = gMacroBlock;
-	while(pblock->pPrev) {
+	while(pblock && pblock->pPrev) {
 		if (!strnicmp(pblock->Line,"sub ",4)) {
 			//we are at top of sub, shouldnt go up any further...
 			//next line must be the /while or we fail out...
@@ -116,6 +116,10 @@ VOID HideDoCommand(PSPAWNINFO pChar, PCHAR szLine, BOOL delayed)
 			//next one is NOT part of the while loop
 			//so its time to loop back
 			bLoopBack = 1;
+		}
+		if (szCmd[0]=='}') {
+			bRunNextCommand = TRUE;
+			return;
 		}
 	} else if (szCmd[0]=='}') {
 		if (strstr(szLine,"{")) {

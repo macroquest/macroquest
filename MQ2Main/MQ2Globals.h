@@ -380,7 +380,8 @@ EQLIB_VAR EQPlayer **ppControlledPlayer;
 #define pControlledPlayer (*ppControlledPlayer)
 
 
-
+EQLIB_VAR IconCache **ppIconCache;
+#define pIconCache (*ppIconCache)
 EQLIB_VAR EQWorldData **ppWorldData;
 #define pWorldData (*ppWorldData)
 EQLIB_VAR SpellManager **ppSpellMgr;
@@ -869,6 +870,7 @@ EQLIB_VAR DWORD pinstCTitleWnd;
 EQLIB_VAR DWORD pinstCContextMenuManager;
 EQLIB_VAR DWORD pinstCVoiceMacroWnd;
 EQLIB_VAR DWORD pinstCHtmlWnd;
+EQLIB_VAR DWORD pinstIconCache;
 
 EQLIB_VAR DWORD __CastRay;
 EQLIB_VAR DWORD __ConvertItemTags;
@@ -971,6 +973,7 @@ EQLIB_VAR DWORD CHotButtonWnd__DoHotButton;
 
 EQLIB_VAR DWORD CInvSlotMgr__FindInvSlot;
 EQLIB_VAR DWORD CInvSlotMgr__MoveItem;
+EQLIB_VAR DWORD CInvSlotMgr__SelectSlot;
 
 EQLIB_VAR DWORD CInvSlot__HandleRButtonUp;
 EQLIB_VAR DWORD CInvSlot__SliderComplete;
@@ -1030,6 +1033,7 @@ EQLIB_VAR DWORD CMerchantWnd__DisplayBuyOrSellPrice;
 EQLIB_VAR DWORD CMerchantWnd__RequestBuyItem;
 EQLIB_VAR DWORD CMerchantWnd__RequestSellItem;
 EQLIB_VAR DWORD CMerchantWnd__SelectBuySellSlot;
+EQLIB_VAR DWORD CMerchantWnd__ActualSelect;
 
 EQLIB_VAR DWORD CObfuscator__doit;
 
@@ -1167,10 +1171,12 @@ EQLIB_VAR DWORD EQ_Character__TotalEffect;
 EQLIB_VAR DWORD EQ_Item__CanDrop;
 EQLIB_VAR DWORD EQ_Item__CreateItemTagString;
 EQLIB_VAR DWORD EQ_Item__IsStackable;
+EQLIB_VAR DWORD EQ_Item__GetImageNum;
 
 EQLIB_VAR DWORD EQ_LoadingS__SetProgressBar;
 EQLIB_VAR DWORD EQ_LoadingS__Array;
 
+EQLIB_VAR DWORD EQ_PC__AlertInventoryChanged;
 EQLIB_VAR DWORD EQ_PC__DestroyHeldItemOrMoney;
 EQLIB_VAR DWORD EQ_PC__GetAltAbilityIndex;
 EQLIB_VAR DWORD EQ_PC__GetCombatAbility;
@@ -1218,6 +1224,14 @@ EQLIB_VAR DWORD EQSwitch__UseSwitch;
 EQLIB_VAR BOOL gbTimeStampChat;
 
 EQLIB_VAR BOOL gbBeepOnTells;
+
+EQLIB_VAR DWORD IconCache__GetIcon;
+
+EQLIB_VAR DWORD CContainerMgr__OpenContainer;
+
+EQLIB_VAR DWORD CContainerMgr__CloseContainer;
+
+EQLIB_VAR DWORD CQuantityWnd__Open;
 
 }
 using namespace MQ2Globals;

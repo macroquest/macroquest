@@ -432,7 +432,9 @@ EQLIB_API int GetLanguageIDByName(PCHAR szName);
 EQLIB_API int GetCurrencyIDByName(PCHAR szName);
 EQLIB_API PCHAR GetSpellNameByID(DWORD dwSpellID);
 EQLIB_API PSPELL GetSpellByName(PCHAR szName);
-EQLIB_API struct  _ITEMINFO *GetItemFromContents(struct _CONTENTS *c);
+namespace EQData {
+EQLIB_API struct _ITEMINFO *GetItemFromContents(struct _CONTENTS *c);
+};
 #include "MQ2Inlines.h"
 
 
@@ -587,6 +589,8 @@ EQLIB_API PCONTENTS	  FindItemBySlot(WORD InvSlot, WORD BagSlot=0xFFFF);
 EQLIB_API PEQINVSLOT  GetInvSlot(DWORD type,WORD invslot,WORD bagslot=0xFFFF);
 EQLIB_API BOOL		  IsItemInsideContainer(PCONTENTS pItem);
 EQLIB_API BOOL		  PickupOrDropItem(DWORD type, PCONTENTS pItem);
+EQLIB_API BOOL		  OpenContainer(PCONTENTS pItem,bool hidden,bool flag = 0);
+EQLIB_API BOOL		  CloseContainer(PCONTENTS pItem);
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 // Functions that were built into commands and people used DoCommand to execute                  //

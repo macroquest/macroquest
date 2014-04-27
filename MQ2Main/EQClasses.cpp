@@ -137,6 +137,10 @@ FUNCTION_AT_ADDRESS(struct  _CONTENTS* CMyInventory::GetSlot(int), CMyInventory_
 #ifdef EQ_Item__CreateItemTagString_x
 FUNCTION_AT_ADDRESS(char * EQ_Item::CreateItemTagString(char *, int),EQ_Item__CreateItemTagString); // Lax 11-14-2003
 #endif
+#ifdef EQ_Item__GetImageNum_x
+FUNCTION_AT_ADDRESS(int EQ_Item::GetImageNum(void)const,EQ_Item__GetImageNum); // Eqmule 02-07-2014
+#endif
+
 #ifdef CStmlWnd__AppendSTML_x
 FUNCTION_AT_ADDRESS(class CXSize CStmlWnd::AppendSTML(class CXStr),CStmlWnd__AppendSTML);
 #endif
@@ -1104,7 +1108,7 @@ FUNCTION_AT_ADDRESS(class EQ_Item *  CContainerMgr::GetWorldContainerItem(int),C
 FUNCTION_AT_ADDRESS(void  CContainerMgr::ClearWorldContainerItems(void),CContainerMgr__ClearWorldContainerItems);
 #endif
 #ifdef CContainerMgr__OpenContainer_x
-FUNCTION_AT_ADDRESS(void  CContainerMgr::OpenContainer(class EQ_Container *,int),CContainerMgr__OpenContainer);
+FUNCTION_AT_ADDRESS(void  CContainerMgr::OpenContainer(class EQ_Container *,int,bool),CContainerMgr__OpenContainer);
 #endif
 #ifdef CContainerMgr__CloseEQContainer_x
 FUNCTION_AT_ADDRESS(void  CContainerMgr::CloseEQContainer(class EQ_Container *),CContainerMgr__CloseEQContainer);
@@ -2275,6 +2279,9 @@ FUNCTION_AT_ADDRESS(void  CMerchantWnd::UpdateBuySellButtons(void),CMerchantWnd_
 #ifdef CMerchantWnd__SelectBuySellSlot_x
 FUNCTION_AT_ADDRESS(void  CMerchantWnd::SelectBuySellSlot(int,class CTextureAnimation *),CMerchantWnd__SelectBuySellSlot);
 #endif
+#ifdef CMerchantWnd__ActualSelect_x
+FUNCTION_AT_ADDRESS(int  CMerchantWnd::ActualSelect(class CMoveItemData *),CMerchantWnd__ActualSelect);
+#endif
 #ifdef CMerchantWnd__DisplayBuyOrSellPrice_x
 FUNCTION_AT_ADDRESS(void  CMerchantWnd::DisplayBuyOrSellPrice(bool,class EQ_Item *),CMerchantWnd__DisplayBuyOrSellPrice);
 #endif
@@ -2517,6 +2524,9 @@ FUNCTION_AT_ADDRESS(void  CQuantityWnd::Activate(class CXWnd *,int,int,int,int,b
 #endif
 #ifdef CQuantityWnd__CheckMaxEditWnd_x
 FUNCTION_AT_ADDRESS(void  CQuantityWnd::CheckMaxEditWnd(void),CQuantityWnd__CheckMaxEditWnd);
+#endif
+#ifdef CQuantityWnd__Open_x
+FUNCTION_AT_ADDRESS(void  CQuantityWnd::Open(class CXWnd *,int,int,int,int,int,int,bool),CQuantityWnd__Open);
 #endif
 #ifdef CQuantityWnd__UpdateEditWndFromSlider_x
 FUNCTION_AT_ADDRESS(void  CQuantityWnd::UpdateEditWndFromSlider(void),CQuantityWnd__UpdateEditWndFromSlider);
@@ -3132,6 +3142,15 @@ FUNCTION_AT_ADDRESS(void * __cdecl ChannelServerApi::SmartResize(void *,int,int)
 #endif
 #ifdef ChannelServerApi__GetNextField_x
 FUNCTION_AT_ADDRESS(int __cdecl ChannelServerApi::GetNextField(char *,int,char * *,char),ChannelServerApi__GetNextField);
+#endif
+#ifdef IconCache__IconCache_x
+FUNCTION_AT_ADDRESS( IconCache::IconCache(void),IconCache__IconCache);
+#endif
+#ifdef IconCache__dIconCache_x
+FUNCTION_AT_ADDRESS( IconCache::~IconCache(void),IconCache__dIconCache);
+#endif
+#ifdef IconCache__GetIcon_x
+FUNCTION_AT_ADDRESS(class CTextureAnimation * IconCache::GetIcon(int),IconCache__GetIcon);
 #endif
 #ifdef JournalNPC__JournalNPC_x
 FUNCTION_AT_ADDRESS( JournalNPC::JournalNPC(void),JournalNPC__JournalNPC);
@@ -4491,6 +4510,9 @@ FUNCTION_AT_ADDRESS(void  EQ_PC::CheckForGroupChanges(void),EQ_PC__CheckForGroup
 #endif
 #ifdef EQ_PC__UnpackMyNetPC_x
 FUNCTION_AT_ADDRESS(void  EQ_PC::UnpackMyNetPC(char *,int),EQ_PC__UnpackMyNetPC);
+#endif
+#ifdef EQ_PC__AlertInventoryChanged_x
+FUNCTION_AT_ADDRESS(void  EQ_PC::AlertInventoryChanged(void),EQ_PC__AlertInventoryChanged);
 #endif
 #ifdef EQ_PC__InitPlayerStart_x
 FUNCTION_AT_ADDRESS(void  EQ_PC::InitPlayerStart(unsigned int,unsigned char,int),EQ_PC__InitPlayerStart);

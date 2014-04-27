@@ -625,7 +625,7 @@ VOID CheckChatForEvent(PCHAR szMsg)
 			if(len>2) {
 				if(char *szTemp = (char *)LocalAlloc(LPTR,len+64)) {
 					strcpy_s(szTemp,len+63,&szClean[2]);
-					if(char *pDest = strrchr(szTemp,'\x12')) {
+					if(char *pDest = strchr(szTemp,'\x12')) {
 						pDest[0] = '\0';
 						sprintf_s(EventMsg,"%s%s",szTemp,&pDest[1]);
 						strcpy_s(szClean,len+63,EventMsg);

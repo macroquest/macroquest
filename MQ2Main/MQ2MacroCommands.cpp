@@ -1111,7 +1111,7 @@ VOID WhileCmd(PSPAWNINFO pChar, PCHAR szLine)
 
 	//ok so we have a loop...
 	//lets check all the lines within it
-	//and mark them so the interpreter knows not to exit it
+	//and mark the end so the interpreter knows when to exit it
 	MarkWhile(pChar,pEnd);
 	
 	

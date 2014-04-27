@@ -1,3 +1,40 @@
+19 Feb 2013 by eqmule
+-Updated for patch
+-Added LoreGroup and LinkDBValue to CONTENTS struct
+ It is used in the linkdb plugin. Cred: rswiders
+
+-Added a new TLO Member for Song/Buff, HitCount which will return a pIntType of how many hits a song/buff has left before it fades.
+ Usage /echo ${Me.Song[Lich Sting Recourse].HitCount}
+
+-made some adjustments to /itemnotify
+ Im not really finished with it, more testing is needed
+ but now it can select items when merchantwindow is open.
+
+ and /ctrl /itemnotify should pick up single items as well... *should*
+ more to come on this, its complicated... I know the code looks like a complete mess
+ but I will clean it up when I know exactly how I want it to work...
+
+05 Feb 2014 by eqmule
+-Changed /ini to work in the following way (see below), apperantly there was a bug in my understanding
+ of how people wanted it to work.
+//	/ini "someini.ini" "the section" "NULL" "NULL"
+//	adds a key named NULL and a value named NULL under the [the section]:
+//	to remove the key named NULL:
+//	/ini "someini.ini" "the section" "NULL" NULL
+//	OR /ini "someini.ini" "the section" "NULL"
+//	to remove section "the section":
+//	/ini "someini.ini" "the section" NULL
+//	OR /ini "someini.ini" "the section"
+//
+//	Basically leaving the third and/or fourth parameter blank will be interpreted as NULL
+//	enclosing NULL in quotes will interpret it as an actual string "NULL"
+
+29 Jan 2014 by eqmule
+-Fixed a bug in MQ2DataVars.cpp
+ itemlinks now works as intended. (again)
+-Added some support for ISXEQ and some new commands(/beepoontell,/timestamp) + a lineofsight code change
+ cred: Red-One
+
 28 Jan 2014 by eqmule
 -Updated for patch
 

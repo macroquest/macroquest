@@ -172,7 +172,11 @@ unsigned int __stdcall MQ2DataVariableLookup(char * VarName, char * Value)
     if (!GetCharInfo()) return strlen(Value);
     return strlen(ParseMacroParameter(GetCharInfo()->pSpawn,Value));
 }
+#ifndef ISXEQ
 VOID BeepOnTells(PSPAWNINFO pChar, char *szLine)
+#else
+int BeepOnTells(int argc, char *argv[])
+#endif
 {
 	if(gbBeepOnTells) {
 		gbBeepOnTells=0;
@@ -181,8 +185,15 @@ VOID BeepOnTells(PSPAWNINFO pChar, char *szLine)
 		gbBeepOnTells=1;
 		WriteChatColor("Beep On Tells is ON",CONCOLOR_YELLOW);
 	}
+#ifdef ISXEQ
+   return 0;
+#endif
 }
+#ifndef ISXEQ
 VOID TimeStampChat(PSPAWNINFO pChar, char *szLine)
+#else
+int TimeStampChat(int argc, char *argv[])
+#endif
 {
 	if(gbTimeStampChat) {
 		gbTimeStampChat=0;
@@ -191,6 +202,9 @@ VOID TimeStampChat(PSPAWNINFO pChar, char *szLine)
 		gbTimeStampChat=1;
 		WriteChatColor("Chat Time Stamping is ON",CONCOLOR_YELLOW);
 	}
+#ifdef ISXEQ
+   return 0;
+#endif
 }
 VOID InitializeChatHook()
 {
@@ -207,15 +221,25 @@ VOID InitializeChatHook()
     EzDetour(CEverQuest__dsp_chat,&CChatHook::Detour,&CChatHook::Trampoline);
     EzDetour(CEverQuest__DoTellWindow,&CChatHook::TellWnd_Detour,&CChatHook::TellWnd_Trampoline);
     EzDetour(CEverQuest__UPCNotificationFlush,&CChatHook::UPCNotificationFlush_Detour,&CChatHook::UPCNotificationFlush_Trampoline);
+#ifndef ISXEQ
 	AddCommand("/timestamp", TimeStampChat);
 	AddCommand("/beepontells", BeepOnTells);
+#else
+   pISInterface->AddCommand("/timestamp", TimeStampChat,true,false);
+   pISInterface->AddCommand("/beepontells", BeepOnTells,true,false);
+#endif
 }
 
 VOID ShutdownChatHook()
 {
+#ifndef ISXEQ
 	RemoveCommand("/beepontells");
 	RemoveCommand("/timestamp");
-    RemoveDetour(CEverQuest__dsp_chat);
+#else
+   pISInterface->RemoveCommand("/timestamp");
+   pISInterface->RemoveCommand("/beepontells");
+#endif
+   RemoveDetour(CEverQuest__dsp_chat);
     RemoveDetour(CEverQuest__DoTellWindow);
     RemoveDetour(CEverQuest__UPCNotificationFlush);
 #ifndef ISXEQ

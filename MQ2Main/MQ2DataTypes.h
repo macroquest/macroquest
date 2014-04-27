@@ -1290,13 +1290,15 @@ class MQ2BuffType : public MQ2Type
 public:
     static enum BuffMembers
     {
-        ID=1,
-        Level=2,
-        Spell=3,
-        Mod=4,
-        Duration=5,
-        Dar=6,
-        Counters=7
+        Address=1,
+        ID=2,
+        Level=3,
+        Spell=4,
+        Mod=5,
+        Duration=6,
+        Dar=7,
+        Counters=8,
+		HitCount=9,
     };
     static enum BuffMethods
     {
@@ -1304,6 +1306,7 @@ public:
     };
     MQ2BuffType():MQ2Type("buff")
     {
+        TypeMember(Address);
         TypeMember(ID);
         TypeMember(Level);
         TypeMember(Spell);
@@ -1311,6 +1314,7 @@ public:
         TypeMember(Duration);
         TypeMember(Dar);
         TypeMember(Counters);
+        TypeMember(HitCount);
 
         TypeMethod(Remove);
     }

@@ -117,6 +117,7 @@ bool InitOffsets()
     ppLocalPlayer = (EQPlayer**)pinstLocalPlayer;
     ppControlledPlayer = (EQPlayer**)pinstControlledPlayer;
     ppWorldData = (EQWorldData**)pinstWorldData;
+	ppIconCache = (IconCache**)pinstIconCache;
     ppSpellMgr = (SpellManager**)pinstSpellManager;
     ppTarget = (EQPlayer**)pinstTarget;
     ppSwitchMgr = (EqSwitchManager**)pinstSwitchManager;
@@ -823,6 +824,7 @@ PCHAR szExpansions[] = {
     "House of Thule",
     "Veil of Alaris",
     "Rain of Fear",
+    "Call of the Forsaken",
     NULL
 };
 
@@ -1025,6 +1027,7 @@ EQPlayerManager **ppSpawnManager=0;
 EQPlayer **ppLocalPlayer=0;
 EQPlayer **ppControlledPlayer=0;
 EQWorldData **ppWorldData=0;
+IconCache **ppIconCache=0;
 SpellManager **ppSpellMgr=0;
 EQPlayer **ppTarget=0;
 EqSwitchManager **ppSwitchMgr=0;
@@ -1359,6 +1362,7 @@ INITIALIZE_EQGAME_OFFSET(pinstCTitleWnd);
 INITIALIZE_EQGAME_OFFSET(pinstCContextMenuManager);
 INITIALIZE_EQGAME_OFFSET(pinstCVoiceMacroWnd);
 INITIALIZE_EQGAME_OFFSET(pinstCHtmlWnd);
+INITIALIZE_EQGAME_OFFSET(pinstIconCache);
 
 INITIALIZE_EQGAME_OFFSET(__CastRay);
 INITIALIZE_EQGAME_OFFSET(__ConvertItemTags);
@@ -1461,6 +1465,7 @@ INITIALIZE_EQGAME_OFFSET(CHotButtonWnd__DoHotButton);
 
 INITIALIZE_EQGAME_OFFSET(CInvSlotMgr__FindInvSlot);
 INITIALIZE_EQGAME_OFFSET(CInvSlotMgr__MoveItem);
+INITIALIZE_EQGAME_OFFSET(CInvSlotMgr__SelectSlot);
 
 INITIALIZE_EQGAME_OFFSET(CInvSlot__HandleRButtonUp);
 INITIALIZE_EQGAME_OFFSET(CInvSlot__SliderComplete);
@@ -1520,6 +1525,7 @@ INITIALIZE_EQGAME_OFFSET(CMerchantWnd__DisplayBuyOrSellPrice);
 INITIALIZE_EQGAME_OFFSET(CMerchantWnd__RequestBuyItem);
 INITIALIZE_EQGAME_OFFSET(CMerchantWnd__RequestSellItem);
 INITIALIZE_EQGAME_OFFSET(CMerchantWnd__SelectBuySellSlot);
+INITIALIZE_EQGAME_OFFSET(CMerchantWnd__ActualSelect);
 
 INITIALIZE_EQGAME_OFFSET(CObfuscator__doit);
 
@@ -1657,10 +1663,12 @@ INITIALIZE_EQGAME_OFFSET(EQ_Character__TotalEffect);
 INITIALIZE_EQGAME_OFFSET(EQ_Item__CanDrop);
 INITIALIZE_EQGAME_OFFSET(EQ_Item__CreateItemTagString);
 INITIALIZE_EQGAME_OFFSET(EQ_Item__IsStackable);
+INITIALIZE_EQGAME_OFFSET(EQ_Item__GetImageNum);
 
 INITIALIZE_EQGAME_OFFSET(EQ_LoadingS__SetProgressBar);
 INITIALIZE_EQGAME_OFFSET(EQ_LoadingS__Array);
 
+INITIALIZE_EQGAME_OFFSET(EQ_PC__AlertInventoryChanged);
 INITIALIZE_EQGAME_OFFSET(EQ_PC__DestroyHeldItemOrMoney);
 INITIALIZE_EQGAME_OFFSET(EQ_PC__GetAltAbilityIndex);
 INITIALIZE_EQGAME_OFFSET(EQ_PC__GetCombatAbility);
@@ -1703,4 +1711,8 @@ INITIALIZE_EQGAME_OFFSET(StringTable__getString);
 
 INITIALIZE_EQGAME_OFFSET(PcZoneClient__GetPcSkillLimit);
 INITIALIZE_EQGAME_OFFSET(EQSwitch__UseSwitch);
+INITIALIZE_EQGAME_OFFSET(IconCache__GetIcon);
+INITIALIZE_EQGAME_OFFSET(CContainerMgr__OpenContainer);
+INITIALIZE_EQGAME_OFFSET(CContainerMgr__CloseContainer);
+INITIALIZE_EQGAME_OFFSET(CQuantityWnd__Open);
 };

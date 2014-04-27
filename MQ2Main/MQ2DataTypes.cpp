@@ -1768,6 +1768,10 @@ bool MQ2BuffType::GETMEMBER()
     static CHAR Temp[128];
     switch((BuffMembers)pMember->ID)
     {
+    case Address:
+		Dest.DWord=(DWORD)VarPtr.Ptr;
+		Dest.Type=pIntType;
+        return true;
     case ID:
         {
             if (GetBuffID(pBuff,(DWORD&)Dest.DWord))
@@ -1828,6 +1832,10 @@ bool MQ2BuffType::GETMEMBER()
         }
 #endif
         return false;
+	case HitCount:
+		Dest.DWord=pBuff->HitCount;
+		Dest.Type=pIntType;
+		return true;
     }
     return false;
 #undef pBuff
@@ -2949,27 +2957,27 @@ bool MQ2CharacterType::GETMEMBER()
 #undef pPetInfoWindow
         return false;
     case GroupLeaderExp:
-        Dest.Float=(FLOAT)pChar->GroupLeadershipExp;
+        Dest.Float=100.0;//(FLOAT)pChar->GroupLeadershipExp;
         Dest.Type=pFloatType;
         return true;
     case RaidLeaderExp:
-        Dest.Float=(FLOAT)pChar->RaidLeadershipExp;
+        Dest.Float=100.0;//(FLOAT)pChar->RaidLeadershipExp;
         Dest.Type=pFloatType;
         return true;
     case PctGroupLeaderExp:
-        Dest.Float=(float)pChar->GroupLeadershipExp/10.0f;
+        Dest.Float=100.0;//(float)pChar->GroupLeadershipExp/10.0f;
         Dest.Type=pFloatType;
         return true;
     case PctRaidLeaderExp:
-        Dest.Float=(float)pChar->RaidLeadershipExp/10.0f;
+        Dest.Float=100.0;//(float)pChar->RaidLeadershipExp/10.0f;
         Dest.Type=pFloatType;
         return true;
     case GroupLeaderPoints:
-        Dest.DWord=pChar->GroupLeadershipPoints;
+        Dest.DWord=0;//pChar->GroupLeadershipPoints;
         Dest.Type=pIntType;
         return true;
     case RaidLeaderPoints:
-        Dest.DWord=pChar->RaidLeadershipPoints;
+        Dest.DWord=0;//pChar->RaidLeadershipPoints;
         Dest.Type=pIntType;
         return true;
     case Stunned:
@@ -3292,51 +3300,51 @@ bool MQ2CharacterType::GETMEMBER()
         }
         return false;
     case LAMarkNPC:
-        Dest.DWord=GetCharInfo()->ActiveAbilities.MarkNPC;
+        Dest.DWord=3;//GetCharInfo()->ActiveAbilities.MarkNPC;
         Dest.Type=pIntType;
         return true;
     case LANPCHealth:
-        Dest.DWord=GetCharInfo()->ActiveAbilities.NPCHealth;
+        Dest.DWord=1;//=GetCharInfo()->ActiveAbilities.NPCHealth;
         Dest.Type=pIntType;
         return true;
     case LADelegateMA:
-        Dest.DWord=GetCharInfo()->ActiveAbilities.DelegateMA;
+        Dest.DWord=1;//GetCharInfo()->ActiveAbilities.DelegateMA;
         Dest.Type=pIntType;
         return true;
     case LADelegateMarkNPC:
-        Dest.DWord=GetCharInfo()->ActiveAbilities.DelegateMarkNPC;
+        Dest.DWord=1;//GetCharInfo()->ActiveAbilities.DelegateMarkNPC;
         Dest.Type=pIntType;
         return true;
     case LAInspectBuffs:
-        Dest.DWord=GetCharInfo()->ActiveAbilities.InspectBuffs;
+        Dest.DWord=2;//GetCharInfo()->ActiveAbilities.InspectBuffs;
         Dest.Type=pIntType;
         return true;
     case LASpellAwareness:
-        Dest.DWord=GetCharInfo()->ActiveAbilities.SpellAwareness;
+        Dest.DWord=1;//GetCharInfo()->ActiveAbilities.SpellAwareness;
         Dest.Type=pIntType;
         return true;
     case LAOffenseEnhancement:
-        Dest.DWord=GetCharInfo()->ActiveAbilities.OffenseEnhancement;
+        Dest.DWord=5;//GetCharInfo()->ActiveAbilities.OffenseEnhancement;
         Dest.Type=pIntType;
         return true;
     case LAManaEnhancement:
-        Dest.DWord=GetCharInfo()->ActiveAbilities.ManaEnhancement;
+        Dest.DWord=3;//GetCharInfo()->ActiveAbilities.ManaEnhancement;
         Dest.Type=pIntType;
         return true;
     case LAHealthEnhancement:
-        Dest.DWord=GetCharInfo()->ActiveAbilities.HealthEnhancement;
+        Dest.DWord=3;//GetCharInfo()->ActiveAbilities.HealthEnhancement;
         Dest.Type=pIntType;
         return true;
     case LAHealthRegen:
-        Dest.DWord=GetCharInfo()->ActiveAbilities.HealthRegen;
+        Dest.DWord=3;//GetCharInfo()->ActiveAbilities.HealthRegen;
         Dest.Type=pIntType;
         return true;
     case LAFindPathPC:
-        Dest.DWord=GetCharInfo()->ActiveAbilities.FindPathPC;
+        Dest.DWord=1;
         Dest.Type=pIntType;
         return true;
     case LAHoTT:
-        Dest.DWord=GetCharInfo()->ActiveAbilities.HoTT;
+        Dest.DWord=1;
         Dest.Type=pIntType;
         return true;
     case ActiveFavorCost:

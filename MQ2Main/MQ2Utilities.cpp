@@ -1287,8 +1287,8 @@ BOOL SearchThroughItems(SEARCHITEM &SearchItem, PCONTENTS* pResult, DWORD *nResu
         }
         for (nPack = 0 ; nPack<10 ; nPack++)
         {
-            if (PCONTENTS pContents=GetCharInfo2()->pInventoryArray->Inventory.Pack[nPack])
-                if (GetItemFromContents(pContents)->ItemType==ITEMTYPE_PACK && pContents->pContentsArray)
+            if (PCONTENTS pContents=GetCharInfo2()->pInventoryArray->Inventory.Pack[nPack]) {
+                if (GetItemFromContents(pContents)->Type==ITEMTYPE_PACK && pContents->pContentsArray)
                 {
                     for (unsigned long nItem = 0 ; nItem<GetItemFromContents(pContents)->Slots ; nItem++)
                     {
@@ -1297,6 +1297,7 @@ BOOL SearchThroughItems(SEARCHITEM &SearchItem, PCONTENTS* pResult, DWORD *nResu
                                 Result(pItem,nPack*100+nItem);
                     }
                 }
+			}
         }
     }
     // TODO
@@ -3080,7 +3081,7 @@ int FindInvSlotForContents(PCONTENTS pContents)
 if (pInvMgr->SlotArray[N]->pInvSlotWnd) {
 DebugSpew("%d slot %d wnd %d %d %d", N, pInvMgr->SlotArray[N]->InvSlot, 
     pInvMgr->SlotArray[N]->pInvSlotWnd->WindowType,
-    pInvMgr->SlotArray[N]->pInvSlotWnd->InvSlotForBag,
+    pInvMgr->SlotArray[N]->pInvSlotWnd->InvSlot,
     pInvMgr->SlotArray[N]->pInvSlotWnd->BagSlot
     );
 }
@@ -6184,7 +6185,7 @@ PEQINVSLOT GetInvSlot(DWORD type,WORD invslot,WORD bagslot)
 		PEQINVSLOT pSlot = 0;
 		for (DWORD i=0;i<pInvMgr->TotalSlots;i++) {
 			pSlot = pInvMgr->SlotArray[i];	
-			if (pSlot && pSlot->Valid && pSlot->pInvSlotWnd && pSlot->pInvSlotWnd->WindowType == type && pSlot->pInvSlotWnd->InvSlotForBag == invslot && pSlot->pInvSlotWnd->BagSlot == bagslot) {
+			if (pSlot && pSlot->Valid && pSlot->pInvSlotWnd && pSlot->pInvSlotWnd->WindowType == type && pSlot->pInvSlotWnd->InvSlot == invslot && pSlot->pInvSlotWnd->BagSlot == bagslot) {
 				CXMLData *pXMLData=((CXWnd*)pSlot->pInvSlotWnd)->GetXMLData();
 				if(pXMLData) {
 					CHAR szType[256] = {0};
@@ -6214,13 +6215,148 @@ BOOL IsItemInsideContainer(PCONTENTS pItem)
 	}
 	return FALSE;
 }
-BOOL PickupOrDropItem(DWORD type, PCONTENTS pItem)
+BOOL OpenContainer(PCONTENTS pItem,bool hidden,bool flag)
 {
 	if(!pItem)
 		return FALSE;
+	if(PCONTENTS pcont = FindItemBySlot(pItem->ItemSlot)) {
+		if(pcont->Open)
+			return FALSE;
+		if(GetItemFromContents(pcont)->Type==ITEMTYPE_PACK) {
+			if(PEQINVSLOT pSlot = GetInvSlot(0,pcont->ItemSlot)) {
+				if(hidden) {
+					//put code to hide bag here
+					//until i can figure out how to call moveitemqty
+				}
+				CMoveItemData To = {0};
+				To.InventoryType = 0;To.Unknown0x02 = 0;
+				To.InvSlot = pSlot->pInvSlotWnd->InvSlot;
+				To.BagSlot = pSlot->pInvSlotWnd->BagSlot;
+				To.GlobalSlot = pSlot->pInvSlotWnd->GlobalSlot;
+				To.RandomNum = pSlot->pInvSlotWnd->RandomNum;
+				To.Selection = (long)pcont;
+				pContainerMgr->OpenContainer((EQ_Container*)&pcont,(int)&To,flag);
+				//pPCData->AlertInventoryChanged();
+				if (pcont->Open) {
+					return TRUE;
+				}
+			}
+		}
+	}
+	return FALSE;
+}
+BOOL CloseContainer(PCONTENTS pItem)
+{
+	if(!pItem)
+		return FALSE;
+	if(PCONTENTS pcont = FindItemBySlot(pItem->ItemSlot)) {
+		if (!pcont->Open)
+			return FALSE;
+		if(GetItemFromContents(pcont)->Type==ITEMTYPE_PACK) {
+			pContainerMgr->CloseContainer((EQ_Container*)&pcont,1);
+			if (!pcont->Open) {
+				return TRUE;
+			}
+		}
+	}
+	return FALSE;
+}
+//WaitForBagToOpen code by eqmule 2014
+DWORD __stdcall WaitForBagToOpen(PVOID pData)
+{
+	PLARGE_INTEGER i64tmp = (PLARGE_INTEGER)pData;
+	DWORD type = i64tmp->LowPart;
+	PCONTENTS pItem = (PCONTENTS)i64tmp->HighPart;
+	int timeout = 0;
+	if(PCONTENTS pcont = FindItemBySlot(pItem->ItemSlot)) {
+		//((EQ_Item*)pcont)-
+		if(CInvSlot * theslot = pInvSlotMgr->FindInvSlot(pItem->ItemSlot)) {
+			if(((PEQINVSLOT)theslot)->pInvSlotWnd) {
+				while(!((PEQINVSLOT)theslot)->pInvSlotWnd->Wnd.dShow) {
+					Sleep(10);
+					timeout+=100;
+					if(timeout>=1000) {
+						break;
+					}
+				}
+			}
+		}
+		//this is most likely completely useless
+		//since the bag will actually always be open at this point
+		//how can i check if the item is in the slot?
+		//need to look into this further
+		//get the texture maybe? -eqmule
+		/*while(!pcont->Open) {
+			Sleep(10);
+			timeout+=100;
+			if(timeout>=1000) {
+				break;
+			}
+		}*/
+	}
+	Sleep(100);
+	bool Old=((PCXWNDMGR)pWndMgr)->KeyboardFlags[1];
+    ((PCXWNDMGR)pWndMgr)->KeyboardFlags[1]=1;
+	PickupOrDropItem(type,pItem);
+    ((PCXWNDMGR)pWndMgr)->KeyboardFlags[1]=Old;
+	LocalFree(pData);
+	//CloseContainer(pItem);
+	return 1;
+}
+BOOL PickupOrDropItem(DWORD type, PCONTENTS pItem)
+{
+	//check if merchantwindow is open
+	//if it is do some magic and open the bag so we can get the pslot
+	if(!pItem)
+		return FALSE;
+	PEQINVSLOTMGR pInvMgr  = (PEQINVSLOTMGR)pInvSlotMgr;
 	WORD InvSlot = pItem->ItemSlot,BagSlot = 0xFFFF;
+	BOOL itsinsideapack = 0;
 	if(IsItemInsideContainer(pItem)) {
+		itsinsideapack = 1;
+		if (pInvSlotMgr && pMerchantWnd && pMerchantWnd->dShow) {
+			OpenContainer(pItem,true);
+			if(CInvSlot * theslot = pInvSlotMgr->FindInvSlot(pItem->ItemSlot,pItem->ItemSlot2)) {
+				PEQINVSLOT cSlot = (PEQINVSLOT)theslot;
+				//ok so here is how this works:
+				//we select the slot, and thet will set pSelectedItem correctly
+				//we do this cause later on we need that address for the .Selection member
+				//
+				pInvSlotMgr->SelectSlot(theslot);
+				//int imagenum = ((EQ_Item*)pItem)->GetImageNum();
+				//CTextureAnimation *TextureAnim = pIconCache->GetIcon(imagenum);
+				CMoveItemData To = {0};
+				To.InventoryType = 0;To.Unknown0x02 = 0;
+				To.InvSlot = cSlot->pInvSlotWnd->InvSlot;
+				To.BagSlot = cSlot->pInvSlotWnd->BagSlot;
+				To.GlobalSlot = cSlot->pInvSlotWnd->GlobalSlot;
+				To.RandomNum = cSlot->pInvSlotWnd->RandomNum;
+				To.Selection = (long)((PEQINVSLOTMGR)pInvSlotMgr)->pSelectedItem;
+				pMerchantWnd->ActualSelect(&To);
+				return TRUE;
+			}
+			WriteChatf("[PickupOrDropItem]no invslot found");
+			return FALSE;
+		}
 		BagSlot = pItem->ItemSlot2;
+	} else {
+		if (pInvSlotMgr && pMerchantWnd && pMerchantWnd->dShow) {
+			if(CInvSlot * theslot = pInvSlotMgr->FindInvSlot(pItem->ItemSlot)) {
+				PEQINVSLOT cSlot = (PEQINVSLOT)theslot;
+				pInvSlotMgr->SelectSlot(theslot);
+				CMoveItemData To = {0};
+				To.InventoryType = 0;To.Unknown0x02 = 0;
+				To.InvSlot = cSlot->pInvSlotWnd->InvSlot;
+				To.BagSlot = cSlot->pInvSlotWnd->BagSlot;
+				To.GlobalSlot = cSlot->pInvSlotWnd->GlobalSlot;
+				To.RandomNum = cSlot->pInvSlotWnd->RandomNum;
+				To.Selection = (long)((PEQINVSLOTMGR)pInvSlotMgr)->pSelectedItem;
+				pMerchantWnd->ActualSelect(&To);
+				return TRUE;
+			}
+			WriteChatf("Invslot %d not found",InvSlot);
+			return FALSE;
+		}
 	}
 	BOOL bMoveFromCursor = 0;
 	PCHARINFO2 pChar2 = GetCharInfo2();
@@ -6235,45 +6371,86 @@ BOOL PickupOrDropItem(DWORD type, PCONTENTS pItem)
 	}
 	if(!bMoveFromCursor) {//user is picking up something
 		CMoveItemData From = {0};
-		From.InventoryType = type;
-		From.Unknown2 = 0;
+		From.InventoryType = (WORD)type;
+		From.Unknown0x02 = 0;
 		From.InvSlot = InvSlot;
 		From.BagSlot = BagSlot;
-		From.Unknown8 = pSlot->pInvSlotWnd->WeirdVariable1;
-		From.Unknowna = pSlot->pInvSlotWnd->WeirdVariable2;
+		From.GlobalSlot = pSlot->pInvSlotWnd->GlobalSlot;
+		From.RandomNum = pSlot->pInvSlotWnd->RandomNum;
 	
 		CMoveItemData To = {0};
 		To.InventoryType = 0;
-		To.Unknown2 = 0;
+		To.Unknown0x02 = 0;
 		To.InvSlot = 33;//cursor
 		To.BagSlot = 0xFFFF;
-		To.Unknown8 = 0xFFFF;
+		To.GlobalSlot = 0xFFFF;
 		if(((EQ_Item *)pItem)->IsStackable()) {
-			To.Unknowna = From.Unknowna-0xc;//I *THINK* this is correct, want to get dkaa to look at assembly and confirm... -eqmule
+			To.RandomNum = From.RandomNum-0xc;//I *THINK* this is correct, want to get dkaa to look at assembly and confirm... -eqmule
 		} else {
-			To.Unknowna = 0;
+			To.RandomNum = 0;
 		}
-		pInvSlotMgr->MoveItem(&From,&To,1,1,0,0);
+		//OpenContainer(pItem,0);
+		//if(CInvSlot *newslot = pInvSlotMgr->FindInvSlot(InvSlot,BagSlot)) {
+		//	pQuantityWnd->Open((CXWnd *)((PEQINVSLOT)newslot)->pInvSlotWnd,3,pItem->StackCount,
+		//		0x34F,0x14A,1,0,0);
+		//}
+		DWORD keybflag = pWndMgr->GetKeyboardFlags();
+/*							   shr     eax, 1
+.text:0069E9D1                 and     al, 1
+.text:0069E9D3                 mov     [esp+1Ch], al
+.text:0069E9D7                 mov     ecx, [esp+1Ch]
+.text:0069E9DB                 push    ecx
+*/
+		if(keybflag==2 && To.RandomNum && pItem->StackCount>1) {//ctrl was pressed and it is a stackable item
+			//until i figure out how to call moveitemqty
+			//I need to open the bag and notify it cause moveitem only picks up full stacks
+			BOOL wechangedpackopenstatus = 0;
+			if(itsinsideapack) {
+				wechangedpackopenstatus = OpenContainer(pItem,true);
+				if(wechangedpackopenstatus) {
+					PLARGE_INTEGER i64tmp = (PLARGE_INTEGER)LocalAlloc(LPTR,sizeof(LARGE_INTEGER));
+					i64tmp->LowPart = type;
+					i64tmp->HighPart = (LONG)pItem;
+					DWORD nThreadId = 0;
+					CreateThread(NULL,0,WaitForBagToOpen,i64tmp,0,&nThreadId);
+					return FALSE;
+				}
+				pSlot = (PEQINVSLOT)pInvSlotMgr->FindInvSlot(pItem->ItemSlot,pItem->ItemSlot2);
+			}
+			if (!pSlot || !pSlot->pInvSlotWnd || !SendWndClick2((CXWnd*)pSlot->pInvSlotWnd,"leftmouseup"))
+			{
+				WriteChatf("[PickupOrDropItem] falied");
+				return FALSE;
+			}
+			//thread this? hmm if i close it before item ends up on cursor, it wont...
+			//if(wechangedpackopenstatus)
+			//	CloseContainer(pItem);
+		} else {
+			pInvSlotMgr->MoveItem(&From,&To,2,2,2,2);
+		}
 		return TRUE;
 	} else {
 		//user has something on the cursor, lets drop it
-		CMoveItemData From = {0};
+		/*CMoveItemData From = {0};
 		From.InventoryType = 0;
-		From.Unknown2 = 0;
+		From.Unknown0x02 = 0;
 		From.InvSlot = 33;//cursor
 		From.BagSlot = 0xFFFF;
-		From.Unknown8 = 0xFFFF;
-		From.Unknowna = 0;
+		From.GlobalSlot = 0xFFFF;
+		From.RandomNum = 0;
 
 		CMoveItemData To = {0};
-		To.InventoryType = type;
-		To.Unknown2 = 0;
+		To.InventoryType = (WORD)type;
+		To.Unknown0x02 = 0;
 		To.InvSlot = InvSlot;
 		To.BagSlot = BagSlot;
-		To.Unknown8 = pSlot->pInvSlotWnd->WeirdVariable1;
-		To.Unknowna = pSlot->pInvSlotWnd->WeirdVariable2;
-		pInvSlotMgr->MoveItem(&From,&To,1,1,0,0);
-		return TRUE;
+		To.GlobalSlot = pSlot->pInvSlotWnd->GlobalSlot;
+		To.RandomNum = pSlot->pInvSlotWnd->RandomNum;
+		pInvSlotMgr->MoveItem(&From,&To,1,1,0,0);*/
+		if(pCharSpawn) {
+			DoCommand((PSPAWNINFO)pCharSpawn,"/autoinventory");
+			return TRUE;
+		}
 	}
 	return FALSE;
 }
@@ -6284,7 +6461,7 @@ BOOL PickupOrDropItem(DWORD type, PCONTENTS pItem)
 namespace EQData 
 {
 
-EQLIB_API struct  _ITEMINFO *GetItemFromContents(struct _CONTENTS *c)
+EQLIB_API struct _ITEMINFO *GetItemFromContents(struct _CONTENTS *c)
 {
     return c->Item1 ? c->Item1 : c->Item2;
 }

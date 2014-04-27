@@ -221,7 +221,7 @@ void InitializeMQ2Windows()
     ItemSlotMap[szOut]=start+i;\
     }
     AddSlotArray(bank,24,2000);
-    AddSlotArray(sharedbank,2,2500);
+    AddSlotArray(sharedbank,4,2500);
     AddSlotArray(trade,16,3000);
     AddSlotArray(world,10,4000);
     AddSlotArray(enviro,10,4000);
@@ -1179,10 +1179,10 @@ int WndNotify(int argc, char *argv[])
 
 // item slots:
 // 2000-2015 bank window
-// 2500-2501 shared bank
+// 2500-2503 shared bank
 // 5000-5031 loot window
-// 3000-30017 trade window (including npc) 3000-3007 are your slots, 3008-3015 are other character's slots
-// 4000-4008 world container window
+// 3000-3015 trade window (including npc) 3000-3007 are your slots, 3008-3015 are other character's slots
+// 4000-4010 world container window
 // 6000-6080 merchant window
 // 7000-7080 bazaar window
 // 8000-8031 inspect window
@@ -1318,7 +1318,7 @@ int ItemNotify(int argc, char *argv[])
 		//which is why I use GetInvSlot instead...
 		pSlot = GetInvSlot(type,invslot,bagslot);
         pNotification=&szArg4[0];
-		if(!pSlot && type!=-1) {//ok pSlot was not foundm (so bag is closed) BUT we can "click" it anyway with moveitem so lets just do that if pNotification is leftmoseup
+		if(!pSlot && type!=-1) {//ok pSlot was not found (so bag is closed) BUT we can "click" it anyway with moveitem so lets just do that if pNotification is leftmoseup
 			if(invslot<0 || invslot>NUM_INV_SLOTS) {
 				WriteChatf("%d is not a valid invslot. (itemnotify)",invslot);
 				RETURN(0);
@@ -1347,15 +1347,17 @@ int ItemNotify(int argc, char *argv[])
 				{
 					PCONTENTS pItem = FindItemBySlot(invslot,bagslot);
 					if(pItem) {
-						if (GetItemFromContents(pItem)->Clicky.SpellID)
+						if (GetItemFromContents(pItem)->Clicky.SpellID > 0 && GetItemFromContents(pItem)->Clicky.SpellID!=-1)
 						{
 							CHAR cmd[40] = {0};
 							sprintf(cmd, "/useitem %d %d", pItem->ItemSlot, pItem->ItemSlot2);
 							EzCommand(cmd);
 							RETURN(0);
 						}
-					} else {
+					} else {//it doesnt matter if its a bag, since the user specified "in"
+							//we cant open bags inside bags so lets just return...
 						WriteChatf("Item '%s' not found.",szArg2);
+						RETURN(0);
 					}
 				}
 			}
@@ -1390,7 +1392,7 @@ int ItemNotify(int argc, char *argv[])
                 }
                 for (i=0;i<pInvMgr->TotalSlots;i++) {
                     pSlot = pInvMgr->SlotArray[i];
-                    if (pSlot && pSlot->Valid && pSlot->pInvSlotWnd && pSlot->pInvSlotWnd->WindowType == type && pSlot->pInvSlotWnd->InvSlotForBag == invslot) {
+                    if (pSlot && pSlot->Valid && pSlot->pInvSlotWnd && pSlot->pInvSlotWnd->WindowType == type && pSlot->pInvSlotWnd->InvSlot == invslot) {
 						CXMLData *pXMLData=((CXWnd*)pSlot->pInvSlotWnd)->GetXMLData();
 						if(pXMLData) {
 							CHAR szType[256] = {0};
@@ -1416,20 +1418,27 @@ int ItemNotify(int argc, char *argv[])
 					PickupOrDropItem(0,ptheitem);
 				} else if(pNotification && !strnicmp(pNotification,"rightmouseup",12)) {//we fake it with /useitem
 					if ( HasExpansion(EXPANSION_VoA) ) {
-						if (GetItemFromContents(ptheitem)->Clicky.SpellID)
-						{
+						PITEMINFO pClicky = GetItemFromContents(ptheitem);
+						if (pClicky && pClicky->Clicky.SpellID!=-1)	{
 							CHAR cmd[40] = {0};
 							sprintf(cmd, "/useitem %d %d", ptheitem->ItemSlot, ptheitem->ItemSlot2);
 							EzCommand(cmd);
 							RETURN(0);
+						} else if(pClicky->Type == ITEMTYPE_PACK) {
+							//ok its a pack, so just open it
+							if(ptheitem->Open) {
+								CloseContainer(ptheitem);
+							} else {
+								OpenContainer(ptheitem,false);
+							}
 						}
 					} else {
-						WriteChatf("Item '%s' not found.",szArg2);
+						WriteChatColor("[/itemnotify] not VoA expanded (thats impossible)",CONCOLOR_BLUE);
 					}
 				}
 				RETURN(0);
 			}
-			WriteChatf("Invalid item slot '%s'",szArg1);
+			WriteChatf("[/itemnotify] Invalid item slot '%s'",szArg1);
             RETURN(0);
         } else if (Slot && !pSlot) {
             pSlot = pInvMgr->SlotArray[Slot];

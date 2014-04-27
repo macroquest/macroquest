@@ -290,6 +290,7 @@ class FilePath;
 class flex_unit;
 class GrammarRulesClass;
 class GuildMember;
+class IconCache;
 class JournalNPC;
 class KeyCombo;
 class KeypressHandler;
@@ -1349,7 +1350,7 @@ EQLIB_OBJECT class EQ_Item * CContainerMgr::GetWorldContainerItem(int);
 EQLIB_OBJECT void CContainerMgr::ClearWorldContainerItems(void);
 EQLIB_OBJECT void CContainerMgr::CloseContainer(class EQ_Container *,bool);
 EQLIB_OBJECT void CContainerMgr::CloseEQContainer(class EQ_Container *);
-EQLIB_OBJECT void CContainerMgr::OpenContainer(class EQ_Container *,int);
+EQLIB_OBJECT void CContainerMgr::OpenContainer(class EQ_Container *,int,bool);
 EQLIB_OBJECT void CContainerMgr::OpenWorldContainer(class EQ_Container *,unsigned long);
 EQLIB_OBJECT void CContainerMgr::Process(void);
 EQLIB_OBJECT void CContainerMgr::SetWorldContainerItem(class EQ_Item *,int);
@@ -2507,11 +2508,12 @@ class CMoveItemData
 {
 public:
     unsigned short InventoryType;   // 0 = regular inventory slots, 1 = bank slots, 2 = shared bank slots
-    unsigned short Unknown2;        // always 0?
+    unsigned short Unknown0x02;        // always 0?
     unsigned short InvSlot;
     unsigned short BagSlot;         // 0xFFFF if not in a bag, otherwise the bag slot number (0 through 9, or 0 through 19 if it's a 20-slot bag, etc)
-    unsigned short Unknown8;
-    unsigned short Unknowna;
+    unsigned short GlobalSlot;
+    unsigned short RandomNum;
+    unsigned long  Selection;
 };
 
 class CInvSlotMgr
@@ -2904,6 +2906,7 @@ EQLIB_OBJECT void CMerchantWnd::ClearMerchantSlot(int);
 EQLIB_OBJECT void CMerchantWnd::FinishBuyingItem(struct _sell_msg *);
 EQLIB_OBJECT void CMerchantWnd::FinishSellingItem(struct _sell_msg *);
 EQLIB_OBJECT void CMerchantWnd::SelectBuySellSlot(int,class CTextureAnimation *);
+EQLIB_OBJECT int CMerchantWnd::ActualSelect(CMoveItemData *);
 // virtual
 EQLIB_OBJECT CMerchantWnd::~CMerchantWnd(void);
 EQLIB_OBJECT int CMerchantWnd::OnProcessFrame(void);
@@ -3782,6 +3785,7 @@ EQLIB_OBJECT CQuantityWnd::CQuantityWnd(class CXWnd *);
 EQLIB_OBJECT void CQuantityWnd::Activate(class CXWnd *,int,int,int,int,bool);
 // virtual
 EQLIB_OBJECT CQuantityWnd::~CQuantityWnd(void);
+EQLIB_OBJECT void CQuantityWnd::Open(class CXWnd *,int,int,int,int,int,int,bool);
 EQLIB_OBJECT int CQuantityWnd::Draw(void)const;
 EQLIB_OBJECT int CQuantityWnd::OnProcessFrame(void);
 EQLIB_OBJECT int CQuantityWnd::WndNotification(class CXWnd *,unsigned __int32,void *);
@@ -5430,6 +5434,8 @@ EQLIB_OBJECT int EQ_Equipment::IsWeapon(void);
 EQLIB_OBJECT void EQ_Equipment::SendTextRequestMsg(void);
 };
 
+//this is really the ItemBase class
+//eqmule 2014 feb 06
 class EQ_Item
 {
 public:
@@ -5445,7 +5451,8 @@ EQLIB_OBJECT long EQ_Item::ValueSellMerchant(float,long);
 EQLIB_OBJECT bool EQ_Item::IsStackable(void); // Valerian 12-20-2004 
 
 EQLIB_OBJECT char * EQ_Item::CreateItemTagString(char *, int); // Lax 11-14-2003
-EQLIB_OBJECT int EQ_Item::CanDrop(bool,int,int mq2_dummy=0, int mq2_dummy2=1); 
+EQLIB_OBJECT int EQ_Item::CanDrop(bool,int,int mq2_dummy=0, int mq2_dummy2=1);
+EQLIB_OBJECT int EQ_Item::GetImageNum(void)const;
 ITEMINFO Data;
 };
 
@@ -5513,6 +5520,7 @@ EQLIB_OBJECT void EQ_PC::SetArmorTint(int,unsigned long);
 EQLIB_OBJECT void EQ_PC::SetArmorType(int,int);
 EQLIB_OBJECT void EQ_PC::SetFatigue(int);
 EQLIB_OBJECT void EQ_PC::UnpackMyNetPC(char *,int);
+EQLIB_OBJECT void EQ_PC::AlertInventoryChanged(void);
 EQLIB_OBJECT unsigned long EQ_PC::GetCombatAbilityTimer(int);
 EQLIB_OBJECT unsigned long EQ_PC::GetItemTimerValue(class EQ_Item *);
 EQLIB_OBJECT unsigned long EQ_PC::HasLoreItem(class EQ_Item *);
@@ -5992,6 +6000,13 @@ public:
 EQLIB_OBJECT GuildMember::GuildMember(void);
 };
 
+class IconCache
+{
+public:
+EQLIB_OBJECT IconCache::~IconCache(void);
+EQLIB_OBJECT IconCache::IconCache(void);
+EQLIB_OBJECT class CTextureAnimation * IconCache::GetIcon(int);
+};
 class JournalNPC
 {
 public:

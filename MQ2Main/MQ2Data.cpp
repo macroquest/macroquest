@@ -1509,11 +1509,10 @@ TLO(dataNamingSpawn)
     }
     return false;
 }
-
+//Updated by Red-One Jan 2014
 TLO(dataLineOfSight)
 {
-#ifndef ISXEQ /* CONVERT */
-    if (!GetCharInfo()->pSpawn)
+    if (!GetCharInfo() && !GetCharInfo()->pSpawn)
         return FALSE;
     if (ISINDEX())
     {
@@ -1522,6 +1521,16 @@ TLO(dataLineOfSight)
         P1[0]=P2[0]=((PSPAWNINFO)pCharSpawn)->Y;
         P1[1]=P2[1]=((PSPAWNINFO)pCharSpawn)->X;
         P1[2]=P2[2]=((PSPAWNINFO)pCharSpawn)->Z;
+#ifdef ISXEQ
+      if (argc != 6)
+         return false;
+      P1[0] = atof(argv[0]);
+      P1[1] = atof(argv[1]);
+      P1[2] = atof(argv[2]);
+      P2[0] = atof(argv[3]);
+      P2[1] = atof(argv[4]);
+      P2[2] = atof(argv[5]);
+#else
         if (PCHAR pColon=strchr(szIndex,':'))
         {
             *pColon=0;
@@ -1566,7 +1575,7 @@ TLO(dataLineOfSight)
         }
         else
             P1[0]=(FLOAT)atof(szIndex);
-
+#endif
 
         //DebugSpew("GetDistance3D(%1.0f,%1.0f,%1.0f,%1.0f,%1.0f,%1.0f)",P1[0],P1[1],P1[2],P2[0],P2[1],P2[2]);
         SPAWNINFO Temp=*GetCharInfo()->pSpawn;
@@ -1577,7 +1586,7 @@ TLO(dataLineOfSight)
         Ret.Type=pBoolType;
         return true;
     }
-#endif
+
     return false;
 }
 

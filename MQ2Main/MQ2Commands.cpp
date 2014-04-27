@@ -2036,7 +2036,7 @@ VOID Cast(PSPAWNINFO pChar, PCHAR szLine)
 		{
 			if (PCONTENTS pItem = FindItemByName(szArg2, true))
 			{
-				if (GetItemFromContents(pItem)->Clicky.SpellID)
+				if (GetItemFromContents(pItem)->Clicky.SpellID > 0 &&GetItemFromContents(pItem)->Clicky.SpellID != -1)
 				{
 					CHAR cmd[40] = {0};
 					sprintf(cmd, "/useitem %d %d", pItem->ItemSlot, pItem->ItemSlot2);
@@ -2050,7 +2050,7 @@ VOID Cast(PSPAWNINFO pChar, PCHAR szLine)
 			{
 				if ( pItem->ItemSlot<NUM_INV_SLOTS )
 				{
-					if (GetItemFromContents(pItem)->Clicky.SpellID)
+					if (GetItemFromContents(pItem)->Clicky.SpellID > 0 && GetItemFromContents(pItem)->Clicky.SpellID!=-1)
 					{
 						if (CInvSlot *pSlot=pInvSlotMgr->FindInvSlot(pItem->ItemSlot))
 						{
@@ -2426,7 +2426,19 @@ VOID Substitute(PSPAWNINFO pChar, PCHAR szLine)
 // Function:   IniOutput
 // Description:   Outputs string data to an INI file using
 //            WritePrivateProfileString.
-// Usage:      /ini
+// Usage:     	
+//
+//	/ini "someini.ini" "the section" "NULL" "NULL"
+//	adds a key named NULL and a value named NULL under the [the section]:
+//	to remove the key named NULL:
+//	/ini "someini.ini" "the section" "NULL" NULL
+//	OR /ini "someini.ini" "the section" "NULL"
+//	to remove section "the section":
+//	/ini "someini.ini" "the section" NULL
+//	OR /ini "someini.ini" "the section"
+//
+//	Basically leaving the third and/or fourth parameter blank will be interpreted as NULL
+//	enclosing NULL in quotes will interpret it as an actual string "NULL"
 // ***************************************************************************
 VOID IniOutput(PSPAWNINFO pChar, PCHAR szLine)
 {
@@ -2439,8 +2451,8 @@ VOID IniOutput(PSPAWNINFO pChar, PCHAR szLine)
 
     GetArg(szArg1,szLine,1);
     GetArg(szArg2,szLine,2);
-    GetArg(szArg3,szLine,3);
-    GetArg(szArg4,szLine,4);
+    GetArg(szArg3,szLine,3,1);
+    GetArg(szArg4,szLine,4,1);
 
     DebugSpew("/ini input -- %s %s %s %s",szArg1,szArg2,szArg3,szArg4);
     PCHAR pTemp=szArg1;
@@ -2451,38 +2463,38 @@ VOID IniOutput(PSPAWNINFO pChar, PCHAR szLine)
         pTemp++;
     }
 
-
     if (szArg1[0]!='\\' && !strchr(szArg1,':')) 
     {
         sprintf(szOutput,"%s\\%s",gszMacroPath, szArg1);
         strcpy(szArg1,szOutput);
     }
-    if (!strstr(szArg1,".")) strcat(szArg1,".ini");
+    if (!strstr(szArg1,".")) {
+		strcat(szArg1,".ini");
+	}
     ZeroMemory(szOutput,MAX_STRING);
-	if ( (!strlen(szArg4) && strlen(szArg3)) || (!_strnicmp(szArg4,"NULL",4) && strlen(szArg4)==4 && strlen(szArg3)) ) { //Deleting a key within a [section].
-		if (!WritePrivateProfileString(szArg2,szArg3,NULL,szArg1)) {
-            sprintf(szOutput,"IniOutput ERROR -- during WritePrivateProfileString: %s",szLine);
-            DebugSpew(szOutput);
-        } else {
-            sprintf(szOutput,"IniOutput Write Successful!");
-            DebugSpew("%s: %s",szOutput,szLine);
-        }
-    } else if ( (!strlen(szArg4) && !strlen(szArg3)) || (!_strnicmp(szArg3,"NULL",4) && strlen(szArg3)==4 && !_strnicmp(szArg4,"NULL",4) && strlen(szArg4)==4) ) { //Deleting a [section] and all keys under it.
-        if (!WritePrivateProfileString(szArg2,NULL,NULL,szArg1)) {
-            sprintf(szOutput,"IniOutput ERROR -- during WritePrivateProfileString: %s",szLine);
-            DebugSpew(szOutput);
-        } else {
-            sprintf(szOutput,"IniOutput Write Successful!");
-            DebugSpew("%s: %s",szOutput,szLine);
-        }
-    } else {
-		if (!WritePrivateProfileString(szArg2,szArg3,szArg4,szArg1)) {
-			sprintf(szOutput,"IniOutput ERROR -- during WritePrivateProfileString: %s",szLine);
-			DebugSpew(szOutput);
-		} else {
-			sprintf(szOutput,"IniOutput Write Successful!");
-			DebugSpew("%s: %s",szOutput,szLine);
-		}
+
+	void *Arg3 = (void *)&szArg3[0];
+	void *Arg4 = (void *)&szArg4[0];
+
+	if(!_strnicmp(szArg3,"NULL",4) && strlen(szArg3)==4) {
+		Arg3 = 0;
+	}
+	if(!_strnicmp(szArg4,"NULL",4) && strlen(szArg4)==4) {
+		Arg4 = 0;
+	}
+	//Lets strip the '"'
+	if(Arg3) {
+		GetArg(szArg3,szLine,3);
+	}
+	if(Arg4) {
+		GetArg(szArg4,szLine,4);
+	}
+	if (!WritePrivateProfileString(szArg2,(char*)Arg3,(char*)Arg4,szArg1)) {
+		sprintf(szOutput,"IniOutput ERROR -- during WritePrivateProfileString: %s",szLine);
+		DebugSpew(szOutput);
+	} else {
+		sprintf(szOutput,"IniOutput Write Successful!");
+		DebugSpew("%s: %s",szOutput,szLine);
 	}
 }
 
