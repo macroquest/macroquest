@@ -1,3 +1,6 @@
+29 Apr 2014 by eqmule
+- Updated for patch
+
 26 Apr 2014 by eqmule
 - If using an old ItemDB.txt you will now see a message asking you to update it.
 
