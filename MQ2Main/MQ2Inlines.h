@@ -139,10 +139,10 @@ static inline DWORD GetCharMaxBuffSlots()
 	DWORD NumBuffs = 15;
 	NumBuffs += pCharData1->TotalEffect(327, 1, 0, 1, 1);
 
-	PCHARINFO pChar = GetCharInfo();
-	if(pChar->pSpawn->Level > 70) NumBuffs++;
-    if(pChar->pSpawn->Level > 74) NumBuffs++;
-
+	if(PCHARINFO pChar = GetCharInfo()) {
+		if(pChar->pSpawn->Level > 70) NumBuffs++;
+		if(pChar->pSpawn->Level > 74) NumBuffs++;
+	}
 	return NumBuffs;
 }
 

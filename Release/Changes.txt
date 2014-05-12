@@ -1,3 +1,9 @@
+09 May  2014 by eqmule
+- Added nogroup to searchspawn - cred htw
+  This means you can do stuff like /echo ${Bool[${NearestSpawn[1, nogroup pc radius 300]}]}
+  it will return TRUE if there is at least 1 player within 300 radius of you thats NOT in your group.
+- Added case Range: to ItemType
+
 08 May 2014 by rswiders
 - Update of SpellSlotInfo for SPA's 157 to format as a ranged value
 - Added MaxBuffSlots, changed FreeBuffSlots to use the new function that gets the max buff slots

@@ -5074,6 +5074,13 @@ bool MQ2ItemType::GETMEMBER()
             Dest.DWord=GetItemFromContents(pItem)->Purity;
         Dest.Type=pIntType;
         return true;
+	case Range:
+		if (GetItemFromContents(pItem)->Type != ITEMTYPE_NORMAL)
+            Dest.DWord=0;
+        else
+            Dest.DWord=GetItemFromContents(pItem)->Range;
+        Dest.Type=pIntType;
+        return true;
     case Avoidance:
         if (GetItemFromContents(pItem)->Type != ITEMTYPE_NORMAL)
             Dest.DWord=0;

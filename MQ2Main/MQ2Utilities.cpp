@@ -5209,6 +5209,8 @@ BOOL SpawnMatchesSearch(PSEARCHSPAWN pSearchSpawn, PSPAWNINFO pChar, PSPAWNINFO 
         return FALSE;
     if (pSearchSpawn->bGroup && !IsInGroup(pSpawn))
         return FALSE;
+    if (pSearchSpawn->bNoGroup && IsInGroup(pSpawn))
+        return FALSE;
     if (pSearchSpawn->bRaid && !IsInRaid(pSpawn))
         return FALSE;
     if (pSearchSpawn->bKnownLocation) 
@@ -5317,6 +5319,8 @@ PCHAR ParseSearchSpawnArgs(PCHAR szArg, PCHAR szRest, PSEARCHSPAWN pSearchSpawn)
             pSearchSpawn->bGM = TRUE;
         } else if (!stricmp(szArg,"group")) {
             pSearchSpawn->bGroup = TRUE;
+		} else if (!stricmp(szArg,"nogroup")) {
+			pSearchSpawn->bNoGroup = TRUE;
         } else if (!stricmp(szArg,"raid")) {
             pSearchSpawn->bRaid = TRUE; 
         } else if (!stricmp(szArg,"noguild")) {
