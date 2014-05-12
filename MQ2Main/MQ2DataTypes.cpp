@@ -2271,25 +2271,12 @@ bool MQ2CharacterType::GETMEMBER()
             Dest.Ptr="FALSE";
         Dest.Type=pStringType;
         return true;
+	case MaxBuffSlots:
+		Dest.DWord = GetCharMaxBuffSlots();
+		Dest.Type = pIntType;
+		return true;
     case FreeBuffSlots: 
-        Dest.DWord=GetAAIndexByName("mystical attuning"); 
-        if (PlayerHasAAAbility(Dest.DWord)) 
-        { 
-            for (unsigned int j=0; j < AA_CHAR_MAX_REAL; j++) 
-            { 
-                if ( pPCData->GetAltAbilityIndex(j) == Dest.DWord) 
-                { 
-					PCHARINFO2 pChar2 = GetCharInfo2();
-                    Dest.DWord=15+(pChar2->AAList[j].PointsSpent/5); 
-                    break; 
-                } 
-            } 
-        } else Dest.DWord = 15; 
-        if(GetAAIndexByName("Embrace of the Dark Reign")) Dest.DWord++;
-        if(GetAAIndexByName("Embrace of the Keepers")) Dest.DWord++; 
-        if(GetCharInfo()->pSpawn->Level > 71) Dest.DWord++;
-        if(GetCharInfo()->pSpawn->Level > 74) Dest.DWord++;
-
+		Dest.DWord = GetCharMaxBuffSlots();
         for (nBuff=0 ; nBuff<NUM_LONG_BUFFS ; nBuff++) 
         { 
             if (GetCharInfo2()->Buff[nBuff].SpellID>0) 

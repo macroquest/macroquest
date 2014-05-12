@@ -1,3 +1,7 @@
+08 May 2014 by rswiders
+- Update of SpellSlotInfo for SPA's 157 to format as a ranged value
+- Added MaxBuffSlots, changed FreeBuffSlots to use the new function that gets the max buff slots
+
 29 Apr 2014 by eqmule
 - Updated for patch
 

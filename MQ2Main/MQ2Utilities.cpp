@@ -2685,8 +2685,8 @@ PCHAR ParseSpellEffect(PSPELL pSpell, int i, PCHAR szBuffer, LONG level)
     case 156: //Illusion: Target 
 		strcat(szBuff, spelleffectname);
 		break;
-    case 157: //Spell-Damage Shield 
-		strcat(szBuff, FormatBase(spelleffectname, base, szTemp2));
+    case 157: //Spell Damage Shield 
+		strcat(szBuff, FormatRange(spelleffectname, -value, extendedrange, szTemp2));
 		break;
     case 158: //Chance to Reflect Spell 
 		strcat(szBuff, FormatPercent(spelleffectname, value, finish, szTemp2));
@@ -6357,7 +6357,8 @@ BOOL SpellEffectTest (PSPELL aSpell, PSPELL bSpell, int i){
 //                ${Spell[xxx].WillStack[yyy]}, ${Spell[xxx].StacksWith[yyy]}
 // Author:      Pinkfloydx33
 // ***************************************************************************
-BOOL BuffStackTest(PSPELL aSpell, PSPELL bSpell){
+BOOL BuffStackTest(PSPELL aSpell, PSPELL bSpell)
+{
     if (aSpell->ID==bSpell->ID) return true;
 
     int i;

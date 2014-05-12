@@ -869,6 +869,7 @@ public:
 		AltCurrency=193,
 		ActiveDisc=194,
 		CountSongs=195,
+		MaxBuffSlots=196,
     };
     static enum CharacterMethods
     {
@@ -1071,6 +1072,7 @@ public:
 		TypeMember(AltCurrency);
 		TypeMember(ActiveDisc);
 		TypeMember(CountSongs);
+		TypeMember(MaxBuffSlots);
 		
         TypeMethod(Stand); 
         TypeMethod(Sit); 

@@ -174,7 +174,7 @@
         "Remove Detrimental",                   // 154
         "PoP Resurrect",                        // 155
         "Mirror",                               // 156
-        "Feedback",                             // 157
+        "Spell Damage Shield",                  // 157
         "Reflect Spell",                        // 158
         "All Stats",                            // 159
         "Drunk",                                // 160
