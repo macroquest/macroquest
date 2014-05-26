@@ -1,4 +1,10 @@
 23 May 2014 by eqmule
+- Fixed a fix...
+  Sorry but I was in the middle of testing stuff yesterday and today they patched so
+  in order to get everything out quick for x2 weekend
+  I missed a bug in GetSpellByID, its fixed now (again)
+
+23 May 2014 by eqmule
 - Updated for patch
 
 22 May 2014 by eqmule
