@@ -495,13 +495,14 @@ public:
         CurrentMana=94,
         MaxMana=95,
         CurrentEndurance=96,
-        MaxEndurance=97,
-        Loc=98,
-        LocYX=99,
-        Owner=100,
-        Following=101,
-		Address=102,
-		Inviter=103,
+		PctEndurance=97,
+        MaxEndurance=98,
+        Loc=99,
+        LocYX=100,
+        Owner=101,
+        Following=102,
+		Address=103,
+		Inviter=104,
 	};
     static enum SpawnMethods
     {
@@ -605,6 +606,7 @@ public:
         TypeMember(CurrentMana);
         TypeMember(MaxMana);
         TypeMember(CurrentEndurance);
+        TypeMember(PctEndurance);
         TypeMember(MaxEndurance);
         TypeMember(Loc);
         TypeMember(LocYX);

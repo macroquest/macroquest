@@ -1564,6 +1564,13 @@ bool MQ2SpawnType::GETMEMBER()
         Dest.DWord=pSpawn->EnduranceCurrent;
         Dest.Type=pIntType;
         return true;
+	case PctEndurance:
+		Dest.Type=pIntType;
+		if(pSpawn->EnduranceMax)
+			Dest.Int=pSpawn->EnduranceCurrent*100/pSpawn->EnduranceMax;
+		else
+			Dest.Int=0;
+		return true;
     case MaxEndurance:
         Dest.DWord=pSpawn->EnduranceMax;
         Dest.Type=pIntType;
