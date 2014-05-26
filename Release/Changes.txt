@@ -1,3 +1,9 @@
+23 May 2014 by eqmule
+- Updated for patch
+
+22 May 2014 by eqmule
+- Secured a few functions that calls GetSpellByID against buffer overflows.
+
 21 May 2014 by eqmule
 - Updated for patch
 

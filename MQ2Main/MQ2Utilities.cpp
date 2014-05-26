@@ -906,7 +906,7 @@ PSPELL GetSpellBySpellGroupID(LONG dwSpellGroupID)
 {
     if (ppSpellMgr) {
 		for (DWORD dwSpellID = 0; dwSpellID < TOTAL_SPELL_COUNT; dwSpellID++) {
-			if (PSPELL pSpell = &(*((PSPELLMGR)pSpellMgr)->Spells[dwSpellID])) {
+			if (PSPELL pSpell = GetSpellByID(dwSpellID)) {
 				if (pSpell->ID > 0) {
 					if (pSpell->SpellGroup == dwSpellGroupID) {
 						return pSpell;
@@ -929,8 +929,9 @@ PCHAR GetSpellNameBySpellGroupID(LONG dwSpellID)
 
 PCHAR GetSpellNameByID(LONG dwSpellID)
 {
-    if (ppSpellMgr) {
-		PSPELL pSpell = &(*((PSPELLMGR)pSpellMgr)->Spells[abs(dwSpellID)]);
+	long absedspellid = abs(dwSpellID);
+    if (ppSpellMgr && absedspellid!=0 && absedspellid!=-1 && absedspellid < TOTAL_SPELL_COUNT) {
+		PSPELL pSpell = GetSpellByID(absedspellid);
 		if (pSpell && pSpell->Name && pSpell->Name[0]!='\0') {
 			return pSpell->Name;
 		}
@@ -948,7 +949,7 @@ PSPELL GetSpellByName(PCHAR szName)
         return GetSpellByID(abs(atoi(szName)));
     }
     for (DWORD dwSpellID = 0; dwSpellID < TOTAL_SPELL_COUNT; dwSpellID++) {
-        if(PSPELL pSpell = &(*((PSPELLMGR)pSpellMgr)->Spells[dwSpellID])) {
+        if(PSPELL pSpell = GetSpellByID(dwSpellID)) {
 			if ((pSpell->ID > 0) && (pSpell->ID < TOTAL_SPELL_COUNT))
 			{
 				if (pSpell->Name != NULL) 
