@@ -1433,7 +1433,7 @@ int CanIUseThisItem(PCONTENTS pSlot, ITEMINFO *pItem)
 
 void AddGearScores(PCONTENTS pSlot,ITEMINFO *pItem,char *out,char *br)
 {
-	static DWORD lastTick = 0;
+	static ULONGLONG lastTick = 0;
 
 	if (CanIUseThisItem(pSlot,pItem)<1) return ;
 
@@ -1456,10 +1456,10 @@ void AddGearScores(PCONTENTS pSlot,ITEMINFO *pItem,char *out,char *br)
 		strcat(out,br);
 	}
 	// Trap the 3x call back stuff. 
-	if (GetTickCount()-lastTick > 1000 && ReportBestStr[0]!=0 && ReportChannel[0] == '/')
+	if (GetTickCount64()-lastTick > 1000 && ReportBestStr[0]!=0 && ReportChannel[0] == '/')
 	{
 		char szCmd[MAX_STRING];
-		lastTick = GetTickCount();
+		lastTick = GetTickCount64();
 		sprintf(szCmd,"%s %s",ReportChannel,ReportBestStr);
 		EzCommand(szCmd);
 		//WriteChatf("AddGearScores::Reporting Cmd = %s",szCmd);

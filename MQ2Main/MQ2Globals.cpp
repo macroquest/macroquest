@@ -313,7 +313,7 @@ PEVENTLIST pEventList = NULL;
 #endif
 
 DWORD gEventChat = 0;
-DWORD gRunning = 0;
+ULONGLONG gRunning = 0;
 BOOL gbMoving = FALSE;
 DWORD gMaxTurbo = 10;
 BOOL gReturn = TRUE;

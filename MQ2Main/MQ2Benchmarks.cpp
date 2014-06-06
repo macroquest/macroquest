@@ -52,7 +52,7 @@ VOID EnterMQ2Benchmark(DWORD BMHandle)
     if (Benchmarks[BMHandle])
     {
         //DebugSpew("EnterMQ2Benchmark(%s)",Benchmarks[BMHandle]->szName);
-        Benchmarks[BMHandle]->Entry=GetTickCount();
+        Benchmarks[BMHandle]->Entry=GetTickCount64();
     }
 }
 
@@ -62,7 +62,7 @@ VOID ExitMQ2Benchmark(DWORD BMHandle)
         return;
     if (Benchmarks[BMHandle])
     {
-        DWORD Time=GetTickCount()-Benchmarks[BMHandle]->Entry;
+        ULONGLONG Time=GetTickCount64()-Benchmarks[BMHandle]->Entry;
         //DebugSpew("ExitMQ2Benchmark(%s)",Benchmarks[BMHandle]->szName);
         Benchmarks[BMHandle]->LastTime=Time;
         if (Benchmarks[BMHandle]->Count>4000000000)
@@ -96,10 +96,10 @@ VOID SpewMQ2BenchmarksToChat(PSPAWNINFO pChar, PCHAR szLine)
     char out[256];
     if (szLine && szLine[0]=='/')
     {
-        DWORD Start=GetTickCount();
+        ULONGLONG Start=GetTickCount64();
         HideDoCommand(pChar,szLine,0);
-        DWORD Time=GetTickCount()-Start;
-        sprintf(out,"\ay%s\ax completed in \at%.2f\axs",szLine,(float)Time/(float)1000);
+        ULONGLONG Time=GetTickCount64()-Start;
+        sprintf(out,"\ay%s\ax completed in \at%.2f\axs",szLine,(double)Time/(double)1000);
         WriteChatColor(out);
     }
     else

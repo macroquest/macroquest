@@ -213,9 +213,9 @@ VOID RewriteMQ2Plugins(VOID)
     sprintf(MainINI,"%s\\macroquest.ini",gszINIPath);
 	DWORD dwAttrs = 0,bChangedfileattribs = 0;
 	if (dwAttrs = GetFileAttributes(MainINI)!=INVALID_FILE_ATTRIBUTES) {
-		if(dwAttrs&FILE_ATTRIBUTE_READONLY) {
+		if(dwAttrs & FILE_ATTRIBUTE_READONLY) {
 			bChangedfileattribs = 1;
-			SetFileAttributes(MainINI,FILE_ATTRIBUTE_NORMAL);
+			SetFileAttributes(MainINI,dwAttrs|FILE_ATTRIBUTE_NORMAL);
 		}
 	}
     GetPrivateProfileString("Plugins",NULL,"",PluginList,MAX_STRING*10,MainINI);

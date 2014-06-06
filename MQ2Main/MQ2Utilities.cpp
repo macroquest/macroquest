@@ -6440,10 +6440,9 @@ float GetMeleeRange(class EQPlayer *pSpawn1,class EQPlayer *pSpawn2)
 DWORD GetSpellGemTimer(DWORD nGem)
 {
     _EQCASTSPELLGEM *g = ((PEQCASTSPELLWINDOW)pCastSpellWnd)->SpellSlots[nGem];
-
-    if(g->TimeStamp)
+    if(g->TimeStamp) {
         return g->TimeStamp + g->RecastTime - EQGetTime();
-
+	}
     return 0;
 }
 

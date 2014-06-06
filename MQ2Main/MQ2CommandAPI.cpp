@@ -26,7 +26,7 @@ CRITICAL_SECTION gCommandCS;
 
 typedef struct _TIMEDCOMMAND
 {
-    DWORD Time;
+    ULONGLONG Time;
     CHAR Command[MAX_STRING];
     _TIMEDCOMMAND *pLast;
     _TIMEDCOMMAND *pNext;
@@ -792,7 +792,7 @@ void ShutdownMQ2Commands()
 
 VOID DoTimedCommands()
 {
-    DWORD Now=GetTickCount();
+    ULONGLONG Now=GetTickCount64();
     while(pTimedCommands && pTimedCommands->Time<=Now)
     {
         PTIMEDCOMMAND pNext=pTimedCommands->pNext;
@@ -805,7 +805,7 @@ VOID DoTimedCommands()
 VOID TimedCommand(PCHAR Command, DWORD msDelay)
 {
     PTIMEDCOMMAND pNew= new TIMEDCOMMAND;
-    pNew->Time=msDelay+GetTickCount();
+    pNew->Time=msDelay+GetTickCount64();
     strcpy(pNew->Command,Command);
 
     // insert into list

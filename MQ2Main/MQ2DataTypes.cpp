@@ -168,6 +168,47 @@ bool MQ2FloatType::GETMEMBER()
     }
     return false;
 }
+bool MQ2DoubleType::GETMEMBER()
+{
+    PMQ2TYPEMEMBER pMember=MQ2DoubleType::FindMember(Member);
+    if (!pMember)
+    {
+        return false;
+    }
+
+    switch((DoubleMembers)pMember->ID)
+    {
+    case Deci:
+        sprintf(DataTypeTemp,"%.1f",VarPtr.Double);
+        Dest.Type=pStringType;
+        Dest.Ptr=&DataTypeTemp[0];
+        return true;
+    case Centi:
+        sprintf(DataTypeTemp,"%.2f",VarPtr.Double);
+        Dest.Type=pStringType;
+        Dest.Ptr=&DataTypeTemp[0];
+        return true;
+    case Milli:
+        sprintf(DataTypeTemp,"%.3f",VarPtr.Double);
+        Dest.Type=pStringType;
+        Dest.Ptr=&DataTypeTemp[0];
+        return true;
+    case Int:
+        Dest.Type=pIntType;
+        Dest.Int=(int)(VarPtr.Double);
+        return true;
+    case Precision:
+        if (ISNUMBER())
+        {
+            sprintf(DataTypeTemp,"%.*f",GETNUMBER(),VarPtr.Double);
+            Dest.Type=pStringType;
+            Dest.Ptr=&DataTypeTemp[0];
+            return true;
+        }
+        return false;
+    }
+    return false;
+}
 
 bool MQ2IntType::GETMEMBER()
 {
@@ -182,6 +223,10 @@ bool MQ2IntType::GETMEMBER()
     case Float:
         Dest.Float=(FLOAT)1.0f*(VarPtr.Int);
         Dest.Type=pFloatType;
+        return true;
+    case Double:
+        Dest.Double=(DOUBLE)1.0f*(VarPtr.Int);
+        Dest.Type=pDoubleType;
         return true;
     case Hex:
         sprintf(DataTypeTemp,"%x",VarPtr.Int);
@@ -200,6 +245,46 @@ bool MQ2IntType::GETMEMBER()
     }
     return false;
 }
+bool MQ2Int64Type::GETMEMBER()
+{
+    PMQ2TYPEMEMBER pMember=MQ2Int64Type::FindMember(Member);
+    if (!pMember)
+    {
+        return false;
+    }
+
+    switch((Int64Members)pMember->ID)
+    {
+    case Float:
+        Dest.Float=(FLOAT)1.0f*(VarPtr.Int64);
+        Dest.Type=pFloatType;
+        return true;
+    case Double:
+        Dest.Double=(DOUBLE)1.0f*(VarPtr.Int64);
+        Dest.Type=pDoubleType;
+        return true;
+    case Hex:
+        sprintf(DataTypeTemp,"%x",VarPtr.Int64);
+        Dest.Ptr=&DataTypeTemp[0],
+            Dest.Type=pStringType;
+        return true;
+    case Reverse:
+        {
+            Dest.Array[0]=VarPtr.Array[7];
+            Dest.Array[1]=VarPtr.Array[6];
+            Dest.Array[2]=VarPtr.Array[5];
+            Dest.Array[3]=VarPtr.Array[4];
+            Dest.Array[4]=VarPtr.Array[3];
+            Dest.Array[5]=VarPtr.Array[2];
+            Dest.Array[6]=VarPtr.Array[1];
+            Dest.Array[7]=VarPtr.Array[0];
+            Dest.Type=pInt64Type;
+        }
+        return true;
+    }
+    return false;
+}
+
 bool MQ2StringType::GETMEMBER()
 {
     if (!VarPtr.Ptr)
@@ -729,8 +814,8 @@ bool MQ2MacroType::GETMEMBER()
         Dest.Type=pStringType;
         return true;
     case RunTime:
-        Dest.DWord=(DWORD)((GetTickCount()-gRunning)/1000);
-        Dest.Type=pIntType;
+		Dest.UInt64=((GetTickCount64()-gRunning)/1000);
+        Dest.Type=pInt64Type;
         return true;
     case Paused:
         Dest.DWord=gMacroPause;
@@ -831,6 +916,77 @@ bool MQ2TicksType::GETMEMBER()
     return false;
 #undef nTicks
 }
+
+bool MQ2TimeStampType::GETMEMBER()
+{
+#define nTimeStamp (VarPtr.UInt64)
+    unsigned long N=MemberMap[Member];
+    if (!N)
+        return false;
+    N--;
+    PMQ2TYPEMEMBER pMember=Members[N];
+    if (!pMember)
+        return false;
+    switch((TimeStampMembers)pMember->ID)
+    {
+    case Hours:
+        Dest.UInt64=(nTimeStamp/1000)/3600;
+        Dest.Type=pInt64Type;
+        return true;
+    case Minutes:
+        Dest.UInt64=((nTimeStamp/1000)/60)%60;
+        Dest.Type=pInt64Type;
+        return true;
+    case Seconds:
+        Dest.UInt64=(nTimeStamp/1000)%60;
+        Dest.Type=pInt64Type;
+        return true;
+    case TimeHMS:
+        {
+            ULONGLONG Secs=nTimeStamp/1000;
+            ULONGLONG Mins=(Secs/60)%60;
+            ULONGLONG Hrs=(Secs/3600);
+            Secs=Secs%60;
+            if (Secs<0)
+                sprintf(DataTypeTemp,"Perm");
+            else if (Hrs)
+                sprintf(DataTypeTemp,"%d:%02d:%02d",Hrs,Mins,Secs);
+            else
+                sprintf(DataTypeTemp,"%d:%02d",Mins,Secs);
+            Dest.Ptr=&DataTypeTemp[0];
+            Dest.Type=pStringType;
+        }
+        return true;
+    case Time:
+        {
+            ULONGLONG Secs=nTimeStamp / 1000;
+            ULONGLONG Mins=Secs / 60;
+            Secs=Secs % 60;
+            if (Secs < 0)
+                sprintf(DataTypeTemp,"Perm");
+            else
+                sprintf(DataTypeTemp,"%d:%02d",Mins,Secs);
+            Dest.Ptr=&DataTypeTemp[0];
+            Dest.Type=pStringType;
+        }
+        return true;
+    case TotalMinutes:
+        Dest.UInt64=(nTimeStamp / 1000) / 60;
+        Dest.Type=pInt64Type;
+        return true;
+    case TotalSeconds:
+        Dest.UInt64=nTimeStamp / 1000;
+        Dest.Type=pInt64Type;
+        return true;
+    case Ticks:
+		Dest.UInt64=((nTimeStamp / 1000) + 5) / 6;
+        Dest.Type=pInt64Type;
+        return true;
+    }        
+    return false;
+#undef nTimeStamp
+}
+
 
 bool MQ2ArgbType::GETMEMBER()
 {
@@ -3480,8 +3636,9 @@ bool MQ2CharacterType::GETMEMBER()
             {
                 if(GetCharInfo2()->MemorizedSpells[nGem] != 0xFFFFFFFF)
                 {
-                    Dest.DWord = (((GetSpellGemTimer(nGem) / 1000) + 5) / 6);
-                    Dest.Type = pTicksType;
+					//Dest.DWord = (((GetSpellGemTimer(nGem) / 1000) + 5) / 6);
+					Dest.UInt64 = GetSpellGemTimer(nGem);
+                    Dest.Type = pTimeStampType;
                     return true;
                 }
             }
@@ -3495,8 +3652,9 @@ bool MQ2CharacterType::GETMEMBER()
                 {
                     if (!stricmp(GETFIRST(),pSpell->Name))
                     {
-                        Dest.DWord = (((GetSpellGemTimer(nGem) / 1000) + 5) / 6);
-                        Dest.Type = pTicksType;
+                       // Dest.DWord = (((GetSpellGemTimer(nGem) / 1000) + 5) / 6);
+                        Dest.UInt64 = GetSpellGemTimer(nGem);
+                        Dest.Type = pTimeStampType;
                         return true;
                     }
                 }
@@ -3568,6 +3726,18 @@ bool MQ2CharacterType::GETMEMBER()
 			return true;
 		}
 		break;
+	case ZoneBoundX:
+		Dest.Float = GetCharInfo2()->ZoneBoundX;
+		Dest.Type=pFloatType;
+		return true;
+	case ZoneBoundY:
+		Dest.Float = GetCharInfo2()->ZoneBoundY;
+		Dest.Type=pFloatType;
+		return true;
+	case ZoneBoundZ:
+		Dest.Float = GetCharInfo2()->ZoneBoundZ;
+		Dest.Type=pFloatType;
+		return true;
 	case PctMercAAExp:
 		Dest.Float=(float)((pChar->MercAAExp+5)/10);//yes this is how it looks like the client is doing it in the disasm...
         Dest.Type=pFloatType;

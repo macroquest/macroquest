@@ -97,7 +97,7 @@ void Pulse()
     static PSPAWNINFO pCharOld = NULL;
     static FLOAT LastX = 0.0f;
     static FLOAT LastY = 0.0f;
-    static DWORD LastMoveTick = 0;
+    static ULONGLONG LastMoveTick = 0;
     static DWORD MapDelay = 0;
 
     static DWORD LastHealth = 0;
@@ -124,7 +124,7 @@ void Pulse()
         gbMoving = FALSE;
         LastX = pChar->X;
         LastY = pChar->Y;
-        LastMoveTick=GetTickCount();
+        LastMoveTick=GetTickCount64();
         EnviroTarget.Name[0]=0;
         pGroundTarget=0;
         DoorEnviroTarget.Name[0]=0;
@@ -153,8 +153,8 @@ void Pulse()
 		srand((unsigned int)time(NULL) + (unsigned int)GetCurrentProcessId()); // reseed
         Benchmark(bmPluginsSetGameState,PluginsZoned());
 
-    } else if ((LastX!=pChar->X) || (LastY!=pChar->Y) || LastMoveTick>GetTickCount()-100) {
-        if ((LastX!=pChar->X) || (LastY!=pChar->Y)) LastMoveTick=GetTickCount();
+    } else if ((LastX!=pChar->X) || (LastY!=pChar->Y) || LastMoveTick>GetTickCount64()-100) {
+        if ((LastX!=pChar->X) || (LastY!=pChar->Y)) LastMoveTick=GetTickCount64();
         gbMoving = TRUE;
         LastX = pChar->X;
         LastY = pChar->Y;
@@ -258,13 +258,13 @@ void Pulse()
 
 void Heartbeat()
 {
-    static DWORD LastGetTick = 0;
+    static ULONGLONG LastGetTick = 0;
     static bool bFirstHeartBeat = true;
-    static DWORD TickDiff=0;
+    static ULONGLONG TickDiff=0;
     static fMQPulse pEQPlayNicePulse = NULL;
     static DWORD BeatCount=0;
 
-    DWORD Tick = GetTickCount();
+    ULONGLONG Tick = GetTickCount64();
 
     BeatCount++;
 

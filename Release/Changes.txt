@@ -1,3 +1,25 @@
+01 Jun 2014 by eqmule
+- Added three new MQ2Type(s): MQ2TimeStampType, MQ2Int64Type and MQ2DoubleType
+  MQ2TimeStampType has the same submembers as pTicksType
+  with the difference being that the default return value is milliseconds.
+
+- MACRO-BREAKING CHANGE! (if your macro uses Me.GemTimer)
+  Look, for years we relied on updating stuff every 6 seconds (1 tick)...
+  I had to make this change since the client updates more often nowadays.
+  Which is why:
+  ${Me.GemTimer[x]} now returns a pTimeStamp.
+  The default return is milliseconds until gem is refreshed.
+  Usage Example: /echo ${Me.GemTimer[5].TotalSeconds}
+  Outputs: [MQ2] 25
+
+- All references to GetTickCount() have been replaced with GetTickCount64()
+  This will fix problems related to all timers for people who dont do a complete
+  shutdown of their computer earlier or on every 49.7th day.
+  Plugin authors should replace all references to GetTickCount() in their plugins
+  with GetTickCount64() as well.
+- ${Macro.Runtime} now returns a pInt64Type to be able to hold the return of GetTickCount64
+  if you are using ${Macro.Runtime} in your macro, make sure it works as intended. 
+
 23 May 2014 by eqmule
 - Fixed a fix...
   Sorry but I was in the middle of testing stuff yesterday and today they patched so
