@@ -982,6 +982,7 @@ VOID EndWhile(PSPAWNINFO pChar, PCHAR szCommand, PMACROBLOCK pStartLine, BOOL Al
             }
         }
     } else {
+		gMacroBlock = gMacroBlock->pNext;
         bRunNextCommand = TRUE;
     }
 }
@@ -997,7 +998,6 @@ VOID MarkWhile(PSPAWNINFO pChar, PCHAR szCommand, BOOL All=0)
         }
         Scope++;
         gMacroBlock = gMacroBlock->pNext;
-		gMacroBlock->CmdScope=1;
         while ((Scope>0)) {
             if (gMacroBlock->Line[0]=='}') {
 				Scope--;
@@ -1023,34 +1023,15 @@ VOID MarkWhile(PSPAWNINFO pChar, PCHAR szCommand, BOOL All=0)
                     FatalError("Bad {} block pairing");
                     return;
                 }
-				CHAR szOut[MAX_STRING] = {0};
-				GetArg(szOut,gMacroBlock->Line,1);
-                if (!strnicmp(szOut,"/delay",6)) {
-					bDelay = 1;
-				}
-				gMacroBlock->CmdScope=1;
                 gMacroBlock = gMacroBlock->pNext;
             }
         }
     } else {
 		//its a /while (something) /dosomething
 		//but we know, that unless that /dosomething is a /delay ... we WILL fail them...
-		CHAR szOut[MAX_STRING] = {0};
-		GetArg(szOut,gMacroBlock->Line,3);
-		if (!strnicmp(szOut,"/delay",6)) {
-			bDelay = 1;
-		}
-		gMacroBlock->CmdScope=1;
+		Sleep(0);
     }
-	if(!bDelay) {
-		FatalError("ERROR: /while used without /delay, thats a big nono, we dont want your cpu to lock up now do we?");
-		FatalError("example of proper usage1: /while (something) /delay 1s");
-		FatalError("example of proper usage2: /while (something) {");
-		FatalError("								/echo hi there im in a while loop...");
-		FatalError("								/delay 1s");
-		FatalError("						  }");
-        return;
-	}
+	gMacroBlock->LoopLine = pSaveLine->LineNumber;
 	gMacroBlock = pSaveLine;
 }
 //yes this is going to work, i just need some more time testing it -eqmule

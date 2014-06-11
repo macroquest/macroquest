@@ -3456,4 +3456,46 @@ VOID LootAll(PSPAWNINFO pChar, PCHAR szLine)
 {
 	pLootWnd->LootAll(1);
 }
+BOOL CALLBACK EnumWindowsProc(HWND hwnd,LPARAM lParam)
+{
+	DWORD procid = 0;
+	GetWindowThreadProcessId(hwnd,&procid);
+	if(procid==*(LPARAM *)lParam) {
+		*(LPARAM *)lParam = (LPARAM)hwnd;
+		return FALSE;
+	}
+	return TRUE;
+}
+
+// ***************************************************************************
+// Function:    SetWinTitle
+// Description: Our '/setwintitle' command
+//              Set the Window Title
+// Usage:       /setwintitle <something something>
+// ***************************************************************************
+VOID SetWinTitle(PSPAWNINFO pChar, PCHAR szLine)
+{
+	DWORD lReturn = GetCurrentProcessId();
+	DWORD pid = lReturn;
+	BOOL ret = EnumWindows(EnumWindowsProc,(LPARAM)&lReturn);
+	if(lReturn!=pid) {
+		if(szLine && szLine[0]!='\0') {
+			SetWindowText((HWND)lReturn,szLine);
+		}
+	}
+}
+VOID GetWinTitle(PSPAWNINFO pChar, PCHAR szLine)
+{
+	BOOL bHide = atoi(szLine);
+	szLine[0] = '\0';
+	DWORD lReturn = GetCurrentProcessId();
+	DWORD pid = lReturn;
+	BOOL ret = EnumWindows(EnumWindowsProc,(LPARAM)&lReturn);
+	if(lReturn!=pid) {
+		if(GetWindowText((HWND)lReturn,szLine,255) && szLine[0]!='\0') {
+			if(!bHide)
+				WriteChatf("Window Title: \ay%s\ax",szLine);
+		}
+	}
+}
 #endif

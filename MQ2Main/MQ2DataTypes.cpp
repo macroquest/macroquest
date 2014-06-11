@@ -3783,6 +3783,21 @@ bool MQ2CharacterType::GETMEMBER()
 			Dest.Type = pIntType;
 			return true;
 		}
+		break;
+	case WinTitle:
+		DataTypeTemp[0] = '1';
+		DataTypeTemp[1] = '\0';
+		GetWinTitle(GetCharInfo()->pSpawn,DataTypeTemp);
+		if(DataTypeTemp[0]!='\0') {
+			Dest.Ptr = DataTypeTemp;
+			Dest.Type = pStringType;
+			return true;
+		}
+		break;
+	case PID:
+		Dest.DWord = GetCurrentProcessId();
+		Dest.Type = pIntType;
+		return true;
 	}
     return false;
 #undef pChar

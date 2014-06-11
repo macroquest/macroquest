@@ -34,35 +34,26 @@ typedef struct _TIMEDCOMMAND
 
 PTIMEDCOMMAND pTimedCommands=0;
 
-PMACROBLOCK GetWhileBlock()
+PMACROBLOCK GetWhileBlock(DWORD line)
 {
+	
 	BOOL bFound = 0;
 	PMACROBLOCK pblock = gMacroBlock;
 	while(pblock && pblock->pPrev) {
-		if (!strnicmp(pblock->Line,"sub ",4)) {
-			//we are at top of sub, shouldnt go up any further...
-			//next line must be the /while or we fail out...
-			if(pblock && pblock->pNext) {
-				if (!strnicmp(pblock->pNext->Line,"/while",6)) {
-					bFound=1;
-				}
-			}
-			break;
-		}
-		if (!strnicmp(pblock->Line,"/while",6)) {
-			if(pblock && pblock->pPrev) {
-				pblock=pblock->pPrev;
-				bFound=1;
-			}
+		if (pblock->LineNumber==line) {
+			bFound = 1;
 			break;
 		}
 		pblock=pblock->pPrev;
+	}
+	if(line==1 && pblock && pblock->LineNumber==1) {
+		return pblock;
 	}
 	if(!bFound) {
 		FatalError("Bad while block pairing");
 		return NULL;
 	}
-	return pblock;
+	return pblock->pPrev;
 }
 VOID HideDoCommand(PSPAWNINFO pChar, PCHAR szLine, BOOL delayed)
 {
@@ -109,14 +100,10 @@ VOID HideDoCommand(PSPAWNINFO pChar, PCHAR szLine, BOOL delayed)
         bRunNextCommand = TRUE;
         return;
     }
-	BOOL bLoopBack = 0;
-	if(gMacroBlock && gMacroBlock->CmdScope==1) {
+	if(gMacroBlock && gMacroBlock->LoopLine!=0) {
 		//this is a command thats inside a while loop
-		if(gMacroBlock->pNext && gMacroBlock->pNext->CmdScope!=1) {
-			//next one is NOT part of the while loop
-			//so its time to loop back
-			bLoopBack = 1;
-		}
+		//so its time to loop back
+		gMacroBlock = GetWhileBlock(gMacroBlock->LoopLine);
 		if (szCmd[0]=='}') {
 			bRunNextCommand = TRUE;
 			return;
@@ -153,10 +140,6 @@ VOID HideDoCommand(PSPAWNINFO pChar, PCHAR szLine, BOOL delayed)
     if (szCmd[0]==';' || szCmd[0]=='[')
     {
         pEverQuest->InterpretCmd((EQPlayer*)pChar,szOriginalLine);
-		
-		if(bLoopBack) {
-			 gMacroBlock = GetWhileBlock();
-		}
         return;
     }
 
@@ -184,9 +167,6 @@ VOID HideDoCommand(PSPAWNINFO pChar, PCHAR szLine, BOOL delayed)
                 pCommand->Function(pChar,szParam);
 			}
             strcpy(szLastCommand,szOriginalLine);
-			if(bLoopBack) {
-				gMacroBlock = GetWhileBlock();
-			}
             return;
         }
         pCommand=pCommand->pNext;
@@ -687,6 +667,8 @@ void InitializeMQ2Commands()
         {"/nomodkey",   NoModKeyCmd,0,0},
         {"/useitem",    UseItemCmd,1,1},
 		{"/spellslotinfo",SpellSlotInfo,1,1},
+		{"/getwintitle",GetWinTitle,1,0},
+		{"/setwintitle",SetWinTitle,1,0},
         {NULL,          NULL,0,1},
     };
 

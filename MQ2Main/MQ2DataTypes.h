@@ -1019,6 +1019,8 @@ public:
 		ActiveDisc=197,
 		CountSongs=198,
 		MaxBuffSlots=199,
+		WinTitle=200,
+		PID=201,
     };
     static enum CharacterMethods
     {
@@ -1225,6 +1227,8 @@ public:
 		TypeMember(ActiveDisc);
 		TypeMember(CountSongs);
 		TypeMember(MaxBuffSlots);
+		TypeMember(WinTitle);
+		TypeMember(PID);
 		
         TypeMethod(Stand); 
         TypeMethod(Sit); 

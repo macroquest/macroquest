@@ -1,3 +1,14 @@
+09 Jun 2014 by eqmule
+- Fixed? /while
+  Feel free to test it and report any bugs.
+- Added /GetWinTitle and /SetWinTitle Commands
+- Added WinTitle to the Character TLO: it returns a pStringType
+- Added PID (Process ID) to the Character TLO: it returns a pIntType
+  Usage:
+  /SetWinTitle [${Me.PID}] EverQuest - ${Me.Name} (Lvl:${Me.Level} ${Me.Class})
+  /echo ${Me.WinTitle}
+  [MQ2] [2319] EverQuest - Eqmule (Lvl:100 Shadow Knight)
+
 01 Jun 2014 by eqmule
 - Added three new MQ2Type(s): MQ2TimeStampType, MQ2Int64Type and MQ2DoubleType
   MQ2TimeStampType has the same submembers as pTicksType

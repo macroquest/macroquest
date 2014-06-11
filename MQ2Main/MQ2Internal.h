@@ -208,7 +208,7 @@ namespace MQ2Internal {
         CHAR SourceFile[MAX_STRING];
         DWORD LineNumber;
         BOOL MacroCmd;
-        DWORD CmdScope;//flags for scope 0=if 1=while and more can be added if we need -eqmule
+        DWORD LoopLine;//used for loops/while if its 0 no action is taken, otherwise it will jump to the line indicated. -eqmule
 #ifdef MQ2_PROFILING
         DWORD ExecutionCount;
         LONGLONG ExecutionTime;

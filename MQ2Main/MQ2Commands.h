@@ -92,5 +92,7 @@ LEGACY_API VOID ZapVars                             (PSPAWNINFO,PCHAR);
 LEGACY_API VOID PopupText                           (PSPAWNINFO,PCHAR);
 LEGACY_API VOID UseItemCmd                          (PSPAWNINFO,PCHAR);
 LEGACY_API VOID SpellSlotInfo                       (PSPAWNINFO,PCHAR);
+LEGACY_API VOID SetWinTitle							(PSPAWNINFO,PCHAR);
+LEGACY_API VOID GetWinTitle							(PSPAWNINFO,PCHAR);
 LEGACY_API VOID PluginCmdSort                       (VOID);
 #endif
