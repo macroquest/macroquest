@@ -4796,25 +4796,38 @@ BOOL IsPCNear(PSPAWNINFO pSpawn, FLOAT Radius)
     return false;
 }
 
-BOOL IsInGroup(PSPAWNINFO pSpawn)
+BOOL IsInGroup(PSPAWNINFO pSpawn,BOOL bCorpse)
 {
     DWORD i;
     PCHARINFO pChar=GetCharInfo();
-    if (!pChar->pGroupInfo) return FALSE;
+    if (!pChar->pGroupInfo)
+		return FALSE;
     if (pSpawn==pChar->pSpawn)
         return TRUE;
-    for (i=1;i<6;i++) 
+    for (i=1;i<6;i++) {
         if (pChar->pGroupInfo->pMember[i])
         {
             CHAR Name[MAX_STRING]={0};
             GetCXStr(pChar->pGroupInfo->pMember[i]->pName,Name,MAX_STRING);
-            if (!stricmp(Name,pSpawn->Name))
-                return TRUE;
+            if(!bCorpse) {
+				if (!stricmp(Name,pSpawn->Name)) {
+					return TRUE;
+				}
+			} else {
+				CHAR szSearch[256] = {0};
+				strcpy_s(szSearch,Name);
+				strcat_s(szSearch,"'s corpse");
+				DWORD l = strlen(szSearch);
+				if (!strnicmp(pSpawn->Name,szSearch,l)) {
+					return TRUE;
+				}
+			}
         }
-        return FALSE;
+	}
+    return FALSE;
 }
 
-EQLIB_API BOOL IsInRaid(PSPAWNINFO pSpawn)
+EQLIB_API BOOL IsInRaid(PSPAWNINFO pSpawn, BOOL bCorpse)
 {
     DWORD i;
     if (pSpawn==GetCharInfo()->pSpawn)
@@ -4822,8 +4835,19 @@ EQLIB_API BOOL IsInRaid(PSPAWNINFO pSpawn)
     DWORD l = strlen(pSpawn->Name);
     for (i=0;i<72;i++)
     {
-        if (!strnicmp(pRaid->RaidMember[i].Name,pSpawn->Name,l+1) && pRaid->RaidMember[i].nClass == pSpawn->Class)
-            return TRUE;
+		if(!bCorpse) {
+			if (!strnicmp(pRaid->RaidMember[i].Name,pSpawn->Name,l+1) && pRaid->RaidMember[i].nClass == pSpawn->Class) {
+				return TRUE;
+			}
+		} else {
+			CHAR szSearch[256] = {0};
+			strcpy_s(szSearch,pRaid->RaidMember[i].Name);
+			strcat_s(szSearch,"'s corpse");
+			l = strlen(szSearch);
+			if (!strnicmp(szSearch,pSpawn->Name,l) && pRaid->RaidMember[i].nClass == pSpawn->Class) {
+				return TRUE;
+			}
+		}
     }
     return FALSE;
 } 
@@ -4872,6 +4896,7 @@ BOOL IsNamed(PSPAWNINFO pSpawn)
     if ((!strnicmp(szTemp,"Guard",5))          ||
         (!strnicmp(szTemp,"Defender",8))       ||
         (!strnicmp(szTemp,"Soulbinder",10))    ||
+        (!strnicmp(szTemp,"Aura",4))           ||
         (!strnicmp(szTemp,"Sage",4))           ||
         //(!strnicmp(szTemp,"High_Priest",11))   ||
         (!strnicmp(szTemp,"Ward",4))           ||
@@ -5146,15 +5171,21 @@ BOOL SpawnMatchesSearch(PSEARCHSPAWN pSearchSpawn, PSPAWNINFO pChar, PSPAWNINFO 
     if (pSearchSpawn->SpawnType != SpawnType && pSearchSpawn->SpawnType!=NONE)
     {
         if (pSearchSpawn->SpawnType==NPCCORPSE) {
-            if (SpawnType != CORPSE || pSpawn->Deity)
+            if (SpawnType != CORPSE || pSpawn->Deity) {
                 return FALSE;
+			}
         } else if (pSearchSpawn->SpawnType==PCCORPSE) {
-            if (SpawnType != CORPSE || !pSpawn->Deity)
+            if (SpawnType != CORPSE || !pSpawn->Deity) {
                 return FALSE;
-        } else {
+			}
+        } else  if (pSearchSpawn->SpawnType==NPC && SpawnType==UNTARGETABLE) {
+			return FALSE;
+		} else {
 
             // if the search type is not npc or the mob type is UNT, continue?
             // stupid /who
+           
+
             if (pSearchSpawn->SpawnType!=NPC || SpawnType!=UNTARGETABLE)
                 return FALSE;
         }
@@ -5208,12 +5239,28 @@ BOOL SpawnMatchesSearch(PSEARCHSPAWN pSearchSpawn, PSPAWNINFO pChar, PSPAWNINFO 
         return FALSE;
     if (pSearchSpawn->bTrader && !pSpawn->Trader)
         return FALSE;
-    if (pSearchSpawn->bGroup && !IsInGroup(pSpawn))
-        return FALSE;
+    if (pSearchSpawn->bGroup) {
+		BOOL ingrp = 0;
+		if(pSearchSpawn->SpawnType==PCCORPSE || pSpawn->Type==SPAWN_CORPSE) {
+			ingrp = IsInGroup(pSpawn,1);
+		} else {
+			ingrp = IsInGroup(pSpawn);
+		}
+        if(!ingrp)
+			return FALSE;
+	}
     if (pSearchSpawn->bNoGroup && IsInGroup(pSpawn))
         return FALSE;
-    if (pSearchSpawn->bRaid && !IsInRaid(pSpawn))
-        return FALSE;
+    if (pSearchSpawn->bRaid) {
+		BOOL ingrp = 0;
+		if(pSearchSpawn->SpawnType==PCCORPSE || pSpawn->Type==SPAWN_CORPSE) {
+			ingrp = IsInRaid(pSpawn,1);
+		} else {
+			ingrp = IsInRaid(pSpawn);
+		}
+         if(!ingrp)
+			 return FALSE;
+	}
     if (pSearchSpawn->bKnownLocation) 
     {
         if ((pSearchSpawn->xLoc!=pSpawn->X || pSearchSpawn->yLoc!=pSpawn->Y))

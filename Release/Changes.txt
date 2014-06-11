@@ -1,3 +1,20 @@
+10 Jun 2014 by eqmule
+- Since someone asked me this:
+  -Q: Can you make the /setwintitle set it each time u zone?
+  -A: Yes, create a file called zoned.cfg into your Release\Configs Folder
+  and paste for example: /SetWinTitle EverQuest - ${Me.Name} (${Zone.ShortName})
+  into it.
+- Fixed a problem with Auras being detected as a Named spawn. Cred Maskoi.
+- Fixed a bug in SearchSpawn where it would return Untargetable mobs
+  even though the untargetable flag wasnt set.
+  This means ${Spawn[npc radius 100]} wont return Arcane Distillect anymore,
+  but ${Spawn[npc untargetable radius 100]} will. (if one is in radius)
+- IsInGroup and IsInRaid now checks for Player's corpse as well as Player
+  (as long as you specify [pccorpse] in the spawnsearch.)
+  This means you can now do stuff like:
+  /echo ${SpawnCount[pccorpse Group zradius 50 radius 110]}
+  /echo ${SpawnCount[pccorpse Raid zradius 50 radius 110]}
+
 09 Jun 2014 by eqmule
 - Fixed? /while
   Feel free to test it and report any bugs.
