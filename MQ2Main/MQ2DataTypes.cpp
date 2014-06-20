@@ -1762,13 +1762,6 @@ bool MQ2SpawnType::GETMEMBER()
             return true;
         }
 		break;
-	case Zone:
-		if(pSpawn->Zone<=1000) {//ugly but for now until i can figure out where the other zones are stored...
-			Dest.Ptr=((PWORLDDATA)pWorldData)->ZoneArray[pSpawn->Zone];
-			Dest.Type=pZoneType;
-			return true;
-		}
-		break;
     }
     return false;
 }
@@ -4308,7 +4301,7 @@ bool MQ2SpellType::GETMEMBER()
 		}
 		return true;
 	case RankName:
-		//we only search the scribed spells.
+		//we first search the scribed spells.
 		for (DWORD nSpell=0 ; nSpell < NUM_BOOK_SLOTS ; nSpell++) {
 			if (GetCharInfo2()->SpellBook[nSpell] != 0xFFFFFFFF)
 			{
@@ -4322,6 +4315,19 @@ bool MQ2SpellType::GETMEMBER()
 				}
 			}
 		}
+		//but if we got here we should check if its a combatability
+		for (DWORD dwIndex=0;dwIndex<NUM_COMBAT_ABILITIES;dwIndex++) {
+            if (GetCharInfo2()->CombatAbilities[dwIndex]) {
+                if(PSPELL pFoundSpell = GetSpellByID(GetCharInfo2()->CombatAbilities[dwIndex])) {
+					if (pFoundSpell->SpellGroup==pSpell->SpellGroup)
+					{
+						Dest.Ptr = pFoundSpell;
+						Dest.Type = pSpellType;
+						return true;
+					}
+				}
+            }
+        }
 		return false;
 	case SpellGroup:
 		Dest.DWord = pSpell->SpellGroup;

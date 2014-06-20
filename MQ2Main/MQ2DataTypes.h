@@ -647,7 +647,6 @@ public:
         Following=102,
 		Address=103,
 		Inviter=104,
-		Zone=105,
 	};
     static enum SpawnMethods
     {
@@ -759,7 +758,6 @@ public:
         TypeMember(Following);
         TypeMember(Address);
         TypeMember(Inviter);
-        TypeMember(Zone);
 
         TypeMethod(Target);
         TypeMethod(Face);

@@ -1,7 +1,13 @@
+18 Jun 2014 by eqmule
+- Updated for patch.
+- The Spell TLO member .RankName now works for combatabilities as well
+  Example: /echo My version of Rest is: ${Spell[Rest].RankName}
+  Outputs: [MQ2] My version of Rest is: Rest Rk. II
+
 17 Jun 2014 by eqmule
 - ${Me.PID} ha been moved to the EverQuest TLO
   so it is now ${EverQuest.PID}
-- ${Me.WinTitle} ha been moved to the EverQuest TLO
+- ${Me.WinTitle} has been moved to the EverQuest TLO
   so it is now ${EverQuest.WinTitle}
 - New TLO: EverQuest - Cred: Cybertech
   it has basically the same members as the old MacroQuest TLO
