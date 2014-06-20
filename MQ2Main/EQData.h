@@ -1761,9 +1761,10 @@ typedef struct _SPELL {
 /*0x1c4*/   DWORD   Unknown183;         //Unknown183 from Lucy
 /*0x1c8*/   BYTE    Unknown0x1c8[0xc];
 /*0x1d4*/   DWORD   SpellGroup;
-/*0x1d8*/   BYTE    Unknown0x1d8[0x8];
-/*0x1e0*/   DWORD   Unknown222;         //Unknown222 from Lucy
-/*0x1e4*/   DWORD   Unknown223;         //Unknown223 from Lucy
+/*0x1d8*/   DWORD   SubSpellGroup;		//unknown237 on Lucy it is checked at 0x76FE18 in jun 11 2014 and if 0 will ask if we want to replace our spell with a rk. x version
+/*0x1dc*/   DWORD   SpellRank;			//Unknown209 on Lucy jun 11 2014 0x76FEE0 Original = 1 , Rk. II = 5 , Rk. III = 10 , I suppose if they add Rk. IV it will be 15 and so on -eqmule
+/*0x1e0*/   DWORD   Unknown222;         //Unknown222 on Lucy
+/*0x1e4*/   DWORD   Unknown223;         //Unknown223 on Lucy
 /*0x1e8*/   BYTE    Unknown0x1e8[0x24];
 /*0x20c*/   DWORD   MaxTargets;     //how many targets a spell will affect
 /*0x210*/   BYTE    Unknown0x210[0x27];
@@ -1927,6 +1928,7 @@ typedef struct _EQFRIENDSLIST {
 } EQFRIENDSLIST, *PEQFRIENDSLIST;
 
 // Size 0xa4    11/15/2011 ieatacid in msg_send_alt_data
+// Size 0xa8    06/11/2014 eqmule in msg_send_alt_data
 typedef struct _ALTABILITY {
 /*0x00*/ DWORD Index;
 /*0x04*/ DWORD Flags;                    //?

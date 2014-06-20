@@ -454,3 +454,9 @@ static inline DWORD FixOffset(DWORD nOffset)
 {
     return ((nOffset - 0x400000) + baseAddress);
 }
+
+static inline bool endsWith (char* base, char* str) {
+    int blen = strlen(base);
+    int slen = strlen(str);
+    return (blen >= slen) && (0 == strcmp(base + blen - slen, str));
+}

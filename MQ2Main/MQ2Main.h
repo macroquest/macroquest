@@ -433,6 +433,7 @@ EQLIB_API int GetLanguageIDByName(PCHAR szName);
 EQLIB_API int GetCurrencyIDByName(PCHAR szName);
 EQLIB_API PCHAR GetSpellNameByID(LONG dwSpellID);
 EQLIB_API PSPELL GetSpellByName(PCHAR szName);
+EQLIB_API DWORD GetSpellRankByName(PCHAR SpellName);
 namespace EQData {
 EQLIB_API struct _ITEMINFO *GetItemFromContents(struct _CONTENTS *c);
 };

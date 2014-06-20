@@ -128,6 +128,7 @@ void InitializeMQ2Data()
     AddMQ2Data("Pet",dataPet);
     AddMQ2Data("Window",dataWindow);
     AddMQ2Data("Macro",dataMacro);
+    AddMQ2Data("EverQuest",dataEverQuest);
     AddMQ2Data("MacroQuest",dataMacroQuest);
     AddMQ2Data("Math",dataMath);
     AddMQ2Data("Zone",dataZone);

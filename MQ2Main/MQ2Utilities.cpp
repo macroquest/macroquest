@@ -7133,6 +7133,75 @@ int GetTargetBuffBySPA(int spa,bool bIncrease)
 	}
 	return -1;
 }
+DWORD GetSpellRankByName(PCHAR SpellName)
+{
+	char szTemp[256];
+	strcpy_s(szTemp, SpellName);
+	_strupr(szTemp);
+	if (endsWith(szTemp, " II"))
+		return 2;
+	else if (endsWith(szTemp, " III"))
+		return 3;
+	else if (endsWith(szTemp, " IV"))
+		return 4;
+	else if (endsWith(szTemp, " V"))
+		return 5;
+	else if (endsWith(szTemp, " VI"))
+		return 6;
+	else if (endsWith(szTemp, " VII"))
+		return 7;
+	else if (endsWith(szTemp, " VIII"))
+		return 8;
+	else if (endsWith(szTemp, " IX"))
+		return 9;
+	else if (endsWith(szTemp, " X"))
+		return 10;
+	else if (endsWith(szTemp, " XI"))
+		return 11;
+	else if (endsWith(szTemp, " XII"))
+		return 12;
+	else if (endsWith(szTemp, " XIII"))
+		return 13;
+	else if (endsWith(szTemp, " XIV"))
+		return 14;
+	else if (endsWith(szTemp, " XV"))
+		return 15;
+	else if (endsWith(szTemp, " XVI"))
+		return 16;
+	else if (endsWith(szTemp, " XVII"))
+		return 17;
+	else if (endsWith(szTemp, " XVIII"))
+		return 18;
+	else if (endsWith(szTemp, " XIX"))
+		return 19;
+	else if (endsWith(szTemp, " XX"))
+		return 20;
+	else if (endsWith(szTemp, " XXI"))
+		return 21;
+	else if (endsWith(szTemp, " XXII"))
+		return 22;
+	else if (endsWith(szTemp, " XXIII"))
+		return 23;
+	else if (endsWith(szTemp, " XXIV"))
+		return 24;
+	else if (endsWith(szTemp, " XXV"))
+		return 25;
+	else if (endsWith(szTemp, " XXVI"))
+		return 26;
+	else if (endsWith(szTemp, " XXVII"))
+		return 27;
+	else if (endsWith(szTemp, " XXVIII"))
+		return 28;
+	else if (endsWith(szTemp, " XXIX"))
+		return 29;
+	else if (endsWith(szTemp, " XXX"))
+		return 30;
+	else if (endsWith(szTemp, ".II"))
+		return 2;
+	else if (endsWith(szTemp, ".III"))
+		return 3;
+	return 0;
+}
 //                                                                                               //
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 #endif

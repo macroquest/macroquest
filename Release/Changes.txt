@@ -1,3 +1,45 @@
+17 Jun 2014 by eqmule
+- ${Me.PID} ha been moved to the EverQuest TLO
+  so it is now ${EverQuest.PID}
+- ${Me.WinTitle} ha been moved to the EverQuest TLO
+  so it is now ${EverQuest.WinTitle}
+- New TLO: EverQuest - Cred: Cybertech
+  it has basically the same members as the old MacroQuest TLO
+  but I think most of them are more fitting under the EverQuest TLO.
+  MacroQuest TLO will inherit EverQuest TLO so backward compatibility is maintained
+  BUT new macros should use EverQuest instead.
+- Added SpellGroup and SubSpellGroup to the Spell TLO
+- Added RankName to the Spell TLO - Cred: petesampras,htw,maskoi
+  it returns a pSpellType rather than a pStringType, but since default is the .Name
+  and I think thats how most people will use it, its called "RankName"
+  Usage: /echo I have the ${Spell[Certitude].RankName} version of Certitude its ID is: ${Spell[Certitude].RankName.ID}
+  Output:
+  [MQ2] I have the Certitude Rk. II version of Ceritude its ID is:
+  Second example: Lets say you have Vinespur Rk. II in your spellbook (and memmed)
+  then doing a /cast "${Spell[Vinespur].RankName}" in your macro will cast it, since its
+  going to be resolved as /cast "Vinespur Rk. II"
+  This should decrease the edititing of inifiles everytime you buy a new rank of a spell.
+
+Friday the 13th!! (of June 2014 by eqmule)
+- Added Rank to the Spell TLO, it returns a pIntType thats either 1, 2 or 3 for spells
+  and 4-30 for clickys and potions. - Cred: petesampras
+  This represents the spell rank, i.e a Rk. II Spell will return a 2.
+  Usage: /echo ${Spell[Certitude Rk. II].Rank}
+  Outputs: [MQ2] 2
+- Added 3 new members to the Character TLO: (a while ago, just forgot to mention it.)
+    ZoneBoundX, ZoneBoundY, ZoneBoundZ
+	they return a pFloatType
+- ${Me.Name}, ${Me.Surname} ${Me.Level} ${Me.ID} now works at charselect as well.
+  There is no good reason to duplicate them, so from now on they are fetched from
+  LocalPlayer instead since that one exist at charselect, but pCharInfo does not.
+- Removed the follow since they are no longer in the client:
+	TypeMember(GroupLeaderExp);
+	TypeMember(RaidLeaderExp);
+	TypeMember(GroupLeaderPoints);
+	TypeMember(RaidLeaderPoints);
+	TypeMember(PctGroupLeaderExp);
+	TypeMember(PctRaidLeaderExp);
+
 10 Jun 2014 by eqmule
 - Since someone asked me this:
   -Q: Can you make the /setwintitle set it each time u zone?
@@ -22,8 +64,8 @@
 - Added WinTitle to the Character TLO: it returns a pStringType
 - Added PID (Process ID) to the Character TLO: it returns a pIntType
   Usage:
-  /SetWinTitle [${Me.PID}] EverQuest - ${Me.Name} (Lvl:${Me.Level} ${Me.Class})
-  /echo ${Me.WinTitle}
+  /SetWinTitle [${EverQuest.PID}] EverQuest - ${Me.Name} (Lvl:${Me.Level} ${Me.Class})
+  /echo ${EverQuest.WinTitle}
   [MQ2] [2319] EverQuest - Eqmule (Lvl:100 Shadow Knight)
 
 01 Jun 2014 by eqmule

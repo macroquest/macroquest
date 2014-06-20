@@ -1762,6 +1762,13 @@ bool MQ2SpawnType::GETMEMBER()
             return true;
         }
 		break;
+	case Zone:
+		if(pSpawn->Zone<=1000) {//ugly but for now until i can figure out where the other zones are stored...
+			Dest.Ptr=((PWORLDDATA)pWorldData)->ZoneArray[pSpawn->Zone];
+			Dest.Type=pZoneType;
+			return true;
+		}
+		break;
     }
     return false;
 }
@@ -1916,9 +1923,9 @@ bool MQ2CharacterType::GETMEMBER()
     if (!pMember)
     {
 #ifndef ISXEQ
-        return pSpawnType->GetMember(*(MQ2VARPTR*)&pChar->pSpawn,Member,Index,Dest);
+        return pSpawnType->GetMember(*(MQ2VARPTR*)&pLocalPlayer,Member,Index,Dest);
 #else
-        return pSpawnType->GetMember(*(LSVARPTR*)&pChar->pSpawn,Member,argc,argv,Dest);
+        return pSpawnType->GetMember(*(LSVARPTR*)&pLocalPlayer,Member,argc,argv,Dest);
 #endif
     }
 
@@ -1929,22 +1936,6 @@ bool MQ2CharacterType::GETMEMBER()
 
     switch((CharacterMembers)pMember->ID)
     {
-    case ID:
-        Dest.DWord=pChar->pSpawn->SpawnID;
-        Dest.Type=pIntType;
-        return true;
-    case Name:
-        Dest.Ptr=&pChar->Name[0];
-        Dest.Type=pStringType;
-        return true;
-    case Surname:
-        Dest.Ptr=&pChar->Lastname[0];
-        Dest.Type=pStringType;
-        return true;
-    case Level:
-        Dest.DWord=GetCharInfo2()->Level;
-        Dest.Type=pIntType;
-        return true;
     case Exp:
         Dest.DWord=pChar->Exp;
         Dest.Type=pIntType;
@@ -1958,7 +1949,7 @@ bool MQ2CharacterType::GETMEMBER()
         Dest.Type=pFloatType;
         return true;
     case Spawn:
-        Dest.Ptr=pChar->pSpawn;
+		Dest.Ptr=pLocalPlayer;
         Dest.Type=pSpawnType;
         return true;
     case CurrentHPs:
@@ -2936,7 +2927,7 @@ bool MQ2CharacterType::GETMEMBER()
             else
             {
                 // name
-                for (DWORD nSpell=0 ; nSpell < NUM_BOOK_SLOTS ; nSpell++)
+                for (DWORD nSpell=0 ; nSpell < NUM_BOOK_SLOTS ; nSpell++) {
                     if (GetCharInfo2()->SpellBook[nSpell] != 0xFFFFFFFF)
                     {
                         if (!stricmp(GetSpellNameByID(GetCharInfo2()->SpellBook[nSpell]),GETFIRST()))
@@ -2946,6 +2937,7 @@ bool MQ2CharacterType::GETMEMBER()
                             return true;
                         }
                     }
+				}
             }
         }
         return false;
@@ -3020,30 +3012,6 @@ bool MQ2CharacterType::GETMEMBER()
         }
 #undef pPetInfoWindow
         return false;
-    case GroupLeaderExp:
-        Dest.Float=100.0;//(FLOAT)pChar->GroupLeadershipExp;
-        Dest.Type=pFloatType;
-        return true;
-    case RaidLeaderExp:
-        Dest.Float=100.0;//(FLOAT)pChar->RaidLeadershipExp;
-        Dest.Type=pFloatType;
-        return true;
-    case PctGroupLeaderExp:
-        Dest.Float=100.0;//(float)pChar->GroupLeadershipExp/10.0f;
-        Dest.Type=pFloatType;
-        return true;
-    case PctRaidLeaderExp:
-        Dest.Float=100.0;//(float)pChar->RaidLeadershipExp/10.0f;
-        Dest.Type=pFloatType;
-        return true;
-    case GroupLeaderPoints:
-        Dest.DWord=0;//pChar->GroupLeadershipPoints;
-        Dest.Type=pIntType;
-        return true;
-    case RaidLeaderPoints:
-        Dest.DWord=0;//pChar->RaidLeadershipPoints;
-        Dest.Type=pIntType;
-        return true;
     case Stunned:
         Dest.DWord=(pChar->Stunned==1);
         Dest.Type=pBoolType;
@@ -3784,20 +3752,6 @@ bool MQ2CharacterType::GETMEMBER()
 			return true;
 		}
 		break;
-	case WinTitle:
-		DataTypeTemp[0] = '1';
-		DataTypeTemp[1] = '\0';
-		GetWinTitle(GetCharInfo()->pSpawn,DataTypeTemp);
-		if(DataTypeTemp[0]!='\0') {
-			Dest.Ptr = DataTypeTemp;
-			Dest.Type = pStringType;
-			return true;
-		}
-		break;
-	case PID:
-		Dest.DWord = GetCurrentProcessId();
-		Dest.Type = pIntType;
-		return true;
 	}
     return false;
 #undef pChar
@@ -4333,6 +4287,50 @@ bool MQ2SpellType::GETMEMBER()
 			}
         }
         return false;
+	case Rank:
+		Dest.DWord = pSpell->SpellRank;//well I haven't checked all spells, but im pretty sure if it's 0 its not a spell a player can scribe/or not intentional, i.e a eq bug, time will tell - eqmule
+		Dest.Type = pIntType;
+		switch(pSpell->SpellRank)
+		{
+			case 1://Original
+				Dest.DWord = 1;
+				break;
+			case 5://Rk. II
+				Dest.DWord = 2;
+				break;
+			case 10://Rk. III
+				Dest.DWord = 3;
+				break;
+		}
+		if(Dest.DWord==0) {
+			//didn't have a rank, lets see if we can get it from the name
+			Dest.DWord=GetSpellRankByName(pSpell->Name);
+		}
+		return true;
+	case RankName:
+		//we only search the scribed spells.
+		for (DWORD nSpell=0 ; nSpell < NUM_BOOK_SLOTS ; nSpell++) {
+			if (GetCharInfo2()->SpellBook[nSpell] != 0xFFFFFFFF)
+			{
+				if (PSPELL pFoundSpell = GetSpellByID(GetCharInfo2()->SpellBook[nSpell])) {
+					if (pFoundSpell->SpellGroup==pSpell->SpellGroup)
+					{
+						Dest.Ptr = pFoundSpell;
+						Dest.Type = pSpellType;
+						return true;
+					}
+				}
+			}
+		}
+		return false;
+	case SpellGroup:
+		Dest.DWord = pSpell->SpellGroup;
+		Dest.Type = pIntType;
+		return true;
+	case SubSpellGroup:
+		Dest.DWord = pSpell->SubSpellGroup;
+		Dest.Type = pIntType;
+		return true;
 	}
     return false;
 #undef pSpell
@@ -6190,10 +6188,58 @@ bool MQ2GroundType::GETMEMBER()
 }
 bool MQ2MacroQuestType::GETMEMBER()
 {
-    PMQ2TYPEMEMBER pMember=MQ2MacroQuestType::FindMember(Member);
+	PMQ2TYPEMEMBER pMember=MQ2MacroQuestType::FindMember(Member);
     if (!pMember)
         return false;
     switch((MacroQuestMembers)pMember->ID)
+    {
+    case Error:
+        if (gszLastNormalError[0])// QUIT SETTING THIS MANUALLY, USE MacroError, FatalError, ETC
+        {
+            Dest.Ptr=&gszLastNormalError[0];
+            Dest.Type=pStringType;
+            return true;
+        }
+        return false;
+    case SyntaxError:
+        if (gszLastSyntaxError[0])
+        {
+            Dest.Ptr=&gszLastSyntaxError[0];
+            Dest.Type=pStringType;
+            return true;
+        }
+        return false;
+    case MQ2DataError:
+        if (gszLastMQ2DataError[0])
+        {
+            Dest.Ptr=&gszLastMQ2DataError[0];
+            Dest.Type=pStringType;
+            return true;
+        }
+        return false;
+	case BuildDate: 
+        SYSTEMTIME st; 
+        HANDLE hFile; 
+        WIN32_FIND_DATA FileData; 
+        CHAR szBuffer[MAX_STRING]; 
+        sprintf(szBuffer,"%s\\MQ2Main.dll", gszINIPath); 
+        hFile = FindFirstFile(szBuffer, &FileData); 
+        // Convert the creation time time to local time. 
+        FileTimeToSystemTime(&FileData.ftLastWriteTime, &st); 
+        FindClose(hFile); 
+        sprintf(DataTypeTemp, "%d%d%d",st.wYear,st.wMonth,st.wDay); 
+        Dest.Ptr=&DataTypeTemp[0]; 
+        Dest.Type=pStringType; 
+        return true; 
+	}
+	return false;
+}
+bool MQ2EverQuestType::GETMEMBER()
+{
+    PMQ2TYPEMEMBER pMember=MQ2EverQuestType::FindMember(Member);
+    if (!pMember)
+        return false;
+    switch((EverQuestMembers)pMember->ID)
     {
     case GameState:
         if (gGameState==GAMESTATE_CHARSELECT)
@@ -6241,30 +6287,6 @@ bool MQ2MacroQuestType::GETMEMBER()
             return true;
         }
         return false;
-    case Error:
-        if (gszLastNormalError[0])// QUIT SETTING THIS MANUALLY, USE MacroError, FatalError, ETC
-        {
-            Dest.Ptr=&gszLastNormalError[0];
-            Dest.Type=pStringType;
-            return true;
-        }
-        return false;
-    case SyntaxError:
-        if (gszLastSyntaxError[0])
-        {
-            Dest.Ptr=&gszLastSyntaxError[0];
-            Dest.Type=pStringType;
-            return true;
-        }
-        return false;
-    case MQ2DataError:
-        if (gszLastMQ2DataError[0])
-        {
-            Dest.Ptr=&gszLastMQ2DataError[0];
-            Dest.Type=pStringType;
-            return true;
-        }
-        return false;
     case Running:
         Dest.DWord=(DWORD)clock();
         Dest.Type=pIntType;
@@ -6277,20 +6299,6 @@ bool MQ2MacroQuestType::GETMEMBER()
         Dest.DWord=((PMOUSEINFO)EQADDR_MOUSE)->Y;
         Dest.Type=pIntType;
         return true;
-    case BuildDate: 
-        SYSTEMTIME st; 
-        HANDLE hFile; 
-        WIN32_FIND_DATA FileData; 
-        CHAR szBuffer[MAX_STRING]; 
-        sprintf(szBuffer,"%s\\MQ2Main.dll", gszINIPath); 
-        hFile = FindFirstFile(szBuffer, &FileData); 
-        // Convert the creation time time to local time. 
-        FileTimeToSystemTime(&FileData.ftLastWriteTime, &st); 
-        FindClose(hFile); 
-        sprintf(DataTypeTemp, "%d%d%d",st.wYear,st.wMonth,st.wDay); 
-        Dest.Ptr=&DataTypeTemp[0]; 
-        Dest.Type=pStringType; 
-        return true; 
     case Ping:
         Dest.DWord=pConnection->Last;
         Dest.Type=pIntType;
@@ -6360,6 +6368,20 @@ bool MQ2MacroQuestType::GETMEMBER()
         Dest.DWord=gLClickedObject;
         Dest.Type=pBoolType;
         return true;
+	case WinTitle:
+		DataTypeTemp[0] = '1';
+		DataTypeTemp[1] = '\0';
+		GetWinTitle(GetCharInfo()->pSpawn,DataTypeTemp);
+		if(DataTypeTemp[0]!='\0') {
+			Dest.Ptr = DataTypeTemp;
+			Dest.Type = pStringType;
+			return true;
+		}
+		break;
+	case PID:
+		Dest.DWord = GetCurrentProcessId();
+		Dest.Type = pIntType;
+		return true;
     }
     return false;
 }

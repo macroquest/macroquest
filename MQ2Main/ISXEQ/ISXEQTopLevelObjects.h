@@ -25,6 +25,7 @@ TOPLEVELOBJECT("Spell",dataSpell);
 TOPLEVELOBJECT("Switch",dataSwitch);
 TOPLEVELOBJECT("GroundItem",dataGroundItem);
 TOPLEVELOBJECT("Merchant",dataMerchant);
+TOPLEVELOBJECT("EverQuest",dataEverQuest);
 TOPLEVELOBJECT("MacroQuest",dataMacroQuest);
 TOPLEVELOBJECT("Zone",dataZone);
 TOPLEVELOBJECT("Group",dataGroup);

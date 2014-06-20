@@ -279,8 +279,15 @@ TLO(dataMacro)
 
 TLO(dataMacroQuest)
 {
-    Ret.Ptr=0;
-    Ret.Type=pMacroQuestType;
+	Ret.Ptr=0;
+	Ret.Type = pMacroQuestType;
+    return true;
+}
+
+TLO(dataEverQuest)
+{
+	Ret.Ptr=0;
+	Ret.Type = pEverQuestType;
     return true;
 }
 #ifndef ISXEQ

@@ -647,6 +647,7 @@ public:
         Following=102,
 		Address=103,
 		Inviter=104,
+		Zone=105,
 	};
     static enum SpawnMethods
     {
@@ -758,6 +759,8 @@ public:
         TypeMember(Following);
         TypeMember(Address);
         TypeMember(Inviter);
+        TypeMember(Zone);
+
         TypeMethod(Target);
         TypeMethod(Face);
         TypeMethod(LeftClick);
@@ -822,9 +825,8 @@ class MQ2CharacterType : public MQ2Type
 public:
     static enum CharacterMembers
     {
-        ID=1,
-        Name=2,
-        Level=3,
+		CountSongs=2,
+		MaxBuffSlots=3,
         Exp=4,
         Spawn=5,
         Dar=6,
@@ -843,7 +845,6 @@ public:
         Book=20,
         Skill=21,
         Ability=22,
-        Surname=23,
         Cash=24,
         CashBank=25,
         PlatinumShared=26,
@@ -865,10 +866,6 @@ public:
         FreeInventory=43,
         Gem=44,
         SpellReady=45,
-        GroupLeaderExp=46,
-        RaidLeaderExp=47,
-        GroupLeaderPoints=48,
-        RaidLeaderPoints=49,
         Drunk=50,
         STR=51,
         STA=52,
@@ -905,8 +902,6 @@ public:
         GoldBank=83,
         SilverBank=84,
         CopperBank=85,
-        PctGroupLeaderExp=86,
-        PctRaidLeaderExp=87,
         Stunned=88,
         RangedReady=89,
         AltTimerReady=90,
@@ -1017,10 +1012,6 @@ public:
 		AAPointsAssigned=195,
 		AltCurrency=196,
 		ActiveDisc=197,
-		CountSongs=198,
-		MaxBuffSlots=199,
-		WinTitle=200,
-		PID=201,
     };
     static enum CharacterMethods
     {
@@ -1030,9 +1021,6 @@ public:
     };
     MQ2CharacterType():MQ2Type("character")
     {
-        TypeMember(ID);//1,
-        TypeMember(Name);//2,
-        TypeMember(Level);//3,
         TypeMember(Exp);//4,
         TypeMember(Spawn);//5,
         TypeMember(Dar);//6,
@@ -1051,7 +1039,6 @@ public:
         TypeMember(Book);//20,
         TypeMember(Skill);//21,
         TypeMember(Ability);//22,
-        TypeMember(Surname);//23,
         TypeMember(Cash);//24,
         TypeMember(CashBank);//25,
         TypeMember(PlatinumShared);//26,
@@ -1073,10 +1060,6 @@ public:
         TypeMember(FreeInventory);
         TypeMember(Gem);
         TypeMember(SpellReady);
-        TypeMember(GroupLeaderExp);
-        TypeMember(RaidLeaderExp);
-        TypeMember(GroupLeaderPoints);
-        TypeMember(RaidLeaderPoints);
         TypeMember(Drunk);
         TypeMember(STR);//51,
         TypeMember(STA);//52,
@@ -1113,8 +1096,6 @@ public:
         TypeMember(GoldBank);
         TypeMember(SilverBank);
         TypeMember(CopperBank);
-        TypeMember(PctGroupLeaderExp);
-        TypeMember(PctRaidLeaderExp);
         TypeMember(Stunned);
         TypeMember(RangedReady);
         TypeMember(AltTimerReady);
@@ -1227,8 +1208,6 @@ public:
 		TypeMember(ActiveDisc);
 		TypeMember(CountSongs);
 		TypeMember(MaxBuffSlots);
-		TypeMember(WinTitle);
-		TypeMember(PID);
 		
         TypeMethod(Stand); 
         TypeMethod(Sit); 
@@ -1245,9 +1224,9 @@ public:
 
     bool ToString(MQ2VARPTR VarPtr, PCHAR Destination)
     {
-        if (!VarPtr.Ptr)
+        if (!pLocalPlayer)
             return false;
-        strcpy(Destination,((PCHARINFO)VarPtr.Ptr)->Name);
+        strcpy(Destination,((PSPAWNINFO)pLocalPlayer)->Name);
         return true;
     }
     void InitVariable(MQ2VARPTR &VarPtr) 
@@ -1333,6 +1312,10 @@ public:
 		Description=52,
 		StacksWith=53,
 		Caster=54,
+		Rank=55,
+		RankName=56,
+		SpellGroup=57,
+		SubSpellGroup=58,
     };
     static enum SpellMethods
     {
@@ -1393,6 +1376,11 @@ public:
 		TypeMember(Description);
 		TypeMember(StacksWith);
 		TypeMember(Caster);
+		TypeMember(Rank);
+		TypeMember(RankName);
+		TypeMember(SpellGroup);
+		TypeMember(SubSpellGroup);
+		
     }
 
     ~MQ2SpellType()
@@ -2620,61 +2608,22 @@ public:
 class MQ2MacroQuestType : public MQ2Type
 {
 public:
-    static enum MacroQuestMembers
+	static enum MacroQuestMembers
     {
-        GameState=1,
-        LoginName=2,
-        Server=3,
-        LastCommand=4,
-        LastTell=5,
-        Error=6,
-        SyntaxError=7,
-        MQ2DataError=8,
-        Running=9,
-        MouseX=10,
-        MouseY=11,
-        BuildDate=12,
-        Ping=13,
-        ChatChannels=14,
-        ChatChannel=15,
-        ViewportX=16,
-        ViewportY=17,
-        ViewportXMax=18,
-        ViewportYMax=19,
-        ViewportXCenter=20,
-        ViewportYCenter=21,
-        LClickedObject=22,
-    };
-    static enum MacroQuestMethods
-    {
-    };
-    MQ2MacroQuestType():MQ2Type("macroquest")
-    {
-        TypeMember(GameState);
-        TypeMember(LoginName);
-        TypeMember(Server);
-        TypeMember(LastCommand);
-        TypeMember(LastTell);
-        TypeMember(Error);
+		Error=1,
+        SyntaxError=2,
+        MQ2DataError=3,
+		BuildDate=4,
+	};
+	MQ2MacroQuestType() :MQ2Type("macroquest")
+	{
+		TypeMember(Error);
         TypeMember(SyntaxError);
         TypeMember(MQ2DataError);
-        TypeMember(Running);
-        TypeMember(MouseX);
-        TypeMember(MouseY);
         TypeMember(BuildDate);
-        TypeMember(Ping);
-        TypeMember(ChatChannels);
-        TypeMember(ChatChannel);
-        TypeMember(ViewportX);
-        TypeMember(ViewportY);
-        TypeMember(ViewportXMax);
-        TypeMember(ViewportYMax);
-        TypeMember(ViewportXCenter);
-        TypeMember(ViewportYCenter);
-        TypeMember(LClickedObject);
-    }
-
-    ~MQ2MacroQuestType()
+	}
+	INHERITDIRECT(pEverQuestType);
+	~MQ2MacroQuestType()
     {
     }
 
@@ -2694,6 +2643,81 @@ public:
         return false;
     }
 };
+        
+class MQ2EverQuestType : public MQ2Type
+{
+public:
+    static enum EverQuestMembers
+    {
+        GameState=1,
+        LoginName=2,
+        Server=3,
+        LastCommand=4,
+        LastTell=5,
+        Running=6,
+        MouseX=7,
+        MouseY=8,
+        Ping=9,
+        LClickedObject=10,
+        WinTitle=11,
+        PID=12,
+		ChatChannels=13,
+        ChatChannel=14,
+        ViewportX=15,
+        ViewportY=16,
+        ViewportXMax=17,
+        ViewportYMax=18,
+        ViewportXCenter=19,
+        ViewportYCenter=20,
+    };
+    static enum EverQuestMethods
+    {
+    };
+    MQ2EverQuestType():MQ2Type("everquest")
+    {
+        TypeMember(GameState);
+        TypeMember(LoginName);
+        TypeMember(Server);
+        TypeMember(LastCommand);
+        TypeMember(LastTell);
+		TypeMember(Running);
+        TypeMember(MouseX);
+        TypeMember(MouseY);
+        TypeMember(Ping);
+        TypeMember(ChatChannels);
+        TypeMember(ChatChannel);
+        TypeMember(ViewportX);
+        TypeMember(ViewportY);
+        TypeMember(ViewportXMax);
+        TypeMember(ViewportYMax);
+        TypeMember(ViewportXCenter);
+        TypeMember(ViewportYCenter);
+        TypeMember(LClickedObject);
+        TypeMember(WinTitle);
+        TypeMember(PID);
+    }
+
+    ~MQ2EverQuestType()
+    {
+    }
+
+    bool GETMEMBER();
+    DECLAREGETMETHOD();
+
+    bool ToString(MQ2VARPTR VarPtr, PCHAR Destination)
+    {
+        return false;
+    }
+    bool FromData(MQ2VARPTR &VarPtr, MQ2TYPEVAR &Source)
+    {
+        return false;
+    }
+    bool FromString(MQ2VARPTR &VarPtr, PCHAR Source)
+    {
+        return false;
+    }
+};
+
 #ifndef ISXEQ
 class MQ2MathType : public MQ2Type
 {
