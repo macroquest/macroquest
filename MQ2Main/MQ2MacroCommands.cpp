@@ -294,7 +294,7 @@ VOID Macro(PSPAWNINFO pChar, PCHAR szLine)
         gRunning = 0;
         return;
     }
-    gRunning = GetTickCount64();
+    gRunning = GetTickCount642();
     gEventChat = 0;
     strcpy(gszMacroName,szTemp);
     DebugSpew("Macro - Loading macro: %s",Filename);

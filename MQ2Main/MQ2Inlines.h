@@ -302,7 +302,6 @@ static inline PSPAWNINFO FindMount(PSPAWNINFO pSpawn)
     return (pSpawn->Mount?pSpawn->Mount:pSpawn); 
 }
 
-
 // ***************************************************************************
 // Function:    ConColorToRGB
 // Description: Returns the RGB color for a con color
@@ -459,4 +458,27 @@ static inline bool endsWith (char* base, char* str) {
     int blen = strlen(base);
     int slen = strlen(str);
     return (blen >= slen) && (0 == strcmp(base + blen - slen, str));
+}
+// ***************************************************************************
+// Function:    GetTickCount642
+// Description: Returns TickCount
+// If the user is on Windows XP this function will call GetTickCount()
+// instead of GetTickCount64() (which doesnt exist on that platform.)
+// ***************************************************************************
+static inline ULONGLONG GetTickCount642(void)
+{
+	static int once = 1;
+    static ULONGLONG (WINAPI *pGetTickCount64)(void);
+    if (once) {
+		//we dont want to call this one over and over thats just stupid, so once is enough - eqmule
+        pGetTickCount64 = (ULONGLONG (WINAPI *)(void))GetProcAddress(GetModuleHandle("KERNEL32.DLL"), "GetTickCount64");
+		if (!pGetTickCount64)
+			pGetTickCount64 = (ULONGLONG (WINAPI *)(void))GetProcAddress(GetModuleHandle("KERNEL32.DLL"), "GetTickCount");
+		if (!pGetTickCount64) {
+			//MessageBox(NULL,"CRAP","What kind of OS are you running anyway?",MB_OK);
+			return (ULONGLONG)GetTickCount();
+		}
+		once = 0;
+    }
+    return pGetTickCount64();
 }

@@ -814,7 +814,7 @@ bool MQ2MacroType::GETMEMBER()
         Dest.Type=pStringType;
         return true;
     case RunTime:
-		Dest.UInt64=((GetTickCount64()-gRunning)/1000);
+		Dest.UInt64=((GetTickCount642()-gRunning)/1000);
         Dest.Type=pInt64Type;
         return true;
     case Paused:
@@ -4301,12 +4301,14 @@ bool MQ2SpellType::GETMEMBER()
 		}
 		return true;
 	case RankName:
+	{
+		PSPELL thespell = pSpell;
 		//we first search the scribed spells.
 		for (DWORD nSpell=0 ; nSpell < NUM_BOOK_SLOTS ; nSpell++) {
 			if (GetCharInfo2()->SpellBook[nSpell] != 0xFFFFFFFF)
 			{
 				if (PSPELL pFoundSpell = GetSpellByID(GetCharInfo2()->SpellBook[nSpell])) {
-					if (pFoundSpell->SpellGroup==pSpell->SpellGroup)
+					if (pFoundSpell->SpellGroup==thespell->SpellGroup && !strncmp(thespell->Name,pFoundSpell->Name,strlen(thespell->Name)))
 					{
 						Dest.Ptr = pFoundSpell;
 						Dest.Type = pSpellType;
@@ -4319,7 +4321,7 @@ bool MQ2SpellType::GETMEMBER()
 		for (DWORD dwIndex=0;dwIndex<NUM_COMBAT_ABILITIES;dwIndex++) {
             if (GetCharInfo2()->CombatAbilities[dwIndex]) {
                 if(PSPELL pFoundSpell = GetSpellByID(GetCharInfo2()->CombatAbilities[dwIndex])) {
-					if (pFoundSpell->SpellGroup==pSpell->SpellGroup)
+					if (pFoundSpell->SpellGroup==thespell->SpellGroup && !strncmp(thespell->Name,pFoundSpell->Name,strlen(thespell->Name)))
 					{
 						Dest.Ptr = pFoundSpell;
 						Dest.Type = pSpellType;
@@ -4329,6 +4331,7 @@ bool MQ2SpellType::GETMEMBER()
             }
         }
 		return false;
+	}
 	case SpellGroup:
 		Dest.DWord = pSpell->SpellGroup;
 		Dest.Type = pIntType;

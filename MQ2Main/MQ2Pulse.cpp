@@ -124,7 +124,7 @@ void Pulse()
         gbMoving = FALSE;
         LastX = pChar->X;
         LastY = pChar->Y;
-        LastMoveTick=GetTickCount64();
+        LastMoveTick=GetTickCount642();
         EnviroTarget.Name[0]=0;
         pGroundTarget=0;
         DoorEnviroTarget.Name[0]=0;
@@ -153,8 +153,8 @@ void Pulse()
 		srand((unsigned int)time(NULL) + (unsigned int)GetCurrentProcessId()); // reseed
         Benchmark(bmPluginsSetGameState,PluginsZoned());
 
-    } else if ((LastX!=pChar->X) || (LastY!=pChar->Y) || LastMoveTick>GetTickCount64()-100) {
-        if ((LastX!=pChar->X) || (LastY!=pChar->Y)) LastMoveTick=GetTickCount64();
+    } else if ((LastX!=pChar->X) || (LastY!=pChar->Y) || LastMoveTick>GetTickCount642()-100) {
+        if ((LastX!=pChar->X) || (LastY!=pChar->Y)) LastMoveTick=GetTickCount642();
         gbMoving = TRUE;
         LastX = pChar->X;
         LastY = pChar->Y;
@@ -264,7 +264,7 @@ void Heartbeat()
     static fMQPulse pEQPlayNicePulse = NULL;
     static DWORD BeatCount=0;
 
-    ULONGLONG Tick = GetTickCount64();
+    ULONGLONG Tick = GetTickCount642();
 
     BeatCount++;
 

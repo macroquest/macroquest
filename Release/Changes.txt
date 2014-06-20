@@ -1,3 +1,18 @@
+19 Jun 2014 by eqmule
+- Added back Windows XP Support for GetTickCount64()
+  Plugins should change all calls from GetTickCount64()
+  to GetTickCount642() which detects if its on winxp
+  and calls the old function instead of the new one.
+  As a sidenote, if you are still using winxp, know that right this
+  moment you have already been pwned and with 100% certainty you are part
+  of someones botnet. If you are lucky they wont steal you eqlogin
+  just use your computer to click adds or something...
+- Fixed a bug with .RankName where two different spells
+  can belong to same spellgroup.
+  The solution was to compare by SpellGroup AND the spellname.
+  Bug Reported by: MacQ
+  see http://www.macroquest2.com/phpBB3/viewtopic.php?f=48&t=19455
+
 18 Jun 2014 by eqmule
 - Updated for patch.
 - The Spell TLO member .RankName now works for combatabilities as well
