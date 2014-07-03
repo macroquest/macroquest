@@ -5395,7 +5395,6 @@ EQLIB_OBJECT void EQ_Character::InitInnates(unsigned int,unsigned int);
 EQLIB_OBJECT void EQ_Character::InitMyLanguages(void);
 EQLIB_OBJECT void EQ_Character::InitSkills(unsigned char,unsigned int);
 EQLIB_OBJECT void EQ_Character::ItemSold(long);
-EQLIB_OBJECT void EQ_Character::MakeMeVisible(int);
 EQLIB_OBJECT void EQ_Character::ModifyCurHP(int,class EQPlayer *);
 EQLIB_OBJECT void EQ_Character::NotifyPCAffectChange(int,int);
 EQLIB_OBJECT void EQ_Character::ProcessAllStats(void);
@@ -6962,6 +6961,7 @@ class CharacterZoneClient
 {
 public:
 EQLIB_OBJECT int CharacterZoneClient::CalcAffectChange(class EQ_Spell *,unsigned char,unsigned char,class EQ_Affect *,DWORD,DWORD);
+EQLIB_OBJECT void CharacterZoneClient::MakeMeVisible(int,bool);
     bool HasSkill(int);
 };
 

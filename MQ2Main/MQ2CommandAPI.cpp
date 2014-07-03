@@ -669,6 +669,8 @@ void InitializeMQ2Commands()
 		{"/spellslotinfo",SpellSlotInfo,1,1},
 		{"/getwintitle",GetWinTitle,1,0},
 		{"/setwintitle",SetWinTitle,1,0},
+		{"/removebuff",RemoveBuff,1,1},
+		{"/makemevisible",MakeMeVisible,0,1},
         {NULL,          NULL,0,1},
     };
 

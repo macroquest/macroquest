@@ -901,6 +901,7 @@ EQLIB_VAR DWORD AltAdvManager__IsAbilityReady;
 EQLIB_VAR DWORD AltAdvManager__GetAltAbility;
 
 EQLIB_VAR DWORD CharacterZoneClient__HasSkill;
+EQLIB_VAR DWORD CharacterZoneClient__MakeMeVisible;
 
 EQLIB_VAR DWORD CBankWnd__GetNumBankSlots;
 
@@ -1193,6 +1194,7 @@ EQLIB_VAR DWORD EQ_PC__GetPcZoneClient;
 EQLIB_VAR DWORD EQ_PC__GetCombatAbilityTimer;
 EQLIB_VAR DWORD EQ_PC__GetItemTimerValue;
 EQLIB_VAR DWORD EQ_PC__HasLoreItem;
+EQLIB_VAR DWORD EQ_PC__RemoveMyAffect;
 
 EQLIB_VAR DWORD EQItemList__EQItemList;
 EQLIB_VAR DWORD EQItemList__add_item;

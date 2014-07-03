@@ -299,6 +299,7 @@
 
 // CharacterZoneClient
 #define CharacterZoneClient__HasSkill_x                            0x4523F0
+#define CharacterZoneClient__MakeMeVisible_x                       0x457390
 
 // CBankWnd 
 #define CBankWnd__GetNumBankSlots_x                                0x6387E0
@@ -638,6 +639,7 @@
 #define EQ_PC__HasLoreItem_x                                       0x5894B0
 #define EQ_PC__AlertInventoryChanged_x                             0x5862E0
 #define EQ_PC__GetPcZoneClient_x                                   0x5AEE60
+#define EQ_PC__RemoveMyAffect_x									   0x58E050
 // EQItemList 
 #define EQItemList__EQItemList_x                                   0x4E5840
 #define EQItemList__add_item_x                                     0x4E5780

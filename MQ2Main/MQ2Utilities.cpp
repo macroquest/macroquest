@@ -943,7 +943,9 @@ PSPELL GetSpellByName(PCHAR szName)
 {
     // PSPELL GetSpellByName(PCHAR NameOrID)
     // This function now accepts SpellID as an argument as well as SpellName
-    if (ppSpellMgr == NULL) return NULL;
+    if (ppSpellMgr == NULL || szName[0]=='\0') {
+		return NULL;
+	}
     if (szName[0]>='0' && szName[0]<='9')
     {
         return GetSpellByID(abs(atoi(szName)));
@@ -7204,6 +7206,45 @@ DWORD GetSpellRankByName(PCHAR SpellName)
 		return 3;
 	return 0;
 }
+VOID RemoveBuff(PSPAWNINFO pChar, PCHAR szLine)
+{
+	if(szLine && szLine[0]!='\0') {
+		if(PCHARINFO2 pChar2 = GetCharInfo2()) {
+			for (unsigned long nBuff=0 ; nBuff<NUM_LONG_BUFFS ; nBuff++)
+			{
+				if(pChar2->Buff[nBuff].SpellID==0 || pChar2->Buff[nBuff].SpellID==-1)
+					continue;
+				if(PSPELL pBuffSpell = GetSpellByID(pChar2->Buff[nBuff].SpellID)) {
+					if(!strnicmp(pBuffSpell->Name,szLine,strlen(szLine))) {
+						pPCData->RemoveMyAffect(nBuff);
+						return;
+					}
+				}
+			}
+			for (unsigned long nBuff=0 ; nBuff<NUM_SHORT_BUFFS ; nBuff++)
+			{
+				if(pChar2->ShortBuff[nBuff].SpellID==0 || pChar2->ShortBuff[nBuff].SpellID==-1)
+					continue;
+				if(PSPELL pBuffSpell = GetSpellByID(pChar2->ShortBuff[nBuff].SpellID)) {
+					if(!strnicmp(pBuffSpell->Name,szLine,strlen(szLine))) {
+						pPCData->RemoveMyAffect(nBuff+NUM_LONG_BUFFS);
+						return;
+					}
+				}
+			}
+		}
+	}
+}
+//.text:00638049                 mov     ecx, pinstPCData_x
+//.text:0063804F                 push    0
+//.text:00638051                 push    0
+//.text:00638053                 add     ecx, 1FE0h
+//.text:00638059                 call    ?MakeMeVisible@CharacterZoneClient@@QAEXH_N@Z ; CharacterZoneClient::MakeMeVisible(int,bool)
+VOID MakeMeVisible(PSPAWNINFO pChar, PCHAR szLine)
+{
+	((CharacterZoneClient*)pCharData1)->MakeMeVisible(0,0);
+}
+
 //                                                                                               //
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 #endif

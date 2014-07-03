@@ -4205,9 +4205,6 @@ FUNCTION_AT_ADDRESS(int  EQ_Character::ApplyDamage(int,struct _EQMissileHitinfo 
 #ifdef EQ_Character__NotifyPCAffectChange_x
 FUNCTION_AT_ADDRESS(void  EQ_Character::NotifyPCAffectChange(int,int),EQ_Character__NotifyPCAffectChange);
 #endif
-#ifdef EQ_Character__MakeMeVisible_x
-FUNCTION_AT_ADDRESS(void  EQ_Character::MakeMeVisible(int),EQ_Character__MakeMeVisible);
-#endif
 #ifdef EQ_Character__UpdateMyVisibleStatus_x
 FUNCTION_AT_ADDRESS(void  EQ_Character::UpdateMyVisibleStatus(void),EQ_Character__UpdateMyVisibleStatus);
 #endif
@@ -9658,10 +9655,12 @@ FUNCTION_AT_ADDRESS(unsigned long PlayerPointManager::GetAltCurrency(unsigned lo
 #ifdef CharacterZoneClient__HasSkill_x
 FUNCTION_AT_ADDRESS(bool CharacterZoneClient::HasSkill(int), CharacterZoneClient__HasSkill);
 #endif
+#ifdef CharacterZoneClient__MakeMeVisible_x
+FUNCTION_AT_ADDRESS(void  CharacterZoneClient::MakeMeVisible(int,bool),CharacterZoneClient__MakeMeVisible);
+#endif
 #ifdef PcZoneClient__GetPcSkillLimit_x
 FUNCTION_AT_ADDRESS(int PcZoneClient::GetPcSkillLimit(int), PcZoneClient__GetPcSkillLimit);
 #endif
-
 #ifdef CXWnd__SetFont_x
 FUNCTION_AT_ADDRESS(int CXWnd::SetFont(void*), CXWnd__SetFont);
 #endif

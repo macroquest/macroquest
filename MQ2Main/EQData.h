@@ -383,8 +383,8 @@ enum MOUSE_DATA_TYPES {
 #define NUM_SPELL_GEMS                  0xc
 #define NUM_SPELL_SETS                  0xa
 #define NUM_BUFF_SLOTS					0x61
-#define NUM_LONG_BUFFS                  42
-#define NUM_SHORT_BUFFS                 30
+#define NUM_LONG_BUFFS                  0x2a
+#define NUM_SHORT_BUFFS                 0x37
 
 #define EQ_EXPANSION(x)                 (1 << (x - 1))
 #define EXPANSION_RoK                   EQ_EXPANSION(1)
@@ -1029,7 +1029,7 @@ typedef struct _CHARINFO2 {
 /*0x0024*/   DWORD      Unknown0x28; // # of inventory slots?
 /*0x0028*/   BYTE       Unknown0x2c[0x94];
 /*0x00c0*/   struct     _SPELLBUFF   Buff[NUM_LONG_BUFFS];
-/*0x0f30*/   struct     _SPELLBUFF   ShortBuff[0x37];
+/*0x0f30*/   struct     _SPELLBUFF   ShortBuff[NUM_SHORT_BUFFS];
 /*0x2218*/   DWORD      ZoneBuffs[NUM_BUFF_SLOTS]; // effect IDs for the Effects Window on buffs cast on you in the current zone...
 /*0x239c*/   DWORD      ZoneSongs[NUM_BUFF_SLOTS]; // just a guess
 /*0x2520*/   DWORD      SpellBook[NUM_BOOK_SLOTS];
