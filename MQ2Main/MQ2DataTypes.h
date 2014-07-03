@@ -2620,13 +2620,13 @@ public:
         TypeMember(MQ2DataError);
         TypeMember(BuildDate);
 	}
-	INHERITDIRECT(pEverQuestType);
 	~MQ2MacroQuestType()
     {
     }
 
     bool GETMEMBER();
     DECLAREGETMETHOD();
+	INHERITDIRECT(pEverQuestType);
 
     bool ToString(MQ2VARPTR VarPtr, PCHAR Destination)
     {
@@ -4173,6 +4173,7 @@ public:
         Timer=3,
         xMember=4,
         Members=5,
+        Leader=6,
     };
     MQ2TaskType():MQ2Type("task")
     {
@@ -4181,6 +4182,7 @@ public:
         TypeMember(Timer);
         AddMember(xMember,"Member");
         TypeMember(Members);
+        TypeMember(Leader);
     }
     ~MQ2TaskType()
     {

@@ -2559,7 +2559,7 @@ VOID BankList(PSPAWNINFO pChar, PCHAR szLine)
     WriteChatColor("-------------------------",USERCOLOR_DEFAULT);
     char Link[256];
     for (int a=0;a<NUM_BANK_SLOTS;a++) {
-        pContainer=pCharInfo->pBankArray->Bank[a];
+		if (pCharInfo->pBankArray) pContainer=pCharInfo->pBankArray->Bank[a];
         if (pContainer) {
             GetItemLink(pContainer,&Link[0]);
             sprintf(szTemp,"Slot %d: %dx %s (%s)",a,pContainer->StackCount ? pContainer->StackCount : 1,Link,GetItemFromContents(pContainer)->LoreName);
@@ -3456,6 +3456,7 @@ VOID LootAll(PSPAWNINFO pChar, PCHAR szLine)
 {
 	pLootWnd->LootAll(1);
 }
+
 BOOL CALLBACK EnumWindowsProc(HWND hwnd,LPARAM lParam)
 {
 	DWORD procid = 0;

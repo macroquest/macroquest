@@ -900,12 +900,12 @@ typedef struct _CHARINFO
 /*0x1af0*/ DWORD        Exp;
 /*0x1af4*/ BYTE         Unknown0x1af4[0x64];
 /*0x1b58*/ void*        PlayerPointManager;
-/*0x1b5c*/ BYTE         Unknown0x1b5c[0x3b4];
-/*0x1f10*/ DWORD        MercAAExp;// divide this with 3.30f and you get the percent - eqmule
-/*0x1f14*/ BYTE         Unknown0x1f14[0x4];
-/*0x1f18*/ DWORD        MercAAPoints;//number of unspent merc AA points
-/*0x1f1c*/ DWORD        MercAAPointsSpent;//number of spent merc AA points
-/*0x1f20*/ BYTE         Unknown0x1f20[0xc0];
+/*0x1b5c*/ BYTE         Unknown0x1b5c[0x3bc];
+/*0x1f18*/ DWORD        MercAAExp;// divide this with 3.30f and you get the percent - eqmule
+/*0x1f1c*/ BYTE         Unknown0x1f1c[0x4];
+/*0x1f20*/ DWORD        MercAAPoints;//number of unspent merc AA points
+/*0x1f24*/ DWORD        MercAAPointsSpent;//number of spent merc AA points
+/*0x1f28*/ BYTE         Unknown0x1f28[0xb8];
 /*0x1fe0*/ void*        vtable2;//vtable2_0 below aTimeIsDAndCanU
 /*0x1fe4*/ struct _EQC_INFO*     eqc_info;
 /*0x1fe8*/ struct _SPAWNINFO*    pSpawn;//pSpawn_0

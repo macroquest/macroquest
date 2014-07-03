@@ -2278,23 +2278,27 @@ bool MQ2CharacterType::GETMEMBER()
                 unsigned long nSlot=GETNUMBER()-1;
                 if (nSlot<NUM_BANK_SLOTS)
                 {
-                    if (Dest.Ptr=pChar->pBankArray->Bank[nSlot])
-                    {
-                        Dest.Type=pItemType;
-                        return true;
-                    }
+					if (pChar->pBankArray) {
+						if (Dest.Ptr=pChar->pBankArray->Bank[nSlot])
+						{
+							Dest.Type=pItemType;
+							return true;
+						}
+					}
                 } else {
                     nSlot -= NUM_BANK_SLOTS;
                     if (nSlot<NUM_SHAREDBANK_SLOTS)
                     {
-                        if (Dest.Ptr=pChar->pSharedBankArray->SharedBank[nSlot])
-                        {
-                            Dest.Type=pItemType;
-                            return true;
-                        }
-                    }
-                }
-            }
+						if (pChar->pSharedBankArray) {
+							if (Dest.Ptr=pChar->pSharedBankArray->SharedBank[nSlot])
+							{
+								Dest.Type=pItemType;
+								return true;
+							}
+						}
+					}
+				}
+			}
         }
         return false;
     case PlatinumShared:
@@ -6199,7 +6203,11 @@ bool MQ2MacroQuestType::GETMEMBER()
 {
 	PMQ2TYPEMEMBER pMember=MQ2MacroQuestType::FindMember(Member);
     if (!pMember)
-        return false;
+#ifndef ISXEQ
+        return pEverQuestType->GetMember(*(MQ2VARPTR*)&VarPtr.Ptr,Member,Index,Dest);
+#else
+        return pEverQuestType->GetMember(*(LSVARPTR*)&VarPtr.Ptr,Member,argc,argv,Dest);
+#endif
     switch((MacroQuestMembers)pMember->ID)
     {
     case Error:
@@ -6974,7 +6982,9 @@ bool MQ2InvSlotType::GETMEMBER()
             {
                 unsigned long nPack=(nInvSlot-2032)/10;
                 unsigned long nSlot=(nInvSlot-2)%10;
-                if (PCONTENTS pPack=pCharInfo->pBankArray->Bank[nPack])
+				PCONTENTS pPack=NULL;
+				if (pCharInfo->pBankArray) pPack=pCharInfo->pBankArray->Bank[nPack];
+                if (pPack)
                     if (GetItemFromContents(pPack)->Type==ITEMTYPE_PACK && nSlot<GetItemFromContents(pPack)->Slots)
                     {
                         if (pPack->pContentsArray)
@@ -6989,7 +6999,9 @@ bool MQ2InvSlotType::GETMEMBER()
             {
                 unsigned long nPack=24+((nInvSlot-2532)/10);
                 unsigned long nSlot=(nInvSlot-2)%10;
-                if (PCONTENTS pPack=pCharInfo->pBankArray->Bank[nPack])
+				PCONTENTS pPack=NULL;
+				if (pCharInfo->pBankArray) pPack=pCharInfo->pBankArray->Bank[nPack];
+                if (pPack)
                     if (GetItemFromContents(pPack)->Type==ITEMTYPE_PACK && nSlot<GetItemFromContents(pPack)->Slots)
                     {
                         if (pPack->pContentsArray)
@@ -7002,19 +7014,23 @@ bool MQ2InvSlotType::GETMEMBER()
             }
             else if (nInvSlot>=2000 && nInvSlot<2024)
             {
-                if (Dest.Ptr=pCharInfo->pBankArray->Bank[nInvSlot-2000])
-                {
-                    Dest.Type=pItemType;
-                    return true;
-                }
+				if (pCharInfo->pBankArray) {
+					if (Dest.Ptr=pCharInfo->pBankArray->Bank[nInvSlot-2000])
+					{
+						Dest.Type=pItemType;
+						return true;
+					}
+				}
             }
             else if (nInvSlot==2500 || nInvSlot==2501)
             {
-                if (Dest.Ptr=pCharInfo->pBankArray->Bank[nInvSlot-2500+24])
-                {
-                    Dest.Type=pItemType;
-                    return true;
-                }
+				if (pCharInfo->pBankArray) {
+					if (Dest.Ptr=pCharInfo->pBankArray->Bank[nInvSlot-2500+24])
+					{
+						Dest.Type=pItemType;
+						return true;
+					}
+				}
             }
         }
         return false;
@@ -8570,6 +8586,18 @@ bool MQ2TaskType::GETMEMBER()
 		Dest.DWord=(DWORD)VarPtr.Ptr;
 		Dest.Type=pIntType;
 		return true;
+    case Leader:
+	{
+		for(int i=1;pTaskmember && i<7;pTaskmember=pTaskmember->pNext,i++) {
+			if(pTaskmember->IsLeader) {
+				strcpy_s(DataTypeTemp,pTaskmember->Name);
+				Dest.Ptr=&DataTypeTemp[0];
+				Dest.Type=pStringType;
+				return true;
+			}
+		}
+		return false;
+	}
     case Title:
 	{
 		CListWnd *clist = (CListWnd *)pTaskkWnd->GetChildItem("TASK_TaskList");

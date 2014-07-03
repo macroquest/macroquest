@@ -24,6 +24,7 @@ DATATYPE(MQ2TypeType,   pTypeType,   nullptr, 0);
 #endif
 
 // These are all datatypes common to both MQ2 and ISXEQ
+DATATYPE(MQ2EverQuestType,        pEverQuestType,        nullptr, 0);
 DATATYPE(MQ2SpawnType,            pSpawnType,            nullptr, PersistentPointerClass);
 DATATYPE(MQ2SpellType,            pSpellType,            nullptr, 0);
 // Define all inherited types first so that the SetInheritence works properly
@@ -48,7 +49,6 @@ DATATYPE(MQ2GroupType,            pGroupType,            nullptr, 0);
 DATATYPE(MQ2HeadingType,          pHeadingType,          nullptr, 0);
 DATATYPE(MQ2InvSlotType,          pInvSlotType,          nullptr, 0);
 DATATYPE(MQ2ItemType,             pItemType,             nullptr, 0);
-DATATYPE(MQ2EverQuestType,        pEverQuestType,        nullptr, 0);
 DATATYPE(MQ2MacroQuestType,       pMacroQuestType,       pEverQuestType, 0);
 DATATYPE(MQ2MercenaryType,        pMercenaryType,        pSpawnType, 0);
 DATATYPE(MQ2MerchantType,         pMerchantType,         nullptr, 0);

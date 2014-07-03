@@ -535,7 +535,8 @@ CXWnd *FindMQ2Window(PCHAR WindowName)
             unsigned long nPack=atoi(&WindowName[4]);
             if (nPack && nPack<=NUM_BANK_SLOTS)
             {
-                pPack=((PCHARINFO)pCharData)->pBankArray->Bank[nPack-1];
+                if (pCharData && ((PCHARINFO)pCharData)->pBankArray)
+					pPack=((PCHARINFO)pCharData)->pBankArray->Bank[nPack-1];
             }
         }
         else if (!strnicmp(WindowName,"pack",4))
@@ -1255,7 +1256,8 @@ int ItemNotify(int argc, char *argv[])
             unsigned long nPack=atoi(&szArg2[4]);
             if (nPack && nPack<=NUM_BANK_SLOTS)
             {
-                pPack=GetCharInfo()->pBankArray->Bank[nPack-1];
+                if (GetCharInfo() && GetCharInfo()->pBankArray)
+					pPack=GetCharInfo()->pBankArray->Bank[nPack-1];
             }
         }
         else if (!strnicmp(szArg2,"sharedbank",10))
@@ -1263,7 +1265,8 @@ int ItemNotify(int argc, char *argv[])
             unsigned long nPack=atoi(&szArg2[10]);
             if (nPack && nPack<=2)
             {
-                pPack=GetCharInfo()->pSharedBankArray->SharedBank[nPack-1];
+                if (GetCharInfo() && GetCharInfo()->pSharedBankArrary)
+					pPack=GetCharInfo()->pSharedBankArray->SharedBank[nPack-1];
             }
         }
         else if (!strnicmp(szArg2,"pack",4))

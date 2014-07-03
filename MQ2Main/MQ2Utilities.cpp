@@ -3670,7 +3670,9 @@ DebugSpew("%d slot %d wnd %d %d %d", N, pInvMgr->SlotArray[N]->InvSlot,
     for (nPack=0 ; nPack < NUM_BANK_SLOTS ; nPack++)
     {
         PCHARINFO pCharInfo=GetCharInfo();
-        if (PCONTENTS pPack=pCharInfo->pBankArray->Bank[nPack])
+		PCONTENTS pPack=NULL;
+        if (pCharInfo->pBankArray) pPack=pCharInfo->pBankArray->Bank[nPack];
+        if (pPack)
         {
             if (pPack==pContents)
             {

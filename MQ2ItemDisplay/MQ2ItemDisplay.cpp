@@ -1277,7 +1277,10 @@ int DoIHave(PITEMINFO Item)
    for (nPack=0 ; nPack < NUM_BANK_SLOTS ; nPack++)
    {
       PCHARINFO pCharInfo=GetCharInfo();
-      if (PCONTENTS pPack=pCharInfo->pBankArray->Bank[nPack])
+      PCONTENTS pPack=NULL;
+      if (pCharInfo && pCharInfo->pBankArray)
+		  pPack=pCharInfo->pBankArray->Bank[nPack];
+      if (pPack)
       {
          if (GetItemFromContents(pPack)->ItemNumber==ID)
          {

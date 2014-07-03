@@ -1,3 +1,19 @@
+26 June 2014 by eqmule
+- Fixed MercAAExp,MercAAPoints and MercAAPointsSpent
+  this means /echo ${Mercenary.AAPoints} works again.
+- Added Leader to the Task TLO it returns a pStringType
+  Usage: /echo The task leader is ${Task.Leader}
+  Outputs: The task leader is eqmule
+
+23 Jun 2014 by rswiders
+- Corrected several CTD bugs when a character did not have anything in
+  their bank and/or shared bank.
+
+21 Jun 2014 by rswiders
+- Fixed a bug with pMacroQuestType where pEverQuestType members wouldn't
+  inherit correctly. All old ${MacroQuest.} members should work correctly
+  now again.
+
 20 Jun 2014 by eqmule
 - Updated for patch
 - Fixed a problem with writing plugins to MacroQuest.ini when ReadOnly.

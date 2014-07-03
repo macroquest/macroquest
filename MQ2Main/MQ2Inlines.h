@@ -472,6 +472,21 @@ static inline ULONGLONG GetTickCount642(void)
     if (once) {
 		//we dont want to call this one over and over thats just stupid, so once is enough - eqmule
         pGetTickCount64 = (ULONGLONG (WINAPI *)(void))GetProcAddress(GetModuleHandle("KERNEL32.DLL"), "GetTickCount64");
+		once = 0;
+    }
+	if(pGetTickCount64)
+		return pGetTickCount64();
+    return (ULONGLONG)GetTickCount();
+}
+/*
+need to figure out why this fails in xp and the above doesn't - eqmule
+static inline ULONGLONG GetTickCount64(void)
+{
+	static int once = 1;
+    static ULONGLONG (WINAPI *pGetTickCount64)(void);
+    if (once) {
+		//we dont want to call this one over and over thats just stupid, so once is enough - eqmule
+        pGetTickCount64 = (ULONGLONG (WINAPI *)(void))GetProcAddress(GetModuleHandle("KERNEL32.DLL"), "GetTickCount64");
 		if (!pGetTickCount64)
 			pGetTickCount64 = (ULONGLONG (WINAPI *)(void))GetProcAddress(GetModuleHandle("KERNEL32.DLL"), "GetTickCount");
 		if (!pGetTickCount64) {
@@ -481,4 +496,4 @@ static inline ULONGLONG GetTickCount642(void)
 		once = 0;
     }
     return pGetTickCount64();
-}
+}*/
