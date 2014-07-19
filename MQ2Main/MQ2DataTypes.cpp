@@ -814,7 +814,7 @@ bool MQ2MacroType::GETMEMBER()
         Dest.Type=pStringType;
         return true;
     case RunTime:
-		Dest.UInt64=((GetTickCount642()-gRunning)/1000);
+		Dest.UInt64=((MQGetTickCount64()-gRunning)/1000);
         Dest.Type=pInt64Type;
         return true;
     case Paused:

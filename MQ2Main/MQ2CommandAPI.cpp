@@ -776,7 +776,7 @@ void ShutdownMQ2Commands()
 
 VOID DoTimedCommands()
 {
-    ULONGLONG Now=GetTickCount642();
+    ULONGLONG Now=MQGetTickCount64();
     while(pTimedCommands && pTimedCommands->Time<=Now)
     {
         PTIMEDCOMMAND pNext=pTimedCommands->pNext;
@@ -789,7 +789,7 @@ VOID DoTimedCommands()
 VOID TimedCommand(PCHAR Command, DWORD msDelay)
 {
     PTIMEDCOMMAND pNew= new TIMEDCOMMAND;
-    pNew->Time=msDelay+GetTickCount642();
+    pNew->Time=msDelay+MQGetTickCount64();
     strcpy(pNew->Command,Command);
 
     // insert into list

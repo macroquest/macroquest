@@ -27,7 +27,6 @@ dxsdk81\readme.txt
 dxsdk81\include\dinput.h
 dxsdk90\readme.txt
 dxsdk90\include\dinput.h
-ISXEQ Release Files\README!.txt
 ISXEQ\isxGamesCommon.props
 ISXEQ\PostBuild.bat
 ISXEQ.NET\ISXEQ.cs
@@ -269,8 +268,6 @@ MQ2Main\ISXEQ\ISXEQTopLevelObjects.cpp
 MQ2Main\ISXEQ\ISXEQTopLevelObjects.h
 MQ2Main\ISXEQ\ISXEQUtilities.cpp
 MQ2Main\ISXEQ\ISXEQUtilities.h
-MQ2Main\ISXEQ\isxGamesCommon.props
-MQ2Main\ISXEQ\PostBuild.bat
 MQ2Main\str_com\pchar.cpp
 MQ2Main\str_com\pchar2.cpp
 MQ2Main\str_com\pspawn.cpp

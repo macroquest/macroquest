@@ -1462,10 +1462,10 @@ void AddGearScores(PCONTENTS pSlot,ITEMINFO *pItem,char *out,char *br)
 		strcat(out,br);
 	}
 	// Trap the 3x call back stuff. 
-	if (GetTickCount642()-lastTick > 1000 && ReportBestStr[0]!=0 && ReportChannel[0] == '/')
+	if (MQGetTickCount64()-lastTick > 1000 && ReportBestStr[0]!=0 && ReportChannel[0] == '/')
 	{
 		char szCmd[MAX_STRING];
-		lastTick = GetTickCount642();
+		lastTick = MQGetTickCount64();
 		sprintf(szCmd,"%s %s",ReportChannel,ReportBestStr);
 		EzCommand(szCmd);
 		//WriteChatf("AddGearScores::Reporting Cmd = %s",szCmd);

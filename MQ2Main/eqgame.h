@@ -669,7 +669,7 @@
 #define KeypressHandler__AttachAltKeyToEqCommand_x                 0x56BC00
 #define KeypressHandler__AttachKeyToEqCommand_x                    0x56BC40
 #define KeypressHandler__ClearCommandStateArray_x                  0x56B7E0
-#define KeypressHandler__HandleKeyDown_x                           0x0
+#define KeypressHandler__HandleKeyDown_x                           0x56A130
 #define KeypressHandler__HandleKeyUp_x                             0x56A450
 #define KeypressHandler__SaveKeymapping_x                          0x56B8B0
 

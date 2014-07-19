@@ -526,7 +526,12 @@ public:
 
     bool ToString(MQ2VARPTR VarPtr, PCHAR Destination)
     {
-		_i64toa(VarPtr.UInt64,Destination,10);
+		/* Note -- if you get an error compiling this for ISXSDK,  
+			error C2039 : 'UInt64' : is not a member of '_LSVarPtr' 
+			Then add "unsigned __int64 UInt64;" under the Int64 definition in _LSVarPtr and _LSTypeVar in ISXDK\include\LavishScript\LSType.h 
+			This should be fixed in ISXDK35 or higher. 
+		*/ 
+		_i64toa(VarPtr.UInt64,Destination,10); 
         return true;
     }
     bool FromData(MQ2VARPTR &VarPtr, MQ2TYPEVAR &Source)
