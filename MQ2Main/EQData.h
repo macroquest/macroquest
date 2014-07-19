@@ -374,8 +374,8 @@ enum MOUSE_DATA_TYPES {
    MD_Button1
 };
 
-//eqmule mar 31 2014
-#define nEQMappableCommands             0x201
+//eqmule jul 16 2014
+#define nEQMappableCommands             0x202
 
 #define MAX_PC_LEVEL                    100
 #define MAX_NPC_LEVEL                   110

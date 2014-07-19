@@ -1,0 +1,111 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+<!--
+	This file configures a a default set of variables for building Inner Space extensions and Modules
+
+	Inner Space Exports: (all of these have defaults, unless specified by environment variable)
+		INNERSPACEPATH			Note - This is retrieved from the registry. There is no fallback default.
+		IS_EXTENSION_PATH
+		IS_DOTNETPROGRAMS_PATH
+		IS_SCRIPTS_PATH
+		IS_INTEFACE_PATH
+		IS_LANGUAGE_PATH
+
+		ISXDKVERSION
+		LSMODULEVERSION
+		LS2MODULEVERSION
+
+		ISXDKPATH		Note: It is assumed the SDK is installed in Innerspace\ISXDK\##\, where ## is the SDK version.
+		LSMODULEPATH	Note: It is assumed the SDK is installed in Innerspace\LSModule\##\, where ## is the SDK version.
+		LS2MODULEPATH	Note: It is assumed the SDK is installed in Innerspace\LS2Module\##\, where ## is the SDK version.
+
+	isxGames Exports: (all of these have defaults, unless specified by environment variable)
+		LIBISXGAMESPATH
+
+	- CyberTech (cybertech@gmail.com)
+-->
+	<Choose>
+		<When Condition="'$(PlatformToolsetVersion)' == '120'">
+			<PropertyGroup>
+				<ISXDKVERSION Condition="'$(ISXDKVERSION)' == ''">34</ISXDKVERSION>
+				<LSMODULEVERSION Condition="'$(LSMODULEVERSION)' == ''">21</LSMODULEVERSION>
+				<LS2MODULEVERSION Condition="'$(LS2MODULEVERSION)' == ''">1</LS2MODULEVERSION>
+				<VSVERSIONDIRNAME>vs12</VSVERSIONDIRNAME>
+			</PropertyGroup>
+		</When>
+		<When Condition="'$(PlatformToolsetVersion)' == '110'">
+			<PropertyGroup>
+				<ISXDKVERSION Condition="'$(ISXDKVERSION)' == ''">33</ISXDKVERSION>
+				<LSMODULEVERSION Condition="'$(LSMODULEVERSION)' == ''">20</LSMODULEVERSION>
+				<LS2MODULEVERSION Condition="'$(LS2MODULEVERSION)' == ''">1</LS2MODULEVERSION>
+				<VSVERSIONDIRNAME>vs11</VSVERSIONDIRNAME>
+			</PropertyGroup>
+		</When>
+		<When Condition="'$(PlatformToolsetVersion)' == '100'">
+			<PropertyGroup>
+				<ISXDKVERSION Condition="'$(ISXDKVERSION)' == ''">32</ISXDKVERSION>
+				<LSMODULEVERSION Condition="'$(LSMODULEVERSION)' == ''">19</LSMODULEVERSION>
+				<LS2MODULEVERSION Condition="'$(LS2MODULEVERSION)' == ''">1</LS2MODULEVERSION>
+				<VSVERSIONDIRNAME>vs10</VSVERSIONDIRNAME>
+			</PropertyGroup>
+		</When>
+	</Choose>
+	<PropertyGroup Label="UserMacros">
+		<MyPropertyInsideVS Condition="'$(BuildingInsideVisualStudio)' == 'true'">This build is done by VS IDE</MyPropertyInsideVS>
+		<INNERSPACEPATH Condition="'$(INNERSPACEPATH)' == ''">$(registry:HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\App Paths\InnerSpace.exe@Path)\</INNERSPACEPATH>
+		<IS_EXTENSION_PATH Condition="'$(IS_EXTENSION_PATH)' == ''">$(INNERSPACEPATH)Extensions\</IS_EXTENSION_PATH>
+		<IS_DOTNETPROGRAMS_PATH Condition="'$(IS_DOTNETPROGRAMS_PATH)' == ''">$(INNERSPACEPATH).NET Programs\</IS_DOTNETPROGRAMS_PATH>
+		<IS_SCRIPTS_PATH Condition="'$(IS_DOTNETPROGRAMS_PATH)' == ''">$(INNERSPACEPATH)Scripts\</IS_SCRIPTS_PATH>
+		<IS_INTEFACE_PATH Condition="'$(IS_INTEFACE_PATH)' == ''">$(INNERSPACEPATH)Interface\</IS_INTEFACE_PATH>
+		<IS_LANGUAGE_PATH Condition="'$(IS_LANGUAGE_PATH)' == ''">$(INNERSPACEPATH)Language\</IS_LANGUAGE_PATH>
+		<ISXDKPATH Condition="'$(ISXDKPATH)' == ''">$(INNERSPACEPATH)ISXDK\$(ISXDKVERSION)\</ISXDKPATH>
+		<LSMODULEPATH Condition="'$(LSMODULEPATH)' == ''">$(INNERSPACEPATH)LSModule\$(LSMODULEVERSION)\</LSMODULEPATH>
+		<LS2MODULEPATH Condition="'$(LS2MODULEPATH)' == ''">$(INNERSPACEPATH)LS2Module\$(LS2MODULEVERSION)\</LS2MODULEPATH>
+	</PropertyGroup>
+	<!-- ISXGAMES Specific BEGIN -->
+	<Choose>
+		<!-- Figure out if we're using Amadeus location, or CyberTech location -->
+		<When Condition="Exists('$(SolutionDir)..\libisxgames')">
+			<PropertyGroup Label="UserMacros">
+				<LIBISXGAMESPATH Condition="'$(LIBISXGAMESPATH)' == ''">$(SolutionDir)..\libisxgames\</LIBISXGAMESPATH>
+			</PropertyGroup>
+		</When>
+		<When Condition="Exists('$(SolutionDir)..\..\libisxgames')">
+			<PropertyGroup Label="UserMacros">
+				<LIBISXGAMESPATH Condition="'$(LIBISXGAMESPATH)' == ''">$(SolutionDir)..\..\libisxgames\</LIBISXGAMESPATH>
+			</PropertyGroup>
+		</When>
+		<When Condition="Exists('$(SolutionDir)..\..\Extensions\libisxgames')">
+			<PropertyGroup Label="UserMacros">
+				<LIBISXGAMESPATH Condition="'$(LIBISXGAMESPATH)' == ''">$(SolutionDir)..\..\Extensions\libisxgames\</LIBISXGAMESPATH>
+			</PropertyGroup>
+		</When>
+	</Choose>
+	<!-- ISXGAMES Specific END -->
+	<!--
+		ISXGAMES Specific BEGIN
+		For isxGames, we use Innerspace SDKs from underneath libisxgames, instead of inside Innerspace dir, so we're
+		going to change the defaults for ISXDK/LSMODULE/LS2MODULEPATH set above in the generic code.
+	-->
+	<PropertyGroup Label="isxGames paths for Inner Space SDKs" Condition="'$(LIBISXGAMESPATH)' != ''">
+		<ISXDKPATH>$(LIBISXGAMESPATH)3rdParty\LavishSoft\ISXDK\$(ISXDKVERSION)\</ISXDKPATH>
+		<LSMODULEPATH>$(LIBISXGAMESPATH)3rdParty\LavishSoft\LSModule\$(LSMODULEVERSION)\</LSMODULEPATH>
+		<LS2MODULEPATH>$(LIBISXGAMESPATH)3rdParty\LavishSoft\LS2Module\$(LS2MODULEVERSION)\</LS2MODULEPATH>
+	</PropertyGroup>
+	<PropertyGroup Label="ISXGames Project Paths" Condition="'$(LIBISXGAMESPATH)' != ''">
+		<LibraryPath>$(ProjectDir)lib;$(LIBISXGAMESPATH)lib;$(LibraryPath)</LibraryPath>
+		<IncludePath>$(ProjectDir);$(ProjectDir)\Include;$(LIBISXGAMESPATH);$(LIBISXGAMESPATH)Include;$(IncludePath)</IncludePath>
+	</PropertyGroup>
+	<ItemDefinitionGroup Condition="'$(LIBISXGAMESPATH)' != ''">
+		<ClCompile>
+			<PreprocessorDefinitions>_CRT_SECURE_NO_WARNINGS=1;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+		</ClCompile>
+	</ItemDefinitionGroup>
+	<ItemGroup />
+	<!-- ISXGAMES Specific END -->
+	<!-- Now we set the library paths and includes for Inner Space -->
+	<PropertyGroup Label="Inner Space Library/Include paths">
+		<LibraryPath>$(ISXDKPATH)lib\$(VSVERSIONDIRNAME);$(LSMODULEPATH)lib\$(VSVERSIONDIRNAME);$(LS2MODULEPATH)lib\$(VSVERSIONDIRNAME);$(LibraryPath)</LibraryPath>
+		<IncludePath>$(ISXDKPATH)include;$(LSMODULEPATH)include;$(LS2MODULEPATH)include;$(IncludePath)</IncludePath>
+	</PropertyGroup>
+</Project>

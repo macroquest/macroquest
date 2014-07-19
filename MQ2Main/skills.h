@@ -53,12 +53,12 @@
     "Offense",                 // 33
     "Parry",                   // 34
     "Pick Lock",               // 35
-    "Piercing",                // 36
+    "1H Piercing",             // 36
     "Riposte",                 // 37
     "Round Kick",              // 38
     "Safe Fall",               // 39
     "Sense Heading",           // 40
-    "Sing",                    // 41
+    "Singing",                 // 41
     "Sneak",                   // 42
     "Specialize Abjure",       // 43
     "Specialize Alteration",   // 44
@@ -94,7 +94,7 @@
     "Frenzy",                  // 74
     "Remove Trap",             // 75
     "Triple Attack",           // 76
-    "77",                      // 77
+    "2H Piercing",             // 77
     "78",                      // 78
     "79",                      // 79
     "80",                      // 80

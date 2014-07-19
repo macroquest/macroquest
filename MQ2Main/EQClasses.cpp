@@ -111,12 +111,11 @@ void CEditBaseWnd::SetMaxChars(int maxChars)
     if(this->InputText)
     {
         len = this->InputText->Length;
-    }
-
-    if(len > maxChars)
-    {
-        ((CXWnd*)this)->SetWindowTextA(CXStr(this->InputText->Text));
-    }
+		if(len > maxChars)
+		{
+			((CXWnd*)this)->SetWindowTextA(CXStr(this->InputText->Text));
+		}
+	}
 }
 
 CXPoint CXRect::CenterPoint()const
@@ -9622,8 +9621,8 @@ FUNCTION_AT_ADDRESS(char *CDBStr::GetString(int, int, int *), CDBStr__GetString)
 #ifdef EQMisc__GetActiveFavorCost_x
 FUNCTION_AT_ADDRESS(int EQMisc::GetActiveFavorCost(void),EQMisc__GetActiveFavorCost);
 #endif
-#ifdef CSkillMgr__GetStrNumber_x
-FUNCTION_AT_ADDRESS(unsigned long CSkillMgr::GetStrNumber(int),CSkillMgr__GetStrNumber);
+#ifdef CSkillMgr__GetNameToken_x
+FUNCTION_AT_ADDRESS(unsigned long CSkillMgr::GetNameToken(int),CSkillMgr__GetNameToken);
 #endif
 #ifdef CSkillMgr__GetSkillCap_x
 FUNCTION_AT_ADDRESS(unsigned long CSkillMgr::GetSkillCap(class EQ_Character *,int,int,int,bool,bool,bool),CSkillMgr__GetSkillCap)

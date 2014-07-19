@@ -1071,6 +1071,7 @@ EQLIB_VAR DWORD CSidlScreenWnd__HandleLButtonUp;
 
 EQLIB_VAR DWORD CSkillMgr__IsAvailable;
 EQLIB_VAR DWORD CSkillMgr__GetSkillCap;
+EQLIB_VAR DWORD CSkillMgr__GetNameToken;
 
 EQLIB_VAR DWORD CSliderWnd__GetValue;
 EQLIB_VAR DWORD CSliderWnd__SetValue;

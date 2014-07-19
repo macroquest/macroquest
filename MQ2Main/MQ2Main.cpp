@@ -286,31 +286,32 @@ bool __cdecl MQ2Initialize()
 
     // as long nEQMappableCommands is right and these remain at the end, these should never need updating
     // who uses the unknowns anyway? - ieatacid
-	// jun 13 2014 uhm had to update these, I didnt check the actual functions
+	// jul 16 2014 uhm had to update these, I didnt check the actual functions
 	// so there is no guarantee calling for example TOGGLE_WINDOWMODE will work
 	// but at least they are at the end again and nEQMappableCommands was 0x201 today,
 	//but yeah I see no use for them... - eqmule
-    szEQMappableCommands[nEQMappableCommands - 21]="UNKNOWN0x1ec";
-    szEQMappableCommands[nEQMappableCommands - 20]="UNKNOWN0x1ed";
-    szEQMappableCommands[nEQMappableCommands - 19]="UNKNOWN0x1ee";
-    szEQMappableCommands[nEQMappableCommands - 18]="UNKNOWN0x1ef";
-    szEQMappableCommands[nEQMappableCommands - 17]="CHAT_SEMICOLON";
-    szEQMappableCommands[nEQMappableCommands - 16]="CHAT_SLASH";
-    szEQMappableCommands[nEQMappableCommands - 15]="UNKNOWN0x1f2";
-    szEQMappableCommands[nEQMappableCommands - 14]="UNKNOWN0x1f3";
-    szEQMappableCommands[nEQMappableCommands - 13]="INSTANT_CAMP";
-    szEQMappableCommands[nEQMappableCommands - 12]="UNKNOWN0x1f5";
-    szEQMappableCommands[nEQMappableCommands - 11]="UNKNOWN0x1f6";
-    szEQMappableCommands[nEQMappableCommands - 10]="CHAT_EMPTY";
-    szEQMappableCommands[nEQMappableCommands -  9]="TOGGLE_WINDOWMODE";
-    szEQMappableCommands[nEQMappableCommands -  8]="UNKNOWN0x1f9";
-    szEQMappableCommands[nEQMappableCommands -  7]="UNKNOWN0x1fa";
-    szEQMappableCommands[nEQMappableCommands -  6]="CHANGEFACE"; // maybe? something that requires models.
-    szEQMappableCommands[nEQMappableCommands -  5]="UNKNOWN0x1fc";
-    szEQMappableCommands[nEQMappableCommands -  4]="UNKNOWN0x1fd";
-    szEQMappableCommands[nEQMappableCommands -  3]="UNKNOWN0x1fe";
-    szEQMappableCommands[nEQMappableCommands -  2]="UNKNOWN0x1ff";
-    szEQMappableCommands[nEQMappableCommands -  1]="UNKNOWN0x200";
+	szEQMappableCommands[nEQMappableCommands - 22]="UNKNOWN0x1ec";
+    szEQMappableCommands[nEQMappableCommands - 21]="UNKNOWN0x1ed";
+    szEQMappableCommands[nEQMappableCommands - 20]="UNKNOWN0x1ee";
+    szEQMappableCommands[nEQMappableCommands - 19]="UNKNOWN0x1ef";
+    szEQMappableCommands[nEQMappableCommands - 18]="CHAT_SEMICOLON";
+    szEQMappableCommands[nEQMappableCommands - 17]="CHAT_SLASH";
+    szEQMappableCommands[nEQMappableCommands - 16]="UNKNOWN0x1f2";
+    szEQMappableCommands[nEQMappableCommands - 15]="UNKNOWN0x1f3";
+    szEQMappableCommands[nEQMappableCommands - 14]="INSTANT_CAMP";
+    szEQMappableCommands[nEQMappableCommands - 13]="UNKNOWN0x1f5";
+    szEQMappableCommands[nEQMappableCommands - 12]="UNKNOWN0x1f6";
+    szEQMappableCommands[nEQMappableCommands - 11]="CHAT_EMPTY";
+    szEQMappableCommands[nEQMappableCommands - 10]="TOGGLE_WINDOWMODE";
+    szEQMappableCommands[nEQMappableCommands -  9]="UNKNOWN0x1f9";
+    szEQMappableCommands[nEQMappableCommands -  8]="UNKNOWN0x1fa";
+    szEQMappableCommands[nEQMappableCommands -  7]="CHANGEFACE"; // maybe? something that requires models.
+    szEQMappableCommands[nEQMappableCommands -  6]="UNKNOWN0x1fc";
+    szEQMappableCommands[nEQMappableCommands -  5]="UNKNOWN0x1fd";
+    szEQMappableCommands[nEQMappableCommands -  4]="UNKNOWN0x1fe";
+    szEQMappableCommands[nEQMappableCommands -  3]="UNKNOWN0x1ff";
+    szEQMappableCommands[nEQMappableCommands -  2]="UNKNOWN0x200";
+    szEQMappableCommands[nEQMappableCommands -  1]="UNKNOWN0x201";
 
     for (nColorAdjective=0 ; szColorAdjective[nColorAdjective] ; nColorAdjective++){}
     for (nColorAdjectiveYou=0 ; szColorAdjectiveYou[nColorAdjectiveYou] ; nColorAdjectiveYou++) {}

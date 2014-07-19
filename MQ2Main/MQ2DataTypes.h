@@ -2603,45 +2603,6 @@ public:
     }
 };
 
-class MQ2MacroQuestType : public MQ2Type
-{
-public:
-	static enum MacroQuestMembers
-    {
-		Error=1,
-        SyntaxError=2,
-        MQ2DataError=3,
-		BuildDate=4,
-	};
-	MQ2MacroQuestType() :MQ2Type("macroquest")
-	{
-		TypeMember(Error);
-        TypeMember(SyntaxError);
-        TypeMember(MQ2DataError);
-        TypeMember(BuildDate);
-	}
-	~MQ2MacroQuestType()
-    {
-    }
-
-    bool GETMEMBER();
-    DECLAREGETMETHOD();
-	INHERITDIRECT(pEverQuestType);
-
-    bool ToString(MQ2VARPTR VarPtr, PCHAR Destination)
-    {
-        return false;
-    }
-    bool FromData(MQ2VARPTR &VarPtr, MQ2TYPEVAR &Source)
-    {
-        return false;
-    }
-    bool FromString(MQ2VARPTR &VarPtr, PCHAR Source)
-    {
-        return false;
-    }
-};
-        
 class MQ2EverQuestType : public MQ2Type
 {
 public:
@@ -2716,6 +2677,44 @@ public:
     }
 };
 
+class MQ2MacroQuestType : public MQ2Type
+{
+public:
+	static enum MacroQuestMembers
+    {
+		Error=1,
+        SyntaxError=2,
+        MQ2DataError=3,
+		BuildDate=4,
+	};
+	MQ2MacroQuestType() :MQ2Type("macroquest")
+	{
+		TypeMember(Error);
+        TypeMember(SyntaxError);
+        TypeMember(MQ2DataError);
+        TypeMember(BuildDate);
+	}
+	~MQ2MacroQuestType()
+    {
+    }
+
+    bool GETMEMBER();
+    DECLAREGETMETHOD();
+	INHERITDIRECT(pEverQuestType);// This inherits for Legacy reasons; All data from both types used to be under this type.
+
+    bool ToString(MQ2VARPTR VarPtr, PCHAR Destination)
+    {
+        return false;
+    }
+    bool FromData(MQ2VARPTR &VarPtr, MQ2TYPEVAR &Source)
+    {
+        return false;
+    }
+    bool FromString(MQ2VARPTR &VarPtr, PCHAR Source)
+    {
+        return false;
+    }
+};
 #ifndef ISXEQ
 class MQ2MathType : public MQ2Type
 {

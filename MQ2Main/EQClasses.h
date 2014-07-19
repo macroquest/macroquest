@@ -6935,7 +6935,7 @@ EQLIB_OBJECT int EQMisc::GetActiveFavorCost(void);
 class CSkillMgr
 {
 public:
-EQLIB_OBJECT unsigned long CSkillMgr::GetStrNumber(int);
+EQLIB_OBJECT unsigned long CSkillMgr::GetNameToken(int);
 EQLIB_OBJECT unsigned long CSkillMgr::GetSkillCap(class EQ_Character *,int,int,int,bool,bool,bool);
 EQLIB_OBJECT unsigned long CSkillMgr::SkillAvailableAtLevel(int,int);
 EQLIB_OBJECT bool CSkillMgr::IsActivatableSkill(int);

@@ -1,3 +1,7 @@
+18 July 2014 by eqmule
+- Updated for friday night ninja patch...
+- Added 2H Piercing to skill definitions.
+
 16 July 2014 by eqmule
 - Updated for patch
 - NUM_SPELL_SETS is now 30
@@ -5,7 +9,7 @@
   Example: /useitem "Philter of the Wolf V"
   will uee that potion
   /useitem "Philter of the Wolf VI"
-  will ue that one...
+  will use that one...
   prior to this patch doing a /useitem "Philter of the Wolf VI"
   would use "Philter of the Wolf V" if it found that one first...
 

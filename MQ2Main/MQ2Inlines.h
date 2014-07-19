@@ -465,7 +465,7 @@ static inline bool endsWith (char* base, char* str) {
 // If the user is on Windows XP this function will call GetTickCount()
 // instead of GetTickCount64() (which doesnt exist on that platform.)
 // ***************************************************************************
-static inline ULONGLONG GetTickCount642(void)
+inline ULONGLONG GetTickCount642(void)
 {
 	static int once = 1;
     static ULONGLONG (WINAPI *pGetTickCount64)(void);

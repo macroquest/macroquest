@@ -29,9 +29,11 @@ PreSetup("MQ2ItemDisplay");
 // thanks, finally, SOE. we'll leave this here for a while and eventually remove it
 #define DISABLE_TOOLTIP_TIMERS
 
-void Comment(PSPAWNINFO pChar, PCHAR szLine); 
+void Comment(PSPAWNINFO pChar, PCHAR szLine);
+#ifndef ISXEQ // TODO If we want GearScore under IS, this needs ported to ISXEQItemDisplay 
 void DoGearScoreUserCommand(PSPAWNINFO pChar, PCHAR szLine);
 void AddGearScores(PCONTENTS pSlot,ITEMINFO *pItem,char *out,char *br);
+#endif
 
 extern "C" {
     __declspec(dllexport) ITEMINFO g_Item;
@@ -447,9 +449,10 @@ public:
             strcat(out, temp); 
         }
 
+#ifndef ISXEQ
 		// Dewey 2461 - user defined score 12-22-2012
 		AddGearScores((PCONTENTS)This->pItem,Item,out,"<BR>");
-
+#endif
         if ( ((EQ_Item*)item)->IsStackable() ) {
             if ( Item->StackSize > 0 ) {
                 sprintf(temp,"Stackable Count: %d<br>", Item->StackSize);

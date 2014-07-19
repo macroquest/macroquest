@@ -28,6 +28,8 @@ dxsdk81\include\dinput.h
 dxsdk90\readme.txt
 dxsdk90\include\dinput.h
 ISXEQ Release Files\README!.txt
+ISXEQ\isxGamesCommon.props
+ISXEQ\PostBuild.bat
 ISXEQ.NET\ISXEQ.cs
 ISXEQ.NET\ISXEQ.NET.csproj
 ISXEQ.NET\EQTypes\EQAltAbility.cs
@@ -205,7 +207,6 @@ MQ2Main\EQClasses.h
 MQ2Main\EQData.h
 MQ2Main\eqgame.h
 MQ2Main\EQUIStructs.h
-MQ2Main\ISXEQ
 MQ2Main\ISXEQ.vcxproj
 MQ2Main\ISXEQ.vcxproj.filters
 MQ2Main\itemtypes.h
@@ -268,6 +269,8 @@ MQ2Main\ISXEQ\ISXEQTopLevelObjects.cpp
 MQ2Main\ISXEQ\ISXEQTopLevelObjects.h
 MQ2Main\ISXEQ\ISXEQUtilities.cpp
 MQ2Main\ISXEQ\ISXEQUtilities.h
+MQ2Main\ISXEQ\isxGamesCommon.props
+MQ2Main\ISXEQ\PostBuild.bat
 MQ2Main\str_com\pchar.cpp
 MQ2Main\str_com\pchar2.cpp
 MQ2Main\str_com\pspawn.cpp
