@@ -6134,7 +6134,7 @@ default:
 DWORD FindSpellListByName(PCHAR szName)
 {
     DWORD Index;
-    for (Index=0;Index<10;Index++) {
+	for (Index=0;Index<NUM_SPELL_SETS;Index++) {
         if (!stricmp(pSpellSets[Index].Name,szName)) return Index;
     }
     return -1;

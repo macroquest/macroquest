@@ -1,3 +1,14 @@
+16 July 2014 by eqmule
+- Updated for patch
+- NUM_SPELL_SETS is now 30
+- /useitem now searches for items by exact name.
+  Example: /useitem "Philter of the Wolf V"
+  will uee that potion
+  /useitem "Philter of the Wolf VI"
+  will ue that one...
+  prior to this patch doing a /useitem "Philter of the Wolf VI"
+  would use "Philter of the Wolf V" if it found that one first...
+
 30 June 2014 by eqmule
 - Added new command: /removebuff
   it will remove a buff or a song by name or partial name.

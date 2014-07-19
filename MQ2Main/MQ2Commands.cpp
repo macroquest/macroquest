@@ -3014,7 +3014,7 @@ VOID UseItemCmd(PSPAWNINFO pChar, PCHAR szLine)
 		if(IsNumber(szSlot1)) {
 			cmdUseItem(pChar,szLine);
 		} else {
-			if(PCONTENTS pItem = FindItemByName(szSlot1)) {
+			if(PCONTENTS pItem = FindItemByName(szSlot1,1)) {
 				CHAR szTemp[32] = {0};
 				sprintf_s(szTemp,"%d %d",pItem->ItemSlot,pItem->ItemSlot2);
 				cmdUseItem(pChar,szTemp);
