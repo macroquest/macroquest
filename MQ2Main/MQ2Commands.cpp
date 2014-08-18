@@ -1644,6 +1644,10 @@ VOID Face(PSPAWNINFO pChar, PCHAR szLine)
 {
     if (!ppSpawnManager) return;
     if (!pSpawnList) return;
+	if(GetGameState()!=GAMESTATE_INGAME) {
+		MacroError("You shouldn't execute /face when not in game. Gamestate is %d",GetGameState());
+		return;
+	}
     PSPAWNINFO pSpawnClosest = NULL;
     PSPAWNINFO psTarget = NULL;
     SPAWNINFO LocSpawn = {0};
@@ -2789,11 +2793,18 @@ VOID DoMappable(PSPAWNINFO pChar, PCHAR szLine)
     GetArg(szArg2,szLine,2);
     BOOL Hold=(stricmp(szArg2,"hold")==0);
 
+
     if (!PressMQ2KeyBind(szArg1,Hold))
     {
         int N=FindMappableCommand(szArg1);
         if (N>=0)
         {
+			//ok if the user issues a movement keypress like "FORWARD" here and at charselect he ctd
+			//lets see if we can fix that -eqmule
+			if(EQbCommandEnabled[N]==FALSE) {
+				MacroError("%s is disabled right now Gamestate is %d",szArg1,GetGameState());
+				return;
+			}
             ExecuteCmd(N,1,0);
             if (!Hold)
                 ExecuteCmd(N,0,0);

@@ -278,8 +278,10 @@ bool __cdecl MQ2Initialize()
     ZeroMemory(szEQMappableCommands,sizeof(szEQMappableCommands));
     for (i = 0 ; i < nEQMappableCommands; i++)
     {
-        if((DWORD)EQMappableCommandList[i] == 0 || (DWORD)EQMappableCommandList[i] > (DWORD)__AC1_Data)
+        if((DWORD)EQMappableCommandList[i] == 0 || (DWORD)EQMappableCommandList[i] > (DWORD)__AC1_Data) {
+			Sleep(0);//for debugging
             continue;
+		}
         szEQMappableCommands[i]=EQMappableCommandList[i];
     }
     gnNormalEQMappableCommands=i;
@@ -290,24 +292,24 @@ bool __cdecl MQ2Initialize()
 	// so there is no guarantee calling for example TOGGLE_WINDOWMODE will work
 	// but at least they are at the end again and nEQMappableCommands was 0x201 today,
 	//but yeah I see no use for them... - eqmule
-	szEQMappableCommands[nEQMappableCommands - 22]="UNKNOWN0x1ec";
-    szEQMappableCommands[nEQMappableCommands - 21]="UNKNOWN0x1ed";
-    szEQMappableCommands[nEQMappableCommands - 20]="UNKNOWN0x1ee";
-    szEQMappableCommands[nEQMappableCommands - 19]="UNKNOWN0x1ef";
-    szEQMappableCommands[nEQMappableCommands - 18]="CHAT_SEMICOLON";
-    szEQMappableCommands[nEQMappableCommands - 17]="CHAT_SLASH";
-    szEQMappableCommands[nEQMappableCommands - 16]="UNKNOWN0x1f2";
-    szEQMappableCommands[nEQMappableCommands - 15]="UNKNOWN0x1f3";
-    szEQMappableCommands[nEQMappableCommands - 14]="INSTANT_CAMP";
-    szEQMappableCommands[nEQMappableCommands - 13]="UNKNOWN0x1f5";
-    szEQMappableCommands[nEQMappableCommands - 12]="UNKNOWN0x1f6";
-    szEQMappableCommands[nEQMappableCommands - 11]="CHAT_EMPTY";
-    szEQMappableCommands[nEQMappableCommands - 10]="TOGGLE_WINDOWMODE";
-    szEQMappableCommands[nEQMappableCommands -  9]="UNKNOWN0x1f9";
-    szEQMappableCommands[nEQMappableCommands -  8]="UNKNOWN0x1fa";
-    szEQMappableCommands[nEQMappableCommands -  7]="CHANGEFACE"; // maybe? something that requires models.
-    szEQMappableCommands[nEQMappableCommands -  6]="UNKNOWN0x1fc";
-    szEQMappableCommands[nEQMappableCommands -  5]="UNKNOWN0x1fd";
+	szEQMappableCommands[nEQMappableCommands - 22]="UNKNOWN0x1ec";//"Magic"
+    szEQMappableCommands[nEQMappableCommands - 21]="UNKNOWN0x1ed";//"Fire"
+    szEQMappableCommands[nEQMappableCommands - 20]="UNKNOWN0x1ee";//"Cold"
+    szEQMappableCommands[nEQMappableCommands - 19]="UNKNOWN0x1ef";//"Disease"
+    szEQMappableCommands[nEQMappableCommands - 18]="CHAT_SEMICOLON";//"Poison"
+    szEQMappableCommands[nEQMappableCommands - 17]="CHAT_SLASH";//"Physical"
+    szEQMappableCommands[nEQMappableCommands - 16]="INSTANT_CAMP";//"Corruption" confirmed 16 jul 2014 -eqmule
+    szEQMappableCommands[nEQMappableCommands - 15]="UNKNOWN0x1f3";//"Unknown"
+    szEQMappableCommands[nEQMappableCommands - 14]="UNKNOWN0x1f4";//"Avatar"
+    szEQMappableCommands[nEQMappableCommands - 13]="UNKNOWN0x1f5";//"RemoveButton"
+    szEQMappableCommands[nEQMappableCommands - 12]="CHAT_EMPTY";//"ClearAll"
+    szEQMappableCommands[nEQMappableCommands - 11]="TOGGLE_WINDOWMODE";//"ClearTaskBecauseTaskNotFound" confirmed 16 jul 2014 -eqmule
+    szEQMappableCommands[nEQMappableCommands - 10]="UNKNOWN0x1f8";//"NoPlayersLeft"
+    szEQMappableCommands[nEQMappableCommands -  9]="UNKNOWN0x1f9";//"CreatedSharedTask"
+    szEQMappableCommands[nEQMappableCommands -  8]="CHANGEFACE";//"Complete" confirmed 16 jul 2014 -eqmule
+    szEQMappableCommands[nEQMappableCommands -  7]="UNKNOWN0x1f8";//Expired
+    szEQMappableCommands[nEQMappableCommands -  6]="UNKNOWN0x1fc";//Script
+    szEQMappableCommands[nEQMappableCommands -  5]="UNKNOWN0x1fd";//LeaderRemoved
     szEQMappableCommands[nEQMappableCommands -  4]="UNKNOWN0x1fe";
     szEQMappableCommands[nEQMappableCommands -  3]="UNKNOWN0x1ff";
     szEQMappableCommands[nEQMappableCommands -  2]="UNKNOWN0x200";

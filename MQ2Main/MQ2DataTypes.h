@@ -652,6 +652,8 @@ public:
         Following=102,
 		Address=103,
 		Inviter=104,
+		MercID=105,
+		ContractorID=106,
 	};
     static enum SpawnMethods
     {
@@ -763,6 +765,8 @@ public:
         TypeMember(Following);
         TypeMember(Address);
         TypeMember(Inviter);
+        TypeMember(MercID);
+        TypeMember(ContractorID);
 
         TypeMethod(Target);
         TypeMethod(Face);

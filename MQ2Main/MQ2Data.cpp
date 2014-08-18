@@ -992,7 +992,7 @@ TLO(dataFindItem)
     strlwr(strcpy(Name,pName));
     PCHARINFO pCharInfo=GetCharInfo();
 	PCHARINFO2 pChar2 = GetCharInfo2();
-	if(pChar2 && pChar2->pInventoryArray->Inventory.Cursor) {
+	if(pChar2 && pChar2->pInventoryArray && pChar2->pInventoryArray->Inventory.Cursor) {
 		if (PCONTENTS pItem=pChar2->pInventoryArray->Inventory.Cursor) {
 			if (bExact)	{
 				if (!stricmp(Name,GetItemFromContents(pItem)->Name)) {

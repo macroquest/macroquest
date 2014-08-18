@@ -52,6 +52,7 @@
 #define __Attack_x                                                 0xFCDC1A
 #define __Autofire_x                                               0xFCDC1B
 #define __BindList_x                                               0xB77840
+#define __bCommandEnabled_x                                        0xF38C28
 #define __Clicks_x                                                 0xF49760
 #define __CommandList_x                                            0xB7B8E0
 #define __CurrentMapLabel_x                                        0x10E0CF0
@@ -452,7 +453,7 @@
 #define CListWnd__SetItemData_x                                    0x87C730
 #define CListWnd__SetItemText_x                                    0x87F9A0
 #define CListWnd__ShiftColumnSeparator_x                           0x87F830
-#define CListWnd__Sort_x                                           0x88117D
+#define CListWnd__Sort_x                                           0x881170
 #define CListWnd__ToggleSel_x                                      0x87C600
 
 // CMapViewWnd 

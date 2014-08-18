@@ -1,3 +1,33 @@
+30 July 2014 by eqmule
+- Added MercID to the spawn TLO it returns an inttype
+  if the spawn is player and has a merc up this is it's spawn ID
+  Usage: /echo Eqmule has a merc up, it's a ${Spawn[${Spawn[=Eqmule].MercID}].Class} named ${Spawn[${Spawn[=Eqmule].MercID}].Name}
+  Output: [MQ2] Eqmule has a merc up, it's a Cleric named kandrella_012345
+
+- Added ContractorID to the spawn TLO it returns an inttype
+  if the spawn is a merc this is its contractor's spawn ID
+  Usage: /echo My target (${Target.Name}) is contracted by ${Spawn[${Target.ContractorID}].Name}
+  Output: [MQ2] My target (kandrella_012345) is contracted by Eqmule
+
+24 July 2014 by eqmule
+- Attempting to fix charselect crashes when macros are running there.
+- Changes was nade to the following files:
+	eqgame.h
+	MQ2Commands.cpp
+	MQ2Globals.cpp
+	MQ2Globals.h
+	MQ2Mouse.cpp
+
+22 July 2014 by eqmule
+- Fixed the CListWnd__Sort_x offset
+- Changes was nade to the following files:
+	EQData.h
+	eqgame.h
+	MQ2DataTypes.cpp
+	MQ2DataTypes.h
+	MQ2KeyBinds.cpp
+	MQ2Main.cpp
+
 21 July 2014 by eqmule
 - Added FirstFreeSlot to the Item TLO, it returns an Int.
   Usage:

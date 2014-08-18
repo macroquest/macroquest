@@ -1434,7 +1434,10 @@ typedef struct _SPAWNINFO {
 /*0x1110*/ FLOAT        GetMeleeRangeVar2;      // used by GetMeleeRange
 /*0x1114*/ BYTE         Unknown0x1114[0x64];
 /*0x1178*/ DWORD        Animation;
-/*0x117c*/ BYTE         Unknown0x117c[0x10c];
+/*0x117c*/ BYTE         Unknown0x117c[0xec];
+/*0x1268*/ DWORD        MercID;				//if the spawn is player and has a merc up this is it's spawn ID -eqmule 16 jul 2014
+/*0x126c*/ DWORD        ContractorID;		//if the spawn is a merc this is its contractor's spawn ID -eqmule 16 jul 2014
+/*0x1270*/ BYTE         Unknown0x1270[0x18];
 /*0x1288*/ FLOAT        WalkSpeed;
 /*0x128c*/ DWORD        HideCorpse;
 /*0x1290*/ BYTE         Unknown0x1290[0x3c];
@@ -2083,15 +2086,18 @@ typedef struct _EQSTRINGTABLE {
 /*0x10*/
 } EQSTRINGTABLE, *PEQSTRINGTABLE;
 
+//updated by eqmule
+//see 7B000C in eqgame.exe dated jul 16 2014
+//not sure about size...
 typedef struct connection_t {
 /*0x000*/ void  *vtable;
-/*0x004*/ BYTE  Unknown0x4[0x100];
-/*0x104*/ DWORD Master;
-/*0x108*/ DWORD Average;
-/*0x10c*/ DWORD Low;
-/*0x110*/ DWORD High;
-/*0x114*/ DWORD Last;
-/*0x118*/
+/*0x004*/ BYTE  Unknown0x4[0x110];
+/*0x114*/ DWORD Master;
+/*0x118*/ DWORD Average;
+/*0x11c*/ DWORD Low;
+/*0x120*/ DWORD High;
+/*0x124*/ DWORD Last;
+/*0x128*/
 } CONNECTION_T, *PCONNECTION_T;
 
 //actual size 0x2dfc 3-19-09 - ieatacid 
@@ -2338,8 +2344,8 @@ typedef struct _GROUPAGGRO {
 /*0x08*/ DWORD  GroupMemberAggro[6];//player is ALWAYS the 6th member...
 } GROUPAGGRO, *PGROUPAGGRO;
 
-#define EQ_BEGIN_ZONE                   0x53E1  // CEverQuest__SavePCForce				20140715
-#define EQ_END_ZONE                     0x6466  // CEverQuest__DoMainLoop+B2F			20140715
+#define EQ_BEGIN_ZONE                   0x53E1  // CEverQuest__SavePCForce				20140716
+#define EQ_END_ZONE                     0x6466  // CEverQuest__DoMainLoop+B2F			20140716
 #define EQ_LoadingS__ArraySize          0x5b    // EQ_LoadingS__SetProgressBar_x+8C		20130619
 };
 using namespace EQData;

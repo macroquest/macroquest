@@ -935,7 +935,8 @@ int __cdecl memcheck4(unsigned char *buffer, int count, struct mckey key)
 VOID __cdecl CrashDetected_Trampoline(BOOL); 
 VOID __cdecl CrashDetected_Detour(BOOL bFlag)//no idea, but it seems to be set to 1, maybe log and send? or just log dont send?
 { 
-    MessageBox(0,"MacroQuest2 is blocking the 'send Sony crash info?' box for your safety and privacy.  Crashes are usually bugs either in EQ or in MacroQuest2.  It is generally not something that you yourself did, unless you have custom MQ2 plugins loaded.  If you want to submit a bug report to the MacroQuest2 message boards, please follow the instructions on how to submit a crash bug report at the top of the MQ2::Bug Reports forum.","EverQuest Crash Detected",MB_OK);
+//    CrashDetected_Trampoline(bFlag);
+	MessageBox(0,"MacroQuest2 is blocking the 'send Sony crash info?' box for your safety and privacy.  Crashes are usually bugs either in EQ or in MacroQuest2.  It is generally not something that you yourself did, unless you have custom MQ2 plugins loaded.  If you want to submit a bug report to the MacroQuest2 message boards, please follow the instructions on how to submit a crash bug report at the top of the MQ2::Bug Reports forum.","EverQuest Crash Detected",MB_OK);
 	DebugBreak();
 } 
 DETOUR_TRAMPOLINE_EMPTY(VOID CrashDetected_Trampoline(BOOL)); 

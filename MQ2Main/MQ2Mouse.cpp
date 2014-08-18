@@ -233,6 +233,10 @@ BOOL IsMouseWaiting()
 
 VOID Click(PSPAWNINFO pChar, PCHAR szLine) 
 { 
+	if(GetGameState()!=GAMESTATE_INGAME) {
+		MacroError("Dont /click stuff(%s) when not in game... Gamestate is %d",szLine,GetGameState());
+		return;
+	}
     CHAR szArg1[MAX_STRING] = {0}; 
     PCHAR szMouseLoc; 
     MOUSE_DATA_TYPES mdType = MD_Unknown; 

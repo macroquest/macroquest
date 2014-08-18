@@ -447,9 +447,9 @@ VOID MQ2KeyBindCommand(PSPAWNINFO pChar, PCHAR szLine)
     if (SetEQKeyBindByNumber(N,AltKey,NewCombo))
     {
         sprintf( szArg1,"%s %s now bound as %s", 
-            (AltKey)?("Alternate"):("Normal"), 
-            szEQMappableCommands[N],
-            DescribeKeyCombo((AltKey)?(pKeypressHandler->AltKey[N]):(pKeypressHandler->NormalKey[N]),szBuffer));
+        (AltKey)?("Alternate"):("Normal"), 
+        szEQMappableCommands[N],
+        DescribeKeyCombo((AltKey)?(pKeypressHandler->AltKey[N]):(pKeypressHandler->NormalKey[N]),szBuffer));
     }
 }
 #else

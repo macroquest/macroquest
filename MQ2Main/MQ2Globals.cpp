@@ -68,6 +68,7 @@ bool InitOffsets()
 
     ppCurrentMapLabel = (PMAPLABEL*)__CurrentMapLabel;
     EQMappableCommandList = (PCHAR*)__BindList;
+	EQbCommandEnabled = (PBYTE)__bCommandEnabled;
 
     EQADDR_ENCRYPTPAD0 = (PBYTE)__EncryptPad0;
     EQADDR_ENCRYPTPAD1 = (PBYTE)__EncryptPad1;
@@ -975,6 +976,7 @@ PDWORD EQADDR_DOABILITYLIST=0;
 
 PMAPLABEL *ppCurrentMapLabel=0;
 PCHAR *EQMappableCommandList=0;
+PBYTE EQbCommandEnabled=0;
 
 PBYTE EQADDR_ENCRYPTPAD0=0;
 PBYTE EQADDR_ENCRYPTPAD1=0;
@@ -1161,6 +1163,7 @@ INITIALIZE_EQGAME_OFFSET(__AltTimerReady);
 INITIALIZE_EQGAME_OFFSET(__Attack);
 INITIALIZE_EQGAME_OFFSET(__Autofire);
 INITIALIZE_EQGAME_OFFSET(__BindList);
+INITIALIZE_EQGAME_OFFSET(__bCommandEnabled);
 INITIALIZE_EQGAME_OFFSET(__Clicks);
 INITIALIZE_EQGAME_OFFSET(__CommandList);
 INITIALIZE_EQGAME_OFFSET(__CurrentMapLabel);

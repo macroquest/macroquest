@@ -1762,6 +1762,14 @@ bool MQ2SpawnType::GETMEMBER()
             return true;
         }
 		break;
+	case MercID:
+		Dest.DWord=pSpawn->MercID;
+        Dest.Type=pIntType;
+        return true;
+	case ContractorID:
+		Dest.DWord=pSpawn->ContractorID;
+        Dest.Type=pIntType;
+        return true;
     }
     return false;
 }
