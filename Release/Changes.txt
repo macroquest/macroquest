@@ -1,3 +1,20 @@
+21 July 2014 by eqmule
+- Added FirstFreeSlot to the Item TLO, it returns an Int.
+  Usage:
+  /echo ${FindItem[Spell Research Kit].FirstFreeSlot}
+  [MQ2] 5
+- Added SlotsUsedByItem to the Item TLO, it returns an Int.
+  NOTE: it only works for containers and checks only each slot of the container
+  this means you CAN have a stack of 100 water flask in slot 1 of the container
+  it will still just return 1 cause it counts only how many slots that has "Water Flask"
+  in them not the actual stacksize of the item.
+  Usage:
+  /echo My Spell Research Kit has ${FindItem[Spell Research Kit].SlotsUsedByItem[Water Flask]}} slots that has Water Flask(s) in them.
+  [MQ2] My Spell Research Kit has 4 slots that has Water Flask(s) in them.
+
+19 July 2014 by eqmule
+- Fix for missing offset
+
 18 July 2014 by eqmule
 - Updated for friday night ninja patch...
 - Added 2H Piercing to skill definitions.
