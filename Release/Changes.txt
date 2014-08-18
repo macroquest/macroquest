@@ -1,3 +1,6 @@
+05 August 2014 by eqmule
+- Updated for patch.
+
 30 July 2014 by eqmule
 - Added MercID to the spawn TLO it returns an inttype
   if the spawn is player and has a merc up this is it's spawn ID
