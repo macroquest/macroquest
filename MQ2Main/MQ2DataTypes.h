@@ -1019,6 +1019,11 @@ public:
 		AAPointsAssigned=195,
 		AltCurrency=196,
 		ActiveDisc=197,
+		Slowed=198,
+		Rooted=199,
+		Mezzed=200,
+		Snared=201,
+		Hasted=202,
     };
     static enum CharacterMethods
     {
@@ -1215,6 +1220,11 @@ public:
 		TypeMember(ActiveDisc);
 		TypeMember(CountSongs);
 		TypeMember(MaxBuffSlots);
+		TypeMember(Slowed);
+		TypeMember(Rooted);
+		TypeMember(Mezzed);
+		TypeMember(Snared);
+		TypeMember(Hasted);
 		
         TypeMethod(Stand); 
         TypeMethod(Sit); 

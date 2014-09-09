@@ -7137,6 +7137,37 @@ int GetTargetBuffBySPA(int spa,bool bIncrease)
 	}
 	return -1;
 }
+int GetSelfBuffBySPA(int spa,bool bIncrease)
+{
+	for (unsigned long nBuff=0 ; nBuff < NUM_LONG_BUFFS ; nBuff++)
+    {
+        if (PSPELL pSpell=GetSpellByID(GetCharInfo2()->Buff[nBuff].SpellID))
+        {
+            if (LONG base = ((EQ_Spell *)pSpell)->GetSpellBaseByAttrib(spa)) {
+				if(spa==11)//Melee Speed
+				{
+					if(!bIncrease && base<100) {//below 100 means its a slow above its haste...
+						return nBuff;
+					} else if(bIncrease && base>100) {
+						return nBuff;
+					}
+					return -1;
+				}
+				if(spa==3)//Movement Rate
+				{
+					if(!bIncrease && base<0) {//below 0 means its a snare above its runspeed increase...
+						return nBuff;
+					} else if(bIncrease && base>0) {
+						return nBuff;
+					}
+					return -1;
+				}
+				return nBuff;
+			}
+        }
+    }
+	return -1;
+}
 DWORD GetSpellRankByName(PCHAR SpellName)
 {
 	char szTemp[256];

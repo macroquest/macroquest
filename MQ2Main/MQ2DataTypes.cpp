@@ -3757,6 +3757,61 @@ bool MQ2CharacterType::GETMEMBER()
 			return true;
 		}
 		break;
+	case Slowed:
+	{
+		int nBuff = -1;
+		if ((nBuff=GetSelfBuffBySPA(11,0))!=-1)//Snared
+        {
+			Dest.Ptr=&GetCharInfo2()->Buff[nBuff];
+            Dest.Type=pBuffType;
+            return true;
+        }
+		break;
+	}
+	case Rooted:
+	{
+		int nBuff = -1;
+		if ((nBuff=GetSelfBuffBySPA(90,0))!=-1)//Root
+        {
+			Dest.Ptr=&GetCharInfo2()->Buff[nBuff];
+            Dest.Type=pBuffType;
+            return true;
+        }
+		break;
+	}
+	case Mezzed:
+	{
+		int nBuff = -1;
+		if ((nBuff=GetSelfBuffBySPA(31,0))!=-1)//Entrall
+        {
+			Dest.Ptr=&GetCharInfo2()->Buff[nBuff];
+            Dest.Type=pBuffType;
+            return true;
+        }
+		break;
+	}
+	case Snared:
+	{
+		int nBuff = -1;
+		if ((nBuff=GetSelfBuffBySPA(3,0))!=-1)//Movement Rate
+        {
+			Dest.Ptr=&GetCharInfo2()->Buff[nBuff];
+            Dest.Type=pBuffType;
+            return true;
+        }
+		break;
+	}
+	case Hasted:
+	{
+		int nBuff = -1;
+		if ((nBuff=GetSelfBuffBySPA(11,1))!=-1)
+        {
+			Dest.Ptr=&GetCharInfo2()->Buff[nBuff];
+            Dest.Type=pBuffType;
+            return true;
+        }
+		break;
+	}
 	}
     return false;
 #undef pChar
@@ -8550,6 +8605,11 @@ bool MQ2TargetType::GETMEMBER()
 		break;
 	case Malod:
 	case Tashed:
+		if ((Dest.Int=GetTargetBuffBySubCat("Resist Debuffs"))!=-1)
+        {
+            Dest.Type=pTargetBuffType;
+            return true;
+        }
 		break;
 	case Snared:
 		if ((Dest.Int=GetTargetBuffBySPA(3,0))!=-1)//Movement Rate

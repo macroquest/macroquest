@@ -1,3 +1,25 @@
+25 August 2014 by eqmule
+- Updated for patch.
+- Added Malod and Tashed to the Target TLO
+  they both return a pTargetBuffType TLO which has 3 members:
+  Address (pIntType), Index (pIntType) and Duration (pTicksType).
+  It also inherits pSpellType.
+  This means that you can to stuff like:
+  /if (${Bool[${Target.Tashed]}==TRUE) /echo ${Target.Tashed.Name} will fade in ${Target.Tashed.Duration.TotalSeconds}s
+  [MQ2] Tashania will fade in 114s
+ 
+21 Aug 2014 by eqmule
+- Added .Slowed.Rooted.Mezzed.Snared and .Hasted to the Character TLO.
+  it returns a pBuffType
+	Usage: /echo ${Me.Snared}
+	Output: [MQ2] Ensnare
+- Changes where nade to the following files:
+	MQ2DataTypes.cpp
+	MQ2DataTypes.h
+	MQ2KeyBinds.cpp
+	MQ2Main.h
+	MQ2Utilities.cpp
+
 20 August 2014 by eqmule
 - Updated for patch.
 
