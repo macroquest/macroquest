@@ -1,3 +1,13 @@
+08 September 2014 by eqmule
+- Added support for clicking Sell in barter window.
+  Usage: /notify BarterSearchWnd BuyLineList listselect 2
+         /notify BarterSearchWnd Sellbutton leftmouseup
+- Added support for clicking Buy in bazaar window.
+  Usage: /notify BazaarSearchWnd BZR_ItemList listselect 17
+         /notify BazaarSearchWnd BZR_BuyButton leftmouseup
+- Changes where made to the following file(s):
+	MQ2Windows.cpp
+
 25 August 2014 by eqmule
 - Updated for patch.
 - Added Malod and Tashed to the Target TLO
@@ -13,7 +23,7 @@
   it returns a pBuffType
 	Usage: /echo ${Me.Snared}
 	Output: [MQ2] Ensnare
-- Changes where nade to the following files:
+- Changes where made to the following file(s):
 	MQ2DataTypes.cpp
 	MQ2DataTypes.h
 	MQ2KeyBinds.cpp
@@ -39,7 +49,7 @@
 
 24 July 2014 by eqmule
 - Attempting to fix charselect crashes when macros are running there.
-- Changes was nade to the following files:
+- Changes where made to the following file(s):
 	eqgame.h
 	MQ2Commands.cpp
 	MQ2Globals.cpp
@@ -48,7 +58,7 @@
 
 22 July 2014 by eqmule
 - Fixed the CListWnd__Sort_x offset
-- Changes was nade to the following files:
+- Changes where made to the following file(s):
 	EQData.h
 	eqgame.h
 	MQ2DataTypes.cpp

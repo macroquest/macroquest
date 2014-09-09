@@ -643,8 +643,30 @@ bool SendWndClick2(CXWnd *pWnd, PCHAR ClickNotification)
     }
     return false;
 }
+int WinCount = 0;
+class CXWnd *GetChildByIndex(class CXWnd *pWnd, PCHAR Name,int index)
+{
+    CHAR Buffer[MAX_STRING]={0};
+    class CXWnd *tmp;
 
-#define MacroError printf
+    if (!pWnd) return pWnd;
+    if (CXMLData *pXMLData=pWnd->GetXMLData()) {
+        if (GetCXStr(pXMLData->Name.Ptr,Buffer,MAX_STRING) && !stricmp(Buffer,Name)) {
+            WinCount++;
+        } else if (GetCXStr(pXMLData->ScreenID.Ptr,Buffer,MAX_STRING) && !stricmp(Buffer,Name)) {
+            WinCount++;
+        }
+    }
+	if(WinCount==index)
+		return pWnd;
+    if (pWnd->pFirstChildWnd) {
+        tmp = GetChildByIndex((class CXWnd *)pWnd->pFirstChildWnd, Name,index);
+        if (tmp)
+            return tmp;
+    }
+    return GetChildByIndex((class CXWnd *)pWnd->pNextSiblingWnd, Name,index);
+}
+
 bool SendWndClick(PCHAR WindowName, PCHAR ScreenID, PCHAR ClickNotification)
 {
     CXWnd *pWnd=FindMQ2Window(WindowName);
@@ -655,13 +677,38 @@ bool SendWndClick(PCHAR WindowName, PCHAR ScreenID, PCHAR ClickNotification)
     }
     if (ScreenID && ScreenID[0] && ScreenID[0]!='0')
     {
-        CXWnd *pButton=((CSidlScreenWnd*)(pWnd))->GetChildItem(ScreenID);
+		CXWnd *pButton=0;
+		if(!_stricmp(WindowName,"bartersearchwnd") && !_stricmp(ScreenID,"sellbutton")) {
+			if(CXWnd*pList=((CSidlScreenWnd*)(pWnd))->GetChildItem("BuyLineList")) {
+				int selection = ((CListWnd*)pList)->GetCurSel();
+				if(selection==-1) {
+					MacroError("Please select a Listitem in '%s' before issuing a '%s' Click",WindowName,ScreenID);
+					return false;
+				}
+				int buttonindex = ((CListWnd*)pList)->GetItemData(selection);
+				WinCount=0;
+				pButton=GetChildByIndex(pWnd,ScreenID,buttonindex+1);
+			}
+		} else if(!_stricmp(WindowName,"bazaarsearchwnd") && !_stricmp(ScreenID,"BZR_BuyButton")) {
+			if(CXWnd*pList=((CSidlScreenWnd*)(pWnd))->GetChildItem("BZR_ItemList")) {
+				int selection = ((CListWnd*)pList)->GetCurSel();
+				if(selection==-1) {
+					MacroError("Please select a Listitem in '%s' before issuing a '%s' Click",WindowName,ScreenID);
+					return false;
+				}
+				int buttonindex = ((CListWnd*)pList)->GetItemData(selection);
+				WinCount=0;
+				pButton=GetChildByIndex(pWnd,ScreenID,buttonindex+1);
+			}
+		} else {
+			pButton=((CSidlScreenWnd*)(pWnd))->GetChildItem(ScreenID);
+		}
         if (!pButton)
         {
             MacroError("Window '%s' child '%s' not found.",WindowName,ScreenID);
             return false;
         }
-        pWnd=pButton;
+		pWnd=pButton;
     }
 
     for (unsigned long i = 0 ; i < 8 ; i++)
@@ -931,10 +978,14 @@ int RecurseAndListWindows(PCSIDLWND pWnd)
         GetCXStr(pXMLData->TypeName.Ptr,tmpType,MAX_STRING);
         GetCXStr(pXMLData->Name.Ptr,tmpName,MAX_STRING);
         GetCXStr(pXMLData->ScreenID.Ptr,tmpAltName,MAX_STRING);
-        if (tmpAltName[0] && stricmp(tmpName,tmpAltName))
-            WriteChatf("[\ay%s\ax] [\at%s\ax] [Custom UI-specific: \at%s\ax]",tmpType,tmpName,tmpAltName);
-        else
-            WriteChatf("[\ay%s\ax] [\at%s\ax]",tmpType,tmpName);
+        if (tmpAltName[0] && stricmp(tmpName,tmpAltName)) {
+			if(pWnd->pParentWindow && pWnd->pParentWindow->pParentWindow)
+				WriteChatf("[0x%08X][P:0x%08X][PP:0x%08X] [\ay%s\ax] [\at%s\ax] [Custom UI-specific: \at%s\ax]",pWnd,pWnd->pParentWindow,pWnd->pParentWindow->pParentWindow,tmpType,tmpName,tmpAltName);
+			else
+				WriteChatf("[0x%08X][P:0x%08X] [\ay%s\ax] [\at%s\ax] [Custom UI-specific: \at%s\ax]",pWnd,pWnd->pParentWindow,tmpType,tmpName,tmpAltName);
+		} else {
+			WriteChatf("[0x%08X][P:0x%08X] [\ay%s\ax] [\at%s\ax]",pWnd,pWnd->pParentWindow,tmpType,tmpName);
+		}
     }
     if (pWnd->pFirstChildWnd)
         Count += RecurseAndListWindows(pWnd->pFirstChildWnd);
