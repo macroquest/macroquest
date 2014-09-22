@@ -1,4 +1,9 @@
 17 September 2014 by eqmule
+- Updated for the patch for the patch
+- Changes where made to the following file(s):
+	eqgame.h
+
+17 September 2014 by eqmule
 - Updated for patch
 - Support for the new alt currency "Noble" is hereby announced.
   (it was added on the 12th of Sep)
