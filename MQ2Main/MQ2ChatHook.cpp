@@ -174,13 +174,14 @@ unsigned int __stdcall MQ2DataVariableLookup(char * VarName, char * Value)
 }
 #ifndef ISXEQ
 VOID BeepOnTells(PSPAWNINFO pChar, char *szLine)
+{
 #else
 int BeepOnTells(int argc, char *argv[])
-	PCHAR szLine = NULL;
+{
+   PCHAR szLine = NULL;
     if (argc > 0)
         szLine = argv[1];
 #endif
-{
 	if(szLine[0]!='\0') {
 		if(!_stricmp(szLine,"on")) {
 			gbBeepOnTells = 0;
@@ -203,13 +204,14 @@ int BeepOnTells(int argc, char *argv[])
 }
 #ifndef ISXEQ
 VOID TimeStampChat(PSPAWNINFO pChar, char *szLine)
+{
 #else
 int TimeStampChat(int argc, char *argv[])
-	PCHAR szLine = NULL;
+{
+   PCHAR szLine = NULL;
     if (argc > 0)
         szLine = argv[1];
 #endif
-{
 	if(szLine[0]!='\0') {
 		if(!_stricmp(szLine,"on")) {
 			gbTimeStampChat = 0;

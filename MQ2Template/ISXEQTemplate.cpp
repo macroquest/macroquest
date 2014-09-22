@@ -424,7 +424,7 @@ int MyCommand(int argc, char *argv[])
     }
 
     char FullText[8192]={0};
-    pISInterface->GetArgs(1,argc,argv,FullText); // this gets the rest of the arguments, from 1 to argc
+    pISInterface->GetArgs(1,argc,argv,FullText, sizeof(FullText)); // this gets the rest of the arguments, from 1 to argc
     WriteChatf("You passed the following text to the command:");
     WriteChatf("%s",FullText);
 

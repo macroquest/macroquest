@@ -1,10 +1,22 @@
+
+19 September 2014 by eqmule
+- Updated for the patch for the patch for the patch.
+- Fixed a couple ISXEQ bugs, see post:
+  http://www.macroquest2.com/phpBB3/viewtopic.php?f=48&t=19538
+- Changes where made to the following file(s):
+	EQData.h
+	eqgame.h
+	EQUIStructs.h
+	MQ2ChatHook.cpp
+	MQ2Template\ISXEQTemplate.cpp
+
 17 September 2014 by eqmule
 - Updated for the patch for the patch
 - Changes where made to the following file(s):
 	eqgame.h
 
 17 September 2014 by eqmule
-- Updated for patch
+- Updated for the patch
 - Support for the new alt currency "Noble" is hereby announced.
   (it was added on the 12th of Sep)
 - Changes where made to the following file(s):
