@@ -1,3 +1,11 @@
+13 September 2014 by eqmule
+- Fixed ${Me.Fellowship.CampfireZone.ShortName}
+- Added BuffDuration to the Pet TLO, it returns a pTimeStampType
+  Usage: /echo My pets haste will fade in ${Pet.BuffDuration[Hastening of Sviir Rk. II].TotalSeconds} seconds.
+  Outputs: [MQ2] My pets haste will fade in 3200 seconds.
+- Added support for getting Duration on Songs.
+  See notes (below) from 12 September 2014 updates.
+
 12 September 2014 by eqmule
 - WARNING!!! MACRO BREAKING CHANGES!
 - I have continued my effort to get a higher resolution on timers in MQ2...

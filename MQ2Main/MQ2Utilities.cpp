@@ -6501,7 +6501,19 @@ DWORD GetSpellGemTimer(DWORD nGem)
 
 DWORD GetSpellBuffTimer(DWORD SpellID)
 {
-    PEQLONGBUFFWINDOW pbuffs = (PEQLONGBUFFWINDOW)pBuffWnd;
+    PEQBUFFWINDOW pbuffs = (PEQBUFFWINDOW)pBuffWnd;
+	for (unsigned long nBuff=0 ; nBuff < NUM_LONG_BUFFS ; nBuff++) {
+		if(pbuffs->BuffId[nBuff]==SpellID) {
+			if(pbuffs->BuffTimer[nBuff]) {
+				return pbuffs->BuffTimer[nBuff];
+			}
+		}
+	}
+	//look, this probably is an oversight by the eqdevs
+	//but the struct only have 0x2a BuffTimers so...
+	//even though there could be 0x37 shortbuffs
+	// we can only check up to 0x2a...
+	pbuffs = (PEQBUFFWINDOW)pSongWnd;
 	for (unsigned long nBuff=0 ; nBuff < NUM_LONG_BUFFS ; nBuff++) {
 		if(pbuffs->BuffId[nBuff]==SpellID) {
 			if(pbuffs->BuffTimer[nBuff]) {

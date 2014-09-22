@@ -2254,6 +2254,7 @@ public:
 		Stop=8,
 		Target=9,
 		Taunt=10,
+		BuffDuration=11,
     };
     static enum PetMethods
     {
@@ -2270,6 +2271,7 @@ public:
 		TypeMember(Stop);
         TypeMember(Target);
         TypeMember(Taunt);
+        TypeMember(BuffDuration);
     }
 
     ~MQ2PetType()

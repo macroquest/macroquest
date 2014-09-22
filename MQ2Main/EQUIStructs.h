@@ -441,24 +441,6 @@ typedef struct _EQCHATWINDOW
 /*0x26c*/
 } EQCHATWINDOW, *PEQCHATWINDOW;
 
-// Original find by Lax 10-24-2003
-// Eqmule sep 13 2013
-// Actual size 0x71C aug 21 2014 (see 49A7B6)
-// locate aBuffwindow which will take u to CBuffWindow__CBuffWindow
-typedef struct _EQLONGBUFFWINDOW {
-/*0x000*/ struct _CSIDLWND Wnd;
-/*0x234*/ BYTE  Unknown0x234[0xBC];
-/*0x2f0*/ struct _CBUTTONWND *pBuff[0x24];	// CButton*
-/*0x380*/ BYTE  Unknown0x380[0x210];
-/*0x590*/ DWORD BuffId[NUM_LONG_BUFFS];
-/*0x638*/ DWORD BuffTimer[NUM_LONG_BUFFS];
-/*0x6e0*/ BYTE  Unknown0x6e0[0x28];
-/*0x708*/ DWORD MaxLongBuffs;		//0x2a (NUM_LONG_BUFFS)
-/*0x70C*/ DWORD MaxShortBuffs;		//0x37 (NUM_SHORT_BUFFS)
-/*0x710*/ BYTE  Unknown0x710[0xC];
-/*0x71C*/
-} EQLONGBUFFWINDOW, *PEQLONGBUFFWINDOW;
-
 // actual size 0x14 10-12-2010
 //I think this is correct:
 //see (69FF1E) in eqgame.exe dated 2013 11 13 -eqmule
@@ -863,6 +845,23 @@ typedef struct _EQITEMWINDOW {
 /*0x0610*/
 } EQITEMWINDOW, *PEQITEMWINDOW;
 
+// CBuffWindow__CBuffWindow aBuffwindow
+// this is used for both long and shortbuffs...
+// Actual size 0x71C aug 21 2014 (see 49A7B6)
+typedef struct _EQBUFFWINDOW {
+/*0x000*/ struct _CSIDLWND Wnd;
+/*0x234*/ BYTE  Unknown0x234[0xBC];
+/*0x2f0*/ struct _CBUTTONWND *pBuff[0x24];	// CButton*
+/*0x380*/ BYTE  Unknown0x380[0x210];
+/*0x590*/ DWORD BuffId[NUM_LONG_BUFFS];
+/*0x638*/ DWORD BuffTimer[NUM_LONG_BUFFS];
+/*0x6e0*/ BYTE  Unknown0x6e0[0x28];
+/*0x708*/ DWORD MaxLongBuffs;		//0x2a (NUM_LONG_BUFFS)
+/*0x70C*/ DWORD MaxShortBuffs;		//0x37 (NUM_SHORT_BUFFS)
+/*0x710*/ BYTE  Unknown0x710[0xC];
+/*0x71C*/
+} EQBUFFWINDOW, *PEQBUFFWINDOW;
+
 // size is 0x3b0 in eqgame.exe 2014-04-24 test (see 49A545) - eqmule
 // size is 0x3b8 in eqgame.exe 2014-05-19 test (see 49A8A5) - eqmule
 //CLootWnd__CLootWnd (aLootwnd)
@@ -960,7 +959,7 @@ typedef struct _EQPETINFOWINDOW {
 /*0x045c*/ struct _CSIDLWND *   pWnd[NUM_BUFF_SLOTS]; // buff icons?
 /*0x05e0*/ int          Buff[NUM_BUFF_SLOTS];        // Spell ID# of each buff -- 97 total
 /*0x0764*/ BYTE         Unknown0x0764[0x20];
-/*0x0784*/ DWORD        BuffFadeETA[NUM_BUFF_SLOTS]; // duration until buff fades, in thousands of a second
+/*0x0784*/ DWORD        BuffTimer[NUM_BUFF_SLOTS]; // duration until buff fades, in thousands of a second
 /*0x0908*/ BYTE         Unknown0x0908[0x1f];
 /*0x0927*/ BYTE         Sit;//0/1 is off/on
 /*0x0928*/ BYTE         Stop;//0/1 is off/on

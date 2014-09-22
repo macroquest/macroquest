@@ -4117,7 +4117,7 @@ bool MQ2SpellType::GETMEMBER()
             for (nBuff=0; nBuff<NUM_BUFF_SLOTS; nBuff++){
                 if (pPet->Buff[nBuff]>0 && !(pPet->Buff[nBuff]==0xFFFFFFFF || pPet->Buff[nBuff]==0)) {
                     if(PSPELL buffSpell = GetSpellByID(pPet->Buff[nBuff])) {
-						petbuffduration = ((pPet->BuffFadeETA[nBuff]+5999)/1000)/6;
+						petbuffduration = ((pPet->BuffTimer[nBuff]+5999)/1000)/6;
 						for (int nSlot=0; nSlot<=11; nSlot++){
 							if (TriggeringEffectSpell(pSpell, nSlot)){		// Check the triggered effect against the current buff for stacking
 								if(PSPELL triggeredSpell = GetSpellByID(pSpell->Base2[nSlot])) {
@@ -6940,12 +6940,12 @@ bool MQ2PetType::GETMEMBER()
         //return pSpawnType->GetMember(*(LSVARPTR*)&VarPtr.Ptr,Member,argc,argv,Dest);
 #endif
     }
+#define pPetInfoWindow ((PEQPETINFOWINDOW)pPetInfoWnd)
 	switch((PetMembers)pMember->ID)
     {
 	case Buff:
         if (!ISINDEX() || !pPetInfoWnd)
             return false;
-#define pPetInfoWindow ((PEQPETINFOWINDOW)pPetInfoWnd)
         if (ISNUMBER())
         {
             unsigned long nBuff=GETNUMBER()-1;
@@ -6974,7 +6974,36 @@ bool MQ2PetType::GETMEMBER()
                 }
             }
         }
-#undef pPetInfoWindow
+        return false;
+	case BuffDuration:
+        if (!ISINDEX() || !pPetInfoWnd)
+            return false;
+        if (ISNUMBER())
+        {
+            unsigned long nBuff=GETNUMBER()-1;
+            if (nBuff>NUM_BUFF_SLOTS)
+                return false;
+            if (pPetInfoWindow->Buff[nBuff]==0xFFFFFFFF || pPetInfoWindow->Buff[nBuff]==0)
+                return false;
+			Dest.UInt64=pPetInfoWindow->BuffTimer[nBuff];
+			Dest.Type=pTimeStampType;
+            return true;
+        }
+        else
+        {
+            for (unsigned long nBuff=0 ; nBuff < NUM_BUFF_SLOTS ; nBuff++)
+            {
+                if (PSPELL pSpell=GetSpellByID(pPetInfoWindow->Buff[nBuff]))
+                {
+                    if (!stricmp(GETFIRST(),pSpell->Name))
+                    {
+                        Dest.UInt64=pPetInfoWindow->BuffTimer[nBuff];
+						Dest.Type=pTimeStampType;
+                        return true;
+                    }
+                }
+            }
+        }
         return false;
     case Combat:
 		if(pSpawn->WhoFollowing)
@@ -6986,7 +7015,7 @@ bool MQ2PetType::GETMEMBER()
         Dest.Type = pBoolType;
         return true;
 	case GHold:
-		if(((PEQPETINFOWINDOW)pPetInfoWnd)->GHold)
+		if(pPetInfoWindow->GHold)
 		{
 			Dest.DWord = TRUE;
         } else {
@@ -6995,7 +7024,7 @@ bool MQ2PetType::GETMEMBER()
         Dest.Type = pBoolType;
 		return true;
 	case Hold:
-		if(((PEQPETINFOWINDOW)pPetInfoWnd)->Hold)
+		if(pPetInfoWindow->Hold)
 		{
 			Dest.DWord = TRUE;
         } else {
@@ -7008,7 +7037,7 @@ bool MQ2PetType::GETMEMBER()
 		Dest.Ptr=CleanupName(&pSpawn->Name[0],FALSE,FALSE);
         return true;
 	case ReGroup:
-		if(((PEQPETINFOWINDOW)pPetInfoWnd)->ReGroup)
+		if(pPetInfoWindow->ReGroup)
 		{
 			Dest.DWord = TRUE;
         } else {
@@ -7017,7 +7046,7 @@ bool MQ2PetType::GETMEMBER()
         Dest.Type = pBoolType;
 		return true;
 	case Stance:
-		if(((PEQPETINFOWINDOW)pPetInfoWnd)->Follow)
+		if(pPetInfoWindow->Follow)
 		{
 			Dest.Ptr = "FOLLOW";
 		} else {
@@ -7026,7 +7055,7 @@ bool MQ2PetType::GETMEMBER()
 		Dest.Type = pStringType;
 		return true;
 	case Stop:
-		if(((PEQPETINFOWINDOW)pPetInfoWnd)->Stop)
+		if(pPetInfoWindow->Stop)
 		{
 			Dest.DWord = TRUE;
         } else {
@@ -7042,7 +7071,7 @@ bool MQ2PetType::GETMEMBER()
         }
         break;
 	case Taunt:
-		if(((PEQPETINFOWINDOW)pPetInfoWnd)->Taunt)
+		if(pPetInfoWindow->Taunt)
 		{
 			Dest.DWord = TRUE;
         } else {
@@ -7051,6 +7080,7 @@ bool MQ2PetType::GETMEMBER()
         Dest.Type = pBoolType;
 		return true;
 	}
+#undef pPetInfoWindow
 	return false;
 }
 
@@ -8287,29 +8317,28 @@ bool MQ2FellowshipType::GETMEMBER()
         }
         return false;
     case CampfireDuration:
-        if(((PSPAWNINFO)pCharSpawn)->CampfireTimestamp)
+        if(((PSPAWNINFO)pLocalPlayer)->CampfireTimestamp)
         {
-            Dest.DWord=(((PSPAWNINFO)pCharSpawn)->CampfireTimestamp-GetFastTime())/6;
+            Dest.DWord=(((PSPAWNINFO)pLocalPlayer)->CampfireTimestamp-GetFastTime())/6;
             Dest.Type=pTicksType;
             return true;
         }
         return false;
     case CampfireY:
-        Dest.Float=((PSPAWNINFO)pCharSpawn)->CampfireY;
+        Dest.Float=((PSPAWNINFO)pLocalPlayer)->CampfireY;
         Dest.Type=pFloatType;
         return true;
     case CampfireX:
-        Dest.Float=((PSPAWNINFO)pCharSpawn)->CampfireX;
+        Dest.Float=((PSPAWNINFO)pLocalPlayer)->CampfireX;
         Dest.Type=pFloatType;
         return true;
     case CampfireZ:
-        Dest.Float=((PSPAWNINFO)pCharSpawn)->CampfireZ;
+        Dest.Float=((PSPAWNINFO)pLocalPlayer)->CampfireZ;
         Dest.Type=pFloatType;
         return true;
     case CampfireZone:
-        if(((PSPAWNINFO)pCharSpawn)->CampfireZoneID)
+        if(DWORD zoneID = ((PSPAWNINFO)pLocalPlayer)->CampfireZoneID)
         {
-			DWORD zoneID = ((PSPAWNINFO)pCharSpawn)->CampfireZoneID;
 			if(zoneID<=1000) {//ugly but for now until i can figure out where the other zones are stored...
 				Dest.Ptr=((PWORLDDATA)pWorldData)->ZoneArray[zoneID];
 				Dest.Type=pZoneType;
@@ -8318,7 +8347,7 @@ bool MQ2FellowshipType::GETMEMBER()
         }
         return false;
     case Campfire:
-        Dest.Int=((PSPAWNINFO)pCharSpawn)->Campfire;
+        Dest.Int=((PSPAWNINFO)pLocalPlayer)->Campfire;
         Dest.Type=pBoolType;
         return true;
     }
