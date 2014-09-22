@@ -592,6 +592,7 @@ EQLIB_API bool        InHoverState();
 EQLIB_API DWORD       GetGameState(VOID);
 EQLIB_API float       GetMeleeRange(class EQPlayer *,class EQPlayer *);
 EQLIB_API DWORD       GetSpellGemTimer(DWORD nGem);
+EQLIB_API DWORD       GetSpellBuffTimer(DWORD SpellID);
 EQLIB_API bool        HasExpansion(DWORD nExpansion);
 EQLIB_API VOID		  ListMercAltAbilities();
 EQLIB_API PCONTENTS	  FindItemByName(PCHAR pName, BOOL bExact=false);

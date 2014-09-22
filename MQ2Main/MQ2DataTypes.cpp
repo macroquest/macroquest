@@ -950,9 +950,9 @@ bool MQ2TimeStampType::GETMEMBER()
             if (Secs<0)
                 sprintf(DataTypeTemp,"Perm");
             else if (Hrs)
-                sprintf(DataTypeTemp,"%d:%02d:%02d",Hrs,Mins,Secs);
+                sprintf(DataTypeTemp,"%d:%02u:%02u",(unsigned int)Hrs,(unsigned int)Mins,(unsigned int)Secs);
             else
-                sprintf(DataTypeTemp,"%d:%02d",Mins,Secs);
+                sprintf(DataTypeTemp,"%d:%02u",(unsigned int)Mins,(unsigned int)Secs);
             Dest.Ptr=&DataTypeTemp[0];
             Dest.Type=pStringType;
         }
@@ -965,7 +965,7 @@ bool MQ2TimeStampType::GETMEMBER()
             if (Secs < 0)
                 sprintf(DataTypeTemp,"Perm");
             else
-                sprintf(DataTypeTemp,"%d:%02d",Mins,Secs);
+                sprintf(DataTypeTemp,"%d:%02u",(unsigned int)Mins,(unsigned int)Secs);
             Dest.Ptr=&DataTypeTemp[0];
             Dest.Type=pStringType;
         }
@@ -1837,9 +1837,11 @@ bool MQ2BuffType::GETMEMBER()
         }
         return false;
     case Duration:
-        Dest.DWord=pBuff->Duration+1;// 0 is actually 6 seconds ;)
-        Dest.Type=pTicksType;
+    {
+		Dest.UInt64 = GetSpellBuffTimer(pBuff->SpellID);
+		Dest.Type=pTimeStampType;
         return true;
+	}
     case Dar:
 #if 0
         if(PSPELL pSpell = GetSpellByID(pBuff->SpellID))
@@ -1908,8 +1910,8 @@ bool MQ2TargetBuffType::GETMEMBER()
 		Dest.Type=pIntType;
         return true;
     case Duration:
-		Dest.DWord = ((((PCTARGETWND)pTargetWnd)->BuffTimer[VarPtr.Int] / 1000) + 6) / 6;
-        Dest.Type=pTicksType;
+		Dest.UInt64 = ((PCTARGETWND)pTargetWnd)->BuffTimer[VarPtr.Int];
+        Dest.Type=pTimeStampType;
         return true;
     }
     return false;
@@ -3467,6 +3469,14 @@ bool MQ2CharacterType::GETMEMBER()
         return true;
     case Chronobines:
         Dest.DWord=pPlayerPointManager->GetAltCurrency(ALTCURRENCY_CHRONOBINES);
+        Dest.Type=pIntType;
+        return true;
+	case Commemoratives:
+        Dest.DWord=pPlayerPointManager->GetAltCurrency(ALTCURRENCY_COMMEMORATIVE_COINS);
+        Dest.Type=pIntType;
+        return true;
+    case Nobles:
+        Dest.DWord=pPlayerPointManager->GetAltCurrency(ALTCURRENCY_NOBLES);
         Dest.Type=pIntType;
         return true;
     case Fellowship:
@@ -8492,8 +8502,10 @@ bool MQ2TargetType::GETMEMBER()
 					nBuff--;
 				buffID = ((PCTARGETWND)pTargetWnd)->BuffSpellID[nBuff];
 				if(buffID && buffID!=-1) {
-					Dest.DWord = ((((PCTARGETWND)pTargetWnd)->BuffTimer[nBuff] / 1000) + 6) / 6;
-					Dest.Type = pTicksType;
+					//Dest.DWord = ((((PCTARGETWND)pTargetWnd)->BuffTimer[nBuff] / 1000) + 6) / 6;
+					Dest.UInt64 = ((PCTARGETWND)pTargetWnd)->BuffTimer[nBuff];
+					//fix
+					Dest.Type = pTimeStampType;
 					return true;
 				}
             }
@@ -8512,8 +8524,10 @@ bool MQ2TargetType::GETMEMBER()
                     }
                 }
 				if(duration>0) {
-					Dest.DWord = ((duration / 1000) + 6) / 6;
-                    Dest.Type = pTicksType;
+					//Dest.DWord = ((duration / 1000) + 6) / 6;
+					Dest.UInt64 = duration;
+					//fix
+                    Dest.Type = pTimeStampType;
                     return true;
 				}
             }

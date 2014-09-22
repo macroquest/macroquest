@@ -1024,6 +1024,8 @@ public:
 		Mezzed=200,
 		Snared=201,
 		Hasted=202,
+		Commemoratives=203,
+		Nobles=204,
     };
     static enum CharacterMethods
     {
@@ -1225,7 +1227,9 @@ public:
 		TypeMember(Mezzed);
 		TypeMember(Snared);
 		TypeMember(Hasted);
-		
+		TypeMember(Commemoratives);
+		TypeMember(Nobles);
+
         TypeMethod(Stand); 
         TypeMethod(Sit); 
         TypeMethod(Dismount); 

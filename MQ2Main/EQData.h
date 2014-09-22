@@ -365,6 +365,8 @@ typedef struct _BodyInfo
 #define ALTCURRENCY_DREADSTONES         0x1e
 #define ALTCURRENCY_MARKSOFVALOR        0x1f
 #define ALTCURRENCY_MEDALSOFHEROISM     0x20
+#define ALTCURRENCY_COMMEMORATIVE_COINS 0x21
+#define ALTCURRENCY_NOBLES			    0x23
 
 enum MOUSE_DATA_TYPES {
    MD_Unknown = -1,
@@ -731,7 +733,7 @@ typedef struct _SPELLBUFF {
 /*0x03*/    CHAR      DamageShield;  // maybe.. I've noticed this is -1 on a lot of ds's.
 /*0x04*/    FLOAT     Unknown0x4;
 /*0x08*/    LONG      SpellID;       // -1 or 0 for no spell..
-/*0x0c*/    DWORD     Duration;
+/*0x0c*/    DWORD     Duration;		//in ticks...
 /*0x10*/    DWORD     Unknown0x10;
 /*0x14*/    DWORD     HitCount;
 /*0x18*/    BYTE      Unknown0x18[0x40];

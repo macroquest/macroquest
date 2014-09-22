@@ -443,21 +443,21 @@ typedef struct _EQCHATWINDOW
 
 // Original find by Lax 10-24-2003
 // Eqmule sep 13 2013
-// Actual size 0x70C sep 13 2013 (see 0x498986)
+// Actual size 0x71C aug 21 2014 (see 49A7B6)
 // locate aBuffwindow which will take u to CBuffWindow__CBuffWindow
-//todo: correct this one
-//we are not currently using it in any code
-//so im leaving it here for posterity...
-typedef struct _EQBUFFWINDOW
-{
+typedef struct _EQLONGBUFFWINDOW {
 /*0x000*/ struct _CSIDLWND Wnd;
-/*0x224*/ BYTE  Unknown0x224[0xBC];
-/*0x2e0*/ DWORD pBuff[0x24];        // CButton*
-/*0xxxx*/ DWORD FirstEffectSlot;    //0-15
-/*0xxxx*/ DWORD LastEffectSlot;     //0-15
-/*0xxxx*/ DWORD MaxBuffs;           // either 0x0F or 0x06  (normal or shortbuffs)
-/*0x70C*/
-} EQBUFFWINDOW, *PEQBUFFWINDOW;
+/*0x234*/ BYTE  Unknown0x234[0xBC];
+/*0x2f0*/ struct _CBUTTONWND *pBuff[0x24];	// CButton*
+/*0x380*/ BYTE  Unknown0x380[0x210];
+/*0x590*/ DWORD BuffId[NUM_LONG_BUFFS];
+/*0x638*/ DWORD BuffTimer[NUM_LONG_BUFFS];
+/*0x6e0*/ BYTE  Unknown0x6e0[0x28];
+/*0x708*/ DWORD MaxLongBuffs;		//0x2a (NUM_LONG_BUFFS)
+/*0x70C*/ DWORD MaxShortBuffs;		//0x37 (NUM_SHORT_BUFFS)
+/*0x710*/ BYTE  Unknown0x710[0xC];
+/*0x71C*/
+} EQLONGBUFFWINDOW, *PEQLONGBUFFWINDOW;
 
 // actual size 0x14 10-12-2010
 //I think this is correct:

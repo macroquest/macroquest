@@ -1,3 +1,32 @@
+12 September 2014 by eqmule
+- WARNING!!! MACRO BREAKING CHANGES!
+- I have continued my effort to get a higher resolution on timers in MQ2...
+  I just can't do them all at once cause it will
+  wreak to much havoc in your macros...
+- I have updated the following TLOs:
+  MQ2TargetBuffType and MQ2BuffType
+  The BuffDuration and Duration members.
+  They NO longer return a pTicksType.
+  Both return a pTimeStampType now.
+  This means you can get a higher resolution since default return is milliseconds.
+  BUT IT ALSO MEANS ALL MACROS THAT EXPECT TICKS WILL BREAK...
+  So go through all you macros and search for ".Duration"
+  and ".BuffDuration" and make sure they are working.
+  Usage examples:
+  /echo ${Target.Hasted.Duration.TotalSeconds}
+  returns: 3668
+  /echo ${Target.BuffDuration[Hastening of Sviir Rk. II].TotalSeconds}
+  returns: 3537
+  /echo ${Me.Buff[Hastening of Sviir Rk. II].Duration.TotalSeconds}
+  returns: 3432
+- Changes where made to the following file(s):
+	EQData.h
+	EQUIStructs.h
+	MQ2DataTypes.cpp
+	MQ2DataTypes.h
+	MQ2Main.h
+	MQ2Utilities.cpp
+
 08 September 2014 by eqmule
 - Added support for clicking Sell in barter window.
   Usage: /notify BarterSearchWnd BuyLineList listselect 2

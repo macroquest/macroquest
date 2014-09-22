@@ -899,6 +899,8 @@ int GetCurrencyIDByName(PCHAR szName)
 	if (!_stricmp(szName, "DREADSTONES")) return ALTCURRENCY_DREADSTONES; //0X1e
 	if (!_stricmp(szName, "Marks of Valor")) return ALTCURRENCY_MARKSOFVALOR; //0X1F
 	if (!_stricmp(szName, "Marks of Heroism")) return ALTCURRENCY_MEDALSOFHEROISM; //0X20   
+	if (!_stricmp(szName, "Commemorative Coins")) return ALTCURRENCY_COMMEMORATIVE_COINS; //0X21 
+	if (!_stricmp(szName, "Noble")) return ALTCURRENCY_NOBLES; //0X22
 	return -1;
 }
 
@@ -6497,6 +6499,18 @@ DWORD GetSpellGemTimer(DWORD nGem)
     return 0;
 }
 
+DWORD GetSpellBuffTimer(DWORD SpellID)
+{
+    PEQLONGBUFFWINDOW pbuffs = (PEQLONGBUFFWINDOW)pBuffWnd;
+	for (unsigned long nBuff=0 ; nBuff < NUM_LONG_BUFFS ; nBuff++) {
+		if(pbuffs->BuffId[nBuff]==SpellID) {
+			if(pbuffs->BuffTimer[nBuff]) {
+				return pbuffs->BuffTimer[nBuff];
+			}
+		}
+	}
+    return 0;
+}
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 // Functions that were built into commands and people used DoCommand to execute                  //
 void AttackRanged(EQPlayer *pRangedTarget)
