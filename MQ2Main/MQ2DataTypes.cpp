@@ -6809,7 +6809,10 @@ bool MQ2MerchantType::GETMEMBER()
                 }
                 strlwr(pName);
                 CHAR Temp[MAX_STRING]={0};
-                if(!pMerch->pMerchOther->pMerchData->pMerchArray)
+				//PEQMERCHWINDOW pMerchwnd = (PEQMERCHWINDOW)pMerchantWnd;
+
+                //if(!pMerch->pMerchOther->pMerchData->pMerchArray)
+                if(!pMerch || !pMerch->pMerchOther || !pMerch->pMerchOther->pMerchData || !pMerch->pMerchOther->pMerchData->pMerchArray)
                     return false;
                 for (unsigned long nIndex = 0 ; nIndex < pMerch->pMerchOther->pMerchData->MerchSlots ; nIndex++)
                 {

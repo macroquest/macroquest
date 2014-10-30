@@ -76,11 +76,12 @@ using namespace std;
 #include "..\Dxsdk81\include\dinput.h"
 #include "..\Blech\Blech.h"
 #endif
-//define LIVE or BETA here depending on which eqgame you are building for.
-//will probably add TEST here as well in the future and MAYBE EMU... -eqmule sep 27 2014
+//define LIVE, TEST or BETA here depending on which eqgame you are building for. -eqmule sep 27 2014
 #define LIVE
 #if defined(LIVE)
 #include "eqgame.h"
+#elif defined(TEST)
+#include "eqgame(Test).h"
 #elif defined(BETA)
 #include "eqgame(beta).h"
 #endif
@@ -216,6 +217,9 @@ typedef double DOUBLE;
 #if defined(LIVE)
 #include "EQData.h"
 #include "EQUIStructs.h"
+#elif defined(TEST)
+#include "EQData(Test).h"
+#include "EQUIStructs(Test).h"
 #elif defined(BETA)
 #include "EQData(beta).h"
 #include "EQUIStructs(beta).h"

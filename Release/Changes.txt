@@ -1,3 +1,16 @@
+29 October 2014 by eqmule
+- Fixed an ISXEQ bug thanks to Kannkor for reporting it.
+- Fixed Me.Shrouded thanks to dewey2461 for reporting it.
+- Fixed Merchant.Item thanks to Fry for reporting it.
+- Added Support for Test Server compile
+- Changes since last zip where made to the following file(s):
+	EQData.h
+	EQUIStructs.h
+	MQ2DataTypes.cpp
+	MQ2DataTypes.h
+	MQ2Main.h
+	zipit.lst
+
 28 October 2014 by eqmule
 - Updated for the patch
 - Fixed offset for __ProcessGameEvents_x
