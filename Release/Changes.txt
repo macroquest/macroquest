@@ -1,3 +1,37 @@
+28 October 2014 by eqmule
+- Updated for the patch
+- Fixed offset for __ProcessGameEvents_x
+  I dont think there is much of a difference but it was
+  pointing to __ProcessMouseEvent_x before this change
+  I have no idea if that was intentional or not...
+- Changes since last zip where made to the following file(s):
+	EQData.h
+	eqgame.h
+	EQUIStructs.h
+	MQ2Main.cpp
+	MQ2Main.h
+	MQ2DataTypes.cpp
+	MQ2DataTypes.h
+	MQ2Internal.h
+	MQ2Benchmarks.cpp
+
+15 October 2014 by eqmule
+- Change: struct _MQBENCH Count member is now a ULONGLONG
+
+01 October 2014 by eqmule
+- Added .Endurance to the Item TLO it returns IntType
+- Added .PctMana to the Spawn TLO it returns IntType
+- Added .Zoning to the Character TLO it returns BoolType TRUE if Zoning FALSE if not.
+
+27 September 2014 by eqmule
+-Added support for beta server compile
+
+26 September 2014 by eqmule
+- Added a new member to the MQ2FloatType TLO: .Raw it returns a pIntType
+  Usage: /echo My heading is: ${Me.Heading.Degrees.Raw.Hex} (${Me.Heading.Degrees})
+  Outputs: [MQ2] My heading is: 0x43334C00 (179.30)
+- The format for all .Hex members are now "0x%X" instead of "%x"
+  Let me know if this has any adverse effects on your MQ2 usage.
 
 19 September 2014 by eqmule
 - Updated for the patch for the patch for the patch.

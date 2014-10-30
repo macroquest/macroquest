@@ -322,7 +322,7 @@ namespace MQ2Internal {
         ULONGLONG Entry;
         ULONGLONG LastTime;
         ULONGLONG TotalTime;
-        DWORD Count;
+        ULONGLONG Count;
     } MQBENCH, *PMQBENCH;
 
     typedef struct _MQGroundPending

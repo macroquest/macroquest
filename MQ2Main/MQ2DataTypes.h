@@ -358,6 +358,7 @@ public:
         Milli=3,
         Int=4,
         Precision=5,
+        Raw=6,
     };
 
     MQ2FloatType():MQ2Type("float")
@@ -367,6 +368,7 @@ public:
         TypeMember(Milli);
         TypeMember(Int);
         TypeMember(Precision);
+        TypeMember(Raw);
     }
 
     ~MQ2FloatType()
@@ -654,6 +656,7 @@ public:
 		Inviter=104,
 		MercID=105,
 		ContractorID=106,
+		PctMana=107,
 	};
     static enum SpawnMethods
     {
@@ -767,6 +770,7 @@ public:
         TypeMember(Inviter);
         TypeMember(MercID);
         TypeMember(ContractorID);
+		TypeMember(PctMana);
 
         TypeMethod(Target);
         TypeMethod(Face);
@@ -1026,6 +1030,7 @@ public:
 		Hasted=202,
 		Commemoratives=203,
 		Nobles=204,
+		Zoning=205,
     };
     static enum CharacterMethods
     {
@@ -1229,6 +1234,7 @@ public:
 		TypeMember(Hasted);
 		TypeMember(Commemoratives);
 		TypeMember(Nobles);
+		TypeMember(Zoning);
 
         TypeMethod(Stand); 
         TypeMethod(Sit); 

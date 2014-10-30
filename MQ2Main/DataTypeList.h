@@ -5,6 +5,8 @@
 #ifndef DATATYPE
 #error __FILE__ included without defining DATATYPE(_class_, _var_, _inherits_, _persistentclass_)
 #endif
+#pragma warning( push )
+#pragma warning( disable:4127 ) // warning C4127: conditional expression is constant  (inside the DATATYPE macro)
 
 #ifndef ISXEQ
 // These datatypes are specific to MQ2 only
@@ -68,5 +70,5 @@ DATATYPE(MQ2TimerType,            pTimerType,            nullptr, 0);
 DATATYPE(MQ2WindowType,           pWindowType,           nullptr, 0);
 DATATYPE(MQ2XTargetType,          pXTargetType,          pSpawnType, 0);
 DATATYPE(MQ2ZoneType,             pZoneType,             nullptr, 0);
-
+#pragma warning( pop )
 #undef DATATYPE // In case the includer forgets

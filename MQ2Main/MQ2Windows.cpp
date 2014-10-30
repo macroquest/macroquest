@@ -666,7 +666,9 @@ class CXWnd *GetChildByIndex(class CXWnd *pWnd, PCHAR Name,int index)
     }
     return GetChildByIndex((class CXWnd *)pWnd->pNextSiblingWnd, Name,index);
 }
-
+#ifdef ISXEQ
+#define MacroError printf
+#endif
 bool SendWndClick(PCHAR WindowName, PCHAR ScreenID, PCHAR ClickNotification)
 {
     CXWnd *pWnd=FindMQ2Window(WindowName);

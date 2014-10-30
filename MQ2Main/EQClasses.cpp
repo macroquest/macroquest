@@ -127,7 +127,8 @@ CXPoint CXRect::CenterPoint()const
 
     return p;
 }
-
+#pragma warning( push )
+#pragma warning( disable:4740 ) // warning C4740: flow in or out of inline asm code suppresses global optimization
 // MANUAL IMPORTS
 #ifdef CMyInventory__GetSlot_x
 FUNCTION_AT_ADDRESS(struct  _CONTENTS* CMyInventory::GetSlot(int), CMyInventory__GetSlot);
@@ -9663,3 +9664,4 @@ FUNCTION_AT_ADDRESS(int PcZoneClient::GetPcSkillLimit(int), PcZoneClient__GetPcS
 #ifdef CXWnd__SetFont_x
 FUNCTION_AT_ADDRESS(int CXWnd::SetFont(void*), CXWnd__SetFont);
 #endif
+#pragma warning( pop )

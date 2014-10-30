@@ -4,7 +4,7 @@
 
 
 // uncomment this line to enable ISBoxer compatibility.  changes ${Target} to ${EQTarget} and ${Window} to ${EQWindow}
-//#define ISBOXER_COMPAT
+#define ISBOXER_COMPAT
 
 
 #include "..\MQ2Main.h"
@@ -19,18 +19,28 @@ ISXPreSetup("ISXEQ",CISXEQ);
 
 // Basic IS datatypes, these get retrieved on startup by our initialize function, so we can use them in
 // our Top-Level Objects or custom datatypes
-LSType *pStringType=0;
-LSType *pIntType=0;
-LSType *pBoolType=0;
-LSType *pFloatType=0;
-LSType *pByteType=0;
-
-LSType *pIntPtrType=0;
-LSType *pBoolPtrType=0;
-LSType *pFloatPtrType=0;
-LSType *pBytePtrType=0;
-
-LSType *pTimeType=0;
+LSTypeDefinition *pStringType;
+LSTypeDefinition *pMutableStringType;
+LSTypeDefinition *pWStringType;
+LSTypeDefinition *pUniStringType;
+LSTypeDefinition *pIntType;
+LSTypeDefinition *pUIntType;
+LSTypeDefinition *pInt64Type;
+LSTypeDefinition *pInt64PtrType;
+LSTypeDefinition *pBoolType;
+LSTypeDefinition *pFloatType;
+LSTypeDefinition *pTimeType;
+LSTypeDefinition *pByteType;
+LSTypeDefinition *pIntPtrType;
+LSTypeDefinition *pBoolPtrType;
+LSTypeDefinition *pFloatPtrType;
+LSTypeDefinition *pFloat64PtrType;
+LSTypeDefinition *pBytePtrType;
+LSTypeDefinition *pPoint3fType;
+LSTypeDefinition *pIndexType;
+LSTypeDefinition *pVectorType;
+LSTypeDefinition *pMapType;
+LSTypeDefinition *pSetType;
 
 ISInterface *pISInterface=0;
 HISXSERVICE hPulseService;
@@ -97,17 +107,28 @@ bool CISXEQ::Initialize(ISInterface *p_ISInterface)
 	}
 
 	// retrieve basic ISData types
-	pStringType=pISInterface->FindLSType("string");
-	pIntType=pISInterface->FindLSType("int");
-	pBoolType=pISInterface->FindLSType("bool");
-	pFloatType=pISInterface->FindLSType("float");
-	pTimeType=pISInterface->FindLSType("time");
-	pByteType=pISInterface->FindLSType("byte");
-
-	pIntPtrType=pISInterface->FindLSType("intptr");
-	pBoolPtrType=pISInterface->FindLSType("boolptr");
-	pFloatPtrType=pISInterface->FindLSType("floatptr");
-	pBytePtrType=pISInterface->FindLSType("byteptr");
+	pStringType = pISInterface->FindLSType("string");	
+	pMutableStringType = pISInterface->FindLSType("mutablestring");
+	pWStringType = pISInterface->FindLSType("unistring");
+	pUniStringType = pISInterface->FindLSType("unistring");
+	pIntType = pISInterface->FindLSType("int");
+	pUIntType = pISInterface->FindLSType("uint");
+	pInt64Type = pISInterface->FindLSType("int64");
+	pInt64PtrType = pISInterface->FindLSType("int64ptr");
+	pBoolType = pISInterface->FindLSType("bool");
+	pFloatType = pISInterface->FindLSType("float");
+	pTimeType = pISInterface->FindLSType("time");
+	pByteType = pISInterface->FindLSType("byte");
+	pIntPtrType = pISInterface->FindLSType("intptr");
+	pBoolPtrType = pISInterface->FindLSType("boolptr");
+	pFloatPtrType = pISInterface->FindLSType("floatptr");
+	pFloat64PtrType = pISInterface->FindLSType("float64ptr");
+	pBytePtrType = pISInterface->FindLSType("byteptr");
+	pPoint3fType = pISInterface->FindLSType("point3f");
+	pIndexType = pISInterface->FindLSType("index");
+	pVectorType = pISInterface->FindLSType("index");
+	pMapType = pISInterface->FindLSType("collection");
+	pSetType = pISInterface->FindLSType("set");
 
 
 	ConnectServices();

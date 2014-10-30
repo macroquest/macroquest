@@ -7101,7 +7101,7 @@ BOOL PickupOrDropItem(DWORD type, PCONTENTS pItem)
 	}
 	return FALSE;
 }
-int GetTargetBuffBySubCat(PCHAR subcat)
+int GetTargetBuffBySubCat(PCHAR subcat,int theclass)
 {
 	if(!(((PCTARGETWND)pTargetWnd)->Type > 0))
 		return false;
@@ -7111,6 +7111,12 @@ int GetTargetBuffBySubCat(PCHAR subcat)
 		buffID = ((PCTARGETWND)pTargetWnd)->BuffSpellID[i];
 		if(buffID > 0) {
 			if(PSPELL pSpell = GetSpellByID(buffID)) {
+				if(theclass!=Unknown) {
+					if(pSpell->ClassLevel[theclass]==255) {
+						continue;
+					}
+				}
+
 				if(DWORD cat = pSpell->Subcategory) {
 					if (char *ptr = pCDBStr->GetString(cat, 5, NULL)) {
 						if(!_stricmp(ptr,subcat))  

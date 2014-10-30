@@ -76,7 +76,15 @@ using namespace std;
 #include "..\Dxsdk81\include\dinput.h"
 #include "..\Blech\Blech.h"
 #endif
+//define LIVE or BETA here depending on which eqgame you are building for.
+//will probably add TEST here as well in the future and MAYBE EMU... -eqmule sep 27 2014
+#define LIVE
+#if defined(LIVE)
 #include "eqgame.h"
+#elif defined(BETA)
+#include "eqgame(beta).h"
+#endif
+
 
 #ifdef ISXEQ_LEGACY
 #define LEGACY_API extern
@@ -205,8 +213,13 @@ typedef double DOUBLE;
 
 #define IsNaN(x) (x != x)
 
+#if defined(LIVE)
 #include "EQData.h"
 #include "EQUIStructs.h"
+#elif defined(BETA)
+#include "EQData(beta).h"
+#include "EQUIStructs(beta).h"
+#endif
 
 //class CXMLData *GetXMLData(class CXWnd *pWnd)
 
@@ -603,7 +616,7 @@ EQLIB_API BOOL		  IsItemInsideContainer(PCONTENTS pItem);
 EQLIB_API BOOL		  PickupOrDropItem(DWORD type, PCONTENTS pItem);
 EQLIB_API BOOL		  OpenContainer(PCONTENTS pItem,bool hidden,bool flag = 0);
 EQLIB_API BOOL		  CloseContainer(PCONTENTS pItem);
-EQLIB_API int		  GetTargetBuffBySubCat(PCHAR subcat);
+EQLIB_API int		  GetTargetBuffBySubCat(PCHAR subcat,int theclass = 0);
 EQLIB_API int		  GetTargetBuffBySPA(int spa,bool bIncrease);
 EQLIB_API int		  GetSelfBuffBySPA(int spa,bool bIncrease);
 ///////////////////////////////////////////////////////////////////////////////////////////////////

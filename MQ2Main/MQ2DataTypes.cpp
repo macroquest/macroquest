@@ -165,6 +165,10 @@ bool MQ2FloatType::GETMEMBER()
             return true;
         }
         return false;
+	case Raw:
+		Dest.Type=pIntType;
+		Dest.DWord=VarPtr.DWord;
+		return true;
     }
     return false;
 }
@@ -229,7 +233,7 @@ bool MQ2IntType::GETMEMBER()
         Dest.Type=pDoubleType;
         return true;
     case Hex:
-        sprintf(DataTypeTemp,"%x",VarPtr.Int);
+        sprintf(DataTypeTemp,"0x%X",VarPtr.Int);
         Dest.Ptr=&DataTypeTemp[0],
             Dest.Type=pStringType;
         return true;
@@ -264,7 +268,7 @@ bool MQ2Int64Type::GETMEMBER()
         Dest.Type=pDoubleType;
         return true;
     case Hex:
-        sprintf(DataTypeTemp,"%x",VarPtr.Int64);
+        sprintf(DataTypeTemp,"0x%X",VarPtr.Int64);
         Dest.Ptr=&DataTypeTemp[0],
             Dest.Type=pStringType;
         return true;
@@ -730,7 +734,7 @@ bool MQ2MathType::GETMEMBER()
         Dest.Type=pIntType;
         return true;
     case Hex:
-        sprintf(DataTypeTemp,"%x",atol(Index));
+        sprintf(DataTypeTemp,"0x%X",atol(Index));
         Dest.Ptr=&DataTypeTemp[0];
         Dest.Type=pStringType;
         return true;
@@ -1716,6 +1720,15 @@ bool MQ2SpawnType::GETMEMBER()
         Dest.DWord=pSpawn->ManaMax;
         Dest.Type=pIntType;
         return true;
+	case PctMana:
+	{
+		Dest.Type=pIntType;
+		if (unsigned long maxmana=pSpawn->ManaMax)
+			Dest.Int=pSpawn->ManaCurrent*100/maxmana;
+		else
+			Dest.Int=0;
+        return true;
+	}
     case CurrentEndurance:
         Dest.DWord=pSpawn->EnduranceCurrent;
         Dest.Type=pIntType;
@@ -3822,6 +3835,10 @@ bool MQ2CharacterType::GETMEMBER()
         }
 		break;
 	}
+	case Zoning:
+        Dest.DWord=!gbInZone;
+        Dest.Type=pBoolType;
+        return true;
 	}
     return false;
 #undef pChar
@@ -4117,7 +4134,7 @@ bool MQ2SpellType::GETMEMBER()
             for (nBuff=0; nBuff<NUM_BUFF_SLOTS; nBuff++){
                 if (pPet->Buff[nBuff]>0 && !(pPet->Buff[nBuff]==0xFFFFFFFF || pPet->Buff[nBuff]==0)) {
                     if(PSPELL buffSpell = GetSpellByID(pPet->Buff[nBuff])) {
-						petbuffduration = ((pPet->BuffTimer[nBuff]+5999)/1000)/6;
+						petbuffduration = ((pPet->PetBuffTimer[nBuff]+5999)/1000)/6;
 						for (int nSlot=0; nSlot<=11; nSlot++){
 							if (TriggeringEffectSpell(pSpell, nSlot)){		// Check the triggered effect against the current buff for stacking
 								if(PSPELL triggeredSpell = GetSpellByID(pSpell->Base2[nSlot])) {
@@ -5204,6 +5221,13 @@ bool MQ2ItemType::GETMEMBER()
             Dest.DWord=GetItemFromContents(pItem)->HPRegen;
         Dest.Type=pIntType;
         return true;
+	case Endurance:
+		if (GetItemFromContents(pItem)->Type != ITEMTYPE_NORMAL)
+            Dest.DWord=0;
+        else
+			Dest.DWord=GetItemFromContents(pItem)->Endurance;
+        Dest.Type=pIntType;
+        return true;
     case Attack:
         if (GetItemFromContents(pItem)->Type != ITEMTYPE_NORMAL)
             Dest.DWord=0;
@@ -5894,13 +5918,13 @@ bool MQ2WindowType::GETMEMBER()
         }
         return true;
     case HisTradeReady:
-        if(PTRADEWINDOW pTrade=(PTRADEWINDOW)pTradeWnd) {
+        if(PEQTRADEWINDOW pTrade=(PEQTRADEWINDOW)pTradeWnd) {
             Dest.Int=pTrade->HisTradeReady;
             Dest.Type=pBoolType;
             return true;
         }
     case MyTradeReady:
-        if(PTRADEWINDOW pTrade=(PTRADEWINDOW)pTradeWnd) {
+        if(PEQTRADEWINDOW pTrade=(PEQTRADEWINDOW)pTradeWnd) {
             Dest.Int=pTrade->MyTradeReady;
             Dest.Type=pBoolType;
             return true;
@@ -6511,6 +6535,7 @@ bool MQ2EverQuestType::GETMEMBER()
         Dest.Type=pBoolType;
         return true;
 	case WinTitle:
+#ifndef ISXEQ
 		DataTypeTemp[0] = '1';
 		DataTypeTemp[1] = '\0';
 		GetWinTitle(GetCharInfo()->pSpawn,DataTypeTemp);
@@ -6519,7 +6544,10 @@ bool MQ2EverQuestType::GETMEMBER()
 			Dest.Type = pStringType;
 			return true;
 		}
-		break;
+#else
+        printf("MQ2EverQuestType:WinTitle: Please use ${Display.Window.Text} for this value under Inner Space");
+#endif
+		return false;
 	case PID:
 		Dest.DWord = GetCurrentProcessId();
 		Dest.Type = pIntType;
@@ -6985,7 +7013,7 @@ bool MQ2PetType::GETMEMBER()
                 return false;
             if (pPetInfoWindow->Buff[nBuff]==0xFFFFFFFF || pPetInfoWindow->Buff[nBuff]==0)
                 return false;
-			Dest.UInt64=pPetInfoWindow->BuffTimer[nBuff];
+			Dest.UInt64=pPetInfoWindow->PetBuffTimer[nBuff];
 			Dest.Type=pTimeStampType;
             return true;
         }
@@ -6997,7 +7025,7 @@ bool MQ2PetType::GETMEMBER()
                 {
                     if (!stricmp(GETFIRST(),pSpell->Name))
                     {
-                        Dest.UInt64=pPetInfoWindow->BuffTimer[nBuff];
+                        Dest.UInt64=pPetInfoWindow->PetBuffTimer[nBuff];
 						Dest.Type=pTimeStampType;
                         return true;
                     }
@@ -8648,7 +8676,7 @@ bool MQ2TargetType::GETMEMBER()
 		break;
 	case Malod:
 	case Tashed:
-		if ((Dest.Int=GetTargetBuffBySubCat("Resist Debuffs"))!=-1)
+		if ((Dest.Int=GetTargetBuffBySubCat("Resist Debuffs"),Enchanter)!=-1)
         {
             Dest.Type=pTargetBuffType;
             return true;

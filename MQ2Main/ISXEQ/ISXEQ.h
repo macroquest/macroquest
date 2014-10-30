@@ -106,14 +106,25 @@ extern unsigned int PersistentPointerClass;
 
 #define EzHttpRequest(_URL_,_pData_) IS_HttpRequest(pExtension,pISInterface,hHTTPService,_URL_,_pData_)
 
-extern LSType *pStringType;
-extern LSType *pIntType;
-extern LSType *pBoolType;
-extern LSType *pFloatType;
-extern LSType *pTimeType;
-extern LSType *pByteType;
-
-extern LSType *pIntPtrType;
-extern LSType *pBoolPtrType;
-extern LSType *pFloatPtrType;
-extern LSType *pBytePtrType;
+extern LSTypeDefinition *pMutableStringType;
+extern LSTypeDefinition *pWStringType;
+extern LSTypeDefinition *pUniStringType;
+extern LSTypeDefinition *pIntType;
+extern LSTypeDefinition *pUIntType;
+extern LSTypeDefinition *pInt64Type;
+extern LSTypeDefinition *pInt64PtrType;
+extern LSTypeDefinition *pBoolType;
+extern LSTypeDefinition *pFloatType;
+extern LSTypeDefinition *pTimeType;
+extern LSTypeDefinition *pByteType;
+extern LSTypeDefinition *pIntPtrType;
+extern LSTypeDefinition *pBoolPtrType;
+extern LSTypeDefinition *pFloatPtrType;
+extern LSTypeDefinition *pFloat64PtrType;
+extern LSTypeDefinition *pBytePtrType;
+extern LSTypeDefinition *pPoint3fType;
+extern LSTypeDefinition *pIndexType;
+extern LSTypeDefinition *pVectorType;
+extern LSTypeDefinition *pMapType;
+extern LSTypeDefinition *pSetType;
+extern LSTypeDefinition *pStringType;
