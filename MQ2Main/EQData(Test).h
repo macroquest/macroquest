@@ -675,47 +675,46 @@ typedef struct _CONTENTSARRAY {
     struct  _CONTENTS *Contents[0x14]; // 20 bag-slot max - addresses to whats inside the bag if its a bag; augs if an item
 } CONTENTSARRAY, *PCONTENTSARRAY;
 
-// actual size 0x160 20141020 test (see 56A817 CContentsSize) - eqmule
+// actual size 0x160 in Oct 24 2014 Test (see 0x569357) - eqmule
 typedef struct _CONTENTS {
 /*0x0000*/ void*        vtable;
 /*0x0004*/ DWORD        ItemType;           // ? 1 = normal, 2 = pack ?
 /*0x0008*/ void*        punknown;
-/*0x000c*/ BYTE         Unknown0x000c[0x14];
-/*0x0020*/ DWORD        Power;
-/*0x0024*/ BYTE         EvolvingExpOn;
-/*0x0025*/ BYTE         Unknown0x0025[0x3];
-/*0x0028*/ DWORD        MerchantSlot;       // slot id on a merchant
-/*0x002c*/ BYTE         Unknown0x002c[0x44];
-/*0x0070*/ DWORD        MerchantQuantity;
-/*0x0074*/ BYTE         Unknown0x0074[0x18];
-/*0x008c*/ DWORD        Charges;
-/*0x0090*/ BYTE         Unknown0x0090[0x14];
-/*0x00a4*/ DWORD        StackCount;
-/*0x00a8*/ BYTE         Unknown0x00a8[0x4];
-/*0x00ac*/ DWORD        Price;
-/*0x00b0*/ BYTE         Unknown0x00b0[0x4];
-/*0x00b4*/ struct _ITEMINFO*    Item1;
-/*0x00b8*/ DWORD        LinkDBValue;
-/*0x00bc*/ BYTE         Unknown0x00bc[0x8];
-/*0x00c4*/ DWORD        EvolvingCurrentLevel;
-/*0x00c8*/ BYTE         Unknown0x00c8[0xc];
-/*0x00d4*/ DWORD        Open;
-/*0x00d8*/ DOUBLE       EvolvingExpPct;
-/*0x00e0*/ BYTE         Unknown0x00e0[0x4];
-/*0x00e4*/ DWORD        EvolvingMaxLevel;
-/*0x00e8*/ BYTE         Unknown0x00e8[0x8];
-/*0x00f0*/ DWORD        NumOfSlots1;//ItemSlot is this address + 0x16 in 20130708
-/*0x00f4*/ BYTE         Unknown0x00f4[0x4];
-/*0x00f8*/ struct _CONTENTSARRAY*       pContentsArray;
-/*0x00fc*/ DWORD        NumOfSlots2;
-/*0x0100*/ BYTE         Unknown0x0100[0x6];
-/*0x0106*/ WORD         ItemSlot;           // Inventory slot id
-/*0x0108*/ WORD         ItemSlot2;          // Bag slot id, starts at 0 for first slot in bag, or FFFF if item is on cursor
-/*0x010a*/ BYTE         Unknown0x010a[0x1e];
-/*0x0128*/ DWORD        LoreGroup;
-/*0x012c*/ BYTE         Unknown0x012c[0x20];
-/*0x014c*/ BYTE         IsEvolvingItem;
-/*0x014d*/ BYTE         Unknown0x014d[0x7];
+/*0x000c*/ DWORD        Open;
+/*0x0010*/ BYTE         Unknown0x0010[0x4];
+/*0x0014*/ BYTE         EvolvingExpOn;
+/*0x0015*/ BYTE         Unknown0x0015[0x3];
+/*0x0018*/ DWORD        MerchantSlot;       // slot id on a merchant
+/*0x001c*/ BYTE         Unknown0x001c[0x8];
+/*0x0024*/ DWORD        EvolvingCurrentLevel;
+/*0x0028*/ DWORD        Price;
+/*0x002c*/ BYTE         Unknown0x002c[0x4];
+/*0x0030*/ DOUBLE       EvolvingExpPct;
+/*0x0038*/ BYTE         Unknown0x0038[0x24];
+/*0x005c*/ DWORD        LinkDBValue;
+/*0x0060*/ DWORD        EvolvingMaxLevel;
+/*0x0064*/ BYTE         Unknown0x0064[0x28];
+/*0x008c*/ struct _ITEMINFO*    Item1;
+/*0x0090*/ BYTE         Unknown0x0090[0x1c];
+/*0x00ac*/ DWORD        Power;
+/*0x00b0*/ DWORD        LoreGroup;
+/*0x00b4*/ BYTE         Unknown0x00b4[0x4];
+/*0x00b8*/ BYTE         IsEvolvingItem;
+/*0x00b9*/ BYTE         Unknown0x00b9[0x7];
+/*0x00c0*/ DWORD        Charges;
+/*0x00c4*/ BYTE         Unknown0x00c4[0x4];
+/*0x00c8*/ DWORD        NumOfSlots1;//ItemSlot is this address + 0x16 in 20130708
+/*0x00cc*/ BYTE         Unknown0x00cc[0x4];
+/*0x00d0*/ struct _CONTENTSARRAY*       pContentsArray;
+/*0x00d4*/ DWORD        NumOfSlots2;
+/*0x00d8*/ BYTE         Unknown0x00d8[0x6];
+/*0x00de*/ WORD         ItemSlot;           // Inventory slot id
+/*0x00e0*/ WORD         ItemSlot2;          // Bag slot id, starts at 0 for first slot in bag, or FFFF if item is on cursor
+/*0x00e2*/ BYTE         Unknown0x00e2[0x3a];
+/*0x011c*/ DWORD        MerchantQuantity;
+/*0x0120*/ BYTE         Unknown0x0120[0x24];
+/*0x0144*/ DWORD        StackCount;
+/*0x0148*/ BYTE         Unknown0x0148[0xc];
 /*0x0154*/ struct _ITEMINFO*    Item2;
 /*0x0158*/ BYTE         Unknown0x0158[0x8];
 /*0x0160*/
@@ -1060,12 +1059,12 @@ typedef struct _CHARINFO2 {
 /*0x350c*/ DWORD        CursorGold;
 /*0x3510*/ DWORD        CursorSilver;
 /*0x3514*/ DWORD        CursorCopper;
-/*0x3518*/ BYTE         Unknown0x3518[0x10];
-/*0x3528*/ DWORD        Shrouded;
-/*0x352c*/ BYTE         Unknown0x352c[0x14];
+/*0x3518*/ BYTE         Unknown0x3518[0x28];
 /*0x3540*/ DWORD        thirstlevel;
 /*0x3544*/ DWORD        hungerlevel;
-/*0x3548*/ BYTE         Unknown0x3548[0x80];
+/*0x3548*/ BYTE         Unknown0x3548[0x4];
+/*0x354c*/ DWORD        Shrouded;
+/*0x3550*/ BYTE         Unknown0x3550[0x78];
 /*0x35c8*/ DWORD        ZoneBoundID;
 /*0x35cc*/ FLOAT        ZoneBoundY;
 /*0x35d0*/ FLOAT        ZoneBoundX;
@@ -2335,8 +2334,8 @@ typedef struct _GROUPAGGRO {
 /*0x08*/ DWORD  GroupMemberAggro[6];//player is ALWAYS the 6th member...
 } GROUPAGGRO, *PGROUPAGGRO;
 
-#define EQ_BEGIN_ZONE                   0x4290  // CEverQuest__SavePCForce        20140909 test
-#define EQ_END_ZONE                     0x5A21   // CEverQuest__DoMainLoop+B2F     20140909 test
+#define EQ_BEGIN_ZONE                   0x5EA0  // CEverQuest__SavePCForce        20141024 test
+#define EQ_END_ZONE                     0x4A3   // CEverQuest__DoMainLoop+B2F     20141024 test
 #define EQ_LoadingS__ArraySize          0x5b     // EQ_LoadingS__SetProgressBar+8C 20131029 test (see 4A6336)
 };
 using namespace EQData;

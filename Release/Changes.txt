@@ -1,3 +1,6 @@
+30 October 2014 by eqmule
+- Updated for the patch
+
 29 October 2014 by eqmule
 - Fixed an ISXEQ bug thanks to Kannkor for reporting it.
 - Fixed Me.Shrouded thanks to dewey2461 for reporting it.
