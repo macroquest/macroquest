@@ -1,5 +1,17 @@
+31 October 2014 by eqmule
+- Added Heirloom, Collectible and NoDestroy to the Item TLO.
+  They all return pBoolType.
+  Been on my todo list forever, so it was long overdue.
+- Changes since last zip where made to the following file(s):
+	EQData.h
+	EQUIStructs.h
+	MQ2DataTypes.cpp
+	MQ2DataTypes.h
+
 30 October 2014 by eqmule
 - Updated for the patch
+- Changes since last zip where made to the following file(s):
+	eqgame.h
 
 29 October 2014 by eqmule
 - Fixed an ISXEQ bug thanks to Kannkor for reporting it.

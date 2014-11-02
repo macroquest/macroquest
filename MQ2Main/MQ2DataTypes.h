@@ -1716,6 +1716,9 @@ public:
 		Prestige=135,
 		FirstFreeSlot=136,
 		SlotsUsedByItem=137,
+		Heirloom=138,
+		Collectible=139,
+		NoDestroy=140,
     };
     static enum ItemMethods
     {
@@ -1859,6 +1862,9 @@ public:
         TypeMember(Prestige);
 		TypeMember(FirstFreeSlot);
 		TypeMember(SlotsUsedByItem);
+		TypeMember(Heirloom);
+		TypeMember(Collectible);
+		TypeMember(NoDestroy);
     }
 
     ~MQ2ItemType()

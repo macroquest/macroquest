@@ -523,7 +523,15 @@ typedef struct _ITEMINFO {
 /*0x0104*/ BYTE         NoRent; // 0=temp, 1=default
 /*0x0105*/ BYTE         NoDrop; // 0=no drop, 1=can drop
 /*0x0106*/ BYTE         Attuneable;
-/*0x0107*/ BYTE         Unknown0x0107[0xc];
+/*0x0107*/ BYTE         Heirloom;
+/*0x0108*/ BYTE         Collectible;
+/*0x0109*/ BYTE         NoDestroy;
+/*0x010a*/ BYTE         Unknown0x010a;
+/*0x010b*/ BYTE         NoZone;
+/*0x010c*/ DWORD        MakerID;//0-?? I did up to 12, I think it asks server for the name - eqmule
+/*0x0110*/ BYTE         NoGround;
+/*0x0111*/ BYTE         Unknown0x0111;
+/*0x0112*/ BYTE         MarketPlace;
 /*0x0113*/ BYTE         Size;
 /*0x0114*/ BYTE         Type;
 /*0x0115*/ BYTE         TradeSkills;
