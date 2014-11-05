@@ -1,3 +1,9 @@
+04 Nov 2014 by eqmule
+- Changed NUM_BOOK_SLOTS to 0x320
+  Thanks to woobs for reporting this bug
+  This should also fix .RankName
+  Thanks to Gnits for reporting that bug.
+
 31 October 2014 by eqmule
 - Added Heirloom, Collectible and NoDestroy to the Item TLO.
   They all return pBoolType.

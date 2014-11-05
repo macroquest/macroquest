@@ -1039,7 +1039,6 @@ typedef struct _CHARINFO2 {
 /*0x2218*/ DWORD        ZoneBuffs[NUM_BUFF_SLOTS]; // effect IDs for the Effects Window on buffs cast on you in the current zone...
 /*0x239c*/ DWORD        ZoneSongs[NUM_BUFF_SLOTS]; // just a guess
 /*0x2520*/ DWORD        SpellBook[NUM_BOOK_SLOTS];
-/*0x3060*/ BYTE         Unknown0x3060[0x140];
 /*0x31a0*/ DWORD        MemorizedSpells[0x10];
 /*0x31e0*/ DWORD        Skill[0x64];
 /*0x3370*/ DWORD        InnateSkill[0x19];
