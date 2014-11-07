@@ -1,3 +1,9 @@
+06 Nov 2014 by eqmule
+- Changed NUM_BOOK_SLOTS to 0x320 (yes really this time)
+  this will fix any problems with the charinfo2 struct...
+- Changes since last zip where made to the following file(s):
+	EQData.h
+
 04 Nov 2014 by eqmule
 - Changed NUM_BOOK_SLOTS to 0x320
   Thanks to woobs for reporting this bug
