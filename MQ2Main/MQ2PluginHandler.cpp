@@ -331,23 +331,25 @@ VOID WriteChatColor(PCHAR Line, DWORD Color, DWORD Filter)
         return;
     PluginDebug("Begin WriteChatColor()");
     EnterMQ2Benchmark(bmWriteChatColor);
-    CHAR PlainText[MAX_STRING]={0};
-    StripMQChat(Line,PlainText);
-    CheckChatForEvent(PlainText);
 
-    DebugSpew("WriteChatColor(%s)",Line);
-
-    CAutoLock Lock(&gPluginCS);
-
-    PMQPLUGIN pPlugin=pPlugins;
-    while(pPlugin)
-    {
-        if (pPlugin->WriteChatColor)
-        {
-            pPlugin->WriteChatColor(Line,Color,Filter);
-        }
-        pPlugin=pPlugin->pNext;
-    }
+	if(size_t len = strlen(Line)) {
+		if(char *PlainText = (char*)LocalAlloc(LPTR,len+1)) {
+			StripMQChat(Line,PlainText);
+			CheckChatForEvent(PlainText);
+			LocalFree(PlainText);
+		}
+		DebugSpew("WriteChatColor(%s)",Line);
+	}
+	CAutoLock Lock(&gPluginCS);
+	PMQPLUGIN pPlugin=pPlugins;
+	while(pPlugin)
+	{
+		if (pPlugin->WriteChatColor)
+		{
+			pPlugin->WriteChatColor(Line,Color,Filter);
+		}
+		pPlugin=pPlugin->pNext;
+	}
     ExitMQ2Benchmark(bmWriteChatColor);
 }
 

@@ -463,7 +463,7 @@
 // CMerchantWnd 
 #define CMerchantWnd__DisplayBuyOrSellPrice_x                      0x7070A0
 #define CMerchantWnd__RequestBuyItem_x                             0x70DED0
-#define CMerchantWnd__RequestSellItem_x                            0x736100
+#define CMerchantWnd__RequestSellItem_x                            0x70E940
 #define CMerchantWnd__SelectRecoverySlot_x                         0x707350
 #define CMerchantWnd__SelectBuySellSlot_x                          0x7065B0
 #define CMerchantWnd__ActualSelect_x                               0x70AE00

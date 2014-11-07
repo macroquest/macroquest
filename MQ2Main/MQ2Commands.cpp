@@ -610,12 +610,14 @@ VOID BuyItem(PSPAWNINFO pChar, PCHAR szLine)
     CHAR szQty[MAX_STRING] = {0};
     PCHARINFO pCharInfo = NULL;
     DWORD Qty;
-    if (!GetCharInfo() || !((PEQMERCHWINDOW)pMerchantWnd)->SelectedSlotID) return;
-    {
+    if (!GetCharInfo() || !((PEQMERCHWINDOW)pMerchantWnd)->SelectedSlotID)
+		return;
+	if (((PEQMERCHWINDOW)pMerchantWnd)->pMerchOther && ((PEQMERCHWINDOW)pMerchantWnd)->pMerchOther->pMerchData) {
         GetArg(szQty,szLine,1);
         Qty = (DWORD)atoi(szQty);
         if (Qty < 1) return;
-        pMerchantWnd->RequestBuyItem(Qty);
+		CMerchantWnd * pmercho = (CMerchantWnd *)((PEQMERCHWINDOW)pMerchantWnd)->pMerchOther->pMerchData;
+        pmercho->RequestBuyItem(Qty);
     }
 }
 // ***************************************************************************
@@ -634,12 +636,14 @@ VOID SellItem(PSPAWNINFO pChar, PCHAR szLine)
     CHAR szQty[MAX_STRING] = {0};
     PCHARINFO pCharInfo = NULL;
     DWORD Qty;
-    if (!GetCharInfo() || !((PEQMERCHWINDOW)pMerchantWnd)->SelectedSlotID) return;
-    {
+    if (!GetCharInfo() || !((PEQMERCHWINDOW)pMerchantWnd)->SelectedSlotID)
+		return;
+	if (((PEQMERCHWINDOW)pMerchantWnd)->pMerchOther && ((PEQMERCHWINDOW)pMerchantWnd)->pMerchOther->pMerchData) {
         GetArg(szQty,szLine,1);
         Qty = (DWORD)atoi(szQty);
         if (Qty < 1) return;
-        pMerchantWnd->RequestSellItem(Qty);
+		CMerchantWnd * pmercho = (CMerchantWnd *)((PEQMERCHWINDOW)pMerchantWnd)->pMerchOther->pMerchData;
+		pmercho->RequestSellItem(Qty);
     }
 }
 // ***************************************************************************

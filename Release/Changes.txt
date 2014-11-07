@@ -1,3 +1,14 @@
+07 Nov 2014 by eqmule
+- Fixed a few Buffer Overflow bugs in our somethingsomething(char* szFormat, ...) functions...
+  was long overdue...
+- Fixed /buyitem and /sellitem
+- Changes since last zip where made to the following file(s):
+	eqgame.h
+	MQ2Commands.cpp
+	MQ2DataVars.cpp
+	MQ2PluginHandler.cpp
+	MQ2Utilities.cpp
+
 06 Nov 2014 by eqmule
 - Changed NUM_BOOK_SLOTS to 0x320 (yes really this time)
   this will fix any problems with the charinfo2 struct...

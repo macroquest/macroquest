@@ -634,7 +634,7 @@ VOID CheckChatForEvent(PCHAR szMsg)
 				}
 			}
 		} else {
-			strcpy_s(EventMsg,szClean);
+			strncpy_s(EventMsg,_countof(EventMsg),szClean,_TRUNCATE);
 		}
 		if (pMQ2Blech)
 			pMQ2Blech->Feed(szClean);

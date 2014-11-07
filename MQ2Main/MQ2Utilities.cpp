@@ -27,70 +27,80 @@ VOID DebugSpew(PCHAR szFormat, ...)
 {
 #ifdef DBG_SPEW
     if (gFilterDebug) return;
-    CHAR szOutput[MAX_STRING] = {0};
     va_list vaList;
     va_start( vaList, szFormat );
-    vsprintf(szOutput,szFormat, vaList);
-    OutputDebugString(DebugHeader);
-    OutputDebugString(szOutput);
-    OutputDebugString("\n");
+	int len = _vscprintf( szFormat, vaList )+1;// _vscprintf doesn't count // terminating '\0'
+	if(char *szOutput = (char *)LocalAlloc(LPTR,len+32)) {
+		vsprintf(szOutput,szFormat, vaList);
+		OutputDebugString(DebugHeader);
+		OutputDebugString(szOutput);
+		OutputDebugString("\n");
+		LocalFree(szOutput);
+	}
 #endif
 }
 
 VOID WriteChatf(PCHAR szFormat, ...)
 {
-    CHAR szOutput[MAX_STRING] = {0};
-    va_list vaList;
-    va_start( vaList, szFormat );
-    vsprintf(szOutput,szFormat, vaList);
-    WriteChatColor(szOutput);
+	va_list vaList;
+    va_start(vaList, szFormat );
+	int len = _vscprintf( szFormat, vaList )+1;// _vscprintf doesn't count // terminating '\0'
+	if(char *szOutput = (char *)LocalAlloc(LPTR,len+32)) {
+		vsprintf(szOutput,szFormat, vaList);
+		WriteChatColor(szOutput);
+		LocalFree(szOutput);
+	}
 }
 
 VOID DebugSpewAlways(PCHAR szFormat, ...)
 {
-    CHAR szOutput[MAX_STRING] = {0};
     va_list vaList;
-
     OutputDebugString(DebugHeader);
     va_start( vaList, szFormat );
-    vsprintf(szOutput,szFormat, vaList);
-    OutputDebugString(szOutput);
-    OutputDebugString("\n");
+	int len = _vscprintf( szFormat, vaList )+1;// _vscprintf doesn't count // terminating '\0'
+	if(char *szOutput = (char *)LocalAlloc(LPTR,len+32)) {
+		vsprintf(szOutput,szFormat, vaList);
+		OutputDebugString(szOutput);
+		OutputDebugString("\n");
 
-#ifdef DBG_SPEW
-    if (gSpewToFile) {
-        FILE *fOut = NULL;
-        CHAR Filename[MAX_STRING] = {0};
-        sprintf(Filename,"%s\\DebugSpew.log",gszLogPath);
-        fOut = fopen(Filename,"at");
-        if (!fOut) return;
-#ifdef DBG_CHARNAME
-        CHAR Name[256] = "Unknown";
-        PCHARINFO pCharInfo = GetCharInfo();
-        if (pCharInfo)
-        {
-            strcpy(Name,pCharInfo->Name);
-        }
-        fprintf(fOut,"%s - %s\r\n", Name, szOutput);
-#else
-        fprintf(fOut,"%s\r\n", szOutput);
-#endif
-        fclose(fOut);
-    }
-#endif
+	#ifdef DBG_SPEW
+		if (gSpewToFile) {
+			FILE *fOut = NULL;
+			CHAR Filename[MAX_STRING] = {0};
+			sprintf(Filename,"%s\\DebugSpew.log",gszLogPath);
+			fOut = fopen(Filename,"at");
+			if (!fOut) return;
+	#ifdef DBG_CHARNAME
+			CHAR Name[256] = "Unknown";
+			PCHARINFO pCharInfo = GetCharInfo();
+			if (pCharInfo)
+			{
+				strcpy(Name,pCharInfo->Name);
+			}
+			fprintf(fOut,"%s - %s\r\n", Name, szOutput);
+	#else
+			fprintf(fOut,"%s\r\n", szOutput);
+	#endif
+			fclose(fOut);
+		}
+	#endif
+		LocalFree(szOutput);
+	}
 }
 
 EQLIB_API VOID DebugSpewNoFile(PCHAR szFormat, ...)
 {
 #ifdef DBG_SPEW
-    CHAR szOutput[MAX_STRING] = {0};
     va_list vaList;
-
     OutputDebugString(DebugHeader);
     va_start( vaList, szFormat );
-    vsprintf(szOutput,szFormat, vaList);
-    OutputDebugString(szOutput);
-    OutputDebugString("\n");
+    int len = _vscprintf( szFormat, vaList )+1;// _vscprintf doesn't count // terminating '\0'
+	if(char *szOutput = (char *)LocalAlloc(LPTR,len+32)) {
+		vsprintf(szOutput,szFormat, vaList);
+		OutputDebugString(szOutput);
+		OutputDebugString("\n");
+		LocalFree(szOutput);
+	}
 #endif
 }
 #endif
@@ -132,44 +142,50 @@ VOID Flavorator(PCHAR szLine)
 #ifndef ISXEQ
 VOID SyntaxError(PCHAR szFormat, ...)
 {
-    CHAR szOutput[MAX_STRING] = {0};
     va_list vaList;
     va_start( vaList, szFormat );
-    vsprintf(szOutput,szFormat, vaList);
-    if (bLaxColor)
-    {
-        CHAR szColor[MAX_STRING]={0};
-        strcpy(szColor,szColorSyntaxError[rand()%nColorSyntaxError]);
-        if (szColor[0])
-        {
-            Flavorator(szColor);
-            WriteChatColor(szColor);
-        }
-    }
-    WriteChatColor(szOutput,CONCOLOR_YELLOW);
-    strcpy(gszLastSyntaxError,szOutput);
+	int len = _vscprintf( szFormat, vaList )+1;// _vscprintf doesn't count // terminating '\0'
+	if(char *szOutput = (char *)LocalAlloc(LPTR,len+32)) {
+		vsprintf(szOutput,szFormat, vaList);
+		if (bLaxColor)
+		{
+			CHAR szColor[MAX_STRING]={0};
+			strcpy(szColor,szColorSyntaxError[rand()%nColorSyntaxError]);
+			if (szColor[0])
+			{
+				Flavorator(szColor);
+				WriteChatColor(szColor);
+			}
+		}
+		WriteChatColor(szOutput,CONCOLOR_YELLOW);
+		strcpy_s(gszLastSyntaxError,szOutput);
+		LocalFree(szOutput);
+	}
 }
 
 VOID MacroError(PCHAR szFormat, ...)
 {
-    CHAR szOutput[MAX_STRING] = {0};
     va_list vaList;
     va_start( vaList, szFormat );
-    vsprintf(szOutput,szFormat, vaList);
-    if (bLaxColor)
-    {
-        CHAR szColor[MAX_STRING]={0};
-        strcpy(szColor,szColorMacroError[rand()%nColorMacroError]);
-        if (szColor[0])
-        {
-            Flavorator(szColor);
-            WriteChatColor(szColor);
-        }
-    }
-    WriteChatColor(szOutput,CONCOLOR_RED);
-    if (bAllErrorsLog) MacroLog(NULL, "Macro Error");
-    if (bAllErrorsLog) MacroLog(NULL, szOutput);
-    strcpy(gszLastNormalError,szOutput);
+	int len = _vscprintf( szFormat, vaList )+1;// _vscprintf doesn't count // terminating '\0'
+	if(char *szOutput = (char *)LocalAlloc(LPTR,len+32)) {
+		vsprintf(szOutput,szFormat, vaList);
+		if (bLaxColor)
+		{
+			CHAR szColor[MAX_STRING]={0};
+			strcpy(szColor,szColorMacroError[rand()%nColorMacroError]);
+			if (szColor[0])
+			{
+				Flavorator(szColor);
+				WriteChatColor(szColor);
+			}
+		}
+		WriteChatColor(szOutput,CONCOLOR_RED);
+		if (bAllErrorsLog) MacroLog(NULL, "Macro Error");
+		if (bAllErrorsLog) MacroLog(NULL, szOutput);
+		strcpy(gszLastNormalError,szOutput);
+		LocalFree(szOutput);
+	}
     if (gMacroBlock)
     {
         if (bAllErrorsDumpStack || bAllErrorsFatal)
@@ -181,24 +197,27 @@ VOID MacroError(PCHAR szFormat, ...)
 
 VOID FatalError(PCHAR szFormat, ...)
 {
-    CHAR szOutput[MAX_STRING] = {0};
     va_list vaList;
     va_start( vaList, szFormat );
-    vsprintf(szOutput,szFormat, vaList);
-    if (bLaxColor)
-    {
-        CHAR szColor[MAX_STRING]={0};
-        strcpy(szColor,szColorFatalError[rand()%nColorFatalError]);
-        if (szColor[0])
-        {
-            Flavorator(szColor);
-            WriteChatColor(szColor);
-        }
-    }
-    WriteChatColor(szOutput,CONCOLOR_RED);
-    strcpy(gszLastNormalError,szOutput);
-    if (bAllErrorsLog) MacroLog(NULL, "Fatal Error");
-    if (bAllErrorsLog) MacroLog(NULL, szOutput);
+	int len = _vscprintf( szFormat, vaList )+1;// _vscprintf doesn't count // terminating '\0'
+	if(char *szOutput = (char *)LocalAlloc(LPTR,len+32)) {
+		vsprintf(szOutput,szFormat, vaList);
+		if (bLaxColor)
+		{
+			CHAR szColor[MAX_STRING]={0};
+			strcpy(szColor,szColorFatalError[rand()%nColorFatalError]);
+			if (szColor[0])
+			{
+				Flavorator(szColor);
+				WriteChatColor(szColor);
+			}
+		}
+		WriteChatColor(szOutput,CONCOLOR_RED);
+		strcpy(gszLastNormalError,szOutput);
+		if (bAllErrorsLog) MacroLog(NULL, "Fatal Error");
+		if (bAllErrorsLog) MacroLog(NULL, szOutput);
+		LocalFree(szOutput);
+	}
     if (gMacroBlock)
     {
         DumpStack(0,0);
@@ -208,29 +227,32 @@ VOID FatalError(PCHAR szFormat, ...)
 
 VOID MQ2DataError(PCHAR szFormat, ...)
 {
-    CHAR szOutput[MAX_STRING] = {0};
     va_list vaList;
     va_start( vaList, szFormat );
-    vsprintf(szOutput,szFormat, vaList);
-    if (gFilterMQ2DataErrors)
-        DebugSpew(szOutput);
-    else
-    {
-        if (bLaxColor)
-        {
-            CHAR szColor[MAX_STRING]={0};
-            strcpy(szColor,szColorMQ2DataError[rand()%nColorMQ2DataError]);
-            if (szColor[0])
-            {
-                Flavorator(szColor);
-                WriteChatColor(szColor);
-            }
-        }
-        WriteChatColor(szOutput,CONCOLOR_RED);
-    }
-    strcpy(gszLastMQ2DataError,szOutput);
-    if (bAllErrorsLog) MacroLog(NULL, "Data Error");
-    if (bAllErrorsLog) MacroLog(NULL, szOutput);
+	int len = _vscprintf( szFormat, vaList )+1;// _vscprintf doesn't count // terminating '\0'
+	if(char *szOutput = (char *)LocalAlloc(LPTR,len+32)) {
+		vsprintf(szOutput,szFormat, vaList);
+		if (gFilterMQ2DataErrors)
+			DebugSpew(szOutput);
+		else
+		{
+			if (bLaxColor)
+			{
+				CHAR szColor[MAX_STRING]={0};
+				strcpy(szColor,szColorMQ2DataError[rand()%nColorMQ2DataError]);
+				if (szColor[0])
+				{
+					Flavorator(szColor);
+					WriteChatColor(szColor);
+				}
+			}
+			WriteChatColor(szOutput,CONCOLOR_RED);
+		}
+		strcpy(gszLastMQ2DataError,szOutput);
+		if (bAllErrorsLog) MacroLog(NULL, "Data Error");
+		if (bAllErrorsLog) MacroLog(NULL, szOutput);
+		LocalFree(szOutput);
+	}
     if (gMacroBlock)
     {
         if (bAllErrorsDumpStack || bAllErrorsFatal)
