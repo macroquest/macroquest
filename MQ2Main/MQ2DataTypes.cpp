@@ -5583,7 +5583,7 @@ bool MQ2ItemType::GETMEMBER()
         Dest.Type=pBoolType;
         return true;
     case Address:
-        Dest.DWord=(DWORD)pItem;
+        Dest.DWord=(DWORD)GetItemFromContents(pItem);
         Dest.Type=pIntType;
         return true;
     case Prestige:
@@ -5653,6 +5653,14 @@ bool MQ2ItemType::GETMEMBER()
         return true;
 	case NoDestroy:
 		Dest.DWord=GetItemFromContents(pItem)->NoDestroy;
+        Dest.Type=pBoolType;
+        return true;
+	case Quest:
+		Dest.DWord=GetItemFromContents(pItem)->QuestItem;
+        Dest.Type=pBoolType;
+        return true;
+	case Expendable:
+		Dest.DWord=GetItemFromContents(pItem)->Expendable;
         Dest.Type=pBoolType;
         return true;
 	}

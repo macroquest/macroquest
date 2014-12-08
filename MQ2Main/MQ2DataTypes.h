@@ -1721,6 +1721,8 @@ public:
 		Heirloom=138,
 		Collectible=139,
 		NoDestroy=140,
+		Quest=141,
+		Expendable=142,
     };
     static enum ItemMethods
     {
@@ -1867,6 +1869,8 @@ public:
 		TypeMember(Heirloom);
 		TypeMember(Collectible);
 		TypeMember(NoDestroy);
+		TypeMember(Quest);
+		TypeMember(Expendable);
     }
 
     ~MQ2ItemType()

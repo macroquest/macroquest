@@ -1,3 +1,15 @@
+13 Nov 2014 by eqmule
+- Fixed QuestItem in the Iteminfo struct, it was off by four bytes.
+- Added .Quest and .Expendable to the Item TLO.
+  both return a pBoolType
+  Usage:
+  /echo ${FindItem[Drachnid Carapace].Quest}
+  Outputs: [MQ2] TRUE
+- Changes since last zip where made to the following file(s):
+	EQData.h
+	MQ2DataTypes.cpp
+	MQ2DataTypes.h
+
 12 Nov 2014 by eqmule
 - Added Target.Beneficial, Target.DSed and Target.RevDSed
   they all return spelltype

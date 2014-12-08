@@ -671,9 +671,10 @@ typedef struct _ITEMINFO {
 /*0x05e4*/ BYTE         Unknown0x05e4[0x4];
 /*0x05e8*/ DWORD        MaxPower;
 /*0x05ec*/ DWORD        Purity;
-/*0x05f0*/ BYTE         Unknown0x05f0[0x8];
-/*0x05f8*/ BYTE         QuestItem;
-/*0x05f9*/ BYTE         Unknown0x05f9[0x7];
+/*0x05f0*/ BYTE         Unknown0x05f0[0xc];
+/*0x05fc*/ BYTE         QuestItem;
+/*0x05fd*/ BYTE         Expendable;
+/*0x05fe*/ BYTE         Unknown0x05fe[0x2];
 /*0x0600*/ DWORD        Clairvoyance;
 /*0x0604*/ BYTE			Unknown0x05a0[0x90];
 /*0x0694*/
