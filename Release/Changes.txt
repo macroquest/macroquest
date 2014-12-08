@@ -1,3 +1,9 @@
+03 Dec 2014 by eqmule
+- Updated for Test patch
+- Fixed a problem with /setwintitle
+  it wasnt checking for windowclass which would result in
+  title not being set for the correct window at all times.
+
 22 Nov 2014 by eqmule
 - Added a fix (to a eqbug) which affects Target.Beneficial.
   the player buffs "leak" and shows up briefly in the target buff window
