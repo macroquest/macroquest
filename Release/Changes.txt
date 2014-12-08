@@ -1,3 +1,11 @@
+22 Nov 2014 by eqmule
+- Added a fix (to a eqbug) which affects Target.Beneficial.
+  the player buffs "leak" and shows up briefly in the target buff window
+  you can see this if you make target buff window large enough.
+  Of course the best fix would be if the eqdevs just made sure player buffs
+  dont show up in the targetbuff window, but I dont know if they
+  see this a bug or a feature, or even if they are aware.
+
 19 Nov 2014 by eqmule
 -Updated for patch
 - Added Me.DSed and Me.RevDSed, both return a spelltype

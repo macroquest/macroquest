@@ -8748,6 +8748,19 @@ bool MQ2TargetType::GETMEMBER()
             if (PSPELL pSpell=GetSpellByID(((PCTARGETWND)pTargetWnd)->BuffSpellID[i])) {
 				if(pSpell->SpellType!=0)    
 				{
+					//targetwindow has a leak in it player buffs shows up in it
+					//so we need to make sure its not a "leaked buff"
+					if (CXStr *ptr=pTargetWnd->GetBuffCaster(pSpell->ID))
+					{
+						CHAR szBuffer[64] = {0};
+						if(GetCXStr(ptr->Ptr,szBuffer,63)) {
+							if(PSPAWNINFO pPlayer = (PSPAWNINFO)GetSpawnByName(szBuffer)) {
+								if(pPlayer->Type==SPAWN_PLAYER) {
+									continue;
+								}
+							}
+						}
+					}
 					Dest.Int = i;
 					Dest.Type = pTargetBuffType;
 					return true;

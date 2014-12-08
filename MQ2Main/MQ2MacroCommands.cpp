@@ -1369,7 +1369,7 @@ VOID Next(PSPAWNINFO pChar, PCHAR szLine)
             if (strstr(_strlwr(strcpy(szTemp,ForLine)),"downto")) 
             {
                 Loop = atoi(strstr(szTemp,"downto")+7);
-                DebugSpewNoFile("Next - End of loop %d downto %d", pVar->Var.Int, Loop);
+                //DebugSpewNoFile("Next - End of loop %d downto %d", pVar->Var.Int, Loop);
                 pVar->Var.Int-=StepSize;
                 if (pVar->Var.Int >= Loop) 
                     gMacroBlock = pMacroLine;
@@ -1377,7 +1377,7 @@ VOID Next(PSPAWNINFO pChar, PCHAR szLine)
             else 
             {
                 Loop = atoi(strstr(szTemp,"to")+3);
-                DebugSpewNoFile("Next - End of loop %d to %d", pVar->Var.Int, Loop);
+                //DebugSpewNoFile("Next - End of loop %d to %d", pVar->Var.Int, Loop);
                 pVar->Var.Int+=StepSize;
                 if (pVar->Var.Int <= Loop) 
                     gMacroBlock = pMacroLine;
