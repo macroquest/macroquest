@@ -3839,6 +3839,20 @@ bool MQ2CharacterType::GETMEMBER()
         Dest.DWord=!gbInZone;
         Dest.Type=pBoolType;
         return true;
+	case DSed:
+		if ((Dest.Int=GetSelfBuffBySPA(59,1))!=-1)//Damage Shield
+        {
+            Dest.Type=pBuffType;
+            return true;
+        }
+		break;
+	case RevDSed:
+		if ((Dest.Int=GetSelfBuffBySPA(121,1))!=-1)//Reverse Damage Shield
+        {
+            Dest.Type=pBuffType;
+            return true;
+        }
+		break;
 	}
     return false;
 #undef pChar
@@ -4440,6 +4454,7 @@ bool MQ2SpellType::GETMEMBER()
 		return true;
 		}
 #undef pSpell
+	return false;
 }
 
 bool MQ2ItemType::GETMEMBER()

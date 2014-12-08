@@ -7218,16 +7218,28 @@ int GetSelfBuffBySPA(int spa,bool bIncrease)
 						return nBuff;
 					}
 					return -1;
-				}
-				if(spa==3)//Movement Rate
-				{
+				} else if(spa==3) {//Movement Rate
 					if(!bIncrease && base<0) {//below 0 means its a snare above its runspeed increase...
 						return nBuff;
 					} else if(bIncrease && base>0) {
 						return nBuff;
 					}
 					return -1;
-				}
+				} else if(spa==59) { //Damage Shield
+						if(!bIncrease && base>0) {//decreased DS
+							return nBuff;
+						} else if(bIncrease && base<0) {//increased DS
+							return nBuff;
+						}
+						return -1;
+					} else if(spa==121) { //Reverse Damage Shield
+						if(!bIncrease && base>0) {//decreased DS
+							return nBuff;
+						} else if(bIncrease && base<0) {//increased DS
+							return nBuff;
+						}
+						return -1;
+					}
 				return nBuff;
 			}
         }

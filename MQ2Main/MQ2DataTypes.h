@@ -1031,6 +1031,8 @@ public:
 		Commemoratives=203,
 		Nobles=204,
 		Zoning=205,
+		DSed=206,
+		RevDSed=207,
     };
     static enum CharacterMethods
     {
@@ -1235,6 +1237,8 @@ public:
 		TypeMember(Commemoratives);
 		TypeMember(Nobles);
 		TypeMember(Zoning);
+		TypeMember(DSed);
+		TypeMember(RevDSed);
 
         TypeMethod(Stand); 
         TypeMethod(Sit); 

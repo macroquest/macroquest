@@ -1,3 +1,21 @@
+19 Nov 2014 by eqmule
+-Updated for patch
+- Added Me.DSed and Me.RevDSed, both return a spelltype
+  Usage:
+  /if (${Bool[${Me.DSed.ID}]}==TRUE) {
+		/echo I have a Damage Shield on its: ${Me.DSed}.
+  }
+  /if (${Bool[${Me.RevDSed.ID}]}==TRUE) {
+		/echo I have a Reverse Damage Shield on its: ${Me.RevDSed}.
+  }
+- Changes since last zip where made to the following file(s):
+	EQData.h
+	eqgame.h
+	EQUIStructs.h
+	MQ2DataTypes.cpp
+	MQ2DataTypes.h
+	MQ2Utilities.h
+
 13 Nov 2014 by eqmule
 - Fixed QuestItem in the Iteminfo struct, it was off by four bytes.
 - Added .Quest and .Expendable to the Item TLO.
