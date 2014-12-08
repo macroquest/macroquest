@@ -1343,6 +1343,7 @@ public:
 		RankName=56,
 		SpellGroup=57,
 		SubSpellGroup=58,
+		Beneficial=59,
     };
     static enum SpellMethods
     {
@@ -1407,6 +1408,7 @@ public:
 		TypeMember(RankName);
 		TypeMember(SpellGroup);
 		TypeMember(SubSpellGroup);
+		TypeMember(Beneficial);
 		
     }
 
@@ -4078,6 +4080,9 @@ public:
 		HybridHP=27,
 		Growth=28,
 		Shining=29,
+		Beneficial=30,
+		DSed=31,
+		RevDSed=32,
     };
 
 #ifdef ISBOXER_COMPAT
@@ -4115,6 +4120,9 @@ public:
 		TypeMember(HybridHP);
 		TypeMember(Growth);
 		TypeMember(Shining);
+		TypeMember(Beneficial);
+		TypeMember(DSed);
+		TypeMember(RevDSed);
     }
 
     ~MQ2TargetType()

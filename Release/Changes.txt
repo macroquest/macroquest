@@ -1,3 +1,25 @@
+12 Nov 2014 by eqmule
+- Added Target.Beneficial, Target.DSed and Target.RevDSed
+  they all return spelltype
+  Usage:
+  /if (${Bool[${Target.Beneficial.ID}]}==TRUE) {
+		/echo need to debuff cause the target has ${Target.Beneficial} on.
+  }
+  /if (${Bool[${Target.DSed.ID}]}==TRUE) {
+		/echo the target has a Damage Shield on its: ${Target.DSed}.
+  }
+  /if (${Bool[${Target.RevDSed.ID}]}==TRUE) {
+		/echo the target has a Reverse Damage Shield on its: ${Target.RevDSed}.
+  }
+- Added Spell[somespell].Beneficial
+  Usage:
+  /echo ${Spell[Skin Like Wood].Beneficial}
+  Outputs: TRUE
+- Changes since last zip where made to the following file(s):
+	MQ2DataTypes.cpp
+	MQ2DataTypes.h
+	MQ2Utilities.cpp
+
 07 Nov 2014 by eqmule
 - Fixed a few Buffer Overflow bugs in our somethingsomething(char* szFormat, ...) functions...
   was long overdue...

@@ -4434,8 +4434,11 @@ bool MQ2SpellType::GETMEMBER()
 		Dest.DWord = pSpell->SubSpellGroup;
 		Dest.Type = pIntType;
 		return true;
-	}
-    return false;
+	case Beneficial:
+		Dest.DWord = (pSpell->SpellType)?true:false;
+		Dest.Type = pBoolType;
+		return true;
+		}
 #undef pSpell
 }
 
@@ -8707,6 +8710,37 @@ bool MQ2TargetType::GETMEMBER()
 		break;
 	case Hasted:
 		if ((Dest.Int=GetTargetBuffBySPA(11,1))!=-1)
+        {
+            Dest.Type=pTargetBuffType;
+            return true;
+        }
+		break;
+	case Beneficial:
+		if((((PCTARGETWND)pTargetWnd)->Type <= 0))
+            return false;
+        for(i = 0; i < NUM_BUFF_SLOTS; i++)
+        {
+			if(((PCTARGETWND)pTargetWnd)->BuffSpellID[i]==-1 || ((PCTARGETWND)pTargetWnd)->BuffSpellID[i]==0)
+				continue;
+            if (PSPELL pSpell=GetSpellByID(((PCTARGETWND)pTargetWnd)->BuffSpellID[i])) {
+				if(pSpell->SpellType!=0)    
+				{
+					Dest.Int = i;
+					Dest.Type = pTargetBuffType;
+					return true;
+				}
+			}
+        }
+        return false;
+	case DSed:
+		if ((Dest.Int=GetTargetBuffBySPA(59,1))!=-1)//Damage Shield
+        {
+            Dest.Type=pTargetBuffType;
+            return true;
+        }
+		break;
+	case RevDSed:
+		if ((Dest.Int=GetTargetBuffBySPA(121,1))!=-1)//Reverse Damage Shield
         {
             Dest.Type=pTargetBuffType;
             return true;
