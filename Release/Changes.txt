@@ -1,3 +1,9 @@
+11 Dec 2014 by eqmule
+- Updated for patch
+- /useitem now works for mounts in the mount key ring.
+  Please see change message from the 09 Dec 2014
+  for more info on this.
+
 09 Dec 2014 by eqmule
 - Added Feature:
   /useitem now works for mounts in the mount key ring.

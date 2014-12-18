@@ -7523,14 +7523,14 @@ DWORD GetMountKeyRingIndex(char *szItemName, bool bExact, bool usecmd)
 	return index;
 }
 
-BOOL StripQuotes(char *str)
+bool StripQuotes(char *str)
 {
-	BOOL ret = 0;
+	bool bRet = false;
 	if(strchr(str,'"'))
-		ret = 1;
+		bRet = true;
 	char *s,*d;
 	for (s=d=str;*d=*s;d+=(*s++!='"'));
-    return ret;
+    return bRet;
 }
 
 void InitMountKeyRing()

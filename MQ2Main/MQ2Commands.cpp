@@ -3026,7 +3026,7 @@ VOID UseItemCmd(PSPAWNINFO pChar, PCHAR szLine)
     } else {
 		CHAR szSlot1[MAX_STRING] = {0};
 		GetArg(szSlot1,szLine,1);
-		BOOL stripped = StripQuotes(szLine);
+		bool stripped = StripQuotes(szLine);
 		if(IsNumber(szSlot1)) {
 			cmdUseItem(pChar,szLine);
 		} else {
