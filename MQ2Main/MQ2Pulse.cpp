@@ -192,6 +192,7 @@ void Pulse()
 
     if (gbDoAutoRun && pChar && pCharInfo) {
         gbDoAutoRun = FALSE;
+		InitMountKeyRing();
         CHAR szServerAndName[MAX_STRING] = {0};
         CHAR szAutoRun[MAX_STRING] = {0};
         PCHAR pAutoRun = szAutoRun;

@@ -3014,7 +3014,7 @@ VOID NoModKeyCmd(PSPAWNINFO pChar, PCHAR szLine)
 // Function:    UseItemCmd
 // Description: '/useitem' command
 //              Activates an item that has a clicky effect.
-// Usage:       /useitem "item name"
+// Usage:       /useitem 1 0 or /useitem "item name" or /useitem item name
 // ***************************************************************************
 VOID UseItemCmd(PSPAWNINFO pChar, PCHAR szLine)
 {
@@ -3026,13 +3026,28 @@ VOID UseItemCmd(PSPAWNINFO pChar, PCHAR szLine)
     } else {
 		CHAR szSlot1[MAX_STRING] = {0};
 		GetArg(szSlot1,szLine,1);
+		BOOL stripped = StripQuotes(szLine);
 		if(IsNumber(szSlot1)) {
 			cmdUseItem(pChar,szLine);
 		} else {
-			if(PCONTENTS pItem = FindItemByName(szSlot1,1)) {
-				CHAR szTemp[32] = {0};
-				sprintf_s(szTemp,"%d %d",pItem->ItemSlot,pItem->ItemSlot2);
-				cmdUseItem(pChar,szTemp);
+			if(PCONTENTS pItem = FindItemByName(szLine,stripped)) {
+				if(!pItem->IsMountKeyRing) {
+					CHAR szTemp[32] = {0};
+					sprintf_s(szTemp,"%d %d",pItem->ItemSlot,pItem->ItemSlot2);
+					cmdUseItem(pChar,szTemp);
+				} else {
+					if(DWORD index = GetMountKeyRingIndex(szLine,stripped,true)) {
+						if(CXWnd *krwnd = FindMQ2Window("InventoryWindow")) {
+							if(CListWnd *clist = (CListWnd*)krwnd->GetChildItem("IW_Mounts_MountList")) {
+								if(DWORD numitems = ((CSidlScreenWnd*)clist)->Items) {
+									SendListSelect("InventoryWindow","IW_Mounts_MountList",index-1);
+									int listdata = clist->GetItemData(index-1);
+									cmdToggleMount(&pItem,listdata);
+								} 
+							}
+						}
+					}
+				}
 			}
 		}
 	}

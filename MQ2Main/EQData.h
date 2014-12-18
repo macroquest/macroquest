@@ -699,7 +699,7 @@ typedef struct _CONTENTS {
 /*0x0020*/ DWORD        Power;
 /*0x0024*/ struct _ITEMINFO*    Item1;
 /*0x0028*/ DWORD        NumOfSlots1;//ItemSlot is this address + 0x16 in 20130708
-/*0x002c*/ BYTE         Unknown0x002c[0x4];
+/*0x002c*/ DWORD        IsMountKeyRing;//0x1b if it is 0 if not
 /*0x0030*/ struct _CONTENTSARRAY*       pContentsArray;
 /*0x0034*/ DWORD        NumOfSlots2;
 /*0x0038*/ BYTE         Unknown0x0038[0x6];
@@ -795,6 +795,7 @@ typedef struct _AALIST {
 #define NUM_INV_SLOTS                   0x21
 #define NUM_BANK_SLOTS                  0x18
 #define NUM_SHAREDBANK_SLOTS            0x04
+#define MAX_MOUNTS					    0xA
 //found in CSpellBookWnd__GetBookSlot_x (see 7756CA in Oct 29 2014 Live) -eqmule 
 #define NUM_BOOK_SLOTS                  0x320
 #define NUM_COMBAT_ABILITIES            0x12c
@@ -871,13 +872,19 @@ typedef struct _GROUPINFO {
 
 typedef struct _BANKARRAY {
 /*0x00*/ struct _CONTENTS* Bank[NUM_BANK_SLOTS];
-/*0x68*/
+/*0x60*/
 } BANKARRAY, *PBANKARRAY;
 
 typedef struct _SHAREDBANKARRAY {
 /*0x00*/ struct _CONTENTS* SharedBank[NUM_SHAREDBANK_SLOTS];
-/*0x68*/
+/*0x10*/
 } SHAREDBANKARRAY, *PSHAREDBANKARRAY;
+
+//added dec 08 2014 -eqmule
+typedef struct _MOUNTARRAY {
+/*0x00*/ struct _CONTENTS* Mount[MAX_MOUNTS];
+/*0x28*/
+} MOUNTARRAY, *PMOUNTARRAY;
 
 //aStartingLoad_
 // actual size: 0x4878 Oct 23 2014 (see 54F207) - eqmule
@@ -891,7 +898,11 @@ typedef struct _CHARINFO {
 /*0x1100*/ BYTE         Unknown0x1100[0x30];
 /*0x1130*/ struct _SHAREDBANKARRAY*     pSharedBankArray;
 /*0x1134*/ DWORD        NumSharedSlots;//how many sharedbank slots we have
-/*0x1138*/ BYTE         Unknown0x1138[0x1d4];
+/*0x1138*/ BYTE         Unknown0x1138[0x98];
+/*0x11d0*/ DWORD        pMountrelated;//always 0x7d?
+/*0x11d4*/ DWORD        pMountrelated2;//always 0x1b?
+/*0x11d8*/ struct _MOUNTARRAY*     pMountArray;
+/*0x11dc*/ BYTE         Unknown0x11dc[0x130];
 /*0x130c*/ DWORD        GuildID;//GuildID_0
 /*0x1310*/ BYTE         Unknown0x1310[0x2c];
 /*0x133c*/ DWORD        AAExp;

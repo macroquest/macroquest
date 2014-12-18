@@ -791,6 +791,7 @@ typedef struct _AALIST {
 #define NUM_INV_SLOTS                   0x21
 #define NUM_BANK_SLOTS                  0x18
 #define NUM_SHAREDBANK_SLOTS            0x04
+#define MAX_MOUNTS					    0xA
 //found in CSpellBookWnd__GetBookSlot_x (see 7756CA in Oct 29 2014 Live) -eqmule 
 #define NUM_BOOK_SLOTS                  0x320
 #define NUM_COMBAT_ABILITIES            0x12c
@@ -875,6 +876,12 @@ typedef struct _SHAREDBANKARRAY {
 /*0x68*/
 } SHAREDBANKARRAY, *PSHAREDBANKARRAY;
 
+//added dec 08 2014 -eqmule
+typedef struct _MOUNTARRAY {
+/*0x00*/ struct _CONTENTS* Mount[MAX_MOUNTS];
+/*0x28*/
+} MOUNTARRAY, *PMOUNTARRAY;
+
 // actual size: 0x4878 20141020 (Test) (see 54FC67) - eqmule
 //aStartingLoad_
 typedef struct _CHARINFO {
@@ -887,7 +894,11 @@ typedef struct _CHARINFO {
 /*0x1100*/ BYTE         Unknown0x1100[0x30];
 /*0x1130*/ struct _SHAREDBANKARRAY*     pSharedBankArray;
 /*0x1134*/ DWORD        NumSharedSlots;//how many sharedbank slots we have
-/*0x1138*/ BYTE         Unknown0x1138[0x1d4];
+/*0x1138*/ BYTE         Unknown0x1138[0x98];
+/*0x11d0*/ DWORD        pMountrelated;//always 0x7d?
+/*0x11d4*/ DWORD        pMountrelated2;//always 0x1b?
+/*0x11d8*/ struct _MOUNTARRAY*     pMountArray;
+/*0x11dc*/ BYTE         Unknown0x11dc[0x130];
 /*0x130c*/ DWORD        GuildID;//GuildID_0
 /*0x1310*/ BYTE         Unknown0x1310[0x2c];
 /*0x133c*/ DWORD        AAExp;

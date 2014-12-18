@@ -307,6 +307,7 @@ EQLIB_VAR fEQNewUIINI        NewUIINI;
 EQLIB_VAR fEQProcGameEvts    ProcessGameEvents;
 EQLIB_VAR fEQExecuteCmd         ExecuteCmd;
 EQLIB_VAR fEQGetMelee    get_melee_range;
+EQLIB_VAR fEQToggleMount     cmdToggleMount;
 
 //EQLIB_VAR PCHAR szItemName[];
 //EQLIB_VAR PCHAR szItemName4xx[];
@@ -547,6 +548,7 @@ EQLIB_VAR CJournalCatWnd **ppJournalCatWnd;
 EQLIB_VAR CPetitionQWnd **ppPetitionQWnd;
 EQLIB_VAR CSoulmarkWnd **ppSoulmarkWnd;
 EQLIB_VAR CTaskWnd **ppTaskWnd;
+EQLIB_VAR CTaskSomething *ppTaskSomething;
 EQLIB_VAR CTimeLeftWnd **ppTimeLeftWnd;
 EQLIB_VAR CTextOverlay **ppTextOverlay;
 EQLIB_VAR CPotionBeltWnd **ppPotionBeltWnd;
@@ -634,7 +636,8 @@ EQLIB_VAR CPotionBeltWnd **ppPotionBeltWnd;
 #define pTributeMasterWnd (*ppTributeMasterWnd)
 #define pPetitionQWnd (*ppPetitionQWnd)
 #define pSoulmarkWnd (*ppSoulmarkWnd)
-#define pTaskkWnd (*ppTaskWnd)
+#define pTaskWnd (*ppTaskWnd)
+#define pTaskSomething (ppTaskSomething)
 #define pTimeLeftWnd (*ppTimeLeftWnd)
 #define pTextOverlay (*ppTextOverlay)
 #define pPotionBeltWnd (*ppPotionBeltWnd)
@@ -873,6 +876,7 @@ EQLIB_VAR DWORD pinstCSystemInfoDialogBox;
 EQLIB_VAR DWORD pinstCTargetOfTargetWnd;
 EQLIB_VAR DWORD pinstCTaskTemplateSelectWnd;
 EQLIB_VAR DWORD pinstCTaskWnd;
+EQLIB_VAR DWORD pinstCTaskSomething;
 EQLIB_VAR DWORD pinstCTipWndOFDAY;
 EQLIB_VAR DWORD pinstCTipWndCONTEXT;
 EQLIB_VAR DWORD pinstCTitleWnd;
@@ -888,6 +892,7 @@ EQLIB_VAR DWORD __EQGetTime;
 EQLIB_VAR DWORD __get_melee_range;
 EQLIB_VAR DWORD __GetGaugeValueFromEQ;
 EQLIB_VAR DWORD __GetLabelFromEQ;
+EQLIB_VAR DWORD __ToggleMount;
 EQLIB_VAR DWORD __GetXTargetType;
 EQLIB_VAR DWORD __LoadFrontEnd;
 EQLIB_VAR DWORD __NewUIINI;

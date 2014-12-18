@@ -5601,6 +5601,10 @@ bool MQ2ItemType::GETMEMBER()
         Dest.DWord=(DWORD)GetItemFromContents(pItem);
         Dest.Type=pIntType;
         return true;
+    case ContAddress:
+        Dest.DWord=(DWORD)pItem;
+        Dest.Type=pIntType;
+        return true;
     case Prestige:
 		Dest.DWord=GetItemFromContents(pItem)->Prestige;
         Dest.Type=pBoolType;
@@ -8877,7 +8881,7 @@ bool MQ2TaskType::GETMEMBER()
 	}
     case Title:
 	{
-		CListWnd *clist = (CListWnd *)pTaskkWnd->GetChildItem("TASK_TaskList");
+		CListWnd *clist = (CListWnd *)pTaskWnd->GetChildItem("TASK_TaskList");
 		if(clist) {
 			CXStr Str;
 			clist->GetItemText(&Str, 0, 1);
@@ -8894,7 +8898,7 @@ bool MQ2TaskType::GETMEMBER()
 	}
     case Timer:
 	{
-		CListWnd *clist = (CListWnd *)pTaskkWnd->GetChildItem("TASK_TaskList");
+		CListWnd *clist = (CListWnd *)pTaskWnd->GetChildItem("TASK_TaskList");
 		if(clist) {
 			CXStr Str;
 			clist->GetItemText(&Str, 0, 2);
@@ -8992,3 +8996,36 @@ bool MQ2XTargetType::GETMEMBER()
     return false;
 };
             
+bool MQ2MountType::GETMEMBER()
+{
+    PMQ2TYPEMEMBER pMember=MQ2MountType::FindMember(Member);
+    if(!pMember)
+        return false;
+    switch((MountTypeMembers)pMember->ID)
+    {
+		case xIndex:
+		{
+			Dest.DWord=VarPtr.DWord+1;
+			Dest.Type=pIntType;
+			return true;
+		}
+		case Name:
+		{
+			if(pInventoryWnd) {
+				if(CListWnd *clist = (CListWnd *)pInventoryWnd->GetChildItem("IW_Mounts_MountList")) {
+					CXStr Str;
+					clist->GetItemText(&Str, VarPtr.DWord, 2);
+					CHAR szOut[255] = {0};
+					GetCXStr(Str.Ptr,szOut,254);
+					if(szOut[0]!='\0') {
+						strcpy_s(DataTypeTemp,szOut);
+						Dest.Ptr=&DataTypeTemp[0];
+						Dest.Type=pStringType;
+						return true;
+					}
+				}
+			}	
+		}
+	}
+    return false;
+}

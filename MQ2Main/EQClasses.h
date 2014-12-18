@@ -211,6 +211,7 @@ class CTabWnd;
 class CTAFrameDraw;
 class CTargetWnd;
 class CTaskWnd;
+class CTaskSomething;
 class CTextEntryWnd;
 class CTextureAnimation;
 class CTextureFont;
@@ -4520,7 +4521,14 @@ EQLIB_OBJECT CTaskWnd::CTaskWnd(class CXWnd *);
 // virtual
 EQLIB_OBJECT CTaskWnd::~CTaskWnd(void);
 };
-
+class CTaskSomething
+{
+public:
+EQLIB_OBJECT CTaskSomething::CTaskSomething(class CXWnd *);
+// virtual
+EQLIB_OBJECT CTaskSomething::~CTaskSomething(void);
+EQLIB_OBJECT DWORD CTaskSomething::GetTaskByIndex(DWORD arg1,DWORD arg2,DWORD arg3);
+};
 class CTextEntryWnd : public CEditBaseWnd
 {
 public:

@@ -35,6 +35,8 @@ namespace MQ2Prototypes
     typedef VOID    (__cdecl fEQSaveToUIIniFile)(PCHAR Section,PCHAR Key,PCHAR Value);
     typedef DWORD   (__cdecl *fMQParm)(PCHAR, PCHAR, PSPAWNINFO);
     typedef bool    (__cdecl *fGetLabelFromEQ)(int,class CXStr *,bool *,unsigned long *);
+    typedef BOOL    (__cdecl *fEQToggleMount)(PCONTENTS*, DWORD);
+
 #define DoWarp                 0
 
     /* PLUGINS */

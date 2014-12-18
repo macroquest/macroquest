@@ -281,6 +281,7 @@
 #define __get_melee_range_x                                        0x4E7C90
 #define __GetGaugeValueFromEQ_x                                    0x77C5D0
 #define __GetLabelFromEQ_x                                         0x77D810
+#define __ToggleMount_x                                            0x6A6250
 #define __GetXTargetType_x                                         0x8F9EF0
 #define __LoadFrontEnd_x                                           0x60B440
 #define __NewUIINI_x                                               0x77BF20

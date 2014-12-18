@@ -452,7 +452,20 @@ EQLIB_API PCHAR GetSpellNameByID(LONG dwSpellID);
 EQLIB_API PSPELL GetSpellByName(PCHAR szName);
 EQLIB_API DWORD GetSpellRankByName(PCHAR SpellName);
 EQLIB_API VOID RemoveBuff(PSPAWNINFO pChar, PCHAR szLine);
+EQLIB_API BOOL StripQuotes(char *str);
 EQLIB_API VOID MakeMeVisible(PSPAWNINFO pChar, PCHAR szLine);
+EQLIB_API DWORD GetMountKeyRingIndex(char *szItemName, bool bExact = 1, bool usecmd = 0);
+EQLIB_API int GetMountCount();
+EQLIB_API void RefreshMountKeyRing(PVOID kr);
+EQLIB_API void InitMountKeyRing();
+typedef struct _krdata
+{
+	CHAR ItemName[256];
+	CXWnd *phWnd;
+	MQ2TYPEVAR mq2typevar;
+	bool bExact;
+	bool bUseCmd;
+}krdata , *pkrdata;
 
 namespace EQData {
 EQLIB_API struct _ITEMINFO *GetItemFromContents(struct _CONTENTS *c);

@@ -261,6 +261,7 @@
 #define pinstCPvPStatsWnd_x                                        0x10F5620
 #define pinstCSystemInfoDialogBox_x                                0x10F5D28
 #define pinstCTaskWnd_x                                            0x10F70F0
+#define pinstCTaskSomething_x                                      0xD6B638
 #define pinstCTaskTemplateSelectWnd_x                              0x10F7078
 #define pinstCTipWndOFDAY_x                                        0x10F7348
 #define pinstCTipWndCONTEXT_x                                      0x10F734C
@@ -281,6 +282,7 @@
 #define __get_melee_range_x                                        0x4E79A0
 #define __GetGaugeValueFromEQ_x                                    0x77B9A0
 #define __GetLabelFromEQ_x                                         0x77CBE0
+#define __ToggleMount_x                                            0x6A56E0
 #define __GetXTargetType_x                                         0x8F9720
 #define __LoadFrontEnd_x                                           0x60A980
 #define __NewUIINI_x                                               0x77B2E0

@@ -992,23 +992,7 @@ TLO(dataFindItem)
     strlwr(strcpy(Name,pName));
     PCHARINFO pCharInfo=GetCharInfo();
 	PCHARINFO2 pChar2 = GetCharInfo2();
-	if(pChar2 && pChar2->pInventoryArray && pChar2->pInventoryArray->Inventory.Cursor) {
-		if (PCONTENTS pItem=pChar2->pInventoryArray->Inventory.Cursor) {
-			if (bExact)	{
-				if (!stricmp(Name,GetItemFromContents(pItem)->Name)) {
-					Ret.Ptr=pItem;
-					Ret.Type=pItemType;
-					return true;
-				}
-			} else {
-				if(strstr(strlwr(strcpy(Temp,GetItemFromContents(pItem)->Name)),Name)) {
-					Ret.Ptr=pItem;
-					Ret.Type=pItemType;
-					return true;
-				}
-			}
-		}
-	}
+	//check toplevel slots
 	if(pChar2 && pChar2->pInventoryArray && pChar2->pInventoryArray->InventoryArray) {
 		for (unsigned long nSlot=0 ; nSlot < NUM_INV_SLOTS ; nSlot++)
 		{
@@ -1016,7 +1000,7 @@ TLO(dataFindItem)
 			{
 				if (bExact)
 				{
-					if (!stricmp(Name,GetItemFromContents(pItem)->Name))
+					if (!_stricmp(Name,GetItemFromContents(pItem)->Name))
 					{
 						Ret.Ptr=pItem;
 						Ret.Type=pItemType;
@@ -1035,6 +1019,25 @@ TLO(dataFindItem)
 			}
 		}
 	}
+	//check cursor
+	if(pChar2 && pChar2->pInventoryArray && pChar2->pInventoryArray->Inventory.Cursor) {
+		if (PCONTENTS pItem=pChar2->pInventoryArray->Inventory.Cursor) {
+			if (bExact)	{
+				if (!_stricmp(Name,GetItemFromContents(pItem)->Name)) {
+					Ret.Ptr=pItem;
+					Ret.Type=pItemType;
+					return true;
+				}
+			} else {
+				if(strstr(strlwr(strcpy(Temp,GetItemFromContents(pItem)->Name)),Name)) {
+					Ret.Ptr=pItem;
+					Ret.Type=pItemType;
+					return true;
+				}
+			}
+		}
+	}
+	//check inside bags
 	if(pChar2 && pChar2->pInventoryArray) {
 		for (unsigned long nPack=0 ; nPack < 10 ; nPack++)
 		{
@@ -1048,7 +1051,7 @@ TLO(dataFindItem)
 						{
 							if (bExact)
 							{
-								if (!stricmp(Name,GetItemFromContents(pItem)->Name))
+								if (!_stricmp(Name,GetItemFromContents(pItem)->Name))
 								{
 									Ret.Ptr=pItem;
 									Ret.Type=pItemType;
@@ -1070,6 +1073,35 @@ TLO(dataFindItem)
 			}
 		}
 	}
+	//still not found? fine... check mount keyring
+	PCHARINFO pChar = GetCharInfo();
+	if(pChar && pChar->pMountArray && pChar->pMountArray->Mount) {
+		for (unsigned long nSlot=0 ; nSlot < MAX_MOUNTS ; nSlot++)
+		{
+			if (PCONTENTS pItem=pChar->pMountArray->Mount[nSlot])
+			{
+				if (bExact)
+				{
+					if (!_stricmp(Name,GetItemFromContents(pItem)->Name))
+					{
+						Ret.Ptr=pItem;
+						Ret.Type=pItemType;
+						return true;
+					}
+				}
+				else 
+				{
+					if(strstr(strlwr(strcpy(Temp,GetItemFromContents(pItem)->Name)),Name))
+					{
+						Ret.Ptr=pItem;
+						Ret.Type=pItemType;
+						return true;
+					}
+				}
+			}
+		}
+	}
+	
     return false;
 }
 
@@ -1640,6 +1672,47 @@ TLO(dataTask)
         Ret.Type=pTaskType;
         return true;
     }
+    return false;
+}
+
+TLO(dataMount)
+{
+	if (!ISINDEX())
+        return false;
+	if(ISNUMBER()) {
+		int n = GETNUMBER();
+		if(n<=0)
+			return false;
+		n--;
+		if(CXWnd *krwnd = FindMQ2Window("InventoryWindow")) {
+			if(CListWnd *clist = (CListWnd*)krwnd->GetChildItem("IW_Mounts_MountList")) {
+				int numitems = (int)((CSidlScreenWnd*)clist)->Items;
+				if(numitems>=n) {
+					CXStr Str;
+					clist->GetItemText(&Str, n, 2);
+					CHAR szOut[255] = {0};
+					GetCXStr(Str.Ptr,szOut,254);
+					if(szOut[0]!='\0') {
+						Ret.DWord=n;
+						Ret.Type=pMountType;
+						return true;
+					}
+				}
+			}
+		}
+	} else if(PCHAR pName=GETFIRST()) {
+		bool bExact=false;
+		if (*pName=='=')
+		{
+			bExact=true;
+			pName++;
+		}
+		if(Ret.DWord=GetMountKeyRingIndex(pName,bExact)) {
+			Ret.DWord--;
+			Ret.Type=pMountType;
+			return true;
+		}
+	}
     return false;
 }
 

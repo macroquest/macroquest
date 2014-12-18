@@ -100,7 +100,8 @@ bool InitOffsets()
     ProcessGameEvents = (fEQProcGameEvts)__ProcessGameEvents;
     ExecuteCmd = (fEQExecuteCmd)__ExecuteCmd;
     GetLabelFromEQ = (fGetLabelFromEQ)__GetLabelFromEQ;
-
+    cmdToggleMount = (fEQToggleMount)__ToggleMount;
+	
     ppStringTable=(StringTable**)pinstStringTable;
     ppCDBStr = (CDBStr**)pinstCDBStr;
     pEQMisc = (EQMisc*)instEQMisc;
@@ -202,6 +203,7 @@ bool InitOffsets()
     ppPetitionQWnd = (CPetitionQWnd**)pinstCPetitionQWnd;
     ppSoulmarkWnd = (CSoulmarkWnd**)pinstCSoulmarkWnd;
     ppTaskWnd = (CTaskWnd**)pinstCTaskWnd;
+    ppTaskSomething = (CTaskSomething*)pinstCTaskSomething;
     ppTimeLeftWnd = (CTimeLeftWnd**)pinstCTimeLeftWnd;
     ppTextOverlay = (CTextOverlay**)pinstCTextOverlay;
     ppPotionBeltWnd = (CPotionBeltWnd**)pinstCPotionBeltWnd;
@@ -1010,6 +1012,7 @@ fEQProcGameEvts ProcessGameEvents = 0;
 fEQExecuteCmd   ExecuteCmd = 0;
 fEQGetMelee     get_melee_range = GetMeleeRange;
 fGetLabelFromEQ GetLabelFromEQ = 0;
+fEQToggleMount  cmdToggleMount = 0;
 
 StringTable **ppStringTable=0;
 CDBStr **ppCDBStr = 0;
@@ -1116,6 +1119,7 @@ CJournalCatWnd **ppJournalCatWnd=0;
 CPetitionQWnd **ppPetitionQWnd=0;
 CSoulmarkWnd **ppSoulmarkWnd=0;
 CTaskWnd **ppTaskWnd=0;
+CTaskSomething *ppTaskSomething=0;
 CTimeLeftWnd **ppTimeLeftWnd=0;
 CTextOverlay **ppTextOverlay=0;
 CPotionBeltWnd **ppPotionBeltWnd=0;
@@ -1362,6 +1366,7 @@ INITIALIZE_EQGAME_OFFSET(pinstCProgressionSelectionWnd);
 INITIALIZE_EQGAME_OFFSET(pinstCPvPStatsWnd);
 INITIALIZE_EQGAME_OFFSET(pinstCSystemInfoDialogBox);
 INITIALIZE_EQGAME_OFFSET(pinstCTaskWnd);
+INITIALIZE_EQGAME_OFFSET(pinstCTaskSomething);
 INITIALIZE_EQGAME_OFFSET(pinstCTaskTemplateSelectWnd);
 INITIALIZE_EQGAME_OFFSET(pinstCTipWndOFDAY);
 INITIALIZE_EQGAME_OFFSET(pinstCTipWndCONTEXT);
@@ -1378,6 +1383,7 @@ INITIALIZE_EQGAME_OFFSET(__EQGetTime);
 INITIALIZE_EQGAME_OFFSET(__get_melee_range);
 INITIALIZE_EQGAME_OFFSET(__GetGaugeValueFromEQ);
 INITIALIZE_EQGAME_OFFSET(__GetLabelFromEQ);
+INITIALIZE_EQGAME_OFFSET(__ToggleMount);
 INITIALIZE_EQGAME_OFFSET(__GetXTargetType);
 INITIALIZE_EQGAME_OFFSET(__LoadFrontEnd);
 INITIALIZE_EQGAME_OFFSET(__NewUIINI);

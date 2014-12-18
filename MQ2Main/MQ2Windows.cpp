@@ -1061,15 +1061,18 @@ int ListWindows(int argc, char *argv[])
 							WriteChatf("[OPEN] %s",pInfo->Name);
 							Count++;
 						}
+						RecurseAndListWindows((PCSIDLWND)pInfo->pWnd);
 					}
 				} else {
 					if(bPartial) {
 						if(strstr(pInfo->Name,szArg2)) {
 							WriteChatf("[PARTIAL MATCH] %s",pInfo->Name);
+							RecurseAndListWindows((PCSIDLWND)pInfo->pWnd);
 							Count++;
 						}
 					} else {
 						WriteChatf("%s",pInfo->Name);
+						RecurseAndListWindows((PCSIDLWND)pInfo->pWnd);
 						Count++;
 					}
 				}
@@ -1084,9 +1087,15 @@ int ListWindows(int argc, char *argv[])
         unsigned long N = WindowMap[WindowName];
         if (!N)
         {
+			CXWnd *pWnd = FindMQ2Window(szLine);
+			if (pWnd) {
+                Count = RecurseAndListWindows((PCSIDLWND)pWnd);
+				WriteChatf("%d child windows",Count);
+				RETURN(0);
+			}
             WriteChatf("Window '%s' not available",szLine);
-            RETURN(0);
-        }
+			RETURN(0);
+ 		}
         N--;
         WriteChatf("Listing child windows of '%s'",szLine);
         WriteChatColor("-------------------------");

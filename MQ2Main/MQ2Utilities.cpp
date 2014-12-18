@@ -6654,7 +6654,7 @@ PCONTENTS FindItemByName(PCHAR pName, BOOL bExact)
 			{
 				if (bExact)
 				{
-					if (!stricmp(Name,GetItemFromContents(pItem)->Name))
+					if (!_stricmp(Name,GetItemFromContents(pItem)->Name))
 					{
 						return pItem;
 					}
@@ -6663,6 +6663,20 @@ PCONTENTS FindItemByName(PCHAR pName, BOOL bExact)
 					{
 						return pItem;
 					}
+				}
+			}
+		}
+	}
+	//check cursor
+	if(pChar2 && pChar2->pInventoryArray && pChar2->pInventoryArray->Inventory.Cursor) {
+		if (PCONTENTS pItem=pChar2->pInventoryArray->Inventory.Cursor) {
+			if (bExact)	{
+				if (!_stricmp(Name,GetItemFromContents(pItem)->Name)) {
+					return pItem;
+				}
+			} else {
+				if(strstr(strlwr(strcpy(Temp,GetItemFromContents(pItem)->Name)),Name)) {
+					return pItem;
 				}
 			}
 		}
@@ -6680,7 +6694,7 @@ PCONTENTS FindItemByName(PCHAR pName, BOOL bExact)
 						{
 							if (bExact)
 							{
-								if (!stricmp(Name,GetItemFromContents(pItem)->Name))
+								if (!_stricmp(Name,GetItemFromContents(pItem)->Name))
 								{
 									return pItem;
 								}
@@ -6691,6 +6705,30 @@ PCONTENTS FindItemByName(PCHAR pName, BOOL bExact)
 								}
 							}
 						}
+					}
+				}
+			}
+		}
+	}
+	//still not found? fine... check mount keyring
+	PCHARINFO pChar = GetCharInfo();
+	if(pChar && pChar->pMountArray && pChar->pMountArray->Mount) {
+		for (unsigned long nSlot=0 ; nSlot < MAX_MOUNTS ; nSlot++)
+		{
+			if (PCONTENTS pItem=pChar->pMountArray->Mount[nSlot])
+			{
+				if (bExact)
+				{
+					if (!_stricmp(Name,GetItemFromContents(pItem)->Name))
+					{
+						return pItem;;
+					}
+				}
+				else 
+				{
+					if(strstr(strlwr(strcpy(Temp,GetItemFromContents(pItem)->Name)),Name))
+					{
+						return pItem;
 					}
 				}
 			}
@@ -6708,8 +6746,17 @@ PCONTENTS FindItemByID(DWORD ItemID)
 			{
 				if (ItemID==GetItemFromContents(pItem)->ItemNumber)
 				{
-						return pItem;
+					return pItem;
 				}
+			}
+		}
+	}
+	//check cursor
+	if(pChar2 && pChar2->pInventoryArray && pChar2->pInventoryArray->Inventory.Cursor) {
+		if (PCONTENTS pItem=pChar2->pInventoryArray->Inventory.Cursor) {
+			if (ItemID==GetItemFromContents(pItem)->ItemNumber)
+			{
+				return pItem;
 			}
 		}
 	}
@@ -6729,6 +6776,18 @@ PCONTENTS FindItemByID(DWORD ItemID)
 							}
 						}
 					}
+				}
+			}
+		}
+	}
+	PCHARINFO pChar = GetCharInfo();
+	if(pChar && pChar->pMountArray && pChar->pMountArray->Mount) {
+		for (unsigned long nSlot=0 ; nSlot < MAX_MOUNTS ; nSlot++)
+		{
+			if (PCONTENTS pItem=pChar->pMountArray->Mount[nSlot])
+			{
+				if (ItemID==GetItemFromContents(pItem)->ItemNumber) {
+					return pItem;
 				}
 			}
 		}
@@ -7246,6 +7305,7 @@ int GetSelfBuffBySPA(int spa,bool bIncrease)
     }
 	return -1;
 }
+
 DWORD GetSpellRankByName(PCHAR SpellName)
 {
 	char szTemp[256];
@@ -7338,6 +7398,153 @@ VOID RemoveBuff(PSPAWNINFO pChar, PCHAR szLine)
 					if(!strnicmp(pBuffSpell->Name,szLine,strlen(szLine))) {
 						pPCData->RemoveMyAffect(nBuff+NUM_LONG_BUFFS);
 						return;
+					}
+				}
+			}
+		}
+	}
+}
+
+DWORD __stdcall RefreshMountKeyRingThread(PVOID pData)
+{
+	pkrdata kr = (pkrdata)pData;
+	if(kr) {
+		CXWnd *krwnd = kr->phWnd;
+		bool bExact = kr->bExact;
+		bool bUseCmd = kr->bUseCmd;
+		CHAR szItemName[256] = {0};
+		strcpy_s(szItemName,kr->ItemName);
+		LocalFree(kr);
+		if(krwnd) {
+			bool bToggled = 0;
+			if(!krwnd->dShow) {
+				bToggled = true;
+				DWORD ShowWindow = (DWORD)krwnd->pvfTable->ShowWindow;
+				__asm {
+					push ecx;
+					mov ecx, [krwnd];
+					call dword ptr [ShowWindow];
+					pop ecx;
+				}
+				((CSidlScreenWnd*)krwnd)->StoreIniVis();
+			}
+			if(CTabWnd *pTab = (CTabWnd*)((CSidlScreenWnd*)(krwnd))->GetChildItem("IW_Subwindows")) {
+				pTab->SetPage(6,true, true);//tab 6 is the mount key ring tab...
+				gMouseEventTime = GetFastTime();
+			}
+			if(CListWnd *clist = (CListWnd*)krwnd->GetChildItem("IW_Mounts_MountList")) {
+				ULONGLONG now = MQGetTickCount64();
+				while(!((CSidlScreenWnd*)clist)->Items) {
+					Sleep(10);
+					if(now+5000 < MQGetTickCount64()) {
+						WriteChatColor("Timed out waiting for mount keyring refresh",CONCOLOR_YELLOW);
+						break;
+					}				
+				}
+				if(bToggled) {
+					((CXWnd*)krwnd)->Show(0,1);
+					((CSidlScreenWnd*)krwnd)->StoreIniVis();
+				}
+				if(bUseCmd && ((CSidlScreenWnd*)clist)->Items) {
+					UseItemCmd(GetCharInfo()->pSpawn,szItemName);
+				}
+			}
+		}
+	}
+	return 0;
+}
+
+void RefreshMountKeyRing(PVOID kr)
+{
+	DWORD nThread = 0;
+	CreateThread(NULL,0,RefreshMountKeyRingThread,kr,NULL,&nThread);
+}
+int GetMountCount()
+{
+	int Count = 0;
+	PCHARINFO pChar = GetCharInfo();
+	if(pChar && pChar->pMountArray && pChar->pMountArray->Mount) {
+		for (unsigned long nSlot=0 ; nSlot < MAX_MOUNTS ; nSlot++)
+		{
+			if (PCONTENTS pItem=pChar->pMountArray->Mount[nSlot])
+			{
+				Count++;
+			}
+		}
+	}
+	return Count;
+}
+DWORD GetMountKeyRingIndex(char *szItemName, bool bExact, bool usecmd)
+{
+	DWORD index = 0;
+	if(CXWnd *krwnd = FindMQ2Window("InventoryWindow")) {
+		if(CListWnd *clist = (CListWnd*)krwnd->GetChildItem("IW_Mounts_MountList")) {
+			if(DWORD numitems = ((CSidlScreenWnd*)clist)->Items) {
+				for(DWORD i = 0;i<numitems;i++) {
+					CXStr Str;
+					clist->GetItemText(&Str, i, 2);
+					CHAR szOut[255] = {0};
+					GetCXStr(Str.Ptr,szOut,254);
+					if(szOut[0]!='\0') {
+						if(bExact) {
+							if(!_stricmp(szItemName,szOut)) {
+								index = i+1;
+								break;
+							}
+						} else {
+							_strlwr(szItemName);
+							_strlwr(szOut);
+							if(strstr(szOut,szItemName)) {
+								index = i+1;
+								break;
+							}
+						}
+					}
+				}
+			} else {
+				if(PCONTENTS pCont = FindItemByName(szItemName,bExact)) {
+					if(pCont->IsMountKeyRing==0x1b) {
+						//if the mountlist has 0 items in it, we arrive here...
+						//its not filled in until you open the mount keyring tab in the inventory window...
+						//since numitems was 0, we know the user hasnt opened up his inventory
+						//and been on the mount key ring tab...so we start a thread and force that... -eqmule
+						if(pkrdata kr = (pkrdata)LocalAlloc(LPTR,sizeof(krdata))) {
+							kr->bExact =bExact;
+							strcpy_s(kr->ItemName,szItemName);
+							kr->phWnd = krwnd;
+							kr->bUseCmd = usecmd;
+							RefreshMountKeyRing(kr);
+						}
+					}
+				}
+			}
+		}
+	}
+	return index;
+}
+
+BOOL StripQuotes(char *str)
+{
+	BOOL ret = 0;
+	if(strchr(str,'"'))
+		ret = 1;
+	char *s,*d;
+	for (s=d=str;*d=*s;d+=(*s++!='"'));
+    return ret;
+}
+
+void InitMountKeyRing()
+{
+	if(int mountcount = GetMountCount()) {
+		//ok it seems like the player has mounts in his keyring
+		//lets make sure we initialize it for the Mount TLO
+		if(CXWnd *krwnd = FindMQ2Window("InventoryWindow")) {
+			if(CListWnd *clist = (CListWnd*)krwnd->GetChildItem("IW_Mounts_MountList")) {
+				if(!((CSidlScreenWnd*)clist)->Items) {
+					//WriteChatColor("Mount key ring initialized",CONCOLOR_YELLOW);
+					if(pkrdata kr = (pkrdata)LocalAlloc(LPTR,sizeof(krdata))) {
+						kr->phWnd = krwnd;
+						RefreshMountKeyRing(kr);
 					}
 				}
 			}

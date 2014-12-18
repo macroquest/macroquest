@@ -1727,6 +1727,7 @@ public:
 		NoDestroy=140,
 		Quest=141,
 		Expendable=142,
+		ContAddress=143,
     };
     static enum ItemMethods
     {
@@ -1875,6 +1876,7 @@ public:
 		TypeMember(NoDestroy);
 		TypeMember(Quest);
 		TypeMember(Expendable);
+		TypeMember(ContAddress);
     }
 
     ~MQ2ItemType()
@@ -4246,8 +4248,8 @@ public:
     bool GETMEMBER();
     bool ToString(MQ2VARPTR VarPtr, PCHAR Destination)
     {
-		if(pTaskkWnd) {
-			if(CListWnd *clist = (CListWnd *)pTaskkWnd->GetChildItem("TASK_TaskList")) {
+		if(pTaskWnd) {
+			if(CListWnd *clist = (CListWnd *)pTaskWnd->GetChildItem("TASK_TaskList")) {
 				CXStr Str;
 				clist->GetItemText(&Str, 0, 1);
 				CHAR szOut[255] = {0};
@@ -4351,6 +4353,49 @@ public:
 				return true;
 			}
 		}
+        return false;
+    }
+};
+
+class MQ2MountType : public MQ2Type
+{
+public:
+	static enum MountTypeMembers
+    {
+		xIndex=1,
+		Name=2,
+    };
+    MQ2MountType():MQ2Type("mount")
+    {
+		AddMember(xIndex,"Index");
+		TypeMember(Name);
+    }
+    ~MQ2MountType()
+    {
+    }
+    bool GETMEMBER();
+    bool ToString(MQ2VARPTR VarPtr, PCHAR Destination)
+    {
+		if(pInventoryWnd) {
+			if(CListWnd *clist = (CListWnd *)pInventoryWnd->GetChildItem("IW_Mounts_MountList")) {
+				CXStr Str;
+				clist->GetItemText(&Str, VarPtr.DWord, 2);
+				CHAR szOut[255] = {0};
+				GetCXStr(Str.Ptr,szOut,254);
+				if(szOut[0]!='\0') {
+					strcpy(Destination,szOut);
+					return true;
+				}
+			}
+		}
+        return false;
+    }
+    bool FromData(MQ2VARPTR &VarPtr, MQ2TYPEVAR &Source)
+    {
+        return false;
+    }
+    bool FromString(MQ2VARPTR &VarPtr, PCHAR Source)
+    {
         return false;
     }
 };

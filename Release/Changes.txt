@@ -1,3 +1,22 @@
+09 Dec 2014 by eqmule
+- Added Feature:
+  /useitem now works for mounts in the mount key ring.
+  /useitem now accepts both quoted and unquoted arguments.
+  /useitem now accepts partial arguments.
+  Example: /useitem 1 0 or /useitem "Abyssal Steed" or /useitem Abyssal Steed or /useitem Abyssal
+  NOTE: if you enclose the argument with quotes, it WILL expect that whats inside the quotes is
+  an exact name, so /useitem "Abyssal" wont work, but /useitem Abyssal will...
+  also, its not case sensitive, so /useitem abyssal will work as well.
+- Added Feature:
+  ${FindItem[blah blah]} now finds mounts that are in the mount keyring as well.
+- Added MQ2MountType TLO for now it only have 2 members, Index and Name
+  Usage: /echo ${Mount[1].Name}
+  Outputs: [MQ2] Whirligig Flyer Control Device
+  Usage: /echo ${Mount[2].Name}
+  Outputs: [MQ2] Abyssal Steed
+  Usage: /echo ${Mount[Abyssal Steed].Index}
+  Outputs: [MQ2] 2
+
 03 Dec 2014 by eqmule
 - Updated for Test patch
 - Fixed a problem with /setwintitle
