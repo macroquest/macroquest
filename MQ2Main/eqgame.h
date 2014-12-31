@@ -609,7 +609,6 @@
 #define CDBStr__GetString_x                                        0x4889B0
 
 // EQ_Character 
-#define EQ_Character__CastRay_x                                    0x8F6C70
 #define EQ_Character__CastSpell_x                                  0x43CAA0
 #define EQ_Character__Cur_HP_x                                     0x4527D0
 #define EQ_Character__GetAACastingTimeModifier_x                   0x435B70
@@ -664,6 +663,7 @@
 #define EQPlayer__SetNameSpriteTint_x                              0x59D690
 #define EQPlayer__IsBodyType_j_x                                   0x8F5F00
 #define EQPlayer__IsTargetable_x                                   0x8F6750
+#define EQPlayer__CanSee_x                                         0x8F6C70
 
 //EQPlayerManager
 #define EQPlayerManager__GetSpawnByID_x                            0x5AB690

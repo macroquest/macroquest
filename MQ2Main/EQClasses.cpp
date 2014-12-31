@@ -5048,6 +5048,9 @@ FUNCTION_AT_ADDRESS(bool  EQPlayer::AllowedToAttack(class EQPlayer *,int),EQPlay
 #ifdef EQPlayer__CanIHit_x
 FUNCTION_AT_ADDRESS(bool  EQPlayer::CanIHit(class EQPlayer *,float),EQPlayer__CanIHit);
 #endif
+#ifdef EQPlayer__CanSee_x
+FUNCTION_AT_ADDRESS(bool  EQPlayer::CanSee(class EQPlayer *),EQPlayer__CanSee);
+#endif
 #ifdef EQPlayer__ModifyAttackSpeed_x
 FUNCTION_AT_ADDRESS(unsigned int  EQPlayer::ModifyAttackSpeed(unsigned int,int),EQPlayer__ModifyAttackSpeed);
 #endif

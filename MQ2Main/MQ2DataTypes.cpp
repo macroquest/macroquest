@@ -1666,9 +1666,12 @@ bool MQ2SpawnType::GETMEMBER()
         Dest.Type=pBoolType;
         return true;
     case xLineOfSight:
-        Dest.DWord=(LineOfSight(GetCharInfo()->pSpawn,pSpawn));
+    {
+		Dest.DWord=pLocalPlayer->CanSee((EQPlayer*)pSpawn);
+		//Dest.DWord=(LineOfSight(GetCharInfo()->pSpawn,pSpawn));
         Dest.Type=pBoolType;
         return true;
+	}
     case HeadingToLoc: 
 #ifndef ISXEQ
         if (!ISINDEX()) 
@@ -6322,9 +6325,11 @@ bool MQ2SwitchType::GETMEMBER()
         return true;
 	}
     case xLineOfSight:
+	{
         Dest.DWord=(CastRay(GetCharInfo()->pSpawn,pSwitch->Y,pSwitch->X,pSwitch->Z));
         Dest.Type=pBoolType;
         return true;
+	}
     }
     return false;
 #undef pSwitch
@@ -8720,9 +8725,15 @@ bool MQ2TargetType::GETMEMBER()
             return true;
         }
 		break;
-	case Malod:
+	case Malod:	
+		if ((Dest.Int=GetTargetBuffBySubCat("Resist Debuffs",(1<<Shaman)+(1<<Mage)))!=-1)
+        {
+            Dest.Type=pTargetBuffType;
+            return true;
+        }
+		break;
 	case Tashed:
-		if ((Dest.Int=GetTargetBuffBySubCat("Resist Debuffs"),Enchanter)!=-1)
+		if ((Dest.Int=GetTargetBuffBySubCat("Resist Debuffs",1<<Enchanter))!=-1)
         {
             Dest.Type=pTargetBuffType;
             return true;
@@ -8943,6 +8954,24 @@ bool MQ2TaskType::GETMEMBER()
 		}
 		Dest.Type = pIntType;
 		return true;
+	case List:
+	{
+		int theindex = atoi(GETFIRST());
+		CListWnd *clist = (CListWnd *)pTaskWnd->GetChildItem("TASK_TaskList");
+		if(clist) {
+			CXStr Str;
+			clist->GetItemText(&Str, theindex, 1);
+			CHAR szOut[255] = {0};
+			GetCXStr(Str.Ptr,szOut,254);
+			if(szOut[0]!='\0') {
+				strcpy_s(DataTypeTemp, szOut);
+	            Dest.Ptr=&DataTypeTemp[0];
+				Dest.Type=pStringType;
+				return true;
+			}
+		}
+		return false;
+	}
     }
     return false;
 }

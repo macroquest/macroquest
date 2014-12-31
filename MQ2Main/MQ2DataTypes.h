@@ -4232,6 +4232,7 @@ public:
         xMember=4,
         Members=5,
         Leader=6,
+        List=7,
     };
     MQ2TaskType():MQ2Type("task")
     {
@@ -4241,6 +4242,7 @@ public:
         AddMember(xMember,"Member");
         TypeMember(Members);
         TypeMember(Leader);
+        TypeMember(List);
     }
     ~MQ2TaskType()
     {

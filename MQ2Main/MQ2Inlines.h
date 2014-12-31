@@ -429,7 +429,7 @@ static inline BOOL IsNumberToComma(PCHAR String)
 
 static inline BOOL LineOfSight(PSPAWNINFO Origin, PSPAWNINFO CanISeeThis)
 {
-    return CastRay(Origin,CanISeeThis->Y,CanISeeThis->X,CanISeeThis->Z);
+	return ((EQPlayer*)Origin)->CanSee((EQPlayer*)CanISeeThis);
 }
 
 static inline BOOL IsMobFleeing(PSPAWNINFO pChar, PSPAWNINFO pSpawn)

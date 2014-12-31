@@ -5333,7 +5333,8 @@ BOOL SpawnMatchesSearch(PSEARCHSPAWN pSearchSpawn, PSPAWNINFO pChar, PSPAWNINFO 
         return FALSE;
     if (pSearchSpawn->szRace[0] && stricmp(pSearchSpawn->szRace,pEverQuest->GetRaceDesc(pSpawn->Race)))
         return FALSE;
-    if (pSearchSpawn->bLoS && (!LineOfSight(pChar,pSpawn)))
+    //if (pSearchSpawn->bLoS && (!LineOfSight(pChar,pSpawn)))
+	if (pSearchSpawn->bLoS && (!pLocalPlayer->CanSee((EQPlayer *)pSpawn)))
         return FALSE;
     if (pSearchSpawn->bTargetable && (!IsTargetable(pSpawn)))
         return FALSE;
@@ -7182,7 +7183,7 @@ BOOL PickupOrDropItem(DWORD type, PCONTENTS pItem)
 	}
 	return FALSE;
 }
-int GetTargetBuffBySubCat(PCHAR subcat,int theclass)
+int GetTargetBuffBySubCat(PCHAR subcat,DWORD classmask)
 {
 	if(!(((PCTARGETWND)pTargetWnd)->Type > 0))
 		return false;
@@ -7192,17 +7193,24 @@ int GetTargetBuffBySubCat(PCHAR subcat,int theclass)
 		buffID = ((PCTARGETWND)pTargetWnd)->BuffSpellID[i];
 		if(buffID > 0) {
 			if(PSPELL pSpell = GetSpellByID(buffID)) {
-				if(theclass!=Unknown) {
-					if(pSpell->ClassLevel[theclass]==255) {
-						continue;
-					}
-				}
-
 				if(DWORD cat = pSpell->Subcategory) {
 					if (char *ptr = pCDBStr->GetString(cat, 5, NULL)) {
 						if(!_stricmp(ptr,subcat))  
 						{
-							return i;//Dest.DWord = ((((PCTARGETWND)pTargetWnd)->BuffTimer[i] / 1000) + 6)/6;
+							if(classmask!=Unknown) {
+								for (int N = 0 ; N < 16 ; N++)
+								{
+									if (classmask & (1<<N)) {
+										if(pSpell->ClassLevel[N]==255) {
+											continue;
+										} else {
+											return i;
+										}
+									}
+								}	
+							} else {
+								return i;//Dest.DWord = ((((PCTARGETWND)pTargetWnd)->BuffTimer[i] / 1000) + 6)/6;
+							}
 						}
 					}
 				}

@@ -5685,6 +5685,7 @@ EQLIB_OBJECT bool EQPlayer::AllowedToAttack(class EQPlayer *,int);
 EQLIB_OBJECT bool EQPlayer::CanChangeForm(int,unsigned char);
 EQLIB_OBJECT bool EQPlayer::CanIFitHere(float,float,float);
 EQLIB_OBJECT bool EQPlayer::CanIHit(class EQPlayer *,float);
+EQLIB_OBJECT bool EQPlayer::CanSee(class EQPlayer *);
 EQLIB_OBJECT bool EQPlayer::GetBoneCoords(struct T3D_DAG *,struct _EQLOC *);
 EQLIB_OBJECT bool EQPlayer::IsAMount(void);
 EQLIB_OBJECT bool EQPlayer::IsFlyer(void);

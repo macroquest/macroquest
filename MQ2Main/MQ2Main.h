@@ -633,7 +633,7 @@ EQLIB_API BOOL		  IsItemInsideContainer(PCONTENTS pItem);
 EQLIB_API BOOL		  PickupOrDropItem(DWORD type, PCONTENTS pItem);
 EQLIB_API BOOL		  OpenContainer(PCONTENTS pItem,bool hidden,bool flag = 0);
 EQLIB_API BOOL		  CloseContainer(PCONTENTS pItem);
-EQLIB_API int		  GetTargetBuffBySubCat(PCHAR subcat,int theclass = 0);
+EQLIB_API int		  GetTargetBuffBySubCat(PCHAR subcat,DWORD classmask = 0);
 EQLIB_API int		  GetTargetBuffBySPA(int spa,bool bIncrease);
 EQLIB_API int		  GetSelfBuffBySPA(int spa,bool bIncrease);
 ///////////////////////////////////////////////////////////////////////////////////////////////////

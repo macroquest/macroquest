@@ -1170,7 +1170,6 @@ EQLIB_VAR DWORD CXWndManager__RemoveWnd;
 
 EQLIB_VAR DWORD CDBStr__GetString;
 
-EQLIB_VAR DWORD EQ_Character__CastRay;
 EQLIB_VAR DWORD EQ_Character__CastSpell;
 EQLIB_VAR DWORD EQ_Character__Cur_HP;
 EQLIB_VAR DWORD EQ_Character__GetAACastingTimeModifier;
@@ -1219,6 +1218,7 @@ EQLIB_VAR DWORD EQPlayer__SetNameSpriteState;
 EQLIB_VAR DWORD EQPlayer__SetNameSpriteTint;
 EQLIB_VAR DWORD EQPlayer__IsBodyType_j;
 EQLIB_VAR DWORD EQPlayer__IsTargetable;
+EQLIB_VAR DWORD EQPlayer__CanSee;
 
 EQLIB_VAR DWORD EQPlayerManager__GetSpawnByID;
 EQLIB_VAR DWORD EQPlayerManager__GetSpawnByName;

@@ -1623,7 +1623,11 @@ TLO(dataLineOfSight)
         Temp.Y=P2[0];
         Temp.X=P2[1];
         Temp.Z=P2[2];
-        Ret.DWord=CastRay(&Temp,P1[0],P1[1],P1[2]);
+        SPAWNINFO Temp2=*GetCharInfo()->pSpawn;
+        Temp2.Y=P1[0];
+        Temp2.X=P1[1];
+        Temp2.Z=P1[2];
+		Ret.DWord=LineOfSight(&Temp,&Temp2);
         Ret.Type=pBoolType;
         return true;
     }

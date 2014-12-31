@@ -692,7 +692,7 @@ typedef struct _CONTENTS {
 /*0x001c*/ DWORD        MerchantQuantity;
 /*0x0020*/ BYTE         Unknown0x0020[0x8];
 /*0x0028*/ DWORD        NumOfSlots1;//ItemSlot is this address + 0x16 in 20130708
-/*0x002c*/ BYTE         Unknown0x002c[0x4];
+/*0x002c*/ DWORD        IsMountKeyRing;
 /*0x0030*/ struct _CONTENTSARRAY*       pContentsArray;
 /*0x0034*/ DWORD        NumOfSlots2;
 /*0x0038*/ BYTE         Unknown0x0038[0x6];

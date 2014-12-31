@@ -1,3 +1,19 @@
+24 Dec 2014 Christmas Edition by Santa
+- I finally managed to bring perfect LineOfSight to MQ2
+  This means no more false positives... Ever...
+  Now, poeple ask me, why did it take you 10 years to fix this when it was
+  such a simple fix? Well, I actually had to write 1000 lines of code to know which 999 to throw away...
+  Anyway Enjoy it, Please see:
+  http://www.macroquest2.com/phpBB3/viewtopic.php?f=35&t=19601
+
+  -Usage ${Target.LineOfSight} or ${LineOfSight[${Me.Y},${Me.X},${Me.Z}:${Target.Y},${Target.X},${Target.Z}]}
+   Example: /echo there are ${SpawnCount[npc los radius 200 range 100 110]} mobs within a radius of 200 that i can see between level 100 and 110
+   Ouptut there are 3 mobs within a radius of 200 that i can see between level 100 and 110
+
+- Splitted ${Target.Malod} and ${Target.Tashed}
+  Maloed only returns a spelltype if the mob actually has a resist debuff casted by a mage or a shaman
+  and Tashed only returns a spelltype if the mob actually has a resist debuff casted by a enchanter.
+
 11 Dec 2014 by eqmule
 - Updated for patch
 - /useitem now works for mounts in the mount key ring.
