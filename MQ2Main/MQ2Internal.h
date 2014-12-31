@@ -217,18 +217,6 @@ namespace MQ2Internal {
         struct _MACROBLOCK *pPrev;
     } MACROBLOCK, *PMACROBLOCK;
 
-
-    typedef struct _ALERT {
-        SEARCHSPAWN SearchSpawn;
-        struct _ALERT *pNext;
-    } ALERT, *PALERT;
-
-    typedef struct _ALERTLIST {
-        DWORD Id;
-        PALERT pAlert;
-        struct _ALERTLIST *pNext;
-    } ALERTLIST, *PALERTLIST;
-
     typedef struct _MQTIMER {
         CHAR szName[MAX_VARNAME];
         ULONG Original;

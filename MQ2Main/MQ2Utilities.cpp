@@ -5191,6 +5191,114 @@ PSPAWNINFO SearchThroughSpawns(PSEARCHSPAWN pSearchSpawn, PSPAWNINFO pChar)
     return NthNearestSpawn(pSearchSpawn,1,pChar,TRUE);
 }
 
+BOOL SearchSpawnMatchesSearchSpawn(PSEARCHSPAWN pSearchSpawn1, PSEARCHSPAWN pSearchSpawn2)
+{
+	if(pSearchSpawn1->AlertList!=pSearchSpawn2->AlertList)
+		return false;
+	if(pSearchSpawn1->SpawnType!=pSearchSpawn2->SpawnType)
+		return false;
+	if(pSearchSpawn1->FRadius!=pSearchSpawn2->FRadius)
+		return false;
+	if(pSearchSpawn1->FromSpawnID!=pSearchSpawn2->FromSpawnID)
+		return false;
+	if(pSearchSpawn1->GuildID!=pSearchSpawn2->GuildID)
+		return false;
+	if(pSearchSpawn1->MaxLevel!=pSearchSpawn2->MaxLevel)
+		return false;
+	if(pSearchSpawn1->MinLevel!=pSearchSpawn2->MinLevel)
+		return false;
+	if(pSearchSpawn1->NearAlertList!=pSearchSpawn2->NearAlertList)
+		return false;
+	if(pSearchSpawn1->NoAlertList!=pSearchSpawn2->NoAlertList)
+		return false;
+	if(pSearchSpawn1->NotID!=pSearchSpawn2->NotID)
+		return false;
+	if(pSearchSpawn1->NotNearAlertList!=pSearchSpawn2->NotNearAlertList)
+		return false;
+	if(pSearchSpawn1->Radius!=pSearchSpawn2->Radius)
+		return false;
+	if(pSearchSpawn1->SortBy!=pSearchSpawn2->SortBy)
+		return false;
+	if(pSearchSpawn1->SpawnID!=pSearchSpawn2->SpawnID)
+		return false;
+	if(_stricmp(pSearchSpawn1->szBodyType,pSearchSpawn2->szBodyType))
+		return false;
+	if(_stricmp(pSearchSpawn1->szClass,pSearchSpawn2->szClass))
+		return false;
+	if(_stricmp(pSearchSpawn1->szLight,pSearchSpawn2->szLight))
+		return false;
+	if(_stricmp(pSearchSpawn1->szName,pSearchSpawn2->szName))
+		return false;
+	if(_stricmp(pSearchSpawn1->szRace,pSearchSpawn2->szRace))
+		return false;
+	if(pSearchSpawn1->xLoc!=pSearchSpawn2->xLoc)
+		return false;
+	if(pSearchSpawn1->yLoc!=pSearchSpawn2->yLoc)
+		return false;
+	if(pSearchSpawn1->ZRadius!=pSearchSpawn2->ZRadius)
+		return false;	
+	if(pSearchSpawn1->bAlert!=pSearchSpawn2->bAlert)
+		return false;
+	if(pSearchSpawn1->bAura!=pSearchSpawn2->bAura)
+		return false;
+	if(pSearchSpawn1->bBanner!=pSearchSpawn2->bBanner)
+		return false;
+	if(pSearchSpawn1->bCampfire!=pSearchSpawn2->bCampfire)
+		return false;
+	if(pSearchSpawn1->bDps!=pSearchSpawn2->bDps)
+		return false;
+	if(pSearchSpawn1->bExactName!=pSearchSpawn2->bExactName)
+		return false;
+	if(pSearchSpawn1->bGM!=pSearchSpawn2->bGM)
+		return false;
+	if(pSearchSpawn1->bGroup!=pSearchSpawn2->bGroup)
+		return false;
+	if(pSearchSpawn1->bKnight!=pSearchSpawn2->bKnight)
+		return false;
+	if(pSearchSpawn1->bKnownLocation!=pSearchSpawn2->bKnownLocation)
+		return false;
+	if(pSearchSpawn1->bLFG!=pSearchSpawn2->bLFG)
+		return false;
+	if(pSearchSpawn1->bLight!=pSearchSpawn2->bLight)
+		return false;
+	if(pSearchSpawn1->bLoS!=pSearchSpawn2->bLoS)
+		return false;
+	if(pSearchSpawn1->bMerchant!=pSearchSpawn2->bMerchant)
+		return false;
+	if(pSearchSpawn1->bNamed!=pSearchSpawn2->bNamed)
+		return false;
+	if(pSearchSpawn1->bNearAlert!=pSearchSpawn2->bNearAlert)
+		return false;
+	if(pSearchSpawn1->bNoAlert!=pSearchSpawn2->bNoAlert)
+		return false;
+	if(pSearchSpawn1->bNoGroup!=pSearchSpawn2->bNoGroup)
+		return false;
+	if(pSearchSpawn1->bNoGuild!=pSearchSpawn2->bNoGuild)
+		return false;
+	if(pSearchSpawn1->bNoPet!=pSearchSpawn2->bNoPet)
+		return false;
+	if(pSearchSpawn1->bNotNearAlert!=pSearchSpawn2->bNotNearAlert)
+		return false;
+	if(pSearchSpawn1->bRaid!=pSearchSpawn2->bRaid)
+		return false;
+	if(pSearchSpawn1->bSlower!=pSearchSpawn2->bSlower)
+		return false;
+	if(pSearchSpawn1->bSpawnID!=pSearchSpawn2->bSpawnID)
+		return false;
+	if(pSearchSpawn1->bTank!=pSearchSpawn2->bTank)
+		return false;
+	if(pSearchSpawn1->bTargetable!=pSearchSpawn2->bTargetable)
+		return false;
+	if(pSearchSpawn1->bTargNext!=pSearchSpawn2->bTargNext)
+		return false;
+	if(pSearchSpawn1->bTargPrev!=pSearchSpawn2->bTargPrev)
+		return false;
+	if(pSearchSpawn1->bTrader!=pSearchSpawn2->bTrader)
+		return false;
+	if(pSearchSpawn1->bTributeMaster!=pSearchSpawn2->bTributeMaster)
+		return false;
+	return true;
+}
 BOOL SpawnMatchesSearch(PSEARCHSPAWN pSearchSpawn, PSPAWNINFO pChar, PSPAWNINFO pSpawn)
 {
     CHAR szName[MAX_STRING] = {0};
@@ -5312,15 +5420,13 @@ BOOL SpawnMatchesSearch(PSEARCHSPAWN pSearchSpawn, PSPAWNINFO pChar, PSPAWNINFO 
         if (pSearchSpawn->szLight[0] && stricmp(pLight,pSearchSpawn->szLight)) 
             return FALSE;
     }
-    if ((pSearchSpawn->bAlert) && (GetAlert(pSearchSpawn->AlertList))) 
-    {
-        if (!IsAlert(pChar,pSpawn,pSearchSpawn->AlertList)) 
-            return FALSE;
+    if ((pSearchSpawn->bAlert) && gAlertMap.size()>=pSearchSpawn->AlertList) {
+		if (!IsAlert(pChar,pSpawn,pSearchSpawn->AlertList)) 
+			return FALSE;
     }
-    if ((pSearchSpawn->bNoAlert) && (GetAlert(pSearchSpawn->NoAlertList))) 
-    {
-        if (IsAlert(pChar,pSpawn,pSearchSpawn->NoAlertList)) 
-            return FALSE;
+    if ((pSearchSpawn->bNoAlert) && gAlertMap.size()>=pSearchSpawn->NoAlertList) {
+		if (IsAlert(pChar,pSpawn,pSearchSpawn->NoAlertList)) 
+			return FALSE;
     }
     if ((pSearchSpawn->bNotNearAlert) && (GetClosestAlert(pSpawn, pSearchSpawn->NotNearAlertList))) 
         return FALSE;
@@ -5577,61 +5683,53 @@ VOID ParseSearchSpawn(int BeginInclusive, int EndExclusive,char *argv[], SEARCHS
 #endif
 
 #ifndef ISXEQ_LEGACY
-PALERT GetAlert(DWORD Id) {
-    PALERTLIST pAlertList = gpAlertList;
-    for (;pAlertList;pAlertList=pAlertList->pNext) {
-        if (pAlertList->Id==Id) return (pAlertList->pAlert);
-    }
-    return NULL;
+BOOL GetAlert(DWORD Id,std::list<SEARCHSPAWN>&ss) {
+	int sz = gAlertMap.size();
+	if(sz && Id<=gAlertMap.size()) {
+		ss = gAlertMap[Id];
+		return TRUE;
+	}
+    return FALSE;
 }
-
-VOID AddNewAlertList(DWORD Id, PALERT pAlert)
+BOOL RemoveAlertFromList(DWORD Id, PSEARCHSPAWN pSearchSpawn)
 {
-    PALERTLIST pAlertList = (PALERTLIST)malloc(sizeof(ALERTLIST));
-    if (!pAlertList) {
-        free(pAlert);
-        return;
-    }
-    pAlertList->Id = Id;
-    pAlertList->pAlert = pAlert;
-    pAlertList->pNext = gpAlertList;
-    gpAlertList = pAlertList;
+	std::list<SEARCHSPAWN>ss;
+	if(GetAlert(Id,ss)) {
+		for(std::list<SEARCHSPAWN>::iterator i = gAlertMap[Id].begin();i!=gAlertMap[Id].end();i++) {
+			BOOL bmatch = SearchSpawnMatchesSearchSpawn(&(*i),pSearchSpawn);
+			if(bmatch) {
+				gAlertMap[Id].erase(i);
+				return TRUE;
+			}
+		}
+	}
+	return FALSE;
 }
-
-VOID FreeAlertList(PALERTLIST pAlertList)
+BOOL AddNewAlertList(DWORD Id, PSEARCHSPAWN pSearchSpawn)
 {
-    PALERT pTemp = NULL;
-    while (pAlertList->pAlert) {
-        pTemp = pAlertList->pAlert->pNext;
-        free(pAlertList->pAlert);
-        pAlertList->pAlert = pTemp;
-    }
-    free(pAlertList);
+	std::list<SEARCHSPAWN>ss;
+	BOOL bCanAdd = 1;
+	if(GetAlert(Id,ss)) {
+		for(std::list<SEARCHSPAWN>::iterator i = gAlertMap[Id].begin();i!=gAlertMap[Id].end();i++) {
+			if(SearchSpawnMatchesSearchSpawn(&(*i),pSearchSpawn)) {
+				bCanAdd = 0;
+				break;
+			}
+		}
+	}
+	if(bCanAdd) {
+		gAlertMap[Id].push_back(*pSearchSpawn);
+		return TRUE;
+	}
+	return FALSE;
 }
-
 VOID FreeAlerts(DWORD List)
 {
-    PALERTLIST pAlertList = gpAlertList;
-    PALERTLIST pTempList = NULL;
-    CHAR szBuffer[MAX_STRING] = {0};
-    if (gpAlertList) {
-        if (gpAlertList->Id == List) {
-            pTempList = gpAlertList->pNext;
-            FreeAlertList(gpAlertList);
-            gpAlertList = pTempList;
-        } else {
-            while (pAlertList) {
-                pTempList = pAlertList->pNext;
-                if (pTempList && (pTempList->Id == List)) {
-                    pTempList = pTempList->pNext;
-                    FreeAlertList(pAlertList->pNext);
-                    pAlertList->pNext = pTempList;
-                }
-                pAlertList = pTempList;
-            }
-        }
-    }
-    sprintf(szBuffer,"Alert list %d cleared.",List);
+	if(gAlertMap.size()>=List) {
+		gAlertMap.erase(List);
+	}
+	CHAR szBuffer[64] = {0};
+    sprintf_s(szBuffer,"Alert list %d cleared.",List);
     WriteChatColor(szBuffer,USERCOLOR_DEFAULT);
 }
 
@@ -5642,15 +5740,16 @@ BOOL GetClosestAlert(PSPAWNINFO pChar, DWORD List)
     if (!pSpawnList) return FALSE;
     PSPAWNINFO pSpawn, pClosest = FALSE;
     FLOAT ClosestDistance = 50000.0f;
-    PALERT pCurrent = GetAlert(List);
-    if (!pCurrent) return FALSE;
-    for (; pCurrent; pCurrent = pCurrent->pNext) {
-        if (pSpawn = SearchThroughSpawns(&(pCurrent->SearchSpawn),pChar)) {
-            if (DistanceToSpawn(pChar,pSpawn)<ClosestDistance) {
-                pClosest = pSpawn;
-            }
-        }
-    }
+	std::list<SEARCHSPAWN>ss;
+    if(GetAlert(List,ss)) {
+		for (std::list<SEARCHSPAWN>::iterator i=ss.begin();i!=ss.end();i++) {
+			if (pSpawn = SearchThroughSpawns(&(*i),pChar)) {
+				if (DistanceToSpawn(pChar,pSpawn)<ClosestDistance) {
+					pClosest = pSpawn;
+				}
+			}
+		}
+	}
     return (pClosest!=NULL);
 }
 
@@ -5658,65 +5757,62 @@ BOOL IsAlert(PSPAWNINFO pChar, PSPAWNINFO pSpawn, DWORD List)
 {
     CHAR szName[MAX_STRING] = {0};
     SEARCHSPAWN SearchSpawn;
-    PALERT pCurrent = GetAlert(List);
-    if (!pCurrent) return NULL;
-    for (; pCurrent; pCurrent = pCurrent->pNext) {
-        CopyMemory(&SearchSpawn,&(pCurrent->SearchSpawn),sizeof(SEARCHSPAWN));
-        if ((SearchSpawn.SpawnID>0) && (SearchSpawn.SpawnID!=pSpawn->SpawnID)) continue;
-        SearchSpawn.SpawnID = pSpawn->SpawnID;
-        // if this spawn matches, it's true 
-        // this is an implied logical or
-        if (SpawnMatchesSearch(&SearchSpawn, pChar, pSpawn))
-            return TRUE;
-        //if (SearchThroughSpawns(&SearchSpawn,pChar)) {
-        //      return TRUE;
-        //{
-    }
+	std::list<SEARCHSPAWN>ss;
+    if(GetAlert(List,ss)) {
+		for (std::list<SEARCHSPAWN>::iterator i=ss.begin();i!=ss.end();i++) {
+			CopyMemory(&SearchSpawn,&(*i),sizeof(SEARCHSPAWN));
+			if ((SearchSpawn.SpawnID>0) && (SearchSpawn.SpawnID!=pSpawn->SpawnID))
+				continue;
+			SearchSpawn.SpawnID = pSpawn->SpawnID;
+			// if this spawn matches, it's true 
+			// this is an implied logical or
+			if (SpawnMatchesSearch(&SearchSpawn, pChar, pSpawn))
+				return TRUE;
+		}
+	}
     return FALSE;
 }
 
-BOOL CheckAlertForRecursion(PALERT pAlert,DWORD AlertNumber)
+BOOL CheckAlertForRecursion(PSEARCHSPAWN pSearchSpawn,DWORD List)
 {
-    PALERT pNextAlert = NULL;
-    if (!pAlert) return FALSE;
-    for (;pAlert;pAlert=pAlert->pNext) {
-        if (pAlert->SearchSpawn.bAlert) {
-            if (pAlert->SearchSpawn.AlertList == AlertNumber) {
-                return TRUE;
-            }
-            if (pNextAlert = GetAlert(pAlert->SearchSpawn.AlertList)) {
-                if (CheckAlertForRecursion(pNextAlert,AlertNumber)) return TRUE;
-                if (CheckAlertForRecursion(pNextAlert,pAlert->SearchSpawn.AlertList)) return TRUE;
-            }
-        }
-        if (pAlert->SearchSpawn.bNoAlert) {
-            if (pAlert->SearchSpawn.NoAlertList == AlertNumber) {
-                return TRUE;
-            }
-            if (pNextAlert = GetAlert(pAlert->SearchSpawn.NoAlertList)) {
-                if (CheckAlertForRecursion(pNextAlert,AlertNumber)) return TRUE;
-                if (CheckAlertForRecursion(pNextAlert,pAlert->SearchSpawn.NoAlertList)) return TRUE;
-            }
-        }
-        if (pAlert->SearchSpawn.bNearAlert) {
-            if (pAlert->SearchSpawn.NearAlertList == AlertNumber) {
-                return TRUE;
-            }
-            if (pNextAlert = GetAlert(pAlert->SearchSpawn.NearAlertList)) {
-                if (CheckAlertForRecursion(pNextAlert,AlertNumber)) return TRUE;
-                if (CheckAlertForRecursion(pNextAlert,pAlert->SearchSpawn.NearAlertList)) return TRUE;
-            }
-        }
-        if (pAlert->SearchSpawn.bNotNearAlert) {
-            if (pAlert->SearchSpawn.NotNearAlertList == AlertNumber) {
-                return TRUE;
-            }
-            if (pNextAlert = GetAlert(pAlert->SearchSpawn.NotNearAlertList)) {
-                if (CheckAlertForRecursion(pNextAlert,AlertNumber)) return TRUE;
-                if (CheckAlertForRecursion(pNextAlert,pAlert->SearchSpawn.NotNearAlertList)) return TRUE;
-            }
-        }
-    }
+    if (!pSearchSpawn) return FALSE;
+	std::list<SEARCHSPAWN>ss;
+	if(GetAlert(List,ss)) {
+		for (std::list<SEARCHSPAWN>::iterator i = ss.begin();i!=ss.end();i++) {
+			if (pSearchSpawn->bAlert) {
+				if (pSearchSpawn->AlertList == List) {
+					return TRUE;
+				}
+				if (CheckAlertForRecursion(pSearchSpawn,pSearchSpawn->AlertList)) {
+					return TRUE;
+				}
+			}
+		   if (pSearchSpawn->bNoAlert) {
+				if (pSearchSpawn->NoAlertList == List) {
+					return TRUE;
+				}
+				if (CheckAlertForRecursion(pSearchSpawn,pSearchSpawn->NoAlertList)) {
+					return TRUE;
+				}
+			}
+			if (pSearchSpawn->bNearAlert) {
+				if (pSearchSpawn->NearAlertList == List) {
+					return TRUE;
+				}
+				if (CheckAlertForRecursion(pSearchSpawn,pSearchSpawn->NearAlertList)) {
+					return TRUE;
+				}
+			}
+			if (pSearchSpawn->bNotNearAlert) {
+				if (pSearchSpawn->NotNearAlertList == List) {
+					return TRUE;
+				}
+				if (CheckAlertForRecursion(pSearchSpawn,pSearchSpawn->NotNearAlertList)) {
+					return TRUE;
+				}
+			}
+		}
+	}
     return FALSE;
 }
 

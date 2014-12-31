@@ -1,3 +1,15 @@
+31 Dec 2014 Happy New Year Edition by eqmule
+- New Feature see: http://www.macroquest2.com/phpBB3/viewtopic.php?f=17&t=19608
+  if you have an item on your cursor and click the name on the targetwindow
+  a trade will be initiated and the tradewindow will open.
+  Good for tradeing stuff quickly in crowded places like raids or guildhall
+- Added a new argument to the /Alerts command [remove]
+  it just removes an alert from a list
+  Example: /Alert remove 1 npc los
+  will remove a previously added alert from list 1 that has is alert on npc and los
+  Also alerts are now in a std::list, let me know if there are any problems with this.
+  I really hope this wont break any macros, cause code seems to execute a bit faster...
+
 29 Dec 2014 by eqmule
 - Botauthors, you can stop summoning pet weapons when its not needed:
 - Added .Primary and .Secondary to the Spawn TLO

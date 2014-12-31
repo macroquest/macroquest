@@ -356,7 +356,7 @@ LONG gDelay = 0;
 CHAR gDelayCondition[MAX_STRING]={0};
 BOOL bAllowCommandParse=TRUE;
 LONG gDelayZoning = 0;
-PALERTLIST gpAlertList = NULL;
+std::map<DWORD,std::list<SEARCHSPAWN>> gAlertMap;
 BOOL gMacroPause = FALSE;
 SPAWNINFO MercenarySpawn = {0};
 SPAWNINFO PetSpawn = {0};

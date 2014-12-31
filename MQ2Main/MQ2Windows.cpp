@@ -132,8 +132,7 @@ public:
 	int CTargetWnd__WndNotification_Tramp(class CXWnd *,unsigned __int32,void *);
 	int CTargetWnd__WndNotification_Detour(class CXWnd *pWnd, unsigned int uiMessage, void* pData)
 	{
-		//work in progress for trade on click -eqmule
-		/*if(uiMessage==XWM_FOCUS) {
+		if(uiMessage==XWM_FOCUS) {
 			if(PCHARINFO2 pChar2 = GetCharInfo2()) {
 				if(pTarget && pLocalPlayer && ((PSPAWNINFO)pTarget)->SpawnID!=((PSPAWNINFO)pLocalPlayer)->SpawnID && pEverQuest && pChar2->pInventoryArray && pChar2->pInventoryArray->Inventory.Cursor) {
 					//player has a item on his cursor and clicked targetwindow, he wants to trade with target...
@@ -144,7 +143,7 @@ public:
 					}
 				}
 			}
-		}*/
+		}
 		return CTargetWnd__WndNotification_Tramp(pWnd,uiMessage,pData);
 	}
 };

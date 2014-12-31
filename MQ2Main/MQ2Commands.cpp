@@ -1326,7 +1326,7 @@ VOID Location(PSPAWNINFO pChar, PCHAR szLine)
 // Function:    Alert
 // Description: Our '/alert' command
 //              Sets up $alert notifications
-// Usage:       /alert [clear #] [list #] [add # [pc|npc|corpse|any] [radius ###] [zradius ###] [race race] [class class] [range min max] [name]]
+// Usage:       /alert [clear #] [list #] [add/remove # [pc|npc|corpse|any] [radius ###] [zradius ###] [race race] [class class] [range min max] [name]]
 // ***************************************************************************
 VOID Alert(PSPAWNINFO pChar, PCHAR szLine)
 {
@@ -1353,32 +1353,61 @@ VOID Alert(PSPAWNINFO pChar, PCHAR szLine)
                 GetArg(szArg,szRest,1);
                 FreeAlerts(atoi(szArg));
                 DidSomething = TRUE;
-
             } else if (!strcmp(szArg,"list")) {
-                PALERT pAlert = NULL;
                 GetArg(szArg,szRest,1);
                 szRest = GetNextArg(szRest,1);
-                pAlert = GetAlert(atoi(szArg));
-                if (!pAlert) {
-                    WriteChatColor("No alerts active.",USERCOLOR_DEFAULT);
-
-                } else {
+				std::list<SEARCHSPAWN>ss;
+                if (GetAlert(atoi(szArg),ss)) {
                     CHAR Buffer[MAX_STRING] = {0};
                     DWORD Count=0;
                     WriteChatColor(" ",USERCOLOR_DEFAULT);
                     WriteChatColor("Current alerts:",USERCOLOR_DEFAULT);
-                    while (pAlert) {
-                        FormatSearchSpawn(Buffer,&(pAlert->SearchSpawn));
+					for(std::list<SEARCHSPAWN>::iterator i=ss.begin();i!=ss.end();i++) {
+                        FormatSearchSpawn(Buffer,&(*i));
                         WriteChatColor(Buffer,USERCOLOR_DEFAULT);
-                        Count++;
-                        pAlert = pAlert->pNext;
                     }
-                    sprintf(Buffer,"%d alerts listed.",Count);
+					sprintf(Buffer,"%d alerts listed.",ss.size());
                     WriteChatColor(Buffer,USERCOLOR_DEFAULT);
+                } else {
+                    WriteChatColor("No alerts active.",USERCOLOR_DEFAULT);
                 }
                 DidSomething = TRUE;
-
-            } else if (!strcmp(szArg,"add")) {
+            } else if (!strcmp(szArg,"remove")) {
+				CHAR Buffer[MAX_STRING] = {0};
+                CHAR szArg1[MAX_STRING] = {0};
+                BOOL ParsingAdd = TRUE;
+                DWORD List  = 0;
+                GetArg(szArg,szRest,1);
+                szRest = GetNextArg(szRest,1);
+                List = atoi(szArg);
+                PSEARCHSPAWN pSearchSpawn = (PSEARCHSPAWN)malloc(sizeof(SEARCHSPAWN));
+                if (!pSearchSpawn) {
+                    MacroError("Couldn't remove alert.");
+                    DebugSpew("Alert - Unable to allocate memory for temp alert.");
+                    return;
+                }
+                ZeroMemory(pSearchSpawn,sizeof(SEARCHSPAWN));
+                ClearSearchSpawn(pSearchSpawn);
+                while (ParsingAdd) {
+                    GetArg(szArg1,szRest,1);
+                    szRest = GetNextArg(szRest,1);
+                    if (szArg1[0]==0) {
+                        ParsingAdd = FALSE;
+                    } else {
+                        szRest = ParseSearchSpawnArgs(szArg1,szRest,pSearchSpawn);
+                    }
+                }
+                CHAR szTemp[MAX_STRING] = {0};
+                if (RemoveAlertFromList(List,pSearchSpawn)) {
+					sprintf(Buffer,"Removed alert for: %s",FormatSearchSpawn(szTemp,pSearchSpawn));
+				} else {
+					MacroError("Couldn't find alert.");
+					sprintf(Buffer,"Couldn't find alert.");
+				}
+				free(pSearchSpawn);
+                WriteChatColor(Buffer,USERCOLOR_DEFAULT);
+                DidSomething = TRUE;
+			} else if (!strcmp(szArg,"add")) {
                 CHAR Buffer[MAX_STRING] = {0};
                 CHAR szArg1[MAX_STRING] = {0};
                 BOOL ParsingAdd = TRUE;
@@ -1386,43 +1415,35 @@ VOID Alert(PSPAWNINFO pChar, PCHAR szLine)
                 GetArg(szArg,szRest,1);
                 szRest = GetNextArg(szRest,1);
                 List = atoi(szArg);
-                PALERT pAlert = (PALERT)malloc(sizeof(ALERT));
-                if (!pAlert) {
+                PSEARCHSPAWN pSearchSpawn = (PSEARCHSPAWN)malloc(sizeof(SEARCHSPAWN));
+                if (!pSearchSpawn) {
                     MacroError("Couldn't create alert.");
                     DebugSpew("Alert - Unable to allocate memory for new alert.");
                     return;
                 }
-                ZeroMemory(pAlert,sizeof(ALERT));
-                ClearSearchSpawn(&(pAlert->SearchSpawn));
-
-
+                ZeroMemory(pSearchSpawn,sizeof(SEARCHSPAWN));
+                ClearSearchSpawn(pSearchSpawn);
                 while (ParsingAdd) {
                     GetArg(szArg1,szRest,1);
                     szRest = GetNextArg(szRest,1);
                     if (szArg1[0]==0) {
                         ParsingAdd = FALSE;
                     } else {
-                        szRest = ParseSearchSpawnArgs(szArg1,szRest,&(pAlert->SearchSpawn));
+                        szRest = ParseSearchSpawnArgs(szArg1,szRest,pSearchSpawn);
                     }
                 }
 
                 // prev/next aren't logical in alerts
-                pAlert->SearchSpawn.bTargNext = FALSE;
-                pAlert->SearchSpawn.bTargPrev = FALSE;
+                pSearchSpawn->bTargNext = FALSE;
+                pSearchSpawn->bTargPrev = FALSE;
 
                 CHAR szTemp[MAX_STRING] = {0};
-                if (CheckAlertForRecursion(pAlert, List)) {
-                    sprintf(Buffer,"Alert would have cause recursion: %s",FormatSearchSpawn(szTemp,&(pAlert->SearchSpawn)));
-                    free(pAlert);
+                if (CheckAlertForRecursion(pSearchSpawn, List)) {
+                    sprintf(Buffer,"Alert would have caused recursion: %s",FormatSearchSpawn(szTemp,pSearchSpawn));
+                    free(pSearchSpawn);
                 } else {
-                    if (!GetAlert(List)) {
-                        AddNewAlertList(List,pAlert);
-                    } else {
-                        PALERT pTemp = GetAlert(List);
-                        while (pTemp->pNext) pTemp = pTemp->pNext;
-                        pTemp->pNext = pAlert;
-                    }
-                    sprintf(Buffer,"Added alert for: %s",FormatSearchSpawn(szTemp,&(pAlert->SearchSpawn)));
+                    AddNewAlertList(List,pSearchSpawn);
+                    sprintf(Buffer,"Added alert for: %s",FormatSearchSpawn(szTemp,pSearchSpawn));
                 }
                 DebugSpew("Alert - %s",Buffer);
                 WriteChatColor(Buffer,USERCOLOR_DEFAULT);
@@ -1431,7 +1452,7 @@ VOID Alert(PSPAWNINFO pChar, PCHAR szLine)
         }
     }
     if (!DidSomething) {
-        SyntaxError("Usage: /alert [clear #] [list #] [add # [pc|npc|corpse|any] [radius radius] [zradius radius] [range min max] spawn]");
+        SyntaxError("Usage: /alert [clear #] [list #] [add/remove # [pc|npc|corpse|any] [radius radius] [zradius radius] [range min max] spawn]");
     }
 }
 

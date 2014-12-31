@@ -73,10 +73,6 @@ VOID HideDoCommand(PSPAWNINFO pChar, PCHAR szLine, BOOL delayed)
         }
         return;
     }
-	if(!bgCommandCS) {
-		MessageBox(NULL,"fuck","",MB_OK);
-
-	}
     CAutoLock DoCommandLock(&gCommandCS);
     CHAR szCmd[MAX_STRING] = {0};
     CHAR szParam[MAX_STRING] = {0};

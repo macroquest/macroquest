@@ -44,6 +44,7 @@ GNU General Public License for more details.
 #include <winsock.h>
 #include <math.h>
 #include <map>
+#include <list>
 #include <string>
 #include <algorithm>
 using namespace std;
@@ -571,12 +572,13 @@ EQLIB_API BOOL IsPCNear(PSPAWNINFO pSpawn, FLOAT Radius);
 EQLIB_API BOOL IsInGroup(PSPAWNINFO pSpawn,BOOL bCorpse = 0);
 EQLIB_API BOOL IsInRaid(PSPAWNINFO pSpawn,BOOL bCorpse = 0);
 EQLIB_API BOOL IsAlert(PSPAWNINFO pChar, PSPAWNINFO pSpawn, DWORD List);
-EQLIB_API PALERT GetAlert(DWORD Id);
-EQLIB_API VOID AddNewAlertList(DWORD Id, PALERT pAlert);
+EQLIB_API BOOL GetAlert(DWORD Id,std::list<SEARCHSPAWN>&ss);
+EQLIB_API BOOL RemoveAlertFromList(DWORD Id, PSEARCHSPAWN pSearchSpawn);
+EQLIB_API BOOL AddNewAlertList(DWORD Id, PSEARCHSPAWN pSearchSpawn);
 EQLIB_API VOID FreeAlerts(DWORD List);
 EQLIB_API BOOL GetClosestAlert(PSPAWNINFO pSpawn, DWORD List);
 EQLIB_API BOOL IsAlert(PSPAWNINFO pChar, PSPAWNINFO pSpawn, DWORD List);
-EQLIB_API BOOL CheckAlertForRecursion(PALERT pAlert,DWORD AlertNumber);
+EQLIB_API BOOL CheckAlertForRecursion(PSEARCHSPAWN pSearchSpawn,DWORD List);
 EQLIB_API VOID WriteFilterNames(VOID);
 EQLIB_API VOID SetDisplaySWhoFilter(PBOOL bToggle, PCHAR szFilter, PCHAR szToggle);
 EQLIB_API PCHAR GetModel(PSPAWNINFO pSpawn, DWORD Slot);
@@ -607,7 +609,6 @@ EQLIB_API FLOAT       EstimatedDistanceToSpawn(PSPAWNINFO pChar, PSPAWNINFO pSpa
 #ifndef ISXEQ
 LEGACY_API PMACROBLOCK AddMacroLine           (PCHAR szLine);
 #endif
-EQLIB_API VOID        FreeAlertList           (PALERTLIST pAlertList);
 EQLIB_API DWORD WINAPI InsertCommands         (LPVOID lpParameter);
 EQLIB_API VOID        UpdateMonitoredSpawns   (VOID);
 EQLIB_API PCHAR       GetModel                (PSPAWNINFO pSpawn, DWORD Slot);
