@@ -301,6 +301,7 @@ EQLIB_VAR fEQCommand         cmdFilter;
 EQLIB_VAR fEQCommand         cmdDoAbility;
 EQLIB_VAR fEQCommand         cmdCast;
 EQLIB_VAR fEQCommand         cmdUseItem;
+EQLIB_VAR fEQCommand         cmdPet;
 
 
 EQLIB_VAR fEQNewUIINI        NewUIINI;
@@ -317,6 +318,7 @@ EQLIB_VAR PCHAR szDmgBonusType[];
 EQLIB_VAR PCHAR szBodyType[];
 EQLIB_VAR PCHAR szAugRestrictions[];
 EQLIB_VAR PCHAR szItemSlot[];
+EQLIB_VAR PCHAR szEquipmentSlot[];
 EQLIB_VAR PCHAR szExpansions[];
 
 EQLIB_VAR BOOL bLaxColor;
@@ -978,6 +980,7 @@ EQLIB_VAR DWORD CEverQuest__RightClickedOnPlayer;
 EQLIB_VAR DWORD CEverQuest__RMouseUp;
 EQLIB_VAR DWORD CEverQuest__SetGameState;
 EQLIB_VAR DWORD CEverQuest__UPCNotificationFlush;
+EQLIB_VAR DWORD CEverQuest__IssuePetCommand;
 
 EQLIB_VAR DWORD CGaugeWnd__CalcFillRect;
 EQLIB_VAR DWORD CGaugeWnd__CalcLinesFillRect;
@@ -1260,6 +1263,7 @@ EQLIB_VAR DWORD EQ_Spell__GetSpellBaseByAttrib;
 EQLIB_VAR DWORD CharacterZoneClient__CalcAffectChange;
 EQLIB_VAR DWORD CLootWnd__LootAll;
 EQLIB_VAR DWORD CTargetWnd__GetBuffCaster;
+EQLIB_VAR DWORD CTargetWnd__WndNotification;
 
 }
 using namespace MQ2Globals;

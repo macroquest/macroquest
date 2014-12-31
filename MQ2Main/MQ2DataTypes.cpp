@@ -1460,7 +1460,7 @@ bool MQ2SpawnType::GETMEMBER()
         return true;
     case Holding:
         Dest.DWord=pSpawn->Holding;
-        Dest.Type=pIntType;
+        Dest.Type=pBoolType;
         return true;
     case Look:
         Dest.Float=pSpawn->CameraAngle;
@@ -1786,6 +1786,39 @@ bool MQ2SpawnType::GETMEMBER()
 		Dest.DWord=pSpawn->ContractorID;
         Dest.Type=pIntType;
         return true;
+	case Primary:
+		Dest.DWord=pSpawn->Equipment.Primary.ID;
+        Dest.Type=pIntType;
+        return true;
+	case Secondary:
+		Dest.DWord=pSpawn->pSpawn->Equipment.Offhand.ID;
+        Dest.Type=pIntType;
+        return true;
+	case Equipment:
+		{	
+			if (ISINDEX()) {
+				if (ISNUMBER())	{
+					unsigned long nSlot=GETNUMBER();
+					int size = sizeof(_EQUIPMENT)/4;
+					//int size2 = sizeof(szEquipmentSlot);
+					//int size3 = sizeof(szEquipmentSlot[])/4;
+					if (nSlot<9) {
+						Dest.DWord=pSpawn->Equipment.Item[nSlot].ID;
+						Dest.Type=pIntType;
+						return true;
+					}
+				} else {
+					for (unsigned long nSlot=0;szEquipmentSlot[nSlot];nSlot++) {
+						if (!_stricmp(GETFIRST(),szEquipmentSlot[nSlot])) {
+							Dest.DWord=pSpawn->Equipment.Item[nSlot].ID;
+							Dest.Type=pIntType;
+							return true;
+						}
+					}
+				}
+			}
+			return false;
+		}
     }
     return false;
 }

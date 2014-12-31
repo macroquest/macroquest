@@ -6025,7 +6025,7 @@ FUNCTION_AT_ADDRESS(void  CEverQuest::IssueLfgPlayerQuery(struct LfgPlayerQuery 
 FUNCTION_AT_ADDRESS(void  CEverQuest::IssueLfgGroupQuery(struct LfgGroupQuery *),CEverQuest__IssueLfgGroupQuery);
 #endif
 #ifdef CEverQuest__IssuePetCommand_x
-//FUNCTION_AT_ADDRESS(void  CEverQuest::IssuePetCommand(enum PetCommandType,int),CEverQuest__IssuePetCommand);
+FUNCTION_AT_ADDRESS(void  CEverQuest::IssuePetCommand(enum PetCommandType,int,int),CEverQuest__IssuePetCommand);
 #endif
 #ifdef CEverQuest__LootCorpse_x
 FUNCTION_AT_ADDRESS(int  CEverQuest::LootCorpse(class EQPlayer *,int),CEverQuest__LootCorpse);

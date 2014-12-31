@@ -1806,7 +1806,7 @@ EQLIB_OBJECT void CEverQuest::Invite(int);
 EQLIB_OBJECT void CEverQuest::InviteOk(char *);
 EQLIB_OBJECT void CEverQuest::IssueLfgGroupQuery(struct LfgGroupQuery *);
 EQLIB_OBJECT void CEverQuest::IssueLfgPlayerQuery(struct LfgPlayerQuery *);
-EQLIB_OBJECT void CEverQuest::IssuePetCommand(enum PetCommandType,int);
+EQLIB_OBJECT void CEverQuest::IssuePetCommand(enum PetCommandType,int,int);
 EQLIB_OBJECT void CEverQuest::Kill(char *,char *);
 EQLIB_OBJECT void CEverQuest::LeaveBankMode(bool);
 EQLIB_OBJECT void CEverQuest::LeaveGuildMaster(void);

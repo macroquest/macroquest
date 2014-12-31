@@ -1,3 +1,26 @@
+29 Dec 2014 by eqmule
+- Botauthors, you can stop summoning pet weapons when its not needed:
+- Added .Primary and .Secondary to the Spawn TLO
+  both return a inttype which is the idfile id for whatever the spawn is holding in his primary or secondary slot.
+- Added .Equipment to the Spawn TLO
+  it returns a inttype, it takes numbers 0-8 or names: head chest arms wrists hands legs feet primary offhand
+  Usage: /if (${Pet.Equipment[primary].ID}==12507) /echo my pet is holding a Frightforged Ragesword in his primary hand
+  Usage: /if (${Group.Member[mymagesname].Pet.Equipment[primary].ID}==12507) /echo my mages pet is holding a Frightforged Ragesword in his primary hand
+- Change: spawn tlo member .Holding is now a booltype.
+  it will return 0 of spawn is not holding anything and 1 if it is.
+- BugFix: InitializeMQ2Commands is now called before InitializeMQ2Pulse so we wont end up with a race condition in HideDoCommand...
+  the only reason this has worked mostly? fine the last 10 years or whenever it was added in this order
+  is cause computers where slower back in the day...
+  Anyway if the gCommandCS Critical Section is not initialized when used in HideDoCommand ( CAutoLock DoCommandLock(&gCommandCS);)
+  we will hang... (Also changed EnterCriticalSection to a TryEnterCriticalSection, cause there is no reason to get stuck if its the same thread calling it, or is there?
+  I'm prepared to revisit this topic if any weird problems arises, let me know...)
+- Fix/New Feature: /notify QuantityWnd QTYW_slider newvalue # works now/again (did it ever?) Thanks to nytemyst for the report.
+- /windows open now only returns actual open and visible windows.
+  I dont know if we need to make an adjustment to this, lets see what people who use that command think.
+
+27 Dec 2014 by rswiders
+- Fix for /sellitem, the offset was wrong.
+
 24 Dec 2014 Christmas Edition by Santa
 - I finally managed to bring perfect LineOfSight to MQ2
   This means no more false positives... Ever...

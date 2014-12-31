@@ -332,8 +332,8 @@ bool __cdecl MQ2Initialize()
     InitializeDisplayHook();
     InitializeChatHook();
     InitializeMQ2Spawns();
-    InitializeMQ2Pulse();
     InitializeMQ2Commands();
+    InitializeMQ2Pulse();
     InitializeMQ2Windows();
 	MQ2MouseHooks(1);
     Sleep(100);

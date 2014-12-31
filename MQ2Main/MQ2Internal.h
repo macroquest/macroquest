@@ -369,9 +369,9 @@ namespace MQ2Internal {
 
     class CAutoLock {
     public:
-        inline void Lock() { if (!bLocked) { EnterCriticalSection(pLock); bLocked = TRUE; }}
-        inline void Unlock() { if (bLocked) { LeaveCriticalSection(pLock); bLocked = FALSE; }}
-        CAutoLock(LPCRITICAL_SECTION _pLock) { bLocked = FALSE; pLock = _pLock; Lock(); }
+        inline void Lock() {if (!bLocked) {	if(TryEnterCriticalSection(pLock)) {bLocked = TRUE;}}}
+        inline void Unlock() {if (bLocked) {LeaveCriticalSection(pLock);bLocked = FALSE;}}
+        CAutoLock(LPCRITICAL_SECTION _pLock) {bLocked = FALSE;pLock = _pLock;Lock();}
         ~CAutoLock() { Unlock(); }
 
     private:

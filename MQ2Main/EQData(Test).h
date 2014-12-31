@@ -1391,7 +1391,7 @@ typedef struct _SPAWNINFO {
 /*0x0564*/ DWORD        InnateETA;              //Calculated TimeStamp when innate skill will be ready (LoH, HT, Bash)
 /*0x0568*/ DWORD        EnduranceMax;
 /*0x056c*/ DWORD        PetID;//the unknown above this is petwindow target related I think
-/*0x0570*/ BYTE         Holding;
+/*0x0570*/ BYTE         HoldingType; // I dont know the types, i put a 2h in Primary and its a 4 , modrod there and its a 1, nothing its a 5 -eqmule
 /*0x0571*/ BYTE         Unknown0x0571[0x3];
 /*0x0574*/ DWORD        AARank;
 /*0x0578*/ BYTE         FishingEvent;
@@ -1443,7 +1443,9 @@ typedef struct _SPAWNINFO {
 /*0x112c*/ FLOAT        GetMeleeRangeVar2;      // used by GetMeleeRange
 /*0x1130*/ BYTE         Unknown0x1130[0x64];
 /*0x1194*/ DWORD        Animation;
-/*0x1198*/ BYTE         Unknown0x1198[0xec];
+/*0x1198*/ BYTE         Unknown0x1198[0xd4];
+/*0x126c*/ DWORD        Holding; //1 holding 0 not holding
+/*0x1270*/ BYTE         Unknown0x1270[0x14];
 /*0x1284*/ DWORD        MercID;                         //if the spawn is player and has a merc up this is it's spawn ID -eqmule 16 jul 2014
 /*0x1288*/ DWORD        ContractorID;           //if the spawn is a merc this is its contractor's spawn ID -eqmule 16 jul 2014
 /*0x128c*/ BYTE         Unknown0x128c[0x18];

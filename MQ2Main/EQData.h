@@ -1408,7 +1408,7 @@ typedef struct _SPAWNINFO {
 /*0x05d4*/ DWORD        Anon;//found in EQPlayer__SetNameSpriteTint_x
 /*0x05d8*/ BYTE         Unknown0x05d8[0x4];
 /*0x05dc*/ DWORD        GuildStatus;
-/*0x05e0*/ BYTE         Holding;
+/*0x05e0*/ BYTE         HoldingType; // I dont know the types, i put a 2h in Primary and its a 4 , modrod there and its a 1, nothing its a 5 -eqmule
 /*0x05e1*/ BYTE         Unknown0x05e1[0x91b];
 /*0x0efc*/ struct _SPAWNINFO*   WhoFollowing; // NULL if autofollow off
 /*0x0f00*/ int          GroupAssistNPC[0x1];
@@ -1449,7 +1449,9 @@ typedef struct _SPAWNINFO {
 /*0x111c*/ FLOAT        GetMeleeRangeVar2;      // used by GetMeleeRange
 /*0x1120*/ BYTE         Unknown0x1120[0x64];
 /*0x1184*/ DWORD        Animation;
-/*0x1188*/ BYTE         Unknown0x1188[0xec];
+/*0x1188*/ BYTE         Unknown0x1188[0xd4];
+/*0x125c*/ DWORD        Holding; //1 holding 0 not holding
+/*0x1260*/ BYTE         Unknown0x1260[0x14];
 /*0x1274*/ DWORD        MercID;                         //if the spawn is player and has a merc up this is it's spawn ID -eqmule 16 jul 2014
 /*0x1278*/ DWORD        ContractorID;           //if the spawn is a merc this is its contractor's spawn ID -eqmule 16 jul 2014
 /*0x127c*/ BYTE         Unknown0x127c[0x18];

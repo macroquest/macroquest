@@ -387,6 +387,7 @@ fEQCommand        cmdFilter      =  NULL;
 fEQCommand        cmdDoAbility   =  NULL;
 fEQCommand        cmdCast        =  NULL;
 fEQCommand        cmdUseItem     =  NULL;
+fEQCommand        cmdPet         =  NULL;
 
 DWORD gnNormalEQMappableCommands;
 PCHAR szEQMappableCommands[nEQMappableCommands];
@@ -771,6 +772,18 @@ PCHAR szAugRestrictions[] = {
     "Bows Only",
     "Shields Only"
 }; 
+PCHAR szEquipmentSlot[] = {
+	"head",
+	"chest",
+	"arms",
+	"wrists",
+	"hands",
+	"legs",
+	"feet",
+	"primary",
+	"offhand",
+	NULL
+};
 PCHAR szItemSlot[] = {
     "charm",        // 0
     "leftear",      // 1
@@ -1470,6 +1483,7 @@ INITIALIZE_EQGAME_OFFSET(CEverQuest__RightClickedOnPlayer);
 INITIALIZE_EQGAME_OFFSET(CEverQuest__RMouseUp);
 INITIALIZE_EQGAME_OFFSET(CEverQuest__SetGameState);
 INITIALIZE_EQGAME_OFFSET(CEverQuest__UPCNotificationFlush);
+INITIALIZE_EQGAME_OFFSET(CEverQuest__IssuePetCommand);
 
 INITIALIZE_EQGAME_OFFSET(CGaugeWnd__CalcFillRect);
 INITIALIZE_EQGAME_OFFSET(CGaugeWnd__CalcLinesFillRect);
@@ -1742,6 +1756,7 @@ INITIALIZE_EQGAME_OFFSET(EQ_Spell__GetSpellBaseByAttrib);
 INITIALIZE_EQGAME_OFFSET(CharacterZoneClient__CalcAffectChange);
 INITIALIZE_EQGAME_OFFSET(CLootWnd__LootAll);
 INITIALIZE_EQGAME_OFFSET(CTargetWnd__GetBuffCaster);
+INITIALIZE_EQGAME_OFFSET(CTargetWnd__WndNotification);
 
 
 };

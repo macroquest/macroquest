@@ -684,6 +684,8 @@ LEGACY_API BOOL Calculate(PCHAR szFormula, DOUBLE& Dest);
 #define XWM_HISTORY             22
 #define XWM_LCLICKHOLD          23
 #define XWM_LINK                27
+#define XWM_FOCUS               33
+#define XWM_LOSTFOCUS           34
 
 #define XKF_SHIFT               1
 #define XKF_CTRL                2

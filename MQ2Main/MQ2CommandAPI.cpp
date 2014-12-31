@@ -23,7 +23,7 @@ GNU General Public License for more details.
 #include "MQ2Main.h"
 
 CRITICAL_SECTION gCommandCS;
-
+BOOL bgCommandCS = 0;
 typedef struct _TIMEDCOMMAND
 {
     ULONGLONG Time;
@@ -73,7 +73,10 @@ VOID HideDoCommand(PSPAWNINFO pChar, PCHAR szLine, BOOL delayed)
         }
         return;
     }
+	if(!bgCommandCS) {
+		MessageBox(NULL,"fuck","",MB_OK);
 
+	}
     CAutoLock DoCommandLock(&gCommandCS);
     CHAR szCmd[MAX_STRING] = {0};
     CHAR szParam[MAX_STRING] = {0};
@@ -538,7 +541,7 @@ void InitializeMQ2Commands()
     int i;
     DebugSpew("Initializing Commands");
     InitializeCriticalSection(&gCommandCS);
-
+	bgCommandCS = 1;
     EzDetour(CEverQuest__InterpretCmd,&CCommandHook::Detour,&CCommandHook::Trampoline);
 
     // Import EQ commands
@@ -565,6 +568,8 @@ void InitializeMQ2Commands()
             cmdCast = (fEQCommand)pCmdListOrig[i].fAddress;
         } else if (!strcmp(pCmdListOrig[i].szName,"/useitem")) {
             cmdUseItem = (fEQCommand)pCmdListOrig[i].fAddress;
+        } else if (!strcmp(pCmdListOrig[i].szName,"/pet")) {
+            cmdPet = (fEQCommand)pCmdListOrig[i].fAddress;
         }
         AddCommand(pCmdListOrig[i].szName,pCmdListOrig[i].fAddress,TRUE,1,1);
     }    
@@ -669,8 +674,9 @@ void InitializeMQ2Commands()
 		{"/spellslotinfo",SpellSlotInfo,1,1},
 		{"/getwintitle",GetWinTitle,1,0},
 		{"/setwintitle",SetWinTitle,1,0},
-		{"/removebuff",RemoveBuff,1,1},
+		{"/removebuff", RemoveBuff,1,1},
 		{"/makemevisible",MakeMeVisible,0,1},
+		{"/pet",        PetCmd,1,1},
         {NULL,          NULL,0,1},
     };
 

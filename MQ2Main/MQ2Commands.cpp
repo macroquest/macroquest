@@ -2121,9 +2121,9 @@ VOID Cast(PSPAWNINFO pChar, PCHAR szLine)
         if (GetCharInfo2()->MemorizedSpells[Index]!=0xFFFFFFFF) {
             PCHAR SpellName = GetSpellNameByID(GetCharInfo2()->MemorizedSpells[Index]);
             if (!stricmp(szBuffer,SpellName)) {
-                DebugSpew("SpellName = %s",SpellName);
+                //DebugSpew("SpellName = %s",SpellName);
                 cmdCast(pChar,itoa(Index+1,szBuffer,10));
-                DebugSpew("pChar = %x SpellName = %s %s",pChar,SpellName,itoa(Index+1,szBuffer,10));
+                //DebugSpew("pChar = %x SpellName = %s %s",pChar,SpellName,itoa(Index+1,szBuffer,10));
                 return;
             }
         }
@@ -3531,6 +3531,44 @@ VOID GetWinTitle(PSPAWNINFO pChar, PCHAR szLine)
 			if(!bHide)
 				WriteChatf("Window Title: \ay%s\ax",szLine);
 		}
+	}
+}
+// ***************************************************************************
+// Function:    PetCmd
+// Description: '/pet' command
+//              Adds the ability to do /pet attack #id
+// Usage:       /pet attack 1234 or whatever the spawnid is you want the pet to attack
+// ***************************************************************************
+VOID PetCmd(PSPAWNINFO pChar, PCHAR szLine)
+{
+    if (!szLine[0]) {
+		WriteChatColor("Usage: /pet attack #");
+		cmdPet(pChar,szLine);
+        return;
+    } else {
+		/*CHAR szID[MAX_STRING] = {0};
+		CHAR szCmd[MAX_STRING] = {0};
+		GetArg(szCmd,szLine,1);
+		if(!_stricmp(szCmd,"attack")) {
+			//its the attack command
+			GetArg(szID,szLine,2);
+			if(IsNumber(szID)) {
+				if(PSPAWNINFO pSpawn = (PSPAWNINFO)GetSpawnByID(atoi(szID))) {
+					pEverQuest->IssuePetCommand((EQClasses::PetCommandType)2,pSpawn->SpawnID,0);
+					return;
+				}
+			}
+		} else if(!_stricmp(szCmd,"qattack")) {
+			//its the attack command
+			GetArg(szID,szLine,2);
+			if(IsNumber(szID)) {
+				if(PSPAWNINFO pSpawn = (PSPAWNINFO)GetSpawnByID(atoi(szID))) {
+					pEverQuest->IssuePetCommand((EQClasses::PetCommandType)3,pSpawn->SpawnID,0);
+					return;
+				}
+			}
+		}*/
+		cmdPet(pChar,szLine);
 	}
 }
 #endif

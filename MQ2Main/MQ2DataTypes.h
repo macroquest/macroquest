@@ -657,6 +657,9 @@ public:
 		MercID=105,
 		ContractorID=106,
 		PctMana=107,
+		Primary=108,
+		Secondary=109,
+		Equipment=110,
 	};
     static enum SpawnMethods
     {
@@ -771,6 +774,9 @@ public:
         TypeMember(MercID);
         TypeMember(ContractorID);
 		TypeMember(PctMana);
+		TypeMember(Primary);
+		TypeMember(Secondary);
+		TypeMember(Equipment);
 
         TypeMethod(Target);
         TypeMethod(Face);

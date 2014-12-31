@@ -261,6 +261,7 @@
 #define pinstCPvPStatsWnd_x                                        0x10F6620
 #define pinstCSystemInfoDialogBox_x                                0x10F6D28
 #define pinstCTaskWnd_x                                            0x10F80F0
+#define pinstCTaskSomething_x                                      0xD6C638
 #define pinstCTaskTemplateSelectWnd_x                              0x10F8078
 #define pinstCTipWndOFDAY_x                                        0x10F8348
 #define pinstCTipWndCONTEXT_x                                      0x10F834C
@@ -384,6 +385,7 @@
 #define CEverQuest__RMouseUp_x                                     0x54B5B0
 #define CEverQuest__SetGameState_x                                 0x52AE90
 #define CEverQuest__UPCNotificationFlush_x                         0x5335E0
+#define CEverQuest__IssuePetCommand_x                              0x533140
 
 // CGaugeWnd 
 #define CGaugeWnd__CalcFillRect_x                                  0x683B50
@@ -608,7 +610,6 @@
 #define CDBStr__GetString_x                                        0x4888D0
 
 // EQ_Character 
-#define EQ_Character__CastRay_x                                    0x8F6EF0
 #define EQ_Character__CastSpell_x                                  0x43C9E0
 #define EQ_Character__Cur_HP_x                                     0x4526E0
 #define EQ_Character__GetAACastingTimeModifier_x                   0x435AB0
@@ -663,6 +664,7 @@
 #define EQPlayer__SetNameSpriteTint_x                              0x59DBE0
 #define EQPlayer__IsBodyType_j_x                                   0x8F6180
 #define EQPlayer__IsTargetable_x                                   0x8F69D0
+#define EQPlayer__CanSee_x                                         0x8F6EF0
 
 //EQPlayerManager
 #define EQPlayerManager__GetSpawnByID_x                            0x5ABC30
@@ -710,4 +712,6 @@
 #define EQ_Spell__GetSpellBaseByAttrib_x                           0x4B6920
 #define CharacterZoneClient__CalcAffectChange_x                    0x436DD0
 #define CLootWnd__LootAll_x                                        0x6D3F10
+//CTargetWnd
 #define CTargetWnd__GetBuffCaster_x                                0x784BB0
+#define CTargetWnd__WndNotification_x                              0x7846A0

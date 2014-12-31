@@ -385,6 +385,7 @@
 #define CEverQuest__RMouseUp_x                                     0x54B610
 #define CEverQuest__SetGameState_x                                 0x52AF00
 #define CEverQuest__UPCNotificationFlush_x                         0x533650
+#define CEverQuest__IssuePetCommand_x                              0x5331B0
 
 // CGaugeWnd 
 #define CGaugeWnd__CalcFillRect_x                                  0x6833B0
@@ -465,7 +466,7 @@
 // CMerchantWnd 
 #define CMerchantWnd__DisplayBuyOrSellPrice_x                      0x706CA0
 #define CMerchantWnd__RequestBuyItem_x                             0x70DB00
-#define CMerchantWnd__RequestSellItem_x                            0x735CE0
+#define CMerchantWnd__RequestSellItem_x                            0x70E570
 #define CMerchantWnd__SelectRecoverySlot_x                         0x706F50
 #define CMerchantWnd__SelectBuySellSlot_x                          0x7061B0
 #define CMerchantWnd__ActualSelect_x                               0x70AA20
@@ -711,4 +712,6 @@
 #define EQ_Spell__GetSpellBaseByAttrib_x                           0x4B6AC0
 #define CharacterZoneClient__CalcAffectChange_x                    0x436E90
 #define CLootWnd__LootAll_x                                        0x6D3880
+//CTargetWnd
 #define CTargetWnd__GetBuffCaster_x                                0x784480
+#define CTargetWnd__WndNotification_x                              0x783F70

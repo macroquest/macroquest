@@ -129,8 +129,27 @@ public:
         }
         Init_Trampoline(pName, A);
     }
+	int CTargetWnd__WndNotification_Tramp(class CXWnd *,unsigned __int32,void *);
+	int CTargetWnd__WndNotification_Detour(class CXWnd *pWnd, unsigned int uiMessage, void* pData)
+	{
+		//work in progress for trade on click -eqmule
+		/*if(uiMessage==XWM_FOCUS) {
+			if(PCHARINFO2 pChar2 = GetCharInfo2()) {
+				if(pTarget && pLocalPlayer && ((PSPAWNINFO)pTarget)->SpawnID!=((PSPAWNINFO)pLocalPlayer)->SpawnID && pEverQuest && pChar2->pInventoryArray && pChar2->pInventoryArray->Inventory.Cursor) {
+					//player has a item on his cursor and clicked targetwindow, he wants to trade with target...
+					if(PITEMINFO pItem = GetItemFromContents(pChar2->pInventoryArray->Inventory.Cursor)) {
+						pEverQuest->LeftClickedOnPlayer(pTarget); 
+						gMouseEventTime = GetFastTime();
+						//WriteChatf("Player wants to give a %s to %s",pItem->Name,((PSPAWNINFO)pTarget)->Name);
+					}
+				}
+			}
+		}*/
+		return CTargetWnd__WndNotification_Tramp(pWnd,uiMessage,pData);
+	}
 };
 DETOUR_TRAMPOLINE_EMPTY(void CSidlInitHook::Init_Trampoline(class CXStr*,int));
+DETOUR_TRAMPOLINE_EMPTY(int CSidlInitHook::CTargetWnd__WndNotification_Tramp(class CXWnd *,unsigned __int32,void *));
 
 
 class CXWndManagerHook
@@ -233,6 +252,7 @@ void InitializeMQ2Windows()
 
     EzDetour(CXMLSOMDocumentBase__XMLRead,&CXMLSOMDocumentBaseHook::XMLRead,&CXMLSOMDocumentBaseHook::XMLRead_Trampoline);
     EzDetour(CSidlScreenWnd__Init1,&CSidlInitHook::Init_Detour,&CSidlInitHook::Init_Trampoline);
+	EzDetour(CTargetWnd__WndNotification,&CSidlInitHook::CTargetWnd__WndNotification_Detour,&CSidlInitHook::CTargetWnd__WndNotification_Tramp);
     EzDetour(CXWndManager__RemoveWnd,&CXWndManagerHook::RemoveWnd_Detour,&CXWndManagerHook::RemoveWnd_Trampoline);
 
 #ifndef ISXEQ
@@ -313,6 +333,7 @@ void ShutdownMQ2Windows()
 #endif 
     RemoveDetour(CXMLSOMDocumentBase__XMLRead);
     RemoveDetour(CSidlScreenWnd__Init1);
+    RemoveDetour(CTargetWnd__WndNotification);
     RemoveDetour(CXWndManager__RemoveWnd);
     WindowList.Cleanup();
 }
@@ -905,7 +926,9 @@ bool SendWndNotification(PCHAR WindowName, PCHAR ScreenID, DWORD Notification, V
             return false;
         }
     }
-
+	if(Notification==XWM_NEWVALUE) {
+		((CSliderWnd*)(pButton))->SetValue((int)Data);
+	}
     ((CXWnd*)(pWnd))->WndNotification(pButton,Notification,Data);
     gMouseEventTime = GetFastTime();
 
@@ -1051,17 +1074,17 @@ int ListWindows(int argc, char *argv[])
             if (_WindowInfo *pInfo=WindowList[N])
             {
 				if(bOpen) {
-					if(pInfo->pWnd && pInfo->pWnd->dShow==1) {
+					if(pInfo->pWnd && pInfo->pWnd->dShow==1 && pInfo->pWnd->pParentWindow==0) {
 						if(bPartial) {
 							if(strstr(pInfo->Name,szArg2)) {
 								WriteChatf("[PARTIAL MATCH][OPEN] %s",pInfo->Name);
+								RecurseAndListWindows((PCSIDLWND)pInfo->pWnd);
 								Count++;
 							}
 						} else {
 							WriteChatf("[OPEN] %s",pInfo->Name);
 							Count++;
 						}
-						RecurseAndListWindows((PCSIDLWND)pInfo->pWnd);
 					}
 				} else {
 					if(bPartial) {
@@ -1072,7 +1095,6 @@ int ListWindows(int argc, char *argv[])
 						}
 					} else {
 						WriteChatf("%s",pInfo->Name);
-						RecurseAndListWindows((PCSIDLWND)pInfo->pWnd);
 						Count++;
 					}
 				}
