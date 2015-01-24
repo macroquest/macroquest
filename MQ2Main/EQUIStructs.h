@@ -188,7 +188,7 @@ typedef struct _EQCURRENTSELECTION {
 typedef struct _CSIDLWNDVFTABLE {
 VFTABLE;
 /*0x164*/ LPVOID  Unknown0x164;
-/*0x164*/ LPVOID  Unknown0x168;
+/*0x168*/ LPVOID  Unknown0x168;
 /*0x16c*/ LPVOID  LoadIniInfo;
 /*0x170*/ LPVOID  StoreIniInfo;
 /*0x174*/ LPVOID  Unknown0x174;

@@ -1,9 +1,12 @@
+19 Jan 2015 by eqmule
+- Updated for test server
+
 18 Jan 2015 by eqmule
-- Aded a workaround for a wineq2 crash.
+- Added a workaround for a wineq2 crash.
 - Added CCustomMenu so we can create custom menus...
   This is still a work in progress and Ill have more
   to say about it in a later release.
-- Stackchecks have been slightly modified to try to take higher level version override into account.
+- Stackchecks have been slightly modified to try to take higher level version override into account. -rswiders
   Report any issues with this on the forum.
 
 15 Jan 2015 by rswiders
