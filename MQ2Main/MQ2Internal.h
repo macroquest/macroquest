@@ -499,11 +499,11 @@ namespace MQ2Internal {
 	public:
 		CCustomMenu(CXRect rect):CContextMenu(0,0,rect)
 		{
-			//HasChildren=1;
-			//HasSiblings=1;
-			//Unknown0x015=0;
-			//Unknown0x016=0;
-			//Unknown0x017=0;
+			this->ZeroMe = 0;
+			this->SetToMinus1 = 0xFFFFFFFF;
+			ZeroMemory(this->ZeroMeOut1,sizeof(this->ZeroMeOut1));
+			ZeroMemory(this->ZeroMeOut2,sizeof(this->ZeroMeOut2));
+			this->ZeroMeAsWell = 0;
 			ReplacevfTable();
 		};
 

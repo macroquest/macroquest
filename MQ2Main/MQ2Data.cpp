@@ -724,78 +724,92 @@ TLO(dataGameTime)
     Ret.Type=pTimeType;
     return true;
 }
-
 TLO(dataIni)
 {
 #ifndef ISXEQ /* CONVERT */
-    PCHAR pIniFile=0;
-    PCHAR pSection=0;
-    PCHAR pKey=0;
-    PCHAR pDefault="";
-    if (pIniFile=strtok(szIndex,","))
-    {
-        if (pSection=strtok(NULL,","))
-        {
-            if (!strcmp(pSection,"-1"))
-                pSection=0;
-            if (pKey=strtok(NULL,","))
-            {
-                if (!strcmp(pKey,"-1"))
-                    pKey=0;
-                pDefault=strtok(NULL,"\xA6");
-                if (!pDefault)
-                    pDefault="";
-            }
-        }
-    }
-    else
-        return false;
+	if(!szIndex)
+		return false;
+	if(szIndex[0]=='\0')
+		return false;
+	int count = 0;
+	std::string IniFile;
+	std::string Section;
+	std::string Key;
+	std::string Default;
+	std::map<DWORD,DWORD>argmap;
+	std::string sTemp = szIndex;
+	//lets see how many commas are in the string
+	for(std::string::iterator i=sTemp.begin();i!=sTemp.end();i++) {
+		if(i[0]==',' && i+1!=sTemp.end() && i[1]!=' ') {
+			argmap[count] = std::distance(sTemp.begin(),i);
+			count++;
+		}
+	}
+	IniFile = sTemp;
+	if(argmap.size()>=1) {
+		IniFile.erase(argmap[0]);
+		Section = sTemp.substr(argmap[0]+1);
+		if(argmap.size()>=2) {
+			Section.erase(argmap[1]-argmap[0]-1);
+			Key = sTemp.substr(argmap[1]+1);
+			if(argmap.size()>=3) {
+				Key.erase(argmap[2]-argmap[1]-1);
+				Default = sTemp.substr(argmap[2]+1);
+			}
+		}
+	}
+	if(IniFile.size()==0)
+		return false;
     CHAR FileName[MAX_STRING]={0};
+	std::replace(IniFile.begin(),IniFile.end(),'/','\\');
 
-    PCHAR pTemp=pIniFile;
-    while(pTemp[0])
-    {
-        if (pTemp[0]=='/')
-            pTemp[0]='\\';
-        pTemp++;
-    }
-
-    if (pIniFile[0]!='\\' && !strchr(pIniFile,':'))
-        sprintf(FileName,"%s\\%s",gszMacroPath,pIniFile);
+	if (IniFile.size() && IniFile[0]!='\\' && IniFile.find(":")==IniFile.npos)
+		sprintf_s(FileName,"%s\\%s",gszMacroPath,IniFile.c_str());
     else
-        strcpy(FileName,pIniFile);
+		strcpy_s(FileName,IniFile.c_str());
 
-    if (!strchr(pIniFile,'.'))
-        strcat(FileName,".ini");
+	IniFile = FileName;
+	if (IniFile.find(".")==IniFile.npos) {
+        IniFile.append(".ini");
+	}
 
-    if (!_FileExists(FileName))
+	if (!_FileExists(IniFile.c_str()))
     {
-        if (pDefault[0])
+		if (Default.size())
         {
-            strcpy(DataTypeTemp,pDefault);
+			strcpy_s(DataTypeTemp,Default.c_str());
             Ret.Ptr=&DataTypeTemp[0];
             Ret.Type=pStringType;
             return true;
         }
         return false;
     }
-
-    if (DWORD nSize=GetPrivateProfileString(pSection,pKey,pDefault,DataTypeTemp,MAX_STRING,FileName))
+	DWORD nSize = 0;
+	if(Section.size() && Key.size()) {
+		nSize=GetPrivateProfileString(Section.c_str(),Key.c_str(),Default.c_str(),DataTypeTemp,MAX_STRING,IniFile.c_str());
+	} else if(Section.size() && Key.size()==0) {
+		nSize=GetPrivateProfileString(Section.c_str(),NULL,Default.c_str(),DataTypeTemp,MAX_STRING,IniFile.c_str());
+	} else if(Section.size()==0 && Key.size()) {
+		nSize=GetPrivateProfileString(NULL,Key.c_str(),Default.c_str(),DataTypeTemp,MAX_STRING,IniFile.c_str());
+	} else if(Section.size()==0 && Key.size()==0) {
+		nSize=GetPrivateProfileString(NULL,NULL,Default.c_str(),DataTypeTemp,MAX_STRING,IniFile.c_str());
+	}
+	if (nSize)
     {
         if (nSize>2)
             for (unsigned long N = 0 ; N < nSize-2 ; N++)
                 if (DataTypeTemp[N]==0)
                     DataTypeTemp[N]='|';
-        if ((!pSection || !pKey) && (nSize<MAX_STRING-3))
-            strcat(DataTypeTemp,"||");
+		if ((Section.size()==0 || Key.size()==0) && (nSize<MAX_STRING-3))
+            strcat_s(DataTypeTemp,"||");
 
         Ret.Ptr=&DataTypeTemp[0];
         Ret.Type=pStringType;
         return true;
     }
-    if (pDefault[0])
+	if (Default.size())
     {
-        strcpy(DataTypeTemp,pDefault);
+        strcpy_s(DataTypeTemp,Default.c_str());
         Ret.Ptr=&DataTypeTemp[0];
         Ret.Type=pStringType;
         return true;

@@ -1,3 +1,19 @@
+22 Jan 2015 by eqmule
+- Removed a MacroError from the ini TLO (sigh)
+- I need a vacation...
+
+22 Jan 2015 by eqmule
+- Fixed ${Ini (that I broke yesterday)
+  It now reads sections and keys correctly again.
+  Thanks for the reports.
+- Fixed /alert clear #
+
+21 Jan 2015 by eqmule
+- Updated for live patch
+- Made a change to the Ini TLO (Requester: TreeHuginDruid)
+  it should be able to read Section names with commas in them now
+  Let me know if this breaks any macros.
+
 19 Jan 2015 by eqmule
 - Updated for test server
 

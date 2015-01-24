@@ -1357,11 +1357,13 @@ BOOL CMQ2Alerts::AddNewAlertList(DWORD Id, PSEARCHSPAWN pSearchSpawn)
 VOID CMQ2Alerts::FreeAlerts(DWORD List)
 {
 	lockit lk(_hLockMapWrite);
-	if(_AlertMap.size()>=List) {
-		_AlertMap.erase(List);
-	}
 	CHAR szBuffer[64] = {0};
-	sprintf_s(szBuffer,"Alert list %d cleared.",List);
+	if(_AlertMap.find(List)!=_AlertMap.end()) {
+		_AlertMap.erase(List);
+		sprintf_s(szBuffer,"Alert list %d cleared.",List);
+	} else {
+		sprintf_s(szBuffer,"No Alert list for %d was found.",List);
+	}
 	WriteChatColor(szBuffer,USERCOLOR_DEFAULT);
 }
 // ***************************************************************************

@@ -190,7 +190,7 @@ typedef struct _EQCURRENTSELECTION {
 /*0x164*/
 
 typedef struct _CSIDLWNDVFTABLE {
-VFTABLE;
+VFTABLE
 /*0x164*/ LPVOID  Unknown0x164;
 /*0x168*/ LPVOID  Unknown0x168;
 /*0x16c*/ LPVOID  LoadIniInfo;
@@ -201,7 +201,7 @@ VFTABLE;
 } CSIDLWNDVFTABLE, *PCSIDLWNDVFTABLE;
 
 typedef struct _CXWNDVFTABLE {
-VFTABLE;
+VFTABLE
 } CXWNDVFTABLE, *PCXWNDVFTABLE; 
 
 // in CChatWindow__CChatWindow_x checked on 20140909 test - eqmule
@@ -291,13 +291,12 @@ CXW_NO_VTABLE \
 /*0x1d8*/
 
 typedef struct _CXWND {
-CXW;
+CXW
 } CXWND, *PCXWND;
 #define GateBind          0
+//CSidlScreenWnd__CSidlScreenWnd1_x
 //size is 220h in eqgame dated Jun 13 2014 (see 5C8AFD (cswsize)) -eqmule
-#define CSW \
-/*0x000*/ struct _CSIDLWNDVFTABLE* pvfTable; \
-CXW_NO_VTABLE; \
+#define SIDL \
 /*0x1d8*/ union { \
                         struct _CXSTR* SidlText; /*found in CChatWindow__WndNotification_x*/\
                         DWORD Items; \
@@ -331,12 +330,17 @@ CXW_NO_VTABLE; \
 /*0x21c*/ DWORD Unknown0x21c; \
 /*0x220*/
 
+#define CSW \
+/*0x000*/ struct _CSIDLWNDVFTABLE* pvfTable; \
+CXW_NO_VTABLE \
+SIDL \
+
 typedef struct _CSIDLWND {
-CSW;
+CSW
 } CSIDLWND, *PCSIDLWND;
 
 typedef struct _CCONTEXTMENUVFTABLE {
-VFTABLE;
+VFTABLE
 /*0x164*/ LPVOID CListWnd_OnHeaderClick;
 /*0x168*/ LPVOID CListWnd__DrawColumnSeparators;
 /*0x16c*/ LPVOID CListWnd__DrawSeparator;
@@ -350,43 +354,26 @@ VFTABLE;
 /*0x18c*/
 } CCONTEXTMENUVFTABLE, *PCCONTEXTMENUVFTABLE; 
 
+// size 0x280 Jan 14 2014 test (see 655B5B) -eqmule
+#define CONTEXTTAIL \
+/*0x220*/ DWORD ZeroMe; \
+/*0x224*/ DWORD SetToMinus1; /*must be set to -1 in constructor or menu wndnotification wont be called*/ \
+/*0x228*/ DWORD WillBeZero1; /*set by contructor to 0*/ \
+/*0x22c*/ ARGBCOLOR HightLightTextColor; /*set by contructor*/ \
+/*0x230*/ ARGBCOLOR HighLightTextBkColor; /*set by contructor*/ \
+/*0x234*/ BYTE ZeroMeOut1[0x24]; \
+/*0x258*/ DWORD WillBeZero2; /*constructor sets this to 0*/ \
+/*0x25c*/ DWORD ZeroMeOut2[0x18]; \
+/*0x274*/ DWORD Unknown0x274; /*constructor sets this to 0x10000*/ \
+/*0x278*/ DWORD ZeroMeAsWell; \
+/*0x27c*/ DWORD Unknown0x27c; /*constructor sets this to 0*/ \
+/*0x280*/
+
 // size 0x284 dec 03 2014 -eqmule
 #define CONTEXTW \
 /*0x000*/   struct  _CCONTEXTMENUVFTABLE   *pvfTable; \
 CXW_NO_VTABLE \
-/*0x1dc*/ union { \
-                        struct _CXSTR* SidlText; /*found in CChatWindow__WndNotification_x*/\
-                        DWORD Items; \
-                }; \
-/*0x1e0*/ union { \
-                        struct _CXSTR* SidlScreen; \
-                        DWORD SlotID; \
-                }; \
-/*0x1e4*/ LPVOID SidlPiece; /* CScreenPieceTemplate (important) */ \
-/*0x1e8*/ union { /*find in CSidlScreenWnd__dCSidlScreenWnd_x*/ \
-                struct { \
-                        BYTE Checked; \
-                        BYTE Highlighted; \
-                        BYTE Unused0x1ea[0x2]; \
-                }; \
-                DWORD MaxChars; \
-        }; \
-/*0x1ec*/ DWORD TextureAnim; \
-/*0x1f0*/ struct  _CXSTR* InputText; /*found in CChatWindow__CChatWindow_x*/\
-/*0x1f4*/ DWORD Selector; /*found in CSidlScreenWnd__CSidlScreenWnd1_x*/\
-/*0x1f8*/ DWORD PushToSelector; /*found in CSidlScreenWnd__LoadIniInfo_x*/\
-/*0x1fc*/ DWORD EnableINIStorage; /*found in CSidlScreenWnd__LoadSidlScreen_x*/\
-/*0x200*/ union { \
-                struct _CXSTR* INIStorageName; /*found in CSidlScreenWnd__LoadSidlScreen_x*/\
-                struct _EQINVSLOT* pEQInvSlot; \
-        }; \
-/*0x204*/ BYTE  Unknown0x204[0x10];  \
-/*0x214*/ LPVOID ContextMenu; /* CTextureAnimation */ \
-/*0x218*/ DWORD Unknown0x218; /* CTextureAnimation */ \
-/*0x21c*/ DWORD Unknown0x21c; /* CTextureAnimation */ \
-/*0x220*/ DWORD Unknown0x220; \
-/*0x224*/ BYTE  Unknown0x224[0x60]; \
-/*0x284*/
+CONTEXTTAIL \
 
 typedef struct _CCONTEXTMENU {
 CONTEXTW;

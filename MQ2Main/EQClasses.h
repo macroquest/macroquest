@@ -619,8 +619,7 @@ EQLIB_OBJECT void CSidlScreenWnd::LoadSidlScreen(void);
 EQLIB_OBJECT static bool CSidlScreenWnd::m_useIniFile;
 
 inline CXWnd *pXWnd() {return (CXWnd*)this;};
-
-CSW;
+CSW
 };
 
 
@@ -2806,9 +2805,7 @@ EQLIB_OBJECT int CContextMenu::OnKillFocus(class CXWnd *);
 //EQLIB_OBJECT void * CContextMenu::`scalar deleting destructor'(unsigned int);
 //EQLIB_OBJECT void * CContextMenu::`vector deleting destructor'(unsigned int);
 EQLIB_OBJECT void CContextMenu::Deactivate(void);
-//CONTEXTW;
-/*0x224*/ BYTE Unknown0x224[0x60];
-/*0x284*/
+CONTEXTTAIL
 };
 
 class CLoadskinWnd : public CSidlScreenWnd
