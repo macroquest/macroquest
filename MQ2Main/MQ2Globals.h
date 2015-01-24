@@ -15,7 +15,6 @@
 namespace MQ2Globals
 {
 bool InitOffsets();
-
 EQLIB_VAR DWORD baseAddress;
 
 /* BENCHMARK HANDLES */
@@ -155,7 +154,6 @@ LEGACY_VAR PEVENTLIST pEventList;
 EQLIB_VAR PMQTIMER gTimer;
 EQLIB_VAR LONG gDelay;
 EQLIB_VAR CHAR gDelayCondition[MAX_STRING];
-EQLIB_VAR std::map<DWORD,std::list<SEARCHSPAWN>> gAlertMap;
 EQLIB_VAR BOOL gMacroPause;
 EQLIB_VAR SPAWNINFO EnviroTarget;
 EQLIB_VAR SPAWNINFO PetSpawn;
@@ -900,6 +898,7 @@ EQLIB_VAR DWORD __LoadFrontEnd;
 EQLIB_VAR DWORD __NewUIINI;
 EQLIB_VAR DWORD __ProcessGameEvents;
 EQLIB_VAR DWORD CrashDetected;
+EQLIB_VAR DWORD wwsCrashReportCheckForUploader;
 EQLIB_VAR DWORD DrawNetStatus;
 EQLIB_VAR DWORD Util__FastTime;
 EQLIB_VAR DWORD Expansion_HoT;
@@ -911,6 +910,7 @@ EQLIB_VAR DWORD AltAdvManager__GetAltAbility;
 
 EQLIB_VAR DWORD CharacterZoneClient__HasSkill;
 EQLIB_VAR DWORD CharacterZoneClient__MakeMeVisible;
+EQLIB_VAR DWORD CharacterZoneClient__ApplyDamage;
 
 EQLIB_VAR DWORD CBankWnd__GetNumBankSlots;
 
@@ -920,6 +920,8 @@ EQLIB_VAR DWORD CButtonWnd__SetCheck;
 
 EQLIB_VAR DWORD CChatManager__GetRGBAFromIndex;
 EQLIB_VAR DWORD CChatManager__InitContextMenu;
+EQLIB_VAR DWORD CContextMenu__CContextMenu;
+EQLIB_VAR DWORD CContextMenu__AddMenuItem;
 
 EQLIB_VAR DWORD CChatService__GetNumberOfFriends;
 EQLIB_VAR DWORD CChatService__GetFriendName;

@@ -1819,6 +1819,10 @@ bool MQ2SpawnType::GETMEMBER()
 			}
 			return false;
 		}
+	case xTargetable:
+		Dest.DWord=pSpawn->Targetable;
+        Dest.Type=pBoolType;
+        return true;
     }
     return false;
 }
@@ -3889,6 +3893,12 @@ bool MQ2CharacterType::GETMEMBER()
             return true;
         }
 		break;
+	case InInstance:
+        Dest.DWord = false;
+        if (pLocalPlayer && ((PSPAWNINFO)pLocalPlayer)->Instance) 
+			Dest.DWord = true;
+        Dest.Type = pBoolType;
+        return true;
 	}
     return false;
 #undef pChar
@@ -7653,6 +7663,10 @@ bool MQ2GroupType::GETMEMBER()
         return false;
     switch((GroupMembers)pMember->ID)
     {
+	case Address:
+		Dest.DWord = (DWORD)pChar->pGroupInfo;
+		Dest.Type = pIntType;
+		return true;
     case xMember:
         if (!ISINDEX())
             return false;
@@ -7803,7 +7817,20 @@ bool MQ2GroupType::GETMEMBER()
                     }
                 }
             }
+		}
+		return false;
+	 case AnyoneMissing:
+		{
+            Dest.DWord=0;
+            Dest.Type=pBoolType;
+            for (i=1;i<6;i++) {	 
+				if (pChar->pGroupInfo->pMember[i] && (pChar->pGroupInfo->pMember[i]->Offline || (pChar->pGroupInfo->pMember[i]->Offline==0 && pChar->pGroupInfo->pMember[i]->pSpawn==0) || (pChar->pGroupInfo->pMember[i]->pSpawn && pChar->pGroupInfo->pMember[i]->pSpawn->Type==SPAWN_CORPSE))) {
+					Dest.DWord = 1;
+					break;
+				}
+			}
         }
+		return true;
     }
     return false;
 }
@@ -7891,6 +7918,10 @@ bool MQ2GroupMemberType::GETMEMBER()
 
     switch((GroupMemberMembers)pMember->ID)
     {
+    case Address:
+		Dest.DWord=(DWORD)pGroupMemberData;
+        Dest.Type=pIntType;
+        return true;
     case Name:
         Dest.Ptr=CleanupName(MemberName,FALSE,FALSE);
         Dest.Type=pStringType;
@@ -7912,8 +7943,8 @@ bool MQ2GroupMemberType::GETMEMBER()
         if (pGroupMember)
         {
             Dest.DWord=pGroupMember->Level;
-        Dest.Type=pIntType;
-        return true;
+			Dest.Type=pIntType;
+			return true;
         }
         else if (pGroupMemberData)
         {
@@ -7971,6 +8002,16 @@ bool MQ2GroupMemberType::GETMEMBER()
     case xIndex:
 		Dest.DWord = nMember;
 		Dest.Type = pIntType;
+		return true;
+    case Offline:
+		Dest.DWord = pGroupMemberData->Offline;
+		Dest.Type = pBoolType;
+		return true;
+    case OtherZone:
+		Dest.DWord = 0;
+		if(pGroupMemberData->Offline==0 && pGroupMemberData->pSpawn==0)
+			Dest.DWord = 1;
+		Dest.Type = pBoolType;
 		return true;
     }
     return false;

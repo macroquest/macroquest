@@ -289,10 +289,12 @@
 #define __ProcessGameEvents_x                                      0x54D3C0
 #define __ProcessMouseEvent_x                                      0x54CB60
 #define CrashDetected_x                                            0x60C9D0
+#define wwsCrashReportCheckForUploader_x                           0x7D1050
 #define DrawNetStatus_x                                            0x583B70
 #define Util__FastTime_x                                           0x83BBB0
 #define Expansion_HoT_x                                            0xF5F9E4
 #define __HelpPath_x                                               0xFE3150
+
 //// 
 // Section 4: Function Offsets 
 //// 
@@ -304,7 +306,6 @@
 // CharacterZoneClient
 #define CharacterZoneClient__HasSkill_x                            0x453110
 #define CharacterZoneClient__MakeMeVisible_x                       0x4581D0
-
 // CBankWnd 
 #define CBankWnd__GetNumBankSlots_x                                0x63A5B0
 
@@ -317,6 +318,10 @@
 // CChatManager 
 #define CChatManager__GetRGBAFromIndex_x                           0x6637C0
 #define CChatManager__InitContextMenu_x                            0x6642E0
+
+// CContextMenu 
+#define CContextMenu__CContextMenu_x                               0x88B920
+#define CContextMenu__AddMenuItem_x                                0x88BB40
 
 // CChatService
 #define CChatService__GetNumberOfFriends_x                         0x8227D0
@@ -712,6 +717,7 @@
 #define EQ_Spell__GetSpellBaseByAttrib_x                           0x4B6AC0
 #define CharacterZoneClient__CalcAffectChange_x                    0x436E90
 #define CLootWnd__LootAll_x                                        0x6D3880
+
 //CTargetWnd
 #define CTargetWnd__GetBuffCaster_x                                0x784480
 #define CTargetWnd__WndNotification_x                              0x783F70

@@ -660,6 +660,7 @@ public:
 		Primary=108,
 		Secondary=109,
 		Equipment=110,
+		xTargetable=111,
 	};
     static enum SpawnMethods
     {
@@ -777,6 +778,7 @@ public:
 		TypeMember(Primary);
 		TypeMember(Secondary);
 		TypeMember(Equipment);
+		AddMember(xTargetable,"Targetable");
 
         TypeMethod(Target);
         TypeMethod(Face);
@@ -1039,6 +1041,7 @@ public:
 		Zoning=205,
 		DSed=206,
 		RevDSed=207,
+		InInstance=208,
     };
     static enum CharacterMethods
     {
@@ -1245,6 +1248,7 @@ public:
 		TypeMember(Zoning);
 		TypeMember(DSed);
 		TypeMember(RevDSed);
+		TypeMember(InInstance);
 
         TypeMethod(Stand); 
         TypeMethod(Sit); 
@@ -3595,19 +3599,22 @@ class MQ2GroupType : public MQ2Type
 public:
     static enum GroupMembers
     {
-        xMember=1,
-        Members=2,
-        Leader=3,
-        GroupSize=4,
-        MainTank=5,
-        MainAssist=6,
-        Puller=7,
+        Address=1,
+        xMember=2,
+        Members=3,
+        Leader=4,
+        GroupSize=5,
+        MainTank=6,
+        MainAssist=7,
+        Puller=8,
+        AnyoneMissing=9,
     };
     static enum GroupMethods
     {
     };
     MQ2GroupType():MQ2Type("group")
     {
+        TypeMember(Address);
         AddMember(xMember,"Member");
         TypeMember(Members);
         TypeMember(Leader);
@@ -3615,6 +3622,7 @@ public:
         TypeMember(MainTank);
         TypeMember(MainAssist);
         TypeMember(Puller);
+        TypeMember(AnyoneMissing);
     }
 
     ~MQ2GroupType()
@@ -3640,22 +3648,26 @@ class MQ2GroupMemberType : public MQ2Type
 public:
     static enum GroupMemberMembers
     {
-        Name=1,
-        Leader=2,
-        Spawn=3,
-        Level=4,
-        MainTank=5,
-        MainAssist=6,
-        Puller=7,
-        Mercenary=8,
-        PctAggro=9,
-        xIndex=10,
+        Address=1,
+        Name=2,
+        Leader=3,
+        Spawn=4,
+        Level=5,
+        MainTank=6,
+        MainAssist=7,
+        Puller=8,
+        Mercenary=9,
+        PctAggro=10,
+        xIndex=11,
+        Offline=12,
+        OtherZone=13,
     };
     static enum GroupMemberMethods
     {
     };
     MQ2GroupMemberType():MQ2Type("groupmember")
     {
+        TypeMember(Address);
         TypeMember(Name);
         TypeMember(Leader);
         TypeMember(Spawn);
@@ -3666,6 +3678,8 @@ public:
         TypeMember(Mercenary);
         TypeMember(PctAggro);
         AddMember(xIndex,"Index");
+        TypeMember(Offline);
+        TypeMember(OtherZone);
     }
 
     ~MQ2GroupMemberType()

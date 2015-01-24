@@ -66,7 +66,7 @@ BOOL APIENTRY DllMain( HANDLE hModule,
             return TRUE;
         }
     }
-    if (!stricmp(szProcessName,"LaunchPad")) {
+    if (szProcessName[0]!='\0' && !_stricmp(szProcessName,"LaunchPad")) {
         if (ul_reason_for_call == DLL_PROCESS_ATTACH) {
             exit(-1);
         }
@@ -332,8 +332,8 @@ bool __cdecl MQ2Initialize()
     InitializeDisplayHook();
     InitializeChatHook();
     InitializeMQ2Spawns();
-    InitializeMQ2Commands();
     InitializeMQ2Pulse();
+    InitializeMQ2Commands();
     InitializeMQ2Windows();
 	MQ2MouseHooks(1);
     Sleep(100);
@@ -590,3 +590,7 @@ FUNCTION_AT_ADDRESS(char * __stdcall GetXtargetType(DWORD type), __GetXTargetTyp
 #ifdef __EQGetTime_x
 FUNCTION_AT_ADDRESS(DWORD EQGetTime(), __EQGetTime);
 #endif
+#ifdef __msg_successful_hit_x
+FUNCTION_AT_ADDRESS(void msg_successful_hit(struct _EQSuccessfulHit*),__msg_successful_hit);
+#endif
+

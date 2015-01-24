@@ -19,7 +19,6 @@ class CXSize
 {
     DWORD A,B,C,D,E,F;
 };
-
 // Enumerations...
 typedef DWORD EQZoneIndex;
 typedef DWORD EQLocalizeLanguage;
@@ -221,6 +220,7 @@ class CTokenXML;
 class CTrackingWnd;
 class CTradeWnd;
 class CTrainWnd;
+class CTreeView;
 class CUITextureInfo;
 class CUITexturePiece;
 class CVector3;
@@ -1390,8 +1390,8 @@ EQLIB_OBJECT void CContainerWnd::Init(void);
 class CContextMenu
 {
 public:
-EQLIB_OBJECT CContextMenu::CContextMenu(class CXWnd *,unsigned __int32,class CXRect);
-EQLIB_OBJECT int CContextMenu::AddMenuItem(class CXStr,unsigned int,bool,unsigned long);
+EQLIB_OBJECT CContextMenu::CContextMenu(class CXWnd *,unsigned __int32,class CXRect const &);
+EQLIB_OBJECT int CContextMenu::AddMenuItem(class CXStr const &,unsigned __int32,bool,unsigned long);
 EQLIB_OBJECT int CContextMenu::AddSeparator(void);
 EQLIB_OBJECT void CContextMenu::Activate(class CXPoint,int,int);
 EQLIB_OBJECT void CContextMenu::CheckMenuItem(int,bool,bool);
@@ -4732,6 +4732,14 @@ EQLIB_OBJECT void CTrainWnd::UpdateRight(void);
 EQLIB_OBJECT void CTrainWnd::UpdateSkill(int);
 };
 
+class CTreeView : public CListWnd
+{
+public:
+EQLIB_OBJECT CTreeView::CTreeView(class CXWnd *,unsigned __int32,class CXRect,int);
+// virtual
+EQLIB_OBJECT CTreeView::~CTreeView(void);
+};
+
 class CUITextureInfo
 {
 public:
@@ -6971,7 +6979,7 @@ class CharacterZoneClient
 public:
 EQLIB_OBJECT int CharacterZoneClient::CalcAffectChange(class EQ_Spell *,unsigned char,unsigned char,class EQ_Affect *,DWORD,DWORD);
 EQLIB_OBJECT void CharacterZoneClient::MakeMeVisible(int,bool);
-    bool HasSkill(int);
+			 bool HasSkill(int);
 };
 
 class PcZoneClient

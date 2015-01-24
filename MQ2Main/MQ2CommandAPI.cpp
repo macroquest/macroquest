@@ -23,7 +23,7 @@ GNU General Public License for more details.
 #include "MQ2Main.h"
 
 CRITICAL_SECTION gCommandCS;
-BOOL bgCommandCS = 0;
+
 typedef struct _TIMEDCOMMAND
 {
     ULONGLONG Time;
@@ -537,7 +537,6 @@ void InitializeMQ2Commands()
     int i;
     DebugSpew("Initializing Commands");
     InitializeCriticalSection(&gCommandCS);
-	bgCommandCS = 1;
     EzDetour(CEverQuest__InterpretCmd,&CCommandHook::Detour,&CCommandHook::Trampoline);
 
     // Import EQ commands

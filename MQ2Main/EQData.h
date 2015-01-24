@@ -852,7 +852,8 @@ typedef struct _GROUPMEMBER {
 /*0x09*/ BYTE   Unknown0x8[0x3];
 /*0x0c*/ struct _CXSTR *pOwner; // name of mercenary's owner
 /*0x10*/ DWORD  Level;
-/*0x14*/ BYTE   Unknown0x14[0x2];
+/*0x14*/ BYTE   Offline;//1 if groupmember is offline
+/*0x15*/ BYTE   Unknown0x15;
 /*0x16*/ BYTE   MainTank;
 /*0x17*/ BYTE   MainAssist;
 /*0x18*/ BYTE   Puller;
@@ -1337,7 +1338,9 @@ typedef struct _SPAWNINFO {
 /*0x0150*/ DWORD        IsABoat;                // 1 = a type of boat
 /*0x0154*/ struct _SPAWNINFO*   Mount;      // NULL if no mount present
 /*0x0158*/ struct _SPAWNINFO*   Rider;      // _SPAWNINFO of mount's rider
-/*0x015c*/ BYTE         Unknown0x015c[0x30];
+/*0x015c*/ BYTE         Unknown0x015c[0x4];
+/*0x0160*/ BYTE			Targetable;//1 if mob is targetable
+/*0x0161*/ BYTE         Unknown0x0161[0x2b];
 /*0x018c*/ struct _LAUNCHSPELLDATA      CastingData; // size: 0x50
 /*0x01dc*/ BYTE         Unknown0x01dc[0x2c];
 /*0x0208*/ DWORD        MasterID;
@@ -1760,7 +1763,7 @@ typedef struct _SPELL {
 /*0x024*/   BYTE    Unknown0x24[0x4];
 /*0x028*/   DWORD   Mana;
 /*0x02c*/   LONG    Base[0x0c];         //Base1-Base12
-/*0x05c*/   LONG    Base2[0x0c];        //Mostly unused, setting name to Base2 from Lucy for now
+/*0x05c*/   LONG    Base2[0x0c];        //SpellID of spell for added effects
 /*0x08c*/   LONG    Max[0xc];           //Max1-Max12
 /*0x0bc*/   DWORD   ReagentId[0x4];     //ReagentId1-ReagentId4d
 /*0x0cc*/   DWORD   ReagentCount[0x4];  //ReagentCount1-ReagentCount4

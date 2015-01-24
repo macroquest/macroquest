@@ -659,6 +659,11 @@ VOID CheckChatForEvent(PCHAR szMsg)
 				strcpy(Arg2,strstr(szClean," tells you, '")+13); 
 			Arg2[strlen(Arg2)-1]=0; 
 			AddEvent(EVENT_CHAT,"tell",Arg1,Arg2,NULL); 
+			} else if ((CHATEVENT(CHAT_TELL)) && (strstr(szClean," told you, '"))) { 
+				strncpy(Arg1,szClean,(DWORD)(strstr(szClean," told you, '")-szClean)); 
+				strcpy(Arg2,strstr(szClean," told you, '")+12); 
+			Arg2[strlen(Arg2)-1]=0; 
+			AddEvent(EVENT_CHAT,"tell",Arg1,Arg2,NULL); 
 			} else if ((CHATEVENT(CHAT_OOC)) && (strstr(szClean," says out of character, '"))) { 
 				strncpy(Arg1,szClean,(DWORD)(strstr(szClean," says out of character, '")-szClean)); 
 				strcpy(Arg2,strstr(szClean," says out of character, '")+25); 

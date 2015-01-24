@@ -526,11 +526,13 @@ PLUGIN_API VOID OnPulse()
                 Benchmark(bmStripFirstStmlLines,MQChatWnd->OutputBox->StripFirstSTMLLines(Diff)); 
             } 
             for (DWORD N=0 ; N<ThisPulse ; N++) 
-            { 
-                DebugTry(MQChatWnd->OutputBox->AppendSTML(pPendingChat->Text)); 
-                ChatBuffer *pNext=pPendingChat->pNext; 
-                delete pPendingChat; 
-                pPendingChat=pNext; 
+            {
+				if(pPendingChat) {
+					DebugTry(MQChatWnd->OutputBox->AppendSTML(pPendingChat->Text)); 
+					ChatBuffer *pNext=pPendingChat->pNext; 
+					delete pPendingChat; 
+					pPendingChat=pNext; 
+				}
                 //DebugSpew("NEW: max %u - pos: %u",MQChatWnd->OutputBox->VScrollMax,MQChatWnd->OutputBox->VScrollPos); 
             } 
             if (!pPendingChat) 

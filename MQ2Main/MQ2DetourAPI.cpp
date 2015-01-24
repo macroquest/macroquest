@@ -931,16 +931,63 @@ int __cdecl memcheck4(unsigned char *buffer, int count, struct mckey key)
 #endif
     return eax;
 }
-//changed in jan 21 2014 eqgame.exe - eqmule
-VOID __cdecl CrashDetected_Trampoline(BOOL); 
-VOID __cdecl CrashDetected_Detour(BOOL bFlag)//no idea, but it seems to be set to 1, maybe log and send? or just log dont send?
-{ 
-//    CrashDetected_Trampoline(bFlag);
-	MessageBox(0,"MacroQuest2 is blocking the 'send Sony crash info?' box for your safety and privacy.  Crashes are usually bugs either in EQ or in MacroQuest2.  It is generally not something that you yourself did, unless you have custom MQ2 plugins loaded.  If you want to submit a bug report to the MacroQuest2 message boards, please follow the instructions on how to submit a crash bug report at the top of the MQ2::Bug Reports forum.","EverQuest Crash Detected",MB_OK);
-	DebugBreak();
-} 
-DETOUR_TRAMPOLINE_EMPTY(VOID CrashDetected_Trampoline(BOOL)); 
+typedef struct _Launchinfo
+{
+/*0x000*/	PCHAR eqgamepath;
+/*0x004*/	PCHAR CmdLine;
+} Launchinfo,*PLaunchinfo;
+typedef struct _EQCrash
+{
+/*0x000*/	DWORD funcaddress;
+/*0x004*/	DWORD Unknown0x004;
+/*0x008*/	DWORD ErrorCode;
+/*0x00C*/	DWORD Unknown0x00C; //00000000
+/*0x010*/	DWORD Unknown0x010; //FFFFFFFF
+/*0x014*/	PLaunchinfo pLinfo;
+} EQCrash,*PEQCrash;
+typedef struct _CrashReport
+{
+/*0x000*/	DWORD Unknown0x000;
+/*0x004*/	DWORD Unknown0x004;
+/*0x008*/	DWORD Unknown0x008;
+/*0x00C*/	DWORD Unknown0x00C;
+/*0x010*/	PEQCrash pthecrash;
+/*0x014*/	PCHAR sessionpath;
+} CrashReport,*PCrashReport;
 
+int wwsCrashReportCheckForUploader_Trampoline(PEQCrash,PCHAR,size_t); 
+int wwsCrashReportCheckForUploader_Detour(PEQCrash crash,PCHAR crashuploder,size_t ncrashuploder)
+{ 
+	wwsCrashReportCheckForUploader_Trampoline(crash,crashuploder,ncrashuploder);
+	//should we redirect the upload? we could have our own server for these dumps I suppose...
+	//strcpy_s(crashuploder,ncrashuploder,"mq2_crashreport_uploader.exe");
+	//for now im just renaming the folder and returning 0 this will stop any uploads.
+	//hmm... -eqmule
+
+	ZeroMemory(crashuploder,ncrashuploder);
+	PCrashReport pTheCrash = (PCrashReport)(((DWORD)crashuploder)+ncrashuploder);
+	CHAR szMessage[MAX_STRING] = {0};
+	CHAR szNewPath[MAX_STRING] = {0};
+	sprintf_s(szNewPath,"%s.Copy",pTheCrash->sessionpath);
+	MoveFile(pTheCrash->sessionpath,szNewPath);
+	sprintf_s(szMessage,"MacroQuest2 is blocking the sending of Sony crash info for your safety and privacy.  Crashes are usually bugs either in EQ or in MacroQuest2.  It is generally not something that you yourself did, unless you have custom MQ2 plugins loaded.  If you want to submit a bug report to the MacroQuest2 message boards, please follow the instructions on how to submit a crash bug report at the top of the MQ2::Bug Reports forum.\n\nA MiniDump has been generated in %s, you can mail the .dmp file in that directory to eqmule@hotmail.com if you think this crash is mq2 related.\n\nFull dumps are located in C:\\Crash if one was generated.\n\nIf you like to break into debugger at this point click yes.",szNewPath);
+	int ret = MessageBox(0,szMessage,"EverQuest Crash Report Sending Detected",MB_YESNO);
+	if(ret==IDYES)
+		DebugBreak();
+	//and return 0 (no uploader found)
+	return 0;
+} 
+DETOUR_TRAMPOLINE_EMPTY(int wwsCrashReportCheckForUploader_Trampoline(PEQCrash,PCHAR,size_t)); 
+//changed in jan 21 2014 eqgame.exe - eqmule
+PCHAR __cdecl CrashDetected_Trampoline(BOOL,PCHAR);
+PCHAR __cdecl CrashDetected_Detour(BOOL flag,PCHAR SessionPath)
+{
+	//this function returns a pointer to whatever it writes to the log.
+	//yeah uhm we don't need to show this dialog or we could show our own to have crashdumps sent to us
+	//but for now im just gonna put a pin in that idea. -eqmule
+	return 0;
+}
+DETOUR_TRAMPOLINE_EMPTY(PCHAR CrashDetected_Trampoline(BOOL,PCHAR));
 DETOUR_TRAMPOLINE_EMPTY(int LoadFrontEnd_Trampoline());
 #ifndef TESTMEM
 int LoadFrontEnd_Detour()
@@ -958,6 +1005,7 @@ void InitializeMQ2Detours()
     InitializeCriticalSection(&gDetourCS);
     HookMemChecker(TRUE);
 #endif
+    EzDetour(wwsCrashReportCheckForUploader,wwsCrashReportCheckForUploader_Detour,wwsCrashReportCheckForUploader_Trampoline);
     EzDetour(CrashDetected,CrashDetected_Detour,CrashDetected_Trampoline);
 #ifndef TESTMEM
     EzDetour(__LoadFrontEnd, LoadFrontEnd_Detour, LoadFrontEnd_Trampoline);
@@ -967,6 +1015,7 @@ void InitializeMQ2Detours()
 void ShutdownMQ2Detours()
 {
     RemoveDetour(CrashDetected);
+	RemoveDetour(wwsCrashReportCheckForUploader);
     RemoveDetour(__LoadFrontEnd);
 #ifndef ISXEQ
     HookMemChecker(FALSE);

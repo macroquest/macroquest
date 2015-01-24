@@ -5420,13 +5420,13 @@ BOOL SpawnMatchesSearch(PSEARCHSPAWN pSearchSpawn, PSPAWNINFO pChar, PSPAWNINFO 
         if (pSearchSpawn->szLight[0] && stricmp(pLight,pSearchSpawn->szLight)) 
             return FALSE;
     }
-    if ((pSearchSpawn->bAlert) && gAlertMap.size()>=pSearchSpawn->AlertList) {
-		if (!IsAlert(pChar,pSpawn,pSearchSpawn->AlertList)) 
-			return FALSE;
+    if ((pSearchSpawn->bAlert) && CAlerts.AlertExist(pSearchSpawn->AlertList)) {
+        if (!IsAlert(pChar,pSpawn,pSearchSpawn->AlertList)) 
+            return FALSE;
     }
-    if ((pSearchSpawn->bNoAlert) && gAlertMap.size()>=pSearchSpawn->NoAlertList) {
-		if (IsAlert(pChar,pSpawn,pSearchSpawn->NoAlertList)) 
-			return FALSE;
+    if ((pSearchSpawn->bNoAlert) && CAlerts.AlertExist(pSearchSpawn->NoAlertList)) {
+        if (IsAlert(pChar,pSpawn,pSearchSpawn->NoAlertList)) 
+            return FALSE;
     }
     if ((pSearchSpawn->bNotNearAlert) && (GetClosestAlert(pSpawn, pSearchSpawn->NotNearAlertList))) 
         return FALSE;
@@ -5683,55 +5683,6 @@ VOID ParseSearchSpawn(int BeginInclusive, int EndExclusive,char *argv[], SEARCHS
 #endif
 
 #ifndef ISXEQ_LEGACY
-BOOL GetAlert(DWORD Id,std::list<SEARCHSPAWN>&ss) {
-	int sz = gAlertMap.size();
-	if(sz && Id<=gAlertMap.size()) {
-		ss = gAlertMap[Id];
-		return TRUE;
-	}
-    return FALSE;
-}
-BOOL RemoveAlertFromList(DWORD Id, PSEARCHSPAWN pSearchSpawn)
-{
-	std::list<SEARCHSPAWN>ss;
-	if(GetAlert(Id,ss)) {
-		for(std::list<SEARCHSPAWN>::iterator i = gAlertMap[Id].begin();i!=gAlertMap[Id].end();i++) {
-			BOOL bmatch = SearchSpawnMatchesSearchSpawn(&(*i),pSearchSpawn);
-			if(bmatch) {
-				gAlertMap[Id].erase(i);
-				return TRUE;
-			}
-		}
-	}
-	return FALSE;
-}
-BOOL AddNewAlertList(DWORD Id, PSEARCHSPAWN pSearchSpawn)
-{
-	std::list<SEARCHSPAWN>ss;
-	BOOL bCanAdd = 1;
-	if(GetAlert(Id,ss)) {
-		for(std::list<SEARCHSPAWN>::iterator i = gAlertMap[Id].begin();i!=gAlertMap[Id].end();i++) {
-			if(SearchSpawnMatchesSearchSpawn(&(*i),pSearchSpawn)) {
-				bCanAdd = 0;
-				break;
-			}
-		}
-	}
-	if(bCanAdd) {
-		gAlertMap[Id].push_back(*pSearchSpawn);
-		return TRUE;
-	}
-	return FALSE;
-}
-VOID FreeAlerts(DWORD List)
-{
-	if(gAlertMap.size()>=List) {
-		gAlertMap.erase(List);
-	}
-	CHAR szBuffer[64] = {0};
-    sprintf_s(szBuffer,"Alert list %d cleared.",List);
-    WriteChatColor(szBuffer,USERCOLOR_DEFAULT);
-}
 
 BOOL GetClosestAlert(PSPAWNINFO pChar, DWORD List)
 {
@@ -5741,7 +5692,7 @@ BOOL GetClosestAlert(PSPAWNINFO pChar, DWORD List)
     PSPAWNINFO pSpawn, pClosest = FALSE;
     FLOAT ClosestDistance = 50000.0f;
 	std::list<SEARCHSPAWN>ss;
-    if(GetAlert(List,ss)) {
+    if(CAlerts.GetAlert(List,ss)) {
 		for (std::list<SEARCHSPAWN>::iterator i=ss.begin();i!=ss.end();i++) {
 			if (pSpawn = SearchThroughSpawns(&(*i),pChar)) {
 				if (DistanceToSpawn(pChar,pSpawn)<ClosestDistance) {
@@ -5756,20 +5707,20 @@ BOOL GetClosestAlert(PSPAWNINFO pChar, DWORD List)
 BOOL IsAlert(PSPAWNINFO pChar, PSPAWNINFO pSpawn, DWORD List)
 {
     CHAR szName[MAX_STRING] = {0};
-    SEARCHSPAWN SearchSpawn;
+	SEARCHSPAWN SearchSpawn = {0};
 	std::list<SEARCHSPAWN>ss;
-    if(GetAlert(List,ss)) {
+    if(CAlerts.GetAlert(List,ss)) {
 		for (std::list<SEARCHSPAWN>::iterator i=ss.begin();i!=ss.end();i++) {
 			CopyMemory(&SearchSpawn,&(*i),sizeof(SEARCHSPAWN));
 			if ((SearchSpawn.SpawnID>0) && (SearchSpawn.SpawnID!=pSpawn->SpawnID))
 				continue;
-			SearchSpawn.SpawnID = pSpawn->SpawnID;
-			// if this spawn matches, it's true 
-			// this is an implied logical or
-			if (SpawnMatchesSearch(&SearchSpawn, pChar, pSpawn))
-				return TRUE;
+        SearchSpawn.SpawnID = pSpawn->SpawnID;
+        // if this spawn matches, it's true 
+        // this is an implied logical or
+        if (SpawnMatchesSearch(&SearchSpawn, pChar, pSpawn))
+            return TRUE;
 		}
-	}
+    }
     return FALSE;
 }
 
@@ -5777,45 +5728,44 @@ BOOL CheckAlertForRecursion(PSEARCHSPAWN pSearchSpawn,DWORD List)
 {
     if (!pSearchSpawn) return FALSE;
 	std::list<SEARCHSPAWN>ss;
-	if(GetAlert(List,ss)) {
-		for (std::list<SEARCHSPAWN>::iterator i = ss.begin();i!=ss.end();i++) {
-			if (pSearchSpawn->bAlert) {
-				if (pSearchSpawn->AlertList == List) {
-					return TRUE;
-				}
-				if (CheckAlertForRecursion(pSearchSpawn,pSearchSpawn->AlertList)) {
-					return TRUE;
-				}
-			}
-		   if (pSearchSpawn->bNoAlert) {
-				if (pSearchSpawn->NoAlertList == List) {
-					return TRUE;
-				}
-				if (CheckAlertForRecursion(pSearchSpawn,pSearchSpawn->NoAlertList)) {
-					return TRUE;
-				}
-			}
-			if (pSearchSpawn->bNearAlert) {
-				if (pSearchSpawn->NearAlertList == List) {
-					return TRUE;
-				}
-				if (CheckAlertForRecursion(pSearchSpawn,pSearchSpawn->NearAlertList)) {
-					return TRUE;
-				}
-			}
-			if (pSearchSpawn->bNotNearAlert) {
-				if (pSearchSpawn->NotNearAlertList == List) {
-					return TRUE;
-				}
-				if (CheckAlertForRecursion(pSearchSpawn,pSearchSpawn->NotNearAlertList)) {
-					return TRUE;
-				}
-			}
-		}
+	if(CAlerts.GetAlert(List,ss)) {
+	for (std::list<SEARCHSPAWN>::iterator i = ss.begin();i!=ss.end();i++) {
+        if (pSearchSpawn->bAlert) {
+            if (pSearchSpawn->AlertList == List) {
+                return TRUE;
+            }
+			if (CheckAlertForRecursion(pSearchSpawn,pSearchSpawn->AlertList)) {
+				return TRUE;
+            }
+        }
+       if (pSearchSpawn->bNoAlert) {
+            if (pSearchSpawn->NoAlertList == List) {
+                return TRUE;
+            }
+			if (CheckAlertForRecursion(pSearchSpawn,pSearchSpawn->NoAlertList)) {
+				return TRUE;
+            }
+        }
+        if (pSearchSpawn->bNearAlert) {
+            if (pSearchSpawn->NearAlertList == List) {
+                return TRUE;
+            }
+            if (CheckAlertForRecursion(pSearchSpawn,pSearchSpawn->NearAlertList)) {
+				return TRUE;
+            }
+        }
+        if (pSearchSpawn->bNotNearAlert) {
+            if (pSearchSpawn->NotNearAlertList == List) {
+                return TRUE;
+            }
+            if (CheckAlertForRecursion(pSearchSpawn,pSearchSpawn->NotNearAlertList)) {
+				return TRUE;
+            }
+        }
+    }
 	}
     return FALSE;
 }
-
 // ***************************************************************************
 // Function:    CleanupName
 // Description: Cleans up NPC names
@@ -6480,6 +6430,23 @@ DWORD GetGameState(VOID)
 }
 
 // ***************************************************************************
+// Function:    LargerEffectTest
+// Description: Return boolean true if the spell effect is to be ignored
+//              for stacking purposes
+// ***************************************************************************
+BOOL LargerEffectTest (PSPELL aSpell, PSPELL bSpell, int i)
+{
+	if ((aSpell->Attrib[i]==1 && bSpell->Attrib[i]==1)				// Ac Mod
+	 || (aSpell->Attrib[i]==55 && bSpell->Attrib[i]==55)			// Add Effect: Absorb Damage
+	 ||	(aSpell->Attrib[i]==69 && bSpell->Attrib[i]==69)			// Max HP Mod
+	 ||	(aSpell->Attrib[i]==79 && bSpell->Attrib[i]==79)			// HP Mod
+	 ||	(aSpell->Attrib[i]==114 && bSpell->Attrib[i]==114)			// Aggro Multiplier
+	 ||	(aSpell->Attrib[i]==127 && bSpell->Attrib[i]==127))			// Spell Haste
+		return aSpell->Base[i]>=bSpell->Base[i];
+	return false;
+}
+
+// ***************************************************************************
 // Function:    TriggeringEffectSpell
 // Description: Return boolean true if the spell effect is to be ignored
 //              for stacking purposes
@@ -6496,7 +6463,8 @@ BOOL TriggeringEffectSpell (PSPELL aSpell, int i)
 // Description: Return boolean true if the spell effect is to be ignored
 //              for stacking purposes
 // ***************************************************************************
-BOOL SpellEffectTest (PSPELL aSpell, PSPELL bSpell, int i){
+BOOL SpellEffectTest (PSPELL aSpell, PSPELL bSpell, int i, BOOL bIgnoreTriggeringEffects)
+{
 	return ((aSpell->Attrib[i]==57 || bSpell->Attrib[i]==57)		// Levitate
 		 || (aSpell->Attrib[i]==134 || bSpell->Attrib[i]==134)		// Limit: Max Level
 		 || (aSpell->Attrib[i]==135 || bSpell->Attrib[i]==135)		// Limit: Resist
@@ -6524,6 +6492,8 @@ BOOL SpellEffectTest (PSPELL aSpell, PSPELL bSpell, int i){
 		 || (aSpell->Attrib[i]==422 || bSpell->Attrib[i]==422)		// Limit: Use Min
 		 || (aSpell->Attrib[i]==423 || bSpell->Attrib[i]==423)		// Limit: Use Type
 	     || (aSpell->Attrib[i]==428 || bSpell->Attrib[i]==428)		// Skill_Proc_Modifier
+		 || (LargerEffectTest(aSpell, bSpell, i))					// Ignore if the new effect is greater than the old effect
+		 || (bIgnoreTriggeringEffects && (TriggeringEffectSpell(aSpell, i) || TriggeringEffectSpell(bSpell, i)))		// Ignore triggering effects validation
 		 || ((aSpell->SpellType==1 || aSpell->SpellType==2) && (bSpell->SpellType==1 || bSpell->SpellType==2) && !(aSpell->DurationWindow==bSpell->DurationWindow)));
 }
 
@@ -6534,27 +6504,34 @@ BOOL SpellEffectTest (PSPELL aSpell, PSPELL bSpell, int i){
 //                ${Spell[xxx].WillStack[yyy]}, ${Spell[xxx].StacksWith[yyy]}
 // Author:      Pinkfloydx33
 // ***************************************************************************
-BOOL BuffStackTest(PSPELL aSpell, PSPELL bSpell)
+BOOL BuffStackTest(PSPELL aSpell, PSPELL bSpell, BOOL bIgnoreTriggeringEffects)
 {
     if (aSpell->ID==bSpell->ID) return true;
 
+	//WriteChatf("aSpell->Name=%s bSpell->Name= %s", aSpell->Name, bSpell->Name);
     int i;
     for (i=0; i<=11; i++) {
         //Compare 1st Buff to 2nd. If Attrib[i]==254 its a place holder. If it is 10 it
         //can be 1 of 3 things: PH(Base=0), CHA(Base>0), Lure(Base=-6). If it is Lure or
         //Placeholder, exclude it so slots don't match up. Now Check to see if the slots
         //have equal attribute values. If the do, they don't stack.
-        //WriteChatf("\nSlot %d: bSpell->Attrib=%d, bSpell->Base=%d, bSpell->TargetType=%d, aSpell->Attrib=%d, aSpell->Base=%d, aSpell->TargetType=%d", i, bSpell->Attrib[i], bSpell->Base[i], bSpell->TargetType, aSpell->Attrib[i], aSpell->Base[i], aSpell->TargetType);
-		if (bSpell->Attrib[i]==aSpell->Attrib[i] && !(SpellEffectTest(aSpell, bSpell, i)))
-            if (!((bSpell->Attrib[i]==10 && (bSpell->Base[i]==-6 || bSpell->Base[i]==0)) ||
-                (aSpell->Attrib[i]==10 && (aSpell->Base[i]==-6 || aSpell->Base[i]==0)) ||
-                (bSpell->Attrib[i]==79 && bSpell->Base[i]>0 && bSpell->TargetType==6) ||
-                (aSpell->Attrib[i]==79 && aSpell->Base[i]>0 && aSpell->TargetType==6) ||
-                (bSpell->Attrib[i]==0  && bSpell->Base[i]<0) ||
-                (aSpell->Attrib[i]==0  && aSpell->Base[i]<0) ||
-                (bSpell->Attrib[i]==148 || bSpell->Attrib[i]==149) ||
-                (aSpell->Attrib[i]==148 || aSpell->Attrib[i]==149)))
-                return false;
+        //WriteChatf("Slot %d: bSpell->Attrib=%d, bSpell->Base=%d, bSpell->TargetType=%d, aSpell->Attrib=%d, aSpell->Base=%d, aSpell->TargetType=%d", i, bSpell->Attrib[i], bSpell->Base[i], bSpell->TargetType, aSpell->Attrib[i], aSpell->Base[i], aSpell->TargetType);
+		if (bSpell->Attrib[i]==aSpell->Attrib[i] && !(SpellEffectTest(aSpell, bSpell, i, bIgnoreTriggeringEffects))) {
+			//WriteChatf("Inside IF");
+			if (aSpell->Attrib[i]==55 && bSpell->Attrib[i]==55) {
+				//WriteChatf("Increase Absorb Damage by %d over %d", aSpell->Base[i], bSpell->Base[i]);
+				return (aSpell->Base[i]>=bSpell->Base[i]);
+			}
+            else if (!((bSpell->Attrib[i]==10 && (bSpell->Base[i]==-6 || bSpell->Base[i]==0)) ||
+                     (aSpell->Attrib[i]==10 && (aSpell->Base[i]==-6 || aSpell->Base[i]==0)) ||
+                     (bSpell->Attrib[i]==79 && bSpell->Base[i]>0 && bSpell->TargetType==6) ||
+                     (aSpell->Attrib[i]==79 && aSpell->Base[i]>0 && aSpell->TargetType==6) ||
+                     (bSpell->Attrib[i]==0  && bSpell->Base[i]<0) ||
+                     (aSpell->Attrib[i]==0  && aSpell->Base[i]<0) ||
+                     (bSpell->Attrib[i]==148 || bSpell->Attrib[i]==149) ||
+                     (aSpell->Attrib[i]==148 || aSpell->Attrib[i]==149)))
+					  return false;
+		}
         //Check to see if second buffs blocks first buff:
         //148: Stacking: Block new spell if slot %d is effect
         //149: Stacking: Overwrite existing spell if slot %d is effect
@@ -7561,6 +7538,7 @@ DWORD __stdcall RefreshMountKeyRingThread(PVOID pData)
 void RefreshMountKeyRing(PVOID kr)
 {
 	DWORD nThread = 0;
+	Beep(1000,100);
 	CreateThread(NULL,0,RefreshMountKeyRingThread,kr,NULL,&nThread);
 }
 int GetMountCount()

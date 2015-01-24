@@ -24,7 +24,7 @@ GNU General Public License for more details.
 #include "MQ2Main.h"
 #include <Shellapi.h>
 #include <mmsystem.h>
-
+CMQ2Alerts CAlerts;
 // ***************************************************************************
 // Function:    Unload
 // Description: Our '/unload' command
@@ -1322,6 +1322,48 @@ VOID Location(PSPAWNINFO pChar, PCHAR szLine)
     WriteChatColor(szMsg,USERCOLOR_DEFAULT);
 }
 
+BOOL CMQ2Alerts::RemoveAlertFromList(DWORD Id, PSEARCHSPAWN pSearchSpawn)
+{
+	std::list<SEARCHSPAWN>ss;
+	if(_AlertMap.find(Id)!=_AlertMap.end()) {
+		for(std::list<SEARCHSPAWN>::iterator i = _AlertMap[Id].begin();i!=_AlertMap[Id].end();i++) {
+			BOOL bmatch = SearchSpawnMatchesSearchSpawn(&(*i),pSearchSpawn);
+			if(bmatch) {
+				_AlertMap[Id].erase(i);
+				return TRUE;
+			}
+		}
+	}
+	return FALSE;
+}
+BOOL CMQ2Alerts::AddNewAlertList(DWORD Id, PSEARCHSPAWN pSearchSpawn)
+{
+	lockit lk(_hLockMapWrite);
+	BOOL bCanAdd = 1;
+	if(_AlertMap.find(Id)!=_AlertMap.end()) {
+		for(std::list<SEARCHSPAWN>::iterator i = _AlertMap[Id].begin();i!=_AlertMap[Id].end();i++) {
+			if(SearchSpawnMatchesSearchSpawn(&(*i),pSearchSpawn)) {
+				bCanAdd = 0;
+				break;
+			}
+		}
+	}
+	if(bCanAdd) {
+		_AlertMap[Id].push_back(*pSearchSpawn);
+		return TRUE;
+	}
+	return FALSE;
+}
+VOID CMQ2Alerts::FreeAlerts(DWORD List)
+{
+	lockit lk(_hLockMapWrite);
+	if(_AlertMap.size()>=List) {
+		_AlertMap.erase(List);
+	}
+	CHAR szBuffer[64] = {0};
+	sprintf_s(szBuffer,"Alert list %d cleared.",List);
+	WriteChatColor(szBuffer,USERCOLOR_DEFAULT);
+}
 // ***************************************************************************
 // Function:    Alert
 // Description: Our '/alert' command
@@ -1351,13 +1393,13 @@ VOID Alert(PSPAWNINFO pChar, PCHAR szLine)
             szRest = GetNextArg(szRest,1);
             if (!strcmp(szArg,"clear")) {
                 GetArg(szArg,szRest,1);
-                FreeAlerts(atoi(szArg));
+                CAlerts.FreeAlerts(atoi(szArg));
                 DidSomething = TRUE;
             } else if (!strcmp(szArg,"list")) {
                 GetArg(szArg,szRest,1);
                 szRest = GetNextArg(szRest,1);
 				std::list<SEARCHSPAWN>ss;
-                if (GetAlert(atoi(szArg),ss)) {
+                if (CAlerts.GetAlert(atoi(szArg),ss)) {
                     CHAR Buffer[MAX_STRING] = {0};
                     DWORD Count=0;
                     WriteChatColor(" ",USERCOLOR_DEFAULT);
@@ -1398,13 +1440,14 @@ VOID Alert(PSPAWNINFO pChar, PCHAR szLine)
                     }
                 }
                 CHAR szTemp[MAX_STRING] = {0};
-                if (RemoveAlertFromList(List,pSearchSpawn)) {
+                if (CAlerts.RemoveAlertFromList(List,pSearchSpawn)) {
 					sprintf(Buffer,"Removed alert for: %s",FormatSearchSpawn(szTemp,pSearchSpawn));
 				} else {
 					MacroError("Couldn't find alert.");
 					sprintf(Buffer,"Couldn't find alert.");
 				}
-				free(pSearchSpawn);
+				if(pSearchSpawn)
+					free(pSearchSpawn);
                 WriteChatColor(Buffer,USERCOLOR_DEFAULT);
                 DidSomething = TRUE;
 			} else if (!strcmp(szArg,"add")) {
@@ -1440,11 +1483,15 @@ VOID Alert(PSPAWNINFO pChar, PCHAR szLine)
                 CHAR szTemp[MAX_STRING] = {0};
                 if (CheckAlertForRecursion(pSearchSpawn, List)) {
                     sprintf(Buffer,"Alert would have caused recursion: %s",FormatSearchSpawn(szTemp,pSearchSpawn));
-                    free(pSearchSpawn);
                 } else {
-                    AddNewAlertList(List,pSearchSpawn);
-                    sprintf(Buffer,"Added alert for: %s",FormatSearchSpawn(szTemp,pSearchSpawn));
+                    if(CAlerts.AddNewAlertList(List,pSearchSpawn)) {
+						sprintf(Buffer,"Added alert for: %s",FormatSearchSpawn(szTemp,pSearchSpawn));
+					} else {
+						sprintf(Buffer,"Alert NOT added because there was already an alert for: %s",FormatSearchSpawn(szTemp,pSearchSpawn));
+					}
                 }
+				if(pSearchSpawn)
+					free(pSearchSpawn);
                 DebugSpew("Alert - %s",Buffer);
                 WriteChatColor(Buffer,USERCOLOR_DEFAULT);
                 DidSomething = TRUE;
@@ -3563,32 +3610,27 @@ VOID GetWinTitle(PSPAWNINFO pChar, PCHAR szLine)
 VOID PetCmd(PSPAWNINFO pChar, PCHAR szLine)
 {
     if (!szLine[0]) {
-		WriteChatColor("Usage: /pet attack #");
+		WriteChatColor("Usage: /pet attack/qattack # where # is the spawnid of the mob you want the pet to attack");
 		cmdPet(pChar,szLine);
         return;
     } else {
-		/*CHAR szID[MAX_STRING] = {0};
+		CHAR szID[MAX_STRING] = {0};
 		CHAR szCmd[MAX_STRING] = {0};
 		GetArg(szCmd,szLine,1);
+		int cmdtype = 0;
 		if(!_stricmp(szCmd,"attack")) {
-			//its the attack command
-			GetArg(szID,szLine,2);
-			if(IsNumber(szID)) {
-				if(PSPAWNINFO pSpawn = (PSPAWNINFO)GetSpawnByID(atoi(szID))) {
-					pEverQuest->IssuePetCommand((EQClasses::PetCommandType)2,pSpawn->SpawnID,0);
-					return;
-				}
-			}
+			cmdtype = 2;
 		} else if(!_stricmp(szCmd,"qattack")) {
-			//its the attack command
+			cmdtype = 3;
+		}
+		if(cmdtype) {
 			GetArg(szID,szLine,2);
 			if(IsNumber(szID)) {
 				if(PSPAWNINFO pSpawn = (PSPAWNINFO)GetSpawnByID(atoi(szID))) {
-					pEverQuest->IssuePetCommand((EQClasses::PetCommandType)3,pSpawn->SpawnID,0);
-					return;
+					return pEverQuest->IssuePetCommand((EQClasses::PetCommandType)cmdtype,pSpawn->SpawnID,0);
 				}
 			}
-		}*/
+		}
 		cmdPet(pChar,szLine);
 	}
 }

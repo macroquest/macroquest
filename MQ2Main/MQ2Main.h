@@ -455,10 +455,12 @@ EQLIB_API DWORD GetSpellRankByName(PCHAR SpellName);
 EQLIB_API VOID RemoveBuff(PSPAWNINFO pChar, PCHAR szLine);
 EQLIB_API bool StripQuotes(char *str);
 EQLIB_API VOID MakeMeVisible(PSPAWNINFO pChar, PCHAR szLine);
+
 EQLIB_API DWORD GetMountKeyRingIndex(char *szItemName, bool bExact = true, bool usecmd = false);
 EQLIB_API int GetMountCount();
 EQLIB_API void RefreshMountKeyRing(PVOID kr);
 EQLIB_API void InitMountKeyRing();
+EQLIB_API CMQ2Alerts CAlerts;
 typedef struct _krdata
 {
 	CHAR ItemName[256];
@@ -528,7 +530,7 @@ EQLIB_API bool GetShortBuffID(PSPELLBUFF pBuff, DWORD &nID);
 EQLIB_API bool GetBuffID(PSPELLBUFF pBuff, DWORD &nID);
 EQLIB_API PCHAR GetLDoNTheme(DWORD LDTheme);
 EQLIB_API BOOL TriggeringEffectSpell (PSPELL aSpell, int i);
-EQLIB_API BOOL BuffStackTest(PSPELL aSpell, PSPELL bSpell);
+EQLIB_API BOOL BuffStackTest(PSPELL aSpell, PSPELL bSpell, BOOL bIgnoreTriggeringEffects=FALSE);
 EQLIB_API DWORD GetItemTimer(PCONTENTS pItem);
 EQLIB_API PCONTENTS GetItemContentsBySlotID(DWORD dwSlotID);
 EQLIB_API PCONTENTS GetItemContentsByName(CHAR *ItemName);
@@ -561,6 +563,7 @@ EQLIB_API PSPAWNINFO NthNearestSpawn(PSEARCHSPAWN pSearchSpawn, DWORD Nth, PSPAW
 EQLIB_API DWORD CountMatchingSpawns(PSEARCHSPAWN pSearchSpawn, PSPAWNINFO pOrigin, BOOL IncludeOrigin=FALSE);
 EQLIB_API PSPAWNINFO SearchThroughSpawns(PSEARCHSPAWN pSearchSpawn, PSPAWNINFO pChar);
 EQLIB_API BOOL SpawnMatchesSearch(PSEARCHSPAWN pSearchSpawn, PSPAWNINFO pChar, PSPAWNINFO pSpawn);
+EQLIB_API BOOL SearchSpawnMatchesSearchSpawn(PSEARCHSPAWN pSearchSpawn1, PSEARCHSPAWN pSearchSpawn2);
 LEGACY_API PCHAR ParseSearchSpawnArgs(PCHAR szArg, PCHAR szRest, PSEARCHSPAWN pSearchSpawn);
 #ifndef ISXEQ
 LEGACY_API VOID ParseSearchSpawn(PCHAR Buffer, PSEARCHSPAWN pSearchSpawn);
@@ -572,10 +575,6 @@ EQLIB_API BOOL IsPCNear(PSPAWNINFO pSpawn, FLOAT Radius);
 EQLIB_API BOOL IsInGroup(PSPAWNINFO pSpawn,BOOL bCorpse = 0);
 EQLIB_API BOOL IsInRaid(PSPAWNINFO pSpawn,BOOL bCorpse = 0);
 EQLIB_API BOOL IsAlert(PSPAWNINFO pChar, PSPAWNINFO pSpawn, DWORD List);
-EQLIB_API BOOL GetAlert(DWORD Id,std::list<SEARCHSPAWN>&ss);
-EQLIB_API BOOL RemoveAlertFromList(DWORD Id, PSEARCHSPAWN pSearchSpawn);
-EQLIB_API BOOL AddNewAlertList(DWORD Id, PSEARCHSPAWN pSearchSpawn);
-EQLIB_API VOID FreeAlerts(DWORD List);
 EQLIB_API BOOL GetClosestAlert(PSPAWNINFO pSpawn, DWORD List);
 EQLIB_API BOOL IsAlert(PSPAWNINFO pChar, PSPAWNINFO pSpawn, DWORD List);
 EQLIB_API BOOL CheckAlertForRecursion(PSEARCHSPAWN pSearchSpawn,DWORD List);
@@ -677,6 +676,7 @@ LEGACY_API BOOL Calculate(PCHAR szFormula, DOUBLE& Dest);
 #define XWM_LCLICK              1
 #define XWM_LMOUSEUP            2
 #define XWM_RCLICK              3
+#define XWM_LDBLCLICK           4
 #define XWM_HITENTER            6
 #define XWM_CLOSE               10
 #define XWM_NEWVALUE            14

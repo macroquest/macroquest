@@ -576,6 +576,12 @@ FUNCTION_AT_ADDRESS(void  CBuffWindow::SetBuffIcon(class CButtonWnd *,int,int),C
 #ifdef CXRect__Move_x
 FUNCTION_AT_ADDRESS(void  CXRect::Move(class CXPoint),CXRect__Move);
 #endif
+#ifdef CTreeView__CTreeView_x
+FUNCTION_AT_ADDRESS(void CTreeView::GetFrameSize(class CXWnd *,unsigned __int32,class CXRect,int) ,CTreeView__CTreeView);
+#endif
+#ifdef CTreeView__dTreeView_x
+FUNCTION_AT_ADDRESS(void CTreeView:~CTreeView(void) ,CTreeView__dTreeView);
+#endif
 #ifdef CTAFrameDraw__GetFrameSize_x
 FUNCTION_AT_ADDRESS(class CXSize  CTAFrameDraw::GetFrameSize(void)const ,CTAFrameDraw__GetFrameSize);
 #endif
@@ -1144,10 +1150,10 @@ FUNCTION_AT_ADDRESS(bool  CContainerWnd::ContainsNoDrop(void),CContainerWnd__Con
 FUNCTION_AT_ADDRESS(class CXRect  CXRect::operator|(class CXRect)const ,CXRect__operator_or);
 #endif
 #ifdef CContextMenu__CContextMenu_x
-FUNCTION_AT_ADDRESS( CContextMenu::CContextMenu(class CXWnd *,unsigned __int32,class CXRect),CContextMenu__CContextMenu);
+FUNCTION_AT_ADDRESS( CContextMenu::CContextMenu(class CXWnd *,unsigned __int32,class CXRect const &),CContextMenu__CContextMenu);
 #endif
 #ifdef CContextMenu__AddMenuItem_x
-FUNCTION_AT_ADDRESS(int  CContextMenu::AddMenuItem(class CXStr,unsigned int,bool,unsigned long),CContextMenu__AddMenuItem);
+FUNCTION_AT_ADDRESS(int  CContextMenu::AddMenuItem(class CXStr const &,unsigned __int32,bool,unsigned long),CContextMenu__AddMenuItem);
 #endif
 #ifdef CContextMenu__AddSeparator_x
 FUNCTION_AT_ADDRESS(int  CContextMenu::AddSeparator(void),CContextMenu__AddSeparator);
@@ -9660,6 +9666,9 @@ FUNCTION_AT_ADDRESS(bool CharacterZoneClient::HasSkill(int), CharacterZoneClient
 #endif
 #ifdef CharacterZoneClient__MakeMeVisible_x
 FUNCTION_AT_ADDRESS(void  CharacterZoneClient::MakeMeVisible(int,bool),CharacterZoneClient__MakeMeVisible);
+#endif
+#ifdef CharacterZoneClient__ApplyDamage_x
+FUNCTION_AT_ADDRESS(int  CharacterZoneClient::ApplyDamage(int,int,int,int,int,int),CharacterZoneClient__ApplyDamage);
 #endif
 #ifdef PcZoneClient__GetPcSkillLimit_x
 FUNCTION_AT_ADDRESS(int PcZoneClient::GetPcSkillLimit(int), PcZoneClient__GetPcSkillLimit);

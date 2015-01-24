@@ -366,7 +366,80 @@ namespace MQ2Internal {
         LPCRITICAL_SECTION pLock;
         BOOL bLocked;
     };
+	//2015-01-14 Lock class for mutexes... -eqmule
+	class lockit {
+	private:
+		bool _locked;
+		HANDLE _hMutex;
+	public:
+		BOOL ok;
+		lockit(HANDLE hMutex)
+		{
+			_hMutex = hMutex;
+			ok = 0;
+			_locked = 0;
+			DWORD ret = WaitForSingleObject(_hMutex,30000);
+			if(ret==WAIT_OBJECT_0)
+			{
+				_locked = 1;
+				ok = 1;
+			} else
+				ok = ret;
+		}
+		~lockit()
+		{
+			//this is COMPLETELY safe to do even if we nest calls, according to doc for ReleaseMutex at MSDN:
+			//http://msdn.microsoft.com/en-us/library/windows/desktop/ms685066(v=vs.85).aspx
+			//A thread can specify a mutex that it already owns in a call to one of the wait functions without blocking its execution.
+			//This prevents a thread from deadlocking itself while waiting for a mutex that it already owns.
+			//However, to release its ownership, the thread must call ReleaseMutex one time for each time
+			//that it obtained ownership (either through CreateMutex or a wait function). -eqmule
+			ReleaseMutex(_hMutex);
+			_locked = 0;
+		}
 
+	};
+	class CMQ2Alerts
+	{
+	private:
+		HANDLE _hLockMapWrite;
+		std::map<DWORD,std::list<SEARCHSPAWN>>_AlertMap;
+	public:
+		CMQ2Alerts()
+		{
+			_hLockMapWrite = CreateMutex(NULL,FALSE,NULL);
+		}
+		~CMQ2Alerts()
+		{
+			if(_hLockMapWrite) {
+				ReleaseMutex(_hLockMapWrite);
+				CloseHandle(_hLockMapWrite);
+				_hLockMapWrite = 0;
+			}
+		}
+		BOOL AddNewAlertList(DWORD Id, PSEARCHSPAWN pSearchSpawn);
+		BOOL CheckAlertForRecursion(PSEARCHSPAWN pSearchSpawn,DWORD List);
+		BOOL RemoveAlertFromList(DWORD Id, PSEARCHSPAWN pSearchSpawn);
+		BOOL GetAlert(DWORD Id,std::list<SEARCHSPAWN>&ss)
+		{
+			lockit lk(_hLockMapWrite);
+			if(_AlertMap.find(Id)!=_AlertMap.end()) {
+				ss = _AlertMap[Id];
+				return TRUE;
+			}
+			return FALSE;
+		}
+		BOOL AlertExist(DWORD List)
+		{
+			lockit lk(_hLockMapWrite);
+			if(_AlertMap.find(List)!=_AlertMap.end()) {
+				return TRUE;
+			}
+			return FALSE;
+		}
+		VOID FreeAlerts(DWORD List);
+	};
+	//extern CMQ2Alerts CAlerts;
     class CCustomWnd : public CSidlScreenWnd
     {
     public:

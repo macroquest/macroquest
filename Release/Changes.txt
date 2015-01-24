@@ -1,3 +1,32 @@
+14 Jan 2015 by eqmule
+- Updated for test patch
+- This is a pretty extensive patch, please do a FULL Rebuild.
+- New Feature see: http://www.macroquest2.com/phpBB3/viewtopic.php?f=17&t=19610
+  you can now have your pet attack a mob without having to target the mob first.
+  Usage: /pet attack/qattack # where # is the spawnid of the mob u want the pet to attack
+  Example: /pet attack ${Spawn[npc targetable los radius 200 range 1 20].ID}
+- Changed the way crashreports are handled.
+  You will get an option to break into debugger now.
+  I also added some info to the crash detected messagebox
+  that lets you know where you can find a copy of the crashdump.
+  Not every crash is related to mq2, but if you have a call stack
+  where you see mq2main.dll, mail the .dmp to me.
+- Added .InInstance to the character TLO
+  it returns true if you are in an instance.
+  Credit: PeteSampras
+- Added a line of code to prevent a ctd in chatwindow
+- Added .Offline to the Group.Member TLO
+  Usage: /echo ${Group.Member[x].Offline}
+  will return a Bool TRUE if offline and FALSE if online
+- Added .OtherZone to the Group.Member TLO
+  Usage: /echo ${Group.Member[x].OtherZone}
+  will return a Bool TRUE if online but in another zone and FALSE if online and in same zone as you.
+- Added .AnyoneMissing to the Group TLO
+  Usage: /echo ${Group.AnyoneMissing}
+  returns TRUE if someone is missing in group, offline, in other zone or simply just dead...
+- Rewrote /Alerts again, I wasn't happy with the last version
+  lets see if this one is better.
+
 31 Dec 2014 Happy New Year Edition by eqmule
 - New Feature see: http://www.macroquest2.com/phpBB3/viewtopic.php?f=17&t=19608
   if you have an item on your cursor and click the name on the targetwindow
@@ -9,6 +38,16 @@
   will remove a previously added alert from list 1 that has is alert on npc and los
   Also alerts are now in a std::list, let me know if there are any problems with this.
   I really hope this wont break any macros, cause code seems to execute a bit faster...
+
+31 Dec 2014 by rswiders
+- Updated spell stacking (stacks, stackspet, stackswith, willstack)
+  Allow stacking of spells that have a greater effect over a lesser one. Used with damage absorption, spell haste, aggro multiplier.
+  The change should not break anything existing as I have just put the triggered effects override in the stackswith/willstack code.
+  Only updated the stackswith code, willstack is using the old code for comparison purposes. Once we determine the fix doesn't break
+  anything, the willstack code will be converted to the new code.
+- Added .Hour12 to Time TLO
+  returns a string of the format ## AM/PM.
+- Change: included "told you," in chat events.
 
 29 Dec 2014 by eqmule
 - Botauthors, you can stop summoning pet weapons when its not needed:
