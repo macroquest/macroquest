@@ -1,9 +1,12 @@
+23 Jan 2015 by eqmule
+- Updated for today's live client patch
+
 22 Jan 2015 by eqmule
 - Removed a MacroError from the ini TLO (sigh)
 - I need a vacation...
 
 22 Jan 2015 by eqmule
-- Fixed ${Ini (that I broke yesterday)
+- Fixed ${Ini (which I broke yesterday)
   It now reads sections and keys correctly again.
   Thanks for the reports.
 - Fixed /alert clear #
