@@ -18,6 +18,7 @@ GNU General Public License for more details.
 #ifndef ISXEQ
 
 #define DBG_SPEW
+#define MAXTURBO 120
 
 #ifdef ISXEQ_LEGACY
 #include "../ISXEQLegacy/ISXEQLegacy.h"
@@ -152,10 +153,10 @@ PMACROBLOCK AddMacroLine(PCHAR szLine)
             gMaxTurbo = atoi(szArg);
             if (gMaxTurbo==0)
                 gMaxTurbo=20;
-            else if (gMaxTurbo>80) 
+            else if (gMaxTurbo>MAXTURBO) 
             {
-                MacroError("#turbo %d is too high, setting at 80 (maximum)",gMaxTurbo);
-                gMaxTurbo=80;
+                MacroError("#turbo %d is too high, setting at %d (maximum)",gMaxTurbo, MAXTURBO);
+                gMaxTurbo=MAXTURBO;
             }
         } else if (!strnicmp(szLine,"#define ",8)) {
             CHAR szArg1[MAX_STRING] = {0};
@@ -1388,6 +1389,63 @@ VOID Next(PSPAWNINFO pChar, PCHAR szLine)
     }
 
     FatalError("/next without matching /for");
+}
+
+// ***************************************************************************
+// Function:    Continue
+// Description: Our '/continue' command
+// Usage:       /continue
+// ***************************************************************************
+VOID Continue(PSPAWNINFO pChar, PCHAR szLine)
+{
+   if (!gMacroBlock) 
+   {
+        MacroError("Can only use /continue during a macro.");
+        return;
+    }
+
+   while (bRunNextCommand = TRUE) 
+   {   
+      if (!strnicmp(gMacroBlock->Line,"Sub ",4) || (!gMacroBlock->pNext))
+      {
+         FatalError("/continue without matching /for ... /next block");
+         return;
+      } 
+	  if (!strnicmp(gMacroBlock->Line,"/next",5))
+      {
+         gMacroBlock = gMacroBlock->pPrev;         
+         break;
+      }
+      gMacroBlock = gMacroBlock->pNext;
+   }
+}
+
+// ***************************************************************************
+// Function:    Break
+// Description: Our '/break' command
+// Usage:       /break
+// ***************************************************************************
+VOID Break(PSPAWNINFO pChar, PCHAR szLine)
+{
+   if (!gMacroBlock) 
+   {
+        MacroError("Can only use /break during a macro.");
+        return;
+    }
+
+   while (bRunNextCommand = TRUE) 
+   {   
+      if (!strnicmp(gMacroBlock->Line,"Sub ",4) || (!gMacroBlock->pNext))
+      {
+         FatalError("/break without matching /for ... /next block");
+         return;
+      } 
+	  if (!strnicmp(gMacroBlock->Line,"/next",5))
+      {
+         break;
+      }
+      gMacroBlock = gMacroBlock->pNext;
+   }
 }
 
 

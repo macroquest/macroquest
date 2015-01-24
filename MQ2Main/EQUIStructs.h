@@ -187,9 +187,10 @@ typedef struct _EQCURRENTSELECTION {
 
 typedef struct _CSIDLWNDVFTABLE {
 VFTABLE;
-/*0x168*/ LPVOID  LoadIniInfo;
-/*0x16c*/ LPVOID  StoreIniInfo;
-/*0x170*/ LPVOID  Unknown0x170;
+/*0x164*/ LPVOID  Unknown0x164;
+/*0x164*/ LPVOID  Unknown0x168;
+/*0x16c*/ LPVOID  LoadIniInfo;
+/*0x170*/ LPVOID  StoreIniInfo;
 /*0x174*/ LPVOID  Unknown0x174;
 /*0x178*/ LPVOID  Unknown0x178;
 /*0x17c*/
@@ -329,6 +330,63 @@ CXW_NO_VTABLE; \
 typedef struct _CSIDLWND {
 CSW;
 } CSIDLWND, *PCSIDLWND;
+
+typedef struct _CCONTEXTMENUVFTABLE {
+VFTABLE;
+/*0x164*/ LPVOID CListWnd_OnHeaderClick;
+/*0x168*/ LPVOID CListWnd__DrawColumnSeparators;
+/*0x16c*/ LPVOID CListWnd__DrawSeparator;
+/*0x170*/ LPVOID CListWnd__DrawLine;
+/*0x174*/ LPVOID CListWnd__DrawHeader;
+/*0x178*/ LPVOID CListWnd__DrawItem;
+/*0x17c*/ LPVOID CListWnd__DeleteAll;
+/*0x180*/ LPVOID CListWnd__Compare;
+/*0x184*/ LPVOID CListWnd__Sort;
+/*0x188*/ LPVOID CContextMenu__ShowAt;
+/*0x18c*/
+} CCONTEXTMENUVFTABLE, *PCCONTEXTMENUVFTABLE; 
+
+// size 0x284 dec 03 2014 -eqmule
+#define CONTEXTW \
+/*0x000*/   struct  _CCONTEXTMENUVFTABLE   *pvfTable; \
+CXW_NO_VTABLE \
+/*0x1dc*/ union { \
+                        struct _CXSTR* SidlText; /*found in CChatWindow__WndNotification_x*/\
+                        DWORD Items; \
+                }; \
+/*0x1e0*/ union { \
+                        struct _CXSTR* SidlScreen; \
+                        DWORD SlotID; \
+                }; \
+/*0x1e4*/ LPVOID SidlPiece; /* CScreenPieceTemplate (important) */ \
+/*0x1e8*/ union { /*find in CSidlScreenWnd__dCSidlScreenWnd_x*/ \
+                struct { \
+                        BYTE Checked; \
+                        BYTE Highlighted; \
+                        BYTE Unused0x1ea[0x2]; \
+                }; \
+                DWORD MaxChars; \
+        }; \
+/*0x1ec*/ DWORD TextureAnim; \
+/*0x1f0*/ struct  _CXSTR* InputText; /*found in CChatWindow__CChatWindow_x*/\
+/*0x1f4*/ DWORD Selector; /*found in CSidlScreenWnd__CSidlScreenWnd1_x*/\
+/*0x1f8*/ DWORD PushToSelector; /*found in CSidlScreenWnd__LoadIniInfo_x*/\
+/*0x1fc*/ DWORD EnableINIStorage; /*found in CSidlScreenWnd__LoadSidlScreen_x*/\
+/*0x200*/ union { \
+                struct _CXSTR* INIStorageName; /*found in CSidlScreenWnd__LoadSidlScreen_x*/\
+                struct _EQINVSLOT* pEQInvSlot; \
+        }; \
+/*0x204*/ BYTE  Unknown0x204[0x10];  \
+/*0x214*/ LPVOID ContextMenu; /* CTextureAnimation */ \
+/*0x218*/ DWORD Unknown0x218; /* CTextureAnimation */ \
+/*0x21c*/ DWORD Unknown0x21c; /* CTextureAnimation */ \
+/*0x220*/ DWORD Unknown0x220; \
+/*0x224*/ BYTE  Unknown0x224[0x60]; \
+/*0x284*/
+
+typedef struct _CCONTEXTMENU {
+CONTEXTW;
+} CCONTEXTMENU, *PCCONTEXTMENU;
 
 // size 0x298  09-03-2008
 typedef struct _CSIDLMGR {

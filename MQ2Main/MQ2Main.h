@@ -259,6 +259,7 @@ EQLIB_API BOOL SetNameSpriteState(PSPAWNINFO pSpawn, bool Show);
 EQLIB_API BOOL IsTargetable(PSPAWNINFO pSpawn);
 
 /* WINDOWS */
+EQLIB_API BOOL CALLBACK EnumWindowsProc(HWND hwnd,LPARAM lParam);
 EQLIB_API VOID InitializeMQ2Windows();
 EQLIB_API VOID ShutdownMQ2Windows();
 EQLIB_API void RemoveXMLFile(const char *filename);

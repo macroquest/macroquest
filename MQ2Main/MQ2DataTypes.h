@@ -3026,6 +3026,7 @@ public:
         Date=10,
         Night=11,
         SecondsSinceMidnight=12,
+		Hour12=13,
     };
     MQ2TimeType():MQ2Type("time")
     {
@@ -3041,6 +3042,7 @@ public:
         TypeMember(Date);
         TypeMember(Night);
         TypeMember(SecondsSinceMidnight);
+		TypeMember(Hour12);
     }
 
     ~MQ2TimeType()

@@ -253,9 +253,26 @@ BOOL ParseINIFile(PCHAR lpINIPath)
 			return TRUE;
 }
 
-
 bool __cdecl MQ2Initialize()
 {
+	if (HMODULE hmLavish=GetModuleHandle("Lavish.dll")) {
+		//I dont know why but if we dont sleep here for a while
+		//we will crash but only if I have a detour on wwsCrashReportCheckForUploader
+		//I suspect Lax would know more about this than me -eqmule
+		//DebugBreak();
+		DWORD lReturn = GetCurrentProcessId();
+		DWORD pid = lReturn;
+		//we use this loop to just wait for wineq2 to get the eqwindow up and running before we move on
+		//there is some kind of weird race condition going on... again lax would know more about this than I...
+		checkagain:
+		EnumWindows(EnumWindowsProc,(LPARAM)&lReturn);
+		if(lReturn==pid) {
+			Sleep(1000);
+			goto checkagain;
+		}
+		//do an extra second for good measure...
+		Sleep(1000);
+	}
     if(!InitOffsets())
     {
         DebugSpewAlways("InitOffsets returned false - thread aborted.");
@@ -370,7 +387,7 @@ void __cdecl MQ2Shutdown()
 
 #ifndef ISXEQ
 // ***************************************************************************
-// Function:    MQ2Start
+// Function:    MQ2Start Thread
 // Description: Where we start execution during the insertion
 // ***************************************************************************
 DWORD WINAPI MQ2Start(LPVOID lpParameter)
@@ -381,9 +398,9 @@ DWORD WINAPI MQ2Start(LPVOID lpParameter)
     CHAR szBuffer[MAX_STRING] = {0};
 
     if (!MQ2Initialize()) {
+		MessageBox(NULL,"Failed to Initialize MQ2 will free lib and exit","MQ2 Error",MB_OK);
         FreeLibraryAndExitThread(GetModuleHandle("MQ2Main.dll"),0);
 	}
-
     while (gGameState != GAMESTATE_CHARSELECT && gGameState != GAMESTATE_INGAME) 
         Sleep(500);
     InitializeMQ2DInput();

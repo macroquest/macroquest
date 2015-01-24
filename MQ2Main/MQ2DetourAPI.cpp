@@ -958,6 +958,7 @@ typedef struct _CrashReport
 int wwsCrashReportCheckForUploader_Trampoline(PEQCrash,PCHAR,size_t); 
 int wwsCrashReportCheckForUploader_Detour(PEQCrash crash,PCHAR crashuploder,size_t ncrashuploder)
 { 
+	//MessageBox(NULL,"crash","crash",MB_OK);
 	wwsCrashReportCheckForUploader_Trampoline(crash,crashuploder,ncrashuploder);
 	//should we redirect the upload? we could have our own server for these dumps I suppose...
 	//strcpy_s(crashuploder,ncrashuploder,"mq2_crashreport_uploader.exe");

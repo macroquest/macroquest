@@ -672,6 +672,8 @@ void InitializeMQ2Commands()
 		{"/removebuff", RemoveBuff,1,1},
 		{"/makemevisible",MakeMeVisible,0,1},
 		{"/pet",        PetCmd,1,1},
+		{"/break",      Break,1,0},
+		{"/continue",   Continue,1,0},
         {NULL,          NULL,0,1},
     };
 

@@ -4132,7 +4132,7 @@ bool MQ2SpellType::GETMEMBER()
 									if (GetSpellDuration(triggeredSpell,(PSPAWNINFO)pCharSpawn)>=0xFFFFFFFE) {
 										buffduration = 99999+1;
 									}
-									if (!BuffStackTest(buffSpell, triggeredSpell) || ((pSpell==triggeredSpell) && (buffduration>duration))) {
+									if (!BuffStackTest(triggeredSpell, buffSpell) || ((pSpell==triggeredSpell) && (buffduration>duration))) {
 										Dest.DWord = false;
 										return true;
 									}
@@ -4142,7 +4142,7 @@ bool MQ2SpellType::GETMEMBER()
 						if (GetSpellDuration(buffSpell,(PSPAWNINFO)pCharSpawn)>=0xFFFFFFFE) {
 							buffduration = 99999+1;
 						}
-						if (!BuffStackTest(buffSpell, pSpell) || ((buffSpell==pSpell) && (buffduration>duration))) {
+						if (!BuffStackTest(pSpell, buffSpell, TRUE) || ((buffSpell==pSpell) && (buffduration>duration))) {
 							Dest.DWord = false;
 							return true;
 						}
@@ -4161,7 +4161,7 @@ bool MQ2SpellType::GETMEMBER()
 										if (GetSpellDuration(triggeredSpell,(PSPAWNINFO)pCharSpawn)>=0xFFFFFFFE) {
 											buffduration = 99999+1;
 										}
-										if (!BuffStackTest(buffSpell, triggeredSpell) || ((pSpell==triggeredSpell) && (buffduration>duration))) {
+										if (!BuffStackTest(triggeredSpell, buffSpell) || ((pSpell==triggeredSpell) && (buffduration>duration))) {
 											Dest.DWord = false;
 											return true;
 										}
@@ -4171,7 +4171,7 @@ bool MQ2SpellType::GETMEMBER()
 							if (GetSpellDuration(buffSpell,(PSPAWNINFO)pCharSpawn)>=0xFFFFFFFE) {
 								buffduration = 99999+1;
 							}
-							if (!BuffStackTest(buffSpell, pSpell) || ((buffSpell==pSpell) && (buffduration>duration))) {
+							if (!BuffStackTest(pSpell, buffSpell, TRUE) || ((buffSpell==pSpell) && (buffduration>duration))) {
 								Dest.DWord = false;
 								return true;
 							}
@@ -4201,7 +4201,7 @@ bool MQ2SpellType::GETMEMBER()
 									if (GetSpellDuration(triggeredSpell,(PSPAWNINFO)pCharSpawn)>=0xFFFFFFFE) {
 										petbuffduration = 99999+1;
 									}
-									if (!BuffStackTest(buffSpell, triggeredSpell) || ((pSpell==triggeredSpell) && (petbuffduration>duration))) {
+									if (!BuffStackTest(triggeredSpell, buffSpell) || ((pSpell==triggeredSpell) && (petbuffduration>duration))) {
 										Dest.DWord = false;
 										return true;
 									}
@@ -4211,7 +4211,7 @@ bool MQ2SpellType::GETMEMBER()
 						if (GetSpellDuration(buffSpell,(PSPAWNINFO)pCharSpawn)>=0xFFFFFFFE) {
 							petbuffduration = 99999+1;
 						}
-						if (!BuffStackTest(buffSpell, pSpell) || ((buffSpell==pSpell) && (petbuffduration>duration))) {
+						if (!BuffStackTest(pSpell, buffSpell, TRUE) || ((buffSpell==pSpell) && (petbuffduration>duration))) {
 							Dest.DWord = false;
 							return true;
 						}
@@ -4221,18 +4221,53 @@ bool MQ2SpellType::GETMEMBER()
             return true;
         }
 	case StacksWith:
+		{
+			Dest.Type = pBoolType;
+			Dest.DWord = false;
+
+			if (!ISINDEX()) 
+	            return true;
+	        PSPELL tmpSpell = NULL;
+	        if (ISNUMBER())   
+	            tmpSpell = GetSpellByID(GETNUMBER());
+	        else 
+	            tmpSpell = GetSpellByName(GETFIRST());
+	        if (!tmpSpell) 
+	            return true;
+
+			for (int nSlot=0; nSlot<=11; nSlot++) {
+				if (TriggeringEffectSpell(pSpell, nSlot) && TriggeringEffectSpell(tmpSpell, nSlot)) {		// Check the triggered effect against the current buff for stacking
+					//WriteChatf("Checking triggering effect for slot %d", nSlot);
+					PSPELL pSpellTriggeredSpell = GetSpellByID(pSpell->Base2[nSlot]);
+					PSPELL tmpSpellTriggeredSpell = GetSpellByID(tmpSpell->Base2[nSlot]);
+					if (pSpellTriggeredSpell && tmpSpellTriggeredSpell) {
+						//WriteChatf("pSpellTriggeredSpell->Name=%s tmpSpellTriggeredSpell->Name=%s", pSpellTriggeredSpell->Name, tmpSpellTriggeredSpell->Name);
+						if (!BuffStackTest(pSpellTriggeredSpell, tmpSpellTriggeredSpell)) {
+							Dest.DWord = false;
+							return true;
+						}
+					}
+				}
+			}
+
+			Dest.DWord = BuffStackTest(pSpell, tmpSpell, TRUE);
+	        return true;
+		}
     case WillStack:
         {
+		Dest.Type = pBoolType;
+		Dest.DWord = false;
+
             if (!ISINDEX()) 
-                return false;
+            return true;
             PSPELL tmpSpell = NULL;
             if (ISNUMBER())   
                 tmpSpell = GetSpellByID(GETNUMBER());
             else 
                 tmpSpell = GetSpellByName(GETFIRST());
             if (!tmpSpell) 
-                return false;
-            Dest.Type = pBoolType;
+            return true;
+
             Dest.DWord = BuffStackTest(pSpell, tmpSpell);
             return true;
         }
@@ -6660,6 +6695,16 @@ bool MQ2TimeType::GETMEMBER()
     case Hour:
         Dest.DWord=pTime->tm_hour;
         Dest.Type=pIntType;
+        return true;
+    case Hour12:
+        {
+            unsigned long Hour=pTime->tm_hour%12;
+            if (!Hour)
+                Hour=12;
+            sprintf(DataTypeTemp,"%d %s",Hour,pTime->tm_hour>12?"PM":"AM");
+            Dest.Ptr=&DataTypeTemp[0],
+                Dest.Type=pStringType; 
+        }
         return true;
     case Minute:
         Dest.DWord=pTime->tm_min;

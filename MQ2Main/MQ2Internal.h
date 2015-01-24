@@ -439,7 +439,7 @@ namespace MQ2Internal {
 		}
 		VOID FreeAlerts(DWORD List);
 	};
-	//extern CMQ2Alerts CAlerts;
+
     class CCustomWnd : public CSidlScreenWnd
     {
     public:
@@ -494,7 +494,45 @@ namespace MQ2Internal {
 
         //    inline CXWnd *GetChildItem(const char *Name) {return CSidlScreenWnd::GetChildItem(Name);};
     };
+	class CCustomMenu : public CContextMenu
+	{
+	public:
+		CCustomMenu(CXRect rect):CContextMenu(0,0,rect)
+		{
+			//HasChildren=1;
+			//HasSiblings=1;
+			//Unknown0x015=0;
+			//Unknown0x016=0;
+			//Unknown0x017=0;
+			ReplacevfTable();
+		};
 
+		~CCustomMenu()
+		{
+			RemovevfTable();
+		};
+		void ReplacevfTable()
+        {
+            PCCONTEXTMENUVFTABLE NewvfTable=new CCONTEXTMENUVFTABLE;
+            OldvfTable=((_CCONTEXTMENU*)this)->pvfTable;
+            memcpy(NewvfTable,OldvfTable,sizeof(CCONTEXTMENUVFTABLE));
+            ((_CCONTEXTMENU*)this)->pvfTable=NewvfTable;
+        }
+
+        void RemovevfTable()
+        {
+            PCCONTEXTMENUVFTABLE NewvfTable=((_CCONTEXTMENU*)this)->pvfTable;
+            ((_CCONTEXTMENU*)this)->pvfTable=OldvfTable;
+            delete NewvfTable;
+        }
+
+        void SetvfTable(DWORD index, DWORD value)
+        {
+            DWORD* vtable=(DWORD*)((_CCONTEXTMENU*)this)->pvfTable;
+            vtable[index]=value;
+        }
+		PCCONTEXTMENUVFTABLE OldvfTable;
+	};
 #if !defined(ISXEQ) && !defined(ISXEQ_LEGACY)
     /* CIndex class stolen from teqim - Lax */
     template <class Any>

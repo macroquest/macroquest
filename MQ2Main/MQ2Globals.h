@@ -921,7 +921,14 @@ EQLIB_VAR DWORD CButtonWnd__SetCheck;
 EQLIB_VAR DWORD CChatManager__GetRGBAFromIndex;
 EQLIB_VAR DWORD CChatManager__InitContextMenu;
 EQLIB_VAR DWORD CContextMenu__CContextMenu;
+EQLIB_VAR DWORD CContextMenu__dCContextMenu;
 EQLIB_VAR DWORD CContextMenu__AddMenuItem;
+EQLIB_VAR DWORD CContextMenuManager__AddMenu;
+EQLIB_VAR DWORD CContextMenuManager__RemoveMenu;
+EQLIB_VAR DWORD CContextMenuManager__PopupMenu;
+EQLIB_VAR DWORD CContextMenu__RemoveAllMenuItems;
+EQLIB_VAR DWORD CContextMenu__RemoveMenuItem;
+EQLIB_VAR DWORD CContextMenuManager__Flush;
 
 EQLIB_VAR DWORD CChatService__GetNumberOfFriends;
 EQLIB_VAR DWORD CChatService__GetFriendName;
@@ -1007,6 +1014,8 @@ EQLIB_VAR DWORD CItemDisplayWnd__UpdateStrings;
 
 EQLIB_VAR DWORD CLabel__Draw;
 
+EQLIB_VAR DWORD CListWnd__CListWnd;
+EQLIB_VAR DWORD CListWnd__dCListWnd;
 EQLIB_VAR DWORD CListWnd__AddColumn;
 EQLIB_VAR DWORD CListWnd__AddColumn1;
 EQLIB_VAR DWORD CListWnd__AddLine;

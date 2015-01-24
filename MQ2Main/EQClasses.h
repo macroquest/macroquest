@@ -1387,23 +1387,7 @@ EQLIB_OBJECT void CContainerWnd::HandleCombine(void);
 EQLIB_OBJECT void CContainerWnd::Init(void);
 };
 
-class CContextMenu
-{
-public:
-EQLIB_OBJECT CContextMenu::CContextMenu(class CXWnd *,unsigned __int32,class CXRect const &);
-EQLIB_OBJECT int CContextMenu::AddMenuItem(class CXStr const &,unsigned __int32,bool,unsigned long);
-EQLIB_OBJECT int CContextMenu::AddSeparator(void);
-EQLIB_OBJECT void CContextMenu::Activate(class CXPoint,int,int);
-EQLIB_OBJECT void CContextMenu::CheckMenuItem(int,bool,bool);
-EQLIB_OBJECT void CContextMenu::EnableMenuItem(int,bool);
-EQLIB_OBJECT void CContextMenu::RemoveAllMenuItems(void);
-// virtual
-EQLIB_OBJECT CContextMenu::~CContextMenu(void);
-EQLIB_OBJECT int CContextMenu::OnKillFocus(class CXWnd *);
-//EQLIB_OBJECT void * CContextMenu::`scalar deleting destructor'(unsigned int);
-//EQLIB_OBJECT void * CContextMenu::`vector deleting destructor'(unsigned int);
-EQLIB_OBJECT void CContextMenu::Deactivate(void);
-};
+
 
 class CContextMenuManager
 {
@@ -1412,7 +1396,7 @@ EQLIB_OBJECT CContextMenuManager::CContextMenuManager(class CXWnd *,unsigned __i
 EQLIB_OBJECT int CContextMenuManager::AddMenu(class CContextMenu *);
 EQLIB_OBJECT int CContextMenuManager::GetDefaultMenuIndex(void);
 EQLIB_OBJECT int CContextMenuManager::HandleWindowMenuCommands(class CXWnd *,int);
-EQLIB_OBJECT int CContextMenuManager::PopupMenu(int,class CXPoint,class CXWnd *);
+EQLIB_OBJECT int CContextMenuManager::PopupMenu(int,class CXPoint const &,class CXWnd *);
 EQLIB_OBJECT int CContextMenuManager::RemoveMenu(int,bool);
 EQLIB_OBJECT void CContextMenuManager::Flush(void);
 EQLIB_OBJECT void CContextMenuManager::WarnDefaultMenu(class CXWnd *);
@@ -2729,7 +2713,8 @@ EQLIB_OBJECT CListboxTemplate::~CListboxTemplate(void);
 class CListWnd : public CSidlScreenWnd
 {
 public:
-EQLIB_OBJECT CListWnd::CListWnd(class CXWnd *,unsigned __int32,class CXRect);
+EQLIB_OBJECT CListWnd::CListWnd(class CXWnd *,unsigned __int32,class CXRect const &);
+EQLIB_OBJECT CListWnd::CListWnd() {};
 EQLIB_OBJECT bool CListWnd::IsLineEnabled(int)const;
 EQLIB_OBJECT class CTextureAnimation const * CListWnd::GetColumnAnimation(int)const;
 EQLIB_OBJECT class CTextureAnimation const * CListWnd::GetColumnAnimationMouseOver(int)const;
@@ -2803,6 +2788,27 @@ EQLIB_OBJECT int CListWnd::WndNotification(class CXWnd *,unsigned __int32,void *
 //EQLIB_OBJECT void * CListWnd::`vector deleting destructor'(unsigned int);
 EQLIB_OBJECT void CListWnd::DeleteAll(void);
 EQLIB_OBJECT void CListWnd::Sort(void);
+};
+
+class CContextMenu : public CListWnd
+{
+public:
+EQLIB_OBJECT CContextMenu::CContextMenu(class CXWnd *,unsigned __int32,class CXRect const &);
+EQLIB_OBJECT int CContextMenu::AddMenuItem(class CXStr const &str,unsigned long menuid,unsigned __int32 arg3,unsigned __int32 arg4,bool arg5);
+EQLIB_OBJECT int CContextMenu::AddSeparator(void);
+EQLIB_OBJECT void CContextMenu::Activate(class CXPoint,int,int);
+EQLIB_OBJECT void CContextMenu::CheckMenuItem(int,bool,bool);
+EQLIB_OBJECT void CContextMenu::EnableMenuItem(int,bool);
+EQLIB_OBJECT void CContextMenu::RemoveAllMenuItems(void);
+// virtual
+EQLIB_OBJECT CContextMenu::~CContextMenu(void);
+EQLIB_OBJECT int CContextMenu::OnKillFocus(class CXWnd *);
+//EQLIB_OBJECT void * CContextMenu::`scalar deleting destructor'(unsigned int);
+//EQLIB_OBJECT void * CContextMenu::`vector deleting destructor'(unsigned int);
+EQLIB_OBJECT void CContextMenu::Deactivate(void);
+//CONTEXTW;
+/*0x224*/ BYTE Unknown0x224[0x60];
+/*0x284*/
 };
 
 class CLoadskinWnd : public CSidlScreenWnd

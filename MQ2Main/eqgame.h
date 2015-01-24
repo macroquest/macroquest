@@ -321,8 +321,14 @@
 
 // CContextMenu 
 #define CContextMenu__CContextMenu_x                               0x88B920
+#define CContextMenu__dCContextMenu_x                              0x88BB30
 #define CContextMenu__AddMenuItem_x                                0x88BB40
-
+#define CContextMenu__RemoveMenuItem_x                             0x88BE50
+#define CContextMenu__RemoveAllMenuItems_x                         0x88BE50
+#define CContextMenuManager__AddMenu_x                             0x892080
+#define CContextMenuManager__RemoveMenu_x                          0x8923B0
+#define CContextMenuManager__PopupMenu_x                           0x892800
+#define CContextMenuManager__Flush_x                               0x8920F0
 // CChatService
 #define CChatService__GetNumberOfFriends_x                         0x8227D0
 #define CChatService__GetFriendName_x                              0x8227E0
@@ -423,7 +429,9 @@
 // CLabel 
 #define CLabel__Draw_x                                             0x6CC520
 
-// CListWnd 
+// CListWnd
+#define CListWnd__CListWnd_x                                       0x887FD0
+#define CListWnd__dCListWnd_x                                      0x889050
 #define CListWnd__AddColumn_x                                      0x888FF0
 #define CListWnd__AddColumn1_x                                     0x8887E0
 #define CListWnd__AddLine_x                                        0x888290

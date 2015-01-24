@@ -185,6 +185,7 @@ FUNCTION_AT_VIRTUAL_ADDRESS(int CXWnd::HandleRButtonUp(class CXPoint *,unsigned 
 FUNCTION_AT_VIRTUAL_ADDRESS(int CXWnd::HandleRButtonHeld(class CXPoint *,unsigned __int32),0x50);
 FUNCTION_AT_VIRTUAL_ADDRESS(int CXWnd::HandleRButtonUpAfterHeld(class CXPoint *,unsigned __int32),0x54);
 FUNCTION_AT_VIRTUAL_ADDRESS(int CXWnd::OnMinimizeBox(void),0xac);
+FUNCTION_AT_VIRTUAL_ADDRESS(class CXRect CXWnd::GetClientRect(void)const,0xf8);
 
 
 FUNCTION_AT_VIRTUAL_ADDRESS(void CListWnd::DeleteAll(void),0x17c);//see CComboWnd__DeleteAll_x
@@ -1152,8 +1153,11 @@ FUNCTION_AT_ADDRESS(class CXRect  CXRect::operator|(class CXRect)const ,CXRect__
 #ifdef CContextMenu__CContextMenu_x
 FUNCTION_AT_ADDRESS( CContextMenu::CContextMenu(class CXWnd *,unsigned __int32,class CXRect const &),CContextMenu__CContextMenu);
 #endif
+#ifdef CContextMenu__dCContextMenu_x
+FUNCTION_AT_ADDRESS( CContextMenu::~CContextMenu(void),CContextMenu__dCContextMenu);
+#endif
 #ifdef CContextMenu__AddMenuItem_x
-FUNCTION_AT_ADDRESS(int  CContextMenu::AddMenuItem(class CXStr const &,unsigned __int32,bool,unsigned long),CContextMenu__AddMenuItem);
+FUNCTION_AT_ADDRESS(int  CContextMenu::AddMenuItem(class CXStr const &,unsigned long,unsigned __int32,unsigned __int32,bool),CContextMenu__AddMenuItem);
 #endif
 #ifdef CContextMenu__AddSeparator_x
 FUNCTION_AT_ADDRESS(int  CContextMenu::AddSeparator(void),CContextMenu__AddSeparator);
@@ -1177,10 +1181,10 @@ FUNCTION_AT_ADDRESS( CContextMenuManager::CContextMenuManager(class CXWnd *,unsi
 FUNCTION_AT_ADDRESS(int  CContextMenuManager::RemoveMenu(int,bool),CContextMenuManager__RemoveMenu);
 #endif
 #ifdef CContextMenuManager__AddMenu_x
-FUNCTION_AT_ADDRESS(int  CContextMenuManager::AddMenu(class CContextMenu *),CContextMenuManager__AddMenu);
+FUNCTION_AT_ADDRESS(int CContextMenuManager::AddMenu(class CContextMenu *),CContextMenuManager__AddMenu);
 #endif
 #ifdef CContextMenuManager__PopupMenu_x
-FUNCTION_AT_ADDRESS(int  CContextMenuManager::PopupMenu(int,class CXPoint,class CXWnd *),CContextMenuManager__PopupMenu);
+FUNCTION_AT_ADDRESS(int  CContextMenuManager::PopupMenu(int,class CXPoint const &,class CXWnd *),CContextMenuManager__PopupMenu);
 #endif
 #ifdef CContextMenuManager__Flush_x
 FUNCTION_AT_ADDRESS(void  CContextMenuManager::Flush(void),CContextMenuManager__Flush);
@@ -7582,7 +7586,10 @@ FUNCTION_AT_ADDRESS(int __cdecl CXStr::LenUnicodeToUtf8(unsigned short const *),
 FUNCTION_AT_ADDRESS(int __cdecl CXStr::UnicodeToUtf8(unsigned short const *,char *,int),CXStr__UnicodeToUtf8);
 #endif
 #ifdef CListWnd__CListWnd_x
-FUNCTION_AT_ADDRESS( CListWnd::CListWnd(class CXWnd *,unsigned __int32,class CXRect),CListWnd__CListWnd);
+FUNCTION_AT_ADDRESS( CListWnd::CListWnd(class CXWnd *,unsigned __int32,class CXRect const &),CListWnd__CListWnd);
+#endif
+#ifdef CListWnd__dCListWnd_x
+FUNCTION_AT_ADDRESS( CListWnd::~CListWnd(void),CListWnd__dCListWnd);
 #endif
 #ifdef CListWnd__GetCurSel_x
 FUNCTION_AT_ADDRESS(int  CListWnd::GetCurSel(void)const,CListWnd__GetCurSel);
