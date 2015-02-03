@@ -3906,6 +3906,39 @@ bool MQ2CharacterType::GETMEMBER()
 			Dest.DWord = true;
         Dest.Type = pBoolType;
         return true;
+	case MercListInfo:
+		{
+			if (!ISINDEX())
+				return false;
+			if (ISNUMBER())
+			{
+				DWORD nIndex = GETNUMBER();
+				if (nIndex > pMercInfo->MercenaryCount)
+					return false;
+				std::map<DWORD,MercDesc>descmap;
+				GetAllMercDesc(descmap);
+				if(descmap.find(nIndex-1)!=descmap.end()) {
+					strcpy_s(DataTypeTemp, descmap[nIndex-1].Type.c_str());
+					Dest.Ptr = &DataTypeTemp[0];
+					Dest.Type = pStringType;
+					return true;
+				}
+			}
+			else
+			{
+				std::map<DWORD,MercDesc>descmap;
+				GetAllMercDesc(descmap);
+				for (std::map<DWORD,MercDesc>::iterator n = descmap.begin();n!=descmap.end(); n++)
+				{
+					if (!stricmp(GETFIRST(),n->second.Type.c_str())) {
+						Dest.DWord = n->first+1;
+						Dest.Type = pIntType;
+						return true;
+					}
+				}
+			}
+			return false;
+		}
 	}
     return false;
 #undef pChar
@@ -7094,6 +7127,10 @@ bool MQ2MercenaryType::GETMEMBER()
 		Dest.DWord=pMercInfo->MercState;
 		Dest.Type=pIntType;
         return true;
+	case xIndex:
+		Dest.DWord=pMercInfo->CurrentMercIndex+1;
+		Dest.Type=pIntType;
+        return true;
 	}
 	return false;
 }
@@ -7687,6 +7724,20 @@ bool MQ2AltAbilityType::GETMEMBER()
     case Type:
         Dest.DWord=pAbility->Type;
         Dest.Type=pIntType;
+        return true;
+	case Flags:
+        Dest.DWord=pAbility->Flags;
+        Dest.Type=pIntType;
+        return true;
+	case Expansion:
+		Dest.DWord=pAbility->Expansion;
+        Dest.Type=pIntType;
+        return true;
+	case Passive:
+		Dest.DWord=1;
+		if(pAbility->SpellID!=0xFFFFFFFF)
+			Dest.DWord=0;
+        Dest.Type=pBoolType;
         return true;
     }
     return false;

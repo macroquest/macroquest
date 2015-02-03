@@ -4959,6 +4959,12 @@ PCHAR FormatSearchSpawn(PCHAR Buffer, PSEARCHSPAWN pSearchSpawn)
     case PET:
         pszSpawnType="pet";
         break;
+    case PCPET:
+        pszSpawnType="pcpet";
+        break;
+    case NPCPET:
+        pszSpawnType="npcpet";
+        break;
     case NPC:
         pszSpawnType="npc";
         break;
@@ -5304,8 +5310,17 @@ BOOL SpawnMatchesSearch(PSEARCHSPAWN pSearchSpawn, PSPAWNINFO pChar, PSPAWNINFO 
     CHAR szName[MAX_STRING] = {0};
     CHAR szSearchName[MAX_STRING] = {0};
     eSpawnType SpawnType = GetSpawnType(pSpawn);
+	if(SpawnType==PET && (pSearchSpawn->SpawnType==PCPET || pSearchSpawn->SpawnType==NPCPET)) {
+		if(PSPAWNINFO pTheMaster = (PSPAWNINFO)GetSpawnByID(pSpawn->MasterID)) {
+			if(pTheMaster->Type==SPAWN_NPC) {
+				SpawnType=NPCPET;
+			} else if(pTheMaster->Type==SPAWN_PLAYER) {
+				SpawnType=PCPET;
+			}
+		}
+	}
     if (pSearchSpawn->SpawnType != SpawnType && pSearchSpawn->SpawnType!=NONE)
-    {
+    {	
         if (pSearchSpawn->SpawnType==NPCCORPSE) {
             if (SpawnType != CORPSE || pSpawn->Deity) {
                 return FALSE;
@@ -5460,6 +5475,10 @@ PCHAR ParseSearchSpawnArgs(PCHAR szArg, PCHAR szRest, PSEARCHSPAWN pSearchSpawn)
             pSearchSpawn->SpawnType = MOUNT;
         } else if (!stricmp(szArg,"pet")) {
             pSearchSpawn->SpawnType = PET;
+        } else if (!stricmp(szArg,"pcpet")) {
+            pSearchSpawn->SpawnType = PCPET;
+        } else if (!stricmp(szArg,"npcpet")) {
+            pSearchSpawn->SpawnType = NPCPET;
         } else if (!stricmp(szArg,"nopet")) { 
             pSearchSpawn->bNoPet = TRUE; 
         } else if (!stricmp(szArg,"corpse")) {
@@ -6136,6 +6155,12 @@ VOID SuperWhoDisplay(PSPAWNINFO pChar, PSEARCHSPAWN pSearchSpawn, DWORD Color)
             break;
         case PET:
             pszSpawnType="pet";
+            break;
+        case PCPET:
+            pszSpawnType="pcpet";
+            break;
+        case NPCPET:
+            pszSpawnType="npcpet";
             break;
         case NPC:
             pszSpawnType="npc";
@@ -7674,6 +7699,51 @@ VOID RemoveAura(PSPAWNINFO pChar,PCHAR szLine)
 			}
 		}
 	}
+}
+
+BOOL GetAllMercDesc(std::map<DWORD,MercDesc>&minfo)
+{
+	if(!pMercInfo)
+		return FALSE;
+	if(PMERCSLIST pmlist = pMercInfo->pMercsList) {
+		std::string smdesc,Race,Type,Confidence,Proficiency;
+		size_t pos = smdesc.npos;
+		DWORD mdesc = 0;
+		for(DWORD i = 0;i<pMercInfo->MercenaryCount;i++) {
+			mdesc = pmlist->mercinfo[i].nMercDesc;
+			smdesc = pCDBStr->GetString(mdesc,0x17,NULL);
+			if((pos = smdesc.find("Race: "))!=smdesc.npos) {
+				Race = smdesc.substr(pos+6);
+				if((pos = Race.find("<br>"))!=Race.npos) {
+					Race.erase(pos);
+				}
+			}
+			if((pos = smdesc.find("Type: "))!=smdesc.npos) {
+				Type = smdesc.substr(pos+6);
+				if((pos = Type.find("<br>"))!=Type.npos) {
+					Type.erase(pos);
+				}
+			}
+			if((pos = smdesc.find("Confidence: "))!=smdesc.npos) {
+				Confidence = smdesc.substr(pos+12);
+				if((pos = Confidence.find("<br>"))!=Confidence.npos) {
+					Confidence.erase(pos);
+				}
+			}
+			if((pos = smdesc.find("Proficiency: "))!=smdesc.npos) {
+				Proficiency = smdesc.substr(pos+13);
+				if((pos = Proficiency.find("<br>"))!=Proficiency.npos) {
+					Proficiency.erase(pos);
+				}
+			}
+			minfo[i].Confidence = Confidence;
+			minfo[i].Proficiency = Proficiency;
+			minfo[i].Race = Race;
+			minfo[i].Type = Type;
+			//WriteChatf("[%d] %s - %s %s",i,Race.c_str(),Type.c_str(),Proficiency.c_str());
+		}
+	}
+	return TRUE;
 }
 //                                                                                               //
 ///////////////////////////////////////////////////////////////////////////////////////////////////

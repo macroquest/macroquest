@@ -300,6 +300,7 @@ EQLIB_VAR fEQCommand         cmdDoAbility;
 EQLIB_VAR fEQCommand         cmdCast;
 EQLIB_VAR fEQCommand         cmdUseItem;
 EQLIB_VAR fEQCommand         cmdPet;
+EQLIB_VAR fEQCommand         cmdMercSwitch;
 
 
 EQLIB_VAR fEQNewUIINI        NewUIINI;

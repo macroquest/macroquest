@@ -3636,4 +3636,31 @@ VOID PetCmd(PSPAWNINFO pChar, PCHAR szLine)
 		cmdPet(pChar,szLine);
 	}
 }
+// ***************************************************************************
+// Function:    MercSwitchCmd
+// Description: '/mercswitch' command
+//              Adds the ability to do /mercswitch Healer,Damage Caster,Melee Damage or Tank
+// Usage:       /mercswitch healer will switch to a Healer merc
+// ***************************************************************************
+VOID MercSwitchCmd(PSPAWNINFO pChar, PCHAR szLine)
+{
+    if (!szLine[0]) {
+		WriteChatColor("Usage: /mercswitch <Healer,Damage Caster,Melee Damage or Tank>");
+		cmdMercSwitch(pChar,szLine);
+        return;
+    } else {
+		std::map<DWORD,MercDesc>descmap;
+		GetAllMercDesc(descmap);
+		for (std::map<DWORD,MercDesc>::iterator n = descmap.begin();n!=descmap.end(); n++)
+		{
+			if (!_stricmp(n->second.Type.c_str(),szLine)) {
+				CHAR szTemp[256] = {0};
+				sprintf_s(szTemp,"%d",n->first+1);
+				cmdMercSwitch(pChar,szTemp);
+				return;
+			}
+		}
+		cmdMercSwitch(pChar,szLine);
+	}
+}
 #endif

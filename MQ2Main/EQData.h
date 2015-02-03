@@ -1973,12 +1973,12 @@ typedef struct _ALTABILITY {
 /*0x1c*/ DWORD Cost;                     //Initial Cost or cost the last time you bought a level of it
 /*0x20*/ DWORD ID;                       // /alt activate id
 /*0x24*/ DWORD AARankRequired;
-/*0x28*/ DWORD Unknown0x28;
+/*0x28*/ DWORD RequirementCount;			//how many requirements does it have its always 1 even if its none
 /*0x2c*/ DWORD *RequiresAbility;
 /*0x30*/ DWORD Unknown0x30[3];
 /*0x3c*/ DWORD *RequiresAbilityPoints;
 /*0x40*/ DWORD Unknown0x40[2];
-/*0x48*/ DWORD Type; 
+/*0x48*/ DWORD Type;					// 1 General 2 Archetype 3 Class 4 special 5 focus
 /*0x4c*/ LONG  SpellID;                  // -1 for no Spell
 /*0x50*/ DWORD Unknown0x50;
 /*0x54*/ BYTE  Unknown0x54[0x10]; 
@@ -1989,7 +1989,9 @@ union {                                         //If you have not spent points i
 /*0x70*/ DWORD PointsSpent;                //ability, then its PointsToBeSpent (or 
 /*0x70*/ DWORD PointsToBeSpent;            //'Cost', in other words).
 }; 
-/*0x74*/ BYTE  Unknown0x74[0x30];
+/*0x74*/ BYTE  Unknown0x74[0x14];
+/*0x88*/ BYTE  Expansion;
+/*0x89*/ BYTE  Unknown0x89[0x1b];
 /*0xa4*/
 } ALTABILITY, *PALTABILITY;
 
@@ -2225,6 +2227,23 @@ typedef struct _MERCSTANCEDATA {
 DWORD nStance;
 DWORD nDbStance;
 } MERCSTANCEDATA, *PMERCSTANCEDATA;
+
+typedef struct _MERCSINFO {
+/*0x00*/ DWORD Unknown0x00;
+/*0x04*/ DWORD nMercCategory;
+/*0x08*/ DWORD nMercDesc;
+/*0x0c*/ DWORD Purchase; //in copper...
+/*0x10*/ DWORD Upkeep; //in copper...
+/*0x14*/ BYTE Unknown0x14[0x2c];
+/*0x40*/ CHAR Name[0xC];
+/*0x4c*/ BYTE Unknown0x4c[0x88];
+/*0xD4*/
+} MERCSINFO, *PMERCSINFO;
+//Size 0xD4 in eqgame.exe dated 01 22 2015 -eqmule
+typedef struct _MERCSLIST {
+/*0x00*/ MERCSINFO mercinfo[7];//is 7 max, even with slots u can buy for sc?
+} MERCSLIST, *PMERCSLIST;
+
 //Actual Size: 0x2fc (See 57117F in eqgame dated dec 10 2013) - eqmule
 //CMercenaryInfo__CMercenaryInfo
 typedef struct _MERCENARYINFO {
@@ -2237,7 +2256,12 @@ typedef struct _MERCENARYINFO {
 /*0x15c*/ CHAR	MercName[0x18];
 /*0x174*/ BYTE  Unknown0x174[0x7c];
 /*0x1F0*/ DWORD MercenaryCount;//how many mercenaries we have
-/*0x1F4*/ BYTE  Unknown0x1f4[0x30];
+/*0x1F4*/ PMERCSLIST pMercsList; 
+/*0x1F8*/ BYTE  Unknown0x1f4[0xc];
+/*0x204*/ DWORD MaxMercsCount;//max you can have
+/*0x208*/ BYTE  Unknown0x208[0x10];
+/*0x218*/ DWORD CurrentMercIndex;
+/*0x21c*/ BYTE  Unknown0x21c[0x8];
 /*0x224*/ DWORD MercSpawnId;//yes its the spawnID of the mercenary
 /*0x228*/ BYTE  Unknown0x228[0x30];
 /*0x258*/ DWORD NumStances;

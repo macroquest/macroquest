@@ -28,6 +28,8 @@ namespace MQ2Internal {
         PC,
         MOUNT,
         PET,
+        PCPET,
+        NPCPET,
         NPC,
         CORPSE,
         TRIGGER,
@@ -1142,7 +1144,13 @@ namespace MQ2Internal {
         PDATAVAR Parameters;
     } EVENTQUEUE, *PEVENTQUEUE;
 #endif
-
+	typedef struct _MercDesc
+	{
+		std::string Race;
+		std::string Type;
+		std::string Confidence;
+		std::string Proficiency;
+	} MercDesc,*PMercDesc;
 };
 using namespace MQ2Internal;
 

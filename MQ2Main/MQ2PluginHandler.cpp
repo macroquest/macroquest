@@ -388,7 +388,11 @@ VOID PulsePlugins()
             //DebugSpew("%s->Pulse()",pPlugin->szFilename);
             pPlugin->Pulse();
         }
-        pPlugin=pPlugin->pNext;
+		if(pPlugin && pPlugin->pNext) {
+			pPlugin=pPlugin->pNext;
+		} else {
+			pPlugin=0;
+		}
     }    
 }
 

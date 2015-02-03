@@ -565,6 +565,8 @@ void InitializeMQ2Commands()
             cmdUseItem = (fEQCommand)pCmdListOrig[i].fAddress;
         } else if (!strcmp(pCmdListOrig[i].szName,"/pet")) {
             cmdPet = (fEQCommand)pCmdListOrig[i].fAddress;
+        } else if (!strcmp(pCmdListOrig[i].szName,"/mercswitch")) {
+            cmdMercSwitch = (fEQCommand)pCmdListOrig[i].fAddress;
         }
         AddCommand(pCmdListOrig[i].szName,pCmdListOrig[i].fAddress,TRUE,1,1);
     }    
@@ -672,6 +674,7 @@ void InitializeMQ2Commands()
 		{"/removebuff", RemoveBuff,1,1},
 		{"/makemevisible",MakeMeVisible,0,1},
 		{"/pet",        PetCmd,1,1},
+		{"/mercswitch", MercSwitchCmd,1,1},
 		{"/break",      Break,1,0},
 		{"/continue",   Continue,1,0},
 		{"/removeaura", RemoveAura,0,1},

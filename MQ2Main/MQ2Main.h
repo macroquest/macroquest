@@ -457,7 +457,7 @@ EQLIB_API VOID RemoveBuff(PSPAWNINFO pChar, PCHAR szLine);
 EQLIB_API bool StripQuotes(char *str);
 EQLIB_API VOID MakeMeVisible(PSPAWNINFO pChar, PCHAR szLine);
 EQLIB_API VOID RemoveAura(PSPAWNINFO pChar, PCHAR szLine);
-
+EQLIB_API BOOL GetAllMercDesc(std::map<DWORD,MercDesc>&minfo);
 EQLIB_API DWORD GetMountKeyRingIndex(char *szItemName, bool bExact = true, bool usecmd = false);
 EQLIB_API int GetMountCount();
 EQLIB_API void RefreshMountKeyRing(PVOID kr);

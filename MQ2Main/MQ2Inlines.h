@@ -183,8 +183,9 @@ static inline eSpawnType GetSpawnType(PSPAWNINFO pSpawn)
         {
             return MOUNT;
         }
-        if (pSpawn->MasterID)
-            return PET;
+		if(pSpawn->MasterID) {
+			return PET;
+		}
         if (pSpawn->Mercenary)
             return MERCENARY;
 

@@ -1,3 +1,26 @@
+02 Feb 2015 by eqmule
+ - Added .Expansion to the Me.AltAbillity TLO it returns a inttype
+ - Added .Flags to the Me.AltAbillity TLO it returns a inttype
+ - Added .Passive to the Me.AltAbillity TLO it returns a booltype TRUE if its a passive ability and false if its an active.
+ - Added a check for plugin unloading to not try to unload plugins that has already been unloaded...
+   not exactly sure if it will help, but im trying to mitigate a crash i have seen when doing /unload
+   time will tell.
+- Added pcpet and npcpet to searchspawn
+  This means you can do stuff like /who pcpet and see a list of all pets that belong to players
+  OR /who npcpet and you only see a list of pets that belong to NPCs
+  OR /echo ${SpawnCount[npcpet]} to get a count of all npc pets in a zone...
+  just specifying pet works as it always have and returns all pets... npc and pc owned...
+  Idea: Nytemyst
+- Added /mercswitch functionality it will now accept Healer, Damage Caster, Melee Damage and Tank as arguments
+  usage: /mercswitch Damage Caster
+  and it will switch your merc to the Damage Caster (if you have one and its not already active
+  which brings us to:
+- Added Mercenary.Index which returns your mercenary's Current list index
+- Added Me.MercListInfo which is used in the following ways:
+  usage1: /echo ${Me.MercListInfo[1]} returns whatever mercenary type is in Index 1 (there are max 7) as a string and it can be : Healer, Damage Caster, Melee Damage or Tank
+  usage2: /echo ${Me.MercListInfo[Healer]} returns the index to the first Healer it finds... as a IntType or 0 if not found.
+  This is new code, so there might be some changes to it in the future depending on feedback.
+
 29 Jan 2015 by eqmule
 - Updated for test client
 - New Command (Idea Cred:brihua) /removeaura

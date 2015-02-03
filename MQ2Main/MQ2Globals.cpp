@@ -389,6 +389,7 @@ fEQCommand        cmdDoAbility   =  NULL;
 fEQCommand        cmdCast        =  NULL;
 fEQCommand        cmdUseItem     =  NULL;
 fEQCommand        cmdPet         =  NULL;
+fEQCommand        cmdMercSwitch  =  NULL;
 
 DWORD gnNormalEQMappableCommands;
 PCHAR szEQMappableCommands[nEQMappableCommands];

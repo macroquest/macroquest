@@ -1042,6 +1042,7 @@ public:
 		DSed=206,
 		RevDSed=207,
 		InInstance=208,
+		MercListInfo=209,
     };
     static enum CharacterMethods
     {
@@ -1249,6 +1250,7 @@ public:
 		TypeMember(DSed);
 		TypeMember(RevDSed);
 		TypeMember(InInstance);
+		TypeMember(MercListInfo);
 
         TypeMethod(Stand); 
         TypeMethod(Sit); 
@@ -2208,6 +2210,7 @@ public:
 		Stance=3,
         State=4,
 		StateID=5,
+		xIndex=6,
     };
     static enum MercenaryMethods
     {
@@ -2219,6 +2222,7 @@ public:
         TypeMember(Stance);
         TypeMember(State);
         TypeMember(StateID);
+		AddMember(xIndex,"Index");
     }
 
     ~MQ2MercenaryType()
@@ -3408,6 +3412,9 @@ public:
         ReuseTime=12,
         ID=13,
         MyReuseTime=14,
+        Flags=15,
+		Expansion=16,
+		Passive=17,
     };
     static enum AltAbilityMethods
     {
@@ -3428,6 +3435,9 @@ public:
         TypeMember(ReuseTime);
         TypeMember(ID);
         TypeMember(MyReuseTime);
+        TypeMember(Flags);
+        TypeMember(Expansion);
+        TypeMember(Passive);
     }
 
     ~MQ2AltAbilityType()

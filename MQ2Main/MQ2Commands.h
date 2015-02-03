@@ -95,6 +95,7 @@ LEGACY_API VOID SpellSlotInfo                       (PSPAWNINFO,PCHAR);
 LEGACY_API VOID SetWinTitle							(PSPAWNINFO,PCHAR);
 LEGACY_API VOID GetWinTitle							(PSPAWNINFO,PCHAR);
 LEGACY_API VOID PetCmd                              (PSPAWNINFO,PCHAR);
+LEGACY_API VOID MercSwitchCmd                       (PSPAWNINFO,PCHAR);
 LEGACY_API VOID Break                               (PSPAWNINFO,PCHAR);
 LEGACY_API VOID Continue                            (PSPAWNINFO,PCHAR);
 LEGACY_API VOID PluginCmdSort                       (VOID);
