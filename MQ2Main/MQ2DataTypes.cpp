@@ -845,6 +845,13 @@ bool MQ2MacroType::GETMEMBER()
         /*
         TypeMember(Param);
         /**/
+	case CurLine:
+		if(gMacroStack && gMacroStack->Location && gMacroStack->Location->LineNumber) {
+			Dest.DWord=gMacroStack->Location->LineNumber;
+			Dest.Type=pIntType;
+			return true;
+		}
+		break;
     }
     return false;
 }
@@ -4497,7 +4504,7 @@ bool MQ2SpellType::GETMEMBER()
 			if (GetCharInfo2()->SpellBook[nSpell] != 0xFFFFFFFF)
 			{
 				if (PSPELL pFoundSpell = GetSpellByID(GetCharInfo2()->SpellBook[nSpell])) {
-					if (pFoundSpell->SpellGroup==thespell->SpellGroup && !strncmp(thespell->Name,pFoundSpell->Name,strlen(thespell->Name)))
+					if ((pFoundSpell->SpellGroup || pFoundSpell->SpellGroup==thespell->SpellGroup) && !strncmp(thespell->Name,pFoundSpell->Name,strlen(thespell->Name)))
 					{
 						Dest.Ptr = pFoundSpell;
 						Dest.Type = pSpellType;
@@ -4510,7 +4517,7 @@ bool MQ2SpellType::GETMEMBER()
 		for (DWORD dwIndex=0;dwIndex<NUM_COMBAT_ABILITIES;dwIndex++) {
             if (GetCharInfo2()->CombatAbilities[dwIndex]) {
                 if(PSPELL pFoundSpell = GetSpellByID(GetCharInfo2()->CombatAbilities[dwIndex])) {
-					if (pFoundSpell->SpellGroup==thespell->SpellGroup && !strncmp(thespell->Name,pFoundSpell->Name,strlen(thespell->Name)))
+					if ((pFoundSpell->SpellGroup || pFoundSpell->SpellGroup==thespell->SpellGroup) && !strncmp(thespell->Name,pFoundSpell->Name,strlen(thespell->Name)))
 					{
 						Dest.Ptr = pFoundSpell;
 						Dest.Type = pSpellType;

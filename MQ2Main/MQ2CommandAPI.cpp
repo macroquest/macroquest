@@ -674,6 +674,7 @@ void InitializeMQ2Commands()
 		{"/pet",        PetCmd,1,1},
 		{"/break",      Break,1,0},
 		{"/continue",   Continue,1,0},
+		{"/removeaura", RemoveAura,0,1},
         {NULL,          NULL,0,1},
     };
 

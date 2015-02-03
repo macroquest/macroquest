@@ -451,7 +451,8 @@ EQLIB_VAR PCONNECTION_T *ppConnection;
 #define pConnection (*ppConnection)
 EQLIB_VAR AURAMGR **ppAuraMgr;
 #define pAuraMgr (*ppAuraMgr)
-
+EQLIB_VAR CAuraWnd **ppAuraWnd;
+#define pAuraWnd (*ppAuraWnd)
 EQLIB_VAR EQCHATMGR **ppEQChatMgr;
 #define pChatMgr (*ppEQChatMgr)
 

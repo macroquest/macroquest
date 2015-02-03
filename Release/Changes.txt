@@ -1,3 +1,19 @@
+29 Jan 2015 by eqmule
+- Updated for test client
+- New Command (Idea Cred:brihua) /removeaura
+  Usage: /removeaura someaura
+  It will take partial auranames as well.
+- Added ${Macro.CurLine} Idea:Maskoi
+  It will tell you what line you are on in your macro
+  usage: /if (${something}) /echo blah blah something happened on Line ${Macro.CurLine}
+- Updated Instructions: .Equipment[x].ID doesnt exist, see example below:
+  .Equipment in the Spawn TLO returns a inttype, it takes numbers 0-8 or names: head chest arms wrists hands legs feet primary offhand
+  Usage: /if (${Pet.Equipment[primary]}==12507) /echo my pet is holding a Frightforged Ragesword in his primary hand
+  Usage: /if (${Group.Member[mymagesname].Pet.Equipment[primary]}==12507) /echo my mages pet is holding a Frightforged Ragesword in his primary hand
+
+24 Jan 2015 by rswiders
+- Modified .RankName to handle spells and potions with the same name
+
 23 Jan 2015 by eqmule
 - Updated for today's live client patch
 
@@ -88,8 +104,8 @@
   both return a inttype which is the idfile id for whatever the spawn is holding in his primary or secondary slot.
 - Added .Equipment to the Spawn TLO
   it returns a inttype, it takes numbers 0-8 or names: head chest arms wrists hands legs feet primary offhand
-  Usage: /if (${Pet.Equipment[primary].ID}==12507) /echo my pet is holding a Frightforged Ragesword in his primary hand
-  Usage: /if (${Group.Member[mymagesname].Pet.Equipment[primary].ID}==12507) /echo my mages pet is holding a Frightforged Ragesword in his primary hand
+  Usage: /if (${Pet.Equipment[primary]}==12507) /echo my pet is holding a Frightforged Ragesword in his primary hand
+  Usage: /if (${Group.Member[mymagesname].Pet.Equipment[primary]}==12507) /echo my mages pet is holding a Frightforged Ragesword in his primary hand
 - Change: spawn tlo member .Holding is now a booltype.
   it will return 0 of spawn is not holding anything and 1 if it is.
 - BugFix: InitializeMQ2Commands is now called before InitializeMQ2Pulse so we wont end up with a race condition in HideDoCommand...

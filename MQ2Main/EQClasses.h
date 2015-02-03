@@ -30,6 +30,7 @@ class _PackFileData;
 class _PackFileDataRawFile;
 class _partyGroup;
 class AltAdvManager;
+class CAuraWnd;
 class bad_word_class;
 class CAAWnd;
 class CActionsWnd;
@@ -681,7 +682,13 @@ EQLIB_OBJECT unsigned long AltAdvManager::GetCalculatedTimer(class EQ_PC *,EQDat
 EQLIB_OBJECT void AltAdvManager::GetAbilityReqs(char *,int);
 EQLIB_OBJECT struct _ALTABILITY *AltAdvManager::GetAltAbility(int index, int unknown = -1);//could it be level?
 };
-
+class CAuraWnd : public CSidlScreenWnd
+{
+public:
+EQLIB_OBJECT CAuraWnd::CAuraWnd(class CXWnd *);
+// virtual
+EQLIB_OBJECT CAuraWnd::~CAuraWnd(void);
+};
 class bad_word_class
 {
 public:

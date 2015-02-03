@@ -2514,6 +2514,7 @@ public:
         Return=4,
         Params=5,
         Param=6,
+        CurLine=7,
     };
     MQ2MacroType():MQ2Type("macro")
     {
@@ -2523,6 +2524,7 @@ public:
         TypeMember(Return);
         TypeMember(Params);
         TypeMember(Param);
+        TypeMember(CurLine);
     }
 
     ~MQ2MacroType()

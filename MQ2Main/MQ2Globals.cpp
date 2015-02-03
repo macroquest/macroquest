@@ -129,6 +129,7 @@ bool InitOffsets()
     ppAltAdvManager = (AltAdvManager**)pinstAltAdvManager;
     ppConnection = (PCONNECTION_T*)__gWorld;
     ppAuraMgr = (AURAMGR**)pinstAuraMgr;
+    ppAuraWnd = (CAuraWnd**)pinstCAuraWnd;
     ppEQChatMgr = (EQCHATMGR**)pinstCChatManager;
 
     ppTradeTarget = (EQPlayer **)pinstTradeTarget;
@@ -1063,6 +1064,7 @@ EQPlayer **ppActiveCorpse=0;
 
 /* WINDOW INSTANCES */
 
+CAuraWnd **ppAuraWnd=0;
 CContextMenuManager **ppContextMenuManager=0;
 CCursorAttachment **ppCursorAttachment=0;
 CSocialEditWnd **ppSocialEditWnd=0;

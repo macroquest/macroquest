@@ -1042,7 +1042,7 @@ union {
 };
 } INVENTORYARRAY, *PINVENTORYARRAY;
 
-// actual size: 0x9a90 Oct 23 2014 (see 7F0643) - eqmule
+// actual size: 0x9a98 20150122 (see 801B98) - eqmule
 typedef struct _CHARINFO2 {
 /*0x0000*/ BYTE         Unknown0x0000[0x20];
 /*0x0020*/ struct _INVENTORYARRAY*      pInventoryArray;
@@ -1109,8 +1109,8 @@ typedef struct _CHARINFO2 {
 /*0x8a44*/ BYTE         Unknown0x8a44[0x100c];
 /*0x9a50*/ DWORD        AAPointsSpent;
 /*0x9a54*/ DWORD        AAPointsAssigned;
-/*0x9a58*/ DWORD        Unknown0x9a58[0x38];
-/*0x9a90*/
+/*0x9a58*/ DWORD        Unknown0x9a58[0x40];
+/*0x9a98*/
 } CHARINFO2, *PCHARINFO2;
 
 typedef struct _MODELINFONAME {

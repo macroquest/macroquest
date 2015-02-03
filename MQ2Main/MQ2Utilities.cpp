@@ -7642,7 +7642,39 @@ VOID MakeMeVisible(PSPAWNINFO pChar, PCHAR szLine)
 {
 	((CharacterZoneClient*)pCharData1)->MakeMeVisible(0,0);
 }
-
+// ***************************************************************************
+// Function:    RemoveAura
+// Description: Removes auras
+// Usage:       /removeaura <name> or <partial name>
+// Author:      EqMule
+// ***************************************************************************
+VOID RemoveAura(PSPAWNINFO pChar,PCHAR szLine)
+{
+	if(!pAuraWnd)
+		return;
+	if(!szLine || (szLine && szLine[0]=='\0')) {
+		WriteChatColor("Usage: /removeaura <auraname> or <aurapartialname>",CONCOLOR_LIGHTBLUE);
+		return;
+	}
+	CHAR szOut[255] = {0};
+	CHAR szCmp[255] = {0};
+	strcpy_s(szCmp,szLine);
+	CXStr Str;
+	if(CListWnd*clist = (CListWnd*)pAuraWnd->GetChildItem("AuraList")) {
+		for(DWORD i=0;i<clist->Items;i++) {
+			clist->GetItemText(&Str, i, 1);
+			GetCXStr(Str.Ptr,szOut,254);
+			if(szOut[0]!='\0') {
+				_strlwr_s(szOut);
+				_strlwr_s(szCmp);
+				if(strstr(szOut,szCmp)) {
+					clist->SetCurSel(i);
+					((CXWnd*)pAuraWnd)->WndNotification((CXWnd*)clist,XWM_MENUSELECT,(PVOID)1);
+				}
+			}
+		}
+	}
+}
 //                                                                                               //
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 #endif
