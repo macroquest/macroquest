@@ -7745,6 +7745,19 @@ BOOL GetAllMercDesc(std::map<DWORD,MercDesc>&minfo)
 	}
 	return TRUE;
 }
+BOOL IsActiveAA(PCHAR pSpellName)
+{
+	for (DWORD nAbility=0 ; nAbility<AA_CHAR_MAX_REAL ; nAbility++) {
+        if (PALTABILITY pAbility=pAltAdvManager->GetAltAbility(pPCData->GetAltAbilityIndex(nAbility))) {
+            if(!_stricmp(pSpellName,pCDBStr->GetString(pAbility->nName, 1, NULL))) {
+				if(pAbility->SpellID!=0xFFFFFFFF) {
+					return TRUE;
+				}
+			}
+        } 
+    }
+	return FALSE;
+}
 //                                                                                               //
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 #endif

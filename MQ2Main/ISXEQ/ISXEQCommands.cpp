@@ -75,7 +75,7 @@ EQLIB_API VOID SWhoFilter							(PSPAWNINFO,PCHAR);
 EQLIB_API VOID Target                              (PSPAWNINFO,PCHAR);
 EQLIB_API VOID UpdateItemInfo                      (PSPAWNINFO,PCHAR);
 /**/
-
+CMQ2Alerts CAlerts;
 //EQLIB_API VOID DoMappable(PSPAWNINFO pChar, PCHAR szLine)
 int CMD_Keypress(int argc, char *argv[])
 {
@@ -1290,4 +1290,18 @@ int CMD_ItemTarget(int argc, char *argv[])
    }
 
    return 0;
-} 
+}
+BOOL CALLBACK EnumWindowsProc(HWND hwnd,LPARAM lParam)
+{
+   DWORD procid = 0;
+   GetWindowThreadProcessId(hwnd,&procid);
+   if(procid==*(LPARAM *)lParam) {
+      CHAR szClass[256] = {0};
+      GetClassName(hwnd,szClass,255);
+      if(!_stricmp(szClass,"_EverQuestwndclass")) {
+         *(LPARAM *)lParam = (LPARAM)hwnd;
+         return FALSE;
+      }
+   }
+   return TRUE;
+}

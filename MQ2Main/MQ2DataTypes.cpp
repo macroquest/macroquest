@@ -4573,6 +4573,10 @@ bool MQ2SpellType::GETMEMBER()
 		Dest.DWord = (pSpell->SpellType)?true:false;
 		Dest.Type = pBoolType;
 		return true;
+	case xIsActiveAA:
+		Dest.DWord = IsActiveAA(pSpell->Name);
+		Dest.Type = pBoolType;
+		return true;
 		}
 #undef pSpell
 	return false;

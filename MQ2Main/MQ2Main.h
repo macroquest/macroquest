@@ -462,6 +462,7 @@ EQLIB_API DWORD GetMountKeyRingIndex(char *szItemName, bool bExact = true, bool 
 EQLIB_API int GetMountCount();
 EQLIB_API void RefreshMountKeyRing(PVOID kr);
 EQLIB_API void InitMountKeyRing();
+EQLIB_API BOOL IsActiveAA(PCHAR pSpellName);
 EQLIB_API CMQ2Alerts CAlerts;
 typedef struct _krdata
 {

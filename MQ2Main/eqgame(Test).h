@@ -667,7 +667,7 @@
 #define EQItemList__FreeItemList_x                                 0x4E5920
 
 // EQMisc
-#define EQMisc__GetActiveFavorCost_x                               0x487B10
+#define EQMisc__GetActiveFavorCost_x                               0x487900
 
 // EQPlayer 
 #define EQPlayer__ChangeBoneStringSprite_x                         0x59B700

@@ -1733,4 +1733,21 @@ TLO(dataMount)
 	}
     return false;
 }
-
+TLO(dataAlias)
+{
+   if (szIndex[0])
+   {
+      PALIAS pLoop = pAliases;
+      while (pLoop)
+      {
+         if (!stricmp(pLoop->szName, szIndex))
+         {
+            Ret.DWord = 1;
+            Ret.Type = pBoolType;
+            return true;
+         }
+         pLoop = pLoop->pNext;
+      }
+   }
+   return false;
+}

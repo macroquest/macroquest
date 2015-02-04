@@ -1,3 +1,12 @@
+03 Feb 2015 by eqmule
+- Added new TLO Alias - Code by Cr4zyb4rd
+  see this post for more info: http://www.macroquest2.com/phpBB3/viewtopic.php?f=30&t=19240&p=167005&hilit=alias#p167005
+- Added IsActiveAA to the Spell TLO
+  Usage: /echo ${Spell[Origin].IsActiveAA}
+  returns: TRUE since Origin is a "Active" AltAbility as opposite to a Passive ability.
+- Fixed the EQMisc__GetActiveFavorCost_x offset how long has it been broken?
+- Added some stuff to make ISXEQ compile
+
 02 Feb 2015 by eqmule
  - Added .Expansion to the Me.AltAbillity TLO it returns a inttype
  - Added .Flags to the Me.AltAbillity TLO it returns a inttype
