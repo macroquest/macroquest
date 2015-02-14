@@ -730,3 +730,6 @@
 //CTargetWnd
 #define CTargetWnd__GetBuffCaster_x                                0x7834D0
 #define CTargetWnd__WndNotification_x                              0x782FC0
+
+//CTaskWnd
+#define CTaskWnd__UpdateTaskTimers_x                               0x7886B0

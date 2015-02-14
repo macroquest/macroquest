@@ -1,3 +1,7 @@
+06 Feb 2015 by eqmule
+- Fixed Task.Timer , it can now be trusted even when the task window is closed.
+  ALSO TAKE NOTE: it returns a TimeStampType from now on. (used to be a TicksType)
+
 03 Feb 2015 by eqmule
 - Added new TLO Alias - Code by Cr4zyb4rd
   see this post for more info: http://www.macroquest2.com/phpBB3/viewtopic.php?f=30&t=19240&p=167005&hilit=alias#p167005

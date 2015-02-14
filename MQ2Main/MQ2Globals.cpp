@@ -1771,6 +1771,6 @@ INITIALIZE_EQGAME_OFFSET(CharacterZoneClient__CalcAffectChange);
 INITIALIZE_EQGAME_OFFSET(CLootWnd__LootAll);
 INITIALIZE_EQGAME_OFFSET(CTargetWnd__GetBuffCaster);
 INITIALIZE_EQGAME_OFFSET(CTargetWnd__WndNotification);
-
+INITIALIZE_EQGAME_OFFSET(CTaskWnd__UpdateTaskTimers);
 
 };

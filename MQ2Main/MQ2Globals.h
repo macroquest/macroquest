@@ -1277,6 +1277,7 @@ EQLIB_VAR DWORD CharacterZoneClient__CalcAffectChange;
 EQLIB_VAR DWORD CLootWnd__LootAll;
 EQLIB_VAR DWORD CTargetWnd__GetBuffCaster;
 EQLIB_VAR DWORD CTargetWnd__WndNotification;
+EQLIB_VAR DWORD CTaskWnd__UpdateTaskTimers;
 
 }
 using namespace MQ2Globals;

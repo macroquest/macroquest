@@ -2835,6 +2835,9 @@ FUNCTION_AT_ADDRESS(void  CTargetWnd::Activate(void),CTargetWnd__Activate);
 #ifdef CTargetWnd__GetBuffCaster_x
 FUNCTION_AT_ADDRESS(class CXStr *CTargetWnd::GetBuffCaster(int),CTargetWnd__GetBuffCaster);
 #endif
+#ifdef CTaskWnd__UpdateTaskTimers_x
+FUNCTION_AT_ADDRESS(int CTaskWnd::UpdateTaskTimers(unsigned long),CTaskWnd__UpdateTaskTimers);
+#endif
 #ifdef CTextEntryWnd__CTextEntryWnd_x
 FUNCTION_AT_ADDRESS( CTextEntryWnd::CTextEntryWnd(class CXWnd *),CTextEntryWnd__CTextEntryWnd);
 #endif

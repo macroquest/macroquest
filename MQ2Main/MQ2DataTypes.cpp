@@ -9090,6 +9090,7 @@ bool MQ2TaskType::GETMEMBER()
 	}
     case Timer:
 	{
+		pTaskWnd->UpdateTaskTimers(_time32(NULL));
 		CListWnd *clist = (CListWnd *)pTaskWnd->GetChildItem("TASK_TaskList");
 		if(clist) {
 			CXStr Str;
@@ -9099,8 +9100,8 @@ bool MQ2TaskType::GETMEMBER()
 			if(szOut[0]!='\0') {
 				int hh, mm, ss;
 				sscanf_s(szOut, "%d:%d:%d", &hh, &mm, &ss);
-				Dest.Int = ((hh*3600)+(mm*60)+ss)/6;
-				Dest.Type=pTicksType;
+				Dest.UInt64 = ((hh*3600)+(mm*60)+ss)*1000;
+				Dest.Type=pTimeStampType;
 				return true;
 			}
 		}
