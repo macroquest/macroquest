@@ -1,5 +1,8 @@
+10 Feb 2015 by eqmule
+- Updated for the Live Client patch.
+
 07 Feb 2015 by eqmule
-- Updated for Test Client.
+- Updated for the Test Client patch.
 
 06 Feb 2015 by eqmule
 - Fixed Task.Timer , it can now be trusted even when the task window is closed.
