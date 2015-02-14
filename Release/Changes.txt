@@ -1,3 +1,6 @@
+13 Feb 2015 by eqmule
+- Updated for the Test Client patch.
+
 10 Feb 2015 by eqmule
 - Updated for the Live Client patch.
 
