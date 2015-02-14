@@ -1,3 +1,6 @@
+07 Feb 2015 by eqmule
+- Updated for Test Client.
+
 06 Feb 2015 by eqmule
 - Fixed Task.Timer , it can now be trusted even when the task window is closed.
   ALSO TAKE NOTE: it returns a TimeStampType from now on. (used to be a TicksType)
