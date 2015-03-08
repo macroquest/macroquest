@@ -1,3 +1,6 @@
+25 Feb 2015 by eqmule
+- Updated for the latest LIVE Client patch
+
 23 Feb 2015 by eqmule
 - Added .Instance to the character TLO
   Usage: /echo ${Me.Instance} will return a int representing the instance ID

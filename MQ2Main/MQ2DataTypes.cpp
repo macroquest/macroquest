@@ -1128,9 +1128,10 @@ bool MQ2SpawnType::GETMEMBER()
     case PctHPs:
 	{
 		Dest.Type=pIntType;
-		//fix for a rare crash that can occur if HPMax is 0
+		//fix for a crash that will occur if HPMax is 0
 		//we should not divide something by 0... -eqmule
-		if (unsigned long maxhp=pSpawn->HPMax)
+		LONG maxhp=pSpawn->HPMax;
+		if (maxhp!=0)
 			Dest.Int=pSpawn->HPCurrent*100/maxhp;
 		else
 			Dest.Int=0;
@@ -2026,10 +2027,11 @@ bool MQ2CharacterType::GETMEMBER()
     case PctHPs:
     {
 		Dest.Type=pIntType;
-		if (unsigned long maxhp=GetMaxHPS())
+		LONG maxhp=GetMaxHPS();
+		if (maxhp!=0)
 			Dest.Int=GetCurHPS()*100/maxhp;
         else
-			Dest.Int=0;	
+			Dest.Int=0;
 		return true;
 	}
     case CurrentMana:
