@@ -787,16 +787,14 @@ PCHAR ConvertHotkeyNameToKeyName(PCHAR szName)
 // ***************************************************************************
 PCHAR GetFullZone(DWORD ZoneID)
 {
-    if (!ppWorldData | !pWorldData)
-		return NULL;
+    ZoneID &= 0x7FFF;
+    if (!ppWorldData | !pWorldData) return NULL;
     if(ZoneID > MAX_ZONES)
-        ZoneID &= 0x7FFF;
-    if(ZoneID > MAX_ZONES || ZoneID < 0)
         return "UNKNOWN_ZONE";
     PZONELIST pZone = ((PWORLDDATA)pWorldData)->ZoneArray[ZoneID];
-   if(pZone)
-	   return pZone->LongName;
-   else
+    if(pZone)
+	    return pZone->LongName;
+    else
 		return "UNKNOWN_ZONE";
 }
 // ***************************************************************************
@@ -805,10 +803,9 @@ PCHAR GetFullZone(DWORD ZoneID)
 // ***************************************************************************
 PCHAR GetShortZone(DWORD ZoneID)
 {
+    ZoneID &= 0x7FFF;
     if (!ppWorldData | !pWorldData) return NULL;
     if(ZoneID > MAX_ZONES)
-        ZoneID &= 0x7FFF;
-    if(ZoneID > MAX_ZONES || ZoneID < 0)
         return "UNKNOWN_ZONE";
     PZONELIST pZone = ((PWORLDDATA)pWorldData)->ZoneArray[ZoneID];
 	if(pZone)
@@ -962,52 +959,90 @@ PCHAR GetSpellNameByID(LONG dwSpellID)
 	}
     return "Unknown Spell";
 }
-std::map<std::string,DWORD>g_SpellNameMap;
+typedef struct _SpellCompare
+{
+	std::map<DWORD,PSPELL>Duplicates;
+} SpellCompare,*PSpellCompare;
+std::map<std::string,std::map<std::string,SpellCompare>>g_SpellNameMap;
 void PopulateSpellMap()
 {
-	//just disregard this for now, its work in progress
 	if(g_SpellNameMap.size()==0) {
-		CHAR szTemp[32] = {0};
-		std::string name;
+		std::string lowname,threelow;
 		for (DWORD dwSpellID = 0; dwSpellID < TOTAL_SPELL_COUNT; dwSpellID++) {
-			if(((PSPELLMGR)pSpellMgr)->Spells[dwSpellID] && ((PSPELLMGR)pSpellMgr)->Spells[dwSpellID]->Name) {
-				name = ((PSPELLMGR)pSpellMgr)->Spells[dwSpellID]->Name;
-				if(g_SpellNameMap.find(name)==g_SpellNameMap.end()) {
-					g_SpellNameMap[name] = dwSpellID;
-				} else {
-					//ok it already exist, that sucks, but its also the reason why we have this map so lets rock...
-					name.append("#");
-					name.append(itoa(dwSpellID,szTemp,10));
-					g_SpellNameMap[name] = dwSpellID;
+			if(PSPELL pSpell = ((PSPELLMGR)pSpellMgr)->Spells[dwSpellID]) {
+				if(pSpell->Name[0]!='\0') {
+					lowname = pSpell->Name;
+					std::transform(lowname.begin(), lowname.end(), lowname.begin(), tolower);
+					threelow = lowname;
+					threelow.erase(3);
+					g_SpellNameMap[threelow][lowname].Duplicates[dwSpellID] = pSpell;
 				}
 			}
 		}
+		gbSpelldbLoaded = TRUE;
 	}
+}
+BOOL IsSpellClassUsable(PSPELL pSpell)
+{
+	for (int N = Warrior ; N <= Berserker ; N++)
+	{
+		if(pSpell->ClassLevel[N]==255 || pSpell->ClassLevel[N]==127) {
+			continue;
+		} else {
+			return TRUE;
+		}
+	}
+	return FALSE;
 }
 PSPELL GetSpellByName(PCHAR szName)
 {
     // PSPELL GetSpellByName(PCHAR NameOrID)
     // This function now accepts SpellID as an argument as well as SpellName
-    if (ppSpellMgr == NULL || szName[0]=='\0') {
+	//echo ${Spell[Concussive Burst].Level}
+	//echo ${Spell[Nature's Serenity].Level}
+    if (ppSpellMgr==NULL || gbSpelldbLoaded==FALSE || szName[0]=='\0') {
 		return NULL;
 	}
     if (szName[0]>='0' && szName[0]<='9')
     {
         return GetSpellByID(abs(atoi(szName)));
     }
-    for (DWORD dwSpellID = 0; dwSpellID < TOTAL_SPELL_COUNT; dwSpellID++) {
-        if(PSPELL pSpell = GetSpellByID(dwSpellID)) {
-			if ((pSpell->ID > 0) && (pSpell->ID < TOTAL_SPELL_COUNT))
-			{
-				if (pSpell->Name != NULL) 
-				{
-					if (!_stricmp(szName, pSpell->Name)) {
-						return pSpell;
+
+	std::string lowname = szName;
+	std::transform(lowname.begin(), lowname.end(), lowname.begin(), tolower);
+	std::string threelow = lowname;
+	threelow.erase(3);
+
+	std::map<std::string,std::map<std::string,SpellCompare>>::iterator i = g_SpellNameMap.find(threelow);
+	if(i!=g_SpellNameMap.end()) {
+		std::map<std::string,SpellCompare>::iterator j = i->second.find(lowname);
+		if(j!=i->second.end()) {
+			PSPELL pSpell = j->second.Duplicates.begin()->second;
+			if(j->second.Duplicates.size()>1) {
+				if(PCHARINFO2 pChar2 = GetCharInfo2()) {
+					DWORD highestclasslevel = 0;
+					DWORD classlevel = 0;
+					for(std::map<DWORD,PSPELL>::iterator k=j->second.Duplicates.begin();k!=j->second.Duplicates.end();k++) {
+						classlevel = k->second->ClassLevel[pChar2->Class];
+						if(classlevel<=pChar2->Level && highestclasslevel < classlevel) {
+							highestclasslevel = classlevel;
+							pSpell=k->second;
+						}
+					}				
+					if(highestclasslevel==0) {
+						//well if we got here, the spell the user is after isnt one his character can cast, so
+						//we will have to roll through it again and see if its usable by any other class
+						for(std::map<DWORD,PSPELL>::iterator k=j->second.Duplicates.begin();k!=j->second.Duplicates.end();k++) {
+							if(IsSpellClassUsable(k->second)) {
+								pSpell=k->second;
+							}
+						}
 					}
 				}
 			}
+			return pSpell;
 		}
-    }
+	}
     return NULL;
 }
 

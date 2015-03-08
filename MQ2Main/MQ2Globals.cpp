@@ -278,6 +278,7 @@ UCHAR gLastFind = 0;
 DOUBLE gZFilter=10000.0f;
 DOUBLE gFaceAngle=10000.0f;
 DOUBLE gLookAngle=10000.0f;
+BOOL gbSpelldbLoaded = 0;
 CHAR gszEQPath[MAX_STRING] = {0};
 CHAR gszMacroPath[MAX_STRING] = {0};
 CHAR gszLogPath[MAX_STRING] = {0};

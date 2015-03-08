@@ -384,7 +384,18 @@ void __cdecl MQ2Shutdown()
     DebugTry(ShutdownMQ2Benchmarks());
 
 }
-
+DWORD __stdcall InitializeMQ2SpellDb(PVOID pData)
+{
+	while(!ppSpellMgr && gGameState != GAMESTATE_CHARSELECT && gGameState != GAMESTATE_INGAME) {
+		Sleep(0);
+	}
+	while(!((PSPELLMGR)pSpellMgr)->Spells || (((PSPELLMGR)pSpellMgr)->Spells && !((PSPELLMGR)pSpellMgr)->Spells[TOTAL_SPELL_COUNT])) {
+		Sleep(0);
+	}
+	//ok everything checks out lets fill our own map with spells
+	PopulateSpellMap();
+	return 0;
+}
 #ifndef ISXEQ
 // ***************************************************************************
 // Function:    MQ2Start Thread
@@ -404,6 +415,8 @@ DWORD WINAPI MQ2Start(LPVOID lpParameter)
     while (gGameState != GAMESTATE_CHARSELECT && gGameState != GAMESTATE_INGAME) 
         Sleep(500);
     InitializeMQ2DInput();
+	DWORD nThreadId = 0;
+	CreateThread(NULL,0,InitializeMQ2SpellDb,0,0,&nThreadId);
     if (gGameState == GAMESTATE_INGAME) {
         gbInZone = TRUE;
 		PluginsSetGameState(GAMESTATE_INGAME);

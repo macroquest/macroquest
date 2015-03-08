@@ -273,17 +273,15 @@ bool MQ2Int64Type::GETMEMBER()
             Dest.Type=pStringType;
         return true;
     case Reverse:
-        {
-            Dest.Array[0]=VarPtr.Array[7];
-            Dest.Array[1]=VarPtr.Array[6];
-            Dest.Array[2]=VarPtr.Array[5];
-            Dest.Array[3]=VarPtr.Array[4];
-            Dest.Array[4]=VarPtr.Array[3];
-            Dest.Array[5]=VarPtr.Array[2];
-            Dest.Array[6]=VarPtr.Array[1];
-            Dest.Array[7]=VarPtr.Array[0];
-            Dest.Type=pInt64Type;
-        }
+        Dest.Array[0]=VarPtr.Array[7];
+        Dest.Array[1]=VarPtr.Array[6];
+        Dest.Array[2]=VarPtr.Array[5];
+        Dest.Array[3]=VarPtr.Array[4];
+        Dest.Array[4]=VarPtr.Array[3];
+        Dest.Array[5]=VarPtr.Array[2];
+        Dest.Array[6]=VarPtr.Array[1];
+        Dest.Array[7]=VarPtr.Array[0];
+        Dest.Type=pInt64Type;
         return true;
     }
     return false;
@@ -456,30 +454,28 @@ bool MQ2StringType::GETMEMBER()
         }
         return false;
     case Mid:
+        if (PCHAR pComma=strchr(Index,','))
         {
-            if (PCHAR pComma=strchr(Index,','))
+            *pComma=0;
+            pComma++;
+            PCHAR pStr=(char *)VarPtr.Ptr;
+            unsigned long nStart=GETNUMBER()-1;
+            unsigned long Len=atoi(pComma);
+            if (nStart>=strlen(pStr))
             {
-                *pComma=0;
-                pComma++;
-                PCHAR pStr=(char *)VarPtr.Ptr;
-                unsigned long nStart=GETNUMBER()-1;
-                unsigned long Len=atoi(pComma);
-                if (nStart>=strlen(pStr))
-                {
-                    Dest.Ptr="";
-                    Dest.Type=pStringType;
-                    return true;
-                }
-                pStr+=nStart;
-                unsigned long StrLen=strlen(pStr);
-                if (Len>StrLen)
-                    Len=StrLen;
-                memmove(DataTypeTemp,pStr,Len);
-                DataTypeTemp[Len]=0;
-                Dest.Ptr=&DataTypeTemp[0];
+                Dest.Ptr="";
                 Dest.Type=pStringType;
                 return true;
             }
+            pStr+=nStart;
+            unsigned long StrLen=strlen(pStr);
+            if (Len>StrLen)
+                Len=StrLen;
+            memmove(DataTypeTemp,pStr,Len);
+            DataTypeTemp[Len]=0;
+            Dest.Ptr=&DataTypeTemp[0];
+            Dest.Type=pStringType;
+            return true;
         }
         return false;
     case Equal:
@@ -1674,12 +1670,10 @@ bool MQ2SpawnType::GETMEMBER()
         Dest.Type=pBoolType;
         return true;
     case xLineOfSight:
-    {
 		Dest.DWord=pLocalPlayer->CanSee((EQPlayer*)pSpawn);
 		//Dest.DWord=(LineOfSight(GetCharInfo()->pSpawn,pSpawn));
         Dest.Type=pBoolType;
         return true;
-	}
     case HeadingToLoc: 
 #ifndef ISXEQ
         if (!ISINDEX()) 
@@ -1732,14 +1726,12 @@ bool MQ2SpawnType::GETMEMBER()
         Dest.Type=pIntType;
         return true;
 	case PctMana:
-	{
 		Dest.Type=pIntType;
 		if (unsigned long maxmana=pSpawn->ManaMax)
 			Dest.Int=pSpawn->ManaCurrent*100/maxmana;
 		else
 			Dest.Int=0;
         return true;
-	}
     case CurrentEndurance:
         Dest.DWord=pSpawn->EnduranceCurrent;
         Dest.Type=pIntType;
@@ -1803,30 +1795,28 @@ bool MQ2SpawnType::GETMEMBER()
         Dest.Type=pIntType;
         return true;
 	case Equipment:
-		{	
-			if (ISINDEX()) {
-				if (ISNUMBER())	{
-					unsigned long nSlot=GETNUMBER();
-					int size = sizeof(_EQUIPMENT)/4;
-					//int size2 = sizeof(szEquipmentSlot);
-					//int size3 = sizeof(szEquipmentSlot[])/4;
-					if (nSlot<9) {
+		if (ISINDEX()) {
+			if (ISNUMBER())	{
+				unsigned long nSlot=GETNUMBER();
+				int size = sizeof(_EQUIPMENT)/4;
+				//int size2 = sizeof(szEquipmentSlot);
+				//int size3 = sizeof(szEquipmentSlot[])/4;
+				if (nSlot<9) {
+					Dest.DWord=pSpawn->Equipment.Item[nSlot].ID;
+					Dest.Type=pIntType;
+					return true;
+				}
+			} else {
+				for (unsigned long nSlot=0;szEquipmentSlot[nSlot];nSlot++) {
+					if (!_stricmp(GETFIRST(),szEquipmentSlot[nSlot])) {
 						Dest.DWord=pSpawn->Equipment.Item[nSlot].ID;
 						Dest.Type=pIntType;
 						return true;
 					}
-				} else {
-					for (unsigned long nSlot=0;szEquipmentSlot[nSlot];nSlot++) {
-						if (!_stricmp(GETFIRST(),szEquipmentSlot[nSlot])) {
-							Dest.DWord=pSpawn->Equipment.Item[nSlot].ID;
-							Dest.Type=pIntType;
-							return true;
-						}
-					}
 				}
 			}
-			return false;
 		}
+		return false;
 	case xTargetable:
 		Dest.DWord=pSpawn->Targetable;
         Dest.Type=pBoolType;
@@ -1865,17 +1855,15 @@ bool MQ2BuffType::GETMEMBER()
 		Dest.Type=pIntType;
         return true;
     case ID:
+        if (GetBuffID(pBuff,(DWORD&)Dest.DWord))
         {
-            if (GetBuffID(pBuff,(DWORD&)Dest.DWord))
-            {
-                Dest.Type=pIntType;
-                return true;
-            }
-            if (GetShortBuffID(pBuff,(DWORD&)Dest.DWord))
-            {
-                Dest.Type=pIntType;
-                return true;
-            }
+            Dest.Type=pIntType;
+            return true;
+        }
+        if (GetShortBuffID(pBuff,(DWORD&)Dest.DWord))
+        {
+            Dest.Type=pIntType;
+            return true;
         }
         return false;
     case Level:
@@ -1898,11 +1886,9 @@ bool MQ2BuffType::GETMEMBER()
         }
         return false;
     case Duration:
-    {
 		Dest.UInt64 = GetSpellBuffTimer(pBuff->SpellID);
 		Dest.Type=pTimeStampType;
         return true;
-	}
     case Dar:
 #if 0
         if(PSPELL pSpell = GetSpellByID(pBuff->SpellID))
@@ -2031,7 +2017,7 @@ bool MQ2CharacterType::GETMEMBER()
 		if (maxhp!=0)
 			Dest.Int=GetCurHPS()*100/maxhp;
         else
-			Dest.Int=0;
+			Dest.Int=0;	
 		return true;
 	}
     case CurrentMana:
@@ -2109,7 +2095,7 @@ bool MQ2CharacterType::GETMEMBER()
         if (ISNUMBER())
         {
             unsigned long nBuff=GETNUMBER()-1;
-            if (nBuff>NUM_SHORT_BUFFS)
+            if (nBuff>=NUM_SHORT_BUFFS)
                 return false;
             if (GetCharInfo2()->ShortBuff[nBuff].SpellID<=0)
                 return false;
@@ -2120,7 +2106,7 @@ bool MQ2CharacterType::GETMEMBER()
         }
         else
         {
-            for (unsigned long nBuff=0 ; nBuff < 35 ; nBuff++)
+            for (unsigned long nBuff=0 ; nBuff < NUM_SHORT_BUFFS ; nBuff++)
             {
                 if (PSPELL pSpell=GetSpellByID(GetCharInfo2()->ShortBuff[nBuff].SpellID))
                 {
@@ -2259,13 +2245,11 @@ bool MQ2CharacterType::GETMEMBER()
         Dest.Type=pIntType;
         return true;
     case PctEndurance:
-        {
-            if (unsigned long Temp=GetMaxEndurance())
-                Dest.DWord=(GetCharInfo2()->Endurance*100)/Temp;
-            else
-                Dest.DWord=0;
-            Dest.Type=pIntType;
-        }
+        if (unsigned long Temp=GetMaxEndurance())
+            Dest.DWord=(GetCharInfo2()->Endurance*100)/Temp;
+        else
+            Dest.DWord=0;
+        Dest.Type=pIntType;
         return true;
     case GukEarned:
         return false;//TODO
@@ -2469,18 +2453,16 @@ bool MQ2CharacterType::GETMEMBER()
         Dest.Type=pBoolType;
         return true;    
     case GroupList: // This isn't really working as intended just yet
-        {
-            if(!pChar->pGroupInfo) return false;
-            for(int i=1; i<6; i++)
-                if(pChar->pGroupInfo->pMember[i])
-                {
-                    char tmp[MAX_STRING];
-                    GetCXStr(pChar->pGroupInfo->pMember[i]->pName, tmp, sizeof(tmp));
-                    strcat(buf, tmp);
-                    if(i<5 && pChar->pGroupInfo->pMember[i+1])
-                        strcat(buf, " ");
-                }
-        }
+        if(!pChar->pGroupInfo) return false;
+        for(int i=1; i<6; i++)
+            if(pChar->pGroupInfo->pMember[i])
+            {
+                char tmp[MAX_STRING];
+                GetCXStr(pChar->pGroupInfo->pMember[i]->pName, tmp, sizeof(tmp));
+                strcat(buf, tmp);
+                if(i<5 && pChar->pGroupInfo->pMember[i+1])
+                    strcat(buf, " ");
+            }
         Dest.Ptr=&buf[0];
         Dest.Type=pStringType;
         return true;
@@ -2686,9 +2668,9 @@ bool MQ2CharacterType::GETMEMBER()
     case Moving:
         Dest.DWord=false;
 		if (pCharSpawn && pChar && pChar->pSpawn) {
-			Dest.DWord=((((gbMoving) && ((PSPAWNINFO)pCharSpawn)->SpeedRun==0.0f) && (pChar->pSpawn->Mount ==  NULL )) || (fabs(FindSpeed((PSPAWNINFO)pCharSpawn)) > 0.0f ));
+        Dest.DWord=((((gbMoving) && ((PSPAWNINFO)pCharSpawn)->SpeedRun==0.0f) && (pChar->pSpawn->Mount ==  NULL )) || (fabs(FindSpeed((PSPAWNINFO)pCharSpawn)) > 0.0f ));
         }
-		Dest.Type=pBoolType;
+        Dest.Type=pBoolType;
         return true;
     case Hunger:
         Dest.DWord=GetCharInfo2()->hungerlevel;
@@ -3316,12 +3298,10 @@ bool MQ2CharacterType::GETMEMBER()
         return true;
     case GroupSize:
         Dest.DWord= 0;
-        {
-            if(!pChar->pGroupInfo) return false;
-            for(int i=1; i<6; i++)
-                if (pChar->pGroupInfo->pMember[i]) Dest.DWord++;
-            if (Dest.DWord) Dest.DWord++;
-        }
+        if(!pChar->pGroupInfo) return false;
+        for(int i=1; i<6; i++)
+            if (pChar->pGroupInfo->pMember[i]) Dest.DWord++;
+        if (Dest.DWord) Dest.DWord++;
         Dest.Type=pIntType;
         return true;    
     case TributeTimer:
@@ -4031,7 +4011,7 @@ bool MQ2SpellType::GETMEMBER()
         switch(pSpell->Resist)
         {
         case 9: Dest.Ptr="Corruption"; break;
-		case 8:	 Dest.Ptr="Physical"; break;		
+		case 8:	Dest.Ptr="Physical"; break;		
         case 7: Dest.Ptr="Prismatic"; break;
         case 6: Dest.Ptr="Chromatic"; break;
         case 5: Dest.Ptr="Disease"; break;
@@ -4180,8 +4160,8 @@ bool MQ2SpellType::GETMEMBER()
                 if (pChar->Buff[nBuff].SpellID > 0) {
                     if(PSPELL buffSpell = GetSpellByID(pChar->Buff[nBuff].SpellID)) {
 						buffduration = pChar->Buff[nBuff].Duration;
-						for (int nSlot=0; nSlot<=11; nSlot++){
-							if (TriggeringEffectSpell(pSpell, nSlot)){		// Check the triggered effect against the current buff for stacking
+						for (int nSlot=0; nSlot<=11; nSlot++) {
+							if (TriggeringEffectSpell(pSpell, nSlot)) {		// Check the triggered effect against the current buff for stacking
 								if(PSPELL triggeredSpell = GetSpellByID(pSpell->Base2[nSlot])) {
 									if (GetSpellDuration(triggeredSpell,(PSPAWNINFO)pCharSpawn)>=0xFFFFFFFE) {
 										buffduration = 99999+1;
@@ -4204,13 +4184,13 @@ bool MQ2SpellType::GETMEMBER()
                 }
             }
 			// Check Songs
-            for (nBuff=0; nBuff<NUM_SHORT_BUFFS; nBuff++){
+            for (nBuff=0; nBuff<NUM_SHORT_BUFFS; nBuff++) {
                 if (pChar->ShortBuff[nBuff].SpellID>0) {
                     if(PSPELL buffSpell = GetSpellByID(pChar->Buff[nBuff].SpellID)) {
 						buffduration = pChar->ShortBuff[nBuff].Duration;
 						if (!IsBardSong(buffSpell) && !((IsSPAEffect(pSpell, SPA_ILLUSION) && !pSpell->DurationWindow))) {		// Don't check against bard songs or buff window illusions
-							for (int nSlot=0; nSlot<=11; nSlot++){
-								if (TriggeringEffectSpell(pSpell, nSlot)){		// Check the triggered effect against the current buff for stacking
+							for (int nSlot=0; nSlot<=11; nSlot++) {
+								if (TriggeringEffectSpell(pSpell, nSlot)) {		// Check the triggered effect against the current buff for stacking
 									if(PSPELL triggeredSpell = GetSpellByID(pSpell->Base2[nSlot])) {
 										if (GetSpellDuration(triggeredSpell,(PSPAWNINFO)pCharSpawn)>=0xFFFFFFFE) {
 											buffduration = 99999+1;
@@ -4245,12 +4225,12 @@ bool MQ2SpellType::GETMEMBER()
             Dest.DWord = true;      
             Dest.Type = pBoolType;
             PEQPETINFOWINDOW pPet = ((PEQPETINFOWINDOW)pPetInfoWnd);
-            for (nBuff=0; nBuff<NUM_BUFF_SLOTS; nBuff++){
+            for (nBuff=0; nBuff<NUM_BUFF_SLOTS; nBuff++) {
                 if (pPet->Buff[nBuff]>0 && !(pPet->Buff[nBuff]==0xFFFFFFFF || pPet->Buff[nBuff]==0)) {
                     if(PSPELL buffSpell = GetSpellByID(pPet->Buff[nBuff])) {
 						petbuffduration = ((pPet->PetBuffTimer[nBuff]+5999)/1000)/6;
-						for (int nSlot=0; nSlot<=11; nSlot++){
-							if (TriggeringEffectSpell(pSpell, nSlot)){		// Check the triggered effect against the current buff for stacking
+						for (int nSlot=0; nSlot<=11; nSlot++) {
+							if (TriggeringEffectSpell(pSpell, nSlot)) {		// Check the triggered effect against the current buff for stacking
 								if(PSPELL triggeredSpell = GetSpellByID(pSpell->Base2[nSlot])) {
 									if (GetSpellDuration(triggeredSpell,(PSPAWNINFO)pCharSpawn)>=0xFFFFFFFE) {
 										petbuffduration = 99999+1;
@@ -4308,23 +4288,23 @@ bool MQ2SpellType::GETMEMBER()
 	        return true;
 		}
     case WillStack:
-        {
+	{
 		Dest.Type = pBoolType;
 		Dest.DWord = false;
 
-            if (!ISINDEX()) 
+		if (!ISINDEX()) 
             return true;
-            PSPELL tmpSpell = NULL;
-            if (ISNUMBER())   
-                tmpSpell = GetSpellByID(GETNUMBER());
-            else 
-                tmpSpell = GetSpellByName(GETFIRST());
-            if (!tmpSpell) 
+        PSPELL tmpSpell = NULL;
+        if (ISNUMBER())   
+            tmpSpell = GetSpellByID(GETNUMBER());
+        else 
+            tmpSpell = GetSpellByName(GETFIRST());
+        if (!tmpSpell) 
             return true;
 
-            Dest.DWord = BuffStackTest(pSpell, tmpSpell);
-            return true;
-        }
+		Dest.DWord = BuffStackTest(pSpell, tmpSpell);
+        return true;
+	}
     case MyRange:
     {
 		DWORD n = 0;
@@ -4551,7 +4531,7 @@ bool MQ2SpellType::GETMEMBER()
 			if (GetCharInfo2()->SpellBook[nSpell] != 0xFFFFFFFF)
 			{
 				if (PSPELL pFoundSpell = GetSpellByID(GetCharInfo2()->SpellBook[nSpell])) {
-					if ((pFoundSpell->SpellGroup || pFoundSpell->SpellGroup==thespell->SpellGroup) && !strncmp(thespell->Name,pFoundSpell->Name,strlen(thespell->Name)))
+					if (pFoundSpell->SpellGroup==thespell->SpellGroup && !strncmp(thespell->Name,pFoundSpell->Name,strlen(thespell->Name)))
 					{
 						Dest.Ptr = pFoundSpell;
 						Dest.Type = pSpellType;
@@ -4561,10 +4541,10 @@ bool MQ2SpellType::GETMEMBER()
 			}
 		}
 		//but if we got here we should check if its a combatability
-		for (DWORD dwIndex=0;dwIndex<NUM_COMBAT_ABILITIES;dwIndex++) {
+		for (DWORD dwIndex=0 ; dwIndex < NUM_COMBAT_ABILITIES ; dwIndex++) {
             if (GetCharInfo2()->CombatAbilities[dwIndex]) {
                 if(PSPELL pFoundSpell = GetSpellByID(GetCharInfo2()->CombatAbilities[dwIndex])) {
-					if ((pFoundSpell->SpellGroup || pFoundSpell->SpellGroup==thespell->SpellGroup) && !strncmp(thespell->Name,pFoundSpell->Name,strlen(thespell->Name)))
+					if (pFoundSpell->SpellGroup==thespell->SpellGroup && !strncmp(thespell->Name,pFoundSpell->Name,strlen(thespell->Name)))
 					{
 						Dest.Ptr = pFoundSpell;
 						Dest.Type = pSpellType;
@@ -4573,7 +4553,9 @@ bool MQ2SpellType::GETMEMBER()
 				}
             }
         }
-		return false;
+		Dest.Ptr = thespell;
+		Dest.Type = pSpellType;
+		return true;
 	}
 	case SpellGroup:
 		Dest.DWord = pSpell->SpellGroup;
@@ -4591,7 +4573,7 @@ bool MQ2SpellType::GETMEMBER()
 		Dest.DWord = IsActiveAA(pSpell->Name);
 		Dest.Type = pBoolType;
 		return true;
-		}
+	}
 #undef pSpell
 	return false;
 }
@@ -4835,18 +4817,16 @@ bool MQ2ItemType::GETMEMBER()
         }
         return false;
     case WornSlots:
+        Dest.DWord=0;
+        // count bits
+        cmp=GetItemFromContents(pItem)->EquipSlots;
+        for (N = 0 ; N < 32 ; N++)
         {
-            Dest.DWord=0;
-            // count bits
-            cmp=GetItemFromContents(pItem)->EquipSlots;
-            for (N = 0 ; N < 32 ; N++)
-            {
-                if (cmp&(1<<N))
-                    Dest.DWord++;
-            }
-            Dest.Type=pIntType;
-            return true;
+            if (cmp&(1<<N))
+                Dest.DWord++;
         }
+        Dest.Type=pIntType;
+        return true;
     case CastTime:
         Dest.Float=(FLOAT)GetItemFromContents(pItem)->Clicky.CastTime/1000;
         Dest.Type=pFloatType;
@@ -4976,9 +4956,9 @@ bool MQ2ItemType::GETMEMBER()
             return true;
         }
         return false;
-    case StackSize: //This returns the MAX size of a stack for the item
-	{				//If this was properly named it should be called MaxStack... but ah well... to late now...
-		Dest.DWord=1;//we know its at least 1
+    case StackSize:   //This returns the MAX size of a stack for the item
+	 				  //If this was properly named it should be called MaxStack... but ah well... to late now...
+		Dest.DWord=1; //we know its at least 1
 		if(pItem) {
 			if(pItem->punknown) {// since the call to >IsStackable() needs this vtable... we crash if its 0...
 				if ((GetItemFromContents(pItem)->Type != ITEMTYPE_NORMAL) || (((EQ_Item*)pItem)->IsStackable()!=1)) {
@@ -4995,112 +4975,105 @@ bool MQ2ItemType::GETMEMBER()
 		}
         Dest.Type=pIntType;
         return true;
-	}
     case Stacks:
+        Dest.DWord=0;
+        Dest.Type=pIntType;
+        if (!((EQ_Item*)pItem)->IsStackable()) return true;
+        for (DWORD slot=BAG_SLOT_START;slot<NUM_INV_SLOTS;slot++) 
         {
-            Dest.DWord=0;
-            Dest.Type=pIntType;
-            if (!((EQ_Item*)pItem)->IsStackable()) return true;
-            for (DWORD slot=BAG_SLOT_START;slot<NUM_INV_SLOTS;slot++) 
+            if (PCONTENTS pTempItem = GetCharInfo2()->pInventoryArray->InventoryArray[slot])
             {
-                if (PCONTENTS pTempItem = GetCharInfo2()->pInventoryArray->InventoryArray[slot])
+                if (GetItemFromContents(pTempItem)->Type==ITEMTYPE_PACK && pTempItem->pContentsArray) 
                 {
-                    if (GetItemFromContents(pTempItem)->Type==ITEMTYPE_PACK && pTempItem->pContentsArray) 
+                    for (DWORD pslot=0;pslot<(GetItemFromContents(pTempItem)->Slots);pslot++) 
                     {
-                        for (DWORD pslot=0;pslot<(GetItemFromContents(pTempItem)->Slots);pslot++) 
+                        if (pTempItem->pContentsArray->Contents[pslot])
                         {
-                            if (pTempItem->pContentsArray->Contents[pslot])
+                            if (PCONTENTS pSlotItem = pTempItem->pContentsArray->Contents[pslot])
                             {
-                                if (PCONTENTS pSlotItem = pTempItem->pContentsArray->Contents[pslot])
+                                if (GetItemFromContents(pSlotItem)->ItemNumber==GetItemFromContents(pItem)->ItemNumber)
                                 {
-                                    if (GetItemFromContents(pSlotItem)->ItemNumber==GetItemFromContents(pItem)->ItemNumber)
-                                    {
-                                        Dest.DWord++;
-                                    }
+                                    Dest.DWord++;
                                 }
                             }
                         }
                     }
-                    else {
-                        if (GetItemFromContents(pTempItem)->ItemNumber==GetItemFromContents(pItem)->ItemNumber)
-                        {
-                            Dest.DWord++;
-                        }
+                }
+                else {
+                    if (GetItemFromContents(pTempItem)->ItemNumber==GetItemFromContents(pItem)->ItemNumber)
+                    {
+                        Dest.DWord++;
                     }
                 }
             }
-            return true;
         }
+        return true;
     case StackCount:
+        Dest.DWord=0;
+        Dest.Type=pIntType;
+        if (!((EQ_Item*)pItem)->IsStackable()) return true;
+        for (DWORD slot=BAG_SLOT_START;slot<NUM_INV_SLOTS;slot++) 
         {
-            Dest.DWord=0;
-            Dest.Type=pIntType;
-            if (!((EQ_Item*)pItem)->IsStackable()) return true;
-            for (DWORD slot=BAG_SLOT_START;slot<NUM_INV_SLOTS;slot++) 
+            if (PCONTENTS pTempItem = GetCharInfo2()->pInventoryArray->InventoryArray[slot])
             {
-                if (PCONTENTS pTempItem = GetCharInfo2()->pInventoryArray->InventoryArray[slot])
+                if (GetItemFromContents(pTempItem)->Type==ITEMTYPE_PACK && pTempItem->pContentsArray) 
                 {
-                    if (GetItemFromContents(pTempItem)->Type==ITEMTYPE_PACK && pTempItem->pContentsArray) 
+                    for (DWORD pslot=0;pslot<(GetItemFromContents(pTempItem)->Slots);pslot++) 
                     {
-                        for (DWORD pslot=0;pslot<(GetItemFromContents(pTempItem)->Slots);pslot++) 
+                        if (pTempItem->pContentsArray->Contents[pslot])
                         {
-                            if (pTempItem->pContentsArray->Contents[pslot])
+                            if (PCONTENTS pSlotItem = pTempItem->pContentsArray->Contents[pslot])
                             {
-                                if (PCONTENTS pSlotItem = pTempItem->pContentsArray->Contents[pslot])
+                                if (GetItemFromContents(pSlotItem)->ItemNumber==GetItemFromContents(pItem)->ItemNumber)
                                 {
-                                    if (GetItemFromContents(pSlotItem)->ItemNumber==GetItemFromContents(pItem)->ItemNumber)
-                                    {
-                                        Dest.DWord+=pSlotItem->StackCount;
-                                    }
+                                    Dest.DWord+=pSlotItem->StackCount;
                                 }
                             }
                         }
                     }
-                    else {
-                        if (GetItemFromContents(pTempItem)->ItemNumber==GetItemFromContents(pItem)->ItemNumber)
-                        {
-                            Dest.DWord+=pTempItem->StackCount;
-                        }
+                }
+                else {
+                    if (GetItemFromContents(pTempItem)->ItemNumber==GetItemFromContents(pItem)->ItemNumber)
+                    {
+                        Dest.DWord+=pTempItem->StackCount;
                     }
                 }
             }
-            return true;
         }
+        return true;
     case FreeStack:
+        Dest.DWord=0;
+        Dest.Type=pIntType;
+        if (!((EQ_Item*)pItem)->IsStackable()) return true;
+        for (DWORD slot=BAG_SLOT_START;slot<NUM_INV_SLOTS;slot++)
         {
-            Dest.DWord=0;
-            Dest.Type=pIntType;
-            if (!((EQ_Item*)pItem)->IsStackable()) return true;
-            for (DWORD slot=BAG_SLOT_START;slot<NUM_INV_SLOTS;slot++)
+            if (PCONTENTS pTempItem = GetCharInfo2()->pInventoryArray->InventoryArray[slot])
             {
-                if (PCONTENTS pTempItem = GetCharInfo2()->pInventoryArray->InventoryArray[slot])
+                if (GetItemFromContents(pTempItem)->Type==ITEMTYPE_PACK && pTempItem->pContentsArray)
                 {
-                    if (GetItemFromContents(pTempItem)->Type==ITEMTYPE_PACK && pTempItem->pContentsArray)
+                    for (DWORD pslot=0;pslot<(GetItemFromContents(pTempItem)->Slots);pslot++) 
                     {
-                        for (DWORD pslot=0;pslot<(GetItemFromContents(pTempItem)->Slots);pslot++) 
+                        if (pTempItem->pContentsArray->Contents[pslot])
                         {
-                            if (pTempItem->pContentsArray->Contents[pslot])
+                            if (PCONTENTS pSlotItem = pTempItem->pContentsArray->Contents[pslot])
                             {
-                                if (PCONTENTS pSlotItem = pTempItem->pContentsArray->Contents[pslot])
+                                if (GetItemFromContents(pSlotItem)->ItemNumber==GetItemFromContents(pItem)->ItemNumber)
                                 {
-                                    if (GetItemFromContents(pSlotItem)->ItemNumber==GetItemFromContents(pItem)->ItemNumber)
-                                    {
-                                        Dest.DWord+=(GetItemFromContents(pSlotItem)->StackSize-pSlotItem->StackCount);
-                                    }
+                                    Dest.DWord+=(GetItemFromContents(pSlotItem)->StackSize-pSlotItem->StackCount);
                                 }
                             }
                         }
                     }
-                    else {
-                        if (GetItemFromContents(pTempItem)->ItemNumber==GetItemFromContents(pItem)->ItemNumber)
-                        {
-                            Dest.DWord+=(GetItemFromContents(pTempItem)->StackSize-pTempItem->StackCount);
-                        }
+                }
+                else {
+                    if (GetItemFromContents(pTempItem)->ItemNumber==GetItemFromContents(pItem)->ItemNumber)
+                    {
+                        Dest.DWord+=(GetItemFromContents(pTempItem)->StackSize-pTempItem->StackCount);
                     }
                 }
             }
-            return true;
         }
+        return true;
     case MerchQuantity:
         if (pActiveMerchant && pItem->MerchantSlot) {
             Dest.DWord=pItem->MerchantQuantity;
@@ -5747,7 +5720,7 @@ bool MQ2ItemType::GETMEMBER()
     case Prestige:
 		Dest.DWord=GetItemFromContents(pItem)->Prestige;
         Dest.Type=pBoolType;
-		return true;
+        return true;
 	case FirstFreeSlot:
         if (GetItemFromContents(pItem)->Type == ITEMTYPE_PACK)
         {
@@ -5821,7 +5794,7 @@ bool MQ2ItemType::GETMEMBER()
 		Dest.DWord=GetItemFromContents(pItem)->Expendable;
         Dest.Type=pBoolType;
         return true;
-	}
+    }
     return false;
 #undef pItem
 }
@@ -6049,41 +6022,35 @@ bool MQ2WindowType::GETMEMBER()
             return false;
         }
     case Name:
+        if (CXMLData *pXMLData=((CXWnd*)pWnd)->GetXMLData())
         {
-            if (CXMLData *pXMLData=((CXWnd*)pWnd)->GetXMLData())
+            if (GetCXStr(pXMLData->Name.Ptr,DataTypeTemp,MAX_STRING))
             {
-                if (GetCXStr(pXMLData->Name.Ptr,DataTypeTemp,MAX_STRING))
-                {
-                    Dest.Ptr=&DataTypeTemp[0];
-                    Dest.Type=pStringType;
-                    return true;
-                }
+                Dest.Ptr=&DataTypeTemp[0];
+                Dest.Type=pStringType;
+                return true;
             }
         }
         return false;
     case ScreenID:
+        if (CXMLData *pXMLData=((CXWnd*)pWnd)->GetXMLData())
         {
-            if (CXMLData *pXMLData=((CXWnd*)pWnd)->GetXMLData())
+            if (GetCXStr(pXMLData->ScreenID.Ptr,DataTypeTemp,MAX_STRING))
             {
-                if (GetCXStr(pXMLData->ScreenID.Ptr,DataTypeTemp,MAX_STRING))
-                {
-                    Dest.Ptr=&DataTypeTemp[0];
-                    Dest.Type=pStringType;
-                    return true;
-                }
+                Dest.Ptr=&DataTypeTemp[0];
+                Dest.Type=pStringType;
+                return true;
             }
         }
         return false;
     case Type:
+        if (CXMLData *pXMLData=((CXWnd*)pWnd)->GetXMLData())
         {
-            if (CXMLData *pXMLData=((CXWnd*)pWnd)->GetXMLData())
+            if (GetCXStr(pXMLData->TypeName.Ptr,DataTypeTemp,MAX_STRING))
             {
-                if (GetCXStr(pXMLData->TypeName.Ptr,DataTypeTemp,MAX_STRING))
-                {
-                    Dest.Ptr=&DataTypeTemp[0];
-                    Dest.Type=pStringType;
-                    return true;
-                }
+                Dest.Ptr=&DataTypeTemp[0];
+                Dest.Type=pStringType;
+                return true;
             }
         }
         return false;
@@ -6217,10 +6184,7 @@ bool MQ2ZoneType::GETMEMBER()
         Dest.Type=pStringType;
         return true;
     case ID:
-        Dest.Int=pZone->Id;
-		if (Dest.Int > MAX_ZONES) {
-			Dest.Int &= 0x7FFF;//fix for instanced zones and neighborhoods and stuff
-		}
+        Dest.Int=pZone->Id & 0x7FFF;
         Dest.Type=pIntType;
         return true;
 	case ZoneFlags:
@@ -6469,11 +6433,9 @@ bool MQ2SwitchType::GETMEMBER()
         return true;
 	}
     case xLineOfSight:
-	{
         Dest.DWord=(CastRay(GetCharInfo()->pSpawn,pSwitch->Y,pSwitch->X,pSwitch->Z));
         Dest.Type=pBoolType;
         return true;
-	}
     }
     return false;
 #undef pSwitch
@@ -7946,7 +7908,7 @@ bool MQ2GroupType::GETMEMBER()
                     }
                 }
             }
-		}
+        }
 		return false;
 	 case AnyoneMissing:
 		{
@@ -8019,7 +7981,7 @@ bool MQ2GroupMemberType::GETMEMBER()
                 {
                     GetCXStr(pChar->pGroupInfo->pMember[i]->pName,MemberName,MAX_STRING);
 					if(pChar->pGroupInfo->pMember[i]->pSpawn) {
-						pGroupMember=pChar->pGroupInfo->pMember[i]->pSpawn;
+                    	pGroupMember=pChar->pGroupInfo->pMember[i]->pSpawn;
 					}
                     pGroupMemberData=pChar->pGroupInfo->pMember[i];
                     break;
@@ -8032,7 +7994,7 @@ bool MQ2GroupMemberType::GETMEMBER()
     else
     {
         if(pGroupMember=pChar->pSpawn) {
-			strcpy(MemberName,pGroupMember->Name);
+        	strcpy(MemberName,pGroupMember->Name);
 		}
         pGroupMemberData=pChar->pGroupInfo->pMember[0];
     }
@@ -8075,8 +8037,8 @@ bool MQ2GroupMemberType::GETMEMBER()
         if (pGroupMember)
         {
             Dest.DWord=pGroupMember->Level;
-			Dest.Type=pIntType;
-			return true;
+        Dest.Type=pIntType;
+        return true;
         }
         else if (pGroupMemberData)
         {
@@ -8622,12 +8584,9 @@ bool MQ2FellowshipType::GETMEMBER()
         Dest.Type=pFloatType;
         return true;
     case CampfireZone:
-        if(DWORD zoneID = ((PSPAWNINFO)pLocalPlayer)->CampfireZoneID)
+        if(DWORD zoneID = (((PSPAWNINFO)pLocalPlayer)->CampfireZoneID & 0x7FFF))
         {
-			if (zoneID > MAX_ZONES) {
-				zoneID &= 32767;//fix for instanced zones and neighborhoods and stuff
-			}
-			if(zoneID && zoneID<=MAX_ZONES && pWorldData) {
+			if(zoneID && pWorldData) {
 				Dest.Ptr=((PWORLDDATA)pWorldData)->ZoneArray[zoneID];
 				Dest.Type=pZoneType;
 				return true;
@@ -8934,7 +8893,7 @@ bool MQ2TargetType::GETMEMBER()
             return true;
         }
 		break;
-	case Malod:	
+	case Malod:
 		if ((Dest.Int=GetTargetBuffBySubCat("Resist Debuffs",(1<<Shaman)+(1<<Mage)))!=-1)
         {
             Dest.Type=pTargetBuffType;

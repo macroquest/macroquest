@@ -1,3 +1,18 @@
+04 Mar 2015 by eqmule & rswiders
+- made a few changes to how GetSpellByName works
+  from now on I placed all of the spelldb in a map.
+  the main reason for this is so we can pick spells that best matches our class
+  and if it doesnt , at least pick a spell that is class usable.
+  if both of those selections fails, we will just revert to old pick, which is to select whichever spell comes first
+  in the db...
+  Using this map has made spell lookup between 20-200 times faster than before.
+  If you are interested in testing this, add a QueryPerformanceCounter before and after
+  the call and you will see this for yourself.
+- this also fixes problems with getting correct spells for .RankName
+- Misc Fixes & Code cleanup
+- ${Zone[xxxxx] if xxxxx is larger than MAX_ZONES no longer crashes the client.
+- .RankName now returns the input spell if there is no rank found or if the character you do the query on doesnt have the spell.
+
 27 Feb 2015 by eqmule
 - Updated for the latest TEST Client patch
 

@@ -312,7 +312,7 @@ TLO(dataZone)
     } 
     else if (ISNUMBER())
     {
-        if (nIndex = GETNUMBER())
+        if (nIndex = (GETNUMBER() & 0x7FFF))
         {
             if (GetCharInfo()->zoneId==nIndex)
             {
@@ -329,7 +329,7 @@ TLO(dataZone)
             return true;
         }
     } 
-    else if (-1 != (nIndex=GetZoneID(GETFIRST()))) 
+    else if ((nIndex=GetZoneID(GETFIRST())) != -1) 
     {
         if (GetCharInfo()->zoneId==nIndex)
         {

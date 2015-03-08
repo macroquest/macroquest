@@ -639,6 +639,7 @@ EQLIB_API BOOL		  CloseContainer(PCONTENTS pItem);
 EQLIB_API int		  GetTargetBuffBySubCat(PCHAR subcat,DWORD classmask = 0);
 EQLIB_API int		  GetTargetBuffBySPA(int spa,bool bIncrease);
 EQLIB_API int		  GetSelfBuffBySPA(int spa,bool bIncrease);
+EQLIB_API void		  PopulateSpellMap();
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 // Functions that were built into commands and people used DoCommand to execute                  //
 
