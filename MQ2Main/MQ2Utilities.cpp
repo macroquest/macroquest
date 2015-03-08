@@ -7584,7 +7584,6 @@ DWORD __stdcall RefreshMountKeyRingThread(PVOID pData)
 void RefreshMountKeyRing(PVOID kr)
 {
 	DWORD nThread = 0;
-	Beep(1000,100);
 	CreateThread(NULL,0,RefreshMountKeyRingThread,kr,NULL,&nThread);
 }
 int GetMountCount()

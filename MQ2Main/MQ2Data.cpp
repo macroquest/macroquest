@@ -1735,12 +1735,12 @@ TLO(dataMount)
 }
 TLO(dataAlias)
 {
-   if (szIndex[0])
+   if (ISINDEX())
    {
       PALIAS pLoop = pAliases;
       while (pLoop)
       {
-         if (!stricmp(pLoop->szName, szIndex))
+         if (!stricmp(pLoop->szName, GETFIRST()))
          {
             Ret.DWord = 1;
             Ret.Type = pBoolType;
