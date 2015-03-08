@@ -1364,7 +1364,7 @@ VOID ClearSearchSpawn(PSEARCHSPAWN pSearchSpawn)
     // 0? fine. set anything thats NOT zero.
     pSearchSpawn->MaxLevel = MAX_NPC_LEVEL;
     pSearchSpawn->SpawnType = NONE;
-    pSearchSpawn->GuildID = 0xFFFF;
+    pSearchSpawn->GuildID = 0xFFFFFFFF;
     pSearchSpawn->ZRadius = 10000.0f;
     pSearchSpawn->FRadius = 10000.0f;
 }
@@ -5012,7 +5012,7 @@ PCHAR FormatSearchSpawn(PCHAR Buffer, PSEARCHSPAWN pSearchSpawn)
         sprintf(szTemp," Body:%s",pSearchSpawn->szBodyType);
         strcat(Buffer,szTemp);
     }
-    if (pSearchSpawn->GuildID!=0xFFFF) {
+    if (pSearchSpawn->GuildID!=0xFFFFFFFF) {
         char *szGuild = GetGuildByID(pSearchSpawn->GuildID);
         sprintf(szTemp," Guild:%s", szGuild ? szGuild : "Unknown");
         strcat(Buffer,szTemp);
@@ -5118,7 +5118,7 @@ PSPAWNINFO NthNearestSpawn(PSEARCHSPAWN pSearchSpawn, DWORD Nth, PSPAWNINFO pOri
         return 0;
     }
     // sort our list
-    qsort(&SpawnSet.List[0],TotalMatching,sizeof(PMQRANK),pMQRankFloatCompare);
+	std::sort(&SpawnSet.List[0], &SpawnSet.List[0]+TotalMatching, pMQRankFloatCompare);
     // get our Nth nearest
     pSpawn=(PSPAWNINFO)SpawnSet[Nth-1]->VarPtr.Ptr;
     SpawnSet.Cleanup();
@@ -5355,7 +5355,7 @@ BOOL SpawnMatchesSearch(PSEARCHSPAWN pSearchSpawn, PSPAWNINFO pChar, PSPAWNINFO 
         return FALSE;
     if (pSearchSpawn->bSpawnID && pSearchSpawn->SpawnID != pSpawn->SpawnID)
         return FALSE;
-    if (pSearchSpawn->GuildID!=0xFFFF && pSearchSpawn->GuildID!=pSpawn->GuildID)
+    if (pSearchSpawn->GuildID!=0xFFFFFFFF && pSearchSpawn->GuildID!=pSpawn->GuildID)
         return FALSE;
     if (pSearchSpawn->bGM && pSearchSpawn->SpawnType != NPC )
         if (!pSpawn->GM)
@@ -5598,10 +5598,10 @@ PCHAR ParseSearchSpawnArgs(PCHAR szArg, PCHAR szRest, PSEARCHSPAWN pSearchSpawn)
         } else if (!strcmp(szArg,"GUILD")) {
             pSearchSpawn->GuildID=GetCharInfo()->pSpawn->GuildID;
         } else if (!stricmp(szArg,"guild")) {
-            DWORD GuildID = 0xFFFF;
+            DWORD GuildID = 0xFFFFFFFF;
             GetArg(szArg,szRest,1);
             if (szArg[0]!=0) GuildID = GetGuildIDByName(szArg);
-            if (GuildID!=0xFFFF) {
+            if (GuildID!=0xFFFFFFFF) {
                 pSearchSpawn->GuildID = GuildID;
                 szRest = GetNextArg(szRest,1);
             } else {
@@ -6024,11 +6024,8 @@ VOID SuperWhoDisplay(PSPAWNINFO pSpawn, DWORD Color)
 
 DWORD SWhoSortValue=0;
 PSPAWNINFO SWhoSortOrigin=0;
-
-static int pWHOSORTCompare(const void *A, const void *B)
+static bool pWHOSORTCompare(const PSPAWNINFO SpawnA, const PSPAWNINFO SpawnB)
 {
-    PSPAWNINFO SpawnA=*(PSPAWNINFO*)A;
-    PSPAWNINFO SpawnB=*(PSPAWNINFO*)B;
     switch(SWhoSortValue)
     {
         /*
@@ -6043,63 +6040,31 @@ static int pWHOSORTCompare(const void *A, const void *B)
         NULL }; 
         /**/
     case 0://level
-        if (SpawnA->Level>SpawnB->Level)
-            return 1;
-        if (SpawnA->Level<SpawnB->Level)
-            return -1;
-        break;
+		return SpawnA->Level < SpawnB->Level;
     //case 1://name   done at the bottom ;)
-    //    break;
     case 2://race
-        {
-            int RaceCompare=stricmp(pEverQuest->GetRaceDesc(SpawnA->Race),pEverQuest->GetRaceDesc(SpawnB->Race));
-            if (RaceCompare)
-                return RaceCompare;
-        }
-        break;
+		return _stricmp(pEverQuest->GetRaceDesc(SpawnA->Race),pEverQuest->GetRaceDesc(SpawnB->Race)) < 0;
     case 3://class
-        {
-            int ClassCompare=stricmp(GetClassDesc(SpawnA->Class),GetClassDesc(SpawnB->Class));
-            if (ClassCompare)
-                return ClassCompare;
-        }
-        break;
+		return _stricmp(GetClassDesc(SpawnA->Class),GetClassDesc(SpawnB->Class)) < 0;
     case 4://distance
-        {
-            FLOAT DistA=GetDistance(SWhoSortOrigin,SpawnA);
-            FLOAT DistB=GetDistance(SWhoSortOrigin,SpawnB);
-            if (DistA>DistB)
-                return 1;
-            if (DistA<DistB)
-                return -1;
-        }
-        break;
+		return GetDistance(SWhoSortOrigin,SpawnA) < GetDistance(SWhoSortOrigin,SpawnB);
     case 5://guild
-        {
-            char *szGuild1 = GetGuildByID(SpawnA->GuildID);
-            char *szGuild2 = GetGuildByID(SpawnB->GuildID);
-            if(szGuild1 && szGuild2)
-            {
-                int GuildCompare=stricmp(szGuild1, szGuild2);
-                if (GuildCompare)
-                    return GuildCompare;
-            }
-            else
-                return -1;
-        }
-        break;
+		{
+			CHAR szGuild1[128] = {""};
+			CHAR szGuild2[128] = {""};
+			char *pDest = 0;
+			if(pDest = GetGuildByID(SpawnA->GuildID)) {
+				strcpy_s(szGuild1,pDest);
+			}
+			if(pDest = GetGuildByID(SpawnB->GuildID)) {
+				strcpy_s(szGuild2,pDest);
+			}
+			return _stricmp(szGuild1, szGuild2) < 0;
+		}
     case 6://id
-        if (SpawnA->SpawnID>SpawnB->SpawnID)
-            return 1;
-        if (SpawnA->SpawnID<SpawnB->SpawnID)
-            return -1;
-        break;
+        return SpawnA->SpawnID < SpawnB->SpawnID;
     }
-    CHAR szNameA[MAX_STRING]={0};
-    CHAR szNameB[MAX_STRING]={0};
-    CleanupName(strcpy(szNameA,SpawnA->Name));
-    CleanupName(strcpy(szNameB,SpawnB->Name));
-    return stricmp(szNameA,szNameB);
+	return _stricmp(CleanupName(SpawnA->Name), CleanupName(SpawnB->Name)) < 0;
 }
 
 VOID SuperWhoDisplay(PSPAWNINFO pChar, PSEARCHSPAWN pSearchSpawn, DWORD Color)
@@ -6132,7 +6097,7 @@ VOID SuperWhoDisplay(PSPAWNINFO pChar, PSEARCHSPAWN pSearchSpawn, DWORD Color)
             // sort our list
             SWhoSortValue=pSearchSpawn->SortBy;
             SWhoSortOrigin=pOrigin;
-            qsort(&SpawnSet.List[0],TotalMatching,sizeof(PSPAWNINFO),pWHOSORTCompare);
+			std::sort(&SpawnSet.List[0], &SpawnSet.List[0]+TotalMatching, pWHOSORTCompare);
         }
         WriteChatColor("List of matching spawns",USERCOLOR_WHO);
         WriteChatColor("--------------------------------",USERCOLOR_WHO);

@@ -591,7 +591,7 @@ EQLIB_API DWORD FindSpellListByName(PCHAR szName);
 EQLIB_API FLOAT StateHeightMultiplier(DWORD StandState);
 EQLIB_API DWORD WINAPI thrMsgBox(LPVOID lpParameter);
 extern VOID SuperWhoDisplay(PSPAWNINFO pChar, PSEARCHSPAWN pSearchSpawn, DWORD Color);
-LEGACY_API int pWHOSORTCompare(const void *A, const void *B);
+LEGACY_API bool pWHOSORTCompare(const PSPAWNINFO A, const PSPAWNINFO B);
 extern VOID SuperWhoDisplay(PSPAWNINFO pSpawn, DWORD Color);
 
 EQLIB_API VOID        OverwriteTable          (DWORD Address);

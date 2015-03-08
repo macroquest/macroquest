@@ -675,8 +675,7 @@ VOID UpdateMQ2SpawnSort()
         gSpawnCount++;
         pSpawn=pSpawn->pNext;
     }
-    // quicksort!
-    qsort(&EQP_DistArray[0],gSpawnCount,sizeof(MQRANK),MQRankFloatCompare);
+	std::sort(EQP_DistArray, EQP_DistArray + gSpawnCount, MQRankFloatCompare);
     ExitMQ2Benchmark(bmUpdateSpawnSort);
     static unsigned long nCaptions=100;
     static unsigned long LastTarget=0;

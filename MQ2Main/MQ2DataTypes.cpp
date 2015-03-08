@@ -7794,7 +7794,7 @@ bool MQ2GroupType::GETMEMBER()
                     CHAR Name[MAX_STRING]={0};
                     GetCXStr(pChar->pGroupInfo->pMember[i]->pName,Name,MAX_STRING);
 					CleanupName(Name,FALSE,FALSE);//we do this to fix the mercenaryname bug
-                    if (!stricmp(Name,GETFIRST()))
+					if (GETFIRST()[0]!='\0' && !stricmp(Name,GETFIRST()))
                     {
                         Dest.Type=pGroupMemberType;
                         return true;

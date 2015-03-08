@@ -456,6 +456,8 @@ static inline DWORD FixOffset(DWORD nOffset)
 }
 
 static inline bool endsWith (char* base, char* str) {
+	if (!base || !str)
+		return false;
     int blen = strlen(base);
     int slen = strlen(str);
     return (blen >= slen) && (0 == strcmp(base + blen - slen, str));

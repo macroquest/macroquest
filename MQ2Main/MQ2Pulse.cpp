@@ -21,7 +21,7 @@ GNU General Public License for more details.
 //#define DEBUG_TRY 1
 #include "MQ2Main.h"
 BOOL TurnNotDone=FALSE;
-
+CRITICAL_SECTION gPulseCS;
 #ifndef ISXEQ
 BOOL DoNextCommand()
 {
@@ -259,6 +259,8 @@ void Pulse()
 
 void Heartbeat()
 {
+	if(gbUnload)
+		return;
     static ULONGLONG LastGetTick = 0;
     static bool bFirstHeartBeat = true;
     static ULONGLONG TickDiff=0;
@@ -366,7 +368,8 @@ void Heartbeat()
 // *************************************************************************** 
 BOOL Trampoline_ProcessGameEvents(VOID); 
 BOOL Detour_ProcessGameEvents(VOID) 
-{ 
+{
+	CAutoLock Lock(&gPulseCS);
     Heartbeat();
 #ifdef ISXEQ
     if (!pISInterface->ScriptEngineActive()) 
@@ -401,17 +404,19 @@ DETOUR_TRAMPOLINE_EMPTY(VOID CEverQuestHook::SetGameState_Trampoline(DWORD));
 void InitializeMQ2Pulse()
 {
     DebugSpew("Initializing Pulse");
-
+	InitializeCriticalSection(&gPulseCS);
     EzDetour(ProcessGameEvents,Detour_ProcessGameEvents,Trampoline_ProcessGameEvents);
     EzDetour(CEverQuest__EnterZone,&CEverQuestHook::EnterZone_Detour,&CEverQuestHook::EnterZone_Trampoline);
     EzDetour(CEverQuest__SetGameState,&CEverQuestHook::SetGameState_Detour,&CEverQuestHook::SetGameState_Trampoline);
 
 }
-
 void ShutdownMQ2Pulse()
 {
+	EnterCriticalSection(&gPulseCS);
     RemoveDetour((DWORD)ProcessGameEvents);
     RemoveDetour(CEverQuest__EnterZone);
     RemoveDetour(CEverQuest__SetGameState);
+	LeaveCriticalSection(&gPulseCS);
+	DeleteCriticalSection(&gPulseCS);
 }
 #endif

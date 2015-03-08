@@ -1,3 +1,12 @@
+20 Feb 2015 by eqmule
+- Updated for test client patch
+- Changed all qsort calls to std::sort -Cred demonstar55
+- Fixed /who sort guild (has it ever worked?)
+  it will display all non guilded players first then sort the rest by guild.
+- Fixed a bug where unloading mq2 while the ProcessGameEvents detour was in use would crash the game...
+  This means using /unload should be safer than ever now.
+- Misc fixes -Cred Htw and uploaders of minidumps.
+
 13 Feb 2015 by eqmule
 - Updated for the Test Client patch.
 

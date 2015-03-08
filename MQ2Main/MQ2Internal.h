@@ -1082,23 +1082,14 @@ namespace MQ2Internal {
         MQ2VARPTR Value;
     } MQRANK, *PMQRANK;
 
-    static int pMQRankFloatCompare(const void *A, const void *B)
+    static bool pMQRankFloatCompare(const PMQRANK A, const PMQRANK B)
     {
-        if ((*(PMQRANK*)A)->Value.Float==(*(PMQRANK*)B)->Value.Float)
-            return 0;
-        if ((*(PMQRANK*)A)->Value.Float<(*(PMQRANK*)B)->Value.Float)
-            return -1;
-        return 1;
+        return A->Value.Float < B->Value.Float;
     }
-
-    static int MQRankFloatCompare(const void *A, const void *B)
-    {
-        if (((PMQRANK)A)->Value.Float==((PMQRANK)B)->Value.Float)
-            return 0;
-        if (((PMQRANK)A)->Value.Float<((PMQRANK)B)->Value.Float)
-            return -1;
-        return 1;
-    }
+	static bool MQRankFloatCompare(const MQRANK &A, const MQRANK &B)
+	{
+		return A.Value.Float < B.Value.Float;
+	}
 
     static int MQRankFloatCompareReverse(const void *A, const void *B)
     {
@@ -1108,7 +1099,6 @@ namespace MQ2Internal {
             return -1;
         return 1;
     }
-
     static int MQRankCompare(const void *A, const void *B)
     {
         if (((PMQRANK)A)->Value.DWord==((PMQRANK)B)->Value.DWord)
