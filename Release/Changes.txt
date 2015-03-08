@@ -1,3 +1,13 @@
+23 Feb 2015 by eqmule
+- Added .Instance to the character TLO
+  Usage: /echo ${Me.Instance} will return a int representing the instance ID
+- ${Zone.ID} should now return the correct zone id even for instances and neighborhoods.
+  as well as campfire zone id's and so on...
+- Misc Fixes
+- Fixed GROUPMEMBER struct for the test build
+  This should fix a crash reported by dogstar, thanks for the reports buddy!
+
+
 20 Feb 2015 by eqmule
 - Updated for test client patch
 - Changed all qsort calls to std::sort -Cred demonstar55

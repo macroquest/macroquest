@@ -2682,8 +2682,11 @@ bool MQ2CharacterType::GETMEMBER()
 		}
 		return false;
     case Moving:
-        Dest.DWord=((((gbMoving) && ((PSPAWNINFO)pCharSpawn)->SpeedRun==0.0f) && (pChar->pSpawn->Mount ==  NULL )) || (fabs(FindSpeed((PSPAWNINFO)pCharSpawn)) > 0.0f ));
-        Dest.Type=pBoolType;
+        Dest.DWord=false;
+		if (pCharSpawn && pChar && pChar->pSpawn) {
+			Dest.DWord=((((gbMoving) && ((PSPAWNINFO)pCharSpawn)->SpeedRun==0.0f) && (pChar->pSpawn->Mount ==  NULL )) || (fabs(FindSpeed((PSPAWNINFO)pCharSpawn)) > 0.0f ));
+        }
+		Dest.Type=pBoolType;
         return true;
     case Hunger:
         Dest.DWord=GetCharInfo2()->hungerlevel;
@@ -3455,6 +3458,8 @@ bool MQ2CharacterType::GETMEMBER()
         }
         return false;
     case CombatState:        
+		if(!pPlayerWnd)
+			return false;
         switch(((PCPLAYERWND)pPlayerWnd)->CombatState)
         {
         case 0:
@@ -3906,6 +3911,12 @@ bool MQ2CharacterType::GETMEMBER()
 			Dest.DWord = true;
         Dest.Type = pBoolType;
         return true;
+	case Instance:
+        Dest.DWord = 0;
+        if (pLocalPlayer) 
+			Dest.DWord = ((PSPAWNINFO)pLocalPlayer)->Instance;
+        Dest.Type = pIntType;
+        return true;
 	case MercListInfo:
 		{
 			if (!ISINDEX())
@@ -4018,6 +4029,7 @@ bool MQ2SpellType::GETMEMBER()
         switch(pSpell->Resist)
         {
         case 9: Dest.Ptr="Corruption"; break;
+		case 8:	 Dest.Ptr="Physical"; break;		
         case 7: Dest.Ptr="Prismatic"; break;
         case 6: Dest.Ptr="Chromatic"; break;
         case 5: Dest.Ptr="Disease"; break;
@@ -6125,6 +6137,9 @@ bool MQ2CurrentZoneType::GETMEMBER()
         return true;
     case ID:
         Dest.Int = GetCharInfo()->zoneId;
+		if (Dest.Int > MAX_ZONES) {
+			Dest.Int &= 0x7FFF;//fix for instanced zones and neighborhoods and stuff
+		}
         Dest.Type=pIntType;
         return true; 
     case Name:
@@ -6179,6 +6194,8 @@ bool MQ2CurrentZoneType::GETMEMBER()
 
 bool MQ2ZoneType::GETMEMBER()
 {
+	if(!VarPtr.Ptr)
+		return false;
 #define pZone ((PZONELIST)VarPtr.Ptr)
     PMQ2TYPEMEMBER pMember=MQ2ZoneType::FindMember(Member);
     if (!pMember)
@@ -6199,6 +6216,9 @@ bool MQ2ZoneType::GETMEMBER()
         return true;
     case ID:
         Dest.Int=pZone->Id;
+		if (Dest.Int > MAX_ZONES) {
+			Dest.Int &= 0x7FFF;//fix for instanced zones and neighborhoods and stuff
+		}
         Dest.Type=pIntType;
         return true;
 	case ZoneFlags:
@@ -7996,7 +8016,9 @@ bool MQ2GroupMemberType::GETMEMBER()
                 if (N==0)
                 {
                     GetCXStr(pChar->pGroupInfo->pMember[i]->pName,MemberName,MAX_STRING);
-                    pGroupMember=pChar->pGroupInfo->pMember[i]->pSpawn;
+					if(pChar->pGroupInfo->pMember[i]->pSpawn) {
+						pGroupMember=pChar->pGroupInfo->pMember[i]->pSpawn;
+					}
                     pGroupMemberData=pChar->pGroupInfo->pMember[i];
                     break;
                 }
@@ -8007,8 +8029,9 @@ bool MQ2GroupMemberType::GETMEMBER()
     }
     else
     {
-        pGroupMember=pChar->pSpawn;
-        strcpy(MemberName,pGroupMember->Name);
+        if(pGroupMember=pChar->pSpawn) {
+			strcpy(MemberName,pGroupMember->Name);
+		}
         pGroupMemberData=pChar->pGroupInfo->pMember[0];
     }
     PMQ2TYPEMEMBER pMember=MQ2GroupMemberType::FindMember(Member);
@@ -8599,7 +8622,10 @@ bool MQ2FellowshipType::GETMEMBER()
     case CampfireZone:
         if(DWORD zoneID = ((PSPAWNINFO)pLocalPlayer)->CampfireZoneID)
         {
-			if(zoneID<=1000) {//ugly but for now until i can figure out where the other zones are stored...
+			if (zoneID > MAX_ZONES) {
+				zoneID &= 32767;//fix for instanced zones and neighborhoods and stuff
+			}
+			if(zoneID && zoneID<=MAX_ZONES && pWorldData) {
 				Dest.Ptr=((PWORLDDATA)pWorldData)->ZoneArray[zoneID];
 				Dest.Type=pZoneType;
 				return true;

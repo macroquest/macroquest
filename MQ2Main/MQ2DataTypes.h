@@ -1042,7 +1042,8 @@ public:
 		DSed=206,
 		RevDSed=207,
 		InInstance=208,
-		MercListInfo=209,
+		Instance=209,
+		MercListInfo=210,
     };
     static enum CharacterMethods
     {
@@ -1250,6 +1251,7 @@ public:
 		TypeMember(DSed);
 		TypeMember(RevDSed);
 		TypeMember(InInstance);
+		TypeMember(Instance);
 		TypeMember(MercListInfo);
 
         TypeMethod(Stand); 

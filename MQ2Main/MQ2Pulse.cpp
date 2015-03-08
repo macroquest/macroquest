@@ -151,7 +151,7 @@ void Pulse()
         else
             PVPServer=PVP_NONE;
 		srand((unsigned int)time(NULL) + (unsigned int)GetCurrentProcessId()); // reseed
-        Benchmark(bmPluginsSetGameState,PluginsZoned());
+        Benchmark(bmPluginsOnZoned,PluginsZoned());
 
     } else if ((LastX!=pChar->X) || (LastY!=pChar->Y) || LastMoveTick>MQGetTickCount64()-100) {
         if ((LastX!=pChar->X) || (LastY!=pChar->Y)) LastMoveTick=MQGetTickCount64();

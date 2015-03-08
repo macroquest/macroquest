@@ -854,9 +854,9 @@ typedef struct _GROUPMEMBER {
 /*0x18*/ BYTE   Puller;
 /*0x19*/ BYTE   Unknown0x19[0x3];
 /*0x1c*/ DWORD  Roles;          // (Roles & 1) = MainTank, 2 = MainAssist, 4 = Puller
-/*0x20*/ BYTE   Unknown0x20[0x8];
-/*0x28*/ struct _SPAWNINFO *pSpawn;
-/*0x2c*/
+/*0x20*/ BYTE   Unknown0x20[0x10];
+/*0x30*/ struct _SPAWNINFO *pSpawn;
+/*0x34*/
 } GROUPMEMBER, *PGROUPMEMBER;
 
 typedef struct _GROUPINFO {
