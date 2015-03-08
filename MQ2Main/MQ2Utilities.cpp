@@ -962,7 +962,28 @@ PCHAR GetSpellNameByID(LONG dwSpellID)
 	}
     return "Unknown Spell";
 }
-
+std::map<std::string,DWORD>g_SpellNameMap;
+void PopulateSpellMap()
+{
+	//just disregard this for now, its work in progress
+	if(g_SpellNameMap.size()==0) {
+		CHAR szTemp[32] = {0};
+		std::string name;
+		for (DWORD dwSpellID = 0; dwSpellID < TOTAL_SPELL_COUNT; dwSpellID++) {
+			if(((PSPELLMGR)pSpellMgr)->Spells[dwSpellID] && ((PSPELLMGR)pSpellMgr)->Spells[dwSpellID]->Name) {
+				name = ((PSPELLMGR)pSpellMgr)->Spells[dwSpellID]->Name;
+				if(g_SpellNameMap.find(name)==g_SpellNameMap.end()) {
+					g_SpellNameMap[name] = dwSpellID;
+				} else {
+					//ok it already exist, that sucks, but its also the reason why we have this map so lets rock...
+					name.append("#");
+					name.append(itoa(dwSpellID,szTemp,10));
+					g_SpellNameMap[name] = dwSpellID;
+				}
+			}
+		}
+	}
+}
 PSPELL GetSpellByName(PCHAR szName)
 {
     // PSPELL GetSpellByName(PCHAR NameOrID)
