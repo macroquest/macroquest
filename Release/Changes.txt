@@ -1,3 +1,7 @@
+19 Mar 2015 by eqmule
+- Updated for the latest TEST Client patch
+- Fixed Group.MainTank and the other roles
+
 16 Mar 2015 by EqMule
 - Added a sanitycheck for GetSpellByName - cred htw
 - Misc Fixes
