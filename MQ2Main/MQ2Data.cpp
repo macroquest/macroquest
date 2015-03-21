@@ -532,12 +532,54 @@ TLO(dataIf)
 {
     if (ISINDEX())
     {
-        // condition, whentrue, whenfalse
-        if (PCHAR pTrue=strchr(szIndex,','))
+		INT nDelimiter=0;
+		PCHAR pDelimiter=strchr(szIndex,gIfAltDelimiter);
+
+		while (pDelimiter!=NULL)
+		{
+			nDelimiter++;
+			pDelimiter=strchr(pDelimiter+1,gIfAltDelimiter);
+		}
+
+		// condition| whentrue| whenfalse
+		if (nDelimiter==2)
+		{
+			if (PCHAR pTrue=strchr(szIndex,gIfAltDelimiter))
+			{
+	            *pTrue=0;
+		        pTrue++;
+				if (PCHAR pFalse=strchr(pTrue,gIfAltDelimiter))
+				{
+	                *pFalse=0;
+		            pFalse++;
+					DOUBLE CalcResult;
+				    if (!Calculate(szIndex,CalcResult))
+					    return false;
+
+	                if (CalcResult!=0.0f)
+		            {
+			            strcpy(DataTypeTemp,pTrue);
+				        Ret.Ptr=&DataTypeTemp[0];
+					    Ret.Type=pStringType;
+						return true;
+	                }
+		            else
+			        {
+				        strcpy(DataTypeTemp,pFalse);
+					    Ret.Ptr=&DataTypeTemp[0];
+						Ret.Type=pStringType;
+	                    return true;                
+		            }
+			    }
+			}
+        }
+
+		// condition, whentrue, whenfalse
+		if (PCHAR pTrue=strchr(szIndex,gIfDelimiter))
         {
             *pTrue=0;
             pTrue++;
-            if (PCHAR pFalse=strchr(pTrue,','))
+			if (PCHAR pFalse=strchr(pTrue,gIfDelimiter))
             {
                 *pFalse=0;
                 pFalse++;

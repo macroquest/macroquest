@@ -138,6 +138,9 @@ EQLIB_VAR BOOL gbAlwaysDrawMQHUD;
 
 EQLIB_VAR BOOL gFilterMQ2DataErrors;
 
+EQLIB_VAR CHAR gIfDelimiter;
+EQLIB_VAR CHAR gIfAltDelimiter;
+
 EQLIB_VAR DOUBLE DegToRad;
 EQLIB_VAR DOUBLE PI;
 #define ZoneShift             0

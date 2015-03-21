@@ -1000,7 +1000,7 @@ PSPELL GetSpellByName(PCHAR szName)
     // This function now accepts SpellID as an argument as well as SpellName
 	//echo ${Spell[Concussive Burst].Level}
 	//echo ${Spell[Nature's Serenity].Level}
-    if (ppSpellMgr==NULL || gbSpelldbLoaded==FALSE || szName[0]=='\0') {
+	if (ppSpellMgr == NULL || gbSpelldbLoaded == FALSE || szName == NULL) {
 		return NULL;
 	}
     if (szName[0]>='0' && szName[0]<='9')
@@ -1009,6 +1009,8 @@ PSPELL GetSpellByName(PCHAR szName)
     }
 
 	std::string lowname = szName;
+	if (lowname.size() < 3 || g_SpellNameMap.size()==0)
+		return NULL;
 	std::transform(lowname.begin(), lowname.end(), lowname.begin(), tolower);
 	std::string threelow = lowname;
 	threelow.erase(3);
@@ -1022,13 +1024,17 @@ PSPELL GetSpellByName(PCHAR szName)
 				if(PCHARINFO2 pChar2 = GetCharInfo2()) {
 					DWORD highestclasslevel = 0;
 					DWORD classlevel = 0;
-					for(std::map<DWORD,PSPELL>::iterator k=j->second.Duplicates.begin();k!=j->second.Duplicates.end();k++) {
-						classlevel = k->second->ClassLevel[pChar2->Class];
-						if(classlevel<=pChar2->Level && highestclasslevel < classlevel) {
-							highestclasslevel = classlevel;
-							pSpell=k->second;
-						}
-					}				
+					DWORD playerclass = pChar2->Class;
+					DWORD currlevel = pChar2->Level;
+					if(playerclass && playerclass>=Warrior && playerclass<=Berserker) {
+						for(std::map<DWORD,PSPELL>::iterator k=j->second.Duplicates.begin();k!=j->second.Duplicates.end();k++) {
+							classlevel = k->second->ClassLevel[playerclass];
+							if(classlevel<=currlevel && highestclasslevel < classlevel) {
+								highestclasslevel = classlevel;
+								pSpell=k->second;
+							}
+						}		
+					}
 					if(highestclasslevel==0) {
 						//well if we got here, the spell the user is after isnt one his character can cast, so
 						//we will have to roll through it again and see if its usable by any other class

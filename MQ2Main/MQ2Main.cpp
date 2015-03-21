@@ -90,6 +90,7 @@ BOOL ParseINIFile(PCHAR lpINIPath)
 	CHAR szBuffer2[MAX_STRING] = {0};
     CHAR ClientName[MAX_STRING] = {0};
     CHAR FilterList[MAX_STRING*10] = {0};
+	CHAR Delimiter[MAX_STRING] = {0};
     GetEQPath(gszEQPath);
 
 
@@ -131,8 +132,11 @@ BOOL ParseINIFile(PCHAR lpINIPath)
     gbTimeStampChat = 1==GetPrivateProfileInt("MacroQuest","TimeStampChat",0,Filename);
     gbBeepOnTells = 1==GetPrivateProfileInt("MacroQuest","BeepOnTells",0,Filename);
 	gCreateMQ2NewsWindow = 1==GetPrivateProfileInt("MacroQuest","CreateMQ2NewsWindow",1,Filename);
-	
-    GetPrivateProfileString("MacroQuest","HUDMode","UnderUI",CustomSettings,MAX_STRING,Filename);
+
+	GetPrivateProfileString("Macroquest","IfDelimiter",",",Delimiter,MAX_STRING,Filename); gIfDelimiter = Delimiter[0];
+	GetPrivateProfileString("Macroquest","IfAltDelimiter","~",Delimiter,MAX_STRING,Filename); gIfAltDelimiter = Delimiter[0];
+
+	GetPrivateProfileString("MacroQuest","HUDMode","UnderUI",CustomSettings,MAX_STRING,Filename);
     if (!stricmp(CustomSettings,"normal")) {
         gbAlwaysDrawMQHUD=false;
         gbHUDUnderUI=false;

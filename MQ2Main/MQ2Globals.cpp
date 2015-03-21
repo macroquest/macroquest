@@ -348,6 +348,8 @@ BOOL gLClickedObject = FALSE;
 SWHOFILTER gFilterSWho = {0};
 EQLIB_VAR BOOL gFilterMQ2DataErrors=FALSE;
 BOOL gCreateMQ2NewsWindow = TRUE;
+CHAR gIfDelimiter = ',';
+CHAR gIfAltDelimiter = '~';
 
 DOUBLE DegToRad = 57.295779513082320876846364344191;
 DOUBLE PI = 3.1415926535;

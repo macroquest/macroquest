@@ -1,3 +1,12 @@
+16 Mar 2015 by EqMule
+- Added a sanitycheck for GetSpellByName - cred htw
+- Misc Fixes
+- HAPPY 16th EQ!
+
+12 Mar 2015 by rswiders
+- Updated ${If[]} to allow one of two user-defined delimiters. The default delimiters are ',' and '~'.
+  In the MacroQuest.ini file, you can change the delimiters using IfDelimiter and IfAltDelimiter values.
+
 11 Mar 2015 by eqmule
 - Updated for the latest TEST Client patch
 - Updated for the latest LIVE Client patch
