@@ -789,7 +789,7 @@ PCHAR GetFullZone(DWORD ZoneID)
 {
     ZoneID &= 0x7FFF;
     if (!ppWorldData | !pWorldData) return NULL;
-    if(ZoneID > MAX_ZONES)
+    if(ZoneID >= MAX_ZONES)
         return "UNKNOWN_ZONE";
     PZONELIST pZone = ((PWORLDDATA)pWorldData)->ZoneArray[ZoneID];
     if(pZone)
@@ -805,7 +805,7 @@ PCHAR GetShortZone(DWORD ZoneID)
 {
     ZoneID &= 0x7FFF;
     if (!ppWorldData | !pWorldData) return NULL;
-    if(ZoneID > MAX_ZONES)
+    if(ZoneID >= MAX_ZONES)
         return "UNKNOWN_ZONE";
     PZONELIST pZone = ((PWORLDDATA)pWorldData)->ZoneArray[ZoneID];
 	if(pZone)
@@ -7787,6 +7787,8 @@ namespace EQData
 
 EQLIB_API struct _ITEMINFO *GetItemFromContents(struct _CONTENTS *c)
 {
+	if (!c)
+		return NULL;
     return c->Item1 ? c->Item1 : c->Item2;
 }
 };

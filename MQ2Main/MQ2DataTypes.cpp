@@ -6106,7 +6106,7 @@ bool MQ2CurrentZoneType::GETMEMBER()
         return true;
     case ID:
         Dest.Int = GetCharInfo()->zoneId;
-		if (Dest.Int > MAX_ZONES) {
+		if (Dest.Int >= MAX_ZONES) {
 			Dest.Int &= 0x7FFF;//fix for instanced zones and neighborhoods and stuff
 		}
         Dest.Type=pIntType;
@@ -8586,7 +8586,7 @@ bool MQ2FellowshipType::GETMEMBER()
     case CampfireZone:
         if(DWORD zoneID = (((PSPAWNINFO)pLocalPlayer)->CampfireZoneID & 0x7FFF))
         {
-			if(zoneID && pWorldData) {
+			if (zoneID < MAX_ZONES && pWorldData) {
 				Dest.Ptr=((PWORLDDATA)pWorldData)->ZoneArray[zoneID];
 				Dest.Type=pZoneType;
 				return true;
@@ -8612,11 +8612,14 @@ bool MQ2FellowshipMemberType::GETMEMBER()
     switch((FMTypeMembers)pMember->ID)
     {
     case Zone:
-        if(pFellowshipMember->ZoneID)
-        {
-            Dest.Ptr=((PWORLDDATA)pWorldData)->ZoneArray[pFellowshipMember->ZoneID];
-            Dest.Type=pZoneType;
-            return true;
+		if (DWORD zoneID = (pFellowshipMember->ZoneID & 0x7FFF))
+		{
+			if (zoneID < MAX_ZONES && pWorldData)
+			{
+				Dest.Ptr = ((PWORLDDATA)pWorldData)->ZoneArray[zoneID];
+				Dest.Type = pZoneType;
+				return true;
+			}
         }
         return false;
     case Level:

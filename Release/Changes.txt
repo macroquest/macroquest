@@ -1,3 +1,8 @@
+11 Mar 2015 by eqmule
+- Updated for the latest TEST Client patch
+- Updated for the latest LIVE Client patch
+- Misc Fixes
+
 07 Mar 2015 by eqmule
 - Updated for the latest TEST Client patch
 - the Alias TLO has been updated to be compatible with ISXEQ

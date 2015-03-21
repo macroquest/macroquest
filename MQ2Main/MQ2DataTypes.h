@@ -2601,7 +2601,7 @@ public:
         }
         if (Source.Type==(MQ2Type*)pCurrentZoneType)
         {
-            VarPtr.Ptr=&((PWORLDDATA)pWorldData)->ZoneArray[GetCharInfo()->zoneId];
+            VarPtr.Ptr=&((PWORLDDATA)pWorldData)->ZoneArray[(GetCharInfo()->zoneId && 0x7FFF)];
             return true;
         }
         return false;

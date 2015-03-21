@@ -314,12 +314,12 @@ TLO(dataZone)
     {
         if (nIndex = (GETNUMBER() & 0x7FFF))
         {
-            if (GetCharInfo()->zoneId==nIndex)
+            if ((GetCharInfo()->zoneId & 0x7FFF)==nIndex)
             {
                 Ret.DWord = instEQZoneInfo;
                 Ret.Type=pCurrentZoneType;
             }
-            else
+			else if (nIndex < MAX_ZONES)
             {
                 Ret.Ptr = ((PWORLDDATA)pWorldData)->ZoneArray[nIndex];
                 Ret.Type=pZoneType;
