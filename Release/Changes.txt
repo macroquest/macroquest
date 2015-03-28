@@ -1,3 +1,11 @@
+27 Mar 2015 by eqmule
+- Updated for the latest TEST client
+- Updated for the latest LIVE client
+- Spell.Dar is back in its full glory (Dar means DamageAbsorbRemaining) -cred demonstar55
+  This is useful.
+- Spell.Counter is back in its full glory -cred demonstar55
+  This is useful for getting for example poisioncounters.
+
 25 Mar 2015 by eqmule
 - Updated for the latest LIVE client patch
 - Added MarkNpc and MasterLooter to the groupmember TLO

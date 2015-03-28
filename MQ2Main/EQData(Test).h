@@ -731,17 +731,22 @@ typedef struct _CONTENTS {
 } CONTENTS, *PCONTENTS;
 
 // Size 0x58 20110810 - dkaa
+// Size 0x?? 20150326 - demonstar55
 typedef struct _SPELLBUFF {
 /*0x00*/    BYTE      Unknown0x0;
 /*0x01*/    BYTE      Level;
-/*0x02*/    CHAR      Modifier;      // bard song modifier, divide by 10 to get 2.8 etc
+/*0x02*/    BYTE      Unknown0x2;
 /*0x03*/    CHAR      DamageShield;  // maybe.. I've noticed this is -1 on a lot of ds's.
-/*0x04*/    FLOAT     Unknown0x4;
+/*0x04*/    FLOAT     Modifier;      // Bard song modifier, 1.0 is default
 /*0x08*/    LONG      SpellID;       // -1 or 0 for no spell..
 /*0x0c*/    DWORD     Duration;
 /*0x10*/    DWORD     Unknown0x10;
 /*0x14*/    DWORD     HitCount;
-/*0x18*/    BYTE      Unknown0x18[0x40];
+/*0x18*/    BYTE      Unknown0x18[0x10];
+/*0x28*/    DWORD     DamageAbsorbRemaining;
+/*0x2c*/    DWORD     Unknown0x2c;
+/*0x30*/    DWORD     Counters;
+/*0x34*/    BYTE      Unknown0x34[0x24];
 /*0x58*/
 } SPELLBUFF, *PSPELLBUFF;
 

@@ -63,23 +63,23 @@ public:
 
 #ifndef ISXEQ
 
-DWORD __cdecl DrawHUD_Trampoline(DWORD,DWORD,DWORD,DWORD); 
-DWORD __cdecl DrawHUD_Detour(DWORD a,DWORD b,DWORD c,DWORD d) 
+void __cdecl DrawHUD_Trampoline(unsigned short, unsigned short, PVOID, unsigned int); 
+void __cdecl DrawHUD_Detour(unsigned short a,unsigned short b,PVOID c,unsigned int d) 
 { 
     DrawHUDParams[0]=a;
     DrawHUDParams[1]=b;
-    DrawHUDParams[2]=c;
+    DrawHUDParams[2]=(DWORD)c;
     DrawHUDParams[3]=d;
     if (gbHUDUnderUI || gbAlwaysDrawMQHUD)
-        return 0;
-    int Ret= DrawHUD_Trampoline(a,b,c,d);
+        return;
+    DrawHUD_Trampoline(a,b,c,d);
     Benchmark(bmPluginsDrawHUD,PluginsDrawHUD());
     if (HMODULE hmEQPlayNice=GetModuleHandle("EQPlayNice.dll"))
     {
         if (fMQPulse pEQPlayNicePulse=(fMQPulse)GetProcAddress(hmEQPlayNice,"Compat_DrawIndicator"))
             pEQPlayNicePulse();
     }
-    return Ret;
+    return;
 } 
 
 void DrawHUD()
@@ -88,7 +88,7 @@ void DrawHUD()
     {
         if (DrawHUDParams[0] && gGameState==GAMESTATE_INGAME && gbShowNetStatus)
         {
-            DrawHUD_Trampoline(DrawHUDParams[0],DrawHUDParams[1],DrawHUDParams[2],DrawHUDParams[3]);
+            DrawHUD_Trampoline((unsigned short)DrawHUDParams[0],(unsigned short)DrawHUDParams[1],(PVOID)DrawHUDParams[2],DrawHUDParams[3]);
             DrawHUDParams[0]=0;
         }
         Benchmark(bmPluginsDrawHUD,PluginsDrawHUD());
@@ -141,7 +141,7 @@ public:
 
 //DETOUR_TRAMPOLINE_EMPTY(bool CDisplayHook::GetWorldFilePath_Trampoline(char *, char *)); 
 DETOUR_TRAMPOLINE_EMPTY(VOID EQ_LoadingSHook::SetProgressBar_Trampoline(int, char const *)); 
-DETOUR_TRAMPOLINE_EMPTY(DWORD DrawHUD_Trampoline(DWORD,DWORD,DWORD,DWORD)); 
+DETOUR_TRAMPOLINE_EMPTY(void DrawHUD_Trampoline(unsigned short,unsigned short,PVOID,unsigned int)); 
 DETOUR_TRAMPOLINE_EMPTY(VOID CDisplayHook::CleanUI_Trampoline(VOID)); 
 DETOUR_TRAMPOLINE_EMPTY(VOID CDisplayHook::ReloadUI_Trampoline(BOOL)); 
 

@@ -1878,7 +1878,7 @@ bool MQ2BuffType::GETMEMBER()
         }
         return false;
     case Mod:
-        Dest.Float=(((float)pBuff->Modifier)/10.0f);
+        Dest.Float=pBuff->Modifier;
         if (Dest.Float!=1.0f)
         {
             Dest.Type=pFloatType;
@@ -1890,7 +1890,6 @@ bool MQ2BuffType::GETMEMBER()
 		Dest.Type=pTimeStampType;
         return true;
     case Dar:
-#if 0
         if(PSPELL pSpell = GetSpellByID(pBuff->SpellID))
         {
             if(pSpell->SpellType != 0)
@@ -1900,10 +1899,8 @@ bool MQ2BuffType::GETMEMBER()
                 return true;
             }
         }
-#endif
         return false;
     case Counters:
-#if 0
         if(PSPELL pSpell = GetSpellByID(pBuff->SpellID))
         {
 			if(pSpell->SpellType == 0) {
@@ -1912,7 +1909,6 @@ bool MQ2BuffType::GETMEMBER()
 				return true;
 			}
         }
-#endif
         return false;
 	case HitCount:
 		Dest.DWord=pBuff->HitCount;
