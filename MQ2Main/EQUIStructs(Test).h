@@ -360,7 +360,7 @@ VFTABLE
 /*0x22c*/ ARGBCOLOR HighLightTextBkColor; /*set by contructor*/ \
 /*0x230*/ BYTE ZeroMeOut1[0x24]; \
 /*0x254*/ DWORD WillBeZero2; /*constructor sets this to 0*/ \
-/*0x258*/ DWORD ZeroMeOut2[0x18]; \
+/*0x258*/ BYTE ZeroMeOut2[0x18]; \
 /*0x270*/ DWORD Unknown0x278; /*constructor sets this to 0x10000*/ \
 /*0x274*/ DWORD ZeroMeAsWell; \
 /*0x278*/ DWORD Unknown0x280; /*constructor sets this to 0*/ \

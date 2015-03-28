@@ -3625,7 +3625,9 @@ public:
         MainTank=6,
         MainAssist=7,
         Puller=8,
-        AnyoneMissing=9,
+		MarkNpc=9,
+		MasterLooter=10,
+        AnyoneMissing=11,
     };
     static enum GroupMethods
     {
@@ -3640,6 +3642,8 @@ public:
         TypeMember(MainTank);
         TypeMember(MainAssist);
         TypeMember(Puller);
+        TypeMember(MarkNpc);
+        TypeMember(MasterLooter);
         TypeMember(AnyoneMissing);
     }
 
@@ -3674,11 +3678,13 @@ public:
         MainTank=6,
         MainAssist=7,
         Puller=8,
-        Mercenary=9,
-        PctAggro=10,
-        xIndex=11,
-        Offline=12,
-        OtherZone=13,
+		MarkNpc=9,
+		MasterLooter=10,
+        Mercenary=11,
+        PctAggro=12,
+        xIndex=13,
+        Offline=14,
+        OtherZone=15,
     };
     static enum GroupMemberMethods
     {
@@ -3693,6 +3699,8 @@ public:
         TypeMember(MainTank);
         TypeMember(MainAssist);
         TypeMember(Puller);
+        TypeMember(MarkNpc);
+        TypeMember(MasterLooter);
         TypeMember(Mercenary);
         TypeMember(PctAggro);
         AddMember(xIndex,"Index");

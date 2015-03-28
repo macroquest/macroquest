@@ -1022,37 +1022,40 @@ PSPELL GetSpellByName(PCHAR szName)
 		std::map<std::string, std::map<std::string, SpellCompare>>::iterator i = g_SpellNameMap.find(threelow);
 		if (i != g_SpellNameMap.end()) {
 			std::map<std::string, SpellCompare>::iterator j = i->second.find(lowname);
-			if (j != i->second.end() && j->second.Duplicates.size() > 1) {
-				PSPELL pSpell = j->second.Duplicates.begin()->second;
-				if (pSpell) {
-					if (PCHARINFO2 pChar2 = GetCharInfo2()) {
-						DWORD highestclasslevel = 0;
-						DWORD classlevel = 0;
-						DWORD playerclass = pChar2->Class;
-						DWORD currlevel = pChar2->Level;
-						if (playerclass && playerclass >= Warrior && playerclass <= Berserker) {
-							for (std::map<DWORD, PSPELL>::iterator k = j->second.Duplicates.begin(); k != j->second.Duplicates.end(); k++) {
-								if (k->second) {
-									classlevel = k->second->ClassLevel[playerclass];
-									if (classlevel <= currlevel && highestclasslevel < classlevel) {
-										highestclasslevel = classlevel;
+			if (j != i->second.end()) {
+				std::map<DWORD,PSPELL>::iterator mspell = j->second.Duplicates.begin();
+				if(mspell!=j->second.Duplicates.end()) {
+					PSPELL pSpell = mspell->second;
+					if (j->second.Duplicates.size() > 1) {
+						if (PCHARINFO2 pChar2 = GetCharInfo2()) {
+							DWORD highestclasslevel = 0;
+							DWORD classlevel = 0;
+							DWORD playerclass = pChar2->Class;
+							DWORD currlevel = pChar2->Level;
+							if (playerclass && playerclass >= Warrior && playerclass <= Berserker) {
+								for (std::map<DWORD, PSPELL>::iterator k = j->second.Duplicates.begin(); k != j->second.Duplicates.end(); k++) {
+									if (k->second) {
+										classlevel = k->second->ClassLevel[playerclass];
+										if (classlevel <= currlevel && highestclasslevel < classlevel) {
+											highestclasslevel = classlevel;
+											pSpell = k->second;
+										}
+									}
+								}
+							}
+							if (highestclasslevel == 0) {
+								//well if we got here, the spell the user is after isnt one his character can cast, so
+								//we will have to roll through it again and see if its usable by any other class
+								for (std::map<DWORD, PSPELL>::iterator k = j->second.Duplicates.begin(); k != j->second.Duplicates.end(); k++) {
+									if (k->second && IsSpellClassUsable(k->second)) {
 										pSpell = k->second;
 									}
 								}
 							}
 						}
-						if (highestclasslevel == 0) {
-							//well if we got here, the spell the user is after isnt one his character can cast, so
-							//we will have to roll through it again and see if its usable by any other class
-							for (std::map<DWORD, PSPELL>::iterator k = j->second.Duplicates.begin(); k != j->second.Duplicates.end(); k++) {
-								if (k->second && IsSpellClassUsable(k->second)) {
-									pSpell = k->second;
-								}
-							}
-						}
 					}
+					return pSpell;
 				}
-				return pSpell;
 			}
 		}
 	}

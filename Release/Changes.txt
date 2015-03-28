@@ -1,3 +1,8 @@
+25 Mar 2015 by eqmule
+- Updated for the latest LIVE client patch
+- Added MarkNpc and MasterLooter to the groupmember TLO
+- Fixed a potential crash in case FreeInventory: - cred htw
+
 25 Mar 2015 by rswiders
 - Fix to /multiline command that would potentially cause incorrect parsing of the commands.
 

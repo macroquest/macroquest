@@ -469,9 +469,6 @@ VOID NewVardata(PSPAWNINFO pChar, PCHAR szLine)
 			MacroError("/vardata '%s[%d]' failed, out of bounds on array", szName, N);
 			return;
 		}
-		CHAR displayVar[MAXCHAR] = { 0 };
-		BOOL findResults = pArray->pType->ToString(pArray->pData[N], displayVar);
-		SyntaxError("Array Data Type: %s ", displayVar);
 		if (!pArray->pType->FromData(pArray->pData[N], Result))
 		{
 			MacroError("/vardata '%s[%d]'failed, array element type rejected new value", szName, N);

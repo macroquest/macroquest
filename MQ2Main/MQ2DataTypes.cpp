@@ -3098,7 +3098,7 @@ bool MQ2CharacterType::GETMEMBER()
             }
         }
         return true;
-    case FreeInventory:
+	case FreeInventory:
         if (ISINDEX())
         {
             DWORD nSize=GETNUMBER();
@@ -3107,25 +3107,33 @@ bool MQ2CharacterType::GETMEMBER()
             Dest.DWord=0;
             for (DWORD slot=BAG_SLOT_START;slot<NUM_INV_SLOTS;slot++) 
             {
-                if (PCONTENTS pItem = GetCharInfo2()->pInventoryArray->InventoryArray[slot]) 
-                {
-                    if (GetItemFromContents(pItem)->Type==ITEMTYPE_PACK && GetItemFromContents(pItem)->SizeCapacity>=nSize) 
-                    {
-                        if (!pItem->pContentsArray) {
-                            Dest.DWord+= GetItemFromContents(pItem)->Slots;
-                        } else {
-                            for (DWORD pslot=0;pslot<(GetItemFromContents(pItem)->Slots);pslot++) 
-                            {
-                                if (!pItem->pContentsArray->Contents[pslot]) 
-                                    Dest.DWord++;
-                            }
-                        }
-                    }
-                } 
-                else 
-                {
-                    Dest.DWord++;
-                }
+				if (GetCharInfo2() && GetCharInfo2()->pInventoryArray && GetCharInfo2()->pInventoryArray->InventoryArray && GetCharInfo2()->pInventoryArray->InventoryArray[slot])
+				{
+					if (PCONTENTS pItem = GetCharInfo2()->pInventoryArray->InventoryArray[slot])
+					{
+						if (GetItemFromContents(pItem)->Type == ITEMTYPE_PACK && GetItemFromContents(pItem)->SizeCapacity >= nSize)
+						{
+							if (!pItem->pContentsArray) {
+								Dest.DWord += GetItemFromContents(pItem)->Slots;
+							}
+							else {
+								for (DWORD pslot = 0; pslot < (GetItemFromContents(pItem)->Slots); pslot++)
+								{
+									if (!pItem->pContentsArray->Contents[pslot])
+										Dest.DWord++;
+								}
+							}
+						}
+					}
+					else
+					{
+						Dest.DWord++;
+					}
+				}
+				else
+				{
+					Dest.DWord++;
+				}
             }
             Dest.Type=pIntType; 
             return true;
@@ -3137,26 +3145,33 @@ bool MQ2CharacterType::GETMEMBER()
             {
 				if(!HasExpansion(EXPANSION_HoT) && slot > BAG_SLOT_START+7)
                     break;
-                if (PCONTENTS pItem = GetCharInfo2()->pInventoryArray->InventoryArray[slot]) 
-                {
-                    if (GetItemFromContents(pItem)->Type==ITEMTYPE_PACK) 
-                    {
-                        if (!pItem->pContentsArray) {
-                            Dest.DWord+= GetItemFromContents(pItem)->Slots;
-                        } else {
-                            for (DWORD pslot=0;pslot<(GetItemFromContents(pItem)->Slots);pslot++) 
-                            {
-                                if (!pItem->pContentsArray->Contents[pslot]) 
-                                    Dest.DWord++;
-                            }
-                        }
-                    }
-                } 
-                else 
-                {
-                    Dest.DWord++;
-                }
-            }
+				if (GetCharInfo2() && GetCharInfo2()->pInventoryArray && GetCharInfo2()->pInventoryArray->InventoryArray && GetCharInfo2()->pInventoryArray->InventoryArray[slot])
+				{
+					if (PCONTENTS pItem = GetCharInfo2()->pInventoryArray->InventoryArray[slot])
+				    {
+					    if (GetItemFromContents(pItem)->Type==ITEMTYPE_PACK) 
+						{
+							if (!pItem->pContentsArray) {
+								Dest.DWord+= GetItemFromContents(pItem)->Slots;
+	                        } else {
+		                        for (DWORD pslot=0;pslot<(GetItemFromContents(pItem)->Slots);pslot++) 
+			                    {
+				                    if (!pItem->pContentsArray->Contents[pslot]) 
+					                    Dest.DWord++;
+						        }
+							}
+	                    }
+		            } 
+			        else 
+				    {
+					    Dest.DWord++;
+					}
+				}
+				else
+				{
+					Dest.DWord++;
+				}
+			}
             Dest.Type=pIntType; 
             return true;
         }
@@ -7910,6 +7925,50 @@ bool MQ2GroupType::GETMEMBER()
             }
         }
 		return false;
+   case MarkNpc:
+        {
+            Dest.DWord = 0;
+            if(pChar->pGroupInfo->pMember[0]->MarkNpc)
+            {
+                Dest.Type = pGroupMemberType;
+                return true;
+            }
+            for(i = 1; i < 6; i++)
+            {
+                if(pChar->pGroupInfo->pMember[i])
+                {
+                    Dest.DWord++;
+                    if(pChar->pGroupInfo->pMember[i]->MarkNpc)
+                    {
+                        Dest.Type = pGroupMemberType;
+                        return true;
+                    }
+                }
+            }
+        }
+		return false;
+   case MasterLooter:
+        {
+            Dest.DWord = 0;
+			if(pChar->pGroupInfo->pMember[0]->MasterLooter)
+            {
+                Dest.Type = pGroupMemberType;
+                return true;
+            }
+            for(i = 1; i < 6; i++)
+            {
+                if(pChar->pGroupInfo->pMember[i])
+                {
+                    Dest.DWord++;
+                    if(pChar->pGroupInfo->pMember[i]->MasterLooter)
+                    {
+                        Dest.Type = pGroupMemberType;
+                        return true;
+                    }
+                }
+            }
+        }
+		return false;
 	 case AnyoneMissing:
 		{
             Dest.DWord=0;
@@ -8059,6 +8118,22 @@ bool MQ2GroupMemberType::GETMEMBER()
         if(pGroupMemberData)
         {
             Dest.DWord=pGroupMemberData->MainAssist;
+            Dest.Type=pBoolType;
+            return true;
+        }
+        return false;
+    case MarkNpc:
+        if(pGroupMemberData)
+        {
+			Dest.DWord=pGroupMemberData->MarkNpc;
+            Dest.Type=pBoolType;
+            return true;
+        }
+        return false;
+    case MasterLooter:
+        if(pGroupMemberData)
+        {
+			Dest.DWord=pGroupMemberData->MasterLooter;
             Dest.Type=pBoolType;
             return true;
         }
