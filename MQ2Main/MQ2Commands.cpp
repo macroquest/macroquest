@@ -2935,12 +2935,13 @@ VOID MultilineCommand(PSPAWNINFO pChar, PCHAR szLine)
     PCHAR szRest = GetNextArg(szLine);
     if (!szRest[0])
         return;
-    CHAR Copy[MAX_STRING] = {0};
+    CHAR Copy[MAX_STRING], szCmd[MAX_STRING] = {0};
     strcpy(Copy,szRest);// dont destroy original...
     szRest=strtok(Copy,szArg);
     while(szRest)
     {
-        DoCommand(pChar,szRest);
+		strcpy(szCmd,szRest);
+        DoCommand(pChar,szCmd);
         szRest=strtok(NULL,szArg);
     }
 }

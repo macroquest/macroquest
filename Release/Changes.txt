@@ -1,3 +1,11 @@
+25 Mar 2015 by rswiders
+- Fix to /multiline command that would potentially cause incorrect parsing of the commands.
+
+24 Mar 2015 by eqmule
+- Fixed NewVardata cred: ctaylor22 
+- Added a catch section to GetSpellByName to not try so hard to crash your eqgame(s)
+- rswiders added a fix from the future.
+
 22 Mar 2015 by eqmule
 - Updated for the latest TEST Client patch
 

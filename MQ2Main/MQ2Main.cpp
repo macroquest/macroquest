@@ -388,16 +388,19 @@ void __cdecl MQ2Shutdown()
     DebugTry(ShutdownMQ2Benchmarks());
 
 }
+
 DWORD __stdcall InitializeMQ2SpellDb(PVOID pData)
 {
-	while(!ppSpellMgr && gGameState != GAMESTATE_CHARSELECT && gGameState != GAMESTATE_INGAME) {
-		Sleep(0);
+	if (ghLockSpellMap = CreateMutex(NULL, FALSE, NULL)) {
+		while (!ppSpellMgr && gGameState != GAMESTATE_CHARSELECT && gGameState != GAMESTATE_INGAME) {
+			Sleep(0);
+		}
+		while (!((PSPELLMGR)pSpellMgr)->Spells || (((PSPELLMGR)pSpellMgr)->Spells && !((PSPELLMGR)pSpellMgr)->Spells[TOTAL_SPELL_COUNT])) {
+			Sleep(0);
+		}
+		//ok everything checks out lets fill our own map with spells
+		PopulateSpellMap();
 	}
-	while(!((PSPELLMGR)pSpellMgr)->Spells || (((PSPELLMGR)pSpellMgr)->Spells && !((PSPELLMGR)pSpellMgr)->Spells[TOTAL_SPELL_COUNT])) {
-		Sleep(0);
-	}
-	//ok everything checks out lets fill our own map with spells
-	PopulateSpellMap();
 	return 0;
 }
 #ifndef ISXEQ
@@ -442,6 +445,8 @@ DWORD WINAPI MQ2Start(LPVOID lpParameter)
 
     DebugSpew("Shutdown completed");
     g_Loaded = FALSE;
+	if (ghLockSpellMap)
+		CloseHandle(ghLockSpellMap);
 	FreeLibraryAndExitThread(GetModuleHandle("MQ2Main.dll"),0);
     return 0;
 }

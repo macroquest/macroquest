@@ -228,6 +228,8 @@ struct _actordefentry ActorDefList[] = {
 #include "actordef.h"
 	0, "NULL"
 };
+/* SpellMap */
+HANDLE ghLockSpellMap = 0;
 
 /* BENCHMARKS */
 DWORD bmWriteChatColor=0;

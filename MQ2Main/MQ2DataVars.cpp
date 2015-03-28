@@ -423,64 +423,67 @@ VOID NewVarcalc(PSPAWNINFO pChar, PCHAR szLine)
 
 VOID NewVardata(PSPAWNINFO pChar, PCHAR szLine)
 {
-    if (!szLine[0])
-    {
-        SyntaxError("Usage: /vardata <varname> <new mq2data value>");
-        return;
-    }
-    CHAR szName[MAX_STRING]={0};
-    GetArg(szName,szLine,1);
-    PCHAR szRest=GetNextArg(szLine);
-    if (!szRest || !szRest[0])
-    {
-        SyntaxError("Usage: /vardata <varname> <new mq2data value>");
-        return;
-    }
-    CHAR szIndex[MAX_STRING]={0};
-    if (PCHAR pBracket=strchr(szName,'['))
-    {
-        *pBracket=0;
-        strcpy(szIndex,&pBracket[1]);
-    }
-    PDATAVAR pVar=FindMQ2DataVariable(szName);
-    if (!pVar)
-    {
-        MacroError("/vardata '%s' failed, variable not found",szName);
-        return;
-    }
-    MQ2TYPEVAR Result;
-    if (!ParseMQ2DataPortion(szRest,Result))
-    {
-        MacroError("/vardata '%s' failed, MQ2Data portion '%s' unparsable",szName,szRest);
-        return;
-    }
+	if (!szLine[0])
+	{
+		SyntaxError("Usage: /vardata <varname> <new mq2data value>");
+		return;
+	}
+	CHAR szName[MAX_STRING] = { 0 };
+	GetArg(szName, szLine, 1);
+	PCHAR szRest = GetNextArg(szLine);
+	if (!szRest || !szRest[0])
+	{
+		SyntaxError("Usage: /vardata <varname> <new mq2data value>");
+		return;
+	}
+	CHAR szIndex[MAX_STRING] = { 0 };
+	if (PCHAR pBracket = strchr(szName, '['))
+	{
+		*pBracket = 0;
+		strcpy(szIndex, &pBracket[1]);
+	}
+	PDATAVAR pVar = FindMQ2DataVariable(szName);
+	if (!pVar)
+	{
+		MacroError("/vardata '%s' failed, variable not found", szName);
+		return;
+	}
+	MQ2TYPEVAR Result;
+	if (!ParseMQ2DataPortion(szRest, Result))
+	{
+		MacroError("/vardata '%s' failed, MQ2Data portion '%s' unparsable", szName, szRest);
+		return;
+	}
 
-    if (szIndex[0])
-    {
-        if (pVar->Var.Type!=pArrayType)
-        {
-            MacroError("/vardata '%s' failed, array form on non-array",szName);
-            return;
-        }
-        CDataArray *pArray=(CDataArray*)pVar->Var.Ptr;
-        int N=pArray->GetElement(szIndex);
-        if (N==-1)
-        {
-            MacroError("/vardata '%s[%d]' failed, out of bounds on array",szName,N);
-            return;
-        }
-        if (!pVar->Var.Type->FromData(pVar->Var.VarPtr,Result))
-        {
-            MacroError("/vardata '%s[%d]'failed, array element type rejected new value",szName,N);
-        }
-    }
-    else
-    {
-        if (!pVar->Var.Type->FromData(pVar->Var.VarPtr,Result))
-        {
-            MacroError("/vardata '%s' failed, variable type rejected new value",szName);
-        }
-    }
+	if (szIndex[0])
+	{
+		if (pVar->Var.Type != pArrayType)
+		{
+			MacroError("/vardata '%s' failed, array form on non-array", szName);
+			return;
+		}
+		CDataArray *pArray = (CDataArray*)pVar->Var.Ptr;
+		int N = pArray->GetElement(szIndex);
+		if (N == -1)
+		{
+			MacroError("/vardata '%s[%d]' failed, out of bounds on array", szName, N);
+			return;
+		}
+		CHAR displayVar[MAXCHAR] = { 0 };
+		BOOL findResults = pArray->pType->ToString(pArray->pData[N], displayVar);
+		SyntaxError("Array Data Type: %s ", displayVar);
+		if (!pArray->pType->FromData(pArray->pData[N], Result))
+		{
+			MacroError("/vardata '%s[%d]'failed, array element type rejected new value", szName, N);
+		}
+	}
+	else
+	{
+		if (!pVar->Var.Type->FromData(pVar->Var.VarPtr, Result))
+		{
+			MacroError("/vardata '%s' failed, variable type rejected new value", szName);
+		}
+	}
 }
 
 VOID AddEvent(DWORD Event, PCHAR FirstArg, ...)

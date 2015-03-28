@@ -115,7 +115,6 @@ using namespace std;
 // Lax/Blech event support *READY*
 #define USEBLECHEVENTS
 
-
 // reroute malloc/free
 EQLIB_API VOID *MQ2Malloc(size_t size);
 EQLIB_API VOID MQ2Free(VOID *memblock);

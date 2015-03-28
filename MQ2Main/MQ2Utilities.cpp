@@ -964,8 +964,10 @@ typedef struct _SpellCompare
 	std::map<DWORD,PSPELL>Duplicates;
 } SpellCompare,*PSpellCompare;
 std::map<std::string,std::map<std::string,SpellCompare>>g_SpellNameMap;
+
 void PopulateSpellMap()
 {
+	lockit lk(ghLockSpellMap);
 	if(g_SpellNameMap.size()==0) {
 		std::string lowname,threelow;
 		for (DWORD dwSpellID = 0; dwSpellID < TOTAL_SPELL_COUNT; dwSpellID++) {
@@ -1000,54 +1002,64 @@ PSPELL GetSpellByName(PCHAR szName)
     // This function now accepts SpellID as an argument as well as SpellName
 	//echo ${Spell[Concussive Burst].Level}
 	//echo ${Spell[Nature's Serenity].Level}
-	if (ppSpellMgr == NULL || gbSpelldbLoaded == FALSE || szName == NULL) {
-		return NULL;
-	}
-    if (szName[0]>='0' && szName[0]<='9')
-    {
-        return GetSpellByID(abs(atoi(szName)));
-    }
+	try {
+		lockit lk(ghLockSpellMap);
+		if (ppSpellMgr == NULL || gbSpelldbLoaded == FALSE || szName == NULL) {
+			return NULL;
+		}
+		if (szName[0] >= '0' && szName[0] <= '9')
+		{
+			return GetSpellByID(abs(atoi(szName)));
+		}
 
-	std::string lowname = szName;
-	if (lowname.size() < 3 || g_SpellNameMap.size()==0)
-		return NULL;
-	std::transform(lowname.begin(), lowname.end(), lowname.begin(), tolower);
-	std::string threelow = lowname;
-	threelow.erase(3);
+		std::string lowname = szName;
+		if (lowname.size() < 3 || g_SpellNameMap.size() == 0)
+			return NULL;
+		std::transform(lowname.begin(), lowname.end(), lowname.begin(), tolower);
+		std::string threelow = lowname;
+		threelow.erase(3);
 
-	std::map<std::string,std::map<std::string,SpellCompare>>::iterator i = g_SpellNameMap.find(threelow);
-	if(i!=g_SpellNameMap.end()) {
-		std::map<std::string,SpellCompare>::iterator j = i->second.find(lowname);
-		if(j!=i->second.end()) {
-			PSPELL pSpell = j->second.Duplicates.begin()->second;
-			if(j->second.Duplicates.size()>1) {
-				if(PCHARINFO2 pChar2 = GetCharInfo2()) {
-					DWORD highestclasslevel = 0;
-					DWORD classlevel = 0;
-					DWORD playerclass = pChar2->Class;
-					DWORD currlevel = pChar2->Level;
-					if(playerclass && playerclass>=Warrior && playerclass<=Berserker) {
-						for(std::map<DWORD,PSPELL>::iterator k=j->second.Duplicates.begin();k!=j->second.Duplicates.end();k++) {
-							classlevel = k->second->ClassLevel[playerclass];
-							if(classlevel<=currlevel && highestclasslevel < classlevel) {
-								highestclasslevel = classlevel;
-								pSpell=k->second;
+		std::map<std::string, std::map<std::string, SpellCompare>>::iterator i = g_SpellNameMap.find(threelow);
+		if (i != g_SpellNameMap.end()) {
+			std::map<std::string, SpellCompare>::iterator j = i->second.find(lowname);
+			if (j != i->second.end() && j->second.Duplicates.size() > 1) {
+				PSPELL pSpell = j->second.Duplicates.begin()->second;
+				if (pSpell) {
+					if (PCHARINFO2 pChar2 = GetCharInfo2()) {
+						DWORD highestclasslevel = 0;
+						DWORD classlevel = 0;
+						DWORD playerclass = pChar2->Class;
+						DWORD currlevel = pChar2->Level;
+						if (playerclass && playerclass >= Warrior && playerclass <= Berserker) {
+							for (std::map<DWORD, PSPELL>::iterator k = j->second.Duplicates.begin(); k != j->second.Duplicates.end(); k++) {
+								if (k->second) {
+									classlevel = k->second->ClassLevel[playerclass];
+									if (classlevel <= currlevel && highestclasslevel < classlevel) {
+										highestclasslevel = classlevel;
+										pSpell = k->second;
+									}
+								}
 							}
-						}		
-					}
-					if(highestclasslevel==0) {
-						//well if we got here, the spell the user is after isnt one his character can cast, so
-						//we will have to roll through it again and see if its usable by any other class
-						for(std::map<DWORD,PSPELL>::iterator k=j->second.Duplicates.begin();k!=j->second.Duplicates.end();k++) {
-							if(IsSpellClassUsable(k->second)) {
-								pSpell=k->second;
+						}
+						if (highestclasslevel == 0) {
+							//well if we got here, the spell the user is after isnt one his character can cast, so
+							//we will have to roll through it again and see if its usable by any other class
+							for (std::map<DWORD, PSPELL>::iterator k = j->second.Duplicates.begin(); k != j->second.Duplicates.end(); k++) {
+								if (k->second && IsSpellClassUsable(k->second)) {
+									pSpell = k->second;
+								}
 							}
 						}
 					}
 				}
+				return pSpell;
 			}
-			return pSpell;
 		}
+	}
+	catch (...)
+	{
+		DebugSpewAlways("Caught exception in GetSpellByName");
+		throw;
 	}
     return NULL;
 }

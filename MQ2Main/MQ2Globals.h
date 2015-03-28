@@ -51,7 +51,7 @@ EQLIB_API CHAR gszVersion[32];
 
 EQLIB_API DWORD gGameState;
 EQLIB_API ePVPServer PVPServer;
-
+EQLIB_VAR HANDLE ghLockSpellMap;
 EQLIB_VAR BOOL g_Loaded;
 EQLIB_VAR DWORD ThreadID;
 
