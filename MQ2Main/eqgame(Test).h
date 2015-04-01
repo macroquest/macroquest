@@ -16,8 +16,8 @@
 #endif
 
 #define __ClientName                                              "eqgame"
-#define __ExpectedVersionDate                                     "Mar 26 2015"
-#define __ExpectedVersionTime                                     "19:25:31"
+#define __ExpectedVersionDate                                     "Mar 27 2015"
+#define __ExpectedVersionTime                                     "20:29:22"
 #define __ActualVersionDate_x                                      0xA7B118
 #define __ActualVersionTime_x                                      0xA7B124
 
@@ -284,7 +284,7 @@
 #define __GetGaugeValueFromEQ_x                                    0x79A6C0
 #define __GetLabelFromEQ_x                                         0x79B900
 #define __ToggleMount_x                                            0x6C4420
-#define __GetXTargetType_x                                         0x9190F0
+#define __GetXTargetType_x                                         0x919060
 #define __LoadFrontEnd_x                                           0x629580
 #define __NewUIINI_x                                               0x799FC0
 #define __ProcessGameEvents_x                                      0x56B610
@@ -321,15 +321,15 @@
 #define CChatManager__InitContextMenu_x                            0x682B70
 
 // CContextMenu 
-#define CContextMenu__CContextMenu_x                               0x8BAE10
-#define CContextMenu__AddMenuItem_x                                0x8BB030
-#define CContextMenu__dCContextMenu_x                              0x8BB020
-#define CContextMenu__RemoveMenuItem_x                             0x8BB320
-#define CContextMenu__RemoveAllMenuItems_x                         0x8BB340
-#define CContextMenuManager__AddMenu_x                             0x8BB6F0
-#define CContextMenuManager__RemoveMenu_x                          0x8BBA10
-#define CContextMenuManager__PopupMenu_x                           0x8BBE60
-#define CContextMenuManager__Flush_x                               0x8BB760
+#define CContextMenu__CContextMenu_x                               0x8BAD90
+#define CContextMenu__AddMenuItem_x                                0x8BAFB0
+#define CContextMenu__dCContextMenu_x                              0x8BAFA0
+#define CContextMenu__RemoveMenuItem_x                             0x8BB2A0
+#define CContextMenu__RemoveAllMenuItems_x                         0x8BB2C0
+#define CContextMenuManager__AddMenu_x                             0x8BB670
+#define CContextMenuManager__RemoveMenu_x                          0x8BB990
+#define CContextMenuManager__PopupMenu_x                           0x8BBDE0
+#define CContextMenuManager__Flush_x                               0x8BB6E0
 
 // CChatService
 #define CChatService__GetNumberOfFriends_x                         0x841410
@@ -341,14 +341,14 @@
 #define CChatWindow__WndNotification_x                             0x688110
 
 // CComboWnd 
-#define CComboWnd__DeleteAll_x                                     0x8BA1C0
-#define CComboWnd__Draw_x                                          0x8BA3D0
-#define CComboWnd__GetCurChoice_x                                  0x8B9F90
-#define CComboWnd__GetListRect_x                                   0x8BA670
-#define CComboWnd__GetTextRect_x                                   0x8BA230
-#define CComboWnd__InsertChoice_x                                  0x8BA6E0
-#define CComboWnd__SetColors_x                                     0x8B9F20
-#define CComboWnd__SetChoice_x                                     0x8B9F50
+#define CComboWnd__DeleteAll_x                                     0x8BA140
+#define CComboWnd__Draw_x                                          0x8BA350
+#define CComboWnd__GetCurChoice_x                                  0x8B9F10
+#define CComboWnd__GetListRect_x                                   0x8BA5F0
+#define CComboWnd__GetTextRect_x                                   0x8BA1B0
+#define CComboWnd__InsertChoice_x                                  0x8BA660
+#define CComboWnd__SetColors_x                                     0x8B9EA0
+#define CComboWnd__SetChoice_x                                     0x8B9ED0
 
 // CContainerWnd 
 #define CContainerWnd__HandleCombine_x                             0x6912C0
@@ -364,19 +364,19 @@
 #define CDisplay__WriteTextHD2_x                                   0x4AA530
 
 // CEditBaseWnd 
-#define CEditBaseWnd__SetSel_x                                     0x8E1140
+#define CEditBaseWnd__SetSel_x                                     0x8E10C0
 
 // CEditWnd 
-#define CEditWnd__DrawCaret_x                                      0x8CF4D0
-#define CEditWnd__GetCharIndexPt_x                                 0x8D0570
-#define CEditWnd__GetDisplayString_x                               0x8CF680
-#define CEditWnd__GetHorzOffset_x                                  0x8CF9C0
-#define CEditWnd__GetLineForPrintableChar_x                        0x8D0030
-#define CEditWnd__GetSelStartPt_x                                  0x8D0830
-#define CEditWnd__GetSTMLSafeText_x                                0x8CFB60
-#define CEditWnd__PointFromPrintableChar_x                         0x8D0120
-#define CEditWnd__SelectableCharFromPoint_x                        0x8D02A0
-#define CEditWnd__SetEditable_x                                    0x8CFB30
+#define CEditWnd__DrawCaret_x                                      0x8CF450
+#define CEditWnd__GetCharIndexPt_x                                 0x8D04F0
+#define CEditWnd__GetDisplayString_x                               0x8CF600
+#define CEditWnd__GetHorzOffset_x                                  0x8CF940
+#define CEditWnd__GetLineForPrintableChar_x                        0x8CFFB0
+#define CEditWnd__GetSelStartPt_x                                  0x8D07B0
+#define CEditWnd__GetSTMLSafeText_x                                0x8CFAE0
+#define CEditWnd__PointFromPrintableChar_x                         0x8D00A0
+#define CEditWnd__SelectableCharFromPoint_x                        0x8D0220
+#define CEditWnd__SetEditable_x                                    0x8CFAB0
 
 // CEverQuest 
 #define CEverQuest__ClickedPlayer_x                                0x548F30
@@ -490,29 +490,29 @@
 #define CObfuscator__doit_x                                        0x8215B0
 
 // CSidlManager 
-#define CSidlManager__FindScreenPieceTemplate1_x                   0x8C6380
+#define CSidlManager__FindScreenPieceTemplate1_x                   0x8C6300
 #define CSidlManager__CreateLabel_x                                0x78D1D0
 
 // CSidlScreenWnd 
 #define CSidlScreenWnd__CalculateHSBRange_x                        0x64FED0
 #define CSidlScreenWnd__CalculateVSBRange_x                        0x64FDB0
-#define CSidlScreenWnd__ConvertToRes_x                             0x8E1020
-#define CSidlScreenWnd__CreateChildrenFromSidl_x                   0x8BE1A0
-#define CSidlScreenWnd__CSidlScreenWnd1_x                          0x8BF680
-#define CSidlScreenWnd__CSidlScreenWnd2_x                          0x8BF730
-#define CSidlScreenWnd__dCSidlScreenWnd_x                          0x8BEBF0
-#define CSidlScreenWnd__DrawSidlPiece_x                            0x8BDB70
-#define CSidlScreenWnd__EnableIniStorage_x                         0x8BD2C0
-#define CSidlScreenWnd__GetSidlPiece_x                             0x8BDD60
-#define CSidlScreenWnd__Init1_x                                    0x8BF350
-#define CSidlScreenWnd__LoadIniInfo_x                              0x8BE250
-#define CSidlScreenWnd__LoadIniListWnd_x                           0x8BD480
-#define CSidlScreenWnd__LoadSidlScreen_x                           0x8BEE40
-#define CSidlScreenWnd__StoreIniInfo_x                             0x8BCD90
-#define CSidlScreenWnd__StoreIniVis_x                              0x8BD250
-#define CSidlScreenWnd__WndNotification_x                          0x8BF0D0
-#define CSidlScreenWnd__GetChildItem_x                             0x8BD390
-#define CSidlScreenWnd__HandleLButtonUp_x                          0x8B0030
+#define CSidlScreenWnd__ConvertToRes_x                             0x8E0FA0
+#define CSidlScreenWnd__CreateChildrenFromSidl_x                   0x8BE120
+#define CSidlScreenWnd__CSidlScreenWnd1_x                          0x8BF600
+#define CSidlScreenWnd__CSidlScreenWnd2_x                          0x8BF6B0
+#define CSidlScreenWnd__dCSidlScreenWnd_x                          0x8BEB70
+#define CSidlScreenWnd__DrawSidlPiece_x                            0x8BDAF0
+#define CSidlScreenWnd__EnableIniStorage_x                         0x8BD240
+#define CSidlScreenWnd__GetSidlPiece_x                             0x8BDCE0
+#define CSidlScreenWnd__Init1_x                                    0x8BF2D0
+#define CSidlScreenWnd__LoadIniInfo_x                              0x8BE1D0
+#define CSidlScreenWnd__LoadIniListWnd_x                           0x8BD400
+#define CSidlScreenWnd__LoadSidlScreen_x                           0x8BEDC0
+#define CSidlScreenWnd__StoreIniInfo_x                             0x8BCD10
+#define CSidlScreenWnd__StoreIniVis_x                              0x8BD1D0
+#define CSidlScreenWnd__WndNotification_x                          0x8BF050
+#define CSidlScreenWnd__GetChildItem_x                             0x8BD310
+#define CSidlScreenWnd__HandleLButtonUp_x                          0x8AFFB0
 
 // CSkillMgr
 #define CSkillMgr__IsAvailable_x                                   0x5EB690
@@ -520,51 +520,51 @@
 #define CSkillMgr__GetNameToken_x                                  0x5EB300
 
 // CSliderWnd 
-#define CSliderWnd__GetValue_x                                     0x8E02E0
-#define CSliderWnd__SetValue_x                                     0x8E04B0
-#define CSliderWnd__SetNumTicks_x                                  0x8E0C30
+#define CSliderWnd__GetValue_x                                     0x8E0260
+#define CSliderWnd__SetValue_x                                     0x8E0430
+#define CSliderWnd__SetNumTicks_x                                  0x8E0BB0
 
 // CSpellBookWnd 
 #define CSpellBookWnd__MemorizeSet_x                               0x794E40
 
 // CStmlWnd
-#define CStmlWnd__AppendSTML_x                                     0x8DACE0
-#define CStmlWnd__CalculateHSBRange_x                              0x8D32B0
-#define CStmlWnd__CalculateVSBRange_x                              0x8D3220
-#define CStmlWnd__CanBreakAtCharacter_x                            0x8D3430
-#define CStmlWnd__FastForwardToEndOfTag_x                          0x8D3D10
-#define CStmlWnd__ForceParseNow_x                                  0x8DB630
-#define CStmlWnd__GetNextTagPiece_x                                0x8D3C10
+#define CStmlWnd__AppendSTML_x                                     0x8DAC60
+#define CStmlWnd__CalculateHSBRange_x                              0x8D3230
+#define CStmlWnd__CalculateVSBRange_x                              0x8D31A0
+#define CStmlWnd__CanBreakAtCharacter_x                            0x8D33B0
+#define CStmlWnd__FastForwardToEndOfTag_x                          0x8D3C90
+#define CStmlWnd__ForceParseNow_x                                  0x8DB5B0
+#define CStmlWnd__GetNextTagPiece_x                                0x8D3B90
 #define CStmlWnd__GetSTMLText_x                                    0x687030
-#define CStmlWnd__GetVisibleText_x                                 0x8D4760
-#define CStmlWnd__InitializeWindowVariables_x                      0x8D6AD0
-#define CStmlWnd__MakeStmlColorTag_x                               0x8D2520
-#define CStmlWnd__MakeWndNotificationTag_x                         0x8D2580
-#define CStmlWnd__SetSTMLText_x                                    0x8D8330
-#define CStmlWnd__StripFirstSTMLLines_x                            0x8DA980
-#define CStmlWnd__UpdateHistoryString_x                            0x8D5690
+#define CStmlWnd__GetVisibleText_x                                 0x8D46E0
+#define CStmlWnd__InitializeWindowVariables_x                      0x8D6A50
+#define CStmlWnd__MakeStmlColorTag_x                               0x8D24A0
+#define CStmlWnd__MakeWndNotificationTag_x                         0x8D2500
+#define CStmlWnd__SetSTMLText_x                                    0x8D82B0
+#define CStmlWnd__StripFirstSTMLLines_x                            0x8DA900
+#define CStmlWnd__UpdateHistoryString_x                            0x8D5610
 
 // CTabWnd 
-#define CTabWnd__Draw_x                                            0x8E2820
-#define CTabWnd__DrawCurrentPage_x                                 0x8E2090
-#define CTabWnd__DrawTab_x                                         0x8E1E50
-#define CTabWnd__GetCurrentPage_x                                  0x8E2460
-#define CTabWnd__GetPageInnerRect_x                                0x8E1B40
-#define CTabWnd__GetTabInnerRect_x                                 0x8E1D40
-#define CTabWnd__GetTabRect_x                                      0x8E1C10
-#define CTabWnd__InsertPage_x                                      0x8E2B10
-#define CTabWnd__SetPage_x                                         0x8E2490
-#define CTabWnd__SetPageRect_x                                     0x8E2760
-#define CTabWnd__UpdatePage_x                                      0x8E2AB0
+#define CTabWnd__Draw_x                                            0x8E27A0
+#define CTabWnd__DrawCurrentPage_x                                 0x8E2010
+#define CTabWnd__DrawTab_x                                         0x8E1DD0
+#define CTabWnd__GetCurrentPage_x                                  0x8E23E0
+#define CTabWnd__GetPageInnerRect_x                                0x8E1AC0
+#define CTabWnd__GetTabInnerRect_x                                 0x8E1CC0
+#define CTabWnd__GetTabRect_x                                      0x8E1B90
+#define CTabWnd__InsertPage_x                                      0x8E2A90
+#define CTabWnd__SetPage_x                                         0x8E2410
+#define CTabWnd__SetPageRect_x                                     0x8E26E0
+#define CTabWnd__UpdatePage_x                                      0x8E2A30
 
 // CTextOverlay 
 #define CTextOverlay__DisplayText_x                                0x431250
 
 // CTextureFont
-#define CTextureFont__DrawWrappedText_x                            0x8B9B90
+#define CTextureFont__DrawWrappedText_x                            0x8B9B10
 
 // CXMLDataManager 
-#define CXMLDataManager__GetXMLData_x                              0x8E7A90
+#define CXMLDataManager__GetXMLData_x                              0x8E7A10
 
 // CXMLSOMDocumentBase 
 #define CXMLSOMDocumentBase__XMLRead_x                             0x8A0190
@@ -582,42 +582,42 @@
 #define CXStr__operator_plus_equal1_x                              0x858B10
 
 // CXWnd 
-#define CXWnd__BringToTop_x                                        0x8AF2B0
-#define CXWnd__Center_x                                            0x8B5350
-#define CXWnd__ClrFocus_x                                          0x8AEE90
-#define CXWnd__DoAllDrawing_x                                      0x8B4FA0
-#define CXWnd__DrawChildren_x                                      0x8B5140
+#define CXWnd__BringToTop_x                                        0x8AF230
+#define CXWnd__Center_x                                            0x8B52D0
+#define CXWnd__ClrFocus_x                                          0x8AEE10
+#define CXWnd__DoAllDrawing_x                                      0x8B4F20
+#define CXWnd__DrawChildren_x                                      0x8B50C0
 
-#define CXWnd__DrawColoredRect_x                                   0x8AF660
-#define CXWnd__DrawTooltip_x                                       0x8AF900
-#define CXWnd__DrawTooltipAtPoint_x                                0x8B3F20
-#define CXWnd__GetBorderFrame_x                                    0x8AFD30
-#define CXWnd__GetChildWndAt_x                                     0x8B5D20
-#define CXWnd__GetClientClipRect_x                                 0x8AFB10
-#define CXWnd__GetScreenClipRect_x                                 0x8B4620
-#define CXWnd__GetScreenRect_x                                     0x8AFEE0
-#define CXWnd__GetTooltipRect_x                                    0x8AF790
+#define CXWnd__DrawColoredRect_x                                   0x8AF5E0
+#define CXWnd__DrawTooltip_x                                       0x8AF880
+#define CXWnd__DrawTooltipAtPoint_x                                0x8B3EA0
+#define CXWnd__GetBorderFrame_x                                    0x8AFCB0
+#define CXWnd__GetChildWndAt_x                                     0x8B5CA0
+#define CXWnd__GetClientClipRect_x                                 0x8AFA90
+#define CXWnd__GetScreenClipRect_x                                 0x8B45A0
+#define CXWnd__GetScreenRect_x                                     0x8AFE60
+#define CXWnd__GetTooltipRect_x                                    0x8AF710
 #define CXWnd__GetWindowTextA_x                                    0x422980
 #define CXWnd__IsActive_x                                          0x8AA860
-#define CXWnd__IsDescendantOf_x                                    0x8AFC80
-#define CXWnd__IsReallyVisible_x                                   0x8B2F80
-#define CXWnd__IsType_x                                            0x8E41C0
-#define CXWnd__Move_x                                              0x8B26F0
-#define CXWnd__Move1_x                                             0x8B4C60
-#define CXWnd__ProcessTransition_x                                 0x8AF260
-#define CXWnd__Refade_x                                            0x8AF030
-#define CXWnd__Resize_x                                            0x8AFF90
-#define CXWnd__Right_x                                             0x8B4420
-#define CXWnd__SetFocus_x                                          0x8B1860
-#define CXWnd__SetFont_x                                           0x8AEEE0
-#define CXWnd__SetKeyTooltip_x                                     0x8B0200
-#define CXWnd__SetMouseOver_x                                      0x8B4950
-#define CXWnd__StartFade_x                                         0x8AF300
-#define CXWnd__GetChildItem_x                                      0x8B4890
+#define CXWnd__IsDescendantOf_x                                    0x8AFC00
+#define CXWnd__IsReallyVisible_x                                   0x8B2F00
+#define CXWnd__IsType_x                                            0x8E4140
+#define CXWnd__Move_x                                              0x8B2670
+#define CXWnd__Move1_x                                             0x8B4BE0
+#define CXWnd__ProcessTransition_x                                 0x8AF1E0
+#define CXWnd__Refade_x                                            0x8AEFB0
+#define CXWnd__Resize_x                                            0x8AFF10
+#define CXWnd__Right_x                                             0x8B43A0
+#define CXWnd__SetFocus_x                                          0x8B17E0
+#define CXWnd__SetFont_x                                           0x8AEE60
+#define CXWnd__SetKeyTooltip_x                                     0x8B0180
+#define CXWnd__SetMouseOver_x                                      0x8B48D0
+#define CXWnd__StartFade_x                                         0x8AF280
+#define CXWnd__GetChildItem_x                                      0x8B4810
 
 // CXWndManager 
-#define CXWndManager__DrawCursor_x                                 0x8AC170
-#define CXWndManager__DrawWindows_x                                0x8ABDB0
+#define CXWndManager__DrawCursor_x                                 0x8AC0F0
+#define CXWndManager__DrawWindows_x                                0x8ABD30
 #define CXWndManager__GetKeyboardFlags_x                           0x8AA3D0
 #define CXWndManager__HandleKeyboardMsg_x                          0x8AAD00
 #define CXWndManager__RemoveWnd_x                                  0x8AA9F0
@@ -678,9 +678,9 @@
 #define EQPlayer__EQPlayer_x                                       0x5C5C10
 #define EQPlayer__SetNameSpriteState_x                             0x5C04C0
 #define EQPlayer__SetNameSpriteTint_x                              0x5BBDA0
-#define EQPlayer__IsBodyType_j_x                                   0x915370
-#define EQPlayer__IsTargetable_x                                   0x915C30
-#define EQPlayer__CanSee_x                                         0x916150
+#define EQPlayer__IsBodyType_j_x                                   0x9152E0
+#define EQPlayer__IsTargetable_x                                   0x915BA0
+#define EQPlayer__CanSee_x                                         0x9160C0
 
 //EQPlayerManager
 #define EQPlayerManager__GetSpawnByID_x                            0x5C9F90
