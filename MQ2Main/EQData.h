@@ -1011,7 +1011,7 @@ typedef struct _CHARINFO {
 /*0x24b8*/ CHAR         Name[0x40];//CharBaseBegin+44
 /*0x24f8*/ CHAR         Lastname[0x20];//CharBaseBegin+84
 /*0x2518*/ BYTE         Unknown0x2518[0xc0];
-/*0x25d8*/ BYTE         Stunned;//CharBaseBegin+104
+/*0x25d8*/ BYTE         Stunned;//CharBaseBegin+1??
 /*0x25d9*/ BYTE         Unknown0x25d9[0x3];
 /*0x25dc*/ WORD         zoneId;//CharBaseBegin+108 Zone_0
 /*0x25de*/ WORD         instance;

@@ -1,3 +1,10 @@
+31 Mar 2015 by eqmule
+- Updated for the latest TEST client
+- Updated for the latest LIVE client
+
+30 Mar 2015 by eqmule
+- Fixed CSidlScreenWnd__CalculateVSBRange_x offset
+
 28 Mar 2015 by eqmule
 - Updated for the latest TEST client
 - Updated for the latest LIVE client
