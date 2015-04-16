@@ -271,6 +271,7 @@ GNU General Public License for more details.
 #define pinstCHtmlWnd_x                                            0x1021B08
 #define pinstIconCache_x                                           0x112F26C
 #define pinstCTradeskillWnd_x                                      0x1134ED8
+#define pinstCAdvLootWnd_x                                         0xEDAD78
 
 //// 
 // Section 3: Miscellaneous Offsets 
@@ -298,6 +299,9 @@ GNU General Public License for more details.
 //// 
 // Section 4: Function Offsets 
 //// 
+// CAdvancedLootWnd
+#define CAdvancedLootWnd__CAdvancedLootWnd_x                       0x41EEA0
+
 // AltAdvManager 
 #define AltAdvManager__GetCalculatedTimer_x                        0x4C0080
 #define AltAdvManager__IsAbilityReady_x                            0x4C00F0
@@ -348,6 +352,7 @@ GNU General Public License for more details.
 #define CComboWnd__InsertChoice_x                                  0x8BB530
 #define CComboWnd__SetColors_x                                     0x8BAD70
 #define CComboWnd__SetChoice_x                                     0x8BADA0
+#define CComboWnd__GetItemCount_x                                  0x8BADD0 
 
 // CContainerWnd 
 #define CContainerWnd__HandleCombine_x                             0x691360

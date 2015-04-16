@@ -54,4 +54,5 @@ LEGACY_API BOOL dataTask(PCHAR szIndex, MQ2TYPEVAR &Ret);
 LEGACY_API BOOL dataFriends(PCHAR szIndex, MQ2TYPEVAR &Ret);
 LEGACY_API BOOL dataMount(PCHAR szIndex, MQ2TYPEVAR &Ret);
 LEGACY_API BOOL dataAlias(PCHAR szIndex, MQ2TYPEVAR &Ret);
+LEGACY_API BOOL dataAdvLoot(PCHAR szIndex, MQ2TYPEVAR &Ret);
 #endif

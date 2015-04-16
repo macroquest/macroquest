@@ -1642,108 +1642,109 @@ public:
         AugSlot3=39,
         AugSlot4=40,
         AugSlot5=41,
-        Damage=42,
-        Range=43,
-        DMGBonus=44,
-        RecommendedLevel=45,
-        RecommendedSkill=46,
-        Delay=47,
-        Light=48,
-        Level=49,
-        BaneDMG=50,
-        Proc=51,
-        SkillModValue=52,
-        InstrumentType=53,
-        InstrumentMod=54,
-        RequiredLevel=55,
-        BaneDMGType=56,
-        AC=57,
-        HP=58,
-        Mana=59,
-        STR=60,
-        STA=61,
-        AGI=62,
-        DEX=63,
-        CHA=64,
-        INT=65,
-        WIS=66,
-        svCold=67,
-        svFire=68,
-        svMagic=69,
-        svDisease=70,
-        svPoison=71,
-        Summoned=72,
-        Artifact=73,
-        PendingLore=74,
-        LoreText=75,
-        Items=76,
-        Item=77,
-        Container=78,
-        Stackable=79,
-        InvSlot=80,
-        SellPrice=81,
-        WornSlot=82,
-        WornSlots=83,
-        CastTime=84,
-        Spell=85,
-        EffectType=86,
-        Tribute=87,
-        Attuneable=88,
-        Timer=89,
-        ItemDelay=90,
-        TimerReady=91,
-        StackSize=92,
-        Stacks=93,
-        StackCount=94,
-        FreeStack=95,
-        MerchQuantity=96,
-        Classes=97,
-        Class=98,
-        Races=99,
-        Race=100,
-        Deities=101,
-        Deity=102,
-        Evolving=103,
-        svCorruption=104,
-        Power=105,
-        MaxPower=106,
-        Purity=107,
-        Accuracy=108,
-        CombatEffects=109,
-        DoTShielding=110,
-        HeroicSTR=111,
-        HeroicINT=112,
-        HeroicWIS=113,
-        HeroicAGI=114,
-        HeroicDEX=115,
-        HeroicSTA=116,
-        HeroicCHA=117,
-        HeroicSvMagic=118,
-        HeroicSvFire=119,
-        HeroicSvCold=120,
-        HeroicSvDisease=121,
-        HeroicSvPoison=122,
-        HeroicSvCorruption=123,
-        EnduranceRegen=124,
-        HealAmount=125,
-        Clairvoyance=126,
-        DamageShieldMitigation=127,
-        SpellDamage=128,
-        Augs=129,
-        Tradeskills=130,
-		ItemSlot=131,
-		ItemSlot2=132,
-		Address=133,
-		PctPower=134,
-		Prestige=135,
-		FirstFreeSlot=136,
-		SlotsUsedByItem=137,
-		Heirloom=138,
-		Collectible=139,
-		NoDestroy=140,
-		Quest=141,
-		Expendable=142,
-		ContAddress=143,
+        AugSlot6=42,
+        Damage=43,
+        Range=44,
+        DMGBonus=45,
+        RecommendedLevel=46,
+        RecommendedSkill=47,
+        Delay=48,
+        Light=49,
+        Level=50,
+        BaneDMG=51,
+        Proc=52,
+        SkillModValue=53,
+        InstrumentType=54,
+        InstrumentMod=55,
+        RequiredLevel=56,
+        BaneDMGType=57,
+        AC=58,
+        HP=59,
+        Mana=60,
+        STR=61,
+        STA=62,
+        AGI=63,
+        DEX=64,
+        CHA=65,
+        INT=66,
+        WIS=67,
+        svCold=68,
+        svFire=69,
+        svMagic=70,
+        svDisease=71,
+        svPoison=72,
+        Summoned=73,
+        Artifact=74,
+        PendingLore=75,
+        LoreText=76,
+        Items=77,
+        Item=78,
+        Container=79,
+        Stackable=80,
+        InvSlot=81,
+        SellPrice=82,
+        WornSlot=83,
+        WornSlots=84,
+        CastTime=85,
+        Spell=86,
+        EffectType=87,
+        Tribute=88,
+        Attuneable=89,
+        Timer=90,
+        ItemDelay=91,
+        TimerReady=92,
+        StackSize=93,
+        Stacks=94,
+        StackCount=95,
+        FreeStack=96,
+        MerchQuantity=97,
+        Classes=98,
+        Class=99,
+        Races=100,
+        Race=101,
+        Deities=102,
+        Deity=103,
+        Evolving=104,
+        svCorruption=105,
+        Power=106,
+        MaxPower=107,
+        Purity=108,
+        Accuracy=109,
+        CombatEffects=110,
+        DoTShielding=111,
+        HeroicSTR=112,
+        HeroicINT=113,
+        HeroicWIS=114,
+        HeroicAGI=115,
+        HeroicDEX=116,
+        HeroicSTA=117,
+        HeroicCHA=118,
+        HeroicSvMagic=119,
+        HeroicSvFire=120,
+        HeroicSvCold=121,
+        HeroicSvDisease=122,
+        HeroicSvPoison=123,
+        HeroicSvCorruption=124,
+        EnduranceRegen=125,
+        HealAmount=126,
+        Clairvoyance=127,
+        DamageShieldMitigation=128,
+        SpellDamage=129,
+        Augs=130,
+        Tradeskills=131,
+		ItemSlot=132,
+		ItemSlot2=133,
+		Address=134,
+		PctPower=135,
+		Prestige=136,
+		FirstFreeSlot=137,
+		SlotsUsedByItem=138,
+		Heirloom=139,
+		Collectible=140,
+		NoDestroy=141,
+		Quest=142,
+		Expendable=143,
+		ContAddress=144,
     };
     static enum ItemMethods
     {
@@ -1791,40 +1792,41 @@ public:
         TypeMember(AugSlot3);//39,
         TypeMember(AugSlot4);//40,
         TypeMember(AugSlot5);//41,
-        TypeMember(Damage);//42,
-        TypeMember(Range);//43,
-        TypeMember(DMGBonus);//44,
-        TypeMember(RecommendedLevel);//45,
-        TypeMember(RecommendedSkill);//46,
-        TypeMember(Delay);//47,
-        TypeMember(Light);//48,
-        TypeMember(Level);//49,
-        TypeMember(BaneDMG);//50,
-        TypeMember(Proc);//51,
-        TypeMember(SkillModValue);//52,
-        TypeMember(InstrumentType);//53,
-        TypeMember(InstrumentMod);//54,
-        TypeMember(RequiredLevel);//55,
-        TypeMember(BaneDMGType);//56,
-        TypeMember(AC);//57,
-        TypeMember(HP);//58,
-        TypeMember(Mana);//59,
-        TypeMember(STR);//60,
-        TypeMember(STA);//61,
-        TypeMember(AGI);//62,
-        TypeMember(DEX);//63,
-        TypeMember(CHA);//64,
-        TypeMember(INT);//65,
-        TypeMember(WIS);//66,
-        TypeMember(svCold);//67,
-        TypeMember(svFire);//68,
-        TypeMember(svMagic);//69,
-        TypeMember(svDisease);//70,
-        TypeMember(svPoison);//71,
-        TypeMember(Summoned);//72,
-        TypeMember(Artifact);//73,
-        TypeMember(PendingLore);//74,
-        TypeMember(LoreText);//75,
+        TypeMember(AugSlot6);
+        TypeMember(Damage);
+        TypeMember(Range);
+        TypeMember(DMGBonus);
+        TypeMember(RecommendedLevel);
+        TypeMember(RecommendedSkill);
+        TypeMember(Delay);
+        TypeMember(Light);
+        TypeMember(Level);
+        TypeMember(BaneDMG);
+        TypeMember(Proc);
+        TypeMember(SkillModValue);
+        TypeMember(InstrumentType);
+        TypeMember(InstrumentMod);
+        TypeMember(RequiredLevel);
+        TypeMember(BaneDMGType);
+        TypeMember(AC);
+        TypeMember(HP);
+        TypeMember(Mana);
+		TypeMember(STR);
+        TypeMember(STA);
+        TypeMember(AGI);
+        TypeMember(DEX);
+        TypeMember(CHA);
+        TypeMember(INT);
+        TypeMember(WIS);
+        TypeMember(svCold);
+        TypeMember(svFire);
+        TypeMember(svMagic);
+        TypeMember(svDisease);
+        TypeMember(svPoison);
+        TypeMember(Summoned);
+        TypeMember(Artifact);
+        TypeMember(PendingLore);
+        TypeMember(LoreText);
         TypeMember(Items);
         TypeMember(Item);
         TypeMember(Container);
@@ -2210,11 +2212,10 @@ public:
     static enum MercenaryMembers
     {
 		AAPoints=1,
-		Name=2,
-		Stance=3,
-        State=4,
-		StateID=5,
-		xIndex=6,
+		Stance=2,
+        State=3,
+		StateID=4,
+		xIndex=5,
     };
     static enum MercenaryMethods
     {
@@ -2222,7 +2223,6 @@ public:
     MQ2MercenaryType():MQ2Type("mercenary")
     {
         TypeMember(AAPoints);
-        TypeMember(Name);
         TypeMember(Stance);
         TypeMember(State);
         TypeMember(StateID);
@@ -2290,13 +2290,12 @@ public:
         Combat=2,
 		GHold=3,
 		Hold=4,
-		Name=5,
-		ReGroup=6,
-		Stance=7,
-		Stop=8,
-		Target=9,
-		Taunt=10,
-		BuffDuration=11,
+		ReGroup=5,
+		Stance=6,
+		Stop=7,
+		Target=8,
+		Taunt=9,
+		BuffDuration=10,
     };
     static enum PetMethods
     {
@@ -2307,7 +2306,6 @@ public:
         TypeMember(Combat);
         TypeMember(GHold);
         TypeMember(Hold);
-        TypeMember(Name);
 		TypeMember(ReGroup);
         TypeMember(Stance);
 		TypeMember(Stop);
@@ -3627,7 +3625,8 @@ public:
         Puller=8,
 		MarkNpc=9,
 		MasterLooter=10,
-        AnyoneMissing=11,
+		AnyoneMissing = 11,
+		Present = 12,
     };
     static enum GroupMethods
     {
@@ -3644,7 +3643,8 @@ public:
         TypeMember(Puller);
         TypeMember(MarkNpc);
         TypeMember(MasterLooter);
-        TypeMember(AnyoneMissing);
+		TypeMember(AnyoneMissing);
+		TypeMember(Present);
     }
 
     ~MQ2GroupType()
@@ -3684,7 +3684,8 @@ public:
         PctAggro=12,
         xIndex=13,
         Offline=14,
-        OtherZone=15,
+		OtherZone = 15,
+		Present = 16,
     };
     static enum GroupMemberMethods
     {
@@ -3705,7 +3706,8 @@ public:
         TypeMember(PctAggro);
         AddMember(xIndex,"Index");
         TypeMember(Offline);
-        TypeMember(OtherZone);
+		TypeMember(OtherZone);
+		TypeMember(Present);
     }
 
     ~MQ2GroupMemberType()
@@ -4446,4 +4448,92 @@ public:
     {
         return false;
     }
+};
+class MQ2AdvLootItemType : public MQ2Type
+{
+public:
+    static enum AdvLootItemMembers
+    {
+        Address=1,
+        xIndex=2,
+        Name=3,
+        ID=4,
+        StackSize=5,
+        Corpse=6,
+    };
+    static enum MQ2AdvLootItemMethods
+    {
+    };
+    MQ2AdvLootItemType():MQ2Type("advlootitem")
+    {
+        TypeMember(Address);
+        AddMember(xIndex,"Index");
+        TypeMember(Name);
+        TypeMember(ID);
+        TypeMember(StackSize);
+        TypeMember(Corpse);
+    }
+
+    ~MQ2AdvLootItemType()
+    {
+    }
+
+    bool GETMEMBER();
+
+    //INHERITINDIRECT(pSpawnType,Temp.Ptr=GetGroupMember(ObjectData.DWord),0);
+
+
+	bool ToString(MQ2VARPTR VarPtr, PCHAR Destination)
+    {
+		if(PLOOTITEM pitem = (PLOOTITEM)VarPtr.Ptr) {
+			strcpy_s(Destination,64,pitem->Name);
+			return true;
+		}
+		return false;
+    }
+    bool FromData(MQ2VARPTR &VarPtr, MQ2TYPEVAR &Source)
+    {
+        if (Source.Type!=pAdvLootItemType)
+            return false;
+        VarPtr.Ptr=Source.Ptr;
+        return true;
+    }
+    bool FromString(MQ2VARPTR &VarPtr, PCHAR Source)
+    {
+        return false;
+    }
+}; 
+class MQ2AdvLootType : public MQ2Type
+{
+public:
+	static enum AdvLootTypeMembers
+	{
+		PList = 1,
+		PCount = 2,
+		SList = 3,
+		SCount = 4,
+	};
+	MQ2AdvLootType() :MQ2Type("advloot")
+	{
+		TypeMember(PList);
+		TypeMember(PCount);
+		TypeMember(SList);
+		TypeMember(SCount);
+	}
+	~MQ2AdvLootType()
+	{
+	}
+	bool GETMEMBER();
+	bool ToString(MQ2VARPTR VarPtr, PCHAR Destination)
+	{
+		return false;
+	}
+	bool FromData(MQ2VARPTR &VarPtr, MQ2TYPEVAR &Source)
+	{
+		return false;
+	}
+	bool FromString(MQ2VARPTR &VarPtr, PCHAR Source)
+	{
+		return false;
+	}
 };

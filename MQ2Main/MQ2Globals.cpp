@@ -207,7 +207,8 @@ bool InitOffsets()
     ppTaskSomething = (CTaskSomething*)pinstCTaskSomething;
     ppTimeLeftWnd = (CTimeLeftWnd**)pinstCTimeLeftWnd;
     ppTextOverlay = (CTextOverlay**)pinstCTextOverlay;
-    ppPotionBeltWnd = (CPotionBeltWnd**)pinstCPotionBeltWnd;
+	ppPotionBeltWnd = (CPotionBeltWnd**)pinstCPotionBeltWnd;
+	ppAdvLootWnd = (CAdvLootWnd**)pinstCAdvLootWnd;
 
     ppSidlMgr = (CSidlManager **)pinstCSidlManager;
     ppWndMgr = (CXWndManager**)pinstCXWndManager;
@@ -395,6 +396,7 @@ fEQCommand        cmdCast        =  NULL;
 fEQCommand        cmdUseItem     =  NULL;
 fEQCommand        cmdPet         =  NULL;
 fEQCommand        cmdMercSwitch  =  NULL;
+fEQCommand        cmdAdvLoot	 =  NULL;
 
 DWORD gnNormalEQMappableCommands;
 PCHAR szEQMappableCommands[nEQMappableCommands];
@@ -1143,7 +1145,8 @@ CTaskWnd **ppTaskWnd=0;
 CTaskSomething *ppTaskSomething=0;
 CTimeLeftWnd **ppTimeLeftWnd=0;
 CTextOverlay **ppTextOverlay=0;
-CPotionBeltWnd **ppPotionBeltWnd=0;
+CPotionBeltWnd **ppPotionBeltWnd = 0;
+CAdvLootWnd **ppAdvLootWnd = 0;
 
 CSidlManager **ppSidlMgr=0;
 CXWndManager **ppWndMgr=0;
@@ -1395,6 +1398,7 @@ INITIALIZE_EQGAME_OFFSET(pinstCTitleWnd);
 INITIALIZE_EQGAME_OFFSET(pinstCContextMenuManager);
 INITIALIZE_EQGAME_OFFSET(pinstCVoiceMacroWnd);
 INITIALIZE_EQGAME_OFFSET(pinstCHtmlWnd);
+INITIALIZE_EQGAME_OFFSET(pinstCAdvLootWnd);
 INITIALIZE_EQGAME_OFFSET(pinstIconCache);
 
 INITIALIZE_EQGAME_OFFSET(__CastRay);
@@ -1416,6 +1420,7 @@ INITIALIZE_EQGAME_OFFSET(Util__FastTime);
 INITIALIZE_EQGAME_OFFSET(Expansion_HoT);
 INITIALIZE_EQGAME_OFFSET(__HelpPath);
 
+INITIALIZE_EQGAME_OFFSET(CAdvancedLootWnd__CAdvancedLootWnd);
 INITIALIZE_EQGAME_OFFSET(AltAdvManager__GetCalculatedTimer);
 INITIALIZE_EQGAME_OFFSET(AltAdvManager__IsAbilityReady);
 INITIALIZE_EQGAME_OFFSET(AltAdvManager__GetAltAbility);
@@ -1456,6 +1461,7 @@ INITIALIZE_EQGAME_OFFSET(CComboWnd__GetTextRect);
 INITIALIZE_EQGAME_OFFSET(CComboWnd__InsertChoice);
 INITIALIZE_EQGAME_OFFSET(CComboWnd__SetColors);
 INITIALIZE_EQGAME_OFFSET(CComboWnd__SetChoice);
+INITIALIZE_EQGAME_OFFSET(CComboWnd__GetItemCount);
 
 INITIALIZE_EQGAME_OFFSET(CContainerWnd__HandleCombine);
 INITIALIZE_EQGAME_OFFSET(CContainerWnd__vftable);

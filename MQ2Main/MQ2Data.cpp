@@ -1793,3 +1793,9 @@ TLO(dataAlias)
    }
    return false;
 }
+TLO(dataAdvLoot)
+{
+	Ret.DWord = 0;
+	Ret.Type = pAdvLootType;
+	return true;
+}

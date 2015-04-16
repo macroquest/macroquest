@@ -462,6 +462,8 @@ EQLIB_API int GetMountCount();
 EQLIB_API void RefreshMountKeyRing(PVOID kr);
 EQLIB_API void InitMountKeyRing();
 EQLIB_API BOOL IsActiveAA(PCHAR pSpellName);
+EQLIB_API CXWnd *GetAdvLootPersonalListItem(DWORD id,DWORD type);
+EQLIB_API CXWnd *GetAdvLootSharedListItem(DWORD id,DWORD type);
 EQLIB_API CMQ2Alerts CAlerts;
 typedef struct _krdata
 {

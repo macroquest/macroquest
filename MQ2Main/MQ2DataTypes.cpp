@@ -1055,8 +1055,9 @@ bool MQ2SpawnType::GETMEMBER()
         INTPTR(pSpawn->SpawnID);
         return true;
     case Name:
-        Dest.Type=pStringType;
-        Dest.Ptr=&pSpawn->Name[0];
+		strcpy(DataTypeTemp, pSpawn->Name);
+		Dest.Type = pStringType;
+		Dest.Ptr = &DataTypeTemp[0];
         return true;
     case Surname:
         Dest.Type=pStringType;
@@ -4748,8 +4749,12 @@ bool MQ2ItemType::GETMEMBER()
             case 4: 
                 if (GetItemFromContents(pItem)->AugSlot5) Dest.Ptr=pItem->pContentsArray->Contents[N];   
                 break;
+			case 5: 
+                if (GetItemFromContents(pItem)->AugSlot6) Dest.Ptr=pItem->pContentsArray->Contents[N];   
+                break;
             }
-            if (Dest.Ptr) return true; 
+            if (Dest.Ptr)
+				return true; 
         }
         return false;
     case Stackable:
@@ -5478,6 +5483,13 @@ bool MQ2ItemType::GETMEMBER()
             Dest.DWord=GetItemFromContents(pItem)->AugSlot5;
         Dest.Type=pIntType;
         return true;
+    case AugSlot6:
+        if (GetItemFromContents(pItem)->Type != ITEMTYPE_NORMAL)
+            Dest.DWord=0;
+        else
+            Dest.DWord=GetItemFromContents(pItem)->AugSlot6;
+        Dest.Type=pIntType;
+        return true;
     case Power:
         if (GetItemFromContents(pItem)->Type != ITEMTYPE_NORMAL)
             Dest.DWord=0;
@@ -5705,6 +5717,7 @@ bool MQ2ItemType::GETMEMBER()
         Dest.DWord = 0;
         Dest.Type=pIntType;
         if (GetItemFromContents(pItem)->Type == ITEMTYPE_NORMAL) {
+            if (GetItemFromContents(pItem)->AugSlot6) Dest.DWord++;
             if (GetItemFromContents(pItem)->AugSlot5) Dest.DWord++;
             if (GetItemFromContents(pItem)->AugSlot4) Dest.DWord++;
             if (GetItemFromContents(pItem)->AugSlot3) Dest.DWord++;
@@ -7076,10 +7089,6 @@ bool MQ2MercenaryType::GETMEMBER()
 		Dest.DWord=GetCharInfo()->MercAAPoints;
         Dest.Type=pIntType;
         return true;
-    case Name:
-		Dest.Ptr=CleanupName(&pSpawn->Name[0],FALSE,FALSE);
-        Dest.Type=pStringType;
-        return true;
     case Stance:
         Dest.Ptr = "NULL";
         if(pMercInfo->HaveMerc)
@@ -7239,10 +7248,6 @@ bool MQ2PetType::GETMEMBER()
 		}
         Dest.Type = pBoolType;
 		return true;
-	case Name:
-        Dest.Type=pStringType;
-		Dest.Ptr=CleanupName(&pSpawn->Name[0],FALSE,FALSE);
-        return true;
 	case ReGroup:
 		if(pPetInfoWindow->ReGroup)
 		{
@@ -7963,16 +7968,23 @@ bool MQ2GroupType::GETMEMBER()
         }
 		return false;
 	 case AnyoneMissing:
-		{
-            Dest.DWord=0;
-            Dest.Type=pBoolType;
-            for (i=1;i<6;i++) {	 
-				if (pChar->pGroupInfo->pMember[i] && (pChar->pGroupInfo->pMember[i]->Offline || (pChar->pGroupInfo->pMember[i]->Offline==0 && pChar->pGroupInfo->pMember[i]->pSpawn==0) || (pChar->pGroupInfo->pMember[i]->pSpawn && pChar->pGroupInfo->pMember[i]->pSpawn->Type==SPAWN_CORPSE))) {
-					Dest.DWord = 1;
-					break;
-				}
+        Dest.DWord=0;
+        Dest.Type=pBoolType;
+        for (i=1;i<6;i++) {	 
+			if (pChar->pGroupInfo->pMember[i] && (pChar->pGroupInfo->pMember[i]->Offline || (pChar->pGroupInfo->pMember[i]->Offline==0 && pChar->pGroupInfo->pMember[i]->pSpawn==0) || (pChar->pGroupInfo->pMember[i]->pSpawn && pChar->pGroupInfo->pMember[i]->pSpawn->Type==SPAWN_CORPSE))) {
+				Dest.DWord = 1;
+				break;
 			}
-        }
+		}
+		return true;
+	 case Present:
+		Dest.DWord = 0;
+		Dest.Type = pIntType;
+		for (i = 1; i<6; i++) {
+			if (pChar->pGroupInfo->pMember[i] && pChar->pGroupInfo->pMember[i]->pSpawn && pChar->pGroupInfo->pMember[i]->pSpawn->Type != SPAWN_CORPSE) {
+				Dest.DWord++;
+			}
+		}
 		return true;
     }
     return false;
@@ -8165,11 +8177,15 @@ bool MQ2GroupMemberType::GETMEMBER()
 		Dest.DWord = nMember;
 		Dest.Type = pIntType;
 		return true;
-    case Offline:
+	case Offline:
 		Dest.DWord = pGroupMemberData->Offline;
 		Dest.Type = pBoolType;
 		return true;
-    case OtherZone:
+	case Present:
+		Dest.DWord = pGroupMemberData->pSpawn ? 1:0;
+		Dest.Type = pBoolType;
+		return true;
+	case OtherZone:
 		Dest.DWord = 0;
 		if(pGroupMemberData->Offline==0 && pGroupMemberData->pSpawn==0)
 			Dest.DWord = 1;
@@ -9297,4 +9313,106 @@ bool MQ2MountType::GETMEMBER()
 		}
 	}
     return false;
+}
+bool MQ2AdvLootItemType::GETMEMBER()
+{
+	PLOOTITEM pItem = (PLOOTITEM)VarPtr.Ptr;
+	if (!pItem)
+		return false;
+    PMQ2TYPEMEMBER pMember=MQ2AdvLootItemType::FindMember(Member);
+    if (!pMember)
+		return false;
+    switch((AdvLootItemMembers)pMember->ID)
+    {
+    case Address:
+		Dest.DWord=(DWORD)pItem;
+        Dest.Type=pIntType;
+        return true;
+    case Name:
+		if (pItem && pItem->Name[0]) {
+            strcpy_s(DataTypeTemp,pItem->Name);
+            Dest.Ptr=&DataTypeTemp[0];
+            Dest.Type=pStringType;
+            return true;
+        }
+        return false;
+	case ID:
+		Dest.DWord = pItem->ItemID;
+		Dest.Type = pIntType;
+		return true;
+	case StackSize:
+		Dest.DWord = 0;
+		Dest.Type = pIntType;
+		if(pItem && pItem->LootDetails) {
+			Dest.DWord = pItem->LootDetails->StackCount;
+		}
+		return true;
+	case Corpse:
+		if(pItem && pItem->LootDetails) {
+			if(PSPAWNINFO pSpawn = (PSPAWNINFO)GetSpawnByID(pItem->LootDetails->CorpseID)) {
+				Dest.Type = pSpawnType;
+				Dest.Ptr = pSpawn;
+				return true;
+			}
+		}
+		return false;
+	}
+    return false;
+}
+bool MQ2AdvLootType::GETMEMBER()
+{
+	PEQADVLOOTWND pAdvLoot = (PEQADVLOOTWND)pAdvLootWnd;
+	if(!pAdvLoot)
+		return FALSE;
+	PMQ2TYPEMEMBER pMember = MQ2AdvLootType::FindMember(Member);
+	if (!pMember)
+		return false;
+	switch ((AdvLootTypeMembers)pMember->ID)
+	{
+	case PCount:
+		Dest.DWord = pAdvLoot->pPLootList->ListSize;
+		Dest.Type = pIntType;
+		return true;
+	case PList:
+		if(DWORD theindex = atoi(GETFIRST())) {
+			theindex--;
+			if(CListWnd *clist = (CListWnd *)pAdvLootWnd->GetChildItem("ADLW_PLLList")) {
+				for (DWORD i = 0; i < clist->Items; i++) {
+					if(theindex==clist->GetItemData(i)) {
+						if (pAdvLoot && pAdvLoot->pPLootList && pAdvLoot->pPLootList->pLootItem && pAdvLoot->pPLootList->ListSize>=i) {
+							DWORD addr = (DWORD)pAdvLoot->pPLootList->pLootItem;
+							PLOOTITEM pitem = (PLOOTITEM)(addr+(sizeof(LOOTITEM)*i));
+							Dest.Ptr = pitem;
+							Dest.Type = pAdvLootItemType;
+							return true;
+						}
+					}
+				}
+			}
+		}
+		return false;
+	case SCount:
+		Dest.DWord = pAdvLoot->pCLootList->ListSize;
+		Dest.Type = pIntType;
+		return true;
+	case SList:
+		if(DWORD theindex = atoi(GETFIRST())) {
+			theindex--;
+			if(CListWnd *clist = (CListWnd *)pAdvLootWnd->GetChildItem("ADLW_CLLList")) {
+				for (DWORD i = 0; i < clist->Items; i++) {
+					if(theindex==clist->GetItemData(i)) {
+						if (pAdvLoot && pAdvLoot->pCLootList && pAdvLoot->pCLootList->pLootItem && pAdvLoot->pCLootList->ListSize>=i) {
+							DWORD addr = (DWORD)pAdvLoot->pCLootList->pLootItem;
+							PLOOTITEM pitem = (PLOOTITEM)(addr+(sizeof(LOOTITEM)*i));
+							Dest.Ptr = pitem;
+							Dest.Type = pAdvLootItemType;
+							return true;
+						}
+					}
+				}
+			}
+		}
+		return false;
+	}
+	return false;
 }

@@ -305,12 +305,13 @@ EQLIB_VAR fEQCommand         cmdCast;
 EQLIB_VAR fEQCommand         cmdUseItem;
 EQLIB_VAR fEQCommand         cmdPet;
 EQLIB_VAR fEQCommand         cmdMercSwitch;
+EQLIB_VAR fEQCommand         cmdAdvLoot;
 
 
 EQLIB_VAR fEQNewUIINI        NewUIINI;
 EQLIB_VAR fEQProcGameEvts    ProcessGameEvents;
-EQLIB_VAR fEQExecuteCmd         ExecuteCmd;
-EQLIB_VAR fEQGetMelee    get_melee_range;
+EQLIB_VAR fEQExecuteCmd		 ExecuteCmd;
+EQLIB_VAR fEQGetMelee		 get_melee_range;
 EQLIB_VAR fEQToggleMount     cmdToggleMount;
 
 //EQLIB_VAR PCHAR szItemName[];
@@ -558,8 +559,10 @@ EQLIB_VAR CTaskSomething *ppTaskSomething;
 EQLIB_VAR CTimeLeftWnd **ppTimeLeftWnd;
 EQLIB_VAR CTextOverlay **ppTextOverlay;
 EQLIB_VAR CPotionBeltWnd **ppPotionBeltWnd;
+EQLIB_VAR CAdvLootWnd **ppAdvLootWnd;
 
 
+#define pAdvLootWnd (*ppAdvLootWnd)
 #define pContextMenuManager (*ppContextMenuManager)
 #define pCursorAttachment (*ppCursorAttachment)
 #define pSocialEditWnd (*ppSocialEditWnd)
@@ -886,6 +889,7 @@ EQLIB_VAR DWORD pinstCTaskSomething;
 EQLIB_VAR DWORD pinstCTipWndOFDAY;
 EQLIB_VAR DWORD pinstCTipWndCONTEXT;
 EQLIB_VAR DWORD pinstCTitleWnd;
+EQLIB_VAR DWORD pinstCAdvLootWnd;
 EQLIB_VAR DWORD pinstCContextMenuManager;
 EQLIB_VAR DWORD pinstCVoiceMacroWnd;
 EQLIB_VAR DWORD pinstCHtmlWnd;
@@ -910,6 +914,8 @@ EQLIB_VAR DWORD Util__FastTime;
 EQLIB_VAR DWORD Expansion_HoT;
 EQLIB_VAR DWORD __HelpPath;
 
+
+EQLIB_VAR DWORD CAdvancedLootWnd__CAdvancedLootWnd;
 EQLIB_VAR DWORD AltAdvManager__GetCalculatedTimer;
 EQLIB_VAR DWORD AltAdvManager__IsAbilityReady;
 EQLIB_VAR DWORD AltAdvManager__GetAltAbility;
@@ -951,6 +957,8 @@ EQLIB_VAR DWORD CComboWnd__GetTextRect;
 EQLIB_VAR DWORD CComboWnd__InsertChoice;
 EQLIB_VAR DWORD CComboWnd__SetColors;
 EQLIB_VAR DWORD CComboWnd__SetChoice;
+EQLIB_VAR DWORD CComboWnd__GetItemCount;
+
 
 EQLIB_VAR DWORD CContainerWnd__HandleCombine;
 EQLIB_VAR DWORD CContainerWnd__vftable;

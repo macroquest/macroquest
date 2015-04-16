@@ -1,3 +1,29 @@
+15 Apr 2015 by eqmule
+- Added a new TLO for AdvLoot, this is a first draft, test it, report bugs, and so on to me.
+  I need a volunteer to update the wiki with this new TLO and its usage/members
+  It has a few members SList,PList,SCount and PCount
+  /echo ${AdvLoot.PList[1].Name}
+  Output: [MQ2] Bone Chips
+  /echo there are ${AdvLoot.PCount} items in the personal loot list
+  Output: [MQ2] there are 3 items in the personal lootlist
+  /echo the item in index 1 has a StackSize of ${AdvLoot.PList[1].StackSize}
+  Output: [MQ2] the item in index 1 has a StackSize of 2
+  Alright at this point we know the item in index one is a stack of 2 bone chips
+  Now we can decide to do something about it:
+  /advloot personal/shared 1 leave
+  That will click the leave button...
+  /advloot personal/shared 1 ag
+  That will click the ag checkbox
+  And so on...
+  Finally you can do
+  /advloot shared set Eqmule 
+  Or whatever other group member or Never or Leave on corpse or 
+  any of all the other choices in the combobox for shared loot and it will set it...
+- Added Support for the 6th Augslot in all TLO's dealing with Augs
+  Thanks to demonstar55 for reminding me.
+- Fixed multiple bugs where CleanName was used to clean names directly on pointers we werent supposed to modify.
+  Thanks to Ceedopey for reporting the bug.
+
 31 Mar 2015 by eqmule
 - Updated for the latest TEST client
 - Updated for the latest LIVE client

@@ -357,7 +357,31 @@ class CTextOverlay;
 class PcZoneClient;
 class CharacterZoneClient;
 // End forward class declarations
-
+typedef struct _Personal_Loot
+{
+	CButtonWnd *NPC_Name;
+	CButtonWnd *Item;
+	CButtonWnd *Loot;
+	CButtonWnd *Leave;
+	CButtonWnd *AN;
+	CButtonWnd *AG;
+	CButtonWnd *Never;
+} Personal_Loot, *PPersonal_Loot;
+typedef struct _Shared_Loot
+{
+	CButtonWnd *NPC_Name;
+	CButtonWnd *Item;
+	CButtonWnd *Status;
+	CButtonWnd *Action;
+	CButtonWnd *Manage;
+	CButtonWnd *AutoRoll;
+	CButtonWnd *ND;
+	CButtonWnd *GD;
+	CButtonWnd *NO;
+	CButtonWnd *AN;
+	CButtonWnd *AG;
+	CButtonWnd *NV;
+} Shared_Loot, *PShared_Loot;
 // Class declarations
 class CXStr
 {
@@ -651,6 +675,14 @@ class _partyGroup
 {
 public:
 EQLIB_OBJECT int _partyGroup::getNumMembers(void)const;
+};
+
+class CAdvLootWnd : public CSidlScreenWnd
+{
+public:
+EQLIB_OBJECT CAdvLootWnd::CAdvLootWnd(class CXWnd *);
+// virtual
+EQLIB_OBJECT CAdvLootWnd::~CAdvLootWnd(void);
 };
 
 class AltAdvManager

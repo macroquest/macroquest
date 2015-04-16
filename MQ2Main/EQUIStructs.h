@@ -217,11 +217,11 @@ VFTABLE
 //Actual Size: 1dc (see 66A2D8 in eqgame dated Mar 10 2015) - eqmule
 // actual size 0x1C4 in Mar 23 2015 Live (see 0x6885B8) - eqmule
 #define CXW_NO_VTABLE \
-/*0x0004*/ void*        pUnknown0x4; \
+/*0x0004*/ struct _CSIDLWND*    pPrevSiblingWnd; \
 /*0x0008*/ struct _CSIDLWND*    pNextSiblingWnd; \
-/*0x000c*/ void*        pUnknown0xc; \
+/*0x000c*/ struct _CSIDLWND*	pUnknown0xc; \
 /*0x0010*/ struct _CSIDLWND*    pFirstChildWnd; \
-/*0x0014*/ BYTE         Unknown0x0014[0x4]; \
+/*0x0014*/ struct _CSIDLWND*	Unknown0x0014; \
 /*0x0018*/ BYTE         Unlockable;     /* found in CSidlScreenWnd__LoadIniInfo_x related to Locked */ \
 /*0x0019*/ BYTE         Unknown0x0019[0x3]; \
 /*0x001c*/ DWORD        HScrollMax; \
@@ -766,6 +766,43 @@ typedef struct _CLABELWND {
 /*0x1cc*/ DWORD     SidlPiece;
 /*0x1d0*/
 } CLABELWND, *PCLABELWND;
+
+typedef struct _LOOTDETAILS
+{
+	/*0x00*/ DWORD	CorpseID;//spawnId of the corpse that has this lootitem
+	/*0x04*/ WORD	StackCount;
+	/*0x06*/ WORD	UnknownWord;
+	/*0x08*/ DWORD	UnknownDWord;
+	/*0x0c*/ BYTE	Unknown0x0c;
+	/*0x0d*/ CHAR	Name[0x40];
+	/*0x4d*/ //more data here? -eqmule
+}LOOTDETAILS,*PLOOTDETAILS;
+//.text:0041FC2B                 imul    eax, 84h in Mar 31 2015
+typedef struct _LOOTITEM
+{
+	/*0x00*/ DWORD	ItemID;
+	/*0x04*/ CHAR	Name[0x40];
+	/*0x44*/ BYTE	Unknown0x44[0x28];
+	/*0x6c*/ struct _LOOTDETAILS	*LootDetails;
+	/*0x70*/ BYTE	Unknown0x70[0x14];
+	/*0x84*/
+}LOOTITEM,*PLOOTITEM;
+typedef struct _LOOTLIST
+{
+	/*0x000*/ BYTE	Unknown0x004[0x4];
+	/*0x004*/ struct _LOOTITEM *pLootItem;
+	/*0x008*/ DWORD	ListSize;
+}LOOTLIST,*PLOOTLIST;
+//size 0x2C4 see 4B7659 in Mar 31 2015 -eqmule
+typedef struct _EQADVLOOTWND
+{
+	/*0x000*/ struct _CSIDLWND     Wnd;
+	/*0x20c*/ BYTE	Unknown0x020c[0x90];
+	/*0x29c*/ struct _LOOTLIST *pCLootList;
+	/*0x2a0*/ struct _LOOTLIST *pPLootList;
+	/*0x2a4*/ BYTE		Unknown0x2a4[0x20];
+	/*0x2c4*/
+} EQADVLOOTWND,*PEQADVLOOTWND;
 
 /********************************************** AUTO CORRECTED *******************************************/
 

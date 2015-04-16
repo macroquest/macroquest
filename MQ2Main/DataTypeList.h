@@ -70,6 +70,9 @@ DATATYPE(MQ2TimerType,            pTimerType,            nullptr, 0);
 DATATYPE(MQ2WindowType,           pWindowType,           nullptr, 0);
 DATATYPE(MQ2XTargetType,          pXTargetType,          pSpawnType, 0);
 DATATYPE(MQ2ZoneType,             pZoneType,             nullptr, 0);
-DATATYPE(MQ2MountType,            pMountType,            nullptr, 0);
+DATATYPE(MQ2MountType,			  pMountType,			 nullptr, 0);
+DATATYPE(MQ2AdvLootType,		  pAdvLootType,			 nullptr, 0);
+DATATYPE(MQ2AdvLootItemType,      pAdvLootItemType,      nullptr, 0);
+
 #pragma warning( pop )
 #undef DATATYPE // In case the includer forgets
