@@ -1221,7 +1221,7 @@ int WndNotify(int argc, char *argv[])
     GetArg(szArg3, szLine, 3);
     GetArg(szArg4, szLine, 4);
 
-    if (!szArg3[0])
+    if (!szArg3[0] && !IsNumber(szArg1))
     {
         SyntaxError("Syntax: /notify <window|\"item\"> <control|0> <notification> [notification data]");
         return;
@@ -1229,7 +1229,7 @@ int WndNotify(int argc, char *argv[])
     if (szArg4[0])
         Data=atoi(szArg4);
 #else
-    if (argc<3)
+    if (argc<3 && (argc>1 && !IsNumber(argv[2])))
     {
         printf("%s syntax: %s <window|\"item\"> <control|0> <notification> [notification data]",argv[0],argv[0]);
         RETURN(0);
@@ -1253,7 +1253,7 @@ int WndNotify(int argc, char *argv[])
 			SendListSelect2((CXWnd*)addr, atoi(szArg3));
 			RETURN(0);
 		}
-		SendWndClick2((CXWnd*)addr,szClickNotification[atoi(szArg2)]);
+		SendWndClick2((CXWnd*)addr,szArg2);
 		RETURN(0);
 	}
     if (Data==0 && SendWndClick(szArg1,szArg2,szArg3))

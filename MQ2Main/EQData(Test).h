@@ -2056,8 +2056,9 @@ typedef struct _EQRAIDMEMBER {
 /*0x089*/ BYTE      GroupLeader; 
 /*0x08a*/ BYTE      RaidMainAssist;
 /*0x08b*/ BYTE      RaidMarker;
-/*0x08c*/ DWORD     GroupNumber;
-/*0x090*/ BYTE      Unknown0x90[0xc];//i guess new master looter is in here...
+/*0x08c*/ DWORD     MasterLooter;
+/*0x090*/ DWORD     GroupNumber;
+/*0x094*/ BYTE      Unknown0x94[0x8];//i guess new master looter is in here...
 /*0x09c*/ 
 } EQRAIDMEMBER, *PEQRAIDMEMBER;
 

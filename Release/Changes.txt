@@ -1,3 +1,9 @@
+17 Apr 2015 by eqmule
+- Fixed GroupNumber in the raid TLO
+  This means : /echo ${Raid.Member[xxxx].Group} will work again.
+- Added MasterLooter as a member to the Raid TLO
+  Usage: /echo ${Raid.MasterLooter}
+
 16 Apr 2015 by eqmule
 - Updated for latest TEST Client
 - /notify now takes address as an argument (useful when a window have nested children and you cant find it by name...)

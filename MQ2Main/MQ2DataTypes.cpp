@@ -8016,7 +8016,7 @@ bool MQ2GroupMemberType::ToString(MQ2VARPTR VarPtr, PCHAR Destination)
     }
     else
     {
-        strcpy(Destination,CleanupName(GetCharInfo()->pSpawn->Name,FALSE,FALSE));
+		CleanupName(strcpy(Destination,GetCharInfo()->pSpawn->Name),FALSE,FALSE);
         return true;
     }
     return false;
@@ -8324,6 +8324,19 @@ bool MQ2RaidType::GETMEMBER()
             for (i=0; i < 72; i++)
             {
                 if (pRaid->RaidMemberUsed[i] && pRaid->RaidMember[i].RaidMainAssist)
+                {
+                    Dest.DWord=i+1;
+                    Dest.Type=pRaidMemberType;
+                    return true;
+                }
+            }
+        }
+        return false;
+	case MasterLooter:
+        {
+            for (i=0; i < 72; i++)
+            {
+                if (pRaid->RaidMemberUsed[i] && pRaid->RaidMember[i].MasterLooter)
                 {
                     Dest.DWord=i+1;
                     Dest.Type=pRaidMemberType;
