@@ -1545,23 +1545,26 @@ int ItemNotify(int argc, char *argv[])
 				if(pNotification && !strnicmp(pNotification,"leftmouseup",11)) {
 					PickupOrDropItem(0,ptheitem);
 				} else if(pNotification && !strnicmp(pNotification,"rightmouseup",12)) {//we fake it with /useitem
-					if ( HasExpansion(EXPANSION_VoA) ) {
-						PITEMINFO pClicky = GetItemFromContents(ptheitem);
-						if (pClicky && pClicky->Clicky.SpellID!=-1)	{
-							CHAR cmd[40] = {0};
-							sprintf(cmd, "/useitem %d %d", ptheitem->ItemSlot, ptheitem->ItemSlot2);
-							EzCommand(cmd);
-							RETURN(0);
-						} else if(pClicky->Type == ITEMTYPE_PACK) {
-							//ok its a pack, so just open it
-							if(ptheitem->Open) {
-								CloseContainer(ptheitem);
-							} else {
-								OpenContainer(ptheitem,false);
-							}
+					//hmm better check if its a spell cause then it means we should mem it
+					PITEMINFO pClicky = GetItemFromContents(ptheitem);
+					if (pClicky && pClicky->ItemType == ITEMITEMTYPE_SCROLL) {
+						pSlot = (PEQINVSLOT)pInvSlotMgr->FindInvSlot(ptheitem->ItemSlot, ptheitem->ItemSlot2);
+						if (!pSlot || !pSlot->pInvSlotWnd || !SendWndClick2((CXWnd*)pSlot->pInvSlotWnd, pNotification)) {
+							WriteChatf("Could not send notification to %s %s", szArg1, szArg2);
 						}
-					} else {
-						WriteChatColor("[/itemnotify] not VoA expanded (thats impossible)",CONCOLOR_BLUE);
+						RETURN(0);
+					} else if (pClicky && pClicky->Clicky.SpellID!=-1)	{
+						CHAR cmd[40] = {0};
+						sprintf(cmd, "/useitem %d %d", ptheitem->ItemSlot, ptheitem->ItemSlot2);
+						EzCommand(cmd);
+						RETURN(0);
+					} else if(pClicky->Type == ITEMTYPE_PACK) {
+						//ok its a pack, so just open it
+						if(ptheitem->Open) {
+							CloseContainer(ptheitem);
+						} else {
+							OpenContainer(ptheitem,false);
+						}
 					}
 				}
 				RETURN(0);

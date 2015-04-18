@@ -1,3 +1,7 @@
+18 Apr 2015 by eqmule
+- /itemnotify "${FindItem[${spellname}].Name}" rightmouseup
+  will now actually mem spells...
+
 17 Apr 2015 by eqmule
 - Fixed GroupNumber in the raid TLO
   This means : /echo ${Raid.Member[xxxx].Group} will work again.
