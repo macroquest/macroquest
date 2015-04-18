@@ -1,3 +1,9 @@
+16 Apr 2015 by eqmule
+- Updated for latest TEST Client
+- /notify now takes address as an argument (useful when a window have nested children and you cant find it by name...)
+  Usage: /notify ${Window[SomeWindow].FirstChild.FirstChild.Next.Address} leftmouseup
+  Usage: /notify ${Window[SomeWindow].Next.Child[Alist].Address} listselect 2
+
 15 Apr 2015 by eqmule
 - Added a new TLO for AdvLoot, this is a first draft, test it, report bugs, and so on to me.
   I need a volunteer to update the wiki with this new TLO and its usage/members

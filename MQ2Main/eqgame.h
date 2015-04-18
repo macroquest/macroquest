@@ -272,6 +272,7 @@ GNU General Public License for more details.
 #define pinstIconCache_x                                           0x112F26C
 #define pinstCTradeskillWnd_x                                      0x1134ED8
 #define pinstCAdvLootWnd_x                                         0xEDAD78
+#define pinstRewardSelectionWnd_x                                  0x1133558
 
 //// 
 // Section 3: Miscellaneous Offsets 

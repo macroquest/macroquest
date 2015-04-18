@@ -272,6 +272,7 @@ EQLIB_API CXWnd *GetParentWnd(class CXWnd const * pWnd);
 
 EQLIB_API bool SendComboSelect(PCHAR WindowName, PCHAR ScreenID, DWORD Value);
 EQLIB_API bool SendListSelect(PCHAR WindowName, PCHAR ScreenID, DWORD Value);
+EQLIB_API bool SendListSelect2(CXWnd *pList, DWORD ListIndex);
 EQLIB_API bool SendWndClick2(CXWnd *pWnd, PCHAR ClickNotification);
 
 EQLIB_API VOID CreateMQ2NewsWindow();

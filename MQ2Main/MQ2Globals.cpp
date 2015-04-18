@@ -209,7 +209,8 @@ bool InitOffsets()
     ppTextOverlay = (CTextOverlay**)pinstCTextOverlay;
 	ppPotionBeltWnd = (CPotionBeltWnd**)pinstCPotionBeltWnd;
 	ppAdvLootWnd = (CAdvLootWnd**)pinstCAdvLootWnd;
-
+	ppRewardSelectionWnd = (CRewardSelectionWnd**)pinstRewardSelectionWnd;
+	
     ppSidlMgr = (CSidlManager **)pinstCSidlManager;
     ppWndMgr = (CXWndManager**)pinstCXWndManager;
     ppKeypressHandler = (KeypressHandler**)instKeypressHandler;
@@ -1147,6 +1148,7 @@ CTimeLeftWnd **ppTimeLeftWnd=0;
 CTextOverlay **ppTextOverlay=0;
 CPotionBeltWnd **ppPotionBeltWnd = 0;
 CAdvLootWnd **ppAdvLootWnd = 0;
+CRewardSelectionWnd **ppRewardSelectionWnd = 0;
 
 CSidlManager **ppSidlMgr=0;
 CXWndManager **ppWndMgr=0;
@@ -1400,6 +1402,8 @@ INITIALIZE_EQGAME_OFFSET(pinstCVoiceMacroWnd);
 INITIALIZE_EQGAME_OFFSET(pinstCHtmlWnd);
 INITIALIZE_EQGAME_OFFSET(pinstCAdvLootWnd);
 INITIALIZE_EQGAME_OFFSET(pinstIconCache);
+INITIALIZE_EQGAME_OFFSET(pinstRewardSelectionWnd);
+
 
 INITIALIZE_EQGAME_OFFSET(__CastRay);
 INITIALIZE_EQGAME_OFFSET(__ConvertItemTags);

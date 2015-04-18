@@ -684,6 +684,13 @@ EQLIB_OBJECT CAdvLootWnd::CAdvLootWnd(class CXWnd *);
 // virtual
 EQLIB_OBJECT CAdvLootWnd::~CAdvLootWnd(void);
 };
+class CRewardSelectionWnd : public CSidlScreenWnd
+{
+public:
+	EQLIB_OBJECT CRewardSelectionWnd::CRewardSelectionWnd(class CXWnd *);
+	// virtual
+	EQLIB_OBJECT CRewardSelectionWnd::~CRewardSelectionWnd(void);
+};
 
 class AltAdvManager
 {
