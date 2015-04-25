@@ -3629,6 +3629,7 @@ public:
 		MasterLooter=10,
         AnyoneMissing=11,
 		Present = 12,
+		MercenaryCount = 13,
     };
     static enum GroupMethods
     {
@@ -3647,6 +3648,7 @@ public:
         TypeMember(MasterLooter);
         TypeMember(AnyoneMissing);
 		TypeMember(Present);
+		TypeMember(MercenaryCount);
     }
 
     ~MQ2GroupType()

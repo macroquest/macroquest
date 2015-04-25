@@ -356,6 +356,23 @@ static inline BOOL IsGroupMember(PSPAWNINFO pSpawn)
     return 0;
 }
 
+static inline DWORD GetGroupMercenaryCount()
+{
+	DWORD retValue = 0;
+    if(PCHARINFO pChar=GetCharInfo()) {
+		if (!pChar->pGroupInfo) return 0;
+		for (DWORD N=1; N<6; N++) {
+			if (pChar->pGroupInfo->pMember[N]) {
+				if (pChar->pGroupInfo->pMember[N]->Mercenary) {
+					retValue++;
+				}
+			}
+		}
+	}
+    return retValue;
+}
+
+
 static inline PSPAWNINFO GetRaidMember(unsigned long N)
 {
     if (N>=72)

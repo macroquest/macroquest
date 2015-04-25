@@ -7991,6 +7991,10 @@ bool MQ2GroupType::GETMEMBER()
 			}
 		}
 		return true;
+	case MercenaryCount:
+		Dest.DWord = GetGroupMercenaryCount();
+		Dest.Type = pIntType;
+		return true;
     }
     return false;
 }
