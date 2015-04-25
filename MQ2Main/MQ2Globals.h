@@ -561,8 +561,10 @@ EQLIB_VAR CTextOverlay **ppTextOverlay;
 EQLIB_VAR CPotionBeltWnd **ppPotionBeltWnd;
 EQLIB_VAR CAdvLootWnd **ppAdvLootWnd;
 EQLIB_VAR CRewardSelectionWnd **ppRewardSelectionWnd;
+EQLIB_VAR CConfirmationDialog **ppConfirmationDialog;
 
 
+#define pConfirmationDialog (*ppConfirmationDialog)
 #define pRewardSelectionWnd (*ppRewardSelectionWnd)
 #define pAdvLootWnd (*ppAdvLootWnd)
 #define pContextMenuManager (*ppContextMenuManager)
@@ -897,6 +899,7 @@ EQLIB_VAR DWORD pinstCVoiceMacroWnd;
 EQLIB_VAR DWORD pinstCHtmlWnd;
 EQLIB_VAR DWORD pinstIconCache;
 EQLIB_VAR DWORD pinstRewardSelectionWnd;
+EQLIB_VAR DWORD pinstCConfirmationDialog;
 
 
 EQLIB_VAR DWORD __CastRay;

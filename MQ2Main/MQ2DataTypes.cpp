@@ -1758,6 +1758,11 @@ bool MQ2SpawnType::GETMEMBER()
         Dest.Ptr=&DataTypeTemp[0];
         Dest.Type=pStringType;
         return true;
+    case LocYXZ:
+        sprintf(DataTypeTemp,"%.2f, %.2f, %.2f",pSpawn->Y,pSpawn->X,pSpawn->Z);
+        Dest.Ptr=&DataTypeTemp[0];
+        Dest.Type=pStringType;
+        return true;
     case Owner:
         if(pSpawn->Mercenary)
         {
@@ -8016,7 +8021,8 @@ bool MQ2GroupMemberType::ToString(MQ2VARPTR VarPtr, PCHAR Destination)
     }
     else
     {
-		CleanupName(strcpy(Destination,GetCharInfo()->pSpawn->Name),FALSE,FALSE);
+        //CleanupName(strcpy(Destination,GetCharInfo()->pSpawn->Name),FALSE,FALSE);
+        strcpy(Destination,GetCharInfo()->pSpawn->DisplayedName);
         return true;
     }
     return false;

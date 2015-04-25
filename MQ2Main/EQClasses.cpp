@@ -4207,7 +4207,7 @@ FUNCTION_AT_ADDRESS(int  EQ_Character::NoMezMe(int,class EQPlayer *,class EQ_Spe
 FUNCTION_AT_ADDRESS(int  EQ_Character::NoBashMe(int),EQ_Character__NoBashMe);
 #endif
 #ifdef EQ_Character__StunMe_x
-FUNCTION_AT_ADDRESS(void  EQ_Character1::StunMe(unsigned int,unsigned int,unsigned int),EQ_Character__StunMe);
+FUNCTION_AT_ADDRESS(void  EQ_Character1::StunMe(unsigned int,bool,bool,bool),EQ_Character__StunMe);
 #endif
 #ifdef EQ_Character__UnStunMe_x
 FUNCTION_AT_ADDRESS(void  EQ_Character1::UnStunMe(void),EQ_Character__UnStunMe);
@@ -5686,7 +5686,7 @@ FUNCTION_AT_ADDRESS(void  CEverQuest::Invite(int),CEverQuest__Invite);
 FUNCTION_AT_ADDRESS(void  CEverQuest::doInvite(unsigned __int32,char *),CEverQuest__doInvite);
 #endif
 #ifdef CEverQuest__Follow_x
-FUNCTION_AT_ADDRESS(void  CEverQuest::Follow(void),CEverQuest__Follow);
+FUNCTION_AT_ADDRESS(int  CEverQuest::Follow(int),CEverQuest__Follow);
 #endif
 #ifdef CEverQuest__Disband_x
 FUNCTION_AT_ADDRESS(void  CEverQuest::Disband(void),CEverQuest__Disband);

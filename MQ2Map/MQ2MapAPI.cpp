@@ -787,8 +787,9 @@ PCHAR GenerateSpawnName(PSPAWNINFO pSpawn, PCHAR NameString)
             switch(NameString[N])
             {
             case 'N':// cleaned up name
-                strcpy(&Name[outpos],pSpawn->Name);
-                CleanupName(&Name[outpos],FALSE);
+                //strcpy(&Name[outpos],pSpawn->Name);
+                //CleanupName(&Name[outpos],FALSE);
+                strcpy(&Name[outpos],pSpawn->DisplayedName);
                 outpos+=strlen(&Name[outpos]);
                 break;
             case 'n':// original name

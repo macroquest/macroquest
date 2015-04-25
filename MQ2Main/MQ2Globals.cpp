@@ -207,10 +207,11 @@ bool InitOffsets()
     ppTaskSomething = (CTaskSomething*)pinstCTaskSomething;
     ppTimeLeftWnd = (CTimeLeftWnd**)pinstCTimeLeftWnd;
     ppTextOverlay = (CTextOverlay**)pinstCTextOverlay;
-	ppPotionBeltWnd = (CPotionBeltWnd**)pinstCPotionBeltWnd;
+    ppPotionBeltWnd = (CPotionBeltWnd**)pinstCPotionBeltWnd;
 	ppAdvLootWnd = (CAdvLootWnd**)pinstCAdvLootWnd;
 	ppRewardSelectionWnd = (CRewardSelectionWnd**)pinstRewardSelectionWnd;
-	
+	ppConfirmationDialog = (CConfirmationDialog**)pinstCConfirmationDialog;
+
     ppSidlMgr = (CSidlManager **)pinstCSidlManager;
     ppWndMgr = (CXWndManager**)pinstCXWndManager;
     ppKeypressHandler = (KeypressHandler**)instKeypressHandler;
@@ -1146,9 +1147,10 @@ CTaskWnd **ppTaskWnd=0;
 CTaskSomething *ppTaskSomething=0;
 CTimeLeftWnd **ppTimeLeftWnd=0;
 CTextOverlay **ppTextOverlay=0;
-CPotionBeltWnd **ppPotionBeltWnd = 0;
+CPotionBeltWnd **ppPotionBeltWnd=0;
 CAdvLootWnd **ppAdvLootWnd = 0;
 CRewardSelectionWnd **ppRewardSelectionWnd = 0;
+CConfirmationDialog **ppConfirmationDialog=0;
 
 CSidlManager **ppSidlMgr=0;
 CXWndManager **ppWndMgr=0;

@@ -1816,7 +1816,7 @@ EQLIB_OBJECT void CEverQuest::dsp_chat(char const *,int,bool,bool);
 EQLIB_OBJECT void CEverQuest::dsp_chat(char const *,int,bool);
 EQLIB_OBJECT void CEverQuest::Emote(void);
 EQLIB_OBJECT void CEverQuest::EnterZone(struct HWND__ *);
-EQLIB_OBJECT void CEverQuest::Follow(void);
+EQLIB_OBJECT int CEverQuest::Follow(int);
 EQLIB_OBJECT void CEverQuest::FreeSwitches(void);
 EQLIB_OBJECT void CEverQuest::GetSndDriver(void);
 EQLIB_OBJECT void CEverQuest::GetZoneInfoFromNetwork(char *);
@@ -3728,7 +3728,6 @@ class CParseTokensXML
 public:
 EQLIB_OBJECT CParseTokensXML::~CParseTokensXML(void);
 //EQLIB_OBJECT bool CParseTokensXML::Accept(enum ETokTypeXML);
-#define HackPackHelp         0
 EQLIB_OBJECT bool CParseTokensXML::StartFileBased(class CXStr);
 EQLIB_OBJECT class CXStr CParseTokensXML::GetCurFile(void);
 EQLIB_OBJECT void __cdecl CParseTokensXML::SetError(char const *,...);
@@ -5313,7 +5312,7 @@ EQLIB_OBJECT unsigned char EQ_Character1::CastSpell(unsigned char,int,class EQ_I
 EQLIB_OBJECT void EQ_Character1::SetEffectId(unsigned char,unsigned int);
 EQLIB_OBJECT void EQ_Character1::StopSpellCast(unsigned char);
 EQLIB_OBJECT void EQ_Character1::StopSpellCast(unsigned char,int);
-EQLIB_OBJECT void EQ_Character1::StunMe(unsigned int,unsigned int,unsigned int);
+EQLIB_OBJECT void EQ_Character1::StunMe(unsigned int,bool,bool,bool);
 EQLIB_OBJECT void EQ_Character1::UnStunMe(void);
 EQLIB_OBJECT void EQ_Character1::UseSkill(unsigned char,class EQPlayer *);
 EQLIB_OBJECT int const EQ_Character1::GetFocusRangeModifier(class EQ_Spell const *,class EQ_Equipment * *);
@@ -7029,7 +7028,7 @@ class CharacterZoneClient
 public:
 EQLIB_OBJECT int CharacterZoneClient::CalcAffectChange(class EQ_Spell *,unsigned char,unsigned char,class EQ_Affect *,DWORD,DWORD);
 EQLIB_OBJECT void CharacterZoneClient::MakeMeVisible(int,bool);
-			 bool HasSkill(int);
+    bool HasSkill(int);
 };
 
 class PcZoneClient

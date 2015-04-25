@@ -116,7 +116,8 @@ typedef struct _BodyInfo
 #define ITEM_BOOK                       0x7379
 
 #define ITEMITEMTYPE_FOOD               0x0e 
-#define ITEMITEMTYPE_WATER              0x0f 
+#define ITEMITEMTYPE_WATER              0x0f
+#define ITEMITEMTYPE_SCROLL				0x14
 #define ITEMITEMTYPE_ALCOHOL            0x26 
 #define ITEMITEMTYPE_POISON             0x2a 
 #define ITEMITEMTYPE_AUGUMENT           0x36 

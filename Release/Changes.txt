@@ -1,3 +1,10 @@
+22 Apr 2015 by eqmule
+- Updated for the latest LIVE client
+
+21 Apr 2015 by rswiders
+- Removed unnecessary CleanName useage, as DisplayedName already has the cleaned up name
+- Added LocYXZ to spawntype TLO
+
 18 Apr 2015 by eqmule
 - /itemnotify "${FindItem[${spellname}].Name}" rightmouseup
   will now actually mem spells...

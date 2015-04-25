@@ -5921,7 +5921,8 @@ VOID SuperWhoDisplay(PSPAWNINFO pSpawn, DWORD Color)
     CHAR szMsg[MAX_STRING]={0};
     CHAR szMsgL[MAX_STRING]={0};
     CHAR szTemp[MAX_STRING]={0};
-    strcpy(szName,pSpawn->Name);
+    //strcpy(szName,pSpawn->Name);
+    strcpy_s(szName,pSpawn->DisplayedName);
     if (pSpawn->Type == SPAWN_PLAYER) {
         if (gFilterSWho.Lastname && strlen(pSpawn->Lastname)>0) {
             strcat(szName," ");
@@ -5934,7 +5935,7 @@ VOID SuperWhoDisplay(PSPAWNINFO pSpawn, DWORD Color)
             strcat(szName,">");
         }
     } else {
-        CleanupName(szName);
+        //CleanupName(szName);
         if (gFilterSWho.Lastname && strlen(pSpawn->Lastname)>0) {
             strcat(szName," (");
             strcat(szName,pSpawn->Lastname);
@@ -6141,6 +6142,7 @@ static bool pWHOSORTCompare(const PSPAWNINFO SpawnA, const PSPAWNINFO SpawnB)
     case 6://id
         return SpawnA->SpawnID < SpawnB->SpawnID;
     }
+	/*
 	CHAR szNameA[128] = {0};
 	CHAR szNameB[128] = {0};
 	strcpy_s(szNameA, SpawnA->Name);
@@ -6148,6 +6150,8 @@ static bool pWHOSORTCompare(const PSPAWNINFO SpawnA, const PSPAWNINFO SpawnB)
 	strcpy_s(szNameB, SpawnB->Name);
 	CleanupName(szNameB);
 	return _stricmp(szNameA, szNameB) < 0;
+	*/
+	return _stricmp(SpawnA->DisplayedName, SpawnB->DisplayedName) < 0;
 }
 
 VOID SuperWhoDisplay(PSPAWNINFO pChar, PSEARCHSPAWN pSearchSpawn, DWORD Color)

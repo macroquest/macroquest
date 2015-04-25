@@ -1857,7 +1857,8 @@ VOID Face(PSPAWNINFO pChar, PCHAR szLine)
             gFaceAngle=10000.0f;
             bRunNextCommand = TRUE;
         }
-        sprintf(szMsg,"Facing %s'%s'...",(Away)?"away from ":"", CleanupName(strcpy(szName,pSpawnClosest->Name),FALSE));
+        //sprintf(szMsg,"Facing %s'%s'...",(Away)?"away from ":"", CleanupName(strcpy(szName,pSpawnClosest->Name),FALSE));
+        sprintf(szMsg,"Facing %s'%s'...",(Away)?"away from ":"", pSpawnClosest->DisplayedName);
     }
     if (ppTarget && pTarget) {
         psTarget = (PSPAWNINFO)pTarget;
@@ -1933,7 +1934,8 @@ VOID Where(PSPAWNINFO pChar, PCHAR szLine)
     } else {
         INT Angle = (INT)((atan2f(pChar->X - pSpawnClosest->X, pChar->Y - pSpawnClosest->Y) * 180.0f / PI + 360.0f) / 22.5f + 0.5f) % 16;
         sprintf(szMsg,"The closest '%s' is a level %d %s %s and %1.2f away to the %s, Z difference = %1.2f",
-            CleanupName(strcpy(szName,pSpawnClosest->Name),FALSE),
+            //CleanupName(strcpy(szName,pSpawnClosest->Name),FALSE),
+            strcpy(szName,pSpawnClosest->DisplayedName),
             pSpawnClosest->Level,
             pEverQuest->GetRaceDesc(pSpawnClosest->Race),
             GetClassDesc(pSpawnClosest->Class),

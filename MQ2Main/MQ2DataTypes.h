@@ -650,17 +650,18 @@ public:
         MaxEndurance=98,
         Loc=99,
         LocYX=100,
-        Owner=101,
-        Following=102,
-		Address=103,
-		Inviter=104,
-		MercID=105,
-		ContractorID=106,
-		PctMana=107,
-		Primary=108,
-		Secondary=109,
-		Equipment=110,
-		xTargetable=111,
+		LocYXZ=101,
+        Owner=102,
+        Following=103,
+		Address=104,
+		Inviter=105,
+		MercID=106,
+		ContractorID=107,
+		PctMana=108,
+		Primary=109,
+		Secondary=110,
+		Equipment=111,
+		xTargetable=112,
 	};
     static enum SpawnMethods
     {
@@ -768,6 +769,7 @@ public:
         TypeMember(MaxEndurance);
         TypeMember(Loc);
         TypeMember(LocYX);
+        TypeMember(LocYXZ);
         TypeMember(Owner);
         TypeMember(Following);
         TypeMember(Address);
@@ -3625,7 +3627,7 @@ public:
         Puller=8,
 		MarkNpc=9,
 		MasterLooter=10,
-		AnyoneMissing = 11,
+        AnyoneMissing=11,
 		Present = 12,
     };
     static enum GroupMethods
@@ -3643,7 +3645,7 @@ public:
         TypeMember(Puller);
         TypeMember(MarkNpc);
         TypeMember(MasterLooter);
-		TypeMember(AnyoneMissing);
+        TypeMember(AnyoneMissing);
 		TypeMember(Present);
     }
 
@@ -3684,7 +3686,7 @@ public:
         PctAggro=12,
         xIndex=13,
         Offline=14,
-		OtherZone = 15,
+        OtherZone=15,
 		Present = 16,
     };
     static enum GroupMemberMethods
@@ -3706,7 +3708,7 @@ public:
         TypeMember(PctAggro);
         AddMember(xIndex,"Index");
         TypeMember(Offline);
-		TypeMember(OtherZone);
+        TypeMember(OtherZone);
 		TypeMember(Present);
     }
 
