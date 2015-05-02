@@ -9379,6 +9379,48 @@ bool MQ2AdvLootItemType::GETMEMBER()
 			}
 		}
 		return false;
+	case AutoRoll:
+		if (pItem) {
+			Dest.Type = pBoolType;
+			Dest.DWord = pItem->AutoRoll;
+			return true;
+		}
+		return false;
+	case Need:
+		if (pItem) {
+			Dest.Type = pBoolType;
+			Dest.DWord = pItem->Need;
+			return true;
+		}
+		return false;
+	case Greed:
+		if (pItem) {
+			Dest.Type = pBoolType;
+			Dest.DWord = pItem->Greed;
+			return true;
+		}
+		return false;
+	case No:
+		if (pItem) {
+			Dest.Type = pBoolType;
+			Dest.DWord = pItem->No;
+			return true;
+		}
+		return false;
+	case AlwaysNeed:
+		if (pItem) {
+			Dest.Type = pBoolType;
+			Dest.DWord = pItem->AlwaysNeed;
+			return true;
+		}
+		return false;
+	case Never:
+		if (pItem) {
+			Dest.Type = pBoolType;
+			Dest.DWord = pItem->Never;
+			return true;
+		}
+		return false;
 	}
     return false;
 }
@@ -9436,6 +9478,38 @@ bool MQ2AdvLootType::GETMEMBER()
 			}
 		}
 		return false;
+	case PWantCount:
+		Dest.DWord = 0;
+		Dest.Type = pIntType;
+		if (CListWnd *clist = (CListWnd *)pAdvLootWnd->GetChildItem("ADLW_PLLList")) {
+			for (DWORD i = 0; i < clist->Items; i++) {
+				if (pAdvLoot && pAdvLoot->pPLootList && pAdvLoot->pPLootList->pLootItem && pAdvLoot->pPLootList->ListSize >= i) {
+					DWORD addr = (DWORD)pAdvLoot->pPLootList->pLootItem;
+					if (PLOOTITEM pitem = (PLOOTITEM)(addr + (sizeof(LOOTITEM)*i))) {
+						if (pitem->AlwaysNeed || pitem->AlwaysGreed || pitem->Need || pitem->Greed) {
+							Dest.DWord++;
+						}
+					}
+				}
+			}
+		}
+		return true;
+	case SWantCount:
+		Dest.DWord = 0;
+		Dest.Type = pIntType;
+		if (CListWnd *clist = (CListWnd *)pAdvLootWnd->GetChildItem("ADLW_CLLList")) {
+			for (DWORD i = 0; i < clist->Items; i++) {
+				if (pAdvLoot && pAdvLoot->pCLootList && pAdvLoot->pCLootList->pLootItem && pAdvLoot->pCLootList->ListSize >= i) {
+					DWORD addr = (DWORD)pAdvLoot->pCLootList->pLootItem;
+					if (PLOOTITEM pitem = (PLOOTITEM)(addr + (sizeof(LOOTITEM)*i))) {
+						if (pitem->AlwaysNeed || pitem->AlwaysGreed || pitem->Need || pitem->Greed) {
+							Dest.DWord++;
+						}
+					}
+				}
+			}
+		}
+		return true;
 	}
 	return false;
 }

@@ -794,9 +794,17 @@ typedef struct _LOOTITEM
 	/*0x04*/ CHAR	Name[0x40];
 	/*0x44*/ BYTE	Unknown0x44[0x28];
 	/*0x6c*/ struct _LOOTDETAILS	*LootDetails;
-	/*0x70*/ BYTE	Unknown0x70[0x14];
+	/*0x70*/ BYTE	Unknown0x70[0xc];
+	/*0x7c*/ BYTE	AutoRoll;
+	/*0x7d*/ BYTE	Unknown0x7d;
+	/*0x7e*/ BYTE	Need;
+	/*0x7f*/ BYTE	Greed;
+	/*0x80*/ BYTE	No;
+	/*0x81*/ BYTE	AlwaysNeed;
+	/*0x82*/ BYTE	AlwaysGreed;
+	/*0x83*/ BYTE	Never;
 	/*0x84*/
-}LOOTITEM,*PLOOTITEM;
+} LOOTITEM,*PLOOTITEM;
 typedef struct _LOOTLIST
 {
 	/*0x000*/ BYTE	Unknown0x004[0x4];

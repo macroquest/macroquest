@@ -4466,6 +4466,13 @@ public:
         ID=4,
         StackSize=5,
         Corpse=6,
+		AutoRoll=7,
+		Need=8,
+		Greed=9,
+		No=10,
+		AlwaysNeed=11,
+		AlwaysGreed=12,
+		Never = 13,
     };
     static enum MQ2AdvLootItemMethods
     {
@@ -4478,6 +4485,13 @@ public:
         TypeMember(ID);
         TypeMember(StackSize);
         TypeMember(Corpse);
+		TypeMember(AutoRoll);
+		TypeMember(Need);
+		TypeMember(Greed);
+		TypeMember(No);
+		TypeMember(AlwaysNeed);
+		TypeMember(AlwaysGreed);
+		TypeMember(Never);
     }
 
     ~MQ2AdvLootItemType()
@@ -4518,6 +4532,8 @@ public:
 		PCount = 2,
 		SList = 3,
 		SCount = 4,
+		PWantCount = 5,
+		SWantCount = 6,
 	};
 	MQ2AdvLootType() :MQ2Type("advloot")
 	{
@@ -4525,6 +4541,8 @@ public:
 		TypeMember(PCount);
 		TypeMember(SList);
 		TypeMember(SCount);
+		TypeMember(PWantCount);
+		TypeMember(SWantCount);
 	}
 	~MQ2AdvLootType()
 	{

@@ -1548,9 +1548,12 @@ int ItemNotify(int argc, char *argv[])
 					//hmm better check if its a spell cause then it means we should mem it
 					PITEMINFO pClicky = GetItemFromContents(ptheitem);
 					if (pClicky && pClicky->ItemType == ITEMITEMTYPE_SCROLL) {
+						if (IsItemInsideContainer(ptheitem)) {
+							OpenContainer(ptheitem, true);
+						}
 						pSlot = (PEQINVSLOT)pInvSlotMgr->FindInvSlot(ptheitem->ItemSlot, ptheitem->ItemSlot2);
 						if (!pSlot || !pSlot->pInvSlotWnd || !SendWndClick2((CXWnd*)pSlot->pInvSlotWnd, pNotification)) {
-							WriteChatf("Could not send notification to %s %s", szArg1, szArg2);
+							WriteChatf("Could not mem spell, most likely cause bag wasnt open and i didnt find it");
 						}
 						RETURN(0);
 					} else if (pClicky && pClicky->Clicky.SpellID!=-1)	{

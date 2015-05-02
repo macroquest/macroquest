@@ -968,21 +968,21 @@ std::map<std::string,std::map<std::string,SpellCompare>>g_SpellNameMap;
 void PopulateSpellMap()
 {
 	lockit lk(ghLockSpellMap);
-	if(g_SpellNameMap.size()==0) {
-		std::string lowname,threelow;
-		for (DWORD dwSpellID = 0; dwSpellID < TOTAL_SPELL_COUNT; dwSpellID++) {
-			if(PSPELL pSpell = ((PSPELLMGR)pSpellMgr)->Spells[dwSpellID]) {
-				if(pSpell->Name[0]!='\0') {
-					lowname = pSpell->Name;
-					std::transform(lowname.begin(), lowname.end(), lowname.begin(), tolower);
-					threelow = lowname;
-					threelow.erase(3);
-					g_SpellNameMap[threelow][lowname].Duplicates[dwSpellID] = pSpell;
-				}
+	gbSpelldbLoaded = FALSE;
+	g_SpellNameMap.clear();
+	std::string lowname,threelow;
+	for (DWORD dwSpellID = 0; dwSpellID < TOTAL_SPELL_COUNT; dwSpellID++) {
+		if(PSPELL pSpell = ((PSPELLMGR)pSpellMgr)->Spells[dwSpellID]) {
+			if(pSpell->Name[0]!='\0') {
+				lowname = pSpell->Name;
+				std::transform(lowname.begin(), lowname.end(), lowname.begin(), tolower);
+				threelow = lowname;
+				threelow.erase(3);
+				g_SpellNameMap[threelow][lowname].Duplicates[dwSpellID] = pSpell;
 			}
 		}
-		gbSpelldbLoaded = TRUE;
 	}
+	gbSpelldbLoaded = TRUE;
 }
 BOOL IsSpellClassUsable(PSPELL pSpell)
 {
@@ -1003,10 +1003,12 @@ PSPELL GetSpellByName(PCHAR szName)
 	//echo ${Spell[Concussive Burst].Level}
 	//echo ${Spell[Nature's Serenity].Level}
 	try {
-		lockit lk(ghLockSpellMap);
-		if (ppSpellMgr == NULL || gbSpelldbLoaded == FALSE || szName == NULL) {
+		if (ppSpellMgr == NULL || gbSpelldbLoaded == FALSE || ghLockSpellMap == NULL || szName == NULL) {
+			WriteChatColor("Initializing SpellMap from GetSpellByName, this will take a few seconds, please wait", CONCOLOR_YELLOW);
+			InitializeMQ2SpellDb(NULL);
 			return NULL;
 		}
+		lockit lk(ghLockSpellMap);
 		if (szName[0] >= '0' && szName[0] <= '9')
 		{
 			return GetSpellByID(abs(atoi(szName)));

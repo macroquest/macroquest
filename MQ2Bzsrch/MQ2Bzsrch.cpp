@@ -24,7 +24,7 @@ GNU General Public License for more details.
 
 
 PLUGIN_VERSION(1.1);
-
+HANDLE bzsrchhandle = 0;
 struct _BazaarSearchRequestPacket
 {
     /* 0x0 */   int     BSRCommand;     // should be 7               -7c
@@ -63,10 +63,7 @@ struct _classes
 {
     char *name;
     int classn;
-}
-
-
-classes[] =
+} classes[] =
 {
     "any", -1,
     "bard", 8,
@@ -91,10 +88,7 @@ struct _races
 {
     char *name;
     int race;
-}
-
-
-races[] =
+} races[] =
 {
     "any", -1,
     "barbarian", 2,
@@ -111,110 +105,8 @@ races[] =
     "ogre", 10,
     "troll", 9,
     "vah shir", 14,
-    "wood elf", 4,
-};
-
-struct _stats
-{
-    char *name;
-    int stat;
-}
-
-
-stats[] =
-{
-    "any", -1,
-    "armor class", 14,
-    "agility", 2,
-    "charisma", 6,
-    "dexterity", 3,
-    "intelligence", 4,
-    "stamina", 1,
-    "strength", 0,
-    "wisdom", 5,
-    "vs cold", 8,
-    "vs disease", 11,
-    "vs fire", 9,
-    "vs magic", 7,
-    "vs poison", 10,
-    "hit points", 13,
-    "mana", 12,
-};
-
-struct _slots
-{
-    char *name;
-    int slot;
-}
-
-
-slots[] =
-{
-    "any", -1,
-    "ammo", 21,
-    "arms", 7,
-    "back", 8,
-    "charm", 0,
-    "chest", 17,                         // not 11
-    "ear", 1,
-    "face", 3,
-    "feet", 19,
-    "fingers", 15,
-    "hands", 12,
-    "head", 2,
-    "legs", 18,
-    "neck", 5,
-    "primary", 13,
-    "range", 11,
-    "secondary", 14,
-    "shoulders", 6,
-    "waist", 20,
-    "wrist", 9,
-};
-
-struct _types
-{
-    char *name;
-    int type;
-}
-
-
-types[] =
-{
-    "any", -1,
-    "1h slashing", 0,
-    "1h blunt", 3,
-    "2h blunt", 4,
-    "2h slashing", 1,
-    "2h piercing", 35,
-    "alcohol", 38,
-    "all effects", 46,
-    "armor", 10,
-    "arrow", 27,
-    "bandages", 18,
-    "book", 31,
-    "bow", 5,
-    "brass instrument", 25,
-    "combinable", 17,
-    "drink", 15,
-    "flowing thought", 48,
-    "focus effect", 49,
-    "food", 14,
-    "haste", 47,
-    "jewelry", 29,
-    "key", 33,
-    "light", 16,
-    "martial", 45,
-    "misc", 11,
-    "note", 32,
-    "percussion instrument", 26,
-    "piercing", 2,
-    "potion", 21,
-    "scroll", 20,
-    "shield", 8,
-    "stringed instrument", 24,
-    "throwing", 19,
-    "wind instrument", 23,
+	"wood elf", 4,
+	"drakkin", 522,
 };
 
 DWORD BzCount = 0;
@@ -530,6 +422,7 @@ public:
 // Called once, when the plugin is to initialize
 PLUGIN_API VOID InitializePlugin(VOID)
 {
+	bzsrchhandle = CreateMutex(NULL, FALSE, NULL);
     DebugSpewAlways("Initializing MQ2Bzsrch");
 
     LoadMQ2Plugin("MQ2ItemDisplay");
@@ -558,6 +451,11 @@ PLUGIN_API VOID InitializePlugin(VOID)
 // Called once, when the plugin is to shutdown
 PLUGIN_API VOID ShutdownPlugin(VOID)
 {
+	if (bzsrchhandle) {
+		ReleaseMutex(bzsrchhandle);
+		CloseHandle(bzsrchhandle);
+		bzsrchhandle = 0;
+	}
     DebugSpewAlways("Shutting down MQ2Bzsrch");
 
     // Remove commands, macro parameters, hooks, etc.
@@ -578,12 +476,15 @@ VOID MQ2BzSrch(PSPAWNINFO pChar, PCHAR szLine)
     WriteChatColor("",USERCOLOR_WHO);
     WriteChatColor("usage: /bzsrch [params] [name]",USERCOLOR_WHO);
     WriteChatColor("    params:",USERCOLOR_WHO);
-    WriteChatColor("    [race any|barbarian|dark elf|dwarf|erudite|froglok|gnome|half elf|halfling|high elf|human|iksar|ogre|troll|vah shir|wood elf]",USERCOLOR_WHO);
+	WriteChatColor("    [trader any value you see in that box or an index, remember to enclose values with spaces in them with quotes like: \"some value\"]", USERCOLOR_WHO);
+	WriteChatColor("    [race any|barbarian|dark elf|dwarf|erudite|froglok|gnome|half elf|halfling|high elf|human|iksar|ogre|troll|vah shir|wood elf|drakkin]", USERCOLOR_WHO);
     WriteChatColor("    [class any|bard|beastlord|berserkers|cleric|druid|enchanter|magician|monk|necromancer|paladin|ranger|rogue|shadow knight|shaman|warrior|wizard]", USERCOLOR_WHO);
-    WriteChatColor("    [stat any|armor class|agility|charisma|dexterity|intelligence|stamina|strength|wisdom|vs cold|vs disease|vs fire|vs magic|vs poison|hit points|mana]", USERCOLOR_WHO);
-    WriteChatColor("    [slot  any|ammo|arms|back|charm|chest|ear|face|feet|fingers|hands|head|legs|neck|primary|range|secondary|shoulders|waist|wrist]", USERCOLOR_WHO);
-    WriteChatColor("    [type  any|1h slashing|1h blunt|2h blunt|2h slashing|2h piercing|alcohol|all effects|armor|arrow|bandages|book|bow|brass instrument|combinable|drink|flowing thought|focus effect|food|haste|jewelry|key|light|martial|misc|note|percussion instrument|piercing|potion|scroll|shield|stringed instrument|throwing|wind instrument]", USERCOLOR_WHO);
-    WriteChatColor("    [price <low> <high>]", USERCOLOR_WHO);
+    WriteChatColor("    [stat any value you see in that box or an index, remember to enclose values with spaces in them with quotes like: \"some value\"]", USERCOLOR_WHO);
+    WriteChatColor("    [slot  any value you see in that box or an index, remember to enclose values with spaces in them with quotes like: \"some value\"]", USERCOLOR_WHO);
+    WriteChatColor("    [type  any value you see in that box or an index, remember to enclose values with spaces in them with quotes like: \"some value\"]", USERCOLOR_WHO);
+	WriteChatColor("    [price <low> <high>]", USERCOLOR_WHO);
+	WriteChatColor("    [prestige any value you see in that box or an index, remember to enclose values with spaces in them with quotes like: \"some value\"]", USERCOLOR_WHO);
+	WriteChatColor("    [augment any value you see in that box or an index, remember to enclose values with spaces in them with quotes like: \"some value\"]", USERCOLOR_WHO);
     WriteChatColor("", USERCOLOR_WHO);
     WriteChatColor("values are returned in $bazaar variable", USERCOLOR_WHO);
     WriteChatColor("$bazaar -- TRUE if there are search results", USERCOLOR_WHO);
@@ -622,203 +523,285 @@ VOID bzpc(PSPAWNINFO pChar, PCHAR szLine)
     // this opcode is in CProgSelWnd__WndNotification
     //SendEQMessage(EQ_BAZAARSEARCHCREATE, &pc, sizeof(pc));
 }
+void SetComboSelection(CSidlScreenWnd*pCombo, DWORD index) {
+	CXRect comborect = ((CXWnd*)pCombo)->GetScreenRect();
+	CXPoint combopt = comborect.CenterPoint();
+	((CComboWnd*)pCombo)->SetChoice(index);
+	((CXWnd*)pCombo)->HandleLButtonDown(&combopt, 0);
+	if (CListWnd*pListWnd = (CListWnd*)pCombo->Items) {
+		int index = pListWnd->GetCurSel();
+		CXRect listrect = pListWnd->GetItemRect(index, 0);
+		CXPoint listpt = listrect.CenterPoint();
+		((CXWnd*)pListWnd)->HandleLButtonDown(&listpt, 0);
+		((CXWnd*)pListWnd)->HandleLButtonUp(&listpt, 0);
+		gMouseEventTime = GetFastTime();
+	}
+}
+void DoClass(PCHAR szArg)
+{
+	if (szArg[0] == 0) {
+		MacroError("Bad class name.");
+		return;
+	}
+	int index = -1;
+	CHAR szClass[255] = { 0 };
+	if (isdigit(szArg[0])) {
+		index = atoi(szArg);
+		if (index == 0) {
+			strcpy_s(szClass, "Any Class");
+		}
+		else {
+			for (int i = 0; i < sizeof(classes) / sizeof(classes[0]); i++) {
+				if (classes[i].classn==index) {
+					strcpy_s(szClass, classes[i].name);
+					break;
+				}
+			}
+		}
+	}
+	else {
+		for (int i = 0; i < sizeof(classes) / sizeof(classes[0]); i++) {
+			if (!_stricmp(szArg, classes[i].name)) {
+				strcpy_s(szClass, szArg);
+				break;
+			}
+		}
+	}
+	if (szClass[0] == '\0') {
+		MacroError("Bad class name.");
+		return;
+	}
+	if (!_stricmp(szArg, "any")) {
+		strcpy_s(szClass, "Any Class");
+	}
+	if (CComboWnd *pCombo = (CComboWnd *)pBazaarSearchWnd->GetChildItem("BZR_ClassSlotCombobox")) {
+		if (CListWnd*pListWnd = (CListWnd*)pCombo->Items) {
+			CXStr Str;
+			CHAR szOut[255] = { 0 };
+			DWORD itemcnt = pCombo->GetItemCount();
+			for (DWORD i = 0; i < itemcnt; i++) {
+				pListWnd->GetItemText(&Str, i, 0);
+				GetCXStr(Str.Ptr, szOut, 254);
+				if (szOut[0] != '\0') {
+					if (!_stricmp(szClass, szOut)) {
+						SetComboSelection((CSidlScreenWnd*)pCombo, i);
+						break;
+					}
+				}
+			}
+		}
+	}
+}
+void DoRace(PCHAR szArg)
+{
+	if (szArg[0] == 0) {
+		MacroError("Bad race name.");
+		return;
+	}
+	int index = -1;
+	CHAR szRace[255] = { 0 };
+	if (isdigit(szArg[0])) {
+		index = atoi(szArg);
+		if (index == 0) {
+			strcpy_s(szRace, "Any Race");
+		}
+		else {
+			for (int i = 0; i < sizeof(races) / sizeof(races[0]); i++) {
+				if (races[i].race==index) {
+					strcpy_s(szRace, races[i].name);
+					break;
+				}
+			}
+		}
+	}
+	else {
+		for (int i = 0; i < sizeof(races) / sizeof(races[0]); i++) {
+			if (!_stricmp(szArg, races[i].name)) {
+				strcpy_s(szRace, szArg);
+				break;
+			}
+		}
+	}
+	if (szRace[0] == '\0') {
+		MacroError("Bad race name.");
+		return;
+	}
+	if (!_stricmp(szArg, "any")) {
+		strcpy_s(szRace, "Any Race");
+	}
+	if (CComboWnd *pCombo = (CComboWnd *)pBazaarSearchWnd->GetChildItem("BZR_RaceSlotCombobox")) {
+		if (CListWnd*pListWnd = (CListWnd*)pCombo->Items) {
+			CXStr Str;
+			CHAR szOut[255] = { 0 };
+			DWORD itemcnt = pCombo->GetItemCount();
+			for (DWORD i = 0; i < itemcnt; i++) {
+				pListWnd->GetItemText(&Str, i, 0);
+				GetCXStr(Str.Ptr, szOut, 254);
+				if (szOut[0] != '\0') {
+					if (!_stricmp(szRace, szOut)) {
+						SetComboSelection((CSidlScreenWnd*)pCombo, i);
+						break;
+					}
+				}
+			}
+		}
+	}
+}
 
+void DoCombo(PCHAR szArg, PCHAR key, PCHAR szCombostring)
+{
+	if (szArg[0] == 0) {
+		MacroError("Bad %s name.", key);
+		return;
+	}
+	DWORD index = -1;
+	CHAR szValue[255] = { 0 };
+	if (isdigit(szArg[0])) {
+		index = atoi(szArg);
+		index--;
+	}
+	if (!_stricmp(szArg, "any")) {
+		sprintf_s(szValue, "Any %s",key);
+	}
+	else {
+		strcpy_s(szValue, szArg);
+	}
+	if (CComboWnd *pCombo = (CComboWnd *)pBazaarSearchWnd->GetChildItem(szCombostring)) {
+		if (CListWnd*pListWnd = (CListWnd*)pCombo->Items) {
+			CXStr Str;
+			CHAR szOut[255] = { 0 };
+			DWORD itemcnt = pCombo->GetItemCount();
+			if (index != -1 && index <= itemcnt) {
+				SetComboSelection((CSidlScreenWnd*)pCombo, index);
+			} else {
+				for (DWORD i = 0; i < itemcnt; i++) {
+					pListWnd->GetItemText(&Str, i, 0);
+					GetCXStr(Str.Ptr, szOut, 254);
+					if (szOut[0] != '\0') {
+						if (!_stricmp(szValue, szOut)) {
+							SetComboSelection((CSidlScreenWnd*)pCombo, i);
+							break;
+						}
+					}
+				}
+			}
+		}
+	}
+}
+
+DWORD __stdcall searchthread(PVOID pData)
+{
+	lockit lk(bzsrchhandle);
+	if (CSidlScreenWnd *ptr = (CSidlScreenWnd *)pBazaarSearchWnd->GetChildItem("BZR_QueryButton")) {
+		ULONGLONG startwait = MQGetTickCount64();
+		startwait += 5000;
+		while (ptr->Enabled == 0) {
+			Sleep(100);
+			if (startwait < MQGetTickCount64()) {
+				MacroError("timed out in /bzsrch waiting for BZR_QueryButton to enable.");
+				break;
+			}
+		}
+		if (ptr->Enabled) {
+			if (CListWnd *ptr = (CListWnd *)pBazaarSearchWnd->GetChildItem("BZR_ItemList")) {
+				ptr->DeleteAll();
+			}
+			BzCount = 0;
+			BzDone = 0;
+			SendWndClick2((CXWnd*)ptr, "leftmouseup");
+		} else {
+			MacroError("woah! hold your horses there bazaarmule... BZR_QueryButton is not enabled, I suggest you check that in your macro before you issue a /bzsrch command.");
+		}
+	}
+	return 0;
+}
 
 VOID BzSrchMe(PSPAWNINFO pChar, PCHAR szLine)
 {
-    struct _BazaarSearchRequestPacket bsrp;
-    CHAR szArg[MAX_STRING] = {0};
+	lockit lk(bzsrchhandle);
+
+	CHAR szArg[MAX_STRING] = { 0 };
+	CHAR szItem[MAX_STRING] = { 0 };
     PCHARINFO pCharInfo = GetCharInfo();
     BOOL bArg = TRUE;
-    int i, first = 1;
+	bool first = true;
 
-    // don't do anything but reset the count and the done flag
 
-    BzCount = 0;
-    BzDone = 0;
-
-    return;
-
-    // clear out the old list or the new entries will be
-    // added to them
-    // this offset is in doQuery and SortItemList
-    class CListWnd *ptr = *(class CListWnd **) ((char *)pBazaarSearchWnd+0x3d08);
-    ptr->DeleteAll();
-
-    // default to current race and class
-    bsrp.BSRCommand = 7;
-    bsrp.BSRTraderID = 0;
-    bsrp.BSRClass = GetCharInfo2()->Class;
-    bsrp.BSRRace = GetCharInfo2()->Race;
-    bsrp.BSRStat = -1;
-    bsrp.BSRSlot = -1;
-    bsrp.BSRType = -1;
-    memset(bsrp.BSRName, 0, 60);
-    bsrp.BSRPriceH = 0;
-    bsrp.BSRPriceL = 0;
-    bsrp.BSRLevelH = 75;
-    bsrp.BSRLevelL = 1;
-
-    while(bArg) {
-        GetArg(szArg,szLine,1);
-        szLine = GetNextArg(szLine, 1);
-        if (szArg[0]==0) {
-            bArg = FALSE;
-        }
-        else if (!strcmp(szArg, "class")) {
-            GetArg(szArg,szLine,1);
-            szLine = GetNextArg(szLine, 1);
-            if (szArg[0]==0) {
-                MacroError("Bad class name.");
-                goto error_out;
-            }
-            if (isdigit(szArg[0])) {
-                bsrp.BSRClass = atoi(szArg);
-                continue;
-            }
-            for(i=0;i<sizeof(classes)/sizeof(classes[0]);i++) {
-                if (!strcmp(szArg, classes[i].name)) {
-                    bsrp.BSRClass = classes[i].classn;
-                    break;
-                }
-            }
-            if (i==sizeof(classes)/sizeof(classes[0])) {
-                MacroError("Bad class name.");
-                goto error_out;
-            }
-        }
-        else if (!strcmp(szArg, "race")) {
-            GetArg(szArg,szLine,1);
-            szLine = GetNextArg(szLine, 1);
-            if (szArg[0]==0) {
-                MacroError("Bad race name.");
-                goto error_out;
-            }
-            if (isdigit(szArg[0])) {
-                bsrp.BSRRace = atoi(szArg);
-                continue;
-            }
-            for(i=0;i<sizeof(races)/sizeof(races[0]);i++) {
-                if (!strcmp(szArg, races[i].name)) {
-                    bsrp.BSRRace = races[i].race;
-                    break;
-                }
-            }
-            if (i==sizeof(races)/sizeof(races[0])) {
-                MacroError("Bad race name.");
-                goto error_out;
-            }
-        }
-        else if (!strcmp(szArg, "stat")) {
-            GetArg(szArg,szLine,1);
-            szLine = GetNextArg(szLine, 1);
-            if (szArg[0]==0) {
-                MacroError("Bad stat name.");
-                goto error_out;
-            }
-            if (isdigit(szArg[0])) {
-                bsrp.BSRStat = atoi(szArg);
-                continue;
-            }
-            for(i=0;i<sizeof(stats)/sizeof(stats[0]);i++) {
-                if (!strcmp(szArg, stats[i].name)) {
-                    bsrp.BSRStat = stats[i].stat;
-                    break;
-                }
-            }
-            if (i==sizeof(stats)/sizeof(stats[0])) {
-                MacroError("Bad stat name.");
-                goto error_out;
-            }
-        }
-        else if (!strcmp(szArg, "slot")) {
-            GetArg(szArg,szLine,1);
-            szLine = GetNextArg(szLine, 1);
-            if (szArg[0]==0) {
-                MacroError("Bad slot name.");
-                goto error_out;
-            }
-            if (isdigit(szArg[0])) {
-                bsrp.BSRSlot = atoi(szArg);
-                continue;
-            }
-            for(i=0;i<sizeof(slots)/sizeof(slots[0]);i++) {
-                if (!strcmp(szArg, slots[i].name)) {
-                    bsrp.BSRSlot = slots[i].slot;
-                    break;
-                }
-            }
-            if (i==sizeof(slots)/sizeof(slots[0])) {
-                MacroError("Bad slot name.");
-                goto error_out;
-            }
-        }
-        else if (!strcmp(szArg, "type")) {
-            GetArg(szArg,szLine,1);
-            szLine = GetNextArg(szLine, 1);
-            if (szArg[0]==0) {
-                MacroError("Bad type name.");
-                goto error_out;
-            }
-            if (isdigit(szArg[0]) && szArg[1]!='h') {
-                bsrp.BSRType = atoi(szArg);
-                continue;
-            }
-            for(i=0;i<sizeof(types)/sizeof(types[0]);i++) {
-                if (!strcmp(szArg, types[i].name)) {
-                    bsrp.BSRType = types[i].type;
-                    break;
-                }
-            }
-            if (i==sizeof(types)/sizeof(types[0])) {
-                MacroError("Bad type name.");
-                goto error_out;
-            }
-        }
-        else if (!strcmp(szArg, "price")) {
-            GetArg(szArg,szLine,1);
-            szLine = GetNextArg(szLine, 1);
-            if (szArg[0]==0) {
-                MacroError("Bad price low.");
-                goto error_out;
-            }
-            bsrp.BSRPriceL = atoi(szArg);
-
-            GetArg(szArg,szLine,1);
-            szLine = GetNextArg(szLine, 1);
-            if (szArg[0]==0) {
-                MacroError("Bad price high.");
-                goto error_out;
-            }
-            bsrp.BSRPriceH = atoi(szArg);
-        }
-        else if (!strcmp(szArg, "trader")) {
-            GetArg(szArg,szLine,1);
-            szLine = GetNextArg(szLine, 1);
-            if (szArg[0]==0) {
-                WriteChatColor("Bad trader id.",USERCOLOR_WHO);
-                goto error_out;
-            }
-            bsrp.BSRTraderID = atoi(szArg);
-        }                                         // it's a name
-        else {
-            if (first) {
-                first = 0;
-            }
-            else {
-                strcat(bsrp.BSRName, " ");
-            }
-            strcat(bsrp.BSRName, szArg);
-        }
-    }
-
-    BzCount = 0;
-    BzDone = 0;
-    //SendEQMessage(EQ_BAZAARSEARCHME, &bsrp, sizeof(bsrp));
-    return;
-
+	if (CButtonWnd *ptr = (CButtonWnd *)pBazaarSearchWnd->GetChildItem("BZR_Default")) {
+		SendWndClick2((CXWnd*)ptr, "leftmouseup");
+	}
+	while (bArg) {
+		GetArg(szArg, szLine, 1);
+		szLine = GetNextArg(szLine, 1);
+		if (szArg[0] == 0) {
+			bArg = FALSE;
+		} else if (!strcmp(szArg, "class")) {
+			GetArg(szArg, szLine, 1);
+			szLine = GetNextArg(szLine, 1);
+			DoClass(szArg);
+		} else if (!_stricmp(szArg, "race")) {
+			GetArg(szArg, szLine, 1);
+			szLine = GetNextArg(szLine, 1);
+			DoRace(szArg);
+		} else if (!_stricmp(szArg, "stat")) {
+			GetArg(szArg, szLine, 1);
+			szLine = GetNextArg(szLine, 1);
+			DoCombo(szArg, "Stat", "BZR_StatSlotCombobox");
+		} else if (!_stricmp(szArg, "slot")) {
+			GetArg(szArg, szLine, 1);
+			szLine = GetNextArg(szLine, 1);
+			DoCombo(szArg, "Slot", "BZR_ItemSlotCombobox");
+		} else if (!_stricmp(szArg, "type")) {
+			GetArg(szArg, szLine, 1);
+			szLine = GetNextArg(szLine, 1);
+			DoCombo(szArg, "Type", "BZR_ItemTypeCombobox");
+		} else if (!strcmp(szArg, "price")) {
+			GetArg(szArg, szLine, 1);
+			szLine = GetNextArg(szLine, 1);
+			if (szArg[0] == 0) {
+				MacroError("Bad price low.");
+				goto error_out;
+			}
+			if (CXWnd *pEdit = (CXWnd *)pBazaarSearchWnd->GetChildItem("BZR_MinPriceInput")) {
+				pEdit->SetWindowTextA(CXStr(szArg));
+			}
+			GetArg(szArg, szLine, 1);
+			szLine = GetNextArg(szLine, 1);
+			if (szArg[0] == 0) {
+				MacroError("Bad price high.");
+				goto error_out;
+			}
+			if (CXWnd *pEdit = (CXWnd *)pBazaarSearchWnd->GetChildItem("BZR_MaxPriceInput")) {
+				pEdit->SetWindowTextA(CXStr(szArg));
+			}
+		} else if (!_stricmp(szArg, "trader")) {
+			GetArg(szArg, szLine, 1);
+			szLine = GetNextArg(szLine, 1);
+			DoCombo(szArg, "Trader", "BZR_PlayersCombobox");
+		} else if (!_stricmp(szArg, "prestige")) {
+			GetArg(szArg, szLine, 1);
+			szLine = GetNextArg(szLine, 1);
+			DoCombo(szArg, "Prestige", "BZR_ItemPrestigeCombobox");
+		} else if (!_stricmp(szArg, "augment")) {
+			GetArg(szArg, szLine, 1);
+			szLine = GetNextArg(szLine, 1);
+			DoCombo(szArg, "Augment", "BZR_ItemAugmentCombobox");
+		} else {
+			if (first) {
+				first = false;
+			} else {
+				strcat(szItem, " ");
+			}
+			strcat(szItem, szArg);
+		}
+	}
+	if (CXWnd *pEdit = (CXWnd *)pBazaarSearchWnd->GetChildItem("BZR_ItemNameInput")) {
+		pEdit->SetWindowTextA(CXStr(szItem));
+		DWORD nThreadID = 0;
+		CreateThread(NULL, NULL, searchthread, 0, 0, &nThreadID);
+	}
 error_out:
-    return;
+	return;
 }
 
 

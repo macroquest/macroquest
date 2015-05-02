@@ -391,7 +391,9 @@ void __cdecl MQ2Shutdown()
 
 DWORD __stdcall InitializeMQ2SpellDb(PVOID pData)
 {
-	if (ghLockSpellMap = CreateMutex(NULL, FALSE, NULL)) {
+	if (!ghLockSpellMap)
+		ghLockSpellMap = CreateMutex(NULL, FALSE, NULL);
+	if (ghLockSpellMap) {
 		while (!ppSpellMgr && gGameState != GAMESTATE_CHARSELECT && gGameState != GAMESTATE_INGAME) {
 			Sleep(0);
 		}
@@ -422,10 +424,10 @@ DWORD WINAPI MQ2Start(LPVOID lpParameter)
     while (gGameState != GAMESTATE_CHARSELECT && gGameState != GAMESTATE_INGAME) 
         Sleep(500);
     InitializeMQ2DInput();
-	DWORD nThreadId = 0;
-	CreateThread(NULL,0,InitializeMQ2SpellDb,0,0,&nThreadId);
     if (gGameState == GAMESTATE_INGAME) {
         gbInZone = TRUE;
+		WriteChatColor("Initializing SpellMap from MQ2Start, this will take a few seconds, please wait", CONCOLOR_YELLOW);
+		InitializeMQ2SpellDb(NULL);
 		PluginsSetGameState(GAMESTATE_INGAME);
 	}
 

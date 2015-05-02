@@ -499,6 +499,8 @@ DebugSpew("PluginsSetGameState( %d class)",pCharInfo2->Class);
             AutoExec=true;
             LoadCfgFile("AutoExec",false);
         }
+		DWORD nThreadId = 0;
+		CreateThread(NULL, 0, InitializeMQ2SpellDb, 0, 0, &nThreadId);
         CharSelect=true;
         LoadCfgFile("CharSelect",false);
     }

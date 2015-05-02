@@ -1,3 +1,22 @@
+29 Apr 2015 by eqmule
+- Updated for the latest LIVE client
+- Fixed /bzsrch command
+  this means it works again...
+  Usage Example: see this post: http://www.macroquest2.com/phpBB3/viewtopic.php?f=17&t=19699&p=169467#p169467
+- Fixed a crash that would happen if you logged all the way into the game
+  then all the way out to server select, and back in again
+  and at that point tried to call GetSpellByName or any
+  of the TLO's that calls it.
+- Added a few more members to the AdvLoot TLO: all return TRUE or FALSE if checkbox is checked
+  .AutoRoll .Need .Greed .No .AlwaysNeed .AlwaysGreed .Never
+  Usage Example: /if (${AdvLoot.SList[1].Need}==TRUE) item 1 in the shared list has Need checked. 
+- Added PWantCount and SWantCount which counts the number of items in each list that has a checkmark
+  in any of the need and greed boxes.
+  Usage Example: /echo /if (${AdvLoot.SCount} && ${AdvLoot.SWantCount}) /advloot shared set ${Me.Name}
+
+23 Apr 2015 by rswiders
+- Fixed missing ground spawn names on the map
+
 23 Apr 2015 by eqmule
 - Updated for the LIVE client dated Apr 22 2015 15:38:04
 
