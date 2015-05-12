@@ -1327,7 +1327,7 @@ bool MQ2SpawnType::GETMEMBER()
         Dest.Type=pIntType;
         return true;
     case State:
-        if (GetCharInfo() && GetCharInfo()->Stunned==1)
+		if (pSpawn->PlayerState & 0x20)
         {
             Dest.Ptr="STUN";
         }
@@ -1391,7 +1391,15 @@ bool MQ2SpawnType::GETMEMBER()
         Dest.Type=pBoolType;
         return true;
     case Stunned:
-        Dest.DWord=(GetCharInfo() && GetCharInfo()->Stunned==1);
+		Dest.DWord=false;
+		if(pSpawn->PlayerState & 0x20)
+			Dest.DWord=true;
+        Dest.Type=pBoolType;
+        return true;
+	case Aggressive:
+		Dest.DWord=false;
+		if(pSpawn->PlayerState & 0x4 || pSpawn->PlayerState & 0x8)
+			Dest.DWord=true;
         Dest.Type=pBoolType;
         return true;
     case Hovering:
@@ -1457,6 +1465,14 @@ bool MQ2SpawnType::GETMEMBER()
         return true;
     case FeetWet:
         Dest.DWord=(pSpawn->FeetWet==5);
+        Dest.Type=pBoolType;
+        return true;
+	case PlayerState:
+		Dest.DWord=pSpawn->PlayerState;
+        Dest.Type=pIntType;
+        return true;
+	case Stuck:
+		Dest.DWord=pSpawn->PossiblyStuck;
         Dest.Type=pBoolType;
         return true;
     case Animation:
@@ -7615,7 +7631,7 @@ bool MQ2SkillType::GETMEMBER()
             return true;
         }
     case AltTimer:
-        Dest.DWord=pSkill->AltTimer;
+        Dest.DWord=pSkill->SkillCombatType;
         Dest.Type=pIntType;
         return true;
     case Activated: 
@@ -7631,7 +7647,7 @@ bool MQ2AltAbilityType::ToString(MQ2VARPTR VarPtr, PCHAR Destination)
     if (!VarPtr.Ptr)
         return false;
     PALTABILITY pAbility=(PALTABILITY)VarPtr.Ptr;
-    itoa(pAbility->PointsSpent, Destination,10);
+    itoa(pAbility->ID, Destination,10);
     return true;
 }
 
@@ -7992,7 +8008,23 @@ bool MQ2GroupType::GETMEMBER()
 		}
 		return true;
 	case MercenaryCount:
-		Dest.DWord = GetGroupMercenaryCount();
+		Dest.DWord = GetGroupMercenaryCount(AllClassesMASK);
+		Dest.Type = pIntType;
+		return true;
+	case TankMercCount:
+		Dest.DWord = GetGroupMercenaryCount(WarriorMASK);
+		Dest.Type = pIntType;
+		return true;
+	case HealerMercCount:
+		Dest.DWord = GetGroupMercenaryCount(ClericMASK);
+		Dest.Type = pIntType;
+		return true;
+	case MeleeMercCount:
+		Dest.DWord = GetGroupMercenaryCount(RogueMASK);
+		Dest.Type = pIntType;
+		return true;
+	case CasterMercCount:
+		Dest.DWord = GetGroupMercenaryCount(WizardMASK);
 		Dest.Type = pIntType;
 		return true;
     }
@@ -9426,7 +9458,7 @@ bool MQ2AdvLootItemType::GETMEMBER()
 }
 bool MQ2AdvLootType::GETMEMBER()
 {
-	PEQADVLOOTWND pAdvLoot = (PEQADVLOOTWND)pAdvLootWnd;
+	PEQADVLOOTWND pAdvLoot = (PEQADVLOOTWND)pAdvancedLootWnd;
 	if(!pAdvLoot)
 		return FALSE;
 	PMQ2TYPEMEMBER pMember = MQ2AdvLootType::FindMember(Member);
@@ -9441,7 +9473,7 @@ bool MQ2AdvLootType::GETMEMBER()
 	case PList:
 		if(DWORD theindex = atoi(GETFIRST())) {
 			theindex--;
-			if(CListWnd *clist = (CListWnd *)pAdvLootWnd->GetChildItem("ADLW_PLLList")) {
+			if (CListWnd *clist = (CListWnd *)pAdvancedLootWnd->GetChildItem("ADLW_PLLList")) {
 				for (DWORD i = 0; i < clist->Items; i++) {
 					if(theindex==clist->GetItemData(i)) {
 						if (pAdvLoot && pAdvLoot->pPLootList && pAdvLoot->pPLootList->pLootItem && pAdvLoot->pPLootList->ListSize>=i) {
@@ -9463,7 +9495,7 @@ bool MQ2AdvLootType::GETMEMBER()
 	case SList:
 		if(DWORD theindex = atoi(GETFIRST())) {
 			theindex--;
-			if(CListWnd *clist = (CListWnd *)pAdvLootWnd->GetChildItem("ADLW_CLLList")) {
+			if (CListWnd *clist = (CListWnd *)pAdvancedLootWnd->GetChildItem("ADLW_CLLList")) {
 				for (DWORD i = 0; i < clist->Items; i++) {
 					if(theindex==clist->GetItemData(i)) {
 						if (pAdvLoot && pAdvLoot->pCLootList && pAdvLoot->pCLootList->pLootItem && pAdvLoot->pCLootList->ListSize>=i) {
@@ -9481,7 +9513,7 @@ bool MQ2AdvLootType::GETMEMBER()
 	case PWantCount:
 		Dest.DWord = 0;
 		Dest.Type = pIntType;
-		if (CListWnd *clist = (CListWnd *)pAdvLootWnd->GetChildItem("ADLW_PLLList")) {
+		if (CListWnd *clist = (CListWnd *)pAdvancedLootWnd->GetChildItem("ADLW_PLLList")) {
 			for (DWORD i = 0; i < clist->Items; i++) {
 				if (pAdvLoot && pAdvLoot->pPLootList && pAdvLoot->pPLootList->pLootItem && pAdvLoot->pPLootList->ListSize >= i) {
 					DWORD addr = (DWORD)pAdvLoot->pPLootList->pLootItem;
@@ -9497,7 +9529,7 @@ bool MQ2AdvLootType::GETMEMBER()
 	case SWantCount:
 		Dest.DWord = 0;
 		Dest.Type = pIntType;
-		if (CListWnd *clist = (CListWnd *)pAdvLootWnd->GetChildItem("ADLW_CLLList")) {
+		if (CListWnd *clist = (CListWnd *)pAdvancedLootWnd->GetChildItem("ADLW_CLLList")) {
 			for (DWORD i = 0; i < clist->Items; i++) {
 				if (pAdvLoot && pAdvLoot->pCLootList && pAdvLoot->pCLootList->pLootItem && pAdvLoot->pCLootList->ListSize >= i) {
 					DWORD addr = (DWORD)pAdvLoot->pCLootList->pLootItem;

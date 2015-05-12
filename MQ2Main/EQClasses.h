@@ -677,13 +677,15 @@ public:
 EQLIB_OBJECT int _partyGroup::getNumMembers(void)const;
 };
 
-class CAdvLootWnd : public CSidlScreenWnd
+class CAdvancedLootWnd : public CSidlScreenWnd
 {
 public:
-EQLIB_OBJECT CAdvLootWnd::CAdvLootWnd(class CXWnd *);
+	EQLIB_OBJECT CAdvancedLootWnd::CAdvancedLootWnd(class CXWnd *);
+EQLIB_OBJECT DWORD CAdvancedLootWnd::DoAdvLootAction(DWORD listindex, CXStr *Name, DWORD Action, DWORD Quantity);
 // virtual
-EQLIB_OBJECT CAdvLootWnd::~CAdvLootWnd(void);
+EQLIB_OBJECT CAdvancedLootWnd::~CAdvancedLootWnd(void);
 };
+
 class CRewardSelectionWnd : public CSidlScreenWnd
 {
 public:
@@ -1440,6 +1442,7 @@ public:
 EQLIB_OBJECT CContextMenuManager::CContextMenuManager(class CXWnd *,unsigned __int32,class CXRect);
 EQLIB_OBJECT int CContextMenuManager::AddMenu(class CContextMenu *);
 EQLIB_OBJECT int CContextMenuManager::GetDefaultMenuIndex(void);
+EQLIB_OBJECT CContextMenu *CContextMenuManager::GetMenu(int);
 EQLIB_OBJECT int CContextMenuManager::HandleWindowMenuCommands(class CXWnd *,int);
 EQLIB_OBJECT int CContextMenuManager::PopupMenu(int,class CXPoint const &,class CXWnd *);
 EQLIB_OBJECT int CContextMenuManager::RemoveMenu(int,bool);

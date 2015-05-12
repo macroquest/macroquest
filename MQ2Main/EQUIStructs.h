@@ -807,13 +807,15 @@ typedef struct _LOOTLIST {
 	/*0x008*/ DWORD	ListSize;
 } LOOTLIST,*PLOOTLIST;
 //size 0x2C4 see 4B7659 in Mar 31 2015 -eqmule
-//size 0x2D4 see 4B7BA9 in Apr 20 2015 -eqmule
+//size 0x2D4 see 4B7969 in Apr 22 2015 -eqmule
 typedef struct _EQADVLOOTWND {
 	/*0x000*/ struct _CSIDLWND     Wnd;
 	/*0x21c*/ BYTE	Unknown0x021c[0x90];
 	/*0x2ac*/ struct _LOOTLIST *pCLootList;//below ref to aAdlw_applyfilt
 	/*0x2b0*/ struct _LOOTLIST *pPLootList;//below ref to aAdlw_cllwnd
-	/*0x2b4*/ BYTE		Unknown0x2b4[0x20];
+	/*0x2b4*/ BYTE		Unknown0x2b4[0x14];
+	/*0x2c8*/ DWORD		ContextMenuId;
+	/*0x2cc*/ BYTE		Unknown0x2cc[0x8];
 	/*0x2d4*/
 } EQADVLOOTWND,*PEQADVLOOTWND;
 

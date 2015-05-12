@@ -559,14 +559,14 @@ EQLIB_VAR CTaskSomething *ppTaskSomething;
 EQLIB_VAR CTimeLeftWnd **ppTimeLeftWnd;
 EQLIB_VAR CTextOverlay **ppTextOverlay;
 EQLIB_VAR CPotionBeltWnd **ppPotionBeltWnd;
-EQLIB_VAR CAdvLootWnd **ppAdvLootWnd;
+EQLIB_VAR CAdvancedLootWnd **ppAdvancedLootWnd;
 EQLIB_VAR CRewardSelectionWnd **ppRewardSelectionWnd;
 EQLIB_VAR CConfirmationDialog **ppConfirmationDialog;
 
 
 #define pConfirmationDialog (*ppConfirmationDialog)
 #define pRewardSelectionWnd (*ppRewardSelectionWnd)
-#define pAdvLootWnd (*ppAdvLootWnd)
+#define pAdvancedLootWnd (*ppAdvancedLootWnd)
 #define pContextMenuManager (*ppContextMenuManager)
 #define pCursorAttachment (*ppCursorAttachment)
 #define pSocialEditWnd (*ppSocialEditWnd)
@@ -893,7 +893,7 @@ EQLIB_VAR DWORD pinstCTaskSomething;
 EQLIB_VAR DWORD pinstCTipWndOFDAY;
 EQLIB_VAR DWORD pinstCTipWndCONTEXT;
 EQLIB_VAR DWORD pinstCTitleWnd;
-EQLIB_VAR DWORD pinstCAdvLootWnd;
+EQLIB_VAR DWORD pinstCAdvancedLootWnd;
 EQLIB_VAR DWORD pinstCContextMenuManager;
 EQLIB_VAR DWORD pinstCVoiceMacroWnd;
 EQLIB_VAR DWORD pinstCHtmlWnd;
@@ -923,6 +923,8 @@ EQLIB_VAR DWORD __HelpPath;
 
 
 EQLIB_VAR DWORD CAdvancedLootWnd__CAdvancedLootWnd;
+EQLIB_VAR DWORD CAdvancedLootWnd__DoAdvLootAction;
+
 EQLIB_VAR DWORD AltAdvManager__GetCalculatedTimer;
 EQLIB_VAR DWORD AltAdvManager__IsAbilityReady;
 EQLIB_VAR DWORD AltAdvManager__GetAltAbility;
@@ -948,6 +950,7 @@ EQLIB_VAR DWORD CContextMenuManager__PopupMenu;
 EQLIB_VAR DWORD CContextMenu__RemoveAllMenuItems;
 EQLIB_VAR DWORD CContextMenu__RemoveMenuItem;
 EQLIB_VAR DWORD CContextMenuManager__Flush;
+EQLIB_VAR DWORD CContextMenuManager__GetMenu;
 
 EQLIB_VAR DWORD CChatService__GetNumberOfFriends;
 EQLIB_VAR DWORD CChatService__GetFriendName;

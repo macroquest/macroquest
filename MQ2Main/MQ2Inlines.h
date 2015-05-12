@@ -356,16 +356,15 @@ static inline BOOL IsGroupMember(PSPAWNINFO pSpawn)
     return 0;
 }
 
-static inline DWORD GetGroupMercenaryCount()
+static inline DWORD GetGroupMercenaryCount(DWORD ClassMASK)
 {
 	DWORD retValue = 0;
     if(PCHARINFO pChar=GetCharInfo()) {
 		if (!pChar->pGroupInfo) return 0;
 		for (DWORD N=1; N<6; N++) {
 			if (pChar->pGroupInfo->pMember[N]) {
-				if (pChar->pGroupInfo->pMember[N]->Mercenary) {
+				if (pChar->pGroupInfo->pMember[N]->Mercenary && (ClassMASK & (1 << (pChar->pGroupInfo->pMember[N]->pSpawn->Class-1))))
 					retValue++;
-				}
 			}
 		}
 	}

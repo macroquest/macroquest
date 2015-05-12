@@ -3676,16 +3676,20 @@ VOID MercSwitchCmd(PSPAWNINFO pChar, PCHAR szLine)
 // ***************************************************************************
 VOID AdvLootCmd(PSPAWNINFO pChar,PCHAR szLine)
 {
+	if (GetGameState() != GAMESTATE_INGAME)
+		return;
 	CHAR szAction[MAX_STRING] = {0};
 	GetArg(szAction,szLine,3);
 	if (!szLine[0] || !szAction[0]) {
 		WriteChatColor("Usage: /advloot personal #(listid) item,loot,leave,an,ag,never,name");
-		WriteChatColor("Or:    /advloot shared #(listid) item,status,action,manage,autoroll,nd,gd,no,an,ag,nv,name");
-		WriteChatColor("Or:    /advloot shared set \"item from the shared set to all combo box, can be player name or any of the other items that exist in that box...\"");
+		WriteChatColor("Or:    /advloot shared <#(listid) or \"item name\"> item,status,action,manage,autoroll,nd,gd,no,an,ag,nv,name");
+		WriteChatColor("Or:    you can \"Give To:\" /advloot shared <#(listid) or \"Item Name\"> giveto <name> <qty>");
+		WriteChatColor("Or:    you can \"Leave on Corpse\" /advloot shared <#(listid) or \"Item Name\"> leave");
+		WriteChatColor("Or:    /advloot shared set \"name from the shared set to all combo box, can be player name or any of the other names that exist in that box...\"");
 		cmdAdvLoot(pChar,szLine);
         return;
     } else {
-		PEQADVLOOTWND pAdvLoot = (PEQADVLOOTWND)pAdvLootWnd;
+		PEQADVLOOTWND pAdvLoot = (PEQADVLOOTWND)pAdvancedLootWnd;
 		CHAR szID[MAX_STRING] = {0};
 		CHAR szCmd[MAX_STRING] = {0};
 		GetArg(szCmd,szLine,1);
@@ -3744,7 +3748,7 @@ VOID AdvLootCmd(PSPAWNINFO pChar,PCHAR szLine)
 				GetArg(szEntity,szLine,3);
 				CXStr Str;
 				CHAR szOut[255] = {0};
-				if(CComboWnd *pCombo = (CComboWnd *)pAdvLootWnd->GetChildItem("ADLW_CLLSetCmbo")) {
+				if (CComboWnd *pCombo = (CComboWnd *)pAdvancedLootWnd->GetChildItem("ADLW_CLLSetCmbo")) {
 					if(CListWnd*pListWnd = (CListWnd*)pCombo->Items) {
 						DWORD itemcnt = pCombo->GetItemCount();
 						for(DWORD i = 0;i<itemcnt;i++) {
@@ -3762,7 +3766,7 @@ VOID AdvLootCmd(PSPAWNINFO pChar,PCHAR szLine)
 									((CXWnd*)pListWnd)->HandleLButtonDown(&listpt,0);
 									((CXWnd*)pListWnd)->HandleLButtonUp(&listpt,0);
 									gMouseEventTime = GetFastTime();
-									if(CXWnd *pButton = (CXWnd *)pAdvLootWnd->GetChildItem("ADLW_CLLSetBtn")) {
+									if (CXWnd *pButton = (CXWnd *)pAdvancedLootWnd->GetChildItem("ADLW_CLLSetBtn")) {
 										SendWndClick2(pButton,"leftmouseup");
 									}
 									break;
@@ -3773,59 +3777,111 @@ VOID AdvLootCmd(PSPAWNINFO pChar,PCHAR szLine)
 				}
 				return;
 			}
+			DWORD index = -1;
 			if(IsNumber(szID)) {
-				DWORD i = atoi(szID);
-				i--;
-				if (pAdvLoot && pAdvLoot->pCLootList && pAdvLoot->pCLootList->pLootItem && pAdvLoot->pCLootList->ListSize>=i) {
+				index = atoi(szID);
+				index--;
+			} else {//if its not a number its a itemname
+				//need to roll through the list to get the index
+				if (pAdvLoot && pAdvLoot->pCLootList && pAdvLoot->pCLootList->pLootItem && pAdvLoot->pCLootList->ListSize >= 1) {
+					for(DWORD k = 0;k<pAdvLoot->pCLootList->ListSize;k++) {
+						DWORD addr = (DWORD)pAdvLoot->pCLootList->pLootItem;
+						if(pitem = (PLOOTITEM)(addr + (sizeof(LOOTITEM)*k))) {
+							if(!_stricmp(pitem->Name,szID)) {
+								index=k;
+								break;
+							}
+						}
+					}
+				}
+			}
+			if(index!=-1) {
+				if (pAdvLoot && pAdvLoot->pCLootList && pAdvLoot->pCLootList->pLootItem && pAdvLoot->pCLootList->ListSize >= index) {
 					DWORD addr = (DWORD)pAdvLoot->pCLootList->pLootItem;
-					pitem = (PLOOTITEM)(addr+(sizeof(LOOTITEM)*i));
+					pitem = (PLOOTITEM)(addr + (sizeof(LOOTITEM)*index));//leave/giveto
 					////NPC_Name,Item,Status,Action,Manage,AN,AG,AutoRoll,NV,ND,GD,NO
-					if(!_stricmp(szAction,"name")) {
-						if(CXWnd *pwnd = GetAdvLootSharedListItem(i,0)) {
+					if (!_stricmp(szAction, "leave")) {
+						if (PCHARINFO pchar = GetCharInfo()) {
+							if (GetGameState() == GAMESTATE_INGAME && pitem && pitem->LootDetails) {
+								pAdvancedLootWnd->DoAdvLootAction(index, &CXStr(pchar->Name), 1, pitem->LootDetails->StackCount);
+							}
+						}
+					} else if (!_stricmp(szAction, "giveto")) {
+						CHAR szEntity[MAX_STRING] = { 0 };
+						GetArg(szEntity, szLine, 4);
+						CHAR szQty[MAX_STRING] = { 0 };
+						GetArg(szQty, szLine, 5);
+						if (szEntity[0] != '\0') {
+							if (PCHARINFO pCI = GetCharInfo()) {
+								if (pCI->pGroupInfo) {
+									CHAR szOut[256] = { 0 };
+									for (int i = 0; i<6; i++) {
+										if (pCI->pGroupInfo->pMember[i] && pCI->pGroupInfo->pMember[i]->Mercenary == 0 && pCI->pGroupInfo->pMember[i]->pName) {
+											GetCXStr(pCI->pGroupInfo->pMember[i]->pName, szOut, 255);
+											if (!_stricmp(szOut, szEntity)) {
+												int qty = atoi(szQty);
+												if (pitem && pitem->LootDetails) {
+													if (qty == 0 || qty>pitem->LootDetails->StackCount) {
+														qty = pitem->LootDetails->StackCount;
+														if (qty == 0) {
+															qty = 1;
+														}
+													}
+													pAdvancedLootWnd->DoAdvLootAction(index, &CXStr(szOut), 0, qty);
+													return;
+												}
+											}
+										}
+									}
+								}
+							}
+						}
+					} else if (!_stricmp(szAction, "name")) {
+						if (CXWnd *pwnd = GetAdvLootSharedListItem(index, 0)) {
 							SendWndClick2(pwnd,"leftmouseup");
 						}
 					} else if(!_stricmp(szAction,"item")) {
-						if(CXWnd *pwnd = GetAdvLootSharedListItem(i,1)) {
+						if (CXWnd *pwnd = GetAdvLootSharedListItem(index, 1)) {
 							SendWndClick2(pwnd,"leftmouseup");
 						}
 					} else if(!_stricmp(szAction,"status")) {
-						if(CXWnd *pwnd = GetAdvLootSharedListItem(i,2)) {
+						if (CXWnd *pwnd = GetAdvLootSharedListItem(index, 2)) {
 							SendWndClick2(pwnd,"leftmouseup");
 						}
 					} else if(!_stricmp(szAction,"action")) {
-						if(CXWnd *pwnd = GetAdvLootSharedListItem(i,3)) {
+						if (CXWnd *pwnd = GetAdvLootSharedListItem(index, 3)) {
 							SendWndClick2(pwnd,"leftmouseup");
 						}
 					} else if(!_stricmp(szAction,"manage")) {
-						if(CXWnd *pwnd = GetAdvLootSharedListItem(i,4)) {
+						if (CXWnd *pwnd = GetAdvLootSharedListItem(index, 4)) {
 							SendWndClick2(pwnd,"leftmouseup");
 						}
 					} else if(!_stricmp(szAction,"an")) {
-						if(CXWnd *pwnd = GetAdvLootSharedListItem(i,5)) {
+						if (CXWnd *pwnd = GetAdvLootSharedListItem(index, 5)) {
 							SendWndClick2(pwnd,"leftmouseup");
 						}
 					} else if(!_stricmp(szAction,"ag")) {
-						if(CXWnd *pwnd = GetAdvLootSharedListItem(i,6)) {
+						if (CXWnd *pwnd = GetAdvLootSharedListItem(index, 6)) {
 							SendWndClick2(pwnd,"leftmouseup");
 						}
 					} else if(!_stricmp(szAction,"autoroll")) {
-						if(CXWnd *pwnd = GetAdvLootSharedListItem(i,7)) {
+						if (CXWnd *pwnd = GetAdvLootSharedListItem(index, 7)) {
 							SendWndClick2(pwnd,"leftmouseup");
 						}
 					} else if(!_stricmp(szAction,"nv")) {
-						if(CXWnd *pwnd = GetAdvLootSharedListItem(i,8)) {
+						if (CXWnd *pwnd = GetAdvLootSharedListItem(index, 8)) {
 							SendWndClick2(pwnd,"leftmouseup");
 						}
 					} else if(!_stricmp(szAction,"nd")) {
-						if(CXWnd *pwnd = GetAdvLootSharedListItem(i,9)) {
+						if (CXWnd *pwnd = GetAdvLootSharedListItem(index, 9)) {
 							SendWndClick2(pwnd,"leftmouseup");
 						}
 					} else if(!_stricmp(szAction,"gd")) {
-						if(CXWnd *pwnd = GetAdvLootSharedListItem(i,10)) {
+						if (CXWnd *pwnd = GetAdvLootSharedListItem(index, 10)) {
 							SendWndClick2(pwnd,"leftmouseup");
 						}
 					} else if(!_stricmp(szAction,"no")) {
-						if(CXWnd *pwnd = GetAdvLootSharedListItem(i,11)) {
+						if (CXWnd *pwnd = GetAdvLootSharedListItem(index, 11)) {
 							SendWndClick2(pwnd,"leftmouseup");
 						}
 					}

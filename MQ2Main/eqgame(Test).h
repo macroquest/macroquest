@@ -1,4 +1,4 @@
-/******************************************************************************
+adv/******************************************************************************
 MQ2Main.dll: MacroQuest2's extension DLL for EverQuest
 Copyright (C) 2002-2003 Plazmic, 2003-2005 Lax
 
@@ -272,7 +272,7 @@ GNU General Public License for more details.
 #define pinstCHtmlWnd_x                                            0x10238E8
 #define pinstIconCache_x                                           0x113104C
 #define pinstCTradeskillWnd_x                                      0x1136CB8
-#define pinstCAdvLootWnd_x                                         0xEDCB54
+#define pinstCAdvancedLootWnd_x                                    0xEDCB54
 #define pinstRewardSelectionWnd_x                                  0x1135338
 
 //// 
@@ -302,6 +302,7 @@ GNU General Public License for more details.
 //// 
 // CAdvancedLootWnd
 #define CAdvancedLootWnd__CAdvancedLootWnd_x                       0x41ED80
+#define CAdvancedLootWnd__DoAdvLootAction_x                        0x419BE0
 
 // AltAdvManager 
 #define AltAdvManager__GetCalculatedTimer_x                        0x4C0A00

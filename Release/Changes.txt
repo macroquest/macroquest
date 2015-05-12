@@ -1,3 +1,44 @@
+7 May 2015 by EqMule & demonstar55
+- AltTimer in the _SKILL struct has been renamed to (the correct name) SkillCombatType (whatever that is...)
+- Added .Stuck to the SpawnType TLO, i never seen it return TRUE, so more testing is needed...
+- Added .PlayerState to the SpawnType TLO, it returns a mask as an inttype which has the following meaning:
+  0=Idle 1=Open 2=WeaponSheathed 4=Aggressive 8=ForcedAggressive 0x10=InstrumentEquipped 0x20=Stunned
+  0x40=PrimaryWeaponEquipped 0x80=SecondaryWeaponEquipped
+  This too needs more testing.
+- Added .Stunned to the spawntype TLO it returns TRUE or FALSE if a mob is stunned or not
+  NOTE: .Stunned DID exist in the spawntype TLO before, but it only returned your character's Stunstate
+  THIS MEANS IF YOU RELY ON THIS IN YOUR MACROS, use ${Me.Stunned} in your macros from now on instead
+  when you need YOUR stunstate and the below examples when you need a SPAWNS stunstate, you have been warned...
+  Usage: /echo ${Target.Stunned} or ${Spawn[npc somespawnname].Stunned}
+- Added .Aggressive to the spawntype TLO it returns TRUE or FALSE if a mob is aggressive or not
+- Cred .PlayerState and .Stuck: demonstar55
+- Couple additions to /advloot
+- /advloot shared # now accepts leave and giveto as arguments
+  Usage:
+  /advloot shared <#(index) or "item name"> giveto <name> <opt:qty> (qty is optional, if you leave it out it will give full stack)
+  /advloot shared <#(index) or "item name"> leave
+  Examples:
+  Lets say there is a stack of 4 spiderling silks in the first list item of the shared lootwindow
+  /advloot shared 1 giveto eqmule 1
+  /advloot shared 1 giveto rswiders
+  Will give 1 spiderling silks to eqmule
+  Will give the remaining 3 spiderling silk to rswiders (we didnt specify qty, so it just gave the rest)
+  /advloot shared "spiderling silk" leave
+  Will just leave the first "spiderling silk" it finds in the shared list on the corpse...
+  or /advloot shared 1 leave
+  Will just leave whatever is in list index 1 in the shared list on the corpse... (in our example spiderling silk)
+
+5 May 2015 by rswiders
+- Fixed bug with Me.AltAbility where it would not identify alt abilities that were granted but have
+  no cost associated.
+- Updated ItemDB.txt with new summoned items.
+
+2 May 2015 by rswiders
+- Added .TankMercCount, .HealerMercCount, .MeleeMercCount, CasterMercCount to the Group TLO
+
+30 Apr 2015 by rswiders
+- Fixed crash in MQ2Map when zoning with a custom filter
+
 29 Apr 2015 by eqmule
 - Updated for the latest LIVE client
 - Fixed /bzsrch command
@@ -13,6 +54,10 @@
 - Added PWantCount and SWantCount which counts the number of items in each list that has a checkmark
   in any of the need and greed boxes.
   Usage Example: /echo /if (${AdvLoot.SCount} && ${AdvLoot.SWantCount}) /advloot shared set ${Me.Name}
+
+24 Apr 2015 by rswiders
+- Allow any case of NULL, TRUE, FALSE to be accurately calculated by our evaluation used in math.calc (and therefore
+  in any IF condition.
 
 23 Apr 2015 by rswiders
 - Fixed missing ground spawn names on the map

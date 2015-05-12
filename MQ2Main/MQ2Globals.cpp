@@ -208,7 +208,7 @@ bool InitOffsets()
     ppTimeLeftWnd = (CTimeLeftWnd**)pinstCTimeLeftWnd;
     ppTextOverlay = (CTextOverlay**)pinstCTextOverlay;
     ppPotionBeltWnd = (CPotionBeltWnd**)pinstCPotionBeltWnd;
-	ppAdvLootWnd = (CAdvLootWnd**)pinstCAdvLootWnd;
+	ppAdvancedLootWnd = (CAdvancedLootWnd**)pinstCAdvancedLootWnd;
 	ppRewardSelectionWnd = (CRewardSelectionWnd**)pinstRewardSelectionWnd;
 	ppConfirmationDialog = (CConfirmationDialog**)pinstCConfirmationDialog;
 
@@ -1148,7 +1148,7 @@ CTaskSomething *ppTaskSomething=0;
 CTimeLeftWnd **ppTimeLeftWnd=0;
 CTextOverlay **ppTextOverlay=0;
 CPotionBeltWnd **ppPotionBeltWnd=0;
-CAdvLootWnd **ppAdvLootWnd = 0;
+CAdvancedLootWnd **ppAdvancedLootWnd = 0;
 CRewardSelectionWnd **ppRewardSelectionWnd = 0;
 CConfirmationDialog **ppConfirmationDialog=0;
 
@@ -1402,7 +1402,7 @@ INITIALIZE_EQGAME_OFFSET(pinstCTitleWnd);
 INITIALIZE_EQGAME_OFFSET(pinstCContextMenuManager);
 INITIALIZE_EQGAME_OFFSET(pinstCVoiceMacroWnd);
 INITIALIZE_EQGAME_OFFSET(pinstCHtmlWnd);
-INITIALIZE_EQGAME_OFFSET(pinstCAdvLootWnd);
+INITIALIZE_EQGAME_OFFSET(pinstCAdvancedLootWnd);
 INITIALIZE_EQGAME_OFFSET(pinstIconCache);
 INITIALIZE_EQGAME_OFFSET(pinstRewardSelectionWnd);
 
@@ -1427,6 +1427,8 @@ INITIALIZE_EQGAME_OFFSET(Expansion_HoT);
 INITIALIZE_EQGAME_OFFSET(__HelpPath);
 
 INITIALIZE_EQGAME_OFFSET(CAdvancedLootWnd__CAdvancedLootWnd);
+INITIALIZE_EQGAME_OFFSET(CAdvancedLootWnd__DoAdvLootAction);
+
 INITIALIZE_EQGAME_OFFSET(AltAdvManager__GetCalculatedTimer);
 INITIALIZE_EQGAME_OFFSET(AltAdvManager__IsAbilityReady);
 INITIALIZE_EQGAME_OFFSET(AltAdvManager__GetAltAbility);
@@ -1451,6 +1453,7 @@ INITIALIZE_EQGAME_OFFSET(CContextMenuManager__PopupMenu);
 INITIALIZE_EQGAME_OFFSET(CContextMenu__RemoveMenuItem);
 INITIALIZE_EQGAME_OFFSET(CContextMenu__RemoveAllMenuItems);
 INITIALIZE_EQGAME_OFFSET(CContextMenuManager__Flush);
+INITIALIZE_EQGAME_OFFSET(CContextMenuManager__GetMenu);
 
 INITIALIZE_EQGAME_OFFSET(CChatService__GetNumberOfFriends);
 INITIALIZE_EQGAME_OFFSET(CChatService__GetFriendName);

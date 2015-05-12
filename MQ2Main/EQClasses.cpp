@@ -976,6 +976,9 @@ FUNCTION_AT_ADDRESS(class CStmlWnd *  CChatWindow::GetOutputWnd(void),CChatWindo
 #ifdef CContextMenuManager__GetDefaultMenuIndex_x
 FUNCTION_AT_ADDRESS(int  CContextMenuManager::GetDefaultMenuIndex(void),CContextMenuManager__GetDefaultMenuIndex);
 #endif
+#ifdef CContextMenuManager__GetMenu_x
+FUNCTION_AT_ADDRESS(CContextMenu *CContextMenuManager::GetMenu(int), CContextMenuManager__GetMenu);
+#endif
 #ifdef CChatWindow__CChatWindow_x
 FUNCTION_AT_ADDRESS( CChatWindow::CChatWindow(class CXWnd *),CChatWindow__CChatWindow);
 #endif
@@ -3848,6 +3851,9 @@ FUNCTION_AT_ADDRESS(class engineInterface * __cdecl engineInterface::get(void),e
 #endif
 #ifdef engineInterface__ChangeDag_x
 FUNCTION_AT_ADDRESS(unsigned long *  engineInterface::ChangeDag(struct T3D_tagWORLD *,struct T3D_DAG *,char *),engineInterface__ChangeDag);
+#endif
+#ifdef CAdvancedLootWnd__DoAdvLootAction_x
+FUNCTION_AT_ADDRESS(DWORD CAdvancedLootWnd::DoAdvLootAction(DWORD, CXStr*, DWORD, DWORD), CAdvancedLootWnd__DoAdvLootAction);
 #endif
 #ifdef EQ_AltAbility__EQ_AltAbility_x
 FUNCTION_AT_ADDRESS( EQ_AltAbility::EQ_AltAbility(int),EQ_AltAbility__EQ_AltAbility);

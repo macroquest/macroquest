@@ -1,4 +1,3 @@
-1132	1	Tinker Wrench
 1348	1	Muzzle of Mardu
 1726	100	Shattering Hammer
 2441	20	Brell's Blessed Stout
@@ -94,6 +93,7 @@
 16506	20	Enchanted Gold Bar
 16507	20	Enchanted Platinum Bar
 16896	20	Large Block of Magic Clay
+16976	100	Crystallized Sulfur
 17149	1	Coffin Poison Bottle
 17162	1	Collapsible Mixing Bowl
 17163	1	Collapsible Tackle Box
@@ -121,6 +121,8 @@
 17770	1	Foldable Medicine Bag
 17771	1	Foldable Reinforced Medicine Bag
 17900	1	Grandmaster's Satchel
+18763	1	Sanguine Mind Crystal
+18764	1	Azure Mind Crystal
 20075	1	Elemental Blanket
 20151	232	Greater Insignia of Veeshan
 21602	1	Deeppocket Rapier
@@ -500,7 +502,7 @@
 60753	1	Compendiums on Advanced Weapon Creation Pt. III
 60754	1	Compendiums on Advanced Weapon Creation Pt. IV
 60938	1	Compendiums on Advanced Weapon Creation Pt. V
-64341	1	Stomple Basket
+64341	1	Stomples Basket
 64342	20	Toothed Kinder Egg
 64343	20	Striped Kinder Egg
 64344	20	Wavy Kinder Egg
@@ -512,6 +514,7 @@
 64351	200	Sugar Jelly Seeds
 64352	200	Rock Candy
 64353	100	Chocolate Bunny
+64356	20	Bunny-Thumper Mead
 64357	20	Egg Fortified Juice
 64360	1	Decorative Egg Package
 64361	100	Toothed Decorative Egg
@@ -624,6 +627,14 @@
 76534	1	Imperious Minion II
 76535	1	Imperious Minion III
 76890	20	Consigned Bite of the Shissar XVIII
+77442	1	Holy Steed
+77443	1	Unholy Steed
+77444	1	Valiant Steed
+77445	1	Abyssal Steed
+77446	1	Divine Steed
+77447	1	Steed of Souls
+77448	1	Hallowed Steed
+77449	1	Wicked Steed
 77507	1	Staff of the North Wind
 77508	1	Fireblade
 77509	1	Dagger of the Deep
@@ -635,6 +646,7 @@
 77515	1	Calliav's Glowing Bauble
 77516	1	Calliav's Steel Bracelet
 77517	1	Hammer of Reproach
+77593	1	Holy Warhorse
 77653	1	Sphere of Air
 77678	1	Molten Orb
 77679	20	Shadow Orb
@@ -669,13 +681,29 @@
 83439	100	Starfish Stones
 83440	100	Dreadstone
 83666	100	Frozen Heart Shard
+85480	1	Cauldron of Countless Goods
+85481	1	Cauldron of Countless Goods
+85482	1	Cauldron of Countless Goods
+85483	1	Tavon's Polished Gemstone
+85484	1	Brightedge
+85485	20	Aircrisp Apple
+85486	20	Ether-Fused Tea
+85487	1	Ether-Fused Shard
+85490	1	Tavon's Burnished Gemstone
+85491	1	Bulwark of Many Portals
+85492	1	Imprint of the Enhanced Minion
+85493	1	Exalted Tonic of Healing
 85799	1	Sanguine Mind Crystal
 85800	1	Azure Mind Crystal
 85829	20	Murky Globe of Water
 85830	20	Burned Black Bread
 87555	20	Eggnog
 87577	20	Hargar's Special Bait
+87972	50	Vest Throwing Knife
 88111	1	Silkfang Pack
+90491	1	Hammer of Reverence
+90492	1	Hammer of Reverence II
+90493	1	Hammer of Reverence III
 95199	1	Beginner Artisan Satchel
 95200	1	Apprentice Artisan Satchel
 95201	1	Freshman Artisan Satchel
@@ -683,6 +711,34 @@
 95203	1	Expert Artisan Satchel
 95204	1	Master Artisan Satchel
 96960	1	Artisan Satchel
+99780	100	Axe of the Demolisher
+99782	1	Wand of Pelagic Modulation
+99783	1	Wand of Pelagic Transvergence
+99788	1	Thalassic Plate Helm
+99789	1	Thalassic Plate Vambraces
+99790	1	Thalassic Plate Gauntlets
+99791	1	Thalassic Plate Boots
+99792	1	Thalassic Plate Bracers
+99793	1	Thalassic Plate Breastplate
+99794	1	Thalassic Plate Greaves
+99795	1	Thalassic Belt
+99796	1	Thalassic Shortsword
+99797	1	Thalassic Fireblade
+99798	1	Thalassic Iceblade
+99799	1	Thalassic Ragesword
+99800	1	Thalassic Mindblade
+99801	1	Antius' Satin Choker
+99802	1	Antius' Woven Shawl
+99803	1	Antius' Linked Bracelet
+99804	1	Antius' Gold Ring
+99805	1	Antius' Ridged Earhoop
+99806	1	Antius' Jade Bracelet
+99807	1	Folded Pack of Thalassic Plate
+99808	1	Folded Pack of Antius' Heirlooms
+99809	1	Folded Pack of Thalassic Armaments
+99810	1	Exigent Servant XXI
+99811	1	Exigent Servant XXI II
+99813	1	Exigent Minion XXI
 107807	20	Spiced Iced Tea
 109811	100	Clay-Bladed Dagger
 121336	100	Ethereal Arrow

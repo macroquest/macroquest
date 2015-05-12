@@ -662,6 +662,9 @@ public:
 		Secondary=110,
 		Equipment=111,
 		xTargetable=112,
+		PlayerState=113,
+		Stuck=114,
+		Aggressive=115,
 	};
     static enum SpawnMethods
     {
@@ -781,7 +784,10 @@ public:
 		TypeMember(Secondary);
 		TypeMember(Equipment);
 		AddMember(xTargetable,"Targetable");
-
+		TypeMember(PlayerState);
+		TypeMember(Stuck);
+		TypeMember(Aggressive);
+		
         TypeMethod(Target);
         TypeMethod(Face);
         TypeMethod(LeftClick);
@@ -3630,6 +3636,11 @@ public:
         AnyoneMissing=11,
 		Present = 12,
 		MercenaryCount = 13,
+		TankMercCount = 14,
+		HealerMercCount = 15,
+		MeleeMercCount = 16,
+		CasterMercCount = 17,
+
     };
     static enum GroupMethods
     {
@@ -3649,6 +3660,10 @@ public:
         TypeMember(AnyoneMissing);
 		TypeMember(Present);
 		TypeMember(MercenaryCount);
+		TypeMember(TankMercCount);
+		TypeMember(HealerMercCount);
+		TypeMember(MeleeMercCount);
+		TypeMember(CasterMercCount);
     }
 
     ~MQ2GroupType()

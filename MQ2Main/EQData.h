@@ -18,6 +18,12 @@ namespace EQData
 // Defines
 // ***************************************************************************
 
+#define AllClassesMASK		0xFFFF
+#define WarriorMASK			0x0001
+#define ClericMASK			0x0002
+#define RogueMASK			0x0100
+#define WizardMASK			0x0400
+
 enum PlayerClass
 {
     Unknown=                            0,
@@ -341,6 +347,8 @@ typedef struct _BodyInfo
 #define ToggleBit(field,bit)            field^=bit;
 #define BitOn(field,bit)                field|=bit;
 #define BitOff(field,bit)               field&=~bit;
+#define BitSet(field,n)					field|=(1<<n);
+#define BitClear(field,n)				field&=~(1<<n);
 // End CXWnd WindowStyle Defines
 
 #define ALTCURRENCY_DOUBLOONS           0xa
@@ -1335,7 +1343,7 @@ typedef struct _SPAWNINFO {
 /*0x00a2*/ BYTE         Unknown0x00a2[0x2];
 /*0x00a4*/ CHAR         Name[0x40];             // ie priest_of_discord00
 /*0x00e4*/ CHAR         DisplayedName[0x40];    // ie Priest of Discord
-/*0x0124*/ BYTE         Unknown0x0124;
+/*0x0124*/ BYTE         PossiblyStuck;			//never seen this be 1 so maybe it was used a a point but not now...
 /*0x0125*/ BYTE         Type;
 /*0x0126*/ BYTE         Unknown0x0126[0x2];
 /*0x0128*/ DWORD**      BodyType;
@@ -1345,7 +1353,7 @@ typedef struct _SPAWNINFO {
 /*0x0140*/ FLOAT        AvatarHeight2;          // height of avatar from groundwhen crouched/sitting
 /*0x0144*/ BYTE         Unknown0x0144[0x4];
 /*0x0148*/ DWORD        SpawnID;
-/*0x014c*/ BYTE         Unknown0x014c[0x4];
+/*0x014c*/ DWORD        PlayerState;			//0=Idle 1=Open 2=WeaponSheathed 4=Aggressive 8=ForcedAggressive 0x10=InstrumentEquipped 0x20=Stunned 0x40=PrimaryWeaponEquipped 0x80=SecondaryWeaponEquipped
 /*0x0150*/ DWORD        IsABoat;                // 1 = a type of boat
 /*0x0154*/ struct _SPAWNINFO*   Mount;      // NULL if no mount present
 /*0x0158*/ struct _SPAWNINFO*   Rider;      // _SPAWNINFO of mount's rider
@@ -1853,13 +1861,12 @@ typedef struct _SKILL {
 /*0x004*/  PVOID  pUnknown0x4;
 /*0x008*/  DWORD  nName;
 /*0x00c*/  DWORD  ReuseTimer;
-/*0x010*/  DWORD  Unknown0x10;
-/*0x014*/  CHAR   AltTimer;          //compare to 2 all over.. alternate timer?
-/*0x015*/  BYTE   Unknown0x15[0x3];
+/*0x010*/  DWORD  BaseDamage;
+/*0x014*/  DWORD  SkillCombatType;   //0 means not a Combat Skill
 /*0x018*/  DWORD  Unknown0x18;
-/*0x01c*/  DWORD  Unknown0x1c;
+/*0x01c*/  FLOAT  Force;
 /*0x020*/  bool   Activated;
-/*0x021*/  CHAR   Unknown0x21;
+/*0x021*/  BYTE   LevelCappedSkill;
 /*0x022*/  BYTE   Unknown0x22[0x2];
 /*0x024*/  DWORD  MinLevel[0x24];
 /*0x0b4*/  DWORD  Available[0x24];   //FF=not available for that class

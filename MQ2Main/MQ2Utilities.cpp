@@ -4763,7 +4763,7 @@ BOOL FastCalculate(PCHAR szFormula, DOUBLE &Result)
 BOOL Calculate(PCHAR szFormula, DOUBLE &Result) 
 {
     CHAR Buffer[MAX_STRING]={0};
-    strcpy(Buffer,szFormula);
+    strupr(strcpy(Buffer,szFormula));
     while(PCHAR pNull=strstr(Buffer,"NULL"))
     {
         pNull[0]='0';
@@ -7535,6 +7535,7 @@ DWORD GetSpellRankByName(PCHAR SpellName)
 		return 3;
 	return 0;
 }
+
 VOID RemoveBuff(PSPAWNINFO pChar, PCHAR szLine)
 {
 	if(szLine && szLine[0]!='\0') {
@@ -7813,7 +7814,7 @@ BOOL IsActiveAA(PCHAR pSpellName)
 }
 CXWnd *GetAdvLootPersonalListItem(DWORD id,DWORD type)
 {
-	if(CListWnd *clist = (CListWnd *)pAdvLootWnd->GetChildItem("ADLW_PLLList")) {
+	if (CListWnd *clist = (CListWnd *)pAdvancedLootWnd->GetChildItem("ADLW_PLLList")) {
 		PCSIDLWND pFirstWnd = clist->pFirstChildWnd;
 		PCSIDLWND pNextWnd = pFirstWnd;
 		PPersonal_Loot pPAdvLoot = new Personal_Loot;
@@ -7870,7 +7871,7 @@ CXWnd *GetAdvLootPersonalListItem(DWORD id,DWORD type)
 }
 CXWnd *GetAdvLootSharedListItem(DWORD id,DWORD type)
 {
-	if(CListWnd *clist = (CListWnd *)pAdvLootWnd->GetChildItem("ADLW_CLLList")) {
+	if (CListWnd *clist = (CListWnd *)pAdvancedLootWnd->GetChildItem("ADLW_CLLList")) {
 		PCSIDLWND pFirstWnd = clist->pFirstChildWnd;
 		PCSIDLWND pNextWnd = pFirstWnd;
 		PShared_Loot pSAdvLoot = new Shared_Loot;
@@ -7943,6 +7944,9 @@ CXWnd *GetAdvLootSharedListItem(DWORD id,DWORD type)
 					break;
 				case 11:
 					ptr = (CXWnd*)pSAdvLoot->NO;
+					break;
+				case 12://root
+					ptr = (CXWnd*)pSAdvLoot->Item;
 					break;
 				}
 				delete pSAdvLoot;

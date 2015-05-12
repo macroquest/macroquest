@@ -754,7 +754,7 @@ DWORD MapHighlight(SEARCHSPAWN *pSearch)
     else
     {
         PCHARINFO pCharInfo=GetCharInfo();
-        if (!pCharInfo)
+		if (!pCharInfo || !pCharInfo->pSpawn)
             return 0;
         PMAPSPAWN pMapSpawn=pActiveSpawns;
         unsigned long Count=0;
@@ -849,8 +849,9 @@ BOOL CanDisplaySpawn(eSpawnType Type, PSPAWNINFO pSpawn)
     }
     if (IsOptionEnabled(MAPFILTER_Custom))
     {
-        if (PCHARINFO pCharInfo=GetCharInfo())
-            return SpawnMatchesSearch(&MapFilterCustom,pCharInfo->pSpawn,pSpawn);
+		if (PCHARINFO pCharInfo=GetCharInfo())
+			if (pCharInfo->pSpawn)
+	            return SpawnMatchesSearch(&MapFilterCustom,pCharInfo->pSpawn,pSpawn);
     }
     switch(Type)
     {
@@ -998,7 +999,7 @@ PMAPLINE GenerateVector(PMAPSPAWN pMapSpawn)
 DWORD MapHide(SEARCHSPAWN &Search)
 {
     PCHARINFO pCharInfo=GetCharInfo();
-    if (!pCharInfo)
+	if (!pCharInfo || !pCharInfo->pSpawn)
         return 0;
     PMAPSPAWN pMapSpawn=pActiveSpawns;
     unsigned long Count=0;

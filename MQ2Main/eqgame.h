@@ -271,7 +271,7 @@ GNU General Public License for more details.
 #define pinstCHtmlWnd_x                                            0x10248E8
 #define pinstIconCache_x                                           0x113204C
 #define pinstCTradeskillWnd_x                                      0x1137CB8
-#define pinstCAdvLootWnd_x                                         0xEDDB58
+#define pinstCAdvancedLootWnd_x                                    0xEDDB58
 #define pinstRewardSelectionWnd_x                                  0x1136338
 
 //// 
@@ -302,6 +302,7 @@ GNU General Public License for more details.
 //// 
 // CAdvancedLootWnd
 #define CAdvancedLootWnd__CAdvancedLootWnd_x                       0x41ED50
+#define CAdvancedLootWnd__DoAdvLootAction_x                        0x419BB0
 
 // AltAdvManager 
 #define AltAdvManager__GetCalculatedTimer_x                        0x4C0830
@@ -334,6 +335,7 @@ GNU General Public License for more details.
 #define CContextMenuManager__RemoveMenu_x                          0x8B9530
 #define CContextMenuManager__PopupMenu_x                           0x8B9980
 #define CContextMenuManager__Flush_x                               0x8B9260
+#define CContextMenuManager__GetMenu_x                             0x4151F0
 
 // CChatService
 #define CChatService__GetNumberOfFriends_x                         0x843390

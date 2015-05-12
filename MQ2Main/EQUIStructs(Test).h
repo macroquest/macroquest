@@ -813,14 +813,15 @@ typedef struct _LOOTLIST
 }LOOTLIST,*PLOOTLIST;
 
 //size 0x2DC see 4B7A59 in Apr 15 2015 test -eqmule
-typedef struct _EQADVLOOTWND
-{
+typedef struct _EQADVLOOTWND {
 	/*0x000*/ struct _CSIDLWND     Wnd;
-	/*0x224*/ BYTE	Unknown0x0224[0x90];
-	/*0x2b4*/ struct _LOOTLIST *pCLootList;
-	/*0x2b8*/ struct _LOOTLIST *pPLootList;
-	/*0x2bc*/ BYTE		Unknown0x2bc[0x20];
-	/*0x2dc*/
+	/*0x21c*/ BYTE	Unknown0x021c[0x90];
+	/*0x2ac*/ struct _LOOTLIST *pCLootList;//below ref to aAdlw_applyfilt
+	/*0x2b0*/ struct _LOOTLIST *pPLootList;//below ref to aAdlw_cllwnd
+	/*0x2b4*/ BYTE		Unknown0x2b4[0x14];
+	/*0x2c8*/ DWORD		ContextMenuId;
+	/*0x2cc*/ BYTE		Unknown0x2cc[0x8];
+	/*0x2d4*/
 } EQADVLOOTWND,*PEQADVLOOTWND;
 
 /********************************************** AUTO CORRECTED *******************************************/
