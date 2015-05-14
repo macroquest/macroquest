@@ -1,4 +1,10 @@
-7 May 2015 by EqMule & demonstar55
+13 May 2015 by EqMule
+- Added .IconID to the AdvlootItemType TLO it returns an int
+  usage: /echo ${AdvLoot.PList[1].IconID}
+- Added .UseAdvancedLooting to the character TLO it returns TRUE if advanced looting is turned on otherwise FALSE
+  Usage: /echo ${Me.UseAdvancedLooting}
+
+07 May 2015 by EqMule & demonstar55
 - AltTimer in the _SKILL struct has been renamed to (the correct name) SkillCombatType (whatever that is...)
 - Added .Stuck to the SpawnType TLO, i never seen it return TRUE, so more testing is needed...
 - Added .PlayerState to the SpawnType TLO, it returns a mask as an inttype which has the following meaning:
@@ -28,12 +34,12 @@
   or /advloot shared 1 leave
   Will just leave whatever is in list index 1 in the shared list on the corpse... (in our example spiderling silk)
 
-5 May 2015 by rswiders
+05 May 2015 by rswiders
 - Fixed bug with Me.AltAbility where it would not identify alt abilities that were granted but have
   no cost associated.
 - Updated ItemDB.txt with new summoned items.
 
-2 May 2015 by rswiders
+02 May 2015 by rswiders
 - Added .TankMercCount, .HealerMercCount, .MeleeMercCount, CasterMercCount to the Group TLO
 
 30 Apr 2015 by rswiders

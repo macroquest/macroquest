@@ -941,7 +941,9 @@ typedef struct _CHARINFO {
 /*0x1b18*/ DWORD        Exp;
 /*0x1b1c*/ BYTE         Unknown0x1b1c[0x64];
 /*0x1b80*/ void*        PlayerPointManager;
-/*0x1b84*/ BYTE         Unknown0x1b84[0x3c4];
+/*0x1b84*/ BYTE         Unknown0x1b84[0x156];
+/*0x1cda*/ BYTE         UseAdvancedLooting;			//0=off 1=on
+/*0x1cdb*/ BYTE         Unknown0x1cdb[0x26d];
 /*0x1f48*/ DWORD        MercAAExp;// divide this with 3.30f and you get the percent - eqmule
 /*0x1f4c*/ BYTE         Unknown0x1f4c[0x4];
 /*0x1f50*/ DWORD        MercAAPoints;//number of unspent merc AA points

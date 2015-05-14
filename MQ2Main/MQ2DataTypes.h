@@ -1052,6 +1052,7 @@ public:
 		InInstance=208,
 		Instance=209,
 		MercListInfo=210,
+		UseAdvancedLooting=211,
     };
     static enum CharacterMethods
     {
@@ -1261,7 +1262,8 @@ public:
 		TypeMember(InInstance);
 		TypeMember(Instance);
 		TypeMember(MercListInfo);
-
+		TypeMember(UseAdvancedLooting);
+		
         TypeMethod(Stand); 
         TypeMethod(Sit); 
         TypeMethod(Dismount); 
@@ -4488,6 +4490,7 @@ public:
 		AlwaysNeed=11,
 		AlwaysGreed=12,
 		Never = 13,
+		IconID = 14,
     };
     static enum MQ2AdvLootItemMethods
     {
@@ -4507,6 +4510,7 @@ public:
 		TypeMember(AlwaysNeed);
 		TypeMember(AlwaysGreed);
 		TypeMember(Never);
+		TypeMember(IconID);
     }
 
     ~MQ2AdvLootItemType()

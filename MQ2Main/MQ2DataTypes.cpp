@@ -3962,6 +3962,10 @@ bool MQ2CharacterType::GETMEMBER()
 			}
 			return false;
 		}
+	case UseAdvancedLooting:
+		Dest.DWord = pChar->UseAdvancedLooting;
+		Dest.Type = pBoolType;
+		return true;
 	}
     return false;
 #undef pChar
@@ -9450,6 +9454,13 @@ bool MQ2AdvLootItemType::GETMEMBER()
 		if (pItem) {
 			Dest.Type = pBoolType;
 			Dest.DWord = pItem->Never;
+			return true;
+		}
+		return false;
+	case IconID:
+		if (pItem) {
+			Dest.Type = pIntType;
+			Dest.DWord = pItem->IconID;
 			return true;
 		}
 		return false;

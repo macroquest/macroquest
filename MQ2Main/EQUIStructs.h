@@ -788,7 +788,8 @@ typedef struct _LOOTITEM
 {
 	/*0x00*/ DWORD	ItemID;
 	/*0x04*/ CHAR	Name[0x40];
-	/*0x44*/ BYTE	Unknown0x44[0x28];
+	/*0x44*/ DWORD	IconID;
+	/*0x48*/ BYTE   Unknown0x48[0x24];
 	/*0x6c*/ struct _LOOTDETAILS	*LootDetails;
 	/*0x70*/ BYTE	Unknown0x70[0xc];
 	/*0x7c*/ BYTE	AutoRoll;
