@@ -1,3 +1,7 @@
+23 May 2015 by EqMule
+- Fixed ${Me.DSed} and ${Me.RevDSed} crashes thanks to klaarg for the bug report
+- consolidated some other stuff and eventrelated things
+
 19 May 2015 by EqMule
 - Updated for today's LIVE and BETA patches.
 

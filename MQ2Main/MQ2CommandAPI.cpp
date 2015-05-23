@@ -57,6 +57,7 @@ PMACROBLOCK GetWhileBlock(DWORD line)
 }
 VOID HideDoCommand(PSPAWNINFO pChar, PCHAR szLine, BOOL delayed)
 {
+	WeDidStuff();
     if (delayed)
     {
         PCHATBUF pChat = (PCHATBUF)malloc(sizeof(CHATBUF));

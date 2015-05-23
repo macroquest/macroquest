@@ -138,7 +138,7 @@ public:
 					//player has a item on his cursor and clicked targetwindow, he wants to trade with target...
 					if(PITEMINFO pItem = GetItemFromContents(pChar2->pInventoryArray->Inventory.Cursor)) {
 						pEverQuest->LeftClickedOnPlayer(pTarget); 
-						gMouseEventTime = GetFastTime();
+						WeDidStuff();
 						//WriteChatf("Player wants to give a %s to %s",pItem->Name,((PSPAWNINFO)pTarget)->Name);
 					}
 				}
@@ -657,7 +657,7 @@ bool SendWndClick2(CXWnd *pWnd, PCHAR ClickNotification)
             default:
                 return false;
             };
-            gMouseEventTime = GetFastTime();
+            WeDidStuff();
             return true;
         }
     }
@@ -775,7 +775,7 @@ bool SendWndClick(PCHAR WindowName, PCHAR ScreenID, PCHAR ClickNotification)
             default:
                 return false;
             };
-            gMouseEventTime = GetFastTime();
+            WeDidStuff();
             return true;
         }
     }
@@ -808,7 +808,7 @@ bool SendListSelect(PCHAR WindowName, PCHAR ScreenID, DWORD Value)
             CXPoint pt = rect.CenterPoint();
 			pList->HandleLButtonDown(&pt,0);
 			pList->HandleLButtonUp(&pt,0);
-            gMouseEventTime = GetFastTime();
+            WeDidStuff();
         }
         else if (pList->GetType()==UI_Combobox)
         {
@@ -822,7 +822,7 @@ bool SendListSelect(PCHAR WindowName, PCHAR ScreenID, DWORD Value)
 			CXPoint listpt=listrect.CenterPoint();
 			((CXWnd*)pListWnd)->HandleLButtonDown(&listpt,0);
 			((CXWnd*)pListWnd)->HandleLButtonUp(&listpt,0);            
-            gMouseEventTime = GetFastTime();
+            WeDidStuff();
         }
         else
         {
@@ -847,7 +847,7 @@ bool SendListSelect2(CXWnd *pList, DWORD ListIndex)
 		CXPoint pt = rect.CenterPoint();
 		pList->HandleLButtonDown(&pt, 0);
 		pList->HandleLButtonUp(&pt, 0);
-		gMouseEventTime = GetFastTime();
+		WeDidStuff();
 		return true;
 	} else if (pList->GetType() == UI_Combobox)	{
 		CXRect comborect = pList->GetScreenRect();
@@ -860,7 +860,7 @@ bool SendListSelect2(CXWnd *pList, DWORD ListIndex)
 		CXPoint listpt = listrect.CenterPoint();
 		((CXWnd*)pListWnd)->HandleLButtonDown(&listpt, 0);
 		((CXWnd*)pListWnd)->HandleLButtonUp(&listpt, 0);
-		gMouseEventTime = GetFastTime();
+		WeDidStuff();
 		return true;
 	} else {
 		MacroError("Window was neiter a UI_Listbox nor a UI_Combobox");
@@ -897,7 +897,7 @@ bool SendComboSelect(PCHAR WindowName, PCHAR ScreenID, DWORD Value)
 			CXPoint listpt=listrect.CenterPoint();
 			((CXWnd*)pListWnd)->HandleLButtonDown(&listpt,0);
 			((CXWnd*)pListWnd)->HandleLButtonUp(&listpt,0);
-            gMouseEventTime = GetFastTime();
+            WeDidStuff();
         }
         else
         {
@@ -928,7 +928,7 @@ bool SendTabSelect(PCHAR WindowName, PCHAR ScreenID, DWORD Value)
         if (((CXWnd*)pTab)->GetType()==UI_TabBox)
         {
             pTab->SetPage(Value,true, true);//this needs to be checked... 03 dec 2013 -eqmule
-            gMouseEventTime = GetFastTime();
+            WeDidStuff();
         }
         else
         {
@@ -964,8 +964,7 @@ bool SendWndNotification(PCHAR WindowName, PCHAR ScreenID, DWORD Notification, V
 		((CSliderWnd*)(pButton))->SetValue((int)Data);
 	}
     ((CXWnd*)(pWnd))->WndNotification(pButton,Notification,Data);
-    gMouseEventTime = GetFastTime();
-
+    WeDidStuff();
     return true;
 }
 

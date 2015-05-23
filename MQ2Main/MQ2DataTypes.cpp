@@ -3904,19 +3904,27 @@ bool MQ2CharacterType::GETMEMBER()
         Dest.Type=pBoolType;
         return true;
 	case DSed:
-		if ((Dest.Int=GetSelfBuffBySPA(59,1))!=-1)//Damage Shield
+	{
+		int nBuff = -1;
+		if ((nBuff=GetSelfBuffBySPA(59,1))!=-1)//Damage Shield
         {
+			Dest.Ptr=&GetCharInfo2()->Buff[nBuff];
             Dest.Type=pBuffType;
             return true;
         }
 		break;
+	}
 	case RevDSed:
-		if ((Dest.Int=GetSelfBuffBySPA(121,1))!=-1)//Reverse Damage Shield
+	{
+		int nBuff = -1;
+		if ((nBuff=GetSelfBuffBySPA(121,1))!=-1)//Reverse Damage Shield
         {
+			Dest.Ptr=&GetCharInfo2()->Buff[nBuff];
             Dest.Type=pBuffType;
             return true;
         }
 		break;
+	}
 	case InInstance:
         Dest.DWord = false;
         if (pLocalPlayer && ((PSPAWNINFO)pLocalPlayer)->Instance) 

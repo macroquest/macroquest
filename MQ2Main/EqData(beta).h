@@ -1130,7 +1130,7 @@ typedef struct _CHARINFO2 {
 /*0x8a44*/ BYTE         Unknown0x8a44[0x100c];
 /*0x9a50*/ DWORD        AAPointsSpent;
 /*0x9a54*/ DWORD        AAPointsAssigned;
-/*0x9a58*/ DWORD        Unknown0x9a58[0x40];
+/*0x9a58*/ BYTE         Unknown0x9a58[0x40];
 /*0x9a98*/
 } CHARINFO2, *PCHARINFO2;
 

@@ -72,6 +72,7 @@ GNU General Public License for more details.
 #define __Mouse_x                                                  0x1137004
 #define __MouseLook_x                                              0xFA569E
 #define __MouseEventTime_x                                         0x102A38C
+#define __gpbCommandEvent_x                                        0xF985C4
 #define __NetStatusToggle_x                                        0xFA56A1
 #define __PCNames_x                                                0xFA6B64
 #define __RangeAttackReady_x                                       0xFA6828

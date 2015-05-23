@@ -62,6 +62,7 @@ bool InitOffsets()
     gpAutoFire = (PBYTE)__Autofire;
     gpShiftKeyDown = (PBYTE)__ShiftKeyDown; // addr+1=ctrl, addr+2=alt
     gpMouseEventTime = (DWORD*)__MouseEventTime;
+	gpbCommandEvent = (DWORD*)__gpbCommandEvent;
 
     EQADDR_GWORLD = (PVOID)__gWorld;
     EQADDR_DOABILITYLIST = (PDWORD)__DoAbilityList;
@@ -995,6 +996,7 @@ PBYTE pTributeActive=0;
 PBYTE gpAutoFire=0;
 PBYTE gpShiftKeyDown=0; // addr+1=ctrl, addr+2=alt
 DWORD *gpMouseEventTime=0;
+DWORD *gpbCommandEvent=0;
 BOOL gbTimeStampChat=0;
 BOOL gbBeepOnTells=0;
 
@@ -1217,6 +1219,7 @@ INITIALIZE_EQGAME_OFFSET(__LoginName);
 INITIALIZE_EQGAME_OFFSET(__Mouse);
 INITIALIZE_EQGAME_OFFSET(__MouseLook);
 INITIALIZE_EQGAME_OFFSET(__MouseEventTime);
+INITIALIZE_EQGAME_OFFSET(__gpbCommandEvent);
 INITIALIZE_EQGAME_OFFSET(__NetStatusToggle);
 INITIALIZE_EQGAME_OFFSET(__PCNames);
 INITIALIZE_EQGAME_OFFSET(__RangeAttackReady);

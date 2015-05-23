@@ -534,7 +534,7 @@ void SetComboSelection(CSidlScreenWnd*pCombo, DWORD index) {
 		CXPoint listpt = listrect.CenterPoint();
 		((CXWnd*)pListWnd)->HandleLButtonDown(&listpt, 0);
 		((CXWnd*)pListWnd)->HandleLButtonUp(&listpt, 0);
-		gMouseEventTime = GetFastTime();
+		WeDidStuff();
 	}
 }
 void DoClass(PCHAR szArg)

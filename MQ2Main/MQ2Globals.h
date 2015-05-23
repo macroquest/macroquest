@@ -248,6 +248,8 @@ EQLIB_VAR PBYTE gpShiftKeyDown;
 #define gShiftKeyDown (*gpShiftKeyDown)
 EQLIB_VAR DWORD *gpMouseEventTime;
 #define gMouseEventTime (*gpMouseEventTime)
+EQLIB_VAR DWORD *gpbCommandEvent;
+#define gbCommandEvent (*gpbCommandEvent)
 
 EQLIB_VAR DWORD *g_ppDrawHandler;
 #define g_pDrawHandler (*g_ppDrawHandler)
@@ -709,6 +711,7 @@ EQLIB_VAR DWORD __LoginName;
 EQLIB_VAR DWORD __Mouse;
 EQLIB_VAR DWORD __MouseLook;
 EQLIB_VAR DWORD __MouseEventTime;
+EQLIB_VAR DWORD __gpbCommandEvent;
 EQLIB_VAR DWORD __NetStatusToggle;
 EQLIB_VAR DWORD __PCNames;
 EQLIB_VAR DWORD __RangeAttackReady;

@@ -7599,7 +7599,7 @@ DWORD __stdcall RefreshMountKeyRingThread(PVOID pData)
 			}
 			if(CTabWnd *pTab = (CTabWnd*)((CSidlScreenWnd*)(krwnd))->GetChildItem("IW_Subwindows")) {
 				pTab->SetPage(6,true, true);//tab 6 is the mount key ring tab...
-				gMouseEventTime = GetFastTime();
+				WeDidStuff();
 			}
 			if(CListWnd *clist = (CListWnd*)krwnd->GetChildItem("IW_Mounts_MountList")) {
 				ULONGLONG now = MQGetTickCount64();
@@ -7965,6 +7965,11 @@ CXWnd *GetAdvLootSharedListItem(DWORD id,DWORD type)
 		}
 	}
 	return NULL;
+}
+void WeDidStuff()
+{
+	gbCommandEvent = 1;
+	gMouseEventTime = GetFastTime();
 }
 //                                                                                               //
 ///////////////////////////////////////////////////////////////////////////////////////////////////

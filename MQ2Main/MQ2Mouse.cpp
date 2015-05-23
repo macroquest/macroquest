@@ -116,7 +116,7 @@ VOID ClickMouse(DWORD button)
 
    gMouseClickInProgress[button] = TRUE;
 
-   gMouseEventTime = GetFastTime();
+   WeDidStuff();
    PMOUSESPOOF pData = (PMOUSESPOOF)malloc(sizeof(MOUSESPOOF));
    pData->mdType = (MOUSE_DATA_TYPES)mdType;
    pData->dwData = 0x00;
@@ -254,10 +254,10 @@ VOID Click(PSPAWNINFO pChar, PCHAR szLine)
             } 
             if (!strnicmp(szArg1, "left", 4)) { 
                 pEverQuest->LeftClickedOnPlayer(pTarget); 
-                gMouseEventTime = GetFastTime();
+                WeDidStuff();
             } else if (!strnicmp(szArg1, "right", 5)) { 
                 pEverQuest->RightClickedOnPlayer(pTarget, 0); 
-                gMouseEventTime = GetFastTime();
+                WeDidStuff();
             } 
             return;
         } else if(!strnicmp(szMouseLoc,"center",6)) {
