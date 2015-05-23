@@ -1289,12 +1289,20 @@ VOID GetItemLinkHash(PCONTENTS Item, PCHAR Buffer)
     ((EQ_Item*)Item)->CreateItemTagString(Buffer, 256);
 }
 
-VOID GetItemLink(PCONTENTS Item, PCHAR Buffer)
+BOOL GetItemLink(PCONTENTS Item, PCHAR Buffer, BOOL Clickable)
 {
-    char hash[256];
-    ((EQ_Item*)Item)->CreateItemTagString(hash, 256);
-    sprintf(Buffer,"%c0%s%s%c",0x12,hash,GetItemFromContents(Item)->Name,0x12);
+	char hash[512] = {0};
+	bool retVal = FALSE;
+    ((EQ_Item*)Item)->CreateItemTagString(hash, 512);
+	if (hash[0]) {
+	    if (Clickable) 
+			sprintf(Buffer,"%c0%s%s%c",0x12,hash,GetItemFromContents(Item)->Name,0x12);
+		else 
+			sprintf(Buffer,"0%s%s",hash,GetItemFromContents(Item)->Name);
+		retVal = TRUE;
+	}
     DebugSpew("GetItemLink() returns '%s'",&Buffer[0]);
+	return retVal;
 }
 
 PCHAR GetLoginName() 

@@ -5840,6 +5840,13 @@ bool MQ2ItemType::GETMEMBER()
 		Dest.DWord=GetItemFromContents(pItem)->Expendable;
         Dest.Type=pBoolType;
         return true;
+	case ItemLink:
+		if (GetItemLink(pItem, DataTypeTemp, FALSE)) {
+			Dest.Ptr = &DataTypeTemp[0];
+			Dest.Type = pStringType;
+			return true;
+		}
+		return false;
     }
     return false;
 #undef pItem

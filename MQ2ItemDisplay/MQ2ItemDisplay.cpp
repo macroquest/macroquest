@@ -37,14 +37,17 @@ void AddGearScores(PCONTENTS pSlot,ITEMINFO *pItem,char *out,char *br);
 
 extern "C" {
     __declspec(dllexport) ITEMINFO g_Item;
-    CONTENTS g_Contents;
+	CONTENTS g_Contents = { 0 };
 }
 
 BOOL dataLastItem(PCHAR szName, MQ2TYPEVAR &Ret)
 {
-    Ret.Ptr=&g_Contents;
-    Ret.Type=pItemType;
-    return true;
+	if (g_Contents.vtable) {
+		Ret.Ptr = &g_Contents;
+		Ret.Type = pItemType;
+		return true;
+	}
+	return false;
 }
 
 // *************************************************************************** 

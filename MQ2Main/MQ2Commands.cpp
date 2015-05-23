@@ -2637,7 +2637,7 @@ VOID BankList(PSPAWNINFO pChar, PCHAR szLine)
     }
     WriteChatColor("Listing of Bank Inventory",USERCOLOR_DEFAULT);
     WriteChatColor("-------------------------",USERCOLOR_DEFAULT);
-    char Link[256];
+	char Link[512] = { 0 };
     for (int a=0;a<NUM_BANK_SLOTS;a++) {
 		if (pCharInfo->pBankArray) pContainer=pCharInfo->pBankArray->Bank[a];
         if (pContainer) {

@@ -43,8 +43,11 @@ GNU General Public License for more details.
 #include <sys/stat.h>
 #include <winsock.h>
 #include <math.h>
-#include <map>
 #include <list>
+#include <map>
+#include <queue>
+#include <set>
+#include <stack>
 #include <string>
 #include <algorithm>
 using namespace std;
@@ -509,7 +512,7 @@ EQLIB_API PEQCONTAINERWINDOW FindContainerForContents(PCONTENTS pContents);
 EQLIB_API FLOAT FindSpeed(PSPAWNINFO pSpawn);
 EQLIB_API BOOL IsNamed(PSPAWNINFO pSpawn);
 EQLIB_API VOID GetItemLinkHash(PCONTENTS Item, PCHAR Buffer);
-EQLIB_API VOID GetItemLink(PCONTENTS Item, PCHAR Buffer);
+EQLIB_API BOOL GetItemLink(PCONTENTS Item, PCHAR Buffer, BOOL Clickable=TRUE);
 EQLIB_API VOID SendEQMessage(DWORD PacketType, PVOID pData, DWORD Length);
 EQLIB_API PCHAR GetLoginName();
 EQLIB_API FLOAT DistanceToPoint(PSPAWNINFO pSpawn, FLOAT xLoc, FLOAT yLoc);

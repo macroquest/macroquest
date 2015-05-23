@@ -1754,7 +1754,8 @@ public:
 		NoDestroy=141,
 		Quest=142,
 		Expendable=143,
-		ContAddress=144,
+		ContAddress = 144,
+		ItemLink = 145,
     };
     static enum ItemMethods
     {
@@ -1905,6 +1906,7 @@ public:
 		TypeMember(Quest);
 		TypeMember(Expendable);
 		TypeMember(ContAddress);
+		TypeMember(ItemLink);
     }
 
     ~MQ2ItemType()

@@ -209,6 +209,9 @@ MQ2Main\EQUIStructs.h
 MQ2Main\EQData(Test).h
 MQ2Main\eqgame(Test).h
 MQ2Main\EQUIStructs(Test).h
+MQ2Main\EQData(Beta).h
+MQ2Main\eqgame(Beta).h
+MQ2Main\EQUIStructs(Beta).h
 MQ2Main\ISXEQ.vcxproj
 MQ2Main\ISXEQ.vcxproj.filters
 MQ2Main\itemtypes.h

@@ -1,8 +1,23 @@
+16 May 2015 by EqMule
+- Updated TEST and BETA builds.
+- Fixed an issue with the TEST build which prevented it from building correctly.
+- Fixed a ctd in ${DisplayItem} if used after a /unload and reinject but no item displayed. reporter: rswiders
+- Added ItemLink to the Item TLO it just prints the actual hexlink for an item (not clickable)
+  this is useful for when creating hotbuttons with links in them manually...
+  Usage: /echo ${Cursor.ItemLink}
+
+15 May 2015 by rswiders
+- Updated GetItemLink to return a clickable or non-clickable link based on a parameter.
+
 13 May 2015 by EqMule
-- Added .IconID to the AdvlootItemType TLO it returns an int
+- Added .IconID to the AdvlootItemType TLO it returns an int - cred randyleo
   usage: /echo ${AdvLoot.PList[1].IconID}
-- Added .UseAdvancedLooting to the character TLO it returns TRUE if advanced looting is turned on otherwise FALSE
+- Added .UseAdvancedLooting to the character TLO it returns TRUE if advanced looting is turned on otherwise FALSE -cred maskoi
   Usage: /echo ${Me.UseAdvancedLooting}
+
+12 May 2015 by rswiders
+- Corrected GetSpellByID to return NULL when the spell is not found. (necessary to fix mq2cast, where it tries to cast
+  an item that is not a clicky item and causes a CTD).
 
 07 May 2015 by EqMule & demonstar55
 - AltTimer in the _SKILL struct has been renamed to (the correct name) SkillCombatType (whatever that is...)
