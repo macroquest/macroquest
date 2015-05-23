@@ -1875,15 +1875,17 @@ typedef struct _SKILLMGR {
 } SKILLMGR, *PSKILLMGR;
 
 //actual size 0x3a8 11-15-11  ieatacid
+//actual size ? last checked by rlane187 may 19 2015
 typedef struct _GUILDMEMBER {
 /*0x000*/ struct  _GUILDMEMBER *pNext;
 /*0x004*/ BYTE    Online;
 /*0x005*/ BYTE    Unknown0x5[0x3];
 /*0x008*/ WORD    ZoneID;
 /*0x00a*/ WORD    Instance;
-/*0x00c*/ BYTE    Unknown0xc[0x5];
-/*0x011*/ CHAR    Name[0x40];
-/*0x054*/ DWORD   Level;
+/*0x00C*/ BYTE	  Unknown0xC[0x6];
+/*0x012*/ CHAR	  Name[0x40];
+/*0x052*/ BYTE	  Unknown0x52[0x2];
+/*0x054*/ DWORD	  Level;
 /*0x058*/ DWORD   Flags; //1=banker, 2=alt
 /*0x05c*/ DWORD   Class;
 /*0x060*/ DWORD   Rank; //0=member 1=officer 2=leader
