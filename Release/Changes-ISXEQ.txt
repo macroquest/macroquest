@@ -1,3 +1,6 @@
+18 May 2015 by rswiders
+- Updates to fix compile issues including using macroquest.ini for configuration (thanks iluvseq)
+
 17 July 2014 by rswiders
 - Merged ISXEQ folder into source to allow proper build (thanks CyberTech)
 

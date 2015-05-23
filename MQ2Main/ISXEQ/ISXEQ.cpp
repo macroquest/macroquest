@@ -107,23 +107,23 @@ bool CISXEQ::Initialize(ISInterface *p_ISInterface)
 	}
 
 	// retrieve basic ISData types
-	pStringType = pISInterface->FindLSType("string");	
+	pStringType=pISInterface->FindLSType("string");
 	pMutableStringType = pISInterface->FindLSType("mutablestring");
 	pWStringType = pISInterface->FindLSType("unistring");
 	pUniStringType = pISInterface->FindLSType("unistring");
-	pIntType = pISInterface->FindLSType("int");
+	pIntType=pISInterface->FindLSType("int");
 	pUIntType = pISInterface->FindLSType("uint");
 	pInt64Type = pISInterface->FindLSType("int64");
 	pInt64PtrType = pISInterface->FindLSType("int64ptr");
-	pBoolType = pISInterface->FindLSType("bool");
-	pFloatType = pISInterface->FindLSType("float");
-	pTimeType = pISInterface->FindLSType("time");
-	pByteType = pISInterface->FindLSType("byte");
-	pIntPtrType = pISInterface->FindLSType("intptr");
-	pBoolPtrType = pISInterface->FindLSType("boolptr");
-	pFloatPtrType = pISInterface->FindLSType("floatptr");
+	pBoolType=pISInterface->FindLSType("bool");
+	pFloatType=pISInterface->FindLSType("float");
+	pTimeType=pISInterface->FindLSType("time");
+	pByteType=pISInterface->FindLSType("byte");
+	pIntPtrType=pISInterface->FindLSType("intptr");
+	pBoolPtrType=pISInterface->FindLSType("boolptr");
+	pFloatPtrType=pISInterface->FindLSType("floatptr");
 	pFloat64PtrType = pISInterface->FindLSType("float64ptr");
-	pBytePtrType = pISInterface->FindLSType("byteptr");
+	pBytePtrType=pISInterface->FindLSType("byteptr");
 	pPoint3fType = pISInterface->FindLSType("point3f");
 	pIndexType = pISInterface->FindLSType("index");
 	pVectorType = pISInterface->FindLSType("index");
@@ -139,7 +139,7 @@ bool CISXEQ::Initialize(ISInterface *p_ISInterface)
 	RegisterTopLevelObjects();
     RegisterServices();
 	HookMemChecker(TRUE);
-	strcpy(gszINIPath,INIFileName);
+	strcpy(gszINIPath,ModulePath);
 	MQ2Initialize();
 	printf("ISXEQ Loaded");
 	return true;
@@ -229,7 +229,7 @@ void CISXEQ::RegisterDataTypes()
         _var_->SetInheritance(_inherits_); \
     }
     // NOTE: SetInheritance does NOT make it inherit, just notifies the syntax checker...
-#include "DataTypeList.h"
+#include "..\DataTypeList.h"
 #undef DATATYPE
 }
 
@@ -308,7 +308,7 @@ void CISXEQ::UnRegisterDataTypes()
         pISInterface->RemoveLSType(*_var_); \
         delete _var_; \
     }
-#include "DataTypeList.h"
+#include "..\DataTypeList.h"
 #undef DATATYPE
 }
 void CISXEQ::UnRegisterTopLevelObjects()

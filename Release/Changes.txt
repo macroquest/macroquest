@@ -1,3 +1,8 @@
+18 May 2015 by EqMule
+- Added .NoDrop to the advlootitemtype tlo it returns TRUE if an item is NoDrop and FALSE if not.
+  Usage: /echo ${AdvLoot.PList[1].NoDrop}
+- Updated BETA build.
+
 16 May 2015 by EqMule
 - Updated TEST and BETA builds.
 - Fixed an issue with the TEST build which prevented it from building correctly.

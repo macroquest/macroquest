@@ -789,7 +789,9 @@ typedef struct _LOOTITEM
 	/*0x00*/ DWORD	ItemID;
 	/*0x04*/ CHAR	Name[0x40];
 	/*0x44*/ DWORD	IconID;
-	/*0x48*/ BYTE   Unknown0x48[0x24];
+	/*0x48*/ BYTE   Unknown0x48[0x8];
+	/*0x50*/ BYTE   NoDrop;//if the item is nodrop this is 1
+	/*0x51*/ BYTE   Unknown0x51[0x1b];
 	/*0x6c*/ struct _LOOTDETAILS	*LootDetails;
 	/*0x70*/ BYTE	Unknown0x70[0xc];
 	/*0x7c*/ BYTE	AutoRoll;
@@ -814,7 +816,9 @@ typedef struct _EQADVLOOTWND {
 	/*0x21c*/ BYTE	Unknown0x021c[0x90];
 	/*0x2ac*/ struct _LOOTLIST *pCLootList;//below ref to aAdlw_applyfilt
 	/*0x2b0*/ struct _LOOTLIST *pPLootList;//below ref to aAdlw_cllwnd
-	/*0x2b4*/ BYTE		Unknown0x2b4[0x14];
+	/*0x2b4*/ BYTE		Unknown0x2b4[0xc];
+	/*0x2c0*/ DWORD		PListCount;
+	/*0x2c4*/ BYTE		Unknown0x2c4[0x4];
 	/*0x2c8*/ DWORD		ContextMenuId;
 	/*0x2cc*/ BYTE		Unknown0x2cc[0x8];
 	/*0x2d4*/

@@ -4493,6 +4493,7 @@ public:
 		AlwaysGreed=12,
 		Never = 13,
 		IconID = 14,
+		xNoDrop = 15,
     };
     static enum MQ2AdvLootItemMethods
     {
@@ -4513,6 +4514,7 @@ public:
 		TypeMember(AlwaysGreed);
 		TypeMember(Never);
 		TypeMember(IconID);
+		AddMember(xNoDrop,"NoDrop");
     }
 
     ~MQ2AdvLootItemType()

@@ -9471,6 +9471,13 @@ bool MQ2AdvLootItemType::GETMEMBER()
 			return true;
 		}
 		return false;
+	case xNoDrop:
+		if (pItem) {
+			Dest.Type = pBoolType;
+			Dest.DWord = pItem->NoDrop;
+			return true;
+		}
+		return false;
 	}
     return false;
 }

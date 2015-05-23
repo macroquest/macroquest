@@ -7614,9 +7614,11 @@ DWORD __stdcall RefreshMountKeyRingThread(PVOID pData)
 					((CXWnd*)krwnd)->Show(0,1);
 					((CSidlScreenWnd*)krwnd)->StoreIniVis();
 				}
+#ifndef ISXEQ
 				if(bUseCmd && ((CSidlScreenWnd*)clist)->Items) {
 					UseItemCmd(GetCharInfo()->pSpawn,szItemName);
 				}
+#endif
 			}
 		}
 	}
