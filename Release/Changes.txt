@@ -1,7 +1,12 @@
+08 Jun 2015 by EqMule
+- Please don't use MQ2 for unattended gameplay (afk botting)
+- Fixed /pickzone you can now do /pick 5 or whatever and it WILL send you to the 5 instance (if it exist)
+  /pick 0 will just pick MAIN instance.
+
 28 May 2015 by EqMule
 - Please don't use MQ2 for unattended gameplay (afk botting)
 - Updated LIVE build.
-- New Feature: /pickzone now takes a instance number as an argument
+- Comming in next zip: /pickzone will take a instance number as an argument
   Usage: /pickzone 3 will pick instance 3 and zone you in (provided its valid)
   /pickzone 0 will select the main instance
   this might be buggy its a work in progress.

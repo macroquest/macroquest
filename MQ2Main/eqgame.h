@@ -742,3 +742,7 @@ GNU General Public License for more details.
 
 //CTaskWnd
 #define CTaskWnd__UpdateTaskTimers_x                               0x7AC290
+
+//EqSoundManager
+#define EqSoundManager__WavePlay_x                                 0x4CFA60
+
