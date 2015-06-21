@@ -2596,10 +2596,18 @@ bool MQ2CharacterType::GETMEMBER()
                 if ( PSPELL pSpell = GetSpellByID(pPCData->GetCombatAbility(nCombatAbility)) )
                 { 
                     DWORD timeNow = (DWORD)time(NULL);
-                    if (pSpell->CARecastTimerID != -1 && pPCData->GetCombatAbilityTimer(pSpell->CARecastTimerID) > timeNow)
-                    {
-                        Dest.Int=pPCData->GetCombatAbilityTimer(pSpell->CARecastTimerID)-timeNow+6;
-                        Dest.Int/=6;
+					#if defined(LIVE)
+					if (pSpell->CARecastTimerID != -1 && pPCData->GetCombatAbilityTimer(pSpell->CARecastTimerID) > timeNow)
+					#elif defined(TEST)
+					if (pSpell->CARecastTimerID != -1 && pPCData->GetCombatAbilityTimer(pSpell->CARecastTimerID,pSpell->SpellGroup) > timeNow)
+					#endif
+					{
+                        #if defined(LIVE)
+						Dest.Int=pPCData->GetCombatAbilityTimer(pSpell->CARecastTimerID)-timeNow+6;
+                        #elif defined(TEST)
+						Dest.Int=pPCData->GetCombatAbilityTimer(pSpell->CARecastTimerID,pSpell->SpellGroup)-timeNow+6;
+						#endif
+						Dest.Int/=6;
                     }
                     else Dest.Int=0;
                     Dest.Type=pTicksType;
@@ -2616,10 +2624,18 @@ bool MQ2CharacterType::GETMEMBER()
                         if (!stricmp(GETFIRST(),pSpell->Name)) 
                         { 
                             DWORD timeNow = (DWORD)time(NULL);
-                            if (pSpell->CARecastTimerID != -1 && pPCData->GetCombatAbilityTimer(pSpell->CARecastTimerID) > timeNow)
-                            {
-                                Dest.Int=pPCData->GetCombatAbilityTimer(pSpell->CARecastTimerID)-timeNow+6;
-                                Dest.Int/=6;
+                            #if defined(LIVE)
+							if (pSpell->CARecastTimerID != -1 && pPCData->GetCombatAbilityTimer(pSpell->CARecastTimerID) > timeNow)
+                            #elif defined(TEST)
+							if (pSpell->CARecastTimerID != -1 && pPCData->GetCombatAbilityTimer(pSpell->CARecastTimerID,pSpell->SpellGroup) > timeNow)
+							#endif
+							{
+                                #if defined(LIVE)
+								Dest.Int=pPCData->GetCombatAbilityTimer(pSpell->CARecastTimerID)-timeNow+6;
+                                #elif defined(TEST)
+								Dest.Int=pPCData->GetCombatAbilityTimer(pSpell->CARecastTimerID,pSpell->SpellGroup)-timeNow+6;
+								#endif
+								Dest.Int/=6;
                             }
                             else Dest.Int=0;
                             Dest.Type=pTicksType;
@@ -2642,8 +2658,12 @@ bool MQ2CharacterType::GETMEMBER()
                 if ( PSPELL pSpell = GetSpellByID(pPCData->GetCombatAbility(nCombatAbility)) )
                 { 
                     DWORD timeNow = (DWORD)time(NULL);
-                    if (pSpell->CARecastTimerID != -1 && pPCData->GetCombatAbilityTimer(pSpell->CARecastTimerID) < timeNow)
-                    {
+                    #if defined(LIVE)
+					if (pSpell->CARecastTimerID != -1 && pPCData->GetCombatAbilityTimer(pSpell->CARecastTimerID) < timeNow)
+                    #elif defined(TEST)
+					if (pSpell->CARecastTimerID != -1 && pPCData->GetCombatAbilityTimer(pSpell->CARecastTimerID,pSpell->SpellGroup) < timeNow)
+					#endif
+					{
                         Dest.DWord=1;
                         return true;
                     } 
@@ -2659,8 +2679,12 @@ bool MQ2CharacterType::GETMEMBER()
                         if (!stricmp(GETFIRST(),pSpell->Name)) 
                         { 
                             DWORD timeNow = (DWORD)time(NULL);
-                            if (pSpell->CARecastTimerID != -1 && pPCData->GetCombatAbilityTimer(pSpell->CARecastTimerID) < timeNow)
-                            {
+                            #if defined(LIVE)
+							if (pSpell->CARecastTimerID != -1 && pPCData->GetCombatAbilityTimer(pSpell->CARecastTimerID) < timeNow)
+                            #elif defined(TEST)
+							if (pSpell->CARecastTimerID != -1 && pPCData->GetCombatAbilityTimer(pSpell->CARecastTimerID,pSpell->SpellGroup) < timeNow)
+							#endif
+							{
                                 Dest.DWord=1;
                                 return true;
                             }

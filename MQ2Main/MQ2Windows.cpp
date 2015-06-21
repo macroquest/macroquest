@@ -134,13 +134,10 @@ public:
 	{
 		if(uiMessage==XWM_FOCUS) {
 			if(PCHARINFO2 pChar2 = GetCharInfo2()) {
-				if(pTarget && pLocalPlayer && ((PSPAWNINFO)pTarget)->SpawnID!=((PSPAWNINFO)pLocalPlayer)->SpawnID && pEverQuest && pChar2->pInventoryArray && pChar2->pInventoryArray->Inventory.Cursor) {
-					//player has a item on his cursor and clicked targetwindow, he wants to trade with target...
-					if(PITEMINFO pItem = GetItemFromContents(pChar2->pInventoryArray->Inventory.Cursor)) {
-						pEverQuest->LeftClickedOnPlayer(pTarget); 
-						WeDidStuff();
-						//WriteChatf("Player wants to give a %s to %s",pItem->Name,((PSPAWNINFO)pTarget)->Name);
-					}
+				if(pTarget && pLocalPlayer && ((PSPAWNINFO)pTarget)->SpawnID!=((PSPAWNINFO)pLocalPlayer)->SpawnID && pEverQuest && pChar2->pInventoryArray && (pChar2->pInventoryArray->Inventory.Cursor || pChar2->CursorPlat || pChar2->CursorGold || pChar2->CursorSilver || pChar2->CursorCopper)) {
+					//player has a item or coin on his cursor and clicked targetwindow, he wants to trade with target...
+					pEverQuest->LeftClickedOnPlayer(pTarget); 
+					WeDidStuff();
 				}
 			}
 		}

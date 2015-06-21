@@ -1,3 +1,11 @@
+11 Jun 2015 by EqMule
+- Please don't use MQ2 for unattended gameplay (afk botting)
+- Updated for the TEST build
+- GetCombatAbilityTimer for the TEST build now takes 2 arguments pSpell->CARecastTimerID and pSpell->SpellGroup
+  do a search for GetCombatAbilityTimer in your plugins and change accordingly.
+  GetCombatAbilityTimer for the LIVE build has not changed. (but it will next patch.)
+- Clicking on the name of someone in the targetwindow will now open a trade if you have coin (or an item) on the cursor.
+
 08 Jun 2015 by EqMule
 - Please don't use MQ2 for unattended gameplay (afk botting)
 - Fixed /pickzone you can now do /pick 5 or whatever and it WILL send you to the 5 instance (if it exist)
