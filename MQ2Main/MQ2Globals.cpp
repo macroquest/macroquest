@@ -234,6 +234,8 @@ struct _actordefentry ActorDefList[] = {
 };
 /* SpellMap */
 HANDLE ghLockSpellMap = 0;
+/* PickZone */
+HANDLE ghLockPickZone = 0;
 
 /* BENCHMARKS */
 DWORD bmWriteChatColor=0;
@@ -400,6 +402,7 @@ fEQCommand        cmdUseItem     =  NULL;
 fEQCommand        cmdPet         =  NULL;
 fEQCommand        cmdMercSwitch  =  NULL;
 fEQCommand        cmdAdvLoot	 =  NULL;
+fEQCommand        cmdPickZone	 =  NULL;
 
 DWORD gnNormalEQMappableCommands;
 PCHAR szEQMappableCommands[nEQMappableCommands];

@@ -52,6 +52,7 @@ EQLIB_API CHAR gszVersion[32];
 EQLIB_API DWORD gGameState;
 EQLIB_API ePVPServer PVPServer;
 EQLIB_VAR HANDLE ghLockSpellMap;
+EQLIB_VAR HANDLE ghLockPickZone;
 EQLIB_VAR BOOL g_Loaded;
 EQLIB_VAR DWORD ThreadID;
 
@@ -308,6 +309,7 @@ EQLIB_VAR fEQCommand         cmdUseItem;
 EQLIB_VAR fEQCommand         cmdPet;
 EQLIB_VAR fEQCommand         cmdMercSwitch;
 EQLIB_VAR fEQCommand         cmdAdvLoot;
+EQLIB_VAR fEQCommand         cmdPickZone;
 
 
 EQLIB_VAR fEQNewUIINI        NewUIINI;

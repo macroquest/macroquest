@@ -3892,4 +3892,59 @@ VOID AdvLootCmd(PSPAWNINFO pChar,PCHAR szLine)
 		cmdAdvLoot(pChar,szLine);
 	}
 }
+DWORD __stdcall openpickzonewnd(PVOID pData)
+{
+	lockit lk(ghLockPickZone);
+	int nInst = (int)pData;
+	//int org = nInst;
+	/*if(nInst>=1) {
+		nInst--;
+	}
+	if(nInst<0) {
+		nInst==0;
+	}*/
+	if(PCHARINFO pCharInfo=GetCharInfo()) {
+		cmdPickZone(pCharInfo->pSpawn,NULL);
+		Sleep(1000);//i need to make this hardcoded wait dynamic but im in a hurry ill do it later -eqmule
+		if(CXWnd *krwnd = FindMQ2Window("MIZoneSelectWnd")) {
+			if(krwnd->dShow) {
+				if(CListWnd *clist = (CListWnd*)krwnd->GetChildItem("MIZ_ZoneList")) {
+					if(DWORD numitems = ((CSidlScreenWnd*)clist)->Items) {
+						if(CButtonWnd *cbutt = (CButtonWnd*)krwnd->GetChildItem("MIZ_SelectButton")) {
+							for (DWORD i = 0;i<numitems;i++) {
+								int listdata = clist->GetItemData(i);
+								if(listdata==nInst) {
+									SendListSelect("MIZoneSelectWnd","MIZ_ZoneList",i);
+									SendWndClick2((CXWnd*)cbutt,"leftmouseup");
+									WriteChatf("%s instance %d selected.", GetFullZone(pCharInfo->zoneId),listdata);
+									return 0;
+								}
+							}
+							WriteChatf("%s instance %d NOT found in list", GetFullZone(pCharInfo->zoneId),nInst);
+						}
+					} 
+				}
+			}
+		}
+	}
+	return 0;
+}
+// ***************************************************************************
+// Function:    PickZoneCmd
+// Description: '/pickzone' command
+//              Adds the ability to do /pickzone #
+// Usage:       /pickzone 2 will switch zone to number 2 pickzone 0 will pick main instance
+// ***************************************************************************
+VOID PickZoneCmd(PSPAWNINFO pChar, PCHAR szLine)
+{
+    if (!szLine[0]) {
+		WriteChatColor("Usage: /pickzone # where # is the instance number you want to pick");
+		cmdPickZone(pChar,szLine);
+        return;
+    } else {
+		DWORD index = atoi(szLine);
+		DWORD nThreadID = 0;
+		CreateThread(NULL,0,openpickzonewnd,(PVOID)index,0,&nThreadID);
+	}
+}
 #endif

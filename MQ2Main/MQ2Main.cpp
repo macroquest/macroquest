@@ -423,6 +423,9 @@ DWORD WINAPI MQ2Start(LPVOID lpParameter)
 	}
     while (gGameState != GAMESTATE_CHARSELECT && gGameState != GAMESTATE_INGAME) 
         Sleep(500);
+	if (!ghLockPickZone)
+		ghLockPickZone = CreateMutex(NULL, FALSE, NULL);
+
     InitializeMQ2DInput();
     if (gGameState == GAMESTATE_INGAME) {
         gbInZone = TRUE;
@@ -449,6 +452,9 @@ DWORD WINAPI MQ2Start(LPVOID lpParameter)
     g_Loaded = FALSE;
 	if (ghLockSpellMap)
 		CloseHandle(ghLockSpellMap);
+	if (ghLockPickZone)
+		CloseHandle(ghLockPickZone);
+	
 	FreeLibraryAndExitThread(GetModuleHandle("MQ2Main.dll"),0);
     return 0;
 }
