@@ -5593,11 +5593,7 @@ EQLIB_OBJECT void EQ_PC::SetArmorType(int,int);
 EQLIB_OBJECT void EQ_PC::SetFatigue(int);
 EQLIB_OBJECT void EQ_PC::UnpackMyNetPC(char *,int);
 EQLIB_OBJECT void EQ_PC::AlertInventoryChanged(void);
-#if defined(LIVE)
-EQLIB_OBJECT unsigned long EQ_PC::GetCombatAbilityTimer(int);
-#elif defined(TEST)
 EQLIB_OBJECT unsigned long EQ_PC::GetCombatAbilityTimer(int,int);
-#endif
 EQLIB_OBJECT unsigned long EQ_PC::GetItemTimerValue(class EQ_Item *);
 EQLIB_OBJECT unsigned long EQ_PC::HasLoreItem(class EQ_Item *);
 };

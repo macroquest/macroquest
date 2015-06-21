@@ -1,5 +1,14 @@
-11 Jun 2015 by EqMule
+18 Jun 2015 by EqMule
 - Please don't use MQ2 for unattended gameplay (afk botting)
+- Fixed ${Me.UseAdvancedLooting} thanks to william12 for reporting it as broken.
+
+17 Jun 2015 by EqMule
+- Please don't use MQ2 for unattended gameplay (afk botting)
+- Updated for today's LIVE patch
+- GetCombatAbilityTimer for the LIVE build now takes 2 arguments pSpell->CARecastTimerID and pSpell->SpellGroup
+  do a search for GetCombatAbilityTimer in your plugins and change accordingly.
+
+11 Jun 2015 by EqMule
 - Updated for the TEST build
 - GetCombatAbilityTimer for the TEST build now takes 2 arguments pSpell->CARecastTimerID and pSpell->SpellGroup
   do a search for GetCombatAbilityTimer in your plugins and change accordingly.
