@@ -1120,9 +1120,9 @@ typedef struct _CHARINFO2 {
 /*0x6afc*/ DWORD        CombatAbilityTimes[0x14];
 /*0x6b4c*/ BYTE         Unknown0x6b4c[0x1e08];
 /*0x8954*/ DWORD        Deity;
-/*0x8958*/ BYTE         Unknown0x8958[0xd4];
-/*0x8a2c*/ DWORD        Drunkenness;
-/*0x8a30*/ BYTE         Unknown0x8a30[0x18];
+/*0x8958*/ BYTE         Unknown0x8958[0xdc];
+/*0x8a34*/ DWORD        Drunkenness;
+/*0x8a38*/ BYTE         Unknown0x8a38[0x10];
 /*0x8a48*/ DWORD        AAPoints;
 /*0x8a4c*/ BYTE         Unknown0x8a4c[0x100c];
 /*0x9a58*/ DWORD        AAPointsSpent;
@@ -1374,7 +1374,7 @@ typedef struct _SPAWNINFO {
 /*0x0232*/ BYTE         Unknown0x0232[0xa];
 /*0x023c*/ DWORD        RespawnTimer;           // TimeStamp of when RespawnWnd will close - 0 when you're alive
 /*0x0240*/ BYTE         Unknown0x0240[0x4];
-/*0x0244*/ DWORD        Buyer;
+/*0x0244*/ DWORD        Trader;//found in CEverQuest__RightClickedOnPlayer_x
 /*0x0248*/ BYTE         Unknown0x0248[0x10];
 /*0x0258*/ BYTE         Sneak;
 /*0x0259*/ BYTE         Unknown0x0259[0x37];
@@ -1391,15 +1391,14 @@ typedef struct _SPAWNINFO {
 /*0x03b4*/ FLOAT        RunSpeed;//0.70 on runspeed 5...
 /*0x03b8*/ BYTE         Unknown0x03b8[0x4];
 /*0x03bc*/ BYTE         HoldingType; // I dont know the types, i put a 2h in Primary and its a 4 , modrod there and its a 1, nothing its a 5 -eqmule
-/*0x03bd*/ BYTE         Unknown0x03bd[0x13];
-/*0x03d0*/ DWORD        Trader;//found in CEverQuest__RightClickedOnPlayer_x
-/*0x03d4*/ BYTE         Unknown0x03d4[0x10];
+/*0x03bd*/ BYTE         Unknown0x03bd[0x27];
 /*0x03e4*/ DWORD        AARank;
 /*0x03e8*/ BYTE         Unknown0x03e8[0x4];
 /*0x03ec*/ BYTE         LFG;
 /*0x03ed*/ BYTE         Unknown0x03ed[0xb];
 /*0x03f8*/ DWORD        EnduranceMax;
-/*0x03fc*/ BYTE         Unknown0x03fc[0x1c];
+/*0x03fc*/ DWORD        Buyer;
+/*0x0400*/ BYTE         Unknown0x0400[0x18];
 /*0x0418*/ WORD         Zone;
 /*0x041a*/ WORD         Instance;
 /*0x041c*/ BYTE         Unknown0x041c[0x8];

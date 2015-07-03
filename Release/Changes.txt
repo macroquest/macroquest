@@ -1,3 +1,11 @@
+01 Jul 2015 by EqMule
+- Please don't use MQ2 for unattended gameplay (afk botting)
+- Updated for the LIVE Client
+- Updated for the TEST Client
+- Fixed ${Me.Drunk}
+- Fixed ${Me.Trader}
+- Fixed ${Me.Buyer}
+
 25 Jun 2015 by EqMule
 - Please don't use MQ2 for unattended gameplay (afk botting)
 - Updated for the TEST Client
@@ -35,7 +43,7 @@
 
 23 May 2015 by EqMule
 - Fixed ${Me.DSed} and ${Me.RevDSed} crashes thanks to klaarg for the bug report
-- consolidated some other stuff and eventrelated things
+- consolidated some other stuff and event related things
 
 19 May 2015 by EqMule
 - Updated for today's LIVE and BETA patches.
