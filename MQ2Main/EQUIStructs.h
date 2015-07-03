@@ -350,20 +350,20 @@ VFTABLE
 } CCONTEXTMENUVFTABLE, *PCCONTEXTMENUVFTABLE; 
 
 //see ref to CContextMenu__CContextMenu_x in CBuffWindow__CBuffWindow
-// size 0x274 May 27 2015 (see 677FFB) -eqmule
+// size 0x28c Jun 24 2015 test (see 677F6B) -eqmule
 #define CONTEXTTAIL \
-/*0x214*/ DWORD ZeroMe; \
-/*0x218*/ DWORD SetToMinus1; /*must be set to -1 in constructor or menu wndnotification wont be called*/ \
-/*0x21c*/ DWORD WillBeZero1; /*set by contructor to 0*/ \
-/*0x220*/ ARGBCOLOR HightLightTextColor; /*set by contructor*/ \
-/*0x224*/ ARGBCOLOR HighLightTextBkColor; /*set by contructor*/ \
-/*0x228*/ BYTE ZeroMeOut1[0x24]; \
-/*0x24c*/ DWORD WillBeZero2; /*constructor sets this to 0*/ \
-/*0x250*/ BYTE ZeroMeOut2[0x18]; \
-/*0x268*/ DWORD Unknown0x268; /*constructor sets this to 0x10000*/ \
-/*0x26c*/ DWORD ZeroMeAsWell; \
-/*0x270*/ DWORD Unknown0x270; /*constructor sets this to 0*/ \
-/*0x274*/
+/*0x22c*/ DWORD ZeroMe; \
+/*0x230*/ DWORD SetToMinus1; /*must be set to -1 in constructor or menu wndnotification wont be called*/ \
+/*0x234*/ DWORD WillBeZero1; /*set by contructor to 0*/ \
+/*0x238*/ ARGBCOLOR HightLightTextColor; /*set by contructor*/ \
+/*0x23c*/ ARGBCOLOR HighLightTextBkColor; /*set by contructor*/ \
+/*0x240*/ BYTE ZeroMeOut1[0x24]; \
+/*0x264*/ DWORD WillBeZero2; /*constructor sets this to 0*/ \
+/*0x268*/ BYTE ZeroMeOut2[0x18]; \
+/*0x280*/ DWORD Unknown0x280; /*constructor sets this to 0x10000*/ \
+/*0x284*/ DWORD ZeroMeAsWell; \
+/*0x288*/ DWORD Unknown0x288; /*constructor sets this to 0*/ \
+/*0x28c*/
 
 #define CONTEXTW \
 /*0x000*/   struct  _CCONTEXTMENUVFTABLE   *pvfTable; \
