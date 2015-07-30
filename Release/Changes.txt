@@ -1,4 +1,8 @@
-22 Jul 2015 by EqMule
+23 Jul 2015 by EqMule
+- Please don't use MQ2 for unattended gameplay (afk botting)
+- Updated for todays LIVE ninja patch
+
+2 Jul 2015 by EqMule
 - Please don't use MQ2 for unattended gameplay (afk botting)
 - Updated for todays LIVE client
 

@@ -73,6 +73,7 @@ LEGACY_API VOID MacroBeep                           (PSPAWNINFO,PCHAR);
 LEGACY_API VOID MacroLog                            (PSPAWNINFO,PCHAR);
 LEGACY_API VOID MacroPause                          (PSPAWNINFO,PCHAR);
 LEGACY_API VOID MemSpell                            (PSPAWNINFO,PCHAR);
+LEGACY_API VOID MouseTo                             (PSPAWNINFO,PCHAR);
 LEGACY_API VOID MQMsgBox                            (PSPAWNINFO,PCHAR);
 LEGACY_API VOID Next                                (PSPAWNINFO,PCHAR);
 LEGACY_API VOID Return                              (PSPAWNINFO,PCHAR);

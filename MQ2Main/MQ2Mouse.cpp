@@ -104,6 +104,68 @@ BOOL ExtractValue(PCHAR szFile, PCHAR szStart, PCHAR szEnd, PCHAR szValue)
 
 #ifndef ISXEQ
 
+BOOL MoveMouse(DWORD x, DWORD y) 
+{ 
+	if (EQADDR_MOUSE) {
+		POINT pt = {0};
+		pt.x = x;
+		pt.y = y;
+		if(HWND eqhwnd = *(HWND*)EQADDR_HWND) {
+			ClientToScreen(eqhwnd,&pt);
+			SetCursorPos(pt.x,pt.y);
+			EQADDR_DIMOUSECOPY->y = pt.y;
+			EQADDR_DIMOUSECOPY->x = pt.x;
+			EQADDR_MOUSE->Y = EQADDR_DIMOUSECOPY->y;
+			EQADDR_DIMOUSECHECK->y = EQADDR_DIMOUSECOPY->y;
+			EQADDR_MOUSE->X = EQADDR_DIMOUSECOPY->x;
+			EQADDR_DIMOUSECHECK->x = EQADDR_DIMOUSECOPY->x;
+			WeDidStuff();
+			DebugSpew("Moved mouse to: %d,%d", x, y); 
+			return TRUE;
+		}
+	}
+	return FALSE;
+} 
+
+BOOL ParseMouseLoc(PCHARINFO pCharInfo, PCHAR szMouseLoc) 
+{
+	CHAR szArg1[MAX_STRING] = {0};
+	CHAR szArg2[MAX_STRING] = {0};
+	int ClickX; //actual location to click, calculated from ButtonX 
+	int ClickY; //actual location to click, calculated from ButtonY 
+	if (!strnicmp(szMouseLoc, "target", 6)) {
+        if (!pTarget) { 
+            WriteChatColor("You must have a target selected for /mouseto target.",CONCOLOR_RED); 
+            return FALSE; 
+        }
+		//insert code here to move mouse to target
+		//work in progress -eqmule july 18 2015
+		//this is comming in next zip, they ninja patched on me so im
+		//gonna have to add this like tomorrow...
+		WeDidStuff();
+		return TRUE;
+    }
+	// determine mouse location - x and y given
+	if ((szMouseLoc[0]=='+') || (szMouseLoc[0]=='-') || ((szMouseLoc[0]>='0') && (szMouseLoc[0]<='9')))
+	{ // x and y were given so lets convert them and move mouse
+		GetArg(szArg1,szMouseLoc,1);
+		GetArg(szArg2,szMouseLoc,2);
+		ClickX = atoi(szArg1);
+		ClickY = atoi(szArg2);
+		if ((szArg1[0]=='+') || (szArg1[0]=='-') || (szArg2[0]=='+') || (szArg2[0]=='-'))
+		{ // relative location was passed so offset from current
+			ClickX += EQADDR_MOUSE->X;
+			ClickY += EQADDR_MOUSE->Y;
+			DebugSpew("Moving mouse by relative offset");
+		} else {
+			DebugSpew("Moving mouse to absolute position");
+		}
+		return MoveMouse(ClickX,ClickY);
+		
+	}
+	MacroError("'%s' mouse click is either invalid or should be done using /notify",szMouseLoc);
+	return FALSE;
+}
 // TODO: Expand this to support mouse buttons 3->8
 VOID ClickMouse(DWORD button)
 {
@@ -350,5 +412,21 @@ VOID Click(PSPAWNINFO pChar, PCHAR szLine)
         } 
     } 
 }
+// *************************************************************************** 
+// Function: MouseTo 
+// Description: Our '/mouseto' command 
+// Moves the mouse 
+// Usage: /mouseto <mouseloc>
+// *************************************************************************** 
+VOID MouseTo(PSPAWNINFO pChar, PCHAR szLine) 
+{
+	if (szLine && szLine[0]) {
+		if (ParseMouseLoc(GetCharInfo(), szLine)) {
+			return;
+		}
+	}
 
+	WriteChatColor("Usage: /mouseto <mouseloc>",USERCOLOR_DEFAULT); 
+	DebugSpew("Help invoked or Bad MouseTo command: %s",szLine); 
+}
 #endif

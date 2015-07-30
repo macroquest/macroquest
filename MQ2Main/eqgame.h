@@ -16,8 +16,8 @@ GNU General Public License for more details.
 #endif
 
 #define __ClientName                                              "eqgame"
-#define __ExpectedVersionDate                                     "Jul 18 2015"
-#define __ExpectedVersionTime                                     "12:13:22"
+#define __ExpectedVersionDate                                     "Jul 23 2015"
+#define __ExpectedVersionTime                                     "14:50:50"
 #define __ActualVersionDate_x                                      0xA83008
 #define __ActualVersionTime_x                                      0xA83014
 
@@ -48,6 +48,8 @@ GNU General Public License for more details.
 #define DI8__Main_x                                                0x113B098
 #define DI8__Keyboard_x                                            0x113B09C
 #define DI8__Mouse_x                                               0x113B0A0
+#define DI8__Mouse_Copy_x                                          0xFA96B4
+#define DI8__Mouse_Check_x                                         0x1032F84
 #define __AltTimerReady_x                                          0xF9AA01
 #define __Attack_x                                                 0x102DC23
 #define __Autofire_x                                               0x102DC24

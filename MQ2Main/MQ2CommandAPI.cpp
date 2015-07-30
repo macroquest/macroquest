@@ -610,6 +610,7 @@ void InitializeMQ2Commands()
         {"/lootall",    LootAll,1,0},
         {"/alert",      Alert,1,1},
         {"/click",      Click,1,0},
+		{"/mouseto",    MouseTo,1,0},
         {"/mqpause",    MacroPause,1,0},
         {"/items",      Items,1,1},
         {"/itemtarget", ItemTarget,1,1},

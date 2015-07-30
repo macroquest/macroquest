@@ -387,20 +387,37 @@ typedef struct _CSIDLMGR {
 } CSIDLMGR, *PCSIDLMGR;
 
 //11-6-2003 lax
-//Actual size 0x140 11-11-09 - ieatacid
+//Actual size 0x1a4 Jul 18 2015 (see 4ACB15) - eqmule
 typedef struct _CXWNDMGR {
 /*0x000*/ LPVOID CXWNDMGR__vtable;
 /*0x004*/ DWORD Count;
 /*0x008*/ struct _CSIDLWND **pWindows;
-/*0x00c*/ BYTE Unknown0x00C[0x91];
+/*0x00c*/ BYTE Unknown0x00C[0x40];
+/*0x04c*/ DWORD LastInteractionTimeStamp;//when mouse or keyboard was last clicked
+/*0x050*/ DWORD MouseMoveTimeStamp;//when mouse was last moved
+/*0x054*/ DWORD KeyHeldTimeStamp;//how long current/last key has been held
+/*0x058*/ BYTE Unknown0x054[0xc];
+/*0x064*/ PCSIDLWND LastWindowSelected;//when you select a window its pointer shows up here
+/*0x068*/ PCSIDLWND CurrDraggedWindow;//when you drag a window its pointer shows up here
+/*0x070*/ PCSIDLWND CurrWindowUnderMouse;//Current window pointer is over if this is 0 we are above MAIN Window
+/*0x074*/ PCSIDLWND CurrWindowUnderMouseCopy;//Current window pointer is over if this is 0 we are above MAIN Window
+/*0x06c*/ BYTE Unknown0x06c[0x28];
+/*0x094*/ FLOAT MouseX;
+/*0x098*/ FLOAT MouseY;
+/*0x09c*/ BYTE Unknown0x09c;
 /*0x09d*/ bool KeyboardFlags[4];    // 7d-80
-/*0x0a1*/ CHAR Unknown0x0a1[0x6b];
+/*0x0c8*/ FLOAT MouseXCopy;
+/*0x0cc*/ FLOAT MouseYCopy;
+/*0x0d0*/ CHAR Unknown0x0d0[0x3c];
 /*0x10c*/ DWORD ScreenExtentX;
 /*0x110*/ DWORD ScreenExtentY;
 /*0x114*/ DWORD Unknown;
 /*0x118*/ DWORD font_list_ptr;
-/*0x11c*/ BYTE Unknown0x11c[0x24];
-/*0x140*/ 
+/*0x11c*/ BYTE Unknown0x11c[0x14];
+/*0x130*/ FLOAT MouseLookX;//last position MouseX was at before we mouselooked
+/*0x134*/ FLOAT MouseLookY;//last position MouseY was at before we mouselooked
+/*0x138*/ BYTE Unknown0x138[0x6c];
+/*0x1a4*/ 
 } CXWNDMGR, *PCXWNDMGR;
 
 
