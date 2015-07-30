@@ -1288,6 +1288,7 @@ EQLIB_VAR DWORD EQSwitch__UseSwitch;
 EQLIB_VAR BOOL gbTimeStampChat;
 
 EQLIB_VAR BOOL gbBeepOnTells;
+EQLIB_VAR BOOL gbFlashOnTells;
 
 EQLIB_VAR DWORD IconCache__GetIcon;
 

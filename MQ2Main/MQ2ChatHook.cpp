@@ -22,7 +22,24 @@ GNU General Public License for more details.
 #include "MQ2Main.h"
 DWORD __stdcall BeepOnTellThread(PVOID pData)
 {
-	Beep(1000,100);
+	Beep(500,100);
+	return 0;
+}
+DWORD __stdcall FlashOnTellThread(PVOID pData)
+{
+	DWORD lReturn = GetCurrentProcessId();
+	DWORD pid = lReturn;
+	AllowSetForegroundWindow(pid);
+	BOOL ret = EnumWindows(EnumWindowsProc,(LPARAM)&lReturn);
+	if(lReturn!=pid) {
+		SetForegroundWindow((HWND)lReturn);
+		FLASHWINFO fwi = {sizeof(FLASHWINFO)};
+		fwi.dwFlags=FLASHW_ALL;
+		fwi.hwnd = (HWND)lReturn;
+		fwi.uCount = 3;
+		fwi.dwTimeout = 0;
+		FlashWindowEx(&fwi);
+	}	
 	return 0;
 }
 class CChatHook 
@@ -91,6 +108,14 @@ public:
 		}
 
         if(!SkipTrampoline) {
+			if(gbFlashOnTells) {
+				if(PCHARINFO pChar = GetCharInfo()) {
+					if(_stricmp(pChar->Name,name)) {//dont beep if its our own character doing the tell...
+						DWORD nThreadId = 0;
+						CreateThread(NULL,NULL,FlashOnTellThread,0,0,&nThreadId);
+					}
+				}
+			}
 			if(gbBeepOnTells) {
 				if(PCHARINFO pChar = GetCharInfo()) {
 					if(_stricmp(pChar->Name,name)) {//dont beep if its our own character doing the tell...
@@ -173,6 +198,36 @@ unsigned int __stdcall MQ2DataVariableLookup(char * VarName, char * Value)
     return strlen(ParseMacroParameter(GetCharInfo()->pSpawn,Value));
 }
 #ifndef ISXEQ
+VOID FlashOnTells(PSPAWNINFO pChar, char *szLine)
+{
+#else
+int FlashOnTells(int argc, char *argv[])
+{
+   PCHAR szLine = NULL;
+    if (argc > 0)
+        szLine = argv[1];
+#endif
+	if(szLine[0]!='\0') {
+		if(!_stricmp(szLine,"on")) {
+			gbFlashOnTells = 0;
+		} else if(!_stricmp(szLine,"off")) {
+			gbFlashOnTells = 1;
+		}
+	}
+	if(gbFlashOnTells) {
+		gbFlashOnTells=0;
+		WriteChatColor("Flash On Tells is OFF",CONCOLOR_LIGHTBLUE);
+		WritePrivateProfileString("MacroQuest","FlashOnTells","0",gszINIFilename);
+	} else {
+		gbFlashOnTells=1;
+		WriteChatColor("Flash On Tells is ON",CONCOLOR_YELLOW);
+		WritePrivateProfileString("MacroQuest","FlashOnTells","1",gszINIFilename);
+	}
+#ifdef ISXEQ
+   return 0;
+#endif
+}
+#ifndef ISXEQ
 VOID BeepOnTells(PSPAWNINFO pChar, char *szLine)
 {
 #else
@@ -250,19 +305,23 @@ VOID InitializeChatHook()
 #ifndef ISXEQ
 	AddCommand("/timestamp", TimeStampChat);
 	AddCommand("/beepontells", BeepOnTells);
+	AddCommand("/flashontells", FlashOnTells);
 #else
    pISInterface->AddCommand("/timestamp", TimeStampChat,true,false);
    pISInterface->AddCommand("/beepontells", BeepOnTells,true,false);
+   pISInterface->AddCommand("/flashontells", FlashOnTells,true,false);
 #endif
 }
 
 VOID ShutdownChatHook()
 {
 #ifndef ISXEQ
+	RemoveCommand("/flashontells");
 	RemoveCommand("/beepontells");
 	RemoveCommand("/timestamp");
 #else
    pISInterface->RemoveCommand("/timestamp");
+   pISInterface->RemoveCommand("/flashontells");
    pISInterface->RemoveCommand("/beepontells");
 #endif
    RemoveDetour(CEverQuest__dsp_chat);

@@ -1003,6 +1003,7 @@ DWORD *gpMouseEventTime=0;
 DWORD *gpbCommandEvent=0;
 BOOL gbTimeStampChat=0;
 BOOL gbBeepOnTells=0;
+BOOL gbFlashOnTells=0;
 
 PVOID EQADDR_GWORLD=0;
 PDWORD EQADDR_DOABILITYLIST=0;

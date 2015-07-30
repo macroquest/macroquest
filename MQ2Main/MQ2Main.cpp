@@ -129,8 +129,9 @@ BOOL ParseINIFile(PCHAR lpINIPath)
     bAllErrorsFatal = 1==GetPrivateProfileInt("MacroQuest","AllErrorsFatal",0,Filename);
     gbMQ2LoadingMsg = 1==GetPrivateProfileInt("MacroQuest","MQ2LoadingMsg",1,Filename);
     gbExactSearchCleanNames = 1==GetPrivateProfileInt("MacroQuest","ExactSearchCleanNames",0,Filename);
-    gbTimeStampChat = 1==GetPrivateProfileInt("MacroQuest","TimeStampChat",0,Filename);
-    gbBeepOnTells = 1==GetPrivateProfileInt("MacroQuest","BeepOnTells",0,Filename);
+    gbTimeStampChat = 1==GetPrivateProfileInt("MacroQuest","TimeStampChat",1,Filename);
+    gbBeepOnTells = 1==GetPrivateProfileInt("MacroQuest","BeepOnTells",1,Filename);
+    gbFlashOnTells = 1==GetPrivateProfileInt("MacroQuest","FlashOnTells",1,Filename);
 	gCreateMQ2NewsWindow = 1==GetPrivateProfileInt("MacroQuest","CreateMQ2NewsWindow",1,Filename);
 
 	GetPrivateProfileString("Macroquest","IfDelimiter",",",Delimiter,MAX_STRING,Filename); gIfDelimiter = Delimiter[0];

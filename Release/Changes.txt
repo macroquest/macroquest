@@ -1,3 +1,12 @@
+15 Jul 2015 by EqMule
+- New Command: /flashontells
+  You can use it to turn flashing of the eq window on or off when you recieve a tell.
+  Usage:
+  You either do /flashontells [on|off] or just /flashontells for a toggle.
+  Or just set it in MacroQuest.ini to FlashOnTells=1 in the [MacroQuest] section.
+  NOTE: You have to have tell windows enabled in options for this to work.
+- TimeStampChat, BeepOnTells and FlashOnTells are now default ON if no setting is found in MacroQuest.ini.
+
 14 Jul 2015 by EqMule
 - Please don't use MQ2 for unattended gameplay (afk botting)
 - Fixed a problem with combat abilities (thanks to William12 for the report)
