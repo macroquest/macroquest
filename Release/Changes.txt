@@ -1,3 +1,11 @@
+24 Jul 2015 by EqMule
+- Please don't use MQ2 for unattended gameplay (afk botting)
+- Updated for todays TEST ninja patch
+- Fixed a struct that would crash eq if mq2hud was used.
+- same struct messed up keypresses as well...
+- /mouseto is back... and thats all I have to say about that at 
+   this point, more on this some other time.
+
 23 Jul 2015 by EqMule
 - Please don't use MQ2 for unattended gameplay (afk botting)
 - Updated for todays LIVE ninja patch

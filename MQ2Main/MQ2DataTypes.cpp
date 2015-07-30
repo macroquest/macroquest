@@ -2651,6 +2651,11 @@ bool MQ2CharacterType::GETMEMBER()
                         Dest.DWord=1;
                         return true;
                     } 
+					else if (pSpell->CARecastTimerID == -1)
+					{
+						Dest.DWord = 1;
+						return true;
+					}
                 } 
             } 
             else 
@@ -2667,6 +2672,11 @@ bool MQ2CharacterType::GETMEMBER()
 								if (pSpell->CARecastTimerID != -1 && pPCData->GetCombatAbilityTimer(pSpell->CARecastTimerID,pSpell->SpellGroup) < timeNow)
 								{
 									Dest.DWord=1;
+									return true;
+								}
+								else if (pSpell->CARecastTimerID == -1)
+								{
+									Dest.DWord = 1;
 									return true;
 								}
 							} 

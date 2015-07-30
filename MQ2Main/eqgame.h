@@ -504,7 +504,7 @@ GNU General Public License for more details.
 #define CSidlManager__CreateLabel_x                                0x794530
 
 // CSidlScreenWnd 
-#define CSidlScreenWnd__CalculateHSBRange_x                        0x6564B1
+#define CSidlScreenWnd__CalculateHSBRange_x                        0x6564B0
 #define CSidlScreenWnd__CalculateVSBRange_x                        0x6563E0
 #define CSidlScreenWnd__ConvertToRes_x                             0x8E9170
 #define CSidlScreenWnd__CreateChildrenFromSidl_x                   0x8C56E0

@@ -16,8 +16,8 @@ GNU General Public License for more details.
 #endif
 
 #define __ClientName                                              "eqgame"
-#define __ExpectedVersionDate                                     "Jul 18 2015"
-#define __ExpectedVersionTime                                     "12:33:38"
+#define __ExpectedVersionDate                                     "Jul 23 2015"
+#define __ExpectedVersionTime                                     "14:44:52"
 #define __ActualVersionDate_x                                      0xA81FF0
 #define __ActualVersionTime_x                                      0xA81FFC
 
@@ -49,6 +49,8 @@ GNU General Public License for more details.
 #define DI8__Main_x                                                0x113A090
 #define DI8__Keyboard_x                                            0x113A094
 #define DI8__Mouse_x                                               0x113A098
+#define DI8__Mouse_Copy_x                                          0xFA86AC
+#define DI8__Mouse_Check_x                                         0x1031F7C
 #define __AltTimerReady_x                                          0xF999F9
 #define __Attack_x                                                 0x102CC1B
 #define __Autofire_x                                               0x102CC1C
@@ -286,7 +288,7 @@ GNU General Public License for more details.
 #define __get_melee_range_x                                        0x509600
 #define __GetGaugeValueFromEQ_x                                    0x7A1040
 #define __GetLabelFromEQ_x                                         0x7A2280
-#define __ToggleMount_x                                            0x6CA180
+#define __ToggleMount_x                                            0x6CA190
 #define __GetXTargetType_x                                         0x91FDE0
 #define __LoadFrontEnd_x                                           0x62E9D0
 #define __NewUIINI_x                                               0x7A0940
@@ -315,17 +317,17 @@ GNU General Public License for more details.
 #define CharacterZoneClient__MakeMeVisible_x                       0x46B340
 
 // CBankWnd 
-#define CBankWnd__GetNumBankSlots_x                                0x65E490
+#define CBankWnd__GetNumBankSlots_x                                0x65E4D0
 
 // CBazaarSearchWnd 
-#define CBazaarSearchWnd__HandleBazaarMsg_x                        0x66C270
+#define CBazaarSearchWnd__HandleBazaarMsg_x                        0x66C2B0
 
 // CButtonWnd 
 #define CButtonWnd__SetCheck_x                                     0x5854D0
 
 // CChatManager 
-#define CChatManager__GetRGBAFromIndex_x                           0x687810
-#define CChatManager__InitContextMenu_x                            0x688390
+#define CChatManager__GetRGBAFromIndex_x                           0x687850
+#define CChatManager__InitContextMenu_x                            0x6883D0
 
 // CContextMenu 
 #define CContextMenu__CContextMenu_x                               0x8D1A90
@@ -344,9 +346,9 @@ GNU General Public License for more details.
 #define CChatService__GetFriendName_x                              0x847740
 
 // CChatWindow 
-#define CChatWindow__CChatWindow_x                                 0x68D640
-#define CChatWindow__Clear_x                                       0x68D1F0
-#define CChatWindow__WndNotification_x                             0x68DB80
+#define CChatWindow__CChatWindow_x                                 0x68D680
+#define CChatWindow__Clear_x                                       0x68D230
+#define CChatWindow__WndNotification_x                             0x68DBC0
 
 // CComboWnd 
 #define CComboWnd__DeleteAll_x                                     0x8C1850
@@ -360,7 +362,7 @@ GNU General Public License for more details.
 #define CComboWnd__GetItemCount_x                                  0x8C1610
 
 // CContainerWnd 
-#define CContainerWnd__HandleCombine_x                             0x696D80
+#define CContainerWnd__HandleCombine_x                             0x696DC0
 #define CContainerWnd__vftable_x                                   0xA8B780
 
 // CDisplay 
@@ -410,32 +412,32 @@ GNU General Public License for more details.
 #define CEverQuest__IssuePetCommand_x                              0x554BB0
 
 // CGaugeWnd 
-#define CGaugeWnd__CalcFillRect_x                                  0x6A79E0
-#define CGaugeWnd__CalcLinesFillRect_x                             0x6A7A40
-#define CGaugeWnd__Draw_x                                          0x6A7E70
+#define CGaugeWnd__CalcFillRect_x                                  0x6A7A20
+#define CGaugeWnd__CalcLinesFillRect_x                             0x6A7A80
+#define CGaugeWnd__Draw_x                                          0x6A7EB0
 
 // CGuild
 #define CGuild__FindMemberByName_x                                 0x435F80
 
 // CHotButtonWnd 
-#define CHotButtonWnd__DoHotButton_x                               0x6C4BA0
+#define CHotButtonWnd__DoHotButton_x                               0x6C4BC0
 
 // CInvSlotMgr 
-#define CInvSlotMgr__FindInvSlot_x                                 0x6D29D0
-#define CInvSlotMgr__MoveItem_x                                    0x6D3910
-#define CInvSlotMgr__SelectSlot_x                                  0x6D2A80
+#define CInvSlotMgr__FindInvSlot_x                                 0x6D29F0
+#define CInvSlotMgr__MoveItem_x                                    0x6D3930
+#define CInvSlotMgr__SelectSlot_x                                  0x6D2AA0
 
 // CInvSLot
-#define CInvSlot__HandleRButtonUp_x                                0x6D1E60
-#define CInvSlot__SliderComplete_x                                 0x6CF820
-#define CInvSlot__GetItemBase_x                                    0x6CEC90
+#define CInvSlot__HandleRButtonUp_x                                0x6D1E80
+#define CInvSlot__SliderComplete_x                                 0x6CF840
+#define CInvSlot__GetItemBase_x                                    0x6CECB0
 
 // CInvSlotWnd
-#define CInvSlotWnd__DrawTooltip_x                                 0x6D4AD0
+#define CInvSlotWnd__DrawTooltip_x                                 0x6D4AF0
 
 // CItemDisplayWnd 
 #define CItemDisplayWnd__SetSpell_x                                0x79DA40
-#define CItemDisplayWnd__UpdateStrings_x                           0x6D5E00
+#define CItemDisplayWnd__UpdateStrings_x                           0x6D5E20
 
 // CLabel 
 #define CLabel__Draw_x                                             0x6F0C30
@@ -503,8 +505,8 @@ GNU General Public License for more details.
 #define CSidlManager__CreateLabel_x                                0x793A40
 
 // CSidlScreenWnd 
-#define CSidlScreenWnd__CalculateHSBRange_x                        0x655780
-#define CSidlScreenWnd__CalculateVSBRange_x                        0x6556A0
+#define CSidlScreenWnd__CalculateHSBRange_x                        0x6557C0
+#define CSidlScreenWnd__CalculateVSBRange_x                        0x6556E0
 #define CSidlScreenWnd__ConvertToRes_x                             0x8E7FD0
 #define CSidlScreenWnd__CreateChildrenFromSidl_x                   0x8C4500
 #define CSidlScreenWnd__CSidlScreenWnd1_x                          0x8C5A00
@@ -544,7 +546,7 @@ GNU General Public License for more details.
 #define CStmlWnd__FastForwardToEndOfTag_x                          0x8DAC70
 #define CStmlWnd__ForceParseNow_x                                  0x8E25D0
 #define CStmlWnd__GetNextTagPiece_x                                0x8DAB70
-#define CStmlWnd__GetSTMLText_x                                    0x68CA90
+#define CStmlWnd__GetSTMLText_x                                    0x68CAD0
 #define CStmlWnd__GetVisibleText_x                                 0x8DB6C0
 #define CStmlWnd__InitializeWindowVariables_x                      0x8DDA50
 #define CStmlWnd__MakeStmlColorTag_x                               0x8D9480
@@ -718,11 +720,11 @@ GNU General Public License for more details.
 #define EQSwitch__UseSwitch_x                                      0x545E70
 
 //IconCache
-#define IconCache__GetIcon_x                                       0x69D200
+#define IconCache__GetIcon_x                                       0x69D240
 
 //CContainerMgr
-#define CContainerMgr__OpenContainer_x                             0x694090
-#define CContainerMgr__CloseContainer_x                            0x6948B0
+#define CContainerMgr__OpenContainer_x                             0x6940D0
+#define CContainerMgr__CloseContainer_x                            0x6948F0
 
 //CQuantityWnd
 #define CQuantityWnd__Open_x                                       0x763D70
