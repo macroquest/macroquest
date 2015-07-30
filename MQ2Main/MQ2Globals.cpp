@@ -1803,6 +1803,8 @@ INITIALIZE_EQGAME_OFFSET(CTargetWnd__WndNotification);
 INITIALIZE_EQGAME_OFFSET(CTaskWnd__UpdateTaskTimers);
 INITIALIZE_EQGAME_OFFSET(EqSoundManager__WavePlay);
 INITIALIZE_EQGAME_OFFSET(CCombatSkillsSelectWnd__ShouldDisplayThisSkill);
+//INITIALIZE_EQGAME_OFFSET(ActorClient__GetPosition);
+//INITIALIZE_EQGAME_OFFSET(ActorClient__GetPosition1);
 
 
 };

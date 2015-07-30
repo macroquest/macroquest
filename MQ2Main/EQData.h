@@ -1331,8 +1331,10 @@ typedef struct _SPAWNINFO {
 /*0x0008*/ struct _SPAWNINFO*   pNext;
 /*0x000c*/ BYTE         Unknown0x000c[0xc];
 /*0x0018*/ FLOAT        SpeedMultiplier;
-/*0x001c*/ BYTE         Unknown0x001c[0x14];
-/*0x0030*/ DWORD        TimeStamp;
+/*0x001c*/ BYTE         Unknown0x001c[0xc];
+/*0x0028*/ FLOAT        Feet;//or floor or something, work in progress -eqmule 2015-07-20
+/*0x002c*/ BYTE         Unknown0x002c[0x4];
+/*0x0030*/ DWORD        PlayerTimeStamp;//doesnt update when on a Vehicle (mounts/boats etc)
 /*0x0034*/ BYTE         Unknown0x0034[0x4];
 /*0x0038*/ CHAR         Lastname[0x20];
 /*0x0058*/ BYTE         Unknown0x0058[0xc];
@@ -1425,7 +1427,9 @@ typedef struct _SPAWNINFO {
 /*0x055c*/ FLOAT        RunSpeed;//0.70 on runspeed 5...
 /*0x0560*/ BYTE         Unknown0x0560[0x6];
 /*0x0566*/ BYTE         Mercenary;
-/*0x0567*/ BYTE         Unknown0x0567[0x1d];
+/*0x0567*/ BYTE         Unknown0x0567[0x5];
+/*0x056c*/ DWORD        TimeStamp;//updates all the time including when on a mount
+/*0x0570*/ BYTE         Unknown0x0570[0x14];
 /*0x0584*/ DWORD        EnduranceMax;
 /*0x0588*/ BYTE         PvPFlag;
 /*0x0589*/ BYTE         Unknown0x0589[0x37];

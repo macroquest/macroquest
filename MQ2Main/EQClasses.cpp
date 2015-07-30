@@ -6499,6 +6499,12 @@ FUNCTION_AT_ADDRESS(int  Mp3Manager::InternalAdd(char *,char *,int),Mp3Manager__
 #ifdef Mp3Manager__Entry__dEntry_x
 //FUNCTION_AT_ADDRESS( Mp3Manager::Entry::~Entry(void),Mp3Manager__Entry__dEntry);
 #endif
+#ifdef ActorClient__GetPosition_x
+FUNCTION_AT_ADDRESS(class  CVector3 const &ActorClient::GetPosition(void)const,ActorClient__GetPosition);
+#endif
+#ifdef ActorClient__GetPosition1_x
+FUNCTION_AT_ADDRESS(void  ActorClient::GetPosition(class CVector3 *)const,ActorClient__GetPosition1);
+#endif
 #ifdef EmitterManager__EmitterManager_x
 FUNCTION_AT_ADDRESS( EmitterManager::EmitterManager(class SoundManager *),EmitterManager__EmitterManager);
 #endif
@@ -7301,10 +7307,10 @@ FUNCTION_AT_ADDRESS(int  CXWnd::DrawHScrollbar(int,int,int)const ,CXWnd__DrawHSc
 FUNCTION_AT_ADDRESS(void  CXWnd::Refade(void),CXWnd__Refade);
 #endif
 #ifdef CXWnd__Move_x
-FUNCTION_AT_ADDRESS(int  CXWnd::Move(class CXPoint),CXWnd__Move);
+FUNCTION_AT_ADDRESS(int  CXWnd::Move(class CXPoint const &),CXWnd__Move);
 #endif
 #ifdef CXWnd__Move1_x
-FUNCTION_AT_ADDRESS(int  CXWnd::Move(class CXRect),CXWnd__Move1);
+FUNCTION_AT_ADDRESS(int  CXWnd::Move(class CXRect const &),CXWnd__Move1);
 #endif
 #ifdef CXPoint__operator_equal_x
 FUNCTION_AT_ADDRESS(class CXPoint  CXPoint::operator=(class CXPoint),CXPoint__operator_equal);

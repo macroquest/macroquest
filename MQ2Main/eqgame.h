@@ -748,3 +748,6 @@ GNU General Public License for more details.
 
 //CCombatSkillsSelectWnd
 #define CCombatSkillsSelectWnd__ShouldDisplayThisSkill_x           0x493390
+
+
+

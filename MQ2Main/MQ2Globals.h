@@ -1309,6 +1309,8 @@ EQLIB_VAR DWORD CTargetWnd__WndNotification;
 EQLIB_VAR DWORD CTaskWnd__UpdateTaskTimers;
 EQLIB_VAR DWORD EqSoundManager__WavePlay;
 EQLIB_VAR DWORD CCombatSkillsSelectWnd__ShouldDisplayThisSkill;
+EQLIB_VAR DWORD ActorClient__GetPosition;
+EQLIB_VAR DWORD ActorClient__GetPosition1;
 
 }
 using namespace MQ2Globals;

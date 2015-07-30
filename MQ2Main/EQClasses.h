@@ -256,6 +256,7 @@ class CXStrSingleton;
 class CXWnd;
 class CXWndDrawTemplate;
 class CXWndManager;
+class ActorClient;
 class EmitterManager;
 class engineInterface;
 class EQ_Affect;
@@ -495,8 +496,8 @@ EQLIB_OBJECT int CXWnd::DrawTileBox(void)const;
 EQLIB_OBJECT int CXWnd::DrawVScrollbar(int,int,int)const;
 EQLIB_OBJECT int CXWnd::GetWidth(void)const;
 EQLIB_OBJECT int CXWnd::Minimize(bool);
-EQLIB_OBJECT int CXWnd::Move(class CXPoint);
-EQLIB_OBJECT int CXWnd::Move(class CXRect);
+EQLIB_OBJECT int CXWnd::Move(class CXPoint const &);
+EQLIB_OBJECT int CXWnd::Move(class CXRect const &);
 EQLIB_OBJECT int CXWnd::ProcessTransition(void);
 EQLIB_OBJECT int CXWnd::Resize(int,int);
 EQLIB_OBJECT int CXWnd::Show(bool,bool,bool mq_c = 1);
@@ -4839,6 +4840,9 @@ public:
 EQLIB_OBJECT float CVector3::GetLength(void)const;
 EQLIB_OBJECT float CVector3::NormalizeAndReturnLength(void);
 EQLIB_OBJECT void CVector3::Normalize(void);
+	float X;
+	float Y;
+	float Z;
 };
 
 class CVideoModesWnd : public CSidlScreenWnd
@@ -5274,6 +5278,15 @@ EQLIB_OBJECT void CXWndManager::UpdateChildAndSiblingInfo(void);
 EQLIB_OBJECT CXWndManager::~CXWndManager(void);
 //EQLIB_OBJECT void * CXWndManager::`scalar deleting destructor'(unsigned int);
 //EQLIB_OBJECT void * CXWndManager::`vector deleting destructor'(unsigned int);
+};
+
+class ActorClient
+{
+	//CVector3 *
+
+public:
+EQLIB_OBJECT class CVector3 const & ActorClient::GetPosition(void)const;
+EQLIB_OBJECT void ActorClient::GetPosition(class CVector3 *)const;
 };
 
 class EmitterManager
