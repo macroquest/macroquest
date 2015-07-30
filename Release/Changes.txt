@@ -1,4 +1,12 @@
+16 Jul 2015 by EqMule
+- Please don't use MQ2 for unattended gameplay (afk botting)
+- Updated for TEST build.
+- Removed SetForegroundWindow from the FlashOnTells feature.
+  (it was not working as intended when using ISBoxer)
+  It will still flash the window.
+
 15 Jul 2015 by EqMule
+- Please don't use MQ2 for unattended gameplay (afk botting)
 - New Command: /flashontells
   You can use it to turn flashing of the eq window on or off when you recieve a tell.
   Usage:

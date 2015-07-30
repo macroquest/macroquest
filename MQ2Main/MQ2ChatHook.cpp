@@ -22,7 +22,7 @@ GNU General Public License for more details.
 #include "MQ2Main.h"
 DWORD __stdcall BeepOnTellThread(PVOID pData)
 {
-	Beep(500,100);
+	Beep(750,200);
 	return 0;
 }
 DWORD __stdcall FlashOnTellThread(PVOID pData)
@@ -32,7 +32,7 @@ DWORD __stdcall FlashOnTellThread(PVOID pData)
 	AllowSetForegroundWindow(pid);
 	BOOL ret = EnumWindows(EnumWindowsProc,(LPARAM)&lReturn);
 	if(lReturn!=pid) {
-		SetForegroundWindow((HWND)lReturn);
+		//SetForegroundWindow((HWND)lReturn);
 		FLASHWINFO fwi = {sizeof(FLASHWINFO)};
 		fwi.dwFlags=FLASHW_ALL;
 		fwi.hwnd = (HWND)lReturn;
