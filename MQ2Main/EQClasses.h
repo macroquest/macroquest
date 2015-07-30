@@ -55,6 +55,7 @@ class CChatWindow;
 class CCheckBoxWnd;
 class CClickStickInfo;
 class CColorPickerWnd;
+class CCombatSkillsSelectWnd;
 class CComboboxTemplate;
 class CComboWnd;
 class CCompassWnd;
@@ -1296,6 +1297,16 @@ EQLIB_OBJECT int CColorPickerWnd::WndNotification(class CXWnd *,unsigned __int32
 EQLIB_OBJECT void CColorPickerWnd::Deactivate(void);
 // private
 EQLIB_OBJECT void CColorPickerWnd::Init(void);
+};
+
+class CCombatSkillsSelectWnd : public CSidlScreenWnd
+{
+public:
+EQLIB_OBJECT CCombatSkillsSelectWnd::CCombatSkillsSelectWnd(class CXWnd *);
+// virtual
+EQLIB_OBJECT CCombatSkillsSelectWnd::~CCombatSkillsSelectWnd(void);
+//private
+EQLIB_OBJECT bool CCombatSkillsSelectWnd::ShouldDisplayThisSkill(int);
 };
 
 class CComboboxTemplate
@@ -7038,6 +7049,8 @@ class PcZoneClient
 {
 public:
 EQLIB_OBJECT int PcZoneClient::GetPcSkillLimit(int);
+EQLIB_OBJECT bool PcZoneClient::HasCombatAbility(int);
 };
+
 };
 using namespace EQClasses;

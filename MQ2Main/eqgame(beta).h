@@ -164,7 +164,7 @@ GNU General Public License for more details.
 #define pinstCTrainWnd_x                                           0xEE5110
 #define pinstCSkillsWnd_x                                          0xEE5114
 #define pinstCSkillsSelectWnd_x                                    0xEE5118
-#define pinstCCombatSkillSelectWnd_x                               0xEE511C
+#define pinstCCombatSkillsSelectWnd_x                              0xEE511C
 #define pinstCFriendsWnd_x                                         0xEE5120
 #define pinstCAuraWnd_x                                            0xEE5124
 #define pinstCRespawnWnd_x                                         0xEE5128
@@ -742,3 +742,5 @@ GNU General Public License for more details.
 
 //CTaskWnd
 #define CTaskWnd__UpdateTaskTimers_x                               0x7ABF60
+//CCombatSkillsSelectWnd
+#define CCombatSkillsSelectWnd__ShouldDisplayThisSkill_x           0x0

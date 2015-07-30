@@ -2002,18 +2002,15 @@ VOID DoAbility(PSPAWNINFO pChar, PCHAR szLine)
         }
 
         // display discipline i have
-        WriteChatColor("Combat Abilities:",USERCOLOR_DEFAULT);
-        for(Index=0;Index<NUM_COMBAT_ABILITIES;Index++)
-        {
-            if(GetCharInfo2()->CombatAbilities[Index])
-            {
-                if(PSPELL pCA=GetSpellByID(GetCharInfo2()->CombatAbilities[Index]))
-                {
-                    sprintf(szBuffer, "<\ag%s\ax>",pCA->Name);
-                    WriteChatColor(szBuffer,USERCOLOR_DEFAULT);
-                }
-            }
-        }
+		WriteChatColor("Combat Abilities:",USERCOLOR_DEFAULT);
+		for(Index=0;Index<NUM_COMBAT_ABILITIES;Index++) {
+			if(pCombatSkillsSelectWnd->ShouldDisplayThisSkill(Index)) {
+				if ( PSPELL pCA = GetSpellByID(pPCData->GetCombatAbility(Index)) ) {
+					sprintf(szBuffer, "<\ag%s\ax>",pCA->Name);
+					WriteChatColor(szBuffer,USERCOLOR_DEFAULT);
+				}
+			}
+		}
         return;
     } 
 
@@ -2038,8 +2035,7 @@ VOID DoAbility(PSPAWNINFO pChar, PCHAR szLine)
     // scan for matching discipline name
     for(Index=0; Index<NUM_COMBAT_ABILITIES; Index++)
     {
-        if(GetCharInfo2()->CombatAbilities[Index])
-        {
+		if(pCombatSkillsSelectWnd->ShouldDisplayThisSkill(Index)) {
             if(PSPELL pCA=GetSpellByID(GetCharInfo2()->CombatAbilities[Index]))
             {
                 if(!stricmp(pCA->Name,szBuffer))

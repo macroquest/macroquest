@@ -895,31 +895,34 @@ int GetLanguageIDByName( PCHAR SzName )
 
 int GetCurrencyIDByName(PCHAR szName)
 {
-	if (!_stricmp(szName, "DOUBLOONS")) return ALTCURRENCY_DOUBLOONS;  // 0XA
-	if (!_stricmp(szName, "ORUX")) return ALTCURRENCY_ORUX; //0XB
-	if (!_stricmp(szName, "PHOSPHENES")) return ALTCURRENCY_PHOSPHENES; //0XC
-	if (!_stricmp(szName, "PHOSPHITES")) return ALTCURRENCY_PHOSPHITES; //0XD
-	if (!_stricmp(szName, "FAYCITUM")) return ALTCURRENCY_FAYCITES; //0XE
-	if (!_stricmp(szName, "CHRONOBINES")) return ALTCURRENCY_CHRONOBINES; //0XF
-	if (!_stricmp(szName, "SILVER TOKENS")) return ALTCURRENCY_SILVERTOKENS; //0X10
-	if (!_stricmp(szName, "GOLD TOKENS")) return ALTCURRENCY_GOLDTOKENS; //0X11
-	if (!_stricmp(szName, "MCKENZIE'S SPECIAL BREW")) return ALTCURRENCY_MCKENZIE; //0X12
-	if (!_stricmp(szName, "BAYLE MARKS")) return ALTCURRENCY_BAYLE; //0X13   
-	if (!_stricmp(szName, "TOKENS OF RECLAMATION")) return ALTCURRENCY_RECLAMATION; //0X14
-	if (!_stricmp(szName, "BRELLIUM TOKENS")) return ALTCURRENCY_BRELLIUM; //0X15
-	if (!_stricmp(szName, "DREAM MOTES")) return ALTCURRENCY_MOTES; //0X16
-	if (!_stricmp(szName, "REBELLION CHITS")) return ALTCURRENCY_REBELLIONCHITS; //0X17
-	if (!_stricmp(szName, "DIAMOND COINS")) return ALTCURRENCY_DIAMONDCOINS; //0X18
-	if (!_stricmp(szName, "BRONZE FIATS")) return ALTCURRENCY_BRONZEFIATS; //0X19
-	if (!_stricmp(szName, "EXPEDIENT DELIVERY VOUCHERS")) return ALTCURRENCY_VOUCHER; //0x1a
-	if (!_stricmp(szName, "VELIUM SHARDS")) return ALTCURRENCY_VELIUMSHARDS; //0X1b
-	if (!_stricmp(szName, "CRYSTALLIZED FEAR")) return ALTCURRENCY_CRYSTALLIZEDFEAR; //0X1c
-	if (!_stricmp(szName, "SHADOWSTONES")) return ALTCURRENCY_SHADOWSTONES; //0X1d
-	if (!_stricmp(szName, "DREADSTONES")) return ALTCURRENCY_DREADSTONES; //0X1e
+	if (!_stricmp(szName, "Doubloons")) return ALTCURRENCY_DOUBLOONS;  // 0XA
+	if (!_stricmp(szName, "Orux")) return ALTCURRENCY_ORUX; //0XB
+	if (!_stricmp(szName, "Phosphenes")) return ALTCURRENCY_PHOSPHENES; //0XC
+	if (!_stricmp(szName, "Phosphites")) return ALTCURRENCY_PHOSPHITES; //0XD
+	if (!_stricmp(szName, "Faycitum")) return ALTCURRENCY_FAYCITES; //0XE
+	if (!_stricmp(szName, "Chronobines")) return ALTCURRENCY_CHRONOBINES; //0XF
+	if (!_stricmp(szName, "Silver Tokens")) return ALTCURRENCY_SILVERTOKENS; //0X10
+	if (!_stricmp(szName, "Gold Tokens")) return ALTCURRENCY_GOLDTOKENS; //0X11
+	if (!_stricmp(szName, "McKenzie's Special Brew")) return ALTCURRENCY_MCKENZIE; //0X12
+	if (!_stricmp(szName, "Bayle Marks")) return ALTCURRENCY_BAYLE; //0X13   
+	if (!_stricmp(szName, "Tokens of Reclamation")) return ALTCURRENCY_RECLAMATION; //0X14
+	if (!_stricmp(szName, "Brellium Tokens")) return ALTCURRENCY_BRELLIUM; //0X15
+	if (!_stricmp(szName, "Dream Motes")) return ALTCURRENCY_MOTES; //0X16
+	if (!_stricmp(szName, "Rebellion Chits")) return ALTCURRENCY_REBELLIONCHITS; //0X17
+	if (!_stricmp(szName, "Diamond Coins")) return ALTCURRENCY_DIAMONDCOINS; //0X18
+	if (!_stricmp(szName, "Bronze Fiats")) return ALTCURRENCY_BRONZEFIATS; //0X19
+	if (!_stricmp(szName, "Expedient Delivery Vouchers")) return ALTCURRENCY_VOUCHER; //0x1a
+	if (!_stricmp(szName, "Velium Shards")) return ALTCURRENCY_VELIUMSHARDS; //0X1b
+	if (!_stricmp(szName, "Crystallized Fear")) return ALTCURRENCY_CRYSTALLIZEDFEAR; //0X1c
+	if (!_stricmp(szName, "Shadowstones")) return ALTCURRENCY_SHADOWSTONES; //0X1d
+	if (!_stricmp(szName, "Dreadstones")) return ALTCURRENCY_DREADSTONES; //0X1e
 	if (!_stricmp(szName, "Marks of Valor")) return ALTCURRENCY_MARKSOFVALOR; //0X1F
-	if (!_stricmp(szName, "Marks of Heroism")) return ALTCURRENCY_MEDALSOFHEROISM; //0X20   
+	if (!_stricmp(szName, "Medals of Heroism")) return ALTCURRENCY_MEDALSOFHEROISM; //0X20   
 	if (!_stricmp(szName, "Commemorative Coins")) return ALTCURRENCY_COMMEMORATIVE_COINS; //0X21 
-	if (!_stricmp(szName, "Noble")) return ALTCURRENCY_NOBLES; //0X22
+	if (!_stricmp(szName, "Fists of Bayle")) return ALTCURRENCY_FISTSOFBAYLE; //0X22
+	if (!_stricmp(szName, "Nobles")) return ALTCURRENCY_NOBLES; //0X23
+	if (!_stricmp(szName, "Arx Energy Crystals")) return ALTCURRENCY_ENERGYCRYSTALS; //0X24
+	if (!_stricmp(szName, "Pieces of Eight")) return ALTCURRENCY_PIECESOFEIGHT; //0X25
 	return -1;
 }
 
@@ -6758,7 +6761,7 @@ void UseAbility(char *sAbility) {
         cmdDoAbility(pChar,itoa(DoIndex,szBuffer,10));
     } else {
         for (Index=0;Index<NUM_COMBAT_ABILITIES;Index++) {
-            if (GetCharInfo2()->CombatAbilities[Index]) {
+           	if(pCombatSkillsSelectWnd->ShouldDisplayThisSkill(Index)) {
                 if(PSPELL pCA = GetSpellByID(GetCharInfo2()->CombatAbilities[Index])) {
 					if (!stricmp(pCA->Name, szBuffer)) {
 						//We got the cookie, let's try and do it 

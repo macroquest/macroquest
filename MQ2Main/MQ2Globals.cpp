@@ -170,6 +170,7 @@ bool InitOffsets()
     ppBuffWindowNORMAL = (CBuffWindow**)pinstCBuffWindowNORMAL;
     ppTargetWnd = (CTargetWnd**)pinstCTargetWnd;
     ppColorPickerWnd = (CColorPickerWnd**)pinstCColorPickerWnd;
+	ppCombatSkillsSelectWnd = (CCombatSkillsSelectWnd**)pinstCCombatSkillsSelectWnd;
     ppHotButtonWnd = (CHotButtonWnd**)pinstCHotButtonWnd;
     ppPlayerWnd = (CPlayerWnd**)pinstCPlayerWnd;
     ppCastingWnd = (CCastingWnd**)pinstCCastingWnd;
@@ -1114,6 +1115,7 @@ CBuffWindow **ppBuffWindowSHORT=0;
 CBuffWindow **ppBuffWindowNORMAL=0;
 CTargetWnd **ppTargetWnd=0;
 CColorPickerWnd **ppColorPickerWnd=0;
+CCombatSkillsSelectWnd **ppCombatSkillsSelectWnd=0;
 CHotButtonWnd **ppHotButtonWnd=0;
 CPlayerWnd **ppPlayerWnd=0;
 CCastingWnd **ppCastingWnd=0;
@@ -1302,7 +1304,7 @@ INITIALIZE_EQGAME_OFFSET(pinstCPetInfoWnd);
 INITIALIZE_EQGAME_OFFSET(pinstCTrainWnd);
 INITIALIZE_EQGAME_OFFSET(pinstCSkillsWnd);
 INITIALIZE_EQGAME_OFFSET(pinstCSkillsSelectWnd);
-INITIALIZE_EQGAME_OFFSET(pinstCCombatSkillSelectWnd);
+INITIALIZE_EQGAME_OFFSET(pinstCCombatSkillsSelectWnd);
 INITIALIZE_EQGAME_OFFSET(pinstCFriendsWnd);
 INITIALIZE_EQGAME_OFFSET(pinstCAuraWnd);
 INITIALIZE_EQGAME_OFFSET(pinstCRespawnWnd);
@@ -1799,6 +1801,7 @@ INITIALIZE_EQGAME_OFFSET(CTargetWnd__GetBuffCaster);
 INITIALIZE_EQGAME_OFFSET(CTargetWnd__WndNotification);
 INITIALIZE_EQGAME_OFFSET(CTaskWnd__UpdateTaskTimers);
 INITIALIZE_EQGAME_OFFSET(EqSoundManager__WavePlay);
+INITIALIZE_EQGAME_OFFSET(CCombatSkillsSelectWnd__ShouldDisplayThisSkill);
 
 
 };

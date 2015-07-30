@@ -1,3 +1,19 @@
+14 Jul 2015 by EqMule
+- Please don't use MQ2 for unattended gameplay (afk botting)
+- Fixed a problem with combat abilities (thanks to William12 for the report)
+  Before this change you could buy a rank 1 combatability, lets say Rest
+  Then you bought Rest Rk. II
+  At that point BOTH are saved in your combatabilities array...
+  (I think thats a eq bug cause it sure isn't needed)
+  Anyway... doing something like ${Spell[Rest].RankName}
+  would then fail cause it would find "Rest" first...
+  The fix is basically calling pCombatSkillsSelectWnd->ShouldDisplayThisSkill
+   in every place NUM_COMBAT_ABILITIES is used...
+
+06 Jul 2015 by rswiders
+- Updated to include new currencies (Fists of Bayle, Arx Energy Crystals, Pieces of Eight)
+- Fixed ${Me.AltCurrency} to be able to use Medals of Heroism not Marks of Heroism
+
 01 Jul 2015 by EqMule
 - Please don't use MQ2 for unattended gameplay (afk botting)
 - Updated for the LIVE Client

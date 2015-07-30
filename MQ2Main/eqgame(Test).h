@@ -165,7 +165,7 @@ GNU General Public License for more details.
 #define pinstCTrainWnd_x                                           0xEE6110
 #define pinstCSkillsWnd_x                                          0xEE6114
 #define pinstCSkillsSelectWnd_x                                    0xEE6118
-#define pinstCCombatSkillSelectWnd_x                               0xEE611C
+#define pinstCCombatSkillsSelectWnd_x                              0xEE611C
 #define pinstCFriendsWnd_x                                         0xEE6120
 #define pinstCAuraWnd_x                                            0xEE6124
 #define pinstCRespawnWnd_x                                         0xEE6128
@@ -745,3 +745,5 @@ GNU General Public License for more details.
 
 //EqSoundManager
 #define EqSoundManager__WavePlay_x                                 0x4D0C30
+//CCombatSkillsSelectWnd
+#define CCombatSkillsSelectWnd__ShouldDisplayThisSkill_x           0x493400

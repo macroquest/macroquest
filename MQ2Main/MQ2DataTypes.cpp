@@ -2574,15 +2574,17 @@ bool MQ2CharacterType::GETMEMBER()
             // name
             for (unsigned long nCombatAbility=0 ; nCombatAbility < NUM_COMBAT_ABILITIES ; nCombatAbility++)
             {
-                if ( PSPELL pSpell = GetSpellByID(pPCData->GetCombatAbility(nCombatAbility)) )
-                {
-                    if (!stricmp(GETFIRST(),pSpell->Name))
-                    {
-                        Dest.DWord=nCombatAbility+1;
-                        Dest.Type=pIntType;
-                        return true;
-                    }
-                }
+				if(pCombatSkillsSelectWnd->ShouldDisplayThisSkill(nCombatAbility)) {
+					if ( PSPELL pSpell = GetSpellByID(pPCData->GetCombatAbility(nCombatAbility)) )
+					{
+						if (!stricmp(GETFIRST(),pSpell->Name))
+						{
+							Dest.DWord=nCombatAbility+1;
+							Dest.Type=pIntType;
+							return true;
+						}
+					}
+				}
             }
         }
         return false;
@@ -2611,21 +2613,23 @@ bool MQ2CharacterType::GETMEMBER()
                 // by name 
                 for (unsigned long nCombatAbility=0 ; nCombatAbility < NUM_COMBAT_ABILITIES ; nCombatAbility++) 
                 {
-                    if ( PSPELL pSpell = GetSpellByID(pPCData->GetCombatAbility(nCombatAbility)) )
-                    { 
-                        if (!stricmp(GETFIRST(),pSpell->Name)) 
-                        { 
-                            DWORD timeNow = (DWORD)time(NULL);
-							if (pSpell->CARecastTimerID != -1 && pPCData->GetCombatAbilityTimer(pSpell->CARecastTimerID,pSpell->SpellGroup) > timeNow)
-							{
-								Dest.Int=pPCData->GetCombatAbilityTimer(pSpell->CARecastTimerID,pSpell->SpellGroup)-timeNow+6;
-								Dest.Int/=6;
-                            }
-                            else Dest.Int=0;
-                            Dest.Type=pTicksType;
-                            return true;
-                        } 
-                    } 
+					if(pCombatSkillsSelectWnd->ShouldDisplayThisSkill(nCombatAbility)) {
+						if ( PSPELL pSpell = GetSpellByID(pPCData->GetCombatAbility(nCombatAbility)) )
+						{ 
+							if (!stricmp(GETFIRST(),pSpell->Name)) 
+							{ 
+								DWORD timeNow = (DWORD)time(NULL);
+								if (pSpell->CARecastTimerID != -1 && pPCData->GetCombatAbilityTimer(pSpell->CARecastTimerID,pSpell->SpellGroup) > timeNow)
+								{
+									Dest.Int=pPCData->GetCombatAbilityTimer(pSpell->CARecastTimerID,pSpell->SpellGroup)-timeNow+6;
+									Dest.Int/=6;
+								}
+								else Dest.Int=0;
+								Dest.Type=pTicksType;
+								return true;
+							} 
+						} 
+					}
                 } 
             } 
         } 
@@ -2654,18 +2658,20 @@ bool MQ2CharacterType::GETMEMBER()
                 // by name 
                 for (unsigned long nCombatAbility=0 ; nCombatAbility < NUM_COMBAT_ABILITIES ; nCombatAbility++) 
                 { 
-                    if ( PSPELL pSpell = GetSpellByID(pPCData->GetCombatAbility(nCombatAbility)) )
-                    { 
-                        if (!stricmp(GETFIRST(),pSpell->Name)) 
-                        { 
-                            DWORD timeNow = (DWORD)time(NULL);
-							if (pSpell->CARecastTimerID != -1 && pPCData->GetCombatAbilityTimer(pSpell->CARecastTimerID,pSpell->SpellGroup) < timeNow)
-							{
-                                Dest.DWord=1;
-                                return true;
-                            }
-                        } 
-                    } 
+					if(pCombatSkillsSelectWnd->ShouldDisplayThisSkill(nCombatAbility)) {
+						if ( PSPELL pSpell = GetSpellByID(pPCData->GetCombatAbility(nCombatAbility)) )
+						{ 
+							if (!stricmp(GETFIRST(),pSpell->Name)) 
+							{ 
+								DWORD timeNow = (DWORD)time(NULL);
+								if (pSpell->CARecastTimerID != -1 && pPCData->GetCombatAbilityTimer(pSpell->CARecastTimerID,pSpell->SpellGroup) < timeNow)
+								{
+									Dest.DWord=1;
+									return true;
+								}
+							} 
+						} 
+					}
                 } 
             } 
         } 
@@ -3557,6 +3563,18 @@ bool MQ2CharacterType::GETMEMBER()
         return true;
     case Nobles:
         Dest.DWord=pPlayerPointManager->GetAltCurrency(ALTCURRENCY_NOBLES);
+        Dest.Type=pIntType;
+        return true;
+	case Fists:
+        Dest.DWord=pPlayerPointManager->GetAltCurrency(ALTCURRENCY_FISTSOFBAYLE);
+        Dest.Type=pIntType;
+        return true;
+	case EnergyCrystals:
+        Dest.DWord=pPlayerPointManager->GetAltCurrency(ALTCURRENCY_ENERGYCRYSTALS);
+        Dest.Type=pIntType;
+        return true;
+	case PiecesofEight:
+        Dest.DWord=pPlayerPointManager->GetAltCurrency(ALTCURRENCY_PIECESOFEIGHT);
         Dest.Type=pIntType;
         return true;
     case Fellowship:
@@ -4584,8 +4602,8 @@ bool MQ2SpellType::GETMEMBER()
 		}
 		//but if we got here we should check if its a combatability
 		for (DWORD dwIndex=0 ; dwIndex < NUM_COMBAT_ABILITIES ; dwIndex++) {
-            if (GetCharInfo2()->CombatAbilities[dwIndex]) {
-                if(PSPELL pFoundSpell = GetSpellByID(GetCharInfo2()->CombatAbilities[dwIndex])) {
+          	if(pCombatSkillsSelectWnd->ShouldDisplayThisSkill(dwIndex)) {
+				if ( PSPELL pFoundSpell = GetSpellByID(pPCData->GetCombatAbility(dwIndex)) ) {
 					if (pFoundSpell->SpellGroup==thespell->SpellGroup && !strncmp(thespell->Name,pFoundSpell->Name,strlen(thespell->Name)))
 					{
 						Dest.Ptr = pFoundSpell;

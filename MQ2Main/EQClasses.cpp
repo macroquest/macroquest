@@ -1042,6 +1042,9 @@ FUNCTION_AT_ADDRESS(void  CColorPickerWnd::UpdateEditWndFromSlider(class CSlider
 #ifdef CColorPickerWnd__UpdateSliderFromEditWnd_x
 FUNCTION_AT_ADDRESS(void  CColorPickerWnd::UpdateSliderFromEditWnd(class CSliderWnd *,class CEditWnd *,int *),CColorPickerWnd__UpdateSliderFromEditWnd);
 #endif
+#ifdef CCombatSkillsSelectWnd__ShouldDisplayThisSkill_x
+FUNCTION_AT_ADDRESS(bool  CCombatSkillsSelectWnd::ShouldDisplayThisSkill(int),CCombatSkillsSelectWnd__ShouldDisplayThisSkill);
+#endif
 #ifdef CCompassWnd__CCompassWnd_x
 FUNCTION_AT_ADDRESS( CCompassWnd::CCompassWnd(class CXWnd *),CCompassWnd__CCompassWnd);
 #endif
@@ -9688,6 +9691,9 @@ FUNCTION_AT_ADDRESS(int  CharacterZoneClient::ApplyDamage(int,int,int,int,int,in
 #endif
 #ifdef PcZoneClient__GetPcSkillLimit_x
 FUNCTION_AT_ADDRESS(int PcZoneClient::GetPcSkillLimit(int), PcZoneClient__GetPcSkillLimit);
+#endif
+#ifdef PcZoneClient__HasCombatAbility_x
+FUNCTION_AT_ADDRESS(bool PcZoneClient::HasCombatAbility(int), PcZoneClient__HasCombatAbility);
 #endif
 #ifdef CXWnd__SetFont_x
 FUNCTION_AT_ADDRESS(int CXWnd::SetFont(void*), CXWnd__SetFont);

@@ -373,7 +373,10 @@ typedef struct _BodyInfo
 #define ALTCURRENCY_MARKSOFVALOR        0x1f
 #define ALTCURRENCY_MEDALSOFHEROISM     0x20
 #define ALTCURRENCY_COMMEMORATIVE_COINS 0x21
+#define ALTCURRENCY_FISTSOFBAYLE	    0x22
 #define ALTCURRENCY_NOBLES			    0x23
+#define ALTCURRENCY_ENERGYCRYSTALS	    0x24
+#define ALTCURRENCY_PIECESOFEIGHT	    0x25
 
 enum MOUSE_DATA_TYPES {
    MD_Unknown = -1,
@@ -1116,9 +1119,10 @@ typedef struct _CHARINFO2 {
 /*0x45f4*/ DWORD        BodyColor[0x9];
 /*0x4618*/ BYTE         Unknown0x4618[0x2000];
 /*0x6618*/ DWORD        CombatAbilities[NUM_COMBAT_ABILITIES];
-/*0x6ac8*/ BYTE         Unknown0x6ac8[0x34];
-/*0x6afc*/ DWORD        CombatAbilityTimes[0x14];
-/*0x6b4c*/ BYTE         Unknown0x6b4c[0x1e08];
+/*0x6ac8*/ DWORD        SpellRecastTimer[0xC];
+/*0x6af8*/ BYTE         Unknown0x6af8[0x5c];
+/*0x6b54*/ DWORD        CombatAbilityTimes[0x14];
+/*0x6ba4*/ BYTE         Unknown0x6ba4[0x1db0];
 /*0x8954*/ DWORD        Deity;
 /*0x8958*/ BYTE         Unknown0x8958[0xdc];
 /*0x8a34*/ DWORD        Drunkenness;

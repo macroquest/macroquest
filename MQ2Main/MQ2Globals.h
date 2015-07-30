@@ -498,7 +498,6 @@ EQLIB_VAR CPetInfoWnd **ppPetInfoWnd;
 EQLIB_VAR CTrainWnd **ppTrainWnd;
 EQLIB_VAR CSkillsWnd **ppSkillsWnd;
 EQLIB_VAR CSkillsSelectWnd **ppSkillsSelectWnd;
-//EQLIB_VAR CCombatSkillSelectWnd **ppCombatSkillSelectWnd;
 EQLIB_VAR CAAWnd **ppAAWnd;
 EQLIB_VAR CGroupWnd **ppGroupWnd;
 //EQLIB_VAR CSystemInfoDialogBox **ppSystemInfoDialogBox;
@@ -515,6 +514,7 @@ EQLIB_VAR CBuffWindow **ppBuffWindowNORMAL;
 EQLIB_VAR CBuffWindow **ppBuffWindowSHORT;
 EQLIB_VAR CTargetWnd **ppTargetWnd;
 EQLIB_VAR CColorPickerWnd **ppColorPickerWnd;
+EQLIB_VAR CCombatSkillsSelectWnd **ppCombatSkillsSelectWnd;
 EQLIB_VAR CHotButtonWnd **ppHotButtonWnd;
 EQLIB_VAR CPlayerWnd **ppPlayerWnd;
 EQLIB_VAR CCastingWnd **ppCastingWnd;
@@ -593,7 +593,6 @@ EQLIB_VAR CConfirmationDialog **ppConfirmationDialog;
 #define pTrainWnd (*ppTrainWnd)
 #define pSkillsWnd (*ppSkillsWnd)
 #define pSkillsSelectWnd (*ppSkillsSelectWnd)
-#define pCombatSkillSelectWnd (*ppCombatSkillSelectWnd)
 #define pAAWnd (*ppAAWnd)
 #define pGroupWnd (*ppGroupWnd)
 #define pSystemInfoDialogBox (*ppSystemInfoDialogBox)
@@ -610,6 +609,8 @@ EQLIB_VAR CConfirmationDialog **ppConfirmationDialog;
 #define pSongWnd (*ppBuffWindowSHORT)
 #define pTargetWnd (*ppTargetWnd)
 #define pColorPickerWnd (*ppColorPickerWnd)
+#define pCombatAbilityWnd (*ppCombatAbilityWnd)
+#define pCombatSkillsSelectWnd (*ppCombatSkillsSelectWnd)
 #define pHotButtonWnd (*ppHotButtonWnd)
 #define pPlayerWnd (*ppPlayerWnd)
 #define pCastingWnd (*ppCastingWnd)
@@ -623,7 +624,6 @@ EQLIB_VAR CConfirmationDialog **ppConfirmationDialog;
 #define pLootWnd (*ppLootWnd)
 #define pPetInfoWnd (*ppPetInfoWnd)
 #define pActionsWnd (*ppActionsWnd)
-#define pCombatAbilityWnd (*ppCombatAbilityWnd)
 #define pMerchantWnd (*ppMerchantWnd)
 #define pTradeWnd (*ppTradeWnd)
 #define pBazaarWnd (*ppBazaarWnd)
@@ -794,7 +794,6 @@ EQLIB_VAR DWORD pinstCPetInfoWnd;
 EQLIB_VAR DWORD pinstCTrainWnd;
 EQLIB_VAR DWORD pinstCSkillsWnd;
 EQLIB_VAR DWORD pinstCSkillsSelectWnd;
-EQLIB_VAR DWORD pinstCCombatSkillSelectWnd;
 EQLIB_VAR DWORD pinstCFriendsWnd;
 EQLIB_VAR DWORD pinstCAuraWnd;
 EQLIB_VAR DWORD pinstCRespawnWnd;
@@ -816,6 +815,7 @@ EQLIB_VAR DWORD pinstCMapToolbarWnd;
 EQLIB_VAR DWORD pinstCEditLabelWnd;
 EQLIB_VAR DWORD pinstCTargetWnd;
 EQLIB_VAR DWORD pinstCColorPickerWnd;
+EQLIB_VAR DWORD pinstCCombatSkillsSelectWnd;
 EQLIB_VAR DWORD pinstCPlayerWnd;
 EQLIB_VAR DWORD pinstCOptionsWnd;
 EQLIB_VAR DWORD pinstCBuffWindowNORMAL;
@@ -1281,6 +1281,7 @@ EQLIB_VAR DWORD PlayerPointManager__GetAltCurrency;
 EQLIB_VAR DWORD StringTable__getString;
 
 EQLIB_VAR DWORD PcZoneClient__GetPcSkillLimit;
+EQLIB_VAR DWORD PcZoneClient__HasCombatAbility;
 
 EQLIB_VAR DWORD EQSwitch__UseSwitch;
 
@@ -1306,6 +1307,7 @@ EQLIB_VAR DWORD CTargetWnd__GetBuffCaster;
 EQLIB_VAR DWORD CTargetWnd__WndNotification;
 EQLIB_VAR DWORD CTaskWnd__UpdateTaskTimers;
 EQLIB_VAR DWORD EqSoundManager__WavePlay;
+EQLIB_VAR DWORD CCombatSkillsSelectWnd__ShouldDisplayThisSkill;
 
 }
 using namespace MQ2Globals;

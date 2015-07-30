@@ -1053,6 +1053,9 @@ public:
 		Instance=209,
 		MercListInfo=210,
 		UseAdvancedLooting=211,
+		Fists=212,
+		EnergyCrystals=213,
+		PiecesofEight=214,
     };
     static enum CharacterMethods
     {
@@ -1263,6 +1266,9 @@ public:
 		TypeMember(Instance);
 		TypeMember(MercListInfo);
 		TypeMember(UseAdvancedLooting);
+		TypeMember(Fists);
+		TypeMember(EnergyCrystals);
+		TypeMember(PiecesofEight);
 		
         TypeMethod(Stand); 
         TypeMethod(Sit); 

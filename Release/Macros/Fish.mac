@@ -41,7 +41,7 @@ Sub Main
 
 Sub KeepItem
    /if (${Cursor.Name.NotEqual[Fish Scales]}) /echo Caught ${Cursor.Name}
-   /notify InventoryWindow IW_CharacterView leftmouseup
+   /autoinventory
 /return
 
 Sub CheckPole
