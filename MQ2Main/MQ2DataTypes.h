@@ -2234,6 +2234,31 @@ public:
         State=3,
 		StateID=4,
 		xIndex=5,
+#ifdef MULETESTING
+		CurrentHPs=6,
+		MaxHPs=7,
+		PctHPs=8,
+		CurrentMana=9,
+		MaxMana=10,
+		PctMana=11,
+		AC=12,
+		AGI=13,
+		Attack=14,
+		CHA=15,
+		CombatEnduranceRegen=16,
+		CombatHPRegen=17,
+		CurrentEndurance=18, 
+		MaxEndurance=19,
+		PctEndurance=20,
+		DEX=21, 
+		Haste=22,
+		HealAmount=23,
+		INT=24,
+		SpellDamage=25,
+		STA=26,
+		STR=27, 
+		WIS=28,
+#endif
     };
     static enum MercenaryMethods
     {
@@ -2245,6 +2270,31 @@ public:
         TypeMember(State);
         TypeMember(StateID);
 		AddMember(xIndex,"Index");
+#ifdef MULETESTING
+		TypeMember(CurrentHPs);
+        TypeMember(MaxHPs);
+        TypeMember(PctHPs);
+        TypeMember(CurrentMana);
+        TypeMember(MaxMana);
+        TypeMember(PctMana);
+        TypeMember(AC);
+        TypeMember(AGI);
+        TypeMember(Attack);
+        TypeMember(CHA);
+        TypeMember(CombatEnduranceRegen);
+        TypeMember(CombatHPRegen);
+        TypeMember(CurrentEndurance);
+        TypeMember(MaxEndurance);
+        TypeMember(PctEndurance);
+        TypeMember(DEX);
+        TypeMember(Haste);
+        TypeMember(HealAmount);
+        TypeMember(INT);
+        TypeMember(SpellDamage);
+        TypeMember(STA);
+        TypeMember(STR);
+        TypeMember(WIS);
+#endif
     }
 
     ~MQ2MercenaryType()
@@ -3515,7 +3565,7 @@ public:
     bool ToString(MQ2VARPTR VarPtr, PCHAR Destination)
     {
         PMQTIMER pTimer=(PMQTIMER)VarPtr.Ptr;
-        itoa(pTimer->Current,Destination,10);
+        _ultoa(pTimer->Current,Destination,10);
         return true;
     }
     void InitVariable(MQ2VARPTR &VarPtr) 

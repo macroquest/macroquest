@@ -4163,7 +4163,7 @@ bool MQ2SpellType::GETMEMBER()
         Dest.Type=pFloatType; 
         return true;
     case Duration:
-        Dest.DWord=GetSpellDuration(pSpell,(PSPAWNINFO)pCharSpawn);
+        Dest.DWord=GetSpellDuration(pSpell,(PSPAWNINFO)pLocalPlayer);
         Dest.Type=pTicksType;
         return true;
     case CastOnYou: 
@@ -4233,7 +4233,7 @@ bool MQ2SpellType::GETMEMBER()
 						for (int nSlot=0; nSlot<=11; nSlot++) {
 							if (TriggeringEffectSpell(pSpell, nSlot)) {		// Check the triggered effect against the current buff for stacking
 								if(PSPELL triggeredSpell = GetSpellByID(pSpell->Base2[nSlot])) {
-									if (GetSpellDuration(triggeredSpell,(PSPAWNINFO)pCharSpawn)>=0xFFFFFFFE) {
+									if (GetSpellDuration(triggeredSpell,(PSPAWNINFO)pLocalPlayer)>=0xFFFFFFFE) {
 										buffduration = 99999+1;
 									}
 									if (!BuffStackTest(triggeredSpell, buffSpell) || ((pSpell==triggeredSpell) && (buffduration>duration))) {
@@ -4243,7 +4243,7 @@ bool MQ2SpellType::GETMEMBER()
 								}
 							}
 						}
-						if (GetSpellDuration(buffSpell,(PSPAWNINFO)pCharSpawn)>=0xFFFFFFFE) {
+						if (GetSpellDuration(buffSpell,(PSPAWNINFO)pLocalPlayer)>=0xFFFFFFFE) {
 							buffduration = 99999+1;
 						}
 						if (!BuffStackTest(pSpell, buffSpell, TRUE) || ((buffSpell==pSpell) && (buffduration>duration))) {
@@ -4262,7 +4262,7 @@ bool MQ2SpellType::GETMEMBER()
 							for (int nSlot=0; nSlot<=11; nSlot++) {
 								if (TriggeringEffectSpell(pSpell, nSlot)) {		// Check the triggered effect against the current buff for stacking
 									if(PSPELL triggeredSpell = GetSpellByID(pSpell->Base2[nSlot])) {
-										if (GetSpellDuration(triggeredSpell,(PSPAWNINFO)pCharSpawn)>=0xFFFFFFFE) {
+										if (GetSpellDuration(triggeredSpell,(PSPAWNINFO)pLocalPlayer)>=0xFFFFFFFE) {
 											buffduration = 99999+1;
 										}
 										if (!BuffStackTest(triggeredSpell, buffSpell) || ((pSpell==triggeredSpell) && (buffduration>duration))) {
@@ -4272,7 +4272,7 @@ bool MQ2SpellType::GETMEMBER()
 									}
 								}
 							}
-							if (GetSpellDuration(buffSpell,(PSPAWNINFO)pCharSpawn)>=0xFFFFFFFE) {
+							if (GetSpellDuration(buffSpell,(PSPAWNINFO)pLocalPlayer)>=0xFFFFFFFE) {
 								buffduration = 99999+1;
 							}
 							if (!BuffStackTest(pSpell, buffSpell, TRUE) || ((buffSpell==pSpell) && (buffduration>duration))) {
@@ -4302,7 +4302,7 @@ bool MQ2SpellType::GETMEMBER()
 						for (int nSlot=0; nSlot<=11; nSlot++) {
 							if (TriggeringEffectSpell(pSpell, nSlot)) {		// Check the triggered effect against the current buff for stacking
 								if(PSPELL triggeredSpell = GetSpellByID(pSpell->Base2[nSlot])) {
-									if (GetSpellDuration(triggeredSpell,(PSPAWNINFO)pCharSpawn)>=0xFFFFFFFE) {
+									if (GetSpellDuration(triggeredSpell,(PSPAWNINFO)pLocalPlayer)>=0xFFFFFFFE) {
 										petbuffduration = 99999+1;
 									}
 									if (!BuffStackTest(triggeredSpell, buffSpell) || ((pSpell==triggeredSpell) && (petbuffduration>duration))) {
@@ -4312,7 +4312,7 @@ bool MQ2SpellType::GETMEMBER()
 								}
 							}
 						}
-						if (GetSpellDuration(buffSpell,(PSPAWNINFO)pCharSpawn)>=0xFFFFFFFE) {
+						if (GetSpellDuration(buffSpell,(PSPAWNINFO)pLocalPlayer)>=0xFFFFFFFE) {
 							petbuffduration = 99999+1;
 						}
 						if (!BuffStackTest(pSpell, buffSpell, TRUE) || ((buffSpell==pSpell) && (petbuffduration>duration))) {
@@ -7204,6 +7204,181 @@ bool MQ2MercenaryType::GETMEMBER()
 		Dest.DWord=pMercInfo->CurrentMercIndex+1;
 		Dest.Type=pIntType;
         return true;
+#ifdef MULETESTING
+		//work in progress -eqmule Aug 03 2015
+	case CurrentHPs:
+		if(PMERCENARYSTATS pStats = (PMERCENARYSTATS)pinstMercenaryStats) {
+			Dest.DWord=pStats->CurrHP;
+			Dest.Type=pIntType;
+			return true;
+		}
+		break;
+	case MaxHPs:
+		if(PMERCENARYSTATS pStats = (PMERCENARYSTATS)pinstMercenaryStats) {
+			Dest.Type=pIntType;
+			Dest.Int=pStats->MaxHP;
+			return true;
+		}
+		break;
+    case PctHPs:
+    {
+		if(PMERCENARYSTATS pStats = (PMERCENARYSTATS)pinstMercenaryStats) {
+			Dest.Type=pIntType;
+			LONG maxhp=pStats->MaxHP;
+			if (maxhp!=0)
+				Dest.Int=pStats->CurrHP*100/maxhp;
+			else
+				Dest.Int=0;	
+			return true;
+		}
+		break;
+	}
+    case CurrentMana:
+		if(PMERCENARYSTATS pStats = (PMERCENARYSTATS)pinstMercenaryStats) {
+			Dest.Int=pStats->CurrMana;
+			Dest.Type=pIntType;
+			return true;
+		}
+		break;
+    case MaxMana:
+		if(PMERCENARYSTATS pStats = (PMERCENARYSTATS)pinstMercenaryStats) {
+			Dest.Int=pStats->MaxMana;
+			Dest.Type=pIntType;
+			return true;
+		}
+		break;
+    case PctMana:
+		if(PMERCENARYSTATS pStats = (PMERCENARYSTATS)pinstMercenaryStats) {
+            if (unsigned long Temp=pStats->MaxMana)
+                Dest.Int=pStats->CurrMana*100/Temp;
+            else
+                Dest.Int=0;
+            Dest.Type=pIntType;
+        }
+        break;
+	case AC:
+		if(PMERCENARYSTATS pStats = (PMERCENARYSTATS)pinstMercenaryStats) {
+			Dest.DWord=pStats->AC;
+			Dest.Type=pIntType;
+			return true;
+		}
+		break;
+	case AGI:
+		if(PMERCENARYSTATS pStats = (PMERCENARYSTATS)pinstMercenaryStats) {
+			Dest.DWord=pStats->AGI;
+			Dest.Type=pIntType;
+			return true;
+		}
+		break;
+	case Attack:
+		if(PMERCENARYSTATS pStats = (PMERCENARYSTATS)pinstMercenaryStats) {
+			Dest.DWord=pStats->Attack;
+			Dest.Type=pIntType;
+			return true;
+		}
+		break;
+	case CHA:
+		if(PMERCENARYSTATS pStats = (PMERCENARYSTATS)pinstMercenaryStats) {
+			Dest.DWord=pStats->CHA;
+			Dest.Type=pIntType;
+			return true;
+		}
+		break;
+	case CombatEnduranceRegen:
+		if(PMERCENARYSTATS pStats = (PMERCENARYSTATS)pinstMercenaryStats) {
+			Dest.DWord=pStats->CombatEnduranceRegen;
+			Dest.Type=pIntType;
+			return true;
+		}
+		break;
+	case CombatHPRegen:
+		if(PMERCENARYSTATS pStats = (PMERCENARYSTATS)pinstMercenaryStats) {
+			Dest.DWord=pStats->CombatHPRegen;
+			Dest.Type=pIntType;
+			return true;
+		}
+		break;
+	case CurrentEndurance: 
+       if(PMERCENARYSTATS pStats = (PMERCENARYSTATS)pinstMercenaryStats) {
+			Dest.Int=pStats->CurrEndurance;
+			Dest.Type=pIntType;
+			return true;
+		}
+		break;
+    case MaxEndurance:
+        if(PMERCENARYSTATS pStats = (PMERCENARYSTATS)pinstMercenaryStats) {
+			Dest.Int=pStats->MaxEndurance;
+			Dest.Type=pIntType;
+			return true;
+		}
+		break;
+    case PctEndurance:
+        if(PMERCENARYSTATS pStats = (PMERCENARYSTATS)pinstMercenaryStats) {
+			if (unsigned long Temp=pStats->MaxEndurance)
+				Dest.Int=(pStats->CurrEndurance*100)/Temp;
+			else
+				Dest.Int=0;
+			Dest.Type=pIntType;
+			return true;
+		}
+		break;
+	case DEX: 
+       if(PMERCENARYSTATS pStats = (PMERCENARYSTATS)pinstMercenaryStats) {
+			Dest.Int=pStats->DEX;
+			Dest.Type=pIntType;
+			return true;
+		}
+		break;
+	case Haste: 
+       if(PMERCENARYSTATS pStats = (PMERCENARYSTATS)pinstMercenaryStats) {
+			Dest.Int=pStats->Haste;
+			Dest.Type=pIntType;
+			return true;
+		}
+		break;
+	case HealAmount: 
+       if(PMERCENARYSTATS pStats = (PMERCENARYSTATS)pinstMercenaryStats) {
+			Dest.Int=pStats->HealAmount;
+			Dest.Type=pIntType;
+			return true;
+		}
+		break;
+	case INT: 
+       if(PMERCENARYSTATS pStats = (PMERCENARYSTATS)pinstMercenaryStats) {
+			Dest.Int=pStats->INT;
+			Dest.Type=pIntType;
+			return true;
+		}
+		break;
+	case SpellDamage: 
+       if(PMERCENARYSTATS pStats = (PMERCENARYSTATS)pinstMercenaryStats) {
+			Dest.Int=pStats->SpellDamage;
+			Dest.Type=pIntType;
+			return true;
+		}
+		break;
+	case STA: 
+       if(PMERCENARYSTATS pStats = (PMERCENARYSTATS)pinstMercenaryStats) {
+			Dest.Int=pStats->STA;
+			Dest.Type=pIntType;
+			return true;
+		}
+		break;
+	case STR: 
+       if(PMERCENARYSTATS pStats = (PMERCENARYSTATS)pinstMercenaryStats) {
+			Dest.Int=pStats->STR;
+			Dest.Type=pIntType;
+			return true;
+		}
+		break;
+	case WIS: 
+       if(PMERCENARYSTATS pStats = (PMERCENARYSTATS)pinstMercenaryStats) {
+			Dest.Int=pStats->WIS;
+			Dest.Type=pIntType;
+			return true;
+		}
+		break;
+#endif
 	}
 	return false;
 }

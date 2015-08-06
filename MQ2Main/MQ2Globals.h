@@ -769,6 +769,7 @@ EQLIB_VAR DWORD pinstGroup;
 EQLIB_VAR DWORD pinstImeManager;
 EQLIB_VAR DWORD pinstLocalPlayer;
 EQLIB_VAR DWORD pinstMercenaryData;
+EQLIB_VAR DWORD pinstMercenaryStats;
 EQLIB_VAR DWORD pinstMercAltAbilities;
 EQLIB_VAR DWORD pinstModelPlayer;
 EQLIB_VAR DWORD pinstPCData;

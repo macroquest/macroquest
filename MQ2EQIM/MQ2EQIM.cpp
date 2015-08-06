@@ -333,7 +333,7 @@ VOID LoadBuddyList()
             if (FindEQIMBuddy(szBuffer)==-1)
             {
                 sprintf(szCommand,"[buddy %s",szBuffer);
-                DoCommand((PSPAWNINFO)pCharSpawn,szCommand);
+                DoCommand((PSPAWNINFO)pLocalPlayer,szCommand);
                 EQIMBuddy *pBuddy = new EQIMBuddy;
                 strcpy(pBuddy->Name,szBuffer);
                 pBuddy->Status=BUDDY_OFFLINE;
@@ -350,7 +350,7 @@ VOID LoadBuddyList()
     for (N = 0 ; N < nfriends ; N++)
     {
         sprintf(szCommand,";buddy %s",pChatService->GetFriendName(N));
-        DoCommand((PSPAWNINFO)pCharSpawn,szCommand);
+        DoCommand((PSPAWNINFO)pLocalPlayer,szCommand);
     }
 
     // import "last seen" global

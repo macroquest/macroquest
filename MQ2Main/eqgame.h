@@ -133,6 +133,7 @@ GNU General Public License for more details.
 #define pinstImeManager_x                                          0x17A4B38
 #define pinstLocalPlayer_x                                         0xF9C618
 #define pinstMercenaryData_x                                       0x102EA60
+#define pinstMercenaryStats_x                                      0x1142E78
 #define pinstMercAltAbilities_x                                    0xEE9DC4
 #define pinstModelPlayer_x                                         0xF9C644
 #define pinstPCData_x                                              0xF9C604

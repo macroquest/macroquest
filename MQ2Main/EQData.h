@@ -2305,6 +2305,31 @@ typedef struct _MERCENARYINFO {
 /*0x2Fc*/
 } MERCENARYINFO, *PMERCENARYINFO;
 
+typedef struct _MERCENARYSTATS {
+/*0x000*/ DWORD MaxHP; 
+/*0x004*/ DWORD CurrHP; 
+/*0x008*/ DWORD MaxMana; 
+/*0x00c*/ DWORD CurrMana; 
+/*0x010*/ DWORD MaxEndurance; 
+/*0x014*/ DWORD CurrEndurance; 
+/*0x018*/ DWORD AC; 
+/*0x01c*/ DWORD Attack; 
+/*0x020*/ DWORD Haste; 
+/*0x024*/ DWORD STR; 
+/*0x028*/ DWORD STA; 
+/*0x02c*/ DWORD INT; 
+/*0x030*/ DWORD WIS; 
+/*0x034*/ DWORD AGI; 
+/*0x038*/ DWORD DEX; 
+/*0x03c*/ DWORD CHA; 
+/*0x040*/ DWORD CombatHPRegen; 
+/*0x044*/ DWORD CombatManaRegen; 
+/*0x048*/ DWORD CombatEnduranceRegen; 
+/*0x04c*/ DWORD HealAmount; 
+/*0x050*/ DWORD SpellDamage; 
+/*0x054*/ 
+} MERCENARYSTATS, *PMERCENARYSTATS;
+
 #define MAX_XTARGETS 20
 
 enum xTargetTypes

@@ -1,3 +1,12 @@
+03 Aug 2015 by EqMule
+- Please don't use MQ2 for unattended gameplay (afk botting)
+- Fixed a 10 year old bug where GetSpellDuration would use pCharSpawn (which can be a level 30 mount)
+  instad of the correct pLocalPlayer (which is actually your characters spawn with correct level)
+  the impact of this would be that spells that scale their duration by the level of the caster
+  would return a shorter duartion when on a mount...
+  example: doing /echo ${Spell[Enticer's Command].Duration.Minutes} on a level 105 enc would return 4 when on a mount and 7 when not
+  bug report: Maskoi
+
 24 Jul 2015 by EqMule
 - Please don't use MQ2 for unattended gameplay (afk botting)
 - Updated for todays TEST ninja patch

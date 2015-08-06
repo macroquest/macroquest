@@ -154,7 +154,7 @@ public:
         sprintf(temp, "ID: %04d&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;", pSpell->ID );
         strcat(out,temp);
 
-        DWORD Tics=GetSpellDuration(pSpell,pCharInfo->pSpawn);
+        DWORD Tics=GetSpellDuration(pSpell,(PSPAWNINFO)pLocalPlayer);
         if (Tics==0xFFFFFFFF)
             strcat(out, "Duration: Permanent<br>" );
         else if (Tics==0xFFFFFFFE) 
@@ -320,7 +320,7 @@ public:
         sprintf(temp, "ID: %04d&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;", pSpell->ID );
         strcat(out,temp);
 
-        DWORD Tics=GetSpellDuration(pSpell,pCharInfo->pSpawn);
+        DWORD Tics=GetSpellDuration(pSpell,(PSPAWNINFO)pLocalPlayer);
         if (Tics==0xFFFFFFFF)
             strcat(out, "Duration: Permanent<br>" );
         else if (Tics==0xFFFFFFFE) 
@@ -1551,7 +1551,7 @@ PLUGIN_API DWORD OnIncomingChat(PCHAR Line, DWORD Color)
 			memset(szText,0,100);
 			strncpy(szText,p+2,LINK_LEN);
 			sprintf(szCommand, "/notify ChatWindow CW_ChatOutput link %s", szText);
-			DoCommand(((PSPAWNINFO)pCharSpawn), szCommand);
+			DoCommand(((PSPAWNINFO)pLocalPlayer), szCommand);
 			
 			/* 
 			WriteChatf("OnIncomingChat::Cmd = %s",Line);
