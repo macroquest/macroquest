@@ -92,7 +92,7 @@ DWORD WINAPI ProcessingThread(LPVOID lpParam)
                 while(Conn->Received)
                 {
                     PCHATBUF rNext=Conn->Received->pNext;
-                    free(rNext);
+                    free(Conn->Received);
                     Conn->Received=rNext;
                 }
                 if (Conn->pLast)
@@ -359,7 +359,7 @@ void CTelnetServer::Shutdown()
         while(Connections->Received)
         {
             PCHATBUF rNext=Connections->Received->pNext;
-            free(rNext);
+            free(Connections->Received);
             Connections->Received=rNext;
         }
 

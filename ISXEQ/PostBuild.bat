@@ -2,8 +2,8 @@
 set SOLUTIONDIR=%~1
 set TARGETDIR=%~2
 set TARGET_BASE=%3
-set TARGET_BINARY=%3.dll
-set TARGET_SYMBOL=%3.pdb
+set TARGET_BINARY=%3*.dll
+set TARGET_SYMBOL=%3*.pdb
 
 :: delims is a TAB followed by a space
 if not defined InnerSpacePath FOR /F "tokens=2* delims=	 " %%A IN ('REG QUERY "HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\App Paths\InnerSpace.exe" /v "Path"') DO SET InnerSpacePath=%%B

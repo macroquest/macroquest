@@ -818,7 +818,8 @@ typedef struct _LOOTITEM
 	/*0x00*/ DWORD	ItemID;
 	/*0x04*/ CHAR	Name[0x40];
 	/*0x44*/ DWORD	IconID;
-	/*0x48*/ BYTE   Unknown0x48[0x8];
+	/*0x48*/ DWORD  IsStackable;
+	/*0x4C*/ DWORD  MaxStackSize;
 	/*0x50*/ BYTE   NoDrop;//if the item is nodrop this is 1
 	/*0x51*/ BYTE   Unknown0x51[0x1b];
 	/*0x6c*/ struct _LOOTDETAILS	*LootDetails;

@@ -1,3 +1,22 @@
+08 Aug 2015 by EqMule
+- Please don't use MQ2 for unattended gameplay (afk botting)
+- Updated for ninjapatch.
+- Updated mkplugin.exe mkplugin.cpp and ISXEQ\PostBuild.bat with changes by D2U
+  See http://www.macroquest2.com/phpBB3/viewtopic.php?f=30&t=19790
+- Updated TelnetServer.cpp with changes by rmaxm
+  See http://www.macroquest2.com/phpBB3/viewtopic.php?f=28&t=19793
+- Updated the _LOOTITEM struct with addition by dewey2461
+- Bugfix: ${Me.Inventory[someslot].Augs} now returns correct number of augslots the item has.
+  example: /echo My gloves has ${Me.Inventory[Hands].Augs} augslots.
+  NOTE: I dont know how this worked in the past, but this only counts how
+  many augslots an item has, it doesnt check if there is actually an augment
+  in the slot...
+  Cred: Nytemyst for the report.
+- Updated MQ2ItemDisplay.cpp with changes by dewey2461
+  Added ${GearScore.UpgradeName}
+  Added ${GearScore.UpgradeSlot}
+  See http://www.macroquest2.com/phpBB3/viewtopic.php?f=30&t=19792
+
 03 Aug 2015 by EqMule
 - Please don't use MQ2 for unattended gameplay (afk botting)
 - Fixed a 10 year old bug where GetSpellDuration would use pCharSpawn (which can be a level 30 mount)

@@ -619,17 +619,17 @@ typedef struct _ITEMINFO {
 /*0x01dc*/ BYTE         Material;
 /*0x01dd*/ BYTE         Unknown0x01dd[0xb];
 /*0x01e8*/ DWORD        AugSlot1;
-/*0x01ec*/ DWORD        AugSlot1_Unknown;
+/*0x01ec*/ DWORD        AugSlot1_Flag;//00=means disabled 01=means enabled
 /*0x01f0*/ DWORD        AugSlot2;
-/*0x01f4*/ DWORD        AugSlot2_Unknown;
+/*0x01f4*/ DWORD        AugSlot2_Flag;
 /*0x01f8*/ DWORD        AugSlot3;
-/*0x01fc*/ DWORD        AugSlot3_Unknown;
+/*0x01fc*/ DWORD        AugSlot3_Flag;
 /*0x0200*/ DWORD        AugSlot4;
-/*0x0204*/ DWORD        AugSlot4_Unknown;
+/*0x0204*/ DWORD        AugSlot4_Flag;
 /*0x0208*/ DWORD        AugSlot5;
-/*0x020c*/ DWORD        AugSlot5_Unknown;
+/*0x020c*/ DWORD        AugSlot5_Flag;
 /*0x0210*/ DWORD        AugSlot6;
-/*0x0214*/ DWORD        AugSlot6_Unknown;
+/*0x0214*/ DWORD        AugSlot6_Flag;
 /*0x0218*/ DWORD        AugType;
 /*0x021c*/ DWORD        AugRestrictions;
 /*0x0220*/ BYTE         Unknown0x0220[0x4];

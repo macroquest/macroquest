@@ -5775,18 +5775,22 @@ bool MQ2ItemType::GETMEMBER()
         Dest.Type=pIntType;
         return true;
     case Augs:
-        Dest.DWord = 0;
+    {   
+		Dest.DWord = 0;
         Dest.Type=pIntType;
-        if (GetItemFromContents(pItem)->Type == ITEMTYPE_NORMAL) {
-            if (GetItemFromContents(pItem)->AugSlot6) Dest.DWord++;
-            if (GetItemFromContents(pItem)->AugSlot5) Dest.DWord++;
-            if (GetItemFromContents(pItem)->AugSlot4) Dest.DWord++;
-            if (GetItemFromContents(pItem)->AugSlot3) Dest.DWord++;
-            if (GetItemFromContents(pItem)->AugSlot2) Dest.DWord++;
-            if (GetItemFromContents(pItem)->AugSlot1) Dest.DWord++;
-            Dest.Type=pIntType;
-        }
+		if(PITEMINFO pitem = GetItemFromContents(pItem)) {
+			if (pitem->Type == ITEMTYPE_NORMAL) {
+				if (pitem->AugSlot1>=0x1 && pitem->AugSlot1<=0x13 && pitem->AugSlot1_Flag==1) Dest.DWord++;
+				if (pitem->AugSlot2>=0x1 && pitem->AugSlot2<=0x13 && pitem->AugSlot2_Flag==1) Dest.DWord++;
+				if (pitem->AugSlot3>=0x1 && pitem->AugSlot3<=0x13 && pitem->AugSlot3_Flag==1) Dest.DWord++;
+				if (pitem->AugSlot4>=0x1 && pitem->AugSlot4<=0x13 && pitem->AugSlot4_Flag==1) Dest.DWord++;
+				if (pitem->AugSlot5>=0x1 && pitem->AugSlot5<=0x13 && pitem->AugSlot5_Flag==1) Dest.DWord++;
+				if (pitem->AugSlot6>=0x1 && pitem->AugSlot6<=0x13 && pitem->AugSlot6_Flag==1) Dest.DWord++;
+				Dest.Type=pIntType;
+			}
+		}
         return true;
+	}
     case Tradeskills:
         Dest.DWord=GetItemFromContents(pItem)->TradeSkills;
         Dest.Type=pBoolType;

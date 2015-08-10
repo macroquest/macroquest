@@ -22,14 +22,14 @@ bool CreateDirectory(const char *name)
     return false;    
 }
 
-void FixName(char *buffer)
+void FixName(char *buffer,size_t size)
 {
     char temp[256];
     char prefix[4]={0};
-    strncpy(prefix,buffer,3);
-    if (!stricmp(prefix,"MQ2"))
+    strncpy_s(prefix,buffer,3);
+    if (!_stricmp(prefix,"MQ2"))
     {
-        strcpy(temp,buffer);
+        strcpy_s(temp,size,buffer);
         temp[0]='M';
         temp[1]='Q';
     }
@@ -38,13 +38,13 @@ void FixName(char *buffer)
         temp[0]='M';
         temp[1]='Q';
         temp[2]='2';
-        strcpy(&temp[3],buffer);
+        strcpy_s(&temp[3],size,buffer);
     }
     prefix[0]=temp[3];
     prefix[1]=0;
-    _strupr(prefix);
+    _strupr_s(prefix);
     temp[3]=prefix[0];
-    strcpy(buffer,temp);
+    strcpy_s(buffer,size,temp);
 }
 
 void Filter(const char *from, char *to, const char *plugin)
@@ -54,7 +54,7 @@ void Filter(const char *from, char *to, const char *plugin)
     int i=0,o=0,plen=(int)strlen(plugin);
     for (i ; from[i] ; i++)
     { //               12345678901
-        if (!strnicmp("MQ2Template",&from[i],11)) // fuck it we dont need to be incredibly efficient for this program!
+        if (!_strnicmp("MQ2Template",&from[i],11)) // fuck it we dont need to be incredibly efficient for this program!
         {
             i+=(int)strlen("MQ2Template")-1;
             for (int x = 0 ; x < plen ; x++)
@@ -75,7 +75,7 @@ void FilterISXEQ(const char *from, char *to, const char *plugin)
     int i=0,o=0,plen=(int)strlen(plugin);
     for (i ; from[i] ; i++)
     { //               12345678901
-        if (!strnicmp("ISXEQTemplate",&from[i],13)) // fuck it we dont need to be incredibly efficient for this program!
+        if (!_strnicmp("ISXEQTemplate",&from[i],13)) // fuck it we dont need to be incredibly efficient for this program!
         {
             i+=(int)strlen("ISXEQTemplate")-1;
             for (int x = 0 ; x < plen ; x++)
@@ -92,9 +92,11 @@ void FilterISXEQ(const char *from, char *to, const char *plugin)
 bool CreateFileFromTemplate(const char *infilename, const char *outfilename, const char *plugin)
 {
     printf("Creating file %s from %s...",outfilename,infilename);
-    FILE *infile=fopen(infilename,"rt");
+    FILE *infile=0;
+	fopen_s(&infile,infilename,"rt");
     if (!infile) goto cfftfail;
-    FILE *outfile=fopen(outfilename,"wt");
+    FILE *outfile = 0;
+	fopen_s(&outfile,outfilename,"wt");
     if (!outfile) goto cfftfail;
     char in[2048];
     char out[2048];
@@ -119,9 +121,9 @@ bool CreateISXEQFileFromTemplate(const char *infilename, const char *outfilename
     FILE *outfile=0;
     if (FileExists(outfilename))
         goto cfftfail;
-    infile=fopen(infilename,"rt");
+    fopen_s(&infile,infilename,"rt");
     if (!infile) goto cfftfail;
-    outfile=fopen(outfilename,"wt");
+    fopen_s(&outfile,outfilename,"wt");
     if (!outfile) goto cfftfail;
     char in[2048];
     char out[2048];
@@ -153,49 +155,49 @@ void MakePlugin(const char *xname)
     char name[256];
     char infile[256];
     char outfile[256];
-    strcpy(name,xname);
-    FixName(name);
+    strcpy_s(name,xname);
+    FixName(name,256);
     printf("-- Creating plugin %s -- \n",name);
     if (CreateDirectory(name))
     {
 
-        strcpy(infile,"MQ2Template\\MQ2Template.vcproj");
-        sprintf(outfile,"%s\\%s.vcproj",name,name);
+        strcpy_s(infile,"MQ2Template\\MQ2Template.vcproj");
+        sprintf_s(outfile,"%s\\%s.vcproj",name,name);
         FailMake(CreateFileFromTemplate(infile,outfile,name));
 
-        strcpy(infile,"MQ2Template\\MQ2Template.dsp");
-        sprintf(outfile,"%s\\%s.dsp",name,name);
+        strcpy_s(infile,"MQ2Template\\MQ2Template.dsp");
+        sprintf_s(outfile,"%s\\%s.dsp",name,name);
         FailMake(CreateFileFromTemplate(infile,outfile,name));
 
-        strcpy(infile,"MQ2Template\\MQ2Template.mak");
-        sprintf(outfile,"%s\\%s.mak",name,name);
+        strcpy_s(infile,"MQ2Template\\MQ2Template.mak");
+        sprintf_s(outfile,"%s\\%s.mak",name,name);
         FailMake(CreateFileFromTemplate(infile,outfile,name));
 
-        strcpy(infile,"MQ2Template\\MQ2Template.dep");
-        sprintf(outfile,"%s\\%s.dep",name,name);
+        strcpy_s(infile,"MQ2Template\\MQ2Template.dep");
+        sprintf_s(outfile,"%s\\%s.dep",name,name);
         FailMake(CreateFileFromTemplate(infile,outfile,name));
 
-        strcpy(infile,"MQ2Template\\makefile");
-        sprintf(outfile,"%s\\makefile",name);
+        strcpy_s(infile,"MQ2Template\\makefile");
+        sprintf_s(outfile,"%s\\makefile",name);
         FailMake(CreateFileFromTemplate(infile,outfile,name));
 
-        strcpy(infile,"MQ2Template\\MQ2Template.cpp");
-        sprintf(outfile,"%s\\%s.cpp",name,name);
+        strcpy_s(infile,"MQ2Template\\MQ2Template.cpp");
+        sprintf_s(outfile,"%s\\%s.cpp",name,name);
         FailMake(CreateFileFromTemplate(infile,outfile,name));
     }
     char ISXName[512];
-    sprintf(ISXName,"ISXEQ%s",&name[3]);
+    sprintf_s(ISXName,"ISXEQ%s",&name[3]);
 
-    strcpy(infile,"MQ2Template\\ISXEQTemplate.vcproj");
-    sprintf(outfile,"%s\\%s.vcproj",name,ISXName);
+    strcpy_s(infile,"MQ2Template\\ISXEQTemplate.vcxproj");
+    sprintf_s(outfile,"%s\\%s.vcxproj",name,ISXName);
     FailMake(CreateISXEQFileFromTemplate(infile,outfile,ISXName));
 
-    strcpy(infile,"MQ2Template\\ISXEQTemplate.cpp");
-    sprintf(outfile,"%s\\%s.cpp",name,ISXName);
+    strcpy_s(infile,"MQ2Template\\ISXEQTemplate.cpp");
+    sprintf_s(outfile,"%s\\%s.cpp",name,ISXName);
     FailMake(CreateISXEQFileFromTemplate(infile,outfile,ISXName));
 
-    strcpy(infile,"MQ2Template\\ISXEQTemplate.h");
-    sprintf(outfile,"%s\\%s.h",name,ISXName);
+    strcpy_s(infile,"MQ2Template\\ISXEQTemplate.h");
+    sprintf_s(outfile,"%s\\%s.h",name,ISXName);
     FailMake(CreateISXEQFileFromTemplate(infile,outfile,ISXName));
     // todo:  dsp, dep, mak, makefile
 

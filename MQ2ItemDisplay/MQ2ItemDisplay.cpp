@@ -711,6 +711,8 @@ void Ireset(PSPAWNINFO pChar, PCHAR szLine)
 
 char  ReportChannel[MAX_STRING];
 char  ReportBestStr[MAX_STRING];
+char  ReportBestSlot[MAX_STRING];
+char  ReportBestName[MAX_STRING];
 int   ClickGroup = 0;
 int   ClickGuild = 0;
 int   ClickRaid = 0;
@@ -1085,10 +1087,14 @@ class MQ2GearScoreType : public MQ2Type
     public: 
         enum GearScoreMembers {
 			Upgrade=1,
+			UpgradeName=2,
+			UpgradeSlot=3,
         }; 
 
         MQ2GearScoreType():MQ2Type("GearScore") { 
 			TypeMember(Upgrade);
+			TypeMember(UpgradeName);
+			TypeMember(UpgradeSlot);
         } 
 
         ~MQ2GearScoreType() {}
@@ -1104,6 +1110,14 @@ class MQ2GearScoreType : public MQ2Type
 				case Upgrade:
 					Dest.Type=pStringType;
 					Dest.Ptr=ReportBestStr;
+					return true;
+	            case UpgradeName:
+					Dest.Type=pStringType;
+					Dest.Ptr=ReportBestName;
+					return true;
+				case UpgradeSlot:
+					Dest.Type=pStringType;
+					Dest.Ptr=ReportBestSlot;
 					return true;
 			} 
             return false; 
@@ -1357,6 +1371,8 @@ int DoIHave(PITEMINFO Item)
 void FormatBestStr(ITEMINFO *pItem)
 {
 	ReportBestStr[0] = 0;
+	ReportBestSlot[0] = 0;
+	ReportBestName[0] = 0;
 	if (BestScore < CurrScore && BestSlot>=0 && BestSlot<=23) // We found an item to replace
 	{
 		char  szVerb[MAX_STRING];
@@ -1377,6 +1393,9 @@ void FormatBestStr(ITEMINFO *pItem)
 			sprintf(szVerb,"WEAR [ %s ] As ",pItem->Name);
 		
 		sprintf(ReportBestStr,"%s %s = %+6.1f%%",szVerb,pSlotName,v);
+
+		strcpy(ReportBestSlot,pSlotName);
+		strcpy(ReportBestName,pItem->Name);
 
 		CalcItemGearScore(pItem);
 
@@ -1443,7 +1462,9 @@ int CanIUseThisItem(PCONTENTS pSlot, ITEMINFO *pItem)
 void AddGearScores(PCONTENTS pSlot,ITEMINFO *pItem,char *out,char *br)
 {
 	static ULONGLONG lastTick = 0;
-
+	ReportBestStr[0] = 0;
+	ReportBestSlot[0] = 0;
+	ReportBestName[0] = 0;
 	if (CanIUseThisItem(pSlot,pItem)<1) return ;
 
 	ClearAttribListScores();
