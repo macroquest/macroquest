@@ -1,11 +1,20 @@
+21 Aug 2015 by EqMule
+- Please don't use MQ2 for unattended gameplay (afk botting)
+- Updated for TEST
+- Updated for LIVE
+- Made a few changes to how the zoned.cfg is processed
+  hopefully that should fix a crash I have gotten reports about.
+  *crossing fingers*
+
 19 Aug 2015 by EqMule
 - Please don't use MQ2 for unattended gameplay (afk botting)
 - Updated for LIVE
 - This is a heads up:
-  The next release will restrict /target to a radius of 300
+  The next release will restrict /target to a radius of 360
   I do this because its unreasonable to target stuff across zones.
   There is absolutely no scenario where you have a reason to target a mob
   until its within that range. So change your macros now if they do this.
+  If you have line of sight to a mob there is no radius restriction.
 
 14 Aug 2015 by EqMule
 - Please don't use MQ2 for unattended gameplay (afk botting)

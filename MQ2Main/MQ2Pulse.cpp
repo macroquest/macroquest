@@ -347,9 +347,9 @@ void Heartbeat()
 
     if (gDelayedCommands)
     {// delayed commands
-        DoCommand(((PCHARINFO)pCharData)->pSpawn,gDelayedCommands->szText);
+        DoCommand((PSPAWNINFO)pLocalPlayer,gDelayedCommands->szText);
         PCHATBUF pNext=gDelayedCommands->pNext;
-        free(gDelayedCommands);
+        LocalFree(gDelayedCommands);
         gDelayedCommands=pNext;
     }
     while (bRunNextCommand) {

@@ -358,18 +358,18 @@ VFTABLE
 //see ref to CContextMenu__CContextMenu_x in CBuffWindow__CBuffWindow
 // size 0x280 Jul 18 2015 (see 67AACB) -eqmule
 #define CONTEXTTAIL \
-/*0x220*/ DWORD ZeroMe; \
-/*0x224*/ DWORD SetToMinus1; /*must be set to -1 in constructor or menu wndnotification wont be called*/ \
-/*0x228*/ DWORD WillBeZero1; /*set by contructor to 0*/ \
-/*0x22c*/ ARGBCOLOR HightLightTextColor; /*set by contructor*/ \
-/*0x230*/ ARGBCOLOR HighLightTextBkColor; /*set by contructor*/ \
-/*0x234*/ BYTE ZeroMeOut1[0x24]; \
-/*0x258*/ DWORD WillBeZero2; /*constructor sets this to 0*/ \
-/*0x25c*/ BYTE ZeroMeOut2[0x18]; \
-/*0x274*/ DWORD Unknown0x274; /*constructor sets this to 0x10000*/ \
-/*0x278*/ DWORD ZeroMeAsWell; \
-/*0x27c*/ DWORD Unknown0x27c; /*constructor sets this to 0*/ \
-/*0x280*/
+/*0x218*/ DWORD ZeroMe; \
+/*0x21c*/ DWORD SetToMinus1; /*must be set to -1 in constructor or menu wndnotification wont be called*/ \
+/*0x220*/ DWORD WillBeZero1; /*set by contructor to 0*/ \
+/*0x224*/ ARGBCOLOR HightLightTextColor; /*set by contructor*/ \
+/*0x228*/ ARGBCOLOR HighLightTextBkColor; /*set by contructor*/ \
+/*0x22c*/ BYTE ZeroMeOut1[0x24]; \
+/*0x250*/ DWORD WillBeZero2; /*constructor sets this to 0*/ \
+/*0x254*/ BYTE ZeroMeOut2[0x18]; \
+/*0x26c*/ DWORD Unknown0x274; /*constructor sets this to 0x10000*/ \
+/*0x270*/ DWORD ZeroMeAsWell; \
+/*0x274*/ DWORD Unknown0x27c; /*constructor sets this to 0*/ \
+/*0x278*/
 
 #define CONTEXTW \
 /*0x000*/   struct  _CCONTEXTMENUVFTABLE   *pvfTable; \
@@ -834,6 +834,7 @@ typedef struct _LOOTLIST {
 	/*0x004*/ struct _LOOTITEM *pLootItem;
 	/*0x008*/ DWORD	ListSize;
 } LOOTLIST,*PLOOTLIST;
+
 //CAdvancedLootWnd__CAdvancedLootWnd_x
 //size 0x2D4 see 4B7D11 in May 15 2015 test -eqmule
 typedef struct _EQADVLOOTWND {

@@ -3561,8 +3561,8 @@ BOOL CALLBACK EnumWindowsProc(HWND hwnd,LPARAM lParam)
 	DWORD procid = 0;
 	GetWindowThreadProcessId(hwnd,&procid);
 	if(procid==*(LPARAM *)lParam) {
-		CHAR szClass[256] = {0};
-		GetClassName(hwnd,szClass,255);
+		CHAR szClass[2048] = {0};
+		GetClassName(hwnd,szClass,2047);
 		if(!_stricmp(szClass,"_EverQuestwndclass")) {
 			*(LPARAM *)lParam = (LPARAM)hwnd;
 			return FALSE;

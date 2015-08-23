@@ -57,17 +57,16 @@ PMACROBLOCK GetWhileBlock(DWORD line)
 }
 VOID HideDoCommand(PSPAWNINFO pChar, PCHAR szLine, BOOL delayed)
 {
-	WeDidStuff();
     if (delayed)
     {
-        PCHATBUF pChat = (PCHATBUF)malloc(sizeof(CHATBUF));
+		PCHATBUF pChat = (PCHATBUF)LocalAlloc(LPTR,sizeof(CHATBUF));
         if (pChat) {
-            strcpy(pChat->szText,szLine);
+            strcpy_s(pChat->szText,szLine);
             pChat->pNext = NULL;
             if (!gDelayedCommands) {
                 gDelayedCommands = pChat;
             } else {
-                PCHATBUF pCurrent;
+                PCHATBUF pCurrent = 0;
                 for (pCurrent = gDelayedCommands;pCurrent->pNext;pCurrent=pCurrent->pNext);
                 pCurrent->pNext = pChat;
             }
@@ -75,11 +74,12 @@ VOID HideDoCommand(PSPAWNINFO pChar, PCHAR szLine, BOOL delayed)
         return;
     }
     CAutoLock DoCommandLock(&gCommandCS);
+	WeDidStuff();
     CHAR szCmd[MAX_STRING] = {0};
     CHAR szParam[MAX_STRING] = {0};
     CHAR szOriginalLine[MAX_STRING] = {0};
 
-    strcpy(szOriginalLine,szLine);
+    strcpy_s(szOriginalLine,szLine);
     GetArg(szCmd,szLine,1);
     PALIAS pLoop = pAliases;
     while (pLoop) {
@@ -763,7 +763,7 @@ void ShutdownMQ2Commands()
     while(gDelayedCommands)
     {
         PCHATBUF pNext=gDelayedCommands->pNext;
-        free(gDelayedCommands);
+        LocalFree(gDelayedCommands);
         gDelayedCommands=pNext;
     }
     while(pTimedCommands)
