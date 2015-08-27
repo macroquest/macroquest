@@ -268,7 +268,7 @@ bool MQ2Int64Type::GETMEMBER()
         Dest.Type=pDoubleType;
         return true;
     case Hex:
-        sprintf(DataTypeTemp,"0x%X",VarPtr.Int64);
+        sprintf(DataTypeTemp,"0x%llX",VarPtr.Int64);
         Dest.Ptr=&DataTypeTemp[0],
             Dest.Type=pStringType;
         return true;
@@ -4002,6 +4002,10 @@ bool MQ2CharacterType::GETMEMBER()
 		Dest.DWord = pChar->UseAdvancedLooting;
 		Dest.Type = pBoolType;
 		return true;
+	case SpellInCooldown: 
+		Dest.DWord = ((PCDISPLAY)pDisplay)->TimeStamp <= ((PSPAWNINFO)pLocalPlayer)->SpellCooldownETA; 
+		 Dest.Type = pBoolType; 
+		return true; 
 	}
     return false;
 #undef pChar

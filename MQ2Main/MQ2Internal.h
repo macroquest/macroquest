@@ -102,6 +102,7 @@ namespace MQ2Internal {
         BOOL bLoS;
         BOOL bExactName;
         BOOL bTargetable;
+		DWORD PlayerState;
     } SEARCHSPAWN, *PSEARCHSPAWN;
 
     static enum SearchItemFlag

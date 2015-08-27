@@ -7063,6 +7063,7 @@ class PcZoneClient
 public:
 EQLIB_OBJECT int PcZoneClient::GetPcSkillLimit(int);
 EQLIB_OBJECT bool PcZoneClient::HasCombatAbility(int);
+EQLIB_OBJECT void PcZoneClient::RemovePetEffect(int);
 };
 
 };

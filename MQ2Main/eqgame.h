@@ -715,6 +715,7 @@ GNU General Public License for more details.
 
 // PcZoneClient
 #define PcZoneClient__GetPcSkillLimit_x                            0x5B8320
+#define PcZoneClient__RemovePetEffect_x                            0x5B3CB0
 
 //Doors
 #define EQSwitch__UseSwitch_x                                      0x5462D0

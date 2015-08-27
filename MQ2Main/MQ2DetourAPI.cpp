@@ -955,11 +955,20 @@ typedef struct _CrashReport
 /*0x014*/	PCHAR sessionpath;
 } CrashReport,*PCrashReport;
 
+#if defined(TEST)
+int wwsCrashReportCheckForUploader_Trampoline(PEQCrash,PCHAR,size_t,DWORD,DWORD,DWORD); 
+int wwsCrashReportCheckForUploader_Detour(PEQCrash crash,PCHAR crashuploder,size_t ncrashuploder,DWORD a,DWORD b,DWORD c)
+#elif defined(LIVE)
 int wwsCrashReportCheckForUploader_Trampoline(PEQCrash,PCHAR,size_t); 
 int wwsCrashReportCheckForUploader_Detour(PEQCrash crash,PCHAR crashuploder,size_t ncrashuploder)
+#endif
 { 
 	//MessageBox(NULL,"crash","crash",MB_OK);
+#if defined(TEST)
+	wwsCrashReportCheckForUploader_Trampoline(crash,crashuploder,ncrashuploder,a,b,c);
+#elif defined(LIVE)
 	wwsCrashReportCheckForUploader_Trampoline(crash,crashuploder,ncrashuploder);
+#endif
 	//should we redirect the upload? we could have our own server for these dumps I suppose...
 	//strcpy_s(crashuploder,ncrashuploder,"mq2_crashreport_uploader.exe");
 	//for now im just renaming the folder and returning 0 this will stop any uploads.
@@ -977,8 +986,12 @@ int wwsCrashReportCheckForUploader_Detour(PEQCrash crash,PCHAR crashuploder,size
 		DebugBreak();
 	//and return 0 (no uploader found)
 	return 0;
-} 
+}
+#if defined(TEST)
+DETOUR_TRAMPOLINE_EMPTY(int wwsCrashReportCheckForUploader_Trampoline(PEQCrash,PCHAR,size_t,DWORD,DWORD,DWORD)); 
+#elif defined(LIVE)
 DETOUR_TRAMPOLINE_EMPTY(int wwsCrashReportCheckForUploader_Trampoline(PEQCrash,PCHAR,size_t)); 
+#endif
 //changed in jan 21 2014 eqgame.exe - eqmule
 PCHAR __cdecl CrashDetected_Trampoline(BOOL,PCHAR);
 PCHAR __cdecl CrashDetected_Detour(BOOL flag,PCHAR SessionPath)

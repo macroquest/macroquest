@@ -649,6 +649,8 @@ void InitializeMQ2Commands()
         {"/exec",       Exec,1,0}, 
         {"/keypress",   DoMappable,1,0},
         {"/popup",      PopupText,1,1},
+		{"/popcustom",	PopupTextCustom,1,1},
+		{"/popupecho",	PopupTextEcho,1,1},
         {"/multiline",  MultilineCommand,0,0},
 #ifndef ISXEQ_LEGACY
         {"/bind",       MQ2KeyBindCommand,1,0},
@@ -678,6 +680,7 @@ void InitializeMQ2Commands()
 		{"/getwintitle",GetWinTitle,1,0},
 		{"/setwintitle",SetWinTitle,1,0},
 		{"/removebuff", RemoveBuff,1,1},
+		{"/removepetbuff", RemovePetBuff,1,1},
 		{"/makemevisible",MakeMeVisible,0,1},
 		{"/pet",        PetCmd,1,1},
 		{"/mercswitch", MercSwitchCmd,1,1},

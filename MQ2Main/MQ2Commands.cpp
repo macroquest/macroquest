@@ -2920,6 +2920,18 @@ VOID PopupText(PSPAWNINFO pChar, PCHAR szLine)
     DisplayOverlayText(szLine, CONCOLOR_LIGHTBLUE, 100, 500,500,3000);
 }
 
+// /popcustom
+void PopupTextCustom(PSPAWNINFO pChar, char* szLine)
+{
+    CustomPopup(szLine, false);
+}
+
+// /popupecho
+void PopupTextEcho(PSPAWNINFO pChar, char* szLine)
+{
+    CustomPopup(szLine, true);
+}
+
 // /multiline
 VOID MultilineCommand(PSPAWNINFO pChar, PCHAR szLine)
 {

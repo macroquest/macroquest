@@ -1379,7 +1379,7 @@ typedef struct _SPAWNINFO {
 /*0x01f4*/ DWORD        EnduranceMax;
 /*0x01f8*/ BYTE         Unknown0x01f8[0x4];
 /*0x01fc*/ FLOAT        ViewHeight;
-/*0x0200*/ BYTE         Unknown0x0200[0x4];
+/*0x0200*/ DWORD        SpellCooldownETA;
 /*0x0204*/ LONG         HPMax;
 /*0x0208*/ BYTE         Unknown0x0208[0x9];
 /*0x0211*/ BYTE         Light;

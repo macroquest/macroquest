@@ -1,3 +1,19 @@
+26 Aug 2015 by EqMule
+- Please don't use MQ2 for unattended gameplay (afk botting)
+- Updated for TEST
+- New feature: you can now search spawns by if they are aggresive or not
+  for more info see this post by demonstar55 http://www.macroquest2.com/phpBB3/viewtopic.php?f=30&t=19813
+- Added new command: /removepetbuff
+  it will remove a pet buff by name or partial name.
+  Usage: /removepetbuff Spirit of Wolf
+  Feature requested by: standred
+- New Commands: /popcustom and /popupecho
+  for more info on these 2 commands see this post: http://www.macroquest2.com/phpBB3/viewtopic.php?f=30&t=15800&p=142608#p142608
+  Cred: PMS
+- Added new TLO member for the Character TLO: SpellInCooldown
+  it returns TRUE if you have a spell in cooldown and FALSE when not.
+  Cred:demonstar55 see this topic for more info: http://www.macroquest2.com/phpBB3/viewtopic.php?f=47&t=19689
+
 21 Aug 2015 by EqMule
 - Please don't use MQ2 for unattended gameplay (afk botting)
 - Updated for TEST
@@ -10,11 +26,11 @@
 - Please don't use MQ2 for unattended gameplay (afk botting)
 - Updated for LIVE
 - This is a heads up:
-  The next release will restrict /target to a radius of 360
+  In the near future I will restrict /target to a radius of 360
   I do this because its unreasonable to target stuff across zones.
   There is absolutely no scenario where you have a reason to target a mob
   until its within that range. So change your macros now if they do this.
-  If you have line of sight to a mob there is no radius restriction.
+  If you have line of sight to a mob there will be no radius restriction.
 
 14 Aug 2015 by EqMule
 - Please don't use MQ2 for unattended gameplay (afk botting)

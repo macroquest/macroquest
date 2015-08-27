@@ -1287,6 +1287,7 @@ EQLIB_VAR DWORD StringTable__getString;
 
 EQLIB_VAR DWORD PcZoneClient__GetPcSkillLimit;
 EQLIB_VAR DWORD PcZoneClient__HasCombatAbility;
+EQLIB_VAR DWORD PcZoneClient__RemovePetEffect;
 
 EQLIB_VAR DWORD EQSwitch__UseSwitch;
 

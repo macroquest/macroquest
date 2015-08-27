@@ -1056,6 +1056,7 @@ public:
 		Fists=212,
 		EnergyCrystals=213,
 		PiecesofEight=214,
+		SpellInCooldown=215,
     };
     static enum CharacterMethods
     {
@@ -1269,6 +1270,7 @@ public:
 		TypeMember(Fists);
 		TypeMember(EnergyCrystals);
 		TypeMember(PiecesofEight);
+		TypeMember(SpellInCooldown);
 		
         TypeMethod(Stand); 
         TypeMethod(Sit); 

@@ -649,8 +649,8 @@ VOID PluginsEndZone()
         } 
         pPlugin=pPlugin->pNext; 
     } 
-	HideDoCommand(((PSPAWNINFO)pLocalPlayer),"/loadcfg zoned",TRUE);
-    //LoadCfgFile("zoned",false);
+	//HideDoCommand(((PSPAWNINFO)pLocalPlayer),"/loadcfg zoned",TRUE);
+    LoadCfgFile("zoned",false);
     LoadCfgFile(((PZONEINFO)pZoneInfo)->ShortName,false);
 } 
 

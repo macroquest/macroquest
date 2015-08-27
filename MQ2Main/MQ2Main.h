@@ -459,6 +459,7 @@ EQLIB_API PCHAR GetSpellNameByID(LONG dwSpellID);
 EQLIB_API PSPELL GetSpellByName(PCHAR szName);
 EQLIB_API DWORD GetSpellRankByName(PCHAR SpellName);
 EQLIB_API VOID RemoveBuff(PSPAWNINFO pChar, PCHAR szLine);
+EQLIB_API VOID RemovePetBuff(PSPAWNINFO pChar, PCHAR szLine);
 EQLIB_API bool StripQuotes(char *str);
 EQLIB_API VOID MakeMeVisible(PSPAWNINFO pChar, PCHAR szLine);
 EQLIB_API VOID RemoveAura(PSPAWNINFO pChar, PCHAR szLine);
@@ -534,6 +535,7 @@ EQLIB_API PCHAR GetSpellRestrictions(PSPELL pSpell, unsigned int nIndex, PCHAR s
 LEGACY_API VOID MQ2DataError(PCHAR szFormat, ...);
 #endif
 EQLIB_API void DisplayOverlayText(PCHAR szText, DWORD dwColor, DWORD dwTransparency, DWORD msFadeIn, DWORD msFadeOut, DWORD msHold);
+EQLIB_API void CustomPopup(char* szPopText, bool bPopOutput);
 
 EQLIB_API BOOL IsBardSong(PSPELL pSpell);
 EQLIB_API BOOL IsSPAEffect(PSPELL pSpell, LONG EffectID);

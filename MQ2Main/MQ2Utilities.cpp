@@ -3577,6 +3577,54 @@ void DisplayOverlayText(PCHAR szText, DWORD dwColor, DWORD dwTransparency, DWORD
         msHold);
 }
 
+void CustomPopup(char* szPopText, bool bPopOutput)
+{
+    int  iArgNum    = 1;
+    int  iMsgColor  = CONCOLOR_LIGHTBLUE;
+    int  iMsgTime   = 3000;
+    char szCurArg[MAX_STRING]    = {0};
+    char szPopupMsg[MAX_STRING]  = {0};
+    char szErrorCust[MAX_STRING] = "\awUsage: /popcustom [\agcolor\ax] [\agdisplaytime\ax(in seconds)] [\agmessage\ax]";
+    char szErrorEcho[MAX_STRING] = "\awUsage: /popupecho [\agcolor\ax] [\agdisplaytime\ax(in seconds)] [\agmessage\ax]";
+
+    GetArg(szCurArg, szPopText, iArgNum++);
+    if (!*szCurArg)
+    {
+        if (bPopOutput)
+        {
+            WriteChatf(szErrorEcho);
+        }
+        else
+        {
+            WriteChatf(szErrorCust);
+        }
+        return;
+    }
+    else
+    {
+        if(isdigit(szCurArg[0]))
+        {
+            iMsgColor = atoi(szCurArg);
+            GetArg(szCurArg, szPopText, iArgNum++);
+            if(isdigit(szCurArg[0]))
+            {
+                iMsgTime = atoi(szCurArg) * 1000;
+                sprintf(szPopupMsg, "%s", GetNextArg(szPopText, 2, FALSE, 0));
+            }
+            else
+            {
+                sprintf(szPopupMsg, "%s", GetNextArg(szPopText, 1, FALSE, 0));
+            }
+        }
+        else
+        {
+            strcpy(szPopupMsg, szPopText);
+        }
+    }
+    DisplayOverlayText(szPopupMsg, iMsgColor, 100, 500, 500, iMsgTime);
+    if (bPopOutput) WriteChatf("\ayPopup\aw:: %s", szPopupMsg);
+}
+
 BOOL ParseKeyCombo(PCHAR text, KeyCombo &Dest)
 {
     KeyCombo Ret;
@@ -5549,6 +5597,8 @@ BOOL SpawnMatchesSearch(PSEARCHSPAWN pSearchSpawn, PSPAWNINFO pChar, PSPAWNINFO 
         return FALSE;
     if (pSearchSpawn->bTargetable && (!IsTargetable(pSpawn)))
         return FALSE;
+	if (pSearchSpawn->PlayerState && !(pSpawn->PlayerState & pSearchSpawn->PlayerState)) // if player state isn't 0 and we have that bit set
+		return FALSE;
     return TRUE;
 }
 #endif
@@ -5732,6 +5782,10 @@ PCHAR ParseSearchSpawnArgs(PCHAR szArg, PCHAR szRest, PSEARCHSPAWN pSearchSpawn)
             } else {
                 szRest = GetNextArg(szRest,1);
             }
+		} else if (!stricmp(szArg, "playerstate")) {
+			GetArg(szArg, szRest, 1);
+			pSearchSpawn->PlayerState |= atoi(szArg); // This allows us to pass multiple playerstate args
+			szRest = GetNextArg(szRest, 1);
         } else if (IsNumber(szArg)) {
             pSearchSpawn->MinLevel=atoi(szArg);
             pSearchSpawn->MaxLevel=pSearchSpawn->MinLevel;
@@ -7569,6 +7623,22 @@ VOID RemoveBuff(PSPAWNINFO pChar, PCHAR szLine)
 				if(PSPELL pBuffSpell = GetSpellByID(pChar2->ShortBuff[nBuff].SpellID)) {
 					if(!strnicmp(pBuffSpell->Name,szLine,strlen(szLine))) {
 						pPCData->RemoveMyAffect(nBuff+NUM_LONG_BUFFS);
+						return;
+					}
+				}
+			}
+		}
+	}
+}
+
+VOID RemovePetBuff(PSPAWNINFO pChar, PCHAR szLine)
+{
+	if(PEQPETINFOWINDOW pPetInfoWindow = ((PEQPETINFOWINDOW)pPetInfoWnd)) {
+		if(szLine && szLine[0]!='\0') {
+			for (unsigned long nBuff=0 ; nBuff < NUM_BUFF_SLOTS ; nBuff++) {
+				if (PSPELL pBuffSpell=GetSpellByID(pPetInfoWindow->Buff[nBuff])) {
+					if(!strnicmp(pBuffSpell->Name,szLine,strlen(szLine))) {
+						((PcZoneClient*)pPCData)->RemovePetEffect(nBuff);
 						return;
 					}
 				}
