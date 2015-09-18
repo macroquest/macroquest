@@ -68,4 +68,12 @@
     NULL,                   //49
     NULL,                   //50
     "Merchant",             //51 - Trader's Satchel 
+    NULL,                   //52
+    NULL,                   //53
+    NULL,                   //54
+    NULL,                   //55
+    NULL,                   //56
+    NULL,                   //57
+    "Tradeskill Items",     //58 - Extraplanar Trade Satchel
+
 

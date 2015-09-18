@@ -1,3 +1,18 @@
+17 Sep 2015 by EqMule
+- Please don't use MQ2 for unattended gameplay (afk botting)
+- Updated for TEST
+- DmgBonusType in the itemstruct has been renamed to ElementalFlag (because thats what it is)
+- DmgBonusVal in the itemstruct has been renamed to ElementalDamage (because thats what it is)
+  if you have plugins that refer to these make sure u rename as well.
+- the size of the _AGGROINFO struct changed. Cred: demonstar55
+- Added .Icon to the MQ2ItemType TLO
+- Added Scroll to the mouseinfo struct. Thanks Brainiac,
+- Fixed a crash in /windowstate that could happen when using a (bad) Custom UI. Thanks demonstar55
+- since GetCombatAbilityTimer now accepts -1 as a timer, I have removed that check
+  this means you should remove it from mq2melee as well for example:
+  this line: if (EFFECT->CARecastTimerID && TYPE != AA && EFFECT->CARecastTimerID != -1)
+  becomes this: if (EFFECT->CARecastTimerID!=0 && TYPE != AA)
+
 26 Aug 2015 by EqMule
 - Please don't use MQ2 for unattended gameplay (afk botting)
 - Updated for TEST

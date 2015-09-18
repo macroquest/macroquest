@@ -4086,7 +4086,7 @@ EQLIB_OBJECT class CSliderDrawTemplate CSidlManager::GetSliderDrawTemplateFromPa
 EQLIB_OBJECT class CSpellGemDrawTemplate CSidlManager::GetSpellGemDrawTemplateFromParamSpellGemDrawTemplate(class CParamSpellGemDrawTemplate const &)const;
 EQLIB_OBJECT class CTAFrameDraw * CSidlManager::FindFrameDraw(unsigned __int32)const;
 EQLIB_OBJECT class CTAFrameDraw CSidlManager::CreateTAFrameDrawFromSidlFrame(class CParamFrameTemplate const *)const;
-EQLIB_OBJECT class CTextureAnimation * CSidlManager::FindAnimation(class CXStr)const;
+EQLIB_OBJECT class CTextureAnimation * CSidlManager::FindAnimation(class CXStr const &)const;
 EQLIB_OBJECT class CTextureAnimation * CSidlManager::FindAnimation(unsigned __int32)const;
 EQLIB_OBJECT class CTextureAnimation CSidlManager::CreateTextureAnimationFromSidlAnimation(class CParamUi2DAnimation const *)const;
 EQLIB_OBJECT class CXStr CSidlManager::GetParsingErrorMsg(void)const;
@@ -4107,7 +4107,7 @@ EQLIB_OBJECT void CSidlManager::AddDrawTemplateInOrder(class CXWndDrawTemplate *
 EQLIB_OBJECT void CSidlManager::AddScreenPieceTemplateInOrder(class CScreenPieceTemplate *);
 EQLIB_OBJECT void CSidlManager::AddTAFrameDrawInOrder(class CTAFrameDraw *);
 EQLIB_OBJECT void CSidlManager::DeleteContents(void);
-EQLIB_OBJECT void CSidlManager::LoadSidl(class CXStr,class CXStr,class CXStr);
+EQLIB_OBJECT void CSidlManager::LoadSidl(CXStr const &,CXStr const &,CXStr const &,CXStr const &);
 // virtual
 EQLIB_OBJECT CSidlManager::~CSidlManager(void);
 //EQLIB_OBJECT void * CSidlManager::`scalar deleting destructor'(unsigned int);
@@ -5354,7 +5354,7 @@ EQLIB_OBJECT EQ_Character::~EQ_Character(void);
 EQLIB_OBJECT EQ_Character::EQ_Character(void);
 EQLIB_OBJECT bool EQ_Character::DoesSpellMatchFocusFilters(class EQ_Spell const *,class EQ_Spell const *);
 EQLIB_OBJECT bool EQ_Character::IsSpellTooPowerfull(class EQ_Spell *,class EQ_Character *);
-EQLIB_OBJECT bool EQ_Character::IsStackBlocked(class EQ_Spell const *);
+EQLIB_OBJECT bool EQ_Character::IsStackBlocked(class EQ_Spell const *, DWORD,DWORD,DWORD,bool);
 EQLIB_OBJECT bool EQ_Character::IsValidAffect(int);
 EQLIB_OBJECT char * EQ_Character::Class(int);
 EQLIB_OBJECT char * EQ_Character::KunarkClass(int,int,int,bool);
@@ -5542,12 +5542,13 @@ EQLIB_OBJECT int EQ_Item::Copper(void);
 EQLIB_OBJECT int EQ_Item::Gold(void);
 EQLIB_OBJECT int EQ_Item::Platinum(void);
 EQLIB_OBJECT int EQ_Item::Silver(void);
-EQLIB_OBJECT long EQ_Item::ValueSellMerchant(float,long);
+EQLIB_OBJECT long EQ_Item::ValueSellMerchant(float,long)const;
 EQLIB_OBJECT bool EQ_Item::IsStackable(void); // Valerian 12-20-2004 
-
 EQLIB_OBJECT char * EQ_Item::CreateItemTagString(char *, int); // Lax 11-14-2003
 EQLIB_OBJECT int EQ_Item::CanDrop(bool,int,int mq2_dummy=0, int mq2_dummy2=1);
 EQLIB_OBJECT int EQ_Item::GetImageNum(void)const;
+EQLIB_OBJECT struct  _CONTENTS** __cdecl CreateItemClient(PBYTE*,DWORD);
+EQLIB_OBJECT int EQ_Item::GetItemValue(bool)const;
 ITEMINFO Data;
 };
 

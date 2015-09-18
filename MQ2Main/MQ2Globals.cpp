@@ -1451,6 +1451,7 @@ INITIALIZE_EQGAME_OFFSET(AltAdvManager__GetAltAbility);
 
 INITIALIZE_EQGAME_OFFSET(CharacterZoneClient__HasSkill);
 INITIALIZE_EQGAME_OFFSET(CharacterZoneClient__MakeMeVisible);
+INITIALIZE_EQGAME_OFFSET(CharacterZoneClient__IsStackBlocked);
 
 INITIALIZE_EQGAME_OFFSET(CBankWnd__GetNumBankSlots);
 
@@ -1745,6 +1746,9 @@ INITIALIZE_EQGAME_OFFSET(EQ_Item__CanDrop);
 INITIALIZE_EQGAME_OFFSET(EQ_Item__CreateItemTagString);
 INITIALIZE_EQGAME_OFFSET(EQ_Item__IsStackable);
 INITIALIZE_EQGAME_OFFSET(EQ_Item__GetImageNum);
+INITIALIZE_EQGAME_OFFSET(EQ_Item__CreateItemClient);
+INITIALIZE_EQGAME_OFFSET(EQ_Item__GetItemValue);
+INITIALIZE_EQGAME_OFFSET(EQ_Item__ValueSellMerchant);
 
 INITIALIZE_EQGAME_OFFSET(EQ_LoadingS__SetProgressBar);
 INITIALIZE_EQGAME_OFFSET(EQ_LoadingS__Array);
@@ -1811,6 +1815,9 @@ INITIALIZE_EQGAME_OFFSET(CTargetWnd__WndNotification);
 INITIALIZE_EQGAME_OFFSET(CTaskWnd__UpdateTaskTimers);
 INITIALIZE_EQGAME_OFFSET(EqSoundManager__WavePlay);
 INITIALIZE_EQGAME_OFFSET(CCombatSkillsSelectWnd__ShouldDisplayThisSkill);
+INITIALIZE_EQGAME_OFFSET(CTextureAnimation__SetCurCell);
+INITIALIZE_EQGAME_OFFSET(CSidlManager__FindAnimation1);
+
 //INITIALIZE_EQGAME_OFFSET(ActorClient__GetPosition);
 //INITIALIZE_EQGAME_OFFSET(ActorClient__GetPosition1);
 

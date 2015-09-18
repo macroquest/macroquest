@@ -316,6 +316,8 @@ GNU General Public License for more details.
 // CharacterZoneClient
 #define CharacterZoneClient__HasSkill_x                            0x465910
 #define CharacterZoneClient__MakeMeVisible_x                       0x46B340
+#define CharacterZoneClient__IsStackBlocked_x                      0x447760
+
 // CBankWnd 
 #define CBankWnd__GetNumBankSlots_x                                0x65E7D0
 
@@ -324,6 +326,7 @@ GNU General Public License for more details.
 
 // CButtonWnd 
 #define CButtonWnd__SetCheck_x                                     0x585900
+#define CButtonWnd__CButtonWnd_x                                   0x8C7CD0
 
 // CChatManager 
 #define CChatManager__GetRGBAFromIndex_x                           0x687C00
@@ -651,11 +654,14 @@ GNU General Public License for more details.
 #define EQ_Character__IsExpansionFlag_x                            0x422540
 #define EQ_Character__TotalEffect_x                                0x44C660
 
-// EQ_Item 
+// EQ_Item (ItemClient)
 #define EQ_Item__CanDrop_x                                         0x58B130
 #define EQ_Item__CreateItemTagString_x                             0x811920
 #define EQ_Item__IsStackable_x                                     0x805CE0
 #define EQ_Item__GetImageNum_x                                     0x808A10
+#define EQ_Item__CreateItemClient_x                                0x58BD40
+#define EQ_Item__GetItemValue_x                                    0x8105D0
+#define EQ_Item__ValueSellMerchant_x                               0x812C90
 
 // EQ_LoadingS 
 #define EQ_LoadingS__SetProgressBar_x                              0x4C4900
@@ -752,3 +758,7 @@ GNU General Public License for more details.
 
 //CCombatSkillsSelectWnd
 #define CCombatSkillsSelectWnd__ShouldDisplayThisSkill_x           0x494B80
+
+//CTextureAnimation
+#define CTextureAnimation__SetCurCell_x                            0x8D5E50
+#define CSidlManager__FindAnimation1_x                             0x8CAB40

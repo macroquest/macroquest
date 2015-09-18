@@ -187,14 +187,13 @@ namespace MQ2Internal {
         struct _CHATBUF *pNext;
     } CHATBUF, *PCHATBUF;
 
-
-    typedef struct _MOUSEINFO {
-        DWORD X;
-        DWORD Y;
-        DWORD SpeedX;
-        DWORD SpeedY;
-    } MOUSEINFO, *PMOUSEINFO;
-
+	typedef struct _MOUSEINFO {
+		DWORD X;
+		DWORD Y;
+		DWORD SpeedX;
+		DWORD SpeedY;
+		DWORD Scroll;
+	} MOUSEINFO, *PMOUSEINFO;
 
     typedef struct _SPELLINFO {
         CHAR Name[32];

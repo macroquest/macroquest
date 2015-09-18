@@ -2368,12 +2368,13 @@ typedef struct _AGGRODATA {
 } AGGRODATA, *PAGGRODATA;
 
 // size 0xe4 11-28-12 - ieatacid (in GetAggroInfo)
+// size 0xfc see 422F94 in 20 Aug 2015 -eqmule
 typedef struct _AGGROINFO {
-/*0x00*/ struct _AGGRODATA aggroData[0x1b];
-/*0xd8*/ DWORD  AggroLockID;//this can be 0, I dont know what it is... -eqmule
-/*0xdc*/ DWORD  AggroTargetID;//this is id of whoever we are fighting -eqmule
-/*0xe0*/ DWORD  AggroSecondaryID;//this is id of whoever the npc is fighting -eqmule
-/*0xe4*/
+/*0x00*/ struct _AGGRODATA aggroData[0x1e];
+/*0xf0*/ DWORD  AggroLockID;//this can be 0, I dont know what it is... -eqmule
+/*0xf4*/ DWORD  AggroTargetID;//this is id of whoever we are fighting -eqmule
+/*0xf8*/ DWORD  AggroSecondaryID;//this is id of whoever the npc is fighting -eqmule
+/*0xfc*/
 } AGGROINFO, *PAGGROINFO;
 
 enum AggroDataTypes

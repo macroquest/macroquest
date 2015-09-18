@@ -140,7 +140,9 @@ FUNCTION_AT_ADDRESS(char * EQ_Item::CreateItemTagString(char *, int),EQ_Item__Cr
 #ifdef EQ_Item__GetImageNum_x
 FUNCTION_AT_ADDRESS(int EQ_Item::GetImageNum(void)const,EQ_Item__GetImageNum); // Eqmule 02-07-2014
 #endif
-
+#ifdef EQ_Item__CreateItemClient_x
+FUNCTION_AT_ADDRESS(struct  _CONTENTS** __cdecl EQ_Item::CreateItemClient(PBYTE*,DWORD),EQ_Item__CreateItemClient); // Eqmule 08-27-2015
+#endif
 #ifdef CStmlWnd__AppendSTML_x
 FUNCTION_AT_ADDRESS(class CXSize CStmlWnd::AppendSTML(class CXStr),CStmlWnd__AppendSTML);
 #endif
@@ -4374,8 +4376,8 @@ FUNCTION_AT_ADDRESS(int  EQ_Character::GetFirstEffectSlot(bool),EQ_Character__Ge
 #ifdef EQ_Character__GetLastEffectSlot_x
 FUNCTION_AT_ADDRESS(int  EQ_Character::GetLastEffectSlot(bool),EQ_Character__GetLastEffectSlot);
 #endif
-#ifdef EQ_Character__IsStackBlocked_x
-FUNCTION_AT_ADDRESS(bool  EQ_Character::IsStackBlocked(class EQ_Spell const *),EQ_Character__IsStackBlocked);
+#ifdef CharacterZoneClient__IsStackBlocked_x
+FUNCTION_AT_ADDRESS(bool EQ_Character::IsStackBlocked(class EQ_Spell const *, DWORD,DWORD,DWORD,bool),CharacterZoneClient__IsStackBlocked);
 #endif
 #ifdef EQ_Character__IsSpellTooPowerfull_x
 FUNCTION_AT_ADDRESS(bool  EQ_Character::IsSpellTooPowerfull(class EQ_Spell *,class EQ_Character *),EQ_Character__IsSpellTooPowerfull);
@@ -4476,8 +4478,11 @@ FUNCTION_AT_ADDRESS(int  EQ_Item::Silver(void),EQ_Item__Silver);
 #ifdef EQ_Item__Copper_x
 FUNCTION_AT_ADDRESS(int  EQ_Item::Copper(void),EQ_Item__Copper);
 #endif
+#ifdef EQ_Item__GetItemValue_x
+FUNCTION_AT_ADDRESS(int EQ_Item::GetItemValue(bool)const,EQ_Item__GetItemValue); 
+#endif
 #ifdef EQ_Item__ValueSellMerchant_x
-FUNCTION_AT_ADDRESS(long  EQ_Item::ValueSellMerchant(float,long),EQ_Item__ValueSellMerchant);
+FUNCTION_AT_ADDRESS(long  EQ_Item::ValueSellMerchant(float,long)const,EQ_Item__ValueSellMerchant);
 #endif
 #ifdef EQ_Item__ValueSSell_x
 FUNCTION_AT_ADDRESS(char *  EQ_Item::ValueSSell(float,long),EQ_Item__ValueSSell);
@@ -8419,9 +8424,9 @@ FUNCTION_AT_ADDRESS(bool  KeyCombo::GetScanCodeFromVirtualKey(unsigned int,unsig
 #ifdef KeyCombo__GetPrintableLetterFromVirtualKey_x
 FUNCTION_AT_ADDRESS(bool  KeyCombo::GetPrintableLetterFromVirtualKey(unsigned int,unsigned int,bool,bool,unsigned short *)const ,KeyCombo__GetPrintableLetterFromVirtualKey);
 #endif
-#ifdef CButtonWnd__CButtonWnd_x
-FUNCTION_AT_ADDRESS( CButtonWnd::CButtonWnd(class CXWnd *,unsigned __int32,class CXRect,class CXPoint,class CXSize,class CTextureAnimation *,class CTextureAnimation *,class CTextureAnimation *,class CTextureAnimation *,class CTextureAnimation *,class CTextureAnimation *,class CTextureAnimation *,class CTextureAnimation *,class CTextureAnimation *,class CTextureAnimation *),CButtonWnd__CButtonWnd);
-#endif
+//#ifdef CButtonWnd__CButtonWnd_x
+//FUNCTION_AT_ADDRESS( CButtonWnd::CButtonWnd(class CXWnd *,unsigned __int32,class CXRect,class CXPoint,class CXSize,class CTextureAnimation *,class CTextureAnimation *,class CTextureAnimation *,class CTextureAnimation *,class CTextureAnimation *,class CTextureAnimation *,class CTextureAnimation *,class CTextureAnimation *,class CTextureAnimation *,class CTextureAnimation *),CButtonWnd__CButtonWnd);
+//#endif
 #ifdef CXWnd__IsEnabled_x
 FUNCTION_AT_ADDRESS(bool  CXWnd::IsEnabled(void)const ,CXWnd__IsEnabled);
 #endif
@@ -8807,7 +8812,7 @@ FUNCTION_AT_ADDRESS(class CXStr  CTAFrameDraw::GetName(void)const ,CTAFrameDraw_
 FUNCTION_AT_ADDRESS(class CXStr  CScreenPieceTemplate::GetName(void)const ,CScreenPieceTemplate__GetName);
 #endif
 #ifdef CSidlManager__LoadSidl_x
-FUNCTION_AT_ADDRESS(void  CSidlManager::LoadSidl(class CXStr,class CXStr,class CXStr),CSidlManager__LoadSidl);
+FUNCTION_AT_ADDRESS(void CSidlManager::LoadSidl(CXStr const &,CXStr const &,CXStr const &,CXStr const &),CSidlManager__LoadSidl);
 #endif
 #ifdef CUITextureInfo__CUITextureInfo4_x
 FUNCTION_AT_ADDRESS( CUITextureInfo::CUITextureInfo(class CXStr,class CXSize),CUITextureInfo__CUITextureInfo4);
@@ -8858,7 +8863,7 @@ FUNCTION_AT_ADDRESS(class CXStr  CSidlManager::GetParsingErrorMsg(void)const ,CS
 FUNCTION_AT_ADDRESS(class CTextureAnimation *  CSidlManager::FindAnimation(unsigned __int32)const ,CSidlManager__FindAnimation);
 #endif
 #ifdef CSidlManager__FindAnimation1_x
-FUNCTION_AT_ADDRESS(class CTextureAnimation *  CSidlManager::FindAnimation(class CXStr)const ,CSidlManager__FindAnimation1);
+FUNCTION_AT_ADDRESS(class CTextureAnimation * CSidlManager::FindAnimation(class CXStr const &)const ,CSidlManager__FindAnimation1);
 #endif
 #ifdef CSidlManager__FindFrameDraw_x
 FUNCTION_AT_ADDRESS(class CTAFrameDraw *  CSidlManager::FindFrameDraw(unsigned __int32)const ,CSidlManager__FindFrameDraw);

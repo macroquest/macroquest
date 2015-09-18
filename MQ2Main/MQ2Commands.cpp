@@ -2675,7 +2675,7 @@ VOID WindowState(PSPAWNINFO pChar, PCHAR szLine)
         switch (State) {
                 case 0:
                     ((CXWnd*)pWnd)->Show(0,1);
-                    sprintf(szBuffer,"Window '%s' is now closed.",pWnd->WindowText->Text);
+                    sprintf(szBuffer,"Window '%s' is now closed.",pWnd->WindowText ? pWnd->WindowText->Text : Arg1);
                     ((CSidlScreenWnd*)pWnd)->StoreIniVis();
                     break;
                 case 1:
@@ -2685,11 +2685,11 @@ VOID WindowState(PSPAWNINFO pChar, PCHAR szLine)
                         call dword ptr [ShowWindow];
                         pop ecx;
                     }
-                    sprintf(szBuffer,"Window '%s' is now open.",pWnd->WindowText->Text);
+                    sprintf(szBuffer,"Window '%s' is now open.",pWnd->WindowText ? pWnd->WindowText->Text : Arg1);
                     ((CSidlScreenWnd*)pWnd)->StoreIniVis();
                     break;
                 case 99:
-                    sprintf(szBuffer,"Window '%s' is currently %s",pWnd->WindowText->Text,(pWnd->dShow==0)?"closed":"open");
+                    sprintf(szBuffer,"Window '%s' is currently %s",pWnd->WindowText ? pWnd->WindowText->Text : Arg1,(pWnd->dShow==0)?"closed":"open");
                     break;
         }
         WriteChatColor(szBuffer,USERCOLOR_DEFAULT);

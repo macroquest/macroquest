@@ -1764,6 +1764,7 @@ public:
 		Expendable=143,
 		ContAddress = 144,
 		ItemLink = 145,
+		Icon = 146,
     };
     static enum ItemMethods
     {
@@ -1915,6 +1916,7 @@ public:
 		TypeMember(Expendable);
 		TypeMember(ContAddress);
 		TypeMember(ItemLink);
+		TypeMember(Icon);
     }
 
     ~MQ2ItemType()

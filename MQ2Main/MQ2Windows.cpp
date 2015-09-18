@@ -183,6 +183,8 @@ class CXMLSOMDocumentBaseHook
 public:
     int XMLRead(CXStr *A, CXStr *B, CXStr *C, CXStr *D)
     {
+		DWORD addr = (DWORD)pSidlMgr;
+		DWORD tTHIS = (DWORD)this;
         char Temp[256]={0};
         GetCXStr(C->Ptr,Temp,256);
         DebugSpew("XMLRead(%s)",Temp);

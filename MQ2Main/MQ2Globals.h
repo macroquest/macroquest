@@ -942,6 +942,7 @@ EQLIB_VAR DWORD AltAdvManager__GetAltAbility;
 EQLIB_VAR DWORD CharacterZoneClient__HasSkill;
 EQLIB_VAR DWORD CharacterZoneClient__MakeMeVisible;
 EQLIB_VAR DWORD CharacterZoneClient__ApplyDamage;
+EQLIB_VAR DWORD CharacterZoneClient__IsStackBlocked;
 
 EQLIB_VAR DWORD CBankWnd__GetNumBankSlots;
 
@@ -1237,6 +1238,9 @@ EQLIB_VAR DWORD EQ_Item__CanDrop;
 EQLIB_VAR DWORD EQ_Item__CreateItemTagString;
 EQLIB_VAR DWORD EQ_Item__IsStackable;
 EQLIB_VAR DWORD EQ_Item__GetImageNum;
+EQLIB_VAR DWORD EQ_Item__CreateItemClient;
+EQLIB_VAR DWORD EQ_Item__GetItemValue;
+EQLIB_VAR DWORD EQ_Item__ValueSellMerchant;
 
 EQLIB_VAR DWORD EQ_LoadingS__SetProgressBar;
 EQLIB_VAR DWORD EQ_LoadingS__Array;
@@ -1317,6 +1321,9 @@ EQLIB_VAR DWORD EqSoundManager__WavePlay;
 EQLIB_VAR DWORD CCombatSkillsSelectWnd__ShouldDisplayThisSkill;
 EQLIB_VAR DWORD ActorClient__GetPosition;
 EQLIB_VAR DWORD ActorClient__GetPosition1;
+EQLIB_VAR DWORD CTextureAnimation__SetCurCell;
+EQLIB_VAR DWORD CSidlManager__FindAnimation1;
+
 
 }
 using namespace MQ2Globals;

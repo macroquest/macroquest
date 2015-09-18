@@ -56,7 +56,7 @@ BOOL dataLastItem(PCHAR szName, MQ2TYPEVAR &Ret)
 // *************************************************************************** 
 class ItemDisplayHook
 {
-    typedef enum {None = 0, Clicky, Proc, Worn, Focus, Scroll} SEffectType;
+    typedef enum {None = 0, Clicky, Proc, Worn, Focus, Scroll, Focus2} SEffectType;
 
     static bool bNoSpellTramp;
     static SEffectType eEffectType;
@@ -137,6 +137,7 @@ public:
                 cName = "Worn";
                 break;
             case Focus:
+            case Focus2:
                 cColour = "9F9F00";
                 cName = "Focus";
                 break;
@@ -296,6 +297,7 @@ public:
                 cName = "Worn";
                 break;
             case Focus:
+            case Focus2:
                 cColour = "9F9F00";
                 cName = "Focus";
                 break;
@@ -649,6 +651,10 @@ public:
         if (Item->Scroll.SpellID > 0 && Item->Scroll.SpellID != -1) {
             eEffectType = Scroll;
             ItemSetSpell_Detour(Item->Scroll.SpellID, false);
+        }
+		if (Item->Focus2.SpellID > 0 && Item->Focus2.SpellID != -1) {
+            eEffectType = Focus2;
+            ItemSetSpell_Detour(Item->Focus2.SpellID, false);
         }
         bNoSpellTramp=false;
         eEffectType = None;

@@ -2598,7 +2598,7 @@ bool MQ2CharacterType::GETMEMBER()
                 if ( PSPELL pSpell = GetSpellByID(pPCData->GetCombatAbility(nCombatAbility)) )
                 { 
                     DWORD timeNow = (DWORD)time(NULL);
-					if (pSpell->CARecastTimerID != -1 && pPCData->GetCombatAbilityTimer(pSpell->CARecastTimerID,pSpell->SpellGroup) > timeNow)
+					if (pPCData->GetCombatAbilityTimer(pSpell->CARecastTimerID,pSpell->SpellGroup) > timeNow)
 					{
 						Dest.Int=pPCData->GetCombatAbilityTimer(pSpell->CARecastTimerID,pSpell->SpellGroup)-timeNow+6;
 						Dest.Int/=6;
@@ -2619,7 +2619,7 @@ bool MQ2CharacterType::GETMEMBER()
 							if (!stricmp(GETFIRST(),pSpell->Name)) 
 							{ 
 								DWORD timeNow = (DWORD)time(NULL);
-								if (pSpell->CARecastTimerID != -1 && pPCData->GetCombatAbilityTimer(pSpell->CARecastTimerID,pSpell->SpellGroup) > timeNow)
+								if (pPCData->GetCombatAbilityTimer(pSpell->CARecastTimerID,pSpell->SpellGroup) > timeNow)
 								{
 									Dest.Int=pPCData->GetCombatAbilityTimer(pSpell->CARecastTimerID,pSpell->SpellGroup)-timeNow+6;
 									Dest.Int/=6;
@@ -2646,16 +2646,11 @@ bool MQ2CharacterType::GETMEMBER()
                 if ( PSPELL pSpell = GetSpellByID(pPCData->GetCombatAbility(nCombatAbility)) )
                 { 
                     DWORD timeNow = (DWORD)time(NULL);
-					if (pSpell->CARecastTimerID != -1 && pPCData->GetCombatAbilityTimer(pSpell->CARecastTimerID,pSpell->SpellGroup) < timeNow)
+					if (pPCData->GetCombatAbilityTimer(pSpell->CARecastTimerID,pSpell->SpellGroup) < timeNow)
 					{
                         Dest.DWord=1;
                         return true;
-                    } 
-					else if (pSpell->CARecastTimerID == -1)
-					{
-						Dest.DWord = 1;
-						return true;
-					}
+                    }
                 } 
             } 
             else 
@@ -2669,14 +2664,9 @@ bool MQ2CharacterType::GETMEMBER()
 							if (!stricmp(GETFIRST(),pSpell->Name)) 
 							{ 
 								DWORD timeNow = (DWORD)time(NULL);
-								if (pSpell->CARecastTimerID != -1 && pPCData->GetCombatAbilityTimer(pSpell->CARecastTimerID,pSpell->SpellGroup) < timeNow)
+								if (pPCData->GetCombatAbilityTimer(pSpell->CARecastTimerID,pSpell->SpellGroup) < timeNow)
 								{
 									Dest.DWord=1;
-									return true;
-								}
-								else if (pSpell->CARecastTimerID == -1)
-								{
-									Dest.DWord = 1;
 									return true;
 								}
 							} 
@@ -4751,8 +4741,9 @@ bool MQ2ItemType::GETMEMBER()
         Dest.Ptr=GetLDoNTheme(GetItemFromContents(pItem)->LDTheme);
         Dest.Type=pStringType;
         return true;
-    case DMGBonusType:
-        Dest.Ptr=szDmgBonusType[GetItemFromContents(pItem)->DmgBonusType];
+    case DMGBonusType://we go to keep this for backward compatibility
+	//but really it should be called case ElementalFlag:
+        Dest.Ptr=szDmgBonusType[GetItemFromContents(pItem)->ElementalFlag];
         Dest.Type=pStringType;
         return true;
     case Container:
@@ -5784,12 +5775,12 @@ bool MQ2ItemType::GETMEMBER()
         Dest.Type=pIntType;
 		if(PITEMINFO pitem = GetItemFromContents(pItem)) {
 			if (pitem->Type == ITEMTYPE_NORMAL) {
-				if (pitem->AugSlot1>=0x1 && pitem->AugSlot1<=0x13 && pitem->AugSlot1_Flag==1) Dest.DWord++;
-				if (pitem->AugSlot2>=0x1 && pitem->AugSlot2<=0x13 && pitem->AugSlot2_Flag==1) Dest.DWord++;
-				if (pitem->AugSlot3>=0x1 && pitem->AugSlot3<=0x13 && pitem->AugSlot3_Flag==1) Dest.DWord++;
-				if (pitem->AugSlot4>=0x1 && pitem->AugSlot4<=0x13 && pitem->AugSlot4_Flag==1) Dest.DWord++;
-				if (pitem->AugSlot5>=0x1 && pitem->AugSlot5<=0x13 && pitem->AugSlot5_Flag==1) Dest.DWord++;
-				if (pitem->AugSlot6>=0x1 && pitem->AugSlot6<=0x13 && pitem->AugSlot6_Flag==1) Dest.DWord++;
+				if (pitem->AugSlot1>=0x1 && pitem->AugSlot1<=0x13 && pitem->AugSlot1_Visible==1) Dest.DWord++;
+				if (pitem->AugSlot2>=0x1 && pitem->AugSlot2<=0x13 && pitem->AugSlot2_Visible==1) Dest.DWord++;
+				if (pitem->AugSlot3>=0x1 && pitem->AugSlot3<=0x13 && pitem->AugSlot3_Visible==1) Dest.DWord++;
+				if (pitem->AugSlot4>=0x1 && pitem->AugSlot4<=0x13 && pitem->AugSlot4_Visible==1) Dest.DWord++;
+				if (pitem->AugSlot5>=0x1 && pitem->AugSlot5<=0x13 && pitem->AugSlot5_Visible==1) Dest.DWord++;
+				if (pitem->AugSlot6>=0x1 && pitem->AugSlot6<=0x13 && pitem->AugSlot6_Visible==1) Dest.DWord++;
 				Dest.Type=pIntType;
 			}
 		}
@@ -5891,6 +5882,10 @@ bool MQ2ItemType::GETMEMBER()
 			return true;
 		}
 		return false;
+	case Icon:
+		Dest.DWord=GetItemFromContents(pItem)->IconNumber;
+        Dest.Type=pIntType;
+        return true;
     }
     return false;
 #undef pItem

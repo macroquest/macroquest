@@ -590,8 +590,8 @@ typedef struct _ITEMINFO {
 /*0x017c*/ BYTE         Magic;
 /*0x017d*/ BYTE         Light;
 /*0x017e*/ BYTE         Delay;
-/*0x017f*/ BYTE         DmgBonusType;
-/*0x0180*/ BYTE         DmgBonusVal;
+/*0x017f*/ BYTE         ElementalFlag;//used to be called DmgBonusType
+/*0x0180*/ BYTE         ElementalDamage;//used to be called DmgBonusVal
 /*0x0181*/ BYTE         Range;
 /*0x0182*/ BYTE         Unknown0x0182[0x2];
 /*0x0184*/ DWORD        Damage;
@@ -618,17 +618,17 @@ typedef struct _ITEMINFO {
 /*0x01dc*/ BYTE         Material;
 /*0x01dd*/ BYTE         Unknown0x01dd[0xb];
 /*0x01e8*/ DWORD        AugSlot1;
-/*0x01ec*/ DWORD        AugSlot1_Flag;//00=means disabled 01=means enabled
+/*0x01ec*/ DWORD        AugSlot1_Visible;
 /*0x01f0*/ DWORD        AugSlot2;
-/*0x01f4*/ DWORD        AugSlot2_Flag;
+/*0x01f4*/ DWORD        AugSlot2_Visible;
 /*0x01f8*/ DWORD        AugSlot3;
-/*0x01fc*/ DWORD        AugSlot3_Flag;
+/*0x01fc*/ DWORD        AugSlot3_Visible;
 /*0x0200*/ DWORD        AugSlot4;
-/*0x0204*/ DWORD        AugSlot4_Flag;
+/*0x0204*/ DWORD        AugSlot4_Visible;
 /*0x0208*/ DWORD        AugSlot5;
-/*0x020c*/ DWORD        AugSlot5_Flag;
+/*0x020c*/ DWORD        AugSlot5_Visible;
 /*0x0210*/ DWORD        AugSlot6;
-/*0x0214*/ DWORD        AugSlot6_Flag;
+/*0x0214*/ DWORD        AugSlot6_Visible;
 /*0x0218*/ DWORD        AugType;
 /*0x021c*/ DWORD        AugRestrictions;
 /*0x0220*/ BYTE         Unknown0x0220[0x4];
@@ -646,7 +646,7 @@ typedef struct _ITEMINFO {
 /*0x0348*/ struct _ITEMSPELLS   Worn;
 /*0x03ac*/ struct _ITEMSPELLS   Focus;
 /*0x0410*/ struct _ITEMSPELLS   Scroll;
-/*0x0474*/ struct _ITEMSPELLS   itemSpellUnknown;
+/*0x0474*/ struct _ITEMSPELLS   Focus2;
 /*0x04d8*/ BYTE         Unknown0x04d8[0x78];
 /*0x0550*/ DWORD        CombatEffects;
 /*0x0554*/ DWORD        Shielding;
@@ -659,7 +659,10 @@ typedef struct _ITEMINFO {
 /*0x0570*/ DWORD        Avoidance;
 /*0x0574*/ DWORD        Accuracy;
 /*0x0578*/ DWORD        CharmFileID;
-/*0x057c*/ DWORD        CastTime;
+	union {//yeah i dont know of any items that use this value for casttime, but i do know plenty that use it for foodduration... -eqmule
+/*0x057c*/ DWORD        CastTime;	//im 99% sure this has nothing to do with casttime, but dont wanna break plugins...
+/*0x057c*/ DWORD        FoodDuration;//0-5 snack 6-20 meal 21-30 hearty 31-40 banquet 41-50 feast 51-60 enduring 60- miraculous
+	};
 /*0x0580*/ BYTE         Combine;
 /*0x0581*/ BYTE         Slots;
 /*0x0582*/ BYTE         SizeCapacity;
@@ -689,7 +692,9 @@ typedef struct _ITEMINFO {
 /*0x05fd*/ BYTE         Expendable;
 /*0x05fe*/ BYTE         Unknown0x05fe[0x2];
 /*0x0600*/ DWORD        Clairvoyance;
-/*0x0604*/ BYTE			Unknown0x0604[0x90];
+/*0x0604*/ BYTE			Unknown0x0604[0x8];
+/*0x060c*/ DWORD        Placeable;
+/*0x0610*/ BYTE			Unknown0x0610[0x84];
 /*0x0694*/
 } ITEMINFO, *PITEMINFO;
 
@@ -1419,7 +1424,9 @@ typedef struct _SPAWNINFO {
 /*0x04b4*/ BYTE         Unknown0x04b4[0x8];
 /*0x04bc*/ WORD         Zone;
 /*0x04be*/ WORD         Instance;
-/*0x04c0*/ BYTE         Unknown0x04c0[0x10];
+/*0x04c0*/ BYTE         Unknown0x04c0[0x4];
+/*0x04c4*/ struct _EQC_INFO*    spawneqc_info;
+/*0x04c8*/ BYTE         Unknown0x04c8[0x8];
 /*0x04d0*/ BYTE         Sneak;
 /*0x04d1*/ BYTE         Unknown0x04d1[0x3];
 /*0x04d4*/ DWORD        Buyer;
@@ -1862,7 +1869,7 @@ typedef struct _SPELL {
 /*0x47a*/   CHAR    WearOff[0x60];
 /*0x4da*/   BYTE    Unknown0x4da[0x4];
 /*0x4de*/   BYTE    Uninterruptable;    //00=Interruptable, 01=Uninterruptable 
-/*0x4df*/   BYTE    Unknown0x4df[0xe];
+/*0x4df*/   BYTE    Unknown0x4df[0xe];  //spellstacking related? checked if 0 in CharacterZoneClient__IsStackBlocked_x (at 447855 aug 20 2015) - eqmule
 /*0x4ed*/
 } SPELL, *PSPELL;
 
@@ -2403,12 +2410,13 @@ typedef struct _AGGRODATA {
 } AGGRODATA, *PAGGRODATA;
 
 // size 0xe4 11-28-12 - ieatacid (in GetAggroInfo)
+// size 0xfc see 422F94 in 20 Aug 2015 -eqmule
 typedef struct _AGGROINFO {
-/*0x00*/ struct _AGGRODATA aggroData[0x1b];
-/*0xd8*/ DWORD  AggroLockID;//this can be 0, I dont know what it is... -eqmule
-/*0xdc*/ DWORD  AggroTargetID;//this is id of whoever we are fighting -eqmule
-/*0xe0*/ DWORD  AggroSecondaryID;//this is id of whoever the npc is fighting -eqmule
-/*0xe4*/
+/*0x00*/ struct _AGGRODATA aggroData[0x1e];
+/*0xf0*/ DWORD  AggroLockID;//this can be 0, I dont know what it is... -eqmule
+/*0xf4*/ DWORD  AggroTargetID;//this is id of whoever we are fighting -eqmule
+/*0xf8*/ DWORD  AggroSecondaryID;//this is id of whoever the npc is fighting -eqmule
+/*0xfc*/
 } AGGROINFO, *PAGGROINFO;
 
 enum AggroDataTypes

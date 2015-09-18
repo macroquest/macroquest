@@ -774,14 +774,19 @@ typedef struct _EQGRAPHICSENGINE {
 } EQGRAPHICSENGINE, *PEQGRAPHICSENGINE;
 #define SafeXLoc 0
 
+//CButtonWnd__CButtonWnd_x
+//size is 0x264 see 8C9C9E in eqgame.exe dated 20 Aug 2015 - eqmule
 typedef struct _CBUTTONWND {
 /*0x000*/ struct    _CXWND Wnd;
-/*0x1c4*/ BYTE      Unknown[0x4];
-/*0x1c8*/ BYTE      State;        //1=down 0=up
-/*0x1c9*/ BYTE      Unknown0x1c9; //something to do with State
-/*0x1ca*/ BYTE      Unknown0x1ca[0x12];
-/*0x1dc*/ ARGBCOLOR Color;
-/*0x1e0*/
+/*0x1d0*/ BYTE      Unknown[0x4];
+/*0x1d4*/ BYTE      State;        //1=down 0=up
+/*0x1d5*/ BYTE      Unknown0x1d5; //something to do with State
+/*0x1d6*/ BYTE      Unknown0x1d6[0x12];
+/*0x1e8*/ ARGBCOLOR Color;
+/*0x1ec*/ BYTE      Unknown0x1ec[0x58];
+/*0x244*/ DWORD     TextureAnim;//im guessing now but I think this is the icon displayed use iconcache->geticon to fill it in...
+/*0x248*/ BYTE      Unknown0x248[0x1c];
+/*0x264*/
 } CBUTTONWND, *PCBUTTONWND;
  
 typedef struct _CTEXTENTRYWND {
