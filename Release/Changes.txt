@@ -1,3 +1,16 @@
+19 Sep 2015 by EqMule
+- Please don't use MQ2 for unattended gameplay (afk botting)
+- Updated for TEST
+- fixed a compile error in CustomPopup when building isxeq. 
+
+19 Sep 2015 by rswiders
+- Updated autorun to allow for all toons instead of having to specify them individually.
+  I did not change the /autorun command which is used to set the autorun value for the current
+  toon.
+  Eg., add ALL=<command> under [Autorun]
+- Modified ground spawn detection to allow the value based on the actual zone.
+- Updated pluginhandler to fix a timing issue with running zoned.cfg.
+
 17 Sep 2015 by EqMule
 - Please don't use MQ2 for unattended gameplay (afk botting)
 - Updated for TEST

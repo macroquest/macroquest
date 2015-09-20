@@ -354,6 +354,7 @@ namespace MQ2Internal {
 
     typedef struct _actordefentry {
         unsigned int Def;
+		int ZoneID;
         char Name[256]; 
     } ACTORDEFENTRY, *PACTORDEFENTRY;
 

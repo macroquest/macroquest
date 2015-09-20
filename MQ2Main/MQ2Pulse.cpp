@@ -196,6 +196,12 @@ void Pulse()
         CHAR szServerAndName[MAX_STRING] = {0};
         CHAR szAutoRun[MAX_STRING] = {0};
         PCHAR pAutoRun = szAutoRun;
+		/* autorun for everyone */
+        GetPrivateProfileString("AutoRun","ALL","",szAutoRun,MAX_STRING,gszINIFilename);
+        while (pAutoRun[0]==' ' || pAutoRun[0]=='\t') pAutoRun++;
+        if (szAutoRun[0]!=0) DoCommand(pChar,pAutoRun);
+		/* autorun for toon */
+		ZeroMemory(szAutoRun,MAX_STRING); pAutoRun = szAutoRun;
         sprintf(szServerAndName,"%s.%s",EQADDR_SERVERNAME,pCharInfo->Name);
         GetPrivateProfileString("AutoRun",szServerAndName,"",szAutoRun,MAX_STRING,gszINIFilename);
         while (pAutoRun[0]==' ' || pAutoRun[0]=='\t') pAutoRun++;

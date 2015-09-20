@@ -3577,6 +3577,7 @@ void DisplayOverlayText(PCHAR szText, DWORD dwColor, DWORD dwTransparency, DWORD
         msHold);
 }
 
+#ifndef ISXEQ
 void CustomPopup(char* szPopText, bool bPopOutput)
 {
     int  iArgNum    = 1;
@@ -3624,6 +3625,7 @@ void CustomPopup(char* szPopText, bool bPopOutput)
     DisplayOverlayText(szPopupMsg, iMsgColor, 100, 500, 500, iMsgTime);
     if (bPopOutput) WriteChatf("\ayPopup\aw:: %s", szPopupMsg);
 }
+#endif
 
 BOOL ParseKeyCombo(PCHAR text, KeyCombo &Dest)
 {
@@ -6379,10 +6381,13 @@ PCHAR GetFriendlyNameForGroundItem(PGROUNDITEM pItem, PCHAR szName)
 {
     szName[0]=0;
     DWORD Item = atoi(pItem->Name + 2);
+	int zoneID = 0;
+	if (PCHARINFO pCharInfo = GetCharInfo())
+		zoneID = pCharInfo->zoneId;
     struct _actordefentry *ptr = MQ2Globals::ActorDefList;
 
     while (ptr->Def) {
-        if (ptr->Def == Item) {
+		if (ptr->Def == Item && (ptr->ZoneID && (ptr->ZoneID < 0 || ptr->ZoneID == zoneID))) {
             sprintf(szName,"%s",ptr->Name);
             return &szName[0];
         }
