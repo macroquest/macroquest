@@ -353,7 +353,7 @@ VFTABLE
 } CCONTEXTMENUVFTABLE, *PCCONTEXTMENUVFTABLE; 
 
 //see ref to CContextMenu__CContextMenu_x in CBuffWindow__CBuffWindow
-// size 0x290 Feb 20 2015 (see 65545B) -eqmule
+// size 0x290 Sep 24 2015 (see 67D7FB) -eqmule
 #define CONTEXTTAIL \
 /*0x230*/ DWORD ZeroMe; \
 /*0x234*/ DWORD SetToMinus1; /*must be set to -1 in constructor or menu wndnotification wont be called*/ \
@@ -363,9 +363,9 @@ VFTABLE
 /*0x244*/ BYTE ZeroMeOut1[0x24]; \
 /*0x268*/ DWORD WillBeZero2; /*constructor sets this to 0*/ \
 /*0x26c*/ DWORD ZeroMeOut2[0x18]; \
-/*0x284*/ DWORD Unknown0x28c; /*constructor sets this to 0x10000*/ \
+/*0x284*/ DWORD Unknown0x284; /*constructor sets this to 0x10000*/ \
 /*0x288*/ DWORD ZeroMeAsWell; \
-/*0x28c*/ DWORD Unknown0x294; /*constructor sets this to 0*/ \
+/*0x28c*/ DWORD Unknown0x28c; /*constructor sets this to 0*/ \
 /*0x290*/
 
 #define CONTEXTW \
@@ -772,18 +772,18 @@ typedef struct _EQGRAPHICSENGINE {
 #define SafeXLoc 0
 
 //CButtonWnd__CButtonWnd_x
-//size is 0x260 see 8D1E4E in eqgame.exe dated 22 Sep 2015 - eqmule
+//size is 0x27c see 8D1EAE in eqgame.exe dated 24 Sep 2015 - eqmule
 typedef struct _CBUTTONWND {
 /*0x000*/ struct    _CXWND Wnd;
-/*0x1cc*/ BYTE      Unknown[0x4];
-/*0x1d0*/ BYTE      State;        //1=down 0=up
-/*0x1d1*/ BYTE      Unknown0x1d5; //something to do with State
-/*0x1d2*/ BYTE      Unknown0x1d6[0x12];
-/*0x1e4*/ ARGBCOLOR Color;
-/*0x1e8*/ BYTE      Unknown0x1ec[0x58];
-/*0x240*/ DWORD     TextureAnim;//im guessing now but I think this is the icon displayed use iconcache->geticon to fill it in...
-/*0x244*/ BYTE      Unknown0x248[0x1c];
-/*0x260*/
+/*0x1e8*/ BYTE      Unknown[0x4];
+/*0x1ec*/ BYTE      State;        //1=down 0=up
+/*0x1ed*/ BYTE      Unknown0x1ed; //something to do with State
+/*0x1ee*/ BYTE      Unknown0x1ee[0x12];
+/*0x200*/ ARGBCOLOR Color;
+/*0x204*/ BYTE      Unknown0x204[0x58];
+/*0x25c*/ DWORD     TextureAnim;//im guessing now but I think this is the icon displayed use iconcache->geticon to fill it in...
+/*0x260*/ BYTE      Unknown0x260[0x1c];
+/*0x27c*/
 } CBUTTONWND, *PCBUTTONWND;
  
 typedef struct _CTEXTENTRYWND {
@@ -831,6 +831,7 @@ typedef struct _LOOTITEM
 	/*0x83*/ BYTE	Never;
 	/*0x84*/
 } LOOTITEM,*PLOOTITEM;
+
 typedef struct _LOOTLIST {
 	/*0x000*/ BYTE	Unknown0x004[0x4];
 	/*0x004*/ struct _LOOTITEM *pLootItem;
@@ -857,7 +858,7 @@ typedef struct _EQADVLOOTWND {
 //everything below it is 100% checked -eqmule
 
 //CBazaarSearchWnd__CBazaarSearchWnd aBazaarsearchwn
-// Actual Size: 0x92cc (see 49BBA3) in Feb 20 2015 test - eqmule
+// Actual Size: 0x92cc (see 4B7783) in Sep 24 2015 test - eqmule
 typedef struct _BAZAARSEARCHWND {
 /*0x0000*/ struct _CSIDLWND Wnd;
 /*0x0230*/ BYTE Unknown0x0230[0x8ff8];
@@ -869,7 +870,7 @@ typedef struct _BAZAARSEARCHWND {
 
 //CPlayerWindow__CPlayerWindow aPlayerwindow
 //Note to self: cant actually find CombatState in it, so no point in looking through IDA for it, but it IS the last dword... so... until that changes, im just gonna accept it...
-// Actual Size: 0x2e8 (see 49B4DE) in Feb 20 2015 test - eqmule
+// Actual Size: 0x2e8 (see 4B70BE) in Sep 24 2015 test - eqmule
 typedef struct _CPLAYERWND {
 /*0x0000*/ struct _CSIDLWND     Wnd;
 /*0x0230*/ BYTE Unknown0x0230[0xb4];
@@ -878,7 +879,7 @@ typedef struct _CPLAYERWND {
 } CPLAYERWND, *PCPLAYERWND;
 
 // CTargetWindow__CTargetWindow aTargetwindow
-// Actual Size: 0x8c4 (see 49B372) in Feb 20 2015 test - eqmule
+// Actual Size: 0x8c4 (see 4B6F52) in Sep 24 2015 test - eqmule
 typedef struct _CTARGETWND {
 /*0x0000*/ struct  _CSIDLWND    Wnd;
 /*0x0230*/ BYTE         Unknown0x0230[0x198];
@@ -893,7 +894,7 @@ typedef struct _CTARGETWND {
 
 // CBuffWindow__CBuffWindow aBuffwindow
 // this is used for both long and shortbuffs...
-// Actual Size: 0x718 (see 49B206) in Feb 20 2015 test - eqmule
+// Actual Size: 0x718 (see 4B6DE6) in Sep 24 2015 test - eqmule
 typedef struct _EQBUFFWINDOW {
 /*0x000*/ struct _CSIDLWND     Wnd;
 /*0x230*/ BYTE         Unknown0x0230[0xbc];
@@ -910,22 +911,22 @@ typedef struct _EQBUFFWINDOW {
 
 // CSpellGemWnd__CSpellGemWnd
 // Individual Gems 
-// Actual Size: 0x308 (see 76E1D8) in Feb 20 2015 test - eqmule
+// Actual Size: 0x314 (see 797428) in Sep 24 2015 test - eqmule
 typedef struct _EQCASTSPELLGEM {
 /*0x0000*/ struct    _CXWND     Wnd;
 /*0x01e8*/ BYTE         Unknown0x01e8[0x44];
 /*0x022c*/ DWORD        TimeStamp;
 /*0x0230*/ DWORD        RecastTime;
-/*0x0234*/ BYTE         Unknown0x0234[0xa8];
-/*0x02dc*/ DWORD        spellicon;       //if this is equal to FFFFFFFF there is no spell memmed in this slot...
-/*0x02e0*/ DWORD        spellstate;      // 1 = cast in progress or refreshtime not met 2 means we ducked or aborted cast, 0 means its ok to cast
-/*0x02e4*/ BYTE         Unknown0x02e4[0x24];
-/*0x0308*/
+/*0x0234*/ BYTE         Unknown0x0234[0xb4];
+/*0x02e8*/ DWORD        spellicon;       //if this is equal to FFFFFFFF there is no spell memmed in this slot...
+/*0x02ec*/ DWORD        spellstate;      // 1 = cast in progress or refreshtime not met 2 means we ducked or aborted cast, 0 means its ok to cast
+/*0x02f0*/ BYTE         Unknown0x02f0[0x24];
+/*0x0314*/
 } EQCASTSPELLGEM, *PEQCASTSPELLGEM;
 
 //pinstCCastSpellWnd_x
 // CCastSpellWnd__CCastSpellWnd aCastspellwnd
-// Actual Size: 0x2c0 (see 49B5F2) in Feb 20 2015 test - eqmule
+// Actual Size: 0x2c0 (see 4B71D2) in Sep 24 2015 test - eqmule
 typedef struct _EQCASTSPELLWINDOW {
 /*0x0000*/ struct _CSIDLWND     Wnd;
 /*0x0230*/ BYTE Unknown0x0230[0x14];
@@ -934,32 +935,32 @@ typedef struct _EQCASTSPELLWINDOW {
 /*0x02c0*/
 } EQCASTSPELLWINDOW, *PEQCASTSPELLWINDOW;
 
-// Actual Size: 0x2bc (see 76E2E9) in Feb 20 2015 test - eqmule
+// Actual Size: 0x2c8 (see 797539) in Sep 24 2015 test - eqmule
 typedef struct _EQINVSLOTWND {
 /*0x0000*/ struct _CXWND Wnd;      //----/ actually CButtonWnd
 /*0x01e8*/ BYTE Unknown0x01e8[0x88];
-/*0x0270*/ BYTE Unknown0x0270[0x4];
-/*0x0274*/ LONG WindowType;        // ieatacid has this as InventoryType
+/*0x0270*/ BYTE Unknown0x0270[0x10];
+/*0x0280*/ LONG WindowType;        // ieatacid has this as InventoryType
 									// 00 for inventory
                                     // 01 for bank
                                     // 02 for shared bank
                                     // 03 for trader window
                                     // 04 for World/Tradeskill/Combine
                                     // 11 for loot window
-/*0x0278*/ WORD InvSlot;
-/*0x027a*/ WORD BagSlot;
-/*0x027c*/ WORD GlobalSlot;
-/*0x027e*/ WORD RandomNum;              //no idea what this is, it changes upon login but we need it for moveitem... -eqmule
-/*0x0280*/ BYTE Unknown0x0280[0x20];
-/*0x02a0*/ struct _EQINVSLOT *  pInvSlot;
-/*0x02a4*/ BYTE Unknown0x02a4[0x8];
-/*0x02ac*/ BOOL ProcessClick;
-/*0x02b0*/ BYTE Unknown0x02b0[0xc];
-/*0x02bc*/
+/*0x0284*/ WORD InvSlot;
+/*0x0286*/ WORD BagSlot;
+/*0x0288*/ WORD GlobalSlot;
+/*0x028a*/ WORD RandomNum;              //no idea what this is, it changes upon login but we need it for moveitem... -eqmule
+/*0x028c*/ BYTE Unknown0x028c[0x20];
+/*0x02ac*/ struct _EQINVSLOT *  pInvSlot;
+/*0x02b0*/ BYTE Unknown0x02b0[0x8];
+/*0x02b8*/ BOOL ProcessClick;
+/*0x02bc*/ BYTE Unknown0x02bc[0xc];
+/*0x02c8*/
 } EQINVSLOTWND, *PEQINVSLOTWND;
 
 // CItemDisplayWindow__CItemDisplayWindow aItemdisplaywin
-// Actual Size: 0x610 (see 6B821F) in Feb 20 2015 test - eqmule
+// Actual Size: 0x610 (see 6E0A9F) in Sep 24 2015 test - eqmule
 typedef struct _EQITEMWINDOW {
 /*0x0000*/ struct _CSIDLWND     Wnd;
 /*0x0230*/ struct _CSIDLWND *   DisplayWnd;
@@ -975,7 +976,7 @@ typedef struct _EQITEMWINDOW {
 } EQITEMWINDOW, *PEQITEMWINDOW;
 
 //CLootWnd__CLootWnd aLootwnd
-// Actual Size: 0x3b8 (see 49B975) in Feb 20 2015 test - eqmule
+// Actual Size: 0x3b8 (see 4B7555) in Sep 24 2015 test - eqmule
 typedef struct _EQLOOTWINDOW {
 /*0x0000*/ struct _CSIDLWND     Wnd;
 /*0x0230*/ void *       vftable; // for CLootWnd::DialogResponse handler
@@ -1002,7 +1003,7 @@ typedef struct _EQLOOTWINDOW {
 
 // pLines address = 0x260 + 0x0368 = 0x05c8 (address of pMapViewMapVfTable)
 // CMapViewWnd__CMapViewWnd_x
-// Actual Size: 0x644 (see 49B067) in Feb 20 2015 test - eqmule
+// Actual Size: 0x644 (see 4B6C47) in Sep 24 2015 test - eqmule
 typedef struct _EQMAPWINDOW {
 /*0x0000*/ struct _CSIDLWND Wnd;
 /*0x0230*/ BYTE Unknown0x0230[0x40];
@@ -1037,7 +1038,7 @@ struct merch_other {
 };
 
 //CMerchantWnd__CMerchantWnd (aMerchantwnd)
-// Actual Size: 0x2cc (see 49BA8F) in Feb 20 2015 test - eqmule
+// Actual Size: 0x2cc (see 4B766F) in Sep 24 2015 test - eqmule
 typedef struct _EQMERCHWINDOW {
 /*0x0000*/ struct _CSIDLWND Wnd;
 /*0x0230*/ BYTE Unknown0x0230[0x10];
@@ -1051,7 +1052,7 @@ typedef struct _EQMERCHWINDOW {
 } EQMERCHWINDOW, *PEQMERCHWINDOW;
 
 //CPetInfoWindow__CPetInfoWindow aPetinfowindow
-// Actual Size: 0x930 (see 49AAA2) in Feb 20 2015 test - eqmule
+// Actual Size: 0x930 (see 4B6682) in Sep 24 2015 test - eqmule
 typedef struct _EQPETINFOWINDOW {
 /*0x0000*/ struct _CSIDLWND     Wnd;
 /*0x0230*/ BYTE Unknown0x0230[0x8];
@@ -1086,17 +1087,17 @@ typedef struct _EQPETINFOWINDOW {
 
 //CRaidWindow__CRaidWindow
 //aClasscolorD
-// Actual Size: 0x3a0 (see 49AD95) in Feb 20 2015 test - eqmule
+// Actual Size: 0x3a4 (see 4B6975) in Sep 24 2015 test - eqmule
 typedef struct _EQRAIDWINDOW {
 /*0x0000*/ struct _CSIDLWND     Wnd;
-/*0x0230*/ BYTE Unknown0x0230[0xb4];
-/*0x02e4*/ DWORD ClassColors[0x10];
-/*0x0324*/ BYTE Unknown0x0324[0x7c];
-/*0x03a0*/
+/*0x0230*/ BYTE Unknown0x0230[0xb8];
+/*0x02e8*/ DWORD ClassColors[0x10];
+/*0x0328*/ BYTE Unknown0x0328[0x7c];
+/*0x03a4*/
 } EQRAIDWINDOW, *PEQRAIDWINDOW;
 
 //CTradeWnd__CTradeWnd aTradewnd
-// Actual Size: 0x310 (see 49BAEB) in Feb 20 2015 test - eqmule
+// Actual Size: 0x310 (see 4B76CB) in Sep 24 2015 test - eqmule
 typedef struct _EQTRADEWINDOW {
 /*0x0000*/ struct _CSIDLWND Wnd;
 /*0x0230*/ BYTE Unknown0x0230[0xd8];

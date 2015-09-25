@@ -1,3 +1,13 @@
+25 Sep 2015 by EqMule
+- Please don't use MQ2 for unattended gameplay (afk botting)
+- Updated for TEST again... (cmon man are u trying to kill me?!!, scowls at hludwolf ready to attack ;)
+- So... when they patch at 8.30pm I have 2 choices:
+  1. wait until the morning and go over it manually.
+  2. run a quickpatch, cross fingers and release without proper testing.
+  Well, I did 2. and went to bed, I guess it didnt work as intended
+  uhm, so the structs has been corrected, castready and so on
+  should be working again...
+
 24 Sep 2015 #2 by EqMule
 - Please don't use MQ2 for unattended gameplay (afk botting)
 - Updated for LIVE

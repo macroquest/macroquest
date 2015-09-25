@@ -1271,6 +1271,7 @@ EQLIB_VAR DWORD EQPlayer__SetNameSpriteTint;
 EQLIB_VAR DWORD EQPlayer__IsBodyType_j;
 EQLIB_VAR DWORD EQPlayer__IsTargetable;
 EQLIB_VAR DWORD EQPlayer__CanSee;
+EQLIB_VAR DWORD PlayerZoneClient__ChangeHeight;
 
 EQLIB_VAR DWORD EQPlayerManager__GetSpawnByID;
 EQLIB_VAR DWORD EQPlayerManager__GetSpawnByName;

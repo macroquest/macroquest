@@ -697,6 +697,7 @@ GNU General Public License for more details.
 #define EQPlayer__IsBodyType_j_x                                   0x9243A0
 #define EQPlayer__IsTargetable_x                                   0x924CA0
 #define EQPlayer__CanSee_x                                         0x9251C0
+#define PlayerZoneClient__ChangeHeight_x                           0x5DCFF0
 
 //EQPlayerManager
 #define EQPlayerManager__GetSpawnByID_x                            0x5D1810
