@@ -1,3 +1,8 @@
+24 Sep 2015 by EqMule
+- Please don't use MQ2 for unattended gameplay (afk botting)
+- Updated for TEST
+- Corrected the wwsCrashReportCheckForUploader_x offset and detour. :cred rswiders
+
 23 Sep 2015 by EqMule
 - Please don't use MQ2 for unattended gameplay (afk botting)
 - Updated for LIVE

@@ -295,7 +295,7 @@ GNU General Public License for more details.
 #define __ProcessGameEvents_x                                      0x572AE0
 #define __ProcessMouseEvent_x                                      0x572280
 #define CrashDetected_x                                            0x634080
-#define wwsCrashReportCheckForUploader_x                           0x7F8590
+#define wwsCrashReportCheckForUploader_x                           0x7F83F0
 #define DrawNetStatus_x                                            0x5A9AF0
 #define Util__FastTime_x                                           0x896AB0
 #define Expansion_HoT_x                                            0x100725C
