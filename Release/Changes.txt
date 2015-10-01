@@ -1,3 +1,48 @@
+30 Sep 2015 by EqMule (ALERTS AND MORE ALERTS AND STUFF)
+- THIS IS A MACROBREAKING PATCH! (so read these notes)
+- Please don't use MQ2 for unattended gameplay (afk botting)
+- Fixed .Mercenary in the spawnstruct for TEST -cred demonstar55
+- GetGuildIDByName now returns 0xFFFFFFFF and not 0x0000FFFF if a guild is NOT found, so if you use this function in a plugin adjust acordingly.
+- Fixed a problem with searching through spawns for guild members
+  This might break you macros so pay attention!:
+  Prior to THIS patch there was a difference in CASE with guild/GUILD in spawn searches:
+  IF you wanted to search for a spawn like this:
+  /echo ${Spawn[radius 75 pc guild noalert 6]}
+  THAT WOULD MAKE MQ2 THINK the guild you where looking for was called "noalert" 
+  now if that was not your intention, you should have used UPPERCASE GUILD instead
+  and it would just search for people in YOUR guild.
+  In order to not use this confusing method of searching through spawns
+  I have decided to rename lowercase guild to guildname
+  so from this point and onward, you CAN specify guild OR GUILD and it will just pick your own guild
+  in order to search for players of a specific guild use "guildname" and note that if there are spaces in the guildname you need encase with "".
+  Example: ${Spawn[radius 75 pc guildname "Some Cool Guild" noalert 6]}
+- Added a new TLO: ${Alert}
+  it has 2 members: List which returns a AlertListType and Size which returns a IntType
+  Usage Example 1: /alert add 1 ${Me.Name}
+		 /echo ${Alert[1].List[0].Name}
+		 Outputs: eqmule
+		 /echo ${Alert[1].List[0].Spawn.Race}
+		 Outputs: Dark Elf (or whatever my Class is)
+  Usage Example 2: /alert add 1 id ${Me.ID}
+         /echo ${Alert[1].List[0].SpawnID}
+		 Output: 12345 (or whatever my spawnid is)
+         /echo ${Alert[1].Size}
+		 Output: 2 (or whatever size your alert list for 1 is)
+  Usage Example 3: /alert remove 1 id ${Me.ID}
+         removes the list entry from alert 1 that matches: id ${Me.ID}
+- Added a new TLO Type: MQ2AlertListType which has the following members:
+  well it has a crapload of members look at the source to list them but basically
+  it has all the members SEARCHSPAWN has plus one extra that I call Spawn
+  Spawn inherits the spawntype see the example above...
+  Note that: .Spawn will only work if your alert has either .Name or .SpawnID set.
+- Bunch of other stuff fixed/added/fightclub/updated/rewritten etc.
+- ${Spell[some spell]} now looks through your aa list as well if it cant find a spell
+  I did that to take the new ranks into account for example prior to this patch
+  /echo ${Spell[Boastful Bellow].Range} would fail because the Boastful Bellow spell
+  has been renamed to Boastful Bellow I
+  anyway the fix is now in and it also means .RankName will return ranks for these kinds
+  of alt abilities.
+
 25 Sep 2015 by EqMule
 - Please don't use MQ2 for unattended gameplay (afk botting)
 - Updated for TEST again... (cmon man are u trying to kill me?!!, scowls at hludwolf ready to attack ;)

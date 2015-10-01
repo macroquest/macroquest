@@ -4604,7 +4604,23 @@ bool MQ2SpellType::GETMEMBER()
 				}
 			}
 		}
-		//but if we got here we should check if its a combatability
+		//is it a altability?
+		for (unsigned long nAbility=0 ; nAbility<NUM_ALT_ABILITIES ; nAbility++) {
+            if (PALTABILITY pAbility=pAltAdvManager->GetAltAbility(nAbility)) {
+				if(char *pName = pCDBStr->GetString(pAbility->nName, 1, NULL)) {
+					if(!strncmp(thespell->Name,pName,strlen(thespell->Name))) {
+						if(pAbility->SpellID!=-1) {
+							if(PSPELL pFoundSpell = GetSpellByID(pAbility->SpellID)) {
+								Dest.Ptr = pFoundSpell;
+								Dest.Type = pSpellType;
+								return true;
+							}
+						}
+					}
+				}
+			}
+		}
+		//so if we got here we should check if its a combatability
 		for (DWORD dwIndex=0 ; dwIndex < NUM_COMBAT_ABILITIES ; dwIndex++) {
           	if(pCombatSkillsSelectWnd->ShouldDisplayThisSkill(dwIndex)) {
 				if ( PSPELL pFoundSpell = GetSpellByID(pPCData->GetCombatAbility(dwIndex)) ) {
@@ -9781,6 +9797,360 @@ bool MQ2AdvLootType::GETMEMBER()
 			}
 		}
 		return true;
+	}
+	return false;
+}
+	// /echo ${Alert[a].List[b].bGM}
+	// /echo ${Alert[a].Size}
+	// /echo ${Alert} 
+bool MQ2AlertType::GETMEMBER()
+{
+	try {
+		if (!CAlerts.AlertExist(VarPtr.DWord))
+			return false;
+		PMQ2TYPEMEMBER pMember = MQ2AlertType::FindMember(Member);
+		if (!pMember)
+			return false;
+		switch ((AlertTypeMembers)pMember->ID)
+		{
+			case List:
+			{
+				if(ISNUMBER()) {
+					Dest.DWord = MAKELONG(VarPtr.DWord,GETNUMBER());
+					Dest.Type = pAlertListType;
+					return true;
+				}
+				break;
+			}
+			case Size:
+			{
+				Dest.DWord = 0;
+				Dest.Type = pIntType;
+				std::list<SEARCHSPAWN>ss;
+				if (CAlerts.GetAlert(VarPtr.DWord,ss)) {
+					Dest.DWord = ss.size();
+				}
+				return true;
+			}
+		}
+	} catch (...) {
+		//todo: add some error handling here a messagebox or something explaining whats going on
+		//anyway at least we wont crash eqgame for the user...
+		Sleep(0);
+	}
+	return false;
+}
+/*
+case xIndex:
+			{
+				int theitem = atoi(GETFIRST());
+				std::list<SEARCHSPAWN>ss;
+				if (CAlerts.GetAlert(VarPtr.DWord,ss)) {
+					list<SEARCHSPAWN>::iterator i = ss.begin();
+					if(ss.size()>theitem) {
+						std::advance(i, theitem);
+						if((*i).bSpawnID) {
+							DWORD spawnid = (*i).SpawnID;
+							if(PSPAWNINFO psp = (PSPAWNINFO)GetSpawnByID(spawnid)) {
+								Dest.Ptr = psp;
+								Dest.Type = pSpawnType;
+								return true;
+							}
+						}
+					} else {
+						MacroError("Alert.List[%d].Index[%d] not found",VarPtr.DWord,theitem);
+					}
+				}
+				break;
+			}
+			case Size:
+			{
+				Dest.DWord = 0;
+				Dest.Type = pIntType;
+				std::list<SEARCHSPAWN>ss;
+				if (CAlerts.GetAlert(VarPtr.DWord,ss)) {
+					Dest.DWord = ss.size();
+				}
+				return true;
+			}
+*/
+bool MQ2AlertListType::GETMEMBER()
+{
+	try {
+		DWORD theindex = LOWORD(VarPtr.DWord);
+		DWORD theitem = HIWORD(VarPtr.DWord);
+		PMQ2TYPEMEMBER pMember = MQ2AlertListType::FindMember(Member);
+		if (!pMember)
+			return false;
+
+		std::list<SEARCHSPAWN>ss;
+		if (CAlerts.GetAlert(theindex,ss)) {
+			list<SEARCHSPAWN>::iterator si = ss.begin();
+			if(ss.size()>theitem) {
+				std::advance(si, theitem);
+
+				switch ((AlertListTypeMembers)pMember->ID)
+				{
+					case MinLevel:
+						Dest.DWord=(*si).MinLevel;
+						Dest.Type=pIntType;
+						return true;
+					case MaxLevel:
+						Dest.DWord=(*si).MaxLevel;
+						Dest.Type=pIntType;
+						return true;
+					case SpawnType:
+						Dest.DWord=(*si).SpawnType;
+						Dest.Type=pIntType;
+						return true;
+					case SpawnID:
+						Dest.DWord=(*si).SpawnID;
+						Dest.Type=pIntType;
+						return true;
+					case FromSpawnID:
+						Dest.DWord=(*si).FromSpawnID;
+						Dest.Type=pIntType;
+						return true;
+					case Radius:
+						Dest.Float=(*si).Radius;
+						Dest.Type=pFloatType;
+						return true;
+					case Name:
+						strcpy_s(DataTypeTemp,(*si).szName);
+						if (DataTypeTemp[0]) {
+							Dest.Ptr=&DataTypeTemp[0];
+							Dest.Type=pStringType;
+							return true;
+						}
+						break;
+					case BodyType:
+						strcpy_s(DataTypeTemp,(*si).szBodyType);
+						if (DataTypeTemp[0]) {
+							Dest.Ptr=&DataTypeTemp[0];
+							Dest.Type=pStringType;
+							return true;
+						}
+						break;
+					case Race:
+						strcpy_s(DataTypeTemp,(*si).szRace);
+						if (DataTypeTemp[0]) {
+							Dest.Ptr=&DataTypeTemp[0];
+							Dest.Type=pStringType;
+							return true;
+						}
+						break;
+					case Class:
+						strcpy_s(DataTypeTemp,(*si).szClass);
+						if (DataTypeTemp[0]) {
+							Dest.Ptr=&DataTypeTemp[0];
+							Dest.Type=pStringType;
+							return true;
+						}
+						break;
+					case Light:
+						strcpy_s(DataTypeTemp,(*si).szLight);
+						if (DataTypeTemp[0]) {
+							Dest.Ptr=&DataTypeTemp[0];
+							Dest.Type=pStringType;
+							return true;
+						}
+						break;
+					case GuildID:
+						Dest.DWord=(*si).GuildID;
+						Dest.Type=pIntType;
+						return true;
+					case bSpawnID:
+						Dest.DWord=(*si).bSpawnID;
+						Dest.Type=pBoolType;
+						return true;
+					case bNotNearAlert:
+						Dest.DWord=(*si).bNotNearAlert;
+						Dest.Type=pBoolType;
+						return true;
+					case bNearAlert:
+						Dest.DWord=(*si).bNearAlert;
+						Dest.Type=pBoolType;
+						return true;
+					case bNoAlert:
+						Dest.DWord=(*si).bNoAlert;
+						Dest.Type=pBoolType;
+						return true;
+					case bAlert:
+						Dest.DWord=(*si).bAlert;
+						Dest.Type=pBoolType;
+						return true;
+					case bLFG:
+						Dest.DWord=(*si).bLFG;
+						Dest.Type=pBoolType;
+						return true;
+					case bTrader:
+						Dest.DWord=(*si).bTrader;
+						Dest.Type=pBoolType;
+						return true;
+					case bLight:
+						Dest.DWord=(*si).bLight;
+						Dest.Type=pBoolType;
+						return true;
+					case bTargNext:
+						Dest.DWord=(*si).bTargNext;
+						Dest.Type=pBoolType;
+						return true;
+					case bTargPrev:
+						Dest.DWord=(*si).bTargPrev;
+						Dest.Type=pBoolType;
+						return true;
+					case bGroup:
+						Dest.DWord=(*si).bGroup;
+						Dest.Type=pBoolType;
+						return true;
+					case bNoGroup:
+						Dest.DWord=(*si).bNoGroup;
+						Dest.Type=pBoolType;
+						return true;
+					case bRaid:
+						Dest.DWord=(*si).bRaid;
+						Dest.Type=pBoolType;
+						return true;
+					case bGM:
+						Dest.DWord=(*si).bGM;
+						Dest.Type=pBoolType;
+						return true;
+					case bNamed:
+						Dest.DWord=(*si).bNamed;
+						Dest.Type=pBoolType;
+						return true;
+					case bMerchant:
+						Dest.DWord=(*si).bMerchant;
+						Dest.Type=pBoolType;
+						return true;
+					case bTributeMaster:
+						Dest.DWord=(*si).bTributeMaster;
+						Dest.Type=pBoolType;
+						return true;
+					case bKnight:
+						Dest.DWord=(*si).bKnight;
+						Dest.Type=pBoolType;
+						return true;
+					case bTank:
+						Dest.DWord=(*si).bTank;
+						Dest.Type=pBoolType;
+						return true;
+					case bHealer:
+						Dest.DWord=(*si).bHealer;
+						Dest.Type=pBoolType;
+						return true;
+					case bDps:
+						Dest.DWord=(*si).bDps;
+						Dest.Type=pBoolType;
+						return true;
+					case bSlower:
+						Dest.DWord=(*si).bSlower;
+						Dest.Type=pBoolType;
+						return true;
+					case bAura:
+						Dest.DWord=(*si).bAura;
+						Dest.Type=pBoolType;
+						return true;
+					case bBanner:
+						Dest.DWord=(*si).bBanner;
+						Dest.Type=pBoolType;
+						return true;
+					case bCampfire:
+						Dest.DWord=(*si).bCampfire;
+						Dest.Type=pBoolType;
+						return true;
+					case NotID:
+						Dest.DWord=(*si).NotID;
+						Dest.Type=pIntType;
+						return true;
+					case NotNearAlertList:
+						Dest.DWord=(*si).NotNearAlertList;
+						Dest.Type=pIntType;
+						return true;
+					case NearAlertList:
+						Dest.DWord=(*si).NearAlertList;
+						Dest.Type=pIntType;
+						return true;
+					case NoAlertList:
+						Dest.DWord=(*si).NoAlertList;
+						Dest.Type=pIntType;
+						return true;
+					case AlertList:
+						Dest.DWord=(*si).AlertList;
+						Dest.Type=pIntType;
+						return true;
+					case ZRadius:
+						Dest.Double=(*si).ZRadius;
+						Dest.Type=pDoubleType;
+						return true;
+					case FRadius:
+						Dest.Double=(*si).FRadius;
+						Dest.Type=pDoubleType;
+						return true;
+					case xLoc:
+						Dest.Float=(*si).xLoc;
+						Dest.Type=pFloatType;
+						return true;
+					case yLoc:
+						Dest.Float=(*si).yLoc;
+						Dest.Type=pFloatType;
+						return true;
+					case bKnownLocation:
+						Dest.DWord=(*si).bKnownLocation;
+						Dest.Type=pBoolType;
+						return true;
+					case bNoPet:
+						Dest.DWord=(*si).bNoPet;
+						Dest.Type=pBoolType;
+						return true;
+					case SortBy:
+						Dest.DWord=(*si).SortBy;
+						Dest.Type=pIntType;
+						return true;
+					case bNoGuild:
+						Dest.DWord=(*si).bNoGuild;
+						Dest.Type=pBoolType;
+						return true;
+					case bLoS:
+						Dest.DWord=(*si).bLoS;
+						Dest.Type=pBoolType;
+						return true;
+					case bExactName:
+						Dest.DWord=(*si).bExactName;
+						Dest.Type=pBoolType;
+						return true;
+					case bTargetable:
+						Dest.DWord=(*si).bTargetable;
+						Dest.Type=pBoolType;
+						return true;
+					case PlayerState:
+						Dest.DWord=(*si).PlayerState;
+						Dest.Type=pIntType;
+						return true;
+					case Spawn:
+					{
+						DWORD spawnid = (*si).SpawnID;
+						if(spawnid) {
+							if(PSPAWNINFO psp = (PSPAWNINFO)GetSpawnByID(spawnid)) {
+								Dest.Ptr = psp;
+								Dest.Type = pSpawnType;
+								return true;
+							}
+						}
+						if((*si).szName[0]) {
+							if(PSPAWNINFO psp = (PSPAWNINFO)GetSpawnByName((*si).szName)) {
+								Dest.Ptr = psp;
+								Dest.Type = pSpawnType;
+								return true;
+							}
+						}
+						return false;
+					}
+				}
+			}
+		}
+	} catch (...) {
+		Sleep(0);
 	}
 	return false;
 }

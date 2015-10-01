@@ -73,6 +73,8 @@ DATATYPE(MQ2ZoneType,             pZoneType,             nullptr, 0);
 DATATYPE(MQ2MountType,			  pMountType,			 nullptr, 0);
 DATATYPE(MQ2AdvLootType,		  pAdvLootType,			 nullptr, 0);
 DATATYPE(MQ2AdvLootItemType,      pAdvLootItemType,      nullptr, 0);
+DATATYPE(MQ2AlertType,			  pAlertType,		     nullptr, 0);
+DATATYPE(MQ2AlertListType,		  pAlertListType,		 nullptr, 0);
 
 #pragma warning( pop )
 #undef DATATYPE // In case the includer forgets

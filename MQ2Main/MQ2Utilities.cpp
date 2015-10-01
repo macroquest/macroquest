@@ -1072,6 +1072,29 @@ PSPELL GetSpellByName(PCHAR szName)
     return NULL;
 }
 
+PSPELL GetSpellByAAName(PCHAR szName)
+{
+	try {
+		for (unsigned long nAbility=0 ; nAbility<NUM_ALT_ABILITIES ; nAbility++) {
+            if (PALTABILITY pAbility=pAltAdvManager->GetAltAbility(nAbility)) {
+				if(pAbility->SpellID!=-1) {
+					if(char *pName = pCDBStr->GetString(pAbility->nName, 1, NULL)) {
+						if(!_stricmp(szName,pName)) {
+							if(PSPELL psp = GetSpellByID(pAbility->SpellID)) {
+								return psp;
+							}
+						}
+					}
+				}
+			}
+		}
+	} catch (...) {
+		DebugSpewAlways("Caught exception in GetSpellByAAName");
+		throw;
+	}
+    return NULL;
+}
+
 DWORD GetSpellDuration(PSPELL pSpell, PSPAWNINFO pSpawn) 
 { 
     switch (pSpell->DurationType) { 
@@ -1182,7 +1205,7 @@ DWORD GetGuildIDByName(PCHAR szGuild)
         }
     }
 
-    return 0xFFFF;
+    return 0xFFFFFFFF;
 }
 
 PCHAR GetLightForSpawn(PSPAWNINFO pSpawn)
@@ -5737,17 +5760,16 @@ PCHAR ParseSearchSpawnArgs(PCHAR szArg, PCHAR szRest, PSEARCHSPAWN pSearchSpawn)
                 pSearchSpawn->szLight[0]=0;
             }
             pSearchSpawn->bLight=TRUE;
-        } else if (!strcmp(szArg,"GUILD")) {
-            pSearchSpawn->GuildID=GetCharInfo()->pSpawn->GuildID;
         } else if (!stricmp(szArg,"guild")) {
+            pSearchSpawn->GuildID=GetCharInfo()->pSpawn->GuildID;
+        } else if (!stricmp(szArg,"guildname")) {
             DWORD GuildID = 0xFFFFFFFF;
             GetArg(szArg,szRest,1);
-            if (szArg[0]!=0) GuildID = GetGuildIDByName(szArg);
+            if (szArg[0]!=0)
+				GuildID = GetGuildIDByName(szArg);
             if (GuildID!=0xFFFFFFFF) {
                 pSearchSpawn->GuildID = GuildID;
-                szRest = GetNextArg(szRest,1);
-            } else {
-                pSearchSpawn->GuildID = GetCharInfo()->pSpawn->GuildID;
+				szRest = GetNextArg(szRest,1);
             }
         } else if (!stricmp(szArg,"alert")) {
             GetArg(szArg,szRest,1);

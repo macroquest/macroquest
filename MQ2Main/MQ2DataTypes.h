@@ -4644,3 +4644,177 @@ public:
 		return false;
 	}
 };
+class MQ2AlertType : public MQ2Type
+{
+public:
+	static enum AlertTypeMembers
+	{
+		List = 1,
+		Size = 2,
+	};
+	MQ2AlertType() :MQ2Type("alert")
+	{
+		TypeMember(List);
+		TypeMember(Size);
+	}
+	~MQ2AlertType()
+	{
+	}
+	bool GETMEMBER();
+	bool ToString(MQ2VARPTR VarPtr, PCHAR Destination)
+	{
+		std::list<SEARCHSPAWN>ss;
+		if (CAlerts.GetAlert(VarPtr.DWord,ss)) {
+			itoa(ss.size(),Destination,10);
+			return true;
+		}
+		return false;
+	}
+	bool FromData(MQ2VARPTR &VarPtr, MQ2TYPEVAR &Source)
+	{
+		return false;
+	}
+	bool FromString(MQ2VARPTR &VarPtr, PCHAR Source)
+	{
+		return false;
+	}
+};
+class MQ2AlertListType : public MQ2Type
+{
+public:
+	static enum AlertListTypeMembers
+	{
+		MinLevel=1,
+		MaxLevel=2,
+		SpawnType=3,
+		SpawnID=4,
+		FromSpawnID=5,
+		Radius=6,
+		Name=7,
+		BodyType=8,
+		Race=9,
+		Class=10,
+		Light=11,
+		GuildID=12,
+		bSpawnID=13,
+		bNotNearAlert=14,
+		bNearAlert=15,
+		bNoAlert=16,
+		bAlert=17,
+		bLFG=18,
+		bTrader=19,
+		bLight=20,
+		bTargNext=21,
+		bTargPrev=22,
+		bGroup=23,
+		bNoGroup=24,
+		bRaid=25,
+		bGM=26,
+		bNamed=27,
+		bMerchant=28,
+		bTributeMaster=29,
+		bKnight=30,
+		bTank=31,
+		bHealer=32,
+		bDps=33,
+		bSlower=34,
+		bAura=35,
+		bBanner=36,
+		bCampfire=37,
+		NotID=38,
+		NotNearAlertList=39,
+		NearAlertList=40,
+		NoAlertList=41,
+		AlertList=42,
+		ZRadius=43,
+		FRadius=44,
+		xLoc=45,
+		yLoc=46,
+		bKnownLocation=47,
+		bNoPet=48,
+		SortBy=49,
+		bNoGuild=50,
+		bLoS=51,
+		bExactName=52,
+		bTargetable=53,
+		PlayerState=54,
+		Spawn=55,
+	};
+	MQ2AlertListType() :MQ2Type("alertlist")
+	{
+		TypeMember(MinLevel);
+		TypeMember(MaxLevel);
+		TypeMember(SpawnType);
+		TypeMember(SpawnID);
+		TypeMember(FromSpawnID);
+		TypeMember(Radius);
+		TypeMember(Name);
+		TypeMember(BodyType);
+		TypeMember(Race);
+		TypeMember(Class);
+		TypeMember(Light);
+		TypeMember(GuildID);
+		TypeMember(bSpawnID);
+		TypeMember(bNotNearAlert);
+		TypeMember(bNearAlert);
+		TypeMember(bNoAlert);
+		TypeMember(bAlert);
+		TypeMember(bLFG);
+		TypeMember(bTrader);
+		TypeMember(bLight);
+		TypeMember(bTargNext);
+		TypeMember(bTargPrev);
+		TypeMember(bGroup);
+		TypeMember(bNoGroup);
+		TypeMember(bRaid);
+		TypeMember(bGM);
+		TypeMember(bNamed);
+		TypeMember(bMerchant);
+		TypeMember(bTributeMaster);
+		TypeMember(bKnight);
+		TypeMember(bTank);
+		TypeMember(bHealer);
+		TypeMember(bDps);
+		TypeMember(bSlower);
+		TypeMember(bAura);
+		TypeMember(bBanner);
+		TypeMember(bCampfire);
+		TypeMember(NotID);
+		TypeMember(NotNearAlertList);
+		TypeMember(NearAlertList);
+		TypeMember(NoAlertList);
+		TypeMember(AlertList);
+		TypeMember(ZRadius);
+		TypeMember(FRadius);
+		TypeMember(xLoc);
+		TypeMember(yLoc);
+		TypeMember(bKnownLocation);
+		TypeMember(bNoPet);
+		TypeMember(SortBy);
+		TypeMember(bNoGuild);
+		TypeMember(bLoS);
+		TypeMember(bExactName);
+		TypeMember(bTargetable);
+		TypeMember(PlayerState);
+		TypeMember(Spawn);
+	}
+	~MQ2AlertListType()
+	{
+	}
+	bool GETMEMBER();
+	bool ToString(MQ2VARPTR VarPtr, PCHAR Destination)
+	{
+		DWORD theindex = LOWORD(VarPtr.DWord);
+		DWORD theitem = HIWORD(VarPtr.DWord);
+		sprintf_s(Destination,128,"${Alert[%d].List[%d].Name}",theindex,theitem);
+		return true;
+	}
+	bool FromData(MQ2VARPTR &VarPtr, MQ2TYPEVAR &Source)
+	{
+		return false;
+	}
+	bool FromString(MQ2VARPTR &VarPtr, PCHAR Source)
+	{
+		return false;
+	}
+};

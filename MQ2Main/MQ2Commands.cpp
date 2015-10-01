@@ -1406,9 +1406,12 @@ VOID Alert(PSPAWNINFO pChar, PCHAR szLine)
                     DWORD Count=0;
                     WriteChatColor(" ",USERCOLOR_DEFAULT);
                     WriteChatColor("Current alerts:",USERCOLOR_DEFAULT);
+					CHAR szTemp[2048] = {0};
 					for(std::list<SEARCHSPAWN>::iterator i=ss.begin();i!=ss.end();i++) {
+						int dist = std::distance(ss.begin(),i);
                         FormatSearchSpawn(Buffer,&(*i));
-                        WriteChatColor(Buffer,USERCOLOR_DEFAULT);
+						sprintf_s(szTemp,"[%d] %s",dist,Buffer);
+                        WriteChatColor(szTemp,USERCOLOR_DEFAULT);
                     }
 					sprintf(Buffer,"%d alerts listed.",ss.size());
                     WriteChatColor(Buffer,USERCOLOR_DEFAULT);

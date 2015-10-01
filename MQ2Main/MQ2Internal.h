@@ -440,6 +440,23 @@ namespace MQ2Internal {
 			}
 			return FALSE;
 		}
+		BOOL ListAlerts(PCHAR szOut,size_t max)
+		{
+			lockit lk(_hLockMapWrite);
+			if(_AlertMap.size()==0)
+				return FALSE;
+			CHAR szTemp[32] = {0};
+
+			for(std::map<DWORD,std::list<SEARCHSPAWN>>::iterator i = _AlertMap.begin();i!=_AlertMap.end();i++) {
+				itoa((*i).first,szTemp,10);
+				strcat_s(szOut,max,szTemp);
+				strcat_s(szOut,max,"|");
+			}
+			size_t len = strlen(szOut);
+			if(len && szOut[len-1] == '|')
+				szOut[len-1] = '\0';
+			return TRUE;
+		}
 		VOID FreeAlerts(DWORD List);
 	};
 

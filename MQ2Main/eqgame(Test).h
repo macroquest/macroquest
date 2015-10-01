@@ -36,6 +36,7 @@ GNU General Public License for more details.
 #define __EncryptPad2_x                                            0xCABAC8
 #define __EncryptPad3_x                                            0xCAB6C8
 #define __EncryptPad4_x                                            0xDC6240
+#define __EncryptPad5_x                                            0x11978F0
 #define __AC1_x                                                    0x7A5475
 #define __AC2_x                                                    0x54E827
 #define __AC3_x                                                    0x563020
@@ -44,6 +45,7 @@ GNU General Public License for more details.
 #define __AC6_x                                                    0x5795D9
 #define __AC7_x                                                    0x5701DC
 #define __AC1_Data                                                 0x11111111
+#define __EP1_Data                                                 0x845E8
 
 // Direct Input
 #define DI8__Main_x                                                0x11978C8

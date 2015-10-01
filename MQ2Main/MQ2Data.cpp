@@ -144,6 +144,12 @@ TLO(dataSpell)
                 Ret.Type=pSpellType;
                 return true;
             }
+			//is it an AA?
+			if (Ret.Ptr=GetSpellByAAName(GETFIRST()))
+            {
+                Ret.Type=pSpellType;
+                return true;
+            }
         }
     }
     return false;
@@ -1798,4 +1804,24 @@ TLO(dataAdvLoot)
 	Ret.DWord = 0;
 	Ret.Type = pAdvLootType;
 	return true;
+}
+TLO(dataAlert)
+{
+	if (!ISINDEX()) {
+		CHAR szTemp[2048] = {0};
+		if(CAlerts.ListAlerts(szTemp,2048)) {
+			strcpy_s(DataTypeTemp,szTemp);
+			Ret.Ptr=&DataTypeTemp[0];
+			Ret.Type=pStringType;
+			return true;
+		}
+		return false;
+	}
+
+	if(ISNUMBER()) {
+		Ret.DWord = GETNUMBER();
+		Ret.Type=pAlertType;
+		return true;
+	}
+	return false;
 }

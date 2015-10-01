@@ -172,6 +172,7 @@ void InitializeMQ2Data()
     AddMQ2Data("Mount",dataMount);
 	AddMQ2Data("Alias", dataAlias);
 	AddMQ2Data("AdvLoot", dataAdvLoot);
+	AddMQ2Data("Alert", dataAlert);
 }
 
 

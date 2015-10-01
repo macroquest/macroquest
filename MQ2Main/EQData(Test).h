@@ -1426,9 +1426,9 @@ typedef struct _SPAWNINFO {
 /*0x04c8*/ DWORD        InnateETA;              //Calculated TimeStamp when innate skill will be ready (LoH, HT, Bash)
 /*0x04cc*/ BYTE         Unknown0x04cc[0xc];
 /*0x04d8*/ DWORD        GuildStatus;
-/*0x04dc*/ BYTE         Unknown0x04dc[0x84];
-/*0x0560*/ BYTE         Mercenary;
-/*0x0561*/ BYTE         Unknown0x0561[0x3];
+/*0x04dc*/ BYTE         Unknown0x04dc[0x85];
+/*0x0561*/ BYTE         Mercenary;
+/*0x0562*/ BYTE         Unknown0x0562[0x2];
 /*0x0564*/ DWORD        AARank;
 /*0x0568*/ BYTE         Unknown0x0568[0x8];
 /*0x0570*/ BYTE         HideMode;

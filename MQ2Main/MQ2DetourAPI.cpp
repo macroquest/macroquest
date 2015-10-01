@@ -453,7 +453,47 @@ int __cdecl memcheck0(unsigned char *buffer, int count)
 #endif
     return eax;
 }
-
+//New memcheck code added to Aug 24 2015 eqgame.exe - eqmule
+//work in progress
+bool __cdecl memcheck5(DWORD count)
+{
+	//we dont want this to error out when checkpacket is rerouted to sha256
+	//so we encapsulate it with a try
+	try
+	{
+		__asm {
+			push eax;
+			push ebx;
+			push edx;
+			mov eax, fs:[ 0x30 ]
+			mov eax, dword ptr [eax+0x8];
+			mov ebx, __EncryptPad5_x;
+			mov edx, __EP1_Data;
+			xor ebx,edx;
+			sub ebx, 0x400000;
+			add ebx,eax;
+			mov edx,dword ptr [ebx];
+			xor edx, 0xFFFFFFFF;
+			cmp edx,0x558BEC8B;//hardcoded for now, more info on this later.
+			jne sha;
+			mov ebx,__MemChecker1_x;
+			add ebx,eax;
+			sub ebx, 0x400000;
+			add esp,count;
+			mov ecx,ebx;
+			push ecx;
+			xor eax,eax;
+			ret;
+			sha:
+			pop edx;
+			pop ebx;
+			pop eax;
+		};
+	} catch(...) {
+		Sleep(0);
+	}
+	return true;
+}
 
 int __cdecl memcheck1(unsigned char *buffer, int count, struct mckey key) 
 {
@@ -473,7 +513,8 @@ int __cdecl memcheck1(unsigned char *buffer, int count, struct mckey key)
 //                push    edi
 //                or      edi, 0FFFFFFFFh
 //                cmp     [ebp+arg_8], 0
-    if (key.x != 0) {
+	bool creset = memcheck5(count);
+    if (key.x != 0 && creset) {
 //                mov     esi, 0FFh
 //                mov     ecx, 0FFFFFFh
 //                jz      short loc_4C3978
@@ -869,6 +910,7 @@ int __cdecl memcheck3(unsigned char *buffer, int count, struct mckey key)
 
 int __cdecl memcheck4(unsigned char *buffer, int count, struct mckey key)
 {
+	
     unsigned int eax, ebx, edx, i;
 
     if (!extern_array4) {
@@ -895,7 +937,7 @@ int __cdecl memcheck4(unsigned char *buffer, int count, struct mckey key)
     edx = ((int)edx>>8) & 0xffffff;
     edx ^= extern_array4[ebx];
     edx ^= eax;
-
+	
 #ifdef ISXEQ
     unsigned char *realbuffer=(unsigned char *)malloc(count);
     pExtension->Memcpy_Clean((unsigned int)buffer,realbuffer,count);

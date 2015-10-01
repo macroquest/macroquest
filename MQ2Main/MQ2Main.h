@@ -457,6 +457,7 @@ EQLIB_API int GetLanguageIDByName(PCHAR szName);
 EQLIB_API int GetCurrencyIDByName(PCHAR szName);
 EQLIB_API PCHAR GetSpellNameByID(LONG dwSpellID);
 EQLIB_API PSPELL GetSpellByName(PCHAR szName);
+EQLIB_API PSPELL GetSpellByAAName(PCHAR szName);
 EQLIB_API DWORD GetSpellRankByName(PCHAR SpellName);
 EQLIB_API VOID RemoveBuff(PSPAWNINFO pChar, PCHAR szLine);
 EQLIB_API VOID RemovePetBuff(PSPAWNINFO pChar, PCHAR szLine);
