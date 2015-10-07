@@ -301,7 +301,7 @@ VOID DoorTarget(PSPAWNINFO pChar, PCHAR szLine)
 
     GetArg(Arg1,szLine,1);
     GetArg(Arg2,szLine,2);
-    if (!stricmp(Arg1, "id")) {
+    if (!_stricmp(Arg1, "id")) {
         if (Arg2[0]==0) {
             MacroError("DoorTarget: id specified but no number provided.");
             return;
@@ -576,7 +576,7 @@ VOID MemSpell(PSPAWNINFO pChar, PCHAR szLine)
         if (PSPELL pTempSpell=GetSpellByID(GetCharInfo2()->SpellBook[N]))
         {
             // exact name match only
-            if (!stricmp(SpellName,pTempSpell->Name))
+            if (!_stricmp(SpellName,pTempSpell->Name))
             {
                 pSpell=pTempSpell;
                 break;
@@ -705,7 +705,7 @@ VOID PluginCmdSort(VOID)
         if (pCmd->EQ==0) {
             //
             for(i=0;i<sizeof(keyarray)/4;i+=4) {
-                if (!stricmp(pCmd->Command, (char *)&keyarray[i])) {
+                if (!_stricmp(pCmd->Command, (char *)&keyarray[i])) {
                     pCmd->Function=CmdCmd;
                 }
             }
@@ -748,45 +748,45 @@ VOID SWhoFilter(PSPAWNINFO pChar, PCHAR szLine)
     CHAR szTemp[MAX_STRING] = {0};
     GetArg(szArg,szLine,1);
     GetArg(szToggle,szLine,2);
-    if (!stricmp(szArg,"Lastname")) {
+    if (!_stricmp(szArg,"Lastname")) {
         SetDisplaySWhoFilter(&gFilterSWho.Lastname,"Lastname",szToggle);
-    } else if (!stricmp(szArg,"Class")) {
+    } else if (!_stricmp(szArg,"Class")) {
         SetDisplaySWhoFilter(&gFilterSWho.Class,"Class",szToggle);
-    } else if (!stricmp(szArg,"Race")) {
+    } else if (!_stricmp(szArg,"Race")) {
         SetDisplaySWhoFilter(&gFilterSWho.Race,"Race",szToggle);
-    } else if (!stricmp(szArg,"Body")) {
+    } else if (!_stricmp(szArg,"Body")) {
         SetDisplaySWhoFilter(&gFilterSWho.Body,"Body",szToggle);
-    } else if (!stricmp(szArg,"Level")) {
+    } else if (!_stricmp(szArg,"Level")) {
         SetDisplaySWhoFilter(&gFilterSWho.Level,"Level",szToggle);
-    } else if (!stricmp(szArg,"GM")) {
+    } else if (!_stricmp(szArg,"GM")) {
         SetDisplaySWhoFilter(&gFilterSWho.GM,"GM",szToggle);
-    } else if (!stricmp(szArg,"Guild")) {
+    } else if (!_stricmp(szArg,"Guild")) {
         SetDisplaySWhoFilter(&gFilterSWho.Guild,"Guild",szToggle);
-    } else if (!stricmp(szArg,"LD")) {
+    } else if (!_stricmp(szArg,"LD")) {
         SetDisplaySWhoFilter(&gFilterSWho.LD,"LD",szToggle);
-    } else if (!stricmp(szArg,"Sneak")) { 
+    } else if (!_stricmp(szArg,"Sneak")) { 
         SetDisplaySWhoFilter(&gFilterSWho.Sneak,"Sneak",szToggle);   
-    } else if (!stricmp(szArg,"LFG")) {
+    } else if (!_stricmp(szArg,"LFG")) {
         SetDisplaySWhoFilter(&gFilterSWho.LFG,"LFG",szToggle);
-    } else if (!stricmp(szArg,"NPCTag")) {
+    } else if (!_stricmp(szArg,"NPCTag")) {
         SetDisplaySWhoFilter(&gFilterSWho.NPCTag,"NPCTag",szToggle);
-    } else if (!stricmp(szArg,"SpawnID")) {
+    } else if (!_stricmp(szArg,"SpawnID")) {
         SetDisplaySWhoFilter(&gFilterSWho.SpawnID,"SpawnID",szToggle);
-    } else if (!stricmp(szArg,"Trader")) {
+    } else if (!_stricmp(szArg,"Trader")) {
         SetDisplaySWhoFilter(&gFilterSWho.Trader,"Trader",szToggle);
-    } else if (!stricmp(szArg,"AFK")) {
+    } else if (!_stricmp(szArg,"AFK")) {
         SetDisplaySWhoFilter(&gFilterSWho.AFK,"AFK",szToggle);
-    } else if (!stricmp(szArg,"Anon")) {
+    } else if (!_stricmp(szArg,"Anon")) {
         SetDisplaySWhoFilter(&gFilterSWho.Anon,"Anon",szToggle);
-    } else if (!stricmp(szArg,"Distance")) {
+    } else if (!_stricmp(szArg,"Distance")) {
         SetDisplaySWhoFilter(&gFilterSWho.Distance,"Distance",szToggle);
-    } else if (!stricmp(szArg,"Light")) {
+    } else if (!_stricmp(szArg,"Light")) {
         SetDisplaySWhoFilter(&gFilterSWho.Light,"Light",szToggle);
-    } else if (!stricmp(szArg,"Holding")) {
+    } else if (!_stricmp(szArg,"Holding")) {
         SetDisplaySWhoFilter(&gFilterSWho.Holding,"Holding",szToggle);
-    } else if (!stricmp(szArg,"ConColor")) { 
+    } else if (!_stricmp(szArg,"ConColor")) { 
         SetDisplaySWhoFilter(&gFilterSWho.ConColor,"ConColor",szToggle); 
-    } else if (!stricmp(szArg,"invisible")) {
+    } else if (!_stricmp(szArg,"invisible")) {
         SetDisplaySWhoFilter(&gFilterSWho.Invisible,"Invisible",szToggle);
     } else {
         SyntaxError("Usage: /whofilter <lastname|class|race|body|level|gm|guild|ld|sneak|lfg|npctag|spawnid|trader|afk|anon|distance|light|holding|concolor|invisible> [on|off]");
@@ -855,7 +855,7 @@ VOID Filter(PSPAWNINFO pChar, PCHAR szLine)
             cmdFilter(pChar,szArg);
             return;
     }
-    if (!stricmp("skills",szArg)) {
+    if (!_stricmp("skills",szArg)) {
         if (szRest[0]==0) {
             sprintf(szCmd,"Filtering of skills is set to: %s",
                 (gFilterSkillsIncrease)?"None":(gFilterSkillsAll)?"Increase":"All");
@@ -863,7 +863,7 @@ VOID Filter(PSPAWNINFO pChar, PCHAR szLine)
             return;
         }
         for (Command=0;szFilterSkills[Command];Command++) {
-            if (!stricmp(szRest,szFilterSkills[Command])) {
+            if (!_stricmp(szRest,szFilterSkills[Command])) {
                 gFilterSkillsAll = (0!=Command);
                 gFilterSkillsIncrease = (2==Command);
                 sprintf(szCmd,"Filtering of skills changed to: %s",
@@ -875,14 +875,14 @@ VOID Filter(PSPAWNINFO pChar, PCHAR szLine)
         }
         SyntaxError("Usage: /filter skills [all|increase|none]");
 
-    } else if (!stricmp("macros",szArg)) {
+    } else if (!_stricmp("macros",szArg)) {
         if (szRest[0]==0) {
             sprintf(szCmd,"Filtering of macros is set to: %s",szFilterMacro[gFilterMacro]);
             WriteChatColor(szCmd,USERCOLOR_DEFAULT);
             return;
         }
         for (Command=0;szFilterMacro[Command];Command++) {
-            if (!stricmp(szRest,szFilterMacro[Command])) {
+            if (!_stricmp(szRest,szFilterMacro[Command])) {
                 gFilterMacro = Command;
                 sprintf(szCmd,"Filtering of macros changed to: %s",szFilterMacro[gFilterMacro]);
                 WriteChatColor(szCmd,USERCOLOR_DEFAULT);
@@ -891,14 +891,14 @@ VOID Filter(PSPAWNINFO pChar, PCHAR szLine)
             }
         }
         SyntaxError("Usage: /filter macros [all|enhanced|none|macroended]");
-    } else if (!stricmp("mq",szArg)) {
+    } else if (!_stricmp("mq",szArg)) {
         if (szRest[0]==0) {
             sprintf(szCmd,"Filtering of MQ is set to: %s",szUseChat[gFilterMQ]);
             WriteChatColor(szCmd,USERCOLOR_DEFAULT);
             return;
         }
         for (Command=0;szUseChat[Command];Command++) {
-            if (!stricmp(szRest,szUseChat[Command])) {
+            if (!_stricmp(szRest,szUseChat[Command])) {
                 gFilterMQ = Command;
                 sprintf(szCmd,"Filtering of MQ changed to: %s",szUseChat[gFilterMQ]);
                 WriteChatColor(szCmd,USERCOLOR_DEFAULT);
@@ -908,14 +908,14 @@ VOID Filter(PSPAWNINFO pChar, PCHAR szLine)
             }
         }
         SyntaxError("Usage: /filter mq [on|off]");
-    } else if (!stricmp("mq2data",szArg)) {
+    } else if (!_stricmp("mq2data",szArg)) {
         if (szRest[0]==0) {
             sprintf(szCmd,"Filtering of MQ2Data Errors is set to: %s",szUseChat[gFilterMQ2DataErrors]);
             WriteChatColor(szCmd,USERCOLOR_DEFAULT);
             return;
         }
         for (Command=0;szUseChat[Command];Command++) {
-            if (!stricmp(szRest,szUseChat[Command])) {
+            if (!_stricmp(szRest,szUseChat[Command])) {
                 gFilterMQ2DataErrors = Command;
                 sprintf(szCmd,"Filtering of MQ changed to: %s",szUseChat[gFilterMQ2DataErrors]);
                 WriteChatColor(szCmd,USERCOLOR_DEFAULT);
@@ -927,14 +927,14 @@ VOID Filter(PSPAWNINFO pChar, PCHAR szLine)
         SyntaxError("Usage: /filter mq2data [on|off]");
 
 
-    } else if (!stricmp("target",szArg)) {
+    } else if (!_stricmp("target",szArg)) {
         if (szRest[0]==0) {
             sprintf(szCmd,"Filtering of target lost messages is set to: %s",szFilterTarget[gFilterTarget]);
             WriteChatColor(szCmd,USERCOLOR_DEFAULT);
             return;
         }
         for (Command=0;szFilterTarget[Command];Command++) {
-            if (!stricmp(szRest,szFilterTarget[Command])) {
+            if (!_stricmp(szRest,szFilterTarget[Command])) {
                 gFilterTarget = Command;
                 sprintf(szCmd,"Filtering of target lost messages changed to: %s",szFilterTarget[gFilterTarget]);
                 WriteChatColor(szCmd,USERCOLOR_DEFAULT);
@@ -944,14 +944,14 @@ VOID Filter(PSPAWNINFO pChar, PCHAR szLine)
         }
         SyntaxError("Usage: /filter target [on|off]");
 
-    } else if (!stricmp("debug",szArg)) {
+    } else if (!_stricmp("debug",szArg)) {
         if (szRest[0]==0) {
             sprintf(szCmd,"Filtering of debug messages is set to: %s",szFilterTarget[gFilterDebug]);
             WriteChatColor(szCmd,USERCOLOR_DEFAULT);
             return;
         }
         for (Command=0;szFilterTarget[Command];Command++) {
-            if (!stricmp(szRest,szFilterTarget[Command])) {
+            if (!_stricmp(szRest,szFilterTarget[Command])) {
                 gFilterDebug = Command;
                 sprintf(szCmd,"Filtering of debug messages changed to: %s",szFilterTarget[gFilterDebug]);
                 WriteChatColor(szCmd,USERCOLOR_DEFAULT);
@@ -961,14 +961,14 @@ VOID Filter(PSPAWNINFO pChar, PCHAR szLine)
         }
         SyntaxError("Usage: /filter debug [on|off]");
 
-    } else if (!stricmp("money",szArg)) {
+    } else if (!_stricmp("money",szArg)) {
         if (szRest[0]==0) {
             sprintf(szCmd,"Filtering of money messages is set to: %s",szFilterTarget[gFilterMoney]);
             WriteChatColor(szCmd,USERCOLOR_DEFAULT);
             return;
         }
         for (Command=0;szFilterTarget[Command];Command++) {
-            if (!stricmp(szRest,szFilterTarget[Command])) {
+            if (!_stricmp(szRest,szFilterTarget[Command])) {
                 gFilterMoney = Command;
                 sprintf(szCmd,"Filtering of money messages changed to: %s",szFilterTarget[gFilterMoney]);
                 WriteChatColor(szCmd,USERCOLOR_DEFAULT);
@@ -977,14 +977,14 @@ VOID Filter(PSPAWNINFO pChar, PCHAR szLine)
             }
         }
         SyntaxError("Usage: /filter money [on|off]");
-    } else if (!stricmp("encumber",szArg)) {
+    } else if (!_stricmp("encumber",szArg)) {
         if (szRest[0]==0) {
             sprintf(szCmd,"Filtering of encumber messages is set to: %s",szFilterTarget[gFilterEncumber]);
             WriteChatColor(szCmd,USERCOLOR_DEFAULT);
             return;
         }
         for (Command=0;szFilterTarget[Command];Command++) {
-            if (!stricmp(szRest,szFilterTarget[Command])) {
+            if (!_stricmp(szRest,szFilterTarget[Command])) {
                 gFilterEncumber = Command;
                 sprintf(szCmd,"Filtering of encumber messages changed to: %s",szFilterTarget[gFilterEncumber]);
                 WriteChatColor(szCmd,USERCOLOR_DEFAULT);
@@ -993,14 +993,14 @@ VOID Filter(PSPAWNINFO pChar, PCHAR szLine)
             }
         }
         SyntaxError("Usage: /filter encumber [on|off]");
-    } else if (!stricmp("food",szArg)) {
+    } else if (!_stricmp("food",szArg)) {
         if (szRest[0]==0) {
             sprintf(szCmd,"Filtering of food messages is set to: %s",szFilterTarget[gFilterFood]);
             WriteChatColor(szCmd,USERCOLOR_DEFAULT);
             return;
         }
         for (Command=0;szFilterTarget[Command];Command++) {
-            if (!stricmp(szRest,szFilterTarget[Command])) {
+            if (!_stricmp(szRest,szFilterTarget[Command])) {
                 gFilterFood = Command;
                 sprintf(szCmd,"Filtering of food messages changed to: %s",szFilterTarget[gFilterFood]);
                 WriteChatColor(szCmd,USERCOLOR_DEFAULT);
@@ -1009,7 +1009,7 @@ VOID Filter(PSPAWNINFO pChar, PCHAR szLine)
             }
         }
         SyntaxError("Usage: /filter food [on|off]");
-    } else if (!stricmp("name",szArg)) {
+    } else if (!_stricmp("name",szArg)) {
         if (szRest[0]==0) {
             WriteChatColor("Names currently filtered:", USERCOLOR_DEFAULT);
             WriteChatColor("---------------------------", USERCOLOR_DEFAULT);
@@ -1024,9 +1024,9 @@ VOID Filter(PSPAWNINFO pChar, PCHAR szLine)
         } else {
             GetArg(szArg,szRest,1);
             szRest=GetNextArg(szRest);
-            if (!stricmp(szArg,"on") || !stricmp(szArg,"off")) {
+            if (!_stricmp(szArg,"on") || !_stricmp(szArg,"off")) {
                 for (Command=0;szFilterTarget[Command];Command++) {
-                    if (!stricmp(szArg,szFilterTarget[Command])) {
+                    if (!_stricmp(szArg,szFilterTarget[Command])) {
                         gFilterCustom = Command;
                         sprintf(szCmd,"Filtering of custom messages changed to: %s",szFilterTarget[gFilterCustom]);
                         WriteChatColor(szCmd,USERCOLOR_DEFAULT);
@@ -1034,11 +1034,11 @@ VOID Filter(PSPAWNINFO pChar, PCHAR szLine)
                         return;
                     }
                 }
-            } else if (!stricmp(szArg,"remove")) {
+            } else if (!_stricmp(szArg,"remove")) {
                 if (szRest[0]==0) {
                     WriteChatColor("Remove what?",USERCOLOR_DEFAULT);
                 }
-                if (!stricmp(szRest,"all")) {
+                if (!_stricmp(szRest,"all")) {
 
                     PFILTER pFilter = gpFilters;
                     PFILTER pLastFilter = NULL;
@@ -1065,7 +1065,7 @@ VOID Filter(PSPAWNINFO pChar, PCHAR szLine)
                     PFILTER pFilter = gpFilters;
                     PFILTER pLastFilter = NULL;
                     while (pFilter) {
-                        if ((pFilter->pEnabled == &gFilterCustom) && (!stricmp(pFilter->FilterText,szRest))) {
+                        if ((pFilter->pEnabled == &gFilterCustom) && (!_stricmp(pFilter->FilterText,szRest))) {
                             if (!pLastFilter) {
                                 gpFilters = pFilter->pNext;
                             } else {
@@ -1082,14 +1082,14 @@ VOID Filter(PSPAWNINFO pChar, PCHAR szLine)
                         }
                     }
                 }
-            } else if (!stricmp(szArg,"add")) {
+            } else if (!_stricmp(szArg,"add")) {
                 if (szRest[0]==0) {
                     WriteChatColor("Add what?",USERCOLOR_DEFAULT);
                     return;
                 }
                 PFILTER pFilter = gpFilters;
                 while (pFilter) {
-                    if ((pFilter->pEnabled == &gFilterCustom) && (!stricmp(pFilter->FilterText,szRest))) {
+                    if ((pFilter->pEnabled == &gFilterCustom) && (!_stricmp(pFilter->FilterText,szRest))) {
                         sprintf(szCmd,"Name '%s' is already being filtered.",szRest);
                         WriteChatColor(szCmd,USERCOLOR_DEFAULT);
                         return;
@@ -1107,7 +1107,7 @@ VOID Filter(PSPAWNINFO pChar, PCHAR szLine)
                 return;
             }
         }
-    } else if (!stricmp("zrange",szArg)) {
+    } else if (!_stricmp("zrange",szArg)) {
         if (szRest[0]==0) {
             if (gZFilter>=10000.0f) {
                 WriteChatColor("Z range is not currently set.", USERCOLOR_DEFAULT);
@@ -1562,7 +1562,7 @@ VOID SuperWho(PSPAWNINFO pChar, PCHAR szLine)
     SearchSpawn.SpawnType = PC;
 
 
-    if ((!stricmp(szLine,"all")) ||
+    if ((!_stricmp(szLine,"all")) ||
         (!strnicmp(szLine,"all ",4)) ||
         (!strnicmp(szLine+strlen(szLine)-4," all",4)) ||
         (strstr(szLine," all ")))
@@ -1683,7 +1683,7 @@ VOID MacroLog(PSPAWNINFO pChar, PCHAR szLine)
             }
         }
     }
-    if (!stricmp(szLine,"clear")) {
+    if (!_stricmp(szLine,"clear")) {
         fOut = fopen(Filename,"wt");
         if (!fOut) {
             MacroError("Couldn't open log file: %s",Filename);
@@ -1759,7 +1759,7 @@ VOID Face(PSPAWNINFO pChar, PCHAR szLine)
             Away = TRUE;
         } else if (!strcmp(szArg,"nolook")) {
             Look = FALSE;
-        } else if (!stricmp(szArg, "loc")) {
+        } else if (!_stricmp(szArg, "loc")) {
             pSpawnClosest = &LocSpawn;
             strcpy(LocSpawn.Name,"location");
             if ((szFilter[0]==0) || (!strstr(szFilter,","))) {
@@ -1774,19 +1774,19 @@ VOID Face(PSPAWNINFO pChar, PCHAR szLine)
             }
             szFilter++;
             pSpawnClosest->X = (FLOAT)atof(szFilter);
-        } else if (!stricmp(szArg, "item")) {
+        } else if (!_stricmp(szArg, "item")) {
             if (EnviroTarget.Name[0]==0) {
                 MacroError("Face: item specified but no item targetted.");
                 return;
             }
             pSpawnClosest = &EnviroTarget;
-        } else if (!stricmp(szArg, "door")) {
+        } else if (!_stricmp(szArg, "door")) {
             if (DoorEnviroTarget.Name[0]==0) {
                 MacroError("Face: door specified but no door targetted.");
                 return;
             }
             pSpawnClosest = &DoorEnviroTarget;
-        } else if (!stricmp(szArg, "heading")) {
+        } else if (!_stricmp(szArg, "heading")) {
             if (szFilter[0]==0) {
                 MacroError("Face: heading specified but angle not found.");
             } else {
@@ -1971,7 +1971,7 @@ VOID DoAbility(PSPAWNINFO pChar, PCHAR szLine)
     GetArg(szBuffer,szLine,1); 
 
     // display available abilities list
-    if(!stricmp(szBuffer,"list")) {
+    if(!_stricmp(szBuffer,"list")) {
         WriteChatColor("Abilities & Combat Skills:",USERCOLOR_DEFAULT);
 
         // display skills that have activated state
@@ -2022,7 +2022,7 @@ VOID DoAbility(PSPAWNINFO pChar, PCHAR szLine)
         if((Index < NUM_SKILLS && (pSkillMgr->pSkill[Index])->Activated) ||
             (Index >= NUM_SKILLS && GetCharInfo2()->InnateSkill[Index-100]!=0xFF))
         {
-            if(!stricmp(szBuffer,szSkills[Index]))
+            if(!_stricmp(szBuffer,szSkills[Index]))
             {
                 if(!((CharacterZoneClient*)pCharData1)->HasSkill(Index))
                 {
@@ -2041,7 +2041,7 @@ VOID DoAbility(PSPAWNINFO pChar, PCHAR szLine)
 		if(pCombatSkillsSelectWnd->ShouldDisplayThisSkill(Index)) {
             if(PSPELL pCA=GetSpellByID(GetCharInfo2()->CombatAbilities[Index]))
             {
-                if(!stricmp(pCA->Name,szBuffer))
+                if(!_stricmp(pCA->Name,szBuffer))
                 {
                     pCharData->DoCombatAbility(pCA->ID);
                     return;
@@ -2074,7 +2074,7 @@ VOID LoadSpells(PSPAWNINFO pChar, PCHAR szLine)
     GetArg(szArg1,szLine,1); 
     GetArg(szArg2,szLine,2); 
 
-    if ((!stricmp(szArg1,"list")) && (szArg2[0]==0)) { 
+    if ((!_stricmp(szArg1,"list")) && (szArg2[0]==0)) { 
         WriteChatColor("Spell favorites list:",USERCOLOR_DEFAULT); 
         WriteChatColor("--------------------------",USERCOLOR_DEFAULT); 
         for (Index=0;Index<NUM_SPELL_SETS;Index++) { 
@@ -2086,7 +2086,7 @@ VOID LoadSpells(PSPAWNINFO pChar, PCHAR szLine)
         return; 
     } 
 
-    if (!stricmp(szArg1,"list")) { 
+    if (!_stricmp(szArg1,"list")) { 
 
         DoIndex = IsNumber(szArg2)?atoi(szArg2):FindSpellListByName(szArg2); 
         if (DoIndex < 0 || DoIndex > NUM_SPELL_SETS-1) { 
@@ -2135,7 +2135,7 @@ VOID Cast(PSPAWNINFO pChar, PCHAR szLine)
     CHAR szBuffer[MAX_STRING] = {0};
     CHAR szArg1[MAX_STRING] = {0};
     CHAR szArg2[MAX_STRING] = {0};
-    if (!stricmp(szLine,"list")) {
+    if (!_stricmp(szLine,"list")) {
         WriteChatColor("Spells:",USERCOLOR_DEFAULT);
         for (Index=0;Index<NUM_SPELL_GEMS;Index++) {
             if (GetCharInfo2()->MemorizedSpells[Index]==0xFFFFFFFF) {
@@ -2152,7 +2152,7 @@ VOID Cast(PSPAWNINFO pChar, PCHAR szLine)
     GetArg(szArg1,szLine,1);
     GetArg(szArg2,szLine,2);
     DebugSpew("Cast: szArg1 = %s szArg2 = %s",szArg1,szArg2);
-    if (!stricmp(szArg1,"item"))
+    if (!_stricmp(szArg1,"item"))
     {
 		if ( HasExpansion(EXPANSION_VoA) )
 		{
@@ -2191,7 +2191,7 @@ VOID Cast(PSPAWNINFO pChar, PCHAR szLine)
     for (Index=0;Index<NUM_SPELL_GEMS;Index++) {
         if (GetCharInfo2()->MemorizedSpells[Index]!=0xFFFFFFFF) {
             PCHAR SpellName = GetSpellNameByID(GetCharInfo2()->MemorizedSpells[Index]);
-            if (!stricmp(szBuffer,SpellName)) {
+            if (!_stricmp(szBuffer,SpellName)) {
                 //DebugSpew("SpellName = %s",SpellName);
                 cmdCast(pChar,itoa(Index+1,szBuffer,10));
                 //DebugSpew("pChar = %x SpellName = %s %s",pChar,SpellName,itoa(Index+1,szBuffer,10));
@@ -2359,14 +2359,14 @@ VOID MacroPause(PSPAWNINFO pChar, PCHAR szLine)
     bRunNextCommand = TRUE;
 
     GetArg(szArg,szLine,1); 
-    if (!stricmp(szArg,"chat")) { 
+    if (!_stricmp(szArg,"chat")) { 
         GetArg(szArg1,szLine,2); 
         if (szLine[0]==0) { 
 
             gMQPauseOnChat = !gMQPauseOnChat;
         } else { 
             for (Command=0;szPause[Command];Command++) { 
-                if (!stricmp(szArg1,szPause[Command])) { 
+                if (!_stricmp(szArg1,szPause[Command])) { 
                     gMQPauseOnChat = Command; 
                 } 
             } 
@@ -2384,7 +2384,7 @@ VOID MacroPause(PSPAWNINFO pChar, PCHAR szLine)
     }
 
     for (Command=0;szPause[Command];Command++) { 
-        if (!stricmp(szArg,szPause[Command])) { 
+        if (!_stricmp(szArg,szPause[Command])) { 
             Pause = Command; 
         } 
     } 
@@ -2434,7 +2434,7 @@ VOID Alias(PSPAWNINFO pChar, PCHAR szLine)
     PCHAR szCommand = NULL;
     GetArg(szName,szLine,1);
     szCommand = GetNextArg(szLine);
-    if (!stricmp(szName,"list")) {
+    if (!_stricmp(szName,"list")) {
         PALIAS pLoop = pAliases;
         DWORD Count=0;
         WriteChatColor("Aliases",USERCOLOR_WHO);
@@ -2458,7 +2458,7 @@ VOID Alias(PSPAWNINFO pChar, PCHAR szLine)
         return;
     }
 
-    if (!stricmp(szCommand,"delete")) {
+    if (!_stricmp(szCommand,"delete")) {
         if (RemoveAlias(szName))
         {
             sprintf(szBuffer,"Alias '%s' deleted.",szName);
@@ -2497,7 +2497,7 @@ VOID Substitute(PSPAWNINFO pChar, PCHAR szLine)
     PCHAR szCommand = NULL;
     GetArg(szName,szLine,1);
     szCommand = GetNextArg(szLine);
-    if (!stricmp(szName,"list")) {
+    if (!_stricmp(szName,"list")) {
         PSUB pLoop = pSubs;
         DWORD Count=0;
         WriteChatColor("Substitutions",USERCOLOR_WHO);
@@ -2521,7 +2521,7 @@ VOID Substitute(PSPAWNINFO pChar, PCHAR szLine)
         return;
     }
 
-    if (!stricmp(szCommand,"delete")) {
+    if (!_stricmp(szCommand,"delete")) {
         if (RemoveSubstitute(szName))
         {
             sprintf(szBuffer,"Substitution for '%s' deleted.",szName);
@@ -2672,8 +2672,8 @@ VOID WindowState(PSPAWNINFO pChar, PCHAR szLine)
         DWORD ShowWindow = (DWORD)pWnd->pvfTable->ShowWindow;
         CHAR szBuffer[MAX_STRING] = {0};
         BYTE State=99;
-        if (!stricmp(Arg2,"open")) State=1;
-        if (!stricmp(Arg2,"close")) State=0;
+        if (!_stricmp(Arg2,"open")) State=1;
+        if (!_stricmp(Arg2,"close")) State=0;
         if (pWnd->dShow==State) State=99;
         switch (State) {
                 case 0:
@@ -2727,7 +2727,7 @@ VOID KeepKeys(PSPAWNINFO pChar, PCHAR szLine)
         return;
     }
     for (Command=0;szKeepKeys[Command];Command++) {
-        if (!stricmp(szArg,szKeepKeys[Command])) {
+        if (!_stricmp(szArg,szKeepKeys[Command])) {
             gKeepKeys = Command;
             sprintf(szCmd,"Auto-Keep Keys changed to: %s",szKeepKeys[gKeepKeys]);
             WriteChatColor(szCmd,USERCOLOR_DEFAULT);
@@ -2765,7 +2765,7 @@ VOID PluginCommand(PSPAWNINFO pChar, PCHAR szLine)
     PCHAR szCommand = NULL; 
     GetArg(szName,szLine,1); 
     szCommand = GetNextArg(szLine); 
-    if (!stricmp(szName,"list")) { 
+    if (!_stricmp(szName,"list")) { 
         PMQPLUGIN pLoop = pPlugins; 
         DWORD Count=0; 
         WriteChatColor("Active Plugins",USERCOLOR_WHO); 
@@ -2888,7 +2888,7 @@ VOID DoMappable(PSPAWNINFO pChar, PCHAR szLine)
         KeyCombo Temp;
         if (ParseKeyCombo(szArg1,Temp))
         {
-            if (!stricmp(szArg2,"chat"))
+            if (!_stricmp(szArg2,"chat"))
             {
                 if (Temp.Data[3] != 0x92) {
                     pWndMgr->HandleKeyboardMsg(Temp.Data[3],1);
@@ -3154,7 +3154,7 @@ VOID DoSocial(PSPAWNINFO pChar, PCHAR szLine)
 
     GetArg(szBuffer,szLine,1);
 
-    if(  !stricmp(szBuffer,"list")  ) {
+    if(  !_stricmp(szBuffer,"list")  ) {
         WriteChatColor("Socials: (page,number) name",USERCOLOR_DEFAULT);
         for (SocialIndex=0; SocialIndex < 120; SocialIndex++) {
             SocialPage = SocialIndex/12;
@@ -3173,7 +3173,7 @@ VOID DoSocial(PSPAWNINFO pChar, PCHAR szLine)
         return;
     } else if(  strlen(szBuffer)  ) { /* assume we have a social name to match */
         for(  unsigned long N = 0; N < 120; N++  ) {
-            if(  !stricmp(szBuffer,pSocialList[N].Name)  ) 
+            if(  !_stricmp(szBuffer,pSocialList[N].Name)  ) 
             {
                 SocialIndex=N;
                 break;
@@ -3270,21 +3270,21 @@ VOID HudCmd(PSPAWNINFO pChar, PCHAR szLine)
         return;
     }
     else
-        if (!stricmp(szLine,"normal"))
+        if (!_stricmp(szLine,"normal"))
         {
             WritePrivateProfileString("MacroQuest","HUDMode","Normal",gszINIFilename);
             gbAlwaysDrawMQHUD=false;
             gbHUDUnderUI=false;
         }
         else
-            if (!stricmp(szLine,"underui"))
+            if (!_stricmp(szLine,"underui"))
             {
                 WritePrivateProfileString("MacroQuest","HUDMode","UnderUI",gszINIFilename);
                 gbHUDUnderUI=true;
                 gbAlwaysDrawMQHUD=false;
             }
             else
-                if (!stricmp(szLine,"always"))
+                if (!_stricmp(szLine,"always"))
                 {
                     WritePrivateProfileString("MacroQuest","HUDMode","Always",gszINIFilename);
                     gbHUDUnderUI=true;
@@ -3301,7 +3301,7 @@ VOID CaptionCmd(PSPAWNINFO pChar, PCHAR szLine)
         SyntaxError("Usage: /caption <list|type <value>|update #|MQCaptions <on|off>>");
         return;
     }
-    if (!stricmp(Arg1,"list"))
+    if (!_stricmp(Arg1,"list"))
     {
         WriteChatf("\ayPlayer1\ax: \ag%s\ax",gszSpawnPlayerName[1]);
         WriteChatf("\ayPlayer2\ax: \ag%s\ax",gszSpawnPlayerName[2]);
@@ -3316,34 +3316,34 @@ VOID CaptionCmd(PSPAWNINFO pChar, PCHAR szLine)
         return;
     }
     PCHAR pCaption=0;
-    if (!stricmp(Arg1,"Player1"))
+    if (!_stricmp(Arg1,"Player1"))
     {
         pCaption=gszSpawnPlayerName[1];
-    } else if (!stricmp(Arg1,"Player2"))
+    } else if (!_stricmp(Arg1,"Player2"))
     {
         pCaption=gszSpawnPlayerName[2];
-    } else if (!stricmp(Arg1,"Player3"))
+    } else if (!_stricmp(Arg1,"Player3"))
     {
         pCaption=gszSpawnPlayerName[3];
-    } else if (!stricmp(Arg1,"Player4"))
+    } else if (!_stricmp(Arg1,"Player4"))
     {
         pCaption=gszSpawnPlayerName[4];
-    } else if (!stricmp(Arg1,"Player5"))
+    } else if (!_stricmp(Arg1,"Player5"))
     {
         pCaption=gszSpawnPlayerName[5];
-    } else if (!stricmp(Arg1,"Player6"))
+    } else if (!_stricmp(Arg1,"Player6"))
     {
         pCaption=gszSpawnPlayerName[6]; 
-    } else if (!stricmp(Arg1,"Pet"))
+    } else if (!_stricmp(Arg1,"Pet"))
     {
         pCaption=gszSpawnPetName;
-    } else if (!stricmp(Arg1,"NPC"))
+    } else if (!_stricmp(Arg1,"NPC"))
     {
         pCaption=gszSpawnNPCName;
-    } else if (!stricmp(Arg1,"Corpse"))
+    } else if (!_stricmp(Arg1,"Corpse"))
     {
         pCaption=gszSpawnCorpseName;
-    } else if (!stricmp(Arg1,"Update"))
+    } else if (!_stricmp(Arg1,"Update"))
     {
         gMaxSpawnCaptions=atoi(GetNextArg(szLine));
         if (gMaxSpawnCaptions<8)
@@ -3353,9 +3353,9 @@ VOID CaptionCmd(PSPAWNINFO pChar, PCHAR szLine)
         WritePrivateProfileString("Captions","Update",itoa(gMaxSpawnCaptions,Arg1,10),gszINIFilename);
         WriteChatf("\ay%d\ax nearest spawns will have their caption updated each pass.",gMaxSpawnCaptions);
         return;
-    } else if (!stricmp(Arg1,"MQCaptions"))
+    } else if (!_stricmp(Arg1,"MQCaptions"))
     {
-        gMQCaptions=(!stricmp(GetNextArg(szLine),"On"));
+        gMQCaptions=(!_stricmp(GetNextArg(szLine),"On"));
         WritePrivateProfileString("Captions","MQCaptions",(gMQCaptions?"1":"0"),gszINIFilename);
         WriteChatf("MQCaptions are now \ay%s\ax.",(gMQCaptions?"On":"Off"));
         return;
@@ -3400,26 +3400,26 @@ VOID AltAbility(PSPAWNINFO pChar, PCHAR szLine)
         return;
     }
 
-    if (!stricmp(szCommand,"list")) 
+    if (!_stricmp(szCommand,"list")) 
     {
-        if (!stricmp(szName,"all"))
+        if (!_stricmp(szName,"all"))
         {
             WriteChatColor("Alternative Abilities (Complete List)", CONCOLOR_YELLOW );
             WriteChatColor("-------------------------------------", USERCOLOR_WHO);
             for (nAbility=0 ; nAbility<AA_CHAR_MAX_REAL ; nAbility++) {
-                if ( PALTABILITY pAbility=pAltAdvManager->GetAltAbility(pPCData->GetAltAbilityIndex(nAbility))) {
+                if ( PALTABILITY pAbility=pAltAdvManager->GetAAById(pPCData->GetAlternateAbilityId(nAbility))) {
                     sprintf(szBuffer,"[ %d: %s ]", pAbility->ID, 
                         pCDBStr->GetString(pAbility->nName, 1, NULL));
                     WriteChatColor(szBuffer,USERCOLOR_WHO);
                 } 
             }
         }
-        else if (!stricmp(szName,"timers"))
+        else if (!_stricmp(szName,"timers"))
         {
             WriteChatColor("Alternative Abilities With Timers", CONCOLOR_YELLOW );
             WriteChatColor("---------------------------------", USERCOLOR_WHO);
             for (nAbility=0 ; nAbility<AA_CHAR_MAX_REAL ; nAbility++) {
-                if ( PALTABILITY pAbility=pAltAdvManager->GetAltAbility(pPCData->GetAltAbilityIndex(nAbility)) ) {
+                if ( PALTABILITY pAbility=pAltAdvManager->GetAAById(pPCData->GetAlternateAbilityId(nAbility)) ) {
                     if ((pAltAdvManager->GetCalculatedTimer(pPCData,pAbility)) > 0)
                     {
                         if (pAltAdvManager->IsAbilityReady(pPCData,pAbility,0))
@@ -3447,14 +3447,14 @@ VOID AltAbility(PSPAWNINFO pChar, PCHAR szLine)
             return;
         }
     }
-    else if (!stricmp(szCommand,"info")) 
+    else if (!_stricmp(szCommand,"info")) 
     {
         for (unsigned long nAbility=0 ; nAbility<NUM_ALT_ABILITIES ; nAbility++)
         {
-            if ( PALTABILITY pAbility=pAltAdvManager->GetAltAbility(nAbility)) 
+            if ( PALTABILITY pAbility=pAltAdvManager->GetAAById(nAbility)) 
             {
                 char *pName;
-                if (!stricmp(pName = pCDBStr->GetString(pAbility->nName, 1, NULL), szName))
+                if (!_stricmp(pName = pCDBStr->GetString(pAbility->nName, 1, NULL), szName))
                 {
 
                     WriteChatColor("Alternative Advancement Ability Information", CONCOLOR_YELLOW);
@@ -3519,13 +3519,13 @@ VOID AltAbility(PSPAWNINFO pChar, PCHAR szLine)
             } // if pability != null
         } //for loop
     }
-    else if (!stricmp(szCommand,"act")) 
+    else if (!_stricmp(szCommand,"act")) 
     {
         // only search through the ones we have....
         for (unsigned long nAbility=0 ; nAbility<AA_CHAR_MAX_REAL ; nAbility++) {
-            if ( PALTABILITY pAbility=pAltAdvManager->GetAltAbility(pPCData->GetAltAbilityIndex(nAbility)) ) {
+            if ( PALTABILITY pAbility=pAltAdvManager->GetAAById(pPCData->GetAlternateAbilityId(nAbility)) ) {
                 if (PCHAR pName=pCDBStr->GetString(pAbility->nName, 1, NULL)) {
-                    if (!stricmp(szName,pName)) {
+                    if (!_stricmp(szName,pName)) {
                         sprintf(szBuffer,"/alt act %d", pAbility->ID);
                         DoCommand(pChar,szBuffer);
                         break;

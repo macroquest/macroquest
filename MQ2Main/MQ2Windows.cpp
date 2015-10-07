@@ -188,7 +188,7 @@ public:
         char Temp[256]={0};
         GetCXStr(C->Ptr,Temp,256);
         DebugSpew("XMLRead(%s)",Temp);
-        if (!stricmp("EQUI.xml",Temp))
+        if (!_stricmp("EQUI.xml",Temp))
         {
             if (GenerateMQUI())
             {
@@ -470,7 +470,7 @@ void AddXMLFile(const char *filename)
     PMQXMLFILE      pFile = pXMLFiles;
     PMQXMLFILE      pLast = 0;
     while (pFile) {
-        if (!stricmp(pFile->szFilename, filename))
+        if (!_stricmp(pFile->szFilename, filename))
             return;        // already there.
         pLast = pFile;
         pFile = pFile->pNext;
@@ -522,7 +522,7 @@ void RemoveXMLFile(const char *filename)
 {
     PMQXMLFILE      pFile = pXMLFiles;
     while (pFile) {
-        if (!stricmp(pFile->szFilename, filename)) {
+        if (!_stricmp(pFile->szFilename, filename)) {
             DebugSpew("Removing XML File %s", filename);
             if (pFile->pLast)
                 pFile->pLast->pNext = pFile->pNext;
@@ -566,7 +566,7 @@ CXWnd *FindMQ2Window(PCHAR WindowName)
                 pPack=GetCharInfo2()->pInventoryArray->Inventory.Pack[nPack-1];
             }
         }
-        else if (!stricmp(WindowName,"enviro"))
+        else if (!_stricmp(WindowName,"enviro"))
         {
             pPack=((PEQ_CONTAINERWND_MANAGER)pContainerMgr)->pWorldContents;
         }
@@ -615,7 +615,7 @@ bool SendWndClick2(CXWnd *pWnd, PCHAR ClickNotification)
         return false;
     for (unsigned long i = 0 ; i < 8 ; i++)
     {
-        if (!stricmp(szClickNotification[i],ClickNotification))
+        if (!_stricmp(szClickNotification[i],ClickNotification))
         {
             DebugTry(CXRect rect= pWnd->GetScreenRect());
             DebugTry(CXPoint pt=rect.CenterPoint());
@@ -670,9 +670,9 @@ class CXWnd *GetChildByIndex(class CXWnd *pWnd, PCHAR Name,int index)
 
     if (!pWnd) return pWnd;
     if (CXMLData *pXMLData=pWnd->GetXMLData()) {
-        if (GetCXStr(pXMLData->Name.Ptr,Buffer,MAX_STRING) && !stricmp(Buffer,Name)) {
+        if (GetCXStr(pXMLData->Name.Ptr,Buffer,MAX_STRING) && !_stricmp(Buffer,Name)) {
             WinCount++;
-        } else if (GetCXStr(pXMLData->ScreenID.Ptr,Buffer,MAX_STRING) && !stricmp(Buffer,Name)) {
+        } else if (GetCXStr(pXMLData->ScreenID.Ptr,Buffer,MAX_STRING) && !_stricmp(Buffer,Name)) {
             WinCount++;
         }
     }
@@ -734,7 +734,7 @@ bool SendWndClick(PCHAR WindowName, PCHAR ScreenID, PCHAR ClickNotification)
 
     for (unsigned long i = 0 ; i < 8 ; i++)
     {
-        if (!stricmp(szClickNotification[i],ClickNotification))
+        if (!_stricmp(szClickNotification[i],ClickNotification))
         {
             CXRect rect= pWnd->GetScreenRect();
             CXPoint pt=rect.CenterPoint();
@@ -1240,14 +1240,14 @@ int WndNotify(int argc, char *argv[])
     CHAR *szArg4=argv[4];
 #endif 
 
-    if (!stricmp(szArg3,"link")) {
+    if (!_stricmp(szArg3,"link")) {
         DebugSpewAlways("WndNotify: link found, Data = 1");
         Data = 1;
     }
 	if (IsNumber(szArg1)) {
 		//ok we have a number it means the user want us to click a window he has found the address for...
 		DWORD addr = atoi(szArg1);
-		if (!stricmp(szArg2, "listselect")) {
+		if (!_stricmp(szArg2, "listselect")) {
 			SendListSelect2((CXWnd*)addr, atoi(szArg3));
 			RETURN(0);
 		}
@@ -1256,17 +1256,17 @@ int WndNotify(int argc, char *argv[])
 	}
     if (Data==0 && SendWndClick(szArg1,szArg2,szArg3))
         RETURN(0);
-    if (!stricmp(szArg3,"listselect")) {
+    if (!_stricmp(szArg3,"listselect")) {
         SendListSelect(szArg1,szArg2,Data-1);
         RETURN(0);
     }
 
-	if (!stricmp(szArg3,"comboselect")) {
+	if (!_stricmp(szArg3,"comboselect")) {
         SendComboSelect(szArg1,szArg2,Data-1);
         RETURN(0);
     }
 
-    if (!stricmp(szArg3,"tabselect"))
+    if (!_stricmp(szArg3,"tabselect"))
     {
         SendTabSelect(szArg1,szArg2, Data-1);
         RETURN(0);
@@ -1274,7 +1274,7 @@ int WndNotify(int argc, char *argv[])
 
     for (unsigned long i = 0 ; i < sizeof(szWndNotification)/sizeof(szWndNotification[0]) ; i++)
     {
-        if (szWndNotification[i] && !stricmp(szWndNotification[i],szArg3))
+        if (szWndNotification[i] && !_stricmp(szWndNotification[i],szArg3))
         {
             if (i==XWM_LINK) {
                 if (!SendWndNotification(szArg1,szArg2,i,(void*)szArg4))
@@ -1362,7 +1362,7 @@ int ItemNotify(int argc, char *argv[])
     int invslot = -1;
     int type = -1;
 
-    if (!stricmp(szArg1,"in"))
+    if (!_stricmp(szArg1,"in"))
     { 
         if (!szArg4[0])
         {
@@ -1400,7 +1400,7 @@ int ItemNotify(int argc, char *argv[])
                 pPack=GetCharInfo2()->pInventoryArray->Inventory.Pack[nPack-1];
             }
         }
-        else if (!stricmp(szArg2,"enviro"))
+        else if (!_stricmp(szArg2,"enviro"))
         {
             pPack=((PEQ_CONTAINERWND_MANAGER)pContainerMgr)->pWorldContents;
         }

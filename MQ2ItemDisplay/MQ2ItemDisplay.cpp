@@ -695,14 +695,14 @@ void Comment(PSPAWNINFO pChar, PCHAR szLine)
         WriteChatColor("Use: /inote <add|del> <itemno> \"Comment\"",CONCOLOR_YELLOW); 
         return; 
     } 
-    if (strlen(Comment)==0 || !stricmp(Arg,"del")) 
+    if (strlen(Comment)==0 || !_stricmp(Arg,"del")) 
     { 
         sprintf(szTemp,"%07d",itemno); 
         WritePrivateProfileString("Notes",szTemp,"",INIFileName); 
         return; 
     } 
 
-    if (!stricmp(Arg,"add")) 
+    if (!_stricmp(Arg,"add")) 
     { 
         sprintf(szTemp,"%07d",itemno); 
         WritePrivateProfileString("Notes",szTemp,Comment,INIFileName); 

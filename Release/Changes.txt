@@ -1,3 +1,25 @@
+07 Oct 2015 by EqMule
+- Please don't use MQ2 for unattended gameplay (afk botting)
+- Added some stuff to the ALTABILITY struct, cred demonstar55
+- Renamed AARankRequired to CurrentRank in the ALTABILITY struct
+- Added .PointsSpent to the altbility TLO it returns points you spent on an AA
+- Added .Rank to the altbility TLO it returns current rank of an AA
+- Reminder: .MaxRank in the altbility TLO it returns max rank of an AA
+- I'm sorry (not really) but in my ongoing efforts to clean up the API
+  I had to rename a couple functions, so take notice and go over your plugins:
+  mq2cast and mq2melee calls these for example. See below:
+- Renamed GetAltAbility to GetAAById (cause thats what it is)
+- Renamed GetAltAbilityIndex to GetAlternateAbilityId (cause thats what it is)
+
+01 Oct 2015 by EqMule
+- Please don't use MQ2 for unattended gameplay (afk botting)
+- Fixed a bunch of POSIX stuff
+- Made sure Target.Buff and Target.BuffDuration now works on spells without having to specify Rank
+  example: /echo ${Target.BuffDuration[Pyromancy]} would FAIL prior to todays patch
+  now it wont.
+  example 2: /echo ${Target.Buff[Pyromancy]} would return NULL prior to todays patch
+  now it returns the correct name including its rank: so Pyromancy XV for example...
+
 30 Sep 2015 by EqMule (ALERTS AND MORE ALERTS AND STUFF)
 - THIS IS A MACROBREAKING PATCH! (so read these notes)
 - Please don't use MQ2 for unattended gameplay (afk botting)

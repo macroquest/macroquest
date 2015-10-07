@@ -596,7 +596,7 @@ VOID InitializeMQ2Spawns()
     {
         if (GetPrivateProfileString("Caption Colors",CaptionColors[N].szName,"",Temp,MAX_STRING,gszINIFilename))
         {
-            if (!stricmp(Temp,"on") || !stricmp(Temp,"1"))
+            if (!_stricmp(Temp,"on") || !_stricmp(Temp,"1"))
                 CaptionColors[N].Enabled=1;
             else
                 CaptionColors[N].Enabled=0;
@@ -718,7 +718,7 @@ VOID CaptionColorCmd(PSPAWNINFO pChar, PCHAR szLine)
     GetArg(Arg1,szLine,1);
     GetArg(Arg2,szLine,2);
 
-    if (!stricmp(Arg1,"list"))
+    if (!_stricmp(Arg1,"list"))
     {
         WriteChatColor("Caption Color Settings");
         WriteChatColor("----------------------");
@@ -736,13 +736,13 @@ VOID CaptionColorCmd(PSPAWNINFO pChar, PCHAR szLine)
         return;
     }
     for (DWORD N = 0 ; CaptionColors[N].szName[0] ; N++)
-        if (!stricmp(Arg1,CaptionColors[N].szName))
+        if (!_stricmp(Arg1,CaptionColors[N].szName))
         {
             if (Arg2[0])
             {
-                if (!stricmp(Arg2,"on"))
+                if (!_stricmp(Arg2,"on"))
                     CaptionColors[N].Enabled=1;
-                else if (!stricmp(Arg2,"off"))
+                else if (!_stricmp(Arg2,"off"))
                     CaptionColors[N].Enabled=0;
                 else if (CaptionColors[N].Enabled && !CaptionColors[N].ToggleOnly)
                 {

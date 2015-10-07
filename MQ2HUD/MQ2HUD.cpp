@@ -277,12 +277,12 @@ VOID UnLoadHUD(PSPAWNINFO pChar, PCHAR szLine)
 
 VOID BackgroundHUD(PSPAWNINFO pChar, PCHAR szLine)
 {
-    if (!stricmp(szLine,"off"))
+    if (!_stricmp(szLine,"off"))
     {
         WritePrivateProfileString(HUDSection,"UpdateInBackground","off",INIFileName);
         WriteChatColor("MQ2HUD::Background updates are OFF");
     }
-    else if (!stricmp(szLine,"on"))
+    else if (!_stricmp(szLine,"on"))
     {
         WritePrivateProfileString(HUDSection,"UpdateInBackground","on",INIFileName);
         WriteChatColor("MQ2HUD::Background updates are ON");
@@ -297,12 +297,12 @@ VOID BackgroundHUD(PSPAWNINFO pChar, PCHAR szLine)
 
 VOID ClassHUD(PSPAWNINFO pChar, PCHAR szLine)
 {
-    if (!stricmp(szLine,"off"))
+    if (!_stricmp(szLine,"off"))
     {
         WritePrivateProfileString(HUDSection,"ClassHUD","off",INIFileName);
         WriteChatColor("MQ2HUD::Auto-include HUD per class description is OFF");
     }
-    else if (!stricmp(szLine,"on"))
+    else if (!_stricmp(szLine,"on"))
     {
         WritePrivateProfileString(HUDSection,"ClassHUD","on",INIFileName);
         WriteChatColor("MQ2HUD::Auto-include HUD per class description is ON");
@@ -317,12 +317,12 @@ VOID ClassHUD(PSPAWNINFO pChar, PCHAR szLine)
 
 VOID ZoneHUD(PSPAWNINFO pChar, PCHAR szLine)
 {
-    if (!stricmp(szLine,"off"))
+    if (!_stricmp(szLine,"off"))
     {
         WritePrivateProfileString(HUDSection,"ZoneHUD","off",INIFileName);
         WriteChatColor("MQ2HUD::Auto-include HUD per zone name is OFF");
     }
-    else if (!stricmp(szLine,"on"))
+    else if (!_stricmp(szLine,"on"))
     {
         WritePrivateProfileString(HUDSection,"ZoneHUD","on",INIFileName);
         WriteChatColor("MQ2HUD::Auto-include HUD per zone name is ON");

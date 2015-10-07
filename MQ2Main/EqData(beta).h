@@ -799,7 +799,7 @@ typedef struct _INVENTORY {
 
 //these two will merge when i get a chance - ieatacid wrote this?
 #define AA_CHAR_MAX                     0xF5
-//EQ_PC__GetAltAbilityIndex_x
+//EQ_PC__GetAlternateAbilityId_x
 //size is at 7EE7F8 in eqgame dated jun 13 2014 - eqmule
 #define AA_CHAR_MAX_REAL                0x12C
 
@@ -1994,7 +1994,7 @@ typedef struct _ALTABILITY {
 /*0x18*/ DWORD MinLevel;
 /*0x1c*/ DWORD Cost;                     //Initial Cost or cost the last time you bought a level of it
 /*0x20*/ DWORD ID;                       // /alt activate id
-/*0x24*/ DWORD AARankRequired;
+/*0x24*/ DWORD CurrentRank;
 /*0x28*/ DWORD RequirementCount;			//how many requirements does it have its always 1 even if its none
 /*0x2c*/ DWORD *RequiresAbility;
 /*0x30*/ DWORD Unknown0x30[3];

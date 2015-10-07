@@ -61,11 +61,11 @@ class CXWnd *RecurseAndFindName(class CXWnd *pWnd, PCHAR Name)
     if (!pWnd) return pWnd;
 
     if (CXMLData *pXMLData=pWnd->GetXMLData()) {
-        if (GetCXStr(pXMLData->Name.Ptr,Buffer,MAX_STRING) && !stricmp(Buffer,Name)) {
+        if (GetCXStr(pXMLData->Name.Ptr,Buffer,MAX_STRING) && !_stricmp(Buffer,Name)) {
             return pWnd;
         }
         //DebugSpew("RecurseAndFindName looking for %s but found %s", Name, Buffer);
-        if (GetCXStr(pXMLData->ScreenID.Ptr,Buffer,MAX_STRING) && !stricmp(Buffer,Name)) {
+        if (GetCXStr(pXMLData->ScreenID.Ptr,Buffer,MAX_STRING) && !_stricmp(Buffer,Name)) {
             return pWnd;
         }
     }
@@ -3860,14 +3860,23 @@ FUNCTION_AT_ADDRESS(unsigned long *  engineInterface::ChangeDag(struct T3D_tagWO
 #ifdef CAdvancedLootWnd__DoAdvLootAction_x
 FUNCTION_AT_ADDRESS(DWORD CAdvancedLootWnd::DoAdvLootAction(DWORD, CXStr*, DWORD, DWORD), CAdvancedLootWnd__DoAdvLootAction);
 #endif
+#ifdef CAltAbilityData__GetMercCurrentRank_x
+FUNCTION_AT_ADDRESS(int CAltAbilityData::GetMercCurrentRank(int),CAltAbilityData__GetMercCurrentRank);
+#endif
+#ifdef CAltAbilityData__GetMercMaxRank_x
+FUNCTION_AT_ADDRESS(int CAltAbilityData::GetMercMaxRank(int),CAltAbilityData__GetMercMaxRank);
+#endif
+#ifdef CAltAbilityData__GetMaxRank_x
+FUNCTION_AT_ADDRESS(int CAltAbilityData::GetMaxRank(void),CAltAbilityData__GetMaxRank);
+#endif
 #ifdef EQ_AltAbility__EQ_AltAbility_x
 FUNCTION_AT_ADDRESS( EQ_AltAbility::EQ_AltAbility(int),EQ_AltAbility__EQ_AltAbility);
 #endif
 #ifdef AltAdvManager__AltAdvManager_x
 FUNCTION_AT_ADDRESS( AltAdvManager::AltAdvManager(void),AltAdvManager__AltAdvManager);
 #endif
-#ifdef AltAdvManager__GetAltAbility_x
-FUNCTION_AT_ADDRESS( struct _ALTABILITY *AltAdvManager::GetAltAbility(int,int), AltAdvManager__GetAltAbility);
+#ifdef AltAdvManager__GetAAById_x
+FUNCTION_AT_ADDRESS( struct _ALTABILITY *AltAdvManager::GetAAById(int,int), AltAdvManager__GetAAById);
 #endif
 #ifdef AltAdvManager__IsAbilityReady_x
 FUNCTION_AT_ADDRESS(bool  AltAdvManager::IsAbilityReady(class EQ_PC *,EQData::PALTABILITY,int *,int),AltAdvManager__IsAbilityReady);
@@ -4604,8 +4613,8 @@ FUNCTION_AT_ADDRESS(unsigned char  EQ_PC::AtSkillLimit(int),EQ_PC__AtSkillLimit)
 #ifdef EQ_PC__GetItemTimerValue_x
 FUNCTION_AT_ADDRESS(unsigned long  EQ_PC::GetItemTimerValue(class EQ_Item *),EQ_PC__GetItemTimerValue);
 #endif
-#ifdef EQ_PC__GetAltAbilityIndex_x
-FUNCTION_AT_ADDRESS(int  EQ_PC::GetAltAbilityIndex(int),EQ_PC__GetAltAbilityIndex);
+#ifdef EQ_PC__GetAlternateAbilityId_x
+FUNCTION_AT_ADDRESS(int  EQ_PC::GetAlternateAbilityId(int),EQ_PC__GetAlternateAbilityId);
 #endif
 #ifdef EQ_PC__GetCombatAbility_x
 FUNCTION_AT_ADDRESS(int  EQ_PC::GetCombatAbility(int),EQ_PC__GetCombatAbility);

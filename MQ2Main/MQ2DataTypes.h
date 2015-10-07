@@ -103,7 +103,7 @@ public:
     bool FromString(MQ2VARPTR &VarPtr, PCHAR Source)
     {
         VarPtr.DWord=0;
-        if (!stricmp(Source,"TRUE"))
+        if (!_stricmp(Source,"TRUE"))
             VarPtr.DWord=1;
         else if (atof(Source)!=0.0f)
             VarPtr.DWord=1;
@@ -3310,7 +3310,7 @@ public:
             CHAR Temp[MAX_STRING]={0};
             strlwr(strcpy(Temp,Source));
             VarPtr.DWord=ItemSlotMap[Temp];
-            if (VarPtr.DWord || !stricmp(Temp,"charm"))
+            if (VarPtr.DWord || !_stricmp(Temp,"charm"))
             {
                 return true;
             }
@@ -3489,6 +3489,8 @@ public:
         Flags=15,
 		Expansion=16,
 		Passive=17,
+		PointsSpent=18,
+		Rank=19,
     };
     static enum AltAbilityMethods
     {
@@ -3512,6 +3514,8 @@ public:
         TypeMember(Flags);
         TypeMember(Expansion);
         TypeMember(Passive);
+		TypeMember(PointsSpent);
+		TypeMember(Rank);
     }
 
     ~MQ2AltAbilityType()

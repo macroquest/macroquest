@@ -937,7 +937,10 @@ EQLIB_VAR DWORD CAdvancedLootWnd__DoAdvLootAction;
 
 EQLIB_VAR DWORD AltAdvManager__GetCalculatedTimer;
 EQLIB_VAR DWORD AltAdvManager__IsAbilityReady;
-EQLIB_VAR DWORD AltAdvManager__GetAltAbility;
+EQLIB_VAR DWORD AltAdvManager__GetAAById;
+EQLIB_VAR DWORD CAltAbilityData__GetMercCurrentRank;
+EQLIB_VAR DWORD CAltAbilityData__GetMercMaxRank;
+EQLIB_VAR DWORD CAltAbilityData__GetMaxRank;
 
 EQLIB_VAR DWORD CharacterZoneClient__HasSkill;
 EQLIB_VAR DWORD CharacterZoneClient__MakeMeVisible;
@@ -1247,7 +1250,7 @@ EQLIB_VAR DWORD EQ_LoadingS__Array;
 
 EQLIB_VAR DWORD EQ_PC__AlertInventoryChanged;
 EQLIB_VAR DWORD EQ_PC__DestroyHeldItemOrMoney;
-EQLIB_VAR DWORD EQ_PC__GetAltAbilityIndex;
+EQLIB_VAR DWORD EQ_PC__GetAlternateAbilityId;
 EQLIB_VAR DWORD EQ_PC__GetCombatAbility;
 EQLIB_VAR DWORD EQ_PC__GetPcZoneClient;
 EQLIB_VAR DWORD EQ_PC__GetCombatAbilityTimer;

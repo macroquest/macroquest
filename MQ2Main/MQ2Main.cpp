@@ -51,7 +51,7 @@ BOOL APIENTRY DllMain( HANDLE hModule,
     szProcessName = strrchr(szFilename,'.');
     szProcessName[0] = '\0';
     szProcessName = strrchr(szFilename,'\\')+1;
-    if (!stricmp(szProcessName,__ClientName)) {
+    if (!_stricmp(szProcessName,__ClientName)) {
         if (ul_reason_for_call == DLL_PROCESS_ATTACH) {
 
             GetModuleFileName(ghModule,szFilename,MAX_STRING);
@@ -138,18 +138,18 @@ BOOL ParseINIFile(PCHAR lpINIPath)
 	GetPrivateProfileString("Macroquest","IfAltDelimiter","~",Delimiter,MAX_STRING,Filename); gIfAltDelimiter = Delimiter[0];
 
 	GetPrivateProfileString("MacroQuest","HUDMode","UnderUI",CustomSettings,MAX_STRING,Filename);
-    if (!stricmp(CustomSettings,"normal")) {
+    if (!_stricmp(CustomSettings,"normal")) {
         gbAlwaysDrawMQHUD=false;
         gbHUDUnderUI=false;
     }
 	else
-        if (!stricmp(CustomSettings,"underui"))
+        if (!_stricmp(CustomSettings,"underui"))
         {
             gbHUDUnderUI=true;
             gbAlwaysDrawMQHUD=false;
         }
 		else
-            if (!stricmp(CustomSettings,"always"))
+            if (!_stricmp(CustomSettings,"always"))
             {
                 gbHUDUnderUI=true;
                 gbAlwaysDrawMQHUD=true;

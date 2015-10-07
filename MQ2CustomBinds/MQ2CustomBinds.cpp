@@ -28,7 +28,7 @@ int FindCustomBind(PCHAR Name)
     for (unsigned long N = 0 ; N < CustomBinds.Size ; N++)
         if (PCUSTOMBIND pBind=CustomBinds[N])
         {
-            if (!stricmp(Name,pBind->Name))
+            if (!_stricmp(Name,pBind->Name))
                 return N;
         }
         return -1;
@@ -129,17 +129,17 @@ VOID LoadCustomBinds()
     {
         strtok(szLine,"\r\n");
         strtok(szLine,"=");
-        if (!stricmp(szLine,"name"))
+        if (!_stricmp(szLine,"name"))
         {
             ZeroMemory(&NewBind,sizeof(CUSTOMBIND));
             strcpy(NewBind.Name,&szLine[5]);
         }
-        else if (!stricmp(szLine,"up"))
+        else if (!_stricmp(szLine,"up"))
         {
             strcpy(NewBind.CommandUp,&szLine[3]);
             AddCustomBind(NewBind.Name,NewBind.CommandDown,NewBind.CommandUp);
         }
-        else if (!stricmp(szLine,"down"))
+        else if (!_stricmp(szLine,"down"))
         {
             strcpy(NewBind.CommandDown,&szLine[5]);
         }
@@ -199,7 +199,7 @@ VOID CustomBindCmd(PSPAWNINFO pChar, PCHAR szLine)
     GetArg(szArg2,szLine,2);
     PCHAR szRest = GetNextArg(szLine,2);
 
-    if (!stricmp(szArg,"list"))
+    if (!_stricmp(szArg,"list"))
     {
         WriteChatColor("Custom binds");
         WriteChatColor("--------------");
@@ -213,7 +213,7 @@ VOID CustomBindCmd(PSPAWNINFO pChar, PCHAR szLine)
             WriteChatColor("End custom binds");
             return;
     }
-    if (!stricmp(szArg,"add"))
+    if (!_stricmp(szArg,"add"))
     {
         if (strchr(szArg2,'-'))
         {
@@ -229,7 +229,7 @@ VOID CustomBindCmd(PSPAWNINFO pChar, PCHAR szLine)
         }
         return;
     }
-    if (!stricmp(szArg,"delete"))
+    if (!_stricmp(szArg,"delete"))
     {
         int N=FindCustomBind(szArg2);
         if (N>=0)
@@ -243,13 +243,13 @@ VOID CustomBindCmd(PSPAWNINFO pChar, PCHAR szLine)
         }
         return;
     }
-    if (!stricmp(szArg,"set"))
+    if (!_stricmp(szArg,"set"))
     {
         BOOL Down=true;
         if (PCHAR minus=strchr(szArg2,'-'))
         {
             minus[0]=0;
-            if (!stricmp(&minus[1],"up"))
+            if (!_stricmp(&minus[1],"up"))
                 Down=false;
         }
         int N=FindCustomBind(szArg2);
@@ -269,13 +269,13 @@ VOID CustomBindCmd(PSPAWNINFO pChar, PCHAR szLine)
         SaveCustomBinds();
         return;
     }
-    if (!stricmp(szArg,"clear"))
+    if (!_stricmp(szArg,"clear"))
     {
         BOOL Down=true;
         if (PCHAR minus=strchr(szArg2,'-'))
         {
             minus[0]=0;
-            if (!stricmp(&minus[1],"up"))
+            if (!_stricmp(&minus[1],"up"))
                 Down=false;
         }
         int N=FindCustomBind(szArg2);

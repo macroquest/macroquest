@@ -308,7 +308,7 @@ GNU General Public License for more details.
 // AltAdvManager 
 #define AltAdvManager__GetCalculatedTimer_x                        0x4C0B60
 #define AltAdvManager__IsAbilityReady_x                            0x4C0BD0
-#define AltAdvManager__GetAltAbility_x                             0x4C0F90
+#define AltAdvManager__GetAAById_x                                 0x4C0F90
 
 // CharacterZoneClient
 #define CharacterZoneClient__HasSkill_x                            0x464900
@@ -660,7 +660,7 @@ GNU General Public License for more details.
 
 // EQ_PC 
 #define EQ_PC__DestroyHeldItemOrMoney_x                            0x5B8250
-#define EQ_PC__GetAltAbilityIndex_x                                0x8180F0
+#define EQ_PC_GetAlternateAbilityId_x                              0x8180F0
 #define EQ_PC__GetCombatAbility_x                                  0x818180
 #define EQ_PC__GetCombatAbilityTimer_x                             0x818230
 #define EQ_PC__GetItemTimerValue_x                                 0x5B1CD0

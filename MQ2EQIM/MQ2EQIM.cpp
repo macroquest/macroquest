@@ -60,7 +60,7 @@ int FindEQIMBuddy(PCHAR Name)
     {
         if (EQIMBuddy *pBuddy=BuddyList[N])
         {
-            if (!stricmp(pBuddy->Name,Name))
+            if (!_stricmp(pBuddy->Name,Name))
                 return N;
         }
     }

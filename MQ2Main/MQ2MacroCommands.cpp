@@ -193,14 +193,14 @@ PMACROBLOCK AddMacroLine(PCHAR szLine)
         } else if (!strnicmp(szLine,"#chat ",6)) {
             szLine+=5;
             while (szLine[0]==' ') szLine++;
-            if (!stricmp(szLine,"say"))   gEventChat = gEventChat | CHAT_SAY;
-            if (!stricmp(szLine,"tell"))  gEventChat = gEventChat | CHAT_TELL;
-            if (!stricmp(szLine,"ooc"))   gEventChat = gEventChat | CHAT_OOC;
-            if (!stricmp(szLine,"shout")) gEventChat = gEventChat | CHAT_SHOUT;
-            if (!stricmp(szLine,"auc"))   gEventChat = gEventChat | CHAT_AUC;
-            if (!stricmp(szLine,"guild")) gEventChat = gEventChat | CHAT_GUILD;
-            if (!stricmp(szLine,"group")) gEventChat = gEventChat | CHAT_GROUP;
-            if (!stricmp(szLine,"chat"))  gEventChat = gEventChat | CHAT_CHAT;
+            if (!_stricmp(szLine,"say"))   gEventChat = gEventChat | CHAT_SAY;
+            if (!_stricmp(szLine,"tell"))  gEventChat = gEventChat | CHAT_TELL;
+            if (!_stricmp(szLine,"ooc"))   gEventChat = gEventChat | CHAT_OOC;
+            if (!_stricmp(szLine,"shout")) gEventChat = gEventChat | CHAT_SHOUT;
+            if (!_stricmp(szLine,"auc"))   gEventChat = gEventChat | CHAT_AUC;
+            if (!_stricmp(szLine,"guild")) gEventChat = gEventChat | CHAT_GUILD;
+            if (!_stricmp(szLine,"group")) gEventChat = gEventChat | CHAT_GROUP;
+            if (!_stricmp(szLine,"chat"))  gEventChat = gEventChat | CHAT_CHAT;
         } else if (szLine[1]=='!') {
             // Like: #!/usr/local/bin/LegacyMQ2
             // ignore.
@@ -219,14 +219,14 @@ PMACROBLOCK AddMacroLine(PCHAR szLine)
     pBlock->pNext=NULL;
     pBlock->pPrev=NULL;
 
-    if ((!stricmp(szLine,"Sub Event_Chat")) || (!strnicmp(szLine,"Sub Event_Chat(",15))) {
+    if ((!_stricmp(szLine,"Sub Event_Chat")) || (!strnicmp(szLine,"Sub Event_Chat(",15))) {
         gEventFunc[EVENT_CHAT] = pBlock;
-    } else if ((!stricmp(szLine,"Sub Event_Timer")) || (!strnicmp(szLine,"Sub Event_Timer(",16))) {
+    } else if ((!_stricmp(szLine,"Sub Event_Timer")) || (!strnicmp(szLine,"Sub Event_Timer(",16))) {
         gEventFunc[EVENT_TIMER] = pBlock;
     } else {
         PEVENTLIST pEvent = pEventList;
         while (pEvent) {
-            if (!stricmp(szLine,pEvent->szName)) {
+            if (!_stricmp(szLine,pEvent->szName)) {
                 pEvent->pEventFunc = pBlock;
             } else {
                 CHAR szNameP[MAX_STRING] = {0};
@@ -454,14 +454,14 @@ VOID Goto(PSPAWNINFO pChar, PCHAR szLine)
             FatalError("Couldn't find label %s",szLine);
             return;
         }
-        if (!stricmp(szLine,gMacroBlock->Line)) 
+        if (!_stricmp(szLine,gMacroBlock->Line)) 
         {
             //            DebugSpewNoFile("Goto - went to label %s",szLine);
             return;
         }
     }
 
-    if (!stricmp(szLine,gMacroBlock->Line)) 
+    if (!_stricmp(szLine,gMacroBlock->Line)) 
     {
         //        DebugSpewNoFile("Goto - went to label %s",szLine);
         return;
@@ -509,7 +509,7 @@ VOID EndMacro(PSPAWNINFO pChar, PCHAR szLine)
         while (szLine[0]!=0) {
             GetArg(Buffer,szLine,1);
             szLine = GetNextArg(szLine);
-            if (!stricmp(Buffer,"keys")) bKeepKeys = TRUE;
+            if (!_stricmp(Buffer,"keys")) bKeepKeys = TRUE;
         }
     }
 
@@ -524,7 +524,7 @@ VOID EndMacro(PSPAWNINFO pChar, PCHAR szLine)
     {
         gMacroBlock=gMacroBlock->pNext;
         //DebugSpew("%s",gMacroBlock->Line);
-        if (!stricmp(":OnExit",gMacroBlock->Line)) 
+        if (!_stricmp(":OnExit",gMacroBlock->Line)) 
         {
             if (gReturn)            // return to the macro the first time around
             {
@@ -701,7 +701,7 @@ VOID Call(PSPAWNINFO pChar, PCHAR szLine)
     if (!pSubBlock) {
         while (gMacroBlock->pPrev) gMacroBlock = gMacroBlock->pPrev;
         while (gMacroBlock->pNext) {
-            if (!stricmp(gMacroBlock->Line,SubLine) || !strnicmp(gMacroBlock->Line,SubLineP,strlen(SubLineP))) {
+            if (!_stricmp(gMacroBlock->Line,SubLine) || !strnicmp(gMacroBlock->Line,SubLineP,strlen(SubLineP))) {
                 pSubBlock = gMacroBlock;
                 break;
             }
@@ -783,7 +783,7 @@ VOID Call(PSPAWNINFO pChar, PCHAR szLine)
     sprintf(SubLine,"sub %s",SubName);
     sprintf(SubLineP,"sub %s(",SubName);
     while (gMacroBlock->pNext) {
-        if (!stricmp(gMacroBlock->Line,SubLine) || !strnicmp(gMacroBlock->Line,SubLineP,strlen(SubLineP))) {
+        if (!_stricmp(gMacroBlock->Line,SubLine) || !strnicmp(gMacroBlock->Line,SubLineP,strlen(SubLineP))) {
             DebugSpewNoFile("Call - Calling subroutine %s with params %s",SubName,SubParam);
             pStack = (PMACROSTACK)malloc(sizeof(MACROSTACK));
             pStack->Location = gMacroBlock;
@@ -1117,7 +1117,7 @@ VOID DoEvents(PSPAWNINFO pChar, PCHAR szLine)
 
     GetArg(Arg1,szLine,1);
 
-    if (!stricmp(Arg1,"flush"))
+    if (!_stricmp(Arg1,"flush"))
     {
         GetArg(Arg2,szLine,2);
         if (Arg2[0])
@@ -1127,9 +1127,9 @@ VOID DoEvents(PSPAWNINFO pChar, PCHAR szLine)
             while (pEvent) 
             {
                 if (
-                    (pEvent->Type == EVENT_CHAT && !stricmp("Sub Event_Chat",Arg1)) ||
-                    (pEvent->Type == EVENT_TIMER && !stricmp("Sub Event_Timer",Arg1)) ||
-                    (pEvent->Type == EVENT_CUSTOM && !stricmp(pEvent->pEventList->szName,Arg1))
+                    (pEvent->Type == EVENT_CHAT && !_stricmp("Sub Event_Chat",Arg1)) ||
+                    (pEvent->Type == EVENT_TIMER && !_stricmp("Sub Event_Timer",Arg1)) ||
+                    (pEvent->Type == EVENT_CUSTOM && !_stricmp(pEvent->pEventList->szName,Arg1))
                     ) 
                 {
                     PEVENTQUEUE pEventNext;
@@ -1166,9 +1166,9 @@ VOID DoEvents(PSPAWNINFO pChar, PCHAR szLine)
         while(pEvent)
         {
             if (
-                (pEvent->Type == EVENT_CHAT && !stricmp("Sub Event_Chat",Arg2)) ||
-                (pEvent->Type == EVENT_TIMER && !stricmp("Sub Event_Timer",Arg2)) ||
-                (pEvent->Type == EVENT_CUSTOM && !stricmp(pEvent->pEventList->szName,Arg2))
+                (pEvent->Type == EVENT_CHAT && !_stricmp("Sub Event_Chat",Arg2)) ||
+                (pEvent->Type == EVENT_TIMER && !_stricmp("Sub Event_Timer",Arg2)) ||
+                (pEvent->Type == EVENT_CUSTOM && !_stricmp(pEvent->pEventList->szName,Arg2))
                 ) 
             {
                 break;

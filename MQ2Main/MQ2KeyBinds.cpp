@@ -341,7 +341,7 @@ VOID MQ2KeyBindCommand(PSPAWNINFO pChar, PCHAR szLine)
         szArg=&szArg1[1];
     }
     unsigned long i;
-    if (!stricmp(szArg,"list"))
+    if (!_stricmp(szArg,"list"))
     {
         // list binds
         CHAR szNormal[MAX_STRING]={0};
@@ -360,7 +360,7 @@ VOID MQ2KeyBindCommand(PSPAWNINFO pChar, PCHAR szLine)
         WriteChatColor("End MQ2 Binds");
         return;
     }
-    if (!stricmp(szArg,"eqlist"))
+    if (!_stricmp(szArg,"eqlist"))
     {
         CHAR szNormal[MAX_STRING]={0};
         CHAR szAlt[MAX_STRING]={0};
@@ -386,7 +386,7 @@ VOID MQ2KeyBindCommand(PSPAWNINFO pChar, PCHAR szLine)
         return;
     }
 
-    if (!stricmp(szArg,"clearcombo")) 
+    if (!_stricmp(szArg,"clearcombo")) 
     {
         KeyCombo ClearCombo;
         // mq2 binds
@@ -461,7 +461,7 @@ int CMD_MQ2Bind(int argc, char *argv[])
         WriteChatf("Usage: %s <list|eqlist|[~]name <combo|clear>>",argv[0]);
         return 0;
     }
-    if (!stricmp(argv[1],"list"))
+    if (!_stricmp(argv[1],"list"))
     {
         // list binds
         CHAR szNormal[MAX_STRING]={0};
@@ -476,7 +476,7 @@ int CMD_MQ2Bind(int argc, char *argv[])
         WriteChatColor("End MQ2 Binds");
         return 0;
     }
-    if (!stricmp(argv[1],"eqlist"))
+    if (!_stricmp(argv[1],"eqlist"))
     {
         CHAR szNormal[MAX_STRING]={0};
         CHAR szAlt[MAX_STRING]={0};
@@ -502,7 +502,7 @@ int CMD_MQ2Bind(int argc, char *argv[])
         return 0;
     }
 
-    if (!stricmp(argv[1],"clearcombo")) 
+    if (!_stricmp(argv[1],"clearcombo")) 
     {
         KeyCombo ClearCombo;
         // mq2 binds

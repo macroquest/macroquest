@@ -333,7 +333,7 @@ static inline BOOL IsRaidMember(PSPAWNINFO pSpawn)
 {
     for (DWORD N = 0 ; N < 72 ; N++)
     {
-        if (pRaid->RaidMemberUsed[N] && !stricmp(pSpawn->Name,pRaid->RaidMember[N].Name))
+        if (pRaid->RaidMemberUsed[N] && !_stricmp(pSpawn->Name,pRaid->RaidMember[N].Name))
             return 1;
     }
     return 0;
@@ -349,7 +349,7 @@ static inline BOOL IsGroupMember(PSPAWNINFO pSpawn)
         {
             CHAR Name[MAX_STRING]={0};
             GetCXStr(pChar->pGroupInfo->pMember[N]->pName,Name,MAX_STRING);
-            if (!stricmp(pSpawn->Name,Name))
+            if (!_stricmp(pSpawn->Name,Name))
                 return 1;
         }
     }

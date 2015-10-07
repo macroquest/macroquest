@@ -170,11 +170,11 @@ BOOL AddMQ2DataVariableFromData(PCHAR Name, PCHAR Index, MQ2Type *pType, PDATAVA
 
 PDATAVAR *FindVariableScope(PCHAR Name)
 {
-    if (!stricmp(Name,"global"))
+    if (!_stricmp(Name,"global"))
         return &pGlobalVariables;
-    if (!stricmp(Name,"outer"))
+    if (!_stricmp(Name,"outer"))
         return &pMacroVariables;
-    if (gMacroStack && !stricmp(Name,"local"))
+    if (gMacroStack && !_stricmp(Name,"local"))
         return &gMacroStack->LocalVariables;
     return 0;
 }

@@ -29,6 +29,7 @@ class _EverQuestinfo;
 class _PackFileData;
 class _PackFileDataRawFile;
 class _partyGroup;
+class CAltAbilityData;
 class AltAdvManager;
 class CAuraWnd;
 class bad_word_class;
@@ -696,6 +697,15 @@ public:
 	EQLIB_OBJECT CRewardSelectionWnd::~CRewardSelectionWnd(void);
 };
 
+class CAltAbilityData
+{
+public:
+EQLIB_OBJECT int CAltAbilityData::GetMercCurrentRank(int);
+EQLIB_OBJECT int CAltAbilityData::GetMercMaxRank(int);
+EQLIB_OBJECT int CAltAbilityData::GetMaxRank(void);//it really is called GetMaxLevel but that doesnt make sense to me so... rank it is... -eqmule
+
+};
+
 class AltAdvManager
 {
 public:
@@ -723,7 +733,7 @@ EQLIB_OBJECT int AltAdvManager::MeetsPoPLevelReqs(class EQ_PC *,int,int);
 EQLIB_OBJECT int AltAdvManager::TotalPointsInSkill(int,int);
 EQLIB_OBJECT unsigned long AltAdvManager::GetCalculatedTimer(class EQ_PC *,EQData::PALTABILITY);
 EQLIB_OBJECT void AltAdvManager::GetAbilityReqs(char *,int);
-EQLIB_OBJECT struct _ALTABILITY *AltAdvManager::GetAltAbility(int index, int unknown = -1);//could it be level?
+EQLIB_OBJECT struct _ALTABILITY *AltAdvManager::GetAAById(int index, int unknown = -1);//could it be level?
 };
 class CAuraWnd : public CSidlScreenWnd
 {
@@ -5585,7 +5595,7 @@ EQLIB_OBJECT int EQ_PC::CheckDupLoreItems(void);
 EQLIB_OBJECT int EQ_PC::checkLang(int);
 EQLIB_OBJECT int EQ_PC::CostToTrain(int,float,int);
 EQLIB_OBJECT int EQ_PC::DelLoreItemDup(int,int,int,class EQ_Item *);
-EQLIB_OBJECT int EQ_PC::GetAltAbilityIndex(int);
+EQLIB_OBJECT int EQ_PC::GetAlternateAbilityId(int);
 EQLIB_OBJECT int EQ_PC::GetArmorType(int);
 EQLIB_OBJECT int EQ_PC::GetCombatAbility(int);
 EQLIB_OBJECT class PcZoneClient *EQ_PC::GetPcZoneClient(void)const;

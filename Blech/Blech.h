@@ -109,7 +109,7 @@ static void BlechDebug(const char *szFormat, ...)
 #else
 //#pragma message("Blech: Case Insensitive")
 #define STRCMP(A,B) stricmp(A,B)
-#define STRNCMP(A,B,LENGTH) strnicmp(A,B,LENGTH)
+#define STRNCMP(A,B,LENGTH) _strnicmp(A,B,LENGTH)
 #define STRFIND(HAYSTACK,NEEDLE) stristr(HAYSTACK,NEEDLE)
 #endif
 //#else

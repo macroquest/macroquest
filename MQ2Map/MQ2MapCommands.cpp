@@ -49,9 +49,9 @@ VOID MapFilterSetting(PSPAWNINFO pChar, DWORD nMapFilter, PCHAR szValue)
         }
     } else {
         if (pMapFilter->bIsToggle) {
-            if (!stricmp(szFilterMap[0],szValue)) {
+            if (!_stricmp(szFilterMap[0],szValue)) {
                 pMapFilter->Enabled = 0;
-            } else if (!stricmp(szFilterMap[1],szValue)) {
+            } else if (!_stricmp(szFilterMap[1],szValue)) {
                 pMapFilter->Enabled = 1;
             } else {
                 pMapFilter->Enabled = 1 - pMapFilter->Enabled;
@@ -110,7 +110,7 @@ VOID MapFilters(PSPAWNINFO pChar, PCHAR szLine)
     } else {
         PMAPFILTER Found = 0;
         for (DWORD i=0;MapFilterOptions[i].szName!=NULL;i++) {
-            if (!stricmp(szArg,MapFilterOptions[i].szName)) {
+            if (!_stricmp(szArg,MapFilterOptions[i].szName)) {
                 if (!strnicmp(szRest,"color",5)) {
                     if (MapFilterOptions[i].DefaultColor == -1) {
                         sprintf(szBuffer,"Option '%s' does not have a color.",MapFilterOptions[i].szName);
@@ -166,7 +166,7 @@ VOID MapHighlightCmd(PSPAWNINFO pChar, PCHAR szLine)
     };
 
     GetArg(szArg,szLine,1);
-    if (!stricmp(szArg,"color"))
+    if (!_stricmp(szArg,"color"))
     {
         GetArg(szArg,szLine,2);
         if (szLine[0]==0)
@@ -183,7 +183,7 @@ VOID MapHighlightCmd(PSPAWNINFO pChar, PCHAR szLine)
         WriteChatColor(szBuffer);
         return;
     }
-    else if (!stricmp(szArg,"reset"))
+    else if (!_stricmp(szArg,"reset"))
     {
         MapHighlight(0);
         WriteChatColor("Highlighting reset",USERCOLOR_DEFAULT);
@@ -211,7 +211,7 @@ VOID MapHideCmd(PSPAWNINFO pChar, PCHAR szLine)
         return;
     };
     GetArg(szArg,szLine,1);
-    if (!stricmp(szArg,"reset"))
+    if (!_stricmp(szArg,"reset"))
     {
         MapClear();
         MapGenerate();
@@ -239,7 +239,7 @@ VOID MapShowCmd(PSPAWNINFO pChar, PCHAR szLine)
         return;
     };
     GetArg(szArg,szLine,1);
-    if (!stricmp(szArg,"reset"))
+    if (!_stricmp(szArg,"reset"))
     {
         MapClear();
         MapGenerate();
@@ -271,9 +271,9 @@ VOID MapNames(PSPAWNINFO pChar, PCHAR szLine)
     CHAR szArg[MAX_STRING] = {0};
     GetArg(szArg,szLine,1);
     PCHAR szRest = GetNextArg(szLine);
-    if (!stricmp(szArg,"target"))
+    if (!_stricmp(szArg,"target"))
     {
-        if (!stricmp(szRest,"reset"))
+        if (!_stricmp(szRest,"reset"))
             strcpy(MapTargetNameString,"%N");
         else
             strcpy(MapTargetNameString,szRest);
@@ -283,9 +283,9 @@ VOID MapNames(PSPAWNINFO pChar, PCHAR szLine)
         MapClear();
         MapGenerate();
     }
-    else if (!stricmp(szArg,"normal"))
+    else if (!_stricmp(szArg,"normal"))
     {
-        if (!stricmp(szRest,"reset"))
+        if (!_stricmp(szRest,"reset"))
             strcpy(MapNameString,"%N");
         else
             strcpy(MapNameString,szRest);
@@ -365,15 +365,15 @@ DWORD ParseCombo(PCHAR Combo)
     Combo=strtok(Copy,"+");
     while(Combo)
     {
-        if (!stricmp(Combo,"ctrl"))
+        if (!_stricmp(Combo,"ctrl"))
             Ret+=XKF_CTRL;
-        else if (!stricmp(Combo,"shift"))
+        else if (!_stricmp(Combo,"shift"))
             Ret+=XKF_SHIFT;
-        else if (!stricmp(Combo,"lalt"))
+        else if (!_stricmp(Combo,"lalt"))
             Ret+=XKF_LALT;
-        else if (!stricmp(Combo,"ralt"))
+        else if (!_stricmp(Combo,"ralt"))
             Ret+=XKF_RALT;
-        else if (!stricmp(Combo,"alt"))
+        else if (!_stricmp(Combo,"alt"))
             Ret+=XKF_LALT;
         Combo=strtok(NULL,"+");
     }
@@ -394,7 +394,7 @@ VOID MapClickCommand(PSPAWNINFO pChar, PCHAR szLine)
     GetArg(szArg,szLine,1);
     PCHAR szRest = GetNextArg(szLine);
 
-    if (!stricmp(szArg,"list"))
+    if (!_stricmp(szArg,"list"))
     {
         int Count=0;
         for (int i=1 ; i < 16 ; i++)
@@ -426,7 +426,7 @@ VOID MapClickCommand(PSPAWNINFO pChar, PCHAR szLine)
         return;
     }
 
-    if (!stricmp(szRest,"clear"))
+    if (!_stricmp(szRest,"clear"))
     {
 
         MapSpecialClickString[Combo][0]=0;

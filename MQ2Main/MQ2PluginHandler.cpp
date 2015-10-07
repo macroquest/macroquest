@@ -56,7 +56,7 @@ DWORD LoadMQ2Plugin(const PCHAR pszFilename,BOOL bCustom)
     PCHAR Temp=strstr(Filename,".dll");
 	if (Temp)
         Temp[0]=0;
-    if (!stricmp(Filename,"mq2warp")) // ^_^
+    if (!_stricmp(Filename,"mq2warp")) // ^_^
     {
         return 0;
     }
@@ -181,7 +181,7 @@ BOOL UnloadMQ2Plugin(const PCHAR pszFilename)
     PMQPLUGIN pPlugin=pPlugins;
     while(pPlugin)
     {
-        if (!stricmp(Filename,pPlugin->szFilename))
+        if (!_stricmp(Filename,pPlugin->szFilename))
         {
             if (pPlugin->pLast)
                 pPlugin->pLast->pNext=pPlugin->pNext;

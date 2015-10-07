@@ -83,7 +83,7 @@ VOID HideDoCommand(PSPAWNINFO pChar, PCHAR szLine, BOOL delayed)
     GetArg(szCmd,szLine,1);
     PALIAS pLoop = pAliases;
     while (pLoop) {
-        if (!stricmp(szCmd,pLoop->szName)) {
+        if (!_stricmp(szCmd,pLoop->szName)) {
             sprintf(szLine,"%s%s",pLoop->szCommand,szOriginalLine+strlen(pLoop->szName));
             break;
         }
@@ -121,13 +121,13 @@ VOID HideDoCommand(PSPAWNINFO pChar, PCHAR szLine, BOOL delayed)
 			//            /if () {
 			//            } else /echo stuff
 			GetArg(szCmd,szLine,2);
-			if (!stricmp(szCmd,"else")) {
+			if (!_stricmp(szCmd,"else")) {
 				// check here to fail this:
 				//            /if () {
 				//            } else 
 				//                /echo stuff
 				GetArg(szCmd,szLine,3);
-				if (!stricmp(szCmd,"")) {
+				if (!_stricmp(szCmd,"")) {
 					FatalError("no command or { following else");
 				}
 				bRunNextCommand = TRUE;
@@ -201,7 +201,7 @@ public:
             strcpy(szFullCommand,szFullLine); 
             GetArg(szCommand,szFullCommand,1); 
 
-            if (!stricmp(szCommand,"/camp"))
+            if (!_stricmp(szCommand,"/camp"))
             {
                 if (gMacroBlock)
                 {
@@ -244,7 +244,7 @@ public:
                     }
                     while (pSubLoop)
                     {
-                        if (!stricmp(szOrig, pSubLoop->szOrig)) 
+                        if (!_stricmp(szOrig, pSubLoop->szOrig)) 
                         {
                             sprintf( szSub, "%s", pSubLoop->szSub );
                             break;
@@ -265,7 +265,7 @@ public:
             sprintf(szFullCommand, "%s", szSubFullCommand.c_str() );
 
             while (pLoop) { 
-                if (!stricmp(szCommand,pLoop->szName)) { 
+                if (!_stricmp(szCommand,pLoop->szName)) { 
                     sprintf(szCommand,"%s%s",pLoop->szCommand,szFullCommand+strlen(pLoop->szName)); 
                     strncpy(szFullCommand,szCommand,MAX_STRING); 
                     break;
@@ -444,7 +444,7 @@ BOOL RemoveAlias(PCHAR ShortCommand)
     PALIAS pAlias=pAliases;
     while(pAlias)
     {
-        if (!stricmp(ShortCommand,pAlias->szName))
+        if (!_stricmp(ShortCommand,pAlias->szName))
         {
             if (pAlias->pNext)
                 pAlias->pNext->pLast=pAlias->pLast;
@@ -517,7 +517,7 @@ BOOL RemoveSubstitute(PCHAR Original)
     PSUB pSub=pSubs;
     while(pSub)
     {
-        if (!stricmp(Original,pSub->szOrig))
+        if (!_stricmp(Original,pSub->szOrig))
         {
             if (pSub->pNext)
                 pSub->pNext->pLast=pSub->pLast;

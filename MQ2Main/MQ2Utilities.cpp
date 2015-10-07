@@ -775,9 +775,9 @@ VOID DefaultFilters(VOID)
 
 PCHAR ConvertHotkeyNameToKeyName(PCHAR szName)
 {
-    if (!stricmp(szName,"EQUALSIGN")) strcpy(szName,"=");
-    if (!stricmp(szName,"SEMICOLON")) strcpy(szName,";");
-    if (!stricmp(szName,"LEFTBRACKET")) strcpy(szName,"[");
+    if (!_stricmp(szName,"EQUALSIGN")) strcpy(szName,"=");
+    if (!_stricmp(szName,"SEMICOLON")) strcpy(szName,";");
+    if (!_stricmp(szName,"LEFTBRACKET")) strcpy(szName,"[");
     return szName;
 }
 
@@ -1076,7 +1076,7 @@ PSPELL GetSpellByAAName(PCHAR szName)
 {
 	try {
 		for (unsigned long nAbility=0 ; nAbility<NUM_ALT_ABILITIES ; nAbility++) {
-            if (PALTABILITY pAbility=pAltAdvManager->GetAltAbility(nAbility)) {
+            if (PALTABILITY pAbility=pAltAdvManager->GetAAById(nAbility)) {
 				if(pAbility->SpellID!=-1) {
 					if(char *pName = pCDBStr->GetString(pAbility->nName, 1, NULL)) {
 						if(!_stricmp(szName,pName)) {
@@ -1186,7 +1186,7 @@ DWORD GetGuildIDByName(PCHAR szGuild)
     for(n = 0; n < pGuildList->HashValue - 1; n++) {
         if(PGUILD pGuild = pGuildList->GuildList[n]) {
             while (pGuild) {
-                if(!stricmp(pGuild->pGuildData->Name, szGuild))
+                if(!_stricmp(pGuild->pGuildData->Name, szGuild))
                     return pGuild->ID;
 
                 pGuild = pGuild->pNext;
@@ -1360,17 +1360,17 @@ VOID STMLToPlainText(PCHAR in, PCHAR out)
                    Amper[pchar_amper_string_position++] = in[pchar_in_string_position++];
                }
                pchar_in_string_position++;
-               if (!stricmp(Amper,"nbsp")) {
+               if (!_stricmp(Amper,"nbsp")) {
                    out[pchar_out_string_position++] = ' ';
-               } else if (!stricmp(Amper,"amp")) {
+               } else if (!_stricmp(Amper,"amp")) {
                    out[pchar_out_string_position++] = '&';
-               } else if (!stricmp(Amper,"gt")) {
+               } else if (!_stricmp(Amper,"gt")) {
                    out[pchar_out_string_position++] = '>';
-               } else if (!stricmp(Amper,"lt")) {
+               } else if (!_stricmp(Amper,"lt")) {
                    out[pchar_out_string_position++] = '<';
-               } else if (!stricmp(Amper,"quot")) {
+               } else if (!_stricmp(Amper,"quot")) {
                    out[pchar_out_string_position++] = '\"';
-               } else if (!stricmp(Amper,"pct")) {
+               } else if (!_stricmp(Amper,"pct")) {
                    out[pchar_out_string_position++] = '%';
                } else {
                    out[pchar_out_string_position++] = '?';
@@ -3573,7 +3573,7 @@ int FindMappableCommand(const char *name)
     {
         if((DWORD)szEQMappableCommands[i] == 0 || (DWORD)szEQMappableCommands[i] > (DWORD)__AC1_Data)
             continue;
-        if (!stricmp(name,szEQMappableCommands[i]))
+        if (!_stricmp(name,szEQMappableCommands[i]))
             return i;
     }
     return -1;
@@ -3653,7 +3653,7 @@ void CustomPopup(char* szPopText, bool bPopOutput)
 BOOL ParseKeyCombo(PCHAR text, KeyCombo &Dest)
 {
     KeyCombo Ret;
-    if (!stricmp(text,"clear"))
+    if (!_stricmp(text,"clear"))
     {
         Dest=Ret;
         return true;
@@ -3663,17 +3663,17 @@ BOOL ParseKeyCombo(PCHAR text, KeyCombo &Dest)
     text=strtok(Copy,"+ ");
     while(text)
     {
-        if (!stricmp(text,"alt"))
+        if (!_stricmp(text,"alt"))
             Ret.Data[0]=1;
-        else if (!stricmp(text,"ctrl"))
+        else if (!_stricmp(text,"ctrl"))
             Ret.Data[1]=1;
-        else if (!stricmp(text,"shift"))
+        else if (!_stricmp(text,"shift"))
             Ret.Data[2]=1;
         else
         {
             for (unsigned long i=0 ; gDiKeyID[i].Id ; i++)
             {
-                if (!stricmp(text,gDiKeyID[i].szName))
+                if (!_stricmp(text,gDiKeyID[i].szName))
                 {
                     Ret.Data[3]=(char)gDiKeyID[i].Id;
                     break;
@@ -3921,7 +3921,7 @@ int FindInvSlot(PCHAR pName, BOOL Exact)
                         // let it try to find it in an open slot if this fails
                     }
                 }
-                else if (!stricmp(Name,GetItemFromContents(y)->Name))
+                else if (!_stricmp(Name,GetItemFromContents(y)->Name))
                 {
                     if (pInvMgr->SlotArray[N]->pInvSlotWnd)
                     {
@@ -3965,7 +3965,7 @@ int FindNextInvSlot(PCHAR pName, BOOL Exact)
                         // let it try to find it in an open slot if this fails
                     }
                 }
-                else if (!stricmp(Name,(*pInvMgr->SlotArray[N]->ppContents)->Item->Name))
+                else if (!_stricmp(Name,(*pInvMgr->SlotArray[N]->ppContents)->Item->Name))
                 {
                     if (pInvMgr->SlotArray[N]->pInvSlotWnd)
                     {
@@ -4881,7 +4881,7 @@ bool PlayerHasAAAbility(DWORD AAIndex)
 {
     for (int i = 0; i < AA_CHAR_MAX_REAL; i++)
     {
-        if ( pPCData->GetAltAbilityIndex(i) == AAIndex )
+        if ( pPCData->GetAlternateAbilityId(i) == AAIndex )
             return true;
     }
     return false;
@@ -4911,9 +4911,9 @@ DWORD GetAAIndexByName(PCHAR AAName)
 {
     unsigned long nAbility;
     for (nAbility=0 ; nAbility<AA_CHAR_MAX_REAL ; nAbility++) {
-        if ( PALTABILITY pAbility=pAltAdvManager->GetAltAbility(pPCData->GetAltAbilityIndex(nAbility))) {
+        if ( PALTABILITY pAbility=pAltAdvManager->GetAAById(pPCData->GetAlternateAbilityId(nAbility))) {
             if (PCHAR pName=pCDBStr->GetString(pAbility->nName, 1, NULL)) {
-                if (!stricmp(AAName,pName)) {
+                if (!_stricmp(AAName,pName)) {
                     return pAbility->Index;
                 }
             }
@@ -4928,7 +4928,7 @@ DWORD GetAAIndexByName(PCHAR AAName)
             {
                 if (PCHAR pName=pCDBStr->GetString(pAbility->nName, 1, NULL))
                 {
-                    if (!stricmp(AAName,pName))
+                    if (!_stricmp(AAName,pName))
                     {
                         return pAbility->Index;
                     }
@@ -4944,7 +4944,7 @@ DWORD GetAAIndexByID(DWORD ID)
 {
     unsigned long nAbility;
     for (nAbility=0 ; nAbility<AA_CHAR_MAX_REAL ; nAbility++) {
-        if ( PALTABILITY pAbility=pAltAdvManager->GetAltAbility(pPCData->GetAltAbilityIndex(nAbility))) {
+        if ( PALTABILITY pAbility=pAltAdvManager->GetAAById(pPCData->GetAlternateAbilityId(nAbility))) {
             if (pAbility->ID == ID ) {
                 return pAbility->Index;
             }
@@ -5001,7 +5001,7 @@ BOOL IsInGroup(PSPAWNINFO pSpawn,BOOL bCorpse)
             CHAR Name[MAX_STRING]={0};
             GetCXStr(pChar->pGroupInfo->pMember[i]->pName,Name,MAX_STRING);
             if(!bCorpse) {
-				if (!stricmp(Name,pSpawn->Name)) {
+				if (!_stricmp(Name,pSpawn->Name)) {
 					return TRUE;
 				}
 			} else {
@@ -5593,7 +5593,7 @@ BOOL SpawnMatchesSearch(PSEARCHSPAWN pSearchSpawn, PSPAWNINFO pChar, PSPAWNINFO 
     if (pSearchSpawn->bLight) 
     {
         PCHAR pLight=GetLightForSpawn(pSpawn);
-        if (!stricmp(pLight,"NONE")) 
+        if (!_stricmp(pLight,"NONE")) 
             return FALSE;
         if (pSearchSpawn->szLight[0] && stricmp(pLight,pSearchSpawn->szLight)) 
             return FALSE;
@@ -5632,127 +5632,127 @@ BOOL SpawnMatchesSearch(PSEARCHSPAWN pSearchSpawn, PSPAWNINFO pChar, PSPAWNINFO 
 PCHAR ParseSearchSpawnArgs(PCHAR szArg, PCHAR szRest, PSEARCHSPAWN pSearchSpawn)
 {
     if (szArg && pSearchSpawn) {
-        if (!stricmp(szArg,"pc")) {
+        if (!_stricmp(szArg,"pc")) {
             pSearchSpawn->SpawnType = PC;
-        } else if (!stricmp(szArg,"npc")) {
+        } else if (!_stricmp(szArg,"npc")) {
             pSearchSpawn->SpawnType = NPC;
-        } else if (!stricmp(szArg,"mount")) {
+        } else if (!_stricmp(szArg,"mount")) {
             pSearchSpawn->SpawnType = MOUNT;
-        } else if (!stricmp(szArg,"pet")) {
+        } else if (!_stricmp(szArg,"pet")) {
             pSearchSpawn->SpawnType = PET;
-        } else if (!stricmp(szArg,"pcpet")) {
+        } else if (!_stricmp(szArg,"pcpet")) {
             pSearchSpawn->SpawnType = PCPET;
-        } else if (!stricmp(szArg,"npcpet")) {
+        } else if (!_stricmp(szArg,"npcpet")) {
             pSearchSpawn->SpawnType = NPCPET;
-        } else if (!stricmp(szArg,"nopet")) { 
+        } else if (!_stricmp(szArg,"nopet")) { 
             pSearchSpawn->bNoPet = TRUE; 
-        } else if (!stricmp(szArg,"corpse")) {
+        } else if (!_stricmp(szArg,"corpse")) {
             pSearchSpawn->SpawnType = CORPSE;
-        } else if (!stricmp(szArg,"npccorpse")) {
+        } else if (!_stricmp(szArg,"npccorpse")) {
             pSearchSpawn->SpawnType = NPCCORPSE;
-        } else if (!stricmp(szArg,"pccorpse")) {
+        } else if (!_stricmp(szArg,"pccorpse")) {
             pSearchSpawn->SpawnType = PCCORPSE;
-        } else if (!stricmp(szArg,"trigger")) {
+        } else if (!_stricmp(szArg,"trigger")) {
             pSearchSpawn->SpawnType = TRIGGER;
-        } else if (!stricmp(szArg,"untargetable")) {
+        } else if (!_stricmp(szArg,"untargetable")) {
             pSearchSpawn->SpawnType = UNTARGETABLE;
-        } else if (!stricmp(szArg,"trap")) {
+        } else if (!_stricmp(szArg,"trap")) {
             pSearchSpawn->SpawnType = TRAP;
-        } else if (!stricmp(szArg,"chest")) {
+        } else if (!_stricmp(szArg,"chest")) {
             pSearchSpawn->SpawnType = CHEST;
-        } else if (!stricmp(szArg,"timer")) {
+        } else if (!_stricmp(szArg,"timer")) {
             pSearchSpawn->SpawnType = TIMER;
-        } else if (!stricmp(szArg,"aura")) {
+        } else if (!_stricmp(szArg,"aura")) {
             pSearchSpawn->SpawnType = AURA;
-        } else if (!stricmp(szArg,"object")) {
+        } else if (!_stricmp(szArg,"object")) {
             pSearchSpawn->SpawnType = OBJECT;
-        } else if (!stricmp(szArg,"banner")) {
+        } else if (!_stricmp(szArg,"banner")) {
             pSearchSpawn->SpawnType = BANNER;
-        } else if (!stricmp(szArg,"campfire")) {
+        } else if (!_stricmp(szArg,"campfire")) {
             pSearchSpawn->SpawnType = CAMPFIRE;
-        } else if (!stricmp(szArg,"mercenary")) {
+        } else if (!_stricmp(szArg,"mercenary")) {
             pSearchSpawn->SpawnType = MERCENARY;
-        } else if (!stricmp(szArg,"flyer")) {
+        } else if (!_stricmp(szArg,"flyer")) {
             pSearchSpawn->SpawnType = FLYER;
-        } else if (!stricmp(szArg,"any")) {
+        } else if (!_stricmp(szArg,"any")) {
             pSearchSpawn->SpawnType = NONE;
-        } else if (!stricmp(szArg,"next")) {
+        } else if (!_stricmp(szArg,"next")) {
             pSearchSpawn->bTargNext = TRUE;
-        } else if (!stricmp(szArg,"prev")) {
+        } else if (!_stricmp(szArg,"prev")) {
             pSearchSpawn->bTargPrev = TRUE;
-        } else if (!stricmp(szArg,"lfg")) {
+        } else if (!_stricmp(szArg,"lfg")) {
             pSearchSpawn->bLFG = TRUE;
-        } else if (!stricmp(szArg,"gm")) {
+        } else if (!_stricmp(szArg,"gm")) {
             pSearchSpawn->bGM = TRUE;
-        } else if (!stricmp(szArg,"group")) {
+        } else if (!_stricmp(szArg,"group")) {
             pSearchSpawn->bGroup = TRUE;
-		} else if (!stricmp(szArg,"nogroup")) {
+		} else if (!_stricmp(szArg,"nogroup")) {
 			pSearchSpawn->bNoGroup = TRUE;
-        } else if (!stricmp(szArg,"raid")) {
+        } else if (!_stricmp(szArg,"raid")) {
             pSearchSpawn->bRaid = TRUE; 
-        } else if (!stricmp(szArg,"noguild")) {
+        } else if (!_stricmp(szArg,"noguild")) {
             pSearchSpawn->bNoGuild = TRUE;
-        } else if (!stricmp(szArg,"trader")) {
+        } else if (!_stricmp(szArg,"trader")) {
             pSearchSpawn->bTrader = TRUE;
-        } else if (!stricmp(szArg,"named")) {
+        } else if (!_stricmp(szArg,"named")) {
             pSearchSpawn->bNamed = TRUE;
-        } else if (!stricmp(szArg,"merchant")) {
+        } else if (!_stricmp(szArg,"merchant")) {
             pSearchSpawn->bMerchant = TRUE;
-        } else if (!stricmp(szArg,"tribute")) {
+        } else if (!_stricmp(szArg,"tribute")) {
             pSearchSpawn->bTributeMaster = TRUE;
-        } else if (!stricmp(szArg,"knight")) {
+        } else if (!_stricmp(szArg,"knight")) {
             pSearchSpawn->bKnight = TRUE;
-        } else if (!stricmp(szArg,"tank")) {
+        } else if (!_stricmp(szArg,"tank")) {
             pSearchSpawn->bTank = TRUE;
-        } else if (!stricmp(szArg,"healer")) {
+        } else if (!_stricmp(szArg,"healer")) {
             pSearchSpawn->bHealer = TRUE;
-        } else if (!stricmp(szArg,"dps")) {
+        } else if (!_stricmp(szArg,"dps")) {
             pSearchSpawn->bDps = TRUE;
-        } else if (!stricmp(szArg,"slower")) {
+        } else if (!_stricmp(szArg,"slower")) {
             pSearchSpawn->bSlower = TRUE;
-        } else if (!stricmp(szArg,"los")) {
+        } else if (!_stricmp(szArg,"los")) {
             pSearchSpawn->bLoS = TRUE;
-        } else if (!stricmp(szArg,"targetable")) {
+        } else if (!_stricmp(szArg,"targetable")) {
             pSearchSpawn->bTargetable = TRUE;
-        } else if (!stricmp(szArg,"range")) {
+        } else if (!_stricmp(szArg,"range")) {
             GetArg(szArg,szRest,1);
             pSearchSpawn->MinLevel = atoi(szArg);
             GetArg(szArg,szRest,2);
             pSearchSpawn->MaxLevel = atoi(szArg);
             szRest = GetNextArg(szRest,2);
-        } else if (!stricmp(szArg,"loc")) {
+        } else if (!_stricmp(szArg,"loc")) {
             pSearchSpawn->bKnownLocation = TRUE;
             GetArg(szArg,szRest,1);
             pSearchSpawn->xLoc = (FLOAT)atof(szArg);
             GetArg(szArg,szRest,2);
             pSearchSpawn->yLoc = (FLOAT)atof(szArg);
             szRest = GetNextArg(szRest,2);
-        } else if (!stricmp(szArg,"id")) {
+        } else if (!_stricmp(szArg,"id")) {
             GetArg(szArg,szRest,1);
             pSearchSpawn->bSpawnID = TRUE;
             pSearchSpawn->SpawnID = atoi(szArg);
             szRest = GetNextArg(szRest,1);
-        } else if (!stricmp(szArg,"radius")) {
+        } else if (!_stricmp(szArg,"radius")) {
             GetArg(szArg,szRest,1);
             pSearchSpawn->FRadius = atof(szArg);
             szRest = GetNextArg(szRest,1);
-        } else if (!stricmp(szArg,"body")) {
+        } else if (!_stricmp(szArg,"body")) {
             GetArg(szArg,szRest,1);
             strcpy(pSearchSpawn->szBodyType,szArg);
             szRest = GetNextArg(szRest,1);
-        } else if (!stricmp(szArg,"class")) {
+        } else if (!_stricmp(szArg,"class")) {
             GetArg(szArg,szRest,1);
             strcpy(pSearchSpawn->szClass,szArg);
             szRest = GetNextArg(szRest,1);
-        } else if (!stricmp(szArg,"race")) {
+        } else if (!_stricmp(szArg,"race")) {
             GetArg(szArg,szRest,1);
             strcpy(pSearchSpawn->szRace,szArg);
             szRest = GetNextArg(szRest,1);
-        } else if (!stricmp(szArg,"light")) {
+        } else if (!_stricmp(szArg,"light")) {
             DWORD Light = -1;
             DWORD i=0;
             GetArg(szArg,szRest,1);
-            if (szArg[0]!=0) for (i=0;i<LIGHT_COUNT;i++) if (!stricmp(szLights[i],szArg)) Light=i;
+            if (szArg[0]!=0) for (i=0;i<LIGHT_COUNT;i++) if (!_stricmp(szLights[i],szArg)) Light=i;
             if (Light != -1) {
                 strcpy(pSearchSpawn->szLight,szLights[Light]);
                 szRest = GetNextArg(szRest,1);
@@ -5760,9 +5760,9 @@ PCHAR ParseSearchSpawnArgs(PCHAR szArg, PCHAR szRest, PSEARCHSPAWN pSearchSpawn)
                 pSearchSpawn->szLight[0]=0;
             }
             pSearchSpawn->bLight=TRUE;
-        } else if (!stricmp(szArg,"guild")) {
+        } else if (!_stricmp(szArg,"guild")) {
             pSearchSpawn->GuildID=GetCharInfo()->pSpawn->GuildID;
-        } else if (!stricmp(szArg,"guildname")) {
+        } else if (!_stricmp(szArg,"guildname")) {
             DWORD GuildID = 0xFFFFFFFF;
             GetArg(szArg,szRest,1);
             if (szArg[0]!=0)
@@ -5771,42 +5771,42 @@ PCHAR ParseSearchSpawnArgs(PCHAR szArg, PCHAR szRest, PSEARCHSPAWN pSearchSpawn)
                 pSearchSpawn->GuildID = GuildID;
 				szRest = GetNextArg(szRest,1);
             }
-        } else if (!stricmp(szArg,"alert")) {
+        } else if (!_stricmp(szArg,"alert")) {
             GetArg(szArg,szRest,1);
             pSearchSpawn->AlertList = atoi(szArg);
             szRest = GetNextArg(szRest,1);
             pSearchSpawn->bAlert = TRUE;
-        } else if (!stricmp(szArg,"noalert")) {
+        } else if (!_stricmp(szArg,"noalert")) {
             GetArg(szArg,szRest,1);
             pSearchSpawn->NoAlertList = atoi(szArg);
             szRest = GetNextArg(szRest,1);
             pSearchSpawn->bNoAlert = TRUE;
-        } else if (!stricmp(szArg,"notnearalert")) {
+        } else if (!_stricmp(szArg,"notnearalert")) {
             GetArg(szArg,szRest,1);
             pSearchSpawn->NotNearAlertList = atoi(szArg);
             szRest = GetNextArg(szRest,1);
             pSearchSpawn->bNotNearAlert = TRUE;
-        } else if (!stricmp(szArg,"nearalert")) {
+        } else if (!_stricmp(szArg,"nearalert")) {
             GetArg(szArg,szRest,1);
             pSearchSpawn->NearAlertList = atoi(szArg);
             szRest = GetNextArg(szRest,1);
             pSearchSpawn->bNearAlert = TRUE;
-        } else if (!stricmp(szArg,"zradius")) {
+        } else if (!_stricmp(szArg,"zradius")) {
             GetArg(szArg,szRest,1);
             pSearchSpawn->ZRadius = atof(szArg);
             szRest = GetNextArg(szRest,1);
-        } else if (!stricmp(szArg,"notid")) {
+        } else if (!_stricmp(szArg,"notid")) {
             GetArg(szArg,szRest,1);
             pSearchSpawn->NotID = atoi(szArg);
             szRest = GetNextArg(szRest,1);
-        } else if (!stricmp(szArg,"nopcnear")) {
+        } else if (!_stricmp(szArg,"nopcnear")) {
             GetArg(szArg,szRest,1);
             if ((szArg[0]==0) || (0.0f == (pSearchSpawn->Radius = (FLOAT)atof(szArg)))) {
                 pSearchSpawn->Radius = 200.0f;
             } else {
                 szRest = GetNextArg(szRest,1);
             }
-		} else if (!stricmp(szArg, "playerstate")) {
+		} else if (!_stricmp(szArg, "playerstate")) {
 			GetArg(szArg, szRest, 1);
 			pSearchSpawn->PlayerState |= atoi(szArg); // This allows us to pass multiple playerstate args
 			szRest = GetNextArg(szRest, 1);
@@ -5816,7 +5816,7 @@ PCHAR ParseSearchSpawnArgs(PCHAR szArg, PCHAR szRest, PSEARCHSPAWN pSearchSpawn)
         } else {
             for (DWORD N=1;N<17;N++)
             {
-                if (!stricmp(szArg,ClassInfo[N].Name) || !stricmp(szArg,ClassInfo[N].ShortName))
+                if (!_stricmp(szArg,ClassInfo[N].Name) || !_stricmp(szArg,ClassInfo[N].ShortName))
                 {
                     strcpy(pSearchSpawn->szClass,pEverQuest->GetClassDesc(N));
                     return szRest;
@@ -6374,7 +6374,7 @@ DWORD FindSpellListByName(PCHAR szName)
 {
     DWORD Index;
 	for (Index=0;Index<NUM_SPELL_SETS;Index++) {
-        if (!stricmp(pSpellSets[Index].Name,szName)) return Index;
+        if (!_stricmp(pSpellSets[Index].Name,szName)) return Index;
     }
     return -1;
 }
@@ -6440,8 +6440,8 @@ PCHAR GetModel(PSPAWNINFO pSpawn, DWORD Slot)
 VOID SetDisplaySWhoFilter(PBOOL bToggle, PCHAR szFilter, PCHAR szToggle)
 {
     CHAR szTemp[MAX_STRING] = {0};
-    if (!stricmp(szToggle,"on")) *bToggle = TRUE;
-    else if (!stricmp(szToggle,"off")) *bToggle = FALSE;
+    if (!_stricmp(szToggle,"on")) *bToggle = TRUE;
+    else if (!_stricmp(szToggle,"off")) *bToggle = FALSE;
     sprintf(szTemp,"%s is: %s",szFilter,(*bToggle)?"on":"off");
     WriteChatColor(szTemp,USERCOLOR_DEFAULT);
     itoa(*bToggle,szTemp,10);
@@ -6550,7 +6550,7 @@ PCONTENTS GetItemContentsByName(CHAR *ItemName)
             if (GetItemFromContents(pPack)->Type==ITEMTYPE_PACK && pPack->pContentsArray)
                 for (unsigned long nItem=0 ; nItem < GetItemFromContents(pPack)->Slots ; nItem++)
                     if (PCONTENTS pItem=pPack->pContentsArray->Contents[nItem])
-                        if (!stricmp(ItemName,GetItemFromContents(pItem)->Name)) return pItem;
+                        if (!_stricmp(ItemName,GetItemFromContents(pItem)->Name)) return pItem;
 
     return NULL; 
 }
@@ -6578,7 +6578,7 @@ DWORD GetSkillIDFromName(PCHAR name)
 {
     for(DWORD i=0; i<NUM_SKILLS; i++)
         if (PSKILL pSkill=pSkillMgr->pSkill[i])
-            if(!stricmp(name,pStringTable->getString(pSkill->nName,0)))
+            if(!_stricmp(name,pStringTable->getString(pSkill->nName,0)))
                 return i;
     return 0;
 }
@@ -6844,7 +6844,7 @@ void UseAbility(char *sAbility) {
         for (Index=0;Index<NUM_COMBAT_ABILITIES;Index++) {
            	if(pCombatSkillsSelectWnd->ShouldDisplayThisSkill(Index)) {
                 if(PSPELL pCA = GetSpellByID(GetCharInfo2()->CombatAbilities[Index])) {
-					if (!stricmp(pCA->Name, szBuffer)) {
+					if (!_stricmp(pCA->Name, szBuffer)) {
 						//We got the cookie, let's try and do it 
 						pCharData->DoCombatAbility(pCA->ID);
 						break;
@@ -7912,7 +7912,7 @@ BOOL GetAllMercDesc(std::map<DWORD,MercDesc>&minfo)
 BOOL IsActiveAA(PCHAR pSpellName)
 {
 	for (DWORD nAbility=0 ; nAbility<AA_CHAR_MAX_REAL ; nAbility++) {
-        if (PALTABILITY pAbility=pAltAdvManager->GetAltAbility(pPCData->GetAltAbilityIndex(nAbility))) {
+        if (PALTABILITY pAbility=pAltAdvManager->GetAAById(pPCData->GetAlternateAbilityId(nAbility))) {
             if(!_stricmp(pSpellName,pCDBStr->GetString(pAbility->nName, 1, NULL))) {
 				if(pAbility->SpellID!=0xFFFFFFFF) {
 					return TRUE;

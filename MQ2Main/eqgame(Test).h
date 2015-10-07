@@ -313,7 +313,7 @@ GNU General Public License for more details.
 // AltAdvManager 
 #define AltAdvManager__GetCalculatedTimer_x                        0x4C2680
 #define AltAdvManager__IsAbilityReady_x                            0x4C26F0
-#define AltAdvManager__GetAltAbility_x                             0x4C2AB0
+#define AltAdvManager__GetAAById_x                                 0x4C2AB0
 
 // CharacterZoneClient
 #define CharacterZoneClient__HasSkill_x                            0x465550
@@ -670,7 +670,7 @@ GNU General Public License for more details.
 
 // EQ_PC 
 #define EQ_PC__DestroyHeldItemOrMoney_x                            0x5BC6B0
-#define EQ_PC__GetAltAbilityIndex_x                                0x84FCD0
+#define EQ_PC__GetAlternateAbilityId_x                             0x84FCD0
 #define EQ_PC__GetCombatAbility_x                                  0x84FD60
 #define EQ_PC__GetCombatAbilityTimer_x                             0x84ACD0
 #define EQ_PC__GetItemTimerValue_x                                 0x5B6100
@@ -764,3 +764,8 @@ GNU General Public License for more details.
 //CTextureAnimation
 #define CTextureAnimation__SetCurCell_x                            0x8DD930
 #define CSidlManager__FindAnimation1_x                             0x8D2670
+
+//CAltAbilityData
+#define CAltAbilityData__GetMercCurrentRank_x                      0x4CBDB0
+#define CAltAbilityData__GetMercMaxRank_x                          0x4CBD60
+#define CAltAbilityData__GetMaxRank_x                              0x4C0D40

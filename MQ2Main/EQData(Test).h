@@ -798,7 +798,7 @@ typedef struct _INVENTORY {
 
 //these two will merge when i get a chance - no idea who made this comment, so I cant verify - eqmule
 #define AA_CHAR_MAX                     0xF5
-//EQ_PC__GetAltAbilityIndex_x
+//EQ_PC__GetAlternateAbilityId_x
 //size is at 7F0D38 in eqgame dated Aug 11 2014 - eqmule
 #define AA_CHAR_MAX_REAL                0x12C
 
@@ -1992,37 +1992,54 @@ typedef struct _EQFRIENDSLIST {
 } EQFRIENDSLIST, *PEQFRIENDSLIST;
 
 // Size 0xa4    11/15/2011 ieatacid in msg_send_alt_data
+// Size 0xa8    See 4EF12F (msg_send_alt_data) in 2015-09-24 -eqmule
 typedef struct _ALTABILITY {
 /*0x00*/ DWORD Index;
-/*0x04*/ DWORD Flags;                    //?
+/*0x04*/ BYTE Flags[4];					//[0] = enabled flag? everything 1, used to be a bool? is a bool in packet?
 /*0x08*/ DWORD nShortName;
 /*0x0c*/ DWORD nShorterName;
-/*0x10*/ DWORD nName;                    // now a database number
-/*0x14*/ DWORD nDesc;                    // now a database number
+/*0x10*/ DWORD nName;					// now a database number
+/*0x14*/ DWORD nDesc;					// now a database number
 /*0x18*/ DWORD MinLevel;
-/*0x1c*/ DWORD Cost;                     //Initial Cost or cost the last time you bought a level of it
-/*0x20*/ DWORD ID;                       // /alt activate id
-/*0x24*/ DWORD AARankRequired;
-/*0x28*/ DWORD RequirementCount;			//how many requirements does it have its always 1 even if its none
-/*0x2c*/ DWORD *RequiresAbility;
-/*0x30*/ DWORD Unknown0x30[3];
+/*0x1c*/ DWORD Cost;					//Initial Cost or cost the last time you bought a level of it
+/*0x20*/ DWORD ID;						//ID of the AA group (/alt activate id)
+/*0x24*/ DWORD CurrentRank;				// the current rank of this AA first rank is 1 etc
+/*0x28*/ DWORD RequirementCount;		//how many requirements does it have its always 1 even if its none
+/*0x2c*/ DWORD *RequiresAbility;		// array of prereq ID;
+/*0x30*/ DWORD Unknown0x30[2];
+/*0x38*/ DWORD prereq_count2;			// count of next array, which contains rank required
 /*0x3c*/ DWORD *RequiresAbilityPoints;
 /*0x40*/ DWORD Unknown0x40[2];
 /*0x48*/ DWORD Type;					// 1 General 2 Archetype 3 Class 4 special 5 focus
-/*0x4c*/ LONG  SpellID;                  // -1 for no Spell
+/*0x4c*/ LONG  SpellID;					// -1 for no Spell
 /*0x50*/ DWORD Unknown0x50;
-/*0x54*/ BYTE  Unknown0x54[0x10]; 
-/*0x64*/ DWORD ReuseTimer;               // in seconds
-/*0x68*/ DWORD Classes;                  // Classes/2 is the actual value we want.
-/*0x6c*/ DWORD MaxRank;                         //If you have not spent points in this 
-union {                                         //If you have not spent points in this 
-/*0x70*/ DWORD PointsSpent;                //ability, then its PointsToBeSpent (or 
-/*0x70*/ DWORD PointsToBeSpent;            //'Cost', in other words).
-}; 
-/*0x74*/ BYTE  Unknown0x74[0x14];
-/*0x88*/ BYTE  Expansion;
-/*0x89*/ BYTE  Unknown0x89[0x1b];
-/*0xa4*/
+/*0x54*/ DWORD Unknown0x54;				// this uses the same class as prereqs, so count?
+/*0x58*/ DWORD *reuse_id; 
+/*0x5c*/ BYTE  Unknown0x5c[0x8];
+/*0x64*/ DWORD ReuseTimer;				// in seconds
+/*0x68*/ DWORD Classes;					// Classes/2 is the actual value we want.
+/*0x6c*/ DWORD MaxRank;					//so like x/25, this is the 25
+union {									//If you have not spent points in this 
+/*0x70*/ DWORD PointsSpent;				//ability, then its PointsToBeSpent (or 
+/*0x70*/ DWORD PointsToBeSpent;			//'Cost', in other words).
+};
+/*0x74*/ DWORD last_id;					// -1 if none, although sometimes it can be -1 when there is ...
+/*0x78*/ DWORD next_id;					// ID of the next rank
+/*0x7C*/ BYTE grant_only;				// vet AA, quest AA
+/*0x7D*/ BYTE  Unknown0x7d[0x3];
+/*0x80*/ DWORD max_charges;				// charges on expendable AAs
+/*0x84*/ BYTE Unknown0x84[0x4];
+/*0x88*/ DWORD Expansion;
+/*0x8c*/ DWORD special_category;		// 7 is expendable, -1 none
+/*0x90*/ BYTE shroud;
+/*0x91*/ BYTE unknown0x91;
+/*0x92*/ BYTE loh;						// 1 for lay on hands only. yep.
+/*0x93*/ BYTE Autogrant;				// 1 if auto grant is enabled
+/*0x94*/ DWORD autogrant_expasnion;		// Usually the same as normal expansion if enabled
+/*0x98*/ DWORD effects_count;			// Count of spell effects for AA
+/*0x9c*/ DWORD **effects;				// this is repeated a few times some times
+/*0xA0*/ BYTE Unknown0xA0[0x8];
+/*0xa8*/
 } ALTABILITY, *PALTABILITY;
 
 typedef struct _ALTABILITIESLISTMGR {

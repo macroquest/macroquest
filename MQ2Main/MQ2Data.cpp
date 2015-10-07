@@ -93,7 +93,7 @@ TLO(dataSelect)
             Ret.Type=pIntType;
             return true;
         }
-        if (!stricmp(szArg1,szArg))
+        if (!_stricmp(szArg1,szArg))
         {
             Ret.DWord=N-2;
             Ret.Type=pIntType;
@@ -448,7 +448,7 @@ TLO(dataBool)
 /*
 TLO(dataGroupLeader)
 {
-    if (!GroupLeader[0] || !stricmp(GroupLeader,GetCharInfo()->pSpawn->Name))
+    if (!GroupLeader[0] || !_stricmp(GroupLeader,GetCharInfo()->pSpawn->Name))
     {
         Ret.Ptr=GetCharInfo()->pSpawn;
         Ret.Type=pSpawnType;
@@ -460,7 +460,7 @@ TLO(dataGroupLeader)
         {
             if (PSPAWNINFO pSpawn=(PSPAWNINFO)ppGroup[N])
             {
-                if (!stricmp(pSpawn->Name,GroupLeader))
+                if (!_stricmp(pSpawn->Name,GroupLeader))
                 {
                     Ret.Ptr=pSpawn;
                     Ret.Type=pSpawnType;
@@ -931,7 +931,7 @@ TLO(dataFindItemBank)
         {
             if (bExact)
             {
-                if (!stricmp(Name,GetItemFromContents(pPack)->Name))
+                if (!_stricmp(Name,GetItemFromContents(pPack)->Name))
                 {
                     Ret.Ptr=pPack;
                     Ret.Type=pItemType;
@@ -956,7 +956,7 @@ TLO(dataFindItemBank)
                     {
                         if (bExact)
                         {
-                            if (!stricmp(Name,GetItemFromContents(pItem)->Name))
+                            if (!_stricmp(Name,GetItemFromContents(pItem)->Name))
                             {
                                 Ret.Ptr=pItem;
                                 Ret.Type=pItemType;
@@ -985,7 +985,7 @@ TLO(dataFindItemBank)
         {
             if (bExact)
             {
-                if (!stricmp(Name,GetItemFromContents(pPack)->Name))
+                if (!_stricmp(Name,GetItemFromContents(pPack)->Name))
                 {
                     Ret.Ptr=pPack;
                     Ret.Type=pItemType;
@@ -1010,7 +1010,7 @@ TLO(dataFindItemBank)
                     {
                         if (bExact)
                         {
-                            if (!stricmp(Name,GetItemFromContents(pItem)->Name))
+                            if (!_stricmp(Name,GetItemFromContents(pItem)->Name))
                             {
                                 Ret.Ptr=pItem;
                                 Ret.Type=pItemType;
@@ -1195,7 +1195,7 @@ TLO(dataFindItemCount)
 			{
 				if (bExact)
 				{
-					if (!stricmp(Name,GetItemFromContents(pItem)->Name))
+					if (!_stricmp(Name,GetItemFromContents(pItem)->Name))
 					{
 						if ((GetItemFromContents(pItem)->Type != ITEMTYPE_NORMAL) ||
 							(((EQ_Item*)pItem)->IsStackable() != 1)) 
@@ -1209,7 +1209,7 @@ TLO(dataFindItemCount)
 						for(nAug = 0; nAug < pItem->NumOfSlots2; nAug++)
 						{
 							if(pItem->pContentsArray->Contents[nAug] && GetItemFromContents(pItem->pContentsArray->Contents[nAug])->Type == ITEMTYPE_NORMAL && GetItemFromContents(pItem->pContentsArray->Contents[nAug])->AugType &&
-								!stricmp(Name, GetItemFromContents(pItem->pContentsArray->Contents[nAug])->Name))
+								!_stricmp(Name, GetItemFromContents(pItem->pContentsArray->Contents[nAug])->Name))
 								Count++;
 						}
 					}
@@ -1251,7 +1251,7 @@ TLO(dataFindItemCount)
 						{
 							if (bExact)
 							{
-								if (!stricmp(Name,GetItemFromContents(pItem)->Name))
+								if (!_stricmp(Name,GetItemFromContents(pItem)->Name))
 								{
 									if ((GetItemFromContents(pItem)->Type != ITEMTYPE_NORMAL) ||
 										(((EQ_Item*)pItem)->IsStackable() != 1)) 
@@ -1265,7 +1265,7 @@ TLO(dataFindItemCount)
 									for(nAug = 0; nAug < pItem->NumOfSlots2; nAug++)
 									{
 										if(pItem->pContentsArray->Contents[nAug] && GetItemFromContents(pItem->pContentsArray->Contents[nAug])->Type == ITEMTYPE_NORMAL && GetItemFromContents(pItem->pContentsArray->Contents[nAug])->AugType &&
-											!stricmp(Name, GetItemFromContents(pItem->pContentsArray->Contents[nAug])->Name))
+											!_stricmp(Name, GetItemFromContents(pItem->pContentsArray->Contents[nAug])->Name))
 											Count++;
 									}
 								}
@@ -1333,7 +1333,7 @@ TLO(dataFindItemBankCount)
         {
             if (bExact)
             {
-                if (!stricmp(Name,GetItemFromContents(pPack)->Name))
+                if (!_stricmp(Name,GetItemFromContents(pPack)->Name))
                 {
                     if ((GetItemFromContents(pPack)->Type != ITEMTYPE_NORMAL) ||
                         (((EQ_Item*)pPack)->IsStackable() != 1))
@@ -1361,7 +1361,7 @@ TLO(dataFindItemBankCount)
                     {
                         if (bExact)
                         {
-                            if (!stricmp(Name,GetItemFromContents(pItem)->Name))
+                            if (!_stricmp(Name,GetItemFromContents(pItem)->Name))
                             {
                                 if ((GetItemFromContents(pItem)->Type != ITEMTYPE_NORMAL) ||
                                     (((EQ_Item*)pItem)->IsStackable() != 1))
@@ -1394,7 +1394,7 @@ TLO(dataFindItemBankCount)
         {
             if (bExact)
             {
-                if (!stricmp(Name,GetItemFromContents(pPack)->Name))
+                if (!_stricmp(Name,GetItemFromContents(pPack)->Name))
                 {
                     if ((GetItemFromContents(pPack)->Type != ITEMTYPE_NORMAL) ||
                         (((EQ_Item*)pPack)->IsStackable() != 1))
@@ -1422,7 +1422,7 @@ TLO(dataFindItemBankCount)
                     {
                         if (bExact)
                         {
-                            if (!stricmp(Name,GetItemFromContents(pItem)->Name))
+                            if (!_stricmp(Name,GetItemFromContents(pItem)->Name))
                             {
                                 if ((GetItemFromContents(pItem)->Type != ITEMTYPE_NORMAL) ||
                                     (((EQ_Item*)pItem)->IsStackable() != 1))
@@ -1470,7 +1470,7 @@ TLO(dataInvSlot)
         CHAR Temp[MAX_STRING]={0};
         strlwr(strcpy(Temp,GETFIRST()));
         Ret.DWord=ItemSlotMap[Temp];
-        if (Ret.DWord || !stricmp(Temp,"charm"))
+        if (Ret.DWord || !_stricmp(Temp,"charm"))
         {
             Ret.Type=pInvSlotType;
             return true;
@@ -1505,7 +1505,7 @@ TLO(dataPlugin)
         PMQPLUGIN pPlugin=pPlugins;
         while(pPlugin)
         {
-            if (!stricmp(pPlugin->szFilename,szIndex))
+            if (!_stricmp(pPlugin->szFilename,szIndex))
             {
                 Ret.Ptr=pPlugin;
                 Ret.Type=pPluginType;
@@ -1541,7 +1541,7 @@ TLO(dataSkill)
             {
                 if (PCHAR pName=pStringTable->getString(pSkill->nName,0))
                 {
-                    if (!stricmp(GETFIRST(),pName))
+                    if (!_stricmp(GETFIRST(),pName))
                     {
                         Ret.Ptr=&pSkillMgr->pSkill[nSkill];
                         Ret.Type=pSkillType;
@@ -1563,7 +1563,7 @@ TLO(dataAltAbility)
     {
         for (unsigned long nAbility=0 ; nAbility<NUM_ALT_ABILITIES ; nAbility++)
         {
-            if ( PALTABILITY pAbility=pAltAdvManager->GetAltAbility(nAbility))
+            if ( PALTABILITY pAbility=pAltAdvManager->GetAAById(nAbility))
             {
                 if (pAbility->ID == GETNUMBER() )
                 {
@@ -1578,11 +1578,11 @@ TLO(dataAltAbility)
     {
         for (unsigned long nAbility=0 ; nAbility<NUM_ALT_ABILITIES ; nAbility++)
         {
-            if ( PALTABILITY pAbility=pAltAdvManager->GetAltAbility(nAbility))
+            if ( PALTABILITY pAbility=pAltAdvManager->GetAAById(nAbility))
             {
                 if (PCHAR pName=pCDBStr->GetString(pAbility->nName, 1, NULL))
                 {
-                    if (!stricmp(GETFIRST(),pName))
+                    if (!_stricmp(GETFIRST(),pName))
                     {
                         Ret.Ptr=pAbility;
                         Ret.Type=pAltAbilityType;
@@ -1788,7 +1788,7 @@ TLO(dataAlias)
       PALIAS pLoop = pAliases;
       while (pLoop)
       {
-         if (!stricmp(pLoop->szName, GETFIRST()))
+         if (!_stricmp(pLoop->szName, GETFIRST()))
          {
             Ret.DWord = 1;
             Ret.Type = pBoolType;

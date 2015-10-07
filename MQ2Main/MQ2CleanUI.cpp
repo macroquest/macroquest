@@ -46,7 +46,7 @@ public:
     bool GetWorldFilePath_Trampoline(char *, char *);
     bool GetWorldFilePath_Detour(char *Filename, char *FullPath)
     {
-        if (!stricmp(FullPath,"bmpwad8.s3d"))
+        if (!_stricmp(FullPath,"bmpwad8.s3d"))
         {
             sprintf(Filename,"%s\\bmpwad8.s3d",gszINIPath);
             if (_access(Filename,0)!=-1)

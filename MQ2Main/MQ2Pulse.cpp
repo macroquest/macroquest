@@ -136,15 +136,15 @@ void Pulse()
         HealthGained=0;
         EnduranceGained=0;
         // see if we're on a pvp server
-        if (!strncmp(EQADDR_SERVERNAME,"tallon",6) || !strncmp(EQADDR_SERVERNAME,"vallon",6))
+        if (!_strnicmp(EQADDR_SERVERNAME,"tallon",6) || !_strnicmp(EQADDR_SERVERNAME,"vallon",6))
         {
             PVPServer=PVP_TEAM;
         }
-        else if (!strncmp(EQADDR_SERVERNAME,"sullon",6))
+        else if (!_strnicmp(EQADDR_SERVERNAME,"sullon",6))
         {
             PVPServer=PVP_SULLON;
         }
-        else if (!strncmp(EQADDR_SERVERNAME,"rallos",6))
+        else if (!_strnicmp(EQADDR_SERVERNAME,"rallos",6))
         {
             PVPServer=PVP_RALLOS;
         }
