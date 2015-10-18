@@ -105,7 +105,7 @@ namespace MQ2Internal {
 		DWORD PlayerState;
     } SEARCHSPAWN, *PSEARCHSPAWN;
 
-    static enum SearchItemFlag
+    enum SearchItemFlag
     {
         Lore=1,
         NoDrop=2,

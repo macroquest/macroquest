@@ -527,7 +527,7 @@ typedef struct _ITEMINFO {
 /*0x0040*/ CHAR         LoreName[LORE_NAME_LEN];
 /*0x00b0*/ CHAR         IDFile[0x20];
 /*0x00d0*/ BYTE         Unknown0x00d0[0x1c];
-/*0x00ec*/ DWORD        ItemNumber;
+/*0x00ec*/ DWORD        ItemNumber;//GetItemRecordNum
 /*0x00f0*/ DWORD        EquipSlots;
 /*0x00f4*/ DWORD        Cost;
 /*0x00f8*/ DWORD        IconNumber;

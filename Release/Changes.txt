@@ -1,3 +1,8 @@
+17 Oct 2015 by EqMule
+- Please don't use MQ2 for unattended gameplay (afk botting)
+- Updated for TEST
+- Fixed a few VS 2015 compile warnings.
+
 07 Oct 2015 by EqMule
 - Please don't use MQ2 for unattended gameplay (afk botting)
 - Added some stuff to the ALTABILITY struct, cred demonstar55

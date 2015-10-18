@@ -113,7 +113,7 @@ public:
 class MQ2IntType : public MQ2Type
 {
 public:
-    static enum IntMembers
+    enum IntMembers
     {
         Float=1,
         Double=2,
@@ -155,7 +155,7 @@ public:
 class MQ2Int64Type : public MQ2Type
 {
 public:
-    static enum Int64Members
+    enum Int64Members
     {
         Float=1,
         Double=2,
@@ -198,7 +198,7 @@ public:
 class MQ2ArgbType : public MQ2Type
 {
 public:
-    static enum ArgbMembers
+    enum ArgbMembers
     {
         A=0,
         R=1,
@@ -275,7 +275,7 @@ public:
 class MQ2StringType : public MQ2Type
 {
 public:
-    static enum StringMembers
+    enum StringMembers
     {
         Arg=1,
         Mid=2,
@@ -351,7 +351,7 @@ public:
 class MQ2FloatType : public MQ2Type
 {
 public:
-    static enum FloatMembers
+    enum FloatMembers
     {
         Deci=1,
         Centi=2,
@@ -399,7 +399,7 @@ public:
 class MQ2DoubleType : public MQ2Type
 {
 public:
-    static enum DoubleMembers
+    enum DoubleMembers
     {
         Deci=1,
         Centi=2,
@@ -447,7 +447,7 @@ public:
 class MQ2TicksType : public MQ2Type
 {
 public:
-    static enum TicksMembers
+    enum TicksMembers
     {
         Hours=1,
         Minutes=2,
@@ -496,7 +496,7 @@ public:
 class MQ2TimeStampType : public MQ2Type
 {
 public:
-    static enum TimeStampMembers
+    enum TimeStampMembers
     {
         Hours=1,
         Minutes=2,
@@ -552,7 +552,7 @@ public:
 class MQ2SpawnType : public MQ2Type
 {
 public:
-    static enum SpawnMembers
+    enum SpawnMembers
     {
         ID=1,
         Name=2,
@@ -666,7 +666,7 @@ public:
 		Stuck=114,
 		Aggressive=115,
 	};
-    static enum SpawnMethods
+    enum SpawnMethods
     {
         Target=1,
         Face=2,
@@ -850,7 +850,7 @@ public:
 class MQ2CharacterType : public MQ2Type
 {
 public:
-    static enum CharacterMembers
+    enum CharacterMembers
     {
 		CountSongs=2,
 		MaxBuffSlots=3,
@@ -1058,7 +1058,7 @@ public:
 		PiecesofEight=214,
 		SpellInCooldown=215,
     };
-    static enum CharacterMethods
+    enum CharacterMethods
     {
         Stand, 
         Sit, 
@@ -1319,7 +1319,7 @@ public:
 class MQ2SpellType : public MQ2Type
 {
 public:
-    static enum SpellMembers
+    enum SpellMembers
     {
         ID=1,
         Name=2,
@@ -1382,7 +1382,7 @@ public:
 		Beneficial=59,
 		xIsActiveAA=60,
     };
-    static enum SpellMethods
+    enum SpellMethods
     {
     };
     MQ2SpellType():MQ2Type("spell")
@@ -1490,7 +1490,7 @@ public:
 class MQ2BuffType : public MQ2Type
 {
 public:
-    static enum BuffMembers
+    enum BuffMembers
     {
         Address=1,
         ID=2,
@@ -1502,7 +1502,7 @@ public:
         Counters=8,
 		HitCount=9,
     };
-    static enum BuffMethods
+    enum BuffMethods
     {
         Remove=1,
     };
@@ -1567,7 +1567,7 @@ public:
 class MQ2TargetBuffType : public MQ2Type
 {
 public:
-    static enum TargetBuffMembers
+    enum TargetBuffMembers
     {
         Address=1,
         xIndex=2,
@@ -1617,7 +1617,7 @@ public:
 class MQ2ItemType : public MQ2Type
 {
 public:
-    static enum ItemMembers
+    enum ItemMembers
     {
         ID=1,
         Name=2,
@@ -1766,7 +1766,7 @@ public:
 		ItemLink = 145,
 		Icon = 146,
     };
-    static enum ItemMethods
+    enum ItemMethods
     {
     };
     MQ2ItemType():MQ2Type("item")
@@ -1960,7 +1960,7 @@ public:
 class MQ2SwitchType : public MQ2Type
 {
 public:
-    static enum SwitchMembers
+    enum SwitchMembers
     {
         ID=1,
         Distance=2,
@@ -1985,7 +1985,7 @@ public:
 		Address=21,
 		Distance3D=22,
     };
-    static enum SwitchMethods
+    enum SwitchMethods
     {
         Toggle=1,
     };
@@ -2052,7 +2052,7 @@ public:
 class MQ2GroundType : public MQ2Type
 {
 public:
-    static enum GroundMembers
+    enum GroundMembers
     {
         ID=1,
         Distance=2,
@@ -2068,7 +2068,7 @@ public:
         xLineOfSight=12,
         Address=13,
     };
-    static enum GroundMethods
+    enum GroundMethods
     {
         Grab=1,
     };
@@ -2130,13 +2130,13 @@ public:
 class MQ2CorpseType : public MQ2Type
 {
 public:
-    static enum CorpseMembers
+    enum CorpseMembers
     {
         Open=1,
         Item=2,
         Items=3,
     };
-    static enum CorpseMethods
+    enum CorpseMethods
     {
     };
     MQ2CorpseType():MQ2Type("corpse")
@@ -2179,7 +2179,7 @@ public:
 class MQ2MerchantType : public MQ2Type
 {
 public:
-    static enum MerchantMembers
+    enum MerchantMembers
     {
         Markup=1,
         Item=2,
@@ -2187,7 +2187,7 @@ public:
         Open=4,
         Full=5,
     };
-    static enum MerchantMethods
+    enum MerchantMethods
     {
     };
     MQ2MerchantType():MQ2Type("merchant")
@@ -2231,7 +2231,7 @@ public:
 class MQ2MercenaryType : public MQ2Type
 {
 public:
-    static enum MercenaryMembers
+    enum MercenaryMembers
     {
 		AAPoints=1,
 		Stance=2,
@@ -2264,7 +2264,7 @@ public:
 		WIS=28,
 #endif
     };
-    static enum MercenaryMethods
+    enum MercenaryMethods
     {
     };
     MQ2MercenaryType():MQ2Type("mercenary")
@@ -2356,7 +2356,7 @@ public:
 class MQ2PetType : public MQ2Type
 {
 public:
-    static enum PetMembers
+    enum PetMembers
     {
         Buff=1,
         Combat=2,
@@ -2369,7 +2369,7 @@ public:
 		Taunt=9,
 		BuffDuration=10,
     };
-    static enum PetMethods
+    enum PetMethods
     {
     };
     MQ2PetType():MQ2Type("pet")
@@ -2443,7 +2443,7 @@ public:
 class MQ2WindowType : public MQ2Type
 {
 public:
-    static enum WindowMembers
+    enum WindowMembers
     {
         Open=1,
         Child=2,
@@ -2481,7 +2481,7 @@ public:
 		GetCurSel=34,
 		Address=35,
     };
-    static enum WindowMethods
+    enum WindowMethods
     {
         LeftMouseDown=1,
         LeftMouseUp=2,
@@ -2584,7 +2584,7 @@ public:
 class MQ2MacroType : public MQ2Type
 {
 public:
-    static enum MacroMembers
+    enum MacroMembers
     {
         Name=1,
         RunTime=2,
@@ -2634,7 +2634,7 @@ public:
 class MQ2ZoneType : public MQ2Type
 {
 public:
-    static enum ZoneMembers
+    enum ZoneMembers
     {
         Name=1,
         ShortName=2,
@@ -2685,7 +2685,7 @@ public:
 class MQ2CurrentZoneType : public MQ2Type
 {
 public:
-    static enum CurrentZoneMembers
+    enum CurrentZoneMembers
     {
         Name=1,
         ShortName=2,
@@ -2749,7 +2749,7 @@ public:
 class MQ2EverQuestType : public MQ2Type
 {
 public:
-    static enum EverQuestMembers
+    enum EverQuestMembers
     {
         GameState=1,
         LoginName=2,
@@ -2772,7 +2772,7 @@ public:
         ViewportXCenter=19,
         ViewportYCenter=20,
     };
-    static enum EverQuestMethods
+    enum EverQuestMethods
     {
     };
     MQ2EverQuestType():MQ2Type("everquest")
@@ -2823,7 +2823,7 @@ public:
 class MQ2MacroQuestType : public MQ2Type
 {
 public:
-	static enum MacroQuestMembers
+	enum MacroQuestMembers
     {
 		Error=1,
         SyntaxError=2,
@@ -2862,7 +2862,7 @@ public:
 class MQ2MathType : public MQ2Type
 {
 public:
-    static enum MathMembers
+    enum MathMembers
     {
         Abs=1,
         Rand=2,
@@ -2920,7 +2920,7 @@ public:
 class MQ2RaceType : public MQ2Type
 {
 public:
-    static enum RaceMembers
+    enum RaceMembers
     {
         Name=1,
         ID=2,
@@ -2958,7 +2958,7 @@ public:
 class MQ2ClassType : public MQ2Type
 {
 public:
-    static enum ClassMembers
+    enum ClassMembers
     {
         Name=1,
         ShortName=2,
@@ -3015,7 +3015,7 @@ public:
 class MQ2BodyType : public MQ2Type
 {
 public:
-    static enum BodyMembers
+    enum BodyMembers
     {
         Name=1,
         ID=2
@@ -3052,7 +3052,7 @@ public:
 class MQ2DeityType : public MQ2Type
 {
 public:
-    static enum DeityMembers
+    enum DeityMembers
     {
         Name=1,
         Team=2,
@@ -3092,7 +3092,7 @@ public:
 class MQ2TimeType : public MQ2Type
 {
 public:
-    static enum TimeMembers
+    enum TimeMembers
     {
         Hour=1,
         Minute=2,
@@ -3169,7 +3169,7 @@ public:
 class MQ2TypeType : public MQ2Type
 {
 public:
-    static enum TypeMembers
+    enum TypeMembers
     {
         Name=1,
         TypeMember=2,
@@ -3207,7 +3207,7 @@ public:
 class MQ2HeadingType : public MQ2Type
 {
 public:
-    static enum HeadingMembers
+    enum HeadingMembers
     {
         Name=1,
         ShortName=2,
@@ -3215,7 +3215,7 @@ public:
         Clock=4,
         DegreesCCW=5,
     };
-    static enum HeadingMethods
+    enum HeadingMethods
     {
     };
     MQ2HeadingType():MQ2Type("heading")
@@ -3261,7 +3261,7 @@ public:
 class MQ2InvSlotType : public MQ2Type
 {
 public:
-    static enum InvSlotMembers
+    enum InvSlotMembers
     {
         Pack=1,
         Slot=2,
@@ -3269,7 +3269,7 @@ public:
         Name=4,
         Item=5,
     };
-    static enum InvSlotMethods
+    enum InvSlotMethods
     {
     };
     MQ2InvSlotType():MQ2Type("invslot")
@@ -3323,7 +3323,7 @@ public:
 class MQ2PluginType : public MQ2Type
 {
 public:
-    static enum PluginMembers
+    enum PluginMembers
     {
         Name=1,
         Version=2,
@@ -3365,7 +3365,7 @@ public:
 class MQ2BenchmarkType : public MQ2Type
 {
 public:
-    static enum BenchmarkMembers
+    enum BenchmarkMembers
     {
         Name=1,
         ID=2,
@@ -3411,7 +3411,7 @@ public:
 class MQ2SkillType : public MQ2Type
 {
 public:
-    static enum SkillMembers
+    enum SkillMembers
     {
         Name=1,
         ID=2,
@@ -3421,7 +3421,7 @@ public:
         AltTimer=6,
         Activated=7,
     };
-    static enum SkillMethods
+    enum SkillMethods
     {
     };
     MQ2SkillType():MQ2Type("skill")
@@ -3470,7 +3470,7 @@ public:
 class MQ2AltAbilityType : public MQ2Type
 {
 public:
-    static enum AltAbilityMembers
+    enum AltAbilityMembers
     {
         Name=1,
         ShortName=2,
@@ -3492,7 +3492,7 @@ public:
 		PointsSpent=18,
 		Rank=19,
     };
-    static enum AltAbilityMethods
+    enum AltAbilityMethods
     {
     };
     MQ2AltAbilityType():MQ2Type("altability")
@@ -3542,12 +3542,12 @@ public:
 class MQ2TimerType : public MQ2Type
 {
 public:
-    static enum TimerMembers
+    enum TimerMembers
     {
         Value=1,
         OriginalValue=2,
     };
-    static enum TimerMethods
+    enum TimerMethods
     {
         Reset=1,
         Expire=2,
@@ -3644,7 +3644,7 @@ public:
 class MQ2ArrayType : public MQ2Type
 {
 public:
-    static enum ArrayMembers
+    enum ArrayMembers
     {
         Dimensions=1,
         Size=2,
@@ -3689,7 +3689,7 @@ public:
 class MQ2GroupType : public MQ2Type
 {
 public:
-    static enum GroupMembers
+    enum GroupMembers
     {
         Address=1,
         xMember=2,
@@ -3710,7 +3710,7 @@ public:
 		CasterMercCount = 17,
 
     };
-    static enum GroupMethods
+    enum GroupMethods
     {
     };
     MQ2GroupType():MQ2Type("group")
@@ -3755,7 +3755,7 @@ public:
 class MQ2GroupMemberType : public MQ2Type
 {
 public:
-    static enum GroupMemberMembers
+    enum GroupMemberMembers
     {
         Address=1,
         Name=2,
@@ -3774,7 +3774,7 @@ public:
         OtherZone=15,
 		Present = 16,
     };
-    static enum GroupMemberMethods
+    enum GroupMemberMethods
     {
     };
     MQ2GroupMemberType():MQ2Type("groupmember")
@@ -3823,7 +3823,7 @@ public:
 class MQ2RaidType : public MQ2Type
 {
 public:
-    static enum RaidMembers
+    enum RaidMembers
     {
         xMember=1,
         Members=2,
@@ -3839,7 +3839,7 @@ public:
         MainAssist=12,
         MasterLooter=13,
     };
-    static enum RaidMethods
+    enum RaidMethods
     {
     };
     MQ2RaidType():MQ2Type("raid")
@@ -3884,7 +3884,7 @@ public:
 class MQ2RaidMemberType : public MQ2Type
 {
 public:
-    static enum RaidMemberMembers
+    enum RaidMemberMembers
     {
         Name=1,
         Group=3,
@@ -3895,7 +3895,7 @@ public:
         Class=8,
         Level=9,
     };
-    static enum RaidMemberMethods
+    enum RaidMemberMethods
     {
     };
     MQ2RaidMemberType():MQ2Type("raidmember")
@@ -3944,7 +3944,7 @@ public:
 class MQ2EvolvingItemType : public MQ2Type
 {
 public:
-    static enum EvolvingItemMembers
+    enum EvolvingItemMembers
     {
         ExpPct=1,
         ExpOn=2,
@@ -3986,7 +3986,7 @@ public:
 class MQ2DynamicZoneType : public MQ2Type
 {
 public:
-    static enum DynamicZoneMembers
+    enum DynamicZoneMembers
     {
         Name=1,
         Members=2,
@@ -4030,7 +4030,7 @@ public:
 class MQ2DZMemberType : public MQ2Type
 {
 public:
-    static enum DZMemberTypeMembers
+    enum DZMemberTypeMembers
     {
         Name=1,
         Status=2,
@@ -4062,7 +4062,7 @@ public:
 class MQ2FellowshipType : public MQ2Type
 {
 public:
-    static enum FellowshipTypeMembers
+    enum FellowshipTypeMembers
     {
         ID=1,
         Leader=2,
@@ -4115,7 +4115,7 @@ public:
 class MQ2FellowshipMemberType : public MQ2Type
 {
 public:
-    static enum FMTypeMembers
+    enum FMTypeMembers
     {
         Zone=1,
         Level=2,
@@ -4153,11 +4153,11 @@ public:
 class MQ2FriendsType : public MQ2Type
 {
 public:
-    static enum FriendsMembers
+    enum FriendsMembers
     {
         xFriend=1
     };
-    static enum FriendsMethods
+    enum FriendsMethods
     {
     };
 
@@ -4196,7 +4196,7 @@ public:
 class MQ2TargetType : public MQ2Type
 {
 public:
-    static enum TargetMembers
+    enum TargetMembers
     {
         Buff = 1,
         BuffCount = 2,
@@ -4328,7 +4328,7 @@ public:
 class MQ2TaskMemberType : public MQ2Type
 {
 public:
-    static enum TaskMemberTypeMembers
+    enum TaskMemberTypeMembers
     {
         Name=1,
         Leader=2,
@@ -4361,7 +4361,7 @@ public:
 class MQ2TaskType : public MQ2Type
 {
 public:
-	static enum TaskTypeMembers
+	enum TaskTypeMembers
     {
 		Address=1,
         Title=2,
@@ -4414,7 +4414,7 @@ public:
 class MQ2XTargetType : public MQ2Type
 {
 public:
-    static enum xTargetMembers
+    enum xTargetMembers
     {
         xAddress = 1,
         TargetType = 2,
@@ -4499,7 +4499,7 @@ public:
 class MQ2MountType : public MQ2Type
 {
 public:
-	static enum MountTypeMembers
+	enum MountTypeMembers
     {
 		xIndex=1,
 		Name=2,
@@ -4541,7 +4541,7 @@ public:
 class MQ2AdvLootItemType : public MQ2Type
 {
 public:
-    static enum AdvLootItemMembers
+    enum AdvLootItemMembers
     {
         Address=1,
         xIndex=2,
@@ -4559,7 +4559,7 @@ public:
 		IconID = 14,
 		xNoDrop = 15,
     };
-    static enum MQ2AdvLootItemMethods
+    enum MQ2AdvLootItemMethods
     {
     };
     MQ2AdvLootItemType():MQ2Type("advlootitem")
@@ -4613,7 +4613,7 @@ public:
 class MQ2AdvLootType : public MQ2Type
 {
 public:
-	static enum AdvLootTypeMembers
+	enum AdvLootTypeMembers
 	{
 		PList = 1,
 		PCount = 2,
@@ -4651,7 +4651,7 @@ public:
 class MQ2AlertType : public MQ2Type
 {
 public:
-	static enum AlertTypeMembers
+	enum AlertTypeMembers
 	{
 		List = 1,
 		Size = 2,
@@ -4686,7 +4686,7 @@ public:
 class MQ2AlertListType : public MQ2Type
 {
 public:
-	static enum AlertListTypeMembers
+	enum AlertListTypeMembers
 	{
 		MinLevel=1,
 		MaxLevel=2,
