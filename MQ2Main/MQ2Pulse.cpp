@@ -353,6 +353,7 @@ void Heartbeat()
 
     if (gDelayedCommands)
     {// delayed commands
+		lockit lk(ghLockDelayCommand);
         DoCommand((PSPAWNINFO)pLocalPlayer,gDelayedCommands->szText);
         PCHATBUF pNext=gDelayedCommands->pNext;
         LocalFree(gDelayedCommands);

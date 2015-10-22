@@ -561,7 +561,11 @@ namespace MQ2Internal {
     public:
         CIndex()
         {
-            InitializeCriticalSection(&CS);
+        try {
+			InitializeCriticalSection(&CS);
+		} catch (...) {
+			//handle?
+		}
             Size=0;
             List=0;
         }
@@ -604,19 +608,21 @@ namespace MQ2Internal {
                 if (NewSize>Size)
                 {
                     // because we want to zero out the unused portions, we wont use realloc
-                    Any *NewList=(Any*)malloc(NewSize*sizeof(Any));
-                    memset(NewList,0,NewSize*sizeof(Any));
-                    memcpy(NewList,List,Size*sizeof(Any));
-                    free(List);
-                    List=NewList;
-                    Size=NewSize;
+                    if(Any *NewList=(Any*)malloc(NewSize*sizeof(Any))) {
+						memset(NewList,0,NewSize*sizeof(Any));
+						memcpy(NewList,List,Size*sizeof(Any));
+						free(List);
+						List=NewList;
+						Size=NewSize;
+					}
                 }
             }
             else
             {
-                List=(Any*)malloc(NewSize*sizeof(Any));
-                memset(List,0,NewSize*sizeof(Any));
-                Size=NewSize;
+				if(List=(Any*)malloc(NewSize*sizeof(Any))) {
+					memset(List,0,NewSize*sizeof(Any));
+					Size=NewSize;
+				}
             }
         }
 
@@ -682,6 +688,9 @@ namespace MQ2Internal {
 				UCHAR Array[4];
 				LONG HighPart;
 			};
+			struct {
+				UCHAR FullArray[8];
+			};
 			DOUBLE Double;
 			__int64   Int64;
 			unsigned __int64   UInt64;
@@ -721,6 +730,9 @@ namespace MQ2Internal {
             struct {
 				UCHAR Array[4];
 				LONG HighPart;
+			};
+			struct {
+				UCHAR FullArray[8];
 			};
 			DOUBLE Double;
 			__int64   Int64;
@@ -781,7 +793,9 @@ namespace MQ2Internal {
 
         virtual bool FromData(MQ2VARPTR &VarPtr, MQ2TYPEVAR &Source)=0;
         virtual bool FromString(MQ2VARPTR &VarPtr, PCHAR Source)=0;
-        virtual void InitVariable(MQ2VARPTR &VarPtr) {VarPtr.Ptr=0;}
+        virtual void InitVariable(MQ2VARPTR &VarPtr) {
+			VarPtr.Ptr=0;
+		}
         virtual void FreeVariable(MQ2VARPTR &VarPtr) {}
 
         virtual bool GetMember(MQ2VARPTR VarPtr, PCHAR Member, PCHAR Index, MQ2TYPEVAR &Dest)=0;
@@ -885,6 +899,7 @@ namespace MQ2Internal {
         CDataArray(MQ2Type *Type, PCHAR Index, PCHAR Default, BOOL ByData=FALSE)
         {
             nExtents=1;
+			TotalElements=1;
 
             // count number of , 's
             if (PCHAR pComma=strchr(Index,','))
@@ -897,41 +912,37 @@ namespace MQ2Internal {
             }
 
             // allocate extents
+            if(pExtents=(DWORD*)malloc(sizeof(DWORD)*nExtents)) {
+				// read extents
+				PCHAR pStart=Index;
+				for (DWORD N = 0 ; N < nExtents ; N++)
+				{
+					PCHAR pComma=strchr(pStart,',');
+					if (pComma)
+						*pComma=0;
 
-            pExtents=(DWORD*)malloc(sizeof(DWORD)*nExtents);
+					pExtents[N]=atoi(pStart);
+					TotalElements*=pExtents[N];
+					if (pComma)
+					{
+						*pComma=',';
+						pStart=&pComma[1];
+					}
+				}
+			}
 
-            TotalElements=1;
-
-            // read extents
-            PCHAR pStart=Index;
-            unsigned long N;
-            for (N = 0 ; N < nExtents ; N++)
-            {
-                PCHAR pComma=strchr(pStart,',');
-                if (pComma)
-                    *pComma=0;
-
-                pExtents[N]=atoi(pStart);
-                TotalElements*=pExtents[N];
-                if (pComma)
-                {
-                    *pComma=',';
-                    pStart=&pComma[1];
-                }
-            }
-
-            pData = (MQ2VARPTR*) malloc(sizeof(MQ2VARPTR)*TotalElements);
-
-            if (pType=Type)
-                for (N = 0 ; N < TotalElements ; N++)
-                {
-                    pType->InitVariable(pData[N]);
-                    if (ByData)
-                        pType->FromData(pData[N],*(MQ2TYPEVAR *)Default);
-                    else
-                        pType->FromString(pData[N],Default);
-                }
-
+            if(pData = (MQ2VARPTR*) malloc(sizeof(MQ2VARPTR)*TotalElements)) {
+				if (pType=Type) {
+					for (DWORD N = 0 ; N < TotalElements ; N++)
+					{
+						pType->InitVariable(pData[N]);
+						if (ByData)
+							pType->FromData(pData[N],*(MQ2TYPEVAR *)Default);
+						else
+							pType->FromString(pData[N],Default);
+					}
+				}
+			}
         }
 
         void Delete()
@@ -939,7 +950,7 @@ namespace MQ2Internal {
             if (pExtents)
                 free(pExtents);
             if (pType && pData)
-                for (unsigned long N = 0 ; N < TotalElements ; N++)
+                for (DWORD N = 0 ; N < TotalElements ; N++)
                 {
                     pType->FreeVariable(pData[N]);
                 }
@@ -980,8 +991,7 @@ namespace MQ2Internal {
 
                 // read extents
                 PCHAR pStart=Index;
-                unsigned long N;
-                for (N = 0 ; N < nExtents ; N++)
+                for (DWORD N = 0 ; N < nExtents ; N++)
                 {
                     PCHAR pComma=strchr(pStart,',');
                     if (pComma)

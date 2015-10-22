@@ -99,20 +99,20 @@ DWORD __declspec(naked) CMyMapViewWnd__Destructor(const BOOL Deallocate)
         // it uses (unnecessarily) ebp-4
         __asm {
             push    ebp
-                push    eax
-                push    eax
-                mov            ebp, esp
+            push    eax
+            push    eax
+            mov		ebp, esp
         }
-        delete pMapViewWnd->pvfTable;
-        pMapViewWnd->pvfTable=CMyMapViewWnd__OldvfTable;
+        delete (*ppMapViewWnd)->pvfTable;
+		(*ppMapViewWnd)->pvfTable=CMyMapViewWnd__OldvfTable;
         CMyMapViewWnd__OldvfTable = NULL;
-        delete ((PEQMAPWINDOW)pMapViewWnd)->pMapViewMapVfTable;
-        ((PEQMAPWINDOW)pMapViewWnd)->pMapViewMapVfTable = MapViewMap_OldvfTable;
+        delete ((PEQMAPWINDOW)(*ppMapViewWnd))->pMapViewMapVfTable;
+        ((PEQMAPWINDOW)(*ppMapViewWnd))->pMapViewMapVfTable = MapViewMap_OldvfTable;
         MapViewMap_OldvfTable = NULL;
         __asm {
             pop     eax
-                pop     eax
-                pop     ebp
+			pop     eax
+			pop     ebp
         }
     }
 

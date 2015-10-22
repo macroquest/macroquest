@@ -167,8 +167,8 @@ public:
         }\
         }
 
-        _BazaarSearchResponsePacket bzResponse;
-        memset(&bzResponse, 0, sizeof(bzrItemData));
+		_BazaarSearchResponsePacket bzResponse = {0};
+        //memset(&bzResponse, 0, sizeof(bzrItemData));
         NetStream ns((BYTE*)bz->pData, bz->nSize);
         _BAZAARSEARCHWND *pBzWnd = *((_BAZAARSEARCHWND**)pinstCBazaarSearchWnd);
         DWORD nIndex = 0;
@@ -186,7 +186,7 @@ public:
         sTmp                    = ns.readText();
         nTmp                    = ns.readUInt32();
 
-        strcpy(bzResponse.BSSName, sTmp.c_str());
+        strcpy_s(bzResponse.BSSName, sTmp.c_str());
 
         SetTraderName(nTrader1);
 
@@ -209,7 +209,7 @@ public:
             sTmp                    = ns.readText();
             nTmp                    = ns.readUInt32();
 
-            strcpy(bzResponse.BSSName, sTmp.c_str());
+            strcpy_s(bzResponse.BSSName, sTmp.c_str());
 
             SetTraderName(nTrader);
 
@@ -426,15 +426,11 @@ PLUGIN_API VOID InitializePlugin(VOID)
     DebugSpewAlways("Initializing MQ2Bzsrch");
 
     LoadMQ2Plugin("MQ2ItemDisplay");
-    HMODULE h = LoadLibrary("MQ2ItemDisplay.dll");
-    if (!h) {
+    if(HMODULE h = GetModuleHandle("MQ2ItemDisplay.dll")) {
+		pg_Item = (ITEMINFO *)GetProcAddress(h, "g_Item");
+    } else {
         pg_Item = NULL;
     }
-    else {
-        pg_Item = (ITEMINFO *)GetProcAddress(h, "g_Item");
-    }
-    FreeLibrary(h);
-
     // Add commands, macro parameters, hooks, etc.
     AddCommand("/bzsrch",BzSrchMe);
     AddCommand("/breset",BzSrchMe);

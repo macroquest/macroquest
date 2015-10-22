@@ -303,6 +303,8 @@ GNU General Public License for more details.
 #define Util__FastTime_x                                           0x89A720
 #define Expansion_HoT_x                                            0x100D974
 #define __HelpPath_x                                               0x10910E0
+#define __STMLToText_x                                             0x8DF840
+
 //// 
 // Section 4: Function Offsets 
 //// 

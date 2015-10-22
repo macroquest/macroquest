@@ -204,18 +204,19 @@ VOID ClickMouse(DWORD button)
    gMouseClickInProgress[button] = TRUE;
 
    WeDidStuff();
-   PMOUSESPOOF pData = (PMOUSESPOOF)malloc(sizeof(MOUSESPOOF));
-   pData->mdType = (MOUSE_DATA_TYPES)mdType;
-   pData->dwData = 0x00;
-   pData->pNext = NULL;
-   if (!gMouseData) {
-      gMouseData = pData;
-   } else {
-      PMOUSESPOOF pTemp = gMouseData;
-      while (pTemp->pNext) {
-         pTemp = pTemp->pNext;
-      }
-      pTemp->pNext = pData;
+   if(PMOUSESPOOF pData = (PMOUSESPOOF)malloc(sizeof(MOUSESPOOF))) {
+	   pData->mdType = (MOUSE_DATA_TYPES)mdType;
+	   pData->dwData = 0x00;
+	   pData->pNext = NULL;
+	   if (!gMouseData) {
+		  gMouseData = pData;
+	   } else {
+		  PMOUSESPOOF pTemp = gMouseData;
+		  while (pTemp->pNext) {
+			 pTemp = pTemp->pNext;
+		  }
+		  pTemp->pNext = pData;
+	   }
    }
 }
 

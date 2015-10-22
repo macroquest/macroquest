@@ -48,7 +48,7 @@ VOID CleanMacroLine(PCHAR szLine)
         ++pStart;
     while(*pEnd==' ')
         --pEnd;
-    if (!*pStart || !*pEnd)
+    if ((pStart && !*pStart) || (pEnd && !*pEnd))
     {
         szLine[0]=0;
         return;
@@ -57,8 +57,9 @@ VOID CleanMacroLine(PCHAR szLine)
     unsigned long NewLength=1+pEnd-pStart;
     if (NewLength==Length)
         return;//nothing to do
+
     memmove(szLine,pStart,NewLength);
-    szLine[NewLength]=0;
+	szLine[NewLength]=0;
 }
 
 // ***************************************************************************
@@ -1188,35 +1189,36 @@ VOID DoEvents(PSPAWNINFO pChar, PCHAR szLine)
 
     DebugSpewNoFile("DoEvents: Running event type %d (%s) = 0x%p",pEvent->Type,(pEvent->pEventList)?pEvent->pEventList->szName:"NONE",pEvent);
 
-    PMACROSTACK pStack = (PMACROSTACK)malloc(sizeof(MACROSTACK));
+    if(PMACROSTACK pStack = (PMACROSTACK)malloc(sizeof(MACROSTACK))) {
 
-    // back the current location to previous one so we fall into
-    // /doevents again.  This screams for optimization!
+		// back the current location to previous one so we fall into
+		// /doevents again.  This screams for optimization!
 
-    gMacroStack->Location = gMacroStack->Location->pPrev;
-    pStack->Location = gMacroBlock;
-    pStack->Return[0] = 0;
-    pStack->Parameters = pEvent->Parameters;
-    PDATAVAR pParam=pStack->Parameters;
-    while(pParam) // FIX THE HEAD ON EVERY VAR WE MOVED
-    {
-        pParam->ppHead=&pStack->Parameters;
-        pParam=pParam->pNext;
-    }
-    pStack->LocalVariables = NULL;
-    pStack->pNext = gMacroStack;
-    gMacroStack = pStack;
-    if (pEvent->Type == EVENT_CUSTOM) 
-    {
-        gMacroBlock = pEvent->pEventList->pEventFunc;
-    }
-    else 
-    {
-        gMacroBlock = gEventFunc[pEvent->Type];
-    }
-    DebugSpewNoFile("DoEvents - Called event: %s",gMacroBlock->Line);
-    free(pEvent);
-    bRunNextCommand = FALSE;
+		gMacroStack->Location = gMacroStack->Location->pPrev;
+		pStack->Location = gMacroBlock;
+		pStack->Return[0] = 0;
+		pStack->Parameters = pEvent->Parameters;
+		PDATAVAR pParam=pStack->Parameters;
+		while(pParam) // FIX THE HEAD ON EVERY VAR WE MOVED
+		{
+			pParam->ppHead=&pStack->Parameters;
+			pParam=pParam->pNext;
+		}
+		pStack->LocalVariables = NULL;
+		pStack->pNext = gMacroStack;
+		gMacroStack = pStack;
+		if (pEvent->Type == EVENT_CUSTOM && pEvent->pEventList)
+		{
+			gMacroBlock = pEvent->pEventList->pEventFunc;
+		}
+		else 
+		{
+			gMacroBlock = gEventFunc[pEvent->Type];
+		}
+		DebugSpewNoFile("DoEvents - Called event: %s",gMacroBlock->Line);
+		free(pEvent);
+		bRunNextCommand = FALSE;
+	}
 }
 
 
@@ -1315,6 +1317,7 @@ VOID Next(PSPAWNINFO pChar, PCHAR szLine)
     CHAR szComp[MAX_STRING] = {0};
     CHAR ForLine[MAX_STRING] = {0};
     CHAR szNext[MAX_STRING] = {0};
+	char *pDest = 0;
     PMACROBLOCK pMacroLine = gMacroBlock;
     LONG StepSize = 1;
     GetArg(szNext,szLine,1);
@@ -1353,11 +1356,14 @@ VOID Next(PSPAWNINFO pChar, PCHAR szLine)
             }
             CHAR szTemp[MAX_STRING] = {0};
             DWORD VarNum = atoi(szLine+1);
-            LONG Loop;
+            LONG Loop = 0;
             if (strstr(_strlwr(strcpy(szTemp,ForLine)),"step")) {
-                PCHAR pTemp = strstr(szTemp,"step")+4;
-                while ( (pTemp[0]!=0) && (pTemp[0]!=' ') && (pTemp[0]!='\t')) pTemp++;
-                if (pTemp[0]!=0) StepSize = atoi(pTemp);
+                if(PCHAR pTemp = strstr(szTemp,"step")+4) {
+					while ( (pTemp[0]!=0) && (pTemp[0]!=' ') && (pTemp[0]!='\t'))
+						pTemp++;
+					if (pTemp[0]!=0)
+						StepSize = atoi(pTemp);
+				}
             }
 
             pVar = FindMQ2DataVariable(szNext);
@@ -1367,9 +1373,10 @@ VOID Next(PSPAWNINFO pChar, PCHAR szLine)
                 return;
             }
 
-            if (strstr(_strlwr(strcpy(szTemp,ForLine)),"downto")) 
+            if (strstr(_strlwr(strcpy(szTemp,ForLine)),"downto"))
             {
-                Loop = atoi(strstr(szTemp,"downto")+7);
+				if(pDest = strstr(szTemp,"downto"))
+					Loop = atoi(pDest + 7);
                 //DebugSpewNoFile("Next - End of loop %d downto %d", pVar->Var.Int, Loop);
                 pVar->Var.Int-=StepSize;
                 if (pVar->Var.Int >= Loop) 
@@ -1377,7 +1384,8 @@ VOID Next(PSPAWNINFO pChar, PCHAR szLine)
             } 
             else 
             {
-                Loop = atoi(strstr(szTemp,"to")+3);
+				if(pDest = strstr(szTemp, "to"))
+					Loop = atoi(pDest + 3);
                 //DebugSpewNoFile("Next - End of loop %d to %d", pVar->Var.Int, Loop);
                 pVar->Var.Int+=StepSize;
                 if (pVar->Var.Int <= Loop) 
@@ -1404,7 +1412,7 @@ VOID Continue(PSPAWNINFO pChar, PCHAR szLine)
         return;
     }
 
-   while (bRunNextCommand = TRUE) 
+   while (bRunNextCommand == TRUE) //FIX?
    {   
       if (!strnicmp(gMacroBlock->Line,"Sub ",4) || (!gMacroBlock->pNext))
       {
@@ -1433,7 +1441,7 @@ VOID Break(PSPAWNINFO pChar, PCHAR szLine)
         return;
     }
 
-   while (bRunNextCommand = TRUE) 
+   while (bRunNextCommand == TRUE) //FIX?
    {   
       if (!strnicmp(gMacroBlock->Line,"Sub ",4) || (!gMacroBlock->pNext))
       {

@@ -1,3 +1,22 @@
+21 Oct 2015 by EqMule
+- Please don't use MQ2 for unattended gameplay (afk botting)
+- Updated for LIVE
+- Fixed and cleaned a bunch of small stuff but it is possible I broke some stuff as well,
+ report if u find something that worked in last zip and not in this one.
+- ${DisplayItem} now takes an index as an option parameter index can be 0-5
+  you can still just do ${DsiplayItem} and it will just pick whatever you inspected last.
+  Example: /echo ${DisplayItem[5]}
+- Added a few new members to the DisplayItem TLO:
+		Info = 1,
+		WindowTitle = 2,
+		AdvancedLore = 3,
+		MadeBy = 4,
+		Information = 5,
+		DisplayIndex = 6
+  There is a difference between .Info and .Information .Info contains for example:
+  .Info can return text like; this item is placable in yards, guild yards blah blah , This item can be used in tradeskills
+  .Information can return text like Item Information: Placing this augment into blah blah, this armor can only be used in blah blah
+
 17 Oct 2015 by EqMule
 - Please don't use MQ2 for unattended gameplay (afk botting)
 - Updated for TEST

@@ -234,8 +234,10 @@ public:
     }
     bool FromString(MQ2VARPTR &VarPtr, PCHAR Source)
     {
-        sscanf(Source,"%x",&VarPtr.Int);
-        return true;
+        if(sscanf_s(Source,"%x",&VarPtr.Int)) {
+			return true;
+		}
+        return false;
     }
 };
 #ifndef ISXEQ
@@ -3578,27 +3580,29 @@ public:
     }
     void InitVariable(MQ2VARPTR &VarPtr) 
     {
-        PMQTIMER pVar = (PMQTIMER)malloc(sizeof(MQTIMER));
-        pVar->szName[0]=0;
-        pVar->Current = 0;
-        pVar->Original= 0;
-        pVar->pNext = gTimer;
-        pVar->pPrev=0;
-        if (gTimer)
-            gTimer->pPrev=pVar;
-        gTimer=pVar;
-        VarPtr.Ptr=pVar;
+        if(PMQTIMER pVar = (PMQTIMER)malloc(sizeof(MQTIMER))) {
+			pVar->szName[0]=0;
+			pVar->Current = 0;
+			pVar->Original= 0;
+			pVar->pNext = gTimer;
+			pVar->pPrev=0;
+			if (gTimer)
+				gTimer->pPrev=pVar;
+			gTimer=pVar;
+			VarPtr.Ptr=pVar;
+		}
     }
     void FreeVariable(MQ2VARPTR &VarPtr) 
     {
-        PMQTIMER pVar=(PMQTIMER)VarPtr.Ptr;
-        if (pVar->pPrev)
-            pVar->pPrev->pNext=pVar->pNext;
-        else
-            gTimer=pVar->pNext;
-        if (pVar->pNext)
-            pVar->pNext->pPrev=pVar->pPrev;
-        free(VarPtr.Ptr);
+        if(PMQTIMER pVar=(PMQTIMER)VarPtr.Ptr) {
+			if (pVar->pPrev)
+				pVar->pPrev->pNext=pVar->pNext;
+			else
+				gTimer=pVar->pNext;
+			if (pVar->pNext)
+				pVar->pNext->pPrev=pVar->pPrev;
+			free(VarPtr.Ptr);
+		}
     }
 #ifndef MQ2PLUGIN
     bool FromData(MQ2VARPTR &VarPtr, MQ2TYPEVAR &Source)

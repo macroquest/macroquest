@@ -273,14 +273,14 @@ bool MQ2Int64Type::GETMEMBER()
             Dest.Type=pStringType;
         return true;
     case Reverse:
-        Dest.Array[0]=VarPtr.Array[7];
-        Dest.Array[1]=VarPtr.Array[6];
-        Dest.Array[2]=VarPtr.Array[5];
-        Dest.Array[3]=VarPtr.Array[4];
-        Dest.Array[4]=VarPtr.Array[3];
-        Dest.Array[5]=VarPtr.Array[2];
-        Dest.Array[6]=VarPtr.Array[1];
-        Dest.Array[7]=VarPtr.Array[0];
+        Dest.FullArray[0]=VarPtr.FullArray[7];
+        Dest.FullArray[1]=VarPtr.FullArray[6];
+        Dest.FullArray[2]=VarPtr.FullArray[5];
+        Dest.FullArray[3]=VarPtr.FullArray[4];
+        Dest.FullArray[4]=VarPtr.FullArray[3];
+        Dest.FullArray[5]=VarPtr.FullArray[2];
+        Dest.FullArray[6]=VarPtr.FullArray[1];
+        Dest.FullArray[7]=VarPtr.FullArray[0];
         Dest.Type=pInt64Type;
         return true;
     }
@@ -735,9 +735,11 @@ bool MQ2MathType::GETMEMBER()
         Dest.Type=pStringType;
         return true;
     case Dec:
-        sscanf(Index,"%x",&Dest.DWord);
-        Dest.Type=pIntType;
-        return true;
+		if(sscanf_s(Index,"%x",&Dest.DWord)) {
+			Dest.Type=pIntType;
+			return true;
+		}
+		return false;
     case Distance:
         if (ISINDEX())
         {
@@ -2313,7 +2315,7 @@ bool MQ2CharacterType::GETMEMBER()
             if (ISNUMBER())
             {
                 unsigned long nSlot=GETNUMBER();
-                if (nSlot<0x800)
+                if (nSlot<33)
                 {
 					PCHARINFO2 pChar2 = GetCharInfo2();
 					if(pChar2 && pChar2->pInventoryArray && pChar2->pInventoryArray->InventoryArray) {
@@ -6964,7 +6966,7 @@ bool MQ2CorpseType::GETMEMBER()
             if (ISNUMBER())
             {
                 unsigned long nIndex=GETNUMBER()-1;
-                if (nIndex<34 && pLoot->pInventoryArray)
+                if (nIndex<33 && pLoot->pInventoryArray)
                 {
                     if (Dest.Ptr=pLoot->pInventoryArray->InventoryArray[nIndex])
                     {
@@ -7427,7 +7429,7 @@ bool MQ2PetType::GETMEMBER()
         if (ISNUMBER())
         {
             unsigned long nBuff=GETNUMBER()-1;
-            if (nBuff>NUM_BUFF_SLOTS)
+            if (nBuff>=NUM_BUFF_SLOTS)
                 return false;
             if (pPetInfoWindow->Buff[nBuff]==0xFFFFFFFF || pPetInfoWindow->Buff[nBuff]==0)
                 return false;
@@ -7459,7 +7461,7 @@ bool MQ2PetType::GETMEMBER()
         if (ISNUMBER())
         {
             unsigned long nBuff=GETNUMBER()-1;
-            if (nBuff>NUM_BUFF_SLOTS)
+            if (nBuff>=NUM_BUFF_SLOTS)
                 return false;
             if (pPetInfoWindow->Buff[nBuff]==0xFFFFFFFF || pPetInfoWindow->Buff[nBuff]==0)
                 return false;
@@ -7967,7 +7969,8 @@ bool MQ2AltAbilityType::GETMEMBER()
                 }
             }
         }
-        DebugSpew("ability %d not found\n", *pAbility->RequiresAbility);
+		if(pAbility)
+			DebugSpew("ability %d not found\n", pAbility->RequiresAbility);
         return false;
     case RequiresAbilityPoints:
         if (pAbility->RequiresAbilityPoints) {
@@ -8466,16 +8469,26 @@ bool MQ2GroupMemberType::GETMEMBER()
 		Dest.Type = pIntType;
 		return true;
 	case Offline:
-		Dest.DWord = pGroupMemberData->Offline;
-		Dest.Type = pBoolType;
-		return true;
+	{
+		if(pGroupMemberData) {
+			Dest.DWord = pGroupMemberData->Offline;
+			Dest.Type = pBoolType;
+			return true;
+		}
+		return false;
+	}
 	case Present:
-		Dest.DWord = pGroupMemberData->pSpawn ? 1:0;
-		Dest.Type = pBoolType;
-		return true;
+	{
+		if (pGroupMemberData) {
+			Dest.DWord = pGroupMemberData->pSpawn ? 1:0;
+			Dest.Type = pBoolType;
+			return true;
+		}
+		return false;
+	}
 	case OtherZone:
 		Dest.DWord = 0;
-		if(pGroupMemberData->Offline==0 && pGroupMemberData->pSpawn==0)
+		if(pGroupMemberData && pGroupMemberData->Offline==0 && pGroupMemberData->pSpawn==0)
 			Dest.DWord = 1;
 		Dest.Type = pBoolType;
 		return true;
@@ -9474,10 +9487,12 @@ bool MQ2TaskType::GETMEMBER()
 			GetCXStr(Str.Ptr,szOut,254);
 			if(szOut[0]!='\0') {
 				int hh, mm, ss;
-				sscanf_s(szOut, "%d:%d:%d", &hh, &mm, &ss);
-				Dest.UInt64 = ((hh*3600)+(mm*60)+ss)*1000;
-				Dest.Type=pTimeStampType;
-				return true;
+				if(sscanf_s(szOut, "%d:%d:%d", &hh, &mm, &ss)) {
+					Dest.UInt64 = ((hh*3600)+(mm*60)+ss)*1000;
+					Dest.Type=pTimeStampType;
+					return true;
+				}
+				return false;
 			}
 		}
 		return false;

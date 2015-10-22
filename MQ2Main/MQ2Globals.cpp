@@ -239,7 +239,7 @@ struct _actordefentry ActorDefList[] = {
 HANDLE ghLockSpellMap = 0;
 /* PickZone */
 HANDLE ghLockPickZone = 0;
-
+HANDLE ghLockDelayCommand = 0;
 /* BENCHMARKS */
 DWORD bmWriteChatColor=0;
 DWORD bmPluginsIncomingChat=0;
@@ -1441,6 +1441,8 @@ INITIALIZE_EQGAME_OFFSET(DrawNetStatus);
 INITIALIZE_EQGAME_OFFSET(Util__FastTime);
 INITIALIZE_EQGAME_OFFSET(Expansion_HoT);
 INITIALIZE_EQGAME_OFFSET(__HelpPath);
+INITIALIZE_EQGAME_OFFSET(__STMLToText);
+
 
 INITIALIZE_EQGAME_OFFSET(CAdvancedLootWnd__CAdvancedLootWnd);
 INITIALIZE_EQGAME_OFFSET(CAdvancedLootWnd__DoAdvLootAction);

@@ -34,18 +34,130 @@ void Comment(PSPAWNINFO pChar, PCHAR szLine);
 void DoGearScoreUserCommand(PSPAWNINFO pChar, PCHAR szLine);
 void AddGearScores(PCONTENTS pSlot,ITEMINFO *pItem,char *out,char *br);
 #endif
+typedef struct _DISPLAYITEMSTRINGS
+{
+	std::string ItemInfo;////this item is placable in yards, guild yards blah blah , This item can be used in tradeskills
+	std::string WindowTitle;
+	std::string ItemAdvancedLoreText;
+	std::string ItemMadeByText;
+	std::string ItemInformationText;//Item Information: Placing this augment into blah blah, this armor can only be used in blah blah
+} DISPLAYITEMSTRINGS,*PDISPLAYITEMSTRINGS;
 
 extern "C" {
+	__declspec(dllexport) class MQ2DisplayItemType *pDisplayItemType = 0;
     __declspec(dllexport) ITEMINFO g_Item;
-	CONTENTS g_Contents = { 0 };
+	__declspec(dllexport) CONTENTS g_Contents[6] = { 0 };
+	__declspec(dllexport) DWORD g_LastIndex = 5;
+	__declspec(dllexport) HANDLE hDisplayItemLock = 0;
+	__declspec(dllexport) std::map<DWORD,DISPLAYITEMSTRINGS>contentsitemstrings;
 }
-
+class MQ2DisplayItemType : public MQ2Type {
+private:
+	char Temps[MAX_STRING];
+public:
+	enum DisplayItemMembers {
+		Info = 1,
+		WindowTitle = 2,
+		AdvancedLore = 3,
+		MadeBy = 4,
+		Information = 5,
+		DisplayIndex = 6
+	};
+	MQ2DisplayItemType() :MQ2Type("DisplayItem") {
+		TypeMember(Info);
+		TypeMember(WindowTitle);
+		TypeMember(AdvancedLore);
+		TypeMember(MadeBy);
+		TypeMember(Information);
+		TypeMember(DisplayIndex);
+	}
+	bool GetMember(MQ2VARPTR VarPtr, PCHAR Member, PCHAR Index, MQ2TYPEVAR &Dest) {
+		int index = VarPtr.DWord;
+		PCONTENTS pCont = &g_Contents[index];
+		PMQ2TYPEMEMBER pMember = MQ2DisplayItemType::FindMember(Member);
+		if (!pMember)
+		{
+			
+#ifndef ISXEQ
+			return pItemType->GetMember(*(MQ2VARPTR*)&pCont, Member, Index, Dest);
+#else
+			return pItemType->GetMember(*(LSVARPTR*)&pCont, Member, argc, argv, Dest);
+#endif
+		}
+		if (pMember) {
+			switch ((DisplayItemMembers)pMember->ID) {
+			case Info:
+				strcpy_s(DataTypeTemp, contentsitemstrings[index].ItemInfo.c_str());
+				Dest.Ptr = &DataTypeTemp[0];
+				Dest.Type = pStringType;
+				return true;
+			case WindowTitle:
+				strcpy_s(DataTypeTemp, contentsitemstrings[index].WindowTitle.c_str());
+				Dest.Ptr = &DataTypeTemp[0];
+				Dest.Type = pStringType;
+				return true;
+			case AdvancedLore:
+				strcpy_s(DataTypeTemp, contentsitemstrings[index].ItemAdvancedLoreText.c_str());
+				Dest.Ptr = &DataTypeTemp[0];
+				Dest.Type = pStringType;
+				return true;
+			case MadeBy:
+				strcpy_s(DataTypeTemp, contentsitemstrings[index].ItemMadeByText.c_str());
+				Dest.Ptr = &DataTypeTemp[0];
+				Dest.Type = pStringType;
+				return true;
+			case Information:
+				strcpy_s(DataTypeTemp, contentsitemstrings[index].ItemInformationText.c_str());
+				Dest.Ptr = &DataTypeTemp[0];
+				Dest.Type = pStringType;
+				return true;
+			case DisplayIndex:
+				Dest.DWord = g_LastIndex;
+				Dest.Type = pIntType;
+				return true;
+			}
+		}
+		return false;
+	}
+	DECLAREGETMETHOD();
+	INHERITDIRECT(pItemType);
+	bool ToString(MQ2VARPTR VarPtr, PCHAR Destination) {
+		if(PCONTENTS pCont = &g_Contents[VarPtr.DWord]) {
+			if(PITEMINFO pItem = GetItemFromContents(pCont)) {
+				strcpy_s(Destination,128, pItem->Name);
+				return true;
+			}
+		}
+		strcpy_s(Destination,128, contentsitemstrings[VarPtr.DWord].WindowTitle.c_str());
+		return true;
+	}
+	bool FromData(MQ2VARPTR &VarPtr, MQ2TYPEVAR &Source) {
+		return false;
+	}
+	bool FromString(MQ2VARPTR &VarPtr, PCHAR Source) {
+		return false;
+	}
+	~MQ2DisplayItemType() { }
+};
 BOOL dataLastItem(PCHAR szName, MQ2TYPEVAR &Ret)
 {
-	if (g_Contents.vtable) {
-		Ret.Ptr = &g_Contents;
-		Ret.Type = pItemType;
-		return true;
+	lockit lockid(hDisplayItemLock);
+	if (szName[0])
+	{
+		if(IsNumber(szName)) {
+			int index = atoi(szName);
+			if (index<6 && g_Contents[index].vtable) {
+				Ret.DWord = index;
+				Ret.Type = pDisplayItemType;
+				return true;
+			}
+		}
+	} else {
+		 if (g_Contents[g_LastIndex].vtable) {
+			 Ret.DWord = g_LastIndex;
+			 Ret.Type = pDisplayItemType;
+			 return true;
+		 }
 	}
 	return false;
 }
@@ -435,7 +547,8 @@ public:
     VOID UpdateStrings_Trampoline();
     VOID UpdateStrings_Detour()
     {
-        PEQITEMWINDOW This=(PEQITEMWINDOW)this;
+		PEQITEMWINDOW This=(PEQITEMWINDOW)this;
+		int index = This->ItemWndIndex;
         PCONTENTS item=(PCONTENTS)This->pItem;
         volatile PITEMINFO Item=GetItemFromContents(item);
         CHAR out[MAX_STRING] = {0};
@@ -443,10 +556,71 @@ public:
         PCHAR lore = NULL;
 
         UpdateStrings_Trampoline();
-
+		lockit lockid(hDisplayItemLock);
+		//add the strings to our map
+		try {
+			if(This->ItemInformationText) {
+				GetCXStr(This->ItemInformationText, temp);
+				CXStr szin = temp;
+				CXStr szout;
+				if (CXStr *ret = STMLToText(&szout, szin, true)) {
+					GetCXStr(szout.Ptr, temp);
+					contentsitemstrings[index].ItemInformationText = temp;
+				}
+			} else {
+				contentsitemstrings[index].ItemInformationText.clear();
+			}
+			if (This->ItemInfo) {
+				GetCXStr(This->ItemInfo,temp);
+				CXStr szin = temp;
+				CXStr szout;
+				if(CXStr *ret = STMLToText(&szout, szin,true)) {
+					GetCXStr(szout.Ptr,temp);
+					contentsitemstrings[index].ItemInfo = temp;
+				}
+			} else {
+				contentsitemstrings[index].ItemInfo.clear();
+			}
+			if (This->ItemMadeByText) {
+				GetCXStr(This->ItemMadeByText, temp);
+				CXStr szin = temp;
+				CXStr szout;
+				if (CXStr *ret = STMLToText(&szout, szin, true)) {
+					GetCXStr(szout.Ptr, temp);
+					contentsitemstrings[index].ItemMadeByText = temp;
+				}
+			} else {
+				contentsitemstrings[index].ItemMadeByText.clear();
+			}
+			if (This->ItemAdvancedLoreText) {
+				GetCXStr(This->ItemAdvancedLoreText, temp);
+				CXStr szin = temp;
+				CXStr szout;
+				if (CXStr *ret = STMLToText(&szout, szin, true)) {
+					GetCXStr(szout.Ptr, temp);
+					contentsitemstrings[index].ItemAdvancedLoreText = temp;
+				}
+			} else {
+				contentsitemstrings[index].ItemAdvancedLoreText.clear();
+			}
+			if (This->WindowTitle) {
+				GetCXStr(This->WindowTitle, temp);
+				CXStr szin = temp;
+				CXStr szout;
+				if (CXStr *ret = STMLToText(&szout, szin, true)) {
+					GetCXStr(szout.Ptr, temp);
+					contentsitemstrings[index].WindowTitle = temp;
+				}
+			} else {
+				contentsitemstrings[index].WindowTitle.clear();
+			}
+		} catch (...) {
+			//handle stuff
+		}
         // keep a global copy of the last item displayed...
-        memcpy(&g_Contents, item, sizeof(CONTENTS));
+        memcpy(&g_Contents[index], item, sizeof(CONTENTS));
         memcpy(&g_Item, Item, sizeof(ITEMINFO));
+		g_LastIndex = index;
 
         strcpy(out,"<BR><c \"#00FFFF\">");
         if ( Item->ItemNumber > 0 ) { 
@@ -1506,11 +1680,16 @@ void AddGearScores(PCONTENTS pSlot,ITEMINFO *pItem,char *out,char *br)
 PLUGIN_API VOID InitializePlugin(VOID)
 {
     DebugSpewAlways("Initializing MQ2ItemDisplay");
-
-    memset(&g_Contents, 0, sizeof(g_Contents));
-    g_Contents.Item1 = NULL;
-    g_Contents.Item2 = &g_Item;
-    g_Item.ItemNumber = 0;
+	hDisplayItemLock = CreateMutex(NULL, FALSE, NULL);
+	if(!hDisplayItemLock) {
+		MessageBox(NULL,"Could not initialize hDisplayItemLock Mutex","MQ2ItemDisplay not initialized",MB_OK);
+		return;
+	}
+	//lockit lockid(hDisplayItemLock);
+    //memset(&g_Contents[g_LastIndex], 0, sizeof(g_Contents));
+    //g_Contents[g_LastIndex].Item1 = NULL;
+    //g_Contents[g_LastIndex].Item2 = &g_Item;
+    //g_Item.ItemNumber = 0;
 	pGearScoreType = new MQ2GearScoreType;
 
     EzDetour(CItemDisplayWnd__SetSpell,&ItemDisplayHook::SetSpell_Detour,&ItemDisplayHook::SetSpell_Trampoline);
@@ -1520,6 +1699,7 @@ PLUGIN_API VOID InitializePlugin(VOID)
     AddCommand("/ireset",Ireset); 
     AddCommand("/iScore" ,DoGearScoreUserCommand); 
 	AddCommand("/GearScore" ,DoGearScoreUserCommand); 
+	pDisplayItemType = new MQ2DisplayItemType;
     AddMQ2Data("DisplayItem", dataLastItem);
 	AddMQ2Data("GearScore",dataGearScore);
 	if (gGameState == GAMESTATE_INGAME)
@@ -1549,6 +1729,12 @@ PLUGIN_API VOID ShutdownPlugin(VOID)
     RemoveCommand("/inote");
 	RemoveCommand("/iScore");
 	RemoveCommand("/GearScore");
+	delete pDisplayItemType;
+	if (hDisplayItemLock) {
+		ReleaseMutex(hDisplayItemLock);
+		CloseHandle(hDisplayItemLock);
+		hDisplayItemLock = 0;
+	}
 }
 
 #define LINK_LEN 55

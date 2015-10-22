@@ -309,7 +309,7 @@ VOID OnBuddyStatusChange(char *Buddy, DWORD Status)
             sprintf(out,"\ar*\ax %s: %s",Buddy,szBuddyStatus[Status]);
         }
         else
-            sprintf(out,"\ar*\ax %s: Unknown Status(%d)",Status);
+            sprintf(out,"\ar*\ax Unknown Status(%d)",Status);
         WriteChatColor(out);
     }
 }

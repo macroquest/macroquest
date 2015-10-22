@@ -700,7 +700,8 @@ DWORD MQToSTML(PCHAR in, PCHAR out, DWORD maxlen, DWORD ColorOverride)
 
 PCHAR GetFilenameFromFullPath(PCHAR Filename)
 {
-    while (strstr(Filename,"\\")) Filename=strstr(Filename,"\\")+1;
+    while (Filename && strstr(Filename,"\\"))
+		Filename=strstr(Filename,"\\")+1;
     return Filename;
 }
 
@@ -788,7 +789,8 @@ PCHAR ConvertHotkeyNameToKeyName(PCHAR szName)
 PCHAR GetFullZone(DWORD ZoneID)
 {
     ZoneID &= 0x7FFF;
-    if (!ppWorldData | !pWorldData) return NULL;
+    if (!ppWorldData || (ppWorldData && !pWorldData))
+		return NULL;
     if(ZoneID >= MAX_ZONES)
         return "UNKNOWN_ZONE";
     PZONELIST pZone = ((PWORLDDATA)pWorldData)->ZoneArray[ZoneID];
@@ -804,7 +806,8 @@ PCHAR GetFullZone(DWORD ZoneID)
 PCHAR GetShortZone(DWORD ZoneID)
 {
     ZoneID &= 0x7FFF;
-    if (!ppWorldData | !pWorldData) return NULL;
+    if (!ppWorldData || (ppWorldData && !pWorldData))
+		return NULL;
     if(ZoneID >= MAX_ZONES)
         return "UNKNOWN_ZONE";
     PZONELIST pZone = ((PWORLDDATA)pWorldData)->ZoneArray[ZoneID];
@@ -821,8 +824,8 @@ PCHAR GetShortZone(DWORD ZoneID)
 DWORD GetZoneID(PCHAR ZoneShortName)
 {
     PZONELIST pZone = NULL;
-    if (!ppWorldData | !pWorldData)
-		return -1;
+    if (!ppWorldData || (ppWorldData && !pWorldData))
+		return (DWORD)-1;
     for (int nIndex=0; nIndex < MAX_ZONES; nIndex++) {
         pZone = ((PWORLDDATA)pWorldData)->ZoneArray[nIndex];
         if(pZone) {
@@ -842,7 +845,8 @@ VOID GetGameTime(int* Hour, int* Minute, int* Night)
 {
     int eqHour = 0;
     int eqMinute = 0;
-    if (!ppWorldData | !pWorldData) return;
+    if (!ppWorldData || (ppWorldData && !pWorldData))
+		return;
     eqHour=((PWORLDDATA)pWorldData)->Hour - 1; // Midnight = 1 in EQ time
     eqMinute=((PWORLDDATA)pWorldData)->Minute;
     if (Hour) *Hour = eqHour;
@@ -856,7 +860,8 @@ VOID GetGameTime(int* Hour, int* Minute, int* Night)
 // ***************************************************************************
 VOID GetGameDate(int* Month, int* Day, int* Year)
 {
-    if (!ppWorldData | !pWorldData) return;
+    if (!ppWorldData || (ppWorldData && !pWorldData))
+		return;
     if (Month) *Month=((PWORLDDATA)pWorldData)->Month;
     if (Day) *Day=((PWORLDDATA)pWorldData)->Day;
     if (Year) *Year=((PWORLDDATA)pWorldData)->Year;
@@ -7377,12 +7382,13 @@ BOOL PickupOrDropItem(DWORD type, PCONTENTS pItem)
 			if(itsinsideapack) {
 				wechangedpackopenstatus = OpenContainer(pItem,true);
 				if(wechangedpackopenstatus) {
-					PLARGE_INTEGER i64tmp = (PLARGE_INTEGER)LocalAlloc(LPTR,sizeof(LARGE_INTEGER));
-					i64tmp->LowPart = type;
-					i64tmp->HighPart = (LONG)pItem;
-					DWORD nThreadId = 0;
-					CreateThread(NULL,0,WaitForBagToOpen,i64tmp,0,&nThreadId);
-					return FALSE;
+					if(PLARGE_INTEGER i64tmp = (PLARGE_INTEGER)LocalAlloc(LPTR,sizeof(LARGE_INTEGER))) {
+						i64tmp->LowPart = type;
+						i64tmp->HighPart = (LONG)pItem;
+						DWORD nThreadId = 0;
+						CreateThread(NULL,0,WaitForBagToOpen,i64tmp,0,&nThreadId);
+						return FALSE;
+					}
 				}
 				pSlot = (PEQINVSLOT)pInvSlotMgr->FindInvSlot(pItem->ItemSlot,pItem->ItemSlot2);
 			}
@@ -7930,50 +7936,52 @@ CXWnd *GetAdvLootPersonalListItem(DWORD id,DWORD type)
 		PPersonal_Loot pPAdvLoot = new Personal_Loot;
 
 		for (DWORD i = 0; i < clist->Items; i++) {
-			pPAdvLoot->NPC_Name = (CButtonWnd *)pNextWnd->pFirstChildWnd;
-			pNextWnd = pNextWnd->pNextSiblingWnd;
-			pPAdvLoot->Item = (CButtonWnd *)pNextWnd->pFirstChildWnd;			
-			pNextWnd = pNextWnd->pNextSiblingWnd;
-			pPAdvLoot->Loot = (CButtonWnd *)pNextWnd->pFirstChildWnd;	
-			pNextWnd = pNextWnd->pNextSiblingWnd;
-			pPAdvLoot->Leave = (CButtonWnd *)pNextWnd->pFirstChildWnd;
-			pNextWnd = pNextWnd->pNextSiblingWnd;
-			pPAdvLoot->Never = (CButtonWnd *)pNextWnd->pFirstChildWnd;
-			pNextWnd = pNextWnd->pNextSiblingWnd;
-			pPAdvLoot->AN = (CButtonWnd *)pNextWnd->pFirstChildWnd;
-			pNextWnd = pNextWnd->pNextSiblingWnd;
-			pPAdvLoot->AG = (CButtonWnd *)pNextWnd->pFirstChildWnd;
-			if (pNextWnd && pNextWnd->pNextSiblingWnd) {
+			if(pNextWnd) {
+				pPAdvLoot->NPC_Name = (CButtonWnd *)pNextWnd->pFirstChildWnd;
 				pNextWnd = pNextWnd->pNextSiblingWnd;
-			}
-			if(id==clist->GetItemData(i)) {
-				CXWnd *ptr = 0;
-				switch(type)
-				{
-				case 0:
-					ptr = (CXWnd*)pPAdvLoot->NPC_Name;
-					break;
-				case 1:
-					ptr = (CXWnd*)pPAdvLoot->Item;
-					break;
-				case 2:
-					ptr = (CXWnd*)pPAdvLoot->Loot;
-					break;
-				case 3:
-					ptr = (CXWnd*)pPAdvLoot->Leave;
-					break;
-				case 4:
-					ptr = (CXWnd*)pPAdvLoot->Never;
-					break;
-				case 5:
-					ptr = (CXWnd*)pPAdvLoot->AN;
-					break;
-				case 6:
-					ptr = (CXWnd*)pPAdvLoot->AG;
-					break;
+				pPAdvLoot->Item = (CButtonWnd *)pNextWnd->pFirstChildWnd;			
+				pNextWnd = pNextWnd->pNextSiblingWnd;
+				pPAdvLoot->Loot = (CButtonWnd *)pNextWnd->pFirstChildWnd;	
+				pNextWnd = pNextWnd->pNextSiblingWnd;
+				pPAdvLoot->Leave = (CButtonWnd *)pNextWnd->pFirstChildWnd;
+				pNextWnd = pNextWnd->pNextSiblingWnd;
+				pPAdvLoot->Never = (CButtonWnd *)pNextWnd->pFirstChildWnd;
+				pNextWnd = pNextWnd->pNextSiblingWnd;
+				pPAdvLoot->AN = (CButtonWnd *)pNextWnd->pFirstChildWnd;
+				pNextWnd = pNextWnd->pNextSiblingWnd;
+				pPAdvLoot->AG = (CButtonWnd *)pNextWnd->pFirstChildWnd;
+				if (pNextWnd && pNextWnd->pNextSiblingWnd) {
+					pNextWnd = pNextWnd->pNextSiblingWnd;
 				}
-				delete pPAdvLoot;
-				return ptr;
+				if(id==clist->GetItemData(i)) {
+					CXWnd *ptr = 0;
+					switch(type)
+					{
+					case 0:
+						ptr = (CXWnd*)pPAdvLoot->NPC_Name;
+						break;
+					case 1:
+						ptr = (CXWnd*)pPAdvLoot->Item;
+						break;
+					case 2:
+						ptr = (CXWnd*)pPAdvLoot->Loot;
+						break;
+					case 3:
+						ptr = (CXWnd*)pPAdvLoot->Leave;
+						break;
+					case 4:
+						ptr = (CXWnd*)pPAdvLoot->Never;
+						break;
+					case 5:
+						ptr = (CXWnd*)pPAdvLoot->AN;
+						break;
+					case 6:
+						ptr = (CXWnd*)pPAdvLoot->AG;
+						break;
+					}
+					delete pPAdvLoot;
+					return ptr;
+				}
 			}
 		}
 	}
@@ -7987,80 +7995,82 @@ CXWnd *GetAdvLootSharedListItem(DWORD id,DWORD type)
 		PShared_Loot pSAdvLoot = new Shared_Loot;
 
 		for (DWORD i = 0; i < clist->Items; i++) {
-			pSAdvLoot->NPC_Name = (CButtonWnd *)pNextWnd->pFirstChildWnd;
-			pNextWnd = pNextWnd->pNextSiblingWnd;
-			pSAdvLoot->Item = (CButtonWnd *)pNextWnd->pFirstChildWnd;	
-			pNextWnd = pNextWnd->pNextSiblingWnd;
-			pSAdvLoot->Status = (CButtonWnd *)pNextWnd->pFirstChildWnd;
-			pNextWnd = pNextWnd->pNextSiblingWnd;
-			pSAdvLoot->Action = (CButtonWnd *)pNextWnd->pFirstChildWnd;
-			pNextWnd = pNextWnd->pNextSiblingWnd;
-			pSAdvLoot->Manage = (CButtonWnd *)pNextWnd->pFirstChildWnd;
-			pNextWnd = pNextWnd->pNextSiblingWnd;
-			pSAdvLoot->AN = (CButtonWnd *)pNextWnd->pFirstChildWnd;
-			pNextWnd = pNextWnd->pNextSiblingWnd;
-			pSAdvLoot->AG = (CButtonWnd *)pNextWnd->pFirstChildWnd;
-			pNextWnd = pNextWnd->pNextSiblingWnd;
-			pSAdvLoot->AutoRoll = (CButtonWnd *)pNextWnd->pFirstChildWnd;
-			pNextWnd = pNextWnd->pNextSiblingWnd;
-			pSAdvLoot->NV = (CButtonWnd *)pNextWnd->pFirstChildWnd;
-			pNextWnd = pNextWnd->pNextSiblingWnd;
-			pSAdvLoot->ND = (CButtonWnd *)pNextWnd->pFirstChildWnd;
-			pNextWnd = pNextWnd->pNextSiblingWnd;
-			pSAdvLoot->GD = (CButtonWnd *)pNextWnd->pFirstChildWnd;
-			pNextWnd = pNextWnd->pNextSiblingWnd;
-			pSAdvLoot->NO = (CButtonWnd *)pNextWnd->pFirstChildWnd;
-			if (pNextWnd && pNextWnd->pNextSiblingWnd) {
+			if(pNextWnd) {
+				pSAdvLoot->NPC_Name = (CButtonWnd *)pNextWnd->pFirstChildWnd;
 				pNextWnd = pNextWnd->pNextSiblingWnd;
-			}
-
-			//NPC_Name,Item,Status,Action,Manage,AN,AG,AutoRoll,NV,ND,GD,NO
-			if(id==clist->GetItemData(i)) {
-				CXWnd *ptr = 0;
-				switch(type)
-				{
-				case 0:
-					ptr = (CXWnd*)pSAdvLoot->NPC_Name;
-					break;
-				case 1:
-					ptr = (CXWnd*)pSAdvLoot->Item;
-					break;
-				case 2:
-					ptr = (CXWnd*)pSAdvLoot->Status;
-					break;
-				case 3:
-					ptr = (CXWnd*)pSAdvLoot->Action;
-					break;
-				case 4:
-					ptr = (CXWnd*)pSAdvLoot->Manage;
-					break;
-				case 5:
-					ptr = (CXWnd*)pSAdvLoot->AN;
-					break;
-				case 6:
-					ptr = (CXWnd*)pSAdvLoot->AG;
-					break;
-				case 7:
-					ptr = (CXWnd*)pSAdvLoot->AutoRoll;
-					break;
-				case 8:
-					ptr = (CXWnd*)pSAdvLoot->NV;
-					break;
-				case 9:
-					ptr = (CXWnd*)pSAdvLoot->ND;
-					break;
-				case 10:
-					ptr = (CXWnd*)pSAdvLoot->GD;
-					break;
-				case 11:
-					ptr = (CXWnd*)pSAdvLoot->NO;
-					break;
-				case 12://root
-					ptr = (CXWnd*)pSAdvLoot->Item;
-					break;
+				pSAdvLoot->Item = (CButtonWnd *)pNextWnd->pFirstChildWnd;	
+				pNextWnd = pNextWnd->pNextSiblingWnd;
+				pSAdvLoot->Status = (CButtonWnd *)pNextWnd->pFirstChildWnd;
+				pNextWnd = pNextWnd->pNextSiblingWnd;
+				pSAdvLoot->Action = (CButtonWnd *)pNextWnd->pFirstChildWnd;
+				pNextWnd = pNextWnd->pNextSiblingWnd;
+				pSAdvLoot->Manage = (CButtonWnd *)pNextWnd->pFirstChildWnd;
+				pNextWnd = pNextWnd->pNextSiblingWnd;
+				pSAdvLoot->AN = (CButtonWnd *)pNextWnd->pFirstChildWnd;
+				pNextWnd = pNextWnd->pNextSiblingWnd;
+				pSAdvLoot->AG = (CButtonWnd *)pNextWnd->pFirstChildWnd;
+				pNextWnd = pNextWnd->pNextSiblingWnd;
+				pSAdvLoot->AutoRoll = (CButtonWnd *)pNextWnd->pFirstChildWnd;
+				pNextWnd = pNextWnd->pNextSiblingWnd;
+				pSAdvLoot->NV = (CButtonWnd *)pNextWnd->pFirstChildWnd;
+				pNextWnd = pNextWnd->pNextSiblingWnd;
+				pSAdvLoot->ND = (CButtonWnd *)pNextWnd->pFirstChildWnd;
+				pNextWnd = pNextWnd->pNextSiblingWnd;
+				pSAdvLoot->GD = (CButtonWnd *)pNextWnd->pFirstChildWnd;
+				pNextWnd = pNextWnd->pNextSiblingWnd;
+				pSAdvLoot->NO = (CButtonWnd *)pNextWnd->pFirstChildWnd;
+				if (pNextWnd && pNextWnd->pNextSiblingWnd) {
+					pNextWnd = pNextWnd->pNextSiblingWnd;
 				}
-				delete pSAdvLoot;
-				return ptr;
+
+				//NPC_Name,Item,Status,Action,Manage,AN,AG,AutoRoll,NV,ND,GD,NO
+				if(id==clist->GetItemData(i)) {
+					CXWnd *ptr = 0;
+					switch(type)
+					{
+					case 0:
+						ptr = (CXWnd*)pSAdvLoot->NPC_Name;
+						break;
+					case 1:
+						ptr = (CXWnd*)pSAdvLoot->Item;
+						break;
+					case 2:
+						ptr = (CXWnd*)pSAdvLoot->Status;
+						break;
+					case 3:
+						ptr = (CXWnd*)pSAdvLoot->Action;
+						break;
+					case 4:
+						ptr = (CXWnd*)pSAdvLoot->Manage;
+						break;
+					case 5:
+						ptr = (CXWnd*)pSAdvLoot->AN;
+						break;
+					case 6:
+						ptr = (CXWnd*)pSAdvLoot->AG;
+						break;
+					case 7:
+						ptr = (CXWnd*)pSAdvLoot->AutoRoll;
+						break;
+					case 8:
+						ptr = (CXWnd*)pSAdvLoot->NV;
+						break;
+					case 9:
+						ptr = (CXWnd*)pSAdvLoot->ND;
+						break;
+					case 10:
+						ptr = (CXWnd*)pSAdvLoot->GD;
+						break;
+					case 11:
+						ptr = (CXWnd*)pSAdvLoot->NO;
+						break;
+					case 12://root
+						ptr = (CXWnd*)pSAdvLoot->Item;
+						break;
+					}
+					delete pSAdvLoot;
+					return ptr;
+				}
 			}
 		}
 	}

@@ -60,7 +60,7 @@ VOID ListMacros(PSPAWNINFO pChar, PCHAR szLine)
     if (szLine[0]!=0) {
         sprintf(szFilename,"%s\\*%s*.*",gszMacroPath, szLine);
     } else {
-        sprintf(szFilename,"%s\\*.*",gszMacroPath, szLine);
+        sprintf(szFilename,"%s\\*.*",gszMacroPath);
     }
 
 
@@ -353,7 +353,7 @@ VOID DoorTarget(PSPAWNINFO pChar, PCHAR szLine)
     }
 
 
-    if (DoorEnviroTarget.Name[0]!='\0') {
+    if (pDoorTarget && DoorEnviroTarget.Name[0]!='\0') {
         sprintf(szBuffer,"Door %d '%s' targeted.", pDoorTarget->ID, DoorEnviroTarget.Name);
         WriteChatColor(szBuffer,USERCOLOR_DEFAULT);
 		//DO NOT mess with the pTarget here doors should not ever be targeted...

@@ -774,7 +774,7 @@ private:
                 TestLength+=pCurrent->Length;
                 pCurrent=pCurrent->pParent;
             }
-            if (TestLength==InputLength)
+            if (pNode && TestLength==InputLength)
             {
                 PBLECHEVENTNODE pEventNode=pNode->pEvents;
                 while(pEventNode)
@@ -1304,9 +1304,10 @@ chewcomplete:
 
         unsigned int Len=(unsigned int)(StringEnd-StringBegin);
         char *String=(char*)malloc(Len+1);
-        memcpy(String,StringBegin,Len);
-        String[Len]=0;
-
+		if(!String)
+			return 0;
+		memcpy(String,StringBegin,Len);
+		String[Len]=0;
         if (!pNode)
         {
             // find and/or create new root

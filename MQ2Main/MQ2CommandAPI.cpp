@@ -59,6 +59,7 @@ VOID HideDoCommand(PSPAWNINFO pChar, PCHAR szLine, BOOL delayed)
 {
     if (delayed)
     {
+		lockit lk(ghLockDelayCommand);
 		PCHATBUF pChat = (PCHATBUF)LocalAlloc(LPTR,sizeof(CHATBUF));
         if (pChat) {
             strcpy_s(pChat->szText,szLine);
@@ -756,6 +757,7 @@ void InitializeMQ2Commands()
 void ShutdownMQ2Commands()
 {
     EnterCriticalSection(&gCommandCS);
+	lockit lk(ghLockDelayCommand);
     RemoveDetour(CEverQuest__InterpretCmd);
     while(pCommands)
     {
@@ -794,6 +796,7 @@ void ShutdownMQ2Commands()
 
 VOID DoTimedCommands()
 {
+	lockit lk(ghLockDelayCommand);
     ULONGLONG Now=MQGetTickCount64();
     while(pTimedCommands && pTimedCommands->Time<=Now)
     {
@@ -806,6 +809,7 @@ VOID DoTimedCommands()
 
 VOID TimedCommand(PCHAR Command, DWORD msDelay)
 {
+	lockit lk(ghLockDelayCommand);
     PTIMEDCOMMAND pNew= new TIMEDCOMMAND;
     pNew->Time=msDelay+MQGetTickCount64();
     strcpy(pNew->Command,Command);

@@ -113,7 +113,7 @@ VOID SpewMQ2BenchmarksToChat(PSPAWNINFO pChar, PCHAR szLine)
                 float Avg=0;
                 if (Benchmarks[i]->Count)
                     Avg=(float)Benchmarks[i]->TotalTime/(float)Benchmarks[i]->Count;
-                sprintf(out,"[\ay%s\ax] \at%d\ax for \at%d\axms, \at%.2f\ax avg",Benchmarks[i]->szName,Benchmarks[i]->Count,Benchmarks[i]->TotalTime,Avg);
+                sprintf_s(out,"[\ay%s\ax] \at%I64u\ax for \at%I64u\axms, \at%.2f\ax avg",Benchmarks[i]->szName,Benchmarks[i]->Count,Benchmarks[i]->TotalTime,Avg);
                 WriteChatColor(out);
             }
         }

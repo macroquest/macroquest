@@ -333,14 +333,18 @@ VOID Style(PSPAWNINFO pChar, PCHAR szLine)
     } 
     if (szLine[0]=='!') 
     { 
-        int TurnOff; 
-        sscanf(&szLine[1],"%x",&TurnOff); 
-        BitOff(MQChatWnd->WindowStyle,TurnOff); 
+        int TurnOff = 0; 
+        if(sscanf_s(&szLine[1],"%x",&TurnOff)) {
+			//well we set it anyway i guess...
+		}
+		BitOff(MQChatWnd->WindowStyle, TurnOff);
     } 
     else 
     { 
-        int TurnOn; 
-        sscanf(&szLine[0],"%x",&TurnOn); 
+        int TurnOn = 0; 
+        if(sscanf_s(&szLine[0],"%x",&TurnOn)) {
+			//hmm can error handle i guess
+		}
         BitOn(MQChatWnd->WindowStyle,TurnOn); 
     } 
     char out[256]; 

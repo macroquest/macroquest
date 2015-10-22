@@ -60,7 +60,7 @@ Id_PMP[] = {
     // 9999: custom (TooltipReference)
     {9999,   "BrokenParser" },
 
-    {-1,NULL}
+    {(DWORD)-1,NULL}
 }; 
 
 

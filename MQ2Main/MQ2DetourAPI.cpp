@@ -252,9 +252,9 @@ VOID HookInlineChecks(BOOL Patch)
     int i;
     DWORD oldperm, tmp, NewData;
 
-    int cmps[] = { __AC1 + 6 };
+    DWORD cmps[] = { __AC1 + 6 };
 
-    int cmps2[] = { __AC2,
+    DWORD cmps2[] = { __AC2,
                     __AC3,
                     __AC4,
                     __AC5,
@@ -980,21 +980,20 @@ typedef struct _Launchinfo
 } Launchinfo,*PLaunchinfo;
 typedef struct _EQCrash
 {
-/*0x000*/	DWORD funcaddress;
-/*0x004*/	DWORD Unknown0x004;
+/*0x000*/	DWORD funcaddress;//some function
+/*0x004*/	PLaunchinfo pLinfo;
 /*0x008*/	DWORD ErrorCode;
-/*0x00C*/	DWORD Unknown0x00C; //00000000
-/*0x010*/	DWORD Unknown0x010; //FFFFFFFF
-/*0x014*/	PLaunchinfo pLinfo;
+/*0x00C*/	PCHAR ClientVersion;//EverQuest 1 Client ( Live )
+/*0x010*/	BYTE Unknown0x010[0x40];
+/*0x050*/	PCHAR uploadername;//wws_crashreport_uploader.exe
+/*0x054*/	PCHAR uploaderservername;//recap.daybreakgames.com:15081
+/*0x058*/	PCHAR something;
+/*0x05c*/	PCHAR buildversion;//87717
 } EQCrash,*PEQCrash;
 typedef struct _CrashReport
 {
-/*0x000*/	DWORD Unknown0x000;
-/*0x004*/	DWORD Unknown0x004;
-/*0x008*/	DWORD Unknown0x008;
-/*0x00C*/	DWORD Unknown0x00C;
-/*0x010*/	PEQCrash pthecrash;
-/*0x014*/	PCHAR sessionpath;
+/*0x000*/	BYTE Unknown0x000[0x24];
+/*0x024*/	PCHAR sessionpath;
 } CrashReport,*PCrashReport;
 
 int wwsCrashReportCheckForUploader_Trampoline(PEQCrash,PCHAR,size_t); 
@@ -1045,7 +1044,11 @@ int LoadFrontEnd_Detour()
 void InitializeMQ2Detours()
 {
 #ifndef ISXEQ
-    InitializeCriticalSection(&gDetourCS);
+    try {
+		InitializeCriticalSection(&gDetourCS);
+	} catch (...) {
+		//handle?
+	}
     HookMemChecker(TRUE);
 #endif
     EzDetour(wwsCrashReportCheckForUploader,wwsCrashReportCheckForUploader_Detour,wwsCrashReportCheckForUploader_Trampoline);

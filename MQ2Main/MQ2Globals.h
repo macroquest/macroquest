@@ -53,6 +53,7 @@ EQLIB_API DWORD gGameState;
 EQLIB_API ePVPServer PVPServer;
 EQLIB_VAR HANDLE ghLockSpellMap;
 EQLIB_VAR HANDLE ghLockPickZone;
+EQLIB_VAR HANDLE ghLockDelayCommand;
 EQLIB_VAR BOOL g_Loaded;
 EQLIB_VAR DWORD ThreadID;
 
@@ -930,7 +931,7 @@ EQLIB_VAR DWORD DrawNetStatus;
 EQLIB_VAR DWORD Util__FastTime;
 EQLIB_VAR DWORD Expansion_HoT;
 EQLIB_VAR DWORD __HelpPath;
-
+EQLIB_VAR DWORD __STMLToText;
 
 EQLIB_VAR DWORD CAdvancedLootWnd__CAdvancedLootWnd;
 EQLIB_VAR DWORD CAdvancedLootWnd__DoAdvLootAction;

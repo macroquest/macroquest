@@ -233,20 +233,21 @@ BOOL ParseINIFile(PCHAR lpINIPath)
             if (fDB) {
                 fgets(szBuffer,MAX_STRING,fDB);
                 while ((!feof(fDB)) && (strstr(szBuffer,"\t"))) {
-                    PITEMDB Item = (PITEMDB)malloc(sizeof(ITEMDB));
-                    Item->pNext = gItemDB;
-                    Item->ID = atoi(szBuffer);
-					strcpy(szBuffer2, strstr(szBuffer,"\t")+1);
-					Item->StackSize = atoi(szBuffer2);
-					if(pDest = strstr(szBuffer2,"\t")) {
-						strcpy(Item->szName,pDest+1);
-						Item->szName[strstr(Item->szName,"\n")-Item->szName]=0;
-						gItemDB = Item;
-						fgets(szBuffer,MAX_STRING,fDB);
-					} else {
-						sprintf_s(szBuffer,"Your file: %s is old.\nPlease replace it with the one from the latest zip",Filename);
-						MessageBox(NULL,szBuffer,"ItemDB.txt version mismatch",MB_OK);
-						exit(0);
+                    if(PITEMDB Item = (PITEMDB)malloc(sizeof(ITEMDB))) {
+						Item->pNext = gItemDB;
+						Item->ID = atoi(szBuffer);
+						strcpy_s(szBuffer2, strstr(szBuffer, "\t") + 1);
+						Item->StackSize = atoi(szBuffer2);
+						if(pDest = strstr(szBuffer2,"\t")) {
+							strcpy(Item->szName,pDest+1);
+							Item->szName[strstr(Item->szName,"\n")-Item->szName]=0;
+							gItemDB = Item;
+							fgets(szBuffer,MAX_STRING,fDB);
+						} else {
+							sprintf_s(szBuffer,"Your file: %s is old.\nPlease replace it with the one from the latest zip",Filename);
+							MessageBox(NULL,szBuffer,"ItemDB.txt version mismatch",MB_OK);
+							exit(0);
+						}
 					}
                 }
                 fclose(fDB);
@@ -398,7 +399,7 @@ DWORD __stdcall InitializeMQ2SpellDb(PVOID pData)
 		while (!ppSpellMgr && gGameState != GAMESTATE_CHARSELECT && gGameState != GAMESTATE_INGAME) {
 			Sleep(0);
 		}
-		while (!((PSPELLMGR)pSpellMgr)->Spells || (((PSPELLMGR)pSpellMgr)->Spells && !((PSPELLMGR)pSpellMgr)->Spells[TOTAL_SPELL_COUNT])) {
+		while (ppSpellMgr && pSpellMgr && (!((PSPELLMGR)pSpellMgr)->Spells || (((PSPELLMGR)pSpellMgr)->Spells && !((PSPELLMGR)pSpellMgr)->Spells[TOTAL_SPELL_COUNT-1]))) {
 			Sleep(0);
 		}
 		//ok everything checks out lets fill our own map with spells
@@ -420,12 +421,15 @@ DWORD WINAPI MQ2Start(LPVOID lpParameter)
 
     if (!MQ2Initialize()) {
 		MessageBox(NULL,"Failed to Initialize MQ2 will free lib and exit","MQ2 Error",MB_OK);
-        FreeLibraryAndExitThread(GetModuleHandle("MQ2Main.dll"),0);
+		if(HMODULE h = GetModuleHandle("MQ2Main.dll"))
+			FreeLibraryAndExitThread(h,0);
 	}
     while (gGameState != GAMESTATE_CHARSELECT && gGameState != GAMESTATE_INGAME) 
         Sleep(500);
 	if (!ghLockPickZone)
 		ghLockPickZone = CreateMutex(NULL, FALSE, NULL);
+	if (!ghLockDelayCommand)
+		ghLockDelayCommand = CreateMutex(NULL, FALSE, NULL);
 
     InitializeMQ2DInput();
     if (gGameState == GAMESTATE_INGAME) {
@@ -453,10 +457,19 @@ DWORD WINAPI MQ2Start(LPVOID lpParameter)
     g_Loaded = FALSE;
 	if (ghLockSpellMap)
 		CloseHandle(ghLockSpellMap);
-	if (ghLockPickZone)
+	if (ghLockPickZone) {
+		ReleaseMutex(ghLockPickZone);
 		CloseHandle(ghLockPickZone);
-	
-	FreeLibraryAndExitThread(GetModuleHandle("MQ2Main.dll"),0);
+		ghLockPickZone = 0;
+	}
+	if(ghLockDelayCommand) {
+		ReleaseMutex(ghLockDelayCommand);
+		CloseHandle(ghLockDelayCommand);
+		ghLockDelayCommand = 0;
+	}
+
+	if(HMODULE h = GetModuleHandle("MQ2Main.dll"))
+		FreeLibraryAndExitThread(h,0);
     return 0;
 }
 
@@ -640,5 +653,8 @@ FUNCTION_AT_ADDRESS(DWORD EQGetTime(), __EQGetTime);
 #endif
 #ifdef __msg_successful_hit_x
 FUNCTION_AT_ADDRESS(void msg_successful_hit(struct _EQSuccessfulHit*),__msg_successful_hit);
+#endif
+#ifdef __STMLToText_x
+FUNCTION_AT_ADDRESS(CXStr *__cdecl STMLToText(CXStr *Out, CXStr const &In, bool bFlag), __STMLToText);
 #endif
 

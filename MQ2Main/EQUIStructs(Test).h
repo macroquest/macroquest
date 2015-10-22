@@ -965,25 +965,26 @@ typedef struct _EQINVSLOTWND {
 // CItemDisplayWindow__CItemDisplayWindow aItemdisplaywin
 // Actual Size: 0x610 (see 6E0A9F) in Sep 24 2015 test - eqmule
 typedef struct _EQITEMWINDOW {
-/*0x0000*/ struct _CSIDLWND     Wnd;
-/*0x0230*/ struct _CSIDLWND *   DisplayWnd;//ItemDescription
-/*0x0234*/ BYTE         Unknown0x0234[0x4];
-/*0x0238*/ struct _CSIDLWND *IconButton;
-/*0x023c*/ struct _CSIDLWND *ItemLore;
-/*0x0240*/ struct _CSIDLWND *ItemDescriptionTabBox;
-/*0x0244*/ struct _CSIDLWND *ItemDescriptionTab;
-/*0x0248*/ struct _CSIDLWND *ItemLoreTab;
-/*0x024c*/ BYTE         Unknown0x024c[0x58];
-/*0x02a4*/ PCXSTR       ItemInfo;//this item is placable in yards, guild yards blah blah , This item can be used in tradeskills
-/*0x02a8*/ PCXSTR       WindowTitle;
-/*0x02ac*/ PCXSTR       ItemAdvancedLoreText;
-/*0x02b0*/ PCXSTR       ItemMadeByText;
-/*0x02b4*/ PCXSTR       UnknownCXStr; // if this is NULL don't populate item data in MQ2ItemDisplay
-/*0x02b8*/ BYTE         Unknown0x02b8[0x4];
-/*0x02bc*/ PCXSTR       ItemInformationText;//Item Information: Placing this augment into blah blah, this armor can only be used in blah blah
-/*0x02c0*/ PCONTENTS    pItem;
-/*0x02c4*/ BYTE         Unknown0x02c4[0x34c];
-/*0x0610*/
+	/*0x0000*/ struct _CSIDLWND     Wnd;
+	/*0x0230*/ struct _CSIDLWND *   DisplayWnd;//ItemDescription
+	/*0x0234*/ BYTE         Unknown0x0234[0x4];
+	/*0x0238*/ struct _CSIDLWND *IconButton;
+	/*0x023c*/ struct _CSIDLWND *ItemLore;
+	/*0x0240*/ struct _CSIDLWND *ItemDescriptionTabBox;
+	/*0x0244*/ struct _CSIDLWND *ItemDescriptionTab;
+	/*0x0248*/ struct _CSIDLWND *ItemLoreTab;
+	/*0x024c*/ BYTE         Unknown0x024c[0x58];
+	/*0x02a4*/ PCXSTR       ItemInfo;//this item is placable in yards, guild yards blah blah , This item can be used in tradeskills
+	/*0x02a8*/ PCXSTR       WindowTitle;
+	/*0x02ac*/ PCXSTR       ItemAdvancedLoreText;
+	/*0x02b0*/ PCXSTR       ItemMadeByText;
+	/*0x02b4*/ PCXSTR       UnknownCXStr; // if this is NULL don't populate item data in MQ2ItemDisplay
+	/*0x02b8*/ BYTE         Unknown0x02b8[0x4];
+	/*0x02bc*/ PCXSTR       ItemInformationText;//Item Information: Placing this augment into blah blah, this armor can only be used in blah blah
+	/*0x02c0*/ PCONTENTS    pItem;
+	/*0x02c4*/ BYTE         Unknown0x02c4[0x348];
+	/*0x060c*/ DWORD        ItemWndIndex;//0-5? you can have max 6 windows up I think before it starts overwriting the sixth.
+	/*0x0610*/
 } EQITEMWINDOW, *PEQITEMWINDOW;
 
 //CLootWnd__CLootWnd aLootwnd

@@ -29,8 +29,13 @@ GNU General Public License for more details.
 // uncomment this line to turn off the single-line benchmark macro
 // #define DISABLE_BENCHMARKS
 
+//warning C4530 : C++ exception handler used, but unwind semantics are not enabled.Specify / EHsc
 #pragma warning(disable:4530)
-#pragma warning(disable:4786)
+
+//#pragma warning(disable:4786)
+//disable the noexcept warning there isnt really anything we can do about it as far as i know or is there? let me know if u know how to fix it - eqmule
+#pragma warning(disable:4577)
+
 
 // Windows Header Files:
 #include <windows.h>
@@ -412,6 +417,7 @@ EQLIB_API int CastRay(PSPAWNINFO,float y,float x,float z);
 EQLIB_API unsigned long GetFastTime(void);
 EQLIB_API char * __stdcall GetXtargetType(DWORD type);
 EQLIB_API DWORD EQGetTime();
+EQLIB_API CXStr *__cdecl STMLToText(CXStr *Out, CXStr const &In, bool bFlag);
 
 /* UTILITIES */
 EQLIB_API VOID ConvertCR(PCHAR Text);

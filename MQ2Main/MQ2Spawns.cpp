@@ -604,7 +604,10 @@ VOID InitializeMQ2Spawns()
         sprintf(Name,"%s-Color",CaptionColors[N].szName);
         if (GetPrivateProfileString("Caption Colors",Name,"",Temp,MAX_STRING,gszINIFilename))
         {
-            sscanf(Temp,"%x",&CaptionColors[N].Color);
+            if(!sscanf_s(Temp,"%x",&CaptionColors[N].Color)) {
+				//should handle this i guess
+				return;
+			}
         }
     }
     // write custom spawn caption colors
