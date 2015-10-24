@@ -631,8 +631,8 @@ typedef struct _ITEMINFO {
 /*0x0210*/ DWORD        AugSlot6;
 /*0x0214*/ DWORD        AugSlot6_Visible;
 /*0x0218*/ DWORD        AugType;
-/*0x021c*/ DWORD        AugRestrictions;
-/*0x0220*/ BYTE         Unknown0x0220[0x4];
+/*0x021c*/ BYTE         Unknown0x021c[0x4];
+/*0x0220*/ DWORD        AugRestrictions;
 /*0x0224*/ DWORD        SolventNeeded; //ID# of Solvent (Augs only)
 /*0x0228*/ DWORD        LDTheme;
 /*0x022c*/ DWORD        LDCost;
