@@ -3121,12 +3121,14 @@ VOID UseItemCmd(PSPAWNINFO pChar, PCHAR szLine)
 					cmdUseItem(pChar,szTemp);
 				} else {
 					if(DWORD index = GetMountKeyRingIndex(szLine,stripped,true)) {
-						if(CXWnd *krwnd = FindMQ2Window("InventoryWindow")) {
-							if(CListWnd *clist = (CListWnd*)krwnd->GetChildItem("IW_Mounts_MountList")) {
+						if(CXWnd *krwnd = FindMQ2Window(MountWindowParent)) {
+							if(CListWnd *clist = (CListWnd*)krwnd->GetChildItem(MountWindowList)) {
 								if(DWORD numitems = ((CSidlScreenWnd*)clist)->Items) {
-									SendListSelect("InventoryWindow","IW_Mounts_MountList",index-1);
+									SendListSelect(MountWindowParent,MountWindowList,index-1);
 									int listdata = clist->GetItemData(index-1);
-									cmdToggleMount(&pItem,listdata);
+									#ifndef BETA
+										cmdToggleMount(&pItem,listdata);
+									#endif
 								} 
 							}
 						}

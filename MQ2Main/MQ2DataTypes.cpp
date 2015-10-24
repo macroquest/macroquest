@@ -5350,6 +5350,14 @@ bool MQ2ItemType::GETMEMBER()
         Dest.DWord=GetItemFromContents(pItem)->RequiredLevel;
         Dest.Type=pIntType;
         return true;
+	case SkillModValue:
+        Dest.DWord=GetItemFromContents(pItem)->SkillModValue;
+        Dest.Type=pIntType;
+        return true;
+	case SkillModMax:
+        Dest.DWord=GetItemFromContents(pItem)->SkillModMax;
+        Dest.Type=pIntType;
+        return true;
     case Evolving:
         Dest.Ptr=pItem;
         Dest.Type=pEvolvingItemType;
@@ -9612,8 +9620,8 @@ bool MQ2MountType::GETMEMBER()
 		}
 		case Name:
 		{
-			if(pInventoryWnd) {
-				if(CListWnd *clist = (CListWnd *)pInventoryWnd->GetChildItem("IW_Mounts_MountList")) {
+			if(CXWnd *krwnd = FindMQ2Window(MountWindowParent)) {
+				if(CListWnd *clist = (CListWnd *)krwnd->GetChildItem(MountWindowList)) {
 					CXStr Str;
 					clist->GetItemText(&Str, VarPtr.DWord, 2);
 					CHAR szOut[255] = {0};

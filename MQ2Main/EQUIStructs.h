@@ -1058,35 +1058,35 @@ typedef struct _EQMERCHWINDOW {
 //CPetInfoWindow__CPetInfoWindow aPetinfowindow
 // Actual Size: 0x924 (see 4B66A2) in Sep 24 2015 test - eqmule
 typedef struct _EQPETINFOWINDOW {
-	/*0x0000*/ struct _CSIDLWND     Wnd;
-	/*0x0224*/ BYTE         Unknown0x0224[0x8];
-	/*0x022c*/ DWORD                PetSpawnID;//The pets SpawnID
-	/*0x0230*/ BYTE         Unknown0x0230[0x8];
-	/*0x0238*/ struct _CBUTTONWND * pButton[0xe];//there are 14 buttons on the petinfowin with text that can be set to attack,none,back and so on, these are those...
-	/*0x0270*/ BYTE         Unknown0x0270[0x8];
-	/*0x0278*/ struct _CBUTTONWND * pAttackButton;//if 0 its not assigned.
-	/*0x027c*/ struct _CBUTTONWND * pQAttackButton;//if 0 its not assigned.
-	/*0x0280*/ struct _CBUTTONWND * pFollowButton;//if 0 its not assigned.
-	/*0x0284*/ struct _CBUTTONWND * pGuardButton;//if 0 its not assigned.
-	/*0x0288*/ struct _CBUTTONWND * pSitButton;//if 0 its not assigned.
-	/*0x028c*/ struct _CBUTTONWND * pStopButton;//if 0 its not assigned.
-	/*0x0290*/ BYTE         Unknown0x0290[0x1bc];
-	/*0x044c*/ struct _CSIDLWND *   pWnd[NUM_BUFF_SLOTS]; // buff icons?
-	/*0x05d0*/ int          Buff[NUM_BUFF_SLOTS];        // Spell ID# of each buff -- 97 total
-	/*0x0754*/ BYTE         Unknown0x0754[0x20];
-	/*0x0774*/ DWORD        PetBuffTimer[NUM_BUFF_SLOTS]; // duration until buff fades, in thousands of a second
-	/*0x08f8*/ BYTE         Unknown0x08f8[0x1f];
-	/*0x0917*/ BYTE         Sit;//0/1 is off/on
-	/*0x0918*/ BYTE         Stop;//0/1 is off/on
-	/*0x0919*/ BYTE         ReGroup;//0/1 is off/on
-	/*0x091a*/ BYTE         Follow;//0/1 is off/on
-	/*0x091b*/ BYTE         Guard;//0/1 is off/on
-	/*0x091c*/ BYTE         Taunt;//0/1 is off/on
-	/*0x091d*/ BYTE         Hold;//0/1 is off/on
-	/*0x091e*/ BYTE         GHold;//0/1 is off/on
-	/*0x091f*/ BYTE         Focus;//0/1 is off/on
-	/*0x0920*/ BYTE         Unknown0x0920[0x4];
-	/*0x0924*/
+/*0x0000*/ struct _CSIDLWND     Wnd;
+/*0x0224*/ BYTE         Unknown0x0224[0x8];
+/*0x022c*/ DWORD                PetSpawnID;//The pets SpawnID
+/*0x0230*/ BYTE         Unknown0x0230[0x8];
+/*0x0238*/ struct _CBUTTONWND * pButton[0xe];//there are 14 buttons on the petinfowin with text that can be set to attack,none,back and so on, these are those...
+/*0x0270*/ BYTE         Unknown0x0270[0x8];
+/*0x0278*/ struct _CBUTTONWND * pAttackButton;//if 0 its not assigned.
+/*0x027c*/ struct _CBUTTONWND * pQAttackButton;//if 0 its not assigned.
+/*0x0280*/ struct _CBUTTONWND * pFollowButton;//if 0 its not assigned.
+/*0x0284*/ struct _CBUTTONWND * pGuardButton;//if 0 its not assigned.
+/*0x0288*/ struct _CBUTTONWND * pSitButton;//if 0 its not assigned.
+/*0x028c*/ struct _CBUTTONWND * pStopButton;//if 0 its not assigned.
+/*0x0290*/ BYTE         Unknown0x0290[0x1bc];
+/*0x044c*/ struct _CSIDLWND *   pWnd[NUM_BUFF_SLOTS]; // buff icons?
+/*0x05d0*/ int          Buff[NUM_BUFF_SLOTS];        // Spell ID# of each buff -- 97 total
+/*0x0754*/ BYTE         Unknown0x0754[0x20];
+/*0x0774*/ DWORD        PetBuffTimer[NUM_BUFF_SLOTS]; // duration until buff fades, in thousands of a second
+/*0x08f8*/ BYTE         Unknown0x08f8[0x1f];
+/*0x0917*/ BYTE         Sit;//0/1 is off/on
+/*0x0918*/ BYTE         Stop;//0/1 is off/on
+/*0x0919*/ BYTE         ReGroup;//0/1 is off/on
+/*0x091a*/ BYTE         Follow;//0/1 is off/on
+/*0x091b*/ BYTE         Guard;//0/1 is off/on
+/*0x091c*/ BYTE         Taunt;//0/1 is off/on
+/*0x091d*/ BYTE         Hold;//0/1 is off/on
+/*0x091e*/ BYTE         GHold;//0/1 is off/on
+/*0x091f*/ BYTE         Focus;//0/1 is off/on
+/*0x0920*/ BYTE         Unknown0x0920[0x4];
+/*0x0924*/
 } EQPETINFOWINDOW, *PEQPETINFOWINDOW;
 
 // CRaidWindow__CRaidWindow aRaidwindow

@@ -1767,6 +1767,7 @@ public:
 		ContAddress = 144,
 		ItemLink = 145,
 		Icon = 146,
+		SkillModMax = 147,
     };
     enum ItemMethods
     {
@@ -1919,6 +1920,7 @@ public:
 		TypeMember(ContAddress);
 		TypeMember(ItemLink);
 		TypeMember(Icon);
+		TypeMember(SkillModMax);
     }
 
     ~MQ2ItemType()
@@ -4519,8 +4521,8 @@ public:
     bool GETMEMBER();
     bool ToString(MQ2VARPTR VarPtr, PCHAR Destination)
     {
-		if(pInventoryWnd) {
-			if(CListWnd *clist = (CListWnd *)pInventoryWnd->GetChildItem("IW_Mounts_MountList")) {
+		if(CXWnd *krwnd = FindMQ2Window(MountWindowParent)) {
+			if(CListWnd *clist = (CListWnd *)krwnd->GetChildItem(MountWindowList)) {
 				CXStr Str;
 				clist->GetItemText(&Str, VarPtr.DWord, 2);
 				CHAR szOut[255] = {0};

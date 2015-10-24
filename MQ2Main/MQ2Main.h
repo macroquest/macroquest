@@ -95,6 +95,15 @@ using namespace std;
 #include "eqgame(beta).h"
 #endif
 
+#if defined(BETA)
+#define MountWindowParent "KeyRingWnd"
+#define MountWindowList "KRW_Mounts_List"
+#define MountWindowPage "KRW_Mounts_Page"
+#else
+#define MountWindowParent "InventoryWindow"
+#define MountWindowList "IW_Mounts_MountList"
+#define MountWindowPage "IW_Subwindows"
+#endif
 
 #ifdef ISXEQ_LEGACY
 #define LEGACY_API extern

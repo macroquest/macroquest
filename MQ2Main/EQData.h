@@ -575,7 +575,8 @@ typedef struct _ITEMINFO {
 /*0x0141*/ BYTE         Unknown0x0141[0x3];
 /*0x0144*/ DWORD        SkillModType;
 /*0x0148*/ DWORD        SkillModValue;
-/*0x014c*/ BYTE         Unknown0x014c[0x8];
+/*0x014c*/ DWORD        SkillModMax;
+/*0x0150*/ BYTE         Unknown0x0150[0x4];
 /*0x0154*/ DWORD        BaneDMGRace;
 /*0x0158*/ DWORD        BaneDMGBodyType;
 /*0x015c*/ BYTE         BaneDMGBodyTypeValue;

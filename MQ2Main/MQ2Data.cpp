@@ -1750,8 +1750,8 @@ TLO(dataMount)
 		if(n<=0)
 			return false;
 		n--;
-		if(CXWnd *krwnd = FindMQ2Window("InventoryWindow")) {
-			if(CListWnd *clist = (CListWnd*)krwnd->GetChildItem("IW_Mounts_MountList")) {
+		if(CXWnd *krwnd = FindMQ2Window(MountWindowParent)) {
+			if(CListWnd *clist = (CListWnd*)krwnd->GetChildItem(MountWindowList)) {
 				int numitems = (int)((CSidlScreenWnd*)clist)->Items;
 				if(numitems>=n) {
 					CXStr Str;

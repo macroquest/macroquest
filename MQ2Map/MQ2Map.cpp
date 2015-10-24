@@ -87,11 +87,13 @@ DWORD MapViewMap__OldHandleRButtonDown=0;
 
 DWORD __declspec(naked) CMyMapViewWnd__Destructor(const BOOL Deallocate)
 {
-	//need to fix this, cause it will crash us when doing /loadskin default -eqmule
     __asm {   
         push ecx;
-        push eax;
-    }
+        push edx;//maybe a compiler issue, but if we dont push edx as well here, we will crash on /loadskin... -eqmule Oct 23 2015
+        push eax;//it doesnt really matter what the reason is, because it wont hurt pushing it in older compilers
+    }			 //cause we pop it anyway at the bottom of this func...
+				 //the important thing is that esp is the same both on entering this func and on exit...
+				 //(and it is now)
 
     if (CMyMapViewWnd__OldvfTable && MapViewMap_OldvfTable) { 
         // make our own little stack frame here
@@ -103,7 +105,7 @@ DWORD __declspec(naked) CMyMapViewWnd__Destructor(const BOOL Deallocate)
             push    eax
             mov		ebp, esp
         }
-        delete (*ppMapViewWnd)->pvfTable;
+        delete (PVOID)(*ppMapViewWnd)->pvfTable;
 		(*ppMapViewWnd)->pvfTable=CMyMapViewWnd__OldvfTable;
         CMyMapViewWnd__OldvfTable = NULL;
         delete ((PEQMAPWINDOW)(*ppMapViewWnd))->pMapViewMapVfTable;
@@ -118,6 +120,7 @@ DWORD __declspec(naked) CMyMapViewWnd__Destructor(const BOOL Deallocate)
 
     __asm {
         pop eax;
+        pop edx;
         pop ecx;
         jmp [CMyMapViewWnd__OldDestructor];
     }

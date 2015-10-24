@@ -861,7 +861,8 @@ PCHAR szExpansions[] = {
     "Veil of Alaris",
     "Rain of Fear",
     "Call of the Forsaken",
-    "The Darkened Sea",
+	"The Darkened Sea",
+	"The Broken Mirror",
     NULL
 };
 

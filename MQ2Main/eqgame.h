@@ -155,7 +155,7 @@ GNU General Public License for more details.
 #define instTributeActive_x                                        0xC04C6D
 #define pinstViewActor_x                                           0xF4BD10
 #define pinstWorldData_x                                           0xFFF530
-
+#define pinstZoneAddr_x                                            0x100cb34
 
 //// 
 //Section 2:  UI Related Offsets 

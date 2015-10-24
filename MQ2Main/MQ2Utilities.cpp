@@ -7703,11 +7703,15 @@ DWORD __stdcall RefreshMountKeyRingThread(PVOID pData)
 				}
 				((CSidlScreenWnd*)krwnd)->StoreIniVis();
 			}
-			if(CTabWnd *pTab = (CTabWnd*)((CSidlScreenWnd*)(krwnd))->GetChildItem("IW_Subwindows")) {
-				pTab->SetPage(6,true, true);//tab 6 is the mount key ring tab...
+			if(CTabWnd *pTab = (CTabWnd*)((CSidlScreenWnd*)(krwnd))->GetChildItem(MountWindowPage)) {
+				#ifdef BETA
+					pTab->SetPage(1,true, true);//tab 1 is the mount key ring page...
+				#else
+					pTab->SetPage(6,true, true);//tab 6 is the mount key ring tab...
+				#endif
 				WeDidStuff();
 			}
-			if(CListWnd *clist = (CListWnd*)krwnd->GetChildItem("IW_Mounts_MountList")) {
+			if(CListWnd *clist = (CListWnd*)krwnd->GetChildItem(MountWindowList)) {
 				ULONGLONG now = MQGetTickCount64();
 				while(!((CSidlScreenWnd*)clist)->Items) {
 					Sleep(10);
@@ -7754,8 +7758,8 @@ int GetMountCount()
 DWORD GetMountKeyRingIndex(char *szItemName, bool bExact, bool usecmd)
 {
 	DWORD index = 0;
-	if(CXWnd *krwnd = FindMQ2Window("InventoryWindow")) {
-		if(CListWnd *clist = (CListWnd*)krwnd->GetChildItem("IW_Mounts_MountList")) {
+	if(CXWnd *krwnd = FindMQ2Window(MountWindowParent)) {
+		if(CListWnd *clist = (CListWnd*)krwnd->GetChildItem(MountWindowList)) {
 			if(DWORD numitems = ((CSidlScreenWnd*)clist)->Items) {
 				for(DWORD i = 0;i<numitems;i++) {
 					CXStr Str;
@@ -7815,8 +7819,8 @@ void InitMountKeyRing()
 	if(int mountcount = GetMountCount()) {
 		//ok it seems like the player has mounts in his keyring
 		//lets make sure we initialize it for the Mount TLO
-		if(CXWnd *krwnd = FindMQ2Window("InventoryWindow")) {
-			if(CListWnd *clist = (CListWnd*)krwnd->GetChildItem("IW_Mounts_MountList")) {
+		if(CXWnd *krwnd = FindMQ2Window(MountWindowParent)) {
+			if(CListWnd *clist = (CListWnd*)krwnd->GetChildItem(MountWindowList)) {
 				if(!((CSidlScreenWnd*)clist)->Items) {
 					//WriteChatColor("Mount key ring initialized",CONCOLOR_YELLOW);
 					if(pkrdata kr = (pkrdata)LocalAlloc(LPTR,sizeof(krdata))) {
