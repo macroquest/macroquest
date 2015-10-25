@@ -124,11 +124,11 @@ inline void DeleteSpawn(PMAPSPAWN pMapSpawn)
     delete pMapSpawn;
 }
 
-PCHAR GenerateSpawnName(PSPAWNINFO pSpawn, PCHAR NameString);
-DWORD GetSpawnColor(eSpawnType Type, PSPAWNINFO pSpawn);
-PMAPLABEL GenerateLabel(PMAPSPAWN pMapSpawn, DWORD Color);
-PMAPLINE GenerateVector(PMAPSPAWN pMapSpawn);
-BOOL CanDisplaySpawn(eSpawnType Type, PSPAWNINFO pSpawn);
+PCHAR GenerateSpawnName(PSPAWNINFO pSpawn, PCHAR NameString);//just a forward decl.
+DWORD GetSpawnColor(eSpawnType Type, PSPAWNINFO pSpawn);//just a forward decl.
+PMAPLABEL GenerateLabel(PMAPSPAWN pMapSpawn, DWORD Color);//just a forward decl.
+PMAPLINE GenerateVector(PMAPSPAWN pMapSpawn);//just a forward decl.
+BOOL CanDisplaySpawn(eSpawnType Type, PSPAWNINFO pSpawn);//just a forward decl.
 
 VOID MapInit()
 {
@@ -833,9 +833,11 @@ PCHAR GenerateSpawnName(PSPAWNINFO pSpawn, PCHAR NameString)
     }
     Name[outpos]=0;
 
-    PCHAR ret=(PCHAR)malloc(strlen(Name)+1);
-    strcpy(ret,Name);
-    return ret;
+	if(PCHAR ret=(PCHAR)malloc(strlen(Name)+1)) {
+		strcpy(ret,Name);
+		return ret;
+	}
+	return 0;
 }
 
 BOOL CanDisplaySpawn(eSpawnType Type, PSPAWNINFO pSpawn)

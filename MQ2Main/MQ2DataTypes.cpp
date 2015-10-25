@@ -7664,7 +7664,7 @@ bool MQ2InvSlotType::GETMEMBER()
             else if (nInvSlot==2500 || nInvSlot==2501)
             {
 				if (pCharInfo->pBankArray) {
-					if (Dest.Ptr=pCharInfo->pBankArray->Bank[nInvSlot-2500+24])
+					if (Dest.Ptr=pCharInfo->pBankArray->Bank[nInvSlot-2500+23])
 					{
 						Dest.Type=pItemType;
 						return true;

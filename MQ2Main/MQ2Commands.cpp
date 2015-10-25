@@ -1676,7 +1676,8 @@ VOID MacroLog(PSPAWNINFO pChar, PCHAR szLine)
 
     for (i=0;i<strlen(Filename);i++) {
         if (Filename[i]=='\\') {
-            strncpy(szBuffer,Filename,i);
+            strncpy_s(szBuffer,Filename,i);
+			szBuffer[i] = '\0';
             if (2 == _mkdir(szBuffer)) {
                 MacroError("Log path doesn't appear valid: %s",Filename);
                 return;

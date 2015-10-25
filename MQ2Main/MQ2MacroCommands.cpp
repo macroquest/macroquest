@@ -59,7 +59,8 @@ VOID CleanMacroLine(PCHAR szLine)
         return;//nothing to do
 
     memmove(szLine,pStart,NewLength);
-	szLine[NewLength]=0;
+	if(szLine && strlen(szLine)>=NewLength)
+		szLine[NewLength]='\0';
 }
 
 // ***************************************************************************

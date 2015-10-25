@@ -479,18 +479,19 @@ CHAR *parse(CHAR *rawmsg) { //take raw irc protocol message and return human rea
         if(!strcmp(IrcNick,prefix)) { 
             sprintf(IrcChan,"%s\0",param[0]); 
             IrcChan[strlen(IrcChan)-1] = '\0'; 
-            pchan = malloc(sizeof(IrcChan)); 
-            sprintf((char *)pchan, "%s", IrcChan); 
-            channels.push_front((char *)pchan); 
-            mychan = channels.begin(); 
-            if(MyWnd) { 
-                sprintf(buff,"%s [%s]",*mychan,IrcServer); 
-                SetCXStr(&MyWnd->OutStruct->WindowText,buff); 
-            } 
-            WritePrivateProfileString("Last Connect","Chan",*mychan,INIFileName); 
-            WritePrivateProfileString(IrcServer,"Chan",*mychan,INIFileName); 
-            sprintf(buff,"\ar#\a-w Now speaking in \aw%s\a-w.", *mychan); 
-            ircout(buff); 
+            if(pchan = malloc(sizeof(IrcChan))) {
+				sprintf((char *)pchan, "%s", IrcChan); 
+				channels.push_front((char *)pchan); 
+				mychan = channels.begin(); 
+				if(MyWnd) { 
+					sprintf(buff,"%s [%s]",*mychan,IrcServer); 
+					SetCXStr(&MyWnd->OutStruct->WindowText,buff); 
+				} 
+				WritePrivateProfileString("Last Connect","Chan",*mychan,INIFileName); 
+				WritePrivateProfileString(IrcServer,"Chan",*mychan,INIFileName); 
+				sprintf(buff,"\ar#\a-w Now speaking in \aw%s\a-w.", *mychan); 
+				ircout(buff); 
+			}
         } 
         sprintf(buff,"\ar*\aw %s\a-w joined %s.\0", prefix, param[0]); 
         return buff; 

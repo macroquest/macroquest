@@ -4816,7 +4816,7 @@ public:
 	{
 		DWORD theindex = LOWORD(VarPtr.DWord);
 		DWORD theitem = HIWORD(VarPtr.DWord);
-		sprintf_s(Destination,128,"${Alert[%d].List[%d].Name}",theindex,theitem);
+		sprintf_s(Destination,128,"${Alert[%d].List[%d].Name}",(int)theindex,(int)theitem);
 		return true;
 	}
 	bool FromData(MQ2VARPTR &VarPtr, MQ2TYPEVAR &Source)

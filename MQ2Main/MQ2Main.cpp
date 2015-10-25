@@ -236,17 +236,19 @@ BOOL ParseINIFile(PCHAR lpINIPath)
                     if(PITEMDB Item = (PITEMDB)malloc(sizeof(ITEMDB))) {
 						Item->pNext = gItemDB;
 						Item->ID = atoi(szBuffer);
-						strcpy_s(szBuffer2, strstr(szBuffer, "\t") + 1);
-						Item->StackSize = atoi(szBuffer2);
-						if(pDest = strstr(szBuffer2,"\t")) {
-							strcpy(Item->szName,pDest+1);
-							Item->szName[strstr(Item->szName,"\n")-Item->szName]=0;
-							gItemDB = Item;
-							fgets(szBuffer,MAX_STRING,fDB);
-						} else {
-							sprintf_s(szBuffer,"Your file: %s is old.\nPlease replace it with the one from the latest zip",Filename);
-							MessageBox(NULL,szBuffer,"ItemDB.txt version mismatch",MB_OK);
-							exit(0);
+						if(pDest = (strstr(szBuffer, "\t") + 1)) {
+							strcpy_s(szBuffer2, pDest);
+							Item->StackSize = atoi(szBuffer2);
+							if(pDest = strstr(szBuffer2,"\t")) {
+								strcpy(Item->szName,pDest+1);
+								Item->szName[strstr(Item->szName,"\n")-Item->szName]=0;
+								gItemDB = Item;
+								fgets(szBuffer,MAX_STRING,fDB);
+							} else {
+								sprintf_s(szBuffer,"Your file: %s is old.\nPlease replace it with the one from the latest zip",Filename);
+								MessageBox(NULL,szBuffer,"ItemDB.txt version mismatch",MB_OK);
+								exit(0);
+							}
 						}
 					}
                 }

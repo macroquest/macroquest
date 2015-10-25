@@ -582,15 +582,17 @@ public:
         }
         // add event to node
         BLECHASSERT(pNode);
-        PBLECHEVENT pEvent = new BLECHEVENT;
-        pEvent->Callback=Callback;
-        pEvent->pData=pData;
-        pEvent->ID=++LastID;
-        pEvent->pBlechNode=pNode;
-        pEvent->OriginalString=strdup(Text);
-        pNode->AddEvent(pEvent);
-        Event[pEvent->ID]=pEvent;
-        return pEvent->ID;
+        if(PBLECHEVENT pEvent = new BLECHEVENT) {
+			pEvent->Callback=Callback;
+			pEvent->pData=pData;
+			pEvent->ID=++LastID;
+			pEvent->pBlechNode=pNode;
+			pEvent->OriginalString=strdup(Text);
+			pNode->AddEvent(pEvent);
+			Event[pEvent->ID]=pEvent;
+			return pEvent->ID;
+		}
+		return NULL;
     }
 
     bool RemoveEvent(unsigned int ID)
@@ -703,40 +705,45 @@ private:
     {
         BlechDebug("QueueEvent(%X,%X)",pEvent,pValues);
         BLECHASSERT(pEvent);
+		PBLECHEXECUTE pNew;
+		try {
+			pNew=new BLECHEXECUTE;
+			pNew->Callback=pEvent->Callback;
+			pNew->ID=pEvent->ID;
+			pNew->pData=pEvent->pData;
+			// make a COPY of values
+			if (pValues)
+			{
+				PBLECHVALUE pNewValueTail=0;
+				pNew->pValues=0;
+				while(pValues)
+				{
+					PBLECHVALUE pNewValue=new BLECHVALUE;
+					pNewValue->Name=strdup(pValues->Name);
+					pNewValue->Value=strdup(pValues->Value);
+					pNewValue->pNext=0;
+					if (pNew->pValues)
+					{
+						pNewValueTail->pNext=pNewValue;
+						pNewValueTail=pNewValue;
+					}
+					else
+					{
+						pNewValueTail=pNew->pValues=pNewValue;
 
-        PBLECHEXECUTE pNew=new BLECHEXECUTE;
-        pNew->Callback=pEvent->Callback;
-        pNew->ID=pEvent->ID;
-        pNew->pData=pEvent->pData;
-        // make a COPY of values
-        if (pValues)
-        {
-            PBLECHVALUE pNewValueTail=0;
-            pNew->pValues=0;
-            while(pValues)
-            {
-                PBLECHVALUE pNewValue=new BLECHVALUE;
-                pNewValue->Name=strdup(pValues->Name);
-                pNewValue->Value=strdup(pValues->Value);
-                pNewValue->pNext=0;
-                if (pNew->pValues)
-                {
-                    pNewValueTail->pNext=pNewValue;
-                    pNewValueTail=pNewValue;
-                }
-                else
-                {
-                    pNewValueTail=pNew->pValues=pNewValue;
+					}
+					pValues=pValues->pNext;
+				}
+			}
+			else
+				pNew->pValues=0;
 
-                }
-                pValues=pValues->pNext;
-            }
-        }
-        else
-            pNew->pValues=0;
-
-        pNew->pNext=*ppExecuteList;
-        *ppExecuteList=pNew;
+			pNew->pNext=*ppExecuteList;
+			*ppExecuteList=pNew;
+		} catch (...) {
+			if(pNew)
+				delete pNew;
+		}
     }
 
     void QueueEvents(PBLECHEXECUTE *ppExecuteList,BlechNode *pNode, const char *Input, unsigned int InputLength)
@@ -776,11 +783,11 @@ private:
             }
             if (pNode && TestLength==InputLength)
             {
-                PBLECHEVENTNODE pEventNode=pNode->pEvents;
-                while(pEventNode)
+                PBLECHEVENTNODE pEventNode2=pNode->pEvents;
+                while(pEventNode2)
                 {
-                    QueueEvent(ppExecuteList,pEventNode->pEvent,0);
-                    pEventNode=pEventNode->pNext;
+                    QueueEvent(ppExecuteList,pEventNode2->pEvent,0);
+                    pEventNode2=pEventNode2->pNext;
                 }
             }
 
