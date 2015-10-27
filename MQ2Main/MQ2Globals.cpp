@@ -387,7 +387,7 @@ CHAR gLastFindSlot[MAX_STRING]={0};
 PFILTER gpFilters = NULL;
 
 BOOL g_bInDXMouse = FALSE;
-PMOUSESPOOF gMouseData = NULL;
+PMOUSESPOOF gMouseData = {0};
 BOOL bDetMouse = TRUE;
 
 // EQ Functions Initialization

@@ -563,11 +563,17 @@ namespace MQ2Internal {
     public:
         CIndex()
         {
-        try {
-			InitializeCriticalSection(&CS);
-		} catch (...) {
-			//handle?
-		}
+			__try
+			{
+				InitializeCriticalSection(&CS);
+			}
+			__except(EXCEPTION_EXECUTE_HANDLER)
+			{
+				//DWORD Status = GetExceptionCode();
+				MessageBox(NULL,"could not initialize the CIndex.", "an exception occured in CIndex",MB_OK);
+				return;
+			}
+
             Size=0;
             List=0;
         }

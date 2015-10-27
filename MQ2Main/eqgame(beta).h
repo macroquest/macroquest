@@ -16,10 +16,10 @@ GNU General Public License for more details.
 #endif
 
 #define __ClientName                                              "eqgame"
-#define __ExpectedVersionDate                                     "Oct 25 2015"
-#define __ExpectedVersionTime                                     "04:22:27"
-#define __ActualVersionDate_x                                      0xAD52E8
-#define __ActualVersionTime_x                                      0xAD52F4
+#define __ExpectedVersionDate                                     "Oct 26 2015"
+#define __ExpectedVersionTime                                     "04:20:09"
+#define __ActualVersionDate_x                                      0xAD5298
+#define __ActualVersionTime_x                                      0xAD52A4
 
 #define __ClientOverride                                           0
 #define __MacroQuestWinClassName                                  "__MacroQuestTray"
@@ -370,7 +370,7 @@ GNU General Public License for more details.
 
 // CContainerWnd 
 #define CContainerWnd__HandleCombine_x                             0x69DF20
-#define CContainerWnd__vftable_x                                   0xADECB0
+#define CContainerWnd__vftable_x                                   0xADEC60
 
 // CDisplay 
 #define CDisplay__CleanGameUI_x                                    0x4B3040

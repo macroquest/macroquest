@@ -64,43 +64,44 @@ HRESULT __stdcall DInputDataDetour(IDirectInputDevice8A* This, DWORD cbObjectDat
                         rgdod[*pdwInOut].dwTimeStamp = dwTimeStamp;
                         rgdod[0].uAppData = 0;
                         switch (gMouseData->mdType) {
-                     case MD_Button0Click:
-                         DebugSpew("Trying to click left button.");
-                         rgdod[*pdwInOut].dwData = 0x80;
-                         rgdod[*pdwInOut].dwOfs = DIMOFS_BUTTON0;
-                         gMouseData->mdType = MD_Button0;
-                         gMouseData->dwData = 0x00;
-                         bRemoveItem = FALSE;
-                         bLoop = FALSE;
-                         (*pdwInOut)++;
-                         break;
-                     case MD_Button1Click:
-                         DebugSpew("Trying to click right button.");
-                         rgdod[*pdwInOut].dwData = 0x80;
-                         rgdod[*pdwInOut].dwOfs = DIMOFS_BUTTON1;
-                         gMouseData->mdType = MD_Button1;
-                         gMouseData->dwData = 0x00;
-                         bRemoveItem = FALSE;
-                         bLoop = FALSE;
-                         (*pdwInOut)++;
-                         break;
-                     case MD_Button0:
-                         rgdod[*pdwInOut].dwData = gMouseData->dwData;
-                         rgdod[*pdwInOut].dwOfs = DIMOFS_BUTTON0;
-                         (*pdwInOut)++;
-                         break;
-                     case MD_Button1:
-                         rgdod[*pdwInOut].dwData = gMouseData->dwData;
-                         rgdod[*pdwInOut].dwOfs = DIMOFS_BUTTON1;
-                         (*pdwInOut)++;
-                         break;
-                     case MD_Unknown:
-                         break;
-                        }
+						 case MD_Button0Click:
+							 DebugSpew("Trying to click left button.");
+							 rgdod[*pdwInOut].dwData = 0x80;
+							 rgdod[*pdwInOut].dwOfs = DIMOFS_BUTTON0;
+							 gMouseData->mdType = MD_Button0;
+							 gMouseData->dwData = 0x00;
+							 bRemoveItem = FALSE;
+							 bLoop = FALSE;
+							 (*pdwInOut)++;
+							 break;
+						 case MD_Button1Click:
+							 DebugSpew("Trying to click right button.");
+							 rgdod[*pdwInOut].dwData = 0x80;
+							 rgdod[*pdwInOut].dwOfs = DIMOFS_BUTTON1;
+							 gMouseData->mdType = MD_Button1;
+							 gMouseData->dwData = 0x00;
+							 bRemoveItem = FALSE;
+							 bLoop = FALSE;
+							 (*pdwInOut)++;
+							 break;
+						 case MD_Button0:
+							 rgdod[*pdwInOut].dwData = gMouseData->dwData;
+							 rgdod[*pdwInOut].dwOfs = DIMOFS_BUTTON0;
+							 (*pdwInOut)++;
+							 break;
+						 case MD_Button1:
+							 rgdod[*pdwInOut].dwData = gMouseData->dwData;
+							 rgdod[*pdwInOut].dwOfs = DIMOFS_BUTTON1;
+							 (*pdwInOut)++;
+							 break;
+						 case MD_Unknown:
+							 break;
+							}
                         if (bRemoveItem==TRUE) {
                             PMOUSESPOOF pTemp = gMouseData;
                             gMouseData = gMouseData->pNext;
-                            free(pTemp);
+                            if(pTemp)
+								free(pTemp);
                         }
                     } else {
                         bLoop = FALSE;

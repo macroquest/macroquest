@@ -615,6 +615,7 @@ public:
 				contentsitemstrings[index].WindowTitle.clear();
 			}
 		} catch (...) {
+			MessageBox(NULL,"An exception occurd in mq2itemdisplay","Error",MB_OK);
 			//handle stuff
 		}
         // keep a global copy of the last item displayed...

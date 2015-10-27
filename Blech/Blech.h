@@ -591,6 +591,8 @@ public:
 			pNode->AddEvent(pEvent);
 			Event[pEvent->ID]=pEvent;
 			return pEvent->ID;
+		} else {
+			MessageBox(NULL,"Could not construct a PBLECHEVENT","Errpr",MB_OK);
 		}
 		return NULL;
     }
@@ -705,7 +707,7 @@ private:
     {
         BlechDebug("QueueEvent(%X,%X)",pEvent,pValues);
         BLECHASSERT(pEvent);
-		PBLECHEXECUTE pNew;
+		PBLECHEXECUTE pNew=0;
 		try {
 			pNew=new BLECHEXECUTE;
 			pNew->Callback=pEvent->Callback;

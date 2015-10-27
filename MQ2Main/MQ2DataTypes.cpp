@@ -7636,7 +7636,7 @@ bool MQ2InvSlotType::GETMEMBER()
             }
             else if (nInvSlot>=2532 && nInvSlot<2552)
             {
-                unsigned long nPack=24+((nInvSlot-2532)/10);
+                unsigned long nPack=23+((nInvSlot-2532)/10);
                 unsigned long nSlot=(nInvSlot-2)%10;
 				PCONTENTS pPack=NULL;
 				if (pCharInfo->pBankArray) pPack=pCharInfo->pBankArray->Bank[nPack];
@@ -7664,7 +7664,11 @@ bool MQ2InvSlotType::GETMEMBER()
             else if (nInvSlot==2500 || nInvSlot==2501)
             {
 				if (pCharInfo->pBankArray) {
-					if (Dest.Ptr=pCharInfo->pBankArray->Bank[nInvSlot-2500+23])
+					if(nInvSlot==2500)
+						Dest.Ptr=pCharInfo->pBankArray->Bank[22];
+					else if(nInvSlot==2501)
+						Dest.Ptr=pCharInfo->pBankArray->Bank[23];
+					if (Dest.Ptr)
 					{
 						Dest.Type=pItemType;
 						return true;
@@ -9862,7 +9866,8 @@ bool MQ2AlertType::GETMEMBER()
 			}
 		}
 	} catch (...) {
-		//todo: add some error handling here a messagebox or something explaining whats going on
+		//todo: add some error handling here to explain whats going on
+		MessageBox(NULL,"CRAP! in Alert","An exception occured",MB_OK);
 		//anyway at least we wont crash eqgame for the user...
 		Sleep(0);
 	}
@@ -10178,7 +10183,7 @@ bool MQ2AlertListType::GETMEMBER()
 			}
 		}
 	} catch (...) {
-		Sleep(0);
+		MessageBox(NULL,"CRAP! in AlertType","An exception occured",MB_OK);
 	}
 	return false;
 }

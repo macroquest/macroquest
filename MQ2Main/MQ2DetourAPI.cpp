@@ -120,7 +120,7 @@ void AddDetourf(DWORD address, ...)
 void RemoveDetour(DWORD address)
 {
     CAutoLock Lock(&gDetourCS);
-    DebugSpew("RemoveDetour(%X)",address);
+    DebugSpew("RemoveDetour(%X)",(DWORD)GetModuleHandle(NULL)-address+0x400000);
     OurDetours *detour = ourdetours;
     while (detour)
     {
@@ -1044,11 +1044,17 @@ int LoadFrontEnd_Detour()
 void InitializeMQ2Detours()
 {
 #ifndef ISXEQ
-    try {
+	__try
+	{
 		InitializeCriticalSection(&gDetourCS);
-	} catch (...) {
-		//handle?
 	}
+	__except(EXCEPTION_EXECUTE_HANDLER)
+	{
+		//DWORD Status = GetExceptionCode();
+		MessageBox(NULL,"could not initialize the detours.", "an exception occured in InitializeMQ2Detours",MB_OK);
+		return;
+	}
+
     HookMemChecker(TRUE);
 #endif
     EzDetour(wwsCrashReportCheckForUploader,wwsCrashReportCheckForUploader_Detour,wwsCrashReportCheckForUploader_Trampoline);

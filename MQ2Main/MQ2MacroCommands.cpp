@@ -50,7 +50,8 @@ VOID CleanMacroLine(PCHAR szLine)
         --pEnd;
     if ((pStart && !*pStart) || (pEnd && !*pEnd))
     {
-        szLine[0]=0;
+        if(szLine)
+			szLine[0]='\0';
         return;
     }
     // keep only this part.

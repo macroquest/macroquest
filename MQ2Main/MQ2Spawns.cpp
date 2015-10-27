@@ -628,7 +628,7 @@ VOID ShutdownMQ2Spawns()
     DebugSpew("Shutting Down Spawn-related Hooks");
     RemoveDetour(EQPlayer__EQPlayer);
     RemoveDetour(EQPlayer__dEQPlayer);
-    RemoveDetour(EQPlayer__SetNameSpriteState);
+    //RemoveDetour(EQPlayer__SetNameSpriteState);
     RemoveDetour(EQPlayer__SetNameSpriteTint);
     RemoveDetour(EQItemList__FreeItemList);
     RemoveDetour(EQItemList__add_item);
