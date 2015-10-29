@@ -1444,7 +1444,8 @@ typedef struct _SPAWNINFO {
 /*0x04bc*/ DWORD        FishingETA;
 /*0x04c0*/ BYTE         Unknown0x04c0[0x48];
 /*0x0508*/ LONG         HPMax;
-/*0x050c*/ BYTE         Unknown0x050c[0x38];
+/*0x050c*/ BYTE         Unknown0x050c[0x8];
+/*0x0514*/ DWORD        SpellGemETA[0xc];
 /*0x0544*/ DWORD        InnateETA;              //Calculated TimeStamp when innate skill will be ready (LoH, HT, Bash)
 /*0x0548*/ BYTE         Unknown0x0548[0x14];
 /*0x055c*/ DWORD        Deity;

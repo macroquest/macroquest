@@ -1440,7 +1440,8 @@ typedef struct _SPAWNINFO {
 /*0x0598*/ DWORD        Buyer;
 /*0x059c*/ BYTE         Unknown0x059c[0x4];
 /*0x05a0*/ DWORD        RespawnTimer;           // TimeStamp of when RespawnWnd will close - 0 when you're alive
-/*0x05a4*/ BYTE         Unknown0x05a4[0x34];
+/*0x05a4*/ BYTE         Unknown0x05a4[0x4];
+/*0x05a8*/ DWORD        SpellGemETA[0xc];
 /*0x05d8*/ DWORD        InnateETA;              //Calculated TimeStamp when innate skill will be ready (LoH, HT, Bash)
 /*0x05dc*/ BYTE         Unknown0x05dc[0x4];
 /*0x05e0*/ BYTE         PvPFlag;
