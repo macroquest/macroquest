@@ -338,7 +338,7 @@ public:
     ~MQ2BazaarType() {
     }
 
-    bool GetMember(MQ2VARPTR VarPtr, PCHAR Member, PCHAR Index, MQ2TYPEVAR &Dest) {
+    bool MQ2BazaarType::GETMEMBER() {
         unsigned int isnumber = 1;
         PMQ2TYPEMEMBER pMember=MQ2BazaarType::FindMember(Member);
         if (!pMember)

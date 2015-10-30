@@ -71,7 +71,7 @@ public:
 		TypeMember(Information);
 		TypeMember(DisplayIndex);
 	}
-	bool GetMember(MQ2VARPTR VarPtr, PCHAR Member, PCHAR Index, MQ2TYPEVAR &Dest) {
+	bool MQ2DisplayItemType::GETMEMBER() {
 		int index = VarPtr.DWord;
 		PCONTENTS pCont = &g_Contents[index];
 		PMQ2TYPEMEMBER pMember = MQ2DisplayItemType::FindMember(Member);
@@ -1279,8 +1279,7 @@ class MQ2GearScoreType : public MQ2Type
         } 
 
         ~MQ2GearScoreType() {}
-
-        bool GetMember(MQ2VARPTR VarPtr, PCHAR Member, PCHAR Index, MQ2TYPEVAR &Dest) { 
+		bool MQ2GearScoreType::GETMEMBER() { 
             PMQ2TYPEMEMBER pMember=MQ2GearScoreType::FindMember(Member); 
             if (!pMember) 
                 return false; 

@@ -806,7 +806,7 @@ namespace MQ2Internal {
 		}
         virtual void FreeVariable(MQ2VARPTR &VarPtr) {}
 
-        virtual bool GetMember(MQ2VARPTR VarPtr, PCHAR Member, PCHAR Index, MQ2TYPEVAR &Dest)=0;
+		virtual bool GetMember(MQ2VARPTR VarPtr, PCHAR Member, PCHAR Index, MQ2TYPEVAR &Dest) = 0;
         //    virtual bool SetMember(PVOID Ptr, PCHAR Member, DWORD Index, MQ2TYPEVAR &Data)=0;
         virtual bool ToString(MQ2VARPTR VarPtr, PCHAR Destination)
         {

@@ -92,7 +92,7 @@ public:
     {
     }
 
-    bool GetMember(MQ2VARPTR VarPtr, PCHAR Member, PCHAR Index, MQ2TYPEVAR &Dest)
+    bool MQ2BuddyType::GETMEMBER()
     {
         if (!VarPtr.Ptr)
             return false;

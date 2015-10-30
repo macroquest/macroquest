@@ -9204,7 +9204,7 @@ bool MQ2TargetType::GETMEMBER()
 					//I strncmp them to take ranked buffs into account
 					//so if the user specifies ${Target.BuffDuration[Pyromancy]} for exxample
 					//its still gonna work if it finds Pyromancy XV
-					if(buffID && buffID!=-1 && !_strnicmp(Index, GetSpellNameByID(buffID),strlen(Index)))	{
+					if(buffID && buffID!=-1 && !_strnicmp(GETFIRST(), GetSpellNameByID(buffID),strlen(Index)))	{
 						if(((PCTARGETWND)pTargetWnd)->BuffTimer[i]>duration) {
 							duration = ((PCTARGETWND)pTargetWnd)->BuffTimer[i];
 							//we always want to return the buff with the longest duration
@@ -10112,6 +10112,7 @@ bool MQ2AlertListType::GETMEMBER()
 						Dest.DWord=(*si).AlertList;
 						Dest.Type=pIntType;
 						return true;
+#ifndef ISXEQ
 					case ZRadius:
 						Dest.Double=(*si).ZRadius;
 						Dest.Type=pDoubleType;
@@ -10120,6 +10121,16 @@ bool MQ2AlertListType::GETMEMBER()
 						Dest.Double=(*si).FRadius;
 						Dest.Type=pDoubleType;
 						return true;
+#else
+					case ZRadius:
+						Dest.Float = (float)(*si).ZRadius;
+						Dest.Type = pFloatType;
+						return true;
+					case FRadius:
+						Dest.Float = (float)(*si).FRadius;
+						Dest.Type = pFloatType;
+						return true;
+#endif
 					case xLoc:
 						Dest.Float=(*si).xLoc;
 						Dest.Type=pFloatType;

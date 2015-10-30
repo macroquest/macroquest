@@ -322,7 +322,7 @@ public:
     ~MQ2StringType()
     {
     }
-    bool MQ2StringType::GetMember(MQ2VARPTR VarPtr, PCHAR Member, PCHAR Index, MQ2TYPEVAR &Dest);
+    bool MQ2StringType::GETMEMBER();
     bool ToString(MQ2VARPTR VarPtr, PCHAR Destination)
     {
         strcpy(Destination,(const char *)VarPtr.Ptr);

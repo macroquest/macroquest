@@ -707,7 +707,7 @@ public:
     { 
     } 
 
-    bool GetMember(MQ2VARPTR VarPtr, PCHAR Member, PCHAR Index, MQ2TYPEVAR &Dest) 
+    bool MQ2IrcType::GETMEMBER()
     { 
         PMQ2TYPEMEMBER pMember=MQ2IrcType::FindMember(Member); 
         if (!pMember) 
