@@ -779,7 +779,7 @@ typedef struct _CBUTTONWND {
 /*0x1e1*/ BYTE      Unknown0x1e1; //something to do with State
 /*0x1e2*/ BYTE      Unknown0x1e2[0x12];
 /*0x1f4*/ ARGBCOLOR Color;
-/*0x2f8*/ BYTE      Unknown0x1f8[0x58];
+/*0x1f8*/ BYTE      Unknown0x1f8[0x58];
 /*0x250*/ DWORD     TextureAnim;//im guessing now but I think this is the icon displayed use iconcache->geticon to fill it in...
 /*0x254*/ BYTE      Unknown0x254[0x1c];
 /*0x270*/

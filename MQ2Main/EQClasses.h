@@ -497,8 +497,16 @@ EQLIB_OBJECT int CXWnd::DrawTileBox(void)const;
 EQLIB_OBJECT int CXWnd::DrawVScrollbar(int,int,int)const;
 EQLIB_OBJECT int CXWnd::GetWidth(void)const;
 EQLIB_OBJECT int CXWnd::Minimize(bool);
+#ifndef EMU
 EQLIB_OBJECT int CXWnd::Move(class CXPoint const &);
+#else
+EQLIB_OBJECT int CXWnd::Move(class CXPoint);
+#endif
+#ifndef EMU
 EQLIB_OBJECT int CXWnd::Move(class CXRect const &);
+#else
+EQLIB_OBJECT int CXWnd::Move(class CXRect);
+#endif
 EQLIB_OBJECT int CXWnd::ProcessTransition(void);
 EQLIB_OBJECT int CXWnd::Resize(int,int);
 EQLIB_OBJECT int CXWnd::Show(bool,bool,bool mq_c = 1);
@@ -733,7 +741,11 @@ EQLIB_OBJECT int AltAdvManager::MeetsPoPLevelReqs(class EQ_PC *,int,int);
 EQLIB_OBJECT int AltAdvManager::TotalPointsInSkill(int,int);
 EQLIB_OBJECT unsigned long AltAdvManager::GetCalculatedTimer(class EQ_PC *,EQData::PALTABILITY);
 EQLIB_OBJECT void AltAdvManager::GetAbilityReqs(char *,int);
+#ifndef EMU
 EQLIB_OBJECT struct _ALTABILITY *AltAdvManager::GetAAById(int index, int unknown = -1);//could it be level?
+#else
+EQLIB_OBJECT struct _ALTABILITY *AltAdvManager::GetAAById(int index);
+#endif
 };
 class CAuraWnd : public CSidlScreenWnd
 {
@@ -1841,7 +1853,11 @@ EQLIB_OBJECT void CEverQuest::dsp_chat(char const *,int,bool,bool);
 EQLIB_OBJECT void CEverQuest::dsp_chat(char const *,int,bool);
 EQLIB_OBJECT void CEverQuest::Emote(void);
 EQLIB_OBJECT void CEverQuest::EnterZone(struct HWND__ *);
+#ifndef EMU
 EQLIB_OBJECT int CEverQuest::Follow(int);
+#else
+EQLIB_OBJECT int CEverQuest::Follow(void);
+#endif
 EQLIB_OBJECT void CEverQuest::FreeSwitches(void);
 EQLIB_OBJECT void CEverQuest::GetSndDriver(void);
 EQLIB_OBJECT void CEverQuest::GetZoneInfoFromNetwork(char *);
@@ -5364,7 +5380,11 @@ EQLIB_OBJECT EQ_Character::~EQ_Character(void);
 EQLIB_OBJECT EQ_Character::EQ_Character(void);
 EQLIB_OBJECT bool EQ_Character::DoesSpellMatchFocusFilters(class EQ_Spell const *,class EQ_Spell const *);
 EQLIB_OBJECT bool EQ_Character::IsSpellTooPowerfull(class EQ_Spell *,class EQ_Character *);
-EQLIB_OBJECT bool EQ_Character::IsStackBlocked(class EQ_Spell const *, DWORD,DWORD,DWORD,bool);
+#ifndef EMU
+EQLIB_OBJECT bool EQ_Character::IsStackBlocked(class EQ_Spell const *, DWORD, DWORD, DWORD, bool);
+#else
+EQLIB_OBJECT bool EQ_Character::IsStackBlocked(class EQ_Spell const *, DWORD,DWORD,DWORD);
+#endif
 EQLIB_OBJECT bool EQ_Character::IsValidAffect(int);
 EQLIB_OBJECT char * EQ_Character::Class(int);
 EQLIB_OBJECT char * EQ_Character::KunarkClass(int,int,int,bool);

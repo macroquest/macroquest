@@ -168,16 +168,13 @@ FUNCTION_AT_ADDRESS(int  EQ_Character1::Max_HP(int,int),EQ_Character__Max_HP);
 FUNCTION_AT_ADDRESS(bool EQ_Character::DoCombatAbility(int spellID, int dummy), EQ_Character__doCombatAbility); 
 #endif 
 
-
 FUNCTION_AT_VIRTUAL_ADDRESS(void CChatWindow::operator delete[](void*),0x04);
-
 FUNCTION_AT_VIRTUAL_ADDRESS(bool CXWnd::IsValid(void)const,0);
 FUNCTION_AT_VIRTUAL_ADDRESS(int CXWnd::WndNotification(class CXWnd *,unsigned __int32,void *),0x88);
 FUNCTION_AT_VIRTUAL_ADDRESS(int CXWnd::OnResize(int,int),0x09c);
 FUNCTION_AT_VIRTUAL_ADDRESS(int CXWnd::Show(bool,bool,bool),0x0d8);
 FUNCTION_AT_VIRTUAL_ADDRESS(int CXWnd::SetVScrollPos(int),0x134);
 FUNCTION_AT_VIRTUAL_ADDRESS(void CXWnd::SetWindowTextA(class CXStr &),0x124);
-
 FUNCTION_AT_VIRTUAL_ADDRESS(int CXWnd::HandleLButtonDown(class CXPoint *,unsigned __int32),0x38);
 FUNCTION_AT_VIRTUAL_ADDRESS(int CXWnd::HandleLButtonUp(class CXPoint *,unsigned __int32),0x3c);
 FUNCTION_AT_VIRTUAL_ADDRESS(int CXWnd::HandleLButtonHeld(class CXPoint *,unsigned __int32),0x40);
@@ -188,10 +185,7 @@ FUNCTION_AT_VIRTUAL_ADDRESS(int CXWnd::HandleRButtonHeld(class CXPoint *,unsigne
 FUNCTION_AT_VIRTUAL_ADDRESS(int CXWnd::HandleRButtonUpAfterHeld(class CXPoint *,unsigned __int32),0x54);
 FUNCTION_AT_VIRTUAL_ADDRESS(int CXWnd::OnMinimizeBox(void),0xac);
 FUNCTION_AT_VIRTUAL_ADDRESS(class CXRect CXWnd::GetClientRect(void)const,0xf8);
-
-
 FUNCTION_AT_VIRTUAL_ADDRESS(void CListWnd::DeleteAll(void),0x17c);//see CComboWnd__DeleteAll_x
-
 
 // AUTO IMPORTS
 
@@ -3876,7 +3870,11 @@ FUNCTION_AT_ADDRESS( EQ_AltAbility::EQ_AltAbility(int),EQ_AltAbility__EQ_AltAbil
 FUNCTION_AT_ADDRESS( AltAdvManager::AltAdvManager(void),AltAdvManager__AltAdvManager);
 #endif
 #ifdef AltAdvManager__GetAAById_x
+#ifndef EMU
 FUNCTION_AT_ADDRESS( struct _ALTABILITY *AltAdvManager::GetAAById(int,int), AltAdvManager__GetAAById);
+#else
+FUNCTION_AT_ADDRESS(struct _ALTABILITY *AltAdvManager::GetAAById(int), AltAdvManager__GetAAById);
+#endif
 #endif
 #ifdef AltAdvManager__IsAbilityReady_x
 FUNCTION_AT_ADDRESS(bool  AltAdvManager::IsAbilityReady(class EQ_PC *,EQData::PALTABILITY,int *,int),AltAdvManager__IsAbilityReady);
@@ -4386,7 +4384,11 @@ FUNCTION_AT_ADDRESS(int  EQ_Character::GetFirstEffectSlot(bool),EQ_Character__Ge
 FUNCTION_AT_ADDRESS(int  EQ_Character::GetLastEffectSlot(bool),EQ_Character__GetLastEffectSlot);
 #endif
 #ifdef CharacterZoneClient__IsStackBlocked_x
-FUNCTION_AT_ADDRESS(bool EQ_Character::IsStackBlocked(class EQ_Spell const *, DWORD,DWORD,DWORD,bool),CharacterZoneClient__IsStackBlocked);
+#ifndef EMU
+FUNCTION_AT_ADDRESS(bool EQ_Character::IsStackBlocked(class EQ_Spell const *, DWORD, DWORD, DWORD, bool), CharacterZoneClient__IsStackBlocked);
+#else
+FUNCTION_AT_ADDRESS(bool EQ_Character::IsStackBlocked(class EQ_Spell const *, DWORD,DWORD,DWORD),CharacterZoneClient__IsStackBlocked);
+#endif
 #endif
 #ifdef EQ_Character__IsSpellTooPowerfull_x
 FUNCTION_AT_ADDRESS(bool  EQ_Character::IsSpellTooPowerfull(class EQ_Spell *,class EQ_Character *),EQ_Character__IsSpellTooPowerfull);
@@ -5709,7 +5711,11 @@ FUNCTION_AT_ADDRESS(void  CEverQuest::Invite(int),CEverQuest__Invite);
 FUNCTION_AT_ADDRESS(void  CEverQuest::doInvite(unsigned __int32,char *),CEverQuest__doInvite);
 #endif
 #ifdef CEverQuest__Follow_x
-FUNCTION_AT_ADDRESS(int  CEverQuest::Follow(int),CEverQuest__Follow);
+#ifndef EMU
+FUNCTION_AT_ADDRESS(int  CEverQuest::Follow(int), CEverQuest__Follow);
+#else
+FUNCTION_AT_ADDRESS(int  CEverQuest::Follow(void),CEverQuest__Follow);
+#endif
 #endif
 #ifdef CEverQuest__Disband_x
 FUNCTION_AT_ADDRESS(void  CEverQuest::Disband(void),CEverQuest__Disband);
@@ -7321,10 +7327,18 @@ FUNCTION_AT_ADDRESS(int  CXWnd::DrawHScrollbar(int,int,int)const ,CXWnd__DrawHSc
 FUNCTION_AT_ADDRESS(void  CXWnd::Refade(void),CXWnd__Refade);
 #endif
 #ifdef CXWnd__Move_x
-FUNCTION_AT_ADDRESS(int  CXWnd::Move(class CXPoint const &),CXWnd__Move);
+#ifndef EMU
+FUNCTION_AT_ADDRESS(int  CXWnd::Move(class CXPoint const &), CXWnd__Move);
+#else
+FUNCTION_AT_ADDRESS(int  CXWnd::Move(class CXPoint),CXWnd__Move);
+#endif
 #endif
 #ifdef CXWnd__Move1_x
-FUNCTION_AT_ADDRESS(int  CXWnd::Move(class CXRect const &),CXWnd__Move1);
+#ifndef EMU
+FUNCTION_AT_ADDRESS(int  CXWnd::Move(class CXRect const &), CXWnd__Move1);
+#else
+FUNCTION_AT_ADDRESS(int  CXWnd::Move(class CXRect),CXWnd__Move1);
+#endif
 #endif
 #ifdef CXPoint__operator_equal_x
 FUNCTION_AT_ADDRESS(class CXPoint  CXPoint::operator=(class CXPoint),CXPoint__operator_equal);
