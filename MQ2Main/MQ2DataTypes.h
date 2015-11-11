@@ -667,6 +667,7 @@ public:
 		PlayerState = 113,
 		Stuck = 114,
 		Aggressive = 115,
+		CanSplashLand = 116,
 	};
 	enum SpawnMethods
 	{
@@ -789,6 +790,7 @@ public:
 		TypeMember(PlayerState);
 		TypeMember(Stuck);
 		TypeMember(Aggressive);
+		TypeMember(CanSplashLand);
 
 		TypeMethod(Target);
 		TypeMethod(Face);

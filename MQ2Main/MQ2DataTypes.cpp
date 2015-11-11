@@ -1846,7 +1846,16 @@ bool MQ2SpawnType::GETMEMBER()
 		Dest.DWord = pSpawn->Targetable;
 		Dest.Type = pBoolType;
 		return true;
+	case CanSplashLand:
+		ScreenVector3 sv3;
+		sv3.x = pSpawn->Y;
+		sv3.y = pSpawn->X;
+		sv3.z = pSpawn->Z;
+		Dest.DWord = pLocalPlayer->CanSeeTargetIndicator(&sv3);
+		Dest.Type = pBoolType;
+		return true;
 		}
+
 	return false;
 	}
 

@@ -792,7 +792,10 @@ namespace MQ2Globals
 	EQLIB_VAR DWORD instTributeActive;
 	EQLIB_VAR DWORD pinstViewActor;
 	EQLIB_VAR DWORD pinstWorldData;
-
+	EQLIB_VAR DWORD pinstPlayerPath;
+	EQLIB_VAR DWORD pinstTargetIndicator;
+	EQLIB_VAR DWORD pinstCTargetManager;
+	
 	EQLIB_VAR DWORD pinstCTextOverlay;
 	EQLIB_VAR DWORD pinstCAudioTriggersWindow;
 	EQLIB_VAR DWORD pinstCCharacterSelect;
@@ -1032,7 +1035,9 @@ namespace MQ2Globals
 	EQLIB_VAR DWORD CEverQuest__SetGameState;
 	EQLIB_VAR DWORD CEverQuest__UPCNotificationFlush;
 	EQLIB_VAR DWORD CEverQuest__IssuePetCommand;
-
+	EQLIB_VAR DWORD CEverQuest__CreateTargetIndicator;
+	EQLIB_VAR DWORD CEverQuest__DeleteTargetIndicator;
+	
 	EQLIB_VAR DWORD CGaugeWnd__CalcFillRect;
 	EQLIB_VAR DWORD CGaugeWnd__CalcLinesFillRect;
 	EQLIB_VAR DWORD CGaugeWnd__Draw;
@@ -1169,7 +1174,8 @@ namespace MQ2Globals
 	EQLIB_VAR DWORD CTabWnd__SetPage;
 	EQLIB_VAR DWORD CTabWnd__SetPageRect;
 	EQLIB_VAR DWORD CTabWnd__UpdatePage;
-
+	EQLIB_VAR DWORD CTargetRing__Cast;
+	
 	EQLIB_VAR DWORD CTextOverlay__DisplayText;
 
 	EQLIB_VAR DWORD CTextureFont__DrawWrappedText;
@@ -1279,7 +1285,8 @@ namespace MQ2Globals
 	EQLIB_VAR DWORD EQPlayer__IsTargetable;
 	EQLIB_VAR DWORD EQPlayer__CanSee;
 	EQLIB_VAR DWORD PlayerZoneClient__ChangeHeight;
-
+	EQLIB_VAR DWORD EQPlayer__CanSeeTargetIndicator;
+	
 	EQLIB_VAR DWORD EQPlayerManager__GetSpawnByID;
 	EQLIB_VAR DWORD EQPlayerManager__GetSpawnByName;
 

@@ -2243,18 +2243,19 @@ typedef struct _CHATSERVICE {
 } CHATSERVICE, *PCHATSERVICE;
 
 typedef struct _EVERQUEST {
-/*0x000*/ BYTE   Unknown[0x2a4];
-/*0x2a4*/ struct _CHATSERVICE *ChatService;
-/*0x2a8*/ BYTE   Unknown0x2a8[0x8];
-/*0x2b0*/ bool   bJoinedChannel;
-/*0x2b1*/ CHAR   ChannelPlayerName[0x100];
-/*0x3b1*/ CHAR   ChannelName[0xa][0x30];
-/*0x591*/ BYTE   Unknown0x591[0x3];
-/*0x594*/ DWORD  ChannelNumber[0xa];
-/*0x5bc*/ DWORD  ChannelQty;
-/*0x5c0*/ BYTE   Unknown0x5c0[0x8];
-/*0x5c8*/ DWORD  GameState;
-/*0x5cc*/ // more data
+	/*0x000*/ BYTE   Unknown[0x2a4];
+	/*0x2a4*/ struct _CHATSERVICE *ChatService;
+	/*0x2a8*/ BYTE   Unknown0x2a8[0x8];
+	/*0x2b0*/ bool   bJoinedChannel;
+	/*0x2b1*/ CHAR   ChannelPlayerName[0x100];
+	/*0x3b1*/ CHAR   ChannelName[0xa][0x30];
+	/*0x591*/ BYTE   Unknown0x591[0x3];
+	/*0x594*/ DWORD  ChannelNumber[0xa];
+	/*0x5bc*/ DWORD  ChannelQty;
+	/*0x5c0*/ DWORD  TargetRing;
+	/*0x5c4*/ BYTE	 Unknown0x5c4[0x4];
+	/*0x5c8*/ DWORD  GameState;
+	/*0x5cc*/ // more data
 } EVERQUEST, *PEVERQUEST;
 
 typedef struct _AURAINFO {

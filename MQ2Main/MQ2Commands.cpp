@@ -2201,7 +2201,39 @@ VOID LoadSpells(PSPAWNINFO pChar, PCHAR szLine)
 	}
 }
 
-
+void CastSplash(int Index,PSPELL pSpell)
+{
+	ScreenVector3 sv3;
+	sv3.dx = 0xFFFFFFFF;//setting up the default for the targetindicator (splashring)
+	sv3.dy = 0xFFFFFFFF;
+	sv3.dz = 0xFFFF;// weird right? shouldn't it be 0xFFFFFFFF ? well maybe a bug but thats what the client has it as... -eqmule
+	if (CTargetRing *pTR = pEverQuest->CreateTargetIndicator(Index, pSpell, &sv3, 0)) {
+		if (pTarget) {
+			sv3.x = ((PSPAWNINFO)pTarget)->Y;//yes we really need to set Y to x, this is not a bug.
+			sv3.y = ((PSPAWNINFO)pTarget)->X;
+			sv3.z = ((PSPAWNINFO)pTarget)->Z;
+		}
+		else {//ok fine, this is probably not what the user wants but if he doesnt have a target im just gonna splash myself...
+			sv3.x = ((PSPAWNINFO)pLocalPlayer)->Y;
+			sv3.y = ((PSPAWNINFO)pLocalPlayer)->X;
+			sv3.z = ((PSPAWNINFO)pLocalPlayer)->Z;
+		}
+		//ok we better check if splash can be cast in the location
+		bool cansee = pLocalPlayer->CanSeeTargetIndicator(&sv3);
+		if (cansee) {
+			//ok its all good, lets cast it.
+			pTR->Cast(&sv3);
+			//need to delete it...
+			pEverQuest->DeleteTargetIndicator();
+		}
+		else {
+			WriteChatColor("You cannot see your target", CONCOLOR_LIGHTBLUE);
+		}
+	}
+	else {
+		WriteChatColor("Creation of a TargetIndicator Failed.", CONCOLOR_YELLOW);
+	}
+}
 
 // ***************************************************************************
 // Function:    Cast
@@ -2213,6 +2245,20 @@ VOID Cast(PSPAWNINFO pChar, PCHAR szLine)
 	if (!cmdCast) return;
 
 	if (szLine[0] == 0 || atoi(szLine) || !ppSpellMgr || !ppCharData || !pCharData) {
+		int Index = atoi(szLine);
+		Index--;
+		if (Index >= 0 && Index < NUM_SPELL_GEMS) {
+			if (PCHARINFO2 pChar2 = GetCharInfo2()) {
+				if (pChar2->MemorizedSpells[Index] != 0xFFFFFFFF) {
+					if (PSPELL pSpell = GetSpellByID(GetCharInfo2()->MemorizedSpells[Index])) {
+						if (pSpell->TargetType == 0x2d) {//is it a splashspell?
+							CastSplash(Index, pSpell);
+							return;
+						}
+					}
+				}
+			}
+		}
 		cmdCast(pChar, szLine);
 		return;
 	}
@@ -2281,12 +2327,18 @@ VOID Cast(PSPAWNINFO pChar, PCHAR szLine)
 	GetArg(szBuffer, szLine, 1);
 	for (Index = 0; Index<NUM_SPELL_GEMS; Index++) {
 		if (GetCharInfo2()->MemorizedSpells[Index] != 0xFFFFFFFF) {
-			PCHAR SpellName = GetSpellNameByID(GetCharInfo2()->MemorizedSpells[Index]);
-			if (!_stricmp(szBuffer, SpellName)) {
-				//DebugSpew("SpellName = %s",SpellName);
-				cmdCast(pChar, itoa(Index + 1, szBuffer, 10));
-				//DebugSpew("pChar = %x SpellName = %s %s",pChar,SpellName,itoa(Index+1,szBuffer,10));
-				return;
+			if (PSPELL pSpell = GetSpellByID(GetCharInfo2()->MemorizedSpells[Index])) {
+				if (!_stricmp(szBuffer, pSpell->Name)) {
+					if (pSpell->TargetType == 0x2d) {//is it a splashspell?
+						CastSplash(Index,pSpell);
+						return;
+					} else {//nope normal, so just pie it through
+						//DebugSpew("SpellName = %s",SpellName);
+						cmdCast(pChar, itoa(Index + 1, szBuffer, 10));
+						//DebugSpew("pChar = %x SpellName = %s %s",pChar,SpellName,itoa(Index+1,szBuffer,10));
+					}
+					return;
+				}
 			}
 		}
 	}

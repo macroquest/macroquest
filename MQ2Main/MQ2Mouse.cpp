@@ -465,13 +465,7 @@ VOID MouseTo(PSPAWNINFO pChar, PCHAR szLine)
 #define EQD3DTS_PROJECTION 3
 #define EQD3DTS_WORLD  256
 
-//Jul 18 2015 -eqmule
-struct ScreenVector3
-{
-    float x; // left to right screen coordinate
-    float y; // top to bottom screen coordinate
-    float z;
-};
+
 //Jul 18 2015 -eqmule
 typedef struct _EqViewPort9 {
     DWORD       X;

@@ -1,3 +1,27 @@
+11 Nov 2015 by EqMule and Demonstar55
+- Please don't use MQ2 for unattended gameplay (afk botting)
+- BIG NEWS!
+- After a really long time, messing with this on and off
+  I'm proud to present support for splash spells in the cast command.
+  You can now cast any splash spell as long as you have a target.
+  If you dont have a target it will just cast it at your own location.
+  There is no need for window in focus, or full screen or any of that stuff
+  you dont even have to be facing the target.
+  Basically the only requirement is that its in lineofsight and in range.
+  The splash feature was brought to you as a joined effort
+  with Demonstar55 as the main contributor, his tireless dissasembling
+  and reverse engineering as well as updates on the progress on skype, irc etc
+  was a major help in bringing this to you all, so give him a shoutout!
+  I need to mention ctaylor22 as well for pushing me to work on it at all.
+  Anyway... enjoy.
+- Added a new member to the Spawn TLO: CanSplashLand, it returns true or false
+  usage: /echo ${Target.CanSplashLand}
+  I suggest you use this tlo member in your macros BEFORE you try to cast a splashspell
+  there is no point in casting it if it wont land due to a line of sight problem.
+  NOTE! This check is ONLY for line of sight to the targetindicator (red/green circle)
+  its NOT a range check, you need to check range yourself like for every other spell
+  before you cast it...
+  
 01 Nov 2015 by EqMule
 - Please don't use MQ2 for unattended gameplay (afk botting)
 - Updated for BETA

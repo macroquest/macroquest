@@ -2828,8 +2828,11 @@ FUNCTION_AT_ADDRESS(void  CSpellBookWnd::DeleteSpellFromBook(int,int),CSpellBook
 #ifdef CXStr__Mid_x
 FUNCTION_AT_ADDRESS(class CXStr  CXStr::Mid(int,int)const ,CXStr__Mid);
 #endif
+#ifdef CTargetRing__Cast_x
+FUNCTION_AT_ADDRESS(int CTargetRing::Cast(ScreenVector3 *), CTargetRing__Cast);
+#endif
 #ifdef CTargetWnd__CTargetWnd_x
-FUNCTION_AT_ADDRESS( CTargetWnd::CTargetWnd(class CXWnd *),CTargetWnd__CTargetWnd);
+FUNCTION_AT_ADDRESS(CTargetWnd::CTargetWnd(class CXWnd *), CTargetWnd__CTargetWnd);
 #endif
 #ifdef CTargetWnd__Activate_x
 FUNCTION_AT_ADDRESS(void  CTargetWnd::Activate(void),CTargetWnd__Activate);
@@ -5087,8 +5090,12 @@ FUNCTION_AT_ADDRESS(bool  EQPlayer::AllowedToAttack(class EQPlayer *,int),EQPlay
 FUNCTION_AT_ADDRESS(bool  EQPlayer::CanIHit(class EQPlayer *,float),EQPlayer__CanIHit);
 #endif
 #ifdef EQPlayer__CanSee_x
-FUNCTION_AT_ADDRESS(bool  EQPlayer::CanSee(class EQPlayer *),EQPlayer__CanSee);
+FUNCTION_AT_ADDRESS(bool  EQPlayer::CanSee(class EQPlayer *), EQPlayer__CanSee);
 #endif
+#ifdef EQPlayer__CanSeeTargetIndicator_x
+FUNCTION_AT_ADDRESS(bool EQPlayer::CanSeeTargetIndicator(ScreenVector3 *), EQPlayer__CanSeeTargetIndicator);
+#endif
+
 #ifdef EQPlayer__ModifyAttackSpeed_x
 FUNCTION_AT_ADDRESS(unsigned int  EQPlayer::ModifyAttackSpeed(unsigned int,int),EQPlayer__ModifyAttackSpeed);
 #endif
@@ -5995,7 +6002,13 @@ FUNCTION_AT_ADDRESS(void  CEverQuest::DoLoadScreen(int),CEverQuest__DoLoadScreen
 FUNCTION_AT_ADDRESS(void  CEverQuest::CleanupBadFiles(void),CEverQuest__CleanupBadFiles);
 #endif
 #ifdef CEverQuest__CreateInitialActors_x
-FUNCTION_AT_ADDRESS(void  CEverQuest::CreateInitialActors(void),CEverQuest__CreateInitialActors);
+FUNCTION_AT_ADDRESS(void  CEverQuest::CreateInitialActors(void), CEverQuest__CreateInitialActors);
+#endif
+#ifdef CEverQuest__CreateTargetIndicator_x
+FUNCTION_AT_ADDRESS(CTargetRing *CEverQuest::CreateTargetIndicator(int,PSPELL,ScreenVector3*,int), CEverQuest__CreateTargetIndicator);
+#endif
+#ifdef CEverQuest__DeleteTargetIndicator_x
+FUNCTION_AT_ADDRESS(int CEverQuest::DeleteTargetIndicator(void), CEverQuest__DeleteTargetIndicator);
 #endif
 #ifdef CEverQuest__GetSndDriver_x
 FUNCTION_AT_ADDRESS(void  CEverQuest::GetSndDriver(void),CEverQuest__GetSndDriver);

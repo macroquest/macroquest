@@ -211,6 +211,7 @@ class CStoryWnd;
 class CTabBoxTemplate;
 class CTabWnd;
 class CTAFrameDraw;
+class CTargetRing;
 class CTargetWnd;
 class CTaskWnd;
 class CTaskSomething;
@@ -359,6 +360,7 @@ class ZoneNPCLoadTextManager;
 class CTextOverlay;
 class PcZoneClient;
 class CharacterZoneClient;
+
 // End forward class declarations
 typedef struct _Personal_Loot
 {
@@ -1770,6 +1772,8 @@ class CEverQuest
 public:
 EQLIB_OBJECT CEverQuest::~CEverQuest(void);
 EQLIB_OBJECT CEverQuest::CEverQuest(struct HWND__ *);
+EQLIB_OBJECT CTargetRing *CEverQuest::CreateTargetIndicator(int, PSPELL, ScreenVector3*, int);
+EQLIB_OBJECT int CEverQuest::DeleteTargetIndicator(void);
 EQLIB_OBJECT bool CEverQuest::IsInTypingMode(void);
 EQLIB_OBJECT bool CEverQuest::IsOkToTransact(void);
 EQLIB_OBJECT bool CEverQuest::ReadClientINIBool(char *,char *,bool);
@@ -4587,6 +4591,17 @@ EQLIB_OBJECT int CTAFrameDraw::GetMinLength(void)const;
 EQLIB_OBJECT void CTAFrameDraw::Set(class CTextureAnimation * * const);
 };
 
+class CTargetRing
+{
+public:
+EQLIB_OBJECT int CTargetRing::Cast(ScreenVector3 *);
+/*0x00*/	DWORD Gem;//the gem the spell below is memmed in... 0-11
+/*0x04*/	PSPELL thespell;
+/*0x08*/	ScreenVector3 thevec;
+/*0x14*/	BOOL Param;
+/*0x18*/
+};
+
 class CTargetWnd : public CSidlScreenWnd
 {
 public:
@@ -5801,6 +5816,7 @@ EQLIB_OBJECT bool EQPlayer::CanChangeForm(int,unsigned char);
 EQLIB_OBJECT bool EQPlayer::CanIFitHere(float,float,float);
 EQLIB_OBJECT bool EQPlayer::CanIHit(class EQPlayer *,float);
 EQLIB_OBJECT bool EQPlayer::CanSee(class EQPlayer *);
+EQLIB_OBJECT bool EQPlayer::CanSeeTargetIndicator(ScreenVector3 *);
 EQLIB_OBJECT bool EQPlayer::GetBoneCoords(struct T3D_DAG *,struct _EQLOC *);
 EQLIB_OBJECT bool EQPlayer::IsAMount(void);
 EQLIB_OBJECT bool EQPlayer::IsFlyer(void);

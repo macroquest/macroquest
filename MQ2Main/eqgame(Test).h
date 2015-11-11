@@ -156,6 +156,9 @@ GNU General Public License for more details.
 #define pinstViewActor_x                                           0xF4CD0C
 #define pinstWorldData_x                                           0x1000028
 #define pinstZoneAddr_x                                            0x100D62C
+#define pinstPlayerPath_x                                          0x1092C20
+#define pinstTargetIndicator_x                                     0x10935B8
+#define pinstCTargetManager_x                                      0x1093618
 
 //// 
 //Section 2:  UI Related Offsets 
@@ -397,6 +400,8 @@ GNU General Public License for more details.
 
 // CEverQuest 
 #define CEverQuest__ClickedPlayer_x                                0x550400
+#define CEverQuest__CreateTargetIndicator_x                        0x551030
+#define CEverQuest__DeleteTargetIndicator_x                        0x5510B0
 #define CEverQuest__DoTellWindow_x                                 0x555E00
 #define CEverQuest__DropHeldItemOnGround_x                         0x55E8F0
 #define CEverQuest__dsp_chat_x                                     0x5575A0
@@ -701,6 +706,7 @@ GNU General Public License for more details.
 #define EQPlayer__IsTargetable_x                                   0x929610
 #define EQPlayer__CanSee_x                                         0x929B30
 #define PlayerZoneClient__ChangeHeight_x                           0x5DDD80
+#define EQPlayer__CanSeeTargetIndicator_x                          0x929C20
 
 //EQPlayerManager
 #define EQPlayerManager__GetSpawnByID_x                            0x5D2550
@@ -771,3 +777,6 @@ GNU General Public License for more details.
 #define CAltAbilityData__GetMercCurrentRank_x                      0x4CB9D0
 #define CAltAbilityData__GetMercMaxRank_x                          0x4CB980
 #define CAltAbilityData__GetMaxRank_x                              0x4C0860
+
+//CTargetRing
+#define CTargetRing__Cast_x                                        0x585990

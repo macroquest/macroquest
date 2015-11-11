@@ -1313,7 +1313,10 @@ namespace MQ2Globals
 	INITIALIZE_EQGAME_OFFSET(instTributeActive);
 	INITIALIZE_EQGAME_OFFSET(pinstViewActor);
 	INITIALIZE_EQGAME_OFFSET(pinstWorldData);
-
+	INITIALIZE_EQGAME_OFFSET(pinstPlayerPath);
+	INITIALIZE_EQGAME_OFFSET(pinstTargetIndicator);
+	INITIALIZE_EQGAME_OFFSET(pinstCTargetManager);
+	
 	INITIALIZE_EQGAME_OFFSET(pinstCTextOverlay);
 	INITIALIZE_EQGAME_OFFSET(pinstCAudioTriggersWindow);
 	INITIALIZE_EQGAME_OFFSET(pinstCCharacterSelect);
@@ -1548,6 +1551,8 @@ namespace MQ2Globals
 	INITIALIZE_EQGAME_OFFSET(CEverQuest__SetGameState);
 	INITIALIZE_EQGAME_OFFSET(CEverQuest__UPCNotificationFlush);
 	INITIALIZE_EQGAME_OFFSET(CEverQuest__IssuePetCommand);
+	INITIALIZE_EQGAME_OFFSET(CEverQuest__CreateTargetIndicator);
+	INITIALIZE_EQGAME_OFFSET(CEverQuest__DeleteTargetIndicator);
 
 	INITIALIZE_EQGAME_OFFSET(CGaugeWnd__CalcFillRect);
 	INITIALIZE_EQGAME_OFFSET(CGaugeWnd__CalcLinesFillRect);
@@ -1686,6 +1691,8 @@ namespace MQ2Globals
 	INITIALIZE_EQGAME_OFFSET(CTabWnd__SetPageRect);
 	INITIALIZE_EQGAME_OFFSET(CTabWnd__UpdatePage);
 
+	INITIALIZE_EQGAME_OFFSET(CTargetRing__Cast);
+	
 	INITIALIZE_EQGAME_OFFSET(CTextOverlay__DisplayText);
 
 	INITIALIZE_EQGAME_OFFSET(CTextureFont__DrawWrappedText);
@@ -1795,7 +1802,7 @@ namespace MQ2Globals
 	INITIALIZE_EQGAME_OFFSET(EQPlayer__IsTargetable);
 	INITIALIZE_EQGAME_OFFSET(EQPlayer__CanSee);
 	INITIALIZE_EQGAME_OFFSET(PlayerZoneClient__ChangeHeight);
-
+	INITIALIZE_EQGAME_OFFSET(EQPlayer__CanSeeTargetIndicator);
 
 	INITIALIZE_EQGAME_OFFSET(EQPlayerManager__GetSpawnByID);
 	INITIALIZE_EQGAME_OFFSET(EQPlayerManager__GetSpawnByName);

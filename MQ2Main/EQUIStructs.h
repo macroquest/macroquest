@@ -852,6 +852,68 @@ typedef struct _EQADVLOOTWND {
 	/*0x2e0*/
 } EQADVLOOTWND, *PEQADVLOOTWND;
 
+//
+//.text:005FC640 ; public: __thiscall CTargetIndicator::CTargetIndicator(void)
+//size 0x48 see 4BA434 in Oct 26 2015 -eqmule
+typedef struct _TARGETINDICATOR
+{
+/*0x00*/	BYTE Unknown0x00;
+/*0x01*/	BYTE Unknown0x01;
+/*0x02*/	BYTE Unknown0x02[0x2];
+/*0x04*/	PSPAWNINFO lasttarget;
+/*0x08*/	BYTE Unknown0x08[0x10];
+/*0x18*/	BYTE IndicatorHidden;//if this is 1 our mouse is over another window and not on the main one - shouldnt cast when this is 1
+/*0x19*/	BYTE CanActivate;//if 0 the indicator is red if 1 its green, i.e. it can be activated.
+/*0x1a*/	BYTE Unknown0x1a[0x2];
+/*0x1c*/	DWORD somepointer;
+/*0x20*/	DWORD somepointer2;
+/*0x24*/	BYTE ValidForSplash;//this is reliable IF you actually have a target: 3 is self and your merc, 4 is other player, 0 is npc...
+/*0x25*/	BYTE Unknown0x25[0x23];
+/*0x48*/
+} TARGETINDICATOR,*PTARGETINDICATOR;
+
+//.text:005FE3E0 ; private: __thiscall CTargetManager::CTargetManager(void)
+//size 0x1a4 see 5FE489 in Oct 26 2015 -eqmule
+typedef struct _TARGETMANAGER
+{
+	/*0x000*/ BYTE Unknown0x000[0x184];
+	/*0x184*/ DWORD TargetID;
+	/*0x188*/ BYTE Unknown0x188[0x4];
+	/*0x18c*/ BYTE target_ring_in_focus;
+	/*0x18d*/ BYTE Unknown0x18d[3];
+	/*0x190*/ float target_ring_range; // squared for easier math
+	/*0x194*/ float target_ring_x; // probably vec3 type class, this is whats passed to castspell
+	/*0x198*/ float target_ring_y;
+	/*0x19c*/ float target_ring_z;
+	/*0x1a0*/ BYTE target_ring_good; //0=red 1=green 
+	/*0x1a1*/ BYTE Unknown0x1a1[3];
+	/*0x1a4*/
+} TARGETMANAGER, *PTARGETMANAGER;
+
+//Jul 18 2015 -eqmule
+typedef struct _ScreenVector3
+{
+	union {
+		float x; // left to right screen coordinate
+		DWORD dx;
+	};
+	union {
+		float y; // top to bottom screen coordinate
+		DWORD dy;
+	};
+	union {
+		float z;
+		DWORD dz;
+	};
+} ScreenVector3, *PScreenVector3;
+//oct 26 2015 - eqmule 
+typedef struct _TARGETRING {
+/*0x00*/	DWORD Gem;//the gem the spell below is memmed in... 0-11
+/*0x04*/	PSPELL thespell;
+/*0x08*/	ScreenVector3 thevec;
+/*0x14*/	BOOL Param;
+/*0x18*/
+} TARGETRING, *PTARGETRING;
 /******************************************** CHECKED *****************************************************************/
 //everything above this line is work in progress/stuff that can be improved/checked/fixed.
 //everything below it is 100% checked -eqmule

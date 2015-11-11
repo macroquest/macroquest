@@ -1851,7 +1851,7 @@ typedef struct _SPELL {
 /*0x26b*/   BYTE    SpellType;          //0=detrimental, 1=Beneficial, 2=Beneficial, Group Only
 /*0x26c*/   BYTE    Unknown0x26c;
 /*0x26d*/   BYTE    Resist;             //0=un 1=mr 2=fr 3=cr 4=pr 5=dr 6=chromatic 7=prismatic 8=physical(skills,etc) 9=corruption
-/*0x26e*/   BYTE    TargetType;         //03=Group v1, 04=PB AE, 05=Single, 06=Self, 08=Targeted AE, 0e=Pet, 28=AE PC v2, 29=Group v2, 2a=Directional
+/*0x26e*/   BYTE    TargetType;         //03=Group v1, 04=PB AE, 05=Single, 06=Self, 08=Targeted AE, 0e=Pet, 28=AE PC v2, 29=Group v2, 2a=Directional, 2d=splash
 /*0x26f*/   BYTE    FizzleAdj;
 /*0x270*/   BYTE    Skill;
 /*0x271*/   BYTE    Location;           //01=Outdoors, 02=dungeons, ff=Any
@@ -2247,18 +2247,19 @@ typedef struct _CHATSERVICE {
 } CHATSERVICE, *PCHATSERVICE;
 
 typedef struct _EVERQUEST {
-/*0x000*/ BYTE   Unknown[0x2a4];
-/*0x2a4*/ struct _CHATSERVICE *ChatService;
-/*0x2a8*/ BYTE   Unknown0x2a8[0x8];
-/*0x2b0*/ bool   bJoinedChannel;
-/*0x2b1*/ CHAR   ChannelPlayerName[0x100];
-/*0x3b1*/ CHAR   ChannelName[0xa][0x30];
-/*0x591*/ BYTE   Unknown0x591[0x3];
-/*0x594*/ DWORD  ChannelNumber[0xa];
-/*0x5bc*/ DWORD  ChannelQty;
-/*0x5c0*/ BYTE   Unknown0x5c0[0x8];
-/*0x5c8*/ DWORD  GameState;
-/*0x5cc*/ // more data
+	/*0x000*/ BYTE   Unknown[0x2a4];
+	/*0x2a4*/ struct _CHATSERVICE *ChatService;
+	/*0x2a8*/ BYTE   Unknown0x2a8[0x8];
+	/*0x2b0*/ bool   bJoinedChannel;
+	/*0x2b1*/ CHAR   ChannelPlayerName[0x100];
+	/*0x3b1*/ CHAR   ChannelName[0xa][0x30];
+	/*0x591*/ BYTE   Unknown0x591[0x3];
+	/*0x594*/ DWORD  ChannelNumber[0xa];
+	/*0x5bc*/ DWORD  ChannelQty;
+	/*0x5c0*/ DWORD  TargetRing;
+	/*0x5c4*/ BYTE	 Unknown0x5c4[0x4];
+	/*0x5c8*/ DWORD  GameState;
+	/*0x5cc*/ // more data
 } EVERQUEST, *PEVERQUEST;
 
 typedef struct _AURAINFO {

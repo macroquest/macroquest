@@ -410,16 +410,23 @@ DWORD __stdcall InitializeMQ2SpellDb(PVOID pData)
 	return 0;
 }
 #ifndef ISXEQ
+#ifdef EMU
+//need to include any headers for your emu? add them here
+#include "emu.h"
+#endif
 // ***************************************************************************
 // Function:    MQ2Start Thread
 // Description: Where we start execution during the insertion
 // ***************************************************************************
 DWORD WINAPI MQ2Start(LPVOID lpParameter)
 {
-    PCHAR lpINIPath = (PCHAR)lpParameter;
+	PCHAR lpINIPath = (PCHAR)lpParameter;
     strcpy(gszINIPath, lpINIPath);
     free(lpINIPath);
-    CHAR szBuffer[MAX_STRING] = {0};
+#ifdef EMU
+	MQ2StartEmu();//or whatever...
+#endif
+	CHAR szBuffer[MAX_STRING] = { 0 };
 
     if (!MQ2Initialize()) {
 		MessageBox(NULL,"Failed to Initialize MQ2 will free lib and exit","MQ2 Error",MB_OK);
