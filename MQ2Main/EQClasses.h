@@ -5835,7 +5835,7 @@ EQLIB_OBJECT int EQPlayer::AimAtTarget(class EQPlayer *,class EQMissile *);
 EQLIB_OBJECT int EQPlayer::AttachPlayerToPlayerBone(class EQPlayer *,struct T3D_DAG *);
 EQLIB_OBJECT int EQPlayer::CanBeBald(void);
 EQLIB_OBJECT int EQPlayer::CheckForJump(void);
-EQLIB_OBJECT int EQPlayer::DoAttack(unsigned char,unsigned char,class EQPlayer *);
+EQLIB_OBJECT int EQPlayer::DoAttack(unsigned char,unsigned char,class EQPlayer *,int Flag = 0);
 EQLIB_OBJECT int EQPlayer::GetAlternateTrackNumber(int,unsigned char *);
 EQLIB_OBJECT int EQPlayer::GetArmorType(int);
 EQLIB_OBJECT int EQPlayer::GetAttachedHelmITNum(int,int *);

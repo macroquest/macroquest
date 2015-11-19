@@ -5100,7 +5100,7 @@ FUNCTION_AT_ADDRESS(bool EQPlayer::CanSeeTargetIndicator(ScreenVector3 *), EQPla
 FUNCTION_AT_ADDRESS(unsigned int  EQPlayer::ModifyAttackSpeed(unsigned int,int),EQPlayer__ModifyAttackSpeed);
 #endif
 #ifdef EQPlayer__DoAttack_x
-FUNCTION_AT_ADDRESS(int  EQPlayer::DoAttack(unsigned char,unsigned char,class EQPlayer *),EQPlayer__DoAttack);
+FUNCTION_AT_ADDRESS(int  EQPlayer::DoAttack(unsigned char,unsigned char,class EQPlayer *,int),EQPlayer__DoAttack);
 #endif
 #ifdef EQPlayer__HandleAmmo_x
 FUNCTION_AT_ADDRESS(unsigned char  EQPlayer::HandleAmmo(void),EQPlayer__HandleAmmo);

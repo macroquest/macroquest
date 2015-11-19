@@ -165,7 +165,36 @@ DWORD LoadMQ2Plugin(const PCHAR pszFilename,BOOL bCustom)
     LoadCfgFile(FullFilename,false);
     return 1;
 }
+//what is this?
+//Well, microsoft decided that it was a grat idea to SILENTLY add dlls that crash to 2 registrykeys
+//since mq2 uses plugins, there is no telling which will crash now and then
+//and its likely this happens on patchdays as well
+//anyway if they end up in any of these 2 reg keys freelibrary will fail
+//it will look like this:
+//"C:\\Program Files\\Company\\MyApp.exe"="$ IgnoreFreeLibrary<externModule.dll>"
+//so we need to workaround this so called "feature" by checking of we exist in the keys
+//and delete us if we do so we can unload properly. -eqmule Nov 19 2015
+//also this crap is checked once on launch, so
+//we cant just delete the value and freelibrary will work again
+//at least next time they use mq2 it will unload
+//maybe i should hook the freelibraryhook...
+//gonna have to spend some time on this.
+//maybe there is a application compatibility api we can call to unhook it...
 
+void CheckLayers(PMQPLUGIN pPlugin)
+{
+	//work in progress, patch was needed i got interrupted.
+	return;
+	//HKEY_CURRENT_USER\SOFTWARE\Microsoft\Windows NT\CurrentVersion\AppCompatFlags\Layers
+	//HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows NT\CurrentVersion\AppCompatFlags\Layers
+	HKEY HkeyTemp = { 0 };
+	HANDLE hFile = NULL;
+	VALENT vl = { 0 };
+	if (ERROR_SUCCESS == RegOpenKey(HKEY_LOCAL_MACHINE, "SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion\\AppCompatFlags\\Layers", &HkeyTemp)) {
+	//	RegQueryMultipleValues(HkeyTemp,&vl,
+	}
+
+}
 BOOL UnloadMQ2Plugin(const PCHAR pszFilename)
 {
     DebugSpew("UnloadMQ2Plugin");
@@ -195,6 +224,7 @@ BOOL UnloadMQ2Plugin(const PCHAR pszFilename)
             if (pPlugin->Shutdown)
                 pPlugin->Shutdown();
 
+			CheckLayers(pPlugin);
 			FreeLibrary(pPlugin->hModule);
             delete pPlugin;
             return 1;
