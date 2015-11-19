@@ -97,15 +97,10 @@ using namespace std;
 #include "eqgame(emu).h"
 #endif
 
-#if defined(BETA)
-#define MountWindowParent "KeyRingWnd"
+#define KeyRingWindowParent "KeyRingWnd"
 #define MountWindowList "KRW_Mounts_List"
-#define MountWindowPage "KRW_Mounts_Page"
-#else
-#define MountWindowParent "InventoryWindow"
-#define MountWindowList "IW_Mounts_MountList"
-#define MountWindowPage "IW_Subwindows"
-#endif
+#define IllusionWindowList "KRW_Illusions_List"
+#define KeyRingTab "KRW_Subwindows"
 
 #if defined(EMU)
 #define csnOffset 0x1a4
@@ -494,10 +489,11 @@ EQLIB_API bool StripQuotes(char *str);
 EQLIB_API VOID MakeMeVisible(PSPAWNINFO pChar, PCHAR szLine);
 EQLIB_API VOID RemoveAura(PSPAWNINFO pChar, PCHAR szLine);
 EQLIB_API BOOL GetAllMercDesc(std::map<DWORD, MercDesc>&minfo);
-EQLIB_API DWORD GetMountKeyRingIndex(char *szItemName, bool bExact = true, bool usecmd = false);
+EQLIB_API DWORD GetKeyRingIndex(BOOL RingType, char *szItemName, bool bExact = true, bool usecmd = false);
 EQLIB_API int GetMountCount();
-EQLIB_API void RefreshMountKeyRing(PVOID kr);
-EQLIB_API void InitMountKeyRing();
+EQLIB_API int GetIllusionCount();
+EQLIB_API void RefreshKeyRings(PVOID kr);
+EQLIB_API void InitKeyRings();
 EQLIB_API BOOL IsActiveAA(PCHAR pSpellName);
 EQLIB_API CXWnd *GetAdvLootPersonalListItem(DWORD id, DWORD type);
 EQLIB_API CXWnd *GetAdvLootSharedListItem(DWORD id, DWORD type);

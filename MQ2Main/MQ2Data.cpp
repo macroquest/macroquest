@@ -1148,10 +1148,37 @@ TLO(dataFindItem)
 #ifndef EMU
 	//still not found? fine... check mount keyring
 	PCHARINFO pChar = GetCharInfo();
-	if (pChar && pChar->pMountArray && pChar->pMountArray->Mount) {
-		for (unsigned long nSlot = 0; nSlot < MAX_MOUNTS; nSlot++)
+	if (pChar && pChar->pMountsArray && pChar->pMountsArray->Mounts) {
+		for (unsigned long nSlot = 0; nSlot < MAX_KEYRINGITEMS; nSlot++)
 		{
-			if (PCONTENTS pItem = pChar->pMountArray->Mount[nSlot])
+			if (PCONTENTS pItem = pChar->pMountsArray->Mounts[nSlot])
+			{
+				if (bExact)
+				{
+					if (!_stricmp(Name, GetItemFromContents(pItem)->Name))
+					{
+						Ret.Ptr = pItem;
+						Ret.Type = pItemType;
+						return true;
+					}
+				}
+				else
+				{
+					if (strstr(strlwr(strcpy(Temp, GetItemFromContents(pItem)->Name)), Name))
+					{
+						Ret.Ptr = pItem;
+						Ret.Type = pItemType;
+						return true;
+					}
+				}
+			}
+		}
+	}
+	//still not found? fine... check illusions keyring
+	if (pChar && pChar->pIllusionsArray && pChar->pIllusionsArray->Illusions) {
+		for (unsigned long nSlot = 0; nSlot < MAX_KEYRINGITEMS; nSlot++)
+		{
+			if (PCONTENTS pItem = pChar->pIllusionsArray->Illusions[nSlot])
 			{
 				if (bExact)
 				{
@@ -1761,7 +1788,7 @@ TLO(dataMount)
 		if (n <= 0)
 			return false;
 		n--;
-		if (CXWnd *krwnd = FindMQ2Window(MountWindowParent)) {
+		if (CXWnd *krwnd = FindMQ2Window(KeyRingWindowParent)) {
 			if (CListWnd *clist = (CListWnd*)krwnd->GetChildItem(MountWindowList)) {
 				int numitems = (int)((CSidlScreenWnd*)clist)->Items;
 				if (numitems >= n) {
@@ -1770,8 +1797,8 @@ TLO(dataMount)
 					CHAR szOut[255] = { 0 };
 					GetCXStr(Str.Ptr, szOut, 254);
 					if (szOut[0] != '\0') {
-						Ret.DWord = n;
-						Ret.Type = pMountType;
+						Ret.DWord = MAKELPARAM(n, 0);
+						Ret.Type = pKeyRingType;
 						return true;
 					}
 				}
@@ -1785,9 +1812,52 @@ TLO(dataMount)
 			bExact = true;
 			pName++;
 		}
-		if (Ret.DWord = GetMountKeyRingIndex(pName, bExact)) {
-			Ret.DWord--;
-			Ret.Type = pMountType;
+		if (DWORD n = GetKeyRingIndex(0,pName, bExact)) {
+			n--;
+			Ret.DWord = MAKELPARAM(n, 0);
+			Ret.Type = pKeyRingType;
+			return true;
+		}
+	}
+	return false;
+}
+TLO(dataIllusion)
+{
+	if (!ISINDEX())
+		return false;
+	if (ISNUMBER()) {
+		int n = GETNUMBER();
+		if (n <= 0)
+			return false;
+		n--;
+		if (CXWnd *krwnd = FindMQ2Window(KeyRingWindowParent)) {
+			if (CListWnd *clist = (CListWnd*)krwnd->GetChildItem(IllusionWindowList)) {
+				int numitems = (int)((CSidlScreenWnd*)clist)->Items;
+				if (numitems >= n) {
+					CXStr Str;
+					clist->GetItemText(&Str, n, 2);
+					CHAR szOut[255] = { 0 };
+					GetCXStr(Str.Ptr, szOut, 254);
+					if (szOut[0] != '\0') {
+						Ret.DWord = MAKELPARAM(n, 1);
+						Ret.Type = pKeyRingType;
+						return true;
+					}
+				}
+			}
+		}
+	}
+	else if (PCHAR pName = GETFIRST()) {
+		bool bExact = false;
+		if (*pName == '=')
+		{
+			bExact = true;
+			pName++;
+		}
+		if (DWORD n = GetKeyRingIndex(1, pName, bExact)) {
+			n--;
+			Ret.DWord = MAKELPARAM(n, 1);
+			Ret.Type = pKeyRingType;
 			return true;
 		}
 	}

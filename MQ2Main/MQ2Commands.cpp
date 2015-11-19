@@ -3290,15 +3290,28 @@ VOID UseItemCmd(PSPAWNINFO pChar, PCHAR szLine)
 				}
 				else {
 #ifndef EMU
-					if (DWORD index = GetMountKeyRingIndex(szLine, stripped, true)) {
-						if (CXWnd *krwnd = FindMQ2Window(MountWindowParent)) {
+					//is it a mount?
+					if (DWORD index = GetKeyRingIndex(0,szLine, stripped, true)) {
+						if (CXWnd *krwnd = FindMQ2Window(KeyRingWindowParent)) {
 							if (CListWnd *clist = (CListWnd*)krwnd->GetChildItem(MountWindowList)) {
 								if (DWORD numitems = ((CSidlScreenWnd*)clist)->Items) {
-									SendListSelect(MountWindowParent, MountWindowList, index - 1);
+									SendListSelect(KeyRingWindowParent, MountWindowList, index - 1);
 									int listdata = clist->GetItemData(index - 1);
-#ifndef BETA
-									cmdToggleMount(&pItem, listdata);
-#endif
+									cmdToggleKeyRingItem(0,&pItem, listdata);
+									return;
+								}
+							}
+						}
+					}
+					//uhm ok, maybe an illlusion then?
+					if (DWORD index = GetKeyRingIndex(1,szLine, stripped, true)) {
+						if (CXWnd *krwnd = FindMQ2Window(KeyRingWindowParent)) {
+							if (CListWnd *clist = (CListWnd*)krwnd->GetChildItem(IllusionWindowList)) {
+								if (DWORD numitems = ((CSidlScreenWnd*)clist)->Items) {
+									SendListSelect(KeyRingWindowParent, IllusionWindowList, index - 1);
+									int listdata = clist->GetItemData(index - 1);
+									cmdToggleKeyRingItem(1, &pItem, listdata);
+									Sleep(0);
 								}
 							}
 						}

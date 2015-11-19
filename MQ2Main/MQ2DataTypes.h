@@ -4504,29 +4504,36 @@ public:
 	}
 };
 
-class MQ2MountType : public MQ2Type
+class MQ2KeyRingType : public MQ2Type
 {
 public:
-	enum MountTypeMembers
+	enum KeyRingTypeMembers
 	{
 		xIndex = 1,
 		Name = 2,
 	};
-	MQ2MountType() :MQ2Type("mount")
+	MQ2KeyRingType() :MQ2Type("keyring")
 	{
 		AddMember(xIndex, "Index");
 		TypeMember(Name);
 	}
-	~MQ2MountType()
+	~MQ2KeyRingType()
 	{
 	}
 	bool GETMEMBER();
 	bool ToString(MQ2VARPTR VarPtr, PCHAR Destination)
 	{
-		if (CXWnd *krwnd = FindMQ2Window(MountWindowParent)) {
-			if (CListWnd *clist = (CListWnd *)krwnd->GetChildItem(MountWindowList)) {
+		if (CXWnd *krwnd = FindMQ2Window(KeyRingWindowParent)) {
+			CListWnd *clist = 0;
+			WORD n = LOWORD(VarPtr.DWord);
+			WORD type = HIWORD(VarPtr.DWord);
+			if (type == 1)
+				clist = (CListWnd *)krwnd->GetChildItem(IllusionWindowList);
+			else
+				clist = (CListWnd *)krwnd->GetChildItem(MountWindowList);
+			if (clist) {
 				CXStr Str;
-				clist->GetItemText(&Str, VarPtr.DWord, 2);
+				clist->GetItemText(&Str, n, 2);
 				CHAR szOut[255] = { 0 };
 				GetCXStr(Str.Ptr, szOut, 254);
 				if (szOut[0] != '\0') {

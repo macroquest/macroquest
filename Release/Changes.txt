@@ -1,5 +1,28 @@
 11 Nov 2015 by EqMule and Demonstar55
 - Please don't use MQ2 for unattended gameplay (afk botting)
+- Updated for LIVE
+- Updated for TEST
+- Change the MQ2MountType TLO has been renamed to MQ2KeyRingType
+  it works exactly like the mount tlo would, but it also take illusions now
+  so u can do:
+  Usage: /echo ${Mount[1].Name}
+  Outputs: [MQ2] Whirligig Flyer Control Device
+  Usage: /echo ${Illusion[2].Name}
+  Outputs: [MQ2] Polymorph Wand: Steam Suit
+  Usage: /echo ${Illusion[Polymorph Wand: Steam Suit].Index}
+  Outputs: [MQ2] 2
+- New Feature: you can now use /useitem on illusion items even if they are in the keyring
+  usage: /useitem Polymorph Wand: Steam Suit
+- Change: there used to be a value in the itemstruct called CastTime
+  I noticed it was actully FoodDuration, so it has been renamed.
+  If you have any plugins that used "someitem->CastTime" from that struct,
+  you need to change that to whatever you intend it to do, cause for whatever
+  reason you have been using it up til this point, you have gotten FoodDuration back...
+  Im guessing that was a bug, and you really wanted someitem->Clicky.CastTime instead...
+  so adjust accordingly.
+
+11 Nov 2015 by EqMule and Demonstar55
+- Please don't use MQ2 for unattended gameplay (afk botting)
 - BIG NEWS!
 - After a really long time, messing with this on and off
   I'm proud to present support for splash spells in the cast command.

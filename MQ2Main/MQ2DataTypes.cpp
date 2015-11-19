@@ -9668,36 +9668,45 @@ bool MQ2XTargetType::GETMEMBER()
 	return false;
 };
 
-bool MQ2MountType::GETMEMBER()
+bool MQ2KeyRingType::GETMEMBER()
 {
-	PMQ2TYPEMEMBER pMember = MQ2MountType::FindMember(Member);
+	PMQ2TYPEMEMBER pMember = MQ2KeyRingType::FindMember(Member);
 	if (!pMember)
 		return false;
-	switch ((MountTypeMembers)pMember->ID)
+	switch ((KeyRingTypeMembers)pMember->ID)
 	{
-	case xIndex:
-	{
-		Dest.DWord = VarPtr.DWord + 1;
-		Dest.Type = pIntType;
-		return true;
-	}
-	case Name:
-	{
-		if (CXWnd *krwnd = FindMQ2Window(MountWindowParent)) {
-			if (CListWnd *clist = (CListWnd *)krwnd->GetChildItem(MountWindowList)) {
-				CXStr Str;
-				clist->GetItemText(&Str, VarPtr.DWord, 2);
-				CHAR szOut[255] = { 0 };
-				GetCXStr(Str.Ptr, szOut, 254);
-				if (szOut[0] != '\0') {
-					strcpy_s(DataTypeTemp, szOut);
-					Dest.Ptr = &DataTypeTemp[0];
-					Dest.Type = pStringType;
-					return true;
+		case xIndex:
+		{
+			DWORD n = LOWORD(VarPtr.DWord);
+			Dest.DWord = n + 1;
+			Dest.Type = pIntType;
+			return true;
+		}
+		case Name:
+		{
+			if (CXWnd *krwnd = FindMQ2Window(KeyRingWindowParent)) {
+				CListWnd *clist = 0;
+				DWORD n = LOWORD(VarPtr.DWord);
+				DWORD type = HIWORD(VarPtr.DWord);
+				if (type == 1)
+					clist = (CListWnd *)krwnd->GetChildItem(IllusionWindowList);
+				else
+					clist = (CListWnd *)krwnd->GetChildItem(MountWindowList);
+
+				if (clist) {
+					CXStr Str;
+					clist->GetItemText(&Str, n, 2);
+					CHAR szOut[255] = { 0 };
+					GetCXStr(Str.Ptr, szOut, 254);
+					if (szOut[0] != '\0') {
+						strcpy_s(DataTypeTemp, szOut);
+						Dest.Ptr = &DataTypeTemp[0];
+						Dest.Type = pStringType;
+						return true;
+					}
 				}
 			}
 		}
-	}
 	}
 	return false;
 }

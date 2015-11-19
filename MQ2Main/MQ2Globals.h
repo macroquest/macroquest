@@ -320,7 +320,7 @@ namespace MQ2Globals
 	EQLIB_VAR fEQExecuteCmd		 ExecuteCmd;
 	EQLIB_VAR fEQGetMelee		 get_melee_range;
 #ifndef EMU
-	EQLIB_VAR fEQToggleMount     cmdToggleMount;
+	EQLIB_VAR fEQToggleKeyRingItem     cmdToggleKeyRingItem;
 #endif
 	//EQLIB_VAR PCHAR szItemName[];
 	//EQLIB_VAR PCHAR szItemName4xx[];
@@ -926,7 +926,7 @@ namespace MQ2Globals
 	EQLIB_VAR DWORD __get_melee_range;
 	EQLIB_VAR DWORD __GetGaugeValueFromEQ;
 	EQLIB_VAR DWORD __GetLabelFromEQ;
-	EQLIB_VAR DWORD __ToggleMount;
+	EQLIB_VAR DWORD __ToggleKeyRingItem;
 	EQLIB_VAR DWORD __GetXTargetType;
 	EQLIB_VAR DWORD __LoadFrontEnd;
 	EQLIB_VAR DWORD __NewUIINI;

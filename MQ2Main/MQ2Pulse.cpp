@@ -196,7 +196,7 @@ void Pulse()
 	if (gbDoAutoRun && pChar && pCharInfo) {
 		gbDoAutoRun = FALSE;
 #ifndef EMU
-		InitMountKeyRing();
+		InitKeyRings();
 #endif
 		CHAR szServerAndName[MAX_STRING] = { 0 };
 		CHAR szAutoRun[MAX_STRING] = { 0 };

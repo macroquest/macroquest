@@ -36,7 +36,7 @@ namespace MQ2Prototypes
 	typedef DWORD(__cdecl *fMQParm)(PCHAR, PCHAR, PSPAWNINFO);
 	typedef bool(__cdecl *fGetLabelFromEQ)(int, class CXStr *, bool *, unsigned long *);
 #ifndef EMU
-	typedef BOOL(__cdecl *fEQToggleMount)(PCONTENTS*, DWORD);
+	typedef BOOL(__cdecl *fEQToggleKeyRingItem)(BOOL RingType,PCONTENTS*itemptr, DWORD listindex);//0 is mounts and 1 is illusions
 #endif
 #define DoWarp                 0
 

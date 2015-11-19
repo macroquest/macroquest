@@ -818,7 +818,7 @@ typedef struct _AALIST {
 #define NUM_INV_SLOTS                   0x21
 #define NUM_BANK_SLOTS                  0x18
 #define NUM_SHAREDBANK_SLOTS            0x04
-#define MAX_MOUNTS					    0x1B //not really sure need to confirm this
+#define MAX_KEYRINGITEMS				0x1B //not really sure need to confirm this
 //found in CSpellBookWnd__GetBookSlot_x (see 7756CA in Oct 29 2014 Live) -eqmule 
 #define NUM_BOOK_SLOTS                  0x320
 #define NUM_COMBAT_ABILITIES            0x12c
@@ -909,10 +909,13 @@ typedef struct _SHAREDBANKARRAY {
 } SHAREDBANKARRAY, *PSHAREDBANKARRAY;
 
 //added dec 08 2014 -eqmule
-typedef struct _MOUNTARRAY {
-/*0x00*/ struct _CONTENTS* Mount[MAX_MOUNTS];
+typedef struct _KEYRINGARRAY {
+	union {
+		/*0x00*/ struct _CONTENTS* Mounts[MAX_KEYRINGITEMS];
+		/*0x00*/ struct _CONTENTS* Illusions[MAX_KEYRINGITEMS];
+	};
 /*0x28*/
-} MOUNTARRAY, *PMOUNTARRAY;
+} KEYRINGARRAY, *PKEYRINGARRAY;
 
 //aStartingLoad_
 // actual size: 0x490c Oct 21 2015 (Beta) (see 577717) - eqmule
@@ -929,8 +932,10 @@ typedef struct _CHARINFO {
 /*0x1138*/ BYTE         Unknown0x1138[0x98];
 /*0x11d0*/ DWORD        pMountrelated;//always 0x7d?
 /*0x11d4*/ DWORD        pMountrelated2;//always 0x1b? is it max mounts one can have in a keyring? - eqmule
-/*0x11d8*/ struct _MOUNTARRAY*  pMountArray;
-/*0x11dc*/ BYTE         Unknown0x11dc[0x1a0];
+/*0x11d8*/ struct _KEYRINGARRAY*  pMountsArray;
+/*0x11dc*/ BYTE         Unknown0x11dc[0x34];
+/*0x1210*/ struct _KEYRINGARRAY*  pIllusionsArray;
+/*0x1214*/ BYTE         Unknown0x1214[0x168];
 /*0x137c*/ DWORD        GuildID;//GuildID_0
 /*0x1380*/ BYTE         Unknown0x1380[0x2c];
 /*0x13ac*/ DWORD        AAExp;

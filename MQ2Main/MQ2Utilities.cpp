@@ -7068,10 +7068,33 @@ PCONTENTS FindItemByName(PCHAR pName, BOOL bExact)
 #ifndef EMU
 	//still not found? fine... check mount keyring
 	PCHARINFO pChar = GetCharInfo();
-	if (pChar && pChar->pMountArray && pChar->pMountArray->Mount) {
-		for (unsigned long nSlot = 0; nSlot < MAX_MOUNTS; nSlot++)
+	if (pChar && pChar->pMountsArray && pChar->pMountsArray->Mounts) {
+		for (unsigned long nSlot = 0; nSlot < MAX_KEYRINGITEMS; nSlot++)
 		{
-			if (PCONTENTS pItem = pChar->pMountArray->Mount[nSlot])
+			if (PCONTENTS pItem = pChar->pMountsArray->Mounts[nSlot])
+			{
+				if (bExact)
+				{
+					if (!_stricmp(Name, GetItemFromContents(pItem)->Name))
+					{
+						return pItem;;
+					}
+				}
+				else
+				{
+					if (strstr(strlwr(strcpy(Temp, GetItemFromContents(pItem)->Name)), Name))
+					{
+						return pItem;
+					}
+				}
+			}
+		}
+	}
+	//still not found? fine... check illusions keyring
+	if (pChar && pChar->pIllusionsArray && pChar->pIllusionsArray->Illusions) {
+		for (unsigned long nSlot = 0; nSlot < MAX_KEYRINGITEMS; nSlot++)
+		{
+			if (PCONTENTS pItem = pChar->pIllusionsArray->Illusions[nSlot])
 			{
 				if (bExact)
 				{
@@ -7139,10 +7162,21 @@ PCONTENTS FindItemByID(DWORD ItemID)
 	}
 #ifndef EMU
 	PCHARINFO pChar = GetCharInfo();
-	if (pChar && pChar->pMountArray && pChar->pMountArray->Mount) {
-		for (unsigned long nSlot = 0; nSlot < MAX_MOUNTS; nSlot++)
+	if (pChar && pChar->pMountsArray && pChar->pMountsArray->Mounts) {
+		for (unsigned long nSlot = 0; nSlot < MAX_KEYRINGITEMS; nSlot++)
 		{
-			if (PCONTENTS pItem = pChar->pMountArray->Mount[nSlot])
+			if (PCONTENTS pItem = pChar->pMountsArray->Mounts[nSlot])
+			{
+				if (ItemID == GetItemFromContents(pItem)->ItemNumber) {
+					return pItem;
+				}
+			}
+		}
+	}
+	if (pChar && pChar->pIllusionsArray && pChar->pIllusionsArray->Illusions) {
+		for (unsigned long nSlot = 0; nSlot < MAX_KEYRINGITEMS; nSlot++)
+		{
+			if (PCONTENTS pItem = pChar->pIllusionsArray->Illusions[nSlot])
 			{
 				if (ItemID == GetItemFromContents(pItem)->ItemNumber) {
 					return pItem;
@@ -7820,7 +7854,7 @@ bool StripQuotes(char *str)
 }
 
 #ifndef EMU
-DWORD __stdcall RefreshMountKeyRingThread(PVOID pData)
+DWORD __stdcall RefreshKeyRingThread(PVOID pData)
 {
 	pkrdata kr = (pkrdata)pData;
 	if (kr) {
@@ -7843,51 +7877,82 @@ DWORD __stdcall RefreshMountKeyRingThread(PVOID pData)
 				}
 				((CSidlScreenWnd*)krwnd)->StoreIniVis();
 			}
-			if (CTabWnd *pTab = (CTabWnd*)((CSidlScreenWnd*)(krwnd))->GetChildItem(MountWindowPage)) {
-#ifdef BETA
-				pTab->SetPage(1, true, true);//tab 1 is the mount key ring page...
-#else
-				pTab->SetPage(6, true, true);//tab 6 is the mount key ring tab...
-#endif
-				WeDidStuff();
-			}
-			if (CListWnd *clist = (CListWnd*)krwnd->GetChildItem(MountWindowList)) {
-				ULONGLONG now = MQGetTickCount64();
-				while (!((CSidlScreenWnd*)clist)->Items) {
-					Sleep(10);
-					if (now + 5000 < MQGetTickCount64()) {
-						WriteChatColor("Timed out waiting for mount keyring refresh", CONCOLOR_YELLOW);
-						break;
+			CListWnd *clist = 0;
+			bool bRefresh = false;
+			int mountcount = GetMountCount();
+			int illusioncount = GetIllusionCount();
+			if (CTabWnd *pTab = (CTabWnd*)((CSidlScreenWnd*)(krwnd))->GetChildItem(KeyRingTab)) {
+				if (mountcount) {
+					pTab->SetPage(0, true, true);//tab 0 is the mount key ring page...
+					if (clist = (CListWnd*)krwnd->GetChildItem(MountWindowList)) {
+						ULONGLONG now = MQGetTickCount64();
+						while (!((CSidlScreenWnd*)clist)->Items) {
+							Sleep(10);
+							if (now + 5000 < MQGetTickCount64()) {
+								WriteChatColor("Timed out waiting for mount keyring refresh", CONCOLOR_YELLOW);
+								break;
+							}
+						}
 					}
 				}
-				if (bToggled) {
-					((CXWnd*)krwnd)->Show(0, 1);
-					((CSidlScreenWnd*)krwnd)->StoreIniVis();
+				if (illusioncount) {
+					pTab->SetPage(1, true, true);//tab 1 is the illusion key ring page...
+					if (clist = (CListWnd*)krwnd->GetChildItem(IllusionWindowList)) {
+						ULONGLONG now = MQGetTickCount64();
+						while (!((CSidlScreenWnd*)clist)->Items) {
+							Sleep(10);
+							if (now + 5000 < MQGetTickCount64()) {
+								WriteChatColor("Timed out waiting for illusion keyring refresh", CONCOLOR_YELLOW);
+								break;
+							}
+						}
+					}
 				}
-#ifndef ISXEQ
-				if (bUseCmd && ((CSidlScreenWnd*)clist)->Items) {
-					UseItemCmd(GetCharInfo()->pSpawn, szItemName);
-				}
-#endif
+				WeDidStuff();
 			}
+			if (bToggled) {
+				((CXWnd*)krwnd)->Show(0, 1);
+				((CSidlScreenWnd*)krwnd)->StoreIniVis();
+			}
+#ifndef ISXEQ
+			if (bUseCmd && ((CSidlScreenWnd*)clist)->Items) {
+				UseItemCmd(GetCharInfo()->pSpawn, szItemName);
+			}
+#endif
 		}
 	}
 	return 0;
 }
 
-void RefreshMountKeyRing(PVOID kr)
+void RefreshKeyRings(PVOID kr)
 {
 	DWORD nThread = 0;
-	CreateThread(NULL, 0, RefreshMountKeyRingThread, kr, NULL, &nThread);
+	CreateThread(NULL, 0, RefreshKeyRingThread, kr, NULL, &nThread);
 }
+
 int GetMountCount()
 {
 	int Count = 0;
 	PCHARINFO pChar = GetCharInfo();
-	if (pChar && pChar->pMountArray && pChar->pMountArray->Mount) {
-		for (unsigned long nSlot = 0; nSlot < MAX_MOUNTS; nSlot++)
+	if (pChar && pChar->pMountsArray && pChar->pMountsArray->Mounts) {
+		for (unsigned long nSlot = 0; nSlot < MAX_KEYRINGITEMS; nSlot++)
 		{
-			if (PCONTENTS pItem = pChar->pMountArray->Mount[nSlot])
+			if (PCONTENTS pItem = pChar->pMountsArray->Mounts[nSlot])
+			{
+				Count++;
+			}
+		}
+	}
+	return Count;
+}
+int GetIllusionCount()
+{
+	int Count = 0;
+	PCHARINFO pChar = GetCharInfo();
+	if (pChar && pChar->pIllusionsArray && pChar->pIllusionsArray->Illusions) {
+		for (unsigned long nSlot = 0; nSlot < MAX_KEYRINGITEMS; nSlot++)
+		{
+			if (PCONTENTS pItem = pChar->pIllusionsArray->Illusions[nSlot])
 			{
 				Count++;
 			}
@@ -7897,16 +7962,21 @@ int GetMountCount()
 }
 #endif
 #ifdef EMU
-DWORD GetMountKeyRingIndex(char *szItemName, bool bExact, bool usecmd)
+DWORD GetKeyRingIndex(BOOL KeyRing, char *szItemName, bool bExact, bool usecmd)
 {
 	return 0;
 }
 #else 
-DWORD GetMountKeyRingIndex(char *szItemName, bool bExact, bool usecmd)
+DWORD GetKeyRingIndex(BOOL KeyRing, char *szItemName, bool bExact, bool usecmd)
 {
 	DWORD index = 0;
-	if (CXWnd *krwnd = FindMQ2Window(MountWindowParent)) {
-		if (CListWnd *clist = (CListWnd*)krwnd->GetChildItem(MountWindowList)) {
+	if (CXWnd *krwnd = FindMQ2Window(KeyRingWindowParent)) {
+		CListWnd *clist = 0;
+		if (KeyRing == 1)
+			clist = (CListWnd*)krwnd->GetChildItem(IllusionWindowList);
+		else
+			clist = (CListWnd*)krwnd->GetChildItem(MountWindowList);
+		if(clist) {
 			if (DWORD numitems = ((CSidlScreenWnd*)clist)->Items) {
 				for (DWORD i = 0; i<numitems; i++) {
 					CXStr Str;
@@ -7943,7 +8013,7 @@ DWORD GetMountKeyRingIndex(char *szItemName, bool bExact, bool usecmd)
 							strcpy_s(kr->ItemName, szItemName);
 							kr->phWnd = krwnd;
 							kr->bUseCmd = usecmd;
-							RefreshMountKeyRing(kr);
+							RefreshKeyRings(kr);
 						}
 					}
 				}
@@ -7953,20 +8023,34 @@ DWORD GetMountKeyRingIndex(char *szItemName, bool bExact, bool usecmd)
 	return index;
 }
 
-void InitMountKeyRing()
+void InitKeyRings()
 {
-	if (int mountcount = GetMountCount()) {
+	if (CXWnd *krwnd = FindMQ2Window(KeyRingWindowParent)) {
+		CListWnd *clist = 0;
+		bool bRefresh = false;
+		int mountcount = GetMountCount();
+		int illusioncount = GetIllusionCount();
+		if (mountcount) {
+			if (clist = (CListWnd*)krwnd->GetChildItem(MountWindowList)) {
+				if (!((CSidlScreenWnd*)clist)->Items) {
+					bRefresh = true;
+				}
+			}
+		}
+		if (illusioncount) {
+			if (clist = (CListWnd*)krwnd->GetChildItem(IllusionWindowList)) {
+				if (!((CSidlScreenWnd*)clist)->Items) {
+					bRefresh = true;
+				}
+			}
+		}
 		//ok it seems like the player has mounts in his keyring
 		//lets make sure we initialize it for the Mount TLO
-		if (CXWnd *krwnd = FindMQ2Window(MountWindowParent)) {
-			if (CListWnd *clist = (CListWnd*)krwnd->GetChildItem(MountWindowList)) {
-				if (!((CSidlScreenWnd*)clist)->Items) {
-					//WriteChatColor("Mount key ring initialized",CONCOLOR_YELLOW);
-					if (pkrdata kr = (pkrdata)LocalAlloc(LPTR, sizeof(krdata))) {
-						kr->phWnd = krwnd;
-						RefreshMountKeyRing(kr);
-					}
-				}
+		if (bRefresh) {
+			//WriteChatColor("Mount key ring initialized",CONCOLOR_YELLOW);
+			if (pkrdata kr = (pkrdata)LocalAlloc(LPTR, sizeof(krdata))) {
+				kr->phWnd = krwnd;
+				RefreshKeyRings(kr);
 			}
 		}
 	}

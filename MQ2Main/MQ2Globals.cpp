@@ -104,7 +104,7 @@ namespace MQ2Globals
 		ExecuteCmd = (fEQExecuteCmd)__ExecuteCmd;
 		GetLabelFromEQ = (fGetLabelFromEQ)__GetLabelFromEQ;
 #ifndef EMU
-		cmdToggleMount = (fEQToggleMount)__ToggleMount;
+		cmdToggleKeyRingItem = (fEQToggleKeyRingItem)__ToggleKeyRingItem;
 #endif
 		ppStringTable = (StringTable**)pinstStringTable;
 		ppCDBStr = (CDBStr**)pinstCDBStr;
@@ -1054,7 +1054,7 @@ namespace MQ2Globals
 	fEQGetMelee     get_melee_range = GetMeleeRange;
 	fGetLabelFromEQ GetLabelFromEQ = 0;
 #ifndef EMU
-	fEQToggleMount  cmdToggleMount = 0;
+	fEQToggleKeyRingItem  cmdToggleKeyRingItem = 0;
 #endif
 
 	StringTable **ppStringTable = 0;
@@ -1448,7 +1448,7 @@ namespace MQ2Globals
 	INITIALIZE_EQGAME_OFFSET(__GetGaugeValueFromEQ);
 	INITIALIZE_EQGAME_OFFSET(__GetLabelFromEQ);
 #ifndef EMU
-	INITIALIZE_EQGAME_OFFSET(__ToggleMount);
+	INITIALIZE_EQGAME_OFFSET(__ToggleKeyRingItem);
 	INITIALIZE_EQGAME_OFFSET(wwsCrashReportCheckForUploader);
 #endif
 	INITIALIZE_EQGAME_OFFSET(__GetXTargetType);
