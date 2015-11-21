@@ -181,7 +181,7 @@ DWORD LoadMQ2Plugin(const PCHAR pszFilename,BOOL bCustom)
 //gonna have to spend some time on this.
 //maybe there is a application compatibility api we can call to unhook it...
 
-void CheckLayers(PMQPLUGIN pPlugin)
+void DeleteLayers(PMQPLUGIN pPlugin)
 {
 	//work in progress, patch was needed i got interrupted.
 	return;
@@ -195,6 +195,17 @@ void CheckLayers(PMQPLUGIN pPlugin)
 	}
 
 }
+
+typedef struct _FAKEGPSTRING {
+	USHORT Length;
+	USHORT MaximumLength;
+	PCHAR  Buffer;
+} FAKEGPSTRING, *PFAKEGPSTRING;
+typedef BOOL(WINAPI *fLdrGetProcedureAddress)(HMODULE, PFAKEGPSTRING, WORD, PVOID);
+typedef BOOL(WINAPI *fFreeLibrary)(HMODULE);
+static fFreeLibrary pFreeLibrary = 0;
+static fLdrGetProcedureAddress pLdrGetProcedureAddress = 0;
+
 BOOL UnloadMQ2Plugin(const PCHAR pszFilename)
 {
     DebugSpew("UnloadMQ2Plugin");
@@ -207,6 +218,24 @@ BOOL UnloadMQ2Plugin(const PCHAR pszFilename)
 
     // find plugin in list
     CAutoLock Lock(&gPluginCS);
+
+	//work in progress, move on, nothing to see here need to test this, but they keep patching on me...
+	//well after messing with this for a while, I realized I couldn't bypass it by just deleting the registry key
+	//need to check if we can just bypass the GetprocAddress hook and call the nt version which isnt hooked by the shim engine...
+	/*if (pLdrGetProcedureAddress = (fLdrGetProcedureAddress)GetProcAddress(GetModuleHandle("ntdll.dll"), "LdrGetProcedureAddress")) {
+		if (HMODULE h = GetModuleHandle("Kernel32.dll")) {
+			CHAR szFreeLib[32] = { 0 };
+			strcpy_s(szFreeLib, "FreeLibrary");
+			FAKEGPSTRING as = { 0 };
+			as.Buffer = szFreeLib;
+			as.Length = 11;
+			as.MaximumLength = 11;
+			DWORD addr = 0;
+			BOOL ret = pLdrGetProcedureAddress(h, &as, NULL, (PVOID)&pFreeLibrary);
+			Sleep(0);
+			//pFreeLibrary = (fFreeLibrary)addr;
+		}
+	}*/
     PMQPLUGIN pPlugin=pPlugins;
     while(pPlugin)
     {
@@ -224,8 +253,11 @@ BOOL UnloadMQ2Plugin(const PCHAR pszFilename)
             if (pPlugin->Shutdown)
                 pPlugin->Shutdown();
 
-			CheckLayers(pPlugin);
-			FreeLibrary(pPlugin->hModule);
+			//DeleteLayers(pPlugin);
+			if (pFreeLibrary)
+				pFreeLibrary(pPlugin->hModule);
+			else
+				FreeLibrary(pPlugin->hModule);
             delete pPlugin;
             return 1;
         }

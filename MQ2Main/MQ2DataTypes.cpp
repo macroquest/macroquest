@@ -9259,7 +9259,7 @@ bool MQ2TargetType::GETMEMBER()
 					//I strncmp them to take ranked buffs into account
 					//so if the user specifies ${Target.BuffDuration[Pyromancy]} for exxample
 					//its still gonna work if it finds Pyromancy XV
-					if (buffID && buffID != -1 && !_strnicmp(GETFIRST(), GetSpellNameByID(buffID), strlen(Index))) {
+					if (buffID && buffID != -1 && !_strnicmp(GETFIRST(), GetSpellNameByID(buffID), strlen(GETFIRST()))) {
 						if (((PCTARGETWND)pTargetWnd)->BuffTimer[i]>duration) {
 							duration = ((PCTARGETWND)pTargetWnd)->BuffTimer[i];
 							//we always want to return the buff with the longest duration

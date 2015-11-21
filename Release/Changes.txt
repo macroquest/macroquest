@@ -1,8 +1,13 @@
-19 Nov 2015 by EqMule and Demonstar55
+20 Nov 2015 by EqMule
+- Please don't use MQ2 for unattended gameplay (afk botting)
+- Updated for TEST
+- Updated for LIVE
+
+19 Nov 2015 by EqMule
 - Please don't use MQ2 for unattended gameplay (afk botting)
 - Fixed the /ranged crash
 
-18 Nov 2015 by EqMule and Demonstar55
+18 Nov 2015 by EqMule
 - Please don't use MQ2 for unattended gameplay (afk botting)
 - Updated for LIVE
 - Updated for TEST
