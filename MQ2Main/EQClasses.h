@@ -735,7 +735,8 @@ EQLIB_OBJECT int AltAdvManager::CalculateNimbleEvasionChance(class EQ_PC *);
 EQLIB_OBJECT int AltAdvManager::CalculateSingingMasteryMod(class EQ_PC *,int);
 EQLIB_OBJECT int AltAdvManager::CalculateSpellCastingMastery(class EQ_PC *);
 EQLIB_OBJECT int AltAdvManager::CalculateStalwartEnduranceChance(class EQ_PC *);
-EQLIB_OBJECT int AltAdvManager::CanTrainAbility(class EQ_PC *,int);
+EQLIB_OBJECT bool AltAdvManager::CanTrainAbility(class PcZoneClient *, class CAltAbilityData *, bool, bool, bool);
+EQLIB_OBJECT bool AltAdvManager::CanSeeAbility(class PcZoneClient *, class CAltAbilityData *);
 EQLIB_OBJECT int AltAdvManager::GetAALevelNeeded(class EQ_PC *,int);
 EQLIB_OBJECT int AltAdvManager::GetAbilityTitle(class EQPlayer *);
 EQLIB_OBJECT int AltAdvManager::GetNextAbilityCost(int,int);
@@ -7111,6 +7112,12 @@ public:
 EQLIB_OBJECT int PcZoneClient::GetPcSkillLimit(int);
 EQLIB_OBJECT bool PcZoneClient::HasCombatAbility(int);
 EQLIB_OBJECT void PcZoneClient::RemovePetEffect(int);
+#ifndef EMU
+EQLIB_OBJECT bool PcZoneClient::HasAlternateAbility(int aaindex, int *, bool, bool);
+#else
+EQLIB_OBJECT bool PcZoneClient::HasAlternateAbility(int aaindex, int *, bool);
+#endif
+
 };
 
 };

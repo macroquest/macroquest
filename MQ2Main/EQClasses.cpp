@@ -3940,7 +3940,10 @@ FUNCTION_AT_ADDRESS(int  AltAdvManager::GetAALevelNeeded(class EQ_PC *,int),AltA
 FUNCTION_AT_ADDRESS(int  AltAdvManager::MeetsPoPLevelReqs(class EQ_PC *,int,int),AltAdvManager__MeetsPoPLevelReqs);
 #endif
 #ifdef AltAdvManager__CanTrainAbility_x
-FUNCTION_AT_ADDRESS(int  AltAdvManager::CanTrainAbility(class EQ_PC *,int),AltAdvManager__CanTrainAbility);
+FUNCTION_AT_ADDRESS(bool AltAdvManager::CanTrainAbility(class PcZoneClient *, class CAltAbilityData *, bool, bool, bool), AltAdvManager__CanTrainAbility);
+#endif
+#ifdef AltAdvManager__CanSeeAbility_x
+FUNCTION_AT_ADDRESS(bool AltAdvManager::CanSeeAbility(class PcZoneClient *, class CAltAbilityData *), AltAdvManager__CanSeeAbility);
 #endif
 #ifdef AltAdvManager__AbilitiesByClass_x
 FUNCTION_AT_ADDRESS(int  AltAdvManager::AbilitiesByClass(int,int),AltAdvManager__AbilitiesByClass);
@@ -9744,6 +9747,13 @@ FUNCTION_AT_ADDRESS(bool PcZoneClient::HasCombatAbility(int), PcZoneClient__HasC
 #endif
 #ifdef PcZoneClient__RemovePetEffect_x
 FUNCTION_AT_ADDRESS(void PcZoneClient::RemovePetEffect(int), PcZoneClient__RemovePetEffect);
+#endif
+#ifdef PcZoneClient__HasAlternateAbility_x
+#ifndef EMU
+FUNCTION_AT_ADDRESS(bool PcZoneClient::HasAlternateAbility(int aaindex, int *, bool, bool), PcZoneClient__HasAlternateAbility);
+#else
+FUNCTION_AT_ADDRESS(bool PcZoneClient::HasAlternateAbility(int aaindex, int *, bool), PcZoneClient__HasAlternateAbility);
+#endif
 #endif
 #ifdef CXWnd__SetFont_x
 FUNCTION_AT_ADDRESS(int CXWnd::SetFont(void*), CXWnd__SetFont);

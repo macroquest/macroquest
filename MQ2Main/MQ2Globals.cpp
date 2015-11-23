@@ -1470,6 +1470,9 @@ namespace MQ2Globals
 	INITIALIZE_EQGAME_OFFSET(AltAdvManager__GetCalculatedTimer);
 	INITIALIZE_EQGAME_OFFSET(AltAdvManager__IsAbilityReady);
 	INITIALIZE_EQGAME_OFFSET(AltAdvManager__GetAAById);
+	INITIALIZE_EQGAME_OFFSET(AltAdvManager__CanTrainAbility);
+	INITIALIZE_EQGAME_OFFSET(AltAdvManager__CanSeeAbility);
+	
 	INITIALIZE_EQGAME_OFFSET(CAltAbilityData__GetMaxRank);
 	INITIALIZE_EQGAME_OFFSET(CharacterZoneClient__HasSkill);
 	INITIALIZE_EQGAME_OFFSET(CharacterZoneClient__MakeMeVisible);
@@ -1823,6 +1826,8 @@ namespace MQ2Globals
 
 	INITIALIZE_EQGAME_OFFSET(PcZoneClient__GetPcSkillLimit);
 	INITIALIZE_EQGAME_OFFSET(PcZoneClient__RemovePetEffect);
+	INITIALIZE_EQGAME_OFFSET(PcZoneClient__HasAlternateAbility);
+	
 	INITIALIZE_EQGAME_OFFSET(EQSwitch__UseSwitch);
 	INITIALIZE_EQGAME_OFFSET(IconCache__GetIcon);
 	INITIALIZE_EQGAME_OFFSET(CContainerMgr__OpenContainer);

@@ -1,3 +1,15 @@
+23 Nov 2015 by EqMule and Demonstar55
+- Please don't use MQ2 for unattended gameplay (afk botting)
+- Added .Index to the AltAbility TLO.
+- Added .NextIndex to the AltAbility TLO.
+- Added .CanTrain to the AltAbility TLO.
+  Usage: /if (${AltAbility[Companion's Aegis].CanTrain}) /alt buy ${AltAbility[Companion's Aegis].NextIndex}  
+- Added a few new APIs:
+- AltAdvManager::CanSeeAbility
+- AltAdvManager::CanTrainAbility
+- PcZoneClient::HasAlternateAbility
+- Added the /pick # command to the ISXEQ build.
+
 20 Nov 2015 by EqMule
 - Please don't use MQ2 for unattended gameplay (afk botting)
 - Updated for TEST

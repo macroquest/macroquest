@@ -8069,6 +8069,20 @@ bool MQ2AltAbilityType::GETMEMBER()
 		Dest.DWord = pAbility->PointsSpent;
 		Dest.Type = pIntType;
 		return true;
+	case xIndex:
+		Dest.DWord = pAbility->Index;
+		Dest.Type = pIntType;
+		return true;
+	case CanTrain:
+		if (PALTABILITY pNextAbility = pAltAdvManager->GetAAById(pAbility->next_id))
+			pAbility = pNextAbility;
+		Dest.DWord = pAltAdvManager->CanTrainAbility((PcZoneClient*)pPCData, (CAltAbilityData*)pAbility, 0, 0, 0);
+		Dest.Type = pBoolType;
+		return true;
+	case NextIndex:
+		Dest.DWord = pAbility->next_id;
+		Dest.Type = pIntType;
+		return true; 
 	}
 	return false;
 }

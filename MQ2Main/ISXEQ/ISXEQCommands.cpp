@@ -1305,3 +1305,94 @@ BOOL CALLBACK EnumWindowsProc(HWND hwnd,LPARAM lParam)
    }
    return TRUE;
 }
+DWORD __stdcall openpickzonewnd(PVOID pData)
+{
+	if(!cmdPickZone)
+		return 0;
+	lockit lk(ghLockPickZone);
+	int nInst = (int)pData;
+	CHAR szInst[32] = { 0 };
+	itoa(nInst, szInst, 10);
+	if (PCHARINFO pCharInfo = GetCharInfo()) {
+		cmdPickZone(pCharInfo->pSpawn, NULL);
+		Sleep(2000);//i need to make this hardcoded wait dynamic but im in a hurry ill do it later -eqmule
+		if (CXWnd *krwnd = FindMQ2Window("MIZoneSelectWnd")) {
+			if (krwnd->dShow) {
+				if (CListWnd *clist = (CListWnd*)krwnd->GetChildItem("MIZ_ZoneList")) {
+					if (DWORD numitems = ((CSidlScreenWnd*)clist)->Items) {
+						if (CButtonWnd *cbutt = (CButtonWnd*)krwnd->GetChildItem("MIZ_SelectButton")) {
+							CHAR szOut[255] = { 0 };
+							CXStr Str;
+							std::string s;
+							bool itsmain = false;
+							bool clickit = false;
+							for (DWORD i = 0; i<numitems; i++) {
+								clist->GetItemText(&Str, i, 0);
+								GetCXStr(Str.Ptr, szOut, 254);
+								if (szOut[0] != '\0') {
+									s = szOut;
+									if (std::string::npos == s.find_first_of("123456789")) {
+										itsmain = true;
+									}
+									if (itsmain && nInst == 0) {
+										clickit = true;
+									}
+									else if (nInst >= 1) {
+										if (std::string::npos != s.find_first_of(szInst)) {
+											clickit = true;
+										}
+									}
+									if (clickit) {
+										SendListSelect("MIZoneSelectWnd", "MIZ_ZoneList", i);
+										Sleep(500);
+										SendWndClick2((CXWnd*)cbutt, "leftmouseup");
+										WriteChatf("%s selected.", szOut);
+										return 0;
+									}
+								}
+							}
+							WriteChatf("%s instance %d NOT found in list", GetFullZone(pCharInfo->zoneId), nInst);
+						}
+					}
+				}
+			}
+		}
+	}
+	return 0;
+}
+// ***************************************************************************
+// Function:    PickZoneCmd
+// Description: '/pickzone' command
+//              Adds the ability to do /pickzone #
+// Usage:       /pickzone 2 will switch zone to number 2 pickzone 0 will pick main instance
+// ***************************************************************************
+//VOID PickZoneCmd(PSPAWNINFO pChar, PCHAR szLine)
+int CMD_PickZone(int argc, char *argv[])
+{
+	if (!cmdPickZone) { 
+		PCMDLIST pCmdListOrig = (PCMDLIST)EQADDR_CMDLIST; 
+		for (int i=0;pCmdListOrig[i].fAddress != 0;i++) { 
+			if (!strcmp(pCmdListOrig[i].szName,"/pickzone")) { 
+				cmdPickZone = (fEQCommand)pCmdListOrig[i].fAddress; 
+			} 
+		} 
+	} 
+	if (!cmdPickZone)
+	   return -1; 
+	PCHAR szLine = NULL;
+    if (argc > 1)
+        szLine = argv[1];
+	if (!szLine || (szLine && szLine[0]=='\0')) {
+		WriteChatColor("Usage: /pickzone # where # is the instance number you want to pick");
+		if (PCHARINFO pCharInfo = GetCharInfo()) {
+			cmdPickZone(pCharInfo->pSpawn, szLine);
+		}
+		return 0;
+	}
+	else {
+		DWORD index = atoi(szLine);
+		DWORD nThreadID = 0;
+		CreateThread(NULL, 0, openpickzonewnd, (PVOID)index, 0, &nThreadID);
+	}
+	return 0;
+}

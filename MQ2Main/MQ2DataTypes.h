@@ -3497,6 +3497,9 @@ public:
 		Passive = 17,
 		PointsSpent = 18,
 		Rank = 19,
+		xIndex = 20,
+		CanTrain = 21,
+		NextIndex = 22,
 	};
 	enum AltAbilityMethods
 	{
@@ -3522,6 +3525,10 @@ public:
 		TypeMember(Passive);
 		TypeMember(PointsSpent);
 		TypeMember(Rank);
+		AddMember(xIndex, "Index");
+		TypeMember(CanTrain);
+		TypeMember(NextIndex);
+
 	}
 
 	~MQ2AltAbilityType()

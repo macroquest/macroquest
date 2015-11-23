@@ -366,6 +366,10 @@ bool __cdecl MQ2Initialize()
 #ifndef ISXEQ
     InitializeMQ2Plugins();
 #endif
+	if (!ghLockPickZone)
+		ghLockPickZone = CreateMutex(NULL, FALSE, NULL);
+	if (!ghLockDelayCommand)
+		ghLockDelayCommand = CreateMutex(NULL, FALSE, NULL);
     return true;
 }
 
@@ -390,7 +394,21 @@ void __cdecl MQ2Shutdown()
     DebugTry(ShutdownMQ2Commands());
     DebugTry(ShutdownMQ2Detours());
     DebugTry(ShutdownMQ2Benchmarks());
-
+	if (ghLockSpellMap) {
+		ReleaseMutex(ghLockSpellMap);
+		CloseHandle(ghLockSpellMap);
+		ghLockSpellMap = 0;
+	}
+	if (ghLockPickZone) {
+		ReleaseMutex(ghLockPickZone);
+		CloseHandle(ghLockPickZone);
+		ghLockPickZone = 0;
+	}
+	if (ghLockDelayCommand) {
+		ReleaseMutex(ghLockDelayCommand);
+		CloseHandle(ghLockDelayCommand);
+		ghLockDelayCommand = 0;
+	}
 }
 
 DWORD __stdcall InitializeMQ2SpellDb(PVOID pData)
@@ -435,10 +453,6 @@ DWORD WINAPI MQ2Start(LPVOID lpParameter)
 	}
     while (gGameState != GAMESTATE_CHARSELECT && gGameState != GAMESTATE_INGAME) 
         Sleep(500);
-	if (!ghLockPickZone)
-		ghLockPickZone = CreateMutex(NULL, FALSE, NULL);
-	if (!ghLockDelayCommand)
-		ghLockDelayCommand = CreateMutex(NULL, FALSE, NULL);
 
     InitializeMQ2DInput();
     if (gGameState == GAMESTATE_INGAME) {
@@ -447,7 +461,6 @@ DWORD WINAPI MQ2Start(LPVOID lpParameter)
 		InitializeMQ2SpellDb(NULL);
 		PluginsSetGameState(GAMESTATE_INGAME);
 	}
-
 
     WriteChatColor(LoadedString,USERCOLOR_DEFAULT);
     DebugSpewAlways(LoadedString);
@@ -464,18 +477,6 @@ DWORD WINAPI MQ2Start(LPVOID lpParameter)
 
     DebugSpew("Shutdown completed");
     g_Loaded = FALSE;
-	if (ghLockSpellMap)
-		CloseHandle(ghLockSpellMap);
-	if (ghLockPickZone) {
-		ReleaseMutex(ghLockPickZone);
-		CloseHandle(ghLockPickZone);
-		ghLockPickZone = 0;
-	}
-	if(ghLockDelayCommand) {
-		ReleaseMutex(ghLockDelayCommand);
-		CloseHandle(ghLockDelayCommand);
-		ghLockDelayCommand = 0;
-	}
 
 	if(HMODULE h = GetModuleHandle("MQ2Main.dll"))
 		FreeLibraryAndExitThread(h,0);

@@ -319,6 +319,8 @@ GNU General Public License for more details.
 #define AltAdvManager__GetCalculatedTimer_x                        0x4C51A0
 #define AltAdvManager__IsAbilityReady_x                            0x4C5210
 #define AltAdvManager__GetAAById_x                                 0x4C55D0
+#define AltAdvManager__CanTrainAbility_x                           0x4C5E90
+#define AltAdvManager__CanSeeAbility_x                             0x4C5A90
 
 // CharacterZoneClient
 #define CharacterZoneClient__HasSkill_x                            0x464200
@@ -733,6 +735,7 @@ GNU General Public License for more details.
 // PcZoneClient
 #define PcZoneClient__GetPcSkillLimit_x                            0x5C1120
 #define PcZoneClient__RemovePetEffect_x                            0x5BCAE0
+#define PcZoneClient__HasAlternateAbility_x                        0x5BD5A0
 
 //Doors
 #define EQSwitch__UseSwitch_x                                      0x54DD40

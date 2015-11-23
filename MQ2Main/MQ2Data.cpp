@@ -1618,6 +1618,7 @@ TLO(dataAltAbility)
 		{
 			if (PALTABILITY pAbility = pAltAdvManager->GetAAById(nAbility))
 			{
+				
 				if (PCHAR pName = pCDBStr->GetString(pAbility->nName, 1, NULL))
 				{
 					if (!_stricmp(GETFIRST(), pName))
@@ -1665,12 +1666,12 @@ TLO(dataLineOfSight)
 #ifdef ISXEQ
 		if (argc != 6)
 			return false;
-		P1[0] = atof(argv[0]);
-		P1[1] = atof(argv[1]);
-		P1[2] = atof(argv[2]);
-		P2[0] = atof(argv[3]);
-		P2[1] = atof(argv[4]);
-		P2[2] = atof(argv[5]);
+		P1[0] = (FLOAT)atof(argv[0]);
+		P1[1] = (FLOAT)atof(argv[1]);
+		P1[2] = (FLOAT)atof(argv[2]);
+		P2[0] = (FLOAT)atof(argv[3]);
+		P2[1] = (FLOAT)atof(argv[4]);
+		P2[2] = (FLOAT)atof(argv[5]);
 #else
 		if (PCHAR pColon = strchr(szIndex, ':'))
 		{
