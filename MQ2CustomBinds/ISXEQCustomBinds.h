@@ -6,26 +6,26 @@
 
 
 class ISXEQCustomBinds :
-    public ISXInterface
+	public ISXInterface
 {
 public:
 
-    virtual bool Initialize(ISInterface *p_ISInterface);
-    virtual void Shutdown();
+	virtual bool Initialize(ISInterface *p_ISInterface);
+	virtual void Shutdown();
 
-    void ConnectServices();
-    void RegisterCommands();
-    void RegisterAliases();
-    void RegisterDataTypes();
-    void RegisterTopLevelObjects();
-    void RegisterServices();
+	void ConnectServices();
+	void RegisterCommands();
+	void RegisterAliases();
+	void RegisterDataTypes();
+	void RegisterTopLevelObjects();
+	void RegisterServices();
 
-    void DisconnectServices();
-    void UnRegisterCommands();
-    void UnRegisterAliases();
-    void UnRegisterDataTypes();
-    void UnRegisterTopLevelObjects();
-    void UnRegisterServices();
+	void DisconnectServices();
+	void UnRegisterCommands();
+	void UnRegisterAliases();
+	void UnRegisterDataTypes();
+	void UnRegisterTopLevelObjects();
+	void UnRegisterServices();
 
 };
 

@@ -96,7 +96,14 @@ using namespace std;
 #elif defined(EMU)
 #include "eqgame(emu).h"
 #endif
-
+#ifndef ISXEQ
+#define RETURN(x) return;
+#else
+#define RETURN(x) return x;
+#endif
+#ifdef ISXEQ
+#define MacroError WriteChatf
+#endif
 #define KeyRingWindowParent "KeyRingWnd"
 #define MountWindowList "KRW_Mounts_List"
 #define IllusionWindowList "KRW_Illusions_List"
@@ -444,10 +451,10 @@ EQLIB_API VOID FixStringTable();
 EQLIB_API VOID DebugSpew(PCHAR szFormat, ...);
 EQLIB_API VOID DebugSpewAlways(PCHAR szFormat, ...);
 EQLIB_API VOID DebugSpewNoFile(PCHAR szFormat, ...);
-#ifndef ISXEQ
+//#ifndef ISXEQ
 LEGACY_API PSTR GetNextArg(PCSTR szLine, DWORD dwNumber = 1, BOOL CSV = FALSE, CHAR Separator = 0);
 LEGACY_API PSTR GetArg(PSTR szDest, PCSTR szSrc, DWORD dwNumber, BOOL LeaveQuotes = FALSE, BOOL ToParen = FALSE, BOOL CSV = FALSE, CHAR Separator = 0, BOOL AnyNonAlphaNum = FALSE);
-#endif
+//#endif
 LEGACY_API VOID AddCustomEvent(PEVENTLIST pEList, PCHAR szLine);
 EQLIB_API FLOAT DistanceToSpawn(PSPAWNINFO pChar, PSPAWNINFO pSpawn);
 EQLIB_API PCHAR GetEQPath(PCHAR szBuffer);
@@ -746,3 +753,15 @@ LEGACY_API BOOL Calculate(PCHAR szFormula, DOUBLE& Dest);
 
 EQLIB_API VOID memchecks_tramp(PCHAR, DWORD, PVOID, DWORD, BOOL);
 EQLIB_API VOID memchecks(PCHAR, DWORD, PVOID, DWORD, BOOL);
+
+inline PCHAR ISXEQArgToMQ2Arg(int argc, char *argv[], char *szTemp, size_t size)
+{
+	for (int qq = 1; qq < argc; qq++) {
+		strcat_s(szTemp, size, argv[qq]);
+		strcat_s(szTemp, size, " ");
+	}
+	size_t len = strlen(szTemp);
+	if (len && szTemp[len - 1] == ' ')
+		szTemp[len - 1] = '\0';
+	return &szTemp[0];
+}

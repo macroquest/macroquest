@@ -41,4 +41,12 @@ COMMAND("eqecho",CMD_EQEcho,true,false);
 //COMMAND("EQAlias",CMD_EQAlias,true,false); // deprecated
 COMMAND("doortarget",CMD_DoorTarget,true,false);
 COMMAND("itemtarget",CMD_ItemTarget,true,false);
-COMMAND("pickzone",CMD_PickZone,true,false);
+COMMAND("pickzone", CMD_PickZone, true, false);
+COMMAND("click", Click, true, false);
+COMMAND("beepontells", CMD_BeepOnTells, true, false);
+COMMAND("timestamp", CMD_TimeStampChat, true, false);
+COMMAND("flashontells", CMD_FlashOnTells, true, false);
+COMMAND("useitem", CMD_UseItem,true,false);
+
+
+

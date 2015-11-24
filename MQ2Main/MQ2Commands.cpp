@@ -16,7 +16,6 @@ GNU General Public License for more details.
 #error /DCINTERFACE
 #endif
 
-#ifndef ISXEQ
 #define DBG_SPEW 
 
 #include <direct.h>
@@ -24,6 +23,7 @@ GNU General Public License for more details.
 #include "MQ2Main.h"
 #include <Shellapi.h>
 #include <mmsystem.h>
+#ifndef ISXEQ
 CMQ2Alerts CAlerts;
 // ***************************************************************************
 // Function:    Unload
@@ -155,7 +155,7 @@ VOID Items(PSPAWNINFO pChar, PCHAR szLine)
 		WriteChatColor(szBuffer, USERCOLOR_DEFAULT);
 	}
 }
-
+#endif
 
 // ***************************************************************************
 // Function:    ItemTarget
@@ -163,12 +163,21 @@ VOID Items(PSPAWNINFO pChar, PCHAR szLine)
 //              Lists ground item info
 // Usage:       /itemtarget <text>
 // ***************************************************************************
+#ifdef ISXEQ
+int CMD_ItemTarget(int argc, char *argv[])
+{
+	PSPAWNINFO pChar = (PSPAWNINFO)pLocalPlayer;
+	CHAR szTemp[MAX_STRING] = { 0 };
+	PCHAR szLine = ISXEQArgToMQ2Arg(argc, argv, szTemp, MAX_STRING);
+
+#else
 VOID ItemTarget(PSPAWNINFO pChar, PCHAR szLine)
 {
 	bRunNextCommand = TRUE;
-
-	if (!ppItemList) return;
-	if (!pItemList) return;
+#endif
+	if (!szLine) RETURN(0);
+	if (!ppItemList) RETURN(0);
+	if (!pItemList) RETURN(0);
 	PGROUNDITEM pItem = *(PGROUNDITEM*)pItemList;
 	CHAR Arg1[MAX_STRING] = { 0 };
 	CHAR Arg2[MAX_STRING] = { 0 };
@@ -218,14 +227,15 @@ VOID ItemTarget(PSPAWNINFO pChar, PCHAR szLine)
 	if (EnviroTarget.Name[0] != 0) {
 		sprintf(szBuffer, "Item '%s' targeted.", EnviroTarget.Name);
 		WriteChatColor(szBuffer, USERCOLOR_DEFAULT);
-		if (stricmp(Arg2, "notarget") && ppTarget && 0) pTarget = (EQPlayer*)&EnviroTarget;
+		if (stricmp(Arg2, "notarget") && ppTarget && 0)
+			pTarget = (EQPlayer*)&EnviroTarget;
 	}
 	else {
 		if (ppTarget && (pTarget == (EQPlayer*)&EnviroTarget))
 			pTarget = NULL;
 		MacroError("Couldn't find '%s' to target.", szLine);
 	}
-
+	RETURN(0);
 }
 
 
@@ -277,7 +287,7 @@ VOID Doors(PSPAWNINFO pChar, PCHAR szLine)
 	}
 }
 
-
+#ifndef ISXEQ
 
 // ***************************************************************************
 // Function:    DoorTarget
@@ -334,8 +344,8 @@ VOID DoorTarget(PSPAWNINFO pChar, PCHAR szLine)
 			if (((szSearch[0] == 0) ||
 				(!strnicmp(pDoorTable->pDoor[Count]->Name, szSearch, strlen(szSearch)))) &&
 				((gZFilter >= 10000.0f) ||
-					((pDoorTable->pDoor[Count]->Z <= pChar->Z + gZFilter) &&
-						(pDoorTable->pDoor[Count]->Z >= pChar->Z - gZFilter)))) {
+				((pDoorTable->pDoor[Count]->Z <= pChar->Z + gZFilter) &&
+				(pDoorTable->pDoor[Count]->Z >= pChar->Z - gZFilter)))) {
 				SPAWNINFO tSpawn;
 				ZeroMemory(&tSpawn, sizeof(tSpawn));
 				strcpy(tSpawn.Name, pDoorTable->pDoor[Count]->Name);
@@ -353,7 +363,6 @@ VOID DoorTarget(PSPAWNINFO pChar, PCHAR szLine)
 					cDistance = Distance;
 				}
 			}
-
 		}
 	}
 
@@ -3259,20 +3268,39 @@ VOID NoModKeyCmd(PSPAWNINFO pChar, PCHAR szLine)
 	DoCommand(pChar, szLine);
 	*(DWORD*)&((PCXWNDMGR)pWndMgr)->KeyboardFlags = *(DWORD*)&KeyboardFlags;
 }
-
+#endif
 // ***************************************************************************
 // Function:    UseItemCmd
 // Description: '/useitem' command
 //              Activates an item that has a clicky effect.
 // Usage:       /useitem 1 0 or /useitem "item name" or /useitem item name
 // ***************************************************************************
+#ifdef ISXEQ
+int CMD_UseItem(int argc, char *argv[])
+{
+	PSPAWNINFO pChar = (PSPAWNINFO)pLocalPlayer;
+	CHAR szTemp[MAX_STRING] = { 0 };
+	PCHAR szLine = ISXEQArgToMQ2Arg(argc, argv, szTemp, MAX_STRING);
+	if (!cmdUseItem) {
+		PCMDLIST pCmdListOrig = (PCMDLIST)EQADDR_CMDLIST;
+		for (int i = 0; pCmdListOrig[i].fAddress != 0; i++) {
+			if (!strcmp(pCmdListOrig[i].szName, "/useitem")) {
+				cmdUseItem = (fEQCommand)pCmdListOrig[i].fAddress;
+			}
+		}
+	}
+	if (!cmdUseItem)
+		return -1;
+#else
 VOID UseItemCmd(PSPAWNINFO pChar, PCHAR szLine)
 {
+#endif
+
 	if (!szLine[0])
 	{
 		WriteChatColor("Usage: /useitem \"item name\"");
 		cmdUseItem(pChar, szLine);
-		return;
+		RETURN(0);
 	}
 	else {
 		CHAR szSlot1[MAX_STRING] = { 0 };
@@ -3298,7 +3326,7 @@ VOID UseItemCmd(PSPAWNINFO pChar, PCHAR szLine)
 									SendListSelect(KeyRingWindowParent, MountWindowList, index - 1);
 									int listdata = clist->GetItemData(index - 1);
 									cmdToggleKeyRingItem(0,&pItem, listdata);
-									return;
+									RETURN(0);
 								}
 							}
 						}
@@ -3321,8 +3349,9 @@ VOID UseItemCmd(PSPAWNINFO pChar, PCHAR szLine)
 			}
 		}
 	}
+	RETURN(0);
 }
-
+#ifndef ISXEQ
 // ***************************************************************************
 // Function:    DoSocial
 // Description: '/dosocial' command

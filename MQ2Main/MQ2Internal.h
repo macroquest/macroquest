@@ -450,7 +450,7 @@ namespace MQ2Internal {
 			CHAR szTemp[32] = {0};
 
 			for(std::map<DWORD,std::list<SEARCHSPAWN>>::iterator i = _AlertMap.begin();i!=_AlertMap.end();i++) {
-				itoa((*i).first,szTemp,10);
+				_itoa_s((*i).first,szTemp,10);
 				strcat_s(szOut,max,szTemp);
 				strcat_s(szOut,max,"|");
 			}

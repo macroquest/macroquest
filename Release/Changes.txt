@@ -1,5 +1,18 @@
 23 Nov 2015 by EqMule and Demonstar55
 - Please don't use MQ2 for unattended gameplay (afk botting)
+- Fixed some ISXEQ stuff
+- The following commands now work in ISXEQ:
+  - /beepontells
+  - /flashontells
+  - /timestamp
+  - /click left door (remember to do /doortarget before u do that though)
+  - /click left item (remember to do /itemtarget before u do that though)
+  - /click left target
+  - /click right target
+  - /useitem "some item" (or partial name) or without the quotes... this one works for item in keyrings as well (illusions, mounts)
+
+22 Nov 2015 by EqMule and Demonstar55
+- Please don't use MQ2 for unattended gameplay (afk botting)
 - Added .Index to the AltAbility TLO.
 - Added .NextIndex to the AltAbility TLO.
 - Added .CanTrain to the AltAbility TLO.

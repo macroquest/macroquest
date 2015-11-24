@@ -18,6 +18,9 @@
     <Filter Include="Build Files">
       <UniqueIdentifier>{aa579893-08a9-4e01-a943-efc2f155f80b}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Header Files\ISXDK">
+      <UniqueIdentifier>{cc7057ca-0771-4895-af0e-a7d29a792353}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="ISXEQ\ISXEQ.cpp">
@@ -165,6 +168,39 @@
     </ClInclude>
     <ClInclude Include="DataTypeList.h">
       <Filter>Header Files\From MQ2Main</Filter>
+    </ClInclude>
+    <ClInclude Include="..\ISXDK\34\include\ISXDK.h">
+      <Filter>Header Files\ISXDK</Filter>
+    </ClInclude>
+    <ClInclude Include="..\ISXDK\34\include\ColumnRenderer.h">
+      <Filter>Header Files\ISXDK</Filter>
+    </ClInclude>
+    <ClInclude Include="..\ISXDK\34\include\FileList.h">
+      <Filter>Header Files\ISXDK</Filter>
+    </ClInclude>
+    <ClInclude Include="..\ISXDK\34\include\Index.h">
+      <Filter>Header Files\ISXDK</Filter>
+    </ClInclude>
+    <ClInclude Include="..\ISXDK\34\include\ISInterface.h">
+      <Filter>Header Files\ISXDK</Filter>
+    </ClInclude>
+    <ClInclude Include="..\ISXDK\34\include\ISXInterface.h">
+      <Filter>Header Files\ISXDK</Filter>
+    </ClInclude>
+    <ClInclude Include="..\ISXDK\34\include\Queue.h">
+      <Filter>Header Files\ISXDK</Filter>
+    </ClInclude>
+    <ClInclude Include="..\ISXDK\34\include\Services.h">
+      <Filter>Header Files\ISXDK</Filter>
+    </ClInclude>
+    <ClInclude Include="..\ISXDK\34\include\Threading.h">
+      <Filter>Header Files\ISXDK</Filter>
+    </ClInclude>
+    <ClInclude Include="..\ISXDK\34\include\utf8string.h">
+      <Filter>Header Files\ISXDK</Filter>
+    </ClInclude>
+    <ClInclude Include="..\ISXDK\34\include\WinThreading.h">
+      <Filter>Header Files\ISXDK</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

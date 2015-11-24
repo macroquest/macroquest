@@ -45,16 +45,16 @@ using namespace std;
 
 
 typedef struct _MAPFILTER {
-    PCHAR szName;
-    //DWORD Index;
-    DWORD Default;
-    DWORD DefaultColor;
-    BOOL bIsToggle;
-    DWORD RequiresOption;
-    BOOL RegenerateOnChange;
-    PCHAR szHelpString;
-    DWORD Enabled;
-    DWORD Color;
+	PCHAR szName;
+	//DWORD Index;
+	DWORD Default;
+	DWORD DefaultColor;
+	BOOL bIsToggle;
+	DWORD RequiresOption;
+	BOOL RegenerateOnChange;
+	PCHAR szHelpString;
+	DWORD Enabled;
+	DWORD Color;
 } MAPFILTER, *PMAPFILTER;
 
 extern unsigned long bmMapRefresh;
@@ -70,7 +70,7 @@ extern CHAR MapSpecialClickString[16][MAX_STRING];
 
 /* COMMANDS */
 VOID MapFilters(PSPAWNINFO pChar, PCHAR szLine);
-VOID MapFilterSetting(PSPAWNINFO pChar, DWORD nMapFilter, PCHAR szValue=NULL);
+VOID MapFilterSetting(PSPAWNINFO pChar, DWORD nMapFilter, PCHAR szValue = NULL);
 VOID MapHighlightCmd(PSPAWNINFO pChar, PCHAR szLine);
 VOID MapHideCmd(PSPAWNINFO pChar, PCHAR szLine);
 VOID MapShowCmd(PSPAWNINFO pChar, PCHAR szLine);
@@ -96,22 +96,22 @@ BOOL dataMapSpawn(PCHAR szIndex, MQ2TYPEVAR &Ret);
 bool dataMapSpawn(int argc, char *argv[], LSTYPEVAR &Ret);
 #endif
 
-struct _MAPSPAWN* AddSpawn(PSPAWNINFO pNewSpawn,BOOL ExplicitAllow=false);
+struct _MAPSPAWN* AddSpawn(PSPAWNINFO pNewSpawn, BOOL ExplicitAllow = false);
 bool RemoveSpawn(PSPAWNINFO pSpawn);
 void AddGroundItem(PGROUNDITEM pGroundItem);
 void RemoveGroundItem(PGROUNDITEM pGroundItem);
 
 static inline BOOL IsOptionEnabled(DWORD Option)
 {
-    if (Option==MAPFILTER_Invalid)
-        return true;
-    return (MapFilterOptions[Option].Enabled && IsOptionEnabled(MapFilterOptions[Option].RequiresOption));
+	if (Option == MAPFILTER_Invalid)
+		return true;
+	return (MapFilterOptions[Option].Enabled && IsOptionEnabled(MapFilterOptions[Option].RequiresOption));
 }
 
 static inline BOOL RequirementsMet(DWORD Option)
 {
-    if (Option==MAPFILTER_Invalid)
-        return true;
-    return (IsOptionEnabled(MapFilterOptions[Option].RequiresOption));
+	if (Option == MAPFILTER_Invalid)
+		return true;
+	return (IsOptionEnabled(MapFilterOptions[Option].RequiresOption));
 }
 

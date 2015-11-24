@@ -6,27 +6,27 @@
 
 
 class ISXEQItemDisplay :
-    public ISXInterface
+	public ISXInterface
 {
 public:
 
-    virtual bool Initialize(ISInterface *p_ISInterface);
-    virtual void Shutdown();
+	virtual bool Initialize(ISInterface *p_ISInterface);
+	virtual void Shutdown();
 
-    void LoadSettings();
-    void ConnectServices();
-    void RegisterCommands();
-    void RegisterAliases();
-    void RegisterDataTypes();
-    void RegisterTopLevelObjects();
-    void RegisterServices();
+	void LoadSettings();
+	void ConnectServices();
+	void RegisterCommands();
+	void RegisterAliases();
+	void RegisterDataTypes();
+	void RegisterTopLevelObjects();
+	void RegisterServices();
 
-    void DisconnectServices();
-    void UnRegisterCommands();
-    void UnRegisterAliases();
-    void UnRegisterDataTypes();
-    void UnRegisterTopLevelObjects();
-    void UnRegisterServices();
+	void DisconnectServices();
+	void UnRegisterCommands();
+	void UnRegisterAliases();
+	void UnRegisterDataTypes();
+	void UnRegisterTopLevelObjects();
+	void UnRegisterServices();
 
 };
 

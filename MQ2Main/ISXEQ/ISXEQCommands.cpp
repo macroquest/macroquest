@@ -880,25 +880,13 @@ int CMD_EQFace(int argc, char *argv[])
             return 0;
          }
          pSpawnClosest = &EnviroTarget;
-      } else if (!stricmp(argv[qq], "door")) {
-         if (DoorEnviroTarget.Name[0]==0) {
-            printf("%s: door specified but no door targetted.",argv[0]);
-            return 0;
-         }
-         pSpawnClosest = &DoorEnviroTarget;
-      } else if (!stricmp(argv[qq], "heading")) {
-         if ((++qq)<argc)
-         {
-            FLOAT Heading = (FLOAT)(atof(argv[qq]));
-            gFaceAngle = Heading/0.703125f;
-            if (gFaceAngle>=512.0f) gFaceAngle -= 512.0f;
-            if (gFaceAngle<0.0f) gFaceAngle += 512.0f;
-            if (Fast) {
-               ((PSPAWNINFO)pCharSpawn)->Heading = (FLOAT)gFaceAngle;
-               gFaceAngle=10000.0f;
-            }
-         }
-         return 0;
+      }
+	  else if (!stricmp(argv[qq], "door")) {
+		  if (DoorEnviroTarget.Name[0] == 0) {
+			  printf("%s: door specified but no door targetted.", argv[0]);
+			  return 0;
+		  }
+		  pSpawnClosest = &DoorEnviroTarget;
       } else if (!strcmp(szArg,"help")) {
          printf("Usage: %s [spawn] [item] [door] [id #] [heading <ang>] [loc <y>,<x>] [away] [alert #]",argv[0]);
          return 0;
@@ -1192,41 +1180,41 @@ int CMD_DoorTarget(int argc, char *argv[])
             DoorEnviroTarget.X = pDoorTable->pDoor[Count]->X;
             DoorEnviroTarget.Z = pDoorTable->pDoor[Count]->Z;
             DoorEnviroTarget.Heading = pDoorTable->pDoor[Count]->Heading;
-         DoorEnviroTarget.Type = SPAWN_NPC;
-         DoorEnviroTarget.HPCurrent = 1;
-         DoorEnviroTarget.HPMax = 1;
+			DoorEnviroTarget.Type = SPAWN_NPC;
+			DoorEnviroTarget.HPCurrent = 1;
+			DoorEnviroTarget.HPMax = 1;
             pDoorTarget = pDoorTable->pDoor[Count];
             break;
          }
       }
    } else {
-      if (argc > 1) strcpy(szSearch, argv[1]);
-      for (Count=0; Count<pDoorTable->NumEntries; Count++) {
-         if (((szSearch[0]==0) ||
-             (!strnicmp(pDoorTable->pDoor[Count]->Name,szSearch,strlen(szSearch)))) &&
-            ((gZFilter >=10000.0f) ||
-              ((pDoorTable->pDoor[Count]->Z <= pChar->Z + gZFilter) &&
-               (pDoorTable->pDoor[Count]->Z >= pChar->Z - gZFilter)))) {
-            SPAWNINFO tSpawn;
-            ZeroMemory(&tSpawn,sizeof(tSpawn));
-            strcpy(tSpawn.Name,pDoorTable->pDoor[Count]->Name);
-            tSpawn.Y=pDoorTable->pDoor[Count]->Y;
-            tSpawn.X=pDoorTable->pDoor[Count]->X;
-            tSpawn.Z=pDoorTable->pDoor[Count]->Z;
-         tSpawn.Type = SPAWN_NPC;
-         tSpawn.HPCurrent = 1;
-         tSpawn.HPMax = 1;
-            tSpawn.Heading=pDoorTable->pDoor[Count]->Heading;
-            FLOAT Distance = DistanceToSpawn(pChar,&tSpawn);
-            if (Distance<cDistance) {
-               CopyMemory(&DoorEnviroTarget,&tSpawn,sizeof(DoorEnviroTarget));
-               pDoorTarget = pDoorTable->pDoor[Count];
-               cDistance=Distance;
-            }
-         }
-
-      }
-   }
+		if (argc > 1)
+			strcpy(szSearch, argv[1]);
+		for (Count=0; Count<pDoorTable->NumEntries; Count++) {
+			if (((szSearch[0]==0) ||
+				(!strnicmp(pDoorTable->pDoor[Count]->Name,szSearch,strlen(szSearch)))) &&
+				((gZFilter >=10000.0f) ||
+				((pDoorTable->pDoor[Count]->Z <= pChar->Z + gZFilter) &&
+				(pDoorTable->pDoor[Count]->Z >= pChar->Z - gZFilter)))) {
+				SPAWNINFO tSpawn;
+				ZeroMemory(&tSpawn,sizeof(tSpawn));
+				strcpy(tSpawn.Name,pDoorTable->pDoor[Count]->Name);
+				tSpawn.Y=pDoorTable->pDoor[Count]->Y;
+				tSpawn.X=pDoorTable->pDoor[Count]->X;
+				tSpawn.Z=pDoorTable->pDoor[Count]->Z;
+				tSpawn.Type = SPAWN_NPC;
+				tSpawn.HPCurrent = 1;
+				tSpawn.HPMax = 1;
+				tSpawn.Heading=pDoorTable->pDoor[Count]->Heading;
+				FLOAT Distance = DistanceToSpawn(pChar,&tSpawn);
+				if (Distance<cDistance) {
+				   CopyMemory(&DoorEnviroTarget,&tSpawn,sizeof(DoorEnviroTarget));
+				   pDoorTarget = pDoorTable->pDoor[Count];
+				   cDistance=Distance;
+				}
+			}
+		}
+	}
 
 
    if (DoorEnviroTarget.Name[0]!=0) {
@@ -1238,59 +1226,6 @@ int CMD_DoorTarget(int argc, char *argv[])
    return 0;
 } 
 
-int CMD_ItemTarget(int argc, char *argv[])
-{
-    if (!ppItemList) return 0;
-    if (!pItemList) return 0;
-   PSPAWNINFO pChar = (PSPAWNINFO)pLocalPlayer;
-    PGROUNDITEM pItem = (PGROUNDITEM)pItemList;
-    FLOAT cDistance = 100000.0f;
-   CHAR szName[MAX_STRING]={0};
-    CHAR szBuffer[MAX_STRING] = {0};
-    ZeroMemory(&EnviroTarget,sizeof(EnviroTarget));
-    pGroundTarget = NULL;
-    while (pItem) {
-        GetFriendlyNameForGroundItem(pItem,szName);
-        if (
-                (
-                    (argc<2) ||
-                    (!strnicmp(szName,argv[1],strlen(argv[1])))
-                ) && (
-                    (gZFilter >=10000.0f) ||
-                    (
-                        (pItem->Z <= pChar->Z + gZFilter) &&
-                        (pItem->Z >= pChar->Z - gZFilter)
-                    )
-                )
-            ) {
-            SPAWNINFO tSpawn;
-            ZeroMemory(&tSpawn,sizeof(tSpawn));
-            strcpy(tSpawn.Name,szName);
-            tSpawn.Y=pItem->Y;
-            tSpawn.X=pItem->X;
-            tSpawn.Z=pItem->Z;
-            tSpawn.Type = SPAWN_NPC;
-            tSpawn.HPCurrent = 1;
-            tSpawn.HPMax = 1;
-            tSpawn.Heading=pItem->Heading;
-            tSpawn.Race = pItem->DropID;
-            FLOAT Distance = DistanceToSpawn(pChar,&tSpawn);
-            if (Distance<cDistance) {
-                CopyMemory(&EnviroTarget,&tSpawn,sizeof(EnviroTarget));
-                cDistance=Distance;
-                pGroundTarget = pItem;
-            }
-        }
-
-        pItem = pItem->pNext;
-    }
-    if (EnviroTarget.Name[0]!=0) {
-        sprintf(szBuffer,"Item '%s' targeted.",EnviroTarget.Name);
-        WriteChatColor(szBuffer,USERCOLOR_DEFAULT);
-   }
-
-   return 0;
-}
 BOOL CALLBACK EnumWindowsProc(HWND hwnd,LPARAM lParam)
 {
    DWORD procid = 0;

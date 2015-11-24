@@ -685,9 +685,7 @@ class CXWnd *GetChildByIndex(class CXWnd *pWnd, PCHAR Name,int index)
     }
     return GetChildByIndex((class CXWnd *)pWnd->pNextSiblingWnd, Name,index);
 }
-#ifdef ISXEQ
-#define MacroError printf
-#endif
+
 bool SendWndClick(PCHAR WindowName, PCHAR ScreenID, PCHAR ClickNotification)
 {
     CXWnd *pWnd=FindMQ2Window(WindowName);
@@ -1014,12 +1012,6 @@ void RemoveWindow(char *WindowName)
         }
     }
 }
-#endif
-
-#ifndef ISXEQ
-#define RETURN(x) return;
-#else
-#define RETURN(x) return x;
 #endif
 
 CHAR tmpName[MAX_STRING]={0};

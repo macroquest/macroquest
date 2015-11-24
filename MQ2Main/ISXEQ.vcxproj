@@ -1,6 +1,10 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project DefaultTargets="Build" ToolsVersion="12.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup Label="ProjectConfigurations">
+    <ProjectConfiguration Include="Debug|Win32">
+      <Configuration>Debug</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
     <ProjectConfiguration Include="Release|Win32">
       <Configuration>Release</Configuration>
       <Platform>Win32</Platform>
@@ -9,9 +13,18 @@
   <PropertyGroup Label="Globals">
     <ProjectGuid>{4EDFEF3C-E331-44E6-BC7A-CF25BFA2BFEA}</ProjectGuid>
     <Keyword>Win32Proj</Keyword>
+    <SccProjectName>SAK</SccProjectName>
+    <SccAuxPath>SAK</SccAuxPath>
+    <SccLocalPath>SAK</SccLocalPath>
+    <SccProvider>SAK</SccProvider>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
+    <ConfigurationType>DynamicLibrary</ConfigurationType>
+    <PlatformToolset>v120_xp</PlatformToolset>
+    <CharacterSet>MultiByte</CharacterSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
     <ConfigurationType>DynamicLibrary</ConfigurationType>
     <PlatformToolset>v120_xp</PlatformToolset>
     <CharacterSet>MultiByte</CharacterSet>
@@ -23,11 +36,22 @@
     <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
     <Import Project="..\ISXEQ\isxGamesCommon.props" />
   </ImportGroup>
+  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="PropertySheets">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+    <Import Project="..\ISXEQ\isxGamesCommon.props" />
+  </ImportGroup>
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup>
     <_ProjectFileVersion>12.0.21005.1</_ProjectFileVersion>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <OutDir>..\Release\</OutDir>
+    <IntDir>.\ISXEQIntermediate\</IntDir>
+    <LinkIncremental>false</LinkIncremental>
+    <CodeAnalysisRuleSet>AllRules.ruleset</CodeAnalysisRuleSet>
+    <RunCodeAnalysis>false</RunCodeAnalysis>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <OutDir>..\Release\</OutDir>
     <IntDir>.\ISXEQIntermediate\</IntDir>
     <LinkIncremental>false</LinkIncremental>
@@ -50,13 +74,14 @@
       <FunctionLevelLinking>false</FunctionLevelLinking>
       <DisableLanguageExtensions>false</DisableLanguageExtensions>
       <PrecompiledHeader />
-      <WarningLevel>Level4</WarningLevel>
+      <WarningLevel>Level3</WarningLevel>
       <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
       <CallingConvention>Cdecl</CallingConvention>
       <CompileAs>CompileAsCpp</CompileAs>
       <EnablePREfast>false</EnablePREfast>
       <AdditionalOptions> /Qvec-report:2</AdditionalOptions>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
+      <AdditionalIncludeDirectories>..\ISXDK\34\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <AdditionalOptions>/OPT:NOICF %(AdditionalOptions)</AdditionalOptions>
@@ -72,6 +97,61 @@
       <BaseAddress>0x03000000</BaseAddress>
       <ImportLibrary>$(OutDir)ISXEQ.lib</ImportLibrary>
       <TargetMachine>MachineX86</TargetMachine>
+      <AdditionalLibraryDirectories>..\ISXDK\34\lib\vs12;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+    </Link>
+    <PostBuildEvent>
+      <Command>"$(SolutionDir)ISXEQ\PostBuild.bat" "$(SolutionDir)" "$(TargetDir)" $(TargetName)</Command>
+    </PostBuildEvent>
+    <PostBuildEvent>
+      <Message>Copy files to release</Message>
+    </PostBuildEvent>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <ClCompile>
+      <Optimization>Disabled</Optimization>
+      <InlineFunctionExpansion>Disabled</InlineFunctionExpansion>
+      <FavorSizeOrSpeed>Neither</FavorSizeOrSpeed>
+      <OmitFramePointers>false</OmitFramePointers>
+      <PreprocessorDefinitions>EQLIB_EXPORTS;CINTERFACE;ISXEQ;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <StringPooling>false</StringPooling>
+      <ExceptionHandling>
+      </ExceptionHandling>
+      <BasicRuntimeChecks>Default</BasicRuntimeChecks>
+      <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
+      <StructMemberAlignment>1Byte</StructMemberAlignment>
+      <BufferSecurityCheck>false</BufferSecurityCheck>
+      <FunctionLevelLinking>true</FunctionLevelLinking>
+      <DisableLanguageExtensions>false</DisableLanguageExtensions>
+      <PrecompiledHeader>
+      </PrecompiledHeader>
+      <WarningLevel>Level3</WarningLevel>
+      <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
+      <CallingConvention>Cdecl</CallingConvention>
+      <CompileAs>CompileAsCpp</CompileAs>
+      <EnablePREfast>false</EnablePREfast>
+      <AdditionalOptions> /Qvec-report:2</AdditionalOptions>
+      <MultiProcessorCompilation>true</MultiProcessorCompilation>
+      <AdditionalIncludeDirectories>..\ISXDK\34\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <BrowseInformation>true</BrowseInformation>
+      <ErrorReporting>None</ErrorReporting>
+    </ClCompile>
+    <Link>
+      <AdditionalOptions>/OPT:NOICF %(AdditionalOptions)</AdditionalOptions>
+      <AdditionalDependencies>wsock32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <OutputFile>$(OutDir)ISXEQ.dll</OutputFile>
+      <SuppressStartupBanner>false</SuppressStartupBanner>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <GenerateMapFile>true</GenerateMapFile>
+      <MapExports>true</MapExports>
+      <SubSystem>Windows</SubSystem>
+      <OptimizeReferences>false</OptimizeReferences>
+      <EnableCOMDATFolding>false</EnableCOMDATFolding>
+      <BaseAddress>0x03000000</BaseAddress>
+      <ImportLibrary>$(OutDir)ISXEQ.lib</ImportLibrary>
+      <TargetMachine>MachineX86</TargetMachine>
+      <AdditionalLibraryDirectories>..\ISXDK\34\lib\vs12;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <IgnoreSpecificDefaultLibraries>
+      </IgnoreSpecificDefaultLibraries>
     </Link>
     <PostBuildEvent>
       <Command>"$(SolutionDir)ISXEQ\PostBuild.bat" "$(SolutionDir)" "$(TargetDir)" $(TargetName)</Command>
@@ -107,6 +187,17 @@
     <ClCompile Include="MQ2Windows.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="..\ISXDK\34\include\ColumnRenderer.h" />
+    <ClInclude Include="..\ISXDK\34\include\FileList.h" />
+    <ClInclude Include="..\ISXDK\34\include\Index.h" />
+    <ClInclude Include="..\ISXDK\34\include\ISInterface.h" />
+    <ClInclude Include="..\ISXDK\34\include\ISXDK.h" />
+    <ClInclude Include="..\ISXDK\34\include\ISXInterface.h" />
+    <ClInclude Include="..\ISXDK\34\include\Queue.h" />
+    <ClInclude Include="..\ISXDK\34\include\Services.h" />
+    <ClInclude Include="..\ISXDK\34\include\Threading.h" />
+    <ClInclude Include="..\ISXDK\34\include\utf8string.h" />
+    <ClInclude Include="..\ISXDK\34\include\WinThreading.h" />
     <ClInclude Include="DataTypeList.h" />
     <ClInclude Include="ISXEQ\ISXEQ.h" />
     <ClInclude Include="..\ISXEQClient.h" />

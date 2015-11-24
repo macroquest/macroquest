@@ -108,7 +108,7 @@ BOOL ExtractValue(PCHAR szFile, PCHAR szStart, PCHAR szEnd, PCHAR szValue)
     return TRUE;
 }
 
-#ifndef ISXEQ
+//#ifndef ISXEQ
 
 BOOL MoveMouse(DWORD x, DWORD y,BOOL bClick) 
 { 
@@ -276,7 +276,7 @@ VOID ClickMouseLoc(PCHAR szMouseLoc, PCHAR szButton)
         MacroError("'%s' mouse click is either invalid or should be done using /notify",szMouseLoc);
     }
 }
-#endif
+//#endif
 
 #ifndef ISXEQ_LEGACY
 
@@ -317,19 +317,24 @@ BOOL IsMouseWaiting()
 }
 #endif
 
-#ifndef ISXEQ
-
-VOID Click(PSPAWNINFO pChar, PCHAR szLine) 
-{ 
+#ifdef ISXEQ
+int Click(int argc, char *argv[])
+{
+	PSPAWNINFO pChar = (PSPAWNINFO)pLocalPlayer;
+	CHAR szTemp[MAX_STRING] = { 0 };
+	PCHAR szLine = ISXEQArgToMQ2Arg(argc, argv, szTemp, MAX_STRING);
+#else
+VOID Click(PSPAWNINFO pChar, PCHAR szLine)
+{
+#endif
 	if(GetGameState()!=GAMESTATE_INGAME) {
-		MacroError("Dont /click stuff(%s) when not in game... Gamestate is %d",szLine,GetGameState());
-		return;
-	}
-    CHAR szArg1[MAX_STRING] = {0}; 
-    PCHAR szMouseLoc; 
+		WriteChatf("Dont /click stuff(%s) when not in game... Gamestate is %d",szLine,GetGameState());
+		RETURN(0);
+	} 
+    PCHAR szMouseLoc = NULL; 
     MOUSE_DATA_TYPES mdType = MD_Unknown; 
     DWORD RightOrLeft = 0; 
-
+	CHAR szArg1[MAX_STRING] = { 0 };
     GetArg(szArg1, szLine, 1); //left or right 
     szMouseLoc = GetNextArg(szLine, 1); //location to click 
 
@@ -338,7 +343,7 @@ VOID Click(PSPAWNINFO pChar, PCHAR szLine)
         if (!strnicmp(szMouseLoc, "target", 6)) {
             if (!pTarget) { 
                 WriteChatColor("You must have a target selected for /click x target.",CONCOLOR_RED); 
-                return; 
+				RETURN(0);
             } 
             if (!strnicmp(szArg1, "left", 4)) { 
                 pEverQuest->LeftClickedOnPlayer(pTarget); 
@@ -347,7 +352,7 @@ VOID Click(PSPAWNINFO pChar, PCHAR szLine)
                 pEverQuest->RightClickedOnPlayer(pTarget, 0); 
                 WeDidStuff();
             } 
-            return;
+			RETURN(0);
         } else if(!strnicmp(szMouseLoc,"center",6)) {
             sprintf(szMouseLoc,"%d %d",ScreenXMax/2,ScreenYMax/2);
         } else if (!strnicmp(szMouseLoc, "item", 4)) {
@@ -377,7 +382,7 @@ VOID Click(PSPAWNINFO pChar, PCHAR szLine)
 			} else {
 				WriteChatf("No Item targeted, use /itemtarget <theid> before issuing a /click left item command.");
 			}
-			return;
+			RETURN(0);
         } else if (!strnicmp(szMouseLoc, "door", 4)) {
 			// a right clicked door spawn does nothing
 			if(pDoorTarget) {
@@ -407,7 +412,7 @@ VOID Click(PSPAWNINFO pChar, PCHAR szLine)
 							if (pTarget==(EQPlayer*)&DoorEnviroTarget) {//this should NEVER happen
 								pTarget=NULL;
 							}
-							return;
+							RETURN(0);
 						} else {
 							WriteChatf("You are to far away from the door, please move closer before issuing the /click left door command.");
 						}
@@ -420,10 +425,10 @@ VOID Click(PSPAWNINFO pChar, PCHAR szLine)
 			} else {
 				WriteChatf("No Door targeted, use /doortarget <theid> before issuing a /click left door command.");
 			}
-			return;;
+			RETURN(0);
 		} 
         ClickMouseLoc(szMouseLoc, szArg1);
-        return;
+		RETURN(0);
     }
 
     if (szArg1[0]!=0) { 
@@ -434,9 +439,10 @@ VOID Click(PSPAWNINFO pChar, PCHAR szLine)
         } else { 
             WriteChatColor("Usage: /click <left|right>",USERCOLOR_DEFAULT); 
             DebugSpew("Bad command: %s",szLine); 
-            return; 
+			RETURN(0);
         } 
     } 
+	RETURN(0);
 }
 // *************************************************************************** 
 // Function: MouseTo 
@@ -585,4 +591,4 @@ bool  MouseToPlayer(EQPlayer*pPlayer,DWORD position,BOOL bClick)
 	}
 	return false;
 }
-#endif
+//#endif

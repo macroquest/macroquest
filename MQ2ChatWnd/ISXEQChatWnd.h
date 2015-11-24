@@ -7,8 +7,8 @@
 class ISXEQChatWnd : public ISXInterface
 {
 public:
-    virtual bool Initialize(ISInterface *p_ISInterface);
-    virtual void Shutdown();
+	virtual bool Initialize(ISInterface *p_ISInterface);
+	virtual void Shutdown();
 };
 
 extern ISInterface *pISInterface;

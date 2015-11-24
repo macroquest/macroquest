@@ -197,15 +197,15 @@ unsigned int __stdcall MQ2DataVariableLookup(char * VarName, char * Value)
     if (!GetCharInfo()) return strlen(Value);
     return strlen(ParseMacroParameter(GetCharInfo()->pSpawn,Value));
 }
-#ifndef ISXEQ
+#ifdef ISXEQ
+int CMD_FlashOnTells(int argc, char *argv[])
+{
+	PSPAWNINFO pChar = (PSPAWNINFO)pLocalPlayer;
+	CHAR szTemp[MAX_STRING] = { 0 };
+	PCHAR szLine = ISXEQArgToMQ2Arg(argc, argv, szTemp, MAX_STRING);
+#else
 VOID FlashOnTells(PSPAWNINFO pChar, char *szLine)
 {
-#else
-int FlashOnTells(int argc, char *argv[])
-{
-   PCHAR szLine = NULL;
-    if (argc > 0)
-        szLine = argv[1];
 #endif
 	if(szLine[0]!='\0') {
 		if(!_stricmp(szLine,"on")) {
@@ -223,19 +223,17 @@ int FlashOnTells(int argc, char *argv[])
 		WriteChatColor("Flash On Tells is ON",CONCOLOR_YELLOW);
 		WritePrivateProfileString("MacroQuest","FlashOnTells","1",gszINIFilename);
 	}
-#ifdef ISXEQ
-   return 0;
-#endif
+	RETURN(0);
 }
-#ifndef ISXEQ
+#ifdef ISXEQ
+int CMD_BeepOnTells(int argc, char *argv[])
+{
+	PSPAWNINFO pChar = (PSPAWNINFO)pLocalPlayer;
+	CHAR szTemp[MAX_STRING] = { 0 };
+	PCHAR szLine = ISXEQArgToMQ2Arg(argc, argv, szTemp, MAX_STRING);
+#else
 VOID BeepOnTells(PSPAWNINFO pChar, char *szLine)
 {
-#else
-int BeepOnTells(int argc, char *argv[])
-{
-   PCHAR szLine = NULL;
-    if (argc > 0)
-        szLine = argv[1];
 #endif
 	if(szLine[0]!='\0') {
 		if(!_stricmp(szLine,"on")) {
@@ -253,19 +251,17 @@ int BeepOnTells(int argc, char *argv[])
 		WriteChatColor("Beep On Tells is ON",CONCOLOR_YELLOW);
 		WritePrivateProfileString("MacroQuest","BeepOnTells","1",gszINIFilename);
 	}
-#ifdef ISXEQ
-   return 0;
-#endif
+	RETURN(0);
 }
-#ifndef ISXEQ
+#ifdef ISXEQ
+int CMD_TimeStampChat(int argc, char *argv[])
+{
+	PSPAWNINFO pChar = (PSPAWNINFO)pLocalPlayer;
+	CHAR szTemp[MAX_STRING] = { 0 };
+	PCHAR szLine = ISXEQArgToMQ2Arg(argc, argv, szTemp, MAX_STRING);
+#else
 VOID TimeStampChat(PSPAWNINFO pChar, char *szLine)
 {
-#else
-int TimeStampChat(int argc, char *argv[])
-{
-   PCHAR szLine = NULL;
-    if (argc > 0)
-        szLine = argv[1];
 #endif
 	if(szLine[0]!='\0') {
 		if(!_stricmp(szLine,"on")) {
@@ -283,9 +279,7 @@ int TimeStampChat(int argc, char *argv[])
 		WriteChatColor("Chat Time Stamping is ON",CONCOLOR_YELLOW);
 		WritePrivateProfileString("MacroQuest","TimeStampChat","1",gszINIFilename);
 	}
-#ifdef ISXEQ
-   return 0;
-#endif
+	RETURN(0);
 }
 VOID InitializeChatHook()
 {
@@ -306,10 +300,6 @@ VOID InitializeChatHook()
 	AddCommand("/timestamp", TimeStampChat);
 	AddCommand("/beepontells", BeepOnTells);
 	AddCommand("/flashontells", FlashOnTells);
-#else
-   pISInterface->AddCommand("/timestamp", TimeStampChat,true,false);
-   pISInterface->AddCommand("/beepontells", BeepOnTells,true,false);
-   pISInterface->AddCommand("/flashontells", FlashOnTells,true,false);
 #endif
 }
 
@@ -319,12 +309,8 @@ VOID ShutdownChatHook()
 	RemoveCommand("/flashontells");
 	RemoveCommand("/beepontells");
 	RemoveCommand("/timestamp");
-#else
-   pISInterface->RemoveCommand("/timestamp");
-   pISInterface->RemoveCommand("/flashontells");
-   pISInterface->RemoveCommand("/beepontells");
 #endif
-   RemoveDetour(CEverQuest__dsp_chat);
+	RemoveDetour(CEverQuest__dsp_chat);
     RemoveDetour(CEverQuest__DoTellWindow);
     RemoveDetour(CEverQuest__UPCNotificationFlush);
 #ifndef ISXEQ

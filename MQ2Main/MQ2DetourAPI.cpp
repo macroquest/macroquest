@@ -251,7 +251,7 @@ int(__cdecl *memcheck4_tramp)(unsigned char *buffer, int count, struct mckey key
 VOID HookInlineChecks(BOOL Patch)
 {
 	int i;
-	DWORD oldperm, tmp, NewData;
+	DWORD oldperm,tmp,NewData;
 
 	DWORD cmps[] = { __AC1 + 6 };
 

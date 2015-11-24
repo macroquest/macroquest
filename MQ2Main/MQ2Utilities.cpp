@@ -194,7 +194,6 @@ VOID MacroError(PCHAR szFormat, ...)
 			EndMacro((PSPAWNINFO)pCharSpawn, "");
 	}
 }
-
 VOID FatalError(PCHAR szFormat, ...)
 {
 	va_list vaList;
@@ -283,7 +282,7 @@ VOID FixStringTable()
 }
 #endif
 
-#ifndef ISXEQ
+//#ifndef ISXEQ
 // ***************************************************************************
 // Function:    GetNextArg
 // Description: Returns a pointer to the next argument
@@ -387,7 +386,7 @@ PSTR GetArg(PSTR szDest, PCSTR szSrc, DWORD dwNumber, BOOL LeaveQuotes, BOOL ToP
 
 	return szDest;
 }
-#endif
+//#endif
 
 
 
@@ -1017,7 +1016,9 @@ PSPELL GetSpellByName(PCHAR szName)
 		if (ppSpellMgr == NULL || gbSpelldbLoaded == FALSE || ghLockSpellMap == NULL || szName == NULL) {
 			WriteChatColor("Initializing SpellMap from GetSpellByName, this will take a few seconds, please wait", CONCOLOR_YELLOW);
 			InitializeMQ2SpellDb(NULL);
-			return NULL;
+			if (ppSpellMgr == NULL || gbSpelldbLoaded == FALSE || ghLockSpellMap == NULL || szName == NULL) {
+				return NULL;
+			}
 		}
 		lockit lk(ghLockSpellMap);
 		if (szName[0] >= '0' && szName[0] <= '9')

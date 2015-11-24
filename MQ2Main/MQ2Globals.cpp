@@ -90,9 +90,10 @@ namespace MQ2Globals
 		EQADDR_DIMAIN = DI8__Main;
 		EQADDR_DIKEYBOARD = (IDirectInputDevice8A **)DI8__Keyboard;
 		EQADDR_DIMOUSE = (IDirectInputDevice8A **)DI8__Mouse;
+#endif
 		EQADDR_DIMOUSECOPY = (PPOINT)DI8__Mouse_Copy;
 		EQADDR_DIMOUSECHECK = (PPOINT)DI8__Mouse_Check;
-#endif
+
 
 		pGuildList = (PGUILDS)__Guilds;
 		pSocialList = (PEQSOCIAL)__Socials;
@@ -1039,9 +1040,10 @@ namespace MQ2Globals
 	DWORD EQADDR_DIMAIN = 0;
 	IDirectInputDevice8A **EQADDR_DIKEYBOARD = 0;
 	IDirectInputDevice8A **EQADDR_DIMOUSE = 0;
+#endif
 	PPOINT EQADDR_DIMOUSECOPY = 0;
 	PPOINT EQADDR_DIMOUSECHECK = 0;
-#endif
+
 
 	PGUILDS pGuildList = 0;
 	PEQSOCIAL   pSocialList = 0;
