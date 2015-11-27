@@ -2473,8 +2473,8 @@ typedef struct _GROUPAGGRO {
 /*0x08*/ DWORD  GroupMemberAggro[6];//player is ALWAYS the 6th member...
 } GROUPAGGRO, *PGROUPAGGRO;
 
-#define EQ_BEGIN_ZONE                   0x31AF   // CEverQuest__SavePCForce
-#define EQ_END_ZONE                     0x5C29   // CEverQuest__DoMainLoop+B2F
+#define EQ_BEGIN_ZONE                   0x2AAE   // CEverQuest__SavePCForce
+#define EQ_END_ZONE                     0x65D3   // CEverQuest__DoMainLoop+B2F
 #define EQ_LoadingS__ArraySize          0x5b     // EQ_LoadingS__SetProgressBar+8C 20131029 test (see 4A6336)
 };
 using namespace EQData;
