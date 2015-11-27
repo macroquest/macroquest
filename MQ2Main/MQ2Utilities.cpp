@@ -29,12 +29,14 @@ VOID DebugSpew(PCHAR szFormat, ...)
 	if (gFilterDebug) return;
 	va_list vaList;
 	va_start(vaList, szFormat);
-	int len = _vscprintf(szFormat, vaList) + 1;// _vscprintf doesn't count // terminating '\0'
-	if (char *szOutput = (char *)LocalAlloc(LPTR, len + 32)) {
-		vsprintf(szOutput, szFormat, vaList);
-		OutputDebugString(DebugHeader);
+	int len = _vscprintf(szFormat, vaList) + 1;// _vscprintf doesn't count // terminating '\0'  
+	int headerlen = strlen(DebugHeader) + 1;
+	size_t thelen = len + headerlen + 32;
+	if (char *szOutput = (char *)LocalAlloc(LPTR, thelen)) {
+		strcpy_s(szOutput, thelen, DebugHeader " ");
+		vsprintf_s(szOutput + headerlen, thelen - headerlen, szFormat, vaList);
+		strcat_s(szOutput, thelen, "\n");
 		OutputDebugString(szOutput);
-		OutputDebugString("\n");
 		LocalFree(szOutput);
 	}
 #endif
@@ -44,9 +46,9 @@ VOID WriteChatf(PCHAR szFormat, ...)
 {
 	va_list vaList;
 	va_start(vaList, szFormat);
-	int len = _vscprintf(szFormat, vaList) + 1;// _vscprintf doesn't count // terminating '\0'
+	int len = _vscprintf(szFormat, vaList) + 1;// _vscprintf doesn't count // terminating '\0'  
 	if (char *szOutput = (char *)LocalAlloc(LPTR, len + 32)) {
-		vsprintf(szOutput, szFormat, vaList);
+		vsprintf_s(szOutput, len, szFormat, vaList);
 		WriteChatColor(szOutput);
 		LocalFree(szOutput);
 	}
@@ -55,14 +57,15 @@ VOID WriteChatf(PCHAR szFormat, ...)
 VOID DebugSpewAlways(PCHAR szFormat, ...)
 {
 	va_list vaList;
-	OutputDebugString(DebugHeader);
 	va_start(vaList, szFormat);
-	int len = _vscprintf(szFormat, vaList) + 1;// _vscprintf doesn't count // terminating '\0'
-	if (char *szOutput = (char *)LocalAlloc(LPTR, len + 32)) {
-		vsprintf(szOutput, szFormat, vaList);
+	int len = _vscprintf(szFormat, vaList) + 1;// _vscprintf doesn't count // terminating '\0'  
+	int headerlen = strlen(DebugHeader) + 1;
+	size_t thelen = len + headerlen + 32;
+	if (char *szOutput = (char *)LocalAlloc(LPTR, thelen)) {
+		strcpy_s(szOutput, thelen, DebugHeader " ");
+		vsprintf_s(szOutput + headerlen, thelen - headerlen, szFormat, vaList);
+		strcat_s(szOutput, thelen, "\n");
 		OutputDebugString(szOutput);
-		OutputDebugString("\n");
-
 #ifdef DBG_SPEW
 		if (gSpewToFile) {
 			FILE *fOut = NULL;
@@ -92,13 +95,15 @@ EQLIB_API VOID DebugSpewNoFile(PCHAR szFormat, ...)
 {
 #ifdef DBG_SPEW
 	va_list vaList;
-	OutputDebugString(DebugHeader);
 	va_start(vaList, szFormat);
-	int len = _vscprintf(szFormat, vaList) + 1;// _vscprintf doesn't count // terminating '\0'
-	if (char *szOutput = (char *)LocalAlloc(LPTR, len + 32)) {
-		vsprintf(szOutput, szFormat, vaList);
+	int len = _vscprintf(szFormat, vaList) + 1;// _vscprintf doesn't count // terminating '\0'  
+	int headerlen = strlen(DebugHeader) + 1;
+	size_t thelen = len + headerlen + 32;
+	if (char *szOutput = (char *)LocalAlloc(LPTR, thelen)) {
+		strcpy_s(szOutput, thelen, DebugHeader " ");
+		vsprintf_s(szOutput + headerlen, thelen - headerlen, szFormat, vaList);
+		strcat_s(szOutput, thelen, "\n");
 		OutputDebugString(szOutput);
-		OutputDebugString("\n");
 		LocalFree(szOutput);
 	}
 #endif

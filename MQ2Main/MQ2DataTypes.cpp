@@ -9318,7 +9318,7 @@ bool MQ2TargetType::GETMEMBER()
 	case AggroHolder:
 	{
 		//who the Target has the MOST aggro on
-		PCHAR pTargetAggroHolder = EQADDR_TARGETAGGROHOLDER;
+		PCHAR pTargetAggroHolder = EQADDR_TARGETAGGROHOLDER; 
 		if (pTargetAggroHolder[0] != '\0')
 		{
 			PSPAWNINFO pAggroHolder = (PSPAWNINFO)GetSpawnByName(pTargetAggroHolder);
@@ -9346,6 +9346,15 @@ bool MQ2TargetType::GETMEMBER()
 		else {
 			//it could be me...
 			//lets check
+			if (pTarget && EQADDR_GROUPAGGRO) {
+				if (*(DWORD*)(EQADDR_GROUPAGGRO + 0x78) >= 100) {
+					if (Dest.Ptr = GetSpawnByID(((PSPAWNINFO)pLocalPlayer)->TargetOfTarget))
+					{
+						Dest.Type = pSpawnType;
+						return true;
+					}
+				}
+			}
 		}
 		return false;
 	}

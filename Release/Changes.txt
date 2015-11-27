@@ -1,4 +1,13 @@
-23 Nov 2015 by EqMule and Demonstar55
+
+26 Nov 2015 by EqMule and Braniac
+- HAPPY THANKSGIVING EDITION!
+- Please don't use MQ2 for unattended gameplay (afk botting)
+- Updated for TEST
+- Fixed a few annoying issues with mq2 message wrapping multiple lines in tools like DebugView. -Brainiac
+- Updated ITEMINFO. AugRestrictions was in the wrong place.
+- Added code to ${Target.AggroHolder} so it returns yourself as well as other now.
+
+23 Nov 2015 by EqMule
 - Please don't use MQ2 for unattended gameplay (afk botting)
 - Fixed some ISXEQ stuff
 - The following commands now work in ISXEQ:
@@ -9,7 +18,7 @@
   - /click left item (remember to do /itemtarget before u do that though)
   - /click left target
   - /click right target
-  - /useitem "some item" (or partial name) or without the quotes... this one works for item in keyrings as well (illusions, mounts)
+  - /useitem "some item" (or partial name) or without the quotes... this one works for items in keyrings as well (illusions, mounts)
 
 22 Nov 2015 by EqMule and Demonstar55
 - Please don't use MQ2 for unattended gameplay (afk botting)

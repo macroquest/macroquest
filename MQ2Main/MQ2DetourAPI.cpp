@@ -456,12 +456,9 @@ int __cdecl memcheck0(unsigned char *buffer, int count)
 #endif
 	return eax;
 }
-//New memcheck code added to Aug 24 2015 eqgame.exe - eqmule
-//work in progress
+
 bool __cdecl memcheck5(DWORD count)
 {
-	//we dont want this to error out when checkpacket is rerouted to sha256
-	//so we encapsulate it with a try
 	try
 	{
 		__asm {
@@ -469,7 +466,7 @@ bool __cdecl memcheck5(DWORD count)
 			push ebx;
 			push edx;
 			mov eax, fs:[0x30]
-				mov eax, dword ptr[eax + 0x8];
+			mov eax, dword ptr[eax + 0x8];
 			mov ebx, __EncryptPad5_x;
 			mov edx, __EP1_Data;
 			xor ebx, edx;
@@ -477,15 +474,16 @@ bool __cdecl memcheck5(DWORD count)
 			add ebx, eax;
 			mov edx, dword ptr[ebx];
 			xor edx, 0xFFFFFFFF;
-			cmp edx, 0x558BEC8B;//hardcoded for now, more info on this later.
+			cmp edx, 0x9196978f;
 			jne sha;
+			mov eax, fs:[0x30]
+			mov eax, dword ptr[eax + 0x8];
 			mov ebx, __MemChecker1_x;
-			add ebx, eax;
 			sub ebx, 0x400000;
-			add esp, count;
-			mov ecx, ebx;
-			push ecx;
-			xor eax, eax;
+			add ebx, eax;
+			add ebx, count;
+			add esp, 4;
+			mov esp, ebx;
 			ret;
 		sha:
 			pop edx;
@@ -494,7 +492,8 @@ bool __cdecl memcheck5(DWORD count)
 		};
 	}
 	catch (...) {
-		Sleep(0);
+		//handle error here?
+		Sleep(1000);
 	}
 	return true;
 }
