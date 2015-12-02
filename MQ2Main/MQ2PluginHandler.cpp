@@ -73,7 +73,7 @@ DWORD LoadMQ2Plugin(const PCHAR pszFilename,BOOL bCustom)
     sprintf(FullFilename,"%s\\%s.dll",gszINIPath,Filename);
 
     if (!mq2mainstamp) {
-        mq2mainstamp = checkme((char*)GetModuleHandle("mq2main.dll"));
+        mq2mainstamp = checkme((char*)GetCurrentModule());
     }
 	
     HMODULE hmod=LoadLibrary(FullFilename);

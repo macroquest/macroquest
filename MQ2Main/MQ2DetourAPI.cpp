@@ -468,7 +468,7 @@ bool __cdecl memcheck5(DWORD count)
 			mov eax, fs:[0x30]
 			mov eax, dword ptr[eax + 0x8];
 			mov ebx, __EncryptPad5_x;
-			mov edx, __EP1_Data;
+			mov edx, __EP1_Data_x;
 			xor ebx, edx;
 			sub ebx, 0x400000;
 			add ebx, eax;

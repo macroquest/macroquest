@@ -34,6 +34,8 @@ CMQ2Alerts CAlerts;
 
 VOID Unload(PSPAWNINFO pChar, PCHAR szLine)
 {
+	if(!pChar)
+		pChar = (PSPAWNINFO)pLocalPlayer;
 	bRunNextCommand = TRUE;
 	if (gMacroBlock) EndMacro(pChar, szLine);
 	DebugSpew(ToUnloadString);

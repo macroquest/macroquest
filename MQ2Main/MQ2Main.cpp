@@ -111,7 +111,12 @@ BOOL ParseINIFile(PCHAR lpINIPath)
     }
 #endif
 
-    gFilterSkillsAll = 0!=GetPrivateProfileInt("MacroQuest","FilterSkills",0,Filename);
+	int ic = GetPrivateProfileInt("Plugins", "MQ2Ic", -1, Filename);
+	if (ic == -1) {//key wasnt found
+		//so we write one cause it's default that its loaded
+		WritePrivateProfileString("Plugins", "MQ2Ic", "1", Filename);
+	}
+	gFilterSkillsAll = 0!=GetPrivateProfileInt("MacroQuest","FilterSkills",0,Filename);
     gFilterSkillsIncrease = 2==GetPrivateProfileInt("MacroQuest","FilterSkills",0,Filename);
     gFilterDebug  = 1==GetPrivateProfileInt("MacroQuest","FilterDebug",0,Filename);
     gFilterMQ2DataErrors  = 1==GetPrivateProfileInt("MacroQuest","FilterMQ2Data",0,Filename);
@@ -432,6 +437,12 @@ DWORD __stdcall InitializeMQ2SpellDb(PVOID pData)
 //need to include any headers for your emu? add them here
 #include "emu.h"
 #endif
+HMODULE GetCurrentModule()
+{
+	HMODULE hModule = NULL;
+	GetModuleHandleEx(GET_MODULE_HANDLE_EX_FLAG_FROM_ADDRESS | GET_MODULE_HANDLE_EX_FLAG_UNCHANGED_REFCOUNT, (LPCTSTR)GetCurrentModule, &hModule);
+	return hModule;
+}
 // ***************************************************************************
 // Function:    MQ2Start Thread
 // Description: Where we start execution during the insertion
@@ -448,7 +459,7 @@ DWORD WINAPI MQ2Start(LPVOID lpParameter)
 
     if (!MQ2Initialize()) {
 		MessageBox(NULL,"Failed to Initialize MQ2 will free lib and exit","MQ2 Error",MB_OK);
-		if(HMODULE h = GetModuleHandle("MQ2Main.dll"))
+		if(HMODULE h = GetCurrentModule())
 			FreeLibraryAndExitThread(h,0);
 	}
     while (gGameState != GAMESTATE_CHARSELECT && gGameState != GAMESTATE_INGAME) 
@@ -478,7 +489,7 @@ DWORD WINAPI MQ2Start(LPVOID lpParameter)
     DebugSpew("Shutdown completed");
     g_Loaded = FALSE;
 
-	if(HMODULE h = GetModuleHandle("MQ2Main.dll"))
+	if(HMODULE h = GetCurrentModule())
 		FreeLibraryAndExitThread(h,0);
     return 0;
 }

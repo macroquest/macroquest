@@ -321,6 +321,7 @@ MQ2Template\MQ2Template.dsp
 MQ2Template\MQ2Template.mak
 MQ2Template\MQ2Template.vcproj
 MQ2Template\ReadMe.txt
+Release\MQ2Ic.dll
 Release\Changes-ISXEQ.txt
 Release\Changes.txt
 Release\readme.chm

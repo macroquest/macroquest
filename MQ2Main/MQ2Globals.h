@@ -47,6 +47,7 @@ namespace MQ2Globals
 	EQLIB_API CHAR DataTypeTemp[MAX_STRING];
 
 	EQLIB_API CHAR gszVersion[32];
+	EQLIB_API int gBuild;
 
 
 	EQLIB_API DWORD gGameState;
@@ -685,6 +686,7 @@ namespace MQ2Globals
 	EQLIB_VAR DWORD __EncryptPad2;
 	EQLIB_VAR DWORD __EncryptPad3;
 	EQLIB_VAR DWORD __EncryptPad4;
+	EQLIB_VAR DWORD __EncryptPad5;
 	EQLIB_VAR DWORD __AC1;
 	EQLIB_VAR DWORD __AC2;
 	EQLIB_VAR DWORD __AC3;
@@ -692,6 +694,7 @@ namespace MQ2Globals
 	EQLIB_VAR DWORD __AC5;
 	EQLIB_VAR DWORD __AC6;
 	EQLIB_VAR DWORD __AC7;
+	EQLIB_VAR DWORD __EP1_Data;
 	EQLIB_VAR DWORD DI8__Main;
 	EQLIB_VAR DWORD DI8__Keyboard;
 	EQLIB_VAR DWORD DI8__Mouse;

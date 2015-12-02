@@ -269,7 +269,15 @@ namespace MQ2Globals
 
 	ePVPServer PVPServer = PVP_NONE;
 	CHAR gszVersion[32] = VersionString;
-
+	#if defined(TEST)
+		int gBuild = 2;//TEST
+	#elif defined(BETA)
+		int gBuild = 3;//BETA
+	#elif defined(EMU)
+		int gBuild = 4;//EMU
+	#else
+		int gBuild = 1;//LIVE
+	#endif
 	DWORD gGameState = 0;
 	DWORD gMaxSpawnCaptions = 30;
 	BOOL gMQCaptions = TRUE;
@@ -1206,6 +1214,7 @@ namespace MQ2Globals
 	INITIALIZE_EQGAME_OFFSET(__EncryptPad2);
 	INITIALIZE_EQGAME_OFFSET(__EncryptPad3);
 	INITIALIZE_EQGAME_OFFSET(__EncryptPad4);
+	INITIALIZE_EQGAME_OFFSET(__EncryptPad5);
 	INITIALIZE_EQGAME_OFFSET(__AC1);
 	INITIALIZE_EQGAME_OFFSET(__AC2);
 	INITIALIZE_EQGAME_OFFSET(__AC3);
@@ -1213,6 +1222,7 @@ namespace MQ2Globals
 	INITIALIZE_EQGAME_OFFSET(__AC5);
 	INITIALIZE_EQGAME_OFFSET(__AC6);
 	INITIALIZE_EQGAME_OFFSET(__AC7);
+	INITIALIZE_EQGAME_OFFSET(__EP1_Data);
 	INITIALIZE_EQGAME_OFFSET(DI8__Main);
 	INITIALIZE_EQGAME_OFFSET(DI8__Keyboard);
 	INITIALIZE_EQGAME_OFFSET(DI8__Mouse);

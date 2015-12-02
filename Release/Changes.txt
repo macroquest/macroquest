@@ -1,4 +1,22 @@
 
+02 Dec 2015 by Devs
+- Well... This is probably the most important update to MQ2 in years.
+  Recent changes to the client released with the new Broken Mirror expansion
+  added a new type of MQ2 detection which is meant to prevent mq2 usage on the new Phinigel server.
+  We fully support the NO MQ2 policy on Phinigel, and we want to continue
+  supporting that policy and backup DBG any way we can that’s within reason.
+  We have therefor decided to add a new type of integrity checker to MQ2.
+  We have placed the code in a MQ2 plugin that has been named MQ2Ic.dll. (MQ2 Integrity checker)
+  We feel strongly that MQ2 is in a symbiosis with Everquest, and it’s important to us
+  that all MQ2 users feel safe while they use MQ2.
+  MQ2 users are an important part of the Everquest community and we wish to keep it that way.
+  In short, we recommend you keep MQ2Ic.dll loaded while you are playing Everquest.
+  It will protect your integrity on all servers EXCEPT Phinigel.
+  It will be included in every zip from now on, and will be maintained by active mq2 devs.
+  Its usage is optional though, and you can unload and load it like any other plugin, but it comes loaded by default.
+  This plugin will also fix some recent plugin issues and crashes as well as improve the fps performance.
+  All questions about this plugin should be directed to eqmule@hotmail.com
+
 26 Nov 2015 by EqMule and Braniac
 - HAPPY THANKSGIVING EDITION!
 - Please don't use MQ2 for unattended gameplay (afk botting)

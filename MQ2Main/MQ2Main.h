@@ -684,6 +684,7 @@ EQLIB_API int		  GetTargetBuffBySPA(int spa, bool bIncrease);
 EQLIB_API int		  GetSelfBuffBySPA(int spa, bool bIncrease);
 EQLIB_API void		  PopulateSpellMap();
 EQLIB_API DWORD __stdcall InitializeMQ2SpellDb(PVOID pData);
+EQLIB_API HMODULE GetCurrentModule();
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 // Functions that were built into commands and people used DoCommand to execute                  //
 

@@ -45,7 +45,7 @@ GNU General Public License for more details.
 #define __AC6_x                                                    0x5805A9
 #define __AC7_x                                                    0x57710C
 #define __AC1_Data                                                 0x11111111
-#define __EP1_Data                                                 0x845EC
+#define __EP1_Data_x                                               0x845EC
 
 // Direct Input
 #define DI8__Main_x                                                0x11ACC38
