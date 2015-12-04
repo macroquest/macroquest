@@ -1,3 +1,7 @@
+03 Dec 2015 by Devs
+- Please don't use MQ2 for unattended gameplay (afk botting)
+- Updated for TEST
+- Updated mq2ic for isxeq, copy it to your extensions folder and isxeq will load it for you.
 
 02 Dec 2015 by Devs
 - Well... This is probably the most important update to MQ2 in years.

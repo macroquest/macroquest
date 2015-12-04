@@ -19,7 +19,7 @@
 #define DBG_SPEW
 #include "..\MQ2Main.h"
 #include "ISXEQServices.h"
-
+extern PMQPLUGIN hMQ2icplugin;
 //#define DEBUG_PLUGINS
 
 #ifdef DEBUG_PLUGINS
@@ -98,6 +98,8 @@ void __cdecl GamestateRequest(ISXInterface *pClient, unsigned int MSG, void *lpD
 	{
 //		printf("Gamestate Service - Client Added");
 		pISInterface->ServiceNotify(pExtension,hGamestateService,(ISXInterface*)lpData,GAMESTATESERVICE_CHANGED,(void*)gGameState);
+		
+		
 	}
 }
 void __cdecl SpawnRequest(ISXInterface *pClient, unsigned int MSG, void *lpData)
@@ -170,6 +172,9 @@ EQLIB_API VOID PluginsSetGameState(DWORD GameState)
 
 	DebugSpew("PluginsSetGameState(%d)",GameState);
 	pISInterface->ServiceBroadcast(pExtension,hGamestateService,GAMESTATESERVICE_CHANGED,(void*)GameState);
+	if(hMQ2icplugin && hMQ2icplugin->SetGameState) {
+		hMQ2icplugin->SetGameState(GameState);
+	}
 }
 
 // "Spawn" service
@@ -230,5 +235,8 @@ EQLIB_API VOID PluginsZoned()
 	char Temp[256]={0};
 	sprintf(Temp,"EQ-%s",((PZONEINFO)pZoneInfo)->ShortName);
 	pISInterface->RunCommandFile(Temp);
+	if(hMQ2icplugin && hMQ2icplugin->Zoned) {
+		hMQ2icplugin->Zoned();
+	}
 }
 

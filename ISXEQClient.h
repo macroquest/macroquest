@@ -35,5 +35,4 @@
 #define PLUGIN_API extern "C" __declspec(dllexport)
 
 
-
 #endif

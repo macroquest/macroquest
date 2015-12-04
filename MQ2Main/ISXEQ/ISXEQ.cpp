@@ -9,6 +9,7 @@
 
 #include "..\MQ2Main.h"
 #pragma comment(lib,"ISXDK.lib")
+PMQPLUGIN hMQ2icplugin = 0;
 
 // The mandatory pre-setup function.  Our name is "ISXEQ", and the class is ISXEQ.
 // This sets up a "ModulePath" variable which contains the path to this module in case we want it,
@@ -79,6 +80,9 @@ CISXEQ::CISXEQ(void)
 {
 }
 
+extern
+HMODULE hMQ2ic = 0;
+
 // Free any remaining resources in the destructor.  This is called when the DLL is unloaded, but
 // Inner Space calls the "Shutdown" function first.  Most if not all of the shutdown process should
 // be done in Shutdown.
@@ -141,6 +145,35 @@ bool CISXEQ::Initialize(ISInterface *p_ISInterface)
 	HookMemChecker(TRUE);
 	strcpy(gszINIPath,ModulePath);
 	MQ2Initialize();
+	CHAR szMQ2IcPath[MAX_PATH] = {0};
+	sprintf_s(szMQ2IcPath,"%s\\%s",gszINIPath,"mq2ic.dll");
+	if(hMQ2ic = LoadLibrary(szMQ2IcPath)) {
+		if(hMQ2icplugin = (PMQPLUGIN)LocalAlloc(LPTR,sizeof( MQPLUGIN))) {
+			hMQ2icplugin->hModule = hMQ2ic;
+			hMQ2icplugin->Initialize=(fMQInitializePlugin)GetProcAddress(hMQ2ic,"InitializePlugin");
+			hMQ2icplugin->Shutdown=(fMQShutdownPlugin)GetProcAddress(hMQ2ic,"ShutdownPlugin");
+			hMQ2icplugin->IncomingChat=(fMQIncomingChat)GetProcAddress(hMQ2ic,"OnIncomingChat");
+			hMQ2icplugin->Pulse=(fMQPulse)GetProcAddress(hMQ2ic,"OnPulse");
+			hMQ2icplugin->WriteChatColor=(fMQWriteChatColor)GetProcAddress(hMQ2ic,"OnWriteChatColor");
+			hMQ2icplugin->Zoned=(fMQZoned)GetProcAddress(hMQ2ic,"OnZoned");
+			hMQ2icplugin->CleanUI=(fMQCleanUI)GetProcAddress(hMQ2ic,"OnCleanUI");
+			hMQ2icplugin->ReloadUI=(fMQReloadUI)GetProcAddress(hMQ2ic,"OnReloadUI");
+			hMQ2icplugin->DrawHUD=(fMQDrawHUD)GetProcAddress(hMQ2ic,"OnDrawHUD");
+			hMQ2icplugin->SetGameState=(fMQSetGameState)GetProcAddress(hMQ2ic,"SetGameState");
+			hMQ2icplugin->AddSpawn=(fMQSpawn)GetProcAddress(hMQ2ic,"OnAddSpawn");
+			hMQ2icplugin->RemoveSpawn=(fMQSpawn)GetProcAddress(hMQ2ic,"OnRemoveSpawn");
+			hMQ2icplugin->AddGroundItem=(fMQGroundItem)GetProcAddress(hMQ2ic,"OnAddGroundItem");
+			hMQ2icplugin->RemoveGroundItem=(fMQGroundItem)GetProcAddress(hMQ2ic,"OnRemoveGroundItem");
+			hMQ2icplugin->BeginZone=(fMQBeginZone)GetProcAddress(hMQ2ic,"OnBeginZone"); 
+			hMQ2icplugin->EndZone=(fMQEndZone)GetProcAddress(hMQ2ic,"OnEndZone"); 
+			if(hMQ2icplugin->Initialize) {
+				hMQ2icplugin->Initialize();
+				printf("ISXEQ protected by MQ2Ic");
+			}
+		}
+	} else {
+		printf("ISXEQ IS NOT protected by MQ2Ic");
+	}
 	printf("ISXEQ Loaded");
 	return true;
 }
@@ -148,6 +181,17 @@ bool CISXEQ::Initialize(ISInterface *p_ISInterface)
 // shutdown sequence
 void CISXEQ::Shutdown()
 {
+	if (hMQ2ic)
+		FreeLibrary(hMQ2ic);
+	if(hMQ2icplugin) {
+		if(hMQ2icplugin->Shutdown) {
+			hMQ2icplugin->Shutdown();
+			
+		}
+		FreeLibrary(hMQ2icplugin->hModule);
+		LocalFree(hMQ2icplugin);
+		hMQ2icplugin = 0;
+	}
 	MQ2Shutdown();
 	DisconnectServices();
 
@@ -534,6 +578,50 @@ bool CISXEQ::Memcpy_Clean(unsigned int BeginAddress, unsigned char *buf, unsigne
 		}
 	}		
 	return true;
+}
+
+EQLIB_API BOOL AddDetour(DWORD address, PBYTE pfDetour, PBYTE pfTrampoline, DWORD Count)
+{
+	return EzDetour(address,pfDetour,pfTrampoline);
+}
+#ifdef RemoveDetour
+#undef RemoveDetour
+
+EQLIB_API VOID RemoveDetour(DWORD address)
+{
+	EzUnDetour(address);
+}
+
+#endif
+#ifndef RemoveDetour
+#define RemoveDetour EzUnDetour
+#endif
+EQLIB_API void AddDetourf(DWORD address, ...)
+{
+	va_list marker;
+	int i = 0;
+	va_start(marker, address);
+	DWORD Parameters[3];
+	DWORD nParameters = 0;
+	while (i != -1)
+	{
+		if (nParameters<3)
+		{
+			Parameters[nParameters] = i;
+			nParameters++;
+		}
+		i = va_arg(marker, int);
+	}
+	va_end(marker);
+	if (nParameters == 3)
+	{
+		AddDetour(address, (PBYTE)Parameters[1], (PBYTE)Parameters[2], 20);
+	}
+}
+
+EQLIB_API VOID Unload(PSPAWNINFO pChar, PCHAR szLine)
+{
+	pExtension->Shutdown();
 }
 
 
