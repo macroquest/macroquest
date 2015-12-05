@@ -1256,7 +1256,7 @@ void DoScoreForCursor(void)
 		char Temp[MAX_STRING];
 		AddGearScores(pCursorContents,pCursorItem,Temp,"\n");
 		WriteChatf("MQ2ItemDisplay::Cursor item %s",pCursorItem->Name);
-		WriteChatf(Temp);
+		WriteChatf("%s",Temp);
 	}
 }
 

@@ -3563,7 +3563,7 @@ PCHAR ParseSpellEffect(PSPELL pSpell, int i, PCHAR szBuffer, LONG level)
 	}
 
 #ifdef DEBUGSPELLS
-	if (strlen(szBuff)>0) WriteChatf(szBuff);
+	if (strlen(szBuff)>0) WriteChatf("%s",szBuff);
 #endif
 	strcat(szBuffer, szBuff);
 	return szBuffer;
@@ -3641,11 +3641,11 @@ void CustomPopup(char* szPopText, bool bPopOutput)
 	{
 		if (bPopOutput)
 		{
-			WriteChatf(szErrorEcho);
+			WriteChatf("%s",szErrorEcho);
 		}
 		else
 		{
-			WriteChatf(szErrorCust);
+			WriteChatf("%s",szErrorCust);
 		}
 		return;
 	}

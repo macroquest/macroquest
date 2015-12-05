@@ -1,3 +1,7 @@
+05 Dec 2015 by Devs
+- Please don't use MQ2 for unattended gameplay (afk botting)
+- Updated for TEST
+
 03 Dec 2015 by Devs
 - Please don't use MQ2 for unattended gameplay (afk botting)
 - Updated for TEST
