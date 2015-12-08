@@ -1,3 +1,8 @@
+08 Dec 2015 by Eqmule
+- Please don't use MQ2 for unattended gameplay (afk botting)
+- Updated for TEST
+- Misc Buffer Overflow fixes.
+
 07 Dec 2015 by Eqmule
 - Please don't use MQ2 for unattended gameplay (afk botting)
 - Updated for TEST

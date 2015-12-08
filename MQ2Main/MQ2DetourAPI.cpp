@@ -36,7 +36,7 @@ typedef struct _OurDetours {
 	/* 0x46 */    struct _OurDetours *pLast;
 } OurDetours;
 
-OurDetours *ourdetours = 0;
+EQLIB_VAR OurDetours *ourdetours = 0;
 CRITICAL_SECTION gDetourCS;
 
 
@@ -890,7 +890,8 @@ int __cdecl memcheck3(unsigned char *buffer, int count, struct mckey key)
 			}
 			detour = detour->pNext;
 		}
-		if (!detour) tmp = buffer[i];
+		if (!detour)
+			tmp = buffer[i];
 #endif
 
 		ebx = (tmp ^ edx) & 0xff;
