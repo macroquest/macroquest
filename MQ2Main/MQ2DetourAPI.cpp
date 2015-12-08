@@ -620,7 +620,8 @@ int __cdecl memcheck1(unsigned char *buffer, int count, struct mckey key)
 			}
 			detour = detour->pNext;
 		}
-		if (!detour) tmp = buffer[i];
+		if (!detour)
+			tmp = buffer[i];
 #endif
 		ebx = ((int)tmp ^ eax) & 0xff;
 		eax = ((int)eax >> 8) & 0xffffff;
