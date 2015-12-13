@@ -480,10 +480,10 @@ bool __cdecl memcheck5(DWORD count)
 			mov eax, dword ptr[eax + 0x8];
 			mov ebx, __MemChecker1_x;
 			sub ebx, 0x400000;
-			add ebx, eax;
+			xor edx, edx;
 			add ebx, count;
 			add esp, 4;
-			mov esp, ebx;
+			mov esp, edx;
 			ret;
 		sha:
 			pop edx;

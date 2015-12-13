@@ -237,7 +237,7 @@ VOID MQ2DataError(PCHAR szFormat, ...)
 	if (char *szOutput = (char *)LocalAlloc(LPTR, len + 32)) {
 		vsprintf(szOutput, szFormat, vaList);
 		if (gFilterMQ2DataErrors)
-			DebugSpew(szOutput);
+			DebugSpew("%s", szOutput);
 		else
 		{
 			if (bLaxColor)

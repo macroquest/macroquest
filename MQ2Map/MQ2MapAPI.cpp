@@ -170,7 +170,7 @@ PMAPSPAWN AddSpawn(PSPAWNINFO pNewSpawn, BOOL ExplicitAllow)
 	{
 		sprintf(buf, "AddSpawn(Corpse or Item): Name: %s, Type: %d, BodyType: %d",
 			pMapSpawn->pSpawn->Name, pMapSpawn->pSpawn->Type, GetBodyType(pMapSpawn->pSpawn));
-		DebugSpew(buf);
+		DebugSpew("%s", buf);
 	}
 #endif
 
@@ -380,7 +380,7 @@ void MapUpdate()
 			{
 				sprintf(buf, "MapUpdate: Name: %s, Type: %d, BodyType: %d",
 					pMapSpawn->pSpawn->Name, pMapSpawn->pSpawn->Type, BodyType);
-				DebugSpew(buf);
+				DebugSpew("%s", buf);
 			}
 		}
 		else if (pMapSpawn->pSpawn->Type == SPAWN_NPC)
@@ -394,14 +394,14 @@ void MapUpdate()
 			{
 				sprintf(buf, "MapUpdate: Name: %s, Type: %d, BodyType: %d",
 					pMapSpawn->pSpawn->Name, pMapSpawn->pSpawn->Type, BodyType);
-				DebugSpew(buf);
+				DebugSpew("%s", buf);
 			}
 		}
 		else
 		{
 			sprintf(buf, "MapUpdate: Name: %s, Type: %d, BodyType: %d",
 				pMapSpawn->pSpawn->Name, pMapSpawn->pSpawn->Type, BodyType);
-			DebugSpew(buf);
+			DebugSpew("%s", buf);
 		}
 
 		//End Debugging

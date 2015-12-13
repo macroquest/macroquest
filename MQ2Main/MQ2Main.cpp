@@ -474,14 +474,14 @@ DWORD WINAPI MQ2Start(LPVOID lpParameter)
 	}
 
     WriteChatColor(LoadedString,USERCOLOR_DEFAULT);
-    DebugSpewAlways(LoadedString);
+    DebugSpewAlways("%s", LoadedString);
 
     while (!gbUnload) {
         Sleep(500);
     }
 
     WriteChatColor(UnloadedString,USERCOLOR_DEFAULT);
-    DebugSpewAlways(UnloadedString);
+    DebugSpewAlways("%s", UnloadedString);
     UnloadMQ2Plugins();
     MQ2Shutdown();
 

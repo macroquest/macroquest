@@ -38,7 +38,7 @@ VOID Unload(PSPAWNINFO pChar, PCHAR szLine)
 		pChar = (PSPAWNINFO)pLocalPlayer;
 	bRunNextCommand = TRUE;
 	if (gMacroBlock) EndMacro(pChar, szLine);
-	DebugSpew(ToUnloadString);
+	DebugSpew("%s",ToUnloadString);
 	WriteChatColor(ToUnloadString, USERCOLOR_DEFAULT);
 	gbUnload = TRUE;
 }
@@ -2781,7 +2781,7 @@ VOID IniOutput(PSPAWNINFO pChar, PCHAR szLine)
 	}
 	if (!WritePrivateProfileString(szArg2, (char*)Arg3, (char*)Arg4, szArg1)) {
 		sprintf(szOutput, "IniOutput ERROR -- during WritePrivateProfileString: %s", szLine);
-		DebugSpew(szOutput);
+		DebugSpew("%s",szOutput);
 	}
 	else {
 		sprintf(szOutput, "IniOutput Write Successful!");
