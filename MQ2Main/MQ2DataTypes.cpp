@@ -3919,6 +3919,39 @@ bool MQ2CharacterType::GETMEMBER()
 		}
 		break;
 	}
+	case Crippled:
+	{
+		int nBuff = -1;
+		if ((nBuff = GetSelfBuffBySubCat("Disempowering")) != -1)
+		{
+			Dest.Ptr = &GetCharInfo2()->Buff[nBuff];
+			Dest.Type = pBuffType;
+			return true;
+		}
+		break;
+	}
+	case Malod:
+	{
+		int nBuff = -1;
+		if ((nBuff = GetSelfBuffBySubCat("Resist Debuffs", (1 << Shaman) + (1 << Mage))) != -1)
+		{
+			Dest.Ptr = &GetCharInfo2()->Buff[nBuff];
+			Dest.Type = pBuffType;
+			return true;
+		}
+		break;
+	}
+	case Tashed:
+	{
+		int nBuff = -1;
+		if ((nBuff = GetSelfBuffBySubCat("Resist Debuffs", 1 << Enchanter)) != -1)
+		{
+			Dest.Ptr = &GetCharInfo2()->Buff[nBuff];
+			Dest.Type = pBuffType;
+			return true;
+		}
+		break;
+	}
 	case Snared:
 	{
 		int nBuff = -1;
@@ -3964,6 +3997,358 @@ bool MQ2CharacterType::GETMEMBER()
 			Dest.Ptr = &GetCharInfo2()->Buff[nBuff];
 			Dest.Type = pBuffType;
 			return true;
+		}
+		break;
+	}
+	case Charmed:
+	{
+		int nBuff = -1;
+		if ((nBuff = GetTargetBuffBySPA(22, 0)) != -1)//Charm
+		{
+			Dest.Ptr = &GetCharInfo2()->Buff[nBuff];
+			Dest.Type = pBuffType;
+			return true;
+		}
+		break;
+	}
+	case Aego:
+	{
+		int nBuff = -1;
+		if ((nBuff = GetSelfBuffByCategory(45, 1 << Cleric)) != -1)//Aegolism Line
+		{
+			while (nBuff < NUM_BUFF_SLOTS)
+			{
+				if (PSPELL pSpell = GetSpellByID(GetCharInfo2()->Buff[nBuff].SpellID))
+				{
+					if ((pSpell->Subcategory == 1) || (pSpell->Subcategory == 112))
+					{
+						if (((EQ_Spell *)pSpell)->GetSpellBaseByAttrib(1))
+						{
+							Dest.Ptr = &GetCharInfo2()->Buff[nBuff];
+							Dest.Type = pBuffType;
+							return true;
+						}
+					}
+				}
+				if ((nBuff = GetSelfBuffByCategory(45, 1 << Cleric, ++nBuff)) == -1)
+				{
+					break;
+				}
+			}
+		}
+		break;
+	}
+	case Skin:
+	{
+		int nBuff = -1;
+		if ((nBuff = GetSelfBuffByCategory(45, 1 << Druid)) != -1)//
+		{
+			while (nBuff < NUM_BUFF_SLOTS)
+			{
+				if (PSPELL pSpell = GetSpellByID(GetCharInfo2()->Buff[nBuff].SpellID))
+				{
+					if (pSpell->Subcategory == 46)
+					{
+						Dest.Ptr = &GetCharInfo2()->Buff[nBuff];
+						Dest.Type = pBuffType;
+						return true;
+					}
+				}
+				if ((nBuff = GetSelfBuffByCategory(45, 1 << Druid, ++nBuff)) == -1)
+				{
+					break;
+				}
+			}
+		}
+		break;
+	}
+	case Focus:
+	{
+		if ((nBuff = GetSelfBuffByCategory(45, 1 << Shaman)) != -1)//
+		{
+			while (nBuff < NUM_BUFF_SLOTS)
+			{
+				if (PSPELL pSpell = GetSpellByID(GetCharInfo2()->Buff[nBuff].SpellID))
+				{
+					if (pSpell->Subcategory == 87)
+					{
+						Dest.Ptr = &GetCharInfo2()->Buff[nBuff];
+						Dest.Type = pBuffType;
+						return true;
+					}
+				}
+				if ((nBuff = GetSelfBuffByCategory(45, 1 << Shaman, ++nBuff)) == -1)
+				{
+					break;
+				}
+			}
+		}
+		break;
+	}
+	case Regen:
+	{
+		int nBuff = -1;
+		if ((nBuff = GetSelfBuffBySPA(0, 1)) != -1)//HP Regen
+		{
+			while (nBuff < NUM_BUFF_SLOTS)
+			{
+				if (PSPELL pSpell = GetSpellByID(GetCharInfo2()->Buff[nBuff].SpellID))
+				{
+					if ((((EQ_Spell *)pSpell)->GetSpellBaseByAttrib(0) > 0) && (!IsSpellUsableForClass(pSpell, 1 << Beastlord)))
+					{
+						Dest.Ptr = &GetCharInfo2()->Buff[nBuff];
+						Dest.Type = pBuffType;
+						return true;
+					}
+				}
+				if ((nBuff = GetSelfBuffBySPA(0, 1, ++nBuff)) == -1)
+				{
+					break;
+				}
+			}
+		}
+		break;
+	}
+	case Symbol:
+	{
+		int nBuff = -1;
+		if ((nBuff = GetSelfBuffByCategory(45, 1 << Cleric)) != -1)//
+		{
+			while (nBuff < NUM_BUFF_SLOTS)
+			{
+				if (PSPELL pSpell = GetSpellByID(GetCharInfo2()->Buff[nBuff].SpellID))
+				{
+					if (pSpell->Subcategory == 112)
+					{
+						Dest.Ptr = &GetCharInfo2()->Buff[nBuff];
+						Dest.Type = pBuffType;
+						return true;
+					}
+				}
+				if ((nBuff = GetSelfBuffByCategory(45, 1 << Cleric, ++nBuff)) == -1)
+				{
+					break;
+				}
+			}
+		}
+		break;
+	}
+	case Clarity:
+	{
+		int nBuff = -1;
+		if ((nBuff = GetSelfBuffBySPA(15, 1)) != -1)//Mana Regen
+		{
+			while (nBuff < NUM_BUFF_SLOTS)
+			{
+				if (PSPELL pSpell = GetSpellByID(GetCharInfo2()->Buff[nBuff].SpellID))
+				{
+					if ((((EQ_Spell *)pSpell)->GetSpellBaseByAttrib(15) > 0) && (IsSpellUsableForClass(pSpell, 1 << Enchanter)))
+					{
+						Dest.Ptr = &GetCharInfo2()->Buff[nBuff];
+						Dest.Type = pBuffType;
+						return true;
+					}
+				}
+				if ((nBuff = GetSelfBuffBySPA(15, 1, ++nBuff)) == -1)
+				{
+					break;
+				}
+			}
+		}
+		break;
+	}
+	case Pred:
+	{
+		int nBuff = -1;
+		if ((nBuff = GetSelfBuffByCategory(95, 1 << Ranger)) != -1)//
+		{
+			while (nBuff < NUM_BUFF_SLOTS)
+			{
+				if (PSPELL pSpell = GetSpellByID(GetCharInfo2()->Buff[nBuff].SpellID))
+				{
+					if (pSpell->Subcategory == 7)
+					{
+						Dest.Ptr = &GetCharInfo2()->Buff[nBuff];
+						Dest.Type = pBuffType;
+						return true;
+					}
+				}
+				if ((Dest.Int = GetSelfBuffByCategory(95, 1 << Ranger, ++nBuff)) == -1)
+				{
+					break;
+				}
+			}
+		}
+		break;
+	}
+	case Strength:
+	{
+		int nBuff = -1;
+		if ((nBuff = GetSelfBuffByCategory(45, 1 << Ranger)) != -1)//
+		{
+			while (nBuff < NUM_BUFF_SLOTS)
+			{
+				if (PSPELL pSpell = GetSpellByID(GetCharInfo2()->Buff[nBuff].SpellID))
+				{
+					if (pSpell->Subcategory == 47)
+					{
+						Dest.Ptr = &GetCharInfo2()->Buff[nBuff];
+						Dest.Type = pBuffType;
+						return true;
+					}
+				}
+				if ((nBuff = GetSelfBuffByCategory(45, 1 << Ranger, ++nBuff)) == -1)
+				{
+					break;
+				}
+			}
+		}
+		break;
+	}
+	case Brells:
+	{
+		int nBuff = -1;
+		if ((nBuff = GetTargetBuffByCategory(45, 1 << Paladin)) != -1)//
+		{
+			while (nBuff < NUM_BUFF_SLOTS)
+			{
+				if (PSPELL pSpell = GetSpellByID(GetCharInfo2()->Buff[nBuff].SpellID))
+				{
+					if (pSpell->Subcategory == 47)
+					{
+						Dest.Ptr = &GetCharInfo2()->Buff[nBuff];
+						Dest.Type = pBuffType;
+						return true;
+					}
+				}
+				if ((nBuff = GetSelfBuffByCategory(45, 1 << Paladin, ++nBuff)) == -1)
+				{
+					break;
+				}
+			}
+		}
+		break;
+	}
+	case SV:
+	{
+		int nBuff = -1;
+		if ((nBuff = GetSelfBuffByCategory(79, 1 << Beastlord)) != -1)//
+		{
+			while (nBuff < NUM_BUFF_SLOTS)
+			{
+				if (PSPELL pSpell = GetSpellByID(GetCharInfo2()->Buff[nBuff].SpellID))
+				{
+					if (pSpell->Subcategory == 59)
+					{
+						Dest.Ptr = &GetCharInfo2()->Buff[nBuff];
+						Dest.Type = pBuffType;
+						return true;
+					}
+				}
+				if ((nBuff = GetSelfBuffByCategory(79, 1 << Beastlord, ++nBuff)) == -1)
+				{
+					break;
+				}
+			}
+		}
+		break;
+	}
+	case SE:
+	{
+		int nBuff = -1;
+		if ((nBuff = GetSelfBuffByCategory(79, 1 << Beastlord)) != -1)//
+		{
+			while (nBuff < NUM_BUFF_SLOTS)
+			{
+				if (PSPELL pSpell = GetSpellByID(GetCharInfo2()->Buff[nBuff].SpellID))
+				{
+					if (pSpell->Subcategory == 44)
+					{
+						Dest.Ptr = &GetCharInfo2()->Buff[nBuff];
+						Dest.Type = pBuffType;
+						return true;
+					}
+				}
+				if ((nBuff = GetSelfBuffByCategory(79, 1 << Beastlord, ++nBuff)) == -1)
+				{
+					break;
+				}
+			}
+		}
+		break;
+	}
+	case HybridHP:
+	{
+		int nBuff = -1;
+		if ((nBuff = GetSelfBuffByCategory(45, 1 << Ranger)) != -1)//
+		{
+			while (nBuff < NUM_BUFF_SLOTS)
+			{
+				if (PSPELL pSpell = GetSpellByID(GetCharInfo2()->Buff[nBuff].SpellID))
+				{
+					if (pSpell->Subcategory == 46)
+					{
+						Dest.Ptr = &GetCharInfo2()->Buff[nBuff];
+						Dest.Type = pBuffType;
+						return true;
+					}
+				}
+				if ((nBuff = GetSelfBuffByCategory(45, 1 << Ranger, ++nBuff)) == -1)
+				{
+					break;
+				}
+			}
+		}
+		break;
+	}
+	case Growth:
+	{
+		int nBuff = -1;
+		if ((nBuff = GetSelfBuffByCategory(45, 1 << Druid)) != -1)//
+		{
+			while (nBuff < NUM_BUFF_SLOTS)
+			{
+				if (PSPELL pSpell = GetSpellByID(GetCharInfo2()->Buff[nBuff].SpellID))
+				{
+					if (pSpell->Subcategory == 141)
+					{
+						Dest.Ptr = &GetCharInfo2()->Buff[nBuff];
+						Dest.Type = pBuffType;
+						return true;
+					}
+				}
+				if ((nBuff = GetSelfBuffByCategory(45, 1 << Druid, ++nBuff)) == -1)
+				{
+					break;
+				}
+			}
+		}
+		break;
+	}
+	case Shining:
+	{
+		int nBuff = -1;
+		if ((nBuff = GetSelfBuffByCategory(125, 1 << Cleric)) != -1)//
+		{
+			while (nBuff < NUM_BUFF_SLOTS)
+			{
+				if (PSPELL pSpell = GetSpellByID(GetCharInfo2()->Buff[nBuff].SpellID))
+				{
+					if (pSpell->Subcategory == 62)
+					{
+						if (((EQ_Spell *)pSpell)->GetSpellBaseByAttrib(162))
+						{
+							Dest.Ptr = &GetCharInfo2()->Buff[nBuff];
+							Dest.Type = pBuffType;
+							return true;
+						}
+					}
+				}
+				if ((nBuff = GetSelfBuffByCategory(125, 1 << Cleric, ++nBuff)) == -1)
+				{
+					break;
+				}
+			}
 		}
 		break;
 	}
@@ -5945,6 +6330,14 @@ bool MQ2ItemType::GETMEMBER()
 		return false;
 	case Icon:
 		Dest.DWord = GetItemFromContents(pItem)->IconNumber;
+		Dest.Type = pIntType;
+		return true;
+	case OrnamentationIcon:
+		Dest.DWord = pItem->OrnamentationIcon;
+		Dest.Type = pIntType;
+		return true;
+	case NumOfSlots1:
+		Dest.DWord = pItem->NumOfSlots1;
 		Dest.Type = pIntType;
 		return true;
 	}
@@ -9458,20 +9851,312 @@ bool MQ2TargetType::GETMEMBER()
 			return true;
 		}
 		break;
+	case Charmed:
+		if ((Dest.Int = GetTargetBuffBySPA(22, 0)) != -1)//Charm
+		{
+			Dest.Type = pTargetBuffType;
+			return true;
+		}
+		break;
 	case Aego:
+		if ((Dest.Int = GetTargetBuffByCategory(45, 1 << Cleric)) != -1)//Aegolism Line
+		{
+			int slotnum = Dest.Int;
+			while (slotnum < NUM_BUFF_SLOTS)
+			{
+				if (PSPELL pSpell = GetSpellByID(((PCTARGETWND)pTargetWnd)->BuffSpellID[Dest.Int]))
+				{
+					if ((pSpell->Subcategory == 1) || (pSpell->Subcategory == 112))
+					{
+						if (((EQ_Spell *)pSpell)->GetSpellBaseByAttrib(1))
+						{
+							Dest.Type = pTargetBuffType;
+							return true;
+						}
+					}
+				}
+				if ((Dest.Int = GetTargetBuffByCategory(45, 1 << Cleric, ++slotnum)) == -1)
+				{
+					break;
+				}
+			}
+		}
+		break;
 	case Skin:
+		if ((Dest.Int = GetTargetBuffByCategory(45, 1 << Druid)) != -1)//
+		{
+			int slotnum = Dest.Int;
+			while (slotnum < NUM_BUFF_SLOTS)
+			{
+				if (PSPELL pSpell = GetSpellByID(((PCTARGETWND)pTargetWnd)->BuffSpellID[Dest.Int]))
+				{
+					if (pSpell->Subcategory == 46)
+					{
+						Dest.Type = pTargetBuffType;
+						return true;
+					}
+				}
+				if ((Dest.Int = GetTargetBuffByCategory(45, 1 << Druid, ++slotnum)) == -1)
+				{
+					break;
+				}
+			}
+		}
+		break;
 	case Focus:
+		if ((Dest.Int = GetTargetBuffByCategory(45, 1 << Shaman)) != -1)//
+		{
+			int slotnum = Dest.Int;
+			while (slotnum < NUM_BUFF_SLOTS)
+			{
+				if (PSPELL pSpell = GetSpellByID(((PCTARGETWND)pTargetWnd)->BuffSpellID[Dest.Int]))
+				{
+					if (pSpell->Subcategory == 87)
+					{
+						Dest.Type = pTargetBuffType;
+						return true;
+					}
+				}
+				if ((Dest.Int = GetTargetBuffByCategory(45, 1 << Shaman, ++slotnum)) == -1)
+				{
+					break;
+				}
+			}
+		}
+		break;
 	case Regen:
+		if ((Dest.Int = GetTargetBuffBySPA(0, 1)) != -1)//HP Regen
+		{
+			int slotnum = Dest.Int;
+			while (slotnum < NUM_BUFF_SLOTS)
+			{
+				if (PSPELL pSpell = GetSpellByID(((PCTARGETWND)pTargetWnd)->BuffSpellID[Dest.Int]))
+				{
+					if ((((EQ_Spell *)pSpell)->GetSpellBaseByAttrib(0) > 0) && (!IsSpellUsableForClass(pSpell, 1 << Beastlord)))
+					{
+						Dest.Type = pTargetBuffType;
+						return true;
+					}
+				}
+				if ((Dest.Int = GetTargetBuffBySPA(0, 1, ++slotnum)) == -1)
+				{
+					break;
+				}
+			}
+		}
+		break;
 	case Symbol:
+		if ((Dest.Int = GetTargetBuffByCategory(45, 1 << Cleric)) != -1)//
+		{
+			int slotnum = Dest.Int;
+			while (slotnum < NUM_BUFF_SLOTS)
+			{
+				if (PSPELL pSpell = GetSpellByID(((PCTARGETWND)pTargetWnd)->BuffSpellID[Dest.Int]))
+				{
+					if (pSpell->Subcategory == 112)
+					{
+						Dest.Type = pTargetBuffType;
+						return true;
+					}
+				}
+				if ((Dest.Int = GetTargetBuffByCategory(45, 1 << Cleric, ++slotnum)) == -1)
+				{
+					break;
+				}
+			}
+		}
+		break;
 	case Clarity:
+		if ((Dest.Int = GetTargetBuffBySPA(15, 1)) != -1)//Mana Regen
+		{
+			int slotnum = Dest.Int;
+			while (slotnum < NUM_BUFF_SLOTS)
+			{
+				if (PSPELL pSpell = GetSpellByID(((PCTARGETWND)pTargetWnd)->BuffSpellID[Dest.Int]))
+				{
+					if ((((EQ_Spell *)pSpell)->GetSpellBaseByAttrib(15) > 0) && (IsSpellUsableForClass(pSpell, 1 << Enchanter)))
+					{
+						Dest.Type = pTargetBuffType;
+						return true;
+					}
+				}
+				if ((Dest.Int = GetTargetBuffBySPA(15, 1, ++slotnum)) == -1)
+				{
+					break;
+				}
+			}
+		}
+		break;
 	case Pred:
+		if ((Dest.Int = GetTargetBuffByCategory(95, 1 << Ranger)) != -1)//
+		{
+			int slotnum = Dest.Int;
+			while (slotnum < NUM_BUFF_SLOTS)
+			{
+				if (PSPELL pSpell = GetSpellByID(((PCTARGETWND)pTargetWnd)->BuffSpellID[Dest.Int]))
+				{
+					if (pSpell->Subcategory == 7)
+					{
+						Dest.Type = pTargetBuffType;
+						return true;
+					}
+				}
+				if ((Dest.Int = GetTargetBuffByCategory(95, 1 << Ranger, ++slotnum)) == -1)
+				{
+					break;
+				}
+			}
+		}
+		break;
 	case Strength:
+		if ((Dest.Int = GetTargetBuffByCategory(45, 1 << Ranger)) != -1)//
+		{
+			int slotnum = Dest.Int;
+			while (slotnum < NUM_BUFF_SLOTS)
+			{
+				if (PSPELL pSpell = GetSpellByID(((PCTARGETWND)pTargetWnd)->BuffSpellID[Dest.Int]))
+				{
+					if (pSpell->Subcategory == 47)
+					{
+						Dest.Type = pTargetBuffType;
+						return true;
+					}
+				}
+				if ((Dest.Int = GetTargetBuffByCategory(45, 1 << Ranger, ++slotnum)) == -1)
+				{
+					break;
+				}
+			}
+		}
+		break;
 	case Brells:
+		if ((Dest.Int = GetTargetBuffByCategory(45, 1 << Paladin)) != -1)//
+		{
+			int slotnum = Dest.Int;
+			while (slotnum < NUM_BUFF_SLOTS)
+			{
+				if (PSPELL pSpell = GetSpellByID(((PCTARGETWND)pTargetWnd)->BuffSpellID[Dest.Int]))
+				{
+					if (pSpell->Subcategory == 47)
+					{
+						Dest.Type = pTargetBuffType;
+						return true;
+					}
+				}
+				if ((Dest.Int = GetTargetBuffByCategory(45, 1 << Paladin, ++slotnum)) == -1)
+				{
+					break;
+				}
+			}
+		}
+		break;
 	case SV:
+		if ((Dest.Int = GetTargetBuffByCategory(79, 1 << Beastlord)) != -1)//
+		{
+			int slotnum = Dest.Int;
+			while (slotnum < NUM_BUFF_SLOTS)
+			{
+				if (PSPELL pSpell = GetSpellByID(((PCTARGETWND)pTargetWnd)->BuffSpellID[Dest.Int]))
+				{
+					if (pSpell->Subcategory == 59)
+					{
+						Dest.Type = pTargetBuffType;
+						return true;
+					}
+				}
+				if ((Dest.Int = GetTargetBuffByCategory(79, 1 << Beastlord, ++slotnum)) == -1)
+				{
+					break;
+				}
+			}
+		}
+		break;
 	case SE:
+		if ((Dest.Int = GetTargetBuffByCategory(79, 1 << Beastlord)) != -1)//
+		{
+			int slotnum = Dest.Int;
+			while (slotnum < NUM_BUFF_SLOTS)
+			{
+				if (PSPELL pSpell = GetSpellByID(((PCTARGETWND)pTargetWnd)->BuffSpellID[Dest.Int]))
+				{
+					if (pSpell->Subcategory == 44)
+					{
+						Dest.Type = pTargetBuffType;
+						return true;
+					}
+				}
+				if ((Dest.Int = GetTargetBuffByCategory(79, 1 << Beastlord, ++slotnum)) == -1)
+				{
+					break;
+				}
+			}
+		}
+		break;
 	case HybridHP:
+		if ((Dest.Int = GetTargetBuffByCategory(45, 1 << Ranger)) != -1)//
+		{
+			int slotnum = Dest.Int;
+			while (slotnum < NUM_BUFF_SLOTS)
+			{
+				if (PSPELL pSpell = GetSpellByID(((PCTARGETWND)pTargetWnd)->BuffSpellID[Dest.Int]))
+				{
+					if (pSpell->Subcategory == 46)
+					{
+						Dest.Type = pTargetBuffType;
+						return true;
+					}
+				}
+				if ((Dest.Int = GetTargetBuffByCategory(45, 1 << Ranger, ++slotnum)) == -1)
+				{
+					break;
+				}
+			}
+		}
+		break;
 	case Growth:
+		if ((Dest.Int = GetTargetBuffByCategory(45, 1 << Druid)) != -1)//
+		{
+			int slotnum = Dest.Int;
+			while (slotnum < NUM_BUFF_SLOTS)
+			{
+				if (PSPELL pSpell = GetSpellByID(((PCTARGETWND)pTargetWnd)->BuffSpellID[Dest.Int]))
+				{
+					if (pSpell->Subcategory == 141)
+					{
+						Dest.Type = pTargetBuffType;
+						return true;
+					}
+				}
+				if ((Dest.Int = GetTargetBuffByCategory(45, 1 << Druid, ++slotnum)) == -1)
+				{
+					break;
+				}
+			}
+		}
+		break;
 	case Shining:
+		if ((Dest.Int = GetTargetBuffByCategory(125, 1 << Cleric)) != -1)//
+		{
+			int slotnum = Dest.Int;
+			while (slotnum < NUM_BUFF_SLOTS)
+			{
+				if (PSPELL pSpell = GetSpellByID(((PCTARGETWND)pTargetWnd)->BuffSpellID[Dest.Int]))
+				{
+					if (pSpell->Subcategory == 62)
+					{
+						if (((EQ_Spell *)pSpell)->GetSpellBaseByAttrib(162))
+						{
+							Dest.Type = pTargetBuffType;
+							return true;
+						}
+					}
+				}
+				if ((Dest.Int = GetTargetBuffByCategory(125, 1 << Cleric, ++slotnum)) == -1)
+				{
+					break;
+				}
+			}
+		}
 		break;
 	}
 	return false;

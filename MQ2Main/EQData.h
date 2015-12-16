@@ -640,7 +640,7 @@ typedef struct _ITEMINFO {
 	/*0x0234*/ BYTE         Unknown0x0234[0x8];
 	/*0x023c*/ DWORD        FactionModType[0x4];
 	/*0x024c*/ DWORD        FactionModValue[0x4];
-	/*0x025c*/ BYTE         CharmFile[0x20];
+	/*0x025c*/ CHAR         CharmFile[0x20];
 	/*0x027c*/ BYTE         Unknown0x027c[0x4];
 	/*0x0280*/ struct _ITEMSPELLS   Clicky;
 	/*0x02e4*/ struct _ITEMSPELLS   Proc;
@@ -708,13 +708,13 @@ typedef struct _CONTENTS {
 	/*0x000c*/ BYTE         Unknown0x000c[0x34];
 	/*0x0040*/ BYTE         EvolvingExpOn;
 	/*0x0041*/ BYTE         Unknown0x0041[0x3];
-	/*0x0044*/ DWORD        LoreGroup;
+	/*0x0044*/ DWORD        GroupID;		// LoreGroup or EvolvingGroup if it is an evolving item
 	/*0x0048*/ DWORD        EvolvingMaxLevel;
 	/*0x004c*/ DWORD        MerchantQuantity;
 	/*0x0050*/ DWORD        StackCount;
 	/*0x0054*/ DWORD        Price;
 	/*0x0058*/ BYTE         Unknown0x0058[0x8];
-	/*0x0060*/ DWORD        LinkDBValue;
+	/*0x0060*/ DWORD        OrnamentationIcon;
 	/*0x0064*/ BYTE         Unknown0x0064[0xc];
 	/*0x0070*/ DWORD        NumOfSlots1;//ItemSlot is this address + 0x16 in 20130708
 	/*0x0074*/ DWORD        IsMountKeyRing;//0x1b if it is 0 if not
@@ -1581,6 +1581,21 @@ void *gethashedentry(struct _HASHTABLE  *table, DWORD key)
 }
 
 #endif
+
+// copy of D3DMATRIX by brainiac dec 16 2015
+struct Matrix4x4
+{
+	union {
+		struct {
+			float        _11, _12, _13, _14;
+			float        _21, _22, _23, _24;
+			float        _31, _32, _33, _34;
+			float        _41, _42, _43, _44;
+		};
+		float m[4][4];
+	};
+};
+
 //eqmule oct 31 2013
 typedef struct _SWITCHCLICK
 {
@@ -1597,6 +1612,8 @@ typedef struct _SWITCHCLICK
 // i *think* the size is 0x190
 //however i couldnt confirm from 0x38 to 0x114
 //more work is needed... anyone feel free to step up...
+
+//updated on dec 16 2015 by brainiac
 typedef struct _EQSWITCH {
 /*0x00*/    DWORD        Unknown0x0[0x2];
 /*0x08*/    float        UnknownData0x08;
@@ -1622,11 +1639,8 @@ typedef struct _EQSWITCH {
 /*0xa8*/    float        xAdjustment3;
 /*0xac*/    float        zAdjustment3;
 /*0xb0*/    float        headingAdjustment3;
-/*0xb4*/    BYTE         Unknown0xb4[0x60];
-/*0x114*/   FLOAT        Y2;
-/*0x118*/   FLOAT        X2;
-/*0x11c*/   FLOAT        Z2;
-/*0x120*/   FLOAT        Unknown0xa4;
+/*0xb4*/    BYTE         Unknown0xb4[0x30];
+/*0xe4*/    Matrix4x4    transformMatrix;
 /*0x124*/   FLOAT        Heading;
 /*0x128*/   BYTE         Unknown0x128[0x18];
 /*0x140*/   float        HeightAdjustment;//this is most likely wrong dec 16 2013 eqmule
@@ -1635,6 +1649,8 @@ typedef struct _EQSWITCH {
 } EQSWITCH, *PEQSWITCH;
 
 // actual size 0xdc 2-9-2009
+//updated on dec 16 2015 by brainiac
+//not sure about its size - eqmule
 typedef struct _DOOR {
 /*0x00*/ void  *vtable;
 /*0x04*/ BYTE  Unknown0x4;          // always 5
@@ -1656,8 +1672,8 @@ typedef struct _DOOR {
 /*0x54*/ FLOAT DoorAngle;
 /*0x58*/ BYTE  Unknown0x58[0x18];
 /*0x70*/ int   Unknown0x70;         // always 0xFFFFFFFF
-/*0x74*/ WORD  Unknown0x74;         // actor scale factor?
-/*0x76*/ BYTE  Unknown0x76[0x2];
+/*0x74*/ SHORT ScaleFactor;         // divide by 100 to get scale multiplier
+/*0x76*/ BYTE  Unknown0x76[2];
 /*0x78*/ DWORD ZonePoint;
 /*0x7c*/ BYTE  Unknown0x7c[0x5];
 /*0x81*/ BYTE  Unknown0x81;

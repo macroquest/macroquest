@@ -1,3 +1,19 @@
+16 Dec 2015 by MacroQuest2.com Devs
+- Updated for LIVE
+- Change: LoreGroup and LinkDBValue in the CONTENTS struct has been renamed
+  to GroupID and OrnamentationIcon (cause thats what they are)
+  Make changes to your plugins if you use them.
+- switches got some love - thanks brainiac.
+
+14 Dec 2015 by rswiders
+- Added Slowed, Rooted, Mezzed, Crippled, Malod, Tashed, Snared, Hasted, Aego,
+	Skin, Focus, Regen, Symbol, Clarity, Pred, Strength, Brells, SV, SE,
+	HybridHP, Growth, Shining, Beneficial, DSed, RevDSed, Charmed to ${Target}
+- Added Aego, Skin, Focus, Regen, Symbol, Clarity, Pred, Strength, Brells, SV, SE,
+	HybridHP, Growth, Shining, Beneficial, DSed, RevDSed, Charmed to ${Me}
+- Updated MQ2Linkdb code to generate links for most all items (98.04% of lucy items)
+- Added new groundspawns for MQ2Map
+
 12 Dec 2015 by Eqmule
 - Please don't use MQ2 for unattended gameplay (afk botting)
 - Updated for TEST

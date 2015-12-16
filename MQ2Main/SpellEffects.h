@@ -437,8 +437,8 @@
         "Mana Regen",                           // 417
         "Skill Damage",                         // 418
         "Add Proc",                             // 419
-        "Fc_Limit_Use",                         // 420
-        "Fc_Limit_Use_Amt",                     // 421
+        "Fc Limit Use",                         // 420
+        "Fc Limit Use Amt",                     // 421
         "Limit: Use Min",                       // 422
         "Limit: Use Type",                      // 423
         "Gravitate",                            // 424
@@ -476,3 +476,16 @@
         "Add Hate Over Time",                   // 456
         "Resource Tap",                         // 457
         "Faction",                              // 458
+		"Skill Damage Mod 2",					// 459
+		"Ff_Override_NotFocusable",				// 460
+		"Fc Damage % 2",						// 461
+		"Fc Damage Amt 2",						// 462
+		"Shield Target",						// 463
+		"PC Pet Rampage",						// 464
+		"PC Pet AE Rampage",					// 465
+		"PC Pet Flurry Chance",					// 466
+		"DS Mitigation Amt",					// 467
+		"DS Mitigation Percentage",				// 468
+		"Chance Best in Spell Group",			// 469
+		"Trigger Best in Spell Group",			// 470
+		"Double Melee Round(PC Only)",			// 471

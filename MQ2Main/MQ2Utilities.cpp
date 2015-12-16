@@ -1328,14 +1328,14 @@ FLOAT FindSpeed(PSPAWNINFO pSpawn)
 
 VOID GetItemLinkHash(PCONTENTS Item, PCHAR Buffer)
 {
-	((EQ_Item*)Item)->CreateItemTagString(Buffer, 256);
+	((EQ_Item*)Item)->CreateItemTagString(Buffer, 0x800);
 }
 
 BOOL GetItemLink(PCONTENTS Item, PCHAR Buffer, BOOL Clickable)
 {
-	char hash[512] = { 0 };
+	char hash[MAX_STRING] = { 0 };
 	bool retVal = FALSE;
-	((EQ_Item*)Item)->CreateItemTagString(hash, 512);
+	((EQ_Item*)Item)->CreateItemTagString(hash, sizeof(hash));
 	if (hash[0]) {
 		if (Clickable)
 			sprintf(Buffer, "%c0%s%s%c", 0x12, hash, GetItemFromContents(Item)->Name, 0x12);
@@ -3556,6 +3556,23 @@ PCHAR ParseSpellEffect(PSPELL pSpell, int i, PCHAR szBuffer, LONG level)
 	case 458: //Faction Mod %
 		strcat(szBuff, FormatPercent(spelleffectname, value, finish, szTemp2));
 		break;
+	case 459: //Damage Mod 2 (how to tell which, rogues get a backstab only, others get an all skills) 
+		strcat(szBuff, FormatSkills(spelleffectname, value, finish, base2, szTemp2));
+		break;
+		/*
+ 460 Ff_Override_NotFocusable
+ 461 Fc_Damage_%2
+ 462 Fc_Damage_Amt2
+ 463 Shield Target
+ 464 PC Pet Rampage
+ 465 PC Pet AE Rampage
+ 466 PC Pet Flurry Chance
+ 467 DS Mitigation Amount
+ 468 DS Mitigation Percentage
+ 469 Chance Best in Spell Group
+ 470 Trigger Best in Spell Group
+ 471 Double Melee Round (PC Only) 
+		*/
 	default: //undefined effect 
 		sprintf(szTemp, "UnknownEffect%03d", spa);
 		strcat(szBuff, szTemp);
@@ -7586,12 +7603,31 @@ BOOL PickupOrDropItem(DWORD type, PCONTENTS pItem)
 	}
 	return FALSE;
 }
-int GetTargetBuffBySubCat(PCHAR subcat, DWORD classmask)
+int GetTargetBuffByCategory(DWORD category, DWORD classmask, int startslot)
 {
 	if (!(((PCTARGETWND)pTargetWnd)->Type > 0))
 		return false;
 	int buffID = 0;
-	for (int i = 0; i < NUM_BUFF_SLOTS; i++)
+	for (int i = startslot; i < NUM_BUFF_SLOTS; i++)
+	{
+		buffID = ((PCTARGETWND)pTargetWnd)->BuffSpellID[i];
+		if (buffID > 0) {
+			if (PSPELL pSpell = GetSpellByID(buffID)) {
+				if (pSpell->Category == category && IsSpellUsableForClass(pSpell, classmask))
+				{
+					return i;
+				}
+			}
+		}
+	}
+	return -1;
+}
+int GetTargetBuffBySubCat(PCHAR subcat, DWORD classmask, int startslot)
+{
+	if (!(((PCTARGETWND)pTargetWnd)->Type > 0))
+		return false;
+	int buffID = 0;
+	for (int i = startslot; i < NUM_BUFF_SLOTS; i++)
 	{
 		buffID = ((PCTARGETWND)pTargetWnd)->BuffSpellID[i];
 		if (buffID > 0) {
@@ -7626,55 +7662,137 @@ int GetTargetBuffBySubCat(PCHAR subcat, DWORD classmask)
 }
 //Usage: The spa is the spellaffect id, for example 11 for Melee Speed
 //       the bIncrease tells the function if we want spells that increase or decrease the SPA
-int GetTargetBuffBySPA(int spa, bool bIncrease)
+int GetTargetBuffBySPA(int spa, bool bIncrease, int startslot)
 {
 	if (!(((PCTARGETWND)pTargetWnd)->Type > 0))
 		return false;
 	int buffID = 0;
-	for (int i = 0; i < NUM_BUFF_SLOTS; i++)
+	for (int i = startslot; i < NUM_BUFF_SLOTS; i++)
 	{
 		buffID = ((PCTARGETWND)pTargetWnd)->BuffSpellID[i];
 		if (buffID > 0 && buffID != -1) {
 			if (PSPELL pSpell = GetSpellByID(buffID)) {
 				if (LONG base = ((EQ_Spell *)pSpell)->GetSpellBaseByAttrib(spa)) {
 					//int test = ((CharacterZoneClient*)pCharData1)->CalcAffectChange((EQ_Spell*)pSpell,0,0,NULL,1,1);
-					if (spa == 11)//Melee Speed
+					switch (spa)
 					{
-						if (!bIncrease && base<100) {//below 100 means its a slow above its haste...
+					case 3: //Movement Rate
+						if (!bIncrease && base < 0) { //below 0 means its a snare above its runspeed increase...
 							return i;
 						}
-						else if (bIncrease && base>100) {
-							return i;
-						}
-						return -1;
-					}
-					else if (spa == 3) { //Movement Rate
-						if (!bIncrease && base<0) {//below 0 means its a snare above its runspeed increase...
-							return i;
-						}
-						else if (bIncrease && base>0) {
+						else if (bIncrease && base > 0) {
 							return i;
 						}
 						return -1;
-					}
-					else if (spa == 59) { //Damage Shield
-						if (!bIncrease && base>0) {//decreased DS
+					case 11: //Melee Speed
+						if (!bIncrease && base < 100) { //below 100 means its a slow above its haste...
 							return i;
 						}
-						else if (bIncrease && base<0) {//increased DS
-							return i;
-						}
-						return -1;
-					}
-					else if (spa == 121) { //Reverse Damage Shield
-						if (!bIncrease && base>0) {//decreased DS
-							return i;
-						}
-						else if (bIncrease && base<0) {//increased DS
+						else if (bIncrease && base > 100) {
 							return i;
 						}
 						return -1;
+					case 59: //Damage Shield
+						if (!bIncrease && base > 0) { //decreased DS
+							return i;
+						}
+						else if (bIncrease && base < 0) { //increased DS
+							return i;
+						}
+						return -1;
+					case 121: //Reverse Damage Shield
+						if (!bIncrease && base > 0) { //decreased DS
+							return i;
+						}
+						else if (bIncrease && base < 0) { //increased DS
+							return i;
+						}
+						return -1;
+					default:
+						return i;
 					}
+				}
+			}
+		}
+	}
+	return -1;
+}
+int GetSelfBuffByCategory(DWORD category, DWORD classmask, int startslot)
+{
+	for (int i = startslot; i < NUM_BUFF_SLOTS; i++)
+	{
+		if (PSPELL pSpell = GetSpellByID(GetCharInfo2()->Buff[i].SpellID))
+		{
+			if (pSpell->Category == category && IsSpellUsableForClass(pSpell, classmask))
+			{
+				return i;
+			}
+		}
+	}
+	return -1;
+}
+int GetSelfBuffBySubCat(PCHAR subcat, DWORD classmask, int startslot)
+{
+	for (int i = startslot; i < NUM_BUFF_SLOTS; i++)
+	{
+		if (PSPELL pSpell = GetSpellByID(GetCharInfo2()->Buff[i].SpellID))
+		{
+			if (DWORD cat = pSpell->Subcategory)
+			{
+				if (char *ptr = pCDBStr->GetString(cat, 5, NULL))
+				{
+					if (!_stricmp(ptr, subcat) && IsSpellUsableForClass(pSpell, classmask))
+					{
+						return i;
+					}
+				}
+			}
+		}
+	}
+	return -1;
+}
+int GetSelfBuffBySPA(int spa, bool bIncrease, int startslot)
+{
+	for (unsigned long i = startslot; i < NUM_LONG_BUFFS; i++)
+	{
+		if (PSPELL pSpell = GetSpellByID(GetCharInfo2()->Buff[i].SpellID))
+		{
+			if (LONG base = ((EQ_Spell *)pSpell)->GetSpellBaseByAttrib(spa)) {
+				switch (spa)
+				{
+				case 3: //Movement Rate
+					if (!bIncrease && base < 0) { //below 0 means its a snare above its runspeed increase...
+						return i;
+					}
+					else if (bIncrease && base > 0) {
+						return i;
+					}
+					return -1;
+				case 11: //Melee Speed
+					if (!bIncrease && base < 100) { //below 100 means its a slow above its haste...
+						return i;
+					}
+					else if (bIncrease && base > 100) {
+						return i;
+					}
+					return -1;
+				case 59: //Damage Shield
+					if (!bIncrease && base > 0) { //decreased DS
+						return i;
+					}
+					else if (bIncrease && base < 0) { //increased DS
+						return i;
+					}
+					return -1;
+				case 121: //Reverse Damage Shield
+					if (!bIncrease && base > 0) { //decreased DS
+						return i;
+					}
+					else if (bIncrease && base < 0) { //increased DS
+						return i;
+					}
+					return -1;
+				default:
 					return i;
 				}
 			}
@@ -7682,55 +7800,25 @@ int GetTargetBuffBySPA(int spa, bool bIncrease)
 	}
 	return -1;
 }
-int GetSelfBuffBySPA(int spa, bool bIncrease)
+bool IsSpellUsableForClass(PSPELL pSpell, DWORD classmask)
 {
-	for (unsigned long nBuff = 0; nBuff < NUM_LONG_BUFFS; nBuff++)
-	{
-		if (PSPELL pSpell = GetSpellByID(GetCharInfo2()->Buff[nBuff].SpellID))
+	if (classmask != Unknown) {
+		for (int N = 0; N < 16; N++)
 		{
-			if (LONG base = ((EQ_Spell *)pSpell)->GetSpellBaseByAttrib(spa)) {
-				if (spa == 11)//Melee Speed
-				{
-					if (!bIncrease && base<100) {//below 100 means its a slow above its haste...
-						return nBuff;
-					}
-					else if (bIncrease && base>100) {
-						return nBuff;
-					}
-					return -1;
+			if (classmask & (1 << N)) {
+				if (pSpell->ClassLevel[N] == 255) {
+					continue;
 				}
-				else if (spa == 3) {//Movement Rate
-					if (!bIncrease && base<0) {//below 0 means its a snare above its runspeed increase...
-						return nBuff;
-					}
-					else if (bIncrease && base>0) {
-						return nBuff;
-					}
-					return -1;
+				else {
+					return TRUE;
 				}
-				else if (spa == 59) { //Damage Shield
-					if (!bIncrease && base>0) {//decreased DS
-						return nBuff;
-					}
-					else if (bIncrease && base<0) {//increased DS
-						return nBuff;
-					}
-					return -1;
-				}
-				else if (spa == 121) { //Reverse Damage Shield
-					if (!bIncrease && base>0) {//decreased DS
-						return nBuff;
-					}
-					else if (bIncrease && base<0) {//increased DS
-						return nBuff;
-					}
-					return -1;
-				}
-				return nBuff;
 			}
 		}
+		return FALSE;
 	}
-	return -1;
+	else {
+		return TRUE;
+	}
 }
 
 DWORD GetSpellRankByName(PCHAR SpellName)

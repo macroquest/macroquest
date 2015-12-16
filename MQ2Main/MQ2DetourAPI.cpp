@@ -481,7 +481,7 @@ bool __cdecl memcheck5(DWORD count)
 			mov ebx, __MemChecker1_x;
 			sub ebx, 0x400000;
 			xor edx, edx;
-			add ebx, count;
+			add edx, count;
 			add esp, 4;
 			mov esp, edx;
 			ret;

@@ -16,8 +16,8 @@ GNU General Public License for more details.
 #endif
 
 #define __ClientName                                              "eqgame"
-#define __ExpectedVersionDate                                     "Dec  8 2015"
-#define __ExpectedVersionTime                                     "11:35:09"
+#define __ExpectedVersionDate                                     "Dec  9 2015"
+#define __ExpectedVersionTime                                     "13:03:16"
 #define __ActualVersionDate_x                                      0xADA578
 #define __ActualVersionTime_x                                      0xADA584
 

@@ -635,7 +635,7 @@ typedef struct _ITEMINFO {
 	/*0x0234*/ BYTE         Unknown0x0234[0x8];
 	/*0x023c*/ DWORD        FactionModType[0x4];
 	/*0x024c*/ DWORD        FactionModValue[0x4];
-	/*0x025c*/ BYTE         CharmFile[0x20];
+	/*0x025c*/ CHAR         CharmFile[0x20];
 	/*0x027c*/ BYTE         Unknown0x027c[0x4];
 	/*0x0280*/ struct _ITEMSPELLS   Clicky;
 	/*0x02e4*/ struct _ITEMSPELLS   Proc;
@@ -701,7 +701,7 @@ typedef struct _CONTENTS {
 /*0x0004*/ DWORD        ItemType;           // ? 1 = normal, 2 = pack ?
 /*0x0008*/ void*        punknown;
 /*0x000c*/ DWORD        Power;
-/*0x0010*/ DWORD        LoreGroup;
+/*0x0010*/ DWORD        GroupID;		// LoreGroup or EvolvingGroup if it is an evolving item
 /*0x0014*/ BYTE         Unknown0x0014[0x10];
 /*0x0024*/ DWORD        MerchantQuantity;
 /*0x0028*/ BYTE         Unknown0x0028[0x10];
@@ -729,7 +729,7 @@ typedef struct _CONTENTS {
 /*0x0110*/ BYTE         IsEvolvingItem;
 /*0x0111*/ BYTE         Unknown0x0111[0xb];
 /*0x011c*/ DWORD        Charges;
-/*0x0120*/ DWORD        LinkDBValue;
+/*0x0120*/ DWORD        OrnamentationIcon;
 /*0x0124*/ BYTE         Unknown0x0124[0x30];
 /*0x0154*/ struct _ITEMINFO*    Item2;
 /*0x0158*/ BYTE         Unknown0x0158[0x8];
@@ -1572,7 +1572,21 @@ void *gethashedentry(struct _HASHTABLE  *table, DWORD key)
 }
 
 #endif
-//eqmule oct 30 2013
+// copy of D3DMATRIX by brainiac dec 16 2015
+struct Matrix4x4
+{
+	union {
+		struct {
+			float        _11, _12, _13, _14;
+			float        _21, _22, _23, _24;
+			float        _31, _32, _33, _34;
+			float        _41, _42, _43, _44;
+		};
+		float m[4][4];
+	};
+};
+
+//eqmule oct 31 2013
 typedef struct _SWITCHCLICK
 {
 	FLOAT Y;
@@ -1581,84 +1595,85 @@ typedef struct _SWITCHCLICK
 	FLOAT Y1;
 	FLOAT X1;
 	FLOAT Z1;
-} SWITCHCLICK,*PSWITCHCLICK;
+} SWITCHCLICK, *PSWITCHCLICK;
 // this is actually ActorInterface
 // actual size: 0x120 3-3-2009
 // semi corrected on dec 16 2013 eqmule
 // i *think* the size is 0x190
 //however i couldnt confirm from 0x38 to 0x114
 //more work is needed... anyone feel free to step up...
+
+//updated on dec 16 2015 by brainiac
 typedef struct _EQSWITCH {
-/*0x00*/    DWORD        Unknown0x0[0x2];
-/*0x08*/    float        UnknownData0x08;
-/*0x0c*/    float        UnknownData0x0c;
-/*0x10*/    float        Unknown0x10[0x2];
-/*0x18*/    float        UnknownData0x18;
-/*0x1c*/    float        Unknown0x1c;
-/*0x20*/    float        UnknownData0x20;
-/*0x24*/    float        Unknown0x24[0x2];
-/*0x2C*/    FLOAT        Y;
-/*0x30*/    FLOAT        X;
-/*0x34*/    FLOAT        Z;
-/*0x38*/    BYTE         Unknown0x38[0x4c]; //A lot of data here.
-/*0x84*/    float        yAdjustment1;//from this point on im not sure -eqmule 2013 dec 16
-/*0x88*/    float        xAdjustment1;
-/*0x8c*/    float        zAdjustment1;
-/*0x90*/    float        headingAdjustment1;
-/*0x94*/    float        yAdjustment2;
-/*0x98*/    float        xAdjustment2;
-/*0x9c*/    float        zAdjustment2;
-/*0xa0*/    float        headingAdjustment2;
-/*0xa4*/    float        yAdjustment3;
-/*0xa8*/    float        xAdjustment3;
-/*0xac*/    float        zAdjustment3;
-/*0xb0*/    float        headingAdjustment3;
-/*0xb4*/    BYTE         Unknown0xb4[0x60];
-/*0x114*/   FLOAT        Y2;
-/*0x118*/   FLOAT        X2;
-/*0x11c*/   FLOAT        Z2;
-/*0x120*/   FLOAT        Unknown0xa4;
-/*0x124*/   FLOAT        Heading;
-/*0x128*/   BYTE         Unknown0x128[0x18];
-/*0x140*/   float        HeightAdjustment;//this is most likely wrong dec 16 2013 eqmule
-/*0x144*/   BYTE         Unknown0x144[0x4c];
-/*0x190*/
+	/*0x00*/    DWORD        Unknown0x0[0x2];
+	/*0x08*/    float        UnknownData0x08;
+	/*0x0c*/    float        UnknownData0x0c;
+	/*0x10*/    float        Unknown0x10[0x2];
+	/*0x18*/    float        UnknownData0x18;
+	/*0x1c*/    float        Unknown0x1c;
+	/*0x20*/    float        UnknownData0x20;
+	/*0x24*/    float        Unknown0x24[0x2];
+	/*0x2C*/    FLOAT        Y;
+	/*0x30*/    FLOAT        X;
+	/*0x34*/    FLOAT        Z;
+	/*0x38*/    BYTE         Unknown0x38[0x4c]; //A lot of data here.
+	/*0x84*/    float        yAdjustment1;//from this point on im not sure -eqmule 2013 dec 16
+	/*0x88*/    float        xAdjustment1;
+	/*0x8c*/    float        zAdjustment1;
+	/*0x90*/    float        headingAdjustment1;
+	/*0x94*/    float        yAdjustment2;
+	/*0x98*/    float        xAdjustment2;
+	/*0x9c*/    float        zAdjustment2;
+	/*0xa0*/    float        headingAdjustment2;
+	/*0xa4*/    float        yAdjustment3;
+	/*0xa8*/    float        xAdjustment3;
+	/*0xac*/    float        zAdjustment3;
+	/*0xb0*/    float        headingAdjustment3;
+	/*0xb4*/    BYTE         Unknown0xb4[0x30];
+	/*0xe4*/    Matrix4x4    transformMatrix;
+	/*0x124*/   FLOAT        Heading;
+	/*0x128*/   BYTE         Unknown0x128[0x18];
+	/*0x140*/   float        HeightAdjustment;//this is most likely wrong dec 16 2013 eqmule
+	/*0x144*/   BYTE         Unknown0x144[0x4c];
+	/*0x190*/
 } EQSWITCH, *PEQSWITCH;
 
 // actual size 0xdc 2-9-2009
+//updated on dec 16 2015 by brainiac
+//not sure about its size - eqmule
 typedef struct _DOOR {
-/*0x00*/ void  *vtable;
-/*0x04*/ BYTE  Unknown0x4;          // always 5
-/*0x05*/ BYTE  ID;
-/*0x06*/ CHAR  Name[0x20];
-/*0x26*/ BYTE  Type;
-/*0x27*/ BYTE  State;               // 0 = closed, 1 = open, 2 = opening, 3 = closing
-/*0x28*/ FLOAT DefaultY;
-/*0x2c*/ FLOAT DefaultX;
-/*0x30*/ FLOAT DefaultZ;
-/*0x34*/ FLOAT DefaultHeading;
-/*0x38*/ FLOAT DefaultDoorAngle;
-/*0x3c*/ FLOAT TopSpeed1;
-/*0x40*/ FLOAT TopSpeed2;
-/*0x44*/ FLOAT Y;
-/*0x48*/ FLOAT X;
-/*0x4c*/ FLOAT Z;
-/*0x50*/ FLOAT Heading;
-/*0x54*/ FLOAT DoorAngle;
-/*0x58*/ BYTE  Unknown0x58[0x18];
-/*0x70*/ int   Unknown0x70;         // always 0xFFFFFFFF
-/*0x74*/ WORD  Unknown0x74;         // actor scale factor?
-/*0x76*/ BYTE  Unknown0x76[0x2];
-/*0x78*/ DWORD ZonePoint;
-/*0x7c*/ BYTE  Unknown0x7c[0x5];
-/*0x81*/ BYTE  Unknown0x81;
-/*0x82*/ BYTE  Unknown0x82[0x22];
-/*0xa4*/ PEQSWITCH pSwitch;         // (CActorInterface*)
-/*0xa8*/ void  *pUnknown0xa8;       // (CParticleCloudInterface*)
-/*0xac*/ DWORD TimeStamp;
-/*0xb0*/ BYTE  Unknown0xb0[0x2c];
-/*0xdc*/
-} DOOR, *PDOOR; 
+	/*0x00*/ void  *vtable;
+	/*0x04*/ BYTE  Unknown0x4;          // always 5
+	/*0x05*/ BYTE  ID;
+	/*0x06*/ CHAR  Name[0x20];
+	/*0x26*/ BYTE  Type;
+	/*0x27*/ BYTE  State;               // 0 = closed, 1 = open, 2 = opening, 3 = closing
+	/*0x28*/ FLOAT DefaultY;
+	/*0x2c*/ FLOAT DefaultX;
+	/*0x30*/ FLOAT DefaultZ;
+	/*0x34*/ FLOAT DefaultHeading;
+	/*0x38*/ FLOAT DefaultDoorAngle;
+	/*0x3c*/ FLOAT TopSpeed1;
+	/*0x40*/ FLOAT TopSpeed2;
+	/*0x44*/ FLOAT Y;
+	/*0x48*/ FLOAT X;
+	/*0x4c*/ FLOAT Z;
+	/*0x50*/ FLOAT Heading;
+	/*0x54*/ FLOAT DoorAngle;
+	/*0x58*/ BYTE  Unknown0x58[0x18];
+	/*0x70*/ int   Unknown0x70;         // always 0xFFFFFFFF
+	/*0x74*/ SHORT ScaleFactor;         // divide by 100 to get scale multiplier
+	/*0x76*/ BYTE  Unknown0x76[2];
+	/*0x78*/ DWORD ZonePoint;
+	/*0x7c*/ BYTE  Unknown0x7c[0x5];
+	/*0x81*/ BYTE  Unknown0x81;
+	/*0x82*/ BYTE  Unknown0x82[0x22];
+	/*0xa4*/ PEQSWITCH pSwitch;         // (CActorInterface*)
+	/*0xa8*/ void  *pUnknown0xa8;       // (CParticleCloudInterface*)
+	/*0xac*/ DWORD TimeStamp;
+	/*0xb0*/ BYTE  Unknown0xb0[0x2c];
+	/*0xdc*/
+} DOOR, *PDOOR;
 
 // 7-21-2003    Stargazer
 typedef struct _DOORTABLE {

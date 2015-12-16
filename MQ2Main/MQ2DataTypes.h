@@ -1043,24 +1043,43 @@ public:
 		AAPointsAssigned = 195,
 		AltCurrency = 196,
 		ActiveDisc = 197,
-		Slowed = 198,
-		Rooted = 199,
-		Mezzed = 200,
-		Snared = 201,
-		Hasted = 202,
-		Commemoratives = 203,
-		Nobles = 204,
-		Zoning = 205,
-		DSed = 206,
-		RevDSed = 207,
-		InInstance = 208,
-		Instance = 209,
-		MercListInfo = 210,
-		UseAdvancedLooting = 211,
-		Fists = 212,
-		EnergyCrystals = 213,
-		PiecesofEight = 214,
-		SpellInCooldown = 215,
+		Commemoratives = 198,
+		Nobles = 199,
+		Zoning = 200,
+		InInstance = 201,
+		Instance = 202,
+		MercListInfo = 203,
+		UseAdvancedLooting = 204,
+		Fists = 205,
+		EnergyCrystals = 206,
+		PiecesofEight = 207,
+		SpellInCooldown = 208,
+		Slowed = 209,
+		Rooted = 210,
+		Mezzed = 211,
+		Crippled = 212,
+		Malod = 213,
+		Tashed = 214,
+		Snared = 215,
+		Hasted = 216,
+		Aego = 217,
+		Skin = 218,
+		Focus = 219,
+		Regen = 220,
+		Symbol = 221,
+		Clarity = 222,
+		Pred = 223,
+		Strength = 224,
+		Brells = 225,
+		SV = 226,
+		SE = 227,
+		HybridHP = 228,
+		Growth = 229,
+		Shining = 230,
+		Beneficial = 231,
+		DSed = 232,
+		RevDSed = 233,
+		Charmed = 234,
 	};
 	enum CharacterMethods
 	{
@@ -1257,16 +1276,9 @@ public:
 		TypeMember(ActiveDisc);
 		TypeMember(CountSongs);
 		TypeMember(MaxBuffSlots);
-		TypeMember(Slowed);
-		TypeMember(Rooted);
-		TypeMember(Mezzed);
-		TypeMember(Snared);
-		TypeMember(Hasted);
 		TypeMember(Commemoratives);
 		TypeMember(Nobles);
 		TypeMember(Zoning);
-		TypeMember(DSed);
-		TypeMember(RevDSed);
 		TypeMember(InInstance);
 		TypeMember(Instance);
 		TypeMember(MercListInfo);
@@ -1275,6 +1287,32 @@ public:
 		TypeMember(EnergyCrystals);
 		TypeMember(PiecesofEight);
 		TypeMember(SpellInCooldown);
+		TypeMember(Slowed);
+		TypeMember(Rooted);
+		TypeMember(Mezzed);
+		TypeMember(Crippled);
+		TypeMember(Malod);
+		TypeMember(Tashed);
+		TypeMember(Snared);
+		TypeMember(Hasted);
+		TypeMember(Aego);
+		TypeMember(Skin);
+		TypeMember(Focus);
+		TypeMember(Regen);
+		TypeMember(Symbol);
+		TypeMember(Clarity);
+		TypeMember(Pred);
+		TypeMember(Strength);
+		TypeMember(Brells);
+		TypeMember(SV);
+		TypeMember(SE);
+		TypeMember(HybridHP);
+		TypeMember(Growth);
+		TypeMember(Shining);
+		TypeMember(Beneficial);
+		TypeMember(DSed);
+		TypeMember(RevDSed);
+		TypeMember(Charmed);
 
 		TypeMethod(Stand);
 		TypeMethod(Sit);
@@ -1770,6 +1808,8 @@ public:
 		ItemLink = 145,
 		Icon = 146,
 		SkillModMax = 147,
+		OrnamentationIcon = 148,
+		NumOfSlots1 = 149,
 	};
 	enum ItemMethods
 	{
@@ -1923,6 +1963,8 @@ public:
 		TypeMember(ItemLink);
 		TypeMember(Icon);
 		TypeMember(SkillModMax);
+		TypeMember(OrnamentationIcon);
+		TypeMember(NumOfSlots1);
 	}
 
 	~MQ2ItemType()
@@ -4245,6 +4287,7 @@ public:
 		Beneficial = 30,
 		DSed = 31,
 		RevDSed = 32,
+		Charmed = 33,
 	};
 
 #ifdef ISBOXER_COMPAT
@@ -4285,6 +4328,7 @@ public:
 		TypeMember(Beneficial);
 		TypeMember(DSed);
 		TypeMember(RevDSed);
+		TypeMember(Charmed);
 	}
 
 	~MQ2TargetType()
