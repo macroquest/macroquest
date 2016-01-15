@@ -10322,6 +10322,29 @@ bool MQ2TaskType::GETMEMBER()
 		}
 		return false;
 	}
+	case Objective:
+	{
+		int v,r,c;
+		v = sscanf(GETFIRST(),"%d,%d",&r,&c);
+		if (v < 2)
+			c = 0;
+		if (v < 1)
+			r = 0;
+		//WriteChatf("List.Objective[%s] : r=%d C=%d v=%d", Index,r,c,v);
+		if(CListWnd *clist = (CListWnd *)pTaskWnd->GetChildItem("TASK_TaskElementList")) {
+			CXStr Str;
+			clist->GetItemText(&Str, r, c);
+			CHAR szOut[255] = {0};
+			GetCXStr(Str.Ptr,szOut,254);
+			if(szOut[0]!='\0') {
+				strcpy_s(DataTypeTemp, szOut);
+				Dest.Ptr=&DataTypeTemp[0];
+				Dest.Type=pStringType;
+				return true;
+			}
+		}
+		return false;
+	}
 	}
 	return false;
 }

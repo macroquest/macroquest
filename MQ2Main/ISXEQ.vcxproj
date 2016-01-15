@@ -161,13 +161,34 @@
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="ISXEQ\ISXEQ.cpp" />
-    <ClCompile Include="ISXEQ\ISXEQCommandAPI.cpp" />
-    <ClCompile Include="ISXEQ\ISXEQCommands.cpp" />
-    <ClCompile Include="ISXEQ\ISXEQDataTypes.cpp" />
-    <ClCompile Include="ISXEQ\ISXEQServices.cpp" />
-    <ClCompile Include="ISXEQ\ISXEQTopLevelObjects.cpp" />
-    <ClCompile Include="ISXEQ\ISXEQUtilities.cpp" />
+    <ClCompile Include="ISXEQ\ISXEQ.cpp">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+      </ExcludedFromBuild>
+    </ClCompile>
+    <ClCompile Include="ISXEQ\ISXEQCommandAPI.cpp">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+      </ExcludedFromBuild>
+    </ClCompile>
+    <ClCompile Include="ISXEQ\ISXEQCommands.cpp">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+      </ExcludedFromBuild>
+    </ClCompile>
+    <ClCompile Include="ISXEQ\ISXEQDataTypes.cpp">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+      </ExcludedFromBuild>
+    </ClCompile>
+    <ClCompile Include="ISXEQ\ISXEQServices.cpp">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+      </ExcludedFromBuild>
+    </ClCompile>
+    <ClCompile Include="ISXEQ\ISXEQTopLevelObjects.cpp">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+      </ExcludedFromBuild>
+    </ClCompile>
+    <ClCompile Include="ISXEQ\ISXEQUtilities.cpp">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+      </ExcludedFromBuild>
+    </ClCompile>
     <ClCompile Include="EQClasses.cpp" />
     <ClCompile Include="MQ2Benchmarks.cpp" />
     <ClCompile Include="MQ2ChatHook.cpp" />
@@ -187,25 +208,61 @@
     <ClCompile Include="MQ2Windows.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="..\ISXDK\34\include\ColumnRenderer.h" />
-    <ClInclude Include="..\ISXDK\34\include\FileList.h" />
-    <ClInclude Include="..\ISXDK\34\include\Index.h" />
-    <ClInclude Include="..\ISXDK\34\include\ISInterface.h" />
-    <ClInclude Include="..\ISXDK\34\include\ISXDK.h" />
-    <ClInclude Include="..\ISXDK\34\include\ISXInterface.h" />
-    <ClInclude Include="..\ISXDK\34\include\Queue.h" />
-    <ClInclude Include="..\ISXDK\34\include\Services.h" />
-    <ClInclude Include="..\ISXDK\34\include\Threading.h" />
-    <ClInclude Include="..\ISXDK\34\include\utf8string.h" />
-    <ClInclude Include="..\ISXDK\34\include\WinThreading.h" />
+    <ClInclude Include="..\ISXDK\34\include\ColumnRenderer.h">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
+    </ClInclude>
+    <ClInclude Include="..\ISXDK\34\include\FileList.h">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
+    </ClInclude>
+    <ClInclude Include="..\ISXDK\34\include\Index.h">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
+    </ClInclude>
+    <ClInclude Include="..\ISXDK\34\include\ISInterface.h">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
+    </ClInclude>
+    <ClInclude Include="..\ISXDK\34\include\ISXDK.h">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
+    </ClInclude>
+    <ClInclude Include="..\ISXDK\34\include\ISXInterface.h">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
+    </ClInclude>
+    <ClInclude Include="..\ISXDK\34\include\Queue.h">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
+    </ClInclude>
+    <ClInclude Include="..\ISXDK\34\include\Services.h">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
+    </ClInclude>
+    <ClInclude Include="..\ISXDK\34\include\Threading.h">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
+    </ClInclude>
+    <ClInclude Include="..\ISXDK\34\include\utf8string.h">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
+    </ClInclude>
+    <ClInclude Include="..\ISXDK\34\include\WinThreading.h">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
+    </ClInclude>
     <ClInclude Include="DataTypeList.h" />
-    <ClInclude Include="ISXEQ\ISXEQ.h" />
-    <ClInclude Include="..\ISXEQClient.h" />
-    <ClInclude Include="ISXEQ\ISXEQCommandList.h" />
-    <ClInclude Include="ISXEQ\ISXEQCommands.h" />
-    <ClInclude Include="ISXEQ\ISXEQServices.h" />
-    <ClInclude Include="ISXEQ\ISXEQTopLevelObjects.h" />
-    <ClInclude Include="ISXEQ\ISXEQUtilities.h" />
+    <ClInclude Include="ISXEQ\ISXEQ.h">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
+    </ClInclude>
+    <ClInclude Include="..\ISXEQClient.h">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
+    </ClInclude>
+    <ClInclude Include="ISXEQ\ISXEQCommandList.h">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
+    </ClInclude>
+    <ClInclude Include="ISXEQ\ISXEQCommands.h">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
+    </ClInclude>
+    <ClInclude Include="ISXEQ\ISXEQServices.h">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
+    </ClInclude>
+    <ClInclude Include="ISXEQ\ISXEQTopLevelObjects.h">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
+    </ClInclude>
+    <ClInclude Include="ISXEQ\ISXEQUtilities.h">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
+    </ClInclude>
     <ClInclude Include="..\Blech\Blech.h" />
     <ClInclude Include="EQClasses.h" />
     <ClInclude Include="EQData.h" />

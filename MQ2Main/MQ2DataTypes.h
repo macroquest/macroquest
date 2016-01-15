@@ -4429,6 +4429,7 @@ public:
 		Members = 5,
 		Leader = 6,
 		List = 7,
+		Objective = 8,
 	};
 	MQ2TaskType() :MQ2Type("task")
 	{
@@ -4439,6 +4440,7 @@ public:
 		TypeMember(Members);
 		TypeMember(Leader);
 		TypeMember(List);
+		TypeMember(Objective);
 	}
 	~MQ2TaskType()
 	{

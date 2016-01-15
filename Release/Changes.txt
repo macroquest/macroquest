@@ -1,3 +1,18 @@
+14 Jan 2015 by MacroQuest2.com Devs
+- Updated for TEST
+- Added a new feature. cred: dewey2461
+- Description: Extends the Task TLO with the TaskElementList's Objective[ ]
+-
+- The TaskElementList is a row,column address where column 0 is the text, 1 is the status, etc.
+-
+- Examples: 
+-
+- /echo ${Task.Objective} The first objective
+- /echo ${Task.Objective[0]} The first objective
+- /echo ${Task.Objective[0,1]} The first objective's status
+- /echo ${Task.Objective[0,2]} The first objective's zone
+- /echo ${Task.Objective[1]} The second objective
+
 16 Dec 2015 by MacroQuest2.com Devs
 - Updated for LIVE
 - Change: LoreGroup and LinkDBValue in the CONTENTS struct has been renamed

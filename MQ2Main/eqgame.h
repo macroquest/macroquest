@@ -156,8 +156,8 @@ GNU General Public License for more details.
 #define pinstViewActor_x                                           0xF5C558
 #define pinstWorldData_x                                           0x100F8F0
 #define pinstZoneAddr_x                                            0x101CEF4
-#define pinstPlayerPath_x                                          0x109E610
-#define pinstTargetIndicator_x                                     0x109EFA8
+#define pinstPlayerPath_x                                          0x10A24F0
+#define pinstTargetIndicator_x                                     0x10A2E88
 #define pinstCTargetManager_x                                      0x10A2EE8
 
 //// 

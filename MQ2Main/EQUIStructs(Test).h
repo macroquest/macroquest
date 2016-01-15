@@ -205,7 +205,7 @@ VFTABLE
 } CXWNDVFTABLE, *PCXWNDVFTABLE; 
 
 // in CChatWindow__CChatWindow_x checked on 20140909 test - eqmule
-#define EQ_CHAT_HISTORY_OFFSET 0x284
+#define EQ_CHAT_HISTORY_OFFSET 0x27C
 // in CChatWindow__SetChatFont checked on 20131029 test - eqmule
 #define EQ_CHAT_FONT_OFFSET    0x114
 
@@ -221,119 +221,112 @@ VFTABLE
 // actual size 0x1E0 in Dec  7 2015 Test (see 0x6980B8) - eqmule
 // actual size 0x1E8 in Dec  7a 2015 Test (see 0x697F38) - eqmule
 // actual size 0x1D4 in Dec 10 2015 Test (see 0x698408) - eqmule
+// actual size 0x1CC in Jan 13 2016 Test (see 0x6984E8) - eqmule
 #define CXW_NO_VTABLE \
-/*0x0004*/ struct _CSIDLWND*    pPrevSiblingWnd; \
+/*0x0004*/ void*        pPrevSiblingWnd; \
 /*0x0008*/ struct _CSIDLWND*    pNextSiblingWnd; \
 /*0x000c*/ void*        pUnknown0xc; \
 /*0x0010*/ struct _CSIDLWND*    pFirstChildWnd; \
-/*0x0014*/ BYTE         Unknown0x0014[0xc]; \
-/*0x0020*/ struct _CSIDLWND*    pParentWindow; /*CXWnd__IsDescendantOf_x has this one, If this is NULL, coordinates are absolute... */ \
-/*0x0024*/ BYTE         Unknown0x0024; \
-/*0x0025*/ BYTE         Locked; /*found in CSidlScreenWnd__LoadIniInfo_x*/ \
-/*0x0026*/ BYTE         Unknown0x0026[0x2]; \
-/*0x0028*/ BYTE         Unlockable;     /* found in CSidlScreenWnd__LoadIniInfo_x related to Locked */ \
-/*0x0029*/ BYTE         Unknown0x0029[0xf]; \
-/*0x0038*/ DWORD        TimeMouseOver; \
-/*0x003c*/ BYTE         Unknown0x003c[0xc]; \
+/*0x0014*/ BYTE         Unknown0x0014[0x4]; \
+/*0x0018*/ RECT         Location; \
+/*0x0028*/ DWORD        VScrollMax; \
+/*0x002c*/ BYTE         Unknown0x002c[0x8]; \
+/*0x0034*/ LPVOID       DrawTemplate; \
+/*0x0038*/ RECT         OldLocation; \
 /*0x0048*/ BYTE         Alpha; \
-/*0x0049*/ BYTE         Unknown0x0049[0x3]; \
-/*0x004c*/ LPVOID       DrawTemplate; \
-/*0x0050*/ BYTE         Unknown0x0050[0x4]; \
-/*0x0054*/ BYTE         Minimized; \
-/*0x0055*/ BYTE         Clickable;      /* found in CChatWindow__CChatWindow_x and the button handlers */ \
-/*0x0056*/ BYTE         Unknown0x0056[0x9]; \
-/*0x005f*/ BYTE         Fades; \
-/*0x0060*/ BYTE         Unknown0x0060[0x18]; \
-/*0x0078*/ RECT         Location; \
-/*0x0088*/ BYTE         Unknown0x0088[0x4]; \
-/*0x008c*/ BYTE         dShow; \
-/*0x008d*/ BYTE         Unknown0x008d[0x7]; \
-/*0x0094*/ DWORD        HScrollPos; \
-/*0x0098*/ struct _CXSTR*       WindowText; /*CXWnd__GetWindowTextA_x has this one*/ \
-/*0x009c*/ BYTE         Unknown0x009c[0x8]; \
-/*0x00a4*/ DWORD        VScrollPos; \
-/*0x00a8*/ BYTE         Unknown0x00a8[0x4]; \
-/*0x00ac*/ BYTE         CloseOnESC;     /* found in CSidlScreenWnd__StoreIniInfo_x, close when ESC is pressed */ \
-/*0x00ad*/ BYTE         Unknown0x00ad[0x27]; \
-/*0x00d4*/ DWORD        XMLIndex; \
-/*0x00d8*/ DWORD        BGType;         /* found in CSidlScreenWnd__StoreIniInfo_x "BGType" in ini */ \
-/*0x00dc*/ BYTE         Unknown0x00dc[0x8]; \
-/*0x00e4*/ RECT         OldLocation; \
-/*0x00f4*/ BYTE         Unknown0x00f4[0x8]; \
-/*0x00fc*/ DWORD        UnknownCW; /*found in OnProcessFrame*/\
-/*0x0100*/ BYTE         Unknown0x0100[0x4]; \
-/*0x0104*/ DWORD        HScrollMax; \
-/*0x0108*/ BYTE         ValidCXWnd; /*IsValid has this one*/\
-/*0x0109*/ BYTE         Unknown0x0109[0x23]; \
-/*0x012c*/ BYTE         Enabled; \
-/*0x012d*/ BYTE         Unknown0x012d[0x7]; \
-/*0x0134*/ BYTE         MouseOver; /*found in CXWnd__SetMouseOver_x*/ \
-/*0x0135*/ BYTE         Unknown0x0135[0x8]; \
-/*0x013d*/ BYTE         Faded; \
-/*0x013e*/ BYTE         Unknown0x013e[0x16]; \
-/*0x0154*/ DWORD        WindowStyle;    /* bit 1 - vertical scroll, bit 2 - horizontal scroll, bit 4 - title bar?, bit 8 - border */ \
-/*0x0158*/ struct _CXSTR*       Tooltip; /*found in CSidlManager__CreateLabel_x*/ \
+/*0x0049*/ BYTE         Unknown0x0049[0x7]; \
+/*0x0050*/ BYTE         ValidCXWnd; /*IsValid has this one*/\
+/*0x0051*/ BYTE         Unknown0x0051[0x3]; \
+/*0x0054*/ struct _CXSTR*       XMLToolTip; /*found in CSidlManager__CreateLabel_x*/ \
+/*0x0058*/ BYTE         Unknown0x0058[0x11]; \
+/*0x0069*/ BYTE         Faded; \
+/*0x006a*/ BYTE         Unknown0x006a[0x26]; \
+/*0x0090*/ DWORD        BGType;         /* found in CSidlScreenWnd__StoreIniInfo_x "BGType" in ini */ \
+/*0x0094*/ DWORD        TickCount2; \
+/*0x0098*/ BYTE         Unknown0x0098[0xc]; \
+/*0x00a4*/ ARGBCOLOR    BGColor; \
+/*0x00a8*/ struct _CXSTR*       Tooltip; /*found in CSidlManager__CreateLabel_x*/ \
+/*0x00ac*/ BYTE         Fades; \
+/*0x00ad*/ BYTE         Unknown0x00ad[0x3]; \
+/*0x00b0*/ struct _CSIDLWND*    pParentWindow; /*CXWnd__IsDescendantOf_x has this one, If this is NULL, coordinates are absolute... */ \
+/*0x00b4*/ BYTE         Unknown0x00b4[0x8]; \
+/*0x00bc*/ BYTE         FadeToAlpha; /*found in CSidlScreenWnd__StoreIniInfo_x*/\
+/*0x00bd*/ BYTE         Unknown0x00bd[0x57]; \
+/*0x0114*/ BYTE         Clickable;      /* found in CChatWindow__CChatWindow_x and the button handlers */ \
+/*0x0115*/ BYTE         Unknown0x0115[0xf]; \
+/*0x0124*/ DWORD        UnknownCW; /*found in OnProcessFrame*/\
+/*0x0128*/ BYTE         Unknown0x0128[0x8]; \
+/*0x0130*/ BYTE         MouseOver; /*found in CXWnd__SetMouseOver_x*/ \
+/*0x0131*/ BYTE         Unknown0x0131[0x23]; \
+/*0x0154*/ DWORD        HScrollPos; \
+/*0x0158*/ DWORD        FadeDuration; \
 /*0x015c*/ BYTE         Unknown0x015c[0x4]; \
-/*0x0160*/ DWORD        ZLayer; /*found in CXWndManager__DrawWindows_x*/ \
+/*0x0160*/ struct _CXSTR*       WindowText; /*CXWnd__GetWindowTextA_x has this one*/ \
 /*0x0164*/ BYTE         Unknown0x0164[0x4]; \
-/*0x0168*/ DWORD        VScrollMax; \
-/*0x016c*/ BYTE         Unknown0x016c[0x28]; \
-/*0x0194*/ struct _CXSTR*       XMLToolTip; /*found in CSidlManager__CreateLabel_x*/ \
-/*0x0198*/ BYTE         Unknown0x0198[0x8]; \
-/*0x01a0*/ ARGBCOLOR    BGColor; \
-/*0x01a4*/ BYTE         Unknown0x01a4[0x4]; \
-/*0x01a8*/ DWORD        FadeDuration; \
-/*0x01ac*/ BYTE         Unknown0x01ac[0x8]; \
-/*0x01b4*/ DWORD        TickCount2; \
-/*0x01b8*/ BYTE         Unknown0x01b8[0x8]; \
-/*0x01c0*/ BYTE         FadeToAlpha; /*found in CSidlScreenWnd__StoreIniInfo_x*/\
-/*0x01c1*/ BYTE         Unknown0x01c1[0x13]; \
-/*0x01d4*/
+/*0x0168*/ DWORD        TimeMouseOver; \
+/*0x016c*/ BYTE         dShow; \
+/*0x016d*/ BYTE         Unknown0x016d[0x23]; \
+/*0x0190*/ DWORD        ZLayer; /*found in CXWndManager__DrawWindows_x*/ \
+/*0x0194*/ BYTE         Locked; /*found in CSidlScreenWnd__LoadIniInfo_x*/ \
+/*0x0195*/ BYTE         Enabled; \
+/*0x0196*/ BYTE         Unknown0x0196; \
+/*0x0197*/ BYTE         CloseOnESC;     /* found in CSidlScreenWnd__StoreIniInfo_x, close when ESC is pressed */ \
+/*0x0198*/ DWORD        XMLIndex; \
+/*0x019c*/ BYTE         Unknown0x019c[0xc]; \
+/*0x01a8*/ DWORD        WindowStyle;    /* bit 1 - vertical scroll, bit 2 - horizontal scroll, bit 4 - title bar?, bit 8 - border */ \
+/*0x01ac*/ BYTE         Unknown0x01ac[0xc]; \
+/*0x01b8*/ BYTE         Unlockable;     /* found in CSidlScreenWnd__LoadIniInfo_x related to Locked */ \
+/*0x01b9*/ BYTE         Minimized; \
+/*0x01ba*/ BYTE         Unknown0x01ba[0x2]; \
+/*0x01bc*/ DWORD        VScrollPos; \
+/*0x01c0*/ BYTE         Unknown0x01c0[0x8]; \
+/*0x01c8*/ DWORD        HScrollMax; \
+/*0x01cc*/
 
 #define CXW \
 /*0x000*/   struct  _CXWNDVFTABLE   *pvfTable; \
 CXW_NO_VTABLE \
-/*0x1d4*/
+/*0x1cc*/
 
 typedef struct _CXWND {
-CXW
+	CXW
 } CXWND, *PCXWND;
 #define GateBind          0
 //CSidlScreenWnd__CSidlScreenWnd1_x
-//updated from Aug 19 2014 test exe - eqmule
+//size is 214h in eqgame dated Mar 31 2014 (see 5C638D (cswsize)) -eqmule
 #define SIDL \
-/*0x1d4*/ union { \
+/*0x1cc*/ union { \
                         struct _CXSTR* SidlText; /*found in CChatWindow__WndNotification_x*/\
                         DWORD Items; \
                 }; \
-/*0x1d8*/ union { \
+/*0x1d0*/ union { \
                         struct _CXSTR* SidlScreen; \
                         DWORD SlotID; \
                 }; \
-/*0x1dc*/ LPVOID SidlPiece; /* CScreenPieceTemplate (important) */ \
-/*0x1e0*/ union { /*find in CSidlScreenWnd__dCSidlScreenWnd_x*/ \
+/*0x1d4*/ LPVOID SidlPiece; /* CScreenPieceTemplate (important) */ \
+/*0x1d8*/ union { /*find in CSidlScreenWnd__dCSidlScreenWnd_x*/ \
                 struct { \
                         BYTE Checked; \
                         BYTE Highlighted; \
-                        BYTE Unused0x1e2[0x2]; \
+                        BYTE Unused0x1da[0x2]; \
                 }; \
                 DWORD MaxChars; \
         }; \
-/*0x1e4*/ DWORD TextureAnim; \
-/*0x1e8*/ struct  _CXSTR* InputText; /*found in CChatWindow__CChatWindow_x*/\
-/*0x1ec*/ DWORD Selector; /*found in CSidlScreenWnd__CSidlScreenWnd1_x*/\
-/*0x1f0*/ DWORD PushToSelector; /*found in CSidlScreenWnd__LoadIniInfo_x*/\
-/*0x1f4*/ DWORD EnableINIStorage; /*found in CSidlScreenWnd__LoadSidlScreen_x*/\
-/*0x1f8*/ union { \
+/*0x1dc*/ DWORD TextureAnim; \
+/*0x1e0*/ struct  _CXSTR* InputText; /*found in CChatWindow__CChatWindow_x*/\
+/*0x1e4*/ DWORD Selector; /*found in CSidlScreenWnd__CSidlScreenWnd1_x*/\
+/*0x1e8*/ DWORD PushToSelector; /*found in CSidlScreenWnd__LoadIniInfo_x*/\
+/*0x1ec*/ DWORD EnableINIStorage; /*found in CSidlScreenWnd__LoadSidlScreen_x*/\
+/*0x1f0*/ union { \
                 struct _CXSTR* INIStorageName; /*found in CSidlScreenWnd__LoadSidlScreen_x*/\
                 struct _EQINVSLOT* pEQInvSlot; \
         }; \
-/*0x1fc*/ BYTE  Unknown0x1fc[0x10];  \
-/*0x20c*/ LPVOID ContextMenu; /* CTextureAnimation */ \
-/*0x210*/ DWORD Unknown0x210; /* CTextureAnimation */ \
-/*0x214*/ DWORD Unknown0x214; /* CTextureAnimation */ \
-/*0x218*/ DWORD Unknown0x218; \
-/*0x21c*/
+/*0x1f4*/ BYTE  Unknown0x1f4[0x10];  \
+/*0x204*/ LPVOID ContextMenu; /* CTextureAnimation */ \
+/*0x208*/ DWORD Unknown0x208; /* CTextureAnimation */ \
+/*0x20c*/ DWORD Unknown0x20c; /* CTextureAnimation */ \
+/*0x210*/ DWORD Unknown0x210; \
+/*0x214*/
 
 #define CSW \
 /*0x000*/ struct _CSIDLWNDVFTABLE* pvfTable; \
@@ -360,20 +353,20 @@ VFTABLE
 } CCONTEXTMENUVFTABLE, *PCCONTEXTMENUVFTABLE; 
 
 //see ref to CContextMenu__CContextMenu_x in CBuffWindow__CBuffWindow
-// size 0x27c Jun 29 2015 (see 677AFB) -eqmule
+// size 0x274 May 27 2015 (see 677FFB) -eqmule
 #define CONTEXTTAIL \
-/*0x21c*/ DWORD ZeroMe; \
-/*0x220*/ DWORD SetToMinus1; /*must be set to -1 in constructor or menu wndnotification wont be called*/ \
-/*0x224*/ DWORD WillBeZero1; /*set by contructor to 0*/ \
-/*0x228*/ ARGBCOLOR HightLightTextColor; /*set by contructor*/ \
-/*0x22c*/ ARGBCOLOR HighLightTextBkColor; /*set by contructor*/ \
-/*0x230*/ BYTE ZeroMeOut1[0x24]; \
-/*0x254*/ DWORD WillBeZero2; /*constructor sets this to 0*/ \
-/*0x258*/ BYTE ZeroMeOut2[0x18]; \
-/*0x270*/ DWORD Unknown0x280; /*constructor sets this to 0x10000*/ \
-/*0x274*/ DWORD ZeroMeAsWell; \
-/*0x278*/ DWORD Unknown0x288; /*constructor sets this to 0*/ \
-/*0x27c*/
+/*0x214*/ DWORD ZeroMe; \
+/*0x218*/ DWORD SetToMinus1; /*must be set to -1 in constructor or menu wndnotification wont be called*/ \
+/*0x21c*/ DWORD WillBeZero1; /*set by contructor to 0*/ \
+/*0x220*/ ARGBCOLOR HightLightTextColor; /*set by contructor*/ \
+/*0x224*/ ARGBCOLOR HighLightTextBkColor; /*set by contructor*/ \
+/*0x228*/ BYTE ZeroMeOut1[0x24]; \
+/*0x24c*/ DWORD WillBeZero2; /*constructor sets this to 0*/ \
+/*0x250*/ BYTE ZeroMeOut2[0x18]; \
+/*0x268*/ DWORD Unknown0x268; /*constructor sets this to 0x10000*/ \
+/*0x26c*/ DWORD ZeroMeAsWell; \
+/*0x270*/ DWORD Unknown0x270; /*constructor sets this to 0*/ \
+/*0x274*/
 
 #define CONTEXTW \
 /*0x000*/   struct  _CCONTEXTMENUVFTABLE   *pvfTable; \
@@ -779,18 +772,18 @@ typedef struct _EQGRAPHICSENGINE {
 #define SafeXLoc 0
 
 //CButtonWnd__CButtonWnd_x
-//size is 0x268 see 8DE1CE in eqgame.exe dated 08 Dec 2015 - eqmule
+//size is 0x260 see 8D1E4E in eqgame.exe dated 22 Sep 2015 - eqmule
 typedef struct _CBUTTONWND {
 	/*0x000*/ struct    _CXWND Wnd;
-	/*0x1d4*/ BYTE      Unknown[0x4];
-	/*0x1d8*/ BYTE      State;        //1=down 0=up
-	/*0x1d9*/ BYTE      Unknown0x1d9; //something to do with State
-	/*0x1da*/ BYTE      Unknown0x1da[0x12];
-	/*0x1ec*/ ARGBCOLOR Color;
-	/*0x1f0*/ BYTE      Unknown0x1f0[0x58];
-	/*0x248*/ DWORD     TextureAnim;//im guessing now but I think this is the icon displayed use iconcache->geticon to fill it in...
-	/*0x24c*/ BYTE      Unknown0x24c[0x1c];
-	/*0x268*/
+	/*0x1cc*/ BYTE      Unknown[0x4];
+	/*0x1d0*/ BYTE      State;        //1=down 0=up
+	/*0x1d1*/ BYTE      Unknown0x1d5; //something to do with State
+	/*0x1d2*/ BYTE      Unknown0x1d6[0x12];
+	/*0x1e4*/ ARGBCOLOR Color;
+	/*0x1e8*/ BYTE      Unknown0x1ec[0x58];
+	/*0x240*/ DWORD     TextureAnim;//im guessing now but I think this is the icon displayed use iconcache->geticon to fill it in...
+	/*0x244*/ BYTE      Unknown0x248[0x1c];
+	/*0x260*/
 } CBUTTONWND, *PCBUTTONWND;
  
 typedef struct _CTEXTENTRYWND {
@@ -846,18 +839,18 @@ typedef struct _LOOTLIST {
 } LOOTLIST,*PLOOTLIST;
 
 //CAdvancedLootWnd__CAdvancedLootWnd_x
-//size 0x2d8 see 4B81E1 in Jun 29 2015 -eqmule
+//size 0x2D0 see 4B7B01 in May 27 2015 -eqmule
 typedef struct _EQADVLOOTWND {
 	/*0x000*/ struct _CSIDLWND     Wnd;
-	/*0x21c*/ BYTE	Unknown0x021c[0x94];
-	/*0x2b0*/ struct _LOOTLIST *pCLootList;//below ref to aAdlw_applyfilt
-	/*0x2b4*/ struct _LOOTLIST *pPLootList;//below ref to aAdlw_cllwnd
-	/*0x2b8*/ BYTE		Unknown0x2b8[0xc];
-	/*0x2c4*/ DWORD		PListCount;
-	/*0x2c8*/ BYTE		Unknown0x2c8[0x4];
-	/*0x2cc*/ DWORD		ContextMenuId;
-	/*0x2d0*/ BYTE		Unknown0x2d0[0x8];
-	/*0x2d8*/
+	/*0x214*/ BYTE	Unknown0x0214[0x94];
+	/*0x2a8*/ struct _LOOTLIST *pCLootList;//below ref to aAdlw_applyfilt
+	/*0x2ac*/ struct _LOOTLIST *pPLootList;//below ref to aAdlw_cllwnd
+	/*0x2b0*/ BYTE		Unknown0x2b0[0xc];
+	/*0x2bc*/ DWORD		PListCount;
+	/*0x2c0*/ BYTE		Unknown0x2c0[0x4];
+	/*0x2c4*/ DWORD		ContextMenuId;
+	/*0x2c8*/ BYTE		Unknown0x2c8[0x8];
+	/*0x2d0*/
 } EQADVLOOTWND, *PEQADVLOOTWND;
 
 //
@@ -927,174 +920,175 @@ typedef struct _TARGETRING {
 //everything below it is 100% checked -eqmule
 
 //CBazaarSearchWnd__CBazaarSearchWnd aBazaarsearchwn
-// Actual Size: 0x92b8 (see 4BAE35) in Dec  8 2015 Live - eqmule
+// Actual Size: 0x92b0 (see 4B5C13) in May 27 2015 test - eqmule
 typedef struct _BAZAARSEARCHWND {
 	/*0x0000*/ struct _CSIDLWND     Wnd;
-	/*0x021c*/ BYTE         Unknown0x021c[0x8ff8];
-	/*0x9214*/ void **      ppTraderData;
-	/*0x9218*/ DWORD        hashVal;//find in CBazaarSearchWnd__HandleBazaarMsg_x
-	/*0x921c*/ BYTE         Unknown0x921c[0x9c];
-	/*0x92b8*/
+	/*0x0214*/ BYTE         Unknown0x0214[0x8ff8];
+	/*0x920c*/ void **      ppTraderData;
+	/*0x9210*/ DWORD        hashVal;//find in CBazaarSearchWnd__HandleBazaarMsg_x
+	/*0x9214*/ BYTE         Unknown0x9214[0x9c];
+	/*0x92b0*/
 } BAZAARSEARCHWND, *PBAZAARSEARCHWND;
 
 //CPlayerWindow__CPlayerWindow aPlayerwindow
 //Note to self: cant actually find CombatState in it, so no point in looking through IDA for it, but it IS the last dword... so... until that changes, im just gonna accept it...
-// Actual Size: 0x2d4 (see 4BA71E) in Dec  8 2015 Live - eqmule
+// Actual Size: 0x2cc (see 4B554E) in May 27 2015 test - eqmule
 typedef struct _CPLAYERWND {
 	/*0x0000*/ struct _CSIDLWND     Wnd;
-	/*0x021c*/ BYTE         Unknown0x021c[0xb4];
-	/*0x02d0*/ DWORD        CombatState;   // 1=debuffed, 2=combat cooldown, 3=stand, 4=sit
-	/*0x02d4*/
+	/*0x0214*/ BYTE         Unknown0x0214[0xb4];
+	/*0x02c8*/ DWORD        CombatState;   // 1=debuffed, 2=combat cooldown, 3=stand, 4=sit
+	/*0x02cc*/
 } CPLAYERWND, *PCPLAYERWND;
 
 // CTargetWindow__CTargetWindow aTargetwindow
-// Actual Size: 0x8b0 (see 4BA5B2) in Dec  8 2015 Live - eqmule
+// Actual Size: 0x8a8 (see 4B53E2) in May 27 2015 test - eqmule
 typedef struct _CTARGETWND {
-	/*0x0000*/ struct _CSIDLWND     Wnd;
-	/*0x021c*/ BYTE         Unknown0x021c[0x198];
-	/*0x03b4*/ struct _CBUTTONWND * pTargetBuff[NUM_BUFF_SLOTS]; // buff icons
-	/*0x0538*/ int          BuffSpellID[NUM_BUFF_SLOTS]; // 0xffffffff if no buff
-	/*0x06bc*/ DWORD        BuffTimer[NUM_BUFF_SLOTS];
-	/*0x0840*/ BYTE         Unknown0x0840[0x24];
-	/*0x0864*/ DWORD        Type;              // 1 = self, 4 = group member, 5 = PC, 7 = NPC
-	/*0x0868*/ BYTE         Unknown0x0868[0x48];
-	/*0x08b0*/
+	/*0x0000*/ struct  _CSIDLWND    Wnd;
+	/*0x0214*/ BYTE         Unknown0x0214[0x198];
+	/*0x03ac*/ struct _CBUTTONWND * pTargetBuff[NUM_BUFF_SLOTS]; // buff icons
+	/*0x0530*/ int          BuffSpellID[NUM_BUFF_SLOTS]; // 0xffffffff if no buff
+	/*0x06b4*/ DWORD        BuffTimer[NUM_BUFF_SLOTS];
+	/*0x0838*/ BYTE         Unknown0x0838[0x24];
+	/*0x085c*/ DWORD        Type;              // 1 = self, 4 = group member, 5 = PC, 7 = NPC
+	/*0x0860*/ BYTE         Unknown0x0860[0x48];
+	/*0x08a8*/
 } CTARGETWND, *PCTARGETWND;
 
 // CBuffWindow__CBuffWindow aBuffwindow
 // this is used for both long and shortbuffs...
-// Actual Size: 0x704 (see 4BA446) in Dec  8 2015 Live - eqmule
+// Actual Size: 0x6fc (see 4B5276) in May 27 2015 test - eqmule
 typedef struct _EQBUFFWINDOW {
 	/*0x0000*/ struct _CSIDLWND     Wnd;
-	/*0x021c*/ BYTE         Unknown0x021c[0xbc];
-	/*0x02d8*/ struct _CBUTTONWND * pBuff[0x24];    // CButton*
-	/*0x0368*/ BYTE         Unknown0x0368[0x210];
-	/*0x0578*/ DWORD        BuffId[NUM_LONG_BUFFS];
-	/*0x0620*/ DWORD        BuffTimer[NUM_LONG_BUFFS];
-	/*0x06c8*/ BYTE         Unknown0x06c8[0x28];
-	/*0x06f0*/ DWORD        MaxLongBuffs;           //0x2a (NUM_LONG_BUFFS)
-	/*0x06f4*/ DWORD        MaxShortBuffs;          //0x37 (NUM_SHORT_BUFFS)
-	/*0x06f8*/ BYTE         Unknown0x06f8[0xc];
-	/*0x0704*/
+	/*0x0214*/ BYTE         Unknown0x0214[0xbc];
+	/*0x02d0*/ struct _CBUTTONWND * pBuff[0x24];    // CButton*
+	/*0x0360*/ BYTE         Unknown0x0360[0x210];
+	/*0x0570*/ DWORD        BuffId[NUM_LONG_BUFFS];
+	/*0x0618*/ DWORD        BuffTimer[NUM_LONG_BUFFS];
+	/*0x06c0*/ BYTE         Unknown0x06c0[0x28];
+	/*0x06e8*/ DWORD        MaxLongBuffs;           //0x2a (NUM_LONG_BUFFS)
+	/*0x06ec*/ DWORD        MaxShortBuffs;          //0x37 (NUM_SHORT_BUFFS)
+	/*0x06f0*/ BYTE         Unknown0x06f0[0xc];
+	/*0x06fc*/
 } EQBUFFWINDOW, *PEQBUFFWINDOW;
 
 // CSpellGemWnd__CSpellGemWnd
 // Individual Gems 
-// Actual Size: 0x300 (see 79CB38) in Dec  8 2015 aSpelldisplaywi - eqmule
+// Actual Size: 0x2f8 (see 7918E8) in May 27 2015 test - eqmule
 typedef struct _EQCASTSPELLGEM {
-	/*0x0000*/ struct _CXWND        Wnd;
-	/*0x01d4*/ BYTE         Unknown0x01d4[0x44];
-	/*0x0218*/ DWORD        TimeStamp;
-	/*0x021c*/ DWORD        RecastTime;
-	/*0x0220*/ BYTE         Unknown0x0220[0xb4];
-	/*0x02d4*/ DWORD        spellicon;       //if this is equal to FFFFFFFF there is no spell memmed in this slot...
-	/*0x02d8*/ DWORD        spellstate;      // 1 = cast in progress or refreshtime not met 2 means we ducked or aborted cast, 0 means its ok to cast
-	/*0x02dc*/ BYTE         Unknown0x02dc[0x24];
-	/*0x0300*/
+	/*0x0000*/ struct    _CXWND     Wnd;
+	/*0x01cc*/ BYTE         Unknown0x01cc[0x44];
+	/*0x0210*/ DWORD        TimeStamp;
+	/*0x0214*/ DWORD        RecastTime;
+	/*0x0218*/ BYTE         Unknown0x0218[0xb4];
+	/*0x02cc*/ DWORD        spellicon;       //if this is equal to FFFFFFFF there is no spell memmed in this slot...
+	/*0x02d0*/ DWORD        spellstate;      // 1 = cast in progress or refreshtime not met 2 means we ducked or aborted cast, 0 means its ok to cast
+	/*0x02d4*/ BYTE         Unknown0x02d4[0x24];
+	/*0x02f8*/
 } EQCASTSPELLGEM, *PEQCASTSPELLGEM;
+
 
 //pinstCCastSpellWnd_x
 // CCastSpellWnd__CCastSpellWnd aCastspellwnd
-// Actual Size: 0x2ac (see 4BA832) in Dec  8 2015 Live - eqmule
+// Actual Size: 0x2a4 (see 4B5662) in May 27 2015 test - eqmule
 typedef struct _EQCASTSPELLWINDOW {
 	/*0x0000*/ struct _CSIDLWND     Wnd;
-	/*0x021c*/ BYTE         Unknown0x021c[0x14];
-	/*0x0230*/ struct _EQCASTSPELLGEM *     SpellSlots[NUM_SPELL_GEMS];//CSPW_Spell%d
-	/*0x0260*/ BYTE         Unknown0x0260[0x4c];
-	/*0x02ac*/
+	/*0x0214*/ BYTE         Unknown0x0214[0x14];
+	/*0x0228*/ struct _EQCASTSPELLGEM   *   SpellSlots[NUM_SPELL_GEMS];//CSPW_Spell%d
+	/*0x0258*/ BYTE         Unknown0x0258[0x4c];
+	/*0x02a4*/
 } EQCASTSPELLWINDOW, *PEQCASTSPELLWINDOW;
 
-// Actual Size: 0x2b4 (see 79CC49) in Dec  8 2015 Live - eqmule
+// Actual Size: 0x2ac (see 7919F9) in May 27 2015 test - eqmule
 typedef struct _EQINVSLOTWND {
 	/*0x0000*/ struct _CXWND        Wnd;      //----/ actually CButtonWnd
-	/*0x01d4*/ BYTE         Unknown0x01d4[0x88];
-	/*0x025c*/ BYTE         Unknown0x025c[0x10];
-	/*0x026c*/ LONG         WindowType;        // ieatacid has this as InventoryType
+	/*0x01cc*/ BYTE         Unknown0x01cc[0x88];
+	/*0x0254*/ BYTE         Unknown0x0254[0x10];
+	/*0x0264*/ LONG         WindowType;        // ieatacid has this as InventoryType
 											   // 00 for inventory
 											   // 01 for bank
 											   // 02 for shared bank
 											   // 03 for trader window
 											   // 04 for World/Tradeskill/Combine
 											   // 11 for loot window
-	/*0x0270*/ WORD         InvSlot;
-	/*0x0272*/ WORD         BagSlot;
-	/*0x0274*/ WORD         GlobalSlot;
-	/*0x0276*/ WORD         RandomNum;              //no idea what this is, it changes upon login but we need it for moveitem... -eqmule
-	/*0x0278*/ BYTE         Unknown0x0278[0x20];
-	/*0x0298*/ struct _EQINVSLOT *  pInvSlot;
-	/*0x029c*/ BYTE         Unknown0x029c[0x8];
-	/*0x02a4*/ BOOL         ProcessClick;
-	/*0x02a8*/ BYTE         Unknown0x02a8[0xc];
-	/*0x02b4*/
+	/*0x0268*/ WORD         InvSlot;
+	/*0x026a*/ WORD         BagSlot;
+	/*0x026c*/ WORD         GlobalSlot;
+	/*0x026e*/ WORD         RandomNum;              //no idea what this is, it changes upon login but we need it for moveitem... -eqmule
+	/*0x0270*/ BYTE         Unknown0x0270[0x20];
+	/*0x0290*/ struct _EQINVSLOT *  pInvSlot;
+	/*0x0294*/ BYTE         Unknown0x0294[0x8];
+	/*0x029c*/ BOOL         ProcessClick;
+	/*0x02a0*/ BYTE         Unknown0x02a0[0xc];
+	/*0x02ac*/
 } EQINVSLOTWND, *PEQINVSLOTWND;
 
 // CItemDisplayWindow__CItemDisplayWindow aItemdisplaywin
-// Actual Size: 0x5fc (see 6E5D7F) in Dec  8 2015 aItemdisplaywin - eqmule
+// Actual Size: 0x5f4 (see 6DB12F) in May 27 2015 test - eqmule
 typedef struct _EQITEMWINDOW {
 	/*0x0000*/ struct _CSIDLWND     Wnd;
-	/*0x021c*/ struct _CSIDLWND *   DisplayWnd;//ItemDescription
-	/*0x0220*/ BYTE         Unknown0x0220[0x4];
-	/*0x0224*/ struct _CSIDLWND *   IconButton;
-	/*0x0228*/ struct _CSIDLWND *   ItemLore;
-	/*0x022c*/ struct _CSIDLWND *   ItemDescriptionTabBox;
-	/*0x0230*/ struct _CSIDLWND *   ItemDescriptionTab;
-	/*0x0234*/ struct _CSIDLWND *   ItemLoreTab;
-	/*0x0238*/ BYTE         Unknown0x0238[0x58];
-	/*0x0290*/ PCXSTR       ItemInfo;//this item is placable in yards, guild yards blah blah , This item can be used in tradeskills
-	/*0x0294*/ PCXSTR       WindowTitle;
-	/*0x0298*/ PCXSTR       ItemAdvancedLoreText;
-	/*0x029c*/ PCXSTR       ItemMadeByText;
-	/*0x02a0*/ PCXSTR       UnknownCXStr; // if this is NULL don't populate item data in MQ2ItemDisplay
-	/*0x02a4*/ BYTE         Unknown0x02a4[0x4];
-	/*0x02a8*/ PCXSTR       ItemInformationText;//Item Information: Placing this augment into blah blah, this armor can only be used in blah blah
-	/*0x02ac*/ PCONTENTS    pItem;
-	/*0x02b0*/ BYTE         Unknown0x02b0[0x348];
-	/*0x05f8*/ DWORD        ItemWndIndex;//0-5? you can have max 6 windows up I think before it starts overwriting the sixth.
-	/*0x05fc*/
+	/*0x0214*/ struct _CSIDLWND *   DisplayWnd;//ItemDescription
+	/*0x0218*/ BYTE         Unknown0x0238[0x4];
+	/*0x021c*/ struct _CSIDLWND *IconButton;
+	/*0x0220*/ struct _CSIDLWND *ItemLore;
+	/*0x0224*/ struct _CSIDLWND *ItemDescriptionTabBox;
+	/*0x0228*/ struct _CSIDLWND *ItemDescriptionTab;
+	/*0x022c*/ struct _CSIDLWND *ItemLoreTab;
+	/*0x0230*/ BYTE         Unknown0x0250[0x58];
+	/*0x0288*/ PCXSTR       ItemInfo;//this item is placable in yards, guild yards blah blah , This item can be used in tradeskills
+	/*0x028c*/ PCXSTR       WindowTitle;
+	/*0x0290*/ PCXSTR       ItemAdvancedLoreText;
+	/*0x0294*/ PCXSTR       ItemMadeByText;
+	/*0x0298*/ PCXSTR       UnknownCXStr; // if this is NULL don't populate item data in MQ2ItemDisplay
+	/*0x029c*/ BYTE         Unknown0x02bc[0x4];
+	/*0x02a0*/ PCXSTR       ItemInformationText;//Item Information: Placing this augment into blah blah, this armor can only be used in blah blah
+	/*0x02a4*/ PCONTENTS    pItem;
+	/*0x02a8*/ BYTE         Unknown0x02c8[0x348];
+	/*0x0fe0*/ DWORD        ItemWndIndex;//0-5? you can have max 6 windows up I think before it starts overwriting the sixth.
+	/*0x05e4*/
 } EQITEMWINDOW, *PEQITEMWINDOW;
 
 //CLootWnd__CLootWnd aLootwnd
-// Actual Size: 0x3a0 (see 4BAC07) in Dec  8 2015 Live - eqmule
+// Actual Size: 0x398 (see 4B59E5) in May 27 2015 test - eqmule
 typedef struct _EQLOOTWINDOW {
 	/*0x0000*/ struct _CSIDLWND     Wnd;
-	/*0x021c*/ void *       vftable; // for CLootWnd::DialogResponse handler
-	/*0x0220*/ BYTE         Unknown0x0220[0x98];
-	/*0x02b8*/ DWORD        NumOfSlots;
-	/*0x02bc*/ BYTE         Unknown0x02bc[0x4];
-	/*0x02c0*/ struct _INVENTORYARRAY *     pInventoryArray;
-	/*0x02c4*/ DWORD        NumOfSlots2;
-	/*0x02c8*/ DWORD        NumOfSlots3;
-	/*0x02cc*/ BYTE         Unknown0x02cc[0x24];
-	/*0x02f0*/ BYTE         Unknown0x02f4;
-	/*0x02f1*/ BYTE         Unknown0x02f5;
-	/*0x02f2*/ BYTE         Unknown0x02f6;
-	/*0x02f3*/ BYTE         Unknown0x02f7;
-	/*0x02f4*/ struct _CSIDLWND *   LootInvWnd;
-	/*0x02f8*/ struct _CSILDWND *   LootSlotWnd[0x22];
-	/*0x0380*/ struct _CSIDLWND *   LW_CorpseName;
-	/*0x0384*/ struct _CSIDLWND *   DoneButton;
-	/*0x0388*/ struct _CSIDLWND *   BroadcastButton;
-	/*0x038c*/ struct _CSIDLWND *   LootAllButton;
-	/*0x0390*/ BYTE         Unknown0x0390[0x10];
-	/*0x03a0*/
+	/*0x0214*/ void *       vftable; // for CLootWnd::DialogResponse handler
+	/*0x0218*/ BYTE         Unknown0x0218[0x98];
+	/*0x02b0*/ DWORD        NumOfSlots;
+	/*0x02b4*/ BYTE         Unknown0x02b4[0x4];
+	/*0x02b8*/ struct _INVENTORYARRAY *     pInventoryArray;
+	/*0x02bc*/ DWORD        NumOfSlots2;
+	/*0x02c0*/ DWORD        NumOfSlots3;
+	/*0x02c4*/ BYTE         Unknown0x02c4[0x24];
+	/*0x02e8*/ BYTE         Unknown0x02e8;
+	/*0x02e9*/ BYTE         Unknown0x02e9;
+	/*0x02ea*/ BYTE         Unknown0x02ea;
+	/*0x02eb*/ BYTE         Unknown0x02eb;
+	/*0x02ec*/ struct _CSIDLWND *   LootInvWnd;
+	/*0x02f0*/ struct _CSILDWND *   LootSlotWnd[0x22];
+	/*0x0378*/ struct _CSIDLWND *   LW_CorpseName;
+	/*0x037c*/ struct _CSIDLWND *   DoneButton;
+	/*0x0380*/ struct _CSIDLWND *   BroadcastButton;
+	/*0x0384*/ struct _CSIDLWND *   LootAllButton;
+	/*0x0388*/ BYTE         Unknown0x0388[0x10];
+	/*0x0398*/
 } EQLOOTWINDOW, *PEQLOOTWINDOW;
 
-// pLines address = 0x254 + 0x035c = 0x05b0 (address of pMapViewMapVfTable)
+// pLines address = 0x244 + 0x034c = 0x0590 (address of pMapViewMapVfTable)
 // CMapViewWnd__CMapViewWnd_x
-// Actual Size: 0x61c (see 4BA2A7) in Dec  8 2015 Live - eqmule
+// Actual Size: 0x60c (see 4B50D7) in May 27 2015 test - eqmule
 typedef struct _EQMAPWINDOW {
 	/*0x0000*/ struct _CSIDLWND     Wnd;
-	/*0x021c*/ BYTE         Unknown0x021c[0x40];
-	/*0x025c*/ CHAR         shortzonename[0x20];
-	/*0x027c*/ BYTE         Unknown0x027c[0x9c];
-	/*0x0318*/ struct _CXWND *      wnd;           // its the MVW_MapRenderArea window... found at aMvw_maprendera
-	/*0x031c*/ BYTE         Unknown0x031c[0x38];
-	/*0x0354*/ struct _CSIDLWNDVFTABLE *    pMapViewMapVfTable; // found at aMapviewmap
-	/*0x0358*/ BYTE         Unknown0x0358[0x248];
-	/*0x05a0*/ PMAPLINE     pLines;     //0x24c
-	/*0x05a4*/ PMAPLABEL    pLabels;    //0x250
-	/*0x05a8*/ BYTE         Unknown0x05a8[0x74];
-	/*0x061c*/
+	/*0x0214*/ BYTE         Unknown0x0214[0x40];
+	/*0x0254*/ CHAR         shortzonename[0x20];
+	/*0x0274*/ BYTE         Unknown0x0274[0x9c];
+	/*0x0310*/ struct _CXWND  *     wnd;           // its the MVW_MapRenderArea window... found at aMvw_maprendera
+	/*0x0314*/ BYTE         Unknown0x0314[0x38];
+	/*0x034c*/ struct _CSIDLWNDVFTABLE    * pMapViewMapVfTable; // found at aMapviewmap
+	/*0x0350*/ BYTE         Unknown0x0350[0x240];
+	/*0x0590*/ PMAPLINE     pLines;     //0x244
+	/*0x0594*/ PMAPLABEL    pLabels;    //0x248
+	/*0x0598*/ BYTE         Unknown0x0598[0x74];
+	/*0x060c*/
 } EQMAPWINDOW, *PEQMAPWINDOW;
 
 // 20120316 - ieatacid
@@ -1116,74 +1110,74 @@ struct merch_other {
 };
 
 //CMerchantWnd__CMerchantWnd (aMerchantwnd)
-// Actual Size: 0x2b8 (see 4BAD21) in Dec  8 2015 aSDeliveryRecei - eqmule
+// Actual Size: 0x2b0 (see 4B5AFF) in May 27 2015 test - eqmule
 typedef struct _EQMERCHWINDOW {
 	/*0x0000*/ struct _CSIDLWND     Wnd;
-	/*0x021c*/ BYTE         Unknown0x021c[0x10];
-	/*0x022c*/ merch_other *        pMerchOther;//found in CMerchantWnd__CMerchantWnd
-	/*0x0230*/ BYTE         Unknown0x0230[0x8];
-	/*0x0238*/ FLOAT        Markup;//found in CMerchantWnd__DisplayBuyOrSellPrice_x
-	/*0x023c*/ BYTE         Unknown0x023c[0xc];
-	/*0x0248*/ DWORD        SelectedSlotID;//found in CMerchantWnd__RequestBuyItem_x
-	/*0x024c*/ BYTE         Unknown0x024c[0x6c];
-	/*0x02b8*/
+	/*0x0214*/ BYTE         Unknown0x0214[0x10];
+	/*0x0224*/ merch_other *        pMerchOther;//found in CMerchantWnd__CMerchantWnd
+	/*0x0228*/ BYTE         Unknown0x0228[0x8];
+	/*0x0230*/ FLOAT        Markup;//found in CMerchantWnd__DisplayBuyOrSellPrice_x
+	/*0x0234*/ BYTE         Unknown0x0234[0xc];
+	/*0x0240*/ DWORD        SelectedSlotID;//found in CMerchantWnd__RequestBuyItem_x
+	/*0x0244*/ BYTE         Unknown0x0244[0x6c];
+	/*0x02b0*/
 } EQMERCHWINDOW, *PEQMERCHWINDOW;
 
 //CPetInfoWindow__CPetInfoWindow aPetinfowindow
-// Actual Size: 0x91c (see 4B9CE2) in Dec  8 2015 Live - eqmule
+// Actual Size: 0x914 (see 4B4B12) in May 27 2015 test - eqmule
 typedef struct _EQPETINFOWINDOW {
 	/*0x0000*/ struct _CSIDLWND     Wnd;
-	/*0x021c*/ BYTE         Unknown0x021c[0x8];
-	/*0x0224*/ DWORD        PetSpawnID;//The pets SpawnID
-	/*0x0228*/ BYTE         Unknown0x0228[0x8];
-	/*0x0230*/ struct _CBUTTONWND * pButton[0xe];//there are 14 buttons on the petinfowin with text that can be set to attack,none,back and so on, these are those...
-	/*0x0268*/ BYTE         Unknown0x0268[0x8];
-	/*0x0270*/ struct _CBUTTONWND * pAttackButton;//if 0 its not assigned.
-	/*0x0274*/ struct _CBUTTONWND * pQAttackButton;//if 0 its not assigned.
-	/*0x0278*/ struct _CBUTTONWND * pFollowButton;//if 0 its not assigned.
-	/*0x027c*/ struct _CBUTTONWND * pGuardButton;//if 0 its not assigned.
-	/*0x0280*/ struct _CBUTTONWND * pSitButton;//if 0 its not assigned.
-	/*0x0284*/ struct _CBUTTONWND * pStopButton;//if 0 its not assigned.
-	/*0x0288*/ BYTE         Unknown0x0288[0x1bc];
-	/*0x0444*/ struct _CSIDLWND *   pWnd[NUM_BUFF_SLOTS]; // buff icons?
-	/*0x05c8*/ int          Buff[NUM_BUFF_SLOTS];        // Spell ID# of each buff -- 97 total
-	/*0x074c*/ BYTE         Unknown0x074c[0x20];
-	/*0x076c*/ DWORD        PetBuffTimer[NUM_BUFF_SLOTS]; // duration until buff fades, in thousands of a second
-	/*0x08f0*/ BYTE         Unknown0x08f0[0x1f];
-	/*0x090f*/ BYTE         Sit;//0/1 is off/on
-	/*0x0910*/ BYTE         Stop;//0/1 is off/on
-	/*0x0911*/ BYTE         ReGroup;//0/1 is off/on
-	/*0x0912*/ BYTE         Follow;//0/1 is off/on
-	/*0x0913*/ BYTE         Guard;//0/1 is off/on
-	/*0x0914*/ BYTE         Taunt;//0/1 is off/on
-	/*0x0915*/ BYTE         Hold;//0/1 is off/on
-	/*0x0916*/ BYTE         GHold;//0/1 is off/on
-	/*0x0917*/ BYTE         Focus;//0/1 is off/on
-	/*0x0918*/ BYTE         Unknown0x0918[0x4];
-	/*0x091c*/
+	/*0x0214*/ BYTE         Unknown0x0214[0x8];
+	/*0x021c*/ DWORD                PetSpawnID;//The pets SpawnID
+	/*0x0220*/ BYTE         Unknown0x0220[0x8];
+	/*0x0228*/ struct _CBUTTONWND * pButton[0xe];//there are 14 buttons on the petinfowin with text that can be set to attack,none,back and so on, these are those...
+	/*0x0260*/ BYTE         Unknown0x0260[0x8];
+	/*0x0268*/ struct _CBUTTONWND * pAttackButton;//if 0 its not assigned.
+	/*0x026c*/ struct _CBUTTONWND * pQAttackButton;//if 0 its not assigned.
+	/*0x0270*/ struct _CBUTTONWND * pFollowButton;//if 0 its not assigned.
+	/*0x0274*/ struct _CBUTTONWND * pGuardButton;//if 0 its not assigned.
+	/*0x0278*/ struct _CBUTTONWND * pSitButton;//if 0 its not assigned.
+	/*0x027c*/ struct _CBUTTONWND * pStopButton;//if 0 its not assigned.
+	/*0x0280*/ BYTE         Unknown0x0280[0x1bc];
+	/*0x043c*/ struct _CSIDLWND *   pWnd[NUM_BUFF_SLOTS]; // buff icons?
+	/*0x05c0*/ int          Buff[NUM_BUFF_SLOTS];        // Spell ID# of each buff -- 97 total
+	/*0x0744*/ BYTE         Unknown0x0744[0x20];
+	/*0x0764*/ DWORD        PetBuffTimer[NUM_BUFF_SLOTS]; // duration until buff fades, in thousands of a second
+	/*0x08e8*/ BYTE         Unknown0x08e8[0x1f];
+	/*0x0907*/ BYTE         Sit;//0/1 is off/on
+	/*0x0908*/ BYTE         Stop;//0/1 is off/on
+	/*0x0909*/ BYTE         ReGroup;//0/1 is off/on
+	/*0x090a*/ BYTE         Follow;//0/1 is off/on
+	/*0x090b*/ BYTE         Guard;//0/1 is off/on
+	/*0x090c*/ BYTE         Taunt;//0/1 is off/on
+	/*0x090d*/ BYTE         Hold;//0/1 is off/on
+	/*0x090e*/ BYTE         GHold;//0/1 is off/on
+	/*0x090f*/ BYTE         Focus;//0/1 is off/on
+	/*0x0910*/ BYTE         Unknown0x0910[0x4];
+	/*0x0914*/
 } EQPETINFOWINDOW, *PEQPETINFOWINDOW;
 
 //CRaidWindow__CRaidWindow
 //aClasscolorD
-// Actual Size: 0x390 (see 4B9FD5) in Dec  8 2015 Live - eqmule
+// Actual Size: 0x388 (see 4B4E05) in May 27 2015 test - eqmule
 typedef struct _EQRAIDWINDOW {
 	/*0x0000*/ struct _CSIDLWND     Wnd;
-	/*0x021c*/ BYTE         Unknown0x021c[0xb8];
-	/*0x02d4*/ DWORD        ClassColors[0x10];
-	/*0x0314*/ BYTE         Unknown0x0314[0x7c];
-	/*0x0390*/
+	/*0x0214*/ BYTE         Unknown0x0214[0xb8];
+	/*0x02cc*/ DWORD        ClassColors[0x10];
+	/*0x030c*/ BYTE         Unknown0x030c[0x7c];
+	/*0x0388*/
 } EQRAIDWINDOW, *PEQRAIDWINDOW;
 
 //CTradeWnd__CTradeWnd aTradewnd
-// Actual Size: 0x2f8 (see 4BAD7D) in Dec  8 2015 Live - eqmule
+// Actual Size: 0x2f0 (see 4B5B5B) in May 27 2015 test - eqmule
 typedef struct _EQTRADEWINDOW {
 	/*0x0000*/ struct _CSIDLWND     Wnd;
-	/*0x021c*/ BYTE         Unknown0x021c[0xd4];
-	/*0x02f0*/ BYTE         HisTradeReady;
-	/*0x02f1*/ BYTE         MyTradeReady;
-	/*0x02f2*/ BYTE         TradeWndOpen;
-	/*0x02f3*/ BYTE         Unknown0x02f3[0x5];
-	/*0x02f8*/
+	/*0x0214*/ BYTE         Unknown0x0214[0xd4];
+	/*0x02e8*/ BYTE         HisTradeReady;
+	/*0x02e9*/ BYTE         MyTradeReady;
+	/*0x02ea*/ BYTE         TradeWndOpen;
+	/*0x02eb*/ BYTE         Unknown0x02eb[0x5];
+	/*0x02f0*/
 } EQTRADEWINDOW, *PEQTRADEWINDOW;
 
 };
