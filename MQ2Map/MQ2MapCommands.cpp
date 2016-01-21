@@ -76,6 +76,23 @@ VOID MapFilterSetting(PSPAWNINFO pChar, DWORD nMapFilter, PCHAR szValue)
 				sprintf(szBuffer, "%s is now set to: %s", pMapFilter->szName, FormatSearchSpawn(Buff, &MapFilterCustom));
 			}
 		}
+		else if (nMapFilter == MAPFILTER_Marker) {
+			CHAR szBuffer2[MAX_STRING] = { 0 };
+			GetArg(szBuffer2, szValue, 1);
+
+			if (!_stricmp(szFilterMap[0], szValue)) {
+				pMapFilter->Enabled = 0;
+				sprintf(szBuffer, "%s is now set to: %s", pMapFilter->szName, szFilterMap[IsOptionEnabled(nMapFilter)]);
+			}
+			else if (!_stricmp(szFilterMap[1], szValue)) {
+				pMapFilter->Enabled = 1;
+				sprintf(szBuffer, "%s is now set to: %s", pMapFilter->szName, szFilterMap[IsOptionEnabled(nMapFilter)]);
+			}
+			else {
+				pMapFilter->Enabled = 1;
+				sprintf(szBuffer, "%s %s", pMapFilter->szName, FormatMarker(szValue, Buff));
+			}
+		}
 		else {
 			pMapFilter->Enabled = atoi(szValue);
 			sprintf(szBuffer, "%s is now set to: %d", pMapFilter->szName, pMapFilter->Enabled);
@@ -174,7 +191,7 @@ VOID MapHighlightCmd(PSPAWNINFO pChar, PCHAR szLine)
 	bRunNextCommand = TRUE;
 	if (szLine == 0 || szLine[0] == 0)
 	{
-		SyntaxError("Usage: /highlight [reset|spawnfilter|[color # # #]]");
+		SyntaxError("Usage: /highlight [reset|spawnfilter|size|pulse|[color # # #]]");
 		return;
 	};
 
@@ -202,6 +219,30 @@ VOID MapHighlightCmd(PSPAWNINFO pChar, PCHAR szLine)
 		WriteChatColor("Highlighting reset", USERCOLOR_DEFAULT);
 		return;
 	}
+	else if (!_stricmp(szArg, "size"))
+	{
+		HighlightSIDELEN = strtol(GetArg(szArg, szLine, 2), 0, 0);
+		PulseReset();
+		sprintf(szBuffer, "Highlight size: %d", HighlightSIDELEN);
+		WriteChatColor(szBuffer);
+
+		// Write setting to file
+		char szTest[5];
+		sprintf_s(szTest, "%d", HighlightSIDELEN);
+		WritePrivateProfileString("Map Filters", "HighSize", szTest, INIFileName);
+		return;
+	}
+	else if (!_stricmp(szArg, "pulse"))
+	{
+		HighlightPulse = !HighlightPulse;
+		PulseReset();
+		sprintf(szBuffer, "Highlight pulse: %s", HighlightPulse ? "ON" : "OFF");
+		WriteChatColor(szBuffer);
+
+		// Write setting to file
+		WritePrivateProfileString("Map Filters", "HighPulse", HighlightPulse ? "1" : "0", INIFileName);
+		return;
+	}
 
 	if (PCHARINFO pCharInfo = GetCharInfo())
 	{
@@ -213,6 +254,13 @@ VOID MapHighlightCmd(PSPAWNINFO pChar, PCHAR szLine)
 	}
 }
 
+VOID PulseReset()
+{
+	HighlightPulseIncreasing = TRUE;
+	HighlightPulseIndex = 0;
+	HighlightPulseDiff = HighlightSIDELEN / 10;
+}
+
 VOID MapHideCmd(PSPAWNINFO pChar, PCHAR szLine)
 {
 	CHAR szArg[MAX_STRING] = { 0 };
@@ -220,7 +268,7 @@ VOID MapHideCmd(PSPAWNINFO pChar, PCHAR szLine)
 	bRunNextCommand = TRUE;
 	if (szLine == 0 || szLine[0] == 0)
 	{
-		SyntaxError("Usage: /maphide [spawnfilter|reset]");
+		SyntaxError("Usage: /maphide [spawnfilter|reset|repeat]");
 		return;
 	};
 	GetArg(szArg, szLine, 1);
@@ -229,6 +277,20 @@ VOID MapHideCmd(PSPAWNINFO pChar, PCHAR szLine)
 		MapClear();
 		MapGenerate();
 		WriteChatColor("Map spawns regenerated", USERCOLOR_DEFAULT);
+		return;
+	}
+	if (!_stricmp(szArg, "repeat"))
+	{
+		if (repeatMaphide)
+			repeatMaphide = FALSE;
+		else
+			repeatMaphide = TRUE;
+
+		itoa(repeatMaphide, szBuffer, 10);
+		WritePrivateProfileString("Map Filters", "Maphide-Repeat", szBuffer, INIFileName);
+
+		sprintf(szBuffer, "maphide repeat set to: %s", (repeatMaphide ? "on" : "off"));
+		WriteChatColor(szBuffer, USERCOLOR_DEFAULT);
 		return;
 	}
 	if (PCHARINFO pCharInfo = GetCharInfo())
@@ -248,7 +310,7 @@ VOID MapShowCmd(PSPAWNINFO pChar, PCHAR szLine)
 	bRunNextCommand = TRUE;
 	if (szLine == 0 || szLine[0] == 0)
 	{
-		SyntaxError("Usage: /mapshow [spawnfilter|reset]");
+		SyntaxError("Usage: /mapshow [spawnfilter|reset|repeat]");
 		return;
 	};
 	GetArg(szArg, szLine, 1);
@@ -257,6 +319,20 @@ VOID MapShowCmd(PSPAWNINFO pChar, PCHAR szLine)
 		MapClear();
 		MapGenerate();
 		WriteChatColor("Map spawns regenerated");
+		return;
+	}
+	if (!_stricmp(szArg, "repeat"))
+	{
+		if (repeatMapshow)
+			repeatMapshow = FALSE;
+		else
+			repeatMapshow = TRUE;
+
+		itoa(repeatMapshow, szBuffer, 10);
+		WritePrivateProfileString("Map Filters", "Mapshow-Repeat", szBuffer, INIFileName);
+
+		sprintf(szBuffer, "mapshow repeat set to: %s", (repeatMapshow ? "on" : "off"));
+		WriteChatColor(szBuffer, USERCOLOR_DEFAULT);
 		return;
 	}
 	if (PCHARINFO pCharInfo = GetCharInfo())
@@ -460,3 +536,72 @@ VOID MapClickCommand(PSPAWNINFO pChar, PCHAR szLine)
 
 
 #endif
+
+// marker code
+PCHAR szMarkType[] = {
+	"None",
+	"Triangle",
+	"Square",
+	"Diamond",
+	"Ring",
+};
+
+PCHAR FormatMarker(PCHAR szLine, PCHAR szDest)
+{
+	ZeroMemory(szDest, MAX_STRING);
+
+	CHAR MarkType[MAX_STRING] = { 0 };
+	CHAR MarkShape[MAX_STRING] = { 0 };
+	CHAR MarkSize[MAX_STRING] = { 0 };
+
+	GetArg(MarkType, szLine, 1);
+	GetArg(MarkShape, szLine, 2);
+	GetArg(MarkSize, szLine, 3);
+
+	if (!strlen(MarkType)) {
+		sprintf(szDest, "unchanged, no spawn type given.");
+		return szDest;
+	}
+
+	if (!strlen(MarkShape)) {
+		sprintf(szDest, "unchanged, no shape given.");
+		return szDest;
+	}
+
+	for (DWORD i = 0; MapFilterOptions[i].szName != NULL; i++) {
+		if (!stricmp(MarkType, MapFilterOptions[i].szName)) {
+
+			DWORD Marker = FindMarker(MarkShape);
+			if (Marker == 99) {
+				sprintf(szDest, "unchanged, unknown shape: '%s'", MarkShape);
+				return szDest;
+			}
+
+			DWORD Size = 6;
+			if (strlen(MarkSize)) {
+				Size = (int)atoi(MarkSize);
+				if (!Size) {
+					sprintf(szDest, "unchanged, invalid size: '%s'", MarkSize);
+					return szDest;
+				}
+			}
+
+			CHAR tmp_1[MAX_STRING] = { 0 };
+			CHAR tmp_2[MAX_STRING] = { 0 };
+			sprintf(tmp_1, "%s-Size", MapFilterOptions[i].szName);
+			sprintf(tmp_2, "%d", Size);
+
+			WritePrivateProfileString("Marker Filters", MapFilterOptions[i].szName, szMarkType[Marker], INIFileName);
+			WritePrivateProfileString("Marker Filters", tmp_1, tmp_2, INIFileName);
+
+			MapFilterOptions[i].Marker = Marker;
+			MapFilterOptions[i].MarkerSize = Size;
+
+			sprintf(szDest, "'%s' is now set to '%s' with size %d.", MapFilterOptions[i].szName, szMarkType[Marker], Size);
+			return szDest;
+		}
+	}
+
+	sprintf(szDest, "unchanged, unknown spawn type: %s", MarkType);
+	return szDest;
+}

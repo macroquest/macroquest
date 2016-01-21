@@ -1047,11 +1047,12 @@ int wwsCrashReportCheckForUploader_Detour(PEQCrash crash, PCHAR crashuploder, si
 	//hmm... -eqmule
 
 	ZeroMemory(crashuploder, ncrashuploder);
-	PCrashReport pTheCrash = (PCrashReport)(((DWORD)crashuploder) + ncrashuploder);
 	CHAR szMessage[MAX_STRING] = { 0 };
 	CHAR szNewPath[MAX_STRING] = { 0 };
-	sprintf_s(szNewPath, "%s.Copy", pTheCrash->sessionpath);
-	MoveFile(pTheCrash->sessionpath, szNewPath);
+	if (PCrashReport pTheCrash = (PCrashReport)(((DWORD)crashuploder) + ncrashuploder)) {
+		sprintf_s(szNewPath, "%s.Copy", pTheCrash->sessionpath);
+		MoveFile(pTheCrash->sessionpath, szNewPath);
+	}
 	sprintf_s(szMessage, "MacroQuest2 is blocking the sending of Sony crash info for your safety and privacy.  Crashes are usually bugs either in EQ or in MacroQuest2.  It is generally not something that you yourself did, unless you have custom MQ2 plugins loaded.  If you want to submit a bug report to the MacroQuest2 message boards, please follow the instructions on how to submit a crash bug report at the top of the MQ2::Bug Reports forum.\n\nA MiniDump has been generated in %s, you can mail the .dmp file in that directory to eqmule@hotmail.com if you think this crash is mq2 related.\n\nFull dumps are located in C:\\Crash if one was generated.\n\nIf you like to break into debugger at this point click yes.", szNewPath);
 	int ret = MessageBox(0, szMessage, "EverQuest Crash Report Sending Detected", MB_YESNO);
 	if (ret == IDYES)

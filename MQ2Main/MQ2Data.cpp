@@ -915,7 +915,6 @@ TLO(dataFindItemBank)
 {
 	if (!ISINDEX())
 		return false;
-	DWORD N = 1;
 	PCHAR pName = GETFIRST();
 	BOOL bExact = false;
 
@@ -924,124 +923,12 @@ TLO(dataFindItemBank)
 		bExact = true;
 		pName++;
 	}
-	CHAR Name[MAX_STRING] = { 0 };
-	CHAR Temp[MAX_STRING] = { 0 };
-	strlwr(strcpy(Name, pName));
-	PCHARINFO pCharInfo = GetCharInfo();
-	unsigned long nPack;
 
-
-	for (nPack = 0; nPack < NUM_BANK_SLOTS; nPack++)
-	{
-		PCHARINFO pCharInfo = GetCharInfo();
-		PCONTENTS pPack;
-
-		if (pCharInfo->pBankArray && (pPack = pCharInfo->pBankArray->Bank[nPack]))
-		{
-			if (bExact)
-			{
-				if (!_stricmp(Name, GetItemFromContents(pPack)->Name))
-				{
-					Ret.Ptr = pPack;
-					Ret.Type = pItemType;
-					return true;
-				}
-			}
-			else
-			{
-				if (strstr(strlwr(strcpy(Temp, GetItemFromContents(pPack)->Name)), Name))
-				{
-					Ret.Ptr = pPack;
-					Ret.Type = pItemType;
-					return true;
-				}
-			}
-			if (GetItemFromContents(pPack)->Type == ITEMTYPE_PACK && pPack->pContentsArray)
-			{
-				for (unsigned long nItem = 0; nItem < GetItemFromContents(pPack)->Slots; nItem++)
-				{
-					PCONTENTS pItem;
-					if (pPack->pContentsArray && (pItem = pPack->pContentsArray->Contents[nItem]))
-					{
-						if (bExact)
-						{
-							if (!_stricmp(Name, GetItemFromContents(pItem)->Name))
-							{
-								Ret.Ptr = pItem;
-								Ret.Type = pItemType;
-								return true;
-							}
-						}
-						else
-						{
-							if (strstr(strlwr(strcpy(Temp, GetItemFromContents(pItem)->Name)), Name))
-							{
-								Ret.Ptr = pItem;
-								Ret.Type = pItemType;
-								return true;
-							}
-						}
-					}
-				}
-			}
-		}
+	if (PCONTENTS pItem = FindBankItemByName(pName, bExact)) {
+		Ret.Ptr = pItem;
+		Ret.Type = pItemType;
+		return true;
 	}
-	for (nPack = 0; nPack < NUM_SHAREDBANK_SLOTS; nPack++)
-	{
-		PCHARINFO pCharInfo = GetCharInfo();
-		PCONTENTS pPack;
-		if (pCharInfo->pSharedBankArray && (pPack = pCharInfo->pSharedBankArray->SharedBank[nPack]))
-		{
-			if (bExact)
-			{
-				if (!_stricmp(Name, GetItemFromContents(pPack)->Name))
-				{
-					Ret.Ptr = pPack;
-					Ret.Type = pItemType;
-					return true;
-				}
-			}
-			else
-			{
-				if (strstr(strlwr(strcpy(Temp, GetItemFromContents(pPack)->Name)), Name))
-				{
-					Ret.Ptr = pPack;
-					Ret.Type = pItemType;
-					return true;
-				}
-			}
-			if (GetItemFromContents(pPack)->Type == ITEMTYPE_PACK && pPack->pContentsArray)
-			{
-				for (unsigned long nItem = 0; nItem < GetItemFromContents(pPack)->Slots; nItem++)
-				{
-					PCONTENTS pItem;
-					if (pPack->pContentsArray && (pItem = pPack->pContentsArray->Contents[nItem]))
-					{
-						if (bExact)
-						{
-							if (!_stricmp(Name, GetItemFromContents(pItem)->Name))
-							{
-								Ret.Ptr = pItem;
-								Ret.Type = pItemType;
-								return true;
-							}
-						}
-						else
-						{
-							if (strstr(strlwr(strcpy(Temp, GetItemFromContents(pItem)->Name)), Name))
-							{
-								Ret.Ptr = pItem;
-								Ret.Type = pItemType;
-								return true;
-							}
-						}
-					}
-				}
-			}
-		}
-	}
-
-
 	return false;
 }
 
@@ -1772,12 +1659,9 @@ TLO(dataFriends)
 
 TLO(dataTask)
 {
-	if (Ret.Ptr = pTaskMember)
-	{
-		Ret.Type = pTaskType;
-		return true;
-	}
-	return false;
+	Ret.DWord = 1;
+	Ret.Type = pTaskType;
+	return true;
 }
 
 TLO(dataMount)

@@ -5186,6 +5186,15 @@ bool MQ2ItemType::GETMEMBER()
 			Dest.DWord = 0;
 		Dest.Type = pIntType;
 		return true;
+	case Open:
+		if (GetItemFromContents(pItem)->Type == ITEMTYPE_PACK)
+		{
+			Dest.DWord = pItem->Open;
+		}
+		else
+			Dest.DWord = 0;
+		Dest.Type = pBoolType;
+		return true;
 	case Items:
 		if (GetItemFromContents(pItem)->Type == ITEMTYPE_PACK)
 		{
@@ -10212,12 +10221,22 @@ bool MQ2TaskMemberType::GETMEMBER()
 
 bool MQ2TaskType::GETMEMBER()
 {
+	int v, r, c, l;
+	char s[MAX_STRING];
+	char t[MAX_STRING];
+
+	// default return local string
+	strcpy(RetStr, "NULL");
+	Dest.Ptr = &RetStr[0];
+	Dest.Type = pStringType;
+
 	if (!VarPtr.Ptr)
 		return false;
 	PMQ2TYPEMEMBER pMember = MQ2TaskType::FindMember(Member);
 	if (!pMember)
 		return false;
 	PTASKMEMBER pTaskmember = (PTASKMEMBER)VarPtr.Ptr;
+
 	switch ((TaskTypeMembers)pMember->ID)
 	{
 	case Address:
@@ -10225,126 +10244,119 @@ bool MQ2TaskType::GETMEMBER()
 		Dest.Type = pIntType;
 		return true;
 	case Leader:
-	{
-		for (int i = 1; pTaskmember && i<7; pTaskmember = pTaskmember->pNext, i++) {
-			if (pTaskmember->IsLeader) {
-				strcpy_s(DataTypeTemp, pTaskmember->Name);
-				Dest.Ptr = &DataTypeTemp[0];
+		for (r = 1; r<54; r++) {
+			Evaluate(s, "${Window[TaskWnd].Child[STASK_MemberList].List[%d,%d]}", r, 2);
+			if (stricmp(s, "Leader") == 0) {
+				Evaluate(RetStr, "${Window[TaskWnd].Child[STASK_MemberList].List[%d,%d]}", r, 1);
+				Dest.Ptr = &RetStr[0];
 				Dest.Type = pStringType;
-				return true;
+				r = 99;
 			}
+			Evaluate(s, "${Window[TaskWnd].Child[STASK_MemberList].List[%d,%d]}", r, 1);
+			if (s[0] == 0)
+				r = 99;
 		}
-		return false;
-	}
-	case Title:
-	{
-		CListWnd *clist = (CListWnd *)pTaskWnd->GetChildItem("TASK_TaskList");
-		if (clist) {
-			CXStr Str;
-			clist->GetItemText(&Str, 0, 1);
-			CHAR szOut[255] = { 0 };
-			GetCXStr(Str.Ptr, szOut, 254);
-			if (szOut[0] != '\0') {
-				strcpy_s(DataTypeTemp, szOut);
-				Dest.Ptr = &DataTypeTemp[0];
-				Dest.Type = pStringType;
-				return true;
-			}
-		}
-		return false;
-	}
-	case Timer:
-	{
-		pTaskWnd->UpdateTaskTimers(_time32(NULL));
-		CListWnd *clist = (CListWnd *)pTaskWnd->GetChildItem("TASK_TaskList");
-		if (clist) {
-			CXStr Str;
-			clist->GetItemText(&Str, 0, 2);
-			CHAR szOut[255] = { 0 };
-			GetCXStr(Str.Ptr, szOut, 254);
-			if (szOut[0] != '\0') {
-				int hh, mm, ss;
-				if (sscanf_s(szOut, "%d:%d:%d", &hh, &mm, &ss)) {
-					Dest.UInt64 = ((hh * 3600) + (mm * 60) + ss) * 1000;
-					Dest.Type = pTimeStampType;
-					return true;
-				}
-				return false;
-			}
-		}
-		return false;
-	}
-	case xMember:
-		if (!ISINDEX())
-			return false;
-		if (ISNUMBER())
-		{
-			for (int i = 1; pTaskmember && i<7; pTaskmember = pTaskmember->pNext, i++) {
-				if (i == GETNUMBER()) {
-					Dest.Ptr = pTaskmember;
-					Dest.Type = pTaskMemberType;
-					return true;
-				}
-			}
-		}
-		else {
-			for (; pTaskmember; pTaskmember = pTaskmember->pNext) {
-				if (!_stricmp(pTaskmember->Name, GETFIRST())) {
-					Dest.Ptr = pTaskmember;
-					Dest.Type = pTaskMemberType;
-					return true;
-				}
-			}
-		}
-		return false;
-	case Members:
-		pTaskmember = pTaskMember;
-		Dest.DWord = 0;
-		for (; pTaskmember && Dest.DWord<6; pTaskmember = pTaskmember->pNext, Dest.DWord++) {
-		}
-		Dest.Type = pIntType;
 		return true;
-	case List:
-	{
-		int theindex = atoi(GETFIRST());
-		CListWnd *clist = (CListWnd *)pTaskWnd->GetChildItem("TASK_TaskList");
-		if (clist) {
-			CXStr Str;
-			clist->GetItemText(&Str, theindex, 1);
-			CHAR szOut[255] = { 0 };
-			GetCXStr(Str.Ptr, szOut, 254);
-			if (szOut[0] != '\0') {
-				strcpy_s(DataTypeTemp, szOut);
-				Dest.Ptr = &DataTypeTemp[0];
-				Dest.Type = pStringType;
+	case Title:
+		Evaluate(s, "${Window[TaskWnd].Child[TASK_TaskList].GetCurSel}");
+		if (s[0] != '0') {
+			Evaluate(RetStr, "${Window[TaskWnd].Child[TASK_TaskList].List[%s,2]}", s);
+		}
+		return true;
+	case Timer:
+		pTaskWnd->UpdateTaskTimers(_time32(NULL));
+		Evaluate(s, "${Window[TaskWnd].Child[TASK_TaskList].List[1,3]}");
+		if (s[0] != '\0') {
+			int hh, mm, ss;
+			if (sscanf_s(s, "%d:%d:%d", &hh, &mm, &ss)) {
+				Dest.UInt64 = ((hh * 3600) + (mm * 60) + ss) * 1000;
+				Dest.Type = pTimeStampType;
 				return true;
 			}
+			return false;
 		}
-		return false;
+		return true;
+	case xMember:
+		l = strlen(Index);
+		v = sscanf(Index, "%d,%d", &r, &c);
+		if (v < 1) r = 1;
+		if (v < 2) c = 1;
+		Evaluate(RetStr, "${Window[TaskWnd].Child[STASK_MemberList].List[%d,%d]}", r, c);
+		if (v == 0 && l>0) {
+			Dest.DWord = 0;
+			Dest.Type = pIntType;
+			for (r = 1; r<54; r++) {
+				Evaluate(s, "${Window[TaskWnd].Child[STASK_MemberList].List[%d,%d]}", r, 1);
+				if (stricmp(s, Index) == 0) {
+					Dest.DWord = r;
+					return true;
+				}
+				if (s[0] == 0)
+					return true;
+			}
+		}
+		return true;
+	case Members:
+		Dest.DWord = 0;
+		Dest.Type = pIntType;
+		for (r = 1; r<54; r++) {
+			Evaluate(s, "${Window[TaskWnd].Child[STASK_MemberList].List[%d,%d]}", r, 1);
+			if (s[0] == 0) {
+				Dest.DWord = r - 1;
+				r = 99;
+			}
+		}
+		return true;
+	case MemberList:
+		RetStr[0] = 0;
+		for (r = 1; r<54; r++) {
+			Evaluate(s, "${Window[TaskWnd].Child[STASK_MemberList].List[%d,%d]}", r, 1);
+			if (s[0] != 0) {
+				if (RetStr[0] == 0)
+					sprintf(RetStr, "^%s^", s);
+				else
+					sprintf(RetStr, "%s%s^", RetStr, s);
+			}
+			else {
+				r = 99;
+			}
+		}
+		return true;
+	case List: {
+		v = sscanf(Index, "%d,%d", &r, &c);
+		if (v < 1) r = 1;
+		Evaluate(RetStr, "${Window[TaskWnd].Child[TASK_TaskList].List[%d,2]}", r);
+		return true;
 	}
+	case Step:
+		v = sscanf(Index, "%d,%d", &r, &c);
+		if (v < 2) c = 1;
+		if (v < 1) r = 1;
+		Evaluate(RetStr, "${Window[TaskWnd].Child[TASK_TaskElementList].List[%d,%d]}", r, c);
+		return true;
 	case Objective:
-	{
-		int v,r,c;
-		v = sscanf(GETFIRST(),"%d,%d",&r,&c);
-		if (v < 2)
-			c = 0;
-		if (v < 1)
-			r = 0;
-		//WriteChatf("List.Objective[%s] : r=%d C=%d v=%d", Index,r,c,v);
-		if(CListWnd *clist = (CListWnd *)pTaskWnd->GetChildItem("TASK_TaskElementList")) {
-			CXStr Str;
-			clist->GetItemText(&Str, r, c);
-			CHAR szOut[255] = {0};
-			GetCXStr(Str.Ptr,szOut,254);
-			if(szOut[0]!='\0') {
-				strcpy_s(DataTypeTemp, szOut);
-				Dest.Ptr=&DataTypeTemp[0];
-				Dest.Type=pStringType;
-				return true;
+		for (r = 1; r<20; r++) {
+			Evaluate(s, "${Window[TaskWnd].Child[TASK_TaskElementList].List[%d,%d]}", r, 2);
+			if (stricmp(s, "Done") != 0) {
+				Evaluate(t, "${Window[TaskWnd].Child[TASK_TaskElementList].List[%d,%d]}", r, 1);
+				sprintf(RetStr, "%s|%s", t, s);
+				r = 99;
 			}
 		}
-		return false;
-	}
+	case Select:
+		l = strlen(Index);
+		if (l>0) {
+			for (r = 1; r<20; r++) {
+				Evaluate(s, "${Window[TaskWnd].Child[TASK_TaskList].List[%d,2]}", r);
+				if (strstr(s, Index) != 0) {
+					strcpy(RetStr, s);
+					sprintf(s, "/notify TaskWnd TASK_TaskList listselect %d", r);
+					HideDoCommand(((PSPAWNINFO)pCharSpawn), s, FALSE);
+					r = 99;
+				}
+			}
+		}
+		return true;
 	}
 	return false;
 }

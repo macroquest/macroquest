@@ -1,4 +1,14 @@
-14 Jan 2015 by MacroQuest2.com Devs
+20 Jan 2016 by MacroQuest2.com Devs
+- Updated for LIVE
+- Fixes to the task tlo by dewey2461 see: http://www.macroquest2.com/phpBB3/viewtopic.php?f=30&t=19912
+- New feature map highlights see http://www.macroquest2.com/phpBB3/viewtopic.php?f=17&t=19895
+  code cred: JudgeD
+
+16 Jan 2016 by MacroQuest2.com Devs
+- Fixed Open in the CONTENTS struct
+- Added .Open to the itemtype, it works for containers. its a boolean.
+
+14 Jan 2016 by MacroQuest2.com Devs
 - Updated for TEST
 - Added a new feature. cred: dewey2461
 - Description: Extends the Task TLO with the TaskElementList's Objective[ ]

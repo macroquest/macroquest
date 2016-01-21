@@ -38,7 +38,8 @@ using namespace std;
 #define MAPFILTER_Mercenary      31
 #define MAPFILTER_Named          32
 #define MAPFILTER_TargetPath     33
-#define MAPFILTER_NUMBER         34
+#define MAPFILTER_Marker         34
+#define MAPFILTER_NUMBER         35
 #define MAPFILTER_Invalid        (-1)
 // normal labels
 
@@ -53,6 +54,8 @@ typedef struct _MAPFILTER {
 	DWORD RequiresOption;
 	BOOL RegenerateOnChange;
 	PCHAR szHelpString;
+	DWORD Marker;
+	DWORD MarkerSize;
 	DWORD Enabled;
 	DWORD Color;
 } MAPFILTER, *PMAPFILTER;
@@ -60,22 +63,35 @@ typedef struct _MAPFILTER {
 extern unsigned long bmMapRefresh;
 
 extern DWORD HighlightColor;
+extern DWORD HighlightSIDELEN;
+extern BOOL HighlightPulse;
+extern BOOL HighlightPulseIncreasing;
+extern int HighlightPulseIndex;
+extern DWORD HighlightPulseDiff;
 
 extern CHAR MapNameString[MAX_STRING];
 extern CHAR MapTargetNameString[MAX_STRING];
+extern CHAR mapshowStr[MAX_STRING];
+extern CHAR maphideStr[MAX_STRING];
 extern SEARCHSPAWN MapFilterCustom;
+extern SEARCHSPAWN MapFilterNamed;
 extern MAPFILTER MapFilterOptions[];
 extern CHAR MapSpecialClickString[16][MAX_STRING];
-
+extern BOOL repeatMapshow;
+extern BOOL repeatMaphide;
 
 /* COMMANDS */
 VOID MapFilters(PSPAWNINFO pChar, PCHAR szLine);
 VOID MapFilterSetting(PSPAWNINFO pChar, DWORD nMapFilter, PCHAR szValue = NULL);
 VOID MapHighlightCmd(PSPAWNINFO pChar, PCHAR szLine);
+VOID PulseReset();
 VOID MapHideCmd(PSPAWNINFO pChar, PCHAR szLine);
 VOID MapShowCmd(PSPAWNINFO pChar, PCHAR szLine);
 VOID MapNames(PSPAWNINFO pChar, PCHAR szLine);
 VOID MapClickCommand(PSPAWNINFO pChar, PCHAR szLine);
+PCHAR FormatMarker(PCHAR szLine, PCHAR szDest);
+DWORD TypeToMapfilter(PSPAWNINFO pChar);
+
 
 /* API */
 VOID MapInit();
@@ -89,6 +105,9 @@ VOID MapAttach();
 VOID MapDetach();
 
 bool MapSelectTarget();
+DWORD FindMarker(PCHAR szMark);
+long  MakeTime();
+
 
 #ifndef ISXEQ
 BOOL dataMapSpawn(PCHAR szIndex, MQ2TYPEVAR &Ret);
@@ -114,4 +133,5 @@ static inline BOOL RequirementsMet(DWORD Option)
 		return true;
 	return (IsOptionEnabled(MapFilterOptions[Option].RequiresOption));
 }
-
+PLUGIN_API PMAPLINE InitLine();
+PLUGIN_API VOID DeleteLine(PMAPLINE pLine);

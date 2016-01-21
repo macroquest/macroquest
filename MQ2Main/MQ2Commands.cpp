@@ -4226,7 +4226,7 @@ DWORD __stdcall openpickzonewnd(PVOID pData)
 VOID PickZoneCmd(PSPAWNINFO pChar, PCHAR szLine)
 {
 	if (!szLine[0]) {
-		WriteChatColor("Usage: /pickzone # where # is the instance number you want to pick");
+		WriteChatColor("Usage: /pick # where # is the instance number you want to pick");
 		cmdPickZone(pChar, szLine);
 		return;
 	}

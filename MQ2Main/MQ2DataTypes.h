@@ -1810,6 +1810,7 @@ public:
 		SkillModMax = 147,
 		OrnamentationIcon = 148,
 		NumOfSlots1 = 149,
+		Open = 150,
 	};
 	enum ItemMethods
 	{
@@ -1965,6 +1966,7 @@ public:
 		TypeMember(SkillModMax);
 		TypeMember(OrnamentationIcon);
 		TypeMember(NumOfSlots1);
+		TypeMember(Open);
 	}
 
 	~MQ2ItemType()
@@ -4429,7 +4431,10 @@ public:
 		Members = 5,
 		Leader = 6,
 		List = 7,
-		Objective = 8,
+		Step = 8,
+		Objective = 9,
+		Select = 10,
+		MemberList = 11,
 	};
 	MQ2TaskType() :MQ2Type("task")
 	{
@@ -4440,7 +4445,10 @@ public:
 		TypeMember(Members);
 		TypeMember(Leader);
 		TypeMember(List);
+		TypeMember(Step);
 		TypeMember(Objective);
+		TypeMember(Select);
+		TypeMember(MemberList);
 	}
 	~MQ2TaskType()
 	{
@@ -4448,19 +4456,15 @@ public:
 	bool GETMEMBER();
 	bool ToString(MQ2VARPTR VarPtr, PCHAR Destination)
 	{
-		if (pTaskWnd) {
-			if (CListWnd *clist = (CListWnd *)pTaskWnd->GetChildItem("TASK_TaskList")) {
-				CXStr Str;
-				clist->GetItemText(&Str, 0, 1);
-				CHAR szOut[255] = { 0 };
-				GetCXStr(Str.Ptr, szOut, 254);
-				if (szOut[0] != '\0') {
-					strcpy(Destination, szOut);
-					return true;
-				}
-			}
+		char s[MAX_STRING];
+		Evaluate(s, "${Window[TaskWnd].Child[TASK_TaskList].GetCurSel}");
+		if (s[0] != '0') {
+			Evaluate(Destination, "${Window[TaskWnd].Child[TASK_TaskList].List[%s,2]}", s);
 		}
-		return false;
+		else {
+			strcpy(Destination, "NULL");
+		}
+		return true;
 	}
 	bool FromData(MQ2VARPTR &VarPtr, MQ2TYPEVAR &Source)
 	{
@@ -4470,6 +4474,13 @@ public:
 	{
 		return false;
 	}
+	void Evaluate(char *zOutput, char *zFormat, ...) { // Helper to evalute MQ code - thanks s0rCieR
+		va_list vaList;
+		va_start(vaList, zFormat);
+		vsprintf(zOutput, zFormat, vaList);
+		ParseMacroData(zOutput);
+	}
+	char RetStr[MAX_STRING];
 };
 
 class MQ2XTargetType : public MQ2Type

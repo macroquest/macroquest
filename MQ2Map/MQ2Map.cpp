@@ -10,11 +10,21 @@
 #include "MQ2Map.h"
 PreSetup("MQ2Map");
 
-
-
+long repeatLast = 0;
+long repeatInterval = 10;
+clock_t highPulseRepeatLast = clock();
+long highPulseRepeatIntervalMillis = 50;
 unsigned long bmMapRefresh = 0;
 
+BOOL repeatMaphide = FALSE;
+BOOL repeatMapshow = FALSE;
+
 DWORD HighlightColor = 0xFF700070;
+DWORD HighlightSIDELEN = 100;
+BOOL HighlightPulse = FALSE;
+BOOL HighlightPulseIncreasing = TRUE;
+int HighlightPulseIndex = 0;
+DWORD HighlightPulseDiff = HighlightSIDELEN / 10;
 
 CHAR MapSpecialClickString[16][MAX_STRING] =
 {
@@ -38,7 +48,10 @@ CHAR MapSpecialClickString[16][MAX_STRING] =
 
 CHAR MapNameString[MAX_STRING] = { "%N" };
 CHAR MapTargetNameString[MAX_STRING] = { "%N" };
+CHAR mapshowStr[MAX_STRING] = { "" };
+CHAR maphideStr[MAX_STRING] = { "" };
 SEARCHSPAWN MapFilterCustom = { 0 };
+SEARCHSPAWN MapFilterNamed = { 0 };
 MAPFILTER MapFilterOptions[] = {
 	{ "All",          TRUE,(DWORD)-1,          TRUE,(DWORD)MAPFILTER_Invalid,TRUE,  "Enables/disables map functions" },
 	{ "PC",           FALSE,(DWORD)0xFF00FF,   TRUE,MAPFILTER_All,TRUE,      "Displays PCs" },
@@ -73,6 +86,7 @@ MAPFILTER MapFilterOptions[] = {
 	{ "NPCCorpse",    FALSE,(DWORD)0x00C000,   TRUE,MAPFILTER_All,TRUE,      "Displays NPC corpses, when corpse setting is on" },
 	{ "Mercenary",    FALSE,(DWORD)0x404040,   TRUE,MAPFILTER_All,TRUE,      "Displays mercenaries" },
 	{ "Named",        FALSE,(DWORD)0x404040,   TRUE,MAPFILTER_All,TRUE,      "Displays named NPCs" },
+	{ "Marker",       FALSE,(DWORD)-1,         FALSE,MAPFILTER_All,TRUE,  "Displays marker (mobtype triangle/square/diamond size)" },
 	{ "TargetPath",   FALSE,(DWORD)-1,         TRUE,MAPFILTER_Target,FALSE,  "Draws EQ Path to selected target" },
 	{ NULL,           FALSE,(DWORD)-1,         FALSE,(DWORD)MAPFILTER_Invalid,FALSE,  NULL }
 };
@@ -260,11 +274,28 @@ PLUGIN_API VOID InitializePlugin(VOID)
 	bmMapRefresh = AddMQ2Benchmark("Map Refresh");
 	unsigned long i;
 	CHAR szBuffer[MAX_STRING] = { 0 };
+	CHAR tmp_1[MAX_STRING] = { 0 };
+	CHAR tmp_2[MAX_STRING] = { 0 };
 	for (i = 0; MapFilterOptions[i].szName; i++) {
 		sprintf(szBuffer, "%s-Color", MapFilterOptions[i].szName);
 		MapFilterOptions[i].Enabled = GetPrivateProfileInt("Map Filters", MapFilterOptions[i].szName, MapFilterOptions[i].Default, INIFileName);
 		MapFilterOptions[i].Color = GetPrivateProfileInt("Map Filters", szBuffer, MapFilterOptions[i].DefaultColor, INIFileName) | 0xFF000000;
+		sprintf_s(tmp_1, "%s-Size", MapFilterOptions[i].szName);
+		GetPrivateProfileString("Marker Filters", MapFilterOptions[i].szName, "None", tmp_2, MAX_STRING, INIFileName);
+		DWORD mark = FindMarker(tmp_2);
+		if (mark == 99) mark = 0;
+
+		MapFilterOptions[i].Marker = mark;
+		MapFilterOptions[i].MarkerSize = GetPrivateProfileInt("Marker Filters", tmp_1, 0, INIFileName);
 	}
+	repeatMapshow = GetPrivateProfileInt("Map Filters", "Mapshow-Repeat", FALSE, INIFileName);
+	repeatMaphide = GetPrivateProfileInt("Map Filters", "Maphide-Repeat", FALSE, INIFileName);
+
+	HighlightSIDELEN = GetPrivateProfileInt("Map Filters", "HighSize", HighlightSIDELEN, INIFileName);
+	HighlightPulse = GetPrivateProfileInt("Map Filters", "HighPulse", HighlightPulse, INIFileName);
+
+	GetPrivateProfileString("Map Filters", "Mapshow", "", mapshowStr, MAX_STRING, INIFileName);
+	GetPrivateProfileString("Map Filters", "Maphide", "", maphideStr, MAX_STRING, INIFileName);
 	MapInit();
 	GetPrivateProfileString("Naming Schemes", "Normal", "%N", MapNameString, MAX_STRING, INIFileName);
 	GetPrivateProfileString("Naming Schemes", "Target", "%N", MapTargetNameString, MAX_STRING, INIFileName);
@@ -289,6 +320,8 @@ PLUGIN_API VOID InitializePlugin(VOID)
 	EzDetour(CMapViewWnd__CMapViewWnd, &CMyMapViewWnd::Constructor_Detour, &CMyMapViewWnd::Constructor_Trampoline);
 	CMyMapViewWnd::StealVFTable();
 	AddMQ2Data("MapSpawn", dataMapSpawn);
+	ClearSearchSpawn(&MapFilterNamed);
+	ParseSearchSpawn("#", &MapFilterNamed);
 }
 
 // Called once, when the plugin is to shutdown
@@ -310,6 +343,63 @@ PLUGIN_API VOID ShutdownPlugin(VOID)
 	RemoveCommand("/highlight");
 	RemoveCommand("/mapnames");
 	RemoveCommand("/mapclick");
+}
+
+// This is called every time MQ pulses
+PLUGIN_API VOID OnPulse(VOID)
+{
+	// DONT leave in this debugspew, even if you leave in all the others
+	//   DebugSpewAlways("MQ2Mapshow::OnPulse()");
+
+	long curTime = MakeTime();
+	clock_t curClockTime = clock();
+	bool cleared = false;
+
+	CHAR szBuffer[MAX_STRING] = { 0 };
+
+	if (curClockTime > highPulseRepeatLast + highPulseRepeatIntervalMillis && HighlightPulse)
+	{
+		if (HighlightPulseIndex == 5 || HighlightPulseIndex == -5)
+			HighlightPulseIncreasing = !HighlightPulseIncreasing;
+
+		if (HighlightPulseIncreasing)
+			HighlightPulseIndex++;
+		else
+			HighlightPulseIndex--;
+
+		highPulseRepeatLast = curClockTime;
+	}
+
+	if (curTime > repeatLast + repeatInterval) {
+
+		if (repeatMapshow && strlen(mapshowStr) > 0) {
+			if (!cleared) {
+				MapClear();
+				MapGenerate();
+				cleared = true;
+			}
+
+			SEARCHSPAWN ss;
+			ClearSearchSpawn(&ss);
+			ParseSearchSpawn(mapshowStr, &ss);
+			MapShow(ss);
+		}
+
+		if (repeatMaphide && strlen(maphideStr) > 0) {
+			if (!cleared) {
+				MapClear();
+				MapGenerate();
+				cleared = true;
+			}
+
+			SEARCHSPAWN ss;
+			ClearSearchSpawn(&ss);
+			ParseSearchSpawn(maphideStr, &ss);
+			MapHide(ss);
+		}
+
+		repeatLast = curTime;
+	}
 }
 
 // This is called each time a spawn is added to a zone (inserted into EQ's list of spawns),
@@ -360,4 +450,13 @@ PLUGIN_API VOID OnRemoveGroundItem(PGROUNDITEM pGroundItem)
 	if (Update)
 		RemoveGroundItem(pGroundItem);
 }
+
+PLUGIN_API  PMAPLINE MQ2MapAddLine() {
+	return InitLine();
+}
+
+PLUGIN_API VOID MQ2MapDeleteLine(PMAPLINE pLine) {
+	DeleteLine(pLine);
+}
+
 #endif

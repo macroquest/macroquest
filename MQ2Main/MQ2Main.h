@@ -674,6 +674,7 @@ EQLIB_API VOID		  ListMercAltAbilities();
 EQLIB_API PCONTENTS	  FindItemByName(PCHAR pName, BOOL bExact = false);
 EQLIB_API PCONTENTS	  FindItemByID(DWORD ItemID);
 EQLIB_API PCONTENTS	  FindItemBySlot(WORD InvSlot, WORD BagSlot = 0xFFFF);
+EQLIB_API PCONTENTS FindBankItemByName(char *pName, BOOL bExact);
 EQLIB_API PEQINVSLOT  GetInvSlot(DWORD type, WORD invslot, WORD bagslot = 0xFFFF);
 EQLIB_API BOOL		  IsItemInsideContainer(PCONTENTS pItem);
 EQLIB_API BOOL		  PickupOrDropItem(DWORD type, PCONTENTS pItem);

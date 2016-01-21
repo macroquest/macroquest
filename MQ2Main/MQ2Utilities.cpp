@@ -7318,6 +7318,109 @@ PCONTENTS FindItemBySlot(WORD InvSlot, WORD BagSlot)
 	}
 	return 0;
 }
+PCONTENTS FindBankItemByName(char *pName,BOOL bExact)
+{
+	CHAR Name[MAX_STRING] = { 0 };
+	CHAR Temp[MAX_STRING] = { 0 };
+	strlwr(strcpy(Name, pName));
+	PCHARINFO pCharInfo = GetCharInfo();
+	unsigned long nPack;
+
+	for (nPack = 0; nPack < NUM_BANK_SLOTS; nPack++)
+	{
+		PCHARINFO pCharInfo = GetCharInfo();
+		PCONTENTS pPack;
+
+		if (pCharInfo->pBankArray && (pPack = pCharInfo->pBankArray->Bank[nPack]))
+		{
+			if (bExact)
+			{
+				if (!_stricmp(Name, GetItemFromContents(pPack)->Name))
+				{
+					return pPack;
+				}
+			}
+			else
+			{
+				if (strstr(strlwr(strcpy(Temp, GetItemFromContents(pPack)->Name)), Name))
+				{
+					return pPack;
+				}
+			}
+			if (GetItemFromContents(pPack)->Type == ITEMTYPE_PACK && pPack->pContentsArray)
+			{
+				for (unsigned long nItem = 0; nItem < GetItemFromContents(pPack)->Slots; nItem++)
+				{
+					PCONTENTS pItem;
+					if (pPack->pContentsArray && (pItem = pPack->pContentsArray->Contents[nItem]))
+					{
+						if (bExact)
+						{
+							if (!_stricmp(Name, GetItemFromContents(pItem)->Name))
+							{
+								return pItem;
+							}
+						}
+						else
+						{
+							if (strstr(strlwr(strcpy(Temp, GetItemFromContents(pItem)->Name)), Name))
+							{
+								return pItem;
+							}
+						}
+					}
+				}
+			}
+		}
+	}
+	for (nPack = 0; nPack < NUM_SHAREDBANK_SLOTS; nPack++)
+	{
+		PCHARINFO pCharInfo = GetCharInfo();
+		PCONTENTS pPack;
+		if (pCharInfo->pSharedBankArray && (pPack = pCharInfo->pSharedBankArray->SharedBank[nPack]))
+		{
+			if (bExact)
+			{
+				if (!_stricmp(Name, GetItemFromContents(pPack)->Name))
+				{
+					return pPack;
+				}
+			}
+			else
+			{
+				if (strstr(strlwr(strcpy(Temp, GetItemFromContents(pPack)->Name)), Name))
+				{
+					return pPack;
+				}
+			}
+			if (GetItemFromContents(pPack)->Type == ITEMTYPE_PACK && pPack->pContentsArray)
+			{
+				for (unsigned long nItem = 0; nItem < GetItemFromContents(pPack)->Slots; nItem++)
+				{
+					PCONTENTS pItem;
+					if (pPack->pContentsArray && (pItem = pPack->pContentsArray->Contents[nItem]))
+					{
+						if (bExact)
+						{
+							if (!_stricmp(Name, GetItemFromContents(pItem)->Name))
+							{
+								return pItem;
+							}
+						}
+						else
+						{
+							if (strstr(strlwr(strcpy(Temp, GetItemFromContents(pItem)->Name)), Name))
+							{
+								return pItem;
+							}
+						}
+					}
+				}
+			}
+		}
+	}
+	return NULL;
+}
 PEQINVSLOT GetInvSlot(DWORD type, WORD invslot, WORD bagslot)
 {
 	PEQINVSLOTMGR pInvMgr = (PEQINVSLOTMGR)pInvSlotMgr;

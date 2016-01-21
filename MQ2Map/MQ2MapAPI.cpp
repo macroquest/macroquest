@@ -11,6 +11,9 @@ typedef struct _MAPSPAWN
 	PMAPLINE pVector;
 	BOOL Highlight;
 	BOOL Explicit;
+	DWORD Marker;
+	DWORD MarkerSize;
+	PMAPLINE MarkerLines[10];
 
 	struct _MAPSPAWN *pLast;
 	struct _MAPSPAWN *pNext;
@@ -124,11 +127,14 @@ inline void DeleteSpawn(PMAPSPAWN pMapSpawn)
 	delete pMapSpawn;
 }
 
+void GenerateMarker(PMAPSPAWN pMapSpawn);
 PCHAR GenerateSpawnName(PSPAWNINFO pSpawn, PCHAR NameString);//just a forward decl.
 DWORD GetSpawnColor(eSpawnType Type, PSPAWNINFO pSpawn);//just a forward decl.
 PMAPLABEL GenerateLabel(PMAPSPAWN pMapSpawn, DWORD Color);//just a forward decl.
 PMAPLINE GenerateVector(PMAPSPAWN pMapSpawn);//just a forward decl.
 BOOL CanDisplaySpawn(eSpawnType Type, PSPAWNINFO pSpawn);//just a forward decl.
+void RemoveMarker(PMAPSPAWN pMapSpawn);
+void MoveMarker(PMAPSPAWN pMapSpawn);
 
 VOID MapInit()
 {
@@ -143,6 +149,7 @@ VOID MapInit()
 
 PMAPSPAWN AddSpawn(PSPAWNINFO pNewSpawn, BOOL ExplicitAllow)
 {
+	CHAR szBuffer[MAX_STRING] = { 0 };
 	char buf[MAX_STRING] = { 0 };
 	eSpawnType Type = GetSpawnType(pNewSpawn);
 	// apply map filter
@@ -174,6 +181,18 @@ PMAPSPAWN AddSpawn(PSPAWNINFO pNewSpawn, BOOL ExplicitAllow)
 	}
 #endif
 
+	// new stuff for Marker changes
+	if (IsOptionEnabled(MAPFILTER_Marker)) {
+		pMapSpawn->Marker = MapFilterOptions[TypeToMapfilter(pNewSpawn)].Marker;
+		pMapSpawn->MarkerSize = MapFilterOptions[TypeToMapfilter(pNewSpawn)].MarkerSize;
+
+		GenerateMarker(pMapSpawn);
+		MoveMarker(pMapSpawn);
+	}
+	else if (!IsOptionEnabled(MAPFILTER_Marker)) {
+		if (pMapSpawn->Marker != 0)
+			pMapSpawn->Marker = 0;
+	}
 	return pMapSpawn;
 }
 
@@ -188,6 +207,8 @@ void RemoveSpawn(PMAPSPAWN pMapSpawn)
 		pMapSpawn->pVector = 0;
 	}
 
+	if (pMapSpawn->Marker)
+		RemoveMarker(pMapSpawn);
 	if (pMapSpawn->pSpawn->Type == FAKESPAWNTYPE)
 		delete pMapSpawn->pSpawn;
 	else
@@ -214,7 +235,7 @@ void AddGroundItem(PGROUNDITEM pGroundItem)
 	PSPAWNINFO pFakeSpawn = new SPAWNINFO;
 	memset(pFakeSpawn, 0, sizeof(SPAWNINFO));
 	GetFriendlyNameForGroundItem(pGroundItem, pFakeSpawn->Name);
-	strcpy_s(pFakeSpawn->DisplayedName, pFakeSpawn->Name);
+	strcpy_s(pFakeSpawn->DisplayedName, pFakeSpawn->Name); 
 	pFakeSpawn->X = pGroundItem->X;
 	pFakeSpawn->Y = pGroundItem->Y;
 	pFakeSpawn->Z = pGroundItem->Z;
@@ -269,7 +290,6 @@ void MapClear()
 	SpawnMap.clear();
 
 
-
 	while (pActiveSpawns)
 	{
 		PMAPSPAWN pNextActive = pActiveSpawns->pNext;
@@ -284,6 +304,8 @@ void MapClear()
 			pActiveSpawns->pVector = 0;
 		}
 
+		if (pActiveSpawns->Marker)
+			RemoveMarker(pActiveSpawns);
 		if (pActiveSpawns->pSpawn->Type == FAKESPAWNTYPE) // fake!
 		{
 			delete pActiveSpawns->pSpawn;
@@ -466,6 +488,10 @@ void MapUpdate()
 			}
 		}
 
+		if (IsOptionEnabled(MAPFILTER_Marker))
+			MoveMarker(pMapSpawn);
+		else if (!IsOptionEnabled(MAPFILTER_Marker))
+			RemoveMarker(pMapSpawn);
 		pMapSpawn = pMapSpawn->pNext;
 	}
 
@@ -477,7 +503,7 @@ void MapUpdate()
 			if (!pCastRadius[i])
 			{
 				pCastRadius[i] = InitLine();
-				pCastRadius[i]->Layer = 2;
+				pCastRadius[i]->Layer = 3;
 			}
 
 			pCastRadius[i]->Color.ARGB = MapFilterOptions[MAPFILTER_CastRadius].Color;
@@ -506,7 +532,7 @@ void MapUpdate()
 			if (!pSpellRadius[i])
 			{
 				pSpellRadius[i] = InitLine();
-				pSpellRadius[i]->Layer = 2;
+				pSpellRadius[i]->Layer = 3;
 			}
 
 			pSpellRadius[i]->Color.ARGB = MapFilterOptions[MAPFILTER_SpellRadius].Color;
@@ -557,7 +583,7 @@ void MapUpdate()
 			if (!pTargetLine)
 			{
 				pTargetLine = InitLine();
-				pTargetLine->Layer = 2;
+				pTargetLine->Layer = 3;
 			}
 			pTargetLine->Color.ARGB = MapFilterOptions[MAPFILTER_Target].Color;
 			pTargetLine->Start.X = -pCharInfo->pSpawn->X;
@@ -582,7 +608,7 @@ void MapUpdate()
 				if (!pTargetRadius[i])
 				{
 					pTargetRadius[i] = InitLine();
-					pTargetRadius[i]->Layer = 2;
+					pTargetRadius[i]->Layer = 3;
 				}
 
 				pTargetRadius[i]->Color.ARGB = MapFilterOptions[MAPFILTER_TargetRadius].Color;
@@ -611,7 +637,7 @@ void MapUpdate()
 				if (!pTargetMelee[i])
 				{
 					pTargetMelee[i] = InitLine();
-					pTargetMelee[i]->Layer = 2;
+					pTargetMelee[i]->Layer = 3;
 				}
 
 				pTargetMelee[i]->Color.ARGB = MapFilterOptions[MAPFILTER_TargetMelee].Color;
@@ -789,8 +815,8 @@ PCHAR GenerateSpawnName(PSPAWNINFO pSpawn, PCHAR NameString)
 			switch (NameString[N])
 			{
 			case 'N':// cleaned up name
-					 //strcpy(&Name[outpos],pSpawn->Name);
-					 //CleanupName(&Name[outpos],FALSE);
+				//strcpy(&Name[outpos],pSpawn->Name);
+				//CleanupName(&Name[outpos],FALSE);
 				strcpy(&Name[outpos], pSpawn->DisplayedName);
 				outpos += strlen(&Name[outpos]);
 				break;
@@ -841,6 +867,52 @@ PCHAR GenerateSpawnName(PSPAWNINFO pSpawn, PCHAR NameString)
 	return 0;
 }
 
+DWORD TypeToMapfilter(PSPAWNINFO pNewSpawn)
+{
+	eSpawnType Type = GetSpawnType(pNewSpawn);
+
+	switch (Type)
+	{
+	case PC:
+		return MAPFILTER_PC;
+	case NPC:
+		if (IsOptionEnabled(MAPFILTER_Named)) {
+			if (PCHARINFO pCharInfo = GetCharInfo()) {
+				if (SpawnMatchesSearch(&MapFilterNamed, pCharInfo->pSpawn, pNewSpawn)) {
+					return MAPFILTER_Named;
+				}
+			}
+		}
+
+		return MAPFILTER_NPC;
+	case CORPSE:
+		return MAPFILTER_Corpse;
+	case ITEM:
+		return MAPFILTER_Ground;
+	case UNTARGETABLE:
+		return MAPFILTER_Untargetable;
+	case TIMER:
+		return MAPFILTER_Timer;
+	case TRAP:
+		return MAPFILTER_Trap;
+	case TRIGGER:
+		return MAPFILTER_Trigger;
+	case CHEST:
+		return MAPFILTER_Chest;
+	case PET:
+		return MAPFILTER_Pet;
+	case MOUNT:
+		return MAPFILTER_Mount;
+	case AURA:
+		return MAPFILTER_Aura;
+	case OBJECT:
+		return MAPFILTER_Object;
+	case BANNER:
+		return MAPFILTER_Banner;
+	}
+
+	return MAPFILTER_Invalid;
+}
 BOOL CanDisplaySpawn(eSpawnType Type, PSPAWNINFO pSpawn)
 {
 	if (!pSpawn)
@@ -959,7 +1031,7 @@ PMAPLABEL GenerateLabel(PMAPSPAWN pMapSpawn, DWORD Color)
 	pLabel->Location.X = -pMapSpawn->pSpawn->X;
 	pLabel->Location.Y = -pMapSpawn->pSpawn->Y;
 	pLabel->Location.Z = pMapSpawn->pSpawn->Z;
-	pLabel->Layer = 2;
+	pLabel->Layer = 3;
 	pLabel->Size = 3;
 	pLabel->Label = GenerateSpawnName(pMapSpawn->pSpawn, MapNameString);
 	pLabel->Color.ARGB = Color;
@@ -994,7 +1066,7 @@ PMAPLINE GenerateVector(PMAPSPAWN pMapSpawn)
 
 
 
-	pNewLine->Layer = 2;
+	pNewLine->Layer = 3;
 	pNewLine->Color = pMapSpawn->pMapLabel->Color;
 
 	return pNewLine;
@@ -1057,4 +1129,254 @@ bool dataMapSpawn(int argc, char *argv[], MQ2TYPEVAR &Ret)
 		return true;
 	}
 	return false;
+}
+void GenerateMarker(PMAPSPAWN pMapSpawn)
+{
+	if (pMapSpawn->Marker == 0) return;
+	long lNumSides = 4;
+
+	if (pMapSpawn->Marker == 1)
+		lNumSides = 3;
+	if (pMapSpawn->Marker == 4)
+	{
+		lNumSides = 8;
+	}
+
+
+	long i;
+	for (i = 0; i < 9; i++)
+		pMapSpawn->MarkerLines[i] = NULL;
+
+	for (i = 0; i < lNumSides; i++) {
+		PMAPLINE pNewLine = InitLine();
+		pNewLine->Start.X = 0;
+		pNewLine->Start.Y = 0;
+		pNewLine->Start.Z = pMapSpawn->pSpawn->Z;
+		pNewLine->End.X = 0;
+		pNewLine->End.Y = 0;
+		pNewLine->End.Z = pMapSpawn->pSpawn->Z;
+		pNewLine->Layer = 3;
+		pNewLine->Color = pMapSpawn->pMapLabel->Color;
+		pMapSpawn->MarkerLines[i] = pNewLine;
+	}
+}
+
+void RemoveMarker(PMAPSPAWN pMapSpawn)
+{
+	if (pMapSpawn->Marker == 0 || !pMapSpawn->Marker) return;
+	pMapSpawn->Marker = 0;
+	for (int i = 0; pMapSpawn->MarkerLines[i]; i++) {
+		if (pMapSpawn->MarkerLines[i]) {
+			DeleteLine(pMapSpawn->MarkerLines[i]);
+			pMapSpawn->MarkerLines[i] = NULL;
+		}
+	}
+}
+
+void MSM(PMAPSPAWN pMapSpawn)
+{
+	DWORD MARKERSIDELEN = pMapSpawn->MarkerSize;
+	float x[1], y[1], X[1], Y[1];
+	if (pMapSpawn->Highlight)
+	{
+		if (HighlightPulse)
+		{
+			MARKERSIDELEN = HighlightSIDELEN + (HighlightPulseIndex * HighlightPulseDiff);
+		}
+		else
+		{
+			MARKERSIDELEN = HighlightSIDELEN;
+		}
+	}
+
+	x[0] = -pMapSpawn->pSpawn->X - MARKERSIDELEN / 2;
+	x[1] = -pMapSpawn->pSpawn->X + MARKERSIDELEN / 2;
+	y[0] = -pMapSpawn->pSpawn->Y - MARKERSIDELEN / 2;
+	y[1] = -pMapSpawn->pSpawn->Y + MARKERSIDELEN / 2;
+
+	for (int i = 0; i<4; i++) {
+		switch (i) {
+		case 0:   X[0] = x[0]; X[1] = x[1]; Y[0] = y[0]; Y[1] = y[0]; break;
+		case 1:   X[0] = x[1]; X[1] = x[1]; Y[0] = y[0]; Y[1] = y[1]; break;
+		case 2:   X[0] = x[1]; X[1] = x[0]; Y[0] = y[1]; Y[1] = y[1]; break;
+		case 3:   X[0] = x[0]; X[1] = x[0]; Y[0] = y[1]; Y[1] = y[0]; break;
+		}
+
+		pMapSpawn->MarkerLines[i]->Start.X = X[0];
+		pMapSpawn->MarkerLines[i]->Start.Y = Y[0];
+		pMapSpawn->MarkerLines[i]->End.X = X[1];
+		pMapSpawn->MarkerLines[i]->End.Y = Y[1];
+		pMapSpawn->MarkerLines[i]->Start.Z = pMapSpawn->pSpawn->Z;
+		pMapSpawn->MarkerLines[i]->End.Z = pMapSpawn->pSpawn->Z;
+
+		if (pMapSpawn->MarkerLines[i]->Color.ARGB != pMapSpawn->pMapLabel->Color.ARGB)
+			pMapSpawn->MarkerLines[i]->Color = pMapSpawn->pMapLabel->Color;
+	}
+}
+
+void MTM(PMAPSPAWN pMapSpawn)
+{
+	DWORD MARKERSIDELEN = pMapSpawn->MarkerSize;
+	float x[2], y[2], X[1], Y[1], Angle;
+	if (pMapSpawn->Highlight)
+	{
+		if (HighlightPulse)
+		{
+			MARKERSIDELEN = HighlightSIDELEN + (HighlightPulseIndex * HighlightPulseDiff);
+		}
+		else
+		{
+			MARKERSIDELEN = HighlightSIDELEN;
+		}
+	}
+
+	Angle = pMapSpawn->pSpawn->Heading*0.703125f;
+	x[0] = -pMapSpawn->pSpawn->X + (MARKERSIDELEN*1.5f)*sqrtf(3) / 3 * sinf((Angle + 180) / 180.0f*(FLOAT)PI);
+	x[1] = -pMapSpawn->pSpawn->X - (MARKERSIDELEN*1.5f)*sqrtf(3) / 3 * sinf((Angle + 210) / 180.0f*(FLOAT)PI);
+	x[2] = -pMapSpawn->pSpawn->X + (MARKERSIDELEN*1.5f)*sqrtf(3) / 3 * sinf((Angle + 330) / 180.0f*(FLOAT)PI);
+	y[0] = -pMapSpawn->pSpawn->Y + (MARKERSIDELEN*1.5f)*sqrtf(3) / 3 * cosf((Angle + 180) / 180.0f*(FLOAT)PI);
+	y[1] = -pMapSpawn->pSpawn->Y - (MARKERSIDELEN*1.5f)*sqrtf(3) / 3 * cosf((Angle + 210) / 180.0f*(FLOAT)PI);
+	y[2] = -pMapSpawn->pSpawn->Y + (MARKERSIDELEN*1.5f)*sqrtf(3) / 3 * cosf((Angle + 330) / 180.0f*(FLOAT)PI);
+
+	for (int i = 0; i<3; i++) {
+		switch (i) {
+		case 0:   X[0] = x[0]; X[1] = x[1]; Y[0] = y[0]; Y[1] = y[1]; break;
+		case 1:   X[0] = x[1]; X[1] = x[2]; Y[0] = y[1]; Y[1] = y[2]; break;
+		case 2:   X[0] = x[2]; X[1] = x[0]; Y[0] = y[2]; Y[1] = y[0]; break;
+		}
+
+		pMapSpawn->MarkerLines[i]->Start.X = X[0];
+		pMapSpawn->MarkerLines[i]->Start.Y = Y[0];
+		pMapSpawn->MarkerLines[i]->End.X = X[1];
+		pMapSpawn->MarkerLines[i]->End.Y = Y[1];
+		pMapSpawn->MarkerLines[i]->Start.Z = pMapSpawn->pSpawn->Z;
+		pMapSpawn->MarkerLines[i]->End.Z = pMapSpawn->pSpawn->Z;
+
+		if (pMapSpawn->MarkerLines[i]->Color.ARGB != pMapSpawn->pMapLabel->Color.ARGB)
+			pMapSpawn->MarkerLines[i]->Color = pMapSpawn->pMapLabel->Color;
+	}
+}
+
+void MDM(PMAPSPAWN pMapSpawn)
+{
+	DWORD MARKERSIDELEN = pMapSpawn->MarkerSize;
+	float x[2], y[2], X[1], Y[1];
+	if (pMapSpawn->Highlight)
+	{
+		if (HighlightPulse)
+		{
+			MARKERSIDELEN = HighlightSIDELEN + (HighlightPulseIndex * HighlightPulseDiff);
+		}
+		else
+		{
+			MARKERSIDELEN = HighlightSIDELEN;
+		}
+	}
+
+	x[0] = -pMapSpawn->pSpawn->X;
+	x[1] = -pMapSpawn->pSpawn->X + MARKERSIDELEN*.71f;   // sqrt(2)/2
+	x[2] = -pMapSpawn->pSpawn->X - MARKERSIDELEN*.71f;
+	y[0] = -pMapSpawn->pSpawn->Y - MARKERSIDELEN*.71f;
+	y[1] = -pMapSpawn->pSpawn->Y;
+	y[2] = -pMapSpawn->pSpawn->Y + MARKERSIDELEN*.71f;
+
+	for (int i = 0; i<4; i++) {
+		switch (i) {
+		case 0:   X[0] = x[0]; X[1] = x[1]; Y[0] = y[0]; Y[1] = y[1]; break;
+		case 1:   X[0] = x[1]; X[1] = x[0]; Y[0] = y[1]; Y[1] = y[2]; break;
+		case 2:   X[0] = x[0]; X[1] = x[2]; Y[0] = y[2]; Y[1] = y[1]; break;
+		case 3:   X[0] = x[2]; X[1] = x[0]; Y[0] = y[1]; Y[1] = y[0]; break;
+		}
+
+		pMapSpawn->MarkerLines[i]->Start.X = X[0];
+		pMapSpawn->MarkerLines[i]->Start.Y = Y[0];
+		pMapSpawn->MarkerLines[i]->End.X = X[1];
+		pMapSpawn->MarkerLines[i]->End.Y = Y[1];
+		pMapSpawn->MarkerLines[i]->Start.Z = pMapSpawn->pSpawn->Z;
+		pMapSpawn->MarkerLines[i]->End.Z = pMapSpawn->pSpawn->Z;
+
+		if (pMapSpawn->MarkerLines[i]->Color.ARGB != pMapSpawn->pMapLabel->Color.ARGB)
+			pMapSpawn->MarkerLines[i]->Color = pMapSpawn->pMapLabel->Color;
+	}
+}
+
+
+void MRM(PMAPSPAWN pMapSpawn)
+{
+	DWORD MARKERSIDELEN = pMapSpawn->MarkerSize;
+	if (pMapSpawn->Highlight)
+	{
+		if (HighlightPulse)
+		{
+			MARKERSIDELEN = HighlightSIDELEN + (HighlightPulseIndex * HighlightPulseDiff);
+		}
+		else
+		{
+			MARKERSIDELEN = HighlightSIDELEN;
+		}
+	}
+
+	for (int i = 0; i<8; i++) {
+
+		pMapSpawn->MarkerLines[i]->Start.X = -pMapSpawn->pSpawn->X + MARKERSIDELEN*sinf((i * 45 + (FLOAT)22.5) / 180.0f*(FLOAT)PI);
+		pMapSpawn->MarkerLines[i]->Start.Y = -pMapSpawn->pSpawn->Y + MARKERSIDELEN*cosf((i * 45 + (FLOAT)22.5) / 180.0f*(FLOAT)PI);
+		pMapSpawn->MarkerLines[i]->End.X = -pMapSpawn->pSpawn->X + MARKERSIDELEN*sinf(((i + 1) * 45 + (FLOAT)22.5) / 180.0f*(FLOAT)PI);
+		pMapSpawn->MarkerLines[i]->End.Y = -pMapSpawn->pSpawn->Y + MARKERSIDELEN*cosf(((i + 1) * 45 + (FLOAT)22.5) / 180.0f*(FLOAT)PI);
+		pMapSpawn->MarkerLines[i]->Start.Z = pMapSpawn->pSpawn->Z;
+		pMapSpawn->MarkerLines[i]->End.Z = pMapSpawn->pSpawn->Z;
+
+		if (pMapSpawn->MarkerLines[i]->Color.ARGB != pMapSpawn->pMapLabel->Color.ARGB)
+			pMapSpawn->MarkerLines[i]->Color = pMapSpawn->pMapLabel->Color;
+	}
+}
+
+void MoveMarker(PMAPSPAWN pMapSpawn)
+{
+	switch (pMapSpawn->Marker) {
+	case 1: //triangle
+		MTM(pMapSpawn);
+		return;
+	case 2: //square
+		MSM(pMapSpawn);
+		return;
+	case 3: //diamond
+		MDM(pMapSpawn);
+		return;
+	case 4: //ring
+		MRM(pMapSpawn);
+		return;
+	}
+}
+
+
+
+
+
+DWORD FindMarker(PCHAR szMark)
+{
+	if (!stricmp(szMark, "none"))
+		return 0;
+	else if (!stricmp(szMark, "triangle"))
+		return 1;
+	else if (!stricmp(szMark, "square"))
+		return 2;
+	else if (!stricmp(szMark, "diamond"))
+		return 3;
+	else if (!stricmp(szMark, "ring"))
+		return 4;
+	return 99;
+}
+
+// make a current timestamp in tenths of a second
+long MakeTime()
+{
+	SYSTEMTIME st;
+	::GetSystemTime(&st);
+	long lCurrent = 0;
+	lCurrent = st.wDay * 24 * 60 * 60 * 10;
+	lCurrent += st.wHour * 60 * 60 * 10;
+	lCurrent += st.wMinute * 60 * 10;
+	lCurrent += st.wSecond * 10;
+	lCurrent += (long)(st.wMilliseconds / 100);
+	return (lCurrent);
 }
