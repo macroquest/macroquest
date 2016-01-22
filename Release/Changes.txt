@@ -1,3 +1,7 @@
+22 Jan 2016
+- Updated for TEST
+- Updated for LIVE
+
 20 Jan 2016 by MacroQuest2.com Devs
 - Updated for LIVE
 - Fixes to the task tlo by dewey2461 see: http://www.macroquest2.com/phpBB3/viewtopic.php?f=30&t=19912
