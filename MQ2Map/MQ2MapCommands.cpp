@@ -534,9 +534,6 @@ VOID MapClickCommand(PSPAWNINFO pChar, PCHAR szLine)
 	WriteChatColor(szBuffer);
 }
 
-
-#endif
-
 // marker code
 PCHAR szMarkType[] = {
 	"None",
@@ -605,3 +602,4 @@ PCHAR FormatMarker(PCHAR szLine, PCHAR szDest)
 	sprintf(szDest, "unchanged, unknown spawn type: %s", MarkType);
 	return szDest;
 }
+#endif

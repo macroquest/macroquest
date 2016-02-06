@@ -944,7 +944,9 @@ typedef struct _CHARINFO {
 /*0x1bf0*/ void*        PlayerPointManager;
 /*0x1bf4*/ BYTE         Unknown0x1bf4[0x16a];
 /*0x1d5e*/ BYTE         UseAdvancedLooting;                     //0=off 1=on
-/*0x1d5f*/ BYTE         Unknown0x1d5f[0x2b9];
+/*0x1d5f*/ BYTE         Unknown0x1d5f[0x2b1];
+/*0x2010*/ DWORD        Krono;
+/*0x2014*/ BYTE         Unknown0x2014[0x4];
 /*0x2018*/ DWORD        MercAAExp;// divide this with 3.30f and you get the percent - eqmule
 /*0x201c*/ BYTE         Unknown0x201c[0x4];
 /*0x2020*/ DWORD        MercAAPoints;//number of unspent merc AA points
@@ -1015,8 +1017,8 @@ typedef struct _CHARINFO {
 /*0x2538*/ BYTE         Unknown0x2538[0x1c];
 /*0x2554*/ DWORD        CharBaseBegin;//we use this for finding the next members of this struct
 /*0x2558*/ BYTE         Unknown0x2558[0x4];
-/*0x255c*/ void*        pUnknown2;
-/*0x2560*/ struct _CI2_INFO*    pCI2;//cant find a pointer to this so lets just say its always at pUnknown2+4
+/*0x255c*/ void*        pCharacterBase;
+/*0x2560*/ struct _CI2_INFO*    pCI2;//cant find a pointer to this so lets just say its always at pCharacterBase+4
 /*0x2564*/ BYTE         Unknown0x2564[0x4];
 /*0x2568*/ BYTE         languages[0x20];//CharBaseBegin+14
 /*0x2588*/ BYTE         Unknown0x2588[0x10];
@@ -1377,9 +1379,7 @@ typedef struct _SPAWNINFO {
 	/*0x01e4*/ DWORD        MasterID;
 	/*0x01e8*/ BYTE         Unknown0x01e8[0x4];
 	/*0x01ec*/ struct _EQC_INFO*    spawneqc_info;
-	/*0x01f0*/ BYTE         Unknown0x01f0[0x8];
-	/*0x01f8*/ DWORD        TargetOfTarget;
-	/*0x01fc*/ BYTE         Unknown0x01fc[0x20];
+	/*0x01f0*/ BYTE         Unknown0x01f0[0x2c];
 	/*0x021c*/ DWORD        ManaMax;
 	/*0x0220*/ BYTE         HoldingType; // I dont know the types, i put a 2h in Primary and its a 4 , modrod there and its a 1, nothing its a 5 -eqmule
 	/*0x0221*/ BYTE         Unknown0x0221[0x37];
@@ -1411,16 +1411,15 @@ typedef struct _SPAWNINFO {
 	/*0x04b6*/ BYTE         Light;
 	/*0x04b7*/ BYTE         Unknown0x04b7;
 	/*0x04b8*/ BYTE         PvPFlag;
-	/*0x04b9*/ BYTE         Unknown0x04b9[0x1b];
-	/*0x04d4*/ struct _SPAWNINFO*   WhoFollowing; // NULL if autofollow off
-	/*0x04d8*/ BYTE         Unknown0x04d8[0x14];
+	/*0x04b9*/ BYTE         Unknown0x04b9[0x33];
 	/*0x04ec*/ FLOAT        RunSpeed;//0.70 on runspeed 5...
 	/*0x04f0*/ BYTE         Unknown0x04f0[0x10];
 	/*0x0500*/ DWORD        TimeStamp;//updates all the time including when on a mount
 	/*0x0504*/ BYTE         GM;
 	/*0x0505*/ BYTE         Unknown0x0505[0x3];
 	/*0x0508*/ FLOAT        ViewHeight;
-	/*0x050c*/ BYTE         Unknown0x050c[0xc];
+	/*0x050c*/ BYTE         Unknown0x050c[0x8];
+	/*0x0514*/ DWORD        PetID;//the unknown above this is petwindow target related I think
 	/*0x0518*/ DWORD        SpellCooldownETA;
 	/*0x051c*/ BYTE         Unknown0x051c;
 	/*0x051d*/ BYTE         Mercenary;
@@ -1440,12 +1439,13 @@ typedef struct _SPAWNINFO {
 	/*0x0550*/ BYTE         Level;
 	/*0x0551*/ BYTE         Unknown0x0551[0x87];
 	/*0x05d8*/ FLOAT        GetMeleeRangeVar1;      // used by GetMeleeRange
-	/*0x05dc*/ BYTE         Unknown0x05dc[0x920];
-	/*0x0efc*/ DWORD        PetID;//the unknown above this is petwindow target related I think
-	/*0x0f00*/ DWORD        GroupAssistNPC[0x1];
-	/*0x0f04*/ DWORD        RaidAssistNPC[0x3];
-	/*0x0f10*/ DWORD        GroupMarkNPC[0x3];
-	/*0x0f1c*/ DWORD        RaidMarkNPC[0x3];
+	/*0x05dc*/ BYTE         Unknown0x05dc[0x91c];
+	/*0x0ef8*/ struct _SPAWNINFO*   WhoFollowing; // NULL if autofollow off
+	/*0x0efc*/ DWORD        GroupAssistNPC[0x1];
+	/*0x0f00*/ DWORD        RaidAssistNPC[0x3];
+	/*0x0f0c*/ DWORD        GroupMarkNPC[0x3];
+	/*0x0f18*/ DWORD        RaidMarkNPC[0x3];
+	/*0x0f24*/ DWORD        TargetOfTarget;
 	/*0x0f28*/ BYTE         Unknown0x0f28[0x30];
 	/*0x0f58*/ void*        pActorClient;          // start of ActorClient struct
 	/*0x0f5c*/ BYTE         InNonPCRaceIllusion;
@@ -1808,8 +1808,8 @@ typedef struct _SPELL {
 /*0x0bc*/   DWORD   ReagentId[0x4];     //ReagentId1-ReagentId4d
 /*0x0cc*/   DWORD   ReagentCount[0x4];  //ReagentCount1-ReagentCount4
 /*0x0dc*/   BYTE    Unknown0xdc[0x10];
-/*0x0ec*/   DWORD   Calc[0x0c];         //Calc1-Calc12
-/*0x11c*/   DWORD   Attrib[0xc];       //Attrib1-Attrib12
+/*0x0ec*/   LONG    Calc[0x0c];         //Calc1-Calc12
+/*0x11c*/   LONG    Attrib[0xc];       //Attrib1-Attrib12
 /*0x14c*/   DWORD   BookIcon;
 /*0x150*/   DWORD   GemIcon;
 /*0x154*/   DWORD   DescriptionNumber;

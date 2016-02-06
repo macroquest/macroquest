@@ -2400,16 +2400,32 @@ bool MQ2CharacterType::GETMEMBER()
 		Dest.DWord = GetCharInfo2()->Plat;
 		Dest.Type = pIntType;
 		return true;
+	case CursorPlatinum:
+		Dest.DWord = GetCharInfo2()->CursorPlat;
+		Dest.Type = pIntType;
+		return true;
 	case Gold:
 		Dest.DWord = GetCharInfo2()->Gold;
+		Dest.Type = pIntType;
+		return true;
+	case CursorGold:
+		Dest.DWord = GetCharInfo2()->CursorGold;
 		Dest.Type = pIntType;
 		return true;
 	case Silver:
 		Dest.DWord = GetCharInfo2()->Silver;
 		Dest.Type = pIntType;
 		return true;
+	case CursorSilver:
+		Dest.DWord = GetCharInfo2()->CursorSilver;
+		Dest.Type = pIntType;
+		return true;
 	case Copper:
 		Dest.DWord = GetCharInfo2()->Copper;
+		Dest.Type = pIntType;
+		return true;
+	case CursorCopper:
+		Dest.DWord = GetCharInfo2()->CursorCopper;
 		Dest.Type = pIntType;
 		return true;
 	case CashBank:
@@ -2529,25 +2545,29 @@ bool MQ2CharacterType::GETMEMBER()
 			unsigned long nGem = GETNUMBER() - 1;
 			if (nGem<NUM_SPELL_GEMS)
 			{
-				if (Dest.Ptr = GetSpellByID(GetCharInfo2()->MemorizedSpells[nGem]))
-				{
-					Dest.Type = pSpellType;
-					return true;
+				if (CharacterBase *cb = (CharacterBase *)&pChar->pCharacterBase) {
+					if (Dest.Ptr = GetSpellByID(cb->GetMemorizedSpell(nGem)))
+					{
+						Dest.Type = pSpellType;
+						return true;
+					}
 				}
 			}
 		}
 		else
 		{
 			// name
-			for (unsigned long nGem = 0; nGem < NUM_SPELL_GEMS; nGem++)
-			{
-				if (PSPELL pSpell = GetSpellByID(GetCharInfo2()->MemorizedSpells[nGem]))
+			if (CharacterBase *cb = (CharacterBase *)&pChar->pCharacterBase) {
+				for (unsigned long nGem = 0; nGem < NUM_SPELL_GEMS; nGem++)
 				{
-					if (!_stricmp(GETFIRST(), pSpell->Name))
+					if (PSPELL pSpell = GetSpellByID(cb->GetMemorizedSpell(nGem)))
 					{
-						Dest.DWord = nGem + 1;
-						Dest.Type = pIntType;
-						return true;
+						if (!_stricmp(GETFIRST(), pSpell->Name))
+						{
+							Dest.DWord = nGem + 1;
+							Dest.Type = pIntType;
+							return true;
+						}
 					}
 				}
 			}
@@ -3055,18 +3075,20 @@ bool MQ2CharacterType::GETMEMBER()
 			}
 			else
 			{
-				for (unsigned long nGem = 0; nGem < NUM_SPELL_GEMS; nGem++)
-				{
-					if (PSPELL pSpell = GetSpellByID(GetCharInfo2()->MemorizedSpells[nGem]))
+				if (CharacterBase *cb = (CharacterBase *)&pChar->pCharacterBase) {
+					for (unsigned long nGem = 0; nGem < NUM_SPELL_GEMS; nGem++)
 					{
-						if (!_stricmp(GETFIRST(), pSpell->Name))
+						if (PSPELL pSpell = GetSpellByID(cb->GetMemorizedSpell(nGem)))
 						{
-							if (!((PEQCASTSPELLWINDOW)pCastSpellWnd)->SpellSlots[nGem])
-								Dest.DWord = 0;
-							else
-								Dest.DWord = (((PEQCASTSPELLWINDOW)pCastSpellWnd)->SpellSlots[nGem]->spellstate != 1);
-							Dest.Type = pBoolType;
-							return true;
+							if (!_stricmp(GETFIRST(), pSpell->Name))
+							{
+								if (!((PEQCASTSPELLWINDOW)pCastSpellWnd)->SpellSlots[nGem])
+									Dest.DWord = 0;
+								else
+									Dest.DWord = (((PEQCASTSPELLWINDOW)pCastSpellWnd)->SpellSlots[nGem]->spellstate != 1);
+								Dest.Type = pBoolType;
+								return true;
+							}
 						}
 					}
 				}
@@ -3658,6 +3680,14 @@ bool MQ2CharacterType::GETMEMBER()
 			}
 		}
 		break;
+	case XTargetSlots:
+		Dest.DWord = 0;
+		if (PXTARGETMGR xtm = pChar->pXTargetMgr)
+		{
+			Dest.DWord = xtm->TargetSlots;
+		}
+		Dest.Type = pIntType;
+		return true;
 	case XTarget:
 		if (PXTARGETMGR xtm = pChar->pXTargetMgr)
 		{
@@ -3727,34 +3757,34 @@ bool MQ2CharacterType::GETMEMBER()
 	case GemTimer:
 		if (!ISINDEX())
 			return false;
-		if (ISNUMBER())
-		{
-			// number
-			unsigned long nGem = GETNUMBER() - 1;
-			if (nGem<NUM_SPELL_GEMS)
+		if (CharacterBase *cb = (CharacterBase *)&pChar->pCharacterBase) {
+			if (ISNUMBER())
 			{
-				if (GetCharInfo2()->MemorizedSpells[nGem] != 0xFFFFFFFF)
+				// number
+				unsigned long nGem = GETNUMBER() - 1;
+				if (nGem < NUM_SPELL_GEMS)
 				{
-					//Dest.DWord = (((GetSpellGemTimer(nGem) / 1000) + 5) / 6);
-					Dest.UInt64 = GetSpellGemTimer(nGem);
-					Dest.Type = pTimeStampType;
-					return true;
-				}
-			}
-		}
-		else
-		{
-			// name
-			for (unsigned long nGem = 0; nGem < NUM_SPELL_GEMS; nGem++)
-			{
-				if (PSPELL pSpell = GetSpellByID(GetCharInfo2()->MemorizedSpells[nGem]))
-				{
-					if (!_stricmp(GETFIRST(), pSpell->Name))
+					if (cb->GetMemorizedSpell(nGem) != 0xFFFFFFFF)
 					{
-						// Dest.DWord = (((GetSpellGemTimer(nGem) / 1000) + 5) / 6);
 						Dest.UInt64 = GetSpellGemTimer(nGem);
 						Dest.Type = pTimeStampType;
 						return true;
+					}
+				}
+			}
+			else
+			{
+				// name
+				for (unsigned long nGem = 0; nGem < NUM_SPELL_GEMS; nGem++)
+				{
+					if (PSPELL pSpell = GetSpellByID(cb->GetMemorizedSpell(nGem)))
+					{
+						if (!_stricmp(GETFIRST(), pSpell->Name))
+						{
+							Dest.UInt64 = GetSpellGemTimer(nGem);
+							Dest.Type = pTimeStampType;
+							return true;
+						}
 					}
 				}
 			}
@@ -3844,6 +3874,10 @@ bool MQ2CharacterType::GETMEMBER()
 		return true;
 	case MercAAExp:
 		Dest.DWord = pChar->MercAAExp;
+		Dest.Type = pIntType;
+		return true;
+	case Krono:
+		Dest.DWord = pChar->Krono;
 		Dest.Type = pIntType;
 		return true;
 #endif
@@ -4106,6 +4140,28 @@ bool MQ2CharacterType::GETMEMBER()
 					break;
 				}
 			}
+		}
+		break;
+	}
+	case Diseased:
+	{
+		int nBuff = -1;
+		if ((nBuff = GetSelfBuffBySPA(35, 0)) != -1)//Disease Counter
+		{
+			Dest.Ptr = &GetCharInfo2()->Buff[nBuff];
+			Dest.Type = pBuffType;
+			return true;
+		}
+		break;
+	}
+	case Poisoned:
+	{
+		int nBuff = -1;
+		if ((nBuff = GetSelfBuffBySPA(36, 0)) != -1)//Poison Counter
+		{
+			Dest.Ptr = &GetCharInfo2()->Buff[nBuff];
+			Dest.Type = pBuffType;
+			return true;
 		}
 		break;
 	}
@@ -4568,9 +4624,9 @@ bool MQ2SpellType::GETMEMBER()
 			Dest.Float = (FLOAT)0.50 * (pSpell->CastTime / 1000.0f);
 		else
 			Dest.Float = (FLOAT)mct;
+		Dest.Type = pFloatType;
+		return true;
 	}
-	Dest.Type = pFloatType;
-	return true;
 	case Duration:
 		Dest.DWord = GetSpellDuration(pSpell, (PSPAWNINFO)pLocalPlayer);
 		Dest.Type = pTicksType;
@@ -9954,6 +10010,20 @@ bool MQ2TargetType::GETMEMBER()
 			}
 		}
 		break;
+	case Diseased:
+		if ((Dest.Int = GetTargetBuffBySPA(35, 0)) != -1)//Disease Counter
+		{
+			Dest.Type = pTargetBuffType;
+			return true;
+		}
+		break;
+	case Poisoned:
+		if ((Dest.Int = GetTargetBuffBySPA(36, 0)) != -1)//Poison Counter
+		{
+			Dest.Type = pTargetBuffType;
+			return true;
+		}
+		break;
 	case Symbol:
 		if ((Dest.Int = GetTargetBuffByCategory(45, 1 << Cleric)) != -1)//
 		{
@@ -10256,25 +10326,25 @@ bool MQ2TaskType::GETMEMBER()
 			if (s[0] == 0)
 				r = 99;
 		}
-		return true;
+				return true;
 	case Title:
 		Evaluate(s, "${Window[TaskWnd].Child[TASK_TaskList].GetCurSel}");
 		if (s[0] != '0') {
 			Evaluate(RetStr, "${Window[TaskWnd].Child[TASK_TaskList].List[%s,2]}", s);
-		}
+			}
 		return true;
 	case Timer:
 		pTaskWnd->UpdateTaskTimers(_time32(NULL));
 		Evaluate(s, "${Window[TaskWnd].Child[TASK_TaskList].List[1,3]}");
 		if (s[0] != '\0') {
-			int hh, mm, ss;
+				int hh, mm, ss;
 			if (sscanf_s(s, "%d:%d:%d", &hh, &mm, &ss)) {
-				Dest.UInt64 = ((hh * 3600) + (mm * 60) + ss) * 1000;
-				Dest.Type = pTimeStampType;
-				return true;
+					Dest.UInt64 = ((hh * 3600) + (mm * 60) + ss) * 1000;
+					Dest.Type = pTimeStampType;
+					return true;
+				}
+				return false;
 			}
-			return false;
-		}
 		return true;
 	case xMember:
 		l = strlen(Index);
@@ -10295,7 +10365,7 @@ bool MQ2TaskType::GETMEMBER()
 					return true;
 			}
 		}
-		return true;
+					return true;
 	case Members:
 		Dest.DWord = 0;
 		Dest.Type = pIntType;
@@ -10305,7 +10375,7 @@ bool MQ2TaskType::GETMEMBER()
 				Dest.DWord = r - 1;
 				r = 99;
 			}
-		}
+				}
 		return true;
 	case MemberList:
 		RetStr[0] = 0;
@@ -10319,15 +10389,15 @@ bool MQ2TaskType::GETMEMBER()
 			}
 			else {
 				r = 99;
-			}
+		}
 		}
 		return true;
 	case List: {
 		v = sscanf(Index, "%d,%d", &r, &c);
 		if (v < 1) r = 1;
 		Evaluate(RetStr, "${Window[TaskWnd].Child[TASK_TaskList].List[%d,2]}", r);
-		return true;
-	}
+				return true;
+			}
 	case Step:
 		v = sscanf(Index, "%d,%d", &r, &c);
 		if (v < 2) c = 1;
@@ -10341,8 +10411,8 @@ bool MQ2TaskType::GETMEMBER()
 				Evaluate(t, "${Window[TaskWnd].Child[TASK_TaskElementList].List[%d,%d]}", r, 1);
 				sprintf(RetStr, "%s|%s", t, s);
 				r = 99;
-			}
 		}
+	}
 	case Select:
 		l = strlen(Index);
 		if (l>0) {
@@ -10353,9 +10423,9 @@ bool MQ2TaskType::GETMEMBER()
 					sprintf(s, "/notify TaskWnd TASK_TaskList listselect %d", r);
 					HideDoCommand(((PSPAWNINFO)pCharSpawn), s, FALSE);
 					r = 99;
-				}
 			}
 		}
+	}
 		return true;
 	}
 	return false;

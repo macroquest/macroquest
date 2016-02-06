@@ -111,9 +111,8 @@ BOOL ParseINIFile(PCHAR lpINIPath)
     }
 #endif
 
-	int ic = GetPrivateProfileInt("Plugins", "MQ2Ic", -1, Filename);
-	if (ic == -1) {//key wasnt found
-		//so we write one cause it's default that its loaded
+	int ic = GetPrivateProfileInt("Plugins", "MQ2Ic", 1, Filename);
+	if (ic==0) {//its set to 0 thats not good
 		WritePrivateProfileString("Plugins", "MQ2Ic", "1", Filename);
 	}
 	gFilterSkillsAll = 0!=GetPrivateProfileInt("MacroQuest","FilterSkills",0,Filename);

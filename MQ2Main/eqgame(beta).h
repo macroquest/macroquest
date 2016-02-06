@@ -650,6 +650,7 @@ GNU General Public License for more details.
 // EQ_Character 
 #define EQ_Character__CastSpell_x                                  0x44E0A0
 #define EQ_Character__Cur_HP_x                                     0x463950
+#define EQ_Character__Cur_Mana_x                                   0x4572C0
 #define EQ_Character__GetAACastingTimeModifier_x                   0x445FA0
 #define EQ_Character__GetCharInfo2_x                               0x872200
 #define EQ_Character__GetFocusCastingTimeModifier_x                0x43DF70

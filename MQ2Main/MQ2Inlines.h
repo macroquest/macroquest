@@ -14,6 +14,7 @@ GNU General Public License for more details.
 
 static inline PCHARINFO GetCharInfo(VOID) {
     //   if (!ppCharData) return NULL;
+	//pPCData and pCharData points to same address
     return (PCHARINFO)pCharData;
 }
 
@@ -128,6 +129,7 @@ static inline BOOL IsMarkedNPC(PSPAWNINFO pSpawn)
     return false;
 }
 
+#define GetCurMana() ((EQ_Character*)pCharData1)->Cur_Mana(0)
 #define GetCurHPS() pCharData1->Cur_HP(0)
 #define GetMaxHPS() pCharData1->Max_HP(0)
 #define GetMaxEndurance() pCharData1->Max_Endurance()

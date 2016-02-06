@@ -342,7 +342,7 @@ EQLIB_API DWORD LoadMQ2Plugin(const PCHAR pszFilename, BOOL bCustom = 0);
 EQLIB_API BOOL UnloadMQ2Plugin(const PCHAR pszFilename);
 EQLIB_API VOID UnloadMQ2Plugins();
 EQLIB_API VOID ShutdownMQ2Plugins();
-EQLIB_API VOID RewriteMQ2Plugins(VOID);
+EQLIB_API VOID SaveMQ2PluginLoadStatus(char*Name, bool bLoad);
 #endif
 EQLIB_API VOID PulsePlugins();
 EQLIB_API VOID PluginsZoned();

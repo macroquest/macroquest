@@ -2254,106 +2254,106 @@ void CastSplash(int Index,PSPELL pSpell)
 VOID Cast(PSPAWNINFO pChar, PCHAR szLine)
 {
 	if (!cmdCast) return;
-
-	if (szLine[0] == 0 || atoi(szLine) || !ppSpellMgr || !ppCharData || !pCharData) {
-		int Index = atoi(szLine);
-		Index--;
-		if (Index >= 0 && Index < NUM_SPELL_GEMS) {
-			if (PCHARINFO2 pChar2 = GetCharInfo2()) {
-				if (pChar2->MemorizedSpells[Index] != 0xFFFFFFFF) {
-					if (PSPELL pSpell = GetSpellByID(GetCharInfo2()->MemorizedSpells[Index])) {
+	if (PCHARINFO pCharInfo = GetCharInfo()) {
+		if (CharacterBase *cb = (CharacterBase *)&pCharInfo->pCharacterBase) {
+			if (szLine[0] == 0 || atoi(szLine) || !ppSpellMgr || !ppCharData || !pCharData) {
+				int Index = atoi(szLine);
+				Index--;
+				if (Index >= 0 && Index < NUM_SPELL_GEMS) {
+					if (PSPELL pSpell = GetSpellByID(cb->GetMemorizedSpell(Index))) {
 						if (pSpell->TargetType == 0x2d) {//is it a splashspell?
 							CastSplash(Index, pSpell);
 							return;
 						}
 					}
 				}
+				cmdCast(pChar, szLine);
+				return;
 			}
-		}
-		cmdCast(pChar, szLine);
-		return;
-	}
-	PCHARINFO pCharInfo = GetCharInfo();
-	if (NULL == pCharInfo) return;
-	DWORD Index;
-	CHAR szBuffer[MAX_STRING] = { 0 };
-	CHAR szArg1[MAX_STRING] = { 0 };
-	CHAR szArg2[MAX_STRING] = { 0 };
-	if (!_stricmp(szLine, "list")) {
-		WriteChatColor("Spells:", USERCOLOR_DEFAULT);
-		for (Index = 0; Index<NUM_SPELL_GEMS; Index++) {
-			if (GetCharInfo2()->MemorizedSpells[Index] == 0xFFFFFFFF) {
-				sprintf(szBuffer, "%d. <Empty>", Index + 1);
-			}
-			else {
-				sprintf(szBuffer, "%d. %s", Index + 1, GetSpellNameByID(GetCharInfo2()->MemorizedSpells[Index]));
-			}
-			WriteChatColor(szBuffer, USERCOLOR_DEFAULT);
-		}
-
-		return;
-	}
-
-	GetArg(szArg1, szLine, 1);
-	GetArg(szArg2, szLine, 2);
-	DebugSpew("Cast: szArg1 = %s szArg2 = %s", szArg1, szArg2);
-	if (!_stricmp(szArg1, "item"))
-	{
-		if (HasExpansion(EXPANSION_VoA))
-		{
-			if (PCONTENTS pItem = FindItemByName(szArg2, true))
-			{
-				if (GetItemFromContents(pItem)->Clicky.SpellID > 0 && GetItemFromContents(pItem)->Clicky.SpellID != -1)
-				{
-					CHAR cmd[40] = { 0 };
-					sprintf(cmd, "/useitem %d %d", pItem->ItemSlot, pItem->ItemSlot2);
-					EzCommand(cmd);
+			DWORD Index;
+			CHAR szBuffer[MAX_STRING] = { 0 };
+			CHAR szArg1[MAX_STRING] = { 0 };
+			CHAR szArg2[MAX_STRING] = { 0 };
+			if (!_stricmp(szLine, "list")) {
+				WriteChatColor("Spells:", USERCOLOR_DEFAULT);
+				for (Index = 0; Index < NUM_SPELL_GEMS; Index++) {
+					LONG Spellid = cb->GetMemorizedSpell(Index);
+					if (Spellid == 0xFFFFFFFF) {
+						sprintf(szBuffer, "%d. <Empty>", Index + 1);
+					}
+					else {
+						sprintf(szBuffer, "%d. %s", Index + 1, GetSpellNameByID(Spellid));
+					}
+					WriteChatColor(szBuffer, USERCOLOR_DEFAULT);
 				}
+				return;
 			}
-			else {
-				WriteChatf("Item '%s' not found.", szArg2);
-			}
-		}
-		else {
-			if (PCONTENTS pItem = FindItemByName(szArg2, true))
+
+			GetArg(szArg1, szLine, 1);
+			GetArg(szArg2, szLine, 2);
+			DebugSpew("Cast: szArg1 = %s szArg2 = %s", szArg1, szArg2);
+			if (!_stricmp(szArg1, "item"))
 			{
-				if (pItem->ItemSlot<NUM_INV_SLOTS)
+				if (HasExpansion(EXPANSION_VoA))
 				{
-					if (GetItemFromContents(pItem)->Clicky.SpellID > 0 && GetItemFromContents(pItem)->Clicky.SpellID != -1)
+					if (PCONTENTS pItem = FindItemByName(szArg2, true))
 					{
-						if (CInvSlot *pSlot = pInvSlotMgr->FindInvSlot(pItem->ItemSlot))
+						if (GetItemFromContents(pItem)->Clicky.SpellID > 0 && GetItemFromContents(pItem)->Clicky.SpellID != -1)
 						{
-							CXPoint p; p.A = 0; p.B = 0;
-							pSlot->HandleRButtonUp(&p);
+							CHAR cmd[40] = { 0 };
+							sprintf(cmd, "/useitem %d %d", pItem->ItemSlot, pItem->ItemSlot2);
+							EzCommand(cmd);
+						}
+					}
+					else {
+						WriteChatf("Item '%s' not found.", szArg2);
+					}
+				}
+				else {
+					if (PCONTENTS pItem = FindItemByName(szArg2, true))
+					{
+						if (pItem->ItemSlot < NUM_INV_SLOTS)
+						{
+							if (GetItemFromContents(pItem)->Clicky.SpellID > 0 && GetItemFromContents(pItem)->Clicky.SpellID != -1)
+							{
+								if (CInvSlot *pSlot = pInvSlotMgr->FindInvSlot(pItem->ItemSlot))
+								{
+									CXPoint p; p.A = 0; p.B = 0;
+									pSlot->HandleRButtonUp(&p);
+								}
+							}
+						}
+					}
+					else {
+						WriteChatf("Item '%s' not found.", szArg2);
+					}
+				}
+				return;
+			}
+			GetArg(szBuffer, szLine, 1);
+			
+			for (Index = 0; Index < NUM_SPELL_GEMS; Index++) {
+				LONG Spellid = cb->GetMemorizedSpell(Index);
+				if (Spellid != 0xFFFFFFFF) {
+					if (PSPELL pSpell = GetSpellByID(Spellid)) {
+						if (!_stricmp(szBuffer, pSpell->Name)) {
+							if (pSpell->TargetType == 0x2d) {//is it a splashspell?
+								CastSplash(Index, pSpell);
+								return;
+							}
+							else {//nope normal, so just pipe it through
+							 //DebugSpew("SpellName = %s",SpellName);
+								cmdCast(pChar, itoa(Index + 1, szBuffer, 10));
+								//DebugSpew("pChar = %x SpellName = %s %s",pChar,SpellName,itoa(Index+1,szBuffer,10));
+							}
+							return;
 						}
 					}
 				}
 			}
-			else {
-				WriteChatf("Item '%s' not found.", szArg2);
-			}
-		}
-		return;
-	}
-	GetArg(szBuffer, szLine, 1);
-	for (Index = 0; Index<NUM_SPELL_GEMS; Index++) {
-		if (GetCharInfo2()->MemorizedSpells[Index] != 0xFFFFFFFF) {
-			if (PSPELL pSpell = GetSpellByID(GetCharInfo2()->MemorizedSpells[Index])) {
-				if (!_stricmp(szBuffer, pSpell->Name)) {
-					if (pSpell->TargetType == 0x2d) {//is it a splashspell?
-						CastSplash(Index,pSpell);
-						return;
-					} else {//nope normal, so just pie it through
-						//DebugSpew("SpellName = %s",SpellName);
-						cmdCast(pChar, itoa(Index + 1, szBuffer, 10));
-						//DebugSpew("pChar = %x SpellName = %s %s",pChar,SpellName,itoa(Index+1,szBuffer,10));
-					}
-					return;
-				}
-			}
+			WriteChatColor("You do not seem to have that spell memorized.", USERCOLOR_DEFAULT);
 		}
 	}
-	WriteChatColor("You do not seem to have that spell memorized.", USERCOLOR_DEFAULT);
 	return;
 }
 
@@ -2966,7 +2966,7 @@ VOID PluginCommand(PSPAWNINFO pChar, PCHAR szLine)
 			sprintf(szBuffer, "Plugin '%s' unloaded.", szName);
 			WriteChatColor(szBuffer, USERCOLOR_DEFAULT);
 			if (!strstr(szCommand, "noauto")) {
-				RewriteMQ2Plugins();
+				SaveMQ2PluginLoadStatus(szName,false);
 			}
 
 		}
@@ -2981,7 +2981,7 @@ VOID PluginCommand(PSPAWNINFO pChar, PCHAR szLine)
 			sprintf(szBuffer, "Plugin '%s' loaded.", szName);
 			WriteChatColor(szBuffer, USERCOLOR_DEFAULT);
 			if (stricmp(szCommand, "noauto")) {
-				RewriteMQ2Plugins();
+				SaveMQ2PluginLoadStatus(szName,true);
 			}
 		}
 		else

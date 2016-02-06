@@ -1574,7 +1574,8 @@ namespace MQ2Globals
 	INITIALIZE_EQGAME_OFFSET(CGaugeWnd__Draw);
 
 	INITIALIZE_EQGAME_OFFSET(CGuild__FindMemberByName);
-
+	INITIALIZE_EQGAME_OFFSET(CharacterBase__GetMemorizedSpell);
+	
 	INITIALIZE_EQGAME_OFFSET(CHotButtonWnd__DoHotButton);
 
 	INITIALIZE_EQGAME_OFFSET(CInvSlotMgr__FindInvSlot);
@@ -1766,6 +1767,7 @@ namespace MQ2Globals
 
 	INITIALIZE_EQGAME_OFFSET(EQ_Character__CastSpell);
 	INITIALIZE_EQGAME_OFFSET(EQ_Character__Cur_HP);
+	INITIALIZE_EQGAME_OFFSET(EQ_Character__Cur_Mana);
 	INITIALIZE_EQGAME_OFFSET(EQ_Character__GetAACastingTimeModifier);
 	INITIALIZE_EQGAME_OFFSET(EQ_Character__GetCharInfo2);
 	INITIALIZE_EQGAME_OFFSET(EQ_Character__GetFocusCastingTimeModifier);
@@ -1778,7 +1780,8 @@ namespace MQ2Globals
 	INITIALIZE_EQGAME_OFFSET(EQ_Character__GetConLevel);
 	INITIALIZE_EQGAME_OFFSET(EQ_Character__IsExpansionFlag);
 	INITIALIZE_EQGAME_OFFSET(EQ_Character__TotalEffect);
-
+	INITIALIZE_EQGAME_OFFSET(EQ_Character__GetPCSpellAffect);
+	
 	INITIALIZE_EQGAME_OFFSET(EQ_Item__CanDrop);
 	INITIALIZE_EQGAME_OFFSET(EQ_Item__CreateItemTagString);
 	INITIALIZE_EQGAME_OFFSET(EQ_Item__IsStackable);

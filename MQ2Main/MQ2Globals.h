@@ -1050,7 +1050,8 @@ namespace MQ2Globals
 	EQLIB_VAR DWORD CGaugeWnd__Draw;
 
 	EQLIB_VAR DWORD CGuild__FindMemberByName;
-
+	EQLIB_VAR DWORD CharacterBase__GetMemorizedSpell;
+	
 	EQLIB_VAR DWORD CHotButtonWnd__DoHotButton;
 
 	EQLIB_VAR DWORD CInvSlotMgr__FindInvSlot;
@@ -1241,6 +1242,7 @@ namespace MQ2Globals
 
 	EQLIB_VAR DWORD EQ_Character__CastSpell;
 	EQLIB_VAR DWORD EQ_Character__Cur_HP;
+	EQLIB_VAR DWORD EQ_Character__Cur_Mana;
 	EQLIB_VAR DWORD EQ_Character__GetAACastingTimeModifier;
 	EQLIB_VAR DWORD EQ_Character__GetCharInfo2;
 	EQLIB_VAR DWORD EQ_Character__GetFocusCastingTimeModifier;
@@ -1253,6 +1255,7 @@ namespace MQ2Globals
 	EQLIB_VAR DWORD EQ_Character__GetConLevel;
 	EQLIB_VAR DWORD EQ_Character__IsExpansionFlag;
 	EQLIB_VAR DWORD EQ_Character__TotalEffect;
+	EQLIB_VAR DWORD EQ_Character__GetPCSpellAffect;
 
 	EQLIB_VAR DWORD EQ_Item__CanDrop;
 	EQLIB_VAR DWORD EQ_Item__CreateItemTagString;

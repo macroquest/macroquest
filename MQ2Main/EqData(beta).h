@@ -957,8 +957,10 @@ typedef struct _CHARINFO {
 /*0x1bf0*/ void*        PlayerPointManager;
 /*0x1bf4*/ BYTE         Unknown0x1bf4[0x16a];
 /*0x1d5e*/ BYTE         UseAdvancedLooting;                     //0=off 1=on
-/*0x1d5f*/ BYTE         Unknown0x1d5f[0x269];
-/*0x1fc8*/ DWORD        MercAAExp;// divide this with 3.30f and you get the percent - eqmule
+/*0x1d5f*/ BYTE         Unknown0x1d5f[0x2b1];
+/*0x2010*/ DWORD        Krono;
+/*0x2014*/ BYTE         Unknown0x2014[0x4];
+/*0x2018*/ DWORD        MercAAExp;// divide this with 3.30f and you get the percent - eqmule
 /*0x1fcc*/ BYTE         Unknown0x1fcc[0x4];
 /*0x1fd0*/ DWORD        MercAAPoints;//number of unspent merc AA points
 /*0x1fd4*/ DWORD        MercAAPointsSpent;//number of spent merc AA points
@@ -1028,8 +1030,8 @@ typedef struct _CHARINFO {
 /*0x24e8*/ BYTE         Unknown0x24e8[0x1c];
 /*0x2504*/ DWORD        CharBaseBegin;//we use this for finding the next members of this struct
 /*0x2508*/ BYTE         Unknown0x2508[0x4];
-/*0x250c*/ void*        pUnknown2;
-/*0x2510*/ struct _CI2_INFO*    pCI2;//cant find a pointer to this so lets just say its always at pUnknown2+4
+/*0x250c*/ void*        pCharacterBase;
+/*0x2510*/ struct _CI2_INFO*    pCI2;//cant find a pointer to this so lets just say its always at pCharacterBase+4
 /*0x2514*/ BYTE         Unknown0x2514[0x4];
 /*0x2518*/ BYTE         languages[0x20];//CharBaseBegin+14
 /*0x2538*/ BYTE         Unknown0x2538[0x10];
@@ -1826,8 +1828,8 @@ typedef struct _SPELL {
 /*0x0bc*/   DWORD   ReagentId[0x4];     //ReagentId1-ReagentId4d
 /*0x0cc*/   DWORD   ReagentCount[0x4];  //ReagentCount1-ReagentCount4
 /*0x0dc*/   BYTE    Unknown0xdc[0x10];
-/*0x0ec*/   DWORD   Calc[0x0c];         //Calc1-Calc12
-/*0x11c*/   DWORD   Attrib[0xc];       //Attrib1-Attrib12
+/*0x0ec*/   LONG    Calc[0x0c];         //Calc1-Calc12
+/*0x11c*/   LONG    Attrib[0xc];       //Attrib1-Attrib12
 /*0x14c*/   DWORD   BookIcon;
 /*0x150*/   DWORD   GemIcon;
 /*0x154*/   DWORD   DescriptionNumber;

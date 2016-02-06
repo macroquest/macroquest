@@ -1,3 +1,17 @@
+28 Jan 2016
+- The changes to the Task TLO from the Jan 14 patch has been reverted, they where not ready for production yet.
+- Me.Pet has been fixed for TEST along with a bunch of other spawninfo offsets that where all off.
+- Me.Trader has been fixed for LIVE
+- Me.Buyer has been fixed for LIVE
+- Added Poisoned and Diseased to ${Target}
+- Added Poisoned and Diseased to ${Me}
+- RewriteMQ2Plugins has been removed, it was a dangerous function that could set all plugins to 0 if you crashed while doing /plugin someunstableplugin unload
+- RewriteMQ2Plugins has been replaced with SaveMQ2PluginLoadStatus
+- Added Krono to ${Me}
+- Added XTargetSlots to ${Me}
+- Misc other fixes.
+- Stuff
+
 22 Jan 2016
 - Updated for TEST
 - Updated for LIVE
@@ -7,6 +21,9 @@
 - Fixes to the task tlo by dewey2461 see: http://www.macroquest2.com/phpBB3/viewtopic.php?f=30&t=19912
 - New feature map highlights see http://www.macroquest2.com/phpBB3/viewtopic.php?f=17&t=19895
   code cred: JudgeD
+
+17 Jan 2015 by MacroQuest2.com Devs
+-Added CursorPlatinum,CursorGold,CursorSilver and CursorCopper to the ${Me} tlo
 
 16 Jan 2016 by MacroQuest2.com Devs
 - Fixed Open in the CONTENTS struct

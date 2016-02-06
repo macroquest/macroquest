@@ -92,6 +92,7 @@ class CGuild;
 class CGuildMgmtWnd;
 class ChannelServerApi;
 class ChannelServerHandler;
+class CharacterBase;
 class CHashCXStrInt32;
 class CHelpWnd;
 class CHotButtonWnd;
@@ -2383,6 +2384,12 @@ public:
 // virtual
 EQLIB_OBJECT void ChannelServerHandler::CshOnLoginConfirm(bool);
 EQLIB_OBJECT void ChannelServerHandler::CshOnPacket(void *,int,char *,int,char *,bool);
+};
+
+class CharacterBase
+{
+public:
+	EQLIB_OBJECT LONG CharacterBase::GetMemorizedSpell(int gem);//0-0xf this func returns the spellid for whatever is in the gem
 };
 
 class CHashCXStrInt32
@@ -5407,7 +5414,7 @@ EQLIB_OBJECT char * EQ_Character::KunarkClass(int,int,int,bool);
 EQLIB_OBJECT char * EQ_Character::Race(int);
 EQLIB_OBJECT class EQ_Affect & EQ_Character::GetEffect(int);
 EQLIB_OBJECT class EQ_Affect * EQ_Character::FindAffectSlot(int,class EQPlayer *,int *,int);
-EQLIB_OBJECT class EQ_Affect * EQ_Character::GetPCSpellAffect(unsigned char,int *);
+EQLIB_OBJECT class EQ_Affect * EQ_Character::GetPCSpellAffect(int,int *,int *);
 EQLIB_OBJECT class EQ_Equipment * EQ_Character::GetFocusItem(class EQ_Spell const *,int);
 EQLIB_OBJECT class EQ_Spell * EQ_Character::GetFocusEffect(class EQ_Spell const *,int);
 EQLIB_OBJECT class EQPlayer * EQ_Character::FindClosest(int,int,int,int,int);
@@ -5434,7 +5441,7 @@ EQLIB_OBJECT int EQ_Character::CheckFoodAndWater(void);
 EQLIB_OBJECT int EQ_Character::compute_defense(void);
 EQLIB_OBJECT int EQ_Character::compute_tohit(unsigned char);
 EQLIB_OBJECT int EQ_Character::cur_encumbrance(void);
-EQLIB_OBJECT int EQ_Character::Cur_Mana(void);
+EQLIB_OBJECT int EQ_Character::Cur_Mana(int);
 EQLIB_OBJECT int EQ_Character::defense_agility_bonus(void);
 EQLIB_OBJECT int EQ_Character::Dex(void);
 EQLIB_OBJECT int EQ_Character::ElementResistDmg(class EQ_Equipment *,int);
@@ -7101,7 +7108,7 @@ EQLIB_OBJECT unsigned long PlayerPointManager::GetAltCurrency(unsigned long,unsi
 class CharacterZoneClient
 {
 public:
-EQLIB_OBJECT int CharacterZoneClient::CalcAffectChange(class EQ_Spell *,unsigned char,unsigned char,class EQ_Affect *,DWORD,DWORD);
+EQLIB_OBJECT int CharacterZoneClient::CalcAffectChange(class EQ_Spell *,int CasterLevel/*well the level you want to calc the value for, but yeah usually its the chars current level*/,unsigned char Slot/*0-0xb*/,class EQ_Affect *,int Base/*spell Base[x]*/,bool bCap/*cap the calculation at max*/);
 EQLIB_OBJECT void CharacterZoneClient::MakeMeVisible(int,bool);
     bool HasSkill(int);
 };

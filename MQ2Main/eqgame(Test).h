@@ -653,6 +653,7 @@ GNU General Public License for more details.
 // EQ_Character 
 #define EQ_Character__CastSpell_x                                  0x44E780
 #define EQ_Character__Cur_HP_x                                     0x464390
+#define EQ_Character__Cur_Mana_x                                   0x4572C0
 #define EQ_Character__GetAACastingTimeModifier_x                   0x446720
 #define EQ_Character__GetCharInfo2_x                               0x871D80
 #define EQ_Character__GetFocusCastingTimeModifier_x                0x43EAB0
@@ -665,6 +666,7 @@ GNU General Public License for more details.
 #define EQ_Character__GetConLevel_x                                0x5B3D30
 #define EQ_Character__IsExpansionFlag_x                            0x423150
 #define EQ_Character__TotalEffect_x                                0x44BA60
+#define EQ_Character__GetPCSpellAffect_x                           0x446990
 
 // EQ_Item (ItemClient)
 #define EQ_Item__CanDrop_x                                         0x5943A0
@@ -785,3 +787,6 @@ GNU General Public License for more details.
 
 //CTargetRing
 #define CTargetRing__Cast_x                                        0x58AEA0
+
+//CharacterBase
+#define CharacterBase__GetMemorizedSpell_x                         0x455E00

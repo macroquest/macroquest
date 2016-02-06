@@ -1080,6 +1080,14 @@ public:
 		DSed = 232,
 		RevDSed = 233,
 		Charmed = 234,
+		CursorPlatinum = 235,
+		CursorGold = 236,
+		CursorSilver = 237,
+		CursorCopper = 238,
+		Diseased = 239,
+		Poisoned = 240,
+		Krono = 241,
+		XTargetSlots = 242,
 	};
 	enum CharacterMethods
 	{
@@ -1313,7 +1321,15 @@ public:
 		TypeMember(DSed);
 		TypeMember(RevDSed);
 		TypeMember(Charmed);
-
+		TypeMember(CursorPlatinum);
+		TypeMember(CursorGold);
+		TypeMember(CursorSilver);
+		TypeMember(CursorCopper);
+		TypeMember(Diseased);
+		TypeMember(Poisoned);
+		TypeMember(Krono);
+		TypeMember(XTargetSlots);
+		
 		TypeMethod(Stand);
 		TypeMethod(Sit);
 		TypeMethod(Dismount);
@@ -4290,6 +4306,8 @@ public:
 		DSed = 31,
 		RevDSed = 32,
 		Charmed = 33,
+		Diseased = 34,
+		Poisoned = 35,
 	};
 
 #ifdef ISBOXER_COMPAT
@@ -4331,6 +4349,8 @@ public:
 		TypeMember(DSed);
 		TypeMember(RevDSed);
 		TypeMember(Charmed);
+		TypeMember(Diseased);
+		TypeMember(Poisoned);
 	}
 
 	~MQ2TargetType()
@@ -4460,7 +4480,7 @@ public:
 		Evaluate(s, "${Window[TaskWnd].Child[TASK_TaskList].GetCurSel}");
 		if (s[0] != '0') {
 			Evaluate(Destination, "${Window[TaskWnd].Child[TASK_TaskList].List[%s,2]}", s);
-		}
+			}
 		else {
 			strcpy(Destination, "NULL");
 		}

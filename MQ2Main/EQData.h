@@ -955,7 +955,9 @@ typedef struct _CHARINFO {
 	/*0x1bf0*/ void*        PlayerPointManager;
 	/*0x1bf4*/ BYTE         Unknown0x1bf4[0x16a];
 	/*0x1d5e*/ BYTE         UseAdvancedLooting;                     //0=off 1=on
-	/*0x1d5f*/ BYTE         Unknown0x1d5f[0x2b9];
+	/*0x1d5f*/ BYTE         Unknown0x1d5f[0x2b1];
+	/*0x2010*/ DWORD        Krono;
+	/*0x2014*/ BYTE         Unknown0x2014[0x4];
 	/*0x2018*/ DWORD        MercAAExp;// divide this with 3.30f and you get the percent - eqmule
 	/*0x201c*/ BYTE         Unknown0x201c[0x4];
 	/*0x2020*/ DWORD        MercAAPoints;//number of unspent merc AA points
@@ -1026,8 +1028,8 @@ typedef struct _CHARINFO {
 	/*0x2538*/ BYTE         Unknown0x2538[0x1c];
 	/*0x2554*/ DWORD        CharBaseBegin;//we use this for finding the next members of this struct
 	/*0x2558*/ BYTE         Unknown0x2558[0x4];
-	/*0x255c*/ void*        pUnknown2;
-	/*0x2560*/ struct _CI2_INFO*    pCI2;//cant find a pointer to this so lets just say its always at pUnknown2+4
+	/*0x255c*/ void*        pCharacterBase;
+	/*0x2560*/ struct _CI2_INFO*    pCI2;//cant find a pointer to this so lets just say its always at pCharacterBase+4
 	/*0x2564*/ BYTE         Unknown0x2564[0x4];
 	/*0x2568*/ BYTE         languages[0x20];//CharBaseBegin+14
 	/*0x2588*/ BYTE         Unknown0x2588[0x10];
@@ -1406,14 +1408,16 @@ typedef struct _SPAWNINFO {
 	/*0x02f5*/ BYTE         Unknown0x02f5[0x7];
 	/*0x02fc*/ BYTE         Linkdead;
 	/*0x02fd*/ BYTE         Light;
-	/*0x02fe*/ BYTE         Unknown0x02fe[0x2a];
+	/*0x02fe*/ BYTE         Unknown0x02fe[0x1e];
+	/*0x031c*/ DWORD        Trader;//found in CEverQuest__RightClickedOnPlayer_x
+	/*0x0320*/ BYTE         Unknown0x0320[0x8];
 	/*0x0328*/ BYTE         PvPFlag;
 	/*0x0329*/ BYTE         Unknown0x0329[0x3];
 	/*0x032c*/ struct _EQC_INFO*    spawneqc_info;
 	/*0x0330*/ BYTE         Unknown0x0330[0x14];
 	/*0x0344*/ DWORD        MasterID;
 	/*0x0348*/ BYTE         Unknown0x0348[0x4];
-	/*0x034c*/ DWORD        Trader;//found in CEverQuest__RightClickedOnPlayer_x
+	/*0x034c*/ DWORD        Buyer;
 	/*0x0350*/ BYTE         HoldingType; // I dont know the types, i put a 2h in Primary and its a 4 , modrod there and its a 1, nothing its a 5 -eqmule
 	/*0x0351*/ BYTE         Unknown0x0351[0xb];
 	/*0x035c*/ DWORD        GuildStatus;
@@ -1442,9 +1446,7 @@ typedef struct _SPAWNINFO {
 	/*0x055a*/ WORD         Instance;
 	/*0x055c*/ BYTE         Unknown0x055c[0x4];
 	/*0x0560*/ DWORD        RespawnTimer;           // TimeStamp of when RespawnWnd will close - 0 when you're alive
-	/*0x0564*/ BYTE         Unknown0x0564[0x4];
-	/*0x0568*/ DWORD        Buyer;
-	/*0x056c*/ BYTE         Unknown0x056c[0x4];
+	/*0x0564*/ BYTE         Unknown0x0564[0xc];
 	/*0x0570*/ DWORD        TimeStamp;//updates all the time including when on a mount
 	/*0x0574*/ BYTE         Unknown0x0574[0xc];
 	/*0x0580*/ BYTE         Level;
@@ -1823,8 +1825,8 @@ typedef struct _SPELL {
 /*0x0bc*/   DWORD   ReagentId[0x4];     //ReagentId1-ReagentId4d
 /*0x0cc*/   DWORD   ReagentCount[0x4];  //ReagentCount1-ReagentCount4
 /*0x0dc*/   BYTE    Unknown0xdc[0x10];
-/*0x0ec*/   DWORD   Calc[0x0c];         //Calc1-Calc12
-/*0x11c*/   DWORD   Attrib[0xc];       //Attrib1-Attrib12
+/*0x0ec*/   LONG    Calc[0x0c];         //Calc1-Calc12
+/*0x11c*/   LONG    Attrib[0xc];       //Attrib1-Attrib12
 /*0x14c*/   DWORD   BookIcon;
 /*0x150*/   DWORD   GemIcon;
 /*0x154*/   DWORD   DescriptionNumber;

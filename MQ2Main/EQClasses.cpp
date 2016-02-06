@@ -3167,6 +3167,9 @@ FUNCTION_AT_ADDRESS(void * __cdecl ChannelServerApi::SmartResize(void *,int,int)
 #ifdef ChannelServerApi__GetNextField_x
 FUNCTION_AT_ADDRESS(int __cdecl ChannelServerApi::GetNextField(char *,int,char * *,char),ChannelServerApi__GetNextField);
 #endif
+#ifdef CharacterBase__GetMemorizedSpell_x
+FUNCTION_AT_ADDRESS(LONG CharacterBase::GetMemorizedSpell(int),CharacterBase__GetMemorizedSpell);
+#endif
 #ifdef IconCache__IconCache_x
 FUNCTION_AT_ADDRESS( IconCache::IconCache(void),IconCache__IconCache);
 #endif
@@ -3994,7 +3997,7 @@ FUNCTION_AT_ADDRESS(int  EQ_Character1::Cur_HP(int,unsigned char),EQ_Character__
 FUNCTION_AT_ADDRESS(int  EQ_Character::GetHPFromStamina(int),EQ_Character__GetHPFromStamina);
 #endif
 #ifdef EQ_Character__Cur_Mana_x
-FUNCTION_AT_ADDRESS(int  EQ_Character::Cur_Mana(void),EQ_Character__Cur_Mana);
+FUNCTION_AT_ADDRESS(int  EQ_Character::Cur_Mana(int),EQ_Character__Cur_Mana);
 #endif
 #ifdef EQ_Character__IsMage_x
 FUNCTION_AT_ADDRESS(int  EQ_Character::IsMage(void),EQ_Character__IsMage);
@@ -4360,10 +4363,10 @@ FUNCTION_AT_ADDRESS(unsigned char  EQ_Character::LaunchSpell(unsigned char,int,c
 FUNCTION_AT_ADDRESS(void  EQ_Character::HandleSpecialPCAffects(int),EQ_Character__HandleSpecialPCAffects);
 #endif
 #ifdef CharacterZoneClient__CalcAffectChange_x
-FUNCTION_AT_ADDRESS(int  CharacterZoneClient::CalcAffectChange(class EQ_Spell *,unsigned char,unsigned char,class EQ_Affect *,DWORD,DWORD),CharacterZoneClient__CalcAffectChange);
+FUNCTION_AT_ADDRESS(int  CharacterZoneClient::CalcAffectChange(class EQ_Spell *,int CasterLevel,unsigned char Slot,class EQ_Affect *,int Base,bool bCap),CharacterZoneClient__CalcAffectChange);
 #endif
 #ifdef EQ_Character__GetPCSpellAffect_x
-FUNCTION_AT_ADDRESS(class EQ_Affect *  EQ_Character::GetPCSpellAffect(unsigned char,int *),EQ_Character__GetPCSpellAffect);
+FUNCTION_AT_ADDRESS(class EQ_Affect *  EQ_Character::GetPCSpellAffect(int,int *,int *),EQ_Character__GetPCSpellAffect);
 #endif
 #ifdef EQ_Character__TotalSpellAffects_x
 FUNCTION_AT_ADDRESS(int  EQ_Character::TotalSpellAffects(unsigned char,bool,int *),EQ_Character__TotalSpellAffects);
