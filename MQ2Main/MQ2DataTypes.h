@@ -1439,6 +1439,8 @@ public:
 		SubSpellGroup = 58,
 		Beneficial = 59,
 		xIsActiveAA = 60,
+		CalcIndex = 61,
+		NumEffects = 62,
 	};
 	enum SpellMethods
 	{
@@ -1505,6 +1507,8 @@ public:
 		TypeMember(SubSpellGroup);
 		TypeMember(Beneficial);
 		AddMember(xIsActiveAA, "IsActiveAA");
+		TypeMember(CalcIndex);
+		TypeMember(NumEffects);
 
 	}
 

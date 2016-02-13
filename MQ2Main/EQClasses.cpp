@@ -187,6 +187,17 @@ FUNCTION_AT_VIRTUAL_ADDRESS(int CXWnd::OnMinimizeBox(void),0xac);
 FUNCTION_AT_VIRTUAL_ADDRESS(class CXRect CXWnd::GetClientRect(void)const,0xf8);
 FUNCTION_AT_VIRTUAL_ADDRESS(void CListWnd::DeleteAll(void),0x17c);//see CComboWnd__DeleteAll_x
 
+
+FUNCTION_AT_VIRTUAL_ADDRESS(int SpellManager::dSpellManager(void *, bool), 0x00);
+FUNCTION_AT_VIRTUAL_ADDRESS( SpellManager::SpellManager(char *, char *, char *), 0x04);
+FUNCTION_AT_VIRTUAL_ADDRESS( SpellManager::SpellManager(char *), 0x08);
+FUNCTION_AT_VIRTUAL_ADDRESS( int SpellManager::Unknown0x0C(int, int), 0x0c);
+FUNCTION_AT_VIRTUAL_ADDRESS( int SpellManager::Unknown0x10(int), 0x10);
+FUNCTION_AT_VIRTUAL_ADDRESS( int SpellManager::Unknown0x14(int), 0x14);
+FUNCTION_AT_VIRTUAL_ADDRESS( int SpellManager::Unknown0x18(int), 0x18);
+FUNCTION_AT_VIRTUAL_ADDRESS( PSPELL SpellManager::GetSpellByID(int), 0x1c);
+FUNCTION_AT_VIRTUAL_ADDRESS( struct _SPELLCALCINFO* SpellManager::GetSpellCalcInfoByCalcIndex(int), 0x20);
+FUNCTION_AT_VIRTUAL_ADDRESS( bool SpellManager::Unknown0x24(bool), 0x24);
 // AUTO IMPORTS
 
 #ifdef CAAWnd__CAAWnd_x
@@ -4399,6 +4410,9 @@ FUNCTION_AT_ADDRESS(bool EQ_Character::IsStackBlocked(class EQ_Spell const *, DW
 FUNCTION_AT_ADDRESS(bool EQ_Character::IsStackBlocked(class EQ_Spell const *, DWORD,DWORD,DWORD),CharacterZoneClient__IsStackBlocked);
 #endif
 #endif
+#ifdef CharacterZoneClient__CanUseMemorizedSpellSlot_x
+FUNCTION_AT_ADDRESS(bool EQ_Character::CanUseMemorizedSpellSlot(int),CharacterZoneClient__CanUseMemorizedSpellSlot);
+#endif
 #ifdef EQ_Character__IsSpellTooPowerfull_x
 FUNCTION_AT_ADDRESS(bool  EQ_Character::IsSpellTooPowerfull(class EQ_Spell *,class EQ_Character *),EQ_Character__IsSpellTooPowerfull);
 #endif
@@ -7729,10 +7743,13 @@ FUNCTION_AT_ADDRESS(void  CListWnd::ToggleSel(int),CListWnd__ToggleSel);
 FUNCTION_AT_ADDRESS(void  CListWnd::ExtendSel(int),CListWnd__ExtendSel);
 #endif
 #ifdef CListWnd__ClearAllSel_x
-FUNCTION_AT_ADDRESS(void  CListWnd::ClearAllSel(void),CListWnd__ClearAllSel);
+FUNCTION_AT_ADDRESS(void CListWnd::ClearAllSel(void),CListWnd__ClearAllSel);
 #endif
 #ifdef CListWnd__ClearSel_x
-FUNCTION_AT_ADDRESS(void  CListWnd::ClearSel(int),CListWnd__ClearSel);
+FUNCTION_AT_ADDRESS(void CListWnd::ClearSel(int),CListWnd__ClearSel);
+#endif
+#ifdef CListWnd__DrawColumnSeparators_x
+FUNCTION_AT_ADDRESS(int CListWnd::DrawColumnSeparators(void)const,CListWnd__DrawColumnSeparators);
 #endif
 #ifdef CListWnd__SetItemData_x
 FUNCTION_AT_ADDRESS(void  CListWnd::SetItemData(int,unsigned __int32),CListWnd__SetItemData);
@@ -8500,7 +8517,7 @@ FUNCTION_AT_ADDRESS(int  CComboWnd::GetItemCount(void),CComboWnd__GetItemCount);
 FUNCTION_AT_ADDRESS(int  CComboWnd::GetCurChoice(void)const ,CComboWnd__GetCurChoice);
 #endif
 #ifdef CComboWnd__GetCurChoiceText_x
-FUNCTION_AT_ADDRESS(class CXStr  CComboWnd::GetCurChoiceText(void)const ,CComboWnd__GetCurChoiceText);
+FUNCTION_AT_ADDRESS(class CXStr CComboWnd::GetCurChoiceText(void)const ,CComboWnd__GetCurChoiceText);
 #endif
 #ifdef CComboWnd__DeleteAll_x
 FUNCTION_AT_ADDRESS(void  CComboWnd::DeleteAll(void),CComboWnd__DeleteAll);

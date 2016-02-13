@@ -51,7 +51,6 @@ namespace MQ2Globals
 		EQADDR_LASTTELL = (PCHAR)__LastTell;
 		gpbRangedAttackReady = (PCHAR)__RangeAttackReady;
 		gpbShowNetStatus = (PCHAR)__NetStatusToggle;
-		gpbAltTimerReady = (PCHAR)__AltTimerReady;
 		g_ppDrawHandler = (DWORD*)__DrawHandler;
 		gpShowNames = (DWORD*)__ShowNames;
 		EQADDR_SUBSCRIPTIONTYPE = (PDWORD)__SubscriptionType;
@@ -1009,7 +1008,6 @@ namespace MQ2Globals
 	PCHAR EQADDR_LASTTELL = 0;
 	PCHAR gpbRangedAttackReady = 0;
 	PCHAR gpbShowNetStatus = 0;
-	PCHAR gpbAltTimerReady = 0;
 	DWORD *g_ppDrawHandler = 0;
 	DWORD *gpShowNames = 0;
 	DWORD *gpPCNames = 0;
@@ -1228,7 +1226,7 @@ namespace MQ2Globals
 	INITIALIZE_EQGAME_OFFSET(DI8__Mouse);
 	INITIALIZE_EQGAME_OFFSET(DI8__Mouse_Copy);
 	INITIALIZE_EQGAME_OFFSET(DI8__Mouse_Check);
-	INITIALIZE_EQGAME_OFFSET(__AltTimerReady);
+
 	INITIALIZE_EQGAME_OFFSET(__Attack);
 	INITIALIZE_EQGAME_OFFSET(__Autofire);
 	INITIALIZE_EQGAME_OFFSET(__BindList);
@@ -1486,9 +1484,14 @@ namespace MQ2Globals
 	INITIALIZE_EQGAME_OFFSET(AltAdvManager__CanSeeAbility);
 	
 	INITIALIZE_EQGAME_OFFSET(CAltAbilityData__GetMaxRank);
+
+	INITIALIZE_EQGAME_OFFSET(CCastSpellWnd__ForgetMemorizedSpell);
+	INITIALIZE_EQGAME_OFFSET(CCastSpellWnd__IsBardSongPlaying);
+	
 	INITIALIZE_EQGAME_OFFSET(CharacterZoneClient__HasSkill);
 	INITIALIZE_EQGAME_OFFSET(CharacterZoneClient__MakeMeVisible);
 	INITIALIZE_EQGAME_OFFSET(CharacterZoneClient__IsStackBlocked);
+	INITIALIZE_EQGAME_OFFSET(CharacterZoneClient__CanUseMemorizedSpellSlot);
 	INITIALIZE_EQGAME_OFFSET(CBankWnd__GetNumBankSlots);
 	INITIALIZE_EQGAME_OFFSET(CBazaarSearchWnd__HandleBazaarMsg);
 	INITIALIZE_EQGAME_OFFSET(CButtonWnd__SetCheck);
@@ -1521,7 +1524,8 @@ namespace MQ2Globals
 	INITIALIZE_EQGAME_OFFSET(CComboWnd__SetColors);
 	INITIALIZE_EQGAME_OFFSET(CComboWnd__SetChoice);
 	INITIALIZE_EQGAME_OFFSET(CComboWnd__GetItemCount);
-
+	INITIALIZE_EQGAME_OFFSET(CComboWnd__GetCurChoiceText);
+	
 	INITIALIZE_EQGAME_OFFSET(CContainerWnd__HandleCombine);
 	INITIALIZE_EQGAME_OFFSET(CContainerWnd__vftable);
 
@@ -1601,6 +1605,7 @@ namespace MQ2Globals
 	INITIALIZE_EQGAME_OFFSET(CListWnd__AddString);
 	INITIALIZE_EQGAME_OFFSET(CListWnd__CalculateFirstVisibleLine);
 	INITIALIZE_EQGAME_OFFSET(CListWnd__CalculateVSBRange);
+	INITIALIZE_EQGAME_OFFSET(CListWnd__ClearSel);
 	INITIALIZE_EQGAME_OFFSET(CListWnd__ClearAllSel);
 	INITIALIZE_EQGAME_OFFSET(CListWnd__CloseAndUpdateEditWindow);
 	INITIALIZE_EQGAME_OFFSET(CListWnd__Compare);

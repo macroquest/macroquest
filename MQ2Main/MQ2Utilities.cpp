@@ -1531,8 +1531,12 @@ BOOL IsBardSong(PSPELL pSpell)
 // *************************************************************************** 
 BOOL IsSPAEffect(PSPELL pSpell, LONG EffectID)
 {
+#if defined(TEST)//remove after this goes live
+	for (int slot = 0; slot<pSpell->NumEffects; slot++)
+#else
 	for (int slot = 0; slot<12; slot++)
-		if (pSpell->Attrib[slot] == EffectID)
+#endif
+		if (GetSpellAttrib(pSpell,slot) == EffectID)
 			return true;
 	return false;
 }
@@ -1568,7 +1572,8 @@ PCHAR GetSpellRestrictions(PSPELL pSpell, unsigned int nIndex, PCHAR szBuffer)
 		szBuffer[0] = '\0';
 		return(szBuffer);
 	}
-	switch (pSpell->Base2[nIndex])
+	//switch (pSpell->Base2[nIndex])
+	switch (GetSpellBase2(pSpell,nIndex))
 	{
 	case 0:	strcat(szBuffer, "None"); break;
 	case 100: strcat(szBuffer, "Only works on Animal or Humanoid"); break;
@@ -2320,7 +2325,133 @@ PCHAR FormatTimer(PCHAR szEffectName, FLOAT value, PCHAR szBuffer)
 	sprintf(szBuffer, "%s by %.2f sec", szEffectName, value);
 	return szBuffer;
 }
-
+LONG GetSpellAttrib(PSPELL pSpell, int index)
+{
+	if (index<0)
+		index = 0;
+#if defined(TEST)//remove after this goes live
+	if (pSpell) {
+		if (pSpell->NumEffects > index) {
+			if (SpellManager *pSpellM = (SpellManager *)pSpellMgr) {
+				if (PSPELLCALCINFO pCalcInfo = pSpellM->GetSpellCalcInfoByCalcIndex(pSpell->CalcIndex + index)) {
+					return pCalcInfo->Attrib;
+				}
+			}
+		} else {
+			WriteChatf("well well, looks like someone didn't read changes.txt from feb 12 2016");
+		}
+	}
+	return 0;
+#else
+	return pSpell->Attrib[index];
+#endif
+}
+LONG GetSpellBase(PSPELL pSpell, int index)
+{
+	if (index<0)
+		index = 0;
+#if defined(TEST)//remove after this goes live
+	if (pSpell) {
+		if (pSpell->NumEffects > index) {
+			if (SpellManager *pSpellM = (SpellManager *)pSpellMgr) {
+				if (PSPELLCALCINFO pCalcInfo = pSpellM->GetSpellCalcInfoByCalcIndex(pSpell->CalcIndex + index)) {
+					return pCalcInfo->Base;
+				}
+			}
+		} else {
+			WriteChatf("well well, looks like someone didn't read changes.txt from feb 12 2016");
+		}
+	}
+	return 0;
+#else
+	return pSpell->Base[index];
+#endif
+}
+LONG GetSpellBase2(PSPELL pSpell, int index)
+{
+	if (index<0)
+		index = 0;
+#if defined(TEST)//remove after this goes live
+	if (pSpell) {
+		if (pSpell->NumEffects > index) {
+			if (SpellManager *pSpellM = (SpellManager *)pSpellMgr) {
+				if (PSPELLCALCINFO pCalcInfo = pSpellM->GetSpellCalcInfoByCalcIndex(pSpell->CalcIndex + index)) {
+					return pCalcInfo->Base2;
+				}
+			}
+		} else {
+			WriteChatf("well well, looks like someone didn't read changes.txt from feb 12 2016");
+		}
+	}
+	return 0;
+#else
+	return pSpell->Base2[index];
+#endif
+}
+LONG GetSpellMax(PSPELL pSpell, int index)
+{
+	if (index<0)
+		index = 0;
+#if defined(TEST)//remove after this goes live
+	if (pSpell) {
+		if (pSpell->NumEffects > index) {
+			if (SpellManager *pSpellM = (SpellManager *)pSpellMgr) {
+				if (PSPELLCALCINFO pCalcInfo = pSpellM->GetSpellCalcInfoByCalcIndex(pSpell->CalcIndex + index)) {
+					return pCalcInfo->Max;
+				}
+			}
+		} else {
+			WriteChatf("well well, looks like someone didn't read changes.txt from feb 12 2016");
+		}
+	}
+	return 0;
+#else
+	return pSpell->Max[index];
+#endif
+}
+LONG GetSpellCalc(PSPELL pSpell, int index)
+{
+	if (index<0)
+		index = 0;
+#if defined(TEST)//remove after this goes live
+	if (pSpell) {
+		if (pSpell->NumEffects > index) {
+			if (SpellManager *pSpellM = (SpellManager *)pSpellMgr) {
+				if (PSPELLCALCINFO pCalcInfo = pSpellM->GetSpellCalcInfoByCalcIndex(pSpell->CalcIndex + index)) {
+					return pCalcInfo->Calc;
+				}
+			}
+		} else {
+			WriteChatf("well well, looks like someone didn't read changes.txt from feb 12 2016");
+		}
+	}
+	return 0;
+#else
+	return pSpell->Calc[index];
+#endif
+}
+LONG GetSpellSlot(PSPELL pSpell, int index)
+{
+	if (index<0)
+		index = 0;
+#if defined(TEST)//remove after this goes live
+	if (pSpell) {
+		if (pSpell->NumEffects > index) {
+			if (SpellManager *pSpellM = (SpellManager *)pSpellMgr) {
+				if (PSPELLCALCINFO pCalcInfo = pSpellM->GetSpellCalcInfoByCalcIndex(pSpell->CalcIndex + index)) {
+					return pCalcInfo->Slot;
+				}
+			}
+		}
+		else {
+			WriteChatf("well well, looks like someone didn't read changes.txt from feb 12 2016");
+		}
+	}
+	return 0;
+#else
+	return index +1;
+#endif
+}
 PCHAR ParseSpellEffect(PSPELL pSpell, int i, PCHAR szBuffer, LONG level)
 {
 	CHAR szBuff[MAX_STRING] = { 0 };
@@ -2328,11 +2459,11 @@ PCHAR ParseSpellEffect(PSPELL pSpell, int i, PCHAR szBuffer, LONG level)
 	CHAR szTemp2[MAX_STRING] = { 0 };
 
 	LONG id = pSpell->ID;
-	LONG spa = pSpell->Attrib[i];
-	LONG base = pSpell->Base[i];
-	LONG base2 = pSpell->Base2[i];
-	LONG max = pSpell->Max[i];
-	LONG calc = pSpell->Calc[i];
+	LONG spa = GetSpellAttrib(pSpell,i);// pSpell->Attrib[i];
+	LONG base = GetSpellBase(pSpell,i);// GetSpellBase(pSpell,i);
+	LONG base2 = GetSpellBase2(pSpell,i); //pSpell->Base2[i];
+	LONG max = GetSpellMax(pSpell,i);// GetSpellMax(pSpell,i);
+	LONG calc = GetSpellCalc(pSpell,i); //GetSpellCalc(pSpell,i);
 	LONG spellgroup = pSpell->SpellGroup;
 	LONG ticks = pSpell->DurationValue1;
 	LONG targets = pSpell->MaxTargets;
@@ -2407,7 +2538,7 @@ PCHAR ParseSpellEffect(PSPELL pSpell, int i, PCHAR szBuffer, LONG level)
 		i + 1, spa, base, base2, max, calc, ticks, value, finish, minspelllvl, maxspelllvl, range, extendedrange, usePercent ? "TRUE" : "FALSE", repeating, maxlevel);
 #endif
 
-	sprintf(szBuff, "Slot %d: ", i + 1);
+	sprintf(szBuff, "Slot %d: ", GetSpellSlot(pSpell,i));
 	switch (spa)
 	{
 	case 0: //hp +/-: heals/regen/dd 
@@ -2626,10 +2757,12 @@ PCHAR ParseSpellEffect(PSPELL pSpell, int i, PCHAR szBuffer, LONG level)
 		strcat(szBuff, spelleffectname);
 		break;
 	case 83: //zone portal spells 
-		if (targettype == 6)
-			sprintf(szTemp, " Self to %d, %d, %d in %s facing %s", pSpell->Base[0], pSpell->Base[1], pSpell->Base[2], GetFullZone(GetZoneID(extra)), szHeadingNormal[EQHeading(pSpell->Base[3])]);
-		else
-			sprintf(szTemp, " Group to %d, %d, %d in %s facing %s", pSpell->Base[0], pSpell->Base[1], pSpell->Base[2], GetFullZone(GetZoneID(extra)), szHeadingNormal[EQHeading(pSpell->Base[3])]);
+		if (targettype == 6) {
+			//sprintf(szTemp, " Self to %d, %d, %d in %s facing %s", GetSpellBase(pSpell,0), GetSpellBase(pSpell,1), GetSpellBase(pSpell,2), GetFullZone(GetZoneID(extra)), szHeadingNormal[EQHeading(GetSpellBase(pSpell,3))]);
+			sprintf(szTemp, " Self to %d, %d, %d in %s facing %s", GetSpellBase(pSpell,0), GetSpellBase(pSpell, 1), GetSpellBase(pSpell, 2), GetFullZone(GetZoneID(extra)), szHeadingNormal[EQHeading(GetSpellBase(pSpell, 3))]);
+		} else {
+			sprintf(szTemp, " Group to %d, %d, %d in %s facing %s", GetSpellBase(pSpell, 0), GetSpellBase(pSpell, 1), GetSpellBase(pSpell, 2), GetFullZone(GetZoneID(extra)), szHeadingNormal[EQHeading(GetSpellBase(pSpell, 3))]);
+		}
 		strcat(szBuff, FormatString(spelleffectname, szTemp, szTemp2));
 		break;
 	case 84: //Toss on Z axis 
@@ -2648,7 +2781,7 @@ PCHAR ParseSpellEffect(PSPELL pSpell, int i, PCHAR szBuffer, LONG level)
 		strcat(szBuff, FormatPercent(spelleffectname, value, finish, szTemp2));
 		break;
 	case 88: //evac portal spells 
-		sprintf(szTemp, " to %d, %d, %d in %s facing %s", pSpell->Base[0], pSpell->Base[1], pSpell->Base[2], extra, szHeadingNormal[EQHeading(pSpell->Base[3])]);
+		sprintf(szTemp, " to %d, %d, %d in %s facing %s", GetSpellBase(pSpell, 0), GetSpellBase(pSpell, 1), GetSpellBase(pSpell, 2), extra, szHeadingNormal[EQHeading(GetSpellBase(pSpell, 3))]);
 		strcat(szBuff, FormatString(spelleffectname, szTemp, szTemp2));
 		break;
 	case 89: //Player Size 
@@ -2692,7 +2825,7 @@ PCHAR ParseSpellEffect(PSPELL pSpell, int i, PCHAR szBuffer, LONG level)
 			if (extra[0] == '0')
 				strcat(szTemp, " to Bind Point");
 			else
-				sprintf(szTemp, " to %d, %d, %d in %s facing %s", pSpell->Base[0], pSpell->Base[1], pSpell->Base[2], GetFullZone(GetZoneID(extra)), szHeadingNormal[EQHeading(pSpell->Base[3])]);
+				sprintf(szTemp, " to %d, %d, %d in %s facing %s", GetSpellBase(pSpell,0), GetSpellBase(pSpell,1), GetSpellBase(pSpell,2), GetFullZone(GetZoneID(extra)), szHeadingNormal[EQHeading(GetSpellBase(pSpell,3))]);
 		else
 			strcat(szTemp, " to Bind Point");
 		strcat(szBuff, FormatString(spelleffectname, szTemp, szTemp2));
@@ -2815,7 +2948,7 @@ PCHAR ParseSpellEffect(PSPELL pSpell, int i, PCHAR szBuffer, LONG level)
 		strcat(szBuff, FormatSeconds(spelleffectname, value / 1000.0f, szTemp2));
 		break;
 	case 145: //Teleportv2 
-		sprintf(szTemp, " to %d, %d, %d in %s facing %s", pSpell->Base[0], pSpell->Base[1], pSpell->Base[2], GetFullZone(GetZoneID(extra)), szHeadingNormal[EQHeading(pSpell->Base[3])]);
+		sprintf(szTemp, " to %d, %d, %d in %s facing %s", GetSpellBase(pSpell,0), GetSpellBase(pSpell,1), GetSpellBase(pSpell,2), GetFullZone(GetZoneID(extra)), szHeadingNormal[EQHeading(GetSpellBase(pSpell,3))]);
 		strcat(szBuff, FormatString(spelleffectname, szTemp, szTemp2));
 		break;
 	case 146: //Resist Electricity
@@ -3590,8 +3723,11 @@ PCHAR ShowSpellSlotInfo(PSPELL pSpell, PCHAR szBuffer)
 {
 	CHAR szTemp[MAX_STRING] = { 0 };
 	CHAR szBuff[MAX_STRING] = { 0 };
-
+#if defined(TEST)//remove after this goes live
+	for (int i = 0; i<pSpell->NumEffects; i++)
+#else
 	for (int i = 0; i<12; i++)
+#endif
 	{
 		szBuff[0] = szTemp[0] = '\0';
 		strcat(szBuff, ParseSpellEffect(pSpell, i, szTemp));
@@ -3605,7 +3741,7 @@ PCHAR ShowSpellSlotInfo(PSPELL pSpell, PCHAR szBuffer)
 
 VOID SlotValueCalculate(PCHAR szBuff, PSPELL pSpell, int i, double mp)
 {
-	sprintf_s(szBuff, 12, "%d", CalcValue(pSpell->Calc[i], pSpell->Base[i], pSpell->Max[i], pSpell->DurationValue1));
+	sprintf_s(szBuff, 12, "%d", CalcValue(GetSpellCalc(pSpell,i), GetSpellBase(pSpell,i), GetSpellMax(pSpell,i), pSpell->DurationValue1));
 	return;
 }
 
@@ -6731,13 +6867,13 @@ DWORD GetGameState(VOID)
 // ***************************************************************************
 BOOL LargerEffectTest(PSPELL aSpell, PSPELL bSpell, int i)
 {
-	if ((aSpell->Attrib[i] == 1 && bSpell->Attrib[i] == 1)				// Ac Mod
-		|| (aSpell->Attrib[i] == 55 && bSpell->Attrib[i] == 55)			// Add Effect: Absorb Damage
-		|| (aSpell->Attrib[i] == 69 && bSpell->Attrib[i] == 69)			// Max HP Mod
-		|| (aSpell->Attrib[i] == 79 && bSpell->Attrib[i] == 79)			// HP Mod
-		|| (aSpell->Attrib[i] == 114 && bSpell->Attrib[i] == 114)			// Aggro Multiplier
-		|| (aSpell->Attrib[i] == 127 && bSpell->Attrib[i] == 127))			// Spell Haste
-		return aSpell->Base[i] >= bSpell->Base[i];
+	if ((GetSpellAttrib(aSpell,i) == 1 && GetSpellAttrib(bSpell,i) == 1)				// Ac Mod
+		|| (GetSpellAttrib(aSpell,i) == 55 && GetSpellAttrib(bSpell,i) == 55)			// Add Effect: Absorb Damage
+		|| (GetSpellAttrib(aSpell,i) == 69 && GetSpellAttrib(bSpell,i) == 69)			// Max HP Mod
+		|| (GetSpellAttrib(aSpell,i) == 79 && GetSpellAttrib(bSpell,i) == 79)			// HP Mod
+		|| (GetSpellAttrib(aSpell,i) == 114 && GetSpellAttrib(bSpell,i) == 114)			// Aggro Multiplier
+		|| (GetSpellAttrib(aSpell,i) == 127 && GetSpellAttrib(bSpell,i) == 127))			// Spell Haste
+		return GetSpellBase(aSpell,i) >= GetSpellBase(bSpell,i);
 	return false;
 }
 
@@ -6748,9 +6884,9 @@ BOOL LargerEffectTest(PSPELL aSpell, PSPELL bSpell, int i)
 // ***************************************************************************
 BOOL TriggeringEffectSpell(PSPELL aSpell, int i)
 {
-	return ((aSpell->Attrib[i] == 85)		// Add Proc
-		|| (aSpell->Attrib[i] == 374) 	// Trigger Spell
-		|| (aSpell->Attrib[i] == 419));	// Contact_Ability_2
+	return ((GetSpellAttrib(aSpell,i) == 85)		// Add Proc
+		|| (GetSpellAttrib(aSpell,i) == 374) 	// Trigger Spell
+		|| (GetSpellAttrib(aSpell,i) == 419));	// Contact_Ability_2
 }
 
 // ***************************************************************************
@@ -6760,33 +6896,33 @@ BOOL TriggeringEffectSpell(PSPELL aSpell, int i)
 // ***************************************************************************
 BOOL SpellEffectTest(PSPELL aSpell, PSPELL bSpell, int i, BOOL bIgnoreTriggeringEffects)
 {
-	return ((aSpell->Attrib[i] == 57 || bSpell->Attrib[i] == 57)		// Levitate
-		|| (aSpell->Attrib[i] == 134 || bSpell->Attrib[i] == 134)		// Limit: Max Level
-		|| (aSpell->Attrib[i] == 135 || bSpell->Attrib[i] == 135)		// Limit: Resist
-		|| (aSpell->Attrib[i] == 136 || bSpell->Attrib[i] == 136)		// Limit: Target
-		|| (aSpell->Attrib[i] == 137 || bSpell->Attrib[i] == 137)		// Limit: Effect
-		|| (aSpell->Attrib[i] == 138 || bSpell->Attrib[i] == 138)		// Limit: SpellType
-		|| (aSpell->Attrib[i] == 139 || bSpell->Attrib[i] == 139)		// Limit: Spell
-		|| (aSpell->Attrib[i] == 140 || bSpell->Attrib[i] == 140)		// Limit: Min Duraction
-		|| (aSpell->Attrib[i] == 141 || bSpell->Attrib[i] == 141)		// Limit: Instant
-		|| (aSpell->Attrib[i] == 142 || bSpell->Attrib[i] == 142)		// Limit: Min Level
-		|| (aSpell->Attrib[i] == 143 || bSpell->Attrib[i] == 143)		// Limit: Min Cast Time
-		|| (aSpell->Attrib[i] == 144 || bSpell->Attrib[i] == 144)		// Limit: Max Cast Time
-		|| (aSpell->Attrib[i] == 254 || bSpell->Attrib[i] == 254)		// Placeholder
-		|| (aSpell->Attrib[i] == 311 || bSpell->Attrib[i] == 311)		// Limit: Combat Skills not Allowed
-		|| (aSpell->Attrib[i] == 339 || bSpell->Attrib[i] == 339)		// Trigger DoT on cast
-		|| (aSpell->Attrib[i] == 340 || bSpell->Attrib[i] == 340)		// Trigger DD on cast
-		|| (aSpell->Attrib[i] == 348 || bSpell->Attrib[i] == 348)		// Limit: Min Mana
-		|| (aSpell->Attrib[i] == 385 || bSpell->Attrib[i] == 385)		// Limit: SpellGroup
-		|| (aSpell->Attrib[i] == 391 || bSpell->Attrib[i] == 391)		// Limit: Max Mana
-		|| (aSpell->Attrib[i] == 403 || bSpell->Attrib[i] == 403)		// Limit: SpellClass
-		|| (aSpell->Attrib[i] == 404 || bSpell->Attrib[i] == 404)		// Limit: SpellSubclass
-		|| (aSpell->Attrib[i] == 411 || bSpell->Attrib[i] == 411)		// Limit: PlayerClass
-		|| (aSpell->Attrib[i] == 412 || bSpell->Attrib[i] == 412)		// Limit: Race
-		|| (aSpell->Attrib[i] == 414 || bSpell->Attrib[i] == 414)		// Limit: CastingSkill
-		|| (aSpell->Attrib[i] == 422 || bSpell->Attrib[i] == 422)		// Limit: Use Min
-		|| (aSpell->Attrib[i] == 423 || bSpell->Attrib[i] == 423)		// Limit: Use Type
-		|| (aSpell->Attrib[i] == 428 || bSpell->Attrib[i] == 428)		// Skill_Proc_Modifier
+	return ((GetSpellAttrib(aSpell,i) == 57 || GetSpellAttrib(bSpell,i) == 57)		// Levitate
+		|| (GetSpellAttrib(aSpell,i) == 134 || GetSpellAttrib(bSpell,i) == 134)		// Limit: Max Level
+		|| (GetSpellAttrib(aSpell,i) == 135 || GetSpellAttrib(bSpell,i) == 135)		// Limit: Resist
+		|| (GetSpellAttrib(aSpell,i) == 136 || GetSpellAttrib(bSpell,i) == 136)		// Limit: Target
+		|| (GetSpellAttrib(aSpell,i) == 137 || GetSpellAttrib(bSpell,i) == 137)		// Limit: Effect
+		|| (GetSpellAttrib(aSpell,i) == 138 || GetSpellAttrib(bSpell,i) == 138)		// Limit: SpellType
+		|| (GetSpellAttrib(aSpell,i) == 139 || GetSpellAttrib(bSpell,i) == 139)		// Limit: Spell
+		|| (GetSpellAttrib(aSpell,i) == 140 || GetSpellAttrib(bSpell,i) == 140)		// Limit: Min Duraction
+		|| (GetSpellAttrib(aSpell,i) == 141 || GetSpellAttrib(bSpell,i) == 141)		// Limit: Instant
+		|| (GetSpellAttrib(aSpell,i) == 142 || GetSpellAttrib(bSpell,i) == 142)		// Limit: Min Level
+		|| (GetSpellAttrib(aSpell,i) == 143 || GetSpellAttrib(bSpell,i) == 143)		// Limit: Min Cast Time
+		|| (GetSpellAttrib(aSpell,i) == 144 || GetSpellAttrib(bSpell,i) == 144)		// Limit: Max Cast Time
+		|| (GetSpellAttrib(aSpell,i) == 254 || GetSpellAttrib(bSpell,i) == 254)		// Placeholder
+		|| (GetSpellAttrib(aSpell,i) == 311 || GetSpellAttrib(bSpell,i) == 311)		// Limit: Combat Skills not Allowed
+		|| (GetSpellAttrib(aSpell,i) == 339 || GetSpellAttrib(bSpell,i) == 339)		// Trigger DoT on cast
+		|| (GetSpellAttrib(aSpell,i) == 340 || GetSpellAttrib(bSpell,i) == 340)		// Trigger DD on cast
+		|| (GetSpellAttrib(aSpell,i) == 348 || GetSpellAttrib(bSpell,i) == 348)		// Limit: Min Mana
+		|| (GetSpellAttrib(aSpell,i) == 385 || GetSpellAttrib(bSpell,i) == 385)		// Limit: SpellGroup
+		|| (GetSpellAttrib(aSpell,i) == 391 || GetSpellAttrib(bSpell,i) == 391)		// Limit: Max Mana
+		|| (GetSpellAttrib(aSpell,i) == 403 || GetSpellAttrib(bSpell,i) == 403)		// Limit: SpellClass
+		|| (GetSpellAttrib(aSpell,i) == 404 || GetSpellAttrib(bSpell,i) == 404)		// Limit: SpellSubclass
+		|| (GetSpellAttrib(aSpell,i) == 411 || GetSpellAttrib(bSpell,i) == 411)		// Limit: PlayerClass
+		|| (GetSpellAttrib(aSpell,i) == 412 || GetSpellAttrib(bSpell,i) == 412)		// Limit: Race
+		|| (GetSpellAttrib(aSpell,i) == 414 || GetSpellAttrib(bSpell,i) == 414)		// Limit: CastingSkill
+		|| (GetSpellAttrib(aSpell,i) == 422 || GetSpellAttrib(bSpell,i) == 422)		// Limit: Use Min
+		|| (GetSpellAttrib(aSpell,i) == 423 || GetSpellAttrib(bSpell,i) == 423)		// Limit: Use Type
+		|| (GetSpellAttrib(aSpell,i) == 428 || GetSpellAttrib(bSpell,i) == 428)		// Skill_Proc_Modifier
 		|| (LargerEffectTest(aSpell, bSpell, i))					// Ignore if the new effect is greater than the old effect
 		|| (bIgnoreTriggeringEffects && (TriggeringEffectSpell(aSpell, i) || TriggeringEffectSpell(bSpell, i)))		// Ignore triggering effects validation
 		|| ((aSpell->SpellType == 1 || aSpell->SpellType == 2) && (bSpell->SpellType == 1 || bSpell->SpellType == 2) && !(aSpell->DurationWindow == bSpell->DurationWindow)));
@@ -6805,54 +6941,58 @@ BOOL BuffStackTest(PSPELL aSpell, PSPELL bSpell, BOOL bIgnoreTriggeringEffects)
 
 	//WriteChatf("aSpell->Name=%s bSpell->Name= %s", aSpell->Name, bSpell->Name);
 	int i;
-	for (i = 0; i <= 11; i++) {
+	#if defined(TEST)//remove
+	for (i = 0; i < aSpell->NumEffects; i++) {
+	#else
+	for (i = 0; i < 12; i++) {
+	#endif
 		//Compare 1st Buff to 2nd. If Attrib[i]==254 its a place holder. If it is 10 it
 		//can be 1 of 3 things: PH(Base=0), CHA(Base>0), Lure(Base=-6). If it is Lure or
 		//Placeholder, exclude it so slots don't match up. Now Check to see if the slots
 		//have equal attribute values. If the do, they don't stack.
-		//WriteChatf("Slot %d: bSpell->Attrib=%d, bSpell->Base=%d, bSpell->TargetType=%d, aSpell->Attrib=%d, aSpell->Base=%d, aSpell->TargetType=%d", i, bSpell->Attrib[i], bSpell->Base[i], bSpell->TargetType, aSpell->Attrib[i], aSpell->Base[i], aSpell->TargetType);
-		if (bSpell->Attrib[i] == aSpell->Attrib[i] && !(SpellEffectTest(aSpell, bSpell, i, bIgnoreTriggeringEffects))) {
+		//WriteChatf("Slot %d: bSpell->Attrib=%d, bSpell->Base=%d, bSpell->TargetType=%d, aSpell->Attrib=%d, aSpell->Base=%d, aSpell->TargetType=%d", i, GetSpellAttrib(bSpell,i), GetSpellBase(bSpell,i), bSpell->TargetType, GetSpellAttrib(aSpell,i), GetSpellBase(aSpell,i), aSpell->TargetType);
+		if (GetSpellAttrib(bSpell,i) == GetSpellAttrib(aSpell,i) && !(SpellEffectTest(aSpell, bSpell, i, bIgnoreTriggeringEffects))) {
 			//WriteChatf("Inside IF");
-			if (aSpell->Attrib[i] == 55 && bSpell->Attrib[i] == 55) {
-				//WriteChatf("Increase Absorb Damage by %d over %d", aSpell->Base[i], bSpell->Base[i]);
-				return (aSpell->Base[i] >= bSpell->Base[i]);
+			if (GetSpellAttrib(aSpell,i) == 55 && GetSpellAttrib(bSpell,i) == 55) {
+				//WriteChatf("Increase Absorb Damage by %d over %d", GetSpellBase(aSpell,i), GetSpellBase(bSpell,i));
+				return (GetSpellBase(aSpell,i) >= GetSpellBase(bSpell,i));
 			}
-			else if (!((bSpell->Attrib[i] == 10 && (bSpell->Base[i] == -6 || bSpell->Base[i] == 0)) ||
-				(aSpell->Attrib[i] == 10 && (aSpell->Base[i] == -6 || aSpell->Base[i] == 0)) ||
-				(bSpell->Attrib[i] == 79 && bSpell->Base[i]>0 && bSpell->TargetType == 6) ||
-				(aSpell->Attrib[i] == 79 && aSpell->Base[i]>0 && aSpell->TargetType == 6) ||
-				(bSpell->Attrib[i] == 0 && bSpell->Base[i]<0) ||
-				(aSpell->Attrib[i] == 0 && aSpell->Base[i]<0) ||
-				(bSpell->Attrib[i] == 148 || bSpell->Attrib[i] == 149) ||
-				(aSpell->Attrib[i] == 148 || aSpell->Attrib[i] == 149)))
+			else if (!((GetSpellAttrib(bSpell,i) == 10 && (GetSpellBase(bSpell,i) == -6 || GetSpellBase(bSpell,i) == 0)) ||
+				(GetSpellAttrib(aSpell,i) == 10 && (GetSpellBase(aSpell,i) == -6 || GetSpellBase(aSpell,i) == 0)) ||
+				(GetSpellAttrib(bSpell,i) == 79 && GetSpellBase(bSpell,i)>0 && bSpell->TargetType == 6) ||
+				(GetSpellAttrib(aSpell,i) == 79 && GetSpellBase(aSpell,i)>0 && aSpell->TargetType == 6) ||
+				(GetSpellAttrib(bSpell,i) == 0 && GetSpellBase(bSpell,i)<0) ||
+				(GetSpellAttrib(aSpell,i) == 0 && GetSpellBase(aSpell,i)<0) ||
+				(GetSpellAttrib(bSpell,i) == 148 || GetSpellAttrib(bSpell,i) == 149) ||
+				(GetSpellAttrib(aSpell,i) == 148 || GetSpellAttrib(aSpell,i) == 149)))
 				return false;
 		}
 		//Check to see if second buffs blocks first buff:
 		//148: Stacking: Block new spell if slot %d is effect
 		//149: Stacking: Overwrite existing spell if slot %d is effect
-		if ((bSpell->Attrib[i] == 148) || (bSpell->Attrib[i] == 149)) {
-			int tmpSlot = bSpell->Calc[i] - 200;
-			int tmpAttrib = bSpell->Base[i];
-			//WriteChatf("aSpell->Attrib[%d]=%d, aSpell->Base[%d]=%d, tmpAttrib=%d, tmpVal=%d", tmpSlot-1, aSpell->Attrib[tmpSlot-1], tmpSlot-1, aSpell->Base[tmpSlot-1], tmpAttrib, abs(bSpell->Max[i]));
-			if (bSpell->Max[i] > 0) {
-				int tmpVal = abs(bSpell->Max[i]);
-				if ((aSpell->Attrib[tmpSlot - 1] == tmpAttrib) && (aSpell->Base[tmpSlot - 1] < tmpVal)) return false;
+		if ((GetSpellAttrib(bSpell,i) == 148) || (GetSpellAttrib(bSpell,i) == 149)) {
+			int tmpSlot = GetSpellCalc(bSpell,i) - 200;
+			int tmpAttrib = GetSpellBase(bSpell,i);
+			//WriteChatf("aSpell->Attrib[%d]=%d, aSpell->Base[%d]=%d, tmpAttrib=%d, tmpVal=%d", tmpSlot-1, aSpell->Attrib[tmpSlot-1], tmpSlot-1, aSpell->Base[tmpSlot-1], tmpAttrib, abs(GetSpellMax(bSpell,i)));
+			if (GetSpellMax(bSpell,i) > 0) {
+				int tmpVal = abs(GetSpellMax(bSpell,i));
+				if ((GetSpellAttrib(aSpell,tmpSlot - 1) == tmpAttrib) && (GetSpellBase(aSpell,tmpSlot - 1) < tmpVal)) return false;
 			}
-			else if (aSpell->Attrib[tmpSlot - 1] == tmpAttrib) return false;
+			else if (GetSpellAttrib(aSpell,tmpSlot - 1) == tmpAttrib) return false;
 		}
 		//Now Check to see if the first buff blocks second buff. This is necessary 
 		//because only some spells carry the Block Slot. Ex. Brells and Spiritual 
 		//Vigor don't stack Brells has 1 slot total, for HP. Vigor has 4 slots, 2 
 		//of which block Brells.
-		if ((aSpell->Attrib[i] == 148) || (aSpell->Attrib[i] == 149)) {
-			int tmpSlot = aSpell->Calc[i] - 200;
-			int tmpAttrib = aSpell->Base[i];
-			//WriteChatf("bSpell->Attrib[%d]=%d, bSpell->Base[%d]=%d, tmpAttrib=%d, tmpVal=%d", tmpSlot-1, bSpell->Attrib[tmpSlot-1], tmpSlot-1, bSpell->Base[tmpSlot-1], tmpAttrib, abs(aSpell->Max[i]));
-			if (aSpell->Max[i] > 0) {
-				int tmpVal = abs(aSpell->Max[i]);
-				if ((bSpell->Attrib[tmpSlot - 1] == tmpAttrib) && (bSpell->Base[tmpSlot - 1] < tmpVal)) return false;
+		if ((GetSpellAttrib(aSpell,i) == 148) || (GetSpellAttrib(aSpell,i) == 149)) {
+			int tmpSlot = GetSpellCalc(aSpell,i) - 200;
+			int tmpAttrib = GetSpellBase(aSpell,i);
+			//WriteChatf("bSpell->Attrib[%d]=%d, bSpell->Base[%d]=%d, tmpAttrib=%d, tmpVal=%d", tmpSlot-1, bSpell->Attrib[tmpSlot-1], tmpSlot-1, bSpell->Base[tmpSlot-1], tmpAttrib, abs(GetSpellMax(aSpell,i)));
+			if (GetSpellMax(aSpell,i) > 0) {
+				int tmpVal = abs(GetSpellMax(aSpell,i));
+				if ((GetSpellAttrib(bSpell,tmpSlot - 1) == tmpAttrib) && (GetSpellBase(bSpell,tmpSlot - 1) < tmpVal)) return false;
 			}
-			else if (bSpell->Attrib[tmpSlot - 1] == tmpAttrib) return false;
+			else if (GetSpellAttrib(bSpell,tmpSlot - 1) == tmpAttrib) return false;
 		}
 	}
 	return true;

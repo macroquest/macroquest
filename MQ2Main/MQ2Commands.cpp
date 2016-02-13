@@ -555,7 +555,11 @@ VOID SpellSlotInfo(PSPAWNINFO pChar, PCHAR szLine)
 
 	//ItemDisplayHook->SetSpell_Detour(pSpell->ID, TRUE);
 	WriteChatf("\ay%s\ax (ID: %d)", pSpell->Name, pSpell->ID);
+#if defined(TEST)//remove after this goes live
+	for (int i = 0; i<pSpell->NumEffects; i++) {
+#else
 	for (int i = 0; i<12; i++) {
+#endif
 		szBuff[0] = szTemp[0] = '\0';
 		strcat(szBuff, ParseSpellEffect(pSpell, i, szTemp));
 		if (strlen(szBuff)>0)

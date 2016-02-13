@@ -12,7 +12,11 @@ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 GNU General Public License for more details.
 ******************************************************************************/
 #ifdef PRIVATE
-#include "eqgame-private.h"
+#if defined(LIVE)
+#include "eqgame-private(live).h"
+#elif defined(TEST)
+#include "eqgame-private(test).h"
+#endif
 #endif
 
 #define __ClientName                                              "eqgame"
@@ -53,7 +57,6 @@ GNU General Public License for more details.
 #define DI8__Mouse_x                                               0x11AD3B0
 #define DI8__Mouse_Copy_x                                          0x101B9BC
 #define DI8__Mouse_Check_x                                         0x10A5294
-#define __AltTimerReady_x                                          0x100CD09
 #define __Attack_x                                                 0x109FF37
 #define __Autofire_x                                               0x109FF38
 #define __BindList_x                                               0xC38458
@@ -326,6 +329,7 @@ GNU General Public License for more details.
 #define CharacterZoneClient__HasSkill_x                            0x464BC0
 #define CharacterZoneClient__MakeMeVisible_x                       0x46A5A0
 #define CharacterZoneClient__IsStackBlocked_x                      0x446AD0
+#define CharacterZoneClient__CanUseMemorizedSpellSlot_x            0x446340
 
 // CBankWnd 
 #define CBankWnd__GetNumBankSlots_x                                0x668010
@@ -372,6 +376,8 @@ GNU General Public License for more details.
 #define CComboWnd__SetColors_x                                     0x8D52C0
 #define CComboWnd__SetChoice_x                                     0x8D52F0
 #define CComboWnd__GetItemCount_x                                  0x8D5320
+#define CComboWnd__GetCurChoiceText_x                              0x8D5370
+
 
 // CContainerWnd 
 #define CContainerWnd__HandleCombine_x                             0x6A0890
@@ -465,6 +471,7 @@ GNU General Public License for more details.
 #define CListWnd__AddString_x                                      0x8C17C0
 #define CListWnd__CalculateFirstVisibleLine_x                      0x8BE650
 #define CListWnd__CalculateVSBRange_x                              0x8C07B0
+#define CListWnd__ClearSel_x                                       0x8BD950
 #define CListWnd__ClearAllSel_x                                    0x8BD900
 #define CListWnd__CloseAndUpdateEditWindow_x                       0x8C1180
 #define CListWnd__Compare_x                                        0x8BF140
@@ -652,7 +659,7 @@ GNU General Public License for more details.
 // EQ_Character 
 #define EQ_Character__CastSpell_x                                  0x44E6B0
 #define EQ_Character__Cur_HP_x                                     0x464290
-#define EQ_Character__Cur_Mana_x                                   0x4573B0
+#define EQ_Character__Cur_Mana_x                                   0x4572C0
 #define EQ_Character__GetAACastingTimeModifier_x                   0x446650
 #define EQ_Character__GetCharInfo2_x                               0x8712F0
 #define EQ_Character__GetFocusCastingTimeModifier_x                0x43E990
@@ -789,3 +796,7 @@ GNU General Public License for more details.
 
 //CharacterBase
 #define CharacterBase__GetMemorizedSpell_x                         0x455CF0
+
+//CCastSpellWnd
+#define CCastSpellWnd__ForgetMemorizedSpell_x                      0x688490
+#define CCastSpellWnd__IsBardSongPlaying_x                         0x687C50

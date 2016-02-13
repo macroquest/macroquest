@@ -5403,6 +5403,7 @@ EQLIB_OBJECT EQ_Character::~EQ_Character(void);
 EQLIB_OBJECT EQ_Character::EQ_Character(void);
 EQLIB_OBJECT bool EQ_Character::DoesSpellMatchFocusFilters(class EQ_Spell const *,class EQ_Spell const *);
 EQLIB_OBJECT bool EQ_Character::IsSpellTooPowerfull(class EQ_Spell *,class EQ_Character *);
+EQLIB_OBJECT bool EQ_Character::CanUseMemorizedSpellSlot(int gem);
 #ifndef EMU
 EQLIB_OBJECT bool EQ_Character::IsStackBlocked(class EQ_Spell const *, DWORD, DWORD, DWORD, bool);
 #else
@@ -6684,8 +6685,16 @@ EQLIB_OBJECT SParseVariables::~SParseVariables(void);
 class SpellManager
 {
 public:
-EQLIB_OBJECT SpellManager::~SpellManager(void);
-EQLIB_OBJECT SpellManager::SpellManager(char *);
+EQLIB_OBJECT int SpellManager::dSpellManager(void *, bool);
+EQLIB_OBJECT SpellManager::SpellManager(char *, char *, char *);
+EQLIB_OBJECT SpellManager::SpellManager(char *);//need to check out what these do
+EQLIB_OBJECT int SpellManager::Unknown0x0C(int, int);//need to check out what these do
+EQLIB_OBJECT int SpellManager::Unknown0x10(int);//need to check out what these do
+EQLIB_OBJECT int SpellManager::Unknown0x14(int);//need to check out what these do
+EQLIB_OBJECT int SpellManager::Unknown0x18(int);//need to check out what these do
+EQLIB_OBJECT PSPELL SpellManager::GetSpellByID(int);
+EQLIB_OBJECT struct _SPELLCALCINFO* SpellManager::GetSpellCalcInfoByCalcIndex(int index);
+EQLIB_OBJECT bool SpellManager::Unknown0x24(bool);//need to check out what these do
 SPELLMGR Data;
 };
 

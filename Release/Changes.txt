@@ -1,3 +1,52 @@
+12 feb 2016
+- Fixed SpellReady so it's 100% reliable now.
+- Other stuff
+- Updated for TEST
+- BELOW THIS LINE ARE TEST RELATED CHANGES, BUT LIVE BUILDERS SHOULD READ IT AS WELL (cause it is comming your way)
+-
+- Added CalcIndex to ${Spell} (on TEST)
+- Added NumEffects to ${Spell} (on TEST)
+-  Both of them SHOULD be used in macros that enumurate Base, Base2, Calc,Attrib and Max
+-  Example: lets say your macro does this:
+-		/for i 1 to 12
+-			/echo Base ${i} is : ${Spell[Augmentation].Base[${i}]}
+-		/next i
+-	FROM NOW ON: IT SHOULD LOOK LIKE THIS: (or you will get errors running it)
+-		/varcalc count ${Spell[Augmentation].NumEffects} + 1
+-		/for i 1 to ${count}
+-			/echo Base ${i} is : ${Spell[Augmentation].Base[${i}]}
+-		/next i
+-							
+-
+- Ok, listen PEOPLE WHO BUILD MQ2 FOR -> TEST <- : this is IMPORTANT!:
+-  This patch punched a bunch of holes in mq2, and Im telling you folks right now:
+-  IF YOU DONT UPDATE YOUR PLUGINS THEY WILL Fail to build.
+-  ok and here is how to update them:
+-  Search EVERY single plugin you have for references to ->Base[, ->Base2[, ->Calc[, ->Attrib[ and ->Max[
+-  Replace EVERY result with a proper call to the corrosponding new APIs:
+-	LONG GetSpellAttrib(PSPELL pSpell, int index);
+-	LONG GetSpellBase(PSPELL pSpell, int index);
+-	LONG GetSpellBase2(PSPELL pSpell, int index);
+-	LONG GetSpellMax(PSPELL pSpell, int index);
+-	LONG GetSpellCalc(PSPELL pSpell, int index);
+-	Let me give and example: You do the search and you find this code:
+-	for (int a = 0; a < 12; a++) {
+-		switch (spell->Attrib[a])
+-	YOU MUST replace that code... with this:
+-	if (PSPELL spell = GetSpellByID(SpellID)) {
+-		for (int a = 0; a < spell->NumEffects; a++) {
+-			switch (GetSpellAttrib(spell, a))
+-
+-	Notice what I did there? you CANNOT and SHOULD NOT use hardcoded "12" anymore
+-	It just isn't how spell effect are stored anymore, they only store
+-	the ACTUAL number of effects in memory, not all 12 slots...
+-	So... the new Spell member ->NumEffects SHOULD ALWAYS be used from now on.
+-
+-	Mkay? questions?, come talk to us on irc/skype/email whatever...
+-	And finally, for the LIVE people... this is comming your way within a week or so when
+-	they patch for LIVE, so get ready, cause I'm not going to repeat this info again.
+-  This message will self destruct in 3...2...1...
+
 28 Jan 2016
 - The changes to the Task TLO from the Jan 14 patch has been reverted, they where not ready for production yet.
 - Me.Pet has been fixed for TEST along with a bunch of other spawninfo offsets that where all off.

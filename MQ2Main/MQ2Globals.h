@@ -237,8 +237,6 @@ namespace MQ2Globals
 
 	EQLIB_VAR PCHAR gpbRangedAttackReady;
 #define gbRangedAttackReady (*gpbRangedAttackReady)
-	EQLIB_VAR PCHAR gpbAltTimerReady;
-#define gbAltTimerReady (*gpbAltTimerReady)
 	EQLIB_VAR PCHAR gpbShowNetStatus;
 #define gbShowNetStatus (*gpbShowNetStatus)
 	EQLIB_VAR DWORD *gpShowNames;
@@ -700,7 +698,6 @@ namespace MQ2Globals
 	EQLIB_VAR DWORD DI8__Mouse;
 	EQLIB_VAR DWORD DI8__Mouse_Copy;
 	EQLIB_VAR DWORD DI8__Mouse_Check;
-	EQLIB_VAR DWORD __AltTimerReady;
 	EQLIB_VAR DWORD __Attack;
 	EQLIB_VAR DWORD __Autofire;
 	EQLIB_VAR DWORD __BindList;
@@ -960,13 +957,17 @@ namespace MQ2Globals
 	EQLIB_VAR DWORD CharacterZoneClient__MakeMeVisible;
 	EQLIB_VAR DWORD CharacterZoneClient__ApplyDamage;
 	EQLIB_VAR DWORD CharacterZoneClient__IsStackBlocked;
-
+	EQLIB_VAR DWORD CharacterZoneClient__CanUseMemorizedSpellSlot;
+	
 	EQLIB_VAR DWORD CBankWnd__GetNumBankSlots;
 
 	EQLIB_VAR DWORD CBazaarSearchWnd__HandleBazaarMsg;
 
 	EQLIB_VAR DWORD CButtonWnd__SetCheck;
 
+	EQLIB_VAR DWORD CCastSpellWnd__ForgetMemorizedSpell;
+	EQLIB_VAR DWORD CCastSpellWnd__IsBardSongPlaying;
+	
 	EQLIB_VAR DWORD CChatManager__GetRGBAFromIndex;
 	EQLIB_VAR DWORD CChatManager__InitContextMenu;
 	EQLIB_VAR DWORD CContextMenu__CContextMenu;
@@ -996,7 +997,8 @@ namespace MQ2Globals
 	EQLIB_VAR DWORD CComboWnd__SetColors;
 	EQLIB_VAR DWORD CComboWnd__SetChoice;
 	EQLIB_VAR DWORD CComboWnd__GetItemCount;
-
+	EQLIB_VAR DWORD CComboWnd__GetCurChoiceText;
+	
 
 	EQLIB_VAR DWORD CContainerWnd__HandleCombine;
 	EQLIB_VAR DWORD CContainerWnd__vftable;
@@ -1077,6 +1079,7 @@ namespace MQ2Globals
 	EQLIB_VAR DWORD CListWnd__AddString;
 	EQLIB_VAR DWORD CListWnd__CalculateFirstVisibleLine;
 	EQLIB_VAR DWORD CListWnd__CalculateVSBRange;
+	EQLIB_VAR DWORD CListWnd__ClearSel;
 	EQLIB_VAR DWORD CListWnd__ClearAllSel;
 	EQLIB_VAR DWORD CListWnd__CloseAndUpdateEditWindow;
 	EQLIB_VAR DWORD CListWnd__Compare;
