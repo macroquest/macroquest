@@ -561,6 +561,7 @@ EQLIB_API LONG GetSpellBase(PSPELL pSpell, int index);
 EQLIB_API LONG GetSpellBase2(PSPELL pSpell, int index);
 EQLIB_API LONG GetSpellMax(PSPELL pSpell, int index);
 EQLIB_API LONG GetSpellCalc(PSPELL pSpell, int index);
+EQLIB_API LONG GetSpellNumEffects(PSPELL pSpell);
 
 EQLIB_API VOID SlotValueCalculate(PCHAR szBuff, PSPELL pSpell, int i, double mp = 1.0);
 EQLIB_API LONG CalcValue(LONG calc, LONG base, LONG max, LONG tick, LONG minlevel = MAX_PC_LEVEL, LONG level = MAX_PC_LEVEL);

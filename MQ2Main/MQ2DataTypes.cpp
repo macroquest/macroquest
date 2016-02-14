@@ -3057,10 +3057,10 @@ bool MQ2CharacterType::GETMEMBER()
 		}
 		return false;
 	case SpellReady:
+		Dest.DWord = 0;
+		Dest.Type = pBoolType;
 		if (pDisplay && pLocalPlayer && ISINDEX())
 		{
-			Dest.DWord = 0;
-			Dest.Type = pBoolType;
 			if (pCastSpellWnd && pCastSpellWnd->IsBardSongPlaying())
 				return true;
 			if (ISNUMBER())
@@ -3081,7 +3081,7 @@ bool MQ2CharacterType::GETMEMBER()
 						{
 							if (!_stricmp(GETFIRST(), pSpell->Name))
 							{
-								if (((PCDISPLAY)pDisplay)->TimeStamp > ((PSPAWNINFO)pLocalPlayer)->SpellGemETA[nGem] && ((PCDISPLAY)pDisplay)->TimeStamp > ((PSPAWNINFO)pLocalPlayer)->SpellCooldownETA) {
+								if (((PCDISPLAY)pDisplay)->TimeStamp >((PSPAWNINFO)pLocalPlayer)->SpellGemETA[nGem] && ((PCDISPLAY)pDisplay)->TimeStamp > ((PSPAWNINFO)pLocalPlayer)->SpellCooldownETA) {
 									Dest.DWord = 1;
 								}
 								return true;
@@ -3091,7 +3091,10 @@ bool MQ2CharacterType::GETMEMBER()
 				}
 			}
 		}
-		return false;
+		if (((PCDISPLAY)pDisplay)->TimeStamp > ((PSPAWNINFO)pLocalPlayer)->SpellCooldownETA) {
+			Dest.DWord = 1;
+		}
+		return true;
 	case PetBuff:
 		if (!ISINDEX() || !pPetInfoWnd)
 			return false;
@@ -4644,11 +4647,7 @@ bool MQ2SpellType::GETMEMBER()
 	{
 		Dest.Type = pStringType;
 		int i;
-		#if defined(TEST)//remove
-		for (i = 0; i < pSpell->NumEffects; i++) {
-		#else
-		for (i = 0; i < 12; i++) {
-		#endif
+		for (i = 0; i < GetSpellNumEffects(pSpell); i++) {
 			switch (GetSpellAttrib(pSpell,i))
 			{
 			case 35:
@@ -4672,11 +4671,7 @@ bool MQ2SpellType::GETMEMBER()
 	{
 		Dest.Type = pIntType;
 		int i;
-		#if defined(TEST)//remove
-		for (i = 0; i < pSpell->NumEffects; i++) {
-		#else
-		for (i = 0; i < 12; i++) {
-		#endif
+		for (i = 0; i < GetSpellNumEffects(pSpell); i++) {
 			if ((GetSpellAttrib(pSpell,i) == 35) || (GetSpellAttrib(pSpell,i) == 36) || (GetSpellAttrib(pSpell,i) == 116) || (GetSpellAttrib(pSpell,i) == 369)) {
 				Dest.DWord = (int)GetSpellBase(pSpell,i);
 				return true;
@@ -4700,11 +4695,7 @@ bool MQ2SpellType::GETMEMBER()
 			if (pChar->Buff[nBuff].SpellID > 0) {
 				if (PSPELL buffSpell = GetSpellByID(pChar->Buff[nBuff].SpellID)) {
 					buffduration = pChar->Buff[nBuff].Duration;
-					#if defined(TEST)//remove
-					for (int nSlot = 0; nSlot < pSpell->NumEffects; nSlot++) {
-					#else
-					for (int nSlot = 0; nSlot < 12; nSlot++) {
-					#endif
+					for (int nSlot = 0; nSlot < GetSpellNumEffects(pSpell); nSlot++) {
 						if (TriggeringEffectSpell(pSpell, nSlot)) {		// Check the triggered effect against the current buff for stacking
 							if (PSPELL triggeredSpell = GetSpellByID(GetSpellBase2(pSpell,nSlot))) {
 								if (GetSpellDuration(triggeredSpell, (PSPAWNINFO)pLocalPlayer) >= 0xFFFFFFFE) {
@@ -4733,11 +4724,7 @@ bool MQ2SpellType::GETMEMBER()
 				if (PSPELL buffSpell = GetSpellByID(pChar->Buff[nBuff].SpellID)) {
 					buffduration = pChar->ShortBuff[nBuff].Duration;
 					if (!IsBardSong(buffSpell) && !((IsSPAEffect(pSpell, SPA_ILLUSION) && !pSpell->DurationWindow))) {		// Don't check against bard songs or buff window illusions
-						#if defined(TEST)//remove
-						for (int nSlot = 0; nSlot < pSpell->NumEffects; nSlot++) {
-						#else
-						for (int nSlot = 0; nSlot < 12; nSlot++) {
-						#endif
+						for (int nSlot = 0; nSlot < GetSpellNumEffects(pSpell); nSlot++) {
 							if (TriggeringEffectSpell(pSpell, nSlot)) {		// Check the triggered effect against the current buff for stacking
 								if (PSPELL triggeredSpell = GetSpellByID(GetSpellBase2(pSpell,nSlot))) {
 									if (GetSpellDuration(triggeredSpell, (PSPAWNINFO)pLocalPlayer) >= 0xFFFFFFFE) {
@@ -4777,11 +4764,7 @@ bool MQ2SpellType::GETMEMBER()
 			if (pPet->Buff[nBuff]>0 && !(pPet->Buff[nBuff] == 0xFFFFFFFF || pPet->Buff[nBuff] == 0)) {
 				if (PSPELL buffSpell = GetSpellByID(pPet->Buff[nBuff])) {
 					petbuffduration = ((pPet->PetBuffTimer[nBuff] + 5999) / 1000) / 6;
-					#if defined(TEST)//remove
-					for (int nSlot = 0; nSlot < pSpell->NumEffects; nSlot++) {
-					#else
-					for (int nSlot = 0; nSlot < 12; nSlot++) {
-					#endif
+					for (int nSlot = 0; nSlot < GetSpellNumEffects(pSpell); nSlot++) {
 						if (TriggeringEffectSpell(pSpell, nSlot)) {		// Check the triggered effect against the current buff for stacking
 							if (PSPELL triggeredSpell = GetSpellByID(GetSpellBase2(pSpell, nSlot))) {
 								if (GetSpellDuration(triggeredSpell, (PSPAWNINFO)pLocalPlayer) >= 0xFFFFFFFE) {
@@ -4820,11 +4803,7 @@ bool MQ2SpellType::GETMEMBER()
 			tmpSpell = GetSpellByName(GETFIRST());
 		if (!tmpSpell)
 			return true;
-		#if defined(TEST)//remove
-		for (int nSlot = 0; nSlot < pSpell->NumEffects; nSlot++) {
-		#else
-		for (int nSlot = 0; nSlot < 12; nSlot++) {
-		#endif
+		for (int nSlot = 0; nSlot < GetSpellNumEffects(pSpell); nSlot++) {
 			if (TriggeringEffectSpell(pSpell, nSlot) && TriggeringEffectSpell(tmpSpell, nSlot)) {		// Check the triggered effect against the current buff for stacking
 																										//WriteChatf("Checking triggering effect for slot %d", nSlot);
 				PSPELL pSpellTriggeredSpell = GetSpellByID(GetSpellBase2(pSpell, nSlot));
@@ -4971,11 +4950,11 @@ bool MQ2SpellType::GETMEMBER()
 		Dest.DWord = pSpell->CalcIndex;
 		Dest.Type = pIntType;
 		return true;
+#endif
 	case NumEffects:
-		Dest.DWord = pSpell->NumEffects;
+		Dest.DWord = GetSpellNumEffects(pSpell);
 		Dest.Type = pIntType;
 		return true;
-#endif
 	case AutoCast:
 		Dest.DWord = pSpell->Autocast;
 		Dest.Type = pIntType;

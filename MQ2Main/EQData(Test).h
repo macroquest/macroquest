@@ -1828,8 +1828,8 @@ typedef struct _SPELL { //      1     |    0   | -30  |   0    | 103  | 125
 /*0x02c*/   DWORD   ReagentId[0x4];     //ReagentId1-ReagentId4d
 /*0x03c*/   DWORD   ReagentCount[0x4];  //ReagentCount1-ReagentCount4
 /*0x04c*/   BYTE    Unknown0x4c[0x10];
-/*0x05c*/   LONG    CalcIndex;         //Calc1-Calc12
-/*0x060*/   LONG    NumEffects;       //Attrib1-Attrib12
+/*0x05c*/   LONG    CalcIndex;
+/*0x060*/   LONG    NumEffects;
 /*0x064*/   DWORD   BookIcon;
 /*0x068*/   DWORD   GemIcon;
 /*0x06C*/   DWORD   DescriptionNumber;

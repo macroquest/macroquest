@@ -1531,11 +1531,7 @@ BOOL IsBardSong(PSPELL pSpell)
 // *************************************************************************** 
 BOOL IsSPAEffect(PSPELL pSpell, LONG EffectID)
 {
-#if defined(TEST)//remove after this goes live
-	for (int slot = 0; slot<pSpell->NumEffects; slot++)
-#else
-	for (int slot = 0; slot<12; slot++)
-#endif
+	for (int slot = 0; slot<GetSpellNumEffects(pSpell); slot++)
 		if (GetSpellAttrib(pSpell,slot) == EffectID)
 			return true;
 	return false;
@@ -2430,27 +2426,15 @@ LONG GetSpellCalc(PSPELL pSpell, int index)
 	return pSpell->Calc[index];
 #endif
 }
-LONG GetSpellSlot(PSPELL pSpell, int index)
+
+LONG GetSpellNumEffects(PSPELL pSpell)
 {
-	if (index<0)
-		index = 0;
 #if defined(TEST)//remove after this goes live
 	if (pSpell) {
-		if (pSpell->NumEffects > index) {
-			if (SpellManager *pSpellM = (SpellManager *)pSpellMgr) {
-				if (PSPELLCALCINFO pCalcInfo = pSpellM->GetSpellCalcInfoByCalcIndex(pSpell->CalcIndex + index)) {
-					return pCalcInfo->Slot;
-				}
-			}
-		}
-		else {
-			WriteChatf("well well, looks like someone didn't read changes.txt from feb 12 2016");
-		}
+		return pSpell->NumEffects;
 	}
-	return 0;
-#else
-	return index +1;
 #endif
+	return 0xc;
 }
 PCHAR ParseSpellEffect(PSPELL pSpell, int i, PCHAR szBuffer, LONG level)
 {
@@ -2538,7 +2522,7 @@ PCHAR ParseSpellEffect(PSPELL pSpell, int i, PCHAR szBuffer, LONG level)
 		i + 1, spa, base, base2, max, calc, ticks, value, finish, minspelllvl, maxspelllvl, range, extendedrange, usePercent ? "TRUE" : "FALSE", repeating, maxlevel);
 #endif
 
-	sprintf(szBuff, "Slot %d: ", GetSpellSlot(pSpell,i));
+	sprintf(szBuff, "Slot %d: ", i+1);
 	switch (spa)
 	{
 	case 0: //hp +/-: heals/regen/dd 
@@ -3723,11 +3707,7 @@ PCHAR ShowSpellSlotInfo(PSPELL pSpell, PCHAR szBuffer)
 {
 	CHAR szTemp[MAX_STRING] = { 0 };
 	CHAR szBuff[MAX_STRING] = { 0 };
-#if defined(TEST)//remove after this goes live
-	for (int i = 0; i<pSpell->NumEffects; i++)
-#else
-	for (int i = 0; i<12; i++)
-#endif
+	for (int i = 0; i<GetSpellNumEffects(pSpell); i++)
 	{
 		szBuff[0] = szTemp[0] = '\0';
 		strcat(szBuff, ParseSpellEffect(pSpell, i, szTemp));
@@ -6867,13 +6847,17 @@ DWORD GetGameState(VOID)
 // ***************************************************************************
 BOOL LargerEffectTest(PSPELL aSpell, PSPELL bSpell, int i)
 {
-	if ((GetSpellAttrib(aSpell,i) == 1 && GetSpellAttrib(bSpell,i) == 1)				// Ac Mod
-		|| (GetSpellAttrib(aSpell,i) == 55 && GetSpellAttrib(bSpell,i) == 55)			// Add Effect: Absorb Damage
-		|| (GetSpellAttrib(aSpell,i) == 69 && GetSpellAttrib(bSpell,i) == 69)			// Max HP Mod
-		|| (GetSpellAttrib(aSpell,i) == 79 && GetSpellAttrib(bSpell,i) == 79)			// HP Mod
-		|| (GetSpellAttrib(aSpell,i) == 114 && GetSpellAttrib(bSpell,i) == 114)			// Aggro Multiplier
-		|| (GetSpellAttrib(aSpell,i) == 127 && GetSpellAttrib(bSpell,i) == 127))			// Spell Haste
-		return GetSpellBase(aSpell,i) >= GetSpellBase(bSpell,i);
+	LONG aAttrib = GetSpellNumEffects(aSpell) > i ? GetSpellAttrib(aSpell, i) : 254;
+	LONG bAttrib = GetSpellNumEffects(bSpell) > i ? GetSpellAttrib(bSpell, i) : 254;
+	if (aAttrib == bAttrib			// verify they are the same, we can do less checks this way
+		&& (aAttrib == 1			// Ac Mod
+			|| aAttrib == 55			// Add Effect: Absorb Damage
+			|| aAttrib == 69			// Max HP Mod
+			|| aAttrib == 79			// HP Mod
+			|| aAttrib == 114			// Aggro Multiplier
+			|| aAttrib == 127))		// Spell Haste
+									// We don't need to check NumEffects again since it wouldn't reach here if it would be too big
+		return GetSpellBase(aSpell, i) >= GetSpellBase(bSpell, i);
 	return false;
 }
 
@@ -6884,9 +6868,10 @@ BOOL LargerEffectTest(PSPELL aSpell, PSPELL bSpell, int i)
 // ***************************************************************************
 BOOL TriggeringEffectSpell(PSPELL aSpell, int i)
 {
-	return ((GetSpellAttrib(aSpell,i) == 85)		// Add Proc
-		|| (GetSpellAttrib(aSpell,i) == 374) 	// Trigger Spell
-		|| (GetSpellAttrib(aSpell,i) == 419));	// Contact_Ability_2
+	LONG aAttrib = GetSpellNumEffects(aSpell) > i ? GetSpellAttrib(aSpell, i) : 254;
+	return (aAttrib == 85	// Add Proc
+		|| aAttrib == 374 	// Trigger Spell
+		|| aAttrib == 419);	// Contact_Ability_2
 }
 
 // ***************************************************************************
@@ -6896,33 +6881,35 @@ BOOL TriggeringEffectSpell(PSPELL aSpell, int i)
 // ***************************************************************************
 BOOL SpellEffectTest(PSPELL aSpell, PSPELL bSpell, int i, BOOL bIgnoreTriggeringEffects)
 {
-	return ((GetSpellAttrib(aSpell,i) == 57 || GetSpellAttrib(bSpell,i) == 57)		// Levitate
-		|| (GetSpellAttrib(aSpell,i) == 134 || GetSpellAttrib(bSpell,i) == 134)		// Limit: Max Level
-		|| (GetSpellAttrib(aSpell,i) == 135 || GetSpellAttrib(bSpell,i) == 135)		// Limit: Resist
-		|| (GetSpellAttrib(aSpell,i) == 136 || GetSpellAttrib(bSpell,i) == 136)		// Limit: Target
-		|| (GetSpellAttrib(aSpell,i) == 137 || GetSpellAttrib(bSpell,i) == 137)		// Limit: Effect
-		|| (GetSpellAttrib(aSpell,i) == 138 || GetSpellAttrib(bSpell,i) == 138)		// Limit: SpellType
-		|| (GetSpellAttrib(aSpell,i) == 139 || GetSpellAttrib(bSpell,i) == 139)		// Limit: Spell
-		|| (GetSpellAttrib(aSpell,i) == 140 || GetSpellAttrib(bSpell,i) == 140)		// Limit: Min Duraction
-		|| (GetSpellAttrib(aSpell,i) == 141 || GetSpellAttrib(bSpell,i) == 141)		// Limit: Instant
-		|| (GetSpellAttrib(aSpell,i) == 142 || GetSpellAttrib(bSpell,i) == 142)		// Limit: Min Level
-		|| (GetSpellAttrib(aSpell,i) == 143 || GetSpellAttrib(bSpell,i) == 143)		// Limit: Min Cast Time
-		|| (GetSpellAttrib(aSpell,i) == 144 || GetSpellAttrib(bSpell,i) == 144)		// Limit: Max Cast Time
-		|| (GetSpellAttrib(aSpell,i) == 254 || GetSpellAttrib(bSpell,i) == 254)		// Placeholder
-		|| (GetSpellAttrib(aSpell,i) == 311 || GetSpellAttrib(bSpell,i) == 311)		// Limit: Combat Skills not Allowed
-		|| (GetSpellAttrib(aSpell,i) == 339 || GetSpellAttrib(bSpell,i) == 339)		// Trigger DoT on cast
-		|| (GetSpellAttrib(aSpell,i) == 340 || GetSpellAttrib(bSpell,i) == 340)		// Trigger DD on cast
-		|| (GetSpellAttrib(aSpell,i) == 348 || GetSpellAttrib(bSpell,i) == 348)		// Limit: Min Mana
-		|| (GetSpellAttrib(aSpell,i) == 385 || GetSpellAttrib(bSpell,i) == 385)		// Limit: SpellGroup
-		|| (GetSpellAttrib(aSpell,i) == 391 || GetSpellAttrib(bSpell,i) == 391)		// Limit: Max Mana
-		|| (GetSpellAttrib(aSpell,i) == 403 || GetSpellAttrib(bSpell,i) == 403)		// Limit: SpellClass
-		|| (GetSpellAttrib(aSpell,i) == 404 || GetSpellAttrib(bSpell,i) == 404)		// Limit: SpellSubclass
-		|| (GetSpellAttrib(aSpell,i) == 411 || GetSpellAttrib(bSpell,i) == 411)		// Limit: PlayerClass
-		|| (GetSpellAttrib(aSpell,i) == 412 || GetSpellAttrib(bSpell,i) == 412)		// Limit: Race
-		|| (GetSpellAttrib(aSpell,i) == 414 || GetSpellAttrib(bSpell,i) == 414)		// Limit: CastingSkill
-		|| (GetSpellAttrib(aSpell,i) == 422 || GetSpellAttrib(bSpell,i) == 422)		// Limit: Use Min
-		|| (GetSpellAttrib(aSpell,i) == 423 || GetSpellAttrib(bSpell,i) == 423)		// Limit: Use Type
-		|| (GetSpellAttrib(aSpell,i) == 428 || GetSpellAttrib(bSpell,i) == 428)		// Skill_Proc_Modifier
+	LONG aAttrib = GetSpellNumEffects(aSpell) > i ? GetSpellAttrib(aSpell, i) : 254;
+	LONG bAttrib = GetSpellNumEffects(bSpell) > i ? GetSpellAttrib(bSpell, i) : 254;
+	return ((aAttrib == 57 || bAttrib == 57)		// Levitate
+		|| (aAttrib == 134 || bAttrib == 134)		// Limit: Max Level
+		|| (aAttrib == 135 || bAttrib == 135)		// Limit: Resist
+		|| (aAttrib == 136 || bAttrib == 136)		// Limit: Target
+		|| (aAttrib == 137 || bAttrib == 137)		// Limit: Effect
+		|| (aAttrib == 138 || bAttrib == 138)		// Limit: SpellType
+		|| (aAttrib == 139 || bAttrib == 139)		// Limit: Spell
+		|| (aAttrib == 140 || bAttrib == 140)		// Limit: Min Duraction
+		|| (aAttrib == 141 || bAttrib == 141)		// Limit: Instant
+		|| (aAttrib == 142 || bAttrib == 142)		// Limit: Min Level
+		|| (aAttrib == 143 || bAttrib == 143)		// Limit: Min Cast Time
+		|| (aAttrib == 144 || bAttrib == 144)		// Limit: Max Cast Time
+		|| (aAttrib == 254 || bAttrib == 254)		// Placeholder
+		|| (aAttrib == 311 || bAttrib == 311)		// Limit: Combat Skills not Allowed
+		|| (aAttrib == 339 || bAttrib == 339)		// Trigger DoT on cast
+		|| (aAttrib == 340 || bAttrib == 340)		// Trigger DD on cast
+		|| (aAttrib == 348 || bAttrib == 348)		// Limit: Min Mana
+		|| (aAttrib == 385 || bAttrib == 385)		// Limit: SpellGroup
+		|| (aAttrib == 391 || bAttrib == 391)		// Limit: Max Mana
+		|| (aAttrib == 403 || bAttrib == 403)		// Limit: SpellClass
+		|| (aAttrib == 404 || bAttrib == 404)		// Limit: SpellSubclass
+		|| (aAttrib == 411 || bAttrib == 411)		// Limit: PlayerClass
+		|| (aAttrib == 412 || bAttrib == 412)		// Limit: Race
+		|| (aAttrib == 414 || bAttrib == 414)		// Limit: CastingSkill
+		|| (aAttrib == 422 || bAttrib == 422)		// Limit: Use Min
+		|| (aAttrib == 423 || bAttrib == 423)		// Limit: Use Type
+		|| (aAttrib == 428 || bAttrib == 428)		// Skill_Proc_Modifier
 		|| (LargerEffectTest(aSpell, bSpell, i))					// Ignore if the new effect is greater than the old effect
 		|| (bIgnoreTriggeringEffects && (TriggeringEffectSpell(aSpell, i) || TriggeringEffectSpell(bSpell, i)))		// Ignore triggering effects validation
 		|| ((aSpell->SpellType == 1 || aSpell->SpellType == 2) && (bSpell->SpellType == 1 || bSpell->SpellType == 2) && !(aSpell->DurationWindow == bSpell->DurationWindow)));
@@ -6937,62 +6924,143 @@ BOOL SpellEffectTest(PSPELL aSpell, PSPELL bSpell, int i, BOOL bIgnoreTriggering
 // ***************************************************************************
 BOOL BuffStackTest(PSPELL aSpell, PSPELL bSpell, BOOL bIgnoreTriggeringEffects)
 {
-	if (aSpell->ID == bSpell->ID) return true;
+	if (aSpell->ID == bSpell->ID)
+		return true;
 
 	//WriteChatf("aSpell->Name=%s bSpell->Name= %s", aSpell->Name, bSpell->Name);
 	int i;
-	#if defined(TEST)//remove
-	for (i = 0; i < aSpell->NumEffects; i++) {
-	#else
-	for (i = 0; i < 12; i++) {
-	#endif
+	// We need to loop over the largest of the two, this may seem silly but one could have stacking command blocks
+	// which we will always need to check.
+	LONG effects = max(GetSpellNumEffects(aSpell), GetSpellNumEffects(bSpell));
+	for (i = 0; i < effects; i++) {
 		//Compare 1st Buff to 2nd. If Attrib[i]==254 its a place holder. If it is 10 it
 		//can be 1 of 3 things: PH(Base=0), CHA(Base>0), Lure(Base=-6). If it is Lure or
 		//Placeholder, exclude it so slots don't match up. Now Check to see if the slots
 		//have equal attribute values. If the do, they don't stack.
-		//WriteChatf("Slot %d: bSpell->Attrib=%d, bSpell->Base=%d, bSpell->TargetType=%d, aSpell->Attrib=%d, aSpell->Base=%d, aSpell->TargetType=%d", i, GetSpellAttrib(bSpell,i), GetSpellBase(bSpell,i), bSpell->TargetType, GetSpellAttrib(aSpell,i), GetSpellBase(aSpell,i), aSpell->TargetType);
-		if (GetSpellAttrib(bSpell,i) == GetSpellAttrib(aSpell,i) && !(SpellEffectTest(aSpell, bSpell, i, bIgnoreTriggeringEffects))) {
+		//WriteChatf("Slot %d: bSpell->Attrib=%d, bSpell->Base=%d, bSpell->TargetType=%d, aSpell->Attrib=%d, aSpell->Base=%d, aSpell->TargetType=%d", i, bAttrib, bBase, bSpell->TargetType, aAttrib, aBase, aSpell->TargetType);
+		LONG aAttrib = 254, bAttrib = 254; // Default to placeholder ...
+		LONG aBase = 0, bBase = 0;
+		if (GetSpellNumEffects(aSpell) > i) {
+			aAttrib = GetSpellAttrib(aSpell, i);
+			aBase = GetSpellBase(aSpell, i);
+		}
+		if (GetSpellNumEffects(bSpell) > i) {
+			bAttrib = GetSpellAttrib(bSpell, i);
+			bBase = GetSpellBase(bSpell, i);
+		}
+		if (bAttrib == aAttrib && !SpellEffectTest(aSpell, bSpell, i, bIgnoreTriggeringEffects)) {
 			//WriteChatf("Inside IF");
-			if (GetSpellAttrib(aSpell,i) == 55 && GetSpellAttrib(bSpell,i) == 55) {
-				//WriteChatf("Increase Absorb Damage by %d over %d", GetSpellBase(aSpell,i), GetSpellBase(bSpell,i));
-				return (GetSpellBase(aSpell,i) >= GetSpellBase(bSpell,i));
+			if (aAttrib == 55 && bAttrib == 55) {
+				//WriteChatf("Increase Absorb Damage by %d over %d", aBase, bBase);
+				return (aBase >= bBase);
 			}
-			else if (!((GetSpellAttrib(bSpell,i) == 10 && (GetSpellBase(bSpell,i) == -6 || GetSpellBase(bSpell,i) == 0)) ||
-				(GetSpellAttrib(aSpell,i) == 10 && (GetSpellBase(aSpell,i) == -6 || GetSpellBase(aSpell,i) == 0)) ||
-				(GetSpellAttrib(bSpell,i) == 79 && GetSpellBase(bSpell,i)>0 && bSpell->TargetType == 6) ||
-				(GetSpellAttrib(aSpell,i) == 79 && GetSpellBase(aSpell,i)>0 && aSpell->TargetType == 6) ||
-				(GetSpellAttrib(bSpell,i) == 0 && GetSpellBase(bSpell,i)<0) ||
-				(GetSpellAttrib(aSpell,i) == 0 && GetSpellBase(aSpell,i)<0) ||
-				(GetSpellAttrib(bSpell,i) == 148 || GetSpellAttrib(bSpell,i) == 149) ||
-				(GetSpellAttrib(aSpell,i) == 148 || GetSpellAttrib(aSpell,i) == 149)))
+			else if (!((bAttrib == 10 && (bBase == -6 || bBase == 0)) ||
+				(aAttrib == 10 && (aBase == -6 || aBase == 0)) ||
+				(bAttrib == 79 && bBase > 0 && bSpell->TargetType == 6) ||
+				(aAttrib == 79 && aBase > 0 && aSpell->TargetType == 6) ||
+				(bAttrib == 0 && bBase < 0) ||
+				(aAttrib == 0 && aBase < 0) ||
+				(bAttrib == 148 || bAttrib == 149) ||
+				(aAttrib == 148 || aAttrib == 149)))
 				return false;
 		}
 		//Check to see if second buffs blocks first buff:
 		//148: Stacking: Block new spell if slot %d is effect
 		//149: Stacking: Overwrite existing spell if slot %d is effect
-		if ((GetSpellAttrib(bSpell,i) == 148) || (GetSpellAttrib(bSpell,i) == 149)) {
-			int tmpSlot = GetSpellCalc(bSpell,i) - 200;
-			int tmpAttrib = GetSpellBase(bSpell,i);
+		if (bAttrib == 148 || bAttrib == 149) {
+			// in this branch we know bSpell has enough slots
+			int tmpSlot = GetSpellCalc(bSpell, i) - 200 - 1;
+			int tmpAttrib = bBase;
 			//WriteChatf("aSpell->Attrib[%d]=%d, aSpell->Base[%d]=%d, tmpAttrib=%d, tmpVal=%d", tmpSlot-1, aSpell->Attrib[tmpSlot-1], tmpSlot-1, aSpell->Base[tmpSlot-1], tmpAttrib, abs(GetSpellMax(bSpell,i)));
-			if (GetSpellMax(bSpell,i) > 0) {
-				int tmpVal = abs(GetSpellMax(bSpell,i));
-				if ((GetSpellAttrib(aSpell,tmpSlot - 1) == tmpAttrib) && (GetSpellBase(aSpell,tmpSlot - 1) < tmpVal)) return false;
+			if (GetSpellNumEffects(aSpell) > tmpSlot) { // verify aSpell has that slot
+				if (GetSpellMax(bSpell, i) > 0) {
+					int tmpVal = abs(GetSpellMax(bSpell, i));
+					if (GetSpellAttrib(aSpell, tmpSlot) == tmpAttrib && GetSpellBase(aSpell, tmpSlot) < tmpVal)
+						return false;
+				}
+				else if (GetSpellAttrib(aSpell, tmpSlot) == tmpAttrib) {
+					return false;
+				}
 			}
-			else if (GetSpellAttrib(aSpell,tmpSlot - 1) == tmpAttrib) return false;
 		}
 		//Now Check to see if the first buff blocks second buff. This is necessary 
 		//because only some spells carry the Block Slot. Ex. Brells and Spiritual 
 		//Vigor don't stack Brells has 1 slot total, for HP. Vigor has 4 slots, 2 
 		//of which block Brells.
-		if ((GetSpellAttrib(aSpell,i) == 148) || (GetSpellAttrib(aSpell,i) == 149)) {
-			int tmpSlot = GetSpellCalc(aSpell,i) - 200;
-			int tmpAttrib = GetSpellBase(aSpell,i);
+		if (aAttrib == 148 || aAttrib == 149) {
+			// in this branch we know aSpell has enough slots
+			int tmpSlot = GetSpellCalc(aSpell, i) - 200 - 1;
+			int tmpAttrib = aBase;
 			//WriteChatf("bSpell->Attrib[%d]=%d, bSpell->Base[%d]=%d, tmpAttrib=%d, tmpVal=%d", tmpSlot-1, bSpell->Attrib[tmpSlot-1], tmpSlot-1, bSpell->Base[tmpSlot-1], tmpAttrib, abs(GetSpellMax(aSpell,i)));
-			if (GetSpellMax(aSpell,i) > 0) {
-				int tmpVal = abs(GetSpellMax(aSpell,i));
-				if ((GetSpellAttrib(bSpell,tmpSlot - 1) == tmpAttrib) && (GetSpellBase(bSpell,tmpSlot - 1) < tmpVal)) return false;
+			if (GetSpellNumEffects(bSpell) > tmpSlot) { // verify bSpell has that slot
+				if (GetSpellMax(aSpell, i) > 0) {
+					int tmpVal = abs(GetSpellMax(aSpell, i));
+					if (GetSpellAttrib(bSpell, tmpSlot) == tmpAttrib && GetSpellBase(bSpell, tmpSlot) < tmpVal)
+						return false;
+				}
+				else if (GetSpellAttrib(bSpell, tmpSlot) == tmpAttrib) {
+					return false;
+				}
 			}
-			else if (GetSpellAttrib(bSpell,tmpSlot - 1) == tmpAttrib) return false;
+		}
+	}
+	return true;
+}
+
+BOOL BuffStackTestOld(PSPELL aSpell, PSPELL bSpell, BOOL bIgnoreTriggeringEffects)
+{
+	if (aSpell->ID == bSpell->ID) return true;
+
+	//WriteChatf("aSpell->Name=%s bSpell->Name= %s", aSpell->Name, bSpell->Name);
+	int i;
+	for (i = 0; i < GetSpellNumEffects(aSpell); i++) {
+		//Compare 1st Buff to 2nd. If Attrib[i]==254 its a place holder. If it is 10 it
+		//can be 1 of 3 things: PH(Base=0), CHA(Base>0), Lure(Base=-6). If it is Lure or
+		//Placeholder, exclude it so slots don't match up. Now Check to see if the slots
+		//have equal attribute values. If the do, they don't stack.
+		//WriteChatf("Slot %d: bSpell->Attrib=%d, bSpell->Base=%d, bSpell->TargetType=%d, aSpell->Attrib=%d, aSpell->Base=%d, aSpell->TargetType=%d", i, GetSpellAttrib(bSpell,i), GetSpellBase(bSpell,i), bSpell->TargetType, GetSpellAttrib(aSpell,i), GetSpellBase(aSpell,i), aSpell->TargetType);
+		if (GetSpellAttrib(bSpell, i) == GetSpellAttrib(aSpell, i) && !(SpellEffectTest(aSpell, bSpell, i, bIgnoreTriggeringEffects))) {
+			//WriteChatf("Inside IF");
+			if (GetSpellAttrib(aSpell, i) == 55 && GetSpellAttrib(bSpell, i) == 55) {
+				//WriteChatf("Increase Absorb Damage by %d over %d", GetSpellBase(aSpell,i), GetSpellBase(bSpell,i));
+				return (GetSpellBase(aSpell, i) >= GetSpellBase(bSpell, i));
+			}
+			else if (!((GetSpellAttrib(bSpell, i) == 10 && (GetSpellBase(bSpell, i) == -6 || GetSpellBase(bSpell, i) == 0)) ||
+				(GetSpellAttrib(aSpell, i) == 10 && (GetSpellBase(aSpell, i) == -6 || GetSpellBase(aSpell, i) == 0)) ||
+				(GetSpellAttrib(bSpell, i) == 79 && GetSpellBase(bSpell, i)>0 && bSpell->TargetType == 6) ||
+				(GetSpellAttrib(aSpell, i) == 79 && GetSpellBase(aSpell, i)>0 && aSpell->TargetType == 6) ||
+				(GetSpellAttrib(bSpell, i) == 0 && GetSpellBase(bSpell, i)<0) ||
+				(GetSpellAttrib(aSpell, i) == 0 && GetSpellBase(aSpell, i)<0) ||
+				(GetSpellAttrib(bSpell, i) == 148 || GetSpellAttrib(bSpell, i) == 149) ||
+				(GetSpellAttrib(aSpell, i) == 148 || GetSpellAttrib(aSpell, i) == 149)))
+				return false;
+		}
+		//Check to see if second buffs blocks first buff:
+		//148: Stacking: Block new spell if slot %d is effect
+		//149: Stacking: Overwrite existing spell if slot %d is effect
+		if ((GetSpellAttrib(bSpell, i) == 148) || (GetSpellAttrib(bSpell, i) == 149)) {
+			int tmpSlot = GetSpellCalc(bSpell, i) - 200;
+			int tmpAttrib = GetSpellBase(bSpell, i);
+			//WriteChatf("aSpell->Attrib[%d]=%d, aSpell->Base[%d]=%d, tmpAttrib=%d, tmpVal=%d", tmpSlot-1, aSpell->Attrib[tmpSlot-1], tmpSlot-1, aSpell->Base[tmpSlot-1], tmpAttrib, abs(GetSpellMax(bSpell,i)));
+			if (GetSpellMax(bSpell, i) > 0) {
+				int tmpVal = abs(GetSpellMax(bSpell, i));
+				if ((GetSpellAttrib(aSpell, tmpSlot - 1) == tmpAttrib) && (GetSpellBase(aSpell, tmpSlot - 1) < tmpVal)) return false;
+			}
+			else if (GetSpellAttrib(aSpell, tmpSlot - 1) == tmpAttrib) return false;
+		}
+		//Now Check to see if the first buff blocks second buff. This is necessary 
+		//because only some spells carry the Block Slot. Ex. Brells and Spiritual 
+		//Vigor don't stack Brells has 1 slot total, for HP. Vigor has 4 slots, 2 
+		//of which block Brells.
+		if ((GetSpellAttrib(aSpell, i) == 148) || (GetSpellAttrib(aSpell, i) == 149)) {
+			int tmpSlot = GetSpellCalc(aSpell, i) - 200;
+			int tmpAttrib = GetSpellBase(aSpell, i);
+			//WriteChatf("bSpell->Attrib[%d]=%d, bSpell->Base[%d]=%d, tmpAttrib=%d, tmpVal=%d", tmpSlot-1, bSpell->Attrib[tmpSlot-1], tmpSlot-1, bSpell->Base[tmpSlot-1], tmpAttrib, abs(GetSpellMax(aSpell,i)));
+			if (GetSpellMax(aSpell, i) > 0) {
+				int tmpVal = abs(GetSpellMax(aSpell, i));
+				if ((GetSpellAttrib(bSpell, tmpSlot - 1) == tmpAttrib) && (GetSpellBase(bSpell, tmpSlot - 1) < tmpVal)) return false;
+			}
+			else if (GetSpellAttrib(bSpell, tmpSlot - 1) == tmpAttrib) return false;
 		}
 	}
 	return true;

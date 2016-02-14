@@ -1374,7 +1374,7 @@ typedef struct _SPAWNINFO {
 	/*0x0150*/ DWORD        IsABoat;                // 1 = a type of boat
 	/*0x0154*/ struct _SPAWNINFO*   Mount;      // NULL if no mount present
 	/*0x0158*/ struct _SPAWNINFO*   Rider;      // _SPAWNINFO of mount's rider
-	/*0x015c*/ DWORD        AttachedID;             //unused for now, just accept it.
+	/*0x015c*/ BYTE         Unknown0x015c[0x4];
 	/*0x0160*/ BYTE         Targetable;//1 if mob is targetable
 	/*0x0161*/ BYTE         Unknown0x0161[0x2b];
 	/*0x018c*/ BYTE         HideMode;
