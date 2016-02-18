@@ -53,7 +53,6 @@ GNU General Public License for more details.
 #define DI8__Mouse_x                                               0x11ACC40
 #define DI8__Mouse_Copy_x                                          0x101B254
 #define DI8__Mouse_Check_x                                         0x10A4B24
-#define __AltTimerReady_x                                          0x100C5A1
 #define __Attack_x                                                 0x109F7C7
 #define __Autofire_x                                               0x109F7C8
 #define __BindList_x                                               0xC37DD8

@@ -12,7 +12,11 @@ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 GNU General Public License for more details.
 ******************************************************************************/
 #ifdef PRIVATE
-#include "eqgame-private.h"
+#if defined(LIVE)
+#include "eqgame-private(live).h"
+#elif defined(TEST)
+#include "eqgame-private(test).h"
+#endif
 #endif
 
 #define __ClientName                                              "eqgame"
@@ -53,7 +57,6 @@ GNU General Public License for more details.
 #define DI8__Mouse_x                                               0x11AFF38
 #define DI8__Mouse_Copy_x                                          0x101E53C
 #define DI8__Mouse_Check_x                                         0x10A7E1C
-
 #define __Attack_x                                                 0x10A2ABB
 #define __Autofire_x                                               0x10A2ABC
 #define __BindList_x                                               0xC3A6A8
@@ -321,7 +324,6 @@ GNU General Public License for more details.
 #define AltAdvManager__GetAAById_x                                 0x4C66F0
 #define AltAdvManager__CanTrainAbility_x                           0x4C6FB0
 #define AltAdvManager__CanSeeAbility_x                             0x4C6BB0
-
 
 // CharacterZoneClient
 #define CharacterZoneClient__HasSkill_x                            0x465400
@@ -762,9 +764,7 @@ GNU General Public License for more details.
 //EQ_Spell
 #define EQ_Spell__GetSpellLevelNeeded_x                            0x4DFDB0
 #define EQ_Spell__SpellAffects_x                                   0x4DD490
-//check
 #define EQ_Spell__GetSpellBaseByAttrib_x                           0x4DD500
-//check
 #define CharacterZoneClient__CalcAffectChange_x                    0x447CF0
 #define CLootWnd__LootAll_x                                        0x701420
 

@@ -1,3 +1,9 @@
+17 feb 2016
+- Updated for LIVE
+- I refer you all to the change message from 12 feb 2016
+  the changes described in it, now applies for LIVE build as well.
+- Fixed SpellReady so it's 111% reliable now.
+
 14 feb 2016 HAPPY VALENTINES DAY!
 - Removed most of the holes I punched in the source with #if defined(TEST) in the last version cred: brainiac
 - Updated some stacking code cred: demonstar55
@@ -40,7 +46,7 @@
 -		switch (spell->Attrib[a])
 -	YOU MUST replace that code... with this:
 -	if (PSPELL spell = GetSpellByID(SpellID)) {
--		for (int a = 0; a < spell->NumEffects; a++) {
+-		for (int a = 0; a < GetSpellNumEffects(spell); a++) {
 -			switch (GetSpellAttrib(spell, a))
 -
 -	Notice what I did there? you CANNOT and SHOULD NOT use hardcoded "12" anymore

@@ -2545,29 +2545,25 @@ bool MQ2CharacterType::GETMEMBER()
 			unsigned long nGem = GETNUMBER() - 1;
 			if (nGem<NUM_SPELL_GEMS)
 			{
-				if (CharacterBase *cb = (CharacterBase *)&pChar->pCharacterBase) {
-					if (Dest.Ptr = GetSpellByID(cb->GetMemorizedSpell(nGem)))
-					{
-						Dest.Type = pSpellType;
-						return true;
-					}
+				if (Dest.Ptr = GetSpellByID(GetMemorizedSpell(nGem)))
+				{
+					Dest.Type = pSpellType;
+					return true;
 				}
 			}
 		}
 		else
 		{
 			// name
-			if (CharacterBase *cb = (CharacterBase *)&pChar->pCharacterBase) {
-				for (unsigned long nGem = 0; nGem < NUM_SPELL_GEMS; nGem++)
+			for (unsigned long nGem = 0; nGem < NUM_SPELL_GEMS; nGem++)
+			{
+				if (PSPELL pSpell = GetSpellByID(GetMemorizedSpell(nGem)))
 				{
-					if (PSPELL pSpell = GetSpellByID(cb->GetMemorizedSpell(nGem)))
+					if (!_stricmp(GETFIRST(), pSpell->Name))
 					{
-						if (!_stricmp(GETFIRST(), pSpell->Name))
-						{
-							Dest.DWord = nGem + 1;
-							Dest.Type = pIntType;
-							return true;
-						}
+						Dest.DWord = nGem + 1;
+						Dest.Type = pIntType;
+						return true;
 					}
 				}
 			}
@@ -3067,32 +3063,28 @@ bool MQ2CharacterType::GETMEMBER()
 			{
 				// numeric 
 				unsigned long nGem = GETNUMBER() - 1;
-				if (((PCDISPLAY)pDisplay)->TimeStamp > ((PSPAWNINFO)pLocalPlayer)->SpellGemETA[nGem] && ((PCDISPLAY)pDisplay)->TimeStamp > ((PSPAWNINFO)pLocalPlayer)->SpellCooldownETA) {
-					Dest.DWord = 1;
+				if (GetSpellByID(GetMemorizedSpell(nGem))) {
+					if (((PCDISPLAY)pDisplay)->TimeStamp > ((PSPAWNINFO)pLocalPlayer)->SpellGemETA[nGem] && ((PCDISPLAY)pDisplay)->TimeStamp > ((PSPAWNINFO)pLocalPlayer)->SpellCooldownETA) {
+						Dest.DWord = 1;
+					}
 				}
-				return true;
 			}
 			else
 			{
-				if (CharacterBase *cb = (CharacterBase *)&pChar->pCharacterBase) {
-					for (unsigned long nGem = 0; nGem < NUM_SPELL_GEMS; nGem++)
+				for (unsigned long nGem = 0; nGem < NUM_SPELL_GEMS; nGem++)
+				{
+					if (PSPELL pSpell = GetSpellByID(GetMemorizedSpell(nGem)))
 					{
-						if (PSPELL pSpell = GetSpellByID(cb->GetMemorizedSpell(nGem)))
+						if (!_stricmp(GETFIRST(), pSpell->Name))
 						{
-							if (!_stricmp(GETFIRST(), pSpell->Name))
-							{
-								if (((PCDISPLAY)pDisplay)->TimeStamp >((PSPAWNINFO)pLocalPlayer)->SpellGemETA[nGem] && ((PCDISPLAY)pDisplay)->TimeStamp > ((PSPAWNINFO)pLocalPlayer)->SpellCooldownETA) {
-									Dest.DWord = 1;
-								}
-								return true;
+							if (((PCDISPLAY)pDisplay)->TimeStamp >((PSPAWNINFO)pLocalPlayer)->SpellGemETA[nGem] && ((PCDISPLAY)pDisplay)->TimeStamp > ((PSPAWNINFO)pLocalPlayer)->SpellCooldownETA) {
+								Dest.DWord = 1;
 							}
+							return true;
 						}
 					}
 				}
 			}
-		}
-		if (((PCDISPLAY)pDisplay)->TimeStamp > ((PSPAWNINFO)pLocalPlayer)->SpellCooldownETA) {
-			Dest.DWord = 1;
 		}
 		return true;
 	case PetBuff:
@@ -3757,34 +3749,32 @@ bool MQ2CharacterType::GETMEMBER()
 	case GemTimer:
 		if (!ISINDEX())
 			return false;
-		if (CharacterBase *cb = (CharacterBase *)&pChar->pCharacterBase) {
-			if (ISNUMBER())
+		if (ISNUMBER())
+		{
+			// number
+			unsigned long nGem = GETNUMBER() - 1;
+			if (nGem < NUM_SPELL_GEMS)
 			{
-				// number
-				unsigned long nGem = GETNUMBER() - 1;
-				if (nGem < NUM_SPELL_GEMS)
+				if (GetMemorizedSpell(nGem) != 0xFFFFFFFF)
 				{
-					if (cb->GetMemorizedSpell(nGem) != 0xFFFFFFFF)
+					Dest.UInt64 = GetSpellGemTimer(nGem);
+					Dest.Type = pTimeStampType;
+					return true;
+				}
+			}
+		}
+		else
+		{
+			// name
+			for (unsigned long nGem = 0; nGem < NUM_SPELL_GEMS; nGem++)
+			{
+				if (PSPELL pSpell = GetSpellByID(GetMemorizedSpell(nGem)))
+				{
+					if (!_stricmp(GETFIRST(), pSpell->Name))
 					{
 						Dest.UInt64 = GetSpellGemTimer(nGem);
 						Dest.Type = pTimeStampType;
 						return true;
-					}
-				}
-			}
-			else
-			{
-				// name
-				for (unsigned long nGem = 0; nGem < NUM_SPELL_GEMS; nGem++)
-				{
-					if (PSPELL pSpell = GetSpellByID(cb->GetMemorizedSpell(nGem)))
-					{
-						if (!_stricmp(GETFIRST(), pSpell->Name))
-						{
-							Dest.UInt64 = GetSpellGemTimer(nGem);
-							Dest.Type = pTimeStampType;
-							return true;
-						}
 					}
 				}
 			}
@@ -4945,7 +4935,7 @@ bool MQ2SpellType::GETMEMBER()
 			Dest.DWord = GetSpellAttrib(pSpell,nIndex);
 		}
 		return true;
-#if defined(TEST)//remove
+#if !defined(EMU)
 	case CalcIndex:
 		Dest.DWord = pSpell->CalcIndex;
 		Dest.Type = pIntType;

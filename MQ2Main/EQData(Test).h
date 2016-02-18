@@ -1797,7 +1797,6 @@ typedef struct _SPELLCALCINFO
 // size: 0xC3780 2015-07-14 test (see 550161) - eqmule
 // size: 0x16E5E8 2016-02-10 test (see 5598E1) - eqmule
 
-//find __AltTimerReady_x
 typedef struct _SPELLMGR {
 /*0x000000*/ PVOID vfTable;//need this for some calls later
 /*0x000004*/ BYTE Unknown0x00004[SPELLMGR_FILLER];

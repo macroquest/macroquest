@@ -2325,7 +2325,7 @@ LONG GetSpellAttrib(PSPELL pSpell, int index)
 {
 	if (index<0)
 		index = 0;
-#if defined(TEST)//remove after this goes live
+#if !defined(EMU)
 	if (pSpell) {
 		if (pSpell->NumEffects > index) {
 			if (SpellManager *pSpellM = (SpellManager *)pSpellMgr) {
@@ -2346,7 +2346,7 @@ LONG GetSpellBase(PSPELL pSpell, int index)
 {
 	if (index<0)
 		index = 0;
-#if defined(TEST)//remove after this goes live
+#if !defined(EMU)
 	if (pSpell) {
 		if (pSpell->NumEffects > index) {
 			if (SpellManager *pSpellM = (SpellManager *)pSpellMgr) {
@@ -2367,7 +2367,7 @@ LONG GetSpellBase2(PSPELL pSpell, int index)
 {
 	if (index<0)
 		index = 0;
-#if defined(TEST)//remove after this goes live
+#if !defined(EMU)
 	if (pSpell) {
 		if (pSpell->NumEffects > index) {
 			if (SpellManager *pSpellM = (SpellManager *)pSpellMgr) {
@@ -2388,7 +2388,7 @@ LONG GetSpellMax(PSPELL pSpell, int index)
 {
 	if (index<0)
 		index = 0;
-#if defined(TEST)//remove after this goes live
+#if !defined(EMU)
 	if (pSpell) {
 		if (pSpell->NumEffects > index) {
 			if (SpellManager *pSpellM = (SpellManager *)pSpellMgr) {
@@ -2409,7 +2409,7 @@ LONG GetSpellCalc(PSPELL pSpell, int index)
 {
 	if (index<0)
 		index = 0;
-#if defined(TEST)//remove after this goes live
+#if !defined(EMU)
 	if (pSpell) {
 		if (pSpell->NumEffects > index) {
 			if (SpellManager *pSpellM = (SpellManager *)pSpellMgr) {
@@ -2429,7 +2429,7 @@ LONG GetSpellCalc(PSPELL pSpell, int index)
 
 LONG GetSpellNumEffects(PSPELL pSpell)
 {
-#if defined(TEST)//remove after this goes live
+#if !defined(EMU)
 	if (pSpell) {
 		return pSpell->NumEffects;
 	}

@@ -1050,7 +1050,7 @@ typedef struct _EQITEMWINDOW {
 	/*0x02b4*/ PCONTENTS    pItem;
 	/*0x02b8*/ BYTE         Unknown0x02b8[0x348];
 	/*0x0600*/ DWORD        ItemWndIndex;//0-5? you can have max 6 windows up I think before it starts overwriting the sixth.
-										 /*0x0604*/
+	/*0x0604*/
 } EQITEMWINDOW, *PEQITEMWINDOW;
 
 //CLootWnd__CLootWnd (aLootwnd)

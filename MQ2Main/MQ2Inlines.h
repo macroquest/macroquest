@@ -512,6 +512,19 @@ inline unsigned __int64 GetTickCount642(void)
 {
     return MQGetTickCount64();
 }
+inline LONG GetMemorizedSpell(LONG index)
+{
+	if (index < 0 || index>0xF)
+		return -1;
+	if (PCHARINFO pCharInfo = GetCharInfo()) {
+		if (pCharInfo->pCharacterBase) {
+			if (CharacterBase *cb = (CharacterBase *)&pCharInfo->pCharacterBase) {
+				return cb->GetMemorizedSpell(index);
+			}
+		}
+	}
+	return -1;
+}
 /*
 need to figure out why this fails in xp and the above doesn't - eqmule
 static inline ULONGLONG GetTickCount64(void)
