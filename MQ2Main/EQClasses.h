@@ -212,6 +212,7 @@ class CStoryWnd;
 class CTabBoxTemplate;
 class CTabWnd;
 class CTAFrameDraw;
+class CTargetManager;
 class CTargetRing;
 class CTargetWnd;
 class CTaskWnd;
@@ -4599,6 +4600,12 @@ EQLIB_OBJECT int CTAFrameDraw::GetMinLength(void)const;
 EQLIB_OBJECT void CTAFrameDraw::Set(class CTextureAnimation * * const);
 };
 
+class CTargetManager
+{
+public:
+EQLIB_OBJECT void CTargetManager::Update(void);
+};
+
 class CTargetRing
 {
 public:
@@ -4624,6 +4631,7 @@ EQLIB_OBJECT int CTargetWnd::OnProcessFrame(void);
 EQLIB_OBJECT void CTargetWnd::Deactivate(void);
 // private
 EQLIB_OBJECT void CTargetWnd::Init(void);
+EQLIB_OBJECT void CTargetWnd::UpdateBuffs(PBYTE buffer);
 };
 
 class CTaskWnd : public CSidlScreenWnd

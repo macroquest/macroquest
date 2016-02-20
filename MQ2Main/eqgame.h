@@ -673,6 +673,7 @@ GNU General Public License for more details.
 #define EQ_Character__IsExpansionFlag_x                            0x4236F0
 #define EQ_Character__TotalEffect_x                                0x44C640
 #define EQ_Character__GetPCSpellAffect_x                           0x448A80
+#define EQ_Character__SpellDuration_x                              0x4469B0
 
 // EQ_Item (ItemClient)
 #define EQ_Item__CanDrop_x                                         0x594910
@@ -772,6 +773,7 @@ GNU General Public License for more details.
 //CTargetWnd
 #define CTargetWnd__GetBuffCaster_x                                0x7B2F90
 #define CTargetWnd__WndNotification_x                              0x7B2A80
+#define CTargetWnd__UpdateBuffs_x                                  0x7B3170
 
 //CTaskWnd
 #define CTaskWnd__UpdateTaskTimers_x                               0x7B8170

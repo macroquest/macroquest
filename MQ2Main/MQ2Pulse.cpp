@@ -153,7 +153,7 @@ void Pulse()
 			PVPServer = PVP_NONE;
 		srand((unsigned int)time(NULL) + (unsigned int)GetCurrentProcessId()); // reseed
 		Benchmark(bmPluginsOnZoned, PluginsZoned());
-
+		
 	}
 	else if ((LastX != pChar->X) || (LastY != pChar->Y) || LastMoveTick>MQGetTickCount64() - 100) {
 		if ((LastX != pChar->X) || (LastY != pChar->Y)) LastMoveTick = MQGetTickCount64();
@@ -164,6 +164,8 @@ void Pulse()
 	else {
 		gbMoving = FALSE;
 	}
+	if (!pTarget)
+		gTargetbuffs = FALSE;
 
 	DWORD CurrentHealth = GetCurHPS();
 	if (LastHealth && CurrentHealth>LastHealth)
@@ -413,10 +415,18 @@ public:
 		SetGameState_Trampoline(GameState);
 		Benchmark(bmPluginsSetGameState, PluginsSetGameState(GameState));
 	}
+	VOID CTargetWnd__UpdateBuffs_Trampoline(PBYTE);
+	VOID CTargetWnd__UpdateBuffs_Detour(PBYTE buffer)
+	{
+		gTargetbuffs = FALSE;
+		CTargetWnd__UpdateBuffs_Trampoline(buffer);
+		gTargetbuffs = TRUE;
+	}
 };
 
 DETOUR_TRAMPOLINE_EMPTY(VOID CEverQuestHook::EnterZone_Trampoline(PVOID));
 DETOUR_TRAMPOLINE_EMPTY(VOID CEverQuestHook::SetGameState_Trampoline(DWORD));
+DETOUR_TRAMPOLINE_EMPTY(VOID CEverQuestHook::CTargetWnd__UpdateBuffs_Trampoline(PBYTE));
 
 void InitializeMQ2Pulse()
 {
@@ -425,11 +435,12 @@ void InitializeMQ2Pulse()
 	EzDetour(ProcessGameEvents, Detour_ProcessGameEvents, Trampoline_ProcessGameEvents);
 	EzDetour(CEverQuest__EnterZone, &CEverQuestHook::EnterZone_Detour, &CEverQuestHook::EnterZone_Trampoline);
 	EzDetour(CEverQuest__SetGameState, &CEverQuestHook::SetGameState_Detour, &CEverQuestHook::SetGameState_Trampoline);
-
+	EzDetour(CTargetWnd__UpdateBuffs, &CEverQuestHook::CTargetWnd__UpdateBuffs_Detour, &CEverQuestHook::CTargetWnd__UpdateBuffs_Trampoline);
 }
 void ShutdownMQ2Pulse()
 {
 	EnterCriticalSection(&gPulseCS);
+	RemoveDetour((DWORD)CTargetWnd__UpdateBuffs);
 	RemoveDetour((DWORD)ProcessGameEvents);
 	RemoveDetour(CEverQuest__EnterZone);
 	RemoveDetour(CEverQuest__SetGameState);

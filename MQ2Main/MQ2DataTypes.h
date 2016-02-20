@@ -4312,6 +4312,7 @@ public:
 		Charmed = 33,
 		Diseased = 34,
 		Poisoned = 35,
+		BuffsPopulated = 36,
 	};
 
 #ifdef ISBOXER_COMPAT
@@ -4355,6 +4356,7 @@ public:
 		TypeMember(Charmed);
 		TypeMember(Diseased);
 		TypeMember(Poisoned);
+		TypeMember(BuffsPopulated);
 	}
 
 	~MQ2TargetType()

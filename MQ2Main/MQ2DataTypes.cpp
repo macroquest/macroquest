@@ -9630,6 +9630,12 @@ bool MQ2TargetType::GETMEMBER()
 	}
 	switch ((TargetMembers)pMember->ID)
 	{
+	case BuffsPopulated:
+		Dest.DWord = 0;
+		if (gTargetbuffs && pTarget)
+			Dest.DWord = 1;
+		Dest.Type = pBoolType;
+		return true;
 	case Buff:
 		if (!(((PCTARGETWND)pTargetWnd)->Type > 0))
 			return false;

@@ -347,6 +347,7 @@ namespace MQ2Globals
 	DWORD gMaxTurbo = 10;
 	BOOL gReturn = TRUE;
 	BOOL gInClick = FALSE;
+	BOOL gTargetbuffs = FALSE;
 	BOOL gbInZone = FALSE;
 	BOOL gZoning = FALSE;
 	BOOL WereWeZoning = TRUE;
@@ -1713,6 +1714,7 @@ namespace MQ2Globals
 	INITIALIZE_EQGAME_OFFSET(CTabWnd__UpdatePage);
 
 	INITIALIZE_EQGAME_OFFSET(CTargetRing__Cast);
+	INITIALIZE_EQGAME_OFFSET(CTargetWnd__UpdateBuffs);
 	
 	INITIALIZE_EQGAME_OFFSET(CTextOverlay__DisplayText);
 
@@ -1786,6 +1788,7 @@ namespace MQ2Globals
 	INITIALIZE_EQGAME_OFFSET(EQ_Character__IsExpansionFlag);
 	INITIALIZE_EQGAME_OFFSET(EQ_Character__TotalEffect);
 	INITIALIZE_EQGAME_OFFSET(EQ_Character__GetPCSpellAffect);
+	INITIALIZE_EQGAME_OFFSET(EQ_Character__SpellDuration);
 	
 	INITIALIZE_EQGAME_OFFSET(EQ_Item__CanDrop);
 	INITIALIZE_EQGAME_OFFSET(EQ_Item__CreateItemTagString);

@@ -1,3 +1,16 @@
+19 feb 2016
+- Trampoline following -brainiac
+- Added .BuffsPoplulated to ${Target}
+-  Usage example:
+-  /target pet
+-  /delay 5s ${Target.ID}==${Pet.ID} && ${Target.BuffsPopulated}==TRUE
+-  /echo ${Target} has ${Target.BuffCount} buffs on him.
+
+18 Feb 2016 by rswiders
+- Updated to make GetNumSpellEffects inline.
+- Updated MQ2Map to use layer 2 again.
+- Updated more groundspawn names.
+
 17 feb 2016
 - Updated for LIVE
 - I refer you all to the change message from 12 feb 2016
@@ -52,7 +65,7 @@
 -	Notice what I did there? you CANNOT and SHOULD NOT use hardcoded "12" anymore
 -	It just isn't how spell effects are stored anymore, they only store
 -	the ACTUAL number of effects in memory, not all 12 slots...
--	So... the new Spell member ->NumEffects SHOULD ALWAYS be used from now on.
+-	So... the new Spell member function GetSpellNumEffects(x) SHOULD ALWAYS be used from now on.
 -
 -	Mkay? questions?, come talk to us on irc/skype/email whatever...
 -	And finally, for the LIVE people... this is comming your way within a week or so when

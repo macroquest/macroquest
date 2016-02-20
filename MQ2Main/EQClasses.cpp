@@ -878,6 +878,9 @@ FUNCTION_AT_ADDRESS(void  CPlayerNotesWnd::Init(void),CPlayerNotesWnd__Init);
 #ifdef CTargetWnd__Init_x
 FUNCTION_AT_ADDRESS(void  CTargetWnd::Init(void),CTargetWnd__Init);
 #endif
+#ifdef CTargetWnd__UpdateBuffs_x
+FUNCTION_AT_ADDRESS(void  CTargetWnd::UpdateBuffs(PBYTE),CTargetWnd__UpdateBuffs);
+#endif
 #ifdef UdpManager__ProcessIcmpErrors_x
 FUNCTION_AT_ADDRESS(void  UdpManager::ProcessIcmpErrors(void),UdpManager__ProcessIcmpErrors);
 #endif

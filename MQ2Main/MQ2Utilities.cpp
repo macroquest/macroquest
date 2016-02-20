@@ -2327,7 +2327,7 @@ LONG GetSpellAttrib(PSPELL pSpell, int index)
 		index = 0;
 #if !defined(EMU)
 	if (pSpell) {
-		if (pSpell->NumEffects > index) {
+		if (GetSpellNumEffects(pSpell) > index) {
 			if (SpellManager *pSpellM = (SpellManager *)pSpellMgr) {
 				if (PSPELLCALCINFO pCalcInfo = pSpellM->GetSpellCalcInfoByCalcIndex(pSpell->CalcIndex + index)) {
 					return pCalcInfo->Attrib;
@@ -2348,7 +2348,7 @@ LONG GetSpellBase(PSPELL pSpell, int index)
 		index = 0;
 #if !defined(EMU)
 	if (pSpell) {
-		if (pSpell->NumEffects > index) {
+		if (GetSpellNumEffects(pSpell) > index) {
 			if (SpellManager *pSpellM = (SpellManager *)pSpellMgr) {
 				if (PSPELLCALCINFO pCalcInfo = pSpellM->GetSpellCalcInfoByCalcIndex(pSpell->CalcIndex + index)) {
 					return pCalcInfo->Base;
@@ -2369,7 +2369,7 @@ LONG GetSpellBase2(PSPELL pSpell, int index)
 		index = 0;
 #if !defined(EMU)
 	if (pSpell) {
-		if (pSpell->NumEffects > index) {
+		if (GetSpellNumEffects(pSpell) > index) {
 			if (SpellManager *pSpellM = (SpellManager *)pSpellMgr) {
 				if (PSPELLCALCINFO pCalcInfo = pSpellM->GetSpellCalcInfoByCalcIndex(pSpell->CalcIndex + index)) {
 					return pCalcInfo->Base2;
@@ -2390,7 +2390,7 @@ LONG GetSpellMax(PSPELL pSpell, int index)
 		index = 0;
 #if !defined(EMU)
 	if (pSpell) {
-		if (pSpell->NumEffects > index) {
+		if (GetSpellNumEffects(pSpell) > index) {
 			if (SpellManager *pSpellM = (SpellManager *)pSpellMgr) {
 				if (PSPELLCALCINFO pCalcInfo = pSpellM->GetSpellCalcInfoByCalcIndex(pSpell->CalcIndex + index)) {
 					return pCalcInfo->Max;
@@ -2411,7 +2411,7 @@ LONG GetSpellCalc(PSPELL pSpell, int index)
 		index = 0;
 #if !defined(EMU)
 	if (pSpell) {
-		if (pSpell->NumEffects > index) {
+		if (GetSpellNumEffects(pSpell) > index) {
 			if (SpellManager *pSpellM = (SpellManager *)pSpellMgr) {
 				if (PSPELLCALCINFO pCalcInfo = pSpellM->GetSpellCalcInfoByCalcIndex(pSpell->CalcIndex + index)) {
 					return pCalcInfo->Calc;
@@ -2427,15 +2427,6 @@ LONG GetSpellCalc(PSPELL pSpell, int index)
 #endif
 }
 
-LONG GetSpellNumEffects(PSPELL pSpell)
-{
-#if !defined(EMU)
-	if (pSpell) {
-		return pSpell->NumEffects;
-	}
-#endif
-	return 0xc;
-}
 PCHAR ParseSpellEffect(PSPELL pSpell, int i, PCHAR szBuffer, LONG level)
 {
 	CHAR szBuff[MAX_STRING] = { 0 };

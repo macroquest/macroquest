@@ -503,7 +503,7 @@ void MapUpdate()
 			if (!pCastRadius[i])
 			{
 				pCastRadius[i] = InitLine();
-				pCastRadius[i]->Layer = 3;
+				pCastRadius[i]->Layer = 2;
 			}
 
 			pCastRadius[i]->Color.ARGB = MapFilterOptions[MAPFILTER_CastRadius].Color;
@@ -532,7 +532,7 @@ void MapUpdate()
 			if (!pSpellRadius[i])
 			{
 				pSpellRadius[i] = InitLine();
-				pSpellRadius[i]->Layer = 3;
+				pSpellRadius[i]->Layer = 2;
 			}
 
 			pSpellRadius[i]->Color.ARGB = MapFilterOptions[MAPFILTER_SpellRadius].Color;
@@ -583,7 +583,7 @@ void MapUpdate()
 			if (!pTargetLine)
 			{
 				pTargetLine = InitLine();
-				pTargetLine->Layer = 3;
+				pTargetLine->Layer = 2;
 			}
 			pTargetLine->Color.ARGB = MapFilterOptions[MAPFILTER_Target].Color;
 			pTargetLine->Start.X = -pCharInfo->pSpawn->X;
@@ -608,7 +608,7 @@ void MapUpdate()
 				if (!pTargetRadius[i])
 				{
 					pTargetRadius[i] = InitLine();
-					pTargetRadius[i]->Layer = 3;
+					pTargetRadius[i]->Layer = 2;
 				}
 
 				pTargetRadius[i]->Color.ARGB = MapFilterOptions[MAPFILTER_TargetRadius].Color;
@@ -637,7 +637,7 @@ void MapUpdate()
 				if (!pTargetMelee[i])
 				{
 					pTargetMelee[i] = InitLine();
-					pTargetMelee[i]->Layer = 3;
+					pTargetMelee[i]->Layer = 2;
 				}
 
 				pTargetMelee[i]->Color.ARGB = MapFilterOptions[MAPFILTER_TargetMelee].Color;
@@ -1031,7 +1031,7 @@ PMAPLABEL GenerateLabel(PMAPSPAWN pMapSpawn, DWORD Color)
 	pLabel->Location.X = -pMapSpawn->pSpawn->X;
 	pLabel->Location.Y = -pMapSpawn->pSpawn->Y;
 	pLabel->Location.Z = pMapSpawn->pSpawn->Z;
-	pLabel->Layer = 3;
+	pLabel->Layer = 2;
 	pLabel->Size = 3;
 	pLabel->Label = GenerateSpawnName(pMapSpawn->pSpawn, MapNameString);
 	pLabel->Color.ARGB = Color;
@@ -1066,7 +1066,7 @@ PMAPLINE GenerateVector(PMAPSPAWN pMapSpawn)
 
 
 
-	pNewLine->Layer = 3;
+	pNewLine->Layer = 2;
 	pNewLine->Color = pMapSpawn->pMapLabel->Color;
 
 	return pNewLine;
@@ -1155,7 +1155,7 @@ void GenerateMarker(PMAPSPAWN pMapSpawn)
 		pNewLine->End.X = 0;
 		pNewLine->End.Y = 0;
 		pNewLine->End.Z = pMapSpawn->pSpawn->Z;
-		pNewLine->Layer = 3;
+		pNewLine->Layer = 2;
 		pNewLine->Color = pMapSpawn->pMapLabel->Color;
 		pMapSpawn->MarkerLines[i] = pNewLine;
 	}

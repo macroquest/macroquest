@@ -71,12 +71,20 @@ BOOL AddDetour(DWORD address, PBYTE pfDetour, PBYTE pfTrampoline, DWORD Count)
 	if (ourdetours)
 		ourdetours->pLast = detour;
 	detour->pLast = 0;
-	if (pfTrampoline && pfTrampoline[0] && pfTrampoline[1]) {
-		DWORD oldperm = 0,tmp;
-		VirtualProtectEx(GetCurrentProcess(), (LPVOID)pfTrampoline, 2, PAGE_EXECUTE_READWRITE, &oldperm);
-		pfTrampoline[0] = 0x90;
-		pfTrampoline[1] = 0x90;
-		VirtualProtectEx(GetCurrentProcess(), (LPVOID)pfTrampoline, 2, oldperm, &tmp);
+
+	if (pfTrampoline) {
+		// its an indirect jump, likely due to incremental linking. The actual
+		// function body is at the other end of the jump. We need to follow it.
+		if (pfTrampoline[0] == 0xe9) {
+			pfTrampoline = pfTrampoline + *(DWORD*)&pfTrampoline[1] + 5;	
+		}
+		if (pfTrampoline[0] && pfTrampoline[1]) {
+			DWORD oldperm = 0, tmp;
+			VirtualProtectEx(GetCurrentProcess(), (LPVOID)pfTrampoline, 2, PAGE_EXECUTE_READWRITE, &oldperm);
+			pfTrampoline[0] = 0x90;
+			pfTrampoline[1] = 0x90;
+			VirtualProtectEx(GetCurrentProcess(), (LPVOID)pfTrampoline, 2, oldperm, &tmp);
+		}
 	}
 	if (pfDetour && !DetourFunctionWithEmptyTrampoline(pfTrampoline,
 		(PBYTE)address,

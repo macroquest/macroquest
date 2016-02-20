@@ -525,6 +525,17 @@ inline LONG GetMemorizedSpell(LONG index)
 	}
 	return -1;
 }
+inline LONG EQGetSpellDuration(PSPELL pSpell, unsigned char arg2, bool arg3)
+{
+	if (PCHARINFO pCharInfo = GetCharInfo()) {
+		if (pCharInfo->vtable2) {
+			if (EQ_Character *cb = (EQ_Character *)pCharData1) {
+				return cb->SpellDuration((EQ_Spell*)pSpell, arg2, arg3);
+			}
+		}
+	}
+	return 0;
+}
 /*
 need to figure out why this fails in xp and the above doesn't - eqmule
 static inline ULONGLONG GetTickCount64(void)
@@ -545,3 +556,13 @@ static inline ULONGLONG GetTickCount64(void)
     return pGetTickCount64();
 }
 */
+
+static inline LONG GetSpellNumEffects(PSPELL pSpell)
+{
+#if !defined(EMU)
+	if (pSpell) {
+		return pSpell->NumEffects;
+	}
+#endif
+	return 0xc;
+}
