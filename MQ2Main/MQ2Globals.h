@@ -315,7 +315,6 @@ namespace MQ2Globals
 	EQLIB_VAR fEQCommand         cmdAdvLoot;
 	EQLIB_VAR fEQCommand         cmdPickZone;
 
-
 	EQLIB_VAR fEQNewUIINI        NewUIINI;
 	EQLIB_VAR fEQProcGameEvts    ProcessGameEvents;
 	EQLIB_VAR fEQExecuteCmd		 ExecuteCmd;

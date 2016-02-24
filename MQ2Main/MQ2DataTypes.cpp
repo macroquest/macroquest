@@ -1634,22 +1634,20 @@ bool MQ2SpawnType::GETMEMBER()
 	case Assist:
 		if (gGameState == GAMESTATE_INGAME && GetCharInfo()->pSpawn && pSpawn)
 		{
-			DWORD nAssist;
-			{
-				if (GetCharInfo()->pSpawn->GroupAssistNPC[0] == pSpawn->SpawnID)
-				{
+			if (DWORD AssistID = GetGroupMainAssistTargetID()) {
+				if (AssistID == pSpawn->SpawnID) {
 					Dest.DWord = 1;
 					Dest.Type = pBoolType;
 					return true;
 				}
 			}
-			for (nAssist = 0; nAssist < 3; nAssist++)
-			{
-				if (GetCharInfo()->pSpawn->RaidAssistNPC[nAssist] == pSpawn->SpawnID)
-				{
-					Dest.DWord = 1;
-					Dest.Type = pBoolType;
-					return true;
+			for (int nAssist = 0; nAssist < 3; nAssist++) {
+				if (DWORD AssistID = GetRaidMainAssistTargetID(nAssist)) {
+					if (AssistID == pSpawn->SpawnID) {
+						Dest.DWord = 1;
+						Dest.Type = pBoolType;
+						return true;
+					}
 				}
 			}
 		}
@@ -3236,22 +3234,19 @@ bool MQ2CharacterType::GETMEMBER()
 		Dest.Type = pIntType;
 		return true;
 	case TargetOfTarget:
-		if (gGameState == GAMESTATE_INGAME && GetCharInfo()->pSpawn)
-			if (Dest.Ptr = GetSpawnByID(pChar->pSpawn->TargetOfTarget))
-			{
+		if (gGameState == GAMESTATE_INGAME && pLocalPlayer)
+			if (Dest.Ptr = GetSpawnByID(pChar->pSpawn->TargetOfTarget))	{
 				Dest.Type = pSpawnType;
 				return true;
 			}
 		return false;
 	case RaidAssistTarget:
-		if (gGameState == GAMESTATE_INGAME && GetCharInfo()->pSpawn)
-			if (ISINDEX() && ISNUMBER())
-			{
-				DWORD N = GETNUMBER() - 1;
+		if (gGameState == GAMESTATE_INGAME && pLocalPlayer)
+			if (ISINDEX() && ISNUMBER()) {
+				int N = GETNUMBER() - 1;
 				if (N >= 3)
 					return false;
-				if (Dest.Ptr = GetSpawnByID(pChar->pSpawn->RaidAssistNPC[N]))
-				{
+				if (Dest.Ptr = (PSPAWNINFO)GetSpawnByID(GetRaidMainAssistTargetID(N))) {
 					Dest.Type = pSpawnType;
 					return true;
 				}
@@ -3260,8 +3255,7 @@ bool MQ2CharacterType::GETMEMBER()
 	case GroupAssistTarget:
 		if (gGameState == GAMESTATE_INGAME && GetCharInfo()->pSpawn)
 		{
-			if (Dest.Ptr = GetSpawnByID(pChar->pSpawn->GroupAssistNPC[0]))
-			{
+			if (Dest.Ptr = (PSPAWNINFO)GetSpawnByID(GetGroupMainAssistTargetID())) {
 				Dest.Type = pSpawnType;
 				return true;
 			}

@@ -2361,6 +2361,7 @@ VOID Cast(PSPAWNINFO pChar, PCHAR szLine)
 // ***************************************************************************
 VOID Target(PSPAWNINFO pChar, PCHAR szLine)
 {
+	gTargetbuffs = FALSE;
 	if (!ppSpawnManager) return;
 	if (!pSpawnList) return;
 	PSPAWNINFO pSpawnClosest = NULL;
@@ -4191,7 +4192,7 @@ DWORD __stdcall openpickzonewnd(PVOID pData)
 										clickit = true;
 									}
 									else if (nInst >= 1) {
-										if (std::string::npos != s.find_first_of(szInst)) {
+										 if (std::string::npos != s.find(szInst)) {
 											clickit = true;
 										}
 									}

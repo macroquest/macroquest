@@ -1,10 +1,19 @@
+24 Feb 2016
+- Updated for TEST
+- Changed how GroupAssistTarget and RaidAssistTarget works
+  before this change you could get a return that was invalid when no mainassist was assigned.
+  since I make sure there actually is a mainassist in the group or raid
+  this is no longer possible.
+- Fixed /pickzone so picks above 9 can be picked - cred: derple
+
 19 feb 2016
-- Trampoline following -brainiac
 - Added .BuffsPoplulated to ${Target}
 -  Usage example:
 -  /target pet
 -  /delay 5s ${Target.ID}==${Pet.ID} && ${Target.BuffsPopulated}==TRUE
 -  /echo ${Target} has ${Target.BuffCount} buffs on him.
+-
+- Trampoline following - cred: brainiac
 
 18 Feb 2016 by rswiders
 - Updated to make GetNumSpellEffects inline.
