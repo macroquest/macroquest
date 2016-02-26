@@ -423,11 +423,11 @@ struct mckey {
     };
 };
 
-class CObfuscator 
+class CPacketScrambler 
 {
 public:
-    int doit_tramp(int, int); 
-    int doit_detour(int opcode, int flag);
+    int hton_tramp(int, int); 
+    int hton_detour(int opcode, int flag);
 };
 
 class CEmoteHook 
@@ -465,13 +465,13 @@ VOID CISXEQ::HookMemChecker(BOOL Patch)
 		{
 			printf("memcheck4 detour failed");
 		}
-                if (!EzDetour(CEverQuest__Emote,&CEmoteHook::Detour,&CEmoteHook::Trampoline))
+        if (!EzDetour(CEverQuest__Emote,&CEmoteHook::Detour,&CEmoteHook::Trampoline))
 		{
 			printf("emote detour failed");
 		}
-		if (!EzDetour(CObfuscator__doit,&CObfuscator::doit_detour,&CObfuscator::doit_tramp))
+		if (!EzDetour(CPacketScrambler__hton,&CPacketScrambler::hton_detour,&CPacketScrambler::hton_tramp))
 		{
-			printf("CObfuscator::doit detour failed");
+			printf("CPacketScrambler::hton detour failed");
 		}
 		HookInlineChecks(Patch);
     } else {
@@ -480,7 +480,7 @@ VOID CISXEQ::HookMemChecker(BOOL Patch)
 		EzUnDetour(__MemChecker2);
 		EzUnDetour(__MemChecker3);
 		EzUnDetour(__MemChecker4);
-		EzUnDetour(CObfuscator__doit);
+		EzUnDetour(CPacketScrambler__doit);
 		EzUnDetour(CEverQuest__Emote);
     }
 }

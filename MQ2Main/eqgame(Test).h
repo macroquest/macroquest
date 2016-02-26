@@ -101,7 +101,7 @@ GNU General Public License for more details.
 #define __GroupAggro_x                                             0x11B7C04
 #define __LoginName_x                                              0x10A6A10
 #define __Inviter_x                                                0x10A2A38
-
+#define __AttackOnAssist_x                                         0x101F8C4
 
 //// 
 //Section 1: Vital Offsets 
@@ -517,8 +517,9 @@ GNU General Public License for more details.
 #define CMerchantWnd__SelectBuySellSlot_x                          0x733D90
 #define CMerchantWnd__ActualSelect_x                               0x738600
 
-// CObfuscator
-#define CObfuscator__doit_x                                        0x853690
+// CPacketScrambler
+#define CPacketScrambler__ntoh_x                                   0x853680
+#define CPacketScrambler__hton_x                                   0x853690
 
 // CSidlManager 
 #define CSidlManager__FindScreenPieceTemplate1_x                   0x8E1FB0

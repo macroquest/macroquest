@@ -4445,10 +4445,12 @@ bool MQ2CharacterType::GETMEMBER()
 #endif
 		Dest.Type = pBoolType;
 		return true;
-
-
 	case SpellInCooldown:
 		Dest.DWord = ((PCDISPLAY)pDisplay)->TimeStamp <= ((PSPAWNINFO)pLocalPlayer)->SpellCooldownETA;
+		Dest.Type = pBoolType;
+		return true;
+	case AssistComplete:
+		Dest.DWord = gbAssistComplete==2;
 		Dest.Type = pBoolType;
 		return true;
 	}

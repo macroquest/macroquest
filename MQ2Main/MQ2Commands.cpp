@@ -4233,4 +4233,15 @@ VOID PickZoneCmd(PSPAWNINFO pChar, PCHAR szLine)
 		CreateThread(NULL, 0, openpickzonewnd, (PVOID)index, 0, &nThreadID);
 	}
 }
+// ***************************************************************************
+// Function:    AssistCmd
+// Description: '/assist' command
+// Purpose:     Adds the ability to forward /assist so we can set the gbAssist flag
+// Author:      EqMule
+// ***************************************************************************
+VOID AssistCmd(PSPAWNINFO pChar, PCHAR szLine)
+{
+	gbAssistComplete = 0;
+	cmdAssist(pChar, szLine);
+}
 #endif

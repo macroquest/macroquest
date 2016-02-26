@@ -1,3 +1,12 @@
+25 Feb 2016
+- Added a new TLO Member to ${Me} .AssistComplete
+. You can check it after you do a /assist. It will be true when the assist request has been completed.
+.  Usage Example: /assist Eqmule
+.                 /delay 5s ${Me.AssistComplete}==TRUE
+.				  /if (${Target.ID}) {
+.				      /echo EqMule wants me to help fighting ${Target}
+.				  }
+
 24 Feb 2016
 - Updated for TEST
 - Changed how GroupAssistTarget and RaidAssistTarget works
