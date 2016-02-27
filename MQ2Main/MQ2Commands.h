@@ -103,6 +103,5 @@ LEGACY_API VOID Break                               (PSPAWNINFO,PCHAR);
 LEGACY_API VOID Continue                            (PSPAWNINFO,PCHAR);
 LEGACY_API VOID AdvLootCmd                          (PSPAWNINFO,PCHAR);
 LEGACY_API VOID PickZoneCmd                         (PSPAWNINFO,PCHAR);
-LEGACY_API VOID AssistCmd                           (PSPAWNINFO,PCHAR);
 LEGACY_API VOID PluginCmdSort                       (VOID);
 #endif

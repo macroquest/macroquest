@@ -110,7 +110,6 @@ namespace MQ2Globals
 
 	EQLIB_VAR PCHATBUF gDelayedCommands;
 
-	EQLIB_VAR DWORD gbAssistComplete;
 	EQLIB_VAR BOOL gTargetbuffs;
 	EQLIB_VAR BOOL gbInZone;
 	EQLIB_VAR BOOL gZoning;
@@ -315,7 +314,6 @@ namespace MQ2Globals
 	EQLIB_VAR fEQCommand         cmdMercSwitch;
 	EQLIB_VAR fEQCommand         cmdAdvLoot;
 	EQLIB_VAR fEQCommand         cmdPickZone;
-	EQLIB_VAR fEQCommand         cmdAssist;
 
 	EQLIB_VAR fEQNewUIINI        NewUIINI;
 	EQLIB_VAR fEQProcGameEvts    ProcessGameEvents;
@@ -1125,9 +1123,8 @@ namespace MQ2Globals
 	EQLIB_VAR DWORD CMerchantWnd__SelectBuySellSlot;
 	EQLIB_VAR DWORD CMerchantWnd__ActualSelect;
 
-	EQLIB_VAR DWORD CPacketScrambler__ntoh;
-	EQLIB_VAR DWORD CPacketScrambler__hton;
-	
+	EQLIB_VAR DWORD CObfuscator__doit;
+
 	EQLIB_VAR DWORD CSidlManager__FindScreenPieceTemplate1;
 	EQLIB_VAR DWORD CSidlManager__CreateLabel;
 

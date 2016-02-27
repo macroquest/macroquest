@@ -508,8 +508,8 @@ GNU General Public License for more details.
 #define CMerchantWnd__SelectBuySellSlot_x                          0x733E40
 #define CMerchantWnd__ActualSelect_x                               0x7386B0
 
-// CPacketScrambler
-#define CPacketScrambler__hton_x                                   0x867940
+// CObfuscator
+#define CObfuscator__doit_x                                        0x867940
 
 // CSidlManager 
 #define CSidlManager__FindScreenPieceTemplate1_x                   0x8E0270

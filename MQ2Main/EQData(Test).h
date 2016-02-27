@@ -2501,9 +2501,6 @@ typedef struct _GROUPAGGRO {
 /*0x08*/ DWORD  GroupMemberAggro[6];//player is ALWAYS the 6th member...
 } GROUPAGGRO, *PGROUPAGGRO;
 
-#define EQ_ASSIST_CALC                  0x020c0f19
-#define EQ_ASSIST_COMPLETE              0x6577
-#define EQ_ASSIST                       0x915    // do_assist(PlayerClient *,char const *)+399 20160222 test (see 52C769)
 #define EQ_BEGIN_ZONE                   0x23CC   // CEverQuest__SavePCForce
 #define EQ_END_ZONE                     0x62F2   // CEverQuest__DoMainLoop+B2F
 #define EQ_LoadingS__ArraySize          0x5b     // EQ_LoadingS__SetProgressBar+8C 20131029 test (see 4A6336)

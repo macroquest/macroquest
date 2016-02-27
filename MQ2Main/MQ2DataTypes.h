@@ -1088,7 +1088,6 @@ public:
 		Poisoned = 240,
 		Krono = 241,
 		XTargetSlots = 242,
-		AssistComplete = 243,
 	};
 	enum CharacterMethods
 	{
@@ -1330,8 +1329,7 @@ public:
 		TypeMember(Poisoned);
 		TypeMember(Krono);
 		TypeMember(XTargetSlots);
-		TypeMember(AssistComplete);
-
+		
 		TypeMethod(Stand);
 		TypeMethod(Sit);
 		TypeMethod(Dismount);
