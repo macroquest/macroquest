@@ -508,8 +508,8 @@ GNU General Public License for more details.
 #define CMerchantWnd__SelectBuySellSlot_x                          0x733E40
 #define CMerchantWnd__ActualSelect_x                               0x7386B0
 
-// CObfuscator
-#define CObfuscator__doit_x                                        0x867940
+// CPacketScrambler
+#define CPacketScrambler__hton_x                                   0x867940
 
 // CSidlManager 
 #define CSidlManager__FindScreenPieceTemplate1_x                   0x8E0270
@@ -703,7 +703,7 @@ GNU General Public License for more details.
 #define EQPlayer__EQPlayer_x                                       0x5D48F0
 #define EQPlayer__SetNameSpriteState_x                             0x5CF1A0
 #define EQPlayer__SetNameSpriteTint_x                              0x5CAA60
-#define EQPlayer__IsBodyType_j_x                                   0x92F880
+#define PlayerBase__HasProperty_j_x                                0x92F880
 #define EQPlayer__IsTargetable_x                                   0x930180
 #define EQPlayer__CanSee_x                                         0x9306A0
 #define PlayerZoneClient__ChangeHeight_x                           0x5E44C0

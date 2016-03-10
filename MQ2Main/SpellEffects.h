@@ -489,3 +489,11 @@
 		"Chance Best in Spell Group",			// 469
 		"Trigger Best in Spell Group",			// 470
 		"Double Melee Round(PC Only)",			// 471
+		"Buy AA Rank",							// 472 
+		"Double Backstab From Front",			// 473 
+		"Pet Crit Melee Damage% (Owner)",		// 474 
+		"Trigger Spell Non-Item",				// 475
+		"Weapon Stance",						// 476
+		"Hatelist To Top Index",				// 477
+		"Hatelist To Tail Index",				// 478
+

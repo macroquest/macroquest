@@ -110,6 +110,7 @@ namespace MQ2Globals
 
 	EQLIB_VAR PCHATBUF gDelayedCommands;
 
+	EQLIB_VAR DWORD gbAssistComplete; 
 	EQLIB_VAR BOOL gTargetbuffs;
 	EQLIB_VAR BOOL gbInZone;
 	EQLIB_VAR BOOL gZoning;
@@ -314,6 +315,7 @@ namespace MQ2Globals
 	EQLIB_VAR fEQCommand         cmdMercSwitch;
 	EQLIB_VAR fEQCommand         cmdAdvLoot;
 	EQLIB_VAR fEQCommand         cmdPickZone;
+	EQLIB_VAR fEQCommand         cmdAssist;
 
 	EQLIB_VAR fEQNewUIINI        NewUIINI;
 	EQLIB_VAR fEQProcGameEvts    ProcessGameEvents;
@@ -1123,7 +1125,8 @@ namespace MQ2Globals
 	EQLIB_VAR DWORD CMerchantWnd__SelectBuySellSlot;
 	EQLIB_VAR DWORD CMerchantWnd__ActualSelect;
 
-	EQLIB_VAR DWORD CObfuscator__doit;
+	EQLIB_VAR DWORD CPacketScrambler__ntoh;
+	EQLIB_VAR DWORD CPacketScrambler__hton;
 
 	EQLIB_VAR DWORD CSidlManager__FindScreenPieceTemplate1;
 	EQLIB_VAR DWORD CSidlManager__CreateLabel;
@@ -1296,7 +1299,7 @@ namespace MQ2Globals
 	EQLIB_VAR DWORD EQPlayer__EQPlayer;
 	EQLIB_VAR DWORD EQPlayer__SetNameSpriteState;
 	EQLIB_VAR DWORD EQPlayer__SetNameSpriteTint;
-	EQLIB_VAR DWORD EQPlayer__IsBodyType_j;
+	EQLIB_VAR DWORD PlayerBase__HasProperty_j;
 	EQLIB_VAR DWORD EQPlayer__IsTargetable;
 	EQLIB_VAR DWORD EQPlayer__CanSee;
 	EQLIB_VAR DWORD PlayerZoneClient__ChangeHeight;
@@ -1354,7 +1357,8 @@ namespace MQ2Globals
 	EQLIB_VAR DWORD ActorClient__GetPosition1;
 	EQLIB_VAR DWORD CTextureAnimation__SetCurCell;
 	EQLIB_VAR DWORD CSidlManager__FindAnimation1;
-
-
+	EQLIB_VAR DWORD msg_spell_worn_off;
+	EQLIB_VAR DWORD msg_new_text;
+	
 }
 using namespace MQ2Globals;

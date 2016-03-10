@@ -191,33 +191,93 @@ void RemoveOurDetours()
 		ourdetours = pNext;
 	}
 }
-
 #endif
 
-
-class CObfuscator
+void CheckAssist(PBYTE address)
 {
-public:
-	int doit_tramp(int, int);
-	int doit_detour(int opcode, int flag);
-};
-
-int CObfuscator::doit_detour(int opcode, int flag)
-{
-#if 0
-	if (EQ_BEGIN_ZONE == opcode) {
-		DebugSpewAlways("EQ_BEGIN_ZONE");
+	bool bexpectTarget = false;
+	if (address) {
+		if (DWORD Assistee = *(DWORD*)address) {
+			if (PSPAWNINFO pSpawn = (PSPAWNINFO)GetSpawnByID(Assistee)) {
+				bexpectTarget = true;
+				gbAssistComplete = 1;
+				//WriteChatf("We can expect a target packet because assist retuned %s",pSpawn->Name);
+			}
+		}
 	}
 	else {
-		DebugSpewAlways("opcode %d", opcode);
+		InterlockedIncrement((volatile unsigned long *)gbAssistComplete);
 	}
-#endif
-	if (opcode == EQ_BEGIN_ZONE) PluginsBeginZone();
-	if (opcode == EQ_END_ZONE) PluginsEndZone();
-	return doit_tramp(opcode, flag);
+	if (!bexpectTarget) {
+		//WriteChatColor("We can NOT expect a target packet because assist was 0");
+		gbAssistComplete = 2;
+	}
+}
+//whatever the frak you do, do not remove this #pragma
+//I spent a lot of time figuring out how to get the assist code to work
+//on all compilers/settings etc.
+//this pragma basically forces it to build the same on all machines
+//no matter what kind of optimization you have turned on in settings...
+//so just leave it alone. -eqmule
+#pragma optimize( "", off )
+class CPacketScrambler
+{
+public:
+	int CPacketScrambler::ntoh_tramp(int);
+	int CPacketScrambler::ntoh_detour(int nopcode);
+	int CPacketScrambler::hton_tramp(int, int);
+	int CPacketScrambler::hton_detour(int hopcode, int flag);
 };
-
-DETOUR_TRAMPOLINE_EMPTY(int CObfuscator::doit_tramp(int, int));
+int CPacketScrambler::ntoh_detour(int nopcode)
+{
+	int hopcode = ntoh_tramp(nopcode);
+	if (hopcode == EQ_ASSIST_COMPLETE) {
+		__asm {
+			push eax;
+			push ebx;
+			mov eax, dword ptr[esi + 0x24];
+			mov ebx, dword ptr[esi + 0x20];
+			xor eax, ebx;
+			cmp eax, EQ_ASSIST_CALC;
+			jnz nocomplete;
+			xor esi, esi;
+			push esi;
+			call CheckAssist;
+			pop esi;
+		nocomplete:
+			pop ebx;
+			pop eax;
+		};
+	}
+	if (hopcode == EQ_ASSIST) {
+		__asm {
+			push eax;
+			mov eax, dword ptr[ebp];
+			test eax, eax;
+			jz emptyassist;
+			mov eax, dword ptr[eax + 0x10];
+			test eax, eax;
+			jz emptyassist;
+			push eax;
+			call CheckAssist;
+			pop eax;
+		emptyassist:
+			pop eax;
+		};
+	}
+	return hopcode;
+}
+int CPacketScrambler::hton_detour(int hopcode, int flag)
+{
+	if (hopcode == EQ_BEGIN_ZONE)
+		PluginsBeginZone();
+	if (hopcode == EQ_END_ZONE)
+		PluginsEndZone();
+	return hton_tramp(hopcode, flag);
+}
+DETOUR_TRAMPOLINE_EMPTY(int CPacketScrambler::ntoh_tramp(int));
+DETOUR_TRAMPOLINE_EMPTY(int CPacketScrambler::hton_tramp(int, int));
+#pragma optimize( "", on )
 
 #define EB_SIZE (1024*4)
 void emotify(void);
@@ -229,10 +289,9 @@ void emotify2(char *buffer);
 class CEmoteHook
 {
 public:
-	VOID Trampoline(void);
-	VOID Detour(void);
+	VOID CEmoteHook::Trampoline(void);
+	VOID CEmoteHook::Detour(void);
 };
-
 VOID CEmoteHook::Detour(void)
 {
 	emotify();
@@ -276,7 +335,10 @@ int(__cdecl *memcheck4_tramp)(unsigned char *buffer, int count, struct mckey key
 VOID HookInlineChecks(BOOL Patch)
 {
 	int i;
-	DWORD oldperm,tmp,NewData;
+#ifndef ISXEQ
+	DWORD oldperm, tmp;
+#endif
+	DWORD NewData;
 
 	DWORD cmps[] = { __AC1 + 6 };
 
@@ -392,7 +454,8 @@ VOID HookMemChecker(BOOL Patch)
 		(*(PBYTE*)&memcheck4_tramp) = DetourFunction((PBYTE)EQADDR_MEMCHECK4,
 			(PBYTE)memcheck4);
 
-		EzDetour(CObfuscator__doit, &CObfuscator::doit_detour, &CObfuscator::doit_tramp);
+		EzDetour(CPacketScrambler__hton, &CPacketScrambler::hton_detour, &CPacketScrambler::hton_tramp);
+		EzDetour(CPacketScrambler__ntoh, &CPacketScrambler::ntoh_detour, &CPacketScrambler::ntoh_tramp);
 		EzDetour(CEverQuest__Emote, &CEmoteHook::Detour, &CEmoteHook::Trampoline);
 
 		HookInlineChecks(Patch);
@@ -427,7 +490,9 @@ VOID HookMemChecker(BOOL Patch)
 		memcheck4_tramp = NULL;
 		RemoveDetour(EQADDR_MEMCHECK4);
 
-		RemoveDetour(CObfuscator__doit);
+		RemoveDetour(CPacketScrambler__ntoh);
+		RemoveDetour(CPacketScrambler__hton);
+
 		RemoveDetour(CEverQuest__Emote);
 	}
 }

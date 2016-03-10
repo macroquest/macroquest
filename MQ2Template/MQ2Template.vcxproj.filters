@@ -2,20 +2,20 @@
 <Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup>
     <Filter Include="Source Files">
-      <UniqueIdentifier>{7919992d-761a-4b6e-9195-154f4d452890}</UniqueIdentifier>
+      <UniqueIdentifier>{8092acaa-d6b5-4231-bf60-5a4ba7978db7}</UniqueIdentifier>
       <Extensions>cpp;c;cxx;def;odl;idl;hpj;bat;asm</Extensions>
     </Filter>
     <Filter Include="Header Files">
-      <UniqueIdentifier>{5b446a35-1fb8-473a-b696-a8434ab48b66}</UniqueIdentifier>
+      <UniqueIdentifier>{be1886e3-04bf-4c6d-bac3-46e8e58f389b}</UniqueIdentifier>
       <Extensions>h;hpp;hxx;hm;inl;inc</Extensions>
     </Filter>
     <Filter Include="Resource Files">
-      <UniqueIdentifier>{87782a9d-3dd7-4a76-bb4f-4e14458e5909}</UniqueIdentifier>
+      <UniqueIdentifier>{1a26bd3e-e0d9-42c3-8810-369b481b6d85}</UniqueIdentifier>
       <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe</Extensions>
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="MQ2ItemDisplay.cpp">
+    <ClCompile Include="MQ2Template.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
@@ -23,5 +23,8 @@
     <ClInclude Include="..\MQ2Plugin.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <Text Include="ReadMe.txt" />
   </ItemGroup>
 </Project>

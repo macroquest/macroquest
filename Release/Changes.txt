@@ -1,3 +1,49 @@
+10 Mar 2016
+- Updated for TEST
+- New SPA's added
+- IsBodyType has been renamed to HasProperty (cause thats what it is)
+- Bunch of changes to mq2windows, lets see if it works as intended.
+-
+- Added a new TLO Member to ${Me} .AssistComplete
+. You can check it after you do a /assist. It will be true when the assist request has been completed.
+.  Usage Example: /assist Eqmule
+.                 /delay 5s ${Me.AssistComplete}==TRUE
+.				  /if (${Target.ID}) {
+.				      /echo EqMule wants me to help fighting ${Target}
+.				  }
+- Turned on Exception Handling (/EHsc) for all projects except mq2main
+- when we move to the v140xp toolset we can use the noexcept keyword to turn it on for mq2main as well...
+-
+- --------------------> VERY IMPORTANT STUFF BEGIN <-------------------
+- It's time to upgrade to Visual Studio 2013 Community or newer.
+- From this version and onward we will not support older compilers.
+- There just isn't any good reason now that Microsoft has free Community Editions
+- which can build mq2 just fine.
+- Therefor:
+- All vcxproj files has been updated to use the vs2013 toolset (v120xp) (thanks Brainiac)
+- We want to move to 2015, but we will have to wait until ISXDK supports that version.
+- If you use 2015, just install the vs 2013 community edition if you want to build ISXEQ
+- For mq2 it doesn't really matter, you can build it with 2015 toolset (v140 or v140xp)
+- just let it upgrade if it asks for it.
+-
+- Older solution files has been removed:
+- For building MQ2 use MacroQuest2.sln
+- --------------------> VERY IMPORTANT STUFF END <---------------------
+-
+- If you have no interest in building ISXEQ you can stop reading now.
+-
+- For building ISXEQ use ISXEQ.sln PLEASE NOTE: --------------->
+- The red headed stepchild ISXEQ has gotten some love this week.
+- You might have noticed that the zip grew a bit in size this release
+- the reason is that it now includes all files needed to build ISXEQ.
+- So...
+- This means that from now on, you can just open ISXEQ.sln and build it.
+- DO NOT LET IT UPGRADE THE TOOLSET! it only works with the v120xp toolset.
+- Having said that, No more additional downloads, googling for libs, headers, updating paths
+- patching files, reading pages and pages of forum threads, and all that extra
+- shiz that we all love to spend time on...
+- In other words we made it easier to build ISXEQ "out of the box" (aka the zip)
+
 24 Feb 2016
 - Updated for TEST
 - Changed how GroupAssistTarget and RaidAssistTarget works

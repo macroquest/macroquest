@@ -158,39 +158,30 @@ void MakePlugin(const char *xname)
     strcpy_s(name,xname);
     FixName(name,256);
     printf("-- Creating plugin %s -- \n",name);
-    if (CreateDirectory(name))
-    {
+    CreateDirectory(name);
 
-        strcpy_s(infile,"MQ2Template\\MQ2Template.vcproj");
-        sprintf_s(outfile,"%s\\%s.vcproj",name,name);
-        FailMake(CreateFileFromTemplate(infile,outfile,name));
+    strcpy_s(infile,"MQ2Template\\MQ2Template.vcxproj");
+    sprintf_s(outfile,"%s\\%s.vcxproj",name,name);
+    FailMake(CreateFileFromTemplate(infile,outfile,name));
 
-        strcpy_s(infile,"MQ2Template\\MQ2Template.dsp");
-        sprintf_s(outfile,"%s\\%s.dsp",name,name);
-        FailMake(CreateFileFromTemplate(infile,outfile,name));
+    strcpy_s(infile, "MQ2Template\\MQ2Template.vcxproj.filters");
+    sprintf_s(outfile, "%s\\%s.vcxproj.filters", name, name);
+    FailMake(CreateFileFromTemplate(infile, outfile, name));
 
-        strcpy_s(infile,"MQ2Template\\MQ2Template.mak");
-        sprintf_s(outfile,"%s\\%s.mak",name,name);
-        FailMake(CreateFileFromTemplate(infile,outfile,name));
+    strcpy_s(infile,"MQ2Template\\MQ2Template.cpp");
+    sprintf_s(outfile,"%s\\%s.cpp",name,name);
+    FailMake(CreateFileFromTemplate(infile,outfile,name));
 
-        strcpy_s(infile,"MQ2Template\\MQ2Template.dep");
-        sprintf_s(outfile,"%s\\%s.dep",name,name);
-        FailMake(CreateFileFromTemplate(infile,outfile,name));
-
-        strcpy_s(infile,"MQ2Template\\makefile");
-        sprintf_s(outfile,"%s\\makefile",name);
-        FailMake(CreateFileFromTemplate(infile,outfile,name));
-
-        strcpy_s(infile,"MQ2Template\\MQ2Template.cpp");
-        sprintf_s(outfile,"%s\\%s.cpp",name,name);
-        FailMake(CreateFileFromTemplate(infile,outfile,name));
-    }
     char ISXName[512];
     sprintf_s(ISXName,"ISXEQ%s",&name[3]);
 
     strcpy_s(infile,"MQ2Template\\ISXEQTemplate.vcxproj");
     sprintf_s(outfile,"%s\\%s.vcxproj",name,ISXName);
     FailMake(CreateISXEQFileFromTemplate(infile,outfile,ISXName));
+
+    strcpy_s(infile, "MQ2Template\\ISXEQTemplate.vcxproj.filters");
+    sprintf_s(outfile, "%s\\%s.vcxproj.filters", name, ISXName);
+    FailMake(CreateISXEQFileFromTemplate(infile, outfile, ISXName));
 
     strcpy_s(infile,"MQ2Template\\ISXEQTemplate.cpp");
     sprintf_s(outfile,"%s\\%s.cpp",name,ISXName);

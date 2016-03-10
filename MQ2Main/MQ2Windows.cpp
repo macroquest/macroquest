@@ -27,8 +27,6 @@ using namespace std;
 
 map<string,unsigned long> WindowMap;
 
-
-
 PCHAR szClickNotification[] = { 
     "leftmouse",        //0
     "leftmouseup",      //1
@@ -42,57 +40,16 @@ PCHAR szClickNotification[] = {
 
 struct _WindowInfo
 {
-    char Name[128];
+    std::string Name;
     CXWnd *pWnd;
     CXWnd **ppWnd;
 };
 
-CIndex <_WindowInfo*> WindowList(10);
-
+std::map<CXWnd *,_WindowInfo>WindowList;
 
 
 bool GenerateMQUI();
 void DestroyMQUI();
-
-#if 0
-class SetScreenHook
-{
-public:
-    void SetScreen_Detour(CXStr *pName)
-    {
-        CHAR Name[MAX_STRING]={0};
-        GetCXStr(pName->Ptr,Name,MAX_STRING);
-        string WindowName=Name;
-        MakeLower((WindowName));
-
-        unsigned long N=WindowMap[WindowName];
-        if (N)
-        {
-            N--;
-            _WindowInfo *pWnd = WindowList[N];
-            pWnd->pWnd=(CXWnd*)this;
-            pWnd->ppWnd=0;
-            //DebugSpew("Updating WndNotification target '%s'",Name);
-        }
-        else
-        {
-            _WindowInfo *pWnd = new _WindowInfo;
-            strcpy(pWnd->Name,Name);
-            pWnd->pWnd=(CXWnd*)this;
-            pWnd->ppWnd=0;
-
-            N=WindowList.GetUnused();
-            WindowList[N]=pWnd;
-
-            WindowMap[WindowName]=N+1;
-            //DebugSpew("Adding WndNotification target '%s'",Name);
-        }
-        SetScreen_Trampoline(pName);
-    }
-    void SetScreen_Trampoline(CXStr*);
-};
-DETOUR_TRAMPOLINE_EMPTY(void SetScreenHook::SetScreen_Trampoline(CXStr*));
-#endif
 
 class CSidlInitHook
 {
@@ -102,30 +59,27 @@ public:
     {
         CHAR Name[MAX_STRING]={0};
         GetCXStr(pName->Ptr,Name,MAX_STRING);
-        string WindowName=Name;
+        std::string WindowName=Name;
         MakeLower((WindowName));
-
-        unsigned long N=WindowMap[WindowName];
-        if (N)
-        {
-            N--;
-            _WindowInfo *pWnd = WindowList[N];
-            pWnd->pWnd=(CXWnd*)this;
-            pWnd->ppWnd=0;
+		unsigned long N = 0;
+		if (WindowMap.find(WindowName) != WindowMap.end()) {
+			_WindowInfo wi;
+			wi.Name = WindowName;
+			wi.pWnd = (CXWnd*)this;
+			wi.ppWnd = 0;
+			WindowList[(CXWnd*)this] = wi;
             DebugSpew("Updating WndNotification target '%s'",Name);
-        }
-        else
-        {
-            _WindowInfo *pWnd = new _WindowInfo;
-            strcpy(pWnd->Name,Name);
-            pWnd->pWnd=(CXWnd*)this;
-            pWnd->ppWnd=0;
-
-            N=WindowList.GetUnused();
-            WindowList[N]=pWnd;
-
+        } else {
+			_WindowInfo wi;
+			wi.Name = WindowName;
+			wi.pWnd = (CXWnd*)this;
+			wi.ppWnd = 0;
+			WindowList[(CXWnd*)this] = wi;
             WindowMap[WindowName]=N+1;
-            DebugSpew("Adding WndNotification target '%s'",Name);
+			if(Name[0]!='\0')
+				DebugSpew("Adding WndNotification target '%s'",Name);
+			else
+				DebugSpew("Adding WndNotification target FAILED");
         }
         Init_Trampoline(pName, A);
     }
@@ -147,36 +101,29 @@ public:
 DETOUR_TRAMPOLINE_EMPTY(void CSidlInitHook::Init_Trampoline(class CXStr*,int));
 DETOUR_TRAMPOLINE_EMPTY(int CSidlInitHook::CTargetWnd__WndNotification_Tramp(class CXWnd *,unsigned __int32,void *));
 
-
 class CXWndManagerHook
 {
 public:
     int RemoveWnd_Detour(class CXWnd *pWnd)
     {
-        if (pWnd)
-        {
-            for (unsigned long N = 0 ; N < WindowList.Size ; N++)
-                if (_WindowInfo* pInfo=WindowList[N])
-                {
-                    if (pWnd==pInfo->pWnd)
-                    {
-                        //DebugSpew("Removing WndNotification target '%s'",pInfo->Name);
-                        string Name=pInfo->Name;
-                        MakeLower(Name);
-                        WindowMap[Name]=0;
-                        delete pInfo;
-                        WindowList[N]=0;
-                        break;
-                    }
-                }
-        }
+		if (pWnd) {
+			for (std::map<CXWnd*, _WindowInfo>::iterator N = WindowList.begin(); N != WindowList.end(); N++) {
+				if (N->first == pWnd) {
+					std::string Name = N->second.Name;
+					MakeLower(Name);
+					if (WindowMap.find(Name) != WindowMap.end()) {
+						WindowMap.erase(Name);
+					}
+					WindowList.erase(N);
+					break;
+				}
+			}
+		}
         return RemoveWnd_Trampoline(pWnd);
     }
     int RemoveWnd_Trampoline(class CXWnd *);
-
 };
 DETOUR_TRAMPOLINE_EMPTY(int CXWndManagerHook::RemoveWnd_Trampoline(class CXWnd *));
-
 
 class CXMLSOMDocumentBaseHook
 {
@@ -204,7 +151,6 @@ public:
 };
 DETOUR_TRAMPOLINE_EMPTY(int CXMLSOMDocumentBaseHook::XMLRead_Trampoline(CXStr *A, CXStr *B, CXStr *C, CXStr *D)); 
 
-
 #ifndef ISXEQ
 VOID ListWindows(PSPAWNINFO pChar, PCHAR szLine);
 VOID WndNotify(PSPAWNINFO pChar, PCHAR szLine);
@@ -221,20 +167,19 @@ int ListItemSlots(int argc, char *argv[]);
 
 void InitializeMQ2Windows()
 {
-    int i;
     DebugSpew("Initializing MQ2 Windows");
 
     extern PCHAR szItemSlot[];
 
-    for(i=0;i<NUM_INV_SLOTS;i++)
+    for(int i=0;i<NUM_INV_SLOTS;i++)
         ItemSlotMap[szItemSlot[i]]=i;
 
     CHAR szOut[MAX_STRING]={0};
 
 #define AddSlotArray(name,count,start)    \
-    for (i = 0 ; i < count ; i++)\
+    for (int i = 0 ; i < count ; i++)\
     {\
-    sprintf(szOut,#name"%d",i+1);\
+    sprintf_s(szOut,#name"%d",i+1);\
     ItemSlotMap[szOut]=start+i;\
     }
     AddSlotArray(bank,24,2000);
@@ -283,30 +228,21 @@ void InitializeMQ2Windows()
                 if (pXMLData->Type==UI_Screen)
                 {
                     GetCXStr(pXMLData->Name.Ptr,Name,MAX_STRING);
-                    string WindowName=Name;
+                    std::string WindowName=Name;
                     MakeLower((WindowName));
-
-                    unsigned long N=WindowMap[WindowName];
-                    if (N)
-                    {
-                        N--;
-                        _WindowInfo *pNewWnd = WindowList[N];
-                        pNewWnd->pWnd=(CXWnd*)pWnd;
-                        pNewWnd->ppWnd=0;
-                        //DebugSpew("Updating WndNotification target '%s'",Name);
-                    }
-                    else
-                    {
-                        _WindowInfo *pNewWnd = new _WindowInfo;
-                        strcpy(pNewWnd->Name,Name);
-                        pNewWnd->pWnd=(CXWnd*)pWnd;
-                        pNewWnd->ppWnd=0;
-
-                        N=WindowList.GetUnused();
-                        WindowList[N]=pNewWnd;
-
-                        WindowMap[WindowName]=N+1;
-                        //DebugSpew("Adding WndNotification target '%s'",Name);
+					if(WindowMap.find(WindowName)!=WindowMap.end()) {
+						_WindowInfo wi;
+						wi.Name = WindowName;
+						wi.pWnd = (CXWnd*)pWnd;
+						wi.ppWnd = 0;
+						WindowList[(CXWnd*)pWnd] = wi;
+                    } else {
+                        _WindowInfo wi;
+						wi.Name = WindowName;
+						wi.pWnd = (CXWnd*)pWnd;
+						wi.ppWnd = 0;
+						WindowList[(CXWnd*)pWnd] = wi;
+						WindowMap[WindowName];
                     }
                 }
             }
@@ -333,7 +269,7 @@ void ShutdownMQ2Windows()
     RemoveDetour(CSidlScreenWnd__Init1);
     RemoveDetour(CTargetWnd__WndNotification);
     RemoveDetour(CXWndManager__RemoveWnd);
-    WindowList.Cleanup();
+	WindowList.clear();
 }
 
 bool GenerateMQUI()
@@ -344,17 +280,15 @@ bool GenerateMQUI()
     CHAR            szOrgFilename[MAX_PATH] = { 0 };
     CHAR            UISkin[MAX_STRING] = { 0 };
     char            Buffer[2048];
-    FILE           *forg,
-        *fnew;
+    FILE           *forg,*fnew;
 
     if (!pXMLFiles) {
-        DebugSpew
-            ("GenerateMQUI::Not Generating MQUI.xml, no files in our list");
+        DebugSpew("GenerateMQUI::Not Generating MQUI.xml, no files in our list");
         return false;
     }
-    sprintf(UISkin, "default");
-    sprintf(szOrgFilename, "%s\\uifiles\\%s\\EQUI.xml", gszEQPath, UISkin);
-    sprintf(szFilename, "%s\\uifiles\\%s\\MQUI.xml", gszEQPath, UISkin);
+    sprintf_s(UISkin, "default");
+    sprintf_s(szOrgFilename, "%s\\uifiles\\%s\\EQUI.xml", gszEQPath, UISkin);
+    sprintf_s(szFilename, "%s\\uifiles\\%s\\MQUI.xml", gszEQPath, UISkin);
 
     DebugSpew("GenerateMQUI::Generating %s", szFilename);
 
@@ -375,8 +309,7 @@ bool GenerateMQUI()
             PMQXMLFILE      pFile = pXMLFiles;
             while (pFile) {
                 DebugSpew("GenerateMQUI::Inserting %s",pFile->szFilename);
-                fprintf(fnew, "<Include>%s</Include>\n",
-                    pFile->szFilename);
+                fprintf(fnew, "<Include>%s</Include>\n", pFile->szFilename);
                 pFile = pFile->pNext;
             }
         }
@@ -386,25 +319,19 @@ bool GenerateMQUI()
     fclose(forg);
 
     if ((pCharInfo = GetCharInfo()) != NULL) {
-        sprintf(szFilename, "%s\\UI_%s_%s.ini", gszEQPath, pCharInfo->Name,
-            EQADDR_SERVERNAME);
-        GetPrivateProfileString("Main", "UISkin", "default", UISkin,
-            MAX_STRING, szFilename);
+        sprintf_s(szFilename, "%s\\UI_%s_%s.ini", gszEQPath, pCharInfo->Name, EQADDR_SERVERNAME);
+        GetPrivateProfileString("Main", "UISkin", "default", UISkin, MAX_STRING, szFilename);
 
         if (strcmp(UISkin, "default")) {
-
-            sprintf(szOrgFilename, "%s\\uifiles\\%s\\EQUI.xml",
-                gszEQPath, UISkin);
-            sprintf(szFilename, "%s\\uifiles\\%s\\MQUI.xml", gszEQPath,
-                UISkin);
+            sprintf_s(szOrgFilename, "%s\\uifiles\\%s\\EQUI.xml", gszEQPath, UISkin);
+            sprintf_s(szFilename, "%s\\uifiles\\%s\\MQUI.xml", gszEQPath, UISkin);
 
             DebugSpew("GenerateMQUI::Generating %s", szFilename);
 
             forg = fopen(szOrgFilename, "rt");
             if (!forg) {
                 DebugSpew("GenerateMQUI::could not open %s (non-fatal)", szOrgFilename);
-                sprintf(szOrgFilename, "%s\\uifiles\\%s\\EQUI.xml",
-                    gszEQPath, "default");
+                sprintf_s(szOrgFilename, "%s\\uifiles\\%s\\EQUI.xml", gszEQPath, "default");
                 forg = fopen(szOrgFilename, "rt");
                 if (!forg) {
                     DebugSpew("GenerateMQUI::could not open %s", szOrgFilename);
@@ -424,8 +351,7 @@ bool GenerateMQUI()
                     PMQXMLFILE      pFile = pXMLFiles;
                     while (pFile) {
                         //DebugSpew("GenerateMQUI::Inserting %s",pFile->szFilename);
-                        fprintf(fnew, "<Include>%s</Include>\n",
-                            pFile->szFilename);
+                        fprintf(fnew, "<Include>%s</Include>\n", pFile->szFilename);
                         pFile = pFile->pNext;
                     }
                 }
@@ -435,7 +361,6 @@ bool GenerateMQUI()
             fclose(forg);
         }
     }
-
     return true;
 }
 
@@ -451,15 +376,11 @@ void DestroyMQUI()
     remove(szFilename);
 
     if ((pCharInfo = GetCharInfo()) != NULL) {
-        sprintf(szFilename, "%s\\UI_%s_%s.ini", gszEQPath, pCharInfo->Name,
-            EQADDR_SERVERNAME);
+        sprintf_s(szFilename, "%s\\UI_%s_%s.ini", gszEQPath, pCharInfo->Name, EQADDR_SERVERNAME);
         //DebugSpew("UI File: %s", szFilename);
-        GetPrivateProfileString("Main", "UISkin", "default", UISkin,
-            MAX_STRING, szFilename);
+        GetPrivateProfileString("Main", "UISkin", "default", UISkin, MAX_STRING, szFilename);
         //DebugSpew("UISkin=%s", UISkin);
-
-        sprintf(szFilename, "%s\\uifiles\\%s\\MQUI.xml", gszEQPath,
-            UISkin);
+        sprintf_s(szFilename, "%s\\uifiles\\%s\\MQUI.xml", gszEQPath, UISkin);
         DebugSpew("DestroyMQUI: removing file %s", szFilename);
         remove(szFilename);
     }
@@ -479,33 +400,25 @@ void AddXMLFile(const char *filename)
     PCHARINFO       pCharInfo = NULL;
     CHAR            szFilename[MAX_PATH] = { 0 };
     CHAR            UISkin[MAX_STRING] = { 0 };
-    sprintf(UISkin, "default");
+    sprintf_s(UISkin, "default");
 
     if ((pCharInfo = GetCharInfo()) != NULL) {
-        sprintf(szFilename, "%s\\UI_%s_%s.ini", gszEQPath, pCharInfo->Name,
-            EQADDR_SERVERNAME);
-        GetPrivateProfileString("Main", "UISkin", "default", UISkin,
-            MAX_STRING, szFilename);
+        sprintf_s(szFilename, "%s\\UI_%s_%s.ini", gszEQPath, pCharInfo->Name, EQADDR_SERVERNAME);
+        GetPrivateProfileString("Main", "UISkin", "default", UISkin, MAX_STRING, szFilename);
     }
-    sprintf(szBuffer, "%s\\uifiles\\%s\\%s", gszEQPath, UISkin, filename);
+    sprintf_s(szBuffer, "%s\\uifiles\\%s\\%s", gszEQPath, UISkin, filename);
 
     if (!_FileExists(szBuffer)) {
-        sprintf(szBuffer, "%s\\uifiles\\%s\\%s", gszEQPath, "default",
-            filename);
+        sprintf_s(szBuffer, "%s\\uifiles\\%s\\%s", gszEQPath, "default", filename);
         if (!_FileExists(szBuffer)) {
-            WriteChatf
-                ("UI file %s not found in either uifiles\\%s or uifiles\\default.  Please copy it there, reload the UI, and reload this plugin.",
-                filename, UISkin);
+            WriteChatf("UI file %s not found in either uifiles\\%s or uifiles\\default.  Please copy it there, reload the UI, and reload this plugin.", filename, UISkin);
             return;
         }
     }
 
     DebugSpew("Adding XML File %s", filename);
     if (gGameState == GAMESTATE_INGAME) {
-        WriteChatf
-            ("UI file %s added, you must reload your UI for this to take effect.",
-            filename);
-
+        WriteChatf("UI file %s added, you must reload your UI for this to take effect.", filename);
     }
 
     pFile = new MQXMLFILE;
@@ -515,7 +428,7 @@ void AddXMLFile(const char *filename)
     else
         pXMLFiles = pFile;
     pFile->pNext = 0;
-    strcpy(pFile->szFilename, filename);
+    strcpy_s(pFile->szFilename, filename);
 }
 
 void RemoveXMLFile(const char *filename)
@@ -536,76 +449,60 @@ void RemoveXMLFile(const char *filename)
         pFile = pFile->pNext;
     }
 }
-
-
 CXWnd *FindMQ2Window(PCHAR WindowName)
 {
-    _WindowInfo *pInfo = NULL;
-
-    string Name=WindowName;
+    _WindowInfo Info;
+    std::string Name=WindowName;
     MakeLower(Name);
+	if (WindowMap.find(Name) == WindowMap.end()) {
+		PCONTENTS pPack = 0;
+		if (!_strnicmp(WindowName, "bank", 4)) {
+			unsigned long nPack = atoi(&WindowName[4]);
+			if (nPack && nPack <= NUM_BANK_SLOTS) {
+				if (pCharData && ((PCHARINFO)pCharData)->pBankArray) {
+					pPack = ((PCHARINFO)pCharData)->pBankArray->Bank[nPack - 1];
+				}
+			}
+		}
+		else if (!strnicmp(WindowName, "pack", 4)) {
+			unsigned long nPack = atoi(&WindowName[4]);
+			if (nPack && nPack <= 10) {
+				pPack = GetCharInfo2()->pInventoryArray->Inventory.Pack[nPack - 1];
+			}
+		}
+		else if (!_stricmp(WindowName, "enviro")) {
+			pPack = ((PEQ_CONTAINERWND_MANAGER)pContainerMgr)->pWorldContents;
+		}
+		if (!pPack) {
+			return 0;
+		}
+		return (CXWnd*)FindContainerForContents(pPack);
 
-    unsigned long N = WindowMap[Name];
-    if (!N)
-    {
-        PCONTENTS pPack=0;
-        if (!strnicmp(WindowName,"bank",4))
-        {
-            unsigned long nPack=atoi(&WindowName[4]);
-            if (nPack && nPack<=NUM_BANK_SLOTS)
-            {
-                if (pCharData && ((PCHARINFO)pCharData)->pBankArray)
-					pPack=((PCHARINFO)pCharData)->pBankArray->Bank[nPack-1];
-            }
-        }
-        else if (!strnicmp(WindowName,"pack",4))
-        {
-            unsigned long nPack=atoi(&WindowName[4]);
-            if (nPack && nPack<=10)
-            {
-                pPack=GetCharInfo2()->pInventoryArray->Inventory.Pack[nPack-1];
-            }
-        }
-        else if (!_stricmp(WindowName,"enviro"))
-        {
-            pPack=((PEQ_CONTAINERWND_MANAGER)pContainerMgr)->pWorldContents;
-        }
-        if (!pPack)
-        {
-            return 0;
-        }
-        return (CXWnd*)FindContainerForContents(pPack);
-
-    }
-    N--;
-
-    pInfo=WindowList[N];
-    if (!pInfo)
-    {
-        WindowMap[Name]=0;
-        return 0;
-    }
-
-    if (pInfo->pWnd)
-    {
-        return pInfo->pWnd;
-    }
-    else
-    {
-        if (pInfo->ppWnd)
-        {
-            return *pInfo->ppWnd;
-        }
-        else
-        {
-            WindowMap[Name]=0;
-            delete pInfo;
-            WindowList[N]=0;
-            WindowMap[Name]=0;
+	}
+	bool namefound = false;
+	for (std::map<CXWnd*, _WindowInfo>::iterator N = WindowList.begin(); N != WindowList.end(); N++)
+	{
+		if (N->second.Name == Name) {
+			namefound = true;
+			Info = N->second;
+			break;
+		}
+	}
+	if (!namefound) {
+		WindowMap.erase(Name);
+		return 0;
+	}
+    if (Info.pWnd) {
+        return Info.pWnd;
+    } else {
+		if (Info.ppWnd) {
+            return *Info.ppWnd;
+        } else {
+            WindowMap.erase(Name);
+            WindowList.erase(Info.pWnd);
             return 0;
         }
     }
-
     return 0;
 }
 
@@ -970,45 +867,37 @@ void AddWindow(char *WindowName, CXWnd **ppWindow)
     string Name=WindowName;
     MakeLower(Name);
 
-    unsigned long N=WindowMap[Name];
-    if (N)
-    {
-        N--;
-        _WindowInfo *pWnd = WindowList[N];
-        pWnd->pWnd=0;
-        pWnd->ppWnd=ppWindow;
-        //DebugSpew("Updating WndNotification target '%s'",WindowName);
+	if(WindowMap.find(Name)!=WindowMap.end()) {
+		_WindowInfo pWnd;
+		for (std::map<CXWnd*, _WindowInfo>::iterator N = WindowList.begin(); N != WindowList.end(); N++) {
+			if (N->second.Name == Name) {
+				pWnd = N->second;
+				break;
+			}
+		}
+        pWnd.pWnd=0;
+        pWnd.ppWnd=ppWindow;
+    } else {
+        _WindowInfo pWnd;
+		pWnd.Name = Name;
+        pWnd.pWnd=0;
+        pWnd.ppWnd=ppWindow;
+        WindowList[*ppWindow]=pWnd;
+		WindowMap[Name];
     }
-    else
-    {
-        _WindowInfo *pWnd = new _WindowInfo;
-        strcpy(pWnd->Name,WindowName);
-        pWnd->pWnd=0;
-        pWnd->ppWnd=ppWindow;
-
-        N=WindowList.GetUnused();
-        WindowList[N]=pWnd;
-
-        WindowMap[WindowName]=N+1;
-        //DebugSpew("Adding WndNotification target '%s'",Name);
-    }
-
 }
 
 void RemoveWindow(char *WindowName)
 {
-    string Name=WindowName;
+    std::string Name=WindowName;
     MakeLower(Name);
-
-    unsigned long N=WindowMap[Name];
-    if (N)
-    {
-        N--;
-        WindowMap[Name]=0;
-        if (_WindowInfo *pInfo=WindowList[N])
-        {
-            delete pInfo;
-            WindowList[N]=0;
+	if(WindowMap.find(Name)!=WindowMap.end()) {
+        WindowMap.erase(Name);
+        for (std::map<CXWnd*, _WindowInfo>::iterator N = WindowList.begin(); N != WindowList.end(); N++) {
+			if (N->second.Name == Name) {
+				WindowList.erase(N);
+				break;
+			}
         }
     }
 }
@@ -1094,65 +983,63 @@ int ListWindows(int argc, char *argv[])
 		else
 			WriteChatColor("List of available windows");
         WriteChatColor("-------------------------");
-        for (unsigned long N = 0 ; N < WindowList.Size ; N++)
-            if (_WindowInfo *pInfo=WindowList[N])
-            {
-				if(bOpen) {
-					if(pInfo->pWnd && pInfo->pWnd->dShow==1 && pInfo->pWnd->pParentWindow==0) {
-						if(bPartial) {
-							if(strstr(pInfo->Name,szArg2)) {
-								WriteChatf("[PARTIAL MATCH][OPEN] %s",pInfo->Name);
-								RecurseAndListWindows((PCSIDLWND)pInfo->pWnd);
+		for (std::map<CXWnd*, _WindowInfo>::iterator N = WindowList.begin(); N != WindowList.end(); N++) {
+			_WindowInfo Info = N->second;
+			if (bOpen) {
+				if (Info.pWnd && Info.pWnd->dShow == 1 && Info.pWnd->pParentWindow == 0) {
+					if (bPartial) {
+						if (Info.Name.find(szArg2) != Info.Name.npos) {
+							WriteChatf("[PARTIAL MATCH][OPEN] %s", Info.Name.c_str());
+							RecurseAndListWindows((PCSIDLWND)Info.pWnd);
 								Count++;
 							}
-						} else {
-							WriteChatf("[OPEN] %s",pInfo->Name);
+					}
+					else {
+						WriteChatf("[OPEN] %s", Info.Name.c_str());
 							Count++;
 						}
 					}
-				} else {
-					if(bPartial) {
-						if(strstr(pInfo->Name,szArg2)) {
-							WriteChatf("[PARTIAL MATCH] %s",pInfo->Name);
-							RecurseAndListWindows((PCSIDLWND)pInfo->pWnd);
+			}
+			else {
+				if (bPartial) {
+					if (Info.Name.find(szArg2) != Info.Name.npos) {
+						WriteChatf("[PARTIAL MATCH] %s", Info.Name.c_str());
+						RecurseAndListWindows((PCSIDLWND)Info.pWnd);
 							Count++;
 						}
-					} else {
-						WriteChatf("%s",pInfo->Name);
+				}
+				else {
+					WriteChatf("%s", Info.Name.c_str());
 						Count++;
 					}
 				}
             }
-            WriteChatf("%d available windows",Count);
+		WriteChatf("%d window(s) found with %s in the name", Count,szArg2);
     }
     else
     {
         // list children of..
-        string WindowName=szLine;
+        std::string WindowName=szLine;
         MakeLower(WindowName);
-        unsigned long N = WindowMap[WindowName];
-        if (!N)
-        {
-			CXWnd *pWnd = FindMQ2Window(szLine);
-			if (pWnd) {
+		if (WindowMap.find(WindowName) == WindowMap.end()) {
+			if (CXWnd *pWnd = FindMQ2Window(szLine)) {
                 Count = RecurseAndListWindows((PCSIDLWND)pWnd);
-				WriteChatf("%d child windows",Count);
+				WriteChatf("%d child windows", Count);
 				RETURN(0);
 			}
-            WriteChatf("Window '%s' not available",szLine);
+			WriteChatf("Window '%s' not available", WindowName.c_str());
 			RETURN(0);
  		}
-        N--;
-        WriteChatf("Listing child windows of '%s'",szLine);
+        WriteChatf("Listing child windows of '%s'",WindowName.c_str());
         WriteChatColor("-------------------------");
-        if (_WindowInfo *pInfo=WindowList[N])
-        {
-            PCSIDLWND pWnd= pInfo->pWnd->pFirstChildWnd;
-
-            if (pWnd)
-                Count = RecurseAndListWindows(pWnd);
-
-            WriteChatf("%d child windows",Count);
+		for (std::map<CXWnd*, _WindowInfo>::iterator N = WindowList.begin(); N != WindowList.end(); N++) {
+			_WindowInfo Info = N->second;
+			if (Info.Name == WindowName && Info.pWnd) {
+				if (PCSIDLWND pWnd = Info.pWnd->pFirstChildWnd) {
+					Count = RecurseAndListWindows(pWnd);
+				}
+				WriteChatf("%d child windows", Count);
+			}
         }
     }
     RETURN(0);
@@ -1361,62 +1248,6 @@ int ItemNotify(int argc, char *argv[])
             WriteChatColor("Syntax: /itemnotify in <bag slot> <slot # in bag> <notification>");
             RETURN(0);
         }
-
-#if 0
-        PCONTENTS pPack=0;
-        PCONTENTS pItem=0;
-        
-        if (!strnicmp(szArg2,"bank",4))
-        {
-            unsigned long nPack=atoi(&szArg2[4]);
-            if (nPack && nPack<=NUM_BANK_SLOTS)
-            {
-                if (GetCharInfo() && GetCharInfo()->pBankArray)
-					pPack=GetCharInfo()->pBankArray->Bank[nPack-1];
-            }
-        }
-        else if (!strnicmp(szArg2,"sharedbank",10))
-        {
-            unsigned long nPack=atoi(&szArg2[10]);
-            if (nPack && nPack<=2)
-            {
-                if (GetCharInfo() && GetCharInfo()->pSharedBankArrary)
-					pPack=GetCharInfo()->pSharedBankArray->SharedBank[nPack-1];
-            }
-        }
-        else if (!strnicmp(szArg2,"pack",4))
-        {
-            unsigned long nPack=atoi(&szArg2[4]);
-            if (nPack && nPack<=10)
-            {
-                pPack=GetCharInfo2()->pInventoryArray->Inventory.Pack[nPack-1];
-            }
-        }
-        else if (!_stricmp(szArg2,"enviro"))
-        {
-            pPack=((PEQ_CONTAINERWND_MANAGER)pContainerMgr)->pWorldContents;
-        }
-
-        if (!pPack)
-        {
-            WriteChatf("No item at '%s'",szArg2);
-            RETURN(0);
-        }
-        if (GetItemFromContents(pPack)->Type == ITEMTYPE_PACK) {
-            
-            unsigned long N = atoi(szArg3)-1;
-
-            if (N<GetItemFromContents(pPack)->Slots && pPack->pContentsArray) {
-                pItem =  pPack->pContentsArray->Contents[N];
-            }
-
-            if (pItem) {
-                unsigned long nSlot=FindInvSlotForContents(pItem);
-                PEQINVSLOTMGR pInvMgr=(PEQINVSLOTMGR)pInvSlotMgr;
-                pSlot = pInvMgr->SlotArray[nSlot];
-            }
-        }
-#endif
         if (!strnicmp(szArg2,"bank",4)) {
             invslot=atoi(&szArg2[4])-1;
             bagslot=atoi(szArg3)-1;
@@ -1465,10 +1296,9 @@ int ItemNotify(int argc, char *argv[])
 				{
 					PCONTENTS pItem = FindItemBySlot(invslot,bagslot);
 					if(pItem) {
-						if (GetItemFromContents(pItem)->Clicky.SpellID > 0 && GetItemFromContents(pItem)->Clicky.SpellID!=-1)
-						{
+						if (GetItemFromContents(pItem)->Clicky.SpellID > 0 && GetItemFromContents(pItem)->Clicky.SpellID!=-1) {
 							CHAR cmd[40] = {0};
-							sprintf(cmd, "/useitem %d %d", pItem->ItemSlot, pItem->ItemSlot2);
+							sprintf(cmd, "/useitem \"%s\"", GetItemFromContents(pItem)->Name);
 							EzCommand(cmd);
 							RETURN(0);
 						}
@@ -1548,7 +1378,7 @@ int ItemNotify(int argc, char *argv[])
 						RETURN(0);
 					} else if (pClicky && pClicky->Clicky.SpellID!=-1)	{
 						CHAR cmd[40] = {0};
-						sprintf(cmd, "/useitem %d %d", ptheitem->ItemSlot, ptheitem->ItemSlot2);
+						sprintf(cmd, "/useitem \"%s\"", GetItemFromContents(ptheitem)->Name);
 						EzCommand(cmd);
 						RETURN(0);
 					} else if(pClicky->Type == ITEMTYPE_PACK) {
@@ -1590,7 +1420,6 @@ int ListItemSlots(int argc, char *argv[])
     PEQINVSLOTMGR pMgr=(PEQINVSLOTMGR)pInvSlotMgr;
     if (!pMgr)
         RETURN(0);
-    //CHAR szOut[MAX_STRING]={0};
     unsigned long Count=0;
     WriteChatColor("List of available item slots");
     WriteChatColor("-------------------------");

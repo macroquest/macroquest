@@ -2,12 +2,21 @@
 <Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup>
     <Filter Include="Source Files">
-      <UniqueIdentifier>{ef4e534b-c368-4424-b342-7ca1e4e62302}</UniqueIdentifier>
+      <UniqueIdentifier>{0e1f987c-088f-4f86-8ac6-e3e600c54ea6}</UniqueIdentifier>
       <Extensions>cpp;c;cxx;def;odl;idl;hpj;bat;asm</Extensions>
     </Filter>
     <Filter Include="Header Files">
-      <UniqueIdentifier>{eaecfe3f-5f26-496e-8c93-70481ca8f8cc}</UniqueIdentifier>
+      <UniqueIdentifier>{f0c41e6c-58b7-40f4-af18-a2496a904807}</UniqueIdentifier>
       <Extensions>h;hpp;hxx;hm;inl;inc</Extensions>
+    </Filter>
+    <Filter Include="Header Files\Live">
+      <UniqueIdentifier>{2270d407-377e-4e42-8140-c3dc0a26b054}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\Beta">
+      <UniqueIdentifier>{8e8c5a89-a700-415a-a503-3300bc4de8ca}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\Test">
+      <UniqueIdentifier>{c987e0f9-54ab-49bb-a678-eea4d77dedc3}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
@@ -91,12 +100,6 @@
     <ClInclude Include="EQClasses.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="EQData.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="EQUIStructs.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="MQ2Commands.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -124,23 +127,44 @@
     <ClInclude Include="dikeys.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="eqgame.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="itemtypes.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="skills.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="actordef.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="SpellEffects.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="DataTypeList.h">
+    <ClInclude Include="actordef.h">
       <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="EQUIStructs.h">
+      <Filter>Header Files\Live</Filter>
+    </ClInclude>
+    <ClInclude Include="EQData.h">
+      <Filter>Header Files\Live</Filter>
+    </ClInclude>
+    <ClInclude Include="eqgame.h">
+      <Filter>Header Files\Live</Filter>
+    </ClInclude>
+    <ClInclude Include="EQData(Test).h">
+      <Filter>Header Files\Test</Filter>
+    </ClInclude>
+    <ClInclude Include="eqgame(Test).h">
+      <Filter>Header Files\Test</Filter>
+    </ClInclude>
+    <ClInclude Include="EQUIStructs(Test).h">
+      <Filter>Header Files\Test</Filter>
+    </ClInclude>
+    <ClInclude Include="EqData(beta).h">
+      <Filter>Header Files\Beta</Filter>
+    </ClInclude>
+    <ClInclude Include="eqgame(beta).h">
+      <Filter>Header Files\Beta</Filter>
+    </ClInclude>
+    <ClInclude Include="EQUIStructs(beta).h">
+      <Filter>Header Files\Beta</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

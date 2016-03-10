@@ -3235,7 +3235,7 @@ bool MQ2CharacterType::GETMEMBER()
 		return true;
 	case TargetOfTarget:
 		if (gGameState == GAMESTATE_INGAME && pLocalPlayer)
-			if (Dest.Ptr = GetSpawnByID(pChar->pSpawn->TargetOfTarget))	{
+			if (Dest.Ptr = GetSpawnByID(pChar->pSpawn->TargetOfTarget)) {
 				Dest.Type = pSpawnType;
 				return true;
 			}
@@ -4445,10 +4445,12 @@ bool MQ2CharacterType::GETMEMBER()
 #endif
 		Dest.Type = pBoolType;
 		return true;
-
-
 	case SpellInCooldown:
 		Dest.DWord = ((PCDISPLAY)pDisplay)->TimeStamp <= ((PSPAWNINFO)pLocalPlayer)->SpellCooldownETA;
+		Dest.Type = pBoolType;
+		return true;
+	case AssistComplete:
+		Dest.DWord = gbAssistComplete == 2;
 		Dest.Type = pBoolType;
 		return true;
 	}
@@ -4632,7 +4634,7 @@ bool MQ2SpellType::GETMEMBER()
 		Dest.Type = pStringType;
 		int i;
 		for (i = 0; i < GetSpellNumEffects(pSpell); i++) {
-			switch (GetSpellAttrib(pSpell,i))
+			switch (GetSpellAttrib(pSpell, i))
 			{
 			case 35:
 				Dest.Ptr = "Disease";
@@ -4656,8 +4658,8 @@ bool MQ2SpellType::GETMEMBER()
 		Dest.Type = pIntType;
 		int i;
 		for (i = 0; i < GetSpellNumEffects(pSpell); i++) {
-			if ((GetSpellAttrib(pSpell,i) == 35) || (GetSpellAttrib(pSpell,i) == 36) || (GetSpellAttrib(pSpell,i) == 116) || (GetSpellAttrib(pSpell,i) == 369)) {
-				Dest.DWord = (int)GetSpellBase(pSpell,i);
+			if ((GetSpellAttrib(pSpell, i) == 35) || (GetSpellAttrib(pSpell, i) == 36) || (GetSpellAttrib(pSpell, i) == 116) || (GetSpellAttrib(pSpell, i) == 369)) {
+				Dest.DWord = (int)GetSpellBase(pSpell, i);
 				return true;
 			}
 		}
@@ -4681,7 +4683,7 @@ bool MQ2SpellType::GETMEMBER()
 					buffduration = pChar->Buff[nBuff].Duration;
 					for (int nSlot = 0; nSlot < GetSpellNumEffects(pSpell); nSlot++) {
 						if (TriggeringEffectSpell(pSpell, nSlot)) {		// Check the triggered effect against the current buff for stacking
-							if (PSPELL triggeredSpell = GetSpellByID(GetSpellBase2(pSpell,nSlot))) {
+							if (PSPELL triggeredSpell = GetSpellByID(GetSpellBase2(pSpell, nSlot))) {
 								if (GetSpellDuration(triggeredSpell, (PSPAWNINFO)pLocalPlayer) >= 0xFFFFFFFE) {
 									buffduration = 99999 + 1;
 								}
@@ -4710,7 +4712,7 @@ bool MQ2SpellType::GETMEMBER()
 					if (!IsBardSong(buffSpell) && !((IsSPAEffect(pSpell, SPA_ILLUSION) && !pSpell->DurationWindow))) {		// Don't check against bard songs or buff window illusions
 						for (int nSlot = 0; nSlot < GetSpellNumEffects(pSpell); nSlot++) {
 							if (TriggeringEffectSpell(pSpell, nSlot)) {		// Check the triggered effect against the current buff for stacking
-								if (PSPELL triggeredSpell = GetSpellByID(GetSpellBase2(pSpell,nSlot))) {
+								if (PSPELL triggeredSpell = GetSpellByID(GetSpellBase2(pSpell, nSlot))) {
 									if (GetSpellDuration(triggeredSpell, (PSPAWNINFO)pLocalPlayer) >= 0xFFFFFFFE) {
 										buffduration = 99999 + 1;
 									}
@@ -4791,7 +4793,7 @@ bool MQ2SpellType::GETMEMBER()
 			if (TriggeringEffectSpell(pSpell, nSlot) && TriggeringEffectSpell(tmpSpell, nSlot)) {		// Check the triggered effect against the current buff for stacking
 																										//WriteChatf("Checking triggering effect for slot %d", nSlot);
 				PSPELL pSpellTriggeredSpell = GetSpellByID(GetSpellBase2(pSpell, nSlot));
-				PSPELL tmpSpellTriggeredSpell = GetSpellByID(GetSpellBase2(tmpSpell,nSlot));
+				PSPELL tmpSpellTriggeredSpell = GetSpellByID(GetSpellBase2(tmpSpell, nSlot));
 				if (pSpellTriggeredSpell && tmpSpellTriggeredSpell) {
 					//WriteChatf("pSpellTriggeredSpell->Name=%s tmpSpellTriggeredSpell->Name=%s", pSpellTriggeredSpell->Name, tmpSpellTriggeredSpell->Name);
 					if (!BuffStackTest(pSpellTriggeredSpell, tmpSpellTriggeredSpell)) {
@@ -4839,7 +4841,7 @@ bool MQ2SpellType::GETMEMBER()
 		Dest.Type = pIntType;
 		return true;
 	case MaxLevel:
-		Dest.DWord = GetSpellMax(pSpell,0);
+		Dest.DWord = GetSpellMax(pSpell, 0);
 		Dest.Type = pIntType;
 		return true;
 	case Category:
@@ -4882,7 +4884,7 @@ bool MQ2SpellType::GETMEMBER()
 		if (ISNUMBER())
 		{
 			LONG nIndex = GETNUMBER() - 1;
-			Dest.DWord = GetSpellBase(pSpell,nIndex);
+			Dest.DWord = GetSpellBase(pSpell, nIndex);
 		}
 		return true;
 	case Base2:
@@ -4893,7 +4895,7 @@ bool MQ2SpellType::GETMEMBER()
 		if (ISNUMBER())
 		{
 			unsigned long nIndex = GETNUMBER() - 1;
-			Dest.DWord = GetSpellBase2(pSpell,nIndex);
+			Dest.DWord = GetSpellBase2(pSpell, nIndex);
 		}
 		return true;
 	case Max:
@@ -4904,7 +4906,7 @@ bool MQ2SpellType::GETMEMBER()
 		if (ISNUMBER())
 		{
 			unsigned long nIndex = GETNUMBER() - 1;
-			Dest.DWord = GetSpellMax(pSpell,nIndex);
+			Dest.DWord = GetSpellMax(pSpell, nIndex);
 		}
 		return true;
 	case Calc:
@@ -4915,7 +4917,7 @@ bool MQ2SpellType::GETMEMBER()
 		if (ISNUMBER())
 		{
 			unsigned long nIndex = GETNUMBER() - 1;
-			Dest.DWord = GetSpellCalc(pSpell,nIndex);
+			Dest.DWord = GetSpellCalc(pSpell, nIndex);
 		}
 		return true;
 	case Attrib:
@@ -4926,7 +4928,7 @@ bool MQ2SpellType::GETMEMBER()
 		if (ISNUMBER())
 		{
 			unsigned long nIndex = GETNUMBER() - 1;
-			Dest.DWord = GetSpellAttrib(pSpell,nIndex);
+			Dest.DWord = GetSpellAttrib(pSpell, nIndex);
 		}
 		return true;
 #if !defined(EMU)
@@ -8528,7 +8530,7 @@ bool MQ2AltAbilityType::GETMEMBER()
 	case NextIndex:
 		Dest.DWord = pAbility->next_id;
 		Dest.Type = pIntType;
-		return true; 
+		return true;
 	}
 	return false;
 }
@@ -9770,7 +9772,7 @@ bool MQ2TargetType::GETMEMBER()
 	case AggroHolder:
 	{
 		//who the Target has the MOST aggro on
-		PCHAR pTargetAggroHolder = EQADDR_TARGETAGGROHOLDER; 
+		PCHAR pTargetAggroHolder = EQADDR_TARGETAGGROHOLDER;
 		if (pTargetAggroHolder[0] != '\0')
 		{
 			PSPAWNINFO pAggroHolder = (PSPAWNINFO)GetSpawnByName(pTargetAggroHolder);
@@ -10285,22 +10287,12 @@ bool MQ2TaskMemberType::GETMEMBER()
 
 bool MQ2TaskType::GETMEMBER()
 {
-	int v, r, c, l;
-	char s[MAX_STRING];
-	char t[MAX_STRING];
-
-	// default return local string
-	strcpy(RetStr, "NULL");
-	Dest.Ptr = &RetStr[0];
-	Dest.Type = pStringType;
-
 	if (!VarPtr.Ptr)
 		return false;
 	PMQ2TYPEMEMBER pMember = MQ2TaskType::FindMember(Member);
 	if (!pMember)
 		return false;
 	PTASKMEMBER pTaskmember = (PTASKMEMBER)VarPtr.Ptr;
-
 	switch ((TaskTypeMembers)pMember->ID)
 	{
 	case Address:
@@ -10308,122 +10300,161 @@ bool MQ2TaskType::GETMEMBER()
 		Dest.Type = pIntType;
 		return true;
 	case Leader:
-		for (r = 1; r<54; r++) {
-			Evaluate(s, "${Window[TaskWnd].Child[STASK_MemberList].List[%d,%d]}", r, 2);
-			if (stricmp(s, "Leader") == 0) {
-				Evaluate(RetStr, "${Window[TaskWnd].Child[STASK_MemberList].List[%d,%d]}", r, 1);
-				Dest.Ptr = &RetStr[0];
+	{
+		for (int i = 1; pTaskmember && i<7; pTaskmember = pTaskmember->pNext, i++) {
+			if (pTaskmember->IsLeader) {
+				strcpy_s(DataTypeTemp, pTaskmember->Name);
+				Dest.Ptr = &DataTypeTemp[0];
 				Dest.Type = pStringType;
-				r = 99;
-			}
-			Evaluate(s, "${Window[TaskWnd].Child[STASK_MemberList].List[%d,%d]}", r, 1);
-			if (s[0] == 0)
-				r = 99;
-		}
 				return true;
-	case Title:
-		Evaluate(s, "${Window[TaskWnd].Child[TASK_TaskList].GetCurSel}");
-		if (s[0] != '0') {
-			Evaluate(RetStr, "${Window[TaskWnd].Child[TASK_TaskList].List[%s,2]}", s);
 			}
-		return true;
+		}
+		return false;
+	}
+	case Title:
+	{
+		CListWnd *clist = (CListWnd *)pTaskWnd->GetChildItem("TASK_TaskList");
+		if (clist) {
+			CXStr Str;
+			clist->GetItemText(&Str, 0, 1);
+			CHAR szOut[255] = { 0 };
+			GetCXStr(Str.Ptr, szOut, 254);
+			if (szOut[0] != '\0') {
+				strcpy_s(DataTypeTemp, szOut);
+				Dest.Ptr = &DataTypeTemp[0];
+				Dest.Type = pStringType;
+				return true;
+			}
+		}
+		return false;
+	}
 	case Timer:
+	{
 		pTaskWnd->UpdateTaskTimers(_time32(NULL));
-		Evaluate(s, "${Window[TaskWnd].Child[TASK_TaskList].List[1,3]}");
-		if (s[0] != '\0') {
+		CListWnd *clist = (CListWnd *)pTaskWnd->GetChildItem("TASK_TaskList");
+		if (clist) {
+			CXStr Str;
+			clist->GetItemText(&Str, 0, 2);
+			CHAR szOut[255] = { 0 };
+			GetCXStr(Str.Ptr, szOut, 254);
+			if (szOut[0] != '\0') {
 				int hh, mm, ss;
-			if (sscanf_s(s, "%d:%d:%d", &hh, &mm, &ss)) {
+				if (sscanf_s(szOut, "%d:%d:%d", &hh, &mm, &ss)) {
 					Dest.UInt64 = ((hh * 3600) + (mm * 60) + ss) * 1000;
 					Dest.Type = pTimeStampType;
 					return true;
 				}
 				return false;
 			}
-		return true;
+		}
+		return false;
+	}
 	case xMember:
-		l = strlen(Index);
-		v = sscanf(Index, "%d,%d", &r, &c);
-		if (v < 1) r = 1;
-		if (v < 2) c = 1;
-		Evaluate(RetStr, "${Window[TaskWnd].Child[STASK_MemberList].List[%d,%d]}", r, c);
-		if (v == 0 && l>0) {
-			Dest.DWord = 0;
-			Dest.Type = pIntType;
-			for (r = 1; r<54; r++) {
-				Evaluate(s, "${Window[TaskWnd].Child[STASK_MemberList].List[%d,%d]}", r, 1);
-				if (stricmp(s, Index) == 0) {
-					Dest.DWord = r;
+		if (!ISINDEX())
+			return false;
+		if (ISNUMBER())
+		{
+			for (int i = 1; pTaskmember && i<7; pTaskmember = pTaskmember->pNext, i++) {
+				if (i == GETNUMBER()) {
+					Dest.Ptr = pTaskmember;
+					Dest.Type = pTaskMemberType;
 					return true;
 				}
-				if (s[0] == 0)
-					return true;
 			}
 		}
+		else {
+			for (; pTaskmember; pTaskmember = pTaskmember->pNext) {
+				if (!_stricmp(pTaskmember->Name, GETFIRST())) {
+					Dest.Ptr = pTaskmember;
+					Dest.Type = pTaskMemberType;
 					return true;
+				}
+			}
+		}
+		return false;
 	case Members:
+		pTaskmember = pTaskMember;
 		Dest.DWord = 0;
+		for (; pTaskmember && Dest.DWord<6; pTaskmember = pTaskmember->pNext, Dest.DWord++) {
+		}
 		Dest.Type = pIntType;
-		for (r = 1; r<54; r++) {
-			Evaluate(s, "${Window[TaskWnd].Child[STASK_MemberList].List[%d,%d]}", r, 1);
-			if (s[0] == 0) {
-				Dest.DWord = r - 1;
-				r = 99;
-			}
-				}
 		return true;
-	case MemberList:
-		RetStr[0] = 0;
-		for (r = 1; r<54; r++) {
-			Evaluate(s, "${Window[TaskWnd].Child[STASK_MemberList].List[%d,%d]}", r, 1);
-			if (s[0] != 0) {
-				if (RetStr[0] == 0)
-					sprintf(RetStr, "^%s^", s);
-				else
-					sprintf(RetStr, "%s%s^", RetStr, s);
-			}
-			else {
-				r = 99;
-		}
-		}
-		return true;
-	case List: {
-		v = sscanf(Index, "%d,%d", &r, &c);
-		if (v < 1) r = 1;
-		Evaluate(RetStr, "${Window[TaskWnd].Child[TASK_TaskList].List[%d,2]}", r);
+	case List:
+	{
+		int theindex = atoi(GETFIRST());
+		CListWnd *clist = (CListWnd *)pTaskWnd->GetChildItem("TASK_TaskList");
+		if (clist) {
+			CXStr Str;
+			clist->GetItemText(&Str, theindex, 1);
+			CHAR szOut[255] = { 0 };
+			GetCXStr(Str.Ptr, szOut, 254);
+			if (szOut[0] != '\0') {
+				strcpy_s(DataTypeTemp, szOut);
+				Dest.Ptr = &DataTypeTemp[0];
+				Dest.Type = pStringType;
 				return true;
 			}
-	case Step:
-		v = sscanf(Index, "%d,%d", &r, &c);
-		if (v < 2) c = 1;
-		if (v < 1) r = 1;
-		Evaluate(RetStr, "${Window[TaskWnd].Child[TASK_TaskElementList].List[%d,%d]}", r, c);
-		return true;
-	case Objective:
-		for (r = 1; r<20; r++) {
-			Evaluate(s, "${Window[TaskWnd].Child[TASK_TaskElementList].List[%d,%d]}", r, 2);
-			if (stricmp(s, "Done") != 0) {
-				Evaluate(t, "${Window[TaskWnd].Child[TASK_TaskElementList].List[%d,%d]}", r, 1);
-				sprintf(RetStr, "%s|%s", t, s);
-				r = 99;
 		}
+		return false;
 	}
-	case Select:
-		l = strlen(Index);
-		if (l>0) {
-			for (r = 1; r<20; r++) {
-				Evaluate(s, "${Window[TaskWnd].Child[TASK_TaskList].List[%d,2]}", r);
-				if (strstr(s, Index) != 0) {
-					strcpy(RetStr, s);
-					sprintf(s, "/notify TaskWnd TASK_TaskList listselect %d", r);
-					HideDoCommand(((PSPAWNINFO)pCharSpawn), s, FALSE);
-					r = 99;
+	case Step:
+	{
+		int v, r, c;
+		v = sscanf(GETFIRST(), "%d,%d", &r, &c);
+		if (v < 2)
+			c = 1;
+		if (v < 1)
+			r = 1;
+		CXStr Str;
+		if (CListWnd *clist = (CListWnd *)pTaskWnd->GetChildItem("TASK_TaskElementList")) {
+			clist->GetItemText(&Str, r, c);
+			CHAR szOut[255] = { 0 };
+			GetCXStr(Str.Ptr, szOut, 254);
+			if (szOut[0] != '\0') {
+				strcpy_s(DataTypeTemp, szOut);
+				Dest.Ptr = &DataTypeTemp[0];
+				Dest.Type = pStringType;
+				return true;
 			}
 		}
+		return false;
 	}
+	case Objective:
+	{
+		int v, r, c;
+		v = sscanf(GETFIRST(), "%d,%d", &r, &c);
+		if (v < 2)
+			c = 0;
+		if (v < 1)
+			r = 0;
+		//WriteChatf("List.Objective[%s] : r=%d C=%d v=%d", Index,r,c,v);
+		if (CListWnd *clist = (CListWnd *)pTaskWnd->GetChildItem("TASK_TaskElementList")) {
+			CXStr Str;
+			clist->GetItemText(&Str, r, c);
+			CHAR szOut[255] = { 0 };
+			GetCXStr(Str.Ptr, szOut, 254);
+			if (szOut[0] != '\0') {
+				strcpy_s(DataTypeTemp, szOut);
+				Dest.Ptr = &DataTypeTemp[0];
+				Dest.Type = pStringType;
+				return true;
+			}
+		}
+		return false;
+	}
+	case Select:
+		Dest.Type = pBoolType;
+		Dest.DWord = 0;
+		int l = atoi(GETFIRST());
+		if (CListWnd *clist = (CListWnd *)pTaskWnd->GetChildItem("TASK_TaskList")) {
+			SendListSelect2((CXWnd*)clist, l);
+			Dest.DWord = 1;
+		}
 		return true;
 	}
 	return false;
 }
+
 bool MQ2XTargetType::GETMEMBER()
 {
 	if (!GetCharInfo() || !GetCharInfo()->pXTargetMgr)
@@ -10482,38 +10513,38 @@ bool MQ2KeyRingType::GETMEMBER()
 		return false;
 	switch ((KeyRingTypeMembers)pMember->ID)
 	{
-		case xIndex:
-		{
+	case xIndex:
+	{
+		DWORD n = LOWORD(VarPtr.DWord);
+		Dest.DWord = n + 1;
+		Dest.Type = pIntType;
+		return true;
+	}
+	case Name:
+	{
+		if (CXWnd *krwnd = FindMQ2Window(KeyRingWindowParent)) {
+			CListWnd *clist = 0;
 			DWORD n = LOWORD(VarPtr.DWord);
-			Dest.DWord = n + 1;
-			Dest.Type = pIntType;
-			return true;
-		}
-		case Name:
-		{
-			if (CXWnd *krwnd = FindMQ2Window(KeyRingWindowParent)) {
-				CListWnd *clist = 0;
-				DWORD n = LOWORD(VarPtr.DWord);
-				DWORD type = HIWORD(VarPtr.DWord);
-				if (type == 1)
-					clist = (CListWnd *)krwnd->GetChildItem(IllusionWindowList);
-				else
-					clist = (CListWnd *)krwnd->GetChildItem(MountWindowList);
+			DWORD type = HIWORD(VarPtr.DWord);
+			if (type == 1)
+				clist = (CListWnd *)krwnd->GetChildItem(IllusionWindowList);
+			else
+				clist = (CListWnd *)krwnd->GetChildItem(MountWindowList);
 
-				if (clist) {
-					CXStr Str;
-					clist->GetItemText(&Str, n, 2);
-					CHAR szOut[255] = { 0 };
-					GetCXStr(Str.Ptr, szOut, 254);
-					if (szOut[0] != '\0') {
-						strcpy_s(DataTypeTemp, szOut);
-						Dest.Ptr = &DataTypeTemp[0];
-						Dest.Type = pStringType;
-						return true;
-					}
+			if (clist) {
+				CXStr Str;
+				clist->GetItemText(&Str, n, 2);
+				CHAR szOut[255] = { 0 };
+				GetCXStr(Str.Ptr, szOut, 254);
+				if (szOut[0] != '\0') {
+					strcpy_s(DataTypeTemp, szOut);
+					Dest.Ptr = &DataTypeTemp[0];
+					Dest.Type = pStringType;
+					return true;
 				}
 			}
 		}
+	}
 	}
 	return false;
 }

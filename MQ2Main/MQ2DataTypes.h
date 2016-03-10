@@ -1088,6 +1088,7 @@ public:
 		Poisoned = 240,
 		Krono = 241,
 		XTargetSlots = 242,
+		AssistComplete = 243,
 	};
 	enum CharacterMethods
 	{
@@ -1329,7 +1330,8 @@ public:
 		TypeMember(Poisoned);
 		TypeMember(Krono);
 		TypeMember(XTargetSlots);
-		
+		TypeMember(AssistComplete);
+
 		TypeMethod(Stand);
 		TypeMethod(Sit);
 		TypeMethod(Dismount);
@@ -4482,15 +4484,19 @@ public:
 	bool GETMEMBER();
 	bool ToString(MQ2VARPTR VarPtr, PCHAR Destination)
 	{
-		char s[MAX_STRING];
-		Evaluate(s, "${Window[TaskWnd].Child[TASK_TaskList].GetCurSel}");
-		if (s[0] != '0') {
-			Evaluate(Destination, "${Window[TaskWnd].Child[TASK_TaskList].List[%s,2]}", s);
+		if (pTaskWnd) {
+			if (CListWnd *clist = (CListWnd *)pTaskWnd->GetChildItem("TASK_TaskList")) {
+				CXStr Str;
+				clist->GetItemText(&Str, 0, 1);
+				CHAR szOut[255] = { 0 };
+				GetCXStr(Str.Ptr, szOut, 254);
+				if (szOut[0] != '\0') {
+					strcpy(Destination, szOut);
+					return true;
+				}
 			}
-		else {
-			strcpy(Destination, "NULL");
 		}
-		return true;
+		return false;
 	}
 	bool FromData(MQ2VARPTR &VarPtr, MQ2TYPEVAR &Source)
 	{
@@ -4500,13 +4506,6 @@ public:
 	{
 		return false;
 	}
-	void Evaluate(char *zOutput, char *zFormat, ...) { // Helper to evalute MQ code - thanks s0rCieR
-		va_list vaList;
-		va_start(vaList, zFormat);
-		vsprintf(zOutput, zFormat, vaList);
-		ParseMacroData(zOutput);
-	}
-	char RetStr[MAX_STRING];
 };
 
 class MQ2XTargetType : public MQ2Type

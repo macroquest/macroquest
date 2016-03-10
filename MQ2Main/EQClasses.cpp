@@ -4639,7 +4639,11 @@ FUNCTION_AT_ADDRESS(int  EQ_PC::numInParty(void),EQ_PC__numInParty);
 FUNCTION_AT_ADDRESS(unsigned char  EQ_PC::AtSkillLimit(int),EQ_PC__AtSkillLimit);
 #endif
 #ifdef EQ_PC__GetItemTimerValue_x
+#if defined(TEST)
+FUNCTION_AT_ADDRESS(unsigned long  EQ_PC::GetItemTimerValue(class EQ_Item *,int),EQ_PC__GetItemTimerValue);
+#else
 FUNCTION_AT_ADDRESS(unsigned long  EQ_PC::GetItemTimerValue(class EQ_Item *),EQ_PC__GetItemTimerValue);
+#endif
 #endif
 #ifdef EQ_PC__GetAlternateAbilityId_x
 FUNCTION_AT_ADDRESS(int  EQ_PC::GetAlternateAbilityId(int),EQ_PC__GetAlternateAbilityId);
@@ -5335,8 +5339,8 @@ FUNCTION_AT_ADDRESS(void  EQPlayer::UpdatePlayerVisibility(void),EQPlayer__Updat
 #ifdef EQPlayer__UpdateAllPlayersVisibility_x
 FUNCTION_AT_ADDRESS(void __cdecl EQPlayer::UpdateAllPlayersVisibility(void),EQPlayer__UpdateAllPlayersVisibility);
 #endif
-#ifdef EQPlayer__IsBodyType_j_x
-FUNCTION_AT_ADDRESS(bool EQPlayer::IsBodyType(unsigned int,int,int),EQPlayer__IsBodyType_j);
+#ifdef PlayerBase__HasProperty_j_x
+FUNCTION_AT_ADDRESS(bool EQPlayer::HasProperty(unsigned int,int,int),PlayerBase__HasProperty_j);
 #endif
 #ifdef EQPlayer__SetEyeMaterial_x
 FUNCTION_AT_ADDRESS(int  EQPlayer::SetEyeMaterial(unsigned char,int),EQPlayer__SetEyeMaterial);

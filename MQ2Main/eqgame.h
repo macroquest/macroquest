@@ -101,7 +101,7 @@ GNU General Public License for more details.
 #define __GroupAggro_x                                             0x11B7C04
 #define __LoginName_x                                              0x10A6A10
 #define __Inviter_x                                                0x10A2A38
-
+#define __AttackOnAssist_x                                         0x101F8C4 
 
 //// 
 //Section 1: Vital Offsets 
@@ -518,8 +518,9 @@ GNU General Public License for more details.
 #define CMerchantWnd__SelectBuySellSlot_x                          0x733E20
 #define CMerchantWnd__ActualSelect_x                               0x738680
 
-// CObfuscator
-#define CObfuscator__doit_x                                        0x8536B0
+// CPacketScrambler
+#define CPacketScrambler__ntoh_x                                   0x8536A0
+#define CPacketScrambler__hton_x                                   0x8536B0
 
 // CSidlManager 
 #define CSidlManager__FindScreenPieceTemplate1_x                   0x8E20C0
@@ -715,7 +716,7 @@ GNU General Public License for more details.
 #define EQPlayer__EQPlayer_x                                       0x5D4720
 #define EQPlayer__SetNameSpriteState_x                             0x5CF1E0
 #define EQPlayer__SetNameSpriteTint_x                              0x5CA870
-#define EQPlayer__IsBodyType_j_x                                   0x9307C0
+#define PlayerBase__HasProperty_j_x                                0x9307C0
 #define EQPlayer__IsTargetable_x                                   0x9310C0
 #define EQPlayer__CanSee_x                                         0x9315E0
 #define PlayerZoneClient__ChangeHeight_x                           0x5E4260
@@ -802,3 +803,7 @@ GNU General Public License for more details.
 //CCastSpellWnd
 #define CCastSpellWnd__ForgetMemorizedSpell_x                      0x688F20
 #define CCastSpellWnd__IsBardSongPlaying_x                         0x6886E0
+
+//messages
+#define msg_spell_worn_off_x                                       0x4E7590
+#define msg_new_text_x                                             0x4F0A40

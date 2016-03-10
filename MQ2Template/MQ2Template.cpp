@@ -124,3 +124,21 @@ PLUGIN_API VOID OnRemoveGroundItem(PGROUNDITEM pGroundItem)
 {
     DebugSpewAlways("MQ2Template::OnRemoveGroundItem(%d)",pGroundItem->DropID);
 }
+
+// This is called when we recive the EQ_BEGIN_ZONE packet is received
+PLUGIN_API VOID BeginZone(VOID)
+{
+    DebugSpewAlways("MQ2Template::BeginZone";
+}
+
+// This is called when we recive the EQ_END_ZONE packet is received
+PLUGIN_API VOID EndZone(VOID)
+{
+    DebugSpewAlways("MQ2Template::EndZone";
+}
+// This is called when pChar!=pCharOld && We are NOT zoning
+// honestly I have no idea if its better to use this one or EndZone (above)
+PLUGIN_API VOID Zoned(VOID)
+{
+    DebugSpewAlways("MQ2Template::Zoned";
+}

@@ -133,15 +133,15 @@ static inline DWORD GetBodyType(PSPAWNINFO pSpawn)
 {
     for(int i=0; i<104; i++)
     {
-        if(((EQPlayer*)pSpawn)->IsBodyType(i,0,0))
+        if(((EQPlayer*)pSpawn)->HasProperty(i,0,0))
         {
             if(i==100)
             {
-                if(((EQPlayer*)pSpawn)->IsBodyType(i,101,0))
+                if(((EQPlayer*)pSpawn)->HasProperty(i,101,0))
                     return 101;
-                if(((EQPlayer*)pSpawn)->IsBodyType(i,102,0))
+                if(((EQPlayer*)pSpawn)->HasProperty(i,102,0))
                     return 102;
-                if(((EQPlayer*)pSpawn)->IsBodyType(i,103,0))
+                if(((EQPlayer*)pSpawn)->HasProperty(i,103,0))
                     return 103;
             }
             return i;
@@ -600,6 +600,17 @@ static inline BOOL IsAssistNPC(PSPAWNINFO pSpawn)
 				}
 			}
 		}
+	}
+    return false;
+}
+static inline bool CanTank(DWORD Class)
+{
+	switch (Class)
+	{
+		case Warrior:
+		case Shadowknight:
+		case Paladin:
+			return true;
 	}
     return false;
 }

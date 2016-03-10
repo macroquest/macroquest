@@ -59,7 +59,7 @@ using namespace std;
 
 #if !defined(ISXEQ) && !defined(ISXEQ_LEGACY)
 // MQ2
-#include "..\Dxsdk81\include\dinput.h"
+#include "..\Dxsdk90\include\dinput.h"
 #include "..\Detours\inc\detours.h" 
 #include "..\Blech\Blech.h"
 #elif !defined(ISXEQ_LEGACY)
@@ -165,7 +165,7 @@ extern DWORD CountFrees;
 #endif
 
 #ifndef ISXEQ
-#define FUNCTION_AT_ADDRESS(function,offset) __declspec(naked) function\
+#define FUNCTION_AT_ADDRESS(function,offset)  __declspec(naked) function\
 {\
     __asm{mov eax, offset};\
     __asm{jmp eax};\
@@ -236,7 +236,7 @@ typedef double DOUBLE;
 #endif
 
 #ifndef ISXEQ
-#define MakeLower(yourstring) transform (yourstring.begin(),yourstring.end(), yourstring.begin(), tolower);
+#define MakeLower(yourstring) std::transform (yourstring.begin(),yourstring.end(), yourstring.begin(), tolower);
 #endif
 
 #define MAX_VARNAME 64
@@ -724,7 +724,7 @@ LEGACY_API BOOL Calculate(PCHAR szFormula, DOUBLE& Dest);
 #define LIGHT_COUNT     13
 #define MAX_COMBINES    52
 #define MAX_ITEMTYPES   56
-#define MAX_SPELLEFFECTS   458
+#define MAX_SPELLEFFECTS   478
 
 #define GAMESTATE_CHARSELECT    1
 #define GAMESTATE_CHARCREATE    2

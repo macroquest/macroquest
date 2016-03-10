@@ -421,6 +421,9 @@ public:
 		gTargetbuffs = FALSE;
 		CTargetWnd__UpdateBuffs_Trampoline(buffer);
 		gTargetbuffs = TRUE;
+		if (gbAssistComplete == 1) {
+			gbAssistComplete = 2;
+		}
 	}
 };
 

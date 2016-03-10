@@ -5681,7 +5681,11 @@ EQLIB_OBJECT void EQ_PC::SetFatigue(int);
 EQLIB_OBJECT void EQ_PC::UnpackMyNetPC(char *,int);
 EQLIB_OBJECT void EQ_PC::AlertInventoryChanged(void);
 EQLIB_OBJECT unsigned long EQ_PC::GetCombatAbilityTimer(int,int);
+#if defined(TEST)
+EQLIB_OBJECT unsigned long EQ_PC::GetItemTimerValue(class EQ_Item *,int);
+#else
 EQLIB_OBJECT unsigned long EQ_PC::GetItemTimerValue(class EQ_Item *);
+#endif
 EQLIB_OBJECT unsigned long EQ_PC::HasLoreItem(class EQ_Item *);
 };
 
@@ -5960,7 +5964,7 @@ EQLIB_OBJECT void EQPlayer::UpdateAppearance(void);
 EQLIB_OBJECT void EQPlayer::UpdateBonePointers(void);
 EQLIB_OBJECT void EQPlayer::UpdateNameSprite(void);
 EQLIB_OBJECT void EQPlayer::UpdatePlayerVisibility(void);
-EQLIB_OBJECT bool EQPlayer::IsBodyType(unsigned int,int,int);
+EQLIB_OBJECT bool EQPlayer::HasProperty(unsigned int,int,int);
 // private
 EQLIB_OBJECT int EQPlayer::IdUsed(unsigned int);
 EQLIB_OBJECT static class EQPlayer * EQPlayer::mTop;

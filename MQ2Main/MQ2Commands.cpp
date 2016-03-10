@@ -2298,8 +2298,8 @@ VOID Cast(PSPAWNINFO pChar, PCHAR szLine)
 			{
 				if (GetItemFromContents(pItem)->Clicky.SpellID > 0 && GetItemFromContents(pItem)->Clicky.SpellID != -1)
 				{
-					CHAR cmd[40] = { 0 };
-					sprintf(cmd, "/useitem %d %d", pItem->ItemSlot, pItem->ItemSlot2);
+					CHAR cmd[512] = { 0 };
+					sprintf_s(cmd, "/useitem \"%s\"",GetItemFromContents(pItem)->Name);
 					EzCommand(cmd);
 				}
 			}
@@ -4232,5 +4232,16 @@ VOID PickZoneCmd(PSPAWNINFO pChar, PCHAR szLine)
 		DWORD nThreadID = 0;
 		CreateThread(NULL, 0, openpickzonewnd, (PVOID)index, 0, &nThreadID);
 	}
+}
+// ***************************************************************************
+// Function:    AssistCmd
+// Description: '/assist' command
+// Purpose:     Adds the ability to forward /assist so we can set the gbAssist flag
+// Author:      EqMule
+// ***************************************************************************
+VOID AssistCmd(PSPAWNINFO pChar, PCHAR szLine)
+{
+	gbAssistComplete = 0;
+	cmdAssist(pChar, szLine);
 }
 #endif

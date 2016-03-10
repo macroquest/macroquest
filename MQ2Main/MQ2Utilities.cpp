@@ -1081,7 +1081,7 @@ PSPELL GetSpellByName(PCHAR szName)
 	catch (...)
 	{
 		DebugSpewAlways("Caught exception in GetSpellByName");
-		throw;
+		//throw;
 	}
 	return NULL;
 }
@@ -1105,7 +1105,7 @@ PSPELL GetSpellByAAName(PCHAR szName)
 	}
 	catch (...) {
 		DebugSpewAlways("Caught exception in GetSpellByAAName");
-		throw;
+		//throw;
 	}
 	return NULL;
 }
@@ -6738,7 +6738,11 @@ PCHAR GetLDoNTheme(DWORD LDTheme)
 
 DWORD GetItemTimer(PCONTENTS pItem)
 {
+#if defined(TEST)
+	DWORD Timer = pPCData->GetItemTimerValue((EQ_Item*)&pItem,0);
+#else
 	DWORD Timer = pPCData->GetItemTimerValue((EQ_Item*)&pItem);
+#endif
 	if (Timer<GetFastTime()) return 0;
 	return Timer - GetFastTime();
 }

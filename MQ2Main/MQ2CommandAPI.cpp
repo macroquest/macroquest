@@ -573,9 +573,11 @@ void InitializeMQ2Commands()
             cmdAdvLoot = (fEQCommand)pCmdListOrig[i].fAddress;
         } else if (!strcmp(pCmdListOrig[i].szName,"/pickzone")) {
             cmdPickZone = (fEQCommand)pCmdListOrig[i].fAddress;
+		} else if (!strcmp(pCmdListOrig[i].szName,"/assist")) {
+			cmdAssist = (fEQCommand)pCmdListOrig[i].fAddress;
         }
         AddCommand(pCmdListOrig[i].szName,pCmdListOrig[i].fAddress,TRUE,1,1);
-    }    
+    }
 
 
 
@@ -690,6 +692,7 @@ void InitializeMQ2Commands()
 		{"/removeaura", RemoveAura,0,1},
 		{"/advloot",    AdvLootCmd,1,1},
 		{"/pickzone",   PickZoneCmd,1,1},
+		{"/assist",     AssistCmd,1,1},
         {NULL,          NULL,0,1},
     };
 

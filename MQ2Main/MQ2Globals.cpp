@@ -347,6 +347,7 @@ namespace MQ2Globals
 	DWORD gMaxTurbo = 10;
 	BOOL gReturn = TRUE;
 	BOOL gInClick = FALSE;
+	DWORD gbAssistComplete = 0;
 	BOOL gTargetbuffs = FALSE;
 	BOOL gbInZone = FALSE;
 	BOOL gZoning = FALSE;
@@ -420,6 +421,7 @@ namespace MQ2Globals
 	fEQCommand        cmdMercSwitch = NULL;
 	fEQCommand        cmdAdvLoot = NULL;
 	fEQCommand        cmdPickZone = NULL;
+	fEQCommand        cmdAssist = NULL;
 
 	DWORD gnNormalEQMappableCommands;
 	PCHAR szEQMappableCommands[nEQMappableCommands];
@@ -1650,7 +1652,8 @@ namespace MQ2Globals
 	INITIALIZE_EQGAME_OFFSET(CMerchantWnd__SelectBuySellSlot);
 	INITIALIZE_EQGAME_OFFSET(CMerchantWnd__ActualSelect);
 
-	INITIALIZE_EQGAME_OFFSET(CObfuscator__doit);
+	INITIALIZE_EQGAME_OFFSET(CPacketScrambler__ntoh);
+	INITIALIZE_EQGAME_OFFSET(CPacketScrambler__hton);
 
 	INITIALIZE_EQGAME_OFFSET(CSidlManager__FindScreenPieceTemplate1);
 	INITIALIZE_EQGAME_OFFSET(CSidlManager__CreateLabel);
@@ -1824,7 +1827,7 @@ namespace MQ2Globals
 	INITIALIZE_EQGAME_OFFSET(EQPlayer__EQPlayer);
 	INITIALIZE_EQGAME_OFFSET(EQPlayer__SetNameSpriteState);
 	INITIALIZE_EQGAME_OFFSET(EQPlayer__SetNameSpriteTint);
-	INITIALIZE_EQGAME_OFFSET(EQPlayer__IsBodyType_j);
+	INITIALIZE_EQGAME_OFFSET(PlayerBase__HasProperty_j);
 	INITIALIZE_EQGAME_OFFSET(EQPlayer__IsTargetable);
 	INITIALIZE_EQGAME_OFFSET(EQPlayer__CanSee);
 	INITIALIZE_EQGAME_OFFSET(PlayerZoneClient__ChangeHeight);
@@ -1871,4 +1874,7 @@ namespace MQ2Globals
 	INITIALIZE_EQGAME_OFFSET(CSidlManager__FindAnimation1);
 	//INITIALIZE_EQGAME_OFFSET(ActorClient__GetPosition);
 	//INITIALIZE_EQGAME_OFFSET(ActorClient__GetPosition1);
+	INITIALIZE_EQGAME_OFFSET(msg_spell_worn_off);
+	INITIALIZE_EQGAME_OFFSET(msg_new_text);
+	
 };
