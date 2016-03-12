@@ -1835,7 +1835,8 @@ namespace MQ2Globals
 
 	INITIALIZE_EQGAME_OFFSET(EQPlayerManager__GetSpawnByID);
 	INITIALIZE_EQGAME_OFFSET(EQPlayerManager__GetSpawnByName);
-
+	INITIALIZE_EQGAME_OFFSET(EQPlayerManager__GetPlayerFromPartialName);
+	
 	INITIALIZE_EQGAME_OFFSET(KeypressHandler__AttachAltKeyToEqCommand);
 	INITIALIZE_EQGAME_OFFSET(KeypressHandler__AttachKeyToEqCommand);
 	INITIALIZE_EQGAME_OFFSET(KeypressHandler__ClearCommandStateArray);
@@ -1876,5 +1877,6 @@ namespace MQ2Globals
 	//INITIALIZE_EQGAME_OFFSET(ActorClient__GetPosition1);
 	INITIALIZE_EQGAME_OFFSET(msg_spell_worn_off);
 	INITIALIZE_EQGAME_OFFSET(msg_new_text);
+	INITIALIZE_EQGAME_OFFSET(msgTokenTextParam);
 	
 };

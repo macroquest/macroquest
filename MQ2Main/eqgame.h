@@ -725,6 +725,7 @@ GNU General Public License for more details.
 //EQPlayerManager
 #define EQPlayerManager__GetSpawnByID_x                            0x5D8AA0
 #define EQPlayerManager__GetSpawnByName_x                          0x5D8F00
+#define EQPlayerManager__GetPlayerFromPartialName_x                0x5D8AD0
 
 // KeyPressHandler 
 #define KeypressHandler__AttachAltKeyToEqCommand_x                 0x59A9A0
@@ -807,3 +808,4 @@ GNU General Public License for more details.
 //messages
 #define msg_spell_worn_off_x                                       0x4E7590
 #define msg_new_text_x                                             0x4F0A40
+#define msgTokenTextParam_x                                        0x4ED3A0

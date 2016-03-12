@@ -1307,6 +1307,7 @@ namespace MQ2Globals
 	
 	EQLIB_VAR DWORD EQPlayerManager__GetSpawnByID;
 	EQLIB_VAR DWORD EQPlayerManager__GetSpawnByName;
+	EQLIB_VAR DWORD EQPlayerManager__GetPlayerFromPartialName;
 
 	EQLIB_VAR DWORD KeypressHandler__AttachAltKeyToEqCommand;
 	EQLIB_VAR DWORD KeypressHandler__AttachKeyToEqCommand;
@@ -1359,6 +1360,7 @@ namespace MQ2Globals
 	EQLIB_VAR DWORD CSidlManager__FindAnimation1;
 	EQLIB_VAR DWORD msg_spell_worn_off;
 	EQLIB_VAR DWORD msg_new_text;
+	EQLIB_VAR DWORD msgTokenTextParam;
 	
 }
 using namespace MQ2Globals;

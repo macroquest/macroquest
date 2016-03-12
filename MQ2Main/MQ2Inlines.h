@@ -36,6 +36,11 @@ static inline EQPlayer *GetSpawnByName(char *spawnName)
     return pSpawnManager->GetSpawnByName(spawnName);
 }
 
+static inline EQPlayer *GetSpawnByPartialName(char const *spawnName,class PlayerBase *pbase = 0)
+{
+    return pSpawnManager->GetPlayerFromPartialName(spawnName,pbase);
+}
+
 static inline PSPELL GetSpellByID(LONG dwSpellID)
 {
     if (dwSpellID==0 || dwSpellID==-1)
@@ -558,8 +563,9 @@ static inline DWORD GetGroupMainAssistTargetID()
 				}
 			}
 		}
-		if(bMainAssist)
+		if (bMainAssist) {
 			return pChar->pSpawn->GroupAssistNPC[0];
+		}
 	}
 	return 0;
 }
