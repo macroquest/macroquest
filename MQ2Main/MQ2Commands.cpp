@@ -207,6 +207,7 @@ VOID ItemTarget(PSPAWNINFO pChar, PCHAR szLine)
 			SPAWNINFO tSpawn;
 			ZeroMemory(&tSpawn, sizeof(tSpawn));
 			strcpy(tSpawn.Name, szName);
+			strcpy(tSpawn.DisplayedName, szName);
 			tSpawn.Y = pItem->Y;
 			tSpawn.X = pItem->X;
 			tSpawn.Z = pItem->pSwitch->Z;
@@ -2278,8 +2279,10 @@ VOID Target(PSPAWNINFO pChar, PCHAR szLine)
 		}
 		else if (!strcmp(szArg, "clear")) {
 			pTarget = NULL;
-			EnviroTarget.SpawnID = 0;
-			DoorEnviroTarget.SpawnID = 0;
+			pDoorTarget = 0;
+			pGroundTarget = 0;
+			ZeroMemory(&EnviroTarget, sizeof(EnviroTarget));
+			ZeroMemory(&DoorEnviroTarget, sizeof(DoorEnviroTarget));
 			if (pChar)
 				pChar->GroupMemberTargeted = 0xFFFFFFFF;
 			DebugSpew("Target cleared.");

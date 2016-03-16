@@ -6682,12 +6682,13 @@ PCHAR GetLDoNTheme(DWORD LDTheme)
 
 DWORD GetItemTimer(PCONTENTS pItem)
 {
-#if defined(TEST)
+#if !defined(EMU)
 	DWORD Timer = pPCData->GetItemTimerValue((EQ_Item*)&pItem,0);
 #else
 	DWORD Timer = pPCData->GetItemTimerValue((EQ_Item*)&pItem);
 #endif
-	if (Timer<GetFastTime()) return 0;
+	if (Timer < GetFastTime())
+		return 0;
 	return Timer - GetFastTime();
 }
 

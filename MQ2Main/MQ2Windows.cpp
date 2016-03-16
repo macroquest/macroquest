@@ -454,7 +454,9 @@ CXWnd *FindMQ2Window(PCHAR WindowName)
     _WindowInfo Info;
     std::string Name=WindowName;
     MakeLower(Name);
+	//check toplevel windows first
 	if (WindowMap.find(Name) == WindowMap.end()) {
+		//didnt find one, is it a container?
 		PCONTENTS pPack = 0;
 		if (!_strnicmp(WindowName, "bank", 4)) {
 			unsigned long nPack = atoi(&WindowName[4]);
@@ -477,12 +479,11 @@ CXWnd *FindMQ2Window(PCHAR WindowName)
 		else if (!_stricmp(WindowName, "enviro")) {
 			pPack = ((PEQ_CONTAINERWND_MANAGER)pContainerMgr)->pWorldContents;
 		}
-		if (!pPack) {
-			return 0;
+		if (pPack) {
+			return (CXWnd*)FindContainerForContents(pPack);
 		}
-		return (CXWnd*)FindContainerForContents(pPack);
-
 	}
+	//didnt find a toplevel window, is it a child then?
 	bool namefound = false;
 	for (std::map<CXWnd*, _WindowInfo>::iterator N = WindowList.begin(); N != WindowList.end(); N++)
 	{
@@ -823,9 +824,10 @@ bool SendTabSelect(PCHAR WindowName, PCHAR ScreenID, DWORD Value)
             MacroError("Window '%s' child '%s' not found.",WindowName,ScreenID);
             return false;
         }
-        if (((CXWnd*)pTab)->GetType()==UI_TabBox)
+		int uitype = ((CXWnd*)pTab)->GetType();
+        if (uitype==UI_TabBox)
         {
-            pTab->SetPage(Value,true, true);//this needs to be checked... 03 dec 2013 -eqmule
+            pTab->SetPage(Value,true, true);
             WeDidStuff();
         }
         else
@@ -1137,24 +1139,18 @@ int WndNotify(int argc, char *argv[])
 		SendWndClick2((CXWnd*)addr,szArg2);
 		RETURN(0);
 	}
-    if (Data==0 && SendWndClick(szArg1,szArg2,szArg3))
-        RETURN(0);
     if (!_stricmp(szArg3,"listselect")) {
         SendListSelect(szArg1,szArg2,Data-1);
         RETURN(0);
-    }
-
-	if (!_stricmp(szArg3,"comboselect")) {
+    } else if (!_stricmp(szArg3,"comboselect")) {
         SendComboSelect(szArg1,szArg2,Data-1);
         RETURN(0);
-    }
-
-    if (!_stricmp(szArg3,"tabselect"))
-    {
+    } else if (!_stricmp(szArg3,"tabselect")) {
         SendTabSelect(szArg1,szArg2, Data-1);
         RETURN(0);
     } 
-
+    if (Data==0 && SendWndClick(szArg1,szArg2,szArg3))
+        RETURN(0);
     for (unsigned long i = 0 ; i < sizeof(szWndNotification)/sizeof(szWndNotification[0]) ; i++)
     {
         if (szWndNotification[i] && !_stricmp(szWndNotification[i],szArg3))

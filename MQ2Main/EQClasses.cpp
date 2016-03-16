@@ -4639,7 +4639,7 @@ FUNCTION_AT_ADDRESS(int  EQ_PC::numInParty(void),EQ_PC__numInParty);
 FUNCTION_AT_ADDRESS(unsigned char  EQ_PC::AtSkillLimit(int),EQ_PC__AtSkillLimit);
 #endif
 #ifdef EQ_PC__GetItemTimerValue_x
-#if defined(TEST)
+#if !defined(EMU)
 FUNCTION_AT_ADDRESS(unsigned long  EQ_PC::GetItemTimerValue(class EQ_Item *,int),EQ_PC__GetItemTimerValue);
 #else
 FUNCTION_AT_ADDRESS(unsigned long  EQ_PC::GetItemTimerValue(class EQ_Item *),EQ_PC__GetItemTimerValue);

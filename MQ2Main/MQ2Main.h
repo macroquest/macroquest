@@ -85,7 +85,7 @@ using namespace std;
 #include "..\Dxsdk81\include\dinput.h"
 #include "..\Blech\Blech.h"
 #endif
-//define LIVE, TEST or BETA here depending on which eqgame you are building for. -eqmule sep 27 2014
+//define LIVE, TEST, BETA or EMU here depending on which eqgame you are building for. -eqmule sep 27 2014
 #define LIVE
 #if defined(LIVE)
 #include "eqgame.h"
@@ -634,7 +634,6 @@ EQLIB_API BOOL CheckAlertForRecursion(PSEARCHSPAWN pSearchSpawn, DWORD List);
 EQLIB_API VOID WriteFilterNames(VOID);
 EQLIB_API VOID SetDisplaySWhoFilter(PBOOL bToggle, PCHAR szFilter, PCHAR szToggle);
 EQLIB_API PCHAR GetModel(PSPAWNINFO pSpawn, DWORD Slot);
-EQLIB_API PCHAR GetFriendlyNameForGroundItem(PGROUNDITEM pItem, PCHAR szName);
 EQLIB_API VOID RewriteSubstitutions(VOID);
 EQLIB_API VOID RewriteAliases(VOID);
 EQLIB_API DWORD FindSpellListByName(PCHAR szName);

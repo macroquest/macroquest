@@ -168,15 +168,89 @@ TLO(dataSwitch)
 
 TLO(dataGroundItem)
 {
-	if (pGroundTarget)
-	{
-		Ret.Ptr = pGroundTarget;
-		Ret.Type = pGroundType;
+	if (ISINDEX()) {
+		if (!ppItemList)
+			return false;
+		if (!pItemList)
+			return false;
+		std::map<FLOAT,PGROUNDITEM>itemmap;
+		PGROUNDITEM pItem = *(PGROUNDITEM*)pItemList;
+		CHAR szSearch[MAX_STRING] = { 0 };
+		strcpy_s(szSearch,GETFIRST());
+		_strlwr_s(szSearch);
+		CHAR szName[MAX_STRING] = { 0 };
+		while (pItem) {
+			GetFriendlyNameForGroundItem(pItem, szName);
+			_strlwr_s(szName);
+			if (strstr(szName, szSearch)) {
+				FLOAT X = ((PSPAWNINFO)pCharSpawn)->X - pItem->X;
+				FLOAT Y = ((PSPAWNINFO)pCharSpawn)->Y - pItem->Y;
+				FLOAT Z = 0;
+				if (pItem->pSwitch)
+					Z = ((PSPAWNINFO)pCharSpawn)->Z - pItem->pSwitch->Z;
+				else
+					Z = ((PSPAWNINFO)pCharSpawn)->Z - pItem->Z;
+				float dist = sqrtf(X*X + Y*Y + Z*Z);
+				itemmap[dist] = pItem;
+			}
+			pItem = pItem->pNext;
+		}
+		if (itemmap.size()) {
+			Ret.Ptr = itemmap.begin()->second;
+			Ret.Type = pGroundType;
+			return true;
+		}
+	} else {
+		if (pGroundTarget)
+		{
+			Ret.Ptr = pGroundTarget;
+			Ret.Type = pGroundType;
+			return true;
+		}
+	}
+	return false;
+}
+TLO(dataGroundItemCount)
+{
+	if (ISINDEX()) {
+		if (!ppItemList)
+			return false;
+		if (!pItemList)
+			return false;
+		PGROUNDITEM pItem = *(PGROUNDITEM*)pItemList;
+		DWORD Count = 0;
+		CHAR szSearch[MAX_STRING] = { 0 };
+		strcpy_s(szSearch,GETFIRST());
+		_strlwr_s(szSearch);
+		CHAR szName[MAX_STRING] = { 0 };
+		while (pItem) {
+			GetFriendlyNameForGroundItem(pItem, szName);
+			_strlwr_s(szName);
+			if (strstr(szName, szSearch)) {
+				Count++;
+			}
+			pItem = pItem->pNext;
+		}
+		Ret.DWord = Count;
+		Ret.Type = pIntType;
+		return true;
+	} else {
+		if (!ppItemList)
+			return false;
+		if (!pItemList)
+			return false;
+		PGROUNDITEM pItem = *(PGROUNDITEM*)pItemList;
+		DWORD Count = 0;
+		while (pItem) {
+			Count++;
+			pItem = pItem->pNext;
+		}
+		Ret.DWord =Count;
+		Ret.Type = pIntType;
 		return true;
 	}
 	return false;
 }
-
 TLO(dataMerchant)
 {
 	if (pActiveMerchant)

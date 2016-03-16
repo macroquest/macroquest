@@ -7,6 +7,7 @@ LEGACY_API BOOL dataCharacter(PCHAR szIndex, MQ2TYPEVAR &Ret);
 LEGACY_API BOOL dataSpell(PCHAR szIndex, MQ2TYPEVAR &Ret);
 LEGACY_API BOOL dataSwitch(PCHAR szIndex, MQ2TYPEVAR &Ret);
 LEGACY_API BOOL dataGroundItem(PCHAR szIndex, MQ2TYPEVAR &Ret);
+LEGACY_API BOOL dataGroundItemCount(PCHAR szIndex, MQ2TYPEVAR &Ret);
 LEGACY_API BOOL dataMercenary(PCHAR szIndex, MQ2TYPEVAR &Ret);
 LEGACY_API BOOL dataPet(PCHAR szIndex, MQ2TYPEVAR &Ret);
 LEGACY_API BOOL dataMerchant(PCHAR szIndex, MQ2TYPEVAR &Ret);

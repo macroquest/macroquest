@@ -5681,7 +5681,7 @@ EQLIB_OBJECT void EQ_PC::SetFatigue(int);
 EQLIB_OBJECT void EQ_PC::UnpackMyNetPC(char *,int);
 EQLIB_OBJECT void EQ_PC::AlertInventoryChanged(void);
 EQLIB_OBJECT unsigned long EQ_PC::GetCombatAbilityTimer(int,int);
-#if defined(TEST)
+#if !defined(EMU)
 EQLIB_OBJECT unsigned long EQ_PC::GetItemTimerValue(class EQ_Item *,int);
 #else
 EQLIB_OBJECT unsigned long EQ_PC::GetItemTimerValue(class EQ_Item *);

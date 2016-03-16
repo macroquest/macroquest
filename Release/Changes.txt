@@ -1,3 +1,21 @@
+16 Mar 2016
+- Updated for LIVE
+- Added a new TLO: GroundItemCount
+  usage: /echo There are ${GroundItemCount[apple]} Apples on the ground
+  Output: There are 5 Apples on the ground
+- usage: /echo There are ${GroundItemCount} items on the ground in this zone.
+  Output: There are 12 items on the ground in this zone.
+- Extended the Ground TLO to accept searches
+  usage: /echo The closest ${Ground[brew].DisplayName} is ${Ground[brew].Distance3D} away from you.
+  output: The closest Brew Barrel is 26.4 away from you.
+  Note that both of the searchfunctions are case insensitive and are sorted by distance colosest to you.
+  The only acceptale parameter in the search filter is by name or partial name.
+-
+- Added .Distance3D and .DisplayName to the Ground tlo
+  DisplayName will display the actual name of the ground item, .Name will still display the actorname...
+  ${Ground} now defaults to ${Ground.DisplayName} instead of ${Ground.ID}
+- Doortargets as well as GroundTargets are now cleared when you do a /target clear
+
 15 Mar 2016
 - Maintenance Release, bunch of cleanups and stuff that should improve overall stability.
 -

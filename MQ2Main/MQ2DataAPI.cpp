@@ -123,6 +123,7 @@ void InitializeMQ2Data()
 	AddMQ2Data("Spell", dataSpell);
 	AddMQ2Data("Switch", dataSwitch);
 	AddMQ2Data("Ground", dataGroundItem);
+	AddMQ2Data("GroundItemCount", dataGroundItemCount);
 	AddMQ2Data("Merchant", dataMerchant);
 	AddMQ2Data("Mercenary", dataMercenary);
 	AddMQ2Data("Pet", dataPet);

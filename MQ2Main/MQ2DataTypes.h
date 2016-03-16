@@ -2120,7 +2120,7 @@ public:
 		return false;
 	}
 };
-
+EQLIB_API PCHAR GetFriendlyNameForGroundItem(PGROUNDITEM pItem, PCHAR szName);
 class MQ2GroundType : public MQ2Type
 {
 public:
@@ -2139,6 +2139,8 @@ public:
 		U = 11,
 		xLineOfSight = 12,
 		Address = 13,
+		DisplayName = 14,
+		Distance3D = 15,
 	};
 	enum GroundMethods
 	{
@@ -2157,6 +2159,8 @@ public:
 		AddMember(xLineOfSight, "LineOfSight");
 		TypeMethod(Grab);
 		TypeMember(Address);
+		TypeMember(DisplayName);
+		TypeMember(Distance3D);
 	}
 
 	~MQ2GroundType()
@@ -2170,7 +2174,8 @@ public:
 	{
 		if (VarPtr.Ptr)
 		{
-			itoa(((PGROUNDITEM)VarPtr.Ptr)->DropID, Destination, 10);
+			GetFriendlyNameForGroundItem((PGROUNDITEM)VarPtr.Ptr, Destination);
+			//itoa(((PGROUNDITEM)VarPtr.Ptr)->DropID, Destination, 10);
 			return true;
 		}
 		return false;

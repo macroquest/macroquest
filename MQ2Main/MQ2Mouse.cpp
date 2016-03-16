@@ -368,7 +368,7 @@ VOID Click(PSPAWNINFO pChar, PCHAR szLine)
 								//on the users screen that isnt covered by a window...
 								//the click need to be issued on the main UI...
 								//but for now this will work -eqmule 8 mar 2014
-								pEverQuest->LMouseUp(-10000,-10000);
+								pEverQuest->LMouseUp(-10000, -10000);
 								ZeroMemory(&EnviroTarget, sizeof(EnviroTarget));
 								pGroundTarget = NULL;
 							}

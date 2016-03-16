@@ -1976,7 +1976,7 @@ typedef struct _GUILD
 } GUILD, *PGUILD;
 
 // 11-15-11 - ieatacid
-// 2016 Mar 08 - eqmule (see 86DFB0) not sure on size needs more investigation
+// 2016 Mar 08 Test - eqmule (see 86DFB0) not sure on size needs more investigation
 typedef struct _GUILDS {
 /*0x0000*/ PVOID    pOneEntryVTable;
 /*0x0004*/ BYTE     Unknown0x4[0x4];

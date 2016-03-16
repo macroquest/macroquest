@@ -7183,6 +7183,14 @@ bool MQ2GroundType::GETMEMBER()
 		Dest.Ptr = &pGround->Name[0];
 		Dest.Type = pStringType;
 		return true;
+	case DisplayName:
+	{
+		DataTypeTemp[0] = '\0';
+		GetFriendlyNameForGroundItem(pGround, DataTypeTemp);
+		Dest.Ptr = &DataTypeTemp[0];
+		Dest.Type = pStringType;
+		return true;
+	}
 	case Heading:
 		Dest.Float = pGround->Heading*0.703125f;
 		Dest.Type = pHeadingType;
@@ -7191,6 +7199,19 @@ bool MQ2GroundType::GETMEMBER()
 		Dest.Float = GetDistance(pGround->X, pGround->Y);
 		Dest.Type = pFloatType;
 		return true;
+	case Distance3D:
+	{
+		FLOAT X = ((PSPAWNINFO)pCharSpawn)->X - pGround->X;
+		FLOAT Y = ((PSPAWNINFO)pCharSpawn)->Y - pGround->Y;
+		FLOAT Z = 0;
+		if (pGround->pSwitch)
+			Z = ((PSPAWNINFO)pCharSpawn)->Z - pGround->pSwitch->Z;
+		else
+			Z = ((PSPAWNINFO)pCharSpawn)->Z - pGround->Z;
+		Dest.Float = sqrtf(X*X + Y*Y + Z*Z);
+		Dest.Type = pFloatType;
+		return true;
+	}
 	case HeadingTo:
 		Dest.Float = (FLOAT)(atan2f(((PSPAWNINFO)pCharSpawn)->Y - pGround->Y, pGround->X - ((PSPAWNINFO)pCharSpawn)->X) * 180.0f / PI + 90.0f);
 		if (Dest.Float<0.0f)
