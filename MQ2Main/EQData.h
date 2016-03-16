@@ -747,25 +747,24 @@ typedef struct _CONTENTS {
 } CONTENTS, *PCONTENTS;
 
 // Size 0x58 20110810 - dkaa
-// Size 0x?? 20150326 - demonstar55
+// Size 0x58 20150326 - demonstar55
 typedef struct _SPELLBUFF {
-/*0x00*/    BYTE      Unknown0x0;
-/*0x01*/    BYTE      Level;
-/*0x02*/    BYTE      Unknown0x2;
-/*0x03*/    CHAR      DamageShield;  // maybe.. I've noticed this is -1 on a lot of ds's.
-/*0x04*/    FLOAT     Modifier;      // Bard song modifier, 1.0 is default
-/*0x08*/    LONG      SpellID;       // -1 or 0 for no spell..
-/*0x0c*/    DWORD     Duration;
-/*0x10*/    DWORD     Unknown0x10;
-/*0x14*/    DWORD     HitCount;
-/*0x18*/    BYTE      Unknown0x18[0x10];
-/*0x28*/    DWORD     DamageAbsorbRemaining;
-/*0x2c*/    DWORD     Unknown0x2c;
-/*0x30*/    DWORD     Counters;
-/*0x34*/    BYTE      Unknown0x34[0x24];
-/*0x58*/
+	/*0x00*/    BYTE      Unknown0x0;
+	/*0x01*/    BYTE      Level;
+	/*0x02*/    BYTE      Unknown0x2;    // pretty sure is padding
+	/*0x03*/    CHAR      DamageShield;  // also probably padding now
+	/*0x04*/    FLOAT     Modifier;      // Bard song modifier, 1.0 is default
+	/*0x08*/    LONG      SpellID;       // -1 or 0 for no spell..
+	/*0x0c*/    DWORD     Duration;
+	/*0x10*/    DWORD     Unknown0x10;   // This might be source ID?
+	/*0x14*/    DWORD     HitCount;
+	/*0x18*/    FLOAT     Y;             // Referenced by SPA 441 (distance removal)
+	/*0x1c*/    FLOAT     X;
+	/*0x20*/    FLOAT     Z;
+	/*0x24*/    DWORD     Unknown0x24;
+	/*0x28*/    DWORD     SlotData[0xC]; // used for book keeping of various effects (debuff counter, rune/vie damage remaining)
+	/*0x58*/
 } SPELLBUFF, *PSPELLBUFF;
-
 
 // 20101012 - ieatacid
 typedef struct _INVENTORY { 

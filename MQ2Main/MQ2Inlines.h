@@ -19,8 +19,12 @@ static inline PCHARINFO GetCharInfo(VOID) {
 }
 
 static inline PCHARINFO2 GetCharInfo2(VOID) {
-    //   if (!ppCharData) return NULL;
-    return ((PCHARINFO)pCharData)->pCI2->pCharInfo2;
+	if (PCHARINFO pChar = (PCHARINFO)pCharData) {
+		if (pChar->pCI2 && pChar->pCI2->pCharInfo2) {
+			return pChar->pCI2->pCharInfo2;
+		}
+	}
+	return NULL;
 }
 
 
@@ -112,11 +116,52 @@ static inline BOOL IsMarkedNPC(PSPAWNINFO pSpawn)
     return false;
 }
 
-#define GetCurMana() ((EQ_Character*)pCharData1)->Cur_Mana(0)
-#define GetCurHPS() pCharData1->Cur_HP(0)
-#define GetMaxHPS() pCharData1->Max_HP(0)
-#define GetMaxEndurance() pCharData1->Max_Endurance()
-#define GetMaxMana() pCharData1->Max_Mana() 
+static inline LONG GetCurMana() {
+	if (PCHARINFO pChar = (PCHARINFO)GetCharInfo()) {
+		if (pChar->vtable2) {
+			((EQ_Character*)pCharData1)->Cur_Mana(0);
+		}
+	}
+	return 0;
+}
+static inline LONG GetCurHPS() {
+	if (PCHARINFO pChar = (PCHARINFO)GetCharInfo()) {
+		if (pChar->vtable2) {
+			return pCharData1->Cur_HP(0);
+		}
+	}
+	return 0;
+}
+static inline LONG GetMaxHPS() {
+	if (PCHARINFO pChar = GetCharInfo()) {
+		if (pChar->vtable2) {
+			return pCharData1->Max_HP(0);
+		}
+	}
+	return 0;
+}
+static inline LONG GetMaxEndurance() {
+	if (PCHARINFO pChar = GetCharInfo()) {
+		if (pChar->vtable2) {
+			return pCharData1->Max_Endurance();
+		}
+	}
+	return 0;
+}
+static inline LONG GetCurEndurance() {
+	if (PCHARINFO2 pChar2 = GetCharInfo2()) {
+		return pChar2->Endurance;
+	}
+	return 0;
+}
+static inline LONG GetMaxMana() {
+	if (PCHARINFO pChar = GetCharInfo()) {
+		if (pChar->vtable2) {
+			return pCharData1->Max_Mana();
+		}
+	}
+	return 0;
+}
 
 // ***************************************************************************
 // Function:    GetCharMaxBuffSlots

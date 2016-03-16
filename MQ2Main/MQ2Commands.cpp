@@ -395,141 +395,24 @@ VOID CharInfo(PSPAWNINFO pChar, PCHAR szLine)
 {
 	CHAR szBuffer[MAX_STRING] = { 0 };
 	bRunNextCommand = TRUE;
-
-	if (gFilterMacro == FILTERMACRO_NONE) cmdCharInfo(pChar, szLine);
-	PCHARINFO pCharInfo = NULL;
-	if (NULL == (pCharInfo = GetCharInfo())) return;
-	DoCommand(pCharInfo->pSpawn, "/charinfo");
-	sprintf(szBuffer, "The location of your bind is: %1.2f, %1.2f, %1.2f", GetCharInfo2()->ZoneBoundX, GetCharInfo2()->ZoneBoundY, GetCharInfo2()->ZoneBoundZ);
-	WriteChatColor(szBuffer, USERCOLOR_DEFAULT);
+	if (gFilterMacro == FILTERMACRO_NONE)
+		cmdCharInfo(pChar, szLine);
+	if (PCHARINFO pCharInfo = GetCharInfo()) {
+		DoCommand(pCharInfo->pSpawn, "/charinfo");
+		if (PCHARINFO2 pChar2 = GetCharInfo2()) {
+			sprintf(szBuffer, "The location of your bind is: %1.2f, %1.2f, %1.2f", pChar2->ZoneBoundX, pChar2->ZoneBoundY, pChar2->ZoneBoundZ);
+			WriteChatColor(szBuffer, USERCOLOR_DEFAULT);
+		}
+	}
 }
 
 
 VOID UpdateItemInfo(PSPAWNINFO pChar, PCHAR szLine)
 {
 	CHAR szEcho[MAX_STRING] = { 0 };
-
 	strcpy(szEcho, DebugHeader);
 	strcat(szEcho, " This command has been disabled since the itemdb is maintained by the devs.");
 	WriteChatColor(szEcho, USERCOLOR_CHAT_CHANNEL);
-	/*
-	CHAR szBuffer[MAX_STRING] = {0};
-	PCONTENTS pContainer = NULL;
-	int nInvIdx;
-
-	PCHARINFO pCharInfo = NULL;
-	if (NULL == (pCharInfo = GetCharInfo())) return;
-
-	for (nInvIdx=0; nInvIdx < NUM_INV_SLOTS; nInvIdx++) {
-	if (GetCharInfo2()->pInventoryArray->InventoryArray[nInvIdx] != NULL) {
-	BOOL Found = FALSE;
-	PITEMDB ItemDB = gItemDB;
-	while (ItemDB) {
-	if (ItemDB->ID == GetItemFromContents(GetCharInfo2()->pInventoryArray->InventoryArray[nInvIdx])->ItemNumber) {
-	Found = TRUE;
-	}
-	ItemDB = ItemDB->pNext;
-	}
-	if (!Found) {
-	PITEMDB Item = (PITEMDB)malloc(sizeof(ITEMDB));
-	Item->pNext = gItemDB;
-	Item->ID = GetItemFromContents(GetCharInfo2()->pInventoryArray->InventoryArray[nInvIdx])->ItemNumber;
-	Item->StackSize = GetItemFromContents(GetCharInfo2()->pInventoryArray->InventoryArray[nInvIdx])->StackSize;
-	strcpy(Item->szName, GetItemFromContents(GetCharInfo2()->pInventoryArray->InventoryArray[nInvIdx])->Name);
-	DebugSpew("   New Item found - %d: %s", Item->ID, Item->szName);
-	gItemDB = Item;
-	}
-	if (GetItemFromContents(GetCharInfo2()->pInventoryArray->InventoryArray[nInvIdx])->Type == ITEMTYPE_PACK) {
-	pContainer = GetCharInfo2()->pInventoryArray->InventoryArray[nInvIdx];
-	DebugSpew("   Opening Pack");
-	for (int nPackIdx = 0; nPackIdx < GetItemFromContents(GetCharInfo2()->pInventoryArray->InventoryArray[nInvIdx])->Slots; nPackIdx++) {
-	if (pContainer->pContentsArray->Contents[nPackIdx] != NULL) {
-	Found = FALSE;
-	PITEMDB ItemDB = gItemDB;
-	while (ItemDB) {
-	if (pContainer->pContentsArray->Contents[nPackIdx]) {
-	if (ItemDB->ID == GetItemFromContents(pContainer->pContentsArray->Contents[nPackIdx])->ItemNumber) {
-	Found = TRUE;
-	}
-	ItemDB = ItemDB->pNext;
-	}
-	}
-	if (!Found) {
-	PITEMDB Item = (PITEMDB)malloc(sizeof(ITEMDB));
-	Item->pNext = gItemDB;
-	Item->ID = GetItemFromContents(pContainer->pContentsArray->Contents[nPackIdx])->ItemNumber;
-	Item->StackSize = GetItemFromContents(GetCharInfo2()->pInventoryArray->InventoryArray[nInvIdx])->StackSize;
-	strcpy(Item->szName, GetItemFromContents(pContainer->pContentsArray->Contents[nPackIdx])->Name);
-	DebugSpew("      New Item found - %d: %s", Item->ID, Item->szName);
-	gItemDB = Item;
-	}
-	}
-	}
-	}
-	}
-	}
-
-	for (nInvIdx=0; nInvIdx < NUM_BANK_SLOTS; nInvIdx++) {
-	if (GetCharInfo()->pBankArray->Bank[nInvIdx] != NULL) {
-	BOOL Found = FALSE;
-	PITEMDB ItemDB = gItemDB;
-	while (ItemDB) {
-	if (ItemDB->ID == GetItemFromContents(GetCharInfo()->pBankArray->Bank[nInvIdx])->ItemNumber) {
-	Found = TRUE;
-	}
-	ItemDB = ItemDB->pNext;
-	}
-	if (!Found) {
-	PITEMDB Item = (PITEMDB)malloc(sizeof(ITEMDB));
-	Item->pNext = gItemDB;
-	Item->ID = GetItemFromContents(GetCharInfo()->pBankArray->Bank[nInvIdx])->ItemNumber;
-	Item->StackSize = GetItemFromContents(GetCharInfo2()->pInventoryArray->InventoryArray[nInvIdx])->StackSize;
-	strcpy(Item->szName, GetItemFromContents(pCharInfo->pBankArray->Bank[nInvIdx])->Name);
-	DebugSpew("   New Item found - %d: %s", Item->ID, Item->szName);
-	gItemDB = Item;
-	}
-	if (GetItemFromContents(pCharInfo->pBankArray->Bank[nInvIdx])->Type == ITEMTYPE_PACK) {
-	LONG nPackIdx;
-	pContainer = pCharInfo->pBankArray->Bank[nInvIdx];
-
-	for (nPackIdx = 0; nPackIdx < GetItemFromContents(pCharInfo->pBankArray->Bank[nInvIdx])->Slots; nPackIdx++) {
-	if (pContainer->pContentsArray->Contents[nPackIdx] != NULL) {
-	PITEMDB ItemDB = gItemDB;
-	Found = FALSE;
-	while (ItemDB) {
-	if (pContainer->pContentsArray->Contents[nPackIdx]) {
-	if (ItemDB->ID == GetItemFromContents(pContainer->pContentsArray->Contents[nPackIdx])->ItemNumber) {
-	Found = TRUE;
-	}
-	ItemDB = ItemDB->pNext;
-	}
-	}
-	if (!Found) {
-	PITEMDB Item = (PITEMDB)malloc(sizeof(ITEMDB));
-	Item->pNext = gItemDB;
-	Item->ID = GetItemFromContents(pContainer->pContentsArray->Contents[nPackIdx])->ItemNumber;
-	Item->StackSize = GetItemFromContents(GetCharInfo2()->pInventoryArray->InventoryArray[nInvIdx])->StackSize;
-	strcpy(Item->szName, GetItemFromContents(pContainer->pContentsArray->Contents[nPackIdx])->Name);
-	DebugSpew("      New Item found - %d: %s", Item->ID, Item->szName);
-	gItemDB = Item;
-	}
-	}
-	}
-	}
-	}
-	}
-
-	PITEMDB ItemDB = gItemDB;
-	if (ItemDB) {
-	FILE *fDB = fopen(gszItemDB, "wt");
-	while (ItemDB) {
-	sprintf(szBuffer, "%d\t%d\t%s\n", ItemDB->ID, ItemDB->StackSize, ItemDB->szName);
-	fputs(szBuffer, fDB);
-	ItemDB = ItemDB->pNext;
-	}
-	fclose(fDB);
-	}
-	*/
 }
 
 // ***************************************************************************
@@ -569,46 +452,49 @@ VOID SpellSlotInfo(PSPAWNINFO pChar, PCHAR szLine)
 // Usage:       /MemSpell gem# "spell name"
 // ***************************************************************************
 SPELLFAVORITE MemSpellFavorite;
-VOID MemSpell(PSPAWNINFO pChar, PCHAR szLine)
+VOID MemSpell(PSPAWNINFO pSpawn, PCHAR szLine)
 {
-	if (!ppSpellBookWnd) return;
+	if (!ppSpellBookWnd)
+		return;
+	if (!pSpellBookWnd)
+		return;
 	DWORD Favorite = (DWORD)&MemSpellFavorite;
 	CHAR szGem[MAX_STRING] = { 0 };
 	DWORD sp;
 	WORD Gem = -1;
 	CHAR SpellName[MAX_STRING] = { 0 };
-	PCHARINFO pCharInfo = NULL;
-	if (!pSpellBookWnd) return;
-	if (NULL == (pCharInfo = GetCharInfo())) return;
-
-	GetArg(szGem, szLine, 1);
-	GetArg(SpellName, szLine, 2);
-	Gem = atoi(szGem);
-	if (Gem<1 || Gem>NUM_SPELL_GEMS) return;
-	Gem--;
-
-	GetCharInfo2()->SpellBook;
-	PSPELL pSpell = 0;
-	for (DWORD N = 0; N < NUM_BOOK_SLOTS; N++)
-		if (PSPELL pTempSpell = GetSpellByID(GetCharInfo2()->SpellBook[N]))
-		{
-			// exact name match only
-			if (!_stricmp(SpellName, pTempSpell->Name))
-			{
-				pSpell = pTempSpell;
-				break;
+	
+	if (PCHARINFO pCharInfo = GetCharInfo()) {
+		GetArg(szGem, szLine, 1);
+		GetArg(SpellName, szLine, 2);
+		Gem = atoi(szGem);
+		if (Gem<1 || Gem>NUM_SPELL_GEMS) return;
+		Gem--;
+		if (PCHARINFO2 pChar2 = GetCharInfo2()) {
+			PSPELL pSpell = 0;
+			for (DWORD N = 0; N < NUM_BOOK_SLOTS; N++) {
+				if (PSPELL pTempSpell = GetSpellByID(pChar2->SpellBook[N]))
+				{
+					// exact name match only
+					if (!_stricmp(SpellName, pTempSpell->Name))
+					{
+						pSpell = pTempSpell;
+						break;
+					}
+				}
 			}
+			if (!pSpell)
+				return;
+			if (pSpell->ClassLevel[pSpawn->Class]>pSpawn->Level)
+				return;
+			ZeroMemory(&MemSpellFavorite, sizeof(MemSpellFavorite));
+			strcpy(MemSpellFavorite.Name, "Mem a Spell");
+			MemSpellFavorite.inuse = 1;
+			for (sp = 0; sp < NUM_SPELL_GEMS; sp++) MemSpellFavorite.SpellId[sp] = 0xFFFFFFFF;
+			MemSpellFavorite.SpellId[Gem] = pSpell->ID;
+			pSpellBookWnd->MemorizeSet((int*)Favorite, NUM_SPELL_GEMS);
 		}
-
-	if (!pSpell) return;
-	if (pSpell->ClassLevel[pChar->Class]>pChar->Level) return;
-
-	ZeroMemory(&MemSpellFavorite, sizeof(MemSpellFavorite));
-	strcpy(MemSpellFavorite.Name, "Mem a Spell");
-	MemSpellFavorite.inuse = 1;
-	for (sp = 0; sp<NUM_SPELL_GEMS; sp++) MemSpellFavorite.SpellId[sp] = 0xFFFFFFFF;
-	MemSpellFavorite.SpellId[Gem] = pSpell->ID;
-	pSpellBookWnd->MemorizeSet((int*)Favorite, NUM_SPELL_GEMS);
+	}
 }
 
 // ***************************************************************************
@@ -2066,87 +1952,83 @@ VOID DoAbility(PSPAWNINFO pChar, PCHAR szLine)
 	DWORD Index;
 	CHAR szBuffer[MAX_STRING] = { 0 };
 	GetArg(szBuffer, szLine, 1);
-
-	// display available abilities list
-	if (!_stricmp(szBuffer, "list")) {
-		WriteChatColor("Abilities & Combat Skills:", USERCOLOR_DEFAULT);
-
-		// display skills that have activated state
-		for (Index = 0; Index<NUM_SKILLS; Index++)
-		{
-			if (((CharacterZoneClient*)pCharData1)->HasSkill(Index))
+	if (PCHARINFO2 pChar2 = GetCharInfo2()) {
+		// display available abilities list
+		if (!_stricmp(szBuffer, "list")) {
+			WriteChatColor("Abilities & Combat Skills:", USERCOLOR_DEFAULT);
+			// display skills that have activated state
+			for (Index = 0; Index < NUM_SKILLS; Index++)
 			{
-
-				bool Avail = pSkillMgr->pSkill[Index]->Activated;
-
-				// make sure remove trap is added, they give it to everyone except rogues
-				if (Index == 75 && strncmp(pEverQuest->GetClassDesc(GetCharInfo2()->Class & 0xFF), "Rogue", 6))
-					Avail = true;
-
-				if (Avail)
+				if (((CharacterZoneClient*)pCharData1)->HasSkill(Index))
 				{
-					sprintf(szBuffer, "<\ag%s\ax>", szSkills[Index]);
+					bool Avail = pSkillMgr->pSkill[Index]->Activated;
+
+					// make sure remove trap is added, they give it to everyone except rogues
+					if (Index == 75 && strncmp(pEverQuest->GetClassDesc(pChar2->Class & 0xFF), "Rogue", 6))
+						Avail = true;
+
+					if (Avail)
+					{
+						sprintf(szBuffer, "<\ag%s\ax>", szSkills[Index]);
+						WriteChatColor(szBuffer, USERCOLOR_DEFAULT);
+					}
+				}
+			}
+			// display innate skills that are available
+			for (Index = 0; Index < 28; Index++)
+			{
+				if (pChar2->InnateSkill[Index] != 0xFF && strlen(szSkills[Index + 100])>3)
+				{
+					sprintf(szBuffer, "<\ag%s\ax>", szSkills[Index + 100]);
 					WriteChatColor(szBuffer, USERCOLOR_DEFAULT);
+				}
+			}
+
+			// display discipline i have
+			WriteChatColor("Combat Abilities:", USERCOLOR_DEFAULT);
+			for (Index = 0; Index < NUM_COMBAT_ABILITIES; Index++) {
+				if (pCombatSkillsSelectWnd->ShouldDisplayThisSkill(Index)) {
+					if (PSPELL pCA = GetSpellByID(pPCData->GetCombatAbility(Index))) {
+						sprintf(szBuffer, "<\ag%s\ax>", pCA->Name);
+						WriteChatColor(szBuffer, USERCOLOR_DEFAULT);
+					}
+				}
+			}
+			return;
+		}
+		// scan for matching abilities name
+		for (Index = 0; Index < 128; Index++) {
+			if ((Index < NUM_SKILLS && (pSkillMgr->pSkill[Index])->Activated) ||
+				(Index >= NUM_SKILLS && pChar2->InnateSkill[Index - 100] != 0xFF))
+			{
+				if (!_stricmp(szBuffer, szSkills[Index]))
+				{
+					if (!((CharacterZoneClient*)pCharData1)->HasSkill(Index))
+					{
+						WriteChatf("you do not have this skill");
+						return;
+					}
+					pCharData1->UseSkill((unsigned char)Index, (EQPlayer*)pCharData1);
+					return;
 				}
 			}
 		}
 
-		// display innate skills that are available
-		for (Index = 0; Index<28; Index++)
+		// scan for matching discipline name
+		for (Index = 0; Index < NUM_COMBAT_ABILITIES; Index++)
 		{
-			if (GetCharInfo2()->InnateSkill[Index] != 0xFF && strlen(szSkills[Index + 100])>3)
-			{
-				sprintf(szBuffer, "<\ag%s\ax>", szSkills[Index + 100]);
-				WriteChatColor(szBuffer, USERCOLOR_DEFAULT);
-			}
-		}
-
-		// display discipline i have
-		WriteChatColor("Combat Abilities:", USERCOLOR_DEFAULT);
-		for (Index = 0; Index<NUM_COMBAT_ABILITIES; Index++) {
 			if (pCombatSkillsSelectWnd->ShouldDisplayThisSkill(Index)) {
-				if (PSPELL pCA = GetSpellByID(pPCData->GetCombatAbility(Index))) {
-					sprintf(szBuffer, "<\ag%s\ax>", pCA->Name);
-					WriteChatColor(szBuffer, USERCOLOR_DEFAULT);
-				}
-			}
-		}
-		return;
-	}
-
-	// scan for matching abilities name
-	for (Index = 0; Index < 128; Index++) {
-		if ((Index < NUM_SKILLS && (pSkillMgr->pSkill[Index])->Activated) ||
-			(Index >= NUM_SKILLS && GetCharInfo2()->InnateSkill[Index - 100] != 0xFF))
-		{
-			if (!_stricmp(szBuffer, szSkills[Index]))
-			{
-				if (!((CharacterZoneClient*)pCharData1)->HasSkill(Index))
+				if (PSPELL pCA = GetSpellByID(pChar2->CombatAbilities[Index]))
 				{
-					WriteChatf("you do not have this skill");
-					return;
-				}
-				pCharData1->UseSkill((unsigned char)Index, (EQPlayer*)pCharData1);
-				return;
-			}
-		}
-	}
-
-	// scan for matching discipline name
-	for (Index = 0; Index<NUM_COMBAT_ABILITIES; Index++)
-	{
-		if (pCombatSkillsSelectWnd->ShouldDisplayThisSkill(Index)) {
-			if (PSPELL pCA = GetSpellByID(GetCharInfo2()->CombatAbilities[Index]))
-			{
-				if (!_stricmp(pCA->Name, szBuffer))
-				{
-					pCharData->DoCombatAbility(pCA->ID);
-					return;
+					if (!_stricmp(pCA->Name, szBuffer))
+					{
+						pCharData->DoCombatAbility(pCA->ID);
+						return;
+					}
 				}
 			}
 		}
 	}
-
 	// else display that we didnt found abilities
 	WriteChatColor("You do not seem to have that ability available", USERCOLOR_DEFAULT);
 }
@@ -2452,33 +2334,35 @@ VOID Skills(PSPAWNINFO pChar, PCHAR szLine)
 	if (szLine[0] != 0) _strlwr(szLine);
 	WriteChatColor("Skills", USERCOLOR_DEFAULT);
 	WriteChatColor("-----------------------", USERCOLOR_DEFAULT);
-	for (Skill = 0; szSkills[Skill]; Skill++) {
-		if (szLine[0] != 0) {
-			CHAR szName[MAX_STRING] = { 0 };
-			strcpy(szName, szSkills[Skill]);
-			_strlwr(szName);
-			if (!strstr(szName, szLine)) continue;
-		}
-		SkillCount++;
-		switch (GetCharInfo2()->Skill[Skill]) {
-		case 255:
-			//Untrainable
-			SkillCount--;
-			break;
-		case 254:
-			//Can train
-			sprintf(szMsg, "%s: Trainable", szSkills[Skill]);
-			WriteChatColor(szMsg, USERCOLOR_DEFAULT);
-			break;
-		case 253:
-			//Unknown
-			sprintf(szMsg, "%s: Unknown(253)", szSkills[Skill]);
-			WriteChatColor(szMsg, USERCOLOR_DEFAULT);
-			break;
-		default:
-			//Have skill
-			sprintf(szMsg, "%s: %d", szSkills[Skill], GetCharInfo2()->Skill[Skill]);
-			WriteChatColor(szMsg, USERCOLOR_DEFAULT);
+	if (PCHARINFO2 pChar2 = GetCharInfo2()) {
+		for (Skill = 0; szSkills[Skill]; Skill++) {
+			if (szLine[0] != 0) {
+				CHAR szName[MAX_STRING] = { 0 };
+				strcpy(szName, szSkills[Skill]);
+				_strlwr(szName);
+				if (!strstr(szName, szLine)) continue;
+			}
+			SkillCount++;
+			switch (pChar2->Skill[Skill]) {
+			case 255:
+				//Untrainable
+				SkillCount--;
+				break;
+			case 254:
+				//Can train
+				sprintf(szMsg, "%s: Trainable", szSkills[Skill]);
+				WriteChatColor(szMsg, USERCOLOR_DEFAULT);
+				break;
+			case 253:
+				//Unknown
+				sprintf(szMsg, "%s: Unknown(253)", szSkills[Skill]);
+				WriteChatColor(szMsg, USERCOLOR_DEFAULT);
+				break;
+			default:
+				//Have skill
+				sprintf(szMsg, "%s: %d", szSkills[Skill], pChar2->Skill[Skill]);
+				WriteChatColor(szMsg, USERCOLOR_DEFAULT);
+			}
 		}
 	}
 	if (SkillCount == 0) {
@@ -3463,11 +3347,13 @@ VOID CombineCmd(PSPAWNINFO pChar, PCHAR szLine)
 
 VOID DropCmd(PSPAWNINFO pChar, PCHAR szLine)
 {
-	if (GetCharInfo2()->pInventoryArray->Inventory.Cursor)
-	{
-		if (((EQ_Item*)GetCharInfo2()->pInventoryArray->Inventory.Cursor)->CanDrop(0, 1))
+	if (PCHARINFO2 pChar2 = GetCharInfo2()) {
+		if (pChar2->pInventoryArray && pChar2->pInventoryArray->Inventory.Cursor)
 		{
-			pEverQuest->DropHeldItemOnGround(1);
+			if (((EQ_Item*)pChar2->pInventoryArray->Inventory.Cursor)->CanDrop(0, 1))
+			{
+				pEverQuest->DropHeldItemOnGround(1);
+			}
 		}
 	}
 }

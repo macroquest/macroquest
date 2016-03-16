@@ -1446,40 +1446,44 @@ BOOL SearchThroughItems(SEARCHITEM &SearchItem, PCONTENTS* pResult, DWORD *nResu
     *nResult=nresult;\
     return TRUE;}
 
-	PCHARINFO pChar = (PCHARINFO)pCharData;
-	if (MaskSet(Worn) && Flag(Worn))
-	{
-		// iterate through worn items
-		for (unsigned long N = 0; N < 21; N++)
-		{
-			if (PCONTENTS pContents = GetCharInfo2()->pInventoryArray->InventoryArray[N])
-				if (ItemMatchesSearch(SearchItem, pContents))
-					Result(pContents, N);
-		}
-	}
-
-	if (MaskSet(Inventory) && Flag(Inventory))
-	{
-		unsigned long nPack;
-		// iterate through inventory slots before in-pack slots
-		for (nPack = 0; nPack<10; nPack++)
-		{
-			if (PCONTENTS pContents = GetCharInfo2()->pInventoryArray->Inventory.Pack[nPack])
+	if (PCHARINFO2 pChar2 = GetCharInfo2()) {
+		if (pChar2->pInventoryArray) {
+			if (MaskSet(Worn) && Flag(Worn))
 			{
-				if (ItemMatchesSearch(SearchItem, pContents))
-					Result(pContents, nPack + 21);
-			}
-		}
-		for (nPack = 0; nPack<10; nPack++)
-		{
-			if (PCONTENTS pContents = GetCharInfo2()->pInventoryArray->Inventory.Pack[nPack]) {
-				if (GetItemFromContents(pContents)->Type == ITEMTYPE_PACK && pContents->pContentsArray)
+				// iterate through worn items
+				for (unsigned long N = 0; N < 21; N++)
 				{
-					for (unsigned long nItem = 0; nItem<GetItemFromContents(pContents)->Slots; nItem++)
+					if (PCONTENTS pContents = pChar2->pInventoryArray->InventoryArray[N]) {
+						if (ItemMatchesSearch(SearchItem, pContents)) {
+							Result(pContents, N);
+						}
+					}
+				}
+			}
+			if (MaskSet(Inventory) && Flag(Inventory))
+			{
+				unsigned long nPack;
+				// iterate through inventory slots before in-pack slots
+				for (nPack = 0; nPack < 10; nPack++)
+				{
+					if (PCONTENTS pContents = pChar2->pInventoryArray->Inventory.Pack[nPack])
 					{
-						if (PCONTENTS pItem = pContents->pContentsArray->Contents[nItem])
-							if (ItemMatchesSearch(SearchItem, pItem))
-								Result(pItem, nPack * 100 + nItem);
+						if (ItemMatchesSearch(SearchItem, pContents))
+							Result(pContents, nPack + 21);
+					}
+				}
+				for (nPack = 0; nPack < 10; nPack++)
+				{
+					if (PCONTENTS pContents = pChar2->pInventoryArray->Inventory.Pack[nPack]) {
+						if (GetItemFromContents(pContents)->Type == ITEMTYPE_PACK && pContents->pContentsArray)
+						{
+							for (unsigned long nItem = 0; nItem < GetItemFromContents(pContents)->Slots; nItem++)
+							{
+								if (PCONTENTS pItem = pContents->pContentsArray->Contents[nItem])
+									if (ItemMatchesSearch(SearchItem, pItem))
+										Result(pItem, nPack * 100 + nItem);
+							}
+						}
 					}
 				}
 			}
@@ -3977,66 +3981,6 @@ int FindInvSlotForContents(PCONTENTS pContents)
 	if (LastMatch != -1 && pInvMgr->SlotArray[LastMatch]->pInvSlotWnd->WindowType == 9999)
 		return  pInvMgr->SlotArray[LastMatch]->InvSlot;
 #endif
-
-#if 0
-	for (DWORD n = 0; n < NUM_INV_SLOTS; n++)
-	{
-		if (GetCharInfo2()->pInventoryArray->InventoryArray[n] && GetCharInfo2()->pInventoryArray->InventoryArray[n] == pContents)
-		{
-			//DebugSpew("Found '%s' at %d", GetCharInfo2()->pInventoryArray->InventoryArray[n]->Item->Name, n);
-			return n;
-		}
-	}
-
-	unsigned long nPack;
-	for (nPack = 0; nPack < 10; nPack++)
-	{
-		PCHARINFO pCharInfo = GetCharInfo();
-		if (PCONTENTS pPack = GetCharInfo2()->pInventoryArray->Inventory.Pack[nPack])
-		{
-			if (pPack->Item->Type == ITEMTYPE_PACK && pContents->pContentsArray)
-			{
-				for (unsigned long nItem = 0; nItem < pPack->Item->Slots; nItem++)
-				{
-					//DebugSpew("Pack[%d]->pContentsArray->Contents[%d]==0x%08X",nPack,nItem,pPack->pContentsArray->Contents[nItem]);
-					if (pPack->pContentsArray->Contents[nItem] == pContents)
-					{
-						return 262 + (nPack * 10) + nItem;
-					}
-				}
-			}
-		}
-	}
-
-	for (nPack = 0; nPack < NUM_BANK_SLOTS; nPack++)
-	{
-		PCHARINFO pCharInfo = GetCharInfo();
-		PCONTENTS pPack = NULL;
-		if (pCharInfo->pBankArray) pPack = pCharInfo->pBankArray->Bank[nPack];
-		if (pPack)
-		{
-			if (pPack == pContents)
-			{
-				if (nPack<0x18)
-					return 2000 + nPack;
-				return 2500 + nPack - 0x10;
-			}
-			if (pPack->Item->Type == ITEMTYPE_PACK && pContents->pContentsArray)
-			{
-				for (unsigned long nItem = 0; nItem < pPack->Item->Slots; nItem++)
-				{
-					if (pPack->pContentsArray->Contents[nItem] == pContents)
-					{
-						if (nPack<0x18)
-							return 2032 + (nPack * 10) + nItem;
-						return 2532 + ((nPack - 0x18) * 10) + nItem;
-					}
-				}
-			}
-		}
-	}
-#endif
-
 	return -1;
 }
 
@@ -6757,10 +6701,18 @@ PCONTENTS GetItemContentsBySlotID(DWORD dwSlotID)
 		SubSlot = (dwSlotID - 262) % 10;
 	}
 	if (InvSlot >= 0 && InvSlot<NUM_INV_SLOTS) {
-		if (PCONTENTS iSlot = GetCharInfo2()->pInventoryArray->InventoryArray[InvSlot]) {
-			if (SubSlot<0) return iSlot;
-			if (GetCharInfo2()->pInventoryArray->InventoryArray[InvSlot]->pContentsArray)
-				if (PCONTENTS sSlot = GetCharInfo2()->pInventoryArray->InventoryArray[InvSlot]->pContentsArray->Contents[SubSlot]) return sSlot;
+		if (PCHARINFO2 pChar2 = GetCharInfo2()) {
+			if (pChar2->pInventoryArray) {
+				if (PCONTENTS iSlot = pChar2->pInventoryArray->InventoryArray[InvSlot]) {
+					if (SubSlot < 0)
+						return iSlot;
+					if (pChar2->pInventoryArray->InventoryArray[InvSlot]->pContentsArray) {
+						if (PCONTENTS sSlot = pChar2->pInventoryArray->InventoryArray[InvSlot]->pContentsArray->Contents[SubSlot]) {
+							return sSlot;
+						}
+					}
+				}
+			}
 		}
 	}
 	return NULL;
@@ -6768,25 +6720,30 @@ PCONTENTS GetItemContentsBySlotID(DWORD dwSlotID)
 
 PCONTENTS GetItemContentsByName(CHAR *ItemName)
 {
-	for (unsigned long nSlot = 0; nSlot<NUM_INV_SLOTS; nSlot++) {
-		PCHARINFO2 pChar2 = GetCharInfo2();
-		if (pChar2 && pChar2->pInventoryArray && pChar2->pInventoryArray->InventoryArray) {
-			if (PCONTENTS pItem = pChar2->pInventoryArray->InventoryArray[nSlot]) {
-				if (!strcmp(ItemName, GetItemFromContents(pItem)->Name)) {
-					return pItem;
+	if (PCHARINFO2 pChar2 = GetCharInfo2()) {
+		if (pChar2->pInventoryArray && pChar2->pInventoryArray->InventoryArray) {
+			for (unsigned long nSlot = 0; nSlot < NUM_INV_SLOTS; nSlot++) {
+				if (PCONTENTS pItem = pChar2->pInventoryArray->InventoryArray[nSlot]) {
+					if (!strcmp(ItemName, GetItemFromContents(pItem)->Name)) {
+						return pItem;
+					}
+				}
+			}
+			for (unsigned long nPack = 0; nPack < 10; nPack++) {
+				if (PCONTENTS pPack = pChar2->pInventoryArray->Inventory.Pack[nPack]) {
+					if (GetItemFromContents(pPack)->Type == ITEMTYPE_PACK && pPack->pContentsArray) {
+						for (unsigned long nItem = 0; nItem < GetItemFromContents(pPack)->Slots; nItem++) {
+							if (PCONTENTS pItem = pPack->pContentsArray->Contents[nItem]) {
+								if (!_stricmp(ItemName, GetItemFromContents(pItem)->Name)) {
+									return pItem;
+								}
+							}
+						}
+					}
 				}
 			}
 		}
 	}
-
-
-	for (unsigned long nPack = 0; nPack < 10; nPack++)
-		if (PCONTENTS pPack = GetCharInfo2()->pInventoryArray->Inventory.Pack[nPack])
-			if (GetItemFromContents(pPack)->Type == ITEMTYPE_PACK && pPack->pContentsArray)
-				for (unsigned long nItem = 0; nItem < GetItemFromContents(pPack)->Slots; nItem++)
-					if (PCONTENTS pItem = pPack->pContentsArray->Contents[nItem])
-						if (!_stricmp(ItemName, GetItemFromContents(pItem)->Name)) return pItem;
-
 	return NULL;
 }
 
@@ -7172,13 +7129,15 @@ void UseAbility(char *sAbility) {
 		cmdDoAbility(pChar, itoa(DoIndex, szBuffer, 10));
 	}
 	else {
-		for (Index = 0; Index<NUM_COMBAT_ABILITIES; Index++) {
-			if (pCombatSkillsSelectWnd->ShouldDisplayThisSkill(Index)) {
-				if (PSPELL pCA = GetSpellByID(GetCharInfo2()->CombatAbilities[Index])) {
-					if (!_stricmp(pCA->Name, szBuffer)) {
-						//We got the cookie, let's try and do it 
-						pCharData->DoCombatAbility(pCA->ID);
-						break;
+		if (PCHARINFO2 pChar2 = GetCharInfo2()) {
+			for (Index = 0; Index < NUM_COMBAT_ABILITIES; Index++) {
+				if (pCombatSkillsSelectWnd->ShouldDisplayThisSkill(Index)) {
+					if (PSPELL pCA = GetSpellByID(pChar2->CombatAbilities[Index])) {
+						if (!_stricmp(pCA->Name, szBuffer)) {
+							//We got the cookie, let's try and do it 
+							pCharData->DoCombatAbility(pCA->ID);
+							break;
+						}
 					}
 				}
 			}
@@ -8025,13 +7984,15 @@ int GetTargetBuffBySPA(int spa, bool bIncrease, int startslot)
 }
 int GetSelfBuffByCategory(DWORD category, DWORD classmask, int startslot)
 {
-	for (int i = startslot; i < NUM_BUFF_SLOTS; i++)
-	{
-		if (PSPELL pSpell = GetSpellByID(GetCharInfo2()->Buff[i].SpellID))
+	if (PCHARINFO2 pChar2 = GetCharInfo2()) {
+		for (int i = startslot; i < NUM_BUFF_SLOTS; i++)
 		{
-			if (pSpell->Category == category && IsSpellUsableForClass(pSpell, classmask))
+			if (PSPELL pSpell = GetSpellByID(pChar2->Buff[i].SpellID))
 			{
-				return i;
+				if (pSpell->Category == category && IsSpellUsableForClass(pSpell, classmask))
+				{
+					return i;
+				}
 			}
 		}
 	}
@@ -8039,17 +8000,19 @@ int GetSelfBuffByCategory(DWORD category, DWORD classmask, int startslot)
 }
 int GetSelfBuffBySubCat(PCHAR subcat, DWORD classmask, int startslot)
 {
-	for (int i = startslot; i < NUM_BUFF_SLOTS; i++)
-	{
-		if (PSPELL pSpell = GetSpellByID(GetCharInfo2()->Buff[i].SpellID))
+	if (PCHARINFO2 pChar2 = GetCharInfo2()) {
+		for (int i = startslot; i < NUM_BUFF_SLOTS; i++)
 		{
-			if (DWORD cat = pSpell->Subcategory)
+			if (PSPELL pSpell = GetSpellByID(pChar2->Buff[i].SpellID))
 			{
-				if (char *ptr = pCDBStr->GetString(cat, 5, NULL))
+				if (DWORD cat = pSpell->Subcategory)
 				{
-					if (!_stricmp(ptr, subcat) && IsSpellUsableForClass(pSpell, classmask))
+					if (char *ptr = pCDBStr->GetString(cat, 5, NULL))
 					{
-						return i;
+						if (!_stricmp(ptr, subcat) && IsSpellUsableForClass(pSpell, classmask))
+						{
+							return i;
+						}
 					}
 				}
 			}
@@ -8059,47 +8022,49 @@ int GetSelfBuffBySubCat(PCHAR subcat, DWORD classmask, int startslot)
 }
 int GetSelfBuffBySPA(int spa, bool bIncrease, int startslot)
 {
-	for (unsigned long i = startslot; i < NUM_LONG_BUFFS; i++)
-	{
-		if (PSPELL pSpell = GetSpellByID(GetCharInfo2()->Buff[i].SpellID))
+	if (PCHARINFO2 pChar2 = GetCharInfo2()) {
+		for (unsigned long i = startslot; i < NUM_LONG_BUFFS; i++)
 		{
-			if (LONG base = ((EQ_Spell *)pSpell)->GetSpellBaseByAttrib(spa)) {
-				switch (spa)
-				{
-				case 3: //Movement Rate
-					if (!bIncrease && base < 0) { //below 0 means its a snare above its runspeed increase...
+			if (PSPELL pSpell = GetSpellByID(pChar2->Buff[i].SpellID))
+			{
+				if (LONG base = ((EQ_Spell *)pSpell)->GetSpellBaseByAttrib(spa)) {
+					switch (spa)
+					{
+					case 3: //Movement Rate
+						if (!bIncrease && base < 0) { //below 0 means its a snare above its runspeed increase...
+							return i;
+						}
+						else if (bIncrease && base > 0) {
+							return i;
+						}
+						return -1;
+					case 11: //Melee Speed
+						if (!bIncrease && base < 100) { //below 100 means its a slow above its haste...
+							return i;
+						}
+						else if (bIncrease && base > 100) {
+							return i;
+						}
+						return -1;
+					case 59: //Damage Shield
+						if (!bIncrease && base > 0) { //decreased DS
+							return i;
+						}
+						else if (bIncrease && base < 0) { //increased DS
+							return i;
+						}
+						return -1;
+					case 121: //Reverse Damage Shield
+						if (!bIncrease && base > 0) { //decreased DS
+							return i;
+						}
+						else if (bIncrease && base < 0) { //increased DS
+							return i;
+						}
+						return -1;
+					default:
 						return i;
 					}
-					else if (bIncrease && base > 0) {
-						return i;
-					}
-					return -1;
-				case 11: //Melee Speed
-					if (!bIncrease && base < 100) { //below 100 means its a slow above its haste...
-						return i;
-					}
-					else if (bIncrease && base > 100) {
-						return i;
-					}
-					return -1;
-				case 59: //Damage Shield
-					if (!bIncrease && base > 0) { //decreased DS
-						return i;
-					}
-					else if (bIncrease && base < 0) { //increased DS
-						return i;
-					}
-					return -1;
-				case 121: //Reverse Damage Shield
-					if (!bIncrease && base > 0) { //decreased DS
-						return i;
-					}
-					else if (bIncrease && base < 0) { //increased DS
-						return i;
-					}
-					return -1;
-				default:
-					return i;
 				}
 			}
 		}

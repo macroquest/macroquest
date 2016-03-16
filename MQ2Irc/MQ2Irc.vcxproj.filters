@@ -23,8 +23,5 @@
     <ClInclude Include="..\MQ2Plugin.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="mqirc.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
   </ItemGroup>
 </Project>

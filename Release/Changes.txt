@@ -1,3 +1,26 @@
+15 Mar 2016
+- Maintenance Release, bunch of cleanups and stuff that should improve overall stability.
+-
+-Updated all vcxproj files and solutions to use build.props for easier administration - Cred: brainiac
+-
+- Fixed Me.Dar, Me.Counters, Buff Dar and Buff Counters - Cred: Demonstar55
+- Community can provide input if we should separate them into their elements.
+- For now they return combined, which might be useless.
+-
+- FRIENDLY DEV TIP OF THE DAY:
+- Some people has been asking me how to run VS as admin by default in windows 8-10:
+- There is a simple trick to it, and I recommend that everyone do this, but
+- especially if you are going to debug MQ2 OR build ISXEQ because it needs
+- to copy files to your InnerSpace directory and that is usually located
+- under Program Files (which requires admin privs).
+- Anyway... to do this, paste the following link in your browser:
+- http://lmgtfy.com/?q=make+visual+studio+always+run+as+administrator
+- When you have followed those steps, navigate to this directory:
+- C:\Program Files (x86)\Common Files\Microsoft Shared\MSEnv
+- Now locate the VSLauncher.exe in that dir, rightclick it, select properties
+- Go to the compatability tab, and check the "Run this proram as an administrator" box.
+- Click ok. That's it. From that point on, your VS will always start itself as admin.
+
 12 Mar 2016
 - Updated for TEST
 

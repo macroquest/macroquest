@@ -169,16 +169,18 @@ VOID LoadElements()
     }
     if (gGameState==GAMESTATE_INGAME) {
         if (bClassHUD && ((ppCharData) && (pCharData))) {
-            sprintf(ClassDesc,"%s",GetClassDesc(GetCharInfo2()->Class));
-            GetPrivateProfileString(ClassDesc,NULL,"",ElementList,MAX_STRING*10,INIFileName);
-            PCHAR pElementList = ElementList;
-            while (pElementList[0]!=0) {
-                GetPrivateProfileString(ClassDesc,pElementList,"",szBuffer,MAX_STRING,INIFileName);
-                if (szBuffer[0]!=0) {
-                    AddElement(szBuffer);
-                }
-                pElementList+=strlen(pElementList)+1;
-            }
+			if (PCHARINFO2 pChar2 = GetCharInfo2()) {
+				sprintf(ClassDesc, "%s", GetClassDesc(pChar2->Class));
+				GetPrivateProfileString(ClassDesc, NULL, "", ElementList, MAX_STRING * 10, INIFileName);
+				PCHAR pElementList = ElementList;
+				while (pElementList[0] != 0) {
+					GetPrivateProfileString(ClassDesc, pElementList, "", szBuffer, MAX_STRING, INIFileName);
+					if (szBuffer[0] != 0) {
+						AddElement(szBuffer);
+					}
+					pElementList += strlen(pElementList) + 1;
+				}
+			}
         }
         if (bZoneHUD && (pZoneInfo)) {
             sprintf(ZoneName,"%s",((PZONEINFO)pZoneInfo)->LongName);

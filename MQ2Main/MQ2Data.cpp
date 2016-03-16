@@ -619,10 +619,14 @@ TLO(dataIf)
 #endif
 TLO(dataCursor)
 {
-	if (Ret.Ptr = GetCharInfo2()->pInventoryArray->Inventory.Cursor)
-	{
-		Ret.Type = pItemType;
-		return true;
+	if (PCHARINFO2 pChar2 = GetCharInfo2()) {
+		if (pChar2->pInventoryArray) {
+			if (Ret.Ptr = pChar2->pInventoryArray->Inventory.Cursor)
+			{
+				Ret.Type = pItemType;
+				return true;
+			}
+		}
 	}
 	return false;
 }

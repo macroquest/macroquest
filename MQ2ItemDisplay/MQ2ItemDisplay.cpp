@@ -697,8 +697,10 @@ public:
                     //Calculate Efficiency
                     INT dmgbonus = 0;
 
-                    if (GetCharInfo2()->Level > 27 && This->ItemInfo) { //bonus is 0 for anything below 28
-                        dmgbonus = GetDmgBonus(&This->ItemInfo);
+                    if (PCHARINFO2 pChar2 = GetCharInfo2()) {
+						if (pChar2->Level > 27 && This->ItemInfo) { //bonus is 0 for anything below 28
+							dmgbonus = GetDmgBonus(&This->ItemInfo);
+						}
                     }
 
                     sprintf(temp,"Efficiency: %3.0f<br>",((((float)Item->Damage * 2) + dmgbonus) / (float)Item->Delay) * 50);
@@ -718,14 +720,17 @@ public:
             sprintf(temp,"Item Lore: %s<BR>",Item->LoreName);
             strcat(out,temp);
         }
-        PCHARINFO pChar = GetCharInfo();     // Ziggy - for item level highlights 
+        //PCHARINFO pChar = GetCharInfo();     // Ziggy - for item level highlights 
         // Will be 0 for no effect or -1 if other effects present 
         if (Item->Proc.SpellID && Item->Proc.SpellID!=-1) { 
-            if (Item->Proc.RequiredLevel == 0 ) 
-                sprintf(temp, "Procs at level 1 (Proc rate modifier: %d)<BR>", Item->Proc.ProcRate); 
-            else 
-                sprintf(temp,"%sProcs at level %d%s (Proc rate modifier: %d)<BR>", (Item->Proc.RequiredLevel > GetCharInfo2()->Level ? "<c \"#FF4040\">" : ""), Item->Proc.RequiredLevel, (Item->Proc.RequiredLevel > GetCharInfo2()->Level ? "</C>" : ""), Item->Proc.ProcRate); 
-            strcat(out,temp); 
+			if (Item->Proc.RequiredLevel == 0) {
+				sprintf(temp, "Procs at level 1 (Proc rate modifier: %d)<BR>", Item->Proc.ProcRate);
+			} else {
+				if (PCHARINFO2 pChar2 = GetCharInfo2()) {
+					sprintf(temp, "%sProcs at level %d%s (Proc rate modifier: %d)<BR>", (Item->Proc.RequiredLevel > pChar2->Level ? "<c \"#FF4040\">" : ""), Item->Proc.RequiredLevel, (Item->Proc.RequiredLevel > pChar2->Level ? "</C>" : ""), Item->Proc.ProcRate);
+				}
+			}
+			strcat(out, temp);
         } 
         /* No longer needed? 
         else if (Item->SpellId==998) { // 998 = haste 
@@ -742,12 +747,15 @@ public:
         }
 
         // Teh_Ish (02/08/2004) 
-        if ( Item->Clicky.EffectType==4 || Item->Clicky.EffectType==1 || Item->Clicky.EffectType==5) {
-            if ( Item->Clicky.RequiredLevel == 0 )
-                sprintf(temp, "Clickable at level 1<br>");
-            else
-                sprintf(temp,"%sClickable at level %d%s<BR>", (Item->Clicky.RequiredLevel > GetCharInfo2()->Level ? "<c \"#FF4040\">" : ""), Item->Clicky.RequiredLevel, (Item->Clicky.RequiredLevel > GetCharInfo2()->Level ? "</C>" : ""));  
-            strcat(out,temp); 
+		if (Item->Clicky.EffectType == 4 || Item->Clicky.EffectType == 1 || Item->Clicky.EffectType == 5) {
+			if (Item->Clicky.RequiredLevel == 0) {
+				sprintf(temp, "Clickable at level 1<br>");
+			} else {
+				if (PCHARINFO2 pChar2 = GetCharInfo2()) {
+					sprintf(temp, "%sClickable at level %d%s<BR>", (Item->Clicky.RequiredLevel > pChar2->Level ? "<c \"#FF4040\">" : ""), Item->Clicky.RequiredLevel, (Item->Clicky.RequiredLevel > pChar2->Level ? "</C>" : ""));
+				}
+			}
+			strcat(out, temp);
         }
 
         // TheColonel (12/24/2003)
@@ -1247,16 +1255,17 @@ void DoGearScoreUserCommand(PSPAWNINFO pChar, PCHAR szLine)
 
 void DoScoreForCursor(void)
 {
-	PITEMINFO pCursorItem = NULL;
-	PCONTENTS pCursorContents = GetCharInfo2()->pInventoryArray->Inventory.Cursor;
-	DWORD Class = GetCharInfo2()->Class;
-	if (pCursorContents) pCursorItem = GetItemFromContents(pCursorContents);
-	if (pCursorItem) 
-	{
-		char Temp[MAX_STRING];
-		AddGearScores(pCursorContents,pCursorItem,Temp,"\n");
-		WriteChatf("MQ2ItemDisplay::Cursor item %s",pCursorItem->Name);
-		WriteChatf("%s",Temp);
+	if (PCHARINFO2 pChar2 = GetCharInfo2()) {
+		if (pChar2->pInventoryArray) {
+			if (PCONTENTS pCursorContents = pChar2->pInventoryArray->Inventory.Cursor) {
+				if (PITEMINFO pCursorItem = GetItemFromContents(pCursorContents)) {
+					char Temp[MAX_STRING];
+					AddGearScores(pCursorContents, pCursorItem, Temp, "\n");
+					WriteChatf("MQ2ItemDisplay::Cursor item %s", pCursorItem->Name);
+					WriteChatf("%s", Temp);
+				}
+			}
+		}
 	}
 }
 
@@ -1365,26 +1374,31 @@ void AddGearScores_CheckAugs(PCONTENTS pSlot,ITEMINFO *pItem,char *out,char *br)
 	char *name;
 	int i;
 	DWORD mask;
-	PITEMINFO pInvItem;
-    PCONTENTS pInvContent;
-	float bestVal = score;
+	if (PCHARINFO2 pChar2 = GetCharInfo2()) {
+		if (pChar2->pInventoryArray) {
+			PITEMINFO pInvItem;
+			PCONTENTS pInvContent;
+			float bestVal = score;
 
-	// Loop over all the worn items
-	for (i=0; i<BAG_SLOT_START-1; i++)
-	{
-		mask = SlotInfo[i].SlotMask;
-		name = SlotInfo[i].SlotName;
-		pInvItem = NULL;
-		pInvContent = GetCharInfo2()->pInventoryArray->InventoryArray[i];
-		if (pInvContent) pInvItem = GetItemFromContents(pInvContent);
-		if (pInvItem && (pItem->EquipSlots & mask) == mask)
-		{
-			AddGearScore_CheckAugSlot(pItem,score,i,name,pInvContent,pInvItem,pInvItem->AugSlot1,0,out,br);
-			AddGearScore_CheckAugSlot(pItem,score,i,name,pInvContent,pInvItem,pInvItem->AugSlot2,1,out,br);
-			AddGearScore_CheckAugSlot(pItem,score,i,name,pInvContent,pInvItem,pInvItem->AugSlot3,2,out,br);
-			AddGearScore_CheckAugSlot(pItem,score,i,name,pInvContent,pInvItem,pInvItem->AugSlot4,3,out,br);
-			AddGearScore_CheckAugSlot(pItem,score,i,name,pInvContent,pInvItem,pInvItem->AugSlot5,4,out,br);
-			AddGearScore_CheckAugSlot(pItem,score,i,name,pInvContent,pInvItem,pInvItem->AugSlot6,5,out,br);
+			// Loop over all the worn items
+			for (i = 0; i < BAG_SLOT_START - 1; i++)
+			{
+				mask = SlotInfo[i].SlotMask;
+				name = SlotInfo[i].SlotName;
+				pInvItem = NULL;
+				pInvContent = pChar2->pInventoryArray->InventoryArray[i];
+				if (pInvContent)
+					pInvItem = GetItemFromContents(pInvContent);
+				if (pInvItem && (pItem->EquipSlots & mask) == mask)
+				{
+					AddGearScore_CheckAugSlot(pItem, score, i, name, pInvContent, pInvItem, pInvItem->AugSlot1, 0, out, br);
+					AddGearScore_CheckAugSlot(pItem, score, i, name, pInvContent, pInvItem, pInvItem->AugSlot2, 1, out, br);
+					AddGearScore_CheckAugSlot(pItem, score, i, name, pInvContent, pInvItem, pInvItem->AugSlot3, 2, out, br);
+					AddGearScore_CheckAugSlot(pItem, score, i, name, pInvContent, pInvItem, pInvItem->AugSlot4, 3, out, br);
+					AddGearScore_CheckAugSlot(pItem, score, i, name, pInvContent, pInvItem, pInvItem->AugSlot5, 4, out, br);
+					AddGearScore_CheckAugSlot(pItem, score, i, name, pInvContent, pInvItem, pInvItem->AugSlot6, 5, out, br);
+				}
+			}
 		}
 	}
 }
@@ -1401,150 +1415,152 @@ int DoIHave(PITEMINFO Item)
 	unsigned long iSlot;
 
    //return nHowMany;
+	if (PCHARINFO2 pChar2 = GetCharInfo2()) {
+		if (pChar2->pInventoryArray) {
+			// Normal Inventory worn slots
+			for (iSlot = 0; iSlot < NUM_INV_SLOTS; iSlot++)
+			{
+				if (PCONTENTS pItem = pChar2->pInventoryArray->InventoryArray[iSlot])
+				{
+					if (GetItemFromContents(pItem)->ItemNumber == ID)
+					{
+						if ((GetItemFromContents(pItem)->Type != ITEMTYPE_NORMAL) ||
+							(((EQ_Item*)pItem)->IsStackable() != 1))
+						{
+							nHowMany++;
+						}
+						else
+						{
+							nHowMany += pItem->StackCount;
+						}
+					}
+					else // for augs
+					{
+						if (pItem->pContentsArray && pItem->NumOfSlots2)
+							for (nAug = 0; nAug < pItem->NumOfSlots2; nAug++)
+							{
+								if (pItem->pContentsArray->Contents[nAug] && GetItemFromContents(pItem->pContentsArray->Contents[nAug])->Type == ITEMTYPE_NORMAL && GetItemFromContents(pItem->pContentsArray->Contents[nAug])->AugType &&
+									GetItemFromContents(pItem->pContentsArray->Contents[nAug])->ItemNumber == ID)
+									nHowMany++;
+							}
+					}
+				}
+			}
+			// Bags
+			for (nPack = 0; nPack < 10; nPack++)
+			{
+				if (PCONTENTS pPack = pChar2->pInventoryArray->Inventory.Pack[nPack])
+				{
+					if (GetItemFromContents(pPack)->Type == ITEMTYPE_PACK && pPack->pContentsArray)
+					{
+						for (unsigned long nItem = 0; nItem < GetItemFromContents(pPack)->Slots; nItem++)
+						{
+							if (PCONTENTS pItem = pPack->pContentsArray->Contents[nItem])
+							{
+								if (GetItemFromContents(pItem)->ItemNumber == ID)
+								{
+									if ((GetItemFromContents(pItem)->Type != ITEMTYPE_NORMAL) ||
+										(((EQ_Item*)pItem)->IsStackable() != 1))
+									{
+										nHowMany++;
+									}
+									else
+									{
+										nHowMany += pItem->StackCount;
+									}
+								}
+								else // for augs
+								{
+									if (pItem->pContentsArray && pItem->NumOfSlots2)
+										for (nAug = 0; nAug < pItem->NumOfSlots2; nAug++)
+										{
+											if (pItem->pContentsArray->Contents[nAug] && GetItemFromContents(pItem->pContentsArray->Contents[nAug])->Type == ITEMTYPE_NORMAL && GetItemFromContents(pItem->pContentsArray->Contents[nAug])->AugType &&
+												GetItemFromContents(pItem->pContentsArray->Contents[nAug])->ItemNumber == ID)
+												nHowMany++;
+										}
+								}
+							}
+						}
+					}
+				}
+			}
 
-	// Normal Inventory worn slots
-   for (iSlot=0 ; iSlot < NUM_INV_SLOTS ; iSlot++)
-   {
-      if (PCONTENTS pItem=GetCharInfo2()->pInventoryArray->InventoryArray[iSlot])
-      {
-         if (GetItemFromContents(pItem)->ItemNumber==ID)
-         {
-            if ((GetItemFromContents(pItem)->Type != ITEMTYPE_NORMAL) ||
-               (((EQ_Item*)pItem)->IsStackable() != 1)) 
-            {
-               nHowMany++;
-            }
-            else 
-            {
-               nHowMany+=pItem->StackCount;
-            }
-         }
-         else // for augs
-         {
-            if (pItem->pContentsArray && pItem->NumOfSlots2)
-            for(nAug = 0; nAug < pItem->NumOfSlots2; nAug++)
-            {
-               if(pItem->pContentsArray->Contents[nAug] && GetItemFromContents(pItem->pContentsArray->Contents[nAug])->Type == ITEMTYPE_NORMAL && GetItemFromContents(pItem->pContentsArray->Contents[nAug])->AugType &&
-                  GetItemFromContents(pItem->pContentsArray->Contents[nAug])->ItemNumber==ID)
-                  nHowMany++;
-            }
-         }
-      }
-   }
-
-   // Bags
-   for (nPack=0 ; nPack < 10 ; nPack++)
-   {
-      if (PCONTENTS pPack=GetCharInfo2()->pInventoryArray->Inventory.Pack[nPack])
-      {
-         if (GetItemFromContents(pPack)->Type==ITEMTYPE_PACK && pPack->pContentsArray)
-         {
-            for (unsigned long nItem=0 ; nItem < GetItemFromContents(pPack)->Slots ; nItem++)
-            {
-               if (PCONTENTS pItem=pPack->pContentsArray->Contents[nItem])
-               {
-                  if (GetItemFromContents(pItem)->ItemNumber==ID)
-                  {
-                     if ((GetItemFromContents(pItem)->Type != ITEMTYPE_NORMAL) ||
-                        (((EQ_Item*)pItem)->IsStackable() != 1)) 
-                     {
-                        nHowMany++;
-                     }
-                     else
-                     {
-                        nHowMany+=pItem->StackCount;
-                     }
-                  }
-                  else // for augs
-                  {
-                     if (pItem->pContentsArray && pItem->NumOfSlots2)
-                     for(nAug = 0; nAug < pItem->NumOfSlots2; nAug++)
-                     {
-                        if(pItem->pContentsArray->Contents[nAug] && GetItemFromContents(pItem->pContentsArray->Contents[nAug])->Type == ITEMTYPE_NORMAL && GetItemFromContents(pItem->pContentsArray->Contents[nAug])->AugType &&
-                           GetItemFromContents(pItem->pContentsArray->Contents[nAug])->ItemNumber==ID)
-                           nHowMany++;
-                     }
-                  }
-               }
-            }
-         }
-      }
-   }
 
 
+			// Bank slots, not including shared
+			for (nPack = 0; nPack < NUM_BANK_SLOTS; nPack++)
+			{
+				PCHARINFO pCharInfo = GetCharInfo();
+				PCONTENTS pPack = NULL;
+				if (pCharInfo && pCharInfo->pBankArray)
+					pPack = pCharInfo->pBankArray->Bank[nPack];
+				if (pPack)
+				{
+					if (GetItemFromContents(pPack)->ItemNumber == ID)
+					{
+						if ((GetItemFromContents(pPack)->Type != ITEMTYPE_NORMAL) ||
+							(((EQ_Item*)pPack)->IsStackable() != 1))
+							nHowMany++;
+						else
+							nHowMany += pPack->StackCount;
+					}
+					if (GetItemFromContents(pPack)->Type == ITEMTYPE_PACK && pPack->pContentsArray)
+					{
+						for (unsigned long nItem = 0; nItem < GetItemFromContents(pPack)->Slots; nItem++)
+						{
+							if (PCONTENTS pItem = pPack->pContentsArray->Contents[nItem])
+							{
+								if (GetItemFromContents(pItem)->ItemNumber == ID)
+								{
+									if ((GetItemFromContents(pItem)->Type != ITEMTYPE_NORMAL) ||
+										(((EQ_Item*)pItem)->IsStackable() != 1))
+										nHowMany++;
+									else
+										nHowMany += pItem->StackCount;
+								}
+							}
+						}
+					}
+				}
+			}
 
-   // Bank slots, not including shared
-   for (nPack=0 ; nPack < NUM_BANK_SLOTS ; nPack++)
-   {
-      PCHARINFO pCharInfo=GetCharInfo();
-      PCONTENTS pPack=NULL;
-      if (pCharInfo && pCharInfo->pBankArray)
-		  pPack=pCharInfo->pBankArray->Bank[nPack];
-      if (pPack)
-      {
-         if (GetItemFromContents(pPack)->ItemNumber==ID)
-         {
-            if ((GetItemFromContents(pPack)->Type != ITEMTYPE_NORMAL) ||
-               (((EQ_Item*)pPack)->IsStackable() != 1))
-               nHowMany++;
-            else
-               nHowMany+=pPack->StackCount;
-         }
-         if (GetItemFromContents(pPack)->Type==ITEMTYPE_PACK && pPack->pContentsArray)
-         {
-            for (unsigned long nItem=0 ; nItem < GetItemFromContents(pPack)->Slots ; nItem++)
-            {
-               if (PCONTENTS pItem=pPack->pContentsArray->Contents[nItem])
-               {
-                  if (GetItemFromContents(pItem)->ItemNumber==ID)
-                  {
-                     if ((GetItemFromContents(pItem)->Type != ITEMTYPE_NORMAL) ||
-                        (((EQ_Item*)pItem)->IsStackable() != 1))
-                        nHowMany++;
-                     else
-                        nHowMany+=pItem->StackCount;
-                  }
-               }
-            }
-         }
-      }
-   }
-
-    for (nPack=0 ; nPack < NUM_SHAREDBANK_SLOTS ; nPack++)
-    {
-        PCHARINFO pCharInfo=GetCharInfo();
-		PCONTENTS pPack=NULL;
-		if (pCharInfo && pCharInfo->pSharedBankArray) pPack=pCharInfo->pSharedBankArray->SharedBank[nPack];
-		if (pPack)
-        {
-	        if (GetItemFromContents(pPack)->ItemNumber==ID)
-            {
-                if ((GetItemFromContents(pPack)->Type != ITEMTYPE_NORMAL) ||
-                    (((EQ_Item*)pPack)->IsStackable() != 1))
-                    nHowMany++;
-                else
-                    nHowMany+=pPack->StackCount;
-            }
-            if (GetItemFromContents(pPack)->Type==ITEMTYPE_PACK && pPack->pContentsArray)
-            {
-                for (unsigned long nItem=0 ; nItem < GetItemFromContents(pPack)->Slots ; nItem++)
-                {
-                    if (PCONTENTS pItem=pPack->pContentsArray->Contents[nItem])
-                    {
-		                if (GetItemFromContents(pItem)->ItemNumber==ID)
-                        {
-                            if ((GetItemFromContents(pItem)->Type != ITEMTYPE_NORMAL) ||
-                                (((EQ_Item*)pItem)->IsStackable() != 1))
-                                nHowMany++;
-                            else
-                                nHowMany+=pItem->StackCount;
-                        }
-                    }
-                }
-            }
-        }
-    }
-
+			for (nPack = 0; nPack < NUM_SHAREDBANK_SLOTS; nPack++)
+			{
+				PCHARINFO pCharInfo = GetCharInfo();
+				PCONTENTS pPack = NULL;
+				if (pCharInfo && pCharInfo->pSharedBankArray)
+					pPack = pCharInfo->pSharedBankArray->SharedBank[nPack];
+				if (pPack)
+				{
+					if (GetItemFromContents(pPack)->ItemNumber == ID)
+					{
+						if ((GetItemFromContents(pPack)->Type != ITEMTYPE_NORMAL) ||
+							(((EQ_Item*)pPack)->IsStackable() != 1))
+							nHowMany++;
+						else
+							nHowMany += pPack->StackCount;
+					}
+					if (GetItemFromContents(pPack)->Type == ITEMTYPE_PACK && pPack->pContentsArray)
+					{
+						for (unsigned long nItem = 0; nItem < GetItemFromContents(pPack)->Slots; nItem++)
+						{
+							if (PCONTENTS pItem = pPack->pContentsArray->Contents[nItem])
+							{
+								if (GetItemFromContents(pItem)->ItemNumber == ID)
+								{
+									if ((GetItemFromContents(pItem)->Type != ITEMTYPE_NORMAL) ||
+										(((EQ_Item*)pItem)->IsStackable() != 1))
+										nHowMany++;
+									else
+										nHowMany += pItem->StackCount;
+								}
+							}
+						}
+					}
+				}
+			}
+		}
+	}
    return nHowMany;
 }
 
@@ -1605,36 +1621,44 @@ void AddGearScores_CheckItems(PCONTENTS pSlot,ITEMINFO *pItem,char *out,char *br
 	sprintf(temp,"This Item Score : %6.0f%s",CurrScore,br);
 	strcat(out,temp);
 
-
-	for (i=0; i<BAG_SLOT_START-1; i++)
-	{
-		mask = SlotInfo[i].SlotMask;
-		if ((pItem->EquipSlots & mask) == mask) 
-		{
-			score = 0;
-			ClearAttribListVal();
-			PCONTENTS pInvSlot = GetCharInfo2()->pInventoryArray->InventoryArray[i];
-			if (pInvSlot)
+	if (PCHARINFO2 pChar2 = GetCharInfo2()) {
+		if (pChar2->pInventoryArray) {
+			for (i = 0; i < BAG_SLOT_START - 1; i++)
 			{
-				PITEMINFO pItemInfo = GetItemFromContents(pInvSlot);
-				score = CalcItemGearScore(pItemInfo);
-				if (pItemInfo && pItemInfo->ItemNumber != pItem->ItemNumber)
+				mask = SlotInfo[i].SlotMask;
+				if ((pItem->EquipSlots & mask) == mask)
 				{
-					sprintf(temp,"Worn Item Score : %6.0f (%s%s) %s",score,(score-CurrScore>0?"Keep ":"UPGRADE for "),SlotInfo[i].SlotName,br);
-					strcat(out,temp);
+					score = 0;
+					ClearAttribListVal();
+					PCONTENTS pInvSlot = pChar2->pInventoryArray->InventoryArray[i];
+					if (pInvSlot)
+					{
+						PITEMINFO pItemInfo = GetItemFromContents(pInvSlot);
+						score = CalcItemGearScore(pItemInfo);
+						if (pItemInfo && pItemInfo->ItemNumber != pItem->ItemNumber)
+						{
+							sprintf(temp, "Worn Item Score : %6.0f (%s%s) %s", score, (score - CurrScore>0 ? "Keep " : "UPGRADE for "), SlotInfo[i].SlotName, br);
+							strcat(out, temp);
+						}
+					}
+					CheckForBest(score, i);
 				}
 			}
-			CheckForBest(score,i);
 		}
 	}
 }
 
 int CanIUseThisItem(PCONTENTS pSlot, ITEMINFO *pItem)
 {
-	if (!GetCharInfo2()->Class) return -1;
-	DWORD ClassMask = (1<<(GetCharInfo2()->Class-1));
-	if ((ClassMask & pItem->Classes) == 0) return -2;
-	return 1;
+	if (PCHARINFO2 pChar2 = GetCharInfo2()) {
+		if (!pChar2->Class)
+			return -1;
+		DWORD ClassMask = (1 << (pChar2->Class - 1));
+		if ((ClassMask & pItem->Classes) == 0)
+			return -2;
+		return 1;
+	}
+	return -1;
 }
 
 

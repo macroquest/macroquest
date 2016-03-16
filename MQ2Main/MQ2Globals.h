@@ -50,7 +50,6 @@ namespace MQ2Globals
 	EQLIB_API int gBuild;
 
 
-	EQLIB_API DWORD gGameState;
 	EQLIB_API ePVPServer PVPServer;
 	EQLIB_VAR HANDLE ghLockSpellMap;
 	EQLIB_VAR HANDLE ghLockPickZone;

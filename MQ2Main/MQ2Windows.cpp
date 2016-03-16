@@ -467,7 +467,11 @@ CXWnd *FindMQ2Window(PCHAR WindowName)
 		else if (!strnicmp(WindowName, "pack", 4)) {
 			unsigned long nPack = atoi(&WindowName[4]);
 			if (nPack && nPack <= 10) {
-				pPack = GetCharInfo2()->pInventoryArray->Inventory.Pack[nPack - 1];
+				if (PCHARINFO2 pChar2 = GetCharInfo2()) {
+					if (pChar2->pInventoryArray) {
+						pPack = pChar2->pInventoryArray->Inventory.Pack[nPack - 1];
+					}
+				}
 			}
 		}
 		else if (!_stricmp(WindowName, "enviro")) {

@@ -101,9 +101,9 @@ void Pulse()
 	static ULONGLONG LastMoveTick = 0;
 	static DWORD MapDelay = 0;
 
-	static DWORD LastHealth = 0;
-	static DWORD LastMana = 0;
-	static DWORD LastEndurance = 0;
+	static LONG LastHealth = 0;
+	static LONG LastMana = 0;
+	static LONG LastEndurance = 0;
 
 
 
@@ -131,8 +131,10 @@ void Pulse()
 		DoorEnviroTarget.Name[0] = 0;
 		pDoorTarget = 0;
 		LastHealth = GetCurHPS();
-		LastMana = GetCharInfo2()->Mana;
-		LastEndurance = GetCharInfo2()->Endurance;
+		LastMana = GetCurMana();
+		if (PCHARINFO2 pChar2 = GetCharInfo2()) {
+			LastEndurance = pChar2->Endurance;
+		}
 		ManaGained = 0;
 		HealthGained = 0;
 		EnduranceGained = 0;
@@ -167,33 +169,38 @@ void Pulse()
 	if (!pTarget)
 		gTargetbuffs = FALSE;
 
-	DWORD CurrentHealth = GetCurHPS();
+	LONG CurrentHealth = GetCurHPS();
 	if (LastHealth && CurrentHealth>LastHealth)
 	{
-		if ((int)pChar->HPCurrent != GetMaxHPS())
+		if (CurrentHealth != GetMaxHPS())
 		{ // gained health, and not max
 			HealthGained = CurrentHealth - LastHealth;
 		}
 	}
 	LastHealth = CurrentHealth;
 
-	if (LastMana && GetCharInfo2()->Mana > LastMana)
+	LONG CurrentMana = GetCurMana();
+	if (LastMana && CurrentMana > LastMana)
 	{
-		if ((int)GetCharInfo2()->Mana - LastMana > 0)
+		if (CurrentMana - LastMana > 0)
 		{
-			ManaGained = GetCharInfo2()->Mana - LastMana;
+			ManaGained = CurrentMana - LastMana;
 		}
 	}
-	LastMana = GetCharInfo2()->Mana;
+	LastMana = CurrentMana;
 
-	if (LastEndurance && GetCharInfo2()->Endurance > LastEndurance)
+	LONG CurrentEndurance = 0;
+	if (PCHARINFO2 pChar2 = GetCharInfo2()) {
+		CurrentEndurance = pChar2->Endurance;
+	}
+	if (LastEndurance && CurrentEndurance > LastEndurance)
 	{
-		if (GetCharInfo2()->Endurance != GetMaxEndurance())
+		if (CurrentEndurance != GetMaxEndurance())
 		{
-			EnduranceGained = GetCharInfo2()->Endurance - LastEndurance;
+			EnduranceGained = CurrentEndurance - LastEndurance;
 		}
 	}
-	LastEndurance = GetCharInfo2()->Endurance;
+	LastEndurance = CurrentEndurance;
 
 	if (gbDoAutoRun && pChar && pCharInfo) {
 		gbDoAutoRun = FALSE;
