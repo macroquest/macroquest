@@ -37,7 +37,8 @@ VOID Unload(PSPAWNINFO pChar, PCHAR szLine)
 	if(!pChar)
 		pChar = (PSPAWNINFO)pLocalPlayer;
 	bRunNextCommand = TRUE;
-	if (gMacroBlock) EndMacro(pChar, szLine);
+	if (gMacroBlock)
+		EndMacro(pChar, szLine);
 	DebugSpew("%s",ToUnloadString);
 	WriteChatColor(ToUnloadString, USERCOLOR_DEFAULT);
 	gbUnload = TRUE;
@@ -4132,5 +4133,17 @@ VOID AssistCmd(PSPAWNINFO pChar, PCHAR szLine)
 {
 	gbAssistComplete = 0;
 	cmdAssist(pChar, szLine);
+}
+// ***************************************************************************
+// Function:    Invoke
+// Description: '/invoke' command
+// Purpose:     Adds the ability to invoke Methods
+// Example:		/invoke ${Target.Assist}
+//              will execute the Assist Method of the Target TLO
+// Author:      EqMule
+// ***************************************************************************
+VOID InvokeCmd(PSPAWNINFO pChar, PCHAR szLine)
+{
+	ParseMacroParameter(pChar,szLine);
 }
 #endif

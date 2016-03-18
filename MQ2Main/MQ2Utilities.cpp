@@ -5258,7 +5258,11 @@ PCHAR FormatSearchSpawn(PCHAR Buffer, PSEARCHSPAWN pSearchSpawn)
 	sprintf(Buffer, "(%d-%d) %s", pSearchSpawn->MinLevel, pSearchSpawn->MaxLevel, pszSpawnType);
 
 	if (pSearchSpawn->szName[0] != 0) {
-		sprintf(szTemp, " %s", pSearchSpawn->szName);
+		if (pSearchSpawn->bExactName) {
+			sprintf(szTemp, " whose name exactly matches %s", pSearchSpawn->szName);
+		} else {
+			sprintf(szTemp, " whose name contains %s", pSearchSpawn->szName);
+		}
 		strcat(Buffer, szTemp);
 	}
 	if (pSearchSpawn->szRace[0] != 0) {
@@ -6066,7 +6070,7 @@ BOOL IsAlert(PSPAWNINFO pChar, PSPAWNINFO pSpawn, DWORD List)
 	if (CAlerts.GetAlert(List, ss)) {
 		for (std::list<SEARCHSPAWN>::iterator i = ss.begin(); i != ss.end(); i++) {
 			CopyMemory(&SearchSpawn, &(*i), sizeof(SEARCHSPAWN));
-			if ((SearchSpawn.SpawnID>0) && (SearchSpawn.SpawnID != pSpawn->SpawnID))
+			if (SearchSpawn.SpawnID > 0 && SearchSpawn.SpawnID != pSpawn->SpawnID)
 				continue;
 			SearchSpawn.SpawnID = pSpawn->SpawnID;
 			// if this spawn matches, it's true 

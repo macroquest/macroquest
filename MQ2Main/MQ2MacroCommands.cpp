@@ -600,7 +600,8 @@ VOID EndMacro(PSPAWNINFO pChar, PCHAR szLine)
     }
 #endif
 
-    while (gMacroBlock->pNext) gMacroBlock=gMacroBlock->pNext;
+    while (gMacroBlock->pNext)
+		gMacroBlock=gMacroBlock->pNext;
     while (gMacroBlock) {
         pPrev = gMacroBlock->pPrev;
         free(gMacroBlock);

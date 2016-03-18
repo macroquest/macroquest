@@ -693,6 +693,7 @@ void InitializeMQ2Commands()
 		{"/advloot",    AdvLootCmd,1,1},
 		{"/pickzone",   PickZoneCmd,1,1},
 		{"/assist",     AssistCmd,1,1},
+		{"/invoke",     InvokeCmd,1,1},
         {NULL,          NULL,0,1},
     };
 

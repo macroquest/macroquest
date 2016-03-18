@@ -420,6 +420,7 @@ namespace MQ2Internal {
 				ReleaseMutex(_hLockMapWrite);
 				CloseHandle(_hLockMapWrite);
 				_hLockMapWrite = 0;
+				_AlertMap.clear();
 			}
 		}
 		BOOL AddNewAlertList(DWORD Id, PSEARCHSPAWN pSearchSpawn);
@@ -752,6 +753,7 @@ namespace MQ2Internal {
     {
         DWORD ID;
         PCHAR Name;
+		DWORD Type;
     } MQ2TYPEMEMBER, *PMQ2TYPEMEMBER;
 
     typedef BOOL  (__cdecl *fMQData)(PCHAR szIndex, MQ2TYPEVAR &Ret);
@@ -794,9 +796,11 @@ namespace MQ2Internal {
 
         virtual inline ~MQ2Type() 
         {
-            if (Official)
-                RemoveMQ2Type(*this);
+			if (Official) {
+				RemoveMQ2Type(*this);
+			}
             Members.Cleanup();
+            Methods.Cleanup();
         }
 
         virtual bool FromData(MQ2VARPTR &VarPtr, MQ2TYPEVAR &Source)=0;
@@ -847,6 +851,14 @@ namespace MQ2Internal {
             N--;
             return Members[N];
         }
+		PMQ2TYPEMEMBER FindMethod(PCHAR Name)
+        {
+            unsigned long N=MethodMap[Name];
+            if (!N)
+                return 0;
+            N--;
+            return Methods[N];
+        }
         BOOL InheritedMember(PCHAR Name)
         {
             if (!pInherits || !pInherits->FindMember(Name))
@@ -870,10 +882,24 @@ namespace MQ2Internal {
             PMQ2TYPEMEMBER pMember = new MQ2TYPEMEMBER;
             pMember->Name=Name;
             pMember->ID=ID;
+			pMember->Type = 0;
             Members[N]=pMember;
             return true;
         }
-
+		inline BOOL AddMethod(DWORD ID, PCHAR Name)
+        {
+            unsigned long N=MethodMap[Name];
+            if (N>0)
+                return false;
+            N=Methods.GetUnused();
+            MethodMap[Name]=N+1;
+            PMQ2TYPEMEMBER pMethod = new MQ2TYPEMEMBER;
+            pMethod->Name=Name;
+            pMethod->ID=ID;
+			pMethod->Type = 1;
+            Methods[N]=pMethod;
+            return true;
+        }
         inline BOOL RemoveMember(PCHAR Name)
         {
             unsigned long N=MemberMap[Name];
@@ -884,11 +910,22 @@ namespace MQ2Internal {
             delete pMember;
             Members[N]=0;
         }
-
+		inline BOOL RemoveMethod(PCHAR Name)
+        {
+            unsigned long N=MethodMap[Name];
+            if (N==0)
+                return false;
+            N--;
+            PMQ2TYPEMEMBER pMethod = Methods[N];
+            delete pMethod;
+            Methods[N]=0;
+        }
         CHAR TypeName[32];
         BOOL Official;
         CIndex<PMQ2TYPEMEMBER> Members;
+        CIndex<PMQ2TYPEMEMBER> Methods;
         map<string,DWORD> MemberMap;
+        map<string,DWORD> MethodMap;
         MQ2Type *pInherits;
     };
 

@@ -1089,14 +1089,15 @@ typedef struct _EQMAPWINDOW {
 
 // 20120316 - ieatacid
 // 20130819 confirmed  - eqmule
+// 20160317 confirmed Size unknown - eqmule
 struct merchdata {
 	/*0x00*/ void   *vftable;
-	/*0x04*/ BYTE   Unknown0x4[0xc];
-	/*0x10*/ DWORD  MerchSlots;
-	/*0x14*/ DWORD  Unknown0x14;
-	/*0x18*/ struct _CONTENTSARRAY *pMerchArray;
-	/*0x1c*/ DWORD  MerchMaxSlots;
-	/*0x20*/
+	/*0x04*/ BYTE   Unknown0x4[0x8];
+	/*0x0c*/ DWORD  MerchSlots;
+	/*0x10*/ DWORD  Unknown0x10;
+	/*0x14*/ struct _CONTENTSARRAY *pMerchArray;
+	/*0x18*/ DWORD  MerchMaxSlots;
+	/*0x1c*/
 };
 
 struct merch_other {

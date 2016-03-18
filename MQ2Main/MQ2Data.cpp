@@ -1737,9 +1737,12 @@ TLO(dataFriends)
 
 TLO(dataTask)
 {
-	Ret.DWord = 1;
-	Ret.Type = pTaskType;
-	return true;
+	if (Ret.Ptr = pTaskMember)
+	{
+		Ret.Type = pTaskType;
+		return true;
+	}
+	return false;
 }
 
 TLO(dataMount)

@@ -51,8 +51,9 @@ GNU General Public License for more details.
 #define DOUBLEPTR(x) Dest.Double=x
 
 #define TypeMember(name) AddMember((DWORD)name,""#name)
-#define TypeMethod(x)
-#define AddMethod(x,y)
+#define TypeMethod(name) AddMethod((DWORD)name,""#name)
+//#define TypeMethod(x)
+//#define AddMethod(x,y)
 #else
 #define INTPTR(x) Dest.Ptr=&x
 #define BYTEPTR(x) Dest.Ptr=&x
@@ -671,11 +672,11 @@ public:
 	};
 	enum SpawnMethods
 	{
-		Target = 1,
-		Face = 2,
-		xAssist = 4,
-		LeftClick = 5,
-		RightClick = 6,
+		DoTarget = 1,
+		DoFace = 2,
+		DoAssist = 4,
+		DoLeftClick = 5,
+		DoRightClick = 6,
 	};
 	MQ2SpawnType() :MQ2Type("spawn")
 	{
@@ -752,8 +753,8 @@ public:
 		TypeMember(DisplayName);
 		TypeMember(AATitle);
 		AddMember(xGroupLeader, "GroupLeader");
-		TypeMember(Mark);
 		TypeMember(Assist);
+		TypeMember(Mark);
 		TypeMember(Anonymous);
 		TypeMember(Roleplaying);
 		AddMember(xLineOfSight, "LineOfSight");
@@ -792,11 +793,11 @@ public:
 		TypeMember(Aggressive);
 		TypeMember(CanSplashLand);
 
-		TypeMethod(Target);
-		TypeMethod(Face);
-		TypeMethod(LeftClick);
-		TypeMethod(RightClick);
-		AddMethod(xAssist, "Assist");
+		TypeMethod(DoTarget);
+		TypeMethod(DoFace);
+		TypeMethod(DoLeftClick);
+		TypeMethod(DoRightClick);
+		TypeMethod(DoAssist);
 	}
 
 	~MQ2SpawnType()
@@ -1092,9 +1093,9 @@ public:
 	};
 	enum CharacterMethods
 	{
-		Stand,
-		Sit,
-		Dismount,
+		DoStand,
+		DoSit,
+		DoDismount,
 	};
 	MQ2CharacterType() :MQ2Type("character")
 	{
@@ -1332,9 +1333,9 @@ public:
 		TypeMember(XTargetSlots);
 		TypeMember(AssistComplete);
 
-		TypeMethod(Stand);
-		TypeMethod(Sit);
-		TypeMethod(Dismount);
+		TypeMethod(DoStand);
+		TypeMethod(DoSit);
+		TypeMethod(DoDismount);
 	}
 
 	~MQ2CharacterType()

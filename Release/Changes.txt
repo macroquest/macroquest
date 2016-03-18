@@ -1,3 +1,7 @@
+17 Mar 2016
+- Fixed a crash in the ${Merchant} TLO
+- Fixed a crash in the ${Task} TLO
+
 16 Mar 2016
 - Updated for LIVE
 - Added a new TLO: GroundItemCount

@@ -1039,823 +1039,860 @@ bool MQ2SpawnType::GETMEMBER()
 	PMQ2TYPEMEMBER pMember = MQ2SpawnType::FindMember(Member);
 	if (!pMember)
 	{
-		return false;
+		//ok so is it a method then?
+		pMember = MQ2SpawnType::FindMethod(Member);
+		if (!pMember)
+			return false;
 	}
 	PSPAWNINFO pSpawn = (PSPAWNINFO)VarPtr.Ptr;
-	switch ((SpawnMembers)pMember->ID)
-	{
-	case Address://This is for debugging purposes/correcting struct on patchday, probably not of any use to the end users.
-		Dest.DWord = (DWORD)VarPtr.Ptr;
-		Dest.Type = pIntType;
-		return true;
-	case Level:
-		Dest.DWord = pSpawn->Level;
-		Dest.Type = pIntType;
-		return true;
-	case ID:
-		Dest.Type = pIntPtrType;
-		INTPTR(pSpawn->SpawnID);
-		return true;
-	case Name:
-		strcpy(DataTypeTemp, pSpawn->Name);
-		Dest.Type = pStringType;
-		Dest.Ptr = &DataTypeTemp[0];
-		return true;
-	case Surname:
-		Dest.Type = pStringType;
-		Dest.Ptr = &pSpawn->Lastname[0];
-		return true;
-	case CleanName:
-		strcpy(DataTypeTemp, pSpawn->Name);
-		CleanupName(DataTypeTemp, FALSE, FALSE);
-		Dest.Type = pStringType;
-		Dest.Ptr = &DataTypeTemp[0];
-		return true;
-	case DisplayName:
-		Dest.Ptr = &pSpawn->DisplayedName[0];
-		Dest.Type = pStringType;
-		return true;
-	case E:
-		Dest.Type = pFloatType;
-		Dest.Float = -pSpawn->X;
-		return true;
-	case W:
-	case X:
-		Dest.Type = pFloatPtrType;
-		FLOATPTR(pSpawn->X);
-		return true;
-	case S:
-		Dest.Type = pFloatType;
-		Dest.Float = -pSpawn->Y;
-		return true;
-	case N:
-	case Y:
-		Dest.Type = pFloatPtrType;
-		FLOATPTR(pSpawn->Y);
-		return true;
-	case D:
-		Dest.Type = pFloatType;
-		Dest.Float = -pSpawn->Z;
-		return true;
-	case U:
-	case Z:
-		Dest.Type = pFloatPtrType;
-		FLOATPTR(pSpawn->Z);
-		return true;
-	case Next:
-		if (Dest.Ptr = pSpawn->pNext)
+	if (pMember->Type == 1) {
+		switch ((SpawnMethods)pMember->ID)
 		{
-			Dest.Type = pSpawnType;
-			return true;
-		}
-		break;
-	case Prev:
-		if (Dest.Ptr = pSpawn->pPrev)
-		{
-			Dest.Type = pSpawnType;
-			return true;
-		}
-		break;
-	case CurrentHPs:
-		Dest.Type = pIntType;
-		Dest.Int = pSpawn->HPCurrent;
-		return true;
-	case MaxHPs:
-		Dest.Type = pIntType;
-		Dest.Int = pSpawn->HPMax;
-		return true;
-	case PctHPs:
-	{
-		Dest.Type = pIntType;
-		//fix for a crash that will occur if HPMax is 0
-		//we should not divide something by 0... -eqmule
-		LONG maxhp = pSpawn->HPMax;
-		if (maxhp != 0)
-			Dest.Int = pSpawn->HPCurrent * 100 / maxhp;
-		else
-			Dest.Int = 0;
-		return true;
-	}
-	case AARank:
-		if (pSpawn->AARank != 0xFF)
-			Dest.Int = pSpawn->AARank;
-		else
-			Dest.Int = 0;
-		Dest.Type = pIntType;
-		return true;
-	case Speed:
-		Dest.Float = FindSpeed(pSpawn);
-		Dest.Type = pFloatType;
-		return true;
-	case Heading:
-		Dest.Float = pSpawn->Heading*0.703125f;
-		Dest.Type = pHeadingType;
-		return true;
-	case Pet:
-		Dest.Type = pPetType;
-		Dest.Ptr = GetSpawnByID(pSpawn->PetID);
-		if (!Dest.Ptr)
-		{
-			ZeroMemory(&PetSpawn, sizeof(PetSpawn));
-			strcpy_s(PetSpawn.Name, "NO PET");
-			Dest.Ptr = &PetSpawn;
-		}
-		return true;
-	case Master:
-		if (Dest.Ptr = GetSpawnByID(pSpawn->MasterID))
-		{
-			Dest.Type = pSpawnType;
-			return true;
-		}
-		break;
-	case Gender:
-		Dest.Ptr = szGender[pSpawn->Gender];
-		Dest.Type = pStringType;
-		return true;
-	case Race:
-		Dest.DWord = pSpawn->Race;
-		Dest.Type = pRaceType;
-		return true;
-	case Class:
-		if (GetSpawnType(pSpawn) != AURA && GetSpawnType(pSpawn) != BANNER && GetSpawnType(pSpawn) != CAMPFIRE)
-			Dest.DWord = pSpawn->Class;
-		else
-			if (GetSpawnType(pSpawn) == AURA)
-				Dest.DWord = 0xFF;
-			else if (GetSpawnType(pSpawn) == BANNER)
-				Dest.DWord = 0xFE;
-			else
-				Dest.DWord = 0xFD;
-			Dest.Type = pClassType;
-			return true;
-	case Body:
-		Dest.DWord = GetBodyType(pSpawn);
-		Dest.Type = pBodyType;
-		return true;
-	case GM:
-		Dest.DWord = pSpawn->GM;
-		Dest.Type = pBoolType;
-		return true;
-	case Levitating:
-		Dest.DWord = (pSpawn->Levitate == 2);
-		Dest.Type = pBoolType;
-		return true;
-	case Sneaking:
-		Dest.DWord = pSpawn->Sneak;
-		Dest.Type = pBoolType;
-		return true;
-	case Invis:
-		Dest.DWord = pSpawn->HideMode;
-		Dest.Type = pBoolType;
-		return true;
-	case Height:
-		Dest.Float = pSpawn->AvatarHeight;
-		Dest.Type = pFloatType;
-		return true;
-	case MaxRange:
-		if (GetSpawnType(pSpawn) != ITEM)
-		{
-			Dest.Float = get_melee_range((EQPlayer*)pSpawn, (EQPlayer*)pSpawn);
-			Dest.Type = pFloatType;
-			return true;
-		}
-		break;
-	case MaxRangeTo:
-		if (GetSpawnType(pSpawn) != ITEM)
-		{
-			Dest.Float = get_melee_range(pLocalPlayer, (EQPlayer*)pSpawn);
-			Dest.Type = pFloatType;
-			return true;
-		}
-		break;
-	case Guild:
-		if (pSpawn->GuildID != 0xFFFFFFFF)
-		{
-			if (char *szGuild = GetGuildByID(pSpawn->GuildID))
+			case DoTarget:
+				pTarget = (EQPlayer *)pSpawn;
+				return true;
+			case DoFace:
 			{
-				Dest.Ptr = szGuild;
+				CHAR szOut[256] = {0};
+				sprintf_s(szOut,"id %d",pSpawn->SpawnID);
+				Face((PSPAWNINFO)pLocalPlayer, szOut);
+				return true;
+			}
+			case DoLeftClick:
+				pEverQuest->LeftClickedOnPlayer((EQPlayer *)pSpawn); 
+                WeDidStuff();
+				return true;
+			case DoRightClick:
+				pEverQuest->RightClickedOnPlayer((EQPlayer *)pSpawn, 0); 
+                WeDidStuff();
+				return true;
+			case DoAssist:
+			{
+				CHAR szOut[256] = {0};
+				sprintf_s(szOut,"%s",pSpawn->DisplayedName);
+				AssistCmd((PSPAWNINFO)pLocalPlayer,szOut);
+				return true;
+			}
+			default:
+				return false;
+		}
+	} else {
+		switch ((SpawnMembers)pMember->ID)
+		{
+		case Address://This is for debugging purposes/correcting struct on patchday, probably not of any use to the end users.
+			Dest.DWord = (DWORD)VarPtr.Ptr;
+			Dest.Type = pIntType;
+			return true;
+		case Level:
+			Dest.DWord = pSpawn->Level;
+			Dest.Type = pIntType;
+			return true;
+		case ID:
+			Dest.Type = pIntPtrType;
+			INTPTR(pSpawn->SpawnID);
+			return true;
+		case Name:
+			strcpy(DataTypeTemp, pSpawn->Name);
+			Dest.Type = pStringType;
+			Dest.Ptr = &DataTypeTemp[0];
+			return true;
+		case Surname:
+			Dest.Type = pStringType;
+			Dest.Ptr = &pSpawn->Lastname[0];
+			return true;
+		case CleanName:
+			strcpy(DataTypeTemp, pSpawn->Name);
+			CleanupName(DataTypeTemp, FALSE, FALSE);
+			Dest.Type = pStringType;
+			Dest.Ptr = &DataTypeTemp[0];
+			return true;
+		case DisplayName:
+			Dest.Ptr = &pSpawn->DisplayedName[0];
+			Dest.Type = pStringType;
+			return true;
+		case E:
+			Dest.Type = pFloatType;
+			Dest.Float = -pSpawn->X;
+			return true;
+		case W:
+		case X:
+			Dest.Type = pFloatPtrType;
+			FLOATPTR(pSpawn->X);
+			return true;
+		case S:
+			Dest.Type = pFloatType;
+			Dest.Float = -pSpawn->Y;
+			return true;
+		case N:
+		case Y:
+			Dest.Type = pFloatPtrType;
+			FLOATPTR(pSpawn->Y);
+			return true;
+		case D:
+			Dest.Type = pFloatType;
+			Dest.Float = -pSpawn->Z;
+			return true;
+		case U:
+		case Z:
+			Dest.Type = pFloatPtrType;
+			FLOATPTR(pSpawn->Z);
+			return true;
+		case Next:
+			if (Dest.Ptr = pSpawn->pNext)
+			{
+				Dest.Type = pSpawnType;
+				return true;
+			}
+			break;
+		case Prev:
+			if (Dest.Ptr = pSpawn->pPrev)
+			{
+				Dest.Type = pSpawnType;
+				return true;
+			}
+			break;
+		case CurrentHPs:
+			Dest.Type = pIntType;
+			Dest.Int = pSpawn->HPCurrent;
+			return true;
+		case MaxHPs:
+			Dest.Type = pIntType;
+			Dest.Int = pSpawn->HPMax;
+			return true;
+		case PctHPs:
+		{
+			Dest.Type = pIntType;
+			//fix for a crash that will occur if HPMax is 0
+			//we should not divide something by 0... -eqmule
+			LONG maxhp = pSpawn->HPMax;
+			if (maxhp != 0)
+				Dest.Int = pSpawn->HPCurrent * 100 / maxhp;
+			else
+				Dest.Int = 0;
+			return true;
+		}
+		case AARank:
+			if (pSpawn->AARank != 0xFF)
+				Dest.Int = pSpawn->AARank;
+			else
+				Dest.Int = 0;
+			Dest.Type = pIntType;
+			return true;
+		case Speed:
+			Dest.Float = FindSpeed(pSpawn);
+			Dest.Type = pFloatType;
+			return true;
+		case Heading:
+			Dest.Float = pSpawn->Heading*0.703125f;
+			Dest.Type = pHeadingType;
+			return true;
+		case Pet:
+			Dest.Type = pPetType;
+			Dest.Ptr = GetSpawnByID(pSpawn->PetID);
+			if (!Dest.Ptr)
+			{
+				ZeroMemory(&PetSpawn, sizeof(PetSpawn));
+				strcpy_s(PetSpawn.Name, "NO PET");
+				Dest.Ptr = &PetSpawn;
+			}
+			return true;
+		case Master:
+			if (Dest.Ptr = GetSpawnByID(pSpawn->MasterID))
+			{
+				Dest.Type = pSpawnType;
+				return true;
+			}
+			break;
+		case Gender:
+			Dest.Ptr = szGender[pSpawn->Gender];
+			Dest.Type = pStringType;
+			return true;
+		case Race:
+			Dest.DWord = pSpawn->Race;
+			Dest.Type = pRaceType;
+			return true;
+		case Class:
+			if (GetSpawnType(pSpawn) != AURA && GetSpawnType(pSpawn) != BANNER && GetSpawnType(pSpawn) != CAMPFIRE)
+				Dest.DWord = pSpawn->Class;
+			else
+				if (GetSpawnType(pSpawn) == AURA)
+					Dest.DWord = 0xFF;
+				else if (GetSpawnType(pSpawn) == BANNER)
+					Dest.DWord = 0xFE;
+				else
+					Dest.DWord = 0xFD;
+				Dest.Type = pClassType;
+				return true;
+		case Body:
+			Dest.DWord = GetBodyType(pSpawn);
+			Dest.Type = pBodyType;
+			return true;
+		case GM:
+			Dest.DWord = pSpawn->GM;
+			Dest.Type = pBoolType;
+			return true;
+		case Levitating:
+			Dest.DWord = (pSpawn->Levitate == 2);
+			Dest.Type = pBoolType;
+			return true;
+		case Sneaking:
+			Dest.DWord = pSpawn->Sneak;
+			Dest.Type = pBoolType;
+			return true;
+		case Invis:
+			Dest.DWord = pSpawn->HideMode;
+			Dest.Type = pBoolType;
+			return true;
+		case Height:
+			Dest.Float = pSpawn->AvatarHeight;
+			Dest.Type = pFloatType;
+			return true;
+		case MaxRange:
+			if (GetSpawnType(pSpawn) != ITEM)
+			{
+				Dest.Float = get_melee_range((EQPlayer*)pSpawn, (EQPlayer*)pSpawn);
+				Dest.Type = pFloatType;
+				return true;
+			}
+			break;
+		case MaxRangeTo:
+			if (GetSpawnType(pSpawn) != ITEM)
+			{
+				Dest.Float = get_melee_range(pLocalPlayer, (EQPlayer*)pSpawn);
+				Dest.Type = pFloatType;
+				return true;
+			}
+			break;
+		case Guild:
+			if (pSpawn->GuildID != 0xFFFFFFFF)
+			{
+				if (char *szGuild = GetGuildByID(pSpawn->GuildID))
+				{
+					Dest.Ptr = szGuild;
+					Dest.Type = pStringType;
+					return true;
+				}
+			}
+			return false;
+		case GuildStatus:
+			if (pSpawn->GuildID != 0xFFFFFFFF)
+			{
+				Dest.Ptr = szGuildStatus[pSpawn->GuildStatus];
 				Dest.Type = pStringType;
 				return true;
 			}
-		}
-		return false;
-	case GuildStatus:
-		if (pSpawn->GuildID != 0xFFFFFFFF)
-		{
-			Dest.Ptr = szGuildStatus[pSpawn->GuildStatus];
-			Dest.Type = pStringType;
-			return true;
-		}
-		break;
-	case Type:
-		switch (GetSpawnType(pSpawn))
-		{
-		case MOUNT:
-			Dest.Ptr = "Mount";
-			Dest.Type = pStringType;
-			return true;
-		case UNTARGETABLE:
-			Dest.Ptr = "Untargetable";
-			Dest.Type = pStringType;
-			return true;
-		case NPC:
-			Dest.Ptr = "NPC";
-			Dest.Type = pStringType;
-			return true;
-		case PC:
-			Dest.Ptr = "PC";
-			Dest.Type = pStringType;
-			return true;
-		case CHEST:
-			Dest.Ptr = "Chest";
-			Dest.Type = pStringType;
-			return true;
-		case TRAP:
-			Dest.Ptr = "Trap";
-			Dest.Type = pStringType;
-			return true;
-		case TRIGGER:
-			Dest.Ptr = "Trigger";
-			Dest.Type = pStringType;
-			return true;
-		case TIMER:
-			Dest.Ptr = "Timer";
-			Dest.Type = pStringType;
-			return true;
-		case PET:
-			Dest.Ptr = "Pet";
-			Dest.Type = pStringType;
-			return true;
-		case ITEM:
-			Dest.Ptr = "Item";
-			Dest.Type = pStringType;
-			return true;
-		case CORPSE:
-			Dest.Ptr = "Corpse";
-			Dest.Type = pStringType;
-			return true;
-		case AURA:
-			Dest.Ptr = "Aura";
-			Dest.Type = pStringType;
-			return true;
-		case OBJECT:
-			Dest.Ptr = "Object";
-			Dest.Type = pStringType;
-			return true;
-		case BANNER:
-			Dest.Ptr = "Banner";
-			Dest.Type = pStringType;
-			return true;
-		case CAMPFIRE:
-			Dest.Ptr = "Campfire";
-			Dest.Type = pStringType;
-			return true;
-		case MERCENARY:
-			Dest.Ptr = "Mercenary";
-			Dest.Type = pStringType;
-			return true;
-		case FLYER:
-			Dest.Ptr = "Flyer";
-			Dest.Type = pStringType;
-			return true;
-		}
-		break;
-	case Light:
-		Dest.Ptr = GetLightForSpawn(pSpawn);
-		Dest.Type = pStringType;
-		return true;
-	case StandState:
-		Dest.Int = pSpawn->StandState;
-		Dest.Type = pIntType;
-		return true;
-	case State:
-		if (pSpawn->PlayerState & 0x20)
-		{
-			Dest.Ptr = "STUN";
-		}
-		else if (pSpawn == (PSPAWNINFO)pLocalPlayer && pSpawn->RespawnTimer)
-		{
-			Dest.Ptr = "HOVER";
-		}
-		else if (pSpawn->Mount)
-		{
-			Dest.Ptr = "MOUNT";
-		}
-		else
-			switch (pSpawn->StandState)
+			break;
+		case Type:
+			switch (GetSpawnType(pSpawn))
 			{
-			case STANDSTATE_STAND:
-				Dest.Ptr = "STAND";
-				break;
-			case STANDSTATE_SIT:
-				Dest.Ptr = "SIT";
-				break;
-			case STANDSTATE_DUCK:
-				Dest.Ptr = "DUCK";
-				break;
-			case STANDSTATE_BIND:
-				Dest.Ptr = "BIND";
-				break;
-			case STANDSTATE_FEIGN:
-				Dest.Ptr = "FEIGN";
-				break;
-			case STANDSTATE_DEAD:
-				Dest.Ptr = "DEAD";
-				break;
-			default:
-				Dest.Ptr = "UNKNOWN";
-				break;
+			case MOUNT:
+				Dest.Ptr = "Mount";
+				Dest.Type = pStringType;
+				return true;
+			case UNTARGETABLE:
+				Dest.Ptr = "Untargetable";
+				Dest.Type = pStringType;
+				return true;
+			case NPC:
+				Dest.Ptr = "NPC";
+				Dest.Type = pStringType;
+				return true;
+			case PC:
+				Dest.Ptr = "PC";
+				Dest.Type = pStringType;
+				return true;
+			case CHEST:
+				Dest.Ptr = "Chest";
+				Dest.Type = pStringType;
+				return true;
+			case TRAP:
+				Dest.Ptr = "Trap";
+				Dest.Type = pStringType;
+				return true;
+			case TRIGGER:
+				Dest.Ptr = "Trigger";
+				Dest.Type = pStringType;
+				return true;
+			case TIMER:
+				Dest.Ptr = "Timer";
+				Dest.Type = pStringType;
+				return true;
+			case PET:
+				Dest.Ptr = "Pet";
+				Dest.Type = pStringType;
+				return true;
+			case ITEM:
+				Dest.Ptr = "Item";
+				Dest.Type = pStringType;
+				return true;
+			case CORPSE:
+				Dest.Ptr = "Corpse";
+				Dest.Type = pStringType;
+				return true;
+			case AURA:
+				Dest.Ptr = "Aura";
+				Dest.Type = pStringType;
+				return true;
+			case OBJECT:
+				Dest.Ptr = "Object";
+				Dest.Type = pStringType;
+				return true;
+			case BANNER:
+				Dest.Ptr = "Banner";
+				Dest.Type = pStringType;
+				return true;
+			case CAMPFIRE:
+				Dest.Ptr = "Campfire";
+				Dest.Type = pStringType;
+				return true;
+			case MERCENARY:
+				Dest.Ptr = "Mercenary";
+				Dest.Type = pStringType;
+				return true;
+			case FLYER:
+				Dest.Ptr = "Flyer";
+				Dest.Type = pStringType;
+				return true;
 			}
-		Dest.Type = pStringType;
-		return true;
-	case Standing:
-		Dest.DWord = pSpawn->StandState == STANDSTATE_STAND;
-		Dest.Type = pBoolType;
-		return true;
-	case Sitting:
-		Dest.DWord = pSpawn->StandState == STANDSTATE_SIT;
-		Dest.Type = pBoolType;
-		return true;
-	case Ducking:
-		Dest.DWord = pSpawn->StandState == STANDSTATE_DUCK;
-		Dest.Type = pBoolType;
-		return true;
-	case Feigning:
-		Dest.DWord = pSpawn->StandState == STANDSTATE_FEIGN;
-		Dest.Type = pBoolType;
-		return true;
-	case Binding:
-		Dest.DWord = pSpawn->StandState == STANDSTATE_BIND;
-		Dest.Type = pBoolType;
-		return true;
-	case Dead:
-		Dest.DWord = pSpawn->StandState == STANDSTATE_DEAD;
-		Dest.Type = pBoolType;
-		return true;
-	case Stunned:
-		Dest.DWord = false;
-		if (pSpawn->PlayerState & 0x20)
-			Dest.DWord = true;
-		Dest.Type = pBoolType;
-		return true;
-	case Aggressive:
-		Dest.DWord = false;
-		if (pSpawn->PlayerState & 0x4 || pSpawn->PlayerState & 0x8)
-			Dest.DWord = true;
-		Dest.Type = pBoolType;
-		return true;
-	case Hovering:
-		Dest.DWord = (pSpawn->RespawnTimer);
-		Dest.Type = pBoolType;
-		return true;
-	case Deity:
-		Dest.DWord = pSpawn->Deity;
-		Dest.Type = pDeityType;
-		return true;
-	case Distance:
-		Dest.Float = GetDistance(pSpawn->X, pSpawn->Y);
-		Dest.Type = pFloatType;
-		return true;
-	case Distance3D:
-		Dest.Float = DistanceToSpawn3D((PSPAWNINFO)pCharSpawn, pSpawn);
-		Dest.Type = pFloatType;
-		return true;
-	case DistancePredict:
-		Dest.Float = EstimatedDistanceToSpawn((PSPAWNINFO)pCharSpawn, pSpawn);
-		Dest.Type = pFloatType;
-		return true;
-	case DistanceW:
-	case DistanceX:
-		Dest.Float = (FLOAT)fabs(((PSPAWNINFO)pCharSpawn)->X - pSpawn->X);
-		Dest.Type = pFloatType;
-		return true;
-	case DistanceN:
-	case DistanceY:
-		Dest.Float = (FLOAT)fabs(((PSPAWNINFO)pCharSpawn)->Y - pSpawn->Y);
-		Dest.Type = pFloatType;
-		return true;
-	case DistanceU:
-	case DistanceZ:
-		Dest.Float = (FLOAT)fabs(((PSPAWNINFO)pCharSpawn)->Z - pSpawn->Z);
-		Dest.Type = pFloatType;
-		return true;
-	case HeadingTo:
-		Dest.Float = (FLOAT)(atan2f(((PSPAWNINFO)pCharSpawn)->Y - pSpawn->Y, pSpawn->X - ((PSPAWNINFO)pCharSpawn)->X) * 180.0f / PI + 90.0f);
-		if (Dest.Float<0.0f)
-			Dest.Float += 360.0f;
-		else if (Dest.Float >= 360.0f)
-			Dest.Float -= 360.0f;
-		Dest.Type = pHeadingType;
-		return true;
-	case Casting:
-		if (Dest.Ptr = GetSpellByID(pSpawn->CastingData.SpellID))
-		{
-			Dest.Type = pSpellType;
+			break;
+		case Light:
+			Dest.Ptr = GetLightForSpawn(pSpawn);
+			Dest.Type = pStringType;
 			return true;
-		}
-		break;
-	case Mount:
-		if (Dest.Ptr = pSpawn->Mount)
-		{
-			Dest.Type = pSpawnType;
+		case StandState:
+			Dest.Int = pSpawn->StandState;
+			Dest.Type = pIntType;
 			return true;
-		}
-		break;
-	case Underwater:
-		Dest.DWord = (pSpawn->UnderWater == 5);
-		Dest.Type = pBoolType;
-		return true;
-	case FeetWet:
-		Dest.DWord = (pSpawn->FeetWet == 5);
-		Dest.Type = pBoolType;
-		return true;
-	case PlayerState:
-		Dest.DWord = pSpawn->PlayerState;
-		Dest.Type = pIntType;
-		return true;
-	case Stuck:
-		Dest.DWord = pSpawn->PossiblyStuck;
-		Dest.Type = pBoolType;
-		return true;
-	case Animation:
-		Dest.DWord = pSpawn->Animation;
-		Dest.Type = pIntType;
-		return true;
-	case Holding:
-		Dest.DWord = pSpawn->Holding;
-		Dest.Type = pBoolType;
-		return true;
-	case Look:
-		Dest.Float = pSpawn->CameraAngle;
-		Dest.Type = pFloatType;
-		return true;
-	case xConColor:
-		switch (ConColor(pSpawn))
-		{
-		case CONCOLOR_GREY:
-			Dest.Ptr = "GREY";
-			break;
-		case CONCOLOR_GREEN:
-			Dest.Ptr = "GREEN";
-			break;
-		case CONCOLOR_LIGHTBLUE:
-			Dest.Ptr = "LIGHT BLUE";
-			break;
-		case CONCOLOR_BLUE:
-			Dest.Ptr = "BLUE";
-			break;
-		case CONCOLOR_WHITE:
-			Dest.Ptr = "WHITE";
-			break;
-		case CONCOLOR_YELLOW:
-			Dest.Ptr = "YELLOW";
-			break;
-		case CONCOLOR_RED:
-		default:
-			Dest.Ptr = "RED";
-			break;
-		}
-		Dest.Type = pStringType;
-		return true;
-	case Invited:
-		Dest.DWord = (pSpawn->InvitedToGroup);
-		Dest.Type = pBoolType;
-		return true;
-	case Inviter:
-		Dest.Ptr = (PCHAR)__Inviter;
-		Dest.Type = pStringType;
-		return true;
-#ifndef ISXEQ
-	case NearestSpawn:
-		if (pSpawn == (PSPAWNINFO)pCharSpawn)
-		{
-			return (dataNearestSpawn(Index, Dest) != 0);// use top-level object if it's you
-		}
-		if (ISINDEX())
-		{
-			PCHAR pSearch;
-			unsigned long nth;
-			SEARCHSPAWN ssSpawn;
-			ClearSearchSpawn(&ssSpawn);
-			ssSpawn.FRadius = 999999.0f;
-			if (pSearch = strchr(Index, ','))
+		case State:
+			if (pSpawn->PlayerState & 0x20)
 			{
-				*pSearch = 0;
-				++pSearch;
-				ParseSearchSpawn(pSearch, &ssSpawn);
-				nth = GETNUMBER();
+				Dest.Ptr = "STUN";
+			}
+			else if (pSpawn == (PSPAWNINFO)pLocalPlayer && pSpawn->RespawnTimer)
+			{
+				Dest.Ptr = "HOVER";
+			}
+			else if (pSpawn->Mount)
+			{
+				Dest.Ptr = "MOUNT";
 			}
 			else
-			{
-				if (ISNUMBER())
+				switch (pSpawn->StandState)
 				{
+				case STANDSTATE_STAND:
+					Dest.Ptr = "STAND";
+					break;
+				case STANDSTATE_SIT:
+					Dest.Ptr = "SIT";
+					break;
+				case STANDSTATE_DUCK:
+					Dest.Ptr = "DUCK";
+					break;
+				case STANDSTATE_BIND:
+					Dest.Ptr = "BIND";
+					break;
+				case STANDSTATE_FEIGN:
+					Dest.Ptr = "FEIGN";
+					break;
+				case STANDSTATE_DEAD:
+					Dest.Ptr = "DEAD";
+					break;
+				default:
+					Dest.Ptr = "UNKNOWN";
+					break;
+				}
+			Dest.Type = pStringType;
+			return true;
+		case Standing:
+			Dest.DWord = pSpawn->StandState == STANDSTATE_STAND;
+			Dest.Type = pBoolType;
+			return true;
+		case Sitting:
+			Dest.DWord = pSpawn->StandState == STANDSTATE_SIT;
+			Dest.Type = pBoolType;
+			return true;
+		case Ducking:
+			Dest.DWord = pSpawn->StandState == STANDSTATE_DUCK;
+			Dest.Type = pBoolType;
+			return true;
+		case Feigning:
+			Dest.DWord = pSpawn->StandState == STANDSTATE_FEIGN;
+			Dest.Type = pBoolType;
+			return true;
+		case Binding:
+			Dest.DWord = pSpawn->StandState == STANDSTATE_BIND;
+			Dest.Type = pBoolType;
+			return true;
+		case Dead:
+			Dest.DWord = pSpawn->StandState == STANDSTATE_DEAD;
+			Dest.Type = pBoolType;
+			return true;
+		case Stunned:
+			Dest.DWord = false;
+			if (pSpawn->PlayerState & 0x20)
+				Dest.DWord = true;
+			Dest.Type = pBoolType;
+			return true;
+		case Aggressive:
+			Dest.DWord = false;
+			if (pSpawn->PlayerState & 0x4 || pSpawn->PlayerState & 0x8)
+				Dest.DWord = true;
+			Dest.Type = pBoolType;
+			return true;
+		case Hovering:
+			Dest.DWord = (pSpawn->RespawnTimer);
+			Dest.Type = pBoolType;
+			return true;
+		case Deity:
+			Dest.DWord = pSpawn->Deity;
+			Dest.Type = pDeityType;
+			return true;
+		case Distance:
+			Dest.Float = GetDistance(pSpawn->X, pSpawn->Y);
+			Dest.Type = pFloatType;
+			return true;
+		case Distance3D:
+			Dest.Float = DistanceToSpawn3D((PSPAWNINFO)pCharSpawn, pSpawn);
+			Dest.Type = pFloatType;
+			return true;
+		case DistancePredict:
+			Dest.Float = EstimatedDistanceToSpawn((PSPAWNINFO)pCharSpawn, pSpawn);
+			Dest.Type = pFloatType;
+			return true;
+		case DistanceW:
+		case DistanceX:
+			Dest.Float = (FLOAT)fabs(((PSPAWNINFO)pCharSpawn)->X - pSpawn->X);
+			Dest.Type = pFloatType;
+			return true;
+		case DistanceN:
+		case DistanceY:
+			Dest.Float = (FLOAT)fabs(((PSPAWNINFO)pCharSpawn)->Y - pSpawn->Y);
+			Dest.Type = pFloatType;
+			return true;
+		case DistanceU:
+		case DistanceZ:
+			Dest.Float = (FLOAT)fabs(((PSPAWNINFO)pCharSpawn)->Z - pSpawn->Z);
+			Dest.Type = pFloatType;
+			return true;
+		case HeadingTo:
+			Dest.Float = (FLOAT)(atan2f(((PSPAWNINFO)pCharSpawn)->Y - pSpawn->Y, pSpawn->X - ((PSPAWNINFO)pCharSpawn)->X) * 180.0f / PI + 90.0f);
+			if (Dest.Float < 0.0f)
+				Dest.Float += 360.0f;
+			else if (Dest.Float >= 360.0f)
+				Dest.Float -= 360.0f;
+			Dest.Type = pHeadingType;
+			return true;
+		case Casting:
+			if (Dest.Ptr = GetSpellByID(pSpawn->CastingData.SpellID))
+			{
+				Dest.Type = pSpellType;
+				return true;
+			}
+			break;
+		case Mount:
+			if (Dest.Ptr = pSpawn->Mount)
+			{
+				Dest.Type = pSpawnType;
+				return true;
+			}
+			break;
+		case Underwater:
+			Dest.DWord = (pSpawn->UnderWater == 5);
+			Dest.Type = pBoolType;
+			return true;
+		case FeetWet:
+			Dest.DWord = (pSpawn->FeetWet == 5);
+			Dest.Type = pBoolType;
+			return true;
+		case PlayerState:
+			Dest.DWord = pSpawn->PlayerState;
+			Dest.Type = pIntType;
+			return true;
+		case Stuck:
+			Dest.DWord = pSpawn->PossiblyStuck;
+			Dest.Type = pBoolType;
+			return true;
+		case Animation:
+			Dest.DWord = pSpawn->Animation;
+			Dest.Type = pIntType;
+			return true;
+		case Holding:
+			Dest.DWord = pSpawn->Holding;
+			Dest.Type = pBoolType;
+			return true;
+		case Look:
+			Dest.Float = pSpawn->CameraAngle;
+			Dest.Type = pFloatType;
+			return true;
+		case xConColor:
+			switch (ConColor(pSpawn))
+			{
+			case CONCOLOR_GREY:
+				Dest.Ptr = "GREY";
+				break;
+			case CONCOLOR_GREEN:
+				Dest.Ptr = "GREEN";
+				break;
+			case CONCOLOR_LIGHTBLUE:
+				Dest.Ptr = "LIGHT BLUE";
+				break;
+			case CONCOLOR_BLUE:
+				Dest.Ptr = "BLUE";
+				break;
+			case CONCOLOR_WHITE:
+				Dest.Ptr = "WHITE";
+				break;
+			case CONCOLOR_YELLOW:
+				Dest.Ptr = "YELLOW";
+				break;
+			case CONCOLOR_RED:
+			default:
+				Dest.Ptr = "RED";
+				break;
+			}
+			Dest.Type = pStringType;
+			return true;
+		case Invited:
+			Dest.DWord = (pSpawn->InvitedToGroup);
+			Dest.Type = pBoolType;
+			return true;
+		case Inviter:
+			Dest.Ptr = (PCHAR)__Inviter;
+			Dest.Type = pStringType;
+			return true;
+#ifndef ISXEQ
+		case NearestSpawn:
+			if (pSpawn == (PSPAWNINFO)pCharSpawn)
+			{
+				return (dataNearestSpawn(Index, Dest) != 0);// use top-level object if it's you
+			}
+			if (ISINDEX())
+			{
+				PCHAR pSearch;
+				unsigned long nth;
+				SEARCHSPAWN ssSpawn;
+				ClearSearchSpawn(&ssSpawn);
+				ssSpawn.FRadius = 999999.0f;
+				if (pSearch = strchr(Index, ','))
+				{
+					*pSearch = 0;
+					++pSearch;
+					ParseSearchSpawn(pSearch, &ssSpawn);
 					nth = GETNUMBER();
 				}
 				else
 				{
-					nth = 1;
-					ParseSearchSpawn(Index, &ssSpawn);
+					if (ISNUMBER())
+					{
+						nth = GETNUMBER();
+					}
+					else
+					{
+						nth = 1;
+						ParseSearchSpawn(Index, &ssSpawn);
+					}
 				}
-			}
-			if (Dest.Ptr = NthNearestSpawn(&ssSpawn, nth, pSpawn))
-			{
-				Dest.Type = pSpawnType;
-				return true;
-			}
-		}
-		break;
-#else
-	case NearestSpawn:
-		if (pSpawn == (PSPAWNINFO)pCharSpawn)
-		{
-			return (dataNearestSpawn(argc, argv, Dest) != 0);// use top-level object if it's you
-		}
-		if (argc)
-		{
-			unsigned long nth;
-			SEARCHSPAWN ssSpawn;
-			ClearSearchSpawn(&ssSpawn);
-			ssSpawn.FRadius = 999999.0f;
-			if (argc >= 2 || !IsNumber(argv[0]))
-			{
-				ParseSearchSpawn(1, argc, argv, ssSpawn);
-				nth = atoi(argv[0]);
-			}
-			else
-			{
-				nth = atoi(argv[0]);
-			}
-			if (Dest.Ptr = NthNearestSpawn(&ssSpawn, nth, pSpawn))
-			{
-				Dest.Type = pSpawnType;
-				return true;
-			}
-		}
-		break;
-#endif
-	case Trader:
-		Dest.DWord = pSpawn->Trader;
-		Dest.Type = pBoolType;
-		return true;
-	case AFK:
-		Dest.DWord = pSpawn->AFK;
-		Dest.Type = pBoolType;
-		return true;
-	case LFG:
-		Dest.DWord = pSpawn->LFG;
-		Dest.Type = pBoolType;
-		return true;
-	case Linkdead:
-		Dest.DWord = pSpawn->Linkdead;
-		Dest.Type = pBoolType;
-		return true;
-	case AATitle:  // Leaving this in for older macros/etc.."Title" should be used instead.
-		Dest.Type = pStringType;
-		Dest.Ptr = &pSpawn->Title[0];
-		return true;
-	case Title:
-		Dest.Type = pStringType;
-		Dest.Ptr = &pSpawn->Title[0];
-		return true;
-	case Suffix:
-		Dest.Type = pStringType;
-		Dest.Ptr = &pSpawn->Suffix[0];
-		return true;
-	case xGroupLeader:
-		if (GetCharInfo()->pGroupInfo && GetCharInfo()->pGroupInfo->pLeader)
-		{
-			CHAR Name[MAX_STRING] = { 0 };
-			GetCXStr(GetCharInfo()->pGroupInfo->pLeader->pName, Name, MAX_STRING);
-			Dest.DWord = (pSpawn->Type == SPAWN_PLAYER && !_stricmp(Name, pSpawn->Name));
-			Dest.Type = pBoolType;
-			return true;
-		}
-		break;
-	case Assist:
-		if (gGameState == GAMESTATE_INGAME && GetCharInfo()->pSpawn && pSpawn)
-		{
-			if (DWORD AssistID = GetGroupMainAssistTargetID()) {
-				if (AssistID == pSpawn->SpawnID) {
-					Dest.DWord = 1;
-					Dest.Type = pBoolType;
+				if (Dest.Ptr = NthNearestSpawn(&ssSpawn, nth, pSpawn))
+				{
+					Dest.Type = pSpawnType;
 					return true;
 				}
 			}
-			for (int nAssist = 0; nAssist < 3; nAssist++) {
-				if (DWORD AssistID = GetRaidMainAssistTargetID(nAssist)) {
+			break;
+#else
+		case NearestSpawn:
+			if (pSpawn == (PSPAWNINFO)pCharSpawn)
+			{
+				return (dataNearestSpawn(argc, argv, Dest) != 0);// use top-level object if it's you
+			}
+			if (argc)
+			{
+				unsigned long nth;
+				SEARCHSPAWN ssSpawn;
+				ClearSearchSpawn(&ssSpawn);
+				ssSpawn.FRadius = 999999.0f;
+				if (argc >= 2 || !IsNumber(argv[0]))
+				{
+					ParseSearchSpawn(1, argc, argv, ssSpawn);
+					nth = atoi(argv[0]);
+				}
+				else
+				{
+					nth = atoi(argv[0]);
+				}
+				if (Dest.Ptr = NthNearestSpawn(&ssSpawn, nth, pSpawn))
+				{
+					Dest.Type = pSpawnType;
+					return true;
+				}
+			}
+			break;
+#endif
+		case Trader:
+			Dest.DWord = pSpawn->Trader;
+			Dest.Type = pBoolType;
+			return true;
+		case AFK:
+			Dest.DWord = pSpawn->AFK;
+			Dest.Type = pBoolType;
+			return true;
+		case LFG:
+			Dest.DWord = pSpawn->LFG;
+			Dest.Type = pBoolType;
+			return true;
+		case Linkdead:
+			Dest.DWord = pSpawn->Linkdead;
+			Dest.Type = pBoolType;
+			return true;
+		case AATitle:  // Leaving this in for older macros/etc.."Title" should be used instead.
+			Dest.Type = pStringType;
+			Dest.Ptr = &pSpawn->Title[0];
+			return true;
+		case Title:
+			Dest.Type = pStringType;
+			Dest.Ptr = &pSpawn->Title[0];
+			return true;
+		case Suffix:
+			Dest.Type = pStringType;
+			Dest.Ptr = &pSpawn->Suffix[0];
+			return true;
+		case xGroupLeader:
+			if (GetCharInfo()->pGroupInfo && GetCharInfo()->pGroupInfo->pLeader)
+			{
+				CHAR Name[MAX_STRING] = { 0 };
+				GetCXStr(GetCharInfo()->pGroupInfo->pLeader->pName, Name, MAX_STRING);
+				Dest.DWord = (pSpawn->Type == SPAWN_PLAYER && !_stricmp(Name, pSpawn->Name));
+				Dest.Type = pBoolType;
+				return true;
+			}
+			break;
+		case Assist:
+			if (gGameState == GAMESTATE_INGAME && GetCharInfo()->pSpawn && pSpawn)
+			{
+				if (DWORD AssistID = GetGroupMainAssistTargetID()) {
 					if (AssistID == pSpawn->SpawnID) {
 						Dest.DWord = 1;
 						Dest.Type = pBoolType;
 						return true;
 					}
 				}
-			}
-		}
-		Dest.DWord = 0;
-		Dest.Type = pBoolType;
-		return true;
-	case Mark:
-		if (gGameState == GAMESTATE_INGAME && GetCharInfo()->pSpawn && pSpawn)
-		{
-			DWORD nMark;
-			for (nMark = 0; nMark < 3; nMark++)
-			{
-				if (GetCharInfo()->pSpawn->RaidMarkNPC[nMark] == pSpawn->SpawnID)
-				{
-					Dest.DWord = nMark + 1;
-					Dest.Type = pIntType;
-					return true;
+				for (int nAssist = 0; nAssist < 3; nAssist++) {
+					if (DWORD AssistID = GetRaidMainAssistTargetID(nAssist)) {
+						if (AssistID == pSpawn->SpawnID) {
+							Dest.DWord = 1;
+							Dest.Type = pBoolType;
+							return true;
+						}
+					}
 				}
 			}
-			for (nMark = 0; nMark < 3; nMark++)
-			{
-				if (GetCharInfo()->pSpawn->GroupMarkNPC[nMark] == pSpawn->SpawnID)
-				{
-					Dest.DWord = nMark + 1;
-					Dest.Type = pIntType;
-					return true;
-				}
-			}
-		}
-		break;
-	case Anonymous:
-		Dest.DWord = (pSpawn->Anon == 1);
-		Dest.Type = pBoolType;
-		return true;
-	case Roleplaying:
-		Dest.DWord = (pSpawn->Anon == 2);
-		Dest.Type = pBoolType;
-		return true;
-	case xLineOfSight:
-		Dest.DWord = pLocalPlayer->CanSee((EQPlayer*)pSpawn);
-		//Dest.DWord=(LineOfSight(GetCharInfo()->pSpawn,pSpawn));
-		Dest.Type = pBoolType;
-		return true;
-	case HeadingToLoc:
-#ifndef ISXEQ
-		if (!ISINDEX())
-			return false;
-		if (PCHAR pComma = strchr(Index, ','))
-		{
-			*pComma = 0;
-			FLOAT Y = (FLOAT)atof(Index);
-			*pComma = ',';
-			FLOAT X = (FLOAT)atof(&pComma[1]);
-#else
-		if (!argc)
-			return false;
-		if (argc == 2)
-		{
-			FLOAT Y = (FLOAT)atof(argv[0]);
-			FLOAT X = (FLOAT)atof(argv[1]);
-#endif
-			Dest.Float = (FLOAT)(atan2f(pSpawn->Y - Y, X - pSpawn->X) * 180.0f / PI + 90.0f);
-			if (Dest.Float<0.0f)
-				Dest.Float += 360.0f;
-			else if (Dest.Float >= 360.0f)
-				Dest.Float -= 360.0f;
-			Dest.Type = pHeadingType;
+			Dest.DWord = 0;
+			Dest.Type = pBoolType;
 			return true;
-		}
-		break;
-	case Fleeing:
-		Dest.DWord = IsMobFleeing(GetCharInfo()->pSpawn, pSpawn);
-		Dest.Type = pBoolType;
-		return true;
-	case Named:
-		Dest.DWord = IsNamed(pSpawn);
-		Dest.Type = pBoolType;
-		return true;
-	case Buyer:
-		Dest.DWord = pSpawn->Buyer;
-		Dest.Type = pBoolType;
-		return true;
-	case Moving:
-		Dest.DWord = fabs(pSpawn->SpeedRun)>0.0f;
-		Dest.Type = pBoolType;
-		return true;
-	case CurrentMana:
-		Dest.DWord = pSpawn->ManaCurrent;
-		Dest.Type = pIntType;
-		return true;
-	case MaxMana:
-		Dest.DWord = pSpawn->ManaMax;
-		Dest.Type = pIntType;
-		return true;
-	case PctMana:
-		Dest.Type = pIntType;
-		if (unsigned long maxmana = pSpawn->ManaMax)
-			Dest.Int = pSpawn->ManaCurrent * 100 / maxmana;
-		else
-			Dest.Int = 0;
-		return true;
-	case CurrentEndurance:
-		Dest.DWord = pSpawn->EnduranceCurrent;
-		Dest.Type = pIntType;
-		return true;
-	case PctEndurance:
-		Dest.Type = pIntType;
-		if (pSpawn->EnduranceMax)
-			Dest.Int = pSpawn->EnduranceCurrent * 100 / pSpawn->EnduranceMax;
-		else
-			Dest.Int = 0;
-		return true;
-	case MaxEndurance:
-		Dest.DWord = pSpawn->EnduranceMax;
-		Dest.Type = pIntType;
-		return true;
-	case Loc:
-		sprintf(DataTypeTemp, "%.2f, %.2f", pSpawn->Y, pSpawn->X);
-		Dest.Ptr = &DataTypeTemp[0];
-		Dest.Type = pStringType;
-		return true;
-	case LocYX:
-		sprintf(DataTypeTemp, "%.0f, %.0f", pSpawn->Y, pSpawn->X);
-		Dest.Ptr = &DataTypeTemp[0];
-		Dest.Type = pStringType;
-		return true;
-	case LocYXZ:
-		sprintf(DataTypeTemp, "%.2f, %.2f, %.2f", pSpawn->Y, pSpawn->X, pSpawn->Z);
-		Dest.Ptr = &DataTypeTemp[0];
-		Dest.Type = pStringType;
-		return true;
-	case Owner:
-		if (pSpawn->Mercenary)
-		{
-			unsigned int pos = strchr(pSpawn->Lastname, '\'') - &pSpawn->Lastname[0];
-			strncpy(DataTypeTemp, pSpawn->Lastname, pos);
-			DataTypeTemp[pos] = 0;
-			if (PSPAWNINFO pOwner = (PSPAWNINFO)GetSpawnByName(DataTypeTemp))
+		case Mark:
+			if (gGameState == GAMESTATE_INGAME && GetCharInfo()->pSpawn && pSpawn)
 			{
-				Dest.Ptr = pOwner;
-				Dest.Type = pSpawnType;
-				return true;
-			}
-		}
-		return false;
-	case Following:
-		if (Dest.Ptr = pSpawn->WhoFollowing)
-		{
-			Dest.Type = pSpawnType;
-			return true;
-		}
-		break;
-	case MercID:
-		Dest.DWord = pSpawn->MercID;
-		Dest.Type = pIntType;
-		return true;
-	case ContractorID:
-		Dest.DWord = pSpawn->ContractorID;
-		Dest.Type = pIntType;
-		return true;
-	case Primary:
-		Dest.DWord = pSpawn->Equipment.Primary.ID;
-		Dest.Type = pIntType;
-		return true;
-	case Secondary:
-		Dest.DWord = pSpawn->pSpawn->Equipment.Offhand.ID;
-		Dest.Type = pIntType;
-		return true;
-	case Equipment:
-		if (ISINDEX()) {
-			if (ISNUMBER()) {
-				unsigned long nSlot = GETNUMBER();
-				int size = sizeof(_EQUIPMENT) / 4;
-				//int size2 = sizeof(szEquipmentSlot);
-				//int size3 = sizeof(szEquipmentSlot[])/4;
-				if (nSlot<9) {
-					Dest.DWord = pSpawn->Equipment.Item[nSlot].ID;
-					Dest.Type = pIntType;
-					return true;
+				DWORD nMark;
+				for (nMark = 0; nMark < 3; nMark++)
+				{
+					if (GetCharInfo()->pSpawn->RaidMarkNPC[nMark] == pSpawn->SpawnID)
+					{
+						Dest.DWord = nMark + 1;
+						Dest.Type = pIntType;
+						return true;
+					}
 				}
-			}
-			else {
-				for (unsigned long nSlot = 0; szEquipmentSlot[nSlot]; nSlot++) {
-					if (!_stricmp(GETFIRST(), szEquipmentSlot[nSlot])) {
-						Dest.DWord = pSpawn->Equipment.Item[nSlot].ID;
+				for (nMark = 0; nMark < 3; nMark++)
+				{
+					if (GetCharInfo()->pSpawn->GroupMarkNPC[nMark] == pSpawn->SpawnID)
+					{
+						Dest.DWord = nMark + 1;
 						Dest.Type = pIntType;
 						return true;
 					}
 				}
 			}
+			break;
+		case Anonymous:
+			Dest.DWord = (pSpawn->Anon == 1);
+			Dest.Type = pBoolType;
+			return true;
+		case Roleplaying:
+			Dest.DWord = (pSpawn->Anon == 2);
+			Dest.Type = pBoolType;
+			return true;
+		case xLineOfSight:
+			Dest.DWord = pLocalPlayer->CanSee((EQPlayer*)pSpawn);
+			//Dest.DWord=(LineOfSight(GetCharInfo()->pSpawn,pSpawn));
+			Dest.Type = pBoolType;
+			return true;
+		case HeadingToLoc:
+#ifndef ISXEQ
+			if (!ISINDEX())
+				return false;
+			if (PCHAR pComma = strchr(Index, ','))
+			{
+				*pComma = 0;
+				FLOAT Y = (FLOAT)atof(Index);
+				*pComma = ',';
+				FLOAT X = (FLOAT)atof(&pComma[1]);
+#else
+			if (!argc)
+				return false;
+			if (argc == 2)
+			{
+				FLOAT Y = (FLOAT)atof(argv[0]);
+				FLOAT X = (FLOAT)atof(argv[1]);
+#endif
+				Dest.Float = (FLOAT)(atan2f(pSpawn->Y - Y, X - pSpawn->X) * 180.0f / PI + 90.0f);
+				if (Dest.Float < 0.0f)
+					Dest.Float += 360.0f;
+				else if (Dest.Float >= 360.0f)
+					Dest.Float -= 360.0f;
+				Dest.Type = pHeadingType;
+				return true;
+			}
+			break;
+		case Fleeing:
+			Dest.DWord = IsMobFleeing(GetCharInfo()->pSpawn, pSpawn);
+			Dest.Type = pBoolType;
+			return true;
+		case Named:
+			Dest.DWord = IsNamed(pSpawn);
+			Dest.Type = pBoolType;
+			return true;
+		case Buyer:
+			Dest.DWord = pSpawn->Buyer;
+			Dest.Type = pBoolType;
+			return true;
+		case Moving:
+			Dest.DWord = fabs(pSpawn->SpeedRun) > 0.0f;
+			Dest.Type = pBoolType;
+			return true;
+		case CurrentMana:
+			Dest.DWord = pSpawn->ManaCurrent;
+			Dest.Type = pIntType;
+			return true;
+		case MaxMana:
+			Dest.DWord = pSpawn->ManaMax;
+			Dest.Type = pIntType;
+			return true;
+		case PctMana:
+			Dest.Type = pIntType;
+			if (unsigned long maxmana = pSpawn->ManaMax)
+				Dest.Int = pSpawn->ManaCurrent * 100 / maxmana;
+			else
+				Dest.Int = 0;
+			return true;
+		case CurrentEndurance:
+			Dest.DWord = pSpawn->EnduranceCurrent;
+			Dest.Type = pIntType;
+			return true;
+		case PctEndurance:
+			Dest.Type = pIntType;
+			if (pSpawn->EnduranceMax)
+				Dest.Int = pSpawn->EnduranceCurrent * 100 / pSpawn->EnduranceMax;
+			else
+				Dest.Int = 0;
+			return true;
+		case MaxEndurance:
+			Dest.DWord = pSpawn->EnduranceMax;
+			Dest.Type = pIntType;
+			return true;
+		case Loc:
+			sprintf(DataTypeTemp, "%.2f, %.2f", pSpawn->Y, pSpawn->X);
+			Dest.Ptr = &DataTypeTemp[0];
+			Dest.Type = pStringType;
+			return true;
+		case LocYX:
+			sprintf(DataTypeTemp, "%.0f, %.0f", pSpawn->Y, pSpawn->X);
+			Dest.Ptr = &DataTypeTemp[0];
+			Dest.Type = pStringType;
+			return true;
+		case LocYXZ:
+			sprintf(DataTypeTemp, "%.2f, %.2f, %.2f", pSpawn->Y, pSpawn->X, pSpawn->Z);
+			Dest.Ptr = &DataTypeTemp[0];
+			Dest.Type = pStringType;
+			return true;
+		case Owner:
+			if (pSpawn->Mercenary)
+			{
+				unsigned int pos = strchr(pSpawn->Lastname, '\'') - &pSpawn->Lastname[0];
+				strncpy(DataTypeTemp, pSpawn->Lastname, pos);
+				DataTypeTemp[pos] = 0;
+				if (PSPAWNINFO pOwner = (PSPAWNINFO)GetSpawnByName(DataTypeTemp))
+				{
+					Dest.Ptr = pOwner;
+					Dest.Type = pSpawnType;
+					return true;
+				}
+			}
+			return false;
+		case Following:
+			if (Dest.Ptr = pSpawn->WhoFollowing)
+			{
+				Dest.Type = pSpawnType;
+				return true;
+			}
+			break;
+		case MercID:
+			Dest.DWord = pSpawn->MercID;
+			Dest.Type = pIntType;
+			return true;
+		case ContractorID:
+			Dest.DWord = pSpawn->ContractorID;
+			Dest.Type = pIntType;
+			return true;
+		case Primary:
+			Dest.DWord = pSpawn->Equipment.Primary.ID;
+			Dest.Type = pIntType;
+			return true;
+		case Secondary:
+			Dest.DWord = pSpawn->pSpawn->Equipment.Offhand.ID;
+			Dest.Type = pIntType;
+			return true;
+		case Equipment:
+			if (ISINDEX()) {
+				if (ISNUMBER()) {
+					unsigned long nSlot = GETNUMBER();
+					int size = sizeof(_EQUIPMENT) / 4;
+					//int size2 = sizeof(szEquipmentSlot);
+					//int size3 = sizeof(szEquipmentSlot[])/4;
+					if (nSlot < 9) {
+						Dest.DWord = pSpawn->Equipment.Item[nSlot].ID;
+						Dest.Type = pIntType;
+						return true;
+					}
+				}
+				else {
+					for (unsigned long nSlot = 0; szEquipmentSlot[nSlot]; nSlot++) {
+						if (!_stricmp(GETFIRST(), szEquipmentSlot[nSlot])) {
+							Dest.DWord = pSpawn->Equipment.Item[nSlot].ID;
+							Dest.Type = pIntType;
+							return true;
+						}
+					}
+				}
+			}
+			return false;
+		case xTargetable:
+			Dest.DWord = pSpawn->Targetable;
+			Dest.Type = pBoolType;
+			return true;
+		case CanSplashLand:
+			ScreenVector3 sv3;
+			sv3.x = pSpawn->Y;
+			sv3.y = pSpawn->X;
+			sv3.z = pSpawn->Z;
+			Dest.DWord = pLocalPlayer->CanSeeTargetIndicator(&sv3);
+			Dest.Type = pBoolType;
+			return true;
+		default:
+			return false;
 		}
-		return false;
-	case xTargetable:
-		Dest.DWord = pSpawn->Targetable;
-		Dest.Type = pBoolType;
-		return true;
-	case CanSplashLand:
-		ScreenVector3 sv3;
-		sv3.x = pSpawn->Y;
-		sv3.y = pSpawn->X;
-		sv3.z = pSpawn->Z;
-		Dest.DWord = pLocalPlayer->CanSeeTargetIndicator(&sv3);
-		Dest.Type = pBoolType;
-		return true;
-		}
-
-	return false;
 	}
+	return false;
+}
 
 
 bool MQ2BuffType::GETMEMBER()
@@ -2009,6 +2046,23 @@ bool MQ2CharacterType::GETMEMBER()
 #define pChar ((PCHARINFO)VarPtr.Ptr)
 	if (!VarPtr.Ptr)
 		return false;
+	//do the methods first cause there are so few of them
+	PMQ2TYPEMEMBER pMethod = MQ2CharacterType::FindMethod(Member);
+	if (pMethod) {
+		switch ((CharacterMethods)pMethod->ID)
+		{
+			case DoStand:
+				pEverQuest->InterpretCmd((EQPlayer*)pChar->pSpawn,"/stand");
+				return true;
+			case DoSit:
+				pEverQuest->InterpretCmd((EQPlayer*)pChar->pSpawn,"/sit");
+				return true;
+			case DoDismount:
+				pEverQuest->InterpretCmd((EQPlayer*)pChar->pSpawn,"/dismount");
+				return true;
+		}
+		return false;
+	}
 	PMQ2TYPEMEMBER pMember = MQ2CharacterType::FindMember(Member);
 	if (!pMember)
 	{
@@ -7673,57 +7727,52 @@ bool MQ2MerchantType::GETMEMBER()
 	case Item:
 		if (ISINDEX())
 		{
-			if (ISNUMBER())
-			{
-				unsigned long nIndex = GETNUMBER() - 1;
-				if (!pMerch->pMerchOther->pMerchData->pMerchArray)
-					return false;
-				if (nIndex < pMerch->pMerchOther->pMerchData->MerchSlots)
+			if (pMerch && pMerch->pMerchOther && pMerch->pMerchOther->pMerchData) {
+				if (ISNUMBER())
 				{
-					if (Dest.Ptr = pMerch->pMerchOther->pMerchData->pMerchArray->Array[nIndex])
+					unsigned long nIndex = GETNUMBER() - 1;
+					if (nIndex < pMerch->pMerchOther->pMerchData->MerchSlots)
 					{
-						Dest.Type = pItemType;
-						return true;
+						if (Dest.Ptr = pMerch->pMerchOther->pMerchData->pMerchArray->Array[nIndex])
+						{
+							Dest.Type = pItemType;
+							return true;
+						}
 					}
 				}
-			}
-			else
-			{
-				// name
-				BOOL bExact = FALSE;
-				PCHAR pName = GETFIRST();
-				if (*pName == '=')
+				else
 				{
-					bExact = TRUE;
-					pName++;
-				}
-				strlwr(pName);
-				CHAR Temp[MAX_STRING] = { 0 };
-				//PEQMERCHWINDOW pMerchwnd = (PEQMERCHWINDOW)pMerchantWnd;
-
-				//if(!pMerch->pMerchOther->pMerchData->pMerchArray)
-				if (!pMerch || !pMerch->pMerchOther || !pMerch->pMerchOther->pMerchData || !pMerch->pMerchOther->pMerchData->pMerchArray)
-					return false;
-				for (unsigned long nIndex = 0; nIndex < pMerch->pMerchOther->pMerchData->MerchSlots; nIndex++)
-				{
-					if (PCONTENTS pContents = pMerch->pMerchOther->pMerchData->pMerchArray->Array[nIndex])
+					// name
+					BOOL bExact = FALSE;
+					PCHAR pName = GETFIRST();
+					if (*pName == '=')
 					{
-						if (bExact)
+						bExact = TRUE;
+						pName++;
+					}
+					strlwr(pName);
+					CHAR Temp[MAX_STRING] = { 0 };
+					for (unsigned long nIndex = 0; nIndex < pMerch->pMerchOther->pMerchData->MerchSlots; nIndex++)
+					{
+						if (PCONTENTS pContents = pMerch->pMerchOther->pMerchData->pMerchArray->Array[nIndex])
 						{
-							if (!_stricmp(pName, GetItemFromContents(pContents)->Name))
+							if (bExact)
 							{
-								Dest.Ptr = pContents;
-								Dest.Type = pItemType;
-								return true;
+								if (!_stricmp(pName, GetItemFromContents(pContents)->Name))
+								{
+									Dest.Ptr = pContents;
+									Dest.Type = pItemType;
+									return true;
+								}
 							}
-						}
-						else
-						{
-							if (strstr(strlwr(strcpy(Temp, GetItemFromContents(pContents)->Name)), pName))
+							else
 							{
-								Dest.Ptr = pContents;
-								Dest.Type = pItemType;
-								return true;
+								if (strstr(strlwr(strcpy(Temp, GetItemFromContents(pContents)->Name)), pName))
+								{
+									Dest.Ptr = pContents;
+									Dest.Type = pItemType;
+									return true;
+								}
 							}
 						}
 					}
@@ -7734,12 +7783,9 @@ bool MQ2MerchantType::GETMEMBER()
 	case Items:
 	{
 		Dest.DWord = 0;
-		if (!pMerch->pMerchOther->pMerchData->pMerchArray)
-			return false;
-		for (unsigned long nIndex = 0; nIndex < pMerch->pMerchOther->pMerchData->MerchSlots; nIndex++)
-			if (pMerch->pMerchOther->pMerchData->pMerchArray->Array[nIndex])
-				Dest.DWord++;
-
+		if (pMerch && pMerch->pMerchOther && pMerch->pMerchOther->pMerchData) {
+			Dest.DWord = pMerch->pMerchOther->pMerchData->MerchSlots;
+		}
 		Dest.Type = pIntType;
 		return true;
 	}
@@ -7748,26 +7794,25 @@ bool MQ2MerchantType::GETMEMBER()
 		Dest.Type = pFloatType;
 		return true;
 	case Full:
-	{
-		if (!pMerch->pMerchOther->pMerchData->pMerchArray)
-			return false;
-		Dest.DWord = 1;
-		if (pMerch->pMerchOther->pMerchData->MerchSlots < 0x80) {
-			Dest.DWord = 0;
+		if (pMerch && pMerch->pMerchOther && pMerch->pMerchOther->pMerchData) {
+			Dest.DWord = 1;
+			if (pMerch->pMerchOther->pMerchData->MerchSlots < 0x80) {
+				Dest.DWord = 0;
+				Dest.Type = pBoolType;
+				return true;
+			}
+			for (unsigned long N = 0; N < pMerch->pMerchOther->pMerchData->MerchSlots; N++)
+			{
+				if (!pMerch->pMerchOther->pMerchData->pMerchArray->Array[N])
+				{
+					Dest.DWord = 0;
+					break;
+				}
+			}
 			Dest.Type = pBoolType;
 			return true;
 		}
-		for (unsigned long N = 0; N < pMerch->pMerchOther->pMerchData->MerchSlots; N++)
-		{
-			if (!pMerch->pMerchOther->pMerchData->pMerchArray->Array[N])
-			{
-				Dest.DWord = 0;
-				break;
-			}
-		}
-		Dest.Type = pBoolType;
-		return true;
-	}
+		return false;
 	}
 	return false;
 #undef pMerch
