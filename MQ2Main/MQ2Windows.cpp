@@ -107,16 +107,14 @@ public:
     int RemoveWnd_Detour(class CXWnd *pWnd)
     {
 		if (pWnd) {
-			for (std::map<CXWnd*, _WindowInfo>::iterator N = WindowList.begin(); N != WindowList.end(); N++) {
-				if (N->first == pWnd) {
-					std::string Name = N->second.Name;
-					MakeLower(Name);
-					if (WindowMap.find(Name) != WindowMap.end()) {
-						WindowMap.erase(Name);
-					}
-					WindowList.erase(N);
-					break;
+			auto N = WindowList.find(pWnd);
+			if (N != WindowList.end()) {
+				std::string Name = N->second.Name;
+				MakeLower(Name);
+				if (WindowMap.find(Name) != WindowMap.end()) {
+					WindowMap.erase(Name);
 				}
+				WindowList.erase(N);
 			}
 		}
         return RemoveWnd_Trampoline(pWnd);
@@ -732,35 +730,49 @@ bool SendListSelect(PCHAR WindowName, PCHAR ScreenID, DWORD Value)
     }
     return false;
 }
-bool SendListSelect2(CXWnd *pList, DWORD ListIndex)
+bool SendListSelect2(CXWnd *pList, LONG ListIndex)
 {
 	if (!pList)	{
 		MacroError("Window %x not available.", pList);
 		return false;
 	}
-	if (pList->GetType() == UI_Listbox)	{
-		((CListWnd*)pList)->SetCurSel(ListIndex);
-		int index = ((CListWnd*)pList)->GetCurSel();
-		((CListWnd*)pList)->EnsureVisible(index);
-		CXRect rect = ((CListWnd*)pList)->GetItemRect(index, 0);
-		CXPoint pt = rect.CenterPoint();
-		pList->HandleLButtonDown(&pt, 0);
-		pList->HandleLButtonUp(&pt, 0);
-		WeDidStuff();
-		return true;
+	if (pList->GetType() == UI_Listbox) {
+		if (((CListWnd*)pList)->Items >= ListIndex) {
+			((CListWnd*)pList)->SetCurSel(ListIndex);
+			int index = ((CListWnd*)pList)->GetCurSel();
+			((CListWnd*)pList)->EnsureVisible(index);
+			CXRect rect = ((CListWnd*)pList)->GetItemRect(index, 0);
+			CXPoint pt = rect.CenterPoint();
+			pList->HandleLButtonDown(&pt, 0);
+			pList->HandleLButtonUp(&pt, 0);
+			WeDidStuff();
+			return true;
+		} else {
+			MacroError("Index Out of Bounds in SendListSelect2");
+			return false;
+		}
 	} else if (pList->GetType() == UI_Combobox)	{
-		CXRect comborect = pList->GetScreenRect();
-		CXPoint combopt = comborect.CenterPoint();
-		((CComboWnd*)pList)->SetChoice(ListIndex);
-		((CXWnd*)pList)->HandleLButtonDown(&combopt, 0);
-		CListWnd*pListWnd = (CListWnd*)((CListWnd*)pList)->Items;
-		int index = pListWnd->GetCurSel();
-		CXRect listrect = pListWnd->GetItemRect(index, 0);
-		CXPoint listpt = listrect.CenterPoint();
-		((CXWnd*)pListWnd)->HandleLButtonDown(&listpt, 0);
-		((CXWnd*)pListWnd)->HandleLButtonUp(&listpt, 0);
-		WeDidStuff();
-		return true;
+		if (CListWnd*pListWnd = (CListWnd*)((CListWnd*)pList)->Items) {
+			if (pListWnd->Items >= ListIndex) {
+				CXRect comborect = pList->GetScreenRect();
+				CXPoint combopt = comborect.CenterPoint();
+				((CComboWnd*)pList)->SetChoice(ListIndex);
+				((CXWnd*)pList)->HandleLButtonDown(&combopt, 0);
+				int index = pListWnd->GetCurSel();
+				CXRect listrect = pListWnd->GetItemRect(index, 0);
+				CXPoint listpt = listrect.CenterPoint();
+				((CXWnd*)pListWnd)->HandleLButtonDown(&listpt, 0);
+				((CXWnd*)pListWnd)->HandleLButtonUp(&listpt, 0);
+				WeDidStuff();
+				return true;
+			} else {
+				MacroError("Index Out of Bounds in SendListSelect2");
+				return false;
+			}
+		} else {
+			MacroError("Invalid combobox in SendListSelect2");
+			return false;
+		}
 	} else {
 		MacroError("Window was neiter a UI_Listbox nor a UI_Combobox");
 		return false;

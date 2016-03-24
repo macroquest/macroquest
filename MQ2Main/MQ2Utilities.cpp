@@ -53,7 +53,22 @@ VOID WriteChatf(PCHAR szFormat, ...)
 		LocalFree(szOutput);
 	}
 }
-
+//"threadsafe" chat output
+VOID WriteChatfSafe(PCHAR szFormat, ...)
+{
+	va_list vaList;
+	va_start(vaList, szFormat);
+	int len = _vscprintf(szFormat, vaList) + 1;
+	if (char *szOutput = (char *)LocalAlloc(LPTR, len + 32)) {
+		vsprintf_s(szOutput, len, szFormat, vaList);
+		if (char *szOut = (char *)LocalAlloc(LPTR, len + 64)) {
+			sprintf_s(szOut, len + 64, "/echo %s", szOutput);
+			HideDoCommand((PSPAWNINFO)pLocalPlayer, szOut, TRUE);
+			LocalFree(szOut);
+		}
+		LocalFree(szOutput);
+	}
+}
 VOID DebugSpewAlways(PCHAR szFormat, ...)
 {
 	va_list vaList;
@@ -981,7 +996,7 @@ std::map<std::string, std::map<std::string, SpellCompare>>g_SpellNameMap;
 
 void PopulateSpellMap()
 {
-	lockit lk(ghLockSpellMap);
+	lockit lk(ghLockSpellMap,"PopulateSpellMap");
 	gbSpelldbLoaded = FALSE;
 	g_SpellNameMap.clear();
 	std::string lowname, threelow;
@@ -1025,7 +1040,7 @@ PSPELL GetSpellByName(PCHAR szName)
 				return NULL;
 			}
 		}
-		lockit lk(ghLockSpellMap);
+		lockit lk(ghLockSpellMap,"GetSpellByName");
 		if (szName[0] >= '0' && szName[0] <= '9')
 		{
 			return GetSpellByID(abs(atoi(szName)));
@@ -8454,7 +8469,7 @@ VOID RemoveAura(PSPAWNINFO pChar, PCHAR szLine)
 	strcpy_s(szCmp, szLine);
 	CXStr Str;
 	if (CListWnd*clist = (CListWnd*)pAuraWnd->GetChildItem("AuraList")) {
-		for (DWORD i = 0; i<clist->Items; i++) {
+		for (LONG i = 0; i<clist->Items; i++) {
 			clist->GetItemText(&Str, i, 1);
 			GetCXStr(Str.Ptr, szOut, 254);
 			if (szOut[0] != '\0') {
@@ -8533,7 +8548,7 @@ CXWnd *GetAdvLootPersonalListItem(DWORD id, DWORD type)
 		PCSIDLWND pNextWnd = pFirstWnd;
 		PPersonal_Loot pPAdvLoot = new Personal_Loot;
 
-		for (DWORD i = 0; i < clist->Items; i++) {
+		for (LONG i = 0; i < clist->Items; i++) {
 			if (pNextWnd) {
 				pPAdvLoot->NPC_Name = (CButtonWnd *)pNextWnd->pFirstChildWnd;
 				pNextWnd = pNextWnd->pNextSiblingWnd;
@@ -8592,7 +8607,7 @@ CXWnd *GetAdvLootSharedListItem(DWORD id, DWORD type)
 		PCSIDLWND pNextWnd = pFirstWnd;
 		PShared_Loot pSAdvLoot = new Shared_Loot;
 
-		for (DWORD i = 0; i < clist->Items; i++) {
+		for (LONG i = 0; i < clist->Items; i++) {
 			if (pNextWnd) {
 				pSAdvLoot->NPC_Name = (CButtonWnd *)pNextWnd->pFirstChildWnd;
 				pNextWnd = pNextWnd->pNextSiblingWnd;

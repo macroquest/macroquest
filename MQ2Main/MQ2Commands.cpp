@@ -193,18 +193,7 @@ VOID ItemTarget(PSPAWNINFO pChar, PCHAR szLine)
 	GetArg(Arg2, szLine, 2);
 	while (pItem) {
 		GetFriendlyNameForGroundItem(pItem, szName);
-		if (
-			(
-				(szLine[0] == 0) ||
-				(!strnicmp(szName, Arg1, strlen(Arg1)))
-				) && (
-					(gZFilter >= 10000.0f) ||
-					(
-						(pItem->Z <= pChar->Z + gZFilter) &&
-						(pItem->Z >= pChar->Z - gZFilter)
-						)
-					)
-			) {
+		if (((szLine[0] == 0) || (!strnicmp(szName, Arg1, strlen(Arg1)))) && ((gZFilter >= 10000.0f) ||	((pItem->Z <= pChar->Z + gZFilter) && (pItem->Z >= pChar->Z - gZFilter)))) {
 			SPAWNINFO tSpawn;
 			ZeroMemory(&tSpawn, sizeof(tSpawn));
 			strcpy(tSpawn.Name, szName);
@@ -223,13 +212,14 @@ VOID ItemTarget(PSPAWNINFO pChar, PCHAR szLine)
 				CopyMemory(&EnviroTarget, &tSpawn, sizeof(EnviroTarget));
 				cDistance = Distance;
 				pGroundTarget = pItem;
+				break;
 			}
 		}
 
 		pItem = pItem->pNext;
 	}
-	if (EnviroTarget.Name[0] != 0) {
-		sprintf(szBuffer, "Item '%s' targeted.", EnviroTarget.Name);
+	if (EnviroTarget.DisplayedName[0] != 0) {
+		sprintf(szBuffer, "Item '%s' targeted.", EnviroTarget.DisplayedName);
 		WriteChatColor(szBuffer, USERCOLOR_DEFAULT);
 		if (stricmp(Arg2, "notarget") && ppTarget && 0)
 			pTarget = (EQPlayer*)&EnviroTarget;
@@ -1292,7 +1282,7 @@ BOOL CMQ2Alerts::RemoveAlertFromList(DWORD Id, PSEARCHSPAWN pSearchSpawn)
 }
 BOOL CMQ2Alerts::AddNewAlertList(DWORD Id, PSEARCHSPAWN pSearchSpawn)
 {
-	lockit lk(_hLockMapWrite);
+	lockit lk(_hLockMapWrite,"AddNewAlertList");
 	BOOL bCanAdd = 1;
 	if (_AlertMap.find(Id) != _AlertMap.end()) {
 		for (std::list<SEARCHSPAWN>::iterator i = _AlertMap[Id].begin(); i != _AlertMap[Id].end(); i++) {
@@ -1310,7 +1300,7 @@ BOOL CMQ2Alerts::AddNewAlertList(DWORD Id, PSEARCHSPAWN pSearchSpawn)
 }
 VOID CMQ2Alerts::FreeAlerts(DWORD List)
 {
-	lockit lk(_hLockMapWrite);
+	lockit lk(_hLockMapWrite,"FreeAlerts");
 	CHAR szBuffer[64] = { 0 };
 	if (_AlertMap.find(List) != _AlertMap.end()) {
 		_AlertMap.erase(List);
@@ -3673,7 +3663,6 @@ VOID Echo(PSPAWNINFO pChar, PCHAR szLine)
 	strncat(szEcho, szLine, MAX_STRING - (strlen(DebugHeader) + 2));
 	DebugSpewNoFile("Echo - %s", szEcho);
 	WriteChatColor(szEcho, USERCOLOR_CHAT_CHANNEL);
-
 }
 
 // ***************************************************************************
@@ -3841,7 +3830,7 @@ VOID AdvLootCmd(PSPAWNINFO pChar, PCHAR szLine)
 			GetArg(szID, szLine, 2);
 
 			if (IsNumber(szID)) {
-				DWORD i = atoi(szID);
+				LONG i = atoi(szID);
 				i--;
 				if (pAdvLoot && pAdvLoot->pPLootList && pAdvLoot->pPLootList->pLootItem && pAdvLoot->pPLootList->ListSize >= i) {
 					DWORD addr = (DWORD)pAdvLoot->pPLootList->pLootItem;
@@ -3921,7 +3910,7 @@ VOID AdvLootCmd(PSPAWNINFO pChar, PCHAR szLine)
 				}
 				return;
 			}
-			DWORD index = -1;
+			LONG index = -1;
 			if (IsNumber(szID)) {
 				index = atoi(szID);
 				index--;
@@ -3929,7 +3918,7 @@ VOID AdvLootCmd(PSPAWNINFO pChar, PCHAR szLine)
 			else {//if its not a number its a itemname
 				  //need to roll through the list to get the index
 				if (pAdvLoot && pAdvLoot->pCLootList && pAdvLoot->pCLootList->pLootItem && pAdvLoot->pCLootList->ListSize >= 1) {
-					for (DWORD k = 0; k<pAdvLoot->pCLootList->ListSize; k++) {
+					for (LONG k = 0; k<pAdvLoot->pCLootList->ListSize; k++) {
 						DWORD addr = (DWORD)pAdvLoot->pCLootList->pLootItem;
 						if (pitem = (PLOOTITEM)(addr + (sizeof(LOOTITEM)*k))) {
 							if (!_stricmp(pitem->Name, szID)) {
@@ -4053,7 +4042,7 @@ VOID AdvLootCmd(PSPAWNINFO pChar, PCHAR szLine)
 #endif
 DWORD __stdcall openpickzonewnd(PVOID pData)
 {
-	lockit lk(ghLockPickZone);
+	lockit lk(ghLockPickZone,"openpickzonewnd");
 	int nInst = (int)pData;
 	CHAR szInst[32] = { 0 };
 	itoa(nInst, szInst, 10);
@@ -4138,12 +4127,12 @@ VOID AssistCmd(PSPAWNINFO pChar, PCHAR szLine)
 // Function:    Invoke
 // Description: '/invoke' command
 // Purpose:     Adds the ability to invoke Methods
-// Example:		/invoke ${Target.Assist}
-//              will execute the Assist Method of the Target TLO
+// Example:		/invoke ${Target.DoAssist}
+//              will execute the DoAssist Method of the Spawn TLO
 // Author:      EqMule
 // ***************************************************************************
 VOID InvokeCmd(PSPAWNINFO pChar, PCHAR szLine)
 {
-	ParseMacroParameter(pChar,szLine);
+	bRunNextCommand = TRUE;
 }
 #endif

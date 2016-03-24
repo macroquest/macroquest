@@ -370,18 +370,22 @@ void Heartbeat()
 #ifndef ISXEQ
 	DWORD CurTurbo = 0;
 
-	if (gDelayedCommands)
-	{// delayed commands
-		lockit lk(ghLockDelayCommand);
+	if (gDelayedCommands) {// delayed commands
+		lockit lk(ghLockDelayCommand,"HeartBeat");
 		DoCommand((PSPAWNINFO)pLocalPlayer, gDelayedCommands->szText);
 		PCHATBUF pNext = gDelayedCommands->pNext;
 		LocalFree(gDelayedCommands);
 		gDelayedCommands = pNext;
 	}
 	while (bRunNextCommand) {
-		if (!DoNextCommand()) break;
-		if (!gTurbo) break;//bRunNextCommand = FALSE;
-		if (++CurTurbo>gMaxTurbo) break;//bRunNextCommand =   FALSE;
+		if (!DoNextCommand())
+			break;
+		if (gbUnload)
+			return;
+		if (!gTurbo)
+			break;//bRunNextCommand = FALSE;
+		if (++CurTurbo>gMaxTurbo)
+			break;//bRunNextCommand =   FALSE;
 	}
 	DoTimedCommands();
 #endif
@@ -441,6 +445,8 @@ DETOUR_TRAMPOLINE_EMPTY(VOID CEverQuestHook::CTargetWnd__UpdateBuffs_Trampoline(
 void InitializeMQ2Pulse()
 {
 	DebugSpew("Initializing Pulse");
+	if (!ghLockDelayCommand)
+		ghLockDelayCommand = CreateMutex(NULL, FALSE, NULL);
 	InitializeCriticalSection(&gPulseCS);
 	EzDetour(ProcessGameEvents, Detour_ProcessGameEvents, Trampoline_ProcessGameEvents);
 	EzDetour(CEverQuest__EnterZone, &CEverQuestHook::EnterZone_Detour, &CEverQuestHook::EnterZone_Trampoline);

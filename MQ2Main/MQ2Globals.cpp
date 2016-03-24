@@ -245,6 +245,7 @@ namespace MQ2Globals
 	/* PickZone */
 	HANDLE ghLockPickZone = 0;
 	HANDLE ghLockDelayCommand = 0;
+	HANDLE ghCCommandLock = 0;
 	/* BENCHMARKS */
 	DWORD bmWriteChatColor = 0;
 	DWORD bmPluginsIncomingChat = 0;

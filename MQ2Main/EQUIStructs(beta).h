@@ -298,7 +298,7 @@ CXW
 #define SIDL \
 /*0x1ec*/ union { \
                         struct _CXSTR* SidlText; /*found in CChatWindow__WndNotification_x*/\
-                        DWORD Items; \
+                        LONG   Items; \
                 }; \
 /*0x1f0*/ union { \
                         struct _CXSTR* SidlScreen; \

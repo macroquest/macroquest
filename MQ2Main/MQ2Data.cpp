@@ -1737,12 +1737,38 @@ TLO(dataFriends)
 
 TLO(dataTask)
 {
-	if (Ret.Ptr = pTaskMember)
-	{
-		Ret.Type = pTaskType;
-		return true;
+	Ret.Int = -1;
+	if (pTaskWnd) {
+		if (ISINDEX()) {
+			if (ISNUMBER()) {
+				int n = GETNUMBER();
+				n--;
+				if (n < 0)
+					n = 0;
+				Ret.Int = n;
+			}
+			else {
+				if (CListWnd *clist = (CListWnd *)pTaskWnd->GetChildItem("TASK_TaskList")) {
+					CXStr Str;
+					CHAR szOut[MAX_STRING] = { 0 };
+					CHAR szTemp[MAX_STRING] = { 0 };
+					strcpy_s(szTemp, GETFIRST());
+					_strlwr_s(szTemp);
+					for (LONG i = 0; i < clist->Items; i++) {
+						clist->GetItemText(&Str, i, 1);
+						GetCXStr(Str.Ptr, szOut, 2047);
+						_strlwr_s(szOut);
+						if (strstr(szOut, szTemp)) {
+							Ret.Int = i;
+							break;
+						}
+					}
+				}
+			}
+		}
 	}
-	return false;
+	Ret.Type = pTaskType;
+	return true;
 }
 
 TLO(dataMount)

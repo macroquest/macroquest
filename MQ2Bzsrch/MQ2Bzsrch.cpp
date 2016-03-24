@@ -215,10 +215,8 @@ public:
 
             memcpy(&BzArray[nIndex++], &bzResponse, sizeof(_BazaarSearchResponsePacket));
         }
-
-        BzDone = TRUE;
-
         BzTrampoline(bz);
+		BzDone = TRUE;
     };
 };
 
@@ -278,8 +276,8 @@ public:
             return false;
         case Name:
             strcpy(DataTypeTemp, &pBzrItem->BSSName[0]);
-            if (PCHAR ptr = strrchr(DataTypeTemp,'('))
-                *ptr = '\0';
+            if (PCHAR pDest = strrchr(DataTypeTemp,'('))
+                *pDest = '\0';
             Dest.Ptr=&DataTypeTemp[0];
             Dest.Type=pStringType;
             return true;
@@ -293,8 +291,8 @@ public:
         if (!VarPtr.Ptr)
             return false;
         strcpy(Destination,((_BazaarSearchResponsePacket*)VarPtr.Ptr)->BSSName);
-        if (PCHAR ptr = strrchr(Destination,'('))
-            *ptr = '\0';
+        if (PCHAR pDest = strrchr(Destination,'('))
+            *pDest = '\0';
         return true;
     }
     void InitVariable(MQ2VARPTR &VarPtr) {
@@ -418,6 +416,12 @@ public:
         return false;
     }
 };
+VOID BZQuery(PSPAWNINFO pChar, PCHAR szLine)
+{
+	if (CSidlScreenWnd *pQueryButton = (CSidlScreenWnd *)pBazaarSearchWnd->GetChildItem("BZR_QueryButton")) {
+		SendWndClick2((CXWnd*)pQueryButton, "leftmouseup");
+	}
+}
 
 // Called once, when the plugin is to initialize
 PLUGIN_API VOID InitializePlugin(VOID)
@@ -432,6 +436,7 @@ PLUGIN_API VOID InitializePlugin(VOID)
         pg_Item = NULL;
     }
     // Add commands, macro parameters, hooks, etc.
+	AddCommand("/bzquery",BZQuery);
     AddCommand("/bzsrch",BzSrchMe);
     AddCommand("/breset",BzSrchMe);
     AddCommand("/mq2bzsrch",MQ2BzSrch);
@@ -461,6 +466,8 @@ PLUGIN_API VOID ShutdownPlugin(VOID)
     RemoveCommand("/mq2bzsrch");
     RemoveCommand("/breset");
     RemoveCommand("/bzsrch");
+    RemoveCommand("/bzquery");
+	
     delete pBazaarType;
     delete pBazaarItemType;
 }
@@ -508,12 +515,12 @@ VOID bzpc(PSPAWNINFO pChar, PCHAR szLine)
 
     GetArg(szArg,szLine,1);
     index = atoi(szArg)-1;
-    char *ptr;
+    char *pDest = 0;
     pc.id = BzArray[index].BSSItemID;
     pc.flags = 0;                                 // column where click occured; must be 0 or 1
     strncpy(pc.name, BzArray[index].BSSName, 64);
-    if (ptr = strrchr(pc.name, '('))
-        *ptr = '\0';
+    if (pDest = strrchr(pc.name, '('))
+        *pDest = '\0';
     if (pg_Item) memset(pg_Item, 0, sizeof(ITEMINFO));
     DebugSpewAlways("id = %d, name = %s\n", pc.id, pc.name);
     // this opcode is in CProgSelWnd__WndNotification
@@ -687,45 +694,61 @@ void DoCombo(PCHAR szArg, PCHAR key, PCHAR szCombostring)
 
 DWORD __stdcall searchthread(PVOID pData)
 {
-	lockit lk(bzsrchhandle);
-	if (CSidlScreenWnd *ptr = (CSidlScreenWnd *)pBazaarSearchWnd->GetChildItem("BZR_QueryButton")) {
+	lockit lk(bzsrchhandle,"searchthread");
+	if (CSidlScreenWnd *pQueryButton = (CSidlScreenWnd *)pBazaarSearchWnd->GetChildItem("BZR_QueryButton")) {
 		ULONGLONG startwait = MQGetTickCount64();
-		startwait += 5000;
-		while (ptr->Enabled == 0) {
-			Sleep(100);
+		startwait += 7000;
+		while (pQueryButton->Enabled == 0) {
+			Sleep(0);
 			if (startwait < MQGetTickCount64()) {
-				MacroError("timed out in /bzsrch waiting for BZR_QueryButton to enable.");
+				WriteChatfSafe("1. timed out in /bzsrch waiting for BZR_QueryButton to enable.");
 				break;
 			}
 		}
-		if (ptr->Enabled) {
-			if (CListWnd *ptr = (CListWnd *)pBazaarSearchWnd->GetChildItem("BZR_ItemList")) {
-				ptr->DeleteAll();
+		if (pQueryButton->Enabled) {
+			HideDoCommand((PSPAWNINFO)pLocalPlayer,"/bzquery",true);	
+			startwait = MQGetTickCount64() + 2000;
+			while (pQueryButton && pQueryButton->Enabled == 0 && BzDone==FALSE) {
+				Sleep(0);
+				if (startwait < MQGetTickCount64()) {
+					break;
+				}
 			}
-			BzCount = 0;
-			BzDone = 0;
-			SendWndClick2((CXWnd*)ptr, "leftmouseup");
+			if (BzDone == FALSE) {
+				BzDone = TRUE;
+			}
 		} else {
-			MacroError("woah! hold your horses there bazaarmule... BZR_QueryButton is not enabled, I suggest you check that in your macro before you issue a /bzsrch command.");
+			WriteChatfSafe("woah! hold your horses there bazaarmule... BZR_QueryButton is not enabled, I suggest you check that in your macro before you issue a /bzsrch command.");
 		}
+	} else {
+		WriteChatfSafe("Whats wrong? couldnt find the BZR_QueryButton window.");
 	}
 	return 0;
 }
 
 VOID BzSrchMe(PSPAWNINFO pChar, PCHAR szLine)
 {
-	lockit lk(bzsrchhandle);
-
+	lockit lk(bzsrchhandle,"BzSrchMe");
+	BzDone = FALSE;
 	CHAR szArg[MAX_STRING] = { 0 };
 	CHAR szItem[MAX_STRING] = { 0 };
     PCHARINFO pCharInfo = GetCharInfo();
     BOOL bArg = TRUE;
 	bool first = true;
 
-
-	if (CButtonWnd *ptr = (CButtonWnd *)pBazaarSearchWnd->GetChildItem("BZR_Default")) {
-		SendWndClick2((CXWnd*)ptr, "leftmouseup");
+	if (CButtonWnd *pDefaultButton = (CButtonWnd *)pBazaarSearchWnd->GetChildItem("BZR_Default")) {
+		if (pDefaultButton && pDefaultButton->Enabled) {
+			SendWndClick2((CXWnd*)pDefaultButton, "leftmouseup");
+		} else {
+			MacroError("Whats wrong? BZR_Default wasnt enabled.");
+		}
+	} else {
+		MacroError("Whats wrong? Counldnt find the BZR_Default window.");
 	}
+	if (CListWnd *pList = (CListWnd *)pBazaarSearchWnd->GetChildItem("BZR_ItemList")) {
+		pList->DeleteAll();
+	}
+	BzCount = 0;
 	while (bArg) {
 		GetArg(szArg, szLine, 1);
 		szLine = GetNextArg(szLine, 1);
@@ -791,10 +814,17 @@ VOID BzSrchMe(PSPAWNINFO pChar, PCHAR szLine)
 			strcat(szItem, szArg);
 		}
 	}
+	if (CXWnd *pMaxEdit = (CXWnd *)pBazaarSearchWnd->GetChildItem("BZR_MaxResultsPerTraderInput")) {
+		pMaxEdit->SetWindowTextA(CXStr("200"));
+	} else {
+		MacroError("Whats wrong? couldnt find the BZR_MaxResultsPerTraderInput window.");
+	}
 	if (CXWnd *pEdit = (CXWnd *)pBazaarSearchWnd->GetChildItem("BZR_ItemNameInput")) {
 		pEdit->SetWindowTextA(CXStr(szItem));
 		DWORD nThreadID = 0;
 		CreateThread(NULL, NULL, searchthread, 0, 0, &nThreadID);
+	} else {
+		MacroError("Whats wrong? couldnt find the BZR_ItemNameInput window.");
 	}
 error_out:
 	return;

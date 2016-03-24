@@ -1058,11 +1058,11 @@ bool MQ2SpawnType::GETMEMBER()
 				Face((PSPAWNINFO)pLocalPlayer, szOut);
 				return true;
 			}
-			case DoLeftClick:
+			case LeftClick:
 				pEverQuest->LeftClickedOnPlayer((EQPlayer *)pSpawn); 
                 WeDidStuff();
 				return true;
-			case DoRightClick:
+			case RightClick:
 				pEverQuest->RightClickedOnPlayer((EQPlayer *)pSpawn, 0); 
                 WeDidStuff();
 				return true;
@@ -1902,6 +1902,19 @@ bool MQ2BuffType::GETMEMBER()
 		return false;
 	if ((int)pBuff->SpellID <= 0)
 		return false;
+	PMQ2TYPEMEMBER pMethod = MQ2BuffType::FindMethod(Member);
+	if (pMethod) {
+		switch ((BuffMethods)pMethod->ID)
+		{
+			case Remove:
+				if (PSPELL pSpell = GetSpellByID(pBuff->SpellID)) {
+					RemoveBuff((PSPAWNINFO)pLocalPlayer, pSpell->Name);
+					return true;
+				}
+			break;
+		}
+		return false;
+	}
 	PMQ2TYPEMEMBER pMember = MQ2BuffType::FindMember(Member);
 	if (!pMember)
 	{
@@ -2051,14 +2064,17 @@ bool MQ2CharacterType::GETMEMBER()
 	if (pMethod) {
 		switch ((CharacterMethods)pMethod->ID)
 		{
-			case DoStand:
-				pEverQuest->InterpretCmd((EQPlayer*)pChar->pSpawn,"/stand");
+			case Stand:
+				pEverQuest->InterpretCmd((EQPlayer*)pChar->pSpawn,"/stand on");
 				return true;
-			case DoSit:
-				pEverQuest->InterpretCmd((EQPlayer*)pChar->pSpawn,"/sit");
+			case Sit:
+				pEverQuest->InterpretCmd((EQPlayer*)pChar->pSpawn,"/sit on");
 				return true;
-			case DoDismount:
+			case Dismount:
 				pEverQuest->InterpretCmd((EQPlayer*)pChar->pSpawn,"/dismount");
+				return true;
+			case StopCast:
+				pEverQuest->InterpretCmd((EQPlayer*)pChar->pSpawn,"/stopcast");
 				return true;
 		}
 		return false;
@@ -6560,7 +6576,77 @@ bool MQ2ItemType::GETMEMBER()
 
 bool MQ2WindowType::GETMEMBER()
 {
+	if(!VarPtr.Ptr)
+		return false;
 #define pWnd ((PCSIDLWND)VarPtr.Ptr)
+	PMQ2TYPEMEMBER pMethod = MQ2WindowType::FindMethod(Member);
+	if (pMethod) {
+		CXWnd *thewindow = (CXWnd *)pWnd;
+		switch ((WindowMethods)pMethod->ID)
+		{
+			case LeftMouseDown:
+				SendWndClick2(thewindow,"leftmousedown");
+				return true;
+			case LeftMouseUp:
+				SendWndClick2(thewindow,"leftmouseup");
+				return true;
+			case LeftMouseHeld:
+				SendWndClick2(thewindow,"leftmouseheld");
+				return true;
+			case LeftMouseHeldUp:
+				SendWndClick2(thewindow,"leftmouseheldup");
+				return true;
+			case RightMouseDown:
+				SendWndClick2(thewindow,"rightmousedown");
+				return true;
+			case RightMouseUp:
+				SendWndClick2(thewindow,"rightmouseup");
+				return true;
+			case RightMouseHeld:
+				SendWndClick2(thewindow,"rightmouseheld");
+				return true;
+			case RightMouseHeldUp:
+				SendWndClick2(thewindow,"rightmouseheldup");
+				return true;
+			case Select:
+			{
+				int ListIndex = atoi(GETFIRST());
+				ListIndex--;
+				if(ListIndex<0)
+					ListIndex=0;
+				if (thewindow->GetType() == UI_Listbox)	{
+					if(((CListWnd*)thewindow)->Items<ListIndex)
+						return false;
+					((CListWnd*)thewindow)->SetCurSel(ListIndex);
+					int index = ((CListWnd*)thewindow)->GetCurSel();
+					((CListWnd*)thewindow)->EnsureVisible(index);
+					CXRect rect = ((CListWnd*)thewindow)->GetItemRect(index, 0);
+					CXPoint pt = rect.CenterPoint();
+					thewindow->HandleLButtonDown(&pt, 0);
+					thewindow->HandleLButtonUp(&pt, 0);
+					WeDidStuff();
+					return true;
+				} else if (thewindow->GetType() == UI_Combobox)	{
+					if (CListWnd*pListWnd = (CListWnd*)((CListWnd*)thewindow)->Items) {
+						if (pListWnd->Items < ListIndex)
+							return false;
+						CXRect comborect = thewindow->GetScreenRect();
+						CXPoint combopt = comborect.CenterPoint();
+						((CComboWnd*)thewindow)->SetChoice(ListIndex);
+						((CXWnd*)thewindow)->HandleLButtonDown(&combopt, 0);
+						int index = pListWnd->GetCurSel();
+						CXRect listrect = pListWnd->GetItemRect(index, 0);
+						CXPoint listpt = listrect.CenterPoint();
+						((CXWnd*)pListWnd)->HandleLButtonDown(&listpt, 0);
+						((CXWnd*)pListWnd)->HandleLButtonUp(&listpt, 0);
+						WeDidStuff();
+						return true;
+					}
+				}
+			}
+		}
+		return false;
+	}
 	PMQ2TYPEMEMBER pMember = MQ2WindowType::FindMember(Member);
 	if (!pMember)
 		return false;
@@ -7107,9 +7193,37 @@ bool MQ2RaceType::GETMEMBER()
 
 bool MQ2SwitchType::GETMEMBER()
 {
-#define pSwitch ((PDOOR)VarPtr.Ptr)
 	if (!VarPtr.Ptr)
 		return false;
+#define pTheSwitch ((PDOOR)VarPtr.Ptr)
+	PMQ2TYPEMEMBER pMethod = MQ2SwitchType::FindMethod(Member);
+	if (pMethod) {
+		switch ((SwitchMethods)pMethod->ID)
+		{
+			case Toggle:
+				srand((unsigned int)time(0));
+				int randclickY = rand() % 3;
+				int randclickX = rand() % 3;
+				int randclickZ = rand() % 3;
+				PSWITCHCLICK pclick = new SWITCHCLICK;
+				if(pclick) {
+					pclick->Y=pTheSwitch->Y+randclickY;
+					pclick->X=pTheSwitch->X+randclickX;
+					pclick->Z=pTheSwitch->Z+randclickZ;
+					randclickY = rand() % 3;
+					randclickX = rand() % 3;
+					randclickZ = rand() % 3;
+					pclick->Y1=pclick->Y+randclickY;
+					pclick->X1=pclick->X+randclickX;
+					pclick->Z1=pclick->Z+randclickZ;
+					((EQSwitch *)pTheSwitch->pSwitch)->UseSwitch(((PSPAWNINFO)pLocalPlayer)->SpawnID,0xFFFFFFFF,0,(DWORD)pclick);
+					delete pclick;
+					return true;
+				}
+				break;
+		}
+		return false;
+	}
 	PMQ2TYPEMEMBER pMember = MQ2SwitchType::FindMember(Member);
 	if (!pMember)
 		return false;
@@ -7120,54 +7234,54 @@ bool MQ2SwitchType::GETMEMBER()
 		Dest.Type = pIntType;
 		return true;
 	case ID:
-		Dest.DWord = pSwitch->ID;
+		Dest.DWord = pTheSwitch->ID;
 		Dest.Type = pIntType;
 		return true;
 	case W:
 	case X:
-		Dest.Float = pSwitch->X;
+		Dest.Float = pTheSwitch->X;
 		Dest.Type = pFloatType;
 		return true;
 	case N:
 	case Y:
-		Dest.Float = pSwitch->Y;
+		Dest.Float = pTheSwitch->Y;
 		Dest.Type = pFloatType;
 		return true;
 	case U:
 	case Z:
-		Dest.Float = pSwitch->Z;
+		Dest.Float = pTheSwitch->Z;
 		Dest.Type = pFloatType;
 		return true;
 	case DefaultW:
 	case DefaultX:
-		Dest.Float = pSwitch->DefaultX;
+		Dest.Float = pTheSwitch->DefaultX;
 		Dest.Type = pFloatType;
 		return true;
 	case DefaultN:
 	case DefaultY:
-		Dest.Float = pSwitch->DefaultY;
+		Dest.Float = pTheSwitch->DefaultY;
 		Dest.Type = pFloatType;
 		return true;
 	case DefaultU:
 	case DefaultZ:
-		Dest.Float = pSwitch->DefaultZ;
+		Dest.Float = pTheSwitch->DefaultZ;
 		Dest.Type = pFloatType;
 		return true;
 	case Heading:
-		Dest.Float = pSwitch->Heading*0.703125f;
+		Dest.Float = pTheSwitch->Heading*0.703125f;
 		Dest.Type = pHeadingType;
 		return true;
 	case DefaultHeading:
-		Dest.Float = pSwitch->DefaultHeading*0.703125f;
+		Dest.Float = pTheSwitch->DefaultHeading*0.703125f;
 		Dest.Type = pHeadingType;
 		return true;
 	case Open:
-		Dest.DWord = ((pSwitch->DefaultHeading != pSwitch->Heading) ||
-			(pSwitch->DefaultZ != pSwitch->Z));
+		Dest.DWord = ((pTheSwitch->DefaultHeading != pTheSwitch->Heading) ||
+			(pTheSwitch->DefaultZ != pTheSwitch->Z));
 		Dest.Type = pBoolType;
 		return true;
 	case HeadingTo:
-		Dest.Float = (FLOAT)(atan2f(((PSPAWNINFO)pCharSpawn)->Y - pSwitch->Y, pSwitch->X - ((PSPAWNINFO)pCharSpawn)->X) * 180.0f / PI + 90.0f);
+		Dest.Float = (FLOAT)(atan2f(((PSPAWNINFO)pCharSpawn)->Y - pTheSwitch->Y, pTheSwitch->X - ((PSPAWNINFO)pCharSpawn)->X) * 180.0f / PI + 90.0f);
 		if (Dest.Float<0.0f)
 			Dest.Float += 360.0f;
 		else if (Dest.Float >= 360.0f)
@@ -7175,36 +7289,70 @@ bool MQ2SwitchType::GETMEMBER()
 		Dest.Type = pHeadingType;
 		return true;
 	case Name:
-		Dest.Ptr = &pSwitch->Name[0];
+		Dest.Ptr = &pTheSwitch->Name[0];
 		Dest.Type = pStringType;
 		return true;
 	case Distance:
-		Dest.Float = GetDistance(pSwitch->X, pSwitch->Y);
+		Dest.Float = GetDistance(pTheSwitch->X, pTheSwitch->Y);
 		Dest.Type = pFloatType;
 		return true;
 	case Distance3D:
 	{
-		FLOAT X = ((PSPAWNINFO)pCharSpawn)->X - pSwitch->X;
-		FLOAT Y = ((PSPAWNINFO)pCharSpawn)->Y - pSwitch->Y;
-		FLOAT Z = ((PSPAWNINFO)pCharSpawn)->Z - pSwitch->Z;
+		FLOAT X = ((PSPAWNINFO)pCharSpawn)->X - pTheSwitch->X;
+		FLOAT Y = ((PSPAWNINFO)pCharSpawn)->Y - pTheSwitch->Y;
+		FLOAT Z = ((PSPAWNINFO)pCharSpawn)->Z - pTheSwitch->Z;
 		Dest.Float = sqrtf(X*X + Y*Y + Z*Z);
 		Dest.Type = pFloatType;
 		return true;
 	}
 	case xLineOfSight:
-		Dest.DWord = (CastRay(GetCharInfo()->pSpawn, pSwitch->Y, pSwitch->X, pSwitch->Z));
+		Dest.DWord = (CastRay(GetCharInfo()->pSpawn, pTheSwitch->Y, pTheSwitch->X, pTheSwitch->Z));
 		Dest.Type = pBoolType;
 		return true;
 	}
 	return false;
-#undef pSwitch
+#undef pTheSwitch
 }
 
 bool MQ2GroundType::GETMEMBER()
 {
-#define pGround ((PGROUNDITEM)VarPtr.Ptr)
 	if (!VarPtr.Ptr)
 		return false;
+#define pGround ((PGROUNDITEM)VarPtr.Ptr)
+	PMQ2TYPEMEMBER pMethod = MQ2GroundType::FindMethod(Member);
+	if (pMethod) {
+		switch ((GroundMethods)pMethod->ID)
+		{
+			case Grab:
+				if(PEQSWITCH pSwitch = (PEQSWITCH)pGround->pSwitch) {
+					if(GetDistance3D(((PSPAWNINFO)pLocalPlayer)->X,((PSPAWNINFO)pLocalPlayer)->Y,((PSPAWNINFO)pLocalPlayer)->Z,pGround->X,pGround->Y,pGround->pSwitch->Z)<=20.0f) {
+						CHAR szName[256] = { 0 };
+						GetFriendlyNameForGroundItem(pGround, szName);
+						SPAWNINFO tSpawn = { 0 };
+						strcpy(tSpawn.Name, szName);
+						strcpy(tSpawn.DisplayedName, szName);
+						tSpawn.Y = pGround->Y;
+						tSpawn.X = pGround->X;
+						tSpawn.Z = pGround->pSwitch->Z;
+						tSpawn.Type = SPAWN_NPC;
+						tSpawn.HPCurrent = 1;
+						tSpawn.HPMax = 1;
+						tSpawn.Heading = pGround->Heading;
+						tSpawn.Race = pGround->DropID;
+						tSpawn.StandState = STANDSTATE_STAND;//im using this for /clicked left item -eqmule
+						CopyMemory(&EnviroTarget, &tSpawn, sizeof(EnviroTarget));
+						pGroundTarget = pGround;
+						*((DWORD*)__LMouseHeldTime)=((PCDISPLAY)pDisplay)->TimeStamp-0x45;
+						pEverQuest->LMouseUp(-10000, -10000);
+						ZeroMemory(&EnviroTarget, sizeof(EnviroTarget));
+						pGroundTarget = NULL;
+						return true;
+					}
+				}
+				break;
+		}
+		return false;
+	}
 	PMQ2TYPEMEMBER pMember = MQ2GroundType::FindMember(Member);
 	if (!pMember)
 		return false;
@@ -8460,6 +8608,24 @@ bool MQ2TimerType::GETMEMBER()
 #define pTimer ((PMQTIMER)VarPtr.Ptr)
 	if (!pTimer)
 		return false;
+	PMQ2TYPEMEMBER pMethod = MQ2TimerType::FindMethod(Member);
+	if(pMethod) {
+		switch ((TimerMethods)pMethod->ID)
+		{
+			case Expire:
+				pTimer->Current = 0;
+				return true;
+			case Reset:
+				pTimer->Current = pTimer->Original;
+				return true;
+			case Set:
+			{
+				FromString(VarPtr,GETFIRST());
+				return true;
+			}
+		}
+		return false;
+	}
 	PMQ2TYPEMEMBER pMember = MQ2TimerType::FindMember(Member);
 	if (!pMember)
 		return false;
@@ -10413,6 +10579,41 @@ Dest.Ptr=&DataTypeTemp[0];
 }
 }
 */
+
+bool MQ2TaskObjectiveType::GETMEMBER()
+{
+	if(VarPtr.Int==-1)
+		return false;
+	PMQ2TYPEMEMBER pMember = MQ2TaskObjectiveType::FindMember(Member);
+	if (!pMember)
+		return false;
+	CXStr Str;
+	if (CListWnd *clist = (CListWnd *)pTaskWnd->GetChildItem("TASK_TaskElementList")) {
+		switch ((TaskObjectiveTypeMembers)pMember->ID)
+		{
+			case Instruction:
+			{
+				clist->GetItemText(&Str, VarPtr.Int, 0);
+				break;
+			}
+			case Status:
+				clist->GetItemText(&Str, VarPtr.Int, 1);
+				break;
+			case Zone:
+				clist->GetItemText(&Str, VarPtr.Int, 2);
+				break;
+		}
+		CHAR szOut[255] = { 0 };
+		GetCXStr(Str.Ptr, szOut, 254);
+		if (szOut[0] != '\0') {
+			strcpy_s(DataTypeTemp, szOut);
+			Dest.Ptr = &DataTypeTemp[0];
+			Dest.Type = pStringType;
+			return true;
+		}
+	}
+	return false;
+}
 bool MQ2TaskMemberType::GETMEMBER()
 {
 	PTASKMEMBER pTaskMemberData = (PTASKMEMBER)VarPtr.Ptr;
@@ -10454,54 +10655,112 @@ bool MQ2TaskMemberType::GETMEMBER()
 
 bool MQ2TaskType::GETMEMBER()
 {
-	if (!VarPtr.Ptr)
+	if (!pTaskWnd)
 		return false;
+	PMQ2TYPEMEMBER pMethod = MQ2TaskType::FindMethod(Member);
+	if (pMethod) {
+		switch ((TaskMethods)pMethod->ID)
+		{
+			case Select:
+			{
+				Dest.DWord = 0;
+				int index = VarPtr.Int;
+				CHAR szOut[255] = { 0 };
+				if (CListWnd *clist = (CListWnd *)pTaskWnd->GetChildItem("TASK_TaskList")) {
+					if (index != -1) {
+						if (SendListSelect2((CXWnd*)clist, index)) {
+							Dest.DWord = 1;
+						}
+					}
+				}
+				Dest.Type = pBoolType;
+				return true;
+			};
+		}
+		return false;
+	}
 	PMQ2TYPEMEMBER pMember = MQ2TaskType::FindMember(Member);
 	if (!pMember)
 		return false;
-	PTASKMEMBER pTaskmember = (PTASKMEMBER)VarPtr.Ptr;
+	PTASKMEMBER pTaskmember = (PTASKMEMBER)pTaskMember;
 	switch ((TaskTypeMembers)pMember->ID)
 	{
 	case Address:
-		Dest.DWord = (DWORD)VarPtr.Ptr;
+		Dest.DWord = (DWORD)pTaskmember;
+		Dest.Type = pIntType;
+		return true;
+	case Type:
+	{	
+		int index = VarPtr.Int;
+		if (index == -1)
+			return false;
+
+		if (CListWnd *clist = (CListWnd *)pTaskWnd->GetChildItem("TASK_TaskList")) {
+			CXStr Str;
+			clist->GetItemText(&Str, index, 0);
+			CHAR szOut[255] = { 0 };
+			GetCXStr(Str.Ptr, szOut, 254);
+			if (!_stricmp(szOut, "S")) {
+				strcpy_s(DataTypeTemp, "Shared");
+				Dest.Ptr = &DataTypeTemp[0];
+				Dest.Type = pStringType;
+				return true;
+			}
+			else {
+				strcpy_s(DataTypeTemp, "Quest");
+				Dest.Ptr = &DataTypeTemp[0];
+				Dest.Type = pStringType;
+				return true;
+			}
+		}
+		return false;
+	}
+	case xIndex:
+		Dest.Int = VarPtr.Int+1;
 		Dest.Type = pIntType;
 		return true;
 	case Leader:
 	{
+		strcpy_s(DataTypeTemp, "NULL");
 		for (int i = 1; pTaskmember && i<7; pTaskmember = pTaskmember->pNext, i++) {
 			if (pTaskmember->IsLeader) {
 				strcpy_s(DataTypeTemp, pTaskmember->Name);
-				Dest.Ptr = &DataTypeTemp[0];
-				Dest.Type = pStringType;
-				return true;
+				break;
 			}
 		}
-		return false;
+		Dest.Ptr = &DataTypeTemp[0];
+		Dest.Type = pStringType;
+		return true;
 	}
 	case Title:
 	{
-		CListWnd *clist = (CListWnd *)pTaskWnd->GetChildItem("TASK_TaskList");
-		if (clist) {
+		int index = VarPtr.Int;
+		strcpy_s(DataTypeTemp, "NULL");
+		if (CListWnd *clist = (CListWnd *)pTaskWnd->GetChildItem("TASK_TaskList")) {
+			if(index==-1)
+				index = clist->GetCurSel();
 			CXStr Str;
-			clist->GetItemText(&Str, 0, 1);
+			clist->GetItemText(&Str, index, 1);
 			CHAR szOut[255] = { 0 };
 			GetCXStr(Str.Ptr, szOut, 254);
 			if (szOut[0] != '\0') {
 				strcpy_s(DataTypeTemp, szOut);
-				Dest.Ptr = &DataTypeTemp[0];
-				Dest.Type = pStringType;
-				return true;
 			}
 		}
-		return false;
+		Dest.Ptr = &DataTypeTemp[0];
+		Dest.Type = pStringType;
+		return true;
 	}
 	case Timer:
 	{
+		int index = VarPtr.Int;
 		pTaskWnd->UpdateTaskTimers(_time32(NULL));
 		CListWnd *clist = (CListWnd *)pTaskWnd->GetChildItem("TASK_TaskList");
 		if (clist) {
 			CXStr Str;
-			clist->GetItemText(&Str, 0, 2);
+			if(index==-1)
+				index = clist->GetCurSel();
+			clist->GetItemText(&Str, index, 2);
 			CHAR szOut[255] = { 0 };
 			GetCXStr(Str.Ptr, szOut, 254);
 			if (szOut[0] != '\0') {
@@ -10540,84 +10799,92 @@ bool MQ2TaskType::GETMEMBER()
 		}
 		return false;
 	case Members:
-		pTaskmember = pTaskMember;
 		Dest.DWord = 0;
 		for (; pTaskmember && Dest.DWord<6; pTaskmember = pTaskmember->pNext, Dest.DWord++) {
 		}
 		Dest.Type = pIntType;
 		return true;
-	case List:
-	{
-		int theindex = atoi(GETFIRST());
-		CListWnd *clist = (CListWnd *)pTaskWnd->GetChildItem("TASK_TaskList");
-		if (clist) {
-			CXStr Str;
-			clist->GetItemText(&Str, theindex, 1);
-			CHAR szOut[255] = { 0 };
-			GetCXStr(Str.Ptr, szOut, 254);
-			if (szOut[0] != '\0') {
-				strcpy_s(DataTypeTemp, szOut);
-				Dest.Ptr = &DataTypeTemp[0];
-				Dest.Type = pStringType;
-				return true;
-			}
-		}
-		return false;
-	}
-	case Step:
-	{
-		int v, r, c;
-		v = sscanf(GETFIRST(), "%d,%d", &r, &c);
-		if (v < 2)
-			c = 1;
-		if (v < 1)
-			r = 1;
-		CXStr Str;
-		if (CListWnd *clist = (CListWnd *)pTaskWnd->GetChildItem("TASK_TaskElementList")) {
-			clist->GetItemText(&Str, r, c);
-			CHAR szOut[255] = { 0 };
-			GetCXStr(Str.Ptr, szOut, 254);
-			if (szOut[0] != '\0') {
-				strcpy_s(DataTypeTemp, szOut);
-				Dest.Ptr = &DataTypeTemp[0];
-				Dest.Type = pStringType;
-				return true;
-			}
-		}
-		return false;
-	}
 	case Objective:
 	{
-		int v, r, c;
-		v = sscanf(GETFIRST(), "%d,%d", &r, &c);
-		if (v < 2)
-			c = 0;
-		if (v < 1)
-			r = 0;
-		//WriteChatf("List.Objective[%s] : r=%d C=%d v=%d", Index,r,c,v);
+		int taskindex = VarPtr.Int;
+		if (CListWnd *tasklist = (CListWnd *)pTaskWnd->GetChildItem("TASK_TaskList")) {
+			if (taskindex != -1) {
+				if (tasklist->GetCurSel() != taskindex) {
+					if (!SendListSelect2((CXWnd*)tasklist, taskindex)) {
+						return false;
+					}
+					if (tasklist->GetCurSel() != taskindex) {
+						return false;
+					}
+				}
+			}
+			else {
+				return false;
+			}
+		}
 		if (CListWnd *clist = (CListWnd *)pTaskWnd->GetChildItem("TASK_TaskElementList")) {
 			CXStr Str;
-			clist->GetItemText(&Str, r, c);
-			CHAR szOut[255] = { 0 };
-			GetCXStr(Str.Ptr, szOut, 254);
-			if (szOut[0] != '\0') {
-				strcpy_s(DataTypeTemp, szOut);
-				Dest.Ptr = &DataTypeTemp[0];
-				Dest.Type = pStringType;
-				return true;
+			int stepindex = -1;
+			if (ISNUMBER()) {
+				stepindex = GETNUMBER();
+				stepindex--;
+				if (stepindex < 0) {
+					stepindex = 0;
+				}
+			} else {
+				CHAR szOut[MAX_STRING] = { 0 };
+				CHAR szTemp[MAX_STRING] = { 0 };
+				strcpy_s(szTemp, GETFIRST());
+				_strlwr_s(szTemp);
+				for (LONG i = 0; i < clist->Items; i++) {
+					clist->GetItemText(&Str, i, 0);
+					GetCXStr(Str.Ptr, szOut, 2047);
+					_strlwr_s(szOut);
+					if (strstr(szOut, szTemp)) {
+						stepindex = i;
+						break;
+					}
+				}
+			}
+			Dest.Int = stepindex;
+			Dest.Type = pTaskObjectiveType;
+			return true;
+		}
+		return false;
+	}
+	case Step://gets the first step thats not Done in the task objective.
+	{
+		int taskindex = VarPtr.Int;
+		if (CListWnd *tasklist = (CListWnd *)pTaskWnd->GetChildItem("TASK_TaskList")) {
+			if (taskindex != -1) {
+				if (tasklist->GetCurSel() != taskindex) {
+					if (!SendListSelect2((CXWnd*)tasklist, taskindex)) {
+						return false;
+					}
+					if (tasklist->GetCurSel() != taskindex) {
+						return false;
+					}
+				}
+			}
+			else {
+				return false;
+			}
+		}
+		if (CListWnd *clist = (CListWnd *)pTaskWnd->GetChildItem("TASK_TaskElementList")) {
+			CXStr Str;
+			CHAR szOut[MAX_STRING] = { 0 };
+			for (LONG i = 0; i < clist->Items; i++) {
+				clist->GetItemText(&Str, i, 1);
+				GetCXStr(Str.Ptr, szOut, 2047);
+				if (_stricmp(szOut, "done")) {
+					Dest.Int = i;
+					Dest.Type = pTaskObjectiveType;
+					return true;
+				}
 			}
 		}
 		return false;
 	}
-	case Select:
-		Dest.Type = pBoolType;
-		Dest.DWord = 0;
-		int l = atoi(GETFIRST());
-		if (CListWnd *clist = (CListWnd *)pTaskWnd->GetChildItem("TASK_TaskList")) {
-			SendListSelect2((CXWnd*)clist, l);
-			Dest.DWord = 1;
-		}
-		return true;
 	}
 	return false;
 }
@@ -10828,14 +11095,14 @@ bool MQ2AdvLootType::GETMEMBER()
 	switch ((AdvLootTypeMembers)pMember->ID)
 	{
 	case PCount:
-		Dest.DWord = pAdvLoot->pPLootList->ListSize;
+		Dest.Int = pAdvLoot->pPLootList->ListSize;
 		Dest.Type = pIntType;
 		return true;
 	case PList:
 		if (DWORD theindex = atoi(GETFIRST())) {
 			theindex--;
 			if (CListWnd *clist = (CListWnd *)pAdvancedLootWnd->GetChildItem("ADLW_PLLList")) {
-				for (DWORD i = 0; i < clist->Items; i++) {
+				for (LONG i = 0; i < clist->Items; i++) {
 					if (theindex == clist->GetItemData(i)) {
 						if (pAdvLoot && pAdvLoot->pPLootList && pAdvLoot->pPLootList->pLootItem && pAdvLoot->pPLootList->ListSize >= i) {
 							DWORD addr = (DWORD)pAdvLoot->pPLootList->pLootItem;
@@ -10850,14 +11117,14 @@ bool MQ2AdvLootType::GETMEMBER()
 		}
 		return false;
 	case SCount:
-		Dest.DWord = pAdvLoot->pCLootList->ListSize;
+		Dest.Int = pAdvLoot->pCLootList->ListSize;
 		Dest.Type = pIntType;
 		return true;
 	case SList:
 		if (DWORD theindex = atoi(GETFIRST())) {
 			theindex--;
 			if (CListWnd *clist = (CListWnd *)pAdvancedLootWnd->GetChildItem("ADLW_CLLList")) {
-				for (DWORD i = 0; i < clist->Items; i++) {
+				for (LONG i = 0; i < clist->Items; i++) {
 					if (theindex == clist->GetItemData(i)) {
 						if (pAdvLoot && pAdvLoot->pCLootList && pAdvLoot->pCLootList->pLootItem && pAdvLoot->pCLootList->ListSize >= i) {
 							DWORD addr = (DWORD)pAdvLoot->pCLootList->pLootItem;
@@ -10875,7 +11142,7 @@ bool MQ2AdvLootType::GETMEMBER()
 		Dest.DWord = 0;
 		Dest.Type = pIntType;
 		if (CListWnd *clist = (CListWnd *)pAdvancedLootWnd->GetChildItem("ADLW_PLLList")) {
-			for (DWORD i = 0; i < clist->Items; i++) {
+			for (LONG i = 0; i < clist->Items; i++) {
 				if (pAdvLoot && pAdvLoot->pPLootList && pAdvLoot->pPLootList->pLootItem && pAdvLoot->pPLootList->ListSize >= i) {
 					DWORD addr = (DWORD)pAdvLoot->pPLootList->pLootItem;
 					if (PLOOTITEM pitem = (PLOOTITEM)(addr + (sizeof(LOOTITEM)*i))) {
@@ -10891,7 +11158,7 @@ bool MQ2AdvLootType::GETMEMBER()
 		Dest.DWord = 0;
 		Dest.Type = pIntType;
 		if (CListWnd *clist = (CListWnd *)pAdvancedLootWnd->GetChildItem("ADLW_CLLList")) {
-			for (DWORD i = 0; i < clist->Items; i++) {
+			for (LONG i = 0; i < clist->Items; i++) {
 				if (pAdvLoot && pAdvLoot->pCLootList && pAdvLoot->pCLootList->pLootItem && pAdvLoot->pCLootList->ListSize >= i) {
 					DWORD addr = (DWORD)pAdvLoot->pCLootList->pLootItem;
 					if (PLOOTITEM pitem = (PLOOTITEM)(addr + (sizeof(LOOTITEM)*i))) {

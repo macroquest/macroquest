@@ -675,8 +675,8 @@ public:
 		DoTarget = 1,
 		DoFace = 2,
 		DoAssist = 4,
-		DoLeftClick = 5,
-		DoRightClick = 6,
+		LeftClick = 5,
+		RightClick = 6,
 	};
 	MQ2SpawnType() :MQ2Type("spawn")
 	{
@@ -795,8 +795,8 @@ public:
 
 		TypeMethod(DoTarget);
 		TypeMethod(DoFace);
-		TypeMethod(DoLeftClick);
-		TypeMethod(DoRightClick);
+		TypeMethod(LeftClick);
+		TypeMethod(RightClick);
 		TypeMethod(DoAssist);
 	}
 
@@ -1093,9 +1093,10 @@ public:
 	};
 	enum CharacterMethods
 	{
-		DoStand,
-		DoSit,
-		DoDismount,
+		Stand,
+		Sit,
+		Dismount,
+		StopCast,
 	};
 	MQ2CharacterType() :MQ2Type("character")
 	{
@@ -1333,9 +1334,10 @@ public:
 		TypeMember(XTargetSlots);
 		TypeMember(AssistComplete);
 
-		TypeMethod(DoStand);
-		TypeMethod(DoSit);
-		TypeMethod(DoDismount);
+		TypeMethod(Stand);
+		TypeMethod(Sit);
+		TypeMethod(Dismount);
+		TypeMethod(StopCast);
 	}
 
 	~MQ2CharacterType()
@@ -2563,14 +2565,13 @@ public:
 	{
 		LeftMouseDown = 1,
 		LeftMouseUp = 2,
-		LeftMouseHeldDown = 3,
+		LeftMouseHeld = 3,
 		LeftMouseHeldUp = 4,
 		RightMouseDown = 5,
 		RightMouseUp = 6,
-		RightMouseHeldDown = 7,
+		RightMouseHeld = 7,
 		RightMouseHeldUp = 8,
-		ListSelect = 9,
-		ComboSelect = 10,
+		Select = 9,
 	};
 #ifdef ISBOXER_COMPAT
 	MQ2WindowType() :MQ2Type("eqwindow")
@@ -2611,20 +2612,18 @@ public:
 		TypeMember(Items);
 		TypeMember(HisTradeReady);
 		TypeMember(MyTradeReady);
-
+		TypeMember(GetCurSel);
+		TypeMember(Address);
 
 		TypeMethod(LeftMouseDown);
 		TypeMethod(LeftMouseUp);
-		TypeMethod(LeftMouseHeldDown);
+		TypeMethod(LeftMouseHeld);
 		TypeMethod(LeftMouseHeldUp);
 		TypeMethod(RightMouseDown);
 		TypeMethod(RightMouseUp);
-		TypeMethod(RightMouseHeldDown);
+		TypeMethod(RightMouseHeld);
 		TypeMethod(RightMouseHeldUp);
-		TypeMethod(ListSelect);
-		TypeMember(GetCurSel);
-		TypeMember(ComboSelect);
-		TypeMember(Address);
+		TypeMethod(Select);
 	}
 
 	~MQ2WindowType()
@@ -3664,7 +3663,7 @@ public:
 	void InitVariable(MQ2VARPTR &VarPtr)
 	{
 		if (PMQTIMER pVar = (PMQTIMER)malloc(sizeof(MQTIMER))) {
-			pVar->szName[0] = 0;
+			pVar->szName[0] = '\0';
 			pVar->Current = 0;
 			pVar->Original = 0;
 			pVar->pNext = gTimer;
@@ -4420,6 +4419,49 @@ public:
 	}
 };
 
+class MQ2TaskObjectiveType : public MQ2Type
+{
+	public:
+	enum TaskObjectiveTypeMembers
+	{
+		Instruction = 1,
+		Status = 2,
+		Zone = 3,
+	};
+	MQ2TaskObjectiveType() :MQ2Type("taskobjectivemember")
+	{
+		TypeMember(Instruction);
+		TypeMember(Status);
+		TypeMember(Zone);
+	}
+	~MQ2TaskObjectiveType()
+	{
+	}
+	bool GETMEMBER();
+	bool ToString(MQ2VARPTR VarPtr, PCHAR Destination)
+	{
+		CXStr Str;
+		if (CListWnd *clist = (CListWnd *)pTaskWnd->GetChildItem("TASK_TaskElementList")) {
+			//we return Objective by default:
+			clist->GetItemText(&Str, VarPtr.Int, 0);
+			CHAR szOut[255] = { 0 };
+			GetCXStr(Str.Ptr, szOut, 254);
+			if (szOut[0] != '\0') {
+				strcpy_s(Destination, 254, szOut);
+				return true;
+			}
+		}
+		return false;
+	}
+	bool FromData(MQ2VARPTR &VarPtr, MQ2TYPEVAR &Source)
+	{
+		return false;
+	}
+	bool FromString(MQ2VARPTR &VarPtr, PCHAR Source)
+	{
+		return false;
+	}
+};
 class MQ2TaskMemberType : public MQ2Type
 {
 public:
@@ -4459,30 +4501,36 @@ public:
 	enum TaskTypeMembers
 	{
 		Address = 1,
-		Title = 2,
-		Timer = 3,
-		xMember = 4,
-		Members = 5,
-		Leader = 6,
-		List = 7,
+		xIndex = 2,
+		Title = 3,
+		Timer = 4,
+		xMember = 5,
+		Members = 6,
+		Leader = 7,
 		Step = 8,
 		Objective = 9,
-		Select = 10,
+		Type = 10,
 		MemberList = 11,
+	};
+	enum TaskMethods
+	{
+		Select = 1,
 	};
 	MQ2TaskType() :MQ2Type("task")
 	{
 		TypeMember(Address);
+		AddMember(xIndex,"Index");
 		TypeMember(Title);
 		TypeMember(Timer);
 		AddMember(xMember, "Member");
 		TypeMember(Members);
 		TypeMember(Leader);
-		TypeMember(List);
 		TypeMember(Step);
 		TypeMember(Objective);
-		TypeMember(Select);
+		TypeMember(Type);
 		TypeMember(MemberList);
+
+		TypeMethod(Select);
 	}
 	~MQ2TaskType()
 	{
@@ -4490,19 +4538,22 @@ public:
 	bool GETMEMBER();
 	bool ToString(MQ2VARPTR VarPtr, PCHAR Destination)
 	{
+		strcpy_s(Destination,254, "NULL");
+		int index = VarPtr.Int;
 		if (pTaskWnd) {
 			if (CListWnd *clist = (CListWnd *)pTaskWnd->GetChildItem("TASK_TaskList")) {
+				if (index == -1)
+					index = clist->GetCurSel();
 				CXStr Str;
-				clist->GetItemText(&Str, 0, 1);
+				clist->GetItemText(&Str, index, 1);
 				CHAR szOut[255] = { 0 };
 				GetCXStr(Str.Ptr, szOut, 254);
 				if (szOut[0] != '\0') {
-					strcpy(Destination, szOut);
-					return true;
+					strcpy_s(Destination, 254, szOut);
 				}
 			}
 		}
-		return false;
+		return true;
 	}
 	bool FromData(MQ2VARPTR &VarPtr, MQ2TYPEVAR &Source)
 	{

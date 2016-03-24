@@ -306,7 +306,7 @@ CXW
 #define SIDL \
 /*0x1d8*/ union { \
                         struct _CXSTR* SidlText; /*found in CChatWindow__WndNotification_x*/\
-                        DWORD Items; \
+                        LONG   Items; \
                 }; \
 /*0x1dc*/ union { \
                         struct _CXSTR* SidlScreen; \
@@ -844,7 +844,7 @@ typedef struct _LOOTITEM
 typedef struct _LOOTLIST {
 	/*0x000*/ BYTE	Unknown0x004[0x4];
 	/*0x004*/ struct _LOOTITEM *pLootItem;
-	/*0x008*/ DWORD	ListSize;
+	/*0x008*/ LONG	ListSize;
 } LOOTLIST,*PLOOTLIST;
 
 //CAdvancedLootWnd__CAdvancedLootWnd_x
@@ -1056,29 +1056,29 @@ typedef struct _EQITEMWINDOW {
 } EQITEMWINDOW, *PEQITEMWINDOW;
 
 //CLootWnd__CLootWnd aLootwnd
-// Actual Size: 0x3a8 (see 49B585) in Jan 14 2015 test - eqmule
+// Actual Size: 0x388 (see 4BB427) in Mar 11 2016 Test - eqmule
 typedef struct _EQLOOTWINDOW {
 	/*0x0000*/ struct _CSIDLWND     Wnd;
 	/*0x0220*/ void *       vftable; // for CLootWnd::DialogResponse handler
-	/*0x0224*/ BYTE         Unknown0x0224[0x9c];
-	/*0x02c0*/ DWORD        NumOfSlots;
-	/*0x02c4*/ BYTE         Unknown0x02c4[0x4];
-	/*0x02c8*/ struct _INVENTORYARRAY *     pInventoryArray;
-	/*0x02cc*/ DWORD        NumOfSlots2;
-	/*0x02d0*/ DWORD        NumOfSlots3;
-	/*0x02d4*/ BYTE         Unknown0x02d4[0x24];
-	/*0x02f8*/ BYTE         Unknown0x02f8;
-	/*0x02f9*/ BYTE         Unknown0x02f9;
-	/*0x02fa*/ BYTE         Unknown0x02fa;
-	/*0x02fb*/ BYTE         Unknown0x02fb;
-	/*0x02fc*/ struct _CSIDLWND *   LootInvWnd;
-	/*0x0300*/ struct _CSILDWND *   LootSlotWnd[0x22];
-	/*0x0388*/ struct _CSIDLWND *   LW_CorpseName;
-	/*0x038c*/ struct _CSIDLWND *   DoneButton;
-	/*0x0390*/ struct _CSIDLWND *   BroadcastButton;
-	/*0x0394*/ struct _CSIDLWND *   LootAllButton;
-	/*0x0398*/ BYTE         Unknown0x0398[0x10];
-	/*0x03a8*/
+	/*0x0224*/ BYTE         Unknown0x0224[0x98];
+	/*0x02bc*/ DWORD        NumOfSlots;
+	/*0x02c0*/ BYTE         Unknown0x02c0[0x4];
+	/*0x02c4*/ struct _INVENTORYARRAY *     pInventoryArray;
+	/*0x02c8*/ DWORD        NumOfSlots2;
+	/*0x02cc*/ DWORD        NumOfSlots3;
+	/*0x02d0*/ BYTE         Unknown0x02d0[0x8];
+	/*0x02d8*/ BYTE         Unknown0x02d8;
+	/*0x02d9*/ BYTE         Unknown0x02d9;
+	/*0x02da*/ BYTE         Unknown0x02da;
+	/*0x02db*/ BYTE         Unknown0x02db;
+	/*0x02dc*/ struct _CSIDLWND *   LootInvWnd;
+	/*0x02e0*/ struct _CSILDWND *   LootSlotWnd[0x22];
+	/*0x0368*/ struct _CSIDLWND *   LW_CorpseName;
+	/*0x036c*/ struct _CSIDLWND *   DoneButton;
+	/*0x0370*/ struct _CSIDLWND *   BroadcastButton;
+	/*0x0374*/ struct _CSIDLWND *   LootAllButton;
+	/*0x0378*/ BYTE         Unknown0x0378[0x10];
+	/*0x0388*/
 } EQLOOTWINDOW, *PEQLOOTWINDOW;
 
 // pLines address = 0x260 + 0x0368 = 0x05c8 (address of pMapViewMapVfTable)
@@ -1178,15 +1178,15 @@ typedef struct _EQRAIDWINDOW {
 } EQRAIDWINDOW, *PEQRAIDWINDOW;
 
 //CTradeWnd__CTradeWnd aTradewnd
-// Actual Size: 0x300 (see 49B6FB) in Jan 14 2015 test - eqmule
+// Actual Size: 0x2dc (see 4BB59D) in Mar 11 2016 Test - eqmule
 typedef struct _EQTRADEWINDOW {
 	/*0x0000*/ struct _CSIDLWND     Wnd;
-	/*0x0220*/ BYTE         Unknown0x0220[0xd8];
-	/*0x02f8*/ BYTE         HisTradeReady;
-	/*0x02f9*/ BYTE         MyTradeReady;
-	/*0x02fa*/ BYTE         TradeWndOpen;
-	/*0x02fb*/ BYTE         Unknown0x02fb[0x5];
-	/*0x0300*/
+	/*0x0220*/ BYTE         Unknown0x0220[0xb8];
+	/*0x02d8*/ BYTE         HisTradeReady;
+	/*0x02d9*/ BYTE         MyTradeReady;
+	/*0x02da*/ BYTE         TradeWndOpen;
+	/*0x02db*/ BYTE         Unknown0x02db;
+	/*0x02dc*/
 } EQTRADEWINDOW, *PEQTRADEWINDOW;
 
 };

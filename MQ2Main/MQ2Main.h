@@ -305,7 +305,7 @@ EQLIB_API CXWnd *GetParentWnd(class CXWnd const * pWnd);
 
 EQLIB_API bool SendComboSelect(PCHAR WindowName, PCHAR ScreenID, DWORD Value);
 EQLIB_API bool SendListSelect(PCHAR WindowName, PCHAR ScreenID, DWORD Value);
-EQLIB_API bool SendListSelect2(CXWnd *pList, DWORD ListIndex);
+EQLIB_API bool SendListSelect2(CXWnd *pList, LONG ListIndex);
 EQLIB_API bool SendWndClick2(CXWnd *pWnd, PCHAR ClickNotification);
 
 EQLIB_API VOID CreateMQ2NewsWindow();
@@ -335,6 +335,7 @@ EQLIB_API VOID RemoveDetour(DWORD address);
 
 /* PLUGIN HANDLING */
 EQLIB_API VOID WriteChatf(PCHAR Format, ...);
+EQLIB_API VOID WriteChatfSafe(PCHAR szFormat, ...);
 EQLIB_API VOID WriteChatColor(PCHAR Line, DWORD Color = USERCOLOR_DEFAULT, DWORD Filter = 0);
 #ifndef ISXEQ
 EQLIB_API VOID InitializeMQ2Plugins();

@@ -63,6 +63,7 @@ DATATYPE(MQ2SwitchType, pSwitchType, nullptr, 0);
 DATATYPE(MQ2TargetBuffType, pTargetBuffType, pSpellType, 0);
 DATATYPE(MQ2TargetType, pTargetType, pSpawnType, 0);
 DATATYPE(MQ2TaskMemberType, pTaskMemberType, nullptr, 0);
+DATATYPE(MQ2TaskObjectiveType, pTaskObjectiveType, nullptr, 0);
 DATATYPE(MQ2TaskType, pTaskType, nullptr, 0);
 DATATYPE(MQ2TicksType, pTicksType, nullptr, 0);
 DATATYPE(MQ2TimeStampType, pTimeStampType, nullptr, 0);

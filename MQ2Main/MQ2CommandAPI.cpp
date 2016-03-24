@@ -59,7 +59,7 @@ VOID HideDoCommand(PSPAWNINFO pChar, PCHAR szLine, BOOL delayed)
 {
     if (delayed)
     {
-		lockit lk(ghLockDelayCommand);
+		lockit lk(ghLockDelayCommand,"HideDoCommand");
 		PCHATBUF pChat = (PCHATBUF)LocalAlloc(LPTR,sizeof(CHATBUF));
         if (pChat) {
             strcpy_s(pChat->szText,szLine);
@@ -185,14 +185,15 @@ class CCommandHook
 { 
 public: 
     VOID Detour(PSPAWNINFO pChar, PCHAR szFullLine) 
-    { 
+    {
+		lockit lk(ghCCommandLock,"CCommandHook::Detour");
         DebugSpew("CCommandHook::Detour(%s)",szFullLine);
         CHAR szFullCommand[MAX_STRING] = {0}; 
         CHAR szCommand[MAX_STRING] = {0}; 
         CHAR szArgs[MAX_STRING] = {0}; 
         CHAR szOrig[MAX_STRING] = {0};
         CHAR szSub[MAX_STRING] = {0};
-        string szSubFullCommand = "";
+        std::string szSubFullCommand = "";
         unsigned int k=0;
         bool OneCharacterSub = false;
         PALIAS pLoop = pAliases; 
@@ -539,6 +540,8 @@ void InitializeMQ2Commands()
     int i;
     DebugSpew("Initializing Commands");
     InitializeCriticalSection(&gCommandCS);
+	if (!ghCCommandLock)
+		ghCCommandLock = CreateMutex(NULL, FALSE, NULL);
     EzDetour(CEverQuest__InterpretCmd,&CCommandHook::Detour,&CCommandHook::Trampoline);
 
     // Import EQ commands
@@ -761,7 +764,7 @@ void InitializeMQ2Commands()
 void ShutdownMQ2Commands()
 {
     EnterCriticalSection(&gCommandCS);
-	lockit lk(ghLockDelayCommand);
+	lockit lk(ghLockDelayCommand,"ShutdownMQ2Commands");
     RemoveDetour(CEverQuest__InterpretCmd);
     while(pCommands)
     {
@@ -796,11 +799,16 @@ void ShutdownMQ2Commands()
 
     LeaveCriticalSection(&gCommandCS);
     DeleteCriticalSection(&gCommandCS);
+	if (ghCCommandLock) {
+		ReleaseMutex(ghCCommandLock);
+		CloseHandle(ghCCommandLock);
+		ghCCommandLock = 0;
+	}
 }
 
 VOID DoTimedCommands()
 {
-	lockit lk(ghLockDelayCommand);
+	lockit lk(ghLockDelayCommand,"DoTimedCommands");
     ULONGLONG Now=MQGetTickCount64();
     while(pTimedCommands && pTimedCommands->Time<=Now)
     {
@@ -813,7 +821,7 @@ VOID DoTimedCommands()
 
 VOID TimedCommand(PCHAR Command, DWORD msDelay)
 {
-	lockit lk(ghLockDelayCommand);
+	lockit lk(ghLockDelayCommand,"TimedCommand");
     PTIMEDCOMMAND pNew= new TIMEDCOMMAND;
     pNew->Time=msDelay+MQGetTickCount64();
     strcpy(pNew->Command,Command);

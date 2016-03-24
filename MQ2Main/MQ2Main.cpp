@@ -372,8 +372,6 @@ bool __cdecl MQ2Initialize()
 #endif
 	if (!ghLockPickZone)
 		ghLockPickZone = CreateMutex(NULL, FALSE, NULL);
-	if (!ghLockDelayCommand)
-		ghLockDelayCommand = CreateMutex(NULL, FALSE, NULL);
     return true;
 }
 

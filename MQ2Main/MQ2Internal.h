@@ -11,7 +11,7 @@ but WITHOUT ANY WARRANTY; without even the implied warranty of
 MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 GNU General Public License for more details.
 ******************************************************************************/
-
+EQLIB_API VOID WriteChatfSafe(PCHAR szFormat, ...);
 namespace MQ2Internal {
 
     enum ePVPServer
@@ -378,18 +378,22 @@ namespace MQ2Internal {
 		HANDLE _hMutex;
 	public:
 		BOOL ok;
-		lockit(HANDLE hMutex)
+		lockit(HANDLE hMutex, char*Name=0)
 		{
 			_hMutex = hMutex;
 			ok = 0;
 			_locked = 0;
-			DWORD ret = WaitForSingleObject(_hMutex,30000);
+			DWORD ret = WaitForSingleObject(_hMutex,10000);
 			if(ret==WAIT_OBJECT_0)
 			{
 				_locked = 1;
 				ok = 1;
-			} else
+			} else {
+				if (Name) {
+					WriteChatfSafe("lockit timed out in %s",Name);
+				}
 				ok = ret;
+			}
 		}
 		~lockit()
 		{

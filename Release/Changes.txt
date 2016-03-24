@@ -1,3 +1,89 @@
+23 Mar 2016
+- Updated for LIVE
+- WARNING! Task TLO has changed, update your macros.
+- Well, I was gonna release the new Task TLO in the next zip
+  but then dbg decided to patch so you guys get whatever I could finish
+  before I had to release the zip.
+  It needs more documantation and definately more testing as well,
+  but I can say this much for now:
+  /echo Task 1 is ${Task[1]}
+  Output: Task 1 is Hatching a Plan
+  /echo The task with "hatch" in is name is called: ${Task[hatch]} 
+  Output: The task with "hatch" in is name is called: Hatching a Plan
+  /echo ${Task[hatch]} is listed as number ${Task[hatch].Index} in the tasklist.
+  Output: Hatching a Plan is listed as number 1 in the tasklist.
+  /echo The ${Task[hatch]} first objective is to ${Task[hatch].Objective[1].Instruction}
+  Output: The Hatching a Plan first objective is to find where the eggs are being incubated
+  /echo The ${Task[hatch]} first objective status is ${Task[hatch].Objective[1].Status[1]} 
+  Output: The Hatching a Plan first objective status is 0/1
+  /echo The ${Task[hatch]} first objective should be completed in ${Task[hatch].Objective[1].Zone}
+  Output: The Hatching a Plan first objective should be completed in Hatchery Wing
+  /echo I should be working on ${Task[hatch].Step} in ${Task[hatch].Step.Zone}
+  Output: I should be working on find where the eggs are being incubated in Hatchery Wing
+- Added .Type to the Task TLO: it outputs a string Quest or Shared depending on the task:
+  Usage: /echo ${Task[hatch].Type}
+  Output: Shared
+- The Task TLO also has a .Select "Method" (see below for an explaination of TLO methods.)
+  .Select can select list items and combobox items.
+  .Select returns TRUE if a selection was made and FALSE if not.
+  Usage: /if (${Task[hatch].Select}) {
+			/echo I just Selected a task that has the name "hatch" in it...
+		} else {
+			/echo I did not find a task that has the word "hatch" in it, so nothing was selected.
+		}
+-
+- Fixed a racecondition crash in mq2bzsrch.
+- Fixed a plugin unload/load crash
+- Made some changes to mutex locks.
+- Fixed the loot and the trade struct for the test build.
+- Added a new command /invoke to invoke TLO Methods...
+  Basically we have had TypeMethods in the source for years, but it was never finished.
+  Consider these methods beta for now.
+  So from the command line or hotbuttons you can do stuff like: /invoke ${Spawn[eqmule].DoTarget}
+  and it will execute the DoTarget method of the Spawn TLO... (and /target eqmule IF it finds that spawn)
+  In macros it should make things more simple but at the same time add more power
+  because now you can do stuff that saves a few lines, like:
+  /if (${Spawn[eqmule].DoTarget.ID}) {
+		/echo i just targeted ${Target}
+  }
+  or
+  /if (${Spawn[eqmule].DoFace.ID}) {
+		/echo i just faced eqmule
+  }
+  the following Methods are available for use and testing as of this patch:
+  For the Task TLO:
+	.Select
+  For the Spawn[]. TLO:
+	.DoTarget
+	.DoFace
+	.DoAssist
+	.LeftClick
+	.RightClick
+  For the Me. TLO:
+	.Stand
+	.Sit
+	.Dismount
+	.StopCast
+  For the Me.Buff TLO Member:
+	.Remove
+  For the Switch TLO:
+	.Toggle
+  For the Ground TLO:
+	.Grab
+  For the Window TLO:
+	.LeftMouseDown
+	.LeftMouseUp
+	.LeftMouseHeld
+	.LeftMouseHeldUp
+	.RightMouseDown
+	.RightMouseUp
+	.RightMouseHeld
+	.RightMouseHeldUp
+	.Select
+
+- And finally, there seem to be some problem with /click left door
+  I will have a look at that tomorrow.
+
 17 Mar 2016
 - Fixed a crash in the ${Merchant} TLO
 - Fixed a crash in the ${Task} TLO

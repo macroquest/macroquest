@@ -391,23 +391,22 @@ VOID Click(PSPAWNINFO pChar, PCHAR szLine)
 				if (!strnicmp(szArg1, "left", 4)) {
 					if(DoorEnviroTarget.Name[0]!=0) {
 						if(DistanceToSpawn(pChar,&DoorEnviroTarget)<20.0f) {
-							EQSwitch *pSwitch = (EQSwitch *)pDoorTarget;
 							srand((unsigned int)time(0));
-							int randclickY = rand() % 5;
-							int randclickX = rand() % 5;
-							int randclickZ = rand() % 5;
+							int randclickY = rand() % 3;
+							int randclickX = rand() % 3;
+							int randclickZ = rand() % 3;
 							PSWITCHCLICK pclick = new SWITCHCLICK;
-							if(pclick) {
-								pclick->Y=pDoorTarget->Y+randclickY;
-								pclick->X=pDoorTarget->X+randclickX;
-								pclick->Z=pDoorTarget->Z+randclickZ;
-								randclickY = rand() % 5;
-								randclickX = rand() % 5;
-								randclickZ = rand() % 5;
-								pclick->Y1=pclick->Y+randclickY;
-								pclick->X1=pclick->X+randclickX;
-								pclick->Z1=pclick->Z+randclickZ;
-								pSwitch->UseSwitch(GetCharInfo()->pSpawn->SpawnID,0xFFFFFFFF,0,(DWORD)pclick);
+							if (pclick) {
+								pclick->Y = pDoorTarget->Y + randclickY;
+								pclick->X = pDoorTarget->X + randclickX;
+								pclick->Z = pDoorTarget->Z + randclickZ;
+								randclickY = rand() % 3;
+								randclickX = rand() % 3;
+								randclickZ = rand() % 3;
+								pclick->Y1 = pclick->Y + randclickY;
+								pclick->X1 = pclick->X + randclickX;
+								pclick->Z1 = pclick->Z + randclickZ;
+								((EQSwitch *)pDoorTarget)->UseSwitch(GetCharInfo()->pSpawn->SpawnID, 0xFFFFFFFF, 0, (DWORD)pclick);
 								delete pclick;
 							}
 							//DoorEnviroTarget.Name[0]='\0';

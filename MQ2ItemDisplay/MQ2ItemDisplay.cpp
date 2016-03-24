@@ -141,7 +141,7 @@ public:
 };
 BOOL dataLastItem(PCHAR szName, MQ2TYPEVAR &Ret)
 {
-	lockit lockid(hDisplayItemLock);
+	lockit lockid(hDisplayItemLock,"dataLastItem");
 	if (szName[0])
 	{
 		if(IsNumber(szName)) {
@@ -556,7 +556,8 @@ public:
         PCHAR lore = NULL;
 
         UpdateStrings_Trampoline();
-		lockit lockid(hDisplayItemLock);
+		lockit lockid(hDisplayItemLock,"UpdateStrings_Detour");
+
 		//add the strings to our map
 		try {
 			if(This->ItemInformationText) {
@@ -1709,11 +1710,6 @@ PLUGIN_API VOID InitializePlugin(VOID)
 		MessageBox(NULL,"Could not initialize hDisplayItemLock Mutex","MQ2ItemDisplay not initialized",MB_OK);
 		return;
 	}
-	//lockit lockid(hDisplayItemLock);
-    //memset(&g_Contents[g_LastIndex], 0, sizeof(g_Contents));
-    //g_Contents[g_LastIndex].Item1 = NULL;
-    //g_Contents[g_LastIndex].Item2 = &g_Item;
-    //g_Item.ItemNumber = 0;
 	pGearScoreType = new MQ2GearScoreType;
 
     EzDetour(CItemDisplayWnd__SetSpell,&ItemDisplayHook::SetSpell_Detour,&ItemDisplayHook::SetSpell_Trampoline);

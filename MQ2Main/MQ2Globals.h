@@ -54,6 +54,7 @@ namespace MQ2Globals
 	EQLIB_VAR HANDLE ghLockSpellMap;
 	EQLIB_VAR HANDLE ghLockPickZone;
 	EQLIB_VAR HANDLE ghLockDelayCommand;
+	EQLIB_VAR HANDLE ghCCommandLock;
 	EQLIB_VAR BOOL g_Loaded;
 	EQLIB_VAR DWORD ThreadID;
 
