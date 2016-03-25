@@ -400,7 +400,7 @@ void CTelnetServer::ProcessIncoming()
     if(Commands) // process only 1 per pulse, no loop.
     {
         PCHARINFO pCharInfo=GetCharInfo();
-        PSPAWNINFO pSpawn=(PSPAWNINFO)pCharSpawn;
+        PSPAWNINFO pSpawn=(PSPAWNINFO)pLocalPlayer;
         if (pCharInfo) pSpawn=pCharInfo->pSpawn;
         PCHATBUF Next=Commands->pNext;
         DoCommand(pSpawn,Commands->szText);

@@ -2157,6 +2157,8 @@ public:
 		Address = 13,
 		DisplayName = 14,
 		Distance3D = 15,
+		SubID = 16,
+		ZoneID = 17,
 	};
 	enum GroundMethods
 	{
@@ -2178,6 +2180,8 @@ public:
 		TypeMember(Address);
 		TypeMember(DisplayName);
 		TypeMember(Distance3D);
+		TypeMember(SubID);
+		TypeMember(ZoneID);
 		//methods
 		TypeMethod(Grab);
 		TypeMethod(DoTarget);

@@ -1696,7 +1696,7 @@ typedef struct _GROUNDITEM {
 /*0x08*/ DWORD  ID;
 /*0x0c*/ DWORD  DropID;
 /*0x10*/ DWORD  ZoneID;
-/*0x14*/ DWORD  Unknown0x14;
+/*0x14*/ DWORD  DropSubID;
 /*0x18*/ PEQSWITCH pSwitch; // (class EQSwitch *)
 /*0x1c*/ CHAR   Name[0x20];
 /*0x3c*/ BYTE   Unknown0x3c[0x24];

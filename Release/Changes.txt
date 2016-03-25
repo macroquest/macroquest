@@ -1,3 +1,7 @@
+25 Mar 2016
+- Fixed GetFriendlyNameForGroundItem to support instanced zones
+- Misc fixes
+
 24 Mar 2016
 - Fix for ISXEQ build, it will compile again, report any weirdness on the forum.
 - Fix to make /itemtarget select the closest item first
@@ -10,7 +14,7 @@
          }
 - Added a .DoFace Method to the Ground TLO
   Usage: /echo (${Ground[egg].Doface.Distance3D}) {
-  Will face the closest item on the ground whoch has the word "egg" in it.
+  Will face the closest item on the ground which has the word "egg" in it.
   and then echo the distance to it in the mq2 window.
   well if it finds an item with the word "egg" in it on the ground that is, otherwise it will just echo NULL
   .DoFace does NOT target the ground item, it just faces it.

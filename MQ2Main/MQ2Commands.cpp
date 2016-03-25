@@ -1786,7 +1786,7 @@ VOID Face(PSPAWNINFO pChar, PCHAR szLine)
 				if (gFaceAngle >= 512.0f) gFaceAngle -= 512.0f;
 				if (gFaceAngle<0.0f) gFaceAngle += 512.0f;
 				if (Fast) {
-					((PSPAWNINFO)pCharSpawn)->Heading = (FLOAT)gFaceAngle;
+					((PSPAWNINFO)pLocalPlayer)->Heading = (FLOAT)gFaceAngle;
 					gFaceAngle = 10000.0f;
 					bRunNextCommand = TRUE;
 				}
@@ -1852,7 +1852,7 @@ VOID Face(PSPAWNINFO pChar, PCHAR szLine)
 		if (gFaceAngle >= 512.0f) gFaceAngle -= 512.0f;
 		if (gFaceAngle<0.0f) gFaceAngle += 512.0f;
 		if (Fast) {
-			((PSPAWNINFO)pCharSpawn)->Heading = (FLOAT)gFaceAngle;
+			((PSPAWNINFO)pLocalPlayer)->Heading = (FLOAT)gFaceAngle;
 			gFaceAngle = 10000.0f;
 			bRunNextCommand = TRUE;
 		}

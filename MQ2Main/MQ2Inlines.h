@@ -286,8 +286,8 @@ static inline eSpawnType GetSpawnType(PSPAWNINFO pSpawn)
 
 static inline FLOAT GetDistance(FLOAT X1, FLOAT Y1)
 {
-	FLOAT dX = X1 - ((PSPAWNINFO)pCharSpawn)->X;
-	FLOAT dY = Y1 - ((PSPAWNINFO)pCharSpawn)->Y;
+	FLOAT dX = X1 - ((PSPAWNINFO)pLocalPlayer)->X;
+	FLOAT dY = Y1 - ((PSPAWNINFO)pLocalPlayer)->Y;
 	return sqrtf(dX*dX + dY*dY);
 }
 

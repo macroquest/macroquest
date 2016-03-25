@@ -211,7 +211,7 @@ VOID MacroError(PCHAR szFormat, ...)
 		if (bAllErrorsDumpStack || bAllErrorsFatal)
 			DumpStack(0, 0);
 		if (bAllErrorsFatal)
-			EndMacro((PSPAWNINFO)pCharSpawn, "");
+			EndMacro((PSPAWNINFO)pLocalPlayer, "");
 	}
 }
 VOID FatalError(PCHAR szFormat, ...)
@@ -240,7 +240,7 @@ VOID FatalError(PCHAR szFormat, ...)
 	if (gMacroBlock)
 	{
 		DumpStack(0, 0);
-		EndMacro((PSPAWNINFO)pCharSpawn, "");
+		EndMacro((PSPAWNINFO)pLocalPlayer, "");
 	}
 }
 
@@ -277,7 +277,7 @@ VOID MQ2DataError(PCHAR szFormat, ...)
 		if (bAllErrorsDumpStack || bAllErrorsFatal)
 			DumpStack(0, 0);
 		if (bAllErrorsFatal)
-			EndMacro((PSPAWNINFO)pCharSpawn, "");
+			EndMacro((PSPAWNINFO)pLocalPlayer, "");
 	}
 }
 #endif
@@ -6599,7 +6599,7 @@ PCHAR GetFriendlyNameForGroundItem(PGROUNDITEM pItem, PCHAR szName)
 	DWORD Item = atoi(pItem->Name + 2);
 	struct _actordefentry *ptr = MQ2Globals::ActorDefList;
 	while (ptr->Def) {
-		if (ptr->Def == Item && (ptr->ZoneID && (ptr->ZoneID < 0 || ptr->ZoneID == pItem->ZoneID))) {
+		if (ptr->Def == Item && (ptr->ZoneID && (ptr->ZoneID < 0 || ptr->ZoneID == (pItem->ZoneID & 0x7FFF)))) {
 			sprintf(szName, "%s", ptr->Name);
 			return &szName[0];
 		}
@@ -7126,7 +7126,7 @@ void UseAbility(char *sAbility) {
 	}
 
 	DWORD Index, DoIndex = 0xFFFFFFFF;
-	PSPAWNINFO pChar = (PSPAWNINFO)pCharSpawn;
+	PSPAWNINFO pChar = (PSPAWNINFO)pLocalPlayer;
 
 	for (Index = 0; Index<10; Index++) {
 		if (EQADDR_DOABILITYLIST[Index] != 0xFFFFFFFF) {
@@ -7877,8 +7877,8 @@ BOOL PickupOrDropItem(DWORD type, PCONTENTS pItem)
 		return TRUE;
 		//need to update cursor here
 		//pPCData->AlertInventoryChanged();
-		/*if(pCharSpawn) {
-		DoCommand((PSPAWNINFO)pCharSpawn,"/autoinventory");
+		/*if(pLocalPlayer) {
+		DoCommand((PSPAWNINFO)pLocalPlayer,"/autoinventory");
 		return TRUE;
 		}*/
 	}
