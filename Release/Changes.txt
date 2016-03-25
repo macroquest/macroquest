@@ -1,3 +1,26 @@
+24 Mar 2016
+- Fix for ISXEQ build, it will compile again, report any weirdness on the forum.
+- Fix to make /itemtarget select the closest item first
+- Update to /items and /doors so they sort by Distance3D
+- Updated /doortarget let me know if it fails to target
+- Updated /click left door let me know if u find a door it cant open.
+- Added a .DoTarget Method to the Ground TLO
+  Usage: /if (${Ground[egg].DoTarget.ID}) {
+               /echo we just targeted a ${Ground[egg]}
+         }
+- Added a .DoFace Method to the Ground TLO
+  Usage: /echo (${Ground[egg].Doface.Distance3D}) {
+  Will face the closest item on the ground whoch has the word "egg" in it.
+  and then echo the distance to it in the mq2 window.
+  well if it finds an item with the word "egg" in it on the ground that is, otherwise it will just echo NULL
+  .DoFace does NOT target the ground item, it just faces it.
+
+- Changed how /items <filter> work, its now case insensitive and takes any part of a word into account
+  Usage: /items egg will display all items on the ground that has the word "egg" in them.
+- Changed how /doors <filter> work, its now case insensitive and takes any part of a word into account
+  Usage: /doors pok will display all doors in the zone which has the word "pok" in them.
+
+
 23 Mar 2016
 - Updated for LIVE
 - WARNING! Task TLO has changed, update your macros.
@@ -14,7 +37,7 @@
   Output: Hatching a Plan is listed as number 1 in the tasklist.
   /echo The ${Task[hatch]} first objective is to ${Task[hatch].Objective[1].Instruction}
   Output: The Hatching a Plan first objective is to find where the eggs are being incubated
-  /echo The ${Task[hatch]} first objective status is ${Task[hatch].Objective[1].Status[1]} 
+  /echo The ${Task[hatch]} first objective status is ${Task[hatch].Objective[1].Status} 
   Output: The Hatching a Plan first objective status is 0/1
   /echo The ${Task[hatch]} first objective should be completed in ${Task[hatch].Objective[1].Zone}
   Output: The Hatching a Plan first objective should be completed in Hatchery Wing

@@ -34,12 +34,12 @@ CMQ2Alerts CAlerts;
 
 VOID Unload(PSPAWNINFO pChar, PCHAR szLine)
 {
-	if(!pChar)
+	if (!pChar)
 		pChar = (PSPAWNINFO)pLocalPlayer;
 	bRunNextCommand = TRUE;
 	if (gMacroBlock)
 		EndMacro(pChar, szLine);
-	DebugSpew("%s",ToUnloadString);
+	DebugSpew("%s", ToUnloadString);
 	WriteChatColor(ToUnloadString, USERCOLOR_DEFAULT);
 	gbUnload = TRUE;
 }
@@ -117,44 +117,53 @@ VOID ListMacros(PSPAWNINFO pChar, PCHAR szLine)
 VOID Items(PSPAWNINFO pChar, PCHAR szLine)
 {
 	bRunNextCommand = TRUE;
-
+	typedef struct _iteminfo
+	{
+		std::string Name;
+		INT angle;
+	}iteminfo;
+	std::map<FLOAT, iteminfo>itemsmap;
 	if (!ppItemList) return;
 	if (!pItemList) return;
 	PGROUNDITEM pItem = *(PGROUNDITEM*)pItemList;
-	DWORD Count = 0;
 	CHAR szBuffer[MAX_STRING] = { 0 };
+	CHAR szLineLwr[MAX_STRING] = { 0 };
 	CHAR szName[MAX_STRING] = { 0 };
-	WriteChatColor("Items on the ground:", USERCOLOR_DEFAULT);
-	WriteChatColor("---------------------------", USERCOLOR_DEFAULT);
+	SPAWNINFO TempSpawn = { 0 };
+	iteminfo ii;
+	strcpy_s(szLineLwr, szLine);
+
+	_strlwr_s(szLineLwr);
 	while (pItem) {
 		GetFriendlyNameForGroundItem(pItem, szName);
-
-		DebugSpew("   Item found - %d: DropID %d %s (%s)",
-			pItem->ID, pItem->DropID, szName, pItem->Name);
-
-		if ((szLine[0] == 0) || (!strnicmp(szName, szLine, strlen(szLine)))) {
-			SPAWNINFO TempSpawn;
-			FLOAT Distance;
+		strcpy_s(szBuffer, szName);
+		_strlwr_s(szBuffer);
+		DebugSpew("   Item found - %d: DropID %d %s (%s)", pItem->ID, pItem->DropID, szName, pItem->Name);
+		if ((szLine[0] == 0) || (strstr(szBuffer, szLineLwr))) {
 			ZeroMemory(&TempSpawn, sizeof(TempSpawn));
-			strcpy(TempSpawn.Name, szName);
 			TempSpawn.Y = pItem->Y;
 			TempSpawn.X = pItem->X;
 			TempSpawn.Z = pItem->Z;
-			Distance = DistanceToSpawn(pChar, &TempSpawn);
+			FLOAT Distance = Distance3DToSpawn(pChar, &TempSpawn);
 			INT Angle = (INT)((atan2f(pChar->X - pItem->X, pChar->Y - pItem->Y) * 180.0f / PI + 360.0f) / 22.5f + 0.5f) % 16;
-
-			sprintf(szBuffer, "%s: %1.2f away to the %s", szName, Distance, szHeading[Angle]);
-			WriteChatColor(szBuffer, USERCOLOR_DEFAULT);
-			Count++;
+			ii.angle = Angle;
+			ii.Name = szName;
+			itemsmap[Distance] = ii;
 		}
 
 		pItem = pItem->pNext;
 	}
-	if (Count == 0) {
+	if (itemsmap.size() == 0) {
 		WriteChatColor("No items found.", USERCOLOR_DEFAULT);
 	}
 	else {
-		sprintf(szBuffer, "%d item%s found.", Count, (Count == 1) ? "" : "s");
+		WriteChatColor("Items on the ground:", USERCOLOR_DEFAULT);
+		WriteChatColor("---------------------------", USERCOLOR_DEFAULT);
+		for (std::map<FLOAT, iteminfo>::iterator i = itemsmap.begin(); i != itemsmap.end(); i++) {
+			sprintf(szBuffer, "%s: %1.2f away to the %s", i->second.Name.c_str(), i->first, szHeading[i->second.angle]);
+			WriteChatColor(szBuffer, USERCOLOR_DEFAULT);
+		}
+		sprintf(szBuffer, "%d item%s found.", itemsmap.size(), (itemsmap.size() == 1) ? "" : "s");
 		WriteChatColor(szBuffer, USERCOLOR_DEFAULT);
 	}
 }
@@ -191,10 +200,10 @@ VOID ItemTarget(PSPAWNINFO pChar, PCHAR szLine)
 	pGroundTarget = NULL;
 	GetArg(Arg1, szLine, 1);
 	GetArg(Arg2, szLine, 2);
+	SPAWNINFO tSpawn = { 0 };
 	while (pItem) {
 		GetFriendlyNameForGroundItem(pItem, szName);
-		if (((szLine[0] == 0) || (!strnicmp(szName, Arg1, strlen(Arg1)))) && ((gZFilter >= 10000.0f) ||	((pItem->Z <= pChar->Z + gZFilter) && (pItem->Z >= pChar->Z - gZFilter)))) {
-			SPAWNINFO tSpawn;
+		if (((szLine[0] == 0) || (!strnicmp(szName, Arg1, strlen(Arg1)))) && ((gZFilter >= 10000.0f) || ((pItem->Z <= pChar->Z + gZFilter) && (pItem->Z >= pChar->Z - gZFilter)))) {
 			ZeroMemory(&tSpawn, sizeof(tSpawn));
 			strcpy(tSpawn.Name, szName);
 			strcpy(tSpawn.DisplayedName, szName);
@@ -207,15 +216,13 @@ VOID ItemTarget(PSPAWNINFO pChar, PCHAR szLine)
 			tSpawn.Heading = pItem->Heading;
 			tSpawn.Race = pItem->DropID;
 			tSpawn.StandState = STANDSTATE_STAND;//im using this for /clicked left item -eqmule
-			FLOAT Distance = DistanceToSpawn(pChar, &tSpawn);
+			FLOAT Distance = Get3DDistance(pChar->X, pChar->Y, pChar->Z, tSpawn.X, tSpawn.Y, tSpawn.Z);
 			if (Distance<cDistance) {
 				CopyMemory(&EnviroTarget, &tSpawn, sizeof(EnviroTarget));
 				cDistance = Distance;
 				pGroundTarget = pItem;
-				break;
 			}
 		}
-
 		pItem = pItem->pNext;
 	}
 	if (EnviroTarget.DisplayedName[0] != 0) {
@@ -245,38 +252,52 @@ VOID Doors(PSPAWNINFO pChar, PCHAR szLine)
 
 	if (!ppSwitchMgr) return;
 	if (!pSwitchMgr) return;
+	typedef struct _doorinfo
+	{
+		std::string Name;
+		INT angle;
+		DWORD ID;
+	}doorinfo;
+	std::map<FLOAT, doorinfo>doorsmap;
+
 	PDOORTABLE pDoorTable = (PDOORTABLE)pSwitchMgr;
-	DWORD Count;
-	DWORD ActualCount = 0;
+	CHAR szLineLwr[MAX_STRING] = { 0 };
 	CHAR szBuffer[MAX_STRING] = { 0 };
-
-	WriteChatColor("Doors:", USERCOLOR_DEFAULT);
-	WriteChatColor("---------------------------", USERCOLOR_DEFAULT);
 	size_t slen = strlen(szLine);
-
-	for (Count = 0; Count<pDoorTable->NumEntries; Count++) {
-		if ((szLine[0] == 0) || (!strnicmp(pDoorTable->pDoor[Count]->Name, szLine, slen))) {
-			SPAWNINFO TempSpawn;
-			FLOAT Distance;
+	SPAWNINFO TempSpawn = { 0 };
+	doorinfo di;
+	strcpy_s(szLineLwr, szLine);
+	_strlwr_s(szLineLwr);
+	for (DWORD Count = 0; Count<pDoorTable->NumEntries; Count++) {
+		strcpy_s(szBuffer, pDoorTable->pDoor[Count]->Name);
+		_strlwr_s(szBuffer);
+		if ((szLine[0] == 0) || (strstr(szBuffer, szLineLwr))) {
 			ZeroMemory(&TempSpawn, sizeof(TempSpawn));
-			strcpy(TempSpawn.Name, pDoorTable->pDoor[Count]->Name);
+			strcpy_s(TempSpawn.Name, pDoorTable->pDoor[Count]->Name);
+			strcpy_s(TempSpawn.DisplayedName, pDoorTable->pDoor[Count]->Name);
 			TempSpawn.Y = pDoorTable->pDoor[Count]->Y;
 			TempSpawn.X = pDoorTable->pDoor[Count]->X;
 			TempSpawn.Z = pDoorTable->pDoor[Count]->Z;
 			TempSpawn.Heading = pDoorTable->pDoor[Count]->Heading;
-			Distance = DistanceToSpawn(pChar, &TempSpawn);
-			INT Angle = (INT)((atan2f(pChar->X - pDoorTable->pDoor[Count]->X, pChar->Y - pDoorTable->pDoor[Count]->Y) * 180.0f / PI + 360.0f) / 22.5f + 0.5f) % 16;
-			sprintf(szBuffer, "%d: %s: %1.2f away to the %s", pDoorTable->pDoor[Count]->ID, pDoorTable->pDoor[Count]->Name, Distance, szHeading[Angle]);
-			WriteChatColor(szBuffer, USERCOLOR_DEFAULT);
-			ActualCount++;
+			FLOAT Distance = Distance3DToSpawn(pChar, &TempSpawn);
+			di.angle = (INT)((atan2f(pChar->X - pDoorTable->pDoor[Count]->X, pChar->Y - pDoorTable->pDoor[Count]->Y) * 180.0f / PI + 360.0f) / 22.5f + 0.5f) % 16;
+			di.Name = TempSpawn.Name;
+			di.ID = pDoorTable->pDoor[Count]->ID;
+			doorsmap[Distance] = di;
 		}
 	}
 
-	if (ActualCount == 0) {
+	if (doorsmap.size() == 0) {
 		WriteChatColor("No Doors found.", USERCOLOR_DEFAULT);
 	}
 	else {
-		sprintf(szBuffer, "%d door%s found.", ActualCount, (ActualCount == 1) ? "" : "s");
+		WriteChatColor("Doors:", USERCOLOR_DEFAULT);
+		WriteChatColor("---------------------------", USERCOLOR_DEFAULT);
+		for (std::map<FLOAT, doorinfo>::iterator i = doorsmap.begin(); i != doorsmap.end(); i++) {
+			sprintf(szBuffer, "%d: %s: %1.2f away to the %s", i->second.ID, i->second.Name.c_str(), i->first, szHeading[i->second.angle]);
+			WriteChatColor(szBuffer, USERCOLOR_DEFAULT);
+		}
+		sprintf(szBuffer, "%d door%s found.", doorsmap.size(), (doorsmap.size() == 1) ? "" : "s");
 		WriteChatColor(szBuffer, USERCOLOR_DEFAULT);
 	}
 }
@@ -319,7 +340,8 @@ VOID DoorTarget(PSPAWNINFO pChar, PCHAR szLine)
 		GetArg(Arg2, szLine, 3);
 		for (Count = 0; Count<pDoorTable->NumEntries; Count++) {
 			if (pDoorTable->pDoor[Count]->ID == ID) {
-				strcpy(DoorEnviroTarget.Name, pDoorTable->pDoor[Count]->Name);
+				strcpy_s(DoorEnviroTarget.Name, pDoorTable->pDoor[Count]->Name);
+				strcpy_s(DoorEnviroTarget.DisplayedName, pDoorTable->pDoor[Count]->Name);
 				DoorEnviroTarget.Y = pDoorTable->pDoor[Count]->Y;
 				DoorEnviroTarget.X = pDoorTable->pDoor[Count]->X;
 				DoorEnviroTarget.Z = pDoorTable->pDoor[Count]->Z;
@@ -333,16 +355,17 @@ VOID DoorTarget(PSPAWNINFO pChar, PCHAR szLine)
 		}
 	}
 	else {
-		strcpy(szSearch, Arg1);
+		strcpy_s(szSearch, Arg1);
 		for (Count = 0; Count<pDoorTable->NumEntries; Count++) {
 			if (((szSearch[0] == 0) ||
 				(!strnicmp(pDoorTable->pDoor[Count]->Name, szSearch, strlen(szSearch)))) &&
 				((gZFilter >= 10000.0f) ||
-				((pDoorTable->pDoor[Count]->Z <= pChar->Z + gZFilter) &&
-				(pDoorTable->pDoor[Count]->Z >= pChar->Z - gZFilter)))) {
+					((pDoorTable->pDoor[Count]->Z <= pChar->Z + gZFilter) &&
+						(pDoorTable->pDoor[Count]->Z >= pChar->Z - gZFilter)))) {
 				SPAWNINFO tSpawn;
 				ZeroMemory(&tSpawn, sizeof(tSpawn));
 				strcpy(tSpawn.Name, pDoorTable->pDoor[Count]->Name);
+				strcpy(tSpawn.DisplayedName, pDoorTable->pDoor[Count]->Name);
 				tSpawn.Y = pDoorTable->pDoor[Count]->Y;
 				tSpawn.X = pDoorTable->pDoor[Count]->X;
 				tSpawn.Z = pDoorTable->pDoor[Count]->Z;
@@ -350,7 +373,7 @@ VOID DoorTarget(PSPAWNINFO pChar, PCHAR szLine)
 				tSpawn.HPCurrent = 1;
 				tSpawn.HPMax = 1;
 				tSpawn.Heading = pDoorTable->pDoor[Count]->Heading;
-				FLOAT Distance = DistanceToSpawn(pChar, &tSpawn);
+				FLOAT Distance = Distance3DToSpawn(pChar, &tSpawn);
 				if (Distance<cDistance) {
 					CopyMemory(&DoorEnviroTarget, &tSpawn, sizeof(DoorEnviroTarget));
 					pDoorTarget = pDoorTable->pDoor[Count];
@@ -455,7 +478,7 @@ VOID MemSpell(PSPAWNINFO pSpawn, PCHAR szLine)
 	DWORD sp;
 	WORD Gem = -1;
 	CHAR SpellName[MAX_STRING] = { 0 };
-	
+
 	if (PCHARINFO pCharInfo = GetCharInfo()) {
 		GetArg(szGem, szLine, 1);
 		GetArg(SpellName, szLine, 2);
@@ -1282,7 +1305,7 @@ BOOL CMQ2Alerts::RemoveAlertFromList(DWORD Id, PSEARCHSPAWN pSearchSpawn)
 }
 BOOL CMQ2Alerts::AddNewAlertList(DWORD Id, PSEARCHSPAWN pSearchSpawn)
 {
-	lockit lk(_hLockMapWrite,"AddNewAlertList");
+	lockit lk(_hLockMapWrite, "AddNewAlertList");
 	BOOL bCanAdd = 1;
 	if (_AlertMap.find(Id) != _AlertMap.end()) {
 		for (std::list<SEARCHSPAWN>::iterator i = _AlertMap[Id].begin(); i != _AlertMap[Id].end(); i++) {
@@ -1300,7 +1323,7 @@ BOOL CMQ2Alerts::AddNewAlertList(DWORD Id, PSEARCHSPAWN pSearchSpawn)
 }
 VOID CMQ2Alerts::FreeAlerts(DWORD List)
 {
-	lockit lk(_hLockMapWrite,"FreeAlerts");
+	lockit lk(_hLockMapWrite, "FreeAlerts");
 	CHAR szBuffer[64] = { 0 };
 	if (_AlertMap.find(List) != _AlertMap.end()) {
 		_AlertMap.erase(List);
@@ -1799,7 +1822,7 @@ VOID Face(PSPAWNINFO pChar, PCHAR szLine)
 	}
 	else {
 		if (Predict) {
-			Distance = DistanceToSpawn(pChar, pSpawnClosest);
+			Distance = Distance3DToSpawn(pChar, pSpawnClosest);
 			gFaceAngle = (
 				atan2((pSpawnClosest->X + (pSpawnClosest->SpeedX * Distance)) - pChar->X,
 					(pSpawnClosest->Y + (pSpawnClosest->SpeedY * Distance)) - pChar->Y)
@@ -1812,7 +1835,7 @@ VOID Face(PSPAWNINFO pChar, PCHAR szLine)
 				* 256.0f / PI);
 		}
 		if (Look) {
-			Distance = DistanceToSpawn(pChar, pSpawnClosest);
+			Distance = Distance3DToSpawn(pChar, pSpawnClosest);
 			gLookAngle = (
 				atan2(pSpawnClosest->Z + pSpawnClosest->AvatarHeight*StateHeightMultiplier(pSpawnClosest->StandState) - pChar->Z - pChar->AvatarHeight*StateHeightMultiplier(pChar->StandState),
 					(FLOAT)Distance)
@@ -1917,8 +1940,7 @@ VOID Where(PSPAWNINFO pChar, PCHAR szLine)
 			pSpawnClosest->Level,
 			pEverQuest->GetRaceDesc(pSpawnClosest->Race),
 			GetClassDesc(pSpawnClosest->Class),
-			DistanceToSpawn(pChar, pSpawnClosest),
-			szHeading[Angle],
+			Distance3DToSpawn(pChar, pSpawnClosest), szHeading[Angle],
 			pSpawnClosest->Z - pChar->Z);
 		DebugSpew("Where - %s", szMsg);
 	}
@@ -2086,7 +2108,7 @@ VOID LoadSpells(PSPAWNINFO pChar, PCHAR szLine)
 	}
 }
 
-void CastSplash(int Index,PSPELL pSpell)
+void CastSplash(int Index, PSPELL pSpell)
 {
 	ScreenVector3 sv3;
 	sv3.dx = 0xFFFFFFFF;//setting up the default for the targetindicator (splashring)
@@ -2173,7 +2195,7 @@ VOID Cast(PSPAWNINFO pChar, PCHAR szLine)
 				if (GetItemFromContents(pItem)->Clicky.SpellID > 0 && GetItemFromContents(pItem)->Clicky.SpellID != -1)
 				{
 					CHAR cmd[512] = { 0 };
-					sprintf_s(cmd, "/useitem \"%s\"",GetItemFromContents(pItem)->Name);
+					sprintf_s(cmd, "/useitem \"%s\"", GetItemFromContents(pItem)->Name);
 					EzCommand(cmd);
 				}
 			}
@@ -2203,7 +2225,7 @@ VOID Cast(PSPAWNINFO pChar, PCHAR szLine)
 		return;
 	}
 	GetArg(szBuffer, szLine, 1);
-			
+
 	for (Index = 0; Index < NUM_SPELL_GEMS; Index++) {
 		LONG Spellid = GetMemorizedSpell(Index);
 		if (Spellid != 0xFFFFFFFF) {
@@ -2214,7 +2236,7 @@ VOID Cast(PSPAWNINFO pChar, PCHAR szLine)
 						return;
 					}
 					else {//nope normal, so just pipe it through
-						//DebugSpew("SpellName = %s",SpellName);
+						  //DebugSpew("SpellName = %s",SpellName);
 						cmdCast(pChar, itoa(Index + 1, szBuffer, 10));
 						//DebugSpew("pChar = %x SpellName = %s %s",pChar,SpellName,itoa(Index+1,szBuffer,10));
 					}
@@ -2656,7 +2678,7 @@ VOID IniOutput(PSPAWNINFO pChar, PCHAR szLine)
 	}
 	if (!WritePrivateProfileString(szArg2, (char*)Arg3, (char*)Arg4, szArg1)) {
 		sprintf(szOutput, "IniOutput ERROR -- during WritePrivateProfileString: %s", szLine);
-		DebugSpew("%s",szOutput);
+		DebugSpew("%s", szOutput);
 	}
 	else {
 		sprintf(szOutput, "IniOutput Write Successful!");
@@ -2841,7 +2863,7 @@ VOID PluginCommand(PSPAWNINFO pChar, PCHAR szLine)
 			sprintf(szBuffer, "Plugin '%s' unloaded.", szName);
 			WriteChatColor(szBuffer, USERCOLOR_DEFAULT);
 			if (!strstr(szCommand, "noauto")) {
-				SaveMQ2PluginLoadStatus(szName,false);
+				SaveMQ2PluginLoadStatus(szName, false);
 			}
 
 		}
@@ -2856,7 +2878,7 @@ VOID PluginCommand(PSPAWNINFO pChar, PCHAR szLine)
 			sprintf(szBuffer, "Plugin '%s' loaded.", szName);
 			WriteChatColor(szBuffer, USERCOLOR_DEFAULT);
 			if (stricmp(szCommand, "noauto")) {
-				SaveMQ2PluginLoadStatus(szName,true);
+				SaveMQ2PluginLoadStatus(szName, true);
 			}
 		}
 		else
@@ -3196,20 +3218,20 @@ VOID UseItemCmd(PSPAWNINFO pChar, PCHAR szLine)
 				else {
 #ifndef EMU
 					//is it a mount?
-					if (DWORD index = GetKeyRingIndex(0,szLine, stripped, true)) {
+					if (DWORD index = GetKeyRingIndex(0, szLine, stripped, true)) {
 						if (CXWnd *krwnd = FindMQ2Window(KeyRingWindowParent)) {
 							if (CListWnd *clist = (CListWnd*)krwnd->GetChildItem(MountWindowList)) {
 								if (DWORD numitems = ((CSidlScreenWnd*)clist)->Items) {
 									SendListSelect(KeyRingWindowParent, MountWindowList, index - 1);
 									int listdata = clist->GetItemData(index - 1);
-									cmdToggleKeyRingItem(0,&pItem, listdata);
+									cmdToggleKeyRingItem(0, &pItem, listdata);
 									RETURN(0);
 								}
 							}
 						}
 					}
 					//uhm ok, maybe an illlusion then?
-					if (DWORD index = GetKeyRingIndex(1,szLine, stripped, true)) {
+					if (DWORD index = GetKeyRingIndex(1, szLine, stripped, true)) {
 						if (CXWnd *krwnd = FindMQ2Window(KeyRingWindowParent)) {
 							if (CListWnd *clist = (CListWnd*)krwnd->GetChildItem(IllusionWindowList)) {
 								if (DWORD numitems = ((CSidlScreenWnd*)clist)->Items) {
@@ -4042,7 +4064,7 @@ VOID AdvLootCmd(PSPAWNINFO pChar, PCHAR szLine)
 #endif
 DWORD __stdcall openpickzonewnd(PVOID pData)
 {
-	lockit lk(ghLockPickZone,"openpickzonewnd");
+	lockit lk(ghLockPickZone, "openpickzonewnd");
 	int nInst = (int)pData;
 	CHAR szInst[32] = { 0 };
 	itoa(nInst, szInst, 10);
@@ -4071,7 +4093,7 @@ DWORD __stdcall openpickzonewnd(PVOID pData)
 										clickit = true;
 									}
 									else if (nInst >= 1) {
-										 if (std::string::npos != s.find(szInst)) {
+										if (std::string::npos != s.find(szInst)) {
 											clickit = true;
 										}
 									}

@@ -212,13 +212,15 @@ TLO(dataGroundItem)
 }
 TLO(dataGroundItemCount)
 {
+	Ret.DWord = 0;
+	Ret.Type = pIntType;
+	if (!ppItemList)
+		return true;
+	if (!pItemList)
+		return true;
+	PGROUNDITEM pItem = *(PGROUNDITEM*)pItemList;
+	DWORD Count = 0;
 	if (ISINDEX()) {
-		if (!ppItemList)
-			return false;
-		if (!pItemList)
-			return false;
-		PGROUNDITEM pItem = *(PGROUNDITEM*)pItemList;
-		DWORD Count = 0;
 		CHAR szSearch[MAX_STRING] = { 0 };
 		strcpy_s(szSearch,GETFIRST());
 		_strlwr_s(szSearch);
@@ -232,24 +234,14 @@ TLO(dataGroundItemCount)
 			pItem = pItem->pNext;
 		}
 		Ret.DWord = Count;
-		Ret.Type = pIntType;
-		return true;
 	} else {
-		if (!ppItemList)
-			return false;
-		if (!pItemList)
-			return false;
-		PGROUNDITEM pItem = *(PGROUNDITEM*)pItemList;
-		DWORD Count = 0;
 		while (pItem) {
 			Count++;
 			pItem = pItem->pNext;
 		}
-		Ret.DWord =Count;
-		Ret.Type = pIntType;
-		return true;
+		Ret.DWord = Count;
 	}
-	return false;
+	return true;
 }
 TLO(dataMerchant)
 {

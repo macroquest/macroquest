@@ -260,7 +260,7 @@ bool MQ2WindowType::GETMETHOD()
 		pPtr->HandleLButtonDown(&pt,0);
 		pPtr->HandleLButtonUp(&pt,0);
 		return true;
-	case LeftMouseHeldDown:
+	case LeftMouseHeld:
 				pPtr->HandleLButtonDown(&pt,0);
 				pPtr->HandleLButtonHeld(&pt,0);
 		return true;
@@ -276,7 +276,7 @@ bool MQ2WindowType::GETMETHOD()
 				pPtr->HandleRButtonDown(&pt,0);
 				pPtr->HandleRButtonUp(&pt,0);
 		return true;
-	case RightMouseHeldDown:
+	case RightMouseHeld:
 				pPtr->HandleRButtonDown(&pt,0);
 				pPtr->HandleRButtonHeld(&pt,0);
 		return true;
@@ -285,7 +285,7 @@ bool MQ2WindowType::GETMETHOD()
 				pPtr->HandleRButtonHeld(&pt,0);
 				pPtr->HandleRButtonUpAfterHeld(&pt,0);
 		return true;
-	case ListSelect:
+	case Select:
 		if (argc)
 		{
 			DWORD Value=atoi(argv[0])-1;

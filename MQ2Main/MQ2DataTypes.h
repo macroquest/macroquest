@@ -672,9 +672,15 @@ public:
 	};
 	enum SpawnMethods
 	{
+		#ifndef ISXEQ
 		DoTarget = 1,
 		DoFace = 2,
 		DoAssist = 4,
+		#else
+		Target = 1,
+		Face = 2,
+		xAssist = 4,
+		#endif
 		LeftClick = 5,
 		RightClick = 6,
 	};
@@ -793,11 +799,18 @@ public:
 		TypeMember(Aggressive);
 		TypeMember(CanSplashLand);
 
+		#ifndef ISXEQ
 		TypeMethod(DoTarget);
 		TypeMethod(DoFace);
+		TypeMethod(DoAssist);
+		#else
+		TypeMethod(Target);
+		TypeMethod(Face);
+		AddMethod(xAssist,"Assist");
+		#endif
 		TypeMethod(LeftClick);
 		TypeMethod(RightClick);
-		TypeMethod(DoAssist);
+
 	}
 
 	~MQ2SpawnType()
@@ -2148,6 +2161,8 @@ public:
 	enum GroundMethods
 	{
 		Grab = 1,
+		DoTarget = 2,
+		DoFace = 3,
 	};
 	MQ2GroundType() :MQ2Type("ground")
 	{
@@ -2160,10 +2175,13 @@ public:
 		TypeMember(Name);//7,
 		TypeMember(HeadingTo);
 		AddMember(xLineOfSight, "LineOfSight");
-		TypeMethod(Grab);
 		TypeMember(Address);
 		TypeMember(DisplayName);
 		TypeMember(Distance3D);
+		//methods
+		TypeMethod(Grab);
+		TypeMethod(DoTarget);
+		TypeMethod(DoFace);
 	}
 
 	~MQ2GroundType()

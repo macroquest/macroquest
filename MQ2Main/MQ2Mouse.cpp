@@ -359,7 +359,7 @@ VOID Click(PSPAWNINFO pChar, PCHAR szLine)
 			if(pGroundTarget) {
 				if (!strnicmp(szArg1, "left", 4)) {
 					if(EnviroTarget.Name[0]!=0) {
-						if(DistanceToSpawn(pChar,&EnviroTarget)<=20.0f) {
+						if(Distance3DToSpawn(pChar,&EnviroTarget)<=20.0f) {
 							//do stuff
 							if(PEQSWITCH pSwitch = (PEQSWITCH)pGroundTarget->pSwitch) {
 								*((DWORD*)__LMouseHeldTime)=((PCDISPLAY)pDisplay)->TimeStamp-0x45;
@@ -390,7 +390,7 @@ VOID Click(PSPAWNINFO pChar, PCHAR szLine)
 			if(pDoorTarget) {
 				if (!strnicmp(szArg1, "left", 4)) {
 					if(DoorEnviroTarget.Name[0]!=0) {
-						if(DistanceToSpawn(pChar,&DoorEnviroTarget)<20.0f) {
+						if(DistanceToSpawn((PSPAWNINFO)pCharSpawn,&DoorEnviroTarget)<20.0f) {
 							srand((unsigned int)time(0));
 							int randclickY = rand() % 3;
 							int randclickX = rand() % 3;
@@ -399,14 +399,14 @@ VOID Click(PSPAWNINFO pChar, PCHAR szLine)
 							if (pclick) {
 								pclick->Y = pDoorTarget->Y + randclickY;
 								pclick->X = pDoorTarget->X + randclickX;
-								pclick->Z = pDoorTarget->Z + randclickZ;
+								pclick->Z = pChar->Z + pChar->AvatarHeight + randclickZ;
 								randclickY = rand() % 3;
 								randclickX = rand() % 3;
 								randclickZ = rand() % 3;
 								pclick->Y1 = pclick->Y + randclickY;
 								pclick->X1 = pclick->X + randclickX;
 								pclick->Z1 = pclick->Z + randclickZ;
-								((EQSwitch *)pDoorTarget)->UseSwitch(GetCharInfo()->pSpawn->SpawnID, 0xFFFFFFFF, 0, (DWORD)pclick);
+								((EQSwitch *)pDoorTarget)->UseSwitch(pChar->SpawnID, 0xFFFFFFFF, 0, (DWORD)pclick);
 								delete pclick;
 							}
 							//DoorEnviroTarget.Name[0]='\0';

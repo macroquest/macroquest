@@ -6597,13 +6597,9 @@ PCHAR GetFriendlyNameForGroundItem(PGROUNDITEM pItem, PCHAR szName)
 {
 	szName[0] = 0;
 	DWORD Item = atoi(pItem->Name + 2);
-	int zoneID = 0;
-	if (PCHARINFO pCharInfo = GetCharInfo())
-		zoneID = pCharInfo->zoneId;
 	struct _actordefentry *ptr = MQ2Globals::ActorDefList;
-
 	while (ptr->Def) {
-		if (ptr->Def == Item && (ptr->ZoneID && (ptr->ZoneID < 0 || ptr->ZoneID == zoneID))) {
+		if (ptr->Def == Item && (ptr->ZoneID && (ptr->ZoneID < 0 || ptr->ZoneID == pItem->ZoneID))) {
 			sprintf(szName, "%s", ptr->Name);
 			return &szName[0];
 		}

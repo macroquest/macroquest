@@ -129,6 +129,7 @@ void Pulse()
 		EnviroTarget.Name[0] = 0;
 		pGroundTarget = 0;
 		DoorEnviroTarget.Name[0] = 0;
+		DoorEnviroTarget.DisplayedName[0] = 0;
 		pDoorTarget = 0;
 		LastHealth = GetCurHPS();
 		LastMana = GetCurMana();

@@ -1702,7 +1702,7 @@ typedef struct _GROUNDITEM {
 /*0x04*/ struct _GROUNDITEM *pNext;
 /*0x08*/ DWORD  ID;
 /*0x0c*/ DWORD  DropID;
-/*0x10*/ DWORD  Unknown0x10;
+/*0x10*/ DWORD  ZoneID;
 /*0x14*/ DWORD  Unknown0x14;
 /*0x18*/ PEQSWITCH pSwitch; // (class EQSwitch *)
 /*0x1c*/ CHAR   Name[0x20];
