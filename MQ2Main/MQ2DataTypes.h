@@ -1849,6 +1849,7 @@ public:
 		OrnamentationIcon = 148,
 		NumOfSlots1 = 149,
 		Open = 150,
+		NoTrade = 151,
 	};
 	enum ItemMethods
 	{
@@ -2005,6 +2006,7 @@ public:
 		TypeMember(OrnamentationIcon);
 		TypeMember(NumOfSlots1);
 		TypeMember(Open);
+		TypeMember(NoTrade);
 	}
 
 	~MQ2ItemType()

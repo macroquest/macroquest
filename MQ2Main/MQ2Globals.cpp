@@ -1496,6 +1496,10 @@ namespace MQ2Globals
 	INITIALIZE_EQGAME_OFFSET(CharacterZoneClient__MakeMeVisible);
 	INITIALIZE_EQGAME_OFFSET(CharacterZoneClient__IsStackBlocked);
 	INITIALIZE_EQGAME_OFFSET(CharacterZoneClient__CanUseMemorizedSpellSlot);
+	INITIALIZE_EQGAME_OFFSET(CharacterZoneClient__GetItemCountWorn);
+	INITIALIZE_EQGAME_OFFSET(CharacterZoneClient__GetItemCountInInventory);
+	INITIALIZE_EQGAME_OFFSET(CharacterZoneClient__GetCursorItemCount);
+
 	INITIALIZE_EQGAME_OFFSET(CBankWnd__GetNumBankSlots);
 	INITIALIZE_EQGAME_OFFSET(CBazaarSearchWnd__HandleBazaarMsg);
 	INITIALIZE_EQGAME_OFFSET(CButtonWnd__SetCheck);

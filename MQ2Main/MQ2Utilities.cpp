@@ -7599,6 +7599,55 @@ PCONTENTS FindBankItemByName(char *pName,BOOL bExact)
 	}
 	return NULL;
 }
+PCONTENTS FindBankItemByID(int ID)
+{
+	if (PCHARINFO pCharInfo = GetCharInfo()) {
+		PCONTENTS pPack = 0;
+		for (unsigned long nPack = 0; nPack < NUM_BANK_SLOTS; nPack++) {
+			if (pCharInfo->pBankArray && (pPack = pCharInfo->pBankArray->Bank[nPack])) {
+				if (PITEMINFO ptheItem = GetItemFromContents(pPack)) {
+					if (ptheItem->ItemNumber == ID) {
+						return pPack;
+					}
+					if (ptheItem->Type == ITEMTYPE_PACK && pPack->pContentsArray) {
+						PCONTENTS pItem = 0;
+						for (unsigned long nItem = 0; nItem < ptheItem->Slots; nItem++) {
+							if (pPack->pContentsArray && (pItem = pPack->pContentsArray->Contents[nItem])) {
+								if (PITEMINFO ppackItem = GetItemFromContents(pItem)) {
+									if (ppackItem->ItemNumber == ID) {
+										return pItem;
+									}
+								}
+							}
+						}
+					}
+				}
+			}
+		}
+		for (unsigned long nPack = 0; nPack < NUM_SHAREDBANK_SLOTS; nPack++) {
+			if (pCharInfo->pSharedBankArray && (pPack = pCharInfo->pSharedBankArray->SharedBank[nPack])) {
+				if (PITEMINFO ptheItem = GetItemFromContents(pPack)) {
+					if (ptheItem->ItemNumber == ID) {
+						return pPack;
+					}
+					if (ptheItem->Type == ITEMTYPE_PACK && pPack->pContentsArray) {
+						PCONTENTS pItem = 0;
+						for (unsigned long nItem = 0; nItem < ptheItem->Slots; nItem++) {
+							if (pPack->pContentsArray && (pItem = pPack->pContentsArray->Contents[nItem])) {
+								if (PITEMINFO ppackItem = GetItemFromContents(pItem)) {
+									if (ppackItem->ItemNumber == ID) {
+										return pItem;
+									}
+								}
+							}
+						}
+					}
+				}
+			}
+		}
+	}
+	return NULL;
+}
 PEQINVSLOT GetInvSlot(DWORD type, WORD invslot, WORD bagslot)
 {
 	PEQINVSLOTMGR pInvMgr = (PEQINVSLOTMGR)pInvSlotMgr;
@@ -8689,6 +8738,68 @@ void WeDidStuff()
 {
 	gbCommandEvent = 1;
 	gMouseEventTime = GetFastTime();
+}
+int GetFreeInventory(int nSize)
+{
+	int freeslots = 0;
+	if (PCHARINFO2 pChar2 = GetCharInfo2()) {
+		if(nSize) {
+			for (DWORD slot = BAG_SLOT_START; slot < NUM_INV_SLOTS; slot++) {
+				if (pChar2->pInventoryArray && pChar2->pInventoryArray->InventoryArray && pChar2->pInventoryArray->InventoryArray[slot]) {
+					if (PCONTENTS pItem = pChar2->pInventoryArray->InventoryArray[slot]) {
+						if (GetItemFromContents(pItem)->Type == ITEMTYPE_PACK && GetItemFromContents(pItem)->SizeCapacity >= nSize) {
+							if (!pItem->pContentsArray) {
+								freeslots += GetItemFromContents(pItem)->Slots;
+							}
+							else {
+								for (DWORD pslot = 0; pslot < (GetItemFromContents(pItem)->Slots); pslot++) {
+									if (!pItem->pContentsArray->Contents[pslot]) {
+										freeslots++;
+									}
+								}
+							}
+						}
+					}
+					else {
+						freeslots++;
+					}
+				}
+				else {
+					freeslots++;
+				}
+			}
+		}
+		else {
+			for (DWORD slot = BAG_SLOT_START; slot<NUM_INV_SLOTS; slot++) {
+				if (!HasExpansion(EXPANSION_HoT) && slot > BAG_SLOT_START + 7) {
+					break;
+				}
+				if (pChar2->pInventoryArray && pChar2->pInventoryArray->InventoryArray && pChar2->pInventoryArray->InventoryArray[slot]) {
+					if (PCONTENTS pItem = pChar2->pInventoryArray->InventoryArray[slot]) {
+						if (GetItemFromContents(pItem)->Type == ITEMTYPE_PACK) {
+							if (!pItem->pContentsArray) {
+								freeslots += GetItemFromContents(pItem)->Slots;
+							}
+							else {
+								for (DWORD pslot = 0; pslot < (GetItemFromContents(pItem)->Slots); pslot++) {
+									if (!pItem->pContentsArray->Contents[pslot]) {
+										freeslots++;
+									}
+								}
+							}
+						}
+					}
+					else {
+						freeslots++;
+					}
+				}
+				else {
+					freeslots++;
+				}
+			}
+		}
+	}
+	return freeslots;
 }
 //                                                                                               //
 ///////////////////////////////////////////////////////////////////////////////////////////////////

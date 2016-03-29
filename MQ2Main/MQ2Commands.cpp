@@ -3995,62 +3995,62 @@ VOID AdvLootCmd(PSPAWNINFO pChar, PCHAR szLine)
 						}
 					}
 					else if (!_stricmp(szAction, "name")) {
-						if (CXWnd *pwnd = GetAdvLootSharedListItem(index, 0)) {
+						if (CXWnd *pwnd = GetAdvLootSharedListItem(index, 0)) {//name
 							SendWndClick2(pwnd, "leftmouseup");
 						}
 					}
 					else if (!_stricmp(szAction, "item")) {
-						if (CXWnd *pwnd = GetAdvLootSharedListItem(index, 1)) {
+						if (CXWnd *pwnd = GetAdvLootSharedListItem(index, 1)) {//item
 							SendWndClick2(pwnd, "leftmouseup");
 						}
 					}
 					else if (!_stricmp(szAction, "status")) {
-						if (CXWnd *pwnd = GetAdvLootSharedListItem(index, 2)) {
+						if (CXWnd *pwnd = GetAdvLootSharedListItem(index, 2)) {//status
 							SendWndClick2(pwnd, "leftmouseup");
 						}
 					}
 					else if (!_stricmp(szAction, "action")) {
-						if (CXWnd *pwnd = GetAdvLootSharedListItem(index, 3)) {
+						if (CXWnd *pwnd = GetAdvLootSharedListItem(index, 3)) {//action
 							SendWndClick2(pwnd, "leftmouseup");
 						}
 					}
 					else if (!_stricmp(szAction, "manage")) {
-						if (CXWnd *pwnd = GetAdvLootSharedListItem(index, 4)) {
+						if (CXWnd *pwnd = GetAdvLootSharedListItem(index, 4)) {//manage
 							SendWndClick2(pwnd, "leftmouseup");
 						}
 					}
 					else if (!_stricmp(szAction, "an")) {
-						if (CXWnd *pwnd = GetAdvLootSharedListItem(index, 5)) {
+						if (CXWnd *pwnd = GetAdvLootSharedListItem(index, 5)) {//an
 							SendWndClick2(pwnd, "leftmouseup");
 						}
 					}
 					else if (!_stricmp(szAction, "ag")) {
-						if (CXWnd *pwnd = GetAdvLootSharedListItem(index, 6)) {
+						if (CXWnd *pwnd = GetAdvLootSharedListItem(index, 6)) {//ag
 							SendWndClick2(pwnd, "leftmouseup");
 						}
 					}
 					else if (!_stricmp(szAction, "autoroll")) {
-						if (CXWnd *pwnd = GetAdvLootSharedListItem(index, 7)) {
+						if (CXWnd *pwnd = GetAdvLootSharedListItem(index, 7)) {//autoroll
 							SendWndClick2(pwnd, "leftmouseup");
 						}
 					}
 					else if (!_stricmp(szAction, "nv")) {
-						if (CXWnd *pwnd = GetAdvLootSharedListItem(index, 8)) {
+						if (CXWnd *pwnd = GetAdvLootSharedListItem(index, 8)) {//nv
 							SendWndClick2(pwnd, "leftmouseup");
 						}
 					}
 					else if (!_stricmp(szAction, "nd")) {
-						if (CXWnd *pwnd = GetAdvLootSharedListItem(index, 9)) {
+						if (CXWnd *pwnd = GetAdvLootSharedListItem(index, 9)) {//nd
 							SendWndClick2(pwnd, "leftmouseup");
 						}
 					}
 					else if (!_stricmp(szAction, "gd")) {
-						if (CXWnd *pwnd = GetAdvLootSharedListItem(index, 10)) {
+						if (CXWnd *pwnd = GetAdvLootSharedListItem(index, 10)) {//gd
 							SendWndClick2(pwnd, "leftmouseup");
 						}
 					}
 					else if (!_stricmp(szAction, "no")) {
-						if (CXWnd *pwnd = GetAdvLootSharedListItem(index, 11)) {
+						if (CXWnd *pwnd = GetAdvLootSharedListItem(index, 11)) {//no
 							SendWndClick2(pwnd, "leftmouseup");
 						}
 					}

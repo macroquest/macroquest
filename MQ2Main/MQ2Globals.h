@@ -960,6 +960,9 @@ namespace MQ2Globals
 	EQLIB_VAR DWORD CharacterZoneClient__ApplyDamage;
 	EQLIB_VAR DWORD CharacterZoneClient__IsStackBlocked;
 	EQLIB_VAR DWORD CharacterZoneClient__CanUseMemorizedSpellSlot;
+	EQLIB_VAR DWORD CharacterZoneClient__GetItemCountWorn;
+	EQLIB_VAR DWORD CharacterZoneClient__GetItemCountInInventory;
+	EQLIB_VAR DWORD CharacterZoneClient__GetCursorItemCount;
 	
 	EQLIB_VAR DWORD CBankWnd__GetNumBankSlots;
 

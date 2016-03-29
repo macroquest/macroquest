@@ -330,6 +330,9 @@ GNU General Public License for more details.
 #define CharacterZoneClient__MakeMeVisible_x                       0x46AF30
 #define CharacterZoneClient__IsStackBlocked_x                      0x448FD0
 #define CharacterZoneClient__CanUseMemorizedSpellSlot_x            0x448490
+#define CharacterZoneClient__GetItemCountWorn_x                    0x462CA0
+#define CharacterZoneClient__GetItemCountInInventory_x             0x462D90
+#define CharacterZoneClient__GetCursorItemCount_x                  0x462E90
 
 // CBankWnd 
 #define CBankWnd__GetNumBankSlots_x                                0x6668D0

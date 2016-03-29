@@ -3272,70 +3272,17 @@ bool MQ2CharacterType::GETMEMBER()
 	}
 	return true;
 	case FreeInventory:
-		Dest.DWord = 0;
-		Dest.Type = pIntType;
-		if (PCHARINFO2 pChar2 = GetCharInfo2()) {
-			if (ISINDEX()) {
-				DWORD nSize = GETNUMBER();
-				if (nSize > 4)
-					nSize = 4;
-				for (DWORD slot = BAG_SLOT_START; slot < NUM_INV_SLOTS; slot++) {
-					if (pChar2->pInventoryArray && pChar2->pInventoryArray->InventoryArray && pChar2->pInventoryArray->InventoryArray[slot]) {
-						if (PCONTENTS pItem = pChar2->pInventoryArray->InventoryArray[slot]) {
-							if (GetItemFromContents(pItem)->Type == ITEMTYPE_PACK && GetItemFromContents(pItem)->SizeCapacity >= nSize) {
-								if (!pItem->pContentsArray) {
-									Dest.DWord += GetItemFromContents(pItem)->Slots;
-								}
-								else {
-									for (DWORD pslot = 0; pslot < (GetItemFromContents(pItem)->Slots); pslot++) {
-										if (!pItem->pContentsArray->Contents[pslot]) {
-											Dest.DWord++;
-										}
-									}
-								}
-							}
-						}
-						else {
-							Dest.DWord++;
-						}
-					}
-					else {
-						Dest.DWord++;
-					}
-				}
-			}
-			else {
-				Dest.DWord = 0;
-				for (DWORD slot = BAG_SLOT_START; slot<NUM_INV_SLOTS; slot++) {
-					if (!HasExpansion(EXPANSION_HoT) && slot > BAG_SLOT_START + 7) {
-						break;
-					}
-					if (pChar2->pInventoryArray && pChar2->pInventoryArray->InventoryArray && pChar2->pInventoryArray->InventoryArray[slot]) {
-						if (PCONTENTS pItem = pChar2->pInventoryArray->InventoryArray[slot]) {
-							if (GetItemFromContents(pItem)->Type == ITEMTYPE_PACK) {
-								if (!pItem->pContentsArray) {
-									Dest.DWord += GetItemFromContents(pItem)->Slots;
-								}
-								else {
-									for (DWORD pslot = 0; pslot < (GetItemFromContents(pItem)->Slots); pslot++) {
-										if (!pItem->pContentsArray->Contents[pslot]) {
-											Dest.DWord++;
-										}
-									}
-								}
-							}
-						}
-						else {
-							Dest.DWord++;
-						}
-					}
-					else {
-						Dest.DWord++;
-					}
-				}
-			}
+	{
+		DWORD nSize = 0;
+		if (ISINDEX()) {
+			DWORD nSize = GETNUMBER();
+			if (nSize > 4)
+				nSize = 4;
 		}
+		Dest.DWord = GetFreeInventory(nSize);
+		Dest.Type = pIntType;
 		return true;
+	}
 	case Drunk:
 		Dest.DWord = 0;
 		if (PCHARINFO2 pChar2 = GetCharInfo2()) {
@@ -5309,6 +5256,7 @@ bool MQ2ItemType::GETMEMBER()
 		Dest.Type = pBoolType;
 		return true;
 	case NoDrop:
+	case NoTrade:
 		Dest.DWord = !((EQ_Item*)pItem)->CanDrop(0, 1);
 		Dest.Type = pBoolType;
 		return true;
@@ -7202,7 +7150,7 @@ bool MQ2SwitchType::GETMEMBER()
 {
 	if (!VarPtr.Ptr)
 		return false;
-#define pTheSwitch ((PDOOR)VarPtr.Ptr)
+	PDOOR pTheSwitch = ((PDOOR)VarPtr.Ptr);
 	PMQ2TYPEMEMBER pMethod = MQ2SwitchType::FindMethod(Member);
 	if (pMethod) {
 		switch ((SwitchMethods)pMethod->ID)
@@ -7283,8 +7231,7 @@ bool MQ2SwitchType::GETMEMBER()
 		Dest.Type = pHeadingType;
 		return true;
 	case Open:
-		Dest.DWord = ((pTheSwitch->DefaultHeading != pTheSwitch->Heading) ||
-			(pTheSwitch->DefaultZ != pTheSwitch->Z));
+		Dest.DWord = (pTheSwitch->State == 1);
 		Dest.Type = pBoolType;
 		return true;
 	case HeadingTo:
@@ -7318,7 +7265,7 @@ bool MQ2SwitchType::GETMEMBER()
 		return true;
 	}
 	return false;
-#undef pTheSwitch
+//#undef pTheSwitch
 }
 
 bool MQ2GroundType::GETMEMBER()

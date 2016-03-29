@@ -824,10 +824,16 @@ typedef struct _LOOTITEM
 	/*0x00*/ DWORD	ItemID;
 	/*0x04*/ CHAR	Name[0x40];
 	/*0x44*/ DWORD	IconID;
-	/*0x48*/ DWORD  IsStackable;
+	/*0x48*/ BYTE  IsStackable;//if this is a dword its a bitmask...
+	/*0x49*/ BYTE  Unknown0x49;
+	/*0x4a*/ BYTE  Unknown0x4a;
+	/*0x4b*/ BYTE  Unknown0x4b;
 	/*0x4C*/ DWORD  MaxStackSize;
 	/*0x50*/ BYTE   NoDrop;//if the item is nodrop this is 1
-	/*0x51*/ BYTE   Unknown0x51[0x1b];
+	/*0x51*/ BYTE   Unknown0x51[0x13];
+	/*0x64*/ BYTE   CLootInProgress;
+	/*0x65*/ BYTE   PLootInProgress;
+	/*0x66*/ BYTE   Unknown0x66[0x6];
 	/*0x6c*/ struct _LOOTDETAILS	*LootDetails;
 	/*0x70*/ BYTE	Unknown0x70[0xc];
 	/*0x7c*/ BYTE	AutoRoll;
@@ -844,7 +850,11 @@ typedef struct _LOOTITEM
 typedef struct _LOOTLIST {
 	/*0x000*/ BYTE	Unknown0x004[0x4];
 	/*0x004*/ struct _LOOTITEM *pLootItem;
-	/*0x008*/ LONG	ListSize;
+	/*0x008*/ LONG	 ListSize;
+	/*0x00c*/ LONG	 Unknown0x00c;
+	/*0x010*/ LONG	 Unknown0x010;
+	/*0x014*/ LONG	 Unknown0x014;
+	/*0x018*/
 } LOOTLIST,*PLOOTLIST;
 
 //CAdvancedLootWnd__CAdvancedLootWnd_x

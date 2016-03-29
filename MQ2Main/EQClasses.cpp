@@ -4658,7 +4658,7 @@ FUNCTION_AT_ADDRESS(class PcZoneClient *EQ_PC::GetPcZoneClient(void)const,EQ_PC_
 FUNCTION_AT_ADDRESS(unsigned long  EQ_PC::GetCombatAbilityTimer(int,int),EQ_PC__GetCombatAbilityTimer);
 #endif
 #ifdef EQ_PC__HasLoreItem_x
-FUNCTION_AT_ADDRESS(unsigned long  EQ_PC::HasLoreItem(class EQ_Item *),EQ_PC__HasLoreItem);
+FUNCTION_AT_ADDRESS(bool EQ_PC::HasLoreItem(class EQ_Item *,int,int,int,int),EQ_PC__HasLoreItem);
 #endif
 #ifdef CInvSlot__HandleLButtonDown_x
 FUNCTION_AT_ADDRESS(void  CInvSlot::HandleLButtonDown(class CXPoint),CInvSlot__HandleLButtonDown);
@@ -9765,6 +9765,15 @@ FUNCTION_AT_ADDRESS(bool CharacterZoneClient::HasSkill(int), CharacterZoneClient
 #endif
 #ifdef CharacterZoneClient__MakeMeVisible_x
 FUNCTION_AT_ADDRESS(void  CharacterZoneClient::MakeMeVisible(int,bool),CharacterZoneClient__MakeMeVisible);
+#endif
+#ifdef CharacterZoneClient__GetItemCountWorn_x
+FUNCTION_AT_ADDRESS(int CharacterZoneClient::GetItemCountWorn(int),CharacterZoneClient__GetItemCountWorn);
+#endif
+#ifdef CharacterZoneClient__GetItemCountInInventory_x
+FUNCTION_AT_ADDRESS(int CharacterZoneClient::GetItemCountInInventory(int),CharacterZoneClient__GetItemCountInInventory);
+#endif
+#ifdef CharacterZoneClient__GetCursorItemCount_x
+FUNCTION_AT_ADDRESS(int CharacterZoneClient::GetCursorItemCount(int),CharacterZoneClient__GetCursorItemCount);
 #endif
 #ifdef CharacterZoneClient__ApplyDamage_x
 FUNCTION_AT_ADDRESS(int  CharacterZoneClient::ApplyDamage(int,int,int,int,int,int),CharacterZoneClient__ApplyDamage);

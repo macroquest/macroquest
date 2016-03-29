@@ -5686,7 +5686,7 @@ EQLIB_OBJECT unsigned long EQ_PC::GetItemTimerValue(class EQ_Item *,int);
 #else
 EQLIB_OBJECT unsigned long EQ_PC::GetItemTimerValue(class EQ_Item *);
 #endif
-EQLIB_OBJECT unsigned long EQ_PC::HasLoreItem(class EQ_Item *);
+EQLIB_OBJECT bool EQ_PC::HasLoreItem(class EQ_Item *,int,int,int,int);
 };
 
 class EQ_Skill
@@ -7133,6 +7133,10 @@ class CharacterZoneClient
 public:
 EQLIB_OBJECT int CharacterZoneClient::CalcAffectChange(class EQ_Spell *,int CasterLevel/*well the level you want to calc the value for, but yeah usually its the chars current level*/,unsigned char Slot/*0-0xb*/,class EQ_Affect *,int Base/*spell Base[x]*/,bool bCap/*cap the calculation at max*/);
 EQLIB_OBJECT void CharacterZoneClient::MakeMeVisible(int,bool);
+EQLIB_OBJECT int CharacterZoneClient::GetItemCountWorn(int);
+EQLIB_OBJECT int CharacterZoneClient::GetItemCountInInventory(int);
+EQLIB_OBJECT int CharacterZoneClient::GetCursorItemCount(int);
+
     bool HasSkill(int);
 };
 
