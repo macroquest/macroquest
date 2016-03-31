@@ -3874,6 +3874,9 @@ FUNCTION_AT_ADDRESS(unsigned long *  engineInterface::ChangeDag(struct T3D_tagWO
 #ifdef CAdvancedLootWnd__DoAdvLootAction_x
 FUNCTION_AT_ADDRESS(DWORD CAdvancedLootWnd::DoAdvLootAction(DWORD, CXStr*, DWORD, DWORD), CAdvancedLootWnd__DoAdvLootAction);
 #endif
+#ifdef CAdvancedLootWnd__DoSharedAdvLootAction_x
+FUNCTION_AT_ADDRESS(DWORD CAdvancedLootWnd::DoSharedAdvLootAction(PLOOTITEM pLootItem, CXStr *Assignee, DWORD Action, DWORD Quantity), CAdvancedLootWnd__DoSharedAdvLootAction);
+#endif
 #ifdef CAltAbilityData__GetMercCurrentRank_x
 FUNCTION_AT_ADDRESS(int CAltAbilityData::GetMercCurrentRank(int),CAltAbilityData__GetMercCurrentRank);
 #endif

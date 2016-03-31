@@ -856,12 +856,14 @@ typedef struct _EQADVLOOTWND {
 	/*0x21c*/ BYTE	Unknown0x021c[0x94];
 	/*0x2b0*/ struct _LOOTLIST *pCLootList;//below ref to aAdlw_applyfilt
 	/*0x2b4*/ struct _LOOTLIST *pPLootList;//below ref to aAdlw_cllwnd
-	/*0x2b8*/ BYTE		Unknown0x2b8[0xc];
-	/*0x2c4*/ DWORD		CListSize;
-	/*0x2c8*/ DWORD		PListSize;
+	/*0x2b8*/ DWORD		Unknown0x2b8;
+	/*0x2bc*/ DWORD		Unknown0x2bc;
+	/*0x2c0*/ DWORD		Unknown0x2c0;
+	/*0x2c4*/ DWORD		TotalLootCount;
+	/*0x2c8*/ DWORD		Unknown0x2c8;
 	/*0x2cc*/ DWORD		ContextMenuId;
-	/*0x2d0*/ DWORD		CListStack;
-	/*0x2d4*/ DWORD		PListStack;
+	/*0x2d0*/ DWORD		CLastStackSize;
+	/*0x2d4*/ DWORD		Unknown0x2d4;
 	/*0x2d8*/
 } EQADVLOOTWND, *PEQADVLOOTWND;
 

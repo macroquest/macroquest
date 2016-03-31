@@ -814,7 +814,7 @@ typedef struct _LOOTDETAILS {
 	/*0x04*/ WORD	StackCount;
 	/*0x06*/ WORD	UnknownWord;
 	/*0x08*/ DWORD	UnknownDWord;
-	/*0x0c*/ BYTE	Unknown0x0c;
+	/*0x0c*/ BYTE	Unknown0x0c;//probably bLocked if player wasnt there when loot dropped...
 	/*0x0d*/ CHAR	Name[0x40];
 	/*0x4d*/ //more data here? -eqmule
 } LOOTDETAILS,*PLOOTDETAILS;
@@ -853,8 +853,11 @@ typedef struct _LOOTLIST {
 	/*0x008*/ LONG	 ListSize;
 	/*0x00c*/ LONG	 Unknown0x00c;
 	/*0x010*/ LONG	 Unknown0x010;
-	/*0x014*/ LONG	 Unknown0x014;
-	/*0x018*/
+	/*0x014*/ struct _CXWND	 *SharedLootList;
+	/*0x018*/ struct _CXWND	 *PersonalLootList;
+	/*0x01c*/ LONG	 Unknown0x01c;
+	/*0x020*/ LONG	 Unknown0x020;
+	/*0x024*/
 } LOOTLIST,*PLOOTLIST;
 
 //CAdvancedLootWnd__CAdvancedLootWnd_x
@@ -864,11 +867,14 @@ typedef struct _EQADVLOOTWND {
 	/*0x220*/ BYTE	Unknown0x0220[0x94];
 	/*0x2b4*/ struct _LOOTLIST *pCLootList;//below ref to aAdlw_applyfilt
 	/*0x2b8*/ struct _LOOTLIST *pPLootList;//below ref to aAdlw_cllwnd
-	/*0x2bc*/ BYTE		Unknown0x2bc[0xc];
-	/*0x2c8*/ DWORD		PListCount;
-	/*0x2cc*/ BYTE		Unknown0x2cc[0x4];
+	/*0x2bc*/ DWORD		Unknown0x2bc;
+	/*0x2c0*/ DWORD		Unknown0x2c0;
+	/*0x2c4*/ DWORD		Unknown0x2c4;
+	/*0x2c8*/ DWORD		TotalLootCount;
+	/*0x2cc*/ DWORD		Unknown0x2cc;
 	/*0x2d0*/ DWORD		ContextMenuId;
-	/*0x2d4*/ BYTE		Unknown0x2d4[0x8];
+	/*0x2d4*/ DWORD		CLastStackSize;
+	/*0x2d8*/ DWORD		Unknown0x2d8;
 	/*0x2dc*/
 } EQADVLOOTWND, *PEQADVLOOTWND;
 

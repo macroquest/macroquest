@@ -1,3 +1,20 @@
+30 Mar 2016
+- I think I got Advloot under control now, go for it, test it as hard as u can.
+- Added a new Member .LootInProgress to the AdvLoot TLO
+  use it or face imminent doom!
+  Usage Example:
+  [code]
+  /if (!${AdvLoot.LootInProgress}) {
+		/echo its safe to loot
+		if (${AdvLoot.PCount}>=1) {
+			/echo im going to give 1 ${AdvLoot.Plist[1].Name} to myself
+			/advloot shared 1 giveto ${Me.Name} 1
+		}
+  } else {
+		/echo do something else, loot is in progress...
+  }
+  [/code]
+
 29 Mar 2016
 - Made some adjustments to make advloot more stable
 - Made some adjustments to doors , thanks htw

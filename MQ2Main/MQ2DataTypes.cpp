@@ -11018,9 +11018,9 @@ bool MQ2AdvLootItemType::GETMEMBER()
 		Dest.Type = pIntType;
 		return true;
 	case StackSize:
-		Dest.DWord = 0;
+		Dest.DWord = 1;
 		Dest.Type = pIntType;
-		if (pItem && pItem->LootDetails) {
+		if (pItem && pItem->LootDetails && pItem->LootDetails->StackCount>=1) {
 			Dest.DWord = pItem->LootDetails->StackCount;
 		}
 		return true;
@@ -11107,19 +11107,18 @@ bool MQ2AdvLootType::GETMEMBER()
 		Dest.Type = pIntType;
 		return true;
 	case PList:
-		if (DWORD theindex = atoi(GETFIRST())) {
-			theindex--;
+		if (LONG index = atoi(GETFIRST())) {
+			index--;
+			if(index < 0)
+				index = 0;
 			if (CListWnd *clist = (CListWnd *)pAdvancedLootWnd->GetChildItem("ADLW_PLLList")) {
-				for (LONG i = 0; i < clist->Items; i++) {
-					if (theindex == clist->GetItemData(i)) {
-						if (pAdvLoot && pAdvLoot->pPLootList && pAdvLoot->pPLootList->pLootItem && pAdvLoot->pPLootList->ListSize >= i) {
-							DWORD addr = (DWORD)pAdvLoot->pPLootList->pLootItem;
-							PLOOTITEM pitem = (PLOOTITEM)(addr + (sizeof(LOOTITEM)*i));
-							Dest.Ptr = pitem;
-							Dest.Type = pAdvLootItemType;
-							return true;
-						}
-					}
+				LONG listindex = clist->GetItemData(index);
+				if (pAdvLoot->pPLootList && listindex!=-1) {
+					DWORD addr = (DWORD)pAdvLoot->pPLootList->pLootItem;
+					PLOOTITEM pitem = (PLOOTITEM)(addr + (sizeof(LOOTITEM)*listindex));
+					Dest.Ptr = pitem;
+					Dest.Type = pAdvLootItemType;
+					return true;
 				}
 			}
 		}
@@ -11129,19 +11128,18 @@ bool MQ2AdvLootType::GETMEMBER()
 		Dest.Type = pIntType;
 		return true;
 	case SList:
-		if (DWORD theindex = atoi(GETFIRST())) {
-			theindex--;
+		if (LONG index = atoi(GETFIRST())) {
+			index--;
+			if(index < 0)
+				index = 0;
 			if (CListWnd *clist = (CListWnd *)pAdvancedLootWnd->GetChildItem("ADLW_CLLList")) {
-				for (LONG i = 0; i < clist->Items; i++) {
-					if (theindex == clist->GetItemData(i)) {
-						if (pAdvLoot && pAdvLoot->pCLootList && pAdvLoot->pCLootList->pLootItem && pAdvLoot->pCLootList->ListSize >= i) {
-							DWORD addr = (DWORD)pAdvLoot->pCLootList->pLootItem;
-							PLOOTITEM pitem = (PLOOTITEM)(addr + (sizeof(LOOTITEM)*i));
-							Dest.Ptr = pitem;
-							Dest.Type = pAdvLootItemType;
-							return true;
-						}
-					}
+				LONG listindex = clist->GetItemData(index);
+				if (pAdvLoot->pCLootList && listindex!=-1) {
+					DWORD addr = (DWORD)pAdvLoot->pCLootList->pLootItem;
+					PLOOTITEM pitem = (PLOOTITEM)(addr + (sizeof(LOOTITEM)*listindex));
+					Dest.Ptr = pitem;
+					Dest.Type = pAdvLootItemType;
+					return true;
 				}
 			}
 		}
@@ -11151,9 +11149,10 @@ bool MQ2AdvLootType::GETMEMBER()
 		Dest.Type = pIntType;
 		if (CListWnd *clist = (CListWnd *)pAdvancedLootWnd->GetChildItem("ADLW_PLLList")) {
 			for (LONG i = 0; i < clist->Items; i++) {
-				if (pAdvLoot && pAdvLoot->pPLootList && pAdvLoot->pPLootList->pLootItem && pAdvLoot->pPLootList->ListSize >= i) {
+				LONG listindex = clist->GetItemData(i);
+				if (pAdvLoot->pPLootList && listindex != -1) {
 					DWORD addr = (DWORD)pAdvLoot->pPLootList->pLootItem;
-					if (PLOOTITEM pitem = (PLOOTITEM)(addr + (sizeof(LOOTITEM)*i))) {
+					if (PLOOTITEM pitem = (PLOOTITEM)(addr + (sizeof(LOOTITEM)*listindex))) {
 						if (pitem->AlwaysNeed || pitem->AlwaysGreed || pitem->Need || pitem->Greed) {
 							Dest.DWord++;
 						}
@@ -11167,9 +11166,10 @@ bool MQ2AdvLootType::GETMEMBER()
 		Dest.Type = pIntType;
 		if (CListWnd *clist = (CListWnd *)pAdvancedLootWnd->GetChildItem("ADLW_CLLList")) {
 			for (LONG i = 0; i < clist->Items; i++) {
-				if (pAdvLoot && pAdvLoot->pCLootList && pAdvLoot->pCLootList->pLootItem && pAdvLoot->pCLootList->ListSize >= i) {
+				LONG listindex = clist->GetItemData(i);
+				if (pAdvLoot->pCLootList && listindex != -1) {
 					DWORD addr = (DWORD)pAdvLoot->pCLootList->pLootItem;
-					if (PLOOTITEM pitem = (PLOOTITEM)(addr + (sizeof(LOOTITEM)*i))) {
+					if (PLOOTITEM pitem = (PLOOTITEM)(addr + (sizeof(LOOTITEM)*listindex))) {
 						if (pitem->AlwaysNeed || pitem->AlwaysGreed || pitem->Need || pitem->Greed) {
 							Dest.DWord++;
 						}
@@ -11177,6 +11177,15 @@ bool MQ2AdvLootType::GETMEMBER()
 				}
 			}
 		}
+		return true;
+	case xLootInProgress:
+		Dest.Type = pBoolType;
+		CListWnd *pPersonalList = (CListWnd *)pAdvancedLootWnd->GetChildItem("ADLW_PLLList");
+		CListWnd *pSharedList = 0;
+		if (pAdvLoot->pCLootList) {
+			pSharedList = (CListWnd *)pAdvLoot->pCLootList->SharedLootList;
+		}
+		Dest.DWord = LootInProgress(pAdvLoot, pPersonalList, pSharedList);
 		return true;
 	}
 	return false;

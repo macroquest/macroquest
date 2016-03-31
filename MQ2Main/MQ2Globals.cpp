@@ -1478,6 +1478,7 @@ namespace MQ2Globals
 #ifndef EMU
 	INITIALIZE_EQGAME_OFFSET(CAdvancedLootWnd__CAdvancedLootWnd);
 	INITIALIZE_EQGAME_OFFSET(CAdvancedLootWnd__DoAdvLootAction);
+	INITIALIZE_EQGAME_OFFSET(CAdvancedLootWnd__DoSharedAdvLootAction);
 	INITIALIZE_EQGAME_OFFSET(CAltAbilityData__GetMercCurrentRank);
 	INITIALIZE_EQGAME_OFFSET(CAltAbilityData__GetMercMaxRank);
 #endif

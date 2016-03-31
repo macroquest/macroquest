@@ -695,8 +695,9 @@ EQLIB_OBJECT int _partyGroup::getNumMembers(void)const;
 class CAdvancedLootWnd : public CSidlScreenWnd
 {
 public:
-	EQLIB_OBJECT CAdvancedLootWnd::CAdvancedLootWnd(class CXWnd *);
+EQLIB_OBJECT CAdvancedLootWnd::CAdvancedLootWnd(class CXWnd *);
 EQLIB_OBJECT DWORD CAdvancedLootWnd::DoAdvLootAction(DWORD listindex, CXStr *Name, DWORD Action, DWORD Quantity);
+EQLIB_OBJECT DWORD CAdvancedLootWnd::DoSharedAdvLootAction(PLOOTITEM pLootItem,CXStr *Assignee, DWORD Action, DWORD Quantity);
 // virtual
 EQLIB_OBJECT CAdvancedLootWnd::~CAdvancedLootWnd(void);
 };

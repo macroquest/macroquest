@@ -317,6 +317,7 @@ GNU General Public License for more details.
 // CAdvancedLootWnd
 #define CAdvancedLootWnd__CAdvancedLootWnd_x                       0x4202E0
 #define CAdvancedLootWnd__DoAdvLootAction_x                        0x41B130
+#define CAdvancedLootWnd__DoSharedAdvLootAction_x                  0x41AF10
 
 // AltAdvManager 
 #define AltAdvManager__GetCalculatedTimer_x                        0x4C6080

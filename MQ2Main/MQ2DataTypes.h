@@ -4807,6 +4807,7 @@ public:
 		SCount = 4,
 		PWantCount = 5,
 		SWantCount = 6,
+		xLootInProgress = 7,
 	};
 	MQ2AdvLootType() :MQ2Type("advloot")
 	{
@@ -4816,6 +4817,7 @@ public:
 		TypeMember(SCount);
 		TypeMember(PWantCount);
 		TypeMember(SWantCount);
+		AddMember(xLootInProgress,"LootInProgress");
 	}
 	~MQ2AdvLootType()
 	{

@@ -3836,95 +3836,258 @@ VOID AdvLootCmd(PSPAWNINFO pChar, PCHAR szLine)
 		return;
 	}
 	else {
-		PEQADVLOOTWND pAdvLoot = (PEQADVLOOTWND)pAdvancedLootWnd;
-		CHAR szID[MAX_STRING] = { 0 };
-		CHAR szCmd[MAX_STRING] = { 0 };
-		GetArg(szCmd, szLine, 1);
-		int cmdtype = 0;
-		if (!_stricmp(szCmd, "personal")) {
-			cmdtype = 2;
-		}
-		else if (!_stricmp(szCmd, "shared")) {
-			cmdtype = 3;
-		}
-		PLOOTITEM pitem = 0;
-		if (cmdtype == 2) {
-			GetArg(szID, szLine, 2);
+		if (PEQADVLOOTWND pAdvLoot = (PEQADVLOOTWND)pAdvancedLootWnd) {
+			CListWnd *pPersonalList = (CListWnd *)pAdvancedLootWnd->GetChildItem("ADLW_PLLList");
+			CListWnd *pSharedList = 0;
+			if (pAdvLoot->pCLootList) {
+				pSharedList = (CListWnd *)pAdvLoot->pCLootList->SharedLootList;
+			}
+			//ok at this point, we dont know if we have a user that checks if loot is in progress in his macro, so we do that for him here
+			if (LootInProgress(pAdvLoot, pPersonalList, pSharedList)) {
+				MacroError("Woah! hold your horses there little filly... You better add a !${AdvLoot.LootInProgress} check in your macro to make sure loot is not in progress.");
+				return;
+			}
+			CHAR szID[MAX_STRING] = { 0 };
+			CHAR szCmd[MAX_STRING] = { 0 };
+			GetArg(szCmd, szLine, 1);
+			int cmdtype = 0;
+			if (!_stricmp(szCmd, "personal")) {
+				cmdtype = 2;
+			}
+			else if (!_stricmp(szCmd, "shared")) {
+				cmdtype = 3;
+			}
+			PLOOTITEM pitem = 0;
+			if (cmdtype == 2) {
+				GetArg(szID, szLine, 2);
+				LONG index = -1;
+				if (pPersonalList) {
+					if (IsNumber(szID)) {
+						index = atoi(szID);
+						index--;
+					}
+					else {//if its not a number its a itemname
+						  //need to roll through the list to get the index
+						if (pAdvLoot->pPLootList) {
+							for (LONG k = 0; k < pPersonalList->Items; k++) {
+								LONG listindex = pPersonalList->GetItemData(k);
+								if (listindex != -1) {
+									DWORD multiplier = sizeof(LOOTITEM) * listindex;
+									if (PLOOTITEM pItem = (PLOOTITEM)(((DWORD)pAdvLoot->pPLootList->pLootItem) + multiplier)) {
+										if (!_stricmp(pItem->Name, szID)) {
+											index = k;
+											break;
+										}
+									}
+								}
+							}
 
-			if (IsNumber(szID)) {
-				LONG i = atoi(szID);
-				i--;
-				if (pAdvLoot && pAdvLoot->pPLootList && pAdvLoot->pPLootList->pLootItem && pAdvLoot->pPLootList->ListSize >= i) {
-					DWORD addr = (DWORD)pAdvLoot->pPLootList->pLootItem;
-					pitem = (PLOOTITEM)(addr + (sizeof(LOOTITEM)*i));
-					if (!_stricmp(szAction, "name")) {
-						if (CXWnd *pwnd = GetAdvLootPersonalListItem(i, 0)) {
-							SendWndClick2(pwnd, "leftmouseup");
 						}
 					}
-					else if (!_stricmp(szAction, "item")) {
-						if (CXWnd *pwnd = GetAdvLootPersonalListItem(i, 1)) {
-							SendWndClick2(pwnd, "leftmouseup");
+					LONG listindex = pPersonalList->GetItemData(index);
+					if (pAdvLoot && pAdvLoot->pPLootList && listindex != -1) {
+						DWORD addr = (DWORD)pAdvLoot->pPLootList->pLootItem;
+						pitem = (PLOOTITEM)(addr + (sizeof(LOOTITEM)*listindex));
+						if (!_stricmp(szAction, "loot")) {
+							if (CXWnd *pwnd = GetAdvLootPersonalListItem(listindex, 2)) {//loot
+								SendWndClick2(pwnd, "leftmouseup");
+							}
 						}
-					}
-					else if (!_stricmp(szAction, "loot")) {
-						if (CXWnd *pwnd = GetAdvLootPersonalListItem(i, 2)) {
-							SendWndClick2(pwnd, "leftmouseup");
+						else if (!_stricmp(szAction, "leave")) {
+							if (CXWnd *pwnd = GetAdvLootPersonalListItem(listindex, 3)) {//leave
+								SendWndClick2(pwnd, "leftmouseup");
+							}
 						}
-					}
-					else if (!_stricmp(szAction, "leave")) {
-						if (CXWnd *pwnd = GetAdvLootPersonalListItem(i, 3)) {
-							SendWndClick2(pwnd, "leftmouseup");
+						else if (!_stricmp(szAction, "name")) {
+							if (CXWnd *pwnd = GetAdvLootPersonalListItem(listindex, 0)) {//name
+								SendWndClick2(pwnd, "leftmouseup");
+							}
 						}
-					}
-					else if (!_stricmp(szAction, "never")) {
-						if (CXWnd *pwnd = GetAdvLootPersonalListItem(i, 4)) {
-							SendWndClick2(pwnd, "leftmouseup");
+						else if (!_stricmp(szAction, "item")) {
+							if (CXWnd *pwnd = GetAdvLootPersonalListItem(listindex, 1)) {//item
+								SendWndClick2(pwnd, "leftmouseup");
+							}
 						}
-					}
-					else if (!_stricmp(szAction, "an")) {
-						if (CXWnd *pwnd = GetAdvLootPersonalListItem(i, 5)) {
-							SendWndClick2(pwnd, "leftmouseup");
+						else if (!_stricmp(szAction, "never")) {
+							if (CXWnd *pwnd = GetAdvLootPersonalListItem(listindex, 4)) {//never
+								SendWndClick2(pwnd, "leftmouseup");
+							}
 						}
-					}
-					else if (!_stricmp(szAction, "ag")) {
-						if (CXWnd *pwnd = GetAdvLootPersonalListItem(i, 6)) {
-							SendWndClick2(pwnd, "leftmouseup");
+						else if (!_stricmp(szAction, "an")) {
+							if (CXWnd *pwnd = GetAdvLootPersonalListItem(listindex, 5)) {//an
+								SendWndClick2(pwnd, "leftmouseup");
+							}
+						}
+						else if (!_stricmp(szAction, "ag")) {
+							if (CXWnd *pwnd = GetAdvLootPersonalListItem(listindex, 6)) {//ag
+								SendWndClick2(pwnd, "leftmouseup");
+							}
 						}
 					}
 				}
+				return;
 			}
-			return;
-		}
-		else if (cmdtype == 3) {
-			GetArg(szID, szLine, 2);
-			if (!_stricmp(szID, "set")) {
-				CHAR szEntity[MAX_STRING] = { 0 };
-				GetArg(szEntity, szLine, 3);
-				CXStr Str;
-				CHAR szOut[255] = { 0 };
-				if (CComboWnd *pCombo = (CComboWnd *)pAdvancedLootWnd->GetChildItem("ADLW_CLLSetCmbo")) {
-					if (CListWnd*pListWnd = (CListWnd*)pCombo->Items) {
-						DWORD itemcnt = pCombo->GetItemCount();
-						for (DWORD i = 0; i<itemcnt; i++) {
-							pListWnd->GetItemText(&Str, i, 0);
-							GetCXStr(Str.Ptr, szOut, 254);
-							if (szOut[0] != '\0') {
-								if (!_stricmp(szEntity, szOut)) {
-									CXRect comborect = ((CXWnd*)pCombo)->GetScreenRect();
-									CXPoint combopt = comborect.CenterPoint();
-									((CComboWnd*)pCombo)->SetChoice(i);
-									((CXWnd*)pCombo)->HandleLButtonDown(&combopt, 0);
-									int index = pListWnd->GetCurSel();
-									CXRect listrect = pListWnd->GetItemRect(index, 0);
-									CXPoint listpt = listrect.CenterPoint();
-									((CXWnd*)pListWnd)->HandleLButtonDown(&listpt, 0);
-									((CXWnd*)pListWnd)->HandleLButtonUp(&listpt, 0);
-									gMouseEventTime = GetFastTime();
-									if (CXWnd *pButton = (CXWnd *)pAdvancedLootWnd->GetChildItem("ADLW_CLLSetBtn")) {
-										SendWndClick2(pButton, "leftmouseup");
+			else if (cmdtype == 3) {
+				GetArg(szID, szLine, 2);
+				if (!_stricmp(szID, "set")) {
+					CHAR szEntity[MAX_STRING] = { 0 };
+					GetArg(szEntity, szLine, 3);
+					CXStr Str;
+					CHAR szOut[255] = { 0 };
+					if (CComboWnd *pCombo = (CComboWnd *)pAdvancedLootWnd->GetChildItem("ADLW_CLLSetCmbo")) {
+						if (CListWnd*pListWnd = (CListWnd*)pCombo->Items) {
+							DWORD itemcnt = pCombo->GetItemCount();
+							for (DWORD i = 0; i < itemcnt; i++) {
+								pListWnd->GetItemText(&Str, i, 0);
+								GetCXStr(Str.Ptr, szOut, 254);
+								if (szOut[0] != '\0') {
+									if (!_stricmp(szEntity, szOut)) {
+										CXRect comborect = ((CXWnd*)pCombo)->GetScreenRect();
+										CXPoint combopt = comborect.CenterPoint();
+										((CComboWnd*)pCombo)->SetChoice(i);
+										((CXWnd*)pCombo)->HandleLButtonDown(&combopt, 0);
+										int index = pListWnd->GetCurSel();
+										CXRect listrect = pListWnd->GetItemRect(index, 0);
+										CXPoint listpt = listrect.CenterPoint();
+										((CXWnd*)pListWnd)->HandleLButtonDown(&listpt, 0);
+										((CXWnd*)pListWnd)->HandleLButtonUp(&listpt, 0);
+										gMouseEventTime = GetFastTime();
+										if (CXWnd *pButton = (CXWnd *)pAdvancedLootWnd->GetChildItem("ADLW_CLLSetBtn")) {
+											SendWndClick2(pButton, "leftmouseup");
+										}
+										break;
 									}
-									break;
+								}
+							}
+						}
+					}
+					return;
+				}
+				LONG index = -1;
+				if (IsNumber(szID)) {
+					index = atoi(szID);
+					index--;
+				}
+				else {//if its not a number its a itemname
+					  //need to roll through the list to get the index
+					if (pSharedList) {
+						for (LONG k = 0; k < pSharedList->Items; k++) {
+							LONG listindex = pSharedList->GetItemData(k);
+							if (listindex != -1) {
+								DWORD multiplier = sizeof(LOOTITEM) * listindex;
+								if (PLOOTITEM pItem = (PLOOTITEM)(((DWORD)pAdvLoot->pCLootList->pLootItem) + multiplier)) {
+									if (!_stricmp(pItem->Name, szID)) {
+										index = k;
+										break;
+									}
+								}
+							}
+						}
+					}
+				}
+				if (index != -1) {
+					if (pSharedList) {
+						LONG listindex = pSharedList->GetItemData(index);
+						if (listindex != -1) {
+							DWORD multiplier = sizeof(LOOTITEM) * listindex;
+							if (pitem = (PLOOTITEM)(((DWORD)pAdvLoot->pCLootList->pLootItem) + multiplier)) {
+								if (!_stricmp(szAction, "leave")) {
+									if (PCHARINFO pchar = GetCharInfo()) {
+										if (GetGameState() == GAMESTATE_INGAME && pitem && pitem->LootDetails) {
+											pAdvancedLootWnd->DoSharedAdvLootAction(pitem, &CXStr(pchar->Name), 1, pitem->LootDetails->StackCount);
+										}
+									}
+								}
+								else if (!_stricmp(szAction, "giveto")) {
+									CHAR szEntity[MAX_STRING] = { 0 };
+									GetArg(szEntity, szLine, 4);
+									CHAR szQty[MAX_STRING] = { 0 };
+									GetArg(szQty, szLine, 5);
+									if (szEntity[0] != '\0') {
+										if (PCHARINFO pCI = GetCharInfo()) {
+											if (pCI->pGroupInfo) {
+												CHAR szOut[256] = { 0 };
+												for (int i = 0; i < 6; i++) {
+													if (pCI->pGroupInfo->pMember[i] && pCI->pGroupInfo->pMember[i]->Mercenary == 0 && pCI->pGroupInfo->pMember[i]->pName) {
+														GetCXStr(pCI->pGroupInfo->pMember[i]->pName, szOut, 255);
+														if (!_stricmp(szOut, szEntity)) {
+															int qty = atoi(szQty);
+															if (pitem && pitem->LootDetails) {
+																if (qty == 0 || qty > pitem->LootDetails->StackCount) {
+																	qty = pitem->LootDetails->StackCount;
+																	if (qty == 0) {
+																		qty = 1;
+																	}
+																}
+																pAdvancedLootWnd->DoSharedAdvLootAction(pitem, &CXStr(szOut), 0, qty);
+																return;
+															}
+														}
+													}
+												}
+											}
+										}
+									}
+								}
+								else if (!_stricmp(szAction, "name")) {
+									if (CXWnd *pwnd = GetAdvLootSharedListItem(listindex, 0)) {//name
+										SendWndClick2(pwnd, "leftmouseup");
+									}
+								}
+								else if (!_stricmp(szAction, "item")) {
+									if (CXWnd *pwnd = GetAdvLootSharedListItem(listindex, 1)) {//item
+										SendWndClick2(pwnd, "leftmouseup");
+									}
+								}
+								else if (!_stricmp(szAction, "status")) {
+									if (CXWnd *pwnd = GetAdvLootSharedListItem(listindex, 2)) {//status
+										SendWndClick2(pwnd, "leftmouseup");
+									}
+								}
+								else if (!_stricmp(szAction, "action")) {
+									if (CXWnd *pwnd = GetAdvLootSharedListItem(listindex, 3)) {//action
+										SendWndClick2(pwnd, "leftmouseup");
+									}
+								}
+								else if (!_stricmp(szAction, "manage")) {
+									if (CXWnd *pwnd = GetAdvLootSharedListItem(listindex, 4)) {//manage
+										SendWndClick2(pwnd, "leftmouseup");
+									}
+								}
+								else if (!_stricmp(szAction, "an")) {
+									if (CXWnd *pwnd = GetAdvLootSharedListItem(listindex, 5)) {//an
+										SendWndClick2(pwnd, "leftmouseup");
+									}
+								}
+								else if (!_stricmp(szAction, "ag")) {
+									if (CXWnd *pwnd = GetAdvLootSharedListItem(listindex, 6)) {//ag
+										SendWndClick2(pwnd, "leftmouseup");
+									}
+								}
+								else if (!_stricmp(szAction, "autoroll")) {
+									if (CXWnd *pwnd = GetAdvLootSharedListItem(listindex, 7)) {//autoroll
+										SendWndClick2(pwnd, "leftmouseup");
+									}
+								}
+								else if (!_stricmp(szAction, "nv")) {
+									if (CXWnd *pwnd = GetAdvLootSharedListItem(listindex, 8)) {//nv
+										SendWndClick2(pwnd, "leftmouseup");
+									}
+								}
+								else if (!_stricmp(szAction, "nd")) {
+									if (CXWnd *pwnd = GetAdvLootSharedListItem(listindex, 9)) {//nd
+										SendWndClick2(pwnd, "leftmouseup");
+									}
+								}
+								else if (!_stricmp(szAction, "gd")) {
+									if (CXWnd *pwnd = GetAdvLootSharedListItem(listindex, 10)) {//gd
+										SendWndClick2(pwnd, "leftmouseup");
+									}
+								}
+								else if (!_stricmp(szAction, "no")) {
+									if (CXWnd *pwnd = GetAdvLootSharedListItem(listindex, 11)) {//no
+										SendWndClick2(pwnd, "leftmouseup");
+									}
 								}
 							}
 						}
@@ -3932,133 +4095,8 @@ VOID AdvLootCmd(PSPAWNINFO pChar, PCHAR szLine)
 				}
 				return;
 			}
-			LONG index = -1;
-			if (IsNumber(szID)) {
-				index = atoi(szID);
-				index--;
-			}
-			else {//if its not a number its a itemname
-				  //need to roll through the list to get the index
-				if (pAdvLoot && pAdvLoot->pCLootList && pAdvLoot->pCLootList->pLootItem && pAdvLoot->pCLootList->ListSize >= 1) {
-					for (LONG k = 0; k<pAdvLoot->pCLootList->ListSize; k++) {
-						DWORD addr = (DWORD)pAdvLoot->pCLootList->pLootItem;
-						if (pitem = (PLOOTITEM)(addr + (sizeof(LOOTITEM)*k))) {
-							if (!_stricmp(pitem->Name, szID)) {
-								index = k;
-								break;
-							}
-						}
-					}
-				}
-			}
-			if (index != -1) {
-				if (pAdvLoot && pAdvLoot->pCLootList && pAdvLoot->pCLootList->pLootItem && pAdvLoot->pCLootList->ListSize >= index) {
-					DWORD addr = (DWORD)pAdvLoot->pCLootList->pLootItem;
-					pitem = (PLOOTITEM)(addr + (sizeof(LOOTITEM)*index));//leave/giveto
-																		 ////NPC_Name,Item,Status,Action,Manage,AN,AG,AutoRoll,NV,ND,GD,NO
-					if (!_stricmp(szAction, "leave")) {
-						if (PCHARINFO pchar = GetCharInfo()) {
-							if (GetGameState() == GAMESTATE_INGAME && pitem && pitem->LootDetails) {
-								pAdvancedLootWnd->DoAdvLootAction(index, &CXStr(pchar->Name), 1, pitem->LootDetails->StackCount);
-							}
-						}
-					}
-					else if (!_stricmp(szAction, "giveto")) {
-						CHAR szEntity[MAX_STRING] = { 0 };
-						GetArg(szEntity, szLine, 4);
-						CHAR szQty[MAX_STRING] = { 0 };
-						GetArg(szQty, szLine, 5);
-						if (szEntity[0] != '\0') {
-							if (PCHARINFO pCI = GetCharInfo()) {
-								if (pCI->pGroupInfo) {
-									CHAR szOut[256] = { 0 };
-									for (int i = 0; i<6; i++) {
-										if (pCI->pGroupInfo->pMember[i] && pCI->pGroupInfo->pMember[i]->Mercenary == 0 && pCI->pGroupInfo->pMember[i]->pName) {
-											GetCXStr(pCI->pGroupInfo->pMember[i]->pName, szOut, 255);
-											if (!_stricmp(szOut, szEntity)) {
-												int qty = atoi(szQty);
-												if (pitem && pitem->LootDetails) {
-													if (qty == 0 || qty>pitem->LootDetails->StackCount) {
-														qty = pitem->LootDetails->StackCount;
-														if (qty == 0) {
-															qty = 1;
-														}
-													}
-													pAdvancedLootWnd->DoAdvLootAction(index, &CXStr(szOut), 0, qty);
-													return;
-												}
-											}
-										}
-									}
-								}
-							}
-						}
-					}
-					else if (!_stricmp(szAction, "name")) {
-						if (CXWnd *pwnd = GetAdvLootSharedListItem(index, 0)) {//name
-							SendWndClick2(pwnd, "leftmouseup");
-						}
-					}
-					else if (!_stricmp(szAction, "item")) {
-						if (CXWnd *pwnd = GetAdvLootSharedListItem(index, 1)) {//item
-							SendWndClick2(pwnd, "leftmouseup");
-						}
-					}
-					else if (!_stricmp(szAction, "status")) {
-						if (CXWnd *pwnd = GetAdvLootSharedListItem(index, 2)) {//status
-							SendWndClick2(pwnd, "leftmouseup");
-						}
-					}
-					else if (!_stricmp(szAction, "action")) {
-						if (CXWnd *pwnd = GetAdvLootSharedListItem(index, 3)) {//action
-							SendWndClick2(pwnd, "leftmouseup");
-						}
-					}
-					else if (!_stricmp(szAction, "manage")) {
-						if (CXWnd *pwnd = GetAdvLootSharedListItem(index, 4)) {//manage
-							SendWndClick2(pwnd, "leftmouseup");
-						}
-					}
-					else if (!_stricmp(szAction, "an")) {
-						if (CXWnd *pwnd = GetAdvLootSharedListItem(index, 5)) {//an
-							SendWndClick2(pwnd, "leftmouseup");
-						}
-					}
-					else if (!_stricmp(szAction, "ag")) {
-						if (CXWnd *pwnd = GetAdvLootSharedListItem(index, 6)) {//ag
-							SendWndClick2(pwnd, "leftmouseup");
-						}
-					}
-					else if (!_stricmp(szAction, "autoroll")) {
-						if (CXWnd *pwnd = GetAdvLootSharedListItem(index, 7)) {//autoroll
-							SendWndClick2(pwnd, "leftmouseup");
-						}
-					}
-					else if (!_stricmp(szAction, "nv")) {
-						if (CXWnd *pwnd = GetAdvLootSharedListItem(index, 8)) {//nv
-							SendWndClick2(pwnd, "leftmouseup");
-						}
-					}
-					else if (!_stricmp(szAction, "nd")) {
-						if (CXWnd *pwnd = GetAdvLootSharedListItem(index, 9)) {//nd
-							SendWndClick2(pwnd, "leftmouseup");
-						}
-					}
-					else if (!_stricmp(szAction, "gd")) {
-						if (CXWnd *pwnd = GetAdvLootSharedListItem(index, 10)) {//gd
-							SendWndClick2(pwnd, "leftmouseup");
-						}
-					}
-					else if (!_stricmp(szAction, "no")) {
-						if (CXWnd *pwnd = GetAdvLootSharedListItem(index, 11)) {//no
-							SendWndClick2(pwnd, "leftmouseup");
-						}
-					}
-				}
-			}
-			return;
+			cmdAdvLoot(pChar, szLine);
 		}
-		cmdAdvLoot(pChar, szLine);
 	}
 }
 #endif

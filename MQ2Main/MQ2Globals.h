@@ -944,6 +944,7 @@ namespace MQ2Globals
 
 	EQLIB_VAR DWORD CAdvancedLootWnd__CAdvancedLootWnd;
 	EQLIB_VAR DWORD CAdvancedLootWnd__DoAdvLootAction;
+	EQLIB_VAR DWORD CAdvancedLootWnd__DoSharedAdvLootAction;
 
 	EQLIB_VAR DWORD AltAdvManager__GetCalculatedTimer;
 	EQLIB_VAR DWORD AltAdvManager__IsAbilityReady;
