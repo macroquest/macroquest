@@ -922,9 +922,9 @@ typedef struct _CHARINFO {
 /*0x1160*/ DWORD        pMountrelated;//always 0x7d?
 /*0x1164*/ DWORD        pMountrelated2;//always 0x1b?
 /*0x1168*/ struct _KEYRINGARRAY*        pMountsArray;
-/*0x116c*/ BYTE         Unknown0x116c[0x34];
-/*0x11a0*/ struct _KEYRINGARRAY*        pIllusionsArray;
-/*0x11a4*/ BYTE         Unknown0x11a4[0xc0];
+/*0x116c*/ BYTE         Unknown0x116c[0x18];
+/*0x1184*/ struct _KEYRINGARRAY*        pIllusionsArray;
+/*0x1188*/ BYTE         Unknown0x1188[0xdc];
 /*0x1264*/ DWORD        GuildID;//GuildID_0
 /*0x1268*/ BYTE         Unknown0x1268[0x28];
 /*0x1290*/ DWORD        AAExp;

@@ -1,3 +1,7 @@
+31 Mar 2016
+- Corrected the charinfo pIllusionsArray cause it was wrong
+  This prevented FindItem from finding items in the illusion keyring.
+
 30 Mar 2016
 - I think I got Advloot under control now, go for it, test it as hard as u can.
 - Added a new Member .LootInProgress to the AdvLoot TLO
