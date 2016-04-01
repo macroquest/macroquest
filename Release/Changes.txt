@@ -1,5 +1,8 @@
+01 Apr 2016
+- Updated for TEST
+
 31 Mar 2016
-- Corrected the charinfo pIllusionsArray cause it was wrong
+- Moved the charinfo pIllusionsArray cause it was in the wrong place.
   This prevented FindItem from finding items in the illusion keyring.
 
 30 Mar 2016
