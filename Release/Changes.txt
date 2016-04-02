@@ -1,3 +1,7 @@
+02 Apr 2016
+- Updated for TEST
+- Added the missing members to the Spell struct. - demonstar55
+
 01 Apr 2016
 - Updated for TEST
 

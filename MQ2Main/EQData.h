@@ -1825,92 +1825,144 @@ typedef struct _SPELLMGR {
 
 // actual size: 0x4ed 20120316 - ieatacid
 // confirmed in Sep 16 2015 test eqgame see 4DB236 - eqmule
-// actual size: 0x409 2016 02 10 test se 4E0341 -eqmule
+// actual size: 0x409 2016 02 10 test se 4E0341 - eqmule
+// Filled in missing values see Mar 11 2016 test eqgame / 4DF9C0 - demonstar55
 // EQ_Spell__EQ_Spell_x    numeffects  attrib1  base1  base2_1  calc1  max1
 typedef struct _SPELL { //      1     |    0   | -30  |   0    | 103  | 125
 /*0x000*/   FLOAT   Range;
 /*0x004*/   FLOAT   AERange;
 /*0x008*/   FLOAT   PushBack;
-/*0x00c*/   FLOAT   Unknown0x00c;
+/*0x00c*/   FLOAT   PushUp;
 /*0x010*/   DWORD   CastTime;
 /*0x014*/   DWORD   FizzleTime;
 /*0x018*/   DWORD   RecastTime;
 /*0x01c*/   DWORD   DurationType;       //DurationFormula on Lucy
 /*0x020*/   DWORD   DurationValue1;
-/*0x024*/   BYTE    Unknown0x24[0x4];
+/*0x024*/   DWORD   AEDuration;
 /*0x028*/   DWORD   Mana;
 /*0x02c*/   DWORD   ReagentId[0x4];     //ReagentId1-ReagentId4d
 /*0x03c*/   DWORD   ReagentCount[0x4];  //ReagentCount1-ReagentCount4
-/*0x04c*/   BYTE    Unknown0x4c[0x10];
+/*0x04c*/   DWORD   NoExpendReagent[0x4];
 /*0x05c*/   LONG    CalcIndex;
 /*0x060*/   LONG    NumEffects;
 /*0x064*/   DWORD   BookIcon;
 /*0x068*/   DWORD   GemIcon;
 /*0x06C*/   DWORD   DescriptionNumber;
 /*0x070*/   DWORD   ResistAdj;
-/*0x074*/   BYTE    Unknown0x074[0x4];
+/*0x074*/   DWORD   Diety;
 /*0x078*/   DWORD   spaindex;
 /*0x07C*/   DWORD   SpellAnim;
 /*0x080*/   DWORD   SpellIcon;
-/*0x084*/   BYTE    Unknown0x084[0x8];
+/*0x084*/   DWORD   DurationParticleEffect;
+/*0x088*/   DWORD   NPCUsefulness;
 /*0x08c*/   DWORD   ID;
 /*0x090*/   DWORD   Autocast;         //SpellID of spell to instacast on caster when current spell lands on target
 /*0x094*/   DWORD   Category;         //Unknown144 from lucy
 /*0x098*/   DWORD   Subcategory;      //Subcat to Category. Unknown145 from lucy
-/*0x09c*/   BYTE    Unknown0x09c[0x10];
+/*0x09c*/   DWORD   Subcategory2;
+/*0x0a0*/   DWORD   HateMod;          //Additional hate
+/*0x0a4*/   DWORD   ResistPerLevel;
+/*0x0a8*/   DWORD   ResistCap;
 /*0x0ac*/   DWORD   EnduranceCost;      //CA Endurance Cost
 /*0x0b0*/   DWORD   CARecastTimerID;    //ID of combat timer, i think.
-/*0x0b4*/   BYTE    Unknown0x0b4[0x4];
-/*0x0b8*/   DWORD   HateGenerated;
-/*0x0bc*/   BYTE    Unknown0x0bc[0x10];
+/*0x0b4*/   DWORD   EndurUpkeep;
+/*0x0b8*/   DWORD   HateGenerated;      //Hate override
+/*0x0bc*/   DWORD   HitCountType;
+/*0x0c0*/   DWORD   HitCount;
+/*0x0c4*/   DWORD   ConeStartAngle;
+/*0x0c8*/   DWORD   ConeEndAngle;
 /*0x0cc*/   DWORD   PvPResistBase;
 /*0x0d0*/   DWORD   PvPCalc;
 /*0x0d4*/   DWORD   PvPResistCap;
-/*0x0d8*/   DWORD   Unknown182;         //Unknown182 from Lucy
-/*0x0dc*/   DWORD   Unknown183;         //Unknown183 from Lucy
-/*0x0e0*/   BYTE    Unknown0x0e0[0xc];
-/*0x0e4*/   DWORD   SpellGroup;
-/*0x0e8*/   DWORD   SubSpellGroup;		//unknown237 on Lucy it is checked at 0x76FE18 in jun 11 2014 and if 0 will ask if we want to replace our spell with a rk. x version
-/*0x0ec*/   DWORD   SpellRank;			//Unknown209 on Lucy jun 11 2014 0x76FEE0 Original = 1 , Rk. II = 5 , Rk. III = 10 , I suppose if they add Rk. IV it will be 15 and so on -eqmule
-/*0x0f0*/   DWORD   Unknown222;         //Unknown222 from Lucy
-/*0x0f4*/   DWORD   Unknown223;         //Unknown223 from Lucy
-/*0x0f8*/   BYTE    Unknown0x0f8[0x24];
-/*0x11c*/   DWORD   MaxTargets;     //how many targets a spell will affect
-/*0x120*/   BYTE    Unknown0x120[0x27];
-/*0x147*/   BYTE    DurationWindow;     //0=Long, 1=Short
-/*0x148*/   BYTE    Unknown0x148[0x2];
-/*0x14a*/   BYTE    Deletable;
-/*0x14b*/   BYTE    Unknown0x14b[0x6];
-/*0x151*/   BYTE    CanMGB;
-/*0x152*/   BYTE    Unknown0x152[0x4];
-/*0x156*/   BYTE    ClassLevel[0x24];        //per class., yes there are allocations for 0x24 see 4B5776 in eqgame dated 12 mar 2014 -eqmule
-/*0x17a*/   BYTE    LightType;
-/*0x17b*/   BYTE    SpellType;          //0=detrimental, 1=Beneficial, 2=Beneficial, Group Only
-/*0x17c*/   BYTE    Unknown0x17c;
-/*0x17d*/   BYTE    Resist;             //0=un 1=mr 2=fr 3=cr 4=pr 5=dr 6=chromatic 7=prismatic 8=physical(skills,etc) 9=corruption
-/*0x17e*/   BYTE    TargetType;         //03=Group v1, 04=PB AE, 05=Single, 06=Self, 08=Targeted AE, 0e=Pet, 28=AE PC v2, 29=Group v2, 2a=Directional
-/*0x17f*/   BYTE    FizzleAdj;
-/*0x180*/   BYTE    Skill;
-/*0x181*/   BYTE    Location;           //01=Outdoors, 02=dungeons, ff=Any
-/*0x182*/   BYTE    Environment;
-/*0x183*/   BYTE    TimeOfDay;          // 0=any, 1=day only, 2=night only
-/*0x184*/   BYTE    CastingAnim;
-/*0x185*/   BYTE    Unknown0x185;
-/*0x186*/   BYTE    TargetAnim;
-/*0x187*/   BYTE    Unknown0x187[0x3];
-/*0x18a*/   CHAR    Name[0x40];
-/*0x1ca*/   CHAR    Target[0x20];
-/*0x1ea*/   CHAR    Extra[0x20];        //This is 'Extra' from Lucy (portal shortnames etc)
-/*0x20a*/   CHAR    Unknown0x2fa[0x60];
-/*0x26a*/   CHAR    CastByOther[0x60];  //cast by other
-/*0x2ca*/   CHAR    CastOnYou[0x60];
-/*0x32a*/   CHAR    CastOnAnother[0x60];
-/*0x38a*/   CHAR    WearOff[0x60];
-/*0x3ea*/   BYTE    Unknown0x3ea[0x4];
-/*0x3ee*/   BYTE    Uninterruptable;    //00=Interruptable, 01=Uninterruptable 
-/*0x3ef*/   BYTE    Unknown0x3ef[0x3];
-/*0x3f2*/   BYTE    Unknown0x3f2;
-/*0x3f3*/   BYTE    Unknown0x3f3[0x16];
+/*0x0d8*/   DWORD   PvPDuration;        //DurationType for PVP
+/*0x0dc*/   DWORD   PvPDurationValue1;  //DurationValue1 for PVP
+/*0x0e0*/   DWORD   GlobalGroup;
+/*0x0e4*/   DWORD   PCNPCOnlyFlag;      // no idea
+/*0x0e8*/   DWORD   NPCMemCategory;
+/*0x0ec*/   DWORD   SpellGroup;
+/*0x0f0*/   DWORD   SubSpellGroup;		//unknown237 on Lucy it is checked at 0x76FE18 in jun 11 2014 and if 0 will ask if we want to replace our spell with a rk. x version
+/*0x0f4*/   DWORD   SpellRank;			//Unknown209 on Lucy jun 11 2014 0x76FEE0 Original = 1 , Rk. II = 5 , Rk. III = 10 , I suppose if they add Rk. IV it will be 15 and so on -eqmule
+/*0x0f8*/   DWORD   SpellClass;         //Unknown222 from Lucy
+/*0x0fc*/   DWORD   SpellSubClass;         //Unknown223 from Lucy
+/*0x100*/   DWORD   SpellReqAssociationID;
+/*0x104*/   DWORD   CasterRequirementID;
+/*0x108*/   DWORD   MaxResist;
+/*0x10c*/   DWORD   MinResist;
+/*0x110*/   DWORD   MinSpreadTime;
+/*0x114*/   DWORD   MaxSpreadTime;
+/*0x118*/   DWORD   SpreadRadius;
+/*0x11c*/   DWORD   BaseEffectsFocusCap; //song cap, maybe other things?
+/*0x120*/   DWORD   CritChanceOverride;
+/*0x124*/   DWORD   MaxTargets;     //how many targets a spell will affect
+/*0x128*/   DWORD   AIValidTargets;
+/*0x12c*/   DWORD   BaseEffectsFocusOffset;
+/*0x130*/   FLOAT   BaseEffectsFocusSlope;
+/*0x134*/   FLOAT   DistanceModCloseDist;
+/*0x138*/   FLOAT   DistanceModCloseMult;
+/*0x13c*/   FLOAT   DistanceModFarDist;
+/*0x140*/   FLOAT   DistanceModFarMult;
+/*0x144*/   FLOAT   MinRange;
+/*0x148*/   BYTE    NoNPCLOS; // NPC skips LOS checks
+/*0x149*/   BYTE    Feedbackable; // nothing uses this
+/*0x14a*/   BYTE    Reflectable;
+/*0x14b*/   BYTE    NoPartialSave;
+/*0x14c*/   BYTE    NoResist;
+/*0x14d*/   BYTE    UsesPersistentParticles;
+/*0x14e*/   BYTE    SmallTargetsOnly;
+/*0x14f*/   BYTE    DurationWindow;     //0=Long, 1=Short
+/*0x150*/   BYTE    Uninterruptable;
+/*0x151*/   BYTE    NotStackableDot;
+/*0x152*/   BYTE    Deletable;
+/*0x153*/   BYTE    BypassRegenCheck;
+/*0x154*/   BYTE    CanCastInCombat;
+/*0x155*/   BYTE    CanCastOutOfCombat;
+/*0x156*/   BYTE    NoHealDamageItemMod; //disable worn focus bonuses
+/*0x157*/   BYTE    OnlyDuringFastRegen;
+/*0x158*/   BYTE    CastNotStanding;
+/*0x159*/   BYTE    CanMGB;
+/*0x15a*/   BYTE    NoDisspell;
+/*0x15b*/   BYTE    AffectInanimate; //ldon trap spells etc
+/*0x15c*/   BYTE    IsSkill;
+/*0x15d*/   BYTE    ShowDoTMessage;
+/*0x15e*/   BYTE    ClassLevel[0x24];        //per class., yes there are allocations for 0x24 see 4B5776 in eqgame dated 12 mar 2014 -eqmule
+/*0x182*/   BYTE    LightType;
+/*0x183*/   BYTE    SpellType;          //0=detrimental, 1=Beneficial, 2=Beneficial, Group Only
+/*0x184*/   BYTE    Activated;
+/*0x185*/   BYTE    Resist;             //0=un 1=mr 2=fr 3=cr 4=pr 5=dr 6=chromatic 7=prismatic 8=physical(skills,etc) 9=corruption
+/*0x186*/   BYTE    TargetType;         //03=Group v1, 04=PB AE, 05=Single, 06=Self, 08=Targeted AE, 0e=Pet, 28=AE PC v2, 29=Group v2, 2a=Directional
+/*0x187*/   BYTE    FizzleAdj;
+/*0x188*/   BYTE    Skill;
+/*0x189*/   BYTE    Location;           //01=Outdoors, 02=dungeons, ff=Any
+/*0x18a*/   BYTE    Environment;
+/*0x18b*/   BYTE    TimeOfDay;          // 0=any, 1=day only, 2=night only
+/*0x18c*/   BYTE    CastingAnim;
+/*0x18d*/   BYTE    AnimVariation;
+/*0x18e*/   BYTE    TargetAnim;
+/*0x18f*/   BYTE    TravelType;
+/*0x190*/   BYTE    CancelOnSit;
+/*0x191*/   BYTE    IsCountdownHeld;
+/*0x192*/   CHAR    Name[0x40];
+/*0x1d2*/   CHAR    Target[0x20];
+/*0x1f2*/   CHAR    Extra[0x20];    //This is 'Extra' from Lucy (portal shortnames etc) official = NPC_FILENAME
+/*0x212*/   CHAR    CastByMe[0x60];
+/*0x272*/   CHAR    CastByOther[0x60];  //cast by other
+/*0x2d2*/   CHAR    CastOnYou[0x60];
+/*0x332*/   CHAR    CastOnAnother[0x60];
+/*0x392*/   CHAR    WearOff[0x60];
+/*0x3f2*/   BYTE    ShowWearOffMessage;
+/*0x3f3*/   BYTE    NPCNoCast;
+/*0x3f4*/   BYTE    SneakAttack;
+/*0x3f5*/   BYTE    NotFocusable; //ignores all(?) focus effects
+/*0x3f6*/   BYTE    NoDetrimentalSpellAggro;
+/*0x3f7*/   BYTE    StacksWithSelf;
+/*0x3f8*/   BYTE    NoBuffBlock;
+/*0x3f9*/   BYTE    Scribable;
+/*0x3fa*/   BYTE    NoStripOnDeath;
+/*0x3fb*/   BYTE    NoRemove; // spell can't be clicked off?
+/*0x3fc*/   DWORD   Unknown177; // new spell field valid range (0, 3], will set to 1 if not in that range (0, 1, 2)
+/*0x400*/   DWORD   SpellRecourseType;
+/*0x404*/   BYTE    Padding; //nothing here? I don't see it setting this at least
+/*0x405*/   FLOAT   DistanceMod; // set to (DistanceModFarMult - DistanceModCloseMult) / (DistanceModFarDist - DistanceModCloseDist). Divisor has some bounds checking too
 /*0x409*/
 } SPELL, *PSPELL;
 
