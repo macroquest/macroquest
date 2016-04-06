@@ -1,3 +1,6 @@
+06 Apr 2016
+- Updated for TEST
+
 02 Apr 2016
 - Updated for TEST
 - Added the missing members to the Spell struct. - demonstar55
@@ -17,8 +20,8 @@
   [code]
   /if (!${AdvLoot.LootInProgress}) {
 		/echo its safe to loot
-		if (${AdvLoot.PCount}>=1) {
-			/echo im going to give 1 ${AdvLoot.Plist[1].Name} to myself
+		if (${AdvLoot.SCount}>=1) {
+			/echo im going to give 1 ${AdvLoot.Slist[1].Name} to myself
 			/advloot shared 1 giveto ${Me.Name} 1
 		}
   } else {
