@@ -1,3 +1,6 @@
+07 Apr 2016
+- Updated for TEST
+
 06 Apr 2016
 - Updated for TEST
 
@@ -21,7 +24,7 @@
   /if (!${AdvLoot.LootInProgress}) {
 		/echo its safe to loot
 		if (${AdvLoot.SCount}>=1) {
-			/echo im going to give 1 ${AdvLoot.Slist[1].Name} to myself
+			/echo im going to give 1 ${AdvLoot.SList[1].Name} to myself
 			/advloot shared 1 giveto ${Me.Name} 1
 		}
   } else {
