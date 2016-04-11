@@ -675,6 +675,7 @@ EQLIB_API DWORD       GetAAIndexByID(DWORD ID);
 EQLIB_API DWORD       GetSkillIDFromName(PCHAR name);
 EQLIB_API bool        InHoverState();
 EQLIB_API DWORD       GetGameState(VOID);
+EQLIB_API DWORD       GetWorldState(VOID);
 EQLIB_API float       GetMeleeRange(class EQPlayer *, class EQPlayer *);
 EQLIB_API DWORD       GetSpellGemTimer(DWORD nGem);
 EQLIB_API DWORD       GetSpellBuffTimer(DWORD SpellID);

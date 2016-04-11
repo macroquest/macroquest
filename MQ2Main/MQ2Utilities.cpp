@@ -6808,6 +6808,15 @@ DWORD GetGameState(VOID)
 	return ((PEVERQUEST)pEverQuest)->GameState;
 }
 
+DWORD GetWorldState(VOID)
+{
+	if (!ppEverQuest || !pEverQuest)
+	{
+		//DebugSpew("Could not retrieve worldstate in GetWorldState()");
+		return -1;
+	}
+	return ((PEVERQUEST)pEverQuest)->WorldState;
+}
 // ***************************************************************************
 // Function:    LargerEffectTest
 // Description: Return boolean true if the spell effect is to be ignored

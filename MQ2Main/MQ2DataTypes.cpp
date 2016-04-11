@@ -745,9 +745,9 @@ bool MQ2MathType::GETMEMBER()
 		{
 			FLOAT P1[3];
 			FLOAT P2[3];
-			P1[0] = P2[0] = ((PSPAWNINFO)pLocalPlayer)->Y;
-			P1[1] = P2[1] = ((PSPAWNINFO)pLocalPlayer)->X;
-			P1[2] = P2[2] = ((PSPAWNINFO)pLocalPlayer)->Z;
+			P1[0] = P2[0] = ((PSPAWNINFO)pCharSpawn)->Y;
+			P1[1] = P2[1] = ((PSPAWNINFO)pCharSpawn)->X;
+			P1[2] = P2[2] = ((PSPAWNINFO)pCharSpawn)->Z;
 			if (PCHAR pColon = strchr(Index, ':'))
 			{
 				*pColon = 0;
@@ -1049,7 +1049,7 @@ bool MQ2SpawnType::GETMEMBER()
 		{
 			CHAR szOut[256] = { 0 };
 			sprintf_s(szOut, "id %d", pSpawn->SpawnID);
-			Face((PSPAWNINFO)pLocalPlayer, szOut);
+			Face((PSPAWNINFO)pCharSpawn, szOut);
 			return true;
 		}
 		case LeftClick:
@@ -1064,7 +1064,7 @@ bool MQ2SpawnType::GETMEMBER()
 		{
 			CHAR szOut[256] = { 0 };
 			sprintf_s(szOut, "%s", pSpawn->DisplayedName);
-			AssistCmd((PSPAWNINFO)pLocalPlayer, szOut);
+			AssistCmd((PSPAWNINFO)pCharSpawn, szOut);
 			return true;
 		}
 		default:
@@ -1258,7 +1258,7 @@ bool MQ2SpawnType::GETMEMBER()
 	case MaxRangeTo:
 		if (GetSpawnType(pSpawn) != ITEM)
 		{
-			Dest.Float = get_melee_range(pLocalPlayer, (EQPlayer*)pSpawn);
+			Dest.Float = get_melee_range(pCharSpawn, (EQPlayer*)pSpawn);
 			Dest.Type = pFloatType;
 			return true;
 		}
@@ -1452,30 +1452,30 @@ bool MQ2SpawnType::GETMEMBER()
 		Dest.Type = pFloatType;
 		return true;
 	case Distance3D:
-		Dest.Float = DistanceToSpawn3D((PSPAWNINFO)pLocalPlayer, pSpawn);
+		Dest.Float = DistanceToSpawn3D((PSPAWNINFO)pCharSpawn, pSpawn);
 		Dest.Type = pFloatType;
 		return true;
 	case DistancePredict:
-		Dest.Float = EstimatedDistanceToSpawn((PSPAWNINFO)pLocalPlayer, pSpawn);
+		Dest.Float = EstimatedDistanceToSpawn((PSPAWNINFO)pCharSpawn, pSpawn);
 		Dest.Type = pFloatType;
 		return true;
 	case DistanceW:
 	case DistanceX:
-		Dest.Float = (FLOAT)fabs(((PSPAWNINFO)pLocalPlayer)->X - pSpawn->X);
+		Dest.Float = (FLOAT)fabs(((PSPAWNINFO)pCharSpawn)->X - pSpawn->X);
 		Dest.Type = pFloatType;
 		return true;
 	case DistanceN:
 	case DistanceY:
-		Dest.Float = (FLOAT)fabs(((PSPAWNINFO)pLocalPlayer)->Y - pSpawn->Y);
+		Dest.Float = (FLOAT)fabs(((PSPAWNINFO)pCharSpawn)->Y - pSpawn->Y);
 		Dest.Type = pFloatType;
 		return true;
 	case DistanceU:
 	case DistanceZ:
-		Dest.Float = (FLOAT)fabs(((PSPAWNINFO)pLocalPlayer)->Z - pSpawn->Z);
+		Dest.Float = (FLOAT)fabs(((PSPAWNINFO)pCharSpawn)->Z - pSpawn->Z);
 		Dest.Type = pFloatType;
 		return true;
 	case HeadingTo:
-		Dest.Float = (FLOAT)(atan2f(((PSPAWNINFO)pLocalPlayer)->Y - pSpawn->Y, pSpawn->X - ((PSPAWNINFO)pLocalPlayer)->X) * 180.0f / PI + 90.0f);
+		Dest.Float = (FLOAT)(atan2f(((PSPAWNINFO)pCharSpawn)->Y - pSpawn->Y, pSpawn->X - ((PSPAWNINFO)pCharSpawn)->X) * 180.0f / PI + 90.0f);
 		if (Dest.Float < 0.0f)
 			Dest.Float += 360.0f;
 		else if (Dest.Float >= 360.0f)
@@ -1562,7 +1562,7 @@ bool MQ2SpawnType::GETMEMBER()
 		return true;
 #ifndef ISXEQ
 	case NearestSpawn:
-		if (pSpawn == (PSPAWNINFO)pLocalPlayer)
+		if (pSpawn == (PSPAWNINFO)pCharSpawn)
 		{
 			return (dataNearestSpawn(Index, Dest) != 0);// use top-level object if it's you
 		}
@@ -1601,7 +1601,7 @@ bool MQ2SpawnType::GETMEMBER()
 		break;
 #else
 	case NearestSpawn:
-		if (pSpawn == (PSPAWNINFO)pLocalPlayer)
+		if (pSpawn == (PSPAWNINFO)pCharSpawn)
 		{
 			return (dataNearestSpawn(argc, argv, Dest) != 0);// use top-level object if it's you
 		}
@@ -1722,7 +1722,7 @@ bool MQ2SpawnType::GETMEMBER()
 		Dest.Type = pBoolType;
 		return true;
 	case xLineOfSight:
-		Dest.DWord = pLocalPlayer->CanSee((EQPlayer*)pSpawn);
+		Dest.DWord = pCharSpawn->CanSee((EQPlayer*)pSpawn);
 		//Dest.DWord=(LineOfSight(GetCharInfo()->pSpawn,pSpawn));
 		Dest.Type = pBoolType;
 		return true;
@@ -1884,7 +1884,7 @@ bool MQ2SpawnType::GETMEMBER()
 		sv3.x = pSpawn->Y;
 		sv3.y = pSpawn->X;
 		sv3.z = pSpawn->Z;
-		Dest.DWord = pLocalPlayer->CanSeeTargetIndicator(&sv3);
+		Dest.DWord = pCharSpawn->CanSeeTargetIndicator(&sv3);
 		Dest.Type = pBoolType;
 		return true;
 	default:
@@ -2824,8 +2824,8 @@ bool MQ2CharacterType::GETMEMBER()
 		return false;
 	case Moving:
 		Dest.DWord = false;
-		if (pLocalPlayer && pChar && pChar->pSpawn) {
-			Dest.DWord = ((((gbMoving) && ((PSPAWNINFO)pLocalPlayer)->SpeedRun == 0.0f) && (pChar->pSpawn->Mount == NULL)) || (fabs(FindSpeed((PSPAWNINFO)pLocalPlayer)) > 0.0f));
+		if (pCharSpawn && pChar && pChar->pSpawn) {
+			Dest.DWord = ((((gbMoving) && ((PSPAWNINFO)pCharSpawn)->SpeedRun == 0.0f) && (pChar->pSpawn->Mount == NULL)) || (fabs(FindSpeed((PSPAWNINFO)pCharSpawn)) > 0.0f));
 		}
 		Dest.Type = pBoolType;
 		return true;
@@ -4131,7 +4131,7 @@ bool MQ2CharacterType::GETMEMBER()
 	case Charmed:
 		if (PCHARINFO2 pChar2 = GetCharInfo2()) {
 			int nBuff = -1;
-			if ((nBuff = GetTargetBuffBySPA(22, 0)) != -1)//Charm
+			if ((nBuff = GetSelfBuffBySPA(22, 0)) != -1)//Charm
 			{
 				Dest.Ptr = &pChar2->Buff[nBuff];
 				Dest.Type = pBuffType;
@@ -4358,7 +4358,7 @@ bool MQ2CharacterType::GETMEMBER()
 	case Brells:
 		if (PCHARINFO2 pChar2 = GetCharInfo2()) {
 			int nBuff = -1;
-			if ((nBuff = GetTargetBuffByCategory(45, 1 << Paladin)) != -1)//
+			if ((nBuff = GetSelfBuffByCategory(45, 1 << Paladin)) != -1)//
 			{
 				while (nBuff < NUM_BUFF_SLOTS)
 				{
@@ -7235,7 +7235,7 @@ bool MQ2SwitchType::GETMEMBER()
 		Dest.Type = pBoolType;
 		return true;
 	case HeadingTo:
-		Dest.Float = (FLOAT)(atan2f(((PSPAWNINFO)pLocalPlayer)->Y - pTheSwitch->Y, pTheSwitch->X - ((PSPAWNINFO)pLocalPlayer)->X) * 180.0f / PI + 90.0f);
+		Dest.Float = (FLOAT)(atan2f(((PSPAWNINFO)pCharSpawn)->Y - pTheSwitch->Y, pTheSwitch->X - ((PSPAWNINFO)pCharSpawn)->X) * 180.0f / PI + 90.0f);
 		if (Dest.Float<0.0f)
 			Dest.Float += 360.0f;
 		else if (Dest.Float >= 360.0f)
@@ -7252,9 +7252,9 @@ bool MQ2SwitchType::GETMEMBER()
 		return true;
 	case Distance3D:
 	{
-		FLOAT X = ((PSPAWNINFO)pLocalPlayer)->X - pTheSwitch->X;
-		FLOAT Y = ((PSPAWNINFO)pLocalPlayer)->Y - pTheSwitch->Y;
-		FLOAT Z = ((PSPAWNINFO)pLocalPlayer)->Z - pTheSwitch->Z;
+		FLOAT X = ((PSPAWNINFO)pCharSpawn)->X - pTheSwitch->X;
+		FLOAT Y = ((PSPAWNINFO)pCharSpawn)->Y - pTheSwitch->Y;
+		FLOAT Z = ((PSPAWNINFO)pCharSpawn)->Z - pTheSwitch->Z;
 		Dest.Float = sqrtf(X*X + Y*Y + Z*Z);
 		Dest.Type = pFloatType;
 		return true;
@@ -7265,7 +7265,6 @@ bool MQ2SwitchType::GETMEMBER()
 		return true;
 	}
 	return false;
-//#undef pTheSwitch
 }
 
 bool MQ2GroundType::GETMEMBER()
@@ -7285,7 +7284,7 @@ bool MQ2GroundType::GETMEMBER()
 			if (PEQSWITCH pSwitch = (PEQSWITCH)pGround->pSwitch) {
 				CHAR szName[256] = { 0 };
 				GetFriendlyNameForGroundItem(pGround, szName);
-				float dist3d = Get3DDistance(((PSPAWNINFO)pLocalPlayer)->X, ((PSPAWNINFO)pLocalPlayer)->Y, ((PSPAWNINFO)pLocalPlayer)->Z, pGround->X, pGround->Y, pGround->Z);
+				float dist3d = Get3DDistance(((PSPAWNINFO)pCharSpawn)->X, ((PSPAWNINFO)pCharSpawn)->Y, ((PSPAWNINFO)pCharSpawn)->Z, pGround->X, pGround->Y, pGround->Z);
 				if (dist3d <= 20.0f) {
 					SPAWNINFO tSpawn = { 0 };
 					strcpy(tSpawn.Name, szName);
@@ -7338,9 +7337,9 @@ bool MQ2GroundType::GETMEMBER()
 		}
 		case DoFace:
 		{
-			gFaceAngle = (atan2(pGround->X - ((PSPAWNINFO)pLocalPlayer)->X, pGround->Y - ((PSPAWNINFO)pLocalPlayer)->Y) * 256.0f / PI);
-			float theDistance = Get3DDistance(((PSPAWNINFO)pLocalPlayer)->X, ((PSPAWNINFO)pLocalPlayer)->Y, ((PSPAWNINFO)pLocalPlayer)->Z, pGround->X, pGround->Y, pGround->Z);
-			gLookAngle = (atan2(pGround->Z - ((PSPAWNINFO)pLocalPlayer)->Z - ((PSPAWNINFO)pLocalPlayer)->AvatarHeight*StateHeightMultiplier(((PSPAWNINFO)pLocalPlayer)->StandState), (FLOAT)theDistance)	* 256.0f / PI);
+			gFaceAngle = (atan2(pGround->X - ((PSPAWNINFO)pCharSpawn)->X, pGround->Y - ((PSPAWNINFO)pCharSpawn)->Y) * 256.0f / PI);
+			float theDistance = Get3DDistance(((PSPAWNINFO)pCharSpawn)->X, ((PSPAWNINFO)pCharSpawn)->Y, ((PSPAWNINFO)pCharSpawn)->Z, pGround->X, pGround->Y, pGround->Z);
+			gLookAngle = (atan2(pGround->Z - ((PSPAWNINFO)pCharSpawn)->Z - ((PSPAWNINFO)pCharSpawn)->AvatarHeight*StateHeightMultiplier(((PSPAWNINFO)pCharSpawn)->StandState), (FLOAT)theDistance)	* 256.0f / PI);
 			if (gFaceAngle >= 512.0f)
 				gFaceAngle -= 512.0f;
 			if (gFaceAngle<0.0f)
@@ -7410,19 +7409,19 @@ bool MQ2GroundType::GETMEMBER()
 		return true;
 	case Distance3D:
 	{
-		FLOAT X = ((PSPAWNINFO)pLocalPlayer)->X - pGround->X;
-		FLOAT Y = ((PSPAWNINFO)pLocalPlayer)->Y - pGround->Y;
+		FLOAT X = ((PSPAWNINFO)pCharSpawn)->X - pGround->X;
+		FLOAT Y = ((PSPAWNINFO)pCharSpawn)->Y - pGround->Y;
 		FLOAT Z = 0;
 		if (pGround->pSwitch)
-			Z = ((PSPAWNINFO)pLocalPlayer)->Z - pGround->pSwitch->Z;
+			Z = ((PSPAWNINFO)pCharSpawn)->Z - pGround->pSwitch->Z;
 		else
-			Z = ((PSPAWNINFO)pLocalPlayer)->Z - pGround->Z;
+			Z = ((PSPAWNINFO)pCharSpawn)->Z - pGround->Z;
 		Dest.Float = sqrtf(X*X + Y*Y + Z*Z);
 		Dest.Type = pFloatType;
 		return true;
 	}
 	case HeadingTo:
-		Dest.Float = (FLOAT)(atan2f(((PSPAWNINFO)pLocalPlayer)->Y - pGround->Y, pGround->X - ((PSPAWNINFO)pLocalPlayer)->X) * 180.0f / PI + 90.0f);
+		Dest.Float = (FLOAT)(atan2f(((PSPAWNINFO)pCharSpawn)->Y - pGround->Y, pGround->X - ((PSPAWNINFO)pCharSpawn)->X) * 180.0f / PI + 90.0f);
 		if (Dest.Float<0.0f)
 			Dest.Float += 360.0f;
 		else if (Dest.Float >= 360.0f)

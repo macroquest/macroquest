@@ -2279,7 +2279,7 @@ typedef struct _EVERQUEST {
 	/*0x594*/ DWORD  ChannelNumber[0xa];
 	/*0x5bc*/ DWORD  ChannelQty;
 	/*0x5c0*/ DWORD  TargetRing;
-	/*0x5c4*/ BYTE	 Unknown0x5c4[0x4];
+	/*0x5c4*/ DWORD	 WorldState;//0 everything is fine, 1 we are getting disconnected 2 player not released from zone
 	/*0x5c8*/ DWORD  GameState;
 	/*0x5cc*/ // more data
 } EVERQUEST, *PEVERQUEST;
