@@ -390,7 +390,7 @@ VOID Click(PSPAWNINFO pChar, PCHAR szLine)
 			if(pDoorTarget) {
 				if (!strnicmp(szArg1, "left", 4)) {
 					if(DoorEnviroTarget.Name[0]!=0) {
-						if(DistanceToSpawn((PSPAWNINFO)pLocalPlayer,&DoorEnviroTarget)<20.0f) {
+						if(DistanceToSpawn((PSPAWNINFO)pCharSpawn,&DoorEnviroTarget)<20.0f) {
 							srand((unsigned int)time(0));
 							int randclickY = rand() % 3;
 							int randclickX = rand() % 3;

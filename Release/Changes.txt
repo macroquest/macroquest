@@ -1,13 +1,13 @@
-<<<<<<< Changes.txt
+12 Apr 2016
+- Updated for TEST
+
 11 Apr 2016
 - Fixed /face to use pCharSpawn instead of pLocalPlayer
   this should make moving work while mounted again... sorry about that...
 
-=======
 07 Apr 2016 by rswiders
 - Updated Charmed, Brells to correctly identify buffs on yourself.
 
->>>>>>> 1.781
 07 Apr 2016
 - Updated for TEST
 

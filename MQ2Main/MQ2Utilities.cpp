@@ -5741,7 +5741,7 @@ BOOL SpawnMatchesSearch(PSEARCHSPAWN pSearchSpawn, PSPAWNINFO pChar, PSPAWNINFO 
 	if (pSearchSpawn->szRace[0] && stricmp(pSearchSpawn->szRace, pEverQuest->GetRaceDesc(pSpawn->Race)))
 		return FALSE;
 	//if (pSearchSpawn->bLoS && (!LineOfSight(pChar,pSpawn)))
-	if (pSearchSpawn->bLoS && (!pLocalPlayer->CanSee((EQPlayer *)pSpawn)))
+	if (pSearchSpawn->bLoS && (!pCharSpawn->CanSee((EQPlayer *)pSpawn)))
 		return FALSE;
 	if (pSearchSpawn->bTargetable && (!IsTargetable(pSpawn)))
 		return FALSE;

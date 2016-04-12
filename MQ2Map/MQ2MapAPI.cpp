@@ -645,7 +645,7 @@ void MapUpdate()
 				pTargetMelee[i]->End.Z = ((PSPAWNINFO)pTarget)->Z;
 				FLOAT MaxMelee;
 				if (MapFilterOptions[MAPFILTER_TargetMelee].Enabled == 1)
-					MaxMelee = get_melee_range(pLocalPlayer, pTarget);
+					MaxMelee = get_melee_range(pCharSpawn, pTarget);
 				else
 					MaxMelee = get_melee_range(pTarget, pTarget);
 				pTargetMelee[i]->Start.X = -((PSPAWNINFO)pTarget)->X + MaxMelee*cosf((FLOAT)Angle / 180.0f*(FLOAT)PI);

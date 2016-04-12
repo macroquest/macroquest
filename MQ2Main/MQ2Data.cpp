@@ -60,7 +60,7 @@ TLO(dataSpawn)
 #else
 			ParseSearchSpawn(0, argc, argv, ssSpawn);
 #endif
-			if (Ret.Ptr = SearchThroughSpawns(&ssSpawn, (PSPAWNINFO)pLocalPlayer))
+			if (Ret.Ptr = SearchThroughSpawns(&ssSpawn, (PSPAWNINFO)pCharSpawn))
 			{
 				Ret.Type = pSpawnType;
 				return true;
@@ -183,13 +183,13 @@ TLO(dataGroundItem)
 			GetFriendlyNameForGroundItem(pItem, szName);
 			_strlwr_s(szName);
 			if (strstr(szName, szSearch)) {
-				FLOAT X = ((PSPAWNINFO)pLocalPlayer)->X - pItem->X;
-				FLOAT Y = ((PSPAWNINFO)pLocalPlayer)->Y - pItem->Y;
+				FLOAT X = ((PSPAWNINFO)pCharSpawn)->X - pItem->X;
+				FLOAT Y = ((PSPAWNINFO)pCharSpawn)->Y - pItem->Y;
 				FLOAT Z = 0;
 				if (pItem->pSwitch)
-					Z = ((PSPAWNINFO)pLocalPlayer)->Z - pItem->pSwitch->Z;
+					Z = ((PSPAWNINFO)pCharSpawn)->Z - pItem->pSwitch->Z;
 				else
-					Z = ((PSPAWNINFO)pLocalPlayer)->Z - pItem->Z;
+					Z = ((PSPAWNINFO)pCharSpawn)->Z - pItem->Z;
 				float dist = sqrtf(X*X + Y*Y + Z*Z);
 				itemmap[dist] = pItem;
 			}
@@ -468,7 +468,8 @@ TLO(dataHeading)
 		FLOAT Y = (FLOAT)atof(szIndex);
 		*pComma = ',';
 		FLOAT X = (FLOAT)atof(&pComma[1]);
-		Ret.Float = (FLOAT)(atan2f(((PSPAWNINFO)pLocalPlayer)->Y - Y, X - ((PSPAWNINFO)pLocalPlayer)->X) * 180.0f / PI + 90.0f);
+		//changed
+		Ret.Float = (FLOAT)(atan2f(((PSPAWNINFO)pCharSpawn)->Y - Y, X - ((PSPAWNINFO)pCharSpawn)->X) * 180.0f / PI + 90.0f);
 		if (Ret.Float<0.0f)
 			Ret.Float += 360.0f;
 		else if (Ret.Float >= 360.0f)
@@ -487,7 +488,7 @@ TLO(dataHeading)
 	{
 		FLOAT Y = (FLOAT)atof(argv[0]);
 		FLOAT X = (FLOAT)atof(argv[1]);
-		Ret.Float = (FLOAT)(atan2f(((PSPAWNINFO)pLocalPlayer)->Y - Y, X - ((PSPAWNINFO)pLocalPlayer)->X) * 180.0f / PI + 90.0f);
+		Ret.Float = (FLOAT)(atan2f(((PSPAWNINFO)pCharSpawn)->Y - Y, X - ((PSPAWNINFO)pLocalPlayer)->X) * 180.0f / PI + 90.0f);
 		if (Ret.Float<0.0f)
 			Ret.Float += 360.0f;
 		else if (Ret.Float >= 360.0f)
@@ -788,7 +789,7 @@ TLO(dataNearestSpawn)
 		{
 			if (EQP_DistArray[N].Value.Float>ssSpawn.FRadius && !ssSpawn.bKnownLocation)
 				return false;
-			if (SpawnMatchesSearch(&ssSpawn, (PSPAWNINFO)pLocalPlayer, (PSPAWNINFO)EQP_DistArray[N].VarPtr.Ptr))
+			if (SpawnMatchesSearch(&ssSpawn, (PSPAWNINFO)pCharSpawn, (PSPAWNINFO)EQP_DistArray[N].VarPtr.Ptr))
 			{
 				if (--nth == 0)
 				{
@@ -1617,9 +1618,9 @@ TLO(dataLineOfSight)
 	{
 		FLOAT P1[3];
 		FLOAT P2[3];
-		P1[0] = P2[0] = ((PSPAWNINFO)pLocalPlayer)->Y;
-		P1[1] = P2[1] = ((PSPAWNINFO)pLocalPlayer)->X;
-		P1[2] = P2[2] = ((PSPAWNINFO)pLocalPlayer)->Z;
+		P1[0] = P2[0] = ((PSPAWNINFO)pCharSpawn)->Y;
+		P1[1] = P2[1] = ((PSPAWNINFO)pCharSpawn)->X;
+		P1[2] = P2[2] = ((PSPAWNINFO)pCharSpawn)->Z;
 #ifdef ISXEQ
 		if (argc != 6)
 			return false;
