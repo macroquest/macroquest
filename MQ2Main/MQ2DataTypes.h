@@ -2772,8 +2772,13 @@ public:
 		}
 		if (Source.Type == (MQ2Type*)pCurrentZoneType)
 		{
-			VarPtr.Ptr = &((PWORLDDATA)pWorldData)->ZoneArray[(GetCharInfo()->zoneId && 0x7FFF)];
-			return true;
+			if (PCHARINFO pChar = GetCharInfo()) {
+				int zoneid = (pChar->zoneId & 0x7FFF);
+				if (zoneid <= MAX_ZONES) {
+					VarPtr.Ptr = &((PWORLDDATA)pWorldData)->ZoneArray[zoneid];
+					return true;
+				}
+			}
 		}
 		return false;
 	}

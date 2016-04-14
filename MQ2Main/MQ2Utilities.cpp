@@ -6464,7 +6464,7 @@ VOID SuperWhoDisplay(PSPAWNINFO pChar, PSEARCHSPAWN pSearchSpawn, DWORD Color)
 	}
 	if (TotalMatching)
 	{
-		if (TotalMatching>1)
+		if (TotalMatching > 1)
 		{
 			// sort our list
 			SWhoSortValue = pSearchSpawn->SortBy;
@@ -6527,7 +6527,9 @@ VOID SuperWhoDisplay(PSPAWNINFO pChar, PSEARCHSPAWN pSearchSpawn, DWORD Color)
 			pszSpawnType = "flyer";
 			break;
 		}
-		WriteChatf("There %s \ag%d\ax %s%s in %s.", (TotalMatching == 1) ? "is" : "are", TotalMatching, pszSpawnType, (TotalMatching == 1) ? "" : "s", GetFullZone(GetCharInfo()->zoneId));
+		if (PCHARINFO pCharinf = GetCharInfo()) {
+			WriteChatf("There %s \ag%d\ax %s%s in %s.", (TotalMatching == 1) ? "is" : "are", TotalMatching, pszSpawnType, (TotalMatching == 1) ? "" : "s", GetFullZone(pCharinf->zoneId));
+		}
 	}
 	else
 	{

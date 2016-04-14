@@ -1,3 +1,9 @@
+14 Apr 2016
+- Updated for TEST
+- Fixed ${Me.AbilityReady[Taunt]} (and other abilites not on hotkeys) so it works even when not "hotkeyed"
+  Thanks mwilliam for bug report
+- Added some more items to actordef.
+
 12 Apr 2016
 - Updated for TEST
 

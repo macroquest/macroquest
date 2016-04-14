@@ -390,7 +390,27 @@ TLO(dataZone)
 	{
 		if (nIndex = (GETNUMBER() & 0x7FFF))
 		{
-			if ((GetCharInfo()->zoneId & 0x7FFF) == nIndex)
+			if (PCHARINFO pChar = GetCharInfo()) {
+				if ((pChar->zoneId & 0x7FFF) == nIndex)
+				{
+					Ret.DWord = instEQZoneInfo;
+					Ret.Type = pCurrentZoneType;
+				}
+				else if (nIndex < MAX_ZONES)
+				{
+					Ret.Ptr = ((PWORLDDATA)pWorldData)->ZoneArray[nIndex];
+					Ret.Type = pZoneType;
+				}
+				if (!Ret.Ptr)
+					return false;
+				return true;
+			}
+		}
+	}
+	else if ((nIndex = GetZoneID(GETFIRST())) != -1)
+	{
+		if (PCHARINFO pChar = GetCharInfo()) {
+			if ((pChar->zoneId & 0x7FFF) == nIndex)
 			{
 				Ret.DWord = instEQZoneInfo;
 				Ret.Type = pCurrentZoneType;
@@ -400,24 +420,8 @@ TLO(dataZone)
 				Ret.Ptr = ((PWORLDDATA)pWorldData)->ZoneArray[nIndex];
 				Ret.Type = pZoneType;
 			}
-			if (!Ret.Ptr)
-				return false;
 			return true;
 		}
-	}
-	else if ((nIndex = GetZoneID(GETFIRST())) != -1)
-	{
-		if (GetCharInfo()->zoneId == nIndex)
-		{
-			Ret.DWord = instEQZoneInfo;
-			Ret.Type = pCurrentZoneType;
-		}
-		else
-		{
-			Ret.Ptr = ((PWORLDDATA)pWorldData)->ZoneArray[nIndex];
-			Ret.Type = pZoneType;
-		}
-		return true;
 	}
 	return false;
 }

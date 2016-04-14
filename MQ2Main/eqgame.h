@@ -131,6 +131,7 @@ GNU General Public License for more details.
 #define pinstDZMember_x                                            0x1018128
 #define pinstDZTimerInfo_x                                         0x101812C
 #define pinstEQItemList_x                                          0x1007898
+#define pinstEQObjectList_x                                        0x100860C
 #define instEQMisc_x                                               0xC0EFD0
 #define pinstEQSoundManager_x                                      0xF589E0
 #define instExpeditionLeader_x                                     0x1018062
@@ -706,6 +707,7 @@ GNU General Public License for more details.
 
 // EQItemList 
 #define EQItemList__EQItemList_x                                   0x510160
+#define EQItemList__add_object_x                                   0x53C9D0
 #define EQItemList__add_item_x                                     0x5100A0
 #define EQItemList__delete_item_x                                  0x510560
 #define EQItemList__FreeItemList_x                                 0x510460

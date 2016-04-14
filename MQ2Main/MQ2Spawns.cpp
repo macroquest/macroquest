@@ -29,16 +29,17 @@ BOOL ProcessPending=false;
 
 void AddGroundItem()
 {
-    PGROUNDITEM pGroundItem=*(PGROUNDITEM*)pItemList;
-    EnterCriticalSection(&csPendingGrounds);
-    PMQGROUNDPENDING pPending=new MQGROUNDPENDING;
-    pPending->pGroundItem=pGroundItem;
-    pPending->pNext=pPendingGrounds;
-    pPending->pLast=0;
-    if (pPendingGrounds)
-        pPendingGrounds->pLast=pPending;
-    pPendingGrounds=pPending;
-    LeaveCriticalSection(&csPendingGrounds);
+	if (PGROUNDITEM pGroundItem = *(PGROUNDITEM*)pItemList) {
+		EnterCriticalSection(&csPendingGrounds);
+		PMQGROUNDPENDING pPending = new MQGROUNDPENDING;
+		pPending->pGroundItem = pGroundItem;
+		pPending->pNext = pPendingGrounds;
+		pPending->pLast = 0;
+		if (pPendingGrounds)
+			pPendingGrounds->pLast = pPending;
+		pPendingGrounds = pPending;
+		LeaveCriticalSection(&csPendingGrounds);
+	}
 }
 
 void RemoveGroundItem(PGROUNDITEM pGroundItem)
@@ -85,23 +86,26 @@ public:
         FreeItemList_Trampoline();
     }
 
-    void AddItem_Trampoline(PGROUNDITEM);
-    void AddItem_Detour(PGROUNDITEM pItem)
+	//if this IS NOT a PGROUNDITEM you have the wrong offset... -eqmule 2016 Apr 13
+    PGROUNDITEM AddItem_Trampoline(PGROUNDITEM);
+    PGROUNDITEM AddItem_Detour(PGROUNDITEM pItem)
     {
-        AddItem_Trampoline(pItem);
+		//if you drop something on the ground and this doesnt get called... you have the wrong offset -eqmule 2016 Apr 13
+        PGROUNDITEM ret = AddItem_Trampoline(pItem);
         AddGroundItem();
+		return ret;
     }
 
-    void DeleteItem_Trampoline(PGROUNDITEM);
-    void DeleteItem_Detour(PGROUNDITEM pItem)
+    PGROUNDITEM DeleteItem_Trampoline(PGROUNDITEM);
+    PGROUNDITEM DeleteItem_Detour(PGROUNDITEM pItem)
     {
         RemoveGroundItem(pItem);
-        DeleteItem_Trampoline(pItem);
+        return DeleteItem_Trampoline(pItem);
     }
 };
 DETOUR_TRAMPOLINE_EMPTY(void EQItemListHook::FreeItemList_Trampoline(VOID)); 
-DETOUR_TRAMPOLINE_EMPTY(void EQItemListHook::AddItem_Trampoline(PGROUNDITEM));
-DETOUR_TRAMPOLINE_EMPTY(void EQItemListHook::DeleteItem_Trampoline(PGROUNDITEM));
+DETOUR_TRAMPOLINE_EMPTY(PGROUNDITEM EQItemListHook::AddItem_Trampoline(PGROUNDITEM));
+DETOUR_TRAMPOLINE_EMPTY(PGROUNDITEM EQItemListHook::DeleteItem_Trampoline(PGROUNDITEM));
 
 VOID SetNameSpriteTint(PSPAWNINFO pSpawn);
 
@@ -657,8 +661,8 @@ VOID ProcessPendingGroundItems()
         while(pPendingGrounds)
         {
             PMQGROUNDPENDING pNext=pPendingGrounds->pNext;
-            PluginsAddGroundItem(pPendingGrounds->pGroundItem);
-            delete pPendingGrounds;
+			PluginsAddGroundItem(pPendingGrounds->pGroundItem);
+			delete pPendingGrounds;
             pPendingGrounds=pNext;
         }
         LeaveCriticalSection(&csPendingGrounds);

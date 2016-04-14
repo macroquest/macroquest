@@ -621,6 +621,10 @@ VOID PluginsRemoveSpawn(PSPAWNINFO pSpawn)
 
 VOID PluginsAddGroundItem(PGROUNDITEM pNewGroundItem)
 {
+	if (!pNewGroundItem) {
+		DebugSpew("PluginsAddGroundItem was NULL");
+		return;
+	}
     PluginDebug("PluginsAddGroundItem()");
     if (!bPluginCS)
         return;
@@ -673,26 +677,28 @@ VOID PluginsBeginZone()
     } 
 } 
 
-VOID PluginsEndZone() 
-{ 
-    PluginDebug("PluginsEndZone()"); 
-    if (!bPluginCS) 
-        return;
-    gbInZone=true;
-    CAutoLock Lock(&gPluginCS); 
-    PMQPLUGIN pPlugin=pPlugins; 
-    while(pPlugin) 
-    { 
-        if (pPlugin->EndZone) 
-        { 
-            DebugSpew("%s->EndZone()",pPlugin->szFilename); 
-            pPlugin->EndZone(); 
-        } 
-        pPlugin=pPlugin->pNext; 
-    } 
+VOID PluginsEndZone()
+{
+	PluginDebug("PluginsEndZone()");
+	if (!bPluginCS)
+		return;
+	gbInZone = true;
+	CAutoLock Lock(&gPluginCS);
+	PMQPLUGIN pPlugin = pPlugins;
+	while (pPlugin)
+	{
+		if (pPlugin->EndZone)
+		{
+			DebugSpew("%s->EndZone()", pPlugin->szFilename);
+			pPlugin->EndZone();
+		}
+		pPlugin = pPlugin->pNext;
+	}
 	//HideDoCommand(((PSPAWNINFO)pLocalPlayer),"/loadcfg zoned",TRUE);
-    LoadCfgFile("zoned",true);
-    LoadCfgFile(((PZONEINFO)pZoneInfo)->ShortName,false);
+	LoadCfgFile("zoned", true);
+	if (PZONEINFO pthezone = (PZONEINFO)pZoneInfo) {
+		LoadCfgFile(pthezone->ShortName, false);
+	}
 } 
 
 #endif

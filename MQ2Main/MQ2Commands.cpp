@@ -125,33 +125,34 @@ VOID Items(PSPAWNINFO pChar, PCHAR szLine)
 	std::map<FLOAT, iteminfo>itemsmap;
 	if (!ppItemList) return;
 	if (!pItemList) return;
-	PGROUNDITEM pItem = *(PGROUNDITEM*)pItemList;
 	CHAR szBuffer[MAX_STRING] = { 0 };
-	CHAR szLineLwr[MAX_STRING] = { 0 };
-	CHAR szName[MAX_STRING] = { 0 };
-	SPAWNINFO TempSpawn = { 0 };
-	iteminfo ii;
-	strcpy_s(szLineLwr, szLine);
+	if (PGROUNDITEM pItem = *(PGROUNDITEM*)pItemList) {
+		CHAR szLineLwr[MAX_STRING] = { 0 };
+		CHAR szName[MAX_STRING] = { 0 };
+		SPAWNINFO TempSpawn = { 0 };
+		iteminfo ii;
+		strcpy_s(szLineLwr, szLine);
 
-	_strlwr_s(szLineLwr);
-	while (pItem) {
-		GetFriendlyNameForGroundItem(pItem, szName);
-		strcpy_s(szBuffer, szName);
-		_strlwr_s(szBuffer);
-		DebugSpew("   Item found - %d: DropID %d %s (%s)", pItem->ID, pItem->DropID, szName, pItem->Name);
-		if ((szLine[0] == 0) || (strstr(szBuffer, szLineLwr))) {
-			ZeroMemory(&TempSpawn, sizeof(TempSpawn));
-			TempSpawn.Y = pItem->Y;
-			TempSpawn.X = pItem->X;
-			TempSpawn.Z = pItem->Z;
-			FLOAT Distance = Distance3DToSpawn(pChar, &TempSpawn);
-			INT Angle = (INT)((atan2f(pChar->X - pItem->X, pChar->Y - pItem->Y) * 180.0f / PI + 360.0f) / 22.5f + 0.5f) % 16;
-			ii.angle = Angle;
-			ii.Name = szName;
-			itemsmap[Distance] = ii;
+		_strlwr_s(szLineLwr);
+		while (pItem) {
+			GetFriendlyNameForGroundItem(pItem, szName);
+			strcpy_s(szBuffer, szName);
+			_strlwr_s(szBuffer);
+			DebugSpew("   Item found - %d: DropID %d %s (%s)", pItem->ID, pItem->DropID, szName, pItem->Name);
+			if ((szLine[0] == 0) || (strstr(szBuffer, szLineLwr))) {
+				ZeroMemory(&TempSpawn, sizeof(TempSpawn));
+				TempSpawn.Y = pItem->Y;
+				TempSpawn.X = pItem->X;
+				TempSpawn.Z = pItem->Z;
+				FLOAT Distance = Distance3DToSpawn(pChar, &TempSpawn);
+				INT Angle = (INT)((atan2f(pChar->X - pItem->X, pChar->Y - pItem->Y) * 180.0f / PI + 360.0f) / 22.5f + 0.5f) % 16;
+				ii.angle = Angle;
+				ii.Name = szName;
+				itemsmap[Distance] = ii;
+			}
+
+			pItem = pItem->pNext;
 		}
-
-		pItem = pItem->pNext;
 	}
 	if (itemsmap.size() == 0) {
 		WriteChatColor("No items found.", USERCOLOR_DEFAULT);
@@ -190,40 +191,41 @@ VOID ItemTarget(PSPAWNINFO pChar, PCHAR szLine)
 	if (!szLine) RETURN(0);
 	if (!ppItemList) RETURN(0);
 	if (!pItemList) RETURN(0);
-	PGROUNDITEM pItem = *(PGROUNDITEM*)pItemList;
+	CHAR szBuffer[MAX_STRING] = { 0 };
 	CHAR Arg1[MAX_STRING] = { 0 };
 	CHAR Arg2[MAX_STRING] = { 0 };
-	CHAR szBuffer[MAX_STRING] = { 0 };
-	CHAR szName[MAX_STRING] = { 0 };
-	FLOAT cDistance = 100000.0f;
-	ZeroMemory(&EnviroTarget, sizeof(EnviroTarget));
-	pGroundTarget = NULL;
 	GetArg(Arg1, szLine, 1);
 	GetArg(Arg2, szLine, 2);
-	SPAWNINFO tSpawn = { 0 };
-	while (pItem) {
-		GetFriendlyNameForGroundItem(pItem, szName);
-		if (((szLine[0] == 0) || (!strnicmp(szName, Arg1, strlen(Arg1)))) && ((gZFilter >= 10000.0f) || ((pItem->Z <= pChar->Z + gZFilter) && (pItem->Z >= pChar->Z - gZFilter)))) {
-			ZeroMemory(&tSpawn, sizeof(tSpawn));
-			strcpy(tSpawn.Name, szName);
-			strcpy(tSpawn.DisplayedName, szName);
-			tSpawn.Y = pItem->Y;
-			tSpawn.X = pItem->X;
-			tSpawn.Z = pItem->pSwitch->Z;
-			tSpawn.Type = SPAWN_NPC;
-			tSpawn.HPCurrent = 1;
-			tSpawn.HPMax = 1;
-			tSpawn.Heading = pItem->Heading;
-			tSpawn.Race = pItem->DropID;
-			tSpawn.StandState = STANDSTATE_STAND;//im using this for /clicked left item -eqmule
-			FLOAT Distance = Get3DDistance(pChar->X, pChar->Y, pChar->Z, tSpawn.X, tSpawn.Y, tSpawn.Z);
-			if (Distance<cDistance) {
-				CopyMemory(&EnviroTarget, &tSpawn, sizeof(EnviroTarget));
-				cDistance = Distance;
-				pGroundTarget = pItem;
+	ZeroMemory(&EnviroTarget, sizeof(EnviroTarget));
+	if (PGROUNDITEM pItem = *(PGROUNDITEM*)pItemList) {
+		CHAR szName[MAX_STRING] = { 0 };
+		FLOAT cDistance = 100000.0f;
+		pGroundTarget = NULL;
+		SPAWNINFO tSpawn = { 0 };
+		while (pItem) {
+			GetFriendlyNameForGroundItem(pItem, szName);
+			if (((szLine[0] == 0) || (!strnicmp(szName, Arg1, strlen(Arg1)))) && ((gZFilter >= 10000.0f) || ((pItem->Z <= pChar->Z + gZFilter) && (pItem->Z >= pChar->Z - gZFilter)))) {
+				ZeroMemory(&tSpawn, sizeof(tSpawn));
+				strcpy(tSpawn.Name, szName);
+				strcpy(tSpawn.DisplayedName, szName);
+				tSpawn.Y = pItem->Y;
+				tSpawn.X = pItem->X;
+				tSpawn.Z = pItem->pSwitch->Z;
+				tSpawn.Type = SPAWN_NPC;
+				tSpawn.HPCurrent = 1;
+				tSpawn.HPMax = 1;
+				tSpawn.Heading = pItem->Heading;
+				tSpawn.Race = pItem->DropID;
+				tSpawn.StandState = STANDSTATE_STAND;//im using this for /clicked left item -eqmule
+				FLOAT Distance = Get3DDistance(pChar->X, pChar->Y, pChar->Z, tSpawn.X, tSpawn.Y, tSpawn.Z);
+				if (Distance < cDistance) {
+					CopyMemory(&EnviroTarget, &tSpawn, sizeof(EnviroTarget));
+					cDistance = Distance;
+					pGroundTarget = pItem;
+				}
 			}
+			pItem = pItem->pNext;
 		}
-		pItem = pItem->pNext;
 	}
 	if (EnviroTarget.DisplayedName[0] != 0) {
 		sprintf(szBuffer, "Item '%s' targeted.", EnviroTarget.DisplayedName);

@@ -1,6 +1,6 @@
 #include <winsock2.h>
 #include "wintelnet.h"
-
+#include <Ws2tcpip.h>
 CWinTelnet::CWinTelnet(void)
 {
     Valid=true;
@@ -31,10 +31,13 @@ bool CWinTelnet::Connect(char* addr , int port)
     memset(&sockAddr,0,sizeof(sockAddr));
 
     sockAddr.sin_family = AF_INET;
-    sockAddr.sin_addr.s_addr = inet_addr(addr);     // check if address is x.x.x.x format
+	
+	inet_pton(AF_INET, addr, &(sockAddr.sin_addr));
+    //sockAddr.sin_addr.s_addr = inet_addr(addr);     // check if address is x.x.x.x format
     if (sockAddr.sin_addr.s_addr == INADDR_NONE)                // if not, we resolve hostname
     {
         LPHOSTENT lphost;
+		//use getaddrinfo instead when i have time...
         lphost = gethostbyname(addr);
         if (lphost != NULL)
             sockAddr.sin_addr.s_addr = ((LPIN_ADDR)lphost->h_addr)->s_addr;

@@ -3093,9 +3093,12 @@ bool MQ2CharacterType::GETMEMBER()
 					if (!_stricmp(GETFIRST(), szSkills[nSkill]))
 					{
 						// found name
-						for (DWORD nAbility = 0; nAbility<10; nAbility++)
+						//for (DWORD nAbility = 0; nAbility<10; nAbility++)
 						{
-							if (EQADDR_DOABILITYLIST[nAbility] == nSkill)
+							//why do we check this? it only has abilites we assigned to hotbuttons in it...
+							//so if we don't have for example taunt assigned, a check for it will fail...
+							//im commenting it out for now, lets see if problems arise.
+							//if (EQADDR_DOABILITYLIST[nAbility] == nSkill)
 							{
 								// thanks s0rcier!
 								if (nSkill<100 || nSkill == 111 || nSkill == 114 || nSkill == 115 || nSkill == 116)
@@ -3103,7 +3106,8 @@ bool MQ2CharacterType::GETMEMBER()
 									//if (pSkillMgr->pSkill[nSkill]->AltTimer==2) // this check is included in CSkillMgr::IsAvailable
 									//    Dest.DWord=gbAltTimerReady;
 									//else
-									Dest.DWord = pCSkillMgr->IsAvailable(EQADDR_DOABILITYLIST[nAbility]);
+									Dest.DWord = pCSkillMgr->IsAvailable(nSkill);
+									//Dest.DWord = pCSkillMgr->IsAvailable(EQADDR_DOABILITYLIST[nAbility]);
 									Dest.Type = pBoolType;
 									return true;
 								}
@@ -6896,8 +6900,6 @@ bool MQ2CurrentZoneType::GETMEMBER()
 	PMQ2TYPEMEMBER pMember = MQ2CurrentZoneType::FindMember(Member);
 	if (!pMember)
 		return false;
-
-	//return pZoneType->GetMember(*(MQ2VARPTR*)&((PWORLDDATA)pWorldData)->ZoneArray[GetCharInfo()->zoneId],Member,Index,Dest);
 	switch ((CurrentZoneMembers)pMember->ID)
 	{
 	case Address:
@@ -6905,12 +6907,13 @@ bool MQ2CurrentZoneType::GETMEMBER()
 		Dest.Type = pIntType;
 		return true;
 	case ID:
-		Dest.Int = GetCharInfo()->zoneId;
-		if (Dest.Int >= MAX_ZONES) {
-			Dest.Int &= 0x7FFF;//fix for instanced zones and neighborhoods and stuff
+	{
+		if (PCHARINFO pChar = GetCharInfo()) {
+			Dest.Int = (pChar->zoneId & 0x7FFF);
+			Dest.Type = pIntType;
+			return true;
 		}
-		Dest.Type = pIntType;
-		return true;
+	}
 	case Name:
 		Dest.Ptr = &pZone->LongName[0];
 		Dest.Type = pStringType;
@@ -7369,7 +7372,7 @@ bool MQ2GroundType::GETMEMBER()
 		Dest.Type = pIntType;
 		return true;
 	case ZoneID:
-		Dest.DWord = pGround->ZoneID;
+		Dest.DWord = (pGround->ZoneID & 0x7FFF);
 		Dest.Type = pIntType;
 		return true;
 	case W:
