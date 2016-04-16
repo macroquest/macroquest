@@ -187,10 +187,10 @@ FUNCTION_AT_VIRTUAL_ADDRESS(int CXWnd::OnMinimizeBox(void),0xac);
 FUNCTION_AT_VIRTUAL_ADDRESS(class CXRect CXWnd::GetClientRect(void)const,0xf8);
 FUNCTION_AT_VIRTUAL_ADDRESS(void CListWnd::DeleteAll(void),0x17c);//see CComboWnd__DeleteAll_x
 
-
+#if !defined(TEST)
 FUNCTION_AT_VIRTUAL_ADDRESS(int SpellManager::dSpellManager(void *, bool), 0x00);
 FUNCTION_AT_VIRTUAL_ADDRESS( SpellManager::SpellManager(char *, char *, char *), 0x04);
-FUNCTION_AT_VIRTUAL_ADDRESS( SpellManager::SpellManager(char *), 0x08);
+//FUNCTION_AT_VIRTUAL_ADDRESS( SpellManager::SpellManager(char *), 0x08);
 FUNCTION_AT_VIRTUAL_ADDRESS( int SpellManager::Unknown0x0C(int, int), 0x0c);
 FUNCTION_AT_VIRTUAL_ADDRESS( int SpellManager::Unknown0x10(int), 0x10);
 FUNCTION_AT_VIRTUAL_ADDRESS( int SpellManager::Unknown0x14(int), 0x14);
@@ -198,6 +198,11 @@ FUNCTION_AT_VIRTUAL_ADDRESS( int SpellManager::Unknown0x18(int), 0x18);
 FUNCTION_AT_VIRTUAL_ADDRESS( PSPELL SpellManager::GetSpellByID(int), 0x1c);
 FUNCTION_AT_VIRTUAL_ADDRESS( struct _SPELLCALCINFO* SpellManager::GetSpellCalcInfoByCalcIndex(int), 0x20);
 FUNCTION_AT_VIRTUAL_ADDRESS( bool SpellManager::Unknown0x24(bool), 0x24);
+#else
+FUNCTION_AT_VIRTUAL_ADDRESS( PSPELL SpellManager::GetSpellByID(int), 0x20);
+FUNCTION_AT_VIRTUAL_ADDRESS( struct _SPELLCALCINFO* SpellManager::GetSpellCalcInfoByCalcIndex(int), 0x24);
+#endif
+
 // AUTO IMPORTS
 
 #ifdef CAAWnd__CAAWnd_x

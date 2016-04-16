@@ -30,7 +30,7 @@ GNU General Public License for more details.
 
 DWORD WINAPI MQ2Start(LPVOID lpParameter);
 #if !defined(ISXEQ) && !defined(ISXEQ_LEGACY)
-
+HANDLE hMQ2StartThread = 0;
 BOOL APIENTRY DllMain( HANDLE hModule, 
                       DWORD  ul_reason_for_call, 
                       LPVOID lpReserved
@@ -58,11 +58,11 @@ BOOL APIENTRY DllMain( HANDLE hModule,
             szProcessName = strrchr(szFilename,'\\');
             szProcessName[0] = '\0';
             g_Loaded = TRUE;
-            CreateThread(NULL,0,&MQ2Start,strdup(szFilename),0,&ThreadID);
+            hMQ2StartThread = CreateThread(NULL,0,&MQ2Start,strdup(szFilename),0,&ThreadID);
         } else if (ul_reason_for_call == DLL_PROCESS_DETACH){
-            gbUnload=TRUE;
-            //Fuck waiting for us to cleanly exit... we're being unloaded!
-            //while (g_Loaded) Sleep(20);
+			gbUnload = TRUE;
+			//while(g_Loaded)
+			//	Sleep(0);
             return TRUE;
         }
     }
@@ -440,6 +440,17 @@ HMODULE GetCurrentModule()
 	GetModuleHandleEx(GET_MODULE_HANDLE_EX_FLAG_FROM_ADDRESS | GET_MODULE_HANDLE_EX_FLAG_UNCHANGED_REFCOUNT, (LPCTSTR)GetCurrentModule, &hModule);
 	return hModule;
 }
+
+// ***************************************************************************
+// Function:    MQ2End Thread
+// Description: Where we end execution during the ejection
+// ***************************************************************************
+DWORD WINAPI MQ2End(LPVOID lpParameter)
+{
+	Unload(NULL,NULL);
+	return 0;
+}
+
 // ***************************************************************************
 // Function:    MQ2Start Thread
 // Description: Where we start execution during the insertion
@@ -447,20 +458,24 @@ HMODULE GetCurrentModule()
 DWORD WINAPI MQ2Start(LPVOID lpParameter)
 {
 	PCHAR lpINIPath = (PCHAR)lpParameter;
-    strcpy(gszINIPath, lpINIPath);
-    free(lpINIPath);
+	strcpy(gszINIPath, lpINIPath);
+	free(lpINIPath);
 #ifdef EMU
 	MQ2StartEmu();//or whatever...
 #endif
 	CHAR szBuffer[MAX_STRING] = { 0 };
 
-    if (!MQ2Initialize()) {
-		MessageBox(NULL,"Failed to Initialize MQ2 will free lib and exit","MQ2 Error",MB_OK);
-		if(HMODULE h = GetCurrentModule())
-			FreeLibraryAndExitThread(h,0);
+	if (!MQ2Initialize()) {
+		MessageBox(NULL, "Failed to Initialize MQ2 will free lib and exit", "MQ2 Error", MB_OK);
+		if (HMODULE h = GetCurrentModule())
+			FreeLibraryAndExitThread(h, 0);
 	}
-    while (gGameState != GAMESTATE_CHARSELECT && gGameState != GAMESTATE_INGAME) 
-        Sleep(500);
+	while (gGameState != GAMESTATE_CHARSELECT && gGameState != GAMESTATE_INGAME) {
+		if (gbUnload) {
+			goto getout;
+		}
+		Sleep(500);
+	}
 
     InitializeMQ2DInput();
     if (gGameState == GAMESTATE_INGAME) {
@@ -476,12 +491,11 @@ DWORD WINAPI MQ2Start(LPVOID lpParameter)
     while (!gbUnload) {
         Sleep(500);
     }
-
+getout:
     WriteChatColor(UnloadedString,USERCOLOR_DEFAULT);
     DebugSpewAlways("%s", UnloadedString);
     UnloadMQ2Plugins();
     MQ2Shutdown();
-
 
     DebugSpew("Shutdown completed");
     g_Loaded = FALSE;

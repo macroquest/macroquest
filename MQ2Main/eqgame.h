@@ -815,3 +815,7 @@ GNU General Public License for more details.
 #define msg_spell_worn_off_x                                       0x4E7B80
 #define msg_new_text_x                                             0x4F0FB0
 #define msgTokenTextParam_x                                        0x4ED970
+
+//SpellManager
+#define SpellManager__vftable_x                                    0xABADC0
+#define SpellManager__SpellManager_x                               0x47CA00

@@ -1,7 +1,18 @@
+15 Apr 2016
+- Fixed broken spell stuff for TEST - cred demonstar55
+- Added support for specifying buildtype (TEST/LIVE/BETA/EMU) in the preprocessor.
+- Updated Macroquest.exe to only inject in the right eqgame.
+  Example: you have macroquest loaded in the tasktray from your
+  Releast(test) directory it will not try to inject into a live eqgame session.
+  if you have live macroquest running and start eqgame for test it will not try
+  to inject into the live client.
+  This means you can have 2 macroquest.exes running and they will only inject in
+  the exe that mq2main.dll is built for. (it knows what dir it was started from).
+
 14 Apr 2016
 - Updated for TEST
-- Fixed ${Me.AbilityReady[Taunt]} (and other abilites not on hotkeys) so it works even when not "hotkeyed"
-  Thanks mwilliam for bug report
+- Fixed ${Me.AbilityReady[Taunt]} and other abilites not on hotkeys so they work even when not "hotkeyed"
+  Thanks mwilliam for the bug report
 - Added some more items to actordef.
 
 12 Apr 2016

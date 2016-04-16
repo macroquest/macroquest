@@ -269,6 +269,7 @@ namespace MQ2Globals
 
 	ePVPServer PVPServer = PVP_NONE;
 	CHAR gszVersion[32] = VersionString;
+	CHAR gszTime[32] = TimeString;
 	#if defined(TEST)
 		int gBuild = 2;//TEST
 	#elif defined(BETA)
@@ -1884,5 +1885,5 @@ namespace MQ2Globals
 	INITIALIZE_EQGAME_OFFSET(msg_spell_worn_off);
 	INITIALIZE_EQGAME_OFFSET(msg_new_text);
 	INITIALIZE_EQGAME_OFFSET(msgTokenTextParam);
-	
+	INITIALIZE_EQGAME_OFFSET(SpellManager__SpellManager);
 };

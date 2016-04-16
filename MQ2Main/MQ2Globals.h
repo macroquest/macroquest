@@ -47,6 +47,7 @@ namespace MQ2Globals
 	EQLIB_API CHAR DataTypeTemp[MAX_STRING];
 
 	EQLIB_API CHAR gszVersion[32];
+	EQLIB_API CHAR gszTime[32];
 	EQLIB_API int gBuild;
 
 
@@ -1365,6 +1366,6 @@ namespace MQ2Globals
 	EQLIB_VAR DWORD msg_spell_worn_off;
 	EQLIB_VAR DWORD msg_new_text;
 	EQLIB_VAR DWORD msgTokenTextParam;
-	
+	EQLIB_VAR DWORD SpellManager__SpellManager;
 }
 using namespace MQ2Globals;

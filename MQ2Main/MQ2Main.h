@@ -13,6 +13,7 @@ GNU General Public License for more details.
 ******************************************************************************/
 
 #define VersionString __ExpectedVersionDate
+#define TimeString __ExpectedVersionTime
 #define DebugHeader "[MQ2]"
 #define LoadedString "MQ2 Loaded."
 #define ToUnloadString "MQ2 Unloading..."
@@ -85,8 +86,14 @@ using namespace std;
 #include "..\Dxsdk81\include\dinput.h"
 #include "..\Blech\Blech.h"
 #endif
+
+#if defined(TEST) || defined(BETA) || defined(EMU)
+//do nothing because the user has set one of these as a preprocessor argument instead...
+//we default to LIVE though...
+#else
 //define LIVE, TEST, BETA or EMU here depending on which eqgame you are building for. -eqmule sep 27 2014
 #define LIVE
+#endif
 #if defined(LIVE)
 #include "eqgame.h"
 #elif defined(TEST)
@@ -701,6 +708,7 @@ EQLIB_API bool        IsSpellUsableForClass(PSPELL pSpell, DWORD classmask = 0);
 EQLIB_API void		  PopulateSpellMap();
 EQLIB_API DWORD __stdcall InitializeMQ2SpellDb(PVOID pData);
 EQLIB_API HMODULE GetCurrentModule();
+EQLIB_API DWORD WINAPI MQ2End(LPVOID lpParameter);
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 // Functions that were built into commands and people used DoCommand to execute                  //
 

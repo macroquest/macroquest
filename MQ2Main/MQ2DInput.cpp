@@ -226,32 +226,38 @@ VOID InitializeMQ2DInput()
     }
 }
 
-VOID ShutdownMQ2DInput() 
+VOID ShutdownMQ2DInput()
 {
-    if (DetourRemove((PBYTE)DInputDataTrampoline, 
-        (PBYTE)DInputDataDetour)) 
-    {
-        RemoveDetour(GetDeviceData);
-        DInputDataTrampoline = NULL; 
-    }
-    else 
-        DebugSpewAlways("Failed to unhook DInputData"); 
-    if (DetourRemove((PBYTE)DInputStateTrampoline, 
-        (PBYTE)DInputStateDetour)) 
+	if (DInputDataTrampoline && DetourRemove((PBYTE)DInputDataTrampoline, (PBYTE)DInputDataDetour))
+	{
+		RemoveDetour(GetDeviceData);
+		DInputDataTrampoline = NULL;
+	}
+	else {
+		if (DInputDataTrampoline) {
+			DebugSpewAlways("Failed to unhook DInputData");
+		}
+	}
+    if (DInputStateTrampoline && DetourRemove((PBYTE)DInputStateTrampoline, (PBYTE)DInputStateDetour)) 
     {
         RemoveDetour(GetDeviceState);
         DInputStateTrampoline = NULL; 
     }
-    else 
-        DebugSpewAlways("Failed to unhook DInputState"); 
-    if (DetourRemove((PBYTE)DInputAcquireTrampoline, 
-        (PBYTE)DInputAcquireDetour)) 
+	else {
+		if (DInputStateTrampoline) {
+			DebugSpewAlways("Failed to unhook DInputState");
+		}
+	}
+    if (DInputAcquireTrampoline && DetourRemove((PBYTE)DInputAcquireTrampoline, (PBYTE)DInputAcquireDetour)) 
     {
         RemoveDetour(Acquire);
         DInputAcquireTrampoline = NULL; 
     }
-    else 
-        DebugSpewAlways("Failed to unhook DInputAcquire"); 
+	else {
+		if (DInputAcquireTrampoline) {
+			DebugSpewAlways("Failed to unhook DInputAcquire");
+		}
+	}
 }
 
 #endif
