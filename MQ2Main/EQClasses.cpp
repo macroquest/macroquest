@@ -187,7 +187,7 @@ FUNCTION_AT_VIRTUAL_ADDRESS(int CXWnd::OnMinimizeBox(void),0xac);
 FUNCTION_AT_VIRTUAL_ADDRESS(class CXRect CXWnd::GetClientRect(void)const,0xf8);
 FUNCTION_AT_VIRTUAL_ADDRESS(void CListWnd::DeleteAll(void),0x17c);//see CComboWnd__DeleteAll_x
 
-#if !defined(TEST)
+#if defined(EMU)
 FUNCTION_AT_VIRTUAL_ADDRESS(int SpellManager::dSpellManager(void *, bool), 0x00);
 FUNCTION_AT_VIRTUAL_ADDRESS( SpellManager::SpellManager(char *, char *, char *), 0x04);
 //FUNCTION_AT_VIRTUAL_ADDRESS( SpellManager::SpellManager(char *), 0x08);

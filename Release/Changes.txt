@@ -1,3 +1,6 @@
+20 Apr 2016
+- Updated for LIVE
+
 15 Apr 2016
 - Fixed broken spell stuff for TEST - cred demonstar55
 - Added support for specifying buildtype (TEST/LIVE/BETA/EMU) in the preprocessor.
