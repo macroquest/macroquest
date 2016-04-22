@@ -235,8 +235,8 @@ int CPacketScrambler::ntoh_detour(int nopcode)
 		__asm {
 			push eax;
 			push ebx;
-			mov eax, dword ptr[esi + 0x24];
-			mov ebx, dword ptr[esi + 0x20];
+			mov eax, dword ptr[esi + 0x19];
+			mov ebx, dword ptr[esi + 0x15];
 			xor eax, ebx;
 			cmp eax, EQ_ASSIST_CALC;
 			jnz nocomplete;
