@@ -1,3 +1,6 @@
+23 Apr 2016
+- Fixed a crash in ${Merchant.Item[x]}
+
 22 Apr 2016
 - Updated for LIVE
 
