@@ -1,3 +1,7 @@
+26 Apr 2016
+- Updated for TEST
+- Removed fancy progressbar message for now, it might return or not, dont know yet but im hunting a memory leak so... we'll see.
+
 23 Apr 2016
 - Fixed a crash in ${Merchant.Item[x]}
 

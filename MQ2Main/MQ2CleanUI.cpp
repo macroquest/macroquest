@@ -144,20 +144,25 @@ DETOUR_TRAMPOLINE_EMPTY(VOID EQ_LoadingSHook::SetProgressBar_Trampoline(int, cha
 DETOUR_TRAMPOLINE_EMPTY(void DrawHUD_Trampoline(unsigned short,unsigned short,PVOID,unsigned int)); 
 DETOUR_TRAMPOLINE_EMPTY(VOID CDisplayHook::CleanUI_Trampoline(VOID)); 
 DETOUR_TRAMPOLINE_EMPTY(VOID CDisplayHook::ReloadUI_Trampoline(BOOL)); 
-
+std::list<std::string>oldstrings;
 VOID InitializeDisplayHook()
 {
+	//this needs further investigation - eqmule
+#if 0
 #ifdef EQ_LoadingS__Array_x
     if (gbMQ2LoadingMsg)
     {
+		oldstrings.clear();
         char **ptr = (char **) EQ_LoadingS__Array;
         int i;
 
-        for (i=0;i<EQ_LoadingS__ArraySize;i++)
-            ptr[i] = OurCaption;
+		for (i = 0; i < EQ_LoadingS__ArraySize; i++) {
+			oldstrings.push_back(ptr[i]);
+			ptr[i] = OurCaption;
+		}
     }
 #endif
-
+#endif
     DebugSpew("Initializing Display Hooks");
 
     EzDetour(CDisplay__CleanGameUI,&CDisplayHook::CleanUI_Detour,&CDisplayHook::CleanUI_Trampoline);
@@ -166,11 +171,25 @@ VOID InitializeDisplayHook()
 #ifndef ISXEQ
     EzDetour(DrawNetStatus,DrawHUD_Detour,DrawHUD_Trampoline);
 #endif
-    EzDetour(EQ_LoadingS__SetProgressBar,&EQ_LoadingSHook::SetProgressBar_Detour,&EQ_LoadingSHook::SetProgressBar_Trampoline);
+    //EzDetour(EQ_LoadingS__SetProgressBar,&EQ_LoadingSHook::SetProgressBar_Detour,&EQ_LoadingSHook::SetProgressBar_Trampoline);
 }
 
 VOID ShutdownDisplayHook()
 {
+#if 0
+#ifdef EQ_LoadingS__Array_x
+    if (gbMQ2LoadingMsg)
+    {
+        char **ptr = (char **) EQ_LoadingS__Array;
+		int j = 0;
+		for(std::list<std::string>::iterator i = oldstrings.begin();i!=oldstrings.end();i++) {
+		//for (i = 0; i < EQ_LoadingS__ArraySize; i++) {
+			std::string stuff = *i;
+			ptr[j++] = (char*)stuff.c_str();
+		}
+    }
+#endif
+#endif
     PluginsCleanUI();
     DebugSpew("Shutting down Display Hooks");
 
@@ -179,6 +198,6 @@ VOID ShutdownDisplayHook()
 #ifndef ISXEQ
     RemoveDetour(DrawNetStatus);
 #endif
-    RemoveDetour(EQ_LoadingS__SetProgressBar);
+    //RemoveDetour(EQ_LoadingS__SetProgressBar);
     //RemoveDetour(CDisplay__GetWorldFilePath);
 }
