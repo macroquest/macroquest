@@ -56,7 +56,7 @@ GNU General Public License for more details.
 #define __Attack_x                                                 0x109F7C7
 #define __Autofire_x                                               0x109F7C8
 #define __BindList_x                                               0xC37DD8
-#define __bCommandEnabled_x                                        0x100A6B0
+#define g_eqCommandStates_x                                        0x100A6B0
 #define __Clicks_x                                                 0x101B310
 #define __CommandList_x                                            0xC3C148
 #define __CurrentMapLabel_x                                        0x11B2690

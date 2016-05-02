@@ -1856,7 +1856,11 @@ FUNCTION_AT_ADDRESS(void  CHotButtonWnd::Activate(void),CHotButtonWnd__Activate)
 FUNCTION_AT_ADDRESS(void  CHotButtonWnd::UpdatePage(void),CHotButtonWnd__UpdatePage);
 #endif
 #ifdef CHotButtonWnd__DoHotButton_x
+#if !defined(EMU)
+FUNCTION_AT_ADDRESS(void  CHotButtonWnd::DoHotButton(int,int,int),CHotButtonWnd__DoHotButton);
+#else
 FUNCTION_AT_ADDRESS(void  CHotButtonWnd::DoHotButton(int,int),CHotButtonWnd__DoHotButton);
+#endif
 #endif
 #ifdef CHotButtonWnd__DoHotButtonRightClick_x
 FUNCTION_AT_ADDRESS(void  CHotButtonWnd::DoHotButtonRightClick(int),CHotButtonWnd__DoHotButtonRightClick);
@@ -3905,7 +3909,7 @@ FUNCTION_AT_ADDRESS(struct _ALTABILITY *AltAdvManager::GetAAById(int), AltAdvMan
 #endif
 #endif
 #ifdef AltAdvManager__IsAbilityReady_x
-FUNCTION_AT_ADDRESS(bool  AltAdvManager::IsAbilityReady(class EQ_PC *,EQData::PALTABILITY,int *,int),AltAdvManager__IsAbilityReady);
+FUNCTION_AT_ADDRESS(bool  AltAdvManager::IsAbilityReady(class EQ_PC *,EQData::PALTABILITY,int *,int *),AltAdvManager__IsAbilityReady);
 #endif
 #ifdef AltAdvManager__CalculateHideTimeReduce_x
 FUNCTION_AT_ADDRESS(int  AltAdvManager::CalculateHideTimeReduce(class EQ_PC *),AltAdvManager__CalculateHideTimeReduce);
@@ -4358,7 +4362,7 @@ FUNCTION_AT_ADDRESS(unsigned int EQ_Character::GetEffectId(int),EQ_Character__Ge
 FUNCTION_AT_ADDRESS(void  EQ_Character1::SetEffectId(unsigned char,unsigned int),EQ_Character__SetEffectId);
 #endif
 #ifdef EQ_Character__CastSpell_x
-FUNCTION_AT_ADDRESS(unsigned char EQ_Character1::CastSpell(unsigned char gemid,int spellid,class EQ_Item * *ppItem,int,int slot,int,int,int,int,bool,int),EQ_Character__CastSpell); 
+FUNCTION_AT_ADDRESS(unsigned char EQ_Character1::CastSpell(unsigned char gemid, int spellid, class EQ_Item * *ppItem, class CEQItemLocation * ppitemloc, enum  ItemSpellTypes slot, unsigned char spell_loc, int arg7, int arg8, int arg9, bool arg10),EQ_Character__CastSpell); 
 #endif
 #ifdef EQ_Character__GetBardInstrumentMod_x
 FUNCTION_AT_ADDRESS(int  EQ_Character::GetBardInstrumentMod(int),EQ_Character__GetBardInstrumentMod);
@@ -5135,7 +5139,11 @@ FUNCTION_AT_ADDRESS(bool EQPlayer::CanSeeTargetIndicator(ScreenVector3 *), EQPla
 FUNCTION_AT_ADDRESS(unsigned int  EQPlayer::ModifyAttackSpeed(unsigned int,int),EQPlayer__ModifyAttackSpeed);
 #endif
 #ifdef EQPlayer__DoAttack_x
+#if defined(EMU)
+FUNCTION_AT_ADDRESS(int  EQPlayer::DoAttack(unsigned char,unsigned char,class EQPlayer *),EQPlayer__DoAttack);
+#else
 FUNCTION_AT_ADDRESS(int  EQPlayer::DoAttack(unsigned char,unsigned char,class EQPlayer *,int),EQPlayer__DoAttack);
+#endif
 #endif
 #ifdef EQPlayer__HandleAmmo_x
 FUNCTION_AT_ADDRESS(unsigned char  EQPlayer::HandleAmmo(void),EQPlayer__HandleAmmo);
@@ -7306,7 +7314,7 @@ FUNCTION_AT_ADDRESS(void  CSidlScreenWnd::EnableIniStorage(int,char *),CSidlScre
 FUNCTION_AT_ADDRESS(int  CSidlScreenWnd::ConvertToRes(int,int,int,int),CSidlScreenWnd__ConvertToRes);
 #endif
 #ifdef CSidlScreenWnd__GetChildItem_x
-FUNCTION_AT_ADDRESS(class CXWnd *  CSidlScreenWnd::GetChildItem(CXStr const &),CSidlScreenWnd__GetChildItem);
+FUNCTION_AT_ADDRESS(class CXWnd * CSidlScreenWnd::GetChildItem(CXStr const &, bool bDebug),CSidlScreenWnd__GetChildItem);
 #endif
 #ifdef CSidlScreenWnd__HandleLButtonUp_x
 FUNCTION_AT_ADDRESS(int  CSidlScreenWnd::HandleLButtonUp(class CXPoint,unsigned __int32),CSidlScreenWnd__HandleLButtonUp);
@@ -7385,11 +7393,7 @@ FUNCTION_AT_ADDRESS(int  CXWnd::Move(class CXPoint),CXWnd__Move);
 #endif
 #endif
 #ifdef CXWnd__Move1_x
-#ifndef EMU
-FUNCTION_AT_ADDRESS(int  CXWnd::Move(class CXRect const &), CXWnd__Move1);
-#else
-FUNCTION_AT_ADDRESS(int  CXWnd::Move(class CXRect),CXWnd__Move1);
-#endif
+FUNCTION_AT_ADDRESS(int CXWnd::Move(class CXRect *, bool, bool, bool, bool), CXWnd__Move1);
 #endif
 #ifdef CXPoint__operator_equal_x
 FUNCTION_AT_ADDRESS(class CXPoint  CXPoint::operator=(class CXPoint),CXPoint__operator_equal);
@@ -7413,7 +7417,7 @@ FUNCTION_AT_ADDRESS(bool  CXWnd::IsReallyVisible(void)const ,CXWnd__IsReallyVisi
 FUNCTION_AT_ADDRESS(class CXWnd *  CXWnd::GetNextChildWnd(class CXWnd *)const ,CXWnd__GetNextChildWnd);
 #endif
 #ifdef CXWnd__GetChildWndAt_x
-FUNCTION_AT_ADDRESS(class CXWnd *  CXWnd::GetChildWndAt(class CXPoint)const ,CXWnd__GetChildWndAt);
+FUNCTION_AT_ADDRESS(class CXWnd * CXWnd::GetChildWndAt(class CXPoint *,int,int)const ,CXWnd__GetChildWndAt);
 #endif
 #ifdef CXWnd__GetFirstChildWnd_x
 FUNCTION_AT_ADDRESS(class CXWnd *  CXWnd::GetFirstChildWnd(void)const ,CXWnd__GetFirstChildWnd);
@@ -7437,7 +7441,7 @@ FUNCTION_AT_ADDRESS(void  CXWnd::BringChildWndToTop(class CXWnd *),CXWnd__BringC
 FUNCTION_AT_ADDRESS(int __cdecl CXWnd::DrawColoredRect(class CXRect,unsigned long,class CXRect),CXWnd__DrawColoredRect);
 #endif
 #ifdef CXWnd__GetTooltipRect_x
-FUNCTION_AT_ADDRESS(class CXRect __cdecl CXWnd::GetTooltipRect(class CXSize),CXWnd__GetTooltipRect);
+FUNCTION_AT_ADDRESS(class CXRect *__cdecl CXWnd::GetTooltipRect(class CXRect *),CXWnd__GetTooltipRect);
 #endif
 #ifdef CXWnd__GetTooltipRect1_x
 FUNCTION_AT_ADDRESS(class CXRect __cdecl CXWnd::GetTooltipRect(class CXPoint,class CXSize),CXWnd__GetTooltipRect1);
@@ -8184,7 +8188,11 @@ FUNCTION_AT_ADDRESS(class CXRect  CTabWnd::GetPageClientRect(void)const ,CTabWnd
 FUNCTION_AT_ADDRESS(class CXRect  CTabWnd::GetPageInnerRect(void)const ,CTabWnd__GetPageInnerRect);
 #endif
 #ifdef CTabWnd__SetPage_x
+#if !defined(EMU)
 FUNCTION_AT_ADDRESS(void  CTabWnd::SetPage(int,bool,bool),CTabWnd__SetPage);
+#else
+FUNCTION_AT_ADDRESS(void  CTabWnd::SetPage(int,bool),CTabWnd__SetPage);
+#endif
 #endif
 #ifdef CTabWnd__SetPage1_x
 FUNCTION_AT_ADDRESS(void  CTabWnd::SetPage(class CPageWnd *,bool),CTabWnd__SetPage1);

@@ -839,7 +839,7 @@ bool SendTabSelect(PCHAR WindowName, PCHAR ScreenID, DWORD Value)
 		int uitype = ((CXWnd*)pTab)->GetType();
         if (uitype==UI_TabBox)
         {
-            pTab->SetPage(Value,true, true);
+            pTab->SetPage(Value,true);
             WeDidStuff();
         }
         else

@@ -1,3 +1,30 @@
+02 May 2016
+- Maintenance release PART I: I highly recommend everyone update to this release.
+- NEW STUFF:
+- Added ${Me.ItemReady[xxx]} it returns a bool true or false, it was 10 years overdue, and yes i know we can check it with Item Timer but
+  I like the consistency of having SpellReady, AltAbilityReady, CombatAbilityReady and now ItemReady
+  it also makes it easier to remember to macro writers. -Idea cred: Maskoi
+- Usage: /echo ${Me.ItemReady[=worn totem]}
+- will look for an item name that exactly matches "worn totem" and return true if its ready to click/cast/use and false if not.
+- Usage: /echo ${Me.ItemReady[drunkard]}
+- will look for an item name that has the word "drunkard" in it and return true if its ready to click/cast/use and false if not.
+- the item name is not case sensitive.
+-
+- CHANGES:
+- MacroQuest2.exe should once again be winxp compatible.
+- ${Me.AltAbilityTimer[xxxx]} does NOT return a pTickType anymore, its NOW a pTimeStampType, so update your macros.
+- Changed the name of __bCommandEnabled_x to g_eqCommandStates_x (cause thats what it is)
+-
+- FIXES:
+- Created a wrapper for ExecuteCmd cause it has 4 paramters now, and i didnt want to break plugins.
+- This should fix multiple crashes as well as the "mash hotkeys too quickly crash". (yes that was likely us)
+- Fixed the offset for EQ_PC__GetCombatAbilityTimer_x
+- Corrected the _ZONEINFO struct(s)
+- Corrected the function declaration for CSidlScreenWnd::GetChildItem note that it takes 2 arguments now.
+- Corrected the function declaration for CXWnd::GetChildWndAt note that it takes 3 arguments now.
+- Corrected the function declaration for CXWnd::Move (for the CXWnd__Move1_x offset).
+- Corrected the function declaration for EQPlayer__DoAttack_x on EMU builds.
+
 26 Apr 2016
 - Updated for TEST
 - Removed fancy progressbar message for now, it might return or not, dont know yet but im hunting a memory leak so... we'll see.

@@ -60,7 +60,7 @@ GNU General Public License for more details.
 #define __Attack_x                                                 0x1093C7B
 #define __Autofire_x                                               0x1093C7C
 #define __BindList_x                                               0xC2C480
-#define __bCommandEnabled_x                                        0xFFEC08
+#define g_eqCommandStates_x                                        0xFFEC08
 #define __Clicks_x                                                 0x100F860
 #define __CommandList_x                                            0xC30850
 #define __CurrentMapLabel_x                                        0x11A6AA0
@@ -698,7 +698,7 @@ GNU General Public License for more details.
 #define EQ_PC__DestroyHeldItemOrMoney_x                            0x5BFC70
 #define EQ_PC__GetAlternateAbilityId_x                             0x84EC70
 #define EQ_PC__GetCombatAbility_x                                  0x84ED00
-#define EQ_PC__GetCombatAbilityTimer_x                             0x849BE0
+#define EQ_PC__GetCombatAbilityTimer_x                             0x88DA50
 #define EQ_PC__GetItemTimerValue_x                                 0x5B9680
 #define EQ_PC__HasLoreItem_x                                       0x5B3CD0
 #define EQ_PC__AlertInventoryChanged_x                             0x5B07B0

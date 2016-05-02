@@ -1705,28 +1705,31 @@ typedef struct _GROUNDITEM {
 #define   MAX_ZONES                     0x3e8
 extern    PCHAR szZoneExpansionName[];     //defined in LibEQ_Utilities.cpp
 
+//Size 0x1D8 see 867D39 in eqgame.exe live 21 apr 2016 - eqmule
 typedef struct _ZONELIST { 
 /*0x000*/   DWORD   Header; 
 /*0x004*/   DWORD   Unknown0x4;         //pointer to something? 
-/*0x008*/   DWORD   Expansion;          // szZoneExpansionName[] 
-/*0x00c*/   WORD    Id; 
-/*0x00e*/   WORD    Instance; 
-/*0x010*/   CHAR    ShortName[0x81]; 
-/*0x091*/   CHAR    LongName[0x103]; 
-/*0x194*/   DWORD   Unknown0x194; 
-/*0x198*/   DWORD   ZoneFlags;              // (Flags & 0x100000) = HasMinLevel, 0x4000 no air, 0x2 newbie zone, 0x20 no bind, 0x400000 something, 0x80000000 guild hall
+/*0x008*/   DWORD   EQExpansion;          // szZoneExpansionName[] 
+/*0x00c*/   DWORD   Id;  //EQZoneIndex
+/*0x010*/   CHAR    ShortName[0x80];
+/*0x090*/   BYTE    Unknown0x090;
+/*0x091*/   CHAR    LongName[0x100]; 
+/*0x191*/   DWORD   Unknown0x191; 
+/*0x192*/   DWORD   Unknown0x192[0x6];  
+/*0x198*/   DWORD   ZoneFlags;              // 0x800000 = gmzone? 0x8000 water/mountainzone? 0x4 = ? 0x1 = MultiInstanceZone 0x10000000 bazaarzone 0x2000000 = barterzone 0x100000 = HasMinLevel, 0x1000000 = tutorialzone 0x4000 = no air, 0x2 newbie zone, 0x20 no bind, 0x400000 lostestingdisabled, 0x80000000 guildhallzone
 /*0x19c*/   DWORD   Unknown0x19c; 
-/*0x1a0*/   DWORD   Id2;                // This is Id+2242 
+/*0x1a0*/   DWORD   eqstrID;                // can call pStringTable->getString to get this string
 /*0x1a4*/   DWORD   PoPValue;           // This has something to do with PoP zones. 
-/*0x1a8*/   DWORD   MinLevel;           // Minimum level to access 
-/*0x1ac*/   WORD    Unknown0x1ac;          
-/*0x1ae*/   BYTE    Unknown0x1ae[0x6];    
-/*0x1b4*/   DWORD   Unknown0x1b4; 
-/*0x1b8*/   DWORD   Unknown0x1b8; 
-/*0x1bc*/   DWORD   Unknown0x1bc; 
-/*0x1c0      next zone in list*/ 
+/*0x1a8*/   DWORD   MinLevel;           // Minimum level to access is this used?
+/*0x1ac*/   BYTE    Unknown0x1ac[0x8];             
+/*0x1b4*/   BYTE    Unknown0x1b4;//something 
+/*0x1b5*/   BYTE    Unknown0x1b5[0x3]; 
+/*0x1b8*/   BYTE    Unknown0x1b8[0x20];
+/*0x1D8      next zone in list*/ 
 } ZONELIST, *PZONELIST;
 
+//EQWorldData__EQWorldData_x
+//Size 0xFC0 see 5721F1 in eqgame.exe live 21 apr 2016 - eqmule
 typedef struct _WORLDDATA {
 /*0x000*/ PVOID lpvTable;
 /*0x004*/ BYTE Hour;
@@ -1734,10 +1737,12 @@ typedef struct _WORLDDATA {
 /*0x006*/ BYTE Day;
 /*0x007*/ BYTE Month;
 /*0x008*/ DWORD Year;
-/*0x00C*/ BYTE Unknown0x00c[0x14];
-/*0x020*/ PZONELIST ZoneArray[MAX_ZONES];
+/*0x00C*/ BYTE Unknown0x00C[0x14];
+/*0x020*/ PZONELIST ZoneArray[MAX_ZONES];// see 867D1B in eqgame.exe live 21 apr 2016
+/*0xFC0*/
 } WORLDDATA, *PWORLDDATA;
 
+//Size 0x??? see ?????? corrected this based on eqgame.exe live 21 apr 2016 - eqmule
 typedef struct _ZONEINFO {
 /*0x000*/   CHAR    CharacterName[0x40];
 /*0x040*/   CHAR    ShortName[0x20];
@@ -1749,26 +1754,28 @@ typedef struct _ZONEINFO {
 /*0x1db*/   ARGBCOLOR FogGreen;
 /*0x1df*/   ARGBCOLOR FogBlue;
 /*0x1e3*/   BYTE    Unknown0x1e3;
-/*0x1e4*/   BYTE    Unknown0x1e4[0x10];
-/*0x1f4*/   BYTE    Unknown0x1f4[0x10];
+/*0x1e4*/   FLOAT   Unknown0x1e4[0x4];
+/*0x1f4*/   FLOAT   Unknown0x1f4[0x4];
 /*0x204*/   FLOAT   ZoneGravity;
 /*0x208*/   BYTE    Unknown0x208;
-/*0x209*/   BYTE    Unknown0x209[0x3];
-/*0x20c*/   BYTE    Unknown0x20c[0x2e];
-/*0x23a*/   BYTE    SkyType;   
-/*0x23b*/   BYTE    Unknown0x23b[0xd];
-/*0x248*/   FLOAT   ZoneExpModifier;    //This has been nerfed ..now reads 1.0 for all zones
-/*0x24c*/   FLOAT   SafeYLoc;
-/*0x250*/   FLOAT   SafeXLoc;
-/*0x254*/   FLOAT   SafeZLoc;
-/*0x258*/   BYTE    Unknown0x258[0x4];
-/*0x25c*/   FLOAT   Ceiling;
-/*0x260*/   FLOAT   Floor;
-/*0x264*/   FLOAT   MinClip;
-/*0x268*/   FLOAT   MaxClip;
-/*0x26c*/   BYTE    Unknown0x26c[0x18];
-/*0x284*/   BYTE    Unknown0x284[0x20];
-/*0x2a4*/
+/*0x209*/   BYTE    Unknown0x209[0x11];
+/*0x21a*/   BYTE    SkyType;   
+/*0x21b*/   BYTE    Unknown0x21b;   
+/*0x21c*/   DWORD   Something;   
+/*0x220*/   DWORD   Somethingtoo;
+/*0x224*/   DWORD   Unknown0x224;
+/*0x228*/   FLOAT   ZoneExpModifier;    //This has been nerfed ..now reads 1.0 for all zones
+/*0x22c*/   FLOAT   SafeYLoc;
+/*0x230*/   FLOAT   SafeXLoc;
+/*0x234*/   FLOAT   SafeZLoc;
+/*0x238*/   BYTE    Unknown0x238[0x4];
+/*0x23c*/   FLOAT   Ceiling;
+/*0x240*/   FLOAT   Floor;
+/*0x244*/   FLOAT   MinClip;
+/*0x248*/   FLOAT   MaxClip;
+/*0x24c*/   BYTE    Unknown0x24c[0x54];
+/*0x2a0*/   CHAR    ShortNameLwr[0x60];
+/*0x300*/ //there is more data here i dont know the size of this struct - eqmule
 } ZONEINFO, *PZONEINFO;
 
 typedef struct _SPELLCALCINFO

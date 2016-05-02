@@ -107,24 +107,38 @@ inline void DeleteLabel(PMAPLABEL pLabel)
 
 inline PMAPSPAWN InitSpawn()
 {
-	PMAPSPAWN pSpawn = new MAPSPAWN;
-	pSpawn->pLast = 0;
-	pSpawn->pNext = pActiveSpawns;
-	if (pActiveSpawns)
-		pActiveSpawns->pLast = pSpawn;
-	pActiveSpawns = pSpawn;
+	PMAPSPAWN pSpawn = 0;
+	try {
+		pSpawn = new MAPSPAWN;
+		pSpawn->MarkerSize = 0;
+		pSpawn->pLast = 0;
+		pSpawn->pNext = pActiveSpawns;
+		if (pActiveSpawns)
+			pActiveSpawns->pLast = pSpawn;
+		pActiveSpawns = pSpawn;
+	}
+	catch(std::bad_alloc& exc)
+	{
+		UNREFERENCED_PARAMETER(exc);
+		MessageBox(NULL,"mq2map failed to allocate memory in InitSpawn","Did we just discover a memory leak?",MB_SYSTEMMODAL|MB_OK);
+	};
 	return pSpawn;
 }
 
 inline void DeleteSpawn(PMAPSPAWN pMapSpawn)
 {
-	if (pMapSpawn->pNext)
+	if (pMapSpawn && pMapSpawn->pNext)
 		pMapSpawn->pNext->pLast = pMapSpawn->pLast;
-	if (pMapSpawn->pLast)
+	if (pMapSpawn && pMapSpawn->pLast)
 		pMapSpawn->pLast->pNext = pMapSpawn->pNext;
-	else
-		pActiveSpawns = pMapSpawn->pNext;
-	delete pMapSpawn;
+	else {
+		if (pMapSpawn) {
+			pActiveSpawns = pMapSpawn->pNext;
+		}
+	}
+	if (pMapSpawn) {
+		delete pMapSpawn;
+	}
 }
 
 void GenerateMarker(PMAPSPAWN pMapSpawn);
@@ -157,75 +171,85 @@ PMAPSPAWN AddSpawn(PSPAWNINFO pNewSpawn, BOOL ExplicitAllow)
 		return 0;
 	// add spawn to list
 
-	PMAPSPAWN pMapSpawn = InitSpawn();
-	if (pNewSpawn->Type != FAKESPAWNTYPE)
-		SpawnMap[pNewSpawn->SpawnID] = pMapSpawn;
-	pMapSpawn->SpawnType = Type;
-	pMapSpawn->pSpawn = pNewSpawn;
-	pMapSpawn->pMapLabel = GenerateLabel(pMapSpawn, GetSpawnColor(Type, pNewSpawn));
-	pMapSpawn->Explicit = ExplicitAllow;
-	if (IsOptionEnabled(MAPFILTER_Vector))
-		pMapSpawn->pVector = GenerateVector(pMapSpawn);
-	else
-		pMapSpawn->pVector = 0;
+	if (PMAPSPAWN pMapSpawn = InitSpawn()) {
+		if (pNewSpawn->Type != FAKESPAWNTYPE)
+			SpawnMap[pNewSpawn->SpawnID] = pMapSpawn;
+		pMapSpawn->SpawnType = Type;
+		pMapSpawn->pSpawn = pNewSpawn;
+		pMapSpawn->pMapLabel = GenerateLabel(pMapSpawn, GetSpawnColor(Type, pNewSpawn));
+		pMapSpawn->Explicit = ExplicitAllow;
+		if (IsOptionEnabled(MAPFILTER_Vector))
+			pMapSpawn->pVector = GenerateVector(pMapSpawn);
+		else
+			pMapSpawn->pVector = 0;
 
-	pMapSpawn->Highlight = false;
+		pMapSpawn->Highlight = false;
 
 #if 0
-	//Debugging
-	if (Type == SPAWN_CORPSE || Type == ITEM)
-	{
-		sprintf(buf, "AddSpawn(Corpse or Item): Name: %s, Type: %d, BodyType: %d",
-			pMapSpawn->pSpawn->Name, pMapSpawn->pSpawn->Type, GetBodyType(pMapSpawn->pSpawn));
-		DebugSpew("%s", buf);
-	}
+		//Debugging
+		if (Type == SPAWN_CORPSE || Type == ITEM)
+		{
+			sprintf(buf, "AddSpawn(Corpse or Item): Name: %s, Type: %d, BodyType: %d",
+				pMapSpawn->pSpawn->Name, pMapSpawn->pSpawn->Type, GetBodyType(pMapSpawn->pSpawn));
+			DebugSpew("%s", buf);
+		}
 #endif
 
-	// new stuff for Marker changes
-	if (IsOptionEnabled(MAPFILTER_Marker)) {
-		pMapSpawn->Marker = MapFilterOptions[TypeToMapfilter(pNewSpawn)].Marker;
-		pMapSpawn->MarkerSize = MapFilterOptions[TypeToMapfilter(pNewSpawn)].MarkerSize;
+		// new stuff for Marker changes
+		if (IsOptionEnabled(MAPFILTER_Marker)) {
+			pMapSpawn->Marker = MapFilterOptions[TypeToMapfilter(pNewSpawn)].Marker;
+			pMapSpawn->MarkerSize = MapFilterOptions[TypeToMapfilter(pNewSpawn)].MarkerSize;
 
-		GenerateMarker(pMapSpawn);
-		MoveMarker(pMapSpawn);
+			GenerateMarker(pMapSpawn);
+			MoveMarker(pMapSpawn);
+		}
+		else if (!IsOptionEnabled(MAPFILTER_Marker)) {
+			if (pMapSpawn->Marker != 0)
+				pMapSpawn->Marker = 0;
+		}
+		return pMapSpawn;
 	}
-	else if (!IsOptionEnabled(MAPFILTER_Marker)) {
-		if (pMapSpawn->Marker != 0)
-			pMapSpawn->Marker = 0;
-	}
-	return pMapSpawn;
+	return 0;
 }
 
 void RemoveSpawn(PMAPSPAWN pMapSpawn)
 {
-	free(pMapSpawn->pMapLabel->Label);
-	DeleteLabel(pMapSpawn->pMapLabel);
-
-	if (pMapSpawn->pVector)
+	if (pMapSpawn && pMapSpawn->pMapLabel && pMapSpawn->pMapLabel->Label) {
+		free(pMapSpawn->pMapLabel->Label);
+		DeleteLabel(pMapSpawn->pMapLabel);
+	}
+	if (pMapSpawn && pMapSpawn->pVector)
 	{
 		DeleteLine(pMapSpawn->pVector);
 		pMapSpawn->pVector = 0;
 	}
 
-	if (pMapSpawn->Marker)
+	if (pMapSpawn && pMapSpawn->Marker)
 		RemoveMarker(pMapSpawn);
-	if (pMapSpawn->pSpawn->Type == FAKESPAWNTYPE)
+	if (pMapSpawn && pMapSpawn->pSpawn->Type == FAKESPAWNTYPE)
 		delete pMapSpawn->pSpawn;
-	else
-		SpawnMap[pMapSpawn->pSpawn->SpawnID] = 0;
-
-	if (pMapSpawn == pLastTarget)
+	else {
+		if (pMapSpawn && pMapSpawn->pSpawn) {
+			SpawnMap[pMapSpawn->pSpawn->SpawnID] = 0;
+		}
+	}
+	if (pMapSpawn && pMapSpawn == pLastTarget) {
 		pLastTarget = 0;
-	DeleteSpawn(pMapSpawn);
+	}
+	if (pMapSpawn) {
+		DeleteSpawn(pMapSpawn);
+	}
 }
 
 bool RemoveSpawn(PSPAWNINFO pSpawn)
 {
-	PMAPSPAWN pMapSpawn = SpawnMap[pSpawn->SpawnID];
-	if (pMapSpawn)
-	{
-		RemoveSpawn(pMapSpawn);
-		return true;
+	if (pSpawn) {
+		
+		if (PMAPSPAWN pMapSpawn = SpawnMap[pSpawn->SpawnID])
+		{
+			RemoveSpawn(pMapSpawn);
+			return true;
+		}
 	}
 	return false;
 }

@@ -60,10 +60,12 @@ VOID HideDoCommand(PSPAWNINFO pChar, PCHAR szLine, BOOL delayed)
     if (delayed)
     {
 		lockit lk(ghLockDelayCommand,"HideDoCommand");
-		PCHATBUF pChat = (PCHATBUF)LocalAlloc(LPTR,sizeof(CHATBUF));
-        if (pChat) {
-            strcpy_s(pChat->szText,szLine);
-            pChat->pNext = NULL;
+		//PCHATBUF pChat = (PCHATBUF)LocalAlloc(LPTR,sizeof(CHATBUF));
+		PCHATBUF pChat = 0;
+		try {
+			pChat = new CHATBUF;
+			strcpy_s(pChat->szText,szLine);
+            pChat->pNext = 0;
             if (!gDelayedCommands) {
                 gDelayedCommands = pChat;
             } else {
@@ -71,7 +73,12 @@ VOID HideDoCommand(PSPAWNINFO pChar, PCHAR szLine, BOOL delayed)
                 for (pCurrent = gDelayedCommands;pCurrent->pNext;pCurrent=pCurrent->pNext);
                 pCurrent->pNext = pChat;
             }
-        }
+		}
+		catch(std::bad_alloc& exc)
+		{
+			UNREFERENCED_PARAMETER(exc);
+			MessageBox(NULL,"HideDoCommand failed to allocate memory for gDelayedCommands","Did we just discover a memory leak?",MB_SYSTEMMODAL|MB_OK);
+		};
         return;
     }
     CAutoLock DoCommandLock(&gCommandCS);
@@ -775,7 +782,8 @@ void ShutdownMQ2Commands()
     while(gDelayedCommands)
     {
         PCHATBUF pNext=gDelayedCommands->pNext;
-        LocalFree(gDelayedCommands);
+        //LocalFree(gDelayedCommands);
+        delete gDelayedCommands;
         gDelayedCommands=pNext;
     }
     while(pTimedCommands)

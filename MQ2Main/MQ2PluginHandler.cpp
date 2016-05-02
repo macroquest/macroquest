@@ -453,9 +453,11 @@ VOID PluginsZoned()
         }
         pPlugin=pPlugin->pNext;
     }
-    char szTemp[256];
-    sprintf(szTemp, "You have entered %s.", ((PZONEINFO)pZoneInfo)->LongName);
-    CheckChatForEvent(szTemp);
+	if (pZoneInfo) {
+		char szTemp[2048];
+		sprintf_s(szTemp, "You have entered %s.", ((PZONEINFO)pZoneInfo)->LongName);
+		CheckChatForEvent(szTemp);
+	}
 }
 
 VOID PluginsCleanUI()

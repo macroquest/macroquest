@@ -2850,11 +2850,13 @@ bool MQ2CharacterType::GETMEMBER()
 				for (unsigned long nAbility = 0; nAbility<AA_CHAR_MAX_REAL; nAbility++) {
 					if (PALTABILITY pAbility = pAltAdvManager->GetAAById(pPCData->GetAlternateAbilityId(nAbility))) {
 						if (pAbility->ID == GETNUMBER()) {
-							pAltAdvManager->IsAbilityReady(pPCData, pAbility, &Dest.Int);
-							if (Dest.Int<0)
-								return false;
-							Dest.Int /= 6;
-							Dest.Type = pTicksType;
+							int reusetimer = 0;
+							pAltAdvManager->IsAbilityReady(pPCData, pAbility, &reusetimer);
+							if (reusetimer < 0) {
+								reusetimer = 0;
+							}
+							Dest.UInt64 = reusetimer * 1000;
+							Dest.Type = pTimeStampType;
 							return true;
 						}
 					}
@@ -2866,11 +2868,13 @@ bool MQ2CharacterType::GETMEMBER()
 					if (PALTABILITY pAbility = pAltAdvManager->GetAAById(pPCData->GetAlternateAbilityId(nAbility))) {
 						if (PCHAR pName = pCDBStr->GetString(pAbility->nName, 1, NULL)) {
 							if (!_stricmp(GETFIRST(), pName)) {
-								pAltAdvManager->IsAbilityReady(pPCData, pAbility, &Dest.Int);
-								if (Dest.Int<0)
-									return false;
-								Dest.Int /= 6;
-								Dest.Type = pTicksType;
+								int reusetimer = 0;
+								pAltAdvManager->IsAbilityReady(pPCData, pAbility, &reusetimer);
+								if (reusetimer < 0) {
+									reusetimer = 0;
+								}
+								Dest.UInt64 = reusetimer * 1000;
+								Dest.Type = pTimeStampType;
 								return true;
 							}
 						}
@@ -2880,14 +2884,15 @@ bool MQ2CharacterType::GETMEMBER()
 		}
 		return false;
 	case AltAbilityReady:
+		Dest.DWord = 0;
+		Dest.Type = pBoolType;
 		if (ISINDEX()) {
 			if (ISNUMBER()) {
 				//numeric
 				for (unsigned long nAbility = 0; nAbility<AA_CHAR_MAX_REAL; nAbility++) {
 					if (PALTABILITY pAbility = pAltAdvManager->GetAAById(pPCData->GetAlternateAbilityId(nAbility))) {
 						if (pAbility->ID == GETNUMBER()) {
-							Dest.DWord = pAltAdvManager->IsAbilityReady(pPCData, pAbility, 0);
-							Dest.Type = pBoolType;
+							Dest.DWord = pAltAdvManager->IsAbilityReady(pPCData, pAbility, 0);				
 							return true;
 						}
 					}
@@ -2900,7 +2905,6 @@ bool MQ2CharacterType::GETMEMBER()
 						if (PCHAR pName = pCDBStr->GetString(pAbility->nName, 1, NULL)) {
 							if (!_stricmp(GETFIRST(), pName)) {
 								Dest.DWord = pAltAdvManager->IsAbilityReady(pPCData, pAbility, 0);
-								Dest.Type = pBoolType;
 								return true;
 							}
 						}
@@ -2908,7 +2912,7 @@ bool MQ2CharacterType::GETMEMBER()
 				}
 			}
 		}
-		return false;
+		return true;
 	case AltAbility:
 		if (ISINDEX()) {
 			if (ISNUMBER()) {
@@ -3170,6 +3174,41 @@ bool MQ2CharacterType::GETMEMBER()
 			}
 		}
 		return false;
+	case ItemReady:
+	{
+		Dest.Type = pBoolType;
+		Dest.DWord = 0;
+		PCONTENTS pCont = 0;
+		if (pDisplay && pLocalPlayer && ISINDEX()) {
+			if (ISNUMBER()) {
+				pCont = FindItemByID(GETNUMBER());
+			}
+			else {
+				if (PCHAR pName = GETFIRST()) {
+					BOOL bExact = false;
+					if (*pName == '=') {
+						bExact = true;
+						pName++;
+					}
+					pCont = FindItemByName(pName, bExact);
+				}
+			}
+			if (pCont) {
+				if (PITEMINFO pIteminf = GetItemFromContents(pCont)) {
+					if (pIteminf->Clicky.TimerID != -1)	{
+						DWORD timer = GetItemTimer(pCont);
+						if (timer == 0)
+							Dest.DWord = 1;
+					}
+					else if (pIteminf->Clicky.SpellID != -1)
+					{
+						Dest.DWord = 1; // insta-click or instant recast
+					}
+				}
+			}
+		}
+		return true;
+	}
 	case SpellReady:
 		Dest.DWord = 0;
 		Dest.Type = pBoolType;
@@ -6896,6 +6935,7 @@ bool MQ2WindowType::GETMEMBER()
 }
 bool MQ2CurrentZoneType::GETMEMBER()
 {
+	PZONEINFO pZone = (PZONEINFO)pZoneInfo;
 #define pZone ((PZONEINFO)pZoneInfo)
 	PMQ2TYPEMEMBER pMember = MQ2CurrentZoneType::FindMember(Member);
 	if (!pMember)

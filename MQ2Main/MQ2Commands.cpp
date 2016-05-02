@@ -2953,7 +2953,7 @@ VOID DoMappable(PSPAWNINFO pChar, PCHAR szLine)
 		{
 			//ok if the user issues a movement keypress like "FORWARD" here and at charselect he ctd
 			//lets see if we can fix that -eqmule
-			if (EQbCommandEnabled[N] == FALSE) {
+			if (EQbCommandStates[N] == FALSE) {
 				MacroError("%s is disabled right now Gamestate is %d", szArg1, GetGameState());
 				return;
 			}

@@ -259,7 +259,7 @@ namespace MQ2Globals
 #define g_pDrawHandler (*g_ppDrawHandler)
 
 	EQLIB_VAR PCHAR *EQMappableCommandList;
-	EQLIB_VAR PBYTE EQbCommandEnabled;
+	EQLIB_VAR PBYTE EQbCommandStates;
 	EQLIB_VAR DWORD gnNormalEQMappableCommands;
 
 #ifndef ISXEQ
@@ -320,11 +320,12 @@ namespace MQ2Globals
 
 	EQLIB_VAR fEQNewUIINI        NewUIINI;
 	EQLIB_VAR fEQProcGameEvts    ProcessGameEvents;
-	EQLIB_VAR fEQExecuteCmd		 ExecuteCmd;
 	EQLIB_VAR fEQGetMelee		 get_melee_range;
 #ifndef EMU
 	EQLIB_VAR fEQToggleKeyRingItem     cmdToggleKeyRingItem;
 #endif
+	EQLIB_VAR BOOL ExecuteCmd(DWORD arg1, BOOL arg2, PVOID arg3);
+
 	//EQLIB_VAR PCHAR szItemName[];
 	//EQLIB_VAR PCHAR szItemName4xx[];
 	EQLIB_VAR ACTORDEFENTRY ActorDefList[];
@@ -704,7 +705,7 @@ namespace MQ2Globals
 	EQLIB_VAR DWORD __Attack;
 	EQLIB_VAR DWORD __Autofire;
 	EQLIB_VAR DWORD __BindList;
-	EQLIB_VAR DWORD __bCommandEnabled;
+	EQLIB_VAR DWORD g_eqCommandStates;
 	EQLIB_VAR DWORD __Clicks;
 	EQLIB_VAR DWORD __CommandList;
 	EQLIB_VAR DWORD __CurrentMapLabel;

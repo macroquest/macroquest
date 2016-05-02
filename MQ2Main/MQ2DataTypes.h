@@ -1103,6 +1103,8 @@ public:
 		Krono = 241,
 		XTargetSlots = 242,
 		AssistComplete = 243,
+		ItemReady = 244,
+
 	};
 	enum CharacterMethods
 	{
@@ -1346,7 +1348,8 @@ public:
 		TypeMember(Krono);
 		TypeMember(XTargetSlots);
 		TypeMember(AssistComplete);
-
+		TypeMember(ItemReady);
+		
 		TypeMethod(Stand);
 		TypeMethod(Sit);
 		TypeMethod(Dismount);

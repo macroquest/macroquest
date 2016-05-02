@@ -68,7 +68,7 @@ namespace MQ2Globals
 
 		ppCurrentMapLabel = (PMAPLABEL*)__CurrentMapLabel;
 		EQMappableCommandList = (PCHAR*)__BindList;
-		EQbCommandEnabled = (PBYTE)__bCommandEnabled;
+		EQbCommandStates = (PBYTE)g_eqCommandStates;
 
 		EQADDR_ENCRYPTPAD0 = (PBYTE)__EncryptPad0;
 		EQADDR_ENCRYPTPAD1 = (PBYTE)__EncryptPad1;
@@ -101,7 +101,6 @@ namespace MQ2Globals
 
 		NewUIINI = (fEQNewUIINI)__NewUIINI;
 		ProcessGameEvents = (fEQProcGameEvts)__ProcessGameEvents;
-		ExecuteCmd = (fEQExecuteCmd)__ExecuteCmd;
 		GetLabelFromEQ = (fGetLabelFromEQ)__GetLabelFromEQ;
 #ifndef EMU
 		cmdToggleKeyRingItem = (fEQToggleKeyRingItem)__ToggleKeyRingItem;
@@ -1030,7 +1029,7 @@ namespace MQ2Globals
 
 	PMAPLABEL *ppCurrentMapLabel = 0;
 	PCHAR *EQMappableCommandList = 0;
-	PBYTE EQbCommandEnabled = 0;
+	PBYTE EQbCommandStates = 0;
 
 	PBYTE EQADDR_ENCRYPTPAD0 = 0;
 	PBYTE EQADDR_ENCRYPTPAD1 = 0;
@@ -1063,7 +1062,7 @@ namespace MQ2Globals
 
 	fEQNewUIINI     NewUIINI = 0;
 	fEQProcGameEvts ProcessGameEvents = 0;
-	fEQExecuteCmd   ExecuteCmd = 0;
+
 	fEQGetMelee     get_melee_range = GetMeleeRange;
 	fGetLabelFromEQ GetLabelFromEQ = 0;
 #ifndef EMU
@@ -1235,7 +1234,7 @@ namespace MQ2Globals
 	INITIALIZE_EQGAME_OFFSET(__Attack);
 	INITIALIZE_EQGAME_OFFSET(__Autofire);
 	INITIALIZE_EQGAME_OFFSET(__BindList);
-	INITIALIZE_EQGAME_OFFSET(__bCommandEnabled);
+	INITIALIZE_EQGAME_OFFSET(g_eqCommandStates);
 	INITIALIZE_EQGAME_OFFSET(__Clicks);
 	INITIALIZE_EQGAME_OFFSET(__CommandList);
 	INITIALIZE_EQGAME_OFFSET(__CurrentMapLabel);
@@ -1458,6 +1457,7 @@ namespace MQ2Globals
 	INITIALIZE_EQGAME_OFFSET(__CastRay);
 	INITIALIZE_EQGAME_OFFSET(__ConvertItemTags);
 	INITIALIZE_EQGAME_OFFSET(__ExecuteCmd);
+
 	INITIALIZE_EQGAME_OFFSET(__EQGetTime);
 	INITIALIZE_EQGAME_OFFSET(__get_melee_range);
 	INITIALIZE_EQGAME_OFFSET(__GetGaugeValueFromEQ);
@@ -1886,4 +1886,20 @@ namespace MQ2Globals
 	INITIALIZE_EQGAME_OFFSET(msg_new_text);
 	INITIALIZE_EQGAME_OFFSET(msgTokenTextParam);
 	INITIALIZE_EQGAME_OFFSET(SpellManager__SpellManager);
+	#ifdef __ExecuteCmd_x
+#ifndef EMU
+FUNCTION_AT_ADDRESS(BOOL __cdecl EQExecuteCmd(DWORD arg1, BOOL arg2, PVOID arg3, BOOL arg4), __ExecuteCmd);
+#else
+FUNCTION_AT_ADDRESS(BOOL __cdecl EQExecuteCmd(DWORD arg1, BOOL arg2, PVOID arg3), __ExecuteCmd);
+#endif
+#endif
+	BOOL ExecuteCmd(DWORD arg1, BOOL arg2, PVOID arg3)
+	{
+		#ifndef EMU
+		return EQExecuteCmd(arg1,arg2,arg3,0);
+		#else
+		return EQExecuteCmd(arg1,arg2,arg3);
+		#endif
+	}
+	
 };

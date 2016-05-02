@@ -487,7 +487,7 @@ EQLIB_OBJECT class CXRect CXWnd::GetScreenRect(void)const;
 EQLIB_OBJECT class CXStr CXWnd::GetWindowTextA(void)const;
 EQLIB_OBJECT class CXStr CXWnd::GetXMLTooltip(void)const;
 EQLIB_OBJECT class CXWnd * CXWnd::GetChildItem(CXStr const &);
-EQLIB_OBJECT class CXWnd * CXWnd::GetChildWndAt(class CXPoint)const;
+EQLIB_OBJECT class CXWnd * CXWnd::GetChildWndAt(class CXPoint *,int,int)const;
 EQLIB_OBJECT class CXWnd * CXWnd::GetFirstChildWnd(void)const;
 EQLIB_OBJECT class CXWnd * CXWnd::GetNextChildWnd(class CXWnd *)const;
 EQLIB_OBJECT class CXWnd * CXWnd::GetNextSib(void)const;
@@ -506,17 +506,15 @@ EQLIB_OBJECT int CXWnd::Move(class CXPoint const &);
 #else
 EQLIB_OBJECT int CXWnd::Move(class CXPoint);
 #endif
-#ifndef EMU
-EQLIB_OBJECT int CXWnd::Move(class CXRect const &);
-#else
-EQLIB_OBJECT int CXWnd::Move(class CXRect);
-#endif
+//CXWnd::Move (this is CXWnd__Move1_x) was checked on apr 29 2016 - eqmule
+EQLIB_OBJECT int CXWnd::Move(class CXRect *, bool, bool, bool, bool);
 EQLIB_OBJECT int CXWnd::ProcessTransition(void);
 EQLIB_OBJECT int CXWnd::Resize(int,int);
 EQLIB_OBJECT int CXWnd::Show(bool,bool,bool mq_c = 1);
 EQLIB_OBJECT int CXWnd::Tile(bool);
 EQLIB_OBJECT static class CXRect __cdecl CXWnd::GetTooltipRect(class CXPoint,class CXSize);
-EQLIB_OBJECT static class CXRect __cdecl CXWnd::GetTooltipRect(class CXSize);
+//it looks like CXWnd::GetTooltipRect has 2 parameters in IDA but it only has 1. Note thats its a __cdecl so not a class member func... - eqmule apr 29 2016
+EQLIB_OBJECT static class CXRect *__cdecl CXWnd::GetTooltipRect(class CXRect *);
 EQLIB_OBJECT static class CXWndDrawTemplate CXWnd::sm_wdtDefaults;
 EQLIB_OBJECT static int __cdecl CXWnd::DrawColoredRect(class CXRect,unsigned long,class CXRect);
 EQLIB_OBJECT static int __cdecl CXWnd::DrawLasso(class CXRect,unsigned long,class CXRect);
@@ -627,7 +625,7 @@ EQLIB_OBJECT CSidlScreenWnd::CSidlScreenWnd(class CXWnd *pWnd,class CXStr *Templ
 EQLIB_OBJECT CSidlScreenWnd::CSidlScreenWnd(class CXWnd *,unsigned __int32,class CXRect,class CXStr);
 EQLIB_OBJECT class CScreenPieceTemplate * CSidlScreenWnd::GetSidlPiece(class CXStr*, int dummy=1)const;
 EQLIB_OBJECT class CXRect CSidlScreenWnd::GetSidlPieceRect(class CScreenPieceTemplate *,class CXRect)const;
-EQLIB_OBJECT class CXWnd * CSidlScreenWnd::GetChildItem(CXStr const &);
+EQLIB_OBJECT class CXWnd *CSidlScreenWnd::GetChildItem(CXStr const &, bool bDebug);
 EQLIB_OBJECT int CSidlScreenWnd::DrawSidlPiece(class CScreenPieceTemplate *,class CXRect,class CXRect)const;
 EQLIB_OBJECT void CSidlScreenWnd::AddButtonToRadioGroup(class CXStr,class CButtonWnd *);
 EQLIB_OBJECT void CSidlScreenWnd::CalculateHSBRange(void);
@@ -723,7 +721,8 @@ class AltAdvManager
 {
 public:
 EQLIB_OBJECT AltAdvManager::AltAdvManager(void);
-EQLIB_OBJECT bool AltAdvManager::IsAbilityReady(class EQ_PC *,EQData::PALTABILITY,int *,int mq2_dummy = 0);
+//AltAdvManager::IsAbilityReady was checked on apr 29 2016, it looks like it has 5 arguments in IDA, but it doesnt. (it has 4)
+EQLIB_OBJECT bool AltAdvManager::IsAbilityReady(class EQ_PC *,EQData::PALTABILITY,int *Refresh/*out*/,int *Timer/*out*/ = 0);
 EQLIB_OBJECT int AltAdvManager::AbilitiesByClass(int,int);
 EQLIB_OBJECT int AltAdvManager::AltSkillReqs(class EQ_PC *,int);
 EQLIB_OBJECT int AltAdvManager::CalculateDoubleAttackChance(class EQ_PC *,int,unsigned char);
@@ -2429,7 +2428,11 @@ class CHotButtonWnd : public CSidlScreenWnd
 public:
 EQLIB_OBJECT CHotButtonWnd::CHotButtonWnd(class CXWnd *);
 EQLIB_OBJECT void CHotButtonWnd::Activate(void);
+#if !defined(EMU)
+EQLIB_OBJECT void CHotButtonWnd::DoHotButton(int Button,int AllowAutoRightClick,int something);
+#else
 EQLIB_OBJECT void CHotButtonWnd::DoHotButton(int Button,int AllowAutoRightClick);
+#endif
 EQLIB_OBJECT void CHotButtonWnd::DoHotButtonRightClick(int);
 EQLIB_OBJECT void CHotButtonWnd::UpdatePage(void);
 // virtual
@@ -2821,6 +2824,8 @@ EQLIB_OBJECT class CTextureAnimation const * CListWnd::GetColumnAnimationMouseOv
 EQLIB_OBJECT class CTextureAnimation const * CListWnd::GetColumnAnimationSelected(int)const;
 EQLIB_OBJECT class CTextureAnimation const * CListWnd::GetItemIcon(int,int)const;
 EQLIB_OBJECT class CXRect CListWnd::GetHeaderRect(int)const;
+//CListWnd::GetItemRect looks like it has 3 args in ida but one of them is PUSH ESI so that doesnt count...
+//checked on apr 29 2016 by eqmule (it has 2)
 EQLIB_OBJECT class CXRect CListWnd::GetItemRect(int,int)const;
 EQLIB_OBJECT class CXRect CListWnd::GetSeparatorRect(int)const;
 EQLIB_OBJECT class CXStr CListWnd::GetColumnLabel(int)const;
@@ -4558,7 +4563,11 @@ EQLIB_OBJECT int CTabWnd::GetCurrentTabIndex(void)const;
 EQLIB_OBJECT int CTabWnd::GetNumTabs(void)const;
 EQLIB_OBJECT void CTabWnd::InsertPage(class CPageWnd *,int);
 EQLIB_OBJECT void CTabWnd::SetPage(class CPageWnd *,bool);
-EQLIB_OBJECT void CTabWnd::SetPage(int,bool,bool);
+#if !defined(EMU)
+EQLIB_OBJECT void CTabWnd::SetPage(int,bool,bool = true);
+#else
+EQLIB_OBJECT void CTabWnd::SetPage(int,bool);
+#endif
 EQLIB_OBJECT void CTabWnd::SetPageRect(class CXRect);
 EQLIB_OBJECT void CTabWnd::UpdatePage(void);
 // virtual
@@ -5393,7 +5402,7 @@ EQLIB_OBJECT int EQ_Character1::Max_HP(int,int y=1);
 EQLIB_OBJECT int EQ_Character1::Max_Mana(int y=1);
 EQLIB_OBJECT int const EQ_Character1::GetAACastingTimeModifier(class EQ_Spell const *);
 EQLIB_OBJECT int const EQ_Character1::GetFocusCastingTimeModifier(class EQ_Spell const *,class EQ_Equipment * *,int);
-EQLIB_OBJECT unsigned char EQ_Character1::CastSpell(unsigned char,int,class EQ_Item * *,int,int slot,int,int,int,int,bool,int y=1); 
+EQLIB_OBJECT unsigned char EQ_Character1::CastSpell(unsigned char gemid, int spellid, class EQ_Item * *ppItem, class CEQItemLocation * ppitemloc, enum  ItemSpellTypes slot, unsigned char spell_loc, int arg7, int arg8, int arg9, bool arg10); 
 EQLIB_OBJECT void EQ_Character1::SetEffectId(unsigned char,unsigned int);
 EQLIB_OBJECT void EQ_Character1::StopSpellCast(unsigned char);
 EQLIB_OBJECT void EQ_Character1::StopSpellCast(unsigned char,int);
@@ -5559,6 +5568,7 @@ EQLIB_OBJECT void EQ_Character::RemovePCAffect(class EQ_Affect *);
 EQLIB_OBJECT void EQ_Character::RemovePCAffectex(class EQ_Affect *,int);
 EQLIB_OBJECT void EQ_Character::ResetCur_HP(int);
 EQLIB_OBJECT void EQ_Character::UpdateMyVisibleStatus(void);
+//confirmed having only 2 parameters (looks like it has 3 but it doesnt) in apr 21 2016 eqgame.exe (live) - eqmule
 EQLIB_OBJECT bool EQ_Character::DoCombatAbility(int spellID, int dummy=1);
 EQLIB_OBJECT unsigned long EQ_Character::GetConLevel(class EQPlayer *);
 // private
@@ -5648,6 +5658,7 @@ EQLIB_OBJECT int EQ_PC::CheckDupLoreItems(void);
 EQLIB_OBJECT int EQ_PC::checkLang(int);
 EQLIB_OBJECT int EQ_PC::CostToTrain(int,float,int);
 EQLIB_OBJECT int EQ_PC::DelLoreItemDup(int,int,int,class EQ_Item *);
+//EQ_PC::GetAlternateAbilityId checked on May 1 2016 -eqmule only reason why it looks like it takes 2 args(which it doesnt) is cause it pushes another which is meant for AltAdvManager__GetAAById_x see 43BBB7 in eqgame 21 apr 2016 live for an example.
 EQLIB_OBJECT int EQ_PC::GetAlternateAbilityId(int);
 EQLIB_OBJECT int EQ_PC::GetArmorType(int);
 EQLIB_OBJECT int EQ_PC::GetCombatAbility(int);
@@ -5681,6 +5692,7 @@ EQLIB_OBJECT void EQ_PC::SetArmorType(int,int);
 EQLIB_OBJECT void EQ_PC::SetFatigue(int);
 EQLIB_OBJECT void EQ_PC::UnpackMyNetPC(char *,int);
 EQLIB_OBJECT void EQ_PC::AlertInventoryChanged(void);
+//EQ_PC::GetCombatAbilityTimer has 2 parameters confirmed apr 21 2016 eqgame.exe (live) -eqmule
 EQLIB_OBJECT unsigned long EQ_PC::GetCombatAbilityTimer(int,int);
 #if !defined(EMU)
 EQLIB_OBJECT unsigned long EQ_PC::GetItemTimerValue(class EQ_Item *,int);
@@ -5857,7 +5869,11 @@ EQLIB_OBJECT int EQPlayer::AimAtTarget(class EQPlayer *,class EQMissile *);
 EQLIB_OBJECT int EQPlayer::AttachPlayerToPlayerBone(class EQPlayer *,struct T3D_DAG *);
 EQLIB_OBJECT int EQPlayer::CanBeBald(void);
 EQLIB_OBJECT int EQPlayer::CheckForJump(void);
+#if defined(EMU)
+EQLIB_OBJECT int EQPlayer::DoAttack(unsigned char,unsigned char,class EQPlayer *);
+#else
 EQLIB_OBJECT int EQPlayer::DoAttack(unsigned char,unsigned char,class EQPlayer *,int Flag = 0);
+#endif
 EQLIB_OBJECT int EQPlayer::GetAlternateTrackNumber(int,unsigned char *);
 EQLIB_OBJECT int EQPlayer::GetArmorType(int);
 EQLIB_OBJECT int EQPlayer::GetAttachedHelmITNum(int,int *);

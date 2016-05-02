@@ -375,10 +375,11 @@ void Heartbeat()
 		lockit lk(ghLockDelayCommand,"HeartBeat");
 		DoCommand((PSPAWNINFO)pLocalPlayer, gDelayedCommands->szText);
 		PCHATBUF pNext = gDelayedCommands->pNext;
-		HLOCAL hlret = LocalFree(gDelayedCommands);
-		if (hlret != 0) {
-			MessageBox(NULL,"LocalFree Failed we have a memory leak in HeartBeat","tell eqmule",MB_SYSTEMMODAL|MB_OK);
-		}
+		//HLOCAL hlret = LocalFree(gDelayedCommands);
+		//if (hlret != 0) {
+		//	MessageBox(NULL,"LocalFree Failed we have a memory leak in HeartBeat","tell eqmule",MB_SYSTEMMODAL|MB_OK);
+		//}
+		delete gDelayedCommands;
 		gDelayedCommands = pNext;
 	}
 	while (bRunNextCommand) {

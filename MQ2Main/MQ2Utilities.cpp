@@ -8324,7 +8324,7 @@ DWORD __stdcall RefreshKeyRingThread(PVOID pData)
 			int illusioncount = GetIllusionCount();
 			if (CTabWnd *pTab = (CTabWnd*)((CSidlScreenWnd*)(krwnd))->GetChildItem(KeyRingTab)) {
 				if (mountcount) {
-					pTab->SetPage(0, true, true);//tab 0 is the mount key ring page...
+					pTab->SetPage(0, true);//tab 0 is the mount key ring page...
 					if (clist = (CListWnd*)krwnd->GetChildItem(MountWindowList)) {
 						ULONGLONG now = MQGetTickCount64();
 						while (!((CSidlScreenWnd*)clist)->Items) {
@@ -8337,7 +8337,7 @@ DWORD __stdcall RefreshKeyRingThread(PVOID pData)
 					}
 				}
 				if (illusioncount) {
-					pTab->SetPage(1, true, true);//tab 1 is the illusion key ring page...
+					pTab->SetPage(1, true);//tab 1 is the illusion key ring page...
 					if (clist = (CListWnd*)krwnd->GetChildItem(IllusionWindowList)) {
 						ULONGLONG now = MQGetTickCount64();
 						while (!((CSidlScreenWnd*)clist)->Items) {
