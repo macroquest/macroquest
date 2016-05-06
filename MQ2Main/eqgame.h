@@ -98,6 +98,7 @@ GNU General Public License for more details.
 #define __Socials_x                                                0x1045FF0
 #define __SubscriptionType_x                                       0x11D4B50
 #define __TargetAggroHolder_x                                      0x11A8CDC
+#define __ZoneType_x                                               0x100FC24
 #define __GroupAggro_x                                             0x11A8D1C
 #define __LoginName_x                                              0x1097B28
 #define __Inviter_x                                                0x1093BF8

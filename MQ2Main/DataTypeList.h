@@ -30,6 +30,12 @@ DATATYPE(MQ2EverQuestType, pEverQuestType, nullptr, 0);
 DATATYPE(MQ2SpawnType, pSpawnType, nullptr, PersistentPointerClass);
 DATATYPE(MQ2SpellType, pSpellType, nullptr, 0);
 // Define all inherited types first so that the SetInheritence works properly
+#ifndef EMU
+DATATYPE(MQ2AdvLootType, pAdvLootType, nullptr, 0);
+DATATYPE(MQ2AdvLootItemType, pAdvLootItemType, nullptr, 0);
+#endif
+DATATYPE(MQ2AlertType, pAlertType, nullptr, 0);
+DATATYPE(MQ2AlertListType, pAlertListType, nullptr, 0);
 DATATYPE(MQ2AltAbilityType, pAltAbilityType, nullptr, 0);
 DATATYPE(MQ2ArgbType, pArgbType, nullptr, 0);
 DATATYPE(MQ2BodyType, pBodyType, nullptr, 0);
@@ -72,12 +78,6 @@ DATATYPE(MQ2WindowType, pWindowType, nullptr, 0);
 DATATYPE(MQ2XTargetType, pXTargetType, pSpawnType, 0);
 DATATYPE(MQ2ZoneType, pZoneType, nullptr, 0);
 DATATYPE(MQ2KeyRingType, pKeyRingType, nullptr, 0);
-#ifndef EMU
-DATATYPE(MQ2AdvLootType, pAdvLootType, nullptr, 0);
-DATATYPE(MQ2AdvLootItemType, pAdvLootItemType, nullptr, 0);
-#endif
-DATATYPE(MQ2AlertType, pAlertType, nullptr, 0);
-DATATYPE(MQ2AlertListType, pAlertListType, nullptr, 0);
 
 #pragma warning( pop )
 #undef DATATYPE // In case the includer forgets

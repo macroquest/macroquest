@@ -669,6 +669,8 @@ public:
 		Stuck = 114,
 		Aggressive = 115,
 		CanSplashLand = 116,
+		EQLoc = 117,
+		MQLoc = 118,
 	};
 	enum SpawnMethods
 	{
@@ -798,6 +800,8 @@ public:
 		TypeMember(Stuck);
 		TypeMember(Aggressive);
 		TypeMember(CanSplashLand);
+		TypeMember(EQLoc);
+		TypeMember(MQLoc);
 
 		#ifndef ISXEQ
 		TypeMethod(DoTarget);
@@ -1462,6 +1466,7 @@ public:
 		xIsActiveAA = 60,
 		CalcIndex = 61,
 		NumEffects = 62,
+		Location = 63,
 	};
 	enum SpellMethods
 	{
@@ -1530,6 +1535,7 @@ public:
 		AddMember(xIsActiveAA, "IsActiveAA");
 		TypeMember(CalcIndex);
 		TypeMember(NumEffects);
+		TypeMember(Location);
 
 	}
 
@@ -2811,6 +2817,11 @@ public:
 		SafeW = 13,
 		SafeU = 14,
 		Address = 15,
+		ZoneType = 16,
+		Dungeon = 17,
+		Indoor = 18,
+		Outdoor = 19,
+		NoBind = 20,
 	};
 	MQ2CurrentZoneType() :MQ2Type("currentzone")
 	{
@@ -2829,6 +2840,11 @@ public:
 		TypeMember(SafeW);
 		TypeMember(SafeU);
 		TypeMember(Address);
+		TypeMember(ZoneType);
+		TypeMember(Dungeon);
+		TypeMember(Indoor);
+		TypeMember(Outdoor);
+		TypeMember(NoBind);
 	}
 
 	~MQ2CurrentZoneType()

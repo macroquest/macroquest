@@ -565,7 +565,7 @@ inline LONG EQGetSpellDuration(PSPELL pSpell, unsigned char arg2, bool arg3)
 	if (PCHARINFO pCharInfo = GetCharInfo()) {
 		if (pCharInfo->vtable2) {
 			if (EQ_Character *cb = (EQ_Character *)pCharData1) {
-				return cb->SpellDuration((EQ_Spell*)pSpell, arg2, arg3);
+				return (LONG)cb->SpellDuration((EQ_Spell*)pSpell, arg2, arg3);
 			}
 		}
 	}

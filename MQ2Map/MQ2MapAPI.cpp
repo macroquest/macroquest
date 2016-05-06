@@ -110,7 +110,6 @@ inline PMAPSPAWN InitSpawn()
 	PMAPSPAWN pSpawn = 0;
 	try {
 		pSpawn = new MAPSPAWN;
-		pSpawn->MarkerSize = 0;
 		pSpawn->pLast = 0;
 		pSpawn->pNext = pActiveSpawns;
 		if (pActiveSpawns)
@@ -214,8 +213,9 @@ PMAPSPAWN AddSpawn(PSPAWNINFO pNewSpawn, BOOL ExplicitAllow)
 
 void RemoveSpawn(PMAPSPAWN pMapSpawn)
 {
-	if (pMapSpawn && pMapSpawn->pMapLabel && pMapSpawn->pMapLabel->Label) {
-		free(pMapSpawn->pMapLabel->Label);
+	if (pMapSpawn && pMapSpawn->pMapLabel) {
+		if(pMapSpawn->pMapLabel->Label)
+			free(pMapSpawn->pMapLabel->Label);
 		DeleteLabel(pMapSpawn->pMapLabel);
 	}
 	if (pMapSpawn && pMapSpawn->pVector)
@@ -223,10 +223,10 @@ void RemoveSpawn(PMAPSPAWN pMapSpawn)
 		DeleteLine(pMapSpawn->pVector);
 		pMapSpawn->pVector = 0;
 	}
-
-	if (pMapSpawn && pMapSpawn->Marker)
+	if (pMapSpawn && pMapSpawn->Marker) {
 		RemoveMarker(pMapSpawn);
-	if (pMapSpawn && pMapSpawn->pSpawn->Type == FAKESPAWNTYPE)
+	}
+	if (pMapSpawn && pMapSpawn->pSpawn && pMapSpawn->pSpawn->Type == FAKESPAWNTYPE)
 		delete pMapSpawn->pSpawn;
 	else {
 		if (pMapSpawn && pMapSpawn->pSpawn) {
@@ -244,9 +244,8 @@ void RemoveSpawn(PMAPSPAWN pMapSpawn)
 bool RemoveSpawn(PSPAWNINFO pSpawn)
 {
 	if (pSpawn) {
-		
-		if (PMAPSPAWN pMapSpawn = SpawnMap[pSpawn->SpawnID])
-		{
+		if (SpawnMap.find(pSpawn->SpawnID) != SpawnMap.end()) {
+			PMAPSPAWN pMapSpawn = SpawnMap[pSpawn->SpawnID];
 			RemoveSpawn(pMapSpawn);
 			return true;
 		}
@@ -330,7 +329,7 @@ void MapClear()
 
 		if (pActiveSpawns->Marker)
 			RemoveMarker(pActiveSpawns);
-		if (pActiveSpawns->pSpawn->Type == FAKESPAWNTYPE) // fake!
+		if (pActiveSpawns->pSpawn && pActiveSpawns->pSpawn->Type == FAKESPAWNTYPE) // fake!
 		{
 			delete pActiveSpawns->pSpawn;
 		}

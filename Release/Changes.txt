@@ -1,3 +1,15 @@
+06 May 2016
+- Fixed a crash in mq2map. Thanks to everyone that sent in crash dumps.
+- Fixed a /unload crash.
+
+04 May 2016 by rswiders
+- Added to Zone TLO
+  ZoneType, NoBind, Indoor, Outdoor, Dungeon
+- Added to Spawn TLO
+  EQLoc, MQLoc
+- Added to Spell TLO
+  Location
+
 02 May 2016
 - Maintenance release PART I: I highly recommend everyone update to this release.
 - NEW STUFF:

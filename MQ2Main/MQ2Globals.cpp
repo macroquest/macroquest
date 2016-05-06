@@ -49,6 +49,7 @@ namespace MQ2Globals
 		EQADDR_NOTINCHATMODE = (PBYTE)__InChatMode;
 		EQADDR_RUNWALKSTATE = (PBYTE)__RunWalkState;
 		EQADDR_LASTTELL = (PCHAR)__LastTell;
+		EQADDR_ZONETYPE = (PBYTE)__ZoneType;
 		gpbRangedAttackReady = (PCHAR)__RangeAttackReady;
 		gpbShowNetStatus = (PCHAR)__NetStatusToggle;
 		g_ppDrawHandler = (DWORD*)__DrawHandler;
@@ -664,6 +665,7 @@ namespace MQ2Globals
 		"Veil of Alaris",			//18
 		"Rain of Fear",				//19
 		"Call of the Forsaken",		//20
+		"Broken Mirror",			//21
 	};
 
 	//depricated
@@ -1010,6 +1012,7 @@ namespace MQ2Globals
 	DWORD EQADDR_GROUPAGGRO = 0;
 	PCHAR EQADDR_TARGETAGGROHOLDER = 0;
 	PCHAR EQADDR_LASTTELL = 0;
+	PBYTE EQADDR_ZONETYPE = 0;
 	PCHAR gpbRangedAttackReady = 0;
 	PCHAR gpbShowNetStatus = 0;
 	DWORD *g_ppDrawHandler = 0;
@@ -1273,6 +1276,7 @@ namespace MQ2Globals
 	INITIALIZE_EQGAME_OFFSET(__Socials);
 	INITIALIZE_EQGAME_OFFSET(__SubscriptionType);
 	INITIALIZE_EQGAME_OFFSET(__TargetAggroHolder);
+	INITIALIZE_EQGAME_OFFSET(__ZoneType);
 	INITIALIZE_EQGAME_OFFSET(instCRaid);
 	INITIALIZE_EQGAME_OFFSET(instEQZoneInfo);
 	INITIALIZE_EQGAME_OFFSET(instKeypressHandler);

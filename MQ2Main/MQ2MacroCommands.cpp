@@ -502,7 +502,7 @@ VOID EndMacro(PSPAWNINFO pChar, PCHAR szLine)
     PEVENTQUEUE pEvent;
     PEVENTLIST pEventL;
     BOOL bKeepKeys = gKeepKeys;
-    if (szLine[0]!=0) {
+    if (szLine && szLine[0]!=0) {
         GetArg(Buffer,szLine,1);
         szLine = GetNextArg(szLine);
         if (stricmp(Buffer,"keep")) {

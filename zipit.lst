@@ -323,6 +323,7 @@ MQ2Main\MQ2Main.dep
 MQ2Main\MQ2Main.dsp
 MQ2Main\MQ2Main.h
 MQ2Main\MQ2Main.mak
+MQ2Main\MQ2Main.rc
 MQ2Main\MQ2Main.vcproj
 MQ2Main\MQ2Main.vcxproj
 MQ2Main\MQ2Main.vcxproj.filters
@@ -336,6 +337,7 @@ MQ2Main\MQ2TopLevelObjects.h
 MQ2Main\MQ2Utilities.cpp
 MQ2Main\MQ2Windows.cpp
 MQ2Main\ReadMe.txt
+MQ2Main\resource.h
 MQ2Main\skills.h
 MQ2Main\SpellEffects.h
 MQ2Main\str_com

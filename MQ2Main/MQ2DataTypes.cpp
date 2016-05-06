@@ -1814,6 +1814,16 @@ bool MQ2SpawnType::GETMEMBER()
 		Dest.Ptr = &DataTypeTemp[0];
 		Dest.Type = pStringType;
 		return true;
+	case EQLoc:
+		sprintf(DataTypeTemp, "%.2f, %.2f, %.2f", pSpawn->X, pSpawn->Y, pSpawn->Z);
+		Dest.Ptr = &DataTypeTemp[0];
+		Dest.Type = pStringType;
+		return true;
+	case MQLoc:
+		sprintf(DataTypeTemp, "%.2f, %.2f, %.2f", pSpawn->Y, pSpawn->X, pSpawn->Z);
+		Dest.Ptr = &DataTypeTemp[0];
+		Dest.Type = pStringType;
+		return true;
 	case Owner:
 		if (pSpawn->Mercenary)
 		{
@@ -5269,6 +5279,10 @@ bool MQ2SpellType::GETMEMBER()
 		Dest.DWord = IsActiveAA(pSpell->Name);
 		Dest.Type = pBoolType;
 		return true;
+	case Location:
+		Dest.DWord = pSpell->Location;
+		Dest.Type = pIntType;
+		return true;
 	}
 #undef pSpell
 	return false;
@@ -6935,7 +6949,6 @@ bool MQ2WindowType::GETMEMBER()
 }
 bool MQ2CurrentZoneType::GETMEMBER()
 {
-	PZONEINFO pZone = (PZONEINFO)pZoneInfo;
 #define pZone ((PZONEINFO)pZoneInfo)
 	PMQ2TYPEMEMBER pMember = MQ2CurrentZoneType::FindMember(Member);
 	if (!pMember)
@@ -6998,6 +7011,23 @@ bool MQ2CurrentZoneType::GETMEMBER()
 	case MaxClip:
 		Dest.Float = pZone->MaxClip;
 		Dest.Type = pFloatType;
+		return true;
+	case ZoneType:
+		Dest.DWord = (*EQADDR_ZONETYPE);
+		Dest.Type = pIntType;
+		return true;
+	case Dungeon:
+	case Indoor:
+		Dest.DWord = indoor;
+		Dest.Type = pBoolType;
+		return true;
+	case Outdoor:
+		Dest.DWord = outdoor;
+		Dest.Type = pBoolType;
+		return true;
+	case NoBind:
+		Dest.DWord = !bindable;
+		Dest.Type = pBoolType;
 		return true;
 	}
 	return false;
