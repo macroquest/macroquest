@@ -1467,6 +1467,7 @@ public:
 		CalcIndex = 61,
 		NumEffects = 62,
 		Location = 63,
+		IsSwarmSpell = 64,
 	};
 	enum SpellMethods
 	{
@@ -1536,6 +1537,7 @@ public:
 		TypeMember(CalcIndex);
 		TypeMember(NumEffects);
 		TypeMember(Location);
+		TypeMember(IsSwarmSpell);
 
 	}
 

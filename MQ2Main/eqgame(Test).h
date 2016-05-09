@@ -698,7 +698,7 @@ GNU General Public License for more details.
 #define EQ_PC__DestroyHeldItemOrMoney_x                            0x5C0CD0
 #define EQ_PC__GetAlternateAbilityId_x                             0x84F1B0
 #define EQ_PC__GetCombatAbility_x                                  0x84F240
-#define EQ_PC__GetCombatAbilityTimer_x                             0x88DEE0
+#define EQ_PC__GetCombatAbilityTimer_x                             0x84A0B0
 #define EQ_PC__GetItemTimerValue_x                                 0x5BA6E0
 #define EQ_PC__HasLoreItem_x                                       0x5B4D00
 #define EQ_PC__AlertInventoryChanged_x                             0x5B17E0

@@ -93,6 +93,7 @@ typedef struct _EQCURRENTSELECTION {
 /*0x14*/
 } EQCURRENTSELECTION, *PEQCURRENTSELECTION;
 
+//CXWnd see B0BED4 in apr 21 2016 eqgame.exe (Live) -eqmule
 #define VFTABLE \
 /*0x000*/ LPVOID  IsValid; \
 /*0x004*/ LPVOID  vector_deleting_destructor; \
@@ -100,7 +101,7 @@ typedef struct _EQCURRENTSELECTION {
 /*0x00c*/ LPVOID  PostDraw; \
 /*0x010*/ LPVOID  PostDraw2; \
 /*0x014*/ LPVOID  DrawCursor; \
-/*0x018*/ LPVOID  nullsub0x18; \
+/*0x018*/ LPVOID  CXWnd__OnResize; \
 /*0x01c*/ LPVOID  PostDraw3; \
 /*0x020*/ LPVOID  DrawBackground; \
 /*0x024*/ LPVOID  DrawTooltip; \
@@ -143,7 +144,7 @@ typedef struct _EQCURRENTSELECTION {
 /*0x0b8*/ LPVOID  PostDraw6; \
 /*0x0bc*/ LPVOID  OnMove2; \
 /*0x0c0*/ LPVOID  OnMove3; \
-/*0x0c4*/ LPVOID  OnProcessFrame; \
+/*0x0c4*/ LPVOID  OnProcessFrame; /*Dofade*/ \
 /*0x0c8*/ LPVOID  OnVScroll; \
 /*0x0cc*/ LPVOID  OnHScroll; \
 /*0x0d0*/ LPVOID  PostDraw7; \
@@ -165,11 +166,11 @@ typedef struct _EQCURRENTSELECTION {
 /*0x110*/ LPVOID  Unknown110; \
 /*0x114*/ LPVOID  Unknown114; \
 /*0x118*/ LPVOID  SetDrawTemplate; \
-/*0x11c*/ LPVOID  Move_Rect; \
-/*0x120*/ LPVOID  Move_Point; \
+/*0x11c*/ LPVOID  Move_Rect; /*CXWnd__Move1_x*/ \
+/*0x120*/ LPVOID  Move_Point; /*CXWnd__Move_x*/ \
 /*0x124*/ LPVOID  SetWindowTextA; \
-/*0x128*/ LPVOID  Unknown0x128; \
-/*0x12c*/ LPVOID  Unknown0x12c; \
+/*0x128*/ LPVOID  Unknown0x128; /*CXWnd__GetChildWndAt_x*/ \
+/*0x12c*/ LPVOID  Unknown0x12c; /*CSidlScreenWnd__GetSidlPiece_x*/ \
 /*0x130*/ LPVOID  Unknown0x130; \
 /*0x134*/ LPVOID  SetVScrollPos; \
 /*0x138*/ LPVOID  SetHScrollPos; \
@@ -183,18 +184,22 @@ typedef struct _EQCURRENTSELECTION {
 /*0x158*/ LPVOID  Unknown0x158; \
 /*0x15c*/ LPVOID  PostDraw8; \
 /*0x160*/ LPVOID  Unknown0x160; \
-/*0x164*/
+/*0x164*/ LPVOID  Unknown0x164; \
+/*0x168*/
 
+//CSidlScreenWnd see B0CA84 in apr 21 2016 eqgame.exe (Live) -eqmule
 typedef struct _CSIDLWNDVFTABLE {
-VFTABLE
-/*0x164*/ LPVOID  Unknown0x164;
-/*0x168*/ LPVOID  Unknown0x168;
-/*0x16c*/ LPVOID  LoadIniInfo;
-/*0x170*/ LPVOID  StoreIniInfo;
-/*0x174*/ LPVOID  Unknown0x174;
-/*0x178*/ LPVOID  Unknown0x178;
-/*0x17c*/
-} CSIDLWNDVFTABLE, *PCSIDLWNDVFTABLE; 
+	VFTABLE
+		/*0x168*/ LPVOID  Unknown0x168;
+	/*0x16c*/ LPVOID  LoadIniInfo;
+	/*0x170*/ LPVOID  StoreIniInfo;
+	/*0x174*/ LPVOID  Unknown0x174;
+	/*0x178*/ LPVOID  Unknown0x178;
+#if !defined(EMU)
+	/*0x17c*/ LPVOID  Unknown0x17c;
+#endif
+	/*0x180*/
+} CSIDLWNDVFTABLE, *PCSIDLWNDVFTABLE;
 
 typedef struct _CXWNDVFTABLE {
 VFTABLE

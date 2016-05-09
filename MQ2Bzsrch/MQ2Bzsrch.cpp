@@ -452,11 +452,6 @@ PLUGIN_API VOID InitializePlugin(VOID)
 // Called once, when the plugin is to shutdown
 PLUGIN_API VOID ShutdownPlugin(VOID)
 {
-	if (bzsrchhandle) {
-		ReleaseMutex(bzsrchhandle);
-		CloseHandle(bzsrchhandle);
-		bzsrchhandle = 0;
-	}
     DebugSpewAlways("Shutting down MQ2Bzsrch");
 
     // Remove commands, macro parameters, hooks, etc.
@@ -470,6 +465,11 @@ PLUGIN_API VOID ShutdownPlugin(VOID)
 	
     delete pBazaarType;
     delete pBazaarItemType;
+	if (bzsrchhandle) {
+		ReleaseMutex(bzsrchhandle);
+		CloseHandle(bzsrchhandle);
+		bzsrchhandle = 0;
+	}
 }
 
 

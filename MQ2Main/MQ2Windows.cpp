@@ -58,7 +58,8 @@ public:
     void Init_Detour(class CXStr*pName,int A)
     {
         CHAR Name[MAX_STRING]={0};
-        GetCXStr(pName->Ptr,Name,MAX_STRING);
+        if(pName)
+			GetCXStr(pName->Ptr,Name,MAX_STRING);
         std::string WindowName=Name;
         MakeLower((WindowName));
 		unsigned long N = 0;

@@ -5283,6 +5283,20 @@ bool MQ2SpellType::GETMEMBER()
 		Dest.DWord = pSpell->Location;
 		Dest.Type = pIntType;
 		return true;
+	case IsSwarmSpell:
+	{
+		Dest.DWord = 0;
+		LONG slots = GetSpellNumEffects(pSpell);
+		for (LONG i = 0; i < slots; i++) {
+			LONG attrib = GetSpellAttrib(pSpell, i);
+			if (attrib == 152 || attrib == 300) {
+				Dest.DWord = 1;
+				break;
+			}
+		}
+		Dest.Type = pBoolType;
+		return true;
+	}
 	}
 #undef pSpell
 	return false;

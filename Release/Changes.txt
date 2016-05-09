@@ -1,3 +1,11 @@
+08 May 2016
+- Maintenance release PART II:
+- Added .IsSwarmSpell to the Spell TLO, it return TRUE/FALSE if a spell is a swarmspell or not.
+ Usage: /echo ${Spell[Chattering Bones].IsSwarmSpell}
+ Output: TRUE
+- Fixed the offset for EQ_PC__GetCombatAbilityTimer_x (again)
+- Fixed another crash in mq2map.
+
 06 May 2016
 - Fixed a crash in mq2map. Thanks to everyone that sent in crash dumps.
 - Fixed a /unload crash.

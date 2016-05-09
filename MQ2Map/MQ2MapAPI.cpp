@@ -107,21 +107,21 @@ inline void DeleteLabel(PMAPLABEL pLabel)
 
 inline PMAPSPAWN InitSpawn()
 {
-	PMAPSPAWN pSpawn = 0;
 	try {
-		pSpawn = new MAPSPAWN;
+		PMAPSPAWN pSpawn = new MAPSPAWN;
 		pSpawn->pLast = 0;
 		pSpawn->pNext = pActiveSpawns;
 		if (pActiveSpawns)
 			pActiveSpawns->pLast = pSpawn;
 		pActiveSpawns = pSpawn;
+		return pSpawn;
 	}
 	catch(std::bad_alloc& exc)
 	{
 		UNREFERENCED_PARAMETER(exc);
 		MessageBox(NULL,"mq2map failed to allocate memory in InitSpawn","Did we just discover a memory leak?",MB_SYSTEMMODAL|MB_OK);
 	};
-	return pSpawn;
+	return NULL;
 }
 
 inline void DeleteSpawn(PMAPSPAWN pMapSpawn)

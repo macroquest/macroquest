@@ -582,7 +582,8 @@ public:
         }
         // add event to node
         BLECHASSERT(pNode);
-        if(PBLECHEVENT pEvent = new BLECHEVENT) {
+        try {
+			PBLECHEVENT pEvent = new BLECHEVENT;
 			pEvent->Callback=Callback;
 			pEvent->pData=pData;
 			pEvent->ID=++LastID;
@@ -591,9 +592,12 @@ public:
 			pNode->AddEvent(pEvent);
 			Event[pEvent->ID]=pEvent;
 			return pEvent->ID;
-		} else {
-			MessageBox(NULL,"Could not construct a PBLECHEVENT","Errpr",MB_OK);
 		}
+		catch (std::bad_alloc& exc)
+		{
+			UNREFERENCED_PARAMETER(exc);
+			MessageBox(NULL, "Bleech failed to allocate memory in AddEvent", "Did we just discover a memory leak?", MB_SYSTEMMODAL | MB_OK);
+		};
 		return NULL;
     }
 
@@ -707,9 +711,8 @@ private:
     {
         BlechDebug("QueueEvent(%X,%X)",pEvent,pValues);
         BLECHASSERT(pEvent);
-		PBLECHEXECUTE pNew=0;
 		try {
-			pNew=new BLECHEXECUTE;
+			PBLECHEXECUTE pNew=new BLECHEXECUTE;
 			pNew->Callback=pEvent->Callback;
 			pNew->ID=pEvent->ID;
 			pNew->pData=pEvent->pData;
@@ -742,10 +745,12 @@ private:
 
 			pNew->pNext=*ppExecuteList;
 			*ppExecuteList=pNew;
-		} catch (...) {
-			if(pNew)
-				delete pNew;
 		}
+		catch (std::bad_alloc& exc)
+		{
+			UNREFERENCED_PARAMETER(exc);
+			MessageBox(NULL, "Bleech failed to allocate memory in QueueEvent", "Did we just discover a memory leak?", MB_SYSTEMMODAL | MB_OK);
+		};
     }
 
     void QueueEvents(PBLECHEXECUTE *ppExecuteList,BlechNode *pNode, const char *Input, unsigned int InputLength)
@@ -785,11 +790,11 @@ private:
             }
             if (pNode && TestLength==InputLength)
             {
-                PBLECHEVENTNODE pEventNode2=pNode->pEvents;
-                while(pEventNode2)
+                PBLECHEVENTNODE pEventNode=pNode->pEvents;
+                while(pEventNode)
                 {
-                    QueueEvent(ppExecuteList,pEventNode2->pEvent,0);
-                    pEventNode2=pEventNode2->pNext;
+                    QueueEvent(ppExecuteList,pEventNode->pEvent,0);
+                    pEventNode=pEventNode->pNext;
                 }
             }
 
