@@ -1,3 +1,9 @@
+10 May 2016
+- Updated for TEST
+  This will get u in game, but there are still some stuff that needs fixed, 
+  the Caps needs calced for example.
+  I just wont spend to much time on it now, since one or more repatches are likely.
+
 08 May 2016
 - Maintenance release PART II:
 - Added .IsSwarmSpell to the Spell TLO, it return TRUE/FALSE if a spell is a swarmspell or not.

@@ -60,6 +60,7 @@ GNU General Public License for more details.
 43, -1, "Pick",
 44, -1, "Wakizashi",
 45, -1, "Crystal Staff",
+46, 15, "Dragon Striker - Top Half",
 46, -1, "Bone Wand",
 47, -1, "Wand",
 48, -1, "Lantern",

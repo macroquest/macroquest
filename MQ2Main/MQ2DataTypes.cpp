@@ -2260,35 +2260,43 @@ bool MQ2CharacterType::GETMEMBER()
 		Dest.Type = pIntType;
 		return true;
 	case CombatEffectsBonus:
-		Dest.DWord = (pChar->CombatEffectsBonus > pChar->CombatEffectsCap ? pChar->CombatEffectsCap : pChar->CombatEffectsBonus);
+		//FIX THIS
+		Dest.DWord = 0;// (pChar->CombatEffectsBonus > pChar->CombatEffectsCap ? pChar->CombatEffectsCap : pChar->CombatEffectsBonus);
 		Dest.Type = pIntType;
 		return true;
 	case ShieldingBonus:
-		Dest.DWord = (pChar->ShieldingBonus > pChar->ShieldingCap ? pChar->ShieldingCap : pChar->ShieldingBonus);
+		//FIX THIS
+		Dest.DWord = 0;// (pChar->ShieldingBonus > pChar->ShieldingCap ? pChar->ShieldingCap : pChar->ShieldingBonus);
 		Dest.Type = pIntType;
 		return true;
 	case SpellShieldBonus:
-		Dest.DWord = (pChar->SpellShieldBonus > pChar->SpellShieldCap ? pChar->SpellShieldCap : pChar->SpellShieldBonus);
+		//FIX THIS
+		Dest.DWord = 0;// (pChar->SpellShieldBonus > pChar->SpellShieldCap ? pChar->SpellShieldCap : pChar->SpellShieldBonus);
 		Dest.Type = pIntType;
 		return true;
 	case AvoidanceBonus:
-		Dest.DWord = (pChar->AvoidanceBonus > pChar->AvoidanceCap ? pChar->AvoidanceCap : pChar->AvoidanceBonus);
+		//FIX THIS
+		Dest.DWord = 0;// (pChar->AvoidanceBonus > pChar->AvoidanceCap ? pChar->AvoidanceCap : pChar->AvoidanceBonus);
 		Dest.Type = pIntType;
 		return true;
 	case AccuracyBonus:
-		Dest.DWord = (pChar->AccuracyBonus > pChar->AccuracyCap ? pChar->AccuracyCap : pChar->AccuracyBonus);
+		//FIX THIS
+		Dest.DWord = 0;// (pChar->AccuracyBonus > pChar->AccuracyCap ? pChar->AccuracyCap : pChar->AccuracyBonus);
 		Dest.Type = pIntType;
 		return true;
 	case StunResistBonus:
-		Dest.DWord = (pChar->StunResistBonus > pChar->StunResistCap ? pChar->StunResistCap : pChar->StunResistBonus);
+		//FIX THIS
+		Dest.DWord = 0;// (pChar->StunResistBonus > pChar->StunResistCap ? pChar->StunResistCap : pChar->StunResistBonus);
 		Dest.Type = pIntType;
 		return true;
 	case StrikeThroughBonus:
-		Dest.DWord = (pChar->StrikeThroughBonus > pChar->StrikeThroughCap ? pChar->StrikeThroughCap : pChar->StrikeThroughBonus);
+		//FIX THIS
+		Dest.DWord = 0;// (pChar->StrikeThroughBonus > pChar->StrikeThroughCap ? pChar->StrikeThroughCap : pChar->StrikeThroughBonus);
 		Dest.Type = pIntType;
 		return true;
 	case DoTShieldBonus:
-		Dest.DWord = (pChar->DoTShieldBonus > pChar->DoTShieldCap ? pChar->DoTShieldCap : pChar->DoTShieldBonus);
+		//FIX THIS
+		Dest.DWord = 0;// (pChar->DoTShieldBonus > pChar->DoTShieldCap ? pChar->DoTShieldCap : pChar->DoTShieldBonus);
 		Dest.Type = pIntType;
 		return true;
 	case AttackBonus:
@@ -2304,11 +2312,13 @@ bool MQ2CharacterType::GETMEMBER()
 		Dest.Type = pIntType;
 		return true;
 	case DamageShieldBonus:
-		Dest.DWord = (pChar->DamageShieldBonus > pChar->DamageShieldCap ? pChar->DamageShieldCap : pChar->DamageShieldBonus);
+		//FIX THIS
+		Dest.DWord = 0;// (pChar->DamageShieldBonus > pChar->DamageShieldCap ? pChar->DamageShieldCap : pChar->DamageShieldBonus);
 		Dest.Type = pIntType;
 		return true;
 	case DamageShieldMitigationBonus:
-		Dest.DWord = (pChar->DamageShieldMitigationBonus > pChar->DamageShieldMitigationCap ? pChar->DamageShieldMitigationCap : pChar->DamageShieldMitigationBonus);
+		//FIX THIS
+		Dest.DWord = 0;// (pChar->DamageShieldMitigationBonus > pChar->DamageShieldMitigationCap ? pChar->DamageShieldMitigationCap : pChar->DamageShieldMitigationBonus);
 		Dest.Type = pIntType;
 		return true;
 	case HeroicSTRBonus:
@@ -6182,8 +6192,10 @@ bool MQ2ItemType::GETMEMBER()
 	case DamShield:
 		if (GetItemFromContents(pItem)->Type != ITEMTYPE_NORMAL)
 			Dest.DWord = 0;
-		else
-			Dest.DWord = GetItemFromContents(pItem)->DamShield;
+		else {
+			WriteChatf("Need a calc for DamShield");
+			Dest.DWord = 0;// GetItemFromContents(pItem)->DamShield;
+		}
 		Dest.Type = pIntType;
 		return true;
 	case AugType:
@@ -6289,29 +6301,37 @@ bool MQ2ItemType::GETMEMBER()
 	case Avoidance:
 		if (GetItemFromContents(pItem)->Type != ITEMTYPE_NORMAL)
 			Dest.DWord = 0;
-		else
-			Dest.DWord = (char)GetItemFromContents(pItem)->Avoidance;
+		else {
+			WriteChatf("Need a calc for Avoidance");
+			Dest.DWord = 0;// (char)GetItemFromContents(pItem)->Avoidance;
+		}
 		Dest.Type = pIntType;
 		return true;
 	case SpellShield:
 		if (GetItemFromContents(pItem)->Type != ITEMTYPE_NORMAL)
 			Dest.DWord = 0;
-		else
-			Dest.DWord = (char)GetItemFromContents(pItem)->SpellShield;
+		else {
+			WriteChatf("Need a calc for SpellShield");
+			Dest.DWord = 0;// (char)GetItemFromContents(pItem)->SpellShield;
+		}
 		Dest.Type = pIntType;
 		return true;
 	case StrikeThrough:
 		if (GetItemFromContents(pItem)->Type != ITEMTYPE_NORMAL)
 			Dest.DWord = 0;
-		else
-			Dest.DWord = (char)GetItemFromContents(pItem)->StrikeThrough;
+		else {
+			WriteChatf("Need a calc for StrikeThrough");
+			Dest.DWord = 0;// (char)GetItemFromContents(pItem)->StrikeThrough;
+		}
 		Dest.Type = pIntType;
 		return true;
 	case StunResist:
 		if (GetItemFromContents(pItem)->Type != ITEMTYPE_NORMAL)
 			Dest.DWord = 0;
-		else
-			Dest.DWord = (char)GetItemFromContents(pItem)->StunResist;
+		else {
+			WriteChatf("Need a calc for StunResist");
+			Dest.DWord = 0;// (char)GetItemFromContents(pItem)->StunResist;
+		}
 		Dest.Type = pIntType;
 		return true;
 	case Shielding:
@@ -6324,8 +6344,10 @@ bool MQ2ItemType::GETMEMBER()
 	case Accuracy:
 		if (GetItemFromContents(pItem)->Type != ITEMTYPE_NORMAL)
 			Dest.DWord = 0;
-		else
-			Dest.DWord = (char)GetItemFromContents(pItem)->Accuracy;
+		else {
+			WriteChatf("Need a calc for Accuracy");
+			Dest.DWord = 0;//  (char)GetItemFromContents(pItem)->Accuracy;
+		}
 		Dest.Type = pIntType;
 		return true;
 	case CombatEffects:
@@ -6338,8 +6360,10 @@ bool MQ2ItemType::GETMEMBER()
 	case DoTShielding:
 		if (GetItemFromContents(pItem)->Type != ITEMTYPE_NORMAL)
 			Dest.DWord = 0;
-		else
-			Dest.DWord = (char)GetItemFromContents(pItem)->DoTShielding;
+		else {
+			WriteChatf("Need a calc for DoTShielding");
+			Dest.DWord = 0;// (char)GetItemFromContents(pItem)->DoTShielding;
+		}
 		Dest.Type = pIntType;
 		return true;
 	case HeroicSTR:
@@ -6464,8 +6488,10 @@ bool MQ2ItemType::GETMEMBER()
 	case SpellDamage:
 		if (GetItemFromContents(pItem)->Type != ITEMTYPE_NORMAL)
 			Dest.DWord = 0;
-		else
-			Dest.DWord = GetItemFromContents(pItem)->SpellDamage;
+		else {
+			WriteChatf("Need a calc for SpellDamage");
+			Dest.DWord = 0;// GetItemFromContents(pItem)->SpellDamage;
+		}
 		Dest.Type = pIntType;
 		return true;
 	case Augs:

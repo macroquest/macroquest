@@ -344,7 +344,6 @@ CSW
 
 typedef struct _CCONTEXTMENUVFTABLE {
 VFTABLE
-/*0x164*/ LPVOID CListWnd_OnHeaderClick;
 /*0x168*/ LPVOID CListWnd__DrawColumnSeparators;
 /*0x16c*/ LPVOID CListWnd__DrawSeparator;
 /*0x170*/ LPVOID CListWnd__DrawLine;
