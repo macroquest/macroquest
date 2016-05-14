@@ -1,3 +1,27 @@
+13 May 2016
+- Updated for TEST
+- Note that the following Values was removed from the ITEMINFO Struct in the TEST build:
+  	.Accuracy
+	.StrikeThrough
+	.Avoidance
+	.DoTShielding
+	.SpellShield
+	.StunResist
+	.CombatEffects
+	.Shielding
+	.DamageShieldMitigation
+	Its unlikely that these will return, but I will know in a few days when I have had more time to investigate this.
+	I *MIGHT* create wrapper functions for these values like ((EQ_Item*)pItem)->GetAccuracy();.
+	BUT IF YOU HAVE PLUGINS OR MACROS THAT USE THESE VALUES: //Comment them out for now...
+	I will know more before this stuff gets pushed to the LIVE client next week...
+- Updated for LIVE
+
+12 May 2016 by rswiders
+- Finally... move the NetStatus indicator on the screen. You are no longer limited to the upper left corner.
+  Using NetStatusXPos and NetStatusYPos these will be added the to default (0,0) coordinates to allow placement
+  at other areas on the screen.
+- Added commands /netstatusxpos, /netstatusypos to update the (x,y) screen coordinates for the NetStatus indicator.
+
 10 May 2016
 - Updated for TEST
   This will get u in game, but there are still some stuff that needs fixed, 

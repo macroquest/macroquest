@@ -378,6 +378,8 @@ namespace MQ2Globals
 	BOOL gCreateMQ2NewsWindow = TRUE;
 	CHAR gIfDelimiter = ',';
 	CHAR gIfAltDelimiter = '~';
+	DWORD gNetStatusXPos = 0;
+	DWORD gNetStatusYPos = 0;
 
 	DOUBLE DegToRad = 57.295779513082320876846364344191;
 	DOUBLE PI = 3.1415926535;
@@ -1865,7 +1867,9 @@ namespace MQ2Globals
 	INITIALIZE_EQGAME_OFFSET(PcZoneClient__GetPcSkillLimit);
 	INITIALIZE_EQGAME_OFFSET(PcZoneClient__RemovePetEffect);
 	INITIALIZE_EQGAME_OFFSET(PcZoneClient__HasAlternateAbility);
-	
+	INITIALIZE_EQGAME_OFFSET(PcZoneClient__GetCurrentMod);
+	INITIALIZE_EQGAME_OFFSET(PcZoneClient__GetModCap);
+
 	INITIALIZE_EQGAME_OFFSET(EQSwitch__UseSwitch);
 	INITIALIZE_EQGAME_OFFSET(IconCache__GetIcon);
 	INITIALIZE_EQGAME_OFFSET(CContainerMgr__OpenContainer);

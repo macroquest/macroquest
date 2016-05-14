@@ -2260,45 +2260,61 @@ bool MQ2CharacterType::GETMEMBER()
 		Dest.Type = pIntType;
 		return true;
 	case CombatEffectsBonus:
-		//FIX THIS
-		Dest.DWord = 0;// (pChar->CombatEffectsBonus > pChar->CombatEffectsCap ? pChar->CombatEffectsCap : pChar->CombatEffectsBonus);
+	{
+		DWORD CombatEffectsCap = ((PcZoneClient*)pCharData1)->GetModCap(HEROIC_MOD_COMBAT_EFFECTS);
+		Dest.DWord = (pChar->CombatEffectsBonus > CombatEffectsCap ? CombatEffectsCap : pChar->CombatEffectsBonus);
 		Dest.Type = pIntType;
 		return true;
+	}
 	case ShieldingBonus:
-		//FIX THIS
-		Dest.DWord = 0;// (pChar->ShieldingBonus > pChar->ShieldingCap ? pChar->ShieldingCap : pChar->ShieldingBonus);
+	{
+		DWORD ShieldingCap = ((PcZoneClient*)pCharData1)->GetModCap(HEROIC_MOD_MELEE_SHIELDING);
+		Dest.DWord = (pChar->ShieldingBonus > ShieldingCap ? ShieldingCap : pChar->ShieldingBonus);
 		Dest.Type = pIntType;
 		return true;
+	}
 	case SpellShieldBonus:
-		//FIX THIS
-		Dest.DWord = 0;// (pChar->SpellShieldBonus > pChar->SpellShieldCap ? pChar->SpellShieldCap : pChar->SpellShieldBonus);
+	{
+		DWORD SpellShieldCap = ((PcZoneClient*)pCharData1)->GetModCap(HEROIC_MOD_SPELL_SHIELDING);
+		Dest.DWord = (pChar->SpellShieldBonus > SpellShieldCap ? SpellShieldCap : pChar->SpellShieldBonus);
 		Dest.Type = pIntType;
 		return true;
+	}
 	case AvoidanceBonus:
-		//FIX THIS
-		Dest.DWord = 0;// (pChar->AvoidanceBonus > pChar->AvoidanceCap ? pChar->AvoidanceCap : pChar->AvoidanceBonus);
+	{
+		DWORD AvoidanceCap = ((PcZoneClient*)pCharData1)->GetModCap(HEROIC_MOD_AVOIDANCE);
+		Dest.DWord = (pChar->AvoidanceBonus > AvoidanceCap ? AvoidanceCap : pChar->AvoidanceBonus);
 		Dest.Type = pIntType;
 		return true;
+	}
 	case AccuracyBonus:
-		//FIX THIS
-		Dest.DWord = 0;// (pChar->AccuracyBonus > pChar->AccuracyCap ? pChar->AccuracyCap : pChar->AccuracyBonus);
+	{
+		DWORD AccuracyCap = ((PcZoneClient*)pCharData1)->GetModCap(HEROIC_MOD_ACCURACY);
+		Dest.DWord = (pChar->AccuracyBonus > AccuracyCap ? AccuracyCap : pChar->AccuracyBonus);
 		Dest.Type = pIntType;
 		return true;
+	}
 	case StunResistBonus:
-		//FIX THIS
-		Dest.DWord = 0;// (pChar->StunResistBonus > pChar->StunResistCap ? pChar->StunResistCap : pChar->StunResistBonus);
+	{
+		DWORD StunResistCap = ((PcZoneClient*)pCharData1)->GetModCap(HEROIC_MOD_STUN_RESIST);
+		Dest.DWord = (pChar->StunResistBonus > StunResistCap ? StunResistCap : pChar->StunResistBonus);
 		Dest.Type = pIntType;
 		return true;
+	}
 	case StrikeThroughBonus:
-		//FIX THIS
-		Dest.DWord = 0;// (pChar->StrikeThroughBonus > pChar->StrikeThroughCap ? pChar->StrikeThroughCap : pChar->StrikeThroughBonus);
+	{
+		DWORD StrikeThroughCap = ((PcZoneClient*)pCharData1)->GetModCap(HEROIC_MOD_STRIKETHROUGH);
+		Dest.DWord = (pChar->StrikeThroughBonus > StrikeThroughCap ? StrikeThroughCap : pChar->StrikeThroughBonus);
 		Dest.Type = pIntType;
 		return true;
+	}
 	case DoTShieldBonus:
-		//FIX THIS
-		Dest.DWord = 0;// (pChar->DoTShieldBonus > pChar->DoTShieldCap ? pChar->DoTShieldCap : pChar->DoTShieldBonus);
+	{
+		DWORD DoTShieldCap = ((PcZoneClient*)pCharData1)->GetModCap(HEROIC_MOD_DOT_SHIELDING);
+		Dest.DWord = (pChar->DoTShieldBonus > DoTShieldCap ? DoTShieldCap : pChar->DoTShieldBonus);
 		Dest.Type = pIntType;
 		return true;
+	}
 	case AttackBonus:
 		Dest.DWord = pChar->AttackBonus;
 		Dest.Type = pIntType;
@@ -2312,15 +2328,19 @@ bool MQ2CharacterType::GETMEMBER()
 		Dest.Type = pIntType;
 		return true;
 	case DamageShieldBonus:
-		//FIX THIS
-		Dest.DWord = 0;// (pChar->DamageShieldBonus > pChar->DamageShieldCap ? pChar->DamageShieldCap : pChar->DamageShieldBonus);
+	{
+		DWORD DamageShieldCap = ((PcZoneClient*)pCharData1)->GetModCap(HEROIC_MOD_DAMAGE_SHIELDING);
+		Dest.DWord = (pChar->DamageShieldBonus > DamageShieldCap ? DamageShieldCap : pChar->DamageShieldBonus);
 		Dest.Type = pIntType;
 		return true;
+	}
 	case DamageShieldMitigationBonus:
-		//FIX THIS
-		Dest.DWord = 0;// (pChar->DamageShieldMitigationBonus > pChar->DamageShieldMitigationCap ? pChar->DamageShieldMitigationCap : pChar->DamageShieldMitigationBonus);
+	{
+		DWORD DamageShieldMitigationCap = ((PcZoneClient*)pCharData1)->GetModCap(HEROIC_MOD_DAMAGE_SHIELD_MITIG);
+		Dest.DWord = (pChar->DamageShieldMitigationBonus > DamageShieldMitigationCap ? DamageShieldMitigationCap : pChar->DamageShieldMitigationBonus);
 		Dest.Type = pIntType;
 		return true;
+	}
 	case HeroicSTRBonus:
 		Dest.DWord = pChar->HeroicSTRBonus;
 		Dest.Type = pIntType;
@@ -6190,11 +6210,16 @@ bool MQ2ItemType::GETMEMBER()
 		Dest.Type = pIntType;
 		return true;
 	case DamShield:
-		if (GetItemFromContents(pItem)->Type != ITEMTYPE_NORMAL)
-			Dest.DWord = 0;
-		else {
-			WriteChatf("Need a calc for DamShield");
-			Dest.DWord = 0;// GetItemFromContents(pItem)->DamShield;
+		Dest.DWord = 0;
+		if (PITEMINFO pII = GetItemFromContents(pItem)) {
+			if (pII->Type == ITEMTYPE_NORMAL) {
+				//FIX THIS
+				#ifdef TEST
+				Dest.DWord = 0;
+                #else
+				Dest.DWord = pII->DamShield;
+                #endif
+			}
 		}
 		Dest.Type = pIntType;
 		return true;
@@ -6299,70 +6324,114 @@ bool MQ2ItemType::GETMEMBER()
 		Dest.Type = pIntType;
 		return true;
 	case Avoidance:
-		if (GetItemFromContents(pItem)->Type != ITEMTYPE_NORMAL)
-			Dest.DWord = 0;
-		else {
-			WriteChatf("Need a calc for Avoidance");
-			Dest.DWord = 0;// (char)GetItemFromContents(pItem)->Avoidance;
+		Dest.DWord = 0;
+		if (PITEMINFO pII = GetItemFromContents(pItem)) {
+			if (pII->Type == ITEMTYPE_NORMAL) {
+				//FIX THIS
+				#ifdef TEST
+				Dest.DWord = 0;
+                #else
+				Dest.DWord = pII->Avoidance;
+                #endif
+			}
 		}
 		Dest.Type = pIntType;
 		return true;
 	case SpellShield:
-		if (GetItemFromContents(pItem)->Type != ITEMTYPE_NORMAL)
-			Dest.DWord = 0;
-		else {
-			WriteChatf("Need a calc for SpellShield");
-			Dest.DWord = 0;// (char)GetItemFromContents(pItem)->SpellShield;
+		Dest.DWord = 0;
+		if (PITEMINFO pII = GetItemFromContents(pItem)) {
+			if (pII->Type == ITEMTYPE_NORMAL) {
+				//FIX THIS
+				#ifdef TEST
+				Dest.DWord = 0;
+                #else
+				Dest.DWord = pII->SpellShield;
+                #endif
+			}
 		}
 		Dest.Type = pIntType;
 		return true;
 	case StrikeThrough:
-		if (GetItemFromContents(pItem)->Type != ITEMTYPE_NORMAL)
-			Dest.DWord = 0;
-		else {
-			WriteChatf("Need a calc for StrikeThrough");
-			Dest.DWord = 0;// (char)GetItemFromContents(pItem)->StrikeThrough;
+		Dest.DWord = 0;
+		if (PITEMINFO pII = GetItemFromContents(pItem)) {
+			if (pII->Type == ITEMTYPE_NORMAL) {
+				//FIX THIS
+				#ifdef TEST
+				Dest.DWord = 0;
+                #else
+				Dest.DWord = pII->StrikeThrough;
+                #endif
+			}
 		}
 		Dest.Type = pIntType;
 		return true;
 	case StunResist:
-		if (GetItemFromContents(pItem)->Type != ITEMTYPE_NORMAL)
-			Dest.DWord = 0;
-		else {
-			WriteChatf("Need a calc for StunResist");
-			Dest.DWord = 0;// (char)GetItemFromContents(pItem)->StunResist;
+		Dest.DWord = 0;
+		if (PITEMINFO pII = GetItemFromContents(pItem)) {
+			if (pII->Type == ITEMTYPE_NORMAL) {
+				//FIX THIS
+				#ifdef TEST
+				Dest.DWord = 0;
+                #else
+				Dest.DWord = pII->StunResist;
+                #endif
+			}
 		}
 		Dest.Type = pIntType;
 		return true;
 	case Shielding:
-		if (GetItemFromContents(pItem)->Type != ITEMTYPE_NORMAL)
-			Dest.DWord = 0;
-		else
-			Dest.DWord = (char)GetItemFromContents(pItem)->Shielding;
+		Dest.DWord = 0;
+		if (PITEMINFO pII = GetItemFromContents(pItem)) {
+			if (pII->Type == ITEMTYPE_NORMAL) {
+				//FIX THIS
+				#ifdef TEST
+				Dest.DWord = 0;
+                #else
+				Dest.DWord = pII->Shielding;
+                #endif
+			}
+		}
 		Dest.Type = pIntType;
 		return true;
 	case Accuracy:
-		if (GetItemFromContents(pItem)->Type != ITEMTYPE_NORMAL)
-			Dest.DWord = 0;
-		else {
-			WriteChatf("Need a calc for Accuracy");
-			Dest.DWord = 0;//  (char)GetItemFromContents(pItem)->Accuracy;
+		Dest.DWord = 0;
+		if (PITEMINFO pII = GetItemFromContents(pItem)) {
+			if (pII->Type == ITEMTYPE_NORMAL) {
+				//FIX THIS
+				#ifdef TEST
+				Dest.DWord = 0;
+                #else
+				Dest.DWord = pII->Accuracy;
+                #endif
+			}
 		}
 		Dest.Type = pIntType;
 		return true;
 	case CombatEffects:
-		if (GetItemFromContents(pItem)->Type != ITEMTYPE_NORMAL)
-			Dest.DWord = 0;
-		else
-			Dest.DWord = (char)GetItemFromContents(pItem)->CombatEffects;
+		Dest.DWord = 0;
+		if (PITEMINFO pII = GetItemFromContents(pItem)) {
+			if (pII->Type == ITEMTYPE_NORMAL) {
+				//FIX THIS
+				#ifdef TEST
+				Dest.DWord = 0;
+                #else
+				Dest.DWord = pII->CombatEffects;
+                #endif
+			}
+		}
 		Dest.Type = pIntType;
 		return true;
 	case DoTShielding:
-		if (GetItemFromContents(pItem)->Type != ITEMTYPE_NORMAL)
-			Dest.DWord = 0;
-		else {
-			WriteChatf("Need a calc for DoTShielding");
-			Dest.DWord = 0;// (char)GetItemFromContents(pItem)->DoTShielding;
+		Dest.DWord = 0;
+		if (PITEMINFO pII = GetItemFromContents(pItem)) {
+			if (pII->Type == ITEMTYPE_NORMAL) {
+				//FIX THIS
+				#ifdef TEST
+				Dest.DWord = 0;
+                #else
+				Dest.DWord = pII->DoTShielding;
+                #endif
+			}
 		}
 		Dest.Type = pIntType;
 		return true;
@@ -6479,18 +6548,25 @@ bool MQ2ItemType::GETMEMBER()
 		Dest.Type = pIntType;
 		return true;
 	case DamageShieldMitigation:
-		if (GetItemFromContents(pItem)->Type != ITEMTYPE_NORMAL)
-			Dest.DWord = 0;
-		else
-			Dest.DWord = GetItemFromContents(pItem)->DamageShieldMitigation;
+		Dest.DWord = 0;
+		if (PITEMINFO pII = GetItemFromContents(pItem)) {
+			if (pII->Type == ITEMTYPE_NORMAL) {
+				//FIX THIS
+				#ifdef TEST
+				Dest.DWord = 0;
+                #else
+				Dest.DWord = pII->DamageShieldMitigation;
+                #endif
+			}
+		}
 		Dest.Type = pIntType;
 		return true;
 	case SpellDamage:
-		if (GetItemFromContents(pItem)->Type != ITEMTYPE_NORMAL)
-			Dest.DWord = 0;
-		else {
-			WriteChatf("Need a calc for SpellDamage");
-			Dest.DWord = 0;// GetItemFromContents(pItem)->SpellDamage;
+		Dest.DWord = 0;
+		if (PITEMINFO pII = GetItemFromContents(pItem)) {
+			if (pII->Type == ITEMTYPE_NORMAL) {
+				Dest.DWord = pII->SpellDamage;
+			}
 		}
 		Dest.Type = pIntType;
 		return true;

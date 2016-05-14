@@ -66,8 +66,8 @@ public:
 void __cdecl DrawHUD_Trampoline(unsigned short, unsigned short, PVOID, unsigned int); 
 void __cdecl DrawHUD_Detour(unsigned short a,unsigned short b,PVOID c,unsigned int d) 
 { 
-    DrawHUDParams[0]=a;
-    DrawHUDParams[1]=b;
+    DrawHUDParams[0]=a+gNetStatusXPos;
+    DrawHUDParams[1]=b+gNetStatusYPos;
     DrawHUDParams[2]=(DWORD)c;
     DrawHUDParams[3]=d;
     if (gbHUDUnderUI || gbAlwaysDrawMQHUD)
@@ -145,6 +145,48 @@ DETOUR_TRAMPOLINE_EMPTY(void DrawHUD_Trampoline(unsigned short,unsigned short,PV
 DETOUR_TRAMPOLINE_EMPTY(VOID CDisplayHook::CleanUI_Trampoline(VOID)); 
 DETOUR_TRAMPOLINE_EMPTY(VOID CDisplayHook::ReloadUI_Trampoline(BOOL)); 
 std::list<std::string>oldstrings;
+
+#ifdef ISXEQ
+int CMD_NetStatusXPos(int argc, char *argv[])
+{
+	PSPAWNINFO pChar = (PSPAWNINFO)pLocalPlayer;
+	CHAR szTemp[MAX_STRING] = { 0 };
+	PCHAR szLine = ISXEQArgToMQ2Arg(argc, argv, szTemp, MAX_STRING);
+#else
+VOID NetStatusXPos(PSPAWNINFO pChar, char *szLine)
+{
+#endif
+	CHAR szArg[MAX_STRING] = { 0 };
+	CHAR szCmd[MAX_STRING] = { 0 };
+
+	if (szLine[0] != '\0') {
+		gNetStatusXPos = strtol(GetArg(szArg, szLine, 1), 0, 0);
+		WriteChatf("\ayNetStatus XPos is \ax\at%d\ax", gNetStatusXPos);
+		itoa(gNetStatusXPos, szCmd, 10); WritePrivateProfileString("MacroQuest", "NetStatusXPos", szCmd, gszINIFilename);
+	}
+	RETURN(0);
+}
+#ifdef ISXEQ
+int CMD_NetStatusYPos(int argc, char *argv[])
+{
+	PSPAWNINFO pChar = (PSPAWNINFO)pLocalPlayer;
+	CHAR szTemp[MAX_STRING] = { 0 };
+	PCHAR szLine = ISXEQArgToMQ2Arg(argc, argv, szTemp, MAX_STRING);
+#else
+VOID NetStatusYPos(PSPAWNINFO pChar, char *szLine)
+{
+#endif
+	CHAR szArg[MAX_STRING] = { 0 };
+	CHAR szCmd[MAX_STRING] = { 0 };
+
+	if (szLine[0] != '\0') {
+		gNetStatusYPos = strtol(GetArg(szArg, szLine, 1), 0, 0);
+		WriteChatf("\ayNetStatus YPos is \ax\at%d\ax", gNetStatusYPos);
+		itoa(gNetStatusYPos, szCmd, 10); WritePrivateProfileString("MacroQuest", "NetStatusYPos", szCmd, gszINIFilename);
+	}
+	RETURN(0);
+}
+
 VOID InitializeDisplayHook()
 {
 	//this needs further investigation - eqmule
@@ -172,6 +214,10 @@ VOID InitializeDisplayHook()
     EzDetour(DrawNetStatus,DrawHUD_Detour,DrawHUD_Trampoline);
 #endif
     //EzDetour(EQ_LoadingS__SetProgressBar,&EQ_LoadingSHook::SetProgressBar_Detour,&EQ_LoadingSHook::SetProgressBar_Trampoline);
+#ifndef ISXEQ
+	AddCommand("/netstatusxpos", NetStatusXPos);
+	AddCommand("/netstatusypos", NetStatusYPos);
+#endif
 }
 
 VOID ShutdownDisplayHook()
@@ -192,6 +238,11 @@ VOID ShutdownDisplayHook()
 #endif
     PluginsCleanUI();
     DebugSpew("Shutting down Display Hooks");
+
+#ifndef ISXEQ
+	RemoveCommand("/netstatusxpos");
+	RemoveCommand("/netstatusypos");
+#endif
 
     RemoveDetour(CDisplay__CleanGameUI);
     RemoveDetour(CDisplay__ReloadUI);

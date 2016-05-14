@@ -145,6 +145,18 @@ typedef struct _BodyInfo
 #define SKILLMINDAMAGEMOD_TIGERCLAW     0x07 
 #define SKILLMINDAMAGEMOD_FRENZY        0x08 
 
+//Heroic Mods
+#define HEROIC_MOD_SPELL_SHIELDING      0x4
+#define HEROIC_MOD_COMBAT_EFFECTS       0x5
+#define HEROIC_MOD_MELEE_SHIELDING      0x6
+#define HEROIC_MOD_DAMAGE_SHIELDING     0x7
+#define HEROIC_MOD_DOT_SHIELDING        0x8
+#define HEROIC_MOD_DAMAGE_SHIELD_MITIG  0x9
+#define HEROIC_MOD_AVOIDANCE            0xa
+#define HEROIC_MOD_ACCURACY             0xb
+#define HEROIC_MOD_STUN_RESIST          0xc
+#define HEROIC_MOD_STRIKETHROUGH        0xd
+
 #define COLOR_DEFAULT                   0x00
 #define COLOR_DARKGREY                  0x01
 #define COLOR_DARKGREEN                 0x02

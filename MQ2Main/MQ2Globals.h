@@ -147,6 +147,9 @@ namespace MQ2Globals
 	EQLIB_VAR CHAR gIfDelimiter;
 	EQLIB_VAR CHAR gIfAltDelimiter;
 
+	EQLIB_VAR DWORD gNetStatusXPos;
+	EQLIB_VAR DWORD gNetStatusYPos;
+
 	EQLIB_VAR DOUBLE DegToRad;
 	EQLIB_VAR DOUBLE PI;
 #define ZoneShift             0
@@ -1338,6 +1341,8 @@ namespace MQ2Globals
 	EQLIB_VAR DWORD PcZoneClient__HasCombatAbility;
 	EQLIB_VAR DWORD PcZoneClient__RemovePetEffect;
 	EQLIB_VAR DWORD PcZoneClient__HasAlternateAbility;
+	EQLIB_VAR DWORD PcZoneClient__GetCurrentMod;
+	EQLIB_VAR DWORD PcZoneClient__GetModCap;
 
 	EQLIB_VAR DWORD EQSwitch__UseSwitch;
 

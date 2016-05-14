@@ -7168,7 +7168,12 @@ EQLIB_OBJECT bool PcZoneClient::HasAlternateAbility(int aaindex, int *, bool, bo
 #else
 EQLIB_OBJECT bool PcZoneClient::HasAlternateAbility(int aaindex, int *, bool);
 #endif
-
+EQLIB_OBJECT int PcZoneClient::GetCurrentMod(int index);
+#ifdef TEST
+EQLIB_OBJECT int PcZoneClient::GetModCap(int index, bool bToggle=false);
+#else
+EQLIB_OBJECT int PcZoneClient::GetModCap(int index);
+#endif
 };
 
 };
