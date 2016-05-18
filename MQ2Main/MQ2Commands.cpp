@@ -3420,7 +3420,7 @@ VOID CaptionCmd(PSPAWNINFO pChar, PCHAR szLine)
 	GetArg(Arg1, szLine, 1);
 	if (!Arg1[0])
 	{
-		SyntaxError("Usage: /caption <list|type <value>|update #|MQCaptions <on|off>>");
+		SyntaxError("Usage: /caption <list|type <value>|update #|MQCaptions <on|off>|Anonymize <on|off>>");
 		return;
 	}
 	if (!_stricmp(Arg1, "list"))
@@ -3490,6 +3490,13 @@ VOID CaptionCmd(PSPAWNINFO pChar, PCHAR szLine)
 		gMQCaptions = (!_stricmp(GetNextArg(szLine), "On"));
 		WritePrivateProfileString("Captions", "MQCaptions", (gMQCaptions ? "1" : "0"), gszINIFilename);
 		WriteChatf("MQCaptions are now \ay%s\ax.", (gMQCaptions ? "On" : "Off"));
+		return;
+	}
+	else if (!_stricmp(Arg1, "Anon"))
+	{
+		gAnonymize = (!_stricmp(GetNextArg(szLine), "On"));
+		WritePrivateProfileString("Captions", "Anonymize", (gAnonymize ? "1" : "0"), gszINIFilename);
+		WriteChatf("Anonymize is now \ay%s\ax.", (gAnonymize ? "On" : "Off"));
 		return;
 	}
 	else
@@ -3680,7 +3687,7 @@ VOID AltAbility(PSPAWNINFO pChar, PCHAR szLine)
 //              Echos text to the chatbox
 // Usage:       /echo <text>
 // ***************************************************************************
-VOID Echo(PSPAWNINFO pChar, PCHAR szLine)
+/*VOID Echo(PSPAWNINFO pChar, PCHAR szLine)
 {
 	CHAR szEcho[MAX_STRING] = { 0 };
 	bRunNextCommand = TRUE;
@@ -3689,6 +3696,42 @@ VOID Echo(PSPAWNINFO pChar, PCHAR szLine)
 	strncat(szEcho, szLine, MAX_STRING - (strlen(DebugHeader) + 2));
 	DebugSpewNoFile("Echo - %s", szEcho);
 	WriteChatColor(szEcho, USERCOLOR_CHAT_CHANNEL);
+}*/
+VOID Echo(PSPAWNINFO pChar, PCHAR szLine)
+{
+	CHAR szEcho[MAX_STRING] = { 0 };
+	bRunNextCommand = TRUE;
+	strcpy(szEcho, DebugHeader);
+	strcat(szEcho, " ");
+	int NewPos = strlen(DebugHeader)+1, OldPos = 0;
+	if (szLine) {
+		while (OldPos < (int)strlen(szLine)) {
+			if (szLine[OldPos] == '\\') {
+				OldPos++;
+				if (szLine[OldPos]) {
+					if (szLine[OldPos] == '\\')
+						szEcho[NewPos] = szLine[OldPos];
+					else if (szLine[OldPos] == 'n') {
+						szEcho[NewPos++] = '\r';
+						szEcho[NewPos] = '\n';
+					}
+					else if (szLine[OldPos] >= 'a' && szLine[OldPos] <= 'z')
+						szEcho[NewPos] = szLine[OldPos] - 'a' + 7;
+					else if (szLine[OldPos] >= 'A' && szLine[OldPos] <= 'Z')
+						szEcho[NewPos] = szLine[OldPos] - 'a' + 7;
+					NewPos++;
+					OldPos++;
+				}
+			}
+			else {
+				szEcho[NewPos] = szLine[OldPos];
+				NewPos++;
+				OldPos++;
+			}
+			szEcho[NewPos] = 0;
+		}
+	}
+	WriteChatColor(szEcho,USERCOLOR_CHAT_CHANNEL);
 }
 
 // ***************************************************************************

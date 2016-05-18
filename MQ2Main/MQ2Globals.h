@@ -62,6 +62,7 @@ namespace MQ2Globals
 	EQLIB_VAR BOOL gStringTableFixed;
 	EQLIB_VAR DWORD gMaxSpawnCaptions;
 	EQLIB_VAR BOOL gMQCaptions;
+	EQLIB_VAR BOOL gAnonymize;
 
 	EQLIB_VAR HMODULE ghModule;
 	EQLIB_VAR HINSTANCE ghInstance;
@@ -97,7 +98,7 @@ namespace MQ2Globals
 
 	EQLIB_VAR PSPAWNINFO pNamingSpawn;
 	EQLIB_VAR CHAR gszSpawnNPCName[MAX_STRING];
-	EQLIB_VAR CHAR gszSpawnPlayerName[7][MAX_STRING];
+	EQLIB_VAR CHAR gszSpawnPlayerName[8][MAX_STRING];
 	EQLIB_VAR CHAR gszSpawnPetName[MAX_STRING];
 	EQLIB_VAR CHAR gszSpawnCorpseName[MAX_STRING];
 
@@ -1044,6 +1045,7 @@ namespace MQ2Globals
 	EQLIB_VAR DWORD CEverQuest__DoTellWindow;
 	EQLIB_VAR DWORD CEverQuest__DropHeldItemOnGround;
 	EQLIB_VAR DWORD CEverQuest__dsp_chat;
+	EQLIB_VAR DWORD CEverQuest__trimName;
 	EQLIB_VAR DWORD CEverQuest__Emote;
 	EQLIB_VAR DWORD CEverQuest__EnterZone;
 	EQLIB_VAR DWORD CEverQuest__GetBodyTypeDesc;

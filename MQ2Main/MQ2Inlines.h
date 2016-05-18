@@ -365,7 +365,15 @@ static inline DWORD ConColorToARGB(DWORD ConColor)
 		return 0xFFFF0000;
 	}
 }
-
+static inline BOOL IsRaidMember(char * SpawnName)
+{
+	for (DWORD N = 0; N < 72; N++)
+	{
+		if (pRaid->RaidMemberUsed[N] && !_stricmp(SpawnName, pRaid->RaidMember[N].Name))
+			return 1;
+	}
+	return 0;
+}
 static inline BOOL IsRaidMember(PSPAWNINFO pSpawn)
 {
 	for (DWORD N = 0; N < 72; N++)
@@ -375,19 +383,38 @@ static inline BOOL IsRaidMember(PSPAWNINFO pSpawn)
 	}
 	return 0;
 }
-
+static inline BOOL IsGroupMember(char * SpawnName)
+{
+	if (PCHARINFO pChar = GetCharInfo()) {
+		if (!pChar->pGroupInfo)
+			return 0;
+		for (DWORD N = 1; N < 6; N++)
+		{
+			if (pChar->pGroupInfo->pMember[N])
+			{
+				CHAR Name[MAX_STRING] = { 0 };
+				GetCXStr(pChar->pGroupInfo->pMember[N]->pName, Name, MAX_STRING);
+				if (!_stricmp(SpawnName, Name))
+					return 1;
+			}
+		}
+	}
+	return 0;
+}
 static inline BOOL IsGroupMember(PSPAWNINFO pSpawn)
 {
-	PCHARINFO pChar = GetCharInfo();
-	if (!pChar->pGroupInfo) return 0;
-	for (DWORD N = 1; N<6; N++)
-	{
-		if (pChar->pGroupInfo->pMember[N])
+	if (PCHARINFO pChar = GetCharInfo()) {
+		if (!pChar->pGroupInfo)
+			return 0;
+		for (DWORD N = 1; N < 6; N++)
 		{
-			CHAR Name[MAX_STRING] = { 0 };
-			GetCXStr(pChar->pGroupInfo->pMember[N]->pName, Name, MAX_STRING);
-			if (!_stricmp(pSpawn->Name, Name))
-				return 1;
+			if (pChar->pGroupInfo->pMember[N])
+			{
+				CHAR Name[MAX_STRING] = { 0 };
+				GetCXStr(pChar->pGroupInfo->pMember[N]->pName, Name, MAX_STRING);
+				if (!_stricmp(pSpawn->Name, Name))
+					return 1;
+			}
 		}
 	}
 	return 0;

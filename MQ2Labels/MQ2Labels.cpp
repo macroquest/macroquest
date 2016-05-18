@@ -1,11 +1,11 @@
 // MQ2Labels.cpp : Defines the entry point for the DLL application.
 //
-
+// 2.0 - May 14 2016 - Added code to allow anonymizing labels, for streaming/video recording. - eqmule
 // MQ2 Custom Labels
 
 
 #include "../MQ2Plugin.h"
-
+PLUGIN_VERSION(2.0);
 // PLEASE keep this array limited.  Recommend using 9999 and tooltips.
 struct _ID_PMP
 { DWORD ID;PCHAR PMP; }
@@ -105,23 +105,99 @@ DETOUR_TRAMPOLINE_EMPTY(class CXWnd * CSidlManagerHook::CreateLabel_Trampoline(c
 
 #pragma optimize ("g", on)
 
-// CLabelHook::Draw_Detour
+bool Anonymize(char *name)
+{
+	if(GetGameState()!=GAMESTATE_INGAME || !pLocalPlayer)
+		return 0;
+	BOOL isRmember = false;
+	BOOL isGmember = false;
+	bool bChange = false;
+	int ItsMe = _stricmp(((PSPAWNINFO)pLocalPlayer)->Name, name);
+	if(ItsMe!=0)//well if it is me, then there is no point in checking if its a group member
+		isGmember = IsGroupMember(name);
+	if(!isGmember && ItsMe!=0)//well if it is me or a groupmember, then there is no point in checking if its a raid member
+		isRmember = IsRaidMember(name);
+	if (ItsMe==0 || isGmember || isRmember) {
+		int len = strlen(name);
+		bChange = true;
+		for (int i = 1; i < len - 1; i++) {
+			name[i] = '*';
+		}
+	}
+	return bChange;
+}
+int __cdecl GetGaugeValueFromEQ_Trampoline(int, class CXStr *, bool *, unsigned long *);
+int __cdecl GetGaugeValueFromEQ_Detour(int EQType, class CXStr *out, bool *arg3, unsigned long *colorout)
+{
+	int ret = GetGaugeValueFromEQ_Trampoline(EQType,out,arg3,colorout);
+	if (gAnonymize) {
+		if (out && out->Ptr) {
+			CHAR szOut[MAX_STRING] = { 0 };
+			GetCXStr(out->Ptr, szOut);
+			if (Anonymize(szOut)) {
+				SetCXStr(&out->Ptr, szOut);
+			}
+		}
+	}
+	return ret;
+}
+int __cdecl GetLabelFromEQ_Trampoline(int, class CXStr *, bool *, unsigned long *);
+int __cdecl GetLabelFromEQ_Detour(int EQType, class CXStr *out, bool *arg3, unsigned long *colorout)
+{
+	int ret = GetLabelFromEQ_Trampoline(EQType,out,arg3,colorout);
+	if (gAnonymize) {
+		if (out && out->Ptr) {
+			CHAR szOut[MAX_STRING] = { 0 };
+			GetCXStr(out->Ptr, szOut);
+			if (Anonymize(szOut)) {
+				SetCXStr(&out->Ptr, szOut);
+			}
+		}
+	}
+	return ret;
+}
 
+BOOL bTrimnames = 0;
+// CLabelHook::Draw_Detour
 class CLabelHook {
 public:
+	char *CEverQuest__trimName_Trampoline(char *);
+	char *CEverQuest__trimName_Detour(char *arg1)
+	{
+		char *ret = CEverQuest__trimName_Trampoline(arg1);
+		if (gAnonymize) {
+			Anonymize(ret);
+		}
+		return ret;
+	}
     VOID Draw_Trampoline(VOID);
     VOID Draw_Detour(VOID)
     {
-        PCLABELWND pThisLabel;
-        __asm {mov [pThisLabel], ecx};
-        //          (PCLABELWND)this;
-        Draw_Trampoline();
+        PCLABELWND pThisLabel = (PCLABELWND)this;
         CHAR Buffer[MAX_STRING] = {0};
         BOOL Found=FALSE;
         DWORD index;
-
-
-        if ((DWORD)pThisLabel->SidlPiece==9999) {
+		if (gAnonymize) {
+			if (!bTrimnames) {
+				EzDetour(CEverQuest__trimName, &CLabelHook::CEverQuest__trimName_Detour, &CLabelHook::CEverQuest__trimName_Trampoline);
+				EzDetour(__GetGaugeValueFromEQ, GetGaugeValueFromEQ_Detour, GetGaugeValueFromEQ_Trampoline);
+				EzDetour(__GetLabelFromEQ, GetLabelFromEQ_Detour, GetLabelFromEQ_Trampoline);
+				bTrimnames = 1;
+			}
+			if (pThisLabel && pThisLabel->Wnd.WindowText) {
+				GetCXStr(pThisLabel->Wnd.WindowText, Buffer);
+				Anonymize(Buffer);
+			}
+		} else {
+			if (bTrimnames) {
+				bTrimnames = 0;
+				RemoveDetour(CEverQuest__trimName);
+				RemoveDetour(__GetGaugeValueFromEQ);
+				RemoveDetour(__GetLabelFromEQ);
+			}
+		}
+		Draw_Trampoline();
+       if ((DWORD)pThisLabel->SidlPiece==9999) {
             if (!pThisLabel->Wnd.XMLToolTip) {
                 strcpy(Buffer,"BadCustom");
                 Found=TRUE;
@@ -150,6 +226,9 @@ public:
 }; 
 
 DETOUR_TRAMPOLINE_EMPTY(VOID CLabelHook::Draw_Trampoline(VOID));
+DETOUR_TRAMPOLINE_EMPTY(char *CLabelHook::CEverQuest__trimName_Trampoline(char *));
+DETOUR_TRAMPOLINE_EMPTY(int __cdecl GetGaugeValueFromEQ_Trampoline(int, class CXStr *, bool *, unsigned long *));
+DETOUR_TRAMPOLINE_EMPTY(int __cdecl GetLabelFromEQ_Trampoline(int, class CXStr *, bool *, unsigned long *));
 
 BOOL StealNextGauge=FALSE;
 DWORD NextGauge=0;
@@ -163,19 +242,26 @@ PLUGIN_API VOID InitializePlugin(VOID)
     //EasyClassDetour(CLabel__Draw,CLabelHook,Draw_Detour,VOID,(VOID),Draw_Trampoline);
     EzDetour(CLabel__Draw,&CLabelHook::Draw_Detour,&CLabelHook::Draw_Trampoline);
     EzDetour(CSidlManager__CreateLabel,&CSidlManagerHook::CreateLabel_Detour,&CSidlManagerHook::CreateLabel_Trampoline);
-
-
-    // currently in testing:
-    //    EasyClassDetour(CGauge__Draw,CGaugeHook,Draw_Detour,VOID,(VOID),Draw_Trampoline);
-    //    EasyDetour(__GetGaugeValueFromEQ,GetGaugeValueFromEQ_Hook,int,(int,class CXStr *,bool *),GetGaugeValueFromEQ_Trampoline);
+	if (gAnonymize) {
+		EzDetour(CEverQuest__trimName, &CLabelHook::CEverQuest__trimName_Detour, &CLabelHook::CEverQuest__trimName_Trampoline);
+		EzDetour(__GetGaugeValueFromEQ, GetGaugeValueFromEQ_Detour, GetGaugeValueFromEQ_Trampoline);
+		EzDetour(__GetLabelFromEQ, GetLabelFromEQ_Detour, GetLabelFromEQ_Trampoline);
+		bTrimnames = 1;
+	}
 }
 
 // Called once, when the plugin is to shutdown
 PLUGIN_API VOID ShutdownPlugin(VOID)
 {
     DebugSpewAlways("Shutting down MQ2Labels");
-
+	
     // Remove commands, macro parameters, hooks, etc.
+	if (bTrimnames) {
+		bTrimnames = 0;
+		RemoveDetour(CEverQuest__trimName);
+		RemoveDetour(__GetGaugeValueFromEQ);
+		RemoveDetour(__GetLabelFromEQ);
+	}
     RemoveDetour(CSidlManager__CreateLabel);
     RemoveDetour(CLabel__Draw);
     //RemoveDetour(CGaugeWnd__Draw);

@@ -419,6 +419,7 @@ GNU General Public License for more details.
 #define CEverQuest__DoTellWindow_x                                 0x473400
 #define CEverQuest__DropHeldItemOnGround_x                         0x56F1B0
 #define CEverQuest__dsp_chat_x                                     0x473740
+#define CEverQuest__trimName_x                                     0x554A60
 #define CEverQuest__Emote_x                                        0x56D500
 #define CEverQuest__EnterZone_x                                    0x568500
 #define CEverQuest__GetBodyTypeDesc_x                              0x5524C0

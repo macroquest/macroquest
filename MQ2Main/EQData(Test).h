@@ -647,7 +647,7 @@ typedef struct _ITEMINFO {
 	/*0x0230*/ BYTE         Unknown0x0230[0x8];
 	/*0x0238*/ DWORD        FactionModType[0x4];
 	/*0x0248*/ DWORD        FactionModValue[0x4];
-	/*0x0258*/ BYTE         CharmFile[0x20];
+	/*0x0258*/ CHAR         CharmFile[0x20];
 	/*0x0278*/ BYTE         Unknown0x0278[0x4];
 	/*0x027c*/ struct _ITEMSPELLS   Clicky;
 	/*0x02e0*/ struct _ITEMSPELLS   Proc;

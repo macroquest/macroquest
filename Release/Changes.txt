@@ -1,3 +1,20 @@
+18 May 2016
+- Updated for LIVE
+- /echo now accepts colorcodes -cred htw see http://www.macroquest2.com/phpBB3/viewtopic.php?f=47&t=17141&p=152508#p152508
+- Fixed a few bugs related to aa indexes.
+- Dont make a big thing out of this but:
+- /caption now takes a new argument "anon"
+  You can use this to anonymize your session.
+  It was brought to my attention that there was an interest in recording/streaming video - cred: maskoi
+  while at the same time protecting the privacy of the player as well as other players.
+  NOTE 1: This is cosmetic and LOCAL only, in other words NOT AN ACTIVE HACK.
+  NOTE 2: You are NOT anonymous to other players OR the server.
+  NOTE 3: I recommend leaving this option OFF at all times unless you really need to use it, because it WILL use a lot of cpu time.
+  NOTE 4: The mq2labels plugin need to be loaded for the "full anonymity effect".
+  NOTE 5: Chat is NOT anonymized at all. Although if people want that, we can certainly make it happen in a future update.
+  Usage: /caption anon on
+- And finally see changes for test in changes below from 13 May 2016, they apply to LIVE now as well.
+
 13 May 2016
 - Updated for TEST
 - Note that the following Values was removed from the ITEMINFO Struct in the TEST build:

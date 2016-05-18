@@ -1079,7 +1079,7 @@ void LoadAttribListVal(ITEMINFO *pItem)
 	AttribList[10].Val = cvtfloat(pItem->HeroicWIS);
 	AttribList[11].Val = cvtfloat(pItem->HeroicCHA);
 	AttribList[12].Val = cvtfloat(pItem->HealAmount);
-#ifdef TEST
+#ifndef EMU
 	AttribList[16].Val = 0;//FIX THIS cvtfloat(pItem->Accuracy);
 	AttribList[18].Val = 0;//FIX THIS cvtfloat(pItem->StrikeThrough);
 	AttribList[19].Val = 0;//FIX THIS cvtfloat(pItem->Avoidance);

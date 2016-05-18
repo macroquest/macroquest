@@ -7169,7 +7169,7 @@ EQLIB_OBJECT bool PcZoneClient::HasAlternateAbility(int aaindex, int *, bool, bo
 EQLIB_OBJECT bool PcZoneClient::HasAlternateAbility(int aaindex, int *, bool);
 #endif
 EQLIB_OBJECT int PcZoneClient::GetCurrentMod(int index);
-#ifdef TEST
+#ifndef EMU
 EQLIB_OBJECT int PcZoneClient::GetModCap(int index, bool bToggle=false);
 #else
 EQLIB_OBJECT int PcZoneClient::GetModCap(int index);

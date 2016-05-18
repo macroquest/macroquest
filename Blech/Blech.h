@@ -647,16 +647,28 @@ public:
 private:
     inline void FreeExecution(PBLECHEXECUTE pExecute)
     {
-        PBLECHVALUE pValue=pExecute->pValues;
-        while (pValue)
-        {
-            PBLECHVALUE pNext=pValue->pNext;
-            free(pValue->Value);
-            free(pValue->Name);
-            delete pValue;
-            pValue=pNext;
-        }
-        delete pExecute;
+		try
+		{
+			if (pExecute) {
+				if (PBLECHVALUE pValue = pExecute->pValues) {
+					while (pValue)
+					{
+						PBLECHVALUE pNext = pValue->pNext;
+						free(pValue->Value);
+						free(pValue->Name);
+						delete pValue;
+						pValue = pNext;
+					}
+				}
+				delete pExecute;
+			}
+		}
+		catch (...) {
+			int ret = MessageBox(NULL, "[Blech] Exception occured in FreeExecution", "Would you like to debug?", MB_SYSTEMMODAL | MB_YESNO);
+			if (ret == IDYES)
+				DebugBreak();
+			Sleep(0);
+		}
     }
 
     void ClearExecutionList(PBLECHEXECUTE *ppExecuteList)

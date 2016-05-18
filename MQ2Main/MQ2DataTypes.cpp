@@ -6214,7 +6214,7 @@ bool MQ2ItemType::GETMEMBER()
 		if (PITEMINFO pII = GetItemFromContents(pItem)) {
 			if (pII->Type == ITEMTYPE_NORMAL) {
 				//FIX THIS
-				#ifdef TEST
+				#ifndef EMU
 				Dest.DWord = 0;
                 #else
 				Dest.DWord = pII->DamShield;
@@ -6328,7 +6328,7 @@ bool MQ2ItemType::GETMEMBER()
 		if (PITEMINFO pII = GetItemFromContents(pItem)) {
 			if (pII->Type == ITEMTYPE_NORMAL) {
 				//FIX THIS
-				#ifdef TEST
+				#ifndef EMU
 				Dest.DWord = 0;
                 #else
 				Dest.DWord = pII->Avoidance;
@@ -6342,7 +6342,7 @@ bool MQ2ItemType::GETMEMBER()
 		if (PITEMINFO pII = GetItemFromContents(pItem)) {
 			if (pII->Type == ITEMTYPE_NORMAL) {
 				//FIX THIS
-				#ifdef TEST
+				#ifndef EMU
 				Dest.DWord = 0;
                 #else
 				Dest.DWord = pII->SpellShield;
@@ -6356,7 +6356,7 @@ bool MQ2ItemType::GETMEMBER()
 		if (PITEMINFO pII = GetItemFromContents(pItem)) {
 			if (pII->Type == ITEMTYPE_NORMAL) {
 				//FIX THIS
-				#ifdef TEST
+				#ifndef EMU
 				Dest.DWord = 0;
                 #else
 				Dest.DWord = pII->StrikeThrough;
@@ -6370,7 +6370,7 @@ bool MQ2ItemType::GETMEMBER()
 		if (PITEMINFO pII = GetItemFromContents(pItem)) {
 			if (pII->Type == ITEMTYPE_NORMAL) {
 				//FIX THIS
-				#ifdef TEST
+				#ifndef EMU
 				Dest.DWord = 0;
                 #else
 				Dest.DWord = pII->StunResist;
@@ -6384,7 +6384,7 @@ bool MQ2ItemType::GETMEMBER()
 		if (PITEMINFO pII = GetItemFromContents(pItem)) {
 			if (pII->Type == ITEMTYPE_NORMAL) {
 				//FIX THIS
-				#ifdef TEST
+				#ifndef EMU
 				Dest.DWord = 0;
                 #else
 				Dest.DWord = pII->Shielding;
@@ -6398,7 +6398,7 @@ bool MQ2ItemType::GETMEMBER()
 		if (PITEMINFO pII = GetItemFromContents(pItem)) {
 			if (pII->Type == ITEMTYPE_NORMAL) {
 				//FIX THIS
-				#ifdef TEST
+				#ifndef EMU
 				Dest.DWord = 0;
                 #else
 				Dest.DWord = pII->Accuracy;
@@ -6412,7 +6412,7 @@ bool MQ2ItemType::GETMEMBER()
 		if (PITEMINFO pII = GetItemFromContents(pItem)) {
 			if (pII->Type == ITEMTYPE_NORMAL) {
 				//FIX THIS
-				#ifdef TEST
+				#ifndef EMU
 				Dest.DWord = 0;
                 #else
 				Dest.DWord = pII->CombatEffects;
@@ -6426,7 +6426,7 @@ bool MQ2ItemType::GETMEMBER()
 		if (PITEMINFO pII = GetItemFromContents(pItem)) {
 			if (pII->Type == ITEMTYPE_NORMAL) {
 				//FIX THIS
-				#ifdef TEST
+				#ifndef EMU
 				Dest.DWord = 0;
                 #else
 				Dest.DWord = pII->DoTShielding;
@@ -6552,7 +6552,7 @@ bool MQ2ItemType::GETMEMBER()
 		if (PITEMINFO pII = GetItemFromContents(pItem)) {
 			if (pII->Type == ITEMTYPE_NORMAL) {
 				//FIX THIS
-				#ifdef TEST
+				#ifndef EMU
 				Dest.DWord = 0;
                 #else
 				Dest.DWord = pII->DamageShieldMitigation;

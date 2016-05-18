@@ -282,6 +282,7 @@ namespace MQ2Globals
 	DWORD gGameState = 0;
 	DWORD gMaxSpawnCaptions = 30;
 	BOOL gMQCaptions = TRUE;
+	BOOL gAnonymize = FALSE;
 	DWORD ThreadID = 0;
 	BOOL g_Loaded = FALSE;
 
@@ -319,7 +320,7 @@ namespace MQ2Globals
 	CHAR gszLastMQ2DataError[MAX_STRING] = { 0 };
 
 	PSPAWNINFO pNamingSpawn = 0;
-	CHAR gszSpawnPlayerName[7][MAX_STRING] = {
+	CHAR gszSpawnPlayerName[8][MAX_STRING] = {
 		"",//0
 		"${If[${NamingSpawn.Mark},\"${NamingSpawn.Mark} - \",]}${If[${NamingSpawn.Trader},\"Trader \",]}${If[${NamingSpawn.Invis},(${NamingSpawn.DisplayName}),${NamingSpawn.DisplayName}]}${If[${NamingSpawn.AFK},\" AFK\",]}${If[${NamingSpawn.Linkdead},\" LD\",]}${If[${NamingSpawn.LFG},\" LFG\",]}${If[${NamingSpawn.GroupLeader},\" LDR\",]}",//1
 		"${If[${NamingSpawn.Mark},\"${NamingSpawn.Mark} - \",]}${If[${NamingSpawn.Trader},\"Trader \",]}${If[${NamingSpawn.Invis},(${NamingSpawn.DisplayName}),${NamingSpawn.DisplayName}]}${If[${NamingSpawn.Surname.Length},\" ${NamingSpawn.Surname}\",]}${If[${NamingSpawn.AFK},\" AFK\",]}${If[${NamingSpawn.Linkdead},\" LD\",]}${If[${NamingSpawn.LFG},\" LFG\",]}${If[${NamingSpawn.GroupLeader},\" LDR\",]}",//2
@@ -1570,6 +1571,8 @@ namespace MQ2Globals
 	INITIALIZE_EQGAME_OFFSET(CEverQuest__DoTellWindow);
 	INITIALIZE_EQGAME_OFFSET(CEverQuest__DropHeldItemOnGround);
 	INITIALIZE_EQGAME_OFFSET(CEverQuest__dsp_chat);
+	INITIALIZE_EQGAME_OFFSET(CEverQuest__trimName);
+
 	INITIALIZE_EQGAME_OFFSET(CEverQuest__Emote);
 	INITIALIZE_EQGAME_OFFSET(CEverQuest__EnterZone);
 	INITIALIZE_EQGAME_OFFSET(CEverQuest__GetBodyTypeDesc);

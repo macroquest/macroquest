@@ -9814,7 +9814,7 @@ FUNCTION_AT_ADDRESS(bool PcZoneClient::HasAlternateAbility(int aaindex, int *, b
 FUNCTION_AT_ADDRESS(int PcZoneClient::GetCurrentMod(int index), PcZoneClient__GetCurrentMod);
 #endif
 #ifdef PcZoneClient__GetModCap_x
-#ifdef TEST
+#ifndef EMU
 FUNCTION_AT_ADDRESS(int PcZoneClient::GetModCap(int index, bool bToggle), PcZoneClient__GetModCap);
 #else
 FUNCTION_AT_ADDRESS(int PcZoneClient::GetModCap(int index), PcZoneClient__GetModCap);

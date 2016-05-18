@@ -160,7 +160,7 @@ public:
     int SetNameSpriteState_Trampoline(bool Show);
     int SetNameSpriteState_Detour(bool Show)
     {
-        if (gGameState!=GAMESTATE_INGAME || !Show || !gMQCaptions)
+        if (!gAnonymize && (gGameState!=GAMESTATE_INGAME || !Show || !gMQCaptions))
             return SetNameSpriteState_Trampoline(Show);
         return 1;
     }
@@ -168,7 +168,7 @@ public:
     bool SetNameSpriteTint_Trampoline(void);
     bool SetNameSpriteTint_Detour(void)
     {
-        if (gGameState!=GAMESTATE_INGAME || !gMQCaptions)
+        if (!gAnonymize && (gGameState!=GAMESTATE_INGAME || !gMQCaptions))
             return SetNameSpriteTint_Trampoline();
         return 1;
     }
@@ -476,7 +476,44 @@ VOID SetNameSpriteTint(PSPAWNINFO pSpawn)
 #endif
 	}
 }
-
+BOOL SetCaption(PSPAWNINFO pSpawn, char *CaptionString,eSpawnType type)
+{
+	CHAR NewCaption[MAX_STRING]={0};
+	if (CaptionString[0] || gAnonymize) {
+		if (PCHARINFO pChar = (PCHARINFO)GetCharInfo()) {
+			strcpy_s(NewCaption, CaptionString);
+			pNamingSpawn = pSpawn;
+			ParseMacroParameter(pChar->pSpawn, NewCaption);
+			pNamingSpawn = 0;
+			if (gAnonymize) {
+				CHAR szType[64] = { 0 };
+				bool oktoanon = false;
+				switch (type) {
+					case MERCENARY:
+						oktoanon = true;
+						strcpy_s(szType, "Mercenary");
+						break;
+					case PC:
+						oktoanon = true;
+						strcpy_s(szType, "Player");
+						break;
+					case PET:
+						oktoanon = true;
+						strcpy_s(szType, "PET");
+						break;
+				};
+				if (oktoanon) {
+					char *therace = pEverQuest->GetRaceDesc(pSpawn->Race);
+					char *theclass = pEverQuest->GetClassDesc(pSpawn->Class);
+					sprintf_s(NewCaption, "Anonymous %s Level %d %s %s", szType, pSpawn->Level, therace, theclass);
+				}
+			}
+		}
+		((EQPlayer*)pSpawn)->ChangeBoneStringSprite(0, NewCaption);
+		return 1;
+	}
+	return 0;
+}
 BOOL SetNameSpriteState(PSPAWNINFO pSpawn, bool Show)
 {
     //DebugSpew("SetNameSpriteState(%s) --race %d body %d)",pSpawn->Name,pSpawn->Race,GetBodyType(pSpawn));
@@ -484,42 +521,38 @@ BOOL SetNameSpriteState(PSPAWNINFO pSpawn, bool Show)
     {
         ((EQPlayerHook*)pSpawn)->SetNameSpriteState_Trampoline(Show);
     }
-    if (!gMQCaptions)
+    if (!gMQCaptions && !gAnonymize)
     {
         //DebugSpew("Returning default from SetNameSpriteState");
         return ((EQPlayerHook*)pSpawn)->SetNameSpriteState_Trampoline(Show);
     }
-#define SetCaption(CaptionString) \
-    {\
-    if (CaptionString[0])\
-    {\
-    strcpy(NewCaption,CaptionString);\
-    pNamingSpawn=pSpawn;\
-    ParseMacroParameter(GetCharInfo()->pSpawn,NewCaption);\
-    pNamingSpawn=0;\
-    ((EQPlayer*)pSpawn)->ChangeBoneStringSprite(0,NewCaption);\
-    return 1;\
-    }\
-    }
-    CHAR NewCaption[MAX_STRING]={0};
     if (!pSpawn->pcactorex || !((CActorEx*)pSpawn->pcactorex)->CanSetName(0))
     {
         //DebugSpew("CanSetName==0 - %s .. race %d body %d",pSpawn->Name,pSpawn->Race,GetBodyType(pSpawn));
         return 1;
     };
 
-    switch(GetSpawnType(pSpawn))
-    {
+	switch (GetSpawnType(pSpawn))
+	{
+	case MERCENARY:
+		if (gAnonymize) {
+			if (SetCaption(pSpawn, "", MERCENARY))
+				return 1;
+		}
+        break;
     case NPC:
-        SetCaption(gszSpawnNPCName);
+		if (SetCaption(pSpawn, gszSpawnNPCName,NPC))
+			return 1;
         break;
     case PC:
         if (!gPCNames && pSpawn!=(PSPAWNINFO)pTarget) 
             return 0;
-        SetCaption(gszSpawnPlayerName[gShowNames]);
+		if (SetCaption(pSpawn, gszSpawnPlayerName[gShowNames],PC))
+			return 1;
         break;
     case CORPSE:
-        SetCaption(gszSpawnCorpseName);
+		if (SetCaption(pSpawn, gszSpawnCorpseName,CORPSE))
+			return 1;
         break;
     case CHEST:
     case UNTARGETABLE:
@@ -530,12 +563,13 @@ BOOL SetNameSpriteState(PSPAWNINFO pSpawn, bool Show)
     case MOUNT://mount names make it crash!
         return 0;
     case PET:
-        SetCaption(gszSpawnPetName);
+		if (SetCaption(pSpawn, gszSpawnPetName,PET))
+			return 1;
         break;
     }
     //DebugSpew("Returning default from SetNameSpriteState");
     return ((EQPlayerHook*)pSpawn)->SetNameSpriteState_Trampoline(Show);
-#undef SetCaption
+//#undef SetCaption
 }
 
 VOID UpdateSpawnCaptions()
@@ -543,12 +577,11 @@ VOID UpdateSpawnCaptions()
     //DebugSpew("UpdateSpawnCaptions()");
     DWORD N;
     DWORD Count=0;
-    for (N = 0 ; N < 120 ; N++)
-    {
-        if (PSPAWNINFO pSpawn=(PSPAWNINFO)EQP_DistArray[N].VarPtr.Ptr)
-            if (pSpawn!=(PSPAWNINFO)pTarget)
-                if (EQP_DistArray[N].Value.Float<=80.0f && gMQCaptions)
-                {
+	for (N = 0; N < 120; N++)
+	{
+		if (PSPAWNINFO pSpawn = (PSPAWNINFO)EQP_DistArray[N].VarPtr.Ptr)
+			if (pSpawn != (PSPAWNINFO)pTarget)
+                if (gAnonymize || (EQP_DistArray[N].Value.Float<=80.0f && gMQCaptions)) {
                     if (SetNameSpriteState(pSpawn,true))
                     {
                         SetNameSpriteTint(pSpawn);
