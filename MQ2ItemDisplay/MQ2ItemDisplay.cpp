@@ -549,6 +549,11 @@ public:
     {
 		PEQITEMWINDOW This=(PEQITEMWINDOW)this;
 		int index = This->ItemWndIndex;
+		if (index > 5)
+		{
+			index = 0;
+			WriteChatf("Tell eqmule his PEQITEMWINDOW struct is wrong");
+		}
         PCONTENTS item=(PCONTENTS)This->pItem;
         volatile PITEMINFO Item=GetItemFromContents(item);
         CHAR out[MAX_STRING] = {0};
@@ -620,9 +625,11 @@ public:
 			//handle stuff
 		}
         // keep a global copy of the last item displayed...
-        memcpy(&g_Contents[index], item, sizeof(CONTENTS));
-        memcpy(&g_Item, Item, sizeof(ITEMINFO));
-		g_LastIndex = index;
+		if (index <= 5) {
+			memcpy(&g_Contents[index], item, sizeof(CONTENTS));
+			memcpy(&g_Item, Item, sizeof(ITEMINFO));
+			g_LastIndex = index;
+		}
 
         strcpy(out,"<BR><c \"#00FFFF\">");
         if ( Item->ItemNumber > 0 ) { 
