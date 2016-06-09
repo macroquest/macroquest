@@ -512,7 +512,9 @@ EQLIB_API void InitKeyRings();
 EQLIB_API BOOL IsActiveAA(PCHAR pSpellName);
 EQLIB_API CXWnd *GetAdvLootPersonalListItem(DWORD ListIndex/*YES ITS THE INTERNAL INDEX*/, DWORD type);
 EQLIB_API CXWnd *GetAdvLootSharedListItem(DWORD ListIndex/*YES IT REALLY IS THE LISTINDEX*/, DWORD type);
+#ifndef EMU
 EQLIB_API BOOL LootInProgress(PEQADVLOOTWND pAdvLoot, CListWnd*pPersonalList, CListWnd*pSharedList);
+#endif
 EQLIB_API void WeDidStuff();
 EQLIB_API int GetFreeInventory(int nSize);
 EQLIB_API CMQ2Alerts CAlerts;

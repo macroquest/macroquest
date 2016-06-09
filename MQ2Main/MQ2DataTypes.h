@@ -1108,6 +1108,7 @@ public:
 		XTargetSlots = 242,
 		AssistComplete = 243,
 		ItemReady = 244,
+		NumGems = 245,
 
 	};
 	enum CharacterMethods
@@ -1353,6 +1354,7 @@ public:
 		TypeMember(XTargetSlots);
 		TypeMember(AssistComplete);
 		TypeMember(ItemReady);
+		TypeMember(NumGems);
 		
 		TypeMethod(Stand);
 		TypeMethod(Sit);
@@ -1468,6 +1470,7 @@ public:
 		NumEffects = 62,
 		Location = 63,
 		IsSwarmSpell = 64,
+		IsSkill = 65,
 	};
 	enum SpellMethods
 	{
@@ -1538,7 +1541,7 @@ public:
 		TypeMember(NumEffects);
 		TypeMember(Location);
 		TypeMember(IsSwarmSpell);
-
+		TypeMember(IsSkill);
 	}
 
 	~MQ2SpellType()
@@ -2606,7 +2609,9 @@ public:
 		RightMouseUp = 6,
 		RightMouseHeld = 7,
 		RightMouseHeldUp = 8,
-		Select = 9,
+		DoOpen = 9,
+		DoClose = 10,
+		Select = 11,
 	};
 #ifdef ISBOXER_COMPAT
 	MQ2WindowType() :MQ2Type("eqwindow")
@@ -2658,6 +2663,8 @@ public:
 		TypeMethod(RightMouseUp);
 		TypeMethod(RightMouseHeld);
 		TypeMethod(RightMouseHeldUp);
+		TypeMethod(DoOpen);
+		TypeMethod(DoClose);
 		TypeMethod(Select);
 	}
 

@@ -1,3 +1,23 @@
+08 Jun 2016
+- Sorry TEST players this update is NOT for todays TEST patch. Expect one tomorrow.
+- Added .IsSkill to the spell tlo
+- Fixed a crash in Me.CombatAbility when doing ${Me.CombatAbility[0]}
+- Fixed some potential crashes that could occur because of signed/unsigned integer misuse.
+- Added .DoOpen and .DoClose Methods to the Window TLO
+  Usage: /echo ${Window[somewindow].Child[somechild].DoOpen}
+  Expected Result: it will echo TRUE and open it.
+- Addded .NumGems to the character TLO it returns the number of spellgems you currently have.
+  Usage: /echo ${Me.NumGems}
+  Expected output for a level 1 character: 8
+  Expected output for a level 105 character which has Mnemonic Retention AA at rank 4: 12
+- .RecastTime in the spell TLO is now a timestamptype (cause it is)
+  Usage: /echo ${Spell[Steadfast Stance Rk. II].RecastTime.TotalSeconds}
+  Expected Output: 150
+
+01 Jun 2016
+- fixed a bug that would always return NULL instead of TRUE or FALSE
+when doing ${AdvLoot.SList[x].AlwaysGreed} - cred hoosierbilly
+
 25 May 2016
 - Updated for TEST
 

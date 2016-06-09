@@ -1870,9 +1870,10 @@ namespace MQ2Globals
 	INITIALIZE_EQGAME_OFFSET(PcZoneClient__GetPcSkillLimit);
 	INITIALIZE_EQGAME_OFFSET(PcZoneClient__RemovePetEffect);
 	INITIALIZE_EQGAME_OFFSET(PcZoneClient__HasAlternateAbility);
+	#ifndef EMU
 	INITIALIZE_EQGAME_OFFSET(PcZoneClient__GetCurrentMod);
+	#endif
 	INITIALIZE_EQGAME_OFFSET(PcZoneClient__GetModCap);
-
 	INITIALIZE_EQGAME_OFFSET(EQSwitch__UseSwitch);
 	INITIALIZE_EQGAME_OFFSET(IconCache__GetIcon);
 	INITIALIZE_EQGAME_OFFSET(CContainerMgr__OpenContainer);

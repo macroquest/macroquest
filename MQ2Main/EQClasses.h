@@ -695,7 +695,9 @@ class CAdvancedLootWnd : public CSidlScreenWnd
 public:
 EQLIB_OBJECT CAdvancedLootWnd::CAdvancedLootWnd(class CXWnd *);
 EQLIB_OBJECT DWORD CAdvancedLootWnd::DoAdvLootAction(DWORD listindex, CXStr *Name, DWORD Action, DWORD Quantity);
+#ifndef EMU
 EQLIB_OBJECT DWORD CAdvancedLootWnd::DoSharedAdvLootAction(PLOOTITEM pLootItem,CXStr *Assignee, DWORD Action, DWORD Quantity);
+#endif
 // virtual
 EQLIB_OBJECT CAdvancedLootWnd::~CAdvancedLootWnd(void);
 };

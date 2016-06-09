@@ -725,7 +725,9 @@ TLO(dataLastSpawn)
 		}
 		else if (ISNUMBER())
 		{
-			unsigned long N = GETNUMBER() - 1;
+			int N = GETNUMBER() - 1;
+			if (N < 0)
+				N = 0;
 			if (PSPAWNINFO pSpawn = (PSPAWNINFO)pSpawnList)
 			{
 				while (N)
@@ -1486,7 +1488,9 @@ TLO(dataPlugin)
 		return false;
 	if (ISNUMBER())
 	{
-		unsigned long N = GETNUMBER() - 1;
+		int N = GETNUMBER() - 1;
+		if (N < 0)
+			N = 0;
 		PMQPLUGIN pPlugin = pPlugins;
 		while (N)
 		{
@@ -1524,7 +1528,9 @@ TLO(dataSkill)
 		return false;
 	if (ISNUMBER())
 	{
-		unsigned long nSkill = GETNUMBER() - 1;
+		int nSkill = GETNUMBER() - 1;
+		if (nSkill < 0)
+			nSkill = 0;
 		if (nSkill >= NUM_SKILLS)
 			return false;
 		if (Ret.Ptr = &pSkillMgr->pSkill[nSkill])

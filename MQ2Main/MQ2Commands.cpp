@@ -2614,9 +2614,9 @@ VOID Substitute(PSPAWNINFO pChar, PCHAR szLine)
 }
 
 // ***************************************************************************
-// Function:   IniOutput
-// Description:   Outputs string data to an INI file using
-//            WritePrivateProfileString.
+// Function:   IniOutput our /ini command
+// Description:   Outputs string data to an INI file using WritePrivateProfileString.
+// If the inifile does'nt exist one will be created.
 // Usage:     	
 //
 //	/ini "someini.ini" "the section" "NULL" "NULL"

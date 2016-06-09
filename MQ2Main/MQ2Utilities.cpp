@@ -8735,6 +8735,7 @@ CXWnd *GetAdvLootSharedListItem(DWORD ListIndex/*YES IT REALLY IS THE LISTINDEX*
 	}
 	return NULL;
 }
+#ifndef EMU
 BOOL LootInProgress(PEQADVLOOTWND pAdvLoot, CListWnd*pPersonalList, CListWnd*pSharedList)
 {
 	if (pPersonalList) {
@@ -8765,6 +8766,7 @@ BOOL LootInProgress(PEQADVLOOTWND pAdvLoot, CListWnd*pPersonalList, CListWnd*pSh
 	}
 	return FALSE;
 }
+#endif
 void WeDidStuff()
 {
 	gbCommandEvent = 1;

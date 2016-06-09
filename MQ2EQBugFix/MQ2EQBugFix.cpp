@@ -5,8 +5,6 @@
 // are shown below. Remove the ones your plugin does not use.  Always use Initialize
 // and Shutdown for setup and cleanup, do NOT do it in DllMain.
 
-
-
 #include "../MQ2Plugin.h"
 
 PreSetup("MQ2EQBugFix");
@@ -15,7 +13,7 @@ int __cdecl startworddisplayexceptionhandler_Trampoline(struct EHExceptionRecord
 int __cdecl startworddisplayexceptionhandler_Detour(struct EHExceptionRecord *A, struct EHRegistrationNode *B, struct _CONTEXT *C, void *D)
 {
 	MessageBox(NULL, "WHY!!?", "Crashed in startworddisplay", MB_SYSTEMMODAL | MB_OK);
-	DebugBreak();
+	//DebugBreak();
 	int ret = startworddisplayexceptionhandler_Trampoline(A, B, C, D);
 	return ret;
 }
@@ -46,13 +44,16 @@ PLUGIN_API VOID InitializePlugin(VOID)
 {
     DebugSpewAlways("Initializing MQ2EQBugFix");
     EzDetour(CDisplay__is3dON, &CDisplay_Hook::is_3dON_Detour, &CDisplay_Hook::is_3dON_Trampoline);
-    //EzDetour(startworlddisplayexceptionhandler, startworddisplayexceptionhandler_Detour, startworddisplayexceptionhandler_Trampoline);
-	
+    #ifdef EQMULETESTINGSTUFF
+	EzDetour(startworlddisplayexceptionhandler, startworddisplayexceptionhandler_Detour, startworddisplayexceptionhandler_Trampoline);
+	#endif
 }
 
 PLUGIN_API VOID ShutdownPlugin(VOID)
 {
     DebugSpewAlways("Shutting down MQ2EQBugFix");
-    RemoveDetour(CDisplay__is3dON);
-    //RemoveDetour(startworlddisplayexceptionhandler);
+	RemoveDetour(CDisplay__is3dON);
+	#ifdef EQMULETESTINGSTUFF
+    RemoveDetour(startworlddisplayexceptionhandler);
+	#endif
 }
