@@ -1471,6 +1471,7 @@ public:
 		Location = 63,
 		IsSwarmSpell = 64,
 		IsSkill = 65,
+		DurationValue1 = 66,
 	};
 	enum SpellMethods
 	{
@@ -1542,6 +1543,8 @@ public:
 		TypeMember(Location);
 		TypeMember(IsSwarmSpell);
 		TypeMember(IsSkill);
+		TypeMember(DurationValue1);
+		
 	}
 
 	~MQ2SpellType()

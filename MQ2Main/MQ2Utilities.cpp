@@ -2130,25 +2130,25 @@ PCHAR FormatAT(PCHAR szEffectName, LONG value, PCHAR szBuffer, PCHAR preposition
 
 PCHAR FormatBase(PCHAR szEffectName, LONG base, PCHAR szBuffer)
 {
-	sprintf(szBuffer, "%s(%d)", szEffectName, base);
+	sprintf(szBuffer, "%s (%d)", szEffectName, base);
 	return szBuffer;
 }
 
 PCHAR FormatBase(PCHAR szEffectName, LONG base, LONG max, PCHAR szBuffer)
 {
-	sprintf(szBuffer, "%s(%d,%d)", szEffectName, base, max);
+	sprintf(szBuffer, "%s (%d,%d)", szEffectName, base, max);
 	return szBuffer;
 }
 
 PCHAR FormatBase(PCHAR szEffectName, LONG base, PCHAR szOptional, PCHAR szBuffer)
 {
-	sprintf(szBuffer, "%s %s(%d)", szEffectName, szOptional, base);
+	sprintf(szBuffer, "%s %s (%d)", szEffectName, szOptional, base);
 	return szBuffer;
 }
 
 PCHAR FormatBasePercent(PCHAR szEffectName, LONG base, PCHAR szBuffer)
 {
-	sprintf(szBuffer, "%s(%d%%)", szEffectName, base);
+	sprintf(szBuffer, "%s (%d%%)", szEffectName, base);
 	return szBuffer;
 }
 
@@ -2658,7 +2658,7 @@ PCHAR ParseSpellEffect(PSPELL pSpell, int i, PCHAR szBuffer, LONG level)
 		break;
 	case 37: //DetectHostile (no spells currently)
 	case 38: //DetectMagic (no spells currently)
-	case 39: //DetectPoison (no spells currently)
+	case 39: //No Twincast
 	case 40: //Invulnerability 
 	case 41: //Banish
 	case 42: //Shadow Step
@@ -2752,8 +2752,7 @@ PCHAR ParseSpellEffect(PSPELL pSpell, int i, PCHAR szBuffer, LONG level)
 		break;
 	case 83: //zone portal spells 
 		if (targettype == 6) {
-			//sprintf(szTemp, " Self to %d, %d, %d in %s facing %s", GetSpellBase(pSpell,0), GetSpellBase(pSpell,1), GetSpellBase(pSpell,2), GetFullZone(GetZoneID(extra)), szHeadingNormal[EQHeading(GetSpellBase(pSpell,3))]);
-			sprintf(szTemp, " Self to %d, %d, %d in %s facing %s", GetSpellBase(pSpell,0), GetSpellBase(pSpell, 1), GetSpellBase(pSpell, 2), GetFullZone(GetZoneID(extra)), szHeadingNormal[EQHeading(GetSpellBase(pSpell, 3))]);
+			sprintf(szTemp, " Self to %d, %d, %d in %s facing %s", GetSpellBase(pSpell, 0), GetSpellBase(pSpell, 1), GetSpellBase(pSpell, 2), GetFullZone(GetZoneID(extra)), szHeadingNormal[EQHeading(GetSpellBase(pSpell, 3))]);
 		} else {
 			sprintf(szTemp, " Group to %d, %d, %d in %s facing %s", GetSpellBase(pSpell, 0), GetSpellBase(pSpell, 1), GetSpellBase(pSpell, 2), GetFullZone(GetZoneID(extra)), szHeadingNormal[EQHeading(GetSpellBase(pSpell, 3))]);
 		}
@@ -2819,7 +2818,7 @@ PCHAR ParseSpellEffect(PSPELL pSpell, int i, PCHAR szBuffer, LONG level)
 			if (extra[0] == '0')
 				strcat(szTemp, " to Bind Point");
 			else
-				sprintf(szTemp, " to %d, %d, %d in %s facing %s", GetSpellBase(pSpell,0), GetSpellBase(pSpell,1), GetSpellBase(pSpell,2), GetFullZone(GetZoneID(extra)), szHeadingNormal[EQHeading(GetSpellBase(pSpell,3))]);
+				sprintf(szTemp, " to %d, %d, %d in %s facing %s", GetSpellBase(pSpell, 0), GetSpellBase(pSpell, 1), GetSpellBase(pSpell, 2), GetFullZone(GetZoneID(extra)), szHeadingNormal[EQHeading(GetSpellBase(pSpell, 3))]);
 		else
 			strcat(szTemp, " to Bind Point");
 		strcat(szBuff, FormatString(spelleffectname, szTemp, szTemp2));
@@ -2884,7 +2883,9 @@ PCHAR ParseSpellEffect(PSPELL pSpell, int i, PCHAR szBuffer, LONG level)
 	case 121: //Reverse Damage Shield 
 		strcat(szBuff, FormatBase(spelleffectname, -base, szTemp2));
 		break;
-	case 122: //Reduce Skill (no spells currently)
+	case 122: //Reduce Skill
+		strcat(szBuff, FormatSkills(spelleffectname, value, finish, base2, szTemp2));
+		break;
 	case 123: //Immunity
 		strcat(szBuff, spelleffectname);
 		break;
@@ -2942,7 +2943,7 @@ PCHAR ParseSpellEffect(PSPELL pSpell, int i, PCHAR szBuffer, LONG level)
 		strcat(szBuff, FormatSeconds(spelleffectname, value / 1000.0f, szTemp2));
 		break;
 	case 145: //Teleportv2 
-		sprintf(szTemp, " to %d, %d, %d in %s facing %s", GetSpellBase(pSpell,0), GetSpellBase(pSpell,1), GetSpellBase(pSpell,2), GetFullZone(GetZoneID(extra)), szHeadingNormal[EQHeading(GetSpellBase(pSpell,3))]);
+		sprintf(szTemp, " to %d, %d, %d in %s facing %s", GetSpellBase(pSpell, 0), GetSpellBase(pSpell, 1), GetSpellBase(pSpell, 2), GetFullZone(GetZoneID(extra)), szHeadingNormal[EQHeading(GetSpellBase(pSpell, 3))]);
 		strcat(szBuff, FormatString(spelleffectname, szTemp, szTemp2));
 		break;
 	case 146: //Resist Electricity
@@ -3096,7 +3097,7 @@ PCHAR ParseSpellEffect(PSPELL pSpell, int i, PCHAR szBuffer, LONG level)
 	case 204: //War Cry 
 		strcat(szBuff, FormatSeconds(spelleffectname, value, szTemp2, TRUE));
 		break;
-	case 205: //Rampage 
+	case 205: //AE Rampage 
 	case 206: //AE Taunt 
 	case 207: //Flesh to Bone 
 		strcat(szBuff, spelleffectname);
@@ -3111,7 +3112,7 @@ PCHAR ParseSpellEffect(PSPELL pSpell, int i, PCHAR szBuffer, LONG level)
 	case 211: //AE Melee 
 		strcat(szBuff, FormatBase(spelleffectname, base, szTemp2));
 		break;
-	case 212: //Frenzied Devastation (no spells currently)
+	case 212: //Frenzied Devastation (### come back and change ###)
 		strcat(szBuff, FormatSeconds(spelleffectname, value, szTemp2, TRUE));
 		break;
 	case 213://Pet HP
@@ -3136,7 +3137,7 @@ PCHAR ParseSpellEffect(PSPELL pSpell, int i, PCHAR szBuffer, LONG level)
 		strcat(szBuff, FormatBase(spelleffectname, base, szTemp2));
 		break;
 	case 223: //Double Riposte (no spells currently)
-	case 224: //Riposte (no spells currently)
+	case 224: //Additional Riposte
 	case 225: //Double Attack 
 	case 226: //2H Bash (no spells currently)
 		strcat(szBuff, FormatPercent(spelleffectname, value, finish, szTemp2));
@@ -3188,7 +3189,11 @@ PCHAR ParseSpellEffect(PSPELL pSpell, int i, PCHAR szBuffer, LONG level)
 		strcat(szBuff, FormatPercent(spelleffectname, value, finish, szTemp2));
 		break;
 	case 251: //Endless Quiver (no spells currently)
-	case 252: //Backstab Front (no spells currently)
+		strcat(szBuff, FormatBase(spelleffectname, base, szTemp2));
+		break;
+	case 252: //Backstab from Front
+		strcat(szBuff, FormatPercent(spelleffectname, value, finish, szTemp2));
+		break;
 	case 253: //Chaotic Stab (no spells currently)
 		strcat(szBuff, FormatBase(spelleffectname, base, szTemp2));
 		break;
@@ -3214,7 +3219,11 @@ PCHAR ParseSpellEffect(PSPELL pSpell, int i, PCHAR szBuffer, LONG level)
 		break;
 	case 263: //Tradeskill Masteries (no spells currently)
 	case 264: //Reduce AATimer
-	case 265: //No Fizzle (no spells currently)
+		strcat(szBuff, FormatBase(spelleffectname, base, szTemp2));
+		break;
+	case 265: //No Fizzle
+		strcat(szBuff, spelleffectname);
+		break;
 	case 266: //Attack Chance 
 	case 267: //Add Pet Commands (no spells currently)
 	case 268: //Alc Fail Rate (no spells currently)
@@ -3224,7 +3233,7 @@ PCHAR ParseSpellEffect(PSPELL pSpell, int i, PCHAR szBuffer, LONG level)
 	case 270: //Bard Song Range
 		strcat(szBuff, FormatCount(spelleffectname, value, szTemp2, "to"));
 		break;
-	case 271: //Base Run Speed (no spells currently)
+	case 271: //Base Run Speed
 		strcat(szBuff, FormatBasePercent(spelleffectname, base, szTemp2));
 		break;
 	case 272: //Casting Level
@@ -3264,7 +3273,7 @@ PCHAR ParseSpellEffect(PSPELL pSpell, int i, PCHAR szBuffer, LONG level)
 	case 289: //Trigger on Fade 
 		strcat(szBuff, FormatExtra(spelleffectname, GetSpellNameByID(base), szTemp2, " on Fade"));
 		break;
-	case 290://Increase Movement Cap (no spells currently)
+	case 290: //Increase Movement Cap (no spells currently)
 	case 291: //Purify
 	case 292: //Strikethrough2
 	case 293: //StunResist2 (no spells currently)
@@ -3625,9 +3634,11 @@ PCHAR ParseSpellEffect(PSPELL pSpell, int i, PCHAR szBuffer, LONG level)
 	case 432: //ExpandMaxActiveTrophyBenefits (no spells currently)
 		strcat(szBuff, FormatBase(spelleffectname, base, szTemp2));
 		break;
-	case 433: //Critical DoT Chance (no spells currently)
-	case 434: //Critical Heal Chance
-	case 435: //Critical HoT Chance
+	case 433: //Skill Min Damage
+		strcat(szBuff, FormatExtra(spelleffectname, FormatRateMod(spelleffectname, base, base2, szTemp), szTemp2));
+		break;
+	case 434: //Skill Min Damage
+	case 435: //Fragile Defense
 		strcat(szBuff, FormatPercent(spelleffectname, value, finish, szTemp2));
 		break;
 	case 436: //Beneficial Countdown Hold
@@ -3686,22 +3697,65 @@ PCHAR ParseSpellEffect(PSPELL pSpell, int i, PCHAR szBuffer, LONG level)
 	case 459: //Damage Mod 2 (how to tell which, rogues get a backstab only, others get an all skills) 
 		strcat(szBuff, FormatSkills(spelleffectname, value, finish, base2, szTemp2));
 		break;
-		/*
- 460 Ff_Override_NotFocusable
- 461 Fc_Damage_%2
- 462 Fc_Damage_Amt2
- 463 Shield Target
- 464 PC Pet Rampage
- 465 PC Pet AE Rampage
- 466 PC Pet Flurry Chance
- 467 DS Mitigation Amount
- 468 DS Mitigation Percentage
- 469 Chance Best in Spell Group
- 470 Trigger Best in Spell Group
- 471 Double Melee Round (PC Only) 
-		*/
+	case 460: //Limit: Include Non-Focusable
+		strcat(szBuff, spelleffectname);
+		break;
+	case 461: //Fc Damage % 2 (no spells currently)
+	case 462: //Fc Damage Amt 2 (no spells currently)
+	case 463: //Shield Target (no spells currently)
+		strcat(szBuff, FormatBase(spelleffectname, base, szTemp2));
+		break;
+	case 464: //PC Pet Rampage
+	case 465: //PC Pet AE Rampage
+	case 466: //PC Pet Flurry Chance
+		strcat(szBuff, FormatPercent(spelleffectname, value, finish, szTemp2));
+		break;
+	case 467: //DS Mitigation Amt
+		strcat(szBuff, FormatBase(spelleffectname, base, szTemp2));
+		break;
+	case 468: //DS Mitigation Percentage
+		strcat(szBuff, FormatPercent(spelleffectname, value, finish, szTemp2));
+		break;
+	case 469: //Chance Best in Spell Group
+	case 470: //Trigger Best in Spell Group
+		strcat(szBuff, FormatExtra(spelleffectname, FormatSpellChance(spelleffectname, base, base2, szTemp), szTemp2, " on Cast"));
+		break;
+	case 471: //Double Melee Round (PC Only)
+		strcat(szBuff, FormatPercent(spelleffectname, value, finish, szTemp2));
+		break;
+	case 472: //Toggle Passive AA Rank
+		strcat(szBuff, spelleffectname);
+		break;
+	case 473: //Double Backstab From Front  (no spells currently)
+	case 474: //Pet Crit Melee Damage% (Owner)  (no spells currently)
+		strcat(szBuff, FormatBase(spelleffectname, base, szTemp2));
+		break;
+	case 475: //Trigger Spell Non-Item
+		strcat(szBuff, FormatExtra(spelleffectname, GetSpellNameByID(base), szTemp2, " on Cast"));
+		break;
+	case 476: //Weapon Stance (no spells currently)
+	case 477: //Move to Top of Hatelist (no spells currently)
+		strcat(szBuff, FormatBase(spelleffectname, base, szTemp2));
+		break;
+	case 478: //Move to Bottom of Hatelist
+		strcat(szBuff, FormatExtra(spelleffectname, GetSpellNameByID(base), szTemp2, " on Cast"));
+		break;
+	case 479: //Ff Value Min (no spells currently)
+	case 480: //Ff Value Max (no spells currently)
+	case 481: //Fc Cast Spell on Land (no spells currently)
+	case 482: //Skill Base Damage Mod (no spells currently)
+		strcat(szBuff, FormatBase(spelleffectname, base, szTemp2));
+		break;
+	case 483: //Spell Damage Taken
+	case 484: //Spell Damage Taken
+		strcat(szBuff, FormatRange(spelleffectname, value, extendedrange, szTemp2));
+		break;
+	case 485: //Ff CasterClass (no spells currently)
+	case 486: //Ff Same Caster (no spells currently)
+		strcat(szBuff, FormatBase(spelleffectname, base, szTemp2));
+		 break;
 	default: //undefined effect 
-		sprintf(szTemp, "UnknownEffect%03d", spa);
+		sprintf(szTemp, "UnknownEffect%03d (%d, %d, %d)", spa, base, base2, max);
 		strcat(szBuff, szTemp);
 		break;
 	}

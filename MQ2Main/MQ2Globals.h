@@ -69,6 +69,7 @@ namespace MQ2Globals
 	EQLIB_VAR BOOL gbEQWLoaded;
 	//EQLIB_VAR PHOTKEY pHotkey;
 	EQLIB_VAR BOOL gbUnload;
+	EQLIB_VAR BOOL gbLoad;
 	EQLIB_VAR DWORD gpHook;
 #ifndef ISXEQ
 	LEGACY_VAR PMACROBLOCK gMacroBlock;

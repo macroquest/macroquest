@@ -1,3 +1,18 @@
+09 Jun 2016
+- Updated for TEST (yes really)
+- Added .DurationValue1 to the Spell TLO
+- Changed the way /unload and re/inject works, those things are now part of the Processgame detour
+  that should prevent some crashes related to us interfering with the window drawing.
+  In fact direct calls to eqgame functions from mq2start or any other thread is asking for trouble.
+  This change should minimize that behaviour.
+- .CastTime in the spell TLO is now a timestamptype (cause it is)
+- .RecoveryTime in the spell TLO is now a timestamptype (cause it is)
+- .FizzleTime in the spell TLO is now a timestamptype (cause it is)
+  See yesterdays changes for an example of usage using .RecastTime
+
+09 Jun 2016 by rswiders
+- Additional updates for spell effects
+
 08 Jun 2016
 - Sorry TEST players this update is NOT for todays TEST patch. Expect one tomorrow.
 - Added .IsSkill to the spell tlo

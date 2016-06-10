@@ -293,6 +293,7 @@ namespace MQ2Globals
 	HINSTANCE ghInstance = NULL;
 	//PHOTKEY pHotkey = NULL;
 	BOOL gbUnload = FALSE;
+	BOOL gbLoad = TRUE;
 	DWORD gpHook = NULL;
 #ifndef ISXEQ
 	PMACROBLOCK gMacroBlock = NULL;

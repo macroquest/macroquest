@@ -366,7 +366,12 @@ bool __cdecl MQ2Initialize()
     InitializeChatHook();
     InitializeMQ2Spawns();
     InitializeMQ2Pulse();
-    InitializeMQ2Commands();
+	if(hLoadComplete) {
+		WaitForSingleObject(hLoadComplete, 60000);
+		Sleep(0);
+	}
+	//can we do these in hearbeat instead since the game is actually not drawing stuff while we mess with its window handler?
+    /*InitializeMQ2Commands();
     InitializeMQ2Windows();
 	MQ2MouseHooks(1);
     Sleep(100);
@@ -374,6 +379,7 @@ bool __cdecl MQ2Initialize()
 #ifndef ISXEQ
     InitializeMQ2Plugins();
 #endif
+*/
 	if (!ghLockPickZone)
 		ghLockPickZone = CreateMutex(NULL, FALSE, NULL);
     return true;
@@ -454,13 +460,16 @@ DWORD WINAPI MQ2End(LPVOID lpParameter)
 	Unload(NULL,NULL);
 	return 0;
 }
-
+HANDLE hUnloadComplete = 0;
+HANDLE hLoadComplete = 0;
 // ***************************************************************************
 // Function:    MQ2Start Thread
 // Description: Where we start execution during the insertion
 // ***************************************************************************
 DWORD WINAPI MQ2Start(LPVOID lpParameter)
 {
+	hUnloadComplete = CreateEvent(NULL, TRUE, FALSE, NULL);
+	hLoadComplete = CreateEvent(NULL, TRUE, FALSE, NULL);
 	PCHAR lpINIPath = (PCHAR)lpParameter;
 	strcpy(gszINIPath, lpINIPath);
 	free(lpINIPath);
@@ -496,14 +505,26 @@ DWORD WINAPI MQ2Start(LPVOID lpParameter)
         Sleep(500);
     }
 getout:
-    WriteChatColor(UnloadedString,USERCOLOR_DEFAULT);
-    DebugSpewAlways("%s", UnloadedString);
-    UnloadMQ2Plugins();
-    MQ2Shutdown();
-
-    DebugSpew("Shutdown completed");
-    g_Loaded = FALSE;
-
+	//HideDoCommand(pLocalPlayer, "/GetOutNow", 1);
+	if(hLoadComplete) {
+		CloseHandle(hLoadComplete);
+		hLoadComplete = 0;
+	}
+	if(hUnloadComplete) {
+		WaitForSingleObject(hUnloadComplete, 10000);
+		CloseHandle(hUnloadComplete);
+		hUnloadComplete = 0;
+	} else {
+		DWORD oldscreenmode = ScreenMode;
+		ScreenMode = 3;
+		WriteChatColor(UnloadedString,USERCOLOR_DEFAULT);
+		DebugSpewAlways("%s", UnloadedString);
+		UnloadMQ2Plugins();
+		MQ2Shutdown();
+		DebugSpew("Shutdown completed");
+		g_Loaded = FALSE;
+		ScreenMode = oldscreenmode;
+	}
 	if(HMODULE h = GetCurrentModule())
 		FreeLibraryAndExitThread(h,0);
     return 0;

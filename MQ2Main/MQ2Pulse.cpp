@@ -282,10 +282,16 @@ void Pulse()
 }
 
 
-void Heartbeat()
+int Heartbeat()
 {
-	if (gbUnload)
-		return;
+	if (gbUnload) {
+		return 1;
+	}
+	if (gbLoad) {
+		gbLoad = FALSE;
+		return 2;
+	}
+
 	static ULONGLONG LastGetTick = 0;
 	static bool bFirstHeartBeat = true;
 	static ULONGLONG TickDiff = 0;
@@ -328,7 +334,7 @@ void Heartbeat()
 		}
 	}
 	else
-		return;
+		return 0;
 	DebugTry(UpdateMQ2SpawnSort());
 #ifndef ISXEQ_LEGACY
 #ifndef ISXEQ
@@ -386,7 +392,7 @@ void Heartbeat()
 		if (!DoNextCommand())
 			break;
 		if (gbUnload)
-			return;
+			return 1;
 		if (!gTurbo)
 			break;//bRunNextCommand = FALSE;
 		if (++CurTurbo>gMaxTurbo)
@@ -394,6 +400,7 @@ void Heartbeat()
 	}
 	DoTimedCommands();
 #endif
+	return 0;
 }
 
 #ifndef ISXEQ_LEGACY
@@ -405,12 +412,41 @@ BOOL Trampoline_ProcessGameEvents(VOID);
 BOOL Detour_ProcessGameEvents(VOID)
 {
 	CAutoLock Lock(&gPulseCS);
-	Heartbeat();
+	int ret = Heartbeat();
 #ifdef ISXEQ
 	if (!pISInterface->ScriptEngineActive())
 		pISInterface->LavishScriptPulse();
 #endif
-	return Trampoline_ProcessGameEvents();
+	int ret2 =  Trampoline_ProcessGameEvents();
+	if(ret==2) {
+		//we are loading stuff
+		DWORD oldscreenmode = ScreenMode;
+		ScreenMode = 3;
+		InitializeMQ2Commands();
+		InitializeMQ2Windows();
+		MQ2MouseHooks(1);
+		Sleep(100);
+		InitializeMQ2KeyBinds();
+		#ifndef ISXEQ
+		InitializeMQ2Plugins();
+		#endif
+		ScreenMode = oldscreenmode;
+		SetEvent(hLoadComplete);
+	} else if(ret==1) {
+		//we are unloading stuff
+		DWORD oldscreenmode = ScreenMode;
+		ScreenMode = 3;
+		WriteChatColor(UnloadedString,USERCOLOR_DEFAULT);
+		DebugSpewAlways("%s", UnloadedString);
+		UnloadMQ2Plugins();
+		MQ2Shutdown();
+
+		DebugSpew("Shutdown completed");
+		g_Loaded = FALSE;
+		ScreenMode = oldscreenmode;
+		SetEvent(hUnloadComplete);
+	}
+	return ret2;
 }
 
 DETOUR_TRAMPOLINE_EMPTY(BOOL Trampoline_ProcessGameEvents(VOID));
