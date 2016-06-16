@@ -268,7 +268,7 @@ void ShutdownMQ2Windows()
     RemoveDetour(CSidlScreenWnd__Init1);
     RemoveDetour(CTargetWnd__WndNotification);
     RemoveDetour(CXWndManager__RemoveWnd);
-	WindowList.clear();
+	//WindowList.clear();
 }
 
 bool GenerateMQUI()

@@ -418,6 +418,7 @@ BOOL Detour_ProcessGameEvents(VOID)
 		pISInterface->LavishScriptPulse();
 #endif
 	int ret2 =  Trampoline_ProcessGameEvents();
+#ifndef ISXEQ
 	if(ret==2 && bPluginCS==0) {
 		//we are loading stuff
 		DWORD oldscreenmode = ScreenMode;
@@ -445,7 +446,9 @@ BOOL Detour_ProcessGameEvents(VOID)
 		g_Loaded = FALSE;
 		ScreenMode = oldscreenmode;
 		SetEvent(hUnloadComplete);
+
 	}
+#endif
 	return ret2;
 }
 

@@ -1,3 +1,12 @@
+16 Jun 2016
+- Fixed the ISXEQ build errors.
+- Fixed a few arrays related bugs:
+- ${Me.Book[0]} will now return NULL again instead of assuming the macro author meant ${Me.Book[1]}.
+  This fix should make macros and some plugins that relied on NULL returns for invalid tlo member usage work again.
+  (hint: there is no such thing as ${Me.Book[0]} all macro arrays start at 1... but whatever...)
+- Fixed a /unload crash in mq2autologin
+  it has been posted here: http://www.macroquest2.com/phpBB3/viewtopic.php?f=50&t=16427
+
 15 Jun 2016
 - Updated for LIVE
 - Added xtarhater to the spawnsearch tlo - Idea Cred: Maskoi

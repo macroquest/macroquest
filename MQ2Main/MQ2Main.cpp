@@ -367,6 +367,7 @@ bool __cdecl MQ2Initialize()
     InitializeMQ2Spawns();
     InitializeMQ2Pulse();
 
+#ifndef ISXEQ
 	//ok so if we are precharselect we init here otherwise we init in HeartBeat
 	DWORD gs = GetGameState();
 	if(gs == GAMESTATE_PRECHARSELECT && bPluginCS==0 && gbLoad) {
@@ -386,16 +387,17 @@ bool __cdecl MQ2Initialize()
 			Sleep(0);
 		}
 	}
-	//can we do these in hearbeat instead since the game is actually not drawing stuff while we mess with its window handler?
-    /*InitializeMQ2Commands();
+#else
+    InitializeMQ2Commands();
     InitializeMQ2Windows();
 	MQ2MouseHooks(1);
     Sleep(100);
     InitializeMQ2KeyBinds();
-#ifndef ISXEQ
-    InitializeMQ2Plugins();
 #endif
-*/
+//#ifndef ISXEQ
+//    InitializeMQ2Plugins();
+//#endif
+
 	if (!ghLockPickZone)
 		ghLockPickZone = CreateMutex(NULL, FALSE, NULL);
     return true;
@@ -466,18 +468,24 @@ HMODULE GetCurrentModule()
 	GetModuleHandleEx(GET_MODULE_HANDLE_EX_FLAG_FROM_ADDRESS | GET_MODULE_HANDLE_EX_FLAG_UNCHANGED_REFCOUNT, (LPCTSTR)GetCurrentModule, &hModule);
 	return hModule;
 }
-
+HANDLE hUnloadComplete = 0;
+HANDLE hLoadComplete = 0;
 // ***************************************************************************
 // Function:    MQ2End Thread
 // Description: Where we end execution during the ejection
 // ***************************************************************************
 DWORD WINAPI MQ2End(LPVOID lpParameter)
 {
+	DWORD gs = GetGameState();
+	if(gs==GAMESTATE_PRECHARSELECT) {
+		if(hUnloadComplete) {
+			CloseHandle(hUnloadComplete);
+			hUnloadComplete = 0;
+		}
+	}
 	Unload(NULL,NULL);
 	return 0;
 }
-HANDLE hUnloadComplete = 0;
-HANDLE hLoadComplete = 0;
 // ***************************************************************************
 // Function:    MQ2Start Thread
 // Description: Where we start execution during the insertion
@@ -527,7 +535,7 @@ getout:
 		hLoadComplete = 0;
 	}
 	if(hUnloadComplete) {
-		WaitForSingleObject(hUnloadComplete, 10000);
+		WaitForSingleObject(hUnloadComplete, INFINITE);
 		CloseHandle(hUnloadComplete);
 		hUnloadComplete = 0;
 	} else {
