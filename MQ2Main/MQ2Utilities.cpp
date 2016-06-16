@@ -4621,152 +4621,158 @@ BOOL EvaluateRPN(_CalcOp *pList, int Size, DOUBLE &Result)
 	if (!Size)
 		return 0;
 	int StackSize = (sizeof(DOUBLE)*(Size / 2 + 2));
-	DOUBLE *pStack = (DOUBLE*)malloc(StackSize);
-	int nStack = 0;
-#define StackEmpty() (nStack==0)
-#define StackTop() (pStack[nStack])
-#define StackSetTop(do_assign) {pStack[nStack]##do_assign;}
-#define StackPush(val) {nStack++;pStack[nStack]=val;}
-#define StackPop() {if (!nStack) {FatalError("Illegal arithmetic in calculation");free(pStack);return 0;};nStack--;}
+	if(DOUBLE *pStack = (DOUBLE*)malloc(StackSize)) {
+		int nStack = 0;
+		#define StackEmpty() (nStack==0)
+		#define StackTop() (pStack[nStack])
+		#define StackSetTop(do_assign) {pStack[nStack]##do_assign;}
+		#define StackPush(val) {nStack++;pStack[nStack]=val;}
+		#define StackPop() {if (!nStack) {FatalError("Illegal arithmetic in calculation");free(pStack);return 0;};nStack--;}
 
-#define BinaryIntOp(op) {int RightSide=(int)StackTop();StackPop();StackSetTop(=(DOUBLE)(((int)StackTop())##op##RightSide));}
-#define BinaryOp(op) {DOUBLE RightSide=StackTop();StackPop();StackSetTop(=StackTop()##op##RightSide);}
-#define BinaryAssign(op) {DOUBLE RightSide=StackTop();StackPop();StackSetTop(##op##=RightSide);}
+		#define BinaryIntOp(op) {int RightSide=(int)StackTop();StackPop();StackSetTop(=(DOUBLE)(((int)StackTop())##op##RightSide));}
+		#define BinaryOp(op) {DOUBLE RightSide=StackTop();StackPop();StackSetTop(=StackTop()##op##RightSide);}
+		#define BinaryAssign(op) {DOUBLE RightSide=StackTop();StackPop();StackSetTop(##op##=RightSide);}
 
-#define UnaryIntOp(op) {StackSetTop(=op##((int)StackTop()));}
-#define UnaryOp(op)    {StackSetTop(=op##(StackTop()));}
-	for (int i = 0; i < Size; i++)
-	{
-		switch (pList[i].Op)
+		#define UnaryIntOp(op) {StackSetTop(=op##((int)StackTop()));}
+		#define UnaryOp(op)    {StackSetTop(=op##(StackTop()));}
+		for (int i = 0; i < Size; i++)
 		{
-		case CO_NUMBER:
-			StackPush(pList[i].Value);
-			break;
-		case CO_ADD:
-			BinaryAssign(+);
-			break;
-		case CO_MULTIPLY:
-			BinaryAssign(*);
-			break;
-		case CO_SUBTRACT:
-			BinaryAssign(-);
-			break;
-		case CO_NEGATE:
-			UnaryOp(-);
-			break;
-		case CO_DIVIDE:
-			if (StackTop())
+			switch (pList[i].Op)
 			{
-				BinaryAssign(/ );
+			case CO_NUMBER:
+				StackPush(pList[i].Value);
+				break;
+			case CO_ADD:
+				BinaryAssign(+);
+				break;
+			case CO_MULTIPLY:
+				BinaryAssign(*);
+				break;
+			case CO_SUBTRACT:
+				BinaryAssign(-);
+				break;
+			case CO_NEGATE:
+				UnaryOp(-);
+				break;
+			case CO_DIVIDE:
+				if (StackTop())
+				{
+					BinaryAssign(/ );
+				}
+				else
+				{
+					//printf("Divide by zero error\n");
+					FatalError("Divide by zero in calculation");
+					free(pStack);
+					return false;
+				}
+				break;
+			case CO_IDIVIDE://TODO: SPECIAL HANDLING
+			{
+				int Right = (int)StackTop();
+				if (Right)
+				{
+					StackPop();
+					int Left = (int)StackTop();
+					Left /= Right;
+					StackSetTop(= Left);
+				}
+				else
+				{
+					//printf("Integer divide by zero error\n");
+					FatalError("Divide by zero in calculation");
+					free(pStack);
+					return false;
+				}
 			}
-			else
+			break;
+			case CO_MODULUS://TODO: SPECIAL HANDLING
 			{
-				//printf("Divide by zero error\n");
-				FatalError("Divide by zero in calculation");
-				free(pStack);
-				return false;
+				int Right = (int)StackTop();
+				if (Right)
+				{
+					StackPop();
+					int Left = (int)StackTop();
+					Left %= Right;
+					StackSetTop(= Left);
+				}
+				else
+				{
+					//printf("Modulus by zero error\n");
+					FatalError("Modulus by zero in calculation");
+					free(pStack);
+					return false;
+				}
 			}
 			break;
-		case CO_IDIVIDE://TODO: SPECIAL HANDLING
-		{
-			int Right = (int)StackTop();
-			if (Right)
+			case CO_LAND:
+				BinaryOp(&&);
+				break;
+			case CO_LOR:
+				BinaryOp(|| );
+				break;
+			case CO_EQUAL:
+				BinaryOp(== );
+				break;
+			case CO_NOTEQUAL:
+				BinaryOp(!= );
+				break;
+			case CO_GREATER:
+				BinaryOp(>);
+				break;
+			case CO_NOTGREATER:
+				BinaryOp(<= );
+				break;
+			case CO_LESS:
+				BinaryOp(<);
+				break;
+			case CO_NOTLESS:
+				BinaryOp(>= );
+				break;
+			case CO_SHL:
+				BinaryIntOp(<< );
+				break;
+			case CO_SHR:
+				BinaryIntOp(>> );
+				break;
+			case CO_AND:
+				BinaryIntOp(&);
+				break;
+			case CO_OR:
+				BinaryIntOp(| );
+				break;
+			case CO_XOR:
+				BinaryIntOp(^);
+				break;
+			case CO_LNOT:
+				UnaryIntOp(!);
+				break;
+			case CO_NOT:
+				UnaryIntOp(~);
+				break;
+			case CO_POWER:
 			{
+				DOUBLE RightSide = StackTop();
 				StackPop();
-				int Left = (int)StackTop();
-				Left /= Right;
-				StackSetTop(= Left);
+				StackSetTop(= pow(StackTop(), RightSide));
 			}
-			else
-			{
-				//printf("Integer divide by zero error\n");
-				FatalError("Divide by zero in calculation");
-				free(pStack);
-				return false;
+			break;
 			}
 		}
-		break;
-		case CO_MODULUS://TODO: SPECIAL HANDLING
-		{
-			int Right = (int)StackTop();
-			if (Right)
-			{
-				StackPop();
-				int Left = (int)StackTop();
-				Left %= Right;
-				StackSetTop(= Left);
-			}
-			else
-			{
-				//printf("Modulus by zero error\n");
-				FatalError("Modulus by zero in calculation");
-				free(pStack);
-				return false;
-			}
-		}
-		break;
-		case CO_LAND:
-			BinaryOp(&&);
-			break;
-		case CO_LOR:
-			BinaryOp(|| );
-			break;
-		case CO_EQUAL:
-			BinaryOp(== );
-			break;
-		case CO_NOTEQUAL:
-			BinaryOp(!= );
-			break;
-		case CO_GREATER:
-			BinaryOp(>);
-			break;
-		case CO_NOTGREATER:
-			BinaryOp(<= );
-			break;
-		case CO_LESS:
-			BinaryOp(<);
-			break;
-		case CO_NOTLESS:
-			BinaryOp(>= );
-			break;
-		case CO_SHL:
-			BinaryIntOp(<< );
-			break;
-		case CO_SHR:
-			BinaryIntOp(>> );
-			break;
-		case CO_AND:
-			BinaryIntOp(&);
-			break;
-		case CO_OR:
-			BinaryIntOp(| );
-			break;
-		case CO_XOR:
-			BinaryIntOp(^);
-			break;
-		case CO_LNOT:
-			UnaryIntOp(!);
-			break;
-		case CO_NOT:
-			UnaryIntOp(~);
-			break;
-		case CO_POWER:
-		{
-			DOUBLE RightSide = StackTop();
-			StackPop();
-			StackSetTop(= pow(StackTop(), RightSide));
-		}
-		break;
+		Result = StackTop();
+
+		#undef StackEmpty
+		#undef StackTop
+		#undef StackPush
+		#undef StackPop
+		try {
+			free(pStack);
+			return true;
+		} catch(...) {
+			MessageBox(NULL, "Tried to free the stack in EvaluateRPN but failed", "MQ2 Error", MB_SYSTEMMODAL | MB_OK);
 		}
 	}
-	Result = StackTop();
-
-#undef StackEmpty
-#undef StackTop
-#undef StackPush
-#undef StackPop
-	free(pStack);
-	return true;
+	return false;
 }
 
 BOOL FastCalculate(PCHAR szFormula, DOUBLE &Result)
@@ -5280,6 +5286,9 @@ PCHAR FormatSearchSpawn(PCHAR Buffer, PSEARCHSPAWN pSearchSpawn)
 	case NPCPET:
 		pszSpawnType = "npcpet";
 		break;
+	case XTARHATER:
+		pszSpawnType = "xtarhater";
+		break;
 	case NPC:
 		pszSpawnType = "npc";
 		break;
@@ -5378,6 +5387,7 @@ PCHAR FormatSearchSpawn(PCHAR Buffer, PSEARCHSPAWN pSearchSpawn)
 	}
 	if (pSearchSpawn->bGM && pSearchSpawn->SpawnType != NPC) strcat(Buffer, " GM");
 	if (pSearchSpawn->bTrader) strcat(Buffer, " Trader");
+	if (pSearchSpawn->bXTarHater) strcat(Buffer, " XTarHater");
 	if (pSearchSpawn->bLFG) strcat(Buffer, " LFG");
 	if (pSearchSpawn->bLight) {
 		strcat(Buffer, " Light");
@@ -5622,6 +5632,8 @@ BOOL SearchSpawnMatchesSearchSpawn(PSEARCHSPAWN pSearchSpawn1, PSEARCHSPAWN pSea
 		return false;
 	if (pSearchSpawn1->bTributeMaster != pSearchSpawn2->bTributeMaster)
 		return false;
+	if (pSearchSpawn1->bXTarHater != pSearchSpawn2->bXTarHater)
+		return false;
 	return true;
 }
 BOOL SpawnMatchesSearch(PSEARCHSPAWN pSearchSpawn, PSPAWNINFO pChar, PSPAWNINFO pSpawn)
@@ -5713,6 +5725,28 @@ BOOL SpawnMatchesSearch(PSEARCHSPAWN pSearchSpawn, PSPAWNINFO pChar, PSPAWNINFO 
 		return FALSE;
 	if (pSearchSpawn->bTrader && !pSpawn->Trader)
 		return FALSE;
+	if (pSearchSpawn->bXTarHater) {
+		bool foundhater = 0;
+		if(PCHARINFO pmyChar = GetCharInfo()) {
+			if (PXTARGETMGR xtm = pmyChar->pXTargetMgr)
+			{
+				if (PXTARGETARRAY xta = xtm->pXTargetArray) {
+					for (DWORD i = 0; i < pmyChar->pXTargetMgr->TargetSlots; i++) {
+						if (xta->pXTargetData[i].xTargetType == XTARGET_AUTO_HATER && xta->pXTargetData[i].Unknown0x4 && xta->pXTargetData[i].SpawnID) {
+							if (PSPAWNINFO pxtarSpawn = (PSPAWNINFO)GetSpawnByID(xta->pXTargetData[i].SpawnID)) {
+								if(pxtarSpawn->SpawnID == pSpawn->SpawnID) {
+									foundhater = true;
+								}
+							}
+						}
+					}
+				}
+			}
+		}
+		if(!foundhater) {
+			return FALSE;
+		}
+	}
 	if (pSearchSpawn->bGroup) {
 		BOOL ingrp = 0;
 		if (pSearchSpawn->SpawnType == PCCORPSE || pSpawn->Type == SPAWN_CORPSE) {
@@ -5811,6 +5845,9 @@ PCHAR ParseSearchSpawnArgs(PCHAR szArg, PCHAR szRest, PSEARCHSPAWN pSearchSpawn)
 		}
 		else if (!_stricmp(szArg, "npcpet")) {
 			pSearchSpawn->SpawnType = NPCPET;
+		}
+		else if (!_stricmp(szArg, "xtarhater")) {
+			pSearchSpawn->bXTarHater = TRUE;
 		}
 		else if (!_stricmp(szArg, "nopet")) {
 			pSearchSpawn->bNoPet = TRUE;
@@ -6537,6 +6574,9 @@ VOID SuperWhoDisplay(PSPAWNINFO pChar, PSEARCHSPAWN pSearchSpawn, DWORD Color)
 			break;
 		case NPCPET:
 			pszSpawnType = "npcpet";
+			break;
+		case XTARHATER:
+			pszSpawnType = "xtarhater";
 			break;
 		case NPC:
 			pszSpawnType = "npc";

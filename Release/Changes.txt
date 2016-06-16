@@ -1,3 +1,29 @@
+15 Jun 2016
+- Updated for LIVE
+- Added xtarhater to the spawnsearch tlo - Idea Cred: Maskoi
+  Example usage:
+   /if (${SpawnCount[npc xtarhater loc ${Target.X} ${Target.Y} radius ${Spell[Deadening Wave Rk. II].AERange}]} >= ${SpawnCount[npc loc ${Target.X} ${Target.Y} radius ${Spell[Deadening Wave Rk. II].AERange}]}) {
+		/echo its ok to cast the aemez it wont aggro more mobs than whats on xtarget.
+		/casting "Deadening Wave Rk. II"
+   } else {
+		/echo if you cast your aemez now, you will agro more mobs than are on your xtarget, which would be stupid.
+		/casting "Bewilder Rk. II"
+   }
+- Fixed a bug in .RankName which would cause it to return the wrong spell.
+
+10 Jun 2016
+- .MyCastTime in the spell TLO is now a timestamptype (cause it is)
+  OK FINE... LOOK THESE THINGS WILL BREAK "SOME" MACROS:
+  Since I changed all these recast and cast timers and so on in the last few days
+  A LOT of macros will break...
+  Sorry about that but these timers should never have been floats in the first place
+  and we better get this done now or it will cause problems down the road for us, when we add new stuff.
+  TO DEAL WITH THIS I have Added .Raw to the timestamp TLO it will just output total milliseconds
+  And IF you really need the old Float output I also added .Float
+  this will allow you to still see things as floats if that's what you prefered.
+  Example: /echo ${Me.Book[1].MyCastTime.Float}
+  Output: 1.50
+
 09 Jun 2016
 - Updated for TEST (yes really)
 - Added .DurationValue1 to the Spell TLO
@@ -8,6 +34,7 @@
 - .CastTime in the spell TLO is now a timestamptype (cause it is)
 - .RecoveryTime in the spell TLO is now a timestamptype (cause it is)
 - .FizzleTime in the spell TLO is now a timestamptype (cause it is)
+
   See yesterdays changes for an example of usage using .RecastTime
 
 09 Jun 2016 by rswiders

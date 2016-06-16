@@ -1050,16 +1050,25 @@ int __cdecl memcheck4(unsigned char *buffer, int count, struct mckey key)
 #else
 		unsigned int b = (int)&buffer[i];
 		OurDetours *detour = ourdetours;
-		while (detour)
+		try 
 		{
-			if (detour->count && (b >= detour->addr) &&
-				(b < detour->addr + detour->count)) {
-				tmp = detour->array[b - detour->addr];
-				break;
+			while (detour)
+			{
+				if (detour->count && (b >= detour->addr) &&
+					(b < detour->addr + detour->count)) {
+					tmp = detour->array[b - detour->addr];
+					break;
+				}
+				detour = detour->pNext;
 			}
-			detour = detour->pNext;
+			if (!detour)
+				tmp = buffer[i];
 		}
-		if (!detour) tmp = buffer[i];
+		catch (...) {
+			MessageBox(NULL, "Caught an exception in memchecker4","CRAP!!!", MB_SYSTEMMODAL | MB_OK);
+			Sleep(0);
+			tmp = buffer[i];
+		}
 #endif
 
 		ebx = (tmp ^ edx) & 0xff;

@@ -989,6 +989,14 @@ bool MQ2TimeStampType::GETMEMBER()
 		Dest.UInt64 = nTimeStamp / 1000;
 		Dest.Type = pInt64Type;
 		return true;
+	case Raw:
+		Dest.UInt64 = nTimeStamp;
+		Dest.Type = pInt64Type;
+		return true;
+	case Float:
+		Dest.Float = (FLOAT)nTimeStamp / 1000;
+		Dest.Type = pFloatType;
+		return true;
 	case Ticks:
 		Dest.UInt64 = ((nTimeStamp / 1000) + 5) / 6;
 		Dest.Type = pInt64Type;
@@ -4875,12 +4883,12 @@ bool MQ2SpellType::GETMEMBER()
 	case MyCastTime:
 	{
 		DWORD n = 0;
-		float mct = (FLOAT)(pCharData1->GetAACastingTimeModifier((EQ_Spell*)pSpell) + pCharData1->GetFocusCastingTimeModifier((EQ_Spell*)pSpell, (EQ_Equipment**)&n, 0) + pSpell->CastTime) / 1000.0f;
-		if (mct < 0.50 * pSpell->CastTime / 1000.0f)
-			Dest.Float = (FLOAT)0.50 * (pSpell->CastTime / 1000.0f);
+		__int64 mct = (__int64)(pCharData1->GetAACastingTimeModifier((EQ_Spell*)pSpell) + pCharData1->GetFocusCastingTimeModifier((EQ_Spell*)pSpell, (EQ_Equipment**)&n, 0) + pSpell->CastTime);
+		if (mct < (pSpell->CastTime/2))
+			Dest.UInt64 = pSpell->CastTime/2;
 		else
-			Dest.Float = (FLOAT)mct;
-		Dest.Type = pFloatType;
+			Dest.UInt64 = mct;
+		Dest.Type = pTimeStampType;
 		return true;
 	}
 	case Duration:
@@ -5340,20 +5348,6 @@ bool MQ2SpellType::GETMEMBER()
 	{
 		PSPELL thespell = pSpell;
 		if (PCHARINFO2 pChar2 = GetCharInfo2()) {
-			//we first search the scribed spells.
-			for (DWORD nSpell = 0; nSpell < NUM_BOOK_SLOTS; nSpell++) {
-				if (pChar2->SpellBook[nSpell] != 0xFFFFFFFF)
-				{
-					if (PSPELL pFoundSpell = GetSpellByID(pChar2->SpellBook[nSpell])) {
-						if (pFoundSpell->SpellGroup == thespell->SpellGroup && !_strnicmp(thespell->Name, pFoundSpell->Name, strlen(thespell->Name)))
-						{
-							Dest.Ptr = pFoundSpell;
-							Dest.Type = pSpellType;
-							return true;
-						}
-					}
-				}
-			}
 			//is it a altability?
 			for (unsigned long nAbility = 0; nAbility < NUM_ALT_ABILITIES; nAbility++) {
 				if (PALTABILITY pAbility = pAltAdvManager->GetAAById(nAbility)) {
@@ -5361,9 +5355,11 @@ bool MQ2SpellType::GETMEMBER()
 						if (!_strnicmp(thespell->Name, pName, strlen(thespell->Name))) {
 							if (pAbility->SpellID != -1) {
 								if (PSPELL pFoundSpell = GetSpellByID(pAbility->SpellID)) {
-									Dest.Ptr = pFoundSpell;
-									Dest.Type = pSpellType;
-									return true;
+									if (pFoundSpell->SpellGroup == thespell->SpellGroup) {
+										Dest.Ptr = pFoundSpell;
+										Dest.Type = pSpellType;
+										return true;
+									}
 								}
 							}
 						}
@@ -5374,6 +5370,20 @@ bool MQ2SpellType::GETMEMBER()
 			for (DWORD dwIndex = 0; dwIndex < NUM_COMBAT_ABILITIES; dwIndex++) {
 				if (pCombatSkillsSelectWnd->ShouldDisplayThisSkill(dwIndex)) {
 					if (PSPELL pFoundSpell = GetSpellByID(pPCData->GetCombatAbility(dwIndex))) {
+						if (pFoundSpell->SpellGroup == thespell->SpellGroup && !_strnicmp(thespell->Name, pFoundSpell->Name, strlen(thespell->Name)))
+						{
+							Dest.Ptr = pFoundSpell;
+							Dest.Type = pSpellType;
+							return true;
+						}
+					}
+				}
+			}
+			//well AA should be used first so lets search spells last...
+			for (DWORD nSpell = 0; nSpell < NUM_BOOK_SLOTS; nSpell++) {
+				if (pChar2->SpellBook[nSpell] != 0xFFFFFFFF)
+				{
+					if (PSPELL pFoundSpell = GetSpellByID(pChar2->SpellBook[nSpell])) {
 						if (pFoundSpell->SpellGroup == thespell->SpellGroup && !_strnicmp(thespell->Name, pFoundSpell->Name, strlen(thespell->Name)))
 						{
 							Dest.Ptr = pFoundSpell;
@@ -8543,10 +8553,12 @@ bool MQ2PetType::GETMEMBER()
 #endif
 	}
 #define pPetInfoWindow ((PEQPETINFOWINDOW)pPetInfoWnd)
+	if (!pPetInfoWindow)
+		return false;
 	switch ((PetMembers)pMember->ID)
 	{
 	case Buff:
-		if (!ISINDEX() || !pPetInfoWnd)
+		if (!ISINDEX() || !pPetInfoWindow)
 			return false;
 		if (ISNUMBER())
 		{
@@ -8580,7 +8592,7 @@ bool MQ2PetType::GETMEMBER()
 		}
 		return false;
 	case BuffDuration:
-		if (!ISINDEX() || !pPetInfoWnd)
+		if (!ISINDEX() || !pPetInfoWindow)
 			return false;
 		if (ISNUMBER())
 		{
@@ -8612,7 +8624,7 @@ bool MQ2PetType::GETMEMBER()
 		}
 		return false;
 	case Combat:
-		if (pSpawn->WhoFollowing)
+		if (pSpawn && pSpawn->WhoFollowing)
 		{
 			Dest.DWord = TRUE;
 		}
@@ -8622,7 +8634,7 @@ bool MQ2PetType::GETMEMBER()
 		Dest.Type = pBoolType;
 		return true;
 	case GHold:
-		if (pPetInfoWindow->GHold)
+		if (pPetInfoWindow && pPetInfoWindow->GHold)
 		{
 			Dest.DWord = TRUE;
 		}
@@ -8632,7 +8644,7 @@ bool MQ2PetType::GETMEMBER()
 		Dest.Type = pBoolType;
 		return true;
 	case Hold:
-		if (pPetInfoWindow->Hold)
+		if (pPetInfoWindow && pPetInfoWindow->Hold)
 		{
 			Dest.DWord = TRUE;
 		}
@@ -8642,7 +8654,7 @@ bool MQ2PetType::GETMEMBER()
 		Dest.Type = pBoolType;
 		return true;
 	case ReGroup:
-		if (pPetInfoWindow->ReGroup)
+		if (pPetInfoWindow && pPetInfoWindow->ReGroup)
 		{
 			Dest.DWord = TRUE;
 		}
@@ -8652,7 +8664,7 @@ bool MQ2PetType::GETMEMBER()
 		Dest.Type = pBoolType;
 		return true;
 	case Stance:
-		if (pPetInfoWindow->Follow)
+		if (pPetInfoWindow && pPetInfoWindow->Follow)
 		{
 			Dest.Ptr = "FOLLOW";
 		}
@@ -8662,7 +8674,7 @@ bool MQ2PetType::GETMEMBER()
 		Dest.Type = pStringType;
 		return true;
 	case Stop:
-		if (pPetInfoWindow->Stop)
+		if (pPetInfoWindow && pPetInfoWindow->Stop)
 		{
 			Dest.DWord = TRUE;
 		}
@@ -8672,14 +8684,16 @@ bool MQ2PetType::GETMEMBER()
 		Dest.Type = pBoolType;
 		return true;
 	case Target:
-		if (Dest.Ptr = pSpawn->WhoFollowing)
-		{
-			Dest.Type = pSpawnType;
-			return true;
+		if(pSpawn) {
+			if (Dest.Ptr = pSpawn->WhoFollowing)
+			{
+				Dest.Type = pSpawnType;
+				return true;
+			}
 		}
 		break;
 	case Taunt:
-		if (pPetInfoWindow->Taunt)
+		if (pPetInfoWindow && pPetInfoWindow->Taunt)
 		{
 			Dest.DWord = TRUE;
 		}

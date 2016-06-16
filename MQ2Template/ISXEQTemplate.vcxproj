@@ -1,4 +1,4 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.0" encoding="utf-8"?>
 <Project DefaultTargets="Build" ToolsVersion="12.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup Label="ProjectConfigurations">
     <ProjectConfiguration Include="Debug|Win32">
@@ -55,11 +55,6 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="ISXEQTemplate.h" />
-  </ItemGroup>
-  <ItemGroup>
-    <ProjectReference Include="..\MQ2Main\ISXEQ.vcxproj">
-      <Project>{4edfef3c-e331-44e6-bc7a-cf25bfa2bfea}</Project>
-    </ProjectReference>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

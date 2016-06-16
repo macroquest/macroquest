@@ -659,11 +659,31 @@ VOID CheckChatForEvent(PCHAR szMsg)
 				strcpy(Arg2, pDest +13);
 				Arg2[strlen(Arg2)-1]=0; 
 				AddEvent(EVENT_CHAT,"tell",Arg1,Arg2,NULL); 
+				if(gbBeepOnTells) {
+					DWORD nThreadId = 0;
+					CreateThread(NULL,NULL,BeepOnTellThread,0,0,&nThreadId);
+				}
+				if(gbFlashOnTells) {
+					DWORD nThreadId = 0;
+					CreateThread(NULL,NULL,FlashOnTellThread,0,0,&nThreadId);
+				}
 			} else if ((CHATEVENT(CHAT_TELL)) && (pDest = strstr(szClean," told you, '"))) {
 				strncpy(Arg1,szClean,(DWORD)(pDest -szClean));
 				strcpy(Arg2, pDest +12);
 				Arg2[strlen(Arg2)-1]=0; 
-				AddEvent(EVENT_CHAT,"tell",Arg1,Arg2,NULL); 
+				AddEvent(EVENT_CHAT,"tell",Arg1,Arg2,NULL);
+				if(gbBeepOnTells) {
+					DWORD nThreadId = 0;
+					CreateThread(NULL,NULL,BeepOnTellThread,0,0,&nThreadId);
+				}
+				if(gbFlashOnTells) {
+					//if(PCHARINFO pChar = GetCharInfo()) {
+					//	if(_stricmp(pChar->Name,name)) {//dont beep if its our own character doing the tell...
+							DWORD nThreadId = 0;
+							CreateThread(NULL,NULL,FlashOnTellThread,0,0,&nThreadId);
+					//	}
+					//}
+				}
 			} else if ((CHATEVENT(CHAT_OOC)) && (pDest = strstr(szClean," says out of character, '"))) {
 				strncpy(Arg1,szClean,(DWORD)(pDest -szClean));
 				strcpy(Arg2, pDest +25);

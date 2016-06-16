@@ -30,6 +30,7 @@ namespace MQ2Internal {
         PET,
         PCPET,
         NPCPET,
+		XTARHATER,
         NPC,
         CORPSE,
         TRIGGER,
@@ -72,6 +73,7 @@ namespace MQ2Internal {
         BOOL bTargNext;
         BOOL bTargPrev;
         BOOL bGroup;
+        BOOL bXTarHater;
         BOOL bNoGroup;
         BOOL bRaid;
         BOOL bGM;

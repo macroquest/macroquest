@@ -33,19 +33,19 @@ public:
         return is_3dON_Trampoline();
     }
 };
-#define startworlddisplayexceptionhandler_x 0xA1B408
-
-#define INITIALIZE_EQGAME_OFFSET(var) DWORD var = (((DWORD)var##_x - 0x400000) + (DWORD)GetModuleHandle(NULL))
-
 DETOUR_TRAMPOLINE_EMPTY(int CDisplay_Hook::is_3dON_Trampoline());
-INITIALIZE_EQGAME_OFFSET(startworlddisplayexceptionhandler);
 
+#ifdef EQMULETESTINGSTUFF
+#define startworlddisplayexceptionhandler_x 0xA1B408
+#define INITIALIZE_EQGAME_OFFSET(var) DWORD var = (((DWORD)var##_x - 0x400000) + (DWORD)GetModuleHandle(NULL))
+INITIALIZE_EQGAME_OFFSET(startworlddisplayexceptionhandler);
+#endif
 PLUGIN_API VOID InitializePlugin(VOID)
 {
     DebugSpewAlways("Initializing MQ2EQBugFix");
     EzDetour(CDisplay__is3dON, &CDisplay_Hook::is_3dON_Detour, &CDisplay_Hook::is_3dON_Trampoline);
     #ifdef EQMULETESTINGSTUFF
-	EzDetour(startworlddisplayexceptionhandler, startworddisplayexceptionhandler_Detour, startworddisplayexceptionhandler_Trampoline);
+	//EzDetour(startworlddisplayexceptionhandler, startworddisplayexceptionhandler_Detour, startworddisplayexceptionhandler_Trampoline);
 	#endif
 }
 
@@ -54,6 +54,6 @@ PLUGIN_API VOID ShutdownPlugin(VOID)
     DebugSpewAlways("Shutting down MQ2EQBugFix");
 	RemoveDetour(CDisplay__is3dON);
 	#ifdef EQMULETESTINGSTUFF
-    RemoveDetour(startworlddisplayexceptionhandler);
+    //RemoveDetour(startworlddisplayexceptionhandler);
 	#endif
 }

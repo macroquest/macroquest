@@ -366,9 +366,25 @@ bool __cdecl MQ2Initialize()
     InitializeChatHook();
     InitializeMQ2Spawns();
     InitializeMQ2Pulse();
-	if(hLoadComplete) {
-		WaitForSingleObject(hLoadComplete, 60000);
-		Sleep(0);
+
+	//ok so if we are precharselect we init here otherwise we init in HeartBeat
+	DWORD gs = GetGameState();
+	if(gs == GAMESTATE_PRECHARSELECT && bPluginCS==0 && gbLoad) {
+	//we are loading stuff
+		InitializeMQ2Commands();
+		InitializeMQ2Windows();
+		MQ2MouseHooks(1);
+		Sleep(100);
+		InitializeMQ2KeyBinds();
+		#ifndef ISXEQ
+		InitializeMQ2Plugins();
+		#endif
+		gbLoad = FALSE;
+	} else {
+		if(hLoadComplete) {
+			WaitForSingleObject(hLoadComplete, 60000);
+			Sleep(0);
+		}
 	}
 	//can we do these in hearbeat instead since the game is actually not drawing stuff while we mess with its window handler?
     /*InitializeMQ2Commands();
@@ -477,6 +493,7 @@ DWORD WINAPI MQ2Start(LPVOID lpParameter)
 	MQ2StartEmu();//or whatever...
 #endif
 	CHAR szBuffer[MAX_STRING] = { 0 };
+	//MessageBox(NULL, "Inject now", "MQ2 Debug", MB_OK);
 
 	if (!MQ2Initialize()) {
 		MessageBox(NULL, "Failed to Initialize MQ2 will free lib and exit", "MQ2 Error", MB_OK);
@@ -505,7 +522,6 @@ DWORD WINAPI MQ2Start(LPVOID lpParameter)
         Sleep(500);
     }
 getout:
-	//HideDoCommand(pLocalPlayer, "/GetOutNow", 1);
 	if(hLoadComplete) {
 		CloseHandle(hLoadComplete);
 		hLoadComplete = 0;

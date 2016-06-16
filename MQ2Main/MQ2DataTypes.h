@@ -507,8 +507,10 @@ public:
 		Time = 4,
 		TotalMinutes = 5,
 		TotalSeconds = 6,
-		Ticks = 7,
-		TimeHMS = 8,
+		Raw = 7,
+		Ticks = 8,
+		TimeHMS = 9,
+		Float = 10,
 	};
 	MQ2TimeStampType() :MQ2Type("timestamp")
 	{
@@ -518,8 +520,10 @@ public:
 		TypeMember(Time);
 		TypeMember(TotalMinutes);
 		TypeMember(TotalSeconds);
+		TypeMember(Raw);
 		TypeMember(Ticks);
 		TypeMember(TimeHMS);
+		TypeMember(Float);
 	}
 
 	~MQ2TimeStampType()
