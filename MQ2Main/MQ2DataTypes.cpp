@@ -4406,6 +4406,28 @@ bool MQ2CharacterType::GETMEMBER()
 			}
 		}
 		break;
+	case Cursed:
+		if (PCHARINFO2 pChar2 = GetCharInfo2()) {
+			int nBuff = -1;
+			if ((nBuff = GetSelfBuffBySPA(116, 0)) != -1)//Curse Counter
+			{
+				Dest.Ptr = &pChar2->Buff[nBuff];
+				Dest.Type = pBuffType;
+				return true;
+			}
+		}
+		break;
+	case Corrupted:
+		if (PCHARINFO2 pChar2 = GetCharInfo2()) {
+			int nBuff = -1;
+			if ((nBuff = GetSelfBuffBySPA(369, 0)) != -1)//Corruption Counter
+			{
+				Dest.Ptr = &pChar2->Buff[nBuff];
+				Dest.Type = pBuffType;
+				return true;
+			}
+		}
+		break;
 	case Symbol:
 		if (PCHARINFO2 pChar2 = GetCharInfo2()) {
 			int nBuff = -1;
@@ -5702,8 +5724,8 @@ bool MQ2ItemType::GETMEMBER()
 		Dest.Type = pIntType;
 		return true;
 	case CastTime:
-		Dest.Float = (FLOAT)GetItemFromContents(pItem)->Clicky.CastTime / 1000;
-		Dest.Type = pFloatType;
+		Dest.UInt64 = GetItemFromContents(pItem)->Clicky.CastTime;
+		Dest.Type = pTimeStampType;
 		return true;
 	case Spell:
 		if (Dest.Ptr = GetSpellByID(GetItemFromContents(pItem)->Clicky.SpellID))
@@ -7943,6 +7965,41 @@ bool MQ2EverQuestType::GETMEMBER()
 		Dest.DWord = GetCurrentProcessId();
 		Dest.Type = pIntType;
 		return true;
+	case PPriority:
+	{
+		strcpy_s(DataTypeTemp,"NORMAL");
+		if(HANDLE heqg = OpenProcess(PROCESS_QUERY_INFORMATION, FALSE, GetCurrentProcessId())) {
+			DWORD prio = GetPriorityClass(heqg);
+			switch(prio)
+			{
+				case IDLE_PRIORITY_CLASS:
+					strcpy_s(DataTypeTemp,"LOW");
+					break;
+				case BELOW_NORMAL_PRIORITY_CLASS:
+					strcpy_s(DataTypeTemp,"BELOW NORMAL");
+					break;
+				case NORMAL_PRIORITY_CLASS:
+					prio = NORMAL_PRIORITY_CLASS;
+					strcpy_s(DataTypeTemp,"NORMAL");
+					break;
+				case ABOVE_NORMAL_PRIORITY_CLASS:
+					strcpy_s(DataTypeTemp,"ABOVE NORMAL");
+					break;
+				case HIGH_PRIORITY_CLASS:
+					strcpy_s(DataTypeTemp,"HIGH");
+					break;
+				case REALTIME_PRIORITY_CLASS:
+					strcpy_s(DataTypeTemp,"REALTIME");
+					break;
+				default:
+					break;
+			}
+			CloseHandle(heqg);
+		}
+		Dest.Ptr = &DataTypeTemp[0];
+		Dest.Type = pStringType;
+		return true;
+	}
 	}
 	return false;
 }
@@ -10669,6 +10726,20 @@ bool MQ2TargetType::GETMEMBER()
 		break;
 	case Poisoned:
 		if ((Dest.Int = GetTargetBuffBySPA(36, 0)) != -1)//Poison Counter
+		{
+			Dest.Type = pTargetBuffType;
+			return true;
+		}
+		break;
+	case Cursed:
+		if ((Dest.Int = GetTargetBuffBySPA(116, 0)) != -1)//Curse Counter
+		{
+			Dest.Type = pTargetBuffType;
+			return true;
+		}
+		break;
+	case Corrupted:
+		if ((Dest.Int = GetTargetBuffBySPA(369, 0)) != -1)//Corruption Counter
 		{
 			Dest.Type = pTargetBuffType;
 			return true;

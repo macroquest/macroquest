@@ -704,6 +704,7 @@ void InitializeMQ2Commands()
 		{"/pickzone",   PickZoneCmd,1,1},
 		{"/assist",     AssistCmd,1,1},
 		{"/invoke",     InvokeCmd,1,1},
+		{"/setprio",    SetProcessPriority,1,0},
         {NULL,          NULL,0,1},
     };
 

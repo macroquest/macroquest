@@ -377,9 +377,7 @@ bool __cdecl MQ2Initialize()
 		MQ2MouseHooks(1);
 		Sleep(100);
 		InitializeMQ2KeyBinds();
-		#ifndef ISXEQ
 		InitializeMQ2Plugins();
-		#endif
 		gbLoad = FALSE;
 	} else {
 		if(hLoadComplete) {
@@ -405,6 +403,7 @@ bool __cdecl MQ2Initialize()
 
 void __cdecl MQ2Shutdown()
 {
+	OutputDebugString("MQ2Shutdown Called");
     DebugTry(ShutdownMQ2KeyBinds());
     DebugTry(ShutdownMQ2Spawns());
     DebugTry(ShutdownDisplayHook());
@@ -525,7 +524,7 @@ DWORD WINAPI MQ2Start(LPVOID lpParameter)
 
     WriteChatColor(LoadedString,USERCOLOR_DEFAULT);
     DebugSpewAlways("%s", LoadedString);
-
+	
     while (!gbUnload) {
         Sleep(500);
     }
@@ -539,6 +538,7 @@ getout:
 		CloseHandle(hUnloadComplete);
 		hUnloadComplete = 0;
 	} else {
+		OutputDebugString("I am unloading in MQ2Start");
 		DWORD oldscreenmode = ScreenMode;
 		ScreenMode = 3;
 		WriteChatColor(UnloadedString,USERCOLOR_DEFAULT);

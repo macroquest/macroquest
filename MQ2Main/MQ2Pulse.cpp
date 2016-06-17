@@ -420,6 +420,7 @@ BOOL Detour_ProcessGameEvents(VOID)
 	int ret2 =  Trampoline_ProcessGameEvents();
 #ifndef ISXEQ
 	if(ret==2 && bPluginCS==0) {
+		OutputDebugString("I am loading in ProcessGameEvents");
 		//we are loading stuff
 		DWORD oldscreenmode = ScreenMode;
 		ScreenMode = 3;
@@ -434,6 +435,7 @@ BOOL Detour_ProcessGameEvents(VOID)
 		ScreenMode = oldscreenmode;
 		SetEvent(hLoadComplete);
 	} else if(ret==1) {
+		OutputDebugString("I am unloading in ProcessGameEvents");
 		//we are unloading stuff
 		DWORD oldscreenmode = ScreenMode;
 		ScreenMode = 3;
@@ -441,7 +443,6 @@ BOOL Detour_ProcessGameEvents(VOID)
 		DebugSpewAlways("%s", UnloadedString);
 		UnloadMQ2Plugins();
 		MQ2Shutdown();
-
 		DebugSpew("Shutdown completed");
 		g_Loaded = FALSE;
 		ScreenMode = oldscreenmode;

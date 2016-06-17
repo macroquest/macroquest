@@ -1,3 +1,12 @@
+17 Jun 2016
+- Added .PPriority to the EverQuest TLO, it returns the Process Priority as a string.
+- Added a new command: /setprio which sets process priority (like in Task Manager)
+  Usage: /setprio <1-6>
+  Where 1 is Low 2 is below Normal 3 is Normal 4 is Above Normal 5 is High and 6 is RealTime
+  Example: You need to build something quick in Visual Studio
+  just do a /bcga //setprio 2 and it will zoom by real fast.
+- Added .Corrupted and .Cursed to the Me. and Target. TLO's
+
 16 Jun 2016
 - Fixed the ISXEQ build errors.
 - Fixed a few arrays related bugs:

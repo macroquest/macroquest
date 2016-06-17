@@ -4242,4 +4242,59 @@ VOID InvokeCmd(PSPAWNINFO pChar, PCHAR szLine)
 {
 	bRunNextCommand = TRUE;
 }
+// ***************************************************************************
+// Function:    SetProcessPriority
+// Description: '/setprio' command
+// Purpose:     Adds the ability to set the process priority
+// Example:		/setprio <1-6> Where 1 is Low 2 is below Normal 3 is Normal 4 is Above Normal 5 is High and 6 is RealTime
+// Author:      EqMule
+// ***************************************************************************
+VOID SetProcessPriority(PSPAWNINFO pChar, char *szLine)
+{
+	if (szLine && szLine[0] == '\0') {
+		WriteChatf("Usage: /setprio <1-6> Where 1 is Low 2 is Below Normal 3 is Normal 4 is Above Normal 5 is High and 6 is RealTime");
+		return;
+	}
+	DWORD prio = NORMAL_PRIORITY_CLASS;
+	CHAR szPrio[2048] = { 0 };
+	if(int newprio = atoi(szLine)) {
+		switch (newprio)
+		{
+		case 1:
+			prio = IDLE_PRIORITY_CLASS;
+			strcpy_s(szPrio,"Process Priority Set to \agLOW\ax");
+			break;
+		case 2:
+			prio = BELOW_NORMAL_PRIORITY_CLASS;
+			strcpy_s(szPrio,"Process Priority Set to \agBELOW NORMAL\ax");
+			break;
+		case 3:
+			prio = NORMAL_PRIORITY_CLASS;
+			strcpy_s(szPrio,"Process Priority Set to \agNORMAL\ax");
+			break;
+		case 4:
+			prio = ABOVE_NORMAL_PRIORITY_CLASS;
+			strcpy_s(szPrio,"Process Priority Set to \agABOVE NORMAL\ax");
+			break;
+		case 5:
+			prio = HIGH_PRIORITY_CLASS;
+			strcpy_s(szPrio,"Process Priority Set to \agHIGH\ax");
+			break;
+		case 6:
+			prio = REALTIME_PRIORITY_CLASS;
+			strcpy_s(szPrio,"Process Priority Set to \agREALTIME\ax");
+			break;
+		default:
+			prio = NORMAL_PRIORITY_CLASS;
+			break;
+		}
+	}
+	if(HANDLE heqg = OpenProcess(PROCESS_SET_INFORMATION, FALSE, GetCurrentProcessId())) {
+		SetPriorityClass(heqg, prio);
+		CloseHandle(heqg);
+		WriteChatf("%s", szPrio);
+	} else {
+		WriteChatf("Process Priority was NOT changed, Could not open Process");
+	}
+}
 #endif

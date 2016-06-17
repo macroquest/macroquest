@@ -1108,11 +1108,13 @@ public:
 		CursorCopper = 238,
 		Diseased = 239,
 		Poisoned = 240,
-		Krono = 241,
-		XTargetSlots = 242,
-		AssistComplete = 243,
-		ItemReady = 244,
-		NumGems = 245,
+		Cursed = 241,
+		Corrupted = 242,
+		Krono = 243,
+		XTargetSlots = 244,
+		AssistComplete = 245,
+		ItemReady = 246,
+		NumGems = 247,
 
 	};
 	enum CharacterMethods
@@ -1354,6 +1356,8 @@ public:
 		TypeMember(CursorCopper);
 		TypeMember(Diseased);
 		TypeMember(Poisoned);
+		TypeMember(Cursed);
+		TypeMember(Corrupted);
 		TypeMember(Krono);
 		TypeMember(XTargetSlots);
 		TypeMember(AssistComplete);
@@ -2904,14 +2908,15 @@ public:
 		LClickedObject = 10,
 		WinTitle = 11,
 		PID = 12,
-		ChatChannels = 13,
-		ChatChannel = 14,
-		ViewportX = 15,
-		ViewportY = 16,
-		ViewportXMax = 17,
-		ViewportYMax = 18,
-		ViewportXCenter = 19,
-		ViewportYCenter = 20,
+		PPriority = 13,
+		ChatChannels = 14,
+		ChatChannel = 15,
+		ViewportX = 16,
+		ViewportY = 17,
+		ViewportXMax = 18,
+		ViewportYMax = 19,
+		ViewportXCenter = 20,
+		ViewportYCenter = 21,
 	};
 	enum EverQuestMethods
 	{
@@ -2938,6 +2943,7 @@ public:
 		TypeMember(LClickedObject);
 		TypeMember(WinTitle);
 		TypeMember(PID);
+		TypeMember(PPriority);
 	}
 
 	~MQ2EverQuestType()
@@ -4383,7 +4389,9 @@ public:
 		Charmed = 33,
 		Diseased = 34,
 		Poisoned = 35,
-		BuffsPopulated = 36,
+		Cursed = 36,
+		Corrupted = 37,
+		BuffsPopulated = 38,
 	};
 
 #ifdef ISBOXER_COMPAT
@@ -4427,6 +4435,8 @@ public:
 		TypeMember(Charmed);
 		TypeMember(Diseased);
 		TypeMember(Poisoned);
+		TypeMember(Cursed);
+		TypeMember(Corrupted);
 		TypeMember(BuffsPopulated);
 	}
 
