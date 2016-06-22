@@ -2917,6 +2917,7 @@ public:
 		ViewportYMax = 19,
 		ViewportXCenter = 20,
 		ViewportYCenter = 21,
+		xScreenMode = 22,
 	};
 	enum EverQuestMethods
 	{
@@ -2944,6 +2945,7 @@ public:
 		TypeMember(WinTitle);
 		TypeMember(PID);
 		TypeMember(PPriority);
+		AddMember(xScreenMode, "ScreenMode");
 	}
 
 	~MQ2EverQuestType()

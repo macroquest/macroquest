@@ -229,6 +229,8 @@ namespace MQ2Globals
 	EQLIB_VAR DWORD EQADDR_GROUPAGGRO;
 	EQLIB_VAR PCHAR EQADDR_TARGETAGGROHOLDER;
 	EQLIB_VAR PBYTE EQADDR_ZONETYPE;
+	EQLIB_VAR BOOL gbUseTellWindows;
+	
 #define indoor (((*EQADDR_ZONETYPE) == 0) || ((*EQADDR_ZONETYPE) == 3) || ((*EQADDR_ZONETYPE) == 4))
 #define outdoor (((*EQADDR_ZONETYPE) == 1) || ((*EQADDR_ZONETYPE) == 2) || ((*EQADDR_ZONETYPE) == 5))
 #define bindable (((*EQADDR_ZONETYPE) == 2) || ((*EQADDR_ZONETYPE) == 3) || ((*EQADDR_ZONETYPE) == 4))
@@ -754,7 +756,8 @@ namespace MQ2Globals
 	EQLIB_VAR DWORD __Socials;
 	EQLIB_VAR DWORD __TargetAggroHolder;
 	EQLIB_VAR DWORD __ZoneType;
-
+	EQLIB_VAR DWORD __UseTellWindows;
+	
 	EQLIB_VAR DWORD instCRaid;
 	EQLIB_VAR DWORD instEQZoneInfo;
 	EQLIB_VAR DWORD instKeypressHandler;

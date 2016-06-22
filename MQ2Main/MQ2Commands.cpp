@@ -4297,4 +4297,21 @@ VOID SetProcessPriority(PSPAWNINFO pChar, char *szLine)
 		WriteChatf("Process Priority was NOT changed, Could not open Process");
 	}
 }
+// ***************************************************************************
+// Function:    ScreenModeCmd
+// Description: '/screenmode' command
+// Purpose:     Adds the ability to set the screenmode
+// Example:		/screenmode <#> Where 2 is Normal and 3 is No Windows
+// Author:      EqMule
+// ***************************************************************************
+VOID ScreenModeCmd(PSPAWNINFO pChar, char *szLine)
+{
+	if (szLine && szLine[0] == '\0') {
+		WriteChatf("Usage: /screenmode <#>");
+		return;
+	}
+	int newprio = atoi(szLine);
+	ScreenMode = newprio;
+	WriteChatf("Screen Mode Set to \ag%d\ax", newprio);
+}
 #endif

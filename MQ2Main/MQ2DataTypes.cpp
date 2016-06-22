@@ -7965,6 +7965,10 @@ bool MQ2EverQuestType::GETMEMBER()
 		Dest.DWord = GetCurrentProcessId();
 		Dest.Type = pIntType;
 		return true;
+	case xScreenMode:
+		Dest.DWord = ScreenMode;
+		Dest.Type = pIntType;
+		return true;
 	case PPriority:
 	{
 		strcpy_s(DataTypeTemp,"NORMAL");

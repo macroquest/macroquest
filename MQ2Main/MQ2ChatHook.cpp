@@ -108,22 +108,6 @@ public:
 		}
 
         if(!SkipTrampoline) {
-			if(gbFlashOnTells) {
-				if(PCHARINFO pChar = GetCharInfo()) {
-					if(_stricmp(pChar->Name,name)) {//dont beep if its our own character doing the tell...
-						DWORD nThreadId = 0;
-						CreateThread(NULL,NULL,FlashOnTellThread,0,0,&nThreadId);
-					}
-				}
-			}
-			if(gbBeepOnTells) {
-				if(PCHARINFO pChar = GetCharInfo()) {
-					if(_stricmp(pChar->Name,name)) {//dont beep if its our own character doing the tell...
-						DWORD nThreadId = 0;
-						CreateThread(NULL,NULL,BeepOnTellThread,0,0,&nThreadId);
-					}
-				}
-			}
 			if (gbTimeStampChat && szMsg) {
 				CHAR tmpbuf[32] = {0};
 				_strtime_s( tmpbuf, 32 );

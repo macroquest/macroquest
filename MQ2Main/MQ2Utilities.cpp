@@ -462,35 +462,46 @@ DWORD GetCXStr(PCXSTR pCXStr, PCHAR szBuffer, DWORD maxlen)
 	if (!szBuffer)
 		return 0;
 	szBuffer[0] = 0;
-	if (!pCXStr || !maxlen) { return 0; }
-	if (pCXStr->Encoding == 0)
+	if (!pCXStr || !maxlen) {
+		return 0;
+	}
+	if(IsBadReadPtr(pCXStr,4))
+		return 0;
+	try
 	{
-		if (pCXStr->Length<maxlen)
+		if (pCXStr->Encoding == 0)
 		{
-			strcpy(szBuffer, pCXStr->Text);
-			return pCXStr->Length;
+			if (pCXStr->Length<maxlen)
+			{
+				strcpy(szBuffer, pCXStr->Text);
+				return pCXStr->Length;
+			}
+			else
+			{
+				strncpy(szBuffer, pCXStr->Text, maxlen);
+				szBuffer[maxlen - 1] = 0;
+				return maxlen;
+			}
 		}
 		else
-		{
-			strncpy(szBuffer, pCXStr->Text, maxlen);
-			szBuffer[maxlen - 1] = 0;
-			return maxlen;
+		{ // unicode
+		  // this is kind of ghetto but it works for english
+			DWORD i = 0;
+			DWORD o = 0;
+			maxlen--;
+			while (pCXStr->Text[i] && o<maxlen)
+			{
+				szBuffer[o++] = pCXStr->Text[i];
+				i += 2;
+			}
+			szBuffer[o] = 0;
+			return o;
 		}
 	}
-	else
-	{ // unicode
-	  // this is kind of ghetto but it works for english
-		DWORD i = 0;
-		DWORD o = 0;
-		maxlen--;
-		while (pCXStr->Text[i] && o<maxlen)
-		{
-			szBuffer[o++] = pCXStr->Text[i];
-			i += 2;
-		}
-		szBuffer[o] = 0;
-		return o;
+	catch (...) {
+		MessageBox(NULL, "An Unknown Exception Occured", "In GetCXStr", MB_SYSTEMMODAL | MB_OK);
 	}
+	return 0;
 }
 /**/
 

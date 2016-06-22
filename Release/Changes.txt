@@ -1,3 +1,13 @@
+22 Jun 2016
+- Updated for LIVE
+- Updated for TEST
+- BeepOnTells and FlashOnTells fixed to not beep and flash on pet tells.
+- Added .ScreenMode to the EverQuest TLO, it returns the ScreenMode as a integer.
+- Added a new command: /screenmode which sets the screenmode.
+  Usage: /screenmode <#> Where 2 is Normal and 3 is No Windows
+  This is experimental, I noticed you can decrease the memory footprint by setting it to 3 and then back to 2
+  in 3 only the main window is drawn and I suspect memory gets freed then.
+
 17 Jun 2016
 - Added .PPriority to the EverQuest TLO, it returns the Process Priority as a string.
 - Added a new command: /setprio which sets process priority (like in Task Manager)

@@ -616,6 +616,64 @@ VOID AddCustomEvent(PEVENTLIST pEList, PCHAR szLine)
 #ifndef SafeXLoc
 #error 1
 #endif
+void TellCheck(char *szClean)
+{
+	if(gbFlashOnTells || gbBeepOnTells) {
+		CHAR name[2048] = { 0 };
+		bool itsatell = false;
+		if (char *pDest = strstr(szClean," tells you, '")) {
+			strncpy(name,szClean,(DWORD)(pDest -szClean));
+			itsatell = true;
+		} else if (pDest = strstr(szClean," told you, '")) {
+			strncpy(name,szClean,(DWORD)(pDest -szClean));
+			itsatell = true;
+		}
+		if(gbFlashOnTells && itsatell) {
+			if(PCHARINFO pChar = GetCharInfo()) {
+				if(_stricmp(pChar->Name,name)) {//dont flash if its our own character doing the tell...
+					if(pChar->pSpawn) {
+						if (pChar->pSpawn->PetID) {
+							if(PSPAWNINFO pPet = (PSPAWNINFO)GetSpawnByID(pChar->pSpawn->PetID)) {
+								if(!_stricmp(pPet->DisplayedName,name)) {
+									return;//its our pet dont flash on its tells.
+								}
+							}
+						}
+					}
+					if (PSPAWNINFO pNpc = (PSPAWNINFO)GetSpawnByPartialName(name)) {
+						if (pNpc->Type != SPAWN_PLAYER) {
+							return;//its an npc or something, dont flash on it
+						}
+					}
+					DWORD nThreadId = 0;
+					CreateThread(NULL,NULL,FlashOnTellThread,0,0,&nThreadId);
+				}
+			}
+		}
+		if(gbBeepOnTells && itsatell) {
+			if(PCHARINFO pChar = GetCharInfo()) {
+				if(_stricmp(pChar->Name,name)) {//dont beep if its our own character doing the tell...
+					if(pChar->pSpawn) {
+						if (pChar->pSpawn->PetID) {
+							if(PSPAWNINFO pPet =(PSPAWNINFO)GetSpawnByID(pChar->pSpawn->PetID)) {
+								if(!_stricmp(pPet->DisplayedName,name)) {
+									return;//its our pet dont beep on its tells.
+								}
+							}
+						}
+					}
+					if (PSPAWNINFO pNpc = (PSPAWNINFO)GetSpawnByPartialName(name)) {
+						if (pNpc->Type != SPAWN_PLAYER) {
+							return;//its an npc or something, dont beep on it
+						}
+					}
+					DWORD nThreadId = 0;
+					CreateThread(NULL,NULL,BeepOnTellThread,0,0,&nThreadId);
+				}
+			}
+		}
+	}
+}
 VOID CheckChatForEvent(PCHAR szMsg)
 {
 	int len = strlen(szMsg);
@@ -639,6 +697,7 @@ VOID CheckChatForEvent(PCHAR szMsg)
 		if (pMQ2Blech)
 			pMQ2Blech->Feed(szClean);
 		EventMsg[0]=0;
+		TellCheck(szClean);
 		if ((gMacroBlock) && (!gMacroPause) && (!gbUnload) && (!gZoning)) { 
 			CHAR Arg1[MAX_STRING] = {0}; 
 			CHAR Arg2[MAX_STRING] = {0}; 
@@ -659,31 +718,11 @@ VOID CheckChatForEvent(PCHAR szMsg)
 				strcpy(Arg2, pDest +13);
 				Arg2[strlen(Arg2)-1]=0; 
 				AddEvent(EVENT_CHAT,"tell",Arg1,Arg2,NULL); 
-				if(gbBeepOnTells) {
-					DWORD nThreadId = 0;
-					CreateThread(NULL,NULL,BeepOnTellThread,0,0,&nThreadId);
-				}
-				if(gbFlashOnTells) {
-					DWORD nThreadId = 0;
-					CreateThread(NULL,NULL,FlashOnTellThread,0,0,&nThreadId);
-				}
 			} else if ((CHATEVENT(CHAT_TELL)) && (pDest = strstr(szClean," told you, '"))) {
 				strncpy(Arg1,szClean,(DWORD)(pDest -szClean));
 				strcpy(Arg2, pDest +12);
 				Arg2[strlen(Arg2)-1]=0; 
 				AddEvent(EVENT_CHAT,"tell",Arg1,Arg2,NULL);
-				if(gbBeepOnTells) {
-					DWORD nThreadId = 0;
-					CreateThread(NULL,NULL,BeepOnTellThread,0,0,&nThreadId);
-				}
-				if(gbFlashOnTells) {
-					//if(PCHARINFO pChar = GetCharInfo()) {
-					//	if(_stricmp(pChar->Name,name)) {//dont beep if its our own character doing the tell...
-							DWORD nThreadId = 0;
-							CreateThread(NULL,NULL,FlashOnTellThread,0,0,&nThreadId);
-					//	}
-					//}
-				}
 			} else if ((CHATEVENT(CHAT_OOC)) && (pDest = strstr(szClean," says out of character, '"))) {
 				strncpy(Arg1,szClean,(DWORD)(pDest -szClean));
 				strcpy(Arg2, pDest +25);

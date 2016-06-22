@@ -705,6 +705,7 @@ void InitializeMQ2Commands()
 		{"/assist",     AssistCmd,1,1},
 		{"/invoke",     InvokeCmd,1,1},
 		{"/setprio",    SetProcessPriority,1,0},
+		{"/screenmode", ScreenModeCmd,1,0},
         {NULL,          NULL,0,1},
     };
 
