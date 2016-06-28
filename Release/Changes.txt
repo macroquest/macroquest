@@ -1,3 +1,38 @@
+28 Jun 2016
+- MQ2AutoLogin is now part of the core zip
+- NEW FEATURE: Profiled Logins:
+	Basically it's a new menu on the task icon called Profiles.
+	The first time you click it you will see a Create New... menu item.
+	You click it and a small window asking for 5 things will pop up.
+	Server, login, pass, character name and path to eqgame.exe
+	Once you have that filled in you click an OK button and your profile will be encrypted and saved in mq2autologin.ini
+	You can save as many profiles as you want and they will sort per server on the menu.
+	Each server profile has a Load/Unload All option so once you have added all your accounts for a server you just click the Load All and away it goes,
+	it will login all of the characters under that server. (Well all that are check marked)
+-
+- Check marks: each character can be marked for loading by simply right clicking the character name to toggle it marked on or off.
+-
+- Loading individual accounts:
+	You just left click on a character name and if it is check marked, it will load and the name will be changed to <Charname> (Loaded)
+-
+- Unloading individual accounts:
+	If a char is loaded and has the text (Loaded) behind it you just left click it to unload.
+	I kept this as simple as I possibly could so its a Toggle.
+-
+- I can add window positioning and stuff I guess but for now it's just a easy way to login a box team on a server.
+-
+- Batch Files and hotkeys:
+	If you currently use batch files or hotkeys or whatever, those should still be usable if you don't want to click the menu.
+	Example: (this example assumes you HAVE profiles created with "Create New..." in mq2autologin.ini)
+	Batch file can launch your accounts by sending the server_charname to the eqgame client like this: <path to eqgame.exe> patchme /login:drinal_eqmule
+	And that's really all there is to it... You would of course change the server and Charname to your server and your char (drinal and eqmule)
+-
+- Encryption:
+	I strongly recommend getting this setup though, because it encrypts your password in a way that in "theory" makes it only decryptable on YOUR computer,
+	this means that even if you accidently post your mq2autologin.ini somewhere, or someone gets hold of it, the information inside it will be useless to them.
+-	Finally, no, you don't "HAVE" to use this feature, mq2autologin is backwards compatible to handle any old way you feel more comfortable with.
+
+
 22 Jun 2016
 - Updated for LIVE
 - Updated for TEST

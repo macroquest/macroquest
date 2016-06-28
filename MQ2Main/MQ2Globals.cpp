@@ -269,6 +269,7 @@ namespace MQ2Globals
 #endif
 
 	ePVPServer PVPServer = PVP_NONE;
+	DWORD gdwLocalPlayer = pinstLocalPlayer_x;
 	CHAR gszVersion[32] = VersionString;
 	CHAR gszTime[32] = TimeString;
 	#if defined(TEST)

@@ -47,6 +47,7 @@ namespace MQ2Globals
 	EQLIB_API CHAR DataTypeTemp[MAX_STRING];
 
 	EQLIB_API CHAR gszVersion[32];
+	EQLIB_VAR DWORD gdwLocalPlayer;
 	EQLIB_API CHAR gszTime[32];
 	EQLIB_API int gBuild;
 

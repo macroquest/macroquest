@@ -714,6 +714,7 @@ EQLIB_API void		  PopulateSpellMap();
 EQLIB_API DWORD __stdcall InitializeMQ2SpellDb(PVOID pData);
 EQLIB_API HMODULE GetCurrentModule();
 EQLIB_API DWORD WINAPI MQ2End(LPVOID lpParameter);
+EQLIB_API DWORD WINAPI GetlocalPlayerOffset();
 EQLIB_API void __cdecl MQ2Shutdown();
 EQLIB_API HANDLE hUnloadComplete;
 EQLIB_API HANDLE hLoadComplete;

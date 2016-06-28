@@ -485,6 +485,10 @@ DWORD WINAPI MQ2End(LPVOID lpParameter)
 	Unload(NULL,NULL);
 	return 0;
 }
+DWORD WINAPI GetlocalPlayerOffset()
+{
+	return (DWORD)pinstLocalPlayer_x;
+}
 // ***************************************************************************
 // Function:    MQ2Start Thread
 // Description: Where we start execution during the insertion
