@@ -158,7 +158,7 @@ typedef struct _BLECHEXECUTE {
     struct _BLECHEXECUTE *pNext;
 } BLECHEXECUTE, *PBLECHEXECUTE;
 
-typedef std::map<unsigned int,PBLECHEVENT> BLECHEVENTMAP; 
+typedef std::map<unsigned int,BLECHEVENT> BLECHEVENTMAP; 
 
 typedef struct _BLECHEVENTNODE {
     PBLECHEVENT pEvent;
@@ -583,15 +583,15 @@ public:
         // add event to node
         BLECHASSERT(pNode);
         try {
-			PBLECHEVENT pEvent = new BLECHEVENT;
-			pEvent->Callback=Callback;
-			pEvent->pData=pData;
-			pEvent->ID=++LastID;
-			pEvent->pBlechNode=pNode;
-			pEvent->OriginalString=strdup(Text);
-			pNode->AddEvent(pEvent);
-			Event[pEvent->ID]=pEvent;
-			return pEvent->ID;
+			BLECHEVENT& rEvent = Event[++LastID];
+			rEvent.Callback=Callback;
+			rEvent.pData=pData;
+			rEvent.ID=LastID;
+			rEvent.pBlechNode=pNode;
+			rEvent.OriginalString=strdup(Text);
+			pNode->AddEvent(&rEvent);
+			
+			return rEvent.ID;
 		}
 		catch (std::bad_alloc& exc)
 		{
@@ -604,41 +604,40 @@ public:
     bool RemoveEvent(unsigned int ID)
     {
         BlechDebug("RemoveEvent(%d)",ID);
-        PBLECHEVENT pEvent = Event[ID];
-        if (!pEvent)
+        BLECHEVENTMAP::iterator iter = Event.find(ID);
+        if( iter == Event.end() )
             return false;
-        Event.erase(ID);
-        {
-            free((void*)pEvent->OriginalString);
+        
+        BLECHEVENT& rEvent = iter->second;
+
+        free((void*)rEvent.OriginalString);
             
-
-            BlechNode *pNode=pEvent->pBlechNode;
-            // find the PBLECHEVENTNODE for this event and remove it
-            PBLECHEVENTNODE pEventNode = pNode->pEvents;
-            while(pEventNode)
+        BlechNode *pNode=rEvent.pBlechNode;
+        // find the PBLECHEVENTNODE for this event and remove it
+        PBLECHEVENTNODE pEventNode = pNode->pEvents;
+        while(pEventNode)
+        {
+            if ((&rEvent)==pEventNode->pEvent)
             {
-                if (pEvent==pEventNode->pEvent)
-                {
-                    if (pEventNode->pNext)
-                        pEventNode->pNext->pPrev=pEventNode->pPrev;
-                    if (pEventNode->pPrev)
-                        pEventNode->pPrev->pNext=pEventNode->pNext;
-                    else
-                        pNode->pEvents=pEventNode->pNext;
-                    break;
-                }
-                pEventNode=pEventNode->pNext;
+                if (pEventNode->pNext)
+                    pEventNode->pNext->pPrev=pEventNode->pPrev;
+                if (pEventNode->pPrev)
+                    pEventNode->pPrev->pNext=pEventNode->pNext;
+                else
+                    pNode->pEvents=pEventNode->pNext;
+                break;
             }
-
-            while(pNode && pNode->IsEmpty())
-            {
-                BlechNode *pNext=pNode->pParent;
-                delete pNode;
-                pNode=pNext;
-            }
-
-            delete pEvent;
+            pEventNode=pEventNode->pNext;
         }
+
+        while(pNode && pNode->IsEmpty())
+        {
+            BlechNode *pNext=pNode->pParent;
+            delete pNode;
+            pNode=pNext;
+        }
+        
+        Event.erase(ID);
         return true;
     }
 
@@ -708,12 +707,8 @@ private:
         }
         for (BLECHEVENTMAP::iterator i=Event.begin(); i != Event.end(); i++)
         {
-            if (PBLECHEVENT pEvent=i->second)
-            {
-                BLECHASSERT(pEvent);
-                BlechTry(free((void*)pEvent->OriginalString));
-                delete pEvent;
-            }
+            BLECHEVENT& rEvent = i->second;
+            BlechTry(free((void*)rEvent.OriginalString));
         }
         Event.clear();
     }
@@ -1391,5 +1386,3 @@ chewcomplete:
 
     fBlechVariableValue VariableValue;
 };
-
-

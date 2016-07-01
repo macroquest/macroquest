@@ -1073,45 +1073,45 @@ float CalcRatio(ITEMINFO *pItem)
 
 void LoadAttribListVal(ITEMINFO *pItem)
 {
-	AttribList[ 0].Val = cvtfloat(pItem->AC);
-	AttribList[ 1].Val = cvtfloat(pItem->HP);
-	AttribList[ 2].Val = cvtfloat(pItem->HPRegen);
-	AttribList[ 3].Val = cvtfloat(pItem->Mana);
-	AttribList[ 4].Val = cvtfloat(pItem->ManaRegen);
-	AttribList[ 5].Val = cvtfloat(pItem->HeroicSTR);
-	AttribList[ 6].Val = cvtfloat(pItem->HeroicSTA);
-	AttribList[ 7].Val = cvtfloat(pItem->HeroicAGI);
-	AttribList[ 8].Val = cvtfloat(pItem->HeroicDEX);
-	AttribList[ 9].Val = cvtfloat(pItem->HeroicINT);
-	AttribList[10].Val = cvtfloat(pItem->HeroicWIS);
-	AttribList[11].Val = cvtfloat(pItem->HeroicCHA);
-	AttribList[12].Val = cvtfloat(pItem->HealAmount);
+   AttribList[ 0].Val = cvtfloat(pItem->AC);
+   AttribList[ 1].Val = cvtfloat(pItem->HP);
+   AttribList[ 2].Val = cvtfloat(pItem->HPRegen);
+   AttribList[ 3].Val = cvtfloat(pItem->Mana);
+   AttribList[ 4].Val = cvtfloat(pItem->ManaRegen);
+   AttribList[ 5].Val = cvtfloat(pItem->HeroicSTR);
+   AttribList[ 6].Val = cvtfloat(pItem->HeroicSTA);
+   AttribList[ 7].Val = cvtfloat(pItem->HeroicAGI);
+   AttribList[ 8].Val = cvtfloat(pItem->HeroicDEX);
+   AttribList[ 9].Val = cvtfloat(pItem->HeroicINT);
+   AttribList[10].Val = cvtfloat(pItem->HeroicWIS);
+   AttribList[11].Val = cvtfloat(pItem->HeroicCHA);
+   AttribList[12].Val = cvtfloat(pItem->HealAmount);
+   AttribList[13].Val = cvtfloat(pItem->SpellDamage);
+   AttribList[14].Val = cvtfloat(pItem->Clairvoyance);
+   AttribList[15].Val = cvtfloat(pItem->Attack);
 #ifndef EMU
-	AttribList[16].Val = 0;//FIX THIS cvtfloat(pItem->Accuracy);
-	AttribList[18].Val = 0;//FIX THIS cvtfloat(pItem->StrikeThrough);
-	AttribList[19].Val = 0;//FIX THIS cvtfloat(pItem->Avoidance);
-	AttribList[21].Val = 0;//FIX THIS cvtfloat(pItem->DoTShielding);
-	AttribList[22].Val = 0;//FIX THIS cvtfloat(pItem->SpellShield);
-	AttribList[23].Val = 0;//FIX THIS cvtfloat(pItem->StunResist);
-	AttribList[17].Val = 0;//FIX THIS cvtfloat(pItem->CombatEffects);
-	AttribList[20].Val = 0;//FIX THIS cvtfloat(pItem->Shielding);
-	AttribList[24].Val = 0;//FIX THIS cvtfloat(pItem->DamageShieldMitigation);
+   AttribList[16].Val = 0;//FIX THIS cvtfloat(pItem->Accuracy);
+   AttribList[17].Val = 0;//FIX THIS cvtfloat(pItem->CombatEffects);
+   AttribList[18].Val = 0;//FIX THIS cvtfloat(pItem->StrikeThrough);
+   AttribList[19].Val = 0;//FIX THIS cvtfloat(pItem->Avoidance);
+   AttribList[20].Val = 0;//FIX THIS cvtfloat(pItem->Shielding);
+   AttribList[21].Val = 0;//FIX THIS cvtfloat(pItem->DoTShielding);
+   AttribList[22].Val = 0;//FIX THIS cvtfloat(pItem->SpellShield);
+   AttribList[23].Val = 0;//FIX THIS cvtfloat(pItem->StunResist);
+   AttribList[24].Val = 0;//FIX THIS cvtfloat(pItem->DamageShieldMitigation);
 #else
-	AttribList[13].Val = cvtfloat(pItem->SpellDamage);
-	AttribList[16].Val = cvtfloat(pItem->Accuracy);
-	AttribList[18].Val = cvtfloat(pItem->StrikeThrough);
-	AttribList[19].Val = cvtfloat(pItem->Avoidance);
-	AttribList[21].Val = cvtfloat(pItem->DoTShielding);
-	AttribList[22].Val = cvtfloat(pItem->SpellShield);
-	AttribList[23].Val = cvtfloat(pItem->StunResist);
-	AttribList[17].Val = cvtfloat(pItem->CombatEffects);
-	AttribList[20].Val = cvtfloat(pItem->Shielding);
-	AttribList[24].Val = cvtfloat(pItem->DamageShieldMitigation);
+   AttribList[16].Val = cvtfloat(pItem->Accuracy);
+   AttribList[17].Val = cvtfloat(pItem->CombatEffects);
+   AttribList[18].Val = cvtfloat(pItem->StrikeThrough);
+   AttribList[19].Val = cvtfloat(pItem->Avoidance);
+   AttribList[20].Val = cvtfloat(pItem->Shielding);
+   AttribList[21].Val = cvtfloat(pItem->DoTShielding);
+   AttribList[22].Val = cvtfloat(pItem->SpellShield);
+   AttribList[23].Val = cvtfloat(pItem->StunResist);
+   AttribList[24].Val = cvtfloat(pItem->DamageShieldMitigation);
 #endif
-	AttribList[14].Val = cvtfloat(pItem->Clairvoyance);
-	AttribList[15].Val = cvtfloat(pItem->Attack);
-	AttribList[25].Val = cvtfloat(pItem->Haste);
-	AttribList[26].Val =		CalcRatio(pItem);
+   AttribList[25].Val = cvtfloat(pItem->Haste);
+   AttribList[26].Val =      CalcRatio(pItem);
 }
 #undef cvtfloat
 

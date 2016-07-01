@@ -13,6 +13,10 @@ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 GNU General Public License for more details.
 
 Change log:
+# Version: 2.2 by eqmule/derple 20160629
+- made all WaitForInputIdle 60 seconds to prevent crashes
+- Added an extra crash check.
+
 # Version: 2.1 by eqmule 20160627
 - Added Encryption to the plugin and support for MacroQuest2.exe profiles.
 
@@ -100,7 +104,7 @@ Change log:
 
 
 #include "../MQ2Plugin.h"
-PLUGIN_VERSION(2.1);
+PLUGIN_VERSION(2.2);
 #include <map>
 #include <tlhelp32.h>
 PreSetup("MQ2AutoLogin");
@@ -335,7 +339,7 @@ class CXWnd * CXWnd2::_GetChildItem(PCHAR Name)
 
 DWORD WINAPI LoginThread(LPVOID lpParam)
 {
-	WaitForInputIdle(GetCurrentProcess(), 5000);
+    WaitForInputIdle(GetCurrentProcess(), 60000);
     bool bOffsets = false;
 
     if(bSwitchServer && dwServerID) // char select -> server select
@@ -343,7 +347,7 @@ DWORD WINAPI LoginThread(LPVOID lpParam)
         AutoLoginDebug("bSwitchServer && dwServerID");
 
         while(!dwEQMainBase) // eqmain isn't loaded
-            Sleep(100);
+            Sleep(500);
 
         AutoLoginDebug("bSwitchServer && dwServerID, before SetOffsets()");
 
@@ -351,7 +355,7 @@ DWORD WINAPI LoginThread(LPVOID lpParam)
         {
             ULONGLONG n = MQGetTickCount64() + 5000; // wait 5 seconds
             while(n > MQGetTickCount64())
-                Sleep(100);
+                Sleep(500);
 
             AutoLoginDebug("bSwitchServer && dwServerID, calling EnterGame");
 
@@ -359,7 +363,8 @@ DWORD WINAPI LoginThread(LPVOID lpParam)
 
             bSwitchServer = false;
         }
-		hLoginThread = 0;
+
+        hLoginThread = 0;
         return 0;
     }
 
@@ -370,7 +375,7 @@ DWORD WINAPI LoginThread(LPVOID lpParam)
         if(GetAsyncKeyState(VK_END) & 1)
         {
             AutoLoginDebug("User pressed END key.  Killing login thread");
-			hLoginThread = 0;
+            hLoginThread = 0;
             return 0;
         }
 
@@ -389,20 +394,25 @@ DWORD WINAPI LoginThread(LPVOID lpParam)
             Sleep(1000);
             continue;
         }
-      if((dwEQMainBase = (DWORD)GetModuleHandle("eqmain.dll"))==0) {
-         bOffsets = false;
-         pWindowManager=0;
-		 hLoginThread = 0;
-         return 0;
-      }
+
+        if((dwEQMainBase = (DWORD)GetModuleHandle("eqmain.dll"))==0) 
+        {
+            bOffsets = false;
+            pWindowManager=0;
+            hLoginThread = 0;
+            return 0;
+        }
+
         if(!bOffsets)
         {
             AutoLoginDebug("bLogin loop: Setting up offsets");
-            //Sleep(2000);
-			WaitForInputIdle(GetCurrentProcess(), 2000);
-         while(!dwEQMainBase) // eqmain isn't loaded
-            Sleep(100);
-         if(!SetOffsets())
+            WaitForInputIdle(GetCurrentProcess(), 60000);
+            while (!dwEQMainBase) // eqmain isn't loaded
+            {
+                Sleep(100);
+            }
+
+            if(!SetOffsets())
             {
                 AutoLoginDebug("bLogin loop: Error in SetOffsets()");
 				hLoginThread = 0;
@@ -417,31 +427,76 @@ DWORD WINAPI LoginThread(LPVOID lpParam)
             }
 
             bOffsets = true;
-      }
+        }
+
         AutoLoginDebug("bLogin loop: waiting for window data");
       
         // wait for window data to be populated
-waitsomemore:
-		WaitForInputIdle(GetCurrentProcess(), 20000);
-		while (!pWindowManager)
-			Sleep(100);
-        while(IsBadReadPtr(pWindowManager,4))
-            Sleep(100);
-		if (pWindowManager && pWindowManager->Count < MAX_WINDOWS) {
-			goto waitsomemore;
-		}
-		WaitForInputIdle(GetCurrentProcess(), 2000);
-		if(IsBadReadPtr(pWindowManager,4)) {
-			hLoginThread = 0;
-			return 0;
-		}
-        CHAR Name[MAX_STRING]={0};
-        PCSIDLWND *ppWnd=pWindowManager->pWindows;
-		if (!ppWnd || (ppWnd && !*ppWnd)) {
-			//MessageBox(NULL, "break in", "ppWnd was NULL", MB_SYSTEMMODAL | MB_OK);
-			goto waitsomemore;
-		}
+        int iFailures = 0;
+        bool bReady = false;
+        PCSIDLWND* ppWnd = NULL;
+        CHAR Name[MAX_STRING] = { 0 };
+
+        while (!bReady)
+        {
+            if (iFailures++ > 10000)
+            {
+                AutoLoginDebug("bLogin loop: Failed way too much waiting for window data.  Bailing.");
+                hLoginThread = 0;
+                return 0;
+            }
+
+            WaitForInputIdle(GetCurrentProcess(), 60000);
+
+            while (!pWindowManager)
+            {
+                Sleep(1000);
+            }
+            
+            while (IsBadReadPtr(pWindowManager, 4))
+            {
+                Sleep(1000);
+            }
+
+            if (pWindowManager && pWindowManager->Count < MAX_WINDOWS)
+            {
+                continue;
+            }
+
+            WaitForInputIdle(GetCurrentProcess(), 60000);
+
+            if (IsBadReadPtr(pWindowManager, 4))
+            {
+                hLoginThread = 0;
+                return 0;
+            }
+            
+            ppWnd = pWindowManager->pWindows;
+            
+            if (!ppWnd)
+            {
+                //MessageBox(NULL, "break in", "ppWnd was NULL", MB_SYSTEMMODAL | MB_OK);
+                Sleep(500);
+                continue;
+            }
+            if (IsBadReadPtr(ppWnd, 4))
+            {
+                //MessageBox(NULL, "break in", "ppWnd was not NULL but was unreadable crash avoided.", MB_SYSTEMMODAL | MB_OK);
+                Sleep(500);
+                continue;
+            }
+            if ((!*ppWnd) || IsBadReadPtr(*ppWnd, 4))
+            {
+                //MessageBox(NULL, "break in", "ppWnd was NULL", MB_SYSTEMMODAL | MB_OK);
+                Sleep(500);
+                continue;
+            }
+
+            bReady = true;
+
+        }
         PCSIDLWND pWnd=*ppWnd;
+
         DWORD count = pWindowManager->Count;
 
         while(pWnd = *ppWnd)
@@ -464,7 +519,7 @@ waitsomemore:
         }
         AutoLoginDebug("bLogin loop: call HandleWindows()");
         HandleWindows();
-        WaitForInputIdle(GetCurrentProcess(), 2000);
+        WaitForInputIdle(GetCurrentProcess(), 60000);
     }
 
     AutoLoginDebug("LoginThread finished");
@@ -706,7 +761,7 @@ loop:
 		}
 		//Sleep(5000);
 	}
-	WaitForInputIdle(GetCurrentProcess(), 5000);
+	WaitForInputIdle(GetCurrentProcess(), 60000);
 	oktologin = true;
 	SetGameState((DWORD)pData);
 	return 0;
@@ -905,7 +960,7 @@ void HandleWindows()
 				{
 					return;
 				}
-				WaitForInputIdle(GetCurrentProcess(), 500);
+				WaitForInputIdle(GetCurrentProcess(), 60000);
 				if (szTemp[0] && strstr(szTemp, "The server requires that you logout and log back in before proceeding.  Please do so.")) {
 					pWnd = WindowMap["okdialog"]->_GetChildItem("OK_OKButton");
 					if (pWnd)
@@ -926,12 +981,19 @@ void HandleWindows()
 					if (char *pDest = strchr(szStationName, '_')) {
 						//we have a mq2login user... good boy/girl :) welcome to 2016.
 						pDest[0] = '\0';
-						strcpy_s(szServerName, szStationName);
 						pDest++;
 						sprintf_s(szCharacterName, "%s_Blob", pDest);
+						CHAR szProfile[128] = { 0 };
+						strcpy_s(szProfile, szCharacterName);
+						if (char *pDest2 = strchr(szProfile, ':')) {
+							pDest2[0] = '\0';
+							strcpy_s(szServerName, szProfile);
+						} else {
+							strcpy_s(szServerName, szStationName);
+						}
 						//now that we have the server and the charname, we can figure out the stationname and password from the blob
 						CHAR szBlob[2048] = { 0 };
-						if (GetPrivateProfileString(szServerName, szCharacterName, "", szBlob, sizeof(szBlob), INIFileName)) {
+						if (GetPrivateProfileString(szStationName, szCharacterName, "", szBlob, sizeof(szBlob), INIFileName)) {
 							if (pDest = strrchr(szBlob, '=')) {
 								pDest[0] = '\0';
 							}
@@ -965,7 +1027,7 @@ void HandleWindows()
 						}
 						DWORD oldscreenmode = ScreenMode;
 						ScreenMode = 3;
-						WaitForInputIdle(GetCurrentProcess(), 1000);
+						WaitForInputIdle(GetCurrentProcess(), 60000);
 						SetCXStr(&((CSidlScreenWnd*)pWnd)->InputText, "");
 						SetCXStr(&((CSidlScreenWnd*)pWnd)->InputText, szStationName);
 						ScreenMode = oldscreenmode;
@@ -1011,7 +1073,7 @@ void HandleWindows()
 				{
 					DWORD oldscreenmode = ScreenMode;
 					ScreenMode = 3;
-					WaitForInputIdle(GetCurrentProcess(), 1000);
+					WaitForInputIdle(GetCurrentProcess(), 60000);
 					pWnd->WndNotification(pWnd, XWM_LCLICK, 0);
 					ScreenMode = oldscreenmode;
 					bOnce = false;

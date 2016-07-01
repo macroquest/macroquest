@@ -489,6 +489,18 @@ DWORD WINAPI GetlocalPlayerOffset()
 {
 	return (DWORD)pinstLocalPlayer_x;
 }
+void ForceUnload()
+{
+	DWORD oldscreenmode = ScreenMode;
+	ScreenMode = 3;
+	WriteChatColor(UnloadedString,USERCOLOR_DEFAULT);
+	DebugSpewAlways("%s", UnloadedString);
+	UnloadMQ2Plugins();
+	MQ2Shutdown();
+	DebugSpew("Shutdown completed");
+	g_Loaded = FALSE;
+	ScreenMode = oldscreenmode;
+}
 // ***************************************************************************
 // Function:    MQ2Start Thread
 // Description: Where we start execution during the insertion
@@ -538,20 +550,15 @@ getout:
 		hLoadComplete = 0;
 	}
 	if(hUnloadComplete) {
-		WaitForSingleObject(hUnloadComplete, INFINITE);
+		DWORD dwtime = WaitForSingleObject(hUnloadComplete, 60000);
+		if (dwtime == WAIT_TIMEOUT) {
+			ForceUnload();
+		}
 		CloseHandle(hUnloadComplete);
 		hUnloadComplete = 0;
 	} else {
 		OutputDebugString("I am unloading in MQ2Start");
-		DWORD oldscreenmode = ScreenMode;
-		ScreenMode = 3;
-		WriteChatColor(UnloadedString,USERCOLOR_DEFAULT);
-		DebugSpewAlways("%s", UnloadedString);
-		UnloadMQ2Plugins();
-		MQ2Shutdown();
-		DebugSpew("Shutdown completed");
-		g_Loaded = FALSE;
-		ScreenMode = oldscreenmode;
+		ForceUnload();
 	}
 	if(HMODULE h = GetCurrentModule())
 		FreeLibraryAndExitThread(h,0);

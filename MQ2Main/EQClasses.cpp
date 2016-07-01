@@ -7774,7 +7774,11 @@ FUNCTION_AT_ADDRESS(void CListWnd::ClearSel(int),CListWnd__ClearSel);
 FUNCTION_AT_ADDRESS(int CListWnd::DrawColumnSeparators(void)const,CListWnd__DrawColumnSeparators);
 #endif
 #ifdef CListWnd__SetItemData_x
+#ifdef TEST
+FUNCTION_AT_ADDRESS(void  CListWnd::SetItemData(int,unsigned __int32,BOOL),CListWnd__SetItemData);
+#else
 FUNCTION_AT_ADDRESS(void  CListWnd::SetItemData(int,unsigned __int32),CListWnd__SetItemData);
+#endif
 #endif
 #ifdef CListWnd__SetItemText_x
 FUNCTION_AT_ADDRESS(void  CListWnd::SetItemText(int,int,class CXStr *),CListWnd__SetItemText);

@@ -1,3 +1,18 @@
+30 Jun 2016
+- Updated for TEST
+- Updated MQ2AutoLogin.cpp - cred: derple.
+- Updated Blech - cred derple
+  change was done to fix a crash in blech.
+- Fixed Spell Dmg in MQ2ItemDisplay - cred: dewey2461
+- Misc Stuff to improve stability.
+- Changed the way Profile for Login works, you will need to recreate your profiles. -cred: dewey2461
+  Im really sorry about that, but its better we get this done now than in 6 months
+  when it will affect more people.
+  This is new feature to me as well, and im doing my best to make it work the way people want it,
+  based on the feedback I get.
+  The good news is, next version will have a browse to path button (that works)
+  an edit and a delete option for the profiles, this change lays the groundwork for that.
+
 28 Jun 2016
 - MQ2AutoLogin is now part of the core zip
 - NEW FEATURE: Profiled Logins:
