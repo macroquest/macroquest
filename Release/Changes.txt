@@ -1,3 +1,14 @@
+01 Jul 2016
+- Updated for TEST
+- The Create new Profile window no longer closes after u create a profile.
+  you can close it on the [X] when you are done adding profiles, this was a requested feature.
+- To celebrate that it looks like we are getting all our accounts back, I decided to comply with some users requests
+  so I:
+- Added a popupmenu to the Profilemenu on the trayicon
+  you can now rightclick the profile and you will see Edit, Delete and Check/Uncheck
+  The browse button is active now as well.
+  Happy Boxing!, this should make it easier.
+
 30 Jun 2016
 - Updated for TEST
 - Updated MQ2AutoLogin.cpp - cred: derple.
