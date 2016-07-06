@@ -355,12 +355,14 @@ PSTR GetNextArg(PCSTR szLine, DWORD dwNumber, BOOL CSV, CHAR Separator)
 // ***************************************************************************
 PSTR GetArg(PSTR szDest, PCSTR szSrc, DWORD dwNumber, BOOL LeaveQuotes, BOOL ToParen, BOOL CSV, CHAR Separator, BOOL AnyNonAlphaNum)
 {
+	if (!szSrc)
+		return NULL;
 	DWORD i = 0;
 	DWORD j = 0;
 	BOOL CustomSep = FALSE;
 	BOOL InQuotes = FALSE;
 	PCSTR szTemp = szSrc;
-	ZeroMemory(szDest, MAX_STRING);
+	ZeroMemory(szDest,MAX_STRING);
 
 	if (Separator != 0) CustomSep = TRUE;
 

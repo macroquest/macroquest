@@ -2865,7 +2865,7 @@ EQLIB_OBJECT void CListWnd::SetColumnLabel(int,class CXStr);
 EQLIB_OBJECT void CListWnd::SetColumnWidth(int,int);
 EQLIB_OBJECT void CListWnd::SetCurSel(int);
 EQLIB_OBJECT void CListWnd::SetItemColor(int,int,unsigned long);
-#ifdef TEST
+#ifndef EMU
 EQLIB_OBJECT void CListWnd::SetItemData(int,unsigned __int32,BOOL bSomething = false);
 #else
 EQLIB_OBJECT void CListWnd::SetItemData(int,unsigned __int32);

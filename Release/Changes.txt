@@ -1,3 +1,16 @@
+06 Jul 2016
+- Updated for LIVE
+- You can now enable/disable MQ2login from the tasktray menu.
+
+02 Jul 2016
+- Added a check for "You have a character logged into a world server as an OFFLINE TRADER from this account" to mq2autologin
+- Added a check for "failed login attempts on your account since the last time you logged in."  to mq2autologin
+- Added a check for "This login requires that the account be activated.  Please make sure your account is active in order to login"  to mq2autologin
+- Added a check for "Error - A timeout occurred"  to mq2autologin
+-
+- Added a setting for the "Trade when you have something on the cursor and click on the name of the target in the target window" feature
+  its in macroquest.ini as UseTradeOnTarget. default is 1. (on)
+
 01 Jul 2016
 - Updated for TEST
 - The Create new Profile window no longer closes after u create a profile.

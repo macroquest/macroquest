@@ -339,6 +339,8 @@ class CXWnd * CXWnd2::_GetChildItem(PCHAR Name)
 
 DWORD WINAPI LoginThread(LPVOID lpParam)
 {
+	//MessageBox(NULL, "Inject now", "", MB_SYSTEMMODAL | MB_OK);
+
     WaitForInputIdle(GetCurrentProcess(), 60000);
     bool bOffsets = false;
 
@@ -954,8 +956,11 @@ void HandleWindows()
 					GetCXStr(((CSidlScreenWnd*)pWnd)->SidlText, szTemp, MAX_STRING * 8);
 				else
 					GetCXStr(((CSidlScreenWnd*)pWnd)->WindowText, szTemp, MAX_STRING * 8);
-
+				//0x0d709734 "Error - A timeout occurred"
 				//0x08ad6bac "The server requires that you logout and log back in before proceeding.  Please do so."
+				//There have been 2 failed login attempts on your account since the last time you logged in.
+				//You have a character logged into a world server as an OFFLINE TRADER from this account
+				//0x0da79630 "This login requires that the account be activated.  Please make sure your account is active in order to login."
 				if (szTemp[0] && strstr(szTemp, "Logging in to the server.  Please wait...."))
 				{
 					return;
@@ -963,6 +968,25 @@ void HandleWindows()
 				WaitForInputIdle(GetCurrentProcess(), 60000);
 				if (szTemp[0] && strstr(szTemp, "The server requires that you logout and log back in before proceeding.  Please do so.")) {
 					pWnd = WindowMap["okdialog"]->_GetChildItem("OK_OKButton");
+					if (pWnd)
+						pWnd->WndNotification(pWnd, XWM_LCLICK, 0);
+					return;
+				} else if (szTemp[0] && strstr(szTemp, "failed login attempts on your account since the last time you logged in")) {
+					pWnd = WindowMap["okdialog"]->_GetChildItem("OK_OKButton");
+					if (pWnd)
+						pWnd->WndNotification(pWnd, XWM_LCLICK, 0);
+					return;
+				} else if (szTemp[0] && strstr(szTemp, "Error - A timeout occurred")) {
+					pWnd = WindowMap["okdialog"]->_GetChildItem("OK_OKButton");
+					if (pWnd)
+						pWnd->WndNotification(pWnd, XWM_LCLICK, 0);
+					return;
+				} else if (szTemp[0] && strstr(szTemp, "This login requires that the account be activated.  Please make sure your account is active in order to login.")) {
+					AutoLoginDebug(szTemp);
+					bLogin = false;
+					return;
+				} else if (szTemp[0] && strstr(szTemp, "You have a character logged into a world server as an OFFLINE TRADER from this account")) {
+					pWnd = WindowMap["okdialog"]->_GetChildItem("YESNO_YesButton");
 					if (pWnd)
 						pWnd->WndNotification(pWnd, XWM_LCLICK, 0);
 					return;
