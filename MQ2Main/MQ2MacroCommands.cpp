@@ -261,6 +261,7 @@ PMACROBLOCK AddMacroLine(PCHAR szLine)
 // ***************************************************************************
 VOID Macro(PSPAWNINFO pChar, PCHAR szLine)
 {
+#ifndef TRUEBOX
     bRunNextCommand = TRUE;
     CHAR szTemp[MAX_STRING] = {0};
     CHAR Filename[MAX_STRING] = {0};
@@ -357,6 +358,9 @@ VOID Macro(PSPAWNINFO pChar, PCHAR szLine)
         _splitpath(Filename,0,0,ShortName,0);
         IS_ScriptEngineScriptBegins(pExtension,pISInterface,hScriptEngineService,&g_LegacyEngine,ShortName);
     }
+#endif
+#else
+	WriteChatf("/macro is disabled in this version of mq2 since its built for a TRUE BOX server.");
 #endif
 }
 

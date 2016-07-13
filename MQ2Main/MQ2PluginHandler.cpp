@@ -30,7 +30,7 @@ GNU General Public License for more details.
 #include "MQ2Main.h"
 
 
-CRITICAL_SECTION gPluginCS;
+CRITICAL_SECTION gPluginCS = { 0 };
 BOOL bPluginCS=0;
 
 DWORD checkme(char *module)
@@ -301,7 +301,7 @@ VOID InitializeMQ2Plugins()
     bmBeginZone=AddMQ2Benchmark("BeginZone"); 
     bmEndZone=AddMQ2Benchmark("EndZone"); 
 
-    InitializeCriticalSection(&gPluginCS);
+
     bPluginCS=1;
 
     CHAR PluginList[MAX_STRING*10] = {0};

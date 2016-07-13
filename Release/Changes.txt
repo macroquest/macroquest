@@ -1,3 +1,7 @@
+12 Jul 2016
+- Updated for TEST
+- winter is comming.
+
 06 Jul 2016
 - Updated for LIVE
 - You can now enable/disable MQ2login from the tasktray menu.

@@ -961,6 +961,7 @@ void HandleWindows()
 				//There have been 2 failed login attempts on your account since the last time you logged in.
 				//You have a character logged into a world server as an OFFLINE TRADER from this account
 				//0x0da79630 "This login requires that the account be activated.  Please make sure your account is active in order to login."
+				//The username and/or password were not valid
 				if (szTemp[0] && strstr(szTemp, "Logging in to the server.  Please wait...."))
 				{
 					return;
@@ -976,7 +977,21 @@ void HandleWindows()
 					if (pWnd)
 						pWnd->WndNotification(pWnd, XWM_LCLICK, 0);
 					return;
-				} else if (szTemp[0] && strstr(szTemp, "Error - A timeout occurred")) {
+				} else if (szTemp[0] && strstr(szTemp, "The Login Server is currently unavailable.  Please try again later.")) {
+					pWnd = WindowMap["okdialog"]->_GetChildItem("OK_OKButton");
+					if (pWnd)
+						pWnd->WndNotification(pWnd, XWM_LCLICK, 0);
+					return;
+				} else if (szTemp[0] && strstr(szTemp, "Cannot login to the EverQuest server")) {
+					pWnd = WindowMap["okdialog"]->_GetChildItem("OK_OKButton");
+					if (pWnd)
+						pWnd->WndNotification(pWnd, XWM_LCLICK, 0);
+					return;
+				} else if (szTemp[0] && strstr(szTemp, "password were not valid")) {
+					AutoLoginDebug(szTemp);
+					bLogin = false;
+					return;
+				} else if (szTemp[0] && strstr(szTemp, "A timeout occurred")) {
 					pWnd = WindowMap["okdialog"]->_GetChildItem("OK_OKButton");
 					if (pWnd)
 						pWnd->WndNotification(pWnd, XWM_LCLICK, 0);

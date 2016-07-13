@@ -616,7 +616,6 @@ void InitializeMQ2Commands()
         {"/memspell",   MemSpell,1,1},
         {"/loadspells", LoadSpells,1,1},
         {"/loginname",  DisplayLoginName,1,0},
-        {"/endmacro",   EndMacro,1,0},
         {"/listmacros", ListMacros,1,0},
         {"/echo",       Echo,1,0},
         {"/msgbox",     MQMsgBox,1,0},
@@ -633,61 +632,32 @@ void InitializeMQ2Commands()
         {"/beep",       MacroBeep,1,0},
         {"/cast",       Cast,1,1},
         {"/mqlog",      MacroLog,1,0},
-        {"/seterror",   SetError,1,0},
-        {"/declare",    NewDeclareVar,1,0},
-        {"/deletevar",  NewDeleteVarCmd,1,0},
-        {"/varcalc",    NewVarcalc,1,0},
-        {"/varset",     NewVarset,1,0},
-        {"/vardata",    NewVardata,1,0},
-        {"/delay",      Delay,0,0}, // do not parse
-        {"/cleanup",    Cleanup,1,0},
-        {"/doevents",   DoEvents,1,0},
-        {"/goto",       Goto,1,0},
-        {"/for",        For,1,0},
-        {"/next",       Next,1,0},
-        {"/call",       Call,1,0},
-        {"/return",     Return,1,0},
-        {"/updateitems",UpdateItemInfo,1,1},
+		{"/updateitems",UpdateItemInfo,1,1},
         {"/ini",        IniOutput,1,0},
         {"/dumpstack",  DumpStack,1,0},
         {"/setautorun", SetAutoRun,0,1},
         {"/banklist",   BankList,1,1},
         {"/look",       Look,1,1},
-        {"/keepkeys",   KeepKeys,1,0},
+
         {"/windowstate",WindowState,1,0},
 #ifndef ISXEQ_LEGACY
         {"/plugin",     PluginCommand,1,0},
 #endif
         {"/destroy",    EQDestroyHeldItemOrMoney,1,1},
-        {"/exec",       Exec,1,0}, 
-        {"/keypress",   DoMappable,1,0},
         {"/popup",      PopupText,1,1},
 		{"/popcustom",	PopupTextCustom,1,1},
 		{"/popupecho",	PopupTextEcho,1,1},
-        {"/multiline",  MultilineCommand,0,0},
+
 #ifndef ISXEQ_LEGACY
         {"/bind",       MQ2KeyBindCommand,1,0},
 #endif
-        {"/ranged",     do_ranged,1,1},
-        {"/loadcfg",    LoadCfgCommand,1,0},
         {"/dumpbinds",  DumpBindsCommand,1,0},
-        {"/squelch",    SquelchCommand,1,0},
         {"/dosocial",   DoSocial,1,1},
-        {"/docommand",  DoCommandCmd,1,0},
-        {"/ctrlkey",    DoCtrlCmd,0,0},
-        {"/altkey",     DoAltCmd,0,0},
-        {"/shiftkey",   DoShiftCmd,0,0},
-        {"/timed",      DoTimedCmd,0,0},
-        {"/if",         NewIf,1,0},
-        {"/while",      WhileCmd,1,0},
-        {"/combine",    CombineCmd,1,1},
-        {"/clearerrors",ClearErrorsCmd,1,0},
+		{"/combine",    CombineCmd,1,1},
         {"/drop",       DropCmd,1,0},
         {"/hud",        HudCmd,1,0},
         {"/caption",    CaptionCmd,0,0},
         {"/captioncolor",CaptionColorCmd,1,0},
-        {"/noparse",    NoParseCmd,0,0},
-        {"/nomodkey",   NoModKeyCmd,0,0},
         {"/useitem",    UseItemCmd,1,1},
 		{"/spellslotinfo",SpellSlotInfo,1,1},
 		{"/getwintitle",GetWinTitle,1,0},
@@ -697,8 +667,6 @@ void InitializeMQ2Commands()
 		{"/makemevisible",MakeMeVisible,0,1},
 		{"/pet",        PetCmd,1,1},
 		{"/mercswitch", MercSwitchCmd,1,1},
-		{"/break",      Break,1,0},
-		{"/continue",   Continue,1,0},
 		{"/removeaura", RemoveAura,0,1},
 		{"/advloot",    AdvLootCmd,1,1},
 		{"/pickzone",   PickZoneCmd,1,1},
@@ -708,14 +676,23 @@ void InitializeMQ2Commands()
 		{"/screenmode", ScreenModeCmd,1,0},
         {NULL,          NULL,0,1},
     };
-
+#ifndef TRUEBOX
+	if (ghmq2ic) {
+		typedef DWORD(__cdecl *fAuthenticateTrueBox)(DWORD);
+		fAuthenticateTrueBox AuthenticateTrueBox = (fAuthenticateTrueBox)GetProcAddress(ghmq2ic, "AuthenticateTrueBox");
+		if (AuthenticateTrueBox) {
+			AuthenticateTrueBox(0x83894473);
+		}
+	}
+#endif
     // Remove replaced commands first
     for (i = 0 ; NewCommands[i].szCommand && NewCommands[i].pFunc ; i++)
     {
         RemoveCommand(NewCommands[i].szCommand);
         AddCommand(NewCommands[i].szCommand,NewCommands[i].pFunc,0,NewCommands[i].Parse,NewCommands[i].InGame);
     }
-
+	
+	
     /* ALIASES FOR OUT OF ORDER SHORTHAND COMMANDS */
     AddAlias("/d","/duel");
     AddAlias("/t","/tell");

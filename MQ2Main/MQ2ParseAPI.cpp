@@ -36,7 +36,6 @@ VOID InitializeParser()
 VOID ShutdownParser()
 {
     DebugSpewNoFile("ShutdownParser()");
-    RemoveDetour(EQPlayer__SetNameSpriteState); // put here so it doesnt crash :)
     ShutdownMQ2Data();
     ShutdownMQ2DataTypes();
 }

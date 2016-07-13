@@ -1355,6 +1355,7 @@ namespace MQ2Globals
 
 	EQLIB_VAR BOOL gbTimeStampChat;
 
+	EQLIB_VAR BOOL gUseTradeOnTarget;
 	EQLIB_VAR BOOL gbBeepOnTells;
 	EQLIB_VAR BOOL gbFlashOnTells;
 

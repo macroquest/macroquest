@@ -27,7 +27,7 @@ GNU General Public License for more details.
 #else
 #pragma message("EQLIB_IMPORTS")
 #endif
-
+HMODULE ghmq2ic = 0;
 DWORD WINAPI MQ2Start(LPVOID lpParameter);
 #if !defined(ISXEQ) && !defined(ISXEQ_LEGACY)
 HANDLE hMQ2StartThread = 0;
@@ -134,6 +134,7 @@ BOOL ParseINIFile(PCHAR lpINIPath)
     gbMQ2LoadingMsg = 1==GetPrivateProfileInt("MacroQuest","MQ2LoadingMsg",1,Filename);
     gbExactSearchCleanNames = 1==GetPrivateProfileInt("MacroQuest","ExactSearchCleanNames",0,Filename);
     gbTimeStampChat = 1==GetPrivateProfileInt("MacroQuest","TimeStampChat",1,Filename);
+	gUseTradeOnTarget = 1 == GetPrivateProfileInt("MacroQuest", "UseTradeOnTarget", 1, Filename);
     gbBeepOnTells = 1==GetPrivateProfileInt("MacroQuest","BeepOnTells",1,Filename);
     gbFlashOnTells = 1==GetPrivateProfileInt("MacroQuest","FlashOnTells",1,Filename);
 	gCreateMQ2NewsWindow = 1==GetPrivateProfileInt("MacroQuest","CreateMQ2NewsWindow",1,Filename);
@@ -356,7 +357,26 @@ bool __cdecl MQ2Initialize()
     for (nColorMacroError=0 ; szColorMacroError[nColorMacroError] ; nColorMacroError++) {}
     for (nColorMQ2DataError=0 ; szColorMQ2DataError[nColorMQ2DataError] ; nColorMQ2DataError++) {}
     for (nColorFatalError=0 ; szColorFatalError[nColorFatalError] ; nColorFatalError++) {}
-
+	
+	InitializeCriticalSection(&gPluginCS);
+	//from now on MQ2IC is not optional.
+	LoadMQ2Plugin("mq2ic");
+	ghmq2ic = GetModuleHandle("mq2ic.dll");
+	/*if(HMODULE hmq2ictest = GetModuleHandle("mq2ic.dll")) {
+		//do nothing but why is it loaded?
+	}
+	else {
+		LoadMQ2Plugin("mq2ic");
+		 CHAR mq2icpath[MAX_STRING]={0};
+		sprintf(mq2icpath,"%s\\mq2ic.dll",gszINIPath);
+		if (ghmq2ic = LoadLibrary(mq2icpath)) {
+			//good.
+		}
+		else {
+			MessageBox(NULL,"MQ2 wont run cause it cant find the mq2ic.dll file","Launch Error",MB_OK);
+			return false;
+		}
+	}*/
     InitializeMQ2Benchmarks();
 #ifndef ISXEQ
     InitializeParser();
@@ -418,7 +438,8 @@ void __cdecl MQ2Shutdown()
     DebugTry(ShutdownMQ2Windows());
 	DebugTry(MQ2MouseHooks(0));
 #ifndef ISXEQ
-    DebugTry(ShutdownParser());
+	RemoveDetour(EQPlayer__SetNameSpriteState); // put here so it doesnt crash :)
+	DebugTry(ShutdownParser());
 #endif
     DebugTry(ShutdownMQ2Commands());
     DebugTry(ShutdownMQ2Detours());

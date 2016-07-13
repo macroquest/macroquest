@@ -278,6 +278,8 @@ namespace MQ2Globals
 		int gBuild = 3;//BETA
 	#elif defined(EMU)
 		int gBuild = 4;//EMU
+	#elif defined(TRUEBOX)
+		int gBuild = 5;//TRUEBOX
 	#else
 		int gBuild = 1;//LIVE
 	#endif
@@ -1031,6 +1033,7 @@ namespace MQ2Globals
 	DWORD *gpMouseEventTime = 0;
 	DWORD *gpbCommandEvent = 0;
 	BOOL gbTimeStampChat = 0;
+	BOOL gUseTradeOnTarget = 0;
 	BOOL gbBeepOnTells = 0;
 	BOOL gbFlashOnTells = 0;
 

@@ -87,12 +87,14 @@ public:
 	int CTargetWnd__WndNotification_Tramp(class CXWnd *,unsigned __int32,void *);
 	int CTargetWnd__WndNotification_Detour(class CXWnd *pWnd, unsigned int uiMessage, void* pData)
 	{
-		if(uiMessage==XWM_FOCUS) {
-			if(PCHARINFO2 pChar2 = GetCharInfo2()) {
-				if(pTarget && pLocalPlayer && ((PSPAWNINFO)pTarget)->SpawnID!=((PSPAWNINFO)pLocalPlayer)->SpawnID && pEverQuest && pChar2->pInventoryArray && (pChar2->pInventoryArray->Inventory.Cursor || pChar2->CursorPlat || pChar2->CursorGold || pChar2->CursorSilver || pChar2->CursorCopper)) {
-					//player has a item or coin on his cursor and clicked targetwindow, he wants to trade with target...
-					pEverQuest->LeftClickedOnPlayer(pTarget); 
-					WeDidStuff();
+		if (gUseTradeOnTarget) {
+			if (uiMessage == XWM_FOCUS) {
+				if (PCHARINFO2 pChar2 = GetCharInfo2()) {
+					if (pTarget && pLocalPlayer && ((PSPAWNINFO)pTarget)->SpawnID != ((PSPAWNINFO)pLocalPlayer)->SpawnID && pEverQuest && pChar2->pInventoryArray && (pChar2->pInventoryArray->Inventory.Cursor || pChar2->CursorPlat || pChar2->CursorGold || pChar2->CursorSilver || pChar2->CursorCopper)) {
+						//player has a item or coin on his cursor and clicked targetwindow, he wants to trade with target...
+						pEverQuest->LeftClickedOnPlayer(pTarget);
+						WeDidStuff();
+					}
 				}
 			}
 		}

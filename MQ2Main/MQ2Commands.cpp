@@ -2831,6 +2831,7 @@ VOID DisplayLoginName(PSPAWNINFO pChar, PCHAR szLine)
 // ***************************************************************************
 VOID PluginCommand(PSPAWNINFO pChar, PCHAR szLine)
 {
+#ifndef TRUEBOX
 	CHAR szBuffer[MAX_STRING] = { 0 };
 	CHAR szName[MAX_STRING] = { 0 };
 	PCHAR szCommand = NULL;
@@ -2890,6 +2891,9 @@ VOID PluginCommand(PSPAWNINFO pChar, PCHAR szLine)
 			MacroError("Plugin '%s' could not be loaded.", szName);
 		}
 	}
+#else
+	WriteChatf("/plugin is disabled in this version of mq2 since its built for a TRUE BOX server.");
+#endif
 }
 #endif
 

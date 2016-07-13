@@ -86,12 +86,15 @@ using namespace std;
 #include "..\Dxsdk81\include\dinput.h"
 #include "..\Blech\Blech.h"
 #endif
-
+extern HMODULE ghmq2ic;
+extern CRITICAL_SECTION gPluginCS;
 #if defined(TEST) || defined(BETA) || defined(EMU)
 //do nothing because the user has set one of these as a preprocessor argument instead...
 //we default to LIVE though...
 #else
 //define LIVE, TEST, BETA or EMU here depending on which eqgame you are building for. -eqmule sep 27 2014
+//if TRUEBOX is defined your copy of mq2 will work on true box servers.
+//#define TRUEBOX
 #define LIVE
 #endif
 #if defined(LIVE)
