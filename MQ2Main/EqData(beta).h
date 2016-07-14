@@ -1230,7 +1230,7 @@ typedef struct _CAMERAINFO {
 #define MODEL_BEARD                     0x09
 #define MODEL_CHEST                     0x0a
 #define MODEL_GLOVES                    0x0b
-#define MODEL_GLOVES2                   0b0c
+#define MODEL_GLOVES2                   0x0c
 */
 
 typedef struct _ARGBCOLOR {

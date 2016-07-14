@@ -193,8 +193,10 @@ void RemoveOurDetours()
 }
 #endif
 
-void CheckAssist(PBYTE address)
+void SetAssist(PBYTE address)
 {
+	if ((DWORD)address == -1)
+		return;
 	bool bexpectTarget = false;
 	if (address) {
 		if (DWORD Assistee = *(DWORD*)address) {
@@ -228,26 +230,30 @@ public:
 	int CPacketScrambler::hton_tramp(int, int);
 	int CPacketScrambler::hton_detour(int hopcode, int flag);
 };
+typedef DWORD(__cdecl *fGetAssistCalc)(DWORD);
+static fGetAssistCalc GetAssistCalc = 0;
+typedef DWORD(__cdecl *fGetHashSum)(DWORD,DWORD);
+static fGetHashSum GetHashSum = 0;
 int CPacketScrambler::ntoh_detour(int nopcode)
 {
 	int hopcode = ntoh_tramp(nopcode);
 	if (hopcode == EQ_ASSIST_COMPLETE) {
+		DWORD calc = 0;
 		__asm {
 			push eax;
 			push ebx;
 			mov eax, dword ptr[esi + 0x19];
 			mov ebx, dword ptr[esi + 0x15];
 			xor eax, ebx;
-			cmp eax, EQ_ASSIST_CALC;
-			jnz nocomplete;
-			xor esi, esi;
-			push esi;
-			call CheckAssist;
-			pop esi;
-		nocomplete:
+			mov calc, eax;
 			pop ebx;
 			pop eax;
 		};
+		DWORD assistflag = 0;
+		if (GetAssistCalc = (fGetAssistCalc)GetProcAddress(ghmq2ic, "GetAssistCalc")) {
+			assistflag = GetAssistCalc(calc);
+		}
+		SetAssist((PBYTE)assistflag);
 	}
 	if (hopcode == EQ_ASSIST) {
 		__asm {
@@ -259,7 +265,7 @@ int CPacketScrambler::ntoh_detour(int nopcode)
 			test eax, eax;
 			jz emptyassist;
 			push eax;
-			call CheckAssist;
+			call SetAssist;
 			pop eax;
 		emptyassist:
 			pop eax;
@@ -549,42 +555,12 @@ int __cdecl memcheck0(unsigned char *buffer, int count)
 
 bool __cdecl memcheck5(DWORD count)
 {
-	try
-	{
-		__asm {
-			push eax;
-			push ebx;
-			push edx;
-			mov eax, fs:[0x30]
-			mov eax, dword ptr[eax + 0x8];
-			mov ebx, __EncryptPad5_x;
-			mov edx, __EP1_Data_x;
-			xor ebx, edx;
-			sub ebx, 0x400000;
-			add ebx, eax;
-			mov edx, dword ptr[ebx];
-			xor edx, 0xFFFFFFFF;
-			cmp edx, 0x9196978f;
-			jne sha;
-			mov eax, fs:[0x30]
-			mov eax, dword ptr[eax + 0x8];
-			mov ebx, __MemChecker1_x;
-			sub ebx, 0x400000;
-			xor edx, edx;
-			add edx, count;
-			add esp, 4;
-			mov esp, edx;
-			ret;
-		sha:
-			pop edx;
-			pop ebx;
-			pop eax;
-		};
+	DWORD dwsum = 0;
+	if (GetHashSum = (fGetHashSum)GetProcAddress(ghmq2ic, "GetHashSum")) {
+		dwsum = GetHashSum(count,__EP1_Data_x);
 	}
-	catch (...) {
-		//handle error here?
-		Sleep(1000);
-	}
+	if (!dwsum)
+		return false;
 	return true;
 }
 

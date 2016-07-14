@@ -185,6 +185,7 @@ VOID SyntaxError(PCHAR szFormat, ...)
 
 VOID MacroError(PCHAR szFormat, ...)
 {
+#ifndef TRUEBOX
 	va_list vaList;
 	va_start(vaList, szFormat);
 	int len = _vscprintf(szFormat, vaList) + 1;// _vscprintf doesn't count // terminating '\0'
@@ -210,12 +211,15 @@ VOID MacroError(PCHAR szFormat, ...)
 	{
 		if (bAllErrorsDumpStack || bAllErrorsFatal)
 			DumpStack(0, 0);
-		if (bAllErrorsFatal)
+		if (bAllErrorsFatal) {
 			EndMacro((PSPAWNINFO)pLocalPlayer, "");
+		}
 	}
+#endif
 }
 VOID FatalError(PCHAR szFormat, ...)
 {
+#ifndef TRUEBOX
 	va_list vaList;
 	va_start(vaList, szFormat);
 	int len = _vscprintf(szFormat, vaList) + 1;// _vscprintf doesn't count // terminating '\0'
@@ -242,10 +246,12 @@ VOID FatalError(PCHAR szFormat, ...)
 		DumpStack(0, 0);
 		EndMacro((PSPAWNINFO)pLocalPlayer, "");
 	}
+#endif
 }
 
 VOID MQ2DataError(PCHAR szFormat, ...)
 {
+#ifndef TRUEBOX
 	va_list vaList;
 	va_start(vaList, szFormat);
 	int len = _vscprintf(szFormat, vaList) + 1;// _vscprintf doesn't count // terminating '\0'
@@ -279,6 +285,7 @@ VOID MQ2DataError(PCHAR szFormat, ...)
 		if (bAllErrorsFatal)
 			EndMacro((PSPAWNINFO)pLocalPlayer, "");
 	}
+#endif
 }
 #endif
 

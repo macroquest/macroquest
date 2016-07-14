@@ -392,11 +392,12 @@ LEGACY_API BOOL RemoveCommand(PCHAR Command);
 LEGACY_API VOID DoTimedCommands();
 LEGACY_API VOID TimedCommand(PCHAR Command, DWORD msDelay);
 
+#ifndef TRUEBOX
 /* MACRO COMMANDS */
 LEGACY_API VOID DumpStack(PSPAWNINFO, PCHAR);
 LEGACY_API VOID EndMacro(PSPAWNINFO, PCHAR);
 LEGACY_API VOID Echo(PSPAWNINFO, PCHAR);
-
+#endif
 
 /* MACRO PARSING */
 #ifdef USEBLECHEVENTS
@@ -406,7 +407,6 @@ void __stdcall EventBlechCallback(unsigned int ID, void * pData, PBLECHVALUE pVa
 LEGACY_API PCHAR ParseMacroParameter(PSPAWNINFO pChar, PCHAR szOriginal);
 #ifndef ISXEQ
 LEGACY_API VOID FailIf(PSPAWNINFO pChar, PCHAR szCommand, PMACROBLOCK pStartLine, BOOL All = FALSE);
-LEGACY_API VOID FailWhile(PSPAWNINFO pChar, PCHAR szCommand, PMACROBLOCK pStartLine, BOOL All = FALSE);
 LEGACY_API VOID InitializeParser();
 LEGACY_API VOID ShutdownParser();
 
@@ -415,7 +415,6 @@ LEGACY_API VOID ShutdownMQ2DataTypes();
 LEGACY_API VOID InitializeMQ2Data();
 LEGACY_API VOID ShutdownMQ2Data();
 LEGACY_API BOOL ParseMacroData(PCHAR szOriginal);
-LEGACY_API BOOL ParseMacroVariables(PCHAR szOriginal);
 LEGACY_API BOOL AddMQ2Data(PCHAR szName, fMQData Function);
 LEGACY_API BOOL RemoveMQ2Data(PCHAR szName);
 LEGACY_API MQ2Type *FindMQ2DataType(PCHAR szName);
@@ -568,7 +567,6 @@ EQLIB_API FLOAT FindSpeed(PSPAWNINFO pSpawn);
 EQLIB_API BOOL IsNamed(PSPAWNINFO pSpawn);
 EQLIB_API VOID GetItemLinkHash(PCONTENTS Item, PCHAR Buffer);
 EQLIB_API BOOL GetItemLink(PCONTENTS Item, PCHAR Buffer, BOOL Clickable = TRUE);
-EQLIB_API VOID SendEQMessage(DWORD PacketType, PVOID pData, DWORD Length);
 EQLIB_API PCHAR GetLoginName();
 EQLIB_API FLOAT DistanceToPoint(PSPAWNINFO pSpawn, FLOAT xLoc, FLOAT yLoc);
 EQLIB_API PCHAR ShowSpellSlotInfo(PSPELL pSpell, PCHAR szBuffer);
@@ -616,12 +614,13 @@ LEGACY_API BOOL AddMQ2DataVariableFromData(PCHAR Name, PCHAR Index, MQ2Type *pTy
 LEGACY_API PDATAVAR *FindVariableScope(PCHAR Name);
 LEGACY_API BOOL DeleteMQ2DataVariable(PCHAR Name);
 LEGACY_API VOID ClearMQ2DataVariables(PDATAVAR *ppHead);
+#ifndef TRUEBOX
 LEGACY_API VOID NewDeclareVar(PSPAWNINFO pChar, PCHAR szLine);
 LEGACY_API VOID NewDeleteVarCmd(PSPAWNINFO pChar, PCHAR szLine);
 LEGACY_API VOID NewVarset(PSPAWNINFO pChar, PCHAR szLine);
 LEGACY_API VOID NewVarcalc(PSPAWNINFO pChar, PCHAR szLine);
 LEGACY_API VOID NewVardata(PSPAWNINFO pChar, PCHAR szLine);
-
+#endif
 LEGACY_API VOID DropTimers(VOID);
 #endif
 

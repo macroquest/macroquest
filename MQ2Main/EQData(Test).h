@@ -2563,7 +2563,7 @@ typedef struct _GROUPAGGRO {
 } GROUPAGGRO, *PGROUPAGGRO;
 
 #define EQ_ASSIST_CALC                  0x020c0f19
-#define EQ_ASSIST_COMPLETE              0x717B	 // aMsg_time_stamp
+#define EQ_ASSIST_COMPLETE              0x79F9	 // aMsg_time_stamp
 #define EQ_BEGIN_ZONE                   0x359C   // CEverQuest__SavePCForce
 #define EQ_END_ZONE                     0x3340   // CEverQuest__DoMainLoop+B2F
 #define EQ_ASSIST                       0x45E8   // do_assist(PlayerClient *,char const *)+399 20160222 test (see 52C769)

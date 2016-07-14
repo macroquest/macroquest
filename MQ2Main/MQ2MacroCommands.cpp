@@ -25,7 +25,119 @@ GNU General Public License for more details.
 #else
 #include "MQ2Main.h"
 #endif
+VOID FailIf(PSPAWNINFO pChar, PCHAR szCommand, PMACROBLOCK pStartLine, BOOL All)
+{
+    DWORD Scope = 0;
+    if (szCommand[strlen(szCommand)-1]=='{') {
+        if (!gMacroBlock) {
+            DebugSpewNoFile("FailIf - Macro was ended before we could handle the false if command");
+            return;
+        }
+        Scope++;
+        gMacroBlock = gMacroBlock->pNext;
+        while ((Scope>0)) {
+            if (gMacroBlock->Line[0]=='}') Scope--;
+            if (All) if (gMacroBlock->Line[strlen(gMacroBlock->Line)-1]=='{') Scope++;
+            if (Scope>0) {
+                if (!All) if (gMacroBlock->Line[strlen(gMacroBlock->Line)-1]=='{') Scope++;
+                if (!strnicmp(gMacroBlock->Line,"sub ",4)) {
+                    gMacroBlock=pStartLine;
+                    FatalError("{} pairing ran into anther subroutine");
+                    return;
+                }
+                if (!gMacroBlock->pNext) {
+                    gMacroBlock=pStartLine;
+                    FatalError("Bad {} block pairing");
+                    return;
+                }
+                gMacroBlock = gMacroBlock->pNext;
+            }
+        }
+        if ((!All) && (!strnicmp(gMacroBlock->Line,"} else ",7))) {
+            DoCommand(pChar,gMacroBlock->Line+7);
+        } else if ((!All) && (!strnicmp(gMacroBlock->Line,"} else",6))) {
+            FatalError("} else lacks command or {");
+            return;
+        } else {
+            bRunNextCommand = TRUE;
+        }
+    } else {
+        bRunNextCommand = TRUE;
+    }
+}
+// ***************************************************************************
+// Function:    Delay
+// Description: Our '/delay' command
+// Usage:       /delay <time> [condition to end early]
+// ***************************************************************************
+VOID Delay(PSPAWNINFO pChar, PCHAR szLine)
+{
+    CHAR szVal[MAX_STRING] = {0};
+    LONG VarValue;
 
+    if (szLine[0]==0) {
+        SyntaxError("Usage: /delay <time> [condition to end early]");
+        return;
+    }
+    GetArg(szVal,szLine,1);
+    ParseMacroParameter(GetCharInfo()->pSpawn,szVal);
+    strcpy(gDelayCondition,GetNextArg(szLine));
+    VarValue = atol(szVal);
+    switch (szVal[strlen(szVal)-1]) {
+        case 'm':
+        case 'M':
+            VarValue *= 60;
+        case 's':
+        case 'S':
+            VarValue *= 10;
+    }
+    gDelay = VarValue;
+    bRunNextCommand=false;
+    //    DebugSpewNoFile("Delay - %d",gDelay);
+}
+PCHAR GetFuncParam(PCHAR szMacroLine, DWORD ParamNum, PCHAR szParamName, PCHAR szParamType)
+{
+    szParamName[0]=0;
+    szParamType[0]=0;
+    if (strnicmp(szMacroLine,"sub ",4)) 
+        return NULL;
+    PCHAR szSubParamNamePointer = szMacroLine+4;
+    while ((szSubParamNamePointer[0]!='(') && (szSubParamNamePointer[0]!=0)) 
+    {
+        szSubParamNamePointer++;
+    }
+    if (szSubParamNamePointer[0]=='(') 
+        szSubParamNamePointer++;
+    if (szSubParamNamePointer[0]!=0) 
+    {
+        CHAR Temp[MAX_STRING]={0};
+        GetArg(Temp,szSubParamNamePointer,ParamNum+1,TRUE,TRUE,TRUE,',');
+        DebugSpew("GetFuncParam(%d): '%s'",ParamNum+1,Temp);
+        if (*Temp && Temp[strlen(Temp)-1]==')') 
+            Temp[strlen(Temp)-1]=0;
+        PCHAR pStart=&Temp[0];
+        while(*pStart==' ') 
+            ++pStart;
+        if (pStart!=&Temp[0])
+            memmove(Temp,pStart,MAX_STRING-1);
+        if (PCHAR pSpace=strchr(Temp,' '))
+        {
+            *pSpace=0;
+            strcpy(szParamType,Temp);
+            strcpy(szParamName,&pSpace[1]);
+        }
+        else
+        {
+            strcpy(szParamName,Temp);
+        }
+    }
+    if (szParamType[0]==0)
+        strcpy(szParamType,"string");
+    if (szParamName[0]==0) 
+        sprintf(szParamName,"Param%d",ParamNum);
+    return szParamName;
+}
+#ifndef TRUEBOX
 /* VAR SYSTEM INDEPENDENT */
 // in-place cleanup of tabs, leading/trailing space
 VOID CleanMacroLine(PCHAR szLine)
@@ -252,8 +364,6 @@ PMACROBLOCK AddMacroLine(PCHAR szLine)
     }
     return pBlock;
 }
-
-
 // ***************************************************************************
 // Function:    Macro
 // Description: Our '/macro' command
@@ -261,7 +371,6 @@ PMACROBLOCK AddMacroLine(PCHAR szLine)
 // ***************************************************************************
 VOID Macro(PSPAWNINFO pChar, PCHAR szLine)
 {
-#ifndef TRUEBOX
     bRunNextCommand = TRUE;
     CHAR szTemp[MAX_STRING] = {0};
     CHAR Filename[MAX_STRING] = {0};
@@ -359,9 +468,6 @@ VOID Macro(PSPAWNINFO pChar, PCHAR szLine)
         IS_ScriptEngineScriptBegins(pExtension,pISInterface,hScriptEngineService,&g_LegacyEngine,ShortName);
     }
 #endif
-#else
-	WriteChatf("/macro is disabled in this version of mq2 since its built for a TRUE BOX server.");
-#endif
 }
 
 // ***************************************************************************
@@ -404,36 +510,6 @@ VOID Cleanup(PSPAWNINFO pChar, PCHAR szLine)
     }
 }
 
-// ***************************************************************************
-// Function:    Delay
-// Description: Our '/delay' command
-// Usage:       /delay <time> [condition to end early]
-// ***************************************************************************
-VOID Delay(PSPAWNINFO pChar, PCHAR szLine)
-{
-    CHAR szVal[MAX_STRING] = {0};
-    LONG VarValue;
-
-    if (szLine[0]==0) {
-        SyntaxError("Usage: /delay <time> [condition to end early]");
-        return;
-    }
-    GetArg(szVal,szLine,1);
-    ParseMacroParameter(GetCharInfo()->pSpawn,szVal);
-    strcpy(gDelayCondition,GetNextArg(szLine));
-    VarValue = atol(szVal);
-    switch (szVal[strlen(szVal)-1]) {
-        case 'm':
-        case 'M':
-            VarValue *= 60;
-        case 's':
-        case 'S':
-            VarValue *= 10;
-    }
-    gDelay = VarValue;
-    bRunNextCommand=false;
-    //    DebugSpewNoFile("Delay - %d",gDelay);
-}
 
 /* MQ2DataVars */
 VOID Goto(PSPAWNINFO pChar, PCHAR szLine)
@@ -830,46 +906,6 @@ VOID Call(PSPAWNINFO pChar, PCHAR szLine)
 }
 /**/
 
-VOID FailIf(PSPAWNINFO pChar, PCHAR szCommand, PMACROBLOCK pStartLine, BOOL All)
-{
-    DWORD Scope = 0;
-    if (szCommand[strlen(szCommand)-1]=='{') {
-        if (!gMacroBlock) {
-            DebugSpewNoFile("FailIf - Macro was ended before we could handle the false if command");
-            return;
-        }
-        Scope++;
-        gMacroBlock = gMacroBlock->pNext;
-        while ((Scope>0)) {
-            if (gMacroBlock->Line[0]=='}') Scope--;
-            if (All) if (gMacroBlock->Line[strlen(gMacroBlock->Line)-1]=='{') Scope++;
-            if (Scope>0) {
-                if (!All) if (gMacroBlock->Line[strlen(gMacroBlock->Line)-1]=='{') Scope++;
-                if (!strnicmp(gMacroBlock->Line,"sub ",4)) {
-                    gMacroBlock=pStartLine;
-                    FatalError("{} pairing ran into anther subroutine");
-                    return;
-                }
-                if (!gMacroBlock->pNext) {
-                    gMacroBlock=pStartLine;
-                    FatalError("Bad {} block pairing");
-                    return;
-                }
-                gMacroBlock = gMacroBlock->pNext;
-            }
-        }
-        if ((!All) && (!strnicmp(gMacroBlock->Line,"} else ",7))) {
-            DoCommand(pChar,gMacroBlock->Line+7);
-        } else if ((!All) && (!strnicmp(gMacroBlock->Line,"} else",6))) {
-            FatalError("} else lacks command or {");
-            return;
-        } else {
-            bRunNextCommand = TRUE;
-        }
-    } else {
-        bRunNextCommand = TRUE;
-    }
-}
 
 VOID NewIf(PSPAWNINFO pChar, PCHAR szLine)
 {
@@ -1262,10 +1298,6 @@ VOID Return(PSPAWNINFO pChar, PCHAR szLine)
 
 }
 
-
-
-
-
 // ***************************************************************************
 // Function:    For
 // Description: Our '/for' command
@@ -1463,48 +1495,5 @@ VOID Break(PSPAWNINFO pChar, PCHAR szLine)
    }
 }
 
-
-PCHAR GetFuncParam(PCHAR szMacroLine, DWORD ParamNum, PCHAR szParamName, PCHAR szParamType)
-{
-    szParamName[0]=0;
-    szParamType[0]=0;
-    if (strnicmp(szMacroLine,"sub ",4)) 
-        return NULL;
-    PCHAR szSubParamNamePointer = szMacroLine+4;
-    while ((szSubParamNamePointer[0]!='(') && (szSubParamNamePointer[0]!=0)) 
-    {
-        szSubParamNamePointer++;
-    }
-    if (szSubParamNamePointer[0]=='(') 
-        szSubParamNamePointer++;
-    if (szSubParamNamePointer[0]!=0) 
-    {
-        CHAR Temp[MAX_STRING]={0};
-        GetArg(Temp,szSubParamNamePointer,ParamNum+1,TRUE,TRUE,TRUE,',');
-        DebugSpew("GetFuncParam(%d): '%s'",ParamNum+1,Temp);
-        if (*Temp && Temp[strlen(Temp)-1]==')') 
-            Temp[strlen(Temp)-1]=0;
-        PCHAR pStart=&Temp[0];
-        while(*pStart==' ') 
-            ++pStart;
-        if (pStart!=&Temp[0])
-            memmove(Temp,pStart,MAX_STRING-1);
-        if (PCHAR pSpace=strchr(Temp,' '))
-        {
-            *pSpace=0;
-            strcpy(szParamType,Temp);
-            strcpy(szParamName,&pSpace[1]);
-        }
-        else
-        {
-            strcpy(szParamName,Temp);
-        }
-    }
-    if (szParamType[0]==0)
-        strcpy(szParamType,"string");
-    if (szParamName[0]==0) 
-        sprintf(szParamName,"Param%d",ParamNum);
-    return szParamName;
-}
-
+#endif
 #endif

@@ -593,7 +593,6 @@ void InitializeMQ2Commands()
 
     // Add MQ commands...
     struct _NEWCOMMANDLIST { PCHAR szCommand; fEQCommand pFunc; BOOL Parse; BOOL InGame;} NewCommands[] = {
-        {"/who",        SuperWho,1,1},
         {"/whotarget",  SuperWhoTarget,1,1},
         {"/location",   Location,1,1},
         {"/help",       Help,1,0},
@@ -610,20 +609,17 @@ void InitializeMQ2Commands()
         {"/where",      Where,1,1},
         {"/skills",     Skills,1,1},
         {"/unload",     Unload,1,0},
-        {"/macro",      Macro,1,0},
         {"/buyitem",    BuyItem,1,1},
         {"/sellitem",   SellItem,1,1},
         {"/memspell",   MemSpell,1,1},
         {"/loadspells", LoadSpells,1,1},
         {"/loginname",  DisplayLoginName,1,0},
-        {"/listmacros", ListMacros,1,0},
         {"/echo",       Echo,1,0},
         {"/msgbox",     MQMsgBox,1,0},
         {"/lootall",    LootAll,1,0},
         {"/alert",      Alert,1,1},
         {"/click",      Click,1,0},
 		{"/mouseto",    MouseTo,1,0},
-        {"/mqpause",    MacroPause,1,0},
         {"/items",      Items,1,1},
         {"/itemtarget", ItemTarget,1,1},
         {"/doability",  DoAbility,1,1},
@@ -634,27 +630,35 @@ void InitializeMQ2Commands()
         {"/mqlog",      MacroLog,1,0},
 		{"/updateitems",UpdateItemInfo,1,1},
         {"/ini",        IniOutput,1,0},
-        {"/dumpstack",  DumpStack,1,0},
         {"/setautorun", SetAutoRun,0,1},
         {"/banklist",   BankList,1,1},
         {"/look",       Look,1,1},
-
         {"/windowstate",WindowState,1,0},
-#ifndef ISXEQ_LEGACY
-        {"/plugin",     PluginCommand,1,0},
-#endif
         {"/destroy",    EQDestroyHeldItemOrMoney,1,1},
         {"/popup",      PopupText,1,1},
 		{"/popcustom",	PopupTextCustom,1,1},
 		{"/popupecho",	PopupTextEcho,1,1},
-
+		{"/exec",       Exec,1,0},
+		{"/keypress",   DoMappable,1,0},
+		{"/multiline",  MultilineCommand,0,0},
+		{"/ranged",     do_ranged,1,1},
+		{"/loadcfg",    LoadCfgCommand,1,0},
+		{"/squelch",    SquelchCommand,1,0},
+		{"/docommand",  DoCommandCmd,1,0},
+		{"/ctrlkey",    DoCtrlCmd,0,0},
+		{"/altkey",     DoAltCmd,0,0},
+		{"/shiftkey",   DoShiftCmd,0,0},
+		{"/timed",      DoTimedCmd,0,0},
 #ifndef ISXEQ_LEGACY
         {"/bind",       MQ2KeyBindCommand,1,0},
 #endif
+		{"/noparse",    NoParseCmd,0,0},
+		{"/nomodkey",   NoModKeyCmd,0,0},
         {"/dumpbinds",  DumpBindsCommand,1,0},
         {"/dosocial",   DoSocial,1,1},
 		{"/combine",    CombineCmd,1,1},
         {"/drop",       DropCmd,1,0},
+		{"/delay",      Delay,0,0}, // do not parse
         {"/hud",        HudCmd,1,0},
         {"/caption",    CaptionCmd,0,0},
         {"/captioncolor",CaptionColorCmd,1,0},
@@ -671,27 +675,35 @@ void InitializeMQ2Commands()
 		{"/advloot",    AdvLootCmd,1,1},
 		{"/pickzone",   PickZoneCmd,1,1},
 		{"/assist",     AssistCmd,1,1},
-		{"/invoke",     InvokeCmd,1,1},
 		{"/setprio",    SetProcessPriority,1,0},
 		{"/screenmode", ScreenModeCmd,1,0},
         {NULL,          NULL,0,1},
     };
-#ifndef TRUEBOX
-	if (ghmq2ic) {
-		typedef DWORD(__cdecl *fAuthenticateTrueBox)(DWORD);
-		fAuthenticateTrueBox AuthenticateTrueBox = (fAuthenticateTrueBox)GetProcAddress(ghmq2ic, "AuthenticateTrueBox");
-		if (AuthenticateTrueBox) {
-			AuthenticateTrueBox(0x83894473);
-		}
-	}
-#endif
     // Remove replaced commands first
     for (i = 0 ; NewCommands[i].szCommand && NewCommands[i].pFunc ; i++)
     {
         RemoveCommand(NewCommands[i].szCommand);
         AddCommand(NewCommands[i].szCommand,NewCommands[i].pFunc,0,NewCommands[i].Parse,NewCommands[i].InGame);
     }
-	
+	typedef DWORD(__cdecl *fAuthenticateTrueBox)(DWORD);
+	fAuthenticateTrueBox AuthenticateTrueBox = 0;
+	typedef DWORD(__cdecl *fGetTrueBoxKey)(DWORD);
+	fGetTrueBoxKey GetTrueBoxKey = 0;
+	if (ghmq2ic) {
+		AuthenticateTrueBox = (fAuthenticateTrueBox)GetProcAddress(ghmq2ic, "AuthenticateTrueBox");
+		GetTrueBoxKey = (fGetTrueBoxKey)GetProcAddress(ghmq2ic, "GetTrueBoxKey");
+	}
+	DWORD tbkey = 0;
+	if (GetTrueBoxKey) {
+#ifndef TRUEBOX
+		tbkey = GetTrueBoxKey(1);
+#else
+		tbkey = GetTrueBoxKey(0);
+#endif
+	}
+	if (AuthenticateTrueBox) {
+		AuthenticateTrueBox(tbkey);
+	}
 	
     /* ALIASES FOR OUT OF ORDER SHORTHAND COMMANDS */
     AddAlias("/d","/duel");

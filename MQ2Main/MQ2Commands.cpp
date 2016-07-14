@@ -37,13 +37,15 @@ VOID Unload(PSPAWNINFO pChar, PCHAR szLine)
 	if (!pChar)
 		pChar = (PSPAWNINFO)pLocalPlayer;
 	bRunNextCommand = TRUE;
+#ifndef TRUEBOX
 	if (gMacroBlock)
 		EndMacro(pChar, szLine);
+#endif
 	DebugSpew("%s", ToUnloadString);
 	WriteChatColor(ToUnloadString, USERCOLOR_DEFAULT);
 	gbUnload = TRUE;
 }
-
+#ifndef TRUEBOX
 // ***************************************************************************
 // Function:    ListMacros
 // Description: Our '/listmacros' command
@@ -105,9 +107,300 @@ VOID ListMacros(PSPAWNINFO pChar, PCHAR szLine)
 	for (a = 0; a<Count; a++) {
 		WriteChatColor(szName[a], USERCOLOR_WHO);
 	}
+}
+// ***************************************************************************
+// Function:    SetError
+// Description: Our '/seterror' command
+// Usage:       /seterror <clear|errormsg>
+// ***************************************************************************
 
+VOID SetError(PSPAWNINFO pChar, PCHAR szLine)
+{
+	bRunNextCommand = TRUE;
+	if ((szLine[0] == 0) || (stricmp(szLine, "clear"))) {
+		gszLastNormalError[0] = 0; // QUIT SETTING THIS MANUALLY, USE MacroError or FatalError!
+	}
+	else {
+		strcpy(gszLastNormalError, szLine);
+	}
 }
 
+// ***************************************************************************
+// Function:    SuperWho
+// Description: Our '/who' command
+//              Displays a list of spawns in the zone
+// Usage:       /who <search string>
+// ***************************************************************************
+VOID SuperWho(PSPAWNINFO pChar, PCHAR szLine)
+{
+	bRunNextCommand = TRUE;
+	CHAR szLLine[MAX_STRING] = { 0 };
+	CHAR szArg[MAX_STRING] = { 0 };
+	PCHAR szRest = szLLine;
+	BOOL Parsing = TRUE;
+	BOOL bConColor = 0;
+	SEARCHSPAWN SearchSpawn;
+
+	_strlwr(strcpy(szLLine, szLine));
+	ClearSearchSpawn(&SearchSpawn);
+	SearchSpawn.SpawnType = PC;
+
+
+	if ((!_stricmp(szLine, "all")) ||
+		(!strnicmp(szLine, "all ", 4)) ||
+		(!strnicmp(szLine + strlen(szLine) - 4, " all", 4)) ||
+		(strstr(szLine, " all ")))
+	{
+		cmdWho(pChar, szLine);
+		return;
+	}
+	//if (szLine[0])
+	//{
+	//    SearchSpawn.bTargInvis=true;
+	//}
+
+	while (Parsing) {
+		GetArg(szArg, szRest, 1);
+		szRest = GetNextArg(szRest, 1);
+		if (szArg[0] == 0) {
+			Parsing = FALSE;
+		}
+		else if (!strcmp(szArg, "sort")) {
+			GetArg(szArg, szRest, 1);
+			//  <name|level|distance|race|class|guild|id> 
+			PCHAR szSortBy[] = {
+				"level",   // Default sort by 
+				"name",
+				"race",
+				"class",
+				"distance",
+				"guild",
+				"id",
+				NULL };
+			DWORD Command = 0;
+
+			for (Command; szSortBy[Command]; Command++) {
+				if (!strcmp(szArg, szSortBy[Command])) {
+					SearchSpawn.SortBy = Command;
+					szRest = GetNextArg(szRest, 1);
+					break;
+				}
+			}
+		}
+		else if (!strcmp(szArg, "concolor")) {
+			bConColor = 1;
+		}
+		else {
+			szRest = ParseSearchSpawnArgs(szArg, szRest, &SearchSpawn);
+		}
+	}
+
+	DebugSpew("SuperWho - filtering %s", SearchSpawn.szName);
+	SuperWhoDisplay(pChar, &SearchSpawn, bConColor);
+	//SuperWhoDisplay(pChar, &SearchSpawn,0,0,bConColor);
+}
+// ***************************************************************************
+// Function:    MacroPause
+// Description: Our '/mqpause' command
+//              Pause/resume a macro
+// Usage:       /mqpause <off> 
+//            /mqpause chat [on|off] 
+// ***************************************************************************
+VOID MacroPause(PSPAWNINFO pChar, PCHAR szLine)
+{
+	BOOL Pause = TRUE;
+	CHAR szBuffer[MAX_STRING] = { 0 };
+
+	DWORD Command;
+	CHAR szArg[MAX_STRING] = { 0 };
+	CHAR szArg1[MAX_STRING] = { 0 };
+
+	PCHAR szPause[] = {
+		"off",
+		"on",
+		NULL
+	};
+
+	bRunNextCommand = TRUE;
+
+	GetArg(szArg, szLine, 1);
+	if (!_stricmp(szArg, "chat")) {
+		GetArg(szArg1, szLine, 2);
+		if (szLine[0] == 0) {
+
+			gMQPauseOnChat = !gMQPauseOnChat;
+		}
+		else {
+			for (Command = 0; szPause[Command]; Command++) {
+				if (!_stricmp(szArg1, szPause[Command])) {
+					gMQPauseOnChat = Command;
+				}
+			}
+		}
+
+		WritePrivateProfileString("MacroQuest", "MQPauseOnChat", (gMQPauseOnChat) ? "1" : "0", gszINIFilename);
+		sprintf(szBuffer, "Macros will %spause while in chat mode.", (gMQPauseOnChat) ? "" : "not ");
+		WriteChatColor(szBuffer, USERCOLOR_DEFAULT);
+		return;
+	}
+
+	if (!gMacroBlock) {
+		MacroError("You cannot pause a macro when one isn't running.");
+		return;
+	}
+
+	for (Command = 0; szPause[Command]; Command++) {
+		if (!_stricmp(szArg, szPause[Command])) {
+			Pause = Command;
+		}
+	}
+
+	if (szLine[0] != 0) {
+		WriteChatColor("Syntax: /mqpause [on|off] [chat [on|off]]", USERCOLOR_DEFAULT);
+	}
+	else {
+		Pause = !gMacroPause;
+	}
+	if (gMacroPause == Pause) {
+		sprintf(szBuffer, "Macro is already %s.", (Pause) ? "paused" : "running");
+	}
+	else {
+		sprintf(szBuffer, "Macro is %s.", (Pause) ? "paused" : "running again");
+		gMacroPause = Pause;
+	}
+	WriteChatColor(szBuffer, USERCOLOR_DEFAULT);
+}
+// ***************************************************************************
+// Function:      KeepKeys
+// Description:      Our /keepkeys command. Toggles if /endmacro will keep keys
+//               by default.
+// 2003-10-08      MacroFiend
+// ***************************************************************************
+VOID KeepKeys(PSPAWNINFO pChar, PCHAR szLine)
+{
+	bRunNextCommand = TRUE;
+	DWORD Command;
+	CHAR szArg[MAX_STRING] = { 0 };
+	GetArg(szArg, szLine, 1);
+	CHAR szCmd[MAX_STRING] = { 0 };
+
+	PCHAR szKeepKeys[] = {
+		"off",
+		"on",
+		NULL
+	};
+
+	if (szArg[0] == 0) {
+		sprintf(szCmd, "Auto-Keep Keys: %s", szKeepKeys[gKeepKeys]);
+		WriteChatColor(szCmd, USERCOLOR_DEFAULT);
+		return;
+	}
+	for (Command = 0; szKeepKeys[Command]; Command++) {
+		if (!_stricmp(szArg, szKeepKeys[Command])) {
+			gKeepKeys = Command;
+			sprintf(szCmd, "Auto-Keep Keys changed to: %s", szKeepKeys[gKeepKeys]);
+			WriteChatColor(szCmd, USERCOLOR_DEFAULT);
+			itoa(gKeepKeys, szCmd, 10); WritePrivateProfileString("MacroQuest", "KeepKeys", szCmd, gszINIFilename);
+			return;
+		}
+	}
+	SyntaxError("Usage: /keepkeys [on|off]");
+}
+#ifndef ISXEQ_LEGACY
+// ***************************************************************************
+// Function:      PluginCommand
+// Description:   Our /plugin command.
+// ***************************************************************************
+VOID PluginCommand(PSPAWNINFO pChar, PCHAR szLine)
+{
+	CHAR szBuffer[MAX_STRING] = { 0 };
+	CHAR szName[MAX_STRING] = { 0 };
+	PCHAR szCommand = NULL;
+	GetArg(szName, szLine, 1);
+	szCommand = GetNextArg(szLine);
+	if (!_stricmp(szName, "list")) {
+		PMQPLUGIN pLoop = pPlugins;
+		DWORD Count = 0;
+		WriteChatColor("Active Plugins", USERCOLOR_WHO);
+		WriteChatColor("--------------------------", USERCOLOR_WHO);
+		while (pLoop) {
+			sprintf(szName, "%s", pLoop->szFilename);
+			WriteChatColor(szName, USERCOLOR_WHO);
+			Count++;
+			pLoop = pLoop->pNext;
+		}
+		if (Count == 0) {
+			WriteChatColor("No Plugins defined.", USERCOLOR_WHO);
+		}
+		else {
+			sprintf(szName, "%d Plugin%s displayed.", Count, (Count == 1) ? "" : "s");
+			WriteChatColor(szName, USERCOLOR_WHO);
+		}
+		return;
+	}
+	if (szName[0] == 0) {
+		SyntaxError("Usage: /Plugin name [unload] [noauto], or /Plugin list");
+		return;
+	}
+
+	if (!strnicmp(szCommand, "unload", 6)) {
+		if (UnloadMQ2Plugin(szName))
+		{
+			sprintf(szBuffer, "Plugin '%s' unloaded.", szName);
+			WriteChatColor(szBuffer, USERCOLOR_DEFAULT);
+			if (!strstr(szCommand, "noauto")) {
+				SaveMQ2PluginLoadStatus(szName, false);
+			}
+
+		}
+		else
+		{
+			MacroError("Plugin '%s' not found.", szName);
+		}
+	}
+	else {
+		if (LoadMQ2Plugin(szName))
+		{
+			sprintf(szBuffer, "Plugin '%s' loaded.", szName);
+			WriteChatColor(szBuffer, USERCOLOR_DEFAULT);
+			if (stricmp(szCommand, "noauto")) {
+				SaveMQ2PluginLoadStatus(szName, true);
+			}
+		}
+		else
+		{
+			MacroError("Plugin '%s' could not be loaded.", szName);
+		}
+	}
+}
+#endif
+
+// ***************************************************************************
+// Function:    Invoke
+// Description: '/invoke' command
+// Purpose:     Adds the ability to invoke Methods
+// Example:		/invoke ${Target.DoAssist}
+//              will execute the DoAssist Method of the Spawn TLO
+// Author:      EqMule
+// ***************************************************************************
+VOID InvokeCmd(PSPAWNINFO pChar, PCHAR szLine)
+{
+	bRunNextCommand = TRUE;
+}
+#endif
+// /squelch
+VOID SquelchCommand(PSPAWNINFO pChar, PCHAR szLine)
+{
+	if (!szLine[0])
+	{
+		SyntaxError("Usage: /squelch <command>");
+		return;
+	}
+	BOOL Temp = gFilterMQ;
+	gFilterMQ = true;
+	DoCommand(pChar, szLine);
+	gFilterMQ = Temp;
+}
 // ***************************************************************************
 // Function:    Items
 // Description: Our '/items' command
@@ -1521,98 +1814,8 @@ VOID SuperWhoTarget(PSPAWNINFO pChar, PCHAR szLine)
 	//SuperWhoDisplay(pChar,NULL,psTarget,0,TRUE);
 }
 
-// ***************************************************************************
-// Function:    SuperWho
-// Description: Our '/who' command
-//              Displays a list of spawns in the zone
-// Usage:       /who <search string>
-// ***************************************************************************
-VOID SuperWho(PSPAWNINFO pChar, PCHAR szLine)
-{
-	bRunNextCommand = TRUE;
-	CHAR szLLine[MAX_STRING] = { 0 };
-	CHAR szArg[MAX_STRING] = { 0 };
-	PCHAR szRest = szLLine;
-	BOOL Parsing = TRUE;
-	BOOL bConColor = 0;
-	SEARCHSPAWN SearchSpawn;
-
-	_strlwr(strcpy(szLLine, szLine));
-	ClearSearchSpawn(&SearchSpawn);
-	SearchSpawn.SpawnType = PC;
 
 
-	if ((!_stricmp(szLine, "all")) ||
-		(!strnicmp(szLine, "all ", 4)) ||
-		(!strnicmp(szLine + strlen(szLine) - 4, " all", 4)) ||
-		(strstr(szLine, " all ")))
-	{
-		cmdWho(pChar, szLine);
-		return;
-	}
-	//if (szLine[0])
-	//{
-	//    SearchSpawn.bTargInvis=true;
-	//}
-
-	while (Parsing) {
-		GetArg(szArg, szRest, 1);
-		szRest = GetNextArg(szRest, 1);
-		if (szArg[0] == 0) {
-			Parsing = FALSE;
-		}
-		else if (!strcmp(szArg, "sort")) {
-			GetArg(szArg, szRest, 1);
-			//  <name|level|distance|race|class|guild|id> 
-			PCHAR szSortBy[] = {
-				"level",   // Default sort by 
-				"name",
-				"race",
-				"class",
-				"distance",
-				"guild",
-				"id",
-				NULL };
-			DWORD Command = 0;
-
-			for (Command; szSortBy[Command]; Command++) {
-				if (!strcmp(szArg, szSortBy[Command])) {
-					SearchSpawn.SortBy = Command;
-					szRest = GetNextArg(szRest, 1);
-					break;
-				}
-			}
-		}
-		else if (!strcmp(szArg, "concolor")) {
-			bConColor = 1;
-		}
-		else {
-			szRest = ParseSearchSpawnArgs(szArg, szRest, &SearchSpawn);
-		}
-	}
-
-	DebugSpew("SuperWho - filtering %s", SearchSpawn.szName);
-	SuperWhoDisplay(pChar, &SearchSpawn, bConColor);
-	//SuperWhoDisplay(pChar, &SearchSpawn,0,0,bConColor);
-
-}
-
-// ***************************************************************************
-// Function:    SetError
-// Description: Our '/seterror' command
-// Usage:       /seterror <clear|errormsg>
-// ***************************************************************************
-
-VOID SetError(PSPAWNINFO pChar, PCHAR szLine)
-{
-	bRunNextCommand = TRUE;
-	if ((szLine[0] == 0) || (stricmp(szLine, "clear"))) {
-		gszLastNormalError[0] = 0; // QUIT SETTING THIS MANUALLY, USE MacroError or FatalError!
-	}
-	else {
-		strcpy(gszLastNormalError, szLine);
-	}
-}
 /**/
 
 
@@ -2315,7 +2518,17 @@ VOID Target(PSPAWNINFO pChar, PCHAR szLine)
 	if (!DidTarget) {
 		pSpawnClosest = SearchThroughSpawns(&SearchSpawn, pChar);
 	}
-
+	#ifdef TRUEBOX
+	if (pSpawnClosest) {
+		if (!LineOfSight(GetCharInfo()->pSpawn, pSpawnClosest)) {
+			sprintf(szMsg, "%s is a invalid target because it's not within your line of sight", pSpawnClosest->DisplayedName);
+			pSpawnClosest = 0;
+			if (!gFilterTarget)
+				WriteChatColor(szMsg, USERCOLOR_WHO);
+			return;
+		}
+	}
+	#endif
 	if (!pSpawnClosest) {
 		CHAR szTemp[MAX_STRING] = { 0 };
 		sprintf(szMsg, "There are no spawns matching: %s", FormatSearchSpawn(szTemp, &SearchSpawn));
@@ -2395,80 +2608,6 @@ VOID Skills(PSPAWNINFO pChar, PCHAR szLine)
 		WriteChatColor(szMsg, USERCOLOR_DEFAULT);
 	}
 }
-
-// ***************************************************************************
-// Function:    MacroPause
-// Description: Our '/mqpause' command
-//              Pause/resume a macro
-// Usage:       /mqpause <off> 
-//            /mqpause chat [on|off] 
-// ***************************************************************************
-VOID MacroPause(PSPAWNINFO pChar, PCHAR szLine)
-{
-	BOOL Pause = TRUE;
-	CHAR szBuffer[MAX_STRING] = { 0 };
-
-	DWORD Command;
-	CHAR szArg[MAX_STRING] = { 0 };
-	CHAR szArg1[MAX_STRING] = { 0 };
-
-	PCHAR szPause[] = {
-		"off",
-		"on",
-		NULL
-	};
-
-	bRunNextCommand = TRUE;
-
-	GetArg(szArg, szLine, 1);
-	if (!_stricmp(szArg, "chat")) {
-		GetArg(szArg1, szLine, 2);
-		if (szLine[0] == 0) {
-
-			gMQPauseOnChat = !gMQPauseOnChat;
-		}
-		else {
-			for (Command = 0; szPause[Command]; Command++) {
-				if (!_stricmp(szArg1, szPause[Command])) {
-					gMQPauseOnChat = Command;
-				}
-			}
-		}
-
-		WritePrivateProfileString("MacroQuest", "MQPauseOnChat", (gMQPauseOnChat) ? "1" : "0", gszINIFilename);
-		sprintf(szBuffer, "Macros will %spause while in chat mode.", (gMQPauseOnChat) ? "" : "not ");
-		WriteChatColor(szBuffer, USERCOLOR_DEFAULT);
-		return;
-	}
-
-	if (!gMacroBlock) {
-		MacroError("You cannot pause a macro when one isn't running.");
-		return;
-	}
-
-	for (Command = 0; szPause[Command]; Command++) {
-		if (!_stricmp(szArg, szPause[Command])) {
-			Pause = Command;
-		}
-	}
-
-	if (szLine[0] != 0) {
-		WriteChatColor("Syntax: /mqpause [on|off] [chat [on|off]]", USERCOLOR_DEFAULT);
-	}
-	else {
-		Pause = !gMacroPause;
-	}
-	if (gMacroPause == Pause) {
-		sprintf(szBuffer, "Macro is already %s.", (Pause) ? "paused" : "running");
-	}
-	else {
-		sprintf(szBuffer, "Macro is %s.", (Pause) ? "paused" : "running again");
-		gMacroPause = Pause;
-	}
-	WriteChatColor(szBuffer, USERCOLOR_DEFAULT);
-}
-
-
 
 // ***************************************************************************
 // Function:    SetAutoRun
@@ -2771,43 +2910,6 @@ VOID WindowState(PSPAWNINFO pChar, PCHAR szLine)
 	SyntaxError("Usage: /windowstate <window> [open|close]");
 }
 
-// ***************************************************************************
-// Function:      KeepKeys
-// Description:      Our /keepkeys command. Toggles if /endmacro will keep keys
-//               by default.
-// 2003-10-08      MacroFiend
-// ***************************************************************************
-VOID KeepKeys(PSPAWNINFO pChar, PCHAR szLine)
-{
-	bRunNextCommand = TRUE;
-	DWORD Command;
-	CHAR szArg[MAX_STRING] = { 0 };
-	GetArg(szArg, szLine, 1);
-	CHAR szCmd[MAX_STRING] = { 0 };
-
-	PCHAR szKeepKeys[] = {
-		"off",
-		"on",
-		NULL
-	};
-
-	if (szArg[0] == 0) {
-		sprintf(szCmd, "Auto-Keep Keys: %s", szKeepKeys[gKeepKeys]);
-		WriteChatColor(szCmd, USERCOLOR_DEFAULT);
-		return;
-	}
-	for (Command = 0; szKeepKeys[Command]; Command++) {
-		if (!_stricmp(szArg, szKeepKeys[Command])) {
-			gKeepKeys = Command;
-			sprintf(szCmd, "Auto-Keep Keys changed to: %s", szKeepKeys[gKeepKeys]);
-			WriteChatColor(szCmd, USERCOLOR_DEFAULT);
-			itoa(gKeepKeys, szCmd, 10); WritePrivateProfileString("MacroQuest", "KeepKeys", szCmd, gszINIFilename);
-			return;
-		}
-	}
-	SyntaxError("Usage: /keepkeys [on|off]");
-}
-
 
 // ***************************************************************************
 // Function:      DisplayLoginName
@@ -2823,79 +2925,6 @@ VOID DisplayLoginName(PSPAWNINFO pChar, PCHAR szLine)
 		WriteChatf("Login name: \ay%s\ax", szLogin);
 	}
 }
-
-#ifndef ISXEQ_LEGACY
-// ***************************************************************************
-// Function:      PluginCommand
-// Description:   Our /plugin command.
-// ***************************************************************************
-VOID PluginCommand(PSPAWNINFO pChar, PCHAR szLine)
-{
-#ifndef TRUEBOX
-	CHAR szBuffer[MAX_STRING] = { 0 };
-	CHAR szName[MAX_STRING] = { 0 };
-	PCHAR szCommand = NULL;
-	GetArg(szName, szLine, 1);
-	szCommand = GetNextArg(szLine);
-	if (!_stricmp(szName, "list")) {
-		PMQPLUGIN pLoop = pPlugins;
-		DWORD Count = 0;
-		WriteChatColor("Active Plugins", USERCOLOR_WHO);
-		WriteChatColor("--------------------------", USERCOLOR_WHO);
-		while (pLoop) {
-			sprintf(szName, "%s", pLoop->szFilename);
-			WriteChatColor(szName, USERCOLOR_WHO);
-			Count++;
-			pLoop = pLoop->pNext;
-		}
-		if (Count == 0) {
-			WriteChatColor("No Plugins defined.", USERCOLOR_WHO);
-		}
-		else {
-			sprintf(szName, "%d Plugin%s displayed.", Count, (Count == 1) ? "" : "s");
-			WriteChatColor(szName, USERCOLOR_WHO);
-		}
-		return;
-	}
-	if (szName[0] == 0) {
-		SyntaxError("Usage: /Plugin name [unload] [noauto], or /Plugin list");
-		return;
-	}
-
-	if (!strnicmp(szCommand, "unload", 6)) {
-		if (UnloadMQ2Plugin(szName))
-		{
-			sprintf(szBuffer, "Plugin '%s' unloaded.", szName);
-			WriteChatColor(szBuffer, USERCOLOR_DEFAULT);
-			if (!strstr(szCommand, "noauto")) {
-				SaveMQ2PluginLoadStatus(szName, false);
-			}
-
-		}
-		else
-		{
-			MacroError("Plugin '%s' not found.", szName);
-		}
-	}
-	else {
-		if (LoadMQ2Plugin(szName))
-		{
-			sprintf(szBuffer, "Plugin '%s' loaded.", szName);
-			WriteChatColor(szBuffer, USERCOLOR_DEFAULT);
-			if (stricmp(szCommand, "noauto")) {
-				SaveMQ2PluginLoadStatus(szName, true);
-			}
-		}
-		else
-		{
-			MacroError("Plugin '%s' could not be loaded.", szName);
-		}
-	}
-#else
-	WriteChatf("/plugin is disabled in this version of mq2 since its built for a TRUE BOX server.");
-#endif
-}
-#endif
 
 VOID EQDestroyHeldItemOrMoney(PSPAWNINFO pChar, PCHAR szLine)
 {
@@ -3093,19 +3122,6 @@ VOID DumpBindsCommand(PSPAWNINFO pChar, PCHAR szLine)
 	WriteChatColor("Binds dumped to file.");
 }
 
-// /squelch
-VOID SquelchCommand(PSPAWNINFO pChar, PCHAR szLine)
-{
-	if (!szLine[0])
-	{
-		SyntaxError("Usage: /squelch <command>");
-		return;
-	}
-	BOOL Temp = gFilterMQ;
-	gFilterMQ = true;
-	DoCommand(pChar, szLine);
-	gFilterMQ = Temp;
-}
 
 // /docommand
 VOID DoCommandCmd(PSPAWNINFO pChar, PCHAR szLine)
@@ -3691,16 +3707,6 @@ VOID AltAbility(PSPAWNINFO pChar, PCHAR szLine)
 //              Echos text to the chatbox
 // Usage:       /echo <text>
 // ***************************************************************************
-/*VOID Echo(PSPAWNINFO pChar, PCHAR szLine)
-{
-	CHAR szEcho[MAX_STRING] = { 0 };
-	bRunNextCommand = TRUE;
-	strcpy(szEcho, DebugHeader);
-	strcat(szEcho, " ");
-	strncat(szEcho, szLine, MAX_STRING - (strlen(DebugHeader) + 2));
-	DebugSpewNoFile("Echo - %s", szEcho);
-	WriteChatColor(szEcho, USERCOLOR_CHAT_CHANNEL);
-}*/
 VOID Echo(PSPAWNINFO pChar, PCHAR szLine)
 {
 	CHAR szEcho[MAX_STRING] = { 0 };
@@ -4234,18 +4240,7 @@ VOID AssistCmd(PSPAWNINFO pChar, PCHAR szLine)
 	gbAssistComplete = 0;
 	cmdAssist(pChar, szLine);
 }
-// ***************************************************************************
-// Function:    Invoke
-// Description: '/invoke' command
-// Purpose:     Adds the ability to invoke Methods
-// Example:		/invoke ${Target.DoAssist}
-//              will execute the DoAssist Method of the Spawn TLO
-// Author:      EqMule
-// ***************************************************************************
-VOID InvokeCmd(PSPAWNINFO pChar, PCHAR szLine)
-{
-	bRunNextCommand = TRUE;
-}
+
 // ***************************************************************************
 // Function:    SetProcessPriority
 // Description: '/setprio' command

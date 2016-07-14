@@ -362,21 +362,6 @@ bool __cdecl MQ2Initialize()
 	//from now on MQ2IC is not optional.
 	LoadMQ2Plugin("mq2ic");
 	ghmq2ic = GetModuleHandle("mq2ic.dll");
-	/*if(HMODULE hmq2ictest = GetModuleHandle("mq2ic.dll")) {
-		//do nothing but why is it loaded?
-	}
-	else {
-		LoadMQ2Plugin("mq2ic");
-		 CHAR mq2icpath[MAX_STRING]={0};
-		sprintf(mq2icpath,"%s\\mq2ic.dll",gszINIPath);
-		if (ghmq2ic = LoadLibrary(mq2icpath)) {
-			//good.
-		}
-		else {
-			MessageBox(NULL,"MQ2 wont run cause it cant find the mq2ic.dll file","Launch Error",MB_OK);
-			return false;
-		}
-	}*/
     InitializeMQ2Benchmarks();
 #ifndef ISXEQ
     InitializeParser();

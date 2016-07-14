@@ -1,3 +1,16 @@
+13 Jul 2016
+- Updated for LIVE
+- Updated for TRUEBOX
+  Yes... you can probably bypass my code thats in place to make a TRUEBOX version that
+  has all the stuff the LIVE one has, but I am appealing to your decency now.
+  Please dont. We have a good thing going with dbg now and I hate to see that ruined by someone
+  for their own personal gain. -eqmule
+- 
+- To build a TRUEBOX version of mq2, uncomment //TRUEBOX in mq2main.
+- If I find out that people are abusing this newfound power, I WILL have no other choice than
+  moving more stuff into mq2ic, please dont make me do that. I like to keep mq2 as open
+  as possible.
+
 12 Jul 2016
 - Updated for TEST
 - winter is comming.
