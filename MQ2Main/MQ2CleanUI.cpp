@@ -48,7 +48,7 @@ public:
     {
         if (!_stricmp(FullPath,"bmpwad8.s3d"))
         {
-            sprintf(Filename,"%s\\bmpwad8.s3d",gszINIPath);
+            sprintf_s(Filename,"%s\\bmpwad8.s3d",gszINIPath);
             if (_access(Filename,0)!=-1)
             {
                 return 1;
@@ -162,7 +162,7 @@ VOID NetStatusXPos(PSPAWNINFO pChar, char *szLine)
 	if (szLine[0] != '\0') {
 		gNetStatusXPos = strtol(GetArg(szArg, szLine, 1), 0, 0);
 		WriteChatf("\ayNetStatus XPos is \ax\at%d\ax", gNetStatusXPos);
-		itoa(gNetStatusXPos, szCmd, 10); WritePrivateProfileString("MacroQuest", "NetStatusXPos", szCmd, gszINIFilename);
+		_itoa_s(gNetStatusXPos, szCmd, 10); WritePrivateProfileString("MacroQuest", "NetStatusXPos", szCmd, gszINIFilename);
 	}
 	RETURN(0);
 }
@@ -182,7 +182,8 @@ VOID NetStatusYPos(PSPAWNINFO pChar, char *szLine)
 	if (szLine[0] != '\0') {
 		gNetStatusYPos = strtol(GetArg(szArg, szLine, 1), 0, 0);
 		WriteChatf("\ayNetStatus YPos is \ax\at%d\ax", gNetStatusYPos);
-		itoa(gNetStatusYPos, szCmd, 10); WritePrivateProfileString("MacroQuest", "NetStatusYPos", szCmd, gszINIFilename);
+		_itoa_s(gNetStatusYPos, szCmd, 10);
+		WritePrivateProfileString("MacroQuest", "NetStatusYPos", szCmd, gszINIFilename);
 	}
 	RETURN(0);
 }

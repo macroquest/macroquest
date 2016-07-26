@@ -606,6 +606,7 @@ DETOUR_TRAMPOLINE_EMPTY(VOID EQPlayerHook::EQPlayer_Trampoline(DWORD,DWORD,DWORD
 
 VOID InitializeMQ2Spawns()
 {
+    InitializeCriticalSection(&csPendingGrounds);
     DebugSpew("Initializing Spawn-related Hooks");
     bmUpdateSpawnSort=AddMQ2Benchmark("UpdateSpawnSort");
     bmUpdateSpawnCaptions=AddMQ2Benchmark("UpdateSpawnCaptions");
@@ -620,7 +621,6 @@ VOID InitializeMQ2Spawns()
     EzDetour(EQItemList__add_item, &EQItemListHook::AddItem_Detour, &EQItemListHook::AddItem_Trampoline);
     EzDetour(EQItemList__delete_item, &EQItemListHook::DeleteItem_Detour, &EQItemListHook::DeleteItem_Trampoline);
 
-    InitializeCriticalSection(&csPendingGrounds);
     ProcessPending=true;
     ZeroMemory(&EQP_DistArray,sizeof(EQP_DistArray));
     gSpawnCount=0;
@@ -638,7 +638,7 @@ VOID InitializeMQ2Spawns()
             else
                 CaptionColors[N].Enabled=0;
         }
-        sprintf(Name,"%s-Color",CaptionColors[N].szName);
+        sprintf_s(Name,"%s-Color",CaptionColors[N].szName);
         if (GetPrivateProfileString("Caption Colors",Name,"",Temp,MAX_STRING,gszINIFilename))
         {
             if(!sscanf_s(Temp,"%x",&CaptionColors[N].Color)) {
@@ -653,8 +653,8 @@ VOID InitializeMQ2Spawns()
         WritePrivateProfileString("Caption Colors",CaptionColors[N].szName,CaptionColors[N].Enabled?"ON":"OFF",gszINIFilename);
         if (!CaptionColors[N].ToggleOnly)
         {
-            sprintf(Temp,"%x",CaptionColors[N].Color);
-            sprintf(Name,"%s-Color",CaptionColors[N].szName);
+            sprintf_s(Temp,"%x",CaptionColors[N].Color);
+            sprintf_s(Name,"%s-Color",CaptionColors[N].szName);
             WritePrivateProfileString("Caption Colors",Name,Temp,gszINIFilename);
         }
     }
@@ -811,8 +811,8 @@ VOID CaptionColorCmd(PSPAWNINFO pChar, PCHAR szLine)
             WritePrivateProfileString("Caption Colors",CaptionColors[N].szName,CaptionColors[N].Enabled?"ON":"OFF",gszINIFilename);
             if (!CaptionColors[N].ToggleOnly)
             {
-                sprintf(Arg2,"%x",CaptionColors[N].Color);
-                sprintf(Arg1,"%s-Color",CaptionColors[N].szName);
+                sprintf_s(Arg2,"%x",CaptionColors[N].Color);
+                sprintf_s(Arg1,"%s-Color",CaptionColors[N].szName);
                 WritePrivateProfileString("Caption Colors",Arg1,Arg2,gszINIFilename);
             }
             return;

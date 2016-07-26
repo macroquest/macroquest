@@ -6,6 +6,8 @@ MacroQuest2.sln
 makefile
 makezip.bat
 mkplugin.exe
+moveitem.h
+moveitem2.h
 MQ2-API.chm
 MQ2Auth.exe
 MQ2Plugin.h

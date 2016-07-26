@@ -51,8 +51,8 @@ DWORD LoadMQ2Plugin(const PCHAR pszFilename,BOOL bCustom)
 {
     CHAR Filename[MAX_PATH]={0};
 
-    strcpy(Filename,pszFilename);
-    strlwr(Filename);
+    strcpy_s(Filename,pszFilename);
+    _strlwr_s(Filename);
     PCHAR Temp=strstr(Filename,".dll");
 	if (Temp)
         Temp[0]=0;
@@ -61,7 +61,7 @@ DWORD LoadMQ2Plugin(const PCHAR pszFilename,BOOL bCustom)
         return 0;
     }
     CHAR TheFilename[MAX_STRING]={0};
-    sprintf(TheFilename,"%s.dll",Filename);
+    sprintf_s(TheFilename,"%s.dll",Filename);
 	if(HMODULE hThemod = GetModuleHandle(TheFilename)) {
 		DebugSpew("LoadMQ2Plugin(0)(%s) already loaded",TheFilename);
 		return 2;
@@ -70,7 +70,7 @@ DWORD LoadMQ2Plugin(const PCHAR pszFilename,BOOL bCustom)
     DebugSpew("LoadMQ2Plugin(%s)",Filename);
 
     CHAR FullFilename[MAX_STRING]={0};
-    sprintf(FullFilename,"%s\\%s.dll",gszINIPath,Filename);
+    sprintf_s(FullFilename,"%s\\%s.dll",gszINIPath,Filename);
 
     if (!mq2mainstamp) {
         mq2mainstamp = checkme((char*)GetCurrentModule());
@@ -84,7 +84,7 @@ DWORD LoadMQ2Plugin(const PCHAR pszFilename,BOOL bCustom)
     }
     if (mq2mainstamp > checkme((char*)hmod)) {
         char tmpbuff[MAX_PATH];
-        sprintf(tmpbuff, "Please recompile %s -- it is out of date with respect to mq2main (%d>%d)", FullFilename, mq2mainstamp, checkme((char*)hmod));
+        sprintf_s(tmpbuff, "Please recompile %s -- it is out of date with respect to mq2main (%d>%d)", FullFilename, mq2mainstamp, checkme((char*)hmod));
         DebugSpew("%s", tmpbuff);
         MessageBoxA(NULL, tmpbuff, "Plugin Load Failed", MB_OK);
         FreeLibrary(hmod);
@@ -103,12 +103,11 @@ DWORD LoadMQ2Plugin(const PCHAR pszFilename,BOOL bCustom)
         }
         pPlugin=pPlugin->pNext;
     }
-
     pPlugin = new MQPLUGIN;
     memset(pPlugin,0,sizeof(MQPLUGIN));
 	pPlugin->bCustom=bCustom;
     pPlugin->hModule=hmod;
-    strcpy(pPlugin->szFilename,Filename);
+    strcpy_s(pPlugin->szFilename,Filename);
     pPlugin->Initialize=(fMQInitializePlugin)GetProcAddress(hmod,"InitializePlugin");
     pPlugin->Shutdown=(fMQShutdownPlugin)GetProcAddress(hmod,"ShutdownPlugin");
     pPlugin->IncomingChat=(fMQIncomingChat)GetProcAddress(hmod,"OnIncomingChat");
@@ -130,12 +129,12 @@ DWORD LoadMQ2Plugin(const PCHAR pszFilename,BOOL bCustom)
     if (ftmp)
 		pPlugin->fpVersion = *ftmp;
     else pPlugin->fpVersion = 1.0;
-
     if (pPlugin->Initialize)
         pPlugin->Initialize();
     PluginCmdSort();
-    if (pPlugin->SetGameState)
-        pPlugin->SetGameState(gGameState);
+	if (pPlugin->SetGameState) {
+		pPlugin->SetGameState(gGameState);
+	}
     if (pPlugin->AddSpawn && gGameState==GAMESTATE_INGAME)
     {
         PSPAWNINFO pSpawn=(PSPAWNINFO)pSpawnList;
@@ -161,7 +160,7 @@ DWORD LoadMQ2Plugin(const PCHAR pszFilename,BOOL bCustom)
         pPlugins->pLast=pPlugin;
     pPlugins=pPlugin;
 
-    sprintf(FullFilename,"%s-AutoExec",Filename);
+    sprintf_s(FullFilename,"%s-AutoExec",Filename);
     LoadCfgFile(FullFilename,false);
     return 1;
 }
@@ -210,8 +209,8 @@ BOOL UnloadMQ2Plugin(const PCHAR pszFilename)
 {
     DebugSpew("UnloadMQ2Plugin");
     CHAR Filename[MAX_PATH]={0};
-    strcpy(Filename,pszFilename);
-    strlwr(Filename);
+    strcpy_s(Filename,pszFilename);
+    _strlwr_s(Filename);
     PCHAR Temp=strstr(Filename,".dll");
     if (Temp)
         Temp[0]=0;
@@ -272,7 +271,7 @@ VOID SaveMQ2PluginLoadStatus(char*Name, bool bLoad)
     CAutoLock Lock(&gPluginCS);
 
     CHAR MainINI[MAX_STRING] = {0};
-    sprintf(MainINI,"%s\\macroquest.ini",gszINIPath);
+    sprintf_s(MainINI,"%s\\macroquest.ini",gszINIPath);
 	DWORD dwAttrs = 0,bChangedfileattribs = 0;
 	if ((dwAttrs = GetFileAttributes(MainINI))!=INVALID_FILE_ATTRIBUTES) {
 		if(dwAttrs & FILE_ATTRIBUTE_READONLY) {
@@ -307,7 +306,7 @@ VOID InitializeMQ2Plugins()
     CHAR PluginList[MAX_STRING*10] = {0};
     CHAR szBuffer[MAX_STRING] = {0};
     CHAR MainINI[MAX_STRING] = {0};
-    sprintf(MainINI,"%s\\macroquest.ini",gszINIPath);
+    sprintf_s(MainINI,"%s\\macroquest.ini",gszINIPath);
     GetPrivateProfileString("Plugins",NULL,"",PluginList,MAX_STRING*10,MainINI);
     PCHAR pPluginList = PluginList;
 	BOOL loadvalue = 0;
@@ -323,7 +322,7 @@ VOID InitializeMQ2Plugins()
         pPluginList+=strlen(pPluginList)+1;
     }
 	//ok now check if user has a CustomPlugin.ini and load those as well...
-	sprintf(MainINI,"%s\\CustomPlugins.ini",gszINIPath);
+	sprintf_s(MainINI,"%s\\CustomPlugins.ini",gszINIPath);
     GetPrivateProfileString("Plugins",NULL,"",PluginList,MAX_STRING*10,MainINI);
     pPluginList = PluginList;
     while (pPluginList[0]!=0) {
@@ -524,13 +523,13 @@ DebugSpew("PluginsSetGameState( %s server)",EQADDR_SERVERNAME);
             if (PCHARINFO pCharInfo=GetCharInfo())
             {
 DebugSpew("PluginsSetGameState( %s name)",pCharInfo->Name);
-                sprintf(szBuffer,"%s_%s",EQADDR_SERVERNAME,pCharInfo->Name);
+                sprintf_s(szBuffer,"%s_%s",EQADDR_SERVERNAME,pCharInfo->Name);
                 LoadCfgFile(szBuffer,false);
             }
             if (PCHARINFO2 pCharInfo2=GetCharInfo2())
             {
 DebugSpew("PluginsSetGameState( %d class)",pCharInfo2->Class);
-                sprintf(szBuffer,"%s",GetClassDesc(pCharInfo2->Class));
+                sprintf_s(szBuffer,"%s",GetClassDesc(pCharInfo2->Class));
                 LoadCfgFile(szBuffer,false);
             }
         }

@@ -89,7 +89,7 @@ VOID MapHideCmd(PSPAWNINFO pChar, PCHAR szLine);
 VOID MapShowCmd(PSPAWNINFO pChar, PCHAR szLine);
 VOID MapNames(PSPAWNINFO pChar, PCHAR szLine);
 VOID MapClickCommand(PSPAWNINFO pChar, PCHAR szLine);
-PCHAR FormatMarker(PCHAR szLine, PCHAR szDest);
+PCHAR FormatMarker(PCHAR szLine, PCHAR szDest, SIZE_T BufferSize);
 DWORD TypeToMapfilter(PSPAWNINFO pChar);
 
 

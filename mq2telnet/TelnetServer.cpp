@@ -1,6 +1,7 @@
 //#define DEBUG_TRY
 
 #include <winsock2.h>
+#include <Ws2tcpip.h>
 #include "WinTelnet.h"
 #include "../MQ2Plugin.h"
 #include "telnetserver.h"
@@ -14,8 +15,8 @@ SOCKET Listener;
 bool bListening;
 bool bKillThread;
 bool bThreading;
-PCHATBUF Sends;
-PCHATBUF Commands;
+PCHATBUF Sends = 0;
+PCHATBUF Commands = 0;
 BOOL LocalOnly=true;
 BOOL ANSI=true;
 CHAR TelnetLoginPrompt[MAX_STRING]={0};
@@ -28,9 +29,10 @@ DWORD WINAPI ProcessingThread(LPVOID lpParam)
     CTelnetServer *server=(CTelnetServer*)lpParam;
     EnterCriticalSection(&ProcessingCS);
     bThreading=true;
-    char Buffer[4096];
+	char Buffer[4096] = { 0 };
     SOCKET incoming;
-    while(!bKillThread)
+ 	CHAR szAddr[MAX_STRING] = { 0 };
+	while(!bKillThread)
     {
         // process new connections
         if (bListening)
@@ -44,7 +46,10 @@ DWORD WINAPI ProcessingThread(LPVOID lpParam)
                     int ret;
                     ret = getpeername(incoming,(sockaddr*)&addr,&namesize);
                 }
-                if ((bKillThread) || (ret==SOCKET_ERROR) || (LocalOnly && !strcmp("127.0.0.1",inet_ntoa(addr.sin_addr)))) {
+				inet_ntop(AF_INET, &addr.sin_addr, szAddr, sizeof(szAddr));
+
+				//PCHAR paddr = inet_ntoa(addr.sin_addr);
+                if ((bKillThread) || (ret==SOCKET_ERROR) || (LocalOnly && !strcmp("127.0.0.1",szAddr))) {
                     DebugSpewAlways("ListenThread: Closing new connection...");
                     closesocket(incoming);
                     continue;
@@ -69,13 +74,13 @@ DWORD WINAPI ProcessingThread(LPVOID lpParam)
         // process sends
         EnterCriticalSection(&BufferCS);
         _TELNET *Conn=Connections;
-        CHAR szText[MAX_STRING*25] = {0};
+		CHAR szText[MAX_STRING * 25] = { 0 };
         PCHATBUF pBuff=Sends;
         while(pBuff)
         {
             PCHATBUF NextChat=pBuff->pNext;
-            strcat(szText,pBuff->szText);
-            strcat(szText,"\r\n");
+            strcat_s(szText,pBuff->szText);
+            strcat_s(szText,"\r\n");
             free(pBuff);
             pBuff=NextChat;
         }
@@ -135,7 +140,7 @@ DWORD WINAPI ProcessingThread(LPVOID lpParam)
             {
                 memset(Buffer,0,4096);
                 if (isize>2047) isize=2047;
-                strcpy(Buffer,Conn->Buffer);
+                strcpy_s(Buffer,Conn->Buffer);
                 isize=Conn->connection->Read(&Buffer[strlen(Buffer)],isize);
                 int begin=0;
                 for (int i = 0 ; Buffer[i] ; i++)
@@ -146,17 +151,17 @@ DWORD WINAPI ProcessingThread(LPVOID lpParam)
                         if (i-begin)
                         {
                             // we do. make a command out of it.
-                            PCHATBUF newcmd = (PCHATBUF)malloc(sizeof(CHATBUF));
+                            PCHATBUF newcmd = (PCHATBUF)calloc(1,sizeof(CHATBUF));
                             if (newcmd) {
                                 DebugSpew("MQ2Telnet processing input");
-                                memset(newcmd,0,sizeof(CHATBUF));
+                                //memset(newcmd,0,sizeof(CHATBUF));
                                 memcpy(newcmd->szText,&Buffer[begin],i-begin);
                                 DebugSpew("MQ2Telnet: received '%s'",newcmd->szText);
                                 newcmd->pNext = NULL;
                                 if (!Conn->Received) {
                                     Conn->Received = newcmd;
                                 } else {
-                                    PCHATBUF pCurrent;
+                                    PCHATBUF pCurrent = 0;
                                     for (pCurrent = Conn->Received;pCurrent->pNext;pCurrent=pCurrent->pNext);
                                     pCurrent->pNext = newcmd;
                                 }
@@ -165,7 +170,9 @@ DWORD WINAPI ProcessingThread(LPVOID lpParam)
                         begin=i+1;
                     }
                 }
-                strcpy(Conn->Buffer,&Buffer[begin]);
+				if (isize) {
+					strcpy_s(Conn->Buffer, &Buffer[begin]);
+				}
             }
 
 
@@ -176,9 +183,9 @@ DWORD WINAPI ProcessingThread(LPVOID lpParam)
                     EnterCriticalSection(&CommandCS);
                     // Add command to list
 
-                    PCHATBUF pChat = (PCHATBUF)malloc(sizeof(CHATBUF));
+                    PCHATBUF pChat = (PCHATBUF)calloc(1,sizeof(CHATBUF));
                     if (pChat) {
-                        strcpy(pChat->szText,Conn->Received->szText);
+                        strcpy_s(pChat->szText,Conn->Received->szText);
                         pChat->pNext = NULL;
                         if (!Commands) {
                             Commands = pChat;
@@ -194,12 +201,12 @@ DWORD WINAPI ProcessingThread(LPVOID lpParam)
                 else if (Conn->State==TS_GETLOGIN)
                 {
                     // process user name
-                    char pwd[32]={0};
+					char pwd[32] = { 0 };
                     if (server->IsValidUser(Conn->Received->szText,pwd))
                     {
                         Conn->State=TS_SENDPASSWORD; // send password prompt
-                        strcpy(Conn->Username,Conn->Received->szText);
-                        strcpy(Conn->Password,pwd);
+                        strcpy_s(Conn->Username,Conn->Received->szText);
+                        strcpy_s(Conn->Password,pwd);
                     }
                     else
                     {
@@ -326,7 +333,7 @@ void CTelnetServer::Broadcast(char *String)
     EnterCriticalSection(&BufferCS);
     PCHATBUF pChat = (PCHATBUF)malloc(sizeof(CHATBUF));
     if (pChat) {
-        strcpy(pChat->szText,String);
+        strcpy_s(pChat->szText,String);
         pChat->pNext = NULL;
         if (!Sends) {
             Sends = pChat;

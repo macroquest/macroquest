@@ -277,7 +277,7 @@ PLUGIN_API VOID InitializePlugin(VOID)
 	CHAR tmp_1[MAX_STRING] = { 0 };
 	CHAR tmp_2[MAX_STRING] = { 0 };
 	for (i = 0; MapFilterOptions[i].szName; i++) {
-		sprintf(szBuffer, "%s-Color", MapFilterOptions[i].szName);
+		sprintf_s(szBuffer, "%s-Color", MapFilterOptions[i].szName);
 		MapFilterOptions[i].Enabled = GetPrivateProfileInt("Map Filters", MapFilterOptions[i].szName, MapFilterOptions[i].Default, INIFileName);
 		MapFilterOptions[i].Color = GetPrivateProfileInt("Map Filters", szBuffer, MapFilterOptions[i].DefaultColor, INIFileName) | 0xFF000000;
 		sprintf_s(tmp_1, "%s-Size", MapFilterOptions[i].szName);
@@ -302,7 +302,7 @@ PLUGIN_API VOID InitializePlugin(VOID)
 
 	for (i = 1; i<16; i++)
 	{
-		sprintf(szBuffer, "KeyCombo%d", i);
+		sprintf_s(szBuffer, "KeyCombo%d", i);
 		GetPrivateProfileString("Right Click", szBuffer, MapSpecialClickString[i], MapSpecialClickString[i], MAX_STRING, INIFileName);
 	}
 

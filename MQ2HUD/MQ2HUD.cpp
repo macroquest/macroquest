@@ -41,8 +41,9 @@ bool bUseFontSize = false;
 
 BOOL Stat(PCHAR Filename, struct _stat &Dest)
 {
-    int client = _open(Filename,_O_RDONLY);
-    if (client == -1) {
+	int client = 0;
+	errno_t err = _sopen_s(&client, Filename, _O_RDONLY,_SH_DENYNO, _S_IREAD | _S_IWRITE);
+    if (err) {
         return FALSE;
     }
     _fstat(client,&Dest);
@@ -141,7 +142,7 @@ VOID AddElement(PCHAR IniString)
     pElement->Color=Color.ARGB;
     pElement->X=X;
     pElement->Y=Y;
-    strcpy(pElement->Text,IniString);
+    strcpy_s(pElement->Text,IniString);
     pElement->Size=Size;
 
     DebugSpew("New element '%s' in color %X",pElement->Text,pElement->Color);
@@ -170,7 +171,7 @@ VOID LoadElements()
     if (gGameState==GAMESTATE_INGAME) {
         if (bClassHUD && ((ppCharData) && (pCharData))) {
 			if (PCHARINFO2 pChar2 = GetCharInfo2()) {
-				sprintf(ClassDesc, "%s", GetClassDesc(pChar2->Class));
+				sprintf_s(ClassDesc, "%s", GetClassDesc(pChar2->Class));
 				GetPrivateProfileString(ClassDesc, NULL, "", ElementList, MAX_STRING * 10, INIFileName);
 				PCHAR pElementList = ElementList;
 				while (pElementList[0] != 0) {
@@ -183,7 +184,7 @@ VOID LoadElements()
 			}
         }
         if (bZoneHUD && (pZoneInfo)) {
-            sprintf(ZoneName,"%s",((PZONEINFO)pZoneInfo)->LongName);
+            sprintf_s(ZoneName,"%s",((PZONEINFO)pZoneInfo)->LongName);
             GetPrivateProfileString(ZoneName,NULL,"",ElementList,MAX_STRING*10,INIFileName);
             PCHAR pElementList = ElementList;
             while (pElementList[0]!=0) {
@@ -199,7 +200,14 @@ VOID LoadElements()
     if (!Stat(INIFileName,LastRead))
         ZeroMemory(&LastRead,sizeof(struct _stat));
 }
-
+template <unsigned int _Size>LPSTR SafeItoa(int _Value,char(&_Buffer)[_Size], int _Radix)
+{
+	errno_t err = _itoa_s(_Value, _Buffer, _Radix);
+	if (!err) {
+		return _Buffer;
+	}
+	return "";
+}
 VOID HandleINI()
 {
     CHAR szBuffer[MAX_STRING] = {0};
@@ -209,16 +217,16 @@ VOID HandleINI()
     CheckINI = GetPrivateProfileInt(HUDSection,"CheckINI",10,INIFileName);
     CheckINI = CheckINI < 10 ? 10 : CheckINI;
     GetPrivateProfileString(HUDSection,"UpdateInBackground","on",szBuffer,MAX_STRING,INIFileName);
-    bBGUpdate = strnicmp(szBuffer,"on",2)?false:true;
+    bBGUpdate = _strnicmp(szBuffer,"on",2)?false:true;
     GetPrivateProfileString(HUDSection,"ClassHUD","on",szBuffer,MAX_STRING,INIFileName);
-    bClassHUD = strnicmp(szBuffer,"on",2)?false:true;
+    bClassHUD = _strnicmp(szBuffer,"on",2)?false:true;
     GetPrivateProfileString(HUDSection,"ZoneHUD","on",szBuffer,MAX_STRING,INIFileName);
-    bZoneHUD = strnicmp(szBuffer,"on",2)?false:true;
+    bZoneHUD = _strnicmp(szBuffer,"on",2)?false:true;
     GetPrivateProfileString("MQ2HUD","UseFontSize","off",szBuffer,MAX_STRING,INIFileName);
-    bUseFontSize = strnicmp(szBuffer,"on",2)?false:true;
+    bUseFontSize = _strnicmp(szBuffer,"on",2)?false:true;
     // Write the SkipParse and CheckINI section, in case they didn't have one
-    WritePrivateProfileString(HUDSection,"SkipParse",itoa(SkipParse,szBuffer,10),INIFileName);
-    WritePrivateProfileString(HUDSection,"CheckINI",itoa(CheckINI,szBuffer,10),INIFileName);
+    WritePrivateProfileString(HUDSection,"SkipParse",SafeItoa(SkipParse,szBuffer,10),INIFileName);
+    WritePrivateProfileString(HUDSection,"CheckINI",SafeItoa(CheckINI,szBuffer,10),INIFileName);
     WritePrivateProfileString(HUDSection,"UpdateInBackground",bBGUpdate?"on":"off",INIFileName);
     WritePrivateProfileString(HUDSection,"ClassHUD",bClassHUD?"on":"off",INIFileName);
     WritePrivateProfileString(HUDSection,"ZoneHUD",bZoneHUD?"on":"off",INIFileName);
@@ -227,9 +235,9 @@ VOID HandleINI()
     LoadElements();
 }
 
-VOID DefaultHUD(PSPAWNINFO pChar, PCHAR szline)
+VOID DefaultHUD(PSPAWNINFO pChar, PCHAR szLine)
 {
-    strcpy(HUDNames, "Elements");
+    strcpy_s(HUDNames, "Elements");
     HandleINI();
 }
 
@@ -244,13 +252,13 @@ VOID LoadHUD(PSPAWNINFO pChar, PCHAR szLine)
             WriteChatf("Hud \"%s\" already loaded",szLine);
             return;
         }
-        if (HUDTemp[0]) strcat(HUDTemp,",");
-        strcat(HUDTemp,CurrentHUD);
+        if (HUDTemp[0]) strcat_s(HUDTemp,",");
+        strcat_s(HUDTemp,CurrentHUD);
         GetArg(CurrentHUD,HUDNames,++argn,0,0,0,',');
     }
-    if (HUDTemp[0]) strcat(HUDTemp,",");
-    strcat(HUDTemp,szLine);
-    strcpy(HUDNames,HUDTemp);
+    if (HUDTemp[0]) strcat_s(HUDTemp,",");
+    strcat_s(HUDTemp,szLine);
+    strcpy_s(HUDNames,HUDTemp);
     HandleINI();
 }
 
@@ -265,12 +273,12 @@ VOID UnLoadHUD(PSPAWNINFO pChar, PCHAR szLine)
         if (!strcmp(CurrentHUD,szLine)) {
             found=true;
         } else {
-            if (HUDTemp[0]) strcat(HUDTemp,",");
-            strcat(HUDTemp,CurrentHUD);
+            if (HUDTemp[0]) strcat_s(HUDTemp,",");
+            strcat_s(HUDTemp,CurrentHUD);
         }
         GetArg(CurrentHUD,HUDNames,++argn,0,0,0,',');
     }
-    strcpy(HUDNames,HUDTemp);
+    strcpy_s(HUDNames,HUDTemp);
 
     if (!found) WriteChatf("Hud \"%s\" not loaded",szLine);
 
@@ -384,9 +392,9 @@ PLUGIN_API VOID ShutdownPlugin(VOID)
 PLUGIN_API VOID SetGameState(DWORD GameState)
 {
     if (GameState==GAMESTATE_INGAME)
-        sprintf(HUDSection,"%s_%s",GetCharInfo()->Name,EQADDR_SERVERNAME);
+        sprintf_s(HUDSection,"%s_%s",GetCharInfo()->Name,EQADDR_SERVERNAME);
     else 
-        strcpy(HUDSection,"MQ2HUD");
+        strcpy_s(HUDSection,"MQ2HUD");
     GetPrivateProfileString(HUDSection,"Last","Elements",HUDNames,MAX_STRING,INIFileName);
     HandleINI();
 }
@@ -449,10 +457,10 @@ PLUGIN_API VOID OnDrawHUD(VOID)
                 Y=SX+pElement->Y;
             }
             if (!(N%SkipParse)) {
-                strcpy(pElement->PreParsed,pElement->Text);
+                strcpy_s(pElement->PreParsed,pElement->Text);
                 ParseMacroParameter(GetCharInfo()->pSpawn,pElement->PreParsed);
             }
-            strcpy(szBuffer,pElement->PreParsed);
+            strcpy_s(szBuffer,pElement->PreParsed);
             if (szBuffer[0] && strcmp(szBuffer,"NULL"))
             {
                 DrawHUDText(szBuffer,X,Y,pElement->Color,pElement->Size);

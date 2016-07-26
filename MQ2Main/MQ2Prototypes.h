@@ -21,7 +21,8 @@ namespace MQ2Prototypes
 	typedef DWORD(__stdcall *fEQScreenItem)(DWORD, DWORD, DWORD);
 	typedef DWORD(__stdcall *fEQScreenSpawn)(DWORD, DWORD);
 	typedef PCHAR(__stdcall *fEQNewUIINI)(VOID);
-	typedef VOID(__cdecl *fEQCommand)(PSPAWNINFO, PCHAR);
+	typedef VOID(__cdecl *fEQCommand)(PSPAWNINFO, PCHAR Buffer);
+	typedef VOID(__cdecl *fMQCommand)(PSPAWNINFO, PCHAR Buffer,SIZE_T BuffLen);
 	typedef VOID(__cdecl *fEQMemSpell)(DWORD, DWORD);
 	typedef VOID(__cdecl *fEQLoadSpells)(PSPELLFAVORITE, DWORD);
 	typedef VOID(__cdecl *fEQSelectItem)(int, DWORD);//public: void __thiscall CMerchantWnd::SelectBuySellSlot(int,class CTextureAnimation *)

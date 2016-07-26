@@ -63,10 +63,10 @@ VOID ListMacros(PSPAWNINFO pChar, PCHAR szLine)
 	CHAR szFilename[MAX_STRING] = { 0 };
 	CHAR szName[100][MAX_STRING] = { 0 };
 	if (szLine[0] != 0) {
-		sprintf(szFilename, "%s\\*%s*.*", gszMacroPath, szLine);
+		sprintf_s(szFilename, "%s\\*%s*.*", gszMacroPath, szLine);
 	}
 	else {
-		sprintf(szFilename, "%s\\*.*", gszMacroPath);
+		sprintf_s(szFilename, "%s\\*.*", gszMacroPath);
 	}
 
 
@@ -82,7 +82,7 @@ VOID ListMacros(PSPAWNINFO pChar, PCHAR szLine)
 
 	while (!fFinished)
 	{
-		strcat(szName[Count], FileData.cFileName);
+		strcat_s(szName[Count], FileData.cFileName);
 		Count++;
 		if (Count>99) fFinished = TRUE;
 
@@ -95,9 +95,9 @@ VOID ListMacros(PSPAWNINFO pChar, PCHAR szLine)
 	for (a = Count - 1; a>0; a--) {
 		for (b = 0; b<a; b++) {
 			if (szName[b]>szName[b + 1]) {
-				strcat(szFilename, szName[b]);
-				strcat(szName[b], szName[b + 1]);
-				strcat(szName[b + 1], szFilename);
+				strcat_s(szFilename, szName[b]);
+				strcat_s(szName[b], szName[b + 1]);
+				strcat_s(szName[b + 1], szFilename);
 			}
 		}
 	}
@@ -117,11 +117,11 @@ VOID ListMacros(PSPAWNINFO pChar, PCHAR szLine)
 VOID SetError(PSPAWNINFO pChar, PCHAR szLine)
 {
 	bRunNextCommand = TRUE;
-	if ((szLine[0] == 0) || (stricmp(szLine, "clear"))) {
+	if ((szLine[0] == 0) || (_stricmp(szLine, "clear"))) {
 		gszLastNormalError[0] = 0; // QUIT SETTING THIS MANUALLY, USE MacroError or FatalError!
 	}
 	else {
-		strcpy(gszLastNormalError, szLine);
+		strcpy_s(gszLastNormalError, szLine);
 	}
 }
 
@@ -140,15 +140,15 @@ VOID SuperWho(PSPAWNINFO pChar, PCHAR szLine)
 	BOOL Parsing = TRUE;
 	BOOL bConColor = 0;
 	SEARCHSPAWN SearchSpawn;
-
-	_strlwr(strcpy(szLLine, szLine));
+	strcpy_s(szLLine, szLine);
+	_strlwr_s(szLLine);
 	ClearSearchSpawn(&SearchSpawn);
 	SearchSpawn.SpawnType = PC;
 
 
 	if ((!_stricmp(szLine, "all")) ||
-		(!strnicmp(szLine, "all ", 4)) ||
-		(!strnicmp(szLine + strlen(szLine) - 4, " all", 4)) ||
+		(!_strnicmp(szLine, "all ", 4)) ||
+		(!_strnicmp(szLine + strlen(szLine) - 4, " all", 4)) ||
 		(strstr(szLine, " all ")))
 	{
 		cmdWho(pChar, szLine);
@@ -239,7 +239,7 @@ VOID MacroPause(PSPAWNINFO pChar, PCHAR szLine)
 		}
 
 		WritePrivateProfileString("MacroQuest", "MQPauseOnChat", (gMQPauseOnChat) ? "1" : "0", gszINIFilename);
-		sprintf(szBuffer, "Macros will %spause while in chat mode.", (gMQPauseOnChat) ? "" : "not ");
+		sprintf_s(szBuffer, "Macros will %spause while in chat mode.", (gMQPauseOnChat) ? "" : "not ");
 		WriteChatColor(szBuffer, USERCOLOR_DEFAULT);
 		return;
 	}
@@ -262,10 +262,10 @@ VOID MacroPause(PSPAWNINFO pChar, PCHAR szLine)
 		Pause = !gMacroPause;
 	}
 	if (gMacroPause == Pause) {
-		sprintf(szBuffer, "Macro is already %s.", (Pause) ? "paused" : "running");
+		sprintf_s(szBuffer, "Macro is already %s.", (Pause) ? "paused" : "running");
 	}
 	else {
-		sprintf(szBuffer, "Macro is %s.", (Pause) ? "paused" : "running again");
+		sprintf_s(szBuffer, "Macro is %s.", (Pause) ? "paused" : "running again");
 		gMacroPause = Pause;
 	}
 	WriteChatColor(szBuffer, USERCOLOR_DEFAULT);
@@ -291,16 +291,16 @@ VOID KeepKeys(PSPAWNINFO pChar, PCHAR szLine)
 	};
 
 	if (szArg[0] == 0) {
-		sprintf(szCmd, "Auto-Keep Keys: %s", szKeepKeys[gKeepKeys]);
+		sprintf_s(szCmd, "Auto-Keep Keys: %s", szKeepKeys[gKeepKeys]);
 		WriteChatColor(szCmd, USERCOLOR_DEFAULT);
 		return;
 	}
 	for (Command = 0; szKeepKeys[Command]; Command++) {
 		if (!_stricmp(szArg, szKeepKeys[Command])) {
 			gKeepKeys = Command;
-			sprintf(szCmd, "Auto-Keep Keys changed to: %s", szKeepKeys[gKeepKeys]);
+			sprintf_s(szCmd, "Auto-Keep Keys changed to: %s", szKeepKeys[gKeepKeys]);
 			WriteChatColor(szCmd, USERCOLOR_DEFAULT);
-			itoa(gKeepKeys, szCmd, 10); WritePrivateProfileString("MacroQuest", "KeepKeys", szCmd, gszINIFilename);
+			_itoa_s(gKeepKeys, szCmd, 10); WritePrivateProfileString("MacroQuest", "KeepKeys", szCmd, gszINIFilename);
 			return;
 		}
 	}
@@ -324,7 +324,7 @@ VOID PluginCommand(PSPAWNINFO pChar, PCHAR szLine)
 		WriteChatColor("Active Plugins", USERCOLOR_WHO);
 		WriteChatColor("--------------------------", USERCOLOR_WHO);
 		while (pLoop) {
-			sprintf(szName, "%s", pLoop->szFilename);
+			sprintf_s(szName, "%s", pLoop->szFilename);
 			WriteChatColor(szName, USERCOLOR_WHO);
 			Count++;
 			pLoop = pLoop->pNext;
@@ -333,7 +333,7 @@ VOID PluginCommand(PSPAWNINFO pChar, PCHAR szLine)
 			WriteChatColor("No Plugins defined.", USERCOLOR_WHO);
 		}
 		else {
-			sprintf(szName, "%d Plugin%s displayed.", Count, (Count == 1) ? "" : "s");
+			sprintf_s(szName, "%d Plugin%s displayed.", Count, (Count == 1) ? "" : "s");
 			WriteChatColor(szName, USERCOLOR_WHO);
 		}
 		return;
@@ -343,10 +343,10 @@ VOID PluginCommand(PSPAWNINFO pChar, PCHAR szLine)
 		return;
 	}
 
-	if (!strnicmp(szCommand, "unload", 6)) {
+	if (!_strnicmp(szCommand, "unload", 6)) {
 		if (UnloadMQ2Plugin(szName))
 		{
-			sprintf(szBuffer, "Plugin '%s' unloaded.", szName);
+			sprintf_s(szBuffer, "Plugin '%s' unloaded.", szName);
 			WriteChatColor(szBuffer, USERCOLOR_DEFAULT);
 			if (!strstr(szCommand, "noauto")) {
 				SaveMQ2PluginLoadStatus(szName, false);
@@ -361,9 +361,9 @@ VOID PluginCommand(PSPAWNINFO pChar, PCHAR szLine)
 	else {
 		if (LoadMQ2Plugin(szName))
 		{
-			sprintf(szBuffer, "Plugin '%s' loaded.", szName);
+			sprintf_s(szBuffer, "Plugin '%s' loaded.", szName);
 			WriteChatColor(szBuffer, USERCOLOR_DEFAULT);
-			if (stricmp(szCommand, "noauto")) {
+			if (_stricmp(szCommand, "noauto")) {
 				SaveMQ2PluginLoadStatus(szName, true);
 			}
 		}
@@ -428,7 +428,7 @@ VOID Items(PSPAWNINFO pChar, PCHAR szLine)
 
 		_strlwr_s(szLineLwr);
 		while (pItem) {
-			GetFriendlyNameForGroundItem(pItem, szName);
+			GetFriendlyNameForGroundItem(pItem, szName, sizeof(szName));
 			strcpy_s(szBuffer, szName);
 			_strlwr_s(szBuffer);
 			DebugSpew("   Item found - %d: DropID %d %s (%s)", pItem->ID, pItem->DropID, szName, pItem->Name);
@@ -454,10 +454,10 @@ VOID Items(PSPAWNINFO pChar, PCHAR szLine)
 		WriteChatColor("Items on the ground:", USERCOLOR_DEFAULT);
 		WriteChatColor("---------------------------", USERCOLOR_DEFAULT);
 		for (std::map<FLOAT, iteminfo>::iterator i = itemsmap.begin(); i != itemsmap.end(); i++) {
-			sprintf(szBuffer, "%s: %1.2f away to the %s", i->second.Name.c_str(), i->first, szHeading[i->second.angle]);
+			sprintf_s(szBuffer, "%s: %1.2f away to the %s", i->second.Name.c_str(), i->first, szHeading[i->second.angle]);
 			WriteChatColor(szBuffer, USERCOLOR_DEFAULT);
 		}
-		sprintf(szBuffer, "%d item%s found.", itemsmap.size(), (itemsmap.size() == 1) ? "" : "s");
+		sprintf_s(szBuffer, "%d item%s found.", itemsmap.size(), (itemsmap.size() == 1) ? "" : "s");
 		WriteChatColor(szBuffer, USERCOLOR_DEFAULT);
 	}
 }
@@ -496,11 +496,11 @@ VOID ItemTarget(PSPAWNINFO pChar, PCHAR szLine)
 		pGroundTarget = NULL;
 		SPAWNINFO tSpawn = { 0 };
 		while (pItem) {
-			GetFriendlyNameForGroundItem(pItem, szName);
-			if (((szLine[0] == 0) || (!strnicmp(szName, Arg1, strlen(Arg1)))) && ((gZFilter >= 10000.0f) || ((pItem->Z <= pChar->Z + gZFilter) && (pItem->Z >= pChar->Z - gZFilter)))) {
+			GetFriendlyNameForGroundItem(pItem, szName, sizeof(szName));
+			if (((szLine[0] == 0) || (!_strnicmp(szName, Arg1, strlen(Arg1)))) && ((gZFilter >= 10000.0f) || ((pItem->Z <= pChar->Z + gZFilter) && (pItem->Z >= pChar->Z - gZFilter)))) {
 				ZeroMemory(&tSpawn, sizeof(tSpawn));
-				strcpy(tSpawn.Name, szName);
-				strcpy(tSpawn.DisplayedName, szName);
+				strcpy_s(tSpawn.Name, szName);
+				strcpy_s(tSpawn.DisplayedName, szName);
 				tSpawn.Y = pItem->Y;
 				tSpawn.X = pItem->X;
 				tSpawn.Z = pItem->pSwitch->Z;
@@ -521,9 +521,9 @@ VOID ItemTarget(PSPAWNINFO pChar, PCHAR szLine)
 		}
 	}
 	if (EnviroTarget.DisplayedName[0] != 0) {
-		sprintf(szBuffer, "Item '%s' targeted.", EnviroTarget.DisplayedName);
+		sprintf_s(szBuffer, "Item '%s' targeted.", EnviroTarget.DisplayedName);
 		WriteChatColor(szBuffer, USERCOLOR_DEFAULT);
-		if (stricmp(Arg2, "notarget") && ppTarget && 0)
+		if (_stricmp(Arg2, "notarget") && ppTarget && 0)
 			pTarget = (EQPlayer*)&EnviroTarget;
 	}
 	else {
@@ -589,10 +589,10 @@ VOID Doors(PSPAWNINFO pChar, PCHAR szLine)
 		WriteChatColor("Doors:", USERCOLOR_DEFAULT);
 		WriteChatColor("---------------------------", USERCOLOR_DEFAULT);
 		for (std::map<FLOAT, doorinfo>::iterator i = doorsmap.begin(); i != doorsmap.end(); i++) {
-			sprintf(szBuffer, "%d: %s: %1.2f away to the %s", i->second.ID, i->second.Name.c_str(), i->first, szHeading[i->second.angle]);
+			sprintf_s(szBuffer, "%d: %s: %1.2f away to the %s", i->second.ID, i->second.Name.c_str(), i->first, szHeading[i->second.angle]);
 			WriteChatColor(szBuffer, USERCOLOR_DEFAULT);
 		}
-		sprintf(szBuffer, "%d door%s found.", doorsmap.size(), (doorsmap.size() == 1) ? "" : "s");
+		sprintf_s(szBuffer, "%d door%s found.", doorsmap.size(), (doorsmap.size() == 1) ? "" : "s");
 		WriteChatColor(szBuffer, USERCOLOR_DEFAULT);
 	}
 }
@@ -653,14 +653,14 @@ VOID DoorTarget(PSPAWNINFO pChar, PCHAR szLine)
 		strcpy_s(szSearch, Arg1);
 		for (Count = 0; Count<pDoorTable->NumEntries; Count++) {
 			if (((szSearch[0] == 0) ||
-				(!strnicmp(pDoorTable->pDoor[Count]->Name, szSearch, strlen(szSearch)))) &&
+				(!_strnicmp(pDoorTable->pDoor[Count]->Name, szSearch, strlen(szSearch)))) &&
 				((gZFilter >= 10000.0f) ||
 					((pDoorTable->pDoor[Count]->Z <= pChar->Z + gZFilter) &&
 						(pDoorTable->pDoor[Count]->Z >= pChar->Z - gZFilter)))) {
 				SPAWNINFO tSpawn;
 				ZeroMemory(&tSpawn, sizeof(tSpawn));
-				strcpy(tSpawn.Name, pDoorTable->pDoor[Count]->Name);
-				strcpy(tSpawn.DisplayedName, pDoorTable->pDoor[Count]->Name);
+				strcpy_s(tSpawn.Name, pDoorTable->pDoor[Count]->Name);
+				strcpy_s(tSpawn.DisplayedName, pDoorTable->pDoor[Count]->Name);
 				tSpawn.Y = pDoorTable->pDoor[Count]->Y;
 				tSpawn.X = pDoorTable->pDoor[Count]->X;
 				tSpawn.Z = pDoorTable->pDoor[Count]->Z;
@@ -680,10 +680,10 @@ VOID DoorTarget(PSPAWNINFO pChar, PCHAR szLine)
 
 
 	if (pDoorTarget && DoorEnviroTarget.Name[0] != '\0') {
-		sprintf(szBuffer, "Door %d '%s' targeted.", pDoorTarget->ID, DoorEnviroTarget.Name);
+		sprintf_s(szBuffer, "Door %d '%s' targeted.", pDoorTarget->ID, DoorEnviroTarget.Name);
 		WriteChatColor(szBuffer, USERCOLOR_DEFAULT);
 		//DO NOT mess with the pTarget here doors should not ever be targeted...
-		//if (stricmp(Arg2,"notarget") && ppTarget && 0)
+		//if (_stricmp(Arg2,"notarget") && ppTarget && 0)
 		//	pTarget = (EQPlayer*)&DoorEnviroTarget;
 	}
 	else {
@@ -710,7 +710,7 @@ VOID CharInfo(PSPAWNINFO pChar, PCHAR szLine)
 	if (PCHARINFO pCharInfo = GetCharInfo()) {
 		DoCommand(pCharInfo->pSpawn, "/charinfo");
 		if (PCHARINFO2 pChar2 = GetCharInfo2()) {
-			sprintf(szBuffer, "The location of your bind is: %1.2f, %1.2f, %1.2f", pChar2->ZoneBoundX, pChar2->ZoneBoundY, pChar2->ZoneBoundZ);
+			sprintf_s(szBuffer, "The location of your bind is: %1.2f, %1.2f, %1.2f", pChar2->ZoneBoundX, pChar2->ZoneBoundY, pChar2->ZoneBoundZ);
 			WriteChatColor(szBuffer, USERCOLOR_DEFAULT);
 		}
 	}
@@ -720,8 +720,8 @@ VOID CharInfo(PSPAWNINFO pChar, PCHAR szLine)
 VOID UpdateItemInfo(PSPAWNINFO pChar, PCHAR szLine)
 {
 	CHAR szEcho[MAX_STRING] = { 0 };
-	strcpy(szEcho, DebugHeader);
-	strcat(szEcho, " This command has been disabled since the itemdb is maintained by the devs.");
+	strcpy_s(szEcho, DebugHeader);
+	strcat_s(szEcho, " This command has been disabled since the itemdb is maintained by the devs.");
 	WriteChatColor(szEcho, USERCOLOR_CHAT_CHANNEL);
 }
 
@@ -750,7 +750,7 @@ VOID SpellSlotInfo(PSPAWNINFO pChar, PCHAR szLine)
 	WriteChatf("\ay%s\ax (ID: %d)", pSpell->Name, pSpell->ID);
 	for (int i = 0; i<GetSpellNumEffects(pSpell); i++) {
 		szBuff[0] = szTemp[0] = '\0';
-		strcat(szBuff, ParseSpellEffect(pSpell, i, szTemp));
+		strcat_s(szBuff, ParseSpellEffect(pSpell, i, szTemp,sizeof(szTemp)));
 		if (strlen(szBuff)>0)
 			WriteChatf("%s", szBuff);
 	}
@@ -798,7 +798,7 @@ VOID MemSpell(PSPAWNINFO pSpawn, PCHAR szLine)
 			if (pSpell->ClassLevel[pSpawn->Class]>pSpawn->Level)
 				return;
 			ZeroMemory(&MemSpellFavorite, sizeof(MemSpellFavorite));
-			strcpy(MemSpellFavorite.Name, "Mem a Spell");
+			strcpy_s(MemSpellFavorite.Name, "Mem a Spell");
 			MemSpellFavorite.inuse = 1;
 			for (sp = 0; sp < NUM_SPELL_GEMS; sp++) MemSpellFavorite.SpellId[sp] = 0xFFFFFFFF;
 			MemSpellFavorite.SpellId[Gem] = pSpell->ID;
@@ -877,12 +877,12 @@ VOID Help(PSPAWNINFO pChar, PCHAR szLine)
 		if (gFilterMacro != FILTERMACRO_NONE) WriteChatColor("Macro will display a list of MacroQuest commands.", USERCOLOR_DEFAULT);
 		return;
 	}
-	if (stricmp("macro", szArg)) {
+	if (_stricmp("macro", szArg)) {
 		cmdHelp(pChar, szArg);
 		return;
 	}
 	DebugSpew("Help - Displaying MacroQuest help");
-	sprintf(szCmd, "MacroQuest - %s", gszVersion);
+	sprintf_s(szCmd, "MacroQuest - %s", gszVersion);
 	WriteChatColor(" ", USERCOLOR_DEFAULT);
 	WriteChatColor(szCmd, USERCOLOR_DEFAULT);
 	WriteChatColor("List of commands", USERCOLOR_DEFAULT);
@@ -891,7 +891,7 @@ VOID Help(PSPAWNINFO pChar, PCHAR szLine)
 	{
 		if (pCmd->EQ == 0)
 		{
-			sprintf(szCmd, "  %s", pCmd->Command);
+			sprintf_s(szCmd, "  %s", pCmd->Command);
 			WriteChatColor(szCmd, USERCOLOR_DEFAULT);
 		}
 		pCmd = pCmd->pNext;
@@ -1075,22 +1075,22 @@ VOID Filter(PSPAWNINFO pChar, PCHAR szLine)
 		return;
 	}
 
-	if ((stricmp("skills", szArg)) &&
-		(stricmp("macros", szArg)) &&
-		(stricmp("target", szArg)) &&
-		(stricmp("name", szArg)) &&
-		(stricmp("food", szArg)) &&
-		(stricmp("money", szArg)) &&
-		(stricmp("encumber", szArg)) &&
-		(stricmp("mq", szArg)) &&
-		(stricmp("debug", szArg)) &&
-		(stricmp("zrange", szArg))) {
+	if ((_stricmp("skills", szArg)) &&
+		(_stricmp("macros", szArg)) &&
+		(_stricmp("target", szArg)) &&
+		(_stricmp("name", szArg)) &&
+		(_stricmp("food", szArg)) &&
+		(_stricmp("money", szArg)) &&
+		(_stricmp("encumber", szArg)) &&
+		(_stricmp("mq", szArg)) &&
+		(_stricmp("debug", szArg)) &&
+		(_stricmp("zrange", szArg))) {
 		cmdFilter(pChar, szArg);
 		return;
 	}
 	if (!_stricmp("skills", szArg)) {
 		if (szRest[0] == 0) {
-			sprintf(szCmd, "Filtering of skills is set to: %s",
+			sprintf_s(szCmd, "Filtering of skills is set to: %s",
 				(gFilterSkillsIncrease) ? "None" : (gFilterSkillsAll) ? "Increase" : "All");
 			WriteChatColor(szCmd, USERCOLOR_DEFAULT);
 			return;
@@ -1099,10 +1099,10 @@ VOID Filter(PSPAWNINFO pChar, PCHAR szLine)
 			if (!_stricmp(szRest, szFilterSkills[Command])) {
 				gFilterSkillsAll = (0 != Command);
 				gFilterSkillsIncrease = (2 == Command);
-				sprintf(szCmd, "Filtering of skills changed to: %s",
+				sprintf_s(szCmd, "Filtering of skills changed to: %s",
 					(gFilterSkillsIncrease) ? "None" : (gFilterSkillsAll) ? "Increase" : "All");
 				WriteChatColor(szCmd, USERCOLOR_DEFAULT);
-				itoa(Command, szCmd, 10); WritePrivateProfileString("MacroQuest", "FilterSkills", szCmd, gszINIFilename);
+				_itoa_s(Command, szCmd, 10); WritePrivateProfileString("MacroQuest", "FilterSkills", szCmd, gszINIFilename);
 				return;
 			}
 		}
@@ -1111,16 +1111,16 @@ VOID Filter(PSPAWNINFO pChar, PCHAR szLine)
 	}
 	else if (!_stricmp("macros", szArg)) {
 		if (szRest[0] == 0) {
-			sprintf(szCmd, "Filtering of macros is set to: %s", szFilterMacro[gFilterMacro]);
+			sprintf_s(szCmd, "Filtering of macros is set to: %s", szFilterMacro[gFilterMacro]);
 			WriteChatColor(szCmd, USERCOLOR_DEFAULT);
 			return;
 		}
 		for (Command = 0; szFilterMacro[Command]; Command++) {
 			if (!_stricmp(szRest, szFilterMacro[Command])) {
 				gFilterMacro = Command;
-				sprintf(szCmd, "Filtering of macros changed to: %s", szFilterMacro[gFilterMacro]);
+				sprintf_s(szCmd, "Filtering of macros changed to: %s", szFilterMacro[gFilterMacro]);
 				WriteChatColor(szCmd, USERCOLOR_DEFAULT);
-				itoa(gFilterMacro, szCmd, 10); WritePrivateProfileString("MacroQuest", "FilterMacro", szCmd, gszINIFilename);
+				_itoa_s(gFilterMacro, szCmd, 10); WritePrivateProfileString("MacroQuest", "FilterMacro", szCmd, gszINIFilename);
 				return;
 			}
 		}
@@ -1128,16 +1128,16 @@ VOID Filter(PSPAWNINFO pChar, PCHAR szLine)
 	}
 	else if (!_stricmp("mq", szArg)) {
 		if (szRest[0] == 0) {
-			sprintf(szCmd, "Filtering of MQ is set to: %s", szUseChat[gFilterMQ]);
+			sprintf_s(szCmd, "Filtering of MQ is set to: %s", szUseChat[gFilterMQ]);
 			WriteChatColor(szCmd, USERCOLOR_DEFAULT);
 			return;
 		}
 		for (Command = 0; szUseChat[Command]; Command++) {
 			if (!_stricmp(szRest, szUseChat[Command])) {
 				gFilterMQ = Command;
-				sprintf(szCmd, "Filtering of MQ changed to: %s", szUseChat[gFilterMQ]);
+				sprintf_s(szCmd, "Filtering of MQ changed to: %s", szUseChat[gFilterMQ]);
 				WriteChatColor(szCmd, USERCOLOR_DEFAULT);
-				itoa(gFilterMQ, szCmd, 10);
+				_itoa_s(gFilterMQ, szCmd, 10);
 				WritePrivateProfileString("MacroQuest", "FilterMQ", szCmd, gszINIFilename);
 				return;
 			}
@@ -1146,16 +1146,16 @@ VOID Filter(PSPAWNINFO pChar, PCHAR szLine)
 	}
 	else if (!_stricmp("mq2data", szArg)) {
 		if (szRest[0] == 0) {
-			sprintf(szCmd, "Filtering of MQ2Data Errors is set to: %s", szUseChat[gFilterMQ2DataErrors]);
+			sprintf_s(szCmd, "Filtering of MQ2Data Errors is set to: %s", szUseChat[gFilterMQ2DataErrors]);
 			WriteChatColor(szCmd, USERCOLOR_DEFAULT);
 			return;
 		}
 		for (Command = 0; szUseChat[Command]; Command++) {
 			if (!_stricmp(szRest, szUseChat[Command])) {
 				gFilterMQ2DataErrors = Command;
-				sprintf(szCmd, "Filtering of MQ changed to: %s", szUseChat[gFilterMQ2DataErrors]);
+				sprintf_s(szCmd, "Filtering of MQ changed to: %s", szUseChat[gFilterMQ2DataErrors]);
 				WriteChatColor(szCmd, USERCOLOR_DEFAULT);
-				itoa(gFilterMQ2DataErrors, szCmd, 10);
+				_itoa_s(gFilterMQ2DataErrors, szCmd, 10);
 				WritePrivateProfileString("MacroQuest", "FilterMQ2Data", szCmd, gszINIFilename);
 				return;
 			}
@@ -1166,16 +1166,16 @@ VOID Filter(PSPAWNINFO pChar, PCHAR szLine)
 	}
 	else if (!_stricmp("target", szArg)) {
 		if (szRest[0] == 0) {
-			sprintf(szCmd, "Filtering of target lost messages is set to: %s", szFilterTarget[gFilterTarget]);
+			sprintf_s(szCmd, "Filtering of target lost messages is set to: %s", szFilterTarget[gFilterTarget]);
 			WriteChatColor(szCmd, USERCOLOR_DEFAULT);
 			return;
 		}
 		for (Command = 0; szFilterTarget[Command]; Command++) {
 			if (!_stricmp(szRest, szFilterTarget[Command])) {
 				gFilterTarget = Command;
-				sprintf(szCmd, "Filtering of target lost messages changed to: %s", szFilterTarget[gFilterTarget]);
+				sprintf_s(szCmd, "Filtering of target lost messages changed to: %s", szFilterTarget[gFilterTarget]);
 				WriteChatColor(szCmd, USERCOLOR_DEFAULT);
-				itoa(gFilterTarget, szCmd, 10); WritePrivateProfileString("MacroQuest", "FilterTarget", szCmd, gszINIFilename);
+				_itoa_s(gFilterTarget, szCmd, 10); WritePrivateProfileString("MacroQuest", "FilterTarget", szCmd, gszINIFilename);
 				return;
 			}
 		}
@@ -1184,16 +1184,16 @@ VOID Filter(PSPAWNINFO pChar, PCHAR szLine)
 	}
 	else if (!_stricmp("debug", szArg)) {
 		if (szRest[0] == 0) {
-			sprintf(szCmd, "Filtering of debug messages is set to: %s", szFilterTarget[gFilterDebug]);
+			sprintf_s(szCmd, "Filtering of debug messages is set to: %s", szFilterTarget[gFilterDebug]);
 			WriteChatColor(szCmd, USERCOLOR_DEFAULT);
 			return;
 		}
 		for (Command = 0; szFilterTarget[Command]; Command++) {
 			if (!_stricmp(szRest, szFilterTarget[Command])) {
 				gFilterDebug = Command;
-				sprintf(szCmd, "Filtering of debug messages changed to: %s", szFilterTarget[gFilterDebug]);
+				sprintf_s(szCmd, "Filtering of debug messages changed to: %s", szFilterTarget[gFilterDebug]);
 				WriteChatColor(szCmd, USERCOLOR_DEFAULT);
-				itoa(gFilterTarget, szCmd, 10); WritePrivateProfileString("MacroQuest", "FilterDebug", szCmd, gszINIFilename);
+				_itoa_s(gFilterTarget, szCmd, 10); WritePrivateProfileString("MacroQuest", "FilterDebug", szCmd, gszINIFilename);
 				return;
 			}
 		}
@@ -1202,16 +1202,16 @@ VOID Filter(PSPAWNINFO pChar, PCHAR szLine)
 	}
 	else if (!_stricmp("money", szArg)) {
 		if (szRest[0] == 0) {
-			sprintf(szCmd, "Filtering of money messages is set to: %s", szFilterTarget[gFilterMoney]);
+			sprintf_s(szCmd, "Filtering of money messages is set to: %s", szFilterTarget[gFilterMoney]);
 			WriteChatColor(szCmd, USERCOLOR_DEFAULT);
 			return;
 		}
 		for (Command = 0; szFilterTarget[Command]; Command++) {
 			if (!_stricmp(szRest, szFilterTarget[Command])) {
 				gFilterMoney = Command;
-				sprintf(szCmd, "Filtering of money messages changed to: %s", szFilterTarget[gFilterMoney]);
+				sprintf_s(szCmd, "Filtering of money messages changed to: %s", szFilterTarget[gFilterMoney]);
 				WriteChatColor(szCmd, USERCOLOR_DEFAULT);
-				itoa(gFilterMoney, szCmd, 10); WritePrivateProfileString("MacroQuest", "FilterMoney", szCmd, gszINIFilename);
+				_itoa_s(gFilterMoney, szCmd, 10); WritePrivateProfileString("MacroQuest", "FilterMoney", szCmd, gszINIFilename);
 				return;
 			}
 		}
@@ -1219,16 +1219,16 @@ VOID Filter(PSPAWNINFO pChar, PCHAR szLine)
 	}
 	else if (!_stricmp("encumber", szArg)) {
 		if (szRest[0] == 0) {
-			sprintf(szCmd, "Filtering of encumber messages is set to: %s", szFilterTarget[gFilterEncumber]);
+			sprintf_s(szCmd, "Filtering of encumber messages is set to: %s", szFilterTarget[gFilterEncumber]);
 			WriteChatColor(szCmd, USERCOLOR_DEFAULT);
 			return;
 		}
 		for (Command = 0; szFilterTarget[Command]; Command++) {
 			if (!_stricmp(szRest, szFilterTarget[Command])) {
 				gFilterEncumber = Command;
-				sprintf(szCmd, "Filtering of encumber messages changed to: %s", szFilterTarget[gFilterEncumber]);
+				sprintf_s(szCmd, "Filtering of encumber messages changed to: %s", szFilterTarget[gFilterEncumber]);
 				WriteChatColor(szCmd, USERCOLOR_DEFAULT);
-				itoa(gFilterEncumber, szCmd, 10); WritePrivateProfileString("MacroQuest", "FilterEncumber", szCmd, gszINIFilename);
+				_itoa_s(gFilterEncumber, szCmd, 10); WritePrivateProfileString("MacroQuest", "FilterEncumber", szCmd, gszINIFilename);
 				return;
 			}
 		}
@@ -1236,16 +1236,16 @@ VOID Filter(PSPAWNINFO pChar, PCHAR szLine)
 	}
 	else if (!_stricmp("food", szArg)) {
 		if (szRest[0] == 0) {
-			sprintf(szCmd, "Filtering of food messages is set to: %s", szFilterTarget[gFilterFood]);
+			sprintf_s(szCmd, "Filtering of food messages is set to: %s", szFilterTarget[gFilterFood]);
 			WriteChatColor(szCmd, USERCOLOR_DEFAULT);
 			return;
 		}
 		for (Command = 0; szFilterTarget[Command]; Command++) {
 			if (!_stricmp(szRest, szFilterTarget[Command])) {
 				gFilterFood = Command;
-				sprintf(szCmd, "Filtering of food messages changed to: %s", szFilterTarget[gFilterFood]);
+				sprintf_s(szCmd, "Filtering of food messages changed to: %s", szFilterTarget[gFilterFood]);
 				WriteChatColor(szCmd, USERCOLOR_DEFAULT);
-				itoa(gFilterFood, szCmd, 10); WritePrivateProfileString("MacroQuest", "FilterFood", szCmd, gszINIFilename);
+				_itoa_s(gFilterFood, szCmd, 10); WritePrivateProfileString("MacroQuest", "FilterFood", szCmd, gszINIFilename);
 				return;
 			}
 		}
@@ -1258,7 +1258,7 @@ VOID Filter(PSPAWNINFO pChar, PCHAR szLine)
 			PFILTER pFilter = gpFilters;
 			while (pFilter) {
 				if (pFilter->pEnabled == &gFilterCustom) {
-					sprintf(szCmd, "   %s", pFilter->FilterText);
+					sprintf_s(szCmd, "   %s", pFilter->FilterText);
 					WriteChatColor(szCmd, USERCOLOR_DEFAULT);
 				}
 				pFilter = pFilter->pNext;
@@ -1271,9 +1271,9 @@ VOID Filter(PSPAWNINFO pChar, PCHAR szLine)
 				for (Command = 0; szFilterTarget[Command]; Command++) {
 					if (!_stricmp(szArg, szFilterTarget[Command])) {
 						gFilterCustom = Command;
-						sprintf(szCmd, "Filtering of custom messages changed to: %s", szFilterTarget[gFilterCustom]);
+						sprintf_s(szCmd, "Filtering of custom messages changed to: %s", szFilterTarget[gFilterCustom]);
 						WriteChatColor(szCmd, USERCOLOR_DEFAULT);
-						itoa(gFilterCustom, szCmd, 10); WritePrivateProfileString("MacroQuest", "FilterCustom", szCmd, gszINIFilename);
+						_itoa_s(gFilterCustom, szCmd, 10); WritePrivateProfileString("MacroQuest", "FilterCustom", szCmd, gszINIFilename);
 						return;
 					}
 				}
@@ -1320,7 +1320,7 @@ VOID Filter(PSPAWNINFO pChar, PCHAR szLine)
 								pLastFilter->pNext = pFilter->pNext;
 							}
 							free(pFilter);
-							sprintf(szCmd, "Stopped filtering on: %s", szRest);
+							sprintf_s(szCmd, "Stopped filtering on: %s", szRest);
 							WriteChatColor(szCmd, USERCOLOR_DEFAULT);
 							WriteFilterNames();
 							return;
@@ -1340,7 +1340,7 @@ VOID Filter(PSPAWNINFO pChar, PCHAR szLine)
 				PFILTER pFilter = gpFilters;
 				while (pFilter) {
 					if ((pFilter->pEnabled == &gFilterCustom) && (!_stricmp(pFilter->FilterText, szRest))) {
-						sprintf(szCmd, "Name '%s' is already being filtered.", szRest);
+						sprintf_s(szCmd, "Name '%s' is already being filtered.", szRest);
 						WriteChatColor(szCmd, USERCOLOR_DEFAULT);
 						return;
 					}
@@ -1349,7 +1349,7 @@ VOID Filter(PSPAWNINFO pChar, PCHAR szLine)
 
 				AddFilter(szRest, -1, &gFilterCustom);
 				WriteFilterNames();
-				sprintf(szCmd, "Started filtering on: %s", szRest);
+				sprintf_s(szCmd, "Started filtering on: %s", szRest);
 				WriteChatColor(szCmd, USERCOLOR_DEFAULT);
 				return;
 			}
@@ -1365,7 +1365,7 @@ VOID Filter(PSPAWNINFO pChar, PCHAR szLine)
 				WriteChatColor("Z range is not currently set.", USERCOLOR_DEFAULT);
 			}
 			else {
-				sprintf(szArg, "Z range is set to: %1.2f", gZFilter);
+				sprintf_s(szArg, "Z range is set to: %1.2f", gZFilter);
 				WriteChatColor(szArg, USERCOLOR_DEFAULT);
 			}
 		}
@@ -1387,10 +1387,10 @@ VOID DebugSpewFile(PSPAWNINFO pChar, PCHAR szLine)
 	BOOL Pause = TRUE;
 	CHAR szBuffer[MAX_STRING] = { 0 };
 	bRunNextCommand = TRUE;
-	if (!strnicmp(szLine, "off", 3)) {
+	if (!_strnicmp(szLine, "off", 3)) {
 		gSpewToFile = FALSE;
 	}
-	else if (!strnicmp(szLine, "on", 2)) {
+	else if (!_strnicmp(szLine, "on", 2)) {
 		gSpewToFile = TRUE;
 	}
 	else if (szLine[0] != 0) {
@@ -1400,10 +1400,10 @@ VOID DebugSpewFile(PSPAWNINFO pChar, PCHAR szLine)
 		Pause = !gSpewToFile;
 	}
 	if (gSpewToFile) {
-		sprintf(szBuffer, "Debug Spew is being logged to a file.");
+		sprintf_s(szBuffer, "Debug Spew is being logged to a file.");
 	}
 	else {
-		sprintf(szBuffer, "Debug Spew is not being logged to a file.");
+		sprintf_s(szBuffer, "Debug Spew is not being logged to a file.");
 	}
 	WriteChatColor(szBuffer, USERCOLOR_DEFAULT);
 }
@@ -1432,34 +1432,34 @@ VOID Identify(PSPAWNINFO pChar, PCHAR szLine)
 	DebugSpew("Identify - %s", pItemInfo->LoreName);
 	WriteChatColor(" ", USERCOLOR_SPELLS);
 	if (pItemInfo->Type == ITEMTYPE_NORMAL && pItemInfo->ItemType < MAX_ITEMTYPES && szItemTypes[pItemInfo->ItemType] != NULL)
-		sprintf(szMsg, "Item: %s (Slot: %s, Weight: %d.%d, Value: %dcp, Type: %s)", pItemInfo->Name, szSize[pItemInfo->Size], (INT)(pItemInfo->Weight / 10), (pItemInfo->Weight) % 10, pItemInfo->Cost, szItemTypes[pItemInfo->ItemType]);
+		sprintf_s(szMsg, "Item: %s (Slot: %s, Weight: %d.%d, Value: %dcp, Type: %s)", pItemInfo->Name, szSize[pItemInfo->Size], (INT)(pItemInfo->Weight / 10), (pItemInfo->Weight) % 10, pItemInfo->Cost, szItemTypes[pItemInfo->ItemType]);
 	else if (pItemInfo->Type == ITEMTYPE_PACK && pItemInfo->Combine < MAX_COMBINES && szCombineTypes[pItemInfo->Combine] != NULL)
-		sprintf(szMsg, "Item: %s (Slot: %s, Weight: %d.%d, Value: %dcp, Type: %s)", pItemInfo->Name, szSize[pItemInfo->Size], (INT)(pItemInfo->Weight / 10), (pItemInfo->Weight) % 10, pItemInfo->Cost, szCombineTypes[pItemInfo->Combine]);
+		sprintf_s(szMsg, "Item: %s (Slot: %s, Weight: %d.%d, Value: %dcp, Type: %s)", pItemInfo->Name, szSize[pItemInfo->Size], (INT)(pItemInfo->Weight / 10), (pItemInfo->Weight) % 10, pItemInfo->Cost, szCombineTypes[pItemInfo->Combine]);
 	else
-		sprintf(szMsg, "Item: %s (Slot: %s, Weight: %d.%d, Value: %dcp)", pItemInfo->Name, szSize[pItemInfo->Size], (INT)(pItemInfo->Weight / 10), (pItemInfo->Weight) % 10, pItemInfo->Cost);
+		sprintf_s(szMsg, "Item: %s (Slot: %s, Weight: %d.%d, Value: %dcp)", pItemInfo->Name, szSize[pItemInfo->Size], (INT)(pItemInfo->Weight / 10), (pItemInfo->Weight) % 10, pItemInfo->Cost);
 
 
 	WriteChatColor(szMsg, USERCOLOR_SPELLS);
 	if ((pItemInfo->LoreName[0] != '*') && (strcmp(pItemInfo->LoreName, pItemInfo->Name))) {
-		sprintf(szMsg, "Lore Name: %s", pItemInfo->LoreName);
+		sprintf_s(szMsg, "Lore Name: %s", pItemInfo->LoreName);
 		WriteChatColor(szMsg, USERCOLOR_SPELLS);
 	}
 	else     if ((pItemInfo->LoreName[0] == '*') && (strcmp(pItemInfo->LoreName + 1, pItemInfo->Name))) {
-		sprintf(szMsg, "Lore Name: %s", pItemInfo->LoreName + 1);
+		sprintf_s(szMsg, "Lore Name: %s", pItemInfo->LoreName + 1);
 		WriteChatColor(szMsg, USERCOLOR_SPELLS);
 	}
 
-	strcpy(szMsg, "Flags: ");
-	if (pItemInfo->LoreName[0] == '*') strcat(szMsg, "LORE ");
-	if (pItemInfo->NoDrop == 0) strcat(szMsg, "NODROP ");
-	if (pItemInfo->NoRent == 0) strcat(szMsg, "NORENT ");
+	strcpy_s(szMsg, "Flags: ");
+	if (pItemInfo->LoreName[0] == '*') strcat_s(szMsg, "LORE ");
+	if (pItemInfo->NoDrop == 0) strcat_s(szMsg, "NODROP ");
+	if (pItemInfo->NoRent == 0) strcat_s(szMsg, "NORENT ");
 	if (pItemInfo->Type == ITEMTYPE_NORMAL) {
-		if (pItemInfo->Magic == 1) strcat(szMsg, "MAGIC ");
+		if (pItemInfo->Magic == 1) strcat_s(szMsg, "MAGIC ");
 		BYTE Light = pItemInfo->Light;
 		if ((Light>0) && (Light <= LIGHT_COUNT)) {
-			strcat(szMsg, "(Light: ");
-			strcat(szMsg, szLights[Light]);
-			strcat(szMsg, ") ");
+			strcat_s(szMsg, "(Light: ");
+			strcat_s(szMsg, szLights[Light]);
+			strcat_s(szMsg, ") ");
 		}
 	}
 	if (strlen(szMsg) > 7) WriteChatColor(szMsg, USERCOLOR_SPELLS);
@@ -1467,99 +1467,99 @@ VOID Identify(PSPAWNINFO pChar, PCHAR szLine)
 	if (pItemInfo->Type == ITEMTYPE_PACK) {
 		CHAR szCombine[MAX_STRING] = { 0 };
 		if ((pItemInfo->Combine < MAX_COMBINES) && (szCombineTypes[pItemInfo->Combine] != NULL)) {
-			strcpy(szCombine, szCombineTypes[pItemInfo->Combine]);
+			strcpy_s(szCombine, szCombineTypes[pItemInfo->Combine]);
 		}
 		else {
-			sprintf(szCombine, "*Unknown%d", pItemInfo->Combine);
+			sprintf_s(szCombine, "*Unknown%d", pItemInfo->Combine);
 		}
-		sprintf(szMsg, "Container: %d Slot %s, %d%% Reduction, Combine=%s", pItemInfo->Slots, szSize[pItemInfo->SizeCapacity], pItemInfo->WeightReduction, szCombine);
+		sprintf_s(szMsg, "Container: %d Slot %s, %d%% Reduction, Combine=%s", pItemInfo->Slots, szSize[pItemInfo->SizeCapacity], pItemInfo->WeightReduction, szCombine);
 	}
 	else if (pItemInfo->Type == ITEMTYPE_BOOK) {
-		//sprintf(szMsg,"Book file: %s", pItemInfo->Book.File);
+		//sprintf_s(szMsg,"Book file: %s", pItemInfo->Book.File);
 	}
 	else {
-		strcpy(szMsg, "Item: ");
+		strcpy_s(szMsg, "Item: ");
 		if (pItemInfo->AC) {
-			sprintf(szTmp, "AC%d ", pItemInfo->AC);
-			strcat(szMsg, szTmp);
+			sprintf_s(szTmp, "AC%d ", pItemInfo->AC);
+			strcat_s(szMsg, szTmp);
 		}
 		if (pItemInfo->Damage) {
-			sprintf(szTmp, "%dDam ", pItemInfo->Damage);
-			strcat(szMsg, szTmp);
+			sprintf_s(szTmp, "%dDam ", pItemInfo->Damage);
+			strcat_s(szMsg, szTmp);
 		}
 		if (pItemInfo->Delay) {
-			sprintf(szTmp, "%dDly ", pItemInfo->Delay);
-			strcat(szMsg, szTmp);
+			sprintf_s(szTmp, "%dDly ", pItemInfo->Delay);
+			strcat_s(szMsg, szTmp);
 		}
 
 		if (pItemInfo->Range) {
-			sprintf(szTmp, "%dRng ", pItemInfo->Range);
-			strcat(szMsg, szTmp);
+			sprintf_s(szTmp, "%dRng ", pItemInfo->Range);
+			strcat_s(szMsg, szTmp);
 		}
 
 		if (pItemInfo->HP) {
-			sprintf(szTmp, "%dHP ", pItemInfo->HP);
-			strcat(szMsg, szTmp);
+			sprintf_s(szTmp, "%dHP ", pItemInfo->HP);
+			strcat_s(szMsg, szTmp);
 		}
 		if (pItemInfo->Mana) {
-			sprintf(szTmp, "%dMana ", pItemInfo->Mana);
-			strcat(szMsg, szTmp);
+			sprintf_s(szTmp, "%dMana ", pItemInfo->Mana);
+			strcat_s(szMsg, szTmp);
 		}
 		if (pItemInfo->STR) {
-			sprintf(szTmp, "%dSTR ", pItemInfo->STR);
-			strcat(szMsg, szTmp);
+			sprintf_s(szTmp, "%dSTR ", pItemInfo->STR);
+			strcat_s(szMsg, szTmp);
 		}
 		if (pItemInfo->STA) {
-			sprintf(szTmp, "%dSTA ", pItemInfo->STA);
-			strcat(szMsg, szTmp);
+			sprintf_s(szTmp, "%dSTA ", pItemInfo->STA);
+			strcat_s(szMsg, szTmp);
 		}
 		if (pItemInfo->DEX) {
-			sprintf(szTmp, "%dDEX ", pItemInfo->DEX);
-			strcat(szMsg, szTmp);
+			sprintf_s(szTmp, "%dDEX ", pItemInfo->DEX);
+			strcat_s(szMsg, szTmp);
 		}
 		if (pItemInfo->AGI) {
-			sprintf(szTmp, "%dAGI ", pItemInfo->AGI);
-			strcat(szMsg, szTmp);
+			sprintf_s(szTmp, "%dAGI ", pItemInfo->AGI);
+			strcat_s(szMsg, szTmp);
 		}
 		if (pItemInfo->WIS) {
-			sprintf(szTmp, "%dWIS ", pItemInfo->WIS);
-			strcat(szMsg, szTmp);
+			sprintf_s(szTmp, "%dWIS ", pItemInfo->WIS);
+			strcat_s(szMsg, szTmp);
 		}
 		if (pItemInfo->INT) {
-			sprintf(szTmp, "%dINT ", pItemInfo->INT);
-			strcat(szMsg, szTmp);
+			sprintf_s(szTmp, "%dINT ", pItemInfo->INT);
+			strcat_s(szMsg, szTmp);
 		}
 		if (pItemInfo->CHA) {
-			sprintf(szTmp, "%dCHA ", pItemInfo->CHA);
-			strcat(szMsg, szTmp);
+			sprintf_s(szTmp, "%dCHA ", pItemInfo->CHA);
+			strcat_s(szMsg, szTmp);
 		}
 		if (pItemInfo->SvMagic) {
-			sprintf(szTmp, "%dSvM ", pItemInfo->SvMagic);
-			strcat(szMsg, szTmp);
+			sprintf_s(szTmp, "%dSvM ", pItemInfo->SvMagic);
+			strcat_s(szMsg, szTmp);
 		}
 		if (pItemInfo->SvDisease) {
-			sprintf(szTmp, "%dSvD ", pItemInfo->SvDisease);
-			strcat(szMsg, szTmp);
+			sprintf_s(szTmp, "%dSvD ", pItemInfo->SvDisease);
+			strcat_s(szMsg, szTmp);
 		}
 		if (pItemInfo->SvPoison) {
-			sprintf(szTmp, "%dSvP ", pItemInfo->SvPoison);
-			strcat(szMsg, szTmp);
+			sprintf_s(szTmp, "%dSvP ", pItemInfo->SvPoison);
+			strcat_s(szMsg, szTmp);
 		}
 		if (pItemInfo->SvFire) {
-			sprintf(szTmp, "%dSvF ", pItemInfo->SvFire);
-			strcat(szMsg, szTmp);
+			sprintf_s(szTmp, "%dSvF ", pItemInfo->SvFire);
+			strcat_s(szMsg, szTmp);
 		}
 		if (pItemInfo->SvCold) {
-			sprintf(szTmp, "%dSvC ", pItemInfo->SvCold);
-			strcat(szMsg, szTmp);
+			sprintf_s(szTmp, "%dSvC ", pItemInfo->SvCold);
+			strcat_s(szMsg, szTmp);
 		}
 		if (pItemInfo->SvCorruption) {
-			sprintf(szTmp, "%dSvCorruption ", pItemInfo->SvCorruption);
-			strcat(szMsg, szTmp);
+			sprintf_s(szTmp, "%dSvCorruption ", pItemInfo->SvCorruption);
+			strcat_s(szMsg, szTmp);
 		}
 		if (((EQ_Item*)pCharInfo->pInventoryArray->Inventory.Cursor)->IsStackable() == 1) {
-			sprintf(szTmp, "Stack size = %d ", pCharInfo->pInventoryArray->Inventory.Cursor->StackCount);
-			strcat(szMsg, szTmp);
+			sprintf_s(szTmp, "Stack size = %d ", pCharInfo->pInventoryArray->Inventory.Cursor->StackCount);
+			strcat_s(szMsg, szTmp);
 		}
 	}
 	if (strlen(szMsg)>6) WriteChatColor(szMsg, USERCOLOR_SPELLS);
@@ -1580,7 +1580,7 @@ VOID Location(PSPAWNINFO pChar, PCHAR szLine)
 
 	CHAR szMsg[MAX_STRING] = { 0 };
 	INT Angle = (INT)((pChar->Heading / 32.0f) + 8.5f) % 16;
-	sprintf(szMsg, "Your Location is %3.2f, %3.2f, %3.2f, and are heading %s.", pChar->Y, pChar->X, pChar->Z, szHeading[Angle]);
+	sprintf_s(szMsg, "Your Location is %3.2f, %3.2f, %3.2f, and are heading %s.", pChar->Y, pChar->X, pChar->Z, szHeading[Angle]);
 	WriteChatColor(szMsg, USERCOLOR_DEFAULT);
 }
 
@@ -1647,8 +1647,8 @@ VOID Alert(PSPAWNINFO pChar, PCHAR szLine)
 	// if szLLine is not referenced above by szRest
 	// the compiler thinks it is not used and optimizes it out
 	// don't be too tricky
-	strcpy(szLLine, szLine);
-	_strlwr(szLLine);
+	strcpy_s(szLLine, szLine);
+	_strlwr_s(szLLine);
 
 	while (Parsing) {
 		if (szRest[0] == 0) {
@@ -1674,11 +1674,11 @@ VOID Alert(PSPAWNINFO pChar, PCHAR szLine)
 					CHAR szTemp[2048] = { 0 };
 					for (std::list<SEARCHSPAWN>::iterator i = ss.begin(); i != ss.end(); i++) {
 						int dist = std::distance(ss.begin(), i);
-						FormatSearchSpawn(Buffer, &(*i));
+						FormatSearchSpawn(Buffer, sizeof(Buffer), &(*i));
 						sprintf_s(szTemp, "[%d] %s", dist, Buffer);
 						WriteChatColor(szTemp, USERCOLOR_DEFAULT);
 					}
-					sprintf(Buffer, "%d alerts listed.", ss.size());
+					sprintf_s(Buffer, "%d alerts listed.", ss.size());
 					WriteChatColor(Buffer, USERCOLOR_DEFAULT);
 				}
 				else {
@@ -1714,11 +1714,11 @@ VOID Alert(PSPAWNINFO pChar, PCHAR szLine)
 				}
 				CHAR szTemp[MAX_STRING] = { 0 };
 				if (CAlerts.RemoveAlertFromList(List, pSearchSpawn)) {
-					sprintf(Buffer, "Removed alert for: %s", FormatSearchSpawn(szTemp, pSearchSpawn));
+					sprintf_s(Buffer, "Removed alert for: %s", FormatSearchSpawn(szTemp, sizeof(szTemp), pSearchSpawn));
 				}
 				else {
 					MacroError("Couldn't find alert.");
-					sprintf(Buffer, "Couldn't find alert.");
+					sprintf_s(Buffer, "Couldn't find alert.");
 				}
 				if (pSearchSpawn)
 					free(pSearchSpawn);
@@ -1758,14 +1758,14 @@ VOID Alert(PSPAWNINFO pChar, PCHAR szLine)
 
 				CHAR szTemp[MAX_STRING] = { 0 };
 				if (CheckAlertForRecursion(pSearchSpawn, List)) {
-					sprintf(Buffer, "Alert would have caused recursion: %s", FormatSearchSpawn(szTemp, pSearchSpawn));
+					sprintf_s(Buffer, "Alert would have caused recursion: %s", FormatSearchSpawn(szTemp, sizeof(szTemp), pSearchSpawn));
 				}
 				else {
 					if (CAlerts.AddNewAlertList(List, pSearchSpawn)) {
-						sprintf(Buffer, "Added alert for: %s", FormatSearchSpawn(szTemp, pSearchSpawn));
+						sprintf_s(Buffer, "Added alert for: %s", FormatSearchSpawn(szTemp, sizeof(szTemp), pSearchSpawn));
 					}
 					else {
-						sprintf(Buffer, "Alert NOT added because there was already an alert for: %s", FormatSearchSpawn(szTemp, pSearchSpawn));
+						sprintf_s(Buffer, "Alert NOT added because there was already an alert for: %s", FormatSearchSpawn(szTemp, sizeof(szTemp), pSearchSpawn));
 					}
 				}
 				if (pSearchSpawn)
@@ -1832,10 +1832,10 @@ VOID MQMsgBox(PSPAWNINFO pChar, PCHAR szLine)
 	DWORD i;
 	bRunNextCommand = TRUE;
 
-	sprintf(szBuffer, "${Time.Date} ${Time}\r\n%s", szLine);
+	sprintf_s(szBuffer, "${Time.Date} ${Time}\r\n%s", szLine);
 	ParseMacroParameter(pChar, szBuffer);
 
-	CreateThread(NULL, 0, thrMsgBox, strdup(szBuffer), 0, &i);
+	CreateThread(NULL, 0, thrMsgBox, _strdup(szBuffer), 0, &i);
 }
 
 
@@ -1854,10 +1854,10 @@ VOID MacroLog(PSPAWNINFO pChar, PCHAR szLine)
 	bRunNextCommand = TRUE;
 
 	if (gszMacroName[0] == 0) {
-		sprintf(Filename, "%s\\MacroQuest.log", gszLogPath);
+		sprintf_s(Filename, "%s\\MacroQuest.log", gszLogPath);
 	}
 	else {
-		sprintf(Filename, "%s\\%s.log", gszLogPath, gszMacroName);
+		sprintf_s(Filename, "%s\\%s.log", gszLogPath, gszMacroName);
 	}
 
 	for (i = 0; i<strlen(Filename); i++) {
@@ -1871,8 +1871,8 @@ VOID MacroLog(PSPAWNINFO pChar, PCHAR szLine)
 		}
 	}
 	if (!_stricmp(szLine, "clear")) {
-		fOut = fopen(Filename, "wt");
-		if (!fOut) {
+		errno_t err = fopen_s(&fOut,Filename, "wt");
+		if (err) {
 			MacroError("Couldn't open log file: %s", Filename);
 			return;
 		}
@@ -1881,13 +1881,13 @@ VOID MacroLog(PSPAWNINFO pChar, PCHAR szLine)
 		return;
 	}
 
-	fOut = fopen(Filename, "at");
-	if (!fOut) {
+	errno_t err = fopen_s(&fOut,Filename, "at");
+	if (err) {
 		MacroError("Couldn't open log file: %s", Filename);
 		return;
 	}
 
-	sprintf(szBuffer, "[${Time.Date} ${Time.Time24}] %s", szLine);
+	sprintf_s(szBuffer, "[${Time.Date} ${Time.Time24}] %s", szLine);
 	ParseMacroParameter(pChar, szBuffer);
 	fprintf(fOut, "%s\n", szBuffer);
 	DebugSpew("MacroLog - %s", szBuffer);
@@ -1931,8 +1931,8 @@ VOID Face(PSPAWNINFO pChar, PCHAR szLine)
 	BOOL Parsing = TRUE;
 	DOUBLE Distance;
 	bRunNextCommand = FALSE;
-
-	_strlwr(strcpy(szLLine, szLine));
+	strcpy_s(szLLine, szLine);
+	_strlwr_s(szLLine);
 	while (bArg) {
 		GetArg(szArg, szFilter, 1);
 		szFilter = GetNextArg(szFilter, 1);
@@ -1953,7 +1953,7 @@ VOID Face(PSPAWNINFO pChar, PCHAR szLine)
 		}
 		else if (!_stricmp(szArg, "loc")) {
 			pSpawnClosest = &LocSpawn;
-			strcpy(LocSpawn.Name, "location");
+			strcpy_s(LocSpawn.Name, "location");
 			if ((szFilter[0] == 0) || (!strstr(szFilter, ","))) {
 				MacroError("Face: loc specified but <y>,<x> not found.");
 				return;
@@ -2024,7 +2024,7 @@ VOID Face(PSPAWNINFO pChar, PCHAR szLine)
 	szMsg[0] = 0;
 
 	if (!pSpawnClosest) {
-		MacroError("There were no matches for: %s", FormatSearchSpawn(szArg, &SearchSpawn));
+		MacroError("There were no matches for: %s", FormatSearchSpawn(szArg, sizeof(szArg), &SearchSpawn));
 	}
 	else {
 		if (Predict) {
@@ -2063,8 +2063,8 @@ VOID Face(PSPAWNINFO pChar, PCHAR szLine)
 			gFaceAngle = 10000.0f;
 			bRunNextCommand = TRUE;
 		}
-		//sprintf(szMsg,"Facing %s'%s'...",(Away)?"away from ":"", CleanupName(strcpy(szName,pSpawnClosest->Name),FALSE));
-		sprintf(szMsg, "Facing %s'%s'...", (Away) ? "away from " : "", pSpawnClosest->DisplayedName);
+		//sprintf_s(szMsg,"Facing %s'%s'...",(Away)?"away from ":"", CleanupName(strcpy_s(szName,pSpawnClosest->Name),FALSE));
+		sprintf_s(szMsg, "Facing %s'%s'...", (Away) ? "away from " : "", pSpawnClosest->DisplayedName);
 	}
 	if (ppTarget && pTarget) {
 		psTarget = (PSPAWNINFO)pTarget;
@@ -2121,8 +2121,8 @@ VOID Where(PSPAWNINFO pChar, PCHAR szLine)
 	PCHAR szFilter = szLLine;
 	BOOL bArg = TRUE;
 	bRunNextCommand = TRUE;
-
-	_strlwr(strcpy(szLLine, szLine));
+	strcpy_s(szLLine, szLine);
+	_strlwr_s(szLLine);
 
 	while (bArg) {
 		GetArg(szArg, szFilter, 1);
@@ -2137,13 +2137,14 @@ VOID Where(PSPAWNINFO pChar, PCHAR szLine)
 
 
 	if (!(pSpawnClosest = SearchThroughSpawns(&SearchSpawn, pChar))) {
-		sprintf(szMsg, "There were no matches for: %s", FormatSearchSpawn(szArg, &SearchSpawn));
+		sprintf_s(szMsg, "There were no matches for: %s", FormatSearchSpawn(szArg, sizeof(szArg), &SearchSpawn));
 	}
 	else {
 		INT Angle = (INT)((atan2f(pChar->X - pSpawnClosest->X, pChar->Y - pSpawnClosest->Y) * 180.0f / PI + 360.0f) / 22.5f + 0.5f) % 16;
-		sprintf(szMsg, "The closest '%s' is a level %d %s %s and %1.2f away to the %s, Z difference = %1.2f",
-			//CleanupName(strcpy(szName,pSpawnClosest->Name),FALSE),
-			strcpy(szName, pSpawnClosest->DisplayedName),
+		strcpy_s(szName, pSpawnClosest->DisplayedName);
+		sprintf_s(szMsg, "The closest '%s' is a level %d %s %s and %1.2f away to the %s, Z difference = %1.2f",
+			//CleanupName(strcpy_s(szName,pSpawnClosest->Name),FALSE),
+			szName,
 			pSpawnClosest->Level,
 			pEverQuest->GetRaceDesc(pSpawnClosest->Race),
 			GetClassDesc(pSpawnClosest->Class),
@@ -2190,7 +2191,7 @@ VOID DoAbility(PSPAWNINFO pChar, PCHAR szLine)
 
 					if (Avail)
 					{
-						sprintf(szBuffer, "<\ag%s\ax>", szSkills[Index]);
+						sprintf_s(szBuffer, "<\ag%s\ax>", szSkills[Index]);
 						WriteChatColor(szBuffer, USERCOLOR_DEFAULT);
 					}
 				}
@@ -2200,7 +2201,7 @@ VOID DoAbility(PSPAWNINFO pChar, PCHAR szLine)
 			{
 				if (pChar2->InnateSkill[Index] != 0xFF && strlen(szSkills[Index + 100])>3)
 				{
-					sprintf(szBuffer, "<\ag%s\ax>", szSkills[Index + 100]);
+					sprintf_s(szBuffer, "<\ag%s\ax>", szSkills[Index + 100]);
 					WriteChatColor(szBuffer, USERCOLOR_DEFAULT);
 				}
 			}
@@ -2210,7 +2211,7 @@ VOID DoAbility(PSPAWNINFO pChar, PCHAR szLine)
 			for (Index = 0; Index < NUM_COMBAT_ABILITIES; Index++) {
 				if (pCombatSkillsSelectWnd->ShouldDisplayThisSkill(Index)) {
 					if (PSPELL pCA = GetSpellByID(pPCData->GetCombatAbility(Index))) {
-						sprintf(szBuffer, "<\ag%s\ax>", pCA->Name);
+						sprintf_s(szBuffer, "<\ag%s\ax>", pCA->Name);
 						WriteChatColor(szBuffer, USERCOLOR_DEFAULT);
 					}
 				}
@@ -2279,7 +2280,7 @@ VOID LoadSpells(PSPAWNINFO pChar, PCHAR szLine)
 		WriteChatColor("--------------------------", USERCOLOR_DEFAULT);
 		for (Index = 0; Index<NUM_SPELL_SETS; Index++) {
 			if (pSpellSets[Index].Name[0] != 0) {
-				sprintf(szBuffer, "%d) %s", Index, pSpellSets[Index].Name);
+				sprintf_s(szBuffer, "%d) %s", Index, pSpellSets[Index].Name);
 				WriteChatColor(szBuffer, USERCOLOR_DEFAULT);
 			}
 		}
@@ -2290,15 +2291,15 @@ VOID LoadSpells(PSPAWNINFO pChar, PCHAR szLine)
 
 		DoIndex = IsNumber(szArg2) ? atoi(szArg2) : FindSpellListByName(szArg2);
 		if (DoIndex < 0 || DoIndex > NUM_SPELL_SETS - 1) {
-			sprintf(szBuffer, "Unable to find favorite list '%s'", szArg2);
+			sprintf_s(szBuffer, "Unable to find favorite list '%s'", szArg2);
 			WriteChatColor(szBuffer, USERCOLOR_DEFAULT);
 			return;
 		}
-		sprintf(szBuffer, "Favorite list '%s':", pSpellSets[DoIndex].Name);
+		sprintf_s(szBuffer, "Favorite list '%s':", pSpellSets[DoIndex].Name);
 		WriteChatColor(szBuffer, USERCOLOR_DEFAULT);
 		for (Index = 0; Index<NUM_SPELL_GEMS; Index++) {
 			if (pSpellSets[DoIndex].SpellId[Index] != 0xFFFFFFFF) {
-				sprintf(szBuffer, "%d) %s", Index, GetSpellByID(pSpellSets[DoIndex].SpellId[Index])->Name);
+				sprintf_s(szBuffer, "%d) %s", Index, GetSpellByID(pSpellSets[DoIndex].SpellId[Index])->Name);
 				WriteChatColor(szBuffer, USERCOLOR_DEFAULT);
 			}
 		}
@@ -2310,7 +2311,7 @@ VOID LoadSpells(PSPAWNINFO pChar, PCHAR szLine)
 		pSpellBookWnd->MemorizeSet((int*)&pSpellSets[DoIndex], NUM_SPELL_GEMS);
 	}
 	else {
-		sprintf(szBuffer, "Unable to find favorite list '%s'", szArg1);
+		sprintf_s(szBuffer, "Unable to find favorite list '%s'", szArg1);
 		WriteChatColor(szBuffer, USERCOLOR_DEFAULT);
 	}
 }
@@ -2380,10 +2381,10 @@ VOID Cast(PSPAWNINFO pChar, PCHAR szLine)
 		for (Index = 0; Index < NUM_SPELL_GEMS; Index++) {
 			LONG Spellid = GetMemorizedSpell(Index);
 			if (Spellid == 0xFFFFFFFF) {
-				sprintf(szBuffer, "%d. <Empty>", Index + 1);
+				sprintf_s(szBuffer, "%d. <Empty>", Index + 1);
 			}
 			else {
-				sprintf(szBuffer, "%d. %s", Index + 1, GetSpellNameByID(Spellid));
+				sprintf_s(szBuffer, "%d. %s", Index + 1, GetSpellNameByID(Spellid));
 			}
 			WriteChatColor(szBuffer, USERCOLOR_DEFAULT);
 		}
@@ -2444,8 +2445,9 @@ VOID Cast(PSPAWNINFO pChar, PCHAR szLine)
 					}
 					else {//nope normal, so just pipe it through
 						  //DebugSpew("SpellName = %s",SpellName);
-						cmdCast(pChar, itoa(Index + 1, szBuffer, 10));
-						//DebugSpew("pChar = %x SpellName = %s %s",pChar,SpellName,itoa(Index+1,szBuffer,10));
+						_itoa_s(Index + 1, szBuffer, 10);
+						cmdCast(pChar, szBuffer);
+						//DebugSpew("pChar = %x SpellName = %s %s",pChar,SpellName,_itoa_s(Index+1,szBuffer,10));
 					}
 					return;
 				}
@@ -2478,7 +2480,8 @@ VOID Target(PSPAWNINFO pChar, PCHAR szLine)
 	BOOL bArg = TRUE;
 
 	bRunNextCommand = TRUE;
-	_strlwr(strcpy(szLLine, szLine));
+	strcpy_s(szLLine, szLine);
+	_strlwr_s(szLLine);
 	while (bArg) {
 		GetArg(szArg, szFilter, 1);
 		szFilter = GetNextArg(szFilter, 1);
@@ -2493,8 +2496,8 @@ VOID Target(PSPAWNINFO pChar, PCHAR szLine)
 		}
 		else if (!strcmp(szArg, "mycorpse")) {
 			if (((PCHARINFO)pCharData)->pSpawn) {
-				sprintf(szFilter, "%s's Corpse", ((PCHARINFO)pCharData)->pSpawn->Name);
-				_strlwr(szFilter);
+				sprintf_s(szFilter, MAX_STRING,"%s's Corpse", ((PCHARINFO)pCharData)->pSpawn->Name);
+				_strlwr_s(szFilter, MAX_STRING);
 			}
 		}
 		else if (!strcmp(szArg, "clear")) {
@@ -2521,7 +2524,7 @@ VOID Target(PSPAWNINFO pChar, PCHAR szLine)
 	#ifdef TRUEBOX
 	if (pSpawnClosest) {
 		if (!LineOfSight(GetCharInfo()->pSpawn, pSpawnClosest)) {
-			sprintf(szMsg, "%s is a invalid target because it's not within your line of sight", pSpawnClosest->DisplayedName);
+			sprintf_s(szMsg, "%s is a invalid target because it's not within your line of sight", pSpawnClosest->DisplayedName);
 			pSpawnClosest = 0;
 			if (!gFilterTarget)
 				WriteChatColor(szMsg, USERCOLOR_WHO);
@@ -2531,7 +2534,7 @@ VOID Target(PSPAWNINFO pChar, PCHAR szLine)
 	#endif
 	if (!pSpawnClosest) {
 		CHAR szTemp[MAX_STRING] = { 0 };
-		sprintf(szMsg, "There are no spawns matching: %s", FormatSearchSpawn(szTemp, &SearchSpawn));
+		sprintf_s(szMsg, "There are no spawns matching: %s", FormatSearchSpawn(szTemp, sizeof(szTemp), &SearchSpawn));
 	}
 	else {
 		PSPAWNINFO *psTarget = NULL;
@@ -2542,7 +2545,7 @@ VOID Target(PSPAWNINFO pChar, PCHAR szLine)
 			szMsg[0] = 0;
 		}
 		else {
-			sprintf(szMsg, "Unable to target, address = 0");
+			sprintf_s(szMsg, "Unable to target, address = 0");
 		}
 	}
 	if (szMsg[0])
@@ -2563,17 +2566,21 @@ VOID Skills(PSPAWNINFO pChar, PCHAR szLine)
 	CHAR szMsg[MAX_STRING] = { 0 };
 	bRunNextCommand = TRUE;
 	PCHARINFO pCharInfo = NULL;
+	CHAR szCopy[MAX_STRING] = { 0 };
+	strcpy_s(szCopy, szLine);
 	if (NULL == (pCharInfo = GetCharInfo())) return;
-	if (szLine[0] != 0) _strlwr(szLine);
+	if (szCopy[0] != 0)
+		_strlwr_s(szCopy);
 	WriteChatColor("Skills", USERCOLOR_DEFAULT);
 	WriteChatColor("-----------------------", USERCOLOR_DEFAULT);
 	if (PCHARINFO2 pChar2 = GetCharInfo2()) {
 		for (Skill = 0; szSkills[Skill]; Skill++) {
-			if (szLine[0] != 0) {
+			if (szCopy[0] != 0) {
 				CHAR szName[MAX_STRING] = { 0 };
-				strcpy(szName, szSkills[Skill]);
-				_strlwr(szName);
-				if (!strstr(szName, szLine)) continue;
+				strcpy_s(szName, szSkills[Skill]);
+				_strlwr_s(szName);
+				if (!strstr(szName, szCopy))
+					continue;
 			}
 			SkillCount++;
 			switch (pChar2->Skill[Skill]) {
@@ -2583,28 +2590,28 @@ VOID Skills(PSPAWNINFO pChar, PCHAR szLine)
 				break;
 			case 254:
 				//Can train
-				sprintf(szMsg, "%s: Trainable", szSkills[Skill]);
+				sprintf_s(szMsg, "%s: Trainable", szSkills[Skill]);
 				WriteChatColor(szMsg, USERCOLOR_DEFAULT);
 				break;
 			case 253:
 				//Unknown
-				sprintf(szMsg, "%s: Unknown(253)", szSkills[Skill]);
+				sprintf_s(szMsg, "%s: Unknown(253)", szSkills[Skill]);
 				WriteChatColor(szMsg, USERCOLOR_DEFAULT);
 				break;
 			default:
 				//Have skill
-				sprintf(szMsg, "%s: %d", szSkills[Skill], pChar2->Skill[Skill]);
+				sprintf_s(szMsg, "%s: %d", szSkills[Skill], pChar2->Skill[Skill]);
 				WriteChatColor(szMsg, USERCOLOR_DEFAULT);
 			}
 		}
 	}
 	if (SkillCount == 0) {
-		sprintf(szMsg, "No skills matched '%s'.", szLine);
+		sprintf_s(szMsg, "No skills matched '%s'.", szCopy);
 		WriteChatColor(szMsg, USERCOLOR_DEFAULT);
 	}
 	else {
 		DebugSpew("Skills - %d skills listed", SkillCount);
-		sprintf(szMsg, "%d skills displayed.", SkillCount);
+		sprintf_s(szMsg, "%d skills displayed.", SkillCount);
 		WriteChatColor(szMsg, USERCOLOR_DEFAULT);
 	}
 }
@@ -2618,9 +2625,9 @@ VOID Skills(PSPAWNINFO pChar, PCHAR szLine)
 VOID SetAutoRun(PSPAWNINFO pChar, PCHAR szLine)
 {
 	CHAR szServerAndName[MAX_STRING] = { 0 };
-	sprintf(szServerAndName, "%s.%s", EQADDR_SERVERNAME, ((PCHARINFO)pCharData)->Name);
+	sprintf_s(szServerAndName, "%s.%s", EQADDR_SERVERNAME, ((PCHARINFO)pCharData)->Name);
 	WritePrivateProfileStringA("AutoRun", szServerAndName, szLine, gszINIFilename);
-	sprintf(szServerAndName, "Set autorun to: '%s'", szLine);
+	sprintf_s(szServerAndName, "Set autorun to: '%s'", szLine);
 	WriteChatColor(szServerAndName, USERCOLOR_DEFAULT);
 }
 
@@ -2644,7 +2651,7 @@ VOID Alias(PSPAWNINFO pChar, PCHAR szLine)
 		WriteChatColor("Aliases", USERCOLOR_WHO);
 		WriteChatColor("--------------------------", USERCOLOR_WHO);
 		while (pLoop) {
-			sprintf(szName, "%s: %s", pLoop->szName, pLoop->szCommand);
+			sprintf_s(szName, "%s: %s", pLoop->szName, pLoop->szCommand);
 			WriteChatColor(szName, USERCOLOR_WHO);
 			Count++;
 			pLoop = pLoop->pNext;
@@ -2653,7 +2660,7 @@ VOID Alias(PSPAWNINFO pChar, PCHAR szLine)
 			WriteChatColor("No aliases defined.", USERCOLOR_WHO);
 		}
 		else {
-			sprintf(szName, "%d alias%s displayed.", Count, (Count == 1) ? "" : "es");
+			sprintf_s(szName, "%d alias%s displayed.", Count, (Count == 1) ? "" : "es");
 			WriteChatColor(szName, USERCOLOR_WHO);
 		}
 		return;
@@ -2666,13 +2673,13 @@ VOID Alias(PSPAWNINFO pChar, PCHAR szLine)
 	if (!_stricmp(szCommand, "delete")) {
 		if (RemoveAlias(szName))
 		{
-			sprintf(szBuffer, "Alias '%s' deleted.", szName);
+			sprintf_s(szBuffer, "Alias '%s' deleted.", szName);
 			RewriteAliases();
 			WriteChatColor(szBuffer, USERCOLOR_DEFAULT);
 		}
 		else
 		{
-			sprintf(szBuffer, "Alias '%s' not found.", szName);
+			sprintf_s(szBuffer, "Alias '%s' not found.", szName);
 			WriteChatColor(szBuffer, USERCOLOR_DEFAULT);
 		}
 	}
@@ -2681,7 +2688,7 @@ VOID Alias(PSPAWNINFO pChar, PCHAR szLine)
 		if (RemoveAlias(szName))
 			New = 0;
 		AddAlias(szName, szCommand);
-		sprintf(szBuffer, "Alias '%s' %sed.", szName, (New) ? "add" : "updat");
+		sprintf_s(szBuffer, "Alias '%s' %sed.", szName, (New) ? "add" : "updat");
 		WriteChatColor(szBuffer, USERCOLOR_DEFAULT);
 		RewriteAliases();
 	}
@@ -2709,7 +2716,7 @@ VOID Substitute(PSPAWNINFO pChar, PCHAR szLine)
 		WriteChatColor("Substitutions", USERCOLOR_WHO);
 		WriteChatColor("--------------------------", USERCOLOR_WHO);
 		while (pLoop) {
-			sprintf(szName, "%s\t----\t%s", pLoop->szOrig, pLoop->szSub);
+			sprintf_s(szName, "%s\t----\t%s", pLoop->szOrig, pLoop->szSub);
 			WriteChatColor(szName, USERCOLOR_WHO);
 			Count++;
 			pLoop = pLoop->pNext;
@@ -2718,7 +2725,7 @@ VOID Substitute(PSPAWNINFO pChar, PCHAR szLine)
 			WriteChatColor("No Substitutions defined.", USERCOLOR_WHO);
 		}
 		else {
-			sprintf(szName, "%d substitution%s displayed.", Count, (Count == 1) ? "" : "s");
+			sprintf_s(szName, "%d substitution%s displayed.", Count, (Count == 1) ? "" : "s");
 			WriteChatColor(szName, USERCOLOR_WHO);
 		}
 		return;
@@ -2731,13 +2738,13 @@ VOID Substitute(PSPAWNINFO pChar, PCHAR szLine)
 	if (!_stricmp(szCommand, "delete")) {
 		if (RemoveSubstitute(szName))
 		{
-			sprintf(szBuffer, "Substitution for '%s' deleted.", szName);
+			sprintf_s(szBuffer, "Substitution for '%s' deleted.", szName);
 			RewriteSubstitutions();
 			WriteChatColor(szBuffer, USERCOLOR_DEFAULT);
 		}
 		else
 		{
-			sprintf(szBuffer, "Substitution for '%s' not found.", szName);
+			sprintf_s(szBuffer, "Substitution for '%s' not found.", szName);
 			WriteChatColor(szBuffer, USERCOLOR_DEFAULT);
 		}
 	}
@@ -2746,7 +2753,7 @@ VOID Substitute(PSPAWNINFO pChar, PCHAR szLine)
 		if (RemoveSubstitute(szName))
 			New = 0;
 		AddSubstitute(szName, szCommand);
-		sprintf(szBuffer, "Substitution for '%s' %sed.", szName, (New) ? "add" : "updat");
+		sprintf_s(szBuffer, "Substitution for '%s' %sed.", szName, (New) ? "add" : "updat");
 		WriteChatColor(szBuffer, USERCOLOR_DEFAULT);
 		RewriteSubstitutions();
 	}
@@ -2795,11 +2802,11 @@ VOID IniOutput(PSPAWNINFO pChar, PCHAR szLine)
 
 	if (szArg1[0] != '\\' && !strchr(szArg1, ':'))
 	{
-		sprintf(szOutput, "%s\\%s", gszMacroPath, szArg1);
-		strcpy(szArg1, szOutput);
+		sprintf_s(szOutput, "%s\\%s", gszMacroPath, szArg1);
+		strcpy_s(szArg1, szOutput);
 	}
 	if (!strstr(szArg1, ".")) {
-		strcat(szArg1, ".ini");
+		strcat_s(szArg1, ".ini");
 	}
 	ZeroMemory(szOutput, MAX_STRING);
 
@@ -2820,11 +2827,11 @@ VOID IniOutput(PSPAWNINFO pChar, PCHAR szLine)
 		GetArg(szArg4, szLine, 4);
 	}
 	if (!WritePrivateProfileString(szArg2, (char*)Arg3, (char*)Arg4, szArg1)) {
-		sprintf(szOutput, "IniOutput ERROR -- during WritePrivateProfileString: %s", szLine);
+		sprintf_s(szOutput, "IniOutput ERROR -- during WritePrivateProfileString: %s", szLine);
 		DebugSpew("%s", szOutput);
 	}
 	else {
-		sprintf(szOutput, "IniOutput Write Successful!");
+		sprintf_s(szOutput, "IniOutput Write Successful!");
 		DebugSpew("%s: %s", szOutput, szLine);
 	}
 }
@@ -2850,14 +2857,14 @@ VOID BankList(PSPAWNINFO pChar, PCHAR szLine)
 		if (pCharInfo->pBankArray) pContainer = pCharInfo->pBankArray->Bank[a];
 		if (pContainer) {
 			GetItemLink(pContainer, &Link[0]);
-			sprintf(szTemp, "Slot %d: %dx %s (%s)", a, pContainer->StackCount ? pContainer->StackCount : 1, Link, GetItemFromContents(pContainer)->LoreName);
+			sprintf_s(szTemp, "Slot %d: %dx %s (%s)", a, pContainer->StackCount ? pContainer->StackCount : 1, Link, GetItemFromContents(pContainer)->LoreName);
 			WriteChatColor(szTemp, USERCOLOR_DEFAULT);
 			if (pContainer->pContentsArray)
 			{
 				for (int b = 0; b<GetItemFromContents(pContainer)->Slots; b++) {
 					if (pContainer->pContentsArray->Contents[b]) {
 						GetItemLink(pContainer->pContentsArray->Contents[b], &Link[0]);
-						sprintf(szTemp, "- Slot %d: %dx %s (%s)", b, pContainer->pContentsArray->Contents[b]->StackCount ? pContainer->pContentsArray->Contents[b]->StackCount : 1, Link, GetItemFromContents(pContainer->pContentsArray->Contents[b])->LoreName);
+						sprintf_s(szTemp, "- Slot %d: %dx %s (%s)", b, pContainer->pContentsArray->Contents[b]->StackCount ? pContainer->pContentsArray->Contents[b]->StackCount : 1, Link, GetItemFromContents(pContainer->pContentsArray->Contents[b])->LoreName);
 						WriteChatColor(szTemp, USERCOLOR_DEFAULT);
 					}
 				}
@@ -2887,7 +2894,7 @@ VOID WindowState(PSPAWNINFO pChar, PCHAR szLine)
 		switch (State) {
 		case 0:
 			((CXWnd*)pWnd)->Show(0, 1);
-			sprintf(szBuffer, "Window '%s' is now closed.", pWnd->WindowText ? pWnd->WindowText->Text : Arg1);
+			sprintf_s(szBuffer, "Window '%s' is now closed.", pWnd->WindowText ? pWnd->WindowText->Text : Arg1);
 			((CSidlScreenWnd*)pWnd)->StoreIniVis();
 			break;
 		case 1:
@@ -2897,11 +2904,11 @@ VOID WindowState(PSPAWNINFO pChar, PCHAR szLine)
 				call dword ptr[ShowWindow];
 				pop ecx;
 			}
-			sprintf(szBuffer, "Window '%s' is now open.", pWnd->WindowText ? pWnd->WindowText->Text : Arg1);
+			sprintf_s(szBuffer, "Window '%s' is now open.", pWnd->WindowText ? pWnd->WindowText->Text : Arg1);
 			((CSidlScreenWnd*)pWnd)->StoreIniVis();
 			break;
 		case 99:
-			sprintf(szBuffer, "Window '%s' is currently %s", pWnd->WindowText ? pWnd->WindowText->Text : Arg1, (pWnd->dShow == 0) ? "closed" : "open");
+			sprintf_s(szBuffer, "Window '%s' is currently %s", pWnd->WindowText ? pWnd->WindowText->Text : Arg1, (pWnd->dShow == 0) ? "closed" : "open");
 			break;
 		}
 		WriteChatColor(szBuffer, USERCOLOR_DEFAULT);
@@ -2976,7 +2983,7 @@ VOID DoMappable(PSPAWNINFO pChar, PCHAR szLine)
 
 	GetArg(szArg1, szLine, 1);
 	GetArg(szArg2, szLine, 2);
-	BOOL Hold = (stricmp(szArg2, "hold") == 0);
+	BOOL Hold = (_stricmp(szArg2, "hold") == 0);
 
 
 	if (!PressMQ2KeyBind(szArg1, Hold))
@@ -3060,13 +3067,19 @@ VOID MultilineCommand(PSPAWNINFO pChar, PCHAR szLine)
 	if (!szRest[0])
 		return;
 	CHAR Copy[MAX_STRING], szCmd[MAX_STRING] = { 0 };
-	strcpy(Copy, szRest);// dont destroy original...
-	szRest = strtok(Copy, szArg);
-	while (szRest)
+	strcpy_s(Copy, szRest);// dont destroy original...
+	char *token1 = NULL;
+	char *next_token1 = NULL;
+
+	token1 = strtok_s(Copy, szArg, &next_token1);
+	while (token1 != NULL)
 	{
-		strcpy(szCmd, szRest);
-		DoCommand(pChar, szCmd);
-		szRest = strtok(NULL, szArg);
+		if (token1 != NULL)
+		{
+			strcpy_s(szCmd, token1);
+			DoCommand(pChar, szCmd);
+			token1 = strtok_s(NULL, szArg, &next_token1);
+		}
 	}
 }
 
@@ -3218,22 +3231,23 @@ int CMD_UseItem(int argc, char *argv[])
 VOID UseItemCmd(PSPAWNINFO pChar, PCHAR szLine)
 {
 #endif
-
-	if (!szLine[0])
+	CHAR szCmd[MAX_STRING] = { 0 };
+	strcpy_s(szCmd, szLine);
+	if (!szCmd[0])
 	{
 		WriteChatColor("Usage: /useitem \"item name\"");
-		cmdUseItem(pChar, szLine);
+		cmdUseItem(pChar, szCmd);
 		RETURN(0);
 	}
 	else {
 		CHAR szSlot1[MAX_STRING] = { 0 };
-		GetArg(szSlot1, szLine, 1);
-		bool stripped = StripQuotes(szLine);
+		GetArg(szSlot1, szCmd, 1);
+		bool stripped = StripQuotes(szCmd);
 		if (IsNumber(szSlot1)) {
-			cmdUseItem(pChar, szLine);
+			cmdUseItem(pChar, szCmd);
 		}
 		else {
-			if (PCONTENTS pItem = FindItemByName(szLine, stripped)) {
+			if (PCONTENTS pItem = FindItemByName(szCmd, stripped)) {
 				if (!pItem->IsMountKeyRing) {
 					CHAR szTemp[32] = { 0 };
 					sprintf_s(szTemp, "%d %d", pItem->ItemSlot, pItem->ItemSlot2);
@@ -3242,7 +3256,7 @@ VOID UseItemCmd(PSPAWNINFO pChar, PCHAR szLine)
 				else {
 #ifndef EMU
 					//is it a mount?
-					if (DWORD index = GetKeyRingIndex(0, szLine, stripped, true)) {
+					if (DWORD index = GetKeyRingIndex(0, szCmd,sizeof(szCmd), stripped, true)) {
 						if (CXWnd *krwnd = FindMQ2Window(KeyRingWindowParent)) {
 							if (CListWnd *clist = (CListWnd*)krwnd->GetChildItem(MountWindowList)) {
 								if (DWORD numitems = ((CSidlScreenWnd*)clist)->Items) {
@@ -3255,7 +3269,7 @@ VOID UseItemCmd(PSPAWNINFO pChar, PCHAR szLine)
 						}
 					}
 					//uhm ok, maybe an illlusion then?
-					if (DWORD index = GetKeyRingIndex(1, szLine, stripped, true)) {
+					if (DWORD index = GetKeyRingIndex(1, szCmd,sizeof(szCmd), stripped, true)) {
 						if (CXWnd *krwnd = FindMQ2Window(KeyRingWindowParent)) {
 							if (CListWnd *clist = (CListWnd*)krwnd->GetChildItem(IllusionWindowList)) {
 								if (DWORD numitems = ((CSidlScreenWnd*)clist)->Items) {
@@ -3298,11 +3312,11 @@ VOID DoSocial(PSPAWNINFO pChar, PCHAR szLine)
 			SocialPage = SocialIndex / 12;
 			SocialNum = SocialIndex - (SocialPage * 12);
 			if (strlen(pSocialList[SocialIndex].Name)) {
-				sprintf(szBuffer, "(%2d,%2d) %s ", SocialPage + 1, SocialNum + 1, pSocialList[SocialIndex].Name);
+				sprintf_s(szBuffer, "(%2d,%2d) %s ", SocialPage + 1, SocialNum + 1, pSocialList[SocialIndex].Name);
 				WriteChatColor(szBuffer, USERCOLOR_ECHO_EMOTE);
 				for (LineIndex = 0; LineIndex < 5; LineIndex++) {
 					if (strlen(pSocialList[SocialIndex].Line[LineIndex])) {
-						sprintf(szBuffer, "  %d: %s", LineIndex + 1, pSocialList[SocialIndex].Line[LineIndex]);
+						sprintf_s(szBuffer, "  %d: %s", LineIndex + 1, pSocialList[SocialIndex].Line[LineIndex]);
 						WriteChatColor(szBuffer, USERCOLOR_DEFAULT);
 					}
 				}
@@ -3333,7 +3347,7 @@ VOID DoSocial(PSPAWNINFO pChar, PCHAR szLine)
 		}
 		else {
 			if (strlen(szLine)) {
-				sprintf(szBuffer, "Invalid Argument(s): %s", szLine);
+				sprintf_s(szBuffer, "Invalid Argument(s): %s", szLine);
 				WriteChatColor(szBuffer, USERCOLOR_DEFAULT);
 			}
 			SyntaxError("Usage: /dosocial <list|\"social name\">", USERCOLOR_DEFAULT);
@@ -3501,7 +3515,8 @@ VOID CaptionCmd(PSPAWNINFO pChar, PCHAR szLine)
 			gMaxSpawnCaptions = 8;
 		if (gMaxSpawnCaptions>70)
 			gMaxSpawnCaptions = 70;
-		WritePrivateProfileString("Captions", "Update", itoa(gMaxSpawnCaptions, Arg1, 10), gszINIFilename);
+		_itoa_s(gMaxSpawnCaptions, Arg1, 10);
+		WritePrivateProfileString("Captions", "Update", Arg1, gszINIFilename);
 		WriteChatf("\ay%d\ax nearest spawns will have their caption updated each pass.", gMaxSpawnCaptions);
 		return;
 	}
@@ -3524,9 +3539,9 @@ VOID CaptionCmd(PSPAWNINFO pChar, PCHAR szLine)
 		MacroError("Invalid caption type '%s'", Arg1);
 		return;
 	}
-	strcpy(pCaption, GetNextArg(szLine));
+	strcpy_s(pCaption, MAX_STRING, GetNextArg(szLine));
 	WritePrivateProfileString("Captions", Arg1, pCaption, gszINIFilename);
-	ConvertCR(pCaption);
+	ConvertCR(pCaption, MAX_STRING);
 	WriteChatf("\ay%s\ax caption set.", Arg1);
 }
 
@@ -3567,7 +3582,7 @@ VOID AltAbility(PSPAWNINFO pChar, PCHAR szLine)
 			WriteChatColor("-------------------------------------", USERCOLOR_WHO);
 			for (nAbility = 0; nAbility<AA_CHAR_MAX_REAL; nAbility++) {
 				if (PALTABILITY pAbility = pAltAdvManager->GetAAById(pPCData->GetAlternateAbilityId(nAbility))) {
-					sprintf(szBuffer, "[ %d: %s ]", pAbility->ID,
+					sprintf_s(szBuffer, "[ %d: %s ]", pAbility->ID,
 						pCDBStr->GetString(pAbility->nName, 1, NULL));
 					WriteChatColor(szBuffer, USERCOLOR_WHO);
 				}
@@ -3583,7 +3598,7 @@ VOID AltAbility(PSPAWNINFO pChar, PCHAR szLine)
 					{
 						if (pAltAdvManager->IsAbilityReady(pPCData, pAbility, 0))
 						{
-							sprintf(szBuffer, "[ %d: %s ] (Reuse Time: %d seconds) <Ready>",
+							sprintf_s(szBuffer, "[ %d: %s ] (Reuse Time: %d seconds) <Ready>",
 								pAbility->ID, pCDBStr->GetString(pAbility->nName, 1, NULL),
 								pAltAdvManager->GetCalculatedTimer(pPCData, pAbility));
 							WriteChatColor(szBuffer, USERCOLOR_WHO);
@@ -3591,7 +3606,7 @@ VOID AltAbility(PSPAWNINFO pChar, PCHAR szLine)
 						else
 						{
 							pAltAdvManager->IsAbilityReady(pPCData, pAbility, &i);
-							sprintf(szBuffer, "[ %d: %s ] (Reuse Time: %d seconds) <Ready in %d seconds>",
+							sprintf_s(szBuffer, "[ %d: %s ] (Reuse Time: %d seconds) <Ready in %d seconds>",
 								pAbility->ID, pCDBStr->GetString(pAbility->nName, 1, NULL),
 								pAltAdvManager->GetCalculatedTimer(pPCData, pAbility), i);
 							WriteChatColor(szBuffer, USERCOLOR_WHO);
@@ -3623,19 +3638,19 @@ VOID AltAbility(PSPAWNINFO pChar, PCHAR szLine)
 					{//has a timer
 						if (!pAltAdvManager->IsAbilityReady(pPCData, pAbility, 0))
 						{//it's not ready
-							sprintf(szBuffer, "[ %d: %s ] %s", pAbility->ID, pName, pCDBStr->GetString(pAbility->nName, 4, NULL));
+							sprintf_s(szBuffer, "[ %d: %s ] %s", pAbility->ID, pName, pCDBStr->GetString(pAbility->nName, 4, NULL));
 							WriteChatColor(szBuffer, USERCOLOR_WHO);
-							sprintf(szBuffer, "Min Level: %d, Cost: %d, Max Rank: %d, Type: %d, Reuse Time: %d seconds",
+							sprintf_s(szBuffer, "Min Level: %d, Cost: %d, Max Rank: %d, Type: %d, Reuse Time: %d seconds",
 								pAbility->MinLevel, pAbility->Cost, pAbility->MaxRank, pAbility->Type, pAltAdvManager->GetCalculatedTimer(pPCData, pAbility));
 							WriteChatColor(szBuffer, USERCOLOR_WHO);
 							if (pAbility->SpellID > 0)
 							{
-								sprintf(szBuffer, "Casts Spell: %s", GetSpellNameByID(pAbility->SpellID));
+								sprintf_s(szBuffer, "Casts Spell: %s", GetSpellNameByID(pAbility->SpellID));
 								WriteChatColor(szBuffer, USERCOLOR_WHO);
 							}
 							if (PlayerHasAAAbility(pAbility->Index))
 							{
-								sprintf(szBuffer, "Ready: No (%d seconds until refresh)", i);
+								sprintf_s(szBuffer, "Ready: No (%d seconds until refresh)", i);
 								WriteChatColor(szBuffer, USERCOLOR_WHO);
 							}
 							else
@@ -3646,31 +3661,31 @@ VOID AltAbility(PSPAWNINFO pChar, PCHAR szLine)
 						}
 						else
 						{
-							sprintf(szBuffer, "[ %d: %s ] %s", pAbility->ID, pName, pCDBStr->GetString(pAbility->nName, 4, NULL));
+							sprintf_s(szBuffer, "[ %d: %s ] %s", pAbility->ID, pName, pCDBStr->GetString(pAbility->nName, 4, NULL));
 							WriteChatColor(szBuffer, USERCOLOR_WHO);
-							sprintf(szBuffer, "Min Level: %d, Cost: %d, Max Rank: %d, Type: %d, Reuse Time: %d seconds",
+							sprintf_s(szBuffer, "Min Level: %d, Cost: %d, Max Rank: %d, Type: %d, Reuse Time: %d seconds",
 								pAbility->MinLevel, pAbility->Cost, pAbility->MaxRank, pAbility->Type, pAltAdvManager->GetCalculatedTimer(pPCData, pAbility));
 							WriteChatColor(szBuffer, USERCOLOR_WHO);
 							if (pAbility->SpellID > 0)
 							{
-								sprintf(szBuffer, "Casts Spell: %s", GetSpellNameByID(pAbility->SpellID));
+								sprintf_s(szBuffer, "Casts Spell: %s", GetSpellNameByID(pAbility->SpellID));
 								WriteChatColor(szBuffer, USERCOLOR_WHO);
 							}
-							sprintf(szBuffer, "Ready: Yes");
+							sprintf_s(szBuffer, "Ready: Yes");
 							WriteChatColor(szBuffer, USERCOLOR_WHO);
 						}
 					}
 					else
 					{
 						pAltAdvManager->IsAbilityReady(pPCData, pAbility, &i);
-						sprintf(szBuffer, "[ %d: %s ] %s", pAbility->ID, pName, pCDBStr->GetString(pAbility->nName, 4, NULL));
+						sprintf_s(szBuffer, "[ %d: %s ] %s", pAbility->ID, pName, pCDBStr->GetString(pAbility->nName, 4, NULL));
 						WriteChatColor(szBuffer, USERCOLOR_WHO);
-						sprintf(szBuffer, "Min Level: %d, Cost: %d, Max Rank: %d, Type: %d",
+						sprintf_s(szBuffer, "Min Level: %d, Cost: %d, Max Rank: %d, Type: %d",
 							pAbility->MinLevel, pAbility->Cost, pAbility->MaxRank, pAbility->Type);
 						WriteChatColor(szBuffer, USERCOLOR_WHO);
 						if (pAbility->SpellID > 0)
 						{
-							sprintf(szBuffer, "Casts Spell: %s", GetSpellNameByID(pAbility->SpellID));
+							sprintf_s(szBuffer, "Casts Spell: %s", GetSpellNameByID(pAbility->SpellID));
 							WriteChatColor(szBuffer, USERCOLOR_WHO);
 						}
 					}
@@ -3685,7 +3700,7 @@ VOID AltAbility(PSPAWNINFO pChar, PCHAR szLine)
 			if (PALTABILITY pAbility = pAltAdvManager->GetAAById(pPCData->GetAlternateAbilityId(nAbility))) {
 				if (PCHAR pName = pCDBStr->GetString(pAbility->nName, 1, NULL)) {
 					if (!_stricmp(szName, pName)) {
-						sprintf(szBuffer, "/alt act %d", pAbility->ID);
+						sprintf_s(szBuffer, "/alt act %d", pAbility->ID);
 						DoCommand(pChar, szBuffer);
 						break;
 					}
@@ -3711,8 +3726,8 @@ VOID Echo(PSPAWNINFO pChar, PCHAR szLine)
 {
 	CHAR szEcho[MAX_STRING] = { 0 };
 	bRunNextCommand = TRUE;
-	strcpy(szEcho, DebugHeader);
-	strcat(szEcho, " ");
+	strcpy_s(szEcho, DebugHeader);
+	strcat_s(szEcho, " ");
 	int NewPos = strlen(DebugHeader)+1, OldPos = 0;
 	if (szLine) {
 		while (OldPos < (int)strlen(szLine)) {
@@ -4162,7 +4177,7 @@ DWORD __stdcall openpickzonewnd(PVOID pData)
 	lockit lk(ghLockPickZone, "openpickzonewnd");
 	int nInst = (int)pData;
 	CHAR szInst[32] = { 0 };
-	itoa(nInst, szInst, 10);
+	_itoa_s(nInst, szInst, 10);
 	if (PCHARINFO pCharInfo = GetCharInfo()) {
 		cmdPickZone(pCharInfo->pSpawn, NULL);
 		Sleep(2000);//i need to make this hardcoded wait dynamic but im in a hurry ill do it later -eqmule

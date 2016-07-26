@@ -1,6 +1,6 @@
 // MQ2EQIM.cpp : Defines the entry point for the DLL application.
 //
-
+// v2.0 - Eqmule 07-22-2016 - Added string safety.
 // PLUGIN_API is only to be used for callbacks.  All existing callbacks at this time
 // are shown below. Remove the ones your plugin does not use.  Always use Initialize
 // and Shutdown for setup and cleanup, do NOT do it in DllMain.
@@ -8,7 +8,7 @@
 #include "../MQ2Plugin.h"
 
 PreSetup("MQ2EQIM");
-
+PLUGIN_VERSION(2.0);
 // TODO: Buddy list window.
 
 #define BUDDY_OFFLINE   1
@@ -67,7 +67,7 @@ int FindEQIMBuddy(PCHAR Name)
     return -1;
 }
 
-extern CHAR DataTypeTemp[MAX_STRING];
+//extern CHAR DataTypeTemp[MAX_STRING];
 
 class MQ2BuddyType : public MQ2Type
 {
@@ -115,9 +115,14 @@ public:
             Dest.Type=pIntType;
             return true;
         case LastSeen:
-            Dest.Ptr= localtime((time_t*) &pBuddy->LastSeen );     
-            Dest.Type=pTimeType;
-            return true;
+		{
+			struct tm* pTime = (struct tm*)&DataTypeTemp[0];
+			ZeroMemory(pTime, sizeof(struct tm));
+			localtime_s(pTime, (time_t*)&pBuddy->LastSeen);
+			Dest.Ptr = pTime;
+			Dest.Type = pTimeType;
+			return true;
+		}
         }
 
         return false;
@@ -127,7 +132,7 @@ public:
     {
         if (!VarPtr.Ptr)
             return false;
-        strcpy(Destination,((EQIMBuddy*)VarPtr.Ptr)->Name);
+        strcpy_s(Destination,MAX_STRING,((EQIMBuddy*)VarPtr.Ptr)->Name);
         return true;
     }
 
@@ -277,7 +282,7 @@ VOID OnBuddyStatusChange(char *Buddy, DWORD Status)
     if (N==-1)
     {
         EQIMBuddy *pBuddy = new EQIMBuddy;
-        strcpy(pBuddy->Name,Buddy);
+        strcpy_s(pBuddy->Name,Buddy);
         pBuddy->Status=Status;
         if (Status==BUDDY_OFFLINE)
             pBuddy->LastSeen=0;
@@ -306,10 +311,10 @@ VOID OnBuddyStatusChange(char *Buddy, DWORD Status)
         char out[MAX_STRING]={0};
         if (Status<=6)
         {
-            sprintf(out,"\ar*\ax %s: %s",Buddy,szBuddyStatus[Status]);
+            sprintf_s(out,"\ar*\ax %s: %s",Buddy,szBuddyStatus[Status]);
         }
         else
-            sprintf(out,"\ar*\ax Unknown Status(%d)",Status);
+            sprintf_s(out,"\ar*\ax Unknown Status(%d)",Status);
         WriteChatColor(out);
     }
 }
@@ -318,7 +323,7 @@ VOID LoadBuddyList()
 {
     BuddyList.Cleanup();
 
-    sprintf(Character,"%s.%s",EQADDR_SERVERNAME,((PCHARINFO)pCharData)->Name);
+    sprintf_s(Character,"%s.%s",EQADDR_SERVERNAME,((PCHARINFO)pCharData)->Name);
 
     // load buddies per char
     CHAR FullList[MAX_STRING*10] = {0};
@@ -332,10 +337,10 @@ VOID LoadBuddyList()
             //LoadMQ2Plugin(szBuffer);
             if (FindEQIMBuddy(szBuffer)==-1)
             {
-                sprintf(szCommand,"[buddy %s",szBuffer);
+                sprintf_s(szCommand,"[buddy %s",szBuffer);
                 DoCommand((PSPAWNINFO)pLocalPlayer,szCommand);
                 EQIMBuddy *pBuddy = new EQIMBuddy;
-                strcpy(pBuddy->Name,szBuffer);
+                strcpy_s(pBuddy->Name,szBuffer);
                 pBuddy->Status=BUDDY_OFFLINE;
                 pBuddy->LastSeen=0;
                 BuddyList+=pBuddy;
@@ -349,7 +354,7 @@ VOID LoadBuddyList()
     unsigned long nfriends=pChatService->GetNumberOfFriends();
     for (N = 0 ; N < nfriends ; N++)
     {
-        sprintf(szCommand,";buddy %s",pChatService->GetFriendName(N));
+        sprintf_s(szCommand,";buddy %s",pChatService->GetFriendName(N));
         DoCommand((PSPAWNINFO)pLocalPlayer,szCommand);
     }
 
@@ -362,7 +367,14 @@ VOID LoadBuddyList()
         }
     }
 }
-
+template <unsigned int _Size>LPSTR SafeItoa(int _Value,char(&_Buffer)[_Size], int _Radix)
+{
+	errno_t err = _itoa_s(_Value, _Buffer, _Radix);
+	if (!err) {
+		return _Buffer;
+	}
+	return "";
+}
 VOID SaveBuddyList()
 {
     CHAR Buffer[MAX_STRING]={0};
@@ -375,7 +387,7 @@ VOID SaveBuddyList()
         if (EQIMBuddy *pBuddy = BuddyList[N])
         {
             WritePrivateProfileString(Character,pBuddy->Name,pBuddy->Name,INIFileName);
-            WritePrivateProfileString("LastSeen",pBuddy->Name,itoa((int)pBuddy->LastSeen,Buffer,10),INIFileName);
+            WritePrivateProfileString("LastSeen",pBuddy->Name,SafeItoa((int)pBuddy->LastSeen,Buffer,10),INIFileName);
         }
     }
 }
@@ -388,8 +400,8 @@ VOID BuddiesCmd(PSPAWNINFO pChar, PCHAR Line)
     CHAR Buffer[MAX_STRING]={0};
     if (Line[0])
     {
-        strcpy(Buffer,Line);
-        strlwr(Buffer);
+        strcpy_s(Buffer,Line);
+        _strlwr_s(Buffer);
         bOnline=(strstr(Buffer,"on")!=0);
         bEQIM=(strstr(Buffer,"eqim")!=0);
         bOffline=(strstr(Buffer,"off")!=0);
@@ -406,9 +418,10 @@ VOID BuddiesCmd(PSPAWNINFO pChar, PCHAR Line)
             case BUDDY_OFFLINE:
                 if (bOffline)
                 {
-                    struct tm *pTime=localtime((time_t*)&pBuddy->LastSeen);
+					struct tm theTime = { 0 };
+					localtime_s(&theTime,(time_t*)&pBuddy->LastSeen);
                     Count++;
-                    sprintf(Buffer,"\ar*\ax %s: %s - Last Seen %02d:%02d:%02d %02d/%02d/%04d",pBuddy->Name,szBuddyStatus[pBuddy->Status],pTime->tm_hour,pTime->tm_min, pTime->tm_sec,pTime->tm_mon+1,pTime->tm_mday, pTime->tm_year+1900);
+                    sprintf_s(Buffer,"\ar*\ax %s: %s - Last Seen %02d:%02d:%02d %02d/%02d/%04d",pBuddy->Name,szBuddyStatus[pBuddy->Status],theTime.tm_hour,theTime.tm_min, theTime.tm_sec,theTime.tm_mon+1,theTime.tm_mday, theTime.tm_year+1900);
                     WriteChatColor(Buffer);
                 }
                 break;
@@ -417,7 +430,7 @@ VOID BuddiesCmd(PSPAWNINFO pChar, PCHAR Line)
                 if (bEQIM)
                 {
                     Count++;
-                    sprintf(Buffer,"\ar*\ax %s: %s",pBuddy->Name,szBuddyStatus[pBuddy->Status]);
+                    sprintf_s(Buffer,"\ar*\ax %s: %s",pBuddy->Name,szBuddyStatus[pBuddy->Status]);
                     WriteChatColor(Buffer);
                 }
                 break;
@@ -426,14 +439,14 @@ VOID BuddiesCmd(PSPAWNINFO pChar, PCHAR Line)
                 if (bOnline)
                 {
                     Count++;
-                    sprintf(Buffer,"\ar*\ax %s: %s",pBuddy->Name,szBuddyStatus[pBuddy->Status]);
+                    sprintf_s(Buffer,"\ar*\ax %s: %s",pBuddy->Name,szBuddyStatus[pBuddy->Status]);
                     WriteChatColor(Buffer);
                 }
                 break;
             }
         }
     }
-    sprintf(Buffer,"\ag%d\ax buddies matching\at%s%s%s\ax",Count,bEQIM?" EQIM":"",bOffline?" offline":"",bOnline?" online":"");
+    sprintf_s(Buffer,"\ag%d\ax buddies matching\at%s%s%s\ax",Count,bEQIM?" EQIM":"",bOffline?" offline":"",bOnline?" online":"");
     WriteChatColor(Buffer);
 }
 

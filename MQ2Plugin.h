@@ -35,10 +35,10 @@
 #define PLUGIN_VERSION(X) __declspec(dllexport) float MQ2Version = (float)X
 
 
-//#define SetINIFileName(ini) sprintf(INIFileName,"%s\\%s",gszINIPath,ini);
-extern CHAR INIFileName[MAX_PATH];
+//#define SetINIFileName(ini) sprintf_s(INIFileName,"%s\\%s",gszINIPath,ini);
+extern CHAR INIFileName[MAX_STRING];
 
-#define PreSetup(pluginname) CHAR INIFileName[MAX_PATH]={0};\
+#define PreSetup(pluginname) CHAR INIFileName[MAX_STRING]={0};\
 BOOL APIENTRY DllMain( HANDLE hModule, \
                        DWORD  ul_reason_for_call, \
                        LPVOID lpReserved\
@@ -47,7 +47,7 @@ BOOL APIENTRY DllMain( HANDLE hModule, \
     if (ul_reason_for_call==DLL_PROCESS_ATTACH)\
     {\
     DebugSpewAlways("%s Module Loaded",pluginname );\
-    sprintf(INIFileName,"%s\\%s.ini",gszINIPath,pluginname);\
+    sprintf_s(INIFileName,"%s\\%s.ini",gszINIPath,pluginname);\
     }\
     else if (ul_reason_for_call==DLL_PROCESS_DETACH)\
     DebugSpewAlways("%s Module Unloaded",pluginname);\

@@ -1,3 +1,29 @@
+25 Jul 2016 by eqmule
+- THE BIG #pragma warnings SHOULD DIE patch...
+- I have removed the #pragma warnings for depreciated string functions.
+- This will absolutely break ALL your plugins.
+- I am available on skype to help you fix every single one. eq.mule
+- This is NOT going to be easy, but I have posted updated plugins
+  on macroquest2.com in every thread that I had plugin source for.
+- When you get WARNINGS while buidling this version, IT MEANS, you need a fix.
+- DO NOT I REPEAT DO NOT ADD A PRAGMA TO FIX IT
+- I'm seriously going to go ballistic if i see any more #pragma warnings
+  If a #pragam warning is needed we are doing it wrong.
+-
+- So... the whambulance will be comming for sure when you update to this version.
+  Sorry about that, but it was needed because I'm sick of all the buffer overflows
+  that are crashing us randomly and I can never get a good call stack in order to fix them.
+  This fix is years overdue, and I consider it crucial in order to move forward
+  towards a 100% stable mq2.
+-
+- Anyway... I made a whole bunch of stuff stringsafe
+  too much to list, if u have plugins that wont build
+  post about it or message me and ill help u fix them.
+  Here is a link to a post that has all my personal versions of the plugins I use, that I have fixed for this release:
+- http://www.macroquest2.com/phpBB3/viewtopic.php?f=50&t=20053
+- pMQ2Blech is no longer an export, create your own Blechs, cause hooking into that one is no longer an option.
+  (this means mq2moveutils need to be updated see bottom link for updated plugins.)
+
 13 Jul 2016
 - Updated for LIVE
 - Updated for TRUEBOX

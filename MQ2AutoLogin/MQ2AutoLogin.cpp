@@ -13,6 +13,7 @@ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 GNU General Public License for more details.
 
 Change log:
+# Version: 2.3 - Eqmule 07-22-2016 - Added string safety.
 # Version: 2.2 by eqmule/derple 20160629
 - made all WaitForInputIdle 60 seconds to prevent crashes
 - Added an extra crash check.
@@ -104,7 +105,7 @@ Change log:
 
 
 #include "../MQ2Plugin.h"
-PLUGIN_VERSION(2.2);
+PLUGIN_VERSION(2.3);
 #include <map>
 #include <tlhelp32.h>
 PreSetup("MQ2AutoLogin");
@@ -315,11 +316,11 @@ class CXWnd2 *_RecurseAndFindName(class CXWnd2 *pWnd, PCHAR Name)
     if (!pWnd) return pWnd;
 
     if (CXMLData *pXMLData=pWnd->GetXMLData()) {
-        if (GetCXStr(pXMLData->Name.Ptr,Buffer,MAX_STRING) && !stricmp(Buffer,Name)) {
+        if (GetCXStr(pXMLData->Name.Ptr,Buffer,MAX_STRING) && !_stricmp(Buffer,Name)) {
             return pWnd;
         }
         //AutoLoginDebug("RecurseAndFindName looking for %s but found %s", Name, Buffer);
-        if (GetCXStr(pXMLData->ScreenID.Ptr,Buffer,MAX_STRING) && !stricmp(Buffer,Name)) {
+        if (GetCXStr(pXMLData->ScreenID.Ptr,Buffer,MAX_STRING) && !_stricmp(Buffer,Name)) {
             return pWnd;
         }
     }
@@ -534,7 +535,7 @@ DWORD GetServerID(char *szName)
 {
     for(DWORD n = 0; ServerData[n].ID; n++)
     {
-        if(!stricmp(szName, ServerData[n].Name))
+        if(!_stricmp(szName, ServerData[n].Name))
         {
             return ServerData[n].ID;
         }
@@ -554,7 +555,7 @@ void Cmd_SwitchServer(PSPAWNINFO pChar, char *szLine)
     {
         if(dwServerID = GetServerID(szServer))
         {
-            strcpy(szCharacterName, szCharacter);
+            strcpy_s(szCharacterName, szCharacter);
             bSwitchServer = true;
 
             if(pChar->StandState == STANDSTATE_FEIGN)
@@ -576,8 +577,8 @@ void Cmd_SwitchServer(PSPAWNINFO pChar, char *szLine)
             for(DWORD n = 0; ServerData[n].ID; n++)
             {
                 if(n)
-                    strcat(szServers, ", ");
-                strcat(szServers, ServerData[n].Name);
+                    strcat_s(szServers, ", ");
+                strcat_s(szServers, ServerData[n].Name);
             }
            
             WriteChatColor(szServers);
@@ -600,9 +601,9 @@ void Cmd_SwitchCharacter(PSPAWNINFO pChar, char *szLine)
 
         if(GetGameState() == GAMESTATE_INGAME)
         {
-            if(stricmp(szArg1, pChar->DisplayedName))
+            if(_stricmp(szArg1, pChar->DisplayedName))
             {
-                strcpy(szNewChar, szArg1);
+                strcpy_s(szNewChar, szArg1);
 
                 if(pChar->StandState == STANDSTATE_FEIGN)
                 {
@@ -659,7 +660,7 @@ void Cmd_Relog(PSPAWNINFO pChar, char *szLine)
         if(n)
             dwTime = MQGetTickCount64() + n;     
 
-        strcpy(szNewChar, pChar->DisplayedName);
+        strcpy_s(szNewChar, pChar->DisplayedName);
 
         if(dwTime)
             dwTime += 30000; // add 30 seconds for camp time
@@ -683,7 +684,7 @@ PLUGIN_API VOID InitializePlugin(VOID)
     char szPath[MAX_PATH];
     GetPrivateProfileStringA("Settings", "IniLocation", 0, szPath, MAX_PATH, INIFileName);
     if(szPath[0])
-        strcpy(INIFileName, szPath);
+        strcpy_s(INIFileName, szPath);
 
     bKickActiveChar = GetPrivateProfileInt("Settings", "KickActiveCharacter", 1, INIFileName);
     bUseMQ2Login = GetPrivateProfileInt("Settings", "UseMQ2Login", 0, INIFileName);
@@ -710,7 +711,7 @@ PLUGIN_API VOID InitializePlugin(VOID)
 		} else if (!bUseStationNamesInsteadOfSessions) {
             char szSession[32];
                
-            sprintf(szSession, "Session%d", nProcs);
+            sprintf_s(szSession, "Session%d", nProcs);
             AutoLoginDebug(szSession);
 
             GetPrivateProfileString(szSession, "StationName", 0, szStationName, 64, INIFileName);
@@ -794,7 +795,7 @@ PLUGIN_API VOID SetGameState(DWORD GameState)
 			} else if(!bUseStationNamesInsteadOfSessions) {
                 char szSession[32];
                
-                sprintf(szSession, "Session%d", nProcs);
+                sprintf_s(szSession, "Session%d", nProcs);
                 AutoLoginDebug(szSession);
 
                 GetPrivateProfileString(szSession, "StationName", 0, szStationName, 64, INIFileName);
@@ -873,7 +874,7 @@ bool FindCharacter(char *szName)
         DWORD i = 0;
         do
         {
-            if(!stricmp(((PSPAWNINFO)pCharSpawn)->Name, szName))
+            if(!_stricmp(((PSPAWNINFO)pCharSpawn)->Name, szName))
                 return true;
 
             SendListSelect("CLW_CharactersScreen", "Character_List", i);
@@ -1298,7 +1299,7 @@ DWORD GetProcessCount(char *exeName)
     {
         do
         {
-            if(!stricmp(proc.szExeFile, exeName))
+            if(!_stricmp(proc.szExeFile, exeName))
                 n++;
         }
         while(Process32Next(hnd, &proc));
@@ -1343,8 +1344,8 @@ void DebugLog(char *szFormat, ...)
         time_t CurTime;
         time(&CurTime);
         tm *pTime = localtime(&CurTime);
-        sprintf(szOutput, "[%02d/%02d/%04d %02d:%02d:%02d] ", pTime->tm_mon+1, pTime->tm_mday, pTime->tm_year+1900, pTime->tm_hour, pTime->tm_min, pTime->tm_sec);
-        strcat(szOutput, szTmp);
+        sprintf_s(szOutput, "[%02d/%02d/%04d %02d:%02d:%02d] ", pTime->tm_mon+1, pTime->tm_mday, pTime->tm_year+1900, pTime->tm_hour, pTime->tm_min, pTime->tm_sec);
+        strcat_s(szOutput, szTmp);
 
       fprintf(fLog, "%s\n", szOutput);
       fclose(fLog);

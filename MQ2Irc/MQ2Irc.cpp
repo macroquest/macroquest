@@ -83,9 +83,9 @@ public:
                     if(channels.size()<1) { 
                         ircout("\ar#\a-w You are not on any channels."); 
                     } else { 
-                        sprintf(buff,"PRIVMSG %s :%s\n\0",*mychan,szBuffer); 
+                        sprintf_s(buff,"PRIVMSG %s :%s\n\0",*mychan,szBuffer); 
                         send(theSocket,buff,strlen(buff),0); 
-                        sprintf(buff,"\ag<\aw%s\ag>\a-w %s\0",IrcNick,szBuffer); 
+                        sprintf_s(buff,"\ag<\aw%s\ag>\a-w %s\0",IrcNick,szBuffer); 
                         ircout(buff); 
                     } 
 
@@ -139,7 +139,7 @@ void ircout(char *text) {
         StripMQChat(text,processed); 
         CheckChatForEvent(processed); 
         MQToSTML(text,processed,MAX_STRING); 
-        strcat(processed,"<br>"); 
+        strcat_s(processed,"<br>"); 
         CXStr NewText(processed); 
         (MyWnd->StmlOut)->AppendSTML(NewText); 
         (MyWnd->OutWnd)->SetVScrollPos(MyWnd->OutStruct->VScrollMax); 
@@ -162,11 +162,11 @@ DWORD WINAPI IRCConnectThread(LPVOID lpParam)
         ioctlsocket(theSocket,FIONBIO,&nonblocking); 
         Sleep((clock_t)2 * CLOCKS_PER_SEC/2); 
 
-        sprintf(buff,"NICK %s\n\0",IrcNick); 
+        sprintf_s(buff,"NICK %s\n\0",IrcNick); 
         send(theSocket,buff,strlen(buff),0); 
-        sprintf(buff,"USER %s %s %s :%s\n\0",Username,IrcNick,IrcNick,Realname); 
+        sprintf_s(buff,"USER %s %s %s :%s\n\0",Username,IrcNick,IrcNick,Realname); 
         send(theSocket,buff,strlen(buff),0); 
-        sprintf(buff,"JOIN %s\n\0",IrcChan); 
+        sprintf_s(buff,"JOIN %s\n\0",IrcChan); 
         send(theSocket,buff,strlen(buff),0); 
         bConnected=true; 
     } 
@@ -182,13 +182,12 @@ VOID IrcStatusCmd(PSPAWNINFO pChar, PCHAR szLine)
 { 
     if (bConnected) { 
         // Connected 
-        sprintf(buff,"\ar#\ax MQ2Irc Status: ONLINE - %s - %s - %s - %s",IrcServer,IrcPort,IrcChan,IrcNick); 
+        sprintf_s(buff,"\ar#\ax MQ2Irc Status: ONLINE - %s - %s - %s - %s",IrcServer,IrcPort,IrcChan,IrcNick); 
         ircout(buff); 
     } else { 
         // Not Connected 
         ircout("\ar#\ax MQ2Irc Status: OFFLINE"); 
     } 
-
 } 
 
 
@@ -223,18 +222,18 @@ VOID IrcConnectCmd(PSPAWNINFO pChar, PCHAR szLine)
         GetPrivateProfileString(Arg1,"Chan","#macroquest",IrcChan,MAX_STRING,INIFileName); 
         GetPrivateProfileString(Arg1,"Nick","What-Ini",IrcNick,MAX_STRING,INIFileName); 
     } else if (Arg3[0]==0 && Arg4[0]==0) { 
-        sprintf(IrcServer,"%s",Arg1); 
-        sprintf(IrcPort,"%s",Arg2); 
+        sprintf_s(IrcServer,"%s",Arg1); 
+        sprintf_s(IrcPort,"%s",Arg2); 
 
     } else if (Arg4[0]==0) { 
-        sprintf(IrcServer,"%s",Arg1); 
-        sprintf(IrcPort,"%s",Arg2); 
-        sprintf(IrcChan,"%s",Arg3); 
+        sprintf_s(IrcServer,"%s",Arg1); 
+        sprintf_s(IrcPort,"%s",Arg2); 
+        sprintf_s(IrcChan,"%s",Arg3); 
     } else { 
-        sprintf(IrcServer,"%s",Arg1); 
-        sprintf(IrcPort,"%s",Arg2); 
-        sprintf(IrcChan,"%s",Arg3); 
-        sprintf(IrcNick,"%s",Arg4); 
+        sprintf_s(IrcServer,"%s",Arg1); 
+        sprintf_s(IrcPort,"%s",Arg2); 
+        sprintf_s(IrcChan,"%s",Arg3); 
+        sprintf_s(IrcNick,"%s",Arg4); 
     } 
     WritePrivateProfileString("Last Connect","Server",IrcServer,INIFileName); 
     WritePrivateProfileString("Last Connect","Port",IrcPort,INIFileName); 
@@ -248,7 +247,7 @@ VOID IrcConnectCmd(PSPAWNINFO pChar, PCHAR szLine)
     WritePrivateProfileString("Settings","Username",Username,INIFileName); 
     WritePrivateProfileString("Settings","Realname",Realname,INIFileName); 
     if(MyWnd) { 
-        sprintf(buff,"%s [%s]",IrcChan,IrcServer); 
+        sprintf_s(buff,"%s [%s]",IrcChan,IrcServer); 
         SetCXStr(&MyWnd->OutStruct->WindowText,buff); 
     } 
     sockVersion = MAKEWORD(1, 1); 
@@ -275,100 +274,88 @@ VOID IrcConnectCmd(PSPAWNINFO pChar, PCHAR szLine)
 
 
 VOID IrcCmd(PSPAWNINFO pChar, PCHAR szLine) 
-{ 
+{
+	CHAR szCmd[MAX_STRING] = { 0 };
+	strcpy_s(szCmd, szLine);
     if (!bConnected) { 
         ircout("\ar#\ax You are not connected. Please use /iconnect to establish a connection."); 
         return; 
     } 
     //NICK JOIN PART QUIT MSG SAY RAW 
 
-    //parse out cmd: 
-    CHAR *z[2]; 
-    int y; 
-    z[0] = szLine; 
-    for (y = 1; *szLine != '\0'; ) { 
-        if (*szLine == ' ') { 
-            *szLine = '\0'; 
-            z[y++] = ++szLine; 
-            break; 
-        } else { 
-            szLine++; 
-        } 
-    } 
-    if(!strcmp(strupr(z[0]),"NICK")) { 
-        sprintf(buff,"NICK %s\n\0",z[1]); 
+    //parse out cmd:
+	CHAR szArg1[MAX_STRING] = { 0 };
+	CHAR szArg2[MAX_STRING] = { 0 };
+
+	GetArg(szArg1, szCmd, 1);
+	GetArg(szArg2, szCmd, 2);
+
+	_strupr_s(szArg1);
+    if(!strcmp(szArg1, "NICK")) { 
+        sprintf_s(buff,"NICK %s\n\0",szArg2); 
         send(theSocket,buff,strlen(buff),0); 
         WritePrivateProfileString("Last Connect","Nick",IrcNick,INIFileName); 
         WritePrivateProfileString(IrcServer,"Nick",IrcNick,INIFileName); 
         return; 
-    } else if(!strcmp(strupr(z[0]),"JOIN")) { 
-        sprintf(buff,"JOIN %s\n\0",z[1]); 
+    } else if(!strcmp(szArg1,"JOIN")) { 
+        sprintf_s(buff,"JOIN %s\n\0",szArg2); 
         send(theSocket,buff,strlen(buff),0); 
         WritePrivateProfileString("Last Connect","Chan",IrcChan,INIFileName); 
         WritePrivateProfileString(IrcServer,"Chan",IrcChan,INIFileName); 
         return; 
-    } else if(!strcmp(strupr(z[0]),"PART")) { 
-        sprintf(buff,"PART %s\n\0",*mychan); 
+    } else if(!strcmp(szArg1,"PART")) { 
+        sprintf_s(buff,"PART %s\n\0",*mychan); 
         send(theSocket,buff,strlen(buff),0); 
         return; 
-    } else if(!strcmp(strupr(z[0]),"WHOIS")) { 
-        sprintf(buff,"WHOIS %s\n\0",z[1]); 
+    } else if(!strcmp(szArg1,"WHOIS")) { 
+        sprintf_s(buff,"WHOIS %s\n\0",szArg2); 
         send(theSocket,buff,strlen(buff),0); 
         return; 
-    } else if(!strcmp(strupr(z[0]),"HELP")) { 
-        sprintf(buff,"\ar#\ax Supported Commands:\n\ar#\ax NICK JOIN PART WHOIS MSG SAY RAW QUIT NAMES X HELP"); 
+    } else if(!strcmp(szArg1,"HELP")) { 
+        sprintf_s(buff,"\ar#\ax Supported Commands:\n\ar#\ax NICK JOIN PART WHOIS MSG SAY RAW QUIT NAMES X HELP"); 
         ircout(buff); 
         return; 
-    } else if(!strcmp(strupr(z[0]),"QUIT")) { 
-        sprintf(buff,"QUIT :%s\n\0",z[1]); 
+    } else if(!strcmp(szArg1,"QUIT")) { 
+        sprintf_s(buff,"QUIT :%s\n\0",szArg2); 
         send(theSocket,buff,strlen(buff),0); 
         bConnected=false; 
         ircout("\ar#\ax Connection Closed, you can unload MQ2Irc now."); 
         return; 
-    } else if(!strcmp(strupr(z[0]),"RAW")) { 
-        sprintf(buff,"%s\n\0",z[1]); 
+    } else if(!strcmp(szArg1,"RAW")) { 
+        sprintf_s(buff,"%s\n\0",szArg2); 
         send(theSocket,buff,strlen(buff),0); 
-        sprintf(buff,"\ab[\a-yraw\ab(\ay%s\ab)]\a-w %s\0", IrcServer, z[1]); 
+        sprintf_s(buff,"\ab[\a-yraw\ab(\ay%s\ab)]\a-w %s\0", IrcServer, szArg2); 
         ircout(buff); 
         return; 
-    } else if(!strcmp(strupr(z[0]),"SAY")) { 
+    } else if(!strcmp(szArg1,"SAY")) { 
         if(channels.size()<1) { 
             ircout("\ar#\a-w You are not on any channels."); 
             return; 
         } else { 
-            sprintf(buff,"PRIVMSG %s :%s\n\0",*mychan,z[1]); 
+            sprintf_s(buff,"PRIVMSG %s :%s\n\0",*mychan,szArg2); 
             send(theSocket,buff,strlen(buff),0); 
-            sprintf(buff,"\ag<\aw%s\ag>\a-w %s\0",IrcNick,z[1]); 
+            sprintf_s(buff,"\ag<\aw%s\ag>\a-w %s\0",IrcNick,szArg2); 
             ircout(buff); 
             return; 
         } 
-    } else if(!strcmp(strupr(z[0]),"NAMES")) { 
-        sprintf(buff,"NAMES %s\n\0",IrcChan); 
+    } else if(!strcmp(szArg1,"NAMES")) { 
+        sprintf_s(buff,"NAMES %s\n\0",IrcChan); 
         send(theSocket,buff,strlen(buff),0); 
         return; 
-    } else if(!strcmp(strupr(z[0]),"X")) { 
+    } else if(!strcmp(szArg2,"X")) { 
         mychan++; 
         if(mychan == channels.end()) 
             mychan = channels.begin(); 
         if(MyWnd) { 
-            sprintf(buff,"%s [%s]",*mychan,IrcServer); 
+            sprintf_s(buff,"%s [%s]",*mychan,IrcServer); 
             SetCXStr(&MyWnd->OutStruct->WindowText,buff); 
         } 
-        sprintf(buff, "\ar#\a-w Now speaking in \aw%s\a-w.", *mychan); 
+        sprintf_s(buff, "\ar#\a-w Now speaking in \aw%s\a-w.", *mychan); 
         ircout(buff); 
-    } else if(!strcmp(strupr(z[0]),"MSG")) { 
-        for (y = 2; *szLine != '\0'; ) { 
-            if (*szLine == ' ') { 
-                *szLine = '\0'; 
-                z[y++] = ++szLine; 
-                break; 
-            } else { 
-                szLine++; 
-            } 
-        } 
-        sprintf(buff,"PRIVMSG %s :%s\n\0", z[1],z[2]); 
+    } else if(!strcmp(szArg1,"MSG")) {  
+        sprintf_s(buff,"PRIVMSG %s :%s\n\0", szArg1,szArg2); 
         send(theSocket,buff,strlen(buff),0); 
-        sprintf(buff,"\ab[\a-rmsg\ab(\ar%s\ab)]\a-w %s\0", z[1], z[2]); 
+        sprintf_s(buff,"\ab[\a-rmsg\ab(\ar%s\ab)]\a-w %s\0", szArg1, szArg2); 
         ircout(buff); 
         return; 
     } else { 
@@ -395,7 +382,7 @@ CHAR *parse(CHAR *rawmsg) { //take raw irc protocol message and return human rea
     CHAR Arg4[MAX_STRING] = {0}; 
     int x = 0,y; 
     CHAR *prefix = NULL, *tmp, *tmpb, *param[32], *command, *lnk; 
-    sprintf(buff,"%s",rawmsg); //save a copy of the original 
+    sprintf_s(buff,"%s",rawmsg); //save a copy of the original 
 
     lnk = strchr(rawmsg, 0x12); 
     while(lnk!=NULL) { 
@@ -463,37 +450,37 @@ CHAR *parse(CHAR *rawmsg) { //take raw irc protocol message and return human rea
         param[x++] = ++tmp; 
     } 
     if(!strcmp(command,"PING")) { 
-        sprintf(buff,"PONG %s\n\0", param[0]); 
+        sprintf_s(buff,"PONG %s\n\0", param[0]); 
         send(theSocket,buff,strlen(buff),0); 
         return NULL; 
     } else if(!strcmp(command,"NICK")) { 
         if(!strcmp(IrcNick,prefix)) { 
-            sprintf(IrcNick,"%s\0",param[0]); 
+            sprintf_s(IrcNick,"%s\0",param[0]); 
             IrcNick[strlen(IrcNick)-1] = '\0'; 
             WritePrivateProfileString("Last Connect","Nick",IrcNick,INIFileName); 
             WritePrivateProfileString(IrcServer,"Nick",IrcNick,INIFileName); 
         } 
-        sprintf(buff,"\ar*\a-w %s changed nickname to \aw%s\a-w.\0", prefix, param[0]); 
+        sprintf_s(buff,"\ar*\a-w %s changed nickname to \aw%s\a-w.\0", prefix, param[0]); 
         return buff; 
     } else if(!strcmp(command,"JOIN")) { 
         if(!strcmp(IrcNick,prefix)) { 
-            sprintf(IrcChan,"%s\0",param[0]); 
+            sprintf_s(IrcChan,"%s\0",param[0]); 
             IrcChan[strlen(IrcChan)-1] = '\0'; 
             if(pchan = malloc(sizeof(IrcChan))) {
-				sprintf((char *)pchan, "%s", IrcChan); 
+				sprintf_s((char *)pchan,sizeof(IrcChan), "%s", IrcChan); 
 				channels.push_front((char *)pchan); 
 				mychan = channels.begin(); 
 				if(MyWnd) { 
-					sprintf(buff,"%s [%s]",*mychan,IrcServer); 
+					sprintf_s(buff,"%s [%s]",*mychan,IrcServer); 
 					SetCXStr(&MyWnd->OutStruct->WindowText,buff); 
 				} 
 				WritePrivateProfileString("Last Connect","Chan",*mychan,INIFileName); 
 				WritePrivateProfileString(IrcServer,"Chan",*mychan,INIFileName); 
-				sprintf(buff,"\ar#\a-w Now speaking in \aw%s\a-w.", *mychan); 
+				sprintf_s(buff,"\ar#\a-w Now speaking in \aw%s\a-w.", *mychan); 
 				ircout(buff); 
 			}
         } 
-        sprintf(buff,"\ar*\aw %s\a-w joined %s.\0", prefix, param[0]); 
+        sprintf_s(buff,"\ar*\aw %s\a-w joined %s.\0", prefix, param[0]); 
         return buff; 
     } else if(!strcmp(command,"PART")) { 
         param[0][strlen(param[0])-1] = '\0'; 
@@ -501,171 +488,171 @@ CHAR *parse(CHAR *rawmsg) { //take raw irc protocol message and return human rea
             channels.erase(mychan); 
             if(channels.size()<1) { 
                 if(MyWnd) { 
-                    sprintf(buff,"No Channel [%s]",IrcServer); 
+                    sprintf_s(buff,"No Channel [%s]",IrcServer); 
                     SetCXStr(&MyWnd->OutStruct->WindowText,buff); 
                 } 
-                sprintf(buff,"\ar#\a-w No longer on any channels."); 
+                sprintf_s(buff,"\ar#\a-w No longer on any channels."); 
                 return buff; 
             } else { 
                 mychan = channels.begin(); 
                 if(MyWnd) { 
-                    sprintf(buff,"%s [%s]",*mychan,IrcServer); 
+                    sprintf_s(buff,"%s [%s]",*mychan,IrcServer); 
                     SetCXStr(&MyWnd->OutStruct->WindowText,buff); 
                 } 
                 WritePrivateProfileString("Last Connect","Chan",*mychan,INIFileName); 
                 WritePrivateProfileString(IrcServer,"Chan",*mychan,INIFileName); 
-                sprintf(buff,"\ar#\a-w Now speaking in \aw%s\a-w.", *mychan); 
+                sprintf_s(buff,"\ar#\a-w Now speaking in \aw%s\a-w.", *mychan); 
                 return buff; 
             } 
         } 
-        sprintf(buff,"\ar*\aw %s\a-w left %s\0", prefix, param[0]); 
+        sprintf_s(buff,"\ar*\aw %s\a-w left %s\0", prefix, param[0]); 
         return buff; 
     } else if(!strcmp(command,"MODE")) { 
-        sprintf(buff,"\ar*\aw %s set mode \"\aw", prefix); 
+        sprintf_s(buff,"\ar*\aw %s set mode \"\aw", prefix); 
         for(y=1;y<x;) { 
-            strcat(buff,param[y++]); 
-            strcat(buff," "); 
+            strcat_s(buff,param[y++]); 
+            strcat_s(buff," "); 
         } 
-        strcat(buff,"\" "); 
-        strcat(buff,param[0]); 
+        strcat_s(buff,"\" "); 
+        strcat_s(buff,param[0]); 
         return buff; 
     } else if(!strcmp(command,"PRIVMSG")) { 
         param[1][strlen(param[1])-1] = '\0'; 
         if(!strcmp(param[1],"\001VERSION\001")) { 
-            sprintf(buff,"NOTICE %s :\001VERSION %s\001\n\0",prefix,Version); 
+            sprintf_s(buff,"NOTICE %s :\001VERSION %s\001\n\0",prefix,Version); 
             send(theSocket,buff,strlen(buff),0); 
-            sprintf(buff,"\ab[\ao%s\ab(\a-octcp\ab)]\a-w VERSION", prefix); 
+            sprintf_s(buff,"\ab[\ao%s\ab(\a-octcp\ab)]\a-w VERSION", prefix); 
             return buff; 
         } 
 
         if(!strcmp(IrcNick, param[0])) { 
-            sprintf(buff,"\ab[\ap%s\ab(\a-pmsg\ab)]\a-w %s\0", prefix, param[1]); 
+            sprintf_s(buff,"\ab[\ap%s\ab(\a-pmsg\ab)]\a-w %s\0", prefix, param[1]); 
 
-            //         sprintf(Arg1,"%s tells you, '%s'", prefix, param[1]); 
+            //         sprintf_s(Arg1,"%s tells you, '%s'", prefix, param[1]); 
             //         CheckChatForEvent(Arg1); 
             return buff; 
         } else { 
             if(!strcmp(*mychan, param[0])) { 
-                sprintf(buff,"\ag<\a-w%s\ag>\a-w %s\0", prefix, param[1]); 
-                //            sprintf(Arg1,"%s tells the group, '%s'", prefix, param[1]); 
+                sprintf_s(buff,"\ag<\a-w%s\ag>\a-w %s\0", prefix, param[1]); 
+                //            sprintf_s(Arg1,"%s tells the group, '%s'", prefix, param[1]); 
                 //            CheckChatForEvent(Arg1); 
                 return buff; 
             } else { 
-                sprintf(buff,"\ag<\a-w%s\ag/\a-w%s\ag>\a-w %s\0", prefix, param[0], param[1]); 
+                sprintf_s(buff,"\ag<\a-w%s\ag/\a-w%s\ag>\a-w %s\0", prefix, param[0], param[1]); 
                 return buff; 
             } 
         } 
     } else if(!strcmp(command,"NOTICE")) { 
-        sprintf(buff,"\ab[\ao%s\ab(\a-onotice\ab)]\a-w %s\0", prefix, param[1]); 
+        sprintf_s(buff,"\ab[\ao%s\ab(\a-onotice\ab)]\a-w %s\0", prefix, param[1]); 
         return buff; 
     } else if(!strcmp(command,"TOPIC")) { 
-        sprintf(buff,"\ar*\aw %s\a-w changed topic on \aw%s\a-w to: %s\0", prefix, param[0], param[1]); 
+        sprintf_s(buff,"\ar*\aw %s\a-w changed topic on \aw%s\a-w to: %s\0", prefix, param[0], param[1]); 
         return buff; 
     } else if(!strcmp(command,"KICK")) { 
-        sprintf(buff,"\ar*\aw %s\a-w kicked from %s by \aw%s\a-w (%s)", param[1], param[0], prefix, param[2]); 
+        sprintf_s(buff,"\ar*\aw %s\a-w kicked from %s by \aw%s\a-w (%s)", param[1], param[0], prefix, param[2]); 
         return buff; 
     } else if(!strcmp(command,"QUIT")) { 
-        sprintf(buff,"\ar*\aw %s\a-w quit IRC (%s)\0", prefix, param[0]); 
+        sprintf_s(buff,"\ar*\aw %s\a-w quit IRC (%s)\0", prefix, param[0]); 
         return buff; 
     } else if(!strcmp(command,"ERROR")) { 
-        sprintf(buff,"\ar#\a-w Server error: %s\0", param[0]); 
+        sprintf_s(buff,"\ar#\a-w Server error: %s\0", param[0]); 
         return buff; 
     } else if(atoi(command) > 0) { 
         switch(atoi(command)) { 
             //it wasnt one of the above commands, maybe its a numeric 
          case 001: 
-             sprintf(buff,"%s\0", param[1]); 
-             sprintf(IrcNick,"%s", param[0]); 
+             sprintf_s(buff,"%s\0", param[1]); 
+             sprintf_s(IrcNick,"%s", param[0]); 
              return buff; 
          case 002: 
-             sprintf(buff,"%s\0", param[1]); 
+             sprintf_s(buff,"%s\0", param[1]); 
              return buff; 
          case 003: 
-             sprintf(buff,"%s\0", param[1]); 
+             sprintf_s(buff,"%s\0", param[1]); 
              return buff; 
          case 004: 
              return NULL; 
          case 005: 
              return NULL; 
          case 251: 
-             sprintf(buff,"%s\0", param[1]); 
+             sprintf_s(buff,"%s\0", param[1]); 
              return buff; 
          case 252: 
-             sprintf(buff,"%s %s\0", param[1], param[2]); 
+             sprintf_s(buff,"%s %s\0", param[1], param[2]); 
              return buff; 
          case 254: 
-             sprintf(buff,"%s %s\0", param[1], param[2]); 
+             sprintf_s(buff,"%s %s\0", param[1], param[2]); 
              return buff; 
          case 255: 
-             sprintf(buff,"%s\0", param[1]); 
+             sprintf_s(buff,"%s\0", param[1]); 
              return buff; 
          case 265: 
-             sprintf(buff,"%s\0", param[1]); 
+             sprintf_s(buff,"%s\0", param[1]); 
              return buff; 
          case 266: 
-             sprintf(buff,"%s\0", param[1]); 
+             sprintf_s(buff,"%s\0", param[1]); 
              return buff; 
          case 250: 
-             sprintf(buff,"%s\0", param[1]); 
+             sprintf_s(buff,"%s\0", param[1]); 
              return buff; 
          case 375: 
              return NULL; 
          case 372: 
-             sprintf(buff,"%s\0", param[1]); 
+             sprintf_s(buff,"%s\0", param[1]); 
              return buff; 
          case 376: 
-             sprintf(buff,"%s\0", param[1]); 
+             sprintf_s(buff,"%s\0", param[1]); 
              return buff; 
          case 401: 
-             sprintf(buff,"\ar#\a-w %s: %s\0", param[1], param[2]); 
+             sprintf_s(buff,"\ar#\a-w %s: %s\0", param[1], param[2]); 
              return buff; 
          case 421: 
-             sprintf(buff,"\ar#\a-w Server doesn't recognize command \aw%s\a-w\0", param[1]); 
+             sprintf_s(buff,"\ar#\a-w Server doesn't recognize command \aw%s\a-w\0", param[1]); 
              return buff; 
          case 422: 
-             sprintf(buff,"\ar#\a-w Server has no MOTD\0"); 
+             sprintf_s(buff,"\ar#\a-w Server has no MOTD\0"); 
              return buff; 
          case 311: 
-             sprintf(buff,"\ar#\aw %s\a-w %s@%s (%s)\0", param[1], param[2], param[3], param[5]); 
+             sprintf_s(buff,"\ar#\aw %s\a-w %s@%s (%s)\0", param[1], param[2], param[3], param[5]); 
              return buff; 
          case 312: 
-             sprintf(buff,"\ar#\aw %s\a-w %s (%s)\0", param[1], param[2], param[3]); 
+             sprintf_s(buff,"\ar#\aw %s\a-w %s (%s)\0", param[1], param[2], param[3]); 
              return buff; 
          case 338: 
-             sprintf(buff,"\ar#\aw %s\a-w connecting from %s\0", param[1], param[2]); 
+             sprintf_s(buff,"\ar#\aw %s\a-w connecting from %s\0", param[1], param[2]); 
              return buff; 
          case 317: 
-             sprintf(buff,"\ar#\aw %s\a-w %s seconds idle\0", param[1], param[2]); 
+             sprintf_s(buff,"\ar#\aw %s\a-w %s seconds idle\0", param[1], param[2]); 
              return buff; 
          case 318: 
-             sprintf(buff,"\ar#\aw %s\a-w %s\0", param[1], param[2]); 
+             sprintf_s(buff,"\ar#\aw %s\a-w %s\0", param[1], param[2]); 
              return buff; 
          case 378: 
-             sprintf(buff,"\ar#\a-w %s %s\0", param[1], param[2]); 
+             sprintf_s(buff,"\ar#\a-w %s %s\0", param[1], param[2]); 
              return buff; 
          case 433: 
-             sprintf(buff,"\ar#\a-w %s %s\0", param[1], param[2]); 
+             sprintf_s(buff,"\ar#\a-w %s %s\0", param[1], param[2]); 
              return buff; 
          case 451: 
-             sprintf(buff,"\ar#\a-w Not registered with server\0"); 
+             sprintf_s(buff,"\ar#\a-w Not registered with server\0"); 
              return buff; 
          case 319: 
-             sprintf(buff,"\ar#\aw %s\a-w %s\0", param[1], param[2]); 
+             sprintf_s(buff,"\ar#\aw %s\a-w %s\0", param[1], param[2]); 
              return buff; 
          case 442: 
-             sprintf(buff,"\ar#\a-w %s %s\0", param[1], param[2]); 
+             sprintf_s(buff,"\ar#\a-w %s %s\0", param[1], param[2]); 
              return buff; 
          case 332: 
-             sprintf(buff,"\ar#\a-w Topic for \aw%s\a-w: %s\0", param[1], param[2]); 
+             sprintf_s(buff,"\ar#\a-w Topic for \aw%s\a-w: %s\0", param[1], param[2]); 
              return buff; 
          case 333: 
-             sprintf(buff,"\ar#\a-w Set by \aw%s\a-w\0", param[2]); 
+             sprintf_s(buff,"\ar#\a-w Set by \aw%s\a-w\0", param[2]); 
              return buff; 
          case 353: 
-             sprintf(buff,"\ar#\a-w Names on \aw%s\a-w\n\ar#\a-w %s\0", IrcChan, param[3]); 
+             sprintf_s(buff,"\ar#\a-w Names on \aw%s\a-w\n\ar#\a-w %s\0", IrcChan, param[3]); 
              return buff; 
          case 366: 
-             sprintf(buff,"\ar#\a-w End of /names list\0"); 
+             sprintf_s(buff,"\ar#\a-w End of /names list\0"); 
              return buff; 
          default: //if its not one of those, its a numeric we havnt set up, just 
              //dump the raw irc message to the screen 
@@ -673,9 +660,9 @@ CHAR *parse(CHAR *rawmsg) { //take raw irc protocol message and return human rea
         } 
     } else { //wasnt a normal command, and wasnt numeric.. something didnt work right 
         ircout("DEBUG Couldnt parse correctly..."); 
-        sprintf(buff,"DEBUG: command = %s\0", command); 
+        sprintf_s(buff,"DEBUG: command = %s\0", command); 
         for(y = 0; y<x;) { 
-            sprintf(buff,"DEBUG param[%i] = %s\0", y, param[y]); 
+            sprintf_s(buff,"DEBUG param[%i] = %s\0", y, param[y]); 
             ircout(buff); 
             y++; 
         } 
@@ -715,7 +702,7 @@ public:
         switch((IrcMembers)pMember->ID)
         {
         case Server: 
-            strcpy(DataTypeTemp, IrcServer); 
+            strcpy_s(DataTypeTemp, IrcServer); 
             Dest.Ptr=DataTypeTemp; 
             Dest.Type=pStringType; 
             return true; 
@@ -724,12 +711,12 @@ public:
             Dest.Type=pIntType; 
             return true; 
         case Channel: 
-            strcpy(DataTypeTemp, IrcChan); 
+            strcpy_s(DataTypeTemp, IrcChan); 
             Dest.Ptr=DataTypeTemp; 
             Dest.Type=pStringType; 
             return true; 
         case Nick: 
-            strcpy(DataTypeTemp, IrcNick); 
+            strcpy_s(DataTypeTemp, IrcNick); 
             Dest.Ptr=DataTypeTemp; 
             Dest.Type=pStringType; 
             return true; 
@@ -740,9 +727,9 @@ public:
     bool ToString(MQ2VARPTR VarPtr, PCHAR Destination) 
     { 
         if (bConnected) 
-            strcpy(Destination,"TRUE"); 
+            strcpy_s(Destination,MAX_STRING,"TRUE"); 
         else 
-            strcpy(Destination,"FALSE"); 
+            strcpy_s(Destination,MAX_STRING,"FALSE"); 
         return true; 
     } 
 
@@ -762,7 +749,14 @@ BOOL dataIrc(PCHAR szName, MQ2TYPEVAR &Dest)
     Dest.Type=pIrcType; 
     return true; 
 } 
-
+template <unsigned int _Size>LPSTR Safe_itoa_s(int _Value,char(&_Buffer)[_Size], int _Radix)
+{
+	errno_t err = _itoa_s(_Value, _Buffer, _Radix);
+	if (!err) {
+		return _Buffer;
+	}
+	return "";
+}
 // Called once, when the plugin is to initialize 
 PLUGIN_API VOID InitializePlugin(VOID) 
 { 
@@ -799,10 +793,10 @@ PLUGIN_API VOID InitializePlugin(VOID)
     WritePrivateProfileString("Settings","Realname",Realname,INIFileName); 
     WritePrivateProfileString("Settings","UseWnd",UseWnd,INIFileName); 
 
-    WritePrivateProfileString("Settings", "ChatTop", itoa(irctop, szTemp, 10), INIFileName); 
-    WritePrivateProfileString("Settings", "ChatBottom", itoa(ircbottom, szTemp, 10), INIFileName); 
-    WritePrivateProfileString("Settings", "ChatLeft", itoa(ircleft, szTemp, 10), INIFileName); 
-    WritePrivateProfileString("Settings", "ChatRight", itoa(ircright, szTemp, 10), INIFileName); 
+    WritePrivateProfileString("Settings", "ChatTop", Safe_itoa_s(irctop, szTemp, 10), INIFileName); 
+    WritePrivateProfileString("Settings", "ChatBottom", Safe_itoa_s(ircbottom, szTemp, 10), INIFileName); 
+    WritePrivateProfileString("Settings", "ChatLeft", Safe_itoa_s(ircleft, szTemp, 10), INIFileName); 
+    WritePrivateProfileString("Settings", "ChatRight", Safe_itoa_s(ircright, szTemp, 10), INIFileName); 
 
     InitializeCriticalSection(&ConnectCS); 
 } 
@@ -869,10 +863,10 @@ PLUGIN_API VOID OnCleanUI(VOID)
         ircleft = MyWnd->Location.left; 
         ircright = MyWnd->Location.right; 
 
-        WritePrivateProfileString("Settings", "ChatTop", itoa(irctop, szTemp, 10), INIFileName); 
-        WritePrivateProfileString("Settings", "ChatBottom", itoa(ircbottom, szTemp, 10), INIFileName); 
-        WritePrivateProfileString("Settings", "ChatLeft", itoa(ircleft, szTemp, 10), INIFileName); 
-        WritePrivateProfileString("Settings", "ChatRight", itoa(ircright, szTemp, 10), INIFileName); 
+        WritePrivateProfileString("Settings", "ChatTop", Safe_itoa_s(irctop, szTemp, 10), INIFileName); 
+        WritePrivateProfileString("Settings", "ChatBottom", Safe_itoa_s(ircbottom, szTemp, 10), INIFileName); 
+        WritePrivateProfileString("Settings", "ChatLeft", Safe_itoa_s(ircleft, szTemp, 10), INIFileName); 
+        WritePrivateProfileString("Settings", "ChatRight", Safe_itoa_s(ircright, szTemp, 10), INIFileName); 
 
         delete MyWnd; 
         MyWnd=0; 

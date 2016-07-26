@@ -158,7 +158,7 @@ namespace MQ2Globals
 #define ZoneShift             0
 
 #ifndef ISXEQ
-	LEGACY_VAR Blech *pMQ2Blech;
+	extern Blech *pMQ2Blech;
 	LEGACY_VAR CHAR EventMsg[MAX_STRING];
 #ifdef USEBLECHEVENTS
 	LEGACY_VAR Blech *pEventBlech;
@@ -312,23 +312,22 @@ namespace MQ2Globals
 
 	EQLIB_VAR PCHAR szWornLoc[];
 
-
-	EQLIB_VAR fEQCommand         cmdHelp;
-	EQLIB_VAR fEQCommand         cmdWho;
-	EQLIB_VAR fEQCommand         cmdWhoTarget;
-	EQLIB_VAR fEQCommand         cmdLocation;
-	EQLIB_VAR fEQCommand         cmdFace;
-	EQLIB_VAR fEQCommand         cmdTarget;
-	EQLIB_VAR fEQCommand         cmdCharInfo;
-	EQLIB_VAR fEQCommand         cmdFilter;
-	EQLIB_VAR fEQCommand         cmdDoAbility;
-	EQLIB_VAR fEQCommand         cmdCast;
-	EQLIB_VAR fEQCommand         cmdUseItem;
-	EQLIB_VAR fEQCommand         cmdPet;
-	EQLIB_VAR fEQCommand         cmdMercSwitch;
-	EQLIB_VAR fEQCommand         cmdAdvLoot;
-	EQLIB_VAR fEQCommand         cmdPickZone;
-	EQLIB_VAR fEQCommand         cmdAssist;
+	EQLIB_VAR fEQCommand			cmdHelp;
+	EQLIB_VAR fEQCommand			cmdWho;
+	EQLIB_VAR fEQCommand			cmdWhoTarget;
+	EQLIB_VAR fEQCommand			cmdLocation;
+	EQLIB_VAR fEQCommand			cmdFace;
+	EQLIB_VAR fEQCommand			cmdTarget;
+	EQLIB_VAR fEQCommand			cmdCharInfo;
+	EQLIB_VAR fEQCommand			cmdFilter;
+	EQLIB_VAR fEQCommand			cmdDoAbility;
+	EQLIB_VAR fEQCommand			cmdCast;
+	EQLIB_VAR fEQCommand			cmdUseItem;
+	EQLIB_VAR fEQCommand			cmdPet;
+	EQLIB_VAR fEQCommand			cmdMercSwitch;
+	EQLIB_VAR fEQCommand			cmdAdvLoot;
+	EQLIB_VAR fEQCommand			cmdPickZone;
+	EQLIB_VAR fEQCommand			cmdAssist;
 
 	EQLIB_VAR fEQNewUIINI        NewUIINI;
 	EQLIB_VAR fEQProcGameEvts    ProcessGameEvents;

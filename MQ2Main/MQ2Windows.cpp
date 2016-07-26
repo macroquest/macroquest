@@ -154,8 +154,12 @@ DETOUR_TRAMPOLINE_EMPTY(int CXMLSOMDocumentBaseHook::XMLRead_Trampoline(CXStr *A
 
 #ifndef ISXEQ
 VOID ListWindows(PSPAWNINFO pChar, PCHAR szLine);
+VOID ListWindows(PSPAWNINFO pChar, PCHAR szLine);
+VOID WndNotify(PSPAWNINFO pChar, PCHAR szLine);
 VOID WndNotify(PSPAWNINFO pChar, PCHAR szLine);
 VOID ItemNotify(PSPAWNINFO pChar, PCHAR szLine);
+VOID ItemNotify(PSPAWNINFO pChar, PCHAR szLine);
+VOID ListItemSlots(PSPAWNINFO pChar, PCHAR szLine);
 VOID ListItemSlots(PSPAWNINFO pChar, PCHAR szLine);
 #else
 int ListWindows(int argc, char *argv[]);
@@ -293,13 +297,13 @@ bool GenerateMQUI()
 
     DebugSpew("GenerateMQUI::Generating %s", szFilename);
 
-    forg = fopen(szOrgFilename, "rt");
-    if (!forg) {
+    errno_t err = fopen_s(&forg,szOrgFilename, "rt");
+    if (err) {
         DebugSpew("GenerateMQUI::could not open %s", szOrgFilename);
         return false;
     }
-    fnew = fopen(szFilename, "wt");
-    if (!fnew) {
+    err = fopen_s(&fnew,szFilename, "wt");
+    if (err) {
         DebugSpew("GenerateMQUI::could not open %s", szFilename);
         fclose(forg);
         return false;
@@ -329,19 +333,19 @@ bool GenerateMQUI()
 
             DebugSpew("GenerateMQUI::Generating %s", szFilename);
 
-            forg = fopen(szOrgFilename, "rt");
-            if (!forg) {
+            err = fopen_s(&forg,szOrgFilename, "rt");
+            if (err) {
                 DebugSpew("GenerateMQUI::could not open %s (non-fatal)", szOrgFilename);
                 sprintf_s(szOrgFilename, "%s\\uifiles\\%s\\EQUI.xml", gszEQPath, "default");
-                forg = fopen(szOrgFilename, "rt");
-                if (!forg) {
+                err = fopen_s(&forg,szOrgFilename, "rt");
+                if (err) {
                     DebugSpew("GenerateMQUI::could not open %s", szOrgFilename);
                     DebugSpew("GenerateMQUI::giving up");
                     return false;
                 }
             }
-            fnew = fopen(szFilename, "wt");
-            if (!fnew) {
+            err = fopen_s(&fnew,szFilename, "wt");
+            if (err) {
                 DebugSpew("GenerateMQUI::could not open %s", szFilename);
                 fclose(forg);
                 return false;
@@ -372,7 +376,7 @@ void DestroyMQUI()
     CHAR            szFilename[MAX_PATH] = { 0 };
     CHAR            UISkin[MAX_STRING] = { 0 };
 
-    sprintf(szFilename, "%s\\uifiles\\%s\\MQUI.xml", gszEQPath, "default");
+    sprintf_s(szFilename, "%s\\uifiles\\%s\\MQUI.xml", gszEQPath, "default");
     DebugSpew("DestroyMQUI: removing file %s", szFilename);
     remove(szFilename);
 
@@ -467,7 +471,7 @@ CXWnd *FindMQ2Window(PCHAR WindowName)
 				}
 			}
 		}
-		else if (!strnicmp(WindowName, "pack", 4)) {
+		else if (!_strnicmp(WindowName, "pack", 4)) {
 			unsigned long nPack = atoi(&WindowName[4]);
 			if (nPack && nPack <= 10) {
 				if (PCHARINFO2 pChar2 = GetCharInfo2()) {
@@ -860,7 +864,7 @@ bool SendWndNotification(PCHAR WindowName, PCHAR ScreenID, DWORD Notification, V
     CXWnd *pWnd=FindMQ2Window(WindowName);
     if (!pWnd)
     {
-        sprintf(szOut,"Window '%s' not available.",WindowName);
+        sprintf_s(szOut,"Window '%s' not available.",WindowName);
         WriteChatColor(szOut,USERCOLOR_DEFAULT);
         return false;
     }
@@ -870,7 +874,7 @@ bool SendWndNotification(PCHAR WindowName, PCHAR ScreenID, DWORD Notification, V
         pButton=((CSidlScreenWnd*)(pWnd))->GetChildItem(ScreenID);
         if (!pButton)
         {
-            sprintf(szOut,"Window '%s' child '%s' not found.",WindowName,ScreenID);
+            sprintf_s(szOut,"Window '%s' child '%s' not found.",WindowName,ScreenID);
             WriteChatColor(szOut,USERCOLOR_DEFAULT);
             return false;
         }
@@ -937,7 +941,7 @@ int RecurseAndListWindows(PCSIDLWND pWnd)
         GetCXStr(pXMLData->TypeName.Ptr,tmpType,MAX_STRING);
         GetCXStr(pXMLData->Name.Ptr,tmpName,MAX_STRING);
         GetCXStr(pXMLData->ScreenID.Ptr,tmpAltName,MAX_STRING);
-        if (tmpAltName[0] && stricmp(tmpName,tmpAltName)) {
+        if (tmpAltName[0] && _stricmp(tmpName,tmpAltName)) {
 			if(pWnd->pParentWindow && pWnd->pParentWindow->pParentWindow)
 				WriteChatf("[0x%08X][P:0x%08X][PP:0x%08X] [\ay%s\ax] [\at%s\ax] [Custom UI-specific: \at%s\ax]",pWnd,pWnd->pParentWindow,pWnd->pParentWindow->pParentWindow,tmpType,tmpName,tmpAltName);
 			else
@@ -1263,15 +1267,15 @@ int ItemNotify(int argc, char *argv[])
             WriteChatColor("Syntax: /itemnotify in <bag slot> <slot # in bag> <notification>");
             RETURN(0);
         }
-        if (!strnicmp(szArg2,"bank",4)) {
+        if (!_strnicmp(szArg2,"bank",4)) {
             invslot=atoi(&szArg2[4])-1;
             bagslot=atoi(szArg3)-1;
             type=1;
-        } else if (!strnicmp(szArg2,"sharedbank",10)) {
+        } else if (!_strnicmp(szArg2,"sharedbank",10)) {
             invslot=atoi(&szArg2[10])-1;
             bagslot=atoi(szArg3)-1;
             type=2;
-        } else if (!strnicmp(szArg2,"pack",4)) {
+        } else if (!_strnicmp(szArg2,"pack",4)) {
             invslot=atoi(&szArg2[4])-1+BAG_SLOT_START;
             bagslot=atoi(szArg3)-1;
             type=0;
@@ -1287,7 +1291,7 @@ int ItemNotify(int argc, char *argv[])
 				WriteChatf("%d is not a valid invslot. (itemnotify)",invslot);
 				RETURN(0);
 			}
-			if(pNotification && !strnicmp(pNotification,"leftmouseup",11)) {
+			if(pNotification && !_strnicmp(pNotification,"leftmouseup",11)) {
 				PCONTENTS pContainer = FindItemBySlot(invslot);	// we dont care about the bagslot here
 				if(!pContainer) {								// and we dont care if the user has something
 																// on cursor either, cause we know they
@@ -1306,14 +1310,14 @@ int ItemNotify(int argc, char *argv[])
 				;
 				PickupOrDropItem(type,FindItemBySlot(invslot,bagslot));
 				RETURN(0);
-			} else if(pNotification && !strnicmp(pNotification,"rightmouseup",12)) {//we fake it with /useitem
+			} else if(pNotification && !_strnicmp(pNotification,"rightmouseup",12)) {//we fake it with /useitem
 				if ( HasExpansion(EXPANSION_VoA) )
 				{
 					PCONTENTS pItem = FindItemBySlot(invslot,bagslot);
 					if(pItem) {
 						if (GetItemFromContents(pItem)->Clicky.SpellID > 0 && GetItemFromContents(pItem)->Clicky.SpellID!=-1) {
 							CHAR cmd[40] = {0};
-							sprintf(cmd, "/useitem \"%s\"", GetItemFromContents(pItem)->Name);
+							sprintf_s(cmd, "/useitem \"%s\"", GetItemFromContents(pItem)->Name);
 							EzCommand(cmd);
 							RETURN(0);
 						}
@@ -1329,27 +1333,28 @@ int ItemNotify(int argc, char *argv[])
 			//OR it's an item, either way we can "click" it -eqmule
         unsigned long Slot=atoi(szArg1);
         if (Slot==0)
-        {
-            Slot=ItemSlotMap[strlwr(szArg1)]; 
+		{
+			_strlwr_s(szArg1);
+            Slot=ItemSlotMap[szArg1];
             if (Slot<NUM_INV_SLOTS) {
                 DebugTry(pSlot=(EQINVSLOT *)pInvSlotMgr->FindInvSlot(Slot));
             } else {
-                if (!strnicmp(szArg1, "loot", 4)) {
+                if (!_strnicmp(szArg1, "loot", 4)) {
                     invslot = atoi(szArg1+4) - 1;
                     type = 11;
-                } else if (!strnicmp(szArg1, "enviro", 6)) {
+                } else if (!_strnicmp(szArg1, "enviro", 6)) {
                     invslot = atoi(szArg1+6) - 1;
                     type = 4;
-                } else if (!strnicmp(szArg1, "pack", 4)) {
+                } else if (!_strnicmp(szArg1, "pack", 4)) {
                     invslot = atoi(szArg1+4) - 1 + BAG_SLOT_START;
                     type = 0;
-                } else if (!strnicmp(szArg1, "bank", 4)) {
+                } else if (!_strnicmp(szArg1, "bank", 4)) {
                     invslot = atoi(szArg1+4) - 1;
                     type = 1;
-                } else if (!strnicmp(szArg1, "sharedbank", 10)) {
+                } else if (!_strnicmp(szArg1, "sharedbank", 10)) {
                     invslot = atoi(szArg1+10) - 1;
                     type = 2;
-                } else if (!strnicmp(szArg1, "trade", 5)) {
+                } else if (!_strnicmp(szArg1, "trade", 5)) {
                     invslot = atoi(szArg1+5) - 1;
                     type = 3;
                 }
@@ -1372,14 +1377,14 @@ int ItemNotify(int argc, char *argv[])
 					Slot = 0;
             }
         }
-        if (Slot==0 && szArg1[0]!='0' && stricmp(szArg1,"charm"))
+        if (Slot==0 && szArg1[0]!='0' && _stricmp(szArg1,"charm"))
         {
             //could it be an itemname?
 			//lets check:
 			if(PCONTENTS ptheitem = FindItemByName(szArg1,1)) {
-				if(pNotification && !strnicmp(pNotification,"leftmouseup",11)) {
+				if(pNotification && !_strnicmp(pNotification,"leftmouseup",11)) {
 					PickupOrDropItem(0,ptheitem);
-				} else if(pNotification && !strnicmp(pNotification,"rightmouseup",12)) {//we fake it with /useitem
+				} else if(pNotification && !_strnicmp(pNotification,"rightmouseup",12)) {//we fake it with /useitem
 					//hmm better check if its a spell cause then it means we should mem it
 					PITEMINFO pClicky = GetItemFromContents(ptheitem);
 					if (pClicky && pClicky->ItemType == ITEMITEMTYPE_SCROLL) {
@@ -1393,7 +1398,7 @@ int ItemNotify(int argc, char *argv[])
 						RETURN(0);
 					} else if (pClicky && pClicky->Clicky.SpellID!=-1)	{
 						CHAR cmd[40] = {0};
-						sprintf(cmd, "/useitem \"%s\"", GetItemFromContents(ptheitem)->Name);
+						sprintf_s(cmd, "/useitem \"%s\"", GetItemFromContents(ptheitem)->Name);
 						EzCommand(cmd);
 						RETURN(0);
 					} else if(pClicky->Type == ITEMTYPE_PACK) {

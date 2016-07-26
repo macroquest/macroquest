@@ -32,7 +32,7 @@ PreSetup("MQ2ItemDisplay");
 void Comment(PSPAWNINFO pChar, PCHAR szLine);
 #ifndef ISXEQ // TODO If we want GearScore under IS, this needs ported to ISXEQItemDisplay 
 void DoGearScoreUserCommand(PSPAWNINFO pChar, PCHAR szLine);
-void AddGearScores(PCONTENTS pSlot,ITEMINFO *pItem,char *out,char *br);
+template <unsigned int _Size> void AddGearScores(PCONTENTS pSlot,ITEMINFO *pItem, CHAR(&out)[_Size],char *br);
 #endif
 typedef struct _DISPLAYITEMSTRINGS
 {
@@ -209,7 +209,7 @@ public:
                 }
             }
 
-            strcpy (ActualDmgBonus,ItemDisplay.c_str());
+            strcpy_s(ActualDmgBonus,ItemDisplay.c_str());
             dmgbonus = atoi(ActualDmgBonus);
         }
 
@@ -230,7 +230,7 @@ public:
         CHAR temp[MAX_STRING] = {0};
         if (!bNoSpellTramp) {
             SetSpell_Trampoline(SpellID,HasSpellDescr);
-            strcat(out,"<BR><c \"#00FFFF\">");
+            strcat_s(out,"<BR><c \"#00FFFF\">");
         } else {
             char * cColour = "FF0000", * cName = "Blub";
 
@@ -259,119 +259,120 @@ public:
                 break;
             }
 
-            sprintf (temp, "<BR><c \"#%s\">Spell Info for %s effect: %s<br>", cColour, cName, pSpell->Name);
-			strcat(out,temp);
+            sprintf_s(temp, "<BR><c \"#%s\">Spell Info for %s effect: %s<br>", cColour, cName, pSpell->Name);
+			strcat_s(out,temp);
 
         }
 
-        sprintf(temp, "ID: %04d&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;", pSpell->ID );
-        strcat(out,temp);
+        sprintf_s(temp, "ID: %04d&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;", pSpell->ID );
+        strcat_s(out,temp);
 
         DWORD Tics=GetSpellDuration(pSpell,(PSPAWNINFO)pLocalPlayer);
         if (Tics==0xFFFFFFFF)
-            strcat(out, "Duration: Permanent<br>" );
+            strcat_s(out, "Duration: Permanent<br>" );
         else if (Tics==0xFFFFFFFE) 
-            strcat(out, "Duration: Unknown<br>" );
+            strcat_s(out, "Duration: Unknown<br>" );
         else if (Tics==0) {
             // It's "instant", who cares?
-            strcat(out,"<br>");
+            strcat_s(out,"<br>");
         }
         else {
-            sprintf(temp, "Duration: %1.1f minutes<br>",(float)((Tics*6.0f)/60.0f));
-            strcat(out, temp);
+            sprintf_s(temp, "Duration: %1.1f minutes<br>",(float)((Tics*6.0f)/60.0f));
+            strcat_s(out, temp);
         }
 
-        sprintf(temp, "RecoveryTime: %1.2f&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;RecastTime: %1.2f <br>", (float)(pSpell->FizzleTime/1000.0f), (float)(pSpell->RecastTime/1000.0f) );
-        strcat(out,temp);
+        sprintf_s(temp, "RecoveryTime: %1.2f&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;RecastTime: %1.2f <br>", (float)(pSpell->FizzleTime/1000.0f), (float)(pSpell->RecastTime/1000.0f) );
+        strcat_s(out,temp);
 
         if (pSpell->Range > 0.0f ) {
-            sprintf(temp, "Range: %1.0f", pSpell->Range );
-            strcat(out,temp);
+            sprintf_s(temp, "Range: %1.0f", pSpell->Range );
+            strcat_s(out,temp);
             if ( pSpell->PushBack == 0.0f && pSpell->AERange == 0.0f)
-                strcat(out, "<br>");
+                strcat_s(out, "<br>");
         }
 
         if (pSpell->PushBack != 0.0f ) {
             if (pSpell->Range > 0.0f ) 
-                strcat(out, "&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;" );
-            sprintf(temp, "PushBack: %1.1f", pSpell->PushBack );
-            strcat(out, temp);
+                strcat_s(out, "&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;" );
+            sprintf_s(temp, "PushBack: %1.1f", pSpell->PushBack );
+            strcat_s(out, temp);
             if (pSpell->AERange == 0.0f || pSpell->Range > 0.0f )
-                strcat(out, "<br>" );
+                strcat_s(out, "<br>" );
         }
 
         if (pSpell->AERange > 0.0f ) {
             if (pSpell->Range > 0.0f)
-                strcat(out, "&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;" );
+                strcat_s(out, "&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;" );
             else if (pSpell->PushBack > 0.0f )
-                strcat(out, "&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;" );
-            sprintf(temp, "AERange: %1.0f<br>", pSpell->AERange );
-            strcat(out, temp);
+                strcat_s(out, "&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;" );
+            sprintf_s(temp, "AERange: %1.0f<br>", pSpell->AERange );
+            strcat_s(out, temp);
         }
 
         if (pSpell->TargetType != 0x06 && pSpell->TargetType != 0x0e && pSpell->TargetType != 0x03 && pSpell->TargetType != 0x28 && pSpell->TargetType != 0x29) {
             if (pSpell->SpellType == 0) {   // Ziggy: Only show resist type for detrimental spells
                 switch(pSpell->Resist)
                 {
-                case 9: strcat(out, "Resist: Corruption" ); break;
-                case 7: strcat(out, "Resist: Prismatic[Avg]" ); break; // Ziggy - Added Reminder which..
-                case 6: strcat(out, "Resist: Chromatic[Low]" ); break; // ..is what type of resist
-                case 5: strcat(out, "Resist: Disease" ); break;
-                case 4: strcat(out, "Resist: Poison" ); break;
-                case 3: strcat(out, "Resist: Cold/Ice" ); break;
-                case 2: strcat(out, "Resist: Fire" ); break;
-                case 1: strcat(out, "Resist: Magic" ); break;
-                case 0: strcat(out, "Resist: Unresistable"); break;
+                case 9: strcat_s(out, "Resist: Corruption" ); break;
+                case 7: strcat_s(out, "Resist: Prismatic[Avg]" ); break; // Ziggy - Added Reminder which..
+                case 6: strcat_s(out, "Resist: Chromatic[Low]" ); break; // ..is what type of resist
+                case 5: strcat_s(out, "Resist: Disease" ); break;
+                case 4: strcat_s(out, "Resist: Poison" ); break;
+                case 3: strcat_s(out, "Resist: Cold/Ice" ); break;
+                case 2: strcat_s(out, "Resist: Fire" ); break;
+                case 1: strcat_s(out, "Resist: Magic" ); break;
+                case 0: strcat_s(out, "Resist: Unresistable"); break;
                 }
 
                 if (pSpell->ResistAdj != 0 ) {
-                    sprintf(temp, "&nbsp;&nbsp;&nbsp;(Resist Adj.: %d)<br>", pSpell->ResistAdj );
-                    strcat(out,temp);
+                    sprintf_s(temp, "&nbsp;&nbsp;&nbsp;(Resist Adj.: %d)<br>", pSpell->ResistAdj );
+                    strcat_s(out,temp);
                 } else {
-                    strcat(out,"<br>");
+                    strcat_s(out,"<br>");
                 }
             } 
         }
 
 		if (pSpell->HateGenerated) {
-            sprintf(temp, "Hate Generated: %d<br>", pSpell->HateGenerated);
-            strcat(out,temp);
+            sprintf_s(temp, "Hate Generated: %d<br>", pSpell->HateGenerated);
+            strcat_s(out,temp);
 		}
 
-		strcat(out, "<br>" );
-        ShowSpellSlotInfo(pSpell,&out[strlen(out)]);
+		strcat_s(out, "<br>" );
+		int outlen = strlen(out);
+        ShowSpellSlotInfo(pSpell,&out[outlen],sizeof(out)-outlen);
 
         //show usable classes routine by Koad//
         bool bUseableClasses = false; 
-        strcat(out, "<br>" ); 
+        strcat_s(out, "<br>" ); 
         for (int j=Warrior; j<=Berserker; j++) {  // Ziggy - output will word wrap properly now
 			if (((EQ_Spell*)pSpell)->GetSpellLevelNeeded(j)>0 && ((EQ_Spell*)pSpell)->GetSpellLevelNeeded(j)<=MAX_PC_LEVEL) {
-                if (bUseableClasses) strcat (out, ", ");
+                if (bUseableClasses) strcat_s(out, ", ");
 
-                sprintf(temp,"%s(%d)", GetClassDesc(j), ((EQ_Spell*)pSpell)->GetSpellLevelNeeded(j));
-                strcat(out, temp);
+                sprintf_s(temp,"%s(%d)", GetClassDesc(j), ((EQ_Spell*)pSpell)->GetSpellLevelNeeded(j));
+                strcat_s(out, temp);
                 bUseableClasses = true;
             }
         } 
-        if (bUseableClasses) strcat(out, "<br><br>" ); 
+        if (bUseableClasses) strcat_s(out, "<br><br>" ); 
 
         if (pSpell->CastOnYou[0]) { 
-            sprintf(temp, "Cast on you: %s<br>", pSpell->CastOnYou); 
-            strcat(out,temp); 
+            sprintf_s(temp, "Cast on you: %s<br>", pSpell->CastOnYou); 
+            strcat_s(out,temp); 
         } 
 
         if (pSpell->CastOnAnother[0]) { 
-            sprintf(temp, "Cast on another: %s<br>", pSpell->CastOnAnother); 
-            strcat(out,temp); 
+            sprintf_s(temp, "Cast on another: %s<br>", pSpell->CastOnAnother); 
+            strcat_s(out,temp); 
         } 
 
         if (pSpell->WearOff[0]) { 
-            sprintf(temp, "Wears off: %s<br>", pSpell->WearOff); 
-            strcat(out,temp); 
+            sprintf_s(temp, "Wears off: %s<br>", pSpell->WearOff); 
+            strcat_s(out,temp); 
         } 
 
         if (out[0]!=17) {
-            strcat(out,"</c>");
+            strcat_s(out,"</c>");
             AppendCXStr(&This->ItemInfo,&out[0]);  
         }
     }
@@ -390,7 +391,7 @@ public:
         CHAR temp[MAX_STRING] = {0};
         if (!bNoSpellTramp) {
             SetSpell_Trampoline(SpellID,HasSpellDescr);
-            strcat(out,"<BR><c \"#00FFFF\">");
+            strcat_s(out,"<BR><c \"#00FFFF\">");
         } else {
             char * cColour = "FF0000", * cName = "Blub";
 
@@ -419,8 +420,8 @@ public:
                 break;
             }
 
-            sprintf (temp, "<BR><c \"#%s\">Spell Info for %s effect: %s<br>", cColour, cName, pSpell->Name);
-			strcat(out,temp);
+            sprintf_s(temp, "<BR><c \"#%s\">Spell Info for %s effect: %s<br>", cColour, cName, pSpell->Name);
+			strcat_s(out,temp);
 
             if(This->ItemInfo && GetCXStr(This->ItemInfo, temp))
             {
@@ -431,114 +432,115 @@ public:
             }
         }
 
-        sprintf(temp, "ID: %04d&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;", pSpell->ID );
-        strcat(out,temp);
+        sprintf_s(temp, "ID: %04d&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;", pSpell->ID );
+        strcat_s(out,temp);
 
         DWORD Tics=GetSpellDuration(pSpell,(PSPAWNINFO)pLocalPlayer);
         if (Tics==0xFFFFFFFF)
-            strcat(out, "Duration: Permanent<br>" );
+            strcat_s(out, "Duration: Permanent<br>" );
         else if (Tics==0xFFFFFFFE) 
-            strcat(out, "Duration: Unknown<br>" );
+            strcat_s(out, "Duration: Unknown<br>" );
         else if (Tics==0) {
             // It's "instant", who cares?
-            strcat(out,"<br>");
+            strcat_s(out,"<br>");
         }
         else {
-            sprintf(temp, "Duration: %1.1f minutes<br>",(float)((Tics*6.0f)/60.0f));
-            strcat(out, temp);
+            sprintf_s(temp, "Duration: %1.1f minutes<br>",(float)((Tics*6.0f)/60.0f));
+            strcat_s(out, temp);
         }
 
-        sprintf(temp, "RecoveryTime: %1.2f&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;RecastTime: %1.2f <br>", (float)(pSpell->FizzleTime/1000.0f), (float)(pSpell->RecastTime/1000.0f) );
-        strcat(out,temp);
+        sprintf_s(temp, "RecoveryTime: %1.2f&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;RecastTime: %1.2f <br>", (float)(pSpell->FizzleTime/1000.0f), (float)(pSpell->RecastTime/1000.0f) );
+        strcat_s(out,temp);
 
         if (pSpell->Range > 0.0f ) {
-            sprintf(temp, "Range: %1.0f", pSpell->Range );
-            strcat(out,temp);
+            sprintf_s(temp, "Range: %1.0f", pSpell->Range );
+            strcat_s(out,temp);
             if ( pSpell->PushBack == 0.0f && pSpell->AERange == 0.0f)
-                strcat(out, "<br>");
+                strcat_s(out, "<br>");
         }
 
         if (pSpell->PushBack != 0.0f ) {
             if (pSpell->Range > 0.0f ) 
-                strcat(out, "&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;" );
-            sprintf(temp, "PushBack: %1.1f", pSpell->PushBack );
-            strcat(out, temp);
+                strcat_s(out, "&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;" );
+            sprintf_s(temp, "PushBack: %1.1f", pSpell->PushBack );
+            strcat_s(out, temp);
             if (pSpell->AERange == 0.0f || pSpell->Range > 0.0f )
-                strcat(out, "<br>" );
+                strcat_s(out, "<br>" );
         }
 
         if (pSpell->AERange > 0.0f ) {
             if (pSpell->Range > 0.0f)
-                strcat(out, "&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;" );
+                strcat_s(out, "&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;" );
             else if (pSpell->PushBack > 0.0f )
-                strcat(out, "&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;" );
-            sprintf(temp, "AERange: %1.0f<br>", pSpell->AERange );
-            strcat(out, temp);
+                strcat_s(out, "&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;" );
+            sprintf_s(temp, "AERange: %1.0f<br>", pSpell->AERange );
+            strcat_s(out, temp);
         }
 
         if (pSpell->TargetType != 0x06 && pSpell->TargetType != 0x0e && pSpell->TargetType != 0x03 && pSpell->TargetType != 0x28 && pSpell->TargetType != 0x29) {
             if (pSpell->SpellType == 0) {   // Ziggy: Only show resist type for detrimental spells
                 switch(pSpell->Resist)
                 {
-                case 9: strcat(out, "Resist: Corruption" ); break;
-                case 7: strcat(out, "Resist: Prismatic[Avg]" ); break; // Ziggy - Added Reminder which..
-                case 6: strcat(out, "Resist: Chromatic[Low]" ); break; // ..is what type of resist
-                case 5: strcat(out, "Resist: Disease" ); break;
-                case 4: strcat(out, "Resist: Poison" ); break;
-                case 3: strcat(out, "Resist: Cold/Ice" ); break;
-                case 2: strcat(out, "Resist: Fire" ); break;
-                case 1: strcat(out, "Resist: Magic" ); break;
-                case 0: strcat(out, "Resist: Unresistable"); break;
+                case 9: strcat_s(out, "Resist: Corruption" ); break;
+                case 7: strcat_s(out, "Resist: Prismatic[Avg]" ); break; // Ziggy - Added Reminder which..
+                case 6: strcat_s(out, "Resist: Chromatic[Low]" ); break; // ..is what type of resist
+                case 5: strcat_s(out, "Resist: Disease" ); break;
+                case 4: strcat_s(out, "Resist: Poison" ); break;
+                case 3: strcat_s(out, "Resist: Cold/Ice" ); break;
+                case 2: strcat_s(out, "Resist: Fire" ); break;
+                case 1: strcat_s(out, "Resist: Magic" ); break;
+                case 0: strcat_s(out, "Resist: Unresistable"); break;
                 }
 
                 if (pSpell->ResistAdj != 0 ) {
-                    sprintf(temp, "&nbsp;&nbsp;&nbsp;(Resist Adj.: %d)<br>", pSpell->ResistAdj );
-                    strcat(out,temp);
+                    sprintf_s(temp, "&nbsp;&nbsp;&nbsp;(Resist Adj.: %d)<br>", pSpell->ResistAdj );
+                    strcat_s(out,temp);
                 } else {
-                    strcat(out,"<br>");
+                    strcat_s(out,"<br>");
                 }
             } 
         }
 
 		if (pSpell->HateGenerated) {
-            sprintf(temp, "Hate Generated: %d<br>", pSpell->HateGenerated);
-            strcat(out,temp);
+            sprintf_s(temp, "Hate Generated: %d<br>", pSpell->HateGenerated);
+            strcat_s(out,temp);
 		}
 
-        strcat(out, "<br>" );
-        ShowSpellSlotInfo(pSpell,&out[strlen(out)]);
+        strcat_s(out, "<br>" );
+		int outlen = strlen(out);
+        ShowSpellSlotInfo(pSpell,&out[outlen],sizeof(out)-outlen);
 
         //show usable classes routine by Koad//
         bool bUseableClasses = false; 
-        strcat(out, "<br>" ); 
+        strcat_s(out, "<br>" ); 
         for (int j=Warrior; j<=Berserker; j++) {  // Ziggy - output will word wrap properly now
 			if (((EQ_Spell*)pSpell)->GetSpellLevelNeeded(j)>0 && ((EQ_Spell*)pSpell)->GetSpellLevelNeeded(j)<=MAX_PC_LEVEL) {
-                if (bUseableClasses) strcat (out, ", ");
+                if (bUseableClasses) strcat_s(out, ", ");
 
-                sprintf(temp,"%s(%d)", GetClassDesc(j), ((EQ_Spell*)pSpell)->GetSpellLevelNeeded(j));
-                strcat(out, temp);
+                sprintf_s(temp,"%s(%d)", GetClassDesc(j), ((EQ_Spell*)pSpell)->GetSpellLevelNeeded(j));
+                strcat_s(out, temp);
                 bUseableClasses = true;
             }
         } 
-        if (bUseableClasses) strcat(out, "<br><br>" ); 
+        if (bUseableClasses) strcat_s(out, "<br><br>" ); 
 
         if (pSpell->CastOnYou[0]) { 
-            sprintf(temp, "Cast on you: %s<br>", pSpell->CastOnYou); 
-            strcat(out,temp); 
+            sprintf_s(temp, "Cast on you: %s<br>", pSpell->CastOnYou); 
+            strcat_s(out,temp); 
         } 
 
         if (pSpell->CastOnAnother[0]) { 
-            sprintf(temp, "Cast on another: %s<br>", pSpell->CastOnAnother); 
-            strcat(out,temp); 
+            sprintf_s(temp, "Cast on another: %s<br>", pSpell->CastOnAnother); 
+            strcat_s(out,temp); 
         } 
 
         if (pSpell->WearOff[0]) { 
-            sprintf(temp, "Wears off: %s<br>", pSpell->WearOff); 
-            strcat(out,temp); 
+            sprintf_s(temp, "Wears off: %s<br>", pSpell->WearOff); 
+            strcat_s(out,temp); 
         } 
 
         if (out[0]!=17) {
-            strcat(out,"</c>");
+            strcat_s(out,"</c>");
             //((CXStr)This->ItemInfo)+=
             AppendCXStr(&This->ItemInfo,&out[0]);   
         }
@@ -631,10 +633,10 @@ public:
 			g_LastIndex = index;
 		}
 
-        strcpy(out,"<BR><c \"#00FFFF\">");
+        strcpy_s(out,"<BR><c \"#00FFFF\">");
         if ( Item->ItemNumber > 0 ) { 
-            sprintf(temp,"Item ID: %d<br>", Item->ItemNumber); 
-            strcat(out, temp); 
+            sprintf_s(temp,"Item ID: %d<br>", Item->ItemNumber); 
+            strcat_s(out, temp); 
         }
 
 #ifndef ISXEQ
@@ -643,8 +645,8 @@ public:
 #endif
         if ( ((EQ_Item*)item)->IsStackable() ) {
             if ( Item->StackSize > 0 ) {
-                sprintf(temp,"Stackable Count: %d<br>", Item->StackSize);
-                strcat(out, temp);
+                sprintf_s(temp,"Stackable Count: %d<br>", Item->StackSize);
+                strcat_s(out, temp);
             }
         } 
         if (Item->Cost>0) {
@@ -652,56 +654,56 @@ public:
             DWORD sp = cp/10; cp=cp%10;
             DWORD gp = sp/10; sp=sp%10;
             DWORD pp = gp/10; gp=gp%10;
-            strcat(out,"Value:");
+            strcat_s(out,"Value:");
             if (pp>0) {
-                sprintf(temp," %dpp",pp);
-                strcat(out,temp);
+                sprintf_s(temp," %dpp",pp);
+                strcat_s(out,temp);
             }
             if (gp>0) {
-                sprintf(temp," %dgp",gp);
-                strcat(out,temp);
+                sprintf_s(temp," %dgp",gp);
+                strcat_s(out,temp);
             }
             if (sp>0) {
-                sprintf(temp," %dsp",sp);
-                strcat(out,temp);
+                sprintf_s(temp," %dsp",sp);
+                strcat_s(out,temp);
             }
             if (cp>0) {
-                sprintf(temp," %dcp",cp);
-                strcat(out,temp);
+                sprintf_s(temp," %dcp",cp);
+                strcat_s(out,temp);
             }
-            strcat(out,"<BR>");
+            strcat_s(out,"<BR>");
         }
 
         if ( Item->Favor > 0 ) {
-            sprintf(temp,"Tribute Value: %d<br>", Item->Favor);
-            strcat(out, temp);
+            sprintf_s(temp,"Tribute Value: %d<br>", Item->Favor);
+            strcat_s(out, temp);
         }
         if (Item->GuildFavor > 0 )  { 
-            sprintf(temp,"Guild Tribute Value: %d<br>", Item->GuildFavor); 
-            strcat(out, temp); 
+            sprintf_s(temp,"Guild Tribute Value: %d<br>", Item->GuildFavor); 
+            strcat_s(out, temp); 
         }
         if (Item->Clicky.TimerID!=0) {
             int Secs = GetItemTimer(item);
             if (!Secs) {
-                sprintf(temp,"Item Timer: <c \"#20FF20\">Ready</c><br>");
+                sprintf_s(temp,"Item Timer: <c \"#20FF20\">Ready</c><br>");
             } else {
                 int Mins=(Secs/60)%60;
                 int Hrs=(Secs/3600);
                 Secs=Secs%60;
                 if (Hrs)
-                    sprintf(temp,"Item Timer: %d:%02d:%02d<br>",Hrs,Mins,Secs);
+                    sprintf_s(temp,"Item Timer: %d:%02d:%02d<br>",Hrs,Mins,Secs);
                 else
-                    sprintf(temp,"Item Timer: %d:%02d<br>",Mins,Secs);
+                    sprintf_s(temp,"Item Timer: %d:%02d<br>",Mins,Secs);
             }
-            strcat(out, temp);
+            strcat_s(out, temp);
         }
 
         //Outlaw (AKA CheckinThingsOut) (02/24/2005)
         if (Item->ItemType != 27) { //Arrows..they have dmg/dly but we don't want them
             if ( Item->Delay > 0) {
                 if ( Item->Damage > 0) {
-                    sprintf(temp,"Ratio: %5.3f<br>", (float)Item->Delay / (float)Item->Damage);
-                    strcat(out, temp);
+                    sprintf_s(temp,"Ratio: %5.3f<br>", (float)Item->Delay / (float)Item->Damage);
+                    strcat_s(out, temp);
                     //Calculate Efficiency
                     INT dmgbonus = 0;
 
@@ -711,109 +713,109 @@ public:
 						}
                     }
 
-                    sprintf(temp,"Efficiency: %3.0f<br>",((((float)Item->Damage * 2) + dmgbonus) / (float)Item->Delay) * 50);
-                    strcat(out, temp);
+                    sprintf_s(temp,"Efficiency: %3.0f<br>",((((float)Item->Damage * 2) + dmgbonus) / (float)Item->Delay) * 50);
+                    strcat_s(out, temp);
                     if (Item->EquipSlots & 16384) { // Equipable In Secondary Slot
-                        sprintf(temp,"Offhand Efficiency: %3.0f<br>",((((float)Item->Damage * 2) / (float)Item->Delay) * 50) * 0.62);
-                        strcat(out, temp);
+                        sprintf_s(temp,"Offhand Efficiency: %3.0f<br>",((((float)Item->Damage * 2) / (float)Item->Delay) * 50) * 0.62);
+                        strcat_s(out, temp);
                     }
-                    sprintf(temp,"<br>");
-                    strcat(out,temp);    
+                    sprintf_s(temp,"<br>");
+                    strcat_s(out,temp);    
                 }
             }
         }
         lore=Item->LoreName;
         if (lore[0]=='*') lore++;
         if (strcmp(lore,Item->Name)) {
-            sprintf(temp,"Item Lore: %s<BR>",Item->LoreName);
-            strcat(out,temp);
+            sprintf_s(temp,"Item Lore: %s<BR>",Item->LoreName);
+            strcat_s(out,temp);
         }
         //PCHARINFO pChar = GetCharInfo();     // Ziggy - for item level highlights 
         // Will be 0 for no effect or -1 if other effects present 
         if (Item->Proc.SpellID && Item->Proc.SpellID!=-1) { 
 			if (Item->Proc.RequiredLevel == 0) {
-				sprintf(temp, "Procs at level 1 (Proc rate modifier: %d)<BR>", Item->Proc.ProcRate);
+				sprintf_s(temp, "Procs at level 1 (Proc rate modifier: %d)<BR>", Item->Proc.ProcRate);
 			} else {
 				if (PCHARINFO2 pChar2 = GetCharInfo2()) {
-					sprintf(temp, "%sProcs at level %d%s (Proc rate modifier: %d)<BR>", (Item->Proc.RequiredLevel > pChar2->Level ? "<c \"#FF4040\">" : ""), Item->Proc.RequiredLevel, (Item->Proc.RequiredLevel > pChar2->Level ? "</C>" : ""), Item->Proc.ProcRate);
+					sprintf_s(temp, "%sProcs at level %d%s (Proc rate modifier: %d)<BR>", (Item->Proc.RequiredLevel > pChar2->Level ? "<c \"#FF4040\">" : ""), Item->Proc.RequiredLevel, (Item->Proc.RequiredLevel > pChar2->Level ? "</C>" : ""), Item->Proc.ProcRate);
 				}
 			}
-			strcat(out, temp);
+			strcat_s(out, temp);
         } 
         /* No longer needed? 
         else if (Item->SpellId==998) { // 998 = haste 
-        sprintf(temp,"%d%% Haste<BR>",Item->Level+1); 
-        strcat(out,temp); 
+        sprintf_s(temp,"%d%% Haste<BR>",Item->Level+1); 
+        strcat_s(out,temp); 
         } 
         */ 
 
         // Just in case...
         if (This->ItemInfo && (!strstr(This->ItemInfo->Text,"(Combat)")) && Item->Proc.ProcRate > 0 )
         {
-            sprintf(temp, "Proc rate Modifier: %d<BR>", Item->Proc.ProcRate );
-            strcat(out,temp);
+            sprintf_s(temp, "Proc rate Modifier: %d<BR>", Item->Proc.ProcRate );
+            strcat_s(out,temp);
         }
 
         // Teh_Ish (02/08/2004) 
 		if (Item->Clicky.EffectType == 4 || Item->Clicky.EffectType == 1 || Item->Clicky.EffectType == 5) {
 			if (Item->Clicky.RequiredLevel == 0) {
-				sprintf(temp, "Clickable at level 1<br>");
+				sprintf_s(temp, "Clickable at level 1<br>");
 			} else {
 				if (PCHARINFO2 pChar2 = GetCharInfo2()) {
-					sprintf(temp, "%sClickable at level %d%s<BR>", (Item->Clicky.RequiredLevel > pChar2->Level ? "<c \"#FF4040\">" : ""), Item->Clicky.RequiredLevel, (Item->Clicky.RequiredLevel > pChar2->Level ? "</C>" : ""));
+					sprintf_s(temp, "%sClickable at level %d%s<BR>", (Item->Clicky.RequiredLevel > pChar2->Level ? "<c \"#FF4040\">" : ""), Item->Clicky.RequiredLevel, (Item->Clicky.RequiredLevel > pChar2->Level ? "</C>" : ""));
 				}
 			}
-			strcat(out, temp);
+			strcat_s(out, temp);
         }
 
         // TheColonel (12/24/2003)
         if (Item->LDType == 1) {
             if(Item->LDCost == 0)
-                sprintf(temp,"This drops in %s dungeons<BR>", GetLDoNTheme(Item->LDTheme));
+                sprintf_s(temp,"This drops in %s dungeons<BR>", GetLDoNTheme(Item->LDTheme));
             else
-                sprintf(temp,"LDoN Cost: %d from %s<BR>", Item->LDCost, GetLDoNTheme(Item->LDTheme));
-            strcat(out,temp);
+                sprintf_s(temp,"LDoN Cost: %d from %s<BR>", Item->LDCost, GetLDoNTheme(Item->LDTheme));
+            strcat_s(out,temp);
         }
         if (Item->LDType == 2 && Item->LDCost > 0) {
-            sprintf(temp,"Discord Cost: %d points<BR>", Item->LDCost);
-            strcat(out,temp);
+            sprintf_s(temp,"Discord Cost: %d points<BR>", Item->LDCost);
+            strcat_s(out,temp);
         }
         if (Item->LDType == 4 && Item->LDCost > 0) {
-            sprintf(temp,"DoN Cost: %d Radiant Crystals<BR>", Item->LDCost);
-            strcat(out,temp);
+            sprintf_s(temp,"DoN Cost: %d Radiant Crystals<BR>", Item->LDCost);
+            strcat_s(out,temp);
         }
         if (Item->LDType == 5 && Item->LDCost > 0) {
-            sprintf(temp,"DoN Cost: %d Ebon Crystals<BR>", Item->LDCost);
-            strcat(out,temp); 
+            sprintf_s(temp,"DoN Cost: %d Ebon Crystals<BR>", Item->LDCost);
+            strcat_s(out,temp); 
         } 
         // TheColonel (1/18/2004)
         /*
         if (Item->InstrumentType != 0){ 
         float instrumentmod = ((float)Item->InstrumentMod)/10.0f; 
-        sprintf(temp,"Instrument mod: %3.1f to %s.<BR>", instrumentmod, szItemTypes[Item->InstrumentType]); 
-        strcat(out,temp);       
+        sprintf_s(temp,"Instrument mod: %3.1f to %s.<BR>", instrumentmod, szItemTypes[Item->InstrumentType]); 
+        strcat_s(out,temp);       
         } 
         /**/
 
         if (Item->Type == ITEMTYPE_PACK) {
-            sprintf(temp,"Container Type: %s<BR>",szCombineTypes[Item->Combine]);
-            strcat(out,temp);
+            sprintf_s(temp,"Container Type: %s<BR>",szCombineTypes[Item->Combine]);
+            strcat_s(out,temp);
         }
 
 
-        sprintf(temp,"%07d",Item->ItemNumber); 
+        sprintf_s(temp,"%07d",Item->ItemNumber); 
 #ifndef ISXEQ
         CHAR temp2[MAX_STRING] = {0};
         GetPrivateProfileString("Notes",temp,"",temp2,MAX_STRING,INIFileName); 
         if (strlen(temp2)>0) 
         { 
-            sprintf(temp,"Note: %s<br>",temp2); 
-            strcat(out, temp); 
+            sprintf_s(temp,"Note: %s<br>",temp2); 
+            strcat_s(out, temp); 
         }  
 #endif
 
         if (out[0]!=17) {
-            strcat(out,"</c>");
+            strcat_s(out,"</c>");
             ((CStmlWnd*)This->DisplayWnd)->AppendSTML(&out[0]);
         }
 
@@ -869,13 +871,13 @@ void Comment(PSPAWNINFO pChar, PCHAR szLine)
     GetArg(ItemNo,szLine,2); 
     GetArg(szTemp,szLine,3); 
     for(int i=4;strlen(szTemp);i++){ 
-        strcat(Comment,szTemp); 
-        strcat(Comment," "); 
+        strcat_s(Comment,szTemp); 
+        strcat_s(Comment," "); 
         GetArg(szTemp,szLine,i); 
     } 
     int itemno = atoi(ItemNo); 
 
-    if (stricmp(Arg,"add") && stricmp(Arg,"del")) 
+    if (_stricmp(Arg,"add") && _stricmp(Arg,"del")) 
     { 
         WriteChatColor("Use: /inote <add|del> <itemno> \"Comment\"",CONCOLOR_YELLOW); 
         return; 
@@ -888,14 +890,14 @@ void Comment(PSPAWNINFO pChar, PCHAR szLine)
     } 
     if (strlen(Comment)==0 || !_stricmp(Arg,"del")) 
     { 
-        sprintf(szTemp,"%07d",itemno); 
+        sprintf_s(szTemp,"%07d",itemno); 
         WritePrivateProfileString("Notes",szTemp,"",INIFileName); 
         return; 
     } 
 
     if (!_stricmp(Arg,"add")) 
     { 
-        sprintf(szTemp,"%07d",itemno); 
+        sprintf_s(szTemp,"%07d",itemno); 
         WritePrivateProfileString("Notes",szTemp,Comment,INIFileName); 
         return; 
     } 
@@ -1014,7 +1016,7 @@ void SaveAttribListWeights(char *Section)
 	int i;
 	for (i=0; i<=AttribMax; i++)
 	{
-		sprintf(szVal,"%0.2f", AttribList[i].Weight);
+		sprintf_s(szVal,"%0.2f", AttribList[i].Weight);
 		WritePrivateProfileString(Section,AttribList[i].Name,szVal,INIFileName);
 	}
 }
@@ -1024,7 +1026,7 @@ int  SetAttribListWeight(char *Key, char *Val)
 	int i;
 	for (i=0; i<=AttribMax; i++)
 	{
-		if (stricmp(AttribList[i].Name,Key)==0) 
+		if (_stricmp(AttribList[i].Name,Key)==0) 
 		{
 			WriteChatf("MQ2GearScore::Setting %s to %s",AttribList[i].Name,Val); 
 			AttribList[i].Weight = (float)atof(Val);
@@ -1149,7 +1151,7 @@ void  CheckForBest(float ItemScore,int ItemSlot)
 
 void ClearProfile(int Echo)
 {
-	sprintf(ReportChannel,"None");
+	sprintf_s(ReportChannel,"None");
 	ClickGroup = 0;
 	ClickGuild = 0;
 	ClickRaid = 0;
@@ -1176,10 +1178,10 @@ void WriteProfile(char *pName,int Echo)
 {
 	char szKey[MAX_STRING];
 									WritePrivateProfileString(pName,"Report"	 ,ReportChannel,INIFileName); 
-	sprintf(szKey,"%d",ClickGroup);	WritePrivateProfileString(pName,"ClickGroup" ,szKey		,INIFileName); 
-	sprintf(szKey,"%d",ClickGuild);	WritePrivateProfileString(pName,"ClickGuild" ,szKey		,INIFileName); 
-	sprintf(szKey,"%d",ClickRaid);	WritePrivateProfileString(pName,"ClickRaid"	 ,szKey		,INIFileName); 
-	sprintf(szKey,"%d",ClickAny);	WritePrivateProfileString(pName,"ClickAny"	 ,szKey  	,INIFileName); 
+	sprintf_s(szKey,"%d",ClickGroup);	WritePrivateProfileString(pName,"ClickGroup" ,szKey		,INIFileName); 
+	sprintf_s(szKey,"%d",ClickGuild);	WritePrivateProfileString(pName,"ClickGuild" ,szKey		,INIFileName); 
+	sprintf_s(szKey,"%d",ClickRaid);	WritePrivateProfileString(pName,"ClickRaid"	 ,szKey		,INIFileName); 
+	sprintf_s(szKey,"%d",ClickAny);	WritePrivateProfileString(pName,"ClickAny"	 ,szKey  	,INIFileName); 
 	SaveAttribListWeights(pName);
 
 	if (Echo) WriteChatf("MQ2ItemDisplay::saving settings for [%s]",pName); 
@@ -1235,16 +1237,16 @@ void DoScoreForCursor(void);
 
 void SetReportChannel(char *pName, char *Val)
 {
-	strcpy(ReportChannel,Val);
+	strcpy_s(ReportChannel,Val);
 	EchoProfile(TRUE,FALSE,FALSE);
 }
 
 void SetClickMode(char *pName, char *Val)
 {
-	if (stricmp(Val,"Group")==0) ClickGroup=!ClickGroup;
-	if (stricmp(Val,"Guild")==0) ClickGuild=!ClickGuild;
-	if (stricmp(Val,"Raid" )==0) ClickRaid=!ClickRaid;
-	if (stricmp(Val,"Any"  )==0) ClickAny=!ClickAny;
+	if (_stricmp(Val,"Group")==0) ClickGroup=!ClickGroup;
+	if (_stricmp(Val,"Guild")==0) ClickGuild=!ClickGuild;
+	if (_stricmp(Val,"Raid" )==0) ClickRaid=!ClickRaid;
+	if (_stricmp(Val,"Any"  )==0) ClickAny=!ClickAny;
 	EchoProfile(FALSE,TRUE,FALSE);
 }
 
@@ -1261,13 +1263,13 @@ void DoGearScoreUserCommand(PSPAWNINFO pChar, PCHAR szLine)
     GetArg(Key,szLine,1); 
     GetArg(Val,szLine,2); 
 
-	if (stricmp(Key,"save"		)==0)	{	WriteProfile(pName,TRUE);	return; }
-	if (stricmp(Key,"load"		)==0)	{	ReadProfile(pName,TRUE);	return; }
-	if (stricmp(Key,"report"	)==0)   {	SetReportChannel(pName,Val);return;	}
-	if (stricmp(Key,"click"		)==0)	{	SetClickMode(pName,Val);	return;	}
-	if (stricmp(Key,"cursor"	)==0)   {	DoScoreForCursor();			return;	}
-	if (stricmp(Key,"clear"		)==0)	{	ClearProfile(TRUE);			return;	}
-	if (stricmp(Key,"help"		)==0)	{	EchoHelp(TRUE);				return;	}
+	if (_stricmp(Key,"save"		)==0)	{	WriteProfile(pName,TRUE);	return; }
+	if (_stricmp(Key,"load"		)==0)	{	ReadProfile(pName,TRUE);	return; }
+	if (_stricmp(Key,"report"	)==0)   {	SetReportChannel(pName,Val);return;	}
+	if (_stricmp(Key,"click"		)==0)	{	SetClickMode(pName,Val);	return;	}
+	if (_stricmp(Key,"cursor"	)==0)   {	DoScoreForCursor();			return;	}
+	if (_stricmp(Key,"clear"		)==0)	{	ClearProfile(TRUE);			return;	}
+	if (_stricmp(Key,"help"		)==0)	{	EchoHelp(TRUE);				return;	}
 	if (Key[0] == 0					)	{	EchoCommands(TRUE);			return;	}
 	SetAttribListWeight(Key,Val);
 }
@@ -1333,7 +1335,7 @@ class MQ2GearScoreType : public MQ2Type
         } 
 
         bool ToString(MQ2VARPTR VarPtr, PCHAR Destination)  {
-			strcpy(Destination,"TRUE");
+			strcpy_s(Destination,MAX_STRING,"TRUE");
 			return true;
         } 
 
@@ -1353,7 +1355,7 @@ BOOL dataGearScore(PCHAR szName, MQ2TYPEVAR &Dest)
     return true; 
 } 
 
-void AddGearScore_CheckAugSlot(ITEMINFO *pItem,float score,int SlotNum,char *SlotName,PCONTENTS pInvContent,ITEMINFO *pInvItem,DWORD AugType,DWORD AugSlot,char *out,char *br)
+template <unsigned int _Size> void AddGearScore_CheckAugSlot(ITEMINFO *pItem,float score,int SlotNum,char *SlotName,PCONTENTS pInvContent,ITEMINFO *pInvItem,DWORD AugType,DWORD AugSlot, CHAR(&out)[_Size],char *br)
 {
 	if (!AugType) return;							// This worn item does not have an aug slot for [n]
 	DWORD mask = (1<<(AugType-1));
@@ -1367,8 +1369,8 @@ void AddGearScore_CheckAugSlot(ITEMINFO *pItem,float score,int SlotNum,char *Slo
 	if (!pAug) {
 		ClearAttribListVal();
 		CheckForBest(0,SlotNum);
-		sprintf(temp,"%s = empty : UPGRADE%s",SlotName,br);
-		strcat(out,temp);
+		sprintf_s(temp,"%s = empty : UPGRADE%s",SlotName,br);
+		strcat_s(out,temp);
 		return;
 	}
 	if (pItem->ItemNumber == pInvItem->ItemNumber)
@@ -1377,19 +1379,19 @@ void AddGearScore_CheckAugSlot(ITEMINFO *pItem,float score,int SlotNum,char *Slo
 	float s2 = CalcItemGearScore(pAug);
 	CheckForBest(s2,SlotNum);
 
-	sprintf(temp,"%s = %s : %6.0f %s %s",SlotName,pAug->Name,s2,(s2>=score?"Keep ":"UPGRADE"),br);
-	strcat(out,temp);
+	sprintf_s(temp,"%s = %s : %6.0f %s %s",SlotName,pAug->Name,s2,(s2>=score?"Keep ":"UPGRADE"),br);
+	strcat_s(out,temp);
 }
 
-void AddGearScores_CheckAugs(PCONTENTS pSlot,ITEMINFO *pItem,char *out,char *br)
+template <unsigned int _Size> void AddGearScores_CheckAugs(PCONTENTS pSlot,ITEMINFO *pItem, CHAR(&out)[_Size],char *br)
 {
 	float score = CalcItemGearScore(pItem);
 	if (!score) return;
 
 	char temp[MAX_STRING];
 
-	sprintf(temp,"Base Aug Score : %6.0f%s",score,br);
-	strcat(out,temp);
+	sprintf_s(temp,"Base Aug Score : %6.0f%s",score,br);
+	strcat_s(out,temp);
 
 	char *name;
 	int i;
@@ -1599,47 +1601,47 @@ void FormatBestStr(ITEMINFO *pItem)
 		else
 			v = 100.0f;
 		if (CurrSlot<BAG_SLOT_START) return;
-			//sprintf(szVerb,"MOVE [ %s ] To ",pItem->Name);
+			//sprintf_s(szVerb,"MOVE [ %s ] To ",pItem->Name);
 		if (CurrSlot<65500)
-			sprintf(szVerb,"WEAR [ %s ] As ",pItem->Name);
+			sprintf_s(szVerb,"WEAR [ %s ] As ",pItem->Name);
 		else
-			sprintf(szVerb,"LOOT [ %s ] For ",pItem->Name);
+			sprintf_s(szVerb,"LOOT [ %s ] For ",pItem->Name);
 
 		if (pItem->Lore && DoIHave(pItem)) 
-			sprintf(szVerb,"WEAR [ %s ] As ",pItem->Name);
+			sprintf_s(szVerb,"WEAR [ %s ] As ",pItem->Name);
 		
-		sprintf(ReportBestStr,"%s %s = %+6.1f%%",szVerb,pSlotName,v);
+		sprintf_s(ReportBestStr,"%s %s = %+6.1f%%",szVerb,pSlotName,v);
 
-		strcpy(ReportBestSlot,pSlotName);
-		strcpy(ReportBestName,pItem->Name);
+		strcpy_s(ReportBestSlot,pSlotName);
+		strcpy_s(ReportBestName,pItem->Name);
 
 		CalcItemGearScore(pItem);
 
 		int i;
 		char szTmp[MAX_STRING];
 		szTmp[0] = 0;
-		strcat(ReportBestStr," =");
+		strcat_s(ReportBestStr," =");
 		for (i=0; i<=AttribMax; i++)
 		{
 			if (AttribList[i].Weight!=0 && (AttribList[i].Val != AttribList[i].Best))
 			{
-				sprintf(szTmp," %s %+0.0f",AttribList[i].Name, AttribList[i].Val-AttribList[i].Best);
-				strcat(ReportBestStr,szTmp);
+				sprintf_s(szTmp," %s %+0.0f",AttribList[i].Name, AttribList[i].Val-AttribList[i].Best);
+				strcat_s(ReportBestStr,szTmp);
 			}
 		}		
 	}
 	//WriteChatf("MQ2ItemDisplay::%s",ReportBestStr);
 }
 
-void AddGearScores_CheckItems(PCONTENTS pSlot,ITEMINFO *pItem,char *out,char *br)
+template <unsigned int _Size> void AddGearScores_CheckItems(PCONTENTS pSlot,ITEMINFO *pItem, CHAR(&out)[_Size],char *br)
 {
 	char  temp[MAX_STRING];
 	DWORD mask;
 	float score;
 	int i;
 
-	sprintf(temp,"This Item Score : %6.0f%s",CurrScore,br);
-	strcat(out,temp);
+	sprintf_s(temp,"This Item Score : %6.0f%s",CurrScore,br);
+	strcat_s(out,temp);
 
 	if (PCHARINFO2 pChar2 = GetCharInfo2()) {
 		if (pChar2->pInventoryArray) {
@@ -1657,8 +1659,8 @@ void AddGearScores_CheckItems(PCONTENTS pSlot,ITEMINFO *pItem,char *out,char *br
 						score = CalcItemGearScore(pItemInfo);
 						if (pItemInfo && pItemInfo->ItemNumber != pItem->ItemNumber)
 						{
-							sprintf(temp, "Worn Item Score : %6.0f (%s%s) %s", score, (score - CurrScore>0 ? "Keep " : "UPGRADE for "), SlotInfo[i].SlotName, br);
-							strcat(out, temp);
+							sprintf_s(temp, "Worn Item Score : %6.0f (%s%s) %s", score, (score - CurrScore>0 ? "Keep " : "UPGRADE for "), SlotInfo[i].SlotName, br);
+							strcat_s(out, temp);
 						}
 					}
 					CheckForBest(score, i);
@@ -1683,7 +1685,7 @@ int CanIUseThisItem(PCONTENTS pSlot, ITEMINFO *pItem)
 
 
 
-void AddGearScores(PCONTENTS pSlot,ITEMINFO *pItem,char *out,char *br)
+template <unsigned int _Size> void AddGearScores(PCONTENTS pSlot,ITEMINFO *pItem, CHAR(&out)[_Size],char *br)
 {
 	static ULONGLONG lastTick = 0;
 	ReportBestStr[0] = 0;
@@ -1706,15 +1708,15 @@ void AddGearScores(PCONTENTS pSlot,ITEMINFO *pItem,char *out,char *br)
 	FormatBestStr(pItem);
 	if (BestScore<CurrScore && ReportBestStr[0]!=0)
 	{
-		strcat(out,ReportBestStr);
-		strcat(out,br);
+		strcat_s(out,ReportBestStr);
+		strcat_s(out,br);
 	}
 	// Trap the 3x call back stuff. 
 	if (MQGetTickCount64()-lastTick > 1000 && ReportBestStr[0]!=0 && ReportChannel[0] == '/')
 	{
 		char szCmd[MAX_STRING];
 		lastTick = MQGetTickCount64();
-		sprintf(szCmd,"%s %s",ReportChannel,ReportBestStr);
+		sprintf_s(szCmd,"%s %s",ReportChannel,ReportBestStr);
 		EzCommand(szCmd);
 		//WriteChatf("AddGearScores::Reporting Cmd = %s",szCmd);
 	}
@@ -1789,7 +1791,7 @@ PLUGIN_API DWORD OnIncomingChat(PCHAR Line, DWORD Color)
 		int  doLink = 0;
 
 		
-		sprintf(szStart,"%c%c",0x12,0x30);
+		sprintf_s(szStart,"%c%c",0x12,0x30);
 		p = strstr(Line,szStart);
 		if (!p) return 0;
 
@@ -1801,8 +1803,8 @@ PLUGIN_API DWORD OnIncomingChat(PCHAR Line, DWORD Color)
 		if (doLink && p && strlen(p)>LINK_LEN+2)
 		{
 			memset(szText,0,100);
-			strncpy(szText,p+2,LINK_LEN);
-			sprintf(szCommand, "/notify ChatWindow CW_ChatOutput link %s", szText);
+			strncpy_s(szText,p+2,LINK_LEN);
+			sprintf_s(szCommand, "/notify ChatWindow CW_ChatOutput link %s", szText);
 			DoCommand(((PSPAWNINFO)pLocalPlayer), szCommand);
 			
 			/* 

@@ -90,7 +90,7 @@ BOOL AddMQ2DataEventVariable(PCHAR Name, PCHAR Index, MQ2Type *pType, PDATAVAR *
     pVar->pPrev=0;
     if (pVar->pNext)
         pVar->pNext->pPrev=pVar;
-    strcpy(pVar->szName,Name);
+    strcpy_s(pVar->szName,Name);
     if (Index[0])
     {
         CDataArray *pArray=new CDataArray(pType,Index,Default);
@@ -132,7 +132,7 @@ BOOL AddMQ2DataVariableBy(PCHAR Name, PCHAR Index, MQ2Type *pType, PDATAVAR *ppH
     pVar->pPrev=0;
     if (pVar->pNext)
         pVar->pNext->pPrev=pVar;
-    strcpy(pVar->szName,Name);
+    strcpy_s(pVar->szName,Name);
     if (Index[0])
     {
         CDataArray *pArray=new CDataArray(pType,Index,Default);
@@ -263,7 +263,7 @@ VOID NewDeclareVar(PSPAWNINFO pChar, PCHAR szLine)
     if (PCHAR pBracket=strchr(szName,'['))
     {
         *pBracket=0;
-        strcpy(szIndex,&pBracket[1]);
+        strcpy_s(szIndex,&pBracket[1]);
         szIndex[strlen(szIndex)-1]=0;
     }
     if (pType==pTimerType && szIndex[0])
@@ -281,7 +281,7 @@ VOID NewDeclareVar(PSPAWNINFO pChar, PCHAR szLine)
         if (pType==pTimerType)
         {
             PMQTIMER pTimer=(PMQTIMER)((*pScope)->Var.Ptr);
-            strcpy(pTimer->szName,szName);
+            strcpy_s(pTimer->szName,szName);
         }
     }
 }
@@ -296,7 +296,7 @@ VOID NewDeleteVarCmd(PSPAWNINFO pChar, PCHAR szLine)
         // destroy old variable
         if (!DeleteMQ2DataVariable(szLine))
         {
-            if (!strnicmp(szLine,"* global",8))
+            if (!_strnicmp(szLine,"* global",8))
             {
                 ClearMQ2DataVariables(&pGlobalVariables);
             }
@@ -320,7 +320,7 @@ VOID NewVarset(PSPAWNINFO pChar, PCHAR szLine)
     if (PCHAR pBracket=strchr(szName,'['))
     {
         *pBracket=0;
-        strcpy(szIndex,&pBracket[1]);
+        strcpy_s(szIndex,&pBracket[1]);
     }
     PDATAVAR pVar=FindMQ2DataVariable(szName);
     if (!pVar)
@@ -365,27 +365,28 @@ VOID NewVarcalc(PSPAWNINFO pChar, PCHAR szLine)
     }
     CHAR szName[MAX_STRING]={0};
     GetArg(szName,szLine,1);
-    PCHAR szRest=GetNextArg(szLine);
-    if (!szRest || !szRest[0])
+    PCHAR pRest=GetNextArg(szLine);
+    if (!pRest || !pRest[0])
     {
         SyntaxError("Usage: /varcalc <varname> <formula>");
         return;
     }
-
-    DOUBLE Result;
+	CHAR szRest[MAX_STRING] = { 0 };
+	strcpy_s(szRest, pRest);
+    DOUBLE Result = 0.0;
     if (!Calculate(szRest,Result))
     {
         MacroError("/varcalc '%s' failed.  Could not calculate '%s'",szName,szRest);
         return;
     }
-    sprintf(szRest,"%f",Result);
+    sprintf_s(szRest,"%f",Result);
 
 
     CHAR szIndex[MAX_STRING]={0};
     if (PCHAR pBracket=strchr(szName,'['))
     {
         *pBracket=0;
-        strcpy(szIndex,&pBracket[1]);
+        strcpy_s(szIndex,&pBracket[1]);
     }
     PDATAVAR pVar=FindMQ2DataVariable(szName);
     if (!pVar)
@@ -440,7 +441,7 @@ VOID NewVardata(PSPAWNINFO pChar, PCHAR szLine)
 	if (PCHAR pBracket = strchr(szName, '['))
 	{
 		*pBracket = 0;
-		strcpy(szIndex, &pBracket[1]);
+		strcpy_s(szIndex, &pBracket[1]);
 	}
 	PDATAVAR pVar = FindMQ2DataVariable(szName);
 	if (!pVar)
@@ -505,7 +506,7 @@ VOID AddEvent(DWORD Event, PCHAR FirstArg, ...)
         {
             CHAR szParamName[MAX_STRING] = {0};
             CHAR szParamType[MAX_STRING] = {0};
-            GetFuncParam(gEventFunc[Event]->Line,i,szParamName,szParamType);
+            GetFuncParam(gEventFunc[Event]->Line,i,szParamName, MAX_STRING,szParamType, MAX_STRING);
             MQ2Type *pType = FindMQ2DataType(szParamType);
             if (!pType)
                 pType=pStringType;
@@ -548,7 +549,7 @@ void __stdcall EventBlechCallback(unsigned int ID, void * pData, PBLECHVALUE pVa
     pEvent->pEventList = pEList;
     CHAR szParamName[MAX_STRING] = {0};
     CHAR szParamType[MAX_STRING] = {0};
-    GetFuncParam(pEList->pEventFunc->Line,0,szParamName,szParamType);
+    GetFuncParam(pEList->pEventFunc->Line,0,szParamName, MAX_STRING,szParamType, MAX_STRING);
     MQ2Type *pType = FindMQ2DataType(szParamType);
     if (!pType)
         pType=pStringType;
@@ -559,7 +560,7 @@ void __stdcall EventBlechCallback(unsigned int ID, void * pData, PBLECHVALUE pVa
     {
         if (pValues->Name[0]!='*')
         {
-            GetFuncParam(pEList->pEventFunc->Line,atoi(pValues->Name),szParamName,szParamType);
+            GetFuncParam(pEList->pEventFunc->Line,atoi(pValues->Name),szParamName, MAX_STRING,szParamType, MAX_STRING);
             MQ2Type *pType = FindMQ2DataType(szParamType);
             if (!pType)
                 pType=pStringType;
@@ -622,10 +623,10 @@ void TellCheck(char *szClean)
 		CHAR name[2048] = { 0 };
 		bool itsatell = false;
 		if (char *pDest = strstr(szClean," tells you, '")) {
-			strncpy(name,szClean,(DWORD)(pDest -szClean));
+			strncpy_s(name,szClean,(DWORD)(pDest -szClean));
 			itsatell = true;
 		} else if (pDest = strstr(szClean," told you, '")) {
-			strncpy(name,szClean,(DWORD)(pDest -szClean));
+			strncpy_s(name,szClean,(DWORD)(pDest -szClean));
 			itsatell = true;
 		}
 		if(gbFlashOnTells && itsatell) {
@@ -678,6 +679,7 @@ VOID CheckChatForEvent(PCHAR szMsg)
 {
 	int len = strlen(szMsg);
 	if(char *szClean = (char *)LocalAlloc(LPTR,len+64)) {
+		char *pszCleanOrg = szClean;
 		strcpy_s(szClean,len+63,szMsg);
 		if(szClean[0]==0x12) {//its spamchecked
 			if(len>2) {
@@ -692,10 +694,10 @@ VOID CheckChatForEvent(PCHAR szMsg)
 				}
 			}
 		} else {
-			strncpy_s(EventMsg,_countof(EventMsg),szClean,_TRUNCATE);
+			strcpy_s(EventMsg,szClean);
 		}
 		if (pMQ2Blech)
-			pMQ2Blech->Feed(szClean);
+			pMQ2Blech->Feed(EventMsg);
 		EventMsg[0]=0;
 		TellCheck(szClean);
 		if ((gMacroBlock) && (!gMacroPause) && (!gbUnload) && (!gZoning)) { 
@@ -704,53 +706,53 @@ VOID CheckChatForEvent(PCHAR szMsg)
 			CHAR Arg3[MAX_STRING] = {0}; 
 			char *pDest = 0;
 			if ((CHATEVENT(CHAT_GUILD)) && (pDest = strstr(szClean," tells the guild, '"))) { 
-				strncpy(Arg1,szClean,(DWORD)(pDest-szClean));
-				strcpy(Arg2, pDest +19);
+				strncpy_s(Arg1,szClean,(DWORD)(pDest-szClean));
+				strcpy_s(Arg2, pDest +19);
 				Arg2[strlen(Arg2)-1]=0; 
 				AddEvent(EVENT_CHAT,"guild",Arg1,Arg2,NULL); 
 			} else if ((CHATEVENT(CHAT_GROUP)) && (pDest = strstr(szClean," tells the group, '"))) {
-				strncpy(Arg1,szClean,(DWORD)(pDest -szClean));
-				strcpy(Arg2, pDest +19);
+				strncpy_s(Arg1,szClean,(DWORD)(pDest -szClean));
+				strcpy_s(Arg2, pDest +19);
 				Arg2[strlen(Arg2)-1]=0; 
 				AddEvent(EVENT_CHAT,"group",Arg1,Arg2,NULL); 
 			} else if ((CHATEVENT(CHAT_TELL)) && (pDest = strstr(szClean," tells you, '"))) {
-				strncpy(Arg1,szClean,(DWORD)(pDest -szClean));
-				strcpy(Arg2, pDest +13);
+				strncpy_s(Arg1,szClean,(DWORD)(pDest -szClean));
+				strcpy_s(Arg2, pDest +13);
 				Arg2[strlen(Arg2)-1]=0; 
 				AddEvent(EVENT_CHAT,"tell",Arg1,Arg2,NULL); 
 			} else if ((CHATEVENT(CHAT_TELL)) && (pDest = strstr(szClean," told you, '"))) {
-				strncpy(Arg1,szClean,(DWORD)(pDest -szClean));
-				strcpy(Arg2, pDest +12);
+				strncpy_s(Arg1,szClean,(DWORD)(pDest -szClean));
+				strcpy_s(Arg2, pDest +12);
 				Arg2[strlen(Arg2)-1]=0; 
 				AddEvent(EVENT_CHAT,"tell",Arg1,Arg2,NULL);
 			} else if ((CHATEVENT(CHAT_OOC)) && (pDest = strstr(szClean," says out of character, '"))) {
-				strncpy(Arg1,szClean,(DWORD)(pDest -szClean));
-				strcpy(Arg2, pDest +25);
+				strncpy_s(Arg1,szClean,(DWORD)(pDest -szClean));
+				strcpy_s(Arg2, pDest +25);
 				Arg2[strlen(Arg2)-1]=0; 
 				AddEvent(EVENT_CHAT,"ooc",Arg1,Arg2,NULL); 
 			} else if ((CHATEVENT(CHAT_SHOUT)) && (pDest = strstr(szClean," shouts, '"))) {
-				strncpy(Arg1,szClean,(DWORD)(pDest -szClean));
-				strcpy(Arg2, pDest +10);
+				strncpy_s(Arg1,szClean,(DWORD)(pDest -szClean));
+				strcpy_s(Arg2, pDest +10);
 				Arg2[strlen(Arg2)-1]=0; 
 				AddEvent(EVENT_CHAT,"shout",Arg1,Arg2,NULL); 
 			} else if ((CHATEVENT(CHAT_AUC)) && (pDest = strstr(szClean," auctions, '"))) {
-				strncpy(Arg1,szClean,(DWORD)(pDest -szClean));
-				strcpy(Arg2,pDest+12); 
+				strncpy_s(Arg1,szClean,(DWORD)(pDest -szClean));
+				strcpy_s(Arg2,pDest+12); 
 				Arg2[strlen(Arg2)-1]=0; 
 				AddEvent(EVENT_CHAT,"auc",Arg1,Arg2,NULL); 
 			} else if ((CHATEVENT(CHAT_SAY)) && (pDest = strstr(szClean," says '"))) { 
-				strncpy(Arg1,szClean,(DWORD)(pDest-szClean));
-				strcpy(Arg2,pDest+7);
+				strncpy_s(Arg1,szClean,(DWORD)(pDest-szClean));
+				strcpy_s(Arg2,pDest+7);
 				Arg2[strlen(Arg2)-1]=0; 
 				AddEvent(EVENT_CHAT,"say",Arg1,Arg2,NULL); 
 			} else if ((CHATEVENT(CHAT_SAY)) && (pDest = strstr(szClean," says, '"))) {
-				strncpy(Arg1,szClean,(DWORD)(pDest -szClean));
-				strcpy(Arg2, pDest +8);
+				strncpy_s(Arg1,szClean,(DWORD)(pDest -szClean));
+				strcpy_s(Arg2, pDest +8);
 				Arg2[strlen(Arg2)-1]=0; 
 				AddEvent(EVENT_CHAT,"say",Arg1,Arg2,NULL); 
 			} else if ((CHATEVENT(CHAT_CHAT)) && (pDest = strstr(szClean," tells ")) && (strstr(szClean,":")) && (strstr(szClean,", '"))) {
-				strncpy(Arg1,szClean,(DWORD)(pDest -szClean));
-				strcpy(Arg3, pDest +7);
+				strncpy_s(Arg1,szClean,(DWORD)(pDest -szClean));
+				strcpy_s(Arg3, pDest +7);
 				Arg3[strlen(Arg3)-1]=0;
 				if (pDest = strstr(Arg3, ", '")) {
 					strcpy_s(Arg2, pDest + 3);
@@ -759,9 +761,6 @@ VOID CheckChatForEvent(PCHAR szMsg)
 				AddEvent(EVENT_CHAT,Arg3,Arg1,Arg2,NULL); 
 		#ifndef USEBLECHEVENTS
 			} else { 
-				//strcpy(EventMsg,szClean);
-				//pMQ2Blech->Feed(szClean);
-				//EventMsg[0]=0;
 				PEVENTLIST pEvent = pEventList; 
 				while (pEvent) { 
 					if (strstr(szClean,pEvent->szMatch)) { 
@@ -772,13 +771,18 @@ VOID CheckChatForEvent(PCHAR szMsg)
 			} 
 		#else // blech
 			}
-			strcpy(EventMsg,szClean);
-			//pMQ2Blech->Feed(szClean);
-			pEventBlech->Feed(szClean);
-			EventMsg[0]=0;
+			strcpy_s(EventMsg,szClean);
+			pEventBlech->Feed(EventMsg);
+			EventMsg[0] = '\0';
 		#endif
-		} 
-		LocalFree(szClean);
+		}
+		if (szClean != pszCleanOrg) {
+			Sleep(0);
+			LocalFree(pszCleanOrg);
+		}
+		else {
+			LocalFree(szClean);
+		}
 	}
 }
 
@@ -793,7 +797,7 @@ VOID DropTimers(VOID)
             pTimer->Current--;
             if (!pTimer->Current)
             {
-                itoa(pTimer->Original,szOrig,10);
+                _itoa_s(pTimer->Original,szOrig,10);
                 AddEvent(EVENT_TIMER,pTimer->szName,szOrig,NULL);
             }
         }

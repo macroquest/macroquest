@@ -44,7 +44,7 @@ BOOL APIENTRY DllMain( HANDLE hModule,
     GetModuleFileName(ghModule,szFilename,MAX_STRING);
     szProcessName = strrchr(szFilename,'\\');
     szProcessName[0] = '\0';
-    strcat(szFilename,"\\eqgame.ini");
+    strcat_s(szFilename,"\\eqgame.ini");
 
     GetModuleFileName(NULL,szFilename,MAX_STRING);
 
@@ -58,7 +58,7 @@ BOOL APIENTRY DllMain( HANDLE hModule,
             szProcessName = strrchr(szFilename,'\\');
             szProcessName[0] = '\0';
             g_Loaded = TRUE;
-            hMQ2StartThread = CreateThread(NULL,0,&MQ2Start,strdup(szFilename),0,&ThreadID);
+            hMQ2StartThread = CreateThread(NULL,0,&MQ2Start,_strdup(szFilename),0,&ThreadID);
         } else if (ul_reason_for_call == DLL_PROCESS_DETACH){
 			gbUnload = TRUE;
 			//while(g_Loaded)
@@ -91,12 +91,12 @@ BOOL ParseINIFile(PCHAR lpINIPath)
     CHAR ClientName[MAX_STRING] = {0};
     CHAR FilterList[MAX_STRING*10] = {0};
 	CHAR Delimiter[MAX_STRING] = {0};
-    GetEQPath(gszEQPath);
+    GetEQPath(gszEQPath,MAX_STRING);
 
 
-    sprintf(Filename,"%s\\MacroQuest.ini",lpINIPath);
-    sprintf(ClientINI,"%s\\eqgame.ini",lpINIPath);
-    strcpy(gszINIFilename,Filename);
+    sprintf_s(Filename,"%s\\MacroQuest.ini",lpINIPath);
+    sprintf_s(ClientINI,"%s\\eqgame.ini",lpINIPath);
+    strcpy_s(gszINIFilename,Filename);
 
     DebugSpew("Expected Client version: %s %s",__ExpectedVersionDate,__ExpectedVersionTime);
     DebugSpew("    Real Client version: %s %s",__ActualVersionDate,__ActualVersionTime);
@@ -178,15 +178,15 @@ BOOL ParseINIFile(PCHAR lpINIPath)
             gMQCaptions = 1==GetPrivateProfileInt("Captions","MQCaptions",1,Filename); 
             gAnonymize = 1==GetPrivateProfileInt("Captions","Anonymize",0,Filename); 
 			
-            ConvertCR(gszSpawnNPCName);
-            ConvertCR(gszSpawnPlayerName[1]);
-            ConvertCR(gszSpawnPlayerName[2]);
-            ConvertCR(gszSpawnPlayerName[3]);
-            ConvertCR(gszSpawnPlayerName[4]);
-            ConvertCR(gszSpawnPlayerName[5]);
-            ConvertCR(gszSpawnPlayerName[6]);
-            ConvertCR(gszSpawnCorpseName);
-            ConvertCR(gszSpawnPetName);
+            ConvertCR(gszSpawnNPCName,MAX_STRING);
+            ConvertCR(gszSpawnPlayerName[1], MAX_STRING);
+            ConvertCR(gszSpawnPlayerName[2], MAX_STRING);
+            ConvertCR(gszSpawnPlayerName[3], MAX_STRING);
+            ConvertCR(gszSpawnPlayerName[4], MAX_STRING);
+            ConvertCR(gszSpawnPlayerName[5], MAX_STRING);
+            ConvertCR(gszSpawnPlayerName[6], MAX_STRING);
+            ConvertCR(gszSpawnCorpseName, MAX_STRING);
+            ConvertCR(gszSpawnPetName, MAX_STRING);
 
             gFilterSWho.Lastname= GetPrivateProfileInt("SWho Filter","Lastname",1,Filename);
             gFilterSWho.Class    = GetPrivateProfileInt("SWho Filter","Class",1,Filename);
@@ -211,17 +211,17 @@ BOOL ParseINIFile(PCHAR lpINIPath)
 
             GetPrivateProfileString("MacroQuest","MacroPath",".",szBuffer,MAX_STRING,Filename);
             if (szBuffer[0]=='.') {
-                sprintf(gszMacroPath,"%s%s",lpINIPath,szBuffer+1);
+                sprintf_s(gszMacroPath,"%s%s",lpINIPath,szBuffer+1);
             } else {
-                strcat(gszMacroPath,szBuffer);
+                strcat_s(gszMacroPath,szBuffer);
             }
 
 
             GetPrivateProfileString("MacroQuest","LogPath",".",szBuffer,MAX_STRING,Filename);
             if (szBuffer[0]=='.') {
-                sprintf(gszLogPath,"%s%s",lpINIPath,szBuffer+1);
+                sprintf_s(gszLogPath,"%s%s",lpINIPath,szBuffer+1);
             } else {
-                strcat(gszLogPath,szBuffer);
+                strcat_s(gszLogPath,szBuffer);
             }
 
             DefaultFilters();
@@ -235,11 +235,12 @@ BOOL ParseINIFile(PCHAR lpINIPath)
                 pFilterList+=strlen(pFilterList)+1;
             }
 
-            sprintf(Filename,"%s\\ItemDB.txt",lpINIPath);
-            FILE *fDB = fopen(Filename,"rt");
-            strcpy(gszItemDB,Filename);
+            sprintf_s(Filename,"%s\\ItemDB.txt",lpINIPath);
+			FILE *fDB = 0;
+			errno_t err =fopen_s(&fDB,Filename, "rt");
+            strcpy_s(gszItemDB,Filename);
 			char *pDest = 0;
-            if (fDB) {
+            if (!err) {
                 fgets(szBuffer,MAX_STRING,fDB);
                 while ((!feof(fDB)) && (strstr(szBuffer,"\t"))) {
                     if(PITEMDB Item = (PITEMDB)malloc(sizeof(ITEMDB))) {
@@ -249,7 +250,7 @@ BOOL ParseINIFile(PCHAR lpINIPath)
 							strcpy_s(szBuffer2, pDest);
 							Item->StackSize = atoi(szBuffer2);
 							if(pDest = strstr(szBuffer2,"\t")) {
-								strcpy(Item->szName,pDest+1);
+								strcpy_s(Item->szName,pDest+1);
 								Item->szName[strstr(Item->szName,"\n")-Item->szName]=0;
 								gItemDB = Item;
 								fgets(szBuffer,MAX_STRING,fDB);
@@ -264,7 +265,7 @@ BOOL ParseINIFile(PCHAR lpINIPath)
                 fclose(fDB);
 			}
 			if(!gSpewToFile) {//lets check if the user has it set in his/her custom ini
-				sprintf(Filename,"%s\\CustomPlugin.ini",lpINIPath);
+				sprintf_s(Filename,"%s\\CustomPlugin.ini",lpINIPath);
 				gSpewToFile = 1==GetPrivateProfileInt("MacroQuest","DebugSpewToFile",0,Filename);
 			}
 			return TRUE;
@@ -516,7 +517,7 @@ DWORD WINAPI MQ2Start(LPVOID lpParameter)
 	hUnloadComplete = CreateEvent(NULL, TRUE, FALSE, NULL);
 	hLoadComplete = CreateEvent(NULL, TRUE, FALSE, NULL);
 	PCHAR lpINIPath = (PCHAR)lpParameter;
-	strcpy(gszINIPath, lpINIPath);
+	strcpy_s(gszINIPath, lpINIPath);
 	free(lpINIPath);
 #ifdef EMU
 	MQ2StartEmu();//or whatever...
@@ -539,12 +540,12 @@ DWORD WINAPI MQ2Start(LPVOID lpParameter)
     InitializeMQ2DInput();
     if (gGameState == GAMESTATE_INGAME) {
         gbInZone = TRUE;
-		WriteChatColor("Initializing SpellMap from MQ2Start, this will take a few seconds, please wait", CONCOLOR_YELLOW);
+		WriteChatfSafe("Initializing SpellMap from MQ2Start, this will take a few seconds, please wait");
 		InitializeMQ2SpellDb(NULL);
 		PluginsSetGameState(GAMESTATE_INGAME);
 	}
 
-    WriteChatColor(LoadedString,USERCOLOR_DEFAULT);
+    WriteChatfSafe(LoadedString);
     DebugSpewAlways("%s", LoadedString);
 	
     while (!gbUnload) {
@@ -644,10 +645,11 @@ VOID InsertMQ2News();
 VOID CreateMQ2NewsWindow()
 {
     CHAR Filename[MAX_STRING]={0};
-    sprintf(Filename,"%s\\changes.txt",gszINIPath);
+    sprintf_s(Filename,"%s\\changes.txt",gszINIPath);
     if (!pNewsWindow && _FileExists(Filename))
     {
         pNewsWindow = new CMQNewsWnd("ChatWindow");
+		pNewsWindow->BGColor.ARGB = 0xFF000000;
         pNewsWindow->Location.top=620;
         pNewsWindow->Location.bottom=920;
         pNewsWindow->Location.left=230;
@@ -659,11 +661,13 @@ VOID CreateMQ2NewsWindow()
 
 VOID AddNewsLine(PCHAR Line, DWORD Color)
 {
+	CHAR szLine[MAX_STRING] = { 0 };
+	strcpy_s(szLine, Line);
     Color=pChatManager->GetRGBAFromIndex(Color);
 
-    CHAR szProcessed[MAX_STRING];
-    MQToSTML(Line,szProcessed,MAX_STRING,Color);
-    strcat(szProcessed,"<br>");
+	CHAR szProcessed[MAX_STRING] = { 0 };
+    MQToSTML(szLine,szProcessed,MAX_STRING,Color);
+    strcat_s(szProcessed,"<br>");
     CXStr NewText(szProcessed);
     ConvertItemTags(NewText,0);
     pNewsWindow->OutputBox->AppendSTML(NewText);
@@ -685,9 +689,10 @@ VOID InsertMQ2News()
     if (!pNewsWindow)
         return;
     CHAR Filename[MAX_STRING]={0};
-    sprintf(Filename,"%s\\changes.txt",gszINIPath);
-    FILE *file=fopen(Filename,"rb");
-    if (!file)
+    sprintf_s(Filename,"%s\\changes.txt",gszINIPath);
+	FILE *file = 0;
+	errno_t err = fopen_s(&file,Filename, "rb");
+    if (err)
     {
         DeleteMQ2NewsWindow();    
         return;
@@ -698,11 +703,13 @@ VOID InsertMQ2News()
     DWORD nLines=0;
     while(fgets(szLine,MAX_STRING,file))
     {
-        strtok(szLine,"\r\n");
-        if (atoi(szLine) && strstr(szLine," by "))
-            AddNewsLine(szLine,CONCOLOR_GREEN);
-        else
-            AddNewsLine(szLine,CONCOLOR_YELLOW);
+		char *Next_Token1 = 0;
+		if (PCHAR Cmd = strtok_s(szLine, "\r\n", &Next_Token1)) {
+			if (atoi(Cmd))
+				AddNewsLine(Cmd, CONCOLOR_GREEN);
+			else
+				AddNewsLine(Cmd, CONCOLOR_YELLOW);
+		}
         nLines++;
         if (nLines>200)
         {

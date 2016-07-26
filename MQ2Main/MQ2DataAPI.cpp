@@ -82,7 +82,7 @@ BOOL AddMQ2Data(PCHAR szName, fMQData Function)
 		return false;
 	unsigned long N = MQ2DataItems.GetUnused();
 	PMQ2DATAITEM pNew = new MQ2DATAITEM;
-	strcpy(pNew->Name, szName);
+	strcpy_s(pNew->Name, szName);
 	pNew->Function = Function;
 	MQ2DataItems[N] = pNew;
 	MQ2DataMap[szName] = N + 1;
@@ -494,7 +494,7 @@ BOOL ParseMQ2DataPortion(PCHAR szOriginal, MQ2TYPEVAR &Result)
 
 }
 
-BOOL ParseMacroData(PCHAR szOriginal)
+BOOL ParseMacroData(PCHAR szOriginal, SIZE_T BufferSize)
 {
 	// find each {}
 	PCHAR pBrace = strstr(szOriginal, "${");
@@ -556,33 +556,34 @@ BOOL ParseMacroData(PCHAR szOriginal)
 
 		}
 		*pEnd = 0;
-		strcpy(szCurrent, &pBrace[2]);
+		strcpy_s(szCurrent, &pBrace[2]);
 		if (szCurrent[0] == 0)
 		{
 			goto pmdbottom;
 		}
-		if (ParseMacroData(szCurrent))
+		if (ParseMacroData(szCurrent, sizeof(szCurrent)))
 		{
 			unsigned long NewLength = strlen(szCurrent);
 			memmove(&pBrace[NewLength + 1], &pEnd[1], strlen(&pEnd[1]) + 1);
-			strncpy(pBrace, szCurrent, NewLength);
+			int addrlen = (int)(pBrace - szOriginal);
+			memcpy_s(pBrace, BufferSize-addrlen,szCurrent, NewLength);
 			pEnd = &pBrace[NewLength];
 			*pEnd = 0;
 		}
 		MQ2TYPEVAR Result;
-		if (!ParseMQ2DataPortion(szCurrent, Result) || !Result.Type || !Result.Type->ToString(Result.VarPtr, szCurrent))
-			strcpy(szCurrent, "NULL");
-
+		if (!ParseMQ2DataPortion(szCurrent, Result) || !Result.Type || !Result.Type->ToString(Result.VarPtr, szCurrent)) {
+			strcpy_s(szCurrent, "NULL");
+		}
 		NewLength = strlen(szCurrent);
-
 		memmove(&pBrace[NewLength], &pEnd[1], strlen(&pEnd[1]) + 1);
-		strncpy(pBrace, szCurrent, NewLength);
+		int addrlen = (int)(pBrace - szOriginal);
+		memcpy_s(pBrace, BufferSize-addrlen,szCurrent, NewLength);
 		Changed = true;
 
 	pmdbottom:;
 	} while (pBrace = strstr(&pBrace[1], "${"));
 	if (Changed)
-		while (ParseMacroData(szOriginal))
+		while (ParseMacroData(szOriginal, BufferSize))
 		{
 		}
 	return Changed;

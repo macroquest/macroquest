@@ -265,7 +265,7 @@ public:
     // 
     int StripTelnet(unsigned char *buffer,int &size)
     {
-        char *out=(char*)malloc(size);
+        char *out=(char*)calloc(size,sizeof(CHAR));
         int opos=0;
         for (int i = 0 ; i < size ; i++)
         {

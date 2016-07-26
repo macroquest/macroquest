@@ -277,10 +277,9 @@ namespace MQ2Internal {
         CHAR szOrig[MAX_STRING];
         CHAR szSub[MAX_STRING];
     } SUB, *PSUB;
-
     typedef struct _MQCOMMAND {
         CHAR Command[64];
-        fEQCommand Function;
+		fEQCommand Function;
         BOOL EQ;
         BOOL Parse;
         BOOL InGameOnly;
@@ -786,8 +785,7 @@ namespace MQ2Internal {
     public:
         inline MQ2Type(PCHAR NewName)
         {
-            strncpy(TypeName,NewName,32);
-            TypeName[31]=0;
+            strcpy_s(TypeName,NewName);
             Official=AddMQ2Type(*this);
             pInherits=0;
         }
@@ -820,7 +818,7 @@ namespace MQ2Internal {
         //    virtual bool SetMember(PVOID Ptr, PCHAR Member, DWORD Index, MQ2TYPEVAR &Data)=0;
         virtual bool ToString(MQ2VARPTR VarPtr, PCHAR Destination)
         {
-            strcpy(Destination,TypeName);
+            strncpy_s(Destination,MAX_STRING,TypeName,_TRUNCATE);
             return true;
         }
 

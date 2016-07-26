@@ -90,9 +90,9 @@ public:
 	bool ToString(MQ2VARPTR VarPtr, PCHAR Destination)
 	{
 		if (VarPtr.DWord)
-			strcpy(Destination, "TRUE");
+			strcpy_s(Destination,MAX_STRING, "TRUE");
 		else
-			strcpy(Destination, "FALSE");
+			strcpy_s(Destination,MAX_STRING, "FALSE");
 		return true;
 	}
 
@@ -137,7 +137,7 @@ public:
 
 	bool ToString(MQ2VARPTR VarPtr, PCHAR Destination)
 	{
-		itoa(VarPtr.Int, Destination, 10);
+		_itoa_s(VarPtr.Int, Destination,MAX_STRING, 10);
 		return true;
 	}
 	bool FromData(MQ2VARPTR &VarPtr, MQ2TYPEVAR &Source)
@@ -179,7 +179,7 @@ public:
 
 	bool ToString(MQ2VARPTR VarPtr, PCHAR Destination)
 	{
-		_i64toa(VarPtr.Int64, Destination, 10);
+		_i64toa_s(VarPtr.Int64, Destination,MAX_STRING, 10);
 		return true;
 	}
 	bool FromData(MQ2VARPTR &VarPtr, MQ2TYPEVAR &Source)
@@ -225,7 +225,7 @@ public:
 
 	bool ToString(MQ2VARPTR VarPtr, PCHAR Destination)
 	{
-		sprintf(Destination, "%x", VarPtr.Int);
+		sprintf_s(Destination,MAX_STRING, "%x", VarPtr.Int);
 		return true;
 	}
 	bool FromData(MQ2VARPTR &VarPtr, MQ2TYPEVAR &Source)
@@ -261,7 +261,7 @@ public:
 
 	bool ToString(MQ2VARPTR VarPtr, PCHAR Destination)
 	{
-		itoa(VarPtr.Int, Destination, 10);
+		_itoa_s(VarPtr.Int, Destination,MAX_STRING, 10);
 		return true;
 	}
 	bool FromData(MQ2VARPTR &VarPtr, MQ2TYPEVAR &Source)
@@ -326,7 +326,7 @@ public:
 	bool MQ2StringType::GETMEMBER();
 	bool ToString(MQ2VARPTR VarPtr, PCHAR Destination)
 	{
-		strcpy(Destination, (const char *)VarPtr.Ptr);
+		strcpy_s(Destination,MAX_STRING, (const char *)VarPtr.Ptr);
 		return true;
 	}
 	void InitVariable(MQ2VARPTR &VarPtr)
@@ -342,12 +342,12 @@ public:
 	{
 		if (Source.Type != pStringType)
 			return false;
-		strcpy((char*)VarPtr.Ptr, (char*)Source.Ptr);
+		strcpy_s((char*)VarPtr.Ptr, MAX_STRING,(char*)Source.Ptr);
 		return true;
 	}
 	bool FromString(MQ2VARPTR &VarPtr, PCHAR Source)
 	{
-		strcpy((char*)VarPtr.Ptr, Source);
+		strcpy_s((char*)VarPtr.Ptr, MAX_STRING, Source);
 		return true;
 	}
 };
@@ -382,7 +382,7 @@ public:
 
 	bool ToString(MQ2VARPTR VarPtr, PCHAR Destination)
 	{
-		sprintf(Destination, "%.2f", VarPtr.Float);
+		sprintf_s(Destination, MAX_STRING, "%.2f", VarPtr.Float);
 		return true;
 	}
 	bool FromData(MQ2VARPTR &VarPtr, MQ2TYPEVAR &Source)
@@ -428,7 +428,7 @@ public:
 
 	bool ToString(MQ2VARPTR VarPtr, PCHAR Destination)
 	{
-		sprintf(Destination, "%.2f", VarPtr.Double);
+		sprintf_s(Destination, MAX_STRING, "%.2f", VarPtr.Double);
 		return true;
 	}
 	bool FromData(MQ2VARPTR &VarPtr, MQ2TYPEVAR &Source)
@@ -482,7 +482,7 @@ public:
 
 	bool ToString(MQ2VARPTR VarPtr, PCHAR Destination)
 	{
-		itoa(VarPtr.DWord, Destination, 10);
+		_itoa_s(VarPtr.DWord, Destination, MAX_STRING, 10);
 		return true;
 	}
 	bool FromData(MQ2VARPTR &VarPtr, MQ2TYPEVAR &Source)
@@ -540,7 +540,7 @@ public:
 		Then add "unsigned __int64 UInt64;" under the Int64 definition in _LSVarPtr and _LSTypeVar in ISXDK\include\LavishScript\LSType.h
 		This should be fixed in ISXDK35 or higher.
 		*/
-		_i64toa(VarPtr.UInt64, Destination, 10);
+		_i64toa_s(VarPtr.UInt64, Destination, MAX_STRING, 10);
 		return true;
 	}
 	bool FromData(MQ2VARPTR &VarPtr, MQ2TYPEVAR &Source)
@@ -832,7 +832,7 @@ public:
 	{
 		if (!VarPtr.Ptr)
 			return false;
-		strcpy(Destination, ((PSPAWNINFO)VarPtr.Ptr)->Name);
+		strcpy_s(Destination,MAX_STRING, ((PSPAWNINFO)VarPtr.Ptr)->Name);
 		return true;
 	}
 	void InitVariable(MQ2VARPTR &VarPtr)
@@ -1382,7 +1382,7 @@ public:
 	{
 		if (!pLocalPlayer)
 			return false;
-		strcpy(Destination, ((PSPAWNINFO)pLocalPlayer)->Name);
+		strcpy_s(Destination,MAX_STRING, ((PSPAWNINFO)pLocalPlayer)->Name);
 		return true;
 	}
 	void InitVariable(MQ2VARPTR &VarPtr)
@@ -1566,7 +1566,7 @@ public:
 	{
 		if (!VarPtr.Ptr)
 			return false;
-		strcpy(Destination, ((PSPELL)VarPtr.Ptr)->Name);
+		strcpy_s(Destination,MAX_STRING, ((PSPELL)VarPtr.Ptr)->Name);
 		return true;
 	}
 	void InitVariable(MQ2VARPTR &VarPtr)
@@ -1641,7 +1641,7 @@ public:
 		{
 			if (PSPELL pSpell = GetSpellByID(((PSPELLBUFF)VarPtr.Ptr)->SpellID))
 			{
-				strcpy(Destination, pSpell->Name);
+				strcpy_s(Destination,MAX_STRING, pSpell->Name);
 				return true;
 			}
 		}
@@ -1701,7 +1701,7 @@ public:
 		{
 			if (PSPELL pSpell = GetSpellByID(buffid))
 			{
-				strcpy(Destination, pSpell->Name);
+				strcpy_s(Destination,MAX_STRING, pSpell->Name);
 				return true;
 			}
 		}
@@ -2045,7 +2045,7 @@ public:
 	{
 		if (!VarPtr.Ptr)
 			return false;
-		strcpy(Destination, GetItemFromContents((PCONTENTS)VarPtr.Ptr)->Name);
+		strcpy_s(Destination,MAX_STRING, GetItemFromContents((PCONTENTS)VarPtr.Ptr)->Name);
 		return true;
 	}
 	void InitVariable(MQ2VARPTR &VarPtr)
@@ -2136,7 +2136,7 @@ public:
 	{
 		if (VarPtr.Ptr)
 		{
-			itoa(((PDOOR)VarPtr.Ptr)->ID, Destination, 10);
+			_itoa_s(((PDOOR)VarPtr.Ptr)->ID, Destination, MAX_STRING, 10);
 			return true;
 		}
 		return false;
@@ -2163,7 +2163,7 @@ public:
 		return false;
 	}
 };
-EQLIB_API PCHAR GetFriendlyNameForGroundItem(PGROUNDITEM pItem, PCHAR szName);
+EQLIB_API PCHAR GetFriendlyNameForGroundItem(PGROUNDITEM pItem, PCHAR szName, SIZE_T BufferSize);
 class MQ2GroundType : public MQ2Type
 {
 public:
@@ -2226,8 +2226,8 @@ public:
 	{
 		if (VarPtr.Ptr)
 		{
-			GetFriendlyNameForGroundItem((PGROUNDITEM)VarPtr.Ptr, Destination);
-			//itoa(((PGROUNDITEM)VarPtr.Ptr)->DropID, Destination, 10);
+			GetFriendlyNameForGroundItem((PGROUNDITEM)VarPtr.Ptr, Destination, MAX_STRING);
+			//_itoa_s(((PGROUNDITEM)VarPtr.Ptr)->DropID, Destination, 10);
 			return true;
 		}
 		return false;
@@ -2286,11 +2286,11 @@ public:
 	{
 		if (pActiveCorpse && pLootWnd)
 		{
-			strcpy(Destination, "TRUE");
+			strcpy_s(Destination,MAX_STRING, "TRUE");
 		}
 		else
 		{
-			strcpy(Destination, "FALSE");
+			strcpy_s(Destination,MAX_STRING, "FALSE");
 		}
 		return true;
 	}
@@ -2340,11 +2340,11 @@ public:
 	{
 		if (pActiveMerchant && pMerchantWnd)
 		{
-			strcpy(Destination, "TRUE");
+			strcpy_s(Destination,MAX_STRING, "TRUE");
 		}
 		else
 		{
-			strcpy(Destination, "FALSE");
+			strcpy_s(Destination,MAX_STRING, "FALSE");
 		}
 		return true;
 	}
@@ -2442,7 +2442,7 @@ public:
 	{
 		if (!VarPtr.Ptr)
 			return false;
-		strcpy(Destination, ((PSPAWNINFO)VarPtr.Ptr)->Name);
+		strcpy_s(Destination,MAX_STRING, ((PSPAWNINFO)VarPtr.Ptr)->Name);
 		return true;
 	}
 	void InitVariable(MQ2VARPTR &VarPtr)
@@ -2528,7 +2528,7 @@ public:
 	{
 		if (!VarPtr.Ptr)
 			return false;
-		strcpy(Destination, ((PSPAWNINFO)VarPtr.Ptr)->Name);
+		strcpy_s(Destination,MAX_STRING, ((PSPAWNINFO)VarPtr.Ptr)->Name);
 		return true;
 	}
 	void InitVariable(MQ2VARPTR &VarPtr)
@@ -2689,9 +2689,9 @@ public:
 	bool ToString(MQ2VARPTR VarPtr, PCHAR Destination)
 	{
 		if (VarPtr.Ptr && ((PCSIDLWND)VarPtr.Ptr)->dShow)
-			strcpy(Destination, "TRUE");
+			strcpy_s(Destination,MAX_STRING, "TRUE");
 		else
-			strcpy(Destination, "FALSE");
+			strcpy_s(Destination,MAX_STRING, "FALSE");
 		return true;
 	}
 
@@ -2745,7 +2745,7 @@ public:
 	{
 		if (gRunning)
 		{
-			strcpy(Destination, gszMacroName);
+			strcpy_s(Destination,MAX_STRING, gszMacroName);
 			return true;
 		}
 		return false;
@@ -2789,7 +2789,7 @@ public:
 
 	bool ToString(MQ2VARPTR VarPtr, PCHAR Destination)
 	{
-		strcpy(Destination, &((PZONELIST)VarPtr.Int)->LongName[0]);
+		strcpy_s(Destination,MAX_STRING, &((PZONELIST)VarPtr.Int)->LongName[0]);
 		return true;
 	}
 	bool FromData(MQ2VARPTR &VarPtr, MQ2TYPEVAR &Source)
@@ -2875,7 +2875,7 @@ public:
 
 	bool ToString(MQ2VARPTR VarPtr, PCHAR Destination)
 	{
-		strcpy(Destination, &((PZONEINFO)pZoneInfo)->LongName[0]);
+		strcpy_s(Destination,MAX_STRING, &((PZONEINFO)pZoneInfo)->LongName[0]);
 		return true;
 	}
 	bool FromData(MQ2VARPTR &VarPtr, MQ2TYPEVAR &Source)
@@ -3089,7 +3089,7 @@ public:
 	bool ToString(MQ2VARPTR VarPtr, PCHAR Destination)
 	{
 		PCHAR pDesc = pEverQuest->GetRaceDesc(VarPtr.DWord);
-		strcpy(Destination, pDesc);
+		strcpy_s(Destination,MAX_STRING, pDesc);
 		return true;
 	}
 	bool FromData(MQ2VARPTR &VarPtr, MQ2TYPEVAR &Source)
@@ -3147,7 +3147,7 @@ public:
 	bool ToString(MQ2VARPTR VarPtr, PCHAR Destination)
 	{
 		PCHAR pDesc = GetClassDesc(VarPtr.DWord);
-		strcpy(Destination, pDesc);
+		strcpy_s(Destination,MAX_STRING, pDesc);
 		return true;
 	}
 	bool FromData(MQ2VARPTR &VarPtr, MQ2TYPEVAR &Source)
@@ -3184,7 +3184,7 @@ public:
 	bool ToString(MQ2VARPTR VarPtr, PCHAR Destination)
 	{
 		PCHAR pDesc = GetBodyTypeDesc(VarPtr.DWord);
-		strcpy(Destination, pDesc);
+		strcpy_s(Destination,MAX_STRING, pDesc);
 		return true;
 	}
 	bool FromData(MQ2VARPTR &VarPtr, MQ2TYPEVAR &Source)
@@ -3223,7 +3223,7 @@ public:
 	bool ToString(MQ2VARPTR VarPtr, PCHAR Destination)
 	{
 		PCHAR pDesc = pEverQuest->GetDeityDesc(VarPtr.DWord);
-		strcpy(Destination, pDesc);
+		strcpy_s(Destination,MAX_STRING, pDesc);
 		return true;
 	}
 	bool FromData(MQ2VARPTR &VarPtr, MQ2TYPEVAR &Source)
@@ -3283,7 +3283,7 @@ public:
 	bool ToString(MQ2VARPTR VarPtr, PCHAR Destination)
 	{
 		struct tm *Now = (struct tm*)VarPtr.Ptr;
-		sprintf(Destination, "%02d:%02d:%02d", Now->tm_hour, Now->tm_min, Now->tm_sec);
+		sprintf_s(Destination, MAX_STRING, "%02d:%02d:%02d", Now->tm_hour, Now->tm_min, Now->tm_sec);
 		return true;
 	}
 	void InitVariable(MQ2VARPTR &VarPtr)
@@ -3337,7 +3337,7 @@ public:
 
 	bool ToString(MQ2VARPTR VarPtr, PCHAR Destination)
 	{
-		strcpy(Destination, ((MQ2Type*)VarPtr.Ptr)->GetName());
+		strcpy_s(Destination,MAX_STRING, ((MQ2Type*)VarPtr.Ptr)->GetName());
 		return true;
 	}
 	bool FromData(MQ2VARPTR &VarPtr, MQ2TYPEVAR &Source)
@@ -3385,7 +3385,7 @@ public:
 
 	bool ToString(MQ2VARPTR VarPtr, PCHAR Destination)
 	{
-		strcpy(Destination, szHeadingNormalShort[(INT)((360.0f - VarPtr.Float) / 22.5f + 0.5f) % 16]);
+		strcpy_s(Destination,MAX_STRING, szHeadingNormalShort[(INT)((360.0f - VarPtr.Float) / 22.5f + 0.5f) % 16]);
 		return true;
 	}
 #ifndef MQ2PLUGIN
@@ -3439,7 +3439,7 @@ public:
 
 	bool ToString(MQ2VARPTR VarPtr, PCHAR Destination)
 	{
-		itoa(VarPtr.Int, Destination, 10);
+		_itoa_s(VarPtr.Int, Destination, MAX_STRING, 10);
 		return true;
 	}
 	bool FromData(MQ2VARPTR &VarPtr, MQ2TYPEVAR &Source)
@@ -3457,7 +3457,8 @@ public:
 		else
 		{
 			CHAR Temp[MAX_STRING] = { 0 };
-			strlwr(strcpy(Temp, Source));
+			strcpy_s(Temp, Source);
+			_strlwr_s(Temp);
 			VarPtr.DWord = ItemSlotMap[Temp];
 			if (VarPtr.DWord || !_stricmp(Temp, "charm"))
 			{
@@ -3493,7 +3494,7 @@ public:
 	{
 		if (VarPtr.Ptr)
 		{
-			strcpy(Destination, ((PMQPLUGIN)VarPtr.Ptr)->szFilename);
+			strcpy_s(Destination,MAX_STRING, ((PMQPLUGIN)VarPtr.Ptr)->szFilename);
 			return true;
 		}
 		return false;
@@ -3598,7 +3599,7 @@ public:
 		if (PSKILL pSkill = *(PSKILL*)VarPtr.Ptr)
 			if (PCHAR pName = pStringTable->getString(pSkill->nName, 0))
 			{
-				strcpy(Destination, pName);
+				strcpy_s(Destination,MAX_STRING, pName);
 				return true;
 			}
 		return false;
@@ -3729,7 +3730,7 @@ public:
 	bool ToString(MQ2VARPTR VarPtr, PCHAR Destination)
 	{
 		PMQTIMER pTimer = (PMQTIMER)VarPtr.Ptr;
-		_ultoa(pTimer->Current, Destination, 10);
+		_ultoa_s(pTimer->Current, Destination, MAX_STRING, 10);
 		return true;
 	}
 	void InitVariable(MQ2VARPTR &VarPtr)
@@ -4083,7 +4084,7 @@ public:
 		if (!pRaid->RaidMemberUsed[nRaidMember])
 			return false;
 		PEQRAIDMEMBER pRaidMember = &pRaid->RaidMember[nRaidMember];
-		strcpy(Destination, pRaidMember->Name);
+		strcpy_s(Destination,MAX_STRING, pRaidMember->Name);
 		return true;
 	}
 	bool FromData(MQ2VARPTR &VarPtr, MQ2TYPEVAR &Source)
@@ -4126,9 +4127,9 @@ public:
 	bool ToString(MQ2VARPTR VarPtr, PCHAR Destination)
 	{
 		if (VarPtr.Ptr && ((PCONTENTS)VarPtr.Ptr)->IsEvolvingItem)
-			strcpy(Destination, "TRUE");
+			strcpy_s(Destination,MAX_STRING, "TRUE");
 		else
-			strcpy(Destination, "FALSE");
+			strcpy_s(Destination,MAX_STRING, "FALSE");
 		return true;
 	}
 	bool FromData(MQ2VARPTR &VarPtr, MQ2TYPEVAR &Source)
@@ -4170,7 +4171,7 @@ public:
 	{
 		if (pDZMember)
 		{
-			strcpy(Destination, pDynamicZone->ExpeditionName);
+			strcpy_s(Destination,MAX_STRING, pDynamicZone->ExpeditionName);
 			return true;
 		}
 		return false;
@@ -4204,7 +4205,7 @@ public:
 	bool GETMEMBER();
 	bool ToString(MQ2VARPTR VarPtr, PCHAR Destination)
 	{
-		strcpy(Destination, ((PDZMEMBER)VarPtr.Ptr)->Name);
+		strcpy_s(Destination,MAX_STRING, ((PDZMEMBER)VarPtr.Ptr)->Name);
 		return true;
 	}
 	bool FromData(MQ2VARPTR &VarPtr, MQ2TYPEVAR &Source)
@@ -4255,9 +4256,9 @@ public:
 	bool ToString(MQ2VARPTR VarPtr, PCHAR Destination)
 	{
 		if (VarPtr.Ptr && ((PFELLOWSHIPINFO)VarPtr.Ptr)->FellowshipID)
-			strcpy(Destination, "TRUE");
+			strcpy_s(Destination,MAX_STRING, "TRUE");
 		else
-			strcpy(Destination, "FALSE");
+			strcpy_s(Destination,MAX_STRING, "FALSE");
 		return true;
 	}
 	bool FromData(MQ2VARPTR &VarPtr, MQ2TYPEVAR &Source)
@@ -4295,7 +4296,7 @@ public:
 	bool GETMEMBER();
 	bool ToString(MQ2VARPTR VarPtr, PCHAR Destination)
 	{
-		strcpy(Destination, ((PFELLOWSHIPMEMBER)VarPtr.Ptr)->Name);
+		strcpy_s(Destination,MAX_STRING, ((PFELLOWSHIPMEMBER)VarPtr.Ptr)->Name);
 		return true;
 	}
 	bool FromData(MQ2VARPTR &VarPtr, MQ2TYPEVAR &Source)
@@ -4336,7 +4337,7 @@ public:
 		// return the number of friends here...
 		if (((PEVERQUEST)pEverQuest)->ChatService) {
 			class CChatService *pChat = (class CChatService *) ((PEVERQUEST)pEverQuest)->ChatService;
-			sprintf(Destination, "%d", pChat->GetNumberOfFriends());
+			sprintf_s(Destination, MAX_STRING, "%d", pChat->GetNumberOfFriends());
 			return true;
 		}
 		return false;
@@ -4454,7 +4455,7 @@ public:
 	{
 		if (!VarPtr.Ptr)
 			return false;
-		strcpy(Destination, ((PSPAWNINFO)VarPtr.Ptr)->Name);
+		strcpy_s(Destination,MAX_STRING, ((PSPAWNINFO)VarPtr.Ptr)->Name);
 		return true;
 	}
 	void InitVariable(MQ2VARPTR &VarPtr)
@@ -4559,7 +4560,7 @@ public:
 	bool GETMEMBER();
 	bool ToString(MQ2VARPTR VarPtr, PCHAR Destination)
 	{
-		strcpy(Destination, ((PTASKMEMBER)VarPtr.Ptr)->Name);
+		strcpy_s(Destination,MAX_STRING, ((PTASKMEMBER)VarPtr.Ptr)->Name);
 		return true;
 	}
 	bool FromData(MQ2VARPTR &VarPtr, MQ2TYPEVAR &Source)
@@ -4675,10 +4676,10 @@ public:
 		if (GetCharInfo() && GetCharInfo()->pXTargetMgr)
 		{
 			XTARGETDATA xtd = GetCharInfo()->pXTargetMgr->pXTargetArray->pXTargetData[VarPtr.DWord];
-			strcpy(Destination, xtd.Name);
+			strcpy_s(Destination,MAX_STRING, xtd.Name);
 		}
 		else
-			strcpy(Destination, "NULL");
+			strcpy_s(Destination,MAX_STRING, "NULL");
 		return true;
 	}
 	void InitVariable(MQ2VARPTR &VarPtr)
@@ -4759,7 +4760,7 @@ public:
 				CHAR szOut[255] = { 0 };
 				GetCXStr(Str.Ptr, szOut, 254);
 				if (szOut[0] != '\0') {
-					strcpy(Destination, szOut);
+					strcpy_s(Destination,MAX_STRING, szOut);
 					return true;
 				}
 			}
@@ -4910,7 +4911,7 @@ public:
 	{
 		std::list<SEARCHSPAWN>ss;
 		if (CAlerts.GetAlert(VarPtr.DWord, ss)) {
-			itoa(ss.size(), Destination, 10);
+			_itoa_s(ss.size(), Destination, MAX_STRING, 10);
 			return true;
 		}
 		return false;

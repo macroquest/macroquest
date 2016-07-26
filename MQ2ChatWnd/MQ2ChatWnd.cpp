@@ -42,7 +42,8 @@ public:
     CMQChatWnd(CXStr *Template):CCustomWnd(Template) 
     { 
         DebugSpew("CMQChatWnd()");
-        SetWndNotification(CMQChatWnd); 
+        SetWndNotification(CMQChatWnd);
+		BGColor.ARGB = 0xFF000000;
         InputBox=(CTextEntryWnd*)GetChildItem("CWChatInput"); 
         InputBox->WindowStyle|=0x800C0; 
         BitOff(WindowStyle,CWS_CLOSE); 
@@ -65,8 +66,8 @@ public:
         { 
             if (Message==XWM_HITENTER) 
             {  
-                char szBuffer[2048]; 
-                GetCXStr((PCXSTR)InputBox->InputText,szBuffer,2047); 
+				char szBuffer[MAX_STRING] = { 0 };
+                GetCXStr((PCXSTR)InputBox->InputText,szBuffer, MAX_STRING);
                 if (szBuffer[0]) 
                 { 
                     if (!sCmdHistory.size() || sCmdHistory.front().compare(szBuffer))
@@ -81,7 +82,7 @@ public:
                     //bool bScrollDown=bAutoScroll?true:(MQChatWnd->OutputBox->VScrollPos==MQChatWnd->OutputBox->VScrollMax?true:false);
                     //char szProcessed[MAX_STRING];
                     //MQToSTML(szBuffer,szProcessed,MAX_STRING);
-                    //strcat(szProcessed,"<br>");
+                    //strcat_s(szProcessed,"<br>");
                     //CXStr NewText(szProcessed);
                     //OutputBox->AppendSTML(NewText);
                     //if (bScrollDown) ((CXWnd*)MQChatWnd->OutputBox)->SetVScrollPos(MQChatWnd->OutputBox->VScrollMax);
@@ -221,11 +222,11 @@ VOID LoadChatSettings()
 { 
     CHAR szTemp[MAX_STRING]={0}; 
     GetPrivateProfileString("Settings","AutoScroll",bAutoScroll?"on":"off",szTemp,MAX_STRING,INIFileName); 
-    bAutoScroll=(!strnicmp(szTemp,"on",3)); 
+    bAutoScroll=(!_strnicmp(szTemp,"on",3)); 
     GetPrivateProfileString("Settings","NoCharSelect",bNoCharSelect?"on":"off",szTemp,MAX_STRING,INIFileName); 
-    bNoCharSelect=(!strnicmp(szTemp,"on",3)); 
+    bNoCharSelect=(!_strnicmp(szTemp,"on",3)); 
     GetPrivateProfileString("Settings", "SaveByChar",bSaveByChar?"on":"off",szTemp,MAX_STRING,INIFileName); 
-    bSaveByChar=(!strnicmp(szTemp,"on",3)); 
+    bSaveByChar=(!_strnicmp(szTemp,"on",3)); 
 } 
 
 VOID LoadChatFromINI(PCSIDLWND pWindow) 
@@ -234,8 +235,8 @@ VOID LoadChatFromINI(PCSIDLWND pWindow)
 
     LoadChatSettings(); 
 
-    sprintf(szChatINISection,"%s.%s",EQADDR_SERVERNAME,((PCHARINFO)pCharData)->Name); 
-    if (!bSaveByChar) sprintf(szChatINISection,"Default"); 
+    sprintf_s(szChatINISection,"%s.%s",EQADDR_SERVERNAME,((PCHARINFO)pCharData)->Name); 
+    if (!bSaveByChar) sprintf_s(szChatINISection,"Default"); 
 
     pWindow->Location.top      = GetPrivateProfileInt(szChatINISection,"ChatTop",       10,INIFileName); 
     pWindow->Location.bottom   = GetPrivateProfileInt(szChatINISection,"ChatBottom",   210,INIFileName); 
@@ -248,15 +249,22 @@ VOID LoadChatFromINI(PCSIDLWND pWindow)
     pWindow->Alpha             = GetPrivateProfileInt(szChatINISection,"Alpha",        255,INIFileName); 
     pWindow->FadeToAlpha       = GetPrivateProfileInt(szChatINISection,"FadeToAlpha",  255,INIFileName); 
     pWindow->BGType            = GetPrivateProfileInt(szChatINISection,"BGType",         1,INIFileName); 
-    pWindow->BGColor.R         = GetPrivateProfileInt(szChatINISection,"BGTint.red",   255,INIFileName); 
-    pWindow->BGColor.G         = GetPrivateProfileInt(szChatINISection,"BGTint.green", 255,INIFileName); 
-    pWindow->BGColor.B         = GetPrivateProfileInt(szChatINISection,"BGTint.blue",  255,INIFileName); 
+    pWindow->BGColor.R         = GetPrivateProfileInt(szChatINISection,"BGTint.red",   0,INIFileName); 
+    pWindow->BGColor.G         = GetPrivateProfileInt(szChatINISection,"BGTint.green", 0,INIFileName); 
+    pWindow->BGColor.B         = GetPrivateProfileInt(szChatINISection,"BGTint.blue",  0,INIFileName); 
 
     MQChatWnd->SetChatFont(GetPrivateProfileInt(szChatINISection,"FontSize",4,INIFileName)); 
     GetPrivateProfileString(szChatINISection,"WindowTitle","MQ",szTemp,MAX_STRING,INIFileName); 
     SetCXStr(&pWindow->WindowText,szTemp); 
 } 
-
+template <unsigned int _Size>LPSTR SafeItoa(int _Value,char(&_Buffer)[_Size], int _Radix)
+{
+	errno_t err = _itoa_s(_Value, _Buffer, _Radix);
+	if (!err) {
+		return _Buffer;
+	}
+	return "";
+}
 VOID SaveChatToINI(PCSIDLWND pWindow) 
 { 
     CHAR szTemp[MAX_STRING]={0}; 
@@ -266,31 +274,31 @@ VOID SaveChatToINI(PCSIDLWND pWindow)
 
     if (pWindow->Minimized) 
     { 
-        WritePrivateProfileString(szChatINISection,"ChatTop",    itoa(pWindow->OldLocation.top,    szTemp,10),INIFileName); 
-        WritePrivateProfileString(szChatINISection,"ChatBottom", itoa(pWindow->OldLocation.bottom, szTemp,10),INIFileName); 
-        WritePrivateProfileString(szChatINISection,"ChatLeft",   itoa(pWindow->OldLocation.left,   szTemp,10),INIFileName); 
-        WritePrivateProfileString(szChatINISection,"ChatRight",  itoa(pWindow->OldLocation.right,  szTemp,10),INIFileName); 
+        WritePrivateProfileString(szChatINISection,"ChatTop",    SafeItoa(pWindow->OldLocation.top,    szTemp,10),INIFileName); 
+        WritePrivateProfileString(szChatINISection,"ChatBottom", SafeItoa(pWindow->OldLocation.bottom, szTemp,10),INIFileName); 
+        WritePrivateProfileString(szChatINISection,"ChatLeft",   SafeItoa(pWindow->OldLocation.left,   szTemp,10),INIFileName); 
+        WritePrivateProfileString(szChatINISection,"ChatRight",  SafeItoa(pWindow->OldLocation.right,  szTemp,10),INIFileName); 
     } 
     else 
     { 
-        WritePrivateProfileString(szChatINISection,"ChatTop",    itoa(pWindow->Location.top,    szTemp,10),INIFileName); 
-        WritePrivateProfileString(szChatINISection,"ChatBottom", itoa(pWindow->Location.bottom, szTemp,10),INIFileName); 
-        WritePrivateProfileString(szChatINISection,"ChatLeft",   itoa(pWindow->Location.left,   szTemp,10),INIFileName); 
-        WritePrivateProfileString(szChatINISection,"ChatRight",  itoa(pWindow->Location.right,  szTemp,10),INIFileName); 
+        WritePrivateProfileString(szChatINISection,"ChatTop",    SafeItoa(pWindow->Location.top,    szTemp,10),INIFileName); 
+        WritePrivateProfileString(szChatINISection,"ChatBottom", SafeItoa(pWindow->Location.bottom, szTemp,10),INIFileName); 
+        WritePrivateProfileString(szChatINISection,"ChatLeft",   SafeItoa(pWindow->Location.left,   szTemp,10),INIFileName); 
+        WritePrivateProfileString(szChatINISection,"ChatRight",  SafeItoa(pWindow->Location.right,  szTemp,10),INIFileName); 
     } 
-    WritePrivateProfileString(szChatINISection,"Locked",       itoa(pWindow->Locked,       szTemp,10),INIFileName); 
-    WritePrivateProfileString(szChatINISection,"Fades",        itoa(pWindow->Fades,        szTemp,10),INIFileName); 
-    WritePrivateProfileString(szChatINISection,"Delay",        itoa(pWindow->MouseOver,    szTemp,10),INIFileName); 
-    WritePrivateProfileString(szChatINISection,"Duration",     itoa(pWindow->FadeDuration, szTemp,10),INIFileName); 
-    WritePrivateProfileString(szChatINISection,"Alpha",        itoa(pWindow->Alpha,        szTemp,10),INIFileName); 
-    WritePrivateProfileString(szChatINISection,"FadeToAlpha",  itoa(pWindow->FadeToAlpha,  szTemp,10),INIFileName); 
-    WritePrivateProfileString(szChatINISection,"BGType",       itoa(pWindow->BGType,       szTemp,10),INIFileName); 
-    WritePrivateProfileString(szChatINISection,"BGTint.red",   itoa(pWindow->BGColor.R,    szTemp,10),INIFileName); 
-    WritePrivateProfileString(szChatINISection,"BGTint.green", itoa(pWindow->BGColor.G,    szTemp,10),INIFileName); 
-    WritePrivateProfileString(szChatINISection,"BGTint.blue",  itoa(pWindow->BGColor.B,    szTemp,10),INIFileName); 
-    WritePrivateProfileString(szChatINISection,"FontSize",     itoa(MQChatWnd->FontSize,   szTemp,10),INIFileName); 
+    WritePrivateProfileString(szChatINISection,"Locked",       SafeItoa(pWindow->Locked,       szTemp,10),INIFileName); 
+    WritePrivateProfileString(szChatINISection,"Fades",        SafeItoa(pWindow->Fades,        szTemp,10),INIFileName); 
+    WritePrivateProfileString(szChatINISection,"Delay",        SafeItoa(pWindow->MouseOver,    szTemp,10),INIFileName); 
+    WritePrivateProfileString(szChatINISection,"Duration",     SafeItoa(pWindow->FadeDuration, szTemp,10),INIFileName); 
+    WritePrivateProfileString(szChatINISection,"Alpha",        SafeItoa(pWindow->Alpha,        szTemp,10),INIFileName); 
+    WritePrivateProfileString(szChatINISection,"FadeToAlpha",  SafeItoa(pWindow->FadeToAlpha,  szTemp,10),INIFileName); 
+    WritePrivateProfileString(szChatINISection,"BGType",       SafeItoa(pWindow->BGType,       szTemp,10),INIFileName); 
+    WritePrivateProfileString(szChatINISection,"BGTint.red",   SafeItoa(pWindow->BGColor.R,    szTemp,10),INIFileName); 
+    WritePrivateProfileString(szChatINISection,"BGTint.green", SafeItoa(pWindow->BGColor.G,    szTemp,10),INIFileName); 
+    WritePrivateProfileString(szChatINISection,"BGTint.blue",  SafeItoa(pWindow->BGColor.B,    szTemp,10),INIFileName); 
+    WritePrivateProfileString(szChatINISection,"FontSize",     SafeItoa(MQChatWnd->FontSize,   szTemp,10),INIFileName); 
     
-	GetCXStr(pWindow->WindowText,szTemp); 
+	GetCXStr(pWindow->WindowText,szTemp, MAX_STRING);
     WritePrivateProfileString(szChatINISection,"WindowTitle",szTemp,INIFileName); 
 } 
 
@@ -326,8 +334,8 @@ VOID Style(PSPAWNINFO pChar, PCHAR szLine)
 { 
     if (!szLine || !szLine[0]) 
     { 
-        char out[256]; 
-        sprintf(out,"Style 0x%X",MQChatWnd->WindowStyle); 
+		char out[256] = { 0 };
+        sprintf_s(out,"Style 0x%X",MQChatWnd->WindowStyle); 
         WriteChatColor(out); 
         return; 
     } 
@@ -348,7 +356,7 @@ VOID Style(PSPAWNINFO pChar, PCHAR szLine)
         BitOn(MQChatWnd->WindowStyle,TurnOn); 
     } 
     char out[256]; 
-    sprintf(out,"Style 0x%X",MQChatWnd->WindowStyle); 
+    sprintf_s(out,"Style 0x%X",MQChatWnd->WindowStyle); 
     WriteChatColor(out); 
 } 
 
@@ -469,7 +477,7 @@ PLUGIN_API DWORD OnWriteChatColor(PCHAR Line, DWORD Color, DWORD Filter)
     { 
         if (!pFilter->pEnabled || (*pFilter->pEnabled)) 
         { 
-            if (!strnicmp(Line,pFilter->FilterText,pFilter->Length)) 
+            if (!_strnicmp(Line,pFilter->FilterText,pFilter->Length)) 
             { 
                 return 0; 
             } 
@@ -478,8 +486,11 @@ PLUGIN_API DWORD OnWriteChatColor(PCHAR Line, DWORD Color, DWORD Filter)
     } 
     Color=pChatManager->GetRGBAFromIndex(Color); 
     CHAR szProcessed[MAX_STRING]; 
+	
+	pPlugins;
     MQToSTML(Line,szProcessed,MAX_STRING,Color); 
-    strcat(szProcessed,"<br>"); 
+	pPlugins;
+    strcat_s(szProcessed,"<br>"); 
     CXStr NewText(szProcessed); 
     DebugTry(ConvertItemTags(NewText,FALSE)); 
     ChatBuffer *pNewBuffer = new ChatBuffer; 

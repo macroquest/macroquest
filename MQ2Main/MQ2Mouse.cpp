@@ -158,7 +158,7 @@ BOOL ParseMouseLoc(PCHARINFO pCharInfo, PCHAR szMouseLoc)
 	CHAR szArg2[MAX_STRING] = {0};
 	int ClickX; //actual location to click, calculated from ButtonX 
 	int ClickY; //actual location to click, calculated from ButtonY 
-	if (!strnicmp(szMouseLoc, "target", 6)) {
+	if (!_strnicmp(szMouseLoc, "target", 6)) {
         if (!pTarget) { 
             WriteChatColor("You must have a target selected for /mouseto target.",CONCOLOR_RED); 
             return FALSE; 
@@ -225,7 +225,7 @@ VOID MouseButtonUp(DWORD x, DWORD y, PCHAR szButton)
     float c[3];
     gLClickedObject=false;
     
-    if(!strnicmp(szButton,"left",4))
+    if(!_strnicmp(szButton,"left",4))
     {
         // click will fail if this isn't set to a time less than TimeStamp minus 750ms
         *((DWORD*)__LMouseHeldTime)=((PCDISPLAY)pDisplay)->TimeStamp-0x45;
@@ -239,7 +239,7 @@ VOID MouseButtonUp(DWORD x, DWORD y, PCHAR szButton)
     }
 
     /* i don't think there's any use for this currently - ieatacid
-    else if(!strnicmp(szButton,"right",5))
+    else if(!_strnicmp(szButton,"right",5))
     {
         // click will fail if this isn't set to a time less than TimeStamp minus 500ms
         *((DWORD*)__RMouseHeldTime)=((PCDISPLAY)pDisplay)->TimeStamp-0x45;
@@ -331,33 +331,33 @@ VOID Click(PSPAWNINFO pChar, PCHAR szLine)
 		WriteChatf("Dont /click stuff(%s) when not in game... Gamestate is %d",szLine,GetGameState());
 		RETURN(0);
 	} 
-    PCHAR szMouseLoc = NULL; 
+	CHAR szMouseLoc[MAX_STRING] = { 0 };
     MOUSE_DATA_TYPES mdType = MD_Unknown; 
     DWORD RightOrLeft = 0; 
 	CHAR szArg1[MAX_STRING] = { 0 };
     GetArg(szArg1, szLine, 1); //left or right 
-    szMouseLoc = GetNextArg(szLine, 1); //location to click 
+    strcpy_s(szMouseLoc,GetNextArg(szLine, 1)); //location to click 
 
     //parse location for click location (szMouseLoc) here 
     if (szMouseLoc && szMouseLoc[0]!=0) { 
-        if (!strnicmp(szMouseLoc, "target", 6)) {
+        if (!_strnicmp(szMouseLoc, "target", 6)) {
             if (!pTarget) { 
                 WriteChatColor("You must have a target selected for /click x target.",CONCOLOR_RED); 
 				RETURN(0);
             } 
-            if (!strnicmp(szArg1, "left", 4)) { 
+            if (!_strnicmp(szArg1, "left", 4)) { 
                 pEverQuest->LeftClickedOnPlayer(pTarget); 
                 WeDidStuff();
-            } else if (!strnicmp(szArg1, "right", 5)) { 
+            } else if (!_strnicmp(szArg1, "right", 5)) { 
                 pEverQuest->RightClickedOnPlayer(pTarget, 0); 
                 WeDidStuff();
             } 
 			RETURN(0);
-        } else if(!strnicmp(szMouseLoc,"center",6)) {
-            sprintf(szMouseLoc,"%d %d",ScreenXMax/2,ScreenYMax/2);
-        } else if (!strnicmp(szMouseLoc, "item", 4)) {
+        } else if(!_strnicmp(szMouseLoc,"center",6)) {
+            sprintf_s(szMouseLoc,"%d %d",ScreenXMax/2,ScreenYMax/2);
+        } else if (!_strnicmp(szMouseLoc, "item", 4)) {
 			if(pGroundTarget) {
-				if (!strnicmp(szArg1, "left", 4)) {
+				if (!_strnicmp(szArg1, "left", 4)) {
 					if(EnviroTarget.Name[0]!=0) {
 						if(Distance3DToSpawn(pChar,&EnviroTarget)<=20.0f) {
 							//do stuff
@@ -385,10 +385,10 @@ VOID Click(PSPAWNINFO pChar, PCHAR szLine)
 				WriteChatf("No Item targeted, use /itemtarget <theid> before issuing a /click left item command.");
 			}
 			RETURN(0);
-        } else if (!strnicmp(szMouseLoc, "door", 4)) {
+        } else if (!_strnicmp(szMouseLoc, "door", 4)) {
 			// a right clicked door spawn does nothing
 			if(pDoorTarget) {
-				if (!strnicmp(szArg1, "left", 4)) {
+				if (!_strnicmp(szArg1, "left", 4)) {
 					if(DoorEnviroTarget.Name[0]!=0) {
 						if(DistanceToSpawn((PSPAWNINFO)pCharSpawn,&DoorEnviroTarget)<20.0f) {
 							srand((unsigned int)time(0));
@@ -433,9 +433,9 @@ VOID Click(PSPAWNINFO pChar, PCHAR szLine)
     }
 
     if (szArg1[0]!=0) { 
-        if (!strnicmp(szArg1, "left", 4)) { 
+        if (!_strnicmp(szArg1, "left", 4)) { 
             ClickMouse(0);
-        } else if (!strnicmp(szArg1, "right", 5)) { 
+        } else if (!_strnicmp(szArg1, "right", 5)) { 
             ClickMouse(1);
         } else { 
             WriteChatColor("Usage: /click <left|right>",USERCOLOR_DEFAULT); 

@@ -188,7 +188,7 @@ PMAPSPAWN AddSpawn(PSPAWNINFO pNewSpawn, BOOL ExplicitAllow)
 		//Debugging
 		if (Type == SPAWN_CORPSE || Type == ITEM)
 		{
-			sprintf(buf, "AddSpawn(Corpse or Item): Name: %s, Type: %d, BodyType: %d",
+			sprintf_s(buf, "AddSpawn(Corpse or Item): Name: %s, Type: %d, BodyType: %d",
 				pMapSpawn->pSpawn->Name, pMapSpawn->pSpawn->Type, GetBodyType(pMapSpawn->pSpawn));
 			DebugSpew("%s", buf);
 		}
@@ -257,7 +257,7 @@ void AddGroundItem(PGROUNDITEM pGroundItem)
 {
 	PSPAWNINFO pFakeSpawn = new SPAWNINFO;
 	memset(pFakeSpawn, 0, sizeof(SPAWNINFO));
-	GetFriendlyNameForGroundItem(pGroundItem, pFakeSpawn->Name);
+	GetFriendlyNameForGroundItem(pGroundItem, pFakeSpawn->Name, sizeof(pFakeSpawn->Name));
 	strcpy_s(pFakeSpawn->DisplayedName, pFakeSpawn->Name); 
 	pFakeSpawn->X = pGroundItem->X;
 	pFakeSpawn->Y = pGroundItem->Y;
@@ -423,7 +423,7 @@ void MapUpdate()
 		{
 			if (BodyType != 1)
 			{
-				sprintf(buf, "MapUpdate: Name: %s, Type: %d, BodyType: %d",
+				sprintf_s(buf, "MapUpdate: Name: %s, Type: %d, BodyType: %d",
 					pMapSpawn->pSpawn->Name, pMapSpawn->pSpawn->Type, BodyType);
 				DebugSpew("%s", buf);
 			}
@@ -437,14 +437,14 @@ void MapUpdate()
 				BodyType != 34 && BodyType != 3 &&
 				BodyType != 24)
 			{
-				sprintf(buf, "MapUpdate: Name: %s, Type: %d, BodyType: %d",
+				sprintf_s(buf, "MapUpdate: Name: %s, Type: %d, BodyType: %d",
 					pMapSpawn->pSpawn->Name, pMapSpawn->pSpawn->Type, BodyType);
 				DebugSpew("%s", buf);
 			}
 		}
 		else
 		{
-			sprintf(buf, "MapUpdate: Name: %s, Type: %d, BodyType: %d",
+			sprintf_s(buf, "MapUpdate: Name: %s, Type: %d, BodyType: %d",
 				pMapSpawn->pSpawn->Name, pMapSpawn->pSpawn->Type, BodyType);
 			DebugSpew("%s", buf);
 		}
@@ -827,9 +827,9 @@ PCHAR GenerateSpawnName(PSPAWNINFO pSpawn, PCHAR NameString)
 {
 	CHAR Name[MAX_STRING] = { 0 };
 	unsigned long outpos = 0;
-#define AddString(str) {strcpy(&Name[outpos],str);outpos+=strlen(&Name[outpos]);}
-#define AddInt(yourint) {_itoa(yourint,&Name[outpos],10);outpos+=strlen(&Name[outpos]);}
-#define AddFloat10th(yourfloat) {outpos+=sprintf(&Name[outpos],"%.1f",yourfloat);}
+#define AddString(str) {strcpy_s(&Name[outpos],sizeof(Name)-outpos,str);outpos+=strlen(&Name[outpos]);}
+#define AddInt(yourint) {_itoa_s(yourint,&Name[outpos], sizeof(Name)-outpos,10);outpos+=strlen(&Name[outpos]);}
+#define AddFloat10th(yourfloat) {outpos+=sprintf_s(&Name[outpos], sizeof(Name)-outpos,"%.1f",yourfloat);}
 	for (unsigned long N = 0; NameString[N]; N++)
 	{
 		if (NameString[N] == '%')
@@ -838,9 +838,7 @@ PCHAR GenerateSpawnName(PSPAWNINFO pSpawn, PCHAR NameString)
 			switch (NameString[N])
 			{
 			case 'N':// cleaned up name
-				//strcpy(&Name[outpos],pSpawn->Name);
-				//CleanupName(&Name[outpos],FALSE);
-				strcpy(&Name[outpos], pSpawn->DisplayedName);
+				strcpy_s(&Name[outpos], sizeof(Name)-outpos, pSpawn->DisplayedName);
 				outpos += strlen(&Name[outpos]);
 				break;
 			case 'n':// original name
@@ -882,9 +880,9 @@ PCHAR GenerateSpawnName(PSPAWNINFO pSpawn, PCHAR NameString)
 			Name[outpos++] = NameString[N];
 	}
 	Name[outpos] = 0;
-
-	if (PCHAR ret = (PCHAR)malloc(strlen(Name) + 1)) {
-		strcpy(ret, Name);
+	int len = strlen(Name) + 1;
+	if (PCHAR ret = (PCHAR)malloc(len)) {
+		strcpy_s(ret, len, Name);
 		return ret;
 	}
 	return 0;
@@ -1377,15 +1375,15 @@ void MoveMarker(PMAPSPAWN pMapSpawn)
 
 DWORD FindMarker(PCHAR szMark)
 {
-	if (!stricmp(szMark, "none"))
+	if (!_stricmp(szMark, "none"))
 		return 0;
-	else if (!stricmp(szMark, "triangle"))
+	else if (!_stricmp(szMark, "triangle"))
 		return 1;
-	else if (!stricmp(szMark, "square"))
+	else if (!_stricmp(szMark, "square"))
 		return 2;
-	else if (!stricmp(szMark, "diamond"))
+	else if (!_stricmp(szMark, "diamond"))
 		return 3;
-	else if (!stricmp(szMark, "ring"))
+	else if (!_stricmp(szMark, "ring"))
 		return 4;
 	return 99;
 }

@@ -18,12 +18,13 @@ GNU General Public License for more details.
 //
 // Original MQ2Data update by CyberCide... but it didn't work like the rest of
 //  MQ2Data so Lax redid it.
+// v2.0 - Eqmule 07-22-2016 - Added string safety.
 //
 #include "../MQ2Plugin.h"
 #include "netstream.h"
 
 
-PLUGIN_VERSION(1.1);
+PLUGIN_VERSION(2.0);
 HANDLE bzsrchhandle = 0;
 struct _BazaarSearchRequestPacket
 {
@@ -116,8 +117,8 @@ ITEMINFO *pg_Item;                                // dependent on MQ2ItemDisplay
 
 PreSetup("MQ2Bzsrch");
 
-void BzSrchMe(PSPAWNINFO pChar, PCHAR szLine);
-void MQ2BzSrch(PSPAWNINFO pChar, PCHAR szLine);
+VOID BzSrchMe(PSPAWNINFO pChar, PCHAR szLine);
+VOID MQ2BzSrch(PSPAWNINFO pChar, PCHAR szLine);
 VOID bzpc(PSPAWNINFO pChar, PCHAR szLine);
 DWORD parmBazaar(PCHAR szVar, PCHAR szOutput, PSPAWNINFO pChar);
 BOOL dataBazaar(PCHAR szName, MQ2TYPEVAR &Ret);
@@ -163,7 +164,7 @@ public:
         nTmp = trader % pBzWnd->hashVal;\
         if(pBzWnd->ppTraderData[nTmp])\
         {\
-        strcpy(bzResponse.BSSTraderName, ((traderData*)pBzWnd->ppTraderData[nTmp])->name);\
+        strcpy_s(bzResponse.BSSTraderName, ((traderData*)pBzWnd->ppTraderData[nTmp])->name);\
         }\
         }
 
@@ -275,7 +276,7 @@ public:
             }
             return false;
         case Name:
-            strcpy(DataTypeTemp, &pBzrItem->BSSName[0]);
+            strcpy_s(DataTypeTemp, &pBzrItem->BSSName[0]);
             if (PCHAR pDest = strrchr(DataTypeTemp,'('))
                 *pDest = '\0';
             Dest.Ptr=&DataTypeTemp[0];
@@ -290,7 +291,7 @@ public:
     bool ToString(MQ2VARPTR VarPtr, PCHAR Destination) {
         if (!VarPtr.Ptr)
             return false;
-        strcpy(Destination,((_BazaarSearchResponsePacket*)VarPtr.Ptr)->BSSName);
+        strcpy_s(Destination,MAX_STRING,((_BazaarSearchResponsePacket*)VarPtr.Ptr)->BSSName);
         if (PCHAR pDest = strrchr(Destination,'('))
             *pDest = '\0';
         return true;
@@ -403,9 +404,9 @@ public:
 
     bool ToString(MQ2VARPTR VarPtr, PCHAR Destination) {
         if (BzDone)
-            strcpy(Destination,"TRUE");
+            strcpy_s(Destination,MAX_STRING,"TRUE");
         else
-            strcpy(Destination,"FALSE");
+            strcpy_s(Destination,MAX_STRING,"FALSE");
         return true;
     }
 
@@ -518,7 +519,7 @@ VOID bzpc(PSPAWNINFO pChar, PCHAR szLine)
     char *pDest = 0;
     pc.id = BzArray[index].BSSItemID;
     pc.flags = 0;                                 // column where click occured; must be 0 or 1
-    strncpy(pc.name, BzArray[index].BSSName, 64);
+    memcpy_s(pc.name,sizeof(pc.name), BzArray[index].BSSName, 64);
     if (pDest = strrchr(pc.name, '('))
         *pDest = '\0';
     if (pg_Item) memset(pg_Item, 0, sizeof(ITEMINFO));
@@ -809,9 +810,9 @@ VOID BzSrchMe(PSPAWNINFO pChar, PCHAR szLine)
 			if (first) {
 				first = false;
 			} else {
-				strcat(szItem, " ");
+				strcat_s(szItem, " ");
 			}
-			strcat(szItem, szArg);
+			strcat_s(szItem, szArg);
 		}
 	}
 	if (CXWnd *pMaxEdit = (CXWnd *)pBazaarSearchWnd->GetChildItem("BZR_MaxResultsPerTraderInput")) {

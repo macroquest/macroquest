@@ -1,6 +1,7 @@
 #pragma once
 #if defined(ISXEQ_LEGACY) || !defined(ISXDK_VERSION)
 /* COMMANDS */
+
 #ifndef TRUEBOX
 LEGACY_API VOID SetError                            (PSPAWNINFO,PCHAR);
 LEGACY_API VOID SuperWho                            (PSPAWNINFO,PCHAR);
@@ -97,6 +98,7 @@ LEGACY_API VOID PopupText                           (PSPAWNINFO,PCHAR);
 LEGACY_API VOID PopupTextCustom                     (PSPAWNINFO,PCHAR);
 LEGACY_API VOID PopupTextEcho                       (PSPAWNINFO,PCHAR);
 LEGACY_API VOID UseItemCmd                          (PSPAWNINFO,PCHAR);
+
 LEGACY_API VOID SpellSlotInfo                       (PSPAWNINFO,PCHAR);
 LEGACY_API VOID SetWinTitle							(PSPAWNINFO,PCHAR);
 LEGACY_API VOID GetWinTitle							(PSPAWNINFO,PCHAR);

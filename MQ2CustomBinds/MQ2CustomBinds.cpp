@@ -40,11 +40,11 @@ PCUSTOMBIND AddCustomBind(PCHAR Name, PCHAR CommandDown, PCHAR CommandUp)
     {
         PCUSTOMBIND pBind = new CUSTOMBIND;
         ZeroMemory(pBind,sizeof(CUSTOMBIND));
-        strcpy(pBind->Name,Name);
+        strcpy_s(pBind->Name,Name);
         if (CommandDown)
-            strcpy(pBind->CommandDown,CommandDown);
+            strcpy_s(pBind->CommandDown,CommandDown);
         if (CommandUp)
-            strcpy(pBind->CommandUp,CommandUp);
+            strcpy_s(pBind->CommandUp,CommandUp);
         CustomBinds+=pBind;
         return pBind;
     }
@@ -116,10 +116,11 @@ PLUGIN_API VOID SetGameState(DWORD GameState)
 VOID LoadCustomBinds()
 {
     CHAR filename[MAX_STRING];
-    strcpy(filename,gszINIPath);
-    strcat(filename,"\\MQ2CustomBinds.txt");
-    FILE *file=fopen(filename,"rt");
-    if (!file)
+    strcpy_s(filename,gszINIPath);
+    strcat_s(filename,"\\MQ2CustomBinds.txt");
+	FILE *file = 0;
+	errno_t err = fopen_s(&file,filename, "rt");
+    if (err)
         return;
     CUSTOMBIND NewBind;
     ZeroMemory(&NewBind,sizeof(CUSTOMBIND));
@@ -127,21 +128,23 @@ VOID LoadCustomBinds()
 
     while(fgets(szLine,2048,file))
     {
-        strtok(szLine,"\r\n");
-        strtok(szLine,"=");
-        if (!_stricmp(szLine,"name"))
+		char *Next_Token1 = 0;
+		char *Next_Token2 = 0;
+        char *Cmd = strtok_s(szLine,"\r\n",&Next_Token1);
+        char *Cmd2 = strtok_s(Cmd,"=",&Next_Token2);
+        if (!_stricmp(Cmd2,"name"))
         {
             ZeroMemory(&NewBind,sizeof(CUSTOMBIND));
-            strcpy(NewBind.Name,&szLine[5]);
+            strcpy_s(NewBind.Name,&szLine[5]);
         }
-        else if (!_stricmp(szLine,"up"))
+        else if (!_stricmp(Cmd2,"up"))
         {
-            strcpy(NewBind.CommandUp,&szLine[3]);
+            strcpy_s(NewBind.CommandUp,&szLine[3]);
             AddCustomBind(NewBind.Name,NewBind.CommandDown,NewBind.CommandUp);
         }
-        else if (!_stricmp(szLine,"down"))
+        else if (!_stricmp(Cmd2,"down"))
         {
-            strcpy(NewBind.CommandDown,&szLine[5]);
+            strcpy_s(NewBind.CommandDown,&szLine[5]);
         }
     }
 
@@ -151,18 +154,20 @@ VOID LoadCustomBinds()
 VOID SaveCustomBinds()
 {
     CHAR filename[MAX_STRING];
-    strcpy(filename,gszINIPath);
-    strcat(filename,"\\MQ2CustomBinds.txt");
-    FILE *file=fopen(filename,"wt");
-    if (!file)
+    strcpy_s(filename,gszINIPath);
+    strcat_s(filename,"\\MQ2CustomBinds.txt");
+	FILE *file = 0;
+	errno_t err = fopen_s(&file,filename, "wt");
+    if (err)
         return;
 
-    for (unsigned long N = 0 ; N < CustomBinds.Size ; N++)
-        if (PCUSTOMBIND pBind=CustomBinds[N])
-        {
-            fprintf(file,"name=%s\ndown=%s\nup=%s\n",pBind->Name,pBind->CommandDown,pBind->CommandUp);
-        }    
-        fclose(file);
+	for (unsigned long N = 0; N < CustomBinds.Size; N++) {
+		if (PCUSTOMBIND pBind = CustomBinds[N])
+		{
+			fprintf(file, "name=%s\ndown=%s\nup=%s\n", pBind->Name, pBind->CommandDown, pBind->CommandUp);
+		}
+	}
+	fclose(file);
 }
 
 VOID ExecuteCustomBind(PCHAR Name,BOOL Down)
@@ -206,7 +211,7 @@ VOID CustomBindCmd(PSPAWNINFO pChar, PCHAR szLine)
         for (unsigned long N = 0 ; N < CustomBinds.Size ; N++)
             if (PCUSTOMBIND pBind=CustomBinds[N])
             {
-                sprintf(szBuffer,"[\ay%s\ax] [Down:\at%s\ax] [Up:\at%s\ax]",pBind->Name,pBind->CommandDown,pBind->CommandUp);
+                sprintf_s(szBuffer,"[\ay%s\ax] [Down:\at%s\ax] [Up:\at%s\ax]",pBind->Name,pBind->CommandDown,pBind->CommandUp);
                 WriteChatColor(szBuffer);
             }
             WriteChatColor("--------------");
@@ -255,16 +260,16 @@ VOID CustomBindCmd(PSPAWNINFO pChar, PCHAR szLine)
         int N=FindCustomBind(szArg2);
         if (N<0)
         {
-            sprintf(szBuffer,"Could not find custom bind '%s'",szArg2);
+            sprintf_s(szBuffer,"Could not find custom bind '%s'",szArg2);
             WriteChatColor(szBuffer);
             return;
         }
         PCUSTOMBIND pBind=CustomBinds[N];
         if (Down)
-            strcpy(pBind->CommandDown,szRest);
+            strcpy_s(pBind->CommandDown,szRest);
         else
-            strcpy(pBind->CommandUp,szRest);
-        sprintf(szBuffer,"[\ay%s\ax] [Down:\at%s\ax] [Up:\at%s\ax]",pBind->Name,pBind->CommandDown,pBind->CommandUp);
+            strcpy_s(pBind->CommandUp,szRest);
+        sprintf_s(szBuffer,"[\ay%s\ax] [Down:\at%s\ax] [Up:\at%s\ax]",pBind->Name,pBind->CommandDown,pBind->CommandUp);
         WriteChatColor(szBuffer);
         SaveCustomBinds();
         return;
@@ -281,7 +286,7 @@ VOID CustomBindCmd(PSPAWNINFO pChar, PCHAR szLine)
         int N=FindCustomBind(szArg2);
         if (N<0)
         {
-            sprintf(szBuffer,"Could not find custom bind '%s'",szArg2);
+            sprintf_s(szBuffer,"Could not find custom bind '%s'",szArg2);
             WriteChatColor(szBuffer);
             return;
         }
@@ -290,7 +295,7 @@ VOID CustomBindCmd(PSPAWNINFO pChar, PCHAR szLine)
             pBind->CommandDown[0]=0;
         else
             pBind->CommandUp[0]=0;
-        sprintf(szBuffer,"[\ay%s\ax] [Down:\at%s\ax] [Up:\at%s\ax]",pBind->Name,pBind->CommandDown,pBind->CommandUp);
+        sprintf_s(szBuffer,"[\ay%s\ax] [Down:\at%s\ax] [Up:\at%s\ax]",pBind->Name,pBind->CommandDown,pBind->CommandUp);
         WriteChatColor(szBuffer);
         SaveCustomBinds();
         return;

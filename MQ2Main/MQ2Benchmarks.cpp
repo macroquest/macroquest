@@ -31,7 +31,7 @@ DWORD AddMQ2Benchmark(PCHAR Name)
     DWORD NewHandle= pBenchmarks->GetUnused();
     Benchmarks[NewHandle]=new MQBENCH;
     memset(Benchmarks[NewHandle],0,sizeof(MQBENCH));
-    strcpy(Benchmarks[NewHandle]->szName,Name);
+    strcpy_s(Benchmarks[NewHandle]->szName,Name);
     return NewHandle;
 }
 
@@ -99,7 +99,7 @@ VOID SpewMQ2BenchmarksToChat(PSPAWNINFO pChar, PCHAR szLine)
         ULONGLONG Start=MQGetTickCount64();
         HideDoCommand(pChar,szLine,0);
         ULONGLONG Time=MQGetTickCount64()-Start;
-        sprintf(out,"\ay%s\ax completed in \at%.2f\axs",szLine,(double)Time/(double)1000);
+        sprintf_s(out,"\ay%s\ax completed in \at%.2f\axs",szLine,(double)Time/(double)1000);
         WriteChatColor(out);
     }
     else

@@ -199,10 +199,10 @@ public:
 		Draw_Trampoline();
        if ((DWORD)pThisLabel->SidlPiece==9999) {
             if (!pThisLabel->Wnd.XMLToolTip) {
-                strcpy(Buffer,"BadCustom");
+                strcpy_s(Buffer,"BadCustom");
                 Found=TRUE;
             } else {
-                //strcpy(Buffer,&pThisLabel->XMLToolTip->Text[0]);
+                //strcpy_s(Buffer,&pThisLabel->XMLToolTip->Text[0]);
                 STMLToPlainText(&pThisLabel->Wnd.XMLToolTip->Text[0],Buffer);
                 ParseMacroParameter(((PCHARINFO)pCharData)->pSpawn,Buffer);
                 if (!strcmp(Buffer,"NULL"))
@@ -212,7 +212,7 @@ public:
         } else if ((DWORD)pThisLabel->SidlPiece>=1000) {
             for (index=0;Id_PMP[index].ID>0 && !Found;index++) {
                 if (Id_PMP[index].ID==(DWORD)pThisLabel->SidlPiece) {
-                    strcpy(Buffer,Id_PMP[index].PMP);
+                    strcpy_s(Buffer,Id_PMP[index].PMP);
                     ParseMacroParameter(((PCHARINFO)pCharData)->pSpawn,Buffer);
                     if (!strcmp(Buffer,"NULL"))
                         Buffer[0]=0;

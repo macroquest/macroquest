@@ -62,7 +62,7 @@ public:
                     if (strstr(szMsg,Filter->FilterText+1)) 
                         Filtered = TRUE;
                 } else { 
-                    if (!strnicmp(szMsg,Filter->FilterText,Filter->Length)) 
+                    if (!_strnicmp(szMsg,Filter->FilterText,Filter->Length)) 
                         Filtered = TRUE; 
                 }
             } 
@@ -142,7 +142,7 @@ public:
                 pTmp = "* %s has left channel ";
             }
 
-            sprintf(szBuf, pTmp, eq->ChannelPlayerName);
+            sprintf_s(szBuf, pTmp, eq->ChannelPlayerName);
 
             for(DWORD i = 0; i < eq->ChannelQty; i++)
             {
@@ -156,7 +156,7 @@ public:
                 }
 
                 len = strlen(szBuf);
-                sprintf(&szBuf[len], pTmp, eq->ChannelName[i], eq->ChannelNumber[i] + 1);
+                sprintf_s(&szBuf[len], MAX_STRING, pTmp, eq->ChannelName[i], eq->ChannelNumber[i] + 1);
             }
 
             CheckChatForEvent(szBuf);
@@ -175,11 +175,12 @@ VOID dsp_chat_no_events(const char *Text,int Color,bool EqLog, bool dopercentsub
     ((CChatHook*)pEverQuest)->Trampoline((PCHAR)Text,Color,EqLog, dopercentsubst);
 }
 
-unsigned int __stdcall MQ2DataVariableLookup(char * VarName, char * Value)
+unsigned int __stdcall MQ2DataVariableLookup(char * VarName, char * Value,size_t ValueLen)
 {
-    strcpy(Value,VarName);
-    if (!GetCharInfo()) return strlen(Value);
-    return strlen(ParseMacroParameter(GetCharInfo()->pSpawn,Value));
+    strcpy_s(Value,ValueLen,VarName);
+    if (!GetCharInfo())
+		return strlen(Value);
+    return strlen(ParseMacroParameter(GetCharInfo()->pSpawn,Value, ValueLen));
 }
 #ifdef ISXEQ
 int CMD_FlashOnTells(int argc, char *argv[])
@@ -188,7 +189,7 @@ int CMD_FlashOnTells(int argc, char *argv[])
 	CHAR szTemp[MAX_STRING] = { 0 };
 	PCHAR szLine = ISXEQArgToMQ2Arg(argc, argv, szTemp, MAX_STRING);
 #else
-VOID FlashOnTells(PSPAWNINFO pChar, char *szLine)
+VOID FlashOnTells(PSPAWNINFO pChar, PCHAR szLine)
 {
 #endif
 	if(szLine[0]!='\0') {
@@ -216,7 +217,7 @@ int CMD_BeepOnTells(int argc, char *argv[])
 	CHAR szTemp[MAX_STRING] = { 0 };
 	PCHAR szLine = ISXEQArgToMQ2Arg(argc, argv, szTemp, MAX_STRING);
 #else
-VOID BeepOnTells(PSPAWNINFO pChar, char *szLine)
+VOID BeepOnTells(PSPAWNINFO pChar, PCHAR szLine)
 {
 #endif
 	if(szLine[0]!='\0') {
@@ -244,7 +245,7 @@ int CMD_TimeStampChat(int argc, char *argv[])
 	CHAR szTemp[MAX_STRING] = { 0 };
 	PCHAR szLine = ISXEQArgToMQ2Arg(argc, argv, szTemp, MAX_STRING);
 #else
-VOID TimeStampChat(PSPAWNINFO pChar, char *szLine)
+VOID TimeStampChat(PSPAWNINFO pChar, PCHAR szLine)
 {
 #endif
 	if(szLine[0]!='\0') {
@@ -302,5 +303,6 @@ VOID ShutdownChatHook()
     delete pEventBlech;
 #endif
     delete pMQ2Blech;
+	pMQ2Blech = 0;
 #endif
 }

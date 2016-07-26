@@ -57,14 +57,16 @@ PMACROBLOCK GetWhileBlock(DWORD line)
 }
 VOID HideDoCommand(PSPAWNINFO pChar, PCHAR szLine, BOOL delayed)
 {
+	
     if (delayed)
     {
 		lockit lk(ghLockDelayCommand,"HideDoCommand");
-		//PCHATBUF pChat = (PCHATBUF)LocalAlloc(LPTR,sizeof(CHATBUF));
+		CHAR szTheCmd[MAX_STRING] = { 0 };
+		strcpy_s(szTheCmd, szLine);
 		PCHATBUF pChat = 0;
 		try {
 			pChat = new CHATBUF;
-			strcpy_s(pChat->szText,szLine);
+			strcpy_s(pChat->szText,szTheCmd);
             pChat->pNext = 0;
             if (!gDelayedCommands) {
                 gDelayedCommands = pChat;
@@ -82,29 +84,29 @@ VOID HideDoCommand(PSPAWNINFO pChar, PCHAR szLine, BOOL delayed)
         return;
     }
     CAutoLock DoCommandLock(&gCommandCS);
+	CHAR szTheCmd[MAX_STRING] = { 0 };
+	strcpy_s(szTheCmd, szLine);
 	WeDidStuff();
-    CHAR szCmd[MAX_STRING] = {0};
+    CHAR szArg1[MAX_STRING] = {0};
     CHAR szParam[MAX_STRING] = {0};
     CHAR szOriginalLine[MAX_STRING] = {0};
-
-    strcpy_s(szOriginalLine,szLine);
-    GetArg(szCmd,szLine,1);
+    strcpy_s(szOriginalLine,szTheCmd);
+    GetArg(szArg1,szTheCmd,1);
     PALIAS pLoop = pAliases;
     while (pLoop) {
-        if (!_stricmp(szCmd,pLoop->szName)) {
-            sprintf(szLine,"%s%s",pLoop->szCommand,szOriginalLine+strlen(pLoop->szName));
+        if (!_stricmp(szArg1,pLoop->szName)) {
+			sprintf_s(szTheCmd, "%s%s", pLoop->szCommand, szOriginalLine + strlen(pLoop->szName));
             break;
         }
         pLoop = pLoop->pNext;
     }
 
-
-    GetArg(szCmd,szLine,1);
-    if (szCmd[0]==0)
+    GetArg(szArg1,szTheCmd,1);
+    if (szArg1[0]==0)
 		return;
-    strcpy(szParam, GetNextArg(szLine));
+    strcpy_s(szParam, GetNextArg(szTheCmd));
 
-    if ((szCmd[0]==':') || (szCmd[0]=='{')) {
+    if ((szArg1[0]==':') || (szArg1[0]=='{')) {
         bRunNextCommand = TRUE;
         return;
     }
@@ -112,14 +114,14 @@ VOID HideDoCommand(PSPAWNINFO pChar, PCHAR szLine, BOOL delayed)
 		//this is a command thats inside a while loop
 		//so its time to loop back
 		gMacroBlock = GetWhileBlock(gMacroBlock->LoopLine);
-		if (szCmd[0]=='}') {
+		if (szArg1[0]=='}') {
 			bRunNextCommand = TRUE;
 			return;
 		}
-	} else if (szCmd[0]=='}') {
-		if (strstr(szLine,"{")) {
-			GetArg(szCmd,szLine,2);
-			if (stricmp(szCmd,"else")) {
+	} else if (szArg1[0]=='}') {
+		if (strstr(szTheCmd,"{")) {
+			GetArg(szArg1,szTheCmd,2);
+			if (_stricmp(szArg1,"else")) {
 				FatalError("} and { seen on the same line without an else present");
 			}
 			//          DebugSpew("DoCommand - handing {} off to FailIf");
@@ -128,14 +130,14 @@ VOID HideDoCommand(PSPAWNINFO pChar, PCHAR szLine, BOOL delayed)
 			// handle this: 
 			//            /if () {
 			//            } else /echo stuff
-			GetArg(szCmd,szLine,2);
-			if (!_stricmp(szCmd,"else")) {
+			GetArg(szArg1,szTheCmd,2);
+			if (!_stricmp(szArg1,"else")) {
 				// check here to fail this:
 				//            /if () {
 				//            } else 
 				//                /echo stuff
-				GetArg(szCmd,szLine,3);
-				if (!_stricmp(szCmd,"")) {
+				GetArg(szArg1,szTheCmd,3);
+				if (!_stricmp(szArg1,"")) {
 					FatalError("no command or { following else");
 				}
 				bRunNextCommand = TRUE;
@@ -145,7 +147,7 @@ VOID HideDoCommand(PSPAWNINFO pChar, PCHAR szLine, BOOL delayed)
 		}
 		return;
     }
-    if (szCmd[0]==';' || szCmd[0]=='[')
+    if (szArg1[0]==';' || szArg1[0]=='[')
     {
         pEverQuest->InterpretCmd((EQPlayer*)pChar,szOriginalLine);
         return;
@@ -161,7 +163,7 @@ VOID HideDoCommand(PSPAWNINFO pChar, PCHAR szLine, BOOL delayed)
             pCommand=pCommand->pNext;
             continue;
         }
-        int Pos=strnicmp(szCmd,pCommand->Command,strlen(szCmd));
+        int Pos=_strnicmp(szArg1,pCommand->Command,strlen(szArg1));
         if (Pos<0)
         {// command not found
             break;
@@ -174,17 +176,17 @@ VOID HideDoCommand(PSPAWNINFO pChar, PCHAR szLine, BOOL delayed)
             } else {
                 pCommand->Function(pChar,szParam);
 			}
-            strcpy(szLastCommand,szOriginalLine);
+            strcpy_s(szLastCommand,szOriginalLine);
             return;
         }
         pCommand=pCommand->pNext;
     }
-    if (!strnicmp(szOriginalLine,"sub ",4)) {
+    if (!_strnicmp(szOriginalLine,"sub ",4)) {
         FatalError("Flow ran into another subroutine.");
         return;
     }
 
-    strcpy(szLastCommand,szOriginalLine);
+    strcpy_s(szLastCommand,szOriginalLine);
     MacroError("DoCommand - Couldn't parse '%s'",szOriginalLine);
 }
 
@@ -207,7 +209,7 @@ public:
         PSUB pSubLoop = pSubs;
 
         if (szFullLine[0]!=0) { 
-            strcpy(szFullCommand,szFullLine); 
+			strcpy_s(szFullCommand,szFullLine);
             GetArg(szCommand,szFullCommand,1); 
 
             if (!_stricmp(szCommand,"/camp"))
@@ -255,14 +257,14 @@ public:
                     {
                         if (!_stricmp(szOrig, pSubLoop->szOrig)) 
                         {
-                            sprintf( szSub, "%s", pSubLoop->szSub );
+                            sprintf_s( szSub, "%s", pSubLoop->szSub );
                             break;
                         }
                         pSubLoop = pSubLoop->pNext;
                     }
                     if (szSub[0] != '\0' ) {
                         szSubFullCommand.replace(i,k+1,szSub);
-                        sprintf( szFullCommand, "%s",szSubFullCommand.c_str() ); 
+						sprintf_s( szFullCommand, "%s",szSubFullCommand.c_str() );
                     }
                     szOrig[0] = '\0';
                     szSub[0] = '\0';
@@ -271,18 +273,18 @@ public:
                     pSubLoop = pSubs;
                 }
             }
-            sprintf(szFullCommand, "%s", szSubFullCommand.c_str() );
+			sprintf_s(szFullCommand, "%s", szSubFullCommand.c_str() );
 
             while (pLoop) { 
                 if (!_stricmp(szCommand,pLoop->szName)) { 
-                    sprintf(szCommand,"%s%s",pLoop->szCommand,szFullCommand+strlen(pLoop->szName)); 
-                    strncpy(szFullCommand,szCommand,MAX_STRING); 
+					sprintf_s(szCommand,"%s%s",pLoop->szCommand,szFullCommand+strlen(pLoop->szName));
+                    strcpy_s(szFullCommand,szCommand); 
                     break;
                 } 
                 pLoop = pLoop->pNext; 
             } 
             GetArg(szCommand,szFullCommand,1); 
-            strcpy(szArgs, GetNextArg(szFullCommand)); 
+            strcpy_s(szArgs, GetNextArg(szFullCommand)); 
 
             PMQCOMMAND pCommand=pCommands;
             while(pCommand)
@@ -292,7 +294,7 @@ public:
                     pCommand=pCommand->pNext;
                     continue;
                 }
-                int Pos=strnicmp(szCommand,pCommand->Command,strlen(szCommand));
+                int Pos=_strnicmp(szCommand,pCommand->Command,strlen(szCommand));
                 if (Pos<0)
                 {// command not found
                     break;
@@ -303,22 +305,22 @@ public:
                         ParseMacroParameter(pChar,szArgs); 
                     if (pCommand->EQ)
                     {
-                        strcat(szCommand," "); 
-                        strcat(szCommand,szArgs); 
+                        strcat_s(szCommand," "); 
+						strcat_s(szCommand,szArgs);
                         Trampoline(pChar,szCommand); 
                     }
                     else
                     {
                         pCommand->Function(pChar,szArgs);
                     }
-                    strcpy(szLastCommand,szFullCommand);
+                    strcpy_s(szLastCommand,szFullCommand);
                     return;
                 }
                 pCommand=pCommand->pNext;
             }
         }
         Trampoline(pChar,szFullLine); 
-        strcpy(szLastCommand,szFullCommand);
+		strcpy_s(szLastCommand,szFullCommand);
     } 
 
     VOID Trampoline(PSPAWNINFO pChar, PCHAR szFullLine); 
@@ -333,7 +335,7 @@ void AddCommand(PCHAR Command, fEQCommand Function, BOOL EQ, BOOL Parse, BOOL In
     DebugSpew("AddCommand(%s,0x%X)",Command,Function);
     PMQCOMMAND pCommand=new MQCOMMAND;
     memset(pCommand,0,sizeof(MQCOMMAND));
-    strncpy(pCommand->Command,Command,63);
+    strcpy_s(pCommand->Command,Command);
     pCommand->EQ=EQ;
     pCommand->Parse=Parse;
     pCommand->Function=Function;
@@ -349,7 +351,7 @@ void AddCommand(PCHAR Command, fEQCommand Function, BOOL EQ, BOOL Parse, BOOL In
     PMQCOMMAND pLast=0;
     while(pInsert)
     {
-        if (stricmp(pCommand->Command,pInsert->Command)<=0)
+        if (_stricmp(pCommand->Command,pInsert->Command)<=0)
         {
             // insert here.
             if (pLast)
@@ -374,7 +376,7 @@ BOOL RemoveCommand(PCHAR Command)
     PMQCOMMAND pCommand=pCommands;
     while(pCommand)
     {
-        int Pos=strnicmp(Command,pCommand->Command,63);
+        int Pos=_strnicmp(Command,pCommand->Command,63);
         if (Pos<0)
         {
             DebugSpew("RemoveCommand: Command not found '%s'",Command);
@@ -404,8 +406,8 @@ void AddAlias(PCHAR ShortCommand, PCHAR LongCommand)
     {
         PALIAS pAlias=new ALIAS;
         memset(pAlias,0,sizeof(ALIAS));
-        strcpy(pAlias->szName,ShortCommand);
-        strcpy(pAlias->szCommand,LongCommand);
+        strcpy_s(pAlias->szName,ShortCommand);
+		strcpy_s(pAlias->szCommand,LongCommand);
         pAliases=pAlias;
         return;
     }
@@ -413,14 +415,14 @@ void AddAlias(PCHAR ShortCommand, PCHAR LongCommand)
     PALIAS pLast=0;
     while(pInsert)
     {
-        int Pos=stricmp(ShortCommand,pInsert->szName);
+        int Pos=_stricmp(ShortCommand,pInsert->szName);
         if (Pos<0)
         {
             // insert here.
             PALIAS pAlias=new ALIAS;
             memset(pAlias,0,sizeof(ALIAS));
-            strcpy(pAlias->szName,ShortCommand);
-            strcpy(pAlias->szCommand,LongCommand);
+			strcpy_s(pAlias->szName,ShortCommand);
+			strcpy_s(pAlias->szCommand,LongCommand);
             if (pLast)
                 pLast->pNext=pAlias;
             else
@@ -432,8 +434,8 @@ void AddAlias(PCHAR ShortCommand, PCHAR LongCommand)
         }
         if (Pos==0)
         {
-            strcpy(pInsert->szName,ShortCommand);
-            strcpy(pInsert->szCommand,LongCommand);
+			strcpy_s(pInsert->szName,ShortCommand);
+			strcpy_s(pInsert->szCommand,LongCommand);
             return;
         }
         pLast=pInsert;
@@ -442,8 +444,8 @@ void AddAlias(PCHAR ShortCommand, PCHAR LongCommand)
     // End of list
     PALIAS pAlias=new ALIAS;
     memset(pAlias,0,sizeof(ALIAS));
-    strcpy(pAlias->szName,ShortCommand);
-    strcpy(pAlias->szCommand,LongCommand);
+	strcpy_s(pAlias->szName,ShortCommand);
+	strcpy_s(pAlias->szCommand,LongCommand);
     pLast->pNext=pAlias;
     pAlias->pLast=pLast;
 }
@@ -477,8 +479,8 @@ void AddSubstitute(PCHAR Original, PCHAR Substitution)
     {
         PSUB pSub=new SUB;
         memset(pSub,0,sizeof(SUB));
-        strcpy(pSub->szOrig,Original);
-        strcpy(pSub->szSub,Substitution);
+		strcpy_s(pSub->szOrig,Original);
+		strcpy_s(pSub->szSub,Substitution);
         pSubs=pSub;
         return;
     }
@@ -486,14 +488,14 @@ void AddSubstitute(PCHAR Original, PCHAR Substitution)
     PSUB pLast=0;
     while(pInsert)
     {
-        int Pos=stricmp(Original,pInsert->szOrig);
+        int Pos= _stricmp(Original,pInsert->szOrig);
         if (Pos<0)
         {
             // insert here.
             PSUB pSub=new SUB;
             memset(pSub,0,sizeof(SUB));
-            strcpy(pSub->szOrig,Original);
-            strcpy(pSub->szSub,Substitution);
+			strcpy_s(pSub->szOrig,Original);
+			strcpy_s(pSub->szSub,Substitution);
             if (pLast)
                 pLast->pNext=pSub;
             else
@@ -505,8 +507,8 @@ void AddSubstitute(PCHAR Original, PCHAR Substitution)
         }
         if (Pos==0)
         {
-            strcpy(pInsert->szOrig,Original);
-            strcpy(pInsert->szSub,Substitution);
+			strcpy_s(pInsert->szOrig,Original);
+			strcpy_s(pInsert->szSub,Substitution);
             return;
         }
         pLast=pInsert;
@@ -515,8 +517,8 @@ void AddSubstitute(PCHAR Original, PCHAR Substitution)
     // End of list
     PSUB pSub=new SUB;
     memset(pSub,0,sizeof(SUB));
-    strcpy(pSub->szOrig,Original);
-    strcpy(pSub->szSub,Substitution);
+	strcpy_s(pSub->szOrig,Original);
+	strcpy_s(pSub->szSub,Substitution);
     pLast->pNext=pSub;
     pSub->pLast=pLast;
 }
@@ -730,7 +732,7 @@ void InitializeMQ2Commands()
     CHAR AliasList[MAX_STRING*10] = {0};
     CHAR szBuffer[MAX_STRING] = {0};
     CHAR MainINI[MAX_STRING] = {0};
-    sprintf(MainINI,"%s\\macroquest.ini",gszINIPath);
+    sprintf_s(MainINI,"%s\\macroquest.ini",gszINIPath);
     GetPrivateProfileString("Aliases",NULL,"",AliasList,MAX_STRING*10,MainINI);
     PCHAR pAliasList = AliasList;
     while (pAliasList[0]!=0) {
@@ -747,7 +749,7 @@ void InitializeMQ2Commands()
     //Importing the User's Substitution List from .ini file
     CHAR SubsList[MAX_STRING*10] = {0};
     CHAR szBuffer2[MAX_STRING] = {0};
-    sprintf(MainINI,"%s\\macroquest.ini",gszINIPath);
+	sprintf_s(MainINI,"%s\\macroquest.ini",gszINIPath);
     GetPrivateProfileString("Substitutions",NULL,"",SubsList,MAX_STRING*10,MainINI);
     PCHAR pSubsList = SubsList;
     while (pSubsList[0]!=0) {
@@ -823,7 +825,7 @@ VOID TimedCommand(PCHAR Command, DWORD msDelay)
 	lockit lk(ghLockDelayCommand,"TimedCommand");
     PTIMEDCOMMAND pNew= new TIMEDCOMMAND;
     pNew->Time=msDelay+MQGetTickCount64();
-    strcpy(pNew->Command,Command);
+	strcpy_s(pNew->Command,Command);
 
     // insert into list
 

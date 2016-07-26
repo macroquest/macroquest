@@ -38,6 +38,23 @@ bool CWinTelnet::Connect(char* addr , int port)
     {
         LPHOSTENT lphost;
 		//use getaddrinfo instead when i have time...
+		struct addrinfo *result = NULL;
+		struct addrinfo *ptr = NULL;
+		struct addrinfo hints;
+
+//		struct sockaddr_in  *sockaddr_ipv4;
+	//    struct sockaddr_in6 *sockaddr_ipv6;
+//		LPSOCKADDR sockaddr_ip;
+
+		//char ipstringbuffer[46];
+		DWORD ipbufferlength = 46;
+		ZeroMemory( &hints, sizeof(hints) );
+		hints.ai_family = AF_UNSPEC;
+		hints.ai_socktype = SOCK_STREAM;
+		hints.ai_protocol = IPPROTO_TCP;
+
+		DWORD dwRetval = getaddrinfo(NULL, NULL, &hints, &result);
+
         lphost = gethostbyname(addr);
         if (lphost != NULL)
             sockAddr.sin_addr.s_addr = ((LPIN_ADDR)lphost->h_addr)->s_addr;
@@ -75,7 +92,7 @@ bool CWinTelnet::Connect(char* addr , int port)
     {
     //
     //                char buffer[128];
-    //                strcpy(buffer,ErrorName(ret));
+    //                strcpy_s(buffer,ErrorName(ret));
     return false;
     }
     if (n++<10)

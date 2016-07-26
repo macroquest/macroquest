@@ -234,15 +234,15 @@ BOOL AddMQ2KeyBind(PCHAR name, fMQExecuteCmd Function)
 
     MQ2KeyBind* pBind = new MQ2KeyBind;
     pBind->State=false;
-    strncpy(pBind->Name,name,32);
+    strncpy_s(pBind->Name,name,32);
     pBind->Name[31]=0;
     CHAR szBuffer[MAX_STRING]={0};
     CHAR szName[MAX_STRING]={0};
 
-    sprintf(szName,"%s_%s",pBind->Name,"Nrm");
+    sprintf_s(szName,"%s_%s",pBind->Name,"Nrm");
     GetPrivateProfileString("Key Binds",szName,"clear",szBuffer,MAX_STRING,gszINIFilename);    
     ParseKeyCombo(szBuffer,pBind->Normal);
-    sprintf(szName,"%s_%s",pBind->Name,"Alt");
+    sprintf_s(szName,"%s_%s",pBind->Name,"Alt");
     GetPrivateProfileString("Key Binds",szName,"clear",szBuffer,MAX_STRING,gszINIFilename);    
     ParseKeyCombo(szBuffer,pBind->Alt);
 
@@ -307,15 +307,15 @@ BOOL SetMQ2KeyBind(PCHAR name, BOOL Alternate, KeyCombo &Combo)
         CHAR szBuffer[MAX_STRING]={0};
         if (!Alternate)
         {
-            sprintf(szName,"%s_Nrm",pBind->Name);
+            sprintf_s(szName,"%s_Nrm",pBind->Name);
             pBind->Normal=Combo;
         }
         else
         {
-            sprintf(szName,"%s_Alt",pBind->Name);
+            sprintf_s(szName,"%s_Alt",pBind->Name);
             pBind->Alt=Combo;
         }
-        WritePrivateProfileString("Key Binds",szName,DescribeKeyCombo(Combo,szBuffer),gszINIFilename);
+        WritePrivateProfileString("Key Binds",szName,DescribeKeyCombo(Combo,szBuffer, sizeof(szBuffer)),gszINIFilename);
         return true;
     }
     return false;
@@ -352,7 +352,7 @@ VOID MQ2KeyBindCommand(PSPAWNINFO pChar, PCHAR szLine)
         {
             if (MQ2KeyBind *pBind = BindList[i])
             {
-                sprintf(szArg1,"[\ay%s\ax] Nrm:\at%s\ax Alt:\at%s\ax",pBind->Name,DescribeKeyCombo(pBind->Normal,szNormal),DescribeKeyCombo(pBind->Alt,szAlt));
+                sprintf_s(szArg1,"[\ay%s\ax] Nrm:\at%s\ax Alt:\at%s\ax",pBind->Name,DescribeKeyCombo(pBind->Normal,szNormal, sizeof(szNormal)),DescribeKeyCombo(pBind->Alt,szAlt, sizeof(szAlt)));
                 WriteChatColor(szArg1);            
             }
         }
@@ -371,7 +371,7 @@ VOID MQ2KeyBindCommand(PSPAWNINFO pChar, PCHAR szLine)
         {
             if((DWORD)szEQMappableCommands[i] == 0 || (DWORD)szEQMappableCommands[i] > (DWORD)__AC1_Data)
                 continue;
-            sprintf(szArg1,"[\ay%s\ax] Nrm:\at%s\ax Alt:\at%s\ax",szEQMappableCommands[i],DescribeKeyCombo(pKeypressHandler->NormalKey[i],szNormal),DescribeKeyCombo(pKeypressHandler->AltKey[i],szAlt));
+            sprintf_s(szArg1,"[\ay%s\ax] Nrm:\at%s\ax Alt:\at%s\ax",szEQMappableCommands[i],DescribeKeyCombo(pKeypressHandler->NormalKey[i],szNormal, sizeof(szNormal)),DescribeKeyCombo(pKeypressHandler->AltKey[i],szAlt, sizeof(szAlt)));
             WriteChatColor(szArg1);            
         }
         WriteChatColor("--------------");
@@ -397,12 +397,12 @@ VOID MQ2KeyBindCommand(PSPAWNINFO pChar, PCHAR szLine)
             {
                 if (pBind->Alt == NewCombo && SetMQ2KeyBind(pBind->Name,true,ClearCombo)) 
                 {
-                    sprintf(szArg1,"Alternate %s cleared",pBind->Name);
+                    sprintf_s(szArg1,"Alternate %s cleared",pBind->Name);
                     WriteChatColor(szArg1);
                 }
                 if (pBind->Normal == NewCombo && SetMQ2KeyBind(pBind->Name,false,ClearCombo))
                 {
-                    sprintf(szArg1,"Normal %s cleared",pBind->Name);
+                    sprintf_s(szArg1,"Normal %s cleared",pBind->Name);
                     WriteChatColor(szArg1);
                 }
             }
@@ -415,12 +415,12 @@ VOID MQ2KeyBindCommand(PSPAWNINFO pChar, PCHAR szLine)
                 continue;
             if (pKeypressHandler->AltKey[i] == NewCombo && SetEQKeyBindByNumber(i,true,ClearCombo)) 
             {
-                sprintf(szArg1,"Alternate %s cleared",szEQMappableCommands[i] );
+                sprintf_s(szArg1,"Alternate %s cleared",szEQMappableCommands[i] );
                 WriteChatColor(szArg1);
             }
             if (pKeypressHandler->NormalKey[i] == NewCombo && SetEQKeyBindByNumber(i,false,ClearCombo))
             {
-                sprintf(szArg1,"Normal %s cleared", szEQMappableCommands[i]);
+                sprintf_s(szArg1,"Normal %s cleared", szEQMappableCommands[i]);
                 WriteChatColor(szArg1);
             }
         }
@@ -432,7 +432,7 @@ VOID MQ2KeyBindCommand(PSPAWNINFO pChar, PCHAR szLine)
     if (SetMQ2KeyBind(szArg,AltKey,NewCombo))
     {
         MQ2KeyBind *pBind=KeyBindByName(szArg);
-        sprintf(szArg1,"%s %s now bound as %s",AltKey?"Alternate":"Normal",pBind->Name,DescribeKeyCombo(NewCombo,szBuffer));
+        sprintf_s(szArg1,"%s %s now bound as %s",AltKey?"Alternate":"Normal",pBind->Name,DescribeKeyCombo(NewCombo,szBuffer, sizeof(szBuffer)));
         WriteChatColor(szArg1);            
         return;
     }
@@ -446,10 +446,10 @@ VOID MQ2KeyBindCommand(PSPAWNINFO pChar, PCHAR szLine)
 
     if (SetEQKeyBindByNumber(N,AltKey,NewCombo))
     {
-        sprintf( szArg1,"%s %s now bound as %s", 
+        sprintf_s( szArg1,"%s %s now bound as %s", 
         (AltKey)?("Alternate"):("Normal"), 
         szEQMappableCommands[N],
-        DescribeKeyCombo((AltKey)?(pKeypressHandler->AltKey[N]):(pKeypressHandler->NormalKey[N]),szBuffer));
+        DescribeKeyCombo((AltKey)?(pKeypressHandler->AltKey[N]):(pKeypressHandler->NormalKey[N]),szBuffer, sizeof(szBuffer)));
     }
 }
 #else
@@ -592,11 +592,12 @@ VOID DoRangedBind(PCHAR Name,BOOL Down)
 BOOL DumpBinds(PCHAR Filename)
 {
     CHAR szFilename[MAX_STRING]={0};
-    sprintf(szFilename,"%s\\Configs\\%s",gszINIPath,Filename);
+    sprintf_s(szFilename,"%s\\Configs\\%s",gszINIPath,Filename);
     if (!strchr(Filename,'.'))
-        strcat(szFilename,".cfg");
-    FILE *file=fopen(szFilename,"wt");
-    if (!file)
+        strcat_s(szFilename,".cfg");
+	FILE *file = 0;
+	errno_t err = fopen_s(&file,szFilename, "wt");
+    if (err)
     {
         return false;
     }
@@ -606,15 +607,15 @@ BOOL DumpBinds(PCHAR Filename)
     {
         if((DWORD)szEQMappableCommands[N] == 0 || (DWORD)szEQMappableCommands[N] > (DWORD)__AC1_Data)
             continue;
-        fprintf(file,"/bind %s %s\n",szEQMappableCommands[N],DescribeKeyCombo(pKeypressHandler->NormalKey[N],szBuffer));
-        fprintf(file,"/bind ~%s %s\n",szEQMappableCommands[N],DescribeKeyCombo(pKeypressHandler->AltKey[N],szBuffer));
+        fprintf(file,"/bind %s %s\n",szEQMappableCommands[N],DescribeKeyCombo(pKeypressHandler->NormalKey[N],szBuffer, sizeof(szBuffer)));
+        fprintf(file,"/bind ~%s %s\n",szEQMappableCommands[N],DescribeKeyCombo(pKeypressHandler->AltKey[N],szBuffer, sizeof(szBuffer)));
     }
     for ( N = 0 ; N < BindList.Size ; N++)
     {
         if (MQ2KeyBind *pBind=BindList[N])
         {
-            fprintf(file,"/bind %s %s\n",pBind->Name,DescribeKeyCombo(pBind->Normal,szBuffer));
-            fprintf(file,"/bind ~%s %s\n",pBind->Name,DescribeKeyCombo(pBind->Alt,szBuffer));
+            fprintf(file,"/bind %s %s\n",pBind->Name,DescribeKeyCombo(pBind->Normal,szBuffer, sizeof(szBuffer)));
+            fprintf(file,"/bind ~%s %s\n",pBind->Name,DescribeKeyCombo(pBind->Alt,szBuffer, sizeof(szBuffer)));
         }
     }
     fclose(file);

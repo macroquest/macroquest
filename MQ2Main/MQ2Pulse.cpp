@@ -36,7 +36,7 @@ BOOL DoNextCommand()
 	if (gDelay && gDelayCondition[0])
 	{
 		CHAR szCond[MAX_STRING];
-		strcpy(szCond, gDelayCondition);
+		strcpy_s(szCond, gDelayCondition);
 		ParseMacroParameter(GetCharInfo()->pSpawn, szCond);
 		DOUBLE Result;
 		if (!Calculate(szCond, Result))
@@ -217,7 +217,7 @@ void Pulse()
 		if (szAutoRun[0] != 0) DoCommand(pChar, pAutoRun);
 		/* autorun for toon */
 		ZeroMemory(szAutoRun, MAX_STRING); pAutoRun = szAutoRun;
-		sprintf(szServerAndName, "%s.%s", EQADDR_SERVERNAME, pCharInfo->Name);
+		sprintf_s(szServerAndName, "%s.%s", EQADDR_SERVERNAME, pCharInfo->Name);
 		GetPrivateProfileString("AutoRun", szServerAndName, "", szAutoRun, MAX_STRING, gszINIFilename);
 		while (pAutoRun[0] == ' ' || pAutoRun[0] == '\t') pAutoRun++;
 		if (szAutoRun[0] != 0) DoCommand(pChar, pAutoRun);
