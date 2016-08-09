@@ -683,6 +683,11 @@ GNU General Public License for more details.
 #define EQ_Character__GetPCSpellAffect_x                           0x446FF0
 #define EQ_Character__SpellDuration_x                              0x444EF0
 
+//CCharacterSelect
+#define CCharacterSelect__SelectCharacter_x                        0x442250
+#define CCharacterSelect__EnterWorld_x                             0x441A20
+#define CCharacterSelect__Quit_x                                   0x440580
+
 // EQ_Item (ItemClient)
 #define EQ_Item__CanDrop_x                                         0x591A30
 #define EQ_Item__CreateItemTagString_x                             0x846EB0
@@ -823,3 +828,4 @@ GNU General Public License for more details.
 //SpellManager
 #define SpellManager__vftable_x                                    0xAB4ED8
 #define SpellManager__SpellManager_x                               0x47B500
+#define Spellmanager__CheckSpellRequirementAssociations_x          0x5FEFF0

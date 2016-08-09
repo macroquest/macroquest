@@ -133,9 +133,9 @@ DWORD LoadMQ2Plugin(const PCHAR pszFilename,BOOL bCustom)
         pPlugin->Initialize();
     PluginCmdSort();
 	if (pPlugin->SetGameState) {
-		pPlugin->SetGameState(gGameState);
+		pPlugin->SetGameState(GetGameState());
 	}
-    if (pPlugin->AddSpawn && gGameState==GAMESTATE_INGAME)
+    if (pPlugin->AddSpawn && GetGameState()==GAMESTATE_INGAME)
     {
         PSPAWNINFO pSpawn=(PSPAWNINFO)pSpawnList;
         while(pSpawn)
@@ -144,7 +144,7 @@ DWORD LoadMQ2Plugin(const PCHAR pszFilename,BOOL bCustom)
             pSpawn=pSpawn->pNext;
         }
     }
-    if (pPlugin->AddGroundItem && gGameState==GAMESTATE_INGAME)
+    if (pPlugin->AddGroundItem && GetGameState()==GAMESTATE_INGAME)
     {
         PGROUNDITEM pItem=*(PGROUNDITEM*)pItemList;
         while(pItem)
@@ -541,8 +541,10 @@ DebugSpew("PluginsSetGameState( %d class)",pCharInfo2->Class);
             AutoExec=true;
             LoadCfgFile("AutoExec",false);
         }
-		DWORD nThreadId = 0;
-		CreateThread(NULL, 0, InitializeMQ2SpellDb, 0, 0, &nThreadId);
+		if (!gbSpelldbLoaded && ghInitializeMQ2SpellDb==0) {
+			DWORD nThreadId = 0;
+			ghInitializeMQ2SpellDb = CreateThread(NULL, 0, InitializeMQ2SpellDb, 0, 0, &nThreadId);
+		}
         CharSelect=true;
         LoadCfgFile("CharSelect",false);
     }
@@ -584,7 +586,7 @@ VOID PluginsAddSpawn(PSPAWNINFO pNewSpawn)
     PluginDebug("PluginsAddSpawn(%s,%d,%d)",pNewSpawn->Name,pNewSpawn->Race,BodyType);
     if (!bPluginCS)
         return;
-    if (gGameState>GAMESTATE_CHARSELECT)
+    if (GetGameState()>GAMESTATE_CHARSELECT)
         SetNameSpriteState(pNewSpawn,1);
     if (GetBodyTypeDesc(BodyType)[0]=='*')
     {

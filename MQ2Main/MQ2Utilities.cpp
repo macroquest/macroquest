@@ -3968,7 +3968,7 @@ PCHAR DescribeKeyCombo(KeyCombo &Combo, PCHAR szDest, SIZE_T BufferSize)
 	szDest[0] = 0;
 	if (Combo.Data[2])
 	{
-		strcpy_s(&szDest[pos],BufferSize, "shift");
+		strcpy_s(&szDest[pos],BufferSize-pos, "shift");
 		pos += 5;
 	}
 	if (Combo.Data[1])
@@ -3978,7 +3978,7 @@ PCHAR DescribeKeyCombo(KeyCombo &Combo, PCHAR szDest, SIZE_T BufferSize)
 			szDest[pos] = '+';
 			pos++;
 		}
-		strcpy_s(&szDest[pos],BufferSize, "ctrl");
+		strcpy_s(&szDest[pos],BufferSize-pos, "ctrl");
 		pos += 4;
 	}
 	if (Combo.Data[0])
@@ -3988,7 +3988,7 @@ PCHAR DescribeKeyCombo(KeyCombo &Combo, PCHAR szDest, SIZE_T BufferSize)
 			szDest[pos] = '+';
 			pos++;
 		}
-		strcpy_s(&szDest[pos],BufferSize, "alt");
+		strcpy_s(&szDest[pos],BufferSize-pos, "alt");
 		pos += 3;
 	}
 	if (pos)
@@ -3998,11 +3998,11 @@ PCHAR DescribeKeyCombo(KeyCombo &Combo, PCHAR szDest, SIZE_T BufferSize)
 	}
 	if (Combo.Data[3])
 	{
-		strcpy_s(&szDest[pos],BufferSize, gDiKeyName[Combo.Data[3]]);
+		strcpy_s(&szDest[pos],BufferSize-pos, gDiKeyName[Combo.Data[3]]);
 	}
 	else
 	{
-		strcpy_s(&szDest[pos],BufferSize, "clear");
+		strcpy_s(&szDest[pos],BufferSize-pos, "clear");
 	}
 	return &szDest[0];
 }

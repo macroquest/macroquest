@@ -338,6 +338,7 @@ EQLIB_API VOID ShutdownMQ2Detours();
 EQLIB_API BOOL AddDetour(DWORD address, PBYTE pfDetour = 0, PBYTE pfTrampoline = 0, DWORD Count = 20);
 EQLIB_API VOID AddDetourf(DWORD address, ...);
 EQLIB_API VOID RemoveDetour(DWORD address);
+EQLIB_API void DeleteDetour(DWORD address);
 #endif
 #else
 #define RemoveDetour EzUnDetour
@@ -758,6 +759,7 @@ LEGACY_API BOOL Calculate(PCHAR szFormula, DOUBLE& Dest);
 #define GAMESTATE_SOMETHING     4
 #define GAMESTATE_INGAME        5
 #define GAMESTATE_PRECHARSELECT -1
+#define GAMESTATE_POSTFRONTLOAD 500
 #define GAMESTATE_LOGGINGIN     253
 #define GAMESTATE_UNLOADING     255
 

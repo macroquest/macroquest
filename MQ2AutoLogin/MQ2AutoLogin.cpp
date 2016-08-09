@@ -13,6 +13,8 @@ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 GNU General Public License for more details.
 
 Change log:
+# Version: 2.5 - Eqmule 07-29-2016 - Moved processing into its own detour, removed waitforinputidle and all arbitrary Sleeps.
+# Version: 2.4 - Eqmule 07-22-2016 - Added support for emulators
 # Version: 2.3 - Eqmule 07-22-2016 - Added string safety.
 # Version: 2.2 by eqmule/derple 20160629
 - made all WaitForInputIdle 60 seconds to prevent crashes
@@ -105,18 +107,13 @@ Change log:
 
 
 #include "../MQ2Plugin.h"
-PLUGIN_VERSION(2.3);
+PLUGIN_VERSION(2.5);
 #include <map>
 #include <tlhelp32.h>
 PreSetup("MQ2AutoLogin");
 #include <wincrypt.h>
 #pragma comment( lib, "Crypt32.lib" )
 
-bool oktologin = false;
-HANDLE hthisisatest = 0;
-HANDLE hLoginThread = 0;
-
-#define CurrCharSelectChar 0x38E80 // see .text:004419A0                 cmp     eax, [ecx+38E80h] in eqgame.exe dated apr 28 2015
 #define MAX_WINDOWS 150 // had to lower this for CotF patch it never reaches 200...
 
 /*** un-comment to enable debug logging ***/
@@ -131,12 +128,13 @@ HANDLE hLoginThread = 0;
 #else
 #define AutoLoginDebug //
 #endif
-
+ULONGLONG ullerrorwait = 0;
 
 struct _ServerData {
     char *Name;
     DWORD ID;
 };
+
 
 _ServerData ServerData[] = {
     {"lockjaw",    160},
@@ -162,7 +160,66 @@ _ServerData ServerData[] = {
     {"test",         1},
     {0, 0},
 };
+typedef struct _SERVERINFO
+{
+/*0x00*/	DWORD ID;
+/*0x04*/	PCXSTR ServerName;
+/*0x08*/	PCXSTR ServerIP;
+/*0x0C*/	DWORD Unknown0x0C;
+/*0x10*/	DWORD Unknown0x10;
+/*0x14*/	DWORD Unknown0x14;
+/*0x018*/	DWORD Unknown0x018;
+/*0x01C*/	DWORD Unknown0x01C;
+/*0x020*/	DWORD Unknown0x020;
+/*0x024*/	DWORD Unknown0x024;
+/*0x028*/	DWORD Unknown0x028;
+/*0x02C*/	DWORD Unknown0x02C;
+/*0x030*/	DWORD Unknown0x030;
+/*0x034*/	DWORD Unknown0x034;
+/*0x038*/	DWORD Unknown0x038;
+/*0x03C*/	DWORD Unknown0x03C;
+/*0x040*/	DWORD Unknown0x040;
+/*0x044*/	DWORD Players;//only on emu, its not sent for live servers.
+/*0x048*/	DWORD Unknown0x048;
+/*0x04C*/	DWORD Unknown0x04C;
+/*0x050*/
+}SERVERINFO,*PSERVERINFO;
+typedef struct _SERVERLIST
+{
+/*0x00*/	PSERVERINFO Info;
+/*0x04*/	_SERVERLIST *Prev;
+/*0x08*/	_SERVERLIST *Next;
+/*0x0C*/	DWORD Unknown0x0C;
+/*0x10*/	DWORD Unknown0x10;
+/*0x14*/	DWORD Unknown0x14;
+/*0x18*/
+}SERVERLIST,*PSERVERLIST;
 
+typedef struct _PSERVERSTUFF
+{
+/*0x000*/	BYTE Unknown0x000[0x8];
+/*0x008*/	PVOID GFXENGINE;
+/*0x00C*/	BYTE Unknown0x00C[0x9C];
+/*0x0A8*/	DWORD CurrentServerID;
+/*0x0AC*/	DWORD Unknown0x0AC;
+/*0x0B0*/	PCXSTR LoginName;
+/*0x0B4*/	PCXSTR Password;
+/*0x0B8*/	PCXSTR LoginNameCopy;
+/*0x0BC*/	PCXSTR PasswordCopy;
+/*0x0C0*/	PCXSTR AccountKey;
+/*0x0C4*/	BYTE Unknown0x0C4[0x14];
+/*0x0D8*/	PSERVERINFO *FirstServer;//D8
+/*0x0DC*/	PSERVERINFO *LastServer;//DC
+/*0x0E0*/	BYTE Unknown0x0E0[0x8];
+/*0x0E8*/	PSERVERLIST pServerList;
+/*0x0EC*/	DWORD ServerListSize;
+/*0x0F0*/	BYTE Unknown0x0F0[0x8];
+/*0x0F8*/	DWORD QuickConnectServerID;
+/*0x0FC*/	PCXSTR QuickConnectServerName;
+/*0x100*/	PCXSTR QuickConnectIPAddress;//0x100
+/*0x104*/
+} SERVERSTUFF, *PSERVERSTUFF;
+DWORD dwServerInfo = 0;
 CSidlManager *pSidlManager = 0;
 PCXWNDMGR pWindowManager = 0;
 class CLoginViewManager *pLoginViewManager = 0;
@@ -177,14 +234,18 @@ UINT bUseMQ2Login = false;
 UINT bUseStationNamesInsteadOfSessions = false;
 UINT bReLoggin = false;
 bool bLogin = false;
+bool bEnd = false;
 bool bInGame = false;
 bool bSwitchServer = false;
+bool bSwitchChar = false;
+bool bSwitchTime = false;
 char szStationName[64] = {0};
 char szPassword[64] = {0};
 char szServerName[32] = {0};
 char szCharacterName[64] = {0};
 char szNewChar[0x40] = {0};
 ULONGLONG dwTime = 0;
+ULONGLONG switchTime = 0;
 map<string, class CXWnd2 *> WindowMap;
 
 
@@ -196,7 +257,6 @@ bool SetOffsets();
 bool SetOffsetsUI();
 void HandleWindows();
 void LoginReset();
-bool FindCharacter(char *szName);
 void SwitchCharacter(char *szName);
 DWORD GetProcessCount(char *exeName);
 void DebugLog(char *szFormat, ...);
@@ -226,9 +286,20 @@ char lmouseMask[] = "xxxx?x????xx????xxx?xxxx????xxxxx?xx????xxxx??";
 PBYTE lcPattern = (PBYTE)"\xA3\x00\x00\x00\x00\x8B\x56\x00\x8B\x4A\x00\x6A\x00\x51\x52\x8B\xC8\xC7\x45\x00\x00\x00\x00\x00\xE8\x00\x00\x00\x00";
 char lcMask[] = "x????xx?xx?x?xxxxxx?????x????";
 
+//login::pulse
+PBYTE lpPattern = (PBYTE)"\x56\x8B\xF1\xE8\x28\xFD\xFF\xFF\x8B\xCE\x5E\xE9\x10\xF7\xFF\xFF\xC7\x01\x00\x00\x00\x00\xC3\xCC\xCC\xCC\xCC\xCC\xCC\xCC\xCC\xCC\x55\x8B\xEC\xF6\x45\x08\x01\x56\x8B\xF1\xC7\x06";
+char lpMask[] = "xxxxxxxxxxxxxxxxxx????xxxxxxxxxxxxxxxxxxxxxx";
+
+
+#ifndef EMU
+#define SPLASH "dbgsplash"
 PBYTE lcEGPattern = (PBYTE)"\x55\x8B\xEC\x6A\xFF\x68\x00\x00\x00\x00\x64\xA1\x00\x00\x00\x00\x50\x83\xEC\x34\x53\x56\xA1\x00\x00\x00\x00\x33\xC5\x50\x8D\x45\xF4\x64\xA3\x00\x00\x00\x00\x8B\xF1\x33\xDB\xC7\x45\x00\x00\x00\x00\x00\xC7\x45\x00\x00\x00\x00\x00\x89\x5D\xEC\x89\x5D\xE8\x8D\x45\xE0\x50\x89\x5D\xFC\xE8\x00\x00\x00\x00\x8D\x4D\xF0\x51\xE8\x00\x00\x00\x00\x83\xC4\x08\x8D\x4D\xC0\xE8\x00\x00\x00\x00\x8B\x45\xE4\x8B\x55\x08\x50\x8D\x4D\xD8\xC6\x45\xFC\x01\x89\x55\xD4\xE8\x00\x00\x00\x00\x8B\x4D\xF0\x8B\x55\x10\x8B\x45\x0C\x52\x89\x4D\xDC\x50\x8D\x4D\xC0\x51\x8B\xCE\xE8\x00\x00\x00\x00\x8D\x4D\xC0\x8B\xF0\x88\x5D\xFC\xE8\x00\x00\x00\x00\xC7\x45\x00\x00\x00\x00\x00\xC7\x45\x00\x00\x00\x00\x00\x39\x5D\xEC\x7E\x20\x8B\x45\xE4\x83\xC0\xFC\x8B\xD0\x83\xC9\xFF\xF0\x0F\xC1\x0A\x49\x85\xC9\x7F\x0C\x8B\x55\xE0\x50\x8B\x42\x08\x8D\x4D\xE0\xFF\xD0\x8B\xC6\x8B\x4D\xF4\x64\x89\x0D\x00\x00\x00\x00\x59\x5E\x5B\x8B\xE5\x5D\xC2\x0C\x00";
 char lcEGMask[] = "xxxxxx????xx????xxxxxxx????xxxxxxxx????xxxxxx?????xx?????xxxxxxxxxxxxxx????xxxxx????xxxxxxx????xxxxxxxxxxxxxxxxxx????xxxxxxxxxxxxxxxxxxxxx????xxxxxxxxx????xx?????xx?????xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx????xxxxxxxxx";
-
+#else
+#define SPLASH "soesplash"
+PBYTE lcEGPattern = (PBYTE)"\x55\x8B\xEC\x6A\xFF\x68\x00\x00\x00\x00\x64\xA1\x00\x00\x00\x00\x50\x83\xEC\x18\x56\xA1\x00\x00\x00\x00\x33\xC5\x50\x8D\x45\xF4\x64\xA3\x00\x00\x00\x00\x8B\xF1\x8d\x4d\xDC\xE8\x00\x00\x00\x00\x00\x4d\x10\x00\x00\x00\x00\x00\x0c\x51\x89\x45\xf0\x52\x8D\x45";
+char lcEGMask[] = "xxxxxx????xx????xxxxxx????xxxxxxxx????xxxxxx?????xx?????xxxxxxxx";
+#endif
 BOOL DecryptData(DATA_BLOB *DataIn,DATA_BLOB *DataOut)
 {
 	return CryptUnprotectData(DataIn,NULL,NULL,NULL,NULL,0,DataOut);
@@ -302,7 +373,6 @@ public:
     int EnterGame(DWORD serverID, DWORD zero = 0, DWORD ten = 0xa);
 };
 
-
 FUNCTION_AT_VARIABLE_ADDRESS(CXMLData *CXMLDataManager2::GetXMLData(int,int), dwGetXMLDataAddr);
 FUNCTION_AT_VARIABLE_ADDRESS(int CLoginViewManager::SendLMouseClick(CXPoint &), dwSendLMouseClickAddr);
 FUNCTION_AT_VARIABLE_ADDRESS(int CLoginClient::EnterGame(DWORD, DWORD, DWORD), dwEnterGameAddr);
@@ -338,200 +408,68 @@ class CXWnd * CXWnd2::_GetChildItem(PCHAR Name)
     return _RecurseAndFindName(this, Name);
 }
 
-DWORD WINAPI LoginThread(LPVOID lpParam)
+template <unsigned int _Size,unsigned int _OutSize>bool GetServerLongName(CHAR(&szName)[_Size], CHAR(&szOut)[_OutSize])
 {
-	//MessageBox(NULL, "Inject now", "", MB_SYSTEMMODAL | MB_OK);
-
-    WaitForInputIdle(GetCurrentProcess(), 60000);
-    bool bOffsets = false;
-
-    if(bSwitchServer && dwServerID) // char select -> server select
-    {
-        AutoLoginDebug("bSwitchServer && dwServerID");
-
-        while(!dwEQMainBase) // eqmain isn't loaded
-            Sleep(500);
-
-        AutoLoginDebug("bSwitchServer && dwServerID, before SetOffsets()");
-
-        if(SetOffsets())
-        {
-            ULONGLONG n = MQGetTickCount64() + 5000; // wait 5 seconds
-            while(n > MQGetTickCount64())
-                Sleep(500);
-
-            AutoLoginDebug("bSwitchServer && dwServerID, calling EnterGame");
-
-            pLoginClient->EnterGame(dwServerID);
-
-            bSwitchServer = false;
-        }
-
-        hLoginThread = 0;
-        return 0;
-    }
-
-    while(bLogin)
-    {
-        Sleep(100);
-
-        if(GetAsyncKeyState(VK_END) & 1)
-        {
-            AutoLoginDebug("User pressed END key.  Killing login thread");
-            hLoginThread = 0;
-            return 0;
-        }
-
-        if(!dwEQMainBase) // eqmain isn't loaded
-        {
-            AutoLoginDebug("bLogin loop: waiting for eqmain");
-
-            if(bOffsets) // server select -> character select
-            {
-                AutoLoginDebug("bLogin loop: ending LoginThread (server select -> char select)");
-                LoginReset();
-				hLoginThread = 0;
-                return 0;
-            }
-
-            Sleep(1000);
-            continue;
-        }
-
-        if((dwEQMainBase = (DWORD)GetModuleHandle("eqmain.dll"))==0) 
-        {
-            bOffsets = false;
-            pWindowManager=0;
-            hLoginThread = 0;
-            return 0;
-        }
-
-        if(!bOffsets)
-        {
-            AutoLoginDebug("bLogin loop: Setting up offsets");
-            WaitForInputIdle(GetCurrentProcess(), 60000);
-            while (!dwEQMainBase) // eqmain isn't loaded
-            {
-                Sleep(100);
-            }
-
-            if(!SetOffsets())
-            {
-                AutoLoginDebug("bLogin loop: Error in SetOffsets()");
-				hLoginThread = 0;
-                return 0;
-            }
-
-            if(!SetOffsetsUI())
-            {
-                AutoLoginDebug("bLogin loop: Error in SetOffsetsUI()");
-				hLoginThread = 0;
-                return 0;
-            }
-
-            bOffsets = true;
-        }
-
-        AutoLoginDebug("bLogin loop: waiting for window data");
-      
-        // wait for window data to be populated
-        int iFailures = 0;
-        bool bReady = false;
-        PCSIDLWND* ppWnd = NULL;
-        CHAR Name[MAX_STRING] = { 0 };
-
-        while (!bReady)
-        {
-            if (iFailures++ > 10000)
-            {
-                AutoLoginDebug("bLogin loop: Failed way too much waiting for window data.  Bailing.");
-                hLoginThread = 0;
-                return 0;
-            }
-
-            WaitForInputIdle(GetCurrentProcess(), 60000);
-
-            while (!pWindowManager)
-            {
-                Sleep(1000);
-            }
-            
-            while (IsBadReadPtr(pWindowManager, 4))
-            {
-                Sleep(1000);
-            }
-
-            if (pWindowManager && pWindowManager->Count < MAX_WINDOWS)
-            {
-                continue;
-            }
-
-            WaitForInputIdle(GetCurrentProcess(), 60000);
-
-            if (IsBadReadPtr(pWindowManager, 4))
-            {
-                hLoginThread = 0;
-                return 0;
-            }
-            
-            ppWnd = pWindowManager->pWindows;
-            
-            if (!ppWnd)
-            {
-                //MessageBox(NULL, "break in", "ppWnd was NULL", MB_SYSTEMMODAL | MB_OK);
-                Sleep(500);
-                continue;
-            }
-            if (IsBadReadPtr(ppWnd, 4))
-            {
-                //MessageBox(NULL, "break in", "ppWnd was not NULL but was unreadable crash avoided.", MB_SYSTEMMODAL | MB_OK);
-                Sleep(500);
-                continue;
-            }
-            if ((!*ppWnd) || IsBadReadPtr(*ppWnd, 4))
-            {
-                //MessageBox(NULL, "break in", "ppWnd was NULL", MB_SYSTEMMODAL | MB_OK);
-                Sleep(500);
-                continue;
-            }
-
-            bReady = true;
-
-        }
-        PCSIDLWND pWnd=*ppWnd;
-
-        DWORD count = pWindowManager->Count;
-
-        while(pWnd = *ppWnd)
-        {
-            if(count-- == 0)
-                break;
-
-            if(CXMLData *pXMLData=((CXWnd2*)pWnd)->GetXMLData())
-            {
-                GetCXStr(pXMLData->Name.Ptr, Name, MAX_STRING);
-
-                if(Name[0])
-                {
-                    AutoLoginDebug("bLogin loop: adding window '%s'", Name);
-                    WindowMap[Name] = (CXWnd2*)pWnd;
-                }
-            }
-
-            ppWnd++;
-        }
-        AutoLoginDebug("bLogin loop: call HandleWindows()");
-        HandleWindows();
-        WaitForInputIdle(GetCurrentProcess(), 60000);
-    }
-
-    AutoLoginDebug("LoginThread finished");
-    LoginReset();
-	hLoginThread = 0;
-    return 0;
+	if (GetPrivateProfileString("Servers", szName, 0, szOut, _OutSize, INIFileName)) {
+		if (szOut[0] != '\0')
+			return true;
+	}
+	return false;
 }
-
-DWORD GetServerID(char *szName)
+template <unsigned int _Size>bool GetPassword(CHAR(&szBuffer)[_Size])
+{
+	if (dwServerInfo) {
+		if (PSERVERSTUFF serveridoff = *(PSERVERSTUFF*)dwServerInfo) {
+			if (serveridoff->Password) {
+				GetCXStr(serveridoff->Password, szBuffer, _Size);
+				if (szBuffer[0]!='\0') {
+					return true;
+				}
+			}
+		}
+	}
+	return false;
+}
+template <unsigned int _Size>DWORD GetServerIDFromName(CHAR(&szShortName)[_Size])
+{
+	if (GetGameState() != GAMESTATE_PRECHARSELECT) {
+		bGotOffsets = false;
+		return 0;
+	}
+	CHAR szLongName[MAX_STRING] = { 0 };
+	if (GetServerLongName(szShortName, szLongName)) {
+		if (WindowMap.find("SERVERSELECT_ServerList") != WindowMap.end()) {
+			if (CListWnd*serverlist = (CListWnd*)WindowMap["SERVERSELECT_ServerList"]) {
+				if (serverlist->Items && dwServerInfo) {
+					if (PSERVERSTUFF serveridoff = *(PSERVERSTUFF*)dwServerInfo) {
+						if (serveridoff->pServerList && serveridoff->pServerList->Info) {
+							PSERVERLIST pList = serveridoff->pServerList;
+							while (pList) {
+								if (pList->Info) {
+									CHAR szServer[MAX_STRING] = { 0 };
+									GetCXStr(pList->Info->ServerName, szServer);
+									if (szServer[0] != '\0') {
+										if (!_stricmp(szServer, szLongName)) {
+											return pList->Info->ID;
+										}
+										//CHAR szID[MAX_STRING] = { 0 };
+										//sprintf_s(szID, "%d", pList->Info->ID);
+										//WritePrivateProfileString("Servers", szServer, szID, "C:\\eqservers.ini");
+									}
+								}
+								pList = pList->Next;
+							}
+						} else {
+							bGotOffsets = false;
+						}
+					}
+				}
+			}
+		}
+	}
+	return 0;
+}
+template <unsigned int _Size>DWORD GetServerID(CHAR(&szName)[_Size])
 {
     for(DWORD n = 0; ServerData[n].ID; n++)
     {
@@ -540,6 +478,9 @@ DWORD GetServerID(char *szName)
             return ServerData[n].ID;
         }
     }
+	if(DWORD ID = GetServerIDFromName(szName)) {
+		return ID;
+	}
     return 0;
 }
 
@@ -547,14 +488,21 @@ void Cmd_SwitchServer(PSPAWNINFO pChar, char *szLine)
 {
     char szServer[MAX_STRING] = {0};
     char szCharacter[MAX_STRING] = {0};
+    char szLongName[MAX_STRING] = {0};
 
     GetArg(szServer, szLine, 1);
     GetArg(szCharacter, szLine, 2);
 
     if(szServer[0] && szCharacter[0])
     {
-        if(dwServerID = GetServerID(szServer))
-        {
+		bool oktomoveon = false;
+		if (GetServerID(szServer))
+			oktomoveon = true;
+		else if (GetServerLongName(szServer, szLongName))
+			oktomoveon = true;
+		if(oktomoveon) {
+			dwServerID = -1;
+            strcpy_s(szServerName, szServer);
             strcpy_s(szCharacterName, szCharacter);
             bSwitchServer = true;
 
@@ -564,7 +512,7 @@ void Cmd_SwitchServer(PSPAWNINFO pChar, char *szLine)
                 EzCommand("/stand");
             }
             EzCommand("/camp");
-
+			bInGame = false;
             WriteChatf("Switching to \ag%s\ax on server \ag%s\ax", szCharacterName, szServer);
             return;
         }
@@ -580,7 +528,7 @@ void Cmd_SwitchServer(PSPAWNINFO pChar, char *szLine)
                     strcat_s(szServers, ", ");
                 strcat_s(szServers, ServerData[n].Name);
             }
-           
+			strcat_s(szServers, " as well as any server you have defined in your mq2autologin.ini under the [Servers] section.");
             WriteChatColor(szServers);
             return;
         }
@@ -592,13 +540,10 @@ void Cmd_SwitchServer(PSPAWNINFO pChar, char *szLine)
 void Cmd_SwitchCharacter(PSPAWNINFO pChar, char *szLine)
 {
     char szArg1[MAX_STRING] = {0};
-    char szArg2[MAX_STRING] = {0};
 
     if(szLine[0])
     {
         GetArg(szArg1, szLine, 1);
-        GetArg(szArg2, szLine, 2);
-
         if(GetGameState() == GAMESTATE_INGAME)
         {
             if(_stricmp(szArg1, pChar->DisplayedName))
@@ -611,16 +556,18 @@ void Cmd_SwitchCharacter(PSPAWNINFO pChar, char *szLine)
                     EzCommand("/stand");
                 }
                 EzCommand("/camp");
+				bSwitchChar = true;
+				WriteChatf("Switch to \ag%s\ax is now active and will commence at character select.", szNewChar);
             }
             else
             {
                 WriteChatf("\ayYou're already logged onto '%s'\ax", szArg1);
             }
-
         }
         else if(GetGameState() == GAMESTATE_CHARSELECT)
         {
-            SwitchCharacter(szLine);
+			strcpy_s(szNewChar, szArg1);
+			bSwitchChar = true;
         }
     }
     else
@@ -671,17 +618,176 @@ void Cmd_Relog(PSPAWNINFO pChar, char *szLine)
             EzCommand("/stand");
         }
         EzCommand("/camp");
+		bInGame = false;
     }
 }
-PLUGIN_API VOID SetGameState(DWORD GameState);
-BOOL firstrun=0;
+DWORD Login__Pulse_x = 0;
+bool bGotOffsets = false;
+bool GetAllOffsets(DWORD dweqmain)
+{
+	if (!dweqmain)
+		return false;
+	if(dwLoginClient = _FindPattern(dweqmain, 0x100000, lcPattern, lcMask))
+    {
+        dwLoginClient = _GetDWordAt(dwLoginClient, 1);
+    }
+    else
+    {
+        AutoLoginDebug("Error: !dwLoginClient");
+        return false;
+    }
+    if(!(dwEnterGameAddr = _FindPattern(dweqmain, 0x200000, lcEGPattern, lcEGMask)))
+    {
+        AutoLoginDebug("Error: !dwEnterGame");
+        return false;
+    }
+	DWORD dwSidlMgr = 0, dwWndMgr = 0, dwLoginMgr = 0;
+
+    if(!(dwGetXMLDataAddr = _FindPattern(dweqmain, 0x100000, xmldataPattern, xmldataMask)))
+    {
+        AutoLoginDebug("Error: !dwGetXMLDataAddr");
+        return false;
+    }
+
+    if(!(dwSendLMouseClickAddr = _FindPattern(dweqmain, 0x100000, lmousePattern, lmouseMask)))
+    {
+        AutoLoginDebug("Error: !dwSendLMouseClickAddr");
+        return false;
+    }
+
+    if(dwSidlMgr = _FindPattern(dweqmain, 0x100000, swmPattern, swmMask))
+    {
+        dwSidlMgr = _GetDWordAt(dwSidlMgr, 1);
+    }
+    else
+    {
+        AutoLoginDebug("Error: !dwSidlMgr");
+        return false;
+    }
+
+    if(dwWndMgr = _FindPattern(dweqmain, 0x100000, xwmPattern, xwmMask))
+    {
+        dwWndMgr = _GetDWordAt(dwWndMgr, 2);
+    }
+    else
+    {
+        AutoLoginDebug("Error: !dwWndMgr");
+        return false;
+    }
+
+    if(dwLoginMgr = _FindPattern(dweqmain, 0x100000, lvmPattern, lvmMask))
+    {
+        dwLoginMgr = _GetDWordAt(dwLoginMgr, 1);
+		dwServerInfo = dwLoginMgr - 4;
+    }
+    else
+    {
+        AutoLoginDebug("Error: !dwLoginMgr");
+        return false;
+    }
+	pSidlManager = 0; pWindowManager = 0; pLoginViewManager = 0;
+
+    while(!pSidlManager || !pWindowManager || !pLoginViewManager)
+    {
+        pSidlManager = (CSidlManager*)*(DWORD*)dwSidlMgr;
+        pWindowManager = (PCXWNDMGR)*(DWORD*)dwWndMgr;
+        pLoginViewManager = (CLoginViewManager*)*(DWORD*)dwLoginMgr;
+    }
+	WindowMap.clear();
+	PCSIDLWND* ppWnd = pWindowManager->pWindows;
+	PCSIDLWND pWnd=*ppWnd;
+	DWORD count = pWindowManager->Count;
+	CHAR Name[MAX_STRING] = { 0 };
+	while (pWnd = *ppWnd)
+	{
+		if (count-- == 0)
+			break;
+		if (CXMLData *pXMLData = ((CXWnd2*)pWnd)->GetXMLData())
+		{
+			GetCXStr(pXMLData->Name.Ptr, Name, MAX_STRING);
+
+			if (Name[0])
+			{
+				AutoLoginDebug("bLogin loop: adding window '%s'", Name);
+				WindowMap[Name] = (CXWnd2*)pWnd;
+			}
+		}
+		ppWnd++;
+	}
+	bGotOffsets = true;
+	return true;
+}
+void LoginPulse()
+{
+	if (ullerrorwait) {
+		if (ullerrorwait > MQGetTickCount64()) {
+			Sleep(0);
+			return;
+		}
+		else {
+			ullerrorwait = 0;
+		}
+	}
+	if (GetAsyncKeyState(VK_END) & 1)
+	{
+		bEnd = true;
+		return;
+	}
+	if (!bGotOffsets) {
+		GetAllOffsets(dwEQMainBase);
+	} else {
+		if(!bEnd)
+			HandleWindows();
+	}
+}
+class Login
+{
+public:
+	int Pulse_Tramp();
+	int Pulse_Detour()
+	{
+		LoginPulse();
+		return Pulse_Tramp();
+	}
+};
+DETOUR_TRAMPOLINE_EMPTY(int Login::Pulse_Tramp());
+void AddOurPulse()
+{
+	bEnd = false;
+	if (dwEQMainBase = (DWORD)GetModuleHandle("eqmain.dll")) {
+		if (!(Login__Pulse_x = _FindPattern(dwEQMainBase, 0x200000, lpPattern, lpMask)))
+		{
+			MessageBox(NULL, "MQ@AutoLogin needs an update.", "Couldn't find Login__Pulse_x", MB_SYSTEMMODAL | MB_OK);
+			return;
+		}
+		if (Login__Pulse_x) {// = (DWORD)dwEQMainBase + 0x11030;
+			bGotOffsets = false;
+			EzDetour(Login__Pulse_x, &Login::Pulse_Detour, &Login::Pulse_Tramp);
+		}
+	}
+	if (!bInGame && !bSwitchServer && !dwTime)
+	{
+		if (bUseMQ2Login) {
+			//then we don't need anything else
+		}
+		else if (!bUseStationNamesInsteadOfSessions) {
+			DWORD nProcs = GetProcessCount("eqgame.exe");
+			CHAR szSession[32] = { 0 };
+			sprintf_s(szSession, "Session%d", nProcs);
+			AutoLoginDebug(szSession);
+
+			GetPrivateProfileString(szSession, "StationName", 0, szStationName, 64, INIFileName);
+			GetPrivateProfileString(szSession, "Password", 0, szPassword, 64, INIFileName);
+			GetPrivateProfileString(szSession, "Server", 0, szServerName, 32, INIFileName);
+			GetPrivateProfileString(szSession, "Character", 0, szCharacterName, 64, INIFileName);
+		}
+		bLogin = true;
+	}
+}
 PLUGIN_API VOID InitializePlugin(VOID)
 {
-    AddCommand("/switchserver", Cmd_SwitchServer);
-    AddCommand("/switchcharacter", Cmd_SwitchCharacter);
-    AddCommand("/relog", Cmd_Relog);
-
-    char szPath[MAX_PATH];
+	//MessageBox(NULL, "Inject now", "MQ2 Debug", MB_OK|MB_SYSTEMMODAL);
+	CHAR szPath[MAX_PATH] = { 0 };
     GetPrivateProfileStringA("Settings", "IniLocation", 0, szPath, MAX_PATH, INIFileName);
     if(szPath[0])
         strcpy_s(INIFileName, szPath);
@@ -690,6 +796,18 @@ PLUGIN_API VOID InitializePlugin(VOID)
     bUseMQ2Login = GetPrivateProfileInt("Settings", "UseMQ2Login", 0, INIFileName);
     bUseStationNamesInsteadOfSessions = GetPrivateProfileInt("Settings", "UseStationNamesInsteadOfSessions", 0, INIFileName);
     bReLoggin = GetPrivateProfileInt("Settings", "LoginOnReLoadAtCharSelect", 0, INIFileName);
+
+	if (GetModuleHandle("lavish.dll")) {
+		//well this probably means it has already loaded eqmain.dll so lets check
+		if (GetModuleHandle("eqmain.dll")) {
+			//well well well... what do u know... it's loaded...
+			//ok fine that means we wont get any frontload notification, so lets fake it
+			AddOurPulse();
+		}
+	}
+    AddCommand("/switchserver", Cmd_SwitchServer);
+    AddCommand("/switchcharacter", Cmd_SwitchCharacter);
+    AddCommand("/relog", Cmd_Relog);
 
 #ifdef AUTOLOGIN_DBG
     remove(DBG_LOGFILE_PATH);
@@ -700,20 +818,10 @@ PLUGIN_API VOID InitializePlugin(VOID)
         DWORD nProcs = GetProcessCount("eqgame.exe");
 		if (bUseMQ2Login) {
 			//i dont think we need to load anything here
-			/*if (char *pLogin = GetLoginName()) {
-				strcpy_s(szStationName, pLogin);
-				if (EQADDR_SERVERNAME && EQADDR_SERVERNAME[0]) {
-					//CHAR szName[64] = { 0 };
-					//sprintf_s(szName,"_Blob",)
-					//GetPrivateProfileString(EQADDR_SERVERNAME, "Password", 0, szPassword, 64, INIFileName);
-				}
-			}*/
 		} else if (!bUseStationNamesInsteadOfSessions) {
-            char szSession[32];
-               
+			CHAR szSession[32] = { 0 };
             sprintf_s(szSession, "Session%d", nProcs);
             AutoLoginDebug(szSession);
-
             GetPrivateProfileString(szSession, "StationName", 0, szStationName, 64, INIFileName);
             GetPrivateProfileString(szSession, "Password", 0, szPassword, 64, INIFileName);
             GetPrivateProfileString(szSession, "Server", 0, szServerName, 32, INIFileName);
@@ -727,9 +835,11 @@ PLUGIN_API VOID InitializePlugin(VOID)
                 GetPrivateProfileString(szStationName, "Character", 0, szCharacterName, 64, INIFileName);
             }
 		}
-		if(!dwServerID && EQADDR_SERVERNAME[0]) {
+		if(!dwServerID || dwServerID==-1 && EQADDR_SERVERNAME[0]) {
+			CHAR szServTemp[MAX_STRING] = { 0 };
+			strcpy_s(szServTemp, EQADDR_SERVERNAME);
 			DWORD lserver = 0;
-			dwServerID = GetServerID(EQADDR_SERVERNAME);
+			dwServerID = GetServerID(szServTemp);
 			if (szServerName[0]) {
 				lserver = GetServerID(szServerName);
 			}
@@ -742,158 +852,128 @@ PLUGIN_API VOID InitializePlugin(VOID)
 			}
 		}
 	}
-	SetGameState(GetGameState());
 }
 
 PLUGIN_API VOID ShutdownPlugin(VOID)
 {
-    RemoveCommand("/switchserver");
-    RemoveCommand("/switchcharacter");
-    RemoveCommand("/relog");
-    LoginReset();
-}
-DWORD __stdcall thisisatest(PVOID pData)
-{
-loop:
-	DWORD gs = GetGameState();
-	if(gs==GAMESTATE_PRECHARSELECT) {
-		dwEQMainBase = (DWORD)GetModuleHandle("eqmain.dll");
-		if(!dwEQMainBase) {
-			Sleep(1000);
-			goto loop;
+	if (Login__Pulse_x) {
+		if (!IsBadReadPtr((PVOID)Login__Pulse_x, 4)) {
+			RemoveDetour(Login__Pulse_x);
+			Login__Pulse_x = 0;
 		}
-		//Sleep(5000);
+		else {
+			DeleteDetour(Login__Pulse_x);
+			Login__Pulse_x = 0;
+		}
 	}
-	WaitForInputIdle(GetCurrentProcess(), 60000);
-	oktologin = true;
-	SetGameState((DWORD)pData);
-	return 0;
+	RemoveCommand("/switchserver");
+	RemoveCommand("/switchcharacter");
+	RemoveCommand("/relog");
+	LoginReset();
+}
+
+void RemoveLoginPulse()
+{
+	if (Login__Pulse_x) {
+		//we have to remove this carefully now that its no longer in memory
+		DeleteDetour(Login__Pulse_x);
+		Login__Pulse_x = 0;
+	}
+	if (dwEQMainBase)
+		dwEQMainBase = 0;
+	bGotOffsets = false;
+	bEnd = false;
 }
 
 PLUGIN_API VOID SetGameState(DWORD GameState)
 {
-	if (firstrun == 0) {
-		//MessageBox(NULL, "Inject now", "", MB_SYSTEMMODAL | MB_OK);
-		DWORD nThreadID = 0;
-		firstrun = 1;
-		hthisisatest = CreateThread(NULL, 0, thisisatest, (PVOID)GameState, NULL, &nThreadID);
-		return;
-	}
-    if(GetGameState() == GAMESTATE_PRECHARSELECT && oktologin)
-    {
-		
-        static DWORD threadID = 0;
-
-        if(!bInGame && !threadID)
-        {
-            AutoLoginDebug("SetGameState(GAMESTATE_PRECHARSELECT): !bInGame");
-            DWORD nProcs = GetProcessCount("eqgame.exe");
-            AutoLoginDebug("SetGameState(GAMESTATE_PRECHARSELECT) nProcs=%d", nProcs);
-
-			if (bUseMQ2Login) {
-
-			} else if(!bUseStationNamesInsteadOfSessions) {
-                char szSession[32];
-               
-                sprintf_s(szSession, "Session%d", nProcs);
-                AutoLoginDebug(szSession);
-
-                GetPrivateProfileString(szSession, "StationName", 0, szStationName, 64, INIFileName);
-                GetPrivateProfileString(szSession, "Password", 0, szPassword, 64, INIFileName);
-                GetPrivateProfileString(szSession, "Server", 0, szServerName, 32, INIFileName);
-                GetPrivateProfileString(szSession, "Character", 0, szCharacterName, 64, INIFileName);
-            }
-
-            AutoLoginDebug("SetGameState(GAMESTATE_PRECHARSELECT): creating LoginThread (bLogin = true)");
-            bLogin = true;
-			if(!hLoginThread) {
-				hLoginThread = CreateThread(0, 0, &LoginThread, 0, 0, &threadID);
+	if (GameState == GAMESTATE_POSTFRONTLOAD) {
+		//we know eqmain.dll is loaded now...
+		AddOurPulse();
+	} else if(GameState == GAMESTATE_CHARSELECT) {
+		RemoveLoginPulse();
+		if (dwServerID) {
+			dwServerID = 0;
+			if (!bSwitchChar) {
+				strcpy_s(szNewChar, szCharacterName);
+				bSwitchChar = true;
 			}
-        }
-        else if(bInGame && dwServerID)
-        {
-            AutoLoginDebug("SetGameState(GAMESTATE_PRECHARSELECT): creating LoginThread (dwServerID != 0)");
-            if(!hLoginThread) {
-				hLoginThread = CreateThread(0, 0, &LoginThread, 0, 0, &threadID);
-			}
-        }
+		}
     }
-    else if(GetGameState() == GAMESTATE_CHARSELECT)
+    else if(GameState == GAMESTATE_INGAME)
     {
-        if(dwServerID)
-        {
-            if(bSwitchServer) // world -> char select
-            {
-                AutoLoginDebug("SetGameState(GAMESTATE_CHARSELECT): bSwitchServer = true");
-                ExecuteCmd(nEQMappableCommands - 5, 1, 0); // quit
-            }
-            else // server select -> char select
-            {
-                AutoLoginDebug("SetGameState(GAMESTATE_CHARSELECT): bSwitchServer = false");
-               
-                dwServerID = 0;
-               
-                if(szCharacterName[0])
-                {
-                    Sleep(1000);
-                    AutoLoginDebug("SetGameState(GAMESTATE_CHARSELECT): logging in");
-                    SwitchCharacter(szCharacterName);
-                }
-                else
-                    AutoLoginDebug("SetGameState(GAMESTATE_CHARSELECT): szCharacterName NULL");
-            }
-        }
-        else if(szNewChar && szNewChar[0] && !dwTime)
-        {
-            AutoLoginDebug("SetGameState(GAMESTATE_CHARSELECT): calling SwitchCharacter");
-            SwitchCharacter(szNewChar);
-            szNewChar[0] = 0;
-        }
-    }
-    else if(GetGameState() == GAMESTATE_INGAME)
-    {
+		RemoveLoginPulse();
         bInGame = true;
     }
 }
 
 PLUGIN_API VOID OnPulse(VOID)
 {
-    if(dwTime && GetGameState() == GAMESTATE_CHARSELECT && dwTime <= MQGetTickCount64())
-    {
-        SwitchCharacter(szNewChar);
-        szNewChar[0] = 0;
-        dwTime = 0;
-    }
-}
-
-bool FindCharacter(char *szName)
-{
-    if(pCharSpawn && ((PSPAWNINFO)pCharSpawn)->Name[0])
-    {
-        DWORD x = *(DWORD*)(((char*)pEverQuest)+CurrCharSelectChar);
-        DWORD i = 0;
-        do
+	//ok since in game pulse starts at charselect we can use that for charswitching and serverswithcing as well as relog...
+	if (GetGameState() == GAMESTATE_CHARSELECT) {
+		if(dwTime && szNewChar[0] && GetAsyncKeyState(VK_END) & 1)
         {
-            if(!_stricmp(((PSPAWNINFO)pCharSpawn)->Name, szName))
-                return true;
-
-            SendListSelect("CLW_CharactersScreen", "Character_List", i);
-            Sleep(100);
+            WriteChatf("END key pressed. Login of %s aborted.",szNewChar);
+			szNewChar[0] = 0;
+			dwTime = 0;
+			switchTime = 0;
+            return;
         }
-        while(i++ < x);
-    }
-    AutoLoginDebug("FindCharacter returning false");
-    return false;
+		if (bSwitchServer) {// world -> char select
+			AutoLoginDebug("SetGameState(GAMESTATE_CHARSELECT): bSwitchServer = true");
+			DWORD pCharSelect = *(DWORD*)pinstCCharacterSelect;
+			((CCharacterSelect *)pCharSelect)->Quit();
+			return;
+		}
+		if (bSwitchChar) {//we have to give the chatwindow time to show up at char select... so we wait a couple seconds...
+			switchTime = MQGetTickCount64() + 2000;
+			bSwitchChar = false;
+			return;
+		}
+		if (switchTime && switchTime <= MQGetTickCount64()) {//ok at this point the user has 3 seconds to read the message and abort.
+			WriteChatf("Selecting \ag%s\ax in 3 seconds. please Wait... or press the END key to abort", szNewChar);
+			switchTime = 0;
+			dwTime = MQGetTickCount64() + 3000;
+			return;
+		}
+		if (szNewChar[0] != '\0' && dwTime && dwTime <= MQGetTickCount64())
+		{
+			SwitchCharacter(szNewChar);
+			szNewChar[0] = 0;
+			dwTime = 0;
+		}
+	}
 }
 
 void SwitchCharacter(char *szName)
 {
-    if(FindCharacter(szName))
-        ExecuteCmd(nEQMappableCommands - 4, 1, 0);
+	if (szName && szName[0] != '\0') {
+		if (CXWnd*pWnd = FindMQ2Window("CLW_CharactersScreen")) {
+			if (CListWnd *charlist = (CListWnd *)pWnd->GetChildItem("Character_List")) {
+				if (charlist->Items) {
+					CXStr Str;
+					int column = 2;
+					for (int i = 0; i < charlist->Items; i++) {
+						charlist->GetItemText(&Str, i, column);
+						CHAR szOut[255] = { 0 };
+						GetCXStr(Str.Ptr, szOut, 254);
+						if (szOut[0] != '\0') {
+							if (!_stricmp(szName, szOut)) {
+								DWORD pCharSelect = *(DWORD*)pinstCCharacterSelect;
+								((CCharacterSelect *)pCharSelect)->SelectCharacter(i, 1, 1);
+								((CCharacterSelect *)pCharSelect)->EnterWorld();
+								return;
+							}
+						}
+					}
+				}
+			}
+		}
+	}
     else
     {
-        AutoLoginDebug("FindCharacter(%s) failed", szName);
-        WriteChatf("\arError:\ax FindCharacter(\ay%s\ax) failed", szName);
+        AutoLoginDebug("SwitchCharacter failed");
+        WriteChatf("\arUsage\ax /switchcharacter \ay<name>\ax");
 	}
 }
 
@@ -910,11 +990,16 @@ inline bool WindowActive(char *name)
 	}
 	return false;
 }
-bool bOnce = true;
+bool bWait = false;
+bool bServerWait = false;
 void HandleWindows()
 {
 	CXWnd *pWnd = 0;
-	if (WindowActive("EulaWindow"))
+	if (WindowActive("OrderWindow"))
+	{
+		if (pWnd = WindowMap["OrderWindow"]->_GetChildItem("Order_DeclineButton"))
+			pWnd->WndNotification(pWnd, XWM_LCLICK, 0);
+	} else if (WindowActive("EulaWindow"))
 	{
 		if (pWnd = WindowMap["EulaWindow"]->_GetChildItem("EULA_AcceptButton"))
 			pWnd->WndNotification(pWnd, XWM_LCLICK, 0);
@@ -932,7 +1017,7 @@ void HandleWindows()
 			pWnd->WndNotification(pWnd, XWM_LCLICK, 0);
 		}
 	}
-	else if (WindowActive("dbgsplash"))
+	else if (WindowActive(SPLASH))
 	{
 		CXPoint pt;
 		pt.A = 1;
@@ -941,33 +1026,29 @@ void HandleWindows()
 	}
 	else if (WindowActive("main"))
 	{
-		if (pWnd = WindowMap["main"]->_GetChildItem("MAIN_ConnectButton"))
+		if (pWnd = WindowMap["main"]->_GetChildItem("MAIN_ConnectButton")) {
+			//this clicks the Login Button on the main page so we get the username and password page
 			pWnd->WndNotification(pWnd, XWM_LCLICK, 0);
+		}
 	}
 	else if (WindowActive("connect"))
 	{
 		if (WindowActive("okdialog"))
 		{
-			//MessageBox(NULL,"inject now 1","",MB_OK);
+			bServerWait = false;
 			if (pWnd = WindowMap["okdialog"]->_GetChildItem("OK_Display"))
-			{
+			{	
 				char szTemp[MAX_STRING * 8] = { 0 };
-
 				if (((CXWnd2*)pWnd)->GetType() == UI_STMLBox)
 					GetCXStr(((CSidlScreenWnd*)pWnd)->SidlText, szTemp, MAX_STRING * 8);
 				else
 					GetCXStr(((CSidlScreenWnd*)pWnd)->WindowText, szTemp, MAX_STRING * 8);
-				//0x0d709734 "Error - A timeout occurred"
-				//0x08ad6bac "The server requires that you logout and log back in before proceeding.  Please do so."
-				//There have been 2 failed login attempts on your account since the last time you logged in.
-				//You have a character logged into a world server as an OFFLINE TRADER from this account
-				//0x0da79630 "This login requires that the account be activated.  Please make sure your account is active in order to login."
-				//The username and/or password were not valid
 				if (szTemp[0] && strstr(szTemp, "Logging in to the server.  Please wait...."))
 				{
 					return;
 				}
-				WaitForInputIdle(GetCurrentProcess(), 60000);
+				bGotOffsets = false;
+				ullerrorwait = MQGetTickCount64() + 2000;//we give the server 5 seconds to catch its breath...
 				if (szTemp[0] && strstr(szTemp, "The server requires that you logout and log back in before proceeding.  Please do so.")) {
 					pWnd = WindowMap["okdialog"]->_GetChildItem("OK_OKButton");
 					if (pWnd)
@@ -1006,14 +1087,25 @@ void HandleWindows()
 					if (pWnd)
 						pWnd->WndNotification(pWnd, XWM_LCLICK, 0);
 					return;
+				} else if (szTemp[0] && strstr(szTemp, "A connection to the server could not be reached.")) {
+					pWnd = WindowMap["okdialog"]->_GetChildItem("OK_OKButton");
+					if (pWnd)
+						pWnd->WndNotification(pWnd, XWM_LCLICK, 0);
+					return;
 				}
-				bOnce = true;
 			}
-		}
-		if (!bOnce)
 			return;
-		if (pWnd = WindowMap["connect"]->_GetChildItem("LOGIN_UsernameEdit"))
+		}
+		if (pWnd = WindowMap["connect"]->_GetChildItem("LOGIN_PasswordEdit"))
 		{
+			CHAR szTempPass[MAX_STRING] = { 0 };
+			GetCXStr(((CSidlScreenWnd*)pWnd)->InputText, szTempPass, MAX_STRING);
+			if (szTempPass[0] == '\0')
+				bWait = false;
+		}
+		if (bWait)
+			return;
+		if (pWnd = WindowMap["connect"]->_GetChildItem("LOGIN_UsernameEdit")) {
 			if (bUseMQ2Login) {
 				AutoLoginDebug("HandleWindows(): Using MQ2Login Method");
 				GetCXStr(((CSidlScreenWnd*)pWnd)->InputText, szStationName, 64);
@@ -1067,7 +1159,6 @@ void HandleWindows()
 						}
 						DWORD oldscreenmode = ScreenMode;
 						ScreenMode = 3;
-						WaitForInputIdle(GetCurrentProcess(), 60000);
 						SetCXStr(&((CSidlScreenWnd*)pWnd)->InputText, "");
 						SetCXStr(&((CSidlScreenWnd*)pWnd)->InputText, szStationName);
 						ScreenMode = oldscreenmode;
@@ -1113,21 +1204,21 @@ void HandleWindows()
 				{
 					DWORD oldscreenmode = ScreenMode;
 					ScreenMode = 3;
-					WaitForInputIdle(GetCurrentProcess(), 60000);
 					pWnd->WndNotification(pWnd, XWM_LCLICK, 0);
 					ScreenMode = oldscreenmode;
-					bOnce = false;
+					bWait = true;
+					return;
 				}
             }
         }
     }
     else if(WindowActive("serverselect"))
     {
-		if (!szServerName[0])
-		{
-			AutoLoginDebug("HandleWindows(): szServerName NULL at serverselect.  Ending LoginThread");
-			bLogin = false;
+		if (bInGame)
 			return;
+		bWait = false;
+		if (szPassword[0] == '\0') {
+			GetPassword(szPassword);
 		}
 		if(WindowActive("okdialog"))
         {
@@ -1140,6 +1231,8 @@ void HandleWindows()
                     GetCXStr(((CSidlScreenWnd*)pWnd)->SidlText, szTemp, MAX_STRING * 8);
                 else
                     GetCXStr(((CSidlScreenWnd*)pWnd)->WindowText, szTemp, MAX_STRING * 8);
+				bGotOffsets = false;
+				ullerrorwait = MQGetTickCount64() + 2000;//we give the server 5 seconds to catch its breath...
 
                 if(szTemp[0] && strstr(szTemp, "The world server is currently at maximum capacity and not allowing further logins until the number of players online decreases.  Please try again later."))
                 {
@@ -1150,9 +1243,22 @@ void HandleWindows()
                     pWnd = WindowMap["okdialog"]->_GetChildItem("OK_OKButton");
                     if(pWnd)
                         pWnd->WndNotification(pWnd, XWM_LCLICK, 0);
-                }
-            bOnce = true;
+                } else if(szTemp[0] && strstr(szTemp, "An unknown error occurred while trying to join the server.")) {
+                    pWnd = WindowMap["okdialog"]->_GetChildItem("OK_OKButton");
+                    if(pWnd)
+                        pWnd->WndNotification(pWnd, XWM_LCLICK, 0);
+                } else if(szTemp[0] && strstr(szTemp, "The connection has been terminated by the server.  Most likely you have been inactive")) {
+                    pWnd = WindowMap["okdialog"]->_GetChildItem("OK_OKButton");
+                    if(pWnd)
+                        pWnd->WndNotification(pWnd, XWM_LCLICK, 0);
+                } else if (szTemp[0] && strstr(szTemp, "A timeout occurred")) {
+					pWnd = WindowMap["okdialog"]->_GetChildItem("OK_OKButton");
+					if (pWnd)
+						pWnd->WndNotification(pWnd, XWM_LCLICK, 0);
+				}
             }
+			bServerWait = false;
+			return;
         } else if(WindowActive("yesnodialog"))
         {
             if(pWnd = WindowMap["yesnodialog"]->_GetChildItem("YESNO_Display"))
@@ -1174,17 +1280,28 @@ void HandleWindows()
 
                     if(pWnd)
                         pWnd->WndNotification(pWnd, XWM_LCLICK, 0);
-
-                    bLogin = false; // kill LoginThread since we're either entering game or doing nothing
+                    bLogin = false;
                 }
             }
-        }
-        else
-        {
-            if(dwServerID = GetServerID(szServerName))
-                pLoginClient->EnterGame(dwServerID);
-            else
-                AutoLoginDebug("HandleWindows(): GetServerID(%s) returned 0 at serverselect", szServerName);
+			bWait = false;
+			bServerWait = false;
+			return;
+        } else if (!szServerName[0]) {
+			AutoLoginDebug("HandleWindows(): szServerName NULL at serverselect.  Ending Login");
+			bLogin = false;
+			bEnd = true;
+			return;
+		} else {
+			if (bServerWait)
+				return;
+			if (dwServerID = GetServerID(szServerName)) {
+				pLoginClient->EnterGame(dwServerID);
+				bSwitchServer = false;
+				bServerWait = true;
+			} else {
+				AutoLoginDebug("HandleWindows(): GetServerID(%s) returned 0 at serverselect", szServerName);
+			}
+			return;
         }
     }
     else if(WindowActive("news"))
@@ -1212,6 +1329,7 @@ void HandleWindows()
 
 bool SetOffsets()
 {
+	//MessageBox(NULL, "About to find addresses", "Inject Now", MB_OK | MB_SYSTEMMODAL);
     if(dwLoginClient = _FindPattern(dwEQMainBase, 0x100000, lcPattern, lcMask))
     {
         dwLoginClient = _GetDWordAt(dwLoginClient, 1);
@@ -1227,13 +1345,12 @@ bool SetOffsets()
         AutoLoginDebug("Error: !dwEnterGame");
         return false;
     }
-
     return true;
 }
 
 bool SetOffsetsUI()
 {
-    DWORD dwSidlMgr = 0, dwWndMgr = 0, dwLoginMgr = 0;
+	DWORD dwSidlMgr = 0, dwWndMgr = 0, dwLoginMgr = 0;
 
     if(!(dwGetXMLDataAddr = _FindPattern(dwEQMainBase, 0x100000, xmldataPattern, xmldataMask)))
     {
@@ -1270,6 +1387,7 @@ bool SetOffsetsUI()
     if(dwLoginMgr = _FindPattern(dwEQMainBase, 0x100000, lvmPattern, lvmMask))
     {
         dwLoginMgr = _GetDWordAt(dwLoginMgr, 1);
+		dwServerInfo = dwLoginMgr - 4;
     }
     else
     {
@@ -1319,14 +1437,6 @@ inline void LoginReset()
     pWindowManager = 0;
     pLoginViewManager = 0;
     WindowMap.clear();
-	int ret = WaitForSingleObject(hLoginThread, 10000);
-	if (ret == WAIT_TIMEOUT) {
-		TerminateThread(hLoginThread, 0);
-	}
-	int ret2 = WaitForSingleObject(hthisisatest, 10000);
-	if (ret2 == WAIT_TIMEOUT) {
-		TerminateThread(hthisisatest, 0);
-	}
 }
 
 #ifdef AUTOLOGIN_DBG

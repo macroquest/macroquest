@@ -1,3 +1,28 @@
+5 Jul 2016 by eqmule
+- The integrity checker is now 714% faster (or something).
+- Updated mq2autologin, its not going to crash you ever again (well in theory at least)
+  So, look, mq2autologin has been overhauled, and I also figured out where the serverids
+  are being stored, this means that from now on you can place server shortnames in the mq2autologin.ini
+  and as long as they have a server LONGNAME that matches what you see in the server select list it will be able to log you in.
+  This is particularly useful on emulator login servers that assign dynamic IDs.
+  NOTE2: for live servers, like tunare and drinal for example, those really ARE the real shortnames so I use those.
+         BUT for emu servers, I have no idea what their shortanmes are, sometimes they dont even use a "short name", but instead, they use like a really long one with
+		 spaces in it and so on, so I HIGHLY recommend you stick to a short name with no spaces in it, especially IF you are using the new MQ2 login feature on
+		 the tray icon because eqgame only accepts 30 character commandlines so having a really long "shortname" will definaltely break that type of login for you...
+		 bottomline, the mq2 login feature doesn't really care if the shortname is fake or real, it will use whatever is in your profile when it look them up in the ini.
+  NOTE3: for live and test servers, obviously the staic id of those servers is still valid, and mq2autologin will still be able to look those up internally
+  like it always have, this new ini setting is mainly for emu servers, but you can of course add any server u like, even live ones.
+  so without further ado here is an:
+    Example of a [Servers] section in mq2autologin.ini (note that I have no idea if these servers even allow mq2, this is just an example)
+	[Servers]
+	tunare=Tunare - The Seventh Hammer
+	drinal=Drinal - Maelin Starpyre
+	firiona=Firiona Vie (Roleplaying Preferred)
+	peqtgc=[] [PEQ]The Grand Creation [legit-god]
+	ezserv=[] EZ Server - Custom Zones, Vendors, Quests, Items, etc
+	stormhav=[] Storm Haven - High-Quality Custom Content
+	alkabor=[] The Al'Kabor Project [www.takproject.net]
+
 25 Jul 2016 by eqmule
 - THE BIG #pragma warnings SHOULD DIE patch...
 - I have removed the #pragma warnings for depreciated string functions.
@@ -22,7 +47,7 @@
   Here is a link to a post that has all my personal versions of the plugins I use, that I have fixed for this release:
 - http://www.macroquest2.com/phpBB3/viewtopic.php?f=50&t=20053
 - pMQ2Blech is no longer an export, create your own Blechs, cause hooking into that one is no longer an option.
-  (this means mq2moveutils need to be updated see bottom link for updated plugins.)
+  (this means mq2moveutils need to be updated see above link for updated plugins.)
 
 13 Jul 2016
 - Updated for LIVE

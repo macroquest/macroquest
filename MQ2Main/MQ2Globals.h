@@ -50,9 +50,10 @@ namespace MQ2Globals
 	EQLIB_VAR DWORD gdwLocalPlayer;
 	EQLIB_API CHAR gszTime[32];
 	EQLIB_API int gBuild;
-
+	EQLIB_API bool gbDoingModuleChecks;
 
 	EQLIB_API ePVPServer PVPServer;
+	EQLIB_API HANDLE ghInitializeMQ2SpellDb;
 	EQLIB_VAR HANDLE ghLockSpellMap;
 	EQLIB_VAR HANDLE ghLockPickZone;
 	EQLIB_VAR HANDLE ghLockDelayCommand;
@@ -1284,7 +1285,10 @@ namespace MQ2Globals
 	EQLIB_VAR DWORD EQ_Character__TotalEffect;
 	EQLIB_VAR DWORD EQ_Character__GetPCSpellAffect;
 	EQLIB_VAR DWORD EQ_Character__SpellDuration;
-
+	EQLIB_VAR DWORD CCharacterSelect__SelectCharacter;
+	EQLIB_VAR DWORD CCharacterSelect__EnterWorld;
+	EQLIB_VAR DWORD CCharacterSelect__Quit;
+	
 	EQLIB_VAR DWORD EQ_Item__CanDrop;
 	EQLIB_VAR DWORD EQ_Item__CreateItemTagString;
 	EQLIB_VAR DWORD EQ_Item__IsStackable;
@@ -1385,5 +1389,6 @@ namespace MQ2Globals
 	EQLIB_VAR DWORD msg_new_text;
 	EQLIB_VAR DWORD msgTokenTextParam;
 	EQLIB_VAR DWORD SpellManager__SpellManager;
+	EQLIB_VAR DWORD Spellmanager__CheckSpellRequirementAssociations;
 }
 using namespace MQ2Globals;

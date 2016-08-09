@@ -171,7 +171,27 @@ void RemoveDetour(DWORD address)
 	}
 	DebugSpew("Detour not found in RemoveDetour()");
 }
+void DeleteDetour(DWORD address)
+{
+	CAutoLock Lock(&gDetourCS);
+	OurDetours *detour = ourdetours;
+	while (detour)
+	{
+		if (detour->addr == address)
+		{
+			if (detour->pLast)
+				detour->pLast->pNext = detour->pNext;
+			else
+				ourdetours = detour->pNext;
 
+			if (detour->pNext)
+				detour->pNext->pLast = detour->pLast;
+			delete detour;
+			return;
+		}
+		detour = detour->pNext;
+	}
+}
 void RemoveOurDetours()
 {
 	CAutoLock Lock(&gDetourCS);
@@ -288,7 +308,34 @@ DETOUR_TRAMPOLINE_EMPTY(int CPacketScrambler::hton_tramp(int, int));
 #define EB_SIZE (1024*4)
 void emotify(void);
 void emotify2(char *buffer);
+bool gbDoingSpellChecks = false;
 
+class Spellmanager
+{
+public:
+#ifndef EMU
+	bool CheckSpellRequirementAssociations_Tramp(char*, char*, DWORD, DWORD);
+	bool CheckSpellRequirementAssociations_Detour(char*A, char*B, DWORD C, DWORD D)
+#else
+	bool CheckSpellRequirementAssociations_Tramp(char*, char*, DWORD);
+	bool CheckSpellRequirementAssociations_Detour(char*A, char*B, DWORD C)
+#endif
+	{
+		gbDoingSpellChecks = true;
+		#ifndef EMU
+		bool ret = CheckSpellRequirementAssociations_Tramp(A, B, C, D);
+		#else
+		bool ret = CheckSpellRequirementAssociations_Tramp(A, B, C);
+		#endif
+		gbDoingSpellChecks = false;
+		return ret;
+	}
+};
+#ifndef EMU
+DETOUR_TRAMPOLINE_EMPTY(bool Spellmanager::CheckSpellRequirementAssociations_Tramp(char*, char*, DWORD, DWORD));
+#else
+DETOUR_TRAMPOLINE_EMPTY(bool Spellmanager::CheckSpellRequirementAssociations_Tramp(char*, char*, DWORD));
+#endif
 // we need this detour to clean up the stack because
 // emote sends 1024 bytes no matter how many bytes in the string
 // MQ2 variables get left on the stack....
@@ -463,6 +510,8 @@ VOID HookMemChecker(BOOL Patch)
 		EzDetour(CPacketScrambler__hton, &CPacketScrambler::hton_detour, &CPacketScrambler::hton_tramp);
 		EzDetour(CPacketScrambler__ntoh, &CPacketScrambler::ntoh_detour, &CPacketScrambler::ntoh_tramp);
 		EzDetour(CEverQuest__Emote, &CEmoteHook::Detour, &CEmoteHook::Trampoline);
+		EzDetour(Spellmanager__CheckSpellRequirementAssociations, &Spellmanager::CheckSpellRequirementAssociations_Detour, &Spellmanager::CheckSpellRequirementAssociations_Tramp);
+		
 
 		HookInlineChecks(Patch);
 	}
@@ -500,12 +549,41 @@ VOID HookMemChecker(BOOL Patch)
 		RemoveDetour(CPacketScrambler__hton);
 
 		RemoveDetour(CEverQuest__Emote);
+		RemoveDetour(Spellmanager__CheckSpellRequirementAssociations);
 	}
 }
 #endif
 
+DWORD IsAddressDetoured(unsigned int address, int count)
+{
+	if (gbDoingModuleChecks)
+		return 4;
+	if (gbDoingSpellChecks)
+		return 3;
+	if (address && *(DWORD*)address == 0x00905a4d)
+	{
+		//its a executable being checked
+		return 2;
+	}
+
+	
+	OurDetours *detour = ourdetours;
+	while (detour) {
+		if(detour->count && address <= detour->addr && detour->addr <= (address + count)) {
+			return 1;
+		}
+		detour = detour->pNext;
+	}
+	return 0;
+}
 int __cdecl memcheck0(unsigned char *buffer, int count)
 {
+	int orgret = memcheck0_tramp(buffer, count);
+	unsigned int addr = (int)&buffer[0];
+	DWORD dwGetOrg = IsAddressDetoured(addr, count);
+	if (dwGetOrg >= 2)//pointless to detour check this cause its just getting a hash for the spelldb or a executable we dont care about, and we dont mess with that.
+		return orgret;
+
 	unsigned int x, i;
 	unsigned int eax = 0xffffffff;
 
@@ -528,18 +606,29 @@ int __cdecl memcheck0(unsigned char *buffer, int count)
 #ifdef ISXEQ
 		tmp = realbuffer[i];
 #else
-		unsigned int b = (int)&buffer[i];
-		OurDetours *detour = ourdetours;
-		while (detour)
-		{
-			if (detour->count && (b >= detour->addr) &&
-				(b < detour->addr + detour->count)) {
-				tmp = detour->array[b - detour->addr];
-				break;
+		if (dwGetOrg==1) {
+			DWORD eqgamebase = (DWORD)GetModuleHandle(NULL);
+			unsigned int b = (int)&buffer[i];
+			OurDetours *detour = ourdetours;
+			while (detour)
+			{
+				DWORD newaddr = b + 0x400 + (detour->addr-eqgamebase-0x1000);
+				if (newaddr && newaddr <= (addr+count) && *(BYTE*)newaddr==0xe9 && *(DWORD*)newaddr==*(DWORD*)detour->addr) {
+					Sleep(0);
+				}
+				if (detour->count && (b >= detour->addr) &&	(b < detour->addr + detour->count)) {
+					tmp = detour->array[b - detour->addr];
+					break;
+				}
+				detour = detour->pNext;
 			}
-			detour = detour->pNext;
+			if (!detour)
+				tmp = buffer[i];
 		}
-		if (!detour) tmp = buffer[i];
+		else {
+			//if (!detour)
+			tmp = buffer[i];
+		}
 #endif
 		x = (int)tmp ^ (eax & 0xff);
 		eax = ((int)eax >> 8) & 0xffffff;
@@ -550,6 +639,12 @@ int __cdecl memcheck0(unsigned char *buffer, int count)
 #ifdef ISXEQ
 	free(realbuffer);
 #endif
+	if (orgret != eax)
+	{
+		//wtf?
+		MessageBox(NULL, "WARNING, this should not hapen, contact eqmule", "memchecker0 mismatch", MB_OK | MB_SYSTEMMODAL);
+		_asm int 3;
+	}
 	return eax;
 }
 
@@ -982,10 +1077,14 @@ int __cdecl memcheck3(unsigned char *buffer, int count, struct mckey key)
 	//                leave
 	//                retn
 }
-
+//?Crc32@UdpMisc@UdpLibrary@@SAHPBXHH@Z
 int __cdecl memcheck4(unsigned char *buffer, int count, struct mckey key)
 {
-
+	int orgret = memcheck4_tramp(buffer, count, key);
+	unsigned int addr = (int)&buffer[0];
+	DWORD dwGetOrg = IsAddressDetoured(addr, count);
+	if (dwGetOrg == 0)
+		return orgret;
 	unsigned int eax, ebx, edx, i;
 
 	if (!extern_array4) {
@@ -1024,10 +1123,9 @@ int __cdecl memcheck4(unsigned char *buffer, int count, struct mckey key)
 #ifdef ISXEQ
 		tmp = realbuffer[i];
 #else
-		unsigned int b = (int)&buffer[i];
-		OurDetours *detour = ourdetours;
-		try 
-		{
+		if (dwGetOrg == 1) {
+			unsigned int b = (int)&buffer[i];
+			OurDetours *detour = ourdetours;
 			while (detour)
 			{
 				if (detour->count && (b >= detour->addr) &&
@@ -1040,9 +1138,7 @@ int __cdecl memcheck4(unsigned char *buffer, int count, struct mckey key)
 			if (!detour)
 				tmp = buffer[i];
 		}
-		catch (...) {
-			MessageBox(NULL, "Caught an exception in memchecker4","CRAP!!!", MB_SYSTEMMODAL | MB_OK);
-			Sleep(0);
+		else {
 			tmp = buffer[i];
 		}
 #endif
@@ -1056,6 +1152,12 @@ int __cdecl memcheck4(unsigned char *buffer, int count, struct mckey key)
 #ifdef ISXEQ
 	free(realbuffer);
 #endif
+	if (orgret != eax)
+	{
+		//wtf?
+		MessageBox(NULL, "WARNING, this should not hapen, contact eqmule", "memchecker4 mismatch", MB_OK | MB_SYSTEMMODAL);
+		_asm int 3;
+	}
 	return eax;
 }
 #ifdef EMU
@@ -1139,7 +1241,9 @@ int LoadFrontEnd_Detour()
 
 	DebugTry(Benchmark(bmPluginsSetGameState, PluginsSetGameState(gGameState)));
 
-	return LoadFrontEnd_Trampoline();
+	int ret = LoadFrontEnd_Trampoline();
+	PluginsSetGameState(GAMESTATE_POSTFRONTLOAD);
+	return ret;
 }
 #endif
 void InitializeMQ2Detours()

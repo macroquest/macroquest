@@ -246,6 +246,7 @@ namespace MQ2Globals
 	/* PickZone */
 	HANDLE ghLockPickZone = 0;
 	HANDLE ghLockDelayCommand = 0;
+	HANDLE ghInitializeMQ2SpellDb = 0;
 	HANDLE ghCCommandLock = 0;
 	/* BENCHMARKS */
 	DWORD bmWriteChatColor = 0;
@@ -283,6 +284,7 @@ namespace MQ2Globals
 	#else
 		int gBuild = 1;//LIVE
 	#endif
+	bool gbDoingModuleChecks = false;
 	DWORD gGameState = 0;
 	DWORD gMaxSpawnCaptions = 30;
 	BOOL gMQCaptions = TRUE;
@@ -1816,7 +1818,10 @@ namespace MQ2Globals
 	INITIALIZE_EQGAME_OFFSET(EQ_Character__TotalEffect);
 	INITIALIZE_EQGAME_OFFSET(EQ_Character__GetPCSpellAffect);
 	INITIALIZE_EQGAME_OFFSET(EQ_Character__SpellDuration);
-	
+	INITIALIZE_EQGAME_OFFSET(CCharacterSelect__SelectCharacter);
+	INITIALIZE_EQGAME_OFFSET(CCharacterSelect__EnterWorld);
+	INITIALIZE_EQGAME_OFFSET(CCharacterSelect__Quit);
+
 	INITIALIZE_EQGAME_OFFSET(EQ_Item__CanDrop);
 	INITIALIZE_EQGAME_OFFSET(EQ_Item__CreateItemTagString);
 	INITIALIZE_EQGAME_OFFSET(EQ_Item__IsStackable);
@@ -1906,6 +1911,7 @@ namespace MQ2Globals
 	INITIALIZE_EQGAME_OFFSET(msg_new_text);
 	INITIALIZE_EQGAME_OFFSET(msgTokenTextParam);
 	INITIALIZE_EQGAME_OFFSET(SpellManager__SpellManager);
+	INITIALIZE_EQGAME_OFFSET(Spellmanager__CheckSpellRequirementAssociations);
 	#ifdef __ExecuteCmd_x
 #ifndef EMU
 FUNCTION_AT_ADDRESS(BOOL __cdecl EQExecuteCmd(DWORD arg1, BOOL arg2, PVOID arg3, BOOL arg4), __ExecuteCmd);

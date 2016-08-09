@@ -461,6 +461,7 @@ DWORD __stdcall InitializeMQ2SpellDb(PVOID pData)
 		//ok everything checks out lets fill our own map with spells
 		PopulateSpellMap();
 	}
+	ghInitializeMQ2SpellDb = 0;
 	return 0;
 }
 #ifndef ISXEQ

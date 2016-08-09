@@ -1184,7 +1184,7 @@ EQLIB_OBJECT void CCharacterSelect::EnterExplorationMode(void);
 EQLIB_OBJECT void CCharacterSelect::EnterWorld(void);
 EQLIB_OBJECT void CCharacterSelect::LeaveExplorationMode(void);
 EQLIB_OBJECT void CCharacterSelect::Quit(void);
-EQLIB_OBJECT void CCharacterSelect::SelectCharacter(int,int);
+EQLIB_OBJECT void CCharacterSelect::SelectCharacter(int,int,int);
 EQLIB_OBJECT void CCharacterSelect::SetLoadZonePlayerLocation(void);
 EQLIB_OBJECT void CCharacterSelect::SwitchModel(class EQPlayer *,unsigned char,int,unsigned char,unsigned char);
 EQLIB_OBJECT void CCharacterSelect::UpdateButtonNames(void);

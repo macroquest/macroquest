@@ -329,8 +329,7 @@ VOID MQ2KeyBindCommand(PSPAWNINFO pChar, PCHAR szLine)
         WriteChatColor("Usage: /bind <list|eqlist|[~]name <combo|clear>>");
         return;
     }
-    CHAR szBuffer[MAX_STRING];
-    CHAR szArg1[MAX_STRING] = {0};
+	CHAR szArg1[MAX_STRING] = { 0 };
     GetArg(szArg1,szLine,1);
     PCHAR szRest = GetNextArg(szLine);
     PCHAR szArg=&szArg1[0];
@@ -428,7 +427,7 @@ VOID MQ2KeyBindCommand(PSPAWNINFO pChar, PCHAR szLine)
     } 
 
 
-
+	CHAR szBuffer[MAX_STRING] = { 0 };
     if (SetMQ2KeyBind(szArg,AltKey,NewCombo))
     {
         MQ2KeyBind *pBind=KeyBindByName(szArg);

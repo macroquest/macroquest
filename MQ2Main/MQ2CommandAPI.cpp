@@ -546,7 +546,7 @@ BOOL RemoveSubstitute(PCHAR Original)
 
 void InitializeMQ2Commands()
 {
-    int i;
+    int i = 0;
     DebugSpew("Initializing Commands");
     InitializeCriticalSection(&gCommandCS);
 	if (!ghCCommandLock)

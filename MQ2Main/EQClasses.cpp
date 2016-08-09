@@ -818,7 +818,7 @@ FUNCTION_AT_ADDRESS(int  CCharacterSelect::NumberOfCharacters(void),CCharacterSe
 FUNCTION_AT_ADDRESS(unsigned char  CCharacterSelect::IsEvil(int,int,int),CCharacterSelect__IsEvil);
 #endif
 #ifdef CCharacterSelect__SelectCharacter_x
-FUNCTION_AT_ADDRESS(void  CCharacterSelect::SelectCharacter(int,int),CCharacterSelect__SelectCharacter);
+FUNCTION_AT_ADDRESS(void  CCharacterSelect::SelectCharacter(int,int,int),CCharacterSelect__SelectCharacter);
 #endif
 #ifdef CCharacterSelect__SetLoadZonePlayerLocation_x
 FUNCTION_AT_ADDRESS(void  CCharacterSelect::SetLoadZonePlayerLocation(void),CCharacterSelect__SetLoadZonePlayerLocation);
