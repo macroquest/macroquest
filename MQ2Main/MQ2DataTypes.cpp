@@ -8006,6 +8006,10 @@ bool MQ2EverQuestType::GETMEMBER()
 		Dest.Type = pStringType;
 		return true;
 	}
+	case LayoutCopyInProgress:
+		Dest.DWord = *(BYTE*)CSidlScreenWnd__m_layoutCopy;
+		Dest.Type = pBoolType;
+		return true;
 	}
 	return false;
 }
@@ -11008,6 +11012,10 @@ bool MQ2TaskObjectiveType::GETMEMBER()
 		case Zone:
 			clist->GetItemText(&Str, VarPtr.Int, 2);
 			break;
+		case xIndex:
+			Dest.Int = VarPtr.Int;
+			Dest.Type = pIntType;
+			return true;
 		}
 		CHAR szOut[255] = { 0 };
 		GetCXStr(Str.Ptr, szOut, 254);

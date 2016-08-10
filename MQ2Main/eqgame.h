@@ -554,6 +554,7 @@ GNU General Public License for more details.
 #define CSidlScreenWnd__WndNotification_x                          0x8CE840
 #define CSidlScreenWnd__GetChildItem_x                             0x8CCDF0
 #define CSidlScreenWnd__HandleLButtonUp_x                          0x8C0550
+#define CSidlScreenWnd__m_layoutCopy_x                             0x1814AD8
 
 // CSkillMgr
 #define CSkillMgr__IsAvailable_x                                   0x5F8770

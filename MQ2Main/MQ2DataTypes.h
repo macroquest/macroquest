@@ -2918,6 +2918,7 @@ public:
 		ViewportXCenter = 20,
 		ViewportYCenter = 21,
 		xScreenMode = 22,
+		LayoutCopyInProgress = 23,
 	};
 	enum EverQuestMethods
 	{
@@ -2946,6 +2947,7 @@ public:
 		TypeMember(PID);
 		TypeMember(PPriority);
 		AddMember(xScreenMode, "ScreenMode");
+		TypeMember(LayoutCopyInProgress);
 	}
 
 	~MQ2EverQuestType()
@@ -4504,12 +4506,14 @@ class MQ2TaskObjectiveType : public MQ2Type
 		Instruction = 1,
 		Status = 2,
 		Zone = 3,
+		xIndex = 4,
 	};
 	MQ2TaskObjectiveType() :MQ2Type("taskobjectivemember")
 	{
 		TypeMember(Instruction);
 		TypeMember(Status);
 		TypeMember(Zone);
+		AddMember(xIndex, "Index");
 	}
 	~MQ2TaskObjectiveType()
 	{

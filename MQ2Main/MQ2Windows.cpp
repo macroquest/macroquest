@@ -1316,7 +1316,7 @@ int ItemNotify(int argc, char *argv[])
 					PCONTENTS pItem = FindItemBySlot(invslot,bagslot);
 					if(pItem) {
 						if (GetItemFromContents(pItem)->Clicky.SpellID > 0 && GetItemFromContents(pItem)->Clicky.SpellID!=-1) {
-							CHAR cmd[40] = {0};
+							CHAR cmd[MAX_STRING] = {0};
 							sprintf_s(cmd, "/useitem \"%s\"", GetItemFromContents(pItem)->Name);
 							EzCommand(cmd);
 							RETURN(0);
@@ -1397,7 +1397,7 @@ int ItemNotify(int argc, char *argv[])
 						}
 						RETURN(0);
 					} else if (pClicky && pClicky->Clicky.SpellID!=-1)	{
-						CHAR cmd[40] = {0};
+						CHAR cmd[512] = {0};
 						sprintf_s(cmd, "/useitem \"%s\"", GetItemFromContents(ptheitem)->Name);
 						EzCommand(cmd);
 						RETURN(0);

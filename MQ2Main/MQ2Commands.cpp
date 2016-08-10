@@ -2402,7 +2402,7 @@ VOID Cast(PSPAWNINFO pChar, PCHAR szLine)
 			{
 				if (GetItemFromContents(pItem)->Clicky.SpellID > 0 && GetItemFromContents(pItem)->Clicky.SpellID != -1)
 				{
-					CHAR cmd[512] = { 0 };
+					CHAR cmd[MAX_STRING] = { 0 };
 					sprintf_s(cmd, "/useitem \"%s\"", GetItemFromContents(pItem)->Name);
 					EzCommand(cmd);
 				}

@@ -1703,6 +1703,7 @@ namespace MQ2Globals
 	INITIALIZE_EQGAME_OFFSET(CSidlScreenWnd__WndNotification);
 	INITIALIZE_EQGAME_OFFSET(CSidlScreenWnd__GetChildItem);
 	INITIALIZE_EQGAME_OFFSET(CSidlScreenWnd__HandleLButtonUp);
+	INITIALIZE_EQGAME_OFFSET(CSidlScreenWnd__m_layoutCopy);
 
 	INITIALIZE_EQGAME_OFFSET(CSkillMgr__IsAvailable);
 	INITIALIZE_EQGAME_OFFSET(CSkillMgr__GetSkillCap);

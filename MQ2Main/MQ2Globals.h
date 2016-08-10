@@ -1171,6 +1171,7 @@ namespace MQ2Globals
 	EQLIB_VAR DWORD CSidlScreenWnd__WndNotification;
 	EQLIB_VAR DWORD CSidlScreenWnd__GetChildItem;
 	EQLIB_VAR DWORD CSidlScreenWnd__HandleLButtonUp;
+	EQLIB_VAR DWORD CSidlScreenWnd__m_layoutCopy;
 
 	EQLIB_VAR DWORD CSkillMgr__IsAvailable;
 	EQLIB_VAR DWORD CSkillMgr__GetSkillCap;

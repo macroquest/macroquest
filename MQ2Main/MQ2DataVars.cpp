@@ -631,11 +631,11 @@ void TellCheck(char *szClean)
 		}
 		if(gbFlashOnTells && itsatell) {
 			if(PCHARINFO pChar = GetCharInfo()) {
-				if(_stricmp(pChar->Name,name)) {//dont flash if its our own character doing the tell...
-					if(pChar->pSpawn) {
+				if (_stricmp(pChar->Name, name)) {//dont flash if its our own character doing the tell...
+					if (pChar->pSpawn) {
 						if (pChar->pSpawn->PetID) {
-							if(PSPAWNINFO pPet = (PSPAWNINFO)GetSpawnByID(pChar->pSpawn->PetID)) {
-								if(!_stricmp(pPet->DisplayedName,name)) {
+							if (PSPAWNINFO pPet = (PSPAWNINFO)GetSpawnByID(pChar->pSpawn->PetID)) {
+								if (!_stricmp(pPet->DisplayedName, name)) {
 									return;//its our pet dont flash on its tells.
 								}
 							}
@@ -644,6 +644,18 @@ void TellCheck(char *szClean)
 					if (PSPAWNINFO pNpc = (PSPAWNINFO)GetSpawnByPartialName(name)) {
 						if (pNpc->Type != SPAWN_PLAYER) {
 							return;//its an npc or something, dont flash on it
+						}
+					}
+					else {
+						CHAR szSearch[MAX_STRING] = { 0 };
+						sprintf_s(szSearch, "npc %s", name);
+						SEARCHSPAWN ssSpawn;
+						ClearSearchSpawn(&ssSpawn);
+						ParseSearchSpawn(szSearch, &ssSpawn);
+						if (PSPAWNINFO pNpc = SearchThroughSpawns(&ssSpawn, (PSPAWNINFO)pCharSpawn)) {
+							if (pNpc->Type != SPAWN_PLAYER) {
+								return;//its an npc or something, dont flash on it
+							}
 						}
 					}
 					DWORD nThreadId = 0;
@@ -666,6 +678,17 @@ void TellCheck(char *szClean)
 					if (PSPAWNINFO pNpc = (PSPAWNINFO)GetSpawnByPartialName(name)) {
 						if (pNpc->Type != SPAWN_PLAYER) {
 							return;//its an npc or something, dont beep on it
+						}
+					} else {
+						CHAR szSearch[MAX_STRING] = { 0 };
+						sprintf_s(szSearch, "npc %s", name);
+						SEARCHSPAWN ssSpawn;
+						ClearSearchSpawn(&ssSpawn);
+						ParseSearchSpawn(szSearch, &ssSpawn);
+						if (PSPAWNINFO pNpc = SearchThroughSpawns(&ssSpawn, (PSPAWNINFO)pCharSpawn)) {
+							if (pNpc->Type != SPAWN_PLAYER) {
+								return;//its an npc or something, dont flash on it
+							}
 						}
 					}
 					DWORD nThreadId = 0;

@@ -1,4 +1,10 @@
-5 Jul 2016 by eqmule
+9 Aug 2016 by eqmule
+- Added .LayoutCopyInProgress to the EverQuest TLO
+  it returns TRUE if a layoutcopy is in progress and FALSE if not.
+- Fixed a couple buffer overflow bugs.
+- Misc stuff.
+
+8 Aug 2016 by eqmule
 - The integrity checker is now 714% faster (or something).
 - Updated mq2autologin, its not going to crash you ever again (well in theory at least)
   So, look, mq2autologin has been overhauled, and I also figured out where the serverids
@@ -10,7 +16,7 @@
 		 spaces in it and so on, so I HIGHLY recommend you stick to a short name with no spaces in it, especially IF you are using the new MQ2 login feature on
 		 the tray icon because eqgame only accepts 30 character commandlines so having a really long "shortname" will definaltely break that type of login for you...
 		 bottomline, the mq2 login feature doesn't really care if the shortname is fake or real, it will use whatever is in your profile when it look them up in the ini.
-  NOTE3: for live and test servers, obviously the staic id of those servers is still valid, and mq2autologin will still be able to look those up internally
+  NOTE3: for live and test servers, obviously the static id of those servers is still valid, and mq2autologin will still be able to look those up internally
   like it always have, this new ini setting is mainly for emu servers, but you can of course add any server u like, even live ones.
   so without further ado here is an:
     Example of a [Servers] section in mq2autologin.ini (note that I have no idea if these servers even allow mq2, this is just an example)
