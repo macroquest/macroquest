@@ -43,9 +43,9 @@ INITIALIZE_EQGAME_OFFSET(startworlddisplayexceptionhandler);
 PLUGIN_API VOID InitializePlugin(VOID)
 {
     DebugSpewAlways("Initializing MQ2EQBugFix");
-    EzDetour(CDisplay__is3dON, &CDisplay_Hook::is_3dON_Detour, &CDisplay_Hook::is_3dON_Trampoline);
+    EzDetourwName(CDisplay__is3dON, &CDisplay_Hook::is_3dON_Detour, &CDisplay_Hook::is_3dON_Trampoline,"CDisplay__is3dON");
     #ifdef EQMULETESTINGSTUFF
-	//EzDetour(startworlddisplayexceptionhandler, startworddisplayexceptionhandler_Detour, startworddisplayexceptionhandler_Trampoline);
+	//EzDetourwName(startworlddisplayexceptionhandler, startworddisplayexceptionhandler_Detour, startworddisplayexceptionhandler_Trampoline,"startworlddisplayexceptionhandler");
 	#endif
 }
 

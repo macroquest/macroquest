@@ -59,7 +59,7 @@ DETOUR_TRAMPOLINE_EMPTY(struct T3D_tagACTORINSTANCE *FakeCDisplay::GetClickedAct
 void MQ2MouseHooks(BOOL bFlag)
 {
 	if(bFlag) {
-		EzDetour(CDisplay__GetClickedActor,&FakeCDisplay::GetClickedActor_Detour,&FakeCDisplay::GetClickedActor_Tramp);
+		EzDetourwName(CDisplay__GetClickedActor,&FakeCDisplay::GetClickedActor_Detour,&FakeCDisplay::GetClickedActor_Tramp,"CDisplay__GetClickedActor");
 	} else {
 		RemoveDetour(CDisplay__GetClickedActor);
 	}

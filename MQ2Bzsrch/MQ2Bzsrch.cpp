@@ -444,7 +444,7 @@ PLUGIN_API VOID InitializePlugin(VOID)
     //AddCommand("/pricecheck",bzpc);
     AddMQ2Data("Bazaar",dataBazaar);              // cc - added, but not using TLO yet
 
-    EzDetour(CBazaarSearchWnd__HandleBazaarMsg,&BzSrchHook::BzDetour,&BzSrchHook::BzTrampoline);
+    EzDetourwName(CBazaarSearchWnd__HandleBazaarMsg,&BzSrchHook::BzDetour,&BzSrchHook::BzTrampoline,"CBazaarSearchWnd__HandleBazaarMsg");
     pBazaarType = new MQ2BazaarType;
     pBazaarItemType = new MQ2BazaarItemType;
 }

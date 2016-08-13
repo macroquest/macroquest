@@ -222,9 +222,11 @@ extern DWORD CountFrees;
 #ifndef ISXEQ
 #ifdef ISXEQ_LEGACY
 #define EzDetour(offset,detour,trampoline)
+#define EzDetourwName(offset,detour,trampoline,name)
 #define DETOUR_TRAMPOLINE_EMPTY(blah)
 #else
 #define EzDetour(offset,detour,trampoline) AddDetourf((DWORD)offset,detour,trampoline)
+#define EzDetourwName(offset,detour,trampoline,name) AddDetourf((DWORD)offset,detour,trampoline,name)
 #endif
 #endif
 
@@ -329,13 +331,14 @@ EQLIB_API VOID dsp_chat_no_events(const char *, int, bool, bool = 1);
 /* DETOURING API */
 EQLIB_API VOID InitializeMQ2Detours();
 EQLIB_API VOID ShutdownMQ2Detours();
+
 #ifndef ISXEQ
 #ifdef ISXEQ_LEGACY
 #define RemoveDetour(address)
 #define AddDetour __noop
 #define AddDetourf __noop
 #else
-EQLIB_API BOOL AddDetour(DWORD address, PBYTE pfDetour = 0, PBYTE pfTrampoline = 0, DWORD Count = 20);
+EQLIB_API BOOL AddDetour(DWORD address, PBYTE pfDetour = 0, PBYTE pfTrampoline = 0, DWORD Count = 20, PCHAR Name = 0);
 EQLIB_API VOID AddDetourf(DWORD address, ...);
 EQLIB_API VOID RemoveDetour(DWORD address);
 EQLIB_API void DeleteDetour(DWORD address);

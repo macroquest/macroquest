@@ -278,9 +278,9 @@ VOID InitializeChatHook()
     pMQ2Blech=new Blech('#','|',MQ2DataVariableLookup);
     DebugSpew("%s",pMQ2Blech->Version);
 #endif
-    EzDetour(CEverQuest__dsp_chat,&CChatHook::Detour,&CChatHook::Trampoline);
-    EzDetour(CEverQuest__DoTellWindow,&CChatHook::TellWnd_Detour,&CChatHook::TellWnd_Trampoline);
-    EzDetour(CEverQuest__UPCNotificationFlush,&CChatHook::UPCNotificationFlush_Detour,&CChatHook::UPCNotificationFlush_Trampoline);
+    EzDetourwName(CEverQuest__dsp_chat,&CChatHook::Detour,&CChatHook::Trampoline,"CEverQuest__dsp_chat");
+    EzDetourwName(CEverQuest__DoTellWindow,&CChatHook::TellWnd_Detour,&CChatHook::TellWnd_Trampoline,"CEverQuest__DoTellWindow");
+    EzDetourwName(CEverQuest__UPCNotificationFlush,&CChatHook::UPCNotificationFlush_Detour,&CChatHook::UPCNotificationFlush_Trampoline,"CEverQuest__UPCNotificationFlush");
 #ifndef ISXEQ
 	AddCommand("/timestamp", TimeStampChat);
 	AddCommand("/beepontells", BeepOnTells);

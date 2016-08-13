@@ -1,4 +1,18 @@
-9 Aug 2016 by eqmule
+12 Aug 2016 by eqmule
+- Updated for TEST
+- EzDetour is now EzDetourwName all EzDetour( calls should be replaced to use the new EzDetourwName
+  I did this because debugging /unload crashes is much easier now.
+  EzDetour is still in the compile for awhile to give everyone time for the transition but expect it to be gone in due time.
+- Misc updates, fixed a bug in macroquest2.exe which would prevent loading profiles that where not checked.
+  made edit and delete work on (Loaded) profiles
+- Fixed a bug in mq2autologin which would prevent it from working correctly if eqmain was already loaded on its initialization.
+- TRUEBOX will not load mq2eqbc, mq2cast, mq2moveutils or mq2melee anymore. It proved to be to much of an nuisance to me and other players.
+  And frankly too much negative attention is bad for mq2 as well. I'll take full responsibility for what went down, and I dont want that again.
+  We didn't create mq2 to get people banned, we created it to add utility.
+  TRUEBOX is likely to be scrapped altogether on the 17th although i might resurrect it in another form in the future.
+  BUT IF we ever go down this path again, expect only utility like audio triggers and maybe a dpsparser, think GINA and gamparse etc.
+
+9 Aug 2016
 - Added .LayoutCopyInProgress to the EverQuest TLO
   it returns TRUE if a layoutcopy is in progress and FALSE if not.
 - Fixed a couple buffer overflow bugs.
@@ -5047,10 +5061,10 @@ using the ability, the pointer location for that ability is now 00000000.
 - Added a popup box to the crash detected hook, explaining that the user should visit the
   MQ2::Bug Reports forum.
 - Removed EasyDetour and EasyClassDetour.  There is a single replacement for the both of them
-  called EzDetour.  EzDetour(offset,detour,trampoline).  Examples (which are all over in MQ2Main
+  called EzDetour.  EzDetourwName(offset,detour,trampoline).  Examples (which are all over in MQ2Main
   and plugins):
-  EzDetour(ProcessGameEvents,Detour_ProcessGameEvents,Trampoline_ProcessGameEvents);
-  EzDetour(CEverQuest__EnterZone,CEverQuestHook::EnterZone_Detour,CEverQuestHook::EnterZone_Trampoline);
+  EzDetourwName(ProcessGameEvents,Detour_ProcessGameEvents,Trampoline_ProcessGameEvents);
+  EzDetourwName(CEverQuest__EnterZone,CEverQuestHook::EnterZone_Detour,CEverQuestHook::EnterZone_Trampoline);
 - Renamed the REVERSE_DETOUR functions to reduce confusion.  These really had nothing to do
   with detours.  What it really does is lets you call a function at a given offset.  
   So, they are now:

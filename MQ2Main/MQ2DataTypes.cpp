@@ -8623,6 +8623,7 @@ bool MQ2PetType::GETMEMBER()
 #endif
 	}
 #define pPetInfoWindow ((PEQPETINFOWINDOW)pPetInfoWnd)
+	PEQPETINFOWINDOW pinfo = (PEQPETINFOWINDOW)pPetInfoWnd;
 	if (!pPetInfoWindow)
 		return false;
 	switch ((PetMembers)pMember->ID)

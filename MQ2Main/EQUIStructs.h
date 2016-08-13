@@ -901,18 +901,18 @@ typedef struct _TARGETINDICATOR
 //size 0x1a4 see 5FE489 in Oct 26 2015 -eqmule
 typedef struct _TARGETMANAGER
 {
-	/*0x000*/ BYTE Unknown0x000[0x184];
-	/*0x184*/ DWORD TargetID;
-	/*0x188*/ BYTE Unknown0x188[0x4];
-	/*0x18c*/ BYTE target_ring_in_focus;
-	/*0x18d*/ BYTE Unknown0x18d[3];
-	/*0x190*/ float target_ring_range; // squared for easier math
-	/*0x194*/ float target_ring_x; // probably vec3 type class, this is whats passed to castspell
-	/*0x198*/ float target_ring_y;
-	/*0x19c*/ float target_ring_z;
-	/*0x1a0*/ BYTE target_ring_good; //0=red 1=green 
-	/*0x1a1*/ BYTE Unknown0x1a1[3];
-	/*0x1a4*/
+/*0x000*/ BYTE Unknown0x000[0x184];
+/*0x184*/ DWORD TargetID;
+/*0x188*/ BYTE Unknown0x188[0x4];
+/*0x18c*/ BYTE target_ring_in_focus;
+/*0x18d*/ BYTE Unknown0x18d[3];
+/*0x190*/ float target_ring_range; // squared for easier math
+/*0x194*/ float target_ring_x; // probably vec3 type class, this is whats passed to castspell
+/*0x198*/ float target_ring_y;
+/*0x19c*/ float target_ring_z;
+/*0x1a0*/ BYTE target_ring_good; //0=red 1=green 
+/*0x1a1*/ BYTE Unknown0x1a1[3];
+/*0x1a4*/
 } TARGETMANAGER, *PTARGETMANAGER;
 
 //Jul 18 2015 -eqmule

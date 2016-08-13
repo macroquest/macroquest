@@ -551,7 +551,7 @@ void InitializeMQ2Commands()
     InitializeCriticalSection(&gCommandCS);
 	if (!ghCCommandLock)
 		ghCCommandLock = CreateMutex(NULL, FALSE, NULL);
-    EzDetour(CEverQuest__InterpretCmd,&CCommandHook::Detour,&CCommandHook::Trampoline);
+    EzDetourwName(CEverQuest__InterpretCmd,&CCommandHook::Detour,&CCommandHook::Trampoline,"CEverQuest__InterpretCmd");
 
     // Import EQ commands
     PCMDLIST pCmdListOrig = (PCMDLIST)EQADDR_CMDLIST;

@@ -750,38 +750,45 @@ public:
 		return Pulse_Tramp();
 	}
 };
+void RemoveLoginPulse();
 DETOUR_TRAMPOLINE_EMPTY(int Login::Pulse_Tramp());
 void AddOurPulse()
 {
-	bEnd = false;
-	if (dwEQMainBase = (DWORD)GetModuleHandle("eqmain.dll")) {
-		if (!(Login__Pulse_x = _FindPattern(dwEQMainBase, 0x200000, lpPattern, lpMask)))
+	if (GetModuleHandle("eqmain.dll")) {
+		bEnd = false;
+		if (dwEQMainBase = (DWORD)GetModuleHandle("eqmain.dll")) {
+			if (Login__Pulse_x)
+				RemoveLoginPulse();
+			if (!(Login__Pulse_x = _FindPattern(dwEQMainBase, 0x200000, lpPattern, lpMask)))
+			{
+				//MessageBox(NULL, "MQ2AutoLogin needs an update.", "Couldn't find Login__Pulse_x", MB_SYSTEMMODAL | MB_OK);
+				return;
+			}
+			if (Login__Pulse_x) {// = (DWORD)dwEQMainBase + 0x11030;
+				bGotOffsets = false;
+				if (*(BYTE*)Login__Pulse_x != 0xe9) {
+					EzDetourwName(Login__Pulse_x, &Login::Pulse_Detour, &Login::Pulse_Tramp,"Login__Pulse_x");
+				}
+			}
+		}
+		if (!bInGame && !bSwitchServer && !dwTime)
 		{
-			MessageBox(NULL, "MQ@AutoLogin needs an update.", "Couldn't find Login__Pulse_x", MB_SYSTEMMODAL | MB_OK);
-			return;
-		}
-		if (Login__Pulse_x) {// = (DWORD)dwEQMainBase + 0x11030;
-			bGotOffsets = false;
-			EzDetour(Login__Pulse_x, &Login::Pulse_Detour, &Login::Pulse_Tramp);
-		}
-	}
-	if (!bInGame && !bSwitchServer && !dwTime)
-	{
-		if (bUseMQ2Login) {
-			//then we don't need anything else
-		}
-		else if (!bUseStationNamesInsteadOfSessions) {
-			DWORD nProcs = GetProcessCount("eqgame.exe");
-			CHAR szSession[32] = { 0 };
-			sprintf_s(szSession, "Session%d", nProcs);
-			AutoLoginDebug(szSession);
+			if (bUseMQ2Login) {
+				//then we don't need anything else
+			}
+			else if (!bUseStationNamesInsteadOfSessions) {
+				DWORD nProcs = GetProcessCount("eqgame.exe");
+				CHAR szSession[32] = { 0 };
+				sprintf_s(szSession, "Session%d", nProcs);
+				AutoLoginDebug(szSession);
 
-			GetPrivateProfileString(szSession, "StationName", 0, szStationName, 64, INIFileName);
-			GetPrivateProfileString(szSession, "Password", 0, szPassword, 64, INIFileName);
-			GetPrivateProfileString(szSession, "Server", 0, szServerName, 32, INIFileName);
-			GetPrivateProfileString(szSession, "Character", 0, szCharacterName, 64, INIFileName);
+				GetPrivateProfileString(szSession, "StationName", 0, szStationName, 64, INIFileName);
+				GetPrivateProfileString(szSession, "Password", 0, szPassword, 64, INIFileName);
+				GetPrivateProfileString(szSession, "Server", 0, szServerName, 32, INIFileName);
+				GetPrivateProfileString(szSession, "Character", 0, szCharacterName, 64, INIFileName);
+			}
+			bLogin = true;
 		}
-		bLogin = true;
 	}
 }
 PLUGIN_API VOID InitializePlugin(VOID)
@@ -797,13 +804,11 @@ PLUGIN_API VOID InitializePlugin(VOID)
     bUseStationNamesInsteadOfSessions = GetPrivateProfileInt("Settings", "UseStationNamesInsteadOfSessions", 0, INIFileName);
     bReLoggin = GetPrivateProfileInt("Settings", "LoginOnReLoadAtCharSelect", 0, INIFileName);
 
-	if (GetModuleHandle("lavish.dll")) {
-		//well this probably means it has already loaded eqmain.dll so lets check
-		if (GetModuleHandle("eqmain.dll")) {
-			//well well well... what do u know... it's loaded...
-			//ok fine that means we wont get any frontload notification, so lets fake it
-			AddOurPulse();
-		}
+	//is eqmain.dll loaded
+	if (GetModuleHandle("eqmain.dll")) {
+		//well well well... what do u know... it's loaded...
+		//ok fine that means we wont get any frontload notification, so lets fake it
+		AddOurPulse();
 	}
     AddCommand("/switchserver", Cmd_SwitchServer);
     AddCommand("/switchcharacter", Cmd_SwitchCharacter);
@@ -853,8 +858,7 @@ PLUGIN_API VOID InitializePlugin(VOID)
 		}
 	}
 }
-
-PLUGIN_API VOID ShutdownPlugin(VOID)
+void RemoveLoginPulse()
 {
 	if (Login__Pulse_x) {
 		if (!IsBadReadPtr((PVOID)Login__Pulse_x, 4)) {
@@ -866,30 +870,35 @@ PLUGIN_API VOID ShutdownPlugin(VOID)
 			Login__Pulse_x = 0;
 		}
 	}
+	if (dwEQMainBase)
+		dwEQMainBase = 0;
+	bGotOffsets = false;
+	bEnd = false;
+}
+PLUGIN_API VOID ShutdownPlugin(VOID)
+{
+	RemoveLoginPulse();
 	RemoveCommand("/switchserver");
 	RemoveCommand("/switchcharacter");
 	RemoveCommand("/relog");
 	LoginReset();
 }
 
-void RemoveLoginPulse()
-{
-	if (Login__Pulse_x) {
-		//we have to remove this carefully now that its no longer in memory
-		DeleteDetour(Login__Pulse_x);
-		Login__Pulse_x = 0;
-	}
-	if (dwEQMainBase)
-		dwEQMainBase = 0;
-	bGotOffsets = false;
-	bEnd = false;
-}
-
 PLUGIN_API VOID SetGameState(DWORD GameState)
 {
+	
+	if (GameState == GAMESTATE_PRECHARSELECT) {
+		if (GetModuleHandle("eqmain.dll")) {
+			//well well well... what do u know... it's loaded...
+			//ok fine that means we wont get any frontload notification, so lets fake it
+			if(!Login__Pulse_x)
+				AddOurPulse();
+		}
+	}
 	if (GameState == GAMESTATE_POSTFRONTLOAD) {
 		//we know eqmain.dll is loaded now...
-		AddOurPulse();
+		if(!Login__Pulse_x)
+			AddOurPulse();
 	} else if(GameState == GAMESTATE_CHARSELECT) {
 		RemoveLoginPulse();
 		if (dwServerID) {

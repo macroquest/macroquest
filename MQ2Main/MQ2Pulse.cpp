@@ -493,10 +493,10 @@ void InitializeMQ2Pulse()
 	if (!ghLockDelayCommand)
 		ghLockDelayCommand = CreateMutex(NULL, FALSE, NULL);
 	InitializeCriticalSection(&gPulseCS);
-	EzDetour(ProcessGameEvents, Detour_ProcessGameEvents, Trampoline_ProcessGameEvents);
-	EzDetour(CEverQuest__EnterZone, &CEverQuestHook::EnterZone_Detour, &CEverQuestHook::EnterZone_Trampoline);
-	EzDetour(CEverQuest__SetGameState, &CEverQuestHook::SetGameState_Detour, &CEverQuestHook::SetGameState_Trampoline);
-	EzDetour(CTargetWnd__UpdateBuffs, &CEverQuestHook::CTargetWnd__UpdateBuffs_Detour, &CEverQuestHook::CTargetWnd__UpdateBuffs_Trampoline);
+	EzDetourwName(ProcessGameEvents, Detour_ProcessGameEvents, Trampoline_ProcessGameEvents,"ProcessGameEvents");
+	EzDetourwName(CEverQuest__EnterZone, &CEverQuestHook::EnterZone_Detour, &CEverQuestHook::EnterZone_Trampoline,"CEverQuest__EnterZone");
+	EzDetourwName(CEverQuest__SetGameState, &CEverQuestHook::SetGameState_Detour, &CEverQuestHook::SetGameState_Trampoline,"CEverQuest__SetGameState");
+	EzDetourwName(CTargetWnd__UpdateBuffs, &CEverQuestHook::CTargetWnd__UpdateBuffs_Detour, &CEverQuestHook::CTargetWnd__UpdateBuffs_Trampoline,"CTargetWnd__UpdateBuffs");
 }
 void ShutdownMQ2Pulse()
 {

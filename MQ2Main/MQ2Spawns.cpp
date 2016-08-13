@@ -613,13 +613,13 @@ VOID InitializeMQ2Spawns()
 #ifndef GateBind
     ProcessGameEvents=0;
 #endif
-    EzDetour(EQPlayer__EQPlayer,&EQPlayerHook::EQPlayer_Detour,&EQPlayerHook::EQPlayer_Trampoline);
-    EzDetour(EQPlayer__dEQPlayer,&EQPlayerHook::dEQPlayer_Detour,&EQPlayerHook::dEQPlayer_Trampoline);
-    EzDetour(EQPlayer__SetNameSpriteState,&EQPlayerHook::SetNameSpriteState_Detour,&EQPlayerHook::SetNameSpriteState_Trampoline);
-    EzDetour(EQPlayer__SetNameSpriteTint,&EQPlayerHook::SetNameSpriteTint_Detour,&EQPlayerHook::SetNameSpriteTint_Trampoline);
-    EzDetour(EQItemList__FreeItemList, &EQItemListHook::FreeItemList_Detour, &EQItemListHook::FreeItemList_Trampoline);
-    EzDetour(EQItemList__add_item, &EQItemListHook::AddItem_Detour, &EQItemListHook::AddItem_Trampoline);
-    EzDetour(EQItemList__delete_item, &EQItemListHook::DeleteItem_Detour, &EQItemListHook::DeleteItem_Trampoline);
+    EzDetourwName(EQPlayer__EQPlayer,&EQPlayerHook::EQPlayer_Detour,&EQPlayerHook::EQPlayer_Trampoline,"EQPlayer__EQPlayer");
+    EzDetourwName(EQPlayer__dEQPlayer,&EQPlayerHook::dEQPlayer_Detour,&EQPlayerHook::dEQPlayer_Trampoline,"EQPlayer__dEQPlayer");
+    EzDetourwName(EQPlayer__SetNameSpriteState,&EQPlayerHook::SetNameSpriteState_Detour,&EQPlayerHook::SetNameSpriteState_Trampoline,"EQPlayer__SetNameSpriteState");
+    EzDetourwName(EQPlayer__SetNameSpriteTint,&EQPlayerHook::SetNameSpriteTint_Detour,&EQPlayerHook::SetNameSpriteTint_Trampoline,"EQPlayer__SetNameSpriteTint");
+    EzDetourwName(EQItemList__FreeItemList, &EQItemListHook::FreeItemList_Detour, &EQItemListHook::FreeItemList_Trampoline,"EQItemList__FreeItemList");
+    EzDetourwName(EQItemList__add_item, &EQItemListHook::AddItem_Detour, &EQItemListHook::AddItem_Trampoline,"EQItemList__add_item");
+    EzDetourwName(EQItemList__delete_item, &EQItemListHook::DeleteItem_Detour, &EQItemListHook::DeleteItem_Trampoline,"EQItemList__delete_item");
 
     ProcessPending=true;
     ZeroMemory(&EQP_DistArray,sizeof(EQP_DistArray));

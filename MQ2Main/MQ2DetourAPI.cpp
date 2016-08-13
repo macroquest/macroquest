@@ -27,13 +27,15 @@ GNU General Public License for more details.
 #ifndef ISXEQ
 
 typedef struct _OurDetours {
-	/* 0x00 */    unsigned int addr;
-	/* 0x04 */    unsigned int count;
-	/* 0x08 */    unsigned char array[50];
-	/* 0x3a */    PBYTE pfDetour;
-	/* 0x3e */    PBYTE pfTrampoline;
-	/* 0x42 */    struct _OurDetours *pNext;
-	/* 0x46 */    struct _OurDetours *pLast;
+/* 0x00 */    unsigned int addr;
+/* 0x04 */    unsigned int count;
+/* 0x08 */    CHAR Name[0x64];
+/* 0x6c */    unsigned char array[0x40];
+/* 0xac */    PBYTE pfDetour;
+/* 0xb0 */    PBYTE pfTrampoline;
+/* 0xb4 */    struct _OurDetours *pNext;
+/* 0xb8 */    struct _OurDetours *pLast;
+/* 0xbc */
 } OurDetours;
 
 EQLIB_VAR OurDetours *ourdetours = 0;
@@ -52,18 +54,24 @@ OurDetours *FindDetour(DWORD address)
 	return 0;
 }
 
-BOOL AddDetour(DWORD address, PBYTE pfDetour, PBYTE pfTrampoline, DWORD Count)
+BOOL AddDetour(DWORD address, PBYTE pfDetour, PBYTE pfTrampoline, DWORD Count, PCHAR Name)
 {
 	CAutoLock Lock(&gDetourCS);
+	CHAR szName[MAX_STRING] = { 0 };
+	if (Name && Name[0] != '\0') {
+		strcpy_s(szName, Name);
+	} else {
+		strcpy_s(szName, "Unknown");
+	}
 	BOOL Ret = TRUE;
-	DebugSpew("AddDetour(0x%X,0x%X,0x%X,0x%X)", address, pfDetour, pfTrampoline, Count);
+	DebugSpew("AddDetour(%s, 0x%X,0x%X,0x%X,0x%X)", szName, address, pfDetour, pfTrampoline, Count);
 	if (FindDetour(address))
 	{
-
-		DebugSpew("Address 0x%x already detoured.", address);
+		DebugSpew("Address for %s (0x%x) already detoured.", szName, address);
 		return FALSE;
 	}
 	OurDetours *detour = new OurDetours;
+	strcpy_s(detour->Name, szName);
 	detour->addr = address;
 	detour->count = Count;
 	memcpy(detour->array, (char *)address, Count);
@@ -86,20 +94,18 @@ BOOL AddDetour(DWORD address, PBYTE pfDetour, PBYTE pfTrampoline, DWORD Count)
 			VirtualProtectEx(GetCurrentProcess(), (LPVOID)pfTrampoline, 2, oldperm, &tmp);
 		}
 	}
-	if (pfDetour && !DetourFunctionWithEmptyTrampoline(pfTrampoline,
-		(PBYTE)address,
-		pfDetour))
+	if (pfDetour && !DetourFunctionWithEmptyTrampoline(pfTrampoline, (PBYTE)address, pfDetour))
 	{
 		detour->pfDetour = 0;
 		detour->pfTrampoline = 0;
 		Ret = FALSE;
-		DebugSpew("Detour failed.");
+		DebugSpew("Detour of %s failed.", szName);
 	}
 	else
 	{
 		detour->pfDetour = pfDetour;
 		detour->pfTrampoline = pfTrampoline;
-		DebugSpew("Detour success.");
+		DebugSpew("Detour of %s was successful.", szName);
 	}
 	ourdetours = detour;
 	return Ret;
@@ -110,11 +116,11 @@ void AddDetourf(DWORD address, ...)
 	va_list marker;
 	int i = 0;
 	va_start(marker, address);
-	DWORD Parameters[3];
+	DWORD Parameters[4] = { 0 };
 	DWORD nParameters = 0;
 	while (i != -1)
 	{
-		if (nParameters<3)
+		if (nParameters<4)
 		{
 			Parameters[nParameters] = i;
 			nParameters++;
@@ -125,6 +131,9 @@ void AddDetourf(DWORD address, ...)
 	if (nParameters == 3)
 	{
 		AddDetour(address, (PBYTE)Parameters[1], (PBYTE)Parameters[2], 20);
+	} else if (nParameters == 4)
+	{
+		AddDetour(address, (PBYTE)Parameters[1], (PBYTE)Parameters[2], 20,(PCHAR)Parameters[3]);
 	}
 	else
 	{
@@ -135,7 +144,6 @@ void AddDetourf(DWORD address, ...)
 void RemoveDetour(DWORD address)
 {
 	CAutoLock Lock(&gDetourCS);
-	DebugSpew("RemoveDetour(%X)", (DWORD)GetModuleHandle(NULL) - address + 0x400000);
 	OurDetours *detour = ourdetours;
 	while (detour)
 	{
@@ -143,6 +151,7 @@ void RemoveDetour(DWORD address)
 		{
 			if (detour->pfDetour)
 			{
+				DebugSpew("DetourRemove %s (%X)", detour->Name, ((DWORD)GetModuleHandle(NULL) - address + 0x400000));
 				DetourRemove(detour->pfTrampoline, detour->pfDetour);
 				//sometimes its useful to add and then remove a detour and then add it again... and so on...
 				//the following 2 lines fixes a detours "bug"
@@ -164,12 +173,11 @@ void RemoveDetour(DWORD address)
 			if (detour->pNext)
 				detour->pNext->pLast = detour->pLast;
 			delete detour;
-			DebugSpew("Detour removed.");
 			return;
 		}
 		detour = detour->pNext;
 	}
-	DebugSpew("Detour not found in RemoveDetour()");
+	DebugSpew("Detour for %x not found in RemoveDetour()",((DWORD)GetModuleHandle(NULL) - address + 0x400000));
 }
 void DeleteDetour(DWORD address)
 {
@@ -179,6 +187,7 @@ void DeleteDetour(DWORD address)
 	{
 		if (detour->addr == address)
 		{
+			DebugSpew("Deleted %s (%X)", detour->Name, ((DWORD)GetModuleHandle(NULL) - address + 0x400000));
 			if (detour->pLast)
 				detour->pLast->pNext = detour->pNext;
 			else
@@ -191,6 +200,7 @@ void DeleteDetour(DWORD address)
 		}
 		detour = detour->pNext;
 	}
+	DebugSpew("Failed Deleting (%X)", ((DWORD)GetModuleHandle(NULL) - address + 0x400000));
 }
 void RemoveOurDetours()
 {
@@ -202,7 +212,7 @@ void RemoveOurDetours()
 	{
 		if (ourdetours->pfDetour)
 		{
-			DebugSpew("RemoveOurDetours() -- Removing %X", ourdetours->addr);
+			DebugSpew("RemoveOurDetours() -- Removing %s (%X)", ourdetours->Name, ourdetours->addr);
 			DetourRemove(ourdetours->pfTrampoline, ourdetours->pfDetour);
 		}
 
@@ -507,10 +517,10 @@ VOID HookMemChecker(BOOL Patch)
 		(*(PBYTE*)&memcheck4_tramp) = DetourFunction((PBYTE)EQADDR_MEMCHECK4,
 			(PBYTE)memcheck4);
 
-		EzDetour(CPacketScrambler__hton, &CPacketScrambler::hton_detour, &CPacketScrambler::hton_tramp);
-		EzDetour(CPacketScrambler__ntoh, &CPacketScrambler::ntoh_detour, &CPacketScrambler::ntoh_tramp);
-		EzDetour(CEverQuest__Emote, &CEmoteHook::Detour, &CEmoteHook::Trampoline);
-		EzDetour(Spellmanager__CheckSpellRequirementAssociations, &Spellmanager::CheckSpellRequirementAssociations_Detour, &Spellmanager::CheckSpellRequirementAssociations_Tramp);
+		EzDetourwName(CPacketScrambler__hton, &CPacketScrambler::hton_detour, &CPacketScrambler::hton_tramp,"CPacketScrambler__hton");
+		EzDetourwName(CPacketScrambler__ntoh, &CPacketScrambler::ntoh_detour, &CPacketScrambler::ntoh_tramp,"CPacketScrambler__ntoh");
+		EzDetourwName(CEverQuest__Emote, &CEmoteHook::Detour, &CEmoteHook::Trampoline,"CEverQuest__Emote");
+		EzDetourwName(Spellmanager__CheckSpellRequirementAssociations, &Spellmanager::CheckSpellRequirementAssociations_Detour, &Spellmanager::CheckSpellRequirementAssociations_Tramp,"Spellmanager__CheckSpellRequirementAssociations");
 		
 
 		HookInlineChecks(Patch);
@@ -1263,11 +1273,11 @@ void InitializeMQ2Detours()
 	HookMemChecker(TRUE);
 #endif
 #ifndef EMU
-	EzDetour(wwsCrashReportCheckForUploader, wwsCrashReportCheckForUploader_Detour, wwsCrashReportCheckForUploader_Trampoline);
-	EzDetour(CrashDetected, CrashDetected_Detour, CrashDetected_Trampoline);
+	EzDetourwName(wwsCrashReportCheckForUploader, wwsCrashReportCheckForUploader_Detour, wwsCrashReportCheckForUploader_Trampoline,"wwsCrashReportCheckForUploader");
+	EzDetourwName(CrashDetected, CrashDetected_Detour, CrashDetected_Trampoline,"CrashDetected");
 #endif
 #ifndef TESTMEM
-	EzDetour(__LoadFrontEnd, LoadFrontEnd_Detour, LoadFrontEnd_Trampoline);
+	EzDetourwName(__LoadFrontEnd, LoadFrontEnd_Detour, LoadFrontEnd_Trampoline,"__LoadFrontEnd");
 #endif
 }
 

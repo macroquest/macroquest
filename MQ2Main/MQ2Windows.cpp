@@ -154,12 +154,8 @@ DETOUR_TRAMPOLINE_EMPTY(int CXMLSOMDocumentBaseHook::XMLRead_Trampoline(CXStr *A
 
 #ifndef ISXEQ
 VOID ListWindows(PSPAWNINFO pChar, PCHAR szLine);
-VOID ListWindows(PSPAWNINFO pChar, PCHAR szLine);
-VOID WndNotify(PSPAWNINFO pChar, PCHAR szLine);
 VOID WndNotify(PSPAWNINFO pChar, PCHAR szLine);
 VOID ItemNotify(PSPAWNINFO pChar, PCHAR szLine);
-VOID ItemNotify(PSPAWNINFO pChar, PCHAR szLine);
-VOID ListItemSlots(PSPAWNINFO pChar, PCHAR szLine);
 VOID ListItemSlots(PSPAWNINFO pChar, PCHAR szLine);
 #else
 int ListWindows(int argc, char *argv[]);
@@ -198,10 +194,10 @@ void InitializeMQ2Windows()
     AddSlotArray(inspect,31,8000);
 #undef AddSlotArray
 
-    EzDetour(CXMLSOMDocumentBase__XMLRead,&CXMLSOMDocumentBaseHook::XMLRead,&CXMLSOMDocumentBaseHook::XMLRead_Trampoline);
-    EzDetour(CSidlScreenWnd__Init1,&CSidlInitHook::Init_Detour,&CSidlInitHook::Init_Trampoline);
-	EzDetour(CTargetWnd__WndNotification,&CSidlInitHook::CTargetWnd__WndNotification_Detour,&CSidlInitHook::CTargetWnd__WndNotification_Tramp);
-    EzDetour(CXWndManager__RemoveWnd,&CXWndManagerHook::RemoveWnd_Detour,&CXWndManagerHook::RemoveWnd_Trampoline);
+    EzDetourwName(CXMLSOMDocumentBase__XMLRead,&CXMLSOMDocumentBaseHook::XMLRead,&CXMLSOMDocumentBaseHook::XMLRead_Trampoline,"CXMLSOMDocumentBase__XMLRead");
+    EzDetourwName(CSidlScreenWnd__Init1,&CSidlInitHook::Init_Detour,&CSidlInitHook::Init_Trampoline,"CSidlScreenWnd__Init1");
+	EzDetourwName(CTargetWnd__WndNotification,&CSidlInitHook::CTargetWnd__WndNotification_Detour,&CSidlInitHook::CTargetWnd__WndNotification_Tramp,"CTargetWnd__WndNotification");
+    EzDetourwName(CXWndManager__RemoveWnd,&CXWndManagerHook::RemoveWnd_Detour,&CXWndManagerHook::RemoveWnd_Trampoline,"CXWndManager__RemoveWnd");
 
 #ifndef ISXEQ
     AddCommand("/windows",ListWindows,false,true,false);
