@@ -137,7 +137,6 @@ PCHAR GetFuncParam(PCHAR szMacroLine, DWORD ParamNum, PCHAR szParamName, size_t 
         sprintf_s(szParamName, ParamNameLen,"Param%d",ParamNum);
     return szParamName;
 }
-#ifndef TRUEBOX
 /* VAR SYSTEM INDEPENDENT */
 // in-place cleanup of tabs, leading/trailing space
 VOID CleanMacroLine(PCHAR szLine)
@@ -1501,6 +1500,4 @@ VOID Break(PSPAWNINFO pChar, PCHAR szLine)
       gMacroBlock = gMacroBlock->pNext;
    }
 }
-
-#endif
 #endif

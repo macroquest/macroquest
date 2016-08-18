@@ -1,3 +1,10 @@
+17 Aug 2016 by eqmule
+- Updated for LIVE
+- TRUEBOX nerfed.
+
+15 Aug 2016 by rswiders
+- Updated to include CreateHtmlWnd in base code. You can now load MQ2Web and MQ2NoNag in the same session.
+
 12 Aug 2016 by eqmule
 - Updated for TEST
 - EzDetour is now EzDetourwName all EzDetour( calls should be replaced to use the new EzDetourwName

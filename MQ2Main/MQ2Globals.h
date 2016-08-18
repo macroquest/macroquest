@@ -1217,6 +1217,8 @@ namespace MQ2Globals
 
 	EQLIB_VAR DWORD CTextureFont__DrawWrappedText;
 
+	EQLIB_VAR DWORD CWebManager__CreateHtmlWnd;
+
 	EQLIB_VAR DWORD CXMLDataManager__GetXMLData;
 
 	EQLIB_VAR DWORD CXMLSOMDocumentBase__XMLRead;

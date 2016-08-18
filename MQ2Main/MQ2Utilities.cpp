@@ -211,7 +211,6 @@ VOID MacroError(PCHAR szFormat, ...)
 		strcpy_s(gszLastNormalError, szOutput);
 		LocalFree(szOutput);
 	}
-#ifndef TRUEBOX
 	if (gMacroBlock)
 	{
 		if (bAllErrorsDumpStack || bAllErrorsFatal)
@@ -220,7 +219,6 @@ VOID MacroError(PCHAR szFormat, ...)
 			EndMacro((PSPAWNINFO)pLocalPlayer, "");
 		}
 	}
-#endif
 }
 VOID FatalError(PCHAR szFormat, ...)
 {
@@ -245,13 +243,11 @@ VOID FatalError(PCHAR szFormat, ...)
 		if (bAllErrorsLog) MacroLog(NULL, szOutput);
 		LocalFree(szOutput);
 	}
-#ifndef TRUEBOX
 	if (gMacroBlock)
 	{
 		DumpStack(0, 0);
 		EndMacro((PSPAWNINFO)pLocalPlayer, "");
 	}
-#endif
 }
 
 VOID MQ2DataError(PCHAR szFormat, ...)
@@ -282,7 +278,6 @@ VOID MQ2DataError(PCHAR szFormat, ...)
 		if (bAllErrorsLog) MacroLog(NULL, szOutput);
 		LocalFree(szOutput);
 	}
-#ifndef TRUEBOX
 	if (gMacroBlock)
 	{
 		if (bAllErrorsDumpStack || bAllErrorsFatal)
@@ -290,7 +285,6 @@ VOID MQ2DataError(PCHAR szFormat, ...)
 		if (bAllErrorsFatal)
 			EndMacro((PSPAWNINFO)pLocalPlayer, "");
 	}
-#endif
 }
 #endif
 

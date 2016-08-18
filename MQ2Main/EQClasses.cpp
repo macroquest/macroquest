@@ -8231,6 +8231,9 @@ FUNCTION_AT_ADDRESS(class CXStr  CPageWnd::GetTabText(void)const ,CPageWnd__GetT
 #ifdef CTabWnd__DrawCurrentPage_x
 FUNCTION_AT_ADDRESS(int  CTabWnd::DrawCurrentPage(void)const ,CTabWnd__DrawCurrentPage);
 #endif
+#ifdef CWebManager__CreateHtmlWnd_x
+FUNCTION_AT_ADDRESS(int  CWebManager::CreateHtmlWnd(void*, void*, void*, char, void*),CWebManager__CreateHtmlWnd);
+#endif
 #ifdef CXMLSOMDocumentBase__Init_x
 FUNCTION_AT_ADDRESS(void  CXMLSOMDocumentBase::Init(void),CXMLSOMDocumentBase__Init);
 #endif

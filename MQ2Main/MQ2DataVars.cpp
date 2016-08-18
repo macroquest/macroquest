@@ -200,7 +200,6 @@ VOID ClearMQ2DataVariables(PDATAVAR *ppHead)
     }
     *ppHead=0;
 }
-#ifndef TRUEBOX
 VOID NewDeclareVar(PSPAWNINFO pChar, PCHAR szLine)
 {
     if (!szLine[0])
@@ -483,7 +482,7 @@ VOID NewVardata(PSPAWNINFO pChar, PCHAR szLine)
 		}
 	}
 }
-#endif
+
 VOID AddEvent(DWORD Event, PCHAR FirstArg, ...)
 { 
     PEVENTQUEUE pEvent = NULL; 

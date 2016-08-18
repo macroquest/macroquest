@@ -93,8 +93,6 @@ extern CRITICAL_SECTION gPluginCS;
 //we default to LIVE though...
 #else
 //define LIVE, TEST, BETA or EMU here depending on which eqgame you are building for. -eqmule sep 27 2014
-//if TRUEBOX is defined your copy of mq2 will work on true box servers.
-//#define TRUEBOX
 #define LIVE
 #endif
 #if defined(LIVE)
@@ -396,12 +394,10 @@ LEGACY_API BOOL RemoveCommand(PCHAR Command);
 LEGACY_API VOID DoTimedCommands();
 LEGACY_API VOID TimedCommand(PCHAR Command, DWORD msDelay);
 
-#ifndef TRUEBOX
 /* MACRO COMMANDS */
 LEGACY_API VOID DumpStack(PSPAWNINFO, PCHAR);
 LEGACY_API VOID EndMacro(PSPAWNINFO, PCHAR);
 LEGACY_API VOID Echo(PSPAWNINFO, PCHAR);
-#endif
 
 /* MACRO PARSING */
 #ifdef USEBLECHEVENTS
@@ -625,13 +621,11 @@ LEGACY_API BOOL AddMQ2DataVariableFromData(PCHAR Name, PCHAR Index, MQ2Type *pTy
 LEGACY_API PDATAVAR *FindVariableScope(PCHAR Name);
 LEGACY_API BOOL DeleteMQ2DataVariable(PCHAR Name);
 LEGACY_API VOID ClearMQ2DataVariables(PDATAVAR *ppHead);
-#ifndef TRUEBOX
 LEGACY_API VOID NewDeclareVar(PSPAWNINFO pChar, PCHAR szLine);
 LEGACY_API VOID NewDeleteVarCmd(PSPAWNINFO pChar, PCHAR szLine);
 LEGACY_API VOID NewVarset(PSPAWNINFO pChar, PCHAR szLine);
 LEGACY_API VOID NewVarcalc(PSPAWNINFO pChar, PCHAR szLine);
 LEGACY_API VOID NewVardata(PSPAWNINFO pChar, PCHAR szLine);
-#endif
 LEGACY_API VOID DropTimers(VOID);
 #endif
 

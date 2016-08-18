@@ -4938,6 +4938,12 @@ EQLIB_OBJECT void CVideoModesWnd::Init(void);
 EQLIB_OBJECT void CVideoModesWnd::UpdateSelection(unsigned int);
 };
 
+class CWebManager
+{
+public:
+EQLIB_OBJECT int CWebManager::CreateHtmlWnd(void*, void*, void* = 0, char = 0, void* = 0);
+};
+
 class CXFileXML
 {
 public:

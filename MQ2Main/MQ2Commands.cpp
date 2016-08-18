@@ -37,15 +37,12 @@ VOID Unload(PSPAWNINFO pChar, PCHAR szLine)
 	if (!pChar)
 		pChar = (PSPAWNINFO)pLocalPlayer;
 	bRunNextCommand = TRUE;
-#ifndef TRUEBOX
 	if (gMacroBlock)
 		EndMacro(pChar, szLine);
-#endif
 	DebugSpew("%s", ToUnloadString);
 	WriteChatColor(ToUnloadString, USERCOLOR_DEFAULT);
 	gbUnload = TRUE;
 }
-#ifndef TRUEBOX
 // ***************************************************************************
 // Function:    ListMacros
 // Description: Our '/listmacros' command
@@ -387,7 +384,6 @@ VOID InvokeCmd(PSPAWNINFO pChar, PCHAR szLine)
 {
 	bRunNextCommand = TRUE;
 }
-#endif
 // /squelch
 VOID SquelchCommand(PSPAWNINFO pChar, PCHAR szLine)
 {
@@ -2521,17 +2517,6 @@ VOID Target(PSPAWNINFO pChar, PCHAR szLine)
 	if (!DidTarget) {
 		pSpawnClosest = SearchThroughSpawns(&SearchSpawn, pChar);
 	}
-	#ifdef TRUEBOX
-	if (pSpawnClosest) {
-		if (!LineOfSight(GetCharInfo()->pSpawn, pSpawnClosest)) {
-			sprintf_s(szMsg, "%s is a invalid target because it's not within your line of sight", pSpawnClosest->DisplayedName);
-			pSpawnClosest = 0;
-			if (!gFilterTarget)
-				WriteChatColor(szMsg, USERCOLOR_WHO);
-			return;
-		}
-	}
-	#endif
 	if (!pSpawnClosest) {
 		CHAR szTemp[MAX_STRING] = { 0 };
 		sprintf_s(szMsg, "There are no spawns matching: %s", FormatSearchSpawn(szTemp, sizeof(szTemp), &SearchSpawn));

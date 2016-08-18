@@ -2,7 +2,6 @@
 #if defined(ISXEQ_LEGACY) || !defined(ISXDK_VERSION)
 /* COMMANDS */
 
-#ifndef TRUEBOX
 LEGACY_API VOID SetError                            (PSPAWNINFO,PCHAR);
 LEGACY_API VOID SuperWho                            (PSPAWNINFO,PCHAR);
 LEGACY_API VOID NewIf                               (PSPAWNINFO pChar, PCHAR szLine);
@@ -23,7 +22,6 @@ LEGACY_API VOID Return                              (PSPAWNINFO,PCHAR);
 LEGACY_API VOID Break                               (PSPAWNINFO,PCHAR);
 LEGACY_API VOID Continue                            (PSPAWNINFO,PCHAR);
 LEGACY_API VOID ListMacros                          (PSPAWNINFO,PCHAR);
-#endif
 LEGACY_API VOID SquelchCommand                      (PSPAWNINFO pChar, PCHAR szLine);
 LEGACY_API VOID MacroLog                            (PSPAWNINFO,PCHAR);
 LEGACY_API VOID MacroBeep                           (PSPAWNINFO,PCHAR);

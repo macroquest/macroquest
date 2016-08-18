@@ -240,6 +240,7 @@ bool bSwitchServer = false;
 bool bSwitchChar = false;
 bool bSwitchTime = false;
 char szStationName[64] = {0};
+char szCustomIni[64] = { 0 };
 char szPassword[64] = {0};
 char szServerName[32] = {0};
 char szCharacterName[64] = {0};
@@ -751,6 +752,7 @@ public:
 	}
 };
 void RemoveLoginPulse();
+
 DETOUR_TRAMPOLINE_EMPTY(int Login::Pulse_Tramp());
 void AddOurPulse()
 {
@@ -791,6 +793,97 @@ void AddOurPulse()
 		}
 	}
 }
+
+// custom ini support
+DWORD_PTR gppi = 0;
+DWORD_PTR gpps = 0;
+DWORD_PTR wpps = 0;
+
+DWORD WINAPI GetPrivateProfileStringA_Tramp( LPCSTR, LPCSTR, LPCSTR, LPSTR, DWORD, LPCSTR );
+
+void SetupCustomIni()
+{
+    if( szCustomIni && szCustomIni[0] != '\0' )
+        return;
+
+    if( char *pLogin = GetLoginName() )
+    {
+        strcpy_s( szStationName, pLogin );
+        if( gpps )
+        {
+            GetPrivateProfileStringA_Tramp( szStationName, "CustomClientIni", 0, szCustomIni, 64, INIFileName );
+        }
+        else
+        {
+            GetPrivateProfileString( szStationName, "CustomClientIni", 0, szCustomIni, 64, INIFileName );
+        }
+    }
+}
+
+DWORD WINAPI GetPrivateProfileStringA_Detour( LPCSTR lpAppName, LPCSTR lpKeyName, LPCSTR lpDefault, LPSTR lpReturnedString, DWORD nSize, LPCSTR lpFileName )
+{
+    if( lpFileName )
+    {
+        SetupCustomIni();
+        CHAR szPath[MAX_STRING] = { 0 };
+        strcpy_s( szPath, lpFileName );
+        _strlwr_s( szPath );
+
+        if( szCustomIni && szCustomIni[0] != '\0' && strstr( szPath, "eqclient.ini" ) )
+        {
+            strcpy_s( szPath, ".\\" );
+            strcat_s( szPath, szCustomIni );
+            return GetPrivateProfileStringA_Tramp( lpAppName, lpKeyName, lpDefault, lpReturnedString, nSize, szPath );
+        }
+    }
+
+    return GetPrivateProfileStringA_Tramp( lpAppName, lpKeyName, lpDefault, lpReturnedString, nSize, lpFileName );
+}
+DETOUR_TRAMPOLINE_EMPTY( DWORD WINAPI GetPrivateProfileStringA_Tramp( LPCSTR, LPCSTR, LPCSTR, LPSTR, DWORD, LPCSTR ) );
+
+BOOL WINAPI WritePrivateProfileStringA_Tramp( LPCSTR, LPCSTR, LPCSTR, LPCSTR );
+BOOL WINAPI WritePrivateProfileStringA_Detour( LPCSTR lpAppName, LPCSTR lpKeyName, LPCSTR lpString, LPCSTR lpFileName )
+{
+    if( lpFileName )
+    {
+        SetupCustomIni();
+        CHAR szPath[MAX_STRING] = { 0 };
+        strcpy_s( szPath, lpFileName );
+        _strlwr_s( szPath );
+
+        if( szCustomIni && szCustomIni[0] != '\0' && strstr( szPath, "eqclient.ini" ) )
+        {
+            strcpy_s( szPath, ".\\" );
+            strcat_s( szPath, szCustomIni );
+            return WritePrivateProfileStringA_Tramp( lpAppName, lpKeyName, lpString, szPath );
+        }
+    }
+
+    return WritePrivateProfileStringA_Tramp( lpAppName, lpKeyName, lpString, lpFileName );
+}
+DETOUR_TRAMPOLINE_EMPTY( BOOL WINAPI WritePrivateProfileStringA_Tramp( LPCSTR, LPCSTR, LPCSTR, LPCSTR ) );
+
+UINT WINAPI GetPrivateProfileIntA_Tramp( LPCSTR, LPCSTR, INT, LPCSTR );
+UINT WINAPI GetPrivateProfileIntA_Detour( LPCSTR lpAppName, LPCSTR lpKeyName, INT nDefault, LPCSTR lpFileName )
+{
+    if( lpFileName )
+    {
+        SetupCustomIni();
+        CHAR szPath[MAX_STRING] = { 0 };
+        strcpy_s( szPath, lpFileName );
+        _strlwr_s( szPath );
+        if( szCustomIni && szCustomIni[0] != '\0' && strstr( szPath, "eqclient.ini" ) )
+        {
+            strcpy_s( szPath, ".\\" );
+            strcat_s( szPath, szCustomIni );
+            return GetPrivateProfileIntA_Tramp( lpAppName, lpKeyName, nDefault, szPath );
+        }
+    }
+
+    return GetPrivateProfileIntA_Tramp( lpAppName, lpKeyName, nDefault, lpFileName );
+}
+DETOUR_TRAMPOLINE_EMPTY( UINT WINAPI GetPrivateProfileIntA_Tramp( LPCSTR, LPCSTR, INT, LPCSTR ) );
+
 PLUGIN_API VOID InitializePlugin(VOID)
 {
 	//MessageBox(NULL, "Inject now", "MQ2 Debug", MB_OK|MB_SYSTEMMODAL);
@@ -803,6 +896,7 @@ PLUGIN_API VOID InitializePlugin(VOID)
     bUseMQ2Login = GetPrivateProfileInt("Settings", "UseMQ2Login", 0, INIFileName);
     bUseStationNamesInsteadOfSessions = GetPrivateProfileInt("Settings", "UseStationNamesInsteadOfSessions", 0, INIFileName);
     bReLoggin = GetPrivateProfileInt("Settings", "LoginOnReLoadAtCharSelect", 0, INIFileName);
+    bool bUseCustomClientIni = GetPrivateProfileInt( "Settings", "EnableCustomClientIni", 0, INIFileName ) == 1;
 
 	//is eqmain.dll loaded
 	if (GetModuleHandle("eqmain.dll")) {
@@ -813,6 +907,23 @@ PLUGIN_API VOID InitializePlugin(VOID)
     AddCommand("/switchserver", Cmd_SwitchServer);
     AddCommand("/switchcharacter", Cmd_SwitchCharacter);
     AddCommand("/relog", Cmd_Relog);
+    
+    if( bUseCustomClientIni )
+    {
+        if( bUseStationNamesInsteadOfSessions && !bUseMQ2Login ) 
+        {
+            SetupCustomIni();
+        }
+        if( gppi = (DWORD_PTR)GetProcAddress( GetModuleHandle( "kernel32.dll" ), "GetPrivateProfileIntA" ) ) {
+            EzDetourwName( gppi, GetPrivateProfileIntA_Detour, GetPrivateProfileIntA_Tramp, "GetPrivateProfileIntA_Detour" );
+        }
+        if( gpps = (DWORD_PTR)GetProcAddress( GetModuleHandle( "kernel32.dll" ), "GetPrivateProfileStringA" ) ) {
+            EzDetourwName( gpps, GetPrivateProfileStringA_Detour, GetPrivateProfileStringA_Tramp, "GetPrivateProfileStringA_Detour" );
+        }
+        if( wpps = (DWORD_PTR)GetProcAddress( GetModuleHandle( "kernel32.dll" ), "WritePrivateProfileStringA" ) ) {
+            EzDetourwName( wpps, WritePrivateProfileStringA_Detour, WritePrivateProfileStringA_Tramp, "WritePrivateProfileStringA_Detour" );
+        }
+    }
 
 #ifdef AUTOLOGIN_DBG
     remove(DBG_LOGFILE_PATH);
@@ -858,6 +969,7 @@ PLUGIN_API VOID InitializePlugin(VOID)
 		}
 	}
 }
+
 void RemoveLoginPulse()
 {
 	if (Login__Pulse_x) {
@@ -881,6 +993,13 @@ PLUGIN_API VOID ShutdownPlugin(VOID)
 	RemoveCommand("/switchserver");
 	RemoveCommand("/switchcharacter");
 	RemoveCommand("/relog");
+    
+    if( gppi )
+        RemoveDetour( gppi );
+    if( gpps )
+        RemoveDetour( gpps );
+    if( wpps )
+        RemoveDetour( wpps );
 	LoginReset();
 }
 

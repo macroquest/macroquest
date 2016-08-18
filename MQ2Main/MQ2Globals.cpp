@@ -279,8 +279,6 @@ namespace MQ2Globals
 		int gBuild = 3;//BETA
 	#elif defined(EMU)
 		int gBuild = 4;//EMU
-	#elif defined(TRUEBOX)
-		int gBuild = 5;//TRUEBOX
 	#else
 		int gBuild = 1;//LIVE
 	#endif
@@ -1749,6 +1747,8 @@ namespace MQ2Globals
 	INITIALIZE_EQGAME_OFFSET(CTextOverlay__DisplayText);
 
 	INITIALIZE_EQGAME_OFFSET(CTextureFont__DrawWrappedText);
+
+	INITIALIZE_EQGAME_OFFSET(CWebManager__CreateHtmlWnd);
 
 	INITIALIZE_EQGAME_OFFSET(CXMLDataManager__GetXMLData);
 

@@ -810,33 +810,52 @@ typedef struct _CLABELWND {
 /*0x1d0*/
 } CLABELWND, *PCLABELWND;
 
-typedef struct _LOOTDETAILS {
-	/*0x00*/ DWORD	CorpseID;//spawnId of the corpse that has this lootitem
-	/*0x04*/ WORD	StackCount;
-	/*0x06*/ WORD	UnknownWord;
-	/*0x08*/ DWORD	UnknownDWord;
-	/*0x0c*/ BYTE	Unknown0x0c;
-	/*0x0d*/ CHAR	Name[0x40];
-	/*0x4d*/ //more data here? -eqmule
-} LOOTDETAILS,*PLOOTDETAILS;
+typedef struct _LOOTDETAILS
+{
+/*0x00*/ DWORD	CorpseID;//spawnId of the corpse that has this lootitem
+/*0x04*/ WORD	StackCount;
+/*0x06*/ WORD	UnknownWord;
+/*0x08*/ DWORD	Expiration;
+/*0x0c*/ BYTE	Locked;
+/*0x0d*/ CHAR	Name[0x40];
+/*0x4d*/ //more data here? -eqmule
+}LOOTDETAILS,*PLOOTDETAILS;
 //.text:0041FC2B                 imul    eax, 84h in Mar 31 2015
+enum eAdvLootState
+{
+	eAdvLootWaiting,
+	eAdvLootAsk,
+	eAdvLootAskAutoRoll,
+	eAdvLootStop,
+	eAdvLootAskCompleted,
+	eAdvLootFreeGrab,
+	eAdvLootFixedAskAutoRoll,
+	eAdvLootFixedAskCompleted,
+	eAdvLootRemoved
+};
 typedef struct _LOOTITEM
 {
 /*0x00*/ DWORD	ItemID;
 /*0x04*/ CHAR	Name[0x40];
 /*0x44*/ DWORD	IconID;
-/*0x48*/ BYTE  IsStackable;//if this is a dword its a bitmask...
-/*0x49*/ BYTE  Unknown0x49;
-/*0x4a*/ BYTE  Unknown0x4a;
-/*0x4b*/ BYTE  Unknown0x4b;
-/*0x4C*/ DWORD  MaxStackSize;
-/*0x50*/ BYTE   NoDrop;//if the item is nodrop this is 1
-/*0x51*/ BYTE   Unknown0x51[0x13];
+/*0x48*/ BYTE  IsStackable;
+/*0x49*/ BYTE   Unknown0x49[0x3];
+/*0x4c*/ DWORD  MaxStack;
+/*0x50*/ BYTE   NoDrop;
+/*0x51*/ BYTE   Unknown0x51[0x3];
+/*0x54*/ DWORD  ComboID;
+/*0x58*/ DWORD  LootID;
+/*0x5c*/ eAdvLootState State;
+/*0x60*/ BYTE	bAutoRoll;
+/*0x61*/ BYTE	ActivelyManaged; // User has the manage Window up
+/*0x62*/ BYTE	ContextMenu;     // item has a context menu
+/*0x63*/ BYTE	AskRandomMode; //item is in AskRandom mode
 /*0x64*/ BYTE   CLootInProgress;
 /*0x65*/ BYTE   PLootInProgress;
 /*0x66*/ BYTE   Unknown0x66[0x6];
 /*0x6c*/ struct _LOOTDETAILS	*LootDetails;
-/*0x70*/ BYTE	Unknown0x70[0xc];
+/*0x70*/ BYTE	Unknown0x70[0x8];
+/*0x78*/ DWORD	AskTimer;
 /*0x7c*/ BYTE	AutoRoll;
 /*0x7d*/ BYTE	Unknown0x7d;
 /*0x7e*/ BYTE	Need;

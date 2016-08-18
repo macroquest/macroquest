@@ -687,6 +687,9 @@ void InitializeMQ2Commands()
         RemoveCommand(NewCommands[i].szCommand);
         AddCommand(NewCommands[i].szCommand,NewCommands[i].pFunc,0,NewCommands[i].Parse,NewCommands[i].InGame);
     }
+	//truebox builds are not supported anymore.
+	//This code is here to make sure we are NOT run on truebox.
+	//(bypassing these calls will severly cripple your mq2) -eqmule
 	typedef DWORD(__cdecl *fAuthenticateTrueBox)(DWORD);
 	fAuthenticateTrueBox AuthenticateTrueBox = 0;
 	typedef DWORD(__cdecl *fGetTrueBoxKey)(DWORD);
@@ -695,14 +698,7 @@ void InitializeMQ2Commands()
 		AuthenticateTrueBox = (fAuthenticateTrueBox)GetProcAddress(ghmq2ic, "AuthenticateTrueBox");
 		GetTrueBoxKey = (fGetTrueBoxKey)GetProcAddress(ghmq2ic, "GetTrueBoxKey");
 	}
-	DWORD tbkey = 0;
-	if (GetTrueBoxKey) {
-#ifndef TRUEBOX
-		tbkey = GetTrueBoxKey(1);
-#else
-		tbkey = GetTrueBoxKey(0);
-#endif
-	}
+	DWORD tbkey = GetTrueBoxKey(1);
 	if (AuthenticateTrueBox) {
 		AuthenticateTrueBox(tbkey);
 	}
