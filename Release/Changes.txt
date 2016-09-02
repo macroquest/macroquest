@@ -1,3 +1,7 @@
+02 Sep 2016 by eqmule
+- Reverted a "fix" to the /while command that instead of fixing it made it worse
+  im not happy with this command, im gonna have to spend more time on it.
+
 01 Sep 2016 by eqmule
 - Misc Fixes to improve stability.
 - The Launcher can now launch single sessions without logging u in, i basically just "launches clean"

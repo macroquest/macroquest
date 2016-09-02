@@ -632,7 +632,7 @@ void TellCheck(char *szClean)
 			if(PCHARINFO pChar = GetCharInfo()) {
 				if (_stricmp(pChar->Name, name)) {//dont flash if its our own character doing the tell...
 					if (pChar->pSpawn) {
-						if (pChar->pSpawn->PetID) {
+						if (pChar->pSpawn->PetID!=-1) {
 							if (PSPAWNINFO pPet = (PSPAWNINFO)GetSpawnByID(pChar->pSpawn->PetID)) {
 								if (!_stricmp(pPet->DisplayedName, name)) {
 									return;//its our pet dont flash on its tells.
@@ -666,7 +666,7 @@ void TellCheck(char *szClean)
 			if(PCHARINFO pChar = GetCharInfo()) {
 				if(_stricmp(pChar->Name,name)) {//dont beep if its our own character doing the tell...
 					if(pChar->pSpawn) {
-						if (pChar->pSpawn->PetID) {
+						if (pChar->pSpawn->PetID!=-1) {
 							if(PSPAWNINFO pPet =(PSPAWNINFO)GetSpawnByID(pChar->pSpawn->PetID)) {
 								if(!_stricmp(pPet->DisplayedName,name)) {
 									return;//its our pet dont beep on its tells.

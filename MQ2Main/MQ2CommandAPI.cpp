@@ -53,7 +53,7 @@ PMACROBLOCK GetWhileBlock(DWORD line)
 		FatalError("Bad while block pairing");
 		return NULL;
 	}
-	return pblock;
+	return pblock->pPrev;
 }
 VOID HideDoCommand(PSPAWNINFO pChar, PCHAR szLine, BOOL delayed)
 {
@@ -114,6 +114,10 @@ VOID HideDoCommand(PSPAWNINFO pChar, PCHAR szLine, BOOL delayed)
 		//this is a command thats inside a while loop
 		//so its time to loop back
 		gMacroBlock = GetWhileBlock(gMacroBlock->LoopLine);
+		//CHAR szData[2048] = { 0 };
+		//strcpy_s(szData, gMacroBlock->Line);
+		//BOOL tret = ParseMacroData(szData, sizeof(szData));
+		//Calculate()
 		if (szArg1[0]=='}') {
 			bRunNextCommand = TRUE;
 			return;

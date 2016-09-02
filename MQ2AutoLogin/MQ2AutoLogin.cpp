@@ -13,6 +13,7 @@ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 GNU General Public License for more details.
 
 Change log:
+# Version: 2.6 - Derple 08-21-2016 - Added a new flag which disables autologin after the first successful login.  It can re-enabled by pressing HOME.
 # Version: 2.5 - Eqmule 07-29-2016 - Moved processing into its own detour, removed waitforinputidle and all arbitrary Sleeps.
 # Version: 2.4 - Eqmule 07-22-2016 - Added support for emulators
 # Version: 2.3 - Eqmule 07-22-2016 - Added string safety.
@@ -107,7 +108,7 @@ Change log:
 
 
 #include "../MQ2Plugin.h"
-PLUGIN_VERSION(2.5);
+PLUGIN_VERSION(2.6);
 #include <map>
 #include <tlhelp32.h>
 PreSetup("MQ2AutoLogin");
@@ -233,7 +234,8 @@ UINT bKickActiveChar = 1;
 UINT bUseMQ2Login = false;
 UINT bUseStationNamesInsteadOfSessions = false;
 UINT bReLoggin = false;
-bool bLogin = false;
+bool bEndAfterCharSelect = false;
+bool bLogin = true;
 bool bEnd = false;
 bool bInGame = false;
 bool bSwitchServer = false;
@@ -259,6 +261,7 @@ bool SetOffsetsUI();
 void HandleWindows();
 void LoginReset();
 void SwitchCharacter(char *szName);
+void SelectCharacter( char *szName );
 DWORD GetProcessCount(char *exeName);
 void DebugLog(char *szFormat, ...);
 unsigned long _FindPattern(unsigned long dwAddress,unsigned long dwLen,unsigned char *bPattern,char * szMask);
@@ -734,6 +737,12 @@ void LoginPulse()
 		bEnd = true;
 		return;
 	}
+    if( GetAsyncKeyState( VK_HOME ) & 1 )
+    {
+        bLogin = true;
+        bEnd = false;
+        return;
+    }
 	if (!bGotOffsets) {
 		GetAllOffsets(dwEQMainBase);
 	} else {
@@ -757,8 +766,6 @@ DETOUR_TRAMPOLINE_EMPTY(int Login::Pulse_Tramp());
 void AddOurPulse()
 {
 	if (GetModuleHandle("eqmain.dll")) {
-		//MessageBox(NULL, "eqmain.dll is loaded.", "MQ2 Debug", MB_OK|MB_SYSTEMMODAL);
-
 		bEnd = false;
 		if (dwEQMainBase = (DWORD)GetModuleHandle("eqmain.dll")) {
 			if (Login__Pulse_x)
@@ -791,7 +798,6 @@ void AddOurPulse()
 				GetPrivateProfileString(szSession, "Server", 0, szServerName, 32, INIFileName);
 				GetPrivateProfileString(szSession, "Character", 0, szCharacterName, 64, INIFileName);
 			}
-			bLogin = true;
 		}
 	}
 }
@@ -899,9 +905,7 @@ PLUGIN_API VOID InitializePlugin(VOID)
     bUseStationNamesInsteadOfSessions = GetPrivateProfileInt("Settings", "UseStationNamesInsteadOfSessions", 0, INIFileName);
     bReLoggin = GetPrivateProfileInt("Settings", "LoginOnReLoadAtCharSelect", 0, INIFileName);
     bool bUseCustomClientIni = GetPrivateProfileInt( "Settings", "EnableCustomClientIni", 0, INIFileName ) == 1;
-	//CHAR szMessage[2048] = { 0 };
-	//sprintf_s(szMessage, "bUseMQ2Login = %d", bUseMQ2Login);
-	//MessageBox(NULL, szMessage, "MQ2 Debug", MB_OK|MB_SYSTEMMODAL);
+    bEndAfterCharSelect = GetPrivateProfileInt( "Settings", "EndAfterCharSelect", 0, INIFileName ) == 1;
 
 	//is eqmain.dll loaded
 	if (GetModuleHandle("eqmain.dll")) {
@@ -990,8 +994,9 @@ void RemoveLoginPulse()
 	if (dwEQMainBase)
 		dwEQMainBase = 0;
 	bGotOffsets = false;
-	bEnd = false;
+    bEnd = false;
 }
+
 PLUGIN_API VOID ShutdownPlugin(VOID)
 {
 	RemoveLoginPulse();
@@ -1010,20 +1015,25 @@ PLUGIN_API VOID ShutdownPlugin(VOID)
 
 PLUGIN_API VOID SetGameState(DWORD GameState)
 {
-	
-	if (GameState == GAMESTATE_PRECHARSELECT) {
-		if (GetModuleHandle("eqmain.dll")) {
+    bEndAfterCharSelect = GetPrivateProfileInt( "Settings", "EndAfterCharSelect", 0, INIFileName ) == 1;
+
+	if (GameState == GAMESTATE_PRECHARSELECT) 
+    {
+		if (GetModuleHandle("eqmain.dll")) 
+        {
 			//well well well... what do u know... it's loaded...
 			//ok fine that means we wont get any frontload notification, so lets fake it
 			if(!Login__Pulse_x)
 				AddOurPulse();
 		}
 	}
-	if (GameState == GAMESTATE_POSTFRONTLOAD) {
+	if (GameState == GAMESTATE_POSTFRONTLOAD) 
+    {
 		//we know eqmain.dll is loaded now...
 		if(!Login__Pulse_x)
 			AddOurPulse();
-	} else if(GameState == GAMESTATE_CHARSELECT) {
+	} else if(GameState == GAMESTATE_CHARSELECT) 
+    {
 		RemoveLoginPulse();
 		if (dwServerID) {
 			dwServerID = 0;
@@ -1043,7 +1053,15 @@ PLUGIN_API VOID SetGameState(DWORD GameState)
 PLUGIN_API VOID OnPulse(VOID)
 {
 	//ok since in game pulse starts at charselect we can use that for charswitching and serverswithcing as well as relog...
-	if (GetGameState() == GAMESTATE_CHARSELECT) {
+    if( !bLogin && GetAsyncKeyState( VK_HOME ) & 1 )
+    {
+        WriteChatf( "\agHOME key pressed. AutoLogin Re-Enabled.", szNewChar );
+        bEndAfterCharSelect = false;
+        bLogin = true;
+        return;
+    }
+
+    if (GetGameState() == GAMESTATE_CHARSELECT) {
 		if(dwTime && szNewChar[0] && GetAsyncKeyState(VK_END) & 1)
         {
             WriteChatf("END key pressed. Login of %s aborted.",szNewChar);
@@ -1052,21 +1070,28 @@ PLUGIN_API VOID OnPulse(VOID)
 			switchTime = 0;
             return;
         }
-		if (bSwitchServer) {// world -> char select
+		if (bSwitchServer) 
+        {
+            // world -> char select
 			AutoLoginDebug("SetGameState(GAMESTATE_CHARSELECT): bSwitchServer = true");
 			DWORD pCharSelect = *(DWORD*)pinstCCharacterSelect;
 			((CCharacterSelect *)pCharSelect)->Quit();
 			return;
 		}
-		if (bSwitchChar) {//we have to give the chatwindow time to show up at char select... so we wait a couple seconds...
+		if (bSwitchChar) 
+        {
+            //we have to give the chatwindow time to show up at char select... so we wait a couple seconds...
 			switchTime = MQGetTickCount64() + 2000;
 			bSwitchChar = false;
 			return;
 		}
-		if (switchTime && switchTime <= MQGetTickCount64()) {//ok at this point the user has 3 seconds to read the message and abort.
+		if (switchTime && switchTime <= MQGetTickCount64() && szNewChar[0] != '\0' ) 
+        {
+            //ok at this point the user has 3 seconds to read the message and abort.
 			WriteChatf("Selecting \ag%s\ax in 3 seconds. please Wait... or press the END key to abort", szNewChar);
 			switchTime = 0;
 			dwTime = MQGetTickCount64() + 3000;
+            SelectCharacter( szNewChar );
 			return;
 		}
 		if (szNewChar[0] != '\0' && dwTime && dwTime <= MQGetTickCount64())
@@ -1075,6 +1100,11 @@ PLUGIN_API VOID OnPulse(VOID)
 			szNewChar[0] = 0;
 			dwTime = 0;
 		}
+        if( !szNewChar || szNewChar[0] == '\0' && bEndAfterCharSelect && bLogin )
+        {
+            bLogin = false;
+            WriteChatf( "\ayAutologin now ended... press HOME to Re-Enable.", szNewChar );
+        }
 	}
 }
 
@@ -1095,6 +1125,9 @@ void SwitchCharacter(char *szName)
 								DWORD pCharSelect = *(DWORD*)pinstCCharacterSelect;
 								((CCharacterSelect *)pCharSelect)->SelectCharacter(i, 1, 1);
 								((CCharacterSelect *)pCharSelect)->EnterWorld();
+                                
+                                if( bEndAfterCharSelect ) bLogin = false;
+
 								return;
 							}
 						}
@@ -1108,6 +1141,37 @@ void SwitchCharacter(char *szName)
         AutoLoginDebug("SwitchCharacter failed");
         WriteChatf("\arUsage\ax /switchcharacter \ay<name>\ax");
 	}
+}
+
+void SelectCharacter( char *szName )
+{
+    if( szName && szName[0] != '\0' ) {
+        if( CXWnd*pWnd = FindMQ2Window( "CLW_CharactersScreen" ) ) {
+            if( CListWnd *charlist = (CListWnd *)pWnd->GetChildItem( "Character_List" ) ) {
+                if( charlist->Items ) {
+                    CXStr Str;
+                    int column = 2;
+                    for( int i = 0; i < charlist->Items; i++ ) {
+                        charlist->GetItemText( &Str, i, column );
+                        CHAR szOut[255] = { 0 };
+                        GetCXStr( Str.Ptr, szOut, 254 );
+                        if( szOut[0] != '\0' ) {
+                            if( !_stricmp( szName, szOut ) ) {
+                                DWORD pCharSelect = *(DWORD*)pinstCCharacterSelect;
+                                ((CCharacterSelect *)pCharSelect)->SelectCharacter( i, 1, 1 );
+                                return;
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+    else
+    {
+        AutoLoginDebug( "SwitchCharacter failed" );
+        WriteChatf( "\arUsage\ax /switchcharacter \ay<name>\ax" );
+    }
 }
 
 inline bool WindowActive(char *name)
@@ -1127,6 +1191,11 @@ bool bWait = false;
 bool bServerWait = false;
 void HandleWindows()
 {
+    if( !bLogin )
+    {
+        return;
+    }
+
 	CXWnd *pWnd = 0;
 	if (WindowActive("OrderWindow"))
 	{
