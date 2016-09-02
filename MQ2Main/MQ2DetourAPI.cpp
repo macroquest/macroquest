@@ -124,14 +124,14 @@ void AddDetourf(DWORD address, ...)
 		{
 			Parameters[nParameters] = i;
 			nParameters++;
+		} else {
+			//we can break out now...
+			break;
 		}
 		i = va_arg(marker, int);
 	}
 	va_end(marker);
-	if (nParameters == 3)
-	{
-		AddDetour(address, (PBYTE)Parameters[1], (PBYTE)Parameters[2], 20);
-	} else if (nParameters == 4)
+	if (nParameters == 4)
 	{
 		AddDetour(address, (PBYTE)Parameters[1], (PBYTE)Parameters[2], 20,(PCHAR)Parameters[3]);
 	}
@@ -426,7 +426,7 @@ VOID HookInlineChecks(BOOL Patch)
 #ifdef ISXEQ
 			EzModify(cmps[i], &NewData, 4);
 #else
-			AddDetour(cmps[i], NULL, NULL, 4);
+			AddDetour(cmps[i], NULL, NULL, 4,"cmps");
 			VirtualProtectEx(GetCurrentProcess(), (LPVOID)cmps[i], 4, PAGE_EXECUTE_READWRITE, &oldperm);
 			WriteProcessMemory(GetCurrentProcess(), (LPVOID)cmps[i], (LPVOID)&NewData, 4, NULL);
 			VirtualProtectEx(GetCurrentProcess(), (LPVOID)cmps[i], 4, oldperm, &tmp);
@@ -439,7 +439,7 @@ VOID HookInlineChecks(BOOL Patch)
 #ifdef ISXEQ
 			EzModify(cmps2[i], NewData2, len2[i]);
 #else
-			AddDetour(cmps2[i], NULL, NULL, len2[i]);
+			AddDetour(cmps2[i], NULL, NULL, len2[i],"cmps2");
 			VirtualProtectEx(GetCurrentProcess(), (LPVOID)cmps2[i], len2[i], PAGE_EXECUTE_READWRITE, &oldperm);
 			memcpy((void *)OldData2[i], (void *)cmps2[i], len2[i]);
 			WriteProcessMemory(GetCurrentProcess(), (LPVOID)cmps2[i], (LPVOID)NewData2, len2[i], NULL);

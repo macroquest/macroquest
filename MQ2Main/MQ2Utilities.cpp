@@ -14,7 +14,9 @@ GNU General Public License for more details.
 #if !defined(CINTERFACE)
 #error /DCINTERFACE
 #endif
+#ifdef _DEBUG
 #define DBG_SPEW
+#endif
 
 #include "MQ2Main.h"
 #define TS template <unsigned int _Size>
@@ -25,7 +27,6 @@ GNU General Public License for more details.
 // ***************************************************************************
 VOID DebugSpew(PCHAR szFormat, ...)
 {
-#ifdef DBG_SPEW
 	if (gFilterDebug) return;
 	va_list vaList;
 	va_start(vaList, szFormat);
@@ -39,7 +40,6 @@ VOID DebugSpew(PCHAR szFormat, ...)
 		OutputDebugString(szOutput);
 		LocalFree(szOutput);
 	}
-#endif
 }
 
 VOID WriteChatf(PCHAR szFormat, ...)
@@ -81,7 +81,6 @@ VOID DebugSpewAlways(PCHAR szFormat, ...)
 		vsprintf_s(szOutput + headerlen, thelen - headerlen, szFormat, vaList);
 		strcat_s(szOutput, thelen, "\n");
 		OutputDebugString(szOutput);
-#ifdef DBG_SPEW
 		if (gSpewToFile) {
 			FILE *fOut = NULL;
 			CHAR Filename[MAX_STRING] = { 0 };
@@ -102,7 +101,6 @@ VOID DebugSpewAlways(PCHAR szFormat, ...)
 #endif
 			fclose(fOut);
 		}
-#endif
 		LocalFree(szOutput);
 	}
 }
@@ -1133,12 +1131,25 @@ PSPELL GetSpellByName(PCHAR szName)
 	}
 	return NULL;
 }
+//This wrapper is here to deal with older plugins and to preserve bacwards compatability with older clients (emu)
+PALTABILITY GetAAByIdWrapper(int nAbilityId, int playerLevel)
+{
+#ifdef EMU
+	return pAltAdvManager->GetAAById(nAbilityId);
+#else
+	return pAltAdvManager->GetAAById(nAbilityId, playerLevel);
+#endif
+}
 
 PSPELL GetSpellByAAName(PCHAR szName)
 {
 	try {
+		int level = -1;
+		if (PSPAWNINFO pMe = (PSPAWNINFO)pLocalPlayer) {
+			level = pMe->Level;
+		}
 		for (unsigned long nAbility = 0; nAbility<NUM_ALT_ABILITIES; nAbility++) {
-			if (PALTABILITY pAbility = pAltAdvManager->GetAAById(nAbility)) {
+			if (PALTABILITY pAbility = GetAAByIdWrapper(nAbility, level)) {
 				if (pAbility->SpellID != -1) {
 					if (char *pName = pCDBStr->GetString(pAbility->nName, 1, NULL)) {
 						if (!_stricmp(szName, pName)) {
@@ -5130,9 +5141,13 @@ PCHAR GetAANameByIndex(DWORD AAIndex)
 
 DWORD GetAAIndexByName(PCHAR AAName)
 {
+	int level = -1;
+	if (PSPAWNINFO pMe = (PSPAWNINFO)pLocalPlayer) {
+		level = pMe->Level;
+	}
 	//check bought aa's first
 	for (unsigned long nAbility = 0; nAbility<AA_CHAR_MAX_REAL; nAbility++) {
-		if (PALTABILITY pAbility = pAltAdvManager->GetAAById(pPCData->GetAlternateAbilityId(nAbility))) {
+		if (PALTABILITY pAbility = GetAAByIdWrapper(pPCData->GetAlternateAbilityId(nAbility), level)) {
 			if (PCHAR pName = pCDBStr->GetString(pAbility->nName, 1, NULL)) {
 				if (!_stricmp(AAName, pName)) {
 					return pAbility->Index;
@@ -5142,7 +5157,7 @@ DWORD GetAAIndexByName(PCHAR AAName)
 	}
 	//not found? fine lets check them all then...
 	for (unsigned long nAbility = 0; nAbility<NUM_ALT_ABILITIES; nAbility++) {
-		if (PALTABILITY pAbility = pAltAdvManager->GetAAById(nAbility)) {
+		if (PALTABILITY pAbility = GetAAByIdWrapper(nAbility, level)) {
 			if (PCHAR pName = pCDBStr->GetString(pAbility->nName, 1, NULL)) {
 				if (!_stricmp(AAName, pName)) {
 					return pAbility->Index;
@@ -5157,7 +5172,7 @@ DWORD GetAAIndexByID(DWORD ID)
 {
 	//check our bought aa's first
 	for (unsigned long nAbility = 0; nAbility < AA_CHAR_MAX_REAL; nAbility++) {
-		if (PALTABILITY pAbility = pAltAdvManager->GetAAById(pPCData->GetAlternateAbilityId(nAbility))) {
+		if (PALTABILITY pAbility = GetAAByIdWrapper(pPCData->GetAlternateAbilityId(nAbility))) {
 			if (pAbility->ID == ID) {
 				return pAbility->Index;
 			}
@@ -5165,7 +5180,7 @@ DWORD GetAAIndexByID(DWORD ID)
 	}
 	//didnt find it? fine we go through them all then...
 	for (unsigned long nAbility = 0; nAbility < NUM_ALT_ABILITIES; nAbility++) {
-		if (PALTABILITY pAbility = pAltAdvManager->GetAAById(nAbility)) {
+		if (PALTABILITY pAbility = GetAAByIdWrapper(nAbility)) {
 			if (pAbility->ID == ID) {
 				return pAbility->Index;
 			}
@@ -7863,7 +7878,7 @@ BOOL OpenContainer(PCONTENTS pItem, bool hidden, bool flag)
 					//put code to hide bag here
 					//until i can figure out how to call moveitemqty
 				}
-				CMoveItemData To = { 0 };
+				ItemGlobalIndex To = { 0 };
 				To.InventoryType = 0; To.Unknown0x02 = 0;
 				To.InvSlot = pSlot->pInvSlotWnd->InvSlot;
 				To.BagSlot = pSlot->pInvSlotWnd->BagSlot;
@@ -7960,7 +7975,7 @@ BOOL PickupOrDropItem(DWORD type, PCONTENTS pItem)
 				pInvSlotMgr->SelectSlot(theslot);
 				//int imagenum = ((EQ_Item*)pItem)->GetImageNum();
 				//CTextureAnimation *TextureAnim = pIconCache->GetIcon(imagenum);
-				CMoveItemData To = { 0 };
+				ItemGlobalIndex To = { 0 };
 				To.InventoryType = 0; To.Unknown0x02 = 0;
 				To.InvSlot = cSlot->pInvSlotWnd->InvSlot;
 				To.BagSlot = cSlot->pInvSlotWnd->BagSlot;
@@ -7980,7 +7995,7 @@ BOOL PickupOrDropItem(DWORD type, PCONTENTS pItem)
 			if (CInvSlot * theslot = pInvSlotMgr->FindInvSlot(pItem->ItemSlot)) {
 				PEQINVSLOT cSlot = (PEQINVSLOT)theslot;
 				pInvSlotMgr->SelectSlot(theslot);
-				CMoveItemData To = { 0 };
+				ItemGlobalIndex To = { 0 };
 				To.InventoryType = 0; To.Unknown0x02 = 0;
 				To.InvSlot = cSlot->pInvSlotWnd->InvSlot;
 				To.BagSlot = cSlot->pInvSlotWnd->BagSlot;
@@ -8006,7 +8021,7 @@ BOOL PickupOrDropItem(DWORD type, PCONTENTS pItem)
 		return FALSE;
 	}
 	if (!bMoveFromCursor) {//user is picking up something
-		CMoveItemData From = { 0 };
+		ItemGlobalIndex From = { 0 };
 		From.InventoryType = (WORD)type;
 		From.Unknown0x02 = 0;
 		From.InvSlot = InvSlot;
@@ -8014,7 +8029,7 @@ BOOL PickupOrDropItem(DWORD type, PCONTENTS pItem)
 		From.GlobalSlot = pSlot->pInvSlotWnd->GlobalSlot;
 		From.RandomNum = pSlot->pInvSlotWnd->RandomNum;
 
-		CMoveItemData To = { 0 };
+		ItemGlobalIndex To = { 0 };
 		To.InventoryType = 0;
 		To.Unknown0x02 = 0;
 		To.InvSlot = 33;//cursor
@@ -8072,7 +8087,7 @@ BOOL PickupOrDropItem(DWORD type, PCONTENTS pItem)
 	}
 	else {
 		//user has something on the cursor, lets drop it
-		CMoveItemData From = { 0 };
+		ItemGlobalIndex From = { 0 };
 		From.InventoryType = 0;
 		From.Unknown0x02 = 0;
 		From.InvSlot = 33;//cursor
@@ -8080,7 +8095,7 @@ BOOL PickupOrDropItem(DWORD type, PCONTENTS pItem)
 		From.GlobalSlot = 0xFFFF;
 		From.RandomNum = 0;
 
-		CMoveItemData To = { 0 };
+		ItemGlobalIndex To = { 0 };
 		To.InventoryType = (WORD)type;
 		To.Unknown0x02 = 0;
 		To.InvSlot = InvSlot;
@@ -8740,10 +8755,14 @@ BOOL GetAllMercDesc(std::map<DWORD, MercDesc>&minfo)
 }
 BOOL IsActiveAA(PCHAR pSpellName)
 {
+	int level = -1;
+	if (PSPAWNINFO pMe = (PSPAWNINFO)pLocalPlayer) {
+		level = pMe->Level;
+	}
 	for (DWORD nAbility = 0; nAbility<AA_CHAR_MAX_REAL; nAbility++) {
-		if (PALTABILITY pAbility = pAltAdvManager->GetAAById(pPCData->GetAlternateAbilityId(nAbility))) {
+		if (PALTABILITY pAbility = GetAAByIdWrapper(pPCData->GetAlternateAbilityId(nAbility), level)) {
 			if (!_stricmp(pSpellName, pCDBStr->GetString(pAbility->nName, 1, NULL))) {
-				if (pAbility->SpellID != 0xFFFFFFFF) {
+				if (pAbility->SpellID <= 0) {
 					return TRUE;
 				}
 			}

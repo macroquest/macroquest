@@ -20,52 +20,69 @@
    "1H Blunt",              // 3
    "2H Blunt",              // 4
    "Archery",               // 5
-   NULL,                    // 6
+   "Crossbow",              // 6
    "Throwingv1",            // 7
    "Shield",                // 8
-   NULL,                    // 9
+   "Spell",                 // 9
    "Armor",                 //10
    "Misc",                  //11
    "Lockpicks",             //12
-   NULL,                    //13
+   "Fist",                  //13
    "Food",                  //14
    "Drink",                 //15
    "Light",                 //16   
    "Combinable",            //17
    "Bandages",              //18
-   "Throwingv2",            //19
+   "Ammo",                  //19
    "Scroll",                //20
    "Potion",                //21
-   NULL,                    //22
+   "Skill",                 //22
    "Wind Instrument",       //23
    "Stringed Instrument",   //24
    "Brass Instrument",      //25
    "Percussion Instrument", //26
-   "Arrow",                 //27
-   NULL,                    //28
+   "Arrow",                 //27 (bow ammo)
+   "Bolt",                  //28 (crossbow ammo)
    "Jewelry",               //29
-   "Skull",                 //30
-   "Tome",                  //31
-   NULL,                    //32
-   "Keyv1",                 //33
-   "Coin",                  //34
+   "Artifact",              //30
+   "Book",                  //31
+   "Note",                  //32
+   "Key",                   //33
+   "Ticket",                //34
    "2H Piercing",           //35
    "Fishing Pole",          //36
    "Fishing Bait",          //37
    "Alcohol",               //38
-   "Keyv2",                 //39
+   "House Key",             //39
    "Compass",               //40
-   NULL,                    //41
+   "Metal Key",             //41
    "Poison",                //42
-   NULL,                    //43
-   NULL,                    //44
+   "Magic Arrow",           //43
+   "Magic Bolt",            //44
    "Martial",               //45
-   NULL,                    //46
-   NULL,                    //47
-   NULL,                    //48
-   NULL,                    //49
-   NULL,                    //50
+   "Item Has Effect",       //46 (not really an item type cause it's only used in bazaar searches)
+   "Haste Item",            //47 (not really an item type cause it's only used in bazaar searches)
+   "Item Has FT",           //48 (not really an item type cause it's only used in bazaar searches)
+   "Item Has Focus",        //49 (not really an item type cause it's only used in bazaar searches)
+   "Singing Instrument",    //50
    "All Instruments",       //51
    "Charm",                 //52
-   NULL,                    //53
+   "Dye",                   //53
    "Augmentation",          //54
+   "Augmentat Destroy Solvent",          //55
+   "Augmentat Remove Solvent",          //56
+   "Alternate Ability",     //57
+   "Guild Banner Kit",      //58
+   "Guild Banner Modify Token",      //59
+   "Recipe Book",           //60 (the kind of book u learn from when you right clik it.
+   "Voluntary Spellcast Book",      //61 (a book that when u right click it will cast a spell and ask you if thats ok)
+   "Auto Spellcast Book",   //62 (a book that when u right click it will cast a spell automatically, no questions asked...)
+   "Point Currency",        //63
+   "Universal Augment Solvent",        //64
+   "Placeable",            //65 (not really an item type, but used in bazaar search)
+   "Collectible",            //66 (not really an item type, but used in bazaar search)
+   "Container",            //67 (not really an item type, but used in bazaar search)
+   "Mount",                //68
+   "Illusion",             //69
+   "Familiar",             //70
+

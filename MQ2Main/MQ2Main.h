@@ -504,6 +504,8 @@ EQLIB_API int GetCurrencyIDByName(PCHAR szName);
 EQLIB_API PCHAR GetSpellNameByID(LONG dwSpellID);
 EQLIB_API PSPELL GetSpellByName(PCHAR szName);
 EQLIB_API PSPELL GetSpellByAAName(PCHAR szName);
+EQLIB_API PSPELL GetSpellByAAName(PCHAR szName);
+EQLIB_API PALTABILITY GetAAByIdWrapper(int nAbilityId, int playerLevel = -1);
 EQLIB_API DWORD GetSpellRankByName(PCHAR SpellName);
 EQLIB_API VOID RemoveBuff(PSPAWNINFO pChar, PCHAR szLine);
 EQLIB_API VOID RemovePetBuff(PSPAWNINFO pChar, PCHAR szLine);
@@ -747,8 +749,8 @@ LEGACY_API BOOL Calculate(PCHAR szFormula, DOUBLE& Dest);
 // OTHER SHIT
 
 #define LIGHT_COUNT     13
-#define MAX_COMBINES    52
-#define MAX_ITEMTYPES   56
+#define MAX_COMBINES    61
+#define MAX_ITEMTYPES   71
 #define MAX_SPELLEFFECTS   478
 
 #define GAMESTATE_CHARSELECT    1

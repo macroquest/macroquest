@@ -757,6 +757,8 @@ DETOUR_TRAMPOLINE_EMPTY(int Login::Pulse_Tramp());
 void AddOurPulse()
 {
 	if (GetModuleHandle("eqmain.dll")) {
+		//MessageBox(NULL, "eqmain.dll is loaded.", "MQ2 Debug", MB_OK|MB_SYSTEMMODAL);
+
 		bEnd = false;
 		if (dwEQMainBase = (DWORD)GetModuleHandle("eqmain.dll")) {
 			if (Login__Pulse_x)
@@ -897,6 +899,9 @@ PLUGIN_API VOID InitializePlugin(VOID)
     bUseStationNamesInsteadOfSessions = GetPrivateProfileInt("Settings", "UseStationNamesInsteadOfSessions", 0, INIFileName);
     bReLoggin = GetPrivateProfileInt("Settings", "LoginOnReLoadAtCharSelect", 0, INIFileName);
     bool bUseCustomClientIni = GetPrivateProfileInt( "Settings", "EnableCustomClientIni", 0, INIFileName ) == 1;
+	//CHAR szMessage[2048] = { 0 };
+	//sprintf_s(szMessage, "bUseMQ2Login = %d", bUseMQ2Login);
+	//MessageBox(NULL, szMessage, "MQ2 Debug", MB_OK|MB_SYSTEMMODAL);
 
 	//is eqmain.dll loaded
 	if (GetModuleHandle("eqmain.dll")) {

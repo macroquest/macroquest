@@ -883,8 +883,8 @@ FUNCTION_AT_ADDRESS(void  CPlayerNotesWnd::Init(void),CPlayerNotesWnd__Init);
 #ifdef CTargetWnd__Init_x
 FUNCTION_AT_ADDRESS(void  CTargetWnd::Init(void),CTargetWnd__Init);
 #endif
-#ifdef CTargetWnd__UpdateBuffs_x
-FUNCTION_AT_ADDRESS(void  CTargetWnd::UpdateBuffs(PBYTE),CTargetWnd__UpdateBuffs);
+#ifdef CTargetWnd__RefreshTargetBuffs_x
+FUNCTION_AT_ADDRESS(void  CTargetWnd::RefreshTargetBuffs(PBYTE),CTargetWnd__RefreshTargetBuffs);
 #endif
 #ifdef UdpManager__ProcessIcmpErrors_x
 FUNCTION_AT_ADDRESS(void  UdpManager::ProcessIcmpErrors(void),UdpManager__ProcessIcmpErrors);
@@ -1943,7 +1943,7 @@ FUNCTION_AT_ADDRESS(bool  CInvSlot::IllegalBigBank(int),CInvSlot__IllegalBigBank
 FUNCTION_AT_ADDRESS( CInvSlotMgr::CInvSlotMgr(void),CInvSlotMgr__CInvSlotMgr);
 #endif
 #ifdef CInvSlotMgr__MoveItem_x
-FUNCTION_AT_ADDRESS(bool  CInvSlotMgr::MoveItem(CMoveItemData*,CMoveItemData*,int valueOne,int valueOne2,int valueZero,int valueZero2),CInvSlotMgr__MoveItem);
+FUNCTION_AT_ADDRESS(bool  CInvSlotMgr::MoveItem(ItemGlobalIndex *from, ItemGlobalIndex *to, bool bDebugOut, bool CombineIsOk, bool MoveFromIntoToBag, bool MoveToIntoFromBag),CInvSlotMgr__MoveItem);
 #endif
 #ifdef CInvSlotMgr__CreateInvSlot_x
 FUNCTION_AT_ADDRESS(class CInvSlot *  CInvSlotMgr::CreateInvSlot(class CInvSlotWnd *),CInvSlotMgr__CreateInvSlot);
@@ -2318,7 +2318,7 @@ FUNCTION_AT_ADDRESS(void  CMerchantWnd::UpdateBuySellButtons(void),CMerchantWnd_
 FUNCTION_AT_ADDRESS(void  CMerchantWnd::SelectBuySellSlot(int,class CTextureAnimation *),CMerchantWnd__SelectBuySellSlot);
 #endif
 #ifdef CMerchantWnd__ActualSelect_x
-FUNCTION_AT_ADDRESS(int  CMerchantWnd::ActualSelect(class CMoveItemData *),CMerchantWnd__ActualSelect);
+FUNCTION_AT_ADDRESS(int  CMerchantWnd::ActualSelect(class ItemGlobalIndex *),CMerchantWnd__ActualSelect);
 #endif
 #ifdef CMerchantWnd__DisplayBuyOrSellPrice_x
 FUNCTION_AT_ADDRESS(void  CMerchantWnd::DisplayBuyOrSellPrice(bool,class EQ_Item *),CMerchantWnd__DisplayBuyOrSellPrice);
@@ -3192,6 +3192,15 @@ FUNCTION_AT_ADDRESS(int __cdecl ChannelServerApi::GetNextField(char *,int,char *
 #endif
 #ifdef CharacterBase__GetMemorizedSpell_x
 FUNCTION_AT_ADDRESS(LONG CharacterBase::GetMemorizedSpell(int),CharacterBase__GetMemorizedSpell);
+#endif
+#ifdef CharacterBase__CreateItemGlobalIndex_x
+FUNCTION_AT_ADDRESS(ItemGlobalIndex *CharacterBase::CreateItemGlobalIndex(int*,int,int,int), CharacterBase__CreateItemGlobalIndex);
+#endif
+#ifdef CharacterBase__CreateItemIndex_x
+FUNCTION_AT_ADDRESS(ItemIndex *CharacterBase::CreateItemIndex(int*,int,int,int), CharacterBase__CreateItemIndex);
+#endif
+#ifdef CharacterBase__GetItemPossession_x
+FUNCTION_AT_ADDRESS(PCONTENTS *CharacterBase::GetItemPossession(int*, class ItemIndex *), CharacterBase__GetItemPossession);
 #endif
 #ifdef IconCache__IconCache_x
 FUNCTION_AT_ADDRESS( IconCache::IconCache(void),IconCache__IconCache);
@@ -4299,7 +4308,7 @@ FUNCTION_AT_ADDRESS(void  EQ_Character::DoPassageOfTime(void),EQ_Character__DoPa
 FUNCTION_AT_ADDRESS(unsigned char  EQ_Character::FindItemByClass(int,int *,int *),EQ_Character__FindItemByClass);
 #endif
 #ifdef EQ_Character__FindItemByRecord_x
-FUNCTION_AT_ADDRESS(unsigned char  EQ_Character::FindItemByRecord(int,int *,int *),EQ_Character__FindItemByRecord);
+FUNCTION_AT_ADDRESS(unsigned char  EQ_Character::FindItemByRecord(int, int *, int *, bool),EQ_Character__FindItemByRecord);
 #endif
 #ifdef EQ_Character__FindItemQty_x
 FUNCTION_AT_ADDRESS(unsigned char  EQ_Character::FindItemQty(int,int),EQ_Character__FindItemQty);
@@ -5357,6 +5366,9 @@ FUNCTION_AT_ADDRESS(void __cdecl EQPlayer::UpdateAllPlayersVisibility(void),EQPl
 #endif
 #ifdef PlayerBase__HasProperty_j_x
 FUNCTION_AT_ADDRESS(bool EQPlayer::HasProperty(unsigned int,int,int),PlayerBase__HasProperty_j);
+#endif
+#ifdef PlayerBase__GetVisibilityLineSegment_x
+FUNCTION_AT_ADDRESS(class CLineSegment &EQPlayer::GetVisibilityLineSegment(class CLineSegment&, class EQPlayer&,unsigned int),PlayerBase__GetVisibilityLineSegment);
 #endif
 #ifdef EQPlayer__SetEyeMaterial_x
 FUNCTION_AT_ADDRESS(int  EQPlayer::SetEyeMaterial(unsigned char,int),EQPlayer__SetEyeMaterial);
@@ -9830,4 +9842,8 @@ FUNCTION_AT_ADDRESS(int PcZoneClient::GetModCap(int index), PcZoneClient__GetMod
 #ifdef CXWnd__SetFont_x
 FUNCTION_AT_ADDRESS(int CXWnd::SetFont(void*), CXWnd__SetFont);
 #endif
+#ifdef CCollisionInfoTargetVisibility__CCollisionInfoTargetVisibility_x
+FUNCTION_AT_ADDRESS(CCollisionInfoTargetVisibility::CCollisionInfoTargetVisibility(class CLineSegment *, class EQPlayer *, class EQPlayer *), CCollisionInfoTargetVisibility__CCollisionInfoTargetVisibility);
+#endif
+
 #pragma warning( pop )

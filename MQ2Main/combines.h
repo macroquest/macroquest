@@ -12,22 +12,22 @@
     GNU General Public License for more details.
 ******************************************************************************/
 
-#define MAX_COMBINES    52
-#define FIRST_COMBINE    8
-#define LAST_COMBINE    50
-
-    NULL,                   // 0
-    "Regular",              // 1 - Rallic pack, quested? lore?
-    NULL,                   // 2
-    "Regular",              // 3 - Kavruul`s Mystic Pouch (Giant, 10 slot, 100% weight red.) 
-    NULL,                   // 4
-    "Regular",              // 5 - Backpacks
-    "Regular",              // 6 - Small box
-    "Regular",              // 7 - Large Box
-    NULL,                   // 8
+//#define MAX_COMBINES    61
+//these are useless now #define FIRST_COMBINE    9
+//#define LAST_COMBINE    50
+//we could just call GetWorldContainerName to get these eqmule todo?
+    "Small Bag",            // 0
+    "Large Bag",            // 1 - Rallic pack, quested? lore?
+    "Quiver",               // 2
+    "Belt Pouch",           // 3 - Kavruul`s Mystic Pouch (Giant, 10 slot, 100% weight red.) 
+    "Wrist Pouch",          // 4
+    "BackPack",             // 5 - Backpacks
+    "Small Chest",          // 6 - Small box
+    "Large Chest",          // 7 - Large Box
+    "Bandolier",                   // 8
     "Medicine",             // 9 - Medicine Bag
     "Tinkering",            //10 - Toolbox
-    "Research ???",         //11 - Ancient Restoration
+    "lexicon",              //11 - Ancient Restoration
     "Make Poison",          //12 - Mortar and Pestle
     "Quest",                //13 - Blackburrow Cask, Empty Seed Collection Bag
     "Mixing",               //14 - Mixing Bowl
@@ -39,41 +39,43 @@
     "Jewelry Making",       //20 - Jeweller's Kit
     "Pottery",              //21 - Pottery Wheel
     "Firing",               //22 - Kiln
-    NULL,                   //23
+    "Key Maker",            //23
     "Research WIZ",         //24 - Lexicon
     "Research MAG",         //25 - Elemental Grimorie
     "Research NEC",         //26 - Book of Dark Bindings
     "Research ENC",         //27 - Tome of Endless Enchantments
-    NULL,                   //28
+    NULL,                   //28 couldnt find this i suspect its serverside use only
     "Research Practice",    //29 - Concordance of Research
     "Alchemy",              //30 - Bearskin Potion Bag
-    NULL,                   //31
-    NULL,                   //32
-    NULL,                   //33
-    NULL,                   //34
-    NULL,                   //35
-    NULL,                   //36
-    NULL,                   //37
-    NULL,                   //38
-    NULL,                   //39
-    NULL,                   //40
-    "Tailoring Halfling",   //41 - Vale Sewing Kit
-    NULL,                   //42
-    NULL,                   //43
-    "Fletching WoodElf",    //44 - Teir'Dal Fletching Kit
-    NULL,                   //45
+    "HighElf Only Forge",                   //31
+    "DarkElf Only Forge",                   //32
+    "Ogre Only Forge",                   //33
+    "Dwarf Only Forge",                   //34
+    "Gnome Only Forge",                   //35
+    "Barbarian Only Forge",                   //36
+    "Iksar Only Forge",                   //37
+    "Human Freeport Forge",                   //38
+    "Human Qeynos Forge",                   //39
+    "Halfling Tailor Kit",                   //40
+    "Halfling Tailor Kit",   //41 - Vale Sewing Kit
+    "Erudite Tailor Kit",                   //42
+    "Wood Elf Tailor Kit",                   //43
+    "Wood Elf Flecthing Kit",    //44 - Teir'Dal Fletching Kit
+    "Iksar Pottery Wheel",                   //45
     "Fishing",              //46 - Tacklebox
-    NULL,                   //47
-    NULL,                   //48
-    NULL,                   //49
-    NULL,                   //50
+    "Troll Forge",                   //47
+    "Wood Elf Forge",                   //48
+    "Halfling Forge",                   //49
+    "Erudite Forge",                   //50
     "Merchant",             //51 - Trader's Satchel 
-    NULL,                   //52
-    NULL,                   //53
-    NULL,                   //54
-    NULL,                   //55
-    NULL,                   //56
-    NULL,                   //57
-    "Tradeskill Items",     //58 - Extraplanar Trade Satchel
+    "Froglok Forge",                   //52
+    "Augmenter",                   //53
+    "Churn",                   //54
+    "Transformation Mold",                   //55
+    "DeTransformation Mold",                   //56
+    "Unattuner",                   //57
+    "Tradeskill Bag",     //58 - Extraplanar Trade Satchel
+    "Collectible Bag",     //59
+    "No Deposit",     //60
 
 

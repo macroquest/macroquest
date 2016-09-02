@@ -1076,7 +1076,10 @@ namespace MQ2Globals
 
 	EQLIB_VAR DWORD CGuild__FindMemberByName;
 	EQLIB_VAR DWORD CharacterBase__GetMemorizedSpell;
-	
+	EQLIB_VAR DWORD CharacterBase__CreateItemGlobalIndex;
+	EQLIB_VAR DWORD CharacterBase__CreateItemIndex;
+	EQLIB_VAR DWORD CharacterBase__GetItemPossession;
+
 	EQLIB_VAR DWORD CHotButtonWnd__DoHotButton;
 
 	EQLIB_VAR DWORD CInvSlotMgr__FindInvSlot;
@@ -1211,7 +1214,7 @@ namespace MQ2Globals
 	EQLIB_VAR DWORD CTabWnd__SetPageRect;
 	EQLIB_VAR DWORD CTabWnd__UpdatePage;
 	EQLIB_VAR DWORD CTargetRing__Cast;
-	EQLIB_VAR DWORD CTargetWnd__UpdateBuffs;
+	EQLIB_VAR DWORD CTargetWnd__RefreshTargetBuffs;
 	
 	EQLIB_VAR DWORD CTextOverlay__DisplayText;
 
@@ -1288,6 +1291,8 @@ namespace MQ2Globals
 	EQLIB_VAR DWORD EQ_Character__TotalEffect;
 	EQLIB_VAR DWORD EQ_Character__GetPCSpellAffect;
 	EQLIB_VAR DWORD EQ_Character__SpellDuration;
+	EQLIB_VAR DWORD EQ_Character__FindItemByRecord;
+
 	EQLIB_VAR DWORD CCharacterSelect__SelectCharacter;
 	EQLIB_VAR DWORD CCharacterSelect__EnterWorld;
 	EQLIB_VAR DWORD CCharacterSelect__Quit;
@@ -1331,6 +1336,7 @@ namespace MQ2Globals
 	EQLIB_VAR DWORD EQPlayer__CanSee;
 	EQLIB_VAR DWORD PlayerZoneClient__ChangeHeight;
 	EQLIB_VAR DWORD EQPlayer__CanSeeTargetIndicator;
+	EQLIB_VAR DWORD PlayerBase__GetVisibilityLineSegment;
 	
 	EQLIB_VAR DWORD EQPlayerManager__GetSpawnByID;
 	EQLIB_VAR DWORD EQPlayerManager__GetSpawnByName;
@@ -1393,5 +1399,7 @@ namespace MQ2Globals
 	EQLIB_VAR DWORD msgTokenTextParam;
 	EQLIB_VAR DWORD SpellManager__SpellManager;
 	EQLIB_VAR DWORD Spellmanager__CheckSpellRequirementAssociations;
+	EQLIB_VAR DWORD CCollisionInfoTargetVisibility__CCollisionInfoTargetVisibility;
+
 }
 using namespace MQ2Globals;

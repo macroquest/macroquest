@@ -53,7 +53,7 @@ PMACROBLOCK GetWhileBlock(DWORD line)
 		FatalError("Bad while block pairing");
 		return NULL;
 	}
-	return pblock->pPrev;
+	return pblock;
 }
 VOID HideDoCommand(PSPAWNINFO pChar, PCHAR szLine, BOOL delayed)
 {

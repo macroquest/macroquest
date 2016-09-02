@@ -540,7 +540,7 @@ typedef struct _ITEMINFO {
 	/*0x0040*/ CHAR         LoreName[LORE_NAME_LEN];
 	/*0x00b0*/ CHAR         IDFile[0x20];
 	/*0x00d0*/ BYTE         Unknown0x00d0[0x1c];
-	/*0x00ec*/ DWORD        ItemNumber;
+	/*0x00ec*/ DWORD        ItemNumber;//m_iRecordNum
 	/*0x00f0*/ DWORD        EquipSlots;
 	/*0x00f4*/ DWORD        Cost;
 	/*0x00f8*/ DWORD        IconNumber;
@@ -578,7 +578,7 @@ typedef struct _ITEMINFO {
 	/*0x0128*/ CHAR         CHA;
 	/*0x0129*/ CHAR         INT;
 	/*0x012a*/ CHAR         WIS;
-	/*0x012b*/ BYTE         Unknown0x012b;
+	/*0x012b*/ BYTE         HitPoints;
 	/*0x012c*/ DWORD        HP;
 	/*0x0130*/ DWORD        Mana;
 	/*0x0134*/ DWORD        AC;
@@ -2084,57 +2084,66 @@ typedef struct _EQFRIENDSLIST {
 /*0x1900*/
 } EQFRIENDSLIST, *PEQFRIENDSLIST;
 
+typedef struct _AAEFFECTDATA
+{
+/*0x00*/	int EffectType;
+/*0x00*/	int BaseEffect1;
+/*0x00*/	int BaseEffect2;
+/*0x00*/	int Slot;
+} AAEFFECTDATA,*PAAEFFECTDATA;
+
 // Size 0xa4    11/15/2011 ieatacid in msg_send_alt_data
 // Size 0xa8    06/11/2014 eqmule in msg_send_alt_data
 // Size 0xa8    See 4EF12F (msg_send_alt_data) in 2015-09-24 -eqmule
 typedef struct _ALTABILITY {
-/*0x00*/ DWORD Index;
-/*0x04*/ BYTE Flags[4];					//[0] = enabled flag? everything 1, used to be a bool? is a bool in packet?
-/*0x08*/ DWORD nShortName;
-/*0x0c*/ DWORD nShorterName;
-/*0x10*/ DWORD nName;					// now a database number
-/*0x14*/ DWORD nDesc;					// now a database number
-/*0x18*/ DWORD MinLevel;
-/*0x1c*/ DWORD Cost;					//Initial Cost or cost the last time you bought a level of it
-/*0x20*/ DWORD ID;						//ID of the AA group (/alt activate id)
-/*0x24*/ DWORD CurrentRank;				// the current rank of this AA first rank is 1 etc
-/*0x28*/ DWORD RequirementCount;		//how many requirements does it have its always 1 even if its none
-/*0x2c*/ DWORD *RequiresAbility;		// array of prereq ID;
-/*0x30*/ DWORD Unknown0x30[2];
-/*0x38*/ DWORD prereq_count2;			// count of next array, which contains rank required
-/*0x3c*/ DWORD *RequiresAbilityPoints;
-/*0x40*/ DWORD Unknown0x40;
-/*0x44*/ DWORD pointer;
-/*0x48*/ DWORD Type;					// 1 General 2 Archetype 3 Class 4 special 5 focus
-/*0x4c*/ LONG  SpellID;					// -1 for no Spell
-/*0x50*/ DWORD Unknown0x50;
-/*0x54*/ DWORD Unknown0x54;				// this uses the same class as prereqs, so count?
-/*0x58*/ DWORD *reuse_id; 
-/*0x5c*/ BYTE  Unknown0x5c[0x8];
-/*0x64*/ DWORD ReuseTimer;				// in seconds
-/*0x68*/ DWORD Classes;					// Classes/2 is the actual value we want.
-/*0x6c*/ DWORD MaxRank;					//so like x/25, this is the 25
-union {									//If you have not spent points in this 
-/*0x70*/ DWORD PointsSpent;				//ability, then its PointsToBeSpent (or 
-/*0x70*/ DWORD PointsToBeSpent;			//'Cost', in other words).
-};
-/*0x74*/ DWORD last_id;					// -1 if none, although sometimes it can be -1 when there is ...
-/*0x78*/ DWORD next_id;					// ID of the next rank
-/*0x7C*/ BYTE grant_only;				// vet AA, quest AA
-/*0x7D*/ BYTE  Unknown0x7d[0x3];
-/*0x80*/ DWORD max_charges;				// charges on expendable AAs
-/*0x84*/ BYTE Unknown0x84[0x4];
-/*0x88*/ DWORD Expansion;
-/*0x8c*/ DWORD special_category;		// 7 is expendable, -1 none
-/*0x90*/ BYTE shroud;
-/*0x91*/ BYTE unknown0x91;
-/*0x92*/ BYTE loh;						// 1 for lay on hands only. yep.
-/*0x93*/ BYTE Autogrant;				// 1 if auto grant is enabled
-/*0x94*/ DWORD autogrant_expasnion;		// Usually the same as normal expansion if enabled
-/*0x98*/ DWORD effects_count;			// Count of spell effects for AA
-/*0x9c*/ DWORD **effects;				// this is repeated a few times some times
-/*0xA0*/ BYTE Unknown0xA0[0x8];
-/*0xa8*/
+	/*0x00*/ DWORD Index;
+	/*0x04*/ bool bShowInAbilityWindow;					//[0] = enabled flag? everything 1
+	/*0x05*/ BYTE bShowInAbilityWindowdPadding[0x3];
+	/*0x08*/ DWORD nShortName;
+	/*0x0c*/ DWORD nShorterName;
+	/*0x10*/ DWORD nName;					// now a database number
+	/*0x14*/ DWORD nDesc;					// now a database number
+	/*0x18*/ DWORD MinLevel;				//LevelNeeded
+	/*0x1c*/ DWORD Cost;					//Initial Cost or cost the last time you bought a level of it
+	/*0x20*/ DWORD ID;					//ID of the AA group (/alt activate id)
+	/*0x24*/ DWORD CurrentRank;				// GroupLevel the current rank of this AA first rank is 1 etc
+	/*0x28*/ DWORD *RequiredGroups;		    // array of required groups
+	/*0x2c*/ DWORD *RequiredGroupLevels;	// array of required group ID;
+	/*0x30*/ DWORD Unknown0x30[2];			// ArrayClass stuff
+	/*0x38*/ DWORD prereq_count2;			// count of next array, which contains rank required
+	/*0x3c*/ DWORD *RequiresAbilityPoints;	//this is part of their ArrayClass
+	/*0x40*/ DWORD Unknown0x40;				// ArrayClass stuff
+	/*0x44*/ DWORD pointer;					// ArrayClass stuff
+	/*0x48*/ DWORD Type;					// 1 General 2 Archetype 3 Class 4 special 5 focus
+	/*0x4c*/ int  SpellID;					// -1 for no Spell
+	/*0x50*/ DWORD Unknown0x50;
+	/*0x54*/ DWORD Unknown0x54;				// this uses the same class as prereqs, so count?
+	/*0x58*/ DWORD *reuse_id;
+	/*0x5c*/ bool  bRefund;
+	/*0x5d*/ BYTE  bRefundPadding[0x3];
+	/*0x60*/ DWORD *TimerIds;				//ArrayClass of timer ids starts here
+	/*0x64*/ DWORD ReuseTimer;				// in seconds
+	/*0x68*/ DWORD Classes;					// Classes/2 is the actual value we want.
+	/*0x6c*/ DWORD MaxRank;					//so like x/25, this is the 25	
+	/*0x70*/ DWORD TotalPoints;				
+	/*0x74*/ DWORD PreviousGroupAbilityId;	// -1 if none, although sometimes it can be -1 when there is ...
+	/*0x78*/ DWORD NextGroupAbilityId;		// ID of the next rank
+	/*0x7C*/ bool QuestOnly;				// vet AA, quest AA
+	/*0x7D*/ BYTE QuestOnlypadding[0x3];
+	/*0x80*/ DWORD max_charges;				// charges on expendable AAs (limited use aa's)
+	/*0x84*/ BOOL bIgnoreDeLevel;
+	/*0x88*/ DWORD Expansion;
+	/*0x8c*/ DWORD special_category;		// 7 is expendable, -1 none
+	/*0x90*/ bool bShroud;					//shrouds are also called "templates"
+	/*0x91*/ bool bBetaOnlyAbility;
+	/*0x92*/ bool bResetOnDeath;			// true for lay on hands for example.
+	/*0x93*/ bool bAutogrant;				// true if its an autogrant ability? or if auto grant is enabled? need to check cause this could be useful
+	/*0x94*/ DWORD AutoGrantAssociationId;		// Usually the same as normal expansion if enabled
+	//this is where a list of Ability Effect Data starts in the packet
+	/*0x98*/ DWORD effects_count;			// Count of spell effects for AA
+	/*0x9c*/ DWORD **effects;				// this is repeated a few times some times depending on list size
+	/*0xA0*/ BYTE Unknown0xA0[0x8];			//part of their internal list class, I need to re that at some point
+	/*0xa8*/
 } ALTABILITY, *PALTABILITY;
 
 typedef struct _ALTABILITIESLISTMGR {

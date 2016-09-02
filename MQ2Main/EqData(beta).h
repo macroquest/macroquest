@@ -2068,7 +2068,7 @@ union {									//If you have not spent points in this
 /*0x91*/ BYTE unknown0x91;
 /*0x92*/ BYTE loh;						// 1 for lay on hands only. yep.
 /*0x93*/ BYTE Autogrant;				// 1 if auto grant is enabled
-/*0x94*/ DWORD autogrant_expasnion;		// Usually the same as normal expansion if enabled
+/*0x94*/ DWORD AutoGrantAssociationId;		// Usually the same as normal expansion if enabled
 /*0x98*/ DWORD effects_count;			// Count of spell effects for AA
 /*0x9c*/ DWORD **effects;				// this is repeated a few times some times
 /*0xA0*/ BYTE Unknown0xA0[0x8];

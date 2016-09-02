@@ -471,11 +471,11 @@ public:
 		SetGameState_Trampoline(GameState);
 		Benchmark(bmPluginsSetGameState, PluginsSetGameState(GameState));
 	}
-	VOID CTargetWnd__UpdateBuffs_Trampoline(PBYTE);
-	VOID CTargetWnd__UpdateBuffs_Detour(PBYTE buffer)
+	VOID CTargetWnd__RefreshTargetBuffs_Trampoline(PBYTE);
+	VOID CTargetWnd__RefreshTargetBuffs_Detour(PBYTE buffer)
 	{
 		gTargetbuffs = FALSE;
-		CTargetWnd__UpdateBuffs_Trampoline(buffer);
+		CTargetWnd__RefreshTargetBuffs_Trampoline(buffer);
 		gTargetbuffs = TRUE;
 		if (gbAssistComplete == 1) {
 			gbAssistComplete = 2;
@@ -485,7 +485,7 @@ public:
 
 DETOUR_TRAMPOLINE_EMPTY(VOID CEverQuestHook::EnterZone_Trampoline(PVOID));
 DETOUR_TRAMPOLINE_EMPTY(VOID CEverQuestHook::SetGameState_Trampoline(DWORD));
-DETOUR_TRAMPOLINE_EMPTY(VOID CEverQuestHook::CTargetWnd__UpdateBuffs_Trampoline(PBYTE));
+DETOUR_TRAMPOLINE_EMPTY(VOID CEverQuestHook::CTargetWnd__RefreshTargetBuffs_Trampoline(PBYTE));
 
 void InitializeMQ2Pulse()
 {
@@ -496,12 +496,12 @@ void InitializeMQ2Pulse()
 	EzDetourwName(ProcessGameEvents, Detour_ProcessGameEvents, Trampoline_ProcessGameEvents,"ProcessGameEvents");
 	EzDetourwName(CEverQuest__EnterZone, &CEverQuestHook::EnterZone_Detour, &CEverQuestHook::EnterZone_Trampoline,"CEverQuest__EnterZone");
 	EzDetourwName(CEverQuest__SetGameState, &CEverQuestHook::SetGameState_Detour, &CEverQuestHook::SetGameState_Trampoline,"CEverQuest__SetGameState");
-	EzDetourwName(CTargetWnd__UpdateBuffs, &CEverQuestHook::CTargetWnd__UpdateBuffs_Detour, &CEverQuestHook::CTargetWnd__UpdateBuffs_Trampoline,"CTargetWnd__UpdateBuffs");
+	EzDetourwName(CTargetWnd__RefreshTargetBuffs, &CEverQuestHook::CTargetWnd__RefreshTargetBuffs_Detour, &CEverQuestHook::CTargetWnd__RefreshTargetBuffs_Trampoline,"CTargetWnd__RefreshTargetBuffs");
 }
 void ShutdownMQ2Pulse()
 {
 	EnterCriticalSection(&gPulseCS);
-	RemoveDetour((DWORD)CTargetWnd__UpdateBuffs);
+	RemoveDetour((DWORD)CTargetWnd__RefreshTargetBuffs);
 	RemoveDetour((DWORD)ProcessGameEvents);
 	RemoveDetour(CEverQuest__EnterZone);
 	RemoveDetour(CEverQuest__SetGameState);

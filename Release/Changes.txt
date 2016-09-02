@@ -1,3 +1,30 @@
+01 Sep 2016 by eqmule
+- Misc Fixes to improve stability.
+- The Launcher can now launch single sessions without logging u in, i basically just "launches clean"
+  rightclick the "Launch Clean" menu item to toggle starting eqgame in suspended mode (for power users)
+- The Launcher can now export and import login profiles.
+- Added some missing itemtypes.
+- The ALTABILITY struct has gotten an overhaul
+  CurrentRank is now GroupLevel
+  RequirementCount is now RequiredGroups
+  RequiresAbility is now RequiredGroupLevels
+  grant_only is now QuestOnly
+  next_id is now NextGroupAbilityId
+  last_id is now PreviousGroupAbilityId
+  PointsSpent is now TotalPoints
+- PLUGIN AUTHORS: GetAAById has a second parameter, its level, use it or it will default to -1 this is only important when you try to find a aa by name.
+	example:
+	int level = -1;
+	if (PSPAWNINFO pMe = (PSPAWNINFO)pLocalPlayer) {
+		level = pMe->Level;
+	}
+	if (PALTABILITY pAbility = pAltAdvManager->GetAAById(index, level)) {
+- I added a wrapper for GetAAById so we can build emu builds.
+  its called GetAAByIdWrapper and is exported.
+
+- CTargetWnd__UpdateBuffs is now CTargetWnd__RefreshTargetBuffs (cause it is)
+- Bunch of other stuff
+
 17 Aug 2016 by eqmule
 - Updated for LIVE
 - TRUEBOX nerfed.

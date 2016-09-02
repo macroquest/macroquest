@@ -3566,7 +3566,7 @@ VOID AltAbility(PSPAWNINFO pChar, PCHAR szLine)
 			WriteChatColor("Alternative Abilities (Complete List)", CONCOLOR_YELLOW);
 			WriteChatColor("-------------------------------------", USERCOLOR_WHO);
 			for (nAbility = 0; nAbility<AA_CHAR_MAX_REAL; nAbility++) {
-				if (PALTABILITY pAbility = pAltAdvManager->GetAAById(pPCData->GetAlternateAbilityId(nAbility))) {
+				if (PALTABILITY pAbility = GetAAByIdWrapper(pPCData->GetAlternateAbilityId(nAbility))) {
 					sprintf_s(szBuffer, "[ %d: %s ]", pAbility->ID,
 						pCDBStr->GetString(pAbility->nName, 1, NULL));
 					WriteChatColor(szBuffer, USERCOLOR_WHO);
@@ -3578,7 +3578,7 @@ VOID AltAbility(PSPAWNINFO pChar, PCHAR szLine)
 			WriteChatColor("Alternative Abilities With Timers", CONCOLOR_YELLOW);
 			WriteChatColor("---------------------------------", USERCOLOR_WHO);
 			for (nAbility = 0; nAbility<AA_CHAR_MAX_REAL; nAbility++) {
-				if (PALTABILITY pAbility = pAltAdvManager->GetAAById(pPCData->GetAlternateAbilityId(nAbility))) {
+				if (PALTABILITY pAbility = GetAAByIdWrapper(pPCData->GetAlternateAbilityId(nAbility))) {
 					if ((pAltAdvManager->GetCalculatedTimer(pPCData, pAbility)) > 0)
 					{
 						if (pAltAdvManager->IsAbilityReady(pPCData, pAbility, 0))
@@ -3610,7 +3610,7 @@ VOID AltAbility(PSPAWNINFO pChar, PCHAR szLine)
 	{
 		for (unsigned long nAbility = 0; nAbility<NUM_ALT_ABILITIES; nAbility++)
 		{
-			if (PALTABILITY pAbility = pAltAdvManager->GetAAById(nAbility))
+			if (PALTABILITY pAbility = GetAAByIdWrapper(nAbility))
 			{
 				char *pName;
 				if (!_stricmp(pName = pCDBStr->GetString(pAbility->nName, 1, NULL), szName))
@@ -3680,9 +3680,14 @@ VOID AltAbility(PSPAWNINFO pChar, PCHAR szLine)
 	}
 	else if (!_stricmp(szCommand, "act"))
 	{
-		// only search through the ones we have....
+		//we want to get the rank thats for our level here
+		int level = -1;
+		if (PSPAWNINFO pMe = (PSPAWNINFO)pLocalPlayer) {
+			level = pMe->Level;
+		}
+		// only search through the ones we have...
 		for (unsigned long nAbility = 0; nAbility<AA_CHAR_MAX_REAL; nAbility++) {
-			if (PALTABILITY pAbility = pAltAdvManager->GetAAById(pPCData->GetAlternateAbilityId(nAbility))) {
+			if (PALTABILITY pAbility = GetAAByIdWrapper(pPCData->GetAlternateAbilityId(nAbility), level)) {
 				if (PCHAR pName = pCDBStr->GetString(pAbility->nName, 1, NULL)) {
 					if (!_stricmp(szName, pName)) {
 						sprintf_s(szBuffer, "/alt act %d", pAbility->ID);

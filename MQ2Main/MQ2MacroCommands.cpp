@@ -806,11 +806,11 @@ VOID Call(PSPAWNINFO pChar, PCHAR szLine)
     // Prep to call the Sub
     gMacroBlock = pSubBlock;
 
-	if(SubName && SubName[0]!='\0' && SubParam && SubParam[0]!='\0') {
+	/*if(SubName && SubName[0]!='\0' && SubParam && SubParam[0]!='\0') {
 		DebugSpewNoFile("Call - Calling subroutine %s with params %s",SubName,SubParam);
 	} else {
 		DebugSpewNoFile("Call - SubName and SubParam was empty");
-	}
+	}*/
     pStack = (PMACROSTACK)calloc(1,sizeof(MACROSTACK));
 	if( pStack == NULL ) {
 		MacroError("Failed to allocate pStack for /call");

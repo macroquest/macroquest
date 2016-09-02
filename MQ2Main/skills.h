@@ -59,7 +59,7 @@
     "Safe Fall",               // 39
     "Sense Heading",           // 40
     "Singing",                 // 41
-    "Sneak",                   // 42
+    "Sneak",                   // 42 //anything above 100 means a successrate of 100%
     "Specialize Abjure",       // 43
     "Specialize Alteration",   // 44
     "Specialize Conjuration",  // 45

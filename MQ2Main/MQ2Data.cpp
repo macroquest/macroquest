@@ -1624,7 +1624,7 @@ TLO(dataAltAbility)
 	{
 		for (unsigned long nAbility = 0; nAbility<NUM_ALT_ABILITIES; nAbility++)
 		{
-			if (PALTABILITY pAbility = pAltAdvManager->GetAAById(nAbility))
+			if (PALTABILITY pAbility = GetAAByIdWrapper(nAbility))
 			{
 				if (pAbility->ID == GETNUMBER())
 				{
@@ -1637,11 +1637,15 @@ TLO(dataAltAbility)
 	}
 	else
 	{
+		//we need to get the level appropriate one if they just supplied a name
+		int level = -1;
+		if (PSPAWNINFO pMe = (PSPAWNINFO)pLocalPlayer) {
+			level = pMe->Level;
+		}
 		for (unsigned long nAbility = 0; nAbility<NUM_ALT_ABILITIES; nAbility++)
 		{
-			if (PALTABILITY pAbility = pAltAdvManager->GetAAById(nAbility))
+			if (PALTABILITY pAbility = GetAAByIdWrapper(nAbility, level))
 			{
-				
 				if (PCHAR pName = pCDBStr->GetString(pAbility->nName, 1, NULL))
 				{
 					if (!_stricmp(GETFIRST(), pName))

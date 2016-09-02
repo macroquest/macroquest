@@ -712,7 +712,7 @@ namespace MQ2Globals
 		"Greater Akheva",//14
 		"Khati Sha", //15
 		"Seru", //16
-		"*UNKNOWN BODYTYPE 17", //17
+		"Greig", //17
 		"Draz Nurakk", //18
 		"Zek", //19
 		"Luggald", //20
@@ -724,11 +724,11 @@ namespace MQ2Globals
 		"Dragon", //26
 		"Elemental", //27
 		"Summoned Creature",//28
-		"Dragon",//29
+		"Puff Dragon",//29
 		"Bane Dragon",//30
 		"Familiar",//31
-		"Proc Pet",//32
-		"Chest",//33  (5 as of 9-19-2006)
+		"Proc Pet",//32 (NoCorpseNpc)
+		"Cursed",//33  (5 as of 9-19-2006)
 		"Muramite",//34
 		"*UNKNOWN BODYTYPE 35",
 		"*UNKNOWN BODYTYPE 36",
@@ -758,11 +758,11 @@ namespace MQ2Globals
 		"*UNKNOWN BODYTYPE 60",
 		"*UNKNOWN BODYTYPE 61",
 		"*UNKNOWN BODYTYPE 62",
-		"*UNKNOWN BODYTYPE 63",
-		"*UNKNOWN BODYTYPE 64",
-		"Trap",
-		"Timer",
-		"Trigger",
+		"Swarm Pet",//63
+		"Monster Summoning",//64
+		"Trap",//65
+		"Timer",//66
+		"Trigger",//67
 		"*UNKNOWN BODYTYPE 68",
 		"*UNKNOWN BODYTYPE 69",
 		"*UNKNOWN BODYTYPE 70",
@@ -795,10 +795,10 @@ namespace MQ2Globals
 		"*UNKNOWN BODYTYPE 97",
 		"*UNKNOWN BODYTYPE 98",
 		"*UNKNOWN BODYTYPE 99",
-		"Untargetable",
-		"Trap",
-		"Timer",
-		"Trigger",
+		"Untargetable",//100 (Property Utility)
+		"Property Trap",//101
+		"Property Companion",//102
+		"Property Suicide",//103
 	};
 
 	PCHAR szAugRestrictions[] = {
@@ -1033,7 +1033,7 @@ namespace MQ2Globals
 	DWORD *gpMouseEventTime = 0;
 	DWORD *gpbCommandEvent = 0;
 	BOOL gbTimeStampChat = 0;
-	BOOL gUseTradeOnTarget = 0;
+	BOOL gUseTradeOnTarget = 1;
 	BOOL gbBeepOnTells = 0;
 	BOOL gbFlashOnTells = 0;
 
@@ -1606,6 +1606,9 @@ namespace MQ2Globals
 
 	INITIALIZE_EQGAME_OFFSET(CGuild__FindMemberByName);
 	INITIALIZE_EQGAME_OFFSET(CharacterBase__GetMemorizedSpell);
+	INITIALIZE_EQGAME_OFFSET(CharacterBase__CreateItemGlobalIndex);
+	INITIALIZE_EQGAME_OFFSET(CharacterBase__CreateItemIndex);
+	INITIALIZE_EQGAME_OFFSET(CharacterBase__GetItemPossession);
 	
 	INITIALIZE_EQGAME_OFFSET(CHotButtonWnd__DoHotButton);
 
@@ -1742,7 +1745,7 @@ namespace MQ2Globals
 	INITIALIZE_EQGAME_OFFSET(CTabWnd__UpdatePage);
 
 	INITIALIZE_EQGAME_OFFSET(CTargetRing__Cast);
-	INITIALIZE_EQGAME_OFFSET(CTargetWnd__UpdateBuffs);
+	INITIALIZE_EQGAME_OFFSET(CTargetWnd__RefreshTargetBuffs);
 	
 	INITIALIZE_EQGAME_OFFSET(CTextOverlay__DisplayText);
 
@@ -1819,6 +1822,8 @@ namespace MQ2Globals
 	INITIALIZE_EQGAME_OFFSET(EQ_Character__TotalEffect);
 	INITIALIZE_EQGAME_OFFSET(EQ_Character__GetPCSpellAffect);
 	INITIALIZE_EQGAME_OFFSET(EQ_Character__SpellDuration);
+	INITIALIZE_EQGAME_OFFSET(EQ_Character__FindItemByRecord);
+
 	INITIALIZE_EQGAME_OFFSET(CCharacterSelect__SelectCharacter);
 	INITIALIZE_EQGAME_OFFSET(CCharacterSelect__EnterWorld);
 	INITIALIZE_EQGAME_OFFSET(CCharacterSelect__Quit);
@@ -1862,7 +1867,8 @@ namespace MQ2Globals
 	INITIALIZE_EQGAME_OFFSET(EQPlayer__CanSee);
 	INITIALIZE_EQGAME_OFFSET(PlayerZoneClient__ChangeHeight);
 	INITIALIZE_EQGAME_OFFSET(EQPlayer__CanSeeTargetIndicator);
-
+	INITIALIZE_EQGAME_OFFSET(PlayerBase__GetVisibilityLineSegment);
+	
 	INITIALIZE_EQGAME_OFFSET(EQPlayerManager__GetSpawnByID);
 	INITIALIZE_EQGAME_OFFSET(EQPlayerManager__GetSpawnByName);
 	INITIALIZE_EQGAME_OFFSET(EQPlayerManager__GetPlayerFromPartialName);
@@ -1913,6 +1919,8 @@ namespace MQ2Globals
 	INITIALIZE_EQGAME_OFFSET(msgTokenTextParam);
 	INITIALIZE_EQGAME_OFFSET(SpellManager__SpellManager);
 	INITIALIZE_EQGAME_OFFSET(Spellmanager__CheckSpellRequirementAssociations);
+	INITIALIZE_EQGAME_OFFSET(CCollisionInfoTargetVisibility__CCollisionInfoTargetVisibility);
+	
 	#ifdef __ExecuteCmd_x
 #ifndef EMU
 FUNCTION_AT_ADDRESS(BOOL __cdecl EQExecuteCmd(DWORD arg1, BOOL arg2, PVOID arg3, BOOL arg4), __ExecuteCmd);

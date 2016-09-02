@@ -55,6 +55,7 @@ class CChatManager;
 class CChatWindow;
 class CCheckBoxWnd;
 class CClickStickInfo;
+class CCollisionInfoTargetVisibility;
 class CColorPickerWnd;
 class CCombatSkillsSelectWnd;
 class CComboboxTemplate;
@@ -271,6 +272,8 @@ class EQ_Container;
 class EQ_Equipment;
 class EQ_Item;
 class EQ_LoadingS;
+class CLineBase;
+class CLineSegment;
 class EQ_Note;
 class EQ_PC;
 class EQ_Skill;
@@ -749,7 +752,7 @@ EQLIB_OBJECT int AltAdvManager::TotalPointsInSkill(int,int);
 EQLIB_OBJECT unsigned long AltAdvManager::GetCalculatedTimer(class EQ_PC *,EQData::PALTABILITY);
 EQLIB_OBJECT void AltAdvManager::GetAbilityReqs(char *,int);
 #ifndef EMU
-EQLIB_OBJECT struct _ALTABILITY *AltAdvManager::GetAAById(int index, int unknown = -1);//could it be level?
+EQLIB_OBJECT struct _ALTABILITY *AltAdvManager::GetAAById(int index, int level = -1);
 #else
 EQLIB_OBJECT struct _ALTABILITY *AltAdvManager::GetAAById(int index);
 #endif
@@ -1307,7 +1310,12 @@ EQLIB_OBJECT CClickStickInfo::~CClickStickInfo(void);
 //EQLIB_OBJECT void * CClickStickInfo::`scalar deleting destructor'(unsigned int);
 //EQLIB_OBJECT void * CClickStickInfo::`vector deleting destructor'(unsigned int);
 };
-
+class CCollisionInfoTargetVisibility
+{
+public:
+	//CCollisionInfoTargetVisibility(const CLineSegment& rLineSegment, const PlayerBase* pPlayerSelf, const PlayerBase* pPlayerOther);
+EQLIB_OBJECT CCollisionInfoTargetVisibility::CCollisionInfoTargetVisibility(CLineSegment *rLineSegment, EQPlayer* pSelf, EQPlayer* pOther);
+};
 class CColorPickerWnd : public CSidlScreenWnd
 {
 public:
@@ -2393,6 +2401,9 @@ class CharacterBase
 {
 public:
 	EQLIB_OBJECT LONG CharacterBase::GetMemorizedSpell(int gem);//0-0xf this func returns the spellid for whatever is in the gem
+	EQLIB_OBJECT class ItemGlobalIndex *CreateItemGlobalIndex(int*result, int Slot1, int Slot2=-1, int Slot3=-1);
+	EQLIB_OBJECT class ItemIndex *CreateItemIndex(int*result, int Slot1, int Slot2=-1, int Slot3=-1);
+	EQLIB_OBJECT PCONTENTS *GetItemPossession(int*, class ItemIndex *);
 };
 
 class CHashCXStrInt32
@@ -2596,8 +2607,14 @@ EQLIB_OBJECT CInvSlot::~CInvSlot(void);
 //EQLIB_OBJECT void * CInvSlot::`scalar deleting destructor'(unsigned int);
 //EQLIB_OBJECT void * CInvSlot::`vector deleting destructor'(unsigned int);
 };
-
-class CMoveItemData
+class ItemIndex
+{
+public:
+    unsigned short Slot1;
+    unsigned short Slot2;
+    unsigned short Slot3;
+};
+class ItemGlobalIndex
 {
 public:
     unsigned short InventoryType;   // 0 = regular inventory slots, 1 = bank slots, 2 = shared bank slots
@@ -2615,7 +2632,7 @@ public:
 EQLIB_OBJECT CInvSlotMgr::CInvSlotMgr(void);
 EQLIB_OBJECT class CInvSlot * CInvSlotMgr::CreateInvSlot(class CInvSlotWnd *);
 EQLIB_OBJECT class CInvSlot * CInvSlotMgr::FindInvSlot(int,int x=-1);
-EQLIB_OBJECT bool CInvSlotMgr::MoveItem(CMoveItemData*,CMoveItemData*,int valueOne,int valueOne2,int valueZero,int valueZero2);
+EQLIB_OBJECT bool CInvSlotMgr::MoveItem(ItemGlobalIndex *from, ItemGlobalIndex *to, bool bDebugOut, bool CombineIsOk, bool MoveFromIntoToBag, bool MoveToIntoFromBag);
 EQLIB_OBJECT void CInvSlotMgr::Process(void);
 EQLIB_OBJECT void CInvSlotMgr::SelectSlot(class CInvSlot *);
 EQLIB_OBJECT void CInvSlotMgr::UpdateSlots(void);
@@ -2796,7 +2813,21 @@ EQLIB_OBJECT CLabelTemplate::~CLabelTemplate(void);
 //EQLIB_OBJECT void * CLabelTemplate::`scalar deleting destructor'(unsigned int);
 //EQLIB_OBJECT void * CLabelTemplate::`vector deleting destructor'(unsigned int);
 };
+class CLineBase
+{
+public:
+EQLIB_OBJECT CLineBase::~CLineBase(void);
+EQLIB_OBJECT CLineBase::CLineBase(void);
+};
+class CLineSegment// : public CLineBase
+{
+public:
+EQLIB_OBJECT CLineSegment::~CLineSegment(void) {};
+EQLIB_OBJECT CLineSegment::CLineSegment(void) {
 
+};
+BYTE Unknownstuff[2048];
+};
 class CListboxColumnTemplate
 {
 public:
@@ -3026,7 +3057,7 @@ EQLIB_OBJECT void CMerchantWnd::ClearMerchantSlot(int);
 EQLIB_OBJECT void CMerchantWnd::FinishBuyingItem(struct _sell_msg *);
 EQLIB_OBJECT void CMerchantWnd::FinishSellingItem(struct _sell_msg *);
 EQLIB_OBJECT void CMerchantWnd::SelectBuySellSlot(int,class CTextureAnimation *);
-EQLIB_OBJECT int CMerchantWnd::ActualSelect(CMoveItemData *);
+EQLIB_OBJECT int CMerchantWnd::ActualSelect(ItemGlobalIndex *);
 // virtual
 EQLIB_OBJECT CMerchantWnd::~CMerchantWnd(void);
 EQLIB_OBJECT int CMerchantWnd::OnProcessFrame(void);
@@ -4647,7 +4678,7 @@ EQLIB_OBJECT int CTargetWnd::OnProcessFrame(void);
 EQLIB_OBJECT void CTargetWnd::Deactivate(void);
 // private
 EQLIB_OBJECT void CTargetWnd::Init(void);
-EQLIB_OBJECT void CTargetWnd::UpdateBuffs(PBYTE buffer);
+EQLIB_OBJECT void CTargetWnd::RefreshTargetBuffs(PBYTE buffer);
 };
 
 class CTaskWnd : public CSidlScreenWnd
@@ -5535,7 +5566,7 @@ EQLIB_OBJECT unsigned char EQ_Character::ElfCanWorship(unsigned char,unsigned ch
 EQLIB_OBJECT unsigned char EQ_Character::EruditeCanWorship(unsigned char,unsigned char);
 EQLIB_OBJECT unsigned char EQ_Character::ExpendItemCharge(int,int);
 EQLIB_OBJECT unsigned char EQ_Character::FindItemByClass(int,int *,int *);
-EQLIB_OBJECT unsigned char EQ_Character::FindItemByRecord(int,int *,int *);
+EQLIB_OBJECT unsigned char EQ_Character::FindItemByRecord(int ItemNumber /*recordnum*/, int *pos_slot, int *con_slot, bool bReverseLookup);
 EQLIB_OBJECT unsigned char EQ_Character::FindItemQty(int,int);
 EQLIB_OBJECT unsigned char EQ_Character::FroglockCanWorship(unsigned char,unsigned char);
 EQLIB_OBJECT unsigned char EQ_Character::GetMaxEffects(void)const;
@@ -5994,6 +6025,7 @@ EQLIB_OBJECT void EQPlayer::UpdateBonePointers(void);
 EQLIB_OBJECT void EQPlayer::UpdateNameSprite(void);
 EQLIB_OBJECT void EQPlayer::UpdatePlayerVisibility(void);
 EQLIB_OBJECT bool EQPlayer::HasProperty(unsigned int,int,int);
+EQLIB_OBJECT class CLineSegment &EQPlayer::GetVisibilityLineSegment(class CLineSegment&ls, class EQPlayer& pSpawn, unsigned int index = 0);//index MUST be 0
 // private
 EQLIB_OBJECT int EQPlayer::IdUsed(unsigned int);
 EQLIB_OBJECT static class EQPlayer * EQPlayer::mTop;

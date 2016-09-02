@@ -15,8 +15,9 @@ GNU General Public License for more details.
 #if !defined(CINTERFACE)
 #error /DCINTERFACE
 #endif
-
+#ifdef _DEBUG
 #define DBG_SPEW
+#endif
 //#define DEBUG_TRY
 
 #include "MQ2Main.h"

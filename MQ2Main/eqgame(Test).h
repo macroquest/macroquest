@@ -45,7 +45,7 @@ GNU General Public License for more details.
 #define __AC2_x                                                    0x556497
 #define __AC3_x                                                    0x554630
 #define __AC4_x                                                    0x566E40
-#define __AC5_x                                                    0x57999B
+#define __AC5_x                                                    0x5799BB
 #define __AC6_x                                                    0x57D55E
 #define __AC7_x                                                    0x57405C
 #define __AC1_Data                                                 0x11111111
@@ -604,6 +604,9 @@ GNU General Public License for more details.
 // CTextureFont
 #define CTextureFont__DrawWrappedText_x                            0x8C95F0
 
+//CWebManager
+#define CWebManager__CreateHtmlWnd_x                               0x630A60
+
 // CXMLDataManager 
 #define CXMLDataManager__GetXMLData_x                              0x8F5220
 
@@ -683,6 +686,7 @@ GNU General Public License for more details.
 #define EQ_Character__TotalEffect_x                                0x44AC20
 #define EQ_Character__GetPCSpellAffect_x                           0x446FA0
 #define EQ_Character__SpellDuration_x                              0x444EA0
+#define EQ_Character__FindItemByRecord_x                           0x45F920
 
 //CCharacterSelect
 #define CCharacterSelect__SelectCharacter_x                        0x4421D0
@@ -735,6 +739,7 @@ GNU General Public License for more details.
 #define EQPlayer__CanSee_x                                         0x9237A0
 #define PlayerZoneClient__ChangeHeight_x                           0x5E05F0
 #define EQPlayer__CanSeeTargetIndicator_x                          0x923890
+#define PlayerBase__GetVisibilityLineSegment_x                     0x923530
 
 //EQPlayerManager
 #define EQPlayerManager__GetSpawnByID_x                            0x5D4ED0
@@ -791,7 +796,7 @@ GNU General Public License for more details.
 //CTargetWnd
 #define CTargetWnd__GetBuffCaster_x                                0x7AB8C0
 #define CTargetWnd__WndNotification_x                              0x7AB3B0
-#define CTargetWnd__UpdateBuffs_x                                  0x7ABAA0
+#define CTargetWnd__RefreshTargetBuffs_x                           0x7ABAA0
 
 //CTaskWnd
 #define CTaskWnd__UpdateTaskTimers_x                               0x7B0AA0
@@ -816,6 +821,9 @@ GNU General Public License for more details.
 
 //CharacterBase
 #define CharacterBase__GetMemorizedSpell_x                         0x454860
+#define CharacterBase__CreateItemGlobalIndex_x                     0x471690
+#define CharacterBase__CreateItemIndex_x                           0x508630
+#define CharacterBase__GetItemPossession_x                         0x509A80
 
 //CCastSpellWnd
 #define CCastSpellWnd__ForgetMemorizedSpell_x                      0x682B20
@@ -830,3 +838,6 @@ GNU General Public License for more details.
 #define SpellManager__vftable_x                                    0xAB2EF8
 #define SpellManager__SpellManager_x                               0x47A330
 #define Spellmanager__CheckSpellRequirementAssociations_x          0x5FE430
+
+//CCollisionInfoTargetVisibility
+#define CCollisionInfoTargetVisibility__CCollisionInfoTargetVisibility_x   0x927260

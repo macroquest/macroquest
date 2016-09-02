@@ -2927,7 +2927,7 @@ bool MQ2CharacterType::GETMEMBER()
 			if (ISNUMBER()) {
 				//numeric
 				for (unsigned long nAbility = 0; nAbility<AA_CHAR_MAX_REAL; nAbility++) {
-					if (PALTABILITY pAbility = pAltAdvManager->GetAAById(pPCData->GetAlternateAbilityId(nAbility))) {
+					if (PALTABILITY pAbility = GetAAByIdWrapper(pPCData->GetAlternateAbilityId(nAbility))) {
 						if (pAbility->ID == GETNUMBER()) {
 							int reusetimer = 0;
 							pAltAdvManager->IsAbilityReady(pPCData, pAbility, &reusetimer);
@@ -2942,9 +2942,13 @@ bool MQ2CharacterType::GETMEMBER()
 				}
 			}
 			else {
-				// by name
+				// by name so we ned to take level into account
+				int level = -1;
+				if (PSPAWNINFO pMe = (PSPAWNINFO)pLocalPlayer) {
+					level = pMe->Level;
+				}
 				for (unsigned long nAbility = 0; nAbility<AA_CHAR_MAX_REAL; nAbility++) {
-					if (PALTABILITY pAbility = pAltAdvManager->GetAAById(pPCData->GetAlternateAbilityId(nAbility))) {
+					if (PALTABILITY pAbility = GetAAByIdWrapper(pPCData->GetAlternateAbilityId(nAbility), level)) {
 						if (PCHAR pName = pCDBStr->GetString(pAbility->nName, 1, NULL)) {
 							if (!_stricmp(GETFIRST(), pName)) {
 								int reusetimer = 0;
@@ -2969,7 +2973,7 @@ bool MQ2CharacterType::GETMEMBER()
 			if (ISNUMBER()) {
 				//numeric
 				for (unsigned long nAbility = 0; nAbility<AA_CHAR_MAX_REAL; nAbility++) {
-					if (PALTABILITY pAbility = pAltAdvManager->GetAAById(pPCData->GetAlternateAbilityId(nAbility))) {
+					if (PALTABILITY pAbility = GetAAByIdWrapper(pPCData->GetAlternateAbilityId(nAbility))) {
 						if (pAbility->ID == GETNUMBER()) {
 							Dest.DWord = pAltAdvManager->IsAbilityReady(pPCData, pAbility, 0);				
 							return true;
@@ -2978,9 +2982,13 @@ bool MQ2CharacterType::GETMEMBER()
 				}
 			}
 			else {
-				// by name
+				// by name so we need to take their level into account
+				int level = -1;
+				if (PSPAWNINFO pMe = (PSPAWNINFO)pLocalPlayer) {
+					level = pMe->Level;
+				}
 				for (unsigned long nAbility = 0; nAbility<AA_CHAR_MAX_REAL; nAbility++) {
-					if (PALTABILITY pAbility = pAltAdvManager->GetAAById(pPCData->GetAlternateAbilityId(nAbility))) {
+					if (PALTABILITY pAbility = GetAAByIdWrapper(pPCData->GetAlternateAbilityId(nAbility),level)) {
 						if (PCHAR pName = pCDBStr->GetString(pAbility->nName, 1, NULL)) {
 							if (!_stricmp(GETFIRST(), pName)) {
 								Dest.DWord = pAltAdvManager->IsAbilityReady(pPCData, pAbility, 0);
@@ -2997,7 +3005,7 @@ bool MQ2CharacterType::GETMEMBER()
 			if (ISNUMBER()) {
 				//numeric
 				for (unsigned long nAbility = 0; nAbility<AA_CHAR_MAX_REAL; nAbility++) {
-					if (PALTABILITY pAbility = pAltAdvManager->GetAAById(pPCData->GetAlternateAbilityId(nAbility))) {
+					if (PALTABILITY pAbility = GetAAByIdWrapper(pPCData->GetAlternateAbilityId(nAbility))) {
 						if (pAbility->ID == GETNUMBER()) {
 							Dest.Ptr = pAbility;
 							Dest.Type = pAltAbilityType;
@@ -3007,9 +3015,13 @@ bool MQ2CharacterType::GETMEMBER()
 				}
 			}
 			else {
-				// by name
+				// by name so we need to take their level into account
+				int level = -1;
+				if (PSPAWNINFO pMe = (PSPAWNINFO)pLocalPlayer) {
+					level = pMe->Level;
+				}
 				for (unsigned long nAbility = 0; nAbility<AA_CHAR_MAX_REAL; nAbility++) {
-					if (PALTABILITY pAbility = pAltAdvManager->GetAAById(pPCData->GetAlternateAbilityId(nAbility))) {
+					if (PALTABILITY pAbility = GetAAByIdWrapper(pPCData->GetAlternateAbilityId(nAbility), level)) {
 						if (PCHAR pName = pCDBStr->GetString(pAbility->nName, 1, NULL)) {
 							if (!_stricmp(GETFIRST(), pName)) {
 								Dest.Ptr = pAbility;
@@ -5363,11 +5375,15 @@ bool MQ2SpellType::GETMEMBER()
 		return true;
 	case RankName:
 	{
+		int level = -1;
+		if (PSPAWNINFO pMe = (PSPAWNINFO)pLocalPlayer) {
+			level = pMe->Level;
+		}
 		PSPELL thespell = pSpell;
 		if (PCHARINFO2 pChar2 = GetCharInfo2()) {
 			//is it a altability?
 			for (unsigned long nAbility = 0; nAbility < NUM_ALT_ABILITIES; nAbility++) {
-				if (PALTABILITY pAbility = pAltAdvManager->GetAAById(nAbility)) {
+				if (PALTABILITY pAbility = GetAAByIdWrapper(nAbility, level)) {
 					if (char *pName = pCDBStr->GetString(pAbility->nName, 1, NULL)) {
 						if (!_strnicmp(thespell->Name, pName, strlen(thespell->Name))) {
 							if (pAbility->SpellID != -1) {
@@ -9191,13 +9207,13 @@ bool MQ2AltAbilityType::GETMEMBER()
 		}
 		return false;
 	case RequiresAbility:
-		if (pAbility->RequiresAbility && *pAbility->RequiresAbility>0)
+		if (pAbility->RequiredGroupLevels && *pAbility->RequiredGroupLevels>0)
 		{
 			for (unsigned long nAbility = 0; nAbility<NUM_ALT_ABILITIES; nAbility++)
 			{
-				if (PALTABILITY tmppAbility = pAltAdvManager->GetAAById(nAbility))
+				if (PALTABILITY tmppAbility = GetAAByIdWrapper(nAbility))
 				{
-					if (tmppAbility->ID == *pAbility->RequiresAbility)
+					if (tmppAbility->ID == *pAbility->RequiredGroupLevels)
 					{
 						Dest.Ptr = tmppAbility;
 						Dest.Type = pAltAbilityType;
@@ -9207,7 +9223,7 @@ bool MQ2AltAbilityType::GETMEMBER()
 			}
 		}
 		if (pAbility)
-			DebugSpew("ability %d not found\n", pAbility->RequiresAbility);
+			DebugSpew("ability %d not found\n", pAbility->RequiredGroupLevels);
 		return false;
 	case RequiresAbilityPoints:
 		if (pAbility->RequiresAbilityPoints) {
@@ -9230,7 +9246,7 @@ bool MQ2AltAbilityType::GETMEMBER()
 		Dest.Type = pIntType;
 		return true;
 	case Flags:
-		Dest.DWord = (DWORD)&pAbility->Flags[0];
+		Dest.DWord = (DWORD)&pAbility->bShowInAbilityWindow;
 		Dest.Type = pIntType;
 		return true;
 	case Expansion:
@@ -9244,7 +9260,7 @@ bool MQ2AltAbilityType::GETMEMBER()
 		Dest.Type = pBoolType;
 		return true;
 	case PointsSpent:
-		Dest.DWord = pAbility->PointsSpent;
+		Dest.DWord = pAbility->TotalPoints;
 		Dest.Type = pIntType;
 		return true;
 	case xIndex:
@@ -9252,13 +9268,15 @@ bool MQ2AltAbilityType::GETMEMBER()
 		Dest.Type = pIntType;
 		return true;
 	case CanTrain:
-		if (PALTABILITY pNextAbility = pAltAdvManager->GetAAById(pAbility->next_id))
+	{
+		if (PALTABILITY pNextAbility = GetAAByIdWrapper(pAbility->NextGroupAbilityId))
 			pAbility = pNextAbility;
 		Dest.DWord = pAltAdvManager->CanTrainAbility((PcZoneClient*)pPCData, (CAltAbilityData*)pAbility, 0, 0, 0);
 		Dest.Type = pBoolType;
 		return true;
+	}
 	case NextIndex:
-		Dest.DWord = pAbility->next_id;
+		Dest.DWord = pAbility->NextGroupAbilityId;
 		Dest.Type = pIntType;
 		return true;
 	}
