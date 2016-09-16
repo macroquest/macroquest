@@ -717,10 +717,7 @@ namespace MQ2Internal {
     {
         class MQ2Type *Type;
         union {
-            struct {
-				MQ2VARPTR VarPtr;
-				LONG HighPart;
-			};
+			MQ2VARPTR VarPtr;
             struct {
 				PVOID Ptr;
 				LONG HighPart;
@@ -811,6 +808,7 @@ namespace MQ2Internal {
         virtual bool FromString(MQ2VARPTR &VarPtr, PCHAR Source)=0;
         virtual void InitVariable(MQ2VARPTR &VarPtr) {
 			VarPtr.Ptr=0;
+			VarPtr.HighPart = 0;
 		}
         virtual void FreeVariable(MQ2VARPTR &VarPtr) {}
 
@@ -818,7 +816,7 @@ namespace MQ2Internal {
         //    virtual bool SetMember(PVOID Ptr, PCHAR Member, DWORD Index, MQ2TYPEVAR &Data)=0;
         virtual bool ToString(MQ2VARPTR VarPtr, PCHAR Destination)
         {
-            strncpy_s(Destination,MAX_STRING,TypeName,_TRUNCATE);
+            strcpy_s(Destination,MAX_STRING,TypeName);
             return true;
         }
 

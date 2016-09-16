@@ -515,6 +515,7 @@ void ForceUnload()
 // ***************************************************************************
 DWORD WINAPI MQ2Start(LPVOID lpParameter)
 {
+	//_CrtSetDebugFillThreshold(0);
 	hUnloadComplete = CreateEvent(NULL, TRUE, FALSE, NULL);
 	hLoadComplete = CreateEvent(NULL, TRUE, FALSE, NULL);
 	PCHAR lpINIPath = (PCHAR)lpParameter;

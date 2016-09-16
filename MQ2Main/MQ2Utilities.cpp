@@ -1390,21 +1390,21 @@ VOID GetItemLinkHash(PCONTENTS Item, PCHAR Buffer)
 	((EQ_Item*)Item)->CreateItemTagString(Buffer, 0x800);
 }
 //
-BOOL GetItemLink(PCONTENTS Item, PCHAR Buffer, BOOL Clickable)
+BOOL GetItemLink(PCONTENTS Item, PCHAR Buffer, SIZE_T BufferSize, BOOL Clickable)
 {
-	CHAR szCmd[MAX_STRING] = { 0 };
-	strcpy_s(szCmd, Buffer);
 	char hash[MAX_STRING] = { 0 };
 	bool retVal = FALSE;
 	((EQ_Item*)Item)->CreateItemTagString(hash, sizeof(hash));
 	if (hash[0]) {
 		if (Clickable)
-			sprintf_s(szCmd, "%c0%s%s%c", 0x12, hash, GetItemFromContents(Item)->Name, 0x12);
+			sprintf_s(Buffer, BufferSize, "%c0%s%s%c", 0x12, hash, GetItemFromContents(Item)->Name, 0x12);
 		else
-			sprintf_s(szCmd, "0%s%s", hash, GetItemFromContents(Item)->Name);
+			sprintf_s(Buffer, BufferSize, "0%s%s", hash, GetItemFromContents(Item)->Name);
 		retVal = TRUE;
 	}
-	DebugSpew("GetItemLink() returns '%s'", &szCmd[0]);
+	#ifdef _DEBUG
+	DebugSpew("GetItemLink() returns '%s'", &Buffer[0]);
+	#endif
 	return retVal;
 }
 
@@ -6890,7 +6890,7 @@ PCONTENTS GetItemContentsByName(CHAR *ItemName)
 		if (pChar2->pInventoryArray && pChar2->pInventoryArray->InventoryArray) {
 			for (unsigned long nSlot = 0; nSlot < NUM_INV_SLOTS; nSlot++) {
 				if (PCONTENTS pItem = pChar2->pInventoryArray->InventoryArray[nSlot]) {
-					if (!strcmp(ItemName, GetItemFromContents(pItem)->Name)) {
+					if (!_stricmp(ItemName, GetItemFromContents(pItem)->Name)) {
 						return pItem;
 					}
 				}
@@ -7559,36 +7559,38 @@ PCONTENTS FindItemByID(DWORD ItemID)
 #endif
 	return 0;
 }
-PCONTENTS FindItemBySlot(WORD InvSlot, WORD BagSlot)
+PCONTENTS FindItemBySlot(WORD InvSlot, WORD BagSlot, ItemContainerInstance location)
 {
 	PCHARINFO2 pChar2 = GetCharInfo2();
-	//check regular inventory
-	if (pChar2 && pChar2->pInventoryArray && pChar2->pInventoryArray->InventoryArray) {
-		for (unsigned long nSlot = 0; nSlot < NUM_INV_SLOTS; nSlot++)
-		{
-			if (PCONTENTS pItem = pChar2->pInventoryArray->InventoryArray[nSlot])
+	if (location == eItemContainerPossessions) {
+		//check regular inventory
+		if (pChar2 && pChar2->pInventoryArray && pChar2->pInventoryArray->InventoryArray) {
+			for (unsigned long nSlot = 0; nSlot < NUM_INV_SLOTS; nSlot++)
 			{
-				if (pItem->ItemSlot == InvSlot && pItem->ItemSlot2 == BagSlot)
+				if (PCONTENTS pItem = pChar2->pInventoryArray->InventoryArray[nSlot])
 				{
-					return pItem;
+					if (pItem->ItemSlot == InvSlot && pItem->ItemSlot2 == BagSlot)
+					{
+						return pItem;
+					}
 				}
 			}
 		}
-	}
-	//not found? ok check inside bags
-	if (pChar2 && pChar2->pInventoryArray) {
-		for (unsigned long nPack = 0; nPack < 10; nPack++)
-		{
-			if (PCONTENTS pPack = pChar2->pInventoryArray->Inventory.Pack[nPack])
+		//not found? ok check inside bags
+		if (pChar2 && pChar2->pInventoryArray) {
+			for (unsigned long nPack = 0; nPack < 10; nPack++)
 			{
-				if (GetItemFromContents(pPack)->Type == ITEMTYPE_PACK && pPack->pContentsArray)
+				if (PCONTENTS pPack = pChar2->pInventoryArray->Inventory.Pack[nPack])
 				{
-					for (unsigned long nItem = 0; nItem < GetItemFromContents(pPack)->Slots; nItem++)
+					if (GetItemFromContents(pPack)->Type == ITEMTYPE_PACK && pPack->pContentsArray)
 					{
-						if (PCONTENTS pItem = pPack->pContentsArray->Contents[nItem])
+						for (unsigned long nItem = 0; nItem < GetItemFromContents(pPack)->Slots; nItem++)
 						{
-							if (pItem->ItemSlot == InvSlot && pItem->ItemSlot2 == BagSlot) {
-								return pItem;
+							if (PCONTENTS pItem = pPack->pContentsArray->Contents[nItem])
+							{
+								if (pItem->ItemSlot == InvSlot && pItem->ItemSlot2 == BagSlot) {
+									return pItem;
+								}
 							}
 						}
 					}
@@ -7596,34 +7598,36 @@ PCONTENTS FindItemBySlot(WORD InvSlot, WORD BagSlot)
 			}
 		}
 	}
-	//still not found? check bank
-	PCHARINFO pChar = GetCharInfo();
-	if (pChar && pChar->pBankArray && pChar->pBankArray->Bank) {
-		for (unsigned long nSlot = 0; nSlot < NUM_BANK_SLOTS; nSlot++)
-		{
-			if (PCONTENTS pItem = pChar->pBankArray->Bank[nSlot])
+	else if (location == eItemContainerBank) {
+		//check bank
+		PCHARINFO pChar = GetCharInfo();
+		if (pChar && pChar->pBankArray && pChar->pBankArray->Bank) {
+			for (unsigned long nSlot = 0; nSlot < NUM_BANK_SLOTS; nSlot++)
 			{
-				if (pItem->ItemSlot == InvSlot && pItem->ItemSlot2 == BagSlot)
+				if (PCONTENTS pItem = pChar->pBankArray->Bank[nSlot])
 				{
-					return pItem;
+					if (pItem->ItemSlot == InvSlot && pItem->ItemSlot2 == BagSlot)
+					{
+						return pItem;
+					}
 				}
 			}
 		}
-	}
-	//not found? ok check inside bank bags
-	if (pChar && pChar->pBankArray && pChar->pBankArray->Bank) {
-		for (unsigned long nPack = 0; nPack < NUM_BANK_SLOTS; nPack++)
-		{
-			if (PCONTENTS pPack = pChar->pBankArray->Bank[nPack])
+		//not found? ok check inside bank bags
+		if (pChar && pChar->pBankArray && pChar->pBankArray->Bank) {
+			for (unsigned long nPack = 0; nPack < NUM_BANK_SLOTS; nPack++)
 			{
-				if (GetItemFromContents(pPack)->Type == ITEMTYPE_PACK && pPack->pContentsArray)
+				if (PCONTENTS pPack = pChar->pBankArray->Bank[nPack])
 				{
-					for (unsigned long nItem = 0; nItem < GetItemFromContents(pPack)->Slots; nItem++)
+					if (GetItemFromContents(pPack)->Type == ITEMTYPE_PACK && pPack->pContentsArray)
 					{
-						if (PCONTENTS pItem = pPack->pContentsArray->Contents[nItem])
+						for (unsigned long nItem = 0; nItem < GetItemFromContents(pPack)->Slots; nItem++)
 						{
-							if (pItem->ItemSlot == InvSlot && pItem->ItemSlot2 == BagSlot) {
-								return pItem;
+							if (PCONTENTS pItem = pPack->pContentsArray->Contents[nItem])
+							{
+								if (pItem->ItemSlot == InvSlot && pItem->ItemSlot2 == BagSlot) {
+									return pItem;
+								}
 							}
 						}
 					}
@@ -7631,33 +7635,36 @@ PCONTENTS FindItemBySlot(WORD InvSlot, WORD BagSlot)
 			}
 		}
 	}
-	//what? still not found? ok fine, check shared bank
-	if (pChar && pChar->pSharedBankArray && pChar->pSharedBankArray->SharedBank) {
-		for (unsigned long nSlot = 0; nSlot < NUM_SHAREDBANK_SLOTS; nSlot++)
-		{
-			if (PCONTENTS pItem = pChar->pSharedBankArray->SharedBank[nSlot])
+	else if (location == eItemContainerSharedBank) {
+		PCHARINFO pChar = GetCharInfo();
+		//what? still not found? ok fine, check shared bank
+		if (pChar && pChar->pSharedBankArray && pChar->pSharedBankArray->SharedBank) {
+			for (unsigned long nSlot = 0; nSlot < NUM_SHAREDBANK_SLOTS; nSlot++)
 			{
-				if (pItem->ItemSlot == InvSlot && pItem->ItemSlot2 == BagSlot)
+				if (PCONTENTS pItem = pChar->pSharedBankArray->SharedBank[nSlot])
 				{
-					return pItem;
+					if (pItem->ItemSlot == InvSlot && pItem->ItemSlot2 == BagSlot)
+					{
+						return pItem;
+					}
 				}
 			}
 		}
-	}
-	//not found? ok check inside sharedbank bags
-	if (pChar && pChar->pSharedBankArray && pChar->pSharedBankArray->SharedBank) {
-		for (unsigned long nPack = 0; nPack < NUM_SHAREDBANK_SLOTS; nPack++)
-		{
-			if (PCONTENTS pPack = pChar->pSharedBankArray->SharedBank[nPack])
+		//not found? ok check inside sharedbank bags
+		if (pChar && pChar->pSharedBankArray && pChar->pSharedBankArray->SharedBank) {
+			for (unsigned long nPack = 0; nPack < NUM_SHAREDBANK_SLOTS; nPack++)
 			{
-				if (GetItemFromContents(pPack)->Type == ITEMTYPE_PACK && pPack->pContentsArray)
+				if (PCONTENTS pPack = pChar->pSharedBankArray->SharedBank[nPack])
 				{
-					for (unsigned long nItem = 0; nItem < GetItemFromContents(pPack)->Slots; nItem++)
+					if (GetItemFromContents(pPack)->Type == ITEMTYPE_PACK && pPack->pContentsArray)
 					{
-						if (PCONTENTS pItem = pPack->pContentsArray->Contents[nItem])
+						for (unsigned long nItem = 0; nItem < GetItemFromContents(pPack)->Slots; nItem++)
 						{
-							if (pItem->ItemSlot == InvSlot && pItem->ItemSlot2 == BagSlot) {
-								return pItem;
+							if (PCONTENTS pItem = pPack->pContentsArray->Contents[nItem])
+							{
+								if (pItem->ItemSlot == InvSlot && pItem->ItemSlot2 == BagSlot) {
+									return pItem;
+								}
 							}
 						}
 					}
@@ -7878,13 +7885,13 @@ BOOL OpenContainer(PCONTENTS pItem, bool hidden, bool flag)
 					//put code to hide bag here
 					//until i can figure out how to call moveitemqty
 				}
-				ItemGlobalIndex To = { 0 };
-				To.InventoryType = 0; To.Unknown0x02 = 0;
-				To.InvSlot = pSlot->pInvSlotWnd->InvSlot;
-				To.BagSlot = pSlot->pInvSlotWnd->BagSlot;
-				To.GlobalSlot = pSlot->pInvSlotWnd->GlobalSlot;
-				To.RandomNum = pSlot->pInvSlotWnd->RandomNum;
-				To.Selection = (long)pcont;
+				ItemGlobalIndex To;// = { 0 };
+				To.Location = eItemContainerPossessions;
+				To.Index.Slot1 = pSlot->pInvSlotWnd->InvSlot;
+				To.Index.Slot2 = pSlot->pInvSlotWnd->BagSlot;
+				To.Index.Slot3 = pSlot->pInvSlotWnd->GlobalSlot;
+				//To.RandomNum = pSlot->pInvSlotWnd->RandomNum;
+				//To.Selection = (long)pcont;
 				pContainerMgr->OpenContainer((EQ_Container*)&pcont, (int)&To, flag);
 				//pPCData->AlertInventoryChanged();
 				if (pcont->Open) {
@@ -7915,7 +7922,7 @@ BOOL CloseContainer(PCONTENTS pItem)
 DWORD __stdcall WaitForBagToOpen(PVOID pData)
 {
 	PLARGE_INTEGER i64tmp = (PLARGE_INTEGER)pData;
-	DWORD type = i64tmp->LowPart;
+	ItemContainerInstance type = (ItemContainerInstance)i64tmp->LowPart;
 	PCONTENTS pItem = (PCONTENTS)i64tmp->HighPart;
 	int timeout = 0;
 	if (PCONTENTS pcont = FindItemBySlot(pItem->ItemSlot)) {
@@ -7953,7 +7960,40 @@ DWORD __stdcall WaitForBagToOpen(PVOID pData)
 	//CloseContainer(pItem);
 	return 1;
 }
-BOOL PickupOrDropItem(DWORD type, PCONTENTS pItem)
+BOOL PickupOrDropItem(ItemContainerInstance type, PCONTENTS pItem)
+{
+	bool bMoveFromCursor = false;
+	PCHARINFO2 pChar2 = GetCharInfo2();
+	if (pChar2 && pChar2->pInventoryArray && pChar2->pInventoryArray->Inventory.Cursor) {
+		pItem = pChar2->pInventoryArray->Inventory.Cursor;
+		bMoveFromCursor = true;
+	}
+	if (!bMoveFromCursor) {
+		ItemGlobalIndex From;
+		From.Location = (ItemContainerInstance) pItem->ItemLocation;
+		From.Index.Slot1 = pItem->ItemSlot;
+		From.Index.Slot2 = pItem->ItemSlot2;
+		From.Index.Slot3 = -1;
+	
+		ItemGlobalIndex To;
+		To.Location = eItemContainerPossessions;
+		To.Index.Slot1 = eItemContainerCursor;
+		To.Index.Slot2 = -1;
+		To.Index.Slot3 = -1;
+		pInvSlotMgr->MoveItem(&From, &To,false,true,false,false);
+		return TRUE;
+	}
+	else {
+		//just autoinventory it for now
+		if(pLocalPlayer) {
+			DoCommand((PSPAWNINFO)pLocalPlayer,"/autoinventory");
+			return TRUE;
+		}
+	}
+
+	return FALSE;
+}
+/*BOOL PickupOrDropItem(ItemContainerInstance type, PCONTENTS pItem)
 {
 	//check if merchantwindow is open
 	//if it is do some magic and open the bag so we can get the pslot
@@ -7975,13 +8015,13 @@ BOOL PickupOrDropItem(DWORD type, PCONTENTS pItem)
 				pInvSlotMgr->SelectSlot(theslot);
 				//int imagenum = ((EQ_Item*)pItem)->GetImageNum();
 				//CTextureAnimation *TextureAnim = pIconCache->GetIcon(imagenum);
-				ItemGlobalIndex To = { 0 };
-				To.InventoryType = 0; To.Unknown0x02 = 0;
-				To.InvSlot = cSlot->pInvSlotWnd->InvSlot;
-				To.BagSlot = cSlot->pInvSlotWnd->BagSlot;
-				To.GlobalSlot = cSlot->pInvSlotWnd->GlobalSlot;
-				To.RandomNum = cSlot->pInvSlotWnd->RandomNum;
-				To.Selection = (long)((PEQINVSLOTMGR)pInvSlotMgr)->pSelectedItem;
+				ItemGlobalIndex To;// = { 0 };
+				To.Location = eItemContainerPossessions;
+				To.Index.Inventory = cSlot->pInvSlotWnd->InvSlot;
+				To.Index.Bag = cSlot->pInvSlotWnd->BagSlot;
+				To.Index.Augment = cSlot->pInvSlotWnd->GlobalSlot;
+				//To.RandomNum = cSlot->pInvSlotWnd->RandomNum;
+				//To.Selection = (long)((PEQINVSLOTMGR)pInvSlotMgr)->pSelectedItem;
 				pMerchantWnd->ActualSelect(&To);
 				return TRUE;
 			}
@@ -7995,13 +8035,13 @@ BOOL PickupOrDropItem(DWORD type, PCONTENTS pItem)
 			if (CInvSlot * theslot = pInvSlotMgr->FindInvSlot(pItem->ItemSlot)) {
 				PEQINVSLOT cSlot = (PEQINVSLOT)theslot;
 				pInvSlotMgr->SelectSlot(theslot);
-				ItemGlobalIndex To = { 0 };
-				To.InventoryType = 0; To.Unknown0x02 = 0;
-				To.InvSlot = cSlot->pInvSlotWnd->InvSlot;
-				To.BagSlot = cSlot->pInvSlotWnd->BagSlot;
-				To.GlobalSlot = cSlot->pInvSlotWnd->GlobalSlot;
-				To.RandomNum = cSlot->pInvSlotWnd->RandomNum;
-				To.Selection = (long)((PEQINVSLOTMGR)pInvSlotMgr)->pSelectedItem;
+				ItemGlobalIndex To;// = { 0 };
+				To.Location = eItemContainerPossessions;
+				To.Index.Inventory = cSlot->pInvSlotWnd->InvSlot;
+				To.Index.Bag = cSlot->pInvSlotWnd->BagSlot;
+				To.Index.Augment = cSlot->pInvSlotWnd->GlobalSlot;
+				//To.RandomNum = cSlot->pInvSlotWnd->RandomNum;
+				//To.Selection = (long)((PEQINVSLOTMGR)pInvSlotMgr)->pSelectedItem;
 				pMerchantWnd->ActualSelect(&To);
 				return TRUE;
 			}
@@ -8021,26 +8061,24 @@ BOOL PickupOrDropItem(DWORD type, PCONTENTS pItem)
 		return FALSE;
 	}
 	if (!bMoveFromCursor) {//user is picking up something
-		ItemGlobalIndex From = { 0 };
-		From.InventoryType = (WORD)type;
-		From.Unknown0x02 = 0;
-		From.InvSlot = InvSlot;
-		From.BagSlot = BagSlot;
-		From.GlobalSlot = pSlot->pInvSlotWnd->GlobalSlot;
-		From.RandomNum = pSlot->pInvSlotWnd->RandomNum;
+		ItemGlobalIndex From;// = { 0 };
+		From.Location = type;
+		From.Index.Inventory = InvSlot;
+		From.Index.Bag = BagSlot;
+		From.Index.Augment = pSlot->pInvSlotWnd->GlobalSlot;
+		//From.RandomNum = pSlot->pInvSlotWnd->RandomNum;
 
-		ItemGlobalIndex To = { 0 };
-		To.InventoryType = 0;
-		To.Unknown0x02 = 0;
-		To.InvSlot = 33;//cursor
-		To.BagSlot = 0xFFFF;
-		To.GlobalSlot = 0xFFFF;
-		if (((EQ_Item *)pItem)->IsStackable()) {
-			To.RandomNum = From.RandomNum - 0xc;//I *THINK* this is correct, want to get dkaa to look at assembly and confirm... -eqmule
-		}
-		else {
-			To.RandomNum = 0;
-		}
+		ItemGlobalIndex To;// = { 0 };
+		To.Location = eItemContainerPossessions;
+		To.Index.Inventory = eItemContainerCursor;
+		To.Index.Bag = -1;//should i force these to 0xFFFF instead?
+		To.Index.Augment = -1;
+		//if (((EQ_Item *)pItem)->IsStackable()) {
+		//	To.RandomNum = From.RandomNum - 0xc;//I *THINK* this is correct, want to get dkaa to look at assembly and confirm... -eqmule
+		//}
+		//else {
+		//	To.RandomNum = 0;
+		//}
 		//OpenContainer(pItem,0);
 		//if(CInvSlot *newslot = pInvSlotMgr->FindInvSlot(InvSlot,BagSlot)) {
 		//	pQuantityWnd->Open((CXWnd *)((PEQINVSLOT)newslot)->pInvSlotWnd,3,pItem->StackCount,
@@ -8053,7 +8091,7 @@ BOOL PickupOrDropItem(DWORD type, PCONTENTS pItem)
 		.text:0069E9D7                 mov     ecx, [esp+1Ch]
 		.text:0069E9DB                 push    ecx
 		*/
-		if (keybflag == 2 && To.RandomNum && pItem->StackCount>1) {//ctrl was pressed and it is a stackable item
+		/*if (keybflag == 2 /*&& To.RandomNum*/ /*&& pItem->StackCount>1) {//ctrl was pressed and it is a stackable item
 																   //until i figure out how to call moveitemqty
 																   //I need to open the bag and notify it cause moveitem only picks up full stacks
 			BOOL wechangedpackopenstatus = 0;
@@ -8087,21 +8125,19 @@ BOOL PickupOrDropItem(DWORD type, PCONTENTS pItem)
 	}
 	else {
 		//user has something on the cursor, lets drop it
-		ItemGlobalIndex From = { 0 };
-		From.InventoryType = 0;
-		From.Unknown0x02 = 0;
-		From.InvSlot = 33;//cursor
-		From.BagSlot = 0xFFFF;
-		From.GlobalSlot = 0xFFFF;
-		From.RandomNum = 0;
+		ItemGlobalIndex From;// = { 0 };
+		From.Location = eItemContainerPossessions;
+		From.Index.Inventory = eItemContainerCursor;
+		From.Index.Bag = -1;// 0xFFFF;
+		From.Index.Augment = -1;
+		//From.RandomNum = 0;
 
-		ItemGlobalIndex To = { 0 };
-		To.InventoryType = (WORD)type;
-		To.Unknown0x02 = 0;
-		To.InvSlot = InvSlot;
-		To.BagSlot = BagSlot;
-		To.GlobalSlot = pSlot->pInvSlotWnd->GlobalSlot;
-		To.RandomNum = pSlot->pInvSlotWnd->RandomNum;
+		ItemGlobalIndex To;// = { 0 };
+		To.Location = type;
+		To.Index.Inventory = InvSlot;
+		To.Index.Bag = BagSlot;
+		To.Index.Augment = pSlot->pInvSlotWnd->GlobalSlot;
+		//To.RandomNum = pSlot->pInvSlotWnd->RandomNum;
 		pInvSlotMgr->MoveItem(&From, &To, 1, 1, 0, 0);
 		return TRUE;
 		//need to update cursor here
@@ -8110,9 +8146,10 @@ BOOL PickupOrDropItem(DWORD type, PCONTENTS pItem)
 		DoCommand((PSPAWNINFO)pLocalPlayer,"/autoinventory");
 		return TRUE;
 		}*/
-	}
+	/*}
 	return FALSE;
 }
+*/
 int GetTargetBuffByCategory(DWORD category, DWORD classmask, int startslot)
 {
 	if (!(((PCTARGETWND)pTargetWnd)->Type > 0))
@@ -8613,8 +8650,15 @@ DWORD GetKeyRingIndex(BOOL KeyRing, PCHAR szItemName, SIZE_T BuffLen, bool bExac
 			}
 			else {
 				if (PCONTENTS pCont = FindItemByName(szItemName, bExact)) {
-					if (pCont->IsMountKeyRing == 0x1b) {
-						//if the mountlist has 0 items in it, we arrive here...
+					bool bKeyring = false;
+					if (PCHARINFO pCharInfo = GetCharInfo()) {
+						if (CharacterBase *cb = (CharacterBase *)&pCharInfo->pCharacterBase) {
+							ItemGlobalIndex location = cb->CreateItemGlobalIndex(pCont->ItemLocation, pCont->ItemSlot,pCont->ItemSlot2);
+							bKeyring = location.IsKeyRingLocation();
+						}
+					}
+					if (bKeyring) {
+						//if the keyring lists has 0 items in it, we arrive here...
 						//its not filled in until you open the mount keyring tab in the inventory window...
 						//since numitems was 0, we know the user hasnt opened up his inventory
 						//and been on the mount key ring tab...so we start a thread and force that... -eqmule

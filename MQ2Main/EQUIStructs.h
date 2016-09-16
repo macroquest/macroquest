@@ -408,8 +408,8 @@ typedef struct _CXWNDMGR {
 /*0x068*/ PCSIDLWND LastWindowSelected;//when you select a window its pointer shows up here
 /*0x06c*/ PCSIDLWND CurrDraggedWindow;//when you drag a window its pointer shows up here
 /*0x070*/ BYTE Unknown0x070[0x4];
-/*0x074*/ PCSIDLWND CurrWindowUnderMouse;//Current window pointer is over if this is 0 we are above MAIN Window
-/*0x078*/ PCSIDLWND CurrWindowUnderMouseCopy;//Current window pointer is over if this is 0 we are above MAIN Window
+/*0x074*/ PCSIDLWND LastMouseOver;//Current window pointer is over if this is 0 we are above MAIN Window
+/*0x078*/ PCSIDLWND Tooltip;//Last Tooltip to show?
 /*0x07c*/ BYTE Unknown0x07c[0x1c];
 /*0x098*/ DWORD ScreenMouseX;
 /*0x09c*/ DWORD ScreenMouseY;

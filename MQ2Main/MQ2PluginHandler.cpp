@@ -71,16 +71,17 @@ DWORD LoadMQ2Plugin(const PCHAR pszFilename,BOOL bCustom)
 
     CHAR FullFilename[MAX_STRING]={0};
     sprintf_s(FullFilename,"%s\\%s.dll",gszINIPath,Filename);
-
-    if (!mq2mainstamp) {
-        mq2mainstamp = checkme((char*)GetCurrentModule());
-    }
-	
     HMODULE hmod=LoadLibrary(FullFilename);
     if (!hmod)
     {
         DebugSpew("LoadMQ2Plugin(%s) Failed",Filename);
         return 0;
+    }
+	//im disabling this check in debug builds because i can't just make a minor change and rebuild just mq2main
+	//without having to actually rebuild ALL my plugins even though its technically not needed for them to work -eqmule sep 11 2016
+#ifndef _DEBUG
+	if (!mq2mainstamp) {
+        mq2mainstamp = checkme((char*)GetCurrentModule());
     }
     if (mq2mainstamp > checkme((char*)hmod)) {
         char tmpbuff[MAX_PATH];
@@ -90,7 +91,7 @@ DWORD LoadMQ2Plugin(const PCHAR pszFilename,BOOL bCustom)
         FreeLibrary(hmod);
         return 0;
     }
-
+#endif // !_DEBUG
     PMQPLUGIN pPlugin=pPlugins;
     while(pPlugin)
     {

@@ -189,7 +189,7 @@ void ShutdownMQ2Data()
 BOOL ParseMQ2DataPortion(PCHAR szOriginal, MQ2TYPEVAR &Result)
 {
 	Result.Type = 0;
-	Result.DWord = 0;
+	Result.Int64 = 0;
 	// Find [] before a . or null
 	PCHAR pPos = &szOriginal[0];
 	PCHAR pStart = pPos;
@@ -506,7 +506,7 @@ BOOL ParseMacroData(PCHAR szOriginal, SIZE_T BufferSize)
 	//PCHAR pStart;
 	//PCHAR pIndex;
 	CHAR szCurrent[MAX_STRING] = { 0 };
-
+	MQ2TYPEVAR Result = { 0 };
 	do
 	{
 		// find this brace's end
@@ -570,7 +570,9 @@ BOOL ParseMacroData(PCHAR szOriginal, SIZE_T BufferSize)
 			pEnd = &pBrace[NewLength];
 			*pEnd = 0;
 		}
-		MQ2TYPEVAR Result;
+		ZeroMemory(&Result, sizeof(Result));
+		Result.Type = 0;
+		Result.Int64 = 0;
 		if (!ParseMQ2DataPortion(szCurrent, Result) || !Result.Type || !Result.Type->ToString(Result.VarPtr, szCurrent)) {
 			strcpy_s(szCurrent, "NULL");
 		}

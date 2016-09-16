@@ -622,6 +622,11 @@ int __cdecl memcheck0(unsigned char *buffer, int count)
 			OurDetours *detour = ourdetours;
 			while (detour)
 			{
+				if (detour->Name[0]!='\0' && !_stricmp(detour->Name, "Login__Pulse_x")) {
+					//its not a valid detour to check at this point
+					detour = detour->pNext;
+					continue;
+				}
 				DWORD newaddr = b + 0x400 + (detour->addr-eqgamebase-0x1000);
 				if (newaddr && newaddr <= (addr+count) && *(BYTE*)newaddr==0xe9 && *(DWORD*)newaddr==*(DWORD*)detour->addr) {
 					Sleep(0);
@@ -652,8 +657,11 @@ int __cdecl memcheck0(unsigned char *buffer, int count)
 	if (orgret != eax)
 	{
 		//wtf?
-		MessageBox(NULL, "WARNING, this should not hapen, contact eqmule", "memchecker0 mismatch", MB_OK | MB_SYSTEMMODAL);
+#ifdef _DEBUG
+		MessageBox(NULL, "WARNING, this should not happen, contact eqmule", "memchecker0 mismatch", MB_OK | MB_SYSTEMMODAL);
 		_asm int 3;
+		return orgret;
+#endif
 	}
 	return eax;
 }

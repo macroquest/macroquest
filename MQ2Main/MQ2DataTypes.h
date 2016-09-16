@@ -331,12 +331,12 @@ public:
 	}
 	void InitVariable(MQ2VARPTR &VarPtr)
 	{
-		VarPtr.Ptr = malloc(MAX_STRING);
-		ZeroMemory(VarPtr.Ptr, MAX_STRING);
+		VarPtr.Ptr = LocalAlloc(LPTR,MAX_STRING);
+		VarPtr.HighPart = 0;
 	}
 	void FreeVariable(MQ2VARPTR &VarPtr)
 	{
-		free(VarPtr.Ptr);
+		LocalFree(VarPtr.Ptr);
 	}
 	bool FromData(MQ2VARPTR &VarPtr, MQ2TYPEVAR &Source)
 	{
@@ -838,6 +838,7 @@ public:
 	void InitVariable(MQ2VARPTR &VarPtr)
 	{
 		VarPtr.Ptr = malloc(sizeof(SPAWNINFO));
+		VarPtr.HighPart = 0;
 		ZeroMemory(VarPtr.Ptr, sizeof(SPAWNINFO));
 	}
 	void FreeVariable(MQ2VARPTR &VarPtr)
@@ -1388,6 +1389,7 @@ public:
 	void InitVariable(MQ2VARPTR &VarPtr)
 	{
 		VarPtr.Ptr = malloc(sizeof(CHARINFO));
+		VarPtr.HighPart = 0;
 		ZeroMemory(VarPtr.Ptr, sizeof(CHARINFO));
 	}
 	void FreeVariable(MQ2VARPTR &VarPtr)
@@ -1572,6 +1574,7 @@ public:
 	void InitVariable(MQ2VARPTR &VarPtr)
 	{
 		VarPtr.Ptr = malloc(sizeof(SPELL));
+		VarPtr.HighPart = 0;
 		ZeroMemory(VarPtr.Ptr, sizeof(SPELL));
 	}
 	void FreeVariable(MQ2VARPTR &VarPtr)
@@ -1650,6 +1653,7 @@ public:
 	void InitVariable(MQ2VARPTR &VarPtr)
 	{
 		VarPtr.Ptr = malloc(sizeof(SPELLBUFF));
+		VarPtr.HighPart = 0;
 		ZeroMemory(VarPtr.Ptr, sizeof(SPELLBUFF));
 	}
 	void FreeVariable(MQ2VARPTR &VarPtr)
@@ -2051,6 +2055,7 @@ public:
 	void InitVariable(MQ2VARPTR &VarPtr)
 	{
 		VarPtr.Ptr = malloc(sizeof(CONTENTS));
+		VarPtr.HighPart = 0;
 		ZeroMemory(VarPtr.Ptr, sizeof(CONTENTS));
 	}
 	void FreeVariable(MQ2VARPTR &VarPtr)
@@ -2144,6 +2149,7 @@ public:
 	void InitVariable(MQ2VARPTR &VarPtr)
 	{
 		VarPtr.Ptr = malloc(sizeof(DOOR));
+		VarPtr.HighPart = 0;
 		ZeroMemory(VarPtr.Ptr, sizeof(DOOR));
 	}
 	void FreeVariable(MQ2VARPTR &VarPtr)
@@ -2235,6 +2241,7 @@ public:
 	void InitVariable(MQ2VARPTR &VarPtr)
 	{
 		VarPtr.Ptr = malloc(sizeof(GROUNDITEM));
+		VarPtr.HighPart = 0;
 		ZeroMemory(VarPtr.Ptr, sizeof(GROUNDITEM));
 	}
 	void FreeVariable(MQ2VARPTR &VarPtr)
@@ -2448,6 +2455,7 @@ public:
 	void InitVariable(MQ2VARPTR &VarPtr)
 	{
 		VarPtr.Ptr = malloc(sizeof(SPAWNINFO));
+		VarPtr.HighPart = 0;
 		ZeroMemory(VarPtr.Ptr, sizeof(SPAWNINFO));
 	}
 	void FreeVariable(MQ2VARPTR &VarPtr)
@@ -2534,6 +2542,7 @@ public:
 	void InitVariable(MQ2VARPTR &VarPtr)
 	{
 		VarPtr.Ptr = malloc(sizeof(SPAWNINFO));
+		VarPtr.HighPart = 0;
 		ZeroMemory(VarPtr.Ptr, sizeof(SPAWNINFO));
 	}
 	void FreeVariable(MQ2VARPTR &VarPtr)
@@ -2665,7 +2674,7 @@ public:
 		TypeMember(MyTradeReady);
 		TypeMember(GetCurSel);
 		TypeMember(Address);
-
+		
 		TypeMethod(LeftMouseDown);
 		TypeMethod(LeftMouseUp);
 		TypeMethod(LeftMouseHeld);
@@ -2919,6 +2928,7 @@ public:
 		ViewportYCenter = 21,
 		xScreenMode = 22,
 		LayoutCopyInProgress = 23,
+		LastMouseOver = 24,
 	};
 	enum EverQuestMethods
 	{
@@ -2948,6 +2958,7 @@ public:
 		TypeMember(PPriority);
 		AddMember(xScreenMode, "ScreenMode");
 		TypeMember(LayoutCopyInProgress);
+		TypeMember(LastMouseOver);
 	}
 
 	~MQ2EverQuestType()
@@ -3291,6 +3302,7 @@ public:
 	void InitVariable(MQ2VARPTR &VarPtr)
 	{
 		VarPtr.Ptr = malloc(sizeof(struct tm));
+		VarPtr.HighPart = 0;
 		ZeroMemory(VarPtr.Ptr, sizeof(struct tm));
 	}
 	void FreeVariable(MQ2VARPTR &VarPtr)
@@ -3747,6 +3759,7 @@ public:
 				gTimer->pPrev = pVar;
 			gTimer = pVar;
 			VarPtr.Ptr = pVar;
+			VarPtr.HighPart = 0;
 		}
 	}
 	void FreeVariable(MQ2VARPTR &VarPtr)
@@ -3869,7 +3882,7 @@ public:
 		HealerMercCount = 15,
 		MeleeMercCount = 16,
 		CasterMercCount = 17,
-
+		MouseOver = 18,
 	};
 	enum GroupMethods
 	{
@@ -3893,6 +3906,7 @@ public:
 		TypeMember(HealerMercCount);
 		TypeMember(MeleeMercCount);
 		TypeMember(CasterMercCount);
+		TypeMember(MouseOver);
 	}
 
 	~MQ2GroupType()
@@ -4463,6 +4477,7 @@ public:
 	void InitVariable(MQ2VARPTR &VarPtr)
 	{
 		VarPtr.Ptr = malloc(sizeof(SPAWNINFO));
+		VarPtr.HighPart = 0;
 		ZeroMemory(VarPtr.Ptr, sizeof(SPAWNINFO));
 	}
 	void FreeVariable(MQ2VARPTR &VarPtr)
@@ -4689,6 +4704,7 @@ public:
 	void InitVariable(MQ2VARPTR &VarPtr)
 	{
 		VarPtr.Ptr = malloc(sizeof(SPAWNINFO));
+		VarPtr.HighPart = 0;
 		ZeroMemory(VarPtr.Ptr, sizeof(SPAWNINFO));
 	}
 	void FreeVariable(MQ2VARPTR &VarPtr)

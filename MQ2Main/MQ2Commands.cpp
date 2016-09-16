@@ -2841,14 +2841,14 @@ VOID BankList(PSPAWNINFO pChar, PCHAR szLine)
 	for (int a = 0; a<NUM_BANK_SLOTS; a++) {
 		if (pCharInfo->pBankArray) pContainer = pCharInfo->pBankArray->Bank[a];
 		if (pContainer) {
-			GetItemLink(pContainer, &Link[0]);
+			GetItemLink(pContainer, Link);
 			sprintf_s(szTemp, "Slot %d: %dx %s (%s)", a, pContainer->StackCount ? pContainer->StackCount : 1, Link, GetItemFromContents(pContainer)->LoreName);
 			WriteChatColor(szTemp, USERCOLOR_DEFAULT);
 			if (pContainer->pContentsArray)
 			{
 				for (int b = 0; b<GetItemFromContents(pContainer)->Slots; b++) {
 					if (pContainer->pContentsArray->Contents[b]) {
-						GetItemLink(pContainer->pContentsArray->Contents[b], &Link[0]);
+						GetItemLink(pContainer->pContentsArray->Contents[b], Link);
 						sprintf_s(szTemp, "- Slot %d: %dx %s (%s)", b, pContainer->pContentsArray->Contents[b]->StackCount ? pContainer->pContentsArray->Contents[b]->StackCount : 1, Link, GetItemFromContents(pContainer->pContentsArray->Contents[b])->LoreName);
 						WriteChatColor(szTemp, USERCOLOR_DEFAULT);
 					}
@@ -3233,15 +3233,29 @@ VOID UseItemCmd(PSPAWNINFO pChar, PCHAR szLine)
 		}
 		else {
 			if (PCONTENTS pItem = FindItemByName(szCmd, stripped)) {
-				if (!pItem->IsMountKeyRing) {
+				bool bKeyring = false;
+#ifndef EMU
+				if (PCHARINFO pCharInfo = GetCharInfo()) {
+					if (CharacterBase *cb = (CharacterBase *)&pCharInfo->pCharacterBase) {
+						ItemGlobalIndex location = cb->CreateItemGlobalIndex(pItem->ItemLocation, pItem->ItemSlot, pItem->ItemSlot2);
+						bKeyring = location.IsKeyRingLocation();
+					}
+				}
+#endif
+				if (!bKeyring) {
 					CHAR szTemp[32] = { 0 };
 					sprintf_s(szTemp, "%d %d", pItem->ItemSlot, pItem->ItemSlot2);
 					cmdUseItem(pChar, szTemp);
+					RETURN(0);
 				}
-				else {
-#ifndef EMU
-					//is it a mount?
-					if (DWORD index = GetKeyRingIndex(0, szCmd,sizeof(szCmd), stripped, true)) {
+#ifndef EMU		
+				bool bMount = ((EQ_Item*)pItem)->IsKeyRingItem(eMount);
+				bool bIllusion = ((EQ_Item*)pItem)->IsKeyRingItem(eIllusion);
+				//guess we are gonna need this at some point... next expansion? 
+				//bool bFamiliar = ((EQ_Item*)pItem)->IsKeyRingItem(eFamiliar);
+				//is it a mount?
+				if (bMount) {
+					if (DWORD index = GetKeyRingIndex(0, szCmd, sizeof(szCmd), stripped, true)) {
 						if (CXWnd *krwnd = FindMQ2Window(KeyRingWindowParent)) {
 							if (CListWnd *clist = (CListWnd*)krwnd->GetChildItem(MountWindowList)) {
 								if (DWORD numitems = ((CSidlScreenWnd*)clist)->Items) {
@@ -3253,8 +3267,10 @@ VOID UseItemCmd(PSPAWNINFO pChar, PCHAR szLine)
 							}
 						}
 					}
+				}
+				else if (bIllusion) {
 					//uhm ok, maybe an illlusion then?
-					if (DWORD index = GetKeyRingIndex(1, szCmd,sizeof(szCmd), stripped, true)) {
+					if (DWORD index = GetKeyRingIndex(1, szCmd, sizeof(szCmd), stripped, true)) {
 						if (CXWnd *krwnd = FindMQ2Window(KeyRingWindowParent)) {
 							if (CListWnd *clist = (CListWnd*)krwnd->GetChildItem(IllusionWindowList)) {
 								if (DWORD numitems = ((CSidlScreenWnd*)clist)->Items) {
@@ -3265,9 +3281,9 @@ VOID UseItemCmd(PSPAWNINFO pChar, PCHAR szLine)
 								}
 							}
 						}
-					}
-#endif
+					}	
 				}
+#endif
 			}
 		}
 	}

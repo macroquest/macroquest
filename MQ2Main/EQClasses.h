@@ -11,7 +11,6 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
     GNU General Public License for more details.
 ******************************************************************************/
-
 namespace EQClasses
 {
 // Other
@@ -68,6 +67,7 @@ class CContextMenu;
 class CContextMenuManager;
 class CControlTemplate;
 class CCursorAttachment;
+class EqItemGuid;
 class CDIMap;
 class CDisplay;
 class CEditBaseWnd;
@@ -302,6 +302,7 @@ class flex_unit;
 class GrammarRulesClass;
 class GuildMember;
 class IconCache;
+class ItemBaseContainer;
 class JournalNPC;
 class KeyCombo;
 class KeypressHandler;
@@ -365,7 +366,6 @@ class ZoneNPCLoadTextManager;
 class CTextOverlay;
 class PcZoneClient;
 class CharacterZoneClient;
-
 // End forward class declarations
 typedef struct _Personal_Loot
 {
@@ -2397,13 +2397,71 @@ EQLIB_OBJECT void ChannelServerHandler::CshOnLoginConfirm(bool);
 EQLIB_OBJECT void ChannelServerHandler::CshOnPacket(void *,int,char *,int,char *,bool);
 };
 
+//found these at B0DD28 in eqgame.exe dated Aug 15 2016 -eqmule
+enum ItemContainerInstance
+{
+	eItemContainerInvalid = -1,
+	eItemContainerPossessions,
+	eItemContainerBank,
+	eItemContainerSharedBank,
+	eItemContainerTrade,
+	eItemContainerWorld,
+	eItemContainerLimbo,
+	eItemContainerTribute,
+	eItemContainerTrophyTribute,
+	eItemContainerGuildTribute,
+	eItemContainerMerchant,
+	eItemContainerDeleted,
+	eItemContainerCorpse,
+	eItemContainerBazaar,
+	eItemContainerInspect,
+	eItemContainerRealEstate,
+	eItemContainerViewModPC,
+	eItemContainerViewModBank,
+	eItemContainerViewModSharedBank,
+	eItemContainerViewModLimbo,
+	eItemContainerAltStorage,
+	eItemContainerArchived,
+	eItemContainerMail,
+	eItemContainerGuildTrophyTribute,
+	eItemContainerKrono,
+	eItemContainerOther,
+	eItemContainerMercenaryItems,
+    eItemContainerViewModMercenaryItems,
+    eItemContainerMountKeyRingItems,
+	eItemContainerViewModMountKeyRingItems,
+	eItemContainerIllusionKeyRingItems,
+	eItemContainerViewModIllusionKeyRingItems,
+	eItemContainerFamiliarKeyRingItems,
+	eItemContainerViewModFamiliarKeyRingItems,
+	eItemContainerCursor,
+};
+class ItemIndex
+{
+public:
+    short Slot1;
+    short Slot2;
+    short Slot3;
+};
+
+class ItemGlobalIndex
+{
+public:
+	ItemGlobalIndex::ItemContainerInstance Location;
+	ItemGlobalIndex::ItemIndex Index;
+	CHAR morestuff[2048];
+EQLIB_OBJECT	ItemGlobalIndex::ItemGlobalIndex();
+EQLIB_OBJECT bool ItemGlobalIndex::IsKeyRingLocation(void);
+EQLIB_OBJECT bool ItemGlobalIndex::IsEquippedLocation(void);
+EQLIB_OBJECT bool ItemGlobalIndex::IsValidIndex(void);
+};
+
 class CharacterBase
 {
 public:
 	EQLIB_OBJECT LONG CharacterBase::GetMemorizedSpell(int gem);//0-0xf this func returns the spellid for whatever is in the gem
-	EQLIB_OBJECT class ItemGlobalIndex *CreateItemGlobalIndex(int*result, int Slot1, int Slot2=-1, int Slot3=-1);
-	EQLIB_OBJECT class ItemIndex *CreateItemIndex(int*result, int Slot1, int Slot2=-1, int Slot3=-1);
-	EQLIB_OBJECT PCONTENTS *GetItemPossession(int*, class ItemIndex *);
+	EQLIB_OBJECT class ItemGlobalIndex CreateItemGlobalIndex(int Slot0, int Slot1 = -1, int Slot2 = -1);
+	EQLIB_OBJECT class ItemIndex CreateItemIndex(int Slot0, int Slot1=-1, int Slot2=-1);
 };
 
 class CHashCXStrInt32
@@ -2607,24 +2665,7 @@ EQLIB_OBJECT CInvSlot::~CInvSlot(void);
 //EQLIB_OBJECT void * CInvSlot::`scalar deleting destructor'(unsigned int);
 //EQLIB_OBJECT void * CInvSlot::`vector deleting destructor'(unsigned int);
 };
-class ItemIndex
-{
-public:
-    unsigned short Slot1;
-    unsigned short Slot2;
-    unsigned short Slot3;
-};
-class ItemGlobalIndex
-{
-public:
-    unsigned short InventoryType;   // 0 = regular inventory slots, 1 = bank slots, 2 = shared bank slots
-    unsigned short Unknown0x02;        // always 0?
-    unsigned short InvSlot;
-    unsigned short BagSlot;         // 0xFFFF if not in a bag, otherwise the bag slot number (0 through 9, or 0 through 19 if it's a 20-slot bag, etc)
-    unsigned short GlobalSlot;
-    unsigned short RandomNum;
-    unsigned long  Selection;
-};
+
 
 class CInvSlotMgr
 {
@@ -2632,7 +2673,7 @@ public:
 EQLIB_OBJECT CInvSlotMgr::CInvSlotMgr(void);
 EQLIB_OBJECT class CInvSlot * CInvSlotMgr::CreateInvSlot(class CInvSlotWnd *);
 EQLIB_OBJECT class CInvSlot * CInvSlotMgr::FindInvSlot(int,int x=-1);
-EQLIB_OBJECT bool CInvSlotMgr::MoveItem(ItemGlobalIndex *from, ItemGlobalIndex *to, bool bDebugOut, bool CombineIsOk, bool MoveFromIntoToBag, bool MoveToIntoFromBag);
+EQLIB_OBJECT bool CInvSlotMgr::MoveItem(ItemGlobalIndex *from, ItemGlobalIndex *to, bool bDebugOut, bool CombineIsOk, bool MoveFromIntoToBag = false, bool MoveToIntoFromBag = false);
 EQLIB_OBJECT void CInvSlotMgr::Process(void);
 EQLIB_OBJECT void CInvSlotMgr::SelectSlot(class CInvSlot *);
 EQLIB_OBJECT void CInvSlotMgr::UpdateSlots(void);
@@ -2975,7 +3016,7 @@ EQLIB_OBJECT void CLootWnd::AddEquipmentToLootArray(class EQ_Item *);
 EQLIB_OBJECT void CLootWnd::AddNoteToLootArray(class EQ_Item *);
 EQLIB_OBJECT void CLootWnd::Deactivate(bool);
 EQLIB_OBJECT void CLootWnd::LootAll(bool);
-EQLIB_OBJECT void CLootWnd::RequestLootSlot(int,bool);
+EQLIB_OBJECT void CLootWnd::RequestLootSlot(int Slot,bool bAutoInventory);
 EQLIB_OBJECT void CLootWnd::SlotLooted(int);
 // virtual
 EQLIB_OBJECT CLootWnd::~CLootWnd(void);
@@ -5644,7 +5685,12 @@ EQLIB_OBJECT int EQ_Equipment::IsInstrument(void);
 EQLIB_OBJECT int EQ_Equipment::IsWeapon(void);
 EQLIB_OBJECT void EQ_Equipment::SendTextRequestMsg(void);
 };
-
+enum KeyRingType
+{
+	eMount,
+	eIllusion,
+	eFamiliar,
+};
 //this is really the ItemBase class
 //eqmule 2014 feb 06
 class EQ_Item
@@ -5665,6 +5711,10 @@ EQLIB_OBJECT int EQ_Item::CanDrop(bool,int,int mq2_dummy=0, int mq2_dummy2=1);
 EQLIB_OBJECT int EQ_Item::GetImageNum(void)const;
 EQLIB_OBJECT struct  _CONTENTS** __cdecl CreateItemClient(PBYTE*,DWORD);
 EQLIB_OBJECT int EQ_Item::GetItemValue(bool)const;
+EQLIB_OBJECT bool EQ_Item::IsKeyRingItem(KeyRingType type)const;
+EQLIB_OBJECT bool EQ_Item::CanGoInBag(PCONTENTS *pCont, int unused, bool mustbefalse = false)const;
+EQLIB_OBJECT int EQ_Item::GetMaxItemCount(void)const;
+
 ITEMINFO Data;
 };
 
@@ -5713,6 +5763,7 @@ EQLIB_OBJECT int EQ_PC::numInParty(void);
 EQLIB_OBJECT static class EQ_PC * EQ_PC::top;
 EQLIB_OBJECT unsigned char EQ_PC::AtSkillLimit(int);
 EQLIB_OBJECT unsigned char EQ_PC::RemoveMyAffect(int);
+EQLIB_OBJECT class ItemBaseContainer &EQ_PC::GetKeyRingItems(enum KeyRingType);
 EQLIB_OBJECT unsigned long EQ_PC::GetArmorTint(int);
 EQLIB_OBJECT unsigned long EQ_PC::GetBodyTint(int);
 EQLIB_OBJECT void EQ_PC::CheckForGroupChanges(void);
@@ -6237,6 +6288,9 @@ EQLIB_OBJECT IconCache::~IconCache(void);
 EQLIB_OBJECT IconCache::IconCache(void);
 EQLIB_OBJECT class CTextureAnimation * IconCache::GetIcon(int);
 };
+
+
+
 class JournalNPC
 {
 public:
@@ -7207,6 +7261,7 @@ public:
 EQLIB_OBJECT int PcZoneClient::GetPcSkillLimit(int);
 EQLIB_OBJECT bool PcZoneClient::HasCombatAbility(int);
 EQLIB_OBJECT void PcZoneClient::RemovePetEffect(int);
+EQLIB_OBJECT bool PcZoneClient::CanEquipItem(PCONTENTS *pCont, int slotid, bool bOutputDebug, bool bUseRequiredLevel);
 #ifndef EMU
 EQLIB_OBJECT bool PcZoneClient::HasAlternateAbility(int aaindex, int *, bool, bool);
 #else

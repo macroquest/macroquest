@@ -715,7 +715,7 @@ typedef struct _CONTENTS {
 /*0x002c*/ DWORD        StackCount;
 /*0x0030*/ BYTE         Unknown0x0030[0x30];
 /*0x0060*/ DWORD        NumOfSlots1;//ItemSlot is this address + 0x16 in 20130708
-/*0x0064*/ DWORD        IsMountKeyRing;//0x1b if it is 0 if not
+/*0x0064*/ DWORD        ItemLocation;//0x1b mounts
 /*0x0068*/ struct _CONTENTSARRAY*       pContentsArray;
 /*0x006c*/ DWORD        NumOfSlots2;
 /*0x0070*/ BYTE         Unknown0x0070[0x6];

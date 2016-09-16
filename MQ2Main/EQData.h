@@ -712,10 +712,12 @@ typedef struct _CONTENTS {
 /*0x000c*/ BYTE		Unknown0x000c[0x4];
 /*0x0010*/ DWORD	OrnamentationIcon;
 /*0x0014*/ BYTE		EvolvingExpOn;
-/*0x0015*/ BYTE		Unknown0x0015[0x1b];
+/*0x0015*/ BYTE		Unknown0x0015[0x7];
+/*0x001C*/ char		ItemGUID[0x12];
+/*0x002E*/ BYTE	Unknown0x002e[2];
 /*0x0030*/ DOUBLE	EvolvingExpPct;
 /*0x0038*/ DWORD	MerchantQuantity;
-/*0x003c*/ DWORD	StackCount;
+/*0x003c*/ LONG		StackCount;
 /*0x0040*/ DWORD	Power;
 /*0x0044*/ DWORD	EvolvingMaxLevel;
 /*0x0048*/ BYTE		Unknown0x0048[0xc];
@@ -731,7 +733,7 @@ typedef struct _CONTENTS {
 /*0x00fc*/ BYTE		Unknown0x00fc[0x8];
 /*0x0104*/ DWORD	EvolvingCurrentLevel;
 /*0x0108*/ DWORD	NumOfSlots1;//ItemSlot is this address + 0x16 in 20130708
-/*0x010c*/ DWORD	IsMountKeyRing;//0x1b if it is 0 if not
+/*0x010c*/ DWORD	ItemLocation;//0x1b mount 0x1d illusion
 /*0x0110*/ struct _CONTENTSARRAY*	pContentsArray;
 /*0x0114*/ DWORD	NumOfSlots2;
 /*0x0118*/ BYTE		Unknown0x0118[0x6];
@@ -975,7 +977,8 @@ typedef struct _CHARINFO {
 /*0x1fe0*/ void*        vtable2;//vtable2_0 below aTimeIsDAndCanU
 /*0x1fe4*/ struct _EQC_INFO*    eqc_info;
 /*0x1fe8*/ struct _SPAWNINFO*   pSpawn;//pSpawn_0
-/*0x1fec*/ BYTE         Unknown0x1fec[0x4];
+/*0x1fec*/ BYTE         UpdateStuff;
+/*0x1fed*/ BYTE         Unknown0x1fec[0x3];
 /*0x1ff0*/ DWORD        ArmorClassBonus;//vtable2+10
 /*0x1ff4*/ DWORD        CurrWeight;//vtable2+14
 /*0x1ff8*/ BYTE         Unknown0x1ff8[0xc];
@@ -1078,7 +1081,9 @@ union {
 //aSdeityD CharInfo2__CharInfo2
 // actual size: 0x9a28 2016 04 13 test (see 85B22A) - eqmule
 typedef struct _CHARINFO2 {
-/*0x0000*/ BYTE         Unknown0x0000[0x18];
+/*0x0000*/ BYTE         Unknown0x0000[0x10];
+/*0x0010*/ DWORD         BaseProfile;
+/*0x0014*/ DWORD         Unknown0x0014;
 /*0x0018*/ struct _INVENTORYARRAY*      pInventoryArray;
 /*0x001c*/ BYTE         Unknown0x001c[0x48];
 /*0x0064*/ struct _SPELLBUFF    Buff[NUM_LONG_BUFFS];

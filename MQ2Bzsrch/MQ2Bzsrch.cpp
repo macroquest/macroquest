@@ -298,6 +298,7 @@ public:
     }
     void InitVariable(MQ2VARPTR &VarPtr) {
         VarPtr.Ptr=malloc(sizeof(_BazaarSearchResponsePacket));
+		VarPtr.HighPart = 0;
         ZeroMemory(VarPtr.Ptr,sizeof(_BazaarSearchResponsePacket));
     }
     void FreeVariable(MQ2VARPTR &VarPtr) {

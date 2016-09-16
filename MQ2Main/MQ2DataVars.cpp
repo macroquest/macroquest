@@ -448,7 +448,7 @@ VOID NewVardata(PSPAWNINFO pChar, PCHAR szLine)
 		MacroError("/vardata '%s' failed, variable not found", szName);
 		return;
 	}
-	MQ2TYPEVAR Result;
+	MQ2TYPEVAR Result = { 0 };
 	if (!ParseMQ2DataPortion(szRest, Result))
 	{
 		MacroError("/vardata '%s' failed, MQ2Data portion '%s' unparsable", szName, szRest);

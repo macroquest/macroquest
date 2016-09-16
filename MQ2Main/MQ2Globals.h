@@ -1079,7 +1079,8 @@ namespace MQ2Globals
 	EQLIB_VAR DWORD CharacterBase__CreateItemGlobalIndex;
 	EQLIB_VAR DWORD CharacterBase__CreateItemIndex;
 	EQLIB_VAR DWORD CharacterBase__GetItemPossession;
-
+	EQLIB_VAR DWORD CharacterBase__GetItemByGlobalIndex;
+	
 	EQLIB_VAR DWORD CHotButtonWnd__DoHotButton;
 
 	EQLIB_VAR DWORD CInvSlotMgr__FindInvSlot;
@@ -1304,7 +1305,10 @@ namespace MQ2Globals
 	EQLIB_VAR DWORD EQ_Item__CreateItemClient;
 	EQLIB_VAR DWORD EQ_Item__GetItemValue;
 	EQLIB_VAR DWORD EQ_Item__ValueSellMerchant;
-
+	EQLIB_VAR DWORD EQ_Item__IsKeyRingItem;
+	EQLIB_VAR DWORD EQ_Item__CanGoInBag;
+	EQLIB_VAR DWORD EQ_Item__GetMaxItemCount;
+	
 	EQLIB_VAR DWORD EQ_LoadingS__SetProgressBar;
 	EQLIB_VAR DWORD EQ_LoadingS__Array;
 
@@ -1317,6 +1321,10 @@ namespace MQ2Globals
 	EQLIB_VAR DWORD EQ_PC__GetItemTimerValue;
 	EQLIB_VAR DWORD EQ_PC__HasLoreItem;
 	EQLIB_VAR DWORD EQ_PC__RemoveMyAffect;
+	EQLIB_VAR DWORD EQ_PC__GetKeyRingItems;
+
+	EQLIB_VAR DWORD ItemBaseContainer__ItemBaseContainer;
+	EQLIB_VAR DWORD ItemBaseContainer__CreateItemGlobalIndex;
 
 	EQLIB_VAR DWORD EQItemList__EQItemList;
 	EQLIB_VAR DWORD EQItemList__add_item;
@@ -1362,6 +1370,7 @@ namespace MQ2Globals
 	EQLIB_VAR DWORD PcZoneClient__HasAlternateAbility;
 	EQLIB_VAR DWORD PcZoneClient__GetCurrentMod;
 	EQLIB_VAR DWORD PcZoneClient__GetModCap;
+	EQLIB_VAR DWORD PcZoneClient__CanEquipItem;
 
 	EQLIB_VAR DWORD EQSwitch__UseSwitch;
 
@@ -1385,6 +1394,7 @@ namespace MQ2Globals
 	EQLIB_VAR DWORD EQ_Spell__GetSpellBaseByAttrib;
 	EQLIB_VAR DWORD CharacterZoneClient__CalcAffectChange;
 	EQLIB_VAR DWORD CLootWnd__LootAll;
+	EQLIB_VAR DWORD CLootWnd__RequestLootSlot;
 	EQLIB_VAR DWORD CTargetWnd__GetBuffCaster;
 	EQLIB_VAR DWORD CTargetWnd__WndNotification;
 	EQLIB_VAR DWORD CTaskWnd__UpdateTaskTimers;
@@ -1400,6 +1410,9 @@ namespace MQ2Globals
 	EQLIB_VAR DWORD SpellManager__SpellManager;
 	EQLIB_VAR DWORD Spellmanager__CheckSpellRequirementAssociations;
 	EQLIB_VAR DWORD CCollisionInfoTargetVisibility__CCollisionInfoTargetVisibility;
-
+	EQLIB_VAR DWORD ItemGlobalIndex__IsKeyRingLocation;
+	EQLIB_VAR DWORD ItemGlobalIndex__ItemGlobalIndex;
+	EQLIB_VAR DWORD ItemGlobalIndex__IsEquippedLocation;
+	EQLIB_VAR DWORD ItemGlobalIndex__IsValidIndex;
 }
 using namespace MQ2Globals;

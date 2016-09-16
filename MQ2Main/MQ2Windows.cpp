@@ -1195,6 +1195,10 @@ int WndNotify(int argc, char *argv[])
     MacroError("Invalid notification '%s'",szArg3);
     RETURN(0);
 }
+bool IsCtrlKey()
+{
+	return (pWndMgr->GetKeyboardFlags() & 0x00000002) != 0;
+}
 
 // item slots:
 // 2000-2015 bank window
@@ -1205,7 +1209,21 @@ int WndNotify(int argc, char *argv[])
 // 6000-6080 merchant window
 // 7000-7080 bazaar window
 // 8000-8031 inspect window
-
+bool CheckLootArg(char*arg, char *search, int argcnt, int *slot)
+{
+	if (!_strnicmp(arg, search, argcnt)) {
+		char *numptr = arg + argcnt;
+		int theslot = -1;
+		if (IsNumber(numptr)) {
+			theslot = atoi(numptr) - 1;
+			if (theslot < 0)
+				theslot = 0;
+			*slot = theslot;
+			return true;
+		}
+	}
+	return false;
+}
 
 #ifndef ISXEQ
 VOID ItemNotify(PSPAWNINFO pChar, PCHAR szLine)
@@ -1255,7 +1273,7 @@ int ItemNotify(int argc, char *argv[])
     PEQINVSLOTMGR pInvMgr=(PEQINVSLOTMGR)pInvSlotMgr;
     int bagslot = -1;
     int invslot = -1;
-    int type = -1;
+    ItemContainerInstance type = eItemContainerInvalid;
 
     if (!_stricmp(szArg1,"in"))
     { 
@@ -1267,15 +1285,15 @@ int ItemNotify(int argc, char *argv[])
         if (!_strnicmp(szArg2,"bank",4)) {
             invslot=atoi(&szArg2[4])-1;
             bagslot=atoi(szArg3)-1;
-            type=1;
+            type=eItemContainerBank;
         } else if (!_strnicmp(szArg2,"sharedbank",10)) {
             invslot=atoi(&szArg2[10])-1;
             bagslot=atoi(szArg3)-1;
-            type=2;
+            type=eItemContainerSharedBank;
         } else if (!_strnicmp(szArg2,"pack",4)) {
             invslot=atoi(&szArg2[4])-1+BAG_SLOT_START;
             bagslot=atoi(szArg3)-1;
-            type=0;
+            type=eItemContainerPossessions;
         }
 		//ok look, I wish I could just call:
 		//pSlot = (PEQINVSLOT)pInvSlotMgr->FindInvSlot(invslot,bagslot);
@@ -1338,22 +1356,22 @@ int ItemNotify(int argc, char *argv[])
             } else {
                 if (!_strnicmp(szArg1, "loot", 4)) {
                     invslot = atoi(szArg1+4) - 1;
-                    type = 11;
+					type = eItemContainerCorpse;
                 } else if (!_strnicmp(szArg1, "enviro", 6)) {
                     invslot = atoi(szArg1+6) - 1;
-                    type = 4;
+                    type = eItemContainerWorld;
                 } else if (!_strnicmp(szArg1, "pack", 4)) {
                     invslot = atoi(szArg1+4) - 1 + BAG_SLOT_START;
-                    type = 0;
+                    type = eItemContainerPossessions;
                 } else if (!_strnicmp(szArg1, "bank", 4)) {
                     invslot = atoi(szArg1+4) - 1;
-                    type = 1;
+                    type = eItemContainerBank;
                 } else if (!_strnicmp(szArg1, "sharedbank", 10)) {
                     invslot = atoi(szArg1+10) - 1;
-                    type = 2;
+                    type = eItemContainerSharedBank;
                 } else if (!_strnicmp(szArg1, "trade", 5)) {
                     invslot = atoi(szArg1+5) - 1;
-                    type = 3;
+                    type = eItemContainerTrade;
                 }
                 for (i=0;i<pInvMgr->TotalSlots;i++) {
                     pSlot = pInvMgr->SlotArray[i];
@@ -1380,7 +1398,7 @@ int ItemNotify(int argc, char *argv[])
 			//lets check:
 			if(PCONTENTS ptheitem = FindItemByName(szArg1,1)) {
 				if(pNotification && !_strnicmp(pNotification,"leftmouseup",11)) {
-					PickupOrDropItem(0,ptheitem);
+					PickupOrDropItem(eItemContainerPossessions,ptheitem);
 				} else if(pNotification && !_strnicmp(pNotification,"rightmouseup",12)) {//we fake it with /useitem
 					//hmm better check if its a spell cause then it means we should mem it
 					PITEMINFO pClicky = GetItemFromContents(ptheitem);

@@ -1609,7 +1609,8 @@ namespace MQ2Globals
 	INITIALIZE_EQGAME_OFFSET(CharacterBase__CreateItemGlobalIndex);
 	INITIALIZE_EQGAME_OFFSET(CharacterBase__CreateItemIndex);
 	INITIALIZE_EQGAME_OFFSET(CharacterBase__GetItemPossession);
-	
+	INITIALIZE_EQGAME_OFFSET(CharacterBase__GetItemByGlobalIndex);
+
 	INITIALIZE_EQGAME_OFFSET(CHotButtonWnd__DoHotButton);
 
 	INITIALIZE_EQGAME_OFFSET(CInvSlotMgr__FindInvSlot);
@@ -1835,6 +1836,10 @@ namespace MQ2Globals
 	INITIALIZE_EQGAME_OFFSET(EQ_Item__CreateItemClient);
 	INITIALIZE_EQGAME_OFFSET(EQ_Item__GetItemValue);
 	INITIALIZE_EQGAME_OFFSET(EQ_Item__ValueSellMerchant);
+#ifndef EMU
+	INITIALIZE_EQGAME_OFFSET(EQ_Item__IsKeyRingItem);
+#endif
+	INITIALIZE_EQGAME_OFFSET(EQ_Item__CanGoInBag);
 
 	INITIALIZE_EQGAME_OFFSET(EQ_LoadingS__SetProgressBar);
 	INITIALIZE_EQGAME_OFFSET(EQ_LoadingS__Array);
@@ -1848,7 +1853,9 @@ namespace MQ2Globals
 	INITIALIZE_EQGAME_OFFSET(EQ_PC__GetItemTimerValue);
 	INITIALIZE_EQGAME_OFFSET(EQ_PC__HasLoreItem);
 	INITIALIZE_EQGAME_OFFSET(EQ_PC__RemoveMyAffect);
-
+#ifndef EMU
+	INITIALIZE_EQGAME_OFFSET(EQ_PC__GetKeyRingItems);
+#endif
 	INITIALIZE_EQGAME_OFFSET(EQItemList__EQItemList);
 	INITIALIZE_EQGAME_OFFSET(EQItemList__add_item);
 	INITIALIZE_EQGAME_OFFSET(EQItemList__delete_item);
@@ -1890,7 +1897,9 @@ namespace MQ2Globals
 	INITIALIZE_EQGAME_OFFSET(PcZoneClient__GetPcSkillLimit);
 	INITIALIZE_EQGAME_OFFSET(PcZoneClient__RemovePetEffect);
 	INITIALIZE_EQGAME_OFFSET(PcZoneClient__HasAlternateAbility);
+	INITIALIZE_EQGAME_OFFSET(PcZoneClient__CanEquipItem);
 	#ifndef EMU
+	INITIALIZE_EQGAME_OFFSET(ItemGlobalIndex__IsKeyRingLocation);
 	INITIALIZE_EQGAME_OFFSET(PcZoneClient__GetCurrentMod);
 	#endif
 	INITIALIZE_EQGAME_OFFSET(PcZoneClient__GetModCap);
@@ -1905,6 +1914,7 @@ namespace MQ2Globals
 	INITIALIZE_EQGAME_OFFSET(EQ_Spell__GetSpellBaseByAttrib);
 	INITIALIZE_EQGAME_OFFSET(CharacterZoneClient__CalcAffectChange);
 	INITIALIZE_EQGAME_OFFSET(CLootWnd__LootAll);
+	INITIALIZE_EQGAME_OFFSET(CLootWnd__RequestLootSlot);
 	INITIALIZE_EQGAME_OFFSET(CTargetWnd__GetBuffCaster);
 	INITIALIZE_EQGAME_OFFSET(CTargetWnd__WndNotification);
 	INITIALIZE_EQGAME_OFFSET(CTaskWnd__UpdateTaskTimers);
@@ -1920,8 +1930,13 @@ namespace MQ2Globals
 	INITIALIZE_EQGAME_OFFSET(SpellManager__SpellManager);
 	INITIALIZE_EQGAME_OFFSET(Spellmanager__CheckSpellRequirementAssociations);
 	INITIALIZE_EQGAME_OFFSET(CCollisionInfoTargetVisibility__CCollisionInfoTargetVisibility);
-	
-	#ifdef __ExecuteCmd_x
+	INITIALIZE_EQGAME_OFFSET(ItemGlobalIndex__ItemGlobalIndex);
+	INITIALIZE_EQGAME_OFFSET(ItemGlobalIndex__IsEquippedLocation);
+	INITIALIZE_EQGAME_OFFSET(ItemGlobalIndex__IsValidIndex);
+	INITIALIZE_EQGAME_OFFSET(ItemBaseContainer__ItemBaseContainer);
+	INITIALIZE_EQGAME_OFFSET(ItemBaseContainer__CreateItemGlobalIndex);
+
+#ifdef __ExecuteCmd_x
 #ifndef EMU
 FUNCTION_AT_ADDRESS(BOOL __cdecl EQExecuteCmd(DWORD arg1, BOOL arg2, PVOID arg3, BOOL arg4), __ExecuteCmd);
 #else

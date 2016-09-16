@@ -3194,13 +3194,22 @@ FUNCTION_AT_ADDRESS(int __cdecl ChannelServerApi::GetNextField(char *,int,char *
 FUNCTION_AT_ADDRESS(LONG CharacterBase::GetMemorizedSpell(int),CharacterBase__GetMemorizedSpell);
 #endif
 #ifdef CharacterBase__CreateItemGlobalIndex_x
-FUNCTION_AT_ADDRESS(ItemGlobalIndex *CharacterBase::CreateItemGlobalIndex(int*,int,int,int), CharacterBase__CreateItemGlobalIndex);
+FUNCTION_AT_ADDRESS(ItemGlobalIndex CharacterBase::CreateItemGlobalIndex(int, int, int), CharacterBase__CreateItemGlobalIndex);
 #endif
 #ifdef CharacterBase__CreateItemIndex_x
-FUNCTION_AT_ADDRESS(ItemIndex *CharacterBase::CreateItemIndex(int*,int,int,int), CharacterBase__CreateItemIndex);
+FUNCTION_AT_ADDRESS(ItemIndex CharacterBase::CreateItemIndex(int,int,int), CharacterBase__CreateItemIndex);
 #endif
-#ifdef CharacterBase__GetItemPossession_x
-FUNCTION_AT_ADDRESS(PCONTENTS *CharacterBase::GetItemPossession(int*, class ItemIndex *), CharacterBase__GetItemPossession);
+#ifdef ItemGlobalIndex__IsKeyRingLocation_x
+FUNCTION_AT_ADDRESS(bool ItemGlobalIndex::IsKeyRingLocation(void), ItemGlobalIndex__IsKeyRingLocation);
+#endif
+#ifdef ItemGlobalIndex__IsEquippedLocation_x
+FUNCTION_AT_ADDRESS(bool ItemGlobalIndex::IsEquippedLocation(void), ItemGlobalIndex__IsEquippedLocation);
+#endif
+#ifdef ItemGlobalIndex__IsValidIndex_x
+FUNCTION_AT_ADDRESS(bool ItemGlobalIndex::IsValidIndex(void), ItemGlobalIndex__IsValidIndex);
+#endif
+#ifdef ItemGlobalIndex__ItemGlobalIndex_x
+FUNCTION_AT_ADDRESS(ItemGlobalIndex::ItemGlobalIndex(void), ItemGlobalIndex__ItemGlobalIndex);
 #endif
 #ifdef IconCache__IconCache_x
 FUNCTION_AT_ADDRESS( IconCache::IconCache(void),IconCache__IconCache);
@@ -4538,6 +4547,12 @@ FUNCTION_AT_ADDRESS(int  EQ_Item::Copper(void),EQ_Item__Copper);
 #endif
 #ifdef EQ_Item__GetItemValue_x
 FUNCTION_AT_ADDRESS(int EQ_Item::GetItemValue(bool)const,EQ_Item__GetItemValue); 
+#endif
+#ifdef EQ_Item__IsKeyRingItem_x
+FUNCTION_AT_ADDRESS(bool EQ_Item::IsKeyRingItem(KeyRingType)const,EQ_Item__IsKeyRingItem); 
+#endif
+#ifdef EQ_Item__CanGoInBag_x
+FUNCTION_AT_ADDRESS(bool EQ_Item::CanGoInBag(PCONTENTS *pCont,int unused,bool mustbefalse)const,EQ_Item__CanGoInBag); 
 #endif
 #ifdef EQ_Item__ValueSellMerchant_x
 FUNCTION_AT_ADDRESS(long  EQ_Item::ValueSellMerchant(float,long)const,EQ_Item__ValueSellMerchant);
@@ -9828,6 +9843,9 @@ FUNCTION_AT_ADDRESS(bool PcZoneClient::HasAlternateAbility(int aaindex, int *, b
 #else
 FUNCTION_AT_ADDRESS(bool PcZoneClient::HasAlternateAbility(int aaindex, int *, bool), PcZoneClient__HasAlternateAbility);
 #endif
+#endif
+#ifdef PcZoneClient__CanEquipItem_x
+FUNCTION_AT_ADDRESS(bool PcZoneClient::CanEquipItem(PCONTENTS *pCont, int slotid, bool bOutputDebug, bool bUseRequiredLevel), PcZoneClient__CanEquipItem);
 #endif
 #ifdef PcZoneClient__GetCurrentMod_x
 FUNCTION_AT_ADDRESS(int PcZoneClient::GetCurrentMod(int index), PcZoneClient__GetCurrentMod);

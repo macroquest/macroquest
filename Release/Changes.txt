@@ -1,3 +1,33 @@
+15 Sep 2016 by eqmule
+- Updated for TEST
+- The injector now detects if a profile is loaded or not and reinjects if needed if clicked,
+  prior to this update sessions that u did /unload in game for had their profile name set
+  as character (Loaded) and if you clicked such a profile, it would not reinject.
+- Fixed a bug in GetItemContentsByName
+- Fixed a bug in GetItemLink -cred demonstar55 and rswiders
+- Added a new parameter to FindItemBySlot so we can specify which locations to search.
+- NEW FEATIRE: The EverQuest TLO has a new member .LastMouseOver
+  it returns a windowtype of the last window the mouse was hovering.
+  Want to know the name of a window or its children? Tired of doing /windows and look through a list of a million windows?
+  Well now it's easy:
+  Example: Place the mouse over a window and do a /echo ${EverQuest.LastMouseOver.Name}
+  Example2: /echo ${EverQuest.LastMouseOver.Tooltip}
+- NEW FEATURE: Added .MouseOver to the Group TLO
+  Usage1: /echo Im hovering my mouse over ${Group.MouseOver.Name} which has ths spawnid: ${Group.MouseOver.ID}
+  Usage2: /bct ${Group.MouseOver.Name} hi there I dont want to change my target just to tell u: please heal ${Me.Mame}
+  Usage3: /bct eqmule //casting "Complete Heal" -targetid|${Group.MouseOver.ID}
+  Usage4: /bct ${Group.MouseOver.CleanName} //setprio 2
+  Final Note: YOU CAN hover over your own name in the player window where u see your hp and it will return you.
+  There are many more usages for this im sure...
+- Fixed GetItemLink
+- Fixed AltAbilityReady to only return true for active abilities - cred desgn
+- Fixed multiple buffer overflows all over the place in core.
+- Note to self:
+  The following plugins has had some kind of modification made to them to work with this release:
+  MQ2Twist, MQ2SpawnMaster, MQ2LinkDB, MQ2EQBC I should post them on the forum.
+  NavigationType.cpp MQ2Netheal.cpp MQ2SpawnMaster.cpp MQ2Twist.cpp
+
+
 02 Sep 2016 by eqmule
 - Reverted a "fix" to the /while command that instead of fixing it made it worse
   im not happy with this command, im gonna have to spend more time on it.

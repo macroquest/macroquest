@@ -702,6 +702,10 @@ GNU General Public License for more details.
 #define EQ_Item__CreateItemClient_x                                0x591AC0
 #define EQ_Item__GetItemValue_x                                    0x844230
 #define EQ_Item__ValueSellMerchant_x                               0x846810
+#define EQ_Item__IsKeyRingItem_x                                   0x83B840
+#define EQ_Item__CanGoInBag_x                                      0x591070
+#define EQ_Item__GetMaxItemCount_x                                 0x83AA90
+#define EQ_Item__GetHeldItem_x                                     0x83C670
 
 // EQ_LoadingS 
 #define EQ_LoadingS__SetProgressBar_x                              0x4C66F0
@@ -717,6 +721,7 @@ GNU General Public License for more details.
 #define EQ_PC__AlertInventoryChanged_x                             0x5B0820
 #define EQ_PC__GetPcZoneClient_x                                   0x5DAB80
 #define EQ_PC__RemoveMyAffect_x                                    0x5B8F80
+#define EQ_PC__GetKeyRingItems_x                                   0x849E00
 
 // EQItemList 
 #define EQItemList__EQItemList_x                                   0x50F4A0
@@ -770,6 +775,7 @@ GNU General Public License for more details.
 #define PcZoneClient__HasAlternateAbility_x                        0x5BA940
 #define PcZoneClient__GetCurrentMod_x                              0x458190
 #define PcZoneClient__GetModCap_x                                  0x455950
+#define PcZoneClient__CanEquipItem_x                               0x5BAEF0
 
 //Doors
 #define EQSwitch__UseSwitch_x                                      0x54DA90
@@ -793,6 +799,7 @@ GNU General Public License for more details.
 #define EQ_Spell__GetSpellBaseByAttrib_x                           0x4DBB20
 #define CharacterZoneClient__CalcAffectChange_x                    0x446220
 #define CLootWnd__LootAll_x                                        0x6FA040
+#define CLootWnd__RequestLootSlot_x                                0x6FA850
 
 //CTargetWnd
 #define CTargetWnd__GetBuffCaster_x                                0x7AB9C0
@@ -825,6 +832,7 @@ GNU General Public License for more details.
 #define CharacterBase__CreateItemGlobalIndex_x                     0x4718C0
 #define CharacterBase__CreateItemIndex_x                           0x5087F0
 #define CharacterBase__GetItemPossession_x                         0x509CD0
+#define CharacterBase__GetItemByGlobalIndex_x                      0x874190
 
 //CCastSpellWnd
 #define CCastSpellWnd__ForgetMemorizedSpell_x                      0x682C90
@@ -842,3 +850,19 @@ GNU General Public License for more details.
 
 //CCollisionInfoTargetVisibility
 #define CCollisionInfoTargetVisibility__CCollisionInfoTargetVisibility_x   0x92C360
+
+//ItemGlobalIndex
+#define ItemGlobalIndex__IsKeyRingLocation_x                       0x4E2400
+#define ItemGlobalIndex__ItemGlobalIndex_x                         0x43A860
+#define ItemGlobalIndex__IsEquippedLocation_x                      0x444AC0
+#define ItemGlobalIndex__IsValidIndex_x                            0x4542E0
+
+//ItemBaseContainer
+#define ItemBaseContainer__ItemBaseContainer_x                     0x871FB0
+#define ItemBaseContainer__CreateItemGlobalIndex_x                 0x870EF0
+
+
+
+
+
+
