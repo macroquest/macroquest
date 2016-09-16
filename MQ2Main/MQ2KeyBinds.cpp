@@ -469,7 +469,7 @@ int CMD_MQ2Bind(int argc, char *argv[])
         WriteChatColor("--------------");
         foreach(MQ2KeyBind *pBind,i,BindList)
         {
-            WriteChatf("[\ay%s\ax] Nrm:\at%s\ax Alt:\at%s\ax",pBind->Name,DescribeKeyCombo(pBind->Normal,szNormal),DescribeKeyCombo(pBind->Alt,szAlt));
+			WriteChatf("[\ay%s\ax] Nrm:\at%s\ax Alt:\at%s\ax", pBind->Name, DescribeKeyCombo(pBind->Normal, szNormal, sizeof(szNormal)), DescribeKeyCombo(pBind->Alt, szAlt, sizeof(szAlt)));
         }
         WriteChatColor("--------------");
         WriteChatColor("End MQ2 Binds");
@@ -486,7 +486,7 @@ int CMD_MQ2Bind(int argc, char *argv[])
         {
             if((DWORD)szEQMappableCommands[i] == 0 || (DWORD)szEQMappableCommands[i] > (DWORD)__AC1_Data)
                 continue;
-            WriteChatf("[\ay%s\ax] Nrm:\at%s\ax Alt:\at%s\ax",szEQMappableCommands[i],DescribeKeyCombo(pKeypressHandler->NormalKey[i],szNormal),DescribeKeyCombo(pKeypressHandler->AltKey[i],szAlt));
+			WriteChatf("[\ay%s\ax] Nrm:\at%s\ax Alt:\at%s\ax", szEQMappableCommands[i], DescribeKeyCombo(pKeypressHandler->NormalKey[i], szNormal, sizeof(szNormal)), DescribeKeyCombo(pKeypressHandler->AltKey[i], szAlt, sizeof(szAlt)));
         }
         WriteChatColor("--------------");
         WriteChatColor("End EQ Binds");
@@ -543,14 +543,14 @@ int CMD_MQ2Bind(int argc, char *argv[])
     {
         CHAR szBuffer[MAX_STRING]={0};
         MQ2KeyBind *pBind=KeyBindByName(&argv[1][1]);
-        WriteChatf("Alternate %s now bound as %s",pBind->Name,DescribeKeyCombo(NewCombo,szBuffer));
+		WriteChatf("Alternate %s now bound as %s", pBind->Name, DescribeKeyCombo(NewCombo, szBuffer, sizeof(szBuffer)));
     }
 
     if (SetMQ2KeyBind(argv[1],0,NewCombo))
     {
         CHAR szBuffer[MAX_STRING]={0};
         MQ2KeyBind *pBind=KeyBindByName(argv[1]);
-        WriteChatf("Normal %s now bound as %s",pBind->Name,DescribeKeyCombo(NewCombo,szBuffer));
+		WriteChatf("Normal %s now bound as %s", pBind->Name, DescribeKeyCombo(NewCombo, szBuffer, sizeof(szBuffer)));
         return 0;
     }
 
@@ -572,7 +572,7 @@ int CMD_MQ2Bind(int argc, char *argv[])
         WriteChatf("%s %s now bound as %s", 
             (AltKey)?("Alternate"):("Normal"), 
             szEQMappableCommands[N],
-            DescribeKeyCombo((AltKey)?(pKeypressHandler->AltKey[N]):(pKeypressHandler->NormalKey[N]),szBuffer));
+			DescribeKeyCombo((AltKey) ? (pKeypressHandler->AltKey[N]) : (pKeypressHandler->NormalKey[N]), szBuffer, sizeof(szBuffer)));
     }
     return 0;
 }

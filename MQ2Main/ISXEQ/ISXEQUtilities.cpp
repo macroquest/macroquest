@@ -236,7 +236,7 @@ unsigned long ParseSearchSpawnArg(int arg, int argc, char *argv[], SEARCHSPAWN &
     return ExtraUsed;
 }
 
-PCHAR ParseMacroParameter(PSPAWNINFO pChar, PCHAR szOriginal)
+PCHAR ParseMacroParameter(PSPAWNINFO pChar, PCHAR szOriginal, SIZE_T BufferSize)
 {// PMP is bad, mmmkay
 	pISInterface->DataParse(szOriginal,szOriginal,4096);
 	return szOriginal;

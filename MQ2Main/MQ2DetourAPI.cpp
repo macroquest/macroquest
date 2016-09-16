@@ -562,7 +562,6 @@ VOID HookMemChecker(BOOL Patch)
 		RemoveDetour(Spellmanager__CheckSpellRequirementAssociations);
 	}
 }
-#endif
 
 DWORD IsAddressDetoured(unsigned int address, int count)
 {
@@ -586,14 +585,18 @@ DWORD IsAddressDetoured(unsigned int address, int count)
 	}
 	return 0;
 }
+#endif
+
 int __cdecl memcheck0(unsigned char *buffer, int count)
 {
+#ifndef	ISXEQ
 	int orgret = memcheck0_tramp(buffer, count);
 	unsigned int addr = (int)&buffer[0];
+ 
 	DWORD dwGetOrg = IsAddressDetoured(addr, count);
 	if (dwGetOrg >= 2)//pointless to detour check this cause its just getting a hash for the spelldb or a executable we dont care about, and we dont mess with that.
 		return orgret;
-
+#endif
 	unsigned int x, i;
 	unsigned int eax = 0xffffffff;
 
@@ -654,6 +657,7 @@ int __cdecl memcheck0(unsigned char *buffer, int count)
 #ifdef ISXEQ
 	free(realbuffer);
 #endif
+#ifndef ISXEQ
 	if (orgret != eax)
 	{
 		//wtf?
@@ -663,6 +667,7 @@ int __cdecl memcheck0(unsigned char *buffer, int count)
 		return orgret;
 #endif
 	}
+#endif
 	return eax;
 }
 
@@ -1098,11 +1103,13 @@ int __cdecl memcheck3(unsigned char *buffer, int count, struct mckey key)
 //?Crc32@UdpMisc@UdpLibrary@@SAHPBXHH@Z
 int __cdecl memcheck4(unsigned char *buffer, int count, struct mckey key)
 {
+	#ifndef ISXEQ
 	int orgret = memcheck4_tramp(buffer, count, key);
 	unsigned int addr = (int)&buffer[0];
 	DWORD dwGetOrg = IsAddressDetoured(addr, count);
 	if (dwGetOrg == 0)
 		return orgret;
+	#endif
 	unsigned int eax, ebx, edx, i;
 
 	if (!extern_array4) {
@@ -1169,13 +1176,16 @@ int __cdecl memcheck4(unsigned char *buffer, int count, struct mckey key)
 
 #ifdef ISXEQ
 	free(realbuffer);
-#endif
+#else
 	if (orgret != eax)
 	{
-		//wtf?
+	#ifdef _DEBUG
 		MessageBox(NULL, "WARNING, this should not hapen, contact eqmule", "memchecker4 mismatch", MB_OK | MB_SYSTEMMODAL);
 		_asm int 3;
+		return orgret;
+	#endif
 	}
+#endif
 	return eax;
 }
 #ifdef EMU

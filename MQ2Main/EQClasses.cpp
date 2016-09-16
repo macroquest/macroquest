@@ -7774,7 +7774,11 @@ FUNCTION_AT_ADDRESS(class CTextureAnimation const *  CListWnd::GetColumnAnimatio
 FUNCTION_AT_ADDRESS(int  CListWnd::AddLine(class SListWndLine const *),CListWnd__AddLine);
 #endif
 #ifdef CListWnd__AddString_x
-FUNCTION_AT_ADDRESS(int  CListWnd::AddString(class CXStr *,unsigned long,unsigned __int32,class CTextureAnimation const *, const char *),CListWnd__AddString);
+#ifdef TEST//chnange this to not def EMU when TEST goes live
+FUNCTION_AT_ADDRESS(int CListWnd::AddString(class CXStr *str,COLORREF cref, unsigned __int32 data,class CTextureAnimation const *p5, const char * pstr, bool bdebug),CListWnd__AddString);
+#else
+FUNCTION_AT_ADDRESS(int CListWnd::AddString(class CXStr *str,COLORREF cref, unsigned __int32 data,class CTextureAnimation const *p5, const char * pstr),CListWnd__AddString);
+#endif
 #endif
 #ifdef CListWnd__RemoveString_x
 FUNCTION_AT_ADDRESS(void  CListWnd::RemoveString(int),CListWnd__RemoveString);

@@ -1,3 +1,15 @@
+16 Sep 2016 by eqmule
+- Fixed a crash bug in listwnd::addstring for the test build -report cred: fry
+- ISXEQ once again compiles... sorry about the long wait.
+  BIG NOTE: it now includes ISXDK 35, this means you should use VS 2015 with toolset 140 to build it.
+  one thing though... mq2ic doesnt load for some reson for it
+  I have contacted Lax and hope we can figure out a workaround.
+  Bottomline... yeah... you CAN build isxeq now...
+  but its not protected by mq2ic, so run at your own risk.
+  I really didnt want to wait any longer to get something out.
+  but if you are the paranoid type, id hold off a couple more days
+  until we can figure out a way to load it...
+
 15 Sep 2016 by eqmule
 - Updated for TEST
 - The injector now detects if a profile is loaded or not and reinjects if needed if clicked,

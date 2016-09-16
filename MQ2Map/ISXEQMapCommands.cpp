@@ -33,7 +33,7 @@ VOID MapFilterSetting(DWORD nMapFilter, int arg, int argc, char *argv[])
 			}
 			else
 			{
-				sprintf(szBuffer, "%s: %s", pMapFilter->szName, FormatSearchSpawn(Buff, &MapFilterCustom));
+				sprintf(szBuffer, "%s: %s", pMapFilter->szName, FormatSearchSpawn(Buff, sizeof(Buff), &MapFilterCustom));
 			}
 		}
 		else
@@ -77,7 +77,7 @@ VOID MapFilterSetting(DWORD nMapFilter, int arg, int argc, char *argv[])
 		{
 			pMapFilter->Enabled = 1;
 			ParseSearchSpawn(arg + 1, argc, argv, MapFilterCustom);
-			WriteChatf("%s is now set to: %s", pMapFilter->szName, FormatSearchSpawn(Buff, &MapFilterCustom));
+			WriteChatf("%s is now set to: %s", pMapFilter->szName, FormatSearchSpawn(Buff, sizeof(Buff), &MapFilterCustom));
 		}
 	}
 	else

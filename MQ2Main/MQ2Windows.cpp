@@ -1255,11 +1255,12 @@ int ItemNotify(int argc, char *argv[])
         WriteChatColor("     or /itemnotify in <bag slot> <slot # in bag> <notification>");
         RETURN(0);
     }
-    char *szArg1=argv[1];
+    char *szArg1tmp=argv[1];
     char *szArg2=argv[2];
     char *szArg3="";
     char *szArg4="";
-
+	CHAR szArg1[2048] = { 0 };
+	strcpy_s(szArg1, szArg1tmp);
     if (argc==5)
     {
         szArg3=argv[3];

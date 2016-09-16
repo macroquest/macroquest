@@ -369,7 +369,7 @@ int CMD_Target(int argc, char* argv[])
 
     if (!pSpawnClosest) {
         CHAR szTemp[MAX_STRING] = {0};
-        sprintf(szMsg,"There are no spawns matching: %s",FormatSearchSpawn(szTemp,&SearchSpawn));
+		sprintf(szMsg, "There are no spawns matching: %s", FormatSearchSpawn(szTemp, sizeof(szTemp), &SearchSpawn));
     } else {
         PSPAWNINFO *psTarget = NULL;
         if (ppTarget) {
@@ -469,7 +469,7 @@ int CMD_Where(int argc, char* argv[])
    ParseSearchSpawn(1,argc,argv,SearchSpawn);
 
     if (!(pSpawnClosest = SearchThroughSpawns(&SearchSpawn,pChar))) {
-        sprintf(szMsg,"There were no matches for: %s",FormatSearchSpawn(szArg,&SearchSpawn));
+		sprintf(szMsg, "There were no matches for: %s", FormatSearchSpawn(szArg, sizeof(szArg), &SearchSpawn));
     } else {
         INT Angle = (INT)((atan2f(pChar->X - pSpawnClosest->X, pChar->Y - pSpawnClosest->Y) * 180.0f / PI + 360.0f) / 22.5f + 0.5f) % 16;
         sprintf(szMsg,"The closest '%s' is a level %d %s %s and %1.2f away to the %s, Z difference = %1.2f",
@@ -910,7 +910,7 @@ int CMD_EQFace(int argc, char *argv[])
    szMsg[0]=0;
 
    if (!pSpawnClosest) {
-      printf("There were no matches for: %s",FormatSearchSpawn(szArg,&SearchSpawn));
+	   printf("There were no matches for: %s", FormatSearchSpawn(szArg, sizeof(szArg), &SearchSpawn));
    } else {
       if (Predict) {
          Distance = DistanceToSpawn(pChar, pSpawnClosest);
@@ -1121,7 +1121,7 @@ int CMD_EQItems(int argc, char *argv[])
     WriteChatColor("Items on the ground:", USERCOLOR_DEFAULT);
     WriteChatColor("---------------------------", USERCOLOR_DEFAULT);
     while (pItem) {
-        GetFriendlyNameForGroundItem(pItem,szName);
+		GetFriendlyNameForGroundItem(pItem, szName, sizeof(szName));
 
         if ((argc==1) || (!strnicmp(szName,argv[1],strlen(argv[1])))) {
             SPAWNINFO TempSpawn;

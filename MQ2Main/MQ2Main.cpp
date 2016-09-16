@@ -21,7 +21,9 @@ GNU General Public License for more details.
 #define DEBUG_TRY
 
 #include "MQ2Main.h"
-
+#ifdef ISXEQ
+CRITICAL_SECTION gPluginCS = { 0 };
+#endif
 #ifdef EQLIB_EXPORTS
 #pragma message("EQLIB_EXPORTS")
 #else
@@ -270,9 +272,59 @@ BOOL ParseINIFile(PCHAR lpINIPath)
 			}
 			return TRUE;
 }
+#ifdef ISXEQ
+void LoadMQ2Plugin(PMQPLUGIN hMQ2icplugin, const PCHAR pszFilename, char *modulepath, size_t bufflen, HMODULE *module)
+{
+	*module = LoadLibrary(pszFilename);
+	if (*module) {
+		hMQ2icplugin->hModule = *module;
+		hMQ2icplugin->Initialize = (fMQInitializePlugin)GetProcAddress(hMQ2icplugin->hModule, "InitializePlugin");
+		hMQ2icplugin->Initialize = (fMQInitializePlugin)GetProcAddress(hMQ2icplugin->hModule, "InitializePlugin");
+		hMQ2icplugin->Initialize = (fMQInitializePlugin)GetProcAddress(hMQ2icplugin->hModule, "InitializePlugin");
+		hMQ2icplugin->Initialize = (fMQInitializePlugin)GetProcAddress(hMQ2icplugin->hModule, "InitializePlugin");
+		hMQ2icplugin->Initialize = (fMQInitializePlugin)GetProcAddress(hMQ2icplugin->hModule, "InitializePlugin");
+		hMQ2icplugin->Initialize = (fMQInitializePlugin)GetProcAddress(hMQ2icplugin->hModule, "InitializePlugin");
+		hMQ2icplugin->Shutdown = (fMQShutdownPlugin)GetProcAddress(hMQ2icplugin->hModule, "ShutdownPlugin");
+		hMQ2icplugin->IncomingChat = (fMQIncomingChat)GetProcAddress(hMQ2icplugin->hModule, "OnIncomingChat");
+		hMQ2icplugin->Pulse = (fMQPulse)GetProcAddress(hMQ2icplugin->hModule, "OnPulse");
+		hMQ2icplugin->WriteChatColor = (fMQWriteChatColor)GetProcAddress(hMQ2icplugin->hModule, "OnWriteChatColor");
+		hMQ2icplugin->Zoned = (fMQZoned)GetProcAddress(hMQ2icplugin->hModule, "OnZoned");
+		hMQ2icplugin->CleanUI = (fMQCleanUI)GetProcAddress(hMQ2icplugin->hModule, "OnCleanUI");
+		hMQ2icplugin->ReloadUI = (fMQReloadUI)GetProcAddress(hMQ2icplugin->hModule, "OnReloadUI");
+		hMQ2icplugin->DrawHUD = (fMQDrawHUD)GetProcAddress(hMQ2icplugin->hModule, "OnDrawHUD");
+		hMQ2icplugin->SetGameState = (fMQSetGameState)GetProcAddress(hMQ2icplugin->hModule, "SetGameState");
+		hMQ2icplugin->AddSpawn = (fMQSpawn)GetProcAddress(hMQ2icplugin->hModule, "OnAddSpawn");
+		hMQ2icplugin->RemoveSpawn = (fMQSpawn)GetProcAddress(hMQ2icplugin->hModule, "OnRemoveSpawn");
+		hMQ2icplugin->AddGroundItem = (fMQGroundItem)GetProcAddress(hMQ2icplugin->hModule, "OnAddGroundItem");
+		hMQ2icplugin->RemoveGroundItem = (fMQGroundItem)GetProcAddress(hMQ2icplugin->hModule, "OnRemoveGroundItem");
+		hMQ2icplugin->BeginZone = (fMQBeginZone)GetProcAddress(hMQ2icplugin->hModule, "OnBeginZone");
+		hMQ2icplugin->EndZone = (fMQEndZone)GetProcAddress(hMQ2icplugin->hModule, "OnEndZone");
+		if (hMQ2icplugin->Initialize) {
+			hMQ2icplugin->Initialize();
+			printf("ISXEQ protected by MQ2Ic");
+		}
+	}
+	else {
+		DWORD dw; 
+        char *errMsg; 
+        dw = GetLastError(); 
+        FormatMessage( FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_FROM_SYSTEM, 
+        NULL, dw, 
+        MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT), 
+        (LPTSTR) &errMsg, 0, NULL );
+		//MessageBox(NULL, errMsg, "LoadLibrary of MQ2Ic.dll failed. I will exit now.", MB_SYSTEMMODAL | MB_OK);
+        LocalFree( errMsg );
+		printf("ISXEQ IS NOT protected by MQ2Ic");
+		//exit(0);
+	}
+}
 
+bool __cdecl MQ2Initialize(PMQPLUGIN plug, char*optionalmodulepath, size_t bufflen, HMODULE *module)
+{
+#else
 bool __cdecl MQ2Initialize()
 {
+#endif
 	if (HMODULE hmLavish=GetModuleHandle("Lavish.dll")) {
 		//I dont know why but if we dont sleep here for a while
 		//we will crash but only if I have a detour on wwsCrashReportCheckForUploader
@@ -361,7 +413,11 @@ bool __cdecl MQ2Initialize()
 	
 	InitializeCriticalSection(&gPluginCS);
 	//from now on MQ2IC is not optional.
+#ifdef ISXEQ
+	LoadMQ2Plugin(plug,"mq2ic", optionalmodulepath,bufflen, module);
+#else
 	LoadMQ2Plugin("mq2ic");
+#endif
 	ghmq2ic = GetModuleHandle("mq2ic.dll");
     InitializeMQ2Benchmarks();
 #ifndef ISXEQ

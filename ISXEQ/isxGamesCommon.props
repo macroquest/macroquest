@@ -25,6 +25,14 @@
 	- CyberTech (cybertech@gmail.com)
 -->
 	<Choose>
+    <When Condition="'$(PlatformToolsetVersion)' == '140'">
+      <PropertyGroup>
+        <ISXDKVERSION Condition="'$(ISXDKVERSION)' == ''">35</ISXDKVERSION>
+        <LSMODULEVERSION Condition="'$(LSMODULEVERSION)' == ''">22</LSMODULEVERSION>
+        <LS2MODULEVERSION Condition="'$(LS2MODULEVERSION)' == ''">1</LS2MODULEVERSION>
+        <VSVERSIONDIRNAME>vs14</VSVERSIONDIRNAME>
+      </PropertyGroup>
+    </When>
 		<When Condition="'$(PlatformToolsetVersion)' == '120'">
 			<PropertyGroup>
 				<ISXDKVERSION Condition="'$(ISXDKVERSION)' == ''">34</ISXDKVERSION>

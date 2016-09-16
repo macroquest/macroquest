@@ -89,8 +89,7 @@ HMODULE hMQ2ic = 0;
 CISXEQ::~CISXEQ(void)
 {
 }
-
-extern bool MQ2Initialize();
+bool MQ2Initialize(PMQPLUGIN plug, char*optionalmodulepath, size_t bufflen, HMODULE *module);
 extern void MQ2Shutdown();
 // Initialize is called by Inner Space when the extension should initialize.
 bool CISXEQ::Initialize(ISInterface *p_ISInterface)
@@ -143,36 +142,10 @@ bool CISXEQ::Initialize(ISInterface *p_ISInterface)
 	RegisterTopLevelObjects();
     RegisterServices();
 	HookMemChecker(TRUE);
-	strcpy(gszINIPath,ModulePath);
-	MQ2Initialize();
-	CHAR szMQ2IcPath[MAX_PATH] = {0};
-	sprintf_s(szMQ2IcPath,"%s\\%s",gszINIPath,"mq2ic.dll");
-	if(hMQ2ic = LoadLibrary(szMQ2IcPath)) {
-		if(hMQ2icplugin = (PMQPLUGIN)LocalAlloc(LPTR,sizeof( MQPLUGIN))) {
-			hMQ2icplugin->hModule = hMQ2ic;
-			hMQ2icplugin->Initialize=(fMQInitializePlugin)GetProcAddress(hMQ2ic,"InitializePlugin");
-			hMQ2icplugin->Shutdown=(fMQShutdownPlugin)GetProcAddress(hMQ2ic,"ShutdownPlugin");
-			hMQ2icplugin->IncomingChat=(fMQIncomingChat)GetProcAddress(hMQ2ic,"OnIncomingChat");
-			hMQ2icplugin->Pulse=(fMQPulse)GetProcAddress(hMQ2ic,"OnPulse");
-			hMQ2icplugin->WriteChatColor=(fMQWriteChatColor)GetProcAddress(hMQ2ic,"OnWriteChatColor");
-			hMQ2icplugin->Zoned=(fMQZoned)GetProcAddress(hMQ2ic,"OnZoned");
-			hMQ2icplugin->CleanUI=(fMQCleanUI)GetProcAddress(hMQ2ic,"OnCleanUI");
-			hMQ2icplugin->ReloadUI=(fMQReloadUI)GetProcAddress(hMQ2ic,"OnReloadUI");
-			hMQ2icplugin->DrawHUD=(fMQDrawHUD)GetProcAddress(hMQ2ic,"OnDrawHUD");
-			hMQ2icplugin->SetGameState=(fMQSetGameState)GetProcAddress(hMQ2ic,"SetGameState");
-			hMQ2icplugin->AddSpawn=(fMQSpawn)GetProcAddress(hMQ2ic,"OnAddSpawn");
-			hMQ2icplugin->RemoveSpawn=(fMQSpawn)GetProcAddress(hMQ2ic,"OnRemoveSpawn");
-			hMQ2icplugin->AddGroundItem=(fMQGroundItem)GetProcAddress(hMQ2ic,"OnAddGroundItem");
-			hMQ2icplugin->RemoveGroundItem=(fMQGroundItem)GetProcAddress(hMQ2ic,"OnRemoveGroundItem");
-			hMQ2icplugin->BeginZone=(fMQBeginZone)GetProcAddress(hMQ2ic,"OnBeginZone"); 
-			hMQ2icplugin->EndZone=(fMQEndZone)GetProcAddress(hMQ2ic,"OnEndZone"); 
-			if(hMQ2icplugin->Initialize) {
-				hMQ2icplugin->Initialize();
-				printf("ISXEQ protected by MQ2Ic");
-			}
-		}
-	} else {
-		printf("ISXEQ IS NOT protected by MQ2Ic");
+	//MessageBox(NULL, "inject", "isxeq", MB_SYSTEMMODAL | MB_OK);
+	strcpy(gszINIPath, ModulePath);
+	if (hMQ2icplugin = (PMQPLUGIN)LocalAlloc(LPTR, sizeof(MQPLUGIN))) {
+		MQ2Initialize(hMQ2icplugin, ModulePath, sizeof(ModulePath), &hMQ2ic);
 	}
 	printf("ISXEQ Loaded");
 	return true;

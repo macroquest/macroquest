@@ -98,6 +98,7 @@ extern HISXSERVICE hZoneService;
 
 extern unsigned int PersistentPointerClass;
 
+#define EzDetourwName(Address, Detour, Trampoline, name) IS_Detour(pExtension,pISInterface,hMemoryService,(unsigned int)Address,Detour,Trampoline)
 #define EzDetour(Address, Detour, Trampoline) IS_Detour(pExtension,pISInterface,hMemoryService,(unsigned int)Address,Detour,Trampoline)
 #define EzUnDetour(Address) IS_UnDetour(pExtension,pISInterface,hMemoryService,(unsigned int)Address)
 
