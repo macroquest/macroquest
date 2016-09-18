@@ -74,7 +74,8 @@ bool MQ2TypeType::GETMEMBER()
 	switch ((TypeMembers)pMember->ID)
 	{
 	case Name:
-		Dest.Ptr = pType->GetName();
+		strcpy_s(DataTypeTemp, pType->GetName());
+		Dest.Ptr = &DataTypeTemp[0];
 		Dest.Type = pStringType;
 		return true;
 	case TypeMember:
@@ -1538,28 +1539,29 @@ bool MQ2SpawnType::GETMEMBER()
 		switch (ConColor(pSpawn))
 		{
 		case CONCOLOR_GREY:
-			Dest.Ptr = "GREY";
+			strcpy_s(DataTypeTemp, "GREY");
 			break;
 		case CONCOLOR_GREEN:
-			Dest.Ptr = "GREEN";
+			strcpy_s(DataTypeTemp, "GREEN");
 			break;
 		case CONCOLOR_LIGHTBLUE:
-			Dest.Ptr = "LIGHT BLUE";
+			strcpy_s(DataTypeTemp, "LIGHT BLUE");
 			break;
 		case CONCOLOR_BLUE:
-			Dest.Ptr = "BLUE";
+			strcpy_s(DataTypeTemp, "BLUE");
 			break;
 		case CONCOLOR_WHITE:
-			Dest.Ptr = "WHITE";
+			strcpy_s(DataTypeTemp, "WHITE");
 			break;
 		case CONCOLOR_YELLOW:
-			Dest.Ptr = "YELLOW";
+			strcpy_s(DataTypeTemp, "YELLOW");
 			break;
 		case CONCOLOR_RED:
 		default:
-			Dest.Ptr = "RED";
+			strcpy_s(DataTypeTemp, "RED");
 			break;
 		}
+		Dest.Ptr = &DataTypeTemp[0];
 		Dest.Type = pStringType;
 		return true;
 	case Invited:

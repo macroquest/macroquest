@@ -703,7 +703,7 @@ public:
         {
         case Server: 
             strcpy_s(DataTypeTemp, IrcServer); 
-            Dest.Ptr=DataTypeTemp; 
+            Dest.Ptr=&DataTypeTemp[0]; 
             Dest.Type=pStringType; 
             return true; 
         case Port: 
@@ -712,12 +712,12 @@ public:
             return true; 
         case Channel: 
             strcpy_s(DataTypeTemp, IrcChan); 
-            Dest.Ptr=DataTypeTemp; 
+            Dest.Ptr=&DataTypeTemp[0]; 
             Dest.Type=pStringType; 
             return true; 
         case Nick: 
             strcpy_s(DataTypeTemp, IrcNick); 
-            Dest.Ptr=DataTypeTemp; 
+            Dest.Ptr=&DataTypeTemp[0]; 
             Dest.Type=pStringType; 
             return true; 
         }

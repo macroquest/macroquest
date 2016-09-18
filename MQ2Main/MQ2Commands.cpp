@@ -2265,6 +2265,7 @@ VOID LoadSpells(PSPAWNINFO pChar, PCHAR szLine)
 	CHAR szArg1[MAX_STRING] = { 0 };
 	CHAR szArg2[MAX_STRING] = { 0 };
 	CHAR szBuffer[MAX_STRING] = { 0 };
+	BOOL szMissingSpell = FALSE;
 
 	if (!pSpellBookWnd) return;
 
@@ -2303,8 +2304,22 @@ VOID LoadSpells(PSPAWNINFO pChar, PCHAR szLine)
 	}
 
 	DoIndex = IsNumber(szArg1) ? atoi(szArg1) : FindSpellListByName(szArg1);
-	if (DoIndex >= 0 && DoIndex <NUM_SPELL_SETS) {
-		pSpellBookWnd->MemorizeSet((int*)&pSpellSets[DoIndex], NUM_SPELL_GEMS);
+	if (DoIndex >= 0 && DoIndex < NUM_SPELL_SETS) {
+		for (Index = 0; Index < NUM_SPELL_GEMS; Index++) {
+			if (pSpellSets[DoIndex].SpellId[Index] != 0xFFFFFFFF) {
+
+				if (GetMemorizedSpell(Index) != pSpellSets[DoIndex].SpellId[Index]) {
+					szMissingSpell = TRUE;
+					//sprintf_s(szBuffer, "Missing %d) %s", Index, GetSpellByID(pSpellSets[DoIndex].SpellId[Index])->Name);
+					//WriteChatColor(szBuffer, USERCOLOR_DEFAULT);
+				}
+
+			}
+		}
+
+		if (szMissingSpell) {
+			pSpellBookWnd->MemorizeSet((int*)&pSpellSets[DoIndex], NUM_SPELL_GEMS);
+		}
 	}
 	else {
 		sprintf_s(szBuffer, "Unable to find favorite list '%s'", szArg1);

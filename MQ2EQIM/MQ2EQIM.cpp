@@ -103,11 +103,13 @@ public:
         switch((BuddyMembers)pMember->ID)
         {
         case Name:
-            Dest.Ptr=pBuddy->Name;
+			strcpy_s(DataTypeTemp, pBuddy->Name);
+			Dest.Ptr=&DataTypeTemp[0];
             Dest.Type=pStringType;
             return true;
         case Status:
-            Dest.Ptr=szBuddyStatusNC[pBuddy->Status];
+			strcpy_s(DataTypeTemp, szBuddyStatusNC[pBuddy->Status]);
+            Dest.Ptr=&DataTypeTemp[0];
             Dest.Type=pStringType;
             return true;
         case StatusID:

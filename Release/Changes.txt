@@ -1,3 +1,22 @@
+18 Sep 2016 by eqmule
+Sunday is funday... so here is some fluff:
+- Added a "Boss Mode" hotkey, alt+~, (alt+tilde) if u click that all your eq windows will be instantly hidden. It's a toggle.
+  the hotkey can be changed in the [MacroQuest] section, the value is called BossMode=
+  setting BossMode=0 disables it.
+- You can now "cycle" eq windows now with the '~' key.... (also known as tilde)
+  its not obvious but you CAN change it by editing the macroquest.ini
+  in the [MacroQuest] section add a CycleNextWindow=somekey
+  Example: (and this is what it defaults to when this entry does not exist)
+           CycleNextWindow=shift+`
+  u can do alt+ and ctrl+ as well but thats it.
+  you cannot combine alt+shift+, i didnt want to make this to complex.
+  you CAN however drop the prefixes altogether and just specify it as
+  CycleNextWindow=b
+  that would make the lettere "b" on your keyboard cycle the windows... (not recommended unless u plan on never using the letter b for any other reason...)
+  Setting CycleNextWindow=0 will disable it completely.
+----- fluff end -----
+- /loadspells no longer "loads them" even when a load technically isn't needed. -code cred: Vyco Dynn
+
 16 Sep 2016 by eqmule
 - Fixed a crash bug in listwnd::addstring for the test build -report cred: fry
 - ISXEQ once again compiles... sorry about the long wait.
