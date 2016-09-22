@@ -1,3 +1,6 @@
+21 Sep 2016 by eqmule
+- Updated for LIVE
+
 18 Sep 2016 by eqmule
 Sunday is funday... so here is some fluff:
 - Added a "Boss Mode" hotkey, alt+~, (alt+tilde) if u click that all your eq windows will be instantly hidden. It's a toggle.
@@ -16,6 +19,7 @@ Sunday is funday... so here is some fluff:
   Setting CycleNextWindow=0 will disable it completely.
 ----- fluff end -----
 - /loadspells no longer "loads them" even when a load technically isn't needed. -code cred: Vyco Dynn
+- Fixed a bug related to keyring locations.
 
 16 Sep 2016 by eqmule
 - Fixed a crash bug in listwnd::addstring for the test build -report cred: fry

@@ -3252,7 +3252,11 @@ VOID UseItemCmd(PSPAWNINFO pChar, PCHAR szLine)
 #ifndef EMU
 				if (PCHARINFO pCharInfo = GetCharInfo()) {
 					if (CharacterBase *cb = (CharacterBase *)&pCharInfo->pCharacterBase) {
-						ItemGlobalIndex location = cb->CreateItemGlobalIndex(pItem->ItemLocation, pItem->ItemSlot, pItem->ItemSlot2);
+						ItemGlobalIndex location;
+						location.Location = (ItemContainerInstance)pItem->ItemLocation;
+						location.Index.Slot1 = pItem->ItemSlot;
+						location.Index.Slot2 = pItem->ItemSlot2;
+						location.Index.Slot3 = -1;
 						bKeyring = location.IsKeyRingLocation();
 					}
 				}

@@ -7962,39 +7962,6 @@ DWORD __stdcall WaitForBagToOpen(PVOID pData)
 }
 BOOL PickupOrDropItem(ItemContainerInstance type, PCONTENTS pItem)
 {
-	bool bMoveFromCursor = false;
-	PCHARINFO2 pChar2 = GetCharInfo2();
-	if (pChar2 && pChar2->pInventoryArray && pChar2->pInventoryArray->Inventory.Cursor) {
-		pItem = pChar2->pInventoryArray->Inventory.Cursor;
-		bMoveFromCursor = true;
-	}
-	if (!bMoveFromCursor) {
-		ItemGlobalIndex From;
-		From.Location = (ItemContainerInstance) pItem->ItemLocation;
-		From.Index.Slot1 = pItem->ItemSlot;
-		From.Index.Slot2 = pItem->ItemSlot2;
-		From.Index.Slot3 = -1;
-	
-		ItemGlobalIndex To;
-		To.Location = eItemContainerPossessions;
-		To.Index.Slot1 = eItemContainerCursor;
-		To.Index.Slot2 = -1;
-		To.Index.Slot3 = -1;
-		pInvSlotMgr->MoveItem(&From, &To,false,true,false,false);
-		return TRUE;
-	}
-	else {
-		//just autoinventory it for now
-		if(pLocalPlayer) {
-			DoCommand((PSPAWNINFO)pLocalPlayer,"/autoinventory");
-			return TRUE;
-		}
-	}
-
-	return FALSE;
-}
-/*BOOL PickupOrDropItem(ItemContainerInstance type, PCONTENTS pItem)
-{
 	//check if merchantwindow is open
 	//if it is do some magic and open the bag so we can get the pslot
 	if (!pItem)
@@ -8017,9 +7984,9 @@ BOOL PickupOrDropItem(ItemContainerInstance type, PCONTENTS pItem)
 				//CTextureAnimation *TextureAnim = pIconCache->GetIcon(imagenum);
 				ItemGlobalIndex To;// = { 0 };
 				To.Location = eItemContainerPossessions;
-				To.Index.Inventory = cSlot->pInvSlotWnd->InvSlot;
-				To.Index.Bag = cSlot->pInvSlotWnd->BagSlot;
-				To.Index.Augment = cSlot->pInvSlotWnd->GlobalSlot;
+				To.Index.Slot1 = cSlot->pInvSlotWnd->InvSlot;
+				To.Index.Slot2 = cSlot->pInvSlotWnd->BagSlot;
+				To.Index.Slot3 = cSlot->pInvSlotWnd->GlobalSlot;
 				//To.RandomNum = cSlot->pInvSlotWnd->RandomNum;
 				//To.Selection = (long)((PEQINVSLOTMGR)pInvSlotMgr)->pSelectedItem;
 				pMerchantWnd->ActualSelect(&To);
@@ -8037,9 +8004,9 @@ BOOL PickupOrDropItem(ItemContainerInstance type, PCONTENTS pItem)
 				pInvSlotMgr->SelectSlot(theslot);
 				ItemGlobalIndex To;// = { 0 };
 				To.Location = eItemContainerPossessions;
-				To.Index.Inventory = cSlot->pInvSlotWnd->InvSlot;
-				To.Index.Bag = cSlot->pInvSlotWnd->BagSlot;
-				To.Index.Augment = cSlot->pInvSlotWnd->GlobalSlot;
+				To.Index.Slot1 = cSlot->pInvSlotWnd->InvSlot;
+				To.Index.Slot2 = cSlot->pInvSlotWnd->BagSlot;
+				To.Index.Slot3 = cSlot->pInvSlotWnd->GlobalSlot;
 				//To.RandomNum = cSlot->pInvSlotWnd->RandomNum;
 				//To.Selection = (long)((PEQINVSLOTMGR)pInvSlotMgr)->pSelectedItem;
 				pMerchantWnd->ActualSelect(&To);
@@ -8063,16 +8030,16 @@ BOOL PickupOrDropItem(ItemContainerInstance type, PCONTENTS pItem)
 	if (!bMoveFromCursor) {//user is picking up something
 		ItemGlobalIndex From;// = { 0 };
 		From.Location = type;
-		From.Index.Inventory = InvSlot;
-		From.Index.Bag = BagSlot;
-		From.Index.Augment = pSlot->pInvSlotWnd->GlobalSlot;
+		From.Index.Slot1 = InvSlot;
+		From.Index.Slot2 = BagSlot;
+		From.Index.Slot3 = pSlot->pInvSlotWnd->GlobalSlot;
 		//From.RandomNum = pSlot->pInvSlotWnd->RandomNum;
 
 		ItemGlobalIndex To;// = { 0 };
 		To.Location = eItemContainerPossessions;
-		To.Index.Inventory = eItemContainerCursor;
-		To.Index.Bag = -1;//should i force these to 0xFFFF instead?
-		To.Index.Augment = -1;
+		To.Index.Slot1 = eItemContainerCursor;
+		To.Index.Slot2 = -1;//should i force these to 0xFFFF instead?
+		To.Index.Slot3 = -1;
 		//if (((EQ_Item *)pItem)->IsStackable()) {
 		//	To.RandomNum = From.RandomNum - 0xc;//I *THINK* this is correct, want to get dkaa to look at assembly and confirm... -eqmule
 		//}
@@ -8091,7 +8058,7 @@ BOOL PickupOrDropItem(ItemContainerInstance type, PCONTENTS pItem)
 		.text:0069E9D7                 mov     ecx, [esp+1Ch]
 		.text:0069E9DB                 push    ecx
 		*/
-		/*if (keybflag == 2 /*&& To.RandomNum*/ /*&& pItem->StackCount>1) {//ctrl was pressed and it is a stackable item
+		if (keybflag == 2 /*&& To.RandomNum*/ && pItem->StackCount>1) {//ctrl was pressed and it is a stackable item
 																   //until i figure out how to call moveitemqty
 																   //I need to open the bag and notify it cause moveitem only picks up full stacks
 			BOOL wechangedpackopenstatus = 0;
@@ -8127,16 +8094,16 @@ BOOL PickupOrDropItem(ItemContainerInstance type, PCONTENTS pItem)
 		//user has something on the cursor, lets drop it
 		ItemGlobalIndex From;// = { 0 };
 		From.Location = eItemContainerPossessions;
-		From.Index.Inventory = eItemContainerCursor;
-		From.Index.Bag = -1;// 0xFFFF;
-		From.Index.Augment = -1;
+		From.Index.Slot1 = eItemContainerCursor;
+		From.Index.Slot2 = -1;// 0xFFFF;
+		From.Index.Slot3 = -1;
 		//From.RandomNum = 0;
 
 		ItemGlobalIndex To;// = { 0 };
 		To.Location = type;
-		To.Index.Inventory = InvSlot;
-		To.Index.Bag = BagSlot;
-		To.Index.Augment = pSlot->pInvSlotWnd->GlobalSlot;
+		To.Index.Slot1 = InvSlot;
+		To.Index.Slot2 = BagSlot;
+		To.Index.Slot3 = pSlot->pInvSlotWnd->GlobalSlot;
 		//To.RandomNum = pSlot->pInvSlotWnd->RandomNum;
 		pInvSlotMgr->MoveItem(&From, &To, 1, 1, 0, 0);
 		return TRUE;
@@ -8146,10 +8113,10 @@ BOOL PickupOrDropItem(ItemContainerInstance type, PCONTENTS pItem)
 		DoCommand((PSPAWNINFO)pLocalPlayer,"/autoinventory");
 		return TRUE;
 		}*/
-	/*}
+	}
 	return FALSE;
 }
-*/
+
 int GetTargetBuffByCategory(DWORD category, DWORD classmask, int startslot)
 {
 	if (!(((PCTARGETWND)pTargetWnd)->Type > 0))
@@ -8653,7 +8620,11 @@ DWORD GetKeyRingIndex(BOOL KeyRing, PCHAR szItemName, SIZE_T BuffLen, bool bExac
 					bool bKeyring = false;
 					if (PCHARINFO pCharInfo = GetCharInfo()) {
 						if (CharacterBase *cb = (CharacterBase *)&pCharInfo->pCharacterBase) {
-							ItemGlobalIndex location = cb->CreateItemGlobalIndex(pCont->ItemLocation, pCont->ItemSlot,pCont->ItemSlot2);
+							ItemGlobalIndex location;
+							location.Location = (ItemContainerInstance)pCont->ItemLocation;
+							location.Index.Slot1 = pCont->ItemSlot;
+							location.Index.Slot2 = pCont->ItemSlot2;
+							location.Index.Slot3 = -1;
 							bKeyring = location.IsKeyRingLocation();
 						}
 					}

@@ -2907,7 +2907,7 @@ EQLIB_OBJECT class CXStr *CListWnd::GetItemText(class CXStr *,int,int)const;
 EQLIB_OBJECT int CListWnd::AddColumn(class CXStr,class CTextureAnimation *,int,unsigned __int32,unsigned __int32,class CTextureAnimation *,class CTextureAnimation *);
 EQLIB_OBJECT int CListWnd::AddColumn(class CXStr,int,unsigned __int32,unsigned __int32);
 EQLIB_OBJECT int CListWnd::AddLine(class SListWndLine const *);
-#ifdef TEST
+#ifndef EMU
 EQLIB_OBJECT int CListWnd::AddString(class CXStr *str,COLORREF cref, unsigned __int32 data,class CTextureAnimation const *pta, const char * p5 = 0, bool bdebug = false);
 #else
 EQLIB_OBJECT int CListWnd::AddString(class CXStr *,unsigned long,unsigned __int32,class CTextureAnimation const *, const char* p5 = 0);
