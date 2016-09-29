@@ -67,7 +67,6 @@ class CContextMenu;
 class CContextMenuManager;
 class CControlTemplate;
 class CCursorAttachment;
-class EqItemGuid;
 class CDIMap;
 class CDisplay;
 class CEditBaseWnd;
@@ -114,6 +113,7 @@ class CJournalTextWnd;
 class CKeyCXStrValueInt32;
 class CLabel;
 class CLabelTemplate;
+class CLargeDialogWnd;
 class CListboxColumnTemplate;
 class CListboxTemplate;
 class CListWnd;
@@ -302,7 +302,7 @@ class flex_unit;
 class GrammarRulesClass;
 class GuildMember;
 class IconCache;
-class ItemBaseContainer;
+//class ItemBaseContainer;
 class JournalNPC;
 class KeyCombo;
 class KeypressHandler;
@@ -2449,7 +2449,7 @@ class ItemGlobalIndex
 public:
 	ItemGlobalIndex::ItemContainerInstance Location;
 	ItemGlobalIndex::ItemIndex Index;
-	CHAR morestuff[2048];
+	//CHAR morestuff[2048];
 EQLIB_OBJECT	ItemGlobalIndex::ItemGlobalIndex();
 EQLIB_OBJECT bool ItemGlobalIndex::IsKeyRingLocation(void);
 EQLIB_OBJECT bool ItemGlobalIndex::IsEquippedLocation(void);
@@ -2854,6 +2854,12 @@ EQLIB_OBJECT CLabelTemplate::~CLabelTemplate(void);
 //EQLIB_OBJECT void * CLabelTemplate::`scalar deleting destructor'(unsigned int);
 //EQLIB_OBJECT void * CLabelTemplate::`vector deleting destructor'(unsigned int);
 };
+class CLargeDialogWnd
+{
+public:
+EQLIB_OBJECT void CLargeDialogWnd::Open(bool bYesNoEnabled, class CXStr DialogText, unsigned long closeTimer/*0 means never*/, class CXStr DialogTitle, bool bShowVolumeControls, class CXStr YesText, class CXStr NoText);
+};
+
 class CLineBase
 {
 public:
@@ -5767,7 +5773,7 @@ EQLIB_OBJECT int EQ_PC::numInParty(void);
 EQLIB_OBJECT static class EQ_PC * EQ_PC::top;
 EQLIB_OBJECT unsigned char EQ_PC::AtSkillLimit(int);
 EQLIB_OBJECT unsigned char EQ_PC::RemoveMyAffect(int);
-EQLIB_OBJECT class ItemBaseContainer &EQ_PC::GetKeyRingItems(enum KeyRingType);
+EQLIB_OBJECT class MQItemBaseContainer &EQ_PC::GetKeyRingItems(enum KeyRingType);
 EQLIB_OBJECT unsigned long EQ_PC::GetArmorTint(int);
 EQLIB_OBJECT unsigned long EQ_PC::GetBodyTint(int);
 EQLIB_OBJECT void EQ_PC::CheckForGroupChanges(void);

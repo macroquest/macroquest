@@ -86,7 +86,6 @@ using namespace std;
 #include "..\Blech\Blech.h"
 #endif
 
-extern HMODULE ghmq2ic;
 extern CRITICAL_SECTION gPluginCS;
 #if defined(TEST) || defined(BETA) || defined(EMU)
 //do nothing because the user has set one of these as a preprocessor argument instead...
@@ -654,6 +653,7 @@ LEGACY_API VOID ParseSearchSpawn(int BeginInclusive, int EndExclusive, char *arg
 EQLIB_API PCHAR FormatSearchSpawn(PCHAR Buffer, SIZE_T BufferSize, PSEARCHSPAWN pSearchSpawn);
 EQLIB_API BOOL IsPCNear(PSPAWNINFO pSpawn, FLOAT Radius);
 EQLIB_API BOOL IsInGroup(PSPAWNINFO pSpawn, BOOL bCorpse = 0);
+EQLIB_API BOOL IsInFellowship(PSPAWNINFO pSpawn, BOOL bCorpse = 0);
 EQLIB_API BOOL IsInRaid(PSPAWNINFO pSpawn, BOOL bCorpse = 0);
 EQLIB_API BOOL IsAlert(PSPAWNINFO pChar, PSPAWNINFO pSpawn, DWORD List);
 EQLIB_API BOOL GetClosestAlert(PSPAWNINFO pSpawn, DWORD List);

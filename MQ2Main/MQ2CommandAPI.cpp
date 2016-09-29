@@ -701,10 +701,10 @@ void InitializeMQ2Commands()
 	if (ghmq2ic) {
 		AuthenticateTrueBox = (fAuthenticateTrueBox)GetProcAddress(ghmq2ic, "AuthenticateTrueBox");
 		GetTrueBoxKey = (fGetTrueBoxKey)GetProcAddress(ghmq2ic, "GetTrueBoxKey");
-	}
-	DWORD tbkey = GetTrueBoxKey(1);
-	if (AuthenticateTrueBox) {
-		AuthenticateTrueBox(tbkey);
+		DWORD tbkey = GetTrueBoxKey(1);
+		if (AuthenticateTrueBox) {
+			AuthenticateTrueBox(tbkey);
+		}
 	}
 	
     /* ALIASES FOR OUT OF ORDER SHORTHAND COMMANDS */

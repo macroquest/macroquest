@@ -5266,6 +5266,34 @@ EQLIB_API BOOL IsInRaid(PSPAWNINFO pSpawn, BOOL bCorpse)
 	return FALSE;
 }
 
+BOOL IsInFellowship(PSPAWNINFO pSpawn, BOOL bCorpse)
+{
+	if (PCHARINFO pChar = GetCharInfo()) {
+		if (!pChar->pSpawn)
+			return FALSE;
+		FELLOWSHIPINFO Fellowship = (FELLOWSHIPINFO)pChar->pSpawn->Fellowship;
+		for (DWORD i = 0; i < Fellowship.Members; i++)
+		{
+			if (!bCorpse) {
+				if (!_stricmp(Fellowship.FellowshipMember[i].Name, pSpawn->Name))
+				{
+					return TRUE;
+				}
+			}
+			else {
+				CHAR szSearch[256] = { 0 };
+				strcpy_s(szSearch, Fellowship.FellowshipMember[i].Name);
+				strcat_s(szSearch, "'s corpse");
+				int l = strlen(szSearch);
+				if (!_strnicmp(szSearch, pSpawn->Name, l) && Fellowship.FellowshipMember[i].Class == pSpawn->Class) {
+					return TRUE;
+				}
+			}
+		}
+	}
+	return FALSE;
+}
+
 BOOL IsNamed(PSPAWNINFO pSpawn)
 {
 	CHAR szTemp[MAX_STRING] = { 0 };
@@ -5663,6 +5691,8 @@ BOOL SearchSpawnMatchesSearchSpawn(PSEARCHSPAWN pSearchSpawn1, PSEARCHSPAWN pSea
 		return false;
 	if (pSearchSpawn1->bGroup != pSearchSpawn2->bGroup)
 		return false;
+	if (pSearchSpawn1->bFellowship != pSearchSpawn2->bFellowship)
+		return false;
 	if (pSearchSpawn1->bKnight != pSearchSpawn2->bKnight)
 		return false;
 	if (pSearchSpawn1->bKnownLocation != pSearchSpawn2->bKnownLocation)
@@ -5835,6 +5865,17 @@ BOOL SpawnMatchesSearch(PSEARCHSPAWN pSearchSpawn, PSPAWNINFO pChar, PSPAWNINFO 
 		if (!ingrp)
 			return FALSE;
 	}
+	if (pSearchSpawn->bFellowship) {
+		BOOL infellowship = 0;
+		if (pSearchSpawn->SpawnType == PCCORPSE || pSpawn->Type == SPAWN_CORPSE) {
+			infellowship = IsInFellowship(pSpawn, 1);
+		}
+		else {
+			infellowship = IsInFellowship(pSpawn);
+		}
+		if (!infellowship)
+			return FALSE;
+	}
 	if (pSearchSpawn->bNoGroup && IsInGroup(pSpawn))
 		return FALSE;
 	if (pSearchSpawn->bRaid) {
@@ -5988,6 +6029,9 @@ PCHAR ParseSearchSpawnArgs(PCHAR szArg, PCHAR szRest, PSEARCHSPAWN pSearchSpawn)
 		}
 		else if (!_stricmp(szArg, "group")) {
 			pSearchSpawn->bGroup = TRUE;
+		}
+		else if (!_stricmp(szArg, "fellowship")) {
+			pSearchSpawn->bFellowship = TRUE;
 		}
 		else if (!_stricmp(szArg, "nogroup")) {
 			pSearchSpawn->bNoGroup = TRUE;
@@ -8413,14 +8457,17 @@ DWORD GetSpellRankByName(PCHAR SpellName)
 
 VOID RemoveBuff(PSPAWNINFO pChar, PCHAR szLine)
 {
-	if (szLine && szLine[0] != '\0') {
+	CHAR szCmd[MAX_STRING] = { 0 };
+	strcpy_s(szCmd, szLine);
+	StripQuotes(szCmd);
+	if (szCmd && szCmd[0] != '\0') {
 		if (PCHARINFO2 pChar2 = GetCharInfo2()) {
 			for (unsigned long nBuff = 0; nBuff<NUM_LONG_BUFFS; nBuff++)
 			{
 				if (pChar2->Buff[nBuff].SpellID == 0 || pChar2->Buff[nBuff].SpellID == -1)
 					continue;
 				if (PSPELL pBuffSpell = GetSpellByID(pChar2->Buff[nBuff].SpellID)) {
-					if (!_strnicmp(pBuffSpell->Name, szLine, strlen(szLine))) {
+					if (!_strnicmp(pBuffSpell->Name, szCmd, strlen(szCmd))) {
 						pPCData->RemoveMyAffect(nBuff);
 						return;
 					}
@@ -8431,7 +8478,7 @@ VOID RemoveBuff(PSPAWNINFO pChar, PCHAR szLine)
 				if (pChar2->ShortBuff[nBuff].SpellID == 0 || pChar2->ShortBuff[nBuff].SpellID == -1)
 					continue;
 				if (PSPELL pBuffSpell = GetSpellByID(pChar2->ShortBuff[nBuff].SpellID)) {
-					if (!_strnicmp(pBuffSpell->Name, szLine, strlen(szLine))) {
+					if (!_strnicmp(pBuffSpell->Name, szCmd, strlen(szCmd))) {
 						pPCData->RemoveMyAffect(nBuff + NUM_LONG_BUFFS);
 						return;
 					}

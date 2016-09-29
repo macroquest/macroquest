@@ -7952,6 +7952,9 @@ FUNCTION_AT_ADDRESS( CSliderTemplate::CSliderTemplate(class CParamSlider *),CSli
 #ifdef CLabelTemplate__CLabelTemplate_x
 FUNCTION_AT_ADDRESS( CLabelTemplate::CLabelTemplate(class CParamLabel *),CLabelTemplate__CLabelTemplate);
 #endif
+#ifdef CLargeDialogWnd__Open_x
+FUNCTION_AT_ADDRESS(void CLargeDialogWnd::Open(bool bYesNoEnabled, class CXStr DialogText, unsigned long closeTimer/*0 means never*/, class CXStr DialogTitle, bool bShowVolumeControls, class CXStr YesText, class CXStr NoText),CLargeDialogWnd__Open);
+#endif
 #ifdef CSTMLboxTemplate__CSTMLboxTemplate_x
 FUNCTION_AT_ADDRESS( CSTMLboxTemplate::CSTMLboxTemplate(class CParamSTMLbox *),CSTMLboxTemplate__CSTMLboxTemplate);
 #endif

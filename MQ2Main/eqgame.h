@@ -186,9 +186,10 @@ GNU General Public License for more details.
 #define pinstCBandolierWnd_x                                       0xF63D10
 #define pinstCPotionBeltWnd_x                                      0xF63D14
 #define pinstCAAWnd_x                                              0xF63D18
+#define pinstCAlarmWnd_x                                           0xF63D24
 #define pinstCGroupSearchFiltersWnd_x                              0xF63D1C
 #define pinstCLoadskinWnd_x                                        0xF63D20
-#define pinstCAlarmWnd_x                                           0xF63D24
+#define pinstCLargeDialogWnd_x                                     0x11BC8C0
 #define pinstCMusicPlayerWnd_x                                     0xF63D28
 #define pinstCMailWnd_x                                            0xF63D30
 #define pinstCMailCompositionWnd_x                                 0xF63D34
@@ -275,7 +276,6 @@ GNU General Public License for more details.
 #define pinstCPopupWndManager_x                                    0x11BBFD8
 #define pinstCProgressionSelectionWnd_x                            0x11BC0C8
 #define pinstCPvPStatsWnd_x                                        0x11BC1B8
-#define pinstCSystemInfoDialogBox_x                                0x11BC8C0
 #define pinstCTaskWnd_x                                            0x11BDC88
 #define pinstCTaskSomething_x                                      0xE31F10
 #define pinstCTaskTemplateSelectWnd_x                              0x11BDC10
@@ -860,3 +860,6 @@ GNU General Public License for more details.
 //ItemBaseContainer
 #define ItemBaseContainer__ItemBaseContainer_x                     0x874570
 #define ItemBaseContainer__CreateItemGlobalIndex_x                 0x8734B0
+
+//CLargeDialogWnd
+#define CLargeDialogWnd__Open_x                                    0x6F5100

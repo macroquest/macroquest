@@ -56,7 +56,7 @@
         "Poison Counter",                       // 036
         "Detect Hostile",                       // 037
         "Detect Magic",                         // 038
-        "Detect Poison",                        // 039
+        "Stacking: No Twincast",				// 039
         "Invulnerability",                      // 040
         "Banish",                               // 041
         "Shadow Step",                          // 042
@@ -101,7 +101,7 @@
         "Resurrect",                            // 081
         "Summon Player",                        // 082
         "Teleport",                             // 083
-        "Toss",                                 // 084
+        "Toss",                                 // 084 **
         "Add Proc",                             // 085
         "Reaction Radius",                      // 086
         "Magnification",                        // 087
@@ -163,7 +163,7 @@
         "Limit: Min Cast Time",                 // 143
         "Limit: Max Cast Time",                 // 144
         "NPC Warder Banish",                    // 145
-        "Resist Electricity",                   // 146
+        "Portal Locations",                     // 146  **
         "HP",                                   // 147
         "Stacking: Block",                      // 148
         "Stacking: Overwrite",                  // 149
@@ -222,7 +222,7 @@
         "Illusion Other",                       // 202
         "Mass Group Buff",                      // 203
         "Group Fear Immunity",                  // 204
-        "Rampage",                              // 205
+        "AE Rampage",                           // 205  **
         "AE Taunt",                             // 206
         "Flesh to Bone",                        // 207
         "Purge Poison",                         // 208
@@ -241,7 +241,7 @@
         "Reduce Weight",                        // 221
         "Block Behind",                         // 222
         "Double Riposte",                       // 223
-        "Riposte",                              // 224
+        "Additional Riposte",                   // 224
         "Double Attack",                        // 225
         "2H bash",                              // 226
         "Base Refresh Timer",                   // 227
@@ -269,7 +269,7 @@
         "Offhand Min",                          // 249
         "Spell Proc Chance",                    // 250
         "Endless Quiver",                       // 251
-        "Backstab Front",                       // 252
+        "Backstab from Front",                  // 252
         "Chaotic Stab",                         // 253
         "NoSpell",                              // 254
         "Shielding Duration",                   // 255
@@ -407,13 +407,13 @@
         "Trigger Effect",                       // 387
         "Summon All Corpses",                   // 388
         "Spell Gem Refresh",                    // 389
-        "Fc Timer Lockout",                     // 390
+        "Spell Gem Lockout",                    // 390
         "Limit: Max Mana",                      // 391
         "Instant Heal Amt",                     // 392
         "Incoming Healing Effectiveness",       // 393
         "Incoming Healing Amt",                 // 394
-        "Fc Heal % Crit",                       // 395
-        "Heal Amt",                             // 396
+        "Heal Crit",                            // 395
+        "Heal Crit Amt",                        // 396
         "Pet Amt Mitigation",                   // 397
         "Swarm Pet Duration",                   // 398
         "Twincast Chance",                      // 399
@@ -437,8 +437,8 @@
         "Mana Regen",                           // 417
         "Skill Damage",                         // 418
         "Add Proc",                             // 419
-        "Fc Limit Use",                         // 420
-        "Fc Limit Use Amt",                     // 421
+        "Limit: Use",                           // 420
+        "Limit: Use Amt",                       // 421
         "Limit: Use Min",                       // 422
         "Limit: Use Type",                      // 423
         "Gravitate",                            // 424
@@ -450,9 +450,9 @@
         "PostEffect",                           // 430
         "PostEffectData",                       // 431
         "ExpandMaxActiveTrophyBenefits",        // 432
-        "Critical DoT Chance",                  // 433
-        "Critical Heal Chance",                 // 434
-        "Critical HoT Chance",                  // 435
+        "Min Damage",                           // 433
+        "Min Damage",                           // 434
+        "Fragile Defense",						// 435
         "Beneficial Countdown Hold",            // 436
         "Teleport",                             // 437
         "Translocate",                          // 438
@@ -477,9 +477,9 @@
         "Resource Tap",                         // 457
         "Faction",                              // 458
 		"Skill Damage Mod 2",					// 459
-		"Ff_Override_NotFocusable",				// 460
-		"Fc Damage % 2",						// 461
-		"Fc Damage Amt 2",						// 462
+		"Limit: Include Non-Focusable",			// 460
+		"Spell Damage 2",						// 461
+		"Spell Damage Amt 2",					// 462
 		"Shield Target",						// 463
 		"PC Pet Rampage",						// 464
 		"PC Pet AE Rampage",					// 465
@@ -489,11 +489,18 @@
 		"Chance Best in Spell Group",			// 469
 		"Trigger Best in Spell Group",			// 470
 		"Double Melee Round(PC Only)",			// 471
-		"Buy AA Rank",							// 472 
+		"Toggle Passive AA Rank",				// 472 
 		"Double Backstab From Front",			// 473 
-		"Pet Crit Melee Damage% (Owner)",		// 474 
+		"Pet Crit Melee Damage",				// 474 
 		"Trigger Spell Non-Item",				// 475
 		"Weapon Stance",						// 476
-		"Hatelist To Top Index",				// 477
-		"Hatelist To Tail Index",				// 478
-
+		"Move to Top of Hatelist",				// 477
+		"Move to Bottom of Hatelist",			// 478
+		"Limit: Value Min",						// 479
+		"Limit: Value Max",						// 480
+		"Spell Cast Spell on Land",				// 481
+		"Skill Base Damage Mod",				// 482
+		"Spell Damage Taken",					// 483
+		"Spell Damage Taken",					// 484
+		"Limit: CasterClass",					// 485
+		"Limit: Same Caster",					// 486

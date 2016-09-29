@@ -275,7 +275,7 @@ GNU General Public License for more details.
 #define pinstCPopupWndManager_x                                    0x11BAFD8
 #define pinstCProgressionSelectionWnd_x                            0x11BB0C8
 #define pinstCPvPStatsWnd_x                                        0x11BB1B8
-#define pinstCSystemInfoDialogBox_x                                0x11BB8C0
+#define pinstCLargeDialogWnd_x                                     0x11BB8C0
 #define pinstCTaskWnd_x                                            0x11BCC88
 #define pinstCTaskSomething_x                                      0xE30F10
 #define pinstCTaskTemplateSelectWnd_x                              0x11BCC10
@@ -859,3 +859,6 @@ GNU General Public License for more details.
 //ItemBaseContainer
 #define ItemBaseContainer__ItemBaseContainer_x                     0x873260
 #define ItemBaseContainer__CreateItemGlobalIndex_x                 0x8721A0
+
+//CLargeDialogWnd
+#define CLargeDialogWnd__Open_x                                    0x6F3E80

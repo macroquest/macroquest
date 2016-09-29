@@ -5005,6 +5005,7 @@ public:
 		bTargetable = 53,
 		PlayerState = 54,
 		Spawn = 55,
+		bFellowship = 56,
 	};
 	MQ2AlertListType() :MQ2Type("alertlist")
 	{
@@ -5063,6 +5064,7 @@ public:
 		TypeMember(bTargetable);
 		TypeMember(PlayerState);
 		TypeMember(Spawn);
+		TypeMember(bFellowship);
 	}
 	~MQ2AlertListType()
 	{

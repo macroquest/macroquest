@@ -268,7 +268,7 @@ GNU General Public License for more details.
 #define pinstCPopupWndManager_x                                    0x11B3028
 #define pinstCProgressionSelectionWnd_x                            0x11B3118
 #define pinstCPvPStatsWnd_x                                        0x11B3208
-#define pinstCSystemInfoDialogBox_x                                0x11B3910
+#define pinstCLargeDialogWnd_x                                     0x11B3910
 #define pinstCTaskWnd_x                                            0x11B4CD8
 #define pinstCTaskSomething_x                                      0xE28E68
 #define pinstCTaskTemplateSelectWnd_x                              0x11B4C60

@@ -233,7 +233,7 @@ namespace MQ2Globals
 		ppMercAltAbilities = (EQMERCALTABILITIES**)pinstMercAltAbilities;
 #endif
 		ppAggroInfo = (AGGROINFO **)pinstAggroInfo;
-
+		ppLargeDialog = (CLargeDialogWnd**)pinstCLargeDialogWnd;
 		return true;
 	}
 
@@ -299,6 +299,7 @@ namespace MQ2Globals
 	BOOL gbUnload = FALSE;
 	BOOL gbLoad = TRUE;
 	DWORD gpHook = NULL;
+	HMODULE ghmq2ic = 0;
 #ifndef ISXEQ
 	PMACROBLOCK gMacroBlock = NULL;
 	PMACROSTACK gMacroStack = NULL;
@@ -1210,6 +1211,7 @@ namespace MQ2Globals
 	EQMERCALTABILITIES **ppMercAltAbilities = 0;
 #endif
 	AGGROINFO **ppAggroInfo = 0;
+	CLargeDialogWnd**ppLargeDialog = 0;
 
 #define INITIALIZE_EQGAME_OFFSET(var) DWORD var = (((DWORD)var##_x - 0x400000) + baseAddress)
 
@@ -1452,7 +1454,7 @@ namespace MQ2Globals
 	INITIALIZE_EQGAME_OFFSET(pinstCPopupWndManager);
 	INITIALIZE_EQGAME_OFFSET(pinstCProgressionSelectionWnd);
 	INITIALIZE_EQGAME_OFFSET(pinstCPvPStatsWnd);
-	INITIALIZE_EQGAME_OFFSET(pinstCSystemInfoDialogBox);
+	INITIALIZE_EQGAME_OFFSET(pinstCLargeDialogWnd);
 	INITIALIZE_EQGAME_OFFSET(pinstCTaskWnd);
 	INITIALIZE_EQGAME_OFFSET(pinstCTaskSomething);
 	INITIALIZE_EQGAME_OFFSET(pinstCTaskTemplateSelectWnd);
@@ -1935,7 +1937,8 @@ namespace MQ2Globals
 	INITIALIZE_EQGAME_OFFSET(ItemGlobalIndex__IsValidIndex);
 	INITIALIZE_EQGAME_OFFSET(ItemBaseContainer__ItemBaseContainer);
 	INITIALIZE_EQGAME_OFFSET(ItemBaseContainer__CreateItemGlobalIndex);
-
+	INITIALIZE_EQGAME_OFFSET(CLargeDialogWnd__Open);
+	
 #ifdef __ExecuteCmd_x
 #ifndef EMU
 FUNCTION_AT_ADDRESS(BOOL __cdecl EQExecuteCmd(DWORD arg1, BOOL arg2, PVOID arg3, BOOL arg4), __ExecuteCmd);

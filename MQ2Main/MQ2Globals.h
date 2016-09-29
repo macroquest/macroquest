@@ -73,6 +73,7 @@ namespace MQ2Globals
 	EQLIB_VAR BOOL gbUnload;
 	EQLIB_VAR BOOL gbLoad;
 	EQLIB_VAR DWORD gpHook;
+	EQLIB_VAR HMODULE ghmq2ic;
 #ifndef ISXEQ
 	LEGACY_VAR PMACROBLOCK gMacroBlock;
 	LEGACY_VAR PMACROSTACK gMacroStack;
@@ -496,7 +497,8 @@ namespace MQ2Globals
 
 	EQLIB_VAR AGGROINFO **ppAggroInfo;
 #define pAggroInfo (*ppAggroInfo)
-
+	EQLIB_VAR CLargeDialogWnd **ppLargeDialog;
+#define pLargeDialog (*ppLargeDialog)
 	/* WINDOW INSTANCES */
 	EQLIB_VAR CContextMenuManager **ppContextMenuManager;
 	EQLIB_VAR CCursorAttachment **ppCursorAttachment;
@@ -921,7 +923,7 @@ namespace MQ2Globals
 	EQLIB_VAR DWORD pinstCPopupWndManager;
 	EQLIB_VAR DWORD pinstCProgressionSelectionWnd;
 	EQLIB_VAR DWORD pinstCPvPStatsWnd;
-	EQLIB_VAR DWORD pinstCSystemInfoDialogBox;
+	EQLIB_VAR DWORD pinstCLargeDialogWnd;
 	EQLIB_VAR DWORD pinstCTargetOfTargetWnd;
 	EQLIB_VAR DWORD pinstCTaskTemplateSelectWnd;
 	EQLIB_VAR DWORD pinstCTaskWnd;
@@ -1414,5 +1416,7 @@ namespace MQ2Globals
 	EQLIB_VAR DWORD ItemGlobalIndex__ItemGlobalIndex;
 	EQLIB_VAR DWORD ItemGlobalIndex__IsEquippedLocation;
 	EQLIB_VAR DWORD ItemGlobalIndex__IsValidIndex;
+	EQLIB_VAR DWORD CLargeDialogWnd__Open;
+	
 }
 using namespace MQ2Globals;

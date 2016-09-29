@@ -73,6 +73,7 @@ namespace MQ2Internal {
         BOOL bTargNext;
         BOOL bTargPrev;
         BOOL bGroup;
+		BOOL bFellowship;
         BOOL bXTarHater;
         BOOL bNoGroup;
         BOOL bRaid;

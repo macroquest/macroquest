@@ -29,7 +29,7 @@ CRITICAL_SECTION gPluginCS = { 0 };
 #else
 #pragma message("EQLIB_IMPORTS")
 #endif
-HMODULE ghmq2ic = 0;
+
 DWORD WINAPI MQ2Start(LPVOID lpParameter);
 #if !defined(ISXEQ) && !defined(ISXEQ_LEGACY)
 HANDLE hMQ2StartThread = 0;

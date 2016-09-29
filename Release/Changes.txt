@@ -1,3 +1,24 @@
+29 Sep 2016 by eqmule
+- Added fellowship to the spawnsearch tlo - Idea Cred: mwilliam
+  Example usage:
+   /if ${SpawnCount[fellowship loc ${Me.X} ${Me.Y} radius 50]} >= 3) {
+		/echo its ok to place a campfire now.
+   } else {
+		/echo not enough fellowship members here to place a campfire right now
+   }
+- RemoveBuff now accepts buffnames that are quoted "some buff"
+- pinstCSystemInfoDialogBox HAS BEEN RENAMED TO pinstCLargeDialogWnd cause thats what it is.
+- /loginchar server:charname will now launch eq and log the char in.
+  NOTE: if you run this command and server:char is already running, you will kill his game and
+  he will be logged in again, this command ALWAYS launches a new client.
+  this is for advanced users only, I use it personally to launch and get back into a game when 
+  one of my clients has crashed. (easily detected with the ${Group.Member[soandso].Offline} tlo member... or lets say I havent seen the guy for 15 minutes)
+  NOTE2: this command only works if you are using the mq2 login system and have a profile for the character.
+  Example: /loginchar tunare:eqmule
+  will search all mq2 profile sets for the tunare server and the char eqmule
+  if it finds it, it will launch eq and log in that character.
+- The ~ key should now be able to cycle full screen windows and in order - rswiders
+
 21 Sep 2016 by eqmule
 - Updated for LIVE
 

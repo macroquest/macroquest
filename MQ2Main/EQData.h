@@ -745,7 +745,8 @@ typedef struct _CONTENTS {
 /*0x0114*/ BYTE		Unknown0x0114[0xc];
 /*0x0120*/ DWORD	MerchantQuantity;
 /*0x0124*/ BYTE		IsEvolvingItem;
-/*0x0125*/ BYTE		Unknown0x0125[0x7];
+/*0x0125*/ BYTE		Unknown0x0125[0x3];
+/*0x0128*/ PVOID	ItemPtr;
 /*0x012c*/ struct _ITEMINFO*	Item2;
 /*0x0130*/ BYTE		Unknown0x0130[0x08];
 /*0x0138*/

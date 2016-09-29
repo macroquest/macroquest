@@ -11956,6 +11956,10 @@ bool MQ2AlertListType::GETMEMBER()
 					Dest.DWord = (*si).bGroup;
 					Dest.Type = pBoolType;
 					return true;
+				case bFellowship:
+					Dest.DWord = (*si).bFellowship;
+					Dest.Type = pBoolType;
+					return true;
 				case bNoGroup:
 					Dest.DWord = (*si).bNoGroup;
 					Dest.Type = pBoolType;
