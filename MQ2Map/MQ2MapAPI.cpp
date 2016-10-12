@@ -34,6 +34,8 @@ PMAPLINE  pLineListTail = 0;
 map<unsigned long, PMAPSPAWN> SpawnMap;
 map<unsigned long, PMAPSPAWN> GroundItemMap;
 map<PMAPLABEL, PMAPSPAWN> LabelMap;
+map<string, PMAPLOC> LocationMap;
+PMAPLOC DefaultMapLoc = new MAPLOC;
 
 BOOL Update = false;
 
@@ -116,10 +118,10 @@ inline PMAPSPAWN InitSpawn()
 		pActiveSpawns = pSpawn;
 		return pSpawn;
 	}
-	catch(std::bad_alloc& exc)
+	catch (std::bad_alloc& exc)
 	{
 		UNREFERENCED_PARAMETER(exc);
-		MessageBox(NULL,"mq2map failed to allocate memory in InitSpawn","Did we just discover a memory leak?",MB_SYSTEMMODAL|MB_OK);
+		MessageBox(NULL, "mq2map failed to allocate memory in InitSpawn", "Did we just discover a memory leak?", MB_SYSTEMMODAL | MB_OK);
 	};
 	return NULL;
 }
@@ -214,7 +216,7 @@ PMAPSPAWN AddSpawn(PSPAWNINFO pNewSpawn, BOOL ExplicitAllow)
 void RemoveSpawn(PMAPSPAWN pMapSpawn)
 {
 	if (pMapSpawn && pMapSpawn->pMapLabel) {
-		if(pMapSpawn->pMapLabel->Label)
+		if (pMapSpawn->pMapLabel->Label)
 			free(pMapSpawn->pMapLabel->Label);
 		DeleteLabel(pMapSpawn->pMapLabel);
 	}
@@ -258,7 +260,7 @@ void AddGroundItem(PGROUNDITEM pGroundItem)
 	PSPAWNINFO pFakeSpawn = new SPAWNINFO;
 	memset(pFakeSpawn, 0, sizeof(SPAWNINFO));
 	GetFriendlyNameForGroundItem(pGroundItem, pFakeSpawn->Name, sizeof(pFakeSpawn->Name));
-	strcpy_s(pFakeSpawn->DisplayedName, pFakeSpawn->Name); 
+	strcpy_s(pFakeSpawn->DisplayedName, pFakeSpawn->Name);
 	pFakeSpawn->X = pGroundItem->X;
 	pFakeSpawn->Y = pGroundItem->Y;
 	pFakeSpawn->Z = pGroundItem->Z;
@@ -391,7 +393,7 @@ void MapUpdate()
 	PMAPSPAWN pMapSpawn;
 	PMAPSPAWN pOldLastTarget = NULL;
 	bool bTargetChanged = false;
-
+	
 	pOldLastTarget = pLastTarget;
 	if (pLastTarget && pLastTarget->pSpawn != (PSPAWNINFO)pTarget)
 	{
@@ -526,7 +528,7 @@ void MapUpdate()
 			if (!pCastRadius[i])
 			{
 				pCastRadius[i] = InitLine();
-				pCastRadius[i]->Layer = 2;
+				pCastRadius[i]->Layer = activeLayer;
 			}
 
 			pCastRadius[i]->Color.ARGB = MapFilterOptions[MAPFILTER_CastRadius].Color;
@@ -555,7 +557,7 @@ void MapUpdate()
 			if (!pSpellRadius[i])
 			{
 				pSpellRadius[i] = InitLine();
-				pSpellRadius[i]->Layer = 2;
+				pSpellRadius[i]->Layer = activeLayer;
 			}
 
 			pSpellRadius[i]->Color.ARGB = MapFilterOptions[MAPFILTER_SpellRadius].Color;
@@ -606,7 +608,7 @@ void MapUpdate()
 			if (!pTargetLine)
 			{
 				pTargetLine = InitLine();
-				pTargetLine->Layer = 2;
+				pTargetLine->Layer = activeLayer;
 			}
 			pTargetLine->Color.ARGB = MapFilterOptions[MAPFILTER_Target].Color;
 			pTargetLine->Start.X = -pCharInfo->pSpawn->X;
@@ -631,7 +633,7 @@ void MapUpdate()
 				if (!pTargetRadius[i])
 				{
 					pTargetRadius[i] = InitLine();
-					pTargetRadius[i]->Layer = 2;
+					pTargetRadius[i]->Layer = activeLayer;
 				}
 
 				pTargetRadius[i]->Color.ARGB = MapFilterOptions[MAPFILTER_TargetRadius].Color;
@@ -660,7 +662,7 @@ void MapUpdate()
 				if (!pTargetMelee[i])
 				{
 					pTargetMelee[i] = InitLine();
-					pTargetMelee[i]->Layer = 2;
+					pTargetMelee[i]->Layer = activeLayer;
 				}
 
 				pTargetMelee[i]->Color.ARGB = MapFilterOptions[MAPFILTER_TargetMelee].Color;
@@ -838,7 +840,7 @@ PCHAR GenerateSpawnName(PSPAWNINFO pSpawn, PCHAR NameString)
 			switch (NameString[N])
 			{
 			case 'N':// cleaned up name
-				strcpy_s(&Name[outpos], sizeof(Name)-outpos, pSpawn->DisplayedName);
+				strcpy_s(&Name[outpos], sizeof(Name) - outpos, pSpawn->DisplayedName);
 				outpos += strlen(&Name[outpos]);
 				break;
 			case 'n':// original name
@@ -1052,7 +1054,7 @@ PMAPLABEL GenerateLabel(PMAPSPAWN pMapSpawn, DWORD Color)
 	pLabel->Location.X = -pMapSpawn->pSpawn->X;
 	pLabel->Location.Y = -pMapSpawn->pSpawn->Y;
 	pLabel->Location.Z = pMapSpawn->pSpawn->Z;
-	pLabel->Layer = 2;
+	pLabel->Layer = activeLayer;
 	pLabel->Size = 3;
 	pLabel->Label = GenerateSpawnName(pMapSpawn->pSpawn, MapNameString);
 	pLabel->Color.ARGB = Color;
@@ -1087,7 +1089,7 @@ PMAPLINE GenerateVector(PMAPSPAWN pMapSpawn)
 
 
 
-	pNewLine->Layer = 2;
+	pNewLine->Layer = activeLayer;
 	pNewLine->Color = pMapSpawn->pMapLabel->Color;
 
 	return pNewLine;
@@ -1176,7 +1178,7 @@ void GenerateMarker(PMAPSPAWN pMapSpawn)
 		pNewLine->End.X = 0;
 		pNewLine->End.Y = 0;
 		pNewLine->End.Z = pMapSpawn->pSpawn->Z;
-		pNewLine->Layer = 2;
+		pNewLine->Layer = activeLayer;
 		pNewLine->Color = pMapSpawn->pMapLabel->Color;
 		pMapSpawn->MarkerLines[i] = pNewLine;
 	}
@@ -1369,10 +1371,6 @@ void MoveMarker(PMAPSPAWN pMapSpawn)
 	}
 }
 
-
-
-
-
 DWORD FindMarker(PCHAR szMark)
 {
 	if (!_stricmp(szMark, "none"))
@@ -1400,4 +1398,139 @@ long MakeTime()
 	lCurrent += st.wSecond * 10;
 	lCurrent += (long)(st.wMilliseconds / 100);
 	return (lCurrent);
+}
+
+VOID UpdateDefaultMapLoc()
+{
+	DefaultMapLoc->lineSize = GetPrivateProfileInt("MapLoc", "Size", 50, INIFileName);
+	DefaultMapLoc->width = GetPrivateProfileInt("MapLoc", "Width", 10, INIFileName);
+	DefaultMapLoc->r_color = GetPrivateProfileInt("MapLoc", "Red", 255, INIFileName);
+	DefaultMapLoc->g_color = GetPrivateProfileInt("MapLoc", "Green", 0, INIFileName);
+	DefaultMapLoc->b_color = GetPrivateProfileInt("MapLoc", "Blue", 0, INIFileName);
+
+	// Update existing default maplocs
+	for (map<string, PMAPLOC>::iterator it = LocationMap.begin(); it != LocationMap.end(); it++)
+	{
+		PMAPLOC loc = it->second;
+		if (loc && loc->isCreatedFromDefaultLoc)
+		{
+			loc->lineSize = DefaultMapLoc->lineSize;
+			loc->width = DefaultMapLoc->width;
+			loc->r_color = DefaultMapLoc->r_color;
+			loc->g_color = DefaultMapLoc->g_color;
+			loc->b_color = DefaultMapLoc->b_color;
+			UpdateMapLocLines(loc);
+		}
+	}
+}
+
+VOID ClearMapLocLines(PMAPLOC mapLoc)
+{
+	if (mapLoc)
+	{
+		for (int i = 0; i < 50; i++)
+		{
+			if (mapLoc->markerLines[i])
+			{
+				DeleteLine(mapLoc->markerLines[i]);
+				mapLoc->markerLines[i] = NULL;
+			}
+		}
+	}
+}
+
+VOID UpdateMapLocLines(PMAPLOC mapLoc)
+{
+	if (!mapLoc)
+	{
+		return;
+	}
+	ClearMapLocLines(mapLoc);
+
+	int j = 0;
+	
+	for (int i = 1; i <= mapLoc->width; i++) {
+		if (i == 1)
+		{
+			//Backslash
+			mapLoc->markerLines[j] = InitLine();
+			mapLoc->markerLines[j]->Start.X = (FLOAT) -mapLoc->xloc - mapLoc->lineSize;
+			mapLoc->markerLines[j]->Start.Y = (FLOAT)-mapLoc->yloc - mapLoc->lineSize;
+			mapLoc->markerLines[j]->Start.Z = 0;
+			mapLoc->markerLines[j]->End.X = (FLOAT)-mapLoc->xloc + mapLoc->lineSize;
+			mapLoc->markerLines[j]->End.Y = (FLOAT)-mapLoc->yloc + mapLoc->lineSize;
+			mapLoc->markerLines[j]->End.Z = 0;
+			mapLoc->markerLines[j]->Layer = activeLayer;
+			ARGBCOLOR bsColor;
+			bsColor.ARGB = 0xFF000000 | (mapLoc->r_color << 16) | (mapLoc->g_color << 8) | (mapLoc->b_color);
+			mapLoc->markerLines[j++]->Color = bsColor;
+
+			//Forwardslash
+			mapLoc->markerLines[j] = InitLine();
+			mapLoc->markerLines[j]->Start.X = (FLOAT)-mapLoc->xloc - mapLoc->lineSize;
+			mapLoc->markerLines[j]->Start.Y = (FLOAT)-mapLoc->yloc + mapLoc->lineSize;
+			mapLoc->markerLines[j]->Start.Z = 0;
+			mapLoc->markerLines[j]->End.X = (FLOAT)-mapLoc->xloc + mapLoc->lineSize;
+			mapLoc->markerLines[j]->End.Y = (FLOAT)-mapLoc->yloc - mapLoc->lineSize;
+			mapLoc->markerLines[j]->End.Z = 0;
+			mapLoc->markerLines[j]->Layer = activeLayer;
+			ARGBCOLOR fsColor;
+			fsColor.ARGB = 0xFF000000 | (mapLoc->r_color << 16) | (mapLoc->g_color << 8) | (mapLoc->b_color);
+			mapLoc->markerLines[j++]->Color = fsColor;
+		}
+		else
+		{
+			//Backslash lower
+			mapLoc->markerLines[j] = InitLine();
+			mapLoc->markerLines[j]->Start.X = (FLOAT)-mapLoc->xloc - mapLoc->lineSize;
+			mapLoc->markerLines[j]->Start.Y = (FLOAT)-mapLoc->yloc - mapLoc->lineSize + i - 1;
+			mapLoc->markerLines[j]->Start.Z = 0;
+			mapLoc->markerLines[j]->End.X = (FLOAT)-mapLoc->xloc + mapLoc->lineSize - i + 1;
+			mapLoc->markerLines[j]->End.Y = (FLOAT)-mapLoc->yloc + mapLoc->lineSize;
+			mapLoc->markerLines[j]->End.Z = 0;
+			mapLoc->markerLines[j]->Layer = activeLayer;
+			ARGBCOLOR bslColor;
+			bslColor.ARGB = 0xFF000000 | (mapLoc->r_color << 16) | (mapLoc->g_color << 8) | (mapLoc->b_color);
+			mapLoc->markerLines[j++]->Color = bslColor;
+
+			//Forwardslash lower
+			mapLoc->markerLines[j] = InitLine();
+			mapLoc->markerLines[j]->Start.X = (FLOAT)-mapLoc->xloc - mapLoc->lineSize + i - 1;
+			mapLoc->markerLines[j]->Start.Y = (FLOAT)-mapLoc->yloc + mapLoc->lineSize;
+			mapLoc->markerLines[j]->Start.Z = 0;
+			mapLoc->markerLines[j]->End.X = (FLOAT)-mapLoc->xloc + mapLoc->lineSize;
+			mapLoc->markerLines[j]->End.Y = (FLOAT)-mapLoc->yloc - mapLoc->lineSize + i - 1;
+			mapLoc->markerLines[j]->End.Z = 0;
+			mapLoc->markerLines[j]->Layer = activeLayer;
+			ARGBCOLOR fslColor;
+			fslColor.ARGB = 0xFF000000 | (mapLoc->r_color << 16) | (mapLoc->g_color << 8) | (mapLoc->b_color);
+			mapLoc->markerLines[j++]->Color = fslColor;
+
+			//Backslash upper
+			mapLoc->markerLines[j] = InitLine();
+			mapLoc->markerLines[j]->Start.X = (FLOAT)-mapLoc->xloc - mapLoc->lineSize + i - 1;
+			mapLoc->markerLines[j]->Start.Y = (FLOAT)-mapLoc->yloc - mapLoc->lineSize;
+			mapLoc->markerLines[j]->Start.Z = 0;
+			mapLoc->markerLines[j]->End.X = (FLOAT)-mapLoc->xloc + mapLoc->lineSize;
+			mapLoc->markerLines[j]->End.Y = (FLOAT)-mapLoc->yloc + mapLoc->lineSize - i + 1;
+			mapLoc->markerLines[j]->End.Z = 0;
+			mapLoc->markerLines[j]->Layer = activeLayer;
+			ARGBCOLOR bsuColor;
+			bsuColor.ARGB = 0xFF000000 | (mapLoc->r_color << 16) | (mapLoc->g_color << 8) | (mapLoc->b_color);
+			mapLoc->markerLines[j++]->Color = bsuColor;
+
+			//Forwardslash upper
+			mapLoc->markerLines[j] = InitLine();
+			mapLoc->markerLines[j]->Start.X = (FLOAT)-mapLoc->xloc - mapLoc->lineSize;
+			mapLoc->markerLines[j]->Start.Y = (FLOAT)-mapLoc->yloc + mapLoc->lineSize - i + 1;
+			mapLoc->markerLines[j]->Start.Z = 0;
+			mapLoc->markerLines[j]->End.X = (FLOAT)-mapLoc->xloc + mapLoc->lineSize - i + 1;
+			mapLoc->markerLines[j]->End.Y = (FLOAT)-mapLoc->yloc - mapLoc->lineSize;
+			mapLoc->markerLines[j]->End.Z = 0;
+			mapLoc->markerLines[j]->Layer = activeLayer;
+			ARGBCOLOR fsuColor;
+			fsuColor.ARGB = 0xFF000000 | (mapLoc->r_color << 16) | (mapLoc->g_color << 8) | (mapLoc->b_color);
+			mapLoc->markerLines[j++]->Color = fsuColor;
+		}
+	}
 }

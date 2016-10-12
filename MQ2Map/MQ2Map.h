@@ -44,6 +44,18 @@ using namespace std;
 // normal labels
 
 
+typedef struct _MAPLOC {
+	bool isCreatedFromDefaultLoc;
+	int yloc;
+	int xloc;
+	string tag; // "yloc,xloc"
+	int lineSize;
+	int width;
+	int r_color;
+	int g_color;
+	int b_color;
+	PMAPLINE markerLines[100]; // lineMax = 4*maxWidth
+} MAPLOC, *PMAPLOC;
 
 typedef struct _MAPFILTER {
 	PCHAR szName;
@@ -61,6 +73,11 @@ typedef struct _MAPFILTER {
 } MAPFILTER, *PMAPFILTER;
 
 extern unsigned long bmMapRefresh;
+
+extern int activeLayer;
+
+extern map<string, PMAPLOC> LocationMap;
+extern PMAPLOC DefaultMapLoc;
 
 extern DWORD HighlightColor;
 extern DWORD HighlightSIDELEN;
@@ -89,6 +106,9 @@ VOID MapHideCmd(PSPAWNINFO pChar, PCHAR szLine);
 VOID MapShowCmd(PSPAWNINFO pChar, PCHAR szLine);
 VOID MapNames(PSPAWNINFO pChar, PCHAR szLine);
 VOID MapClickCommand(PSPAWNINFO pChar, PCHAR szLine);
+VOID MapActiveLayerCmd(PSPAWNINFO pChar, PCHAR szLine);
+VOID MapClearLocationCmd(PSPAWNINFO pChar, PCHAR szLine);
+VOID MapSetLocationCmd(PSPAWNINFO pChar, PCHAR szLine);
 PCHAR FormatMarker(PCHAR szLine, PCHAR szDest, SIZE_T BufferSize);
 DWORD TypeToMapfilter(PSPAWNINFO pChar);
 
@@ -103,11 +123,13 @@ DWORD MapShow(SEARCHSPAWN &Search);
 VOID MapUpdate();
 VOID MapAttach();
 VOID MapDetach();
+VOID UpdateDefaultMapLoc();
+VOID ClearMapLocLines(PMAPLOC mapLoc);
+VOID UpdateMapLocLines(PMAPLOC mapLoc);
 
 bool MapSelectTarget();
 DWORD FindMarker(PCHAR szMark);
 long  MakeTime();
-
 
 #ifndef ISXEQ
 BOOL dataMapSpawn(PCHAR szIndex, MQ2TYPEVAR &Ret);

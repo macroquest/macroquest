@@ -1,5 +1,6 @@
 #include "../MQ2Plugin.h"
 #include "MQ2Map.h"
+#include <sstream>
 
 #ifndef ISXEQ
 // ***************************************************************************
@@ -90,7 +91,7 @@ VOID MapFilterSetting(PSPAWNINFO pChar, DWORD nMapFilter, PCHAR szValue)
 			}
 			else {
 				pMapFilter->Enabled = 1;
-				sprintf_s(szBuffer, "%s %s", pMapFilter->szName, FormatMarker(szValue, Buff,sizeof(Buff)));
+				sprintf_s(szBuffer, "%s %s", pMapFilter->szName, FormatMarker(szValue, Buff, sizeof(Buff)));
 			}
 		}
 		else {
@@ -183,31 +184,351 @@ VOID MapFilters(PSPAWNINFO pChar, PCHAR szLine)
 	}
 }
 
+VOID MapActiveLayerCmd(PSPAWNINFO pChar, PCHAR szLine)
+{
+	CHAR szBuffer[MAX_STRING] = { 0 };
+	bRunNextCommand = TRUE;
+	int newActiveLayer = atoi(szLine);
+	if (szLine == 0 || szLine[0] == 0 || newActiveLayer < 0 || newActiveLayer > 3)
+	{
+		SyntaxError("Usage: /mapactivelayer [0|1|2|3]");
+		return;
+	};
+
+	activeLayer = newActiveLayer;
+	
+	sprintf_s(szBuffer, "Map Active Layer: %d", activeLayer);
+	WriteChatColor(szBuffer);
+
+	// Write setting to file
+	char szTest[5];
+	sprintf_s(szTest, "%d", activeLayer);
+	WritePrivateProfileString("Map Filters", "ActiveLayer", szTest, INIFileName);
+
+	// refresh map
+	MapClear();
+	MapGenerate();
+}
+
+VOID MapClearLocationCmd(PSPAWNINFO pChar, PCHAR szLine)
+{
+	if (szLine == 0 || szLine[0] == 0)
+	{
+		for (map<string, PMAPLOC>::iterator it = LocationMap.begin(); it != LocationMap.end(); it++)
+		{
+			PMAPLOC loc = it->second;
+			ClearMapLocLines(loc);
+			delete loc;
+			LocationMap.erase(it);
+		}
+
+		LocationMap.clear();
+		WriteChatColor("MapLocs cleared", USERCOLOR_DEFAULT);
+		return;
+	}
+
+	CHAR szBuffer[MAX_STRING] = { 0 };
+	PCHAR usage = "Usage: /clearloc [yloc xloc]";
+	stringstream ss(szLine);
+	CHAR arg[MAX_STRING];
+	CHAR yloc[MAX_STRING] = { "not set" };
+	CHAR xloc[MAX_STRING] = { "not set" };
+	CHAR tag[MAX_STRING] = { 0 };
+
+	ss >> arg;
+
+	if (strcmp(arg, std::to_string(atoi(arg)).c_str()) != 0) {
+		SyntaxError(usage);
+		return;
+	}
+	strcpy_s(yloc, arg);
+	if (ss && !ss.eof())
+	{
+		ss >> arg;
+		if (strcmp(arg, std::to_string(atoi(arg)).c_str()) != 0) {
+			SyntaxError(usage);
+			return;
+		}
+		strcpy_s(xloc, arg);
+	}
+	else
+	{
+		SyntaxError(usage);
+		return;
+	}
+
+	sprintf_s(tag, "%s,%s", yloc, xloc);
+
+	PMAPLOC loc = LocationMap[tag];
+	if (!loc) {
+		SyntaxError("Could not find MapLoc: %s", tag);
+		return;
+	}
+	ClearMapLocLines(loc);
+	delete loc;
+	LocationMap.erase(tag);
+}
+
+VOID MapSetLocationCmd(PSPAWNINFO pChar, PCHAR szLine)
+{
+	CHAR szBuffer[MAX_STRING] = { 0 };
+	PCHAR usage = "Usage: /maploc [[size 10-200] | [width 1-10] | [color r g b] | [yloc xloc]]";
+	bRunNextCommand = TRUE;
+	
+	CHAR tag[MAX_STRING] = { 0 };
+	CHAR size[MAX_STRING] = { 0 };
+	CHAR width[MAX_STRING] = { 0 };
+	CHAR red[MAX_STRING] = { 0 };
+	CHAR green[MAX_STRING] = { 0 };
+	CHAR blue[MAX_STRING] = { 0 };
+	CHAR yloc[MAX_STRING] = { "not set" };
+	CHAR xloc[MAX_STRING] = { "not set" };
+	bool isDefaultLocSettings = true;
+
+	if (szLine == 0 || szLine[0] == 0)
+	{
+		SyntaxError(usage);
+		return;
+	}
+
+	stringstream ss(szLine);
+	CHAR arg[MAX_STRING];
+
+	// Read arguments into vars
+	while (ss && !ss.eof())
+	{
+		ss >> arg;
+
+		if (!_stricmp(arg, "size"))
+		{
+			if (ss && !ss.eof())
+			{ 
+				ss >> size;
+				isDefaultLocSettings = false;
+			}
+			else
+			{
+				SyntaxError(usage);
+				return;
+			}
+
+			if (atoi(size) < 10 || atoi(width) > 200)
+			{
+				SyntaxError(usage);
+				return;
+			}
+		}
+		else if (!_stricmp(arg, "width"))
+		{
+			if (ss && !ss.eof())
+			{ 
+				ss >> width;
+				isDefaultLocSettings = false;
+			}
+			else
+			{
+				SyntaxError(usage);
+				return;
+			}
+
+			if (atoi(width) < 1 || atoi(width) > 10)
+			{
+				SyntaxError(usage);
+				return;
+			}
+		}
+		else if (!_stricmp(arg, "color"))
+		{
+			if (ss && !ss.eof())
+			{ 
+				ss >> red;
+				isDefaultLocSettings = false;
+			}
+			else
+			{
+				SyntaxError(usage);
+				return;
+			}
+			if (ss && !ss.eof())
+			{ 
+				ss >> green;
+			}
+			else
+			{
+				SyntaxError(usage);
+				return;
+			}
+			if (ss && !ss.eof())
+			{ 
+				ss >> blue;
+			}
+			else
+			{
+				SyntaxError(usage);
+				return;
+			}
+
+			if (atoi(red) < 0 || atoi(red) > 255 || atoi(green) < 0 || atoi(green) > 255 || atoi(blue) < 0 || atoi(blue) > 255)
+			{
+				SyntaxError(usage);
+				return;
+			}
+		}
+		else //assuming yloc xloc
+		{
+			if (strcmp(arg, std::to_string(atoi(arg)).c_str()) != 0) {
+				SyntaxError(usage);
+				return;
+			}
+			strcpy_s(yloc, arg);
+			if (ss && !ss.eof())
+			{
+				ss >> arg;
+				if (strcmp(arg, std::to_string(atoi(arg)).c_str()) != 0) {
+					SyntaxError(usage);
+					return;
+				}
+				strcpy_s(xloc, arg);
+			}
+			else
+			{
+				SyntaxError(usage);
+				return;
+			}
+
+			sprintf_s(tag, "%s,%s", yloc, xloc);
+		}
+	}
+
+	// Get or create MAPLOC entry in LocationMap
+	PMAPLOC loc;
+	if (LocationMap.count(tag) > 0)
+	{
+		loc = LocationMap[tag];
+	}
+	else
+	{
+		loc = new MAPLOC {};
+		loc->tag = tag;
+		loc->lineSize = DefaultMapLoc->lineSize;
+		loc->width = DefaultMapLoc->width;
+		loc->r_color = DefaultMapLoc->r_color;
+		loc->g_color = DefaultMapLoc->g_color;
+		loc->b_color = DefaultMapLoc->b_color;
+	}
+
+	stringstream MapLocVars;
+	MapLocVars << "MapLoc: ";
+
+	if (size != 0 && size[0] != 0)
+	{
+		loc->lineSize = atoi(size);
+	}
+	if (width != 0 && width[0] != 0)
+	{
+		loc->width = atoi(width);
+	}
+	if (red != 0 && red[0] != 0)
+	{
+		loc->r_color = atoi(red);
+		loc->g_color = atoi(green);
+		loc->b_color = atoi(blue);
+	}
+	
+	// Are we placing a new MapLoc?
+	if (strcmp(yloc, "not set") != 0)
+	{
+		loc->yloc = atoi(yloc);
+		loc->xloc = atoi(xloc);
+		loc->isCreatedFromDefaultLoc = isDefaultLocSettings;
+		MapLocVars << "y:" << loc->yloc << " x:" << loc->xloc;
+
+		LocationMap[tag] = loc;
+		UpdateMapLocLines(loc);
+	}
+	else
+	{
+		// If we aren't placing a loc, then the values are updates to the default. Persist them.
+		WritePrivateProfileString("MapLoc", "Size", std::to_string(loc->lineSize).c_str(), INIFileName);
+		WritePrivateProfileString("MapLoc", "Width", std::to_string(loc->width).c_str(), INIFileName);
+		WritePrivateProfileString("MapLoc", "Red", std::to_string(loc->r_color).c_str(), INIFileName);
+		WritePrivateProfileString("MapLoc", "Green", std::to_string(loc->g_color).c_str(), INIFileName);
+		WritePrivateProfileString("MapLoc", "Blue", std::to_string(loc->b_color).c_str(), INIFileName);
+		UpdateDefaultMapLoc();
+	}
+	
+	if (!isDefaultLocSettings)
+	{
+		MapLocVars << ", Width:" << loc->width
+			<< ", Size:" << loc->lineSize
+			<< ", Color:" << loc->r_color << "," << loc->g_color << "," << loc->b_color;
+	}
+	sprintf_s(szBuffer, MapLocVars.str().c_str());
+	WriteChatColor(szBuffer, USERCOLOR_DEFAULT);
+}
 
 VOID MapHighlightCmd(PSPAWNINFO pChar, PCHAR szLine)
 {
 	CHAR szArg[MAX_STRING] = { 0 };
 	CHAR szBuffer[MAX_STRING] = { 0 };
+	CHAR red[MAX_STRING] = { 0 };
+	CHAR green[MAX_STRING] = { 0 };
+	CHAR blue[MAX_STRING] = { 0 };
+	stringstream ss(szLine);
 	bRunNextCommand = TRUE;
+
 	if (szLine == 0 || szLine[0] == 0)
 	{
 		SyntaxError("Usage: /highlight [reset|spawnfilter|size|pulse|[color # # #]]");
 		return;
-	};
+	}
 
-	GetArg(szArg, szLine, 1);
+	ss >> szArg;
+
 	if (!_stricmp(szArg, "color"))
 	{
-		GetArg(szArg, szLine, 2);
-		if (szLine[0] == 0)
+		CHAR usage[MAX_STRING] = { "Usage: /highlight color [0-255] [0-255] [0-255]" };
+
+		if (ss && !ss.eof())
 		{
-			sprintf_s(szBuffer, "Highlight color: %d %d %d", (HighlightColor & 0x00FF0000) >> 16, (HighlightColor & 0x0000FF00) >> 8, (HighlightColor & 0x000000FF));
-			WriteChatColor(szBuffer);
+			ss >> red;
+		}
+		else
+		{
+			SyntaxError(usage);
 			return;
 		}
+		if (ss && !ss.eof())
+		{
+			ss >> green;
+		}
+		else
+		{
+			SyntaxError(usage);
+			return;
+		}
+		if (ss && !ss.eof())
+		{
+			ss >> blue;
+		}
+		else
+		{
+			SyntaxError(usage);
+			return;
+		}
+
+		if (atoi(red) < 0 || atoi(red) > 255 || atoi(green) < 0 || atoi(green) > 255 || atoi(blue) < 0 || atoi(blue) > 255
+			|| strcmp(szArg, std::to_string(atoi(szArg)).c_str()) != 0
+			|| strcmp(szArg, std::to_string(atoi(green)).c_str()) != 0
+			|| strcmp(szArg, std::to_string(atoi(blue)).c_str()) != 0)
+		{
+			SyntaxError(usage);
+			return;
+		}
+		
 		unsigned char R = atoi(szArg);
-		unsigned char G = atoi(GetArg(szArg, szLine, 3));
-		unsigned char B = atoi(GetArg(szArg, szLine, 4));
+		unsigned char G = atoi(green);
+		unsigned char B = atoi(blue);
 		HighlightColor = 0xFF000000 | (R << 16) | (G << 8) | (B);
 		sprintf_s(szBuffer, "Highlight color: %d %d %d", R, G, B);
 		WriteChatColor(szBuffer);
@@ -221,7 +542,22 @@ VOID MapHighlightCmd(PSPAWNINFO pChar, PCHAR szLine)
 	}
 	else if (!_stricmp(szArg, "size"))
 	{
-		HighlightSIDELEN = strtol(GetArg(szArg, szLine, 2), 0, 0);
+		if (ss && !ss.eof())
+		{
+			ss >> szArg;
+		}
+		else
+		{
+			SyntaxError("Usage: /highlight size #");
+			return;
+		}
+
+		if (strcmp(szArg, std::to_string(atoi(szArg)).c_str()) != 0) {
+			SyntaxError("Usage: /highlight size #");
+			return;
+		}
+
+		HighlightSIDELEN = strtol(szArg, 0, 0);
 		PulseReset();
 		sprintf_s(szBuffer, "Highlight size: %d", HighlightSIDELEN);
 		WriteChatColor(szBuffer);
@@ -398,7 +734,7 @@ PCHAR DescribeCombo(DWORD Combo)
 	int pos = 0;
 	if (Combo&XKF_SHIFT)
 	{
-		strcpy_s(&Description[pos],256-pos, "shift");
+		strcpy_s(&Description[pos], 256 - pos, "shift");
 		pos += 5;
 	}
 	if (Combo&XKF_CTRL)
@@ -409,7 +745,7 @@ PCHAR DescribeCombo(DWORD Combo)
 			pos++;
 		}
 
-		strcpy_s(&Description[pos],256-pos, "ctrl");
+		strcpy_s(&Description[pos], 256 - pos, "ctrl");
 		pos += 4;
 	}
 
@@ -421,7 +757,7 @@ PCHAR DescribeCombo(DWORD Combo)
 			pos++;
 		}
 
-		strcpy_s(&Description[pos],sizeof(Description)-pos, "lalt");
+		strcpy_s(&Description[pos], sizeof(Description) - pos, "lalt");
 		pos += 4;
 	}
 
@@ -433,7 +769,7 @@ PCHAR DescribeCombo(DWORD Combo)
 			pos++;
 		}
 
-		strcpy_s(&Description[pos], sizeof(Description)-pos, "ralt");
+		strcpy_s(&Description[pos], sizeof(Description) - pos, "ralt");
 	}
 
 	if (!Description[0])
@@ -452,7 +788,7 @@ DWORD ParseCombo(PCHAR Combo)
 	CHAR Copy[MAX_STRING];
 	strcpy_s(Copy, Combo);
 	char *Next_Token1 = 0;
-	Combo = strtok_s(Copy, "+",&Next_Token1);
+	Combo = strtok_s(Copy, "+", &Next_Token1);
 	while (Combo)
 	{
 		if (!_stricmp(Combo, "ctrl"))
@@ -465,7 +801,7 @@ DWORD ParseCombo(PCHAR Combo)
 			Ret += XKF_RALT;
 		else if (!_stricmp(Combo, "alt"))
 			Ret += XKF_LALT;
-		Combo = strtok_s(NULL, "+",&Next_Token1);
+		Combo = strtok_s(NULL, "+", &Next_Token1);
 	}
 	return Ret;
 }

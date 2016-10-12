@@ -1183,6 +1183,38 @@ TLO(dataFindItem)
 			}
 		}
 	}
+	#ifdef BETA
+	//still not found? fine... check familiars keyring
+	if (pChar && pChar->pFamiliarArray && pChar->pFamiliarArray->Familiars) {
+		for (unsigned long nSlot = 0; nSlot < MAX_KEYRINGITEMS; nSlot++)
+		{
+			if (PCONTENTS pItem = pChar->pFamiliarArray->Familiars[nSlot])	{
+				if (PITEMINFO theitem = GetItemFromContents(pItem)) {
+					if (bExact)
+					{
+						if (!_stricmp(Name, theitem->Name))
+						{
+							Ret.Ptr = pItem;
+							Ret.Type = pItemType;
+							return true;
+						}
+					}
+					else
+					{
+						strcpy_s(Temp, theitem->Name);
+						_strlwr_s(Temp);
+						if (strstr(Temp, Name))
+						{
+							Ret.Ptr = pItem;
+							Ret.Type = pItemType;
+							return true;
+						}
+					}
+				}
+			}
+		}
+	}
+	#endif //BETA
 #endif
 	return false;
 }

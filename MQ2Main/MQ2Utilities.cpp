@@ -7529,6 +7529,33 @@ PCONTENTS FindItemByName(PCHAR pName, BOOL bExact)
 			}
 		}
 	}
+	#ifdef BETA
+	//still not found? fine... check familiars keyring
+	if (pChar && pChar->pFamiliarArray && pChar->pFamiliarArray->Familiars) {
+		for (unsigned long nSlot = 0; nSlot < MAX_KEYRINGITEMS; nSlot++)
+		{
+			if (PCONTENTS pItem = pChar->pFamiliarArray->Familiars[nSlot])
+			{
+				if (bExact)
+				{
+					if (!_stricmp(Name, GetItemFromContents(pItem)->Name))
+					{
+						return pItem;;
+					}
+				}
+				else
+				{
+					strcpy_s(Temp, GetItemFromContents(pItem)->Name);
+					_strlwr_s(Temp);
+					if (strstr(Temp, Name))
+					{
+						return pItem;
+					}
+				}
+			}
+		}
+	}
+	#endif //BETA
 #endif
 	return 0;
 }
@@ -7600,6 +7627,19 @@ PCONTENTS FindItemByID(DWORD ItemID)
 			}
 		}
 	}
+	#ifdef BETA
+	if (pChar && pChar->pFamiliarArray && pChar->pFamiliarArray->Familiars) {
+		for (unsigned long nSlot = 0; nSlot < MAX_KEYRINGITEMS; nSlot++)
+		{
+			if (PCONTENTS pItem = pChar->pFamiliarArray->Familiars[nSlot])
+			{
+				if (ItemID == GetItemFromContents(pItem)->ItemNumber) {
+					return pItem;
+				}
+			}
+		}
+	}
+	#endif //BETA
 #endif
 	return 0;
 }

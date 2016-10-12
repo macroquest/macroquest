@@ -1,3 +1,5 @@
+#include <sstream>
+
 // MQ2Map.cpp : Defines the entry point for the DLL application.
 //
 
@@ -15,6 +17,10 @@ long repeatInterval = 10;
 clock_t highPulseRepeatLast = clock();
 long highPulseRepeatIntervalMillis = 50;
 unsigned long bmMapRefresh = 0;
+
+int activeLayer = 2;
+
+WORD currentZoneId = 0;
 
 BOOL repeatMaphide = FALSE;
 BOOL repeatMapshow = FALSE;
@@ -288,11 +294,19 @@ PLUGIN_API VOID InitializePlugin(VOID)
 		MapFilterOptions[i].Marker = mark;
 		MapFilterOptions[i].MarkerSize = GetPrivateProfileInt("Marker Filters", tmp_1, 0, INIFileName);
 	}
+
+	activeLayer = GetPrivateProfileInt("Map Filters", "ActiveLayer", activeLayer, INIFileName);
+
+	UpdateDefaultMapLoc();
+
 	repeatMapshow = GetPrivateProfileInt("Map Filters", "Mapshow-Repeat", FALSE, INIFileName);
 	repeatMaphide = GetPrivateProfileInt("Map Filters", "Maphide-Repeat", FALSE, INIFileName);
 
 	HighlightSIDELEN = GetPrivateProfileInt("Map Filters", "HighSize", HighlightSIDELEN, INIFileName);
 	HighlightPulse = GetPrivateProfileInt("Map Filters", "HighPulse", HighlightPulse, INIFileName);
+	HighlightPulseIncreasing = TRUE;
+	HighlightPulseIndex = 0;
+	HighlightPulseDiff = HighlightSIDELEN / 10;
 
 	GetPrivateProfileString("Map Filters", "Mapshow", "", mapshowStr, MAX_STRING, INIFileName);
 	GetPrivateProfileString("Map Filters", "Maphide", "", maphideStr, MAX_STRING, INIFileName);
@@ -316,6 +330,9 @@ PLUGIN_API VOID InitializePlugin(VOID)
 	AddCommand("/highlight", MapHighlightCmd, 0, 1, 1);
 	AddCommand("/mapnames", MapNames, 0, 1, 1);
 	AddCommand("/mapclick", MapClickCommand, 0, 1, 0);
+	AddCommand("/mapactivelayer", MapActiveLayerCmd, 0, 1, 1);
+	AddCommand("/maploc", MapSetLocationCmd, 0, 1, 1);
+	AddCommand("/clearloc", MapClearLocationCmd, 0, 1, 1);
 
 	EzDetourwName(CMapViewWnd__CMapViewWnd, &CMyMapViewWnd::Constructor_Detour, &CMyMapViewWnd::Constructor_Trampoline,"CMapViewWnd__CMapViewWnd");
 	CMyMapViewWnd::StealVFTable();
@@ -343,6 +360,9 @@ PLUGIN_API VOID ShutdownPlugin(VOID)
 	RemoveCommand("/highlight");
 	RemoveCommand("/mapnames");
 	RemoveCommand("/mapclick");
+	RemoveCommand("/mapactivelayer");
+	RemoveCommand("/maploc");
+	RemoveCommand("/clearloc");
 }
 
 // This is called every time MQ pulses
@@ -355,6 +375,21 @@ PLUGIN_API VOID OnPulse(VOID)
 	clock_t curClockTime = clock();
 	bool cleared = false;
 
+	// Clear MapLocs on zone
+	if (PCHARINFO charInfo = GetCharInfo()) {
+		if (currentZoneId != charInfo->zoneId)
+		{
+			for (map<string, PMAPLOC>::iterator it = LocationMap.begin(); it != LocationMap.end(); it++)
+			{
+				PMAPLOC loc = it->second;
+				ClearMapLocLines(loc);
+				delete loc;
+				LocationMap.erase(it);
+			}
+			LocationMap.clear();
+			currentZoneId = charInfo->zoneId;
+		}
+	}
 	CHAR szBuffer[MAX_STRING] = { 0 };
 
 	if (curClockTime > highPulseRepeatLast + highPulseRepeatIntervalMillis && HighlightPulse)
@@ -408,7 +443,7 @@ PLUGIN_API VOID OnPulse(VOID)
 PLUGIN_API VOID OnAddSpawn(PSPAWNINFO pNewSpawn)
 {
 	// your toon's spawn id changes and it's no longer zero to start
-	// don't added it all
+	// don't added it all 
 	if (pNewSpawn) {
 		if (PCHARINFO pMe = (PCHARINFO)GetCharInfo()) {
 			if (Update && pNewSpawn->SpawnID != 0 && pMe->pSpawn != pNewSpawn) {

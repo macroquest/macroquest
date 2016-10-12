@@ -13,6 +13,7 @@ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 GNU General Public License for more details.
 
 Change log:
+# Version: 2.7 - EqMule 10-04-2016 - Added a new flag to make sure we have tried to get credentials. and some other stuff
 # Version: 2.6 - Derple 08-21-2016 - Added a new flag which disables autologin after the first successful login.  It can re-enabled by pressing HOME.
 # Version: 2.5 - Eqmule 07-29-2016 - Moved processing into its own detour, removed waitforinputidle and all arbitrary Sleeps.
 # Version: 2.4 - Eqmule 07-22-2016 - Added support for emulators
@@ -108,7 +109,7 @@ Change log:
 
 
 #include "../MQ2Plugin.h"
-PLUGIN_VERSION(2.6);
+PLUGIN_VERSION(2.7);
 #include <map>
 #include <tlhelp32.h>
 PreSetup("MQ2AutoLogin");
@@ -123,7 +124,7 @@ PreSetup("MQ2AutoLogin");
 /*** this can be changed ***/
 #define DBG_LOGFILE_PATH "c:\\MQ2AutoLogin_dbg.txt"
 
-
+bool bLoginCheckDone = false;
 #ifdef AUTOLOGIN_DBG
 #define AutoLoginDebug DebugLog
 #else
@@ -146,6 +147,7 @@ _ServerData ServerData[] = {
     {"vulak",      157},
     {"mayong",     163},
     {"antonius",    68},
+    {"beta",        67},
     {"bertox",      53},
     {"bristle",      9},
     {"cazic",       49},
@@ -778,6 +780,7 @@ void AddOurPulse()
 			if (Login__Pulse_x) {// = (DWORD)dwEQMainBase + 0x11030;
 				bGotOffsets = false;
 				if (*(BYTE*)Login__Pulse_x != 0xe9) {
+					bLoginCheckDone = false;
 					EzDetourwName(Login__Pulse_x, &Login::Pulse_Detour, &Login::Pulse_Tramp,"Login__Pulse_x");
 				}
 			}
@@ -1102,6 +1105,7 @@ PLUGIN_API VOID OnPulse(VOID)
 		}
         if( !szNewChar || szNewChar[0] == '\0' && bEndAfterCharSelect && bLogin )
         {
+			//MessageBoxA(NULL,"Setting bLogin to false due to \"!szNewChar || szNewChar[0] == '\0' && bEndAfterCharSelect && bLogin\"","",MB_OK);
             bLogin = false;
             WriteChatf( "\ayAutologin now ended... press HOME to Re-Enable.", szNewChar );
         }
@@ -1126,7 +1130,11 @@ void SwitchCharacter(char *szName)
 								((CCharacterSelect *)pCharSelect)->SelectCharacter(i, 1, 1);
 								((CCharacterSelect *)pCharSelect)->EnterWorld();
                                 
-                                if( bEndAfterCharSelect ) bLogin = false;
+                                if (bEndAfterCharSelect)
+								{
+									//MessageBoxA(NULL,"Setting bLogin to false due to \"bEndAfterCharSelect\"","",MB_OK);
+									bLogin = false;
+								}
 
 								return;
 							}
@@ -1191,8 +1199,26 @@ bool bWait = false;
 bool bServerWait = false;
 void HandleWindows()
 {
-    if( !bLogin )
+	if( !bLogin )
     {
+		//we have to check this even when bLogin is false because we could be stuck at charselect in a timeout...
+		if (WindowActive("serverselect"))
+		{
+			if (WindowActive("okdialog"))
+			{
+				if (CXWnd *pWnd = WindowMap["okdialog"]->_GetChildItem("OK_Display"))
+				{
+					char szTemp[MAX_STRING * 8] = { 0 };
+					if (((CXWnd2*)pWnd)->GetType() == UI_STMLBox)
+						GetCXStr(((CSidlScreenWnd*)pWnd)->InputText, szTemp, MAX_STRING * 8);
+					else
+						GetCXStr(((CSidlScreenWnd*)pWnd)->WindowText, szTemp, MAX_STRING * 8);
+					if (szTemp[0] && strstr(szTemp, "A timeout occurred")) {
+						bLogin = true;
+					}
+				}
+			}
+		}
         return;
     }
 
@@ -1273,6 +1299,7 @@ void HandleWindows()
 					return;
 				} else if (szTemp[0] && strstr(szTemp, "password were not valid")) {
 					AutoLoginDebug(szTemp);
+					//MessageBox(NULL,"Setting bLogin to false due to \"password were not valid\"","",MB_OK);
 					bLogin = false;
 					return;
 				} else if (szTemp[0] && strstr(szTemp, "A timeout occurred")) {
@@ -1282,6 +1309,7 @@ void HandleWindows()
 					return;
 				} else if (szTemp[0] && strstr(szTemp, "This login requires that the account be activated.  Please make sure your account is active in order to login.")) {
 					AutoLoginDebug(szTemp);
+					//MessageBoxA(NULL,"Setting bLogin to false due to \"This login requires that the account be activated.\"","",MB_OK);
 					bLogin = false;
 					return;
 				} else if (szTemp[0] && strstr(szTemp, "You have a character logged into a world server as an OFFLINE TRADER from this account")) {
@@ -1368,7 +1396,7 @@ void HandleWindows()
 				}
 			} else if(bUseStationNamesInsteadOfSessions) {
                 AutoLoginDebug("HandleWindows(): Using station name instead of session number");
-
+				bLoginCheckDone = true;
                 GetCXStr(((CSidlScreenWnd*)pWnd)->InputText, szStationName, 64);
 
                 if(szStationName[0])
@@ -1482,6 +1510,7 @@ void HandleWindows()
 
                     if(pWnd)
                         pWnd->WndNotification(pWnd, XWM_LCLICK, 0);
+					//MessageBoxA(NULL,"Setting bLogin to false due to \"You already have a character logged into a world server from this account.\"","",MB_OK);
                     bLogin = false;
                 }
             }
@@ -1490,6 +1519,7 @@ void HandleWindows()
 			return;
         } else if (!szServerName[0]) {
 			AutoLoginDebug("HandleWindows(): szServerName NULL at serverselect.  Ending Login");
+			//MessageBoxA(NULL,"Setting bLogin to false due to \"HandleWindows(): szServerName NULL at serverselect.  Ending Login\"","",MB_OK);
 			bLogin = false;
 			bEnd = true;
 			return;

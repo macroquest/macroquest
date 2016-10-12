@@ -168,13 +168,8 @@ FUNCTION_AT_ADDRESS(int  EQ_Character1::Max_HP(int,int),EQ_Character__Max_HP);
 FUNCTION_AT_ADDRESS(bool EQ_Character::DoCombatAbility(int spellID, int dummy), EQ_Character__doCombatAbility); 
 #endif 
 
-FUNCTION_AT_VIRTUAL_ADDRESS(void CChatWindow::operator delete[](void*),0x04);
 FUNCTION_AT_VIRTUAL_ADDRESS(bool CXWnd::IsValid(void)const,0);
-FUNCTION_AT_VIRTUAL_ADDRESS(int CXWnd::WndNotification(class CXWnd *,unsigned __int32,void *),0x88);
-FUNCTION_AT_VIRTUAL_ADDRESS(int CXWnd::OnResize(int,int),0x09c);
-FUNCTION_AT_VIRTUAL_ADDRESS(int CXWnd::Show(bool,bool,bool),0x0d8);
-FUNCTION_AT_VIRTUAL_ADDRESS(int CXWnd::SetVScrollPos(int),0x134);
-FUNCTION_AT_VIRTUAL_ADDRESS(void CXWnd::SetWindowTextA(class CXStr &),0x124);
+FUNCTION_AT_VIRTUAL_ADDRESS(void CChatWindow::operator delete[](void*),0x4);
 FUNCTION_AT_VIRTUAL_ADDRESS(int CXWnd::HandleLButtonDown(class CXPoint *,unsigned __int32),0x38);
 FUNCTION_AT_VIRTUAL_ADDRESS(int CXWnd::HandleLButtonUp(class CXPoint *,unsigned __int32),0x3c);
 FUNCTION_AT_VIRTUAL_ADDRESS(int CXWnd::HandleLButtonHeld(class CXPoint *,unsigned __int32),0x40);
@@ -183,9 +178,21 @@ FUNCTION_AT_VIRTUAL_ADDRESS(int CXWnd::HandleRButtonDown(class CXPoint *,unsigne
 FUNCTION_AT_VIRTUAL_ADDRESS(int CXWnd::HandleRButtonUp(class CXPoint *,unsigned __int32),0x4c);
 FUNCTION_AT_VIRTUAL_ADDRESS(int CXWnd::HandleRButtonHeld(class CXPoint *,unsigned __int32),0x50);
 FUNCTION_AT_VIRTUAL_ADDRESS(int CXWnd::HandleRButtonUpAfterHeld(class CXPoint *,unsigned __int32),0x54);
+FUNCTION_AT_VIRTUAL_ADDRESS(int CXWnd::WndNotification(class CXWnd *,unsigned __int32,void *),0x88);
+FUNCTION_AT_VIRTUAL_ADDRESS(int CXWnd::OnResize(int,int),0x09c);
 FUNCTION_AT_VIRTUAL_ADDRESS(int CXWnd::OnMinimizeBox(void),0xac);
+FUNCTION_AT_VIRTUAL_ADDRESS(int CXWnd::Show(bool,bool,bool),0x0d8);
+#ifndef BETA
 FUNCTION_AT_VIRTUAL_ADDRESS(class CXRect CXWnd::GetClientRect(void)const,0xf8);
+FUNCTION_AT_VIRTUAL_ADDRESS(void CXWnd::SetWindowTextA(class CXStr &),0x124);
+FUNCTION_AT_VIRTUAL_ADDRESS(int CXWnd::SetVScrollPos(int),0x134);
 FUNCTION_AT_VIRTUAL_ADDRESS(void CListWnd::DeleteAll(void),0x17c);//see CComboWnd__DeleteAll_x
+#else
+FUNCTION_AT_VIRTUAL_ADDRESS(class CXRect CXWnd::GetClientRect(void)const,0xfc);
+FUNCTION_AT_VIRTUAL_ADDRESS(void CXWnd::SetWindowTextA(class CXStr &),0x128);
+FUNCTION_AT_VIRTUAL_ADDRESS(int CXWnd::SetVScrollPos(int),0x138);
+FUNCTION_AT_VIRTUAL_ADDRESS(void CListWnd::DeleteAll(void),0x180);//see CComboWnd__DeleteAll_x
+#endif
 
 #if defined(EMU)
 FUNCTION_AT_VIRTUAL_ADDRESS(int SpellManager::dSpellManager(void *, bool), 0x00);

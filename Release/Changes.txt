@@ -1,3 +1,15 @@
+11 Oct 2016 by eqmule
+- Updated for BETA
+- I had a lot to do and it was difficult to get this working, so it's not tested properly.
+  I basically wanted to get it out before they patch again.
+
+01 Oct 2016 by eqmule
+- some new stuff added to the map by JudgeD
+	/mapactivelayer
+	/maploc
+	/clearloc
+	see this post for more info: http://www.macroquest2.com/phpBB3/viewtopic.php?f=17&t=19987
+
 29 Sep 2016 by eqmule
 - Added fellowship to the spawnsearch tlo - Idea Cred: mwilliam
   Example usage:
