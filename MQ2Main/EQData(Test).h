@@ -2346,6 +2346,56 @@ typedef struct _CHATSERVICE {
 /*0x0b0*/ // more data
 } CHATSERVICE, *PCHATSERVICE;
 
+//size 0x164 Oct 12 2016 eqmule
+typedef struct _CSINFO
+{
+/*0x000*/	CHAR Name[0x40]; 
+/*0x040*/	UINT Class;
+/*0x044*/	UINT Race;
+/*0x048*/	BYTE Level; 
+/*0x049*/	BYTE Padding0x049[0x3]; 
+/*0x04c*/	UINT Class2;
+/*0x050*/	UINT Race2;
+/*0x054*/	int CurZoneID;
+/*0x058*/	BYTE morestuff[0x10c];
+//todo: add the stuff below and pad it, but for now I just need the zone id.
+///*0x058*/	BYTE Sex; 
+///*0x059*/	BYTE Face; 
+///*0x05a*/	BYTE Padding0x05a[0x2]; 
+///*0x05c*/	struct _ARMOR Armor[9]; 
+///*0x000*/	unsigned long ArmorTint[9]; 
+///*0x000*/	CHAR TextureType;
+///*0x000*/	CHAR Armor1;
+///*0x000*/	CHAR Armor2;
+///*0x000*/	CHAR headType;
+///*0x000*/	int Tattoo;
+///*0x000*/	int Details;
+///*0x000*/	int Deity; 
+///*0x000*/	void* pActorClient; 
+///*0x000*/	void* pActorClient2; 
+///*0x000*/	BYTE HairColor;
+///*0x000*/	BYTE FacialHairColor;
+///*0x000*/	BYTE EyeColor1;//left
+///*0x000*/	BYTE EyeColor2;//right
+///*0x000*/	BYTE HairStyle;
+///*0x000*/	BYTE FacialHair;
+///*0x000*/	bool bCanGoHome;
+///*0x000*/	bool bCanTutorial;
+///*0x000*/	int ID;
+///*0x000*/	bool bTooHighLevel;
+///*0x000*/	bool bUnknown;
+///*0x000*/	long lUnknown;
+///*0x000*/	bool bWhat;
+///*0x000*/    bool bHeroicCharacter;
+///*0x000*/    bool bShrouded;
+/*0x164*/
+} CSINFO, *PCSINFO;
+
+typedef struct _CharSelectPlayerArray
+{
+	//note that CharSelectPlayerCount determines how many are actully here
+	CSINFO CharacterInfo[13];//is 13 chars the max u can have?
+} CharSelectPlayerArray,*PCharSelectPlayerArray;
 typedef struct _EVERQUEST {
 	/*0x000*/ BYTE   Unknown[0x2a4];
 	/*0x2a4*/ struct _CHATSERVICE *ChatService;
@@ -2359,7 +2409,11 @@ typedef struct _EVERQUEST {
 	/*0x5c0*/ DWORD  TargetRing;
 	/*0x5c4*/ DWORD	 WorldState;//0 everything is fine, 1 we are getting disconnected 2 player not released from zone
 	/*0x5c8*/ DWORD  GameState;
-	/*0x5cc*/ // more data
+	/*0x5cc*/ BYTE  Unknown0x5cc[0x388B0];
+	/*0x38E80*/ DWORD CharSelectPlayerMaxCount;
+	/*0x38E84*/ DWORD CharSelectPlayerCount;
+	/*0x38E88*/ PCharSelectPlayerArray pCharSelectPlayerArray;
+	/*0x38E88*/ // more data
 } EVERQUEST, *PEVERQUEST;
 
 typedef struct _AURAINFO {

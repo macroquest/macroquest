@@ -2899,7 +2899,40 @@ public:
 		return false;
 	}
 };
+class MQ2CharSelectListType : public MQ2Type
+{
+public:
+	enum CharSelectListMembers
+	{
+		ZoneID = 1,
+	};
+	enum CharSelectListMethods
+	{
+	};
+	MQ2CharSelectListType() :MQ2Type("charselectlist")
+	{
+		TypeMember(ZoneID);
+	}
+	~MQ2CharSelectListType()
+	{
+	}
 
+	bool GETMEMBER();
+	DECLAREGETMETHOD();
+
+	bool ToString(MQ2VARPTR VarPtr, PCHAR Destination)
+	{
+		return false;
+	}
+	bool FromData(MQ2VARPTR &VarPtr, MQ2TYPEVAR &Source)
+	{
+		return false;
+	}
+	bool FromString(MQ2VARPTR &VarPtr, PCHAR Source)
+	{
+		return false;
+	}
+};
 class MQ2EverQuestType : public MQ2Type
 {
 public:
@@ -2929,6 +2962,7 @@ public:
 		xScreenMode = 22,
 		LayoutCopyInProgress = 23,
 		LastMouseOver = 24,
+		CharSelectList = 25,
 	};
 	enum EverQuestMethods
 	{
@@ -2959,6 +2993,8 @@ public:
 		AddMember(xScreenMode, "ScreenMode");
 		TypeMember(LayoutCopyInProgress);
 		TypeMember(LastMouseOver);
+		TypeMember(CharSelectList);
+		
 	}
 
 	~MQ2EverQuestType()

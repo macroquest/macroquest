@@ -825,7 +825,7 @@ FUNCTION_AT_ADDRESS(int  CCharacterSelect::NumberOfCharacters(void),CCharacterSe
 FUNCTION_AT_ADDRESS(unsigned char  CCharacterSelect::IsEvil(int,int,int),CCharacterSelect__IsEvil);
 #endif
 #ifdef CCharacterSelect__SelectCharacter_x
-FUNCTION_AT_ADDRESS(void  CCharacterSelect::SelectCharacter(int,int,int),CCharacterSelect__SelectCharacter);
+FUNCTION_AT_ADDRESS(void  CCharacterSelect::SelectCharacter(int,bool,bool),CCharacterSelect__SelectCharacter);
 #endif
 #ifdef CCharacterSelect__SetLoadZonePlayerLocation_x
 FUNCTION_AT_ADDRESS(void  CCharacterSelect::SetLoadZonePlayerLocation(void),CCharacterSelect__SetLoadZonePlayerLocation);
@@ -3090,13 +3090,13 @@ FUNCTION_AT_ADDRESS(void  CVideoModesWnd::RestoreOldMode(void),CVideoModesWnd__R
 FUNCTION_AT_ADDRESS( CGuild::CGuild(void),CGuild__CGuild);
 #endif
 #ifdef CGuild__GetGuildName_x
-FUNCTION_AT_ADDRESS(char *  CGuild::GetGuildName(int),CGuild__GetGuildName);
+FUNCTION_AT_ADDRESS(char * CGuild::GetGuildName(int,int),CGuild__GetGuildName);
 #endif
 #ifdef CGuild__ValidGuildName_x
 FUNCTION_AT_ADDRESS(bool  CGuild::ValidGuildName(int),CGuild__ValidGuildName);
 #endif
 #ifdef CGuild__GetGuildIndex_x
-FUNCTION_AT_ADDRESS(int  CGuild::GetGuildIndex(char *),CGuild__GetGuildIndex);
+FUNCTION_AT_ADDRESS(int CGuild::GetGuildIndex(char *),CGuild__GetGuildIndex);
 #endif
 #ifdef CGuild__SendPublicCommentChange_x
 FUNCTION_AT_ADDRESS(void  CGuild::SendPublicCommentChange(char *,char *),CGuild__SendPublicCommentChange);
@@ -3149,6 +3149,12 @@ FUNCTION_AT_ADDRESS(void  CGuild::ChangeGuildMemberName(char *),CGuild__ChangeGu
 #ifdef CGuild__FindMemberByName_x
 FUNCTION_AT_ADDRESS(class GuildMember *  CGuild::FindMemberByName(char *),CGuild__FindMemberByName);
 #endif
+/*#ifdef CGuild__GetGuildName_x
+FUNCTION_AT_ADDRESS(char *  CGuild::GetGuildName(int index, int index2),CGuild__GetGuildName);
+#endif
+#ifdef CGuild__GetGuildIndex_x
+FUNCTION_AT_ADDRESS(int CGuild::GetGuildIndex(char *name),CGuild__GetGuildIndex);
+#endif*/
 #ifdef GuildMember__GuildMember_x
 FUNCTION_AT_ADDRESS( GuildMember::GuildMember(void),GuildMember__GuildMember);
 #endif

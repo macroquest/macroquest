@@ -1235,7 +1235,7 @@ DWORD GetDeityTeamByID(DWORD DeityID) {
 		return 0;
 	}
 }
-
+#ifndef BETA
 PCHAR GetGuildByID(DWORD GuildID)
 {
 	if (PGUILD pGuild = pGuildList->GuildList[GuildID % pGuildList->HashValue])
@@ -1254,7 +1254,17 @@ PCHAR GetGuildByID(DWORD GuildID)
 
 	return 0;
 }
+#else 
+	PCHAR GetGuildByID(DWORD GuildID)
+	{
+		if (PCHAR thename = pGuild->GetGuildName(GuildID, ((PSPAWNINFO)pLocalPlayer)->GuildID2)) {
+			return thename;
+		}
+		return 0;
+	}
+#endif
 
+#ifndef BETA
 DWORD GetGuildIDByName(PCHAR szGuild)
 {
 	DWORD n;
@@ -1282,7 +1292,12 @@ DWORD GetGuildIDByName(PCHAR szGuild)
 
 	return 0xFFFFFFFF;
 }
-
+#else
+DWORD GetGuildIDByName(PCHAR szGuild)
+{
+	return pGuild->GetGuildIndex(szGuild);
+}
+#endif
 PCHAR GetLightForSpawn(PSPAWNINFO pSpawn)
 {
 	BYTE Light = pSpawn->Light;

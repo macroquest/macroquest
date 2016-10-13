@@ -1127,7 +1127,7 @@ void SwitchCharacter(char *szName)
 						if (szOut[0] != '\0') {
 							if (!_stricmp(szName, szOut)) {
 								DWORD pCharSelect = *(DWORD*)pinstCCharacterSelect;
-								((CCharacterSelect *)pCharSelect)->SelectCharacter(i, 1, 1);
+								((CCharacterSelect *)pCharSelect)->SelectCharacter(i);
 								((CCharacterSelect *)pCharSelect)->EnterWorld();
                                 
                                 if (bEndAfterCharSelect)
@@ -1166,7 +1166,7 @@ void SelectCharacter( char *szName )
                         if( szOut[0] != '\0' ) {
                             if( !_stricmp( szName, szOut ) ) {
                                 DWORD pCharSelect = *(DWORD*)pinstCCharacterSelect;
-                                ((CCharacterSelect *)pCharSelect)->SelectCharacter( i, 1, 1 );
+                                ((CCharacterSelect *)pCharSelect)->SelectCharacter(i);
                                 return;
                             }
                         }

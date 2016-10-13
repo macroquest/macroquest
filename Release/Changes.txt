@@ -1,3 +1,13 @@
+12 Oct 2016 by eqmule
+- Updated for BETA
+- Added CharSelectList to the EverQuest TLO, it only has 1 member for now: ZoneID
+  it returns the zoneid the character is currently in.
+  Usage: /echo Im at charsselect and ${Window[CharacterListWnd].Child[CLW_Character_List].List[1,3]} is in ${EverQuest.CharSelectList[1].ZoneID}
+  Output:  (if a char named Eqmule is the first in your charlist) Im at charselect and Eqmule is in 202
+  OR:
+  /echo Im at charsselect and Eqmule is in ${EverQuest.CharSelectList[Eqmule].ZoneID}
+  Output: same as above.
+
 11 Oct 2016 by eqmule
 - Updated for BETA
 - I had a lot to do and it was difficult to get this working, so it's not tested properly.
@@ -58,7 +68,7 @@ Sunday is funday... so here is some fluff:
 - Fixed a crash bug in listwnd::addstring for the test build -report cred: fry
 - ISXEQ once again compiles... sorry about the long wait.
   BIG NOTE: it now includes ISXDK 35, this means you should use VS 2015 with toolset 140 to build it.
-  one thing though... mq2ic doesnt load for some reson for it
+  one thing though... mq2ic doesnt load for some reason for it
   I have contacted Lax and hope we can figure out a workaround.
   Bottomline... yeah... you CAN build isxeq now...
   but its not protected by mq2ic, so run at your own risk.

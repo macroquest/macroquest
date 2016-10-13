@@ -1077,6 +1077,9 @@ namespace MQ2Globals
 	EQLIB_VAR DWORD CGaugeWnd__Draw;
 
 	EQLIB_VAR DWORD CGuild__FindMemberByName;
+	EQLIB_VAR DWORD CGuild__GetGuildName;
+	EQLIB_VAR DWORD CGuild__GetGuildIndex;
+	
 	EQLIB_VAR DWORD CharacterBase__GetMemorizedSpell;
 	EQLIB_VAR DWORD CharacterBase__CreateItemGlobalIndex;
 	EQLIB_VAR DWORD CharacterBase__CreateItemIndex;

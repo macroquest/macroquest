@@ -7872,6 +7872,27 @@ bool MQ2MacroQuestType::GETMEMBER()
 	}
 	return false;
 }
+bool MQ2CharSelectListType::GETMEMBER()
+{
+	PMQ2TYPEMEMBER pMember = MQ2CharSelectListType::FindMember(Member);
+	if (!pMember)
+		return false;
+	switch ((CharSelectListMembers)pMember->ID)
+	{
+		case ZoneID:
+		{
+			if (pEverQuest && ((PEVERQUEST)pEverQuest)->pCharSelectPlayerArray) {
+				int zoneid = ((PEVERQUEST)pEverQuest)->pCharSelectPlayerArray->CharacterInfo[VarPtr.DWord].CurZoneID;
+				Dest.DWord = (zoneid & 0x7FFF);
+				Dest.Type = pIntType;
+				return true;
+			}
+			break;
+		}
+		break;
+	}
+	return false;
+}
 bool MQ2EverQuestType::GETMEMBER()
 {
 	PMQ2TYPEMEMBER pMember = MQ2EverQuestType::FindMember(Member);
@@ -8075,6 +8096,44 @@ bool MQ2EverQuestType::GETMEMBER()
 			Dest.Ptr = pwndmgr->LastMouseOver;
 			Dest.Type = pWindowType;
 			return true;
+		}
+		break;
+	case CharSelectList:
+		if (ISINDEX())
+		{
+			if (ISNUMBER())
+			{
+				int num = atoi(GETFIRST());
+				num--;
+				if (num < 0)
+					num = 0;
+				if (PEVERQUEST pEQ = (PEVERQUEST)pEverQuest) {
+					if (pEQ->CharSelectPlayerCount && num <= (int)pEQ->CharSelectPlayerCount && pEQ->pCharSelectPlayerArray) {
+						Dest.DWord = num;
+						Dest.Type = pCharSelectListType;
+						return true;
+					}
+				}
+			}
+			else {
+				if (PCHAR pName = GETFIRST()) {
+					CHAR szName[256] = { 0 };
+					if (PEVERQUEST pEQ = (PEVERQUEST)pEverQuest) {
+						if (pEQ->CharSelectPlayerCount) {
+							for (DWORD i = 0; i < pEQ->CharSelectPlayerCount; i++) {
+								if (PCharSelectPlayerArray pCSInfo = pEQ->pCharSelectPlayerArray) {
+									strcpy_s(szName, pCSInfo->CharacterInfo[i].Name);
+									if (!_stricmp(pName, szName)) {
+										Dest.DWord = i;
+										Dest.Type = pCharSelectListType;
+										return true;
+									}
+								}
+							}
+						}
+					}
+				}
+			}
 		}
 		break;
 	}
