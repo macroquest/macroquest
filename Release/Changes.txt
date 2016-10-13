@@ -1,3 +1,6 @@
+13 Oct 2016 by eqmule
+- Updated for BETA
+
 12 Oct 2016 by eqmule
 - Updated for BETA
 - Added CharSelectList to the EverQuest TLO, it only has 1 member for now: ZoneID
