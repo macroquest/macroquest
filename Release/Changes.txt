@@ -1,5 +1,9 @@
+15 Oct 2016 by eqmule
+- Updated for BETA
+
 13 Oct 2016 by eqmule
 - Updated for BETA
+- Updated for TEST
 
 12 Oct 2016 by eqmule
 - Updated for BETA

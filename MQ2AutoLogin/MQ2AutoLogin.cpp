@@ -351,7 +351,7 @@ class CXWnd2 : public CXWnd
 public:
     CXMLData *GetXMLData()
     {
-        if(XMLIndex)
+        if(this->XMLIndex)
         {
             return ((CXMLDataManager2*)&((PCSIDLMGR)pSidlManager)->pXMLDataMgr)->GetXMLData(XMLIndex>>16,XMLIndex&0xFFFF);
         }
@@ -898,6 +898,7 @@ DETOUR_TRAMPOLINE_EMPTY( UINT WINAPI GetPrivateProfileIntA_Tramp( LPCSTR, LPCSTR
 PLUGIN_API VOID InitializePlugin(VOID)
 {
 	//MessageBox(NULL, "Inject now", "MQ2 Debug", MB_OK|MB_SYSTEMMODAL);
+
 	CHAR szPath[MAX_PATH] = { 0 };
     GetPrivateProfileStringA("Settings", "IniLocation", 0, szPath, MAX_PATH, INIFileName);
     if(szPath[0])
