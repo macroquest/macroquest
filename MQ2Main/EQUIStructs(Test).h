@@ -220,7 +220,6 @@ VFTABLE
 // actual size 0x1D8 in May 18 2016 Test (see 0x691A62) - eqmule
 // actual size 0x1D4 in May 23 2016 Test (see 0x691812) - eqmule
 // actual size 0x1DC in Jun 21 2016 Test (see 0x691E82) - eqmule
-// actual size 0x1E0 in Jul  1 2016 Test (see 0x6949F8) - eqmule
 // actual size 0x1F0 in Jul 11 2016 Test (see 0x693328) - eqmule
 // actual size 0x1F8 in Aug 10 2016 Test (see 0x6926F8) - eqmule
 // actual size 0x1E8 in Sep 14 2016 Test (see 0x693768) - eqmule
