@@ -1494,8 +1494,8 @@ typedef struct _SPAWNINFO {
 /*0x1290*/ BYTE		Unknown0x1290[0x14];
 /*0x12a4*/ FLOAT	WalkSpeed;
 /*0x12a8*/ BYTE		Unknown0x12a8;
-/*0x12a9*/ DWORD	HideCorpse;
-/*0x12ad*/ BYTE		Unknown0x12ad[0x3c];
+/*0x12a9*/ BYTE		bHideCorpse;
+/*0x12aa*/ BYTE		Unknown0x12aa[0x3f];
 /*0x12e9*/ BYTE		InvitedToGroup;
 /*0x12ea*/ BYTE		Unknown0x12ea[0x2];
 /*0x12ec*/ DWORD	GroupMemberTargeted;    // 0xFFFFFFFF if no target, else 1 through 5

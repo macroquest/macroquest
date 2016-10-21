@@ -1333,7 +1333,7 @@ typedef struct _LAUNCHSPELLDATA {
 } LAUNCHSPELLDATA, *PLAUNCHSPELLDATA;
 
 //this is the size of EQPlayer__EQPlayer_x
-// actual size 0x1FE8 in Oct 17 2016 Live (see 0x5D6DBA) - eqmule
+// actual size 0x1FE8 in Oct 17 2016 Live (see 0x5D668A) - eqmule
 typedef struct _SPAWNINFO {
 /*0x0000*/ void*	vtable;
 /*0x0004*/ struct _SPAWNINFO*	pPrev;
@@ -1502,8 +1502,8 @@ typedef struct _SPAWNINFO {
 /*0x128c*/ BYTE		Unknown0x128c[0x14];
 /*0x12a0*/ FLOAT	WalkSpeed;
 /*0x12a4*/ BYTE		Unknown0x12a4;
-/*0x12a5*/ DWORD	HideCorpse;
-/*0x12a9*/ BYTE		Unknown0x12a9[0x3c];
+/*0x12a5*/ BYTE		bHideCorpse;
+/*0x12a6*/ BYTE		Unknown0x12a6[0x3f];
 /*0x12e5*/ BYTE		InvitedToGroup;
 /*0x12e6*/ BYTE		Unknown0x12e6[0x2];
 /*0x12e8*/ DWORD	GroupMemberTargeted;    // 0xFFFFFFFF if no target, else 1 through 5
