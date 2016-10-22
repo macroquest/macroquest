@@ -551,7 +551,7 @@ public:
     {
 		PEQITEMWINDOW This=(PEQITEMWINDOW)this;
 		int index = This->ItemWndIndex;
-		if (index > 5)
+		if (index > 5 || index < 0)
 		{
 			index = 0;
 			WriteChatf("Tell eqmule his PEQITEMWINDOW struct is wrong");

@@ -294,7 +294,7 @@ char lcMask[] = "x????xx?xx?x?xxxxxx?????x????";
 
 //login::pulse
 PBYTE lpPattern = (PBYTE)"\x56\x8B\xF1\xE8\x28\xFD\xFF\xFF\x8B\xCE\x5E\xE9\x10\xF7\xFF\xFF\xC7\x01\x00\x00\x00\x00\xC3\xCC\xCC\xCC\xCC\xCC\xCC\xCC\xCC\xCC\x55\x8B\xEC\xF6\x45\x08\x01\x56\x8B\xF1\xC7\x06";
-char lpMask[] = "xxxxxxxxxxxxxxxxxx????xxxxxxxxxxxxxxxxxxxxxx";
+char lpMask[] = "xxxx?xxxxxxx?xxxxx????xxxxxxxxxxxxxxxxxxxxxx";
 
 
 #ifndef EMU
@@ -774,7 +774,7 @@ void AddOurPulse()
 				RemoveLoginPulse();
 			if (!(Login__Pulse_x = _FindPattern(dwEQMainBase, 0x200000, lpPattern, lpMask)))
 			{
-				//MessageBox(NULL, "MQ2AutoLogin needs an update.", "Couldn't find Login__Pulse_x", MB_SYSTEMMODAL | MB_OK);
+				MessageBox(NULL, "MQ2AutoLogin needs an update.", "Couldn't find Login__Pulse_x", MB_SYSTEMMODAL | MB_OK);
 				return;
 			}
 			if (Login__Pulse_x) {// = (DWORD)dwEQMainBase + 0x11030;

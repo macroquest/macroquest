@@ -1257,7 +1257,9 @@ PCHAR GetGuildByID(DWORD GuildID)
 #else 
 	PCHAR GetGuildByID(DWORD GuildID)
 	{
-		if (PCHAR thename = pGuild->GetGuildName(GuildID, ((PSPAWNINFO)pLocalPlayer)->GuildID)) {
+		if (PCHAR thename = pGuild->GetGuildName(GuildID, ((PSPAWNINFO)pLocalPlayer)->GuildID2)) {
+			if (!_stricmp(thename, "Unknown Guild"))
+				return 0;
 			return thename;
 		}
 		return 0;
