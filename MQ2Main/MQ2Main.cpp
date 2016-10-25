@@ -702,6 +702,7 @@ CMQNewsWnd *pNewsWindow=0;
 VOID InsertMQ2News();
 VOID CreateMQ2NewsWindow()
 {
+	//MessageBox(NULL, "inject in news", "news debug", MB_SYSTEMMODAL | MB_OK);
     CHAR Filename[MAX_STRING]={0};
     sprintf_s(Filename,"%s\\changes.txt",gszINIPath);
     if (!pNewsWindow && _FileExists(Filename))
