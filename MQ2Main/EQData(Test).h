@@ -655,7 +655,14 @@ typedef struct _ITEMINFO {
 	/*0x03a8*/ struct _ITEMSPELLS   Focus;
 	/*0x040c*/ struct _ITEMSPELLS   Scroll;
 	/*0x0470*/ struct _ITEMSPELLS   Focus2;
-	/*0x04d4*/ BYTE         Unknown0x04d4[0x140];
+	/*0x04d4*/ struct _ITEMSPELLS   Mount;
+	/*0x0538*/ struct _ITEMSPELLS   Illusion;
+	/*0x059c*/ struct _ITEMSPELLS   Familiar;
+	/*0x0600*/ DWORD  SkillMask1;//this is just an array but I dont have time to figure it out for now. -eqmule
+	/*0x0604*/ DWORD  SkillMask2;
+	/*0x0608*/ DWORD  SkillMask3;
+	/*0x060c*/ DWORD  SkillMask4;
+	/*0x0610*/ DWORD  SkillMask5;
 	/*0x0614*/ DWORD        DmgBonusSkill; // SkillMinDamageMod;
 	/*0x0618*/ DWORD        DmgBonusValue; // MinDamageMod;
 	/*0x061c*/ DWORD        CharmFileID;
