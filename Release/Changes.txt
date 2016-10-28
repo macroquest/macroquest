@@ -1,3 +1,10 @@
+28 Oct 2016 by eqmule
+- Updated for BETA
+- ChatWindow is now top dog at charselect and will no longer go awol there.
+- ChatWindow will no longer crash at charselect when it's children are clicked.
+- Made some changes to MQ2DInput.cpp in preparation for going full scale c++
+  since CINTERFACE is going bye bye in a future update.
+
 27 Oct 2016 by eqmule
 - Updated for BETA
 

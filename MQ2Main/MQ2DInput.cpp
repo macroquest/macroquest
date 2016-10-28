@@ -209,10 +209,23 @@ VOID InitializeMQ2DInput()
             DebugSpew("Mouse and Keyboard have same Acquire"); 
     } 
     if ((EQADDR_DIKEYBOARD) && (*EQADDR_DIKEYBOARD)) { 
-        IDIDevice = *EQADDR_DIKEYBOARD; 
-        AddDetour(GetDeviceData=(unsigned int) IDIDevice->lpVtbl->GetDeviceData);
-        AddDetour(GetDeviceState=(unsigned int) IDIDevice->lpVtbl->GetDeviceState);
-        AddDetour(Acquire=(unsigned int) IDIDevice->lpVtbl->Acquire);
+        IDIDevice = *EQADDR_DIKEYBOARD;
+		//typedef HRESULT    (__cdecl *fGetDeviceData)(DWORD,LPDIDEVICEOBJECTDATA,LPDWORD,DWORD);
+		int *vptr = *(int**)&IDIDevice;
+		int *vtable = (int *)*vptr; 
+		//fGetDeviceData fp = (fGetDeviceData)vtable[10];//GetDeviceData
+
+		//GetDeviceData = (unsigned int)IDIDevice->lpVtbl->GetDeviceData;
+		GetDeviceData = (unsigned int)vtable[10];//GetDeviceData
+		AddDetour(GetDeviceData);
+
+		//GetDeviceState = (unsigned int)IDIDevice->lpVtbl->GetDeviceState;
+		GetDeviceState=(unsigned int)vtable[9];//GetDeviceState
+        AddDetour(GetDeviceState);
+
+		//Acquire = (unsigned int)IDIDevice->lpVtbl->Acquire;
+		Acquire=(unsigned int)vtable[7];//Acquire
+        AddDetour(Acquire);
 
         //Grab GetDeviceData 
         (*(PBYTE*)&DInputDataTrampoline) = DetourFunction((PBYTE)GetDeviceData, 

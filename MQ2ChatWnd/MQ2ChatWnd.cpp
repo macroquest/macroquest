@@ -51,11 +51,17 @@ public:
         InputBox->SetMaxChars(512); 
         OutputBox=(CStmlWnd*)GetChildItem("CWChatOutput"); 
         OutStruct=(_CSIDLWND*)GetChildItem("CWChatOutput");
+		//fix for the 0 parent crash at charselect when clicking the children...
+		//wow it only took us 13 years to fix that one... -eqmule
+		OutStruct->pParentWindow = (_CSIDLWND *)this;
+		OutputBox->pParentWindow = (_CSIDLWND *)this;
+		InputBox->pParentWindow = (_CSIDLWND *)this;
         OutWnd=(CXWnd*)OutputBox;
         OutBoxLines=0; 
         *(DWORD*)&(((PCHAR)OutputBox)[EQ_CHAT_HISTORY_OFFSET])=0x190; 
         OutputBox->Clickable=1; 
         iCurrentCmd=-1;
+		ZLayer = 1;//we want to be top dog...
     } 
     ~CMQChatWnd() 
     { 

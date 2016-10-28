@@ -667,13 +667,15 @@ public:
     CMQNewsWnd(char *Template):CCustomWnd(Template)
     {
         SetWndNotification(CMQNewsWnd);
-        InputBox=(CTextEntryWnd*)GetChildItem("CWChatInput");
-        InputBox->WindowStyle|=0x800C0;
+        //InputBox=(CTextEntryWnd*)GetChildItem("CWChatInput");
+        //InputBox->WindowStyle|=0x800C0;
         BitOff(WindowStyle,CWS_CLOSE);
-        InputBox->UnknownCW|=0xFFFFFFFF;
-        InputBox->Enabled=0;
-        InputBox->SetMaxChars(512);
+        //InputBox->UnknownCW|=0xFF000000;
+        //InputBox->Enabled=0;
+        //InputBox->SetMaxChars(512);
         OutputBox=(CStmlWnd*)GetChildItem("CWChatOutput");
+		//InputBox->pParentWindow = (_CSIDLWND *)this;
+		OutputBox->pParentWindow = (_CSIDLWND *)this;
     }
 
     ~CMQNewsWnd()
@@ -693,7 +695,7 @@ public:
         return CSidlScreenWnd::WndNotification(pWnd,Message,unknown);
     };
 
-    CTextEntryWnd *InputBox;
+    //CTextEntryWnd *InputBox;
     CStmlWnd *OutputBox;
 };
 
@@ -716,6 +718,7 @@ VOID CreateMQ2NewsWindow()
         pNewsWindow->Location.left=230;
         pNewsWindow->Location.right=850;
         SetCXStr(&pNewsWindow->WindowText,"MacroQuest2 Recent Changes");
+		pNewsWindow->ZLayer = 1;
     }
     InsertMQ2News();
 }
