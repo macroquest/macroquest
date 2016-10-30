@@ -87,7 +87,7 @@ using namespace std;
 #endif
 
 extern CRITICAL_SECTION gPluginCS;
-#if defined(TEST) || defined(BETA) || defined(EMU)
+#if defined(LIVE) || defined(TEST) || defined(BETA) || defined(EMU)
 //do nothing because the user has set one of these as a preprocessor argument instead...
 //we default to LIVE though...
 #else

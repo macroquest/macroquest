@@ -61,7 +61,7 @@ public:
         *(DWORD*)&(((PCHAR)OutputBox)[EQ_CHAT_HISTORY_OFFSET])=0x190; 
         OutputBox->Clickable=1; 
         iCurrentCmd=-1;
-		ZLayer = 1;//we want to be top dog...
+		ZLayer = 1; // Make this the topmost window (we will leave it as such for charselect, and allow it to move to background ingame)
     } 
     ~CMQChatWnd() 
     { 
@@ -220,6 +220,11 @@ public:
         MQChatWnd->FontSize=size; 
     }; 
 
+	void SetZLayer(bool topmost)
+	{
+		ZLayer = (topmost ? 1: 0);
+	};
+
     DWORD OutBoxLines; 
     DWORD FontSize; 
 }; 
@@ -255,9 +260,9 @@ VOID LoadChatFromINI(PCSIDLWND pWindow)
     pWindow->Alpha             = GetPrivateProfileInt(szChatINISection,"Alpha",        255,INIFileName); 
     pWindow->FadeToAlpha       = GetPrivateProfileInt(szChatINISection,"FadeToAlpha",  255,INIFileName); 
     pWindow->BGType            = GetPrivateProfileInt(szChatINISection,"BGType",         1,INIFileName); 
-    pWindow->BGColor.R         = GetPrivateProfileInt(szChatINISection,"BGTint.red",   0,INIFileName); 
-    pWindow->BGColor.G         = GetPrivateProfileInt(szChatINISection,"BGTint.green", 0,INIFileName); 
-    pWindow->BGColor.B         = GetPrivateProfileInt(szChatINISection,"BGTint.blue",  0,INIFileName); 
+    pWindow->BGColor.R         = GetPrivateProfileInt(szChatINISection,"BGTint.red",     0,INIFileName); 
+    pWindow->BGColor.G         = GetPrivateProfileInt(szChatINISection,"BGTint.green",   0,INIFileName); 
+    pWindow->BGColor.B         = GetPrivateProfileInt(szChatINISection,"BGTint.blue",    0,INIFileName); 
 
     MQChatWnd->SetChatFont(GetPrivateProfileInt(szChatINISection,"FontSize",4,INIFileName)); 
     GetPrivateProfileString(szChatINISection,"WindowTitle","MQ",szTemp,MAX_STRING,INIFileName); 
@@ -292,17 +297,17 @@ VOID SaveChatToINI(PCSIDLWND pWindow)
         WritePrivateProfileString(szChatINISection,"ChatLeft",   SafeItoa(pWindow->Location.left,   szTemp,10),INIFileName); 
         WritePrivateProfileString(szChatINISection,"ChatRight",  SafeItoa(pWindow->Location.right,  szTemp,10),INIFileName); 
     } 
-    WritePrivateProfileString(szChatINISection,"Locked",       SafeItoa(pWindow->Locked,       szTemp,10),INIFileName); 
-    WritePrivateProfileString(szChatINISection,"Fades",        SafeItoa(pWindow->Fades,        szTemp,10),INIFileName); 
-    WritePrivateProfileString(szChatINISection,"Delay",        SafeItoa(pWindow->MouseOver,    szTemp,10),INIFileName); 
-    WritePrivateProfileString(szChatINISection,"Duration",     SafeItoa(pWindow->FadeDuration, szTemp,10),INIFileName); 
-    WritePrivateProfileString(szChatINISection,"Alpha",        SafeItoa(pWindow->Alpha,        szTemp,10),INIFileName); 
-    WritePrivateProfileString(szChatINISection,"FadeToAlpha",  SafeItoa(pWindow->FadeToAlpha,  szTemp,10),INIFileName); 
-    WritePrivateProfileString(szChatINISection,"BGType",       SafeItoa(pWindow->BGType,       szTemp,10),INIFileName); 
-    WritePrivateProfileString(szChatINISection,"BGTint.red",   SafeItoa(pWindow->BGColor.R,    szTemp,10),INIFileName); 
-    WritePrivateProfileString(szChatINISection,"BGTint.green", SafeItoa(pWindow->BGColor.G,    szTemp,10),INIFileName); 
-    WritePrivateProfileString(szChatINISection,"BGTint.blue",  SafeItoa(pWindow->BGColor.B,    szTemp,10),INIFileName); 
-    WritePrivateProfileString(szChatINISection,"FontSize",     SafeItoa(MQChatWnd->FontSize,   szTemp,10),INIFileName); 
+    WritePrivateProfileString(szChatINISection,"Locked",         SafeItoa(pWindow->Locked,          szTemp,10),INIFileName); 
+    WritePrivateProfileString(szChatINISection,"Fades",          SafeItoa(pWindow->Fades,           szTemp,10),INIFileName); 
+    WritePrivateProfileString(szChatINISection,"Delay",          SafeItoa(pWindow->MouseOver,       szTemp,10),INIFileName); 
+    WritePrivateProfileString(szChatINISection,"Duration",       SafeItoa(pWindow->FadeDuration,    szTemp,10),INIFileName); 
+    WritePrivateProfileString(szChatINISection,"Alpha",          SafeItoa(pWindow->Alpha,           szTemp,10),INIFileName); 
+    WritePrivateProfileString(szChatINISection,"FadeToAlpha",    SafeItoa(pWindow->FadeToAlpha,     szTemp,10),INIFileName); 
+    WritePrivateProfileString(szChatINISection,"BGType",         SafeItoa(pWindow->BGType,          szTemp,10),INIFileName); 
+    WritePrivateProfileString(szChatINISection,"BGTint.red",     SafeItoa(pWindow->BGColor.R,       szTemp,10),INIFileName); 
+    WritePrivateProfileString(szChatINISection,"BGTint.green",   SafeItoa(pWindow->BGColor.G,       szTemp,10),INIFileName); 
+    WritePrivateProfileString(szChatINISection,"BGTint.blue",    SafeItoa(pWindow->BGColor.B,       szTemp,10),INIFileName); 
+    WritePrivateProfileString(szChatINISection,"FontSize",       SafeItoa(MQChatWnd->FontSize,      szTemp,10),INIFileName); 
     
 	GetCXStr(pWindow->WindowText,szTemp, MAX_STRING);
     WritePrivateProfileString(szChatINISection,"WindowTitle",szTemp,INIFileName); 
@@ -525,6 +530,19 @@ PLUGIN_API VOID OnPulse()
 
     if (MQChatWnd) 
     { 
+		switch (gGameState)
+		{
+			case GAMESTATE_CHARSELECT: 
+			{
+				MQChatWnd->SetZLayer(true);
+				break;
+			}
+			case GAMESTATE_INGAME:
+			{
+				MQChatWnd->SetZLayer(false);
+				break;
+			}
+		}
         if(PendingChatLines) 
         { 
             // set 'old' to current 
