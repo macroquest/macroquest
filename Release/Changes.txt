@@ -1,3 +1,6 @@
+29 Oct 2016 by eqmule
+- Updated for BETA
+
 28 Oct 2016 by eqmule
 - Updated for BETA
 - ChatWindow is now top dog at charselect and will no longer go awol there.
