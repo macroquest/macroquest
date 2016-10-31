@@ -1,3 +1,6 @@
+31 Oct 2016 by eqmule
+- Updated for BETA
+
 30 Oct 2016
 - Updated for BETA -eqmule
 - ChatWindow will again allow itself to be hidden behind other windows when ingame. -rswiders

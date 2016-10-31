@@ -220,11 +220,6 @@ public:
         MQChatWnd->FontSize=size; 
     }; 
 
-	void SetZLayer(bool topmost)
-	{
-		ZLayer = (topmost ? 1: 0);
-	};
-
     DWORD OutBoxLines; 
     DWORD FontSize; 
 }; 
@@ -534,14 +529,16 @@ PLUGIN_API VOID OnPulse()
 		{
 			case GAMESTATE_CHARSELECT: 
 			{
-				MQChatWnd->SetZLayer(true);
+				if (MQChatWnd->ZLayer != 1)
+					MQChatWnd->ZLayer = 1;
 				break;
 			}
 			case GAMESTATE_INGAME:
 			{
-				MQChatWnd->SetZLayer(false);
+				if (MQChatWnd->ZLayer != 0)
+					MQChatWnd->ZLayer = 0;
 				break;
-			}
+			} 
 		}
         if(PendingChatLines) 
         { 
