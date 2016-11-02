@@ -316,68 +316,72 @@ VFTABLE
 // actual size 0x1E0 in Oct 21 2016 Beta (see 0x6972B2) - eqmule
 // actual size 0x1F8 in Oct 25 2016 Beta (see 0x6967D8) - eqmule
 // actual size 0x1F0 in Oct 30 2016 Beta (see 0x696798) - eqmule
-// actual size 0x1E8 in Nov  1 2016 Beta (see 0x696928) - eqmule
+// actual size 0x1E8 in Nov  2 2016 Beta (see 0x696872) - eqmule
 #define CXW_NO_VTABLE \
 /*0x0004*/ struct _CSIDLWND**	WindowPtrs; \
 /*0x0008*/ struct _CSIDLWND*	pPrevSiblingWnd; \
 /*0x000c*/ struct _CSIDLWND*	pNextSiblingWnd; \
 /*0x0010*/ void*	pUnknown0x10; \
 /*0x0014*/ struct _CSIDLWND*	pFirstChildWnd; \
-/*0x0018*/ BYTE		Unknown0x0018[0x11]; \
-/*0x0029*/ BYTE		FadeToAlpha; /*found in CSidlScreenWnd__StoreIniInfo_x*/\
-/*0x002a*/ BYTE		Clickable;      /* found in CChatWindow__CChatWindow_x and the button handlers */ \
-/*0x002b*/ BYTE		Locked; /*found in CSidlScreenWnd__LoadIniInfo_x*/ \
-/*0x002c*/ BYTE		Unknown0x002c; \
-/*0x002d*/ BYTE		CloseOnESC;     /* found in CSidlScreenWnd__StoreIniInfo_x, close when ESC is pressed */ \
-/*0x002e*/ BYTE		Unknown0x002e[0xe]; \
-/*0x003c*/ DWORD	HScrollPos; \
-/*0x0040*/ BYTE		MouseOver; /*found in CXWnd__SetMouseOver_x*/ \
-/*0x0041*/ BYTE		Enabled; \
-/*0x0042*/ BYTE		Unknown0x0042[0x2]; \
-/*0x0044*/ LPVOID	DrawTemplate; \
-/*0x0048*/ DWORD	TickCount2; \
-/*0x004c*/ BYTE		Unknown0x004c[0x8]; \
-/*0x0054*/ ARGBCOLOR	BGColor; \
-/*0x0058*/ BYTE		Unknown0x0058[0x1d]; \
-/*0x0075*/ BYTE		ValidCXWnd; /*IsValid has this one*/\
-/*0x0076*/ BYTE		Unknown0x0076[0x6]; \
-/*0x007c*/ BYTE		Faded; \
-/*0x007d*/ BYTE		Unknown0x007d[0x3]; \
-/*0x0080*/ DWORD	FadeDuration; \
-/*0x0084*/ DWORD	ZLayer; /*found in CXWndManager__DrawWindows_x*/ \
-/*0x0088*/ DWORD	VScrollMax; \
-/*0x008c*/ BYTE		Unknown0x008c[0x14]; \
-/*0x00a0*/ DWORD	XMLIndex; \
-/*0x00a4*/ BYTE		Unknown0x00a4[0x4]; \
-/*0x00a8*/ DWORD	BGType;         /* found in CSidlScreenWnd__StoreIniInfo_x "BGType" in ini */ \
-/*0x00ac*/ struct _CXSTR*	WindowText; /*CXWnd__GetWindowTextA_x has this one*/ \
-/*0x00b0*/ BYTE		Unknown0x00b0[0x66]; \
-/*0x0116*/ BYTE		Alpha; \
-/*0x0117*/ BYTE		Unknown0x0117[0x15]; \
-/*0x012c*/ RECT		Location; \
-/*0x013c*/ BYTE		Unknown0x013c[0x8]; \
-/*0x0144*/ RECT		OldLocation; \
-/*0x0154*/ BYTE		Unknown0x0154[0x4]; \
-/*0x0158*/ struct _CSIDLWND*	pParentWindow; /*CXWnd__IsDescendantOf_x has this one, If this is NULL, coordinates are absolute... */ \
-/*0x015c*/ BYTE		Minimized; \
-/*0x015d*/ BYTE		Unlockable;     /* found in CSidlScreenWnd__LoadIniInfo_x related to Locked */ \
-/*0x015e*/ BYTE		Unknown0x015e[0x2]; \
-/*0x0160*/ DWORD	TimeMouseOver; \
-/*0x0164*/ BYTE		Unknown0x0164[0x18]; \
-/*0x017c*/ DWORD	VScrollPos; \
-/*0x0180*/ BYTE		Unknown0x0180[0x9]; \
-/*0x0189*/ BYTE		Fades; \
-/*0x018a*/ BYTE		Unknown0x018a[0x6]; \
-/*0x0190*/ DWORD	HScrollMax; \
-/*0x0194*/ BYTE		Unknown0x0194; \
-/*0x0195*/ BYTE		dShow; \
-/*0x0196*/ BYTE		Unknown0x0196[0x2]; \
-/*0x0198*/ DWORD	WindowStyle;    /* bit 1 - vertical scroll, bit 2 - horizontal scroll, bit 4 - title bar?, bit 8 - border */ \
-/*0x019c*/ BYTE		Unknown0x019c[0x10]; \
-/*0x01ac*/ struct _CXSTR*	XMLToolTip; /*found in CSidlManager__CreateLabel_x*/ \
-/*0x01b0*/ BYTE		Unknown0x01b0[0x30]; \
-/*0x01e0*/ struct _CXSTR*	Tooltip; /*found in CSidlManager__CreateLabel_x*/ \
-/*0x01e4*/ DWORD	UnknownCW; /*found in OnProcessFrame*/\
+/*0x0018*/ BYTE		Unknown0x0018[0x4]; \
+/*0x001c*/ BYTE		Alpha; \
+/*0x001d*/ BYTE		Unknown0x001d[0xb]; \
+/*0x0028*/ BYTE		Enabled; \
+/*0x0029*/ BYTE		Unknown0x0029[0x3]; \
+/*0x002c*/ DWORD	UnknownCW; /*found in OnProcessFrame*/\
+/*0x0030*/ BYTE		Fades; \
+/*0x0031*/ BYTE		MouseOver; /*found in CXWnd__SetMouseOver_x*/ \
+/*0x0032*/ BYTE		Unknown0x0032[0x17]; \
+/*0x0049*/ BYTE		FadeToAlpha; /*found in CSidlScreenWnd__StoreIniInfo_x*/\
+/*0x004a*/ BYTE		Unknown0x004a[0xe]; \
+/*0x0058*/ DWORD	HScrollMax; \
+/*0x005c*/ BYTE		Unknown0x005c[0x4]; \
+/*0x0060*/ DWORD	WindowStyle;    /* bit 1 - vertical scroll, bit 2 - horizontal scroll, bit 4 - title bar?, bit 8 - border */ \
+/*0x0064*/ BYTE		Unknown0x0064[0x8]; \
+/*0x006c*/ struct _CXSTR*	WindowText; /*CXWnd__GetWindowTextA_x has this one*/ \
+/*0x0070*/ BYTE		Unknown0x0070[0x8]; \
+/*0x0078*/ DWORD	FadeDuration; \
+/*0x007c*/ BYTE		Unknown0x007c[0x8]; \
+/*0x0084*/ RECT		OldLocation; \
+/*0x0094*/ BYTE		Unknown0x0094[0x4]; \
+/*0x0098*/ RECT		Location; \
+/*0x00a8*/ BYTE		Unknown0x00a8[0x4]; \
+/*0x00ac*/ DWORD	XMLIndex; \
+/*0x00b0*/ BYTE		Unknown0x00b0[0x4]; \
+/*0x00b4*/ LPVOID	DrawTemplate; \
+/*0x00b8*/ DWORD	VScrollPos; \
+/*0x00bc*/ BYTE		Unknown0x00bc[0x18]; \
+/*0x00d4*/ ARGBCOLOR	BGColor; \
+/*0x00d8*/ BYTE		Unknown0x00d8[0x2c]; \
+/*0x0104*/ struct _CXSTR*	Tooltip; /*found in CSidlManager__CreateLabel_x*/ \
+/*0x0108*/ DWORD	TimeMouseOver; \
+/*0x010c*/ BYTE		Unknown0x010c[0x5]; \
+/*0x0111*/ BYTE		Clickable;      /* found in CChatWindow__CChatWindow_x and the button handlers */ \
+/*0x0112*/ BYTE		Unknown0x0112[0x2e]; \
+/*0x0140*/ BYTE		ValidCXWnd; /*IsValid has this one*/\
+/*0x0141*/ BYTE		Unknown0x0141[0x3]; \
+/*0x0144*/ DWORD	LastTimeMouseOver; \
+/*0x0148*/ BYTE		Unlockable;     /* found in CSidlScreenWnd__LoadIniInfo_x related to Locked */ \
+/*0x0149*/ BYTE		Unknown0x0149[0xb]; \
+/*0x0154*/ DWORD	VScrollMax; \
+/*0x0158*/ BYTE		Unknown0x0158[0x8]; \
+/*0x0160*/ DWORD	BGType;         /* found in CSidlScreenWnd__StoreIniInfo_x "BGType" in ini */ \
+/*0x0164*/ BYTE		Unknown0x0164[0x8]; \
+/*0x016c*/ struct _CXSTR*	XMLToolTip; /*found in CSidlManager__CreateLabel_x*/ \
+/*0x0170*/ BYTE		Faded; \
+/*0x0171*/ BYTE		Unknown0x0171[0x7]; \
+/*0x0178*/ struct _CSIDLWND*	pParentWindow; /*CXWnd__IsDescendantOf_x has this one, If this is NULL, coordinates are absolute... */ \
+/*0x017c*/ BYTE		dShow; \
+/*0x017d*/ BYTE		Unknown0x017d; \
+/*0x017e*/ BYTE		Locked; /*found in CSidlScreenWnd__LoadIniInfo_x*/ \
+/*0x017f*/ BYTE		Unknown0x017f[0x19]; \
+/*0x0198*/ DWORD	HScrollPos; \
+/*0x019c*/ BYTE		CloseOnESC;     /* found in CSidlScreenWnd__StoreIniInfo_x, close when ESC is pressed */ \
+/*0x019d*/ BYTE		Unknown0x019d[0x1b]; \
+/*0x01b8*/ DWORD	ZLayer; /*found in CXWndManager__DrawWindows_x*/ \
+/*0x01bc*/ BYTE		Unknown0x01bc[0x9]; \
+/*0x01c5*/ BYTE		Minimized; \
+/*0x01c6*/ BYTE		Unknown0x01c6[0x22];
 /*0x01e8*/
 
 
