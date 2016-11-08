@@ -51,8 +51,8 @@ public:
 	HRESULT GetTransform(LPVOID This,DWORD State,LPVOID pMatrix);
 	void SetCursorPosition(LPVOID This, int X,int Y,DWORD Flags);//0x2c
 	BOOL ShowCursor(LPVOID This,BOOL bShow); // 0x30
-	/*0x000*/ BYTE Unknown0x0[0xf08];
-    /*0xf08*/ LPVOID pDevice; // device pointer see 100019B4                 mov     ecx, [ecx+0F08h] in 2015 02 20
+	/*0x000*/ BYTE Unknown0x0[0xec8];
+    /*0xec8*/ LPVOID pDevice; // device pointer see 100019B4                 mov     ecx, [ecx+0F08h] in 2015 02 20
 };
 DETOUR_TRAMPOLINE_EMPTY(struct T3D_tagACTORINSTANCE *FakeCDisplay::GetClickedActor_Tramp(unsigned long,unsigned long,unsigned long,void *,void *)); 
 

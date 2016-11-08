@@ -109,6 +109,7 @@ bool Anonymize(char *name)
 {
 	if(GetGameState()!=GAMESTATE_INGAME || !pLocalPlayer)
 		return 0;
+	BOOL bisTarget = false;
 	BOOL isRmember = false;
 	BOOL isGmember = false;
 	bool bChange = false;
@@ -117,7 +118,15 @@ bool Anonymize(char *name)
 		isGmember = IsGroupMember(name);
 	if(!isGmember && ItsMe!=0)//well if it is me or a groupmember, then there is no point in checking if its a raid member
 		isRmember = IsRaidMember(name);
-	if (ItsMe==0 || isGmember || isRmember) {
+	if (ItsMe != 0 && !isGmember && !isRmember) {
+		//my target?
+		if (pTarget && ((PSPAWNINFO)pTarget)->Type!=SPAWN_NPC) {
+			if (!_stricmp(((PSPAWNINFO)pTarget)->Name, name)) {
+				bisTarget = true;
+			}
+		}
+	}
+	if (ItsMe==0 || isGmember || isRmember || bisTarget) {
 		int len = strlen(name);
 		bChange = true;
 		for (int i = 1; i < len - 1; i++) {

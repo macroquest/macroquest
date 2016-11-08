@@ -182,7 +182,12 @@ FUNCTION_AT_VIRTUAL_ADDRESS(int CXWnd::WndNotification(class CXWnd *,unsigned __
 FUNCTION_AT_VIRTUAL_ADDRESS(int CXWnd::OnResize(int,int),0x09c);
 FUNCTION_AT_VIRTUAL_ADDRESS(int CXWnd::OnMinimizeBox(void),0xac);
 FUNCTION_AT_VIRTUAL_ADDRESS(int CXWnd::Show(bool,bool,bool),0x0d8);
-#ifndef BETA
+#ifdef LIVE
+FUNCTION_AT_VIRTUAL_ADDRESS(class CXRect CXWnd::GetClientRect(void)const,0xf8);
+FUNCTION_AT_VIRTUAL_ADDRESS(void CXWnd::SetWindowTextA(class CXStr &),0x124);
+FUNCTION_AT_VIRTUAL_ADDRESS(int CXWnd::SetVScrollPos(int),0x134);
+FUNCTION_AT_VIRTUAL_ADDRESS(void CListWnd::DeleteAll(void),0x17c);//see CComboWnd__DeleteAll_x
+#elif EMU
 FUNCTION_AT_VIRTUAL_ADDRESS(class CXRect CXWnd::GetClientRect(void)const,0xf8);
 FUNCTION_AT_VIRTUAL_ADDRESS(void CXWnd::SetWindowTextA(class CXStr &),0x124);
 FUNCTION_AT_VIRTUAL_ADDRESS(int CXWnd::SetVScrollPos(int),0x134);

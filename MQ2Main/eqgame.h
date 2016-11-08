@@ -26,8 +26,8 @@ GNU General Public License for more details.
 #define __ActualVersionTime_x                                      0xAD52CC
 
 #define __ClientOverride                                           0
-#define __MacroQuestWinClassName                                  "__MacroQuestTray"
-#define __MacroQuestWinName                                       "MacroQuest"
+#define __MacroQuestWinClassName                                  "__MacroQuest2Tray(Live)"
+#define __MacroQuestWinName                                       "MacroQuest2(Live)"
 
 // Memory Protection
 #define __MemChecker0_x                                            0x59DD00

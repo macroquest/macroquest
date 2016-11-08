@@ -1281,9 +1281,14 @@ bool MQ2SpawnType::GETMEMBER()
 		}
 		break;
 	case Guild:
-		if (pSpawn->GuildID != 0xFFFFFFFF)
+		if (pSpawn->GuildID != 0xFFFFFFFF && pSpawn->GuildID != 0)
 		{
-			if (char *szGuild = GetGuildByID(pSpawn->GuildID))
+			#if defined(BETA) || defined(TEST)
+			char *szGuild = GetGuildByID(pSpawn->GuildID,pSpawn->GuildID2);
+			#else
+			char *szGuild = GetGuildByID(pSpawn->GuildID);
+			#endif
+			if (szGuild)
 			{
 				strcpy_s(DataTypeTemp, szGuild);
 				Dest.Ptr = &DataTypeTemp[0];

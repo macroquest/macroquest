@@ -1607,7 +1607,7 @@ namespace MQ2Globals
 	INITIALIZE_EQGAME_OFFSET(CGaugeWnd__Draw);
 
 	INITIALIZE_EQGAME_OFFSET(CGuild__FindMemberByName);
-	#ifdef BETA
+	#if defined(BETA) || defined(TEST)
 	INITIALIZE_EQGAME_OFFSET(CGuild__GetGuildName);
 	INITIALIZE_EQGAME_OFFSET(CGuild__GetGuildIndex);
 	#endif

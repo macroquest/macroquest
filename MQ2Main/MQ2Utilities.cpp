@@ -1235,7 +1235,7 @@ DWORD GetDeityTeamByID(DWORD DeityID) {
 		return 0;
 	}
 }
-#ifndef BETA
+#if defined(LIVE) || defined(EMU)
 PCHAR GetGuildByID(DWORD GuildID)
 {
 	if (PGUILD pGuild = pGuildList->GuildList[GuildID % pGuildList->HashValue])
@@ -1255,9 +1255,12 @@ PCHAR GetGuildByID(DWORD GuildID)
 	return 0;
 }
 #else 
-	PCHAR GetGuildByID(DWORD GuildID)
+	PCHAR GetGuildByID(DWORD GuildID, DWORD GuildID2)
 	{
-		if (PCHAR thename = pGuild->GetGuildName(GuildID, ((PSPAWNINFO)pLocalPlayer)->GuildID2)) {
+		if (GuildID == 0 || GuildID == -1)
+			return 0;
+
+		if (PCHAR thename = pGuild->GetGuildName(GuildID, GuildID2)) {
 			if (!_stricmp(thename, "Unknown Guild"))
 				return 0;
 			return thename;
@@ -1266,7 +1269,7 @@ PCHAR GetGuildByID(DWORD GuildID)
 	}
 #endif
 
-#ifndef BETA
+#if defined(LIVE) || defined(EMU)
 DWORD GetGuildIDByName(PCHAR szGuild)
 {
 	DWORD n;
@@ -6422,9 +6425,13 @@ VOID SuperWhoDisplay(PSPAWNINFO pSpawn, DWORD Color)
 			strcat_s(szName, " ");
 			strcat_s(szName, pSpawn->Lastname);
 		}
-		if (gFilterSWho.Guild && pSpawn->GuildID != 0xFFFFFFFF && pGuildList) {
+		if (gFilterSWho.Guild && pSpawn->GuildID != 0xFFFFFFFF && pSpawn->GuildID!=0 && pGuildList) {
 			strcat_s(szName, " <");
+			#if defined(BETA) || defined(TEST)
+			char *szGuild = GetGuildByID(pSpawn->GuildID,pSpawn->GuildID2);
+			#else
 			char *szGuild = GetGuildByID(pSpawn->GuildID);
+			#endif
 			strcat_s(szName, szGuild ? szGuild : "Unknown Guild");
 			strcat_s(szName, ">");
 		}
@@ -6630,12 +6637,21 @@ static bool pWHOSORTCompare(const PSPAWNINFO SpawnA, const PSPAWNINFO SpawnB)
 	{
 		CHAR szGuild1[128] = { "" };
 		CHAR szGuild2[128] = { "" };
-		char *pDest = 0;
-		if (pDest = GetGuildByID(SpawnA->GuildID)) {
-			strcpy_s(szGuild1, pDest);
+		#if defined(BETA) || defined(TEST)
+		char *pDest1 = GetGuildByID(SpawnA->GuildID,SpawnA->GuildID2);
+		#else
+		char *pDest1 = GetGuildByID(SpawnA->GuildID);
+		#endif
+		#if defined(BETA) || defined(TEST)
+		char *pDest2 = GetGuildByID(SpawnB->GuildID,SpawnB->GuildID2);
+		#else
+		char *pDest2 = GetGuildByID(SpawnB->GuildID);
+		#endif
+		if (pDest1) {
+			strcpy_s(szGuild1, pDest1);
 		}
-		if (pDest = GetGuildByID(SpawnB->GuildID)) {
-			strcpy_s(szGuild2, pDest);
+		if (pDest2) {
+			strcpy_s(szGuild2, pDest2);
 		}
 		return _stricmp(szGuild1, szGuild2) < 0;
 	}

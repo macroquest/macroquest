@@ -565,7 +565,13 @@ EQLIB_API PCHAR GetLightForSpawn(PSPAWNINFO pSpawn);
 EQLIB_API DWORD GetSpellDuration(PSPELL pSpell, PSPAWNINFO pSpawn);
 EQLIB_API DWORD GetDeityTeamByID(DWORD DeityID);
 EQLIB_API DWORD ConColor(PSPAWNINFO pSpawn);
+
+#if defined(BETA) || defined(TEST)
+EQLIB_API PCHAR GetGuildByID(DWORD GuildID, DWORD GuildID2 = 2);
+#else
 EQLIB_API PCHAR GetGuildByID(DWORD GuildID);
+#endif
+
 EQLIB_API DWORD GetGuildIDByName(PCHAR szGuild);
 EQLIB_API PCONTENTS GetEnviroContainer();
 EQLIB_API PEQCONTAINERWINDOW FindContainerForContents(PCONTENTS pContents);
