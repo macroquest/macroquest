@@ -184,7 +184,7 @@ public:
         INT dmgbonus = 0;
         INT badcharpos;
 
-        GetCXStr(*Str, cTemp, sizeof (cTemp));
+        GetCXStr(*Str, cTemp, 2048);
 
         string ItemDisplay;
         ItemDisplay = cTemp;

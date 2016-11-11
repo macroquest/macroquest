@@ -11,6 +11,7 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
     GNU General Public License for more details.
 ******************************************************************************/
+#pragma pack(4)
 namespace EQClasses
 {
 // Other
@@ -7287,3 +7288,4 @@ EQLIB_OBJECT int PcZoneClient::GetModCap(int index);
 
 };
 using namespace EQClasses;
+#pragma pack()

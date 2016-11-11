@@ -134,8 +134,8 @@ public:
     {
 		DWORD addr = (DWORD)pSidlMgr;
 		DWORD tTHIS = (DWORD)this;
-        char Temp[256]={0};
-        GetCXStr(C->Ptr,Temp,256);
+        char Temp[MAX_STRING]={0};
+        GetCXStr(C->Ptr,Temp,MAX_STRING);
         DebugSpew("XMLRead(%s)",Temp);
         if (!_stricmp("EQUI.xml",Temp))
         {
@@ -1374,13 +1374,13 @@ int ItemNotify(int argc, char *argv[])
                     invslot = atoi(szArg1+5) - 1;
                     type = eItemContainerTrade;
                 }
+				CHAR szType[MAX_STRING] = {0};
                 for (i=0;i<pInvMgr->TotalSlots;i++) {
                     pSlot = pInvMgr->SlotArray[i];
                     if (pSlot && pSlot->Valid && pSlot->pInvSlotWnd && pSlot->pInvSlotWnd->WindowType == type && pSlot->pInvSlotWnd->InvSlot == invslot) {
 						CXMLData *pXMLData=((CXWnd*)pSlot->pInvSlotWnd)->GetXMLData();
-						if(pXMLData) {
-							CHAR szType[256] = {0};
-							GetCXStr(pXMLData->ScreenID.Ptr,szType,255);
+						if(pXMLData) {		
+							GetCXStr(pXMLData->ScreenID.Ptr,szType,MAX_STRING);
 							if(!_stricmp(szType,"HB_InvSlot")) {
 								continue;
 							}

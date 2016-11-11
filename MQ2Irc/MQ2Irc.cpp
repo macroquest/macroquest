@@ -65,7 +65,7 @@ public:
 
         InputBox=(CTextEntryWnd*)GetChildItem("CWChatInput"); 
         InputBox->WindowStyle|=0x800C0; 
-        InputBox->UnknownCW|=0xFFFFFFFF; 
+        InputBox->CRNormal|=0xFFFFFFFF; 
         InputBox->SetMaxChars(512); 
         BitOff(WindowStyle,CWS_CLOSE); 
     } 
@@ -76,8 +76,8 @@ public:
         { 
             if (Message==XWM_HITENTER) 
             { 
-                char szBuffer[2048]; 
-                GetCXStr((PCXSTR)InputBox->InputText,szBuffer,2047); 
+				char szBuffer[2048] = { 0 };
+                GetCXStr((PCXSTR)InputBox->InputText,szBuffer,2048); 
                 if (szBuffer[0]) 
                 { 
                     if(channels.size()<1) { 

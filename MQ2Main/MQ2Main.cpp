@@ -670,7 +670,7 @@ public:
         //InputBox=(CTextEntryWnd*)GetChildItem("CWChatInput");
         //InputBox->WindowStyle|=0x800C0;
         BitOff(WindowStyle,CWS_CLOSE);
-        //InputBox->UnknownCW|=0xFF000000;
+        //InputBox->CRNormal|=0xFF000000;
         //InputBox->Enabled=0;
         //InputBox->SetMaxChars(512);
         OutputBox=(CStmlWnd*)GetChildItem("CWChatOutput");
@@ -705,14 +705,14 @@ VOID InsertMQ2News();
 VOID CreateMQ2NewsWindow()
 {
 	//MessageBox(NULL, "inject in news", "news debug", MB_SYSTEMMODAL | MB_OK);
-	int sizeofCXWnd = sizeof(CXWnd);
-	int sizeofCSidlScreenWnd = sizeof(CSidlScreenWnd);
+	//int sizeofCXWnd = sizeof(CXWnd);
+	//int sizeofCSidlScreenWnd = sizeof(CSidlScreenWnd);
     CHAR Filename[MAX_STRING]={0};
     sprintf_s(Filename,"%s\\changes.txt",gszINIPath);
     if (!pNewsWindow && _FileExists(Filename))
     {
         pNewsWindow = new CMQNewsWnd("ChatWindow");
-		pNewsWindow->BGColor.ARGB = 0xFF000000;
+		pNewsWindow->BGColor = 0xFF000000;
         pNewsWindow->Location.top=620;
         pNewsWindow->Location.bottom=920;
         pNewsWindow->Location.left=230;

@@ -2887,10 +2887,10 @@ VOID WindowState(PSPAWNINFO pChar, PCHAR szLine)
 	{
 		DWORD ShowWindow = (DWORD)pWnd->pvfTable->ShowWindow;
 		CHAR szBuffer[MAX_STRING] = { 0 };
-		BYTE State = 99;
+		bool State = pWnd->dShow;
 		if (!_stricmp(Arg2, "open")) State = 1;
 		if (!_stricmp(Arg2, "close")) State = 0;
-		if (pWnd->dShow == State) State = 99;
+		//if (pWnd->dShow == State) State = 99;
 		switch (State) {
 		case 0:
 			((CXWnd*)pWnd)->Show(0, 1);
@@ -2906,9 +2906,6 @@ VOID WindowState(PSPAWNINFO pChar, PCHAR szLine)
 			}
 			sprintf_s(szBuffer, "Window '%s' is now open.", pWnd->WindowText ? pWnd->WindowText->Text : Arg1);
 			((CSidlScreenWnd*)pWnd)->StoreIniVis();
-			break;
-		case 99:
-			sprintf_s(szBuffer, "Window '%s' is currently %s", pWnd->WindowText ? pWnd->WindowText->Text : Arg1, (pWnd->dShow == 0) ? "closed" : "open");
 			break;
 		}
 		WriteChatColor(szBuffer, USERCOLOR_DEFAULT);
@@ -4030,13 +4027,13 @@ VOID AdvLootCmd(PSPAWNINFO pChar, PCHAR szLine)
 					CHAR szEntity[MAX_STRING] = { 0 };
 					GetArg(szEntity, szLine, 3);
 					CXStr Str;
-					CHAR szOut[255] = { 0 };
+					CHAR szOut[MAX_STRING] = { 0 };
 					if (CComboWnd *pCombo = (CComboWnd *)pAdvancedLootWnd->GetChildItem("ADLW_CLLSetCmbo")) {
 						if (CListWnd*pListWnd = (CListWnd*)pCombo->Items) {
 							DWORD itemcnt = pCombo->GetItemCount();
 							for (DWORD i = 0; i < itemcnt; i++) {
 								pListWnd->GetItemText(&Str, i, 0);
-								GetCXStr(Str.Ptr, szOut, 254);
+								GetCXStr(Str.Ptr, szOut, MAX_STRING);
 								if (szOut[0] != '\0') {
 									if (!_stricmp(szEntity, szOut)) {
 										CXRect comborect = ((CXWnd*)pCombo)->GetScreenRect();
@@ -4103,10 +4100,10 @@ VOID AdvLootCmd(PSPAWNINFO pChar, PCHAR szLine)
 									if (szEntity[0] != '\0') {
 										if (PCHARINFO pCI = GetCharInfo()) {
 											if (pCI->pGroupInfo) {
-												CHAR szOut[256] = { 0 };
+												CHAR szOut[MAX_STRING] = { 0 };
 												for (int i = 0; i < 6; i++) {
 													if (pCI->pGroupInfo->pMember[i] && pCI->pGroupInfo->pMember[i]->Mercenary == 0 && pCI->pGroupInfo->pMember[i]->pName) {
-														GetCXStr(pCI->pGroupInfo->pMember[i]->pName, szOut, 255);
+														GetCXStr(pCI->pGroupInfo->pMember[i]->pName, szOut, MAX_STRING);
 														if (!_stricmp(szOut, szEntity)) {
 															int qty = atoi(szQty);
 															if (pitem && pitem->LootDetails) {
@@ -4211,14 +4208,14 @@ DWORD __stdcall openpickzonewnd(PVOID pData)
 				if (CListWnd *clist = (CListWnd*)krwnd->GetChildItem("MIZ_ZoneList")) {
 					if (DWORD numitems = ((CSidlScreenWnd*)clist)->Items) {
 						if (CButtonWnd *cbutt = (CButtonWnd*)krwnd->GetChildItem("MIZ_SelectButton")) {
-							CHAR szOut[255] = { 0 };
+							CHAR szOut[MAX_STRING] = { 0 };
 							CXStr Str;
 							std::string s;
 							bool itsmain = false;
 							bool clickit = false;
 							for (DWORD i = 0; i<numitems; i++) {
 								clist->GetItemText(&Str, i, 0);
-								GetCXStr(Str.Ptr, szOut, 254);
+								GetCXStr(Str.Ptr, szOut, MAX_STRING);
 								if (szOut[0] != '\0') {
 									s = szOut;
 									if (std::string::npos == s.find_first_of("123456789")) {

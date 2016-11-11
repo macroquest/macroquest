@@ -43,11 +43,11 @@ public:
     { 
         DebugSpew("CMQChatWnd()");
         SetWndNotification(CMQChatWnd);
-		BGColor.ARGB = 0xFF000000;
+		BGColor = 0xFF000000;//black background
         InputBox=(CTextEntryWnd*)GetChildItem("CWChatInput"); 
         InputBox->WindowStyle|=0x800C0; 
         BitOff(WindowStyle,CWS_CLOSE); 
-        InputBox->UnknownCW|=0xFFFFFFFF; 
+        InputBox->CRNormal=0xFFFFFFFF;//we want a white cursor 
         InputBox->SetMaxChars(512); 
         OutputBox=(CStmlWnd*)GetChildItem("CWChatOutput"); 
         OutStruct=(_CSIDLWND*)GetChildItem("CWChatOutput");
@@ -248,17 +248,20 @@ VOID LoadChatFromINI(PCSIDLWND pWindow)
     pWindow->Location.bottom   = GetPrivateProfileInt(szChatINISection,"ChatBottom",   210,INIFileName); 
     pWindow->Location.left     = GetPrivateProfileInt(szChatINISection,"ChatLeft",      10,INIFileName); 
     pWindow->Location.right    = GetPrivateProfileInt(szChatINISection,"ChatRight",    410,INIFileName); 
-    pWindow->Locked            = GetPrivateProfileInt(szChatINISection,"Locked",         0,INIFileName); 
-    pWindow->Fades             = GetPrivateProfileInt(szChatINISection,"Fades",          1,INIFileName); 
-    pWindow->TimeMouseOver     = GetPrivateProfileInt(szChatINISection,"Delay",       2000,INIFileName); 
+    pWindow->Locked            = (GetPrivateProfileInt(szChatINISection,"Locked",         0,INIFileName) ? true:false); 
+    pWindow->Fades             = (GetPrivateProfileInt(szChatINISection,"Fades",          0,INIFileName) ? true:false); 
+    pWindow->FadeDelay		   = GetPrivateProfileInt(szChatINISection,"Delay",       2000,INIFileName); 
     pWindow->FadeDuration      = GetPrivateProfileInt(szChatINISection,"Duration",     500,INIFileName); 
     pWindow->Alpha             = GetPrivateProfileInt(szChatINISection,"Alpha",        255,INIFileName); 
     pWindow->FadeToAlpha       = GetPrivateProfileInt(szChatINISection,"FadeToAlpha",  255,INIFileName); 
     pWindow->BGType            = GetPrivateProfileInt(szChatINISection,"BGType",         1,INIFileName); 
-    pWindow->BGColor.R         = GetPrivateProfileInt(szChatINISection,"BGTint.red",     0,INIFileName); 
-    pWindow->BGColor.G         = GetPrivateProfileInt(szChatINISection,"BGTint.green",   0,INIFileName); 
-    pWindow->BGColor.B         = GetPrivateProfileInt(szChatINISection,"BGTint.blue",    0,INIFileName); 
-
+	ARGBCOLOR col = { 0 };
+	col.ARGB = pWindow->BGColor;
+    col.A         = GetPrivateProfileInt(szChatINISection,"BGTint.alpha",     255,INIFileName); 
+    col.R         = GetPrivateProfileInt(szChatINISection,"BGTint.red",     0,INIFileName); 
+    col.G         = GetPrivateProfileInt(szChatINISection,"BGTint.green",   0,INIFileName); 
+    col.B         = GetPrivateProfileInt(szChatINISection,"BGTint.blue",    0,INIFileName); 
+	pWindow->BGColor = col.ARGB;
     MQChatWnd->SetChatFont(GetPrivateProfileInt(szChatINISection,"FontSize",4,INIFileName)); 
     GetPrivateProfileString(szChatINISection,"WindowTitle","MQ",szTemp,MAX_STRING,INIFileName); 
     SetCXStr(&pWindow->WindowText,szTemp); 
@@ -298,10 +301,13 @@ VOID SaveChatToINI(PCSIDLWND pWindow)
     WritePrivateProfileString(szChatINISection,"Duration",       SafeItoa(pWindow->FadeDuration,    szTemp,10),INIFileName); 
     WritePrivateProfileString(szChatINISection,"Alpha",          SafeItoa(pWindow->Alpha,           szTemp,10),INIFileName); 
     WritePrivateProfileString(szChatINISection,"FadeToAlpha",    SafeItoa(pWindow->FadeToAlpha,     szTemp,10),INIFileName); 
+	ARGBCOLOR col = { 0 };
+	col.ARGB = pWindow->BGColor;
     WritePrivateProfileString(szChatINISection,"BGType",         SafeItoa(pWindow->BGType,          szTemp,10),INIFileName); 
-    WritePrivateProfileString(szChatINISection,"BGTint.red",     SafeItoa(pWindow->BGColor.R,       szTemp,10),INIFileName); 
-    WritePrivateProfileString(szChatINISection,"BGTint.green",   SafeItoa(pWindow->BGColor.G,       szTemp,10),INIFileName); 
-    WritePrivateProfileString(szChatINISection,"BGTint.blue",    SafeItoa(pWindow->BGColor.B,       szTemp,10),INIFileName); 
+    WritePrivateProfileString(szChatINISection,"BGTint.alpha",    SafeItoa(col.A,       szTemp,10),INIFileName); 
+    WritePrivateProfileString(szChatINISection,"BGTint.red",     SafeItoa(col.R,       szTemp,10),INIFileName); 
+    WritePrivateProfileString(szChatINISection,"BGTint.green",   SafeItoa(col.G,       szTemp,10),INIFileName); 
+    WritePrivateProfileString(szChatINISection,"BGTint.blue",    SafeItoa(col.B,       szTemp,10),INIFileName); 
     WritePrivateProfileString(szChatINISection,"FontSize",       SafeItoa(MQChatWnd->FontSize,      szTemp,10),INIFileName); 
     
 	GetCXStr(pWindow->WindowText,szTemp, MAX_STRING);

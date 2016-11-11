@@ -154,14 +154,5 @@
     <ClInclude Include="EQUIStructs.h">
       <Filter>Header Files\Live</Filter>
     </ClInclude>
-    <ClInclude Include="EQData(Test).h">
-      <Filter>Header Files\Test</Filter>
-    </ClInclude>
-    <ClInclude Include="eqgame(Test).h">
-      <Filter>Header Files\Test</Filter>
-    </ClInclude>
-    <ClInclude Include="EQUIStructs(Test).h">
-      <Filter>Header Files\Test</Filter>
-    </ClInclude>
   </ItemGroup>
 </Project>

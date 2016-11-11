@@ -11,7 +11,7 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
     GNU General Public License for more details.
 ******************************************************************************/
-
+#pragma pack(4)
 namespace EQUIStructs
 {
 
@@ -232,7 +232,7 @@ VFTABLE
 /*0x0010*/ void*	pUnknown0x10; \
 /*0x0014*/ struct _CSIDLWND*	pFirstChildWnd; \
 /*0x0018*/ BYTE		Unknown0x0018[0x4]; \
-/*0x001c*/ DWORD	UnknownCW; /*found in OnProcessFrame*/\
+/*0x001c*/ DWORD	CRNormal; /*found in OnProcessFrame*/\
 /*0x0020*/ DWORD	VScrollPos; \
 /*0x0024*/ BYTE		Unknown0x0024[0x4]; \
 /*0x0028*/ DWORD	HScrollPos; \
@@ -259,7 +259,7 @@ VFTABLE
 /*0x00dc*/ BYTE		Unknown0x00dc[0x14]; \
 /*0x00f0*/ struct _CXSTR*	XMLToolTip; /*found in CSidlManager__CreateLabel_x*/ \
 /*0x00f4*/ BYTE		Unknown0x00f4[0x10]; \
-/*0x0104*/ ARGBCOLOR	BGColor; \
+/*0x0104*/ COLORREF	BGColor; \
 /*0x0108*/ struct _CSIDLWND*	pParentWindow; /*CXWnd__IsDescendantOf_x has this one, If this is NULL, coordinates are absolute... */ \
 /*0x010c*/ BYTE		Unknown0x010c[0xc]; \
 /*0x0118*/ BYTE		Alpha; \
@@ -268,7 +268,7 @@ VFTABLE
 /*0x0123*/ BYTE		Unknown0x0123[0x5]; \
 /*0x0128*/ RECT		OldLocation; \
 /*0x0138*/ BYTE		Unknown0x0138[0x8]; \
-/*0x0140*/ BYTE		dShow; \
+/*0x0140*/ bool		dShow; \
 /*0x0141*/ BYTE		Unknown0x0141[0xf]; \
 /*0x0150*/ BYTE		Unlockable;     /* found in CSidlScreenWnd__LoadIniInfo_x related to Locked */ \
 /*0x0151*/ BYTE		Unknown0x0151[0xf]; \
@@ -283,14 +283,14 @@ VFTABLE
 /*0x0188*/ BYTE		Unknown0x0188; \
 /*0x0189*/ BYTE		Fades; \
 /*0x018a*/ BYTE		Unknown0x018a[0x6]; \
-/*0x0190*/ BYTE		Faded; \
+/*0x0190*/ bool		Faded; \
 /*0x0191*/ BYTE		Unknown0x0191[0x24]; \
 /*0x01b5*/ BYTE		ValidCXWnd; /*IsValid has this one*/\
 /*0x01b6*/ BYTE		Unknown0x01b6[0x2]; \
 /*0x01b8*/ DWORD	ZLayer; /*found in CXWndManager__DrawWindows_x*/ \
 /*0x01bc*/ BYTE		Unknown0x01bc[0x24]; \
-/*0x01e0*/ DWORD	TimeMouseOver; \
-/*0x01e4*/ DWORD	LastTimeMouseOver; \
+/*0x01e0*/ DWORD	FadeDelay; \
+/*0x01e4*/ DWORD	LastFadeDelay; \
 /*0x01e8*/ BYTE		Unknown0x01e4[0x08];
 /*0x01f0*/
 
@@ -1226,3 +1226,4 @@ typedef struct _EQTRADEWINDOW {
 
 };
 using namespace EQUIStructs;
+#pragma pack()

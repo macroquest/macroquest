@@ -4576,10 +4576,10 @@ class MQ2TaskObjectiveType : public MQ2Type
 		if (CListWnd *clist = (CListWnd *)pTaskWnd->GetChildItem("TASK_TaskElementList")) {
 			//we return Objective by default:
 			clist->GetItemText(&Str, VarPtr.Int, 0);
-			CHAR szOut[255] = { 0 };
-			GetCXStr(Str.Ptr, szOut, 254);
+			CHAR szOut[2048] = { 0 };
+			GetCXStr(Str.Ptr, szOut, 2048);
 			if (szOut[0] != '\0') {
-				strcpy_s(Destination, 254, szOut);
+				strcpy_s(Destination, 2048, szOut);
 				return true;
 			}
 		}
@@ -4678,8 +4678,8 @@ public:
 					index = clist->GetCurSel();
 				CXStr Str;
 				clist->GetItemText(&Str, index, 1);
-				CHAR szOut[255] = { 0 };
-				GetCXStr(Str.Ptr, szOut, 254);
+				CHAR szOut[2048] = { 0 };
+				GetCXStr(Str.Ptr, szOut, 2048);
 				if (szOut[0] != '\0') {
 					strcpy_s(Destination, 254, szOut);
 				}
@@ -4813,8 +4813,8 @@ public:
 			if (clist) {
 				CXStr Str;
 				clist->GetItemText(&Str, n, 2);
-				CHAR szOut[255] = { 0 };
-				GetCXStr(Str.Ptr, szOut, 254);
+				CHAR szOut[2048] = { 0 };
+				GetCXStr(Str.Ptr, szOut, 2048);
 				if (szOut[0] != '\0') {
 					strcpy_s(Destination,MAX_STRING, szOut);
 					return true;

@@ -1,3 +1,29 @@
+11 Nov 2016 by eqmule
+- Updated for BETA
+- In preparation for the expansion on the 16th and for future faster patching,
+  THE FOLLOWING STUFF has undergone some serious changes:
+  You have 5 days to adjust your personal builds and plugins.
+-
+- BGColor is now a COLORREF change plugins accordingly.
+  and no, it CANNOT be changed back to a ARGBCOLOR since that contains a union with bytes and that screws up the 4 aligned padding.
+- UnknownCW has been renamed to CRNormal change plugins accordingly.
+- Locked is now a bool
+- TimeMouseOver has been renamed to FadeDelay
+- dShow is now a bool
+- We are using 4 byte alignemnt from now on, set ur plugins to 4 byte alignment.
+- ONE MORE TIME, WE ARE NOT USING 1 byte ALIGNMENT ANYMORE.
+- the CXWnd struct grew somewhat to make patching of it easier for me.
+- Fixed a bug in MQ2EQBC that would crash u on /unload
+- The following plugins has had changes made to them:
+MQ2AvdPath.cpp
+MQ2AutoAccept
+MQ2DPSAdv.cpp
+MQ2EQBC.cpp
+MQ2ETrack.cpp
+MQ2Melee.cpp
+MQ2MoveUtils.cpp
+MQ2Spawns.cpp
+
 09 Nov 2016 by eqmule
 - Updated for BETA
 

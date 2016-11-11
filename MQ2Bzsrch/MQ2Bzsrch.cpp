@@ -586,7 +586,7 @@ void DoClass(PCHAR szArg)
 			DWORD itemcnt = pCombo->GetItemCount();
 			for (DWORD i = 0; i < itemcnt; i++) {
 				pListWnd->GetItemText(&Str, i, 0);
-				GetCXStr(Str.Ptr, szOut, 254);
+				GetCXStr(Str.Ptr, szOut, 255);
 				if (szOut[0] != '\0') {
 					if (!_stricmp(szClass, szOut)) {
 						SetComboSelection((CSidlScreenWnd*)pCombo, i);
@@ -641,7 +641,7 @@ void DoRace(PCHAR szArg)
 			DWORD itemcnt = pCombo->GetItemCount();
 			for (DWORD i = 0; i < itemcnt; i++) {
 				pListWnd->GetItemText(&Str, i, 0);
-				GetCXStr(Str.Ptr, szOut, 254);
+				GetCXStr(Str.Ptr, szOut, 255);
 				if (szOut[0] != '\0') {
 					if (!_stricmp(szRace, szOut)) {
 						SetComboSelection((CSidlScreenWnd*)pCombo, i);
@@ -681,7 +681,7 @@ void DoCombo(PCHAR szArg, PCHAR key, PCHAR szCombostring)
 			} else {
 				for (DWORD i = 0; i < itemcnt; i++) {
 					pListWnd->GetItemText(&Str, i, 0);
-					GetCXStr(Str.Ptr, szOut, 254);
+					GetCXStr(Str.Ptr, szOut, 255);
 					if (szOut[0] != '\0') {
 						if (!_stricmp(szValue, szOut)) {
 							SetComboSelection((CSidlScreenWnd*)pCombo, i);

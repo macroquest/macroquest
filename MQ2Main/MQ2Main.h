@@ -11,7 +11,7 @@ but WITHOUT ANY WARRANTY; without even the implied warranty of
 MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 GNU General Public License for more details.
 ******************************************************************************/
-
+#pragma pack(4)
 #define VersionString __ExpectedVersionDate
 #define TimeString __ExpectedVersionTime
 #define DebugHeader "[MQ2]"
@@ -817,3 +817,4 @@ inline PCHAR ISXEQArgToMQ2Arg(int argc, char *argv[], char *szTemp, size_t size)
 		szTemp[len - 1] = '\0';
 	return &szTemp[0];
 }
+#pragma pack()

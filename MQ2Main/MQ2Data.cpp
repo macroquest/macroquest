@@ -1850,7 +1850,7 @@ TLO(dataTask)
 					_strlwr_s(szTemp);
 					for (LONG i = 0; i < clist->Items; i++) {
 						clist->GetItemText(&Str, i, 1);
-						GetCXStr(Str.Ptr, szOut, 2047);
+						GetCXStr(Str.Ptr, szOut, MAX_STRING);
 						_strlwr_s(szOut);
 						if (strstr(szOut, szTemp)) {
 							Ret.Int = i;
@@ -1880,8 +1880,8 @@ TLO(dataMount)
 				if (numitems >= n) {
 					CXStr Str;
 					clist->GetItemText(&Str, n, 2);
-					CHAR szOut[255] = { 0 };
-					GetCXStr(Str.Ptr, szOut, 254);
+					CHAR szOut[MAX_STRING] = { 0 };
+					GetCXStr(Str.Ptr, szOut, MAX_STRING);
 					if (szOut[0] != '\0') {
 						Ret.DWord = MAKELPARAM(n, 0);
 						Ret.Type = pKeyRingType;
@@ -1922,8 +1922,8 @@ TLO(dataIllusion)
 				if (numitems >= n) {
 					CXStr Str;
 					clist->GetItemText(&Str, n, 2);
-					CHAR szOut[255] = { 0 };
-					GetCXStr(Str.Ptr, szOut, 254);
+					CHAR szOut[MAX_STRING] = { 0 };
+					GetCXStr(Str.Ptr, szOut, MAX_STRING);
 					if (szOut[0] != '\0') {
 						Ret.DWord = MAKELPARAM(n, 1);
 						Ret.Type = pKeyRingType;

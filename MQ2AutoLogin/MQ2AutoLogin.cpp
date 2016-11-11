@@ -898,7 +898,8 @@ DETOUR_TRAMPOLINE_EMPTY( UINT WINAPI GetPrivateProfileIntA_Tramp( LPCSTR, LPCSTR
 PLUGIN_API VOID InitializePlugin(VOID)
 {
 	//MessageBox(NULL, "Inject now", "MQ2 Debug", MB_OK|MB_SYSTEMMODAL);
-
+	int sizeofCXWnd = sizeof(CXWnd);
+	//int sizeofCXWND = sizeof(CXWND);
 	CHAR szPath[MAX_PATH] = { 0 };
     GetPrivateProfileStringA("Settings", "IniLocation", 0, szPath, MAX_PATH, INIFileName);
     if(szPath[0])
@@ -1121,10 +1122,10 @@ void SwitchCharacter(char *szName)
 				if (charlist->Items) {
 					CXStr Str;
 					int column = 2;
+					CHAR szOut[MAX_STRING] = { 0 };
 					for (int i = 0; i < charlist->Items; i++) {
 						charlist->GetItemText(&Str, i, column);
-						CHAR szOut[255] = { 0 };
-						GetCXStr(Str.Ptr, szOut, 254);
+						GetCXStr(Str.Ptr, szOut, MAX_STRING);
 						if (szOut[0] != '\0') {
 							if (!_stricmp(szName, szOut)) {
 								DWORD pCharSelect = *(DWORD*)pinstCCharacterSelect;
@@ -1160,10 +1161,10 @@ void SelectCharacter( char *szName )
                 if( charlist->Items ) {
                     CXStr Str;
                     int column = 2;
+					CHAR szOut[MAX_STRING] = { 0 };
                     for( int i = 0; i < charlist->Items; i++ ) {
                         charlist->GetItemText( &Str, i, column );
-                        CHAR szOut[255] = { 0 };
-                        GetCXStr( Str.Ptr, szOut, 254 );
+                        GetCXStr( Str.Ptr, szOut, MAX_STRING );
                         if( szOut[0] != '\0' ) {
                             if( !_stricmp( szName, szOut ) ) {
                                 DWORD pCharSelect = *(DWORD*)pinstCCharacterSelect;

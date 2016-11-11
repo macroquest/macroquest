@@ -7957,13 +7957,13 @@ PEQINVSLOT GetInvSlot(DWORD type, WORD invslot, WORD bagslot)
 	PEQINVSLOTMGR pInvMgr = (PEQINVSLOTMGR)pInvSlotMgr;
 	if (pInvMgr) {
 		PEQINVSLOT pSlot = 0;
+		CHAR szType[MAX_STRING] = { 0 };
 		for (DWORD i = 0; i<pInvMgr->TotalSlots; i++) {
 			pSlot = pInvMgr->SlotArray[i];
 			if (pSlot && pSlot->Valid && pSlot->pInvSlotWnd && pSlot->pInvSlotWnd->WindowType == type && pSlot->pInvSlotWnd->InvSlot == invslot && pSlot->pInvSlotWnd->BagSlot == bagslot) {
 				CXMLData *pXMLData = ((CXWnd*)pSlot->pInvSlotWnd)->GetXMLData();
 				if (pXMLData) {
-					CHAR szType[256] = { 0 };
-					GetCXStr(pXMLData->ScreenID.Ptr, szType, 255);
+					GetCXStr(pXMLData->ScreenID.Ptr, szType, MAX_STRING);
 					if (!_stricmp(szType, "HB_InvSlot")) {//we dont want this, the user specified a container , not a hotbutton...
 						continue;
 					}
@@ -8715,8 +8715,8 @@ DWORD GetKeyRingIndex(BOOL KeyRing, PCHAR szItemName, SIZE_T BuffLen, bool bExac
 				for (DWORD i = 0; i<numitems; i++) {
 					CXStr Str;
 					clist->GetItemText(&Str, i, 2);
-					CHAR szOut[255] = { 0 };
-					GetCXStr(Str.Ptr, szOut, 254);
+					CHAR szOut[MAX_STRING] = { 0 };
+					GetCXStr(Str.Ptr, szOut, MAX_STRING);
 					if (szOut[0] != '\0') {
 						if (bExact) {
 							if (!_stricmp(szItemName, szOut)) {
@@ -8824,14 +8824,14 @@ VOID RemoveAura(PSPAWNINFO pChar, PCHAR szLine)
 		WriteChatColor("Usage: /removeaura <auraname> or <aurapartialname>", CONCOLOR_LIGHTBLUE);
 		return;
 	}
-	CHAR szOut[255] = { 0 };
-	CHAR szCmp[255] = { 0 };
+	CHAR szOut[MAX_STRING] = { 0 };
+	CHAR szCmp[MAX_STRING] = { 0 };
 	strcpy_s(szCmp, szLine);
 	CXStr Str;
 	if (CListWnd*clist = (CListWnd*)pAuraWnd->GetChildItem("AuraList")) {
 		for (LONG i = 0; i<clist->Items; i++) {
 			clist->GetItemText(&Str, i, 1);
-			GetCXStr(Str.Ptr, szOut, 254);
+			GetCXStr(Str.Ptr, szOut, MAX_STRING);
 			if (szOut[0] != '\0') {
 				_strlwr_s(szOut);
 				_strlwr_s(szCmp);

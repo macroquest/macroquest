@@ -12,9 +12,7 @@ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 GNU General Public License for more details.
 ******************************************************************************/
 #ifdef PRIVATE
-#if defined(LIVE)
-#include "eqgame-private(live).h"
-#elif defined(TEST)
+#if defined(TEST)
 #include "eqgame-private(test).h"
 #endif
 #endif

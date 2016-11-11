@@ -2665,7 +2665,7 @@ bool MQ2CharacterType::GETMEMBER()
 			{
 				char tmp[MAX_STRING] = { 0 };
 				DataTypeTemp[0] = '\0';
-				GetCXStr(pChar->pGroupInfo->pMember[i]->pName, tmp, sizeof(tmp));
+				GetCXStr(pChar->pGroupInfo->pMember[i]->pName, tmp, MAX_STRING);
 				strcat_s(DataTypeTemp, tmp);
 				if (i < 5 && pChar->pGroupInfo->pMember[i + 1])
 					strcat_s(DataTypeTemp, " ");
@@ -2900,7 +2900,7 @@ bool MQ2CharacterType::GETMEMBER()
 		if (pCombatAbilityWnd) {
 			if (CXWnd *Child = ((CXWnd*)pCombatAbilityWnd)->GetChildItem("CAW_CombatEffectLabel")) {
 				CHAR szBuffer[2048] = { 0 };
-				if (GetCXStr(Child->WindowText, szBuffer, 2047) && szBuffer[0] != '\0') {
+				if (GetCXStr(Child->WindowText, szBuffer, MAX_STRING) && szBuffer[0] != '\0') {
 					if (Dest.Ptr = GetSpellByName(szBuffer)) {
 						Dest.Type = pSpellType;
 						return true;
@@ -5374,8 +5374,8 @@ bool MQ2SpellType::GETMEMBER()
 	case Caster:
 		if (CXStr *ptr = pTargetWnd->GetBuffCaster(pSpell->ID))
 		{
-			CHAR szBuffer[64] = { 0 };
-			if (GetCXStr(ptr->Ptr, szBuffer, 63)) {
+			CHAR szBuffer[MAX_STRING] = { 0 };
+			if (GetCXStr(ptr->Ptr, szBuffer, MAX_STRING)) {
 				strcpy_s(DataTypeTemp, szBuffer);
 				Dest.Ptr = &DataTypeTemp[0];
 				Dest.Type = pStringType;
@@ -7071,14 +7071,14 @@ bool MQ2WindowType::GETMEMBER()
 		Dest.Type = pIntType;
 		return true;
 	case BGColor:
-		Dest.DWord = pWnd->BGColor.ARGB;
+		Dest.DWord = pWnd->BGColor;
 		Dest.Type = pArgbType;
 		return true;
 	case Text:
 		if (((CXWnd*)pWnd)->GetType() == UI_STMLBox)
-			GetCXStr(pWnd->SidlText, DataTypeTemp, MAX_STRING - 1);
+			GetCXStr(pWnd->SidlText, DataTypeTemp, MAX_STRING);
 		else
-			GetCXStr(pWnd->WindowText, DataTypeTemp, MAX_STRING - 1);
+			GetCXStr(pWnd->WindowText, DataTypeTemp, MAX_STRING);
 		DataTypeTemp[MAX_STRING - 1] = '\0';
 		Dest.Ptr = &DataTypeTemp[0];
 		Dest.Type = pStringType;
@@ -10783,8 +10783,10 @@ bool MQ2TargetType::GETMEMBER()
 		}
 		break;
 	case Beneficial:
+	{
 		if ((((PCTARGETWND)pTargetWnd)->Type <= 0))
 			return false;
+		CHAR szBuffer[MAX_STRING] = { 0 };
 		for (i = 0; i < NUM_BUFF_SLOTS; i++)
 		{
 			if (((PCTARGETWND)pTargetWnd)->BuffSpellID[i] == -1 || ((PCTARGETWND)pTargetWnd)->BuffSpellID[i] == 0)
@@ -10796,8 +10798,7 @@ bool MQ2TargetType::GETMEMBER()
 					//so we need to make sure its not a "leaked buff"
 					if (CXStr *ptr = pTargetWnd->GetBuffCaster(pSpell->ID))
 					{
-						CHAR szBuffer[64] = { 0 };
-						if (GetCXStr(ptr->Ptr, szBuffer, 63)) {
+						if (GetCXStr(ptr->Ptr, szBuffer, MAX_STRING)) {
 							if (PSPAWNINFO pPlayer = (PSPAWNINFO)GetSpawnByName(szBuffer)) {
 								if (pPlayer->Type == SPAWN_PLAYER) {
 									continue;
@@ -10812,6 +10813,7 @@ bool MQ2TargetType::GETMEMBER()
 			}
 		}
 		return false;
+	}
 	case DSed:
 		if ((Dest.Int = GetTargetBuffBySPA(59, 1)) != -1)//Damage Shield
 		{
@@ -11202,8 +11204,8 @@ bool MQ2TaskObjectiveType::GETMEMBER()
 			Dest.Type = pIntType;
 			return true;
 		}
-		CHAR szOut[255] = { 0 };
-		GetCXStr(Str.Ptr, szOut, 254);
+		CHAR szOut[MAX_STRING] = { 0 };
+		GetCXStr(Str.Ptr, szOut, MAX_STRING);
 		if (szOut[0] != '\0') {
 			strcpy_s(DataTypeTemp, szOut);
 			Dest.Ptr = &DataTypeTemp[0];
@@ -11297,8 +11299,8 @@ bool MQ2TaskType::GETMEMBER()
 		if (CListWnd *clist = (CListWnd *)pTaskWnd->GetChildItem("TASK_TaskList")) {
 			CXStr Str;
 			clist->GetItemText(&Str, index, 0);
-			CHAR szOut[255] = { 0 };
-			GetCXStr(Str.Ptr, szOut, 254);
+			CHAR szOut[MAX_STRING] = { 0 };
+			GetCXStr(Str.Ptr, szOut, MAX_STRING);
 			if (!_stricmp(szOut, "S")) {
 				strcpy_s(DataTypeTemp, "Shared");
 				Dest.Ptr = &DataTypeTemp[0];
@@ -11340,8 +11342,8 @@ bool MQ2TaskType::GETMEMBER()
 				index = clist->GetCurSel();
 			CXStr Str;
 			clist->GetItemText(&Str, index, 1);
-			CHAR szOut[255] = { 0 };
-			GetCXStr(Str.Ptr, szOut, 254);
+			CHAR szOut[MAX_STRING] = { 0 };
+			GetCXStr(Str.Ptr, szOut, MAX_STRING);
 			if (szOut[0] != '\0') {
 				strcpy_s(DataTypeTemp, szOut);
 			}
@@ -11360,8 +11362,8 @@ bool MQ2TaskType::GETMEMBER()
 			if (index == -1)
 				index = clist->GetCurSel();
 			clist->GetItemText(&Str, index, 2);
-			CHAR szOut[255] = { 0 };
-			GetCXStr(Str.Ptr, szOut, 254);
+			CHAR szOut[MAX_STRING] = { 0 };
+			GetCXStr(Str.Ptr, szOut, MAX_STRING);
 			if (szOut[0] != '\0') {
 				int hh, mm, ss;
 				if (sscanf_s(szOut, "%d:%d:%d", &hh, &mm, &ss)) {
@@ -11438,7 +11440,7 @@ bool MQ2TaskType::GETMEMBER()
 				_strlwr_s(szTemp);
 				for (LONG i = 0; i < clist->Items; i++) {
 					clist->GetItemText(&Str, i, 0);
-					GetCXStr(Str.Ptr, szOut, 2047);
+					GetCXStr(Str.Ptr, szOut, MAX_STRING);
 					_strlwr_s(szOut);
 					if (strstr(szOut, szTemp)) {
 						stepindex = i;
@@ -11475,7 +11477,7 @@ bool MQ2TaskType::GETMEMBER()
 			CHAR szOut[MAX_STRING] = { 0 };
 			for (LONG i = 0; i < clist->Items; i++) {
 				clist->GetItemText(&Str, i, 1);
-				GetCXStr(Str.Ptr, szOut, 2047);
+				GetCXStr(Str.Ptr, szOut, MAX_STRING);
 				if (_stricmp(szOut, "done")) {
 					Dest.Int = i;
 					Dest.Type = pTaskObjectiveType;
@@ -11575,8 +11577,8 @@ bool MQ2KeyRingType::GETMEMBER()
 			if (clist) {
 				CXStr Str;
 				clist->GetItemText(&Str, n, 2);
-				CHAR szOut[255] = { 0 };
-				GetCXStr(Str.Ptr, szOut, 254);
+				CHAR szOut[MAX_STRING] = { 0 };
+				GetCXStr(Str.Ptr, szOut, MAX_STRING);
 				if (szOut[0] != '\0') {
 					strcpy_s(DataTypeTemp, szOut);
 					Dest.Ptr = &DataTypeTemp[0];

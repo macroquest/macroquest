@@ -14,8 +14,6 @@ GNU General Public License for more details.
 #ifdef PRIVATE
 #if defined(LIVE)
 #include "eqgame-private(live).h"
-#elif defined(TEST)
-#include "eqgame-private(test).h"
 #endif
 #endif
 
