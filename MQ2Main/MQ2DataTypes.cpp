@@ -5447,6 +5447,19 @@ bool MQ2SpellType::GETMEMBER()
 				if (pChar2->SpellBook[nSpell] != 0xFFFFFFFF)
 				{
 					if (PSPELL pFoundSpell = GetSpellByID(pChar2->SpellBook[nSpell])) {
+						if (pFoundSpell->ID == thespell->ID)
+						{
+							Dest.Ptr = pFoundSpell;
+							Dest.Type = pSpellType;
+							return true;
+						}
+					}
+				}
+			}
+			for (DWORD nSpell = 0; nSpell < NUM_BOOK_SLOTS; nSpell++) {
+				if (pChar2->SpellBook[nSpell] != 0xFFFFFFFF)
+				{
+					if (PSPELL pFoundSpell = GetSpellByID(pChar2->SpellBook[nSpell])) {
 						if (pFoundSpell->SpellGroup == thespell->SpellGroup && !_strnicmp(thespell->Name, pFoundSpell->Name, strlen(thespell->Name)))
 						{
 							Dest.Ptr = pFoundSpell;

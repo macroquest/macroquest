@@ -179,12 +179,12 @@ public:
 
     int GetDmgBonus (PCXSTR * Str)
     {
-        char cTemp[2048];
+		char cTemp[MAX_STRING] = { 0 };
         INT dmgbonuspos;
         INT dmgbonus = 0;
         INT badcharpos;
 
-        GetCXStr(*Str, cTemp, 2048);
+        GetCXStr(*Str, cTemp, MAX_STRING);
 
         string ItemDisplay;
         ItemDisplay = cTemp;

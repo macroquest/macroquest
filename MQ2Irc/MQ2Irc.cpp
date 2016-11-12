@@ -76,8 +76,8 @@ public:
         { 
             if (Message==XWM_HITENTER) 
             { 
-				char szBuffer[2048] = { 0 };
-                GetCXStr((PCXSTR)InputBox->InputText,szBuffer,2048); 
+				char szBuffer[MAX_STRING] = { 0 };
+                GetCXStr((PCXSTR)InputBox->InputText,szBuffer,MAX_STRING); 
                 if (szBuffer[0]) 
                 { 
                     if(channels.size()<1) { 

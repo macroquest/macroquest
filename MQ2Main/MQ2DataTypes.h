@@ -2994,7 +2994,6 @@ public:
 		TypeMember(LayoutCopyInProgress);
 		TypeMember(LastMouseOver);
 		TypeMember(CharSelectList);
-		
 	}
 
 	~MQ2EverQuestType()
@@ -4576,10 +4575,10 @@ class MQ2TaskObjectiveType : public MQ2Type
 		if (CListWnd *clist = (CListWnd *)pTaskWnd->GetChildItem("TASK_TaskElementList")) {
 			//we return Objective by default:
 			clist->GetItemText(&Str, VarPtr.Int, 0);
-			CHAR szOut[2048] = { 0 };
-			GetCXStr(Str.Ptr, szOut, 2048);
+			CHAR szOut[MAX_STRING] = { 0 };
+			GetCXStr(Str.Ptr, szOut, MAX_STRING);
 			if (szOut[0] != '\0') {
-				strcpy_s(Destination, 2048, szOut);
+				strcpy_s(Destination, MAX_STRING, szOut);
 				return true;
 			}
 		}
@@ -4678,10 +4677,10 @@ public:
 					index = clist->GetCurSel();
 				CXStr Str;
 				clist->GetItemText(&Str, index, 1);
-				CHAR szOut[2048] = { 0 };
-				GetCXStr(Str.Ptr, szOut, 2048);
+				CHAR szOut[MAX_STRING] = { 0 };
+				GetCXStr(Str.Ptr, szOut, MAX_STRING);
 				if (szOut[0] != '\0') {
-					strcpy_s(Destination, 254, szOut);
+					strcpy_s(Destination, MAX_STRING, szOut);
 				}
 			}
 		}
@@ -4813,8 +4812,8 @@ public:
 			if (clist) {
 				CXStr Str;
 				clist->GetItemText(&Str, n, 2);
-				CHAR szOut[2048] = { 0 };
-				GetCXStr(Str.Ptr, szOut, 2048);
+				CHAR szOut[MAX_STRING] = { 0 };
+				GetCXStr(Str.Ptr, szOut, MAX_STRING);
 				if (szOut[0] != '\0') {
 					strcpy_s(Destination,MAX_STRING, szOut);
 					return true;

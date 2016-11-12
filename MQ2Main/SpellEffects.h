@@ -285,7 +285,7 @@
         "No Fizzle",                            // 265
         "Add Attack Chance",                    // 266
         "Add Pet Commands",                     // 267
-        "Alc Fail Rate",                        // 268
+        "Failure Rate",                         // 268 (Tradeskill)
         "Bandage Perc Limit",                   // 269
         "Bard Song Range",                      // 270
         "Base Run Speed",                       // 271

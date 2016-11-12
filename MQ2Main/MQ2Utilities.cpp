@@ -1646,7 +1646,7 @@ TS PCHAR GetClassesFromMask(LONG mask, CHAR(&szBuffer)[_Size])
 // Function:    GetSpellRestrictions 
 // Description: Return the restrictions for the spell slot
 // *************************************************************************** 
-PCHAR GetSpellRestrictions(PSPELL pSpell, unsigned int nIndex, PCHAR szBuffer,SIZE_T BufferSize)
+PCHAR GetSpellRestrictions(PSPELL pSpell, unsigned int nIndex, PCHAR szBuffer, SIZE_T BufferSize)
 {
 	CHAR szTemp[MAX_STRING] = { 0 };
 	if (!szBuffer)
@@ -1761,7 +1761,9 @@ PCHAR GetSpellRestrictions(PSPELL pSpell, unsigned int nIndex, PCHAR szBuffer,SI
 	case 1004: strcat_s(szBuffer,BufferSize, "HP Less Than 80%"); break;
 	case 38311: strcat_s(szBuffer,BufferSize, "Mana Below 20%"); break;
 	case 38312: strcat_s(szBuffer,BufferSize, "Mana Below 10%"); break;
-	default: strcat_s(szBuffer,BufferSize, "Unknown"); break;
+	default: 
+		sprintf_s(szTemp, "Unknown[%d]", GetSpellBase2(pSpell, nIndex));
+		strcat_s(szBuffer,BufferSize, szTemp); break;
 	}
 	return szBuffer;
 }
@@ -1794,6 +1796,7 @@ PCHAR GetSpellEffectName(LONG EffectID, PCHAR szBuffer, SIZE_T BufferSize)
 
 template <unsigned int _Size> PCHAR GetResistTypeName(LONG ResistType, CHAR(&szBuffer)[_Size])
 {
+	CHAR szTemp[MAX_STRING] = { 0 };
 	switch (ResistType)
 	{
 	case 1: strcat_s(szBuffer, "Magic"); break;
@@ -1803,25 +1806,31 @@ template <unsigned int _Size> PCHAR GetResistTypeName(LONG ResistType, CHAR(&szB
 	case 5: strcat_s(szBuffer, "Disease"); break;
 	case 6: strcat_s(szBuffer, "Chromatic"); break;
 	case 7: strcat_s(szBuffer, "Prismatic"); break;
-	default: strcat_s(szBuffer, "Unknown"); break;
+	default: 
+		sprintf_s(szTemp, "Unknown[%d]", ResistType);
+		strcat_s(szBuffer, szTemp); break;
 	}
 	return szBuffer;
 }
 
 TS PCHAR GetSpellTypeName(LONG SpellType, CHAR(&szBuffer)[_Size])
 {
+	CHAR szTemp[MAX_STRING] = { 0 };
 	switch (SpellType)
 	{
 	case 0: strcat_s(szBuffer, "Detrimental only"); break;
 	case 1: strcat_s(szBuffer, "Beneficial only"); break;
 	case 2: strcat_s(szBuffer, "Beneficial - Group Only"); break;
-	default: strcat_s(szBuffer, "Unknown"); break;
+	default: 
+		sprintf_s(szTemp, "Unknown[%d]", SpellType);
+		strcat_s(szBuffer, szTemp); break;
 	}
 	return szBuffer;
 }
 
 TS PCHAR GetTargetTypeLimitsName(LONG TargetLimitsType, CHAR(&szBuffer)[_Size])
 {
+	CHAR szTemp[MAX_STRING] = { 0 };
 	switch (abs(TargetLimitsType))
 	{
 	case 50: strcat_s(szBuffer, "Target AE No Players Pets"); break; // blanket of forgetfullness. beneficial, AE mem blur, with max targets
@@ -1860,13 +1869,16 @@ TS PCHAR GetTargetTypeLimitsName(LONG TargetLimitsType, CHAR(&szBuffer)[_Size])
 	case 3: strcat_s(szBuffer, "Group v1"); break;
 	case 2: strcat_s(szBuffer, "AE PC v1"); break;
 	case 1: strcat_s(szBuffer, "Line of Sight"); break;
-	default: strcat_s(szBuffer, "Unknown"); break;
+	default: 
+		sprintf_s(szTemp, "Unknown[%d]", abs(TargetLimitsType));
+		strcat_s(szBuffer, szTemp); break;
 	}
 	return szBuffer;
 }
 
 TS PCHAR GetStatShortName(LONG StatType, CHAR(&szBuffer)[_Size])
 {
+	CHAR szTemp[MAX_STRING] = { 0 };
 	switch (StatType)
 	{
 	case 0: strcat_s(szBuffer, "STR"); break;
@@ -1881,19 +1893,26 @@ TS PCHAR GetStatShortName(LONG StatType, CHAR(&szBuffer)[_Size])
 	case 9: strcat_s(szBuffer, "FR"); break;
 	case 10: strcat_s(szBuffer, "PR"); break;  // either PR or DR
 	case 11: strcat_s(szBuffer, "DR"); break;  // either DR or PR
-	default: strcat_s(szBuffer, "Unknown"); break;
+	default: 
+		sprintf_s(szTemp, "Unknown[%d]", StatType);
+		strcat_s(szBuffer, szTemp); break;
 	}
 	return szBuffer;
 }
 
 TS PCHAR GetFactionName(LONG FactionType, CHAR(&szBuffer)[_Size])
 {
+	CHAR szTemp[MAX_STRING] = { 0 };
 	switch (FactionType)
 	{
-	case 1178: strcat_s(szBuffer, "(S.H.I.P. Workshop Base Population)"); break;
+	case 304: strcat_s(szBuffer, "(Ring of Scale)"); break;
+	case 430: strcat_s(szBuffer, "(Claws of Veeshan)"); break;
 	case 1150: strcat_s(szBuffer, "(Jewel of Atiiki Efreetis)"); break;
+	case 1178: strcat_s(szBuffer, "(S.H.I.P. Workshop Base Population)"); break;
 	case 1229: strcat_s(szBuffer, "(Sebilisian Empire)"); break;
-	default: strcat_s(szBuffer, "(Unknown)"); break;
+	default: 
+		sprintf_s(szTemp, "(Unknown[%d])", FactionType);
+		strcat_s(szBuffer, szTemp); break;
 	}
 	return szBuffer;
 }
@@ -3295,7 +3314,11 @@ PCHAR ParseSpellEffect(PSPELL pSpell, int i, PCHAR szBuffer, SIZE_T BufferSize, 
 		break;
 	case 266: //Attack Chance 
 	case 267: //Add Pet Commands (no spells currently)
-	case 268: //Alc Fail Rate (no spells currently)
+		strcat_s(szBuff, FormatBase(spelleffectname, base, szTemp2));
+		break;
+	case 268: //TS Fail Rate
+		strcat_s(szBuff, FormatSkills(spelleffectname, -value, -finish, base2, szTemp2, "for"));
+		break;
 	case 269: //Bandage Perc Limit (no spells currently)
 		strcat_s(szBuff, FormatBase(spelleffectname, base, szTemp2));
 		break;

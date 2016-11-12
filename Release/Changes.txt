@@ -1,3 +1,9 @@
+12 Nov 2016 by eqmule
+- Updated for TEST
+
+12 Nov 2016 by rswiders
+- Updated spell effects display
+
 11 Nov 2016 by eqmule
 - Updated for BETA
 
@@ -24,6 +30,10 @@ MQ2EQBC.cpp
 MQ2Melee.cpp
 MQ2MoveUtils.cpp
 MQ2Spawns.cpp
+
+10 Nov 2016 by rswiders
+- Updated RankName to find an exact match for name. The results from Spell.ID and Spell.RankName will now be
+  from the same spell (if it exists in the spellbook).
 
 09 Nov 2016 by eqmule
 - Updated for BETA

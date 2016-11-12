@@ -2356,7 +2356,7 @@ typedef struct _CHATSERVICE {
 /*0x0b0*/ // more data
 } CHATSERVICE, *PCHATSERVICE;
 
-//size 0x164 Oct 12 2016 eqmule
+//size 0x164 Oct 12 2016 eqmule see 441FE3 in oct 17 2016 live
 typedef struct _CSINFO
 {
 /*0x000*/	CHAR Name[0x40]; 
