@@ -1,5 +1,18 @@
-12 Nov 2016 by eqmule
-- Added the missing members to the test cxwnd struct
+14 Nov 2016 by eqmule
+- Updated for BETA
+- GetSpellEffectNameByID fixed to not return a temp buffer - cred HTW
+- ReadWindowINI in MQ2AdvPath correctly read the ini but never set the window value
+  this has been corrected - cred Brainiac
+  a zip which has the corrected version in it is located here : http://www.macroquest2.com/phpBB3/viewtopic.php?f=29&t=11451&p=172713#p172713
+-
+- Corrected the zoneinfo struct 
+  What we previously had been refering to as "ZoneType" was not in fact it, so it has been renamed to FOgOnOff which is what its for.
+  This means that ${Zone.Type} has changed a bit...
+  it now returns 0-5 see the EOutDoor enum for more info. And whoever wants to update the wiki should refer to that.
+  in short: 0=Indoor Dungeon 1=Outdoor 2=Outdoor City 3=Dungeon City 4=Indoor City 5=Outdoor Dungeon
+
+13 Nov 2016 by eqmule
+- Added some missing members to the test cxwnd struct
 - Fixed the 4Byte error.
 
 12 Nov 2016 by eqmule

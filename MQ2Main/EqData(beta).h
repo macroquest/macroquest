@@ -711,47 +711,45 @@ typedef struct _CONTENTSARRAY {
 } CONTENTSARRAY, *PCONTENTSARRAY;
 
 
-//Actual Size: 148 (see 597877 in eqgame.exe Beta dated Nov 11 2016) - eqmule
+//Actual Size: 148 (see 596637 in eqgame.exe Beta dated Nov 14 2016) - eqmule
 typedef struct _CONTENTS {
 /*0x0000*/ void*	vtable;
 /*0x0004*/ DWORD	ItemType;           // ? 1 = normal, 2 = pack ?
 /*0x0008*/ void*	punknown;
 /*0x000c*/ BYTE		Unknown0x000c[0x4];
 /*0x0010*/ DWORD	MerchantQuantity;
-/*0x0014*/ BYTE		Unknown0x0014[0x28];
-/*0x003c*/ struct _ITEMINFO*	Item1;
-/*0x0040*/ BYTE		Unknown0x0040[0x4];
-/*0x0044*/ char		ItemGUID[0x12];
-/*0x0056*/ BYTE		Unknown0x0056[0x2a];
-/*0x0080*/ DWORD	MerchantSlot;       // slot id on a merchant
-/*0x0084*/ BYTE		Unknown0x0084[0x5];
-/*0x0089*/ BYTE		EvolvingExpOn;
-/*0x008a*/ BYTE		Unknown0x008a[0x6];
-/*0x0090*/ DWORD	EvolvingCurrentLevel;
-/*0x0094*/ BYTE		Unknown0x0094[0x4];
-/*0x0098*/ DOUBLE	EvolvingExpPct;
-/*0x00a0*/ DWORD	OrnamentationIcon;
-/*0x00a4*/ BYTE		Unknown0x00a4[0x8];
-/*0x00ac*/ DWORD	Charges;
-/*0x00b0*/ BYTE		IsEvolvingItem;
-/*0x00b1*/ BYTE		Unknown0x00b1[0xb];
-/*0x00bc*/ DWORD	EvolvingMaxLevel;
-/*0x00c0*/ BYTE		Unknown0x00c0[0x8];
-/*0x00c8*/ DWORD	NumOfSlots1;//ItemSlot is this address + 0x16 in 20130708
-/*0x00cc*/ DWORD	ItemLocation;//0x1b mount 0x1d illusion
-/*0x00d0*/ struct _CONTENTSARRAY*	pContentsArray;
-/*0x00d4*/ DWORD	NumOfSlots2;
-/*0x00d8*/ BYTE		Unknown0x00d8[0x6];
-/*0x00de*/ WORD		ItemSlot;           // Inventory slot id
-/*0x00e0*/ WORD		ItemSlot2;          // Bag slot id, starts at 0 for first slot in bag, or FFFF if item is on cursor
-/*0x00e2*/ BYTE		Unknown0x00e2[0x6];
-/*0x00e8*/ DWORD	Power;
-/*0x00ec*/ BYTE		Unknown0x00ec[0x28];
-/*0x0114*/ LONG		StackCount;
-/*0x0118*/ DWORD	Price;
-/*0x011c*/ BYTE		Unknown0x011c[0x4];
-/*0x0120*/ DWORD	Open;
-/*0x0124*/ BYTE		Unknown0x0124[0x10];
+/*0x0014*/ BYTE		Unknown0x0014[0x4];
+/*0x0018*/ DOUBLE	EvolvingExpPct;
+/*0x0020*/ BYTE		Unknown0x0020[0x1e];
+/*0x003e*/ BYTE		EvolvingExpOn;
+/*0x003f*/ BYTE		Unknown0x003f[0xd];
+/*0x004c*/ DWORD	NumOfSlots1;//ItemSlot is this address + 0x16 in 20130708
+/*0x0050*/ DWORD	ItemLocation;//0x1b mount 0x1d illusion
+/*0x0054*/ struct _CONTENTSARRAY*	pContentsArray;
+/*0x0058*/ DWORD	NumOfSlots2;
+/*0x005c*/ BYTE		Unknown0x005c[0x6];
+/*0x0062*/ WORD		ItemSlot;           // Inventory slot id
+/*0x0064*/ WORD		ItemSlot2;          // Bag slot id, starts at 0 for first slot in bag, or FFFF if item is on cursor
+/*0x0066*/ BYTE		Unknown0x0066[0xa];
+/*0x0070*/ DWORD	EvolvingCurrentLevel;
+/*0x0074*/ LONG		StackCount;
+/*0x0078*/ BYTE		Unknown0x0078[0xc];
+/*0x0084*/ DWORD	EvolvingMaxLevel;
+/*0x0088*/ struct _ITEMINFO*	Item1;
+/*0x008c*/ BYTE		IsEvolvingItem;
+/*0x008d*/ BYTE		Unknown0x008d[0x23];
+/*0x00b0*/ DWORD	Open;
+/*0x00b4*/ BYTE		Unknown0x00b4[0x20];
+/*0x00d4*/ DWORD	OrnamentationIcon;
+/*0x00d8*/ BYTE		Unknown0x00d8[0x8];
+/*0x00e0*/ DWORD	Price;
+/*0x00e4*/ BYTE		Unknown0x00e4[0x20];
+/*0x0104*/ DWORD	Charges;
+/*0x0108*/ DWORD	MerchantSlot;       // slot id on a merchant
+/*0x010c*/ BYTE		Unknown0x010c[0x8];
+/*0x0114*/ char		ItemGUID[0x12];
+/*0x0126*/ BYTE		Unknown0x0126[0xa];
+/*0x0130*/ DWORD	Power;
 /*0x0134*/ DWORD	GroupID;
 /*0x0138*/ BYTE		Unknown0x0138[0x4];
 /*0x013c*/ struct _ITEMINFO*	Item2;
@@ -1351,7 +1349,7 @@ typedef struct _LAUNCHSPELLDATA {
 } LAUNCHSPELLDATA, *PLAUNCHSPELLDATA;
 
 //this is the size of EQPlayer__EQPlayer_x
-// actual size 0x2010 in Nov 11 2016 Beta (see 0x5DB12A) - eqmule
+// actual size 0x2000 in Nov 14 2016 Beta (see 0x5DA0AA) - eqmule
 typedef struct _SPAWNINFO {
 /*0x0000*/ void*	vtable;
 /*0x0004*/ struct _SPAWNINFO*	pPrev;
@@ -1398,154 +1396,151 @@ typedef struct _SPAWNINFO {
 /*0x0158*/ struct _SPAWNINFO*	Rider;      // _SPAWNINFO of mount's rider
 /*0x015c*/ BYTE		Unknown0x015c[0x4];
 /*0x0160*/ BYTE		Targetable;//1 if mob is targetable
-/*0x0161*/ BYTE		Unknown0x0161[0x2f];
-/*0x0190*/ DWORD	ManaMax;
-/*0x0194*/ BYTE		Unknown0x0194[0x18];
-/*0x01ac*/ struct _LAUNCHSPELLDATA	CastingData; // size: 0x50
-/*0x01fc*/ BYTE		FishingEvent;
-/*0x01fd*/ BYTE		Unknown0x01fd[0x7];
-/*0x0204*/ BYTE		Mercenary;
-/*0x0205*/ BYTE		Unknown0x0205[0x3];
-/*0x0208*/ DWORD	RespawnTimer;           // TimeStamp of when RespawnWnd will close - 0 when you're alive
-/*0x020c*/ BYTE		Unknown0x020c[0x4];
-/*0x0210*/ DWORD	Trader;//found in CEverQuest__RightClickedOnPlayer_x
-/*0x0214*/ BYTE		Linkdead;
-/*0x0215*/ BYTE		Unknown0x0215[0x23];
-/*0x0238*/ struct _EQC_INFO*	spawneqc_info;
-/*0x023c*/ BYTE		Unknown0x023c[0x4];
-/*0x0240*/ DWORD	AFK;
-/*0x0244*/ BYTE		Unknown0x0244[0xc];
-/*0x0250*/ BYTE		PvPFlag;
-/*0x0251*/ BYTE		HoldingType; // I dont know the types, i put a 2h in Primary and its a 4 , modrod there and its a 1, nothing its a 5 -eqmule
-/*0x0252*/ BYTE		Unknown0x0252[0x7e];
-/*0x02d0*/ FLOAT	ViewHeight;
-/*0x02d4*/ BYTE		Unknown0x02d4[0x10];
-/*0x02e4*/ BYTE		StandState;
-/*0x02e5*/ BYTE		Unknown0x02e5[0x3];
-/*0x02e8*/ DWORD	GuildID;
-/*0x02ec*/ DWORD	GuildID2;
-/*0x02f0*/ BYTE		Unknown0x02f0[0x4];
-/*0x02f4*/ DWORD	EnduranceCurrent;
-/*0x02f8*/ DWORD	EnduranceMax;
-/*0x02fc*/ BYTE		Unknown0x02fc[0xc];
-/*0x0308*/ DWORD	SpellGemETA[0xc];
-/*0x0338*/ DWORD	InnateETA;              //Calculated TimeStamp when innate skill will be ready (LoH, HT, Bash)
-/*0x033c*/ BYTE		Unknown0x033c[0xc];
-/*0x0348*/ BYTE		HideMode;
-/*0x0349*/ BYTE		Unknown0x0349[0xf];
-/*0x0358*/ CHAR		Suffix[0x80];
-/*0x03d8*/ BYTE		Unknown0x03d8[0xc];
-/*0x03e4*/ DWORD	TimeStamp;//updates all the time including when on a mount
-/*0x03e8*/ BYTE		Unknown0x03e8[0xc];
-/*0x03f4*/ DWORD	MasterID;
-/*0x03f8*/ BYTE		Unknown0x03f8[0x4];
-/*0x03fc*/ DWORD	LastTick;
-/*0x0400*/ DWORD	SpellCooldownETA;
-/*0x0404*/ BYTE		Unknown0x0404[0x4];
-/*0x0408*/ DWORD	GuildStatus;
-/*0x040c*/ BYTE		LFG;
-/*0x040d*/ BYTE		Unknown0x040d[0x3];
-/*0x0410*/ DWORD	FishingETA;
-/*0x0414*/ BYTE		Unknown0x0414[0x4];
-/*0x0418*/ WORD		Zone;
-/*0x041a*/ WORD		Instance;
-/*0x041c*/ DWORD	AARank;
-/*0x0420*/ BYTE		Unknown0x0420[0x4];
-/*0x0424*/ BYTE		Sneak;
-/*0x0425*/ BYTE		Unknown0x0425[0x7];
-/*0x042c*/ FLOAT	RunSpeed;//0.70 on runspeed 5...
-/*0x0430*/ BYTE		Unknown0x0430[0x4];
-/*0x0434*/ LONG		HPCurrent;
-/*0x0438*/ BYTE		Unknown0x0438[0x1c];
-/*0x0454*/ BYTE		GM;
-/*0x0455*/ BYTE		Unknown0x0455[0xf];
-/*0x0464*/ DWORD	PetID;//the unknown above this is petwindow target related I think
-/*0x0468*/ BYTE		Unknown0x0468[0x4];
-/*0x046c*/ DWORD	Deity;
-/*0x0470*/ DWORD	Buyer;
-/*0x0474*/ BYTE		Unknown0x0474[0x10];
-/*0x0484*/ DWORD	Anon;//found in EQPlayer__SetNameSpriteTint_x
-/*0x0488*/ LONG		HPMax;
-/*0x048c*/ BYTE		Unknown0x048c[0xb4];
-/*0x0540*/ FLOAT	GetMeleeRangeVar1;      // used by GetMeleeRange
-/*0x0544*/ BYTE		Unknown0x0544[0x8];
-/*0x054c*/ DWORD	ManaCurrent;
-/*0x0550*/ BYTE		Unknown0x0550[0x4];
-/*0x0554*/ BYTE		Light;
-/*0x0555*/ BYTE		Unknown0x0555[0x17];
-/*0x056c*/ CHAR		Title[0x80];
-/*0x05ec*/ BYTE		Level;
-/*0x05ed*/ BYTE		Unknown0x05ed[0x923];
-/*0x0f10*/ struct _SPAWNINFO*	WhoFollowing; // NULL if autofollow off
-/*0x0f14*/ DWORD	GroupAssistNPC[0x1];
-/*0x0f18*/ DWORD	RaidAssistNPC[0x3];
-/*0x0f24*/ DWORD	GroupMarkNPC[0x3];
-/*0x0f30*/ DWORD	RaidMarkNPC[0x3];
-/*0x0f3c*/ DWORD	TargetOfTarget;
-/*0x0f40*/ BYTE		Unknown0x0f40[0x34];
-/*0x0f74*/ void*	pActorClient;          // start of ActorClient struct
-/*0x0f78*/ BYTE		InNonPCRaceIllusion;
+/*0x0161*/ BYTE		Unknown0x0161[0x2b];
+/*0x018c*/ BYTE		GM;
+/*0x018d*/ BYTE		Unknown0x018d[0xb];
+/*0x0198*/ DWORD	PetID;//the unknown above this is petwindow target related I think
+/*0x019c*/ FLOAT	ViewHeight;
+/*0x01a0*/ struct _EQC_INFO*	spawneqc_info;
+/*0x01a4*/ BYTE		Unknown0x01a4[0x4];
+/*0x01a8*/ DWORD	ManaCurrent;
+/*0x01ac*/ BYTE		Unknown0x01ac[0x94];
+/*0x0240*/ DWORD	FishingETA;
+/*0x0244*/ BYTE		Unknown0x0244[0x4];
+/*0x0248*/ DWORD	TimeStamp;//updates all the time including when on a mount
+/*0x024c*/ BYTE		Unknown0x024c[0x14];
+/*0x0260*/ DWORD	Trader;//found in CEverQuest__RightClickedOnPlayer_x
+/*0x0264*/ BYTE		Unknown0x0264[0x2];
+/*0x0266*/ BYTE		Sneak;
+/*0x0267*/ BYTE		Unknown0x0267[0x41];
+/*0x02a8*/ BYTE		Mercenary;
+/*0x02a9*/ BYTE		Unknown0x02a9[0x3];
+/*0x02ac*/ BYTE		HideMode;
+/*0x02ad*/ BYTE		Unknown0x02ad[0x7];
+/*0x02b4*/ DWORD	AFK;
+/*0x02b8*/ DWORD	Anon;//found in EQPlayer__SetNameSpriteTint_x
+/*0x02bc*/ BYTE		Unknown0x02bc[0xc];
+/*0x02c8*/ DWORD	GuildID;
+/*0x02cc*/ DWORD	GuildID2;
+/*0x02d0*/ BYTE		Unknown0x02d0[0x14];
+/*0x02e4*/ DWORD	Buyer;
+/*0x02e8*/ DWORD	AARank;
+/*0x02ec*/ BYTE		Unknown0x02ec[0x4];
+/*0x02f0*/ DWORD	ManaMax;
+/*0x02f4*/ DWORD	LastTick;
+/*0x02f8*/ FLOAT	GetMeleeRangeVar1;      // used by GetMeleeRange
+/*0x02fc*/ BYTE		Unknown0x02fc[0x4];
+/*0x0300*/ DWORD	EnduranceMax;
+/*0x0304*/ BYTE		Unknown0x0304[0x7c];
+/*0x0380*/ DWORD	GuildStatus;
+/*0x0384*/ BYTE		Linkdead;
+/*0x0385*/ BYTE		Unknown0x0385[0x7];
+/*0x038c*/ CHAR		Title[0x80];
+/*0x040c*/ BYTE		PvPFlag;
+/*0x040d*/ BYTE		StandState;
+/*0x040e*/ BYTE		Unknown0x040e[0x2];
+/*0x0410*/ WORD		Zone;
+/*0x0412*/ WORD		Instance;
+/*0x0414*/ BYTE		Unknown0x0414[0x11];
+/*0x0425*/ BYTE		Level;
+/*0x0426*/ BYTE		Unknown0x0426[0x6];
+/*0x042c*/ BYTE		HoldingType; // I dont know the types, i put a 2h in Primary and its a 4 , modrod there and its a 1, nothing its a 5 -eqmule
+/*0x042d*/ BYTE		Unknown0x042d[0x12];
+/*0x043f*/ BYTE		Light;
+/*0x0440*/ struct _LAUNCHSPELLDATA	CastingData; // size: 0x50
+/*0x0490*/ BYTE		FishingEvent;
+/*0x0491*/ BYTE		Unknown0x0491[0x4];
+/*0x0495*/ BYTE		LFG;
+/*0x0496*/ BYTE		Unknown0x0496[0x2e];
+/*0x04c4*/ DWORD	SpellGemETA[0xc];
+/*0x04f4*/ DWORD	InnateETA;              //Calculated TimeStamp when innate skill will be ready (LoH, HT, Bash)
+/*0x04f8*/ BYTE		Unknown0x04f8[0x8];
+/*0x0500*/ DWORD	EnduranceCurrent;
+/*0x0504*/ BYTE		Unknown0x0504[0x4];
+/*0x0508*/ LONG		HPMax;
+/*0x050c*/ BYTE		Unknown0x050c[0x14];
+/*0x0520*/ FLOAT	RunSpeed;//0.70 on runspeed 5...
+/*0x0524*/ BYTE		Unknown0x0524[0xc];
+/*0x0530*/ DWORD	MasterID;
+/*0x0534*/ BYTE		Unknown0x0534[0xd];
+/*0x0541*/ CHAR		Suffix[0x80];
+/*0x05c1*/ BYTE		Unknown0x05c1[0x3];
+/*0x05c4*/ DWORD	SpellCooldownETA;
+/*0x05c8*/ LONG		HPCurrent;
+/*0x05cc*/ BYTE		Unknown0x05cc[0xc];
+/*0x05d8*/ DWORD	Deity;
+/*0x05dc*/ DWORD	RespawnTimer;           // TimeStamp of when RespawnWnd will close - 0 when you're alive
+/*0x05e0*/ BYTE		Unknown0x05e0[0x920];
+/*0x0f00*/ struct _SPAWNINFO*	WhoFollowing; // NULL if autofollow off
+/*0x0f04*/ DWORD	GroupAssistNPC[0x1];
+/*0x0f08*/ DWORD	RaidAssistNPC[0x3];
+/*0x0f14*/ DWORD	GroupMarkNPC[0x3];
+/*0x0f20*/ DWORD	RaidMarkNPC[0x3];
+/*0x0f2c*/ DWORD	TargetOfTarget;
+/*0x0f30*/ BYTE		Unknown0x0f30[0x30];
+/*0x0f60*/ void*	pActorClient;          // start of ActorClient struct
+/*0x0f64*/ BYTE		InNonPCRaceIllusion;
+/*0x0f65*/ BYTE		Unknown0x0f65[0x3];
+/*0x0f68*/ BYTE		FaceStyle;
+/*0x0f69*/ BYTE		HairColor;
+/*0x0f6a*/ BYTE		FacialHairColor;
+/*0x0f6b*/ BYTE		EyeColor1;
+/*0x0f6c*/ BYTE		EyeColor2;
+/*0x0f6d*/ BYTE		HairStyle;
+/*0x0f6e*/ BYTE		FacialHair;
+/*0x0f6f*/ BYTE		Unknown0x0f6f;
+/*0x0f70*/ DWORD	Race;
+/*0x0f74*/ BYTE		Unknown0x0f74[0x4];
+/*0x0f78*/ BYTE		Class;
 /*0x0f79*/ BYTE		Unknown0x0f79[0x3];
-/*0x0f7c*/ BYTE		FaceStyle;
-/*0x0f7d*/ BYTE		HairColor;
-/*0x0f7e*/ BYTE		FacialHairColor;
-/*0x0f7f*/ BYTE		EyeColor1;
-/*0x0f80*/ BYTE		EyeColor2;
-/*0x0f81*/ BYTE		HairStyle;
-/*0x0f82*/ BYTE		FacialHair;
-/*0x0f83*/ BYTE		Unknown0x0f83;
-/*0x0f84*/ DWORD	Race;
-/*0x0f88*/ BYTE		Unknown0x0f88[0x4];
-/*0x0f8c*/ BYTE		Class;
-/*0x0f8d*/ BYTE		Unknown0x0f8d[0x3];
-/*0x0f90*/ BYTE		Gender;
-/*0x0f91*/ CHAR		ActorDef[0x40];
-/*0x0fd1*/ BYTE		Unknown0x0fd1[0x3];
-/*0x0fd4*/ ARGBCOLOR	ArmorColor[0x9];
-/*0x0ff8*/ BYTE		Unknown0x0ff8[0x4];
-/*0x0ffc*/ DWORD	Heritage;               //drakkin only face setting
-/*0x1000*/ DWORD	Tattoo;                 //drakkin only face setting
-/*0x1004*/ DWORD	Details;                //drakkin only face setting
-/*0x1008*/ struct _EQUIPMENT	Equipment;   // size 0xb4
-/*0x10bc*/ BYTE		Unknown0x10bc[0x38];
-/*0x10f4*/ VOID*	pcactorex;             // ActorInterface*
-/*0x10f8*/ BYTE		Unknown0x10f8[0x4];
-/*0x10fc*/ VOID*	FaceRelatedActorStruct;
-/*0x1100*/ BYTE		Unknown0x1100[0x34];
-/*0x1134*/ FLOAT	GetMeleeRangeVar2;      // used by GetMeleeRange
-/*0x1138*/ BYTE		Unknown0x1138[0x64];
-/*0x119c*/ DWORD	Animation;
-/*0x11a0*/ BYTE		Unknown0x11a0[0xe0];
-/*0x1280*/ DWORD	Holding; //1 holding 0 not holding
-/*0x1284*/ BYTE		Unknown0x1284[0x14];
-/*0x1298*/ DWORD	MercID;                         //if the spawn is player and has a merc up this is it's spawn ID -eqmule 16 jul 2014
-/*0x129c*/ DWORD	ContractorID;           //if the spawn is a merc this is its contractor's spawn ID -eqmule 16 jul 2014
-/*0x12a0*/ BYTE		Unknown0x12a0[0x14];
-/*0x12b4*/ FLOAT	WalkSpeed;
-/*0x12b8*/ BYTE		Unknown0x12b8;
-/*0x12b9*/ BYTE		bHideCorpse;
-/*0x12ba*/ BYTE		Unknown0x12ba[0x3f];
-/*0x12f9*/ BYTE		InvitedToGroup;
-/*0x12fa*/ BYTE		Unknown0x12fa[0x2];
-/*0x12fc*/ DWORD	GroupMemberTargeted;    // 0xFFFFFFFF if no target, else 1 through 5
-/*0x1300*/ BYTE		Unknown0x1300[0x188];
-/*0x1488*/ struct _FELLOWSHIPINFO	Fellowship; // size 0x9e4
-/*0x1e70*/ FLOAT	CampfireY;
-/*0x1e74*/ FLOAT	CampfireX;
-/*0x1e78*/ FLOAT	CampfireZ;
-/*0x1e7c*/ WORD		CampfireZoneID;         // zone ID where campfire is
-/*0x1e7e*/ WORD		InstanceID;
-/*0x1e80*/ BYTE		Unknown0x1e80[0x8];
-/*0x1e88*/ DWORD	CampfireTimestamp;      // CampfireTimestamp-FastTime()=time left on campfire
-/*0x1e8c*/ BYTE		Unknown0x1e8c[0x8];
-/*0x1e94*/ DWORD	Campfire;               // do we have a campfire up?
-/*0x1e98*/ BYTE		Unknown0x1e98[0x11c];
-/*0x1fb4*/ void*	vtable2;
-/*0x1fb8*/ BYTE		Unknown0x1fb8[0x4];
-/*0x1fbc*/ struct _SPAWNINFO*	pSpawn;
-/*0x1fc0*/ DWORD	Levitate;
-/*0x1fc4*/ BYTE		Unknown0x1fc4[0x4c];
-/*0x2010*/
+/*0x0f7c*/ BYTE		Gender;
+/*0x0f7d*/ CHAR		ActorDef[0x40];
+/*0x0fbd*/ BYTE		Unknown0x0fbd[0x3];
+/*0x0fc0*/ ARGBCOLOR	ArmorColor[0x9];
+/*0x0fe4*/ BYTE		Unknown0x0fe4[0x4];
+/*0x0fe8*/ DWORD	Heritage;               //drakkin only face setting
+/*0x0fec*/ DWORD	Tattoo;                 //drakkin only face setting
+/*0x0ff0*/ DWORD	Details;                //drakkin only face setting
+/*0x0ff4*/ struct _EQUIPMENT	Equipment;   // size 0xb4
+/*0x10a8*/ BYTE		Unknown0x10a8[0x38];
+/*0x10e0*/ VOID*	pcactorex;             // ActorInterface*
+/*0x10e4*/ BYTE		Unknown0x10e4[0x4];
+/*0x10e8*/ VOID*	FaceRelatedActorStruct;
+/*0x10ec*/ BYTE		Unknown0x10ec[0x34];
+/*0x1120*/ FLOAT	GetMeleeRangeVar2;      // used by GetMeleeRange
+/*0x1124*/ BYTE		Unknown0x1124[0x68];
+/*0x118c*/ DWORD	Animation;
+/*0x1190*/ BYTE		Unknown0x1190[0xe0];
+/*0x1270*/ DWORD	Holding; //1 holding 0 not holding
+/*0x1274*/ BYTE		Unknown0x1274[0x14];
+/*0x1288*/ DWORD	MercID;                         //if the spawn is player and has a merc up this is it's spawn ID -eqmule 16 jul 2014
+/*0x128c*/ DWORD	ContractorID;           //if the spawn is a merc this is its contractor's spawn ID -eqmule 16 jul 2014
+/*0x1290*/ BYTE		Unknown0x1290[0x14];
+/*0x12a4*/ FLOAT	WalkSpeed;
+/*0x12a8*/ BYTE		Unknown0x12a8;
+/*0x12a9*/ BYTE		bHideCorpse;
+/*0x12aa*/ BYTE		Unknown0x12aa[0x3f];
+/*0x12e9*/ BYTE		InvitedToGroup;
+/*0x12ea*/ BYTE		Unknown0x12ea[0x2];
+/*0x12ec*/ DWORD	GroupMemberTargeted;    // 0xFFFFFFFF if no target, else 1 through 5
+/*0x12f0*/ BYTE		Unknown0x12f0[0x188];
+/*0x1478*/ struct _FELLOWSHIPINFO	Fellowship; // size 0x9e4
+/*0x1e60*/ FLOAT	CampfireY;
+/*0x1e64*/ FLOAT	CampfireX;
+/*0x1e68*/ FLOAT	CampfireZ;
+/*0x1e6c*/ WORD		CampfireZoneID;         // zone ID where campfire is
+/*0x1e6e*/ WORD		InstanceID;
+/*0x1e70*/ BYTE		Unknown0x1e70[0x8];
+/*0x1e78*/ DWORD	CampfireTimestamp;      // CampfireTimestamp-FastTime()=time left on campfire
+/*0x1e7c*/ BYTE		Unknown0x1e7c[0x8];
+/*0x1e84*/ DWORD	Campfire;               // do we have a campfire up?
+/*0x1e88*/ BYTE		Unknown0x1e88[0x11c];
+/*0x1fa4*/ void*	vtable2;
+/*0x1fa8*/ BYTE		Unknown0x1fa8[0x4];
+/*0x1fac*/ struct _SPAWNINFO*	pSpawn;
+/*0x1fb0*/ DWORD	Levitate;
+/*0x1fb4*/ BYTE		Unknown0x1fb4[0x4c];
+/*0x2000*/
 } SPAWNINFO, *PSPAWNINFO;
 
 #define STANDSTATE_STAND                0x64
@@ -1781,41 +1776,120 @@ typedef struct _WORLDDATA {
 /*0xFC0*/
 } WORLDDATA, *PWORLDDATA;
 
+enum EOutDoor : BYTE
+{
+	IndoorDungeon,		// Zones without sky SolB for example.
+	Outdoor,			// Zones with sky like Commonlands for example.
+	OutdoorCity,		// A Player City with sky Plane of Knowledge for example.
+	DungeonCity,		// A Player City without sky Ak'anon for example.
+	IndoorCity,			// A Player City without sky Erudin for example.
+	OutdoorDungeon,		// Dungeons with sky like Blackburrow for example.
+};
+enum EPlace
+{
+	CannotPlace,
+	CanOnlyPlace,
+	CanPlaceAndGoto,
+};
+#pragma pack(4)
 //Size 0x??? see ?????? corrected this based on eqgame.exe live 21 apr 2016 - eqmule
 typedef struct _ZONEINFO {
 /*0x000*/   CHAR    CharacterName[0x40];
-/*0x040*/   CHAR    ShortName[0x20];
-/*0x060*/   CHAR    Unknown0x060[0x60];
+/*0x040*/   CHAR    ShortName[0x80];
 /*0x0c0*/   CHAR    LongName[0x80];
-/*0x140*/   CHAR    Unknown0x140[0x96];  // <-- this isnt part of zone name, see CEverQuest__CEverQuest
-/*0x1d6*/   BYTE    ZoneType; // (usually FF)
+/*0x140*/   CHAR    ZoneDesc[0x5][0x1e];  //zone description strings
+/*0x1d6*/   BYTE    FogOnOff; // (usually FF)
 /*0x1d7*/   ARGBCOLOR FogRed;
 /*0x1db*/   ARGBCOLOR FogGreen;
 /*0x1df*/   ARGBCOLOR FogBlue;
-/*0x1e3*/   BYTE    Unknown0x1e3;
-/*0x1e4*/   FLOAT   Unknown0x1e4[0x4];
-/*0x1f4*/   FLOAT   Unknown0x1f4[0x4];
+/*0x1e4*/   FLOAT   FogStart[0x4]; //fog distance
+/*0x1f4*/   FLOAT   FogEnd[0x4];
 /*0x204*/   FLOAT   ZoneGravity;
-/*0x208*/   BYTE    Unknown0x208;
-/*0x209*/   BYTE    Unknown0x209[0x11];
-/*0x21a*/   BYTE    SkyType;   
-/*0x21b*/   BYTE    Unknown0x21b;   
-/*0x21c*/   DWORD   Something;   
-/*0x220*/   DWORD   Somethingtoo;
-/*0x224*/   DWORD   Unknown0x224;
+/*0x208*/   EOutDoor    OutDoor;//this is what we want instead of ZoneType, see the enum
+/*0x209*/   BYTE    RainChance[0x4];//no u cant change these to dwords cause then u screw up 4 byte padding
+/*0x20d*/   BYTE    RainDuration[0x4];
+/*0x211*/   BYTE    SnowChance[0x4];
+/*0x215*/   BYTE    SnowDuration[0x4];
+/*0x219*/   char    ZoneTimeZone;   //in hours from worldserver, can be negative
+/*0x21a*/   BYTE    SkyType;   //1 means active
+/*0x21c*/   int		WaterMidi;   //which midi to play while underwater
+/*0x220*/   int		DayMidi;   
+/*0x224*/   int		NightMidi;
 /*0x228*/   FLOAT   ZoneExpModifier;    //This has been nerfed ..now reads 1.0 for all zones
-/*0x22c*/   FLOAT   SafeYLoc;
-/*0x230*/   FLOAT   SafeXLoc;
+/*0x22c*/   FLOAT   SafeXLoc;
+/*0x230*/   FLOAT   SafeYLoc;
 /*0x234*/   FLOAT   SafeZLoc;
-/*0x238*/   BYTE    Unknown0x238[0x4];
+/*0x238*/   FLOAT   SafeHeading;
 /*0x23c*/   FLOAT   Ceiling;
 /*0x240*/   FLOAT   Floor;
 /*0x244*/   FLOAT   MinClip;
 /*0x248*/   FLOAT   MaxClip;
-/*0x24c*/   BYTE    Unknown0x24c[0x54];
-/*0x2a0*/   CHAR    ShortNameLwr[0x60];
-/*0x300*/ //there is more data here i dont know the size of this struct - eqmule
+/*0x24c*/	int		ForageLow; //Forage skill level needed to get stuff
+/*0x250*/	int		ForageMedium;
+/*0x254*/	int		ForageHigh;
+/*0x258*/	int		FishingLow; //Fishing skill level needed to get stuff
+/*0x25c*/	int		FishingMedium;
+/*0x260*/	int		FishingHigh;
+/*0x264*/	int		SkyRelated; //0-24 i think
+/*0x268*/	UINT	GraveyardTimer; //minutes until corpse(s) pops to graveyard
+/*0x26c*/	int		ScriptIDHour;
+/*0x270*/	int		ScriptIDMinute;
+/*0x274*/	int		ScriptIDTick;
+/*0x278*/	int		ScriptIDOnPlayerDeath;
+/*0x27c*/	int		ScriptIDOnNPCDeath;
+/*0x280*/	int		ScriptIDPlayerEnteringZone;
+/*0x284*/	int		ScriptIDOnZonePop;
+/*0x288*/	int		ScriptIDNPCLoot;
+/*0x28c*/	int		ScriptIDAdventureFailed;
+/*0x290*/	int		CanExploreTasks;
+/*0x294*/	int		UnknownFlag;
+/*0x298*/	int		ScriptIDOnFishing;
+/*0x29c*/	int		ScriptIDOnForage;
+/*0x2a0*/	CHAR	SkyString[0x20]; //if empty no sky, ive only seen this as the zone name
+/*0x2c0*/	CHAR	WeatherString[0x20]; //if empty no weather
+/*0x2e0*/	CHAR	SkyString2[0x20]; //if SkyString is empty this is checked
+/*0x310*/	int		SkyRelated2; //0-24
+/*0x314*/	CHAR	WeatherString2[0x20]; //if empty no weather
+/*0x334*/	FLOAT	WeatherChangeTime;
+/*0x338*/	int		Climate;
+/*0x33c*/	int		NPCAgroMaxDist; //the distance needed for an npc to lose agro after an attack
+/*0x340*/	int		FilterID; //found in the teleport table
+/*0x344*/	int		ZoneID;
+/*0x348*/	int		ScriptNPCReceivedanItem;
+/*0x34c*/	bool	bCheck;
+/*0x350*/	int		ScriptIDSomething;
+/*0x254*/	int		ScriptIDSomething2;
+/*0x358*/	int		ScriptIDSomething3;
+/*0x35c*/	bool	bNoBuffExpiration;//this is checked serverside so no, u cant and shouldn't set this if u value your account
+/*0x360*/   int		LavaDamage; //before resists
+/*0x364*/   int		MinLavaDamage; //after resists
+/*0x368*/   bool	bDisallowManaStone; //can a manastone be used here?
+/*0x369*/   bool	bNoBind;
+/*0x36a*/   bool	bNoAttack;
+/*0x36b*/   bool	bNoCallOfHero;
+/*0x36c*/   bool	bNoFlux;
+/*0x36d*/   bool	bNoFear;
+/*0x36e*/   bool	bNoEncumber;
+/*0x370*/   int		FastRegenHP;//not exactly sure how these work but ome zones have these set
+/*0x374*/   int		FastRegenMana;
+/*0x378*/   int		FastRegenEndurance;
+/*0x37c*/   EPlace	CanPlaceCampsite;
+/*0x380*/   EPlace	CanPlaceGuildBanner;
+/*0x384*/   FLOAT	FogDensity;
+/*0x388*/   bool	bAdjustGamma;
+/*0x38c*/   int		TimeStringID;
+/*0x390*/   bool	bNoMercenaries;
+/*0x394*/   int		FishingRelated;
+/*0x398*/   int		ForageRelated;
+/*0x39c*/   bool	bNoLevitate;
+/*0x3a0*/   FLOAT	Blooming;
+/*0x3a4*/   bool	bNoPlayerLight;
+/*0x3a8*/   int		GroupLvlExpRelated;
+/*0x3ac*/   BYTE	PrecipitationType;
+/*0x3ad*/   bool	bAllowPVP;
+/*0x3b0*/
 } ZONEINFO, *PZONEINFO;
+#pragma pack()
 
 typedef struct _SPELLCALCINFO
 {
@@ -2652,10 +2726,10 @@ typedef struct _GROUPAGGRO {
 /*0x08*/ DWORD  GroupMemberAggro[6];//player is ALWAYS the 6th member...
 } GROUPAGGRO, *PGROUPAGGRO;
 
-#define EQ_ASSIST_COMPLETE              0x11F3   // aMsg_time_stamp
-#define EQ_BEGIN_ZONE                   0x5FEB   // CEverQuest__SavePCForce				
-#define EQ_END_ZONE                     0x3929   // CEverQuest__DoMainLoop+B2F			
-#define EQ_ASSIST                       0x7979   // do_assist(PlayerClient *,char const *)+399 20160212 live (see 52C319)
+#define EQ_ASSIST_COMPLETE              0x47B8   // aMsg_time_stamp
+#define EQ_BEGIN_ZONE                   0x7F7C   // CEverQuest__SavePCForce				
+#define EQ_END_ZONE                     0x1ED6   // CEverQuest__DoMainLoop+B2F			
+#define EQ_ASSIST                       0x4F9D   // do_assist(PlayerClient *,char const *)+399 20160212 live (see 52C319)
 #define EQ_LoadingS__ArraySize          0x5a     // EQ_LoadingS__SetProgressBar_x+76 	(4C7396 yes it says 5b there, but we dont want to overwrite the NULL term...	2016 Apr 21
 };
 using namespace EQData;

@@ -1767,41 +1767,120 @@ typedef struct _WORLDDATA {
 /*0xFC0*/
 } WORLDDATA, *PWORLDDATA;
 
+enum EOutDoor : BYTE
+{
+	IndoorDungeon,		// Zones without sky SolB for example.
+	Outdoor,			// Zones with sky like Commonlands for example.
+	OutdoorCity,		// A Player City with sky Plane of Knowledge for example.
+	DungeonCity,		// A Player City without sky Ak'anon for example.
+	IndoorCity,			// A Player City without sky Erudin for example.
+	OutdoorDungeon,		// Dungeons with sky like Blackburrow for example.
+};
+enum EPlace
+{
+	CannotPlace,
+	CanOnlyPlace,
+	CanPlaceAndGoto,
+};
+#pragma pack(4)
 //Size 0x??? see ?????? corrected this based on eqgame.exe live 21 apr 2016 - eqmule
 typedef struct _ZONEINFO {
 /*0x000*/   CHAR    CharacterName[0x40];
-/*0x040*/   CHAR    ShortName[0x20];
-/*0x060*/   CHAR    Unknown0x060[0x60];
+/*0x040*/   CHAR    ShortName[0x80];
 /*0x0c0*/   CHAR    LongName[0x80];
-/*0x140*/   CHAR    Unknown0x140[0x96];  // <-- this isnt part of zone name, see CEverQuest__CEverQuest
-/*0x1d6*/   BYTE    ZoneType; // (usually FF)
+/*0x140*/   CHAR    ZoneDesc[0x5][0x1e];  //zone description strings
+/*0x1d6*/   BYTE    FogOnOff; // (usually FF)
 /*0x1d7*/   ARGBCOLOR FogRed;
 /*0x1db*/   ARGBCOLOR FogGreen;
 /*0x1df*/   ARGBCOLOR FogBlue;
-/*0x1e3*/   BYTE    Unknown0x1e3;
-/*0x1e4*/   FLOAT   Unknown0x1e4[0x4];
-/*0x1f4*/   FLOAT   Unknown0x1f4[0x4];
+/*0x1e4*/   FLOAT   FogStart[0x4]; //fog distance
+/*0x1f4*/   FLOAT   FogEnd[0x4];
 /*0x204*/   FLOAT   ZoneGravity;
-/*0x208*/   BYTE    Unknown0x208;
-/*0x209*/   BYTE    Unknown0x209[0x11];
-/*0x21a*/   BYTE    SkyType;   
-/*0x21b*/   BYTE    Unknown0x21b;   
-/*0x21c*/   DWORD   Something;   
-/*0x220*/   DWORD   Somethingtoo;
-/*0x224*/   DWORD   Unknown0x224;
+/*0x208*/   EOutDoor    OutDoor;//this is what we want instead of ZoneType, see the enum
+/*0x209*/   BYTE    RainChance[0x4];//no u cant change these to dwords cause then u screw up 4 byte padding
+/*0x20d*/   BYTE    RainDuration[0x4];
+/*0x211*/   BYTE    SnowChance[0x4];
+/*0x215*/   BYTE    SnowDuration[0x4];
+/*0x219*/   char    ZoneTimeZone;   //in hours from worldserver, can be negative
+/*0x21a*/   BYTE    SkyType;   //1 means active
+/*0x21c*/   int		WaterMidi;   //which midi to play while underwater
+/*0x220*/   int		DayMidi;   
+/*0x224*/   int		NightMidi;
 /*0x228*/   FLOAT   ZoneExpModifier;    //This has been nerfed ..now reads 1.0 for all zones
-/*0x22c*/   FLOAT   SafeYLoc;
-/*0x230*/   FLOAT   SafeXLoc;
+/*0x22c*/   FLOAT   SafeXLoc;
+/*0x230*/   FLOAT   SafeYLoc;
 /*0x234*/   FLOAT   SafeZLoc;
-/*0x238*/   BYTE    Unknown0x238[0x4];
+/*0x238*/   FLOAT   SafeHeading;
 /*0x23c*/   FLOAT   Ceiling;
 /*0x240*/   FLOAT   Floor;
 /*0x244*/   FLOAT   MinClip;
 /*0x248*/   FLOAT   MaxClip;
-/*0x24c*/   BYTE    Unknown0x24c[0x54];
-/*0x2a0*/   CHAR    ShortNameLwr[0x60];
-/*0x300*/ //there is more data here i dont know the size of this struct - eqmule
+/*0x24c*/	int		ForageLow; //Forage skill level needed to get stuff
+/*0x250*/	int		ForageMedium;
+/*0x254*/	int		ForageHigh;
+/*0x258*/	int		FishingLow; //Fishing skill level needed to get stuff
+/*0x25c*/	int		FishingMedium;
+/*0x260*/	int		FishingHigh;
+/*0x264*/	int		SkyRelated; //0-24 i think
+/*0x268*/	UINT	GraveyardTimer; //minutes until corpse(s) pops to graveyard
+/*0x26c*/	int		ScriptIDHour;
+/*0x270*/	int		ScriptIDMinute;
+/*0x274*/	int		ScriptIDTick;
+/*0x278*/	int		ScriptIDOnPlayerDeath;
+/*0x27c*/	int		ScriptIDOnNPCDeath;
+/*0x280*/	int		ScriptIDPlayerEnteringZone;
+/*0x284*/	int		ScriptIDOnZonePop;
+/*0x288*/	int		ScriptIDNPCLoot;
+/*0x28c*/	int		ScriptIDAdventureFailed;
+/*0x290*/	int		CanExploreTasks;
+/*0x294*/	int		UnknownFlag;
+/*0x298*/	int		ScriptIDOnFishing;
+/*0x29c*/	int		ScriptIDOnForage;
+/*0x2a0*/	CHAR	SkyString[0x20]; //if empty no sky, ive only seen this as the zone name
+/*0x2c0*/	CHAR	WeatherString[0x20]; //if empty no weather
+/*0x2e0*/	CHAR	SkyString2[0x20]; //if SkyString is empty this is checked
+/*0x310*/	int		SkyRelated2; //0-24
+/*0x314*/	CHAR	WeatherString2[0x20]; //if empty no weather
+/*0x334*/	FLOAT	WeatherChangeTime;
+/*0x338*/	int		Climate;
+/*0x33c*/	int		NPCAgroMaxDist; //the distance needed for an npc to lose agro after an attack
+/*0x340*/	int		FilterID; //found in the teleport table
+/*0x344*/	int		ZoneID;
+/*0x348*/	int		ScriptNPCReceivedanItem;
+/*0x34c*/	bool	bCheck;
+/*0x350*/	int		ScriptIDSomething;
+/*0x254*/	int		ScriptIDSomething2;
+/*0x358*/	int		ScriptIDSomething3;
+/*0x35c*/	bool	bNoBuffExpiration;//this is checked serverside so no, u cant and shouldn't set this if u value your account
+/*0x360*/   int		LavaDamage; //before resists
+/*0x364*/   int		MinLavaDamage; //after resists
+/*0x368*/   bool	bDisallowManaStone; //can a manastone be used here?
+/*0x369*/   bool	bNoBind;
+/*0x36a*/   bool	bNoAttack;
+/*0x36b*/   bool	bNoCallOfHero;
+/*0x36c*/   bool	bNoFlux;
+/*0x36d*/   bool	bNoFear;
+/*0x36e*/   bool	bNoEncumber;
+/*0x370*/   int		FastRegenHP;//not exactly sure how these work but ome zones have these set
+/*0x374*/   int		FastRegenMana;
+/*0x378*/   int		FastRegenEndurance;
+/*0x37c*/   EPlace	CanPlaceCampsite;
+/*0x380*/   EPlace	CanPlaceGuildBanner;
+/*0x384*/   FLOAT	FogDensity;
+/*0x388*/   bool	bAdjustGamma;
+/*0x38c*/   int		TimeStringID;
+/*0x390*/   bool	bNoMercenaries;
+/*0x394*/   int		FishingRelated;
+/*0x398*/   int		ForageRelated;
+/*0x39c*/   bool	bNoLevitate;
+/*0x3a0*/   FLOAT	Blooming;
+/*0x3a4*/   bool	bNoPlayerLight;
+/*0x3a8*/   int		GroupLvlExpRelated;
+/*0x3ac*/   BYTE	PrecipitationType;
+/*0x3ad*/   bool	bAllowPVP;
+/*0x3b0*/
 } ZONEINFO, *PZONEINFO;
+#pragma pack()
 
 typedef struct _SPELLCALCINFO
 {

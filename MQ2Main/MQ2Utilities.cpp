@@ -1772,11 +1772,9 @@ PCHAR GetSpellRestrictions(PSPELL pSpell, unsigned int nIndex, PCHAR szBuffer, S
 // Function:    GetSpellEffectName, GetSpellEffectNameByID
 // Description: Return spell effect string 
 // ***************************************************************************
-PCHAR GetSpellEffectNameByID(LONG EffectID)
+PCHAR GetSpellEffectNameByID(LONG EffectID, PCHAR szBuffer, SIZE_T BufferSize)
 {
-	CHAR szTemp[MAX_STRING] = { 0 };
-
-	return GetSpellEffectName(abs(EffectID), szTemp, sizeof(szTemp));
+	return GetSpellEffectName(abs(EffectID),szBuffer, BufferSize);
 }
 
 PCHAR GetSpellEffectName(LONG EffectID, PCHAR szBuffer, SIZE_T BufferSize)
@@ -2336,10 +2334,12 @@ template <unsigned int _Size> PCHAR FormatRefreshTimer(PCHAR szEffectName, LONG 
 
 template <unsigned int _Size> PCHAR FormatResists(PCHAR szEffectName, LONG value, LONG base, CHAR(&szBuffer)[_Size])
 {
-	if (value < 100)
-		sprintf_s(szBuffer, "%s (%d%% Chance)", GetSpellEffectNameByID(base), value);
-	else
+	if (value < 100) {
+		CHAR szTemp[MAX_STRING] = { 0 };
+		sprintf_s(szBuffer, "%s (%d%% Chance)", GetSpellEffectNameByID(base, szTemp, MAX_STRING), value);
+	} else {
 		sprintf_s(szBuffer, "%s", szEffectName);
+	}
 	return szBuffer;
 }
 
@@ -3597,9 +3597,12 @@ PCHAR ParseSpellEffect(PSPELL pSpell, int i, PCHAR szBuffer, SIZE_T BufferSize, 
 		strcat_s(szBuff, FormatBase(spelleffectname, base, szTemp2));
 		break;
 	case 382: //Negate: Effect
-		sprintf_s(szTemp, " %s Effect", GetSpellEffectNameByID(base2));
+	{
+		CHAR szString[MAX_STRING] = { 0 };
+		sprintf_s(szTemp, " %s Effect", GetSpellEffectNameByID(base2,szString,MAX_STRING));
 		strcat_s(szBuff, FormatExtra(spelleffectname, szTemp, szTemp2));
 		break;
+	}
 	case 383: //Trigger Spell
 		strcat_s(szBuff, FormatExtra(spelleffectname, FormatSpellChance(spelleffectname, base, base2, szTemp), szTemp2, " on Cast"));
 		break;

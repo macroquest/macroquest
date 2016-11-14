@@ -7267,6 +7267,7 @@ bool MQ2WindowType::GETMEMBER()
 }
 bool MQ2CurrentZoneType::GETMEMBER()
 {
+	PZONEINFO pthezone = (PZONEINFO)pZoneInfo;
 #define pZone ((PZONEINFO)pZoneInfo)
 	PMQ2TYPEMEMBER pMember = MQ2CurrentZoneType::FindMember(Member);
 	if (!pMember)
@@ -7296,7 +7297,7 @@ bool MQ2CurrentZoneType::GETMEMBER()
 		Dest.Type = pStringType;
 		return true;
 	case Type:
-		Dest.DWord = pZone->ZoneType;
+		Dest.DWord = pZone->OutDoor;
 		Dest.Type = pIntType;
 		return true;
 	case Gravity:
