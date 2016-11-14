@@ -1,4 +1,8 @@
 12 Nov 2016 by eqmule
+- Added the missing members to the test cxwnd struct
+- Fixed the 4Byte error.
+
+12 Nov 2016 by eqmule
 - Updated for TEST
 
 12 Nov 2016 by rswiders

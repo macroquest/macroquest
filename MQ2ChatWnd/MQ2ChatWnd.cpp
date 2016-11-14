@@ -528,7 +528,9 @@ PLUGIN_API VOID OnPulse()
     { 
         CreateChatWindow(); 
     } 
-
+	//if (CXWnd *krwnd = FindMQ2Window("TaskOverlayWnd")) {
+	//	Sleep(0);
+	//}
     if (MQChatWnd) 
     { 
 		switch (gGameState)

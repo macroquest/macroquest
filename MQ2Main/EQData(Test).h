@@ -524,7 +524,8 @@ typedef struct _ITEMSPELLS {
 /*0x14*/ DWORD TimerID;
 /*0x18*/ DWORD RecastType;
 /*0x1c*/ DWORD ProcRate;
-/*0x20*/ BYTE  Unknown0x20[0x44];
+/*0x20*/ CHAR  OtherName[0x40];//some kind of override
+/*0x60*/ DWORD OtherID;
 /*0x64*/
 } ITEMSPELLS, *PITEMSPELLS; 
 
@@ -573,7 +574,7 @@ typedef struct _ITEMINFO {
 	/*0x0128*/ CHAR         CHA;
 	/*0x0129*/ CHAR         INT;
 	/*0x012a*/ CHAR         WIS;
-	/*0x012b*/ BYTE         Unknown0x012b;
+	/*0x012b*/ BYTE         HitPoints;
 	/*0x012c*/ DWORD        HP;
 	/*0x0130*/ DWORD        Mana;
 	/*0x0134*/ DWORD        AC;
@@ -1089,7 +1090,9 @@ union {
 //aSdeityD CharInfo2__CharInfo2
 // actual size: 0x9a28 2016 04 13 test (see 85B22A) - eqmule
 typedef struct _CHARINFO2 {
-/*0x0000*/ BYTE         Unknown0x0000[0x18];
+/*0x0000*/ BYTE         Unknown0x0000[0x10];
+/*0x0010*/ DWORD        BaseProfile;
+/*0x0014*/ DWORD        Unknown0x0014;
 /*0x0018*/ struct _INVENTORYARRAY*      pInventoryArray;
 /*0x001c*/ BYTE         Unknown0x001c[0x48];
 /*0x0064*/ struct _SPELLBUFF    Buff[NUM_LONG_BUFFS];
