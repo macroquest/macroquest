@@ -562,10 +562,10 @@ bool  MouseToPlayer(EQPlayer*pPlayer,DWORD position,BOOL bClick)
 			g_vWorldLocation.y = ((PSPAWNINFO)pPlayer)->X;
 			g_vWorldLocation.z = ((PSPAWNINFO)pPlayer)->Z;//smack in the middle...
 			if(position==1) {//head
-				g_vWorldLocation.z = ((PSPAWNINFO)pPlayer)->Feet+((PSPAWNINFO)pPlayer)->AvatarHeight;
+				g_vWorldLocation.z = ((PSPAWNINFO)pPlayer)->FloorHeight+((PSPAWNINFO)pPlayer)->AvatarHeight;
 			}
 			if(position==2) {//feet
-				g_vWorldLocation.z = ((PSPAWNINFO)pPlayer)->Feet;
+				g_vWorldLocation.z = ((PSPAWNINFO)pPlayer)->FloorHeight;
 			}
 
 			ScreenVector3 v3ScreenCoord = {0};

@@ -262,7 +262,7 @@ class CXStrSingleton;
 class CXWnd;
 class CXWndDrawTemplate;
 class CXWndManager;
-class ActorClient;
+//class ActorClient;
 class EmitterManager;
 class engineInterface;
 class EQ_Affect;
@@ -274,7 +274,6 @@ class EQ_Equipment;
 class EQ_Item;
 class EQ_LoadingS;
 class CLineBase;
-class CLineSegment;
 class EQ_Note;
 class EQ_PC;
 class EQ_Skill;
@@ -2398,45 +2397,7 @@ EQLIB_OBJECT void ChannelServerHandler::CshOnLoginConfirm(bool);
 EQLIB_OBJECT void ChannelServerHandler::CshOnPacket(void *,int,char *,int,char *,bool);
 };
 
-//found these at B0DD28 in eqgame.exe dated Aug 15 2016 -eqmule
-enum ItemContainerInstance
-{
-	eItemContainerInvalid = -1,
-	eItemContainerPossessions,
-	eItemContainerBank,
-	eItemContainerSharedBank,
-	eItemContainerTrade,
-	eItemContainerWorld,
-	eItemContainerLimbo,
-	eItemContainerTribute,
-	eItemContainerTrophyTribute,
-	eItemContainerGuildTribute,
-	eItemContainerMerchant,
-	eItemContainerDeleted,
-	eItemContainerCorpse,
-	eItemContainerBazaar,
-	eItemContainerInspect,
-	eItemContainerRealEstate,
-	eItemContainerViewModPC,
-	eItemContainerViewModBank,
-	eItemContainerViewModSharedBank,
-	eItemContainerViewModLimbo,
-	eItemContainerAltStorage,
-	eItemContainerArchived,
-	eItemContainerMail,
-	eItemContainerGuildTrophyTribute,
-	eItemContainerKrono,
-	eItemContainerOther,
-	eItemContainerMercenaryItems,
-    eItemContainerViewModMercenaryItems,
-    eItemContainerMountKeyRingItems,
-	eItemContainerViewModMountKeyRingItems,
-	eItemContainerIllusionKeyRingItems,
-	eItemContainerViewModIllusionKeyRingItems,
-	eItemContainerFamiliarKeyRingItems,
-	eItemContainerViewModFamiliarKeyRingItems,
-	eItemContainerCursor,
-};
+
 class ItemIndex
 {
 public:
@@ -2867,15 +2828,7 @@ public:
 EQLIB_OBJECT CLineBase::~CLineBase(void);
 EQLIB_OBJECT CLineBase::CLineBase(void);
 };
-class CLineSegment// : public CLineBase
-{
-public:
-EQLIB_OBJECT CLineSegment::~CLineSegment(void) {};
-EQLIB_OBJECT CLineSegment::CLineSegment(void) {
 
-};
-BYTE Unknownstuff[2048];
-};
 class CListboxColumnTemplate
 {
 public:
@@ -5440,15 +5393,6 @@ EQLIB_OBJECT void CXWndManager::UpdateChildAndSiblingInfo(void);
 EQLIB_OBJECT CXWndManager::~CXWndManager(void);
 //EQLIB_OBJECT void * CXWndManager::`scalar deleting destructor'(unsigned int);
 //EQLIB_OBJECT void * CXWndManager::`vector deleting destructor'(unsigned int);
-};
-
-class ActorClient
-{
-	//CVector3 *
-
-public:
-EQLIB_OBJECT class CVector3 const & ActorClient::GetPosition(void)const;
-EQLIB_OBJECT void ActorClient::GetPosition(class CVector3 *)const;
 };
 
 class EmitterManager

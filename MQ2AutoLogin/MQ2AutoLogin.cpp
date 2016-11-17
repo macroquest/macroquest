@@ -898,6 +898,7 @@ DETOUR_TRAMPOLINE_EMPTY( UINT WINAPI GetPrivateProfileIntA_Tramp( LPCSTR, LPCSTR
 PLUGIN_API VOID InitializePlugin(VOID)
 {
 	//MessageBox(NULL, "Inject now", "MQ2 Debug", MB_OK|MB_SYSTEMMODAL);
+	int sizeofSPAWNINFO = sizeof(SPAWNINFO);
 	int sizeofCXWnd = sizeof(CXWnd);
 	//int sizeofCXWND = sizeof(CXWND);
 	CHAR szPath[MAX_PATH] = { 0 };

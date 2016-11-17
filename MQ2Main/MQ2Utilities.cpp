@@ -1235,7 +1235,7 @@ DWORD GetDeityTeamByID(DWORD DeityID) {
 		return 0;
 	}
 }
-#if defined(LIVE) || defined(EMU)
+#if defined(EMU)
 PCHAR GetGuildByID(DWORD GuildID)
 {
 	if (PGUILD pGuild = pGuildList->GuildList[GuildID % pGuildList->HashValue])
@@ -1269,7 +1269,7 @@ PCHAR GetGuildByID(DWORD GuildID)
 	}
 #endif
 
-#if defined(LIVE) || defined(EMU)
+#if defined(EMU)
 DWORD GetGuildIDByName(PCHAR szGuild)
 {
 	DWORD n;
@@ -5295,7 +5295,7 @@ EQLIB_API BOOL IsInRaid(PSPAWNINFO pSpawn, BOOL bCorpse)
 	for (i = 0; i<72; i++)
 	{
 		if (!bCorpse) {
-			if (!_strnicmp(pRaid->RaidMember[i].Name, pSpawn->Name, l + 1) && pRaid->RaidMember[i].nClass == pSpawn->Class) {
+			if (!_strnicmp(pRaid->RaidMember[i].Name, pSpawn->Name, l + 1) && pRaid->RaidMember[i].nClass == pSpawn->mActorClient.Class) {
 				return TRUE;
 			}
 		}
@@ -5304,7 +5304,7 @@ EQLIB_API BOOL IsInRaid(PSPAWNINFO pSpawn, BOOL bCorpse)
 			strcpy_s(szSearch, pRaid->RaidMember[i].Name);
 			strcat_s(szSearch, "'s corpse");
 			l = strlen(szSearch);
-			if (!_strnicmp(szSearch, pSpawn->Name, l) && pRaid->RaidMember[i].nClass == pSpawn->Class) {
+			if (!_strnicmp(szSearch, pSpawn->Name, l) && pRaid->RaidMember[i].nClass == pSpawn->mActorClient.Class) {
 				return TRUE;
 			}
 		}
@@ -5331,7 +5331,7 @@ BOOL IsInFellowship(PSPAWNINFO pSpawn, BOOL bCorpse)
 				strcpy_s(szSearch, Fellowship.FellowshipMember[i].Name);
 				strcat_s(szSearch, "'s corpse");
 				int l = strlen(szSearch);
-				if (!_strnicmp(szSearch, pSpawn->Name, l) && Fellowship.FellowshipMember[i].Class == pSpawn->Class) {
+				if (!_strnicmp(szSearch, pSpawn->Name, l) && Fellowship.FellowshipMember[i].Class == pSpawn->mActorClient.Class) {
 					return TRUE;
 				}
 			}
@@ -5348,25 +5348,25 @@ BOOL IsNamed(PSPAWNINFO pSpawn)
 		return false;
 	if (!IsTargetable(pSpawn))
 		return false;
-	if (pSpawn->Class >= 20 && pSpawn->Class <= 35)  // NPC GMs
+	if (pSpawn->mActorClient.Class >= 20 && pSpawn->mActorClient.Class <= 35)  // NPC GMs
 		return false;
-	if (pSpawn->Class == 40)  // NPC bankers
+	if (pSpawn->mActorClient.Class == 40)  // NPC bankers
 		return false;
-	if (pSpawn->Class == 41 || pSpawn->Class == 70)  // NPC/Quest/TBS merchants
+	if (pSpawn->mActorClient.Class == 41 || pSpawn->mActorClient.Class == 70)  // NPC/Quest/TBS merchants
 		return false;
-	if (pSpawn->Class == 60 || pSpawn->Class == 61)  //Ldon Merchants/Recruiters
+	if (pSpawn->mActorClient.Class == 60 || pSpawn->mActorClient.Class == 61)  //Ldon Merchants/Recruiters
 		return false;
-	if (pSpawn->Class == 62)  // Destructible Objects
+	if (pSpawn->mActorClient.Class == 62)  // Destructible Objects
 		return false;
-	if (pSpawn->Class == 63 || pSpawn->Class == 64)  // Tribute Master/Guild Tribute Master
+	if (pSpawn->mActorClient.Class == 63 || pSpawn->mActorClient.Class == 64)  // Tribute Master/Guild Tribute Master
 		return false;
-	if (pSpawn->Class == 66)  // Guild Banker
+	if (pSpawn->mActorClient.Class == 66)  // Guild Banker
 		return false;
-	if (pSpawn->Class == 67 || pSpawn->Class == 68)  //Don Merchants (Norrath's Keepers/Dark Reign)
+	if (pSpawn->mActorClient.Class == 67 || pSpawn->mActorClient.Class == 68)  //Don Merchants (Norrath's Keepers/Dark Reign)
 		return false;
-	if (pSpawn->Class == 69)  // Fellowship Registrar
+	if (pSpawn->mActorClient.Class == 69)  // Fellowship Registrar
 		return false;
-	if (pSpawn->Class == 71)  // Mercenary Liason
+	if (pSpawn->mActorClient.Class == 71)  // Mercenary Liason
 		return false;
 
 	strcpy_s(szTemp, pSpawn->Name);
@@ -5849,30 +5849,30 @@ BOOL SpawnMatchesSearch(PSEARCHSPAWN pSearchSpawn, PSPAWNINFO pChar, PSPAWNINFO 
 		if (!pSpawn->GM)
 			return FALSE;
 	if (pSearchSpawn->bGM && pSearchSpawn->SpawnType == NPC)
-		if (pSpawn->Class < 20 || pSpawn->Class > 35)
+		if (pSpawn->mActorClient.Class < 20 || pSpawn->mActorClient.Class > 35)
 			return FALSE;
 	if (pSearchSpawn->bNamed && !IsNamed(pSpawn))
 		return FALSE;
-	if (pSearchSpawn->bMerchant && pSpawn->Class != 41)
+	if (pSearchSpawn->bMerchant && pSpawn->mActorClient.Class != 41)
 		return FALSE;
-	if (pSearchSpawn->bTributeMaster && pSpawn->Class != 63)
+	if (pSearchSpawn->bTributeMaster && pSpawn->mActorClient.Class != 63)
 		return FALSE;
 	if (pSearchSpawn->bNoGuild && (pSpawn->GuildID != 0xFFFFFFFF))
 		return FALSE;
 	if (pSearchSpawn->bKnight && pSearchSpawn->SpawnType != NPC)
-		if (pSpawn->Class != 3 && pSpawn->Class != 5)
+		if (pSpawn->mActorClient.Class != 3 && pSpawn->mActorClient.Class != 5)
 			return FALSE;
 	if (pSearchSpawn->bTank && pSearchSpawn->SpawnType != NPC)
-		if (pSpawn->Class != 3 && pSpawn->Class != 5 && pSpawn->Class != 1)
+		if (pSpawn->mActorClient.Class != 3 && pSpawn->mActorClient.Class != 5 && pSpawn->mActorClient.Class != 1)
 			return FALSE;
 	if (pSearchSpawn->bHealer && pSearchSpawn->SpawnType != NPC)
-		if (pSpawn->Class != 2 && pSpawn->Class != 6)
+		if (pSpawn->mActorClient.Class != 2 && pSpawn->mActorClient.Class != 6)
 			return FALSE;
 	if (pSearchSpawn->bDps && pSearchSpawn->SpawnType != NPC)
-		if (pSpawn->Class != 4 && pSpawn->Class != 9 && pSpawn->Class != 12)
+		if (pSpawn->mActorClient.Class != 4 && pSpawn->mActorClient.Class != 9 && pSpawn->mActorClient.Class != 12)
 			return FALSE;
 	if (pSearchSpawn->bSlower && pSearchSpawn->SpawnType != NPC)
-		if (pSpawn->Class != 10 && pSpawn->Class != 14 && pSpawn->Class != 15)
+		if (pSpawn->mActorClient.Class != 10 && pSpawn->mActorClient.Class != 14 && pSpawn->mActorClient.Class != 15)
 			return FALSE;
 	if (pSearchSpawn->bLFG && !pSpawn->LFG)
 		return FALSE;
@@ -5971,11 +5971,11 @@ BOOL SpawnMatchesSearch(PSEARCHSPAWN pSearchSpawn, PSPAWNINFO pChar, PSPAWNINFO 
 	if ((pSearchSpawn->bNearAlert) && (!GetClosestAlert(pSpawn, pSearchSpawn->NearAlertList)))
 		return FALSE;
 
-	if (pSearchSpawn->szClass[0] && _stricmp(pSearchSpawn->szClass, GetClassDesc(pSpawn->Class)))
+	if (pSearchSpawn->szClass[0] && _stricmp(pSearchSpawn->szClass, GetClassDesc(pSpawn->mActorClient.Class)))
 		return FALSE;
 	if (pSearchSpawn->szBodyType[0] && _stricmp(pSearchSpawn->szBodyType, GetBodyTypeDesc(GetBodyType(pSpawn))))
 		return FALSE;
-	if (pSearchSpawn->szRace[0] && _stricmp(pSearchSpawn->szRace, pEverQuest->GetRaceDesc(pSpawn->Race)))
+	if (pSearchSpawn->szRace[0] && _stricmp(pSearchSpawn->szRace, pEverQuest->GetRaceDesc(pSpawn->mActorClient.Race)))
 		return FALSE;
 	//if (pSearchSpawn->bLoS && (!LineOfSight(pChar,pSpawn)))
 	if (pSearchSpawn->bLoS && (!pCharSpawn->CanSee((EQPlayer *)pSpawn)))
@@ -6453,7 +6453,7 @@ VOID SuperWhoDisplay(PSPAWNINFO pSpawn, DWORD Color)
 		}
 		if (gFilterSWho.Guild && pSpawn->GuildID != 0xFFFFFFFF && pSpawn->GuildID!=0 && pGuildList) {
 			strcat_s(szName, " <");
-			#if defined(BETA) || defined(TEST)
+			#if !defined(EMU)
 			char *szGuild = GetGuildByID(pSpawn->GuildID,pSpawn->GuildID2);
 			#else
 			char *szGuild = GetGuildByID(pSpawn->GuildID);
@@ -6528,7 +6528,7 @@ VOID SuperWhoDisplay(PSPAWNINFO pSpawn, DWORD Color)
 			strcat_s(szMsg, " ");
 		}
 		if (gFilterSWho.Race) {
-			strcat_s(szMsg, pEverQuest->GetRaceDesc(pSpawn->Race));
+			strcat_s(szMsg, pEverQuest->GetRaceDesc(pSpawn->mActorClient.Race));
 			strcat_s(szMsg, " ");
 		}
 		if (gFilterSWho.Body) {
@@ -6536,7 +6536,7 @@ VOID SuperWhoDisplay(PSPAWNINFO pSpawn, DWORD Color)
 			strcat_s(szMsg, " ");
 		}
 		if (gFilterSWho.Class) {
-			strcat_s(szMsg, GetClassDesc(pSpawn->Class));
+			strcat_s(szMsg, GetClassDesc(pSpawn->mActorClient.Class));
 			strcat_s(szMsg, " ");
 		}
 		szMsg[strlen(szMsg) - 1] = 0;
@@ -6654,21 +6654,21 @@ static bool pWHOSORTCompare(const PSPAWNINFO SpawnA, const PSPAWNINFO SpawnB)
 		return SpawnA->Level < SpawnB->Level;
 		//case 1://name   done at the bottom ;)
 	case 2://race
-		return _stricmp(pEverQuest->GetRaceDesc(SpawnA->Race), pEverQuest->GetRaceDesc(SpawnB->Race)) < 0;
+		return _stricmp(pEverQuest->GetRaceDesc(SpawnA->mActorClient.Race), pEverQuest->GetRaceDesc(SpawnB->mActorClient.Race)) < 0;
 	case 3://class
-		return _stricmp(GetClassDesc(SpawnA->Class), GetClassDesc(SpawnB->Class)) < 0;
+		return _stricmp(GetClassDesc(SpawnA->mActorClient.Class), GetClassDesc(SpawnB->mActorClient.Class)) < 0;
 	case 4://distance
 		return GetDistance(SWhoSortOrigin, SpawnA) < GetDistance(SWhoSortOrigin, SpawnB);
 	case 5://guild
 	{
 		CHAR szGuild1[128] = { "" };
 		CHAR szGuild2[128] = { "" };
-		#if defined(BETA) || defined(TEST)
+		#if !defined(EMU)
 		char *pDest1 = GetGuildByID(SpawnA->GuildID,SpawnA->GuildID2);
 		#else
 		char *pDest1 = GetGuildByID(SpawnA->GuildID);
 		#endif
-		#if defined(BETA) || defined(TEST)
+		#if !defined(EMU)
 		char *pDest2 = GetGuildByID(SpawnB->GuildID,SpawnB->GuildID2);
 		#else
 		char *pDest2 = GetGuildByID(SpawnB->GuildID);
@@ -7029,7 +7029,7 @@ CXWnd * GetParentWnd(class CXWnd const * pWnd)
 
 bool LoH_HT_Ready()
 {
-	DWORD i = ((PSPAWNINFO)pLocalPlayer)->InnateETA;
+	DWORD i = ((PSPAWNINFO)pLocalPlayer)->SpellGemETA[InnateETA];
 	DWORD j = i - ((PCDISPLAY)pDisplay)->TimeStamp;
 	if (i<j) return true;
 	return false;
@@ -7301,8 +7301,8 @@ float GetMeleeRange(class EQPlayer *pSpawn1, class EQPlayer *pSpawn2)
 	float f, g, h;
 	if (pSpawn1 && pSpawn2)
 	{
-		f = ((PSPAWNINFO)pSpawn1)->GetMeleeRangeVar1 * ((PSPAWNINFO)pSpawn1)->GetMeleeRangeVar2;
-		g = ((PSPAWNINFO)pSpawn2)->GetMeleeRangeVar1 * ((PSPAWNINFO)pSpawn2)->GetMeleeRangeVar2;
+		f = ((PSPAWNINFO)pSpawn1)->GetMeleeRangeVar1 * ((PSPAWNINFO)pSpawn1)->MeleeRadius;
+		g = ((PSPAWNINFO)pSpawn2)->GetMeleeRangeVar1 * ((PSPAWNINFO)pSpawn2)->MeleeRadius;
 
 		h = abs(((PSPAWNINFO)pSpawn1)->AvatarHeight - ((PSPAWNINFO)pSpawn2)->AvatarHeight);
 
@@ -7588,7 +7588,6 @@ PCONTENTS FindItemByName(PCHAR pName, BOOL bExact)
 			}
 		}
 	}
-	#ifdef BETA
 	//still not found? fine... check familiars keyring
 	if (pChar && pChar->pFamiliarArray && pChar->pFamiliarArray->Familiars) {
 		for (unsigned long nSlot = 0; nSlot < MAX_KEYRINGITEMS; nSlot++)
@@ -7614,7 +7613,6 @@ PCONTENTS FindItemByName(PCHAR pName, BOOL bExact)
 			}
 		}
 	}
-	#endif //BETA
 #endif
 	return 0;
 }
@@ -7686,7 +7684,6 @@ PCONTENTS FindItemByID(DWORD ItemID)
 			}
 		}
 	}
-	#ifdef BETA
 	if (pChar && pChar->pFamiliarArray && pChar->pFamiliarArray->Familiars) {
 		for (unsigned long nSlot = 0; nSlot < MAX_KEYRINGITEMS; nSlot++)
 		{
@@ -7698,7 +7695,6 @@ PCONTENTS FindItemByID(DWORD ItemID)
 			}
 		}
 	}
-	#endif //BETA
 #endif
 	return 0;
 }

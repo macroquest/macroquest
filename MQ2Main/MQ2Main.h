@@ -566,7 +566,7 @@ EQLIB_API DWORD GetSpellDuration(PSPELL pSpell, PSPAWNINFO pSpawn);
 EQLIB_API DWORD GetDeityTeamByID(DWORD DeityID);
 EQLIB_API DWORD ConColor(PSPAWNINFO pSpawn);
 
-#if defined(BETA) || defined(TEST)
+#if !defined(EMU)
 EQLIB_API PCHAR GetGuildByID(DWORD GuildID, DWORD GuildID2 = 2);
 #else
 EQLIB_API PCHAR GetGuildByID(DWORD GuildID);

@@ -268,7 +268,7 @@ void AddGroundItem(PGROUNDITEM pGroundItem)
 	pFakeSpawn->HPCurrent = 1;
 	pFakeSpawn->HPMax = 1;
 	pFakeSpawn->Heading = pGroundItem->Heading;
-	pFakeSpawn->Race = pGroundItem->DropID;
+	pFakeSpawn->mActorClient.Race = pGroundItem->DropID;
 
 	pFakeSpawn->Type = FAKESPAWNTYPE;
 	PMAPSPAWN pMapSpawn = AddSpawn(pFakeSpawn);
@@ -862,13 +862,13 @@ PCHAR GenerateSpawnName(PSPAWNINFO pSpawn, PCHAR NameString)
 				AddFloat10th(pSpawn->Z);
 				break;
 			case 'R':
-				AddString(pEverQuest->GetRaceDesc(pSpawn->Race));
+				AddString(pEverQuest->GetRaceDesc(pSpawn->mActorClient.Race));
 				break;
 			case 'C':
-				AddString(GetClassDesc(pSpawn->Class));
+				AddString(GetClassDesc(pSpawn->mActorClient.Class));
 				break;
 			case 'c':
-				AddString(pEverQuest->GetClassThreeLetterCode(pSpawn->Class));
+				AddString(pEverQuest->GetClassThreeLetterCode(pSpawn->mActorClient.Class));
 				break;
 			case 'l':
 				AddInt(pSpawn->Level);

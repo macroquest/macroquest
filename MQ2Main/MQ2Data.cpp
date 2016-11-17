@@ -1183,7 +1183,6 @@ TLO(dataFindItem)
 			}
 		}
 	}
-	#ifdef BETA
 	//still not found? fine... check familiars keyring
 	if (pChar && pChar->pFamiliarArray && pChar->pFamiliarArray->Familiars) {
 		for (unsigned long nSlot = 0; nSlot < MAX_KEYRINGITEMS; nSlot++)
@@ -1214,7 +1213,6 @@ TLO(dataFindItem)
 			}
 		}
 	}
-	#endif //BETA
 #endif
 	return false;
 }

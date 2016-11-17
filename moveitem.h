@@ -57,7 +57,7 @@ bool NonBardCasting()
 {
     if (!GetCharInfo() || !GetCharInfo2() || !pCharSpawn) return false;
     if (GetCharInfo2()->Class == Bard) return false;
-    if (GetCharInfo()->pSpawn && GetCharInfo()->pSpawn->Class == Bard) return false;
+    if (GetCharInfo()->pSpawn && GetCharInfo()->pSpawn->mActorClient.Class == Bard) return false;
     if (((PSPAWNINFO)pCharSpawn)->CastingData.SpellETA) return true;
     return false;
 }

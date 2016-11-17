@@ -1507,7 +1507,7 @@ typedef struct _SPAWNINFO {
 /*0x10e4*/ BYTE		Unknown0x10e4[0x4];
 /*0x10e8*/ VOID*	FaceRelatedActorStruct;
 /*0x10ec*/ BYTE		Unknown0x10ec[0x34];
-/*0x1120*/ FLOAT	GetMeleeRangeVar2;      // used by GetMeleeRange
+/*0x1120*/ FLOAT	MeleeRadius;      // used by GetMeleeRange
 /*0x1124*/ BYTE		Unknown0x1124[0x68];
 /*0x118c*/ DWORD	Animation;
 /*0x1190*/ BYTE		Unknown0x1190[0xe0];

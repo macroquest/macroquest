@@ -1,3 +1,18 @@
+16 Nov 2016 by eqmule
+- Updated for LIVE
+- Reorganised SPAWNINFO to reflect how its laid out in memory.
+- Feet in Spawninfo has been renamed to FloorHeight
+- AvatarHeight2 in Spawninfo has been renamed to Width
+- HoldingType in Spawninfo has been renamed to HoldingAnimation
+- InnateETA in Spawninfo is now part of SpellGemETA as its LAST member because... well it should be.
+- GetMeleeRangeVar2 has been renamed to MeleeRadius
+- Class in the spawninfo struct has been moved to its correct location which is inside ActorClient.
+  Therefor: (and I know people will post even though the answer is right here)
+  ITS NOT pSpawn->Class anymore, its now pSpawn->mActorClient.Class
+  same thing goes for Race.
+
+- mkay...
+
 14 Nov 2016 by eqmule
 - Updated for BETA
 - GetSpellEffectNameByID fixed to not return a temp buffer - cred HTW

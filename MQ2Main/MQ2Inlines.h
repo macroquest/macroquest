@@ -226,13 +226,13 @@ static inline eSpawnType GetSpawnType(PSPAWNINFO pSpawn)
 		switch (GetBodyType(pSpawn))
 		{
 		case 0:
-			if (pSpawn->Class == 62)
+			if (pSpawn->mActorClient.Class == 62)
 				return OBJECT;
 			return NPC;
 		case 1:
-			if (pSpawn->Race == 567)
+			if (pSpawn->mActorClient.Race == 567)
 				return CAMPFIRE;
-			if (pSpawn->Race == 500 || (pSpawn->Race >= 553 && pSpawn->Race <= 557) || pSpawn->Race == 586)
+			if (pSpawn->mActorClient.Race == 500 || (pSpawn->mActorClient.Race >= 553 && pSpawn->mActorClient.Race <= 557) || pSpawn->mActorClient.Race == 586)
 				return BANNER;
 			return NPC;
 			//case 3:
@@ -240,11 +240,11 @@ static inline eSpawnType GetSpawnType(PSPAWNINFO pSpawn)
 		case 5:
 			if (strstr(pSpawn->Name, "Idol") || strstr(pSpawn->Name, "Poison") || strstr(pSpawn->Name, "Rune"))
 				return AURA;
-			if (pSpawn->Class == 62)
+			if (pSpawn->mActorClient.Class == 62)
 				return OBJECT;
 			return NPC;
 		case 7:
-			if (pSpawn->Class == 62)
+			if (pSpawn->mActorClient.Class == 62)
 				return OBJECT;
 			return NPC;
 		case 11:
@@ -427,7 +427,7 @@ static inline DWORD GetGroupMercenaryCount(DWORD ClassMASK)
 		if (!pChar->pGroupInfo) return 0;
 		for (DWORD N = 1; N<6; N++) {
 			if (pChar->pGroupInfo->pMember[N]) {
-				if (pChar->pGroupInfo->pMember[N]->Mercenary && (ClassMASK & (1 << (pChar->pGroupInfo->pMember[N]->pSpawn->Class - 1))))
+				if (pChar->pGroupInfo->pMember[N]->Mercenary && (ClassMASK & (1 << (pChar->pGroupInfo->pMember[N]->pSpawn->mActorClient.Class - 1))))
 					retValue++;
 			}
 		}

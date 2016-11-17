@@ -1050,6 +1050,7 @@ bool MQ2SpawnType::GETMEMBER()
 {
 	if (!VarPtr.Ptr)
 		return false;
+	int sizeofActorClient = sizeof(ActorClient);
 	PSPAWNINFO pSpawn = (PSPAWNINFO)VarPtr.Ptr;
 #ifndef ISXEQ
 	PMQ2TYPEMEMBER pMethod = MQ2SpawnType::FindMethod(Member);
@@ -1220,17 +1221,17 @@ bool MQ2SpawnType::GETMEMBER()
 		}
 		break;
 	case Gender:
-		strcpy_s(DataTypeTemp, szGender[pSpawn->Gender]);
+		strcpy_s(DataTypeTemp, szGender[pSpawn->mActorClient.Gender]);
 		Dest.Ptr = &DataTypeTemp[0];
 		Dest.Type = pStringType;
 		return true;
 	case Race:
-		Dest.DWord = pSpawn->Race;
+		Dest.DWord = pSpawn->mActorClient.Race;
 		Dest.Type = pRaceType;
 		return true;
 	case Class:
 		if (GetSpawnType(pSpawn) != AURA && GetSpawnType(pSpawn) != BANNER && GetSpawnType(pSpawn) != CAMPFIRE)
-			Dest.DWord = pSpawn->Class;
+			Dest.DWord = pSpawn->mActorClient.Class;
 		else
 			if (GetSpawnType(pSpawn) == AURA)
 				Dest.DWord = 0xFF;
@@ -1249,7 +1250,7 @@ bool MQ2SpawnType::GETMEMBER()
 		Dest.Type = pBoolType;
 		return true;
 	case Levitating:
-		Dest.DWord = (pSpawn->Levitate == 2);
+		Dest.DWord = (pSpawn->mPlayerPhysicsClient.Levitate == 2);
 		Dest.Type = pBoolType;
 		return true;
 	case Sneaking:
@@ -1283,7 +1284,7 @@ bool MQ2SpawnType::GETMEMBER()
 	case Guild:
 		if (pSpawn->GuildID != 0xFFFFFFFF && pSpawn->GuildID != 0)
 		{
-			#if defined(BETA) || defined(TEST)
+			#if !defined(EMU)
 			char *szGuild = GetGuildByID(pSpawn->GuildID,pSpawn->GuildID2);
 			#else
 			char *szGuild = GetGuildByID(pSpawn->GuildID);
@@ -1533,7 +1534,7 @@ bool MQ2SpawnType::GETMEMBER()
 		Dest.Type = pIntType;
 		return true;
 	case Holding:
-		Dest.DWord = pSpawn->Holding;
+		Dest.DWord = pSpawn->LeftHolding;
 		Dest.Type = pBoolType;
 		return true;
 	case Look:
@@ -1875,7 +1876,7 @@ bool MQ2SpawnType::GETMEMBER()
 		Dest.Type = pIntType;
 		return true;
 	case Secondary:
-		Dest.DWord = pSpawn->pSpawn->Equipment.Offhand.ID;
+		Dest.DWord = pSpawn->Equipment.Offhand.ID;
 		Dest.Type = pIntType;
 		return true;
 	case Equipment:
@@ -3328,7 +3329,7 @@ bool MQ2CharacterType::GETMEMBER()
 			{
 				// numeric 
 				int nGem = GETNUMBER() - 1;
-				if (nGem < 0)
+				if (nGem < 0 || nGem > NUM_SPELL_GEMS)
 					return false;
 				if (GetSpellByID(GetMemorizedSpell(nGem))) {
 					if (((PCDISPLAY)pDisplay)->TimeStamp > ((PSPAWNINFO)pLocalPlayer)->SpellGemETA[nGem] && ((PCDISPLAY)pDisplay)->TimeStamp > ((PSPAWNINFO)pLocalPlayer)->SpellCooldownETA) {
@@ -3338,7 +3339,7 @@ bool MQ2CharacterType::GETMEMBER()
 			}
 			else
 			{
-				for (unsigned long nGem = 0; nGem < NUM_SPELL_GEMS; nGem++)
+				for (unsigned long nGem = 0; nGem <= NUM_SPELL_GEMS; nGem++)
 				{
 					if (PSPELL pSpell = GetSpellByID(GetMemorizedSpell(nGem)))
 					{
@@ -4700,14 +4701,16 @@ bool MQ2CharacterType::GETMEMBER()
 		break;
 	case InInstance:
 		Dest.DWord = false;
-		if (pLocalPlayer && ((PSPAWNINFO)pLocalPlayer)->Instance)
-			Dest.DWord = true;
+		if (pLocalPlayer && ((PSPAWNINFO)pLocalPlayer)->Zone) {
+			if(WORD instance = HIWORD(((PSPAWNINFO)pLocalPlayer)->Zone))
+				Dest.DWord = true;
+		}
 		Dest.Type = pBoolType;
 		return true;
 	case Instance:
 		Dest.DWord = 0;
 		if (pLocalPlayer)
-			Dest.DWord = ((PSPAWNINFO)pLocalPlayer)->Instance;
+			Dest.DWord = HIWORD(((PSPAWNINFO)pLocalPlayer)->Zone);
 		Dest.Type = pIntType;
 		return true;
 	case MercListInfo:
@@ -4803,7 +4806,7 @@ bool MQ2SpellType::GETMEMBER()
 	case Level:
 		if (!ISINDEX() && GetCharInfo()->pSpawn)
 		{
-			Dest.DWord = pSpell->ClassLevel[GetCharInfo()->pSpawn->Class];
+			Dest.DWord = pSpell->ClassLevel[GetCharInfo()->pSpawn->mActorClient.Class];
 			Dest.Type = pIntType;
 			return true;
 		}
@@ -7698,7 +7701,7 @@ bool MQ2GroundType::GETMEMBER()
 					tSpawn.HPCurrent = 1;
 					tSpawn.HPMax = 1;
 					tSpawn.Heading = pGround->Heading;
-					tSpawn.Race = pGround->DropID;
+					tSpawn.mActorClient.Race = pGround->DropID;
 					tSpawn.StandState = STANDSTATE_STAND;//im using this for /clicked left item -eqmule
 					CopyMemory(&EnviroTarget, &tSpawn, sizeof(EnviroTarget));
 					pGroundTarget = pGround;
@@ -7729,7 +7732,7 @@ bool MQ2GroundType::GETMEMBER()
 			tSpawn.HPCurrent = 1;
 			tSpawn.HPMax = 1;
 			tSpawn.Heading = pGround->Heading;
-			tSpawn.Race = pGround->DropID;
+			tSpawn.mActorClient.Race = pGround->DropID;
 			tSpawn.StandState = STANDSTATE_STAND;//im using this for /clicked left item -eqmule
 			CopyMemory(&EnviroTarget, &tSpawn, sizeof(EnviroTarget));
 			pGroundTarget = pGround;
@@ -10184,7 +10187,7 @@ bool MQ2RaidMemberType::GETMEMBER()
 		{
 		if (PSPAWNINFO pSpawn=(PSPAWNINFO)GetSpawnByName(pRaidMember->Name))
 		{
-		Dest.DWord=pSpawn->Class;
+		Dest.DWord=pSpawn->mActorClient.Class;
 		Dest.Type=pIntType;
 		return true;
 		}

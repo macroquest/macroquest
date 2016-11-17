@@ -504,7 +504,7 @@ VOID ItemTarget(PSPAWNINFO pChar, PCHAR szLine)
 				tSpawn.HPCurrent = 1;
 				tSpawn.HPMax = 1;
 				tSpawn.Heading = pItem->Heading;
-				tSpawn.Race = pItem->DropID;
+				tSpawn.mActorClient.Race = pItem->DropID;
 				tSpawn.StandState = STANDSTATE_STAND;//im using this for /clicked left item -eqmule
 				FLOAT Distance = Get3DDistance(pChar->X, pChar->Y, pChar->Z, tSpawn.X, tSpawn.Y, tSpawn.Z);
 				if (Distance < cDistance) {
@@ -791,7 +791,7 @@ VOID MemSpell(PSPAWNINFO pSpawn, PCHAR szLine)
 			}
 			if (!pSpell)
 				return;
-			if (pSpell->ClassLevel[pSpawn->Class]>pSpawn->Level)
+			if (pSpell->ClassLevel[pSpawn->mActorClient.Class]>pSpawn->Level)
 				return;
 			ZeroMemory(&MemSpellFavorite, sizeof(MemSpellFavorite));
 			strcpy_s(MemSpellFavorite.Name, "Mem a Spell");
@@ -2142,8 +2142,8 @@ VOID Where(PSPAWNINFO pChar, PCHAR szLine)
 			//CleanupName(strcpy_s(szName,pSpawnClosest->Name),FALSE),
 			szName,
 			pSpawnClosest->Level,
-			pEverQuest->GetRaceDesc(pSpawnClosest->Race),
-			GetClassDesc(pSpawnClosest->Class),
+			pEverQuest->GetRaceDesc(pSpawnClosest->mActorClient.Race),
+			GetClassDesc(pSpawnClosest->mActorClient.Class),
 			Distance3DToSpawn(pChar, pSpawnClosest), szHeading[Angle],
 			pSpawnClosest->Z - pChar->Z);
 		DebugSpew("Where - %s", szMsg);

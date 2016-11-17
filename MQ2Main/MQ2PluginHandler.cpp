@@ -584,7 +584,7 @@ VOID PluginsDrawHUD()
 VOID PluginsAddSpawn(PSPAWNINFO pNewSpawn)
 {
     DWORD BodyType=GetBodyType(pNewSpawn);
-    PluginDebug("PluginsAddSpawn(%s,%d,%d)",pNewSpawn->Name,pNewSpawn->Race,BodyType);
+    PluginDebug("PluginsAddSpawn(%s,%d,%d)",pNewSpawn->Name,pNewSpawn->mActorClient.Race,BodyType);
     if (!bPluginCS)
         return;
     if (GetGameState()>GAMESTATE_CHARSELECT)

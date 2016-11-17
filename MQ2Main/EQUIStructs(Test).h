@@ -211,24 +211,6 @@ VFTABLE
 // in CChatWindow__SetChatFont see 692847 in eqgame.exe Test dated Jun 28 2016
 #define EQ_CHAT_FONT_OFFSET    0x11c
 
-class CDynamicArrayBase
-{
-public:
-	/*0x00*/	int Count;
-};
-//this class has some members like Reset and so on
-//but we dont need them right now...
-//todo: spend some time on fully implementing this
-template <typename ArrayType> class ArrayClass2 : public CDynamicArrayBase
-{
-public:
-/*0x04*/	int Size;
-/*0x08*/	int Mask;
-/*0x0c*/	int Shift;
-/*0x10*/	ArrayType** pNext;
-/*0x14*/	int memAlloc;
-/*0x18*/	bool bValid;
-};
 // actual size 0x1E4 in Sep 16 2015 Test (see 0x693122) - eqmule
 // actual size 0x1C8 in Dec  2 2015 Test (see 0x6992A8) - eqmule has sidltext
 // actual size 0x1CC in Jan 13 2016 Test (see 0x6984E8) - eqmule
