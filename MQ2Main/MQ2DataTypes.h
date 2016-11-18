@@ -1116,6 +1116,10 @@ public:
 		AssistComplete = 245,
 		ItemReady = 246,
 		NumGems = 247,
+		Vitality = 248,
+		PctVitality = 249,
+		AAVitality = 250,
+		PctAAVitality = 251,
 
 	};
 	enum CharacterMethods
@@ -1364,7 +1368,11 @@ public:
 		TypeMember(AssistComplete);
 		TypeMember(ItemReady);
 		TypeMember(NumGems);
-		
+		TypeMember(Vitality);
+		TypeMember(PctVitality);
+		TypeMember(AAVitality);
+		TypeMember(PctAAVitality);
+
 		TypeMethod(Stand);
 		TypeMethod(Sit);
 		TypeMethod(Dismount);
@@ -4676,7 +4684,7 @@ public:
 				if (index == -1)
 					index = clist->GetCurSel();
 				CXStr Str;
-				clist->GetItemText(&Str, index, 1);
+				clist->GetItemText(&Str, index, 2);
 				CHAR szOut[MAX_STRING] = { 0 };
 				GetCXStr(Str.Ptr, szOut, MAX_STRING);
 				if (szOut[0] != '\0') {

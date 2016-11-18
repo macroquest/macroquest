@@ -973,9 +973,9 @@ typedef struct _CHARINFO {
 /*0x1404*/ DWORD        RadiantCrystals;
 /*0x1408*/ BYTE         Unknown0x1408[0x4];
 /*0x140c*/ DWORD        EbonCrystals;
-/*0x1410*/ BYTE         Unknown0x1410[0x67c];
-/*0x1a8c*/ DWORD        Exp;
-/*0x1a90*/ BYTE         Unknown0x1a90[0x60];
+/*0x1410*/ BYTE         Unknown0x1410[0x678];
+/*0x1a88*/ DWORD        Exp;
+/*0x1a8c*/ BYTE         Unknown0x1a90[0x64];
 /*0x1af0*/ void*        PlayerPointManager;
 /*0x1af4*/ BYTE         Unknown0x1af4[0x1aa];
 /*0x1c9e*/ BYTE         UseAdvancedLooting;                     //0=off 1=on
@@ -988,7 +988,10 @@ typedef struct _CHARINFO {
 /*0x1f6c*/ BYTE         Unknown0x1f6c[0x4];
 /*0x1f70*/ DWORD        MercAAPoints;//number of unspent merc AA points
 /*0x1f74*/ DWORD        MercAAPointsSpent;//number of spent merc AA points
-/*0x1f78*/ BYTE         Unknown0x1f78[0xc8];
+/*0x1f78*/ BYTE		    Unknown0x1f78[0x48];
+/*0x1fc0*/ __int64      Vitality;
+/*0x1fc8*/ int		    AAVitality;
+/*0x1fcc*/ BYTE         Unknown0x1fd0[0x74];
 /*0x2040*/ void*        vtable2;//vtable2_0 below aTimeIsDAndCanU
 /*0x2044*/ struct _EQC_INFO*    eqc_info;
 /*0x2048*/ struct _SPAWNINFO*   pSpawn;//pSpawn_0
@@ -2029,10 +2032,10 @@ typedef struct _SPAWNINFO {
 /*0x1e64*/ FLOAT	CampfireX;
 /*0x1e68*/ FLOAT	CampfireZ;
 /*0x1e6c*/ int		CampfireZoneID;         // zone ID where campfire is
-/*0x1e70*/ int		CampDontKnow1;
-/*0x1e74*/ int		CampDontKnow2;
-/*0x1e78*/ int		CampfireTimestamp;      // CampfireTimestamp-FastTime()=time left on campfire
-/*0x1e7c*/ int		FellowShipID;
+/*0x1e70*/ int		CampfireTimestamp;      // CampfireTimestamp-FastTime()=time left on campfire
+/*0x1e74*/ int		CampfireTimestamp2;
+/*0x1e78*/ int		FellowShipID;
+/*0x1e7c*/ int		FellowShipID2;
 /*0x1e80*/ int		CampType;
 /*0x1e84*/ bool		Campfire;
 /*0x1e88*/ TSafeArrayStatic<int,3> SeeInvis;

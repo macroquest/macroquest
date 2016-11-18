@@ -1,3 +1,10 @@
+17 Nov 2015 by eqmule
+- Added ${Me.Vitality} ${Me.PctVitality} ${Me.AAVitality} ${Me.AAVitality}
+- Fixed CampfireDuration
+- Fixed the Task tlo
+- Fixed ${Me.Exp} and ${Me.PctExp}
+  Thanks to william 12 for reporting these bugs.
+
 16 Nov 2016 by eqmule
 - Updated for LIVE
 - Reorganised SPAWNINFO to reflect how its laid out in memory.
@@ -10,6 +17,8 @@
   Therefor: (and I know people will post even though the answer is right here)
   ITS NOT pSpawn->Class anymore, its now pSpawn->mActorClient.Class
   same thing goes for Race.
+  pSpawn->mPlayerPhysicsClient.Levitate instead of pSpawn->Levitate
+  pSpawn->mPlayerPhysicsClient.pSpawn instead of  pSpawn->pSpawn
 
 - mkay...
 
@@ -56,12 +65,13 @@
 - the CXWnd struct grew somewhat to make patching of it easier for me.
 - Fixed a bug in MQ2EQBC that would crash u on /unload
 - The following plugins has had changes made to them:
-MQ2AvdPath.cpp
-MQ2DPSAdv.cpp
-MQ2EQBC.cpp
-MQ2Melee.cpp
-MQ2MoveUtils.cpp
-MQ2Spawns.cpp
+	MQ2AvdPath.cpp
+	MQ2DPSAdv.cpp
+	MQ2EQBC.cpp
+	MQ2Melee.cpp
+	MQ2MoveUtils.cpp
+	MQ2Spawns.cpp
+- They are located in this post: http://www.macroquest2.com/phpBB3/viewtopic.php?f=29&t=11451&p=172713#p172713
 
 10 Nov 2016 by rswiders
 - Updated RankName to find an exact match for name. The results from Spell.ID and Spell.RankName will now be

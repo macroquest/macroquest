@@ -864,6 +864,9 @@ bool MQ2MacroType::GETMEMBER()
 
 bool MQ2TicksType::GETMEMBER()
 {
+	//if (!VarPtr.DWord)
+	//	return false;
+	//DWORD TSeconds = VarPtr.DWord / 1000 / 6;
 #define nTicks (VarPtr.DWord)
 	unsigned long N = MemberMap[Member];
 	if (!N)
@@ -2122,13 +2125,53 @@ bool MQ2CharacterType::GETMEMBER()
 		Dest.Type = pIntType;
 		return true;
 	case PctExp:
-		Dest.Float = (float)pChar->Exp / 3.30f;
-		Dest.Type = pFloatType;
-		return true;
+	{
+		if (PCHARINFO pMe = (PCHARINFO)pChar) {
+			Dest.Float = (float)pMe->Exp / 3.30f;
+			Dest.Type = pFloatType;
+			return true;
+		}
+	}
 	case PctAAExp:
 		Dest.Float = (float)pChar->AAExp / 3.30f;
 		Dest.Type = pFloatType;
 		return true;
+	case Vitality:
+		Dest.Int64 = pChar->Vitality;
+		Dest.Type = pInt64Type;
+		return true;
+	case PctVitality:
+	{
+		Dest.Float = 0;
+		if (PCHARINFO pMe = (PCHARINFO)pChar) {
+			__int64 vitality = pMe->Vitality;
+			__int64 cap = pInventoryWnd->VitalityCap;
+			if (vitality > cap)
+				vitality = cap;
+			if(cap>0)
+				Dest.Float = (float)vitality * 100 /cap;
+		}
+		Dest.Type = pFloatType;
+		return true;
+	}
+	case AAVitality:
+		Dest.Int = pChar->AAVitality;
+		Dest.Type = pIntType;
+		return true;
+	case PctAAVitality:
+	{
+		Dest.Float = 0;
+		if (PCHARINFO pMe = (PCHARINFO)pChar) {
+			int aavitality = pMe->AAVitality;
+			int aacap = pInventoryWnd->AAVitalityCap;
+			if (aavitality > aacap)
+				aavitality = aacap;
+			if(aacap>0)
+				Dest.Float = (float)aavitality * 100 / aacap;
+		}
+		Dest.Type = pFloatType;
+		return true;
+	}
 	case Spawn:
 		Dest.Ptr = pLocalPlayer;
 		Dest.Type = pSpawnType;
@@ -11315,7 +11358,7 @@ bool MQ2TaskType::GETMEMBER()
 
 		if (CListWnd *clist = (CListWnd *)pTaskWnd->GetChildItem("TASK_TaskList")) {
 			CXStr Str;
-			clist->GetItemText(&Str, index, 0);
+			clist->GetItemText(&Str, index, 1);
 			CHAR szOut[MAX_STRING] = { 0 };
 			GetCXStr(Str.Ptr, szOut, MAX_STRING);
 			if (!_stricmp(szOut, "S")) {
@@ -11358,7 +11401,7 @@ bool MQ2TaskType::GETMEMBER()
 			if (index == -1)
 				index = clist->GetCurSel();
 			CXStr Str;
-			clist->GetItemText(&Str, index, 1);
+			clist->GetItemText(&Str, index, 2);
 			CHAR szOut[MAX_STRING] = { 0 };
 			GetCXStr(Str.Ptr, szOut, MAX_STRING);
 			if (szOut[0] != '\0') {
@@ -11378,7 +11421,7 @@ bool MQ2TaskType::GETMEMBER()
 			CXStr Str;
 			if (index == -1)
 				index = clist->GetCurSel();
-			clist->GetItemText(&Str, index, 2);
+			clist->GetItemText(&Str, index, 3);
 			CHAR szOut[MAX_STRING] = { 0 };
 			GetCXStr(Str.Ptr, szOut, MAX_STRING);
 			if (szOut[0] != '\0') {

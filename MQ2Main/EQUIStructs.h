@@ -1007,7 +1007,14 @@ typedef struct _TARGETRING {
 /*0x14*/	BOOL Param;
 /*0x18*/
 } TARGETRING, *PTARGETRING;
-
+//Nov 14 Live 2016 7A9422
+typedef struct _INVENTORYWND {
+/*0x0000*/ struct _CSIDLWND     Wnd;
+/*0x0228*/ BYTE         Unknown0x0228[0x88];
+/*0x2B0*/ __int64		VitalityCap;
+/*0x2B8*/ int			AAVitalityCap;
+//more
+} INVENTORYWND, *PINVENTORYWND;
 /******************************************** CHECKED *****************************************************************/
 //everything above this line is work in progress/stuff that can be improved/checked/fixed.
 //everything below it is 100% checked -eqmule

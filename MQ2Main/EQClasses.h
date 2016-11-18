@@ -2602,6 +2602,9 @@ EQLIB_OBJECT void CInventoryWnd::ClickedMoneyButton(int,int);
 EQLIB_OBJECT void CInventoryWnd::DestroyHeld(void);
 EQLIB_OBJECT void CInventoryWnd::Init(void);
 EQLIB_OBJECT void CInventoryWnd::UpdateMoneyDisplay(void);
+DWORD         Unknown0x0xx[0x22];
+__int64		VitalityCap;
+int			AAVitalityCap;
 };
 
 class CInvSlot

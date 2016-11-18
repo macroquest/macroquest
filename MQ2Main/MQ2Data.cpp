@@ -1847,7 +1847,7 @@ TLO(dataTask)
 					strcpy_s(szTemp, GETFIRST());
 					_strlwr_s(szTemp);
 					for (LONG i = 0; i < clist->Items; i++) {
-						clist->GetItemText(&Str, i, 1);
+						clist->GetItemText(&Str, i, 2);
 						GetCXStr(Str.Ptr, szOut, MAX_STRING);
 						_strlwr_s(szOut);
 						if (strstr(szOut, szTemp)) {
