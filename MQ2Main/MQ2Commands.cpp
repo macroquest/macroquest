@@ -3267,8 +3267,8 @@ VOID UseItemCmd(PSPAWNINFO pChar, PCHAR szLine)
 #ifndef EMU		
 				bool bMount = ((EQ_Item*)pItem)->IsKeyRingItem(eMount);
 				bool bIllusion = ((EQ_Item*)pItem)->IsKeyRingItem(eIllusion);
-				//guess we are gonna need this at some point... next expansion? 
-				//bool bFamiliar = ((EQ_Item*)pItem)->IsKeyRingItem(eFamiliar);
+				bool bFamiliar = ((EQ_Item*)pItem)->IsKeyRingItem(eFamiliar);
+
 				//is it a mount?
 				if (bMount) {
 					if (DWORD index = GetKeyRingIndex(0, szCmd, sizeof(szCmd), stripped, true)) {
@@ -3285,7 +3285,7 @@ VOID UseItemCmd(PSPAWNINFO pChar, PCHAR szLine)
 					}
 				}
 				else if (bIllusion) {
-					//uhm ok, maybe an illlusion then?
+					//uhm ok, maybe an illusion then?
 					if (DWORD index = GetKeyRingIndex(1, szCmd, sizeof(szCmd), stripped, true)) {
 						if (CXWnd *krwnd = FindMQ2Window(KeyRingWindowParent)) {
 							if (CListWnd *clist = (CListWnd*)krwnd->GetChildItem(IllusionWindowList)) {
@@ -3298,6 +3298,21 @@ VOID UseItemCmd(PSPAWNINFO pChar, PCHAR szLine)
 							}
 						}
 					}	
+				}
+				else if (bFamiliar) {
+					//uhm ok, maybe a Familiar then?
+					if (DWORD index = GetKeyRingIndex(2, szCmd, sizeof(szCmd), stripped, true)) {
+						if (CXWnd *krwnd = FindMQ2Window(KeyRingWindowParent)) {
+							if (CListWnd *clist = (CListWnd*)krwnd->GetChildItem(FamiliarWindowList)) {
+								if (DWORD numitems = ((CSidlScreenWnd*)clist)->Items) {
+									SendListSelect(KeyRingWindowParent, FamiliarWindowList, index - 1);
+									int listdata = clist->GetItemData(index - 1);
+									cmdToggleKeyRingItem(2, &pItem, listdata);
+									Sleep(0);
+								}
+							}
+						}
+					}
 				}
 #endif
 			}

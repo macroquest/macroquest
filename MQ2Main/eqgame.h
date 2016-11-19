@@ -167,6 +167,7 @@ GNU General Public License for more details.
 //// 
 //Section 2:  UI Related Offsets 
 //// 
+#define pinstCAchievementsWnd_x                                    0xF5FA74
 #define pinstCTextOverlay_x                                        0xE1D040
 #define pinstCAudioTriggersWindow_x                                0xE1CED0
 #define pinstCCharacterSelect_x                                    0xF5F98C

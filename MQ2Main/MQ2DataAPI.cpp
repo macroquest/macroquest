@@ -172,6 +172,7 @@ void InitializeMQ2Data()
 	AddMQ2Data("Task", dataTask);
 	AddMQ2Data("Mount", dataMount);
 	AddMQ2Data("Illusion", dataIllusion);
+	AddMQ2Data("Familiar", dataFamiliar);
 	AddMQ2Data("Alias", dataAlias);
 #ifndef EMU
 	AddMQ2Data("AdvLoot", dataAdvLoot);

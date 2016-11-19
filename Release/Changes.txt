@@ -1,13 +1,18 @@
-17 Nov 2015 by eqmule
+19 Nov 2016 by rswiders/eqmule
+- Updated for TEST
+- Added GuildID and ExpansionFlags to MQ2CharacterType
+- Added support for familiars keyring in /cast and /useitem
+
+17 Nov 2016 by eqmule
 - Added ${Me.Vitality} ${Me.PctVitality} ${Me.AAVitality} ${Me.AAVitality}
 - Fixed CampfireDuration
 - Fixed the Task tlo
 - Fixed ${Me.Exp} and ${Me.PctExp}
-  Thanks to william 12 for reporting these bugs.
+  Thanks to william12 for reporting these bugs.
 
 16 Nov 2016 by eqmule
 - Updated for LIVE
-- Reorganised SPAWNINFO to reflect how its laid out in memory.
+- Reorganized SPAWNINFO to reflect how its laid out in memory.
 - Feet in Spawninfo has been renamed to FloorHeight
 - AvatarHeight2 in Spawninfo has been renamed to Width
 - HoldingType in Spawninfo has been renamed to HoldingAnimation

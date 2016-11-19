@@ -516,6 +516,8 @@ namespace MQ2Globals
 	EQLIB_VAR CBookWnd **ppBookWnd;
 	EQLIB_VAR CFriendsWnd **ppFriendsWnd;
 	EQLIB_VAR CMusicPlayerWnd **ppMusicPlayerWnd;
+	
+	EQLIB_VAR CAchievementsWnd **ppAchievementsWnd;
 	EQLIB_VAR CAlarmWnd **ppAlarmWnd;
 	EQLIB_VAR CLoadskinWnd **ppLoadskinWnd;
 	EQLIB_VAR CPetInfoWnd **ppPetInfoWnd;
@@ -611,6 +613,7 @@ namespace MQ2Globals
 #define pBookWnd (*ppBookWnd)
 #define pFriendsWnd (*ppFriendsWnd)
 #define pMusicPlayerWnd (*ppMusicPlayerWnd)
+#define pAchievementsWnd (*ppAchievementsWnd)
 #define pAlarmWnd (*ppAlarmWnd)
 #define pLoadskinWnd (*ppLoadskinWnd)
 #define pPetInfoWnd (*ppPetInfoWnd)
@@ -817,6 +820,7 @@ namespace MQ2Globals
 	EQLIB_VAR DWORD pinstTargetIndicator;
 	EQLIB_VAR DWORD pinstCTargetManager;
 	
+	EQLIB_VAR DWORD pinstCAchievementsWnd;
 	EQLIB_VAR DWORD pinstCTextOverlay;
 	EQLIB_VAR DWORD pinstCAudioTriggersWindow;
 	EQLIB_VAR DWORD pinstCCharacterSelect;

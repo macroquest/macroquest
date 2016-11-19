@@ -1537,9 +1537,14 @@ bool MQ2SpawnType::GETMEMBER()
 		Dest.Type = pIntType;
 		return true;
 	case Holding:
-		Dest.DWord = pSpawn->LeftHolding;
+	{
+		Dest.DWord = false;
+		if (pSpawn->LeftHolding || pSpawn->RightHolding) {
+			Dest.DWord = true;
+		}
 		Dest.Type = pBoolType;
 		return true;
+	}
 	case Look:
 		Dest.Float = pSpawn->CameraAngle;
 		Dest.Type = pFloatType;
@@ -3382,7 +3387,7 @@ bool MQ2CharacterType::GETMEMBER()
 			}
 			else
 			{
-				for (unsigned long nGem = 0; nGem <= NUM_SPELL_GEMS; nGem++)
+				for (unsigned long nGem = 0; nGem < NUM_SPELL_GEMS; nGem++)
 				{
 					if (PSPELL pSpell = GetSpellByID(GetMemorizedSpell(nGem)))
 					{
@@ -4818,6 +4823,14 @@ bool MQ2CharacterType::GETMEMBER()
 				}
 			}
 		}
+		Dest.Type = pIntType;
+		return true;
+	case GuildID:
+		Dest.DWord = pChar->GuildID;
+		Dest.Type = pIntType;
+		return true;
+	case ExpansionFlags:
+		Dest.DWord = pChar->ExpansionFlags;
 		Dest.Type = pIntType;
 		return true;
 		//end of MQ2CharacterType
@@ -10295,9 +10308,9 @@ bool MQ2DynamicZoneType::GETMEMBER()
 			Dest.DWord++;
 			pDynamicZoneMember = pDynamicZoneMember->pNext;
 		}
-	}
 	Dest.Type = pIntType;
 	return true;
+	}
 	case MaxMembers:
 		Dest.DWord = pDynamicZone->MaxPlayers;
 		Dest.Type = pIntType;
@@ -10351,8 +10364,8 @@ bool MQ2DynamicZoneType::GETMEMBER()
 			}
 			pDynamicZoneMember = pDynamicZoneMember->pNext;
 		}
+		return false;
 	}
-	return false;
 	case InRaid:
 		Dest.DWord = 0;
 		Dest.Type = pBoolType;
@@ -11629,7 +11642,9 @@ bool MQ2KeyRingType::GETMEMBER()
 			CListWnd *clist = 0;
 			DWORD n = LOWORD(VarPtr.DWord);
 			DWORD type = HIWORD(VarPtr.DWord);
-			if (type == 1)
+			if (type == 2)
+				clist = (CListWnd *)krwnd->GetChildItem(FamiliarWindowList);
+			else if (type == 1)
 				clist = (CListWnd *)krwnd->GetChildItem(IllusionWindowList);
 			else
 				clist = (CListWnd *)krwnd->GetChildItem(MountWindowList);

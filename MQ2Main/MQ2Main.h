@@ -114,6 +114,7 @@ extern CRITICAL_SECTION gPluginCS;
 #define KeyRingWindowParent "KeyRingWnd"
 #define MountWindowList "KRW_Mounts_List"
 #define IllusionWindowList "KRW_Illusions_List"
+#define FamiliarWindowList "KRW_Familiars_list"
 #define KeyRingTab "KRW_Subwindows"
 
 #if defined(EMU)
@@ -512,9 +513,10 @@ EQLIB_API VOID MakeMeVisible(PSPAWNINFO pChar, PCHAR szLine);
 EQLIB_API VOID RemoveAura(PSPAWNINFO pChar, PCHAR szLine);
 EQLIB_API BOOL GetAllMercDesc(std::map<DWORD, MercDesc>&minfo);
 
-DWORD GetKeyRingIndex(BOOL KeyRing, PCHAR szItemName, SIZE_T BuffLen, bool bExact = true, bool usecmd = false);
+DWORD GetKeyRingIndex(DWORD KeyRing, PCHAR szItemName, SIZE_T BuffLen, bool bExact = true, bool usecmd = false);
 EQLIB_API int GetMountCount();
 EQLIB_API int GetIllusionCount();
+EQLIB_API int GetFamiliarCount();
 EQLIB_API void RefreshKeyRings(PVOID kr);
 EQLIB_API void InitKeyRings();
 EQLIB_API BOOL IsActiveAA(PCHAR pSpellName);

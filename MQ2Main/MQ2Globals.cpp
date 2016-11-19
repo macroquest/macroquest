@@ -153,6 +153,8 @@ namespace MQ2Globals
 		ppBookWnd = (CBookWnd**)pinstCBookWnd;
 		ppFriendsWnd = (CFriendsWnd**)pinstCFriendsWnd;
 		ppMusicPlayerWnd = (CMusicPlayerWnd**)pinstCMusicPlayerWnd;
+		
+		ppAchievementsWnd = (CAchievementsWnd**)pinstCAchievementsWnd;
 		ppAlarmWnd = (CAlarmWnd**)pinstCAlarmWnd;
 		ppLoadskinWnd = (CLoadskinWnd**)pinstCLoadskinWnd;
 		ppPetInfoWnd = (CPetInfoWnd**)pinstCPetInfoWnd;
@@ -1133,6 +1135,7 @@ namespace MQ2Globals
 	CBookWnd **ppBookWnd = 0;
 	CFriendsWnd **ppFriendsWnd = 0;
 	CMusicPlayerWnd **ppMusicPlayerWnd = 0;
+	CAchievementsWnd **ppAchievementsWnd = 0;
 	CAlarmWnd **ppAlarmWnd = 0;
 	CLoadskinWnd **ppLoadskinWnd = 0;
 	CPetInfoWnd **ppPetInfoWnd = 0;
@@ -1347,7 +1350,8 @@ namespace MQ2Globals
 	INITIALIZE_EQGAME_OFFSET(pinstPlayerPath);
 	INITIALIZE_EQGAME_OFFSET(pinstTargetIndicator);
 	INITIALIZE_EQGAME_OFFSET(pinstCTargetManager);
-	
+		
+	INITIALIZE_EQGAME_OFFSET(pinstCAchievementsWnd);
 	INITIALIZE_EQGAME_OFFSET(pinstCTextOverlay);
 	INITIALIZE_EQGAME_OFFSET(pinstCAudioTriggersWindow);
 	INITIALIZE_EQGAME_OFFSET(pinstCCharacterSelect);

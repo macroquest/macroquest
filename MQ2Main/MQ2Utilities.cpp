@@ -8637,6 +8637,7 @@ DWORD __stdcall RefreshKeyRingThread(PVOID pData)
 			bool bRefresh = false;
 			int mountcount = GetMountCount();
 			int illusioncount = GetIllusionCount();
+			int familiarcount = GetFamiliarCount();
 			if (CTabWnd *pTab = (CTabWnd*)((CSidlScreenWnd*)(krwnd))->GetChildItem(KeyRingTab)) {
 				if (mountcount) {
 					pTab->SetPage(0, true);//tab 0 is the mount key ring page...
@@ -8659,6 +8660,19 @@ DWORD __stdcall RefreshKeyRingThread(PVOID pData)
 							Sleep(10);
 							if (now + 5000 < MQGetTickCount64()) {
 								WriteChatColor("Timed out waiting for illusion keyring refresh", CONCOLOR_YELLOW);
+								break;
+							}
+						}
+					}
+				}
+				if (familiarcount) {
+					pTab->SetPage(1, true);//tab 1 is the familiar key ring page...
+					if (clist = (CListWnd*)krwnd->GetChildItem(FamiliarWindowList)) {
+						ULONGLONG now = MQGetTickCount64();
+						while (!((CSidlScreenWnd*)clist)->Items) {
+							Sleep(10);
+							if (now + 5000 < MQGetTickCount64()) {
+								WriteChatColor("Timed out waiting for familiar keyring refresh", CONCOLOR_YELLOW);
 								break;
 							}
 						}
@@ -8716,19 +8730,36 @@ int GetIllusionCount()
 	}
 	return Count;
 }
+int GetFamiliarCount()
+{
+	int Count = 0;
+	PCHARINFO pChar = GetCharInfo();
+	if (pChar && pChar->pFamiliarArray && pChar->pFamiliarArray->Familiars) {
+		for (unsigned long nSlot = 0; nSlot < MAX_KEYRINGITEMS; nSlot++)
+		{
+			if (PCONTENTS pItem = pChar->pFamiliarArray->Familiars[nSlot])
+			{
+				Count++;
+			}
+		}
+	}
+	return Count;
+}
 #endif
 #ifdef EMU
-DWORD GetKeyRingIndex(BOOL KeyRing, PCHAR szItemName,SIZE_T BuffLen, bool bExact, bool usecmd)
+DWORD GetKeyRingIndex(DWORD KeyRing, PCHAR szItemName,SIZE_T BuffLen, bool bExact, bool usecmd)
 {
 	return 0;
 }
 #else 
-DWORD GetKeyRingIndex(BOOL KeyRing, PCHAR szItemName, SIZE_T BuffLen, bool bExact, bool usecmd)
+DWORD GetKeyRingIndex(DWORD KeyRing, PCHAR szItemName, SIZE_T BuffLen, bool bExact, bool usecmd)
 {
 	DWORD index = 0;
 	if (CXWnd *krwnd = FindMQ2Window(KeyRingWindowParent)) {
 		CListWnd *clist = 0;
-		if (KeyRing == 1)
+		if (KeyRing == 2)
+			clist = (CListWnd*)krwnd->GetChildItem(FamiliarWindowList);
+		else if (KeyRing == 1)
 			clist = (CListWnd*)krwnd->GetChildItem(IllusionWindowList);
 		else
 			clist = (CListWnd*)krwnd->GetChildItem(MountWindowList);
@@ -8797,6 +8828,7 @@ void InitKeyRings()
 		bool bRefresh = false;
 		int mountcount = GetMountCount();
 		int illusioncount = GetIllusionCount();
+		int familiarcount = GetFamiliarCount();
 		if (mountcount) {
 			if (clist = (CListWnd*)krwnd->GetChildItem(MountWindowList)) {
 				if (!((CSidlScreenWnd*)clist)->Items) {
@@ -8811,10 +8843,17 @@ void InitKeyRings()
 				}
 			}
 		}
-		//ok it seems like the player has mounts in his keyring
-		//lets make sure we initialize it for the Mount TLO
+		if (familiarcount) {
+			if (clist = (CListWnd*)krwnd->GetChildItem(FamiliarWindowList)) {
+				if (!((CSidlScreenWnd*)clist)->Items) {
+					bRefresh = true;
+				}
+			}
+		}
+		//ok it seems like the player has mounts/illusions/familiars in his keyring
+		//lets make sure we initialize it for the Mount/Illusion/Familiar TLO
 		if (bRefresh) {
-			//WriteChatColor("Mount key ring initialized",CONCOLOR_YELLOW);
+			//WriteChatColor("Mount/Illusion/Familiar key ring initialized",CONCOLOR_YELLOW);
 			if (pkrdata kr = (pkrdata)LocalAlloc(LPTR, sizeof(krdata))) {
 				kr->phWnd = krwnd;
 				RefreshKeyRings(kr);

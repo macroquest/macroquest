@@ -1947,6 +1947,48 @@ TLO(dataIllusion)
 	}
 	return false;
 }
+TLO(dataFamiliar)
+{
+	if (!ISINDEX())
+		return false;
+	if (ISNUMBER()) {
+		int n = GETNUMBER();
+		if (n <= 0)
+			return false;
+		n--;
+		if (CXWnd *krwnd = FindMQ2Window(KeyRingWindowParent)) {
+			if (CListWnd *clist = (CListWnd*)krwnd->GetChildItem(FamiliarWindowList)) {
+				int numitems = (int)((CSidlScreenWnd*)clist)->Items;
+				if (numitems >= n) {
+					CXStr Str;
+					clist->GetItemText(&Str, n, 2);
+					CHAR szOut[MAX_STRING] = { 0 };
+					GetCXStr(Str.Ptr, szOut, MAX_STRING);
+					if (szOut[0] != '\0') {
+						Ret.DWord = MAKELPARAM(n, 1);
+						Ret.Type = pKeyRingType;
+						return true;
+					}
+				}
+			}
+		}
+	}
+	else if (PCHAR pName = GETFIRST()) {
+		bool bExact = false;
+		if (*pName == '=')
+		{
+			bExact = true;
+			pName++;
+		}
+		if (DWORD n = GetKeyRingIndex(2, pName, bExact)) {
+			n--;
+			Ret.DWord = MAKELPARAM(n, 1);
+			Ret.Type = pKeyRingType;
+			return true;
+		}
+	}
+	return false;
+}
 TLO(dataAlias)
 {
 	if (ISINDEX())

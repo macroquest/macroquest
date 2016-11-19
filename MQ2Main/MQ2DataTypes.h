@@ -1120,7 +1120,8 @@ public:
 		PctVitality = 249,
 		AAVitality = 250,
 		PctAAVitality = 251,
-
+		GuildID = 252,
+		ExpansionFlags = 253,
 	};
 	enum CharacterMethods
 	{
@@ -1372,7 +1373,9 @@ public:
 		TypeMember(PctVitality);
 		TypeMember(AAVitality);
 		TypeMember(PctAAVitality);
-
+		TypeMember(GuildID);
+		TypeMember(ExpansionFlags);
+		
 		TypeMethod(Stand);
 		TypeMethod(Sit);
 		TypeMethod(Dismount);
@@ -4813,7 +4816,9 @@ public:
 			CListWnd *clist = 0;
 			WORD n = LOWORD(VarPtr.DWord);
 			WORD type = HIWORD(VarPtr.DWord);
-			if (type == 1)
+			if (type == 2)
+				clist = (CListWnd *)krwnd->GetChildItem(FamiliarWindowList);
+			else if (type == 1)
 				clist = (CListWnd *)krwnd->GetChildItem(IllusionWindowList);
 			else
 				clist = (CListWnd *)krwnd->GetChildItem(MountWindowList);

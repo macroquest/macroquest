@@ -35,6 +35,7 @@ class CAuraWnd;
 class bad_word_class;
 class CAAWnd;
 class CActionsWnd;
+class CAchievementsWnd;
 class CAlarmWnd;
 class CBankWnd;
 class CBazaarSearchWnd;
@@ -837,6 +838,12 @@ EQLIB_OBJECT int CActionsWnd::SocialsPageOnProcessFrame(void);
 EQLIB_OBJECT int CActionsWnd::SocialsPageWndNotification(class CXWnd *,unsigned __int32,void *);
 };
 
+class CAchievementsWnd : public CSidlScreenWnd
+{
+public:
+EQLIB_OBJECT CAchievementsWnd::CAchievementsWnd(class CXWnd *);
+
+};
 class CAlarmWnd : public CSidlScreenWnd
 {
 public:
@@ -1893,7 +1900,7 @@ EQLIB_OBJECT void CEverQuest::Invite(int);
 EQLIB_OBJECT void CEverQuest::InviteOk(char *);
 EQLIB_OBJECT void CEverQuest::IssueLfgGroupQuery(struct LfgGroupQuery *);
 EQLIB_OBJECT void CEverQuest::IssueLfgPlayerQuery(struct LfgPlayerQuery *);
-EQLIB_OBJECT void CEverQuest::IssuePetCommand(enum PetCommandType,int,int);
+EQLIB_OBJECT void CEverQuest::IssuePetCommand(enum PetCommandType,int,bool bQuiet, bool bsomethingelse = 0);
 EQLIB_OBJECT void CEverQuest::Kill(char *,char *);
 EQLIB_OBJECT void CEverQuest::LeaveBankMode(bool);
 EQLIB_OBJECT void CEverQuest::LeaveGuildMaster(void);
