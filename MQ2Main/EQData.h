@@ -1399,15 +1399,15 @@ typedef struct _ITEMLOCATION {
 } ITEMLOCATION, *PITEMLOCATION;
 enum ItemSpellTypes
 {
-	eActivatable,
-	eProc,
-	eWorn,
-	eFocus,
-	eScroll,
-	eFocus2,
-	eMountBuff,
-	eIllusionBuff,
-	eFamiliarBuff
+	eActivatableSpell,
+	eProcSpell,
+	eWornSpell,
+	eFocusSpell,
+	eScrollSpell,
+	eFocus2Spell,
+	eMountSpell,
+	eIllusionSpell,
+	eFamiliarSpell
 };
 
 typedef struct _LAUNCHSPELLDATA {

@@ -151,16 +151,14 @@ FUNCTION_AT_ADDRESS(int EQ_Item::CanDrop(bool,int,int,int),EQ_Item__CanDrop); //
 #endif
 
 ///////////////////////////////////////////////////////////////////
-// gah, i hate sony
 #ifdef EQ_Character__Max_Endurance_x
-FUNCTION_AT_ADDRESS(int  EQ_Character1::Max_Endurance(int),EQ_Character__Max_Endurance);
+FUNCTION_AT_ADDRESS(int  EQ_Character1::Max_Endurance(bool),EQ_Character__Max_Endurance);
 #endif
-//fuck virtual
 #ifdef EQ_Character__Max_Mana_x
-FUNCTION_AT_ADDRESS(int EQ_Character1::Max_Mana(int), EQ_Character__Max_Mana);
+FUNCTION_AT_ADDRESS(int EQ_Character1::Max_Mana(bool), EQ_Character__Max_Mana);
 #endif 
 #ifdef EQ_Character__Max_HP_x
-FUNCTION_AT_ADDRESS(int  EQ_Character1::Max_HP(int,int),EQ_Character__Max_HP);
+FUNCTION_AT_ADDRESS(int  EQ_Character1::Max_HP(int,bool),EQ_Character__Max_HP);
 #endif
 /////////////////////////////////////////////////////////////////////
 
@@ -1911,11 +1909,12 @@ FUNCTION_AT_ADDRESS(void  CInventoryWnd::UpdateMoneyDisplay(void),CInventoryWnd_
 #ifdef CInvSlot__CInvSlot_x
 FUNCTION_AT_ADDRESS( CInvSlot::CInvSlot(void),CInvSlot__CInvSlot);
 #endif
-
 #ifdef CInvSlot__GetItemBase_x
 FUNCTION_AT_ADDRESS( void CInvSlot::GetItemBase(struct _CONTENTS **), CInvSlot__GetItemBase );
 #endif
-
+#ifdef CInvSlot__UpdateItem_x
+FUNCTION_AT_ADDRESS(void CInvSlot::UpdateItem(void), CInvSlot__UpdateItem);
+#endif
 #ifdef CInvSlot__SetInvSlotWnd_x
 FUNCTION_AT_ADDRESS(void  CInvSlot::SetInvSlotWnd(class CInvSlotWnd *),CInvSlot__SetInvSlotWnd);
 #endif
@@ -4047,14 +4046,23 @@ FUNCTION_AT_ADDRESS(int  EQ_Character::HasSpell(int),EQ_Character__HasSpell);
 #ifdef EQ_Character__ResetCur_HP_x
 FUNCTION_AT_ADDRESS(void  EQ_Character::ResetCur_HP(int),EQ_Character__ResetCur_HP);
 #endif
+#ifdef EQ_Character__GetEnduranceRegen_x
+FUNCTION_AT_ADDRESS(int EQ_Character1::GetEnduranceRegen(bool bIncItemsAndBuffs, bool bCombat),EQ_Character__GetEnduranceRegen);
+#endif
+#ifdef EQ_Character__GetHPRegen_x
+FUNCTION_AT_ADDRESS(int EQ_Character1::GetHPRegen(bool bIncItemsAndBuffs, bool *bIsBleeding, bool bCombat),EQ_Character__GetHPRegen);
+#endif
+#ifdef EQ_Character__GetManaRegen_x
+FUNCTION_AT_ADDRESS(int EQ_Character1::GetManaRegen(bool bincItemsAndBuffs, bool bCombat),EQ_Character__GetManaRegen);
+#endif
 #ifdef EQ_Character__Cur_HP_x
-FUNCTION_AT_ADDRESS(int  EQ_Character1::Cur_HP(int,unsigned char),EQ_Character__Cur_HP);
+FUNCTION_AT_ADDRESS(int  EQ_Character1::Cur_HP(int SpawnType, bool bCapAtMax),EQ_Character__Cur_HP);
 #endif
 #ifdef EQ_Character__GetHPFromStamina_x
 FUNCTION_AT_ADDRESS(int  EQ_Character::GetHPFromStamina(int),EQ_Character__GetHPFromStamina);
 #endif
 #ifdef EQ_Character__Cur_Mana_x
-FUNCTION_AT_ADDRESS(int  EQ_Character::Cur_Mana(int),EQ_Character__Cur_Mana);
+FUNCTION_AT_ADDRESS(int  EQ_Character::Cur_Mana(bool bCapAtMax),EQ_Character__Cur_Mana);
 #endif
 #ifdef EQ_Character__IsMage_x
 FUNCTION_AT_ADDRESS(int  EQ_Character::IsMage(void),EQ_Character__IsMage);
@@ -4687,11 +4695,11 @@ FUNCTION_AT_ADDRESS(int  EQ_PC::numInParty(void),EQ_PC__numInParty);
 #ifdef EQ_PC__AtSkillLimit_x
 FUNCTION_AT_ADDRESS(unsigned char  EQ_PC::AtSkillLimit(int),EQ_PC__AtSkillLimit);
 #endif
-#ifdef EQ_PC__GetItemTimerValue_x
+#ifdef EQ_PC__GetItemRecastTimer_x
 #if !defined(EMU)
-FUNCTION_AT_ADDRESS(unsigned long  EQ_PC::GetItemTimerValue(class EQ_Item *,int),EQ_PC__GetItemTimerValue);
+FUNCTION_AT_ADDRESS(unsigned long  EQ_PC::GetItemRecastTimer(class EQ_Item *item,ItemSpellTypes etype),EQ_PC__GetItemRecastTimer);
 #else
-FUNCTION_AT_ADDRESS(unsigned long  EQ_PC::GetItemTimerValue(class EQ_Item *),EQ_PC__GetItemTimerValue);
+FUNCTION_AT_ADDRESS(unsigned long  EQ_PC::GetItemRecastTimer(class EQ_Item *item),EQ_PC__GetItemRecastTimer);
 #endif
 #endif
 #ifdef EQ_PC__GetAlternateAbilityId_x
@@ -9170,7 +9178,7 @@ FUNCTION_AT_ADDRESS(int __cdecl CXWnd::DrawSunkenRect(class CXRect,class CXRect)
 FUNCTION_AT_ADDRESS(void  CEditBaseWnd::SetSel(int,int),CEditBaseWnd__SetSel);
 #endif
 #ifdef CInvSlotWnd__CInvSlotWnd_x
-FUNCTION_AT_ADDRESS( CInvSlotWnd::CInvSlotWnd(class CXWnd *,unsigned __int32,class CXRect,class CTextureAnimation *,int,int,int),CInvSlotWnd__CInvSlotWnd);
+FUNCTION_AT_ADDRESS(CInvSlotWnd::CInvSlotWnd(CXWnd *pParent, unsigned __int32 ID, CXRect rect,	CTextureAnimation *ptaBackground, ItemGlobalIndex *itemLocation, int ItemOffsetX, int ItemOffsetY),CInvSlotWnd__CInvSlotWnd);
 #endif
 #ifdef CInvSlotWnd__SetInvSlot_x
 FUNCTION_AT_ADDRESS(void  CInvSlotWnd::SetInvSlot(class CInvSlot *),CInvSlotWnd__SetInvSlot);

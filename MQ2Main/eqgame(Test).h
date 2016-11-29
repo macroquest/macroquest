@@ -677,6 +677,9 @@ GNU General Public License for more details.
 #define EQ_Character__GetCharInfo2_x                               0x866710
 #define EQ_Character__GetFocusCastingTimeModifier_x                0x43F2F0
 #define EQ_Character__GetFocusRangeModifier_x                      0x43F350
+#define EQ_Character__GetHPRegen_x                                 0x465B40
+#define EQ_Character__GetEnduranceRegen_x                          0x461DF0
+#define EQ_Character__GetManaRegen_x                               0x4660E0
 #define EQ_Character__Max_Endurance_x                              0x5C2690
 #define EQ_Character__Max_HP_x                                     0x459120
 #define EQ_Character__Max_Mana_x                                   0x5C24C0
@@ -716,7 +719,7 @@ GNU General Public License for more details.
 #define EQ_PC__GetAlternateAbilityId_x                             0x851E60
 #define EQ_PC__GetCombatAbility_x                                  0x851EF0
 #define EQ_PC__GetCombatAbilityTimer_x                             0x84CB90
-#define EQ_PC__GetItemTimerValue_x                                 0x5BE260
+#define EQ_PC__GetItemRecastTimer_x                                0x5BE260
 #define EQ_PC__HasLoreItem_x                                       0x5B83D0
 #define EQ_PC__AlertInventoryChanged_x                             0x5B4E90
 #define EQ_PC__GetPcZoneClient_x                                   0x5DF220

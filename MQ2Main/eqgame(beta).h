@@ -716,7 +716,7 @@ GNU General Public License for more details.
 #define EQ_PC__GetAlternateAbilityId_x                             0x851760
 #define EQ_PC__GetCombatAbility_x                                  0x8517F0
 #define EQ_PC__GetCombatAbilityTimer_x                             0x84C570
-#define EQ_PC__GetItemTimerValue_x                                 0x5BE500
+#define EQ_PC__GetItemRecastTimer_x                                0x5BE500
 #define EQ_PC__HasLoreItem_x                                       0x5B8850
 #define EQ_PC__AlertInventoryChanged_x                             0x5B5300
 #define EQ_PC__GetPcZoneClient_x                                   0x5DF560

@@ -197,11 +197,6 @@ namespace MQ2Globals
 	EQLIB_VAR DIKEYID gDiKeyID[];
 	EQLIB_VAR PCHAR gDiKeyName[256];
 
-
-	EQLIB_VAR DWORD ManaGained;
-	EQLIB_VAR DWORD HealthGained;
-	EQLIB_VAR DWORD EnduranceGained;
-
 	EQLIB_VAR DWORD gGameState;
 	EQLIB_VAR BOOL gbMQ2LoadingMsg;
 	EQLIB_VAR BOOL gbExactSearchCleanNames;
@@ -1099,9 +1094,11 @@ namespace MQ2Globals
 	EQLIB_VAR DWORD CInvSlot__HandleRButtonUp;
 	EQLIB_VAR DWORD CInvSlot__SliderComplete;
 	EQLIB_VAR DWORD CInvSlot__GetItemBase;
-
+	EQLIB_VAR DWORD CInvSlot__UpdateItem;
+	
 	EQLIB_VAR DWORD CInvSlotWnd__DrawTooltip;
-
+	EQLIB_VAR DWORD CInvSlotWnd__CInvSlotWnd;
+	
 	EQLIB_VAR DWORD CItemDisplayWnd__SetSpell;
 	EQLIB_VAR DWORD CItemDisplayWnd__UpdateStrings;
 
@@ -1285,6 +1282,9 @@ namespace MQ2Globals
 	EQLIB_VAR DWORD CDBStr__GetString;
 
 	EQLIB_VAR DWORD EQ_Character__CastSpell;
+	EQLIB_VAR DWORD EQ_Character__GetManaRegen;
+	EQLIB_VAR DWORD EQ_Character__GetHPRegen;
+	EQLIB_VAR DWORD EQ_Character__GetEnduranceRegen;
 	EQLIB_VAR DWORD EQ_Character__Cur_HP;
 	EQLIB_VAR DWORD EQ_Character__Cur_Mana;
 	EQLIB_VAR DWORD EQ_Character__GetAACastingTimeModifier;
@@ -1327,7 +1327,7 @@ namespace MQ2Globals
 	EQLIB_VAR DWORD EQ_PC__GetCombatAbility;
 	EQLIB_VAR DWORD EQ_PC__GetPcZoneClient;
 	EQLIB_VAR DWORD EQ_PC__GetCombatAbilityTimer;
-	EQLIB_VAR DWORD EQ_PC__GetItemTimerValue;
+	EQLIB_VAR DWORD EQ_PC__GetItemRecastTimer;
 	EQLIB_VAR DWORD EQ_PC__HasLoreItem;
 	EQLIB_VAR DWORD EQ_PC__RemoveMyAffect;
 	EQLIB_VAR DWORD EQ_PC__GetKeyRingItems;

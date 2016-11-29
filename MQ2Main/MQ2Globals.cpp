@@ -994,9 +994,6 @@ namespace MQ2Globals
 
 	PMQPLUGIN pPlugins = 0;
 	PMQXMLFILE pXMLFiles = 0;
-	DWORD ManaGained = 0;
-	DWORD HealthGained = 0;
-	DWORD EnduranceGained = 0;
 	PALIAS pAliases = 0;
 	PSUB pSubs = 0;
 	PMQCOMMAND pCommands = 0;
@@ -1630,9 +1627,11 @@ namespace MQ2Globals
 	INITIALIZE_EQGAME_OFFSET(CInvSlot__HandleRButtonUp);
 	INITIALIZE_EQGAME_OFFSET(CInvSlot__SliderComplete);
 	INITIALIZE_EQGAME_OFFSET(CInvSlot__GetItemBase);
-
+	INITIALIZE_EQGAME_OFFSET(CInvSlot__UpdateItem);
+	
 	INITIALIZE_EQGAME_OFFSET(CInvSlotWnd__DrawTooltip);
-
+	INITIALIZE_EQGAME_OFFSET(CInvSlotWnd__CInvSlotWnd);
+	
 	INITIALIZE_EQGAME_OFFSET(CItemDisplayWnd__SetSpell);
 	INITIALIZE_EQGAME_OFFSET(CItemDisplayWnd__UpdateStrings);
 
@@ -1818,6 +1817,9 @@ namespace MQ2Globals
 
 	INITIALIZE_EQGAME_OFFSET(EQ_Character__CastSpell);
 	INITIALIZE_EQGAME_OFFSET(EQ_Character__Cur_HP);
+	INITIALIZE_EQGAME_OFFSET(EQ_Character__GetManaRegen);
+	INITIALIZE_EQGAME_OFFSET(EQ_Character__GetHPRegen);
+	INITIALIZE_EQGAME_OFFSET(EQ_Character__GetEnduranceRegen);
 	INITIALIZE_EQGAME_OFFSET(EQ_Character__Cur_Mana);
 	INITIALIZE_EQGAME_OFFSET(EQ_Character__GetAACastingTimeModifier);
 	INITIALIZE_EQGAME_OFFSET(EQ_Character__GetCharInfo2);
@@ -1860,7 +1862,7 @@ namespace MQ2Globals
 	INITIALIZE_EQGAME_OFFSET(EQ_PC__GetCombatAbility);
 	INITIALIZE_EQGAME_OFFSET(EQ_PC__GetPcZoneClient);
 	INITIALIZE_EQGAME_OFFSET(EQ_PC__GetCombatAbilityTimer);
-	INITIALIZE_EQGAME_OFFSET(EQ_PC__GetItemTimerValue);
+	INITIALIZE_EQGAME_OFFSET(EQ_PC__GetItemRecastTimer);
 	INITIALIZE_EQGAME_OFFSET(EQ_PC__HasLoreItem);
 	INITIALIZE_EQGAME_OFFSET(EQ_PC__RemoveMyAffect);
 #ifndef EMU

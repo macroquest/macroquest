@@ -1,3 +1,14 @@
+28 Nov 2016 by eqmule
+- Fixed ${Me.ManaRegen}
+- CButtonWnd now inherits CXWnd (cause it does).
+- GetItemTimerValue has been renamed to GetItemRecastTimer
+- Removed ManaGained, HealthGained, EnduranceGained from Pulse() and the exports.
+  Use GetEnduranceRegen(), GetHPRegen() and GetManaRegen() instead.
+  This change should make Pulse() a bit faster since we dont check that stuff constantly.
+
+20 Nov 2016 by rswiders
+- Fixed bug waiting for familiars keyring to load
+
 19 Nov 2016 by rswiders/eqmule
 - Updated for TEST
 - Added GuildID and ExpansionFlags to MQ2CharacterType

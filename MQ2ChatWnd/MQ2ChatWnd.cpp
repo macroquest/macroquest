@@ -297,7 +297,7 @@ VOID SaveChatToINI(PCSIDLWND pWindow)
     } 
     WritePrivateProfileString(szChatINISection,"Locked",         SafeItoa(pWindow->Locked,          szTemp,10),INIFileName); 
     WritePrivateProfileString(szChatINISection,"Fades",          SafeItoa(pWindow->Fades,           szTemp,10),INIFileName); 
-    WritePrivateProfileString(szChatINISection,"Delay",          SafeItoa(pWindow->MouseOver,       szTemp,10),INIFileName); 
+    WritePrivateProfileString(szChatINISection,"Delay",          SafeItoa(pWindow->FadeDelay,       szTemp,10),INIFileName); 
     WritePrivateProfileString(szChatINISection,"Duration",       SafeItoa(pWindow->FadeDuration,    szTemp,10),INIFileName); 
     WritePrivateProfileString(szChatINISection,"Alpha",          SafeItoa(pWindow->Alpha,           szTemp,10),INIFileName); 
     WritePrivateProfileString(szChatINISection,"FadeToAlpha",    SafeItoa(pWindow->FadeToAlpha,     szTemp,10),INIFileName); 

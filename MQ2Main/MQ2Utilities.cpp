@@ -6951,9 +6951,9 @@ PCHAR GetLDoNTheme(DWORD LDTheme)
 DWORD GetItemTimer(PCONTENTS pItem)
 {
 #if !defined(EMU)
-	DWORD Timer = pPCData->GetItemTimerValue((EQ_Item*)&pItem,0);
+	DWORD Timer = pPCData->GetItemRecastTimer((EQ_Item*)&pItem,eActivatableSpell);
 #else
-	DWORD Timer = pPCData->GetItemTimerValue((EQ_Item*)&pItem);
+	DWORD Timer = pPCData->GetItemRecastTimer((EQ_Item*)&pItem);
 #endif
 	if (Timer < GetFastTime())
 		return 0;
@@ -8666,7 +8666,7 @@ DWORD __stdcall RefreshKeyRingThread(PVOID pData)
 					}
 				}
 				if (familiarcount) {
-					pTab->SetPage(1, true);//tab 1 is the familiar key ring page...
+					pTab->SetPage(2, true);//tab 2 is the familiar key ring page...
 					if (clist = (CListWnd*)krwnd->GetChildItem(FamiliarWindowList)) {
 						ULONGLONG now = MQGetTickCount64();
 						while (!((CSidlScreenWnd*)clist)->Items) {

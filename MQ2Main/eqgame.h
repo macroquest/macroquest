@@ -460,9 +460,11 @@ GNU General Public License for more details.
 #define CInvSlot__HandleRButtonUp_x                                0x6D8A50
 #define CInvSlot__SliderComplete_x                                 0x6D6260
 #define CInvSlot__GetItemBase_x                                    0x6D56F0
+#define CInvSlot__UpdateItem_x                                     0x6D5C70
 
 // CInvSlotWnd
 #define CInvSlotWnd__DrawTooltip_x                                 0x6DB8B0
+#define CInvSlotWnd__CInvSlotWnd_x                                 0x6DC9D0
 
 // CItemDisplayWnd 
 #define CItemDisplayWnd__SetSpell_x                                0x7A3E60
@@ -678,6 +680,9 @@ GNU General Public License for more details.
 #define EQ_Character__GetCharInfo2_x                               0x866270
 #define EQ_Character__GetFocusCastingTimeModifier_x                0x43F330
 #define EQ_Character__GetFocusRangeModifier_x                      0x43F390
+#define EQ_Character__GetHPRegen_x                                 0x465C10
+#define EQ_Character__GetEnduranceRegen_x                          0x461EC0
+#define EQ_Character__GetManaRegen_x                               0x4661B0
 #define EQ_Character__Max_Endurance_x                              0x5C2950
 #define EQ_Character__Max_HP_x                                     0x4591E0
 #define EQ_Character__Max_Mana_x                                   0x5C2780
@@ -717,7 +722,7 @@ GNU General Public License for more details.
 #define EQ_PC__GetAlternateAbilityId_x                             0x851B90
 #define EQ_PC__GetCombatAbility_x                                  0x851C20
 #define EQ_PC__GetCombatAbilityTimer_x                             0x84C9A0
-#define EQ_PC__GetItemTimerValue_x                                 0x5BE520
+#define EQ_PC__GetItemRecastTimer_x                                0x5BE520
 #define EQ_PC__HasLoreItem_x                                       0x5B8400
 #define EQ_PC__AlertInventoryChanged_x                             0x5B4EC0
 #define EQ_PC__GetPcZoneClient_x                                   0x5DF570

@@ -469,6 +469,7 @@ EQLIB_OBJECT void CXStr::CheckNoLock(void);
 class CXWnd
 {
 public:
+	//CXWnd::CXWnd() {};
 EQLIB_OBJECT enum UIType CXWnd::GetType();
 EQLIB_OBJECT class CXMLData * CXWnd::GetXMLData();
 EQLIB_OBJECT class CXWnd * CXWnd::GetChildItem(PCHAR Name);
@@ -1047,6 +1048,19 @@ EQLIB_OBJECT void CBugReportWnd::UpdateLocation(void);
 class CButtonDrawTemplate
 {
 public:
+	CXStr	*Name;
+    CTextureAnimation   *Normal;
+    CTextureAnimation   *Pressed;
+    CTextureAnimation   *Flyby;
+    CTextureAnimation   *Disabled;
+    CTextureAnimation   *PressedFlyby;
+	CTextureAnimation   *PressedDisabled;
+    CTextureAnimation   *NormalDecal;
+    CTextureAnimation   *PressedDecal;
+    CTextureAnimation   *FlybyDecal;
+    CTextureAnimation   *DisabledDecal;
+    CTextureAnimation   *PressedFlybyDecal;
+	CTextureAnimation   *PressedDisabledDecal;
 EQLIB_OBJECT CButtonDrawTemplate::~CButtonDrawTemplate(void);
 EQLIB_OBJECT CButtonDrawTemplate::CButtonDrawTemplate(class CButtonDrawTemplate const &);
 EQLIB_OBJECT CButtonDrawTemplate::CButtonDrawTemplate(void);
@@ -1064,12 +1078,45 @@ EQLIB_OBJECT CButtonTemplate::~CButtonTemplate(void);
 //EQLIB_OBJECT void * CButtonTemplate::`vector deleting destructor'(unsigned int);
 };
 
-class CButtonWnd : public CSidlScreenWnd
+class CButtonWnd : public CXWnd
 {
 public:
+/*0x1e0*/	int MouseButtonState;
+/*0x1e4*/	bool bImage;
+/*0x1e8*/	CRadioGroup	*RadioGroup;
+/*0x1ec*/	bool Checked;
+/*0x1ed*/   bool Highlighted;
+/*0x1f0*/	tagPOINT	DecalOffset;
+/*0x1f8*/	tagSIZE		DecalSize;
+/*0x200*/	COLORREF	DecalTint;
+/*0x204*/	RECT		TextOffsets;
+/*0x214*/	int			TextMode;
+/*0x218*/	COLORREF	Mouseover;
+/*0x21c*/	COLORREF	Pressed;
+/*0x220*/	COLORREF	Disabled;
+/*0x224*/	UINT		CoolDownStartTime;
+/*0x228*/	UINT		CoolDownDuration;
+/*0x22c*/	struct  _CXSTR*Indicator;
+/*0x230*/   UINT		IndicatorValue;
+/*0x234*/   void* pIndicatorTextObject;
+/*0x238*/   struct  _CXSTR*Name;
+    CTextureAnimation   *TANormal;
+    CTextureAnimation   *TAPressed;
+    CTextureAnimation   *TAFlyby;
+    CTextureAnimation   *TADisabled;
+    CTextureAnimation   *TAPressedFlyby;
+	CTextureAnimation   *TAPressedDisabled;
+    CTextureAnimation   *TANormalDecal;
+    CTextureAnimation   *TAPressedDecal;
+    CTextureAnimation   *TAFlybyDecal;
+    CTextureAnimation   *TADisabledDecal;
+    CTextureAnimation   *TAPressedFlybyDecal;
+	CTextureAnimation   *TAPressedDisabledDecal;
+
 EQLIB_OBJECT CButtonWnd::CButtonWnd(class CXWnd *,unsigned __int32,class CXRect,class CXPoint,class CXSize,class CTextureAnimation *,class CTextureAnimation *,class CTextureAnimation *,class CTextureAnimation *,class CTextureAnimation *,class CTextureAnimation *,class CTextureAnimation *,class CTextureAnimation *,class CTextureAnimation *,class CTextureAnimation *);
 EQLIB_OBJECT void CButtonWnd::SetCheck(bool);
 // virtual
+//EQLIB_OBJECT CButtonWnd::CButtonWnd() {};
 EQLIB_OBJECT CButtonWnd::~CButtonWnd(void);
 EQLIB_OBJECT bool CButtonWnd::IsPointTransparent(class CXPoint)const;
 EQLIB_OBJECT int CButtonWnd::Draw(void)const;
@@ -2617,6 +2664,11 @@ int			AAVitalityCap;
 class CInvSlot
 {
 public:
+	void *pvftable;
+	CInvSlotWnd *pInvSlotWnd;
+	CTextureAnimation *pInvSlotAnimation;
+	int Index;
+	bool bEnabled;
 EQLIB_OBJECT CInvSlot::CInvSlot(void);
 EQLIB_OBJECT bool CInvSlot::IllegalBigBank(int);
 EQLIB_OBJECT void CInvSlot::DoDrinkEatPoison(class EQ_Item *,int);
@@ -2632,6 +2684,7 @@ EQLIB_OBJECT void CInvSlot::SetInvSlotWnd(class CInvSlotWnd *);
 EQLIB_OBJECT void CInvSlot::SetItem(class EQ_Item *);
 EQLIB_OBJECT void CInvSlot::SliderComplete(int);
 EQLIB_OBJECT void CInvSlot::GetItemBase(struct _CONTENTS **);
+EQLIB_OBJECT void CInvSlot::UpdateItem(void);
 // virtual
 EQLIB_OBJECT CInvSlot::~CInvSlot(void);
 //EQLIB_OBJECT void * CInvSlot::`scalar deleting destructor'(unsigned int);
@@ -2665,10 +2718,72 @@ EQLIB_OBJECT CInvSlotTemplate::~CInvSlotTemplate(void);
 //EQLIB_OBJECT void * CInvSlotTemplate::`vector deleting destructor'(unsigned int);
 };
 
-class CInvSlotWnd : public CSidlScreenWnd
+class CInvSlotWnd
 {
 public:
-EQLIB_OBJECT CInvSlotWnd::CInvSlotWnd(class CXWnd *,unsigned __int32,class CXRect,class CTextureAnimation *,int,int,int);
+/****** CXwnd inherits ******/
+	CXW
+/****** ButtonWnd inherits ******/
+	int		MouseButtonState;
+	bool	bPicture;
+	CRadioGroup	*pGroup;
+	bool	bChecked;
+    bool	bMouseOverLastFrame;
+	tagPOINT	DecalOffset;
+	tagSIZE		DecalSize;
+	COLORREF	DecalTint;
+	RECT		TextOffsets;
+	int		TextModeBits;
+	COLORREF	Mouseover;
+	COLORREF	Pressed;
+	COLORREF	Disabled;
+	UINT		CoolDownBeginTime;
+	UINT		CoolDownDuration;
+	CXStr		*Indicator;
+	UINT		IndicatorVal;
+	void		*pIndicatorTextObject;
+	/* CButtonDrawTemplate Start */
+    CXStr	*Name;
+    CTextureAnimation   *Normal;
+    CTextureAnimation   *taPressed;
+    CTextureAnimation   *Flyby;
+    CTextureAnimation   *taDisabled;
+    CTextureAnimation   *PressedFlyby;
+	CTextureAnimation   *PressedDisabled;
+    CTextureAnimation   *NormalDecal;
+    CTextureAnimation   *PressedDecal;
+    CTextureAnimation   *FlybyDecal;
+    CTextureAnimation   *DisabledDecal;
+    CTextureAnimation   *PressedFlybyDecal;
+	CTextureAnimation   *PressedDisabledDecal;
+	bool		bAllowButtonClickThrough;
+	bool		bCoolDownDoDelayedStart;
+	bool		bIsCheckbox;
+	bool		bIsDrawLasso;
+	UINT		ButtonStyle;
+	CLabel		*pButtonLabel;
+/****** CInvSlotWnd Start ******/
+	CTextureAnimation	*pBackground;
+	//ItemGlobalIndex	ItemLocation;
+	ItemContainerInstance ICLocation;
+	ItemIndex iIndex;
+	void	*LinkedItem;
+	int		ItemOffsetX;
+	int		ItemOffsetY;
+	CTextureAnimation*	ptItem;
+	int		Quantity;
+	bool	bSelected;
+	int		RecastLeft;
+	bool	bHotButton;
+	bool	bInventorySlotLinked;
+	CInvSlot	*pEQInvSlot;
+	void	*pinvslotwndTextObject;
+	int		TextFontStyle;
+    int		Mode;
+	COLORREF	BGTintRollover;
+	COLORREF	BGTintNormal;
+	long	LastTime;
+EQLIB_OBJECT CInvSlotWnd::CInvSlotWnd(CXWnd *pParent, unsigned __int32 ID, CXRect rect,	CTextureAnimation *ptaBackground, ItemGlobalIndex *itemLocation, int ItemOffsetX, int ItemOffsetY);
 EQLIB_OBJECT void CInvSlotWnd::SetInvSlot(class CInvSlot *);
 // virtual
 EQLIB_OBJECT CInvSlotWnd::~CInvSlotWnd(void);
@@ -5445,10 +5560,13 @@ EQLIB_OBJECT EQ_AltAbility::EQ_AltAbility(int);
 class EQ_Character1
 {
 public:
-EQLIB_OBJECT int EQ_Character1::Cur_HP(int,unsigned char y=1);
-EQLIB_OBJECT int EQ_Character1::Max_Endurance(int y=1); // lax 4-25-2004
-EQLIB_OBJECT int EQ_Character1::Max_HP(int,int y=1); 
-EQLIB_OBJECT int EQ_Character1::Max_Mana(int y=1);
+EQLIB_OBJECT int EQ_Character1::GetEnduranceRegen(bool bIncItemsAndBuffs, bool bCombat);
+EQLIB_OBJECT int EQ_Character1::GetHPRegen(bool bIncItemsAndBuffs, bool *bIsBleeding/*no you shouldnt set this, its an OUT value.*/, bool bCombat);
+EQLIB_OBJECT int EQ_Character1::GetManaRegen(bool bIncItemsAndBuffs, bool bCombat);
+EQLIB_OBJECT int EQ_Character1::Cur_HP(int Spawntype/*PC = 0 NPC=1 and so on*/,bool bCapAtMax=true);
+EQLIB_OBJECT int EQ_Character1::Max_Endurance(bool bCapAtMax=true);
+EQLIB_OBJECT int EQ_Character1::Max_HP(int SpawnType, bool bCapAtMax=true); 
+EQLIB_OBJECT int EQ_Character1::Max_Mana(bool bCapAtMax=true);
 EQLIB_OBJECT int const EQ_Character1::GetAACastingTimeModifier(class EQ_Spell const *);
 EQLIB_OBJECT int const EQ_Character1::GetFocusCastingTimeModifier(class EQ_Spell const *,class EQ_Equipment * *,int);
 EQLIB_OBJECT unsigned char EQ_Character1::CastSpell(unsigned char gemid, int spellid, class EQ_Item * *ppItem, class CEQItemLocation * ppitemloc, enum  ItemSpellTypes slot, unsigned char spell_loc, int arg7, int arg8, int arg9, bool arg10); 
@@ -5509,7 +5627,7 @@ EQLIB_OBJECT int EQ_Character::CheckFoodAndWater(void);
 EQLIB_OBJECT int EQ_Character::compute_defense(void);
 EQLIB_OBJECT int EQ_Character::compute_tohit(unsigned char);
 EQLIB_OBJECT int EQ_Character::cur_encumbrance(void);
-EQLIB_OBJECT int EQ_Character::Cur_Mana(int);
+EQLIB_OBJECT int EQ_Character::Cur_Mana(bool bCapAtMax = true);
 EQLIB_OBJECT int EQ_Character::defense_agility_bonus(void);
 EQLIB_OBJECT int EQ_Character::Dex(void);
 EQLIB_OBJECT int EQ_Character::ElementResistDmg(class EQ_Equipment *,int);
@@ -5754,9 +5872,9 @@ EQLIB_OBJECT void EQ_PC::AlertInventoryChanged(void);
 //EQ_PC::GetCombatAbilityTimer has 2 parameters confirmed apr 21 2016 eqgame.exe (live) -eqmule
 EQLIB_OBJECT unsigned long EQ_PC::GetCombatAbilityTimer(int,int);
 #if !defined(EMU)
-EQLIB_OBJECT unsigned long EQ_PC::GetItemTimerValue(class EQ_Item *,int);
+EQLIB_OBJECT unsigned long EQ_PC::GetItemRecastTimer(class EQ_Item *item,ItemSpellTypes etype);
 #else
-EQLIB_OBJECT unsigned long EQ_PC::GetItemTimerValue(class EQ_Item *);
+EQLIB_OBJECT unsigned long EQ_PC::GetItemRecastTimer(class EQ_Item *item);
 #endif
 EQLIB_OBJECT bool EQ_PC::HasLoreItem(class EQ_Item *,int,int,int,int);
 };

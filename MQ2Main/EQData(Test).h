@@ -1402,15 +1402,15 @@ typedef struct _ITEMLOCATION {
 } ITEMLOCATION, *PITEMLOCATION;
 enum ItemSpellTypes
 {
-	eActivatable,
-	eProc,
-	eWorn,
-	eFocus,
-	eScroll,
-	eFocus2,
-	eMountBuff,
-	eIllusionBuff,
-	eFamiliarBuff
+	eActivatableSpell,
+	eProcSpell,
+	eWornSpell,
+	eFocusSpell,
+	eScrollSpell,
+	eFocus2Spell,
+	eMountSpell,
+	eIllusionSpell,
+	eFamiliarSpell
 };
 
 typedef struct _LAUNCHSPELLDATA {
@@ -1931,7 +1931,7 @@ SPAWNINFOHEADER
 /*0x1164*/ ArrayClass<PhysicsEffect> mPhysicsEffects;//size is 0x10
 /*0x1174*/ ArrayClass<bool> PhysicsEffectsUpdated;//size is 0x10
 /*0x1184*/ int		NoIdea;
-										  /* ********************* PlayerZoneClient Ends Here ******************* */
+/* ********************* PlayerZoneClient Ends Here ******************* */
 /* ********************** PlayerClient Starts Here ******************** */
 /*0x1188*/ int		Animation; //IT MUST BE at 0x1188 /* Current Animation Playing. */
 /*0x118c*/ int		NextAnim;

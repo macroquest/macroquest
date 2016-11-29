@@ -2686,15 +2686,15 @@ bool MQ2CharacterType::GETMEMBER()
 		Dest.Type = pBoolType;
 		return true;
 	case HPRegen:
-		Dest.DWord = HealthGained;
+		Dest.DWord = GetHPRegen();
 		Dest.Type = pIntType;
 		return true;
 	case ManaRegen:
-		Dest.DWord = ManaGained;
+		Dest.DWord = GetManaRegen();
 		Dest.Type = pIntType;
 		return true;
 	case EnduranceRegen:
-		Dest.DWord = EnduranceGained;
+		Dest.DWord = GetEnduranceRegen();
 		Dest.Type = pIntType;
 		return true;
 	case Grouped:

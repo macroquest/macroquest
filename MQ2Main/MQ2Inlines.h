@@ -64,38 +64,47 @@ static inline PCHAR GetBodyTypeDesc(DWORD BodyTypeID)
 
 static inline PCHAR GetClassDesc(DWORD ClassID)
 {
-	if (ClassID == 60)
-		return "LDoN Recruiter";
-	if (ClassID == 61)
-		return "LDoN Merchant";
-	if (ClassID == 62)
-		return "Destructible Object";
-	if (ClassID == 63)
-		return "Tribute Master";
-	if (ClassID == 64)
-		return "Guild Tribute Master";
-	if (ClassID == 66)
-		return "Guild Banker";
-	if (ClassID == 67 || ClassID == 68)
-		return "DoN Merchant";
-	if (ClassID == 69)
-		return "Fellowship Registrar";
-	if (ClassID == 70)
-		return "Merchant";
-	if (ClassID == 71)
-		return "Mercenary Liaison";
-	if (ClassID == 0xFF)
-		return "Aura";
-	if (ClassID == 0xFE)
-		return "Banner";
-	if (ClassID == 0xFD)
-		return "Campfire";
-	return pEverQuest->GetClassDesc(ClassID);
+	switch (ClassID) {
+		case 60:
+			return "LDoN Recruiter";
+		case 61:
+			return "LDoN Merchant";
+		case 62:
+			return "Destructible Object";
+		case 63:
+			return "Tribute Master";
+		case 64:
+			return "Guild Tribute Master";
+		case 66:
+			return "Guild Banker";
+		case 67:
+			return "Good DoN Merchant";
+		case 68:
+			return "Evil DoN Merchant";
+		case 69:
+			return "Fellowship Registrar";
+		case 70:
+			return "Merchant";
+		case 71:
+			return "Mercenary Liaison";
+		case 72:
+			return "Real Estate Merchant";
+		case 73:
+			return "Loyalty Merchant";
+		case 0xFF:
+			return "Aura";
+		case 0xFE:
+			return "Banner";
+		case 0xFD:
+			return "Campfire";
+		default:
+			return pEverQuest->GetClassDesc(ClassID);
+	}
 }
 
 static inline BOOL IsMarkedNPC(PSPAWNINFO pSpawn)
 {
-	if (GetCharInfo()->pSpawn && pSpawn)
+	if (GetCharInfo() && GetCharInfo()->pSpawn && pSpawn)
 	{
 		DWORD nMark;
 		for (nMark = 0; nMark < 3; nMark++)
@@ -116,15 +125,40 @@ static inline BOOL IsMarkedNPC(PSPAWNINFO pSpawn)
 	return false;
 }
 
-static inline LONG GetCurMana() {
+static inline int GetEnduranceRegen() {
 	if (PCHARINFO pChar = (PCHARINFO)GetCharInfo()) {
 		if (pChar->vtable2) {
-			((EQ_Character*)pCharData1)->Cur_Mana(0);
+			return pCharData1->GetEnduranceRegen(true, false);
 		}
 	}
 	return 0;
 }
-static inline LONG GetCurHPS() {
+static inline int GetHPRegen() {
+	if (PCHARINFO pChar = (PCHARINFO)GetCharInfo()) {
+		if (pChar->vtable2) {
+			bool bBleed = false;//yes this is correct it should be false initially, the client sets it to true on return if we are indeed bleeding.
+			return pCharData1->GetHPRegen(true, &bBleed, false);
+		}
+	}
+	return 0;
+}
+static inline int GetManaRegen() {
+	if (PCHARINFO pChar = (PCHARINFO)GetCharInfo()) {
+		if (pChar->vtable2) {
+			return pCharData1->GetManaRegen(true, false);
+		}
+	}
+	return 0;
+}
+static inline int GetCurMana() {
+	if (PCHARINFO pChar = (PCHARINFO)GetCharInfo()) {
+		if (pChar->vtable2) {
+			return ((EQ_Character*)pCharData1)->Cur_Mana(true);
+		}
+	}
+	return 0;
+}
+static inline int GetCurHPS() {
 	if (PCHARINFO pChar = (PCHARINFO)GetCharInfo()) {
 		if (pChar->vtable2) {
 			return pCharData1->Cur_HP(0);

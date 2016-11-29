@@ -101,12 +101,6 @@ void Pulse()
 	static ULONGLONG LastMoveTick = 0;
 	static DWORD MapDelay = 0;
 
-	static LONG LastHealth = 0;
-	static LONG LastMana = 0;
-	static LONG LastEndurance = 0;
-
-
-
 	// Drop out here if we're waiting for something.
 	if (!pChar || gZoning /* || gDelayZoning*/) return;
 	if (!pCharInfo) {
@@ -131,14 +125,7 @@ void Pulse()
 		DoorEnviroTarget.Name[0] = 0;
 		DoorEnviroTarget.DisplayedName[0] = 0;
 		pDoorTarget = 0;
-		LastHealth = GetCurHPS();
-		LastMana = GetCurMana();
-		if (PCHARINFO2 pChar2 = GetCharInfo2()) {
-			LastEndurance = pChar2->Endurance;
-		}
-		ManaGained = 0;
-		HealthGained = 0;
-		EnduranceGained = 0;
+
 		// see if we're on a pvp server
 		if (!_strnicmp(EQADDR_SERVERNAME, "tallon", 6) || !_strnicmp(EQADDR_SERVERNAME, "vallon", 6))
 		{
@@ -169,39 +156,6 @@ void Pulse()
 	}
 	if (!pTarget)
 		gTargetbuffs = FALSE;
-
-	LONG CurrentHealth = GetCurHPS();
-	if (LastHealth && CurrentHealth>LastHealth)
-	{
-		if (CurrentHealth != GetMaxHPS())
-		{ // gained health, and not max
-			HealthGained = CurrentHealth - LastHealth;
-		}
-	}
-	LastHealth = CurrentHealth;
-
-	LONG CurrentMana = GetCurMana();
-	if (LastMana && CurrentMana > LastMana)
-	{
-		if (CurrentMana - LastMana > 0)
-		{
-			ManaGained = CurrentMana - LastMana;
-		}
-	}
-	LastMana = CurrentMana;
-
-	LONG CurrentEndurance = 0;
-	if (PCHARINFO2 pChar2 = GetCharInfo2()) {
-		CurrentEndurance = pChar2->Endurance;
-	}
-	if (LastEndurance && CurrentEndurance > LastEndurance)
-	{
-		if (CurrentEndurance != GetMaxEndurance())
-		{
-			EnduranceGained = CurrentEndurance - LastEndurance;
-		}
-	}
-	LastEndurance = CurrentEndurance;
 
 	if (gbDoAutoRun && pChar && pCharInfo) {
 		gbDoAutoRun = FALSE;
