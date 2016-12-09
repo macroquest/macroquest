@@ -1315,7 +1315,7 @@ int ItemNotify(int argc, char *argv[])
 					WriteChatf("There was no container in slot %d",invslot);
 					RETURN(0);
 				}
-				if(bagslot<0 && bagslot >= (int)pContainer->NumOfSlots1) {
+				if(bagslot<0 && bagslot >= (int)pContainer->Contents.ContentSize) {
 					WriteChatf("%d is not a valid slot for this container.",bagslot);
 					RETURN(0);
 				}
@@ -1407,7 +1407,7 @@ int ItemNotify(int argc, char *argv[])
 						if (IsItemInsideContainer(ptheitem)) {
 							OpenContainer(ptheitem, true);
 						}
-						pSlot = (PEQINVSLOT)pInvSlotMgr->FindInvSlot(ptheitem->ItemSlot, ptheitem->ItemSlot2);
+						pSlot = (PEQINVSLOT)pInvSlotMgr->FindInvSlot(ptheitem->Contents.ItemSlot, ptheitem->Contents.ItemSlot2);
 						if (!pSlot || !pSlot->pInvSlotWnd || !SendWndClick2((CXWnd*)pSlot->pInvSlotWnd, pNotification)) {
 							WriteChatf("Could not mem spell, most likely cause bag wasnt open and i didnt find it");
 						}

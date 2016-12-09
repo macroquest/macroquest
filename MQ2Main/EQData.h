@@ -443,6 +443,12 @@ enum MOUSE_DATA_TYPES {
 #define nullptr                         NULL
 #endif
 
+#define CALC_1TICK						107
+#define CALC_2TICK						108
+#define CALC_5TICK						120
+#define CALC_12TICK						122
+#define CALC_RANDOM						123
+
 #define SPA_AC                          1
 #define SPA_MOVEMENTRATE                3
 #define SPA_LURE                        10
@@ -473,6 +479,7 @@ enum MOUSE_DATA_TYPES {
 #define SPA_DAMAGECRITMOD               302
 #define SPA_SHIELDBLOCKCHANCE           320
 #define SPA_AC2                         416
+#define SPA_SPELLDAMAGETAKEN			483
 
 #define TT_PBAE                         0x04
 #define TT_TARGETED_AE                  0x08
@@ -708,54 +715,185 @@ typedef struct _ITEMINFO {
 	/*0x0734*/
 } ITEMINFO, *PITEMINFO;
 
-typedef struct _CONTENTSARRAY {
-    struct  _CONTENTS *Contents[0x14]; // 20 bag-slot max - addresses to whats inside the bag if its a bag; augs if an item
-} CONTENTSARRAY, *PCONTENTSARRAY;
+//ok this is rediculous, so I had to change this, there are 40 slot bags now and they could add more in the future
+//this is now dynamic... -eqmule
+typedef struct _ITEMBASEARRAY {
+    struct  _CONTENTS *Item[1];
+} ITEMBASEARRAY, *PITEMBASEARRAY;
 
+class EqItemGuid
+{
+public:
+	enum { GUID = 18 };
+	EqItemGuid()
+	{
+		ZeroMemory(guid, sizeof(guid));
+	}
 
+	char guid[GUID];
+};
+enum ItemContainerInstance
+{
+	eItemContainerInvalid = -1,
+	eItemContainerPossessions,
+	eItemContainerBank,
+	eItemContainerSharedBank,
+	eItemContainerTrade,
+	eItemContainerWorld,
+	eItemContainerLimbo,
+	eItemContainerTribute,
+	eItemContainerTrophyTribute,
+	eItemContainerGuildTribute,
+	eItemContainerMerchant,
+	eItemContainerDeleted,
+	eItemContainerCorpse,
+	eItemContainerBazaar,
+	eItemContainerInspect,
+	eItemContainerRealEstate,
+	eItemContainerViewModPC,
+	eItemContainerViewModBank,
+	eItemContainerViewModSharedBank,
+	eItemContainerViewModLimbo,
+	eItemContainerAltStorage,
+	eItemContainerArchived,
+	eItemContainerMail,
+	eItemContainerGuildTrophyTribute,
+	eItemContainerKrono,
+	eItemContainerOther,
+	eItemContainerMercenaryItems,
+    eItemContainerViewModMercenaryItems,
+    eItemContainerMountKeyRingItems,
+	eItemContainerViewModMountKeyRingItems,
+	eItemContainerIllusionKeyRingItems,
+	eItemContainerViewModIllusionKeyRingItems,
+	eItemContainerFamiliarKeyRingItems,
+	eItemContainerViewModFamiliarKeyRingItems,
+	eItemContainerCursor,
+};
+class ItemIndex
+{
+public:
+    short Slot1;
+    short Slot2;
+    short Slot3;
+};
+
+class ItemGlobalIndex2
+{
+public:
+	ItemGlobalIndex2::ItemContainerInstance Location;
+	ItemGlobalIndex2::ItemIndex Index;
+};
+class CDynamicArrayBase
+{
+public:
+/*0x1188*/	int Count;
+};
+//this class has some members like Reset and so on
+//but we dont need them right now...
+//todo: spend some time on fully implementing this
+template <typename ArrayType> class ArrayClass2 : public CDynamicArrayBase
+{
+public:
+/*0x04*/	int Size;
+/*0x08*/	int Mask;
+/*0x0c*/	int Shift;
+/*0x10*/	ArrayType** pNext;
+/*0x14*/	int memAlloc;
+/*0x18*/	bool bValid;
+/*0x1c*/
+};
+template <typename ElementType> class ArrayClass : public CDynamicArrayBase
+{
+private:
+/*0x118c*/	ElementType* elements;
+/*0x1190*/	int elementAlloc;
+/*0x1194*/	bool isValid;
+/*0x1198*/
+};
+class ItemArray
+{
+public:
+/*0xa4*/	struct _ITEMBASEARRAY	*pItems;
+/*0xa8*/	UINT Size;
+/*0xac*/	UINT Capacity;
+};
+
+class ItemBaseContainer2
+{
+public:
+/*0x9c*/	UINT ContentSize;
+/*0xa0*/	int ItemLocation;
+/*0xa4*/	ItemArray ContainedItems;
+/*0xb0*/	BYTE Depth;
+/*0xB2*/	short ItemSlot;
+/*0xB4*/	short ItemSlot2;
+/*0xB6*/	bool bDynamic;
+/*0xb8*/
+};
+
+#pragma pack(8)//dont change this it should be 8 or u break the CONTENTS struct. -eqmule
 //Actual Size: 148 (see 596387 in eqgame.exe Live dated Nov 14 2016) - eqmule
 typedef struct _CONTENTS {
 /*0x0000*/ void*	vtable;
 /*0x0004*/ DWORD	ItemType;           // ? 1 = normal, 2 = pack ?
 /*0x0008*/ void*	punknown;
+//start of ItemBase
 /*0x000c*/ DWORD	Price;
 /*0x0010*/ DWORD	Open;
 /*0x0014*/ struct _ITEMINFO*	Item1;
-/*0x0018*/ BYTE		Unknown0x0018[0x20];
-/*0x0038*/ LONG		StackCount;
-/*0x003c*/ BYTE		Unknown0x003c[0xc];
-/*0x0048*/ DWORD	MerchantSlot;       // slot id on a merchant
-/*0x004c*/ BYTE		Unknown0x004c[0x14];
-/*0x0060*/ DWORD	OrnamentationIcon;
-/*0x0064*/ BYTE		Unknown0x0064[0x10];
+/*0x0018*/ CHAR		ActorTag1[0x1e];
+/*0x0038*/ int		StackCount;
+/*0x003c*/ UINT		LastCastTime;
+/*0x0040*/ UINT		Tint;
+/*0x0048*/ __int64	MerchantSlot;       // slot id on a merchant
+/*0x0050*/ bool		bCollected;
+/*0x0054*/ int		ID;
+/*0x0058*/ UINT		ItemHash;
+/*0x005c*/ bool		bItemNeedsUpdate;
+/*0x0060*/ int		OrnamentationIcon;
+/*0x0064*/ int		ItemColor;
+/*0x0068*/ struct _CXSTR *ConvertItemName;
+/*0x006c*/ int		ScriptIndex;
+/*0x0070*/ int		ArmorType;
 /*0x0074*/ DWORD	EvolvingMaxLevel;
-/*0x0078*/ BYTE		IsEvolvingItem;
-/*0x0079*/ BYTE		Unknown0x0079[0x17];
-/*0x0090*/ DWORD	Charges;
-/*0x0094*/ BYTE		Unknown0x0094[0x8];
-/*0x009c*/ DWORD	NumOfSlots1;//ItemSlot is this address + 0x16 in 20130708
-/*0x00a0*/ DWORD	ItemLocation;//0x1b mount 0x1d illusion
-/*0x00a4*/ struct _CONTENTSARRAY*	pContentsArray;
-/*0x00a8*/ DWORD	NumOfSlots2;
-/*0x00ac*/ BYTE		Unknown0x00ac[0x6];
-/*0x00b2*/ WORD		ItemSlot;           // Inventory slot id
-/*0x00b4*/ WORD		ItemSlot2;          // Bag slot id, starts at 0 for first slot in bag, or FFFF if item is on cursor
-/*0x00b6*/ BYTE		Unknown0x00b6[0x2];
-/*0x00b8*/ DWORD	Power;
-/*0x00bc*/ BYTE		Unknown0x00bc[0xb];
-/*0x00c7*/ char		ItemGUID[0x12];
-/*0x00d9*/ BYTE		EvolvingExpOn;
-/*0x00da*/ BYTE		Unknown0x00da[0x6];
+/*0x0078*/ bool		IsEvolvingItem;
+/*0x007c*/ ArrayClass<UINT>	RealEstateArray;
+/*0x008c*/ bool		bRealEstateItemGroupPlaceable;
+/*0x0090*/ int		Charges;
+/*0x0094*/ struct _CXSTR *SaveString;	
+/*0x0098*/ int		NoteStatus;
+/*0x009c*/ ItemBaseContainer2 Contents;
+/*0x00b8*/ int		Power;
+/*0x00bc*/ bool		bRankDisabled;
+/*0x00c0*/ int		RealEstateId;// for house items etc.
+/*0x00c4*/ bool		bConvertable;
+/*0x00c5*/ bool		bCopied;
+/*0x00c6*/ bool		bDisableAugTexture;
+/*0x00c7*/ EqItemGuid	ItemGUID;
+/*0x00d9*/ bool		EvolvingExpOn;
 /*0x00e0*/ DOUBLE	EvolvingExpPct;
-/*0x00e8*/ DWORD	EvolvingCurrentLevel;
-/*0x00ec*/ DWORD	MerchantQuantity;
-/*0x00f0*/ BYTE		Unknown0x00f0[0x24];
-/*0x0114*/ DWORD	GroupID;
-/*0x0118*/ BYTE		Unknown0x0118[0x24];
+/*0x00e8*/ int		EvolvingCurrentLevel;
+/*0x00ec*/ int		MerchantQuantity;
+/*0x00f0*/ UINT		NewArmorID;
+/*0x00f4*/ CHAR		ActorTag2[0x1e];
+/*0x0114*/ int		GroupID;
+/*0x0118*/ ItemGlobalIndex2 GlobalIndex;//size is 0x1c (0x1a)
+/*0x0124*/ int		ConvertItemID;
+/*0x0128*/ int		NoDropFlag;
+/*0x012c*/ int		AugFlag;
+/*0x0130*/ LONG		LastEquipped;
+/*0x0134*/ UINT		RespawnTime;
+//start of ItemClient
+/*0x0138*/ int		Filler;
 /*0x013c*/ struct _ITEMINFO*	Item2;
-/*0x0140*/ BYTE		Unknown0x0140[0x08];
+/*0x0140*/ struct _CXSTR *ClientString;
+/*0x0144*/ UINT		DontKnow2;
 /*0x0148*/
+__declspec(dllexport)  struct _CONTENTS *GetContent(UINT index);
 } CONTENTS, *PCONTENTS;
+#pragma pack()
+
 
 // Size 0x58 20110810 - dkaa
 // Size 0x58 20150326 - demonstar55
@@ -1332,63 +1470,7 @@ typedef struct _FELLOWSHIPINFO {
 /*0x9e8*/
 } FELLOWSHIPINFO, *PFELLOWSHIPINFO;
 //found these at B0DD28 in eqgame.exe dated Aug 15 2016 -eqmule
-enum ItemContainerInstance
-{
-	eItemContainerInvalid = -1,
-	eItemContainerPossessions,
-	eItemContainerBank,
-	eItemContainerSharedBank,
-	eItemContainerTrade,
-	eItemContainerWorld,
-	eItemContainerLimbo,
-	eItemContainerTribute,
-	eItemContainerTrophyTribute,
-	eItemContainerGuildTribute,
-	eItemContainerMerchant,
-	eItemContainerDeleted,
-	eItemContainerCorpse,
-	eItemContainerBazaar,
-	eItemContainerInspect,
-	eItemContainerRealEstate,
-	eItemContainerViewModPC,
-	eItemContainerViewModBank,
-	eItemContainerViewModSharedBank,
-	eItemContainerViewModLimbo,
-	eItemContainerAltStorage,
-	eItemContainerArchived,
-	eItemContainerMail,
-	eItemContainerGuildTrophyTribute,
-	eItemContainerKrono,
-	eItemContainerOther,
-	eItemContainerMercenaryItems,
-    eItemContainerViewModMercenaryItems,
-    eItemContainerMountKeyRingItems,
-	eItemContainerViewModMountKeyRingItems,
-	eItemContainerIllusionKeyRingItems,
-	eItemContainerViewModIllusionKeyRingItems,
-	eItemContainerFamiliarKeyRingItems,
-	eItemContainerViewModFamiliarKeyRingItems,
-	eItemContainerCursor,
-};
-class CDynamicArrayBase
-{
-public:
-/*0x1188*/	int Count;
-};
-//this class has some members like Reset and so on
-//but we dont need them right now...
-//todo: spend some time on fully implementing this
-template <typename ArrayType> class ArrayClass2 : public CDynamicArrayBase
-{
-public:
-/*0x04*/	int Size;
-/*0x08*/	int Mask;
-/*0x0c*/	int Shift;
-/*0x10*/	ArrayType** pNext;
-/*0x14*/	int memAlloc;
-/*0x18*/	bool bValid;
-/*0x1c*/
-};
+
 // offsets are relative to their position in _LAUNCHSPELLDATA
 typedef struct _ITEMLOCATION {
 /*0x0c*/	ItemContainerInstance Location;
@@ -1456,17 +1538,7 @@ class PlayerBase : public PlayerBaseVfTable,public TListNode<PlayerBase>
 public:
 
 };
-class EqItemGuid
-{
-public:
-	enum { GUID = 18 };
-	EqItemGuid()
-	{
-		ZeroMemory(guid, sizeof(guid));
-	}
 
-	char guid[GUID];
-};
 enum EActorType
 {
 	Undefined,
@@ -1775,14 +1847,7 @@ struct PhysicsEffect
 /*0x10*/
 };
 
-template <typename ElementType> class ArrayClass : public CDynamicArrayBase
-{
-private:
-/*0x118c*/	ElementType* elements;
-/*0x1190*/	int elementAlloc;
-/*0x1194*/	bool isValid;
-/*0x1198*/
-};
+
 enum InvisibleTypes
 {
 	eAll,

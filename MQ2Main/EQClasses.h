@@ -11,7 +11,7 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
     GNU General Public License for more details.
 ******************************************************************************/
-#pragma pack(4)
+#pragma pack(8)
 namespace EQClasses
 {
 // Other
@@ -616,6 +616,7 @@ EQLIB_OBJECT int CXWnd::SetFont(void*);
 CXW;
 
 };
+
 #define ZoneToGoTo 0
 
 class CSidlScreenWnd
@@ -664,9 +665,6 @@ EQLIB_OBJECT static bool CSidlScreenWnd::m_useIniFile;
 inline CXWnd *pXWnd() {return (CXWnd*)this;};
 CSW
 };
-
-
-
 
 class _EverQuestinfo
 {
@@ -2449,15 +2447,6 @@ public:
 // virtual
 EQLIB_OBJECT void ChannelServerHandler::CshOnLoginConfirm(bool);
 EQLIB_OBJECT void ChannelServerHandler::CshOnPacket(void *,int,char *,int,char *,bool);
-};
-
-
-class ItemIndex
-{
-public:
-    short Slot1;
-    short Slot2;
-    short Slot3;
 };
 
 class ItemGlobalIndex

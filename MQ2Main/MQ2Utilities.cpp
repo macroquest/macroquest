@@ -1558,11 +1558,11 @@ BOOL SearchThroughItems(SEARCHITEM &SearchItem, PCONTENTS* pResult, DWORD *nResu
 				for (nPack = 0; nPack < 10; nPack++)
 				{
 					if (PCONTENTS pContents = pChar2->pInventoryArray->Inventory.Pack[nPack]) {
-						if (GetItemFromContents(pContents)->Type == ITEMTYPE_PACK && pContents->pContentsArray)
+						if (GetItemFromContents(pContents)->Type == ITEMTYPE_PACK && pContents->Contents.ContainedItems.Capacity)
 						{
 							for (unsigned long nItem = 0; nItem < GetItemFromContents(pContents)->Slots; nItem++)
 							{
-								if (PCONTENTS pItem = pContents->pContentsArray->Contents[nItem])
+								if (PCONTENTS pItem = pContents->GetContent(nItem))
 									if (ItemMatchesSearch(SearchItem, pItem))
 										Result(pItem, nPack * 100 + nItem);
 							}
@@ -1780,8 +1780,8 @@ PCHAR GetSpellEffectNameByID(LONG EffectID, PCHAR szBuffer, SIZE_T BufferSize)
 PCHAR GetSpellEffectName(LONG EffectID, PCHAR szBuffer, SIZE_T BufferSize)
 {
 	//we CAN do an abs here cause IF it is negative, it just means we should display is as "Exclude: "
-	LONG absEffectID = abs(EffectID);
-	if (absEffectID <= MAX_SPELLEFFECTS) {
+	ULONG absEffectID = abs(EffectID);
+	if ((SIZE_T)absEffectID <= MAX_SPELLEFFECTS) {
 		strcat_s(szBuffer, BufferSize, szSPATypes[absEffectID]);
 	}
 	else {
@@ -2167,19 +2167,19 @@ PCHAR CalcValueRange(LONG calc, LONG base, LONG max, LONG duration, LONG minleve
 
 	switch (calc)
 	{
-	case 107:
+	case CALC_1TICK:
 		sprintf_s(szBuffer, BufferSize, " (%s to %d @ 1/tick)", type, finish);
 		break;
-	case 108:
+	case CALC_2TICK:
 		sprintf_s(szBuffer, BufferSize, " (%s to %d @ 2/tick)", type, finish);
 		break;
-	case 120:
+	case CALC_5TICK:
 		sprintf_s(szBuffer, BufferSize, " (%s to %d @ 5/tick)", type, finish);
 		break;
-	case 122:
+	case CALC_12TICK:
 		sprintf_s(szBuffer, BufferSize, " (%s to %d @ 12/tick)", type, finish);
 		break;
-	case 123:
+	case CALC_RANDOM:
 		sprintf_s(szBuffer, BufferSize, " (Random: %d to %d)", start, finish * ((start >= 0) ? 1 : -1));
 		break;
 	default:
@@ -2195,7 +2195,7 @@ PCHAR CalcExtendedRange(LONG calc, LONG start, LONG finish, LONG minlevel, LONG 
 {
 	switch (calc)
 	{
-	case 123:
+	case CALC_RANDOM:
 		sprintf_s(szBuffer, BufferSize, " (Random: %d to %d)", start, finish * ((start >= 0) ? 1 : -1));
 		break;
 	default:
@@ -2237,15 +2237,21 @@ template <unsigned int _Size> PCHAR FormatBasePercent(PCHAR szEffectName, LONG b
 	return szBuffer;
 }
 
+template <unsigned int _Size> PCHAR FormatMinMaxBase(PCHAR szEffectName, LONG base, LONG spa, CHAR(&szBuffer)[_Size])
+{
+	sprintf_s(szBuffer, "%s (%d %s)", szEffectName, abs(base), szSPATypes[spa]);
+	return szBuffer;
+}
+
 template <unsigned int _Size> PCHAR FormatCount(PCHAR szEffectName, LONG value, CHAR(&szBuffer)[_Size], PCHAR preposition = "by", PCHAR szPercent = "")
 {
 	sprintf_s(szBuffer, "%s %s %s %d%s", value<0 ? "Decrease" : "Increase", szEffectName, preposition, abs(value), szPercent);
 	return szBuffer;
 }
 
-template <unsigned int _Size> PCHAR FormatExtra(PCHAR szEffectName, PCHAR extra, CHAR(&szBuffer)[_Size], PCHAR trigger = "")
+template <unsigned int _Size> PCHAR FormatExtra(PCHAR szEffectName, PCHAR extra, CHAR(&szBuffer)[_Size], PCHAR trigger = "", PCHAR colon = ":")
 {
-	sprintf_s(szBuffer, "%s: %s%s", szEffectName, extra, trigger);
+	sprintf_s(szBuffer, "%s%s %s%s", szEffectName, colon, extra, trigger);
 	return szBuffer;
 }
 
@@ -2303,9 +2309,9 @@ template <unsigned int _Size> PCHAR FormatPercent(PCHAR szEffectName, LONG value
 	return FormatPercent(szEffectName, value, value, szBuffer, scaling, hundreds);
 }
 
-template <unsigned int _Size> PCHAR FormatRange(PCHAR szEffectName, LONG value, PCHAR range, CHAR(&szBuffer)[_Size])
+template <unsigned int _Size> PCHAR FormatRange(PCHAR szEffectName, LONG value, PCHAR range, CHAR(&szBuffer)[_Size], PCHAR extra = "")
 {
-	sprintf_s(szBuffer, "%s %s%s", value<0 ? "Decrease" : "Increase", szEffectName, range);
+	sprintf_s(szBuffer, "%s %s%s%s", value<0 ? "Decrease" : "Increase", szEffectName, range, extra);
 	return szBuffer;
 }
 
@@ -2392,6 +2398,15 @@ template <unsigned int _Size> PCHAR FormatSpellChance(PCHAR szEffectName, LONG v
 		sprintf_s(szBuffer, " (%d%% Chance, Spell: %s)", value, GetSpellNameByID(base));
 	else
 		sprintf_s(szBuffer, " (Spell: %s)", GetSpellNameByID(base));
+	return szBuffer;
+}
+
+template <unsigned int _Size> PCHAR FormatSpellGroupChance(PCHAR szEffectName, LONG value, LONG base, CHAR(&szBuffer)[_Size])
+{
+	if (value < 100)
+		sprintf_s(szBuffer, " (%d%% Chance, Spell: %s)", value, GetSpellNameBySpellGroupID(base));
+	else
+		sprintf_s(szBuffer, " (Spell: %s)", GetSpellNameBySpellGroupID(base));
 	return szBuffer;
 }
 
@@ -2602,11 +2617,11 @@ PCHAR ParseSpellEffect(PSPELL pSpell, int i, PCHAR szBuffer, SIZE_T BufferSize, 
 	LONG minspelllvl = CalcMinSpellLevel(pSpell);
 	LONG maxspelllvl = CalcMaxSpellLevel(calc, base, max, ticks, minspelllvl, level);
 	LONG value = CalcValue(calc, base, max, 1, minspelllvl, minspelllvl);
-	LONG finish = CalcValue(calc, base, max, ticks, minspelllvl, level);
+	LONG finish = CalcValue(calc, (spa == SPA_SPELLDAMAGETAKEN) ? base2 : base, max, ticks, minspelllvl, level);
 
 	BOOL usePercent = (spa == SPA_MOVEMENTRATE || spa == SPA_HASTE || spa == SPA_BARDOVERHASTE || spa == SPA_SPELLDAMAGE || spa == SPA_HEALING || spa == SPA_DOUBLEATTACK || spa == SPA_STUNRESIST || spa == SPA_PROCMOD ||
 		spa == SPA_DIVINEREZ || spa == SPA_METABOLISM || spa == SPA_TRIPLEBACKSTAB || spa == SPA_DOTCRIT || spa == SPA_HEALCRIT || spa == SPA_MENDCRIT || spa == SPA_FLURRY || spa == SPA_PETFLURRY ||
-		spa == SPA_SPELLCRITCHANCE || spa == SPA_SHIELDBLOCKCHANCE || spa == SPA_DAMAGECRITMOD);
+		spa == SPA_SPELLCRITCHANCE || spa == SPA_SHIELDBLOCKCHANCE || spa == SPA_DAMAGECRITMOD || spa == SPA_SPELLDAMAGETAKEN);
 	BOOL AEEffect = (targettype == TT_PBAE || targettype == TT_TARGETED_AE || targettype == TT_AE_PC_V2 || targettype == TT_DIRECTIONAL);
 
 	strcat_s(range, CalcValueRange(calc, base, max, ticks, minspelllvl, level, szTemp2,sizeof(szTemp2), usePercent ? szPercent : ""));
@@ -3813,7 +3828,7 @@ PCHAR ParseSpellEffect(PSPELL pSpell, int i, PCHAR szBuffer, SIZE_T BufferSize, 
 		break;
 	case 469: //Chance Best in Spell Group
 	case 470: //Trigger Best in Spell Group
-		strcat_s(szBuff, FormatExtra(spelleffectname, FormatSpellChance(spelleffectname, base, base2, szTemp), szTemp2, " on Cast"));
+		strcat_s(szBuff, FormatExtra(spelleffectname, FormatSpellGroupChance(spelleffectname, base, base2, szTemp), szTemp2, " on Cast"));
 		break;
 	case 471: //Double Melee Round (PC Only)
 		strcat_s(szBuff, FormatPercent(spelleffectname, value, finish, szTemp2));
@@ -3835,22 +3850,41 @@ PCHAR ParseSpellEffect(PSPELL pSpell, int i, PCHAR szBuffer, SIZE_T BufferSize, 
 	case 478: //Move to Bottom of Hatelist
 		strcat_s(szBuff, FormatExtra(spelleffectname, GetSpellNameByID(base), szTemp2, " on Cast"));
 		break;
-	case 479: //Ff Value Min (no spells currently)
-	case 480: //Ff Value Max (no spells currently)
-	case 481: //Fc Cast Spell on Land (no spells currently)
-	case 482: //Skill Base Damage Mod (no spells currently)
-		strcat_s(szBuff, FormatBase(spelleffectname, base, szTemp2));
+	case 479: //Value Min
+		sprintf_s(szTemp, "%s %s", spelleffectname, base < 0 ? "Max" : "Min");
+		strcat_s(szBuff, FormatMinMaxBase(szTemp, base, base2, szTemp2));
+		break;
+	case 480: //Value Max
+		sprintf_s(szTemp, "%s %s", spelleffectname, base < 0 ? "Min" : "Max");
+		strcat_s(szBuff, FormatMinMaxBase(szTemp, base, base2, szTemp2));
+		break;
+	case 481: //Cast Spell on Land
+		strcat_s(szBuff, FormatExtra(spelleffectname, GetSpellNameByID(base2), szTemp2, " on Land and conditions are met"));
+		break;
+	case 482: //Skill Base Damage Mod
+		strcat_s(szBuff, FormatPercent(spelleffectname, value, finish, szTemp2));
 		break;
 	case 483: //Spell Damage Taken
 	case 484: //Spell Damage Taken
-		strcat_s(szBuff, FormatRange(spelleffectname, value, extendedrange, szTemp2));
+		strcat_s(szBuff, FormatRange(spelleffectname, value, extendedrange, szTemp2, " (after crit)"));
 		break;
-	case 485: //Ff CasterClass (no spells currently)
-	case 486: //Ff Same Caster (no spells currently)
-		strcat_s(szBuff, FormatBase(spelleffectname, base, szTemp2));
+	case 485: //CasterClass
+		strcat_s(szBuff, FormatExtra(spelleffectname, GetClassesFromMask(base, szTemp), szTemp2));
+		break;
+	case 486: //Same Caster
+		strcat_s(szBuff, FormatExtra(spelleffectname, base ? "(Same)" : "(Different)", szTemp2, "", ""));
 		 break;
+	case 487: //Extend Tradeskill Cap
+	case 488: //Defender Melee Force % (PC)
+	case 489: //Worn Endurance Regen Cap
+	case 490: //Ff_ReuseTimeMin
+	case 491: //Ff_ReuseTimeMax
+	case 492: //Ff_Endurance_Min
+	case 493: //Ff_Endurance_Max
+	case 494: //Pet Add Atk
+	case 495: //Ff_DurationMax
 	default: //undefined effect 
-		sprintf_s(szTemp, "UnknownEffect%03d (%d, %d, %d)", spa, base, base2, max);
+		sprintf_s(szTemp, "%s (%d, %d, %d)", spelleffectname, base, base2, max);
 		strcat_s(szBuff, szTemp);
 		break;
 	}
@@ -6635,7 +6669,7 @@ VOID SuperWhoDisplay(PSPAWNINFO pSpawn, DWORD Color)
 
 DWORD SWhoSortValue = 0;
 PSPAWNINFO SWhoSortOrigin = 0;
-static bool pWHOSORTCompare(const PSPAWNINFO SpawnA, const PSPAWNINFO SpawnB)
+bool pWHOSORTCompare(const PSPAWNINFO SpawnA, const PSPAWNINFO SpawnB)
 {
 	switch (SWhoSortValue)
 	{
@@ -6975,8 +7009,8 @@ PCONTENTS GetItemContentsBySlotID(DWORD dwSlotID)
 				if (PCONTENTS iSlot = pChar2->pInventoryArray->InventoryArray[InvSlot]) {
 					if (SubSlot < 0)
 						return iSlot;
-					if (pChar2->pInventoryArray->InventoryArray[InvSlot]->pContentsArray) {
-						if (PCONTENTS sSlot = pChar2->pInventoryArray->InventoryArray[InvSlot]->pContentsArray->Contents[SubSlot]) {
+					if (pChar2->pInventoryArray->InventoryArray[InvSlot]->Contents.ContainedItems.pItems) {
+						if (PCONTENTS sSlot = pChar2->pInventoryArray->InventoryArray[InvSlot]->GetContent(SubSlot)) {
 							return sSlot;
 						}
 					}
@@ -7000,9 +7034,9 @@ PCONTENTS GetItemContentsByName(CHAR *ItemName)
 			}
 			for (unsigned long nPack = 0; nPack < 10; nPack++) {
 				if (PCONTENTS pPack = pChar2->pInventoryArray->Inventory.Pack[nPack]) {
-					if (GetItemFromContents(pPack)->Type == ITEMTYPE_PACK && pPack->pContentsArray) {
+					if (GetItemFromContents(pPack)->Type == ITEMTYPE_PACK && pPack->Contents.ContainedItems.pItems) {
 						for (unsigned long nItem = 0; nItem < GetItemFromContents(pPack)->Slots; nItem++) {
-							if (PCONTENTS pItem = pPack->pContentsArray->Contents[nItem]) {
+							if (PCONTENTS pItem = pPack->GetContent(nItem)) {
 								if (!_stricmp(ItemName, GetItemFromContents(pItem)->Name)) {
 									return pItem;
 								}
@@ -7509,11 +7543,11 @@ PCONTENTS FindItemByName(PCHAR pName, BOOL bExact)
 		{
 			if (PCONTENTS pPack = pChar2->pInventoryArray->Inventory.Pack[nPack])
 			{
-				if (GetItemFromContents(pPack)->Type == ITEMTYPE_PACK && pPack->pContentsArray)
+				if (GetItemFromContents(pPack)->Type == ITEMTYPE_PACK && pPack->Contents.ContainedItems.pItems)
 				{
 					for (unsigned long nItem = 0; nItem < GetItemFromContents(pPack)->Slots; nItem++)
 					{
-						if (PCONTENTS pItem = pPack->pContentsArray->Contents[nItem])
+						if (PCONTENTS pItem = pPack->GetContent(nItem))
 						{
 							if (bExact)
 							{
@@ -7645,11 +7679,11 @@ PCONTENTS FindItemByID(DWORD ItemID)
 		{
 			if (PCONTENTS pPack = pChar2->pInventoryArray->Inventory.Pack[nPack])
 			{
-				if (GetItemFromContents(pPack)->Type == ITEMTYPE_PACK && pPack->pContentsArray)
+				if (GetItemFromContents(pPack)->Type == ITEMTYPE_PACK && pPack->Contents.ContainedItems.pItems)
 				{
 					for (unsigned long nItem = 0; nItem < GetItemFromContents(pPack)->Slots; nItem++)
 					{
-						if (PCONTENTS pItem = pPack->pContentsArray->Contents[nItem])
+						if (PCONTENTS pItem = pPack->GetContent(nItem))
 						{
 							if (ItemID == GetItemFromContents(pItem)->ItemNumber) {
 								return pItem;
@@ -7708,7 +7742,7 @@ PCONTENTS FindItemBySlot(WORD InvSlot, WORD BagSlot, ItemContainerInstance locat
 			{
 				if (PCONTENTS pItem = pChar2->pInventoryArray->InventoryArray[nSlot])
 				{
-					if (pItem->ItemSlot == InvSlot && pItem->ItemSlot2 == BagSlot)
+					if (pItem->Contents.ItemSlot == InvSlot && pItem->Contents.ItemSlot2 == BagSlot)
 					{
 						return pItem;
 					}
@@ -7721,13 +7755,13 @@ PCONTENTS FindItemBySlot(WORD InvSlot, WORD BagSlot, ItemContainerInstance locat
 			{
 				if (PCONTENTS pPack = pChar2->pInventoryArray->Inventory.Pack[nPack])
 				{
-					if (GetItemFromContents(pPack)->Type == ITEMTYPE_PACK && pPack->pContentsArray)
+					if (GetItemFromContents(pPack)->Type == ITEMTYPE_PACK && pPack->Contents.ContainedItems.pItems)
 					{
 						for (unsigned long nItem = 0; nItem < GetItemFromContents(pPack)->Slots; nItem++)
 						{
-							if (PCONTENTS pItem = pPack->pContentsArray->Contents[nItem])
+							if (PCONTENTS pItem = pPack->GetContent(nItem))
 							{
-								if (pItem->ItemSlot == InvSlot && pItem->ItemSlot2 == BagSlot) {
+								if (pItem->Contents.ItemSlot == InvSlot && pItem->Contents.ItemSlot2 == BagSlot) {
 									return pItem;
 								}
 							}
@@ -7745,7 +7779,7 @@ PCONTENTS FindItemBySlot(WORD InvSlot, WORD BagSlot, ItemContainerInstance locat
 			{
 				if (PCONTENTS pItem = pChar->pBankArray->Bank[nSlot])
 				{
-					if (pItem->ItemSlot == InvSlot && pItem->ItemSlot2 == BagSlot)
+					if (pItem->Contents.ItemSlot == InvSlot && pItem->Contents.ItemSlot2 == BagSlot)
 					{
 						return pItem;
 					}
@@ -7758,13 +7792,13 @@ PCONTENTS FindItemBySlot(WORD InvSlot, WORD BagSlot, ItemContainerInstance locat
 			{
 				if (PCONTENTS pPack = pChar->pBankArray->Bank[nPack])
 				{
-					if (GetItemFromContents(pPack)->Type == ITEMTYPE_PACK && pPack->pContentsArray)
+					if (GetItemFromContents(pPack)->Type == ITEMTYPE_PACK && pPack->Contents.ContainedItems.pItems)
 					{
 						for (unsigned long nItem = 0; nItem < GetItemFromContents(pPack)->Slots; nItem++)
 						{
-							if (PCONTENTS pItem = pPack->pContentsArray->Contents[nItem])
+							if (PCONTENTS pItem = pPack->GetContent(nItem))
 							{
-								if (pItem->ItemSlot == InvSlot && pItem->ItemSlot2 == BagSlot) {
+								if (pItem->Contents.ItemSlot == InvSlot && pItem->Contents.ItemSlot2 == BagSlot) {
 									return pItem;
 								}
 							}
@@ -7782,7 +7816,7 @@ PCONTENTS FindItemBySlot(WORD InvSlot, WORD BagSlot, ItemContainerInstance locat
 			{
 				if (PCONTENTS pItem = pChar->pSharedBankArray->SharedBank[nSlot])
 				{
-					if (pItem->ItemSlot == InvSlot && pItem->ItemSlot2 == BagSlot)
+					if (pItem->Contents.ItemSlot == InvSlot && pItem->Contents.ItemSlot2 == BagSlot)
 					{
 						return pItem;
 					}
@@ -7795,13 +7829,13 @@ PCONTENTS FindItemBySlot(WORD InvSlot, WORD BagSlot, ItemContainerInstance locat
 			{
 				if (PCONTENTS pPack = pChar->pSharedBankArray->SharedBank[nPack])
 				{
-					if (GetItemFromContents(pPack)->Type == ITEMTYPE_PACK && pPack->pContentsArray)
+					if (GetItemFromContents(pPack)->Type == ITEMTYPE_PACK && pPack->Contents.ContainedItems.pItems)
 					{
 						for (unsigned long nItem = 0; nItem < GetItemFromContents(pPack)->Slots; nItem++)
 						{
-							if (PCONTENTS pItem = pPack->pContentsArray->Contents[nItem])
+							if (PCONTENTS pItem = pPack->GetContent(nItem))
 							{
-								if (pItem->ItemSlot == InvSlot && pItem->ItemSlot2 == BagSlot) {
+								if (pItem->Contents.ItemSlot == InvSlot && pItem->Contents.ItemSlot2 == BagSlot) {
 									return pItem;
 								}
 							}
@@ -7845,12 +7879,12 @@ PCONTENTS FindBankItemByName(char *pName,BOOL bExact)
 					return pPack;
 				}
 			}
-			if (GetItemFromContents(pPack)->Type == ITEMTYPE_PACK && pPack->pContentsArray)
+			if (GetItemFromContents(pPack)->Type == ITEMTYPE_PACK && pPack->Contents.ContainedItems.pItems)
 			{
 				for (unsigned long nItem = 0; nItem < GetItemFromContents(pPack)->Slots; nItem++)
 				{
 					PCONTENTS pItem;
-					if (pPack->pContentsArray && (pItem = pPack->pContentsArray->Contents[nItem]))
+					if (pPack->Contents.ContainedItems.pItems && (pItem = pPack->GetContent(nItem)))
 					{
 						if (bExact)
 						{
@@ -7895,12 +7929,12 @@ PCONTENTS FindBankItemByName(char *pName,BOOL bExact)
 					return pPack;
 				}
 			}
-			if (GetItemFromContents(pPack)->Type == ITEMTYPE_PACK && pPack->pContentsArray)
+			if (GetItemFromContents(pPack)->Type == ITEMTYPE_PACK && pPack->Contents.ContainedItems.pItems)
 			{
 				for (unsigned long nItem = 0; nItem < GetItemFromContents(pPack)->Slots; nItem++)
 				{
 					PCONTENTS pItem;
-					if (pPack->pContentsArray && (pItem = pPack->pContentsArray->Contents[nItem]))
+					if (pPack->Contents.ContainedItems.pItems && (pItem = pPack->GetContent(nItem)))
 					{
 						if (bExact)
 						{
@@ -7935,10 +7969,10 @@ PCONTENTS FindBankItemByID(int ID)
 					if (ptheItem->ItemNumber == ID) {
 						return pPack;
 					}
-					if (ptheItem->Type == ITEMTYPE_PACK && pPack->pContentsArray) {
+					if (ptheItem->Type == ITEMTYPE_PACK && pPack->Contents.ContainedItems.pItems) {
 						PCONTENTS pItem = 0;
 						for (unsigned long nItem = 0; nItem < ptheItem->Slots; nItem++) {
-							if (pPack->pContentsArray && (pItem = pPack->pContentsArray->Contents[nItem])) {
+							if (pPack->Contents.ContainedItems.pItems && (pItem = pPack->GetContent(nItem))) {
 								if (PITEMINFO ppackItem = GetItemFromContents(pItem)) {
 									if (ppackItem->ItemNumber == ID) {
 										return pItem;
@@ -7956,10 +7990,10 @@ PCONTENTS FindBankItemByID(int ID)
 					if (ptheItem->ItemNumber == ID) {
 						return pPack;
 					}
-					if (ptheItem->Type == ITEMTYPE_PACK && pPack->pContentsArray) {
+					if (ptheItem->Type == ITEMTYPE_PACK && pPack->Contents.ContainedItems.pItems) {
 						PCONTENTS pItem = 0;
 						for (unsigned long nItem = 0; nItem < ptheItem->Slots; nItem++) {
-							if (pPack->pContentsArray && (pItem = pPack->pContentsArray->Contents[nItem])) {
+							if (pPack->Contents.ContainedItems.pItems && (pItem = pPack->GetContent(nItem))) {
 								if (PITEMINFO ppackItem = GetItemFromContents(pItem)) {
 									if (ppackItem->ItemNumber == ID) {
 										return pItem;
@@ -7999,10 +8033,10 @@ PEQINVSLOT GetInvSlot(DWORD type, WORD invslot, WORD bagslot)
 //work in progress -eqmule
 BOOL IsItemInsideContainer(PCONTENTS pItem)
 {
-	if (pItem && pItem->ItemSlot >= 0 && pItem->ItemSlot <= NUM_INV_SLOTS) {
+	if (pItem && pItem->Contents.ItemSlot >= 0 && pItem->Contents.ItemSlot <= NUM_INV_SLOTS) {
 		PCHARINFO2 pChar2 = GetCharInfo2();
-		if (pChar2 && pChar2->pInventoryArray && pChar2->pInventoryArray->InventoryArray[pItem->ItemSlot]) {
-			if (PCONTENTS pItemFound = pChar2->pInventoryArray->InventoryArray[pItem->ItemSlot]) {
+		if (pChar2 && pChar2->pInventoryArray && pChar2->pInventoryArray->InventoryArray[pItem->Contents.ItemSlot]) {
+			if (PCONTENTS pItemFound = pChar2->pInventoryArray->InventoryArray[pItem->Contents.ItemSlot]) {
 				if (pItemFound != pItem) {
 					return TRUE;
 				}
@@ -8015,11 +8049,11 @@ BOOL OpenContainer(PCONTENTS pItem, bool hidden, bool flag)
 {
 	if (!pItem)
 		return FALSE;
-	if (PCONTENTS pcont = FindItemBySlot(pItem->ItemSlot)) {
+	if (PCONTENTS pcont = FindItemBySlot(pItem->Contents.ItemSlot)) {
 		if (pcont->Open)
 			return FALSE;
 		if (GetItemFromContents(pcont)->Type == ITEMTYPE_PACK) {
-			if (PEQINVSLOT pSlot = GetInvSlot(0, pcont->ItemSlot)) {
+			if (PEQINVSLOT pSlot = GetInvSlot(0, pcont->Contents.ItemSlot)) {
 				if (hidden) {
 					//put code to hide bag here
 					//until i can figure out how to call moveitemqty
@@ -8045,7 +8079,7 @@ BOOL CloseContainer(PCONTENTS pItem)
 {
 	if (!pItem)
 		return FALSE;
-	if (PCONTENTS pcont = FindItemBySlot(pItem->ItemSlot)) {
+	if (PCONTENTS pcont = FindItemBySlot(pItem->Contents.ItemSlot)) {
 		if (!pcont->Open)
 			return FALSE;
 		if (GetItemFromContents(pcont)->Type == ITEMTYPE_PACK) {
@@ -8064,9 +8098,8 @@ DWORD __stdcall WaitForBagToOpen(PVOID pData)
 	ItemContainerInstance type = (ItemContainerInstance)i64tmp->LowPart;
 	PCONTENTS pItem = (PCONTENTS)i64tmp->HighPart;
 	int timeout = 0;
-	if (PCONTENTS pcont = FindItemBySlot(pItem->ItemSlot)) {
-		//((EQ_Item*)pcont)-
-		if (CInvSlot * theslot = pInvSlotMgr->FindInvSlot(pItem->ItemSlot)) {
+	if (PCONTENTS pcont = FindItemBySlot(pItem->Contents.ItemSlot)) {
+		if (CInvSlot * theslot = pInvSlotMgr->FindInvSlot(pItem->Contents.ItemSlot)) {
 			if (((PEQINVSLOT)theslot)->pInvSlotWnd) {
 				while (!((PEQINVSLOT)theslot)->pInvSlotWnd->Wnd.dShow) {
 					Sleep(10);
@@ -8106,13 +8139,13 @@ BOOL PickupOrDropItem(ItemContainerInstance type, PCONTENTS pItem)
 	if (!pItem)
 		return FALSE;
 	PEQINVSLOTMGR pInvMgr = (PEQINVSLOTMGR)pInvSlotMgr;
-	WORD InvSlot = pItem->ItemSlot, BagSlot = 0xFFFF;
+	WORD InvSlot = pItem->Contents.ItemSlot, BagSlot = 0xFFFF;
 	BOOL itsinsideapack = 0;
 	if (IsItemInsideContainer(pItem)) {
 		itsinsideapack = 1;
 		if (pInvSlotMgr && pMerchantWnd && pMerchantWnd->dShow) {
 			OpenContainer(pItem, true);
-			if (CInvSlot * theslot = pInvSlotMgr->FindInvSlot(pItem->ItemSlot, pItem->ItemSlot2)) {
+			if (CInvSlot * theslot = pInvSlotMgr->FindInvSlot(pItem->Contents.ItemSlot, pItem->Contents.ItemSlot2)) {
 				PEQINVSLOT cSlot = (PEQINVSLOT)theslot;
 				//ok so here is how this works:
 				//we select the slot, and thet will set pSelectedItem correctly
@@ -8134,11 +8167,11 @@ BOOL PickupOrDropItem(ItemContainerInstance type, PCONTENTS pItem)
 			WriteChatf("[PickupOrDropItem]no invslot found");
 			return FALSE;
 		}
-		BagSlot = pItem->ItemSlot2;
+		BagSlot = pItem->Contents.ItemSlot2;
 	}
 	else {
 		if (pInvSlotMgr && pMerchantWnd && pMerchantWnd->dShow) {
-			if (CInvSlot * theslot = pInvSlotMgr->FindInvSlot(pItem->ItemSlot)) {
+			if (CInvSlot * theslot = pInvSlotMgr->FindInvSlot(pItem->Contents.ItemSlot)) {
 				PEQINVSLOT cSlot = (PEQINVSLOT)theslot;
 				pInvSlotMgr->SelectSlot(theslot);
 				ItemGlobalIndex To;// = { 0 };
@@ -8212,7 +8245,7 @@ BOOL PickupOrDropItem(ItemContainerInstance type, PCONTENTS pItem)
 						return FALSE;
 					}
 				}
-				pSlot = (PEQINVSLOT)pInvSlotMgr->FindInvSlot(pItem->ItemSlot, pItem->ItemSlot2);
+				pSlot = (PEQINVSLOT)pInvSlotMgr->FindInvSlot(pItem->Contents.ItemSlot, pItem->Contents.ItemSlot2);
 			}
 			if (!pSlot || !pSlot->pInvSlotWnd || !SendWndClick2((CXWnd*)pSlot->pInvSlotWnd, "leftmouseup"))
 			{
@@ -8794,9 +8827,9 @@ DWORD GetKeyRingIndex(DWORD KeyRing, PCHAR szItemName, SIZE_T BuffLen, bool bExa
 					if (PCHARINFO pCharInfo = GetCharInfo()) {
 						if (CharacterBase *cb = (CharacterBase *)&pCharInfo->pCharacterBase) {
 							ItemGlobalIndex location;
-							location.Location = (ItemContainerInstance)pCont->ItemLocation;
-							location.Index.Slot1 = pCont->ItemSlot;
-							location.Index.Slot2 = pCont->ItemSlot2;
+							location.Location = (ItemContainerInstance)pCont->Contents.ItemLocation;
+							location.Index.Slot1 = pCont->Contents.ItemSlot;
+							location.Index.Slot2 = pCont->Contents.ItemSlot2;
 							location.Index.Slot3 = -1;
 							bKeyring = location.IsKeyRingLocation();
 						}
@@ -9165,12 +9198,12 @@ int GetFreeInventory(int nSize)
 				if (pChar2->pInventoryArray && pChar2->pInventoryArray->InventoryArray && pChar2->pInventoryArray->InventoryArray[slot]) {
 					if (PCONTENTS pItem = pChar2->pInventoryArray->InventoryArray[slot]) {
 						if (GetItemFromContents(pItem)->Type == ITEMTYPE_PACK && GetItemFromContents(pItem)->SizeCapacity >= nSize) {
-							if (!pItem->pContentsArray) {
+							if (!pItem->Contents.ContainedItems.pItems) {
 								freeslots += GetItemFromContents(pItem)->Slots;
 							}
 							else {
 								for (DWORD pslot = 0; pslot < (GetItemFromContents(pItem)->Slots); pslot++) {
-									if (!pItem->pContentsArray->Contents[pslot]) {
+									if (!pItem->GetContent(pslot)) {
 										freeslots++;
 									}
 								}
@@ -9194,12 +9227,12 @@ int GetFreeInventory(int nSize)
 				if (pChar2->pInventoryArray && pChar2->pInventoryArray->InventoryArray && pChar2->pInventoryArray->InventoryArray[slot]) {
 					if (PCONTENTS pItem = pChar2->pInventoryArray->InventoryArray[slot]) {
 						if (GetItemFromContents(pItem)->Type == ITEMTYPE_PACK) {
-							if (!pItem->pContentsArray) {
+							if (!pItem->Contents.ContainedItems.pItems) {
 								freeslots += GetItemFromContents(pItem)->Slots;
 							}
 							else {
 								for (DWORD pslot = 0; pslot < (GetItemFromContents(pItem)->Slots); pslot++) {
-									if (!pItem->pContentsArray->Contents[pslot]) {
+									if (!pItem->GetContent(pslot)) {
 										freeslots++;
 									}
 								}
@@ -9217,6 +9250,15 @@ int GetFreeInventory(int nSize)
 		}
 	}
 	return freeslots;
+}
+struct _CONTENTS *CONTENTS::GetContent(UINT index)
+{
+	if (Contents.ContainedItems.pItems && Contents.ContainedItems.Capacity) {
+		if (index < Contents.ContainedItems.Capacity) {
+			return Contents.ContainedItems.pItems->Item[index];
+		}
+	}
+	return NULL;
 }
 //                                                                                               //
 ///////////////////////////////////////////////////////////////////////////////////////////////////

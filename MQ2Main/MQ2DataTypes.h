@@ -1887,7 +1887,7 @@ public:
 		Icon = 146,
 		SkillModMax = 147,
 		OrnamentationIcon = 148,
-		NumOfSlots1 = 149,
+		ContentSize = 149,
 		Open = 150,
 		NoTrade = 151,
 	};
@@ -2044,7 +2044,7 @@ public:
 		TypeMember(Icon);
 		TypeMember(SkillModMax);
 		TypeMember(OrnamentationIcon);
-		TypeMember(NumOfSlots1);
+		TypeMember(ContentSize);
 		TypeMember(Open);
 		TypeMember(NoTrade);
 	}

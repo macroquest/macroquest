@@ -1155,7 +1155,7 @@ typedef struct _EQLOOTWINDOW {
 /*0x02c4*/ DWORD        NumOfSlots;
 /*0x02c8*/ BYTE         Unknown0x02cc[0x4];
 /*0x02cc*/ struct _INVENTORYARRAY *     pInventoryArray;
-/*0x02d0*/ DWORD        NumOfSlots2;
+/*0x02d0*/ DWORD        Size;
 /*0x02d4*/ DWORD        NumOfSlots3;
 /*0x02d8*/ BYTE         Unknown0x02d8[0x8];
 /*0x02e0*/ BYTE         Unknown0x02e0;

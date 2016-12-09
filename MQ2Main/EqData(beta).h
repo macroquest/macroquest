@@ -442,6 +442,12 @@ enum MOUSE_DATA_TYPES {
 #define nullptr                         NULL
 #endif
 
+#define CALC_1TICK						107
+#define CALC_2TICK						108
+#define CALC_5TICK						120
+#define CALC_12TICK						122
+#define CALC_RANDOM						123
+
 #define SPA_AC                          1
 #define SPA_MOVEMENTRATE                3
 #define SPA_LURE                        10
@@ -472,6 +478,7 @@ enum MOUSE_DATA_TYPES {
 #define SPA_DAMAGECRITMOD               302
 #define SPA_SHIELDBLOCKCHANCE           320
 #define SPA_AC2                         416
+#define SPA_SPELLDAMAGETAKEN			484
 
 #define TT_PBAE                         0x04
 #define TT_TARGETED_AE                  0x08
@@ -723,10 +730,10 @@ typedef struct _CONTENTS {
 /*0x0020*/ BYTE		Unknown0x0020[0x1e];
 /*0x003e*/ BYTE		EvolvingExpOn;
 /*0x003f*/ BYTE		Unknown0x003f[0xd];
-/*0x004c*/ DWORD	NumOfSlots1;//ItemSlot is this address + 0x16 in 20130708
+/*0x004c*/ DWORD	Size;//ItemSlot is this address + 0x16 in 20130708
 /*0x0050*/ DWORD	ItemLocation;//0x1b mount 0x1d illusion
 /*0x0054*/ struct _CONTENTSARRAY*	pContentsArray;
-/*0x0058*/ DWORD	NumOfSlots2;
+/*0x0058*/ DWORD	Size;
 /*0x005c*/ BYTE		Unknown0x005c[0x6];
 /*0x0062*/ WORD		ItemSlot;           // Inventory slot id
 /*0x0064*/ WORD		ItemSlot2;          // Bag slot id, starts at 0 for first slot in bag, or FFFF if item is on cursor

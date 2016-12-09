@@ -2425,11 +2425,11 @@ VOID Cast(PSPAWNINFO pChar, PCHAR szLine)
 		else {
 			if (PCONTENTS pItem = FindItemByName(szArg2, true))
 			{
-				if (pItem->ItemSlot < NUM_INV_SLOTS)
+				if (pItem->Contents.ItemSlot < NUM_INV_SLOTS)
 				{
 					if (GetItemFromContents(pItem)->Clicky.SpellID > 0 && GetItemFromContents(pItem)->Clicky.SpellID != -1)
 					{
-						if (CInvSlot *pSlot = pInvSlotMgr->FindInvSlot(pItem->ItemSlot))
+						if (CInvSlot *pSlot = pInvSlotMgr->FindInvSlot(pItem->Contents.ItemSlot))
 						{
 							CXPoint p; p.A = 0; p.B = 0;
 							pSlot->HandleRButtonUp(&p);
@@ -2859,12 +2859,12 @@ VOID BankList(PSPAWNINFO pChar, PCHAR szLine)
 			GetItemLink(pContainer, Link);
 			sprintf_s(szTemp, "Slot %d: %dx %s (%s)", a, pContainer->StackCount ? pContainer->StackCount : 1, Link, GetItemFromContents(pContainer)->LoreName);
 			WriteChatColor(szTemp, USERCOLOR_DEFAULT);
-			if (pContainer->pContentsArray)
+			if (pContainer->Contents.ContainedItems.pItems)
 			{
 				for (int b = 0; b<GetItemFromContents(pContainer)->Slots; b++) {
-					if (pContainer->pContentsArray->Contents[b]) {
-						GetItemLink(pContainer->pContentsArray->Contents[b], Link);
-						sprintf_s(szTemp, "- Slot %d: %dx %s (%s)", b, pContainer->pContentsArray->Contents[b]->StackCount ? pContainer->pContentsArray->Contents[b]->StackCount : 1, Link, GetItemFromContents(pContainer->pContentsArray->Contents[b])->LoreName);
+					if (pContainer->Contents.ContainedItems.pItems->Item[b]) {
+						GetItemLink(pContainer->Contents.ContainedItems.pItems->Item[b], Link);
+						sprintf_s(szTemp, "- Slot %d: %dx %s (%s)", b, pContainer->Contents.ContainedItems.pItems->Item[b]->StackCount ? pContainer->Contents.ContainedItems.pItems->Item[b]->StackCount : 1, Link, GetItemFromContents(pContainer->Contents.ContainedItems.pItems->Item[b])->LoreName);
 						WriteChatColor(szTemp, USERCOLOR_DEFAULT);
 					}
 				}
@@ -3250,9 +3250,9 @@ VOID UseItemCmd(PSPAWNINFO pChar, PCHAR szLine)
 				if (PCHARINFO pCharInfo = GetCharInfo()) {
 					if (CharacterBase *cb = (CharacterBase *)&pCharInfo->pCharacterBase) {
 						ItemGlobalIndex location;
-						location.Location = (ItemContainerInstance)pItem->ItemLocation;
-						location.Index.Slot1 = pItem->ItemSlot;
-						location.Index.Slot2 = pItem->ItemSlot2;
+						location.Location = (ItemContainerInstance)pItem->Contents.ItemLocation;
+						location.Index.Slot1 = pItem->Contents.ItemSlot;
+						location.Index.Slot2 = pItem->Contents.ItemSlot2;
 						location.Index.Slot3 = -1;
 						bKeyring = location.IsKeyRingLocation();
 					}
@@ -3260,7 +3260,7 @@ VOID UseItemCmd(PSPAWNINFO pChar, PCHAR szLine)
 #endif
 				if (!bKeyring) {
 					CHAR szTemp[32] = { 0 };
-					sprintf_s(szTemp, "%d %d", pItem->ItemSlot, pItem->ItemSlot2);
+					sprintf_s(szTemp, "%d %d", pItem->Contents.ItemSlot, pItem->Contents.ItemSlot2);
 					cmdUseItem(pChar, szTemp);
 					RETURN(0);
 				}

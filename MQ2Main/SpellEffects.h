@@ -496,11 +496,20 @@
 		"Weapon Stance",						// 476
 		"Move to Top of Hatelist",				// 477
 		"Move to Bottom of Hatelist",			// 478
-		"Limit: Value Min",						// 479
-		"Limit: Value Max",						// 480
-		"Spell Cast Spell on Land",				// 481
-		"Skill Base Damage Mod",				// 482
-		"Spell Damage Taken",					// 483
-		"Spell Damage Taken",					// 484
+		"Limit: Value",							// 479
+		"Limit: Value",							// 480
+		"Trigger Spell",						// 481
+		"Base Hit Damage",						// 482
+		"Spell Damage taken",					// 483
+		"Spell Damage taken",					// 484
 		"Limit: CasterClass",					// 485
-		"Limit: Same Caster",					// 486
+		"Limit: Caster",						// 486
+		"Extend Tradeskill Cap",				// 487
+		"Defender Melee Force % (PC)",			// 488
+		"Worn Endurance Regen Cap",				// 489
+		"Ff_ReuseTimeMin",						// 490
+		"Ff_ReuseTimeMax",						// 491
+		"Ff_Endurance_Min",						// 492
+		"Ff_Endurance_Max",						// 493
+		"Pet Add Atk",							// 494
+		"Ff_DurationMax",						// 495

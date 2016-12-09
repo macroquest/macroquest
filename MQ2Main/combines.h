@@ -24,7 +24,7 @@
     "BackPack",             // 5 - Backpacks
     "Small Chest",          // 6 - Small box
     "Large Chest",          // 7 - Large Box
-    "Bandolier",                   // 8
+    "Bandolier",            // 8
     "Medicine",             // 9 - Medicine Bag
     "Tinkering",            //10 - Toolbox
     "lexicon",              //11 - Ancient Restoration
@@ -47,35 +47,35 @@
     NULL,                   //28 couldnt find this i suspect its serverside use only
     "Research Practice",    //29 - Concordance of Research
     "Alchemy",              //30 - Bearskin Potion Bag
-    "HighElf Only Forge",                   //31
-    "DarkElf Only Forge",                   //32
-    "Ogre Only Forge",                   //33
-    "Dwarf Only Forge",                   //34
-    "Gnome Only Forge",                   //35
-    "Barbarian Only Forge",                   //36
-    "Iksar Only Forge",                   //37
-    "Human Freeport Forge",                   //38
-    "Human Qeynos Forge",                   //39
-    "Halfling Tailor Kit",                   //40
-    "Halfling Tailor Kit",   //41 - Vale Sewing Kit
-    "Erudite Tailor Kit",                   //42
-    "Wood Elf Tailor Kit",                   //43
-    "Wood Elf Flecthing Kit",    //44 - Teir'Dal Fletching Kit
-    "Iksar Pottery Wheel",                   //45
+    "HighElf Only Forge",   //31
+    "DarkElf Only Forge",   //32
+    "Ogre Only Forge",      //33
+    "Dwarf Only Forge",     //34
+    "Gnome Only Forge",     //35
+    "Barbarian Only Forge", //36
+    "Iksar Only Forge",     //37
+    "Human Freeport Forge", //38
+    "Human Qeynos Forge",   //39
+    "Halfling Tailor Kit",  //40
+    "Halfling Tailor Kit",  //41 - Vale Sewing Kit
+    "Erudite Tailor Kit",   //42
+    "Wood Elf Tailor Kit",  //43
+    "Wood Elf Flecthing Kit",//44 - Teir'Dal Fletching Kit
+    "Iksar Pottery Wheel",  //45
     "Fishing",              //46 - Tacklebox
-    "Troll Forge",                   //47
-    "Wood Elf Forge",                   //48
-    "Halfling Forge",                   //49
-    "Erudite Forge",                   //50
+    "Troll Forge",          //47
+    "Wood Elf Forge",       //48
+    "Halfling Forge",       //49
+    "Erudite Forge",        //50
     "Merchant",             //51 - Trader's Satchel 
-    "Froglok Forge",                   //52
-    "Augmenter",                   //53
-    "Churn",                   //54
-    "Transformation Mold",                   //55
-    "DeTransformation Mold",                   //56
-    "Unattuner",                   //57
-    "Tradeskill Bag",     //58 - Extraplanar Trade Satchel
-    "Collectible Bag",     //59
-    "No Deposit",     //60
+    "Froglok Forge",        //52
+    "Augmenter",            //53
+    "Churn",                //54
+    "Transformation Mold",  //55
+    "DeTransformation Mold",//56
+    "Unattuner",            //57
+    "Tradeskill Bag",       //58 - Extraplanar Trade Satchel
+    "Collectible Bag",      //59
+    "No Deposit",           //60
 
 

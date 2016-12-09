@@ -1,3 +1,28 @@
+08 Dec 2016 by eqmule
+- Updated for TEST
+- Fixed a bug where FindItem and all its derivatives wouldn't look deeper than 20 slots into a bag.
+  Now it doesn't matter how many slots a bag has, it is dynamic.
+- I #pragma pack(8) where I need it now, dont change them.
+- In preparation for automatic updating of the CONTENTS struct
+-  I HAD to reorganise it.
+-  Therefor:
+-	NumOfSlots1 has been renamed to ContentSize Ths also effects macros that use the NumOfSlots1 member.
+-	NumOfSlots2 has been renamed to Size
+-
+-	MOST of these changes affect core only, I dont think there will be many plugins that needs updating
+-	BUT here are some examples of how to fix errors that I have seen:
+-	change:
+-	pItem->ItemSlot TO pItem->Contents.ItemSlot
+-	cSlot->pContentsArray TO cSlot->Contents.ContainedItems.pItems
+-	cSlot->pContentsArray->Contents[iPack] to cSlot->GetContent(iPack)
+-	pInvSlot->pContentsArray TO pInvSlot->Contents.ContainedItems.pItems
+-	pInvSlot->pContentsArray->Contents[ucPack] TO EITHER:
+-	pInvSlot->Contents.ContainedItems.pItems->Item[ucPack] OR SIMPLY JUST
+-	pInvSlot->GetContent(ucPack) BOTH return the exact same thing.
+
+06 Dec 2016 by rswiders
+- Fixed up the new SPA descriptions in spell display
+
 28 Nov 2016 by eqmule
 - Fixed ${Me.ManaRegen}
 - CButtonWnd now inherits CXWnd (cause it does).

@@ -1363,8 +1363,8 @@ template <unsigned int _Size> void AddGearScore_CheckAugSlot(ITEMINFO *pItem,flo
 
 	char  temp[MAX_STRING];
 	ITEMINFO *pAug = NULL;
-	if (pInvContent && pInvContent->pContentsArray && pInvContent->pContentsArray->Contents[AugSlot])
-		pAug = GetItemFromContents(pInvContent->pContentsArray->Contents[AugSlot]);
+	if (pInvContent && pInvContent->Contents.ContainedItems.pItems && pInvContent->Contents.ContainedItems.pItems->Item[AugSlot])
+		pAug = GetItemFromContents(pInvContent->Contents.ContainedItems.pItems->Item[AugSlot]);
 
 	if (!pAug) {
 		ClearAttribListVal();
@@ -1458,11 +1458,11 @@ int DoIHave(PITEMINFO Item)
 					}
 					else // for augs
 					{
-						if (pItem->pContentsArray && pItem->NumOfSlots2)
-							for (nAug = 0; nAug < pItem->NumOfSlots2; nAug++)
+						if (pItem->Contents.ContainedItems.pItems && pItem->Contents.ContainedItems.Size)
+							for (nAug = 0; nAug < pItem->Contents.ContainedItems.Size; nAug++)
 							{
-								if (pItem->pContentsArray->Contents[nAug] && GetItemFromContents(pItem->pContentsArray->Contents[nAug])->Type == ITEMTYPE_NORMAL && GetItemFromContents(pItem->pContentsArray->Contents[nAug])->AugType &&
-									GetItemFromContents(pItem->pContentsArray->Contents[nAug])->ItemNumber == ID)
+								if (pItem->Contents.ContainedItems.pItems->Item[nAug] && GetItemFromContents(pItem->Contents.ContainedItems.pItems->Item[nAug])->Type == ITEMTYPE_NORMAL && GetItemFromContents(pItem->Contents.ContainedItems.pItems->Item[nAug])->AugType &&
+									GetItemFromContents(pItem->Contents.ContainedItems.pItems->Item[nAug])->ItemNumber == ID)
 									nHowMany++;
 							}
 					}
@@ -1473,11 +1473,11 @@ int DoIHave(PITEMINFO Item)
 			{
 				if (PCONTENTS pPack = pChar2->pInventoryArray->Inventory.Pack[nPack])
 				{
-					if (GetItemFromContents(pPack)->Type == ITEMTYPE_PACK && pPack->pContentsArray)
+					if (GetItemFromContents(pPack)->Type == ITEMTYPE_PACK && pPack->Contents.ContainedItems.pItems)
 					{
 						for (unsigned long nItem = 0; nItem < GetItemFromContents(pPack)->Slots; nItem++)
 						{
-							if (PCONTENTS pItem = pPack->pContentsArray->Contents[nItem])
+							if (PCONTENTS pItem = pPack->Contents.ContainedItems.pItems->Item[nItem])
 							{
 								if (GetItemFromContents(pItem)->ItemNumber == ID)
 								{
@@ -1493,11 +1493,11 @@ int DoIHave(PITEMINFO Item)
 								}
 								else // for augs
 								{
-									if (pItem->pContentsArray && pItem->NumOfSlots2)
-										for (nAug = 0; nAug < pItem->NumOfSlots2; nAug++)
+									if (pItem->Contents.ContainedItems.pItems && pItem->Contents.ContainedItems.Size)
+										for (nAug = 0; nAug < pItem->Contents.ContainedItems.Size; nAug++)
 										{
-											if (pItem->pContentsArray->Contents[nAug] && GetItemFromContents(pItem->pContentsArray->Contents[nAug])->Type == ITEMTYPE_NORMAL && GetItemFromContents(pItem->pContentsArray->Contents[nAug])->AugType &&
-												GetItemFromContents(pItem->pContentsArray->Contents[nAug])->ItemNumber == ID)
+											if (pItem->Contents.ContainedItems.pItems->Item[nAug] && GetItemFromContents(pItem->Contents.ContainedItems.pItems->Item[nAug])->Type == ITEMTYPE_NORMAL && GetItemFromContents(pItem->Contents.ContainedItems.pItems->Item[nAug])->AugType &&
+												GetItemFromContents(pItem->Contents.ContainedItems.pItems->Item[nAug])->ItemNumber == ID)
 												nHowMany++;
 										}
 								}
@@ -1526,11 +1526,11 @@ int DoIHave(PITEMINFO Item)
 						else
 							nHowMany += pPack->StackCount;
 					}
-					if (GetItemFromContents(pPack)->Type == ITEMTYPE_PACK && pPack->pContentsArray)
+					if (GetItemFromContents(pPack)->Type == ITEMTYPE_PACK && pPack->Contents.ContainedItems.pItems)
 					{
 						for (unsigned long nItem = 0; nItem < GetItemFromContents(pPack)->Slots; nItem++)
 						{
-							if (PCONTENTS pItem = pPack->pContentsArray->Contents[nItem])
+							if (PCONTENTS pItem = pPack->Contents.ContainedItems.pItems->Item[nItem])
 							{
 								if (GetItemFromContents(pItem)->ItemNumber == ID)
 								{
@@ -1562,11 +1562,11 @@ int DoIHave(PITEMINFO Item)
 						else
 							nHowMany += pPack->StackCount;
 					}
-					if (GetItemFromContents(pPack)->Type == ITEMTYPE_PACK && pPack->pContentsArray)
+					if (GetItemFromContents(pPack)->Type == ITEMTYPE_PACK && pPack->Contents.ContainedItems.pItems)
 					{
 						for (unsigned long nItem = 0; nItem < GetItemFromContents(pPack)->Slots; nItem++)
 						{
-							if (PCONTENTS pItem = pPack->pContentsArray->Contents[nItem])
+							if (PCONTENTS pItem = pPack->Contents.ContainedItems.pItems->Item[nItem])
 							{
 								if (GetItemFromContents(pItem)->ItemNumber == ID)
 								{
@@ -1697,7 +1697,7 @@ template <unsigned int _Size> void AddGearScores(PCONTENTS pSlot,ITEMINFO *pItem
 	CurrScore = CalcItemGearScore(pItem);
 	if (CurrScore == 0) return;
 
-	CurrSlot = pSlot->ItemSlot;
+	CurrSlot = pSlot->Contents.ItemSlot;
 	BestScore=CurrScore;
 	BestSlot =0;
 	if (pItem->ItemType == ITEMITEMTYPE_AUGUMENT)

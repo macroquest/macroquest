@@ -981,7 +981,7 @@ TLO(dataSelectedItem)
 		else {//im working on this -eqmule 2013 dec 14
 			PCONTENTS pItem = FindItemByName("Worn Totem");
 			if (pItem) {
-				CInvSlot *pSlot = pInvSlotMgr->FindInvSlot(pItem->ItemSlot);
+				CInvSlot *pSlot = pInvSlotMgr->FindInvSlot(pItem->Contents.ItemSlot);
 				Sleep(0);
 			}
 		}
@@ -1088,11 +1088,11 @@ TLO(dataFindItem)
 		{
 			if (PCONTENTS pPack = pChar2->pInventoryArray->Inventory.Pack[nPack])
 			{
-				if (GetItemFromContents(pPack)->Type == ITEMTYPE_PACK && pPack->pContentsArray)
+				if (GetItemFromContents(pPack)->Type == ITEMTYPE_PACK && pPack->Contents.ContainedItems.pItems)
 				{
 					for (unsigned long nItem = 0; nItem < GetItemFromContents(pPack)->Slots; nItem++)
 					{
-						if (PCONTENTS pItem = pPack->pContentsArray->Contents[nItem])
+						if (PCONTENTS pItem = pPack->Contents.ContainedItems.pItems->Item[nItem])
 						{
 							if (PITEMINFO theitem = GetItemFromContents(pItem)) {
 								if (bExact)
@@ -1256,11 +1256,11 @@ TLO(dataFindItemCount)
 						}
 						else // for augs
 						{
-							if (pItem->pContentsArray && pItem->NumOfSlots2) {
-								for (nAug = 0; nAug < pItem->NumOfSlots2; nAug++)
+							if (pItem->Contents.ContainedItems.pItems && pItem->Contents.ContainedItems.Size) {
+								for (nAug = 0; nAug < pItem->Contents.ContainedItems.Size; nAug++)
 								{
-									if (pItem->pContentsArray->Contents[nAug]) {
-										if (PITEMINFO augitem = GetItemFromContents(pItem->pContentsArray->Contents[nAug])) {
+									if (pItem->Contents.ContainedItems.pItems->Item[nAug]) {
+										if (PITEMINFO augitem = GetItemFromContents(pItem->Contents.ContainedItems.pItems->Item[nAug])) {
 											if (augitem->Type == ITEMTYPE_NORMAL && augitem->AugType && !_stricmp(Name, augitem->Name)) {
 												Count++;
 											}
@@ -1284,11 +1284,11 @@ TLO(dataFindItemCount)
 						}
 						else // for augs
 						{
-							if (pItem->pContentsArray && pItem->NumOfSlots2) {
-								for (nAug = 0; nAug < pItem->NumOfSlots2; nAug++)
+							if (pItem->Contents.ContainedItems.pItems && pItem->Contents.ContainedItems.Capacity) {
+								for (nAug = 0; nAug < pItem->Contents.ContainedItems.Capacity; nAug++)
 								{
-									if (pItem->pContentsArray->Contents[nAug]) {
-										if (PITEMINFO pAug = GetItemFromContents(pItem->pContentsArray->Contents[nAug])) {
+									if (pItem->Contents.ContainedItems.pItems->Item[nAug]) {
+										if (PITEMINFO pAug = GetItemFromContents(pItem->GetContent(nAug))) {
 											strcpy_s(Temp, pAug->Name);
 											_strlwr_s(Temp);
 											if (pAug->Type == ITEMTYPE_NORMAL && pAug->AugType && strstr(Temp, Name)) {
@@ -1309,10 +1309,10 @@ TLO(dataFindItemCount)
 		{
 			if (PCONTENTS pPack = pChar2->pInventoryArray->Inventory.Pack[nPack]) {
 				if(PITEMINFO itempack = GetItemFromContents(pPack)) {
-					if (itempack->Type == ITEMTYPE_PACK && pPack->pContentsArray) {
+					if (itempack->Type == ITEMTYPE_PACK && pPack->Contents.ContainedItems.pItems) {
 						for (unsigned long nItem = 0; nItem < itempack->Slots; nItem++)
 						{
-							if (PCONTENTS pItem = pPack->pContentsArray->Contents[nItem])
+							if (PCONTENTS pItem = pPack->Contents.ContainedItems.pItems->Item[nItem])
 							{
 								if (PITEMINFO theitem = GetItemFromContents(pItem)) {
 									if (bExact)	{
@@ -1325,11 +1325,11 @@ TLO(dataFindItemCount)
 										}
 										else //check for augs
 										{
-											if (pItem->pContentsArray && pItem->NumOfSlots2) {
-												for (nAug = 0; nAug < pItem->NumOfSlots2; nAug++)
+											if (pItem->Contents.ContainedItems.pItems && pItem->Contents.ContainedItems.Size) {
+												for (nAug = 0; nAug < pItem->Contents.ContainedItems.Size; nAug++)
 												{
-													if (pItem->pContentsArray->Contents[nAug]) {
-														if (PITEMINFO pAug = GetItemFromContents(pItem->pContentsArray->Contents[nAug])) {
+													if (pItem->Contents.ContainedItems.pItems->Item[nAug]) {
+														if (PITEMINFO pAug = GetItemFromContents(pItem->Contents.ContainedItems.pItems->Item[nAug])) {
 															if (pAug->Type == ITEMTYPE_NORMAL && pAug->AugType && !_stricmp(Name, pAug->Name)) {
 																Count++;
 															}
@@ -1349,11 +1349,11 @@ TLO(dataFindItemCount)
 										}
 										else // for augs
 										{
-											if (pItem->pContentsArray && pItem->NumOfSlots2) {
-												for (nAug = 0; nAug < pItem->NumOfSlots2; nAug++)
+											if (pItem->Contents.ContainedItems.pItems && pItem->Contents.ContainedItems.Size) {
+												for (nAug = 0; nAug < pItem->Contents.ContainedItems.Size; nAug++)
 												{
-													if (pItem->pContentsArray->Contents[nAug]) {
-														if (PITEMINFO pAug = GetItemFromContents(pItem->pContentsArray->Contents[nAug])) {
+													if (pItem->Contents.ContainedItems.pItems->Item[nAug]) {
+														if (PITEMINFO pAug = GetItemFromContents(pItem->Contents.ContainedItems.pItems->Item[nAug])) {
 															strcpy_s(Temp, pAug->Name);
 															_strlwr_s(Temp);
 															if (pAug->Type == ITEMTYPE_NORMAL && pAug->AugType && strstr(Temp, Name)) {
@@ -1431,11 +1431,11 @@ TLO(dataFindItemBankCount)
 							Count += pPack->StackCount;
 					}
 				}
-				if (theitem->Type == ITEMTYPE_PACK && pPack->pContentsArray)
+				if (theitem->Type == ITEMTYPE_PACK && pPack->Contents.ContainedItems.pItems)
 				{
 					for (unsigned long nItem = 0; nItem < theitem->Slots; nItem++)
 					{
-						if (PCONTENTS pItem = pPack->pContentsArray->Contents[nItem])
+						if (PCONTENTS pItem = pPack->Contents.ContainedItems.pItems->Item[nItem])
 						{
 							if (PITEMINFO theitem = GetItemFromContents(pItem)) {
 								if (bExact)
@@ -1497,11 +1497,11 @@ TLO(dataFindItemBankCount)
 							Count += pPack->StackCount;
 					}
 				}
-				if (theitem->Type == ITEMTYPE_PACK && pPack->pContentsArray)
+				if (theitem->Type == ITEMTYPE_PACK && pPack->Contents.ContainedItems.pItems)
 				{
 					for (unsigned long nItem = 0; nItem < theitem->Slots; nItem++)
 					{
-						if (PCONTENTS pItem = pPack->pContentsArray->Contents[nItem])
+						if (PCONTENTS pItem = pPack->Contents.ContainedItems.pItems->Item[nItem])
 						{
 							if (PITEMINFO pStuff = GetItemFromContents(pItem)) {
 								if (bExact)

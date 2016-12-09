@@ -643,16 +643,19 @@ namespace MQ2Globals
 #include "combines.h"
 		NULL
 	};
+	SIZE_T MAX_COMBINES = sizeof(szCombineTypes) / sizeof(PCHAR);
 
 	PCHAR szItemTypes[] = {
 #include "itemtypes.h"
 		NULL
 	};
+	SIZE_T MAX_ITEMTYPES = sizeof(szItemTypes) / sizeof(PCHAR);
 
 	PCHAR szSPATypes[] = {
 #include "SpellEffects.h"
 		NULL
 	};
+	SIZE_T MAX_SPELLEFFECTS = sizeof(szSPATypes) / sizeof(PCHAR);
 
 	PCHAR szZoneExpansionName[] = {
 		"Original EQ",              //0

@@ -900,7 +900,8 @@ PLUGIN_API VOID InitializePlugin(VOID)
 	//MessageBox(NULL, "Inject now", "MQ2 Debug", MB_OK|MB_SYSTEMMODAL);
 	int sizeofSPAWNINFO = sizeof(SPAWNINFO);
 	int sizeofCXWnd = sizeof(CXWnd);
-	//int sizeofCXWND = sizeof(CXWND);
+	int sizeofCONTENTS = sizeof(CONTENTS);
+
 	CHAR szPath[MAX_PATH] = { 0 };
     GetPrivateProfileStringA("Settings", "IniLocation", 0, szPath, MAX_PATH, INIFileName);
     if(szPath[0])
@@ -1341,7 +1342,8 @@ void HandleWindows()
 		if (pWnd = WindowMap["connect"]->_GetChildItem("LOGIN_UsernameEdit")) {
 			if (bUseMQ2Login) {
 				AutoLoginDebug("HandleWindows(): Using MQ2Login Method");
-				GetCXStr(((CSidlScreenWnd*)pWnd)->InputText, szStationName, 64);
+				CSidlScreenWnd *csidlwnd = (CSidlScreenWnd*)pWnd;
+				GetCXStr(csidlwnd->InputText, szStationName, 64);
 				if (szStationName[0]) {
 					if (char *pDest = strchr(szStationName, '_')) {
 						//we have a mq2login user... good boy/girl :) welcome to 2016.

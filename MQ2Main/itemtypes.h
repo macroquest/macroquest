@@ -69,20 +69,20 @@
    "Charm",                 //52
    "Dye",                   //53
    "Augmentation",          //54
-   "Augmentat Destroy Solvent",          //55
-   "Augmentat Remove Solvent",          //56
+   "Augmentat Destroy Solvent",//55
+   "Augmentat Remove Solvent", //56
    "Alternate Ability",     //57
    "Guild Banner Kit",      //58
-   "Guild Banner Modify Token",      //59
+   "Guild Banner Modify Token",//59
    "Recipe Book",           //60 (the kind of book u learn from when you right clik it.
-   "Voluntary Spellcast Book",      //61 (a book that when u right click it will cast a spell and ask you if thats ok)
+   "Voluntary Spellcast Book", //61 (a book that when u right click it will cast a spell and ask you if thats ok)
    "Auto Spellcast Book",   //62 (a book that when u right click it will cast a spell automatically, no questions asked...)
    "Point Currency",        //63
-   "Universal Augment Solvent",        //64
-   "Placeable",            //65 (not really an item type, but used in bazaar search)
-   "Collectible",            //66 (not really an item type, but used in bazaar search)
-   "Container",            //67 (not really an item type, but used in bazaar search)
-   "Mount",                //68
-   "Illusion",             //69
-   "Familiar",             //70
+   "Universal Augment Solvent",//64
+   "Placeable",             //65 (not really an item type, but used in bazaar search)
+   "Collectible",           //66 (not really an item type, but used in bazaar search)
+   "Container",             //67 (not really an item type, but used in bazaar search)
+   "Mount",                 //68
+   "Illusion",              //69
+   "Familiar",              //70
 

@@ -110,7 +110,7 @@ CItemLocation* ItemFind(CItemLocation* pItemFound, char* pcItemName, unsigned sh
 		for (usSlot = usMin; usSlot < usInvSlots; usSlot++) {
 			if (PCONTENTS pItem2 = pChar2->pInventoryArray->InventoryArray[usSlot]) {
 				if ((iIsNum && iItemID == GetItemFromContents(pItem2)->ItemNumber) || (!iIsNum && !_stricmp(pcItemName, GetItemFromContents(pItem2)->Name))) {
-                    pItemFound->InvSlot   = pItem2->ItemSlot;
+                    pItemFound->InvSlot   = pItem2->Contents.ItemSlot;
 					pItemFound->BagSlot   = 0xFFFF;
                     pItemFound->pInvSlot  = pItem2;
                     pItemFound->pBagSlot  = pItem2;
@@ -118,12 +118,12 @@ CItemLocation* ItemFind(CItemLocation* pItemFound, char* pcItemName, unsigned sh
                     return pItemFound;
 				}
                 // else if there is a non-empty bag in this slot
-				if (GetItemFromContents(pItem2)->Type==ITEMTYPE_PACK && pItem2->pContentsArray) {
+				if (GetItemFromContents(pItem2)->Type==ITEMTYPE_PACK && pItem2->Contents.ContainedItems.pItems) {
 					for (unsigned long nItem=0; nItem < GetItemFromContents(pItem2)->Slots; nItem++) {
-						if (PCONTENTS pBagSlot = pItem2->pContentsArray->Contents[nItem]) {
+						if (PCONTENTS pBagSlot = pItem2->Contents.ContainedItems.pItems->Item[nItem]) {
 							if ((iIsNum && iItemID == GetItemFromContents(pBagSlot)->ItemNumber) || (!iIsNum && !_stricmp(pcItemName, GetItemFromContents(pBagSlot)->Name))) {
-                               pItemFound->InvSlot   = pBagSlot->ItemSlot;
-					           pItemFound->BagSlot   = pBagSlot->ItemSlot2;
+                               pItemFound->InvSlot   = pBagSlot->Contents.ItemSlot;
+					           pItemFound->BagSlot   = pBagSlot->Contents.ItemSlot2;
                                pItemFound->pInvSlot  = pItem2;
                                pItemFound->pBagSlot  = pBagSlot;
 					           pItemFound->pItem     = pBagSlot;
@@ -191,11 +191,11 @@ template <unsigned int _Size> unsigned long CountItemByName(CHAR(&pcItemName)[_S
                     ulCount++; // increment by a single item
                 }
             // else if there is a non-empty bag in this slot
-		    } else if (pItemInfo && TypePack(pInvSlot) && pInvSlot->pContentsArray) {
+		    } else if (pItemInfo && TypePack(pInvSlot) && pInvSlot->Contents.ContainedItems.pItems) {
                 // cycle through the number of pack slots
                 unsigned short usPack = 0;
                 for (usPack = 0; usPack < pItemInfo->Slots; usPack++) {
-                    if (PCONTENTS pBagSlot = pInvSlot->pContentsArray->Contents[usPack]) {
+                    if (PCONTENTS pBagSlot = pInvSlot->Contents.ContainedItems.pItems->Item[usPack]) {
                         PITEMINFO pBagInfo = GetItemFromContents(pBagSlot);
                         if (pBagInfo && !_stricmp(pcItemName, pBagInfo->Name)) {
                             if (ItemIsStackable(pBagSlot)) {
@@ -229,11 +229,11 @@ unsigned long CountItemByID(unsigned long ulID, unsigned short usMin, unsigned s
                     ulCount++; // increment by a single item
                 }
             // else if there is a non-empty bag in this slot
-		    } else if (pItemInfo && TypePack(pInvSlot) && pInvSlot->pContentsArray) {
+		    } else if (pItemInfo && TypePack(pInvSlot) && pInvSlot->Contents.ContainedItems.pItems) {
                 // cycle through the number of pack slots
                 unsigned short usPack = 0;
                 for (usPack = 0; usPack < pItemInfo->Slots; usPack++) {
-                    if (PCONTENTS pBagSlot = pInvSlot->pContentsArray->Contents[usPack]) {
+                    if (PCONTENTS pBagSlot = pInvSlot->Contents.ContainedItems.pItems->Item[usPack]) {
                         PITEMINFO pBagInfo = GetItemFromContents(pBagSlot);
                         if (ulID == pBagInfo->ItemNumber) {
                             if (ItemIsStackable(pBagSlot)) {
@@ -277,17 +277,17 @@ CItemLocation* PackFind(CItemLocation* pFreeSlot, PCONTENTS pUnequipSlot)
             PITEMINFO pItemInfo    = GetItemFromContents(pInvSlot);
             PITEMINFO pUnequipInfo = GetItemFromContents(pUnequipSlot);
 
-            if (pItemInfo && pUnequipInfo && TypePack(pInvSlot) && pInvSlot->pContentsArray && pItemInfo->Combine != 2 && pUnequipInfo->Size <= pItemInfo->SizeCapacity) { 
-                PCONTENTS pLAST = pInvSlot->pContentsArray->Contents[0];
+            if (pItemInfo && pUnequipInfo && TypePack(pInvSlot) && pInvSlot->Contents.ContainedItems.pItems && pItemInfo->Combine != 2 && pUnequipInfo->Size <= pItemInfo->SizeCapacity) { 
+                PCONTENTS pLAST = pInvSlot->Contents.ContainedItems.pItems->Item[0];
 
                 unsigned short usPack = 0;
                 for (usPack = 0; usPack < pItemInfo->Slots; usPack++) {
-                    if (!pInvSlot->pContentsArray->Contents[usPack]) {
+                    if (!pInvSlot->Contents.ContainedItems.pItems->Item[usPack]) {
                         //DebugSpewAlways("no pointer at %hu of pack %hu", usPack, usSlot);
                         if (pLAST) {
-                            pFreeSlot->InvSlot   = pInvSlot->ItemSlot;
+                            pFreeSlot->InvSlot   = pInvSlot->Contents.ItemSlot;
                             pFreeSlot->BagSlot   = usPack;
-                            pFreeSlot->pBagSlot  = pInvSlot->pContentsArray->Contents[usPack]; // will be NULL
+                            pFreeSlot->pBagSlot  = pInvSlot->Contents.ContainedItems.pItems->Item[usPack]; // will be NULL
                             pFreeSlot->pInvSlot  = pInvSlot;
                             return pFreeSlot;
                         // else first bag slot was empty
@@ -296,13 +296,13 @@ CItemLocation* PackFind(CItemLocation* pFreeSlot, PCONTENTS pUnequipSlot)
                         }
                     } else if (usDecrement) {
                         //DebugSpewAlways("pack %hu minus decrement %hu equals %hu", usPack, usDecrement, usPack-usDecrement);
-                        pFreeSlot->InvSlot    = pInvSlot->ItemSlot;
+                        pFreeSlot->InvSlot    = pInvSlot->Contents.ItemSlot;
                         pFreeSlot->BagSlot    = usPack;
-                        pFreeSlot->pBagSlot   = pInvSlot->pContentsArray->Contents[usPack - usDecrement]; // will be NULL
+                        pFreeSlot->pBagSlot   = pInvSlot->Contents.ContainedItems.pItems->Item[usPack - usDecrement]; // will be NULL
                         pFreeSlot->pInvSlot   = pInvSlot;
                         return pFreeSlot;
                     }
-                    pLAST = pInvSlot->pContentsArray->Contents[usPack];
+                    pLAST = pInvSlot->Contents.ContainedItems.pItems->Item[usPack];
                 }
                 usDecrement = 0;
                 pLAST = NULL;
@@ -325,7 +325,7 @@ long FindSlotForPack()
         }
         PITEMINFO pItemInfo = GetItemFromContents(pInvSlot);
         // if there is an item that is not a pack             // if the item is a pack, but the pack is empty, we can swap it
-        if (pItemInfo && ((pItemInfo->Type != ITEMTYPE_PACK) || (pItemInfo->Type == ITEMTYPE_PACK && !pInvSlot->pContentsArray))) {
+        if (pItemInfo && ((pItemInfo->Type != ITEMTYPE_PACK) || (pItemInfo->Type == ITEMTYPE_PACK && !pInvSlot->Contents.ContainedItems.pItems))) {
             return lSlot;
         }
     }
@@ -351,10 +351,10 @@ long FreeSlotForItem(PCONTENTS pItem)
             }
             // search through the pack for a free slot
             if (TypePack(pInvSlot) && pItemInfo->Size <= pSlotInfo->SizeCapacity && (pSlotInfo->Combine == 2) ? (pItemInfo->ItemType == 27) : true) {
-                if (!pInvSlot->pContentsArray) return NOID; // the pack is empty, use autoinventory
+                if (!pInvSlot->Contents.ContainedItems.pItems) return NOID; // the pack is empty, use autoinventory
                 unsigned short usPack = 0;
                 for (usPack = 0; usPack < pSlotInfo->Slots; usPack++) {
-                    PCONTENTS pBagSlot = pInvSlot->pContentsArray->Contents[usPack];
+                    PCONTENTS pBagSlot = pInvSlot->Contents.ContainedItems.pItems->Item[usPack];
                     if (!pBagSlot) return NOID;
                     PITEMINFO pBagInfo = GetItemFromContents(pBagSlot);
                     if (bCheckStack && pItemInfo->ItemNumber == pBagInfo->ItemNumber && StackHasRoom(pBagSlot)) return NOID;
