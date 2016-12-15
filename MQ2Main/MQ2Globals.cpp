@@ -1591,6 +1591,7 @@ namespace MQ2Globals
 
 	INITIALIZE_EQGAME_OFFSET(CEverQuest__ClickedPlayer);
 	INITIALIZE_EQGAME_OFFSET(CEverQuest__DoTellWindow);
+	INITIALIZE_EQGAME_OFFSET(CEverQuest__OutputTextToLog);
 	INITIALIZE_EQGAME_OFFSET(CEverQuest__DropHeldItemOnGround);
 	INITIALIZE_EQGAME_OFFSET(CEverQuest__dsp_chat);
 	INITIALIZE_EQGAME_OFFSET(CEverQuest__trimName);
@@ -1971,6 +1972,8 @@ namespace MQ2Globals
 	INITIALIZE_EQGAME_OFFSET(ItemBaseContainer__CreateItemGlobalIndex);
 	INITIALIZE_EQGAME_OFFSET(CLargeDialogWnd__Open);
 	INITIALIZE_EQGAME_OFFSET(CWndDisplayManager__FindWindowA);
+	INITIALIZE_EQGAME_OFFSET(CCursorAttachment__AttachToCursor);
+	INITIALIZE_EQGAME_OFFSET(CCursorAttachment__Deactivate);
 	
 #ifdef __ExecuteCmd_x
 #ifndef EMU

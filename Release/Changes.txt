@@ -1,3 +1,9 @@
+15 Dec 2016 by eqmule
+- Fix: double timestamps in the eqlog is no longer happening so you can turn on /timestamp again.
+- Fixed a bug in FindItem and its derivatives where it needed signed parameters.
+- Fixed the EQINVSLOTWND struct, it was off by a few bytes.
+  Yes that means .InvSlot will once again "work" (dont effing use it. in your macros, use ItemSlot and ItemSlot2)
+
 14 Dec 2016 by eqmule
 - GuildID in SPAWNINFO is a __init64 now... not by my design, it just is
   I have tried to make it backwards compaible with the spawn guild tlo which is still a DWORD
@@ -9,7 +15,7 @@
   char  *pGuild = GetGuildByID( guildlarge.LowPart,guildlarge.HighPart );
 -
 - I started correcting the iteminfo struct it's a work in progress so expect more changes to fully implement this.
-- Initially the Augment members has gotten a review (and a fix they where broken)
+- Initially the Augment members has gotten a review (and a fix since they where broken)
 - So... AugSlot1 etc is now part of its own class
 - therefor:
 - pitem->AugSlot1 is now pitem->AugData.Sockets[0].Type

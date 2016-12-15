@@ -420,6 +420,7 @@ GNU General Public License for more details.
 #define CEverQuest__CreateTargetIndicator_x                        0x552DC0
 #define CEverQuest__DeleteTargetIndicator_x                        0x552E40
 #define CEverQuest__DoTellWindow_x                                 0x472B70
+#define CEverQuest__OutputTextToLog_x                              0x4727D0
 #define CEverQuest__DropHeldItemOnGround_x                         0x568FE0
 #define CEverQuest__dsp_chat_x                                     0x472EB0
 #define CEverQuest__trimName_x                                     0x54E820

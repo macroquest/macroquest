@@ -1157,23 +1157,23 @@ typedef struct _EQCASTSPELLWINDOW {
 typedef struct _EQINVSLOTWND {
 /*0x0000*/ struct _CXWND Wnd;      //----/ actually CButtonWnd
 /*0x01d8*/ BYTE         Unknown0x01d8[0x88];
-/*0x0260*/ BYTE         Unknown0x0260[0x10];
-/*0x0270*/ LONG         WindowType;        // ieatacid has this as InventoryType
+/*0x0260*/ BYTE         Unknown0x0260[0x14];
+/*0x0274*/ LONG         WindowType;        // ieatacid has this as InventoryType
 											// 00 for inventory
 											// 01 for bank
 											// 02 for shared bank
 											// 03 for trader window
 											// 04 for World/Tradeskill/Combine
 											// 11 for loot window
-/*0x0274*/ WORD         InvSlot;
-/*0x0276*/ WORD         BagSlot;
-/*0x0278*/ WORD         GlobalSlot;
-/*0x027a*/ WORD         RandomNum;              //no idea what this is, it changes upon login but we need it for moveitem... -eqmule
-/*0x027c*/ BYTE         Unknown0x027c[0x20];
-/*0x029c*/ struct _EQINVSLOT *  pInvSlot;
-/*0x02a0*/ BYTE         Unknown0x02a0[0x8];
-/*0x02a8*/ BOOL         ProcessClick;
-/*0x02ac*/ BYTE         Unknown0x02ac[0x14];
+/*0x0278*/ short        InvSlot;
+/*0x027a*/ short        BagSlot;
+/*0x027c*/ short        GlobalSlot;
+/*0x027e*/ short        RandomNum;              //no idea what this is, it changes upon login but we need it for moveitem... -eqmule
+/*0x0280*/ BYTE         Unknown0x0280[0x20];
+/*0x02a0*/ struct _EQINVSLOT *  pInvSlot;
+/*0x02a4*/ BYTE         Unknown0x02a4[0x8];
+/*0x02ac*/ BOOL         ProcessClick;
+/*0x02b0*/ BYTE         Unknown0x02ac[0x10];
 /*0x02c0*/
 } EQINVSLOTWND, *PEQINVSLOTWND;
 

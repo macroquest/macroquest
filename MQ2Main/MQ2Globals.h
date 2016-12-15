@@ -1061,6 +1061,7 @@ namespace MQ2Globals
 
 	EQLIB_VAR DWORD CEverQuest__ClickedPlayer;
 	EQLIB_VAR DWORD CEverQuest__DoTellWindow;
+	EQLIB_VAR DWORD CEverQuest__OutputTextToLog;
 	EQLIB_VAR DWORD CEverQuest__DropHeldItemOnGround;
 	EQLIB_VAR DWORD CEverQuest__dsp_chat;
 	EQLIB_VAR DWORD CEverQuest__trimName;
@@ -1449,6 +1450,7 @@ namespace MQ2Globals
 	EQLIB_VAR DWORD ItemGlobalIndex__IsValidIndex;
 	EQLIB_VAR DWORD CLargeDialogWnd__Open;
 	EQLIB_VAR DWORD CWndDisplayManager__FindWindowA;
-	
+	EQLIB_VAR DWORD CCursorAttachment__AttachToCursor;
+	EQLIB_VAR DWORD CCursorAttachment__Deactivate;
 }
 using namespace MQ2Globals;

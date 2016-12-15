@@ -7684,7 +7684,7 @@ PCONTENTS FindItemByName(PCHAR pName, BOOL bExact)
 #endif
 	return 0;
 }
-PCONTENTS FindItemByID(DWORD ItemID)
+PCONTENTS FindItemByID(int ItemID)
 {
 	PCHARINFO2 pChar2 = GetCharInfo2();
 	if (pChar2 && pChar2->pInventoryArray && pChar2->pInventoryArray->InventoryArray) {
@@ -7766,7 +7766,7 @@ PCONTENTS FindItemByID(DWORD ItemID)
 #endif
 	return 0;
 }
-PCONTENTS FindItemBySlot(WORD InvSlot, WORD BagSlot, ItemContainerInstance location)
+PCONTENTS FindItemBySlot(short InvSlot, short BagSlot, ItemContainerInstance location)
 {
 	PCHARINFO2 pChar2 = GetCharInfo2();
 	if (location == eItemContainerPossessions) {
@@ -8042,7 +8042,7 @@ PCONTENTS FindBankItemByID(int ID)
 	}
 	return NULL;
 }
-PEQINVSLOT GetInvSlot(DWORD type, WORD invslot, WORD bagslot)
+PEQINVSLOT GetInvSlot(DWORD type, short invslot, short bagslot)
 {
 	PEQINVSLOTMGR pInvMgr = (PEQINVSLOTMGR)pInvSlotMgr;
 	if (pInvMgr) {
@@ -8160,165 +8160,278 @@ DWORD __stdcall WaitForBagToOpen(PVOID pData)
 	Sleep(100);
 	bool Old = ((PCXWNDMGR)pWndMgr)->KeyboardFlags[1];
 	((PCXWNDMGR)pWndMgr)->KeyboardFlags[1] = 1;
-	PickupOrDropItem(type, pItem);
+	if (ItemOnCursor()) {
+		DropItem(type, pItem->Contents.ItemSlot,pItem->Contents.ItemSlot);
+	} else {
+		PickupItem(type, pItem);
+	}
 	((PCXWNDMGR)pWndMgr)->KeyboardFlags[1] = Old;
 	LocalFree(pData);
 	//CloseContainer(pItem);
 	return 1;
 }
-BOOL PickupOrDropItem(ItemContainerInstance type, PCONTENTS pItem)
+bool ItemOnCursor()
 {
-	//check if merchantwindow is open
-	//if it is do some magic and open the bag so we can get the pslot
-	if (!pItem)
+	PCHARINFO2 pChar2 = GetCharInfo2();
+	if (pChar2 && pChar2->pInventoryArray && pChar2->pInventoryArray->Inventory.Cursor) {
+		return true;
+	}
+	return false;
+}
+BOOL PickupItem(ItemContainerInstance type, PCONTENTS pItem)
+{
+	if (!pItem) {
 		return FALSE;
+	}
+	bool bSelectSlot = false;
 	PEQINVSLOTMGR pInvMgr = (PEQINVSLOTMGR)pInvSlotMgr;
-	WORD InvSlot = pItem->Contents.ItemSlot, BagSlot = 0xFFFF;
-	BOOL itsinsideapack = 0;
-	if (IsItemInsideContainer(pItem)) {
-		itsinsideapack = 1;
-		if (pInvSlotMgr && pMerchantWnd && pMerchantWnd->dShow) {
-			OpenContainer(pItem, true);
+	if (pInvSlotMgr && pMerchantWnd && pMerchantWnd->dShow) {
+		//if the merchant window is open, we dont actually drop anything we just select the slot
+		bSelectSlot = true;
+	}
+	
+	if (pItem->Contents.ItemSlot2 == -1) {//ok so they want to pick it up from a toplevelslot
+		PEQINVSLOT pSlot = GetInvSlot(type, pItem->Contents.ItemSlot);
+		if (!pSlot || !pSlot->pInvSlotWnd) {
+			//if we got all the way here this really shouldnt happen... but why assume...
+			WriteChatf("Could not find the %d itemslot", pItem->Contents.ItemSlot);
+			return FALSE;
+		}
+		if (bSelectSlot) {
+			if (CInvSlot * theslot = pInvSlotMgr->FindInvSlot(pItem->Contents.ItemSlot)) {
+				PEQINVSLOT cSlot = (PEQINVSLOT)theslot;
+				pInvSlotMgr->SelectSlot(theslot);
+				ItemGlobalIndex To;
+				To.Location = eItemContainerPossessions;
+				To.Index.Slot1 = cSlot->pInvSlotWnd->InvSlot;
+				To.Index.Slot2 = cSlot->pInvSlotWnd->BagSlot;
+				To.Index.Slot3 = -1;
+				pMerchantWnd->ActualSelect(&To);
+				return TRUE;
+			}
+		} else {
+			//just move it from the slot to the cursor
+			ItemGlobalIndex From;
+			From.Location = (ItemContainerInstance)pItem->Contents.ItemLocation;
+			From.Index.Slot1 = pItem->Contents.ItemSlot;
+			From.Index.Slot2 = -1;
+			From.Index.Slot3 = -1;
+
+			ItemGlobalIndex To;
+			To.Location = eItemContainerPossessions;
+			To.Index.Slot1 = eItemContainerCursor;
+			To.Index.Slot2 = -1;
+			To.Index.Slot3 = -1;
+			pInvSlotMgr->MoveItem(&From, &To, true, true, false, false);
+			return TRUE;
+		}
+	}
+	else {//BagSlot is NOT -1 so they want to pick it up from INSIDE a bag
+		if (bSelectSlot) {
 			if (CInvSlot * theslot = pInvSlotMgr->FindInvSlot(pItem->Contents.ItemSlot, pItem->Contents.ItemSlot2)) {
+				PEQINVSLOT cSlot = (PEQINVSLOT)theslot;
+				pInvSlotMgr->SelectSlot(theslot);
+				ItemGlobalIndex To;
+				To.Location = eItemContainerPossessions;
+				To.Index.Slot1 = cSlot->pInvSlotWnd->InvSlot;
+				To.Index.Slot2 = cSlot->pInvSlotWnd->BagSlot;
+				To.Index.Slot3 = -1;
+				pMerchantWnd->ActualSelect(&To);
+				return TRUE;
+			}
+			else {
+				//well now is where it gets complicated then... or not...
+				ItemGlobalIndex To;
+				To.Location = eItemContainerPossessions;
+				To.Index.Slot1 = pItem->Contents.ItemSlot;
+				To.Index.Slot2 = pItem->Contents.ItemSlot2;
+				To.Index.Slot3 = -1;
+				pMerchantWnd->ActualSelect(&To);
+				return TRUE;
+			}
+		}
+		else {//not a selected slot
+		 //ok so its a slot inside a bag
+		 //is ctrl pressed?
+		 //if it is we HAVE to open the bag, until I get a bypass worked out
+			DWORD keybflag = pWndMgr->GetKeyboardFlags();
+			if (keybflag == 2 && pItem->StackCount > 1) {//ctrl was pressed and it is a stackable item
+				//I need to open the bag and notify it cause moveitem only picks up full stacks
+				PEQINVSLOT pSlot = GetInvSlot(pItem->Contents.ItemLocation, pItem->Contents.ItemSlot,pItem->Contents.ItemSlot2);
+				if (!pSlot) {
+					//well lets try to open it then
+					if (PCONTENTS pBag = FindItemBySlot(pItem->Contents.ItemSlot)) {
+						BOOL wechangedpackopenstatus = OpenContainer(pBag, true);
+						if (wechangedpackopenstatus) {
+							if (PLARGE_INTEGER i64tmp = (PLARGE_INTEGER)LocalAlloc(LPTR, sizeof(LARGE_INTEGER))) {
+								i64tmp->LowPart = type;
+								i64tmp->HighPart = (LONG)pItem;
+								DWORD nThreadId = 0;
+								CreateThread(NULL, 0, WaitForBagToOpen, i64tmp, 0, &nThreadId);
+								return FALSE;
+							}
+						}
+					} else {
+						WriteChatf("[PickupItem] falied due to no bag found in slot %d",pItem->Contents.ItemSlot);
+						return FALSE;
+					}
+				} else {
+					//ok so the bag is open...
+					//well we just select it then...
+					if (!pSlot->pInvSlotWnd || !SendWndClick2((CXWnd*)pSlot->pInvSlotWnd, "leftmouseup"))
+					{
+						WriteChatf("Could not pickup %s", GetItemFromContents(pItem)->Name);
+					}
+					return TRUE;
+				}
+				//thread this? hmm if i close it before item ends up on cursor, it wont...
+				//if(wechangedpackopenstatus)
+				//	CloseContainer(pItem);
+				return FALSE;
+			}
+			else {//ctrl is NOT pressed
+			 //we can just move the whole stack
+				ItemGlobalIndex From;
+				From.Location = (ItemContainerInstance)pItem->Contents.ItemLocation;
+				From.Index.Slot1 = pItem->Contents.ItemSlot;
+				From.Index.Slot2 = pItem->Contents.ItemSlot2;
+				From.Index.Slot3 = -1;
+
+				ItemGlobalIndex To;
+				To.Location = eItemContainerPossessions;
+				To.Index.Slot1 = eItemContainerCursor;
+				To.Index.Slot2 = -1;
+				To.Index.Slot3 = -1;
+				PCHARINFO2 pChar2 = GetCharInfo2();
+				PCONTENTS pContBefore = pChar2->pInventoryArray->Inventory.Cursor;
+				pInvSlotMgr->MoveItem(&From, &To, true, true, false, true);
+				try {
+					if (pChar2 && pChar2->pInventoryArray && pChar2->pInventoryArray->Inventory.Cursor) {
+						PCONTENTS pContAfter = pChar2->pInventoryArray->Inventory.Cursor;
+						DWORD ig = 0;
+						EqItemGuid g;
+						memcpy(&g.guid, &pContAfter->ItemGUID, g.GUID);
+						CCursorAttachment *pCursAtch = pCursorAttachment;
+						pCursAtch->AttachToCursor(NULL, NULL, 2/*ATC_ITEM*/, 0, g, GetItemFromContents(pContAfter)->ItemNumber, NULL, -1);
+					}
+					else {
+						pCursorAttachment->Deactivate();
+					}
+				}
+				catch (...) {
+					Sleep(0);
+				}
+			}
+			return TRUE;
+		}
+	}
+	return FALSE;
+}
+BOOL DropItem(ItemContainerInstance type, short ToInvSlot, short ToBagSlot)
+{
+	bool bSelectSlot = false;
+	PEQINVSLOTMGR pInvMgr = (PEQINVSLOTMGR)pInvSlotMgr;
+	if (pInvSlotMgr && pMerchantWnd && pMerchantWnd->dShow) {
+		//if the merchant window is open, we dont actually drop anything we just select the slot
+		bSelectSlot = true;
+	}
+	if (ToBagSlot == -1) {//ok so they want to drop it to a toplevelslot
+		PEQINVSLOT pSlot = GetInvSlot(type, ToInvSlot);
+		if (!pSlot || !pSlot->pInvSlotWnd) {
+			//if we got all the way here this really shouldnt happen... but why assume...
+			WriteChatf("Could not find the %d itemslot", ToInvSlot);
+			return FALSE;
+		}
+		if (bSelectSlot) {
+			if (CInvSlot * theslot = pInvSlotMgr->FindInvSlot(ToInvSlot)) {
 				PEQINVSLOT cSlot = (PEQINVSLOT)theslot;
 				//ok so here is how this works:
 				//we select the slot, and thet will set pSelectedItem correctly
 				//we do this cause later on we need that address for the .Selection member
 				//
 				pInvSlotMgr->SelectSlot(theslot);
-				//int imagenum = ((EQ_Item*)pItem)->GetImageNum();
-				//CTextureAnimation *TextureAnim = pIconCache->GetIcon(imagenum);
-				ItemGlobalIndex To;// = { 0 };
+				ItemGlobalIndex To;
 				To.Location = eItemContainerPossessions;
 				To.Index.Slot1 = cSlot->pInvSlotWnd->InvSlot;
 				To.Index.Slot2 = cSlot->pInvSlotWnd->BagSlot;
 				To.Index.Slot3 = cSlot->pInvSlotWnd->GlobalSlot;
-				//To.RandomNum = cSlot->pInvSlotWnd->RandomNum;
-				//To.Selection = (long)((PEQINVSLOTMGR)pInvSlotMgr)->pSelectedItem;
 				pMerchantWnd->ActualSelect(&To);
 				return TRUE;
 			}
-			WriteChatf("[PickupOrDropItem]no invslot found");
-			return FALSE;
+		} else {
+			//just move it from cursor to the slot
+			ItemGlobalIndex From;
+			From.Location = eItemContainerPossessions;
+			From.Index.Slot1 = eItemContainerCursor;
+			From.Index.Slot2 = -1;
+			From.Index.Slot3 = -1;
+
+			ItemGlobalIndex To;
+			To.Location = type;
+			To.Index.Slot1 = ToInvSlot;
+			To.Index.Slot2 = ToBagSlot;
+			To.Index.Slot3 = -1;
+			pInvSlotMgr->MoveItem(&From, &To, true, true, false, false);
+			return TRUE;
 		}
-		BagSlot = pItem->Contents.ItemSlot2;
-	}
-	else {
-		if (pInvSlotMgr && pMerchantWnd && pMerchantWnd->dShow) {
-			if (CInvSlot * theslot = pInvSlotMgr->FindInvSlot(pItem->Contents.ItemSlot)) {
+	} else {//BagSlot is NOT -1 so they want to drop it INSIDE a bag
+		if (bSelectSlot) {
+			if (CInvSlot * theslot = pInvSlotMgr->FindInvSlot(ToInvSlot,ToBagSlot)) {
 				PEQINVSLOT cSlot = (PEQINVSLOT)theslot;
 				pInvSlotMgr->SelectSlot(theslot);
-				ItemGlobalIndex To;// = { 0 };
+				ItemGlobalIndex To;
 				To.Location = eItemContainerPossessions;
 				To.Index.Slot1 = cSlot->pInvSlotWnd->InvSlot;
 				To.Index.Slot2 = cSlot->pInvSlotWnd->BagSlot;
-				To.Index.Slot3 = cSlot->pInvSlotWnd->GlobalSlot;
-				//To.RandomNum = cSlot->pInvSlotWnd->RandomNum;
-				//To.Selection = (long)((PEQINVSLOTMGR)pInvSlotMgr)->pSelectedItem;
+				To.Index.Slot3 = -1;
+				pMerchantWnd->ActualSelect(&To);
+				return TRUE;
+			} else {
+				//well now is where it gets comlicated then...
+				//so we need to open the bag...
+				ItemGlobalIndex To;
+				To.Location = eItemContainerPossessions;
+				To.Index.Slot1 = ToInvSlot;
+				To.Index.Slot2 = ToBagSlot;
+				To.Index.Slot3 = -1;
 				pMerchantWnd->ActualSelect(&To);
 				return TRUE;
 			}
-			WriteChatf("Invslot %d not found", InvSlot);
-			return FALSE;
-		}
-	}
-	BOOL bMoveFromCursor = 0;
-	PCHARINFO2 pChar2 = GetCharInfo2();
-	if (pChar2 && pChar2->pInventoryArray && pChar2->pInventoryArray->Inventory.Cursor) {
-		bMoveFromCursor = 1;
-	}
-	PEQINVSLOT pSlot = GetInvSlot(type, InvSlot);
-	if (!pSlot || !pSlot->pInvSlotWnd) {
-		//if we got all the way here this really shouldnt happen... but why assume...
-		WriteChatf("Could not find an item in slot %d", InvSlot);
-		return FALSE;
-	}
-	if (!bMoveFromCursor) {//user is picking up something
-		ItemGlobalIndex From;// = { 0 };
-		From.Location = type;
-		From.Index.Slot1 = InvSlot;
-		From.Index.Slot2 = BagSlot;
-		From.Index.Slot3 = pSlot->pInvSlotWnd->GlobalSlot;
-		//From.RandomNum = pSlot->pInvSlotWnd->RandomNum;
+		} else {
+			//ok so its a slot inside a bag
+			ItemGlobalIndex From;
+			From.Location = eItemContainerPossessions;
+			From.Index.Slot1 = eItemContainerCursor;
+			From.Index.Slot2 = -1;
+			From.Index.Slot3 = -1;
 
-		ItemGlobalIndex To;// = { 0 };
-		To.Location = eItemContainerPossessions;
-		To.Index.Slot1 = eItemContainerCursor;
-		To.Index.Slot2 = -1;//should i force these to 0xFFFF instead?
-		To.Index.Slot3 = -1;
-		//if (((EQ_Item *)pItem)->IsStackable()) {
-		//	To.RandomNum = From.RandomNum - 0xc;//I *THINK* this is correct, want to get dkaa to look at assembly and confirm... -eqmule
-		//}
-		//else {
-		//	To.RandomNum = 0;
-		//}
-		//OpenContainer(pItem,0);
-		//if(CInvSlot *newslot = pInvSlotMgr->FindInvSlot(InvSlot,BagSlot)) {
-		//	pQuantityWnd->Open((CXWnd *)((PEQINVSLOT)newslot)->pInvSlotWnd,3,pItem->StackCount,
-		//		0x34F,0x14A,1,0,0);
-		//}
-		DWORD keybflag = pWndMgr->GetKeyboardFlags();
-		/*							   shr     eax, 1
-		.text:0069E9D1                 and     al, 1
-		.text:0069E9D3                 mov     [esp+1Ch], al
-		.text:0069E9D7                 mov     ecx, [esp+1Ch]
-		.text:0069E9DB                 push    ecx
-		*/
-		if (keybflag == 2 /*&& To.RandomNum*/ && pItem->StackCount>1) {//ctrl was pressed and it is a stackable item
-																   //until i figure out how to call moveitemqty
-																   //I need to open the bag and notify it cause moveitem only picks up full stacks
-			BOOL wechangedpackopenstatus = 0;
-			if (itsinsideapack) {
-				wechangedpackopenstatus = OpenContainer(pItem, true);
-				if (wechangedpackopenstatus) {
-					if (PLARGE_INTEGER i64tmp = (PLARGE_INTEGER)LocalAlloc(LPTR, sizeof(LARGE_INTEGER))) {
-						i64tmp->LowPart = type;
-						i64tmp->HighPart = (LONG)pItem;
-						DWORD nThreadId = 0;
-						CreateThread(NULL, 0, WaitForBagToOpen, i64tmp, 0, &nThreadId);
-						return FALSE;
-					}
+			ItemGlobalIndex To;
+			To.Location = type;
+			To.Index.Slot1 = ToInvSlot;
+			To.Index.Slot2 = ToBagSlot;
+			To.Index.Slot3 = -1;
+			PCHARINFO2 pChar2 = GetCharInfo2();
+			PCONTENTS pContBefore = pChar2->pInventoryArray->Inventory.Cursor;
+			pInvSlotMgr->MoveItem(&From, &To, true, true, true, false);
+			try {
+				if (pChar2 && pChar2->pInventoryArray && pChar2->pInventoryArray->Inventory.Cursor) {
+					PCONTENTS pContAfter = pChar2->pInventoryArray->Inventory.Cursor;
+					DWORD ig = 0;
+					EqItemGuid g;
+					memcpy(&g.guid, &pContAfter->ItemGUID, g.GUID);
+					CCursorAttachment *pCursAtch = pCursorAttachment;
+					pCursAtch->AttachToCursor(NULL, NULL, 2/*ITEM*/, 0, g, GetItemFromContents(pContAfter)->ItemNumber, NULL, -1);
+
 				}
-				pSlot = (PEQINVSLOT)pInvSlotMgr->FindInvSlot(pItem->Contents.ItemSlot, pItem->Contents.ItemSlot2);
+				else {
+					pCursorAttachment->Deactivate();
+				}
 			}
-			if (!pSlot || !pSlot->pInvSlotWnd || !SendWndClick2((CXWnd*)pSlot->pInvSlotWnd, "leftmouseup"))
-			{
-				WriteChatf("[PickupOrDropItem] falied");
-				return FALSE;
+			catch (...) {
+				Sleep(0);
 			}
-			//thread this? hmm if i close it before item ends up on cursor, it wont...
-			//if(wechangedpackopenstatus)
-			//	CloseContainer(pItem);
-		}
-		else {
-			pInvSlotMgr->MoveItem(&From, &To, 1, 1, 0, 0);
-			//pPCData->AlertInventoryChanged();
 		}
 		return TRUE;
-	}
-	else {
-		//user has something on the cursor, lets drop it
-		ItemGlobalIndex From;// = { 0 };
-		From.Location = eItemContainerPossessions;
-		From.Index.Slot1 = eItemContainerCursor;
-		From.Index.Slot2 = -1;// 0xFFFF;
-		From.Index.Slot3 = -1;
-		//From.RandomNum = 0;
-
-		ItemGlobalIndex To;// = { 0 };
-		To.Location = type;
-		To.Index.Slot1 = InvSlot;
-		To.Index.Slot2 = BagSlot;
-		To.Index.Slot3 = pSlot->pInvSlotWnd->GlobalSlot;
-		//To.RandomNum = pSlot->pInvSlotWnd->RandomNum;
-		pInvSlotMgr->MoveItem(&From, &To, 1, 1, 0, 0);
-		return TRUE;
-		//need to update cursor here
-		//pPCData->AlertInventoryChanged();
-		/*if(pLocalPlayer) {
-		DoCommand((PSPAWNINFO)pLocalPlayer,"/autoinventory");
-		return TRUE;
-		}*/
 	}
 	return FALSE;
 }

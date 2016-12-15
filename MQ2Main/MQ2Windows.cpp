@@ -1323,8 +1323,11 @@ int ItemNotify(int argc, char *argv[])
 					WriteChatf("There was no container in slot %d",invslot);
 					RETURN(0);
 				}
-				;
-				PickupOrDropItem(type,FindItemBySlot(invslot,bagslot));
+				if (ItemOnCursor()) {
+					DropItem(type,invslot, bagslot);
+				} else {
+					PickupItem(type, FindItemBySlot(invslot, bagslot));
+				}
 				RETURN(0);
 			} else if(pNotification && !_strnicmp(pNotification,"rightmouseup",12)) {//we fake it with /useitem
 				if ( HasExpansion(EXPANSION_VoA) )
@@ -1399,7 +1402,11 @@ int ItemNotify(int argc, char *argv[])
 			//lets check:
 			if(PCONTENTS ptheitem = FindItemByName(szArg1,1)) {
 				if(pNotification && !_strnicmp(pNotification,"leftmouseup",11)) {
-					PickupOrDropItem(eItemContainerPossessions,ptheitem);
+					if (ItemOnCursor()) {
+						DropItem(eItemContainerPossessions, bagslot, invslot);
+					} else {
+						PickupItem(eItemContainerPossessions, ptheitem);
+					}
 				} else if(pNotification && !_strnicmp(pNotification,"rightmouseup",12)) {//we fake it with /useitem
 					//hmm better check if its a spell cause then it means we should mem it
 					PITEMINFO pClicky = GetItemFromContents(ptheitem);

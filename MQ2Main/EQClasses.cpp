@@ -1251,6 +1251,12 @@ FUNCTION_AT_ADDRESS(bool  CCursorAttachment::IsOkToActivate(int),CCursorAttachme
 #ifdef CCursorAttachment__RemoveAttachment_x
 FUNCTION_AT_ADDRESS(bool  CCursorAttachment::RemoveAttachment(void),CCursorAttachment__RemoveAttachment);
 #endif
+#ifdef CCursorAttachment__AttachToCursor_x
+FUNCTION_AT_ADDRESS(void CCursorAttachment::AttachToCursor(class CTextureAnimation *overlay, class CTextureAnimation *bg, int type, int index, EqItemGuid &itemGuid, int itemID, char const *name, int qty),CCursorAttachment__AttachToCursor);
+#endif
+#ifdef CCursorAttachment__Deactivate_x
+FUNCTION_AT_ADDRESS(void CCursorAttachment::Deactivate(void),CCursorAttachment__Deactivate);
+#endif
 #ifdef CTextureAnimation__Reset_x
 FUNCTION_AT_ADDRESS(void  CTextureAnimation::Reset(void),CTextureAnimation__Reset);
 #endif
@@ -5967,7 +5973,10 @@ FUNCTION_AT_ADDRESS(void  CEverQuest::clr_chat_input(void),CEverQuest__clr_chat_
 #endif
 #ifdef CEverQuest__dsp_chat_x
 FUNCTION_AT_ADDRESS(void  CEverQuest::dsp_chat(char const *,int,bool,bool),CEverQuest__dsp_chat);
-void CEverQuest::dsp_chat(char const *a, int b, bool c) { dsp_chat(a, b, c, 1); }
+void CEverQuest::dsp_chat(char const *line, int color, bool bLogisok) { dsp_chat(line, color, bLogisok, true); }
+#endif
+#ifdef CEverQuest__OutputTextToLog_x
+FUNCTION_AT_ADDRESS(void CEverQuest::OutputTextToLog(const char*Text),CEverQuest__OutputTextToLog);
 #endif
 #ifdef CEverQuest__DoTellWindow_x
 FUNCTION_AT_ADDRESS(void CEverQuest::DoTellWindow(char *message,char *name,char *name2,void *unknown,int color,bool b),CEverQuest__DoTellWindow);

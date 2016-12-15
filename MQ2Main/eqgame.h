@@ -424,6 +424,7 @@ GNU General Public License for more details.
 #define CEverQuest__CreateTargetIndicator_x                        0x552AB0
 #define CEverQuest__DeleteTargetIndicator_x                        0x552B30
 #define CEverQuest__DoTellWindow_x                                 0x472D00
+#define CEverQuest__OutputTextToLog_x                              0x472960
 #define CEverQuest__DropHeldItemOnGround_x                         0x568CD0
 #define CEverQuest__dsp_chat_x                                     0x473040
 #define CEverQuest__trimName_x                                     0x54E510
@@ -890,3 +891,7 @@ GNU General Public License for more details.
 
 //CLargeDialogWnd
 #define CLargeDialogWnd__Open_x                                    0x6ED920
+
+//CCursorAttachment
+#define CCursorAttachment__AttachToCursor_x                        0x6972E0
+#define CCursorAttachment__Deactivate_x                            0x696820

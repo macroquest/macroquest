@@ -8,14 +8,14 @@
 //    Removed Item swapping routines.
 /*********************************************************************************/
 
-#define INVALID_PACK 0xFFFF
+#define INVALID_PACK -1
 
 // CItemLocation class is returned from functions
 class CItemLocation
 {
 public:
-    unsigned short InvSlot;    // main inventory slot (with or without a pack)
-    unsigned short BagSlot;    // slot inside of the pack at InvSlot, 0xFFFF when not a bag
+    short InvSlot;    // main inventory slot (with or without a pack)
+    short BagSlot;    // slot inside of the pack at InvSlot, 0xFFFF when not a bag
     PCONTENTS      pInvSlot;   // CONTENTS* of the main inventory slot
     PCONTENTS      pBagSlot;   // CONTENTS* of the bag slot inside of pInvSlot
     PCONTENTS      pItem;      // CONTENTS* of an item, regardless of where it is
@@ -111,7 +111,7 @@ CItemLocation* ItemFind(CItemLocation* pItemFound, char* pcItemName, unsigned sh
 			if (PCONTENTS pItem2 = pChar2->pInventoryArray->InventoryArray[usSlot]) {
 				if ((iIsNum && iItemID == GetItemFromContents(pItem2)->ItemNumber) || (!iIsNum && !_stricmp(pcItemName, GetItemFromContents(pItem2)->Name))) {
                     pItemFound->InvSlot   = pItem2->Contents.ItemSlot;
-					pItemFound->BagSlot   = 0xFFFF;
+					pItemFound->BagSlot   = -1;
                     pItemFound->pInvSlot  = pItem2;
                     pItemFound->pBagSlot  = pItem2;
 					pItemFound->pItem     = pItem2;

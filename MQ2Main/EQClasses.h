@@ -1594,10 +1594,24 @@ EQLIB_OBJECT CControlTemplate::~CControlTemplate(void);
 //EQLIB_OBJECT void * CControlTemplate::`scalar deleting destructor'(unsigned int);
 //EQLIB_OBJECT void * CControlTemplate::`vector deleting destructor'(unsigned int);
 };
-
-class CCursorAttachment
+class HasATimer
+{
+	UINT Timer;
+};
+class CCursorAttachment// : public CSidlScreenWnd : public HasATimer
 {
 public:
+/*0x000*/ struct _CSIDLWNDVFTABLE* pvfTable;
+	CXW_NO_VTABLE
+	SIDL
+/*0x220*/ UINT Timer;
+/*0x224*/ int Type;
+/*0x228*/ int Index;
+/*0x22c*/	EqItemGuid ItemGuid;
+/*0x240*/ int ItemID;
+/*0x244*/ int Qty;
+/*0x248*/ CXStr *ButtonText;
+	//and more
 EQLIB_OBJECT CCursorAttachment::CCursorAttachment(class CXWnd *);
 EQLIB_OBJECT bool CCursorAttachment::IsOkToActivate(int);
 EQLIB_OBJECT bool CCursorAttachment::RemoveAttachment(void);
@@ -1614,6 +1628,7 @@ EQLIB_OBJECT void CCursorAttachment::Deactivate(void);
 EQLIB_OBJECT void CCursorAttachment::DrawButtonText(void)const;
 EQLIB_OBJECT void CCursorAttachment::DrawQuantity(void)const;
 EQLIB_OBJECT void CCursorAttachment::Init(void);
+EQLIB_OBJECT void CCursorAttachment::AttachToCursor(CTextureAnimation *overlay, CTextureAnimation *bg, int type, int index, EqItemGuid &itemGuid, int itemID, char const *name, int qty);
 };
 
 class CDIMap
@@ -1935,12 +1950,13 @@ EQLIB_OBJECT void CEverQuest::DoNewCharacterCreation(void);
 EQLIB_OBJECT void CEverQuest::DoPercentConvert(char *,bool);
 EQLIB_OBJECT void CEverQuest::DoSplit(char *);
 EQLIB_OBJECT void CEverQuest::DoTellWindow(char *,char *,char *,void *,int,bool);
+EQLIB_OBJECT void CEverQuest::OutputTextToLog(const char*Text);
 EQLIB_OBJECT void CEverQuest::doUnInvite(char *);
 EQLIB_OBJECT void CEverQuest::DropHeldItemOnGround(int);
 EQLIB_OBJECT void CEverQuest::DropHeldMoneyOnGround(int);
 EQLIB_OBJECT void CEverQuest::DropItemOrMoneyOnPlayer(class EQPlayer *);
 EQLIB_OBJECT void CEverQuest::dsp_chat(char const *);
-EQLIB_OBJECT void CEverQuest::dsp_chat(char const *,int,bool,bool);
+EQLIB_OBJECT void CEverQuest::dsp_chat(char const *line,int color,bool bLogIsOk,bool bConvertPercent);
 EQLIB_OBJECT void CEverQuest::dsp_chat(char const *,int,bool);
 EQLIB_OBJECT void CEverQuest::Emote(void);
 EQLIB_OBJECT void CEverQuest::EnterZone(struct HWND__ *);
