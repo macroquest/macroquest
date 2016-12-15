@@ -252,7 +252,7 @@ GNU General Public License for more details.
 #define pinstCBarterMerchantWnd_x                                  0x11B36E0
 #define pinstCBarterSearchWnd_x                                    0x11B3758
 #define pinstCBarterWnd_x                                          0x11B37D0
-#define pinstCChatManager_x                                        0x11B3E60
+#define pinstCChatWindowManager_x                                  0x11B3E60
 #define pinstCDynamicZoneWnd_x                                     0x11B4310
 #define pinstCEQMainWnd_x                                          0x11B44A8
 #define pinstCFellowshipWnd_x                                      0x11B42A4

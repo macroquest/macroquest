@@ -498,6 +498,9 @@ namespace MQ2Globals
 #define pAggroInfo (*ppAggroInfo)
 	EQLIB_VAR CLargeDialogWnd **ppLargeDialog;
 #define pLargeDialog (*ppLargeDialog)
+	EQLIB_VAR CItemDisplayManager **ppItemDisplayManager;
+#define pItemDisplayManager (*ppItemDisplayManager)
+
 	/* WINDOW INSTANCES */
 	EQLIB_VAR CContextMenuManager **ppContextMenuManager;
 	EQLIB_VAR CCursorAttachment **ppCursorAttachment;
@@ -904,7 +907,7 @@ namespace MQ2Globals
 	EQLIB_VAR DWORD pinstCBarterMerchantWnd;
 	EQLIB_VAR DWORD pinstCBarterSearchWnd;
 	EQLIB_VAR DWORD pinstCBarterWnd;
-	EQLIB_VAR DWORD pinstCChatManager;
+	EQLIB_VAR DWORD pinstCChatWindowManager;
 	EQLIB_VAR DWORD pinstCDynamicZoneWnd;
 	EQLIB_VAR DWORD pinstCEQMainWnd;
 	EQLIB_VAR DWORD pinstCFellowshipWnd;
@@ -997,6 +1000,10 @@ namespace MQ2Globals
 	
 	EQLIB_VAR DWORD CChatManager__GetRGBAFromIndex;
 	EQLIB_VAR DWORD CChatManager__InitContextMenu;
+	EQLIB_VAR DWORD CChatManager__FreeChatWindow;
+	EQLIB_VAR DWORD CChatManager__GetLockedActiveChatWindow;
+	EQLIB_VAR DWORD CChatManager__SetLockedActiveChatWindow;
+	
 	EQLIB_VAR DWORD CContextMenu__CContextMenu;
 	EQLIB_VAR DWORD CContextMenu__dCContextMenu;
 	EQLIB_VAR DWORD CContextMenu__AddMenuItem;
@@ -1004,6 +1011,7 @@ namespace MQ2Globals
 	EQLIB_VAR DWORD CContextMenuManager__RemoveMenu;
 	EQLIB_VAR DWORD CContextMenuManager__PopupMenu;
 	EQLIB_VAR DWORD CContextMenu__RemoveAllMenuItems;
+	EQLIB_VAR DWORD CContextMenu__CheckMenuItem;
 	EQLIB_VAR DWORD CContextMenu__RemoveMenuItem;
 	EQLIB_VAR DWORD CContextMenuManager__Flush;
 	EQLIB_VAR DWORD CContextMenuManager__GetMenu;
@@ -1105,7 +1113,9 @@ namespace MQ2Globals
 	
 	EQLIB_VAR DWORD CItemDisplayWnd__SetSpell;
 	EQLIB_VAR DWORD CItemDisplayWnd__UpdateStrings;
-
+	EQLIB_VAR DWORD CItemDisplayWnd__InsertAugmentRequest;
+	EQLIB_VAR DWORD CItemDisplayWnd__RemoveAugmentRequest;
+	
 	EQLIB_VAR DWORD CLabel__Draw;
 
 	EQLIB_VAR DWORD CListWnd__CListWnd;
@@ -1165,7 +1175,9 @@ namespace MQ2Globals
 
 	EQLIB_VAR DWORD CSidlManager__FindScreenPieceTemplate1;
 	EQLIB_VAR DWORD CSidlManager__CreateLabel;
-
+	EQLIB_VAR DWORD CSidlManager__CreateXWndFromTemplate;
+	EQLIB_VAR DWORD CSidlManager__CreateXWndFromTemplate1;
+	
 	EQLIB_VAR DWORD CSidlScreenWnd__CalculateHSBRange;
 	EQLIB_VAR DWORD CSidlScreenWnd__CalculateVSBRange;
 	EQLIB_VAR DWORD CSidlScreenWnd__ConvertToRes;
@@ -1224,6 +1236,12 @@ namespace MQ2Globals
 	EQLIB_VAR DWORD CTabWnd__SetPage;
 	EQLIB_VAR DWORD CTabWnd__SetPageRect;
 	EQLIB_VAR DWORD CTabWnd__UpdatePage;
+	EQLIB_VAR DWORD CTabWnd__GetPageFromTabIndex;
+	EQLIB_VAR DWORD CTabWnd__GetCurrentTabIndex;
+	EQLIB_VAR DWORD CPageWnd__GetTabText;
+	
+	EQLIB_VAR DWORD CPageWnd__SetTabText;
+	
 	EQLIB_VAR DWORD CTargetRing__Cast;
 	EQLIB_VAR DWORD CTargetWnd__RefreshTargetBuffs;
 	
@@ -1248,6 +1266,7 @@ namespace MQ2Globals
 	EQLIB_VAR DWORD CXWnd__BringToTop;
 	EQLIB_VAR DWORD CXWnd__Center;
 	EQLIB_VAR DWORD CXWnd__ClrFocus;
+	EQLIB_VAR DWORD CXWnd__Destroy;
 	EQLIB_VAR DWORD CXWnd__DoAllDrawing;
 	EQLIB_VAR DWORD CXWnd__DrawChildren;
 	EQLIB_VAR DWORD CXWnd__DrawColoredRect;
@@ -1276,7 +1295,8 @@ namespace MQ2Globals
 	EQLIB_VAR DWORD CXWnd__SetMouseOver;
 	EQLIB_VAR DWORD CXWnd__StartFade;
 	EQLIB_VAR DWORD CXWnd__GetChildItem;
-
+	EQLIB_VAR DWORD CXWnd__SetParent;
+	
 	EQLIB_VAR DWORD CXWndManager__DrawCursor;
 	EQLIB_VAR DWORD CXWndManager__DrawWindows;
 	EQLIB_VAR DWORD CXWndManager__GetKeyboardFlags;
@@ -1428,6 +1448,7 @@ namespace MQ2Globals
 	EQLIB_VAR DWORD ItemGlobalIndex__IsEquippedLocation;
 	EQLIB_VAR DWORD ItemGlobalIndex__IsValidIndex;
 	EQLIB_VAR DWORD CLargeDialogWnd__Open;
+	EQLIB_VAR DWORD CWndDisplayManager__FindWindowA;
 	
 }
 using namespace MQ2Globals;

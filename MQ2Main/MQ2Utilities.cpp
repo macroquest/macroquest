@@ -1255,12 +1255,12 @@ PCHAR GetGuildByID(DWORD GuildID)
 	return 0;
 }
 #else 
-	PCHAR GetGuildByID(DWORD GuildID, DWORD GuildID2)
+	PCHAR GetGuildByID(DWORD GuildIDLo, DWORD GuildIDHi)
 	{
-		if (GuildID == 0 || GuildID == -1)
+		if (GuildIDLo == 0 || GuildIDLo == -1)
 			return 0;
 
-		if (PCHAR thename = pGuild->GetGuildName(GuildID, GuildID2)) {
+		if (PCHAR thename = pGuild->GetGuildName(GuildIDLo, GuildIDHi)) {
 			if (!_stricmp(thename, "Unknown Guild"))
 				return 0;
 			return thename;
@@ -1586,7 +1586,7 @@ VOID ClearSearchSpawn(PSEARCHSPAWN pSearchSpawn)
 	// 0? fine. set anything thats NOT zero.
 	pSearchSpawn->MaxLevel = MAX_NPC_LEVEL;
 	pSearchSpawn->SpawnType = NONE;
-	pSearchSpawn->GuildID = 0xFFFFFFFF;
+	pSearchSpawn->GuildID = -1;
 	pSearchSpawn->ZRadius = 10000.0f;
 	pSearchSpawn->FRadius = 10000.0f;
 }
@@ -1627,16 +1627,42 @@ BOOL IsSPAEffect(PSPELL pSpell, LONG EffectID)
 // *************************************************************************** 
 // Function:    GetClassesFromMask
 // Description: Return a comma delimited list of player short class names
+//              If ALL classes are in the mask it will return "ALL",
+//              if 4 or less are missing it will return "ALL EXCEPT: " and the
+//              comma delimited list of play short class names that are excluded
 // *************************************************************************** 
 TS PCHAR GetClassesFromMask(LONG mask, CHAR(&szBuffer)[_Size])
 {
 	//WriteChatf("GetClassesFromMask:: MASK:%d", mask);
+	int matching = 0;
+	int excluding = 0;
+	int numofclasses = Berserker;
 	for (int playerclass = Warrior; playerclass <= Berserker; playerclass++) {
-		//WriteChatf("Checking playerclass(%d)", 1 << playerclass);
 		if (mask & (1 << playerclass)) {
-			if (strlen(szBuffer) > 0)
-				strcat_s(szBuffer, ",");
-			strcat_s(szBuffer, ClassInfo[playerclass].UCShortName);
+			matching++;
+		} else {
+			excluding++;
+		}
+	}
+	if (matching == numofclasses) {
+		strcat_s(szBuffer, "ALL");
+	} else if (excluding <= 4) {
+		strcat_s(szBuffer, "ALL EXCEPT: ");
+		for (int playerclass = Warrior; playerclass <= Berserker; playerclass++) {
+			if (!(mask & (1 << playerclass))) {
+				if (strlen(szBuffer) > 12)
+					strcat_s(szBuffer, ",");
+				strcat_s(szBuffer, ClassInfo[playerclass].UCShortName);
+			}
+		}
+	} else {
+		for (int playerclass = Warrior; playerclass <= Berserker; playerclass++) {
+			//WriteChatf("Checking playerclass(%d)", 1 << playerclass);
+			if (mask & (1 << playerclass)) {
+				if (strlen(szBuffer) > 0)
+					strcat_s(szBuffer, ",");
+				strcat_s(szBuffer, ClassInfo[playerclass].UCShortName);
+			}
 		}
 	}
 	return szBuffer;
@@ -5519,8 +5545,8 @@ PCHAR FormatSearchSpawn(PCHAR Buffer, SIZE_T BufferSize, PSEARCHSPAWN pSearchSpa
 		sprintf_s(szTemp, " Body:%s", pSearchSpawn->szBodyType);
 		strcat_s(Buffer, BufferSize, szTemp);
 	}
-	if (pSearchSpawn->GuildID != 0xFFFFFFFF) {
-		char *szGuild = GetGuildByID(pSearchSpawn->GuildID);
+	if (pSearchSpawn->GuildID != -1) {
+		char *szGuild = GetGuildByID(pSearchSpawn->GuildID,-1);
 		sprintf_s(szTemp, " Guild:%s", szGuild ? szGuild : "Unknown");
 		strcat_s(Buffer, BufferSize, szTemp);
 	}
@@ -5877,7 +5903,7 @@ BOOL SpawnMatchesSearch(PSEARCHSPAWN pSearchSpawn, PSPAWNINFO pChar, PSPAWNINFO 
 		return FALSE;
 	if (pSearchSpawn->bSpawnID && pSearchSpawn->SpawnID != pSpawn->SpawnID)
 		return FALSE;
-	if (pSearchSpawn->GuildID != 0xFFFFFFFF && pSearchSpawn->GuildID != pSpawn->GuildID)
+	if (pSearchSpawn->GuildID != -1 && pSearchSpawn->GuildID != pSpawn->GuildID)
 		return FALSE;
 	if (pSearchSpawn->bGM && pSearchSpawn->SpawnType != NPC)
 		if (!pSpawn->GM)
@@ -5891,7 +5917,7 @@ BOOL SpawnMatchesSearch(PSEARCHSPAWN pSearchSpawn, PSPAWNINFO pChar, PSPAWNINFO 
 		return FALSE;
 	if (pSearchSpawn->bTributeMaster && pSpawn->mActorClient.Class != 63)
 		return FALSE;
-	if (pSearchSpawn->bNoGuild && (pSpawn->GuildID != 0xFFFFFFFF))
+	if (pSearchSpawn->bNoGuild && (pSpawn->GuildID != -1))
 		return FALSE;
 	if (pSearchSpawn->bKnight && pSearchSpawn->SpawnType != NPC)
 		if (pSpawn->mActorClient.Class != 3 && pSpawn->mActorClient.Class != 5)
@@ -6211,14 +6237,16 @@ PCHAR ParseSearchSpawnArgs(PCHAR szArg, PCHAR szRest, PSEARCHSPAWN pSearchSpawn)
 			pSearchSpawn->bLight = TRUE;
 		}
 		else if (!_stricmp(szArg, "guild")) {
-			pSearchSpawn->GuildID = GetCharInfo()->pSpawn->GuildID;
+			LARGE_INTEGER theguildid = { 0 };
+			theguildid.QuadPart = GetCharInfo()->pSpawn->GuildID;
+			pSearchSpawn->GuildID = theguildid.LowPart;
 		}
 		else if (!_stricmp(szArg, "guildname")) {
-			DWORD GuildID = 0xFFFFFFFF;
+			DWORD GuildID = -1;
 			GetArg(szArg, szRest, 1);
 			if (szArg[0] != 0)
 				GuildID = GetGuildIDByName(szArg);
-			if (GuildID != 0xFFFFFFFF) {
+			if (GuildID != -1) {
 				pSearchSpawn->GuildID = GuildID;
 				szRest = GetNextArg(szRest, 1);
 			}
@@ -6485,10 +6513,12 @@ VOID SuperWhoDisplay(PSPAWNINFO pSpawn, DWORD Color)
 			strcat_s(szName, " ");
 			strcat_s(szName, pSpawn->Lastname);
 		}
-		if (gFilterSWho.Guild && pSpawn->GuildID != 0xFFFFFFFF && pSpawn->GuildID!=0 && pGuildList) {
+		LARGE_INTEGER theguildid = { 0 };
+		theguildid.QuadPart = pSpawn->GuildID;
+		if (gFilterSWho.Guild && theguildid.LowPart != -1 && theguildid.LowPart!=0 && pGuildList) {
 			strcat_s(szName, " <");
 			#if !defined(EMU)
-			char *szGuild = GetGuildByID(pSpawn->GuildID,pSpawn->GuildID2);
+			char *szGuild = GetGuildByID(theguildid.LowPart,theguildid.HighPart);
 			#else
 			char *szGuild = GetGuildByID(pSpawn->GuildID);
 			#endif
@@ -6698,12 +6728,16 @@ bool pWHOSORTCompare(const PSPAWNINFO SpawnA, const PSPAWNINFO SpawnB)
 		CHAR szGuild1[128] = { "" };
 		CHAR szGuild2[128] = { "" };
 		#if !defined(EMU)
-		char *pDest1 = GetGuildByID(SpawnA->GuildID,SpawnA->GuildID2);
+		LARGE_INTEGER theguildidA = { 0 };
+		theguildidA.QuadPart = SpawnA->GuildID;
+		LARGE_INTEGER theguildidB = { 0 };
+		theguildidB.QuadPart = SpawnB->GuildID;
+		char *pDest1 = GetGuildByID(theguildidA.LowPart,theguildidA.HighPart);
 		#else
 		char *pDest1 = GetGuildByID(SpawnA->GuildID);
 		#endif
 		#if !defined(EMU)
-		char *pDest2 = GetGuildByID(SpawnB->GuildID,SpawnB->GuildID2);
+		char *pDest2 = GetGuildByID(theguildidB.LowPart,theguildidB.HighPart);
 		#else
 		char *pDest2 = GetGuildByID(SpawnB->GuildID);
 		#endif
@@ -8923,7 +8957,7 @@ VOID RemoveAura(PSPAWNINFO pChar, PCHAR szLine)
 	strcpy_s(szCmp, szLine);
 	CXStr Str;
 	if (CListWnd*clist = (CListWnd*)pAuraWnd->GetChildItem("AuraList")) {
-		for (LONG i = 0; i<clist->Items; i++) {
+		for (LONG i = 0; i<clist->ItemsArray.Count; i++) {
 			clist->GetItemText(&Str, i, 1);
 			GetCXStr(Str.Ptr, szOut, MAX_STRING);
 			if (szOut[0] != '\0') {
@@ -9007,7 +9041,7 @@ CXWnd *GetAdvLootPersonalListItem(DWORD ListIndex/*YES ITS THE INTERNAL INDEX*/,
 		Personal_Loot pPAdvLoot = { 0 };
 		bool bFound = false;
 		LONG listindex = -1;
-		for (LONG i = 0; i < clist->Items; i++) {
+		for (LONG i = 0; i < clist->ItemsArray.Count; i++) {
 			if (pNextWnd) {
 				pPAdvLoot.NPC_Name = (CButtonWnd *)pNextWnd->pFirstChildWnd;
 				pNextWnd = pNextWnd->pNextSiblingWnd;
@@ -9068,7 +9102,7 @@ CXWnd *GetAdvLootSharedListItem(DWORD ListIndex/*YES IT REALLY IS THE LISTINDEX*
 		PCSIDLWND pNextWnd = pFirstWnd;
 		Shared_Loot pSAdvLoot = { 0 };
 		bool bFound = false;
-		for (LONG i = 0; i < clist->Items; i++) {
+		for (LONG i = 0; i < clist->ItemsArray.Count; i++) {
 			if (pNextWnd) {
 				pSAdvLoot.NPC_Name = (CButtonWnd *)pNextWnd->pFirstChildWnd;
 				pNextWnd = pNextWnd->pNextSiblingWnd;
@@ -9156,7 +9190,7 @@ CXWnd *GetAdvLootSharedListItem(DWORD ListIndex/*YES IT REALLY IS THE LISTINDEX*
 BOOL LootInProgress(PEQADVLOOTWND pAdvLoot, CListWnd*pPersonalList, CListWnd*pSharedList)
 {
 	if (pPersonalList) {
-		for (LONG i = 0; i < pPersonalList->Items; i++) {
+		for (LONG i = 0; i < pPersonalList->ItemsArray.Count; i++) {
 			LONG listindex = pPersonalList->GetItemData(i);
 			if (listindex != -1) {
 				DWORD multiplier = sizeof(LOOTITEM) * listindex;
@@ -9169,7 +9203,7 @@ BOOL LootInProgress(PEQADVLOOTWND pAdvLoot, CListWnd*pPersonalList, CListWnd*pSh
 		}
 	}
 	if (pSharedList) {
-		for (LONG i = 0; i < pSharedList->Items; i++) {
+		for (LONG i = 0; i < pSharedList->ItemsArray.Count; i++) {
 			LONG listindex = pSharedList->GetItemData(i);
 			if (listindex != -1) {
 				DWORD multiplier = sizeof(LOOTITEM) * listindex;

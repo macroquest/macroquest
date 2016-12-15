@@ -11,7 +11,8 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
     GNU General Public License for more details.
 ******************************************************************************/
-#pragma pack(4)
+#pragma pack(push)
+#pragma pack(8)
 namespace EQUIStructs
 {
 
@@ -1293,4 +1294,4 @@ typedef struct _EQTRADEWINDOW {
 
 };
 using namespace EQUIStructs;
-#pragma pack()
+#pragma pack(pop)

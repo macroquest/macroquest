@@ -11,6 +11,7 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
     GNU General Public License for more details.
 ******************************************************************************/
+#pragma pack(push)
 #pragma pack(8)
 namespace EQUIStructs
 {
@@ -215,9 +216,7 @@ VFTABLE
 // actual size 0x1C8 in Dec  2 2015 Test (see 0x6992A8) - eqmule has sidltext
 // actual size 0x1CC in Jan 13 2016 Test (see 0x6984E8) - eqmule
 // actual size 0x1C8 in Feb 10 2016 Test (see 0x699238) - eqmule
-// actual size 0x1D8 in Mar 11 2016 Test (see 0x6967A8) - eqmule
 // actual size 0x1D0 in Apr 11 2016 Test (see 0x696528) - eqmule
-// actual size 0x1D8 in Apr 13 2016 Test (see 0x691CA8) - eqmule
 // actual size 0x1D8 in May 18 2016 Test (see 0x691A62) - eqmule
 // actual size 0x1D4 in May 23 2016 Test (see 0x691812) - eqmule
 // actual size 0x1DC in Jun 21 2016 Test (see 0x691E82) - eqmule
@@ -1278,4 +1277,4 @@ typedef struct _EQTRADEWINDOW {
 
 };
 using namespace EQUIStructs;
-#pragma pack()
+#pragma pack(pop)

@@ -135,7 +135,7 @@ namespace MQ2Globals
 		ppConnection = (PCONNECTION_T*)__gWorld;
 		ppAuraMgr = (AURAMGR**)pinstAuraMgr;
 		ppAuraWnd = (CAuraWnd**)pinstCAuraWnd;
-		ppEQChatMgr = (EQCHATMGR**)pinstCChatManager;
+		ppEQChatMgr = (EQCHATMGR**)pinstCChatWindowManager;
 
 		ppTradeTarget = (EQPlayer **)pinstTradeTarget;
 		ppActiveBanker = (EQPlayer **)pinstActiveBanker;
@@ -146,7 +146,7 @@ namespace MQ2Globals
 		ppCursorAttachment = (CCursorAttachment**)pinstCCursorAttachment;
 		ppSocialEditWnd = (CSocialEditWnd**)pinstCSocialEditWnd;
 		ppContainerMgr = (CContainerMgr**)pinstCContainerMgr;
-		ppChatManager = (CChatManager**)pinstCChatManager;
+		ppChatManager = (CChatManager**)pinstCChatWindowManager;
 		ppFacePick = (CFacePick**)pinstCFacePick;
 		ppInvSlotMgr = (CInvSlotMgr**)pinstCInvSlotMgr;
 		ppNoteWnd = (CNoteWnd**)pinstCNoteWnd;
@@ -236,6 +236,8 @@ namespace MQ2Globals
 #endif
 		ppAggroInfo = (AGGROINFO **)pinstAggroInfo;
 		ppLargeDialog = (CLargeDialogWnd**)pinstCLargeDialogWnd;
+		ppItemDisplayManager = (CItemDisplayManager**)pinstCItemDisplayManager;
+		
 		return true;
 	}
 
@@ -1215,6 +1217,7 @@ namespace MQ2Globals
 #endif
 	AGGROINFO **ppAggroInfo = 0;
 	CLargeDialogWnd**ppLargeDialog = 0;
+	CItemDisplayManager**ppItemDisplayManager = 0;
 
 #define INITIALIZE_EQGAME_OFFSET(var) DWORD var = (((DWORD)var##_x - 0x400000) + baseAddress)
 
@@ -1436,7 +1439,7 @@ namespace MQ2Globals
 	INITIALIZE_EQGAME_OFFSET(pinstCBarterMerchantWnd);
 	INITIALIZE_EQGAME_OFFSET(pinstCBarterSearchWnd);
 	INITIALIZE_EQGAME_OFFSET(pinstCBarterWnd);
-	INITIALIZE_EQGAME_OFFSET(pinstCChatManager);
+	INITIALIZE_EQGAME_OFFSET(pinstCChatWindowManager);
 	INITIALIZE_EQGAME_OFFSET(pinstCDynamicZoneWnd);
 	INITIALIZE_EQGAME_OFFSET(pinstCEQMainWnd);
 	INITIALIZE_EQGAME_OFFSET(pinstCFellowshipWnd);
@@ -1528,6 +1531,10 @@ namespace MQ2Globals
 	INITIALIZE_EQGAME_OFFSET(CButtonWnd__SetCheck);
 	INITIALIZE_EQGAME_OFFSET(CChatManager__GetRGBAFromIndex);
 	INITIALIZE_EQGAME_OFFSET(CChatManager__InitContextMenu);
+	INITIALIZE_EQGAME_OFFSET(CChatManager__FreeChatWindow);
+	INITIALIZE_EQGAME_OFFSET(CChatManager__GetLockedActiveChatWindow);
+	INITIALIZE_EQGAME_OFFSET(CChatManager__SetLockedActiveChatWindow);
+	
 	INITIALIZE_EQGAME_OFFSET(CContextMenu__CContextMenu);
 	INITIALIZE_EQGAME_OFFSET(CContextMenu__dCContextMenu);
 	INITIALIZE_EQGAME_OFFSET(CContextMenu__AddMenuItem);
@@ -1536,6 +1543,7 @@ namespace MQ2Globals
 	INITIALIZE_EQGAME_OFFSET(CContextMenuManager__PopupMenu);
 	INITIALIZE_EQGAME_OFFSET(CContextMenu__RemoveMenuItem);
 	INITIALIZE_EQGAME_OFFSET(CContextMenu__RemoveAllMenuItems);
+	INITIALIZE_EQGAME_OFFSET(CContextMenu__CheckMenuItem);	
 	INITIALIZE_EQGAME_OFFSET(CContextMenuManager__Flush);
 	INITIALIZE_EQGAME_OFFSET(CContextMenuManager__GetMenu);
 
@@ -1637,7 +1645,9 @@ namespace MQ2Globals
 	
 	INITIALIZE_EQGAME_OFFSET(CItemDisplayWnd__SetSpell);
 	INITIALIZE_EQGAME_OFFSET(CItemDisplayWnd__UpdateStrings);
-
+	INITIALIZE_EQGAME_OFFSET(CItemDisplayWnd__InsertAugmentRequest);
+	INITIALIZE_EQGAME_OFFSET(CItemDisplayWnd__RemoveAugmentRequest);
+	
 	INITIALIZE_EQGAME_OFFSET(CLabel__Draw);
 
 	INITIALIZE_EQGAME_OFFSET(CListWnd__CListWnd);
@@ -1697,7 +1707,9 @@ namespace MQ2Globals
 
 	INITIALIZE_EQGAME_OFFSET(CSidlManager__FindScreenPieceTemplate1);
 	INITIALIZE_EQGAME_OFFSET(CSidlManager__CreateLabel);
-
+	INITIALIZE_EQGAME_OFFSET(CSidlManager__CreateXWndFromTemplate);
+	INITIALIZE_EQGAME_OFFSET(CSidlManager__CreateXWndFromTemplate1);
+	
 	INITIALIZE_EQGAME_OFFSET(CSidlScreenWnd__CalculateHSBRange);
 	INITIALIZE_EQGAME_OFFSET(CSidlScreenWnd__CalculateVSBRange);
 	INITIALIZE_EQGAME_OFFSET(CSidlScreenWnd__ConvertToRes);
@@ -1756,7 +1768,12 @@ namespace MQ2Globals
 	INITIALIZE_EQGAME_OFFSET(CTabWnd__SetPage);
 	INITIALIZE_EQGAME_OFFSET(CTabWnd__SetPageRect);
 	INITIALIZE_EQGAME_OFFSET(CTabWnd__UpdatePage);
+	INITIALIZE_EQGAME_OFFSET(CTabWnd__GetPageFromTabIndex);
+	INITIALIZE_EQGAME_OFFSET(CTabWnd__GetCurrentTabIndex);
 
+	INITIALIZE_EQGAME_OFFSET(CPageWnd__GetTabText);
+	INITIALIZE_EQGAME_OFFSET(CPageWnd__SetTabText);
+	
 	INITIALIZE_EQGAME_OFFSET(CTargetRing__Cast);
 	INITIALIZE_EQGAME_OFFSET(CTargetWnd__RefreshTargetBuffs);
 	
@@ -1781,6 +1798,7 @@ namespace MQ2Globals
 	INITIALIZE_EQGAME_OFFSET(CXWnd__BringToTop);
 	INITIALIZE_EQGAME_OFFSET(CXWnd__Center);
 	INITIALIZE_EQGAME_OFFSET(CXWnd__ClrFocus);
+	INITIALIZE_EQGAME_OFFSET(CXWnd__Destroy);
 	INITIALIZE_EQGAME_OFFSET(CXWnd__DoAllDrawing);
 	INITIALIZE_EQGAME_OFFSET(CXWnd__DrawChildren);
 	INITIALIZE_EQGAME_OFFSET(CXWnd__DrawColoredRect);
@@ -1809,7 +1827,8 @@ namespace MQ2Globals
 	INITIALIZE_EQGAME_OFFSET(CXWnd__SetMouseOver);
 	INITIALIZE_EQGAME_OFFSET(CXWnd__StartFade);
 	INITIALIZE_EQGAME_OFFSET(CXWnd__GetChildItem);
-
+	INITIALIZE_EQGAME_OFFSET(CXWnd__SetParent);
+	
 	INITIALIZE_EQGAME_OFFSET(CXWndManager__DrawCursor);
 	INITIALIZE_EQGAME_OFFSET(CXWndManager__DrawWindows);
 	INITIALIZE_EQGAME_OFFSET(CXWndManager__GetKeyboardFlags);
@@ -1951,6 +1970,7 @@ namespace MQ2Globals
 	INITIALIZE_EQGAME_OFFSET(ItemBaseContainer__ItemBaseContainer);
 	INITIALIZE_EQGAME_OFFSET(ItemBaseContainer__CreateItemGlobalIndex);
 	INITIALIZE_EQGAME_OFFSET(CLargeDialogWnd__Open);
+	INITIALIZE_EQGAME_OFFSET(CWndDisplayManager__FindWindowA);
 	
 #ifdef __ExecuteCmd_x
 #ifndef EMU

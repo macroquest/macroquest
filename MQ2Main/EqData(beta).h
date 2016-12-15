@@ -11,6 +11,8 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
     GNU General Public License for more details.
 ******************************************************************************/
+#pragma pack(push)
+#pragma pack(8)
 namespace EQData
 {
 
@@ -1798,7 +1800,6 @@ enum EPlace
 	CanOnlyPlace,
 	CanPlaceAndGoto,
 };
-#pragma pack(4)
 //Size 0x??? see ?????? corrected this based on eqgame.exe live 21 apr 2016 - eqmule
 typedef struct _ZONEINFO {
 /*0x000*/   CHAR    CharacterName[0x40];
@@ -1896,7 +1897,6 @@ typedef struct _ZONEINFO {
 /*0x3ad*/   bool	bAllowPVP;
 /*0x3b0*/
 } ZONEINFO, *PZONEINFO;
-#pragma pack()
 
 typedef struct _SPELLCALCINFO
 {
@@ -2740,3 +2740,4 @@ typedef struct _GROUPAGGRO {
 #define EQ_LoadingS__ArraySize          0x5a     // EQ_LoadingS__SetProgressBar_x+76 	(4C7396 yes it says 5b there, but we dont want to overwrite the NULL term...	2016 Apr 21
 };
 using namespace EQData;
+#pragma pack(pop)

@@ -11,6 +11,7 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
     GNU General Public License for more details.
 ******************************************************************************/
+#pragma pack(push)
 #pragma pack(8)
 namespace EQData
 {
@@ -543,6 +544,28 @@ typedef struct _ITEMSPELLS {
 /*0x64*/
 } ITEMSPELLS, *PITEMSPELLS; 
 
+class ArmorProperties
+{
+public:
+/*0x00*/ UINT Type;
+/*0x04*/ UINT Variation;
+/*0x08*/ UINT Material;
+/*0x0c*/ UINT NewArmorID;
+/*0x10*/ UINT NewArmorType;
+/*0x14*/
+};
+struct AugSocket
+{
+	int Type;
+	bool bVisible;
+	bool bInfusible;
+};
+class ItemSocketData
+{
+public:
+	AugSocket Sockets[6];
+};
+//ItemDefinition class
 //CItemInfo__CItemInfo
 // actual size: 0x734 May 06 2016 Test (see 6CB18B) - eqmule
 typedef struct _ITEMINFO {
@@ -550,7 +573,7 @@ typedef struct _ITEMINFO {
 	/*0x0040*/ CHAR         LoreName[LORE_NAME_LEN];
 	/*0x00b0*/ CHAR         IDFile[0x20];
 	/*0x00d0*/ BYTE         Unknown0x00d0[0x1c];
-	/*0x00ec*/ DWORD        ItemNumber;
+	/*0x00ec*/ DWORD        ItemNumber;//m_iRecordNum
 	/*0x00f0*/ DWORD        EquipSlots;
 	/*0x00f4*/ DWORD        Cost;
 	/*0x00f8*/ DWORD        IconNumber;
@@ -637,23 +660,10 @@ typedef struct _ITEMINFO {
 	/*0x01c4*/ DWORD        SpellDamage;
 	/*0x01c8*/ DWORD        Prestige;
 	/*0x01cc*/ BYTE         ItemType;
-	/*0x01cd*/ BYTE         Unknown0x01cd[0xb];
-	/*0x01d8*/ BYTE         Material;
-	/*0x01d9*/ BYTE         Unknown0x01d9[0xb];
-	/*0x01e4*/ DWORD        AugSlot1;
-	/*0x01e8*/ DWORD        AugSlot1_Visible;
-	/*0x01ec*/ DWORD        AugSlot2;
-	/*0x01f0*/ DWORD        AugSlot2_Visible;
-	/*0x01f4*/ DWORD        AugSlot3;
-	/*0x01f8*/ DWORD        AugSlot3_Visible;
-	/*0x01fc*/ DWORD        AugSlot4;
-	/*0x0200*/ DWORD        AugSlot4_Visible;
-	/*0x0204*/ DWORD        AugSlot5;
-	/*0x0208*/ DWORD        AugSlot5_Visible;
-	/*0x020c*/ DWORD        AugSlot6;
-	/*0x0210*/ DWORD        AugSlot6_Visible;
+	/*0x01d0*/ ArmorProperties ArmorProps;//size is 0x14
+	/*0x01e4*/ ItemSocketData AugData;
 	/*0x0214*/ DWORD        AugType;
-	/*0x0218*/ BYTE         Unknown0x0218[0x4];
+	/*0x0218*/ BYTE         AugMaskOfSomeSort;
 	/*0x021c*/ DWORD        AugRestrictions;
 	/*0x0220*/ DWORD        SolventNeeded; //ID# of Solvent (Augs only)
 	/*0x0224*/ DWORD        LDTheme;
@@ -774,9 +784,10 @@ enum ItemContainerInstance
 class ItemIndex
 {
 public:
-    short Slot1;
-    short Slot2;
-    short Slot3;
+/*0x00*/ short Slot1;
+/*0x02*/ short Slot2;
+/*0x04*/ short Slot3;
+/*0x06*/
 };
 
 class ItemGlobalIndex2
@@ -803,7 +814,42 @@ public:
 /*0x14*/	int memAlloc;
 /*0x18*/	bool bValid;
 /*0x1c*/
+	int GetNext(int index) const {
+		return index >> Shift;
+	}
+	int GetIndex(int index) const {
+		return index & Mask;
+	}
+	ArrayType& GetNextByIndex(int index) const {
+		return pNext[GetNext(index)][GetIndex(index)];
+	}
+	ArrayType& operator[] (int index);
+	const ArrayType& operator[] (int index) const;
+	ArrayClass2& operator=(const ArrayClass2 &copy);
 };
+
+template <typename ArrayType> inline ArrayType& ArrayClass2<ArrayType>::operator[] (int index)
+{
+	return GetNextByIndex(index);
+}
+template <typename ArrayType> ArrayClass2<ArrayType>& ArrayClass2<ArrayType>::operator=(const ArrayClass2 &copy)
+{
+	if (this != &copy) {
+		this->Count = 0;
+		if (copy.Count) {
+			//todo implement Assure
+			//Assure(copy.Count);
+			if (this->bValid) {
+				for (int i = 0; i < copy.Count; i++) {
+					GetNextByIndex(i) = copy.GetNextByIndex(i);
+				}
+			}
+			Count = copy.Count;
+		}
+	}
+	return *this;
+}
+
 template <typename ElementType> class ArrayClass : public CDynamicArrayBase
 {
 private:
@@ -833,7 +879,6 @@ public:
 /*0x1c*/
 };
 
-//#pragma pack(8)//dont change this it should be 8 or u break the CONTENTS struct. -eqmule
 //Actual Size: 140 (see 5961e7 in eqgame.exe Test dated Nov 18 2016) - eqmule
 typedef struct _CONTENTS {
 /*0x0000*/ void*	vtable;
@@ -894,7 +939,6 @@ typedef struct _CONTENTS {
 /*0x0140*/
 __declspec(dllexport)  struct _CONTENTS *GetContent(UINT index);
 } CONTENTS, *PCONTENTS;
-//#pragma pack()
 
 // Size 0x58 20110810 - dkaa
 // Size 0x58 20150326 - demonstar55
@@ -2471,7 +2515,6 @@ typedef struct _ZONEINFO {
 /*0x3ad*/   bool	bAllowPVP;
 /*0x3b0*/
 } ZONEINFO, *PZONEINFO;
-//#pragma pack()
 
 typedef struct _SPELLCALCINFO
 {
@@ -3328,4 +3371,4 @@ typedef struct _GROUPAGGRO {
 #define EQ_LoadingS__ArraySize          0x5a     // EQ_LoadingS__SetProgressBar_x+76 	(4C7396 yes it says 5b there, but we dont want to overwrite the NULL term...	2016 Apr 21
 };
 using namespace EQData;
-#pragma pack()
+#pragma pack(pop)

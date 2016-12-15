@@ -1285,10 +1285,13 @@ bool MQ2SpawnType::GETMEMBER()
 		}
 		break;
 	case Guild:
-		if (pSpawn->GuildID != 0xFFFFFFFF && pSpawn->GuildID != 0)
+	{
+		LARGE_INTEGER theguildid = { 0 };
+		theguildid.QuadPart = pSpawn->GuildID;
+		if (theguildid.LowPart != -1 && theguildid.LowPart != 0)
 		{
 			#if !defined(EMU)
-			char *szGuild = GetGuildByID(pSpawn->GuildID,pSpawn->GuildID2);
+			char *szGuild = GetGuildByID(theguildid.LowPart, theguildid.HighPart);
 			#else
 			char *szGuild = GetGuildByID(pSpawn->GuildID);
 			#endif
@@ -1301,8 +1304,12 @@ bool MQ2SpawnType::GETMEMBER()
 			}
 		}
 		return false;
+	}
 	case GuildStatus:
-		if (pSpawn->GuildID != 0xFFFFFFFF)
+	{
+		LARGE_INTEGER theguildid = { 0 };
+		theguildid.QuadPart = pSpawn->GuildID;
+		if (theguildid.LowPart != -1)
 		{
 			strcpy_s(DataTypeTemp, szGuildStatus[pSpawn->GuildStatus]);
 			Dest.Ptr = &DataTypeTemp[0];
@@ -1310,6 +1317,7 @@ bool MQ2SpawnType::GETMEMBER()
 			return true;
 		}
 		break;
+	}
 	case Type:
 		DataTypeTemp[0] = '\0';
 		switch (GetSpawnType(pSpawn))
@@ -4826,9 +4834,13 @@ bool MQ2CharacterType::GETMEMBER()
 		Dest.Type = pIntType;
 		return true;
 	case GuildID:
-		Dest.DWord = pChar->GuildID;
+	{
+		LARGE_INTEGER theguildid = { 0 };
+		theguildid.QuadPart = pChar->GuildID;
+		Dest.DWord = theguildid.LowPart;
 		Dest.Type = pIntType;
 		return true;
+	}
 	case ExpansionFlags:
 		Dest.DWord = pChar->ExpansionFlags;
 		Dest.Type = pIntType;
@@ -5739,23 +5751,23 @@ bool MQ2ItemType::GETMEMBER()
 				switch (N)
 				{
 				case 0:
-					if (GetItemFromContents(pItem)->AugSlot1)
+					if (GetItemFromContents(pItem)->AugData.Sockets[0].Type)
 						Dest.Ptr = pItem->Contents.ContainedItems.pItems->Item[N];
 					break;
 				case 1:
-					if (GetItemFromContents(pItem)->AugSlot2) Dest.Ptr = pItem->Contents.ContainedItems.pItems->Item[N];
+					if (GetItemFromContents(pItem)->AugData.Sockets[1].Type) Dest.Ptr = pItem->Contents.ContainedItems.pItems->Item[N];
 					break;
 				case 2:
-					if (GetItemFromContents(pItem)->AugSlot3) Dest.Ptr = pItem->Contents.ContainedItems.pItems->Item[N];
+					if (GetItemFromContents(pItem)->AugData.Sockets[2].Type) Dest.Ptr = pItem->Contents.ContainedItems.pItems->Item[N];
 					break;
 				case 3:
-					if (GetItemFromContents(pItem)->AugSlot4) Dest.Ptr = pItem->Contents.ContainedItems.pItems->Item[N];
+					if (GetItemFromContents(pItem)->AugData.Sockets[3].Type) Dest.Ptr = pItem->Contents.ContainedItems.pItems->Item[N];
 					break;
 				case 4:
-					if (GetItemFromContents(pItem)->AugSlot5) Dest.Ptr = pItem->Contents.ContainedItems.pItems->Item[N];
+					if (GetItemFromContents(pItem)->AugData.Sockets[4].Type) Dest.Ptr = pItem->Contents.ContainedItems.pItems->Item[N];
 					break;
 				case 5:
-					if (GetItemFromContents(pItem)->AugSlot6) Dest.Ptr = pItem->Contents.ContainedItems.pItems->Item[N];
+					if (GetItemFromContents(pItem)->AugData.Sockets[5].Type) Dest.Ptr = pItem->Contents.ContainedItems.pItems->Item[N];
 					break;
 				}
 			if (Dest.Ptr)
@@ -6491,42 +6503,42 @@ bool MQ2ItemType::GETMEMBER()
 		if (GetItemFromContents(pItem)->Type != ITEMTYPE_NORMAL)
 			Dest.DWord = 0;
 		else
-			Dest.DWord = GetItemFromContents(pItem)->AugSlot1;
+			Dest.DWord = GetItemFromContents(pItem)->AugData.Sockets[0].Type;
 		Dest.Type = pIntType;
 		return true;
 	case AugSlot2:
 		if (GetItemFromContents(pItem)->Type != ITEMTYPE_NORMAL)
 			Dest.DWord = 0;
 		else
-			Dest.DWord = GetItemFromContents(pItem)->AugSlot2;
+			Dest.DWord = GetItemFromContents(pItem)->AugData.Sockets[1].Type;
 		Dest.Type = pIntType;
 		return true;
 	case AugSlot3:
 		if (GetItemFromContents(pItem)->Type != ITEMTYPE_NORMAL)
 			Dest.DWord = 0;
 		else
-			Dest.DWord = GetItemFromContents(pItem)->AugSlot3;
+			Dest.DWord = GetItemFromContents(pItem)->AugData.Sockets[2].Type;
 		Dest.Type = pIntType;
 		return true;
 	case AugSlot4:
 		if (GetItemFromContents(pItem)->Type != ITEMTYPE_NORMAL)
 			Dest.DWord = 0;
 		else
-			Dest.DWord = GetItemFromContents(pItem)->AugSlot4;
+			Dest.DWord = GetItemFromContents(pItem)->AugData.Sockets[3].Type;
 		Dest.Type = pIntType;
 		return true;
 	case AugSlot5:
 		if (GetItemFromContents(pItem)->Type != ITEMTYPE_NORMAL)
 			Dest.DWord = 0;
 		else
-			Dest.DWord = GetItemFromContents(pItem)->AugSlot5;
+			Dest.DWord = GetItemFromContents(pItem)->AugData.Sockets[4].Type;
 		Dest.Type = pIntType;
 		return true;
 	case AugSlot6:
 		if (GetItemFromContents(pItem)->Type != ITEMTYPE_NORMAL)
 			Dest.DWord = 0;
 		else
-			Dest.DWord = GetItemFromContents(pItem)->AugSlot6;
+			Dest.DWord = GetItemFromContents(pItem)->AugData.Sockets[5].Type;
 		Dest.Type = pIntType;
 		return true;
 	case Power:
@@ -6826,12 +6838,12 @@ bool MQ2ItemType::GETMEMBER()
 		Dest.Type = pIntType;
 		if (PITEMINFO pitem = GetItemFromContents(pItem)) {
 			if (pitem->Type == ITEMTYPE_NORMAL) {
-				if (pitem->AugSlot1 >= 0x1 && pitem->AugSlot1 <= 0x13 && pitem->AugSlot1_Visible == 1) Dest.DWord++;
-				if (pitem->AugSlot2 >= 0x1 && pitem->AugSlot2 <= 0x13 && pitem->AugSlot2_Visible == 1) Dest.DWord++;
-				if (pitem->AugSlot3 >= 0x1 && pitem->AugSlot3 <= 0x13 && pitem->AugSlot3_Visible == 1) Dest.DWord++;
-				if (pitem->AugSlot4 >= 0x1 && pitem->AugSlot4 <= 0x13 && pitem->AugSlot4_Visible == 1) Dest.DWord++;
-				if (pitem->AugSlot5 >= 0x1 && pitem->AugSlot5 <= 0x13 && pitem->AugSlot5_Visible == 1) Dest.DWord++;
-				if (pitem->AugSlot6 >= 0x1 && pitem->AugSlot6 <= 0x13 && pitem->AugSlot6_Visible == 1) Dest.DWord++;
+				if (pitem->AugData.Sockets[0].Type >= 0x1 && pitem->AugData.Sockets[0].Type <= 0x13 && pitem->AugData.Sockets[0].bVisible == true) Dest.DWord++;
+				if (pitem->AugData.Sockets[1].Type >= 0x1 && pitem->AugData.Sockets[1].Type <= 0x13 && pitem->AugData.Sockets[1].bVisible == true) Dest.DWord++;
+				if (pitem->AugData.Sockets[2].Type >= 0x1 && pitem->AugData.Sockets[2].Type <= 0x13 && pitem->AugData.Sockets[2].bVisible == true) Dest.DWord++;
+				if (pitem->AugData.Sockets[3].Type >= 0x1 && pitem->AugData.Sockets[3].Type <= 0x13 && pitem->AugData.Sockets[3].bVisible == true) Dest.DWord++;
+				if (pitem->AugData.Sockets[4].Type >= 0x1 && pitem->AugData.Sockets[4].Type <= 0x13 && pitem->AugData.Sockets[4].bVisible == true) Dest.DWord++;
+				if (pitem->AugData.Sockets[5].Type >= 0x1 && pitem->AugData.Sockets[5].Type <= 0x13 && pitem->AugData.Sockets[5].bVisible == true) Dest.DWord++;
 				Dest.Type = pIntType;
 			}
 		}
@@ -7004,7 +7016,7 @@ bool MQ2WindowType::GETMEMBER()
 			if (ListIndex<0)
 				ListIndex = 0;
 			if (thewindow->GetType() == UI_Listbox) {
-				if (((CListWnd*)thewindow)->Items<ListIndex)
+				if (((CListWnd*)thewindow)->ItemsArray.Count<ListIndex)
 					return false;
 				((CListWnd*)thewindow)->SetCurSel(ListIndex);
 				int index = ((CListWnd*)thewindow)->GetCurSel();
@@ -7017,8 +7029,8 @@ bool MQ2WindowType::GETMEMBER()
 				return true;
 			}
 			else if (thewindow->GetType() == UI_Combobox) {
-				if (CListWnd*pListWnd = (CListWnd*)((CListWnd*)thewindow)->Items) {
-					if (pListWnd->Items < ListIndex)
+				if (CListWnd*pListWnd = ((CComboWnd*)thewindow)->pListWnd) {
+					if (pListWnd->ItemsArray.Count < ListIndex)
 						return false;
 					CXRect comborect = thewindow->GetScreenRect();
 					CXPoint combopt = comborect.CenterPoint();
@@ -11512,7 +11524,7 @@ bool MQ2TaskType::GETMEMBER()
 				CHAR szTemp[MAX_STRING] = { 0 };
 				strcpy_s(szTemp, GETFIRST());
 				_strlwr_s(szTemp);
-				for (LONG i = 0; i < clist->Items; i++) {
+				for (LONG i = 0; i < clist->ItemsArray.Count; i++) {
 					clist->GetItemText(&Str, i, 0);
 					GetCXStr(Str.Ptr, szOut, MAX_STRING);
 					_strlwr_s(szOut);
@@ -11549,7 +11561,7 @@ bool MQ2TaskType::GETMEMBER()
 		if (CListWnd *clist = (CListWnd *)pTaskWnd->GetChildItem("TASK_TaskElementList")) {
 			CXStr Str;
 			CHAR szOut[MAX_STRING] = { 0 };
-			for (LONG i = 0; i < clist->Items; i++) {
+			for (LONG i = 0; i < clist->ItemsArray.Count; i++) {
 				clist->GetItemText(&Str, i, 1);
 				GetCXStr(Str.Ptr, szOut, MAX_STRING);
 				if (_stricmp(szOut, "done")) {
@@ -11850,7 +11862,7 @@ bool MQ2AdvLootType::GETMEMBER()
 		Dest.DWord = 0;
 		Dest.Type = pIntType;
 		if (CListWnd *clist = (CListWnd *)pAdvancedLootWnd->GetChildItem("ADLW_PLLList")) {
-			for (LONG i = 0; i < clist->Items; i++) {
+			for (LONG i = 0; i < clist->ItemsArray.Count; i++) {
 				LONG listindex = clist->GetItemData(i);
 				if (pAdvLoot->pPLootList && listindex != -1) {
 					DWORD addr = (DWORD)pAdvLoot->pPLootList->pLootItem;
@@ -11867,7 +11879,7 @@ bool MQ2AdvLootType::GETMEMBER()
 		Dest.DWord = 0;
 		Dest.Type = pIntType;
 		if (CListWnd *clist = (CListWnd *)pAdvancedLootWnd->GetChildItem("ADLW_CLLList")) {
-			for (LONG i = 0; i < clist->Items; i++) {
+			for (LONG i = 0; i < clist->ItemsArray.Count; i++) {
 				LONG listindex = clist->GetItemData(i);
 				if (pAdvLoot->pCLootList && listindex != -1) {
 					DWORD addr = (DWORD)pAdvLoot->pCLootList->pLootItem;

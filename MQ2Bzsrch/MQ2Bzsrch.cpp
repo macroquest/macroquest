@@ -528,12 +528,12 @@ VOID bzpc(PSPAWNINFO pChar, PCHAR szLine)
     // this opcode is in CProgSelWnd__WndNotification
     //SendEQMessage(EQ_BAZAARSEARCHCREATE, &pc, sizeof(pc));
 }
-void SetComboSelection(CSidlScreenWnd*pCombo, DWORD index) {
+void SetComboSelection(CComboWnd*pCombo, DWORD index) {
 	CXRect comborect = ((CXWnd*)pCombo)->GetScreenRect();
 	CXPoint combopt = comborect.CenterPoint();
-	((CComboWnd*)pCombo)->SetChoice(index);
+	pCombo->SetChoice(index);
 	((CXWnd*)pCombo)->HandleLButtonDown(&combopt, 0);
-	if (CListWnd*pListWnd = (CListWnd*)pCombo->Items) {
+	if (CListWnd*pListWnd = pCombo->pListWnd) {
 		int index = pListWnd->GetCurSel();
 		CXRect listrect = pListWnd->GetItemRect(index, 0);
 		CXPoint listpt = listrect.CenterPoint();
@@ -580,7 +580,7 @@ void DoClass(PCHAR szArg)
 		strcpy_s(szClass, "Any Class");
 	}
 	if (CComboWnd *pCombo = (CComboWnd *)pBazaarSearchWnd->GetChildItem("BZR_ClassSlotCombobox")) {
-		if (CListWnd*pListWnd = (CListWnd*)pCombo->Items) {
+		if (CListWnd*pListWnd = pCombo->pListWnd) {
 			CXStr Str;
 			CHAR szOut[MAX_STRING] = { 0 };
 			DWORD itemcnt = pCombo->GetItemCount();
@@ -589,7 +589,7 @@ void DoClass(PCHAR szArg)
 				GetCXStr(Str.Ptr, szOut, MAX_STRING);
 				if (szOut[0] != '\0') {
 					if (!_stricmp(szClass, szOut)) {
-						SetComboSelection((CSidlScreenWnd*)pCombo, i);
+						SetComboSelection(pCombo, i);
 						break;
 					}
 				}
@@ -635,7 +635,7 @@ void DoRace(PCHAR szArg)
 		strcpy_s(szRace, "Any Race");
 	}
 	if (CComboWnd *pCombo = (CComboWnd *)pBazaarSearchWnd->GetChildItem("BZR_RaceSlotCombobox")) {
-		if (CListWnd*pListWnd = (CListWnd*)pCombo->Items) {
+		if (CListWnd*pListWnd = pCombo->pListWnd) {
 			CXStr Str;
 			CHAR szOut[MAX_STRING] = { 0 };
 			DWORD itemcnt = pCombo->GetItemCount();
@@ -644,7 +644,7 @@ void DoRace(PCHAR szArg)
 				GetCXStr(Str.Ptr, szOut, MAX_STRING);
 				if (szOut[0] != '\0') {
 					if (!_stricmp(szRace, szOut)) {
-						SetComboSelection((CSidlScreenWnd*)pCombo, i);
+						SetComboSelection(pCombo, i);
 						break;
 					}
 				}
@@ -672,19 +672,19 @@ void DoCombo(PCHAR szArg, PCHAR key, PCHAR szCombostring)
 		strcpy_s(szValue, szArg);
 	}
 	if (CComboWnd *pCombo = (CComboWnd *)pBazaarSearchWnd->GetChildItem(szCombostring)) {
-		if (CListWnd*pListWnd = (CListWnd*)pCombo->Items) {
+		if (CListWnd*pListWnd = pCombo->pListWnd) {
 			CXStr Str;
 			CHAR szOut[MAX_STRING] = { 0 };
 			DWORD itemcnt = pCombo->GetItemCount();
 			if (index != -1 && index <= itemcnt) {
-				SetComboSelection((CSidlScreenWnd*)pCombo, index);
+				SetComboSelection(pCombo, index);
 			} else {
 				for (DWORD i = 0; i < itemcnt; i++) {
 					pListWnd->GetItemText(&Str, i, 0);
 					GetCXStr(Str.Ptr, szOut, MAX_STRING);
 					if (szOut[0] != '\0') {
 						if (!_stricmp(szValue, szOut)) {
-							SetComboSelection((CSidlScreenWnd*)pCombo, i);
+							SetComboSelection(pCombo, i);
 							break;
 						}
 					}

@@ -11,7 +11,8 @@ but WITHOUT ANY WARRANTY; without even the implied warranty of
 MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 GNU General Public License for more details.
 ******************************************************************************/
-#pragma pack(4)
+#pragma pack(push)
+#pragma pack(8)
 #define VersionString __ExpectedVersionDate
 #define TimeString __ExpectedVersionTime
 #define DebugHeader "[MQ2]"
@@ -569,7 +570,7 @@ EQLIB_API DWORD GetDeityTeamByID(DWORD DeityID);
 EQLIB_API DWORD ConColor(PSPAWNINFO pSpawn);
 
 #if !defined(EMU)
-EQLIB_API PCHAR GetGuildByID(DWORD GuildID, DWORD GuildID2 = 2);
+EQLIB_API PCHAR GetGuildByID(DWORD GuildIDLo, DWORD GuildIDHi);
 #else
 EQLIB_API PCHAR GetGuildByID(DWORD GuildID);
 #endif
@@ -796,6 +797,11 @@ LEGACY_API BOOL Calculate(PCHAR szFormula, DOUBLE& Dest);
 #define XKF_LALT                4
 #define XKF_RALT                8
 
+#define CHATMENU_NEW			42
+#define CHATMENU_ALWAYS_CHAT_HERE	43
+#define CHATMENU_RENAME			44
+#define CHATMENU_SCROLLBAR		45
+
 //#define MAX_ITEM4xx             416
 
 //#define MAX_WEAPONS             0x000000ff
@@ -819,4 +825,4 @@ inline PCHAR ISXEQArgToMQ2Arg(int argc, char *argv[], char *szTemp, size_t size)
 		szTemp[len - 1] = '\0';
 	return &szTemp[0];
 }
-#pragma pack()
+#pragma pack(pop)

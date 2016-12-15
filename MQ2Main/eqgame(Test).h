@@ -252,7 +252,7 @@ GNU General Public License for more details.
 #define pinstCBarterMerchantWnd_x                                  0x10CD2E0
 #define pinstCBarterSearchWnd_x                                    0x10CD358
 #define pinstCBarterWnd_x                                          0x10CD3D0
-#define pinstCChatManager_x                                        0x10CDA60
+#define pinstCChatWindowManager_x                                  0x10CDA60
 #define pinstCDynamicZoneWnd_x                                     0x10CDF10
 #define pinstCEQMainWnd_x                                          0x10CE0A8
 #define pinstCFellowshipWnd_x                                      0x10CDEA4
@@ -350,7 +350,9 @@ GNU General Public License for more details.
 // CChatManager 
 #define CChatManager__GetRGBAFromIndex_x                           0x685CD0
 #define CChatManager__InitContextMenu_x                            0x686850
-
+#define CChatManager__FreeChatWindow_x                             0x6857D0
+#define CChatManager__GetLockedActiveChatWindow_x                  0x68AF60
+#define CChatManager__SetLockedActiveChatWindow_x                  0x685CA0
 // CContextMenu 
 #define CContextMenu__CContextMenu_x                               0x8D0560
 #define CContextMenu__dCContextMenu_x                              0x8D0770
@@ -362,6 +364,7 @@ GNU General Public License for more details.
 #define CContextMenuManager__PopupMenu_x                           0x8BD330
 #define CContextMenuManager__Flush_x                               0x8BCBC0
 #define CContextMenuManager__GetMenu_x                             0x4168A0
+#define CContextMenu__CheckMenuItem_x                              0x8D0B10
 
 // CChatService
 #define CChatService__GetNumberOfFriends_x                         0x870A70
@@ -468,6 +471,11 @@ GNU General Public License for more details.
 // CItemDisplayWnd 
 #define CItemDisplayWnd__SetSpell_x                                0x79A180
 #define CItemDisplayWnd__UpdateStrings_x                           0x6D3A00
+#define CItemDisplayWnd__InsertAugmentRequest_x                    0x6E09A0
+#define CItemDisplayWnd__RemoveAugmentRequest_x                    0x6E0EC0
+
+//CWndDisplayManager
+#define CWndDisplayManager__FindWindowA_x                          0x7D0F30
 
 // CLabel 
 #define CLabel__Draw_x                                             0x6ED680
@@ -535,6 +543,8 @@ GNU General Public License for more details.
 // CSidlManager 
 #define CSidlManager__FindScreenPieceTemplate1_x                   0x8CB590
 #define CSidlManager__CreateLabel_x                                0x7900A0
+#define CSidlManager__CreateXWndFromTemplate_x                     0x8C9A60
+#define CSidlManager__CreateXWndFromTemplate1_x                    0x8CB870
 
 // CSidlScreenWnd 
 #define CSidlScreenWnd__CalculateHSBRange_x                        0x653D20
@@ -600,6 +610,12 @@ GNU General Public License for more details.
 #define CTabWnd__SetPage_x                                         0x8D82C0
 #define CTabWnd__SetPageRect_x                                     0x8D8590
 #define CTabWnd__UpdatePage_x                                      0x8D88E0
+#define CTabWnd__GetPageFromTabIndex_x                             0x8D7BF0
+#define CTabWnd__GetCurrentTabIndex_x                              0x8D7920
+
+// CPageWnd 
+#define CPageWnd__GetTabText_x                                     0x6D2BA0
+#define CPageWnd__SetTabText_x                                     0x8EFA60
 
 // CTextOverlay 
 #define CTextOverlay__DisplayText_x                                0x432EA0
@@ -632,6 +648,7 @@ GNU General Public License for more details.
 #define CXWnd__BringToTop_x                                        0x8B50D0
 #define CXWnd__Center_x                                            0x8BB140
 #define CXWnd__ClrFocus_x                                          0x8B4C90
+#define CXWnd__Destroy_x                                           0x8BBC20
 #define CXWnd__DoAllDrawing_x                                      0x8BAD90
 #define CXWnd__DrawChildren_x                                      0x8BAF30
 #define CXWnd__DrawColoredRect_x                                   0x8B5480
@@ -660,6 +677,7 @@ GNU General Public License for more details.
 #define CXWnd__SetMouseOver_x                                      0x8BA790
 #define CXWnd__StartFade_x                                         0x8B5120
 #define CXWnd__GetChildItem_x                                      0x8BA6D0
+#define CXWnd__SetParent_x                                         0x8BBAC0
 
 // CXWndManager 
 #define CXWndManager__DrawCursor_x                                 0x8B2070

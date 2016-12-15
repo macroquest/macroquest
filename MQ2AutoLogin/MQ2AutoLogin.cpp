@@ -446,7 +446,7 @@ template <unsigned int _Size>DWORD GetServerIDFromName(CHAR(&szShortName)[_Size]
 	if (GetServerLongName(szShortName, szLongName)) {
 		if (WindowMap.find("SERVERSELECT_ServerList") != WindowMap.end()) {
 			if (CListWnd*serverlist = (CListWnd*)WindowMap["SERVERSELECT_ServerList"]) {
-				if (serverlist->Items && dwServerInfo) {
+				if (serverlist->ItemsArray.Count && dwServerInfo) {
 					if (PSERVERSTUFF serveridoff = *(PSERVERSTUFF*)dwServerInfo) {
 						if (serveridoff->pServerList && serveridoff->pServerList->Info) {
 							PSERVERLIST pList = serveridoff->pServerList;
@@ -1121,11 +1121,11 @@ void SwitchCharacter(char *szName)
 	if (szName && szName[0] != '\0') {
 		if (CXWnd*pWnd = FindMQ2Window("CLW_CharactersScreen")) {
 			if (CListWnd *charlist = (CListWnd *)pWnd->GetChildItem("Character_List")) {
-				if (charlist->Items) {
+				if (charlist->ItemsArray.Count) {
 					CXStr Str;
 					int column = 2;
 					CHAR szOut[MAX_STRING] = { 0 };
-					for (int i = 0; i < charlist->Items; i++) {
+					for (int i = 0; i < charlist->ItemsArray.Count; i++) {
 						charlist->GetItemText(&Str, i, column);
 						GetCXStr(Str.Ptr, szOut, MAX_STRING);
 						if (szOut[0] != '\0') {
@@ -1160,11 +1160,11 @@ void SelectCharacter( char *szName )
     if( szName && szName[0] != '\0' ) {
         if( CXWnd*pWnd = FindMQ2Window( "CLW_CharactersScreen" ) ) {
             if( CListWnd *charlist = (CListWnd *)pWnd->GetChildItem( "Character_List" ) ) {
-                if( charlist->Items ) {
+                if( charlist->ItemsArray.Count) {
                     CXStr Str;
                     int column = 2;
 					CHAR szOut[MAX_STRING] = { 0 };
-                    for( int i = 0; i < charlist->Items; i++ ) {
+                    for( int i = 0; i < charlist->ItemsArray.Count; i++ ) {
                         charlist->GetItemText( &Str, i, column );
                         GetCXStr( Str.Ptr, szOut, MAX_STRING );
                         if( szOut[0] != '\0' ) {

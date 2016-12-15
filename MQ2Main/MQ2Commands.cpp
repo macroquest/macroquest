@@ -3978,7 +3978,7 @@ VOID AdvLootCmd(PSPAWNINFO pChar, PCHAR szLine)
 					else {//if its not a number its a itemname
 						  //need to roll through the list to get the index
 						if (pAdvLoot->pPLootList) {
-							for (LONG k = 0; k < pPersonalList->Items; k++) {
+							for (LONG k = 0; k < pPersonalList->ItemsArray.Count; k++) {
 								LONG listindex = pPersonalList->GetItemData(k);
 								if (listindex != -1) {
 									DWORD multiplier = sizeof(LOOTITEM) * listindex;
@@ -4044,7 +4044,7 @@ VOID AdvLootCmd(PSPAWNINFO pChar, PCHAR szLine)
 					CXStr Str;
 					CHAR szOut[MAX_STRING] = { 0 };
 					if (CComboWnd *pCombo = (CComboWnd *)pAdvancedLootWnd->GetChildItem("ADLW_CLLSetCmbo")) {
-						if (CListWnd*pListWnd = (CListWnd*)pCombo->Items) {
+						if (CListWnd*pListWnd = pCombo->pListWnd) {
 							DWORD itemcnt = pCombo->GetItemCount();
 							for (DWORD i = 0; i < itemcnt; i++) {
 								pListWnd->GetItemText(&Str, i, 0);
@@ -4053,7 +4053,7 @@ VOID AdvLootCmd(PSPAWNINFO pChar, PCHAR szLine)
 									if (!_stricmp(szEntity, szOut)) {
 										CXRect comborect = ((CXWnd*)pCombo)->GetScreenRect();
 										CXPoint combopt = comborect.CenterPoint();
-										((CComboWnd*)pCombo)->SetChoice(i);
+										pCombo->SetChoice(i);
 										((CXWnd*)pCombo)->HandleLButtonDown(&combopt, 0);
 										int index = pListWnd->GetCurSel();
 										CXRect listrect = pListWnd->GetItemRect(index, 0);
@@ -4080,7 +4080,7 @@ VOID AdvLootCmd(PSPAWNINFO pChar, PCHAR szLine)
 				else {//if its not a number its a itemname
 					  //need to roll through the list to get the index
 					if (pSharedList) {
-						for (LONG k = 0; k < pSharedList->Items; k++) {
+						for (LONG k = 0; k < pSharedList->ItemsArray.Count; k++) {
 							LONG listindex = pSharedList->GetItemData(k);
 							if (listindex != -1) {
 								DWORD multiplier = sizeof(LOOTITEM) * listindex;

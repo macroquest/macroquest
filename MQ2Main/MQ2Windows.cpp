@@ -717,7 +717,7 @@ bool SendListSelect(PCHAR WindowName, PCHAR ScreenID, DWORD Value)
 			CXPoint combopt=comborect.CenterPoint(); 
 			((CComboWnd*)pList)->SetChoice(Value);
 			((CXWnd*)pList)->HandleLButtonDown(&combopt,0);
-			CListWnd*pListWnd = (CListWnd*)((CListWnd*)pList)->Items;
+			CListWnd*pListWnd = ((CComboWnd*)pList)->pListWnd;
 			int index = pListWnd->GetCurSel();
 			CXRect listrect=pListWnd->GetItemRect(index,0);
 			CXPoint listpt=listrect.CenterPoint();
@@ -741,7 +741,7 @@ bool SendListSelect2(CXWnd *pList, LONG ListIndex)
 		return false;
 	}
 	if (pList->GetType() == UI_Listbox) {
-		if (((CListWnd*)pList)->Items >= ListIndex) {
+		if ((LONG)((CListWnd*)pList)->ItemsArray.Count >= ListIndex) {
 			((CListWnd*)pList)->SetCurSel(ListIndex);
 			int index = ((CListWnd*)pList)->GetCurSel();
 			((CListWnd*)pList)->EnsureVisible(index);
@@ -756,8 +756,8 @@ bool SendListSelect2(CXWnd *pList, LONG ListIndex)
 			return false;
 		}
 	} else if (pList->GetType() == UI_Combobox)	{
-		if (CListWnd*pListWnd = (CListWnd*)((CListWnd*)pList)->Items) {
-			if (pListWnd->Items >= ListIndex) {
+		if (CListWnd*pListWnd = ((CComboWnd*)pList)->pListWnd) {
+			if (pListWnd->ItemsArray.Count >= ListIndex) {
 				CXRect comborect = pList->GetScreenRect();
 				CXPoint combopt = comborect.CenterPoint();
 				((CComboWnd*)pList)->SetChoice(ListIndex);
@@ -804,9 +804,9 @@ bool SendComboSelect(PCHAR WindowName, PCHAR ScreenID, DWORD Value)
         {
 			CXRect comborect=((CXWnd*)pCombo)->GetScreenRect(); 
 			CXPoint combopt=comborect.CenterPoint(); 
-			((CComboWnd*)pCombo)->SetChoice(Value);
+			pCombo->SetChoice(Value);
 			((CXWnd*)pCombo)->HandleLButtonDown(&combopt,0);
-			CListWnd*pListWnd = (CListWnd*)pCombo->Items;
+			CListWnd*pListWnd = pCombo->pListWnd;
 			int index = pListWnd->GetCurSel();
 			CXRect listrect=pListWnd->GetItemRect(index,0);
 			CXPoint listpt=listrect.CenterPoint();

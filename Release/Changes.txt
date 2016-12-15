@@ -1,3 +1,31 @@
+14 Dec 2016 by eqmule
+- GuildID in SPAWNINFO is a __init64 now... not by my design, it just is
+  I have tried to make it backwards compaible with the spawn guild tlo which is still a DWORD
+  report any bugs related to this change on the forum. Plugins are gonna have to be updated accodingly.
+- Fix Errors like this for example: error C2660: 'GetGuildByID': function does not take 1 arguments
+  char  *pGuild = GetGuildByID( GetCharInfo()->GuildID ); becomes
+  LARGE_INTEGER guildlarge = {0};
+  guildlarge.QuadPart = GetCharInfo()->GuildID;
+  char  *pGuild = GetGuildByID( guildlarge.LowPart,guildlarge.HighPart );
+-
+- I started correcting the iteminfo struct it's a work in progress so expect more changes to fully implement this.
+- Initially the Augment members has gotten a review (and a fix they where broken)
+- So... AugSlot1 etc is now part of its own class
+- therefor:
+- pitem->AugSlot1 is now pitem->AugData.Sockets[0].Type
+- and so on...
+- pitem->AugSlot1_Visible is now pitem->AugData.Sockets[0].bVisible
+- and so on...
+- CListWnd no longer inherits CSidlScreenWnd BUT it has access to the CXWnd class members.
+- CComboWnd no longer inherits CSidlScreenWnd BUT it has access to the CXWnd class members.
+  Fix Errors like these:
+  list->Items becomes list->ItemsArray.Count
+  CListWnd*pListWnd = (CListWnd*)pCombo->Items becomes CListWnd*pListWnd = pCombo->pListWnd (it was kinda confusing before, but less so after this change)
+
+13 Dec 2016 by rswiders
+- Updated GetClassesFromMask to display "ALL" or "ALL EXCEPT:" when appropriate based on the class
+  mask.
+
 08 Dec 2016 by eqmule
 - Updated for TEST
 - Fixed a bug where FindItem and all its derivatives wouldn't look deeper than 20 slots into a bag.

@@ -861,6 +861,35 @@ DETOUR_TRAMPOLINE_EMPTY(VOID ItemDisplayHook::SetSpell_Trampoline(int SpellID,bo
 DETOUR_TRAMPOLINE_EMPTY(VOID ItemDisplayHook::UpdateStrings_Trampoline());
 
 #ifndef ISXEQ
+void InsertAug(PSPAWNINFO pChar, PCHAR szLine)
+{
+	try {
+
+		if (PCHARINFO2 pMe = GetCharInfo2()) {
+			if (pMe->pInventoryArray) {
+				if (PCONTENTS pCursor = pMe->pInventoryArray->Inventory.Cursor) {
+					CItemDisplayManager*mgr =  pItemDisplayManager;
+					int index = mgr->FindWindowA(false);
+					//CXWnd* pwnd = pItemDisplayManager->pWindows;
+					PEQITEMWINDOW itemdis = (PEQITEMWINDOW)mgr->pWindows[0];
+					//itemdis->pItem = pCursor;
+					//CItemDisplayWnd*citemdisp = (CItemDisplayWnd*)itemdis;
+					//citemdisp->InsertAugmentRequest(5);
+					Sleep(0);
+				}
+			}
+			//CItemDisplayWnd *itemdisp = new CItemDisplayWnd;
+		}
+	}
+	catch (...) {
+		Sleep(0);
+	}
+	WriteChatColor("Not Implemented fully yet.");
+}
+void RemoveAug(PSPAWNINFO pChar, PCHAR szLine)
+{
+	WriteChatColor("Not Implemented fully yet.");
+}
 void Comment(PSPAWNINFO pChar, PCHAR szLine) 
 { 
     CHAR Arg[MAX_STRING] = {0}; 
@@ -1413,12 +1442,12 @@ template <unsigned int _Size> void AddGearScores_CheckAugs(PCONTENTS pSlot,ITEMI
 					pInvItem = GetItemFromContents(pInvContent);
 				if (pInvItem && (pItem->EquipSlots & mask) == mask)
 				{
-					AddGearScore_CheckAugSlot(pItem, score, i, name, pInvContent, pInvItem, pInvItem->AugSlot1, 0, out, br);
-					AddGearScore_CheckAugSlot(pItem, score, i, name, pInvContent, pInvItem, pInvItem->AugSlot2, 1, out, br);
-					AddGearScore_CheckAugSlot(pItem, score, i, name, pInvContent, pInvItem, pInvItem->AugSlot3, 2, out, br);
-					AddGearScore_CheckAugSlot(pItem, score, i, name, pInvContent, pInvItem, pInvItem->AugSlot4, 3, out, br);
-					AddGearScore_CheckAugSlot(pItem, score, i, name, pInvContent, pInvItem, pInvItem->AugSlot5, 4, out, br);
-					AddGearScore_CheckAugSlot(pItem, score, i, name, pInvContent, pInvItem, pInvItem->AugSlot6, 5, out, br);
+					AddGearScore_CheckAugSlot(pItem, score, i, name, pInvContent, pInvItem, pInvItem->AugData.Sockets[0].Type, 0, out, br);
+					AddGearScore_CheckAugSlot(pItem, score, i, name, pInvContent, pInvItem, pInvItem->AugData.Sockets[1].Type, 1, out, br);
+					AddGearScore_CheckAugSlot(pItem, score, i, name, pInvContent, pInvItem, pInvItem->AugData.Sockets[2].Type, 2, out, br);
+					AddGearScore_CheckAugSlot(pItem, score, i, name, pInvContent, pInvItem, pInvItem->AugData.Sockets[3].Type, 3, out, br);
+					AddGearScore_CheckAugSlot(pItem, score, i, name, pInvContent, pInvItem, pInvItem->AugData.Sockets[4].Type, 4, out, br);
+					AddGearScore_CheckAugSlot(pItem, score, i, name, pInvContent, pInvItem, pInvItem->AugData.Sockets[5].Type, 5, out, br);
 				}
 			}
 		}
@@ -1736,6 +1765,8 @@ PLUGIN_API VOID InitializePlugin(VOID)
     EzDetourwName(CItemDisplayWnd__SetSpell,&ItemDisplayHook::SetSpell_Detour,&ItemDisplayHook::SetSpell_Trampoline,"CItemDisplayWnd__SetSpell");
     EzDetourwName(CItemDisplayWnd__UpdateStrings, &ItemDisplayHook::UpdateStrings_Detour, &ItemDisplayHook::UpdateStrings_Trampoline,"CItemDisplayWnd__UpdateStrings");
 
+    AddCommand("/insertaug",InsertAug); 
+    AddCommand("/removeaug",RemoveAug); 
     AddCommand("/inote",Comment); 
     AddCommand("/ireset",Ireset); 
     AddCommand("/iScore" ,DoGearScoreUserCommand); 
@@ -1764,6 +1795,8 @@ PLUGIN_API VOID ShutdownPlugin(VOID)
 	delete pGearScoreType;
 	pGearScoreType = 0;
 
+    RemoveMQ2Data("InsertAug");
+    RemoveMQ2Data("RemoveAug");
     RemoveMQ2Data("DisplayItem");
 	RemoveMQ2Data("GearScore");
     RemoveCommand("/ireset"); 
