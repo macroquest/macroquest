@@ -61,7 +61,11 @@ namespace MQ2Internal {
         CHAR szRace[MAX_STRING];
         CHAR szClass[MAX_STRING];
         CHAR szLight[MAX_STRING];
-        DWORD GuildID;
+		#ifndef EMU
+		__int64 GuildID;
+		#else
+		DWORD GuildID;
+		#endif
         BOOL bSpawnID;
         BOOL bNotNearAlert;
         BOOL bNearAlert;
@@ -176,7 +180,7 @@ namespace MQ2Internal {
         FLOAT Distance;
         DWORD Class;
         DWORD Race;
-        DWORD GuildID;
+        __int64 GuildID;
     } SWHOSORT, *PSWHOSORT;
 
     typedef struct _CONNECTION {
@@ -468,7 +472,8 @@ namespace MQ2Internal {
 		}
 		VOID FreeAlerts(DWORD List);
 	};
-
+	#pragma pack(push)
+	#pragma pack(4)
     class CCustomWnd : public CSidlScreenWnd
     {
     public:
@@ -523,6 +528,8 @@ namespace MQ2Internal {
 
         //    inline CXWnd *GetChildItem(const char *Name) {return CSidlScreenWnd::GetChildItem(Name);};
     };
+	#pragma pack(pop)
+	
 	class CCustomMenu : public CContextMenu
 	{
 	public:

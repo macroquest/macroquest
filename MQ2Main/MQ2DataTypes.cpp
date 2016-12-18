@@ -245,8 +245,16 @@ bool MQ2IntType::GETMEMBER()
 		Dest.Array[2] = VarPtr.Array[1];
 		Dest.Array[3] = VarPtr.Array[0];
 		Dest.Type = pIntType;
+		return true;
 	}
-	return true;
+	case LowPart:
+		Dest.DWord = LOWORD(VarPtr.DWord);
+		Dest.Type = pIntType;
+		return true;
+	case HighPart:
+		Dest.DWord = HIWORD(VarPtr.DWord);
+		Dest.Type = pIntType;
+		return true;
 	}
 	return false;
 }
@@ -283,6 +291,14 @@ bool MQ2Int64Type::GETMEMBER()
 		Dest.FullArray[6] = VarPtr.FullArray[1];
 		Dest.FullArray[7] = VarPtr.FullArray[0];
 		Dest.Type = pInt64Type;
+		return true;
+	case LowPart:
+		Dest.DWord = LODWORD(VarPtr.UInt64);
+		Dest.Type = pIntType;
+		return true;
+	case HighPart:
+		Dest.DWord = HIDWORD(VarPtr.UInt64);
+		Dest.Type = pIntType;
 		return true;
 	}
 	return false;
@@ -1286,15 +1302,9 @@ bool MQ2SpawnType::GETMEMBER()
 		break;
 	case Guild:
 	{
-		LARGE_INTEGER theguildid = { 0 };
-		theguildid.QuadPart = pSpawn->GuildID;
-		if (theguildid.LowPart != -1 && theguildid.LowPart != 0)
+		if (pSpawn->GuildID != -1 && pSpawn->GuildID != 0)
 		{
-			#if !defined(EMU)
-			char *szGuild = GetGuildByID(theguildid.LowPart, theguildid.HighPart);
-			#else
 			char *szGuild = GetGuildByID(pSpawn->GuildID);
-			#endif
 			if (szGuild)
 			{
 				strcpy_s(DataTypeTemp, szGuild);
@@ -1307,9 +1317,7 @@ bool MQ2SpawnType::GETMEMBER()
 	}
 	case GuildStatus:
 	{
-		LARGE_INTEGER theguildid = { 0 };
-		theguildid.QuadPart = pSpawn->GuildID;
-		if (theguildid.LowPart != -1)
+		if (pSpawn->GuildID != -1 && pSpawn->GuildID != 0)
 		{
 			strcpy_s(DataTypeTemp, szGuildStatus[pSpawn->GuildStatus]);
 			Dest.Ptr = &DataTypeTemp[0];
@@ -4051,6 +4059,18 @@ bool MQ2CharacterType::GETMEMBER()
 		Dest.DWord = pCharData1->TotalEffect(0xb, 1, 0, 1, 1);
 		Dest.Type = pIntType;
 		return true;
+	case SPA:
+	{
+		if (!ISINDEX())
+			return false;
+		if (ISNUMBER())
+		{
+			Dest.DWord = pCharData1->TotalEffect(GETNUMBER(), true, 0, true, true);
+			Dest.Type = pIntType;
+			return true;
+		}
+		return false;
+	}
 	case MercenaryStance:
 		strcpy_s(DataTypeTemp, "NULL");
 		if (pMercInfo->HaveMerc)
@@ -4837,8 +4857,9 @@ bool MQ2CharacterType::GETMEMBER()
 	{
 		LARGE_INTEGER theguildid = { 0 };
 		theguildid.QuadPart = pChar->GuildID;
-		Dest.DWord = theguildid.LowPart;
-		Dest.Type = pIntType;
+		//Dest.DWord = theguildid.LowPart;
+		Dest.UInt64 = pChar->GuildID;
+		Dest.Type = pInt64Type;
 		return true;
 	}
 	case ExpansionFlags:
@@ -5787,11 +5808,11 @@ bool MQ2ItemType::GETMEMBER()
 		}
 		return false;
 	case ItemSlot:
-		Dest.Int = pItem->Contents.ItemSlot;
+		Dest.Int = pItem->GlobalIndex.Index.Slot1;
 		Dest.Type = pIntType;
 		return true;
 	case ItemSlot2:
-		Dest.Int = pItem->Contents.ItemSlot2;
+		Dest.Int = pItem->GlobalIndex.Index.Slot2;
 		Dest.Type = pIntType;
 		return true;
 	case BuyPrice:
@@ -12063,8 +12084,8 @@ bool MQ2AlertListType::GETMEMBER()
 					}
 					break;
 				case GuildID:
-					Dest.DWord = (*si).GuildID;
-					Dest.Type = pIntType;
+					Dest.UInt64 = (*si).GuildID;
+					Dest.Type = pInt64Type;
 					return true;
 				case bSpawnID:
 					Dest.DWord = (*si).bSpawnID;

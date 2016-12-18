@@ -29,9 +29,9 @@ bool bSaveByChar=true;
 class CMQChatWnd; 
 CMQChatWnd *MQChatWnd=0; 
 class CMQChatWnd : public CCustomWnd 
-{ 
+{
 public:
-    CTextEntryWnd* InputBox;
+	CTextEntryWnd* InputBox;
     CStmlWnd* OutputBox;
     CXWnd* OutWnd;
     struct _CSIDLWND* OutStruct;
@@ -219,7 +219,6 @@ public:
 
         MQChatWnd->FontSize=size; 
     }; 
-
     DWORD OutBoxLines; 
     DWORD FontSize; 
 }; 
@@ -400,9 +399,13 @@ VOID MQChatMin(PSPAWNINFO pChar, PCHAR Line)
 
 VOID MQChatClear(PSPAWNINFO pChar, PCHAR Line) 
 { 
+	//int sizeofCXWnd = sizeof(CXWnd);
+	//int sizeofCSidlScreenWnd = sizeof(CSidlScreenWnd);
     if(MQChatWnd) 
     { 
-        ((CChatWindow*)MQChatWnd)->Clear(); 
+		//PEQCHATWINDOW pChatw = (PEQCHATWINDOW)MQChatWnd;
+		CChatWindow*chatwnd = (CChatWindow*)MQChatWnd;
+        chatwnd->Clear(); 
         ulOldVScrollPos=0; 
         MQChatWnd->OutBoxLines=0;
     } 

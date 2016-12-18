@@ -644,6 +644,9 @@ void TellCheck(char *szClean)
 						if (pNpc->Type != SPAWN_PLAYER) {
 							return;//its an npc or something, dont flash on it
 						}
+						if (pNpc->Trader || pNpc->Buyer) {
+							return;//its a merchantplayrer...
+						}
 					}
 					else {
 						CHAR szSearch[MAX_STRING] = { 0 };
@@ -677,6 +680,9 @@ void TellCheck(char *szClean)
 					if (PSPAWNINFO pNpc = (PSPAWNINFO)GetSpawnByPartialName(name)) {
 						if (pNpc->Type != SPAWN_PLAYER) {
 							return;//its an npc or something, dont beep on it
+						}
+						if (pNpc->Trader || pNpc->Buyer) {
+							return;//its a merchantplayrer...
 						}
 					} else {
 						CHAR szSearch[MAX_STRING] = { 0 };

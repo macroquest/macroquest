@@ -361,8 +361,8 @@ typedef struct _BodyInfo
 #define ToggleBit(field,bit)            field^=bit;
 #define BitOn(field,bit)                field|=bit;
 #define BitOff(field,bit)               field&=~bit;
-#define BitSet(field,n)					field|=(1<<n);
-#define BitClear(field,n)				field&=~(1<<n);
+#define BitSet(field,bit)					field|=(1<<bit);
+#define BitClear(field,bit)				field&=~(1<<bit);
 // End CXWnd WindowStyle Defines
 
 #define ALTCURRENCY_DOUBLOONS           0xa
@@ -663,7 +663,7 @@ typedef struct _ITEMINFO {
 	/*0x01d0*/ ArmorProperties ArmorProps;//size is 0x14
 	/*0x01e4*/ ItemSocketData AugData;
 	/*0x0214*/ DWORD        AugType;
-	/*0x0218*/ BYTE         AugMaskOfSomeSort;
+	/*0x0218*/ DWORD        AugMaskOfSomeSort;
 	/*0x021c*/ DWORD        AugRestrictions;
 	/*0x0220*/ DWORD        SolventNeeded; //ID# of Solvent (Augs only)
 	/*0x0224*/ DWORD        LDTheme;
@@ -1142,8 +1142,8 @@ typedef struct _CHARINFO {
 /*0x119c*/ DWORD        eFamiliar ;//always eItemContainerViewModFamiliarKeyRingItems (31)
 /*0x11a0*/ struct _KEYRINGARRAY*        pFamiliarArray;
 /*0x11a4*/ BYTE         Unknown0x11a4[0xd4];
-/*0x1278*/ DWORD        GuildID;//GuildID_0
-/*0x127c*/ BYTE         Unknown0x127c[0x30];
+/*0x1278*/ __int64        GuildID;//GuildID_0
+/*0x1280*/ BYTE         Unknown0x1280[0x2c];
 /*0x12ac*/ DWORD        AAExp;
 /*0x12b0*/ BYTE         Unknown0x12b0;
 /*0x12b1*/ BYTE         PercentEXPtoAA;
@@ -1486,7 +1486,7 @@ typedef struct _EQUIPMENT {
 typedef struct _FELLOWSHIPMEMBER {
 /*0x00*/  DWORD   WorldID;
 /*0x04*/  CHAR    Name[0x40];
-/*0x44*/  DWORD    ZoneID;
+/*0x44*/  DWORD   ZoneID;
 /*0x48*/  DWORD   Level;
 /*0x4c*/  DWORD   Class;
 /*0x50*/  DWORD   LastOn;    // FastTime() timestamp
@@ -1497,7 +1497,7 @@ struct FSDATA
 	CHAR Strings[0x20];//need to check what these are...
 };
 // 20121128 - ieatacid  0x9e4
-// Nov 16 2016 - eqmule  0x9e8
+// Dec 13 2016 - eqmule  0x9e8 see 5C3F9F
 typedef struct _FELLOWSHIPINFO {
 /*0x000*/  DWORD  Version;
 /*0x004*/  DWORD  Version2;//just place holders for now, ill fix these later
@@ -1525,6 +1525,7 @@ typedef struct _ITEMLOCATION {
 /*0x14*/	short AugSlot;
 /*0x16*/
 } ITEMLOCATION, *PITEMLOCATION;
+
 enum ItemSpellTypes
 {
 	eActivatableSpell,
@@ -1540,9 +1541,9 @@ enum ItemSpellTypes
 
 typedef struct _LAUNCHSPELLDATA {
 /*0x00*/ UINT    SpellETA;           //Calculated TimeStamp when current spell being cast will land. 0 while not casting.
-/*0x04*/ int    SpellID;            // -1 = not casting a spell
-/*0x08*/ BYTE     SpellSlot;          // 0xFF if not casting, otherwise it's the spell gem number (0 - 8)
-/*0x09*/ BYTE     SpellLevel;
+/*0x04*/ int     SpellID;            // -1 = not casting a spell
+/*0x08*/ BYTE    SpellSlot;          // 0xFF if not casting, otherwise it's the spell gem number (0 - 8)
+/*0x09*/ BYTE    SpellLevel;
 /*0x0c*/ struct   _ITEMLOCATION ItemLocation;
 /*0x18*/ ItemSpellTypes ItemCastType;
 /*0x1c*/ int    ItemID;
@@ -1622,9 +1623,6 @@ public:
 /*0x0008*/ struct _SPAWNINFO *pNext; \
 /*0x000c*/ void	*List; \
 /*0x0010*/
-
-
-
 
 #define InnateETA 0xc
 //we dont need a fully implemented version
@@ -1804,7 +1802,7 @@ class CActorApplicationData
 class ActorBase
 {
 public:
-/*0x0f64*/ void		*vfTableActorClient;
+/*0x0f7C*/ void		*vfTableActorClient;
 /*0x0f68*/ CHAR		TextureType;
 /*0x0f69*/ CHAR		Material;
 /*0x0f6a*/ CHAR		Variation;
@@ -1818,8 +1816,8 @@ public:
 /*0x0f72*/ BYTE		FacialHair;
 /*0x0f74*/ signed int	Race;
 /*0x0f78*/ signed int	Race2;
-/*0x0f7c*/ signed int	Class;
-/*0x0f80*/ BYTE		Gender;
+/*0x0f94*/ signed int	Class;
+/*0x0f98*/ BYTE		Gender;
 /*0x0f81*/ CHAR		ActorDef[0x40];
 /*0x0fc4*/ UINT		ArmorColor[0x9];
 /*0x0fe8*/ bool		bShowHelm;
@@ -1835,12 +1833,12 @@ public:
 //EQLIB_OBJECT class CVector3 const & ActorClient::GetPosition(void)const;
 //EQLIB_OBJECT void ActorClient::GetPosition(class CVector3 *)const;
 public:
-/*0x10ac*/ int		LeftEyeMaterialIndex;
-/*0x10b0*/ int		RightEyeMaterialIndex;
-/*0x10b4*/ CParticlePointInterface* m_pParticlePoints[0xa];
-/*0x10dc*/ void* pLowerBones;
+/*0x0f7C*/ int		LeftEyeMaterialIndex;
+/*0x0f80*/ int		RightEyeMaterialIndex;
+/*0x0f84*/ CParticlePointInterface* m_pParticlePoints[0xa];
+/*0x0fac*/ void* pLowerBones;
 /*0x10e0*/ void* pUpperBones;
-/*0x10e4*/ void*	pcactorex; // todo: move to ActorInterface*
+/*0x10fc*/ void*	pcactorex; // todo: move to ActorInterface*
 /*0x10e8*/ CLightInterface	*pLight;
 /*0x10ec*/ ActorAnimation	*pActorAnimation;
 /*0x10f0*/ TList<CObjectGroupStageInstance> StageInstances;//size 0x8

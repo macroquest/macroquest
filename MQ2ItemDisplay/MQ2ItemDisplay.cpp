@@ -1726,7 +1726,7 @@ template <unsigned int _Size> void AddGearScores(PCONTENTS pSlot,ITEMINFO *pItem
 	CurrScore = CalcItemGearScore(pItem);
 	if (CurrScore == 0) return;
 
-	CurrSlot = pSlot->Contents.ItemSlot;
+	CurrSlot = pSlot->GlobalIndex.Index.Slot1;
 	BestScore=CurrScore;
 	BestSlot =0;
 	if (pItem->ItemType == ITEMITEMTYPE_AUGUMENT)

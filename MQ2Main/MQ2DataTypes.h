@@ -120,6 +120,8 @@ public:
 		Double = 2,
 		Hex = 3,
 		Reverse = 4,
+		LowPart = 5,
+		HighPart = 6,
 	};
 	MQ2IntType() :MQ2Type("int")
 	{
@@ -127,6 +129,8 @@ public:
 		TypeMember(Double);
 		TypeMember(Hex);
 		TypeMember(Reverse);
+		TypeMember(LowPart);
+		TypeMember(HighPart);
 	}
 
 	~MQ2IntType()
@@ -162,6 +166,8 @@ public:
 		Double = 2,
 		Hex = 3,
 		Reverse = 4,
+		LowPart = 5,
+		HighPart = 6,
 	};
 	MQ2Int64Type() :MQ2Type("int64")
 	{
@@ -169,6 +175,8 @@ public:
 		TypeMember(Double);
 		TypeMember(Hex);
 		TypeMember(Reverse);
+		TypeMember(LowPart);
+		TypeMember(HighPart);
 	}
 
 	~MQ2Int64Type()
@@ -1122,6 +1130,7 @@ public:
 		PctAAVitality = 251,
 		GuildID = 252,
 		ExpansionFlags = 253,
+		SPA = 254,
 	};
 	enum CharacterMethods
 	{
@@ -1375,6 +1384,7 @@ public:
 		TypeMember(PctAAVitality);
 		TypeMember(GuildID);
 		TypeMember(ExpansionFlags);
+		TypeMember(SPA);
 		
 		TypeMethod(Stand);
 		TypeMethod(Sit);

@@ -1414,7 +1414,7 @@ int ItemNotify(int argc, char *argv[])
 						if (IsItemInsideContainer(ptheitem)) {
 							OpenContainer(ptheitem, true);
 						}
-						pSlot = (PEQINVSLOT)pInvSlotMgr->FindInvSlot(ptheitem->Contents.ItemSlot, ptheitem->Contents.ItemSlot2);
+						pSlot = (PEQINVSLOT)pInvSlotMgr->FindInvSlot(ptheitem->GlobalIndex.Index.Slot1, ptheitem->GlobalIndex.Index.Slot2);
 						if (!pSlot || !pSlot->pInvSlotWnd || !SendWndClick2((CXWnd*)pSlot->pInvSlotWnd, pNotification)) {
 							WriteChatf("Could not mem spell, most likely cause bag wasnt open and i didnt find it");
 						}

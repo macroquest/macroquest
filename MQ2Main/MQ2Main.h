@@ -570,12 +570,13 @@ EQLIB_API DWORD GetDeityTeamByID(DWORD DeityID);
 EQLIB_API DWORD ConColor(PSPAWNINFO pSpawn);
 
 #if !defined(EMU)
-EQLIB_API PCHAR GetGuildByID(DWORD GuildIDLo, DWORD GuildIDHi);
+EQLIB_API PCHAR GetGuildByID(__int64 GuildID);
+EQLIB_API __int64 GetGuildIDByName(PCHAR szGuild);
 #else
 EQLIB_API PCHAR GetGuildByID(DWORD GuildID);
+EQLIB_API DWORD GetGuildIDByName(PCHAR szGuild);
 #endif
 
-EQLIB_API DWORD GetGuildIDByName(PCHAR szGuild);
 EQLIB_API PCONTENTS GetEnviroContainer();
 EQLIB_API PEQCONTAINERWINDOW FindContainerForContents(PCONTENTS pContents);
 EQLIB_API FLOAT FindSpeed(PSPAWNINFO pSpawn);
@@ -827,4 +828,6 @@ inline PCHAR ISXEQArgToMQ2Arg(int argc, char *argv[], char *szTemp, size_t size)
 		szTemp[len - 1] = '\0';
 	return &szTemp[0];
 }
+#define LODWORD(_qw)    ((DWORD)(_qw))
+#define HIDWORD(_qw)    ((DWORD)(((_qw) >> 32) & 0xffffffff))
 #pragma pack(pop)

@@ -512,4 +512,5 @@
 		"Ff_Endurance_Min",						// 492
 		"Ff_Endurance_Max",						// 493
 		"Pet Add Atk",							// 494
-		"Ff_DurationMax",						// 495
+		"Ff_DurationMax",						// 495
+

@@ -394,6 +394,47 @@ typedef struct _Shared_Loot
 	CButtonWnd *AG;
 	CButtonWnd *NV;
 } Shared_Loot, *PShared_Loot;
+
+enum ePetCommandType
+{
+	PCT_ReportHealth, 
+	PCT_WhoLeader,
+	PCT_Attack, 
+	PCT_QueueAttack,
+	PCT_ToggleFollow,
+	PCT_ToggleGuard,
+	PCT_ToggleSit,
+	PCT_SitOn,
+	PCT_SitOff,
+	PCT_ToggleStop,
+	PCT_StopOn,
+	PCT_StopOff,
+	PCT_ToggleTaunt,
+	PCT_TauntOn,
+	PCT_TauntOff,
+	PCT_ToggleHold,
+	PCT_HoldOn,
+	PCT_HoldOff, 
+	PCT_ToggleGHold,
+	PCT_GHoldOn,
+	PCT_GHoldOff, 
+	PCT_ToggleSpellHold,
+	PCT_SpellHoldOn,
+	PCT_SpellHoldOff,
+	PCT_ToggleFocus,
+	PCT_FocusOn,
+	PCT_FocusOff,
+	PCT_FeignDeath, 
+	PCT_BackOff, 
+	PCT_GetLost, 
+	PCT_TargetPet,
+	PCT_ToggleRegroup,
+	PCT_RegroupOn,
+	PCT_RegroupOff,
+	PCT_Something,
+	PCT_Something2,
+	PCT_DoNothing
+};
 // Class declarations
 class CXStr
 {
@@ -1320,20 +1361,22 @@ EQLIB_OBJECT int CChatWindow::WndNotification(class CXWnd *,unsigned __int32,voi
 EQLIB_OBJECT void CChatWindow::operator delete[](void *);
 EQLIB_OBJECT void CChatWindow::Deactivate(void);
 
-/*0x188*/ struct _EQCHATMGR *ChatManager; 
-/*0x18c*/ struct _CSIDLWND* InputWnd;
-/*0x190*/ struct _CSIDLWND* OutputWnd;
-/*0x194*/ DWORD Unknown0x194;
-/*0x198*/ DWORD Unknown0x198;// need to update locations..
-/*0x19c*/ BYTE Unknown0x19c;
-/*0x19d*/ BYTE Unknown0x19d[0x3f];
-/*0x1dc*/ DWORD Unknown0x1dc;
-/*0x1e0*/ DWORD Unknown0x1e0;
-/*0x1e4*/ struct _CXSTR *CommandHistory[0x28]; // ->0x198
-/*0x284*/ DWORD Unknown0x284; // CChatWindow::HistoryBack/forward .. maybe total or current history lines
-/*0x288*/ DWORD Unknown0x288; // CChatWindow::HistoryBack/forward .. maybe total or current history lines
-/*0x28c*/ DWORD FontSize; //
-/*0x290*/ DWORD Unknown0x290;
+/*0x220*/ struct _EQCHATMGR *ChatManager; 
+/*0x224*/ struct _CSIDLWND* InputWnd;
+/*0x228*/ struct _CSIDLWND* OutputWnd;
+/*0x22c*/ int ChatChannel;
+/*0x230*/ int ChatChannelIndex;
+/*0x234*/ CHAR TellTarget[0x40];
+/*0x274*/ int Language;
+/*0x278*/ bool bIsMainChat;
+/*0x279*/ bool bIsTellWnd;
+/*0x27c*/ struct _CXSTR *CommandHistory[0x28]; // ->0x198
+/*0x31c*/ int HistoryIndex;
+/*0x320*/ int HistoryLastShown;
+/*0x324*/ int FontSize;//style but yeah...
+/*0x328*/ int AlwaysChathereIndex;//menu
+/*0x32c*/ int DontKnow;
+/*0x330*/
 
 //EQLIB_OBJECT void *CChatWindow::operator new(size_t stAllocateBlock) {return malloc(sizeof(EQCHATWINDOW));} // 11-15-2003 lax
 };
@@ -1983,7 +2026,11 @@ EQLIB_OBJECT void CEverQuest::Invite(int);
 EQLIB_OBJECT void CEverQuest::InviteOk(char *);
 EQLIB_OBJECT void CEverQuest::IssueLfgGroupQuery(struct LfgGroupQuery *);
 EQLIB_OBJECT void CEverQuest::IssueLfgPlayerQuery(struct LfgPlayerQuery *);
-EQLIB_OBJECT void CEverQuest::IssuePetCommand(enum PetCommandType,int,bool bQuiet, bool bsomethingelse = 0);
+#ifndef EMU
+EQLIB_OBJECT void CEverQuest::IssuePetCommand(ePetCommandType, int TargetID, bool bQuiet, bool bsomethingelse = 1);
+#else
+EQLIB_OBJECT void CEverQuest::IssuePetCommand(ePetCommandType, int TargetID, bool bQuiet);
+#endif
 EQLIB_OBJECT void CEverQuest::Kill(char *,char *);
 EQLIB_OBJECT void CEverQuest::LeaveBankMode(bool);
 EQLIB_OBJECT void CEverQuest::LeaveGuildMaster(void);
@@ -2395,8 +2442,13 @@ EQLIB_OBJECT CGuild::CGuild(void);
 EQLIB_OBJECT bool CGuild::ValidGuildName(int);
 EQLIB_OBJECT char * CGuild::GetGuildMotd(void);
 EQLIB_OBJECT char * CGuild::GetGuildMotdAuthor(void);
-EQLIB_OBJECT char * CGuild::GetGuildName(int,int);
-EQLIB_OBJECT int CGuild::GetGuildIndex(char *);
+#ifndef EMU
+EQLIB_OBJECT char * CGuild::GetGuildName(__int64);
+EQLIB_OBJECT __int64 CGuild::GetGuildIndex(char *);
+#else
+EQLIB_OBJECT char * CGuild::GetGuildName(DWORD);
+EQLIB_OBJECT int  CGuild::GetGuildIndex(char *);
+#endif
 EQLIB_OBJECT class GuildMember * CGuild::FindMemberByName(char *);
 EQLIB_OBJECT void CGuild::DeleteAllMembers(void);
 EQLIB_OBJECT void CGuild::DemoteMember(class GuildMember *);
@@ -5687,7 +5739,7 @@ EQLIB_OBJECT void EQ_Character1::UnStunMe(void);
 EQLIB_OBJECT void EQ_Character1::UseSkill(unsigned char,class EQPlayer *);
 EQLIB_OBJECT int const EQ_Character1::GetFocusRangeModifier(class EQ_Spell const *,class EQ_Equipment * *);
 EQLIB_OBJECT int EQ_Character1::IsExpansionFlag(int);
-EQLIB_OBJECT int EQ_Character1::TotalEffect(int,bool,int,bool,bool);
+EQLIB_OBJECT int EQ_Character1::TotalEffect(int spaID, bool bIncludeItems, int subindex, bool bIncludeAA, bool bincludeBuffs);
 };
 
 class EQ_Character

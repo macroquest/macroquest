@@ -887,3 +887,7 @@ GNU General Public License for more details.
 
 //CLargeDialogWnd
 #define CLargeDialogWnd__Open_x                                    0x6ED8D0
+
+//CCursorAttachment
+#define CCursorAttachment__AttachToCursor_x                        0x697360
+#define CCursorAttachment__Deactivate_x                            0x6968B0

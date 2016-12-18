@@ -20,7 +20,6 @@
 
 
 #include "MQ2Main.h"
-
 enum UIType CXWnd::GetType()
 {
     if (CXMLData *pXMLData=GetXMLData())
@@ -3104,13 +3103,21 @@ FUNCTION_AT_ADDRESS(void  CVideoModesWnd::RestoreOldMode(void),CVideoModesWnd__R
 FUNCTION_AT_ADDRESS( CGuild::CGuild(void),CGuild__CGuild);
 #endif
 #ifdef CGuild__GetGuildName_x
-FUNCTION_AT_ADDRESS(char * CGuild::GetGuildName(int,int),CGuild__GetGuildName);
+#ifndef EMU
+FUNCTION_AT_ADDRESS(char * CGuild::GetGuildName(__int64),CGuild__GetGuildName);
+#else
+FUNCTION_AT_ADDRESS(char * CGuild::GetGuildName(DWORD), CGuild__GetGuildName);
+#endif
+#endif
+#ifdef CGuild__GetGuildIndex_x
+#ifndef EMU
+FUNCTION_AT_ADDRESS(__int64 CGuild::GetGuildIndex(char *),CGuild__GetGuildIndex);
+#else
+FUNCTION_AT_ADDRESS(int CGuild::GetGuildIndex(char *),CGuild__GetGuildIndex);
+#endif
 #endif
 #ifdef CGuild__ValidGuildName_x
 FUNCTION_AT_ADDRESS(bool  CGuild::ValidGuildName(int),CGuild__ValidGuildName);
-#endif
-#ifdef CGuild__GetGuildIndex_x
-FUNCTION_AT_ADDRESS(int CGuild::GetGuildIndex(char *),CGuild__GetGuildIndex);
 #endif
 #ifdef CGuild__SendPublicCommentChange_x
 FUNCTION_AT_ADDRESS(void  CGuild::SendPublicCommentChange(char *,char *),CGuild__SendPublicCommentChange);
@@ -3163,12 +3170,6 @@ FUNCTION_AT_ADDRESS(void  CGuild::ChangeGuildMemberName(char *),CGuild__ChangeGu
 #ifdef CGuild__FindMemberByName_x
 FUNCTION_AT_ADDRESS(class GuildMember *  CGuild::FindMemberByName(char *),CGuild__FindMemberByName);
 #endif
-/*#ifdef CGuild__GetGuildName_x
-FUNCTION_AT_ADDRESS(char *  CGuild::GetGuildName(int index, int index2),CGuild__GetGuildName);
-#endif
-#ifdef CGuild__GetGuildIndex_x
-FUNCTION_AT_ADDRESS(int CGuild::GetGuildIndex(char *name),CGuild__GetGuildIndex);
-#endif*/
 #ifdef GuildMember__GuildMember_x
 FUNCTION_AT_ADDRESS( GuildMember::GuildMember(void),GuildMember__GuildMember);
 #endif
@@ -6192,7 +6193,11 @@ FUNCTION_AT_ADDRESS(void  CEverQuest::IssueLfgPlayerQuery(struct LfgPlayerQuery 
 FUNCTION_AT_ADDRESS(void  CEverQuest::IssueLfgGroupQuery(struct LfgGroupQuery *),CEverQuest__IssueLfgGroupQuery);
 #endif
 #ifdef CEverQuest__IssuePetCommand_x
-FUNCTION_AT_ADDRESS(void  CEverQuest::IssuePetCommand(enum PetCommandType,int,bool,bool),CEverQuest__IssuePetCommand);
+#ifndef EMU
+FUNCTION_AT_ADDRESS(void  CEverQuest::IssuePetCommand(ePetCommandType,int,bool,bool),CEverQuest__IssuePetCommand);
+#else
+FUNCTION_AT_ADDRESS(void  CEverQuest::IssuePetCommand(ePetCommandType,int,bool),CEverQuest__IssuePetCommand);
+#endif
 #endif
 #ifdef CEverQuest__LootCorpse_x
 FUNCTION_AT_ADDRESS(int  CEverQuest::LootCorpse(class EQPlayer *,int),CEverQuest__LootCorpse);

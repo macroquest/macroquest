@@ -1141,8 +1141,8 @@ typedef struct _CHARINFO {
 /*0x119c*/ DWORD        eFamiliar ;//always eItemContainerViewModFamiliarKeyRingItems (31)
 /*0x11a0*/ struct _KEYRINGARRAY*        pFamiliarArray;
 /*0x11a4*/ BYTE         Unknown0x11a4[0xd4];
-/*0x1278*/ DWORD        GuildID;//GuildID_0
-/*0x127c*/ BYTE         Unknown0x127c[0x30];
+/*0x1278*/ __int64      GuildID;//GuildID_0
+/*0x1280*/ BYTE         Unknown0x1280[0x2c];
 /*0x12ac*/ DWORD        AAExp;
 /*0x12b0*/ BYTE         Unknown0x12b0;
 /*0x12b1*/ BYTE         PercentEXPtoAA;
@@ -1741,8 +1741,7 @@ struct SDoCollisionMovementStats
 /*0x04D0*/ UINT		EnduranceMax; \
 /*0x04D4*/ CHAR		DragNames[0x2][0x40]; \
 /*0x0554*/ bool		PvPFlag; \
-/*0x0558*/ DWORD	GuildID; \
-/*0x055C*/ DWORD	GuildID2; \
+/*0x0558*/ __int64	GuildID; \
 /*0x0560*/ int		AFK; \
 /*0x0564*/ CHAR		DraggingPlayer[0x40]; \
 /*0x05A4*/ FLOAT		BearingToTarget; \

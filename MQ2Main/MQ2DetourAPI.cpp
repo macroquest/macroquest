@@ -578,6 +578,8 @@ DWORD IsAddressDetoured(unsigned int address, int count)
 	
 	OurDetours *detour = ourdetours;
 	while (detour) {
+		if (IsBadReadPtr(detour, 4))
+			return 0;
 		if(detour->count && address <= detour->addr && detour->addr <= (address + count)) {
 			return 1;
 		}

@@ -268,7 +268,7 @@ CXW_NO_VTABLE_BEGIN \
 /*0x00AC*/ bool		bFullyScreenClipped; \
 /*0x00B0*/ UINT		BlinkFadeStartTime; \
 /*0x00B4*/ bool		bRightAnchoredToLeft; \
-/*0x00B5*/ bool bClickThroughMenuItemStatus; /* on/off */ \
+/*0x00B5*/ bool		bClickThroughMenuItemStatus; /* on/off */ \
 /*0x00B6*/ bool		bScreenClipRectChanged; \
 /*0x00B8*/ int		TopOffset; \
 /*0x00BC*/ BYTE		FadeAlpha; \
@@ -354,11 +354,11 @@ typedef struct _CXWND {
 	CXW
 } CXWND, *PCXWND;
 #define GateBind          0
+// bool bControlsCreated;
 //CSidlScreenWnd__CSidlScreenWnd1_x
 //size is 220h in eqgame dated Jun 13 2014 (see 5C8AFD (cswsize)) -eqmule
 #define SIDL \
 /*0x1d8*/ union { \
-                        bool bControlsCreated; \
                         struct _CXSTR* SidlText; /*found in CChatWindow__WndNotification_x*/\
                         LONG Items; \
                 }; \

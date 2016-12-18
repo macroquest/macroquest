@@ -981,7 +981,7 @@ TLO(dataSelectedItem)
 		else {//im working on this -eqmule 2013 dec 14
 			PCONTENTS pItem = FindItemByName("Worn Totem");
 			if (pItem) {
-				CInvSlot *pSlot = pInvSlotMgr->FindInvSlot(pItem->Contents.ItemSlot);
+				CInvSlot *pSlot = pInvSlotMgr->FindInvSlot(pItem->GlobalIndex.Index.Slot1);
 				Sleep(0);
 			}
 		}

@@ -2425,11 +2425,11 @@ VOID Cast(PSPAWNINFO pChar, PCHAR szLine)
 		else {
 			if (PCONTENTS pItem = FindItemByName(szArg2, true))
 			{
-				if (pItem->Contents.ItemSlot < NUM_INV_SLOTS)
+				if (pItem->GlobalIndex.Index.Slot1 < NUM_INV_SLOTS)
 				{
 					if (GetItemFromContents(pItem)->Clicky.SpellID > 0 && GetItemFromContents(pItem)->Clicky.SpellID != -1)
 					{
-						if (CInvSlot *pSlot = pInvSlotMgr->FindInvSlot(pItem->Contents.ItemSlot))
+						if (CInvSlot *pSlot = pInvSlotMgr->FindInvSlot(pItem->GlobalIndex.Index.Slot1))
 						{
 							CXPoint p; p.A = 0; p.B = 0;
 							pSlot->HandleRButtonUp(&p);
@@ -3250,9 +3250,9 @@ VOID UseItemCmd(PSPAWNINFO pChar, PCHAR szLine)
 				if (PCHARINFO pCharInfo = GetCharInfo()) {
 					if (CharacterBase *cb = (CharacterBase *)&pCharInfo->pCharacterBase) {
 						ItemGlobalIndex location;
-						location.Location = (ItemContainerInstance)pItem->Contents.ItemLocation;
-						location.Index.Slot1 = pItem->Contents.ItemSlot;
-						location.Index.Slot2 = pItem->Contents.ItemSlot2;
+						location.Location = (ItemContainerInstance)pItem->GlobalIndex.Location;
+						location.Index.Slot1 = pItem->GlobalIndex.Index.Slot1;
+						location.Index.Slot2 = pItem->GlobalIndex.Index.Slot2;
 						location.Index.Slot3 = -1;
 						bKeyring = location.IsKeyRingLocation();
 					}
@@ -3260,7 +3260,7 @@ VOID UseItemCmd(PSPAWNINFO pChar, PCHAR szLine)
 #endif
 				if (!bKeyring) {
 					CHAR szTemp[32] = { 0 };
-					sprintf_s(szTemp, "%d %d", pItem->Contents.ItemSlot, pItem->Contents.ItemSlot2);
+					sprintf_s(szTemp, "%d %d", pItem->GlobalIndex.Index.Slot1, pItem->GlobalIndex.Index.Slot2);
 					cmdUseItem(pChar, szTemp);
 					RETURN(0);
 				}
@@ -3870,18 +3870,18 @@ VOID PetCmd(PSPAWNINFO pChar, PCHAR szLine)
 		CHAR szID[MAX_STRING] = { 0 };
 		CHAR szCmd[MAX_STRING] = { 0 };
 		GetArg(szCmd, szLine, 1);
-		int cmdtype = 0;
+		ePetCommandType cmdtype = PCT_DoNothing;
 		if (!_stricmp(szCmd, "attack")) {
-			cmdtype = 2;
+			cmdtype = PCT_Attack;
 		}
 		else if (!_stricmp(szCmd, "qattack")) {
-			cmdtype = 3;
+			cmdtype = PCT_QueueAttack;
 		}
 		if (cmdtype) {
 			GetArg(szID, szLine, 2);
 			if (IsNumber(szID)) {
 				if (PSPAWNINFO pSpawn = (PSPAWNINFO)GetSpawnByID(atoi(szID))) {
-					return pEverQuest->IssuePetCommand((EQClasses::PetCommandType)cmdtype, pSpawn->SpawnID, 0);
+					return pEverQuest->IssuePetCommand(cmdtype, pSpawn->SpawnID, false);
 				}
 			}
 		}

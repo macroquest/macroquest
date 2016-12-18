@@ -1255,12 +1255,12 @@ PCHAR GetGuildByID(DWORD GuildID)
 	return 0;
 }
 #else 
-	PCHAR GetGuildByID(DWORD GuildIDLo, DWORD GuildIDHi)
+	PCHAR GetGuildByID(__int64 GuildID)
 	{
-		if (GuildIDLo == 0 || GuildIDLo == -1)
+		if (GuildID == 0 || GuildID == -1)
 			return 0;
 
-		if (PCHAR thename = pGuild->GetGuildName(GuildIDLo, GuildIDHi)) {
+		if (PCHAR thename = pGuild->GetGuildName(GuildID)) {
 			if (!_stricmp(thename, "Unknown Guild"))
 				return 0;
 			return thename;
@@ -1298,7 +1298,7 @@ DWORD GetGuildIDByName(PCHAR szGuild)
 	return 0xFFFFFFFF;
 }
 #else
-DWORD GetGuildIDByName(PCHAR szGuild)
+__int64 GetGuildIDByName(PCHAR szGuild)
 {
 	return pGuild->GetGuildIndex(szGuild);
 }
@@ -5545,8 +5545,8 @@ PCHAR FormatSearchSpawn(PCHAR Buffer, SIZE_T BufferSize, PSEARCHSPAWN pSearchSpa
 		sprintf_s(szTemp, " Body:%s", pSearchSpawn->szBodyType);
 		strcat_s(Buffer, BufferSize, szTemp);
 	}
-	if (pSearchSpawn->GuildID != -1) {
-		char *szGuild = GetGuildByID(pSearchSpawn->GuildID,-1);
+	if (pSearchSpawn->GuildID != -1 && pSearchSpawn->GuildID != 0) {
+		char *szGuild = GetGuildByID(pSearchSpawn->GuildID);
 		sprintf_s(szTemp, " Guild:%s", szGuild ? szGuild : "Unknown");
 		strcat_s(Buffer, BufferSize, szTemp);
 	}
@@ -5917,7 +5917,7 @@ BOOL SpawnMatchesSearch(PSEARCHSPAWN pSearchSpawn, PSPAWNINFO pChar, PSPAWNINFO 
 		return FALSE;
 	if (pSearchSpawn->bTributeMaster && pSpawn->mActorClient.Class != 63)
 		return FALSE;
-	if (pSearchSpawn->bNoGuild && (pSpawn->GuildID != -1))
+	if (pSearchSpawn->bNoGuild && (pSpawn->GuildID != -1 && pSpawn->GuildID != 0))
 		return FALSE;
 	if (pSearchSpawn->bKnight && pSearchSpawn->SpawnType != NPC)
 		if (pSpawn->mActorClient.Class != 3 && pSpawn->mActorClient.Class != 5)
@@ -6237,16 +6237,18 @@ PCHAR ParseSearchSpawnArgs(PCHAR szArg, PCHAR szRest, PSEARCHSPAWN pSearchSpawn)
 			pSearchSpawn->bLight = TRUE;
 		}
 		else if (!_stricmp(szArg, "guild")) {
-			LARGE_INTEGER theguildid = { 0 };
-			theguildid.QuadPart = GetCharInfo()->pSpawn->GuildID;
-			pSearchSpawn->GuildID = theguildid.LowPart;
+			pSearchSpawn->GuildID = GetCharInfo()->GuildID;
 		}
 		else if (!_stricmp(szArg, "guildname")) {
+			#ifndef EMU
+			__int64 GuildID = -1;
+			#else
 			DWORD GuildID = -1;
+			#endif
 			GetArg(szArg, szRest, 1);
 			if (szArg[0] != 0)
 				GuildID = GetGuildIDByName(szArg);
-			if (GuildID != -1) {
+			if (GuildID != -1 && GuildID != 0) {
 				pSearchSpawn->GuildID = GuildID;
 				szRest = GetNextArg(szRest, 1);
 			}
@@ -6513,15 +6515,9 @@ VOID SuperWhoDisplay(PSPAWNINFO pSpawn, DWORD Color)
 			strcat_s(szName, " ");
 			strcat_s(szName, pSpawn->Lastname);
 		}
-		LARGE_INTEGER theguildid = { 0 };
-		theguildid.QuadPart = pSpawn->GuildID;
-		if (gFilterSWho.Guild && theguildid.LowPart != -1 && theguildid.LowPart!=0 && pGuildList) {
+		if (gFilterSWho.Guild && pSpawn->GuildID != -1 && pSpawn->GuildID!=0) {
 			strcat_s(szName, " <");
-			#if !defined(EMU)
-			char *szGuild = GetGuildByID(theguildid.LowPart,theguildid.HighPart);
-			#else
 			char *szGuild = GetGuildByID(pSpawn->GuildID);
-			#endif
 			strcat_s(szName, szGuild ? szGuild : "Unknown Guild");
 			strcat_s(szName, ">");
 		}
@@ -6725,22 +6721,10 @@ bool pWHOSORTCompare(const PSPAWNINFO SpawnA, const PSPAWNINFO SpawnB)
 		return GetDistance(SWhoSortOrigin, SpawnA) < GetDistance(SWhoSortOrigin, SpawnB);
 	case 5://guild
 	{
-		CHAR szGuild1[128] = { "" };
-		CHAR szGuild2[128] = { "" };
-		#if !defined(EMU)
-		LARGE_INTEGER theguildidA = { 0 };
-		theguildidA.QuadPart = SpawnA->GuildID;
-		LARGE_INTEGER theguildidB = { 0 };
-		theguildidB.QuadPart = SpawnB->GuildID;
-		char *pDest1 = GetGuildByID(theguildidA.LowPart,theguildidA.HighPart);
-		#else
+		CHAR szGuild1[256] = { "" };
+		CHAR szGuild2[256] = { "" };
 		char *pDest1 = GetGuildByID(SpawnA->GuildID);
-		#endif
-		#if !defined(EMU)
-		char *pDest2 = GetGuildByID(theguildidB.LowPart,theguildidB.HighPart);
-		#else
 		char *pDest2 = GetGuildByID(SpawnB->GuildID);
-		#endif
 		if (pDest1) {
 			strcpy_s(szGuild1, pDest1);
 		}
@@ -7776,7 +7760,7 @@ PCONTENTS FindItemBySlot(short InvSlot, short BagSlot, ItemContainerInstance loc
 			{
 				if (PCONTENTS pItem = pChar2->pInventoryArray->InventoryArray[nSlot])
 				{
-					if (pItem->Contents.ItemSlot == InvSlot && pItem->Contents.ItemSlot2 == BagSlot)
+					if (pItem->GlobalIndex.Index.Slot1 == InvSlot && pItem->GlobalIndex.Index.Slot2 == BagSlot)
 					{
 						return pItem;
 					}
@@ -7795,7 +7779,7 @@ PCONTENTS FindItemBySlot(short InvSlot, short BagSlot, ItemContainerInstance loc
 						{
 							if (PCONTENTS pItem = pPack->GetContent(nItem))
 							{
-								if (pItem->Contents.ItemSlot == InvSlot && pItem->Contents.ItemSlot2 == BagSlot) {
+								if (pItem->GlobalIndex.Index.Slot1 == InvSlot && pItem->GlobalIndex.Index.Slot2 == BagSlot) {
 									return pItem;
 								}
 							}
@@ -7813,7 +7797,7 @@ PCONTENTS FindItemBySlot(short InvSlot, short BagSlot, ItemContainerInstance loc
 			{
 				if (PCONTENTS pItem = pChar->pBankArray->Bank[nSlot])
 				{
-					if (pItem->Contents.ItemSlot == InvSlot && pItem->Contents.ItemSlot2 == BagSlot)
+					if (pItem->GlobalIndex.Index.Slot1 == InvSlot && pItem->GlobalIndex.Index.Slot2 == BagSlot)
 					{
 						return pItem;
 					}
@@ -7832,7 +7816,7 @@ PCONTENTS FindItemBySlot(short InvSlot, short BagSlot, ItemContainerInstance loc
 						{
 							if (PCONTENTS pItem = pPack->GetContent(nItem))
 							{
-								if (pItem->Contents.ItemSlot == InvSlot && pItem->Contents.ItemSlot2 == BagSlot) {
+								if (pItem->GlobalIndex.Index.Slot1 == InvSlot && pItem->GlobalIndex.Index.Slot2 == BagSlot) {
 									return pItem;
 								}
 							}
@@ -7850,7 +7834,7 @@ PCONTENTS FindItemBySlot(short InvSlot, short BagSlot, ItemContainerInstance loc
 			{
 				if (PCONTENTS pItem = pChar->pSharedBankArray->SharedBank[nSlot])
 				{
-					if (pItem->Contents.ItemSlot == InvSlot && pItem->Contents.ItemSlot2 == BagSlot)
+					if (pItem->GlobalIndex.Index.Slot1 == InvSlot && pItem->GlobalIndex.Index.Slot2 == BagSlot)
 					{
 						return pItem;
 					}
@@ -7869,7 +7853,7 @@ PCONTENTS FindItemBySlot(short InvSlot, short BagSlot, ItemContainerInstance loc
 						{
 							if (PCONTENTS pItem = pPack->GetContent(nItem))
 							{
-								if (pItem->Contents.ItemSlot == InvSlot && pItem->Contents.ItemSlot2 == BagSlot) {
+								if (pItem->GlobalIndex.Index.Slot1 == InvSlot && pItem->GlobalIndex.Index.Slot2 == BagSlot) {
 									return pItem;
 								}
 							}
@@ -8067,10 +8051,10 @@ PEQINVSLOT GetInvSlot(DWORD type, short invslot, short bagslot)
 //work in progress -eqmule
 BOOL IsItemInsideContainer(PCONTENTS pItem)
 {
-	if (pItem && pItem->Contents.ItemSlot >= 0 && pItem->Contents.ItemSlot <= NUM_INV_SLOTS) {
+	if (pItem && pItem->GlobalIndex.Index.Slot1 >= 0 && pItem->GlobalIndex.Index.Slot1 <= NUM_INV_SLOTS) {
 		PCHARINFO2 pChar2 = GetCharInfo2();
-		if (pChar2 && pChar2->pInventoryArray && pChar2->pInventoryArray->InventoryArray[pItem->Contents.ItemSlot]) {
-			if (PCONTENTS pItemFound = pChar2->pInventoryArray->InventoryArray[pItem->Contents.ItemSlot]) {
+		if (pChar2 && pChar2->pInventoryArray && pChar2->pInventoryArray->InventoryArray[pItem->GlobalIndex.Index.Slot1]) {
+			if (PCONTENTS pItemFound = pChar2->pInventoryArray->InventoryArray[pItem->GlobalIndex.Index.Slot1]) {
 				if (pItemFound != pItem) {
 					return TRUE;
 				}
@@ -8083,11 +8067,11 @@ BOOL OpenContainer(PCONTENTS pItem, bool hidden, bool flag)
 {
 	if (!pItem)
 		return FALSE;
-	if (PCONTENTS pcont = FindItemBySlot(pItem->Contents.ItemSlot)) {
+	if (PCONTENTS pcont = FindItemBySlot(pItem->GlobalIndex.Index.Slot1)) {
 		if (pcont->Open)
 			return FALSE;
 		if (GetItemFromContents(pcont)->Type == ITEMTYPE_PACK) {
-			if (PEQINVSLOT pSlot = GetInvSlot(0, pcont->Contents.ItemSlot)) {
+			if (PEQINVSLOT pSlot = GetInvSlot(0, pcont->GlobalIndex.Index.Slot1)) {
 				if (hidden) {
 					//put code to hide bag here
 					//until i can figure out how to call moveitemqty
@@ -8113,7 +8097,7 @@ BOOL CloseContainer(PCONTENTS pItem)
 {
 	if (!pItem)
 		return FALSE;
-	if (PCONTENTS pcont = FindItemBySlot(pItem->Contents.ItemSlot)) {
+	if (PCONTENTS pcont = FindItemBySlot(pItem->GlobalIndex.Index.Slot1)) {
 		if (!pcont->Open)
 			return FALSE;
 		if (GetItemFromContents(pcont)->Type == ITEMTYPE_PACK) {
@@ -8132,8 +8116,8 @@ DWORD __stdcall WaitForBagToOpen(PVOID pData)
 	ItemContainerInstance type = (ItemContainerInstance)i64tmp->LowPart;
 	PCONTENTS pItem = (PCONTENTS)i64tmp->HighPart;
 	int timeout = 0;
-	if (PCONTENTS pcont = FindItemBySlot(pItem->Contents.ItemSlot)) {
-		if (CInvSlot * theslot = pInvSlotMgr->FindInvSlot(pItem->Contents.ItemSlot)) {
+	if (PCONTENTS pcont = FindItemBySlot(pItem->GlobalIndex.Index.Slot1)) {
+		if (CInvSlot * theslot = pInvSlotMgr->FindInvSlot(pItem->GlobalIndex.Index.Slot1)) {
 			if (((PEQINVSLOT)theslot)->pInvSlotWnd) {
 				while (!((PEQINVSLOT)theslot)->pInvSlotWnd->Wnd.dShow) {
 					Sleep(10);
@@ -8161,7 +8145,7 @@ DWORD __stdcall WaitForBagToOpen(PVOID pData)
 	bool Old = ((PCXWNDMGR)pWndMgr)->KeyboardFlags[1];
 	((PCXWNDMGR)pWndMgr)->KeyboardFlags[1] = 1;
 	if (ItemOnCursor()) {
-		DropItem(type, pItem->Contents.ItemSlot,pItem->Contents.ItemSlot);
+		DropItem(type, pItem->GlobalIndex.Index.Slot1,pItem->GlobalIndex.Index.Slot1);
 	} else {
 		PickupItem(type, pItem);
 	}
@@ -8190,21 +8174,21 @@ BOOL PickupItem(ItemContainerInstance type, PCONTENTS pItem)
 		bSelectSlot = true;
 	}
 	
-	if (pItem->Contents.ItemSlot2 == -1) {//ok so they want to pick it up from a toplevelslot
-		PEQINVSLOT pSlot = GetInvSlot(type, pItem->Contents.ItemSlot);
+	if (pItem->GlobalIndex.Index.Slot2 == -1) {//ok so they want to pick it up from a toplevelslot
+		PEQINVSLOT pSlot = GetInvSlot(type, pItem->GlobalIndex.Index.Slot1);
 		if (!pSlot || !pSlot->pInvSlotWnd) {
 			//if we got all the way here this really shouldnt happen... but why assume...
-			WriteChatf("Could not find the %d itemslot", pItem->Contents.ItemSlot);
+			WriteChatf("Could not find the %d itemslot", pItem->GlobalIndex.Index.Slot1);
 			return FALSE;
 		}
 		if (bSelectSlot) {
-			if (CInvSlot * theslot = pInvSlotMgr->FindInvSlot(pItem->Contents.ItemSlot)) {
+			if (CInvSlot * theslot = pInvSlotMgr->FindInvSlot(pItem->GlobalIndex.Index.Slot1)) {
 				PEQINVSLOT cSlot = (PEQINVSLOT)theslot;
 				pInvSlotMgr->SelectSlot(theslot);
 				ItemGlobalIndex To;
 				To.Location = eItemContainerPossessions;
-				To.Index.Slot1 = cSlot->pInvSlotWnd->InvSlot;
-				To.Index.Slot2 = cSlot->pInvSlotWnd->BagSlot;
+				To.Index.Slot1 = pItem->GlobalIndex.Index.Slot1;
+				To.Index.Slot2 = pItem->GlobalIndex.Index.Slot2;
 				To.Index.Slot3 = -1;
 				pMerchantWnd->ActualSelect(&To);
 				return TRUE;
@@ -8212,8 +8196,8 @@ BOOL PickupItem(ItemContainerInstance type, PCONTENTS pItem)
 		} else {
 			//just move it from the slot to the cursor
 			ItemGlobalIndex From;
-			From.Location = (ItemContainerInstance)pItem->Contents.ItemLocation;
-			From.Index.Slot1 = pItem->Contents.ItemSlot;
+			From.Location = (ItemContainerInstance)pItem->GlobalIndex.Location;
+			From.Index.Slot1 = pItem->GlobalIndex.Index.Slot1;
 			From.Index.Slot2 = -1;
 			From.Index.Slot3 = -1;
 
@@ -8228,13 +8212,13 @@ BOOL PickupItem(ItemContainerInstance type, PCONTENTS pItem)
 	}
 	else {//BagSlot is NOT -1 so they want to pick it up from INSIDE a bag
 		if (bSelectSlot) {
-			if (CInvSlot * theslot = pInvSlotMgr->FindInvSlot(pItem->Contents.ItemSlot, pItem->Contents.ItemSlot2)) {
+			if (CInvSlot * theslot = pInvSlotMgr->FindInvSlot(pItem->GlobalIndex.Index.Slot1, pItem->GlobalIndex.Index.Slot2)) {
 				PEQINVSLOT cSlot = (PEQINVSLOT)theslot;
 				pInvSlotMgr->SelectSlot(theslot);
 				ItemGlobalIndex To;
 				To.Location = eItemContainerPossessions;
-				To.Index.Slot1 = cSlot->pInvSlotWnd->InvSlot;
-				To.Index.Slot2 = cSlot->pInvSlotWnd->BagSlot;
+				To.Index.Slot1 = pItem->GlobalIndex.Index.Slot1;
+				To.Index.Slot2 = pItem->GlobalIndex.Index.Slot2;
 				To.Index.Slot3 = -1;
 				pMerchantWnd->ActualSelect(&To);
 				return TRUE;
@@ -8243,8 +8227,8 @@ BOOL PickupItem(ItemContainerInstance type, PCONTENTS pItem)
 				//well now is where it gets complicated then... or not...
 				ItemGlobalIndex To;
 				To.Location = eItemContainerPossessions;
-				To.Index.Slot1 = pItem->Contents.ItemSlot;
-				To.Index.Slot2 = pItem->Contents.ItemSlot2;
+				To.Index.Slot1 = pItem->GlobalIndex.Index.Slot1;
+				To.Index.Slot2 = pItem->GlobalIndex.Index.Slot2;
 				To.Index.Slot3 = -1;
 				pMerchantWnd->ActualSelect(&To);
 				return TRUE;
@@ -8257,10 +8241,10 @@ BOOL PickupItem(ItemContainerInstance type, PCONTENTS pItem)
 			DWORD keybflag = pWndMgr->GetKeyboardFlags();
 			if (keybflag == 2 && pItem->StackCount > 1) {//ctrl was pressed and it is a stackable item
 				//I need to open the bag and notify it cause moveitem only picks up full stacks
-				PEQINVSLOT pSlot = GetInvSlot(pItem->Contents.ItemLocation, pItem->Contents.ItemSlot,pItem->Contents.ItemSlot2);
+				PEQINVSLOT pSlot = GetInvSlot(pItem->GlobalIndex.Location, pItem->GlobalIndex.Index.Slot1, pItem->GlobalIndex.Index.Slot2);
 				if (!pSlot) {
 					//well lets try to open it then
-					if (PCONTENTS pBag = FindItemBySlot(pItem->Contents.ItemSlot)) {
+					if (PCONTENTS pBag = FindItemBySlot(pItem->GlobalIndex.Index.Slot1)) {
 						BOOL wechangedpackopenstatus = OpenContainer(pBag, true);
 						if (wechangedpackopenstatus) {
 							if (PLARGE_INTEGER i64tmp = (PLARGE_INTEGER)LocalAlloc(LPTR, sizeof(LARGE_INTEGER))) {
@@ -8272,7 +8256,7 @@ BOOL PickupItem(ItemContainerInstance type, PCONTENTS pItem)
 							}
 						}
 					} else {
-						WriteChatf("[PickupItem] falied due to no bag found in slot %d",pItem->Contents.ItemSlot);
+						WriteChatf("[PickupItem] falied due to no bag found in slot %d", pItem->GlobalIndex.Index.Slot1);
 						return FALSE;
 					}
 				} else {
@@ -8292,9 +8276,9 @@ BOOL PickupItem(ItemContainerInstance type, PCONTENTS pItem)
 			else {//ctrl is NOT pressed
 			 //we can just move the whole stack
 				ItemGlobalIndex From;
-				From.Location = (ItemContainerInstance)pItem->Contents.ItemLocation;
-				From.Index.Slot1 = pItem->Contents.ItemSlot;
-				From.Index.Slot2 = pItem->Contents.ItemSlot2;
+				From.Location = (ItemContainerInstance)pItem->GlobalIndex.Location;
+				From.Index.Slot1 = pItem->GlobalIndex.Index.Slot1;
+				From.Index.Slot2 = pItem->GlobalIndex.Index.Slot2;
 				From.Index.Slot3 = -1;
 
 				ItemGlobalIndex To;
@@ -8974,9 +8958,9 @@ DWORD GetKeyRingIndex(DWORD KeyRing, PCHAR szItemName, SIZE_T BuffLen, bool bExa
 					if (PCHARINFO pCharInfo = GetCharInfo()) {
 						if (CharacterBase *cb = (CharacterBase *)&pCharInfo->pCharacterBase) {
 							ItemGlobalIndex location;
-							location.Location = (ItemContainerInstance)pCont->Contents.ItemLocation;
-							location.Index.Slot1 = pCont->Contents.ItemSlot;
-							location.Index.Slot2 = pCont->Contents.ItemSlot2;
+							location.Location = (ItemContainerInstance)pCont->GlobalIndex.Location;
+							location.Index.Slot1 = pCont->GlobalIndex.Index.Slot1;
+							location.Index.Slot2 = pCont->GlobalIndex.Index.Slot2;
 							location.Index.Slot3 = -1;
 							bKeyring = location.IsKeyRingLocation();
 						}
