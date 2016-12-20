@@ -1066,9 +1066,9 @@ typedef struct _TARGETRING {
 //Nov 14 Live 2016 7A9422
 typedef struct _INVENTORYWND {
 /*0x0000*/ struct _CSIDLWND     Wnd;
-/*0x0228*/ BYTE         Unknown0x0228[0x88];
-/*0x2B0*/ __int64		VitalityCap;
-/*0x2B8*/ int			AAVitalityCap;
+/*0x0228*/ BYTE         Unknown0x0228[0x80];
+/*0x2a8*/ __int64		VitalityCap;
+/*0x2b0*/ int			AAVitalityCap;
 //more
 } INVENTORYWND, *PINVENTORYWND;
 /******************************************** CHECKED *****************************************************************/

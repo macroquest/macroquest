@@ -4728,7 +4728,11 @@ FUNCTION_AT_ADDRESS(int  EQ_PC::GetCombatAbility(int),EQ_PC__GetCombatAbility);
 FUNCTION_AT_ADDRESS(class PcZoneClient *EQ_PC::GetPcZoneClient(void)const,EQ_PC__GetPcZoneClient);
 #endif
 #ifdef EQ_PC__GetCombatAbilityTimer_x
+#ifndef EMU
 FUNCTION_AT_ADDRESS(unsigned long  EQ_PC::GetCombatAbilityTimer(int,int),EQ_PC__GetCombatAbilityTimer);
+#else
+FUNCTION_AT_ADDRESS(unsigned long  EQ_PC::GetCombatAbilityTimer(int),EQ_PC__GetCombatAbilityTimer);
+#endif
 #endif
 #ifdef EQ_PC__HasLoreItem_x
 FUNCTION_AT_ADDRESS(bool EQ_PC::HasLoreItem(class EQ_Item *,int,int,int,int),EQ_PC__HasLoreItem);

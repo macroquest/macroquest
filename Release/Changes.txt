@@ -1,3 +1,6 @@
+20 Dec 2016 by eqmule
+- Updated for TEST
+
 18 Dec 2016 by eqmule
 - OK ILL PUT THIS FIRST SO YOU DON'T MISS IT:
 - I have changed ALL instances of GuildID to __int64 (cause DBG did)

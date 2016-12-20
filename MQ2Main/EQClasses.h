@@ -6031,10 +6031,11 @@ EQLIB_OBJECT void EQ_PC::SetFatigue(int);
 EQLIB_OBJECT void EQ_PC::UnpackMyNetPC(char *,int);
 EQLIB_OBJECT void EQ_PC::AlertInventoryChanged(void);
 //EQ_PC::GetCombatAbilityTimer has 2 parameters confirmed apr 21 2016 eqgame.exe (live) -eqmule
-EQLIB_OBJECT unsigned long EQ_PC::GetCombatAbilityTimer(int,int);
 #if !defined(EMU)
+EQLIB_OBJECT unsigned long EQ_PC::GetCombatAbilityTimer(int,int);
 EQLIB_OBJECT unsigned long EQ_PC::GetItemRecastTimer(class EQ_Item *item,ItemSpellTypes etype);
 #else
+EQLIB_OBJECT unsigned long EQ_PC::GetCombatAbilityTimer(int);
 EQLIB_OBJECT unsigned long EQ_PC::GetItemRecastTimer(class EQ_Item *item);
 #endif
 EQLIB_OBJECT bool EQ_PC::HasLoreItem(class EQ_Item *,int,int,int,int);

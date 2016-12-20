@@ -2876,9 +2876,17 @@ bool MQ2CharacterType::GETMEMBER()
 						if (PSPELL pSpell = GetSpellByID(pPCData->GetCombatAbility(nCombatAbility)))
 						{
 							DWORD timeNow = (DWORD)time(NULL);
+							#ifndef EMU
 							if (pPCData->GetCombatAbilityTimer(pSpell->CARecastTimerID, pSpell->SpellGroup) > timeNow)
+							#else
+							if (pPCData->GetCombatAbilityTimer(pSpell->CARecastTimerID) > timeNow)
+							#endif
 							{
+								#ifndef EMU
 								Dest.Int = pPCData->GetCombatAbilityTimer(pSpell->CARecastTimerID, pSpell->SpellGroup) - timeNow + 6;
+								#else
+								Dest.Int = pPCData->GetCombatAbilityTimer(pSpell->CARecastTimerID) - timeNow + 6;
+								#endif
 								Dest.Int /= 6;
 							}
 							else Dest.Int = 0;
@@ -2899,9 +2907,17 @@ bool MQ2CharacterType::GETMEMBER()
 							if (!_stricmp(GETFIRST(), pSpell->Name))
 							{
 								DWORD timeNow = (DWORD)time(NULL);
+								#ifndef EMU
 								if (pPCData->GetCombatAbilityTimer(pSpell->CARecastTimerID, pSpell->SpellGroup) > timeNow)
+								#else
+								if (pPCData->GetCombatAbilityTimer(pSpell->CARecastTimerID) > timeNow)
+								#endif
 								{
+									#ifndef EMU
 									Dest.Int = pPCData->GetCombatAbilityTimer(pSpell->CARecastTimerID, pSpell->SpellGroup) - timeNow + 6;
+									#else
+									Dest.Int = pPCData->GetCombatAbilityTimer(pSpell->CARecastTimerID) - timeNow + 6;
+									#endif
 									Dest.Int /= 6;
 								}
 								else Dest.Int = 0;
@@ -2929,7 +2945,11 @@ bool MQ2CharacterType::GETMEMBER()
 						if (PSPELL pSpell = GetSpellByID(pPCData->GetCombatAbility(nCombatAbility)))
 						{
 							DWORD timeNow = (DWORD)time(NULL);
+							#ifndef EMU
 							if (pPCData->GetCombatAbilityTimer(pSpell->CARecastTimerID, pSpell->SpellGroup) < timeNow)
+							#else
+							if (pPCData->GetCombatAbilityTimer(pSpell->CARecastTimerID) < timeNow)
+							#endif
 							{
 								Dest.DWord = 1;
 								return true;
@@ -2949,7 +2969,11 @@ bool MQ2CharacterType::GETMEMBER()
 							if (!_stricmp(GETFIRST(), pSpell->Name))
 							{
 								DWORD timeNow = (DWORD)time(NULL);
+								#ifndef EMU
 								if (pPCData->GetCombatAbilityTimer(pSpell->CARecastTimerID, pSpell->SpellGroup) < timeNow)
+								#else
+								if (pPCData->GetCombatAbilityTimer(pSpell->CARecastTimerID) < timeNow)
+								#endif
 								{
 									Dest.DWord = 1;
 									return true;
